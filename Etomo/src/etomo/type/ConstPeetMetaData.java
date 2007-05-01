@@ -13,6 +13,9 @@ package etomo.type;
 * @version $Revision$
 * 
 * <p> $Log$
+* <p> Revision 1.5  2007/04/11 22:16:08  sueh
+* <p> bug# 964 Added getEdgeShift.
+* <p>
 * <p> Revision 1.4  2007/04/09 20:58:25  sueh
 * <p> bug# 964 Added support for reference.
 * <p>
@@ -38,4 +41,7 @@ public interface ConstPeetMetaData {
   public ConstEtomoNumber getReferenceParticle();
   public ConstEtomoNumber getReferenceVolume();
   public String getEdgeShift();
+  public ConstEtomoNumber getYaxisContourModelNumber();
+  public String getYaxisContourObjectNumber();
+  public String getYaxisContourContourNumber();
 }

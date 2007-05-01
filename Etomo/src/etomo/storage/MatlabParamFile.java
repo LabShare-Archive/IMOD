@@ -42,6 +42,10 @@ import etomo.ui.UIHarness;
  * @version $Revision$
  * 
  * <p> $Log$
+ * <p> Revision 1.19  2007/04/26 02:45:23  sueh
+ * <p> bug# 964 Fixed problems with defaultValue.  Added ParsedArray.compact
+ * <p> when empty array elements should not be displayed (lstThresholds).
+ * <p>
  * <p> Revision 1.18  2007/04/20 20:51:30  sueh
  * <p> bug# 964 Added support for refFlagAllTom, lstFlagAllTom, ParticlePerCpu.
  * <p>
@@ -114,8 +118,6 @@ public final class MatlabParamFile {
   public static final String rcsid = "$Id$";
 
   public static final String REFERENCE_KEY = "reference";
-  public static final int REFERENCE_VOLUME_INDEX = 0;
-  public static final int REFERENCE_PARTICLE_INDEX = 1;
   public static final String FN_VOLUME_KEY = "fnVolume";
   public static final String FN_MOD_PARTICLE_KEY = "fnModParticle";
   public static final String INIT_MOTL_KEY = "initMOTL";
@@ -142,11 +144,6 @@ public final class MatlabParamFile {
   public static final String EDGE_SHIFT_KEY = "edgeShift";
   public static final int EDGE_SHIFT_DEFAULT = 2;
   public static final String LST_THRESHOLDS_KEY = "lstThresholds";
-  public static final int LST_THRESHOLDS_DESCRIPTOR_INDEX = 0;
-  public static final int LST_THRESHOLDS_ADDITIONAL_INDEX = 1;
-  public static final int LST_THRESHOLDS_START_INDEX = 0;
-  public static final int LST_THRESHOLDS_INCREMENT_INDEX = 1;
-  public static final int LST_THRESHOLDS_END_INDEX = 2;
   public static final String LST_FLAG_ALL_TOM_KEY = "lstFlagAllTom";
   public static final String MEAN_FILL_KEY = "meanFill";
   public static final boolean MEAN_FILL_DEFAULT = true;
@@ -159,6 +156,19 @@ public final class MatlabParamFile {
   public static final int PARTICLE_PER_CPU_MIN = 1;
   public static final int PARTICLE_PER_CPU_MAX = 50;
   public static final int PARTICLE_PER_CPU_DEFAULT = 5;
+  public static final String YAXIS_TYPE_KEY = "yaxisType";
+  public static final String YAXIS_CONTOUR_KEY = "yaxisContour";
+
+  private static final int REFERENCE_VOLUME_INDEX = 0;
+  private static final int REFERENCE_PARTICLE_INDEX = 1;
+  private static final int LST_THRESHOLDS_DESCRIPTOR_INDEX = 0;
+  private static final int LST_THRESHOLDS_ADDITIONAL_INDEX = 1;
+  private static final int LST_THRESHOLDS_START_INDEX = 0;
+  private static final int LST_THRESHOLDS_INCREMENT_INDEX = 1;
+  private static final int LST_THRESHOLDS_END_INDEX = 2;
+  private static final int YAXIS_CONTOUR_MODEL_NUMBER_INDEX = 0;
+  private static final int YAXIS_CONTOUR_OBJECT_NUMBER_INDEX = 1;
+  private static final int YAXIS_CONTOUR_CONTOUR_NUMBER_INDEX = 2;
 
   private static final Integer[] RELATIVE_ORIENT_DEFAULT_VALUE_ARRAY = new Integer[] {
       new Integer(0), new Integer(0), new Integer(0) };
@@ -179,13 +189,17 @@ public final class MatlabParamFile {
   private final List iterationList = new ArrayList();
   private final ParsedQuotedString referenceFile = new ParsedQuotedString();
   private final ParsedArray reference = ParsedArray.getInstance();
+  private final ParsedArray yaxisContour = ParsedArray.getInstance();
   private final File file;
+
   private String lowCutoff = LOW_CUTOFF_DEFAULT;
   private InitMotlCode initMotlCode = InitMotlCode.DEFAULT;
   private CCMode ccMode = CCMode.DEFAULT;
   private boolean tiltRangeEmpty = false;
   private boolean useReferenceFile = false;
+  private YaxisType yaxisType = YaxisType.DEFAULT;
   private boolean newFile;
+  private boolean useYaxisContour = false;
 
   public MatlabParamFile(File file, boolean newFile) {
     this.file = file;
@@ -337,12 +351,21 @@ public final class MatlabParamFile {
     return ccMode;
   }
 
+  public YaxisType getYaxisType() {
+    return yaxisType;
+  }
+
   public void setInitMotlCode(EnumeratedType enumeratedType) {
     initMotlCode = (InitMotlCode) enumeratedType;
   }
 
   public void setCcMode(EnumeratedType enumeratedType) {
     ccMode = (CCMode) enumeratedType;
+  }
+
+  public void setYaxisType(EnumeratedType enumeratedType) {
+    yaxisType = (YaxisType) enumeratedType;
+    useYaxisContour = yaxisType == YaxisType.CONTOUR;
   }
 
   public void setFnOutput(final String fnOutput) {
@@ -398,12 +421,29 @@ public final class MatlabParamFile {
     reference.setRawString(REFERENCE_VOLUME_INDEX, referenceVolume.toString());
   }
 
+  public void setYaxisContourModelNumber(final Number input) {
+    yaxisContour.setRawString(YAXIS_CONTOUR_MODEL_NUMBER_INDEX, input
+        .toString());
+  }
+
   public String getReferenceParticle() {
     return reference.getRawString(REFERENCE_PARTICLE_INDEX);
   }
 
   public ParsedElement getReferenceVolume() {
     return reference.getElement(REFERENCE_VOLUME_INDEX);
+  }
+
+  public ParsedElement getYaxisContourModelNumber() {
+    return yaxisContour.getElement(YAXIS_CONTOUR_MODEL_NUMBER_INDEX);
+  }
+
+  public String getYaxisContourObjectNumber() {
+    return yaxisContour.getRawString(YAXIS_CONTOUR_OBJECT_NUMBER_INDEX);
+  }
+
+  public String getYaxisContourContourNumber() {
+    return yaxisContour.getRawString(YAXIS_CONTOUR_CONTOUR_NUMBER_INDEX);
   }
 
   public void setEdgeShift(String edgeShift) {
@@ -430,6 +470,9 @@ public final class MatlabParamFile {
     ccMode = CCMode.DEFAULT;
     tiltRangeEmpty = false;
     useReferenceFile = false;
+    yaxisType = YaxisType.DEFAULT;
+    useYaxisContour = false;
+    yaxisContour.clear();
   }
 
   public void clearEdgeShift() {
@@ -516,6 +559,14 @@ public final class MatlabParamFile {
   public void setReferenceParticle(final String referenceParticle) {
     useReferenceFile = false;
     reference.setRawString(REFERENCE_PARTICLE_INDEX, referenceParticle);
+  }
+
+  public void setYaxisContourObjectNumber(final String input) {
+    yaxisContour.setRawString(YAXIS_CONTOUR_OBJECT_NUMBER_INDEX, input);
+  }
+
+  public void setYaxisContourContourNumber(final String input) {
+    yaxisContour.setRawString(YAXIS_CONTOUR_CONTOUR_NUMBER_INDEX, input);
   }
 
   public void setReferenceFile(final String referenceFile) {
@@ -641,6 +692,11 @@ public final class MatlabParamFile {
     alignedBaseName.parse(autodoc.getAttribute(ALIGNED_BASE_NAME_KEY));
     //debugLevel
     debugLevel.parse(autodoc.getAttribute(DEBUG_LEVEL_KEY));
+    //YaxisType
+    yaxisType = YaxisType.getInstance(autodoc.getAttribute(YAXIS_TYPE_KEY));
+    useYaxisContour = yaxisType == YaxisType.CONTOUR;
+    //YaxisContour
+    yaxisContour.parse(autodoc.getAttribute(YAXIS_CONTOUR_KEY));
   }
 
   /**
@@ -790,6 +846,10 @@ public final class MatlabParamFile {
     valueMap.put(REF_FLAG_ALL_TOM_KEY, refFlagAllTom.getParsableString());
     valueMap.put(LST_FLAG_ALL_TOM_KEY, lstFlagAllTom.getParsableString());
     valueMap.put(PARTICLE_PER_CPU_KEY, particlePerCpu.getParsableString());
+    valueMap.put(YAXIS_TYPE_KEY, yaxisType.toString());
+    if (useYaxisContour) {
+      valueMap.put(YAXIS_CONTOUR_KEY, yaxisContour.getParsableString());
+    }
   }
 
   /**
@@ -933,6 +993,10 @@ public final class MatlabParamFile {
         .get(LST_FLAG_ALL_TOM_KEY), commentMap);
     setNameValuePairValue(autodoc, PARTICLE_PER_CPU_KEY, (String) valueMap
         .get(PARTICLE_PER_CPU_KEY), commentMap);
+    setNameValuePairValue(autodoc, YAXIS_TYPE_KEY, (String) valueMap
+        .get(YAXIS_TYPE_KEY), commentMap);
+    setNameValuePairValue(autodoc, YAXIS_CONTOUR_KEY, (String) valueMap
+        .get(YAXIS_CONTOUR_KEY), commentMap);
   }
 
   /**
@@ -988,6 +1052,9 @@ public final class MatlabParamFile {
    */
   private void setNameValuePairValue(final WritableAutodoc autodoc,
       final String name, final String value, final Map commentMap) {
+    if (value == null) {
+      return;
+    }
     WritableAttribute attribute = autodoc.getWritableAttribute(name);
     if (attribute == null) {
       if (commentMap == null) {
@@ -1116,6 +1183,53 @@ public final class MatlabParamFile {
     }
   }
 
+  public static final class YaxisType implements EnumeratedType {
+    private static final EtomoNumber Y_AXIS_VALUE = new EtomoNumber().set(0);
+    private static final EtomoNumber PARTICLE_MODEL_VALUE = new EtomoNumber()
+        .set(1);
+    private static final EtomoNumber CONTOUR_VALUE = new EtomoNumber().set(2);
+
+    public static final YaxisType Y_AXIS = new YaxisType(Y_AXIS_VALUE);
+    public static final YaxisType PARTICLE_MODEL = new YaxisType(
+        PARTICLE_MODEL_VALUE);
+    public static final YaxisType CONTOUR = new YaxisType(CONTOUR_VALUE);
+    public static final YaxisType DEFAULT = Y_AXIS;
+
+    private final ConstEtomoNumber value;
+
+    private YaxisType(final ConstEtomoNumber value) {
+      this.value = value;
+    }
+
+    public boolean isDefault() {
+      return this == DEFAULT;
+    }
+
+    public String toString() {
+      return value.toString();
+    }
+
+    private static YaxisType getInstance(final ReadOnlyAttribute attribute) {
+      if (attribute == null) {
+        return DEFAULT;
+      }
+      String value = attribute.getValue();
+      if (value == null) {
+        return DEFAULT;
+      }
+      if (Y_AXIS_VALUE.equals(value)) {
+        return Y_AXIS;
+      }
+      if (PARTICLE_MODEL_VALUE.equals(value)) {
+        return PARTICLE_MODEL;
+      }
+      if (CONTOUR_VALUE.equals(value)) {
+        return CONTOUR;
+      }
+      return DEFAULT;
+    }
+  }
+
   public static final class CCMode implements EnumeratedType {
     private static final EtomoNumber NORMALIZED_VALUE = new EtomoNumber()
         .set(0);
@@ -1132,10 +1246,7 @@ public final class MatlabParamFile {
     }
 
     public boolean isDefault() {
-      if (this == DEFAULT) {
-        return true;
-      }
-      return false;
+      return this == DEFAULT;
     }
 
     private static CCMode getInstance(final ReadOnlyAttribute attribute) {

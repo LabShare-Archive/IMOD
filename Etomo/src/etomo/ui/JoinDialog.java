@@ -56,6 +56,10 @@ import etomo.util.DatasetFiles;
  * @version $Revision$
  *
  * <p> $Log$
+ * <p> Revision 1.48  2007/03/30 23:50:50  sueh
+ * <p> bug# 964 In FileTextField, changed setEnabled to setEditable and then added a new
+ * <p> setEnabled.
+ * <p>
  * <p> Revision 1.47  2007/03/21 19:45:54  sueh
  * <p> bug# 964 Limiting access to autodoc classes by using ReadOnly interfaces.
  * <p> Added AutodocFactory to create Autodoc instances.
@@ -871,7 +875,7 @@ public final class JoinDialog implements ContextMenu, Run3dmodButtonContainer {
     pnlMidasLimit.add(ltfMidasLimit.getContainer());
     pnlMidasLimit.add(lblMidasLimit);
     //fifth component
-    SpinnerModel spinnerModel = new SpinnerNumberModel(1, 1,
+    SpinnerNumberModel spinnerModel = new SpinnerNumberModel(1, 1,
         numSections < 1 ? 1 : numSections, 1);
     spinDensityRefSection = new LabeledSpinner(
         "Reference section for density matching: ", spinnerModel);
@@ -1039,7 +1043,7 @@ public final class JoinDialog implements ContextMenu, Run3dmodButtonContainer {
     SpacedPanel pnlUseEvery = new SpacedPanel();
     pnlUseEvery.setBoxLayout(BoxLayout.X_AXIS);
     int zMax = pnlSectionTable.getZMax();
-    SpinnerModel spinnerModel = new SpinnerNumberModel(zMax < 1 ? 1
+    SpinnerNumberModel spinnerModel = new SpinnerNumberModel(zMax < 1 ? 1
         : zMax < 10 ? zMax : 10, 1, zMax < 1 ? 1 : zMax, 1);
     spinRejoinUseEveryNSlices = new LabeledSpinner("Use every ", spinnerModel);
     spinRejoinUseEveryNSlices.setTextMaxmimumSize(dimSpinner);
@@ -1170,7 +1174,7 @@ public final class JoinDialog implements ContextMenu, Run3dmodButtonContainer {
     SpacedPanel trialJoinPanel1 = new SpacedPanel();
     trialJoinPanel1.setBoxLayout(BoxLayout.X_AXIS);
     int zMax = pnlSectionTable.getZMax();
-    SpinnerModel spinnerModel = new SpinnerNumberModel(zMax < 1 ? 1
+    SpinnerNumberModel spinnerModel = new SpinnerNumberModel(zMax < 1 ? 1
         : zMax < 10 ? zMax : 10, 1, zMax < 1 ? 1 : zMax, 1);
     spinUseEveryNSlices = new LabeledSpinner("Use every ", spinnerModel);
     spinUseEveryNSlices.setTextMaxmimumSize(dimSpinner);
@@ -1211,7 +1215,7 @@ public final class JoinDialog implements ContextMenu, Run3dmodButtonContainer {
     EtomoNumber spinnerValue = new EtomoNumber(EtomoNumber.Type.INTEGER);
     spinnerValue.set(spinDensityRefSection.getValue());
     spinnerValue.setDisplayValue(1);
-    SpinnerModel spinnerModel = new SpinnerNumberModel(spinnerValue.getInt(),
+    SpinnerNumberModel spinnerModel = new SpinnerNumberModel(spinnerValue.getInt(),
         1, numSections < 1 ? 1 : numSections, 1);
     spinDensityRefSection.setModel(spinnerModel);
     //alignment (join)

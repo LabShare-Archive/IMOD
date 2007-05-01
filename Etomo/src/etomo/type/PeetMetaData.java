@@ -21,6 +21,9 @@ import etomo.util.DatasetFiles;
  * @notthreadsafe
  * 
  * <p> $Log$
+ * <p> Revision 1.9  2007/04/11 22:21:35  sueh
+ * <p> bug# 964 Added edgeShift.
+ * <p>
  * <p> Revision 1.8  2007/04/09 21:11:33  sueh
  * <p> bug# 964 Added support for reference.
  * <p>
@@ -54,6 +57,7 @@ public class PeetMetaData extends BaseMetaData implements ConstPeetMetaData {
   private static final String TILT_RANGE_KEY = "TiltRange";
   private static final String GROUP_KEY = "Peet";
   private static final String REFERENCE_KEY = "Reference";
+  private static final String YAXIS_CONTOUR_KEY = "YaxisContour";
   private final StringProperty rootName = new StringProperty("RootName");
   private final IntKeyList initMotlFile = IntKeyList
       .getStringInstance("InitMotlFile");
@@ -68,6 +72,12 @@ public class PeetMetaData extends BaseMetaData implements ConstPeetMetaData {
   private final StringProperty referenceFile = new StringProperty(REFERENCE_KEY
       + ".File");
   private final EtomoNumber edgeShift = new EtomoNumber("EdgeShift");
+  private final EtomoNumber yaxisContourModelNumber = new EtomoNumber(YAXIS_CONTOUR_KEY
+      + ".ModelNumber");
+  private final EtomoNumber yaxisContourObjectNumber = new EtomoNumber(YAXIS_CONTOUR_KEY
+      + ".ObjectNumber");
+  private final EtomoNumber yaxisContourContourNumber = new EtomoNumber(YAXIS_CONTOUR_KEY
+      + ".ContourNumber");
 
   public PeetMetaData() {
     fileExtension = DatasetFiles.PEET_DATA_FILE_EXT;
@@ -127,6 +137,9 @@ public class PeetMetaData extends BaseMetaData implements ConstPeetMetaData {
     referenceParticle.load(props, prepend);
     referenceFile.load(props,prepend);
     edgeShift.load(props,prepend);
+    yaxisContourModelNumber.load(props,prepend);
+    yaxisContourObjectNumber.load(props,prepend);
+    yaxisContourContourNumber.load(props,prepend);
   }
 
   public void store(Properties props, String prepend) {
@@ -140,6 +153,9 @@ public class PeetMetaData extends BaseMetaData implements ConstPeetMetaData {
     referenceParticle.store(props, prepend);
     referenceFile.store(props,  prepend);
     edgeShift.store(props,prepend);
+    yaxisContourModelNumber.store(props,prepend);
+    yaxisContourObjectNumber.store(props,prepend);
+    yaxisContourContourNumber.store(props,prepend);
   }
   
   public String getEdgeShift() {
@@ -185,6 +201,18 @@ public class PeetMetaData extends BaseMetaData implements ConstPeetMetaData {
   public ConstEtomoNumber getReferenceVolume() {
     return referenceVolume;
   }
+  
+  public ConstEtomoNumber getYaxisContourModelNumber() {
+    return yaxisContourModelNumber;
+  }
+  
+  public String getYaxisContourObjectNumber() {
+    return yaxisContourObjectNumber.toString();
+  }
+  
+  public String getYaxisContourContourNumber() {
+    return yaxisContourContourNumber.toString();
+  }
 
   public void setReferenceFile(String referenceFile) {
     this.referenceFile.set(referenceFile);
@@ -196,6 +224,18 @@ public class PeetMetaData extends BaseMetaData implements ConstPeetMetaData {
 
   public void setReferenceVolume(Number referenceVolume) {
     this.referenceVolume.set(referenceVolume);
+  }
+  
+  public void setYaxisContourModelNumber(Number input) {
+    yaxisContourModelNumber.set(input);
+  }
+  
+  public void setYaxisContourObjectNumber(String input) {
+    yaxisContourObjectNumber.set(input);
+  }
+  
+  public void setYaxisContourContourNumber(String input) {
+    yaxisContourContourNumber.set(input);
   }
 
   private static String createPrepend(String prepend) {
@@ -212,5 +252,8 @@ public class PeetMetaData extends BaseMetaData implements ConstPeetMetaData {
     referenceVolume.reset();
     referenceParticle.reset();
     referenceFile.reset();
+    yaxisContourModelNumber.reset();
+    yaxisContourObjectNumber.reset();
+    yaxisContourContourNumber.reset();
   }
 }
