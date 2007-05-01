@@ -2,9 +2,21 @@ Version = 1.2
 
 [Field = reference] 
 comment = reference:
-^  * If it is a string it should specify the name of an MRC file containing the reference 		
-^    volume.
-^  * If it is [i  j]. It specifies the reference to be the jth particle of the ith tomogram.
+^  * If it is a string it should specify the name of an MRC file containing the
+^    reference volume.
+^  * If it is [i  j], it specifies the reference to be the jth particle of the
+^    ith tomogram.
+
+[Field = yaxisType]
+comment = yaxisType:
+^  0: use original Y axis as the twisting yaxis;
+^  1: use particle model points to determine the twisting yaxis; It is computed point to point.
+^  2: end points of the contour specified by the "yaxisContour" parameter.
+
+[Field = yaxisContour]
+comment = yaxisContour
+^specify the contour of a model  whose points are used to determine the Y axis.
+^format: [modelNumber objectNumber contourNumber]
 
 [Field = relativeOrient]
 comment = relativeOrient:
