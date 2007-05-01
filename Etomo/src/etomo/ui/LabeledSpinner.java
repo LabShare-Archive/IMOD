@@ -12,6 +12,9 @@
  * @version $Revision$
  * 
  * <p> $Log$
+ * <p> Revision 1.17  2007/03/01 01:39:08  sueh
+ * <p> bug# 964 Moved colors from UIUtilities to Colors.
+ * <p>
  * <p> Revision 1.16  2007/02/09 00:50:18  sueh
  * <p> bug# 962 Made TooltipFormatter a singleton and moved its use to low-level ui
  * <p> classes.
@@ -89,7 +92,7 @@ import javax.swing.JFormattedTextField;
 import javax.swing.JLabel;
 import javax.swing.JPanel;
 import javax.swing.JSpinner;
-import javax.swing.SpinnerModel;
+import javax.swing.SpinnerNumberModel;
 
 import etomo.EtomoDirector;
 import etomo.storage.autodoc.AutodocTokenizer;
@@ -100,14 +103,17 @@ import etomo.util.Utilities;
 public class LabeledSpinner {
   public static final String rcsid = "$Id$";
 
-  private JPanel panel = new JPanel();
-  private JLabel label = new JLabel();
-  private JSpinner spinner = new JSpinner();
+  private final JPanel panel = new JPanel();
+  private final JLabel label = new JLabel();
+  private final JSpinner spinner = new JSpinner();
+  
+  private SpinnerNumberModel model;
 
   /**
    * @param spinner
    */
-  public LabeledSpinner(String spinLabel, SpinnerModel model) {
+  public LabeledSpinner(String spinLabel, SpinnerNumberModel model) {
+    this.model = model;
     //set name
     String name = Utilities.convertLabelToName(spinLabel);
     spinner.setName(name);
@@ -134,8 +140,13 @@ public class LabeledSpinner {
     }
     spinner.setMaximumSize(maxSize);
   }
+  
+  void setMax(int max) {
+    model.setMaximum(new Integer(max));
+  }
 
-  public void setModel(SpinnerModel model) {
+  public void setModel(SpinnerNumberModel model) {
+    this.model =model;
     spinner.setModel(model);
   }
 
