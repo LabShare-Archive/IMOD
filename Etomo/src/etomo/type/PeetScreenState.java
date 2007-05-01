@@ -16,6 +16,10 @@ import java.util.Properties;
 * @version $Revision$
 * 
 * <p> $Log$
+* <p> Revision 1.2  2007/04/19 21:58:24  sueh
+* <p> bug# 964 Added petRunParametersHeaderState and
+* <p> peetRunParametersHeaderState.
+* <p>
 * <p> Revision 1.1  2007/02/21 04:21:20  sueh
 * <p> bug# 964 Screen state for PEET interface.
 * <p> </p>
@@ -25,8 +29,6 @@ public final class PeetScreenState extends BaseScreenState implements ConstPeetS
   
   private final PanelHeaderState peetSetupHeaderState = new PanelHeaderState(
       DialogType.PEET.getStorableName()+".Setup."+PanelHeaderState.KEY);
-  private final PanelHeaderState peetRunParametersHeaderState = new PanelHeaderState(
-      DialogType.PEET.getStorableName()+".RunParameters."+PanelHeaderState.KEY);
   private final PanelHeaderState peetRunHeaderState = new PanelHeaderState(
       DialogType.PEET.getStorableName()+".Run."+PanelHeaderState.KEY);
   
@@ -36,10 +38,6 @@ public final class PeetScreenState extends BaseScreenState implements ConstPeetS
   
   public PanelHeaderState getPeetSetupHeaderState() {
     return peetSetupHeaderState;
-  }
-  
-  public PanelHeaderState getPeetRunParametersHeaderState() {
-    return peetRunParametersHeaderState;
   }
   
   public PanelHeaderState getPeetRunHeaderState() {
@@ -54,7 +52,6 @@ public final class PeetScreenState extends BaseScreenState implements ConstPeetS
     super.load(props,prepend);
     prepend=getPrepend(prepend);
     peetSetupHeaderState.load(props,prepend);
-    peetRunParametersHeaderState.load(props,prepend);
     peetRunHeaderState.load(props,prepend);
   }
   
@@ -66,7 +63,6 @@ public final class PeetScreenState extends BaseScreenState implements ConstPeetS
     super.store(props,prepend);
     prepend=getPrepend(prepend);
     peetSetupHeaderState.store(props,prepend);
-    peetRunParametersHeaderState.store(props,prepend);
     peetRunHeaderState.store(props,prepend);
   }
 }
