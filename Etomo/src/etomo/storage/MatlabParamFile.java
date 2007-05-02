@@ -42,6 +42,9 @@ import etomo.ui.UIHarness;
  * @version $Revision$
  * 
  * <p> $Log$
+ * <p> Revision 1.20  2007/05/01 22:26:00  sueh
+ * <p> bug# 964 Added yaxisType and yaxisContour.
+ * <p>
  * <p> Revision 1.19  2007/04/26 02:45:23  sueh
  * <p> bug# 964 Fixed problems with defaultValue.  Added ParsedArray.compact
  * <p> when empty array elements should not be displayed (lstThresholds).
@@ -158,6 +161,7 @@ public final class MatlabParamFile {
   public static final int PARTICLE_PER_CPU_DEFAULT = 5;
   public static final String YAXIS_TYPE_KEY = "yaxisType";
   public static final String YAXIS_CONTOUR_KEY = "yaxisContour";
+  public static final boolean REFERENCE_FILE_DEFAULT = false;
 
   private static final int REFERENCE_VOLUME_INDEX = 0;
   private static final int REFERENCE_PARTICLE_INDEX = 1;
@@ -169,7 +173,6 @@ public final class MatlabParamFile {
   private static final int YAXIS_CONTOUR_MODEL_NUMBER_INDEX = 0;
   private static final int YAXIS_CONTOUR_OBJECT_NUMBER_INDEX = 1;
   private static final int YAXIS_CONTOUR_CONTOUR_NUMBER_INDEX = 2;
-
   private static final Integer[] RELATIVE_ORIENT_DEFAULT_VALUE_ARRAY = new Integer[] {
       new Integer(0), new Integer(0), new Integer(0) };
   private static final Integer[] SEARCH_SPACE_DEFAULT_VALUE_ARRAY = new Integer[] {
@@ -196,7 +199,7 @@ public final class MatlabParamFile {
   private InitMotlCode initMotlCode = InitMotlCode.DEFAULT;
   private CCMode ccMode = CCMode.DEFAULT;
   private boolean tiltRangeEmpty = false;
-  private boolean useReferenceFile = false;
+  private boolean useReferenceFile = REFERENCE_FILE_DEFAULT;
   private YaxisType yaxisType = YaxisType.DEFAULT;
   private boolean newFile;
   private boolean useYaxisContour = false;
