@@ -48,10 +48,6 @@ public final class EtomoMenu {
       KeyEvent.VK_A);
   private final JMenuItem menuFileClose = new JMenuItem("Close", KeyEvent.VK_C);
   private final JMenuItem menuFileExit = new JMenuItem("Exit", KeyEvent.VK_X);
-  private final JMenuItem menuFileDuplicatePeet = new JMenuItem(
-      "Duplicate PEET", KeyEvent.VK_D);
-  private final JMenuItem menuFileImportPrm = new JMenuItem("Import .prm File",
-      KeyEvent.VK_I);
   private final JMenuItem menuFileTomosnapshot = new JMenuItem(
       "Run Tomosnapshot", KeyEvent.VK_R);
   private final JMenuItem[] menuMRUList = new JMenuItem[nMRUFileMax];
@@ -114,8 +110,6 @@ public final class EtomoMenu {
     menuFileSaveAs.addActionListener(fileActionListener);
     menuFileClose.addActionListener(fileActionListener);
     menuFileExit.addActionListener(fileActionListener);
-    menuFileDuplicatePeet.addActionListener(fileActionListener);
-    menuFileImportPrm.addActionListener(fileActionListener);
     menuFileTomosnapshot.addActionListener(fileActionListener);
 
     OptionsActionListener optionsActionListener = new OptionsActionListener(
@@ -146,9 +140,6 @@ public final class EtomoMenu {
     menuFile.add(menuFileSaveAs);
     menuFile.add(menuFileClose);
     menuFile.add(menuFileExit);
-    menuFile.addSeparator();
-    menuFile.add(menuFileDuplicatePeet);
-    menuFile.add(menuFileImportPrm);
     menuFile.addSeparator();
     menuFile.add(menuFileTomosnapshot);
     menuFile.addSeparator();
@@ -233,8 +224,6 @@ public final class EtomoMenu {
         .isEnabled());
     menuFileNewPeet.setEnabled(mainFrameMenu.menuFileNewPeet.isEnabled());
     menuFileSaveAs.setEnabled(mainFrameMenu.menuFileSaveAs.isEnabled());
-    menuFileDuplicatePeet.setEnabled(menuFileDuplicatePeet.isEnabled());
-    menuFileImportPrm.setEnabled(menuFileImportPrm.isEnabled());
     menuFileTomosnapshot.setEnabled(menuFileTomosnapshot.isEnabled());
     menuAxisA.setEnabled(mainFrameMenu.menuAxisA.isEnabled());
     menuAxisB.setEnabled(mainFrameMenu.menuAxisB.isEnabled());
@@ -297,11 +286,6 @@ public final class EtomoMenu {
 
   void setEnabledFileNewPeet(final boolean enable) {
     menuFileNewPeet.setEnabled(enable);
-    menuFileImportPrm.setEnabled(enable);
-  }
-
-  void setEnabledFileDuplicatePeet(final boolean enable) {
-    menuFileDuplicatePeet.setEnabled(enable);
   }
 
   boolean equalsFileNewTomogram(final ActionEvent event) {
@@ -318,14 +302,6 @@ public final class EtomoMenu {
 
   boolean equalsFileNewPeet(final ActionEvent event) {
     return equals(menuFileNewPeet, event);
-  }
-
-  boolean equalsFileDuplicatePeet(final ActionEvent event) {
-    return equals(menuFileNewPeet, event);
-  }
-
-  boolean equalsFileImportPrm(final ActionEvent event) {
-    return equals(menuFileImportPrm, event);
   }
 
   boolean equalsFileOpen(final ActionEvent event) {
@@ -463,6 +439,9 @@ public final class EtomoMenu {
 }
 /**
  * <p> $Log$
+ * <p> Revision 1.10  2007/05/02 16:34:46  sueh
+ * <p> bug# 964 Moved newstuff into mainstream.
+ * <p>
  * <p> Revision 1.9  2007/03/31 03:00:38  sueh
  * <p> bug# 964 Added Duplicate Peet and Import .prm File menu items.
  * <p>

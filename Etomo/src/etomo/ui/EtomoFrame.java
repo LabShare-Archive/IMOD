@@ -147,12 +147,6 @@ abstract class EtomoFrame extends JFrame {
         System.exit(0);
       }
     }
-    else if (menu.equalsFileDuplicatePeet(event)) {
-      //TODO bug# 964
-    }
-    else if (menu.equalsFileImportPrm(event)) {   
-      //TODO bug# 964
-    }
     else if (menu.equalsFileTomosnapshot(event)) {
       currentManager.tomosnapshot(axisID);
     }
@@ -364,14 +358,6 @@ abstract class EtomoFrame extends JFrame {
     EtomoFrame otherFrame = getOtherFrame();
     if (otherFrame != null) {
       getOtherFrame().menu.setEnabledFileNewPeet(enable);
-    }
-  }
-
-  void setEnabledDuplicatePeetMenuItem(boolean enable) {
-    menu.setEnabledFileDuplicatePeet(enable);
-    EtomoFrame otherFrame = getOtherFrame();
-    if (otherFrame != null) {
-      getOtherFrame().menu.setEnabledFileDuplicatePeet(enable);
     }
   }
 
@@ -870,6 +856,9 @@ abstract class EtomoFrame extends JFrame {
 }
 /**
  * <p> $Log$
+ * <p> Revision 1.32  2007/03/31 03:00:24  sueh
+ * <p> bug# 964 Added Duplicate Peet and Import .prm File menu items.
+ * <p>
  * <p> Revision 1.31  2007/03/01 01:31:12  sueh
  * <p> bug# 964 Fixed bug in getParamFilename (Save As).  Tried to fill in a default
  * <p> selected file that might be null.

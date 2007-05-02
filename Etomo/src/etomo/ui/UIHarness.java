@@ -377,12 +377,6 @@ public final class UIHarness {
     }
   }
   
-  public void setEnabledDuplicatePeetMenuItem(boolean enable) {
-    if (isHead()) {
-      mainFrame.setEnabledDuplicatePeetMenuItem(enable);
-    }
-  }
-  
   public void addWindow(BaseManager manager, UniqueKey managerKey) {
     if (isHead()) {
       mainFrame.addWindow(manager, managerKey);
@@ -528,6 +522,9 @@ public final class UIHarness {
 }
 /**
 * <p> $Log$
+* <p> Revision 1.26  2007/04/19 22:07:03  sueh
+* <p> bug# 964 Preventing a ull point buger.
+* <p>
 * <p> Revision 1.25  2007/03/31 03:03:10  sueh
 * <p> bug# 964 Enabling/disabling Duplicate Peet menu item.
 * <p>

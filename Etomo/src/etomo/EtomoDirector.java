@@ -478,7 +478,6 @@ public class EtomoDirector {
     if (peetFileName == null || peetFileName.equals(PeetMetaData.NEW_TITLE)) {
       manager = new PeetManager();
       uiHarness.setEnabledNewPeetMenuItem(false);
-      uiHarness.setEnabledDuplicatePeetMenuItem(true);
     }
     else {
       manager = new PeetManager(peetFileName);
@@ -595,7 +594,6 @@ public class EtomoDirector {
     }
     if (currentManagerKey.getName().equals(PeetMetaData.NEW_TITLE)) {
       uiHarness.setEnabledNewPeetMenuItem(true);
-      uiHarness.setEnabledDuplicatePeetMenuItem(false);
     }
   }
 
@@ -1136,6 +1134,9 @@ public class EtomoDirector {
 }
 /**
  * <p> $Log$
+ * <p> Revision 1.60  2007/05/02 16:34:05  sueh
+ * <p> bug# 964 Moved newstuff into mainstream.
+ * <p>
  * <p> Revision 1.59  2007/03/31 02:49:34  sueh
  * <p> bug# 964 Enabling/disabling Duplicate Peet menu item.
  * <p>
