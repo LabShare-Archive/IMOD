@@ -47,6 +47,9 @@ import etomo.type.PeetScreenState;
  * @version $Revision$
  * 
  * <p> $Log$
+ * <p> Revision 1.30  2007/05/01 22:29:42  sueh
+ * <p> bug# 964 Added yaxisType and yaxisContour.
+ * <p>
  * <p> Revision 1.29  2007/05/01 00:44:21  sueh
  * <p> bug# 964 Removed the run parameter panel.  Created a tabbed panel.
  * <p> Moved fields associated with the volume table to the Setup tab.  Moved
@@ -197,10 +200,10 @@ public final class PeetDialog implements AbstractParallelDialog, Expandable {
   private final ButtonGroup bgReference = new ButtonGroup();
   private final RadioButton rbReferenceVolume = new RadioButton(
       REFERENCE_VOLUME_LABEL, bgReference);
-  private final Spinner sReferenceVolume = Spinner.getInstance(REFERENCE_VOLUME_LABEL
-      + ": ");
-  private final Spinner sYaxisContourModelNumber =  Spinner.getLabeledInstance(
-      "Model #: ");
+  private final Spinner sReferenceVolume = Spinner
+      .getInstance(REFERENCE_VOLUME_LABEL + ": ");
+  private final Spinner sYaxisContourModelNumber = Spinner
+      .getLabeledInstance("Model #: ");
   private final RadioButton rbReferenceFile = new RadioButton(
       REFERENCE_FILE_LABEL, bgReference);
   private final LabeledSpinner lsParticlePerCPU = new LabeledSpinner(
@@ -330,9 +333,7 @@ public final class PeetDialog implements AbstractParallelDialog, Expandable {
   public void setParameters(final ConstPeetMetaData metaData) {
     ltfFnOutput.setText(metaData.getName());
     volumeTable.setParameters(metaData);
-    rbReferenceFile.setSelected(true);
     ftfReferenceFile.setText(metaData.getReferenceFile());
-    rbReferenceVolume.setSelected(true);
     sReferenceVolume.setValue(metaData.getReferenceVolume());
     ltfReferenceParticle.setText(metaData.getReferenceParticle());
     ltfEdgeShift.setText(metaData.getEdgeShift());
@@ -569,11 +570,13 @@ public final class PeetDialog implements AbstractParallelDialog, Expandable {
       ltfAlignedBaseName.setToolTipText(tooltip);
       tooltip = EtomoAutodoc.getTooltip(autodoc, MatlabParamFile.FN_OUTPUT_KEY);
       ltfFnOutput.setToolTipText(tooltip);
-      tooltip = EtomoAutodoc.getTooltip(autodoc, MatlabParamFile.YAXIS_TYPE_KEY);
+      tooltip = EtomoAutodoc
+          .getTooltip(autodoc, MatlabParamFile.YAXIS_TYPE_KEY);
       rbYaxisTypeYAxis.setToolTipText(tooltip);
       rbYaxisTypeParticleModel.setToolTipText(tooltip);
       rbYaxisTypeContour.setToolTipText(tooltip);
-      tooltip = EtomoAutodoc.getTooltip(autodoc, MatlabParamFile.YAXIS_CONTOUR_KEY);
+      tooltip = EtomoAutodoc.getTooltip(autodoc,
+          MatlabParamFile.YAXIS_CONTOUR_KEY);
       sYaxisContourModelNumber.setToolTipText(tooltip);
       ltfYaxisContourObjectNumber.setToolTipText(tooltip);
       ltfYaxisContourContourNumber.setToolTipText(tooltip);
@@ -597,6 +600,12 @@ public final class PeetDialog implements AbstractParallelDialog, Expandable {
     ltfEdgeShift.setText(MatlabParamFile.EDGE_SHIFT_DEFAULT);
     cbMeanFill.setSelected(MatlabParamFile.MEAN_FILL_DEFAULT);
     ltfLowCutoff.setText(MatlabParamFile.LOW_CUTOFF_DEFAULT);
+    if (MatlabParamFile.REFERENCE_FILE_DEFAULT) {
+      rbReferenceFile.setSelected(true);
+    }
+    else {
+      rbReferenceVolume.setSelected(true);
+    }
   }
 
   private void createSetupPanel() {
@@ -777,22 +786,24 @@ public final class PeetDialog implements AbstractParallelDialog, Expandable {
   private void updateDisplay() {
     //edge shift
     ltfEdgeShift.setEnabled(cbTiltRange.isSelected());
-    //reference
     int size = volumeTable.size();
-    boolean enable = size > 1;
-    rbReferenceVolume.setEnabled(enable);
-    sReferenceVolume.setEnabled(enable && rbReferenceVolume.isSelected());
+    //reference
+    boolean gt1 = size > 1;
+    rbReferenceVolume.setEnabled(gt1);
+    sReferenceVolume.setEnabled(gt1 && rbReferenceVolume.isSelected());
     sReferenceVolume.setMax(size);
-    rbYaxisTypeContour.setEnabled(enable);
-    sYaxisContourModelNumber.setEnabled(enable
-        && rbYaxisTypeContour.isSelected());
+    ltfReferenceParticle.setEnabled(gt1 && rbReferenceVolume.isSelected());
+    ftfReferenceFile.setEnabled(gt1 && rbReferenceFile.isSelected());
+    //yaxisType and yaxisContour
+    boolean gt0 = size > 0;
+    rbYaxisTypeContour.setEnabled(gt0);
+    sYaxisContourModelNumber.setEnabled(gt0 && rbYaxisTypeContour.isSelected());
     sYaxisContourModelNumber.setMax(size);
-    ltfYaxisContourObjectNumber.setEnabled(enable
+    ltfYaxisContourObjectNumber.setEnabled(gt0
         && rbYaxisTypeContour.isSelected());
-    ltfYaxisContourContourNumber.setEnabled(enable
+    ltfYaxisContourContourNumber.setEnabled(gt0
         && rbYaxisTypeContour.isSelected());
-    ltfReferenceParticle.setEnabled(enable && rbReferenceVolume.isSelected());
-    ftfReferenceFile.setEnabled(rbReferenceFile.isSelected());
+    //volume table
     volumeTable.updateDisplay(rbInitMotlFiles.isSelected(), cbTiltRange
         .isSelected());
   }
