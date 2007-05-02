@@ -539,12 +539,9 @@ public class EtomoDirector {
     if (parallelFileFilter.accept(dataFile)) {
       return openParallel(dataFile, makeCurrent, axisID);
     }
-    //TEMP 964
-    if (newstuff) {
-      PeetFileFilter peetFileFilter = new PeetFileFilter();
-      if (peetFileFilter.accept(dataFile)) {
-        return openPeet(dataFile, makeCurrent, axisID);
-      }
+    PeetFileFilter peetFileFilter = new PeetFileFilter();
+    if (peetFileFilter.accept(dataFile)) {
+      return openPeet(dataFile, makeCurrent, axisID);
     }
     String[] message = { "Unknown file type " + dataFile.getName() + ".",
         "Open this file as an " + etomoFileFilter.getDescription() + "?" };
@@ -1139,6 +1136,9 @@ public class EtomoDirector {
 }
 /**
  * <p> $Log$
+ * <p> Revision 1.59  2007/03/31 02:49:34  sueh
+ * <p> bug# 964 Enabling/disabling Duplicate Peet menu item.
+ * <p>
  * <p> Revision 1.58  2007/02/22 20:32:54  sueh
  * <p> bug# 964 In initialize, putting .epe file recognition under newstuff.
  * <p>

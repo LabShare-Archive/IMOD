@@ -11,7 +11,6 @@ import javax.swing.JMenuItem;
 import javax.swing.KeyStroke;
 
 import etomo.BaseManager;
-import etomo.EtomoDirector;
 import etomo.type.AxisType;
 
 /**
@@ -37,29 +36,35 @@ public final class EtomoMenu {
   private final JMenu menuFile = new JMenu("File");
   private final JMenuItem menuFileNewTomogram = new JMenuItem("New Tomogram",
       KeyEvent.VK_N);
-  private final JMenuItem menuFileNewJoin = new JMenuItem("New Join", KeyEvent.VK_J);
-  private final JMenuItem menuFileNewParallel = new JMenuItem("New Parallel Process",
-      KeyEvent.VK_P);
-  private final JMenuItem menuFileNewPeet = new JMenuItem("New PEET", KeyEvent.VK_E);
+  private final JMenuItem menuFileNewJoin = new JMenuItem("New Join",
+      KeyEvent.VK_J);
+  private final JMenuItem menuFileNewParallel = new JMenuItem(
+      "New Parallel Process", KeyEvent.VK_P);
+  private final JMenuItem menuFileNewPeet = new JMenuItem("New PEET",
+      KeyEvent.VK_E);
   private final JMenuItem menuFileOpen = new JMenuItem("Open...", KeyEvent.VK_O);
   private final JMenuItem menuFileSave = new JMenuItem("Save", KeyEvent.VK_S);
-  private final JMenuItem menuFileSaveAs = new JMenuItem("Save As", KeyEvent.VK_A);
+  private final JMenuItem menuFileSaveAs = new JMenuItem("Save As",
+      KeyEvent.VK_A);
   private final JMenuItem menuFileClose = new JMenuItem("Close", KeyEvent.VK_C);
   private final JMenuItem menuFileExit = new JMenuItem("Exit", KeyEvent.VK_X);
-  private final JMenuItem menuFileDuplicatePeet = new JMenuItem("Duplicate PEET",
-      KeyEvent.VK_D);
+  private final JMenuItem menuFileDuplicatePeet = new JMenuItem(
+      "Duplicate PEET", KeyEvent.VK_D);
   private final JMenuItem menuFileImportPrm = new JMenuItem("Import .prm File",
       KeyEvent.VK_I);
-  private final JMenuItem menuFileTomosnapshot = new JMenuItem("Run Tomosnapshot",
-      KeyEvent.VK_R);
+  private final JMenuItem menuFileTomosnapshot = new JMenuItem(
+      "Run Tomosnapshot", KeyEvent.VK_R);
   private final JMenuItem[] menuMRUList = new JMenuItem[nMRUFileMax];
 
   private final JMenu menuOptions = new JMenu("Options");
   private final JMenuItem menuAxisA = new JMenuItem("Axis A", KeyEvent.VK_A);
   private final JMenuItem menuAxisB = new JMenuItem("Axis B", KeyEvent.VK_B);
-  private final JMenuItem menuAxisBoth = new JMenuItem("Both Axes", KeyEvent.VK_2);
-  private final JMenuItem menuSettings = new JMenuItem("Settings", KeyEvent.VK_S);
-  private final JMenuItem menuFitWindow = new JMenuItem("Fit Window", KeyEvent.VK_F);
+  private final JMenuItem menuAxisBoth = new JMenuItem("Both Axes",
+      KeyEvent.VK_2);
+  private final JMenuItem menuSettings = new JMenuItem("Settings",
+      KeyEvent.VK_S);
+  private final JMenuItem menuFitWindow = new JMenuItem("Fit Window",
+      KeyEvent.VK_F);
   private final JCheckBoxMenuItem menu3dmodStartupWindow = new JCheckBoxMenuItem(
       "Open 3dmod with Startup Window");
   private final JCheckBoxMenuItem menu3dmodBinBy2 = new JCheckBoxMenuItem(
@@ -135,20 +140,15 @@ public final class EtomoMenu {
     menuFile.add(menuFileNewTomogram);
     menuFile.add(menuFileNewJoin);
     menuFile.add(menuFileNewParallel);
-    //temp bug# 964
-    if (EtomoDirector.getInstance().isNewstuff()) {
-      menuFile.add(menuFileNewPeet);
-    }
+    menuFile.add(menuFileNewPeet);
     menuFile.add(menuFileOpen);
     menuFile.add(menuFileSave);
     menuFile.add(menuFileSaveAs);
     menuFile.add(menuFileClose);
     menuFile.add(menuFileExit);
-    if (EtomoDirector.getInstance().isNewstuff()) {
-      menuFile.addSeparator();
-      menuFile.add(menuFileDuplicatePeet);
-      menuFile.add(menuFileImportPrm);
-    }
+    menuFile.addSeparator();
+    menuFile.add(menuFileDuplicatePeet);
+    menuFile.add(menuFileImportPrm);
     menuFile.addSeparator();
     menuFile.add(menuFileTomosnapshot);
     menuFile.addSeparator();
@@ -263,19 +263,19 @@ public final class EtomoMenu {
     }
   }
 
-   boolean isMenu3dmodStartupWindow() {
+  boolean isMenu3dmodStartupWindow() {
     return menu3dmodStartupWindow.isSelected();
   }
 
-   boolean isMenu3dmodBinBy2() {
+  boolean isMenu3dmodBinBy2() {
     return menu3dmodBinBy2.isSelected();
   }
 
-   void setMenu3dmodStartupWindow(final boolean menu3dmodStartupWindow) {
+  void setMenu3dmodStartupWindow(final boolean menu3dmodStartupWindow) {
     this.menu3dmodStartupWindow.setSelected(menu3dmodStartupWindow);
   }
 
-   void setMenu3dmodBinBy2(final boolean menu3dmodBinBy2) {
+  void setMenu3dmodBinBy2(final boolean menu3dmodBinBy2) {
     this.menu3dmodBinBy2.setSelected(menu3dmodBinBy2);
   }
 
@@ -299,60 +299,60 @@ public final class EtomoMenu {
     menuFileNewPeet.setEnabled(enable);
     menuFileImportPrm.setEnabled(enable);
   }
-  
+
   void setEnabledFileDuplicatePeet(final boolean enable) {
     menuFileDuplicatePeet.setEnabled(enable);
   }
 
-   boolean equalsFileNewTomogram(final ActionEvent event) {
+  boolean equalsFileNewTomogram(final ActionEvent event) {
     return equals(menuFileNewTomogram, event);
   }
 
-   boolean equalsFileNewJoin(final ActionEvent event) {
+  boolean equalsFileNewJoin(final ActionEvent event) {
     return equals(menuFileNewJoin, event);
   }
 
-   boolean equalsFileNewParallel(final ActionEvent event) {
+  boolean equalsFileNewParallel(final ActionEvent event) {
     return equals(menuFileNewParallel, event);
   }
 
-   boolean equalsFileNewPeet(final ActionEvent event) {
+  boolean equalsFileNewPeet(final ActionEvent event) {
     return equals(menuFileNewPeet, event);
   }
-  
-   boolean equalsFileDuplicatePeet(final ActionEvent event) {
-    return equals(menuFileNewPeet, event);
-  }
-   
-   boolean equalsFileImportPrm(final ActionEvent event) {
-     return equals(menuFileImportPrm, event);
-   }
 
-   boolean equalsFileOpen(final ActionEvent event) {
+  boolean equalsFileDuplicatePeet(final ActionEvent event) {
+    return equals(menuFileNewPeet, event);
+  }
+
+  boolean equalsFileImportPrm(final ActionEvent event) {
+    return equals(menuFileImportPrm, event);
+  }
+
+  boolean equalsFileOpen(final ActionEvent event) {
     return equals(menuFileOpen, event);
   }
 
-   boolean equalsFileSave(final ActionEvent event) {
+  boolean equalsFileSave(final ActionEvent event) {
     return equals(menuFileSave, event);
   }
 
-   boolean equalsFileSaveAs(final ActionEvent event) {
+  boolean equalsFileSaveAs(final ActionEvent event) {
     return equals(menuFileSaveAs, event);
   }
 
-   boolean equalsFileClose(final ActionEvent event) {
+  boolean equalsFileClose(final ActionEvent event) {
     return equals(menuFileClose, event);
   }
 
-   boolean equalsFileExit(final ActionEvent event) {
+  boolean equalsFileExit(final ActionEvent event) {
     return equals(menuFileExit, event);
   }
 
-   boolean equalsFileTomosnapshot(final ActionEvent event) {
+  boolean equalsFileTomosnapshot(final ActionEvent event) {
     return equals(menuFileTomosnapshot, event);
   }
 
-   boolean equalsSettings(final ActionEvent event) {
+  boolean equalsSettings(final ActionEvent event) {
     return equals(menuSettings, event);
   }
 
@@ -360,7 +360,7 @@ public final class EtomoMenu {
     return equals(menuAxisA, event);
   }
 
-   boolean equalsAxisB(final ActionEvent event) {
+  boolean equalsAxisB(final ActionEvent event) {
     return equals(menuAxisB, event);
   }
 
@@ -380,33 +380,33 @@ public final class EtomoMenu {
     return equals(menuFitWindow, event);
   }
 
-   boolean equalsTomoGuide(final ActionEvent event) {
+  boolean equalsTomoGuide(final ActionEvent event) {
     return equals(menuTomoGuide, event);
   }
 
-   boolean equalsImodGuide(final ActionEvent event) {
+  boolean equalsImodGuide(final ActionEvent event) {
     return equals(menuImodGuide, event);
   }
 
-   boolean equals3dmodGuide(final ActionEvent event) {
+  boolean equals3dmodGuide(final ActionEvent event) {
     return equals(menu3dmodGuide, event);
   }
 
-   boolean equalsEtomoGuide(final ActionEvent event) {
+  boolean equalsEtomoGuide(final ActionEvent event) {
     return equals(menuEtomoGuide, event);
   }
 
-   boolean equalsJoinGuide(final ActionEvent event) {
+  boolean equalsJoinGuide(final ActionEvent event) {
     return equals(menuJoinGuide, event);
   }
 
-   boolean equalsHelpAbout(final ActionEvent event) {
+  boolean equalsHelpAbout(final ActionEvent event) {
     return equals(menuHelpAbout, event);
   }
-   
-   private boolean equals(final JMenuItem menuItem, final ActionEvent event) {
-     return menuItem.getActionCommand().equals(event.getActionCommand());
-   }
+
+  private boolean equals(final JMenuItem menuItem, final ActionEvent event) {
+    return menuItem.getActionCommand().equals(event.getActionCommand());
+  }
 
   //  File menu action listener
   private static final class FileActionListener implements ActionListener {
@@ -422,7 +422,8 @@ public final class EtomoMenu {
   }
 
   //  MRU file list action listener
-  private static final class FileMRUListActionListener implements ActionListener {
+  private static final class FileMRUListActionListener implements
+      ActionListener {
     private EtomoFrame adaptee;
 
     private FileMRUListActionListener(final EtomoFrame adaptee) {
@@ -462,6 +463,9 @@ public final class EtomoMenu {
 }
 /**
  * <p> $Log$
+ * <p> Revision 1.9  2007/03/31 03:00:38  sueh
+ * <p> bug# 964 Added Duplicate Peet and Import .prm File menu items.
+ * <p>
  * <p> Revision 1.8  2007/02/19 22:01:28  sueh
  * <p> bug# 964 Added New PEET option.
  * <p>

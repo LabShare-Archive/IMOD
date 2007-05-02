@@ -2,7 +2,6 @@ package etomo.storage;
 
 import java.io.File;
 
-import etomo.EtomoDirector;
 import etomo.util.DatasetFiles;
 
 /**
@@ -19,6 +18,9 @@ import etomo.util.DatasetFiles;
  * @version $Revision$
  * 
  * <p> $Log$
+ * <p> Revision 1.4  2007/03/03 00:44:44  sueh
+ * <p> bug# 964 Removed a mention of PEET that escaped the newstuff setting.
+ * <p>
  * <p> Revision 1.3  2007/02/21 04:17:30  sueh
  * <p> bug# 964 Adding PEET and parallel processing data files.
  * <p>
@@ -38,12 +40,10 @@ public class DataFileFilter extends javax.swing.filechooser.FileFilter
    */
   public boolean accept(File f) {
     //  If this is a file test its extension, all others should return true
-    if (f.isFile()
-        && !f.getAbsolutePath().endsWith(".edf")
+    if (f.isFile() && !f.getAbsolutePath().endsWith(".edf")
         && !f.getAbsolutePath().endsWith(".ejf")
         && !f.getAbsolutePath().endsWith(DatasetFiles.PARALLEL_DATA_FILE_EXT)
-        && !(f.getAbsolutePath().endsWith(DatasetFiles.PEET_DATA_FILE_EXT) && EtomoDirector
-            .getInstance().isNewstuff())) {//TEMP 964
+        && !f.getAbsolutePath().endsWith(DatasetFiles.PEET_DATA_FILE_EXT)) {
       return false;
     }
     return true;
@@ -53,10 +53,6 @@ public class DataFileFilter extends javax.swing.filechooser.FileFilter
    * @see javax.swing.filechooser.FileFilter#getDescription()
    */
   public String getDescription() {
-    //TEMP 964
-    if (EtomoDirector.getInstance().isNewstuff()) {
-      return "Etomo, Join, Parallel Process, or PEET data file";
-    }
-    return "Etomo, Join, or Parallel Process data file";
+    return "Etomo, Join, Parallel Process, or PEET data file";
   }
 }
