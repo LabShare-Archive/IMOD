@@ -25,7 +25,7 @@ import etomo.type.ProcessName;
 public final class DatasetFiles {
   public static final String rcsid = "$Id$";
 
-  private static final String MATLAB_PARAM_FILE_EXT = ".prm";
+  public static final String MATLAB_PARAM_FILE_EXT = ".prm";
   public static final String PARALLEL_DATA_FILE_EXT = ".epp";
   public static final String PEET_DATA_FILE_EXT = ".epe";
   public static final String ROTATED_TOMO_EXT = ".rot";
@@ -399,6 +399,10 @@ public final class DatasetFiles {
   public static String getPeetDataFileName(String rootName) {
     return rootName + PEET_DATA_FILE_EXT;
   }
+  
+  public static File getPeetDataFile(String path,String rootName) {
+    return new File(path,getPeetDataFileName(rootName));
+  }
 
   public static String getRootName(File paramFile) {
     String rootFileName = paramFile.getName();
@@ -411,6 +415,9 @@ public final class DatasetFiles {
 }
 /**
  * <p> $Log$
+ * <p> Revision 1.36  2007/04/09 21:25:46  sueh
+ * <p> bug# 964 Added getPeetDataFileName.
+ * <p>
  * <p> Revision 1.35  2007/03/15 21:55:30  sueh
  * <p> bug# 964 Added getMatlabParamFile.
  * <p>
