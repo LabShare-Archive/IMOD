@@ -8,6 +8,7 @@ import etomo.process.BaseProcessManager;
 import etomo.process.ImodManager;
 import etomo.process.PeetProcessManager;
 import etomo.process.SystemProcessException;
+import etomo.storage.ComFileFilter;
 import etomo.storage.LogFile;
 import etomo.storage.MatlabParamFile;
 import etomo.storage.Storable;
@@ -42,6 +43,10 @@ import etomo.util.DatasetFiles;
  * @version $Revision$
  * 
  * <p> $Log$
+ * <p> Revision 1.15  2007/04/27 23:37:54  sueh
+ * <p> bug# 964 Added processchunks() and startNextProcess.  Changed
+ * <p> prmParser() to peetParser.
+ * <p>
  * <p> Revision 1.14  2007/04/26 02:42:56  sueh
  * <p> bug# 964 Added prmParser.
  * <p>
@@ -247,6 +252,10 @@ public final class PeetManager extends BaseManager {
     mainPanel.done();
     savePeetDialog();
   }
+  
+  public int getParallelProcessingDefaultNice() {
+    return 18;
+  }
 
   public void peetParser() {
     savePeetDialog();
@@ -259,6 +268,7 @@ public final class PeetManager extends BaseManager {
       catch (LogFile.FileException e) {
         e.printStackTrace();
       }
+      removeComFiles();
       String threadName = processMgr.peetParser(param);
       setNextProcess(AxisID.ONLY, ProcessName.PROCESSCHUNKS.toString());
       setThreadName(threadName, AxisID.ONLY);
@@ -269,6 +279,19 @@ public final class PeetManager extends BaseManager {
       e.printStackTrace();
       uiHarness.openMessageDialog("Unable to run " + ProcessName.PEET_PARSER
           + ", SystemProcessException.\n" + e.getMessage(), "Process Error");
+    }
+  }
+
+  private void removeComFiles() {
+    File dir = new File(getPropertyUserDir());
+    File[] comFileArray = dir.listFiles(new ComFileFilter(metaData.getName()));
+    if (comFileArray == null) {
+      return;
+    }
+    for (int i = 0; i < comFileArray.length; i++) {
+      if (comFileArray[i].isFile()) {
+        comFileArray[i].delete();
+      }
     }
   }
 
@@ -313,7 +336,7 @@ public final class PeetManager extends BaseManager {
     storables[index++] = screenState;
     return storables;
   }
-  
+
   /**
    * Start the next process specified by the nextProcess string
    */
