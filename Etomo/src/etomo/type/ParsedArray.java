@@ -20,6 +20,10 @@ import etomo.util.PrimativeTokenizer;
  * @version $Revision$
  * 
  * <p> $Log$
+ * <p> Revision 1.8  2007/04/26 02:46:56  sueh
+ * <p> bug# 964 Fixed problems with defaultValue.  Added ParsedArray.compact
+ * <p> when empty array elements should not be displayed (lstThresholds).
+ * <p>
  * <p> Revision 1.7  2007/04/20 20:52:49  sueh
  * <p> bug# 964 Fixed a bug in parseArray:  don't increment index if it is set to -1.
  * <p> Fixed getString.
@@ -101,12 +105,21 @@ public final class ParsedArray extends ParsedElement {
     return new ParsedArray(etomoNumberType, false, false, false);
   }
 
+  public static ParsedArray getFlexibleInstance() {
+    return new ParsedArray(null, true, false, false);
+  }
+
   public static ParsedArray getFlexibleInstance(EtomoNumber.Type etomoNumberType) {
     return new ParsedArray(etomoNumberType, true, false, false);
   }
 
   public static ParsedArray getCompactInstance() {
     return new ParsedArray(null, false, true, false);
+  }
+
+  public static ParsedArray getFlexibleCompactInstance(
+      EtomoNumber.Type etomoNumberType) {
+    return new ParsedArray(etomoNumberType, true, true, false);
   }
 
   public static ParsedArray getFlexibleCompactDescriptorInstance(
@@ -383,10 +396,30 @@ public final class ParsedArray extends ParsedElement {
    * element has parsed number syntax.
    */
   boolean hasParsedNumberSyntax() {
-    if (array.size() == 0) {
+    int size = array.size();
+    if (debug) {
+      System.out.println("hasParsedNumberSyntax:size=" + size);
+    }
+    if (size == 0) {
       return true;
     }
-    return array.size() == 1 && array.get(0).hasParsedNumberSyntax();
+    if (size == 1 && array.get(0).hasParsedNumberSyntax()) {
+      return true;
+    }
+    if (!compact) {
+      return false;
+    }
+    //compact descriptor show only non-empty numbers
+    int elementCount = 0;
+    for (int i = 0; i < size; i++) {
+      if (!array.get(i).isDefaultedEmpty()) {
+        elementCount++;
+        if (elementCount > 1) {
+          return false;
+        }
+      }
+    }
+    return true;
   }
 
   /**
@@ -525,6 +558,9 @@ public final class ParsedArray extends ParsedElement {
    * looks like a ParsedNumber.
    */
   public String getParsableString() {
+    if (debug) {
+      System.out.println("getParsableString:flexibleSyntax=" + flexibleSyntax);
+    }
     String string = getString(true, -1);
     StringBuffer buffer = new StringBuffer();
     if (flexibleSyntax && hasParsedNumberSyntax()) {
