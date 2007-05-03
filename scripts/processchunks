@@ -383,7 +383,7 @@ while ($numdone < $#comlist)
                     if (! -z $logname) then
                         set errormess = `awk '/ERROR:/, /EOF/' $logname`
                         if ("$errormess" == "") then
-                            set errormess = `tail -n 1 $logname`
+                            set errormess = `sed '/^ *$/d' $logname | tail -n 1`
                             set errormess = "CHUNK ERROR: (last line) - $errormess"
                         else
                             set errormess = "CHUNK $errormess"
@@ -399,7 +399,7 @@ while ($numdone < $#comlist)
                             set ans = "E"
                             goto command
                         endif
-                    else if (-e $pidname)
+                    else if (-e $pidname) then
                         
                         # If log is zero length, check for something in .pid
                         #
@@ -534,8 +534,13 @@ while ($numdone < $#comlist)
         echo "Running $comname to synchronize ..."
         vmstocsh $logname < $comname | csh -ef
         if ($status) then
-            echo "ERROR: RUNNING $comname, FROM $logname:"
-            sed -n '/.*ERROR:/s//ERROR:/p' $logname
+            echo "ERROR: RUNNING $comname, FROM ${logname}:"
+            set errormess = `sed -n '/.*ERROR:/s//ERROR:/p' $logname`
+            if ("$errormess" == "") then
+                set errormess = `sed '/^ *$/d' $logname | tail -n 1`
+                set errormess = "ERROR: (last line) - $errormess"
+            endif
+            echo $errormess
             exit 1
         endif
         echo "$comname finished on $hostroot"
@@ -702,6 +707,9 @@ exit 3
 
 #
 #  $Log$
+#  Revision 3.27  2007/03/05 22:34:10  mast
+#  Added finished output for sync
+#
 #  Revision 3.26  2006/10/09 23:46:32  mast
 #  Moved checking of check file to top of run loop
 #
