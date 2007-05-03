@@ -158,6 +158,10 @@ public abstract class BaseManager {
     imodManager = new ImodManager(this);
     initProgram();
   }
+  
+  public int getParallelProcessingDefaultNice() {
+    return 15;
+  }
 
   public String toString() {
     return getClass().getName() + "[" + paramString() + "]";
@@ -1168,6 +1172,9 @@ public abstract class BaseManager {
 }
 /**
  * <p> $Log$
+ * <p> Revision 1.80  2007/04/27 23:36:55  sueh
+ * <p> bug# 964 In processchunks(), handling a null processResultDisplay.
+ * <p>
  * <p> Revision 1.79  2007/04/09 19:26:14  sueh
  * <p> bug# 964 In saveParamFile, call setParamFile so that PeetManager.paramFile is
  * <p> set.
