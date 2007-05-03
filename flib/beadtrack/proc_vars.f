@@ -5,6 +5,9 @@ c
 c       $Id$
 c       
 c       $Log$
+c       Revision 3.4  2007/02/19 20:50:23  mast
+c       Changes for beam tilt and grouping improvements in tiltalign
+c
 c       Revision 3.3  2005/04/10 18:15:10  mast
 c       Changes for elimination of global rotation variable
 c       
@@ -151,7 +154,7 @@ c
 c       This should be done once before calling
 c       
       mapProjStretch = 0
-      projStretch = 0.
+      projStrRot = defrot
       projSkew = 0.
       mapBeamTilt = 0
       beamTilt = 0.
