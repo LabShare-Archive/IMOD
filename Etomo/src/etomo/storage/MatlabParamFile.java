@@ -42,6 +42,9 @@ import etomo.ui.UIHarness;
  * @version $Revision$
  * 
  * <p> $Log$
+ * <p> Revision 1.21  2007/05/02 16:34:38  sueh
+ * <p> bug# 964 Default reference source not being set.
+ * <p>
  * <p> Revision 1.20  2007/05/01 22:26:00  sueh
  * <p> bug# 964 Added yaxisType and yaxisContour.
  * <p>
@@ -778,16 +781,16 @@ public final class MatlabParamFile {
     dPsi.parse(autodoc.getAttribute(D_PSI_KEY));
     size = Math.max(size, dPsi.size());
     //searchRadius
-    ParsedList searchRadius = ParsedList.getNumericInstance();
+    ParsedList searchRadius = ParsedList.getFlexibleInstance();
     searchRadius.parse(autodoc.getAttribute(SEARCH_RADIUS_KEY));
     size = Math.max(size, searchRadius.size());
     //lowCutoff
     ParsedList lowCutoff = ParsedList
-        .getFlexibleNumericInstance(EtomoNumber.Type.FLOAT);
+        .getFlexibleInstance(EtomoNumber.Type.FLOAT);
     lowCutoff.parse(autodoc.getAttribute(LOW_CUTOFF_KEY));
     //hiCutoff
     ParsedList hiCutoff = ParsedList
-        .getFlexibleNumericInstance(EtomoNumber.Type.FLOAT);
+        .getFlexibleCompactArrayInstance(EtomoNumber.Type.FLOAT);
     hiCutoff.parse(autodoc.getAttribute(HI_CUTOFF_KEY));
     size = Math.max(size, hiCutoff.size());
     //refThreshold
@@ -909,10 +912,10 @@ public final class MatlabParamFile {
     ParsedList dPsi = ParsedList
         .getFlexibleCompactDescriptorInstance(EtomoNumber.Type.FLOAT);
     dPsi.setDefaultValue(SEARCH_SPACE_DEFAULT_VALUE_ARRAY);
-    ParsedList searchRadius = ParsedList.getNumericInstance();
+    ParsedList searchRadius = ParsedList.getFlexibleInstance();
     ParsedList lowCutoff = ParsedList
-        .getNumericInstance(EtomoNumber.Type.FLOAT);
-    ParsedList hiCutoff = ParsedList.getNumericInstance(EtomoNumber.Type.FLOAT);
+        .getFlexibleInstance(EtomoNumber.Type.FLOAT);
+    ParsedList hiCutoff = ParsedList.getFlexibleCompactArrayInstance(EtomoNumber.Type.FLOAT);
     ParsedList refThreshold = ParsedList
         .getNumericInstance(EtomoNumber.Type.FLOAT);
     //build the lists
@@ -1401,11 +1404,11 @@ public final class MatlabParamFile {
     private static final int HI_CUTOFF_CUTOFF_INDEX = 0;
     private static final int HI_CUTOFF_SIGMA_INDEX = 1;
 
-    private final ParsedNumber searchRadius = new ParsedNumber();
+    private final ParsedArray searchRadius = ParsedArray.getFlexibleInstance();
     private final ParsedArray lowCutoff = ParsedArray
         .getFlexibleInstance(EtomoNumber.Type.FLOAT);
     private final ParsedArray hiCutoff = ParsedArray
-        .getFlexibleInstance(EtomoNumber.Type.FLOAT);
+        .getFlexibleCompactInstance(EtomoNumber.Type.FLOAT);
     private final ParsedNumber refThreshold = new ParsedNumber(
         EtomoNumber.Type.FLOAT);
 
@@ -1555,7 +1558,7 @@ public final class MatlabParamFile {
     }
 
     private void setSearchRadius(final ParsedElement searchRadius) {
-      this.searchRadius.setElement(searchRadius);
+      this.searchRadius.set(searchRadius);
     }
 
     private ParsedElement getSearchRadius() {
