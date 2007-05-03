@@ -72,7 +72,7 @@ c
       real*4 xpmin,ypmin,xdelt,projStrFactor, projStrAxis
       real*4 dmat(9),xtmat(9),ytmat(9),prmat(4),rmat(9),costmp,sintmp
       real*4 afac, bfac, cfac, dfac, efac, ffac, cosalf, sinalf, cosbet
-      real*4 sinbet, cosdel, sindel,denom, unkrat2, angles(3)
+      real*4 sinbet, cosdel, sindel,denom, unkrat2, angles(3), cos2rot,sin2rot
       real*4 a11, a12, a21, a22, xzOther, yzOther, errsumLocal, errLocalMin
       real*4 errLocalMax,beamInv(9), beamMat(9), cosBeam, sinBeam, allYmax
       real*4 binStepIni, binStepFinal, scanStep, allXmin, allXmax, allYmin
@@ -188,7 +188,7 @@ c
      &    imintilt, ncompsrch,0,maptiltstart,mapalfstart,ifBTSearch,tiltorig,
      &    tiltadd,pipinput,.false.,ninview,ninThresh)
       mapalfend=nvarsrch
-      if (mapProjStretch .ne. 0) mapalfend = mapalfend - 2
+      if (mapProjStretch .ne. 0) mapalfend = mapalfend - 1
       if (mapBeamTilt .ne. 0) mapalfend = mapalfend - 1
 c       
 c       TODO: is this OK to delete?
@@ -458,11 +458,10 @@ c
       enddo
 c       
 c       convert the projection stretch to a matrix
+c       (This only works directly into fpstr if it is symmetric)
 c       
-      fpstr(1,1) = (1. - projStretch) * cos(projSkew)
-      fpstr(1,2) = -(1. + projStretch) * sin(projSkew)
-      fpstr(2,1) = -(1. - projStretch) * sin(projSkew)
-      fpstr(2,2) = (1. + projStretch) * cos(projSkew)
+      call fill_proj_matrix(projStrRot, projSkew, fpstr, costmp, sintmp,
+     &    cos2rot, sin2rot)
       call amat_to_rotmagstr(fpstr, xo, zo, projStrFactor, projStrAxis)
 c       
 c       if doing local solution, need to find rotation to match
@@ -522,9 +521,8 @@ c
           if(iunit.ne.6)write(iunit,'(3(f10.4,f7.4,a9,1x))',err=85)
      &        (var(i),varerr(i),varname(i),i=1,nvargeom)
 85        if(ncompsrch.eq.0)then
-            if (mapProjStretch .gt. 0) write(iunit,'(/,a,f8.4,a,f8.1,a)')
-     &          'Projection stretch factor is',projStrFactor,
-     &          ', along a',projStrAxis,' degree axis'
+            if (mapProjStretch .gt. 0) write(iunit,'(/,a,f8.2,a)')
+     &          'Projection skew is',projSkew / dtor,' degrees'
      &          
             if (mapBeamTilt .gt. 0 .or. ifBTSearch .ne. 0)
      &          write(iunit,'(/,a,f8.2,a)') 'Beam tilt angle is',
@@ -706,7 +704,8 @@ c
           call fill_xtilt_matrix(alf(iv)*dtor, ifanyalf, xtmat, cosalf,
      &        sinalf)
           call fill_ytilt_matrix(tilt(iv)*dtor, ytmat, cosbet, sinbet)
-          call fill_proj_matrix(projStretch, projSkew, prmat, costmp, sintmp)
+          call fill_proj_matrix(projStrRot, projSkew, prmat, costmp, sintmp,
+     &        cos2rot, sin2rot)
           call fill_rot_matrix(rot(iv)*dtor, rmat, costmp, sintmp)
           call matrix_to_coef(dmat, xtmat, beamInv, ytmat, beamMat, prmat,
      &        rmat, afac, bfac, cfac, dfac, efac, ffac)
@@ -1510,6 +1509,9 @@ c
 
 c       
 c       $Log$
+c       Revision 3.33  2007/03/08 23:48:57  mast
+c       Enforced minimum of 2 x 2 local areas, adjusted arguments to runMetro
+c
 c       Revision 3.32  2007/03/05 22:30:43  mast
 c       Changed initial beam tilt option
 c
