@@ -47,6 +47,10 @@ import etomo.type.PeetScreenState;
  * @version $Revision$
  * 
  * <p> $Log$
+ * <p> Revision 1.31  2007/05/02 16:35:36  sueh
+ * <p> bug# 964 Default reference source not being set.  YaxisContour model
+ * <p> number spinner was set to null.
+ * <p>
  * <p> Revision 1.30  2007/05/01 22:29:42  sueh
  * <p> bug# 964 Added yaxisType and yaxisContour.
  * <p>
@@ -243,6 +247,8 @@ public final class PeetDialog implements AbstractParallelDialog, Expandable {
       "Debug level: ", new SpinnerNumberModel(
           MatlabParamFile.DEBUG_LEVEL_DEFAULT, MatlabParamFile.DEBUG_LEVEL_MIN,
           MatlabParamFile.DEBUG_LEVEL_MAX, 1));
+  private final MultiLineButton btnImportMatlabParamFile = new MultiLineButton(
+      "Import a .prm File");
   private final TabbedPane tabPane = new TabbedPane();
   private final SpacedPanel pnlSetup = new SpacedPanel();
   private final JPanel pnlRun = new JPanel();
@@ -765,7 +771,54 @@ public final class PeetDialog implements AbstractParallelDialog, Expandable {
     else if (actionCommand.equals(rbYaxisTypeContour.getActionCommand())) {
       updateDisplay();
     }
+    else if (actionCommand.equals(btnImportMatlabParamFile.getActionCommand())) {
+     // importMatlabParamFile();
+    }
   }
+
+  /**
+   * Allow the user to choose a tomogram and a model.  Only works if they choose
+   * both.
+   *//*
+  private void importMatlabParamFile() {
+    if (!manager.setParamFile()) {
+      UIHarness.INSTANCE.openMessageDialog("Please set the "
+          + PeetDialog.DIRECTORY_LABEL + " and " + PeetDialog.OUTPUT_LABEL
+          + " fields before adding tomograms.", "Entry Error");
+      return;
+    }
+    File tomogram = null;
+    File model = null;
+    JFileChooser chooser = getFileChooserInstance();
+    chooser.setFileFilter(new TomogramFileFilter());
+    chooser.setPreferredSize(UIParameters.INSTANCE.getFileChooserDimension());
+    chooser.setFileSelectionMode(JFileChooser.FILES_ONLY);
+    int returnVal = chooser.showOpenDialog(rootPanel);
+    if (returnVal != JFileChooser.APPROVE_OPTION) {
+      return;
+    }
+    tomogram = chooser.getSelectedFile();
+    lastLocation = tomogram.getParentFile();
+    chooser = getFileChooserInstance();
+    chooser.setFileFilter(new ModelFileFilter());
+    chooser.setPreferredSize(UIParameters.INSTANCE.getFileChooserDimension());
+    chooser.setFileSelectionMode(JFileChooser.FILES_ONLY);
+    returnVal = chooser.showOpenDialog(rootPanel);
+    if (returnVal == JFileChooser.APPROVE_OPTION) {
+      model = chooser.getSelectedFile();
+      lastLocation = model.getParentFile();
+    }
+    if (tomogram == null || model == null) {
+      UIHarness.INSTANCE.openMessageDialog(
+          "Please choose both a tomogram and a model", "Entry Error");
+    }
+    else {
+      addRow(tomogram, model);
+      updateDisplay();
+      parent.msgVolumeTableSizeChanged();
+      UIHarness.INSTANCE.pack(manager);
+    }
+  }*/
 
   private void changeTab() {
     if (tabPane.getSelectedIndex() == 0) {
@@ -846,6 +899,7 @@ public final class PeetDialog implements AbstractParallelDialog, Expandable {
     rbYaxisTypeYAxis.addActionListener(actionListener);
     rbYaxisTypeParticleModel.addActionListener(actionListener);
     rbYaxisTypeContour.addActionListener(actionListener);
+    btnImportMatlabParamFile.addActionListener(actionListener);
   }
 
   private static final class PDActionListener implements ActionListener {
