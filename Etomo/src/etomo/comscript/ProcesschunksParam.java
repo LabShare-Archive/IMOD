@@ -31,7 +31,6 @@ import etomo.util.RemotePath.InvalidMountRuleException;
 public final class ProcesschunksParam implements DetachedCommand, ParallelParam {
   public static final String rcsid = "$Id$";
 
-  public static final int NICE_DEFAULT = 15;
   public static final int NICE_FLOOR = 0;
   public static final int NICE_CEILING = 19;
   public static final int DROP_VALUE = 5;
@@ -57,7 +56,7 @@ public final class ProcesschunksParam implements DetachedCommand, ParallelParam 
   public ProcesschunksParam(BaseManager manager, AxisID axisID) {
     this.axisID = axisID;
     this.manager = manager;
-    nice.set(NICE_DEFAULT);
+    nice.set(manager.getParallelProcessingDefaultNice());
     nice.setFloor(NICE_FLOOR);
     nice.setCeiling(NICE_CEILING);
   }
@@ -332,6 +331,9 @@ public final class ProcesschunksParam implements DetachedCommand, ParallelParam 
 }
 /**
  * <p> $Log$
+ * <p> Revision 1.21  2007/04/27 23:38:51  sueh
+ * <p> bug# 964 Turned on debug temporarily.
+ * <p>
  * <p> Revision 1.20  2007/02/05 22:39:36  sueh
  * <p> bug# 962 Changed getCommandMode to return CommandMode.
  * <p>

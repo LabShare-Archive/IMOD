@@ -105,7 +105,7 @@ public final class ParallelPanel implements ParallelProgressDisplay,
     //southPanel;
     southPanel.add(ltfCPUsSelected);
     SpinnerNumberModel model = new SpinnerNumberModel(
-        ProcesschunksParam.NICE_DEFAULT, ProcesschunksParam.NICE_FLOOR,
+        manager.getParallelProcessingDefaultNice(), ProcesschunksParam.NICE_FLOOR,
         ProcesschunksParam.NICE_CEILING, 1);
     lsNice = new LabeledSpinner("Nice: ", model);
     southPanel.add(lsNice);
@@ -480,6 +480,10 @@ public final class ParallelPanel implements ParallelProgressDisplay,
 }
 /**
  * <p> $Log$
+ * <p> Revision 1.46  2007/05/01 22:29:22  sueh
+ * <p> bug# 964 In LabeledSpinner, saving SpinnerNumberModel so that the
+ * <p> maximum can be changed.
+ * <p>
  * <p> Revision 1.45  2007/03/21 19:46:05  sueh
  * <p> bug# 964 Limiting access to autodoc classes by using ReadOnly interfaces.
  * <p> Added AutodocFactory to create Autodoc instances.
