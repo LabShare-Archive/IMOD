@@ -222,10 +222,14 @@ information about them, such as group sizes.
 [Field = ProjectionStretch]
 short = 
 type = B
-usage = Solve for stretch along an axis applying to projection of all images.
+usage = Solve for axis skew applying to projection of all images.
 tooltip = 
-manpage = Solve for a single pair of parameters describing a stretch along
-an axis that occurs during projection of all images.
+manpage = Solve for a parameter representing a skew between the microscope X
+and Y axes that occurs during projection of all images.  This is equivalent to
+a stretch along a 45-degree line between the axes.  A component of stretch 
+parallel to the axes cannot be distinguished from a stretch of the 3D fiducial
+coordinates parallel to the axes, so as of IMOD 3.10.7 only this skew
+component is solved for.
 
 [Field = BeamTiltOption]
 short =
