@@ -19,6 +19,10 @@ import etomo.util.PrimativeTokenizer;
  * @version $Revision$
  * 
  * <p> $Log$
+ * <p> Revision 1.7  2007/04/26 02:47:06  sueh
+ * <p> bug# 964 Fixed problems with defaultValue.  Added ParsedArray.compact
+ * <p> when empty array elements should not be displayed (lstThresholds).
+ * <p>
  * <p> Revision 1.6  2007/04/19 21:42:42  sueh
  * <p> bug# 964 Added boolean compact.  A compact instance ignores all the empty
  * <p> numbers when writing to the .prm file.
@@ -241,15 +245,16 @@ public final class ParsedArrayDescriptor extends ParsedElement {
     if (size == 1 && descriptor.get(0).hasParsedNumberSyntax()) {
       return true;
     }
+    if (!compact) {
+      return false;
+    }
     //compact descriptor show only non-empty numbers
-    if (compact) {
-      int elementCount = 0;
-      for (int i = 0; i < size; i++) {
-        if (!descriptor.get(i).isDefaultedEmpty()) {
-          elementCount++;
-          if (elementCount > 1) {
-            return false;
-          }
+    int elementCount = 0;
+    for (int i = 0; i < size; i++) {
+      if (!descriptor.get(i).isDefaultedEmpty()) {
+        elementCount++;
+        if (elementCount > 1) {
+          return false;
         }
       }
     }
