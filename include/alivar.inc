@@ -21,7 +21,7 @@ c
       real*4 tiltinc(maxview),dmag(maxview),skew(maxview)
       real*4 frcalf(maxview),alf(maxview)
       real*4 fixedtilt,fixedgmag,fixedcomp,fixeddmag,fixedskew
-      real*4 fixedtilt2,fixedrot,fixedalf,projStretch,projSkew,beamTilt
+      real*4 fixedtilt2,fixedrot,fixedalf,projStrRot,projSkew,beamTilt
       integer*4 mapviewtofile(maxview),mapfiletoview(maxview)
       integer*4 nfileviews,mapProjStretch,mapBeamTilt
       common /tltvar/nview,ifrotfix,mapdmagstart,mapdumdmag,
@@ -31,7 +31,7 @@ c
      &    frctilt,frcgmag,frccomp,frcdmag,frcskew,frcrot,frcalf,
      &    fixedtilt,fixedgmag,fixedcomp,fixeddmag,fixedskew,
      &    fixedtilt2,fixedrot,fixedalf,mapviewtofile,mapfiletoview,
-     &    nfileviews,mapProjStretch,projStretch,projSkew,beamTilt,mapBeamTilt
+     &    nfileviews,mapProjStretch,projStrRot,projSkew,beamTilt,mapBeamTilt
 c       
       real*4 glbrot(maxview),glbtilt(maxview),glbalf(maxview)
       real*4 glbgmag(maxview),glbdmag(maxview),glbskew(maxview)
