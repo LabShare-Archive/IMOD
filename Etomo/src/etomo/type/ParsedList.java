@@ -27,6 +27,10 @@ import etomo.util.PrimativeTokenizer;
  * @version $Revision$
  * 
  * <p> $Log$
+ * <p> Revision 1.6  2007/04/26 02:47:39  sueh
+ * <p> bug# 964 Fixed problems with defaultValue.  Added ParsedArray.compact
+ * <p> when empty array elements should not be displayed (lstThresholds).
+ * <p>
  * <p> Revision 1.5  2007/04/19 21:55:15  sueh
  * <p> bug# 964 Added support for flexible syntax, where an array string in the .prm file
  * <p> can be either an array or a number.  Instead of handling this in MatlabParamFile,
@@ -62,6 +66,7 @@ public final class ParsedList {
    * No effect on ParsedList.  Used to create ParsedArray.
    */
   private final boolean compactDescriptor;
+  private final boolean compactArray;
 
   /**
    * Place the entire array into parsed arrays and the individual elements into
@@ -73,33 +78,43 @@ public final class ParsedList {
   private boolean debug = false;
 
   private ParsedList(Type type, EtomoNumber.Type etomoNumberType,
-      boolean flexibleSyntax, boolean compactDescriptor) {
+      boolean flexibleSyntax, boolean compactDescriptor,boolean compactArray) {
     this.type = type;
     this.etomoNumberType = etomoNumberType;
     this.flexibleSyntax = flexibleSyntax;
     this.compactDescriptor = compactDescriptor;
+    this.compactArray =compactArray;
   }
 
   public static ParsedList getNumericInstance() {
-    return new ParsedList(Type.NUMERIC, null, false, false);
+    return new ParsedList(Type.NUMERIC, null, false, false,false);
   }
 
   public static ParsedList getNumericInstance(EtomoNumber.Type etomoNumberType) {
-    return new ParsedList(Type.NUMERIC, etomoNumberType, false, false);
+    return new ParsedList(Type.NUMERIC, etomoNumberType, false, false,false);
+  }
+  
+  public static ParsedList getFlexibleInstance() {
+    return new ParsedList(Type.NUMERIC, null, true, false,false);
   }
 
-  public static ParsedList getFlexibleNumericInstance(
+  public static ParsedList getFlexibleInstance(
       EtomoNumber.Type etomoNumberType) {
-    return new ParsedList(Type.NUMERIC, etomoNumberType, true, false);
+    return new ParsedList(Type.NUMERIC, etomoNumberType, true, false,false);
   }
 
+  public static ParsedList getFlexibleCompactArrayInstance(
+      EtomoNumber.Type etomoNumberType) {
+    return new ParsedList(Type.NUMERIC, etomoNumberType, true, false,true);
+  }
+  
   public static ParsedList getFlexibleCompactDescriptorInstance(
       EtomoNumber.Type etomoNumberType) {
-    return new ParsedList(Type.NUMERIC, etomoNumberType, true, true);
+    return new ParsedList(Type.NUMERIC, etomoNumberType, true, true,false);
   }
 
   public static ParsedList getStringInstance() {
-    return new ParsedList(Type.STRING, null, false, false);
+    return new ParsedList(Type.STRING, null, false, false,false);
   }
 
   /**
@@ -299,7 +314,7 @@ public final class ParsedList {
       //when flexibleSyntax is true, numeric elements are always ParsedArrays
       //because they can be parsed and written to look like ParsedNumbers when
       //they are empty or contain only one number
-      element = new ParsedArray(etomoNumberType, flexibleSyntax,false,
+      element = new ParsedArray(etomoNumberType, flexibleSyntax,compactArray,
           compactDescriptor);
     }
     else {
