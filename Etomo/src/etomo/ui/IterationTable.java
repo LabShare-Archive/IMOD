@@ -36,6 +36,9 @@ import etomo.type.EtomoAutodoc;
  * @version $Revision$
  * 
  * <p> $Log$
+ * <p> Revision 1.4  2007/04/26 02:49:17  sueh
+ * <p> bug# 964 Changed dPhiEnd to dPhiMax.  Did the same for dTheta and dPsi.
+ * <p>
  * <p> Revision 1.3  2007/04/19 22:01:06  sueh
  * <p> bug# 964 Added get/setParamters(MatlabParamFile)
  * <p>
@@ -79,7 +82,7 @@ final class IterationTable implements Highlightable {
   private final HeaderCell header1SearchRadius = new HeaderCell("Search");
   private final HeaderCell header2SearchRadius = new HeaderCell("Radius");
   private final HeaderCell header3SearchRadius = new HeaderCell(
-      UIParameters.INSTANCE.getNumericWidth());
+      UIParameters.INSTANCE.getIntegerTripletWidth());
   private final HeaderCell header1HiCutoff = new HeaderCell("High-Freq.");
   private final HeaderCell header2HiCutoff = new HeaderCell("Filter");
   private final HeaderCell header3HiCutoff = new HeaderCell("Cutoff",
