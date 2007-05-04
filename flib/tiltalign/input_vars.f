@@ -778,7 +778,7 @@ c
       mapBeamTilt = 0
       ifBTSearch = 0
       if (iflocal .eq. 0)then
-        projStretch = 0.
+        projStrRot = defrot
         projSkew = 0.
         beamTilt = 0.
         if (pipinput) then
@@ -789,11 +789,11 @@ c
         endif
         if (mapProjStretch .gt. 0) then
           mapProjStretch = nvarsrch + 1
-          nvarsrch = nvarsrch + 2
-          varname(mapProjStretch) = 'projstr '
-          varname(mapProjStretch + 1) = 'projskew'
+          nvarsrch = nvarsrch + 1
+c          varname(mapProjStretch) = 'projstr '
+          varname(mapProjStretch) = 'projskew'
           var(mapProjStretch) = 0.
-          var(mapProjStretch + 1) = 0.
+c          var(mapProjStretch + 1) = 0.
         endif
 c         
 c         If beam tilt option is 1, set up variable and set search back to 0
@@ -1122,6 +1122,9 @@ c
 c       2/16/07: removed filetoview function that errored on nonexistent views
 
 c       $Log$
+c       Revision 3.15  2007/03/05 22:30:54  mast
+c       Changed initial beam tilt option
+c
 c       Revision 3.14  2007/02/19 21:09:41  mast
 c       Changes for beam tilt and for mapping depending on # of points in view
 c
