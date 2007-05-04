@@ -136,10 +136,10 @@ DDEESSCCRRIIPPTTIIOONN
      if any (one variable for all views)
   4) The specimen is tilted around the Y axis (tilt variable)
   5) The specimen is tilted back around the X axis by the beam tilt, if any 
-  6) The projected image may stretch along one axis (two variables for all
-     views)
-  7) The projected image rotates in the plane of the camera (rotation
+  6) The projected image rotates in the plane of the camera (rotation
      variable)
+  7) The projected image may stretch along an axis midway between the original
+     X and Y axes (one variable for all views)
   8) The image shifts on the camera
 
   Only a subset of this complete model can be solved for in any given case.

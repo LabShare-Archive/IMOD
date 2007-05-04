@@ -1,5 +1,16 @@
 IMOD History
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+5/3/07: IMOD_3-10-7
+5/3/07: Etomo now includes an interface for the PEET particle averaging 
+programs.
+
+5/3/07: Fixed bugs in Processchunks when there are failures running a sync file
+or running a command on a machine.
+
+5/3/07: In Tiltalign, changed projection stretch to be after rotation so a beam
+tilt can be used correctly, discovered a variable redundancy in the projection
+stretch and reduced it to a projection skew of X and Y axes.
+
 4/26/07: IMOD_3-10-6 (Etomo unstable)
 4/26/07: Rebuilt imodmop to incorporate ability to make a projection series
 (formerly done by imodcmopp), handle all kinds of data including FFT's,
