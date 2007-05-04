@@ -29,24 +29,7 @@ c       view matches the centroid of the projection of the real-space
 c       points.  ANGLES ARE EXPECTED TO BE RADIANS.
 c       
 c       $Id$
-c       
-c       $Log$
-c       Revision 3.4  2005/04/10 18:02:50  mast
-c       Eliminated global rotation variable due to ineffectiveness in finding
-c       angle for some small tilt range situations with mappings
-c       
-c       Revision 3.3  2004/10/24 22:28:52  mast
-c       Changed handling of rotation variables, added projection stretch,
-c       made subroutines for filling matrices
-c       
-c       Revision 3.2  2004/10/09 23:51:12  mast
-c       Switched to matrix formulation to simplify code, speeded up
-c       computation 2-fold by saving intermediate residual products for
-c       gradients, added declarations.
-c       
-c       Revision 3.1  2002/07/28 22:39:19  mast
-c       Standardized error exit and output
-c       
+c       Log at end of file
 c       
       subroutine funct(nvarsrch,var,ferror,grad)
 c       
@@ -87,6 +70,7 @@ c
       integer*4 kz,kx,ky,ipt,ivar,iptinv,jx,jy,jz,iy,ix,kpt,jj, istrType
       real*4 afac,bfac,cfac,dfac,efac,ffac,xpxrlas,xpyrlas,xpzrlas,ypxrlas
       real*4 ypyrlas,ypzrlas,valadd,cosPSkew,sinPSkew,cosBeam,sinBeam
+      real*4 cos2rot, sin2rot
       real*8 gradientSum
 c       
 c       Stretch type: 1 for dmag = stretch on X axis, skew = X axis rotation
@@ -149,8 +133,8 @@ c       matrices to use for computing gradient coefficients
 c       
       call remap_params(var)
 c       
-      call fill_proj_matrix(projStretch, projSkew, projMat, cosPSkew,
-     &    sinPSkew)
+      call fill_proj_matrix(projStrRot, projSkew, projMat, cosPSkew,
+     &    sinPSkew, cos2rot, sin2rot)
       call fill_beam_matrices(beamTilt, beamInv, beamMat, cosBeam, sinBeam)
       do i=1,nview
         xmag(i)=gmag(i)+dmag(i)
@@ -447,35 +431,22 @@ c           &         ,frcalf(iv),gradsum
         endif
       enddo
 c       
-c       projection stretch : first gradient for stretch, then for skew
+c       projection skew: do gradient
 c       
       if (mapProjStretch .gt. 0) then
         grad(mapProjStretch) = 0.
-        grad(mapProjStretch + 1) = 0.
-        dermat(1) = -cosPSkew
-        dermat(2) = -sinPSkew
-        dermat(3) = sinPSkew
-        dermat(4) = cosPSkew
-        do iv =1 ,nview
-          ivbase=(iv-1)*nrealpt
-          call matrix_to_coef(dmat(1,iv),xtmat(1,iv),beamInv,ytmat(1,iv),
-     &        beamMat,dermat, rmat(1,iv), afac,bfac,cfac,dfac,efac,ffac)
-          gradsum = gradientSum(indvproj, ivbase, nptinview(iv), resprod,
-     &        afac, bfac, cfac, dfac, efac, ffac)
-          grad(mapProjStretch) = grad(mapProjStretch) + gradsum
-        enddo
 c         
-        dermat(1) = -(1 - projStretch) * sinPSkew
-        dermat(2) = -(1 + projStretch) * cosPSkew
-        dermat(3) = -(1 - projStretch) * cosPSkew
-        dermat(4) = -(1 + projStretch) * sinPSkew
+        dermat(1) = -sinPSkew + cosPSkew * sin2rot
+        dermat(2) = -cosPSkew * cos2rot
+        dermat(3) = dermat(2)
+        dermat(4) = -sinPSkew - cosPSkew * sin2rot
         do iv =1 ,nview
           ivbase=(iv-1)*nrealpt
           call matrix_to_coef(dmat(1,iv),xtmat(1,iv),beamInv,ytmat(1,iv),
      &        beamMat, dermat,rmat(1,iv), afac,bfac,cfac,dfac,efac,ffac)
           gradsum = gradientSum(indvproj, ivbase, nptinview(iv), resprod,
      &        afac, bfac, cfac, dfac, efac, ffac)
-          grad(mapProjStretch + 1) = grad(mapProjStretch + 1) + gradsum
+          grad(mapProjStretch) = grad(mapProjStretch) + gradsum
         enddo
       endif
 c       
@@ -692,8 +663,8 @@ c
      &    linalf,fixedalf, nview,glbalf,incralf)
 c       
       if (mapProjStretch .gt. 0) then
-        projStretch = varlist(mapProjStretch)
-        projSkew = varlist(mapProjStretch + 1)
+c        projStretch = varlist(mapProjStretch)
+        projSkew = varlist(mapProjStretch)
       endif
       if (mapBeamTilt .gt. 0) beamTilt = varlist(mapBeamTilt)
       return
@@ -743,8 +714,8 @@ c
       call mat_product(tmp, 3, 3, beamInv, 3, 3)
       call mat_product(tmp, 3, 3, ytilt, 3, 3)
       call mat_product(tmp, 3, 3, beamMat, 2, 3)
-      call mat_product(tmp, 2, 3, projStr, 2, 2)
       call mat_product(tmp, 2, 3, rot, 2, 2)
+      call mat_product(tmp, 2, 3, projStr, 2, 2)
       a = tmp(1)
       b = tmp(2)
       c = tmp(3)
@@ -898,19 +869,23 @@ c
       return
       end
 
-c       FILL_PROJ_MATRIX fills 2x2 matrix PROJMAT for projection stretch
-c       given stretch PROJSTRETCH and skew and PROJSKEW
+c       FILL_PROJ_MATRIX fills 2x2 matrix PROJMAT for projection skew
+c       given skew PROJSKEW and the approximate rotation angle of the axes,
+c       projStrRot
 c       
-      subroutine fill_proj_matrix(projStretch, projSkew, projMat,
-     &    cosPSkew, sinPSkew)
+      subroutine fill_proj_matrix(projStrRot, projSkew, projMat,
+     &    cosPSkew, sinPSkew, cos2rot, sin2rot)
       implicit none
-      real *4 projStretch, projSkew, projMat(*), cosPSkew, sinPSkew
+      real *4 projStrRot, projSkew, projMat(*), cosPSkew, sinPSkew, cos2rot
+      real*4 sin2rot
       cosPSkew = cos(projSkew)
       sinPSkew = sin(projSkew)
-      projMat(1) = (1. - projStretch) * cosPSkew
-      projMat(2) = -(1. + projStretch) * sinPSkew
-      projMat(3) = -(1. - projStretch) * sinPSkew
-      projMat(4) = (1. + projStretch) * cosPSkew
+      cos2rot = cos(2 * projStrRot)
+      sin2rot = sin(2 * projStrRot)
+      projMat(1) = cosPSkew + sinPskew * sin2rot
+      projMat(2) = -sinPSkew * cos2rot
+      projMat(3) = projMat(2)
+      projMat(4) = cosPSkew - sinPskew * sin2rot
       return
       end
 
@@ -928,3 +903,23 @@ c
       return
       end
 
+c       $Log$
+c       Revision 3.5  2007/02/19 21:07:52  mast
+c       Added beam tilt and changed matrix sizes to accommodate
+c
+c       Revision 3.4  2005/04/10 18:02:50  mast
+c       Eliminated global rotation variable due to ineffectiveness in finding
+c       angle for some small tilt range situations with mappings
+c       
+c       Revision 3.3  2004/10/24 22:28:52  mast
+c       Changed handling of rotation variables, added projection stretch,
+c       made subroutines for filling matrices
+c       
+c       Revision 3.2  2004/10/09 23:51:12  mast
+c       Switched to matrix formulation to simplify code, speeded up
+c       computation 2-fold by saving intermediate residual products for
+c       gradients, added declarations.
+c       
+c       Revision 3.1  2002/07/28 22:39:19  mast
+c       Standardized error exit and output
+c       
