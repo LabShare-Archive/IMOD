@@ -176,6 +176,7 @@ static void startMovieCheckSnap(ZapStruct *zap, int dir)
   imcSetStarterID(zap->ctrl);
 
   zap->movieSnapCount = 0;
+  b3dSetMovieSnapping(false);
 
   /* done if no movie, or if no snapshots are desired.  */
   if (!zap->vi->zmovie || !imcGetSnapshot(zap->vi))
@@ -194,6 +195,9 @@ static void startMovieCheckSnap(ZapStruct *zap, int dir)
   /* Set to start or end depending on which button was hit */
   if (!imcStartSnapHere(zap->vi))
     zap->vi->zmouse = dir > 0 ? start : end;
+
+  // Inform autosnapshot not to check file numbers from 0
+  b3dSetMovieSnapping(true);
 
   /* draw - via imodDraw to get float done correctly */
   imodDraw(zap->vi, IMOD_DRAW_XYZ);
@@ -262,8 +266,10 @@ void zapDraw_cb(ImodView *vi, void *client, int drawflag)
       }
       zap->movieSnapCount--;
       /* When count expires, stop movie */
-      if(!zap->movieSnapCount)
+      if(!zap->movieSnapCount) {
         zap->vi->zmovie = 0;
+        b3dSetMovieSnapping(false);
+      }
     }
 
     // If there is only one zap window, set flag to record the subarea
@@ -2930,7 +2936,7 @@ static void montageSnapshot(ZapStruct *zap)
   unsigned char *framePix, *fullPix, **linePtrs;
   double zoomSave;
   char fname[256];
-  int fileno = 0;
+  static int fileno = 0;
   int factor = imcGetMontageFactor();
   double junk = 1.;
   int ij;
@@ -2995,6 +3001,10 @@ static void montageSnapshot(ZapStruct *zap)
   limits[0] = limits[1] = 0;
   limits[2] = xFullSize;
   limits[3] = yFullSize;
+
+  // Reset the file number to zero unless doing movie, then get name and save
+  if (!zap->movieSnapCount)
+    fileno = 0;
   b3dGetSnapshotName(fname, "zap", SnapShot_TIF, 3, fileno);
   imodPrintStderr("3dmod: Saving zap montage to %s", fname);
   b3dSnapshot_TIF(fname, 4, limits, linePtrs);
@@ -3833,6 +3843,9 @@ static int zapPointVisable(ZapStruct *zap, Ipoint *pnt)
 
 /*
 $Log$
+Revision 4.91  2007/03/29 04:55:49  mast
+Fixed crash bug when closing window while focus is in edit/spinbox
+
 Revision 4.90  2007/03/09 15:27:50  mast
 Added ability to autosnapshot montages
 
