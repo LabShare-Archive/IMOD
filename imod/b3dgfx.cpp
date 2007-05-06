@@ -41,7 +41,6 @@ static int          CurWidth;
 static int          CurHeight;
 static float        CurXZoom;
 
-
 /* DNM: needed so that imodv can use snapshot functions */
 void b3dSetCurSize(int width, int height)
 {
@@ -1441,18 +1440,27 @@ double b3dStepPixelZoom(double czoom, int step)
 /* DNM 12/28/03: just define default as TIF (not really used) */
 static int SnapShotFormat = SnapShot_TIF;
 
+// So that movie snapshots can avoid checking file number from 0
+static bool  movieSnapping = false;
+void b3dSetMovieSnapping(bool snapping)
+{
+  movieSnapping = snapping;
+}
+
 /*
  * Create a filename in fname with the prefix in name, based on the
  * format_type, and with at least the given number of digits.  The starting
- * candidate file number is in fileno
+ * candidate file number is in fileno.  If the previous file number exists it
+ * will start checking for free file name from this number, but if previous
+ * file number does not exist it will start checking from 0.
  */
 void b3dGetSnapshotName(char *fname, char *name, int format_type, int digits,
                         int &fileno)
 {
-  FILE *tfp = NULL;
   char format[12];
   QString snapFormat, fext;
   sprintf(format, "%%s%%0%dd.%%s", digits);
+  bool firstCheck = false;
 
   switch(format_type){
   case SnapShot_RGB:
@@ -1468,26 +1476,42 @@ void b3dGetSnapshotName(char *fname, char *name, int format_type, int digits,
     fext = "image";
   }
 
-  do {
-    if (tfp) {
-      fclose(tfp);
-      tfp = NULL;
-    }
+  // If file number is not zero, the first check is on the previous file
+  if (fileno) {
+    firstCheck = true;
+    fileno--;
+  }
+
+  // Loop until a file is found that does not exist
+  for (;;) {
     if (fileno < (int)pow(10., double(digits)))
       sprintf(fname, format, name, fileno++, fext.latin1());
     else
       sprintf(fname, "%s%d.%s", name, fileno++, fext.latin1());
-          
-  } while ((tfp = fopen((QDir::convertSeparators(QString(fname))).latin1(),
-    "rb")));
+
+    // If file does not exist and it is the first check on previous file,
+    // set file number to 0 to start from 0.  Otherwise, take this file
+    if (!QFile::exists(QDir::convertSeparators(QString(fname)))) {
+      if (firstCheck) {
+        fileno = 0;
+        firstCheck = false;
+      } else
+        break;
+    }
+    firstCheck = false;
+  }
 }
 
 /* Take a snapshot of the current window with prefix in name */
 int b3dAutoSnapshot(char *name, int format_type, int *limits)
 {
   char fname[256];
-  int fileno = 0;
+  static int fileno = 0;
   int retval;
+
+  // Reset the file number to 0 unless doing movie snapshots
+  if (!movieSnapping)
+    fileno = 0;
 
   b3dGetSnapshotName(fname, name, format_type, 3, fileno);
 
@@ -1962,6 +1986,9 @@ int b3dSnapshot(char *fname)
 
 /*
 $Log$
+Revision 4.29  2006/10/05 15:41:31  mast
+Provided for primary and second non-TIFF snapshot format
+
 Revision 4.28  2006/07/03 04:14:21  mast
 Changes for beadfixer overlay mode
 
