@@ -144,7 +144,8 @@ void b3dDrawGreyScalePixelsSubArea(B3dCIImage *image,
 				   int *xo, int *yo, int slice);
 
 
-     
+
+void b3dSetMovieSnapping(bool snapping);     
 int b3dSnapshot(char *fname);
 
 void b3dGetSnapshotName(char *fname, char *name, int format_type, int digits,
@@ -161,6 +162,9 @@ int b3dSnapshot_TIF(char *fname, int rgbmode, int *limits,
 
 /*
     $Log$
+    Revision 3.11  2006/10/05 15:41:31  mast
+    Provided for primary and second non-TIFF snapshot format
+
     Revision 3.10  2006/07/03 04:14:21  mast
     Changes for beadfixer overlay mode
 
