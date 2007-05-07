@@ -10,7 +10,7 @@ import etomo.process.PeetProcessManager;
 import etomo.process.SystemProcessException;
 import etomo.storage.ComFileFilter;
 import etomo.storage.LogFile;
-import etomo.storage.MatlabParamFile;
+import etomo.storage.MatlabParam;
 import etomo.storage.Storable;
 import etomo.type.AxisID;
 import etomo.type.AxisType;
@@ -43,6 +43,10 @@ import etomo.util.DatasetFiles;
  * @version $Revision$
  * 
  * <p> $Log$
+ * <p> Revision 1.16  2007/05/03 00:45:38  sueh
+ * <p> bug# 964 Added getParallelProcessingDefaultNice() and
+ * <p> removeComFiles().
+ * <p>
  * <p> Revision 1.15  2007/04/27 23:37:54  sueh
  * <p> bug# 964 Added processchunks() and startNextProcess.  Changed
  * <p> prmParser() to peetParser.
@@ -105,7 +109,7 @@ public final class PeetManager extends BaseManager {
   private final PeetProcessManager processMgr;
 
   private PeetDialog peetDialog = null;
-  private MatlabParamFile matlabParamFile = null;
+  private MatlabParam matlabParam = null;
   private MainPeetPanel mainPanel;
 
   PeetManager() {
@@ -188,6 +192,22 @@ public final class PeetManager extends BaseManager {
   }
 
   /**
+   * Creates matlabParam from matlabParamFile and sets the paramFile and
+   * propertyUserDir.  Changes the location of the file in matlabParam to 
+   * propertyUserDir and loads peetDialog.  This creates a new project out of an
+   * existing .prm file.
+   * @param matlabParamFile
+   */
+  public void setMatlabParam(File matlabParamFile) {
+    matlabParam = new MatlabParam(matlabParamFile, false);
+    matlabParam.read();
+    peetDialog.setFnOutput(matlabParam.getFnOutput());
+    setParamFile();
+    matlabParam.setFileDir(propertyUserDir);
+    loadPeetDialog();
+  }
+
+  /**
    * Tries to set paramFile.  Returns true if able to set paramFile.
    * If paramFile is already set, returns true.  Returns false if unable
    * to set paramFile.  Updates the peet dialog display if paramFile
@@ -222,7 +242,9 @@ public final class PeetManager extends BaseManager {
       return false;
     }
     imodManager.setMetaData(metaData);
-    loadMatlabAutodoc(true);
+    if (matlabParam == null) {
+      loadMatlabAutodoc(true);
+    }
     peetDialog.updateDisplay(true);
     return true;
   }
@@ -252,14 +274,14 @@ public final class PeetManager extends BaseManager {
     mainPanel.done();
     savePeetDialog();
   }
-  
+
   public int getParallelProcessingDefaultNice() {
     return 18;
   }
 
   public void peetParser() {
     savePeetDialog();
-    PeetParserParam param = new PeetParserParam(this, matlabParamFile.getFile());
+    PeetParserParam param = new PeetParserParam(this, matlabParam.getFile());
     try {
       LogFile log = LogFile.getInstance(param.getLogFile());
       try {
@@ -351,11 +373,12 @@ public final class PeetManager extends BaseManager {
    * Initialize metalabParamFile.  Dependent on metaData.
    */
   private void loadMatlabAutodoc(boolean newFile) {
-    if (!loadedParamFile || matlabParamFile != null || paramFile == null) {
+    if (!loadedParamFile || matlabParam != null || paramFile == null) {
       return;
     }
-    matlabParamFile = new MatlabParamFile(
-        DatasetFiles.getMatlabParamFile(this), newFile);
+    matlabParam = new MatlabParam(DatasetFiles.getMatlabParamFile(this),
+        newFile);
+    matlabParam.read();
   }
 
   private void createState() {
@@ -375,18 +398,20 @@ public final class PeetManager extends BaseManager {
       peetDialog = PeetDialog.getInstance(this, AXIS_ID);
     }
     mainPanel.setParallelDialog(AXIS_ID, peetDialog.usingParallelProcessing());
+    loadPeetDialog();
+    mainPanel.showProcess(peetDialog.getContainer(), AXIS_ID);
+  }
+  
+  private void loadPeetDialog() {
     if (paramFile != null && metaData.isValid()) {
       peetDialog.setParameters(metaData);
       peetDialog.setParameters(screenState);
-      if (matlabParamFile != null) {
-        //read an existing matlab param file
-        matlabParamFile.read();
-        peetDialog.setParameters(matlabParamFile);
+      if (matlabParam != null) {
+        peetDialog.setParameters(matlabParam);
       }
       peetDialog.setDirectory(propertyUserDir);
       peetDialog.updateDisplay(loadedParamFile);
     }
-    mainPanel.showProcess(peetDialog.getContainer(), AXIS_ID);
   }
 
   private boolean savePeetDialog() {
@@ -398,14 +423,14 @@ public final class PeetManager extends BaseManager {
         return false;
       }
     }
-    if (matlabParamFile == null) {
+    if (matlabParam == null) {
       return false;
     }
     peetDialog.getParameters(metaData);
     peetDialog.getParameters(screenState);
     saveStorables(AXIS_ID);
-    peetDialog.getParameters(matlabParamFile);
-    matlabParamFile.write();
+    peetDialog.getParameters(matlabParam);
+    matlabParam.write();
     return true;
   }
 
