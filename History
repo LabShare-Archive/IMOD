@@ -1,5 +1,8 @@
 IMOD History
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+5/7/07: For 32-bit Windows, added flag to 3dmod and midas to allow them to
+access up to 3 GB of memory instead of 2 GB, if boot parameter /3GB is used.
+
 5/5/07: Movie snapshots from Zap or Slicer will no longer check for the first
 free snapshot filename, which gets slow with many hundreds of files.
 
