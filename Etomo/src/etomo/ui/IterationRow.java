@@ -5,7 +5,7 @@ import java.awt.GridBagLayout;
 
 import javax.swing.JPanel;
 
-import etomo.storage.MatlabParamFile;
+import etomo.storage.MatlabParam;
 
 /**
  * <p>Description: </p>
@@ -21,6 +21,9 @@ import etomo.storage.MatlabParamFile;
  * @version $Revision$
  * 
  * <p> $Log$
+ * <p> Revision 1.4  2007/04/26 02:49:06  sueh
+ * <p> bug# 964 Changed dPhiEnd to dPhiMax.  Did the same for dTheta and dPsi.
+ * <p>
  * <p> Revision 1.3  2007/04/19 21:59:32  sueh
  * <p> bug# 964 Added getParameters(MatlabParamFile) and setParameters(MallabParamFile).
  * <p>
@@ -99,8 +102,8 @@ final class IterationRow implements Highlightable{
     refThreshold.setHighlight(highlight);
   }
   
-  void getParameters(final MatlabParamFile matlabParamFile) {
-    MatlabParamFile.Iteration iteration = matlabParamFile.getIteration(index);
+  void getParameters(final MatlabParam matlabParamFile) {
+    MatlabParam.Iteration iteration = matlabParamFile.getIteration(index);
     iteration.setDPhiEnd(dPhiMax.getValue());
     iteration.setDPhiIncrement(dPhiIncrement.getValue());
     iteration.setDThetaEnd(dThetaMax.getValue());
@@ -113,8 +116,8 @@ final class IterationRow implements Highlightable{
     iteration.setRefThreshold(refThreshold.getValue());
   }
   
-  void setParameters(final MatlabParamFile matlabParamFile) {
-    MatlabParamFile.Iteration iteration = matlabParamFile.getIteration(index);
+  void setParameters(final MatlabParam matlabParamFile) {
+    MatlabParam.Iteration iteration = matlabParamFile.getIteration(index);
     dPhiMax.setValue(iteration.getDPhiEnd());
     dPhiIncrement.setValue(iteration.getDPhiIncrement());
     dThetaMax.setValue(iteration.getDThetaEnd());

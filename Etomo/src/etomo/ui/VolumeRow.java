@@ -8,7 +8,7 @@ import javax.swing.JPanel;
 
 import etomo.BaseManager;
 import etomo.process.ImodManager;
-import etomo.storage.MatlabParamFile;
+import etomo.storage.MatlabParam;
 import etomo.type.ConstPeetMetaData;
 import etomo.type.PeetMetaData;
 import etomo.type.Run3dmodMenuOptions;
@@ -27,6 +27,9 @@ import etomo.type.Run3dmodMenuOptions;
  * @version $Revision$
  * 
  * <p> $Log$
+ * <p> Revision 1.14  2007/04/09 21:24:44  sueh
+ * <p> bug# 964 Removed unecessary function MatlabParamFile.isRelativeOrientSet().
+ * <p>
  * <p> Revision 1.13  2007/04/02 21:53:47  sueh
  * <p> bug# 964 Added FieldCell.editable to make instances of FieldCell that can't be
  * <p> edited.  This allows FieldCell.setEditable and setEnabled to be called without
@@ -180,8 +183,8 @@ final class VolumeRow implements Highlightable {
     setTiltRangeEnd(metaData.getTiltRangeEnd(index));
   }
 
-  void getParameters(final MatlabParamFile matlabParamFile) {
-    MatlabParamFile.Volume volume = matlabParamFile.getVolume(index);
+  void getParameters(final MatlabParam matlabParamFile) {
+    MatlabParam.Volume volume = matlabParamFile.getVolume(index);
     volume.setFnVolume(fnVolume.getExpandedValue());
     volume.setFnModParticle(fnModParticle.getExpandedValue());
     volume.setInitMotl(initMotlFile.getExpandedValue());
@@ -192,9 +195,9 @@ final class VolumeRow implements Highlightable {
     volume.setRelativeOrientZ(relativeOrientZ.getValue());
   }
 
-  void setParameters(final MatlabParamFile matlabParamFile,
+  void setParameters(final MatlabParam matlabParam,
       boolean useInitMotlFile, boolean useTiltRange) {
-    MatlabParamFile.Volume volume = matlabParamFile.getVolume(index);
+    MatlabParam.Volume volume = matlabParam.getVolume(index);
     if (useInitMotlFile) {
       setExpandableValues(initMotlFile, volume.getInitMotlString());
     }

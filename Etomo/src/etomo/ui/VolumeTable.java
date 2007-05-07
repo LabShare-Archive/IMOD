@@ -20,7 +20,7 @@ import javax.swing.border.LineBorder;
 import etomo.BaseManager;
 import etomo.PeetManager;
 import etomo.storage.LogFile;
-import etomo.storage.MatlabParamFile;
+import etomo.storage.MatlabParam;
 import etomo.storage.ModelFileFilter;
 import etomo.storage.MotlFileFilter;
 import etomo.storage.TiltFile;
@@ -47,6 +47,9 @@ import etomo.type.Run3dmodMenuOptions;
  * @version $Revision$
  * 
  * <p> $Log$
+ * <p> Revision 1.16  2007/04/09 21:25:20  sueh
+ * <p> bug# 964 Toggling the tilt range file button.
+ * <p>
  * <p> Revision 1.15  2007/04/02 21:53:58  sueh
  * <p> bug# 964 Disabling initMotlFile column and button when PeetDialog.rbInitMotlFile
  * <p> is not selected.  Disabling tiltRange column when PeetDialog.cbTiltRange is not
@@ -203,7 +206,7 @@ final class VolumeTable implements Expandable, Highlightable,
     rowList.setParameters(metaData);
   }
 
-  void setParameters(final MatlabParamFile matlabParamFile,
+  void setParameters(final MatlabParam matlabParamFile,
       boolean useInitMotlFile, boolean useTiltRange) {
     boolean initMotlFileIsExpanded = btnExpandInitMotlFile.isExpanded();
     for (int i = 0; i < matlabParamFile.getVolumeListSize(); i++) {
@@ -217,7 +220,7 @@ final class VolumeTable implements Expandable, Highlightable,
     UIHarness.INSTANCE.pack(manager);
   }
 
-  void getParameters(final MatlabParamFile matlabParamFile) {
+  void getParameters(final MatlabParam matlabParamFile) {
     rowList.getParameters(matlabParamFile);
   }
 
@@ -349,26 +352,26 @@ final class VolumeTable implements Expandable, Highlightable,
       ReadOnlyAutodoc autodoc = AutodocFactory
           .getInstance(AutodocFactory.PEET_PRM);
       String tooltip1 = EtomoAutodoc.getTooltip(autodoc,
-          MatlabParamFile.FN_VOLUME_KEY);
+          MatlabParam.FN_VOLUME_KEY);
       header1FnVolume.setToolTipText(tooltip1);
       header2FnVolume.setToolTipText(tooltip1);
       String tooltip = EtomoAutodoc.getTooltip(autodoc,
-          MatlabParamFile.FN_MOD_PARTICLE_KEY);
+          MatlabParam.FN_MOD_PARTICLE_KEY);
       btnAddFnVolume.setToolTipText(tooltip1 + "  " + tooltip);
       header1FnModParticle.setToolTipText(tooltip);
       header2FnModParticle.setToolTipText(tooltip);
-      tooltip = EtomoAutodoc.getTooltip(autodoc, MatlabParamFile.INIT_MOTL_KEY);
+      tooltip = EtomoAutodoc.getTooltip(autodoc, MatlabParam.INIT_MOTL_KEY);
       btnSetInitMotlFile.setToolTipText(tooltip);
       header1InitMotlFile.setToolTipText(tooltip);
       header2InitMotlFile.setToolTipText(tooltip);
       tooltip = EtomoAutodoc
-          .getTooltip(autodoc, MatlabParamFile.TILT_RANGE_KEY);
+          .getTooltip(autodoc, MatlabParam.TILT_RANGE_KEY);
       btnReadTiltFile.setToolTipText(tooltip);
       header1TiltRange.setToolTipText(tooltip);
       header2TiltRangeStart.setToolTipText(tooltip);
       header2TiltRangeEnd.setToolTipText(tooltip);
       tooltip = EtomoAutodoc.getTooltip(autodoc,
-          MatlabParamFile.RELATIVE_ORIENT_KEY);
+          MatlabParam.RELATIVE_ORIENT_KEY);
       header1RelativeOrient.setToolTipText(tooltip);
       header2RelativeOrientX.setToolTipText(tooltip);
       header2RelativeOrientY.setToolTipText(tooltip);
@@ -537,7 +540,7 @@ final class VolumeTable implements Expandable, Highlightable,
       }
     }
 
-    private void getParameters(final MatlabParamFile matlabParamFile) {
+    private void getParameters(final MatlabParam matlabParamFile) {
       matlabParamFile.setVolumeListSize(list.size());
       for (int i = 0; i < list.size(); i++) {
         ((VolumeRow) list.get(i)).getParameters(matlabParamFile);

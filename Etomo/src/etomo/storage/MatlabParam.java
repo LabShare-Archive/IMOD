@@ -27,6 +27,7 @@ import etomo.type.ParsedList;
 import etomo.type.ParsedNumber;
 import etomo.type.ParsedQuotedString;
 import etomo.ui.UIHarness;
+import etomo.util.DatasetFiles;
 
 /**
  * <p>Description: </p>
@@ -42,6 +43,11 @@ import etomo.ui.UIHarness;
  * @version $Revision$
  * 
  * <p> $Log$
+ * <p> Revision 1.22  2007/05/03 21:06:58  sueh
+ * <p> bug# 964 Allow searchRadius to be an array.  Allow hiCutoff to display as
+ * <p> a number when sigma is empty; this required hiCutoff to be compact as
+ * <p> well as flexible because sigma is always set by the GUI.
+ * <p>
  * <p> Revision 1.21  2007/05/02 16:34:38  sueh
  * <p> bug# 964 Default reference source not being set.
  * <p>
@@ -120,7 +126,7 @@ import etomo.ui.UIHarness;
  * <p> bug# 964 A class which represents a .prm file.
  * <p> </p>
  */
-public final class MatlabParamFile {
+public final class MatlabParam {
   public static final String rcsid = "$Id$";
 
   public static final String REFERENCE_KEY = "reference";
@@ -196,7 +202,6 @@ public final class MatlabParamFile {
   private final ParsedQuotedString referenceFile = new ParsedQuotedString();
   private final ParsedArray reference = ParsedArray.getInstance();
   private final ParsedArray yaxisContour = ParsedArray.getInstance();
-  private final File file;
 
   private String lowCutoff = LOW_CUTOFF_DEFAULT;
   private InitMotlCode initMotlCode = InitMotlCode.DEFAULT;
@@ -204,12 +209,25 @@ public final class MatlabParamFile {
   private boolean tiltRangeEmpty = false;
   private boolean useReferenceFile = REFERENCE_FILE_DEFAULT;
   private YaxisType yaxisType = YaxisType.DEFAULT;
-  private boolean newFile;
   private boolean useYaxisContour = false;
 
-  public MatlabParamFile(File file, boolean newFile) {
+  private boolean newFile;
+  private File file;
+
+  public MatlabParam(File file, boolean newFile) {
     this.file = file;
     this.newFile = newFile;
+  }
+
+  /**
+   * Change file to newDir + fnOutput.  Also sets newFile to true.  This allows
+   * MatlabParam to read from one file and then write to another.
+   * @param newDir
+   */
+  public void setFileDir(String newDir) {
+    newFile = true;
+    file = new File(newDir, fnOutput.getRawString()
+        + DatasetFiles.MATLAB_PARAM_FILE_EXT);
   }
 
   /**
@@ -339,6 +357,10 @@ public final class MatlabParamFile {
       return iteration;
     }
     return (Iteration) iterationList.get(index);
+  }
+
+  public String getFnOutput() {
+    return fnOutput.getRawString();
   }
 
   public String getFnVolume(final int index) {
@@ -915,7 +937,8 @@ public final class MatlabParamFile {
     ParsedList searchRadius = ParsedList.getFlexibleInstance();
     ParsedList lowCutoff = ParsedList
         .getFlexibleInstance(EtomoNumber.Type.FLOAT);
-    ParsedList hiCutoff = ParsedList.getFlexibleCompactArrayInstance(EtomoNumber.Type.FLOAT);
+    ParsedList hiCutoff = ParsedList
+        .getFlexibleCompactArrayInstance(EtomoNumber.Type.FLOAT);
     ParsedList refThreshold = ParsedList
         .getNumericInstance(EtomoNumber.Type.FLOAT);
     //build the lists

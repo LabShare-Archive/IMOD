@@ -22,7 +22,8 @@ import etomo.PeetManager;
 import etomo.comscript.ParallelParam;
 import etomo.comscript.ProcesschunksParam;
 import etomo.storage.LogFile;
-import etomo.storage.MatlabParamFile;
+import etomo.storage.MatlabParam;
+import etomo.storage.MatlabParamFileFilter;
 import etomo.storage.autodoc.AutodocFactory;
 import etomo.storage.autodoc.ReadOnlyAutodoc;
 import etomo.type.AxisID;
@@ -47,6 +48,9 @@ import etomo.type.PeetScreenState;
  * @version $Revision$
  * 
  * <p> $Log$
+ * <p> Revision 1.32  2007/05/03 21:17:31  sueh
+ * <p> bug# 964 Added btnImportMatlabParamFile (not implemented yet).
+ * <p>
  * <p> Revision 1.31  2007/05/02 16:35:36  sueh
  * <p> bug# 964 Default reference source not being set.  YaxisContour model
  * <p> number spinner was set to null.
@@ -181,7 +185,7 @@ public final class PeetDialog implements AbstractParallelDialog, Expandable {
   private final LabeledTextField ltfAlignedBaseName = new LabeledTextField(
       "Aligned base name: ");
   private final LabeledTextField ltfLowCutoff = new LabeledTextField(
-      "Low cutoff: ");
+      "Low frequency filter: ");
   private final CheckBox cbRefFlagAllTom = new CheckBox(
       "Use equal numbers of particles from all tomogram for new reference");
   private final LabeledTextField ltfLstThresholdsStart = new LabeledTextField(
@@ -212,41 +216,41 @@ public final class PeetDialog implements AbstractParallelDialog, Expandable {
       REFERENCE_FILE_LABEL, bgReference);
   private final LabeledSpinner lsParticlePerCPU = new LabeledSpinner(
       "Particles per CPU: ", new SpinnerNumberModel(
-          MatlabParamFile.PARTICLE_PER_CPU_DEFAULT,
-          MatlabParamFile.PARTICLE_PER_CPU_MIN,
-          MatlabParamFile.PARTICLE_PER_CPU_MAX, 1));
+          MatlabParam.PARTICLE_PER_CPU_DEFAULT,
+          MatlabParam.PARTICLE_PER_CPU_MIN,
+          MatlabParam.PARTICLE_PER_CPU_MAX, 1));
   private final IterationTable iterationTable;
   private final ButtonGroup bgYaxisType = new ButtonGroup();
   private final RadioButton rbYaxisTypeYAxis = new RadioButton(
-      "Original Y axis", MatlabParamFile.YaxisType.Y_AXIS, bgYaxisType);
+      "Original Y axis", MatlabParam.YaxisType.Y_AXIS, bgYaxisType);
   private final RadioButton rbYaxisTypeParticleModel = new RadioButton(
-      "Particle model points", MatlabParamFile.YaxisType.PARTICLE_MODEL,
+      "Particle model points", MatlabParam.YaxisType.PARTICLE_MODEL,
       bgYaxisType);
   private final RadioButton rbYaxisTypeContour = new RadioButton(
-      "End points of contour:  ", MatlabParamFile.YaxisType.CONTOUR,
+      "End points of contour:  ", MatlabParam.YaxisType.CONTOUR,
       bgYaxisType);
   private final ButtonGroup bgInitMotl = new ButtonGroup();
   private final RadioButton rbInitMotlZero = new RadioButton(
-      "Set all rotational values to zero", MatlabParamFile.InitMotlCode.ZERO,
+      "Set all rotational values to zero", MatlabParam.InitMotlCode.ZERO,
       bgInitMotl);
   private final RadioButton rbInitMotlZAxis = new RadioButton(
-      "Initialize Z axis", MatlabParamFile.InitMotlCode.Z_AXIS, bgInitMotl);
+      "Initialize Z axis", MatlabParam.InitMotlCode.Z_AXIS, bgInitMotl);
   private final RadioButton rbInitMotlXAndZAxis = new RadioButton(
-      "Initialize X and Z axis", MatlabParamFile.InitMotlCode.X_AND_Z_AXIS,
+      "Initialize X and Z axis", MatlabParam.InitMotlCode.X_AND_Z_AXIS,
       bgInitMotl);
   private final RadioButton rbInitMotlFiles = new RadioButton("Use files",
       bgInitMotl);
   private final ButtonGroup bgCcMode = new ButtonGroup();
   private final RadioButton rbCcModeNormalized = new RadioButton(
       "Local energy normalized cross correlation",
-      MatlabParamFile.CCMode.NORMALIZED, bgCcMode);
+      MatlabParam.CCMode.NORMALIZED, bgCcMode);
   private final RadioButton rbCcModeLocal = new RadioButton(
-      "True local correlation coefficent", MatlabParamFile.CCMode.LOCAL,
+      "True local correlation coefficent", MatlabParam.CCMode.LOCAL,
       bgCcMode);
   private final LabeledSpinner lsDebugLevel = new LabeledSpinner(
       "Debug level: ", new SpinnerNumberModel(
-          MatlabParamFile.DEBUG_LEVEL_DEFAULT, MatlabParamFile.DEBUG_LEVEL_MIN,
-          MatlabParamFile.DEBUG_LEVEL_MAX, 1));
+          MatlabParam.DEBUG_LEVEL_DEFAULT, MatlabParam.DEBUG_LEVEL_MIN,
+          MatlabParam.DEBUG_LEVEL_MAX, 1));
   private final MultiLineButton btnImportMatlabParamFile = new MultiLineButton(
       "Import a .prm File");
   private final TabbedPane tabPane = new TabbedPane();
@@ -289,6 +293,7 @@ public final class PeetDialog implements AbstractParallelDialog, Expandable {
 
   public void updateDisplay(final boolean paramFileSet) {
     ftfDirectory.setEditable(!paramFileSet);
+    btnImportMatlabParamFile.setEnabled(!paramFileSet);
     ltfFnOutput.setEditable(!paramFileSet);
     btnRun.setEnabled(paramFileSet);
   }
@@ -355,9 +360,7 @@ public final class PeetDialog implements AbstractParallelDialog, Expandable {
    * the dataset has been created.
    * @param matlabParamFile
    */
-  public void setParameters(final MatlabParamFile matlabParamFile) {
-    volumeTable.setParameters(matlabParamFile, rbInitMotlFiles.isSelected(),
-        cbTiltRange.isSelected());
+  public void setParameters(final MatlabParam matlabParamFile) {
     iterationTable.setParameters(matlabParamFile);
     if (matlabParamFile.useReferenceFile()) {
       rbReferenceFile.setSelected(true);
@@ -368,18 +371,18 @@ public final class PeetDialog implements AbstractParallelDialog, Expandable {
       sReferenceVolume.setValue(matlabParamFile.getReferenceVolume());
       ltfReferenceParticle.setText(matlabParamFile.getReferenceParticle());
     }
-    MatlabParamFile.InitMotlCode initMotlCode = matlabParamFile
+    MatlabParam.InitMotlCode initMotlCode = matlabParamFile
         .getInitMotlCode();
     if (initMotlCode == null) {
       rbInitMotlFiles.setSelected(true);
     }
-    else if (initMotlCode == MatlabParamFile.InitMotlCode.ZERO) {
+    else if (initMotlCode == MatlabParam.InitMotlCode.ZERO) {
       rbInitMotlZero.setSelected(true);
     }
-    else if (initMotlCode == MatlabParamFile.InitMotlCode.Z_AXIS) {
+    else if (initMotlCode == MatlabParam.InitMotlCode.Z_AXIS) {
       rbInitMotlZAxis.setSelected(true);
     }
-    else if (initMotlCode == MatlabParamFile.InitMotlCode.X_AND_Z_AXIS) {
+    else if (initMotlCode == MatlabParam.InitMotlCode.X_AND_Z_AXIS) {
       rbInitMotlXAndZAxis.setSelected(true);
     }
     cbTiltRange.setSelected(matlabParamFile.useTiltRange());
@@ -389,11 +392,11 @@ public final class PeetDialog implements AbstractParallelDialog, Expandable {
     ltfSzVolX.setText(matlabParamFile.getSzVolX());
     ltfSzVolY.setText(matlabParamFile.getSzVolY());
     ltfSzVolZ.setText(matlabParamFile.getSzVolZ());
-    MatlabParamFile.CCMode ccMode = matlabParamFile.getCcMode();
-    if (ccMode == MatlabParamFile.CCMode.NORMALIZED) {
+    MatlabParam.CCMode ccMode = matlabParamFile.getCcMode();
+    if (ccMode == MatlabParam.CCMode.NORMALIZED) {
       rbCcModeNormalized.setSelected(true);
     }
-    else if (ccMode == MatlabParamFile.CCMode.LOCAL) {
+    else if (ccMode == MatlabParam.CCMode.LOCAL) {
       rbCcModeLocal.setSelected(true);
     }
     cbMeanFill.setSelected(matlabParamFile.isMeanFill());
@@ -409,26 +412,28 @@ public final class PeetDialog implements AbstractParallelDialog, Expandable {
     cbRefFlagAllTom.setSelected(matlabParamFile.isRefFlagAllTom());
     cbLstFlagAllTom.setSelected(matlabParamFile.isLstFlagAllTom());
     lsParticlePerCPU.setValue(matlabParamFile.getParticlePerCPU());
-    MatlabParamFile.YaxisType yaxisType = matlabParamFile.getYaxisType();
-    if (yaxisType == MatlabParamFile.YaxisType.Y_AXIS) {
+    MatlabParam.YaxisType yaxisType = matlabParamFile.getYaxisType();
+    if (yaxisType == MatlabParam.YaxisType.Y_AXIS) {
       rbYaxisTypeYAxis.setSelected(true);
     }
-    else if (yaxisType == MatlabParamFile.YaxisType.PARTICLE_MODEL) {
+    else if (yaxisType == MatlabParam.YaxisType.PARTICLE_MODEL) {
       rbYaxisTypeParticleModel.setSelected(true);
     }
-    else if (yaxisType == MatlabParamFile.YaxisType.CONTOUR) {
+    else if (yaxisType == MatlabParam.YaxisType.CONTOUR) {
       rbYaxisTypeContour.setSelected(true);
-      sYaxisContourModelNumber.setValue(matlabParamFile
-          .getYaxisContourModelNumber());
-      ltfYaxisContourObjectNumber.setText(matlabParamFile
-          .getYaxisContourObjectNumber());
-      ltfYaxisContourContourNumber.setText(matlabParamFile
-          .getYaxisContourContourNumber());
     }
+    sYaxisContourModelNumber.setValue(matlabParamFile
+        .getYaxisContourModelNumber());
+    ltfYaxisContourObjectNumber.setText(matlabParamFile
+        .getYaxisContourObjectNumber());
+    ltfYaxisContourContourNumber.setText(matlabParamFile
+        .getYaxisContourContourNumber());
+    volumeTable.setParameters(matlabParamFile, rbInitMotlFiles.isSelected(),
+        cbTiltRange.isSelected());
     updateDisplay();
   }
 
-  public void getParameters(final MatlabParamFile matlabParamFile) {
+  public void getParameters(final MatlabParam matlabParamFile) {
     matlabParamFile.clear();
     volumeTable.getParameters(matlabParamFile);
     iterationTable.getParameters(matlabParamFile);
@@ -525,64 +530,64 @@ public final class PeetDialog implements AbstractParallelDialog, Expandable {
       ReadOnlyAutodoc autodoc = AutodocFactory
           .getInstance(AutodocFactory.PEET_PRM);
       String tooltip = EtomoAutodoc.getTooltip(autodoc,
-          MatlabParamFile.INIT_MOTL_KEY);
+          MatlabParam.INIT_MOTL_KEY);
       rbInitMotlZero.setToolTipText(tooltip);
       rbInitMotlXAndZAxis.setToolTipText(tooltip);
       rbInitMotlZAxis.setToolTipText(tooltip);
       rbInitMotlFiles.setToolTipText(tooltip);
       tooltip = EtomoAutodoc
-          .getTooltip(autodoc, MatlabParamFile.TILT_RANGE_KEY);
+          .getTooltip(autodoc, MatlabParam.TILT_RANGE_KEY);
       cbTiltRange.setToolTipText(tooltip);
-      tooltip = EtomoAutodoc.getTooltip(autodoc, MatlabParamFile.REFERENCE_KEY);
+      tooltip = EtomoAutodoc.getTooltip(autodoc, MatlabParam.REFERENCE_KEY);
       rbReferenceVolume.setToolTipText(tooltip);
       rbReferenceFile.setToolTipText(tooltip);
       sReferenceVolume.setToolTipText(tooltip);
       ltfReferenceParticle.setToolTipText(tooltip);
       ftfReferenceFile.setToolTipText(tooltip);
       ltfEdgeShift.setToolTipText(EtomoAutodoc.getTooltip(autodoc,
-          MatlabParamFile.EDGE_SHIFT_KEY));
-      tooltip = EtomoAutodoc.getTooltip(autodoc, MatlabParamFile.SZ_VOL_KEY);
+          MatlabParam.EDGE_SHIFT_KEY));
+      tooltip = EtomoAutodoc.getTooltip(autodoc, MatlabParam.SZ_VOL_KEY);
       ltfSzVolX.setToolTipText(tooltip);
       ltfSzVolY.setToolTipText(tooltip);
       ltfSzVolZ.setToolTipText(tooltip);
-      tooltip = EtomoAutodoc.getTooltip(autodoc, MatlabParamFile.CC_MODE_KEY);
+      tooltip = EtomoAutodoc.getTooltip(autodoc, MatlabParam.CC_MODE_KEY);
       rbCcModeNormalized.setToolTipText(tooltip);
       rbCcModeLocal.setToolTipText(tooltip);
-      tooltip = EtomoAutodoc.getTooltip(autodoc, MatlabParamFile.MEAN_FILL_KEY);
+      tooltip = EtomoAutodoc.getTooltip(autodoc, MatlabParam.MEAN_FILL_KEY);
       cbMeanFill.setToolTipText(tooltip);
       tooltip = EtomoAutodoc.getTooltip(autodoc,
-          MatlabParamFile.DEBUG_LEVEL_KEY);
+          MatlabParam.DEBUG_LEVEL_KEY);
       lsDebugLevel.setToolTipText(tooltip);
       tooltip = EtomoAutodoc
-          .getTooltip(autodoc, MatlabParamFile.LOW_CUTOFF_KEY);
+          .getTooltip(autodoc, MatlabParam.LOW_CUTOFF_KEY);
       ltfLowCutoff.setToolTipText(tooltip);
       tooltip = EtomoAutodoc.getTooltip(autodoc,
-          MatlabParamFile.REF_FLAG_ALL_TOM_KEY);
+          MatlabParam.REF_FLAG_ALL_TOM_KEY);
       cbRefFlagAllTom.setToolTipText(tooltip);
       tooltip = EtomoAutodoc.getTooltip(autodoc,
-          MatlabParamFile.LST_THRESHOLDS_KEY);
+          MatlabParam.LST_THRESHOLDS_KEY);
       ltfLstThresholdsStart.setToolTipText(tooltip);
       ltfLstThresholdsIncrement.setToolTipText(tooltip);
       ltfLstThresholdsEnd.setToolTipText(tooltip);
       ltfLstThresholdsAdditional.setToolTipText(tooltip);
       tooltip = EtomoAutodoc.getTooltip(autodoc,
-          MatlabParamFile.LST_FLAG_ALL_TOM_KEY);
+          MatlabParam.LST_FLAG_ALL_TOM_KEY);
       cbLstFlagAllTom.setToolTipText(tooltip);
       tooltip = EtomoAutodoc.getTooltip(autodoc,
-          MatlabParamFile.PARTICLE_PER_CPU_KEY);
+          MatlabParam.PARTICLE_PER_CPU_KEY);
       lsParticlePerCPU.setToolTipText(tooltip);
       tooltip = EtomoAutodoc.getTooltip(autodoc,
-          MatlabParamFile.ALIGNED_BASE_NAME_KEY);
+          MatlabParam.ALIGNED_BASE_NAME_KEY);
       ltfAlignedBaseName.setToolTipText(tooltip);
-      tooltip = EtomoAutodoc.getTooltip(autodoc, MatlabParamFile.FN_OUTPUT_KEY);
+      tooltip = EtomoAutodoc.getTooltip(autodoc, MatlabParam.FN_OUTPUT_KEY);
       ltfFnOutput.setToolTipText(tooltip);
       tooltip = EtomoAutodoc
-          .getTooltip(autodoc, MatlabParamFile.YAXIS_TYPE_KEY);
+          .getTooltip(autodoc, MatlabParam.YAXIS_TYPE_KEY);
       rbYaxisTypeYAxis.setToolTipText(tooltip);
       rbYaxisTypeParticleModel.setToolTipText(tooltip);
       rbYaxisTypeContour.setToolTipText(tooltip);
       tooltip = EtomoAutodoc.getTooltip(autodoc,
-          MatlabParamFile.YAXIS_CONTOUR_KEY);
+          MatlabParam.YAXIS_CONTOUR_KEY);
       sYaxisContourModelNumber.setToolTipText(tooltip);
       ltfYaxisContourObjectNumber.setToolTipText(tooltip);
       ltfYaxisContourContourNumber.setToolTipText(tooltip);
@@ -603,10 +608,10 @@ public final class PeetDialog implements AbstractParallelDialog, Expandable {
   }
 
   private void setDefaults() {
-    ltfEdgeShift.setText(MatlabParamFile.EDGE_SHIFT_DEFAULT);
-    cbMeanFill.setSelected(MatlabParamFile.MEAN_FILL_DEFAULT);
-    ltfLowCutoff.setText(MatlabParamFile.LOW_CUTOFF_DEFAULT);
-    if (MatlabParamFile.REFERENCE_FILE_DEFAULT) {
+    ltfEdgeShift.setText(MatlabParam.EDGE_SHIFT_DEFAULT);
+    cbMeanFill.setSelected(MatlabParam.MEAN_FILL_DEFAULT);
+    ltfLowCutoff.setText(MatlabParam.LOW_CUTOFF_DEFAULT);
+    if (MatlabParam.REFERENCE_FILE_DEFAULT) {
       rbReferenceFile.setSelected(true);
     }
     else {
@@ -615,6 +620,12 @@ public final class PeetDialog implements AbstractParallelDialog, Expandable {
   }
 
   private void createSetupPanel() {
+    //use existing project
+    JPanel pnlUseExistingProject = new JPanel();
+    pnlUseExistingProject.setLayout(new BoxLayout(pnlUseExistingProject,BoxLayout.X_AXIS));
+    pnlUseExistingProject.setBorder(new EtchedBorder("Use Existing Project").getBorder());
+    btnImportMatlabParamFile.setSize();
+    pnlUseExistingProject.add(btnImportMatlabParamFile.getComponent());
     //volume reference
     JPanel pnlVolumeReference = new JPanel();
     pnlVolumeReference.setLayout(new BoxLayout(pnlVolumeReference,
@@ -667,6 +678,7 @@ public final class PeetDialog implements AbstractParallelDialog, Expandable {
     pnlSetupBody.setBoxLayout(BoxLayout.Y_AXIS);
     pnlSetupBody.setComponentAlignmentX(Component.CENTER_ALIGNMENT);
     pnlSetupBody.add(ftfDirectory.getContainer());
+    pnlSetupBody.add(pnlUseExistingProject);
     pnlSetupBody.add(ltfFnOutput.getContainer());
     pnlSetupBody.add(volumeTable.getContainer());
     pnlSetupBody.add(pnlReference);
@@ -772,53 +784,38 @@ public final class PeetDialog implements AbstractParallelDialog, Expandable {
       updateDisplay();
     }
     else if (actionCommand.equals(btnImportMatlabParamFile.getActionCommand())) {
-     // importMatlabParamFile();
+      importMatlabParam();
     }
   }
 
   /**
-   * Allow the user to choose a tomogram and a model.  Only works if they choose
-   * both.
-   *//*
-  private void importMatlabParamFile() {
-    if (!manager.setParamFile()) {
+   * Create a project out of a matlab param file.
+   */
+  private void importMatlabParam() {
+    String path = ftfDirectory.getText();
+    if (path==null||path.matches("\\s*")) {
       UIHarness.INSTANCE.openMessageDialog("Please set the "
-          + PeetDialog.DIRECTORY_LABEL + " and " + PeetDialog.OUTPUT_LABEL
-          + " fields before adding tomograms.", "Entry Error");
+          + PeetDialog.DIRECTORY_LABEL +"field before importing a .prm file.", "Entry Error");
       return;
     }
-    File tomogram = null;
-    File model = null;
-    JFileChooser chooser = getFileChooserInstance();
-    chooser.setFileFilter(new TomogramFileFilter());
+    File dir = new File(ftfDirectory.getText());
+    if (!dir.exists()) {
+      UIHarness.INSTANCE.openMessageDialog("Please create "
+          + dir.getAbsolutePath() +" before importing a .prm file.", "Entry Error");
+      return;
+    }
+    File matlabParamFile = null;
+    JFileChooser chooser = new JFileChooser(dir);
+    chooser.setFileFilter(new MatlabParamFileFilter());
     chooser.setPreferredSize(UIParameters.INSTANCE.getFileChooserDimension());
     chooser.setFileSelectionMode(JFileChooser.FILES_ONLY);
     int returnVal = chooser.showOpenDialog(rootPanel);
     if (returnVal != JFileChooser.APPROVE_OPTION) {
       return;
     }
-    tomogram = chooser.getSelectedFile();
-    lastLocation = tomogram.getParentFile();
-    chooser = getFileChooserInstance();
-    chooser.setFileFilter(new ModelFileFilter());
-    chooser.setPreferredSize(UIParameters.INSTANCE.getFileChooserDimension());
-    chooser.setFileSelectionMode(JFileChooser.FILES_ONLY);
-    returnVal = chooser.showOpenDialog(rootPanel);
-    if (returnVal == JFileChooser.APPROVE_OPTION) {
-      model = chooser.getSelectedFile();
-      lastLocation = model.getParentFile();
-    }
-    if (tomogram == null || model == null) {
-      UIHarness.INSTANCE.openMessageDialog(
-          "Please choose both a tomogram and a model", "Entry Error");
-    }
-    else {
-      addRow(tomogram, model);
-      updateDisplay();
-      parent.msgVolumeTableSizeChanged();
-      UIHarness.INSTANCE.pack(manager);
-    }
-  }*/
+    matlabParamFile = chooser.getSelectedFile();
+    manager.setMatlabParam(matlabParamFile);
+  }
 
   private void changeTab() {
     if (tabPane.getSelectedIndex() == 0) {
@@ -841,20 +838,19 @@ public final class PeetDialog implements AbstractParallelDialog, Expandable {
     ltfEdgeShift.setEnabled(cbTiltRange.isSelected());
     int size = volumeTable.size();
     //reference
-    boolean gt1 = size > 1;
-    rbReferenceVolume.setEnabled(gt1);
-    sReferenceVolume.setEnabled(gt1 && rbReferenceVolume.isSelected());
+    boolean volumeRows = size > 0;
+    rbReferenceVolume.setEnabled(volumeRows);
+    sReferenceVolume.setEnabled(volumeRows && rbReferenceVolume.isSelected());
     sReferenceVolume.setMax(size);
-    ltfReferenceParticle.setEnabled(gt1 && rbReferenceVolume.isSelected());
-    ftfReferenceFile.setEnabled(gt1 && rbReferenceFile.isSelected());
+    ltfReferenceParticle.setEnabled(volumeRows && rbReferenceVolume.isSelected());
+    ftfReferenceFile.setEnabled(volumeRows && rbReferenceFile.isSelected());
     //yaxisType and yaxisContour
-    boolean gt0 = size > 0;
-    rbYaxisTypeContour.setEnabled(gt0);
-    sYaxisContourModelNumber.setEnabled(gt0 && rbYaxisTypeContour.isSelected());
+    rbYaxisTypeContour.setEnabled(volumeRows);
+    sYaxisContourModelNumber.setEnabled(volumeRows && rbYaxisTypeContour.isSelected());
     sYaxisContourModelNumber.setMax(size);
-    ltfYaxisContourObjectNumber.setEnabled(gt0
+    ltfYaxisContourObjectNumber.setEnabled(volumeRows
         && rbYaxisTypeContour.isSelected());
-    ltfYaxisContourContourNumber.setEnabled(gt0
+    ltfYaxisContourContourNumber.setEnabled(volumeRows
         && rbYaxisTypeContour.isSelected());
     //volume table
     volumeTable.updateDisplay(rbInitMotlFiles.isSelected(), cbTiltRange
