@@ -273,19 +273,21 @@ echo CONFIG += CONSOLE >! $sendevent_qconf
 echo LIBS += qassistantclient.lib >! $qtassist_qconf
 echo CONFIG += CONSOLE >! $sourcedoc_qconf
 
+#  /LARGEADDRESSAWARE flag allows up to 3GB memory on a 32-bit system if it
+# has the /3GB boot flag; isn't needed for 64-bit link since it is the default
 cat << EOF >! $imod_qconf
 SOURCES += linegui.cpp
 HEADERS += linegui.h
 LIBS += libdiaqt.lib libiimod.lib libimesh.lib libimod.lib libtiff.lib libtrack.lib libifft.lib qassistantclient.lib
-QMAKE_LFLAGS_RELEASE += /LIBPATH:"..\buildlib" /NODEFAULTLIB:libc.lib /NODEFAULTLIB:libcd.lib /NODEFAULTLIB:msvcrtd.lib
-QMAKE_LFLAGS_DEBUG += /LIBPATH:"..\buildlib" /NODEFAULTLIB:libc.lib /NODEFAULTLIB:libcd.lib /NODEFAULTLIB:msvcrt.lib
+QMAKE_LFLAGS_RELEASE += /LIBPATH:"..\buildlib" /NODEFAULTLIB:libc.lib /NODEFAULTLIB:libcd.lib /NODEFAULTLIB:msvcrtd.lib /LARGEADDRESSAWARE
+QMAKE_LFLAGS_DEBUG += /LIBPATH:"..\buildlib" /NODEFAULTLIB:libc.lib /NODEFAULTLIB:libcd.lib /NODEFAULTLIB:msvcrt.lib /LARGEADDRESSAWARE
 RC_FILE = 3dmod.rc
 EOF
 
 cat <<EOF >! $midas_qconf
 LIBS += libdiaqt.lib libiimod.lib libimod.lib libtiff.lib
-QMAKE_LFLAGS_RELEASE += /LIBPATH:"..\buildlib" /NODEFAULTLIB:libc.lib /NODEFAULTLIB:libcd.lib /NODEFAULTLIB:msvcrtd.lib
-QMAKE_LFLAGS_DEBUG += /LIBPATH:"..\buildlib" /NODEFAULTLIB:libc.lib /NODEFAULTLIB:libcd.lib /NODEFAULTLIB:msvcrt.lib
+QMAKE_LFLAGS_RELEASE += /LIBPATH:"..\buildlib" /NODEFAULTLIB:libc.lib /NODEFAULTLIB:libcd.lib /NODEFAULTLIB:msvcrtd.lib /LARGEADDRESSAWARE
+QMAKE_LFLAGS_DEBUG += /LIBPATH:"..\buildlib" /NODEFAULTLIB:libc.lib /NODEFAULTLIB:libcd.lib /NODEFAULTLIB:msvcrt.lib /LARGEADDRESSAWARE
 EOF
 
 set warn = (warn_on warn_off warn_on warn_on warn_on)
