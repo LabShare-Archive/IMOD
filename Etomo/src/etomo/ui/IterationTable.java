@@ -17,7 +17,7 @@ import javax.swing.border.LineBorder;
 
 import etomo.BaseManager;
 import etomo.storage.LogFile;
-import etomo.storage.MatlabParamFile;
+import etomo.storage.MatlabParam;
 import etomo.storage.autodoc.AutodocFactory;
 import etomo.storage.autodoc.ReadOnlyAutodoc;
 import etomo.type.EtomoAutodoc;
@@ -36,6 +36,9 @@ import etomo.type.EtomoAutodoc;
  * @version $Revision$
  * 
  * <p> $Log$
+ * <p> Revision 1.5  2007/05/03 21:11:01  sueh
+ * <p> bug# 964 Made searchRadius wider, since it can be three integers.
+ * <p>
  * <p> Revision 1.4  2007/04/26 02:49:17  sueh
  * <p> bug# 964 Changed dPhiEnd to dPhiMax.  Did the same for dTheta and dPsi.
  * <p>
@@ -118,11 +121,11 @@ final class IterationTable implements Highlightable {
     return rootPanel;
   }
   
-  void getParameters(final MatlabParamFile matlabParamFile) {
+  void getParameters(final MatlabParam matlabParamFile) {
     rowList.getParameters(matlabParamFile);
   }
   
-  void setParameters(final MatlabParamFile matlabParamFile) {
+  void setParameters(final MatlabParam matlabParamFile) {
     //overwrite existing rows
     int rowListSize = rowList.size();
     for (int i = 0;i<rowListSize;i++) {
@@ -153,14 +156,14 @@ final class IterationTable implements Highlightable {
     try {
       ReadOnlyAutodoc autodoc = AutodocFactory
           .getInstance(AutodocFactory.PEET_PRM);
-      tooltip = EtomoAutodoc.getTooltip(autodoc, MatlabParamFile.D_PHI_KEY);
+      tooltip = EtomoAutodoc.getTooltip(autodoc, MatlabParam.D_PHI_KEY);
       String tooltip1 = EtomoAutodoc.getTooltip(autodoc,
-          MatlabParamFile.D_THETA_KEY);
+          MatlabParam.D_THETA_KEY);
       if (tooltip1 == null) {
         tooltip1 = "";
       }
       String tooltip2 = EtomoAutodoc.getTooltip(autodoc,
-          MatlabParamFile.D_PSI_KEY);
+          MatlabParam.D_PSI_KEY);
       if (tooltip2 == null) {
         tooltip2 = "";
       }
@@ -176,17 +179,20 @@ final class IterationTable implements Highlightable {
       header3DPsiMax.setToolTipText(tooltip2);
       header3DPsiIncrement.setToolTipText(tooltip2);
       tooltip = EtomoAutodoc.getTooltip(autodoc,
-          MatlabParamFile.SEARCH_RADIUS_KEY);
+          MatlabParam.SEARCH_RADIUS_KEY);
       header1SearchRadius.setToolTipText(tooltip);
       header2SearchRadius.setToolTipText(tooltip);
       header3SearchRadius.setToolTipText(tooltip);
-      tooltip = EtomoAutodoc.getTooltip(autodoc, MatlabParamFile.HI_CUTOFF_KEY);
+      tooltip = EtomoAutodoc.getTooltip(autodoc, MatlabParam.HI_CUTOFF_KEY);
+      if (tooltip==null) {
+        tooltip = EtomoAutodoc.getTooltip(autodoc, MatlabParam.HI_CUTOFF_ALT_TOOLTIP_KEY);
+      }
       header1HiCutoff.setToolTipText(tooltip);
       header2HiCutoff.setToolTipText(tooltip);
       header3HiCutoff.setToolTipText(tooltip);
       header3HiCutoffSigma.setToolTipText(tooltip);
       tooltip = EtomoAutodoc.getTooltip(autodoc,
-          MatlabParamFile.REF_THRESHOLD_KEY);
+          MatlabParam.REF_THRESHOLD_KEY);
       header1RefThreshold.setToolTipText(tooltip);
       header2RefThreshold.setToolTipText(tooltip);
       header3RefThreshold.setToolTipText(tooltip);
@@ -316,7 +322,7 @@ final class IterationTable implements Highlightable {
       return row;
     }
     
-    private void getParameters(final MatlabParamFile matlabParamFile) {
+    private void getParameters(final MatlabParam matlabParamFile) {
       matlabParamFile.setIterationListSize(list.size());
       for (int i = 0; i < list.size(); i++) {
         ((IterationRow) list.get(i)).getParameters(matlabParamFile);
