@@ -32,6 +32,9 @@ import javax.swing.border.Border;
 * @version $Revision$
 * 
 * <p> $Log$
+* <p> Revision 1.17  2007/05/01 00:45:48  sueh
+* <p> bug# 964 Added remove(SpacedPanel).
+* <p>
 * <p> Revision 1.16  2007/03/30 23:52:55  sueh
 * <p> bug# 964 Added add(etomo.ui.TextField)
 * <p>
@@ -371,6 +374,10 @@ final class SpacedPanel {
     alignComponentsX(panel, alignment);
   }
   
+  void setToolTipText(String text) {
+    panel.setToolTipText(TooltipFormatter.INSTANCE.format(text));
+  }
+  
   private final void alignComponentsX(JPanel panel, float alignment) {
     if (panel == null) {
       return;
@@ -383,8 +390,6 @@ final class SpacedPanel {
       }
     }
   }
-
-
   
   final Container getContainer() {
     if (outerPanel != null) {
