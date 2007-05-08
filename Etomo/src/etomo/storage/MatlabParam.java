@@ -43,6 +43,9 @@ import etomo.util.DatasetFiles;
  * @version $Revision$
  * 
  * <p> $Log$
+ * <p> Revision 1.1  2007/05/07 17:20:27  sueh
+ * <p> bug# 964 Changed MatlabParamFile to MatlabParam.
+ * <p>
  * <p> Revision 1.22  2007/05/03 21:06:58  sueh
  * <p> bug# 964 Allow searchRadius to be an array.  Allow hiCutoff to display as
  * <p> a number when sigma is empty; this required hiCutoff to be compact as
@@ -142,14 +145,11 @@ public final class MatlabParam {
   public static final String FN_OUTPUT_KEY = "fnOutput";
   public static final String D_PHI_KEY = "dPhi";
   public static final String D_THETA_KEY = "dTheta";
-  public static final String D_THETA_ALT_TOOLTIP_KEY = D_PHI_KEY;
   public static final String D_PSI_KEY = "dPsi";
-  public static final String D_PSI_ALT_TOOLTIP_KEY = D_PHI_KEY;
   public static final String SEARCH_RADIUS_KEY = "searchRadius";
   public static final String LOW_CUTOFF_KEY = "lowCutoff";
   public static final String LOW_CUTOFF_DEFAULT = "0";
   public static final String HI_CUTOFF_KEY = "hiCutoff";
-  public static final String HI_CUTOFF_ALT_TOOLTIP_KEY = LOW_CUTOFF_KEY;
   public static final String CC_MODE_KEY = "CCMode";
   public static final String REF_THRESHOLD_KEY = "refThreshold";
   public static final String REF_FLAG_ALL_TOM_KEY = "refFlagAllTom";
@@ -1153,7 +1153,7 @@ public final class MatlabParam {
       //theres a comment, so add an empty line first
       autodoc.addEmptyLine();
       //Format and add the comment
-      String[] commentArray = EtomoAutodoc.format(comment);
+      String[] commentArray = EtomoAutodoc.format(attributeName+":\n"+comment);
       for (int i = 0; i < commentArray.length; i++) {
         autodoc.addComment(" " + commentArray[i]);
       }
