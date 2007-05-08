@@ -49,6 +49,9 @@ import etomo.type.PeetScreenState;
  * @version $Revision$
  * 
  * <p> $Log$
+ * <p> Revision 1.34  2007/05/08 01:20:15  sueh
+ * <p> bug# 964 Using enum tooltips for radio buttons.
+ * <p>
  * <p> Revision 1.33  2007/05/07 17:23:48  sueh
  * <p> bug# 964 Changed MatlabParamFile to MatlabParam.
  * <p>
@@ -363,7 +366,7 @@ public final class PeetDialog implements AbstractParallelDialog, Expandable {
    * the dataset has been created.
    * @param matlabParamFile
    */
-  public void setParameters(final MatlabParam matlabParamFile) {
+  public void setParameters(final MatlabParam matlabParamFile,File importDir) {
     iterationTable.setParameters(matlabParamFile);
     if (matlabParamFile.useReferenceFile()) {
       rbReferenceFile.setSelected(true);
@@ -431,7 +434,7 @@ public final class PeetDialog implements AbstractParallelDialog, Expandable {
     ltfYaxisContourContourNumber.setText(matlabParamFile
         .getYaxisContourContourNumber());
     volumeTable.setParameters(matlabParamFile, rbInitMotlFiles.isSelected(),
-        cbTiltRange.isSelected());
+        cbTiltRange.isSelected(),importDir);
     updateDisplay();
   }
 
