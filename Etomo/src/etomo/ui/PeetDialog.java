@@ -26,6 +26,7 @@ import etomo.storage.MatlabParam;
 import etomo.storage.MatlabParamFileFilter;
 import etomo.storage.autodoc.AutodocFactory;
 import etomo.storage.autodoc.ReadOnlyAutodoc;
+import etomo.storage.autodoc.ReadOnlySection;
 import etomo.type.AxisID;
 import etomo.type.ConstPeetMetaData;
 import etomo.type.ConstPeetScreenState;
@@ -48,6 +49,9 @@ import etomo.type.PeetScreenState;
  * @version $Revision$
  * 
  * <p> $Log$
+ * <p> Revision 1.33  2007/05/07 17:23:48  sueh
+ * <p> bug# 964 Changed MatlabParamFile to MatlabParam.
+ * <p>
  * <p> Revision 1.32  2007/05/03 21:17:31  sueh
  * <p> bug# 964 Added btnImportMatlabParamFile (not implemented yet).
  * <p>
@@ -215,10 +219,9 @@ public final class PeetDialog implements AbstractParallelDialog, Expandable {
   private final RadioButton rbReferenceFile = new RadioButton(
       REFERENCE_FILE_LABEL, bgReference);
   private final LabeledSpinner lsParticlePerCPU = new LabeledSpinner(
-      "Particles per CPU: ", new SpinnerNumberModel(
-          MatlabParam.PARTICLE_PER_CPU_DEFAULT,
-          MatlabParam.PARTICLE_PER_CPU_MIN,
-          MatlabParam.PARTICLE_PER_CPU_MAX, 1));
+      "Particles per CPU: ",
+      new SpinnerNumberModel(MatlabParam.PARTICLE_PER_CPU_DEFAULT,
+          MatlabParam.PARTICLE_PER_CPU_MIN, MatlabParam.PARTICLE_PER_CPU_MAX, 1));
   private final IterationTable iterationTable;
   private final ButtonGroup bgYaxisType = new ButtonGroup();
   private final RadioButton rbYaxisTypeYAxis = new RadioButton(
@@ -227,8 +230,7 @@ public final class PeetDialog implements AbstractParallelDialog, Expandable {
       "Particle model points", MatlabParam.YaxisType.PARTICLE_MODEL,
       bgYaxisType);
   private final RadioButton rbYaxisTypeContour = new RadioButton(
-      "End points of contour:  ", MatlabParam.YaxisType.CONTOUR,
-      bgYaxisType);
+      "End points of contour:  ", MatlabParam.YaxisType.CONTOUR, bgYaxisType);
   private final ButtonGroup bgInitMotl = new ButtonGroup();
   private final RadioButton rbInitMotlZero = new RadioButton(
       "Set all rotational values to zero", MatlabParam.InitMotlCode.ZERO,
@@ -245,17 +247,18 @@ public final class PeetDialog implements AbstractParallelDialog, Expandable {
       "Local energy normalized cross correlation",
       MatlabParam.CCMode.NORMALIZED, bgCcMode);
   private final RadioButton rbCcModeLocal = new RadioButton(
-      "True local correlation coefficent", MatlabParam.CCMode.LOCAL,
-      bgCcMode);
+      "True local correlation coefficent", MatlabParam.CCMode.LOCAL, bgCcMode);
   private final LabeledSpinner lsDebugLevel = new LabeledSpinner(
-      "Debug level: ", new SpinnerNumberModel(
-          MatlabParam.DEBUG_LEVEL_DEFAULT, MatlabParam.DEBUG_LEVEL_MIN,
-          MatlabParam.DEBUG_LEVEL_MAX, 1));
+      "Debug level: ", new SpinnerNumberModel(MatlabParam.DEBUG_LEVEL_DEFAULT,
+          MatlabParam.DEBUG_LEVEL_MIN, MatlabParam.DEBUG_LEVEL_MAX, 1));
   private final MultiLineButton btnImportMatlabParamFile = new MultiLineButton(
       "Import a .prm File");
+  private final JPanel pnlInitMotl = new JPanel();
   private final TabbedPane tabPane = new TabbedPane();
   private final SpacedPanel pnlSetup = new SpacedPanel();
   private final JPanel pnlRun = new JPanel();
+  private final SpacedPanel pnlYaxisType = new SpacedPanel();
+  private final JPanel pnlCcMode = new JPanel();
   private final PanelHeader phRun;
   private final PanelHeader phSetup;
   private final VolumeTable volumeTable;
@@ -371,8 +374,7 @@ public final class PeetDialog implements AbstractParallelDialog, Expandable {
       sReferenceVolume.setValue(matlabParamFile.getReferenceVolume());
       ltfReferenceParticle.setText(matlabParamFile.getReferenceParticle());
     }
-    MatlabParam.InitMotlCode initMotlCode = matlabParamFile
-        .getInitMotlCode();
+    MatlabParam.InitMotlCode initMotlCode = matlabParamFile.getInitMotlCode();
     if (initMotlCode == null) {
       rbInitMotlFiles.setSelected(true);
     }
@@ -529,14 +531,16 @@ public final class PeetDialog implements AbstractParallelDialog, Expandable {
     try {
       ReadOnlyAutodoc autodoc = AutodocFactory
           .getInstance(AutodocFactory.PEET_PRM);
-      String tooltip = EtomoAutodoc.getTooltip(autodoc,
+      pnlInitMotl.setToolTipText(TooltipFormatter.INSTANCE.format(EtomoAutodoc
+          .getTooltip(autodoc, MatlabParam.INIT_MOTL_KEY)));
+      ReadOnlySection section = autodoc.getSection(EtomoAutodoc.FIELD_SECTION_NAME,
           MatlabParam.INIT_MOTL_KEY);
-      rbInitMotlZero.setToolTipText(tooltip);
-      rbInitMotlXAndZAxis.setToolTipText(tooltip);
-      rbInitMotlZAxis.setToolTipText(tooltip);
-      rbInitMotlFiles.setToolTipText(tooltip);
-      tooltip = EtomoAutodoc
-          .getTooltip(autodoc, MatlabParam.TILT_RANGE_KEY);
+      rbInitMotlZero.setToolTipText(section);
+      rbInitMotlXAndZAxis.setToolTipText( section);
+      rbInitMotlZAxis.setToolTipText( section);
+      rbInitMotlFiles.setToolTipText( section);
+      String tooltip = EtomoAutodoc.getTooltip(autodoc,
+          MatlabParam.TILT_RANGE_KEY);
       cbTiltRange.setToolTipText(tooltip);
       tooltip = EtomoAutodoc.getTooltip(autodoc, MatlabParam.REFERENCE_KEY);
       rbReferenceVolume.setToolTipText(tooltip);
@@ -550,22 +554,23 @@ public final class PeetDialog implements AbstractParallelDialog, Expandable {
       ltfSzVolX.setToolTipText(tooltip);
       ltfSzVolY.setToolTipText(tooltip);
       ltfSzVolZ.setToolTipText(tooltip);
-      tooltip = EtomoAutodoc.getTooltip(autodoc, MatlabParam.CC_MODE_KEY);
-      rbCcModeNormalized.setToolTipText(tooltip);
-      rbCcModeLocal.setToolTipText(tooltip);
+      pnlCcMode.setToolTipText(TooltipFormatter.INSTANCE.format(EtomoAutodoc
+          .getTooltip(autodoc, MatlabParam.CC_MODE_KEY)));
+       section = autodoc.getSection(EtomoAutodoc.FIELD_SECTION_NAME,
+          MatlabParam.CC_MODE_KEY);
+      rbCcModeNormalized.setToolTipText(section);
+      rbCcModeLocal.setToolTipText(section);
       tooltip = EtomoAutodoc.getTooltip(autodoc, MatlabParam.MEAN_FILL_KEY);
       cbMeanFill.setToolTipText(tooltip);
-      tooltip = EtomoAutodoc.getTooltip(autodoc,
-          MatlabParam.DEBUG_LEVEL_KEY);
+      tooltip = EtomoAutodoc.getTooltip(autodoc, MatlabParam.DEBUG_LEVEL_KEY);
       lsDebugLevel.setToolTipText(tooltip);
-      tooltip = EtomoAutodoc
-          .getTooltip(autodoc, MatlabParam.LOW_CUTOFF_KEY);
+      tooltip = EtomoAutodoc.getTooltip(autodoc, MatlabParam.LOW_CUTOFF_KEY);
       ltfLowCutoff.setToolTipText(tooltip);
       tooltip = EtomoAutodoc.getTooltip(autodoc,
           MatlabParam.REF_FLAG_ALL_TOM_KEY);
       cbRefFlagAllTom.setToolTipText(tooltip);
-      tooltip = EtomoAutodoc.getTooltip(autodoc,
-          MatlabParam.LST_THRESHOLDS_KEY);
+      tooltip = EtomoAutodoc
+          .getTooltip(autodoc, MatlabParam.LST_THRESHOLDS_KEY);
       ltfLstThresholdsStart.setToolTipText(tooltip);
       ltfLstThresholdsIncrement.setToolTipText(tooltip);
       ltfLstThresholdsEnd.setToolTipText(tooltip);
@@ -581,13 +586,12 @@ public final class PeetDialog implements AbstractParallelDialog, Expandable {
       ltfAlignedBaseName.setToolTipText(tooltip);
       tooltip = EtomoAutodoc.getTooltip(autodoc, MatlabParam.FN_OUTPUT_KEY);
       ltfFnOutput.setToolTipText(tooltip);
-      tooltip = EtomoAutodoc
-          .getTooltip(autodoc, MatlabParam.YAXIS_TYPE_KEY);
-      rbYaxisTypeYAxis.setToolTipText(tooltip);
-      rbYaxisTypeParticleModel.setToolTipText(tooltip);
-      rbYaxisTypeContour.setToolTipText(tooltip);
-      tooltip = EtomoAutodoc.getTooltip(autodoc,
-          MatlabParam.YAXIS_CONTOUR_KEY);
+      section = autodoc.getSection(EtomoAutodoc.FIELD_SECTION_NAME,
+          MatlabParam.YAXIS_TYPE_KEY);
+      rbYaxisTypeYAxis.setToolTipText(section);
+      rbYaxisTypeParticleModel.setToolTipText(section);
+      rbYaxisTypeContour.setToolTipText(section);
+      tooltip = EtomoAutodoc.getTooltip(section);
       sYaxisContourModelNumber.setToolTipText(tooltip);
       ltfYaxisContourObjectNumber.setToolTipText(tooltip);
       ltfYaxisContourContourNumber.setToolTipText(tooltip);
@@ -622,8 +626,10 @@ public final class PeetDialog implements AbstractParallelDialog, Expandable {
   private void createSetupPanel() {
     //use existing project
     JPanel pnlUseExistingProject = new JPanel();
-    pnlUseExistingProject.setLayout(new BoxLayout(pnlUseExistingProject,BoxLayout.X_AXIS));
-    pnlUseExistingProject.setBorder(new EtchedBorder("Use Existing Project").getBorder());
+    pnlUseExistingProject.setLayout(new BoxLayout(pnlUseExistingProject,
+        BoxLayout.X_AXIS));
+    pnlUseExistingProject.setBorder(new EtchedBorder("Use Existing Project")
+        .getBorder());
     btnImportMatlabParamFile.setSize();
     pnlUseExistingProject.add(btnImportMatlabParamFile.getComponent());
     //volume reference
@@ -645,7 +651,6 @@ public final class PeetDialog implements AbstractParallelDialog, Expandable {
     pnlReference.add(pnlVolumeReference);
     pnlReference.add(pnlVolumeFile);
     //init MOTL
-    JPanel pnlInitMotl = new JPanel();
     pnlInitMotl.setLayout(new BoxLayout(pnlInitMotl, BoxLayout.Y_AXIS));
     pnlInitMotl.setBorder(new EtchedBorder("Initial Motive List").getBorder());
     pnlInitMotl.add(rbInitMotlZero.getComponent());
@@ -667,7 +672,6 @@ public final class PeetDialog implements AbstractParallelDialog, Expandable {
     pnlYaxisContour.add(ltfYaxisContourObjectNumber.getContainer());
     pnlYaxisContour.add(ltfYaxisContourContourNumber.getContainer());
     //YaxisType
-    SpacedPanel pnlYaxisType = new SpacedPanel();
     pnlYaxisType.setBoxLayout(BoxLayout.Y_AXIS);
     pnlYaxisType.setBorder(new EtchedBorder("Y Axis Type").getBorder());
     pnlYaxisType.setComponentAlignmentX(Component.LEFT_ALIGNMENT);
@@ -708,7 +712,6 @@ public final class PeetDialog implements AbstractParallelDialog, Expandable {
     pnlLstThresholds.add(ltfLstThresholdsEnd.getContainer());
     pnlLstThresholds.add(ltfLstThresholdsAdditional.getContainer());
     //CCMode
-    JPanel pnlCcMode = new JPanel();
     pnlCcMode.setLayout(new BoxLayout(pnlCcMode, BoxLayout.Y_AXIS));
     pnlCcMode.setBorder(new EtchedBorder("Cross correlation measure")
         .getBorder());
@@ -793,15 +796,17 @@ public final class PeetDialog implements AbstractParallelDialog, Expandable {
    */
   private void importMatlabParam() {
     String path = ftfDirectory.getText();
-    if (path==null||path.matches("\\s*")) {
+    if (path == null || path.matches("\\s*")) {
       UIHarness.INSTANCE.openMessageDialog("Please set the "
-          + PeetDialog.DIRECTORY_LABEL +"field before importing a .prm file.", "Entry Error");
+          + PeetDialog.DIRECTORY_LABEL + "field before importing a .prm file.",
+          "Entry Error");
       return;
     }
     File dir = new File(ftfDirectory.getText());
     if (!dir.exists()) {
       UIHarness.INSTANCE.openMessageDialog("Please create "
-          + dir.getAbsolutePath() +" before importing a .prm file.", "Entry Error");
+          + dir.getAbsolutePath() + " before importing a .prm file.",
+          "Entry Error");
       return;
     }
     File matlabParamFile = null;
@@ -842,11 +847,13 @@ public final class PeetDialog implements AbstractParallelDialog, Expandable {
     rbReferenceVolume.setEnabled(volumeRows);
     sReferenceVolume.setEnabled(volumeRows && rbReferenceVolume.isSelected());
     sReferenceVolume.setMax(size);
-    ltfReferenceParticle.setEnabled(volumeRows && rbReferenceVolume.isSelected());
+    ltfReferenceParticle.setEnabled(volumeRows
+        && rbReferenceVolume.isSelected());
     ftfReferenceFile.setEnabled(volumeRows && rbReferenceFile.isSelected());
     //yaxisType and yaxisContour
     rbYaxisTypeContour.setEnabled(volumeRows);
-    sYaxisContourModelNumber.setEnabled(volumeRows && rbYaxisTypeContour.isSelected());
+    sYaxisContourModelNumber.setEnabled(volumeRows
+        && rbYaxisTypeContour.isSelected());
     sYaxisContourModelNumber.setMax(size);
     ltfYaxisContourObjectNumber.setEnabled(volumeRows
         && rbYaxisTypeContour.isSelected());
