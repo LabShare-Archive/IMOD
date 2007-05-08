@@ -43,6 +43,9 @@ import etomo.util.DatasetFiles;
  * @version $Revision$
  * 
  * <p> $Log$
+ * <p> Revision 1.17  2007/05/07 17:19:58  sueh
+ * <p> bug# 964 Added setMatlabParam(File).
+ * <p>
  * <p> Revision 1.16  2007/05/03 00:45:38  sueh
  * <p> bug# 964 Added getParallelProcessingDefaultNice() and
  * <p> removeComFiles().
@@ -132,6 +135,13 @@ public final class PeetManager extends BaseManager {
     }
   }
 
+  void initializeUIParameters(String paramFileName, AxisID axisID) {
+    super.initializeUIParameters(paramFileName, axisID);
+    if (loadedParamFile) {
+      System.setProperty("user.dir", propertyUserDir);
+    }
+  }
+
   public boolean canChangeParamFileName() {
     return !loadedParamFile;
   }
@@ -204,7 +214,7 @@ public final class PeetManager extends BaseManager {
     peetDialog.setFnOutput(matlabParam.getFnOutput());
     setParamFile();
     matlabParam.setFileDir(propertyUserDir);
-    loadPeetDialog();
+    loadPeetDialog(matlabParamFile.getParentFile());
   }
 
   /**
@@ -398,16 +408,16 @@ public final class PeetManager extends BaseManager {
       peetDialog = PeetDialog.getInstance(this, AXIS_ID);
     }
     mainPanel.setParallelDialog(AXIS_ID, peetDialog.usingParallelProcessing());
-    loadPeetDialog();
+    loadPeetDialog(null);
     mainPanel.showProcess(peetDialog.getContainer(), AXIS_ID);
   }
-  
-  private void loadPeetDialog() {
+
+  private void loadPeetDialog(File importDir) {
     if (paramFile != null && metaData.isValid()) {
       peetDialog.setParameters(metaData);
       peetDialog.setParameters(screenState);
       if (matlabParam != null) {
-        peetDialog.setParameters(matlabParam);
+        peetDialog.setParameters(matlabParam, importDir);
       }
       peetDialog.setDirectory(propertyUserDir);
       peetDialog.updateDisplay(loadedParamFile);
