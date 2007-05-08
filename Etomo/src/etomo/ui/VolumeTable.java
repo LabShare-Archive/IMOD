@@ -47,6 +47,9 @@ import etomo.type.Run3dmodMenuOptions;
  * @version $Revision$
  * 
  * <p> $Log$
+ * <p> Revision 1.17  2007/05/07 17:24:08  sueh
+ * <p> bug# 964 Changed MatlabParamFile to MatlabParam.
+ * <p>
  * <p> Revision 1.16  2007/04/09 21:25:20  sueh
  * <p> bug# 964 Toggling the tilt range file button.
  * <p>
@@ -207,13 +210,21 @@ final class VolumeTable implements Expandable, Highlightable,
   }
 
   void setParameters(final MatlabParam matlabParamFile,
-      boolean useInitMotlFile, boolean useTiltRange) {
+      boolean useInitMotlFile, boolean useTiltRange,File importDir) {
     boolean initMotlFileIsExpanded = btnExpandInitMotlFile.isExpanded();
+    String userDir=null;
+    System.out.println("VolumeTable.setParameters:importDir="+importDir+",user.dir="+System.getProperty("user.dir"));
+    if (importDir!=null) {
+      userDir =System.setProperty("user.dir", importDir.getAbsolutePath());
+    }
     for (int i = 0; i < matlabParamFile.getVolumeListSize(); i++) {
       VolumeRow row = addRow(new File(matlabParamFile.getFnVolume(i)),
           new File(matlabParamFile.getFnModParticle(i)));
       row.setParameters(matlabParamFile, useInitMotlFile, useTiltRange);
       row.expandInitMotlFile(initMotlFileIsExpanded);
+    }
+    if (importDir!=null) {
+       System.setProperty("user.dir", userDir);
     }
     rowList.doneSettingParameters();
     updateDisplay();
