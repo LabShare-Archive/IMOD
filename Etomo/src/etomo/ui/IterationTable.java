@@ -36,6 +36,10 @@ import etomo.type.EtomoAutodoc;
  * @version $Revision$
  * 
  * <p> $Log$
+ * <p> Revision 1.6  2007/05/07 17:22:53  sueh
+ * <p> bug# 964 Changed MatlabParamFile to MatlabParam.  Added alternative
+ * <p> tooltip location for hiCutoff (in case relying on lowCutoff comment).
+ * <p>
  * <p> Revision 1.5  2007/05/03 21:11:01  sueh
  * <p> bug# 964 Made searchRadius wider, since it can be three integers.
  * <p>
@@ -184,9 +188,6 @@ final class IterationTable implements Highlightable {
       header2SearchRadius.setToolTipText(tooltip);
       header3SearchRadius.setToolTipText(tooltip);
       tooltip = EtomoAutodoc.getTooltip(autodoc, MatlabParam.HI_CUTOFF_KEY);
-      if (tooltip==null) {
-        tooltip = EtomoAutodoc.getTooltip(autodoc, MatlabParam.HI_CUTOFF_ALT_TOOLTIP_KEY);
-      }
       header1HiCutoff.setToolTipText(tooltip);
       header2HiCutoff.setToolTipText(tooltip);
       header3HiCutoff.setToolTipText(tooltip);
