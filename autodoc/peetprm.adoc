@@ -93,7 +93,7 @@ KeyValueDelimiter == =
 
 [Field = hiCutoff]
 KeyValueDelimiter = ==
-comment = The frequency domain cutoff parameters for prefiltering the
+comment == The frequency domain cutoff parameters for prefiltering the
 ^particles and reference.  HiCutoff >= 0.866 prevents high frequency filtering.
 ^An optional second parameter defines the transition width.
 KeyValueDelimiter == =
