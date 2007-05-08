@@ -12,7 +12,9 @@ import javax.swing.JToggleButton;
 
 import etomo.EtomoDirector;
 import etomo.storage.autodoc.AutodocTokenizer;
+import etomo.storage.autodoc.ReadOnlySection;
 import etomo.type.EnumeratedType;
+import etomo.type.EtomoAutodoc;
 import etomo.type.UITestField;
 import etomo.util.Utilities;
 
@@ -29,7 +31,7 @@ import etomo.util.Utilities;
  * 
  * @version $Revision$
  */
-final class RadioButton implements RadioButtonInterface{
+final class RadioButton implements RadioButtonInterface {
   public static final String rcsid = "$Id$";
 
   private final JRadioButton radioButton;
@@ -56,7 +58,7 @@ final class RadioButton implements RadioButtonInterface{
     if (group != null) {
       group.add(radioButton);
     }
-    if (enumeratedType!=null&&enumeratedType.isDefault()) {
+    if (enumeratedType != null && enumeratedType.isDefault()) {
       radioButton.setSelected(true);
     }
   }
@@ -80,6 +82,15 @@ final class RadioButton implements RadioButtonInterface{
     return this.enumeratedType == enumeratedType;
   }
 
+  void setToolTipText(ReadOnlySection section) {
+    if (enumeratedType == null) {
+      setToolTipText((String) null);
+      return;
+    }
+    radioButton.setToolTipText(TooltipFormatter.INSTANCE.format(EtomoAutodoc
+        .getTooltip(section, enumeratedType.toString())));
+  }
+
   void setToolTipText(final String text) {
     radioButton.setToolTipText(TooltipFormatter.INSTANCE.format(text));
   }
@@ -91,7 +102,7 @@ final class RadioButton implements RadioButtonInterface{
   void setSelected(final boolean selected) {
     radioButton.setSelected(selected);
   }
-  
+
   public void msgSelected() {
   }
 
@@ -118,7 +129,7 @@ final class RadioButton implements RadioButtonInterface{
   String getName() {
     return radioButton.getName();
   }
-  
+
   public EnumeratedType getEnumeratedType() {
     return enumeratedType;
   }
@@ -159,7 +170,7 @@ final class RadioButton implements RadioButtonInterface{
       super.setSelected(selected);
       radioButton.msgSelected();
     }
-    
+
     EnumeratedType getEnumeratedType() {
       return radioButton.getEnumeratedType();
     }
@@ -167,6 +178,10 @@ final class RadioButton implements RadioButtonInterface{
 }
 /**
  * <p> $Log$
+ * <p> Revision 1.12  2007/04/13 20:37:15  sueh
+ * <p> bug# 964 Removed radioValue and added EnumeratedType, which is the
+ * <p> interface for enumeration types.
+ * <p>
  * <p> Revision 1.11  2007/03/20 00:45:40  sueh
  * <p> bug# 964 Added constructors which take ButtonGroup.
  * <p>
