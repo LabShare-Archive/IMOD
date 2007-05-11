@@ -22,6 +22,9 @@ import etomo.type.ConstIntKeyList;
  * @version $Revision$
  *
  * <p> $Log$
+ * <p> Revision 3.18  2007/02/05 21:39:17  sueh
+ * <p> bug# 962 Put mode info into an inner class.
+ * <p>
  * <p> Revision 3.17  2006/05/22 22:35:44  sueh
  * <p> bug# 577 Added getCommand().
  * <p>
@@ -452,6 +455,10 @@ public class ConstNewstParam implements CommandDetails {
     if (field == Fields.FIDUCIALESS_ALIGNMENT) {
       return fiducialessAlignment;
     }
+    throw new IllegalArgumentException("field=" + field);
+  }
+  
+  public String[] getStringArray(etomo.comscript.Fields field) {
     throw new IllegalArgumentException("field=" + field);
   }
   
