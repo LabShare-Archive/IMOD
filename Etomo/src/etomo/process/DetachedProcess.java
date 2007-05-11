@@ -34,6 +34,7 @@ final class DetachedProcess extends BackgroundProcess {
   private final AxisID axisID;
   private final BaseManager manager;
   private final OutfileProcessMonitor monitor;
+  private final BaseProcessManager processManager;
   
   public DetachedProcess(BaseManager manager, DetachedCommand command,
       BaseProcessManager processManager, AxisID axisID,
@@ -42,10 +43,11 @@ final class DetachedProcess extends BackgroundProcess {
     this.axisID = axisID;
     this.manager = manager;
     this.monitor = monitor;
+    this.processManager=processManager;
     setProcessResultDisplay(processResultDisplay);
   }
 
-  protected final boolean newProgram() {
+   final boolean newProgram() {
     String[] runCommand;
     try {
       runCommand = makeRunFile();
@@ -132,7 +134,7 @@ final class DetachedProcess extends BackgroundProcess {
     monitor.endMonitor(getProcessEndState());
   }
   
-  protected ProcessMessages getMonitorMessages() {
+   ProcessMessages getMonitorMessages() {
     return monitor.getProcessMessages();
   }
 
@@ -143,6 +145,10 @@ final class DetachedProcess extends BackgroundProcess {
 
   final ProcessEndState getProcessEndState() {
     return monitor.getProcessEndState();
+  }
+  
+  void processDone(int exitValue,boolean errorFound) {
+    processManager.msgProcessDone(this, exitValue, errorFound);
   }
 
   public final void kill(AxisID axisID) {
@@ -195,6 +201,10 @@ final class DetachedProcess extends BackgroundProcess {
 }
 /**
  * <p> $Log$
+ * <p> Revision 1.10  2006/12/01 00:56:01  sueh
+ * <p> bug# 937 Overrode getShellProcessID and notifyKilled so that a process
+ * <p> associated with this class can be killed.
+ * <p>
  * <p> Revision 1.9  2006/10/11 10:08:14  sueh
  * <p> bug# 931 Added delete functionality to LogFile - changed BackupException to
  * <p> FileException.
