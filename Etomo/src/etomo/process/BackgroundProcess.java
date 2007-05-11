@@ -26,6 +26,10 @@ import etomo.ui.UIHarness;
  * @version $Revision$
  * 
  * <p> $Log$
+ * <p> Revision 3.33  2006/12/01 00:24:59  sueh
+ * <p> bug# 937 Removed final directive from getShellProcessID and notifyKilled because they must be overridden by DetachedProcess, which relies on its
+ * <p> monitor to control the process.
+ * <p>
  * <p> Revision 3.32  2006/10/10 05:05:39  sueh
  * <p> bug# 931 Removed unused variables stdoutLogFile and stderrLogFile.
  * <p>
@@ -412,7 +416,7 @@ public class BackgroundProcess extends Thread implements SystemProcessInterface 
     return workingDirectory;
   }
 
-  protected Command getCommand() {
+   Command getCommand() {
     return command;
   }
 
@@ -491,7 +495,7 @@ public class BackgroundProcess extends Thread implements SystemProcessInterface 
     this.debug = debug;
   }
 
-  protected boolean newProgram() {
+   boolean newProgram() {
     if (commandArray != null) {
       program = new SystemProgram(manager.getPropertyUserDir(), commandArray,
           axisID);
@@ -515,7 +519,7 @@ public class BackgroundProcess extends Thread implements SystemProcessInterface 
     return null;
   }
 
-  protected void waitForPid() {
+   void waitForPid() {
     ParsePID parsePID = new ParsePID(program, commandProcessID, processData);
     Thread parsePIDThread = new Thread(parsePID);
     parsePIDThread.start();
@@ -556,7 +560,7 @@ public class BackgroundProcess extends Thread implements SystemProcessInterface 
     processDone(getProgram().getExitValue());
   }
 
-  protected final void processDone(int exitValue) {
+   final void processDone(int exitValue) {
     ProcessMessages processMessages = getProcessMessages();
     ProcessMessages monitorMessages = getMonitorMessages();
     //  Check to see if the exit value is non-zero
@@ -613,6 +617,10 @@ public class BackgroundProcess extends Thread implements SystemProcessInterface 
       UIHarness.INSTANCE.openErrorMessageDialog(errorMessage, getCommandName()
           + " terminated", axisID);
     }
+    processDone(exitValue, errorFound);
+  }
+  
+  void processDone(int exitValue,boolean errorFound) {
     processManager.msgProcessDone(this, exitValue, errorFound);
   }
 
@@ -623,7 +631,7 @@ public class BackgroundProcess extends Thread implements SystemProcessInterface 
     return program.getProcessMessages();
   }
 
-  protected ProcessMessages getMonitorMessages() {
+   ProcessMessages getMonitorMessages() {
     return null;
   }
 
@@ -690,7 +698,7 @@ public class BackgroundProcess extends Thread implements SystemProcessInterface 
     processManager.signalKill(this, axisID);
   }
 
-  protected final void setProgram(SystemProgram program) {
+   final void setProgram(SystemProgram program) {
     this.program = program;
   }
 }
