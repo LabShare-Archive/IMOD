@@ -7,6 +7,9 @@
 # $Id$
 #
 # $Log$
+# Revision 1.3  2007/04/11 15:45:42  mast
+# Added Z limits for edges
+#
 # Revision 1.2  2007/04/10 22:39:49  mast
 # Fixed bugs dealing with section (slice) names and Z values
 #
@@ -128,17 +131,6 @@ def findEdgeShifts(lower, upper, edge):
         runcmd('tapervoledge', input)
 
         # Run clip, this order of files should give shift of B coordinates
-        print "Correlating subvolumes to find 3D shift"
-        clipcom = 'clip corr -3d -n 0 %s %s %s' % (tmpvol1, tmpvol2, tmpcor)
-        clipout = runcmd(clipcom, None)
-        for line in clipout:
-            if line.startswith('('):
-                line = re.sub('^.*\((.*)\).*', '\\1', line).strip().split(',')
-                break
-        if isinstance(line, str) or len(line) < 3:
-            print '%s Cannot find shift in output of clip on edge %s' %\
-                  (prefix, edge['name'])
-            files should give shift of B coordinates
         print "Correlating subvolumes to find 3D shift"
         clipcom = 'clip corr -3d -n 0 %s %s %s' % (tmpvol1, tmpvol2, tmpcor)
         clipout = runcmd(clipcom, None)
