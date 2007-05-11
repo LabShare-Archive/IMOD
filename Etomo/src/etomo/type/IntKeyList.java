@@ -32,6 +32,9 @@ import java.util.Properties;
  * @version $Revision$
  * 
  * <p> $Log$
+ * <p> Revision 1.3  2007/04/26 02:46:35  sueh
+ * <p> bug# 964 Reformatted
+ * <p>
  * <p> Revision 1.2  2007/03/01 01:25:01  sueh
  * <p> bug# 964 Saving immutable Number elements instead of EtomoNumber elements
  * <p> in IntKeyList.
@@ -95,7 +98,7 @@ public final class IntKeyList implements ConstIntKeyList {
    * firstKey.
    * @param startKey
    */
-  public synchronized void reset(int startKey) {
+  public synchronized void reset(final int startKey) {
     reset();
     rowKey.reset(startKey);
   }
@@ -103,8 +106,19 @@ public final class IntKeyList implements ConstIntKeyList {
   public boolean isEmpty() {
     return list.isEmpty();
   }
+  
+  public void set(final String[] input) {
+    if (input == null) {
+      return;
+    }
+    for (int i = 0; i < input.length; i++) {
+      if (input[i] != null) {
+        put(i, input[i]);
+      }
+    }
+  }
 
-  public void set(ConstIntKeyList intKeyList) {
+  public void set(final ConstIntKeyList intKeyList) {
     if (intKeyList == null) {
       return;
     }
@@ -116,7 +130,7 @@ public final class IntKeyList implements ConstIntKeyList {
     }
   }
 
-  public synchronized void put(int key, String value) {
+  public synchronized void put(final int key, final String value) {
     rowKey.adjustFirstLastKeys(key);
     list.put(buildKey(key), new Pair(key, value, etomoNumberType));
   }
@@ -292,6 +306,10 @@ public final class IntKeyList implements ConstIntKeyList {
       return value;
     }
 
+    /**
+     * returns the next value as a string
+     * @return
+     */
     public String nextString() {
       start();
       String value = null;
