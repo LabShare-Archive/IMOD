@@ -1,6 +1,7 @@
 package etomo.type;
 
 import java.io.IOException;
+import java.util.List;
 
 import etomo.storage.autodoc.ReadOnlyAttribute;
 import etomo.ui.Token;
@@ -20,6 +21,9 @@ import etomo.util.PrimativeTokenizer;
  * @version $Revision$
  * 
  * <p> $Log$
+ * <p> Revision 1.9  2007/05/03 21:08:44  sueh
+ * <p> bug# 964 Added getFlexibleInstance() and getFlexibleCompactInstance(Type).  Fixed bug in hasParsedNumberSyntax().
+ * <p>
  * <p> Revision 1.8  2007/04/26 02:46:56  sueh
  * <p> bug# 964 Fixed problems with defaultValue.  Added ParsedArray.compact
  * <p> when empty array elements should not be displayed (lstThresholds).
@@ -125,6 +129,36 @@ public final class ParsedArray extends ParsedElement {
   public static ParsedArray getFlexibleCompactDescriptorInstance(
       EtomoNumber.Type etomoNumberType) {
     return new ParsedArray(etomoNumberType, true, false, true);
+  }
+
+  /**
+   * Get the array stored in this.array, excluding empty ParsedNumbers and
+   * expanding array descriptors.
+   * @return parsable string version of array
+   */
+  public String[] getParsableStringArray() {
+    List parsedNumberArray = getArray(null);
+    if (parsedNumberArray == null) {
+      return new String[0];
+    }
+    String[] returnArray = new String[parsedNumberArray.size()];
+    for (int i = 0; i < parsedNumberArray.size(); i++) {
+      returnArray[i] = ((ParsedNumber) parsedNumberArray.get(i))
+          .getParsableString();
+    }
+    return returnArray;
+  }
+
+  /**
+   * Create a list of non-null ParsedNumber based on this.array.  Expand the
+   * array descriptors to create the entire array.
+   * @return list of ParsedNumbers
+   */
+  List getArray(List parsedNumberArray) {
+    for (int i = 0; i < array.size(); i++) {
+      parsedNumberArray = array.get(i).getArray(parsedNumberArray);
+    }
+    return parsedNumberArray;
   }
 
   /**
