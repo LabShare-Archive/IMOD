@@ -34,6 +34,10 @@ import etomo.util.DatasetFiles;
  * @version $Revision$
  *
  * <p> $Log$
+ * <p> Revision 3.51  2007/03/26 23:31:58  sueh
+ * <p> bug# 964 Added loadPeetMap().  Added
+ * <p> open(String,int,String,boolean,Run3dmodMenuOptions) to open a file with a model.
+ * <p>
  * <p> Revision 3.50  2007/02/05 22:54:44  sueh
  * <p> bug# 962 Added modeleled join and transformed model.
  * <p>
@@ -436,6 +440,7 @@ public class ImodManager {
   protected ImodState fiducialModelA;
   protected ImodState fiducialModelB;
   protected ImodState patchVectorCCCModel;
+  protected ImodState avgVol;
 
   private boolean metaDataSet = false;
 
@@ -468,7 +473,8 @@ public class ImodManager {
   public static final String PATCH_VECTOR_CCC_MODEL_KEY = new String(
       "patch vector ccc model");
   public static final String MODELED_JOIN_KEY = new String("modeled join");
-  public static final String TRANSFORMED_MODEL = new String("transformed model");
+  public static final String TRANSFORMED_MODEL_KEY = new String("transformed model");
+  public static final String AVG_VOL_KEY = new String("AvgVol");
 
   //private keys - used with imodMap
   private static final String rawStackKey = RAW_STACK_KEY;
@@ -494,7 +500,8 @@ public class ImodManager {
   private static final String squeezedVolumeKey = SQUEEZED_VOLUME_KEY;
   private static final String patchVectorCCCModelKey = PATCH_VECTOR_CCC_MODEL_KEY;
   private static final String modeledJoinKey = MODELED_JOIN_KEY;
-  private static final String transformedModelKey = TRANSFORMED_MODEL;
+  private static final String transformedModelKey = TRANSFORMED_MODEL_KEY;
+  private static final String avgVolKey = AVG_VOL_KEY;
 
   private boolean useMap = true;
   private final BaseManager manager;
@@ -566,7 +573,7 @@ public class ImodManager {
     loadPeetMap();
   }
 
-  public int newImod(String key) throws AxisTypeException {
+  private int newImod(String key) throws AxisTypeException {
     return newImod(key, null, null);
   }
 
@@ -609,7 +616,22 @@ public class ImodManager {
     vector.add(imodState);
     return vector.lastIndexOf(imodState);
   }
-
+  
+  public int newImod(String key, String[] fileNameArray) throws AxisTypeException {
+    Vector vector;
+    ImodState imodState;
+    key = getPrivateKey(key);
+    vector = getVector(key);
+    if (vector == null) {
+      vector = newVector(key, fileNameArray);
+      imodMap.put(key, vector);
+      return 0;
+    }
+    imodState = newImodState(key, fileNameArray);
+    vector.add(imodState);
+    return vector.lastIndexOf(imodState);
+  }
+  
   public void open(String key) throws AxisTypeException,
       SystemProcessException, IOException {
     open(key, null, null, new Run3dmodMenuOptions());
@@ -667,6 +689,19 @@ public class ImodManager {
     }
     //used for:
     //openFiducialModel
+  }
+  
+  public void open(String key, String[] fileNameArray) throws AxisTypeException,
+      SystemProcessException, IOException {
+    key = getPrivateKey(key);
+    ImodState imodState = get(key, AxisID.ONLY);
+    if (imodState == null) {
+      newImod(key,fileNameArray);
+      imodState = get(key, AxisID.ONLY);
+    }
+    if (imodState != null) {
+        imodState.open(new Run3dmodMenuOptions());
+    }
   }
 
   /**
@@ -1134,25 +1169,33 @@ public class ImodManager {
   protected Vector newVector(String key, File file) {
     return newVector(newImodState(key, file));
   }
+  
+  protected Vector newVector(String key, String[] fileNameArray) {
+    return newVector(newImodState(key, fileNameArray));
+  }
 
   protected ImodState newImodState(String key) {
-    return newImodState(key, null, null, null);
+    return newImodState(key, null, null, null,null);
   }
 
   protected ImodState newImodState(String key, AxisID axisID) {
-    return newImodState(key, axisID, null, null);
+    return newImodState(key, axisID, null, null,null);
   }
 
   protected ImodState newImodState(String key, AxisID axisID, String datasetName) {
-    return newImodState(key, axisID, datasetName, null);
+    return newImodState(key, axisID, datasetName, null,null);
   }
 
   protected ImodState newImodState(String key, File file) {
-    return newImodState(key, null, null, file);
+    return newImodState(key, null, null, file,null);
+  }
+  
+  protected ImodState newImodState(String key, String[] fileNameArray) {
+    return newImodState(key, null, null, null,fileNameArray);
   }
 
-  protected ImodState newImodState(String key, AxisID axisID,
-      String datasetName, File file) {
+  ImodState newImodState(String key, AxisID axisID,
+      String datasetName, File file,String[] fileNameArray) {
     if (key.equals(RAW_STACK_KEY) && axisID != null) {
       return newRawStack(axisID);
     }
@@ -1223,8 +1266,11 @@ public class ImodManager {
         && axisType == AxisType.DUAL_AXIS) {
       return newPatchVectorCCCModel();
     }
-    if (key.equals(TRANSFORMED_MODEL)) {
+    if (key.equals(TRANSFORMED_MODEL_KEY)) {
       return newTransformedModel();
+    }
+    if (key.equals(AVG_VOL_KEY)) {
+      return newAvgVol(fileNameArray);
     }
     throw new IllegalArgumentException(key + " cannot be created in "
         + axisType.toString() + " with axisID=" + axisID.getExtension());
@@ -1456,6 +1502,11 @@ public class ImodManager {
 
   private ImodState newRotTomogram(File file) {
     ImodState imodState = new ImodState(manager, file, AxisID.ONLY);
+    return imodState;
+  }
+  
+  private ImodState newAvgVol(String[] fileNameArray) {
+    ImodState imodState = new ImodState(manager,fileNameArray,AxisID.ONLY);
     return imodState;
   }
 
