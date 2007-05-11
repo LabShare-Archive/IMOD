@@ -36,6 +36,10 @@ import etomo.util.Utilities;
  * 
  * <p>
  * $Log$
+ * Revision 3.42  2006/09/19 22:21:19  sueh
+ * bug# 928 Added WindowOpenOption, to use 3dmod's window open command-
+ * line functionality.
+ *
  * Revision 3.41  2006/08/11 23:49:25  sueh
  * bug# 816 Added reopenLog().
  *
@@ -557,6 +561,7 @@ public class ImodProcess {
   private LinkedList requestQueue = new LinkedList();
   private LinkedList stderrQueue = new LinkedList();
   private ArrayList windowOpenOptionList = null;
+  private boolean debug = false;
 
   /**
    * Constructor for using imodv
@@ -613,6 +618,11 @@ public class ImodProcess {
     this.manager = manager;
     datasetNameArray = datasetArray;
     modelName = model;
+  }
+
+  public ImodProcess(BaseManager manager, String[] datasetArray) {
+    this.manager = manager;
+    datasetNameArray = datasetArray;
   }
 
   /**
@@ -743,7 +753,8 @@ public class ImodProcess {
       StringBuffer buffer = new StringBuffer(
           ((WindowOpenOption) windowOpenOptionList.get(0)).toString());
       for (int i = 1; i < windowOpenOptionList.size(); i++) {
-        buffer.append(((WindowOpenOption) windowOpenOptionList.get(i)).toString());
+        buffer.append(((WindowOpenOption) windowOpenOptionList.get(i))
+            .toString());
       }
       commandOptions.add(buffer.toString());
     }
@@ -768,12 +779,16 @@ public class ImodProcess {
       if (EtomoDirector.getInstance().isDebug()) {
         System.err.print(commandArray[i] + " ");
       }
-      // System.out.print(commandArray[i] + " ");
+      else if (debug) {
+        System.out.print(commandArray[i] + " ");
+      }
     }
     if (EtomoDirector.getInstance().isDebug()) {
       System.err.println();
     }
-    // System.out.println();
+    else if (debug) {
+      System.out.println();
+    }
     imod = new InteractiveSystemProgram(manager, commandArray, axisID);
     if (workingDirectory != null) {
       imod.setWorkingDirectory(workingDirectory);
