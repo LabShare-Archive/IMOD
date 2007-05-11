@@ -53,7 +53,7 @@ public final class ProcesschunksParam implements DetachedCommand, ParallelParam 
   private ProcessName processName = null;
   private boolean debug = true;
 
-  public ProcesschunksParam(BaseManager manager, AxisID axisID) {
+  public  ProcesschunksParam(final BaseManager manager, final AxisID axisID) {
     this.axisID = axisID;
     this.manager = manager;
     nice.set(manager.getParallelProcessingDefaultNice());
@@ -77,73 +77,6 @@ public final class ProcesschunksParam implements DetachedCommand, ParallelParam 
     return axisID;
   }
 
-  private void buildCommand() {
-    valid = true;
-    ArrayList command = new ArrayList();
-    command.add("tcsh");
-    command.add(COMMAND_FILE_OPTION);
-    command.add("'" + BaseManager.getIMODBinPath()
-        + ProcessName.PROCESSCHUNKS.toString() + "'");
-    if (resume.is()) {
-      command.add("-r");
-    }
-    command.add("-g");
-    command.add("-n");
-    command.add(nice.toString());
-    String remoteUserDir = null;
-    try {
-      remoteUserDir = RemotePath.INSTANCE.getRemotePath(manager, manager
-          .getPropertyUserDir(), axisID);
-    }
-    catch (InvalidMountRuleException e) {
-      UIHarness.INSTANCE.openMessageDialog("ERROR:  Remote path error.  "
-          + "Unabled to run " + ProcessName.PROCESSCHUNKS + ".\n\n"
-          + e.getMessage(), "Processchunks Error", axisID);
-      valid = false;
-    }
-    if (remoteUserDir != null) {
-      command.add(WORKING_DIR_OPTION);
-      command.add(remoteUserDir);
-    }
-    command.add("-d");
-    command.add(String.valueOf(DROP_VALUE));
-    command.add("-c");
-    command.add(DatasetFiles.getCommandsFileName(rootName));
-    command.add("-P");
-    //add machine names
-    buildMachineList();
-    if (machineList != null) {
-      command.add(machineList.toString());
-    }
-
-    command.add(rootName);
-    int commandSize = command.size();
-    commandArray = new String[commandSize];
-    for (int i = 0; i < commandSize; i++) {
-      commandArray[i] = (String) command.get(i);
-    }
-    if (debug) {
-      for (int i = 0;i<commandArray.length;i++) {
-        if (i>0) {
-          System.err.print(" ");
-        }
-        System.err.print(commandArray[i]);
-      }
-      System.err.println();
-    }
-  }
-
-  private void buildMachineList() {
-    int size = machineNames.size();
-    if (size > 0) {
-      machineList = new StringBuffer((String) machineNames.get(0));
-      for (int i = 1; i < size; i++) {
-        machineList.append(',');
-        machineList.append(machineNames.get(i));
-      }
-    }
-  }
-
   /**
    * Set resume.  This value can be set after the command is built because it
    * comes from the parallel panel and can be changed for a resume.
@@ -151,7 +84,7 @@ public final class ProcesschunksParam implements DetachedCommand, ParallelParam 
    * Causes commandArray to be set to null.
    * @param resume
    */
-  public void setResume(boolean resume) {
+  public void setResume(final boolean resume) {
     if (this.resume.equals(resume)) {
       return;
     }
@@ -166,24 +99,24 @@ public final class ProcesschunksParam implements DetachedCommand, ParallelParam 
    * Causes commandArray to be set to null.
    * @param nice
    */
-  public void setNice(Number nice) {
+  public void setNice(final Number nice) {
     if (this.nice.equals(nice)) {
       return;
     }
     commandArray = null;
     this.nice.set(nice);
   }
-  
-  public void setProcessName(ProcessName processName) {
+
+  public void setProcessName(final ProcessName processName) {
     this.processName = processName;
     setRootName(processName.toString());
   }
-  
+
   public ProcessName getProcessName() {
     return processName;
   }
 
-  public void setRootName(String rootName) {
+  public void setRootName(final String rootName) {
     if (commandArray != null) {
       throw new IllegalStateException(
           "can't change parameter values after command is built");
@@ -223,7 +156,7 @@ public final class ProcesschunksParam implements DetachedCommand, ParallelParam 
     machineNames.clear();
   }
 
-  public void addMachineName(String machineName) {
+  public void addMachineName(final String machineName) {
     if (commandArray != null) {
       throw new IllegalStateException(
           "can't change parameter values after command is built");
@@ -253,7 +186,7 @@ public final class ProcesschunksParam implements DetachedCommand, ParallelParam 
     }
     return commandArray;
   }
-  
+
   public boolean isValid() {
     return valid;
   }
@@ -297,6 +230,81 @@ public final class ProcesschunksParam implements DetachedCommand, ParallelParam 
     return buffer.toString();
   }
 
+  public String validate() {
+    if (machineNames == null || machineNames.size() == 0) {
+      return "No CPUs where selected.";
+    }
+    return null;
+  }
+
+  private void buildCommand() {
+    valid = true;
+    ArrayList command = new ArrayList();
+    command.add("tcsh");
+    command.add(COMMAND_FILE_OPTION);
+    command.add("'" + BaseManager.getIMODBinPath()
+        + ProcessName.PROCESSCHUNKS.toString() + "'");
+    if (resume.is()) {
+      command.add("-r");
+    }
+    command.add("-g");
+    command.add("-n");
+    command.add(nice.toString());
+    String remoteUserDir = null;
+    try {
+      remoteUserDir = RemotePath.INSTANCE.getRemotePath(manager, manager
+          .getPropertyUserDir(), axisID);
+    }
+    catch (InvalidMountRuleException e) {
+      UIHarness.INSTANCE.openMessageDialog("ERROR:  Remote path error.  "
+          + "Unabled to run " + ProcessName.PROCESSCHUNKS + ".\n\n"
+          + e.getMessage(), "Processchunks Error", axisID);
+      valid = false;
+    }
+    if (remoteUserDir != null) {
+      command.add(WORKING_DIR_OPTION);
+      command.add(remoteUserDir);
+    }
+    command.add("-d");
+    command.add(String.valueOf(DROP_VALUE));
+    command.add("-c");
+    System.out.println("rootName="+rootName);
+    command.add(DatasetFiles.getCommandsFileName(rootName));
+    command.add("-P");
+    //add machine names
+    buildMachineList();
+    if (machineList != null) {
+      command.add(machineList.toString());
+    }
+
+    command.add(rootName);
+    int commandSize = command.size();
+    commandArray = new String[commandSize];
+    for (int i = 0; i < commandSize; i++) {
+      commandArray[i] = (String) command.get(i);
+    }
+    if (debug) {
+      for (int i = 0; i < commandArray.length; i++) {
+        if (i > 0) {
+          System.err.print(" ");
+        }
+        System.err.print(commandArray[i]);
+      }
+      System.err.println();
+    }
+  }
+
+  private void buildMachineList() {
+    int size = machineNames.size();
+    if (size > 0) {
+      machineList = new StringBuffer((String) machineNames.get(0));
+      for (int i = 1; i < size; i++) {
+        machineList.append(',');
+        machineList.append(machineNames.get(i));
+      }
+    }
+  }
+
   /**
    * Put a back slash in front of each space in directoryPath
    * @param directoryPath
@@ -321,16 +329,12 @@ public final class ProcesschunksParam implements DetachedCommand, ParallelParam 
     }
     return directoryPath;
   }
-
-  public String validate() {
-    if (machineNames == null || machineNames.size() == 0) {
-      return "No CPUs where selected.";
-    }
-    return null;
-  }
 }
 /**
  * <p> $Log$
+ * <p> Revision 1.22  2007/05/03 00:46:05  sueh
+ * <p> bug# 964 Placing the nice default in the manager so it can be changed.
+ * <p>
  * <p> Revision 1.21  2007/04/27 23:38:51  sueh
  * <p> bug# 964 Turned on debug temporarily.
  * <p>
