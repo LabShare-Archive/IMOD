@@ -32,6 +32,9 @@ import etomo.util.DatasetFiles;
  * @version $Revision$
  * 
  * <p> $Log$
+ * <p> Revision 1.26  2007/04/23 23:19:01  sueh
+ * <p> bug# 991 getRejoinOptions:  get the last end list value.
+ * <p>
  * <p> Revision 1.25  2007/03/07 21:01:24  sueh
  * <p> bug# 981 Changed ScriptParameter.isUseInScript to isNotNullAndNotDefault for
  * <p> clarity.
@@ -291,6 +294,10 @@ public final class FinishjoinParam implements CommandDetails {
   }
 
   public boolean getBooleanValue(etomo.comscript.Fields field) {
+    throw new IllegalArgumentException("field=" + field);
+  }
+  
+  public String[] getStringArray(etomo.comscript.Fields field) {
     throw new IllegalArgumentException("field=" + field);
   }
 

@@ -28,6 +28,9 @@ import etomo.type.EtomoNumber;
 * @version $Revision$
 * 
 * <p> $Log$
+* <p> Revision 1.16  2007/02/05 21:40:58  sueh
+* <p> bug# 962  Put EtomoNumber type info into an inner class.
+* <p>
 * <p> Revision 1.15  2006/05/22 22:36:01  sueh
 * <p> bug# 577 Added getCommand().
 * <p>
@@ -216,6 +219,10 @@ public abstract class ConstSqueezevolParam implements CommandDetails, Storable {
     if (field == Fields.FLIPPED) {
       return flipped;
     }
+    throw new IllegalArgumentException("field=" + field);
+  }
+  
+  public String[] getStringArray(etomo.comscript.Fields field) {
     throw new IllegalArgumentException("field=" + field);
   }
   

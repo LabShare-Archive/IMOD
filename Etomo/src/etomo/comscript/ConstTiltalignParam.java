@@ -496,6 +496,10 @@ public class ConstTiltalignParam implements CommandDetails {
   public String getString(etomo.comscript.Fields field) {
     throw new IllegalArgumentException("field=" + field);
   }
+  
+  public String[] getStringArray(etomo.comscript.Fields field) {
+    throw new IllegalArgumentException("field=" + field);
+  }
 
   public double getDoubleValue(etomo.comscript.Fields field) {
     if (field == Fields.AXIS_Z_SHIFT) {
@@ -994,6 +998,9 @@ public class ConstTiltalignParam implements CommandDetails {
 
 /**
  * <p> $Log$
+ * <p> Revision 3.30  2007/03/07 20:59:50  sueh
+ * <p> bug# 981 Added beamTiltOption and fixedOrInitialBeamTilt.
+ * <p>
  * <p> Revision 3.29  2007/03/03 00:34:10  sueh
  * <p> bug# 973 Added targetPatchSizeXandY.  Added defaults for targetPatchSizeXandY and numberOfLocalPatchesXandY for metadata, since
  * <p> only one of these parameters can be used.

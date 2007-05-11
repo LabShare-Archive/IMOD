@@ -23,6 +23,9 @@ import etomo.type.ConstIntKeyList;
 * @version $Revision$
 * 
 * <p> $Log$
+* <p> Revision 1.12  2007/02/05 22:20:36  sueh
+* <p> bug# 962 Changed getCommandMode to return CommandMode.
+* <p>
 * <p> Revision 1.11  2006/05/22 22:39:05  sueh
 * <p> bug# 577 Added getCommand().
 * <p>
@@ -160,6 +163,10 @@ public class FlipyzParam implements CommandDetails {
   }
   
   public boolean getBooleanValue(etomo.comscript.Fields field) {
+    throw new IllegalArgumentException("field=" + field);
+  }
+  
+  public String[] getStringArray(etomo.comscript.Fields field) {
     throw new IllegalArgumentException("field=" + field);
   }
   

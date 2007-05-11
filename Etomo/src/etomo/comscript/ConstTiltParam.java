@@ -11,6 +11,9 @@
  * @version $Revision$
  *
  * <p> $Log$
+ * <p> Revision 3.12  2007/03/07 21:00:26  sueh
+ * <p> bug# 981 Reduced visibility of protected fields to package private.
+ * <p>
  * <p> Revision 3.11  2007/02/05 21:41:49  sueh
  * <p> bug# 962  Put EtomoNumber type info into an inner class.
  * <p>
@@ -500,6 +503,10 @@ public class ConstTiltParam implements ProcessDetails {
     if (field == Fields.FIDUCIALESS) {
       return storables.getFiducialess().is();
     }
+    throw new IllegalArgumentException("field=" + field);
+  }
+  
+  public String[] getStringArray(etomo.comscript.Fields field) {
     throw new IllegalArgumentException("field=" + field);
   }
 

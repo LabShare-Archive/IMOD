@@ -37,6 +37,10 @@ import etomo.util.DatasetFiles;
  * <p> </p>
  * 
  * <p> $Log$
+ * <p> Revision 1.24  2007/03/26 18:34:51  sueh
+ * <p> bug# 964 Changed getDouble(boolean defaultIfNull) to getDefaultDouble() so that
+ * <p> the functionality will be remembered and used.
+ * <p>
  * <p> Revision 1.23  2007/03/07 21:01:35  sueh
  * <p> bug# 981 Changed ScriptParameter.isUseInScript to isNotNullAndNotDefault for
  * <p> clarity.
@@ -352,6 +356,10 @@ public final class MakejoincomParam implements CommandDetails {
     if (field == Fields.ROTATE) {
       return rotate;
     }
+    throw new IllegalArgumentException("field=" + field);
+  }
+  
+  public String[] getStringArray(etomo.comscript.Fields field) {
     throw new IllegalArgumentException("field=" + field);
   }
 
