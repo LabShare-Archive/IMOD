@@ -26,6 +26,9 @@ import etomo.util.MRCHeader;
  * @version $Revision$
  * 
  * <p> $Log$
+ * <p> Revision 1.28  2007/02/05 23:31:46  sueh
+ * <p> bug# 962 Moved EtomoNumber type info to inner class.
+ * <p>
  * <p> Revision 1.27  2006/09/19 22:35:11  sueh
  * <p> bug# 920 Added first and secondAxisGroups for saving axis-level values.  Fixed
  * <p> sample fiducial key.
@@ -429,7 +432,7 @@ public class TomogramState implements BaseState {
     return true;
   }
 
-  protected static String createPrepend(String prepend) {
+  static String createPrepend(String prepend) {
     if (prepend == "") {
       return groupString;
     }
