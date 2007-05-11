@@ -49,6 +49,11 @@ import etomo.type.PeetScreenState;
  * @version $Revision$
  * 
  * <p> $Log$
+ * <p> Revision 1.35  2007/05/08 19:18:01  sueh
+ * <p> bug# 964 Passing the import directory to VolumeTable.setParameters()
+ * <p> when importing the .prm file, so that files which don't have an absolute
+ * <p> path will have the import directory as their parent.
+ * <p>
  * <p> Revision 1.34  2007/05/08 01:20:15  sueh
  * <p> bug# 964 Using enum tooltips for radio buttons.
  * <p>
@@ -256,6 +261,8 @@ public final class PeetDialog implements AbstractParallelDialog, Expandable {
           MatlabParam.DEBUG_LEVEL_MIN, MatlabParam.DEBUG_LEVEL_MAX, 1));
   private final MultiLineButton btnImportMatlabParamFile = new MultiLineButton(
       "Import a .prm File");
+  private final MultiLineButton btnAvgVol = new MultiLineButton(
+      "Open Averaged Volumes in 3dmod");
   private final JPanel pnlInitMotl = new JPanel();
   private final TabbedPane tabPane = new TabbedPane();
   private final SpacedPanel pnlSetup = new SpacedPanel();
@@ -315,6 +322,7 @@ public final class PeetDialog implements AbstractParallelDialog, Expandable {
   public void getParameters(final ParallelParam param) {
     ProcesschunksParam processchunksParam = (ProcesschunksParam) param;
     processchunksParam.setRootName(ltfFnOutput.getText());
+    //processchunksParam.setProcessName(ProcessName.PEET);
   }
 
   public void getParameters(final PeetScreenState screenState) {
@@ -366,7 +374,7 @@ public final class PeetDialog implements AbstractParallelDialog, Expandable {
    * the dataset has been created.
    * @param matlabParamFile
    */
-  public void setParameters(final MatlabParam matlabParamFile,File importDir) {
+  public void setParameters(final MatlabParam matlabParamFile, File importDir) {
     iterationTable.setParameters(matlabParamFile);
     if (matlabParamFile.useReferenceFile()) {
       rbReferenceFile.setSelected(true);
@@ -434,7 +442,7 @@ public final class PeetDialog implements AbstractParallelDialog, Expandable {
     ltfYaxisContourContourNumber.setText(matlabParamFile
         .getYaxisContourContourNumber());
     volumeTable.setParameters(matlabParamFile, rbInitMotlFiles.isSelected(),
-        cbTiltRange.isSelected(),importDir);
+        cbTiltRange.isSelected(), importDir);
     updateDisplay();
   }
 
@@ -536,12 +544,12 @@ public final class PeetDialog implements AbstractParallelDialog, Expandable {
           .getInstance(AutodocFactory.PEET_PRM);
       pnlInitMotl.setToolTipText(TooltipFormatter.INSTANCE.format(EtomoAutodoc
           .getTooltip(autodoc, MatlabParam.INIT_MOTL_KEY)));
-      ReadOnlySection section = autodoc.getSection(EtomoAutodoc.FIELD_SECTION_NAME,
-          MatlabParam.INIT_MOTL_KEY);
+      ReadOnlySection section = autodoc.getSection(
+          EtomoAutodoc.FIELD_SECTION_NAME, MatlabParam.INIT_MOTL_KEY);
       rbInitMotlZero.setToolTipText(section);
-      rbInitMotlXAndZAxis.setToolTipText( section);
-      rbInitMotlZAxis.setToolTipText( section);
-      rbInitMotlFiles.setToolTipText( section);
+      rbInitMotlXAndZAxis.setToolTipText(section);
+      rbInitMotlZAxis.setToolTipText(section);
+      rbInitMotlFiles.setToolTipText(section);
       String tooltip = EtomoAutodoc.getTooltip(autodoc,
           MatlabParam.TILT_RANGE_KEY);
       cbTiltRange.setToolTipText(tooltip);
@@ -559,7 +567,7 @@ public final class PeetDialog implements AbstractParallelDialog, Expandable {
       ltfSzVolZ.setToolTipText(tooltip);
       pnlCcMode.setToolTipText(TooltipFormatter.INSTANCE.format(EtomoAutodoc
           .getTooltip(autodoc, MatlabParam.CC_MODE_KEY)));
-       section = autodoc.getSection(EtomoAutodoc.FIELD_SECTION_NAME,
+      section = autodoc.getSection(EtomoAutodoc.FIELD_SECTION_NAME,
           MatlabParam.CC_MODE_KEY);
       rbCcModeNormalized.setToolTipText(section);
       rbCcModeLocal.setToolTipText(section);
@@ -733,6 +741,13 @@ public final class PeetDialog implements AbstractParallelDialog, Expandable {
     pnlAdvanced.add(pnlCcMode);
     pnlAdvanced.add(Box.createRigidArea(FixedDim.x40_y0));
     pnlAdvanced.add(pnlAdvancedRight);
+    //button panel
+    JPanel pnlButton = new JPanel();
+    pnlButton.setLayout(new BoxLayout(pnlButton,BoxLayout.X_AXIS));
+    btnRun.setSize();
+    pnlButton.add(btnRun.getComponent());
+    btnAvgVol.setSize();
+    pnlButton.add(btnAvgVol.getComponent());
     //body
     pnlRunBody.setBoxLayout(BoxLayout.Y_AXIS);
     pnlRunBody.setComponentAlignmentX(Component.CENTER_ALIGNMENT);
@@ -743,8 +758,7 @@ public final class PeetDialog implements AbstractParallelDialog, Expandable {
     pnlRunBody.add(cbLstFlagAllTom);
     pnlRunBody.add(lsParticlePerCPU);
     pnlRunBody.add(pnlAdvanced);
-    btnRun.setSize();
-    pnlRunBody.add(btnRun);
+    pnlRunBody.add(pnlButton);
     //main panel
     pnlRun.setLayout(new BoxLayout(pnlRun, BoxLayout.Y_AXIS));
     pnlRun.setBorder(BorderFactory.createEtchedBorder());
@@ -791,6 +805,9 @@ public final class PeetDialog implements AbstractParallelDialog, Expandable {
     }
     else if (actionCommand.equals(btnImportMatlabParamFile.getActionCommand())) {
       importMatlabParam();
+    }
+    else if (actionCommand.equals(btnAvgVol.getActionCommand())) {
+      manager.imodAvgVol();
     }
   }
 
@@ -906,6 +923,7 @@ public final class PeetDialog implements AbstractParallelDialog, Expandable {
     rbYaxisTypeParticleModel.addActionListener(actionListener);
     rbYaxisTypeContour.addActionListener(actionListener);
     btnImportMatlabParamFile.addActionListener(actionListener);
+    btnAvgVol.addActionListener(actionListener);
   }
 
   private static final class PDActionListener implements ActionListener {
