@@ -28,9 +28,13 @@ public interface ProcessDetails {
   public ConstEtomoNumber getEtomoNumber(etomo.comscript.Fields field);
   public ConstIntKeyList getIntKeyList(etomo.comscript.Fields field);
   public String getString(etomo.comscript.Fields field);
+  public String[] getStringArray(etomo.comscript.Fields field);
 }
 /**
  * <p> $Log$
+ * <p> Revision 1.5  2007/02/05 22:40:16  sueh
+ * <p> bug# 962 Added getEtomoNumber, getIntKeyList, and getString.
+ * <p>
  * <p> Revision 1.4  2006/05/11 19:48:05  sueh
  * <p> bug# 838 Add CommandDetails, which extends Command and
  * <p> ProcessDetails.  Changed ProcessDetails to only contain generic get

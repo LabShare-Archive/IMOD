@@ -11,6 +11,9 @@
  * @version $Revision$
  * 
  * <p> $Log$
+ * <p> Revision 3.23  2007/02/05 22:48:39  sueh
+ * <p> bug# 962 Added getEtomoNumber, getIntKeyList, and getString.
+ * <p>
  * <p> Revision 3.22  2006/10/20 21:42:24  sueh
  * <p> bug# 946  Make rotateX the default reorientation method.
  * <p>
@@ -735,6 +738,10 @@ public class TrimvolParam implements CommandDetails {
     if (field == Fields.ROTATE_X) {
       return rotateX;
     }
+    throw new IllegalArgumentException("field=" + field);
+  }
+  
+  public String[] getStringArray(etomo.comscript.Fields field) {
     throw new IllegalArgumentException("field=" + field);
   }
   

@@ -80,6 +80,10 @@ public class StartJoinParam implements CommandDetails {
     throw new IllegalArgumentException("field=" + field);
   }
   
+  public String[] getStringArray(etomo.comscript.Fields field) {
+    throw new IllegalArgumentException("field=" + field);
+  }
+  
   public String getString(etomo.comscript.Fields field) {
     throw new IllegalArgumentException("field=" + field);
   }
@@ -130,6 +134,9 @@ public class StartJoinParam implements CommandDetails {
 }
 /**
 * <p> $Log$
+* <p> Revision 1.5  2007/02/05 22:46:06  sueh
+* <p> bug# 962 Added getEtomoNumber, getIntKeyList, and getString.
+* <p>
 * <p> Revision 1.4  2006/06/05 16:16:50  sueh
 * <p> bug# 766 In ProcessName:  Changed getCommand() and getCommandArray() to
 * <p> getComscript... because the fuctions are specialized for comscripts.
