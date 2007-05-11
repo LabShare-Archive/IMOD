@@ -174,6 +174,10 @@ import etomo.type.Run3dmodMenuOptions;
  * @version $$Revision$$
  * 
  * <p> $$Log$
+ * <p> $Revision 1.41  2007/05/11 15:43:57  sueh
+ * <p> $bug# 964 Added ImodState(BaseManager, String[], AxisID) to open 3dmod
+ * <p> $with multiple files and no model.
+ * <p> $
  * <p> $Revision 1.40  2007/02/05 22:55:40  sueh
  * <p> $bug# 962 Added modeleled join and transformed model.
  * <p> $
@@ -394,6 +398,7 @@ public final class ImodState {
 
   //internal state information
   private final ImodProcess process;
+  private String[] fileNameArray=null;
   private boolean warnedStaleFile = false;
   //initial state information
   boolean initialModeSet = false;
@@ -495,6 +500,7 @@ public final class ImodState {
   ImodState(BaseManager manager, String[] fileNameArray, AxisID axisID) {
     this.manager = manager;
     this.axisID = axisID;
+    this.fileNameArray=fileNameArray;
     process = new ImodProcess(manager, fileNameArray);
     reset();
   }
@@ -742,7 +748,7 @@ public final class ImodState {
     manageNewContours = false;
   }
 
-  protected String getModeString(int mode) {
+  String getModeString(int mode) {
     if (mode == MOVIE_MODE) {
       return "MOVIE_MODE";
     }
@@ -752,6 +758,24 @@ public final class ImodState {
     else {
       return "ERROR:" + Integer.toString(mode);
     }
+  }
+  
+  boolean equalsFileNameArray(String[] input) {
+    if (fileNameArray==null&&input==null) {
+      return true;
+    }
+    if (fileNameArray==null||input==null) {
+      return false;
+    }
+    if (fileNameArray.length!=input.length) {
+      return false;
+    }
+    for (int i = 0;i<fileNameArray.length;i++) {
+      if (!fileNameArray[i].equals(input[i])) {
+        return false;
+      }
+    }
+    return true;
   }
 
   //unchanging state information
