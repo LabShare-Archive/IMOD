@@ -1,6 +1,7 @@
 package etomo.type;
 
 import java.io.IOException;
+import java.util.List;
 
 import etomo.storage.autodoc.ReadOnlyAttribute;
 import etomo.ui.Token;
@@ -20,6 +21,10 @@ import etomo.util.PrimativeTokenizer;
  * @version $Revision$
  * 
  * <p> $Log$
+ * <p> Revision 1.7  2007/04/26 02:47:59  sueh
+ * <p> bug# 964 Fixed problems with defaultValue.  Added ParsedArray.compact
+ * <p> when empty array elements should not be displayed (lstThresholds).
+ * <p>
  * <p> Revision 1.6  2007/04/19 21:57:16  sueh
  * <p> bug# 964 Added getRawString(int), moveElement(int,int), moveElement(int,int),
  * <p> setRawString(int,float), and setRawString(int,String).
@@ -199,6 +204,16 @@ public final class ParsedQuotedString extends ParsedElement {
   
   boolean hasParsedNumberSyntax() {
     return false;
+  }
+  
+  /**
+   * Append non-null ParsedNumbers to parsedNumberArray.  Create parsedNumberArray
+   * if parsedNumberArray == null and !this.isEmpty().
+   * @param parsedNumberArray
+   * @return parsedNumberArray
+   */
+  List getArray(List parsedNumberArray) {
+    return parsedNumberArray;
   }
 
   boolean isCollection() {
