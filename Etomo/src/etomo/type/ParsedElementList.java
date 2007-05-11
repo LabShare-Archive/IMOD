@@ -1,6 +1,7 @@
 package etomo.type;
 
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 
 import etomo.ui.Token;
@@ -20,6 +21,10 @@ import etomo.util.PrimativeTokenizer;
  * @version $Revision$
  * 
  * <p> $Log$
+ * <p> Revision 1.7  2007/04/26 02:47:25  sueh
+ * <p> bug# 964 Fixed problems with defaultValue.  Added ParsedArray.compact
+ * <p> when empty array elements should not be displayed (lstThresholds).
+ * <p>
  * <p> Revision 1.6  2007/04/19 21:46:10  sueh
  * <p> bug# 964 Made EmptyParsedElement a singleton.  Added move and remove.
  * <p>
@@ -167,6 +172,10 @@ final class ParsedElementList {
     }
 
     public void setRawString(int index, float number) {
+    }
+    
+    List getArray(List parsedNumberArray) {
+      return parsedNumberArray;
     }
     
     void setDefaultValue(int numberIndex,Integer[] defaultValueArray) {
