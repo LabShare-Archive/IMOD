@@ -62,6 +62,9 @@ import etomo.util.Utilities;
  * @version $Revision$
  * 
  * <p> $Log$
+ * <p> Revision 1.54  2007/04/26 02:42:08  sueh
+ * <p> bug# 964 Formatted
+ * <p>
  * <p> Revision 1.53  2007/04/09 19:30:06  sueh
  * <p> bug# 964 Added setParamFile(), which just returns loadedParamFile
  * <p>
@@ -1127,7 +1130,7 @@ public final class JoinManager extends BaseManager {
   public void finishjoin(FinishjoinParam.Mode mode, String buttonText) {
     try {
       if (mode == FinishjoinParam.Mode.SUPPRESS_EXECUTION
-          && imodManager.isOpen(ImodManager.TRANSFORMED_MODEL)) {
+          && imodManager.isOpen(ImodManager.TRANSFORMED_MODEL_KEY)) {
         uiHarness.openMessageDialog("Please close "
             + DatasetFiles.getRefineAlignedModelFileName(this), "Close File");
         return;
@@ -1153,7 +1156,7 @@ public final class JoinManager extends BaseManager {
       setNextProcess(AxisID.ONLY, ProcessName.XFTOXG.toString());
     }
     if (mode == FinishjoinParam.Mode.SUPPRESS_EXECUTION) {
-      setLastProcess(AxisID.ONLY, ImodManager.TRANSFORMED_MODEL);
+      setLastProcess(AxisID.ONLY, ImodManager.TRANSFORMED_MODEL_KEY);
       processMgr.saveFinishjoinState(param);
       startNextProcess(AxisID.ONLY, null);
     }
@@ -1283,8 +1286,8 @@ public final class JoinManager extends BaseManager {
     else if (nextProcess.equals(ProcessName.REMAPMODEL.toString())) {
       remapmodel();
     }
-    else if (nextProcess.equals(ImodManager.TRANSFORMED_MODEL)) {
-      imodOpen(ImodManager.TRANSFORMED_MODEL);
+    else if (nextProcess.equals(ImodManager.TRANSFORMED_MODEL_KEY)) {
+      imodOpen(ImodManager.TRANSFORMED_MODEL_KEY);
     }
   }
 
