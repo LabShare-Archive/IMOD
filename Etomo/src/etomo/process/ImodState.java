@@ -1,6 +1,5 @@
 package etomo.process;
 
-//import java.lang.IllegalStateException;
 import java.util.Vector;
 import java.io.File;
 import java.io.IOException;
@@ -175,6 +174,9 @@ import etomo.type.Run3dmodMenuOptions;
  * @version $$Revision$$
  * 
  * <p> $$Log$
+ * <p> $Revision 1.40  2007/02/05 22:55:40  sueh
+ * <p> $bug# 962 Added modeleled join and transformed model.
+ * <p> $
  * <p> $Revision 1.39  2006/09/19 22:22:23  sueh
  * <p> $bug# 928 Open the imodv objects window when opening a patch vector model.
  * <p> $
@@ -487,6 +489,13 @@ public final class ImodState {
     this.manager = manager;
     this.axisID = axisID;
     process = new ImodProcess(manager, file.getAbsolutePath(), axisID);
+    reset();
+  }
+  
+  ImodState(BaseManager manager, String[] fileNameArray, AxisID axisID) {
+    this.manager = manager;
+    this.axisID = axisID;
+    process = new ImodProcess(manager, fileNameArray);
     reset();
   }
 
