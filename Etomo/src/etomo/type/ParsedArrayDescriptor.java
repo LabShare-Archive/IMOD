@@ -1,12 +1,27 @@
 package etomo.type;
 
 import java.io.IOException;
+import java.util.ArrayList;
+import java.util.List;
 
 import etomo.ui.Token;
 import etomo.util.PrimativeTokenizer;
 
 /**
- * <p>Description: </p>
+ * <p>Description: A description of an array.  A correct array descriptor
+ * consists of the start, increment, and end values or the start and end values
+ * (increment is assumed to be 1).  The increment may be negative which means
+ * that the start value should be >= to the end value.  If the increment is
+ * positive, the start value should be <= to the end value.  If the increment is
+ * zero, the array described is [start, end].  If the descriptor contains only
+ * one value, the array described is [value].  Values after the first three
+ * values are ignored.
+ * 
+ * The descriptor member variable should only contain ParsedNumbers.  The string
+ * representation of an array descriptor uses ":" to divide the values and does
+ * not use open and close symbols such as square brackets.
+ * 
+ * The array descriptor is only used as an element of a ParsedArray.</p>
  * 
  * <p>Copyright: Copyright 2006</p>
  *
@@ -19,6 +34,9 @@ import etomo.util.PrimativeTokenizer;
  * @version $Revision$
  * 
  * <p> $Log$
+ * <p> Revision 1.8  2007/05/03 21:08:59  sueh
+ * <p> bug# 964 Fixed bug in hasParsedNumberSyntax().
+ * <p>
  * <p> Revision 1.7  2007/04/26 02:47:06  sueh
  * <p> bug# 964 Fixed problems with defaultValue.  Added ParsedArray.compact
  * <p> when empty array elements should not be displayed (lstThresholds).
@@ -97,6 +115,68 @@ public final class ParsedArrayDescriptor extends ParsedElement {
 
   public String getRawString() {
     return getString(false);
+  }
+
+  /**
+   * Append an array of non-empty ParsedNumbers described by this.descriptor.
+   * @param parsedNumberArray the array to be added to and returned - may be null
+   * @return parsedNumberArray
+   */
+  List getArray(List parsedNumberArray) {
+    if (descriptor.size() == 0) {
+      return parsedNumberArray;
+    }
+    //exclude empty parsed numbers
+    ParsedElementList list = new ParsedElementList();
+    for (int i = 0; i < descriptor.size(); i++) {
+      if (!descriptor.get(i).isEmpty()) {
+        list.add(descriptor.get(i));
+      }
+    }
+    if (list.size() == 0) {
+      return parsedNumberArray;
+    }
+    if (parsedNumberArray == null) {
+      parsedNumberArray = new ArrayList();
+    }
+    //the first number in the descriptor is the first number in the array
+    parsedNumberArray.add(list.get(0));
+    //if there is only one number, then we are done
+    if (list.size() == 1) {
+      return parsedNumberArray;
+    }
+    //two or three numbers means that it is a descriptor, so expand the descriptor
+    //into the list of numbers
+    EtomoNumber increment =  new EtomoNumber(etomoNumberType);
+    ParsedNumber lastNumber = null;
+    if (list.size() == 2) {
+      increment.set(1);
+      lastNumber=(ParsedNumber)list.get(1);
+    }
+    else {
+      increment.set(list.get(1).getRawNumber());
+      lastNumber=(ParsedNumber)list.get(2);
+    }
+    //if the increment is 0, return the first and last number
+    //not sure if this is right, but it makes sense
+    if (increment.equals(0)) {
+      parsedNumberArray.add(lastNumber);
+      return parsedNumberArray;
+    }
+    //increment the number and save the result until you get to the last number
+    //the increment can be positive or negative
+    ParsedNumber curNumber = (ParsedNumber)list.get(0);
+    ParsedNumber prevNumber;
+    while ((increment.isPositive() && curNumber.lt(lastNumber))
+        || (increment.isNegative() && curNumber.gt(lastNumber))) {
+      prevNumber=curNumber;
+      curNumber = new ParsedNumber(etomoNumberType);
+      curNumber.setRawString(prevNumber.getRawNumber());
+      curNumber.plus(increment);
+      parsedNumberArray.add(curNumber);
+    }
+    parsedNumberArray.add(lastNumber);
+    return parsedNumberArray;
   }
 
   /**
