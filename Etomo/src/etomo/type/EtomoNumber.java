@@ -18,6 +18,9 @@ import etomo.comscript.FortranInputString;
  * @version $Revision$
  * 
  * <p> $Log$
+ * <p> Revision 1.15  2007/02/05 23:25:53  sueh
+ * <p> bug# 962 Moved EtomoNumber type info to inner class.
+ * <p>
  * <p> Revision 1.14  2006/11/15 20:45:59  sueh
  * <p> bug# 872 Fixed bug - load are not handling a null prepend.
  * <p>
@@ -221,7 +224,7 @@ public class EtomoNumber extends ConstEtomoNumber {
     setInvalidReason();
     return this;
   }
-  
+
   public void setToDefault() {
     set(defaultValue);
   }
@@ -247,6 +250,15 @@ public class EtomoNumber extends ConstEtomoNumber {
       set(number.getValue());
     }
     return this;
+  }
+
+  public void plus(ConstEtomoNumber number) {
+    if (number == null) {
+      return;
+    }
+    else {
+      set(plus(getValue(), number.getValue()));
+    }
   }
 
   public EtomoNumber set(int value) {
