@@ -1,6 +1,7 @@
 package etomo.type;
 
 import java.io.IOException;
+import java.util.List;
 
 import etomo.storage.LogFile;
 import etomo.ui.Token;
@@ -20,6 +21,10 @@ import etomo.util.PrimativeTokenizer;
  * @version $Revision$
  * 
  * <p> $Log$
+ * <p> Revision 1.7  2007/04/26 02:47:15  sueh
+ * <p> bug# 964 Fixed problems with defaultValue.  Added ParsedArray.compact
+ * <p> when empty array elements should not be displayed (lstThresholds).
+ * <p>
  * <p> Revision 1.6  2007/04/19 21:43:48  sueh
  * <p> bug# 964 Added getRawString(int), moveElement(int, int), setRawString(int,
  * <p> float), setRawString(int, String).
@@ -82,6 +87,14 @@ public abstract class ParsedElement {
 
   abstract void removeElement(int index);
   abstract boolean isDefaultedEmpty();
+  
+  /**
+   * Append non-null ParsedNumbers to parsedNumberArray.  Create
+   * parsedNumberArray if parsedNumberArray == null and !this.isEmpty().
+   * @param parsedNumberArray
+   * @return parsedNumberArray
+   */
+  abstract List getArray(List parsedNumberArray);
 
   final PrimativeTokenizer createTokenizer(String value) {
     PrimativeTokenizer tokenizer = new PrimativeTokenizer(value);

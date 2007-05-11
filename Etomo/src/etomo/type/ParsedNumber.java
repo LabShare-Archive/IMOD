@@ -1,6 +1,8 @@
 package etomo.type;
 
 import java.io.IOException;
+import java.util.ArrayList;
+import java.util.List;
 
 import etomo.storage.autodoc.ReadOnlyAttribute;
 import etomo.ui.Token;
@@ -20,6 +22,10 @@ import etomo.util.PrimativeTokenizer;
  * @version $Revision$
  * 
  * <p> $Log$
+ * <p> Revision 1.8  2007/04/26 02:47:50  sueh
+ * <p> bug# 964 Fixed problems with defaultValue.  Added ParsedArray.compact
+ * <p> when empty array elements should not be displayed (lstThresholds).
+ * <p>
  * <p> Revision 1.7  2007/04/19 21:56:22  sueh
  * <p> bug# 964 Added getRawString(int), moveElement(int,int), setRawString(float),
  * <p> setRawString(int,float), setRawString(int,String), and setRawString(String,String).
@@ -46,7 +52,7 @@ import etomo.util.PrimativeTokenizer;
  * <p> bug# 964 Parses a Matlab number.
  * <p> </p>
  */
-public final class ParsedNumber extends ParsedElement {
+public final class ParsedNumber extends ParsedElement implements ConstParsedNumber{
   public static final String rcsid = "$Id$";
 
   private final EtomoNumber rawNumber;
@@ -200,6 +206,34 @@ public final class ParsedNumber extends ParsedElement {
     }
     return ParsedElementList.EmptyParsedElement.INSTANCE.getRawString();
   }
+  
+  boolean equals(int number) {
+    return rawNumber.equals(number);
+  }
+  
+  boolean isPositive() {
+    return rawNumber.isPositive();
+  }
+  
+  boolean isNegative() {
+    return rawNumber.isNegative();
+  }
+  
+  boolean lt(ParsedNumber element) {
+    return rawNumber.lt(element.rawNumber);
+  }
+  
+  boolean gt(ParsedNumber element) {
+    return rawNumber.gt(element.rawNumber);
+  }
+  
+  void setRawString(Number number) {
+    rawNumber.set(number);
+  }
+  
+  void plus(ConstEtomoNumber number) {
+    rawNumber.plus(number);
+  }
 
   /**
    * Set defaultValue using defaultValueArray[numberIndex].
@@ -222,6 +256,23 @@ public final class ParsedNumber extends ParsedElement {
 
   boolean hasParsedNumberSyntax() {
     return true;
+  }
+  
+  /**
+   * If rawNumber is not null append this to parsedNumberArray.  Create
+   * parsedNumberArray if parsedNumberArray == null and rawNumber is not null.
+   * @param parsedNumberArray
+   * @return parsedNumberArray
+   */
+  List getArray(List parsedNumberArray) {
+    if (rawNumber.isNull()) {
+      return parsedNumberArray;
+    }
+    if (parsedNumberArray==null) {
+      parsedNumberArray=new ArrayList();
+    }
+    parsedNumberArray.add(this);
+    return parsedNumberArray;
   }
 
   Token parse(Token token, PrimativeTokenizer tokenizer) {
