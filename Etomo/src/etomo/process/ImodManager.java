@@ -34,6 +34,9 @@ import etomo.util.DatasetFiles;
  * @version $Revision$
  *
  * <p> $Log$
+ * <p> Revision 3.52  2007/05/11 15:40:22  sueh
+ * <p> bug# 964 Added avgVol.
+ * <p>
  * <p> Revision 3.51  2007/03/26 23:31:58  sueh
  * <p> bug# 964 Added loadPeetMap().  Added
  * <p> open(String,int,String,boolean,Run3dmodMenuOptions) to open a file with a model.
@@ -695,7 +698,7 @@ public class ImodManager {
       SystemProcessException, IOException {
     key = getPrivateKey(key);
     ImodState imodState = get(key, AxisID.ONLY);
-    if (imodState == null) {
+    if (imodState == null||!imodState.equalsFileNameArray(fileNameArray)) {
       newImod(key,fileNameArray);
       imodState = get(key, AxisID.ONLY);
     }
