@@ -43,6 +43,10 @@ import etomo.util.DatasetFiles;
  * @version $Revision$
  * 
  * <p> $Log$
+ * <p> Revision 1.2  2007/05/08 01:19:26  sueh
+ * <p> bug# 964 In addNameValuePair(), adding the field name to the beginning
+ * <p> of the comment.
+ * <p>
  * <p> Revision 1.1  2007/05/07 17:20:27  sueh
  * <p> bug# 964 Changed MatlabParamFile to MatlabParam.
  * <p>
@@ -671,6 +675,10 @@ public final class MatlabParam {
   public String getLstThresholdsEnd() {
     ParsedElement descriptor = lstThresholds.getFirstDescriptor(0);
     return descriptor.getRawString(LST_THRESHOLDS_END_INDEX);
+  }
+  
+  public String[] getLstThresholdsArray() {
+    return lstThresholds.getParsableStringArray();
   }
 
   /**
