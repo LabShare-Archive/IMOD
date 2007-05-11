@@ -1,6 +1,9 @@
 package etomo;
 
 import java.io.File;
+import java.io.IOException;
+import java.util.ArrayList;
+import java.util.List;
 
 import etomo.comscript.PeetParserParam;
 import etomo.comscript.ProcesschunksParam;
@@ -14,12 +17,15 @@ import etomo.storage.MatlabParam;
 import etomo.storage.Storable;
 import etomo.type.AxisID;
 import etomo.type.AxisType;
+import etomo.type.AxisTypeException;
 import etomo.type.BaseMetaData;
 import etomo.type.BaseProcessTrack;
 import etomo.type.BaseScreenState;
 import etomo.type.BaseState;
+import etomo.type.IntKeyList;
 import etomo.type.PeetMetaData;
 import etomo.type.PeetScreenState;
+import etomo.type.PeetState;
 import etomo.type.ProcessEndState;
 import etomo.type.ProcessName;
 import etomo.type.ProcessResultDisplay;
@@ -43,6 +49,12 @@ import etomo.util.DatasetFiles;
  * @version $Revision$
  * 
  * <p> $Log$
+ * <p> Revision 1.18  2007/05/08 19:16:48  sueh
+ * <p> bug# 964 Passing the import directory to loadPeetDialog when importing
+ * <p> the .prm file, so that files which don't have an absolute path will have the
+ * <p> import directory as their parent.  Setting the user.dir property when
+ * <p> initializeUIParameters completes successfully.
+ * <p>
  * <p> Revision 1.17  2007/05/07 17:19:58  sueh
  * <p> bug# 964 Added setMatlabParam(File).
  * <p>
@@ -110,6 +122,7 @@ public final class PeetManager extends BaseManager {
       AxisType.SINGLE_AXIS);
   private final PeetMetaData metaData;
   private final PeetProcessManager processMgr;
+  private final PeetState state;
 
   private PeetDialog peetDialog = null;
   private MatlabParam matlabParam = null;
@@ -121,7 +134,8 @@ public final class PeetManager extends BaseManager {
 
   PeetManager(String paramFileName) {
     super();
-    this.metaData = new PeetMetaData();
+    metaData = new PeetMetaData();
+    state = new PeetState();
     createState();
     processMgr = new PeetProcessManager(this);
     initializeUIParameters(paramFileName, AXIS_ID);
@@ -168,6 +182,10 @@ public final class PeetManager extends BaseManager {
 
   public void kill(AxisID axisID) {
     processMgr.kill(axisID);
+  }
+
+  public PeetState getState() {
+    return state;
   }
 
   public void pause(AxisID axisID) {
@@ -289,9 +307,51 @@ public final class PeetManager extends BaseManager {
     return 18;
   }
 
+  /**
+   * Open the *AvgVol*.mrc files in 3dmod
+   */
+  public void imodAvgVol() {
+    //build the list of files - they should be in order
+    int iterationListSize = state.getIterationListSize();
+    IntKeyList.Walker lstThresholds = state.getLstThresholds();
+    final StringBuffer name = new StringBuffer(metaData.getName());
+    name.append("_AvgVol_").append(iterationListSize).append('P');
+    StringBuffer fileName;
+    List fileNameList = new ArrayList();
+    while (lstThresholds.hasNext()) {
+      fileName = new StringBuffer();
+      fileName.append(name).append(lstThresholds.nextString()).append(".mrc");
+      fileNameList.add(fileName.toString());
+    }
+    String[] fileNameArray;
+    if (fileNameList.size() == 0) {
+      fileNameArray=new String[0];
+    }
+    else if (fileNameList.size() == 1) {
+      fileNameArray=new String[1];
+      fileNameArray[0]=(String)fileNameList.get(0);
+    }
+    else {
+      fileNameArray=(String[])fileNameList.toArray(new String[fileNameList.size()]);
+    }
+    try {
+      imodManager.open(ImodManager.AVG_VOL_KEY, fileNameArray);
+    }
+    catch (IOException e) {
+      e.printStackTrace();
+    }
+    catch (SystemProcessException e) {
+      e.printStackTrace();
+    }
+    catch (AxisTypeException e) {
+      e.printStackTrace();
+    }
+  }
+
   public void peetParser() {
     savePeetDialog();
     PeetParserParam param = new PeetParserParam(this, matlabParam.getFile());
+    param.getParameters(matlabParam);
     try {
       LogFile log = LogFile.getInstance(param.getLogFile());
       try {
@@ -362,10 +422,11 @@ public final class PeetManager extends BaseManager {
   }
 
   Storable[] getStorables(int offset) {
-    Storable[] storables = new Storable[2 + offset];
+    Storable[] storables = new Storable[3 + offset];
     int index = offset;
     storables[index++] = metaData;
     storables[index++] = screenState;
+    storables[index++] = state;
     return storables;
   }
 
