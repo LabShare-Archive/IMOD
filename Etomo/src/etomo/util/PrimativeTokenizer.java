@@ -53,6 +53,9 @@ import etomo.ui.Token;
  * @version $$Revision$$
  *
  * <p> $$Log$
+ * <p> $Revision 1.10  2007/05/14 22:26:59  sueh
+ * <p> $bug# 964 Handling \r\n.
+ * <p> $
  * <p> $Revision 1.9  2007/05/14 17:35:34  sueh
  * <p> $bug# 964 The "\r" is not being recognized as part of the EOL by Java
  * <p> $StreamTokenizer.  Alternatively the peetPrm.adoc has line endings with
@@ -209,9 +212,13 @@ public final class PrimativeTokenizer {
         //will appear as an EOL, but this is OK because this is character string
         //that usually means that there was an error in transfering the file
         //between Windows and Linux.
-        if (returnFound && whitespaceBuffer != null) {
+        if (returnFound && whitespaceFound) {
           returnFound = false;
           whitespaceBuffer.deleteCharAt(whitespaceBuffer.length() - 1);
+          if (whitespaceBuffer.length()==0) {
+            whitespaceFound=false;
+            whitespaceBuffer=null;
+          }
         }
       }
       else if (tokenizer.ttype == StreamTokenizer.TT_WORD) {
