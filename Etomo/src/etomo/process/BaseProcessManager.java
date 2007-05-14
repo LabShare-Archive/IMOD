@@ -38,6 +38,11 @@ import etomo.util.Utilities;
  * @version $Revision$
  * 
  * <p> $Log$
+ * <p> Revision 1.56  2007/05/11 15:39:14  sueh
+ * <p> bug# 964 Added msgProcessDone(DetachedProcess,int,boolean) and
+ * <p> postProcess(DetachedProcess) to handle processchunks, since
+ * <p> processName is not set for Peet.
+ * <p>
  * <p> Revision 1.55  2007/02/05 22:52:30  sueh
  * <p> bug# 962 Added a generalized writeLogFile for transferfid and xfjointomo.
  * <p>
@@ -1289,8 +1294,6 @@ public abstract class BaseProcessManager {
 
   public final void msgProcessDone(DetachedProcess process, int exitValue,
       boolean errorFound) {
-    System.out.println("msgProcessDone.DetachedProcess:exitValue=" + exitValue
-        + ",errorFound=" + errorFound + ",process=" + process);
     if (exitValue != 0 || errorFound) {
       errorProcess(process);
     }
@@ -1332,8 +1335,6 @@ public abstract class BaseProcessManager {
    */
   public final void msgProcessDone(BackgroundProcess process, int exitValue,
       boolean errorFound) {
-    System.out.println("msgProcessDone:exitValue=" + exitValue + ",errorFound="
-        + errorFound + ",process=" + process);
     if (exitValue != 0 || errorFound) {
       errorProcess(process);
     }
