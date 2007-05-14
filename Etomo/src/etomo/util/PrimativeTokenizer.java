@@ -53,6 +53,12 @@ import etomo.ui.Token;
  * @version $$Revision$$
  *
  * <p> $$Log$
+ * <p> $Revision 1.9  2007/05/14 17:35:34  sueh
+ * <p> $bug# 964 The "\r" is not being recognized as part of the EOL by Java
+ * <p> $StreamTokenizer.  Alternatively the peetPrm.adoc has line endings with
+ * <p> $"\r\r\n" when in Reggae, but that doesn't seem to be true.  Handing this
+ * <p> $by rolling any "\r" found before an EOL token into the EOL token.
+ * <p> $
  * <p> $Revision 1.8  2007/04/09 22:01:10  sueh
  * <p> $bug# 964 InitializeStreamTokenizer:  handling a null string be creating a string
  * <p> $reader on an empty string.
@@ -100,7 +106,6 @@ public final class PrimativeTokenizer {
   public static final String rcsid = "$$Id$$";
 
   private static final String RETURN = "\r";
-
   private LogFile file = null;
   private long readId = LogFile.NO_ID;
   private String string = null;
@@ -175,9 +180,8 @@ public final class PrimativeTokenizer {
     boolean found = false;
     token.reset();
     boolean whitespaceFound = false;
-    boolean returnFound = false;
-    boolean prevReturnFound = false;
     StringBuffer whitespaceBuffer = null;
+    boolean returnFound = false;
 
     if (nextTokenFound) {
       found = true;
@@ -190,6 +194,7 @@ public final class PrimativeTokenizer {
       if (tokenizer.ttype == StreamTokenizer.TT_EOF) {
         token.set(Token.Type.EOF);
         found = true;
+        returnFound = false;
         if (file != null) {
           closeFile();
         }
@@ -200,39 +205,37 @@ public final class PrimativeTokenizer {
         //If "\r" was found before an EOL, roll it into the EOL.  This is
         //necessary because StreamTokenizer is not working according to its
         //definition:  It is supposed to return both "\n" and "\r\n" as EOL, but
-        //it is only doing this for "\n".  If this bug is fixed, then "\r\r\n"
+        //it does not do this for "\r\n".  If this bug is fixed, then "\r\r\n"
         //will appear as an EOL, but this is OK because this is character string
-        //usually means that there was an error in transfering the file because
-        //Windows and Linux.
-        if (prevReturnFound) {
-          prevReturnFound=false;
+        //that usually means that there was an error in transfering the file
+        //between Windows and Linux.
+        if (returnFound && whitespaceBuffer != null) {
+          returnFound = false;
+          whitespaceBuffer.deleteCharAt(whitespaceBuffer.length() - 1);
         }
       }
       else if (tokenizer.ttype == StreamTokenizer.TT_WORD) {
         token.set(Token.Type.ALPHANUM, tokenizer.sval);
         found = true;
+        returnFound = false;
       }
       else if (symbols.indexOf(tokenizer.ttype) != -1) {
         token.set(Token.Type.SYMBOL, (char) tokenizer.ttype);
         found = true;
+        returnFound = false;
       }
       else {
-        //Find out if the current character is "\r".
         if (RETURN.indexOf(tokenizer.ttype) != -1) {
           returnFound = true;
         }
+        else {
+          returnFound = false;
+        }
         if (!whitespaceFound) {
           whitespaceFound = true;
-          whitespaceBuffer = new StringBuffer();
+          whitespaceBuffer = new StringBuffer().append((char) tokenizer.ttype);
         }
-        //If the previous character was "\r", add it to the whitespace, if it
-        //wasn't rolled into the EOL token.
-        if (prevReturnFound) {
-          whitespaceBuffer.append(RETURN);
-        }
-        //Don't add the "\r" character to the whitespace until we can see 
-        //whether the next token is an EOL.
-        if (!returnFound) {
+        else {
           whitespaceBuffer.append((char) tokenizer.ttype);
         }
       }
@@ -248,8 +251,6 @@ public final class PrimativeTokenizer {
       if (!nextTokenFound) {
         nextToken();
       }
-      //Remember whether the current character was "\r".
-      prevReturnFound = returnFound;
     }
     if (debug) {
       System.out.println("token=" + token);
