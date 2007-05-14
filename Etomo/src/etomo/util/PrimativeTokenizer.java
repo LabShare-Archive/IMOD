@@ -53,6 +53,10 @@ import etomo.ui.Token;
  * @version $$Revision$$
  *
  * <p> $$Log$
+ * <p> $Revision 1.8  2007/04/09 22:01:10  sueh
+ * <p> $bug# 964 InitializeStreamTokenizer:  handling a null string be creating a string
+ * <p> $reader on an empty string.
+ * <p> $
  * <p> $Revision 1.7  2007/04/09 21:26:07  sueh
  * <p> $bug# 964 Made class final.
  * <p> $
@@ -94,6 +98,8 @@ import etomo.ui.Token;
  */
 public final class PrimativeTokenizer {
   public static final String rcsid = "$$Id$$";
+
+  private static final String RETURN = "\r";
 
   private LogFile file = null;
   private long readId = LogFile.NO_ID;
@@ -169,6 +175,8 @@ public final class PrimativeTokenizer {
     boolean found = false;
     token.reset();
     boolean whitespaceFound = false;
+    boolean returnFound = false;
+    boolean prevReturnFound = false;
     StringBuffer whitespaceBuffer = null;
 
     if (nextTokenFound) {
@@ -189,6 +197,16 @@ public final class PrimativeTokenizer {
       else if (tokenizer.ttype == StreamTokenizer.TT_EOL) {
         token.set(Token.Type.EOL);
         found = true;
+        //If "\r" was found before an EOL, roll it into the EOL.  This is
+        //necessary because StreamTokenizer is not working according to its
+        //definition:  It is supposed to return both "\n" and "\r\n" as EOL, but
+        //it is only doing this for "\n".  If this bug is fixed, then "\r\r\n"
+        //will appear as an EOL, but this is OK because this is character string
+        //usually means that there was an error in transfering the file because
+        //Windows and Linux.
+        if (prevReturnFound) {
+          prevReturnFound=false;
+        }
       }
       else if (tokenizer.ttype == StreamTokenizer.TT_WORD) {
         token.set(Token.Type.ALPHANUM, tokenizer.sval);
@@ -199,15 +217,25 @@ public final class PrimativeTokenizer {
         found = true;
       }
       else {
+        //Find out if the current character is "\r".
+        if (RETURN.indexOf(tokenizer.ttype) != -1) {
+          returnFound = true;
+        }
         if (!whitespaceFound) {
           whitespaceFound = true;
-          whitespaceBuffer = new StringBuffer().append((char) tokenizer.ttype);
+          whitespaceBuffer = new StringBuffer();
         }
-        else {
+        //If the previous character was "\r", add it to the whitespace, if it
+        //wasn't rolled into the EOL token.
+        if (prevReturnFound) {
+          whitespaceBuffer.append(RETURN);
+        }
+        //Don't add the "\r" character to the whitespace until we can see 
+        //whether the next token is an EOL.
+        if (!returnFound) {
           whitespaceBuffer.append((char) tokenizer.ttype);
         }
       }
-
       if (found) {
         if (whitespaceFound) {
           nextTokenFound = true;
@@ -220,6 +248,8 @@ public final class PrimativeTokenizer {
       if (!nextTokenFound) {
         nextToken();
       }
+      //Remember whether the current character was "\r".
+      prevReturnFound = returnFound;
     }
     if (debug) {
       System.out.println("token=" + token);
