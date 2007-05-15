@@ -21,6 +21,9 @@ import etomo.storage.MatlabParam;
  * @version $Revision$
  * 
  * <p> $Log$
+ * <p> Revision 1.5  2007/05/07 17:21:53  sueh
+ * <p> bug# 964 Changed MatlabParamFile to MatlabParam.
+ * <p>
  * <p> Revision 1.4  2007/04/26 02:49:06  sueh
  * <p> bug# 964 Changed dPhiEnd to dPhiMax.  Did the same for dTheta and dPsi.
  * <p>
@@ -51,12 +54,13 @@ final class IterationRow implements Highlightable{
   private final FieldCell hiCutoffSigma= FieldCell.getEditableInstance();
   private final FieldCell refThreshold =  FieldCell.getEditableInstance();
   
-  private final int index;
   private final JPanel panel;
   private final GridBagLayout layout;
   private final GridBagConstraints constraints;
   private final HighlighterButton btnHighlighter;
   private final Highlightable parent;
+  
+  private int index;
 
   IterationRow(final int index, final Highlightable parent, final JPanel panel, final GridBagLayout layout,
       final GridBagConstraints constraints) {
@@ -132,6 +136,30 @@ final class IterationRow implements Highlightable{
   
   boolean isHighlighted() {
     return btnHighlighter.isHighlighted();
+  }
+  
+  int getIndex() {
+    return index;
+  }
+  
+  void setIndex(int index) {
+    this.index = index;
+    number.setText(String.valueOf(index + 1));
+  }
+  
+  void remove() {
+    number.remove();
+    btnHighlighter.remove();
+    dPhiMax.remove();
+    dPhiIncrement.remove();
+    dThetaMax.remove();
+    dThetaIncrement.remove();
+    dPsiMax.remove();
+    dPsiIncrement.remove();
+    searchRadius.remove();
+    hiCutoffCutoff.remove();
+    hiCutoffSigma.remove();
+    refThreshold.remove();
   }
 
   void display() {
