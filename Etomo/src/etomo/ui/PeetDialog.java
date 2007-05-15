@@ -49,6 +49,9 @@ import etomo.type.PeetScreenState;
  * @version $Revision$
  * 
  * <p> $Log$
+ * <p> Revision 1.36  2007/05/11 16:06:48  sueh
+ * <p> bug# 964 Added btnAvgVol.
+ * <p>
  * <p> Revision 1.35  2007/05/08 19:18:01  sueh
  * <p> bug# 964 Passing the import directory to VolumeTable.setParameters()
  * <p> when importing the .prm file, so that files which don't have an absolute
@@ -269,6 +272,8 @@ public final class PeetDialog implements AbstractParallelDialog, Expandable {
   private final JPanel pnlRun = new JPanel();
   private final SpacedPanel pnlYaxisType = new SpacedPanel();
   private final JPanel pnlCcMode = new JPanel();
+  private final MultiLineButton btnRef = new MultiLineButton(
+      "Open Reference Files in 3dmod");
   private final PanelHeader phRun;
   private final PanelHeader phSetup;
   private final VolumeTable volumeTable;
@@ -743,11 +748,13 @@ public final class PeetDialog implements AbstractParallelDialog, Expandable {
     pnlAdvanced.add(pnlAdvancedRight);
     //button panel
     JPanel pnlButton = new JPanel();
-    pnlButton.setLayout(new BoxLayout(pnlButton,BoxLayout.X_AXIS));
+    pnlButton.setLayout(new BoxLayout(pnlButton, BoxLayout.X_AXIS));
     btnRun.setSize();
     pnlButton.add(btnRun.getComponent());
     btnAvgVol.setSize();
     pnlButton.add(btnAvgVol.getComponent());
+    btnRef.setSize();
+    pnlButton.add(btnRef.getComponent());
     //body
     pnlRunBody.setBoxLayout(BoxLayout.Y_AXIS);
     pnlRunBody.setComponentAlignmentX(Component.CENTER_ALIGNMENT);
@@ -808,6 +815,9 @@ public final class PeetDialog implements AbstractParallelDialog, Expandable {
     }
     else if (actionCommand.equals(btnAvgVol.getActionCommand())) {
       manager.imodAvgVol();
+    }
+    else if (actionCommand.equals(btnRef.getActionCommand())) {
+      manager.imodRef();
     }
   }
 
@@ -924,6 +934,7 @@ public final class PeetDialog implements AbstractParallelDialog, Expandable {
     rbYaxisTypeContour.addActionListener(actionListener);
     btnImportMatlabParamFile.addActionListener(actionListener);
     btnAvgVol.addActionListener(actionListener);
+    btnRef.addActionListener(actionListener);
   }
 
   private static final class PDActionListener implements ActionListener {
