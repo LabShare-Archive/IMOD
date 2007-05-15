@@ -49,6 +49,9 @@ import etomo.util.DatasetFiles;
  * @version $Revision$
  * 
  * <p> $Log$
+ * <p> Revision 1.19  2007/05/11 14:34:33  sueh
+ * <p> bug# 964 Added imodAvgVol().
+ * <p>
  * <p> Revision 1.18  2007/05/08 19:16:48  sueh
  * <p> bug# 964 Passing the import directory to loadPeetDialog when importing
  * <p> the .prm file, so that files which don't have an absolute path will have the
@@ -312,10 +315,9 @@ public final class PeetManager extends BaseManager {
    */
   public void imodAvgVol() {
     //build the list of files - they should be in order
-    int iterationListSize = state.getIterationListSize();
     IntKeyList.Walker lstThresholds = state.getLstThresholds();
     final StringBuffer name = new StringBuffer(metaData.getName());
-    name.append("_AvgVol_").append(iterationListSize).append('P');
+    name.append("_AvgVol_").append(state.getIterationListSize()).append('P');
     StringBuffer fileName;
     List fileNameList = new ArrayList();
     while (lstThresholds.hasNext()) {
@@ -323,19 +325,42 @@ public final class PeetManager extends BaseManager {
       fileName.append(name).append(lstThresholds.nextString()).append(".mrc");
       fileNameList.add(fileName.toString());
     }
+    imod(ImodManager.AVG_VOL_KEY, fileNameList);
+  }
+
+  /**
+   * Open the *Ref*.mrc files in 3dmod
+   */
+  public void imodRef() {
+    //build the list of files - they should be in order
+    int iterationListSize = state.getIterationListSize();
+    final StringBuffer name = new StringBuffer(metaData.getName());
+    name.append("_Ref");
+    StringBuffer fileName;
+    List fileNameList = new ArrayList();
+    for (int i = 1; i <= iterationListSize + 1; i++) {
+      fileName = new StringBuffer();
+      fileName.append(name).append(i).append(".mrc");
+      fileNameList.add(fileName.toString());
+    }
+    imod(ImodManager.REF_KEY, fileNameList);
+  }
+
+  private void imod(String key, List fileNameList) {
     String[] fileNameArray;
     if (fileNameList.size() == 0) {
-      fileNameArray=new String[0];
+      fileNameArray = new String[0];
     }
     else if (fileNameList.size() == 1) {
-      fileNameArray=new String[1];
-      fileNameArray[0]=(String)fileNameList.get(0);
+      fileNameArray = new String[1];
+      fileNameArray[0] = (String) fileNameList.get(0);
     }
     else {
-      fileNameArray=(String[])fileNameList.toArray(new String[fileNameList.size()]);
+      fileNameArray = (String[]) fileNameList.toArray(new String[fileNameList
+          .size()]);
     }
     try {
-      imodManager.open(ImodManager.AVG_VOL_KEY, fileNameArray);
+      imodManager.open(key, fileNameArray);
     }
     catch (IOException e) {
       e.printStackTrace();
