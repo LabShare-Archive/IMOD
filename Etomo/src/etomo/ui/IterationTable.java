@@ -36,6 +36,9 @@ import etomo.type.EtomoAutodoc;
  * @version $Revision$
  * 
  * <p> $Log$
+ * <p> Revision 1.7  2007/05/08 01:19:48  sueh
+ * <p> bug# 964 Removed the alternative tooltip keys.
+ * <p>
  * <p> Revision 1.6  2007/05/07 17:22:53  sueh
  * <p> bug# 964 Changed MatlabParamFile to MatlabParam.  Added alternative
  * <p> tooltip location for hiCutoff (in case relying on lowCutoff comment).
@@ -100,6 +103,7 @@ final class IterationTable implements Highlightable {
   private final HeaderCell header2RefThreshold = new HeaderCell("Threshold");
   private final HeaderCell header3RefThreshold = new HeaderCell();
   private final MultiLineButton btnCopyRow = new MultiLineButton("Copy Row");
+  private final MultiLineButton btnDeleteRow = new MultiLineButton("Delete Row");
   private final BaseManager manager;
 
   private IterationTable(BaseManager manager) {
@@ -155,8 +159,8 @@ final class IterationTable implements Highlightable {
     header1IterationNumber.setToolTipText(tooltip);
     header2IterationNumber.setToolTipText(tooltip);
     header3IterationNumber.setToolTipText(tooltip);
-    tooltip = "Add a new copy with values from the highlighted row.";
-    btnCopyRow.setToolTipText(tooltip);
+    btnCopyRow.setToolTipText("Add a new copy with values from the highlighted row.");
+    btnDeleteRow.setToolTipText("Delete the highlighted row.");
     try {
       ReadOnlyAutodoc autodoc = AutodocFactory
           .getInstance(AutodocFactory.PEET_PRM);
@@ -210,12 +214,18 @@ final class IterationTable implements Highlightable {
   }
 
   private void addListeners() {
-    btnCopyRow.addActionListener(new ITActionListener(this));
+    ITActionListener actionListener =new ITActionListener(this);
+    btnCopyRow.addActionListener(actionListener);
+    btnDeleteRow.addActionListener(actionListener);
   }
 
   private void action(final ActionEvent event) {
-    if (event.getActionCommand().equals(btnCopyRow.getActionCommand())) {
+    String actionCommand = event.getActionCommand();
+    if (actionCommand.equals(btnCopyRow.getActionCommand())) {
       copyRow(rowList.getHighlightedRow());
+    }
+    else if (actionCommand.equals(btnDeleteRow.getActionCommand())) {
+      deleteRow(rowList.getHighlightedRow());
     }
   }
 
@@ -223,9 +233,17 @@ final class IterationTable implements Highlightable {
     rowList.copy(row, this, pnlTable, layout, constraints);
     UIHarness.INSTANCE.pack(manager);
   }
+  
+  private void deleteRow(IterationRow row) {
+    rowList.remove();
+    rowList.delete(row, this, pnlTable, layout, constraints);
+    rowList.display();
+    UIHarness.INSTANCE.pack(manager);
+  }
 
   private void updateDisplay() {
     btnCopyRow.setEnabled(rowList.isHighlighted());
+    btnDeleteRow.setEnabled(rowList.isHighlighted());
   }
 
   private void createTable() {
@@ -240,6 +258,8 @@ final class IterationTable implements Highlightable {
     pnlButtons.setLayout(new BoxLayout(pnlButtons, BoxLayout.X_AXIS));
     btnCopyRow.setSize();
     pnlButtons.add(btnCopyRow.getComponent());
+    btnDeleteRow.setSize();
+    pnlButtons.add(btnDeleteRow.getComponent());
     //border
     SpacedPanel pnlBorder = new SpacedPanel();
     pnlBorder.setBoxLayout(BoxLayout.Y_AXIS);
@@ -330,6 +350,22 @@ final class IterationTable implements Highlightable {
       }
     }
 
+    private synchronized void delete(IterationRow row,
+        final Highlightable parent, final JPanel panel,
+        final GridBagLayout layout, final GridBagConstraints constraints) {
+      int index = row.getIndex();
+      list.remove(index);
+      for (int i = index;i<list.size();i++) {
+        getRow(i).setIndex(i);
+      }
+    }
+    
+    private void remove() {
+      for (int i = 0;i<list.size();i++) {
+        getRow(i).remove();
+      }
+    }
+    
     private synchronized void copy(IterationRow row,
         final Highlightable parent, final JPanel panel,
         final GridBagLayout layout, final GridBagConstraints constraints) {
