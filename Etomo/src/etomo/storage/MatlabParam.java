@@ -43,6 +43,11 @@ import etomo.util.DatasetFiles;
  * @version $Revision$
  * 
  * <p> $Log$
+ * <p> Revision 1.3  2007/05/11 15:47:35  sueh
+ * <p> bug# 964 Added getLstThresholdsArray() to return the expanded
+ * <p> lstThresholds array (with array descriptors converted into arrays) in a
+ * <p> String array.
+ * <p>
  * <p> Revision 1.2  2007/05/08 01:19:26  sueh
  * <p> bug# 964 In addNameValuePair(), adding the field name to the beginning
  * <p> of the comment.
@@ -621,10 +626,15 @@ public final class MatlabParam {
   }
 
   public void setIterationListSize(final int size) {
+    //if iteration list is too small, add new Iterations
     for (int i = iterationList.size(); i < size; i++) {
       Iteration iteration = new Iteration();
       iteration.setLowCutoff(lowCutoff);
       iterationList.add(iteration);
+    }
+    //if iteration list is too big, remove Iterations from the end
+    for (int i = size;i<iterationList.size();i++) {
+      iterationList.remove(i);
     }
   }
 
