@@ -50,6 +50,9 @@ import etomo.type.PeetScreenState;
  * @version $Revision$
  * 
  * <p> $Log$
+ * <p> Revision 1.38  2007/05/16 22:59:57  sueh
+ * <p> bug# 964 Added btnDuplicateProject.
+ * <p>
  * <p> Revision 1.37  2007/05/15 21:45:38  sueh
  * <p> bug# 964 Added btnRef.
  * <p>
@@ -368,8 +371,6 @@ public final class PeetDialog implements AbstractParallelDialog, Expandable {
    * @param metaData
    */
   public void setParameters(final ConstPeetMetaData metaData) {
-    System.out.println("setParameters:metaData.getName()="+metaData.getName());
-    Thread.dumpStack();
     ltfFnOutput.setText(metaData.getName());
     volumeTable.setParameters(metaData);
     ftfReferenceFile.setText(metaData.getReferenceFile());
@@ -538,8 +539,6 @@ public final class PeetDialog implements AbstractParallelDialog, Expandable {
   }
 
   public void setFnOutput(final String output) {
-    System.out.println("setFnOutput:output="+output);
-    Thread.dumpStack();
     ltfFnOutput.setText(output);
   }
 
@@ -899,7 +898,7 @@ public final class PeetDialog implements AbstractParallelDialog, Expandable {
       return;
     }
     peetFile = chooser.getSelectedFile();
-    manager.loadParamFile(peetFile,ltfFnOutput.getText());
+    manager.loadParamFile(peetFile);
   }
 
   private void changeTab() {
