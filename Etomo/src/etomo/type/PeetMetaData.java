@@ -21,6 +21,9 @@ import etomo.util.DatasetFiles;
  * @notthreadsafe
  * 
  * <p> $Log$
+ * <p> Revision 1.10  2007/05/01 22:27:36  sueh
+ * <p> bug# 964 Added yaxisType and yaxisContour.
+ * <p>
  * <p> Revision 1.9  2007/04/11 22:21:35  sueh
  * <p> bug# 964 Added edgeShift.
  * <p>
@@ -173,13 +176,25 @@ public class PeetMetaData extends BaseMetaData implements ConstPeetMetaData {
   public void setInitMotlFile(String initMotlFile, int key) {
     this.initMotlFile.put(key, initMotlFile);
   }
+  
+  public void resetInitMotlFile() {
+    this.initMotlFile.reset();
+  }
 
   public void setTiltRangeStart(String tiltRangeStart, int key) {
     this.tiltRangeStart.put(key, tiltRangeStart);
   }
 
+  public void resetTiltRangeStart() {
+    this.tiltRangeStart.reset();
+  }
+  
   public void setTiltRangeEnd(String tiltRangeEnd, int key) {
     this.tiltRangeEnd.put(key, tiltRangeEnd);
+  }
+  
+  public void resetTiltRangeEnd() {
+    this.tiltRangeEnd.reset();
   }
 
   public String getTiltRangeStart(int key) {
