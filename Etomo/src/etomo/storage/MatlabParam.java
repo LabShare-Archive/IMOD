@@ -43,6 +43,10 @@ import etomo.util.DatasetFiles;
  * @version $Revision$
  * 
  * <p> $Log$
+ * <p> Revision 1.4  2007/05/15 19:56:08  sueh
+ * <p> bug# 964 In setIterationListSize(int size) removing Iteration objects if the size of
+ * <p> iterationList is greater then size.
+ * <p>
  * <p> Revision 1.3  2007/05/11 15:47:35  sueh
  * <p> bug# 964 Added getLstThresholdsArray() to return the expanded
  * <p> lstThresholds array (with array descriptors converted into arrays) in a
@@ -620,8 +624,13 @@ public final class MatlabParam {
   }
 
   public void setVolumeListSize(final int size) {
+    //if volume list is too small, add new Volumes
     for (int i = volumeList.size(); i < size; i++) {
       volumeList.add(new Volume());
+    }
+    //if volume list is too big, remove Volumes from the end
+    for (int i = size;i<volumeList.size();i++) {
+      volumeList.remove(i);
     }
   }
 
