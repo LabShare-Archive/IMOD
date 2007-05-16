@@ -18,12 +18,25 @@ import etomo.util.DatasetFiles;
 * @version $Revision$
 * 
 * <p> $Log$
+* <p> Revision 1.2  2007/02/21 04:18:35  sueh
+* <p> bug# 964 Extending DataFileFilter, so it can be used in Interface independent code.
+* <p>
 * <p> Revision 1.1  2007/02/19 21:53:53  sueh
 * <p> bug# 964 File filter for PEET interface files (.epe).
 * <p> </p>
 */
 public class PeetFileFilter extends DataFileFilter {
   public static  final String  rcsid =  "$Id$";
+  
+  private final boolean acceptDirectories;
+  
+  public PeetFileFilter() {
+    acceptDirectories = true;
+  }
+  
+  public PeetFileFilter(boolean acceptDirectories) {
+    this.acceptDirectories=acceptDirectories;
+  }
   
   /**
    * returns true if a file is a peet process data file
@@ -32,7 +45,7 @@ public class PeetFileFilter extends DataFileFilter {
    */
   public boolean accept(File file) {
     if (file.isDirectory()) {
-      return true;
+      return acceptDirectories;
     }
     String fileName = file.getName();
     if (fileName.endsWith(DatasetFiles.PEET_DATA_FILE_EXT) && fileName.length() > 4) {
