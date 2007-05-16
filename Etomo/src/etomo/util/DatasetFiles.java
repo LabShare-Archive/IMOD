@@ -405,6 +405,10 @@ public final class DatasetFiles {
     return rootName + PEET_DATA_FILE_EXT;
   }
   
+  public static String getPeetRootName(String fileName) {
+    return fileName.substring(0,fileName.indexOf(PEET_DATA_FILE_EXT));
+  }
+  
   public static File getPeetDataFile(String path,String rootName) {
     return new File(path,getPeetDataFileName(rootName));
   }
@@ -420,6 +424,9 @@ public final class DatasetFiles {
 }
 /**
  * <p> $Log$
+ * <p> Revision 1.38  2007/05/16 23:00:22  sueh
+ * <p> bug# 964 Added getMatlabParamFile(String,String).
+ * <p>
  * <p> Revision 1.37  2007/05/02 21:08:09  sueh
  * <p> bug# 964 Added getPeetDataFile().
  * <p>
