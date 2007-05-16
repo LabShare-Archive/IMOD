@@ -17,7 +17,11 @@ import java.util.Properties;
  * 
  * @notthreadsafe
  * 
- * <p> $Log$ </p>
+ * <p> $Log$
+ * <p> Revision 1.1  2007/04/09 21:12:14  sueh
+ * <p> bug# 964 A class to make storing, loading, and removing strings from Properties
+ * <p> easier.
+ * <p> </p>
  */
 final class StringProperty {
   public static final String rcsid = "$Id$";
@@ -46,6 +50,10 @@ final class StringProperty {
     else {
       this.string = string;
     }
+  }
+  
+  void set(final StringProperty input) {
+    string = input.string;
   }
 
   /**
