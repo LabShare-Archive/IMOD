@@ -21,6 +21,9 @@ import etomo.util.DatasetFiles;
  * @notthreadsafe
  * 
  * <p> $Log$
+ * <p> Revision 1.11  2007/05/16 01:53:30  sueh
+ * <p> bug# 964 Added resetInitMotlFile(), resetTiltRangeEnd(), and resetTiltRangeString().
+ * <p>
  * <p> Revision 1.10  2007/05/01 22:27:36  sueh
  * <p> bug# 964 Added yaxisType and yaxisContour.
  * <p>
@@ -61,6 +64,7 @@ public class PeetMetaData extends BaseMetaData implements ConstPeetMetaData {
   private static final String GROUP_KEY = "Peet";
   private static final String REFERENCE_KEY = "Reference";
   private static final String YAXIS_CONTOUR_KEY = "YaxisContour";
+  
   private final StringProperty rootName = new StringProperty("RootName");
   private final IntKeyList initMotlFile = IntKeyList
       .getStringInstance("InitMotlFile");
@@ -85,6 +89,23 @@ public class PeetMetaData extends BaseMetaData implements ConstPeetMetaData {
   public PeetMetaData() {
     fileExtension = DatasetFiles.PEET_DATA_FILE_EXT;
     axisType = AxisType.SINGLE_AXIS;
+  }
+  
+  public void copy(PeetMetaData input) {
+    rootName.set(input.rootName);
+    initMotlFile.reset();
+    initMotlFile.set(input.initMotlFile);
+    tiltRangeStart.reset();
+    tiltRangeStart.set(input.tiltRangeStart);
+    tiltRangeEnd.reset();
+    tiltRangeEnd.set(input.tiltRangeEnd);
+    referenceVolume.set(input.referenceVolume);
+    referenceParticle.set(referenceParticle);
+    referenceFile.set(input.referenceFile);
+    edgeShift.set(input.edgeShift);
+    yaxisContourModelNumber.set(yaxisContourModelNumber);
+    yaxisContourObjectNumber.set(yaxisContourObjectNumber);
+    yaxisContourContourNumber.set(yaxisContourContourNumber);
   }
 
   public String getMetaDataFileName() {
