@@ -24,6 +24,7 @@ import etomo.comscript.ProcesschunksParam;
 import etomo.storage.LogFile;
 import etomo.storage.MatlabParam;
 import etomo.storage.MatlabParamFileFilter;
+import etomo.storage.PeetFileFilter;
 import etomo.storage.autodoc.AutodocFactory;
 import etomo.storage.autodoc.ReadOnlyAutodoc;
 import etomo.storage.autodoc.ReadOnlySection;
@@ -49,6 +50,9 @@ import etomo.type.PeetScreenState;
  * @version $Revision$
  * 
  * <p> $Log$
+ * <p> Revision 1.37  2007/05/15 21:45:38  sueh
+ * <p> bug# 964 Added btnRef.
+ * <p>
  * <p> Revision 1.36  2007/05/11 16:06:48  sueh
  * <p> bug# 964 Added btnAvgVol.
  * <p>
@@ -274,6 +278,8 @@ public final class PeetDialog implements AbstractParallelDialog, Expandable {
   private final JPanel pnlCcMode = new JPanel();
   private final MultiLineButton btnRef = new MultiLineButton(
       "Open Reference Files in 3dmod");
+  private final MultiLineButton btnDuplicateProject = new MultiLineButton(
+      "Duplicate an Existing Project");
   private final PanelHeader phRun;
   private final PanelHeader phSetup;
   private final VolumeTable volumeTable;
@@ -312,6 +318,7 @@ public final class PeetDialog implements AbstractParallelDialog, Expandable {
   public void updateDisplay(final boolean paramFileSet) {
     ftfDirectory.setEditable(!paramFileSet);
     btnImportMatlabParamFile.setEnabled(!paramFileSet);
+    btnDuplicateProject.setEnabled(!paramFileSet);
     ltfFnOutput.setEditable(!paramFileSet);
     btnRun.setEnabled(paramFileSet);
   }
@@ -361,6 +368,8 @@ public final class PeetDialog implements AbstractParallelDialog, Expandable {
    * @param metaData
    */
   public void setParameters(final ConstPeetMetaData metaData) {
+    System.out.println("setParameters:metaData.getName()="+metaData.getName());
+    Thread.dumpStack();
     ltfFnOutput.setText(metaData.getName());
     volumeTable.setParameters(metaData);
     ftfReferenceFile.setText(metaData.getReferenceFile());
@@ -529,6 +538,8 @@ public final class PeetDialog implements AbstractParallelDialog, Expandable {
   }
 
   public void setFnOutput(final String output) {
+    System.out.println("setFnOutput:output="+output);
+    Thread.dumpStack();
     ltfFnOutput.setText(output);
   }
 
@@ -611,6 +622,10 @@ public final class PeetDialog implements AbstractParallelDialog, Expandable {
       sYaxisContourModelNumber.setToolTipText(tooltip);
       ltfYaxisContourObjectNumber.setToolTipText(tooltip);
       ltfYaxisContourContourNumber.setToolTipText(tooltip);
+      btnImportMatlabParamFile
+          .setToolTipText("Create a new PEET project from a .prm file.");
+      btnDuplicateProject
+          .setToolTipText("Create a new PEET project from .epe and .prm files in another directory.");
     }
     catch (FileNotFoundException e) {
       e.printStackTrace();
@@ -641,13 +656,11 @@ public final class PeetDialog implements AbstractParallelDialog, Expandable {
 
   private void createSetupPanel() {
     //use existing project
-    JPanel pnlUseExistingProject = new JPanel();
+    /*JPanel pnlUseExistingProject = new JPanel();
     pnlUseExistingProject.setLayout(new BoxLayout(pnlUseExistingProject,
         BoxLayout.X_AXIS));
     pnlUseExistingProject.setBorder(new EtchedBorder("Use Existing Project")
-        .getBorder());
-    btnImportMatlabParamFile.setSize();
-    pnlUseExistingProject.add(btnImportMatlabParamFile.getComponent());
+        .getBorder());*/
     //volume reference
     JPanel pnlVolumeReference = new JPanel();
     pnlVolumeReference.setLayout(new BoxLayout(pnlVolumeReference,
@@ -698,8 +711,11 @@ public final class PeetDialog implements AbstractParallelDialog, Expandable {
     pnlSetupBody.setBoxLayout(BoxLayout.Y_AXIS);
     pnlSetupBody.setComponentAlignmentX(Component.CENTER_ALIGNMENT);
     pnlSetupBody.add(ftfDirectory.getContainer());
-    pnlSetupBody.add(pnlUseExistingProject);
+    btnImportMatlabParamFile.setSize();
+    pnlSetupBody.add(btnImportMatlabParamFile);
     pnlSetupBody.add(ltfFnOutput.getContainer());
+    btnDuplicateProject.setSize();
+    pnlSetupBody.add(btnDuplicateProject);
     pnlSetupBody.add(volumeTable.getContainer());
     pnlSetupBody.add(pnlReference);
     pnlSetupBody.add(pnlInitMotl);
@@ -819,6 +835,9 @@ public final class PeetDialog implements AbstractParallelDialog, Expandable {
     else if (actionCommand.equals(btnRef.getActionCommand())) {
       manager.imodRef();
     }
+    else if (actionCommand.equals(btnDuplicateProject.getActionCommand())) {
+      duplicateExistingProject();
+    }
   }
 
   /**
@@ -849,7 +868,38 @@ public final class PeetDialog implements AbstractParallelDialog, Expandable {
       return;
     }
     matlabParamFile = chooser.getSelectedFile();
-    manager.setMatlabParam(matlabParamFile);
+    manager.loadMatlabParam(matlabParamFile);
+  }
+  
+  /**
+   * Create a project out of a peet file from another directory.
+   */
+  private void duplicateExistingProject() {
+    String path = ftfDirectory.getText();
+    if (path == null || path.matches("\\s*")) {
+      UIHarness.INSTANCE.openMessageDialog("Please set the "
+          + PeetDialog.DIRECTORY_LABEL + "field before importing a .prm file.",
+          "Entry Error");
+      return;
+    }
+    File dir = new File(ftfDirectory.getText());
+    if (!dir.exists()) {
+      UIHarness.INSTANCE.openMessageDialog("Please create "
+          + dir.getAbsolutePath() + " before importing a .prm file.",
+          "Entry Error");
+      return;
+    }
+    File peetFile = null;
+    JFileChooser chooser = new JFileChooser(dir);
+    chooser.setFileFilter(new PeetFileFilter());
+    chooser.setPreferredSize(UIParameters.INSTANCE.getFileChooserDimension());
+    chooser.setFileSelectionMode(JFileChooser.FILES_ONLY);
+    int returnVal = chooser.showOpenDialog(rootPanel);
+    if (returnVal != JFileChooser.APPROVE_OPTION) {
+      return;
+    }
+    peetFile = chooser.getSelectedFile();
+    manager.loadParamFile(peetFile,ltfFnOutput.getText());
   }
 
   private void changeTab() {
@@ -935,6 +985,7 @@ public final class PeetDialog implements AbstractParallelDialog, Expandable {
     btnImportMatlabParamFile.addActionListener(actionListener);
     btnAvgVol.addActionListener(actionListener);
     btnRef.addActionListener(actionListener);
+    btnDuplicateProject.addActionListener(actionListener);
   }
 
   private static final class PDActionListener implements ActionListener {
