@@ -32,6 +32,10 @@ import java.util.Properties;
  * @version $Revision$
  * 
  * <p> $Log$
+ * <p> Revision 1.4  2007/05/11 16:00:05  sueh
+ * <p> bug# 964 Added set(String[]), which saves the values of the parameter
+ * <p> using the indexes as keys.
+ * <p>
  * <p> Revision 1.3  2007/04/26 02:46:35  sueh
  * <p> bug# 964 Reformatted
  * <p>
@@ -189,6 +193,8 @@ public final class IntKeyList implements ConstIntKeyList {
     if (listKey == null) {
       return;
     }
+    //Remove everything from this list from properties.  This means that
+    //renumbering is unnecessary.
     remove(props, prepend);
     prepend = getPrepend(prepend);
     String group = prepend + ".";
@@ -455,6 +461,10 @@ public final class IntKeyList implements ConstIntKeyList {
       firstKey.set(rowKey.firstKey);
       lastKey.set(rowKey.lastKey);
       startKey = rowKey.startKey;
+    }
+    
+    public String toString() {
+      return "[firstKey="+firstKey+",lastKey="+lastKey;
     }
 
     void reset() {
