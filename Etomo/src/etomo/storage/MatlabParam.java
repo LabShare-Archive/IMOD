@@ -43,6 +43,9 @@ import etomo.util.DatasetFiles;
  * @version $Revision$
  * 
  * <p> $Log$
+ * <p> Revision 1.5  2007/05/16 01:45:37  sueh
+ * <p> bug# 964 In setvolumeListSize(int size), set volumeList size to size.
+ * <p>
  * <p> Revision 1.4  2007/05/15 19:56:08  sueh
  * <p> bug# 964 In setIterationListSize(int size) removing Iteration objects if the size of
  * <p> iterationList is greater then size.
@@ -233,11 +236,11 @@ public final class MatlabParam {
   }
 
   /**
-   * Change file to newDir + fnOutput.  Also sets newFile to true.  This allows
+   * Change file to newDir + fnOutput + .prm.  Also sets newFile to true.  This allows
    * MatlabParam to read from one file and then write to another.
    * @param newDir
    */
-  public void setFileDir(String newDir) {
+  public void setFile(String newDir) {
     newFile = true;
     file = new File(newDir, fnOutput.getRawString()
         + DatasetFiles.MATLAB_PARAM_FILE_EXT);
