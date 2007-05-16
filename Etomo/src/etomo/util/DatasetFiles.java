@@ -230,6 +230,11 @@ public final class DatasetFiles {
         .getName()
         + MATLAB_PARAM_FILE_EXT);
   }
+  
+  public static File getMatlabParamFile(String directory,String name) {
+    return new File(directory, name
+        + MATLAB_PARAM_FILE_EXT);
+  }
 
   public static String getRefineXfFileName(BaseManager manager) {
     return manager.getBaseMetaData().getName() + REFINE_NAME + ".xf";
@@ -415,6 +420,9 @@ public final class DatasetFiles {
 }
 /**
  * <p> $Log$
+ * <p> Revision 1.37  2007/05/02 21:08:09  sueh
+ * <p> bug# 964 Added getPeetDataFile().
+ * <p>
  * <p> Revision 1.36  2007/04/09 21:25:46  sueh
  * <p> bug# 964 Added getPeetDataFileName.
  * <p>
