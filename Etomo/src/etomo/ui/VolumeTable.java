@@ -47,6 +47,9 @@ import etomo.type.Run3dmodMenuOptions;
  * @version $Revision$
  * 
  * <p> $Log$
+ * <p> Revision 1.19  2007/05/11 16:07:12  sueh
+ * <p> bug# 964 Removed print statement.
+ * <p>
  * <p> Revision 1.18  2007/05/08 19:20:11  sueh
  * <p> bug# 964 Adding File importDir to
  * <p> setParameters(MatlabParam,boolean,boolean).  Temporarily setting the
@@ -150,6 +153,7 @@ final class VolumeTable implements Expandable, Highlightable,
   private final GridBagConstraints constraints = new GridBagConstraints();
   private final Column initMotlFileColumn = new Column();
   private final Column tiltRangeColumn = new Column();
+  private final MultiLineButton btnDeleteRow = new MultiLineButton("Delete Row");
   private final ExpandButton btnExpandFnVolume;
   private final ExpandButton btnExpandFnModParticle;
   private final ExpandButton btnExpandInitMotlFile;
@@ -282,6 +286,8 @@ final class VolumeTable implements Expandable, Highlightable,
     pnlButtons.add(btnReadTiltFile.getComponent());
     r3bVolume.setSize();
     pnlButtons.add(r3bVolume.getComponent());
+    btnDeleteRow.setSize();
+    pnlButtons.add(btnDeleteRow.getComponent());
     //root
     rootPanel.setLayout(new BoxLayout(rootPanel, BoxLayout.Y_AXIS));
     rootPanel.setBorder(BorderFactory.createEtchedBorder());
@@ -358,9 +364,19 @@ final class VolumeTable implements Expandable, Highlightable,
     else if (actionCommand.equals(btnReadTiltFile.getActionCommand())) {
       openTiltFile();
     }
+    else if (actionCommand.equals(btnDeleteRow.getActionCommand())) {
+      deleteRow(rowList.getHighlightedRow());
+    }
     else {
       run3dmod(actionCommand, new Run3dmodMenuOptions());
     }
+  }
+  
+  private void deleteRow(VolumeRow row) {
+    rowList.remove();
+    rowList.delete(row, this, pnlTable, layout, constraints);
+    rowList.display();
+    UIHarness.INSTANCE.pack(manager);
   }
 
   private void setToolTipText() {
@@ -514,6 +530,7 @@ final class VolumeTable implements Expandable, Highlightable,
     btnReadTiltFile.setEnabled(enable && rowList.isHighlighted()
         && useTiltRange);
     r3bVolume.setEnabled(enable && rowList.isHighlighted());
+    btnDeleteRow.setEnabled(enable && rowList.isHighlighted());
   }
 
   private void addListeners() {
@@ -522,6 +539,7 @@ final class VolumeTable implements Expandable, Highlightable,
     btnSetInitMotlFile.addActionListener(actionListener);
     btnReadTiltFile.addActionListener(actionListener);
     r3bVolume.addActionListener(actionListener);
+    btnDeleteRow.addActionListener(actionListener);
   }
 
   private static final class RowList {
@@ -530,6 +548,22 @@ final class VolumeTable implements Expandable, Highlightable,
 
     private int size() {
       return list.size();
+    }
+    
+    private void remove() {
+      for (int i = 0;i<list.size();i++) {
+        ((VolumeRow) list.get(i)).remove();
+      }
+    }
+    
+    private synchronized void delete(VolumeRow row,
+        final Highlightable parent, final JPanel panel,
+        final GridBagLayout layout, final GridBagConstraints constraints) {
+      int index = row.getIndex();
+      list.remove(index);
+      for (int i = index;i<list.size();i++) {
+        ((VolumeRow) list.get(i)).setIndex(i);
+      }
     }
 
     private synchronized VolumeRow add(final BaseManager manager,
@@ -550,6 +584,9 @@ final class VolumeTable implements Expandable, Highlightable,
     }
 
     private void getParameters(final PeetMetaData metaData) {
+      metaData.resetInitMotlFile();
+      metaData.resetTiltRangeStart();
+      metaData.resetTiltRangeEnd();
       for (int i = 0; i < list.size(); i++) {
         VolumeRow row = (VolumeRow) list.get(i);
         row.getParameters(metaData);
