@@ -27,6 +27,9 @@ import etomo.type.Run3dmodMenuOptions;
  * @version $Revision$
  * 
  * <p> $Log$
+ * <p> Revision 1.15  2007/05/07 17:23:59  sueh
+ * <p> bug# 964 Changed MatlabParamFile to MatlabParam.
+ * <p>
  * <p> Revision 1.14  2007/04/09 21:24:44  sueh
  * <p> bug# 964 Removed unecessary function MatlabParamFile.isRelativeOrientSet().
  * <p>
@@ -82,13 +85,6 @@ import etomo.type.Run3dmodMenuOptions;
 final class VolumeRow implements Highlightable {
   public static final String rcsid = "$Id$";
 
-  private final int index;
-  private final VolumeTable table;
-  private final JPanel panel;
-  private final GridBagLayout layout;
-  private final GridBagConstraints constraints;
-  private final BaseManager manager;
-
   private final HeaderCell number = new HeaderCell();
   private final FieldCell fnModParticle = FieldCell.getExpandableInstance();
   private final FieldCell fnVolume = FieldCell.getExpandableInstance();
@@ -99,7 +95,15 @@ final class VolumeRow implements Highlightable {
   private final FieldCell relativeOrientY = FieldCell.getEditableInstance();
   private final FieldCell relativeOrientZ = FieldCell.getEditableInstance();
   private final HighlighterButton btnHighlighter;
+  
+  private final VolumeTable table;
+  private final JPanel panel;
+  private final GridBagLayout layout;
+  private final GridBagConstraints constraints;
+  private final BaseManager manager;
+  
   private int imodIndex = -1;
+  private int index;
 
   static VolumeRow getInstance(final BaseManager manager, final File fnVolume,
       final File fnModParticle, final int index, final VolumeTable table,
@@ -135,6 +139,19 @@ final class VolumeRow implements Highlightable {
     relativeOrientY.setHighlight(highlight);
     relativeOrientZ.setHighlight(highlight);
   }
+  
+  void remove() {
+    number.remove();
+    btnHighlighter.remove();
+    fnVolume.remove();
+    fnModParticle.remove();
+    initMotlFile.remove();
+    tiltRangeStart.remove();
+    tiltRangeEnd.remove();
+    relativeOrientX.remove();
+    relativeOrientY.remove();
+    relativeOrientZ.remove();
+  }
 
   void display() {
     constraints.weightx = 0.0;
@@ -158,6 +175,15 @@ final class VolumeRow implements Highlightable {
 
   void expandFnVolume(final boolean expanded) {
     fnVolume.expand(expanded);
+  }
+  
+  int getIndex() {
+    return index;
+  }
+  
+  void setIndex(int index) {
+    this.index = index;
+    number.setText(String.valueOf(index + 1));
   }
 
   void expandFnModParticle(final boolean expanded) {
