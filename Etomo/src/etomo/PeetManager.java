@@ -15,6 +15,7 @@ import etomo.storage.ComFileFilter;
 import etomo.storage.LogFile;
 import etomo.storage.MatlabParam;
 import etomo.storage.ParameterStore;
+import etomo.storage.PeetFileFilter;
 import etomo.storage.Storable;
 import etomo.type.AxisID;
 import etomo.type.AxisType;
@@ -50,6 +51,10 @@ import etomo.util.DatasetFiles;
  * @version $Revision$
  * 
  * <p> $Log$
+ * <p> Revision 1.21  2007/05/16 22:58:24  sueh
+ * <p> bug# 964 Added loadParamFile(File) to load the peet dialog with data from
+ * <p> an .epe file and a .prm file from a different database.
+ * <p>
  * <p> Revision 1.20  2007/05/15 21:44:33  sueh
  * <p> bug# 964 Added imodRef().
  * <p>
@@ -219,16 +224,51 @@ public final class PeetManager extends BaseManager {
     matlabParam = new MatlabParam(matlabParamFile, false);
     matlabParam.read();
     peetDialog.setFnOutput(matlabParam.getFnOutput());
-    setParamFile();
+    if (!setParamFile()) {
+      return;
+    }
     matlabParam.setFile(propertyUserDir);
     setPeetDialogParameters(matlabParamFile.getParentFile());
+  }
+
+  /**
+   * Only one .epe file per directory
+   * @param userDir
+   * @param name
+   * @return
+   */
+  private boolean isUserDirValid(File userDir, String name) {
+    File[] paramFiles = userDir.listFiles(new PeetFileFilter(false));
+    if (paramFiles == null || paramFiles.length == 0) {
+      return true;
+    }
+    //OK to use directory if it contains an .epe file of the same name
+    if (paramFiles.length == 1
+        && DatasetFiles.getPeetRootName(paramFiles[0].getName()).equals(name)) {
+      return true;
+    }
+    uiHarness.openMessageDialog(
+        "The directory " + userDir.getAbsolutePath() + " can contain only one "
+            + DatasetFiles.PEET_DATA_FILE_EXT + " file.", "Entry Error");
+    return false;
   }
 
   /**
    * Load a param file and a matlab param file from another directory.
    * @param origParamFile
    */
-  public void loadParamFile(final File origParamFile, String newName) {
+  public void loadParamFile(final File origParamFile) {
+    String newName = peetDialog.getFnOutput();
+    String newDirName = peetDialog.getDirectory();
+    File newDir = new File(newDirName);
+    if (origParamFile.getParentFile().equals(newDir)) {
+      uiHarness.openMessageDialog(
+          "Cannot duplicate a project in the same directory.", "Entry Error");
+      return;
+    }
+    if (!isUserDirValid(newDir, newName)) {
+      return;
+    }
     //load the original param file
     PeetMetaData origMetaData = new PeetMetaData();
     ParameterStore origParameterStore = new ParameterStore(origParamFile);
@@ -239,8 +279,7 @@ public final class PeetManager extends BaseManager {
         newName = origMetaData.getName();
       }
       //set the param file
-      File paramFile = DatasetFiles.getPeetDataFile(peetDialog.getDirectory(),
-          newName);
+      File paramFile = DatasetFiles.getPeetDataFile(newDirName, newName);
       if (!paramFile.exists()) {
         touch(paramFile.getAbsolutePath());
       }
@@ -304,8 +343,11 @@ public final class PeetManager extends BaseManager {
     if (name == null || name.matches("\\s*")) {
       return false;
     }
-    File paramFile = new File(peetDialog.getDirectory(), name
-        + DatasetFiles.PEET_DATA_FILE_EXT);
+    String dirName = peetDialog.getDirectory();
+    if (!isUserDirValid(new File(dirName), name)) {
+      return false;
+    }
+    File paramFile = new File(dirName, name + DatasetFiles.PEET_DATA_FILE_EXT);
     if (!paramFile.exists()) {
       touch(paramFile.getAbsolutePath());
     }
