@@ -82,13 +82,20 @@ final class RadioButton implements RadioButtonInterface {
     return this.enumeratedType == enumeratedType;
   }
 
-  void setToolTipText(ReadOnlySection section) {
+  /**
+   * Sets a formated tooltip.  If enumeratedType is set, retrieves an enum
+   * tooltip from the autodoc
+   * @param section
+   * @return the unformatted tooltip
+   */
+  String setToolTipText(ReadOnlySection section) {
     if (enumeratedType == null) {
       setToolTipText((String) null);
-      return;
+      return null;
     }
-    radioButton.setToolTipText(TooltipFormatter.INSTANCE.format(EtomoAutodoc
-        .getTooltip(section, enumeratedType.toString())));
+    String text = EtomoAutodoc.getTooltip(section, enumeratedType.toString());
+    radioButton.setToolTipText(TooltipFormatter.INSTANCE.format(text));
+    return text;
   }
 
   void setToolTipText(final String text) {
@@ -178,6 +185,9 @@ final class RadioButton implements RadioButtonInterface {
 }
 /**
  * <p> $Log$
+ * <p> Revision 1.13  2007/05/08 01:20:51  sueh
+ * <p> bug# 964 Added setToolTipText(ReadOnlySection) to set an enum tooltip.
+ * <p>
  * <p> Revision 1.12  2007/04/13 20:37:15  sueh
  * <p> bug# 964 Removed radioValue and added EnumeratedType, which is the
  * <p> interface for enumeration types.
