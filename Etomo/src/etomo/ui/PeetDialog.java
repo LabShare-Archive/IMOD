@@ -50,6 +50,9 @@ import etomo.type.PeetScreenState;
  * @version $Revision$
  * 
  * <p> $Log$
+ * <p> Revision 1.39  2007/05/16 23:48:12  sueh
+ * <p> bug# 964 Removed print statements.
+ * <p>
  * <p> Revision 1.38  2007/05/16 22:59:57  sueh
  * <p> bug# 964 Added btnDuplicateProject.
  * <p>
@@ -283,6 +286,7 @@ public final class PeetDialog implements AbstractParallelDialog, Expandable {
       "Open Reference Files in 3dmod");
   private final MultiLineButton btnDuplicateProject = new MultiLineButton(
       "Duplicate an Existing Project");
+
   private final PanelHeader phRun;
   private final PanelHeader phSetup;
   private final VolumeTable volumeTable;
@@ -616,8 +620,7 @@ public final class PeetDialog implements AbstractParallelDialog, Expandable {
           MatlabParam.YAXIS_TYPE_KEY);
       rbYaxisTypeYAxis.setToolTipText(section);
       rbYaxisTypeParticleModel.setToolTipText(section);
-      rbYaxisTypeContour.setToolTipText(section);
-      tooltip = EtomoAutodoc.getTooltip(section);
+      tooltip =rbYaxisTypeContour.setToolTipText(section);
       sYaxisContourModelNumber.setToolTipText(tooltip);
       ltfYaxisContourObjectNumber.setToolTipText(tooltip);
       ltfYaxisContourContourNumber.setToolTipText(tooltip);
@@ -654,12 +657,21 @@ public final class PeetDialog implements AbstractParallelDialog, Expandable {
   }
 
   private void createSetupPanel() {
+    //project
+    JPanel pnlProject = new JPanel();
+    pnlProject.setLayout(new BoxLayout(pnlProject, BoxLayout.X_AXIS));
+    pnlProject.add(ftfDirectory.getContainer());
+    pnlProject.add(ltfFnOutput.getContainer());
     //use existing project
-    /*JPanel pnlUseExistingProject = new JPanel();
+    JPanel pnlUseExistingProject = new JPanel();
     pnlUseExistingProject.setLayout(new BoxLayout(pnlUseExistingProject,
         BoxLayout.X_AXIS));
     pnlUseExistingProject.setBorder(new EtchedBorder("Use Existing Project")
-        .getBorder());*/
+        .getBorder());
+    btnImportMatlabParamFile.setSize();
+    pnlUseExistingProject.add(btnImportMatlabParamFile.getComponent());
+    btnDuplicateProject.setSize();
+    pnlUseExistingProject.add(btnDuplicateProject.getComponent());
     //volume reference
     JPanel pnlVolumeReference = new JPanel();
     pnlVolumeReference.setLayout(new BoxLayout(pnlVolumeReference,
@@ -685,13 +697,6 @@ public final class PeetDialog implements AbstractParallelDialog, Expandable {
     pnlInitMotl.add(rbInitMotlZAxis.getComponent());
     pnlInitMotl.add(rbInitMotlXAndZAxis.getComponent());
     pnlInitMotl.add(rbInitMotlFiles.getComponent());
-    //tiltRange and edgeShift
-    JPanel pnlTiltRange = new JPanel();
-    pnlTiltRange.setLayout(new BoxLayout(pnlTiltRange, BoxLayout.X_AXIS));
-    pnlTiltRange.add(cbTiltRange);
-    pnlTiltRange.add(Box.createRigidArea(FixedDim.x40_y0));
-    ltfEdgeShift.setTextPreferredWidth(UIParameters.INSTANCE.getIntegerWidth());
-    pnlTiltRange.add(ltfEdgeShift.getContainer());
     //YaxisContour
     JPanel pnlYaxisContour = new JPanel();
     pnlYaxisContour.setLayout(new BoxLayout(pnlYaxisContour, BoxLayout.X_AXIS));
@@ -706,20 +711,28 @@ public final class PeetDialog implements AbstractParallelDialog, Expandable {
     pnlYaxisType.add(rbYaxisTypeYAxis);
     pnlYaxisType.add(rbYaxisTypeParticleModel);
     pnlYaxisType.add(pnlYaxisContour);
+    //init MOTL and Y axis type
+    JPanel pnlInitMotlAndYaxisType = new JPanel();
+    pnlInitMotlAndYaxisType.setLayout(new BoxLayout(pnlInitMotlAndYaxisType,
+        BoxLayout.X_AXIS));
+    pnlInitMotlAndYaxisType.add(pnlInitMotl);
+    pnlInitMotlAndYaxisType.add(pnlYaxisType.getContainer());
+    //tiltRange and edgeShift
+    JPanel pnlTiltRange = new JPanel();
+    pnlTiltRange.setLayout(new BoxLayout(pnlTiltRange, BoxLayout.X_AXIS));
+    pnlTiltRange.add(cbTiltRange);
+    pnlTiltRange.add(Box.createRigidArea(FixedDim.x40_y0));
+    ltfEdgeShift.setTextPreferredWidth(UIParameters.INSTANCE.getIntegerWidth());
+    pnlTiltRange.add(ltfEdgeShift.getContainer());
     //body
     pnlSetupBody.setBoxLayout(BoxLayout.Y_AXIS);
     pnlSetupBody.setComponentAlignmentX(Component.CENTER_ALIGNMENT);
-    pnlSetupBody.add(ftfDirectory.getContainer());
-    btnImportMatlabParamFile.setSize();
-    pnlSetupBody.add(btnImportMatlabParamFile);
-    pnlSetupBody.add(ltfFnOutput.getContainer());
-    btnDuplicateProject.setSize();
-    pnlSetupBody.add(btnDuplicateProject);
+    pnlSetupBody.add(pnlProject);
+    pnlSetupBody.add(pnlUseExistingProject);
     pnlSetupBody.add(volumeTable.getContainer());
     pnlSetupBody.add(pnlReference);
-    pnlSetupBody.add(pnlInitMotl);
+    pnlSetupBody.add(pnlInitMotlAndYaxisType);
     pnlSetupBody.add(pnlTiltRange);
-    pnlSetupBody.add(pnlYaxisType);
     //main panel
     pnlSetup.setBoxLayout(BoxLayout.Y_AXIS);
     pnlSetup.setBorder(BorderFactory.createEtchedBorder());
@@ -869,7 +882,7 @@ public final class PeetDialog implements AbstractParallelDialog, Expandable {
     matlabParamFile = chooser.getSelectedFile();
     manager.loadMatlabParam(matlabParamFile);
   }
-  
+
   /**
    * Create a project out of a peet file from another directory.
    */
@@ -918,8 +931,12 @@ public final class PeetDialog implements AbstractParallelDialog, Expandable {
   }
 
   private void updateDisplay() {
-    //edge shift
+    //tilt range
     ltfEdgeShift.setEnabled(cbTiltRange.isSelected());
+    rbCcModeNormalized.setEnabled(!cbTiltRange.isSelected());
+    if (cbTiltRange.isSelected()) {
+      rbCcModeLocal.setSelected(true);
+    }
     int size = volumeTable.size();
     //reference
     boolean volumeRows = size > 0;
