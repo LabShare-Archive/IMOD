@@ -1123,23 +1123,8 @@ public final class ConstEtomoNumberTest extends TestCase {
   }
 
   public final void testIsNull_int() {
-    //test: the int null value is always null when its type is int
-    ///double
-    EtomoNumber test = new EtomoNumber(EtomoNumber.Type.DOUBLE);
-    assertTrue(test.isNull(EtomoNumber.INTEGER_NULL_VALUE));
-    test.internalTest();
-    ///float
-    test = new EtomoNumber(EtomoNumber.Type.FLOAT);
-    assertTrue(test.isNull(EtomoNumber.INTEGER_NULL_VALUE));
-    test.internalTest();
-    ///long
-    test = new EtomoNumber(EtomoNumber.Type.LONG);
-    assertTrue(test.isNull(EtomoNumber.INTEGER_NULL_VALUE));
-    test.internalTest();
-    ///integer
-    test = new EtomoNumber(EtomoNumber.Type.INTEGER);
-    assertTrue(test.isNull(EtomoNumber.INTEGER_NULL_VALUE));
-    test.internalTest();
+    //static isNull() is true only when the parameter is equal to EtomoNumber.INTEGER_NULL_VALUE
+    assertTrue(EtomoNumber.isNull(EtomoNumber.INTEGER_NULL_VALUE));
   }
 
   public final void testGt_Number_Number() {
@@ -1386,6 +1371,10 @@ public final class ConstEtomoNumberTest extends TestCase {
 }
 /**
  * <p> $Log$
+ * <p> Revision 1.44  2007/03/26 18:37:39  sueh
+ * <p> bug# 964 Changed getDouble(boolean defaultIfNull) to getDefaultDouble() so that
+ * <p> the functionality will be remembered and used.  Also changed getValue(boolean).
+ * <p>
  * <p> Revision 1.43  2007/02/05 23:09:04  sueh
  * <p> bug# 962 Moved EtomoNumber type info to inner class.
  * <p>
