@@ -10,13 +10,13 @@ import javax.swing.BorderFactory;
 import javax.swing.Box;
 import javax.swing.BoxLayout;
 import javax.swing.JPanel;
-import javax.swing.SpinnerNumberModel;
 
 import etomo.BaseManager;
 import etomo.comscript.ProcesschunksParam;
 import etomo.comscript.SplittiltParam;
 import etomo.process.LoadAverageMonitor;
 import etomo.process.ParallelProcessMonitor;
+import etomo.storage.CpuAdoc;
 import etomo.storage.LogFile;
 import etomo.storage.autodoc.AutodocFactory;
 import etomo.storage.autodoc.ReadOnlyAttribute;
@@ -71,9 +71,10 @@ public final class ParallelPanel implements ParallelProgressDisplay,
   private final BaseManager manager;
   private final AxisID axisID;
   private final ProcessorTable processorTable;
-  private final LabeledSpinner lsNice;
+  private final Spinner sNice;
   private final PanelHeader header;
   private final AxisProcessPanel parent;
+  private final int niceFloor;
 
   private LoadAverageMonitor loadAverageMonitor = null;
   private ParallelProcessMonitor parallelProcessMonitor = null;
@@ -104,11 +105,17 @@ public final class ParallelPanel implements ParallelProgressDisplay,
     southPanel.setBoxLayout(BoxLayout.X_AXIS);
     //southPanel;
     southPanel.add(ltfCPUsSelected);
-    SpinnerNumberModel model = new SpinnerNumberModel(
-        manager.getParallelProcessingDefaultNice(), ProcesschunksParam.NICE_FLOOR,
-        ProcesschunksParam.NICE_CEILING, 1);
-    lsNice = new LabeledSpinner("Nice: ", model);
-    southPanel.add(lsNice);
+    //sNice
+    CpuAdoc cpuAdoc = CpuAdoc.getInstance(axisID);
+    if (cpuAdoc.isMinNiceNull()) {
+      niceFloor = ProcesschunksParam.NICE_FLOOR_DEFAULT;
+    }
+    else {
+      niceFloor = cpuAdoc.getMinNice();
+    }
+    sNice =  Spinner.getLabeledInstance("Nice: ",manager
+        .getParallelProcessingDefaultNice(),niceFloor,ProcesschunksParam.NICE_CEILING);
+    southPanel.add(sNice.getContainer());
     southPanel.add(btnPause);
     southPanel.add(btnResume);
     southPanel.add(btnSaveDefaults);
@@ -360,13 +367,13 @@ public final class ParallelPanel implements ParallelProgressDisplay,
 
   public final void getResumeParameters(ProcesschunksParam param) {
     param.setResume(true);
-    param.setNice(lsNice.getValue());
+    param.setNice(sNice.getValue());
     param.resetMachineName();
     processorTable.getParameters(param);
   }
 
   public final boolean getParameters(ProcesschunksParam param) {
-    param.setNice(lsNice.getValue());
+    param.setNice(sNice.getValue());
     processorTable.getParameters(param);
     String error = param.validate();
     if (error == null) {
@@ -454,7 +461,7 @@ public final class ParallelPanel implements ParallelProgressDisplay,
    */
   private void setToolTipText() {
     ltfCPUsSelected.setToolTipText("Must be at least 1.");
-    lsNice
+    sNice
         .setToolTipText("Lower the value to run the processes at a higher priority.  Raise the value to run at a lower priority.");
     btnPause
         .setToolTipText("Finishes the processes that are currently running and then stops.");
@@ -480,6 +487,9 @@ public final class ParallelPanel implements ParallelProgressDisplay,
 }
 /**
  * <p> $Log$
+ * <p> Revision 1.47  2007/05/03 00:46:52  sueh
+ * <p> bug# 964 Placing the nice default in the manager so it can be changed.
+ * <p>
  * <p> Revision 1.46  2007/05/01 22:29:22  sueh
  * <p> bug# 964 In LabeledSpinner, saving SpinnerNumberModel so that the
  * <p> maximum can be changed.

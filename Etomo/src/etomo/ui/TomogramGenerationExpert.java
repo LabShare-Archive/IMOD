@@ -564,7 +564,7 @@ public final class TomogramGenerationExpert extends ReconUIExpert {
     if (!getParallelPanel().getParameters(param)) {
       return null;
     }
-    param.setSeparateChunks(CpuAdoc.INSTANCE.isSeparateChunks(axisID));
+    param.setSeparateChunks(CpuAdoc.getInstance(axisID).isSeparateChunks());
     return param;
   }
 
@@ -1029,6 +1029,10 @@ public final class TomogramGenerationExpert extends ReconUIExpert {
 }
 /**
  * <p> $Log$
+ * <p> Revision 1.11  2007/03/21 19:47:27  sueh
+ * <p> bug# 964 Limiting access to autodoc classes by using ReadOnly interfaces.
+ * <p> Added AutodocFactory to create Autodoc instances.
+ * <p>
  * <p> Revision 1.10  2007/02/05 23:45:46  sueh
  * <p> bug# 962 Moved comscript mode info to inner class.
  * <p>

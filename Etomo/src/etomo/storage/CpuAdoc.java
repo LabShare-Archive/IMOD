@@ -7,7 +7,7 @@ import etomo.storage.autodoc.AutodocFactory;
 import etomo.storage.autodoc.ReadOnlyAttribute;
 import etomo.storage.autodoc.ReadOnlyAutodoc;
 import etomo.type.AxisID;
-import etomo.type.EtomoBoolean2;
+import etomo.type.EtomoNumber;
 import etomo.util.EnvironmentVariable;
 
 /**
@@ -22,66 +22,107 @@ import etomo.util.EnvironmentVariable;
  * @author $Author$
  * 
  * @version $Revision$
+ * 
+ * @threadsafe
  */
 public class CpuAdoc {
   public static final String rcsid = "$Id$";
 
-  public static final CpuAdoc INSTANCE = new CpuAdoc();
+  private static CpuAdoc INSTANCE = null;
 
-  private ReadOnlyAutodoc autodoc = null;
-  private EtomoBoolean2 separateChunks = null;
+  private boolean separateChunks;
+  private int minNice;
 
   private CpuAdoc() {
   }
 
-  public CpuAdoc getInstance() {
+  public static CpuAdoc getInstance(AxisID axisID) {
+    if (INSTANCE != null) {
+      return INSTANCE;
+    }
+    return createInstance(axisID);
+  }
+
+  private static synchronized CpuAdoc createInstance(AxisID axisID) {
+    if (INSTANCE != null) {
+      return INSTANCE;
+    }
+    INSTANCE = new CpuAdoc();
+    INSTANCE.load(axisID);
     return INSTANCE;
   }
 
-  private ReadOnlyAutodoc getAutodoc(AxisID axisID) {
+  public boolean isSeparateChunks() {
+    return separateChunks;
+  }
+
+  public boolean isMinNiceNull() {
+    return EtomoNumber.isNull(minNice);
+  }
+
+  public int getMinNice() {
+    return minNice;
+  }
+
+  private void load(AxisID axisID) {
+    ReadOnlyAutodoc autodoc = getAutodoc(axisID);
     if (autodoc == null) {
-      try {
-        autodoc = AutodocFactory.getInstance(AutodocFactory.CPU, axisID);
-      }
-      catch (FileNotFoundException e) {
-        e.printStackTrace();
-      }
-      catch (IOException e) {
-        e.printStackTrace();
-      }
-      catch (LogFile.ReadException e) {
-        e.printStackTrace();
-      }
-      if (autodoc == null) {
-        System.err.println("Missing $"+EnvironmentVariable.CALIB_DIR+"/cpu.adoc file.\n"
-            + "Parallel processing cannot be used.\n"
-            + "See $IMOD_DIR/autodoc/cpu.adoc.");
-      }
+      return;
+    }
+    separateChunks = loadBoolean(autodoc, "separate-chunks");
+    minNice = loadInt(autodoc, "min", "nice");
+  }
+
+  private ReadOnlyAutodoc getAutodoc(AxisID axisID) {
+    ReadOnlyAutodoc autodoc = null;
+    try {
+      autodoc = AutodocFactory.getInstance(AutodocFactory.CPU, axisID);
+    }
+    catch (FileNotFoundException e) {
+      e.printStackTrace();
+    }
+    catch (IOException e) {
+      e.printStackTrace();
+    }
+    catch (LogFile.ReadException e) {
+      e.printStackTrace();
+    }
+    if (autodoc == null) {
+      System.err.println("Missing $" + EnvironmentVariable.CALIB_DIR
+          + "/cpu.adoc file.\n" + "Parallel processing cannot be used.\n"
+          + "See $IMOD_DIR/autodoc/cpu.adoc.");
     }
     return autodoc;
   }
 
-  public boolean isSeparateChunks(AxisID axisID) {
-    if (separateChunks == null) {
-      separateChunks = new EtomoBoolean2();
-      try {
-        ReadOnlyAttribute attrib = getAutodoc(axisID).getAttribute("separate-chunks");
-        if (attrib != null && !attrib.getValue().equals("0")) {
-          separateChunks.set(true);
-        }
-        else {
-          separateChunks.set(false);
-        }
-      }
-      catch (NullPointerException e) {
-        separateChunks.set(false);
-      }
+  private boolean loadBoolean(ReadOnlyAutodoc autodoc, String key) {
+    ReadOnlyAttribute attrib = autodoc.getAttribute(key);
+    if (attrib != null && !attrib.getValue().equals("0")) {
+      return true;
     }
-    return separateChunks.is();
+    return false;
+  }
+
+  private int loadInt(ReadOnlyAutodoc autodoc, String key1, String key2) {
+    EtomoNumber number = new EtomoNumber();
+    ReadOnlyAttribute attrib = autodoc.getAttribute(key1);
+    if (attrib == null) {
+      return number.getInt();
+    }
+    attrib = attrib.getAttribute(key2);
+    if (attrib == null) {
+      return number.getInt();
+    }
+    number.set(attrib.getValue());
+    return number.getInt();
   }
 }
 /**
  * <p> $Log$
+ * <p> Revision 1.3  2007/03/21 18:10:49  sueh
+ * <p> bug# 964 Moved Adoc classes out of the autodoc package because
+ * <p> they not part of the autodoc.
+ * <p>
  * <p> Revision 1.5  2007/03/15 21:46:20  sueh
  * <p> bug# 964 Added ReadOnlyAttribute, which is used as an interface for Attribute,
  * <p> unless the Attribute needs to be modified.

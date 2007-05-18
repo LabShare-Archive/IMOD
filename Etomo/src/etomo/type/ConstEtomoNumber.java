@@ -36,6 +36,11 @@ import etomo.util.Utilities;
  * @version $Revision$
  * 
  * <p> $Log$
+ * <p> Revision 1.52  2007/05/11 15:50:33  sueh
+ * <p> bug# 964 Added lt(ConstEtomoNumber) which returns true if this is less
+ * <p> then the parameter.  Added plus(Number,Number) which adds the two
+ * <p> parameters together.
+ * <p>
  * <p> Revision 1.51  2007/04/26 02:46:04  sueh
  * <p> bug# 964 Added getDefaultValue(), resetDefault(), and setDefault(Integer).
  * <p>
@@ -388,6 +393,10 @@ public abstract class ConstEtomoNumber implements Storable {
     if (instance.invalidReason != null) {
       invalidReason = new StringBuffer(instance.invalidReason.toString());
     }
+  }
+  
+  public static boolean isNull(int value) {
+    return value == INTEGER_NULL_VALUE;
   }
 
   public String getDescription() {
@@ -1467,10 +1476,6 @@ public abstract class ConstEtomoNumber implements Storable {
     }
     throw new IllegalStateException("Unknown type.  value.getClass()="
         + value.getClass());
-  }
-
-  boolean isNull(int value) {
-    return value == INTEGER_NULL_VALUE;
   }
 
   boolean gt(Number number, Number compValue) {

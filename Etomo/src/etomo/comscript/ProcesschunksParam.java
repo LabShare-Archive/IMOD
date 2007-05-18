@@ -4,6 +4,7 @@ import java.io.File;
 import java.util.ArrayList;
 
 import etomo.BaseManager;
+import etomo.storage.CpuAdoc;
 import etomo.type.AxisID;
 import etomo.type.ConstEtomoNumber;
 import etomo.type.EtomoBoolean2;
@@ -31,7 +32,7 @@ import etomo.util.RemotePath.InvalidMountRuleException;
 public final class ProcesschunksParam implements DetachedCommand, ParallelParam {
   public static final String rcsid = "$Id$";
 
-  public static final int NICE_FLOOR = 0;
+  public static final int NICE_FLOOR_DEFAULT = 4;
   public static final int NICE_CEILING = 19;
   public static final int DROP_VALUE = 5;
   public static final String WORKING_DIR_OPTION = "-w";
@@ -53,11 +54,17 @@ public final class ProcesschunksParam implements DetachedCommand, ParallelParam 
   private ProcessName processName = null;
   private boolean debug = true;
 
-  public  ProcesschunksParam(final BaseManager manager, final AxisID axisID) {
+  public ProcesschunksParam(final BaseManager manager, final AxisID axisID) {
     this.axisID = axisID;
     this.manager = manager;
     nice.set(manager.getParallelProcessingDefaultNice());
-    nice.setFloor(NICE_FLOOR);
+    CpuAdoc cpuAdoc = CpuAdoc.getInstance(axisID);
+    if (cpuAdoc.isMinNiceNull()) {
+      nice.setFloor(NICE_FLOOR_DEFAULT);
+    }
+    else {
+      nice.setFloor(cpuAdoc.getMinNice());
+    }
     nice.setCeiling(NICE_CEILING);
   }
 
@@ -268,7 +275,6 @@ public final class ProcesschunksParam implements DetachedCommand, ParallelParam 
     command.add("-d");
     command.add(String.valueOf(DROP_VALUE));
     command.add("-c");
-    System.out.println("rootName="+rootName);
     command.add(DatasetFiles.getCommandsFileName(rootName));
     command.add("-P");
     //add machine names
@@ -332,6 +338,9 @@ public final class ProcesschunksParam implements DetachedCommand, ParallelParam 
 }
 /**
  * <p> $Log$
+ * <p> Revision 1.23  2007/05/11 15:30:40  sueh
+ * <p> bug# 964 Reformat.
+ * <p>
  * <p> Revision 1.22  2007/05/03 00:46:05  sueh
  * <p> bug# 964 Placing the nice default in the manager so it can be changed.
  * <p>
