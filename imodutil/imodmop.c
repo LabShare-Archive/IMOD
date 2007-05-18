@@ -207,14 +207,14 @@ int main( int argc, char *argv[])
   }
 
   /* Take care of fill value and color, set up the background fill value
-     for cases of gray or color output */
-  PipGetFloat("FillValue", &bkgFill);
+     for cases of gray or color output.  If a value is entered, it gets
+     reversed for reverse contrast, before testing */
+  if (!PipGetFloat("FillValue", &bkgFill) && reverse)
+    bkgFill = hdata.amax - bkgFill;
   PipGetThreeFloats("FillColor", &bkgRed, &bkgGreen, &bkgBlue);
   if (bkgRed < 0. || bkgRed > 1. || bkgGreen < 0. || bkgGreen > 1. || 
       bkgBlue < 0. || bkgBlue > 1.) 
     exitError("Red, green, blue fill color values must be between 0 and 1\n");
-  if (reverse)
-    bkgFill = hdata.amax - bkgFill;
   if (((hdata.mode == MRC_MODE_RGB || hdata.mode == MRC_MODE_BYTE) &&
        (bkgFill < 0 || bkgFill > 255)) ||
       (hdata.mode == MRC_MODE_SHORT && (bkgFill < -32767 || bkgFill > 32767))
@@ -880,6 +880,9 @@ static void scaleAndCombineSlices(Islice *pslice[3], Islice *oslice,
 
 /*
 $Log$
+Revision 3.7  2007/05/18 20:12:38  mast
+Reverse the fill value if reverse is used, test on that
+
 Revision 3.6  2007/05/18 19:05:52  mast
 Added options to specify a background fill value and color
 
