@@ -64,7 +64,10 @@ usage = Value to fill background with (default 0)
 tooltip = 
 manpage = Value with which to fill the background pixels that are not painted
 with image data.  This is a value on the same scale as the values in the input
-volume.  The default is 0.
+volume, before any reversal of contrast.  If you enter a value and also
+select contrast reversal, the value is subtracted from the file maximum
+before being tested for whether it fits in the range for the data mode.
+The default is 0.  
 
 [Field = FillColor]
 short = fc
