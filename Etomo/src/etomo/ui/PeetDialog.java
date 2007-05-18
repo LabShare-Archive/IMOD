@@ -50,6 +50,10 @@ import etomo.type.PeetScreenState;
  * @version $Revision$
  * 
  * <p> $Log$
+ * <p> Revision 1.40  2007/05/17 23:49:35  sueh
+ * <p> bug# 964 Rearrange fields to save space.  Check ccMode local when
+ * <p> use tilt range is checked.
+ * <p>
  * <p> Revision 1.39  2007/05/16 23:48:12  sueh
  * <p> bug# 964 Removed print statements.
  * <p>
@@ -677,7 +681,7 @@ public final class PeetDialog implements AbstractParallelDialog, Expandable {
     pnlVolumeReference.setLayout(new BoxLayout(pnlVolumeReference,
         BoxLayout.X_AXIS));
     pnlVolumeReference.add(rbReferenceVolume.getComponent());
-    pnlVolumeReference.add(sReferenceVolume.getComponent());
+    pnlVolumeReference.add(sReferenceVolume.getContainer());
     pnlVolumeReference.add(ltfReferenceParticle.getContainer());
     //volume file
     JPanel pnlVolumeFile = new JPanel();
@@ -701,7 +705,7 @@ public final class PeetDialog implements AbstractParallelDialog, Expandable {
     JPanel pnlYaxisContour = new JPanel();
     pnlYaxisContour.setLayout(new BoxLayout(pnlYaxisContour, BoxLayout.X_AXIS));
     pnlYaxisContour.add(rbYaxisTypeContour.getComponent());
-    pnlYaxisContour.add(sYaxisContourModelNumber.getComponent());
+    pnlYaxisContour.add(sYaxisContourModelNumber.getContainer());
     pnlYaxisContour.add(ltfYaxisContourObjectNumber.getContainer());
     pnlYaxisContour.add(ltfYaxisContourContourNumber.getContainer());
     //YaxisType
