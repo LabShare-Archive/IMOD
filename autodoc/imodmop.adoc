@@ -57,6 +57,24 @@ manpage = Set values below the given threshold to zero.  If contrast is being
 reversed, the threshold will be converted to the appropriate value to use
 after the reversal, so a value in the original data can be used.
 
+[Field = FillValue]
+short = fv
+type = F
+usage = Value to fill background with (default 0)
+tooltip = 
+manpage = Value with which to fill the background pixels that are not painted
+with image data.  This is a value on the same scale as the values in the input
+volume.  The default is 0.
+
+[Field = FillColor]
+short = fc
+type = FT
+usage = Relative RGB intensities for coloring the fill value (default 1,1,1)
+tooltip = 
+manpage = Relative values for scaling the value for background fill into a
+red, green, and blue components for color output.  The values should be between
+0 and 1.  The default is 1,1,1.
+
 [Field = ObjectsToDo]
 short = objects
 type = LI
