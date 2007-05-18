@@ -23,21 +23,20 @@
 #include "mrcslice.h"
 
 static int paintContours(Iobj *obj, Islice *islice, Islice *pslice[3], 
-                         int numChan, int inside, IloadInfo *li, int iz);
+                         int numChan, int inside, IloadInfo *li, int iz, 
+                         Ival bkgVal);
 static void scaleAndCombineSlices(Islice *pslice[3], Islice *oslice, 
                                   float smin, float smax, int numFiles);
 static void paintScatPoints(Iobj *obj, Islice *islice, Islice *pslice[3], 
                             int numChan, IloadInfo *li, int scat3D, int iz);
 static void paintScanContour(Iobj *obj, Icont *cont, Islice *islice,
                              Islice *pslice[3], int numChan, IloadInfo *li,
-                             int fill);
+                             int fill, Ival bkgVal);
 static void paintTubularLines(Iobj *obj, Islice *islice, Islice *pslice[3], 
                               int numChan, IloadInfo *li, float rad, int iz);
 static void putSliceValue(Iobj *obj,  Islice *islice, Islice *pslice[3],
                           int numChan, IloadInfo *li, int x, int y, 
                           Ival inval);
-static void scaleAndCombineSlices(Islice *pslice[3], Islice *oslice,
-                                  float smin, float smax, int numFiles);
 
 #define FILE_STR_SIZE 4096
 #define MAX_TUBE_DIAMS 1024
@@ -57,6 +56,7 @@ int main( int argc, char *argv[])
   int numObj = 0, scat2D = 0, scat3D = 0, retain = 0, constScale = 0;
   int numDiams, numTubes = 0;
   int black = 0, white = 255;
+  float bkgFill = 0., bkgRed = 1., bkgGreen = 1., bkgBlue = 1.;
   char *listString;
   int *objList;
   int *tubeList;
@@ -81,20 +81,20 @@ int main( int argc, char *argv[])
   int nxout, nyout, nzout, inside, numOptArgs,numNonOptArgs;
   float start_tilt, end_tilt, inc_tilt;
   float thresh, smin, smax, revMax;
-  Ival val, pval;
+  Ival val, pval, bkgVal;
 
   /* Fallbacks from    ../manpages/autodoc2man 2 1 imodmop  */
-  int numOptions = 19;
+  int numOptions = 21;
   char *options[] = {
-    "xminmax:XMinAndMax:IP:", "yminmax:YMinAndMax:IP:", 
-    "zminmax:ZMinAndMax:IP:", "scale:ScalingMinMax:FP:", 
-    "invert:InvertPaintedArea:B:", "color:ColorOutput:B:", 
-    "project:ProjectTiltSeries:FT:", "axis:AxisToTiltAround:CH:", 
-    "objects:ObjectsToDo:LI:", "2dscat:2DScatteredPoints:B:", 
-    "3dscat:3DScatteredPoints:B:", "tube:TubeObjects:LI:", 
-    "diam:DiameterForTubes:F:", "constant:ConstantScaling:B:", 
-    "bw:BlackAndWhite:IP:", "reverse:ReverseContrast:B:",
-    "thresh:Threshold:F:", 
+    "xminmax:XMinAndMax:IP:", "yminmax:YMinAndMax:IP:",
+    "zminmax:ZMinAndMax:IP:", "invert:InvertPaintedArea:B:",
+    "reverse:ReverseContrast:B:", "thresh:Threshold:F:", "fv:FillValue:F:",
+    "fc:FillColor:FT:", "objects:ObjectsToDo:LI:",
+    "2dscat:2DScatteredPoints:B:", "3dscat:3DScatteredPoints:B:",
+    "tube:TubeObjects:LI:", "diam:DiameterForTubes:F:",
+    "color:ColorOutput:B:", "scale:ScalingMinMax:FP:",
+    "project:ProjectTiltSeries:FT:", "axis:AxisToTiltAround:CH:",
+    "constant:ConstantScaling:B:", "bw:BlackAndWhite:IP:",
     "tempdir:TemporaryDirectory:CH:", "keep:KeepTempFiles:B:"};
 
   char *progname = imodProgName(argv[0]);
@@ -206,6 +206,25 @@ int main( int argc, char *argv[])
       tubeDiams[i] = tubeDiams[0];
   }
 
+  /* Take care of fill value and color, set up the background fill value
+     for cases of gray or color output */
+  PipGetFloat("FillValue", &bkgFill);
+  PipGetThreeFloats("FillColor", &bkgRed, &bkgGreen, &bkgBlue);
+  if (bkgRed < 0. || bkgRed > 1. || bkgGreen < 0. || bkgGreen > 1. || 
+      bkgBlue < 0. || bkgBlue > 1.) 
+    exitError("Red, green, blue fill color values must be between 0 and 1\n");
+  if (((hdata.mode == MRC_MODE_RGB || hdata.mode == MRC_MODE_BYTE) &&
+       (bkgFill < 0 || bkgFill > 255)) ||
+      (hdata.mode == MRC_MODE_SHORT && (bkgFill < -32767 || bkgFill > 32767))
+      || (hdata.mode == MRC_MODE_USHORT && (bkgFill < 0 || bkgFill > 65535)))
+    exitError("Fill value is outside allowed range for input data mode");
+  if (hdata.mode == MRC_MODE_RGB || rgbOut) {
+    bkgVal[0] = bkgRed * bkgFill;
+    bkgVal[1] = bkgGreen * bkgFill;
+    bkgVal[2] = bkgBlue * bkgFill;
+  } else 
+    bkgVal[0] = bkgVal[1] = bkgVal[2] = bkgFill;
+  
   /* Check for incompatible options */
   if (hdata.mode == MRC_MODE_COMPLEX_FLOAT || 
       hdata.mode == MRC_MODE_COMPLEX_SHORT) {
@@ -356,10 +375,17 @@ int main( int argc, char *argv[])
       }
     }
 
+    /* Clear the slice with the background value */
     val[0] = val[1] = val[2] = 0.;
-    for (i = 0; i < numChan; i++)
-      sliceClear(pslice[i], val);
-
+    if (numChan == 1) {
+      sliceClear(pslice[0], bkgVal);
+    } else {
+      for (i = 0; i < numChan; i++) {
+        val[0] = bkgVal[i];
+        sliceClear(pslice[i], val);
+      }
+    }
+    
     /* Do two passes through objects, doing inside-out ones on second pass */
     for (inside = 0; inside < 2; inside++) {
       for (objnum = 0; objnum < imod->objsize; objnum++) {
@@ -395,7 +421,8 @@ int main( int argc, char *argv[])
           /* Do closed objects on appropriate pass */
           if ((inside && (obj->flags & IMOD_OBJFLAG_OUT)) ||
               (!inside && !(obj->flags & IMOD_OBJFLAG_OUT))) {
-            if (paintContours(obj, islice, pslice, numChan, inside, &li, k))
+            if (paintContours(obj, islice, pslice, numChan, inside, &li, k,
+                              bkgVal))
               exitError("Analyzing contours for object %d\n", objnum + 1);
           }
         }
@@ -409,7 +436,7 @@ int main( int argc, char *argv[])
           sliceGetVal(islice, ix, iy, val);
           sliceGetVal(pslice[0], ix, iy, pval);
           for (i = 0; i < csize; i++)
-            pval[i] = val[i] - pval[i];
+            pval[i] = val[i] - pval[i] + bkgVal[i];
           slicePutVal(pslice[0], ix, iy, pval);
         }
       }
@@ -456,7 +483,7 @@ int main( int argc, char *argv[])
     fflush(stdout);
     sprintf(comStr, "xyzproj -mode 2 -axis %s -angles %f,%f,%f %s %s %s %s",
             axis, start_tilt, end_tilt, inc_tilt, constScale ? "-const" : " ",
-            invert ? " " : "-fill 0", recnames[i], xyznames[i]);
+            invert || bkgFill ? " " : "-fill 0", recnames[i], xyznames[i]);
     ix = system(comStr);
     if (ix)
       exitError("Running xyzproj on file %d (return value %d)\n",
@@ -536,7 +563,7 @@ int main( int argc, char *argv[])
 
 
 int paintContours(Iobj *obj, Islice *islice, Islice *pslice[3], int numChan,
-                  int inside, IloadInfo *li, int iz)
+                  int inside, IloadInfo *li, int iz, Ival bkgVal)
 {
   int co;
   Icont *cont;
@@ -620,7 +647,7 @@ int paintContours(Iobj *obj, Islice *islice, Islice *pslice[3], int numChan,
         continue;
       found = 1;
       paintScanContour(obj, scancont[co], islice, pslice, numChan, li, 
-                       (level + inside) % 2);
+                       (level + inside) % 2, bkgVal);
     }
     doLevel++;
   } while (found);
@@ -643,14 +670,19 @@ int paintContours(Iobj *obj, Islice *islice, Islice *pslice[3], int numChan,
 }
 
 void paintScanContour(Iobj *obj, Icont *cont, Islice *islice,
-                      Islice *pslice[3], int numChan, IloadInfo *li, int fill)
+                      Islice *pslice[3], int numChan, IloadInfo *li, int fill,
+                      Ival bkgVal)
 {
-  Ival inval;
+  Ival inval, redval, grnval, bluval;
   int j, x, y, xst, xnd;
 
-  /* Initialize value to 0 if not filling */
-  if (!fill)
-    inval[0] = inval[1] = inval[2] = 0.;
+  /* Initialize color values if not filling */
+  if (!fill) {
+    redval[0] = bkgVal[0];
+    grnval[0] = bkgVal[1];
+    bluval[0] = bkgVal[2];
+  }
+
   for (j = 0; j < cont->psize; j += 2) {
 
     /* Move Y down by 1 because otherwise bumps in X occur at the wrong Y
@@ -670,9 +702,21 @@ void paintScanContour(Iobj *obj, Icont *cont, Islice *islice,
     for (x = xst; x < xnd; x++) {
 
       /* Get value if filling */
-      if (fill)
+      if (fill) {
         sliceGetVal(islice, x - li->xmin, y - li->ymin, inval);
-      putSliceValue(obj, islice, pslice, numChan, li, x, y, inval);
+        putSliceValue(obj, islice, pslice, numChan, li, x, y, inval);
+      } else {
+
+        /* Or output the background value */
+        if (numChan < 3)
+          slicePutVal(pslice[0],  x - li->xmin, y - li->ymin, bkgVal);
+        else {
+          
+          slicePutVal(pslice[0],  x - li->xmin, y - li->ymin, redval);
+          slicePutVal(pslice[1],  x - li->xmin, y - li->ymin, grnval);
+          slicePutVal(pslice[2],  x - li->xmin, y - li->ymin, bluval);
+        }
+      }
     }
   }
 }
@@ -834,5 +878,9 @@ static void scaleAndCombineSlices(Islice *pslice[3], Islice *oslice,
 
 /*
 $Log$
+Revision 3.5  2007/04/26 19:15:05  mast
+New version, completely rewritten, adding color, projection, scattered
+point, tube, FFT, and scaling capabilities/
+
 
 */
