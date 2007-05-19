@@ -139,6 +139,11 @@ setting, different instances of the Tilt program will all write to one output
 file simultaneously, which has given problems in one Mac installation.  Any
 value other than 0 activates the feature.
 
+\fBmin.nice = \fIminimum_acceptable_nice_setting\fR
+.br
+This attribute will affect the minimum value of the Nice spinner.  The default
+is 4.
+
 \fBmountrule.#.local = \fIlocal_directory_path\fR
 .br
 \fBmountrule.#.local = \fIremote_directory_path\fR
