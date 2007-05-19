@@ -1,18 +1,13 @@
 /*   b3dutil.c   - utility functions for getting version and copyright, 
- *                      trimming program name
+ *                   trimming program name, system dependent I/O, min/max, etc.
  *
  *   Copyright (C) 1995-2003 by Boulder Laboratory for 3-Dimensional Electron
  *   Microscopy of Cells ("BL3DEMC") and the Regents of the University of 
  *   Colorado.
+ *
+ *   $Id$
+ *   Log at end
  */                                                                           
-
-/*  $Author$
-
-$Date$
-
-$Revision$
-Log at end
-*/
 
 #include <stdio.h>
 #include <stdlib.h>
@@ -413,6 +408,8 @@ int fgetline(FILE *fp, char s[], int limit)
  * [nbytes], an array that should be dimensioned to 32. */
 void b3dHeaderItemBytes(int *nflags, int *nbytes)
 {
+
+  /* Keep this synced to definitions in SerialEM/EMimageExtra.cpp */
   b3dByte extra_bytes[] = {2, 6, 4, 2, 2, 4, 2, 4, 2, 4, 2};
   int i;
   *nflags = sizeof(extra_bytes);
@@ -471,6 +468,9 @@ int b3dIMax(int narg, ...)
 
 /*
 $Log$
+Revision 1.16  2006/10/16 16:03:25  mast
+Fixed a leak in case removal of backup file fails
+
 Revision 1.15  2006/09/28 21:12:16  mast
 Added huge seek routine that can handle images of any size
 
