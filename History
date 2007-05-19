@@ -1,6 +1,11 @@
 IMOD History
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 5/18/07: IMOD_3-10-8
+
+5/18/07: In Etomo Parallel Processing, the lost possible Nice is now 4.  This
+can be changed by adding the attribute "min.nice" to the global section of the
+cpu.adoc file.
+
 5/18/07: Added option to Extracttilts to extract dose information saved by 
 SerialEM.
 
