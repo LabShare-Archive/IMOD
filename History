@@ -1,5 +1,14 @@
 IMOD History
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+5/18/07: IMOD_3-10-8
+5/18/07: Added option to Extracttilts to extract dose information saved by 
+SerialEM.
+
+5/18/07: Etomo PEET interface now includes row deletion, importing from an
+existing prm file, and data set duplication.
+
+5/18/07: Added options to imodmop to specify background fill value and color.
+
 5/7/07: For 32-bit Windows, added flag to 3dmod and midas to allow them to
 access up to 3 GB of memory instead of 2 GB, if boot parameter /3GB is used.
 

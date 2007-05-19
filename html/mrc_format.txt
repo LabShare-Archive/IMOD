@@ -64,7 +64,10 @@ SIZE DATA    NAME	Description
                          4 = Stage position * 25    (4 bytes)
                          8 = Magnification / 100 (2 bytes)
                          16 = Intensity * 25000  (2 bytes)
-                         32, 128, 512: Reserved for 4-byte items
+                         32 = Exposure dose, 4 bytes as 2 shorts, s1 and s2:
+                            dose = (sign of s1)*(|s1|*100 + (|s2| modulo 100))
+                               * 10**((sign of s2) * (|s2|/100)) e-/A2
+                         128, 512: Reserved for 4-byte items
                          64, 256, 1024: Reserved for 2-byte items
                          If the number of bytes implied by these flags does
                          not add up to the value in nint, then nint and nreal

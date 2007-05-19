@@ -3,7 +3,6 @@ Pip = 1
 
 [Field = InputFile]
 short = input
-long = InputFile
 type = FN
 usage = Image file with header information to extract
 tooltip = 
@@ -11,7 +10,6 @@ manpage =
 
 [Field = OutputFile]
 short = output
-long = OutputFile
 type = FN
 usage = Output file for header values (optional)
 tooltip = 
@@ -20,7 +18,6 @@ values are printed to standard output.
 
 [Field = TiltAngles]
 short = tilts
-long = TiltAngles
 type = B
 usage = Extract tilt angles from header (the default behavior)
 tooltip = 
@@ -29,7 +26,6 @@ are in degrees.
 
 [Field = StagePositions]
 short = stage
-long = StagePositions
 type = B
 usage = Extract stage positions from header
 tooltip = 
@@ -37,7 +33,6 @@ manpage = Extract stage positions from header.  The positions are in microns.
 
 [Field = Magnifications]
 short = mag
-long = Magnifications
 type = B
 usage = Extract magnifications from header
 tooltip = 
@@ -45,13 +40,22 @@ manpage =
 
 [Field = Intensities]
 short = intensities
-long = Intensities
 type = B
 usage = Extract intensities (C2 values) from header
 tooltip = 
-manpage = Extract intensities from header.  These will be the intensity values
-reported by Tecnai scripting, which range from 0 to 1 and differ by a
-scaling factor from the percent C2 readout in the Tecnai user interface.
+manpage = Extract intensities from header.  On the Tecnai, these are the
+intensity values reported by Tecnai scripting, which range from 0 to 1 and
+differ by a scaling factor from the percent C2 readout in the Tecnai user
+interface.  On the JEOL, they correspond to the percent C3 readout shown
+in SerialEM.
+
+[Field = ExposureDose]
+short = exp
+type = B
+usage = Extract incident dose on specimen during camera exposure
+tooltip = 
+manpage = Extract incident dose on specimen during camera exposure, referred
+to as exposure dose in SerialEM.  The units are electrons per square Angstrom.
 
 [Field = usage]
 short = help
