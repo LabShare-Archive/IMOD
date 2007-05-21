@@ -8,11 +8,11 @@ import java.io.IOException;
 import etomo.BaseManager;
 import etomo.EtomoDirector;
 import etomo.process.SystemProcessException;
+import etomo.storage.CpuAdoc;
 import etomo.storage.LogFile;
 import etomo.storage.autodoc.AutodocFactory;
 import etomo.storage.autodoc.AutodocTokenizer;
 import etomo.type.AxisID;
-import etomo.ui.ProcessorTable;
 import etomo.util.RemotePath.InvalidMountRuleException;
 
 import junit.framework.TestCase;
@@ -348,7 +348,7 @@ public class RemotePathTest extends TestCase {
   private final void addSection(BufferedWriter bufferedWriter,
       String sectionName) throws IOException {
     bufferedWriter.write(AutodocTokenizer.OPEN_CHAR
-        + ProcessorTable.SECTION_TYPE + ' '
+        + CpuAdoc.SECTION_TYPE + ' '
         + AutodocTokenizer.DEFAULT_DELIMITER + ' ' + sectionName
         + AutodocTokenizer.CLOSE_CHAR);
     bufferedWriter.newLine();
@@ -998,6 +998,10 @@ public class RemotePathTest extends TestCase {
 }
 /**
  * <p> $Log$
+ * <p> Revision 1.35  2007/03/21 19:50:55  sueh
+ * <p> bug# 964 Limiting access to autodoc classes by using ReadOnly interfaces.
+ * <p> Added AutodocFactory to create Autodoc instances.
+ * <p>
  * <p> Revision 1.34  2007/03/05 21:29:55  sueh
  * <p> bug# 964 Stop controlling autodoc instances, except for the standard ones.
  * <p>
