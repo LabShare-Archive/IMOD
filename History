@@ -1,7 +1,11 @@
 IMOD History
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-5/21/07: In Etomo Parallel Processing, removed the Users column because it is
-inaccurate in Fedora Core 6.  To keep the Users column, add a "users-column"
+5/21/07: In the Etomo Parallel Processing table added the ability to exclude
+rows based on the type of interface in use (Join, PEET, etc).  See
+"exclude-interface" in the cpuadoc man page.
+
+5/21/07: In the Etomo Parallel Processingtable removed the Users column, which
+is inaccurate in Fedora Core 6.  To keep the Users column, add a "users-column"
 attribute to the global section of cpu.adoc.
 
 5/18/07: IMOD_3-10-8
