@@ -11,6 +11,7 @@ import javax.swing.JScrollPane;
 import javax.swing.SwingUtilities;
 import javax.swing.border.LineBorder;
 
+import etomo.BaseManager;
 import etomo.EtomoDirector;
 import etomo.comscript.ProcesschunksParam;
 import etomo.storage.CpuAdoc;
@@ -40,8 +41,6 @@ import etomo.util.Utilities;
  */
 public final class ProcessorTable implements Storable {
   public static final String rcsid = "$Id$";
-
-  public static final String SECTION_TYPE = "Computer";
 
   private static final String SPEED_ADOC_KEY = "speed";
   private static final String MEMORY_ADOC_KEY = "memory";
@@ -82,7 +81,7 @@ public final class ProcessorTable implements Storable {
   private final HashedArray rows = new HashedArray();
   private final ParallelPanel parent;
   private final AxisID axisID;
-  private boolean expanded;
+  private final BaseManager manager;
 
   private boolean numberColumn = false;
   private boolean typeColumn = false;
@@ -94,7 +93,10 @@ public final class ProcessorTable implements Storable {
   private String memoryUnits = null;
   private boolean scrolling = false;
 
-  ProcessorTable(ParallelPanel parent, AxisID axisID) {
+  private boolean expanded;
+
+  ProcessorTable(BaseManager manager, ParallelPanel parent, AxisID axisID) {
+    this.manager = manager;
     this.parent = parent;
     this.axisID = axisID;
     expanded = true;
@@ -143,63 +145,69 @@ public final class ProcessorTable implements Storable {
     catch (NullPointerException e) {
     }
     //get first section
-    SectionLocation sectionLocation = autodoc.getSectionLocation(SECTION_TYPE);
+    SectionLocation sectionLocation = autodoc
+        .getSectionLocation(CpuAdoc.SECTION_TYPE);
     ReadOnlySection computer = autodoc.nextSection(sectionLocation);
     EtomoNumber number = new EtomoNumber(EtomoNumber.Type.INTEGER);
     //loop on sections
     while (computer != null) {
       //get name of the section
       String computerName = computer.getName();
-      //get the number attribute
-      //set numberColumn to true if an number attribute is returned
-      number.set(1);
-      try {
-        number.set(computer.getAttribute("number").getValue());
-        numberColumn = true;
+      //exclude any section with the "exclude-interface" attribute set to the
+      //current interface
+      if (!manager.getInterfaceType().equals(
+          CpuAdoc.getInstance(axisID).getExcludeInterface(computerName))) {
+        //get the number attribute
+        //set numberColumn to true if an number attribute is returned
+        number.set(1);
+        try {
+          number.set(computer.getAttribute("number").getValue());
+          numberColumn = true;
+        }
+        catch (NullPointerException e) {
+        }
+        //get the type attribute
+        //set typeColumn to true if an type attribute is returned
+        String type = null;
+        try {
+          type = computer.getAttribute("type").getValue();
+          typeColumn = true;
+        }
+        catch (NullPointerException e) {
+        }
+        //get the speed attribute
+        //set speedColumn to true if an speed attribute is returned
+        String speed = null;
+        try {
+          speed = computer.getAttribute(SPEED_ADOC_KEY).getValue();
+          speedColumn = true;
+        }
+        catch (NullPointerException e) {
+        }
+        //get the memory attribute
+        //set memoryColumn to true if an memory attribute is returned
+        String memory = null;
+        try {
+          memory = computer.getAttribute(MEMORY_ADOC_KEY).getValue();
+          memoryColumn = true;
+        }
+        catch (NullPointerException e) {
+        }
+        //get the os attribute
+        //set osColumn to true if an os attribute is returned
+        String os = null;
+        try {
+          os = computer.getAttribute("os").getValue();
+          osColumn = true;
+        }
+        catch (NullPointerException e) {
+        }
+        //create the row
+        ProcessorTableRow row = new ProcessorTableRow(this, computerName,
+            number.getInt(), type, speed, memory, os);
+        //add the row to the rows HashedArray
+        rows.add(computerName, row);
       }
-      catch (NullPointerException e) {
-      }
-      //get the type attribute
-      //set typeColumn to true if an type attribute is returned
-      String type = null;
-      try {
-        type = computer.getAttribute("type").getValue();
-        typeColumn = true;
-      }
-      catch (NullPointerException e) {
-      }
-      //get the speed attribute
-      //set speedColumn to true if an speed attribute is returned
-      String speed = null;
-      try {
-        speed = computer.getAttribute(SPEED_ADOC_KEY).getValue();
-        speedColumn = true;
-      }
-      catch (NullPointerException e) {
-      }
-      //get the memory attribute
-      //set memoryColumn to true if an memory attribute is returned
-      String memory = null;
-      try {
-        memory = computer.getAttribute(MEMORY_ADOC_KEY).getValue();
-        memoryColumn = true;
-      }
-      catch (NullPointerException e) {
-      }
-      //get the os attribute
-      //set osColumn to true if an os attribute is returned
-      String os = null;
-      try {
-        os = computer.getAttribute("os").getValue();
-        osColumn = true;
-      }
-      catch (NullPointerException e) {
-      }
-      //create the row
-      ProcessorTableRow row = new ProcessorTableRow(this, computerName, number
-          .getInt(), type, speed, memory, os);
-      //add the row to the rows HashedArray
-      rows.add(computerName, row);
       //get the next section
       computer = autodoc.nextSection(sectionLocation);
     }
@@ -314,7 +322,8 @@ public final class ProcessorTable implements Storable {
       header2Load1.add(tablePanel, layout, constraints);
       header2Load5.add(tablePanel, layout, constraints);
       if (usersColumn) {
-      header2Users.add(tablePanel, layout, constraints);}
+        header2Users.add(tablePanel, layout, constraints);
+      }
     }
     if (useTypeColumn()) {
       header2CPUType.add(tablePanel, layout, constraints);
@@ -488,7 +497,7 @@ public final class ProcessorTable implements Storable {
     width += header2Load1.getWidth();
     width += header2Load5.getWidth();
     if (usersColumn) {
-    width += header2Users.getWidth();
+      width += header2Users.getWidth();
     }
     if (useTypeColumn()) {
       width += header2CPUType.getWidth();
@@ -786,6 +795,10 @@ public final class ProcessorTable implements Storable {
 }
 /**
  * <p> $Log$
+ * <p> Revision 1.41  2007/05/21 18:11:22  sueh
+ * <p> bug# 992 Added usersColumn.  Do not display Users column when
+ * <p> usersColumn is false.
+ * <p>
  * <p> Revision 1.40  2007/03/21 19:46:38  sueh
  * <p> bug# 964 Limiting access to autodoc classes by using ReadOnly interfaces.
  * <p> Added AutodocFactory to create Autodoc instances.
