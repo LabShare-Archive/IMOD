@@ -73,6 +73,7 @@ import etomo.type.DialogType;
 import etomo.type.EtomoNumber;
 import etomo.type.EtomoState;
 import etomo.type.FiducialMatch;
+import etomo.type.InterfaceType;
 import etomo.type.InvalidEtomoNumberException;
 import etomo.type.MatchMode;
 import etomo.type.MetaData;
@@ -492,6 +493,10 @@ public final class ApplicationManager extends BaseManager {
     // Free the dialog
     setupDialog = null;
     saveStorables(AxisID.ONLY);
+  }
+  
+  public InterfaceType getInterfaceType() {
+    return InterfaceType.RECON;
   }
 
   /**
@@ -5426,6 +5431,9 @@ public final class ApplicationManager extends BaseManager {
 }
 /**
  * <p> $Log$
+ * <p> Revision 3.279  2007/04/09 19:10:45  sueh
+ * <p> bug# 964 Added setParamFile(), which just returns loadedParamFile
+ * <p>
  * <p> Revision 3.278  2007/03/07 20:52:03  sueh
  * <p> bug# Validate beam tilt fields in the fine alignment dialog in fineAlignment().
  * <p>
