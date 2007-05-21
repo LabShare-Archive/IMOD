@@ -14,6 +14,7 @@ import etomo.type.BaseMetaData;
 import etomo.type.BaseProcessTrack;
 import etomo.type.BaseScreenState;
 import etomo.type.BaseState;
+import etomo.type.InterfaceType;
 import etomo.type.ParallelMetaData;
 import etomo.type.ProcessEndState;
 import etomo.type.ProcessName;
@@ -73,6 +74,10 @@ public final class ParallelManager extends BaseManager {
   
   public boolean setParamFile() {
     return loadedParamFile;
+  }
+  
+  public InterfaceType getInterfaceType() {
+    return InterfaceType.PP;
   }
 
   public boolean canChangeParamFileName() {
@@ -270,6 +275,9 @@ public final class ParallelManager extends BaseManager {
 }
 /**
  * <p> $Log$
+ * <p> Revision 1.12  2007/04/09 19:30:19  sueh
+ * <p> bug# 964 Added setParamFile(), which just returns loadedParamFile
+ * <p>
  * <p> Revision 1.11  2007/02/19 21:50:10  sueh
  * <p> bug# 964 Removed isNewManager() because it is only used by Application
  * <p> Manager.

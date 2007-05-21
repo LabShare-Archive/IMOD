@@ -35,6 +35,7 @@ import etomo.type.BaseState;
 import etomo.type.ConstJoinMetaData;
 import etomo.type.ConstJoinState;
 import etomo.type.EtomoNumber;
+import etomo.type.InterfaceType;
 import etomo.type.JoinMetaData;
 import etomo.type.JoinScreenState;
 import etomo.type.JoinState;
@@ -62,6 +63,10 @@ import etomo.util.Utilities;
  * @version $Revision$
  * 
  * <p> $Log$
+ * <p> Revision 1.55  2007/05/11 14:31:36  sueh
+ * <p> bug# 964 Changed ImodManager.TRANSFORMED_MODEL to
+ * <p> TRANSFORMED_MODEL_KEY.
+ * <p>
  * <p> Revision 1.54  2007/04/26 02:42:08  sueh
  * <p> bug# 964 Formatted
  * <p>
@@ -431,6 +436,10 @@ public final class JoinManager extends BaseManager {
       openJoinDialog();
       setMode();
     }
+  }
+  
+  public InterfaceType getInterfaceType() {
+    return InterfaceType.JOIN;
   }
 
   public boolean setParamFile() {

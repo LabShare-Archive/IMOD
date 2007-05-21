@@ -25,6 +25,7 @@ import etomo.type.BaseProcessTrack;
 import etomo.type.BaseScreenState;
 import etomo.type.BaseState;
 import etomo.type.IntKeyList;
+import etomo.type.InterfaceType;
 import etomo.type.PeetMetaData;
 import etomo.type.PeetScreenState;
 import etomo.type.PeetState;
@@ -51,6 +52,10 @@ import etomo.util.DatasetFiles;
  * @version $Revision$
  * 
  * <p> $Log$
+ * <p> Revision 1.22  2007/05/16 23:47:08  sueh
+ * <p> bug# 964 Added isUserDirValid() to check for directories that already
+ * <p> contains an .epe file.
+ * <p>
  * <p> Revision 1.21  2007/05/16 22:58:24  sueh
  * <p> bug# 964 Added loadParamFile(File) to load the peet dialog with data from
  * <p> an .epe file and a .prm file from a different database.
@@ -174,6 +179,10 @@ public final class PeetManager extends BaseManager {
 
   public boolean canSnapshot() {
     return false;
+  }
+  
+  public InterfaceType getInterfaceType() {
+    return InterfaceType.PEET;
   }
 
   public BaseMetaData getBaseMetaData() {
