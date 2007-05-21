@@ -32,6 +32,7 @@ public class CpuAdoc {
 
   private boolean separateChunks;
   private int minNice;
+  private boolean usersColumn;
 
   private CpuAdoc() {
   }
@@ -55,6 +56,10 @@ public class CpuAdoc {
   public boolean isSeparateChunks() {
     return separateChunks;
   }
+  
+  public boolean isUsersColumn() {
+    return usersColumn;
+  }
 
   public boolean isMinNiceNull() {
     return EtomoNumber.isNull(minNice);
@@ -71,6 +76,7 @@ public class CpuAdoc {
     }
     separateChunks = loadBoolean(autodoc, "separate-chunks");
     minNice = loadInt(autodoc, "min", "nice");
+    usersColumn = loadBoolean(autodoc,"users-column");
   }
 
   private ReadOnlyAutodoc getAutodoc(AxisID axisID) {
@@ -119,6 +125,9 @@ public class CpuAdoc {
 }
 /**
  * <p> $Log$
+ * <p> Revision 1.4  2007/05/18 23:52:22  sueh
+ * <p> bug# 987 Made CpuAdoc thread-safe.  Added minNice.
+ * <p>
  * <p> Revision 1.3  2007/03/21 18:10:49  sueh
  * <p> bug# 964 Moved Adoc classes out of the autodoc package because
  * <p> they not part of the autodoc.
