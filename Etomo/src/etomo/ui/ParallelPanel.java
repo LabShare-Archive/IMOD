@@ -91,7 +91,7 @@ public final class ParallelPanel implements ParallelProgressDisplay,
     this.parent = parent;
     //initialize table
     //boolean expanded = PanelHeader.isMoreLessExpanded(state);
-    processorTable = new ProcessorTable(this, axisID);//, expanded);
+    processorTable = new ProcessorTable(manager,this, axisID);//, expanded);
     //set listeners
     btnResume.addActionListener(actionListener);
     btnPause.addActionListener(actionListener);
@@ -250,7 +250,7 @@ public final class ParallelPanel implements ParallelProgressDisplay,
     }
     validAutodoc = new EtomoBoolean2();
     ReadOnlyAutodoc autodoc = getAutodoc(axisID);
-    if (autodoc != null && autodoc.sectionExists(ProcessorTable.SECTION_TYPE)) {
+    if (autodoc != null && autodoc.sectionExists(CpuAdoc.SECTION_TYPE)) {
       validAutodoc.set(true);
     }
     return validAutodoc.is();
@@ -487,6 +487,10 @@ public final class ParallelPanel implements ParallelProgressDisplay,
 }
 /**
  * <p> $Log$
+ * <p> Revision 1.49  2007/05/21 18:11:14  sueh
+ * <p> bug# 992 Added usersColumn.  Do not display Users column when
+ * <p> usersColumn is false.
+ * <p>
  * <p> Revision 1.48  2007/05/18 23:53:15  sueh
  * <p> bug# 987 Made CpuAdoc thread-safe.  Added minNice.
  * <p>
