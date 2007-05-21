@@ -63,6 +63,7 @@ final class ProcessorTableRow implements Storable {
   private boolean speedColumn = false;
   private boolean memoryColumn = false;
   private boolean osColumn = false;
+  private boolean usersColumn = false;
   private boolean displayed = false;
 
   ProcessorTableRow(ProcessorTable table, String computerName, int numCpus,
@@ -172,31 +173,35 @@ final class ProcessorTableRow implements Storable {
     setSelected(false);
   }
 
-  final void setNumberColumn(boolean numberColumn) {
+  void setNumberColumn(boolean numberColumn) {
     this.numberColumn = numberColumn;
   }
 
-  final void setTypeColumn(boolean typeColumn) {
+  void setTypeColumn(boolean typeColumn) {
     this.typeColumn = typeColumn;
   }
 
-  final void setSpeedColumn(boolean speedColumn) {
+  void setSpeedColumn(boolean speedColumn) {
     this.speedColumn = speedColumn;
   }
 
-  final void setMemoryColumn(boolean memoryColumn) {
+  void setMemoryColumn(boolean memoryColumn) {
     this.memoryColumn = memoryColumn;
   }
 
-  final void setOSColumn(boolean osColumn) {
+  void setOSColumn(boolean osColumn) {
     this.osColumn = osColumn;
   }
 
-  final boolean isDisplayed() {
+  void setUsersColumn(boolean usersColumn) {
+    this.usersColumn = usersColumn;
+  }
+
+  boolean isDisplayed() {
     return displayed;
   }
 
-  final void deleteRow() {
+  void deleteRow() {
     displayed = false;
   }
 
@@ -223,7 +228,9 @@ final class ProcessorTableRow implements Storable {
     else {
       cellLoad1.add(panel, layout, constraints);
       cellLoad5.add(panel, layout, constraints);
-      cellUsers.add(panel, layout, constraints);
+      if (usersColumn) {
+        cellUsers.add(panel, layout, constraints);
+      }
     }
     if (typeColumn) {
       cellCPUType.add(panel, layout, constraints);
@@ -294,15 +301,15 @@ final class ProcessorTableRow implements Storable {
     }
   }
 
-  final void resetResults() {
+  void resetResults() {
     cellSuccesses.setValue();
   }
 
-  final long getSuccesses() {
+  long getSuccesses() {
     return cellSuccesses.getLongValue();
   }
 
-  final int getCPUsSelected() {
+  int getCPUsSelected() {
     if (!isSelected()) {
       return 0;
     }
@@ -316,14 +323,14 @@ final class ProcessorTableRow implements Storable {
     return cpusSelected;
   }
 
-  final boolean equals(String computer) {
+  boolean equals(String computer) {
     if (cellComputer.getLabel().equals(computer)) {
       return true;
     }
     return false;
   }
 
-  final void addSuccess() {
+  void addSuccess() {
     int successes = cellSuccesses.getIntValue();
     if (successes == EtomoNumber.INTEGER_NULL_VALUE) {
       successes = 1;
@@ -334,7 +341,7 @@ final class ProcessorTableRow implements Storable {
     cellSuccesses.setValue(successes);
   }
 
-  final void addRestart() {
+  void addRestart() {
     int restarts = cellRestarts.getIntValue();
     if (restarts == EtomoNumber.INTEGER_NULL_VALUE) {
       restarts = 1;
@@ -351,16 +358,17 @@ final class ProcessorTableRow implements Storable {
     }
   }
 
-  final void setLoadAverage(double load1, double load5, int users,
-      String usersTooltip) {
+  void setLoadAverage(double load1, double load5, int users, String usersTooltip) {
     int numberCpus = cellNumberCpus.getIntValue();
     setLoad(cellLoad1, load1, numberCpus);
     setLoad(cellLoad5, load5, numberCpus);
-    cellUsers.setValue(users);
-    cellUsers.setToolTipText(usersTooltip);
+    if (usersColumn) {
+      cellUsers.setValue(users);
+      cellUsers.setToolTipText(usersTooltip);
+    }
   }
 
-  final void setCPUUsage(double cpuUsage) {
+  void setCPUUsage(double cpuUsage) {
     int numberCPUs = cellNumberCpus.getIntValue();
     double usage = cpuUsage * numberCPUs / 100.0;
     cellCPUUsage.setWarning(numberCPUs - usage <= .25);
@@ -429,7 +437,9 @@ final class ProcessorTableRow implements Storable {
     else {
       width += cellLoad1.getWidth();
       width += cellLoad5.getWidth();
-      width += cellUsers.getWidth();
+      if (usersColumn) {
+        width += cellUsers.getWidth();
+      }
     }
     if (typeColumn) {
       width += cellCPUType.getWidth();
@@ -475,6 +485,11 @@ final class ProcessorTableRow implements Storable {
 }
 /**
  * <p> $Log$
+ * <p> Revision 1.28  2007/04/02 21:52:50  sueh
+ * <p> bug# 964 Added FieldCell.editable to make instances of FieldCell that can't be
+ * <p> edited.  This allows FieldCell.setEditable and setEnabled to be called without
+ * <p> checking whether a field should be editable.
+ * <p>
  * <p> Revision 1.27  2007/03/27 19:31:56  sueh
  * <p> bug# 964 Changed InputCell.setEnabled() to setEditable.
  * <p>

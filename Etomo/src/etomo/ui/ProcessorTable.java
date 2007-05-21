@@ -13,6 +13,7 @@ import javax.swing.border.LineBorder;
 
 import etomo.EtomoDirector;
 import etomo.comscript.ProcesschunksParam;
+import etomo.storage.CpuAdoc;
 import etomo.storage.LogFile;
 import etomo.storage.Storable;
 import etomo.storage.autodoc.ReadOnlyAttribute;
@@ -87,6 +88,7 @@ public final class ProcessorTable implements Storable {
   private boolean typeColumn = false;
   private boolean speedColumn = false;
   private boolean memoryColumn = false;
+  private boolean usersColumn = false;
   private boolean osColumn = false;
   private String speedUnits = null;
   private String memoryUnits = null;
@@ -119,6 +121,7 @@ public final class ProcessorTable implements Storable {
   }
 
   private final void initTable() {
+    usersColumn = CpuAdoc.getInstance(axisID).isUsersColumn();
     //build rows
     //get autodoc
     ReadOnlyAutodoc autodoc = ParallelPanel.getAutodoc(axisID);
@@ -261,6 +264,10 @@ public final class ProcessorTable implements Storable {
       constraints.gridwidth = 2;
     }
     header1NumberCPUs.add(tablePanel, layout, constraints);
+    ReadOnlyAutodoc autodoc = ParallelPanel.getAutodoc(axisID);
+    if (autodoc == null) {
+      return;
+    }
     if (Utilities.isWindowsOS()) {
       constraints.gridwidth = 1;
       header1CPUUsage.add(tablePanel, layout, constraints);
@@ -269,7 +276,9 @@ public final class ProcessorTable implements Storable {
       constraints.gridwidth = 2;
       header1Load.add(tablePanel, layout, constraints);
       constraints.gridwidth = 1;
-      header1Users.add(tablePanel, layout, constraints);
+      if (usersColumn) {
+        header1Users.add(tablePanel, layout, constraints);
+      }
     }
     if (useTypeColumn()) {
       header1CPUType.add(tablePanel, layout, constraints);
@@ -304,7 +313,8 @@ public final class ProcessorTable implements Storable {
     else {
       header2Load1.add(tablePanel, layout, constraints);
       header2Load5.add(tablePanel, layout, constraints);
-      header2Users.add(tablePanel, layout, constraints);
+      if (usersColumn) {
+      header2Users.add(tablePanel, layout, constraints);}
     }
     if (useTypeColumn()) {
       header2CPUType.add(tablePanel, layout, constraints);
@@ -328,11 +338,12 @@ public final class ProcessorTable implements Storable {
       ProcessorTableRow row = (ProcessorTableRow) rows.get(i);
       row.deleteRow();
       if (expanded || row.isSelected()) {
-        row.setNumberColumn(numberColumn && expanded);
-        row.setTypeColumn(typeColumn && expanded);
-        row.setSpeedColumn(speedColumn && expanded);
-        row.setMemoryColumn(memoryColumn && expanded);
-        row.setOSColumn(osColumn && expanded);
+        row.setNumberColumn(useNumberColumn());
+        row.setTypeColumn(useTypeColumn());
+        row.setSpeedColumn(useSpeedColumn());
+        row.setMemoryColumn(useMemoryColumn());
+        row.setOSColumn(useOSColumn());
+        row.setUsersColumn(usersColumn);
         row.addRow();
       }
     }
@@ -476,7 +487,9 @@ public final class ProcessorTable implements Storable {
     }
     width += header2Load1.getWidth();
     width += header2Load5.getWidth();
+    if (usersColumn) {
     width += header2Users.getWidth();
+    }
     if (useTypeColumn()) {
       width += header2CPUType.getWidth();
     }
@@ -773,6 +786,10 @@ public final class ProcessorTable implements Storable {
 }
 /**
  * <p> $Log$
+ * <p> Revision 1.40  2007/03/21 19:46:38  sueh
+ * <p> bug# 964 Limiting access to autodoc classes by using ReadOnly interfaces.
+ * <p> Added AutodocFactory to create Autodoc instances.
+ * <p>
  * <p> Revision 1.39  2007/03/15 21:48:22  sueh
  * <p> bug# 964 Added ReadOnlyAttribute, which is used as an interface for Attribute,
  * <p> unless the Attribute needs to be modified.

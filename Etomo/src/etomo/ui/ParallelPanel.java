@@ -179,7 +179,7 @@ public final class ParallelPanel implements ParallelProgressDisplay,
 
   public final LoadAverageMonitor getLoadAverageMonitor() {
     if (loadAverageMonitor == null) {
-      loadAverageMonitor = new LoadAverageMonitor(this);
+      loadAverageMonitor = new LoadAverageMonitor(this,axisID);
     }
     return loadAverageMonitor;
   }
@@ -487,6 +487,9 @@ public final class ParallelPanel implements ParallelProgressDisplay,
 }
 /**
  * <p> $Log$
+ * <p> Revision 1.48  2007/05/18 23:53:15  sueh
+ * <p> bug# 987 Made CpuAdoc thread-safe.  Added minNice.
+ * <p>
  * <p> Revision 1.47  2007/05/03 00:46:52  sueh
  * <p> bug# 964 Placing the nice default in the manager so it can be changed.
  * <p>
