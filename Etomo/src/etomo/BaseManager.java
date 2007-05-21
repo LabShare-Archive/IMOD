@@ -27,6 +27,7 @@ import etomo.type.BaseProcessTrack;
 import etomo.type.BaseScreenState;
 import etomo.type.BaseState;
 import etomo.type.DialogType;
+import etomo.type.InterfaceType;
 import etomo.type.ProcessEndState;
 import etomo.type.ProcessName;
 import etomo.type.ProcessResultDisplay;
@@ -98,6 +99,7 @@ public abstract class BaseManager {
   private DialogType currentDialogTypeB = null;
   private ParameterStore parameterStore = null;
 
+  abstract public InterfaceType getInterfaceType();
   abstract void createComScriptManager();
 
   abstract void createMainPanel();
@@ -1172,6 +1174,9 @@ public abstract class BaseManager {
 }
 /**
  * <p> $Log$
+ * <p> Revision 1.81  2007/05/03 00:45:17  sueh
+ * <p> bug# 964 Added getParallelProcessingDefaultNice().
+ * <p>
  * <p> Revision 1.80  2007/04/27 23:36:55  sueh
  * <p> bug# 964 In processchunks(), handling a null processResultDisplay.
  * <p>
