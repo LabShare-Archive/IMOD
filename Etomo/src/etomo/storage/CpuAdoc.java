@@ -56,7 +56,7 @@ public class CpuAdoc {
   public boolean isSeparateChunks() {
     return separateChunks;
   }
-  
+
   public boolean isUsersColumn() {
     return usersColumn;
   }
@@ -76,7 +76,7 @@ public class CpuAdoc {
     }
     separateChunks = loadBoolean(autodoc, "separate-chunks");
     minNice = loadInt(autodoc, "min", "nice");
-    usersColumn = loadBoolean(autodoc,"users-column");
+    usersColumn = loadBoolean(autodoc, "users-column");
   }
 
   private ReadOnlyAutodoc getAutodoc(AxisID axisID) {
@@ -103,7 +103,8 @@ public class CpuAdoc {
 
   private boolean loadBoolean(ReadOnlyAutodoc autodoc, String key) {
     ReadOnlyAttribute attrib = autodoc.getAttribute(key);
-    if (attrib != null && !attrib.getValue().equals("0")) {
+    if (attrib != null
+        && (attrib.getValue() == null || !attrib.getValue().equals("0"))) {
       return true;
     }
     return false;
@@ -125,6 +126,9 @@ public class CpuAdoc {
 }
 /**
  * <p> $Log$
+ * <p> Revision 1.5  2007/05/21 18:10:27  sueh
+ * <p> bug# 964 Added usersColumn.
+ * <p>
  * <p> Revision 1.4  2007/05/18 23:52:22  sueh
  * <p> bug# 987 Made CpuAdoc thread-safe.  Added minNice.
  * <p>
