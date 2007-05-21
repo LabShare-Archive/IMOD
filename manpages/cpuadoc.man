@@ -141,8 +141,12 @@ value other than 0 activates the feature.
 
 \fBmin.nice = \fIminimum_acceptable_nice_setting\fR
 .br
-This attribute will affect the minimum value of the Nice spinner.  The default
-is 4.
+The minimum value of the Nice spinner.  The default is 4.
+
+\fBusers-column = \fIinclude_the_Users_column\fR
+.br
+When this attribute is present and not set to 0, the Users column will be
+included in the Parallel Processing table.
 
 \fBmountrule.#.local = \fIlocal_directory_path\fR
 .br
