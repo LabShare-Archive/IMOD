@@ -2,12 +2,17 @@ package etomo.storage;
 
 import java.io.FileNotFoundException;
 import java.io.IOException;
+import java.util.Hashtable;
+import java.util.Map;
 
 import etomo.storage.autodoc.AutodocFactory;
 import etomo.storage.autodoc.ReadOnlyAttribute;
 import etomo.storage.autodoc.ReadOnlyAutodoc;
+import etomo.storage.autodoc.ReadOnlySection;
+import etomo.storage.autodoc.SectionLocation;
 import etomo.type.AxisID;
 import etomo.type.EtomoNumber;
+import etomo.type.InterfaceType;
 import etomo.util.EnvironmentVariable;
 
 /**
@@ -28,11 +33,14 @@ import etomo.util.EnvironmentVariable;
 public class CpuAdoc {
   public static final String rcsid = "$Id$";
 
+  public static final String SECTION_TYPE = "Computer";
+
   private static CpuAdoc INSTANCE = null;
 
   private boolean separateChunks;
   private int minNice;
   private boolean usersColumn;
+  private Map excludeInterface;
 
   private CpuAdoc() {
   }
@@ -69,6 +77,10 @@ public class CpuAdoc {
     return minNice;
   }
 
+  public InterfaceType getExcludeInterface(String key) {
+    return (InterfaceType) excludeInterface.get(key);
+  }
+
   private void load(AxisID axisID) {
     ReadOnlyAutodoc autodoc = getAutodoc(axisID);
     if (autodoc == null) {
@@ -77,6 +89,7 @@ public class CpuAdoc {
     separateChunks = loadBoolean(autodoc, "separate-chunks");
     minNice = loadInt(autodoc, "min", "nice");
     usersColumn = loadBoolean(autodoc, "users-column");
+    excludeInterface = loadExcludeInterfaceMap(autodoc);
   }
 
   private ReadOnlyAutodoc getAutodoc(AxisID axisID) {
@@ -99,6 +112,25 @@ public class CpuAdoc {
           + "See $IMOD_DIR/autodoc/cpu.adoc.");
     }
     return autodoc;
+  }
+
+  private Map loadExcludeInterfaceMap(ReadOnlyAutodoc autodoc) {
+    Map map = new Hashtable();
+    SectionLocation location = autodoc.getSectionLocation(SECTION_TYPE);
+    if (location == null) {
+      return map;
+    }
+    ReadOnlySection section = null;
+    while ((section = autodoc.nextSection(location)) != null) {
+      ReadOnlyAttribute attribute = section.getAttribute( "exclude-interface");
+      if (attribute != null) {
+        InterfaceType interfaceType = InterfaceType.getInstance(attribute.getValue());
+        if (interfaceType != null) {
+          map.put(section.getName(), interfaceType);
+        }
+      }
+    }
+    return map;
   }
 
   private boolean loadBoolean(ReadOnlyAutodoc autodoc, String key) {
@@ -126,6 +158,10 @@ public class CpuAdoc {
 }
 /**
  * <p> $Log$
+ * <p> Revision 1.6  2007/05/21 18:16:27  sueh
+ * <p> bug# 992 Fixed a bug in loadBoolean(); wasn't handle attrib.getValue()
+ * <p> returning null.
+ * <p>
  * <p> Revision 1.5  2007/05/21 18:10:27  sueh
  * <p> bug# 964 Added usersColumn.
  * <p>
