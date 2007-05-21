@@ -55,6 +55,13 @@ processors.  If you do not enter this attribute, a single processor is assumed.
 This attribute goes into the table under the heading \fBCPU Type\fR and can
 contain a description of the computer's processor.
 
+\fBexclude-interface = recon\fR|\fBjoin\fR|\fBpp\fR|\fBpeet\fR
+.br
+Excludes a computer from the Parallel Processing table depending on the
+interface in use.  Interfaces:  Tomogram Reconstruction - \fBrecon\fR, Join -
+\fBjoin\fR, Parallel Processing - \fBpp\fR, PEET - \fBpeet\fR.  Only one
+interface can be excluded per computer.
+
 \fBspeed = \fICPU_speed\fR
 .br
 This attribute goes into the table under the heading \fBSpeed\fR and can
