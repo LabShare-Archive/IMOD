@@ -4,6 +4,8 @@ import java.util.ArrayList;
 import java.util.HashMap;
 
 import etomo.comscript.IntermittentCommand;
+import etomo.storage.CpuAdoc;
+import etomo.type.AxisID;
 import etomo.ui.LoadAverageDisplay;
 import etomo.util.HashedArray;
 import etomo.util.Utilities;
@@ -30,6 +32,7 @@ public class LoadAverageMonitor implements IntermittentProcessMonitor, Runnable 
   private static final String FAILURE_REASON = "no connection";
 
   private final LoadAverageDisplay display;
+  private final boolean usersColumn;
 
   private HashedArray programs = new HashedArray();
   //stopped:  true when the run() is not executing.  Set at the end of the run
@@ -37,8 +40,9 @@ public class LoadAverageMonitor implements IntermittentProcessMonitor, Runnable 
   private boolean stopped = true;
   private boolean allowRestarts = false;
 
-  public LoadAverageMonitor(LoadAverageDisplay display) {
+  public LoadAverageMonitor(LoadAverageDisplay display, AxisID axisID) {
     this.display = display;
+    usersColumn = CpuAdoc.getInstance(axisID).isUsersColumn();
   }
 
   public void run() {
@@ -166,16 +170,19 @@ public class LoadAverageMonitor implements IntermittentProcessMonitor, Runnable 
         load1 = getLoad(array[array.length - 3]);
         load5 = getLoad(array[array.length - 2]);
       }
-      else if (!headerLineFound) {
-        //ignore the header line
-        headerLineFound = true;
-      }
-      else {
-        //count users
-        String[] array = stdout[i].trim().split("\\s+");
-        if (!array[0].equals("root") && !programState.containsUser(array[0])) {
-          programState.addUser(array[0]);
-          users++;
+      //no need to total users when the usersColumn is not being displayed
+      else if (usersColumn) {
+        if (!headerLineFound) {
+          //ignore the header line
+          headerLineFound = true;
+        }
+        else {
+          //count users
+          String[] array = stdout[i].trim().split("\\s+");
+          if (!array[0].equals("root") && !programState.containsUser(array[0])) {
+            programState.addUser(array[0]);
+            users++;
+          }
         }
       }
     }
@@ -317,6 +324,10 @@ public class LoadAverageMonitor implements IntermittentProcessMonitor, Runnable 
 }
 /**
  * <p> $Log$
+ * <p> Revision 1.20  2007/02/22 20:36:12  sueh
+ * <p> bug# 964 Added allowRestarts to make it possible prevent all restarts.  Setting
+ * <p> allowRestarts to false for now.
+ * <p>
  * <p> Revision 1.19  2006/11/29 00:02:10  sueh
  * <p> bug# 934 Added stopped and functions isMonitoring, stop, and stopMonitoring.
  * <p>
