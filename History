@@ -1,5 +1,8 @@
 IMOD History
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+5/22/07: IMOD_3-10-9
+5/22/07: Fixed bug in Blendmont (added in 3.10.5) that gave bad origin values.
+
 5/22/07: In the Etomo Parallel Processing table, added the ability to exclude
 rows based on the current user.  See "users" in the cpuadoc man page.
 
