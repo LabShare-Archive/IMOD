@@ -34,7 +34,7 @@ SIZE DATA    NAME	Description
 4    float   gamma;
 
 			 Ignored by imod.
-4    int     mapc;       map coloumn 1=x,2=y,3=z.       
+4    int     mapc;       map column  1=x,2=y,3=z.       
 4    int     mapr;       map row     1=x,2=y,3=z.       
 4    int     maps;       map section 1=x,2=y,3=z.       
 
@@ -54,7 +54,10 @@ SIZE DATA    NAME	Description
                          extended header; their meaning depend on whether the
                          extended header has the Agard format, a series of
                          4-byte integers then real numbers, or has data 
-                         produced by SerialEM, a series of short integers
+                         produced by SerialEM, a series of short integers.
+                         SerialEM stores a float as two shorts, s1 and s2, by:
+                           value = (sign of s1)*(|s1|*256 + (|s2| modulo 256))
+                              * 2**((sign of s2) * (|s2|/256))
 2    short   nint;       Number of integers per section (Agard format) or
                          number of bytes per section (SerialEM format)
 2    short   nreal;      Number of reals per section (Agard format) or
@@ -64,9 +67,7 @@ SIZE DATA    NAME	Description
                          4 = Stage position * 25    (4 bytes)
                          8 = Magnification / 100 (2 bytes)
                          16 = Intensity * 25000  (2 bytes)
-                         32 = Exposure dose, 4 bytes as 2 shorts, s1 and s2:
-                            dose = (sign of s1)*(|s1|*100 + (|s2| modulo 100))
-                               * 10**((sign of s2) * (|s2|/100)) e-/A2
+                         32 = Exposure dose in e-/A2, a float in 4 bytes
                          128, 512: Reserved for 4-byte items
                          64, 256, 1024: Reserved for 2-byte items
                          If the number of bytes implied by these flags does
