@@ -12,7 +12,14 @@ package etomo.type;
 * 
 * @version $Revision$
 * 
-* <p> $Log$ </p>
+* @threadsafe
+* @immutable
+* @n'ton
+* 
+* <p> $Log$
+* <p> Revision 1.1  2007/05/21 22:29:55  sueh
+* <p> bug# 1000 Class that enumerates the four different interfaces.
+* <p> </p>
 */
 public final class InterfaceType {
   public static  final String  rcsid =  "$Id$";
