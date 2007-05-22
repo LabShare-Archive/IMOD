@@ -142,14 +142,17 @@ c       !
         ihigh = -ihigh
         iexpsign = -1
       endif
-      ival = low * 100 + mod(ihigh, 100)
-      iexp = ihigh / 100
-      SEMshortsToFloat = ivalsign * (ival * 10.**(iexp * iexpsign))
+      ival = low * 256 + mod(ihigh, 256)
+      iexp = ihigh / 256
+      SEMshortsToFloat = ivalsign * (ival * 2.**(iexp * iexpsign))
       return
       end
 
 c       
 c       $Log$
+c       Revision 3.5  2007/05/19 00:03:18  mast
+c       Added the exposure dose and routine to convert shorts to a float
+c
 c       Revision 3.4  2005/12/09 04:39:44  mast
 c       gfortran: .xor., continuation, byte, or open fixes
 c       
