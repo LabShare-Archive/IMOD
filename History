@@ -1,16 +1,18 @@
 IMOD History
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-5/21/07: In the Etomo Parallel Processing table added the ability to exclude
+5/22/07: Changed Extracttilts after changing the way that SerialEM packs a
+float into two shorts in the extended header.
+
+5/21/07: In the Etomo Parallel Processing table, added the ability to exclude
 rows based on the type of interface in use (Join, PEET, etc).  See
 "exclude-interface" in the cpuadoc man page.
 
-5/21/07: In the Etomo Parallel Processingtable removed the Users column, which
-is inaccurate in Fedora Core 6.  To keep the Users column, add a "users-column"
-attribute to the global section of cpu.adoc.
+5/21/07: In the Etomo Parallel Processing table, removed the Users column,
+which is inaccurate in Fedora Core 6.  To keep the Users column, add a
+"users-column" attribute to the global section of cpu.adoc.
 
 5/18/07: IMOD_3-10-8
-
-5/18/07: In Etomo Parallel Processing, the lost possible Nice is now 4.  This
+5/18/07: In Etomo Parallel Processing, the lowest possible Nice is now 4.  This
 can be changed by adding the attribute "min.nice" to the global section of the
 cpu.adoc file.
 
