@@ -29,6 +29,8 @@ import etomo.util.EnvironmentVariable;
  * @version $Revision$
  * 
  * @threadsafe
+ * @immutable
+ * @singleton
  */
 public class CpuAdoc {
   public static final String rcsid = "$Id$";
@@ -37,10 +39,11 @@ public class CpuAdoc {
 
   private static CpuAdoc INSTANCE = null;
 
+  private final Map computerMap = new Hashtable();
+
   private boolean separateChunks;
   private int minNice;
   private boolean usersColumn;
-  private Map excludeInterface;
 
   private CpuAdoc() {
   }
@@ -78,7 +81,43 @@ public class CpuAdoc {
   }
 
   public InterfaceType getExcludeInterface(String key) {
-    return (InterfaceType) excludeInterface.get(key);
+    Computer computer = (Computer) computerMap.get(key);
+    if (computer == null) {
+      return null;
+    }
+    return computer.interfaceType;
+  }
+  
+  /**
+   * Returns true if computerMap doesn't contain an entry
+   * @param key
+   * @return
+   */
+  public boolean isUsersEmpty(String key) {
+    Computer computer = (Computer) computerMap.get(key);
+    if (computer == null||computer.users==null) {
+      return true;
+    }
+    return computer.users.length==0;
+  }
+  
+  /**
+   * Returns the index of the user in Computer.users or -1 if not find
+   * @param key
+   * @param user
+   * @return
+   */
+  public int findUser(String key, String user) {
+    Computer computer = (Computer) computerMap.get(key);
+    if (computer == null) {
+      return -1;
+    }
+    for (int i = 0;i<computer.users.length;i++) {
+      if (computer.users[i].equals(user)) {
+        return i;
+      }
+    }
+    return -1;
   }
 
   private void load(AxisID axisID) {
@@ -89,7 +128,7 @@ public class CpuAdoc {
     separateChunks = loadBoolean(autodoc, "separate-chunks");
     minNice = loadInt(autodoc, "min", "nice");
     usersColumn = loadBoolean(autodoc, "users-column");
-    excludeInterface = loadExcludeInterfaceMap(autodoc);
+    loadComputerMap(autodoc);
   }
 
   private ReadOnlyAutodoc getAutodoc(AxisID axisID) {
@@ -114,23 +153,18 @@ public class CpuAdoc {
     return autodoc;
   }
 
-  private Map loadExcludeInterfaceMap(ReadOnlyAutodoc autodoc) {
-    Map map = new Hashtable();
+  private void loadComputerMap(ReadOnlyAutodoc autodoc) {
     SectionLocation location = autodoc.getSectionLocation(SECTION_TYPE);
     if (location == null) {
-      return map;
+      return;
     }
     ReadOnlySection section = null;
     while ((section = autodoc.nextSection(location)) != null) {
-      ReadOnlyAttribute attribute = section.getAttribute( "exclude-interface");
-      if (attribute != null) {
-        InterfaceType interfaceType = InterfaceType.getInstance(attribute.getValue());
-        if (interfaceType != null) {
-          map.put(section.getName(), interfaceType);
-        }
+      Computer computer = Computer.getInstance(section);
+      if (computer != null) {
+        computerMap.put(section.getName(), computer);
       }
     }
-    return map;
   }
 
   private boolean loadBoolean(ReadOnlyAutodoc autodoc, String key) {
@@ -155,9 +189,48 @@ public class CpuAdoc {
     number.set(attrib.getValue());
     return number.getInt();
   }
+
+  /**
+   * @threadsafe
+   */
+  private static final class Computer {
+
+    private InterfaceType interfaceType=null;
+    private String[] users=null;
+
+    private Computer() {
+    }
+
+    private static Computer getInstance(ReadOnlySection section) {
+      Computer instance = new Computer();
+      instance.load(section);
+      return instance;
+    }
+
+    private void load(ReadOnlySection section) {
+      ReadOnlyAttribute attribute = section.getAttribute("exclude-interface");
+      if (attribute != null) {
+        InterfaceType interfaceType = InterfaceType.getInstance(attribute
+            .getValue());
+        if (interfaceType != null) {
+          this.interfaceType = interfaceType;
+        }
+      }
+      attribute = section.getAttribute("users");
+      if (attribute != null) {
+        String list = attribute.getValue();
+        if (list !=null) {
+          users = list.split("\\s*,\\s*");
+        }
+      }
+    }
+  }
 }
 /**
  * <p> $Log$
+ * <p> Revision 1.7  2007/05/21 22:29:13  sueh
+ * <p> bug# 1000 Added excludeInterface and loadExcludeInterfaceMap().
+ * <p>
  * <p> Revision 1.6  2007/05/21 18:16:27  sueh
  * <p> bug# 992 Fixed a bug in loadBoolean(); wasn't handle attrib.getValue()
  * <p> returning null.
