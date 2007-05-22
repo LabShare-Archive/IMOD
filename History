@@ -1,5 +1,8 @@
 IMOD History
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+5/22/07: In the Etomo Parallel Processing table, added the ability to exclude
+rows based on the current user.  See "users" in the cpuadoc man page.
+
 5/22/07: Changed Extracttilts after changing the way that SerialEM packs a
 float into two shorts in the extended header.
 
