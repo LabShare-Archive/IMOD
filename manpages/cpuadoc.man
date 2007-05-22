@@ -62,6 +62,13 @@ interface in use.  Interfaces:  Tomogram Reconstruction - \fBrecon\fR, Join -
 \fBjoin\fR, Parallel Processing - \fBpp\fR, PEET - \fBpeet\fR.  Only one
 interface can be excluded per computer.
 
+\fBusers = \fIuser_name\fR[\fB,\fIuser_name\fR...]
+.br
+A list of the users who have login priviledges on the computer.  If a user is
+not on this list, the computer will be excluded from the Parallel Processing
+table when the user runs Etomo.  This attribute is optional.  If it is omitted,
+the computer will not be excluded based on user name.
+
 \fBspeed = \fICPU_speed\fR
 .br
 This attribute goes into the table under the heading \fBSpeed\fR and can
