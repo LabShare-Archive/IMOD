@@ -1096,10 +1096,10 @@ c         Do as much of header as possible, shift origin same as in newstack
         call ialsymtyp(2,0,0)
         call ialmod(2,modeout)
         call ialsiz(2,nxyzbin,nxyzst)
+        call irtdel(1,delta)
         call irtorg(1, xorig, yorig, zorig)
         call ialorg(2, xorig - delta(1) * ixOffset,
      &      yorig - delta(1) * iyOffset, zorig)
-        call irtdel(1,delta)
         cell(1)=nxbin*delta(1)*iBinning
         cell(2)=nybin*delta(2)*iBinning
 c         
@@ -2763,6 +2763,9 @@ c
 
 c       
 c       $Log$
+c       Revision 3.30  2007/04/10 15:43:53  mast
+c       Added option to exclude gray areas from edge analysis
+c
 c       Revision 3.29  2007/04/07 21:30:32  mast
 c       Implemented ability to use edge functions from a limited range of Z
 c       values, and to have incomplete edge function files, as long as pieces
