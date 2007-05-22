@@ -104,7 +104,7 @@ public final class ProcessorTable implements Storable {
     buildScrollPane();
   }
 
-  final void setExpanded(boolean expanded) {
+  void setExpanded(boolean expanded) {
     if (this.expanded == expanded) {
       return;
     }
@@ -112,7 +112,7 @@ public final class ProcessorTable implements Storable {
     buildScrollPane();
   }
 
-  final void buildScrollPane() {
+  void buildScrollPane() {
     buildTable();
     //scrollPane
     scrollPane = new JScrollPane(tablePanel);
@@ -122,7 +122,7 @@ public final class ProcessorTable implements Storable {
     UIHarness.INSTANCE.repaintWindow();
   }
 
-  private final void initTable() {
+  private void initTable() {
     usersColumn = CpuAdoc.getInstance(axisID).isUsersColumn();
     //build rows
     //get autodoc
@@ -147,21 +147,25 @@ public final class ProcessorTable implements Storable {
     //get first section
     SectionLocation sectionLocation = autodoc
         .getSectionLocation(CpuAdoc.SECTION_TYPE);
-    ReadOnlySection computer = autodoc.nextSection(sectionLocation);
+    ReadOnlySection section = autodoc.nextSection(sectionLocation);
     EtomoNumber number = new EtomoNumber(EtomoNumber.Type.INTEGER);
+    String userName = System.getProperty("user.name");
     //loop on sections
-    while (computer != null) {
+    while (section != null) {
       //get name of the section
-      String computerName = computer.getName();
+      String computerName = section.getName();
       //exclude any section with the "exclude-interface" attribute set to the
       //current interface
-      if (!manager.getInterfaceType().equals(
-          CpuAdoc.getInstance(axisID).getExcludeInterface(computerName))) {
+      CpuAdoc cpuAdoc = CpuAdoc.getInstance(axisID);
+      if (manager.getInterfaceType() != cpuAdoc
+          .getExcludeInterface(computerName)
+          && (cpuAdoc.isUsersEmpty(computerName) || cpuAdoc.findUser(
+              computerName, userName) != -1)) {
         //get the number attribute
         //set numberColumn to true if an number attribute is returned
         number.set(1);
         try {
-          number.set(computer.getAttribute("number").getValue());
+          number.set(section.getAttribute("number").getValue());
           numberColumn = true;
         }
         catch (NullPointerException e) {
@@ -170,7 +174,7 @@ public final class ProcessorTable implements Storable {
         //set typeColumn to true if an type attribute is returned
         String type = null;
         try {
-          type = computer.getAttribute("type").getValue();
+          type = section.getAttribute("type").getValue();
           typeColumn = true;
         }
         catch (NullPointerException e) {
@@ -179,7 +183,7 @@ public final class ProcessorTable implements Storable {
         //set speedColumn to true if an speed attribute is returned
         String speed = null;
         try {
-          speed = computer.getAttribute(SPEED_ADOC_KEY).getValue();
+          speed = section.getAttribute(SPEED_ADOC_KEY).getValue();
           speedColumn = true;
         }
         catch (NullPointerException e) {
@@ -188,7 +192,7 @@ public final class ProcessorTable implements Storable {
         //set memoryColumn to true if an memory attribute is returned
         String memory = null;
         try {
-          memory = computer.getAttribute(MEMORY_ADOC_KEY).getValue();
+          memory = section.getAttribute(MEMORY_ADOC_KEY).getValue();
           memoryColumn = true;
         }
         catch (NullPointerException e) {
@@ -197,7 +201,7 @@ public final class ProcessorTable implements Storable {
         //set osColumn to true if an os attribute is returned
         String os = null;
         try {
-          os = computer.getAttribute("os").getValue();
+          os = section.getAttribute("os").getValue();
           osColumn = true;
         }
         catch (NullPointerException e) {
@@ -209,7 +213,7 @@ public final class ProcessorTable implements Storable {
         rows.add(computerName, row);
       }
       //get the next section
-      computer = autodoc.nextSection(sectionLocation);
+      section = autodoc.nextSection(sectionLocation);
     }
     //create headers
     //header 1
@@ -251,7 +255,7 @@ public final class ProcessorTable implements Storable {
     setToolTipText();
   }
 
-  private final void buildTable() {
+  private void buildTable() {
     tablePanel = new JPanel();
     layout = new GridBagLayout();
     constraints = new GridBagConstraints();
@@ -358,29 +362,29 @@ public final class ProcessorTable implements Storable {
     }
   }
 
-  final Container getContainer() {
+  Container getContainer() {
     return scrollPane;
   }
 
-  final JPanel getTablePanel() {
+  JPanel getTablePanel() {
     return tablePanel;
   }
 
-  final GridBagLayout getTableLayout() {
+  GridBagLayout getTableLayout() {
     return layout;
   }
 
-  final GridBagConstraints getTableConstraints() {
+  GridBagConstraints getTableConstraints() {
     return constraints;
   }
 
-  final void resetResults() {
+  void resetResults() {
     for (int i = 0; i < rows.size(); i++) {
       ((ProcessorTableRow) rows.get(i)).resetResults();
     }
   }
 
-  final long getTotalSuccesses() {
+  long getTotalSuccesses() {
     long successes = 0;
     for (int i = 0; i < rows.size(); i++) {
       successes += ((ProcessorTableRow) rows.get(i)).getSuccesses();
@@ -388,14 +392,14 @@ public final class ProcessorTable implements Storable {
     return successes;
   }
 
-  final void msgCPUsSelectedChanged() {
+  void msgCPUsSelectedChanged() {
     if (rows == null) {
       return;
     }
     parent.msgCPUsSelectedChanged(getCPUsSelected());
   }
 
-  final int getCPUsSelected() {
+  int getCPUsSelected() {
     if (rows == null) {
       return 0;
     }
@@ -406,7 +410,7 @@ public final class ProcessorTable implements Storable {
     return cpusSelected;
   }
 
-  private class RunPack implements Runnable {
+  private final class RunPack implements Runnable {
     public void run() {
       JScrollPane scrollPane = getScrollPane();
       if (scrollPane == null) {
@@ -432,7 +436,7 @@ public final class ProcessorTable implements Storable {
     }
   }
 
-  final void pack() {
+  void pack() {
     SwingUtilities.invokeLater(new RunPack());
   }
 
@@ -442,7 +446,7 @@ public final class ProcessorTable implements Storable {
    * @param getExpandedHeight
    * @return
    */
-  protected final double getHeight() {
+  double getHeight() {
     int height = header1Computer.getHeight();
     if (height == 1) {
       height = 21;//guess the height if the top header cell is not displayed
@@ -484,11 +488,11 @@ public final class ProcessorTable implements Storable {
     return height;
   }
 
-  private final void calcMaximumHeight() {
+  private void calcMaximumHeight() {
 
   }
 
-  protected final double getWidth() {
+  double getWidth() {
     int width = header2Computer.getWidth();
     width += header2NumberCPUsUsed.getWidth();
     if (useNumberColumn()) {
@@ -517,27 +521,27 @@ public final class ProcessorTable implements Storable {
     return width;
   }
 
-  private final boolean useNumberColumn() {
+  private boolean useNumberColumn() {
     return numberColumn && expanded;
   }
 
-  private final boolean useTypeColumn() {
+  private boolean useTypeColumn() {
     return typeColumn && expanded;
   }
 
-  private final boolean useSpeedColumn() {
+  private boolean useSpeedColumn() {
     return speedColumn && expanded;
   }
 
-  private final boolean useMemoryColumn() {
+  private boolean useMemoryColumn() {
     return memoryColumn && expanded;
   }
 
-  private final boolean useOSColumn() {
+  private boolean useOSColumn() {
     return osColumn && expanded;
   }
 
-  final int getFirstSelectedIndex() {
+  int getFirstSelectedIndex() {
     if (rows == null) {
       return -1;
     }
@@ -550,7 +554,7 @@ public final class ProcessorTable implements Storable {
     return -1;
   }
 
-  final int getNextSelectedIndex(int lastIndex) {
+  int getNextSelectedIndex(int lastIndex) {
     if (rows == null) {
       return -1;
     }
@@ -563,7 +567,7 @@ public final class ProcessorTable implements Storable {
     return -1;
   }
 
-  final void getParameters(ProcesschunksParam param) {
+  void getParameters(ProcesschunksParam param) {
     if (rows == null) {
       return;
     }
@@ -572,7 +576,7 @@ public final class ProcessorTable implements Storable {
     }
   }
 
-  private final ProcessorTableRow getRow(String computer) {
+  private ProcessorTableRow getRow(String computer) {
     if (rows == null) {
       return null;
     }
@@ -585,7 +589,7 @@ public final class ProcessorTable implements Storable {
     return null;
   }
 
-  final void addRestart(String computer) {
+  void addRestart(String computer) {
     ProcessorTableRow row = getRow(computer);
     if (row == null) {
       return;
@@ -593,7 +597,7 @@ public final class ProcessorTable implements Storable {
     row.addRestart();
   }
 
-  final void addSuccess(String computer) {
+  void addSuccess(String computer) {
     ProcessorTableRow row = getRow(computer);
     if (row == null) {
       return;
@@ -601,7 +605,7 @@ public final class ProcessorTable implements Storable {
     row.addSuccess();
   }
 
-  final void msgDropped(String computer, String reason) {
+  void msgDropped(String computer, String reason) {
     ProcessorTableRow row = getRow(computer);
     if (row == null) {
       return;
@@ -609,13 +613,13 @@ public final class ProcessorTable implements Storable {
     row.msgDropped(reason);
   }
 
-  final String getHelpMessage() {
+  String getHelpMessage() {
     return "Click on check boxes in the " + header1Computer.getText()
         + " column and use the spinner in the " + header1NumberCPUs.getText()
         + " " + header2NumberCPUsUsed.getText() + " column where available.";
   }
 
-  final void startGetLoadAverage(ParallelPanel display) {
+  void startGetLoadAverage(ParallelPanel display) {
     if (rows == null) {
       return;
     }
@@ -625,7 +629,7 @@ public final class ProcessorTable implements Storable {
     }
   }
 
-  final void endGetLoadAverage(ParallelPanel display) {
+  void endGetLoadAverage(ParallelPanel display) {
     if (rows == null) {
       return;
     }
@@ -635,7 +639,7 @@ public final class ProcessorTable implements Storable {
     }
   }
 
-  final void stopGetLoadAverage(ParallelPanel display) {
+  void stopGetLoadAverage(ParallelPanel display) {
     if (rows == null) {
       return;
     }
@@ -645,8 +649,8 @@ public final class ProcessorTable implements Storable {
     }
   }
 
-  final void setLoadAverage(String computer, double load1, double load5,
-      int users, String usersTooltip) {
+  void setLoadAverage(String computer, double load1, double load5, int users,
+      String usersTooltip) {
     if (rows == null) {
       return;
     }
@@ -654,28 +658,28 @@ public final class ProcessorTable implements Storable {
         users, usersTooltip);
   }
 
-  final void setCPUUsage(String computer, double cpuUsage) {
+  void setCPUUsage(String computer, double cpuUsage) {
     if (rows == null) {
       return;
     }
     ((ProcessorTableRow) rows.get(computer)).setCPUUsage(cpuUsage);
   }
 
-  final void clearLoadAverage(String computer, String reason) {
+  void clearLoadAverage(String computer, String reason) {
     if (rows == null) {
       return;
     }
     ((ProcessorTableRow) rows.get(computer)).clearLoadAverage(reason);
   }
 
-  final void clearFailureReason(String computer, String failureReason) {
+  void clearFailureReason(String computer, String failureReason) {
     if (rows == null) {
       return;
     }
     ((ProcessorTableRow) rows.get(computer)).clearFailureReason(failureReason);
   }
 
-  final void clearFailureReason(boolean selectedComputers) {
+  void clearFailureReason(boolean selectedComputers) {
     if (rows == null) {
       return;
     }
@@ -710,11 +714,11 @@ public final class ProcessorTable implements Storable {
   /**
    *  Get the objects attributes from the properties object.
    */
-  public final void load(Properties props) {
+  public void load(Properties props) {
     load(props, "");
   }
 
-  public final void load(Properties props, String prepend) {
+  public void load(Properties props, String prepend) {
     if (rows == null) {
       return;
     }
@@ -730,11 +734,11 @@ public final class ProcessorTable implements Storable {
     }
   }
 
-  protected final JScrollPane getScrollPane() {
+  JScrollPane getScrollPane() {
     return scrollPane;
   }
 
-  protected final boolean isScrolling() {
+  boolean isScrolling() {
     return scrolling;
   }
 
@@ -795,6 +799,9 @@ public final class ProcessorTable implements Storable {
 }
 /**
  * <p> $Log$
+ * <p> Revision 1.42  2007/05/21 22:31:28  sueh
+ * <p> bug# 1000 In initTable(), excluding sections based on exclude-interface.
+ * <p>
  * <p> Revision 1.41  2007/05/21 18:11:22  sueh
  * <p> bug# 992 Added usersColumn.  Do not display Users column when
  * <p> usersColumn is false.
