@@ -118,6 +118,13 @@ public class LoadAverageParam implements IntermittentCommand {
     command.add("-x");
     command.add("-o");
     command.add("StrictHostKeyChecking=no");
+    command.add("-o");
+    //maximum connection timeout for a down computer
+    command.add("ConnectTimeout=5");
+    command.add("-o");
+    //prevents password prompts when the publickey authentication fails
+    command.add("PreferredAuthentications=publickey");
+    command.add("-v");
     command.add(computer);
 
     int commandSize = command.size();
@@ -150,6 +157,10 @@ public class LoadAverageParam implements IntermittentCommand {
 }
 /**
  * <p> $Log$
+ * <p> Revision 1.8  2007/02/22 20:34:58  sueh
+ * <p> bug# 964 In buildLocalCommand, matching the shell to the $SHELL variable if
+ * <p> $SHELL equals bash.
+ * <p>
  * <p> Revision 1.7  2006/02/08 03:34:40  sueh
  * <p> bug# 796 Use imodwindcpu instead of w for windows.
  * <p>
