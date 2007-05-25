@@ -1,5 +1,12 @@
 IMOD History
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+5/25/07: Added ssh options to both etomo and processchunks to keep ssh from
+asking for passwords when there is either no account or no passwordless
+access.  Processchunks also turns off strict host key checking.
+
+5/24/07: Added a dialog to 3dmod to save slicer angles in the model and reset
+slicer to the saved angles.
+
 5/22/07: IMOD_3-10-9
 5/22/07: Fixed bug in Blendmont (added in 3.10.5) that gave bad origin values.
 
