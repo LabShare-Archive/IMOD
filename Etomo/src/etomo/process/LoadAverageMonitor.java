@@ -6,6 +6,7 @@ import java.util.HashMap;
 import etomo.comscript.IntermittentCommand;
 import etomo.storage.CpuAdoc;
 import etomo.type.AxisID;
+import etomo.type.FailureReasonInterface;
 import etomo.ui.LoadAverageDisplay;
 import etomo.util.HashedArray;
 import etomo.util.Utilities;
@@ -29,7 +30,6 @@ public class LoadAverageMonitor implements IntermittentProcessMonitor, Runnable 
 
   private static final String OUTPUT_KEY_PHRASE = "load average";
   private static final String OUTPUT_KEY_PHRASE_WINDOWS = "Percent CPU usage";
-  private static final String FAILURE_REASON = "no connection";
 
   private final LoadAverageDisplay display;
   private final boolean usersColumn;
@@ -134,7 +134,8 @@ public class LoadAverageMonitor implements IntermittentProcessMonitor, Runnable 
       stopped = false;
       new Thread(this).start();
     }
-    display.msgStartingProcess(key, FAILURE_REASON);
+    display.msgStartingProcess(key, FailureReason.COMPUTER_DOWN.getReason(),
+        FailureReason.LOGIN_FAILED.getReason());
   }
 
   /**
@@ -146,9 +147,10 @@ public class LoadAverageMonitor implements IntermittentProcessMonitor, Runnable 
   private void processData(ProgramState programState) {
     //process standard out
     String[] stdout = programState.getStdOutput(this);
-    if (stdout == null) {
+    if (stdout == null || stdout.length == 0) {
       return;
     }
+    programState.msgReceivedData();
     double cpuUsage = -1;
     double load1 = -1;
     double load5 = -1;
@@ -209,7 +211,7 @@ public class LoadAverageMonitor implements IntermittentProcessMonitor, Runnable 
     return null;
   }
 
-  private final double getLoad(String load) {
+  private double getLoad(String load) {
     load = load.trim();
     if (load.charAt(load.length() - 1) == ',') {
       return Double.parseDouble(load.substring(0, load.length() - 1));
@@ -217,11 +219,12 @@ public class LoadAverageMonitor implements IntermittentProcessMonitor, Runnable 
     return Double.parseDouble(load);
   }
 
-  public final void msgIntermittentCommandFailed(IntermittentCommand command) {
+  public void msgIntermittentCommandFailed(IntermittentCommand command) {
     String key = command.getComputer();
     if (programs.containsKey(key)) {
-      display.msgLoadAverageFailed(key, FAILURE_REASON);
       ProgramState program = (ProgramState) programs.get(key);
+      FailureReasonInterface failureReason =program.getFailureReason();
+      display.msgLoadAverageFailed(key, failureReason.getReason(),failureReason.getTooltip());
       program.fail();
       if (allowRestarts) {
         program.restart();
@@ -229,7 +232,7 @@ public class LoadAverageMonitor implements IntermittentProcessMonitor, Runnable 
     }
   }
 
-  public final void msgSentIntermittentCommand(IntermittentCommand command) {
+  public void msgSentIntermittentCommand(IntermittentCommand command) {
     ProgramState programState = (ProgramState) programs.get(command
         .getComputer());
     if (programState == null) {
@@ -238,7 +241,7 @@ public class LoadAverageMonitor implements IntermittentProcessMonitor, Runnable 
     programState.incrementWaitForCommand();
   }
 
-  private final class ProgramState {
+  private static final class ProgramState {
     private final IntermittentBackgroundProcess program;
     //userMap:  convenience variable for counting the number of different users logged into a computer.
     private final HashMap userMap = new HashMap();
@@ -246,6 +249,7 @@ public class LoadAverageMonitor implements IntermittentProcessMonitor, Runnable 
 
     private int waitForCommand = 0;
     private boolean stopMonitoring = false;
+    private boolean receivedData = false;
 
     private ProgramState(IntermittentBackgroundProcess program) {
       this.program = program;
@@ -254,6 +258,10 @@ public class LoadAverageMonitor implements IntermittentProcessMonitor, Runnable 
     public String toString() {
       return "[program=" + program + ",\nwaitForCommand=" + waitForCommand
           + "," + super.toString() + "]";
+    }
+
+    private String[] getStdError() {
+      return program.getStdError();
     }
 
     boolean isStopped() {
@@ -296,6 +304,67 @@ public class LoadAverageMonitor implements IntermittentProcessMonitor, Runnable 
       return program.getStdOutput(monitor);
     }
 
+    /**
+     * sets receivedData to true, resets failureReason, and clears stderr.
+     */
+    void msgReceivedData() {
+      if (receivedData) {
+        return;
+      }
+      receivedData = true;
+      clearStdError();
+    }
+
+    void clearStdError() {
+      program.clearStdError();
+    }
+
+    /**
+     * Provide a failure reason if the state of stderr shows that the computer
+     * being ssh'ed to is down or the authentication failed.
+     * Sets the failure reason to non-null
+     * @param program
+     * @return
+     */
+    private synchronized FailureReasonInterface getFailureReason() {
+      //There was a failure, so failureReason must not be null
+      FailureReasonInterface failureReason = program.getFailureReason();
+      if (failureReason == null) {
+        program.setFailureReason(FailureReason.UNKOWN);
+      }
+      //If data has already been received, this is an unknown error
+      if (receivedData) {
+        program.setFailureReason(FailureReason.UNKOWN);
+        return FailureReason.UNKOWN;
+      }
+      //If stderr is empty but receivedData is false, return the existing failure reason
+      String[] stderr = getStdError();
+      if (stderr == null || stderr.length == 0) {
+        return failureReason;
+      }
+      //Try to set a failure reason from the information in stderr
+      boolean connectionSucceeded = false;
+      failureReason = FailureReason.UNKOWN;
+      for (int i = 0; i < stderr.length; i++) {
+        if (!connectionSucceeded) {
+          String line = stderr[i].toLowerCase();
+          if (line.indexOf("connecting to") != -1) {
+            failureReason = FailureReason.COMPUTER_DOWN;
+          }
+          else if (line.indexOf("next authentication") != -1) {
+            failureReason = FailureReason.LOGIN_FAILED;
+          }
+          else if (line.indexOf("authentication succeeded") != -1) {
+            //Not a connection failure.  Don't know why this failed.
+            connectionSucceeded = true;
+            failureReason = FailureReason.UNKOWN;
+          }
+        }
+      }
+      program.setFailureReason(failureReason);
+      return failureReason;
+    }
+
     void clearUsers() {
       userMap.clear();
       userList.clear();
@@ -321,9 +390,39 @@ public class LoadAverageMonitor implements IntermittentProcessMonitor, Runnable 
       return list.toString();
     }
   }
+
+  static final class FailureReason implements FailureReasonInterface{
+    static final FailureReason UNKOWN = new FailureReason("",
+        "Unable to get the load averages for this computer.");
+    static final FailureReason COMPUTER_DOWN = new FailureReason("down",
+        "This computer in not running.");
+    static final FailureReason LOGIN_FAILED = new FailureReason("no login",
+        "You must have an account on this computer.  "
+            + "You must also have a passwordless login on this computer.");
+
+    private final String reason;
+    private final String tooltip;
+
+    private FailureReason(String reason, String tooltip) {
+      this.reason = reason;
+      this.tooltip = tooltip;
+    }
+
+    public String getReason() {
+      return reason;
+    }
+
+    public String getTooltip() {
+      return tooltip;
+    }
+  }
 }
 /**
  * <p> $Log$
+ * <p> Revision 1.21  2007/05/21 18:10:13  sueh
+ * <p> bug# 992 Added usersColumn.  In processData(), not calculating users
+ * <p> when usersColumn is false.
+ * <p>
  * <p> Revision 1.20  2007/02/22 20:36:12  sueh
  * <p> bug# 964 Added allowRestarts to make it possible prevent all restarts.  Setting
  * <p> allowRestarts to false for now.
