@@ -665,18 +665,18 @@ public final class ProcessorTable implements Storable {
     ((ProcessorTableRow) rows.get(computer)).setCPUUsage(cpuUsage);
   }
 
-  void clearLoadAverage(String computer, String reason) {
+  void clearLoadAverage(String computer, String reason,String tooltip) {
     if (rows == null) {
       return;
     }
-    ((ProcessorTableRow) rows.get(computer)).clearLoadAverage(reason);
+    ((ProcessorTableRow) rows.get(computer)).clearLoadAverage(reason,tooltip);
   }
 
-  void clearFailureReason(String computer, String failureReason) {
+  void clearFailureReason(String computer, String failureReason1,String failureReason2) {
     if (rows == null) {
       return;
     }
-    ((ProcessorTableRow) rows.get(computer)).clearFailureReason(failureReason);
+    ((ProcessorTableRow) rows.get(computer)).clearFailureReason(failureReason1, failureReason2);
   }
 
   void clearFailureReason(boolean selectedComputers) {
@@ -799,6 +799,9 @@ public final class ProcessorTable implements Storable {
 }
 /**
  * <p> $Log$
+ * <p> Revision 1.43  2007/05/22 21:21:40  sueh
+ * <p> bug# 999 Checking CpuAdoc.users before adding a row.
+ * <p>
  * <p> Revision 1.42  2007/05/21 22:31:28  sueh
  * <p> bug# 1000 In initTable(), excluding sections based on exclude-interface.
  * <p>

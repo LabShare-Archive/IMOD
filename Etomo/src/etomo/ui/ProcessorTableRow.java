@@ -376,7 +376,7 @@ final class ProcessorTableRow implements Storable {
     cellComputer.setWarning(false);
   }
 
-  final void clearLoadAverage(String reason) {
+  final void clearLoadAverage(String reason, String tooltip) {
     String loadName;
     if (Utilities.isWindowsOS()) {
       loadName = "CPU usage";
@@ -393,13 +393,21 @@ final class ProcessorTableRow implements Storable {
     }
     setSelectedError();
     cellFailureReason.setValue(reason);
-    cellFailureReason.setToolTipText("Unable to get the " + loadName
-        + " for this computer.");
+    cellFailureReason.setToolTipText(tooltip);
+    //cellFailureReason.setToolTipText("Unable to get the " + loadName
+    //    + " for this computer.");
   }
 
-  final void clearFailureReason(String failureReason) {
+  /**
+   * Clear failure reason, if failure reason equals failureReason1 or 2.  This means
+   * that processes can only clear their own messages.  This is useful
+   * for restarting an intermittent process without losing the processchunks
+   * failure reason.
+   */
+  final void clearFailureReason(String failureReason1, String failureReason2) {
     String value = cellFailureReason.getValue();
-    if (value == null || !value.equals(failureReason)) {
+    if (value == null
+        || (!value.equals(failureReason1) && !value.equals(failureReason2))) {
       return;
     }
     clearFailureReason();
@@ -485,6 +493,10 @@ final class ProcessorTableRow implements Storable {
 }
 /**
  * <p> $Log$
+ * <p> Revision 1.29  2007/05/21 18:11:30  sueh
+ * <p> bug# 992 Added usersColumn.  Do not display Users column when
+ * <p> usersColumn is false.
+ * <p>
  * <p> Revision 1.28  2007/04/02 21:52:50  sueh
  * <p> bug# 964 Added FieldCell.editable to make instances of FieldCell that can't be
  * <p> edited.  This allows FieldCell.setEditable and setEnabled to be called without
