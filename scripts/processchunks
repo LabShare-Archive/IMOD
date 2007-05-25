@@ -16,6 +16,7 @@ set nice = 18
 @ maxchunkerr = 5
 set sleepsec = 2
 @ timeout = 30
+set sshopts = "-o ConnectTimeout=5 -o PreferredAuthentications=publickey -o StrictHostKeyChecking=no"
 
 if ($#argv < 2) then
 cat <<EOF
@@ -155,7 +156,7 @@ if ($skipprobe == 0 || $justgo == 0) then
                 w | head -n 1
                 set laststat = 0
             else
-                ssh -x $machname "hostname ; w | head -n 1"
+                ssh -x $sshopts $machname "hostname ; w | head -n 1"
                 set laststat = $status
 
                 # The SGI returns 141 for some strange reason so...
@@ -518,7 +519,7 @@ while ($numdone < $#comlist)
                 if ("$machname" == $hostroot || "$machname" == localhost) then
                     csh -ef < $cshname >& $pidname ; \rm -f $cshname &
                 else
-                    ssh -x $machname bash --login -c \'"cd $curdir && (csh -ef < $cshname >& $pidname ; \rm -f $cshname)"\' >&! $sshname &
+                    ssh -x $sshopts $machname bash --login -c \'"cd $curdir && (csh -ef < $cshname >& $pidname ; \rm -f $cshname)"\' >&! $sshname &
                 endif
             endif
         end 
@@ -629,7 +630,7 @@ while ($proc < $#machines)
                 if ("$machname" == $hostroot || "$machname" == localhost) then
                     sync
                 else
-                    ssh -x $machname sync
+                    ssh -x $sshopts $machname sync
                 endif
                 @ waited = 0
                 while (-z $pidname && $waited < 15)
@@ -646,7 +647,7 @@ while ($proc < $#machines)
                 # Kill a remote job in background and have this command clean
                 # up the PID file
                 #
-                ssh -x $machname bash --login -c \'"imodkillgroup $pid ; \rm -f $curdir/$pidname"\' &
+                ssh -x $sshopts $machname bash --login -c \'"imodkillgroup $pid ; \rm -f $curdir/$pidname"\' &
             endif
             set machkills = ($machkills $machname)
             set comkills = ($comkills $comlist[$ind])
@@ -707,6 +708,10 @@ exit 3
 
 #
 #  $Log$
+#  Revision 3.28  2007/05/03 23:49:42  mast
+#  Fixed bug when there is failure to run a sync file and improved error
+#  extraction from log; fixed bug when log file is empty and PID file exist
+#
 #  Revision 3.27  2007/03/05 22:34:10  mast
 #  Added finished output for sync
 #
