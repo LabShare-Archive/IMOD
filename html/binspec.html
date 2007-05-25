@@ -254,7 +254,7 @@ the model
 correctly when going between having a subset or the full image file loaded,
 or when displaying on an image file with different origin, scaling, or rotation
 angles in its header.  2) It is used by other programs to get back to the
-index coordinates of the full image file.  These data consist
+index coordinates of the full image file.  These data consist of
 9 floats for old transformation values
 followed by 9 floats for current transformation values.
 
@@ -498,4 +498,15 @@ Length Type     Name    Description
                             or triangles
                           For min/max type, this holds the max
 </pre>
+<HR>
+SLAN  Slicer angles and positions   (60 bytes)
+<br>These chunks contain time-specific sliger angles and positions as managed
+by the Slicer Angles dialog box.  (Added IMOD 3.10.10)
+<pre>
+4     int       time      Time value of image file to which angles apply
+12    float*3   angles    Rotation angles around X, Y, and Z axes
+12    float*3   center    Center coordinate of volume in slicer display
+32    char      label     Text label
+</pre>
+
 </body></html>

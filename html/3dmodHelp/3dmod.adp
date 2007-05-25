@@ -26,6 +26,7 @@
     <section ref="./imageProc.html" title="Image Processing"/>
     <section ref="./imageScale.html" title="Rescaling Images"/>
     <section ref="./finegrain.html" title="Fine Grain Control"/>
+    <section ref="./slicerAngles.html" title="Slicer Angle Storage"/>
     <section ref="./beadfix.html" title="Bead Fixer"/>
   </section>
   <section ref="./index.html" title="Model View Dialogs">
