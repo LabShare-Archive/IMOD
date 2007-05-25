@@ -100,6 +100,7 @@ InfoWindow::InfoWindow(QWidget * parent, const char * name, WFlags f)
   mEditMenu->insertItem("&Image", mEImageMenu); 
   mEditMenu->insertItem("M&ovies...", EDIT_MENU_MOVIES);
   mEditMenu->insertItem("&Fine Grain...", EDIT_MENU_GRAIN);
+  mEditMenu->insertItem("&Angles...", EDIT_MENU_ANGLES);
   mEditMenu->insertItem("Op&tions...", EDIT_MENU_PREFS);
 
   // Edit model submenu
@@ -398,6 +399,8 @@ void InfoWindow::openSelectedWindows(char *keys)
     return;
   if (strchr(keys, 'G'))
     editSlot(EDIT_MENU_GRAIN);
+  if (strchr(keys, 'A'))
+    editSlot(EDIT_MENU_ANGLES);
   if (strchr(keys, 'n'))
     editSlot(EDIT_MENU_MOVIES);
   if (strchr(keys, 't'))
@@ -538,6 +541,9 @@ static char *truncate_name(char *name, int limit)
 
 /*
     $Log$
+    Revision 4.36  2006/09/12 15:43:30  mast
+    Disable object delete and renumber if meshing
+
     Revision 4.35  2006/09/01 20:49:29  mast
     Added menu item to flatten contours in object
 

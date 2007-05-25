@@ -37,6 +37,7 @@
 #include "imod_moviecon.h"
 #include "imod_workprocs.h"
 #include "preferences.h"
+#include "form_slicerangle.h"
 //#include "imodv_input.h"
 
 
@@ -65,11 +66,14 @@ static void setMovieLimits(SlicerStruct *ss, int axis);
 static void findMovieAxis(SlicerStruct *ss, int *xmovie, int *ymovie, 
                           int *zmovie, int dir, int *axis);
 static void setInverseMatrix(SlicerStruct *ss);
+static SlicerStruct *getTopSlicer();
 
 /* DNM: maximum angles for sliders */
 static float maxAngle[3] = {90.0, 180.0, 180.0};
-static int ctrlPressed = false;
+static int ctrlPressed = 0;
 static bool pixelViewOpen = false;
+static SlicerAngleForm *sliceAngDia = NULL;
+static int sliderDragging = 0; 
 
 /*
  * Open up slicer help dialog.
@@ -168,6 +172,7 @@ void slicerAngleChanged(SlicerStruct *ss, int axis, int value,
   ivwControlPriority(ss->vi, ss->ctrl);
   ss->tang[axis] = value * 0.1f;
   ss->lastangle = axis;
+  sliderDragging = dragging;
 
   // Do complete redraw if not dragging or hot slider enabled
   if (!dragging || (hotSliderFlag() == HOT_SLIDER_KEYDOWN && ctrlPressed) ||
@@ -357,6 +362,29 @@ int sslice_open(struct ViewInfo *vi)
   return(0);
 }
 
+// Open or raise the slicer angle window
+int slicerAnglesOpen()
+{
+  if (sliceAngDia) {
+    sliceAngDia->raise();
+    return 0;
+  }
+  sliceAngDia = new SlicerAngleForm(imodDialogManager.parent(IMOD_DIALOG), 
+                                    "slicer angles", Qt::WType_TopLevel | 
+                                    Qt::WDestructiveClose);
+  if (!sliceAngDia)
+    return -1;
+  imodDialogManager.add((QWidget *)sliceAngDia, IMOD_DIALOG);
+  sliceAngDia->show();
+  return 0;
+}
+
+void slicerAnglesClosing()
+{
+  imodDialogManager.remove((QWidget *)sliceAngDia);
+  sliceAngDia = NULL;
+}
+
 // The pixel view window has opened or closed, set mouse tracking for all
 void slicerPixelViewState(bool state)
 {
@@ -377,15 +405,25 @@ void slicerPixelViewState(bool state)
 // Report the angles of the first slicer window
 void slicerReportAngles()
 {
+  SlicerStruct *ss = getTopSlicer();
+
+  if (!ss) {
+    imodPrintStderr("ERROR: No slicer windows open\n");
+    return;
+  }
+  imodPrintStderr("Slicer angles: %.1f %.1f %.1f\n", ss->tang[b3dX],
+                  ss->tang[b3dY], ss->tang[b3dZ]);
+}
+
+static SlicerStruct *getTopSlicer()
+{
   QObjectList objList;
   SlicerStruct *ss;
   int i, topOne;
 
   imodDialogManager.windowList(&objList, -1, SLICER_WINDOW_TYPE);
-  if (!objList.count()) {
-    imodPrintStderr("ERROR: No slicer windows open\n");
-    return;
-  }
+  if (!objList.count())
+    return NULL;
 
   topOne = -1;
   for (i = 0; i < objList.count(); i++) {
@@ -397,10 +435,64 @@ void slicerReportAngles()
   }
   if (topOne < 0)
     ss = ((SlicerWindow *)objList.at(0))->mSlicer;
-
-  imodPrintStderr("Slicer angles: %.1f %.1f %.1f\n", ss->tang[b3dX],
-                  ss->tang[b3dY], ss->tang[b3dZ]);
+  return ss;
 }
+
+int setTopSlicerAngles(float angles[3], Ipoint *center, bool draw)
+{
+  SlicerStruct *ss = getTopSlicer();
+  if (!ss)
+    return 1;
+  ss->tang[b3dX] = angles[0];
+  ss->tang[b3dY] = angles[1];
+  ss->tang[b3dZ] = angles[2];
+  ss->qtWindow->setAngles(ss->tang);
+  ss->cx = B3DMAX(0., B3DMIN(center->x, ss->vi->xsize - 1));
+  ss->cy = B3DMAX(0., B3DMIN(center->y, ss->vi->ysize - 1));
+  ss->cz = B3DMAX(0., B3DMIN(center->z, ss->vi->zsize - 1));
+  if (!ss->locked) {
+    ss->vi->xmouse = ss->cx;
+    ss->vi->ymouse = ss->cy;
+    ss->vi->zmouse = ss->cz;
+    if (draw)
+      imodDraw(ss->vi, IMOD_DRAW_XYZ | IMOD_DRAW_SLICE | IMOD_DRAW_ACTIVE);
+  } else if (draw) {
+    sslice_draw(ss);
+    sslice_showslice(ss);
+  }
+  return 0;
+}
+
+int getTopSlicerAngles(float angles[3], Ipoint *center, int &time)
+{
+  SlicerStruct *ss = getTopSlicer();
+  if (!ss)
+    return 1;
+  angles[0] = ss->tang[b3dX];
+  angles[1] = ss->tang[b3dY];
+  angles[2] = ss->tang[b3dZ];
+  center->x = ss->cx;
+  center->y = ss->cy;
+  center->z = ss->cz;
+  time = ss->vi->ct;
+  return 0;
+}
+
+int getTopSlicerTime()
+{
+  SlicerStruct *ss = getTopSlicer();
+  if (!ss)
+    return -1;
+  return ss->vi->ct;
+}
+
+// Notify the slicer angle dialog of a new time or general need to refresh
+void slicerNewTime(bool refresh)
+{
+  if (sliceAngDia)
+    sliceAngDia->newTime(refresh);
+}
+
 
 /* Broadcast position of this slice, and let other windows
  * show where this slice intersects with their views.
@@ -509,7 +601,7 @@ void slicerKeyInput(SlicerStruct *ss, QKeyEvent *event)
   case Qt::Key_X:
   case Qt::Key_Y:
   case Qt::Key_Z:
-    if (ctrl && keysym == Qt::Key_Z) {
+    if (ctrl && (keysym == Qt::Key_Z || keysym == Qt::Key_Y)) {
       handled = 0;
     } else {
       cont = imodContourGet(ss->vi->imod);
@@ -1594,8 +1686,12 @@ void slicerPaint(SlicerStruct *ss)
   if (ss->qtWindow->isMinimized())
     return;
 
-  if (!ss->imageFilled)
+  if (!ss->imageFilled) {
     fillImageArray(ss);
+    if (sliceAngDia && (getTopSlicer() == ss))
+      sliceAngDia->topSlicerDrawing(ss->tang, ss->cx, ss->cy, ss->cz, 
+                                    ss->vi->ct, sliderDragging);
+  }
 
   b3dSetCurSize(ss->winx, ss->winy);
 
@@ -1812,6 +1908,9 @@ void slicerCubePaint(SlicerStruct *ss)
 
 /*
 $Log$
+Revision 4.40  2007/03/29 04:55:49  mast
+Fixed crash bug when closing window while focus is in edit/spinbox
+
 Revision 4.39  2007/01/08 18:18:51  mast
 Fixed bug: Z coordinate from mouse point was limited by X not Z size
 

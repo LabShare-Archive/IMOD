@@ -32,7 +32,7 @@ class QMouseEvent;
 struct ViewInfo;
 typedef struct b3d_ci_image B3dCIImage;
 typedef struct imodel_matrix Imat;
-
+typedef struct Mod_Point Ipoint;
 
 typedef struct Super_slicer{
 
@@ -121,11 +121,19 @@ float slicerGetZScaleBefore(SlicerStruct *ss);
 void slicerSetForwardMatrix(SlicerStruct *ss);
 int slicerAnglesFromContour(SlicerStruct *ss);
 void slicerCheckMovieLimits(SlicerStruct *ss);
-
+int setTopSlicerAngles(float angles[3], Ipoint *center, bool draw);
+int getTopSlicerAngles(float angles[3], Ipoint *center, int &time);
+int getTopSlicerTime();
+int slicerAnglesOpen();
+void slicerAnglesClosing();
+void slicerNewTime(bool refresh);
 #endif
 
 /*
     $Log$
+    Revision 3.12  2007/03/29 04:55:49  mast
+    Fixed crash bug when closing window while focus is in edit/spinbox
+
     Revision 3.11  2006/10/12 19:02:55  mast
     Added toolbar button for W function
 

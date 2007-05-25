@@ -737,7 +737,7 @@ void fillImageArray(SlicerStruct *ss)
   // Use threads if image is big enough
   if (numThreads > 1 && jsize > 8 * numThreads && 
       isize * ksize > 200000 / jsize) {
-    if (Imod_debug)
+    if (imodDebug('s'))
       imodPrintStderr("%d threads - ", numThreads);
     for (i = 0; i < numThreads; i++) {
       threads[i] = new SlicerThread((i * jsize) / numThreads, 
@@ -853,7 +853,7 @@ void fillImageArray(SlicerStruct *ss)
   }
   ss->xzoom = xzoom;
   ss->yzoom = yzoom;
-  if (Imod_debug)
+  if (imodDebug('s'))
     imodPrintStderr("Fill time %d\n", fillTime.elapsed());
   return;
 }
@@ -1166,6 +1166,9 @@ static void fillArraySegment(int jstart, int jlimit)
 
  /*
 $Log$
+Revision 4.14  2006/10/12 19:02:55  mast
+Added toolbar button for W function
+
 Revision 4.13  2006/10/06 19:38:08  mast
 Made array filling routine multithreaded and moved it here
 

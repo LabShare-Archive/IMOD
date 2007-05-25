@@ -519,7 +519,7 @@ void SlicerAngleForm::topSlicerDrawing( float *angles, float cx, float cy, float
   
   // If in continuous mode, check for change in the row
   if (mContinuous) {
-    imodPrintStderr("updating row %d\n", mCurRow[mCurTime]);
+    //imodPrintStderr("updating row %d\n", mCurRow[mCurTime]);
     slanp = findAngles(mCurRow[mCurTime], index);
     if (slanp && (angles[0] != slanp->angles[0] || angles[1] != slanp->angles[1] ||
         angles[2] != slanp->angles[2]  || cx != slanp->center.x || cy != slanp->center.y

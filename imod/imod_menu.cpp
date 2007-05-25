@@ -256,6 +256,9 @@ void InfoWindow::editSlot(int item)
   case EDIT_MENU_GRAIN:
     fineGrainOpen(App->cvi);
     break;
+  case EDIT_MENU_ANGLES:
+    slicerAnglesOpen();
+    break;
   case EDIT_MENU_PREFS:
     ImodPrefs->editPrefs();
     break;
@@ -1202,6 +1205,9 @@ static int imodContourBreakByZ(ImodView *vi, Iobj *obj, int ob, int co)
 
 /*
   $Log$
+  Revision 4.29  2006/09/30 02:12:30  mast
+  Use open/closed messages for contour length, treat 2-pt contour as open
+
   Revision 4.28  2006/09/01 20:49:29  mast
   Added menu item to flatten contours in object
 

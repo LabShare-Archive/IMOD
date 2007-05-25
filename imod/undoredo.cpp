@@ -6,38 +6,10 @@
  *  Copyright (C) 1995-2004 by Boulder Laboratory for 3-Dimensional Electron
  *  Microscopy of Cells ("BL3DEMC") and the Regents of the University of 
  *  Colorado.  See dist/COPYRIGHT for full copyright notice.
+ *
+ *  $Id$
+ *  Log at end of file
  */
-
-/*  $Author$
-
-    $Date$
-
-    $Revision$
-
-    $Log$
-    Revision 4.7  2006/03/01 18:19:04  mast
-    Made backup unit list quantum be 32, and pruned 1/10 of list at a time
-    when the limit is reached to reduce overhead
-
-    Revision 4.6  2005/10/24 18:35:53  mast
-    Added some info on store size to debug output
-
-    Revision 4.5  2005/06/29 05:37:52  mast
-    Changes for fine grain properties
-
-    Revision 4.4  2005/03/20 19:55:37  mast
-    Eliminating duplicate functions
-
-    Revision 4.3  2005/02/24 22:31:06  mast
-    Added some debugging output
-
-    Revision 4.2  2004/11/21 05:54:41  mast
-    Changes for working from model view; essay added
-
-    Revision 4.1  2004/11/20 05:04:55  mast
-    Initial addition to program
-
-*/
 
 /* This module records various kinds of changes to the model so that changes 
    can be undone and redone.  An individual change is specified by one call
@@ -105,6 +77,7 @@
 #include "imod_info_cb.h"
 #include "imod_info.h"
 #include "form_info.h"
+#include "sslice.h"
 
 UndoRedo::UndoRedo(ImodView *vi)
 {
@@ -400,6 +373,7 @@ void UndoRedo::modelChange(int type, Ipoint *point)
     item.p.mod->fileName = NULL;
     item.p.mod->refImage = NULL;
     item.p.mod->store = ilistDup(mod->store);
+    item.p.mod->slicerAng = ilistDup(mod->slicerAng);
 
     // Copy the views
     if (mod->viewsize) {
@@ -1011,6 +985,12 @@ int UndoRedo::exchangeModels(UndoChange *change, BackupItem *item)
   if (!item)
     return NoBackupItem;
 
+  if (imodDebug('u'))
+    imodPrintStderr("Exchanging model, angles model %x item %x size model %d" 
+                    " item %d\n", mod->slicerAng, item->p.mod->slicerAng,
+                    ilistSize(mod->slicerAng), 
+                    ilistSize(item->p.mod->slicerAng));
+
   // Exchange the structures
   temp = *mod; 
   *mod = *(item->p.mod);
@@ -1025,6 +1005,7 @@ int UndoRedo::exchangeModels(UndoChange *change, BackupItem *item)
   item->p.mod->fileName = NULL;
   item->p.mod->refImage = NULL;
   change->bytes = modelBytes(item->p.mod);
+  slicerNewTime(true);
   if (!ImodvClosed)
     imodvUpdateModel(Imodv, false);
   return NoError;
@@ -1064,6 +1045,7 @@ int UndoRedo::contourBytes(Icont *cont)
   if (cont->sizes)
     count += cont->psize * sizeof(b3dFloat);
   count += labelBytes(cont->label);
+  count += ilistSize(cont->store) * sizeof(Istore);
   return count;
 }
 
@@ -1094,6 +1076,7 @@ int UndoRedo::objectBytes(Iobj *obj)
       count += sizeof(Imesh) + obj->mesh[i].vsize * sizeof(Ipoint) +
         obj->mesh[i].lsize * sizeof(b3dInt32);
   }
+  count += ilistSize(obj->store) * sizeof(Istore);
   return count;
 }
 
@@ -1106,6 +1089,8 @@ int UndoRedo::modelBytes(Imod *mod)
     count += sizeof(IrefImage);
   for (i = 0; i < mod->viewsize; i++)
     count += sizeof(Iview) + mod->view[i].objvsize * sizeof(Iobjview);
+  count += ilistSize(mod->store) * sizeof(Istore);
+  count += ilistSize(mod->slicerAng) * sizeof(SlicerAngles);
   return count;
 }
 
@@ -1269,3 +1254,32 @@ BackupItem *UndoRedo::findPoolItem(int ID)
   return NULL;
 }
  
+/*
+  $Log$
+  Revision 4.8  2006/09/12 15:45:49  mast
+  Changes for mesh parameters
+  
+  Revision 4.7  2006/03/01 18:19:04  mast
+  Made backup unit list quantum be 32, and pruned 1/10 of list at a time
+  when the limit is reached to reduce overhead
+  
+  Revision 4.6  2005/10/24 18:35:53  mast
+  Added some info on store size to debug output
+  
+  Revision 4.5  2005/06/29 05:37:52  mast
+  Changes for fine grain properties
+  
+  Revision 4.4  2005/03/20 19:55:37  mast
+  Eliminating duplicate functions
+  
+  Revision 4.3  2005/02/24 22:31:06  mast
+  Added some debugging output
+  
+  Revision 4.2  2004/11/21 05:54:41  mast
+  Changes for working from model view; essay added
+  
+  Revision 4.1  2004/11/20 05:04:55  mast
+  Initial addition to program
+
+*/
+

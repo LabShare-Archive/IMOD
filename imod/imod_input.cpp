@@ -617,6 +617,7 @@ void inputNextTime(ImodView *vw)
   time++;
   /*     inputSetModelTime(vw, time); */
   ivwSetTime(vw, time);
+  slicerNewTime(false);
   imodDraw(vw, IMOD_DRAW_ALL);
 }
 
@@ -640,6 +641,7 @@ void inputPrevTime(ImodView *vw)
   time--;
   /*     inputSetModelTime(vw, time); */
   ivwSetTime(vw, time);
+  slicerNewTime(false);
   imodDraw(vw, IMOD_DRAW_ALL);
 }
 
@@ -1345,6 +1347,9 @@ bool inputTestMetaKey(QKeyEvent *event)
 
 /*
 $Log$
+Revision 4.28  2006/09/18 15:51:51  mast
+Stopped time movie with a time step action
+
 Revision 4.27  2006/09/12 15:46:14  mast
 Handled contour member renames
 
