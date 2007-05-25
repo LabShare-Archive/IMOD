@@ -6,6 +6,7 @@ import java.util.Hashtable;
 import etomo.BaseManager;
 import etomo.comscript.IntermittentCommand;
 import etomo.type.AxisID;
+import etomo.type.FailureReasonInterface;
 import etomo.util.HashedArray;
 import etomo.util.RemotePath;
 
@@ -62,7 +63,7 @@ import etomo.util.RemotePath;
  * @version $Revision$
  */
 
-public class IntermittentBackgroundProcess implements Runnable {
+public final class IntermittentBackgroundProcess implements Runnable {
   public static final String rcsid = "$Id$";
 
   private static Hashtable instances = new Hashtable();//one instance per IntermittentCommand instance
@@ -82,35 +83,36 @@ public class IntermittentBackgroundProcess implements Runnable {
   //there is a lot more standard output then there is for a single command, and
   //processing it can slow Etomo down.
   private String outputKeyPhrase = null;
+  //failureReason is null unless the process fails
+  private FailureReasonInterface failureReason = null;
 
   public String toString() {
     return "[stopped=" + stopped + "," + super.toString() + "]";
   }
 
-  static final void startInstance(BaseManager manager,
-      IntermittentCommand command, IntermittentProcessMonitor monitor) {
+  static void startInstance(BaseManager manager, IntermittentCommand command,
+      IntermittentProcessMonitor monitor) {
     getInstance(manager, command, monitor).start(monitor);
   }
 
-  static final void endInstance(BaseManager manager,
-      IntermittentCommand command, IntermittentProcessMonitor monitor) {
+  static void endInstance(BaseManager manager, IntermittentCommand command,
+      IntermittentProcessMonitor monitor) {
     IntermittentBackgroundProcess intermittentBackgroundProcess = getInstance(command);
     if (intermittentBackgroundProcess != null) {
       intermittentBackgroundProcess.end(monitor);
     }
   }
 
-  static final void stopInstance(BaseManager manager,
-      IntermittentCommand command, IntermittentProcessMonitor monitor) {
+  static void stopInstance(BaseManager manager, IntermittentCommand command,
+      IntermittentProcessMonitor monitor) {
     IntermittentBackgroundProcess intermittentBackgroundProcess = getInstance(command);
     if (intermittentBackgroundProcess != null) {
       intermittentBackgroundProcess.stop(monitor);
     }
   }
 
-  private static final IntermittentBackgroundProcess getInstance(
-      BaseManager manager, IntermittentCommand command,
-      IntermittentProcessMonitor monitor) {
+  private static IntermittentBackgroundProcess getInstance(BaseManager manager,
+      IntermittentCommand command, IntermittentProcessMonitor monitor) {
     IntermittentBackgroundProcess intermittentBackgroundProcess = getInstance(command);
     if (intermittentBackgroundProcess == null) {
       return createInstance(manager, command, monitor);
@@ -118,12 +120,12 @@ public class IntermittentBackgroundProcess implements Runnable {
     return intermittentBackgroundProcess;
   }
 
-  private static final IntermittentBackgroundProcess getInstance(
+  private static IntermittentBackgroundProcess getInstance(
       IntermittentCommand command) {
     return (IntermittentBackgroundProcess) instances.get(command);
   }
 
-  private static synchronized final IntermittentBackgroundProcess createInstance(
+  private static synchronized IntermittentBackgroundProcess createInstance(
       BaseManager manager, IntermittentCommand command,
       IntermittentProcessMonitor monitor) {
     IntermittentBackgroundProcess intermittentBackgroundProcess = getInstance(command);
@@ -145,7 +147,7 @@ public class IntermittentBackgroundProcess implements Runnable {
     }
   }
 
-  private synchronized final void start(IntermittentProcessMonitor monitor) {
+  private synchronized void start(IntermittentProcessMonitor monitor) {
     boolean newMonitor = false;
     //run the instance, if it is not running
     //this is the only place that stopped should be set to false
@@ -185,7 +187,7 @@ public class IntermittentBackgroundProcess implements Runnable {
    * manager exits.
    * @param monitor
    */
-  synchronized final void end(IntermittentProcessMonitor monitor) {
+  synchronized void end(IntermittentProcessMonitor monitor) {
     stop(monitor);
     monitors.remove(monitor);
   }
@@ -223,7 +225,7 @@ public class IntermittentBackgroundProcess implements Runnable {
    * Drop all the monitors from the program.  Stop this process.  This is used
    * when the process fails.
    */
-  synchronized final void fail() {
+  synchronized void fail() {
     if (program != null) {
       for (int i = 0; i < monitors.size(); i++) {
         program.msgDroppedMonitor((IntermittentProcessMonitor) monitors.get(i));
@@ -236,7 +238,8 @@ public class IntermittentBackgroundProcess implements Runnable {
     return stopped;
   }
 
-  public final void run() {
+  public void run() {
+    failureReason = null;
     //use a local SystemProgram because stops and starts may overlap
     IntermittentSystemProgram localProgram;
     if (RemotePath.INSTANCE.isLocalSection(command.getComputer(), manager,
@@ -285,17 +288,42 @@ public class IntermittentBackgroundProcess implements Runnable {
       }
     }
     try {
-      localProgram.setCurrentStdInput(command.getEndCommand());
+      if (failureReason != null && failureReason.equals("")) {
+        //If there was a problem and we don't know what it is (see
+        //LoadAverageMonitor.ProgramState.getFailureReason()), then destroy the
+        //process.  Processes with identified problems should fail naturally
+        //because we are setting the PreferredAuthentications option in ssh.
+        localProgram.destroy();
+      }
+      else {
+        localProgram.setCurrentStdInput(command.getEndCommand());
+      }
     }
     catch (IOException e) {
+      localProgram.destroy();
     }
   }
 
-  final IntermittentCommand getCommand() {
+  IntermittentCommand getCommand() {
     return command;
   }
 
-  final String[] getStdOutput(IntermittentProcessMonitor monitor) {
+  FailureReasonInterface getFailureReason() {
+    return failureReason;
+  }
+
+  void setFailureReason(FailureReasonInterface input) {
+    failureReason = input;
+  }
+
+  void clearStdError() {
+    if (program == null) {
+      return;
+    }
+    program.clearStdError();
+  }
+
+  String[] getStdOutput(IntermittentProcessMonitor monitor) {
     //don't get output for a stopped monitor because this would make
     //OutputBufferManager start saving output for the monitor
     if (program == null || monitors == null || !monitors.containsKey(monitor)) {
@@ -304,7 +332,16 @@ public class IntermittentBackgroundProcess implements Runnable {
     return program.getStdOutput(monitor);
   }
 
-  final void setCurrentStdInput(String input) {
+  String[] getStdError() {
+    //don't get error for a stopped monitor because this would make
+    //OutputBufferManager start saving output for the monitor
+    if (program == null) {
+      return null;
+    }
+    return program.getStdError();
+  }
+
+  void setCurrentStdInput(String input) {
     if (program == null || stopped) {
       return;
     }
@@ -447,6 +484,10 @@ public class IntermittentBackgroundProcess implements Runnable {
 }
 /**
  * <p> $Log$
+ * <p> Revision 1.5  2006/11/28 23:54:10  sueh
+ * <p> bug# 934 Added RestartThread.  Added functions fail, restartAll, restart,
+ * <p> endRestartThread, and end.  Fixed stop so that it doesn't remove the monitor.
+ * <p>
  * <p> Revision 1.4  2006/03/16 01:51:39  sueh
  * <p> Avoiding null pointer exception in stop().
  * <p>
