@@ -20,12 +20,16 @@ public interface LoadAverageDisplay {
   
   public LoadAverageMonitor getLoadAverageMonitor();
   public void setLoadAverage(String computer, double load1, double load5, int users, String usersTooltip);
-  public void msgLoadAverageFailed(String computer, String reason);
-  public void msgStartingProcess(String computer, String failureReason);
+  public void msgLoadAverageFailed(String computer, String reason,String tooltip);
+  public void msgStartingProcess(String computer, String failureReason1,String failureReason2);
   public void setCPUUsage(String computer, double CPUUsage);
 }
 /**
 * <p> $Log$
+* <p> Revision 1.10  2006/11/29 00:19:37  sueh
+* <p> bug# 934 Added the parameter String failureReason to msgStarting(), so that it
+* <p> won't delete a failure reason by another processes.
+* <p>
 * <p> Revision 1.9  2006/11/18 00:49:13  sueh
 * <p> bug# 936 Parallel Processing:  added user list tooltip to user column.
 * <p>

@@ -58,7 +58,8 @@ public final class ParallelPanel implements ParallelProgressDisplay,
   private final ParallelPanelActionListener actionListener = new ParallelPanelActionListener(
       this);
   private final LabeledTextField ltfCPUsSelected = new LabeledTextField(
-      "CPUs selected: ");
+      "CPUs: ");
+      //"CPUs selected: ");
   private final LabeledTextField ltfChunksFinished = new LabeledTextField(
       "Chunks finished: ");
   private final MultiLineButton btnResume = new MultiLineButton("Resume");
@@ -67,6 +68,7 @@ public final class ParallelPanel implements ParallelProgressDisplay,
       "Save As Defaults");
   private final SpacedPanel bodyPanel = new SpacedPanel();
   private final JPanel rootPanel = new JPanel();
+  private final MultiLineButton btnRestartLoad = new MultiLineButton("Restart Load");
 
   private final BaseManager manager;
   private final AxisID axisID;
@@ -105,6 +107,7 @@ public final class ParallelPanel implements ParallelProgressDisplay,
     southPanel.setBoxLayout(BoxLayout.X_AXIS);
     //southPanel;
     southPanel.add(ltfCPUsSelected);
+    southPanel.add(btnRestartLoad);
     //sNice
     CpuAdoc cpuAdoc = CpuAdoc.getInstance(axisID);
     if (cpuAdoc.isMinNiceNull()) {
@@ -417,22 +420,22 @@ public final class ParallelPanel implements ParallelProgressDisplay,
   }
 
   /**
-   * Clears the load average from the display.  Done not ask the monitor to
+   * Clears the load average from the display.  Does not ask the monitor to
    * drop the computer because processchunks handles this very well, and it is
    * possible that the computer may still be available.
    */
-  public void msgLoadAverageFailed(String computer, String reason) {
-    processorTable.clearLoadAverage(computer, reason);
+  public void msgLoadAverageFailed(String computer, String reason,String tooltip) {
+    processorTable.clearLoadAverage(computer, reason,tooltip);
   }
 
   /**
-   * Clear failure reason, if failure reason equals failureReason.  This means
+   * Clear failure reason, if failure reason equals failureReason1 or 2.  This means
    * that intermittent processes only clear their own messages.  This is useful
    * for restarting an intermittent process without losing the processchunks
    * failure reason.
    */
-  public void msgStartingProcess(String computer, String failureReason) {
-    processorTable.clearFailureReason(computer, failureReason);
+  public void msgStartingProcess(String computer, String failureReason1,String failureReason2) {
+    processorTable.clearFailureReason(computer, failureReason1,failureReason2);
   }
 
   public void msgStartingProcessOnSelectedComputers() {
@@ -488,6 +491,10 @@ public final class ParallelPanel implements ParallelProgressDisplay,
 }
 /**
  * <p> $Log$
+ * <p> Revision 1.51  2007/05/22 21:20:58  sueh
+ * <p> bug# 999 Removing "final" from functions because the whole class is
+ * <p> already final.
+ * <p>
  * <p> Revision 1.50  2007/05/21 22:30:25  sueh
  * <p> bug# 1000 Passing the manager to ParallelPanel.
  * <p>
