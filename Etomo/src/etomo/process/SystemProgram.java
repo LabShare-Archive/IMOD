@@ -17,6 +17,10 @@
  * @version $Revision$
  *
  * <p> $Log$
+ * <p> Revision 3.33  2006/06/07 17:47:03  sueh
+ * <p> bug# 766 Avoiding null pointer exceptions in run() by checking stdout and
+ * <p> stderr.
+ * <p>
  * <p> Revision 3.32  2006/06/05 16:10:46  sueh
  * <p> bug# 766 Removed the constructor with the multi line messages boolean
  * <p> because all the processes that are created with an ArrayList are already using
@@ -263,8 +267,8 @@ public class SystemProgram implements Runnable {
   private int exitValue = Integer.MIN_VALUE;
   private final String[] commandArray;
   private String[] stdInput = null;
-  protected OutputBufferManager stdout = null;
-  private OutputBufferManager stderr = null;
+  OutputBufferManager stdout = null;
+  OutputBufferManager stderr = null;
   private File workingDirectory = null;
   private String exceptionMessage = "";
   private boolean started = false;
@@ -277,6 +281,7 @@ public class SystemProgram implements Runnable {
   private boolean acceptInputWhileRunning = false;
   private final ProcessMessages processMessages;
   private StringBuffer commandLine = null;
+  private Process process = null;
 
   /**
    * Creates a SystemProgram object to execute the program specified by the
@@ -287,8 +292,7 @@ public class SystemProgram implements Runnable {
    * that SystemProgram(String[] arg) for be used so that spaces are not
    * accidentally lost in path or arguments. 
    */
-  public SystemProgram(String propertyUserDir, ArrayList command,
-      AxisID axisID) {
+  public SystemProgram(String propertyUserDir, ArrayList command, AxisID axisID) {
     this.propertyUserDir = propertyUserDir;
     this.axisID = axisID;
     processMessages = ProcessMessages.getMultiLineInstance();
@@ -369,7 +373,7 @@ public class SystemProgram implements Runnable {
     }
 
     //  Setup the Process object and run the command
-    Process process = null;
+    process=null;
     try {
       if (debug)
         System.err.print("SystemProgram: Exec'ing process...");
@@ -554,19 +558,26 @@ public class SystemProgram implements Runnable {
     //  Set the done flag for the thread
     done = true;
   }
+  
+  void destroy() {
+    if (process==null) {
+      return;
+    }
+    process.destroy();
+  }
 
-  protected OutputBufferManager newOutputBufferManager(BufferedReader cmdBuffer) {
+  OutputBufferManager newOutputBufferManager(BufferedReader cmdBuffer) {
     return new OutputBufferManager(cmdBuffer);
   }
 
-  protected OutputBufferManager newErrorBufferManager(BufferedReader cmdBuffer) {
+  OutputBufferManager newErrorBufferManager(BufferedReader cmdBuffer) {
     return new OutputBufferManager(cmdBuffer);
   }
 
   /**
    *
    */
-  protected void waitForProcess() {
+  void waitForProcess() {
     try {
       Thread.sleep(100);
     }
@@ -580,7 +591,7 @@ public class SystemProgram implements Runnable {
    * @param process
    * @return
    */
-  protected int getProcessExitValue(Process process) {
+  int getProcessExitValue(Process process) {
     return process.exitValue();
   }
 
