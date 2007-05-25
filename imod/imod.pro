@@ -148,7 +148,8 @@ FORMS	= form_object_edit.ui \
 	form_mouse.ui \
 	form_startup.ui \
 	form_rawimage.ui \
-	form_finegrain.ui
+	form_finegrain.ui \
+	form_slicerangle.ui
 
 IMAGES	= uparrow.png \
 	downarrow.png \

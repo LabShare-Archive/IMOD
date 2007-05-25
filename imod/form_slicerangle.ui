@@ -1,0 +1,587 @@
+<!DOCTYPE UI><UI version="3.3" stdsetdef="1">
+<class>SlicerAngleForm</class>
+<widget class="QWidget">
+    <property name="name">
+        <cstring>SlicerAngleForm</cstring>
+    </property>
+    <property name="geometry">
+        <rect>
+            <x>0</x>
+            <y>0</y>
+            <width>473</width>
+            <height>310</height>
+        </rect>
+    </property>
+    <property name="caption">
+        <string>3dmod Slicer Angles</string>
+    </property>
+    <vbox>
+        <property name="name">
+            <cstring>unnamed</cstring>
+        </property>
+        <property name="margin">
+            <number>6</number>
+        </property>
+        <widget class="QLayoutWidget">
+            <property name="name">
+                <cstring>layout27</cstring>
+            </property>
+            <hbox>
+                <property name="name">
+                    <cstring>unnamed</cstring>
+                </property>
+                <widget class="QGroupBox">
+                    <property name="name">
+                        <cstring>groupBox17</cstring>
+                    </property>
+                    <property name="title">
+                        <string>Row operations</string>
+                    </property>
+                    <grid>
+                        <property name="name">
+                            <cstring>unnamed</cstring>
+                        </property>
+                        <property name="margin">
+                            <number>6</number>
+                        </property>
+                        <property name="spacing">
+                            <number>5</number>
+                        </property>
+                        <widget class="QPushButton" row="0" column="0">
+                            <property name="name">
+                                <cstring>getButton</cstring>
+                            </property>
+                            <property name="focusPolicy">
+                                <enum>NoFocus</enum>
+                            </property>
+                            <property name="text">
+                                <string>Get Angles</string>
+                            </property>
+                            <property name="toolTip" stdset="0">
+                                <string>Get angles and position from top slicer into current row</string>
+                            </property>
+                        </widget>
+                        <widget class="QPushButton" row="1" column="0">
+                            <property name="name">
+                                <cstring>setButton</cstring>
+                            </property>
+                            <property name="focusPolicy">
+                                <enum>NoFocus</enum>
+                            </property>
+                            <property name="text">
+                                <string>Set Angles</string>
+                            </property>
+                            <property name="toolTip" stdset="0">
+                                <string>Set top slicer to angles and position into current row</string>
+                            </property>
+                        </widget>
+                        <widget class="QPushButton" row="0" column="1">
+                            <property name="name">
+                                <cstring>deleteButton</cstring>
+                            </property>
+                            <property name="focusPolicy">
+                                <enum>NoFocus</enum>
+                            </property>
+                            <property name="text">
+                                <string>Delete</string>
+                            </property>
+                            <property name="toolTip" stdset="0">
+                                <string>Delete the current row from the table</string>
+                            </property>
+                        </widget>
+                        <widget class="QPushButton" row="1" column="1">
+                            <property name="name">
+                                <cstring>newButton</cstring>
+                            </property>
+                            <property name="focusPolicy">
+                                <enum>NoFocus</enum>
+                            </property>
+                            <property name="text">
+                                <string>New Row</string>
+                            </property>
+                            <property name="toolTip" stdset="0">
+                                <string>Add a row to the table with the current slicer position</string>
+                            </property>
+                        </widget>
+                    </grid>
+                </widget>
+                <spacer>
+                    <property name="name">
+                        <cstring>spacer48</cstring>
+                    </property>
+                    <property name="orientation">
+                        <enum>Horizontal</enum>
+                    </property>
+                    <property name="sizeType">
+                        <enum>Expanding</enum>
+                    </property>
+                    <property name="sizeHint">
+                        <size>
+                            <width>16</width>
+                            <height>20</height>
+                        </size>
+                    </property>
+                </spacer>
+                <widget class="QGroupBox">
+                    <property name="name">
+                        <cstring>volumeGroup</cstring>
+                    </property>
+                    <property name="title">
+                        <string>Operations on volume angle sets</string>
+                    </property>
+                    <grid>
+                        <property name="name">
+                            <cstring>unnamed</cstring>
+                        </property>
+                        <property name="margin">
+                            <number>6</number>
+                        </property>
+                        <property name="spacing">
+                            <number>5</number>
+                        </property>
+                        <widget class="QPushButton" row="0" column="0">
+                            <property name="name">
+                                <cstring>removeButton</cstring>
+                            </property>
+                            <property name="focusPolicy">
+                                <enum>NoFocus</enum>
+                            </property>
+                            <property name="text">
+                                <string>Remove</string>
+                            </property>
+                            <property name="toolTip" stdset="0">
+                                <string>Delete all rows for this time and shift times down for sets at higher time</string>
+                            </property>
+                        </widget>
+                        <widget class="QPushButton" row="1" column="0">
+                            <property name="name">
+                                <cstring>insertButton</cstring>
+                            </property>
+                            <property name="focusPolicy">
+                                <enum>NoFocus</enum>
+                            </property>
+                            <property name="text">
+                                <string>Insert</string>
+                            </property>
+                            <property name="toolTip" stdset="0">
+                                <string>Insert empty set of angles, shifting sets at this and higher times up one in time</string>
+                            </property>
+                        </widget>
+                        <widget class="QSpinBox" row="1" column="2">
+                            <property name="name">
+                                <cstring>copySpin</cstring>
+                            </property>
+                            <property name="focusPolicy">
+                                <enum>ClickFocus</enum>
+                            </property>
+                            <property name="minValue">
+                                <number>1</number>
+                            </property>
+                            <property name="toolTip" stdset="0">
+                                <string>Set the time to copy sets from</string>
+                            </property>
+                        </widget>
+                        <widget class="QSpinBox" row="0" column="2">
+                            <property name="name">
+                                <cstring>renumberSpin</cstring>
+                            </property>
+                            <property name="focusPolicy">
+                                <enum>ClickFocus</enum>
+                            </property>
+                            <property name="minValue">
+                                <number>1</number>
+                            </property>
+                            <property name="toolTip" stdset="0">
+                                <string>Set the time to which to assign sets</string>
+                            </property>
+                        </widget>
+                        <widget class="QPushButton" row="0" column="1">
+                            <property name="name">
+                                <cstring>renumberButton</cstring>
+                            </property>
+                            <property name="focusPolicy">
+                                <enum>NoFocus</enum>
+                            </property>
+                            <property name="text">
+                                <string>Renumber To</string>
+                            </property>
+                            <property name="toolTip" stdset="0">
+                                <string>Assign this angle set to a different time and shift other sets to fill gap</string>
+                            </property>
+                        </widget>
+                        <widget class="QPushButton" row="1" column="1">
+                            <property name="name">
+                                <cstring>copyButton</cstring>
+                            </property>
+                            <property name="focusPolicy">
+                                <enum>NoFocus</enum>
+                            </property>
+                            <property name="text">
+                                <string>Copy From</string>
+                            </property>
+                            <property name="toolTip" stdset="0">
+                                <string>Copy the set of angles from another time to this time</string>
+                            </property>
+                        </widget>
+                    </grid>
+                </widget>
+            </hbox>
+        </widget>
+        <widget class="QLayoutWidget">
+            <property name="name">
+                <cstring>layout4</cstring>
+            </property>
+            <hbox>
+                <property name="name">
+                    <cstring>unnamed</cstring>
+                </property>
+                <widget class="QCheckBox">
+                    <property name="name">
+                        <cstring>updateBox</cstring>
+                    </property>
+                    <property name="focusPolicy">
+                        <enum>NoFocus</enum>
+                    </property>
+                    <property name="text">
+                        <string>Continuous update</string>
+                    </property>
+                    <property name="toolTip" stdset="0">
+                        <string>Continually update table from slicer and slicer from table changes</string>
+                    </property>
+                </widget>
+                <spacer>
+                    <property name="name">
+                        <cstring>spacer4</cstring>
+                    </property>
+                    <property name="orientation">
+                        <enum>Horizontal</enum>
+                    </property>
+                    <property name="sizeType">
+                        <enum>Fixed</enum>
+                    </property>
+                    <property name="sizeHint">
+                        <size>
+                            <width>20</width>
+                            <height>20</height>
+                        </size>
+                    </property>
+                </spacer>
+                <widget class="QLabel">
+                    <property name="name">
+                        <cstring>timeLabel</cstring>
+                    </property>
+                    <property name="text">
+                        <string>Time:</string>
+                    </property>
+                </widget>
+                <spacer>
+                    <property name="name">
+                        <cstring>spacer5</cstring>
+                    </property>
+                    <property name="orientation">
+                        <enum>Horizontal</enum>
+                    </property>
+                    <property name="sizeType">
+                        <enum>Expanding</enum>
+                    </property>
+                    <property name="sizeHint">
+                        <size>
+                            <width>40</width>
+                            <height>20</height>
+                        </size>
+                    </property>
+                </spacer>
+            </hbox>
+        </widget>
+        <widget class="QTable">
+            <column>
+                <property name="text">
+                    <string>X rot</string>
+                </property>
+            </column>
+            <column>
+                <property name="text">
+                    <string>Y rot</string>
+                </property>
+            </column>
+            <column>
+                <property name="text">
+                    <string>Z rot</string>
+                </property>
+            </column>
+            <column>
+                <property name="text">
+                    <string>X cen</string>
+                </property>
+            </column>
+            <column>
+                <property name="text">
+                    <string>Y cen</string>
+                </property>
+            </column>
+            <column>
+                <property name="text">
+                    <string>Z cen</string>
+                </property>
+            </column>
+            <column>
+                <property name="text">
+                    <string>Label</string>
+                </property>
+            </column>
+            <property name="name">
+                <cstring>table</cstring>
+            </property>
+            <property name="focusPolicy">
+                <enum>ClickFocus</enum>
+            </property>
+            <property name="numRows">
+                <number>0</number>
+            </property>
+            <property name="numCols">
+                <number>7</number>
+            </property>
+            <property name="selectionMode">
+                <enum>Single</enum>
+            </property>
+        </widget>
+        <widget class="Line">
+            <property name="name">
+                <cstring>line5</cstring>
+            </property>
+            <property name="frameShape">
+                <enum>HLine</enum>
+            </property>
+            <property name="frameShadow">
+                <enum>Sunken</enum>
+            </property>
+            <property name="orientation">
+                <enum>Horizontal</enum>
+            </property>
+        </widget>
+        <widget class="QLayoutWidget">
+            <property name="name">
+                <cstring>layout72</cstring>
+            </property>
+            <hbox>
+                <property name="name">
+                    <cstring>unnamed</cstring>
+                </property>
+                <widget class="QPushButton">
+                    <property name="name">
+                        <cstring>doneButton</cstring>
+                    </property>
+                    <property name="sizePolicy">
+                        <sizepolicy>
+                            <hsizetype>0</hsizetype>
+                            <vsizetype>0</vsizetype>
+                            <horstretch>0</horstretch>
+                            <verstretch>0</verstretch>
+                        </sizepolicy>
+                    </property>
+                    <property name="maximumSize">
+                        <size>
+                            <width>70</width>
+                            <height>32767</height>
+                        </size>
+                    </property>
+                    <property name="text">
+                        <string>Done</string>
+                    </property>
+                    <property name="toolTip" stdset="0">
+                        <string>Close window</string>
+                    </property>
+                </widget>
+                <widget class="QPushButton">
+                    <property name="name">
+                        <cstring>helpButton</cstring>
+                    </property>
+                    <property name="sizePolicy">
+                        <sizepolicy>
+                            <hsizetype>0</hsizetype>
+                            <vsizetype>0</vsizetype>
+                            <horstretch>0</horstretch>
+                            <verstretch>0</verstretch>
+                        </sizepolicy>
+                    </property>
+                    <property name="maximumSize">
+                        <size>
+                            <width>70</width>
+                            <height>32767</height>
+                        </size>
+                    </property>
+                    <property name="text">
+                        <string>Help</string>
+                    </property>
+                    <property name="toolTip" stdset="0">
+                        <string>Open help window</string>
+                    </property>
+                </widget>
+            </hbox>
+        </widget>
+    </vbox>
+</widget>
+<connections>
+    <connection>
+        <sender>getButton</sender>
+        <signal>clicked()</signal>
+        <receiver>SlicerAngleForm</receiver>
+        <slot>getAngClicked()</slot>
+    </connection>
+    <connection>
+        <sender>setButton</sender>
+        <signal>clicked()</signal>
+        <receiver>SlicerAngleForm</receiver>
+        <slot>setAngClicked()</slot>
+    </connection>
+    <connection>
+        <sender>helpButton</sender>
+        <signal>clicked()</signal>
+        <receiver>SlicerAngleForm</receiver>
+        <slot>helpClicked()</slot>
+    </connection>
+    <connection>
+        <sender>insertButton</sender>
+        <signal>clicked()</signal>
+        <receiver>SlicerAngleForm</receiver>
+        <slot>insertClicked()</slot>
+    </connection>
+    <connection>
+        <sender>newButton</sender>
+        <signal>clicked()</signal>
+        <receiver>SlicerAngleForm</receiver>
+        <slot>newClicked()</slot>
+    </connection>
+    <connection>
+        <sender>removeButton</sender>
+        <signal>clicked()</signal>
+        <receiver>SlicerAngleForm</receiver>
+        <slot>removeClicked()</slot>
+    </connection>
+    <connection>
+        <sender>renumberButton</sender>
+        <signal>clicked()</signal>
+        <receiver>SlicerAngleForm</receiver>
+        <slot>renumberClicked()</slot>
+    </connection>
+    <connection>
+        <sender>copyButton</sender>
+        <signal>clicked()</signal>
+        <receiver>SlicerAngleForm</receiver>
+        <slot>copyClicked()</slot>
+    </connection>
+    <connection>
+        <sender>doneButton</sender>
+        <signal>clicked()</signal>
+        <receiver>SlicerAngleForm</receiver>
+        <slot>close()</slot>
+    </connection>
+    <connection>
+        <sender>deleteButton</sender>
+        <signal>clicked()</signal>
+        <receiver>SlicerAngleForm</receiver>
+        <slot>deleteClicked()</slot>
+    </connection>
+    <connection>
+        <sender>table</sender>
+        <signal>valueChanged(int,int)</signal>
+        <receiver>SlicerAngleForm</receiver>
+        <slot>cellChanged(int,int)</slot>
+    </connection>
+    <connection>
+        <sender>table</sender>
+        <signal>pressed(int,int,int,const QPoint&amp;)</signal>
+        <receiver>SlicerAngleForm</receiver>
+        <slot>cellPressed(int,int)</slot>
+    </connection>
+    <connection>
+        <sender>table</sender>
+        <signal>currentChanged(int,int)</signal>
+        <receiver>SlicerAngleForm</receiver>
+        <slot>currentChanged(int,int)</slot>
+    </connection>
+    <connection>
+        <sender>updateBox</sender>
+        <signal>toggled(bool)</signal>
+        <receiver>SlicerAngleForm</receiver>
+        <slot>updateToggled(bool)</slot>
+    </connection>
+    <connection>
+        <sender>renumberSpin</sender>
+        <signal>valueChanged(int)</signal>
+        <receiver>SlicerAngleForm</receiver>
+        <slot>renumberChanged(int)</slot>
+    </connection>
+    <connection>
+        <sender>copySpin</sender>
+        <signal>valueChanged(int)</signal>
+        <receiver>SlicerAngleForm</receiver>
+        <slot>copyChanged(int)</slot>
+    </connection>
+</connections>
+<includes>
+    <include location="local" impldecl="in implementation">imod.h</include>
+    <include location="local" impldecl="in implementation">preferences.h</include>
+    <include location="local" impldecl="in implementation">dia_qtutils.h</include>
+    <include location="local" impldecl="in implementation">string.h</include>
+    <include location="local" impldecl="in implementation">sslice.h</include>
+    <include location="local" impldecl="in implementation">ilist.h</include>
+    <include location="local" impldecl="in implementation">imodview.h</include>
+    <include location="local" impldecl="in implementation">b3dutil.h</include>
+    <include location="local" impldecl="in implementation">control.h</include>
+    <include location="local" impldecl="in implementation">undoredo.h</include>
+    <include location="local" impldecl="in implementation">form_slicerangle.ui.h</include>
+</includes>
+<forwards>
+    <forward>typedef struct slicer_angles SlicerAngles</forward>
+</forwards>
+<variables>
+    <variable access="private">bool mIgnoreCurChg;</variable>
+    <variable access="private">bool mDoSetAng;</variable>
+    <variable access="private">int mTimerID;</variable>
+    <variable access="private">bool mContinuous;</variable>
+    <variable access="private">int mTimeInc;</variable>
+    <variable access="private">int mMaxImageTime;</variable>
+    <variable access="private">int mMaxModelTime;</variable>
+    <variable access="private">int *mCurRow;</variable>
+    <variable access="private">int mCurTime;</variable>
+</variables>
+<slots>
+    <slot>updateEnables()</slot>
+    <slot>fontChange( const QFont &amp; oldFont )</slot>
+    <slot>setFontDependentWidths()</slot>
+    <slot>setTimeLabel()</slot>
+    <slot>getAngClicked()</slot>
+    <slot>setAngClicked()</slot>
+    <slot>setAngles( bool draw )</slot>
+    <slot>deleteClicked()</slot>
+    <slot>newClicked()</slot>
+    <slot>updateToggled( bool state )</slot>
+    <slot>removeClicked()</slot>
+    <slot>insertClicked()</slot>
+    <slot>renumberClicked()</slot>
+    <slot>copyClicked()</slot>
+    <slot>renumberChanged( int value )</slot>
+    <slot>copyChanged( int value )</slot>
+    <slot>helpClicked()</slot>
+    <slot>cellChanged( int row, int col )</slot>
+    <slot>currentChanged( int row, int col )</slot>
+    <slot>cellPressed( int row, int col )</slot>
+    <slot>timerEvent( QTimerEvent * e )</slot>
+    <slot>loadRow( SlicerAngles * slanp, int row )</slot>
+    <slot>switchTime( int newtime, bool doSet )</slot>
+    <slot>finishOrFlushUnit( bool changed )</slot>
+    <slot>topSlicerDrawing( float * angles, float cx, float cy, float cz, int time, int dragging )</slot>
+    <slot>closeEvent( QCloseEvent * e )</slot>
+    <slot>keyPressEvent( QKeyEvent * e )</slot>
+</slots>
+<functions>
+    <function access="private" specifier="non virtual">init()</function>
+    <function access="private" specifier="non virtual">destroy()</function>
+    <function>loadTable( int time )</function>
+    <function returnType="SlicerAngles *">findAngles( int row, int &amp; index )</function>
+    <function>newTime( bool refresh )</function>
+</functions>
+<pixmapinproject/>
+<layoutdefaults spacing="6" margin="11"/>
+</UI>
