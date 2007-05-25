@@ -37,6 +37,7 @@ Log at end of file
 #define IOBJ_STRSIZE 64
 #define IOBJ_EXSIZE 16
 #define IMOD_CLIPSIZE  6
+#define ANGLE_STRSIZE 32
 
 /* Units for pixel size. */
 #define IMOD_UNIT_PIXEL 0
@@ -99,6 +100,8 @@ Log at end of file
 #define SIZE_MEPA 76
 #define ID_SKLI MakeID('S', 'K', 'L', 'I')  /* Capping skip list for meshing */
 #define SIZE_STOR 12
+#define ID_SLAN MakeID('S', 'L', 'A', 'N')  /* Slicer angles */
+#define SIZE_SLAN 60
 
 /* future data defines. */
 #define ID_BRCH MakeID('B', 'R', 'C', 'H')  /* Branch data */
@@ -438,7 +441,8 @@ typedef struct Mod_Model
   int        xybin;       /* Binning in X and Y */
   int        zbin;        /* Binning in Z */
 
-  Ilist  *store;      /* Add support for easy addon of user configurable data */
+  Ilist  *store;          /* General storage data */
+  Ilist  *slicerAng;       /* Slicer angles */
 
 }Imod;
 
@@ -504,6 +508,13 @@ typedef struct Mod_Transform
   b3dFloat zscale;
 }Itrans;
 
+typedef struct slicer_angles
+{
+  b3dInt32 time;
+  b3dFloat angles[3];
+  Ipoint center;
+  char label[ANGLE_STRSIZE];
+} SlicerAngles;
 
 /* include functions in iobj.c, icont.c, imesh.c, ipoint.c */
 #include "iobj.h"
@@ -656,6 +667,9 @@ extern "C" {
 
 /*    
     $Log$
+    Revision 3.35  2006/11/02 07:15:15  mast
+    Added doc tags
+
     Revision 3.34  2006/09/12 15:18:18  mast
     Various meshing changes, and new meshparam structure
 

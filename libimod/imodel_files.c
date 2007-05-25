@@ -72,6 +72,7 @@ static int imodel_read_imat(Iobj *obj, FILE *fin, b3dUInt32 flags);
 static int imodel_read_ptsizes(Icont *cont, FILE *fin);
 static int imodel_read_meshparm(Iobj *obj, FILE *fin);
 static int imodel_read_meshskip(Iobj *obj, FILE *fin);
+static int imodel_read_sliceang(Imod *imod, FILE *fin);
 
 #ifdef IMOD_DATA_SWAP
 static void byteswap(void *ptr, unsigned size);
@@ -261,6 +262,7 @@ static int imodel_write(Imod *mod, FILE *fout)
   unsigned int id;
   int count;
   Ipoint scale;
+  SlicerAngles *slan;
 
   rewind(fout);
      
@@ -296,6 +298,21 @@ static int imodel_write(Imod *mod, FILE *fout)
   mod->file = fout;
   imodViewModelWrite(mod, &scale);
   imodIMNXWrite(mod);
+
+  /* Write slicer angles */
+  for (i = 0; i < ilistSize(mod->slicerAng); i++) {
+    id = ID_SLAN;
+    imodPutInt(fout, &id);
+    id = SIZE_SLAN;
+    imodPutInt(fout, &id);
+    slan = (SlicerAngles *)ilistItem(mod->slicerAng, i);
+    if (!slan)
+      return IMOD_ERROR_FORMAT;
+    imodPutInt(fout, &slan->time);
+    imodPutFloats(fout, &slan->angles[0], 6);
+    imodPutBytes(fout, &slan->label[0], ANGLE_STRSIZE);
+  }
+                      
   if ((id = imodWriteStore(mod->store, ID_MOST, fout)))
     return(id);
 
@@ -714,6 +731,11 @@ static int imodel_read(Imod *imod, int version)
         return(error);
       break;
 
+    case ID_SLAN:
+      if ((error = imodel_read_sliceang(imod, fin)))
+        return(error);
+      break;
+
     default:
 #ifdef IMODEL_FILES_DEBUG
       *badp = id;
@@ -1062,6 +1084,24 @@ static int imodel_read_meshskip(Iobj *obj, FILE *fin)
   return 0;
 }  
   
+static int imodel_read_sliceang(Imod *imod, FILE *fin)
+{
+  int size, error;
+  SlicerAngles slan;
+  size = imodGetInt(fin);
+  if (!imod->slicerAng)
+    imod->slicerAng = ilistNew(sizeof(SlicerAngles), 4);
+  if (!imod->slicerAng)
+    return IMOD_ERROR_MEMORY;
+  slan.time = imodGetInt(fin);
+  imodGetFloats(fin, &slan.angles[0], 6);
+  imodGetBytes(fin, &slan.label[0], sizeof(slan.label));
+  if ((error = ferror(fin)))
+    return(error);
+  if (ilistAppend(imod->slicerAng, &slan))
+    return IMOD_ERROR_MEMORY;
+  return 0;
+}
 
 /***************************************************************************/
 /*!
@@ -1651,6 +1691,9 @@ int imodPutByte(FILE *fp, unsigned char *dat)
 
 /*
   $Log$
+  Revision 3.26  2006/09/13 23:52:43  mast
+  Fixed reading of skip list
+
   Revision 3.25  2006/09/13 02:43:30  mast
   Stopped calling imodDefault twice when reading a model
 

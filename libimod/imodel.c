@@ -96,6 +96,7 @@ int imodDefault(Imod *model)
   model->xybin = 1;
   model->zbin = 1;
   model->store    = NULL;
+  model->slicerAng = NULL;
   return(0);
 }
 
@@ -1450,6 +1451,7 @@ int imodChecksum(Imod *imod)
   Iview *view;
   IclipPlanes *clips;
   Iobjview *obv;
+  SlicerAngles *slanp;
   double sum = 0.;
   double osum, psum;
 
@@ -1464,6 +1466,13 @@ int imodChecksum(Imod *imod)
   sum += imod->pixsize;
   sum += imod->viewsize;
   sum += imod->flags & ~IMODF_FLIPYZ;
+
+  for (i = 0; i < ilistSize(imod->slicerAng); i++) {
+    slanp = (SlicerAngles *)ilistItem(imod->slicerAng, i);
+    sum += slanp->center.x + slanp->center.y + slanp->center.z + 
+      slanp->angles[0] + slanp->angles[0] + slanp->angles[0] + 
+      strlen(slanp->label);
+  }
 
   /* DNM: add # of contours, # of points, and point sizes */
 
@@ -1806,6 +1815,9 @@ int   imodGetFlipped(Imod *imod)
 
 /*
 $Log$
+Revision 3.26  2006/09/13 02:42:38  mast
+Clarify documentation
+
 Revision 3.25  2006/09/12 15:24:44  mast
 Handled member renames
 
