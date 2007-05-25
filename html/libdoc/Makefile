@@ -26,6 +26,8 @@ all :
 	  ../libhelp/mod_fwrap.html
 	../../sourcedoc/$(SOURCEDOC_EXE) -d ../../libimod b3dutil.html \
 	  ../libhelp/b3dutil.html
+	../../sourcedoc/$(SOURCEDOC_EXE) -d ../../libimod autodoc.html \
+	  ../libhelp/autodoc.html
 	../../sourcedoc/$(SOURCEDOC_EXE) -d ../../libiimod mrcfiles.html \
 	  ../libhelp/mrcfiles.html
 	../../sourcedoc/$(SOURCEDOC_EXE) -d ../../libiimod mrcslice.html \
