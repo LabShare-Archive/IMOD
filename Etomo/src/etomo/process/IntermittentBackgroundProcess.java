@@ -69,10 +69,7 @@ public final class IntermittentBackgroundProcess implements Runnable {
   private static Hashtable instances = new Hashtable();//one instance per IntermittentCommand instance
   //stopped:  means that the program needs to stop.
   private boolean stopped = true;
-  //restart:  means that there was an exception or a connect time out.  The
-  //current instance of this class is added to the RestartThread when restart is
-  //set to true.  Restart is turned off when the program is started.
-  private boolean restart = false;
+  private boolean canRestart = true;
   private HashedArray monitors = new HashedArray();
   private final IntermittentCommand command;
   private final BaseManager manager;
@@ -152,8 +149,8 @@ public final class IntermittentBackgroundProcess implements Runnable {
     //run the instance, if it is not running
     //this is the only place that stopped should be set to false
     if (stopped) {
-      restart = false;
       stopped = false;
+      canRestart = true;
       new Thread(this).start();
     }
     //Once the thread is started, add the monitor if it is new, make sure not to
@@ -164,15 +161,37 @@ public final class IntermittentBackgroundProcess implements Runnable {
     monitor.setProcess(this);
   }
 
-  synchronized void restart() {
-    if (!restart) {
-      restart = true;
-      RestartThread.restart(this);
+  /**
+   * Ask the monitor to stop (it will only stop if this is its only running
+   * process).  Drop the monitor from the program.  Check whether all the
+   * monitors associated with this process are stopped.  If so, stop.  This is
+   * used when a parallel processing panel is hidden.
+   * @param monitor
+   */
+  synchronized void stop(IntermittentProcessMonitor monitor) {
+    monitor.stopMonitoring(this);
+    if (program != null) {
+      program.msgDroppedMonitor(monitor);
+    }
+    //Set monitorsStopped is this process is no longer being monitored by any
+    //monitor.
+    boolean monitorsStopped = true;
+    for (int i = 0; i < monitors.size(); i++) {
+      if (((IntermittentProcessMonitor) monitors.get(i)).isMonitoring(this)) {
+        monitorsStopped = false;
+        break;
+      }
+    }
+    //If this process is not being monitored, then stop it and prevent it from
+    //being restarted by ProcessRestarter.
+    if (monitorsStopped) {
+      canRestart = false;
+      stopped = true;
     }
   }
 
   synchronized void restartAll() {
-    if (!restart) {
+    if (!canRestart) {
       return;
     }
     for (int i = 0; i < monitors.size(); i++) {
@@ -193,32 +212,7 @@ public final class IntermittentBackgroundProcess implements Runnable {
   }
 
   public static void endRestartThread() throws InterruptedException {
-    RestartThread.endThread();
-  }
-
-  /**
-   * Ask the monitor to stop (it will only stop if it this is its only running
-   * process).  Drop the monitor from the program.  Check whether all the
-   * monitors associated with this process are stopped.  If so, stop.  This is
-   * used when a monitor is hidden.
-   * @param monitor
-   */
-  synchronized void stop(IntermittentProcessMonitor monitor) {
-    restart = false;
-    monitor.stopMonitoring(this);
-    if (program != null) {
-      program.msgDroppedMonitor(monitor);
-    }
-    boolean monitorsStopped = true;
-    for (int i = 0; i < monitors.size(); i++) {
-      if (((IntermittentProcessMonitor) monitors.get(i)).isMonitoring(this)) {
-        monitorsStopped = false;
-        break;
-      }
-    }
-    if (monitorsStopped) {
-      stopped = true;
-    }
+    ProcessRestarter.INSTANCE.stop();
   }
 
   /**
@@ -352,138 +346,12 @@ public final class IntermittentBackgroundProcess implements Runnable {
       e.printStackTrace();
     }
   }
-
-  /**
-   * RestartThread creates a single instance and run one worker thread, it tries
-   * to restart IntermittentBackgroundProcesses in it's processList member
-   * variable at intervals, removing each one from the list.
-   * 
-   * RestartThread is lazy and won't create the instances or run the worker
-   * thread until a restart is requested.  Once the worker thread is started, it
-   * will run until stop() is called.  This is done by
-   * EtomoDirector.exitProgram().  RestartThread is shared by multiple managers,
-   * just like the instances of IntermittentBackgroupProcess.
-   */
-  private static final class RestartThread implements Runnable {
-    private static RestartThread instance = null;
-
-    private final HashedArray processList = new HashedArray();
-
-    private boolean stop = false;
-
-    private RestartThread() {
-    }
-
-    /**
-     * Try to restart the process every five minutes.  Runs the RestartThread
-     * instance, if it is not running.  Adds the process to the list of
-     * processes to be restarted.
-     * @param process
-     */
-    static void restart(IntermittentBackgroundProcess process) {
-      if (instance == null) {
-        runInstance();
-      }
-      instance.addProcess(process);
-    }
-
-    /**
-     * A message that a process has been successfully started.  Causes the
-     * RestartThread to stop trying to restart it.
-     * @param process
-     */
-    static void msgStarted(IntermittentBackgroundProcess process) {
-      if (instance != null) {
-        instance.removeProcess(process);
-      }
-    }
-
-    /**
-     * Adds a process to processList.
-     * @param process
-     */
-    private void addProcess(IntermittentBackgroundProcess process) {
-      if (!processList.containsKey(process)) {
-        processList.add(process);
-      }
-    }
-
-    /**
-     * Removes a process from processList
-     * @param process
-     */
-    private void removeProcess(IntermittentBackgroundProcess process) {
-      if (processList.containsKey(process)) {
-        processList.remove(process);
-      }
-    }
-
-    /**
-     * Creates and runs the RestartThread instance, if the instance doesn't
-     * exist.
-     */
-    static synchronized void runInstance() {
-      if (instance == null) {
-        instance = new RestartThread();
-        Thread thread = new Thread(instance);
-        thread.start();
-      }
-    }
-
-    /**
-     * Try to restart all the processes in processList every five minutes.
-     */
-    public void run() {
-      while (!stop) {
-        try {
-          for (int i = 0; i < 60 * 5; i++) {
-            if (stop) {
-              return;
-            }
-            Thread.sleep(1000);
-          }
-        }
-        catch (InterruptedException e) {
-          e.printStackTrace();
-        }
-        if (stop) {
-          return;
-        }
-        for (int i = 0; i < processList.size(); i++) {
-          //restart the process for all monitors which have failed
-          IntermittentBackgroundProcess process = (IntermittentBackgroundProcess) processList
-              .get(i);
-          processList.remove(process);
-          process.restartAll();
-        }
-      }
-    }
-
-    static void endThread() {
-      if (instance == null) {
-        return;
-      }
-      instance.stop();
-    }
-
-    /**
-     * Stops the RestartThread instance.
-     */
-    private synchronized void stop() {
-      if (stop == true) {
-        return;
-      }
-      stop = true;
-      try {
-        Thread.sleep(1001);
-      }
-      catch (InterruptedException e) {
-      }
-    }
-  }
 }
 /**
  * <p> $Log$
+ * <p> Revision 1.6  2007/05/25 00:22:06  sueh
+ * <p> bug# 994 Added failureReason and clearStdError().
+ * <p>
  * <p> Revision 1.5  2006/11/28 23:54:10  sueh
  * <p> bug# 934 Added RestartThread.  Added functions fail, restartAll, restart,
  * <p> endRestartThread, and end.  Fixed stop so that it doesn't remove the monitor.
