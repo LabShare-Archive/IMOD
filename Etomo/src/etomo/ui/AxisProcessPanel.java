@@ -33,6 +33,9 @@ import etomo.util.Utilities;
  * @version $Revision$
  *
  * <p> $Log$
+ * <p> Revision 3.30  2007/02/05 23:32:33  sueh
+ * <p> bug# 962 Moved EtomoNumber type info to inner class.
+ * <p>
  * <p> Revision 3.29  2006/11/29 00:18:36  sueh
  * <p> bug# 934 Added endThreads() to notify the load average threads when the
  * <p> manager exits.
@@ -368,7 +371,7 @@ abstract class AxisProcessPanel implements ContextMenu {
 
   private final void createParallelPanel() {
     if (parallelPanel == null) {
-      parallelPanel = new ParallelPanel(manager, axisID, manager
+      parallelPanel =  ParallelPanel.getInstance(manager, axisID, manager
           .getBaseScreenState(axisID).getParallelHeaderState(), this);
       parallelStatusPanel.add(Box.createRigidArea(FixedDim.x5_y0));
       parallelStatusPanel.add(parallelPanel.getContainer());
