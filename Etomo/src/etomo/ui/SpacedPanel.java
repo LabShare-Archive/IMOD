@@ -32,6 +32,9 @@ import javax.swing.border.Border;
 * @version $Revision$
 * 
 * <p> $Log$
+* <p> Revision 1.18  2007/05/08 01:21:10  sueh
+* <p> bug# 964 Added setToolTipText().
+* <p>
 * <p> Revision 1.17  2007/05/01 00:45:48  sueh
 * <p> bug# 964 Added remove(SpacedPanel).
 * <p>
@@ -319,7 +322,7 @@ final class SpacedPanel {
   
   final void add(MultiLineButton multiLineButton) {
     addSpacing();
-    multiLineButton.setSize();
+    //multiLineButton.setSize();
     panel.add(multiLineButton.getComponent());
     if (componentAlignmentX != null) {
       multiLineButton.setAlignmentX(componentAlignmentX.floatValue());

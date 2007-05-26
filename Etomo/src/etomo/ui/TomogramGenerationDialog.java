@@ -60,6 +60,10 @@ import etomo.type.ViewType;
  * 
  * <p>
  * $Log$
+ * Revision 3.105  2007/05/01 22:30:26  sueh
+ * bug# 964 In LabeledSpinner, saving SpinnerNumberModel so that the
+ * maximum can be changed.
+ *
  * Revision 3.104  2007/03/31 03:02:53  sueh
  * bug# 964 Changed PanelHeader.isAdvanceBasicExpanded to isAdvanced.
  *
@@ -1386,8 +1390,11 @@ public class TomogramGenerationDialog extends ProcessDialog implements
     filterHeader = PanelHeader.getAdvancedBasicInstance(
         "2D Filtering (optional)", this, dialogType);
     //buttonPanel
+    btnFilter.setSize();
     buttonPanel.add(btnFilter);
+    btnViewFilter.setSize();
     buttonPanel.add(btnViewFilter);
+    btnUseFilter.setSize();
     buttonPanel.add(btnUseFilter);
     //inversePanel
     inversePanel.add(ltfMaximumInverse);
@@ -1451,8 +1458,11 @@ public class TomogramGenerationDialog extends ProcessDialog implements
     //header
     tiltHeader = PanelHeader.getAdvancedBasicInstance("Tilt", this, dialogType);
     //buttonPanel
+    btnTilt.setSize();
     buttonPanel.add(btnTilt);
+    btn3dmodTomogram.setSize();
     buttonPanel.add(btn3dmodTomogram);
+    btnDeleteStack.setSize();
     buttonPanel.add(btnDeleteStack);
     buttonPanel.alignComponentsX(Component.LEFT_ALIGNMENT);
     //trialPanel
@@ -1526,8 +1536,11 @@ public class TomogramGenerationDialog extends ProcessDialog implements
     //header
     trialHeader = PanelHeader.getInstance("Trial Tilt", this, dialogType);
     //buttonPanel
+    btnTrial.setSize();
     buttonPanel.add(btnTrial);
+    btn3dmodTrial.setSize();
     buttonPanel.add(btn3dmodTrial);
+    btnUseTrial.setSize();
     buttonPanel.add(btnUseTrial);
     //northPanel
     northPanel.add(lblTrialTomogramName);

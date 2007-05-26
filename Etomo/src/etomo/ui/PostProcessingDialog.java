@@ -90,11 +90,13 @@ public final class PostProcessingDialog extends ProcessDialog implements
     SpacedPanel squeezeVolPanel2 = new SpacedPanel();
     squeezeVolPanel2.setBoxLayout(BoxLayout.X_AXIS);
     btnSqueezeVolume.addActionListener(actionListener);
+    btnSqueezeVolume.setSize();
     squeezeVolPanel2.add(btnSqueezeVolume);
     squeezeVolPanel2.addHorizontalGlue();
     btnImodSqueezedVolume = new Run3dmodButton("Open Squeezed Volume in 3dmod",
         this);
     btnImodSqueezedVolume.addActionListener(actionListener);
+    btnImodSqueezedVolume.setSize();
     squeezeVolPanel2.add(btnImodSqueezedVolume);
     squeezeVolPanel.add(squeezeVolPanel2);
     return squeezeVolPanel.getContainer();
@@ -273,6 +275,10 @@ public final class PostProcessingDialog extends ProcessDialog implements
 }
 /**
  * <p> $Log$
+ * <p> Revision 3.31  2007/02/09 00:51:17  sueh
+ * <p> bug# 962 Made TooltipFormatter a singleton and moved its use to low-level ui
+ * <p> classes.
+ * <p>
  * <p> Revision 3.30  2006/08/14 18:34:02  sueh
  * <p> bug# 890 Returning a success/failure boolean from getTrimvolParams.  Passing
  * <p> axisID to TrimvoPanel constructor.

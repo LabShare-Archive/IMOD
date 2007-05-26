@@ -11,6 +11,10 @@
  * @version $Revision$
  *
  * <p> $Log$
+ * <p> Revision 3.42  2007/02/09 00:48:30  sueh
+ * <p> bug# 962 Made TooltipFormatter a singleton and moved its use to low-level ui
+ * <p> classes.
+ * <p>
  * <p> Revision 3.41  2006/07/28 19:45:32  sueh
  * <p> bug# 868 Changed isFiduciallessAlignment to isFiducialess
  * <p>
@@ -293,7 +297,9 @@ public final class CoarseAlignDialog extends ProcessDialog implements
       SpacedPanel pnlFixEdges = new SpacedPanel();
       pnlFixEdges.setBoxLayout(BoxLayout.Y_AXIS);
       pnlFixEdges.setBorder(new EtchedBorder("Fix Edges").getBorder());
+      btnDistortionCorrectedStack.setSize();
       pnlFixEdges.add(btnDistortionCorrectedStack);
+      btnFixEdgesMidas.setSize();
       pnlFixEdges.add(btnFixEdgesMidas);
       pnlCoarseAlign.add(pnlFixEdges.getContainer());
       if (!metaData.isDistortionCorrection()) {

@@ -36,6 +36,9 @@ import etomo.type.Run3dmodMenuOptions;
  * @version $Revision$
  *
  * <p> $Log$
+ * <p> Revision 3.26  2007/03/07 21:10:39  sueh
+ * <p> bug# 981 Added isValid.
+ * <p>
  * <p> Revision 3.25  2007/03/03 01:01:16  sueh
  * <p> bug# 973 Getting/setting metadata in Fine Align dialog.
  * <p>
@@ -300,14 +303,18 @@ public final class AlignmentEstimationDialog extends ProcessDialog implements
 
     SpacedPanel topButtonPanel = new SpacedPanel();
     topButtonPanel.setBoxLayout(BoxLayout.X_AXIS);
+    btnComputeAlignment.setSize();
     topButtonPanel.add(btnComputeAlignment);
+    btnImod.setSize();
     topButtonPanel.add(btnImod);
     panelButton.add(topButtonPanel.getContainer());
     panelButton.add(Box.createRigidArea(FixedDim.x0_y10));
     SpacedPanel bottomButtonPanel = new SpacedPanel();
     bottomButtonPanel.setBoxLayout(BoxLayout.X_AXIS);
+    btnView3DModel.setSize();
     bottomButtonPanel.add(btnView3DModel);
     //panelButton.add(Box.createRigidArea(FixedDim.x10_y0));
+    btnViewResiduals.setSize();
     bottomButtonPanel.add(btnViewResiduals);
     panelButton.add(bottomButtonPanel.getContainer());
 

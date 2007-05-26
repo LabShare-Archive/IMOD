@@ -56,6 +56,9 @@ import etomo.util.DatasetFiles;
  * @version $Revision$
  *
  * <p> $Log$
+ * <p> Revision 1.49  2007/05/01 22:27:51  sueh
+ * <p> bug# 964 Added yaxisType and yaxisContour.
+ * <p>
  * <p> Revision 1.48  2007/03/30 23:50:50  sueh
  * <p> bug# 964 In FileTextField, changed setEnabled to setEditable and then added a new
  * <p> setEnabled.
@@ -886,10 +889,12 @@ public final class JoinDialog implements ContextMenu, Run3dmodButtonContainer {
     setupPanel2.setBorder(BorderFactory.createEtchedBorder());
     btnChangeSetup = new MultiLineButton("Change Setup");
     //btnChangeSetup.addActionListener(joinActionListener);
+    btnChangeSetup.setSize();
     setupPanel2.add(btnChangeSetup);
     btnRevertToLastSetup = new MultiLineButton("Revert to Last Setup");
     setRevertState(true);
     //btnRevertToLastSetup.addActionListener(joinActionListener);
+    btnRevertToLastSetup.setSize();
     setupPanel2.add(btnRevertToLastSetup);
     //seventh component
     btnMakeSamples = new MultiLineButton("Make Samples");
@@ -906,6 +911,7 @@ public final class JoinDialog implements ContextMenu, Run3dmodButtonContainer {
     pnlSetup.add(pnlMidasLimit);
     pnlSetup.add(spinDensityRefSection);
     pnlSetup.add(setupPanel2);
+    btnMakeSamples.setSize();
     pnlSetup.add(btnMakeSamples);
   }
 
@@ -920,9 +926,11 @@ public final class JoinDialog implements ContextMenu, Run3dmodButtonContainer {
     btnOpenSampleAverages = new Run3dmodButton("Open Sample Averages in 3dmod",
         this);
     //btnOpenSampleAverages.addActionListener(joinActionListener);
+    btnOpenSample.setSize();
     alignPanel1.add(btnOpenSample);
+    btnOpenSampleAverages.setSize();
     alignPanel1.add(btnOpenSampleAverages);
-    //third component
+    //third componentadd
     pnlXfalign = new SpacedPanel();
     pnlXfalign.setBoxLayout(BoxLayout.Y_AXIS);
     pnlXfalign.setBorder(new EtchedBorder("Auto Alignment Parameters")
@@ -943,10 +951,13 @@ public final class JoinDialog implements ContextMenu, Run3dmodButtonContainer {
     SpacedPanel alignPanel2A = new SpacedPanel();
     alignPanel2A.setBoxLayout(BoxLayout.Y_AXIS);
     btnInitialAutoAlignment = new MultiLineButton("Initial Auto Alignment");
+    btnInitialAutoAlignment.setSize();
     alignPanel2A.add(btnInitialAutoAlignment);
     btnMidas = new MultiLineButton(MIDAS_TEXT);
+    btnMidas.setSize();
     alignPanel2A.add(btnMidas);
     btnRefineAutoAlignment = new MultiLineButton(REFINE_AUTO_ALIGNMENT_TEXT);
+    btnRefineAutoAlignment.setSize();
     alignPanel2A.add(btnRefineAutoAlignment);
     alignPanel2.add(alignPanel2A);
     SpacedPanel alignPanel2B = new SpacedPanel();
@@ -954,9 +965,11 @@ public final class JoinDialog implements ContextMenu, Run3dmodButtonContainer {
     alignPanel2B.setBorder(BorderFactory.createEtchedBorder());
     btnRevertToMidas = new MultiLineButton("Revert Auto Alignment to Midas");
     //btnRevertToMidas.addActionListener(joinActionListener);
+    btnRevertToMidas.setSize();
     alignPanel2B.add(btnRevertToMidas);
     btnRevertToEmpty = new MultiLineButton("Revert to No Transforms");
     //btnRevertToEmpty.addActionListener(joinActionListener);
+    btnRevertToEmpty.setSize();
     alignPanel2B.add(btnRevertToEmpty);
     alignPanel2.add(alignPanel2B);
   }
@@ -997,7 +1010,9 @@ public final class JoinDialog implements ContextMenu, Run3dmodButtonContainer {
     pnlTransformations.add(ltfObjectsToInclude.getContainer());
     pnlTransformations.add(pnlGapStartEndInc);
     pnlTransformations.add(pnlPointsToFit);
+    btnXfjointomo.setSize();
     pnlTransformations.add(btnXfjointomo);
+    btnTransformAndViewModel.setSize();
     pnlTransformations.add(btnTransformAndViewModel);
     //gap panel
     pnlGapStartEndInc.setBoxLayout(BoxLayout.X_AXIS);
@@ -1014,6 +1029,7 @@ public final class JoinDialog implements ContextMenu, Run3dmodButtonContainer {
 
   private void addModelPanelComponents() {
     createModelPanel();
+    btnMakeRefiningModel.setSize();
     pnlModel.add(btnMakeRefiningModel);
     pnlModel.add(boundaryTable.getContainer());
     boundaryTable.display();
@@ -1133,6 +1149,7 @@ public final class JoinDialog implements ContextMenu, Run3dmodButtonContainer {
     pnlFinishJoin.add(cbsAlignmentRefSection.getContainer());
     //second component
     btnGetMaxSize = new MultiLineButton(GET_MAX_SIZE_TEXT);
+    btnGetMaxSize.setSize();
     pnlFinishJoin.add(btnGetMaxSize);
     //third component
     SpacedPanel finishJoinPanel2 = new SpacedPanel();
@@ -1154,6 +1171,7 @@ public final class JoinDialog implements ContextMenu, Run3dmodButtonContainer {
     createTrialJoinPanel();
     //sixth component
     btnFinishJoin = new MultiLineButton(FINISH_JOIN_TEXT);
+    btnFinishJoin.setSize();
     pnlFinishJoin.add(btnFinishJoin);
     //seventh component
     b3bOpenIn3dmod = new BinnedXY3dmodButton(OPEN_IN_3DMOD, this);
@@ -1162,6 +1180,7 @@ public final class JoinDialog implements ContextMenu, Run3dmodButtonContainer {
     pnlFinishJoin.add(b3bOpenIn3dmod.getContainer());
     //eight component
     pnlFinishJoin.add(cbRefineWithTrial);
+    btnRefineJoin.setSize();
     pnlFinishJoin.add(btnRefineJoin);
   }
 
@@ -1188,6 +1207,7 @@ public final class JoinDialog implements ContextMenu, Run3dmodButtonContainer {
     pnlTrialJoin.add(spinTrialBinning);
     //third component
     btnTrialJoin = new MultiLineButton(TRIAL_JOIN_TEXT);
+    btnTrialJoin.setSize();
     pnlTrialJoin.add(btnTrialJoin);
     //fourth component
     b3bOpenTrialIn3dmod = new BinnedXY3dmodButton("Open Trial in 3dmod", this);
@@ -1196,6 +1216,7 @@ public final class JoinDialog implements ContextMenu, Run3dmodButtonContainer {
     pnlTrialJoin.add(b3bOpenTrialIn3dmod.getContainer());
     //fifth component
     btnGetSubarea = new MultiLineButton("Get Subarea Size And Shift");
+    btnGetSubarea.setSize();
     pnlTrialJoin.add(btnGetSubarea);
     pnlFinishJoin.add(pnlTrialJoin);
   }

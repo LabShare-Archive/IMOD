@@ -40,6 +40,10 @@ import etomo.util.MRCHeader;
  * @version $Revision$
  *
  * <p> $Log$
+ * <p> Revision 3.33  2007/02/09 00:49:42  sueh
+ * <p> bug# 962 Made TooltipFormatter a singleton and moved its use to low-level ui
+ * <p> classes.
+ * <p>
  * <p> Revision 3.32  2006/09/13 23:47:23  sueh
  * <p> bug# 921 Added setMatchMode(); use it to set the text in lOutputSizeYInfo.
  * <p>
@@ -263,6 +267,7 @@ public class InitialCombinePanel implements ContextMenu, InitialCombineFields,
     pnlMatchvol1Body.add(lOutputSizeYInfo);
     btnMatchvolRestart.setSize();
     btnMatchvolRestart.setAlignmentX(Component.CENTER_ALIGNMENT);
+    btnMatchvolRestart.setSize();
     pnlMatchvol1Body.add(btnMatchvolRestart);
     pnlMatchvol1.add(matchvol1Header.getContainer());
     pnlMatchvol1.add(pnlMatchvol1Body.getContainer());

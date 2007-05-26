@@ -60,6 +60,9 @@ import etomo.util.DatasetFiles;
  * 
  * <p>
  * $Log$
+ * Revision 3.61  2007/03/31 03:01:11  sueh
+ * bug# 964 Changed PanelHeader.isAdvanceBasicExpanded to isAdvanced.
+ *
  * Revision 3.60  2007/03/21 19:45:41  sueh
  * bug# 964 Limiting access to autodoc classes by using ReadOnly interfaces.
  * Added AutodocFactory to create Autodoc instances.
@@ -500,6 +503,7 @@ public class FinalCombinePanel implements ContextMenu, FinalCombineFields,
     // Layout Patch region model panel    
     pnlPatchRegionModelBody.setBoxLayout(BoxLayout.X_AXIS);
     pnlPatchRegionModelBody.add(cbUsePatchRegionModel);
+    btnPatchRegionModel.setSize();
     pnlPatchRegionModelBody.add(btnPatchRegionModel);
     pnlPatchRegionModelBody.addHorizontalGlue();
     //btnPatchRegionModel.setSize();
