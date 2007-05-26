@@ -38,7 +38,6 @@ public class LoadAverageMonitor implements IntermittentProcessMonitor, Runnable 
   //stopped:  true when the run() is not executing.  Set at the end of the run
   //program.  Also set externally to stop the run() program.
   private boolean stopped = true;
-  private boolean allowRestarts = false;
 
   public LoadAverageMonitor(LoadAverageDisplay display, AxisID axisID) {
     this.display = display;
@@ -223,13 +222,16 @@ public class LoadAverageMonitor implements IntermittentProcessMonitor, Runnable 
     String key = command.getComputer();
     if (programs.containsKey(key)) {
       ProgramState program = (ProgramState) programs.get(key);
-      FailureReasonInterface failureReason =program.getFailureReason();
-      display.msgLoadAverageFailed(key, failureReason.getReason(),failureReason.getTooltip());
+      FailureReasonInterface failureReason = program.getFailureReason();
+      display.msgLoadAverageFailed(key, failureReason.getReason(),
+          failureReason.getTooltip());
       program.fail();
-      if (allowRestarts) {
-        program.restart();
-      }
+      program.addToRestarter();
     }
+  }
+
+  public void restart() {
+    ProcessRestarter.INSTANCE.restart();
   }
 
   public void msgSentIntermittentCommand(IntermittentCommand command) {
@@ -296,8 +298,8 @@ public class LoadAverageMonitor implements IntermittentProcessMonitor, Runnable 
       return program.getCommand();
     }
 
-    void restart() {
-      program.restart();
+    public void addToRestarter() {
+      ProcessRestarter.INSTANCE.addProcess(program);
     }
 
     String[] getStdOutput(IntermittentProcessMonitor monitor) {
@@ -340,7 +342,7 @@ public class LoadAverageMonitor implements IntermittentProcessMonitor, Runnable 
       //If stderr is empty but receivedData is false, return the existing failure reason
       String[] stderr = getStdError();
       if (stderr == null || stderr.length == 0) {
-        return failureReason;
+        return program.getFailureReason();
       }
       //Try to set a failure reason from the information in stderr
       boolean connectionSucceeded = false;
@@ -391,7 +393,7 @@ public class LoadAverageMonitor implements IntermittentProcessMonitor, Runnable 
     }
   }
 
-  static final class FailureReason implements FailureReasonInterface{
+  static final class FailureReason implements FailureReasonInterface {
     static final FailureReason UNKOWN = new FailureReason("",
         "Unable to get the load averages for this computer.");
     static final FailureReason COMPUTER_DOWN = new FailureReason("down",
@@ -415,10 +417,17 @@ public class LoadAverageMonitor implements IntermittentProcessMonitor, Runnable 
     public String getTooltip() {
       return tooltip;
     }
+
+    public String toString() {
+      return reason;
+    }
   }
 }
 /**
  * <p> $Log$
+ * <p> Revision 1.22  2007/05/25 00:24:19  sueh
+ * <p> bug# 994 In ProgramState, add dataReceived and getFailureReason().
+ * <p>
  * <p> Revision 1.21  2007/05/21 18:10:13  sueh
  * <p> bug# 992 Added usersColumn.  In processData(), not calculating users
  * <p> when usersColumn is false.
