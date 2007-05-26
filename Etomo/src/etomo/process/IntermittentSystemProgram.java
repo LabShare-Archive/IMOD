@@ -32,14 +32,12 @@ public class IntermittentSystemProgram extends SystemProgram {
     OutputBufferManager bufferManager = new OutputBufferManager(cmdBuffer,
         outputKeyPhrase);
     bufferManager.setCollectOutput(false);
-    //bufferManager.setDebug(isDebug());
     return bufferManager;
   }
 
   OutputBufferManager newErrorBufferManager(BufferedReader cmdBuffer) {
     OutputBufferManager bufferManager = new OutputBufferManager(cmdBuffer);
     bufferManager.setCollectOutput(false);
-    bufferManager.setDebug(isDebug());
     return bufferManager;
   }
 
@@ -85,6 +83,9 @@ public class IntermittentSystemProgram extends SystemProgram {
 }
 /**
  * <p> $Log$
+ * <p> Revision 1.15  2007/05/25 00:22:47  sueh
+ * <p> bug# 994 Added functions clearStdError and getStdError.
+ * <p>
  * <p> Revision 1.14  2006/06/30 19:59:31  sueh
  * <p> bug# 877 Fixed null pointer exception in msgDroppedMonitor.
  * <p>
