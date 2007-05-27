@@ -2,21 +2,15 @@
  *  sliceproc.c -- image slice support for 3dmod and clip
  *
  *  Original author: James Kremer
- *  Revised by: David Mastronarde   email: mast@colorado.edu
+ *  Revised and added to by: David Mastronarde   email: mast@colorado.edu
  *
- *  Copyright (C) 1995-2005 by Boulder Laboratory for 3-Dimensional Electron
+ *  Copyright (C) 1995-2007 by Boulder Laboratory for 3-Dimensional Electron
  *  Microscopy of Cells ("BL3DEMC") and the Regents of the University of 
  *  Colorado.  See dist/COPYRIGHT for full copyright notice.
+ *
+ *  $Id$
+ *  Log at end
  */
-
-/*  $Author$
-
-    $Date$
-
-    $Revision$
-
-    Log at end of file
-*/
 
 #include <math.h>
 #include <stdlib.h>
@@ -32,7 +26,6 @@
 #define GETSVAL(t, i, j) ((t)->data.s[(i) + ((j) * (t)->xsize)])
 #define GETFVAL(s, i, j) ((s)->data.f[(i) + ((j) * (s)->xsize)])
 
-int sliceByteConvolve(Islice *sin, int mask[3][3]);
 static void sliceScaleAndFree(Islice *sout, Islice *sin);
 static float selectFloat(int s, float *r, int num);
 static int selectInt(int s, int *r, int num);
@@ -59,6 +52,10 @@ static int LaplacianKernel[3][3] =
   };
 
 
+/*!
+ * Adds [inVal] to all values in the slice [sin], which must contain bytes.
+ * Returns 0.
+ */
 int sliceByteAdd(Islice *sin, int inVal)
 {
   int imax = sin->xsize * sin->ysize;
@@ -76,6 +73,11 @@ int sliceByteAdd(Islice *sin, int inVal)
   return 0;
 }
 
+/*!
+ * Computes a Prewitt or Sobel edge filter on the slice [sin], depending on 
+ * whether the center pixel weighting, [center], is 1 or 2.  The slice must 
+ * contain bytes.  Returns 0.
+ */
 int sliceByteEdgeTwo(Islice *sin, int center)
 {
   Islice *sout = sliceCreate(sin->xsize, sin->ysize,  SLICE_MODE_FLOAT);
@@ -118,19 +120,37 @@ int sliceByteEdgeTwo(Islice *sin, int center)
   return(0);
 }
 
+/*!
+ * Computes a Sobel edge filter on the slice [sin], which must
+ * contain bytes.  Returns 0.
+ */
 int sliceByteEdgeSobel(Islice *sin)
 {
   return(sliceByteEdgeTwo(sin, 2));
 }
+
+/*!
+ * Computes a Prewitt edge filter on the slice [sin], which must
+ * contain bytes.  Returns 0.
+ */
 int sliceByteEdgePrewitt(Islice *sin)
 {
   return(sliceByteEdgeTwo(sin, 1));
 }
+
+/*!
+ * Computes a Laplacian edge filter on the slice [sin], which must
+ * contain bytes.  The Laplacian kernel is a -4 surrounded by 1's.  Returns 0.
+ */
 int sliceByteEdgeLaplacian(Islice *sin)
 {
   return(sliceByteConvolve(sin, LaplacianKernel));
 }
 
+/*!
+ * Computes a Laplacian edge filter on the slice [sin], which must contain 
+ * bytes.  The sharpening kernel is a 9 surrounded by -1's.  Returns 0.
+ */
 int sliceByteSharpen(Islice *sin)
 {
   return(sliceByteConvolve(sin, SharpenKernel));
@@ -139,11 +159,19 @@ int sliceByteSharpen(Islice *sin)
 /* DNM 11/07/04: Removed smoothing routine that did the same as convolving with
    this kernel */
 
+/*!
+ * Smooths the slice [sin], which must contain bytes, by convolving with a 
+ * 3x3 smoothing kernel.  Returns 0.
+ */
 int sliceByteSmooth(Islice *sin)
 {
   return(sliceByteConvolve(sin, SmoothKernel));
 }
 
+/*!
+ * Convolves the slice [sin] with the 3x3 kernel in [mask].  The slice must
+ * contain bytes.  Returns 0.
+ */
 int sliceByteConvolve(Islice *sin, int mask[3][3])
 {
   Islice *sout = sliceCreate(sin->xsize, sin->ysize,  SLICE_MODE_SHORT);
@@ -367,14 +395,17 @@ int sliceByteGraham(Islice *sin)
 
 }
 
-/*
- * Apply a 2-D or 3-D median filter to the slices contained in volume v,
- * with size as the 2D size, and put the output into sout, which should
- * already be set up for size and mode, but need not have the
- * same mode as the input slices.  
- * Input and output modes can be byte, short, or float.
+/*!
+ * Applies a 2-D or 3-D median filter to the slices contained in the 
+ * @@mrcslice.html#Istack structure@ [v],
+ * with the size in X and Y specified by [size] and the size in Z determined
+ * by the number of slices in the stack.  Puts the output into [sout], which
+ * should already be set up for size and mode, but need not have the
+ * same mode as the input slices, and should not have a data array yet.  
+ * Input and output modes can be byte, short, or float.  Returns -1 for memory
+ * error or -2 for an illegal mode.
  */
-int sliceMedianFilter(Islice *sout, struct MRCvolume *v, int size)
+int sliceMedianFilter(Islice *sout, Istack *v, int size)
 {
   Islice *sl = v->vol[0];
   float *fVals = NULL;
@@ -481,12 +512,14 @@ int sliceMedianFilter(Islice *sout, struct MRCvolume *v, int size)
   return 0;
 }
 
-/* 
- * Do anisotropic diffusion on slice
- * outMode specifies the output mode; CC is edge stopping type (1, 2, 3)
- * k is the threshold parameter, lambda is step size, iterations is just that
- * clearFlag is one of ANISO_CLEAR_AT_END, ANISO_LEAVE_OPEN. ANISO_CLEAR_ONLY
- * to allow additional iterations to be done on the existing data
+/*! 
+ * Does anisotropic diffusion on slice [sl] using the Perona and Malik 
+ * filtering method, based on a program by Alejandro Canterero.
+ * [outMode] specifies the output mode; [CC] is edge stopping type (1, 2, 3),
+ * [k] is the threshold parameter, [lambda] is the step size, [iterations] is 
+ * the number of iterations to run.  [clearFlag] is one of ANISO_CLEAR_AT_END,
+ * ANISO_LEAVE_OPEN, or ANISO_CLEAR_ONLY to allow additional iterations to be 
+ * done on the existing data.  Returns -1 for memory error.
  */
 int sliceAnisoDiff(Islice *sl,  int outMode, int CC, double k, double lambda,
                    int iterations, int clearFlag)
@@ -566,9 +599,14 @@ int sliceAnisoDiff(Islice *sl,  int outMode, int CC, double k, double lambda,
   return 0;
 }
 
-/*
- * Byte version with arrays already allocated and passed in 
- * iterDone is a pointer to variable for keeping track of total iterations 
+/*! 
+ * Does anisotropic diffusion on slice [sl], which must contain bytes.
+ * [image] and [image2] are float arrays of size {xsize} + 2 by {ysize} + 2 
+ * that have already been allocated with @allocate2D_float.
+ * [CC] is edge stopping type (1, 2, 3),
+ * [k] is the threshold parameter, [lambda] is the step size, [iterations] is 
+ * the number of iterations to run.  [iterDone] is maintained with the total
+ * number of iterations done.
  */
 void sliceByteAnisoDiff(Islice *sl, float **image, float **image2, 
                         int CC, double k, double lambda, int iterations, 
@@ -613,10 +651,10 @@ void sliceByteAnisoDiff(Islice *sl, float **image, float **image2,
   }
 }
 
-/* allocate 2D array of doubles that is contiguous in memory
- *
- *  array is actual a 1D vector of length m x n
- *      with a 2D array mapped onto the 1D vector
+/*!
+ * Allocates a  2D array of doubles of size [m] by [n] that is contiguous in 
+ * memory.  The array is actually a 1D vector of length [m] x [n], and this
+ * routine returns an array of pointers to the rows.
  */
 float **allocate2D_float(int m, int n ) 
 {
@@ -639,8 +677,11 @@ float **allocate2D_float(int m, int n )
 }
 
 
-/* A routine for finding min and max as rapidly as possible for the three basic
-   data modes */
+/*!
+ * Finds the min and max of slice [s] as rapidly as possible for the four
+ * basic data modes, byte, float, and signed and unsigned short integer.
+ * Returns 1 for other modes.
+ */
 int sliceMinMax(Islice *s)
 {
   int imin, imax, ival, i;
@@ -805,8 +846,274 @@ static int selectInt(int s, int *r, int num)
   return r[s];
 }
 
+
+#define PLIST_CHUNK 1000
+/*!
+ * Analyzes for fill areas at the edge of the slice [sl], finds the borders 
+ * between actual image and fill areas, and tapers the image intensities down 
+ * to the fill value over [ntaper] pixels.  If [inside] is 0 the image 
+ * intensities at the edge are extended into the fill area, while if [inside] 
+ * is 1 then pixels inside the image are attenuated.  Returns -1 for memory
+ * allocation errors.
+ */
+int sliceTaperAtFill(Islice *sl, int ntaper, int inside)
+{
+  struct pixdist {
+    unsigned short int x, y;
+    unsigned short dist;
+    signed char dx, dy;
+  };
+
+  Ival val;
+  float fracs[128], fillpart[128];
+  float fillval, lastval;
+  int len, longest;
+  int i, ix, iy, xnext, ynext, xp, yp, lastint, interval, found;
+  int dir, tapdir, col, row, ncol, ind, xstart, ystart, ndiv;
+  int dist;
+  struct pixdist *plist;
+  int pllimit = PLIST_CHUNK;
+  int plsize = 0;
+  unsigned char *bitmap;
+  int xsize = sl->xsize;
+  int ysize = sl->ysize;
+  int bmsize = (xsize * ysize + 7) / 8;
+  int dxout[4] = {0, 1, 0, -1};
+  int dyout[4] = {-1, 0, 1, 0};
+  int dxnext[4] = {1, 0, -1, 0};
+  int dynext[4] = {0, 1, 0, -1};
+
+  inside = inside != 0 ? 1 : 0;
+
+  /* find longest string of repeated values along the edge */
+  longest = 0;
+  for (iy = 0; iy < ysize; iy += ysize - 1) {
+    len = 0;
+    sliceGetVal(sl, 0, iy, val);
+    lastval = val[0];
+    for (ix = 1; ix < xsize; ix++) {
+      sliceGetVal(sl, ix, iy, val);
+      if (val[0] == lastval) {
+        /* same as last, add to count, see if this is a new
+           best count*/
+        len++;
+        if (len > longest) {
+          longest = len;
+          fillval = lastval;
+        }
+      } else {
+        /* different, reset count and set new lastval */
+        len = 0;
+        lastval = val[0];
+      }
+    }
+  }         
+  for (ix = 0; ix < xsize; ix += xsize - 1) {
+    len = 0;
+    sliceGetVal(sl, ix, 0, val);
+    lastval = val[0];
+    for (iy = 1; iy < ysize; iy++) {
+      sliceGetVal(sl, ix, iy, val);
+      if (val[0] == lastval) {
+        /* same as last, add to count, see if this is a new
+           best count */
+        len++;
+        if (len > longest) {
+          longest = len;
+          fillval = lastval;
+        }
+      } else {
+        /* different, reset count and set new lastval */
+        len = 0;
+        lastval = val[0];
+      }
+    }
+  }         
+
+  /* If length below a criterion (what?) , return without error */
+  if (longest < 10)
+    return 0;
+
+  /* set the slice mean so that sliceGetValue will return this outside the
+     edges */
+  sl->mean = fillval;
+
+  /* look from left edge along a series of lines to find the first point
+     that is not a fill point */
+  lastint = 0;
+  found = 0;
+  for (ndiv = 2; ndiv <= ysize; ndiv++) {
+    interval = (ysize + 2) / ndiv;
+    if (interval == lastint)
+      continue;
+    lastint = interval;
+    for (iy = interval; iy < ysize; iy += interval) {
+      for (ix = 0; ix < xsize; ix++) {
+        sliceGetVal(sl, ix, iy, val);
+        if (val[0] != fillval) {
+          found = 1;
+          break;
+        }
+      }
+      if (found)
+        break;
+    }
+    if (found)
+      break;
+  }
+
+  if (!found)
+    return 0;
+
+  /* Get initial chunk of pixel list and bitmap */
+  plist = (struct pixdist *)malloc(PLIST_CHUNK * sizeof(struct pixdist));
+  if (plist)
+    bitmap = (unsigned char *)malloc(bmsize);
+  if (!plist || !bitmap) {
+    if (plist)
+      free(plist);
+    return (-1);
+  }
+
+  /* clear bitmap */
+  for (i = 0; i < bmsize; i++)
+    bitmap[i] = 0;
+
+  dir = 3;
+  xstart = ix;
+  ystart = iy;
+  tapdir = 1 - 2 * inside;
+
+  do {
+    ncol = 1;
+    xnext = ix + dxout[dir] + dxnext[dir];
+    ynext = iy + dyout[dir] + dynext[dir];
+    sliceGetVal(sl, xnext, ynext, val);
+    if (val[0] != fillval) {
+      /* case 1: inside corner */
+      ix = xnext;
+      iy = ynext;
+      dir = (dir + 3) % 4;
+      if (inside)
+        ncol = ntaper + 1;
+    } else {
+      xnext = ix + dxnext[dir];
+      ynext = iy + dynext[dir];
+      sliceGetVal(sl, xnext, ynext, val);
+      if (val[0] != fillval) {
+        /* case 2: straight edge to next pixel */
+        ix = xnext;
+        iy = ynext;
+      } else {
+        /* case 3: outside corner, pixel stays the same */
+        dir = (dir + 1) % 4;
+        if (!inside)
+          ncol = ntaper + 1;
+      }
+    }
+      
+    /* If outside pixel is outside the data, nothing to add to lists */
+    xp = ix + dxout[dir];
+    yp = iy + dyout[dir];
+    if (xp < 0 || xp >= xsize || yp < 0 || yp >= ysize)
+      continue;
+
+    /* Loop on all the pixels to mark */
+    for (col = 0; col < ncol; col++) {
+      for (row = 1 - inside; row <= ntaper - inside; row++) {
+        xp = ix + tapdir * row * dxout[dir] - col * dxnext[dir];
+        yp = iy + tapdir * row * dyout[dir] - col * dynext[dir];
+
+        /* skip if pixel outside area */
+        if (xp < 0 || xp >= xsize || yp < 0 || yp >= ysize)
+          continue;
+
+        /* skip marking outside pixels for inside taper or
+           inside pixels for outside taper */
+        sliceGetVal(sl, xp, yp, val);
+        if ((inside && val[0] == fillval) || 
+            (!inside && val[0] != fillval))
+          continue;
+
+        dist = col * col + row * row;
+        ind = xsize * yp + xp;
+        if (bitmap[ind / 8] & (1 << (ind % 8))) {
+
+          /* If the pixel is already marked, find it on the
+             list and see if it's closer this time */
+          for (i = plsize - 1; i >= 0; i--) {
+            if (plist[i].x == xp && plist[i].y == yp) {
+              if (plist[i].dist > dist) {
+                plist[i].dist = dist;
+                plist[i].dx = (signed char)(ix - xp);
+                plist[i].dy = (signed char)(iy - yp);
+              }
+              break;
+            }
+          }
+        } else {
+
+          /* Otherwise, mark pixel in bitmap and make a new 
+             entry on the list */
+          bitmap[ind / 8] |= (1 << (ind % 8));
+          if (plsize >= pllimit) {
+            pllimit += PLIST_CHUNK;
+            plist = (struct pixdist *) realloc(plist,
+                                               pllimit * sizeof(struct pixdist));
+            if (!plist) {
+              free (bitmap);
+              return (-1);
+            }
+          }
+          plist[plsize].x = xp;
+          plist[plsize].y = yp;
+          plist[plsize].dist = dist;
+          plist[plsize].dx = (signed char)(ix - xp);
+          plist[plsize++].dy = (signed char)(iy - yp);
+        }
+      }
+    }
+
+  } while (ix != xstart || iy != ystart || dir != 3);
+
+  /* make tables of fractions and amounts to add of fillval */
+  for (i = 1; i <= ntaper; i++) {
+    dist = inside ? i : ntaper + 1 - i;
+    fracs[i] = (float)dist / (ntaper + 1);
+    fillpart[i] = (1. - fracs[i]) * fillval;
+  }
+
+  /* Process the pixels on the list */
+  for (i = 0; i < plsize; i++) {
+    ind = sqrt((double)plist[i].dist) + inside;
+    if (ind > ntaper)
+      continue;
+    ix = plist[i].x;
+    iy = plist[i].y;
+    if (inside) {
+      xp = ix;
+      yp = iy;
+    } else {
+      xp = ix + plist[i].dx;
+      yp = iy + plist[i].dy;
+    }
+    sliceGetVal(sl, xp, yp, val);
+    /*  val[0] = fracs[plist[i].dist] * val[0] + fillpart[plist[i].dist]; */
+    val[0] = fracs[ind] * val[0] + fillpart[ind];
+    slicePutVal(sl, ix, iy, val);
+  }
+
+  free(plist);
+  free(bitmap);
+  return 0;
+}
+
+
 /*
     $Log$
+    Revision 3.6  2005/11/11 22:15:23  mast
+    Changes for unsigned file mode
+
     Revision 3.5  2005/03/09 21:17:15  mast
     Converted diffusion to float, removed processor argument
 
