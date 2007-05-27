@@ -32,6 +32,8 @@ all :
 	  ../libhelp/mrcfiles.html
 	../../sourcedoc/$(SOURCEDOC_EXE) -d ../../libiimod mrcslice.html \
 	  ../libhelp/mrcslice.html
+	../../sourcedoc/$(SOURCEDOC_EXE) -d ../../libiimod sliceproc.html \
+	  ../libhelp/sliceproc.html
 	../../sourcedoc/$(SOURCEDOC_EXE) -d ../../libmesh libmesh.html \
 	  ../libhelp/libmesh.html
 	../../sourcedoc/$(SOURCEDOC_EXE) -d ../../libcfft libifft.html \
