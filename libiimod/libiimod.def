@@ -110,6 +110,7 @@ EXPORTS
 	sliceResizeIn
 	tiffClose
 	sliceByteGrow
+	sliceTaperAtFill
 	updateMatrix
 	mrc_data_new
 	iiLikeMRCCheck
