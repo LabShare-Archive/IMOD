@@ -39,7 +39,8 @@ Currently, 3dmod will accept the following commands:
          file); this raises all windows
    8  Open Bead Fixer window or raise it if already open
    9  Open a Zap window if none are open, this raises all windows
-  10  Report the image coordinates of the Zap window rubberband 
+  10  Report the image coordinates of the rubberband in the most 
+         recently active Zap window with a rubberband
          (lower left X and Y and upper right X and Y)
   11  Set object properties unconditionally  OR
   12  Set object properties only if specified object has no contours
@@ -52,8 +53,7 @@ Currently, 3dmod will accept the following commands:
               triangles; add 8 for filled symbols
           Symbol size (>= 1)
           3D point radius
-  13  Report the three angles of a slicer window (the active one if a 
-        slicer is the active window, otherwise the first one)
+  13  Report the three angles of the most recently active slicer window
   14  Send a message to a plugin or compiled-in special module.  
         Follow with the name of the plugin as it appears in the 
         Special menu, including spaces if any, then with the message 
