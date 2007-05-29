@@ -13,6 +13,7 @@ import javax.swing.UIManager;
 import javax.swing.plaf.FontUIResource;
 
 import etomo.process.IntermittentBackgroundProcess;
+import etomo.process.ProcessRestarter;
 import etomo.storage.EtomoFileFilter;
 import etomo.storage.JoinFileFilter;
 import etomo.storage.LogFile;
@@ -626,7 +627,8 @@ public class EtomoDirector {
           return false;
         }
       }
-      IntermittentBackgroundProcess.endRestartThread();
+      ProcessRestarter.stop();
+      IntermittentBackgroundProcess.stop();
       if (isMemoryAvailable()) {
         //  Should we close the 3dmod windows
         //  Save the current window size to the user config
@@ -1134,6 +1136,9 @@ public class EtomoDirector {
 }
 /**
  * <p> $Log$
+ * <p> Revision 1.61  2007/05/02 21:05:19  sueh
+ * <p> bug# 964 Removed Import PRM and Duplicate PEET menu items.
+ * <p>
  * <p> Revision 1.60  2007/05/02 16:34:05  sueh
  * <p> bug# 964 Moved newstuff into mainstream.
  * <p>
