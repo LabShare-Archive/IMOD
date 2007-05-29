@@ -2674,6 +2674,7 @@ void zapPrintInfo(ZapStruct *zap)
   int ixl, ixr, iyb, iyt;
   int ixcen, iycen, ixofs, iyofs, imx, imy;
   int bin = zap->vi->xybin;
+  bool ifpad, flipped = zap->vi->li->axis == 2;
 
   ivwControlPriority(zap->vi, zap->ctrl);
   ImodInfoWin->raise();
@@ -2683,35 +2684,35 @@ void zapPrintInfo(ZapStruct *zap)
     xr = zap->rbImageX1;
     yt = zap->rbImageY1;
   } else {
-    zapGetixy(zap, 0, 0, &xl, &yt);
-    zapGetixy(zap, zap->winx, zap->winy, &xr, &yb);
+    zapGetixy(zap, 0, -1, &xl, &yt);
+    zapGetixy(zap, zap->winx, zap->winy-1, &xr, &yb);
   }
   ixl = (int)floor(xl + 0.5);
   ixr = (int)floor(xr - 0.5);
   iyb = (int)floor(yb + 0.5);
   iyt = (int)floor(yt - 0.5);
-  imx = ixr + 1 - ixl;
-  imy = iyt + 1 - iyb;
+  ifpad = ixl < 0 || iyb < 0 || ixr >= zap->vi->xsize || iyt >= zap->vi->ysize;
+  imx = bin * (ixr + 1 - ixl);
+  imy = bin * (iyt + 1 - iyb);
+  ixcen = bin * (ixr + 1 + ixl)/2;
+  iycen = bin * (iyt + 1 + iyb)/2;
+  ixofs = ixcen - (bin * zap->vi->xsize)/2;
+  iyofs = iycen - (bin * zap->vi->ysize)/2;
+  ixl = B3DMAX(0, ixl);
+  iyb = B3DMAX(0, iyb);
+  ixr = B3DMIN(ixr, zap->vi->xsize - 1);
+  iyt = B3DMIN(iyt, zap->vi->ysize - 1);
   ixl *= bin;
   iyb *= bin;
   ixr = ixr * bin + bin - 1;
   iyt = iyt * bin + bin - 1;
-  if (bin > 1)
-    wprint("Unbinned: ");
-  wprint("(%d,%d) to (%d,%d); ", ixl + 1, iyb + 1, ixr + 1, iyt + 1);
-  ixcen = (ixr + 1 + ixl)/2;
-  iycen = (iyt + 1 + iyb)/2;
-  ixofs = ixcen - bin * zap->vi->xsize/2;
-  iyofs = iycen - bin * zap->vi->ysize/2;
-  wprint("Center (%d,%d)\n", ixcen + 1, iycen + 1);
-  wprint("To excise: newstack -si %d,%d -of %d,%d\n", ixr + 1 - ixl, 
-         iyt + 1 - iyb, ixofs, iyofs);
-  if (zap->rubberband) 
-    wprint("Rubberband: %d x %d; ", zap->rbMouseX1 - 1 - zap->rbMouseX0, 
-           zap->rbMouseY1 - 1 - zap->rbMouseY0);
-  else
-    wprint("Window: %d x %d;   ", zap->winx, zap->winy);
-  wprint("Image: %d x %d\n", imx, imy);
+  wprint("%senter (%d,%d); offset %d,%d\n", bin > 1 ? "Unbinned c" : "C",
+         ixcen + 1, iycen + 1, ixofs, iyofs);
+  wprint("%smage size: %d x %d;   To excise:\n", ifpad ? "Padded i" : "I",
+         imx, imy);
+  wprint("  trimvol -x %d,%d %s %d,%d %s %d,%d\n", ixl + 1, ixr + 1, 
+         flipped ? "-z" : "-y", iyb + 1, iyt + 1, flipped ? "-yz -y" : "-z",
+         zap->section + 1, zap->section + 1);
 }
 
 
@@ -2850,39 +2851,45 @@ void zapReportRubberband()
 {
   QObjectList objList;
   ZapStruct *zap;
-  int i, bin;
+  ImodControl *ctrlPtr;
+  int i, j, bin;
   int ixl, ixr, iyb, iyt;
 
   imodDialogManager.windowList(&objList, -1, ZAP_WINDOW_TYPE);
 
-  for (i = 0; i < objList.count(); i++) {
-    zap = ((ZapWindow *)objList.at(i))->mZap;
-    bin = zap->vi->xybin;
-    if (zap->rubberband) {
-      ixl = (int)floor(zap->rbImageX0 + 0.5);
-      ixr = (int)floor(zap->rbImageX1 - 0.5);
-      iyb = (int)floor(zap->rbImageY0 + 0.5);
-      iyt = (int)floor(zap->rbImageY1 - 0.5);
-      if (ixr < 1 || iyt < 1 || ixl > zap->vi->xsize - 2 || 
-          iyb > zap->vi->ysize - 2)
-        continue;
+  // Loop through the control list and find the first window that is a zap
+  // with a rubberband
+  for (j = 0; j < ilistSize(App->cvi->ctrlist->list); j++) {
+    ctrlPtr = (ImodControl *)ilistItem(App->cvi->ctrlist->list, j);
+    for (i = 0; i < objList.count(); i++) {
+      zap = ((ZapWindow *)objList.at(i))->mZap;
+      bin = zap->vi->xybin;
+      if (ctrlPtr->id == zap->ctrl && zap->rubberband) {
+        ixl = (int)floor(zap->rbImageX0 + 0.5);
+        ixr = (int)floor(zap->rbImageX1 - 0.5);
+        iyb = (int)floor(zap->rbImageY0 + 0.5);
+        iyt = (int)floor(zap->rbImageY1 - 0.5);
+        if (ixr < 1 || iyt < 1 || ixl > zap->vi->xsize - 2 || 
+            iyb > zap->vi->ysize - 2)
+          continue;
 
-      if (ixl < 0)
-        ixl = 0;
-      if (ixr >= zap->vi->xsize)
-        ixr = zap->vi->xsize - 1;
-      if (iyb < 0)
-        iyb = 0;
-      if (iyt >= zap->vi->ysize)
-        iyt = zap->vi->ysize - 1;
-      ixl *= bin;
-      iyb *= bin;
-      ixr = ixr * bin + bin - 1;
-      iyt = iyt * bin + bin - 1;
+        if (ixl < 0)
+          ixl = 0;
+        if (ixr >= zap->vi->xsize)
+          ixr = zap->vi->xsize - 1;
+        if (iyb < 0)
+          iyb = 0;
+        if (iyt >= zap->vi->ysize)
+          iyt = zap->vi->ysize - 1;
+        ixl *= bin;
+        iyb *= bin;
+        ixr = ixr * bin + bin - 1;
+        iyt = iyt * bin + bin - 1;
         
-      imodPrintStderr("Rubberband: %d %d %d %d\n", ixl + 1, iyb + 1, ixr + 1,
-              iyt + 1);
-      return;
+        imodPrintStderr("Rubberband: %d %d %d %d\n", ixl + 1, iyb + 1, ixr + 1,
+                        iyt + 1);
+        return;
+      }
     }
   }
   imodPrintStderr("ERROR: No Zap window has usable rubberband coordinates\n");
@@ -3559,10 +3566,8 @@ static void zapDrawCurrentPoint(ZapStruct *zap)
   zap->showedSlice = zap->showslice;
   if (zap->showslice){
     b3dColorIndex(App->foreground);
-    b3dDrawLine(x, y,
-                zapXpos(zap, vi->slice.zx1+0.5f),
-                zapYpos(zap, vi->slice.zy1+0.5f));
-    b3dDrawLine(x, y,
+    b3dDrawLine(zapXpos(zap, vi->slice.zx1+0.5f),
+                zapYpos(zap, vi->slice.zy1+0.5f),
                 zapXpos(zap, vi->slice.zx2+0.5f), 
                 zapYpos(zap, vi->slice.zy2+0.5f));
     zap->showslice = 0;
@@ -3843,6 +3848,9 @@ static int zapPointVisable(ZapStruct *zap, Ipoint *pnt)
 
 /*
 $Log$
+Revision 4.92  2007/05/06 03:26:09  mast
+Added calls to b3dSetMovieSnapping
+
 Revision 4.91  2007/03/29 04:55:49  mast
 Fixed crash bug when closing window while focus is in edit/spinbox
 
