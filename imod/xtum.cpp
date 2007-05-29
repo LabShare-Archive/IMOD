@@ -656,7 +656,7 @@ void TumblerWindow::fillSlice(TumblerStruct *xtum)
 
   /* Set up image pointer tables */
   vmnullvalue = (App->cvi->white + App->cvi->black) / 2;
-  if (ivwSetupFastAccess(xtum->vi, &imdata, vmnullvalue, &i, xtum-vi->ct))
+  if (ivwSetupFastAccess(xtum->vi, &imdata, vmnullvalue, &i, xtum->vi->ct))
     return;
 
   fillASlice(xtum);
@@ -1257,6 +1257,9 @@ void TumblerGL::paintGL()
 
 /*
 $Log$
+Revision 4.24  2007/05/29 14:45:12  mast
+Rearrange incldes and add time argument tofast setup
+
 Revision 4.23  2007/03/29 04:55:49  mast
 Fixed crash bug when closing window while focus is in edit/spinbox
 
