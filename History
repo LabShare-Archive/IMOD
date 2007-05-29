@@ -1,5 +1,17 @@
 IMOD History
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+5/29/07: The Zap info button now reports a trimvol command for excising the 
+selected area of the current slice that takes account of whether the data are
+loaded in flipped and is easily extensible to multiple slices.
+
+5/29/07: Slicer has a new mode in which the center point is not tied to the
+current image/model point and the mouse now pans the image; there is toolbar
+button to switch between this and classic mode.  A slicer can now be time
+locked too.  Automatic scaling is used to match the image contrast to that of
+a singel slice when 4 or more slices are being summed.  FFT's are also
+autoatically scaled to have contrast in the same range as images.  Images
+edges are now tapered before taking an FFT to eliminate artifacts.
+
 5/25/07: Added ssh options to both etomo and processchunks to keep ssh from
 asking for passwords when there is either no account or no passwordless
 access.  Processchunks also turns off strict host key checking.
