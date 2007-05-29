@@ -1,6 +1,7 @@
 package etomo.process;
 
 import java.io.IOException;
+import java.util.Enumeration;
 import java.util.Hashtable;
 
 import etomo.BaseManager;
@@ -211,8 +212,43 @@ public final class IntermittentBackgroundProcess implements Runnable {
     monitors.remove(monitor);
   }
 
-  public static void endRestartThread() throws InterruptedException {
-    ProcessRestarter.INSTANCE.stop();
+  public static synchronized void stop() {
+    Enumeration enumeration = instances.elements();
+    while (enumeration.hasMoreElements()) {
+      ((IntermittentBackgroundProcess) enumeration.nextElement()).stopAll();
+    }
+    //wait while the processes are ending
+    try {
+      Thread.sleep(10);
+    }
+    catch (InterruptedException e) {
+    }
+    //Are the programs done?
+    enumeration = instances.elements();
+    boolean done = true;
+    while (enumeration.hasMoreElements()) {
+      if (!((IntermittentBackgroundProcess) enumeration.nextElement()).program
+          .isDone()) {
+        done = false;
+      }
+    }
+    if (!done) {
+      //make sure programs have ended
+      try {
+        Thread.sleep(2000);
+      }
+      catch (InterruptedException e) {
+      }
+    }
+  }
+
+  private synchronized void stopAll() {
+    if (program != null) {
+      for (int i = 0; i < monitors.size(); i++) {
+        program.msgDroppedMonitor((IntermittentProcessMonitor) monitors.get(i));
+      }
+    }
+    stopped = true;
   }
 
   /**
@@ -349,6 +385,10 @@ public final class IntermittentBackgroundProcess implements Runnable {
 }
 /**
  * <p> $Log$
+ * <p> Revision 1.7  2007/05/26 00:25:17  sueh
+ * <p> bug# 964 Replaced restart with canRestart.  Moved RestartThread
+ * <p> functionality to ProcessRestarter.
+ * <p>
  * <p> Revision 1.6  2007/05/25 00:22:06  sueh
  * <p> bug# 994 Added failureReason and clearStdError().
  * <p>
