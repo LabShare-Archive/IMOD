@@ -20,9 +20,12 @@ import java.util.List;
  * 
  * @threadsafe
  * 
- * <p> $Log$ </p>
+ * <p> $Log$
+ * <p> Revision 1.1  2007/05/26 00:30:04  sueh
+ * <p> bug# 994 Class to restart Intermittent Background Processes.
+ * <p> </p>
  */
-final class ProcessRestarter implements Runnable {
+public final class ProcessRestarter implements Runnable {
   public static final String rcsid = "$Id$";
 
   static final ProcessRestarter INSTANCE = new ProcessRestarter();
@@ -112,11 +115,11 @@ final class ProcessRestarter implements Runnable {
   /**
    * Stops run().
    */
-  void stop() {
-    if (stop == true) {
+  public static void stop() {
+    if (INSTANCE.stop == true) {
       return;
     }
-    stop = true;
+    INSTANCE.stop = true;
     try {
       Thread.sleep(1000);
     }
