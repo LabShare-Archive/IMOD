@@ -40,12 +40,10 @@ typedef struct Super_slicer{
   SlicerGL     *glw;
   SlicerCube   *cube;
   
-  int          maprowcol;
   int          scalez;
-  int          mapped;
   int          locked;
-  int          imageFilled;
   int          mousemode;    /* value for keeping track of cursor */
+  int          classic;
 
   struct ViewInfo *vi;
   B3dCIImage   *image;
@@ -58,7 +56,7 @@ typedef struct Super_slicer{
   int    lastangle;   /* Last angle slider that was used */
   
   /* coords for plane intersection */
-     /* used for show slice location  */
+  /* used for show slice location  */
   int zx1, zx2;
   int zy1, zy2;
   
@@ -67,25 +65,30 @@ typedef struct Super_slicer{
   float xsz, ysz, zsz;
   float xo, yo, zo;
   
-  /* slicer version 3 data. */
-  float inangle[3]; /* three user input angles.                      */
-  float tang[3];    /* transform angles in order given by order.     */
+  float tang[3];    /* transform angles */
+  float lang[3];    /* last angles drawn */
   float xstep[3];   /* change in x, y, z image for step in x' slicer */
   float ystep[3];   /* change in x, y, z image for step in y' slicer */
   float zstep[3];
-  float bcoord[3];  /* beginning point in image to start rendering.  */
-  float ccoord[3];  /* current point in rendering for workproc.      */
-  
+  int timeLock;     /* Time value if time is locked */
   
   float xzoom, yzoom;
+  int   imageFilled;
+  bool  noPixelZoom;   /* Flag that image data are to be drawn at 1:1 xoom */
+  float oneSliceMean, oneSliceSD;   /* mean and SD of single center slice */
+  bool  scaleToMeanSD; /* Flag that multi-slice should be scaled to single */
 
   float xshift, yshift;   /* Shifts to apply to raster for low-res draw */
   float zslast;           /* Value of zscale on last draw_cb */
   int pending;            /* Flag that there are pending coords from hit */
   float pendx, pendy, pendz;   /* pending coords */
   int movieSnapCount;     /* Counter for doing movie snapshots */
-  
-  short nslice;
+  Ipoint origXYZmouse;    /* Original [xyz]xmouse when page up/down started */
+  float origAngles[3];    /* Original angles at that time */
+  Ipoint lastXYZmouse;    /* Last [xyz]xmouse left by a page up/down */
+  float cumPageMoves;     /* Cumulative page up/down move since original */
+
+  short nslice;       /* Number of slices to draw */
   Imat  *mat;
   int   ctrl;
   int   fftMode;      /* Flag to do FFT of slice */
@@ -113,6 +116,7 @@ void slicerClosing(SlicerStruct *sslice);
 void slicerKeyInput(SlicerStruct *sslice, QKeyEvent *event);
 void slicerKeyRelease(SlicerStruct *sslice, QKeyEvent *event);
 void slicerMousePress(SlicerStruct *sslice, QMouseEvent *event);
+void slicerMouseRelease(SlicerStruct *sslice, QMouseEvent *event);
 void slicerMouseMove(SlicerStruct *sslice, QMouseEvent *event);
 void slicerPaint(SlicerStruct *win);
 void slicerCubePaint(SlicerStruct *ss);
@@ -131,6 +135,9 @@ void slicerNewTime(bool refresh);
 
 /*
     $Log$
+    Revision 3.13  2007/05/25 05:28:16  mast
+    Changes for addition of slicer angle storage
+
     Revision 3.12  2007/03/29 04:55:49  mast
     Fixed crash bug when closing window while focus is in edit/spinbox
 
