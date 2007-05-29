@@ -8,8 +8,8 @@
         <rect>
             <x>0</x>
             <y>0</y>
-            <width>473</width>
-            <height>310</height>
+            <width>467</width>
+            <height>294</height>
         </rect>
     </property>
     <property name="caption">
@@ -343,20 +343,6 @@
             </property>
             <property name="selectionMode">
                 <enum>Single</enum>
-            </property>
-        </widget>
-        <widget class="Line">
-            <property name="name">
-                <cstring>line5</cstring>
-            </property>
-            <property name="frameShape">
-                <enum>HLine</enum>
-            </property>
-            <property name="frameShadow">
-                <enum>Sunken</enum>
-            </property>
-            <property name="orientation">
-                <enum>Horizontal</enum>
             </property>
         </widget>
         <widget class="QLayoutWidget">
