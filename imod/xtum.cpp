@@ -30,10 +30,10 @@
 #include "dia_qtutils.h"
 #include "control.h"
 
+#include "imod.h"
 #include "sslice.h"
 #include "xtum.h"
 
-#include "imod.h"
 #include "imod_input.h"
 #include "b3dgfx.h"
 
@@ -656,7 +656,7 @@ void TumblerWindow::fillSlice(TumblerStruct *xtum)
 
   /* Set up image pointer tables */
   vmnullvalue = (App->cvi->white + App->cvi->black) / 2;
-  if (ivwSetupFastAccess(xtum->vi, &imdata, vmnullvalue, &i))
+  if (ivwSetupFastAccess(xtum->vi, &imdata, vmnullvalue, &i, xtum-vi->ct))
     return;
 
   fillASlice(xtum);
@@ -1257,6 +1257,9 @@ void TumblerGL::paintGL()
 
 /*
 $Log$
+Revision 4.23  2007/03/29 04:55:49  mast
+Fixed crash bug when closing window while focus is in edit/spinbox
+
 Revision 4.22  2006/10/05 17:09:41  mast
 Converted help page
 
