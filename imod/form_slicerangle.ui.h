@@ -41,10 +41,11 @@ void SlicerAngleForm::init()
     renumberSpin->hide();
     copySpin->hide();
     volumeGroup->hide();
-    timeLabel->hide();
   }
+  if (mMaxImageTime == 1)
+    timeLabel->hide();
   mCurRow = new int[mMaxModelTime + 1];
-  
+
   // Set the current time from the top slicer or fall back to display time
   mCurTime = getTopSlicerTime();
   if (mCurTime < 0)
@@ -535,7 +536,8 @@ void SlicerAngleForm::topSlicerDrawing( float *angles, float cx, float cy, float
       loadRow(slanp, mCurRow[mCurTime]);
       if (!dragging)
         App->cvi->undo->finishUnit();
-    }
+    } else if (lastDragging && !dragging)
+      App->cvi->undo->finishUnit();
   }
   lastDragging = dragging;
 }
