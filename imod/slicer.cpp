@@ -18,6 +18,7 @@
 #include <qcursor.h>
 #include <qapplication.h>
 #include <qobjectlist.h>
+#include <qdatetime.h>
 
 #include "slicer_classes.h"
 #include "imod.h"
@@ -66,7 +67,10 @@ static void setMovieLimits(SlicerStruct *ss, int axis);
 static void findMovieAxis(SlicerStruct *ss, int *xmovie, int *ymovie, 
                           int *zmovie, int dir, int *axis);
 static void setInverseMatrix(SlicerStruct *ss);
+static int translateByRotatedVec(SlicerStruct *ss, Ipoint *vec);
 static SlicerStruct *getTopSlicer();
+static void getWindowCoords(SlicerStruct *ss, float xcur, float ycur, 
+                            float zcur, int &xim, int &yim, int &zim);
 
 /* DNM: maximum angles for sliders */
 static float maxAngle[3] = {90.0, 180.0, 180.0};
@@ -74,6 +78,9 @@ static int ctrlPressed = 0;
 static bool pixelViewOpen = false;
 static SlicerAngleForm *sliceAngDia = NULL;
 static int sliderDragging = 0; 
+static QTime but1downt;
+static int firstmx, firstmy, lastmx, lastmy;
+static int mousePanning = 0;
 
 /*
  * Open up slicer help dialog.
@@ -147,9 +154,30 @@ void slicerStateToggled(SlicerStruct *ss, int index, int state)
     sslice_draw(ss);
     break;
 
+  case SLICER_TOGGLE_CENTER:
+
+    // Toggle classic mode, set center if going to classic and not locked
+    ss->classic = state;
+    if (!ss->locked && state) {
+      ss->cx = ss->vi->xmouse;
+      ss->cy = ss->vi->ymouse;
+      ss->cz = ss->vi->zmouse;
+    }
+    ss->pending = 0;
+    sslice_draw(ss);
+       
+    imodDraw(ss->vi, IMOD_DRAW_XYZ);
+    break;
+
   case SLICER_TOGGLE_FFT:
     ss->fftMode = state;
     sslice_draw(ss);
+    break;
+
+  case SLICER_TOGGLE_TIMELOCK:
+    ss->timeLock = state ? ss->vi->ct : 0;
+    if (!state)
+      sslice_draw(ss);
     break;
   }
 }
@@ -272,21 +300,23 @@ int sslice_open(struct ViewInfo *vi)
   ss->cz = vi->zmouse;
   ss->vi     = vi;
   ss->locked = 0;
+  ss->timeLock = 0;
+  ss->classic = 0;
   ss->zoom   = 1.0;
   ss->lx     = vi->xmouse;
   ss->ly     = vi->ymouse;
   ss->lz     = vi->zmouse;
+  ss->origAngles[0]  = -1000.;
   ss->hq     = 0;
   ss->tang[b3dX] = 0.0f;
   ss->tang[b3dY] = 0.0f;
   ss->tang[b3dZ] = 0.0f;
-  ss->mapped = 0;
+  ss->lang[b3dX] = 0.0f;
+  ss->lang[b3dY] = 0.0f;
+  ss->lang[b3dZ] = 0.0f;
   ss->scalez = 0;
   ss->depth = 1.0;
   ss->image = NULL;
-  ss->bcoord[0] = vi->xmouse;
-  ss->bcoord[1] = vi->ymouse;
-  ss->bcoord[2] = vi->zmouse;
   ss->xstep[0]  = 1.0f; ss->xstep[1] = ss->xstep[2] = 0.0f;
   ss->ystep[1]  = 1.0f; ss->ystep[0] = ss->ystep[2] = 0.0f;
   ss->nslice = 1;
@@ -301,7 +331,7 @@ int sslice_open(struct ViewInfo *vi)
   ss->closing = 0;
 
   slice_trans_step(ss);
-  ss->qtWindow = new SlicerWindow(ss, maxAngle, App->rgba, 
+  ss->qtWindow = new SlicerWindow(ss, maxAngle,  vi->nt > 1, App->rgba,
                                   App->doublebuffer, App->qtEnableDepth,
                                   imodDialogManager.parent(IMOD_IMAGE),
                                   "slicer window");
@@ -379,6 +409,7 @@ int slicerAnglesOpen()
   return 0;
 }
 
+// The slicer angle window is closing
 void slicerAnglesClosing()
 {
   imodDialogManager.remove((QWidget *)sliceAngDia);
@@ -415,29 +446,37 @@ void slicerReportAngles()
                   ss->tang[b3dY], ss->tang[b3dZ]);
 }
 
+// Find the slicer window that is nearest to the top of the control list
 static SlicerStruct *getTopSlicer()
 {
   QObjectList objList;
   SlicerStruct *ss;
-  int i, topOne;
+  ImodControl *ctrlPtr;
+  int i, j, topOne;
 
   imodDialogManager.windowList(&objList, -1, SLICER_WINDOW_TYPE);
   if (!objList.count())
     return NULL;
 
+  // Look through the current control list, find first slicer with matching ID
   topOne = -1;
-  for (i = 0; i < objList.count(); i++) {
-    ss = ((SlicerWindow *)objList.at(i))->mSlicer;
-    if (ss->ctrl == ss->vi->ctrlist->top) {
-      topOne = i;
-      break;
+  for (j = 0; topOne < 0 && j < ilistSize(App->cvi->ctrlist->list); j++) {
+    ctrlPtr = (ImodControl *)ilistItem(App->cvi->ctrlist->list, j);
+    for (i = 0; i < objList.count(); i++) {
+      ss = ((SlicerWindow *)objList.at(i))->mSlicer;
+      if (ctrlPtr->id == ss->ctrl) {
+        topOne = i;
+        break;
+      }
     }
   }
   if (topOne < 0)
-    ss = ((SlicerWindow *)objList.at(0))->mSlicer;
-  return ss;
+    topOne = 0;
+  return ((SlicerWindow *)objList.at(topOne))->mSlicer;
 }
 
+// Called from slicer angle window to set the angles and position of the
+// top slicer
 int setTopSlicerAngles(float angles[3], Ipoint *center, bool draw)
 {
   SlicerStruct *ss = getTopSlicer();
@@ -463,6 +502,8 @@ int setTopSlicerAngles(float angles[3], Ipoint *center, bool draw)
   return 0;
 }
 
+// Return the angles and position of the top slicer, and the time, to the 
+// slicer angle window
 int getTopSlicerAngles(float angles[3], Ipoint *center, int &time)
 {
   SlicerStruct *ss = getTopSlicer();
@@ -474,16 +515,17 @@ int getTopSlicerAngles(float angles[3], Ipoint *center, int &time)
   center->x = ss->cx;
   center->y = ss->cy;
   center->z = ss->cz;
-  time = ss->vi->ct;
+  time = ss->timeLock ? ss->timeLock : ss->vi->ct;
   return 0;
 }
 
+// Just return the time of the top slicer window
 int getTopSlicerTime()
 {
   SlicerStruct *ss = getTopSlicer();
   if (!ss)
     return -1;
-  return ss->vi->ct;
+  return ss->timeLock ? ss->timeLock : ss->vi->ct;
 }
 
 // Notify the slicer angle dialog of a new time or general need to refresh
@@ -529,19 +571,21 @@ void slicerKeyInput(SlicerStruct *ss, QKeyEvent *event)
   int handled = 1;
   int docheck = 0;
   int keypad = event->state() & Qt::Keypad;
+  float unit;
   Ipoint *p1, *p2;
   int ob, co, pt, axis;
   Icont *cont;
   Ipoint norm, vec = {0., 0., 0.};
+  ImodView *vi = ss->vi;
 
   if (inputTestMetaKey(event))
     return;
 
   inputConvertNumLock(keysym, keypad);
 
-  ivwControlPriority(ss->vi, ss->ctrl);
+  ivwControlPriority(vi, ss->ctrl);
 
-  if (imodPlugHandleKey(ss->vi, event)) 
+  if (imodPlugHandleKey(vi, event)) 
     return;
 
   // These grabs may not work right if keys are passed from elsewhere
@@ -587,6 +631,16 @@ void slicerKeyInput(SlicerStruct *ss, QKeyEvent *event)
     drawThickControls(ss);
     break;
           
+  case Qt::Key_1:
+  case Qt::Key_2:
+    if (ss->timeLock) {
+      if (keysym == Qt::Key_1)
+        ss->timeLock = B3DMAX(ss->timeLock - 1, 1);
+      else
+        ss->timeLock = B3DMIN(ss->timeLock + 1, vi->nt);
+    } else
+      handled = 0;
+
   case Qt::Key_S:
     if (shift || ctrl){
 
@@ -604,10 +658,10 @@ void slicerKeyInput(SlicerStruct *ss, QKeyEvent *event)
     if (ctrl && (keysym == Qt::Key_Z || keysym == Qt::Key_Y)) {
       handled = 0;
     } else {
-      cont = imodContourGet(ss->vi->imod);
-      imodGetIndex(ss->vi->imod, &ob, &co, &pt);
+      cont = imodContourGet(vi->imod);
+      imodGetIndex(vi->imod, &ob, &co, &pt);
       
-      p2 = imodPointGet(ss->vi->imod);
+      p2 = imodPointGet(vi->imod);
       if ((cont) && (p2) && (cont->psize > 1)){
         if (pt)
           p1 = &cont->pts[pt-1];
@@ -649,38 +703,68 @@ void slicerKeyInput(SlicerStruct *ss, QKeyEvent *event)
   case Qt::Key_Prior:
     dodraw = 0;
     if ((keypad && keysym == Qt::Key_Prior) || 
-        (!keypad && (!ss->locked || keysym == Qt::Key_End || 
+        (!keypad && ((!ss->locked && ss->classic) || keysym == Qt::Key_End || 
                      keysym == Qt::Key_Insert))) {
       handled = 0;
       break;
     }
 
-    // Non-keypad keys, only if locked, move without changing global point
+    // Non-keypad keys, only if locked or new mode, move without changing 
+    // global point
     // and move in tilted coordinates so that modeling will be one pixel apart
     if (!keypad) {
+      unit = ss->classic ? -1. : +1.;
       if (keysym == Qt::Key_Down) 
-        vec.y = -1.;
+        vec.y = unit;
       if (keysym == Qt::Key_Left)
-        vec.x = -1.;
+        vec.x = unit;
       if (keysym == Qt::Key_Right)
-        vec.x = +1.;
+        vec.x = -unit;
       if (keysym == Qt::Key_Up)
-        vec.y = +1.;
+        vec.y = -unit;
       if (keysym == Qt::Key_Prior)
-        vec.z = +1.;
+        vec.z = 1.;
       if (keysym == Qt::Key_Next)
-        vec.z = -1.;
-      setInverseMatrix(ss);
-      imodMatTransform3D(ss->mat, &vec, &norm);
-      if (ss->cx + norm.x >= 0 && ss->cx + norm.x <= ss->vi->xsize && 
-          ss->cy + norm.y >= 0 && ss->cy + norm.y <= ss->vi->ysize && 
-          ss->cz + norm.z >= 0 && ss->cz + norm.z <= ss->vi->zsize) {
-        ss->cx += norm.x;
-        ss->cy += norm.y;
-        ss->cz += norm.z;
-        /* printf("%.2f %.2f %.2f %.2f %.2f %.2f\n", ss->cx, ss->cy, ss->cz,
-           norm.x, norm.y, norm.z); */
+        vec.z = -1;
+      if (translateByRotatedVec(ss, &vec)) {
         dodraw = 1;
+        if (!ss->locked && vec.z) {
+          
+          // For a move in Z, try to move current image point normal to the
+          // plane.  First test if this move is a continuation of a sequence
+          // and if so just increment the cumulative move; otherwise set this
+          // up as the first move of a potential sequence
+          if (ss->tang[0] == ss->origAngles[0] && 
+              ss->tang[1] == ss->origAngles[1] && 
+              ss->tang[2] == ss->origAngles[2] && 
+              vi->xmouse == ss->lastXYZmouse.x && 
+              vi->ymouse == ss->lastXYZmouse.y && 
+              vi->zmouse == ss->lastXYZmouse.z) {
+            ss->cumPageMoves += vec.z;
+          } else {
+            ss->origAngles[0] = ss->tang[0];
+            ss->origAngles[1] = ss->tang[1];
+            ss->origAngles[2] = ss->tang[2];
+            ss->origXYZmouse.x = vi->xmouse;
+            ss->origXYZmouse.y = vi->ymouse;
+            ss->origXYZmouse.z = vi->zmouse;
+            ss->cumPageMoves = vec.z;
+          }
+          vec.z = 1.;
+          imodMatTransform3D(ss->mat, &vec, &norm);
+
+          // Now move the [xyz]mouse by cumulative move from original position
+          // and round z to integer
+          vi->xmouse = ss->origXYZmouse.x + ss->cumPageMoves * norm.x;
+          vi->ymouse = ss->origXYZmouse.y + ss->cumPageMoves * norm.y;
+          vi->zmouse = B3DNINT(ss->origXYZmouse.z + ss->cumPageMoves * norm.z);
+          ss->lastXYZmouse.x = vi->xmouse;
+          ss->lastXYZmouse.y = vi->ymouse;
+          ss->lastXYZmouse.z = vi->zmouse;
+          ivwBindMouse(vi);
+          imodDraw(vi, IMOD_DRAW_XYZ);
+          dodraw = 0;        
+        }
       }
       break;
     }
@@ -724,7 +808,7 @@ void slicerKeyInput(SlicerStruct *ss, QKeyEvent *event)
 
   // If key not handled, call the default processor
   if (!handled) {
-    inputQDefaultKeys(event, ss->vi);
+    inputQDefaultKeys(event, vi);
     return;
   }
 
@@ -748,8 +832,15 @@ void slicerMousePress(SlicerStruct *ss, QMouseEvent *event)
 {
   ivwControlPriority(ss->vi, ss->ctrl);
 
-  if (event->stateAfter() & ImodPrefs->actualButton(1))
-    slicer_attach_point(ss, event->x(), event->y());
+  if (event->stateAfter() & ImodPrefs->actualButton(1)) {
+    if (ss->classic) {
+      slicer_attach_point(ss, event->x(), event->y());
+    } else {
+      but1downt.start();
+      lastmx = firstmx = event->x();
+      lastmy = firstmy = event->y();
+    }
+  }
 
   if (event->stateAfter() & ImodPrefs->actualButton(2))
     slicer_insert_point(ss, event->x(), event->y());
@@ -758,6 +849,21 @@ void slicerMousePress(SlicerStruct *ss, QMouseEvent *event)
     slicer_modify_point(ss, event->x(), event->y());
 }
 
+// Respond to mouse button up
+void slicerMouseRelease(SlicerStruct *ss, QMouseEvent *event)
+{
+
+  // For button 1 up, if not classic mode, either end panning or call attach
+  if (event->button() == ImodPrefs->actualButton(1) && !ss->classic) {
+    if (mousePanning) {
+      mousePanning = 0;
+      sslice_draw(ss);
+    } else
+      slicer_attach_point(ss, event->x(), event->y());
+  }
+}
+
+// Process a mouse move
 void slicerMouseMove(SlicerStruct *ss, QMouseEvent *event)
 {
   int zmouse;
@@ -766,14 +872,37 @@ void slicerMouseMove(SlicerStruct *ss, QMouseEvent *event)
   Icont *cont;
   Imod *imod = ss->vi->imod;
   Ipoint scale = {1., 1., 1.};
-
+  int cumdx, cumdy;
+  int cumthresh = 6 * 6;
+  double transFac = ss->zoom < 4. ? 1. / ss->zoom : 0.25;
+  Ipoint vec;
+ 
   if (pixelViewOpen) {
     zmouse = sslice_getxyz(ss, event->x(), event->y(), xm, ym, zm);
     pvNewMousePosition(ss->vi, xm, ym, zmouse);
   }
 
-  if ((event->state() & ImodPrefs->actualButton(2)) && ss->locked &&
-      imod->mousemode == IMOD_MMODEL) {
+  // Pan with button 1 if not classic mode
+  if ((event->state() & ImodPrefs->actualButton(1)) && !ss->classic) {
+    cumdx = event->x() - firstmx;
+    cumdy = event->y() - firstmy;
+    if (mousePanning || but1downt.elapsed() > 250 || 
+        cumdx * cumdx + cumdy * cumdy > cumthresh) {
+      vec.x = (lastmx - event->x()) * transFac;
+      vec.y = (event->y() - lastmy) * transFac;
+      vec.z = 0.;
+      mousePanning = 1;
+      if (translateByRotatedVec(ss, &vec))
+        sslice_draw(ss);
+    }
+
+    lastmx = event->x();
+    lastmy = event->y();
+  }
+
+  // Button 2 in model mode, locked or new mode, add points
+  if ((event->state() & ImodPrefs->actualButton(2)) && 
+      (ss->locked || !ss->classic) && imod->mousemode == IMOD_MMODEL) {
     zmouse = sslice_setxyz(ss, event->x(), event->y());
     cpt.x = ss->vi->xmouse;
     cpt.y = ss->vi->ymouse;
@@ -790,6 +919,7 @@ void slicerMouseMove(SlicerStruct *ss, QMouseEvent *event)
   }
 }
 
+// Process first mouse button - attach in model, set current point in movie
 static void slicer_attach_point(SlicerStruct *ss, int x, int y)
 {
   Ipoint pnt;
@@ -830,7 +960,6 @@ static void slicer_attach_point(SlicerStruct *ss, int x, int y)
         }
       }
     }
-
     /* DNM 5/5/03: take out IMAGE flag, use RETHINK only if in model mode */
     drawflag |= IMOD_DRAW_RETHINK;
   }
@@ -1088,6 +1217,38 @@ static int sslice_getxyz(SlicerStruct *ss, int x, int y, float &xm, float &ym,
   return((int)floor(zm + 0.5));
 }
 
+// Get the window coordinates corresponding to the given image point 
+// coordinates as integer values; zim should be 0 if the point is in the 
+// current plane
+static void getWindowCoords(SlicerStruct *ss, float xcur, float ycur, 
+                            float zcur, int &xim, int &yim, int &zim)
+{
+  Ipoint pnt, xn, yn, zn, delpt;
+  Imat *mat = ss->mat;
+  float xoffset, yoffset;
+  float zs;
+  zs = 1.0f / slicerGetZScaleBefore(ss);
+
+  slicerSetForwardMatrix(ss);
+
+  pnt.y = pnt.z = 0.0f;
+  pnt.x = 1.0f;
+  imodMatTransform3D(mat, &pnt, &xn);
+  pnt.x = 0.0f;
+  pnt.y = 1.0f;
+  imodMatTransform3D(mat, &pnt, &yn);
+  pnt.y = 0.0f;
+  pnt.z = 1.0f;
+  imodMatTransform3D(mat, &pnt, &zn);
+  xcur -= ss->cx;
+  ycur -= ss->cy;
+  zcur = (zcur - ss->cz) / zs;
+  xoffset = xn.x * xcur + yn.x * ycur + zn.x * zcur;
+  yoffset = xn.y * xcur + yn.y * ycur + zn.y * zcur;
+  zim = B3DNINT(xn.z * xcur + yn.z * ycur + zn.z * zcur);
+  xim = B3DNINT(xoffset * ss->xzoom + ss->winx / 2);
+  yim = B3DNINT(yoffset * ss->yzoom + ss->winy / 2);
+}
 
 #ifndef NDEBUG
 int printmat(Imat *mat)
@@ -1129,8 +1290,26 @@ static void setInverseMatrix(SlicerStruct *ss)
   imodMatRot(ss->mat, (double)(-ss->tang[b3dZ]), b3dZ);
 }
 
+// Translates the center position within or normal to plane, return 1 if the
+// position is changed
+static int translateByRotatedVec(SlicerStruct *ss, Ipoint *vec)
+{
+  Ipoint norm;
+  setInverseMatrix(ss);
+  imodMatTransform3D(ss->mat, vec, &norm);
+  if (ss->cx + norm.x >= 0 && ss->cx + norm.x < ss->vi->xsize && 
+      ss->cy + norm.y >= 0 && ss->cy + norm.y < ss->vi->ysize && 
+      ss->cz + norm.z >= 0 && ss->cz + norm.z < ss->vi->zsize - 0.5) {
+    ss->cx += norm.x;
+    ss->cy += norm.y;
+    ss->cz += norm.z;
+    return 1;
+  }
+  return 0;
+}
+
 static void sliceSetAnglesFromPoints(SlicerStruct *ss,
-                              Ipoint *p1, Ipoint *p2, int axis)
+                                     Ipoint *p1, Ipoint *p2, int axis)
 {
   Ipoint n;
   Ipoint a;
@@ -1311,15 +1490,15 @@ void slice_trans_step(SlicerStruct *ss)
      
   /* Set cut points */
   ss->vi->slice.zx1 = ss->vi->slice.zx2 =
-    ss->vi->slice.yx1 = ss->vi->slice.yx2 = (int)ss->vi->xmouse;
+    ss->vi->slice.yx1 = ss->vi->slice.yx2 = (int)ss->cx;
   ss->vi->slice.zy1 = ss->vi->slice.zy2 =
-    ss->vi->slice.xy1 = ss->vi->slice.xy2 = (int)ss->vi->ymouse;
+    ss->vi->slice.xy1 = ss->vi->slice.xy2 = (int)ss->cy;
   ss->vi->slice.xz1 = ss->vi->slice.xz2 =
-    ss->vi->slice.yz1 = ss->vi->slice.yz2 = (int)ss->vi->zmouse;
+    ss->vi->slice.yz1 = ss->vi->slice.yz2 = (int)ss->cz;
 
   if ((zcut.x) || (zcut.y)){
-    x = ss->vi->xmouse;
-    y = ss->vi->ymouse;
+    x = ss->cx;
+    y = ss->cy;
     do{
       x += zcut.x;
       y += zcut.y;
@@ -1327,8 +1506,8 @@ void slice_trans_step(SlicerStruct *ss)
            (y < ss->vi->ysize) && (y > 0));
     ss->vi->slice.zx1 = (int)(x - zcut.x);
     ss->vi->slice.zy1 = (int)(y - zcut.y);
-    x = ss->vi->xmouse;
-    y = ss->vi->ymouse;
+    x = ss->cx;
+    y = ss->cy;
     do{
       x -= zcut.x;
       y -= zcut.y;
@@ -1343,8 +1522,8 @@ void slice_trans_step(SlicerStruct *ss)
 
   /* set yx1, yz1  and yx2, yz2 */
   if ((ycut.x) || (ycut.z)){
-    x = ss->vi->xmouse;
-    z = ss->vi->zmouse;
+    x = ss->cx;
+    z = ss->cz;
     do{
       x += ycut.x;
       z += ycut.z;
@@ -1352,8 +1531,8 @@ void slice_trans_step(SlicerStruct *ss)
            (z < ss->vi->zsize) && (z > 0));
     ss->vi->slice.yx1 = (int)(x - ycut.x);
     ss->vi->slice.yz1 = (int)(z - ycut.z);
-    x = ss->vi->xmouse;
-    z = ss->vi->zmouse;
+    x = ss->cx;
+    z = ss->cz;
     do{
       x -= ycut.x;
       z -= ycut.z;
@@ -1368,8 +1547,8 @@ void slice_trans_step(SlicerStruct *ss)
 
   /* set xy1, xz1  and xy2, xz2 */
   if ((xcut.y) || (xcut.z)){
-    y = ss->vi->ymouse;
-    z = ss->vi->zmouse;
+    y = ss->cy;
+    z = ss->cz;
     do{
       y += xcut.y;
       z += xcut.z;
@@ -1377,8 +1556,8 @@ void slice_trans_step(SlicerStruct *ss)
            (z < ss->vi->zsize) && (z > 0));
     ss->vi->slice.xy1 = (int)(y - xcut.y);
     ss->vi->slice.xz1 = (int)(z - xcut.z);
-    y = ss->vi->ymouse;
-    z = ss->vi->zmouse;
+    y = ss->cy;
+    z = ss->cz;
     do{
       y -= xcut.y;
       z -= xcut.z;
@@ -1526,7 +1705,8 @@ void slicerCubeResize(SlicerStruct *ss, int winx, int winy)
 static void slicerDraw_cb(ImodView *vi, void *client, int drawflag)
 {
   SlicerStruct *ss = (SlicerStruct *)client;
-  float usex, usey, usez, factor = 0.;
+  float usex, usey, usez, delta, factor = 0.;
+  Ipoint norm, vec = {0., 0., 1.};
 
   if (drawflag & IMOD_DRAW_COLORMAP) {
     ss->glw->setColormap(*(App->qColormap));
@@ -1600,8 +1780,9 @@ static void slicerDraw_cb(ImodView *vi, void *client, int drawflag)
     }
   }
 
-  if (drawflag & IMOD_DRAW_XYZ){
-    if (!ss->locked){
+  if ((drawflag & IMOD_DRAW_XYZ) && !ss->locked) {
+
+    if (ss->classic) {
       /* DNM: if there is a pending set of values from a mouse hit,
          use them instead of the mouse values for this */
       if (ss->pending) {
@@ -1624,12 +1805,49 @@ static void slicerDraw_cb(ImodView *vi, void *client, int drawflag)
         sslice_draw(ss);
         return;
       }
+    } else {
+      
+      // If our drawing position is the same as before, move to a plane
+      // containing the current point
+      if (ss->lx == ss->cx && ss->ly == ss->cy && ss->lz == ss->cz &&
+          ss->lang[0] == ss->tang[0] && ss->lang[1] == ss->tang[1] &&
+          ss->lang[2] == ss->tang[2]) {
+
+        // Move along direction of normal to plane until reaching a plane that
+        // contains the current point; snap to curpt if this is out of bounds
+        setInverseMatrix(ss);
+        imodMatTransform3D(ss->mat, &vec, &norm);
+        delta = norm.x * (ss->vi->xmouse - ss->cx) + 
+          norm.y * (ss->vi->ymouse - ss->cy) + 
+          norm.z * (ss->vi->zmouse - ss->cz);
+        if (imodDebug('s'))
+          imodPrintStderr("norm %.4f %.4f %.4f  delta %.3f\n", norm.x, norm.y, 
+                          norm.z, delta);
+        
+        // Only move to a new plane if the delta is bigger than 0.5
+        if (fabs((double)delta) >= 0.5) {
+          ss->cx += delta * norm.x;
+          ss->cy += delta * norm.y;
+          ss->cz += delta * norm.z;
+          
+          // If this goes out of bounds, just snap to current point
+          if (ss->cx < 0 || ss->cx >= ss->vi->xsize || ss->cy < 0 || 
+              ss->cy >= ss->vi->ysize || ss->cz < 0 || 
+              ss->cz >= ss->vi->zsize) {
+            ss->cx = ss->vi->xmouse;
+            ss->cy = ss->vi->ymouse;
+            ss->cz = ss->vi->zmouse;
+          }
+        }
+      }
+      sslice_draw(ss);
+      return;
     }
   }
 
   /* DNM 3/11/03: try moving only if not locked */
   if ((drawflag & (IMOD_DRAW_ACTIVE | IMOD_DRAW_IMAGE))){
-    if (ss->pending && !ss->locked) {
+    if (ss->pending && !ss->locked && ss->classic) {
       ss->cx = ss->pendx;
       ss->cy = ss->pendy;
       ss->cz = ss->pendz;
@@ -1640,11 +1858,13 @@ static void slicerDraw_cb(ImodView *vi, void *client, int drawflag)
     return;
   }
      
-  if (drawflag & IMOD_DRAW_MOD){
+  // If we get here and there is a model flag, or still an XYZ flag in new
+  // mode, then redraw the filled image
+  if ((drawflag & IMOD_DRAW_MOD) || 
+      (!ss->classic && (drawflag & IMOD_DRAW_XYZ))){
     //imodPrintStderr("MOD draw at %f %f %f\n", ss->cx, ss->cy, ss->cz);
     slicerUpdateImage(ss);
   }
-
 }
 
 /*
@@ -1670,6 +1890,8 @@ static void slicerUpdateImage(SlicerStruct *ss)
  */
 void slicerPaint(SlicerStruct *ss)
 {
+  int xim, yim, zim;
+  int sliceScaleThresh = 4;
   if (!ss->image)
     return;
 
@@ -1687,10 +1909,19 @@ void slicerPaint(SlicerStruct *ss)
     return;
 
   if (!ss->imageFilled) {
-    fillImageArray(ss);
+
+    // If filling array, first assess mean and SD for scaling multiple slices
+    // to single slice, then fill array for real and update angles
+    if (!mousePanning && !ss->vi->colormapImage && 
+        ss->nslice > sliceScaleThresh)
+      fillImageArray(ss, 0, 1);
+    else if (!mousePanning)
+      ss->scaleToMeanSD = false;
+    fillImageArray(ss, mousePanning, 0);
     if (sliceAngDia && (getTopSlicer() == ss))
       sliceAngDia->topSlicerDrawing(ss->tang, ss->cx, ss->cy, ss->cz, 
-                                    ss->vi->ct, sliderDragging);
+                                    ss->timeLock ? ss->timeLock : ss->vi->ct, 
+                                    sliderDragging + mousePanning);
   }
 
   b3dSetCurSize(ss->winx, ss->winy);
@@ -1705,7 +1936,7 @@ void slicerPaint(SlicerStruct *ss)
   }
 
   /* DNM: one-to-one image for fractional zoom as well as in hq case */
-  if ((ss->hq || ss->zoom != (int)ss->zoom) && (!ss->fftMode || ss->zoom < 1.))
+  if (ss->noPixelZoom)
     glPixelZoom(1.0f, 1.0f);
   else
     /* DNM: don't make this xzoom, yzoom.  */
@@ -1716,13 +1947,21 @@ void slicerPaint(SlicerStruct *ss)
   glDrawPixels(ss->winx, ss->winy, format, type, ss->image->id1);
     
   /* Position of cursor. */
-  b3dColorIndex(App->endpoint);
-  if (ss->vi->drawcursor)
-    b3dDrawPlus((int)(ss->winx * 0.5f),
-                (int)(ss->winy * 0.5f), 5);
-
+  if (ss->vi->drawcursor) {
+    if (ss->classic) {
+      b3dColorIndex(App->endpoint);
+      b3dDrawPlus((int)(ss->winx * 0.5f), (int)(ss->winy * 0.5f), 5);
+    } else if (ss->mousemode == IMOD_MMOVIE || ss->vi->imod->cindex.point < 0){
+      b3dColorIndex(App->curpoint);
+      getWindowCoords(ss, ss->vi->xmouse, ss->vi->ymouse, ss->vi->zmouse,
+                      xim, yim, zim);
+      b3dDrawPlus(xim, yim, ImodPrefs->minCurrentImPtSize());
+    }
+  }
+  
   sslice_draw_model(ss);
 }
+
 
 /* Model drawing routine */
 static void sslice_draw_model(SlicerStruct *ss)
@@ -1908,6 +2147,9 @@ void slicerCubePaint(SlicerStruct *ss)
 
 /*
 $Log$
+Revision 4.41  2007/05/25 05:28:16  mast
+Changes for addition of slicer angle storage
+
 Revision 4.40  2007/03/29 04:55:49  mast
 Fixed crash bug when closing window while focus is in edit/spinbox
 
