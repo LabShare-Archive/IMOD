@@ -1,5 +1,8 @@
 IMOD History
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+5/29/07: Improved error reporting for load averages.  Added a "Restart Load"
+button which causes Etomo to restart any failed load averages.
+
 5/29/07: The Zap info button now reports a trimvol command for excising the 
 selected area of the current slice that takes account of whether the data are
 loaded in flipped and is easily extensible to multiple slices.
