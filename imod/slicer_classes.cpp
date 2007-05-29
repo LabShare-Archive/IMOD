@@ -6,15 +6,10 @@
  *  Copyright (C) 1995-2004 by Boulder Laboratory for 3-Dimensional Electron
  *  Microscopy of Cells ("BL3DEMC") and the Regents of the University of 
  *  Colorado.  See dist/COPYRIGHT for full copyright notice.
+ *
+ *  $Id$
+ *  Log at end of file
  */
-/*  $Author$
-
-$Date$
-
-$Revision$
-
-Log at end of file
-*/
 #include <stdlib.h>
 #include <stdio.h>
 #include <qtoolbutton.h>
@@ -47,6 +42,7 @@ Log at end of file
 #include "multislider.h"
 #include "dia_qtutils.h"
 #include "preferences.h"
+#include "sliceproc.h"
 
 #define AUTO_RAISE true
 
@@ -67,6 +63,10 @@ static void findIndexLimits(int isize, int xsize, float xo, float xsx,
 #include "image.bits"
 #include "fft.bits"
 #include "contour.bits"
+#include "smartCenter.bits"
+#include "keepCenter.bits"
+#include "time_unlock.bits"
+#include "time_lock.bits"
 
 static unsigned char showslice_bits[] = {
      0xff, 0x0f, 0xff, 0x0f, 0xff, 0x0f, 0x00, 0x00, 0xff, 0xef, 0xff, 0xef,
@@ -77,7 +77,9 @@ static unsigned char showslice_bits[] = {
 static unsigned char *bitList[MAX_SLICER_TOGGLES][2] =
   { {lowres_bits, highres_bits},
     {unlock_bits, lock_bits},
-    {image_bits, fft_bits}};
+    {smartCenter_bits, keepCenter_bits}, 
+    {image_bits, fft_bits},
+    {time_unlock_bits, time_lock_bits}};
 
 static QBitmap *bitmaps[MAX_SLICER_TOGGLES][2];
 static QBitmap *showBitmap;
@@ -86,7 +88,7 @@ static int firstTime = 1;
 
 static char *sliderLabels[] = {"X rotation", "Y rotation", "Z rotation"};
 
-SlicerWindow::SlicerWindow(SlicerStruct *slicer, float maxAngles[],
+SlicerWindow::SlicerWindow(SlicerStruct *slicer, float maxAngles[], bool times,
 			   bool rgba, bool doubleBuffer, bool enableDepth,
 			   QWidget * parent, const char * name, WFlags f) 
   : QMainWindow(parent, name, f)
@@ -126,10 +128,10 @@ SlicerWindow::SlicerWindow(SlicerStruct *slicer, float maxAngles[],
   connect(mZoomEdit, SIGNAL(focusLost()), this, SLOT(newZoom()));
   QToolTip::add(mZoomEdit, "Enter an arbitrary zoom factor");
   
-  // Make the 2 toggle buttons and their signal mapper
+  // Make the 4 toggle buttons and their signal mapper
   QSignalMapper *toggleMapper = new QSignalMapper(mToolBar);
   connect(toggleMapper, SIGNAL(mapped(int)), this, SLOT(toggleClicked(int)));
-  for (j = 0; j < 3; j++)
+  for (j = 0; j < 4; j++)
     setupToggleButton(mToolBar, toggleMapper, j);
   
   // The showslice button is simpler
@@ -142,14 +144,18 @@ SlicerWindow::SlicerWindow(SlicerStruct *slicer, float maxAngles[],
   button->setPixmap(*showBitmap);
   button->setAutoRaise(AUTO_RAISE);
   connect(button, SIGNAL(clicked()), this, SLOT(showslicePressed()));
-  QToolTip::add(button, "Show slice cutting lines in Xyz and Zap windows");
+  QToolTip::add(button, "Show slice cutting lines in Xyz and Zap windows (hot"
+                " key s)");
   
   button = new QToolButton(mToolBar, "contour flat");
   button->setPixmap(*contBitmap);
   button->setAutoRaise(AUTO_RAISE);
   connect(button, SIGNAL(clicked()), this, SLOT(contourPressed()));
   QToolTip::add(button, "Set angles and position to show plane of current"
-                " contour");
+                " contour (hot key W)");
+
+  if (times)
+    setupToggleButton(mToolBar, toggleMapper, MAX_SLICER_TOGGLES - 1);
 
   // The Z scale combo box
   mZscaleCombo = new QComboBox(mToolBar, "zscale combo");
@@ -218,7 +224,8 @@ SlicerWindow::SlicerWindow(SlicerStruct *slicer, float maxAngles[],
   mImageBox->setMaximumWidth(labelSize.width()- 4);
   connect(mImageBox, SIGNAL(valueChanged(int)), this, 
 	  SLOT(imageThicknessChanged(int)));
-  QToolTip::add(mImageBox, "Set number of slices to average");
+  QToolTip::add(mImageBox, "Set number of slices to average (hot keys _  and "
+                "+)");
 
   // Thickness of model spin box
   label = new QLabel("Model", thickBox);
@@ -227,7 +234,8 @@ SlicerWindow::SlicerWindow(SlicerStruct *slicer, float maxAngles[],
   mModelBox->setMaximumWidth(labelSize.width()- 4);
   connect(mModelBox, SIGNAL(valueChanged(int)), this, 
 	  SLOT(modelThicknessChanged(int)));
-  QToolTip::add(mModelBox, "Set thickness of model to project onto image");
+  QToolTip::add(mModelBox, "Set thickness of model to project onto image "
+                "(hot keys 9 and 0");
 
   firstTime = 0;
 
@@ -263,7 +271,9 @@ void SlicerWindow::setupToggleButton(QToolBar *toolBar, QSignalMapper *mapper,
   char *toggleTips[] = {
     "Toggle between regular and high-resolution (interpolated) image",
     "Lock window at current position",
-    "Toggle between showing image and FFT" };
+    "Keep current image or model point centered (classic mode)",
+    "Toggle between showing image and FFT",
+    "Lock window at current time" };
 
   if (firstTime) {
     bitmaps[ind][0] = new QBitmap(BM_WIDTH, BM_HEIGHT, bitList[ind][0], true);
@@ -447,6 +457,7 @@ void SlicerGL::mouseMoveEvent(QMouseEvent * e )
 void SlicerGL::mouseReleaseEvent ( QMouseEvent * e )
 {
   mMousePressed = false;
+  slicerMouseRelease(mSlicer, e);
 }
 
 ///////////////////////////////////////////////
@@ -506,18 +517,22 @@ static int sshq, sswinx;
 
 
 // The top-level routine called to fill the image array
-void fillImageArray(SlicerStruct *ss)
+void fillImageArray(SlicerStruct *ss, int panning, int meanOnly)
 {
+  float maxPanPixels = 1.e6;
   int i, j, k;
   unsigned short rbase;
   float xo, yo, zo;  /* coords of the lower left zap origin. */
   float xs = 1.0f, ys = 1.0f, zs = 1.0f;  /* scale factors.  */
-  float zoffset;
+  float zoffset, sample, scale, offset, sumSD, sumMean, edge;
+  float matt = 0.1;
+  int ixStart, iyStart, nxUse, nyUse, ntaper;
+  float numPosSD = 4., numNegSD = 3.;
 
   float xzoom, yzoom, zzoom;
   float zoom = ss->zoom;
-  int iz;
-  float extrashift;
+  int iz, maxSlice;
+  float extrashift, numpix;
   int crossget, crosswant;
   Ipoint pnt, tpnt;
   Imat *mat = ss->mat;
@@ -528,6 +543,9 @@ void fillImageArray(SlicerStruct *ss)
   b3dUByte *bdata;
   b3dUInt32 *idata;
   Islice *slice;
+  unsigned char *sclmap = NULL;
+  unsigned char *fftmap;
+  unsigned char **linePtrs;
   int vmnullvalue;
   int numThreads = 1;
   char *procChar;
@@ -550,7 +568,13 @@ void fillImageArray(SlicerStruct *ss)
   maxval = 255;
   minval = 0;
   sswinx = ss->winx;
-  sshq = ss->hq;
+
+  // Turn off hq drawing if panning.
+  // Set flag for filling each window pixel if HQ or fractional zoom, unless
+  // it is FFT at higher zoom
+  sshq = (panning || meanOnly) ? 0 : ss->hq;
+  ss->noPixelZoom = (sshq || (int)ss->zoom != ss->zoom) &&
+    (!ss->fftMode || ss->zoom < 1.);
  
   /* DNM 5/16/02: force a cache load of the current z slice at least */
   iz = (int)floor((double)(ss->cz + 0.5));
@@ -558,7 +582,8 @@ void fillImageArray(SlicerStruct *ss)
 
   /* Set up image pointer tables */
   vmnullvalue = (App->cvi->white + App->cvi->black) / 2;
-  if (ivwSetupFastAccess(ss->vi, &imdata, vmnullvalue, &i))
+  if (ivwSetupFastAccess(ss->vi, &imdata, vmnullvalue, &i, 
+                         ss->timeLock ? ss->timeLock : ss->vi->ct))
     return;
 
   noDataVal = vmnullvalue;
@@ -571,7 +596,16 @@ void fillImageArray(SlicerStruct *ss)
     noDataVal = (unsigned char)minval;
   }
 
-  ksize = ss->vi->colormapImage ? 1 : ss->nslice;
+  // Set number of slices to draw: reduce the number when panning so that
+  // a maximum number of pixel have to be found
+  ksize = (ss->vi->colormapImage || meanOnly) ? 1 : ss->nslice;
+  if (ksize > 1 && panning) {
+    numpix = ss->winx * ss->winy;
+    if (!ss->noPixelZoom)
+      numpix /= ss->zoom * ss->zoom;
+    maxSlice = B3DMAX(1, (int)(maxPanPixels / numpix));
+    ksize = B3DMIN(ksize, maxSlice);
+  }
   zoffset = (float)(ksize - 1) * 0.5;
 
   /* DNM 5/5/03: set lx, ly, lz when cx, cy, cz used to fill array */
@@ -579,6 +613,9 @@ void fillImageArray(SlicerStruct *ss)
   xo = ss->lx = ss->cx;
   yo = ss->ly = ss->cy;
   zo = ss->lz = ss->cz;
+  ss->lang[0] = ss->tang[0];
+  ss->lang[1] = ss->tang[1];
+  ss->lang[2] = ss->tang[2];
 
   xsx = ss->xstep[b3dX];
   ysx = ss->xstep[b3dY];
@@ -617,8 +654,7 @@ void fillImageArray(SlicerStruct *ss)
   isize = (int)(ss->winx / zoom + 0.9);
   jsize = (int)(ss->winy / zoom + 0.9);
 
-  if ((ss->hq || (int)ss->zoom != ss->zoom) && 
-      (!ss->fftMode || ss->zoom < 1.)){ 
+  if (ss->noPixelZoom) {
     /* high quality image or fractional zoom */
     isize = ss->winx; /* calculate each pixel for zoom unless FFT. */
     jsize = ss->winy;
@@ -711,7 +747,7 @@ void fillImageArray(SlicerStruct *ss)
 
   shortcut = 0;
   izoom = (int) zoom;
-  if ((ss->hq != 0) && (zoom == izoom) && (zoom > 1.0) && !ss->fftMode) {
+  if ((sshq != 0) && (zoom == izoom) && (zoom > 1.0) && !ss->fftMode) {
     shortcut = 1;
     ilimshort = izoom * ((isize - 1) / izoom - 1);
     jlimshort = izoom * ((jsize - 1) / izoom - 1);
@@ -764,31 +800,129 @@ void fillImageArray(SlicerStruct *ss)
 		      minval * ksize, maxval * ksize);
   }
 
+  // If computing mean only or scaling to mean, get the mean and SD of the
+  // slice with some edges cut off
+  if (meanOnly || (ss->scaleToMeanSD && k > 1) || ss->fftMode) {
+    linePtrs = ivwMakeLinePointers(ss->vi, (unsigned char *)cidata, ss->winx, 
+                                   jsize, MRC_MODE_USHORT);
+    sumSD = 0.;
+    if (linePtrs) {
+      ixStart = matt * isize;
+      nxUse = isize - 2 * ixStart;
+      iyStart = matt * jsize;
+      nyUse = jsize - 2 * iyStart;
+      sample = 10000.0/(((double)nxUse) * nyUse);
+      if (sample > 1.0)
+        sample = 1.0;
+      if (sampleMeanSD(linePtrs, 2, isize, jsize, sample, ixStart, iyStart,
+                       nxUse, nyUse, &sumMean, &sumSD))
+        sumSD = 0.;
+      if (imodDebug('s'))
+        imodPrintStderr("Array %d x %d mean %f Sd %f\n", isize, jsize, 
+                        sumMean, sumSD);
+    }
+
+    // If getting mean only, set values and flag and return now
+    if (meanOnly) {
+      ss->oneSliceMean = sumMean;
+      ss->oneSliceSD = sumSD;
+      ss->scaleToMeanSD = true;
+      if (imodDebug('s'))
+        imodPrintStderr("Mean/SD time %d\n", fillTime.elapsed());
+      return;
+    }
+  }
+
   // imodPrintStderr("%d msec\n", imodv_sys_time() - timeStart);
   cindex = ss->image->width * ss->image->height;
   k = ksize;
+
+  if (k > 1) {
+    scale = 1. / k;
+    offset = 0.;
+
+    // If scaling to match one slice, set the scaling and adjust the mean and
+    // SD to be after the scaling, for FFT scaling
+    if (ss->scaleToMeanSD && sumSD > 0.1 && ss->oneSliceSD > 0.1) {
+      scale = ss->oneSliceSD / sumSD;
+      offset  = ss->oneSliceMean - sumMean * scale;
+      sumMean = ss->oneSliceMean;
+      sumSD = ss->oneSliceSD;
+    } else if (ss->fftMode) {
+
+      // If just doing FFT, divide mean and SD by # of slices
+      sumMean /= k;
+      sumSD /= k;
+    }
+    sclmap = get_short_map(scale, offset, 0, 255, MRC_RAMP_LIN, 0, 0);
+    if (!sclmap) {
+      wprint("\aMemory error getting mapping array.\n");
+      return;
+    }
+  }
 
   // Take FFT if flag is set
   if (ss->fftMode) {
     slice = sliceCreate(isize, jsize, SLICE_MODE_BYTE);
     if (slice) {
+
+      // Pack data into a byte slice
       bdata = slice->data.b;
       for (j = 0; j < jsize; j++) {
         if (k > 1)
           for (i = j * ss->winx; i < j * ss->winx + isize; i++)
-            *bdata++ = (b3dUByte)(cidata[i] / k);
+            *bdata++ = sclmap[cidata[i]];
         else
           for (i = j * ss->winx; i < j * ss->winx + isize; i++)
             *bdata++ = (b3dUByte)cidata[i];
       }
       slice->min = minval;
       slice->max = maxval;
+      if (imodDebug('s'))
+        imodPrintStderr("Fill time %d\n", fillTime.elapsed());
+      fillTime.start();
+
+      // Taper the edges 
+      ntaper = (int)(0.05 * B3DMAX(isize, jsize));
+      if (ntaper)
+        sliceTaperAtFill(slice, ntaper, 1);
+      if (imodDebug('s'))
+        imodPrintStderr("Taper time %d  extent %d\n", fillTime.elapsed(),
+                        ntaper);
+      fillTime.start();
+
+      // Take the FFT
       if (sliceByteBinnedFFT(slice, 1, 0, isize - 1, 0, jsize - 1, &i, &j) 
           > 0) {
+
+        if (imodDebug('s'))
+          imodPrintStderr("FFT time %d\n", fillTime.elapsed());
+        fillTime.start();
+
+        // Get the edge mean
         bdata = slice->data.b;
+        edge = 0.;
+        for (i = 0; i < isize; i++)
+          edge += bdata[i] + bdata[i + isize * (jsize - 1)];
+        for (j = 0; j < jsize; j++)
+          edge += bdata[isize * j] + bdata[isize - 1 + isize * j];
+        edge /= 2. * (isize + jsize);
+
+        // Unpack the FFT data into the integer array
+        // Map edge to mean - numNeg SD's, 255 to mean + numPos SD's
+        scale = 1. / k;
+        offset = 0.;
+        if (sumSD > 0.1 && edge < 254.5) {
+          scale = (numPosSD + numNegSD) * sumSD / (255. - edge);
+          offset = sumMean - scale * edge - numNegSD * sumSD;
+        }
+        if (imodDebug('s'))
+          imodPrintStderr("FFT edge %f  scale %f  offset %f\n", edge, scale,
+                          offset);
+        fftmap = get_byte_map(scale, offset, 0, 255);
         for (j = 0; j < jsize; j++)
           for (i = j * ss->winx; i < j * ss->winx + isize; i++)
-            cidata[i] = *bdata++;
+            cidata[i] = fftmap[*bdata++];
       }
       sliceFree(slice);
       k = 1;
@@ -803,7 +937,7 @@ void fillImageArray(SlicerStruct *ss)
     if (k > 1)
       for (j = 0; j < jsize; j++)
         for(i = j * ss->winx; i < j * ss->winx + isize; i++){
-          tval = cidata[i]/k;
+          tval = sclmap[cidata[i]];
           if (tval > maxval) tval = maxval;
           if (tval < minval) tval = minval;
           cidata[i] = tval;
@@ -821,27 +955,26 @@ void fillImageArray(SlicerStruct *ss)
       if (k > 1)
         for (j = 0; j < jsize; j++)
           for(i = j * ss->winx; i < j * ss->winx + isize; i++){
-            cidata[i] = (cidata[i]/k);
+            cidata[i] = sclmap[cidata[i]];
           }
       break;
     case 2:
       if (k > 1)
         for (j = 0; j < jsize; j++)
           for(i = j * ss->winx; i < j * ss->winx + isize; i++){
-            cidata[i] = (cidata[i]/k)+ rbase;
+            cidata[i] = sclmap[cidata[i]] + rbase;
           }
       else
         for (j = 0; j < jsize; j++)
           for(i = j * ss->winx; i < j * ss->winx + isize; i++){
-            cidata[i] = cidata[i]+ rbase;
+            cidata[i] = cidata[i] + rbase;
           }
       break;
     case 4:
       if (k > 1)
         for (j = jsize - 1; j >= 0; j--)
-          for(i = j * ss->winx + isize - 1; i >= j * ss->winx;
-              i--){
-            idata[i] = cmap[(cidata[i]/k)];
+          for(i = j * ss->winx + isize - 1; i >= j * ss->winx; i--){
+            idata[i] = cmap[sclmap[cidata[i]]];
           }
       else
 	for (j = jsize - 1; j >= 0; j--) {
@@ -853,6 +986,8 @@ void fillImageArray(SlicerStruct *ss)
   }
   ss->xzoom = xzoom;
   ss->yzoom = yzoom;
+  if (sclmap)
+    free(sclmap);
   if (imodDebug('s'))
     imodPrintStderr("Fill time %d\n", fillTime.elapsed());
   return;
@@ -1162,10 +1297,264 @@ static void fillArraySegment(int jstart, int jlimit)
     zzo += zsz;
   }
 }
+#define PLIST_CHUNK 1000
 
+static int taper_slice(Islice *sl, int ntaper, int inside)
+{
+  struct pixdist {
+    unsigned short int x, y;
+    unsigned short dist;
+    signed char dx, dy;
+  };
+
+  Ival val;
+  float fracs[128], fillpart[128];
+  float fillval, lastval;
+  int len, longest;
+  int i, ix, iy, xnext, ynext, xp, yp, lastint, interval, found;
+  int dir, tapdir, col, row, ncol, ind, xstart, ystart, ndiv;
+  int dist;
+  struct pixdist *plist;
+  int pllimit = PLIST_CHUNK;
+  int plsize = 0;
+  unsigned char *bitmap;
+  int xsize = sl->xsize;
+  int ysize = sl->ysize;
+  int bmsize = (xsize * ysize + 7) / 8;
+  int dxout[4] = {0, 1, 0, -1};
+  int dyout[4] = {-1, 0, 1, 0};
+  int dxnext[4] = {1, 0, -1, 0};
+  int dynext[4] = {0, 1, 0, -1};
+
+
+  /* find longest string of repeated values along the edge */
+  longest = 0;
+  for (iy = 0; iy < ysize; iy += ysize - 1) {
+    len = 0;
+    sliceGetVal(sl, 0, iy, val);
+    lastval = val[0];
+    for (ix = 1; ix < xsize; ix++) {
+      sliceGetVal(sl, ix, iy, val);
+      if (val[0] == lastval) {
+        /* same as last, add to count, see if this is a new
+           best count*/
+        len++;
+        if (len > longest) {
+          longest = len;
+          fillval = lastval;
+        }
+      } else {
+        /* different, reset count and set new lastval */
+        len = 0;
+        lastval = val[0];
+      }
+    }
+  }         
+  for (ix = 0; ix < xsize; ix += xsize - 1) {
+    len = 0;
+    sliceGetVal(sl, ix, 0, val);
+    lastval = val[0];
+    for (iy = 1; iy < ysize; iy++) {
+      sliceGetVal(sl, ix, iy, val);
+      if (val[0] == lastval) {
+        /* same as last, add to count, see if this is a new
+           best count */
+        len++;
+        if (len > longest) {
+          longest = len;
+          fillval = lastval;
+        }
+      } else {
+        /* different, reset count and set new lastval */
+        len = 0;
+        lastval = val[0];
+      }
+    }
+  }         
+
+  /* If length below a criterion (what?) , return without error */
+  if (longest < 10)
+    return 0;
+
+  /* set the slice mean so that sliceGetValue will return this outside the
+     edges */
+  sl->mean = fillval;
+
+  /* look from left edge along a series of lines to find the first point
+     that is not a fill point */
+  lastint = 0;
+  found = 0;
+  for (ndiv = 2; ndiv <= ysize; ndiv++) {
+    interval = (ysize + 2) / ndiv;
+    if (interval == lastint)
+      continue;
+    lastint = interval;
+    for (iy = interval; iy < ysize; iy += interval) {
+      for (ix = 0; ix < xsize; ix++) {
+        sliceGetVal(sl, ix, iy, val);
+        if (val[0] != fillval) {
+          found = 1;
+          break;
+        }
+      }
+      if (found)
+        break;
+    }
+    if (found)
+      break;
+  }
+
+  if (!found)
+    return 0;
+
+  /* Get initial chunk of pixel list and bitmap */
+  plist = (struct pixdist *)malloc(PLIST_CHUNK * sizeof(struct pixdist));
+  if (plist)
+    bitmap = (unsigned char *)malloc(bmsize);
+  if (!plist || !bitmap) {
+    if (plist)
+      free(plist);
+    return (-1);
+  }
+
+  /* clear bitmap */
+  for (i = 0; i < bmsize; i++)
+    bitmap[i] = 0;
+
+  dir = 3;
+  xstart = ix;
+  ystart = iy;
+  tapdir = 1 - 2 * inside;
+
+  do {
+    ncol = 1;
+    xnext = ix + dxout[dir] + dxnext[dir];
+    ynext = iy + dyout[dir] + dynext[dir];
+    sliceGetVal(sl, xnext, ynext, val);
+    if (val[0] != fillval) {
+      /* case 1: inside corner */
+      ix = xnext;
+      iy = ynext;
+      dir = (dir + 3) % 4;
+      if (inside)
+        ncol = ntaper + 1;
+    } else {
+      xnext = ix + dxnext[dir];
+      ynext = iy + dynext[dir];
+      sliceGetVal(sl, xnext, ynext, val);
+      if (val[0] != fillval) {
+        /* case 2: straight edge to next pixel */
+        ix = xnext;
+        iy = ynext;
+      } else {
+        /* case 3: outside corner, pixel stays the same */
+        dir = (dir + 1) % 4;
+        if (!inside)
+          ncol = ntaper + 1;
+      }
+    }
+      
+    /* If outside pixel is outside the data, nothing to add to lists */
+    xp = ix + dxout[dir];
+    yp = iy + dyout[dir];
+    if (xp < 0 || xp >= xsize || yp < 0 || yp >= ysize)
+      continue;
+
+    /* Loop on all the pixels to mark */
+    for (col = 0; col < ncol; col++) {
+      for (row = 1 - inside; row <= ntaper - inside; row++) {
+        xp = ix + tapdir * row * dxout[dir] - col * dxnext[dir];
+        yp = iy + tapdir * row * dyout[dir] - col * dynext[dir];
+
+        /* skip if pixel outside area */
+        if (xp < 0 || xp >= xsize || yp < 0 || yp >= ysize)
+          continue;
+
+        /* skip marking outside pixels for inside taper or
+           inside pixels for outside taper */
+        sliceGetVal(sl, xp, yp, val);
+        if ((inside && val[0] == fillval) || 
+            (!inside && val[0] != fillval))
+          continue;
+
+        dist = col * col + row * row;
+        ind = xsize * yp + xp;
+        if (bitmap[ind / 8] & (1 << (ind % 8))) {
+
+          /* If the pixel is already marked, find it on the
+             list and see if it's closer this time */
+          for (i = plsize - 1; i >= 0; i--) {
+            if (plist[i].x == xp && plist[i].y == yp) {
+              if (plist[i].dist > dist) {
+                plist[i].dist = dist;
+                plist[i].dx = (signed char)(ix - xp);
+                plist[i].dy = (signed char)(iy - yp);
+              }
+              break;
+            }
+          }
+        } else {
+
+          /* Otherwise, mark pixel in bitmap and make a new 
+             entry on the list */
+          bitmap[ind / 8] |= (1 << (ind % 8));
+          if (plsize >= pllimit) {
+            pllimit += PLIST_CHUNK;
+            plist = (struct pixdist *) realloc(plist,
+                                               pllimit * sizeof(struct pixdist));
+            if (!plist) {
+              free (bitmap);
+              return (-1);
+            }
+          }
+          plist[plsize].x = xp;
+          plist[plsize].y = yp;
+          plist[plsize].dist = dist;
+          plist[plsize].dx = (signed char)(ix - xp);
+          plist[plsize++].dy = (signed char)(iy - yp);
+        }
+      }
+    }
+
+  } while (ix != xstart || iy != ystart || dir != 3);
+
+  /* make tables of fractions and amounts to add of fillval */
+  for (i = 1; i <= ntaper; i++) {
+    dist = inside ? i : ntaper + 1 - i;
+    fracs[i] = (float)dist / (ntaper + 1);
+    fillpart[i] = (1. - fracs[i]) * fillval;
+  }
+
+  /* Process the pixels on the list */
+  for (i = 0; i < plsize; i++) {
+    ind = sqrt((double)plist[i].dist) + inside;
+    if (ind > ntaper)
+      continue;
+    ix = plist[i].x;
+    iy = plist[i].y;
+    if (inside) {
+      xp = ix;
+      yp = iy;
+    } else {
+      xp = ix + plist[i].dx;
+      yp = iy + plist[i].dy;
+    }
+    sliceGetVal(sl, xp, yp, val);
+    /*  val[0] = fracs[plist[i].dist] * val[0] + fillpart[plist[i].dist]; */
+    val[0] = fracs[ind] * val[0] + fillpart[ind];
+    slicePutVal(sl, ix, iy, val);
+  }
+
+  free(plist);
+  free(bitmap);
+  return 0;
+}
 
  /*
 $Log$
+Revision 4.15  2007/05/25 05:28:16  mast
+Changes for addition of slicer angle storage
+
 Revision 4.14  2006/10/12 19:02:55  mast
 Added toolbar button for W function
 

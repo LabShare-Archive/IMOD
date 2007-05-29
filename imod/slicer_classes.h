@@ -3,22 +3,18 @@
  *   Copyright (C) 1995-2003 by Boulder Laboratory for 3-Dimensional Electron
  *   Microscopy of Cells ("BL3DEMC") and the Regents of the University of 
  *   Colorado.  See implementation file for full copyright notice.
+ *
+ *  $Id$
+ *  Log at end of file
  */                                                                           
-
-/*  $Author$
-
-$Date$
-
-$Revision$
-Log at end
-*/
 
 #ifndef SLICER_CLASSES_H
 #define SLICER_CLASSES_H
 
-#define MAX_SLICER_TOGGLES 3
+#define MAX_SLICER_TOGGLES 5
 
-enum {SLICER_TOGGLE_HIGHRES = 0, SLICER_TOGGLE_LOCK, SLICER_TOGGLE_FFT};
+enum {SLICER_TOGGLE_HIGHRES = 0, SLICER_TOGGLE_LOCK, SLICER_TOGGLE_CENTER, 
+      SLICER_TOGGLE_FFT, SLICER_TOGGLE_TIMELOCK};
 
 #include <qmainwindow.h>
 #include <qspinbox.h>
@@ -45,7 +41,7 @@ class SlicerWindow : public QMainWindow
   Q_OBJECT
 
  public:
-  SlicerWindow(SlicerStruct *slicer, float maxAngles[], bool rgba, 
+  SlicerWindow(SlicerStruct *slicer, float maxAngles[], bool times, bool rgba, 
             bool doubleBuffer, bool enableDepth, QWidget * parent = 0,
             const char * name = 0, 
 	    WFlags f = WType_TopLevel | WDestructiveClose) ;
@@ -178,12 +174,15 @@ class SlicerThread : public QThread
 };
 #endif
 
-void fillImageArray(SlicerStruct *ss);
+void fillImageArray(SlicerStruct *ss, int panning, int meanOnly);
 
 #endif     // SLICER_CLASSES_H
 
 /*
 $Log$
+Revision 4.8  2006/10/12 19:02:55  mast
+Added toolbar button for W function
+
 Revision 4.7  2006/10/06 19:25:40  mast
 Added thread definition
 
