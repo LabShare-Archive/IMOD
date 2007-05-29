@@ -12,6 +12,9 @@ $Date$
 $Revision$
 
 $Log$
+Revision 1.8  2005/12/08 05:57:13  mast
+Added time argument to cache flushing call
+
 Revision 1.7  2004/11/20 05:05:27  mast
 Changes for undo/redo capability
 
@@ -42,7 +45,7 @@ unsigned char **ivwGetCurrentSection(ImodView *iv);
 unsigned char **ivwMakeLinePointers(ImodView *iv, unsigned char *data,
                                     int xsize, int ysize, int mode);
 int ivwSetupFastAccess(ImodView *vi, unsigned char ***outImdata,
-                       int inNullvalue, int *cacheSum);
+                       int inNullvalue, int *cacheSum, int time = -1);
 int ivwInitCache(ImodView *vi);
 
 /* Determines size of data unit */

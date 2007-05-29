@@ -719,11 +719,15 @@ static int fake_GetValue(int x, int y, int z)
 
 /* To set up the tables and set the appropriate function */
 int ivwSetupFastAccess(ImodView *vi, unsigned char ***outImdata,
-                       int inNullvalue, int *cacheSum)
+                       int inNullvalue, int *cacheSum, int time)
 {
   int size = vi->zsize;
   int bigGets;
   int i, iz;
+
+  // Time is an optional argument with default of -1 for current time
+  if (time < 0)
+    time = vi->ct;
 
   *cacheSum = 0;
   bigGets = ((double)vi->xsize) * vi->ysize > 2.e9 ? 1 : 0;
@@ -763,7 +767,7 @@ int ivwSetupFastAccess(ImodView *vi, unsigned char ***outImdata,
 
     /* Cached data: fill up pointers that exist */
     for (iz = 0; iz < size; iz++) {
-      i = vi->cacheIndex[iz * vi->vmTdim + vi->ct - vi->vmTbase];
+      i = vi->cacheIndex[iz * vi->vmTdim + time - vi->vmTbase];
       if (i < 0) {
         imdata[iz] = NULL;
       } else {
@@ -2549,6 +2553,9 @@ void ivwBinByN(unsigned char *array, int nxin, int nyin, int nbin,
 
 /*
 $Log$
+Revision 4.55  2007/04/26 19:10:31  mast
+Adjusted reference scaling info for FFT mirroring
+
 Revision 4.54  2007/04/12 00:26:35  mast
 Set time for fake image load on multi-time model
 
