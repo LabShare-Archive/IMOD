@@ -47,6 +47,9 @@ import etomo.type.Run3dmodMenuOptions;
  * @version $Revision$
  * 
  * <p> $Log$
+ * <p> Revision 1.20  2007/05/16 02:38:03  sueh
+ * <p> bug# 964 Added btnDeleteRow and deleteRow(VolumeRow).
+ * <p>
  * <p> Revision 1.19  2007/05/11 16:07:12  sueh
  * <p> bug# 964 Removed print statement.
  * <p>
@@ -432,7 +435,7 @@ final class VolumeTable implements Expandable, Highlightable,
   private void addVolume() {
     if (!manager.setParamFile()) {
       UIHarness.INSTANCE.openMessageDialog("Please set the "
-          + PeetDialog.DIRECTORY_LABEL + " and " + PeetDialog.OUTPUT_LABEL
+          + PeetDialog.DIRECTORY_LABEL + " and " + PeetDialog.FN_OUTPUT_LABEL
           + " fields before adding tomograms.", "Entry Error");
       return;
     }
