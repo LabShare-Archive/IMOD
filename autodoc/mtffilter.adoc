@@ -94,7 +94,7 @@ manpage =
 [Field = XScaleFactor]
 short = xscale
 type = F
-usage = Scaling factor X-axis of MTF curve (default 1.0)
+usage = Scaling factor for X-axis of MTF curve (default 1.0)
 tooltip =
 manpage = Scaling factor for X-axis of MTF curve.  Scaling the X axis is 
 probably an adequate way to adapt a curve from one camera or binning to 

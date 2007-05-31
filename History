@@ -1,5 +1,12 @@
 IMOD History
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+5/31/07: Added options to Mtffilter so that it provides the same set of 
+filter shapes as Enhance does, and can be used in place of Enhance.
+
+5/31/07: Added a time toolbar to Slicer identical to the one in the Zap window,
+and added an angle-saving toolbar that appears when the Slicer Angles dialog 
+is opened and has some of the controls that were in the Slicer Angle dialog.
+
 5/29/07: Improved error reporting for load averages.  Added a "Restart Load"
 button which causes Etomo to restart any failed load averages.
 
