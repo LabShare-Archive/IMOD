@@ -21,7 +21,9 @@
 #include <qdatetime.h>
 
 #include "slicer_classes.h"
+#include "hottoolbar.h"
 #include "imod.h"
+#include "xzap.h"
 #include "imod_display.h"
 #include "b3dgfx.h"
 #include "sslice.h"
@@ -69,6 +71,7 @@ static void findMovieAxis(SlicerStruct *ss, int *xmovie, int *ymovie,
 static void setInverseMatrix(SlicerStruct *ss);
 static int translateByRotatedVec(SlicerStruct *ss, Ipoint *vec);
 static SlicerStruct *getTopSlicer();
+static void notifySlicersOfAngDia(bool open);
 static void getWindowCoords(SlicerStruct *ss, float xcur, float ycur, 
                             float zcur, int &xim, int &yim, int &zim);
 
@@ -114,6 +117,27 @@ void slicerEnteredZoom(SlicerStruct *ss, float newZoom)
     ss->qtWindow->setZoomText(ss->zoom);
   }  
   sslice_draw(ss);
+}
+
+void slicerStepTime(SlicerStruct *ss, int step)
+{
+  ivwControlPriority(ss->vi, ss->ctrl);
+  
+  // if time locked, advance the time lock and draw this window
+  if (ss->timeLock){
+    ss->timeLock += step;
+    if (ss->timeLock <= 0)
+      ss->timeLock = 1;
+    if (ss->timeLock > ivwGetMaxTime(ss->vi))
+      ss->timeLock = ivwGetMaxTime(ss->vi);
+    sslice_draw(ss);
+
+  } else {
+    if (step > 0)
+      inputNextTime(ss->vi);
+    else
+      inputPrevTime(ss->vi);
+  }
 }
  
 
@@ -281,6 +305,7 @@ int sslice_open(struct ViewInfo *vi)
 {
   SlicerStruct *ss;
   int newZoom;
+  QString str;
 
   ss = (SlicerStruct *)malloc(sizeof(SlicerStruct));
   if (!ss)
@@ -295,13 +320,21 @@ int sslice_open(struct ViewInfo *vi)
     imodDraw(vi, IMOD_DRAW_XYZ);
   }
 
+  ss->classic = ImodPrefs->classicSlicer();
+  if (!ss->classic && !ImodPrefs->classicWarned())
+    dia_puts("Welcome to the new slicer mode, in which you can pan\n"
+             "with the mouse but clicking does not recenter the image.\n"
+             "You can switch to the classic mode with the centering\n"
+             "button (two concentric squares) on the first toolbar.\n"
+             "You can select classic mode as the default on the Behavior tab\n"
+             "in the 3dmod Preferences dialog, accessed with Edit-Options.");
+
   ss->cx = vi->xmouse;
   ss->cy = vi->ymouse;
   ss->cz = vi->zmouse;
   ss->vi     = vi;
   ss->locked = 0;
   ss->timeLock = 0;
-  ss->classic = 0;
   ss->zoom   = 1.0;
   ss->lx     = vi->xmouse;
   ss->ly     = vi->ymouse;
@@ -328,14 +361,17 @@ int sslice_open(struct ViewInfo *vi)
   ss->mousemode = vi->imod->mousemode;
   ss->movieSnapCount = 0;
   ss->fftMode = 0;
+  ss->toolTime = 0;
+  ss->continuous = false;
   ss->closing = 0;
 
   slice_trans_step(ss);
-  ss->qtWindow = new SlicerWindow(ss, maxAngle,  vi->nt > 1, App->rgba,
+  zapGetLongestTimeString(vi, &str);
+  ss->qtWindow = new SlicerWindow(ss, maxAngle,  str, App->rgba,
                                   App->doublebuffer, App->qtEnableDepth,
                                   imodDialogManager.parent(IMOD_IMAGE),
                                   "slicer window");
-  if (!ss->qtWindow){
+  if (!ss->qtWindow) {
     free(ss);
     wprint("Error opening slicer window.");
     return(-1);
@@ -348,6 +384,9 @@ int sslice_open(struct ViewInfo *vi)
   ss->qtWindow->setCaption(imodCaption("3dmod Slicer"));
   ss->qtWindow->mToolBar->setLabel(imodCaption("Slicer Toolbar 1"));
   ss->qtWindow->mToolBar2->setLabel(imodCaption("Slicer Toolbar 2"));
+  ss->qtWindow->mSaveAngBar->setLabel(imodCaption("Slicer Toolbar 3"));
+  if (ss->qtWindow->mTimeBar)
+    ss->qtWindow->mTimeBar->setLabel(imodCaption("Slicer Time Toolbar"));
 	
   ss->ctrl = ivwNewControl(vi, slicerDraw_cb, slicerClose_cb, slicerKey_cb,
                                (void *)ss);
@@ -385,6 +424,9 @@ int sslice_open(struct ViewInfo *vi)
     }
     ss->qtWindow->setZoomText(ss->zoom);
   }
+  
+  if (!sliceAngDia)
+    ss->qtWindow->mSaveAngBar->hide();
 
   ss->qtWindow->show();
   ss->glw->setMouseTracking(pixelViewOpen);
@@ -406,6 +448,7 @@ int slicerAnglesOpen()
     return -1;
   imodDialogManager.add((QWidget *)sliceAngDia, IMOD_DIALOG);
   sliceAngDia->show();
+  notifySlicersOfAngDia(true);
   return 0;
 }
 
@@ -414,6 +457,24 @@ void slicerAnglesClosing()
 {
   imodDialogManager.remove((QWidget *)sliceAngDia);
   sliceAngDia = NULL;
+  notifySlicersOfAngDia(false);
+}
+
+// Update all slicers about state of the slicer angle window
+static void notifySlicersOfAngDia(bool open)
+{
+  QObjectList objList;
+  SlicerWindow *slicer;
+  int i;
+
+  imodDialogManager.windowList(&objList, -1, SLICER_WINDOW_TYPE);
+  for (i = 0; i < objList.count(); i++) {
+    slicer = (SlicerWindow *)objList.at(i);
+    if (open)
+      slicer->mSaveAngBar->show();
+    else
+      slicer->mSaveAngBar->hide();
+  }
 }
 
 // The pixel view window has opened or closed, set mouse tracking for all
@@ -519,12 +580,13 @@ int getTopSlicerAngles(float angles[3], Ipoint *center, int &time)
   return 0;
 }
 
-// Just return the time of the top slicer window
-int getTopSlicerTime()
+// Just return the time of the top slicer window and the continuous state
+int getTopSlicerTime(bool &continuous)
 {
   SlicerStruct *ss = getTopSlicer();
   if (!ss)
     return -1;
+  continuous = ss->continuous;
   return ss->timeLock ? ss->timeLock : ss->vi->ct;
 }
 
@@ -535,6 +597,18 @@ void slicerNewTime(bool refresh)
     sliceAngDia->newTime(refresh);
 }
 
+void slicerSetCurrentOrNewRow(SlicerStruct *ss, bool newrow)
+{
+  ivwControlPriority(ss->vi, ss->ctrl);
+  sliceAngDia->setCurrentOrNewRow(ss->timeLock ? ss->timeLock : ss->vi->ct,
+                                  newrow);
+}
+
+void slicerSetAnglesFromRow(SlicerStruct *ss)
+{
+  ivwControlPriority(ss->vi, ss->ctrl);
+  sliceAngDia->setAnglesFromRow(ss->timeLock ? ss->timeLock : ss->vi->ct);
+}
 
 /* Broadcast position of this slice, and let other windows
  * show where this slice intersects with their views.
@@ -1098,6 +1172,7 @@ static void startMovieCheckSnap(SlicerStruct *ss, int dir)
 
   // Just zero the snap count
   ss->movieSnapCount = 0;
+  b3dSetMovieSnapping(false);
 
   /* done if no movie, otherwise set the movie limits */
   if (!(vi->zmovie || vi->xmovie || vi->ymovie)) 
@@ -1128,6 +1203,7 @@ static void startMovieCheckSnap(SlicerStruct *ss, int dir)
     else
       vi->zmouse = dir > 0 ? start : end;
   }
+  b3dSetMovieSnapping(true);
 
   /* draw - via imodDraw to get float and positioning done correctly */
   imodDraw(vi, IMOD_DRAW_XYZ);
@@ -1772,8 +1848,10 @@ static void slicerDraw_cb(ImodView *vi, void *client, int drawflag)
         ss->movieSnapCount--;
 
         /* When count expires, stop movie */
-        if(!ss->movieSnapCount)
+        if(!ss->movieSnapCount) {
           imodMovieXYZT(vi, 0, 0, 0, 0);
+          b3dSetMovieSnapping(false);
+        }
       }
       sslice_cube_draw(ss);
       return;
@@ -1892,6 +1970,7 @@ void slicerPaint(SlicerStruct *ss)
 {
   int xim, yim, zim;
   int sliceScaleThresh = 4;
+  QString qstr;
   if (!ss->image)
     return;
 
@@ -1919,9 +1998,10 @@ void slicerPaint(SlicerStruct *ss)
       ss->scaleToMeanSD = false;
     fillImageArray(ss, mousePanning, 0);
     if (sliceAngDia && (getTopSlicer() == ss))
-      sliceAngDia->topSlicerDrawing(ss->tang, ss->cx, ss->cy, ss->cz, 
-                                    ss->timeLock ? ss->timeLock : ss->vi->ct, 
-                                    sliderDragging + mousePanning);
+      sliceAngDia->topSlicerDrawing
+        (ss->tang, ss->cx, ss->cy, ss->cz, 
+         ss->timeLock ? ss->timeLock : ss->vi->ct, 
+         sliderDragging + mousePanning, ss->continuous);
   }
 
   b3dSetCurSize(ss->winx, ss->winy);
@@ -1947,19 +2027,28 @@ void slicerPaint(SlicerStruct *ss)
   glDrawPixels(ss->winx, ss->winy, format, type, ss->image->id1);
     
   /* Position of cursor. */
-  if (ss->vi->drawcursor) {
-    if (ss->classic) {
-      b3dColorIndex(App->endpoint);
-      b3dDrawPlus((int)(ss->winx * 0.5f), (int)(ss->winy * 0.5f), 5);
-    } else if (ss->mousemode == IMOD_MMOVIE || ss->vi->imod->cindex.point < 0){
-      b3dColorIndex(App->curpoint);
-      getWindowCoords(ss, ss->vi->xmouse, ss->vi->ymouse, ss->vi->zmouse,
-                      xim, yim, zim);
-      b3dDrawPlus(xim, yim, ImodPrefs->minCurrentImPtSize());
-    }
+  b3dColorIndex(App->endpoint);
+  b3dDrawPlus((int)(ss->winx * 0.5f), (int)(ss->winy * 0.5f), 5);
+  if (!ss->classic &&
+      (ss->mousemode == IMOD_MMOVIE || ss->vi->imod->cindex.point < 0)) {
+    b3dColorIndex(App->curpoint);
+    getWindowCoords(ss, ss->vi->xmouse, ss->vi->ymouse, ss->vi->zmouse,
+                    xim, yim, zim);
+    b3dDrawPlus(xim, yim, ImodPrefs->minCurrentImPtSize());
   }
   
   sslice_draw_model(ss);
+
+  // Update toolbar for time
+  if (ss->vi->nt) {
+    int time = ss->timeLock ? ss->timeLock : ss->vi->ct;
+    if (ss->toolTime != time){
+      ss->toolTime = time;
+      qstr.sprintf(" (%3d)", time);
+      qstr += ivwGetTimeIndexLabel(ss->vi, time);
+      ss->qtWindow->setTimeLabel(qstr);
+    }
+  }
 }
 
 
@@ -2147,6 +2236,11 @@ void slicerCubePaint(SlicerStruct *ss)
 
 /*
 $Log$
+Revision 4.42  2007/05/29 14:54:43  mast
+Added automatic scaling of >= 4 slices to match mean/SD of single slice,
+scaling of FFT, tapering of image for FFT, new slicer centering mode,
+and a time lock ability
+
 Revision 4.41  2007/05/25 05:28:16  mast
 Changes for addition of slicer angle storage
 

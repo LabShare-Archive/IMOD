@@ -18,9 +18,10 @@ enum {SLICER_TOGGLE_HIGHRES = 0, SLICER_TOGGLE_LOCK, SLICER_TOGGLE_CENTER,
 
 #include <qmainwindow.h>
 #include <qspinbox.h>
-#include <qtoolbar.h>
 #include <qgl.h>
+#include <qstring.h>
 
+class HotToolBar;
 class QToolButton;
 class QPushButton;
 class ToolEdit;
@@ -41,10 +42,10 @@ class SlicerWindow : public QMainWindow
   Q_OBJECT
 
  public:
-  SlicerWindow(SlicerStruct *slicer, float maxAngles[], bool times, bool rgba, 
-            bool doubleBuffer, bool enableDepth, QWidget * parent = 0,
-            const char * name = 0, 
-	    WFlags f = WType_TopLevel | WDestructiveClose) ;
+  SlicerWindow(SlicerStruct *slicer, float maxAngles[], QString timeLabel,
+               bool rgba, bool doubleBuffer, bool enableDepth, 
+               QWidget * parent = 0, const char * name = 0, 
+               WFlags f = WType_TopLevel | WDestructiveClose) ;
   ~SlicerWindow() {};
   void setToggleState(int index, int state);
   void setZoomText(float zoom);
@@ -54,9 +55,12 @@ class SlicerWindow : public QMainWindow
 
   SlicerGL *mGLw;
   SlicerCube *mCube;
+  SlicerStruct *mSlicer;
   HotToolBar *mToolBar;
   HotToolBar *mToolBar2;
-  SlicerStruct *mSlicer;
+  HotToolBar *mTimeBar;
+  HotToolBar *mSaveAngBar;
+  QPushButton *mSetAngBut;
 
   public slots:
     void zoomUp();
@@ -69,9 +73,16 @@ class SlicerWindow : public QMainWindow
   void modelThicknessChanged(int depth);
   void showslicePressed();
   void contourPressed();
+  void setTimeLabel(QString label);
   void zScaleSelected(int item);
   void toolKeyPress(QKeyEvent *e) {keyPressEvent(e);};
   void toolKeyRelease(QKeyEvent *e) {keyReleaseEvent(e);};
+  void timeBack();
+  void timeForward();
+  void saveAngClicked();
+  void setAngClicked();
+  void newRowClicked();
+  void continuousToggled(bool state);
 
  protected:
   void keyPressEvent ( QKeyEvent * e );
@@ -80,7 +91,7 @@ class SlicerWindow : public QMainWindow
   void fontChange( const QFont & oldFont ) {setFontDependentWidths();};
   
  private:
-  void setupToggleButton(QToolBar *toolBar, QSignalMapper *mapper, 
+  void setupToggleButton(HotToolBar *toolBar, QSignalMapper *mapper, 
 			 int index);
   void setFontDependentWidths();
   
@@ -91,7 +102,10 @@ class SlicerWindow : public QMainWindow
   FloatSpinBox *mModelBox;
   MultiSlider *mSliders;
   QComboBox *mZscaleCombo;
+  QLabel *mTimeLabel;
   QPushButton *mHelpButton;
+  QPushButton *mNewRowBut;
+  QPushButton *mSaveAngBut;
 };
 
 class SlicerGL : public QGLWidget
@@ -139,24 +153,6 @@ protected:
   SlicerStruct *mSlicer;
 };
 
-// A toolbar class that will pass on keys
-class HotToolBar : public QToolBar
-{
-  Q_OBJECT
- public:
-  HotToolBar( QMainWindow * parent = 0, const char * name = 0) 
-    : QToolBar(parent, name) { };
-  ~HotToolBar() {}
-
- signals:
-  void keyPress(QKeyEvent *e);
-  void keyRelease(QKeyEvent *e);
-
- protected:
-  void keyPressEvent ( QKeyEvent * e ) {emit keyPress(e);};
-  void keyReleaseEvent ( QKeyEvent * e ) {emit keyRelease(e);};
-};
-
 #ifdef QT_THREAD_SUPPORT
 #include <qthread.h>
 
@@ -180,6 +176,9 @@ void fillImageArray(SlicerStruct *ss, int panning, int meanOnly);
 
 /*
 $Log$
+Revision 4.9  2007/05/29 14:52:35  mast
+Changes for new slicer mode and toolbar buttons
+
 Revision 4.8  2006/10/12 19:02:55  mast
 Added toolbar button for W function
 

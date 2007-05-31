@@ -15,12 +15,12 @@
 #include <qtoolbutton.h>
 #include <qlabel.h>
 #include <qbitmap.h>
-#include <qtoolbar.h>
 #include <qtooltip.h>
 #include <qsignalmapper.h>
 #include <qpushbutton.h>
 #include <qlayout.h>
 #include <qvbox.h>
+#include <qcheckbox.h>
 #include <qcombobox.h>
 #include <qspinbox.h>
 #include <qframe.h>
@@ -31,6 +31,7 @@
 #include <qmutex.h>
 #endif
 #include "imod.h"
+#include "hottoolbar.h"
 #include "slicer_classes.h"
 #include "sslice.h"
 #include "xcramp.h"
@@ -88,7 +89,8 @@ static int firstTime = 1;
 
 static char *sliderLabels[] = {"X rotation", "Y rotation", "Z rotation"};
 
-SlicerWindow::SlicerWindow(SlicerStruct *slicer, float maxAngles[], bool times,
+SlicerWindow::SlicerWindow(SlicerStruct *slicer, float maxAngles[], 
+                           QString timeLabel,
 			   bool rgba, bool doubleBuffer, bool enableDepth,
 			   QWidget * parent, const char * name, WFlags f) 
   : QMainWindow(parent, name, f)
@@ -96,6 +98,8 @@ SlicerWindow::SlicerWindow(SlicerStruct *slicer, float maxAngles[], bool times,
   int j;
   ArrowButton *arrow;
   QGLFormat glFormat;
+  QLabel *label;
+  mTimeBar = NULL;
 
   mSlicer = slicer;
   
@@ -154,9 +158,6 @@ SlicerWindow::SlicerWindow(SlicerStruct *slicer, float maxAngles[], bool times,
   QToolTip::add(button, "Set angles and position to show plane of current"
                 " contour (hot key W)");
 
-  if (times)
-    setupToggleButton(mToolBar, toggleMapper, MAX_SLICER_TOGGLES - 1);
-
   // The Z scale combo box
   mZscaleCombo = new QComboBox(mToolBar, "zscale combo");
   mZscaleCombo->insertItem("Z-Scale Off", SLICE_ZSCALE_OFF);
@@ -176,7 +177,64 @@ SlicerWindow::SlicerWindow(SlicerStruct *slicer, float maxAngles[], bool times,
   mHelpButton->setFocusPolicy(QWidget::NoFocus);
   connect(mHelpButton, SIGNAL(clicked()), this, SLOT(help()));
   QToolTip::add(mHelpButton, "Open help window");
-  setFontDependentWidths();
+
+  // THE TIME TOOLBAR
+  if (!timeLabel.isEmpty()) {
+    mTimeBar = new HotToolBar(this, "time toolbar");
+    if (!AUTO_RAISE)
+      mTimeBar->boxLayout()->setSpacing(4);
+    connect(mTimeBar, SIGNAL(keyPress(QKeyEvent *)), this,
+            SLOT(toolKeyPress(QKeyEvent *)));
+    connect(mTimeBar, SIGNAL(keyRelease(QKeyEvent *)), this,
+            SLOT(toolKeyRelease(QKeyEvent *)));
+    setupToggleButton(mTimeBar, toggleMapper, MAX_SLICER_TOGGLES - 1);
+
+    label = new QLabel("4th D", mTimeBar);
+    label->setAlignment(Qt::AlignRight | Qt::AlignVCenter);
+
+    arrow = new ArrowButton(Qt::LeftArrow, mTimeBar, "time back button");
+    connect(arrow, SIGNAL(clicked()), this, SLOT(timeBack()));
+    arrow->setAutoRaise(AUTO_RAISE);
+    arrow->setAutoRepeat(true);
+    QToolTip::add(arrow, "Move back in 4th dimension (time)");
+
+    arrow = new ArrowButton(Qt::RightArrow, mTimeBar, "time forward button");
+    connect(arrow, SIGNAL(clicked()), this, SLOT(timeForward()));
+    arrow->setAutoRaise(AUTO_RAISE);
+    arrow->setAutoRepeat(true);
+    QToolTip::add(arrow, "Move forward in 4th dimension (time)");
+
+    mTimeLabel = new QLabel(timeLabel, mTimeBar, "time label");
+  }
+
+  // SET ANGLE TOOLBAR
+  mSaveAngBar = new HotToolBar(this);
+  mSaveAngBar->boxLayout()->setSpacing(4);
+  connect(mSaveAngBar, SIGNAL(keyPress(QKeyEvent *)), this,
+	  SLOT(toolKeyPress(QKeyEvent *)));
+  connect(mSaveAngBar, SIGNAL(keyRelease(QKeyEvent *)), this,
+	  SLOT(toolKeyRelease(QKeyEvent *)));
+  mSaveAngBut = new QPushButton("Save", mSaveAngBar, "save but");
+  mSaveAngBut->setFocusPolicy(QWidget::NoFocus);
+  connect(mSaveAngBut, SIGNAL(clicked()), this, SLOT(saveAngClicked()));
+  QToolTip::add(mSaveAngBut, "Save current angles and position in slicer angle"
+                " table");
+  mNewRowBut = new QPushButton("New", mSaveAngBar, "new row but");
+  mNewRowBut->setFocusPolicy(QWidget::NoFocus);
+  connect(mNewRowBut, SIGNAL(clicked()), this, SLOT(newRowClicked()));
+  QToolTip::add(mNewRowBut, "Save current angles and position in new row of"
+                " slicer angle table");
+  mSetAngBut = new QPushButton("Set", mSaveAngBar, "set ang but");
+  mSetAngBut->setFocusPolicy(QWidget::NoFocus);
+  connect(mSetAngBut, SIGNAL(clicked()), this, SLOT(setAngClicked()));
+  QToolTip::add(mSetAngBut, "Set angles and position from current row in"
+                " slicer angle table");
+
+  QCheckBox *check = new QCheckBox("Auto", mSaveAngBar);
+  check->setFocusPolicy(QWidget::NoFocus);
+  connect(check, SIGNAL(toggled(bool)), this, SLOT(continuousToggled(bool)));
+  QToolTip::add(check, "Continuously update table from slicer and slicer from"
+                " table");
 
   // SECOND TOOLBAR
   mToolBar2 = new HotToolBar(this);
@@ -214,7 +272,7 @@ SlicerWindow::SlicerWindow(SlicerStruct *slicer, float maxAngles[], bool times,
 
   // Thickness label
   QVBox *thickBox = new QVBox(mToolBar2);
-  QLabel *label = new QLabel("Thickness", thickBox);
+  label = new QLabel("Thickness", thickBox);
   QSize labelSize = label->sizeHint();
 
   // Thickness of image spin box
@@ -237,6 +295,8 @@ SlicerWindow::SlicerWindow(SlicerStruct *slicer, float maxAngles[], bool times,
   QToolTip::add(mModelBox, "Set thickness of model to project onto image "
                 "(hot keys 9 and 0");
 
+  setToggleState(SLICER_TOGGLE_CENTER, slicer->classic);
+  setFontDependentWidths();
   firstTime = 0;
 
   // Need GLwidget next - this gets the defined format
@@ -252,6 +312,12 @@ SlicerWindow::SlicerWindow(SlicerStruct *slicer, float maxAngles[], bool times,
   setDockEnabled(mToolBar, Right, FALSE );
   setDockEnabled(mToolBar2, Left, FALSE );
   setDockEnabled(mToolBar2, Right, FALSE );
+  setDockEnabled(mSaveAngBar, Left, FALSE );
+  setDockEnabled(mSaveAngBar, Right, FALSE );
+  if (mTimeBar) {
+    setDockEnabled(mTimeBar, Left, FALSE );
+    setDockEnabled(mTimeBar, Right, FALSE );
+  }
 
   // This makes the toolbar give a proper size hint before showing window
   setUpLayout();
@@ -260,13 +326,16 @@ SlicerWindow::SlicerWindow(SlicerStruct *slicer, float maxAngles[], bool times,
 void SlicerWindow::setFontDependentWidths()
 {
   diaSetButtonWidth(mHelpButton, ImodPrefs->getRoundedStyle(), 1.2, "Help");
+  diaSetButtonWidth(mSaveAngBut, ImodPrefs->getRoundedStyle(), 1.2, "Save");
+  diaSetButtonWidth(mNewRowBut, ImodPrefs->getRoundedStyle(), 1.3, "New");
+  diaSetButtonWidth(mSetAngBut, ImodPrefs->getRoundedStyle(), 1.35, "Set");
 }
 
 
 // Make the two bitmaps, add the toggle button to the tool bar, and add
 // it to the signal mapper
-void SlicerWindow::setupToggleButton(QToolBar *toolBar, QSignalMapper *mapper, 
-                           int ind)
+void SlicerWindow::setupToggleButton(HotToolBar *toolBar, 
+                                     QSignalMapper *mapper, int ind)
 {
   char *toggleTips[] = {
     "Toggle between regular and high-resolution (interpolated) image",
@@ -297,6 +366,17 @@ void SlicerWindow::zoomDown()
 {
   slicerStepZoom(mSlicer, -1);
 }
+
+void SlicerWindow::timeBack()
+{
+  slicerStepTime(mSlicer, -1);
+}
+
+void SlicerWindow::timeForward()
+{
+  slicerStepTime(mSlicer, 1);
+}
+
 
 // A new zoom or section was entered - let slicer decide on limits and 
 // refresh box
@@ -355,6 +435,28 @@ void SlicerWindow::zScaleSelected(int item)
   slicerZscale(mSlicer, item);
 }
 
+void SlicerWindow::saveAngClicked()
+{
+  slicerSetCurrentOrNewRow(mSlicer, false);
+}
+
+void SlicerWindow::setAngClicked()
+{
+  slicerSetAnglesFromRow(mSlicer);
+}
+
+void SlicerWindow::newRowClicked()
+{
+  slicerSetCurrentOrNewRow(mSlicer, true);
+}
+
+void SlicerWindow::continuousToggled(bool state)
+{
+  mSlicer->continuous = state;
+  if (state)
+    slicerSetCurrentOrNewRow(mSlicer, false);
+}
+
 // Functions for setting state of the controls
 void SlicerWindow::setAngles(float *angles)
 {
@@ -390,6 +492,11 @@ void SlicerWindow::setZoomText(float zoom)
   if (str.endsWith("00"))
     str.truncate(str.length() - 2);
   mZoomEdit->setText(str);
+}
+
+void SlicerWindow::setTimeLabel(QString label)
+{
+  mTimeLabel->setText(label);
 }
 
 void SlicerWindow::keyPressEvent ( QKeyEvent * e )
@@ -1552,6 +1659,9 @@ static int taper_slice(Islice *sl, int ntaper, int inside)
 
  /*
 $Log$
+Revision 4.16  2007/05/29 14:52:35  mast
+Changes for new slicer mode and toolbar buttons
+
 Revision 4.15  2007/05/25 05:28:16  mast
 Changes for addition of slicer angle storage
 

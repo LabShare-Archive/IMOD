@@ -92,6 +92,8 @@ typedef struct Super_slicer{
   Imat  *mat;
   int   ctrl;
   int   fftMode;      /* Flag to do FFT of slice */
+  int   toolTime;     /* Value of time when label sent to toolbar */
+  bool  continuous;   /* Flag for continuous mode in slicer angle update */
   int   closing;      /* Flag for window closing */
 } SlicerStruct;     
 
@@ -102,6 +104,7 @@ void slicerReportAngles();
 void slicerPixelViewState(bool state);
 void slicerHelp();
 void slicerStepZoom(SlicerStruct *win, int dir);
+void slicerStepTime(SlicerStruct *win, int dir);
 void slicerEnteredZoom(SlicerStruct *win, float newZoom);
 void slicerShowSlice(SlicerStruct *win);
 void slicerStateToggled(SlicerStruct *win, int index, int state);
@@ -127,14 +130,19 @@ int slicerAnglesFromContour(SlicerStruct *ss);
 void slicerCheckMovieLimits(SlicerStruct *ss);
 int setTopSlicerAngles(float angles[3], Ipoint *center, bool draw);
 int getTopSlicerAngles(float angles[3], Ipoint *center, int &time);
-int getTopSlicerTime();
+int getTopSlicerTime(bool &continuous);
 int slicerAnglesOpen();
 void slicerAnglesClosing();
 void slicerNewTime(bool refresh);
+void slicerSetCurrentOrNewRow(SlicerStruct *ss, bool newrow);
+void slicerSetAnglesFromRow(SlicerStruct *ss);
 #endif
 
 /*
     $Log$
+    Revision 3.14  2007/05/29 14:52:47  mast
+    Changes for new slicer mode
+
     Revision 3.13  2007/05/25 05:28:16  mast
     Changes for addition of slicer angle storage
 
