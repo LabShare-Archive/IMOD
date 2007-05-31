@@ -2,7 +2,12 @@
  *  hottoolbar.h -  A toolbar subclass that will pass on keys
  *
  *  $Id$
+ *
  *  $Log$
+ *
+ */
+#ifndef HOTTOOLBAR_H
+#defin
  *
  */
 #ifndef HOTTOOLBAR_H
