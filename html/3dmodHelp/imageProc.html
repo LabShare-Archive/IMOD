@@ -33,7 +33,9 @@ the sigma of an inverted Gaussian starting at the origin, used to
 attenuate low frequencies.  Low pass filtering is done with a 
 Gaussian starting at the <B>High-frequency cutoff</B> and  
 with a sigma given by the <B>High-frequency falloff</B>.  The units are 
-cycles per pixel, ranging from 0 to 0.5.
+cycles per pixel, ranging from 0 to 0.5.  The same filtering can be done
+at the command line with "mtffilter -high sigma -low cutoff,falloff", where
+"sigma", "cutoff", and "falloff" are the values used in this panel.
 <P>
 <H4>Fourier Transforms</H4>
 To take a Fourier transform (FFT), the program will pad the image 
