@@ -5,16 +5,11 @@
  *  Copyright (C) 1995-2004 by Boulder Laboratory for 3-Dimensional Electron
  *  Microscopy of Cells ("BL3DEMC") and the Regents of the University of 
  *  Colorado.  See dist/COPYRIGHT for full copyright notice.
+ *
+ *  $Id$
+ *  Log at end of file
  */
 
-/*  $Author$
-
-$Date$
-
-$Revision$
-
-Log at end of file
-*/
 /* Checklist for adding an item:
  * Add structure variable for item, default value, and boolean for change
  * Add function for returning current value
@@ -114,6 +109,7 @@ ImodPreferences::ImodPreferences(char *cmdLineStyle)
   prefs->hotSliderFlagDflt = HOT_SLIDER_KEYUP;
   prefs->mouseMappingDflt = 0;
   prefs->silentBeepDflt = false;
+  prefs->classicSlicerDflt = false;
   prefs->tooltipsOnDflt = true;
   prefs->bwStepDflt = 3;
   prefs->iconifyImodvDlgDflt = 1;
@@ -162,6 +158,12 @@ ImodPreferences::ImodPreferences(char *cmdLineStyle)
   prefs->silentBeep = settings->readBoolEntry(IMOD_NAME"silentBeep",
                                             prefs->silentBeepDflt,
                                             &prefs->silentBeepChgd);
+  prefs->classicSlicer = settings->readBoolEntry(IMOD_NAME"classicSlicer",
+                                                 prefs->classicSlicerDflt,
+                                                 &prefs->classicSlicerChgd);
+  mClassicWarned = settings->readBoolEntry(IMOD_NAME"classicWarned");
+  if (prefs->classicSlicer)
+    mClassicWarned = true;
   prefs->tooltipsOn = settings->readBoolEntry(IMOD_NAME"tooltipsOn",
                                             prefs->tooltipsOnDflt,
                                             &prefs->tooltipsOnChgd);
@@ -228,20 +230,24 @@ ImodPreferences::ImodPreferences(char *cmdLineStyle)
   }
 
   // Read the geometry information with separate keys
+  readin = false;
   for (i = 0; i < MAX_GEOMETRIES; i++) {
     mGeomImageXsize[i] = mGeomImageYsize[i] = 0;
     mGeomZapWin[i].setRect(0, 0, 0, 0);
     mGeomInfoWin[i].setRect(0, 0, 0, 0);
     str.sprintf(IMOD_NAME"geomImageSize/%d", i);
     str = settings->readEntry(str);
-    if (!str.isEmpty())
+    if (!str.isEmpty()) {
       sscanf(str.latin1(), "%d,%d", &mGeomImageXsize[i], &mGeomImageYsize[i]);
+      readin = true;
+    }
 
     str.sprintf(IMOD_NAME"geomZapWindow/%d", i);
     str = settings->readEntry(str);
     if (!str.isEmpty()) {
       sscanf(str.latin1(), "%d,%d,%d,%d", &left, &top, &width, &height);
       mGeomZapWin[i].setRect(left, top, width, height);
+      readin = true;
     }
 
     str.sprintf(IMOD_NAME"geomInfoWindow/%d", i);
@@ -249,8 +255,13 @@ ImodPreferences::ImodPreferences(char *cmdLineStyle)
     if (!str.isEmpty()) {
       sscanf(str.latin1(), "%d,%d,%d,%d", &left, &top, &width, &height);
       mGeomInfoWin[i].setRect(left, top, width, height);
+      readin = true;
     }
   }
+
+  // If no geometries were found, stop classic slicer warning
+  if (!readin)
+    mClassicWarned = true;
 
   prefs->autosaveInterval = settings->readNumEntry
     (IMOD_NAME"autosaveInterval", prefs->autosaveIntervalDflt,
@@ -417,6 +428,9 @@ void ImodPreferences::saveSettings()
     settings->writeEntry(IMOD_NAME"mouseMapping", prefs->mouseMapping);
   if (prefs->silentBeepChgd)
     settings->writeEntry(IMOD_NAME"silentBeep", prefs->silentBeep);
+  if (prefs->classicSlicerChgd)
+    settings->writeEntry(IMOD_NAME"classicSlicer", prefs->classicSlicer);
+  settings->writeEntry(IMOD_NAME"classicWarned", mClassicWarned);
   if (prefs->tooltipsOnChgd)
     settings->writeEntry(IMOD_NAME"tooltipsOn", prefs->tooltipsOn);
   if (prefs->bwStepChgd)
@@ -559,6 +573,7 @@ void ImodPreferences::donePressed()
   curp->hotSliderFlagChgd |= newp->hotSliderFlag != oldp->hotSliderFlag;
   curp->mouseMappingChgd |= newp->mouseMapping != oldp->mouseMapping;
   curp->silentBeepChgd |= !equiv(newp->silentBeep, oldp->silentBeep);
+  curp->classicSlicerChgd |= !equiv(newp->classicSlicer, oldp->classicSlicer);
   if (!equiv(newp->tooltipsOn, oldp->tooltipsOn)) {
     curp->tooltipsOnChgd = true;
     QToolTip::setGloballyEnabled(curp->tooltipsOn);
@@ -1016,9 +1031,20 @@ int ImodPreferences::getGenericSettings(char *key, double *values, int maxVals)
   return i;
 }
 
+// Find out if warning about classic slicer has happened and set it to true
+bool ImodPreferences::classicWarned()
+{
+  bool temp = mClassicWarned;
+  mClassicWarned = true;
+  return temp;
+}
+
 
 /*
 $Log$
+Revision 1.23  2006/10/05 15:41:32  mast
+Provided for primary and second non-TIFF snapshot format
+
 Revision 1.22  2006/07/17 18:47:25  mast
 Put our plugin directory on Qt's library path so it can find image formats
 
