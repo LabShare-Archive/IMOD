@@ -1,6 +1,7 @@
 package etomo.process;
 
 import java.io.File;
+import java.io.IOException;
 import java.util.ArrayList;
 import java.util.HashMap;
 
@@ -38,6 +39,9 @@ import etomo.util.Utilities;
  * @version $Revision$
  * 
  * <p> $Log$
+ * <p> Revision 1.57  2007/05/14 17:32:56  sueh
+ * <p> bug# 964 Removed print statements.
+ * <p>
  * <p> Revision 1.56  2007/05/11 15:39:14  sueh
  * <p> bug# 964 Added msgProcessDone(DetachedProcess,int,boolean) and
  * <p> postProcess(DetachedProcess) to handle processchunks, since
@@ -422,13 +426,68 @@ public abstract class BaseProcessManager {
     return process.getName();
   }
 
+  public void createNewFile(String absolutePath) {
+    File file = new File(absolutePath);
+    if (file.exists()) {
+      return;
+    }
+    File dir = file.getParentFile();
+    if (!dir.exists()) {
+      if (!dir.mkdirs()) {
+        uiHarness.openMessageDialog(
+            "Unable to create " + dir.getAbsolutePath(), "File Error");
+        return;
+      }
+    }
+    if (!dir.canWrite()) {
+      uiHarness.openMessageDialog("Cannot write to " + dir.getAbsolutePath(),
+          "File Error");
+      return;
+    }
+    try {
+      if (!file.createNewFile()) {
+        uiHarness.openMessageDialog("Cannot create  " + file.getAbsolutePath(),
+            "File Error");
+      }
+    }
+    catch (IOException e) {
+      e.printStackTrace();
+      uiHarness.openMessageDialog("Cannot create  " + file.getAbsolutePath()
+          + ".\n" + e.getMessage(), "File Error");
+    }
+  }
+
   /**
    * run touch command on file
    * @param file
    */
   public void touch(String absolutePath) {
+    File file = new File(absolutePath);
+    File dir = file.getParentFile();
+    if (!dir.exists()) {
+      if (!dir.mkdirs()) {
+        uiHarness.openMessageDialog(
+            "Unable to create " + dir.getAbsolutePath(), "File Error");
+        return;
+      }
+    }
+    if (!dir.canWrite()) {
+      uiHarness.openMessageDialog("Cannot write to " + dir.getAbsolutePath(),
+          "File Error");
+      return;
+    }
     String[] commandArray = { "touch", absolutePath };
     startSystemProgramThread(commandArray, AxisID.ONLY);
+    final int timeout = 5;
+    int t = 0;
+    while (!file.exists() && t < timeout) {
+      try {
+        Thread.sleep(1000);
+      }
+      catch (InterruptedException e) {
+      }
+      t++;
+    }
   }
 
   ComScriptProcess startComScript(String command,
