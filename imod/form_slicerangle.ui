@@ -492,6 +492,8 @@
     <slot>fontChange( const QFont &amp; oldFont )</slot>
     <slot>setFontDependentWidths()</slot>
     <slot>setTimeLabel()</slot>
+    <slot>setCurrentOrNewRow( int time, bool newrow )</slot>
+    <slot>setAnglesFromRow( int time )</slot>
     <slot>getAngClicked()</slot>
     <slot>setAngClicked()</slot>
     <slot>setAngles( bool draw )</slot>
@@ -521,8 +523,6 @@
     <function>loadTable( int time )</function>
     <function returnType="SlicerAngles *">findAngles( int row, int &amp; index )</function>
     <function>newTime( bool refresh )</function>
-    <function>setCurrentOrNewRow( int time, bool newrow )</function>
-    <function>setAnglesFromRow( int time )</function>
 </functions>
 <pixmapinproject/>
 <layoutdefaults spacing="6" margin="11"/>

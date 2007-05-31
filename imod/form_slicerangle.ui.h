@@ -125,7 +125,26 @@ void SlicerAngleForm::setTimeLabel()
   timeLabel->setText(str);
 }
 
-// Get angle button
+// Call from the slicer to set values into a row
+void SlicerAngleForm::setCurrentOrNewRow( int time, bool newrow )
+{
+  if (time + mTimeInc != mCurTime)
+    switchTime(time + mTimeInc, false);
+  if (newrow || !table->numRows())
+      newClicked();
+  else
+      getAngClicked();
+}
+
+// Call from a slicer to set slicer angles
+void SlicerAngleForm::setAnglesFromRow( int time )
+{
+  if (time + mTimeInc != mCurTime)
+    switchTime(time + mTimeInc, false);
+  setAngles(true);
+}
+
+// Get angle function, originally a button
 void SlicerAngleForm::getAngClicked()
 {
   int time, index;
@@ -182,7 +201,7 @@ void SlicerAngleForm::deleteClicked()
   updateEnables();
 }
 
-// Button to create a new row with current angles
+// Function to create a new row with current angles: originally a button
 void SlicerAngleForm::newClicked()
 {
   Imod *imod = App->cvi->imod;
@@ -564,23 +583,4 @@ void SlicerAngleForm::keyPressEvent( QKeyEvent *e )
   } else {
     ivwControlKey(0, e);
   }
-}
-
-// Call from the slicer to set values into a row
-void SlicerAngleForm::setCurrentOrNewRow( int time, bool newrow )
-{
-  if (time + mTimeInc != mCurTime)
-    switchTime(time + mTimeInc, false);
-  if (newrow || !table->numRows())
-      newClicked();
-  else
-      getAngClicked();
-}
-
-// Call from a slicer to set slicer angles
-void SlicerAngleForm::setAnglesFromRow( int time )
-{
-  if (time + mTimeInc != mCurTime)
-    switchTime(time + mTimeInc, false);
-  setAngles(true);
 }
