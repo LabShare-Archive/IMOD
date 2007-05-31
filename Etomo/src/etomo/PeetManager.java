@@ -52,6 +52,9 @@ import etomo.util.DatasetFiles;
  * @version $Revision$
  * 
  * <p> $Log$
+ * <p> Revision 1.23  2007/05/21 22:28:36  sueh
+ * <p> bug# 964 Added getInterfaceType().
+ * <p>
  * <p> Revision 1.22  2007/05/16 23:47:08  sueh
  * <p> bug# 964 Added isUserDirValid() to check for directories that already
  * <p> contains an .epe file.
@@ -180,7 +183,7 @@ public final class PeetManager extends BaseManager {
   public boolean canSnapshot() {
     return false;
   }
-  
+
   public InterfaceType getInterfaceType() {
     return InterfaceType.PEET;
   }
@@ -290,7 +293,7 @@ public final class PeetManager extends BaseManager {
       //set the param file
       File paramFile = DatasetFiles.getPeetDataFile(newDirName, newName);
       if (!paramFile.exists()) {
-        touch(paramFile.getAbsolutePath());
+        processMgr.createNewFile(paramFile.getAbsolutePath());
       }
       initializeUIParameters(paramFile, AXIS_ID);
       if (loadedParamFile) {
@@ -318,7 +321,7 @@ public final class PeetManager extends BaseManager {
 
   public void setParamFile(File paramFile) {
     if (!paramFile.exists()) {
-      touch(paramFile.getAbsolutePath());
+      processMgr.createNewFile(paramFile.getAbsolutePath());
     }
     initializeUIParameters(paramFile, AXIS_ID);
     if (loadedParamFile) {
@@ -358,7 +361,7 @@ public final class PeetManager extends BaseManager {
     }
     File paramFile = new File(dirName, name + DatasetFiles.PEET_DATA_FILE_EXT);
     if (!paramFile.exists()) {
-      touch(paramFile.getAbsolutePath());
+      processMgr.createNewFile(paramFile.getAbsolutePath());
     }
     initializeUIParameters(paramFile, AXIS_ID);
     if (!loadedParamFile) {
