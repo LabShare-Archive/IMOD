@@ -23,6 +23,7 @@
 #include <qtimer.h>
 #include <qobjectlist.h>
 #include "zap_classes.h"
+#include "hottoolbar.h"
 
 #include "imod.h"
 #include "imod_display.h"
@@ -588,7 +589,6 @@ int imod_zap_open(struct ViewInfo *vi)
   ZapStruct *zap;
   QString str;
   QRect oldGeom;
-  int time, tmax, len, maxlen;
   int needWinx, needWiny;
   int maxWinx;
   int maxWiny;
@@ -636,21 +636,7 @@ int imod_zap_open(struct ViewInfo *vi)
   zap->drawCurrentOnly = 0;
   zap->dragAddCount = 0;
 
-  /* Optional time section : find longest string and pass it in */
-  if (vi->nt){
-    str = " (999)";
-    maxlen = -1;
-    for (time = 1; time < zap->vi->nt; time++) {
-      len = strlen(ivwGetTimeIndexLabel(zap->vi, time));
-      if (len > maxlen) {
-        maxlen = len;
-        tmax = time;
-      }
-    }
-    
-    str += ivwGetTimeIndexLabel(zap->vi, tmax);
-  }
-
+  zapGetLongestTimeString(zap->vi, &str);
   zap->qtWindow = new ZapWindow(zap, str, App->rgba, App->doublebuffer,
 				App->qtEnableDepth, 
                                 imodDialogManager.parent(IMOD_IMAGE),
@@ -3845,9 +3831,30 @@ static int zapPointVisable(ZapStruct *zap, Ipoint *pnt)
   return(0);
 }
 
+/* If there are times, find longest string */
+void zapGetLongestTimeString(ImodView *vi, QString *str)
+{
+  int maxlen, time, len, tmax;
+  if (vi->nt){
+    *str = " (999)";
+    maxlen = -1;
+    for (time = 1; time < vi->nt; time++) {
+      len = strlen(ivwGetTimeIndexLabel(vi, time));
+      if (len > maxlen) {
+        maxlen = len;
+        tmax = time;
+      }
+    }
+    *str += ivwGetTimeIndexLabel(vi, tmax);
+  }
+}
 
 /*
 $Log$
+Revision 4.93  2007/05/29 14:51:00  mast
+Found most recent active zap for rubberband report, changed info output
+to give trimvol info with size, offset info secondary
+
 Revision 4.92  2007/05/06 03:26:09  mast
 Added calls to b3dSetMovieSnapping
 

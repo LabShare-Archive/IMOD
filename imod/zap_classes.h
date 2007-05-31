@@ -31,11 +31,12 @@ Log at end of file
 
 #include <qmainwindow.h>
 #include <qgl.h>
+#include <qstring.h>
 
 class QToolButton;
 class ToolEdit;
 class QLabel;
-class QToolBar;
+class HotToolBar;
 class QSignalMapper;
 class QSlider;
 class QPushButton;
@@ -61,8 +62,8 @@ class ZapWindow : public QMainWindow
   void setSizeText(int winx, int winy);
 
   ZapGL *mGLw;
-  QToolBar *mToolBar;
-  QToolBar *mToolBar2;
+  HotToolBar *mToolBar;
+  HotToolBar *mToolBar2;
   struct zapwin *mZap;
 
   public slots:
@@ -78,6 +79,8 @@ class ZapWindow : public QMainWindow
     void timeBack();
     void timeForward();
     void toggleClicked(int index);
+    void toolKeyPress(QKeyEvent *e) {keyPressEvent(e);};
+    void toolKeyRelease(QKeyEvent *e) {keyReleaseEvent(e);};
 
  protected:
     void keyPressEvent ( QKeyEvent * e );
@@ -86,7 +89,7 @@ class ZapWindow : public QMainWindow
     void fontChange(const QFont &oldFont) {setFontDependentWidths();};
 
  private:
-    void setupToggleButton(QToolBar *toolBar, QSignalMapper *mapper, 
+    void setupToggleButton(HotToolBar *toolBar, QSignalMapper *mapper, 
                            int index);
     void setFontDependentWidths();
 
@@ -131,6 +134,9 @@ protected:
 
 /*
 $Log$
+Revision 4.9  2006/09/17 18:15:59  mast
+Changes to provide mouse position to pixelview
+
 Revision 4.8  2006/04/01 23:43:15  mast
 Added size output to toolbar
 

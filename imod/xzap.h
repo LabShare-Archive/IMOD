@@ -17,6 +17,7 @@
 
 class ZapWindow;
 class ZapGL;
+class QString;
 typedef struct b3d_ci_image B3dCIImage;
 
 typedef struct zapwin
@@ -121,9 +122,13 @@ int zapSubsetLimits(ViewInfo *vi, int &ixStart, int &iyStart, int &nxUse,
 void zapReportRubberband();
 int zapRubberbandCoords(float &rbX0, float &rbX1, float &rbY0, float &rbY1);
 void zapPixelViewState(bool state);
+void zapGetLongestTimeString(ImodView *vi, QString *str);
 
 /*
 $Log$
+Revision 3.23  2007/03/29 04:55:50  mast
+Fixed crash bug when closing window while focus is in edit/spinbox
+
 Revision 3.22  2006/09/17 18:15:59  mast
 Changes to provide mouse position to pixelview
 

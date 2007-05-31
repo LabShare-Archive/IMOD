@@ -15,7 +15,7 @@
 #include <qtoolbutton.h>
 #include <qlabel.h>
 #include <qbitmap.h>
-#include <qtoolbar.h>
+#include <hottoolbar.h>
 #include <qtooltip.h>
 #include <qsignalmapper.h>
 #include <qpushbutton.h>
@@ -84,9 +84,13 @@ ZapWindow::ZapWindow(struct zapwin *zap, QString timeLabel, bool rgba,
   mToolBar2 = NULL;
 
   // Get the toolbar, add zoom arrows
-  mToolBar = new QToolBar(this, "zap toolbar");
+  mToolBar = new HotToolBar(this, "zap toolbar");
   if (!AUTO_RAISE)
     mToolBar->boxLayout()->setSpacing(4);
+  connect(mToolBar, SIGNAL(keyPress(QKeyEvent *)), this,
+	  SLOT(toolKeyPress(QKeyEvent *)));
+  connect(mToolBar, SIGNAL(keyRelease(QKeyEvent *)), this,
+	  SLOT(toolKeyRelease(QKeyEvent *)));
 
   arrow = new ArrowButton(Qt::UpArrow, mToolBar, "zoomup button");
   arrow->setAutoRaise(AUTO_RAISE);
@@ -153,9 +157,13 @@ ZapWindow::ZapWindow(struct zapwin *zap, QString timeLabel, bool rgba,
 
   // Optional section if time enabled
   if (!timeLabel.isEmpty()) {
-    mToolBar2 = new QToolBar(this, "time toolbar");
+    mToolBar2 = new HotToolBar(this, "time toolbar");
     if (!AUTO_RAISE)
       mToolBar2->boxLayout()->setSpacing(4);
+    connect(mToolBar2, SIGNAL(keyPress(QKeyEvent *)), this,
+            SLOT(toolKeyPress(QKeyEvent *)));
+    connect(mToolBar2, SIGNAL(keyRelease(QKeyEvent *)), this,
+            SLOT(toolKeyRelease(QKeyEvent *)));
     setupToggleButton(mToolBar2, toggleMapper, NUM_TOOLBUTTONS - 1);
 
     label = new QLabel("4th D", mToolBar2);
@@ -222,7 +230,7 @@ static char *toggleTips[] = {
 
 // Make the two bitmaps, add the toggle button to the tool bar, and add
 // it to the signal mapper
-void ZapWindow::setupToggleButton(QToolBar *toolBar, QSignalMapper *mapper, 
+void ZapWindow::setupToggleButton(HotToolBar *toolBar, QSignalMapper *mapper, 
                            int ind)
 {
   if (firstTime) {
@@ -431,6 +439,9 @@ void ZapGL::mouseMoveEvent ( QMouseEvent * e )
 
 /*
 $Log$
+Revision 4.19  2007/05/29 14:49:20  mast
+Moved keep center and snart center bits to files
+
 Revision 4.18  2006/04/01 23:43:15  mast
 Added size output to toolbar
 
