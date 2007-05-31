@@ -50,6 +50,9 @@ import etomo.type.PeetScreenState;
  * @version $Revision$
  * 
  * <p> $Log$
+ * <p> Revision 1.41  2007/05/18 23:53:35  sueh
+ * <p> bug# 987
+ * <p>
  * <p> Revision 1.40  2007/05/17 23:49:35  sueh
  * <p> bug# 964 Rearrange fields to save space.  Check ccMode local when
  * <p> use tilt range is checked.
@@ -184,8 +187,8 @@ import etomo.type.PeetScreenState;
 public final class PeetDialog implements AbstractParallelDialog, Expandable {
   public static final String rcsid = "$Id$";
 
+  public static final String FN_OUTPUT_LABEL = "Root name for output";
   static final String DIRECTORY_LABEL = "Directory";
-  static final String OUTPUT_LABEL = "Root name for output";
 
   private static final String REFERENCE_PARTICLE_LABEL = "Particle #: ";
   private static final String REFERENCE_VOLUME_LABEL = "Volume #: ";
@@ -196,7 +199,7 @@ public final class PeetDialog implements AbstractParallelDialog, Expandable {
   private final FileTextField ftfDirectory = new FileTextField(DIRECTORY_LABEL
       + ": ");
   private final LabeledTextField ltfFnOutput = new LabeledTextField(
-      OUTPUT_LABEL + ": ");
+      FN_OUTPUT_LABEL + ": ");
   private final SpacedPanel pnlSetupBody = new SpacedPanel();
   private final CheckBox cbTiltRange = new CheckBox(
       "Use tilt range for missing wedge compensation");
