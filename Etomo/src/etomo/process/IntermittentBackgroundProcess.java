@@ -219,7 +219,7 @@ public final class IntermittentBackgroundProcess implements Runnable {
     }
     //wait while the processes are ending
     try {
-      Thread.sleep(10);
+      Thread.sleep(100);
     }
     catch (InterruptedException e) {
     }
@@ -385,6 +385,9 @@ public final class IntermittentBackgroundProcess implements Runnable {
 }
 /**
  * <p> $Log$
+ * <p> Revision 1.8  2007/05/29 19:17:25  sueh
+ * <p> bug# 994 Added static stop() and stopAll() to stop the current programs on all the instances.
+ * <p>
  * <p> Revision 1.7  2007/05/26 00:25:17  sueh
  * <p> bug# 964 Replaced restart with canRestart.  Moved RestartThread
  * <p> functionality to ProcessRestarter.
