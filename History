@@ -1,5 +1,8 @@
 IMOD History
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+5/31/07: In Etomo - PEET, fixed a problem creating the .epe file when importing
+a .prm file or duplicating a project.
+
 5/31/07: Added options to Mtffilter so that it provides the same set of 
 filter shapes as Enhance does, and can be used in place of Enhance.
 
