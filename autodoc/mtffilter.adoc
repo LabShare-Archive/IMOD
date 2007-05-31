@@ -3,7 +3,6 @@ Pip=1
 
 [Field = InputFile]
 short = input
-long = InputFile
 type = FN
 usage = Input file with images to be filtered
 tooltip =
@@ -11,7 +10,6 @@ manpage =
 
 [Field = OutputFile]
 short = output
-long = OutputFile
 type = FN
 usage = Output file for filtered images (omit to rewrite input file)
 tooltip =
@@ -20,7 +18,6 @@ program will write filtered images back to the input file.
 
 [Field = StartingAndEndingZ]
 short = zrange
-long = StartingAndEndingZ
 type = IP
 usage = First and last Z values to filter, numbered from 1 (default is all)
 tooltip =
@@ -29,18 +26,42 @@ numbered from 1 and the default is to do all sections.
 
 [Field = LowPassRadiusSigma]
 short = lowpass
-long = LowPassRadiusSigma
 type = FP
 usage = Radius and sigma for high-frequency roll-off to 0.0 (default no filter)
 tooltip = Cutoff radius and sigma for low pass filter to provide a
 high-frequency Gaussian roll-off to 0.0.  (The default is no filtering)
 manpage = Cutoff radius and sigma for a low pass filter that imposes a
 high-frequency Gaussian roll-off to 0.0.
-The default is no high-frequency filtering.
+The default is no high-frequency filtering.  These entries correspond to the
+Radius2 and Sigma2 entries to Enhance(1) and other programs; see the Enhance(1)
+man page for a full explanation of the effects of changing the sign of 
+the Sigma2 or the Sigma1 and Radius1 parameters entered with the next two
+options.
+
+[Field = HighPassSigma]
+short = highpass
+type = F
+usage = Sigma for inverted Gaussian low-frequency filter (default no filter)
+tooltip = 
+manpage = Sigma for a high pass filter based on an inverted Gaussian that
+starts at 0.0 at zero frequency and decays up to 1 with the given sigma.
+The default is no high-frequency filtering.  This entry corresponds to the 
+Sigma1 entry to Enhance(1) and other programs.  A negative Sigma1 can be used
+to get a band-pass filter based on the second derivative of a Gaussian.
+
+[Field = FilterRadius1]
+short = radius1
+type = F
+usage = Cutoff radius for a high-pass filter that decays with Sigma2
+tooltip = 
+manpage = Cutoff radius for a high-pass filter that is 1.0 at this radius and
+falls off as a Gaussian to the left of this point with sigma equal to the
+Sigma2 value entered with -lowpass.  This entry corresponds to the
+Radius1 entry to Enhance(1) and other programs.  A negative Radius1 will
+make the inverted Gaussian invoked by -highpass be zero out to |Radius1|.
 
 [Field = MtfFile]
 short = mtf
-long = MtfFile
 type = FN
 usage = File with MTF curve
 tooltip =
@@ -49,7 +70,6 @@ with a spatial frequency in reciprocal pixels and an MTF value on each line.
 
 [Field = StockCurve]
 short = stock
-long = StockCurve
 type = I
 usage = The number of the stock (built-in) curve to use
 tooltip =
@@ -57,7 +77,6 @@ manpage =
 
 [Field = MaximumInverse]
 short = maxinv
-long = MaximumInverse
 type = F
 usage = Maximum value for inverse of MTF (default 4.0)
 tooltip =
@@ -66,7 +85,6 @@ be limited to reduce noise.
 
 [Field = InverseRolloffRadiusSigma]
 short = invrolloff
-long = InverseRolloffRadiusSigma
 type = FP
 usage = Radius and sigma for gaussian roll-off of inverse to 1.0 (default 0.12
 and 0.05)
@@ -75,7 +93,6 @@ manpage =
 
 [Field = XScaleFactor]
 short = xscale
-long = XScaleFactor
 type = F
 usage = Scaling factor X-axis of MTF curve (default 1.0)
 tooltip =
@@ -85,7 +102,6 @@ another.
 
 [Field = DensityScaleFactor]
 short = denscale
-long = DensityScaleFactor
 type = F
 usage = Density scaling factor (default 1.0)
 tooltip =
@@ -93,7 +109,6 @@ manpage = Scaling factor for image intensities after filtering.
 
 [Field = ParameterFile]
 short=param
-long=ParameterFile
 type=PF
 usage=Read parameter entries from file
 tooltip=
@@ -101,7 +116,6 @@ manpage=
 
 [Field = usage]
 short=help
-long=usage
 type=B
 usage=Print help output
 tooltip=
