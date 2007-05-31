@@ -15,8 +15,8 @@ void SlicerAngleForm::init()
   // Determine maximum time allowed in model, and maximum time
   // Set the time increment, so all time indexes start at 1
   SlicerAngles *slanp;
+  bool continuous;
   mTimeInc = 0;
-  mContinuous = false;
   mIgnoreCurChg = false;
   mMaxImageTime = ivwGetMaxTime(App->cvi);
   if (!mMaxImageTime) {
@@ -32,6 +32,7 @@ void SlicerAngleForm::init()
   copySpin->setMaxValue(mMaxModelTime);
   renumberSpin->setMaxValue(mMaxModelTime);
   
+  int volHeight = volumeGroup->height();
   // Get rid of unneeded buttons
   if (mMaxModelTime == 1) {
     removeButton->hide();
@@ -41,13 +42,15 @@ void SlicerAngleForm::init()
     renumberSpin->hide();
     copySpin->hide();
     volumeGroup->hide();
+    QSize winsize = size();
+    resize(winsize.width(), winsize.height() - (int)(volHeight + 16));
   }
   if (mMaxImageTime == 1)
     timeLabel->hide();
   mCurRow = new int[mMaxModelTime + 1];
 
   // Set the current time from the top slicer or fall back to display time
-  mCurTime = getTopSlicerTime();
+  mCurTime = getTopSlicerTime( continuous);
   if (mCurTime < 0)
     ivwGetTime(App->cvi, &mCurTime);
   mCurTime += mTimeInc;
@@ -77,7 +80,6 @@ void SlicerAngleForm::destroy()
 void SlicerAngleForm::updateEnables()
 {
   int numRows = table->numRows();
-  getButton->setEnabled(numRows > 0);
   setButton->setEnabled(numRows > 0);
   deleteButton->setEnabled(numRows > 0);
   renumberButton->setEnabled(renumberSpin->value() != mCurTime);
@@ -96,12 +98,10 @@ void SlicerAngleForm::setFontDependentWidths()
 {
   int width;
   bool rounded = ImodPrefs->getRoundedStyle();
-  width = diaSetButtonWidth(getButton, rounded, 1.2, "Get Angles");
-  getButton->setFixedWidth(width);
+  width = diaSetButtonWidth(setButton, rounded, 1.2, "Set Angles");
   deleteButton->setFixedWidth(width);
-  newButton->setFixedWidth(width);
-  width = diaSetButtonWidth(renumberButton, rounded, 1.2, "Renumber To");
-  copyButton->setFixedWidth(width);
+  diaSetButtonWidth(renumberButton, rounded, 1.2, "Renumber To");
+  diaSetButtonWidth(copyButton, rounded, 1.2, "Copy From");
   width = diaSetButtonWidth(removeButton, rounded, 1.2, "Remove");
   insertButton->setFixedWidth(width);
   width = (int)(1.1 * table->fontMetrics().width("-90.00") + 0.5);
@@ -157,7 +157,8 @@ void SlicerAngleForm::setAngClicked()
 void SlicerAngleForm::setAngles( bool draw )
 {
   int time, index;
-  if (getTopSlicerTime() + mTimeInc != mCurTime)
+  bool continuous;
+  if (getTopSlicerTime(continuous) + mTimeInc != mCurTime)
     return;
   SlicerAngles *slanp = findAngles(mCurRow[mCurTime], index);
   if (!slanp)
@@ -203,14 +204,8 @@ void SlicerAngleForm::newClicked()
   updateEnables();
 }
 
-// Change in continuous update selection
-void SlicerAngleForm::updateToggled( bool state )
-{
-  mContinuous = state;
-}
-
 ////////////////
-// BUTTONS TO OPERATE ON SET S OF ANGLES FOR DIFFERENT TIMES
+// BUTTONS TO OPERATE ON SETS OF ANGLES FOR DIFFERENT TIMES
 
 // Remove an angle set means delete items at the current time and shift all higher times
 // down
@@ -341,6 +336,7 @@ void SlicerAngleForm::cellChanged( int row, int col )
 {
   int index;
   float val;
+  bool continuous;
   QString str = table->text(row, col).stripWhiteSpace();
   SlicerAngles *slanp = findAngles(row, index);
   if (!slanp)
@@ -368,24 +364,29 @@ void SlicerAngleForm::cellChanged( int row, int col )
   //modPrintStderr("cell at row %d  current %d\n", row, mCurRow[mCurTime]);
   // Make it ignore the next current cell change since it is on the wrong row
   mIgnoreCurChg = true;
-  if (mContinuous && mCurRow[mCurTime] == row)
+  index = getTopSlicerTime(continuous) + mTimeInc;
+  if (index == mCurTime && continuous && mCurRow[mCurTime] == row)
     setAngles(true);
 }
 
 // When current cell changes and there is a full row selected, start a timer to draw
 void SlicerAngleForm::currentChanged( int row, int col )
 {
+  bool continuous;  
   if (mIgnoreCurChg) {
     mIgnoreCurChg = false;
     return;
   }
-  //imodPrintStderr("cur changed args %d %d row %d col %d\n", row, col, table->currentRow(), table->currentColumn());
+ // imodPrintStderr("cur changed args %d %d row %d col %d\n", row, col, table->currentRow(), table->currentColumn());
   mCurRow[mCurTime] = table->currentRow();
-  if (table->isRowSelected(mCurRow[mCurTime], true)) {
+ int time = getTopSlicerTime(continuous) + mTimeInc;
+ if (time == mCurTime && continuous)
+     setAngles(true);
+  /*if (table->isRowSelected(mCurRow[mCurTime], true)) {
     mDoSetAng = true;
     mTimerID = startTimer(10);
-    //imodPrintStderr("Full row selection %d\n", table->currentRow());
-  }
+    imodPrintStderr("Full row selection %d\n", table->currentRow());
+  }*/
 
 }
 
@@ -400,8 +401,11 @@ void SlicerAngleForm::cellPressed( int row, int col )
 void SlicerAngleForm::timerEvent( QTimerEvent * e )
 {
   killTimer(mTimerID);
-  //imodPuts("timer in");
-  if (mDoSetAng && table->isRowSelected(mCurRow[mCurTime], true))
+  imodPuts("timer in");
+  bool continuous;
+  int time = getTopSlicerTime(continuous);
+  if (time == mCurTime && continuous && mDoSetAng && 
+      table->isRowSelected(mCurRow[mCurTime], true))
     setAngles(true);
 }
 
@@ -453,7 +457,8 @@ void SlicerAngleForm::loadRow( SlicerAngles *slanp, int row )
 // angles if in continuous mode and doSet is true
 void SlicerAngleForm::switchTime( int newtime, bool doSet )
 {
-  int row;
+  int row, time;
+  bool continuous;
   loadTable(newtime);
   updateEnables();
   row = B3DMIN(mCurRow[mCurTime], table->numRows() - 1);
@@ -462,7 +467,8 @@ void SlicerAngleForm::switchTime( int newtime, bool doSet )
     
     // Note that using selections did not do any better than just selectRow
     table->selectRow(row);
-    if (mContinuous && doSet)
+    time = getTopSlicerTime(continuous) + mTimeInc;
+    if (time == newtime && continuous && doSet)
       setAngles(false);
   }
   setTimeLabel();
@@ -501,14 +507,15 @@ void SlicerAngleForm::finishOrFlushUnit( bool changed )
 // External notification of new time or need to refresh
 void SlicerAngleForm::newTime(bool refresh)
 {
-  int newtime = getTopSlicerTime() + mTimeInc;
+  bool continuous;
+  int newtime = getTopSlicerTime(continuous) + mTimeInc;
   if (newtime != mCurTime || refresh)
     switchTime(newtime, true);
 }
 
 // Notification that the top slicer is drawing
 void SlicerAngleForm::topSlicerDrawing( float *angles, float cx, float cy, float cz, 
-                                        int time, int dragging )
+                                        int time, int dragging, bool continuous )
 {
   SlicerAngles *slanp;
   int index;
@@ -519,7 +526,7 @@ void SlicerAngleForm::topSlicerDrawing( float *angles, float cx, float cy, float
     switchTime(time + mTimeInc, false);
   
   // If in continuous mode, check for change in the row
-  if (mContinuous) {
+  if (continuous) {
     //imodPrintStderr("updating row %d\n", mCurRow[mCurTime]);
     slanp = findAngles(mCurRow[mCurTime], index);
     if (slanp && (angles[0] != slanp->angles[0] || angles[1] != slanp->angles[1] ||
@@ -557,4 +564,23 @@ void SlicerAngleForm::keyPressEvent( QKeyEvent *e )
   } else {
     ivwControlKey(0, e);
   }
+}
+
+// Call from the slicer to set values into a row
+void SlicerAngleForm::setCurrentOrNewRow( int time, bool newrow )
+{
+  if (time + mTimeInc != mCurTime)
+    switchTime(time + mTimeInc, false);
+  if (newrow || !table->numRows())
+      newClicked();
+  else
+      getAngClicked();
+}
+
+// Call from a slicer to set slicer angles
+void SlicerAngleForm::setAnglesFromRow( int time )
+{
+  if (time + mTimeInc != mCurTime)
+    switchTime(time + mTimeInc, false);
+  setAngles(true);
 }

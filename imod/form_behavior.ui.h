@@ -25,6 +25,7 @@ void BehaviorForm::setFontDependentWidths()
 void BehaviorForm::update()
 {
     diaSetChecked(silenceBox, mPrefs->silentBeep);
+    diaSetChecked(classicBox, mPrefs->classicSlicer);
     diaSetChecked(tooltipBox, mPrefs->tooltipsOn);
     diaSetChecked(geomCheckBox, mPrefs->rememberGeom);
     diaSetSpinBox(f1f8StepSpinBox, mPrefs->bwStep);
@@ -49,6 +50,7 @@ void BehaviorForm::update()
 void BehaviorForm::unload()
 {
     mPrefs->silentBeep = silenceBox->isChecked();
+    mPrefs->classicSlicer = classicBox->isChecked();
     mPrefs->tooltipsOn = tooltipBox->isChecked();
     mPrefs->rememberGeom = geomCheckBox->isChecked();
     mPrefs->bwStep = f1f8StepSpinBox->value();

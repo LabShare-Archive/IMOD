@@ -55,6 +55,7 @@ HEADERS	+= autox.h \
 	time_lock.bits \
 	unlock.bits \
 	lock.bits \
+	hottoolbar.h \
 	imodplug.h \
 	xcramp.h \
 	preferences.h \
