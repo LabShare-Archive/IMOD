@@ -2,21 +2,11 @@
  *
  *   Copyright (C) 1995-2002 by Boulder Laboratory for 3-Dimensional Electron
  *   Microscopy of Cells ("BL3DEMC") and the Regents of the University of 
- *   Colorado.  See implementation file for full copyright notice.
+ *   Colorado.  See dist/COPYRIGHT for full copyright notice.
+ *
+ *  $Id$
+ *  Log at end of file
  */                                                                           
-
-/*  $Author$
-
-$Date$
-
-$Revision$
-
-$Log$
-Revision 1.10  2004/11/29 19:25:21  mast
-Changes to do QImage instead of RGB snapshots
-
-Log at end of file
-*/
 
 #ifndef IMOD_PREFERENCES_H
 #define IMOD_PREFERENCES_H
@@ -69,6 +59,9 @@ typedef struct imod_pref_struct
   bool tooltipsOn;         // Enable tool tips
   bool tooltipsOnDflt;
   bool tooltipsOnChgd;
+  bool classicSlicer;       // Use classic slicer
+  bool classicSlicerDflt;
+  bool classicSlicerChgd;
   QFont font;              // Font
   bool fontChgd;
   QString styleKey;        // Style
@@ -145,6 +138,8 @@ class ImodPreferences : public QObject
   int minCurrentImPtSize();
   int minCurrentModPtSize();
   bool silentBeep() {return mCurrentPrefs.silentBeep;};
+  bool classicSlicer() {return mCurrentPrefs.classicSlicer;};
+  bool classicWarned();
   int actualButton(int logicalButton);
   QString autosaveDir();
   int autosaveSec();
@@ -197,6 +192,7 @@ class ImodPreferences : public QObject
   QRect mGeomZapWin[MAX_GEOMETRIES];
   QRect mRecordedZapGeom;
   int mGeomLastSaved;
+  bool mClassicWarned;
   QString mSavedSnapFormat;
   Ilist *mGenericList;
 };
@@ -207,6 +203,13 @@ extern ImodPreferences *ImodPrefs;
 #endif // IMOD_PREFERENCES_H
 
 /*
+$Log$
+Revision 1.11  2006/10/05 15:41:32  mast
+Provided for primary and second non-TIFF snapshot format
+
+Revision 1.10  2004/11/29 19:25:21  mast
+Changes to do QImage instead of RGB snapshots
+
 Revision 1.9  2004/11/04 23:30:55  mast
 Changes for rounded button style
 
