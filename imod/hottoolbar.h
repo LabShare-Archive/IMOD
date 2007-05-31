@@ -4,11 +4,6 @@
  *  $Id$
  *
  *  $Log$
- *
- */
-#ifndef HOTTOOLBAR_H
-#defin
- *
  */
 #ifndef HOTTOOLBAR_H
 #define HOTTOOLBAR_H
