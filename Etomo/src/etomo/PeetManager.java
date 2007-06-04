@@ -52,6 +52,9 @@ import etomo.util.DatasetFiles;
  * @version $Revision$
  * 
  * <p> $Log$
+ * <p> Revision 1.24  2007/05/31 22:23:38  sueh
+ * <p> bug# 1004 Using createNewFile() instead of touch() to create the .epe file.
+ * <p>
  * <p> Revision 1.23  2007/05/21 22:28:36  sueh
  * <p> bug# 964 Added getInterfaceType().
  * <p>
@@ -226,24 +229,6 @@ public final class PeetManager extends BaseManager {
   }
 
   /**
-   * Creates matlabParam from matlabParamFile and sets the paramFile and
-   * propertyUserDir.  Changes the location of the file in matlabParam to 
-   * propertyUserDir and loads peetDialog.  This creates a new project out of an
-   * existing .prm file.
-   * @param matlabParamFile
-   */
-  public void loadMatlabParam(final File matlabParamFile) {
-    matlabParam = new MatlabParam(matlabParamFile, false);
-    matlabParam.read();
-    peetDialog.setFnOutput(matlabParam.getFnOutput());
-    if (!setParamFile()) {
-      return;
-    }
-    matlabParam.setFile(propertyUserDir);
-    setPeetDialogParameters(matlabParamFile.getParentFile());
-  }
-
-  /**
    * Only one .epe file per directory
    * @param userDir
    * @param name
@@ -265,12 +250,56 @@ public final class PeetManager extends BaseManager {
     return false;
   }
 
+  public void copyParameters(final File file) {
+    if (new PeetFileFilter().accept(file)) {
+      loadParamFile(file, true);
+    }
+    else {
+      loadMatlabParam(file, true);
+    }
+  }
+
+  /**
+   * Creates matlabParam from matlabParamFile and sets the paramFile and
+   * propertyUserDir.  Changes the location of the file in matlabParam to 
+   * propertyUserDir and loads peetDialog.  This creates a new project out of an
+   * existing .prm file.
+   * @param matlabParamFile
+   * @param parametersOnly - allows the user to reuse a set of parameters, means that fnOutput is required
+   */
+  public void loadMatlabParam(final File matlabParamFile, boolean parametersOnly) {
+    matlabParam = new MatlabParam(matlabParamFile, false);
+    matlabParam.read();
+    String fnOutput = peetDialog.getFnOutput();
+    if (fnOutput == null || fnOutput.matches("\\s*")) {
+      if (parametersOnly) {
+        uiHarness.openMessageDialog(PeetDialog.FN_OUTPUT_LABEL
+            + " is required when copying parameters.", "Entry Error");
+        return;
+      }
+      peetDialog.setFnOutput(matlabParam.getFnOutput());
+    }
+    if (!setParamFile()) {
+      return;
+    }
+    matlabParam.setFile(propertyUserDir);
+    setPeetDialogParameters(matlabParamFile.getParentFile(), false,
+        parametersOnly);
+  }
+
   /**
    * Load a param file and a matlab param file from another directory.
    * @param origParamFile
+   * @param parametersOnly - allows the user to reuse a set of parameters, means that fnOutput is required
    */
-  public void loadParamFile(final File origParamFile) {
+  public void loadParamFile(final File origParamFile, boolean parametersOnly) {
     String newName = peetDialog.getFnOutput();
+    boolean emptyNewName = newName == null || newName.matches("\\s*");
+    if (parametersOnly && emptyNewName) {
+      uiHarness.openMessageDialog(PeetDialog.FN_OUTPUT_LABEL
+          + " is required when copying parameters.", "Entry Error");
+      return;
+    }
     String newDirName = peetDialog.getDirectory();
     File newDir = new File(newDirName);
     if (origParamFile.getParentFile().equals(newDir)) {
@@ -286,8 +315,14 @@ public final class PeetManager extends BaseManager {
     ParameterStore origParameterStore = new ParameterStore(origParamFile);
     try {
       origParameterStore.load(origMetaData);
+      Storable[] storables = getStorables(0);
+      if (storables != null) {
+        for (int i = 0; i < storables.length; i++) {
+          origParameterStore.load(storables[i]);
+        }
+      }
       //If the user didn't specify a name, use the one from the origParamFile
-      if (newName == null || newName.matches("\\s*")) {
+      if (emptyNewName) {
         newName = origMetaData.getName();
       }
       //set the param file
@@ -295,7 +330,7 @@ public final class PeetManager extends BaseManager {
       if (!paramFile.exists()) {
         processMgr.createNewFile(paramFile.getAbsolutePath());
       }
-      initializeUIParameters(paramFile, AXIS_ID);
+      initializeUIParameters(paramFile, AXIS_ID, true);
       if (loadedParamFile) {
         //copy data from the original param file
         metaData.copy(origMetaData);
@@ -311,7 +346,7 @@ public final class PeetManager extends BaseManager {
         //load the param file and matlab file into the PEET dialog
         peetDialog.setFnOutput(newName);
         peetDialog.updateDisplay(true);
-        setPeetDialogParameters(null);
+        setPeetDialogParameters(null, true, parametersOnly);
       }
     }
     catch (LogFile.WriteException e) {
@@ -323,7 +358,7 @@ public final class PeetManager extends BaseManager {
     if (!paramFile.exists()) {
       processMgr.createNewFile(paramFile.getAbsolutePath());
     }
-    initializeUIParameters(paramFile, AXIS_ID);
+    initializeUIParameters(paramFile, AXIS_ID, false);
     if (loadedParamFile) {
       String rootName = DatasetFiles.getRootName(paramFile);
       metaData.setName(rootName);
@@ -363,7 +398,7 @@ public final class PeetManager extends BaseManager {
     if (!paramFile.exists()) {
       processMgr.createNewFile(paramFile.getAbsolutePath());
     }
-    initializeUIParameters(paramFile, AXIS_ID);
+    initializeUIParameters(paramFile, AXIS_ID, false);
     if (!loadedParamFile) {
       return false;
     }
@@ -596,16 +631,19 @@ public final class PeetManager extends BaseManager {
       peetDialog = PeetDialog.getInstance(this, AXIS_ID);
     }
     mainPanel.setParallelDialog(AXIS_ID, peetDialog.usingParallelProcessing());
-    setPeetDialogParameters(null);
+    setPeetDialogParameters(null, true, false);
     mainPanel.showProcess(peetDialog.getContainer(), AXIS_ID);
   }
 
-  private void setPeetDialogParameters(File importDir) {
+  private void setPeetDialogParameters(File importDir, boolean metaDataLoaded,
+      boolean parametersOnly) {
     if (paramFile != null && metaData.isValid()) {
-      peetDialog.setParameters(metaData);
-      peetDialog.setParameters(screenState);
+      if (metaDataLoaded) {
+        peetDialog.setParameters(metaData, parametersOnly);
+        peetDialog.setParameters(screenState);
+      }
       if (matlabParam != null) {
-        peetDialog.setParameters(matlabParam, importDir);
+        peetDialog.setParameters(matlabParam, importDir, parametersOnly);
       }
       peetDialog.setDirectory(propertyUserDir);
       peetDialog.updateDisplay(loadedParamFile);
