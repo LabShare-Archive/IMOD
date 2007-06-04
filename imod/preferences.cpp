@@ -132,7 +132,7 @@ ImodPreferences::ImodPreferences(char *cmdLineStyle)
   prefs->namedIndex[6] = App->background;
   prefs->namedIndex[7] = App->ghost;
   prefs->namedColorDflt[0] = qRgb(255, 255,   0);
-  prefs->namedColorDflt[1] = qRgb(128, 128,   0);
+  prefs->namedColorDflt[1] = qRgb(185, 185,   0);
   prefs->namedColorDflt[2] = qRgb(255,   0,   0);
   prefs->namedColorDflt[3] = qRgb(  0, 255,   0);
   prefs->namedColorDflt[4] = qRgb(255, 255, 128);
@@ -1042,6 +1042,9 @@ bool ImodPreferences::classicWarned()
 
 /*
 $Log$
+Revision 1.24  2007/05/31 16:27:04  mast
+Additions for classic slicer mode
+
 Revision 1.23  2006/10/05 15:41:32  mast
 Provided for primary and second non-TIFF snapshot format
 
