@@ -15,6 +15,10 @@ import java.awt.Dimension;
  * @version $Revision$
  *
  * <p> $Log$
+ * <p> Revision 3.7  2006/07/21 19:02:36  sueh
+ * <p> bug# 848 Moved dimensions that have to be adjusted for font size from
+ * <p> FixedDim to UIParameters.
+ * <p>
  * <p> Revision 3.6  2005/08/10 20:43:29  sueh
  * <p> bug# 711 Moved button sizing to MultiLineButton.  SetSize() sets the
  * <p> standard button size.
@@ -62,6 +66,7 @@ public class FixedDim {
   public final static Dimension x20_y0 = new Dimension(20, 0);
   public final static Dimension x40_y0 = new Dimension(40, 0);
   public final static Dimension x70_y0 = new Dimension(70, 0);
+  public final static Dimension x200_y0 = new Dimension(200, 0);
   public final static Dimension x0_y5 = new Dimension(0, 5);
   public final static Dimension x0_y10 = new Dimension(0, 10);
   public final static Dimension x0_y20 = new Dimension(0, 20);
