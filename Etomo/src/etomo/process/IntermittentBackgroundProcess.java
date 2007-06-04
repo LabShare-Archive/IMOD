@@ -219,7 +219,7 @@ public final class IntermittentBackgroundProcess implements Runnable {
     }
     //wait while the processes are ending
     try {
-      Thread.sleep(100);
+      Thread.sleep(1024);
     }
     catch (InterruptedException e) {
     }
@@ -232,13 +232,25 @@ public final class IntermittentBackgroundProcess implements Runnable {
         done = false;
       }
     }
+    if (done) {
+      return;
+    }
+    System.err.println("Waiting for processes to stop.");
+    //make sure programs have ended
+    try {
+      Thread.sleep(1000);
+    }
+    catch (InterruptedException e) {
+    }
+    done = true;
+    while (enumeration.hasMoreElements()) {
+      if (!((IntermittentBackgroundProcess) enumeration.nextElement()).program
+          .isDone()) {
+        done = false;
+      }
+    }
     if (!done) {
-      //make sure programs have ended
-      try {
-        Thread.sleep(2000);
-      }
-      catch (InterruptedException e) {
-      }
+      System.err.println("Error:  processes haven't stopped.");
     }
   }
 
@@ -385,6 +397,9 @@ public final class IntermittentBackgroundProcess implements Runnable {
 }
 /**
  * <p> $Log$
+ * <p> Revision 1.9  2007/05/31 22:26:18  sueh
+ * <p> bug# 994 Increased the wait time in stop().
+ * <p>
  * <p> Revision 1.8  2007/05/29 19:17:25  sueh
  * <p> bug# 994 Added static stop() and stopAll() to stop the current programs on all the instances.
  * <p>
