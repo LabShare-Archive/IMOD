@@ -56,6 +56,7 @@ static void slicer_modify_point(SlicerStruct *ss, int x, int y);
 static void slicerUpdateImage(SlicerStruct *ss);
 static void drawThickControls(SlicerStruct *ss);
 static void sslice_draw_model(SlicerStruct *ss);
+static void drawCurrentPoint(SlicerStruct *ss);
 static void sliceSetAnglesFromPoints(SlicerStruct *ss,
                               Ipoint *p1, Ipoint *p2, int axis);
 static void slicerKey_cb(ImodView *vi, void *client, int released, 
@@ -71,7 +72,9 @@ static void findMovieAxis(SlicerStruct *ss, int *xmovie, int *ymovie,
 static void setInverseMatrix(SlicerStruct *ss);
 static int translateByRotatedVec(SlicerStruct *ss, Ipoint *vec);
 static SlicerStruct *getTopSlicer();
+static void setClassicMode(SlicerStruct *ss, int state);
 static void notifySlicersOfAngDia(bool open);
+static void getNormalToPlane(SlicerStruct *ss, Ipoint *norm);
 static void getWindowCoords(SlicerStruct *ss, float xcur, float ycur, 
                             float zcur, int &xim, int &yim, int &zim);
 
@@ -119,6 +122,7 @@ void slicerEnteredZoom(SlicerStruct *ss, float newZoom)
   sslice_draw(ss);
 }
 
+/* A time step through toolbar button or hotkey */
 void slicerStepTime(SlicerStruct *ss, int step)
 {
   ivwControlPriority(ss->vi, ss->ctrl);
@@ -179,18 +183,7 @@ void slicerStateToggled(SlicerStruct *ss, int index, int state)
     break;
 
   case SLICER_TOGGLE_CENTER:
-
-    // Toggle classic mode, set center if going to classic and not locked
-    ss->classic = state;
-    if (!ss->locked && state) {
-      ss->cx = ss->vi->xmouse;
-      ss->cy = ss->vi->ymouse;
-      ss->cz = ss->vi->zmouse;
-    }
-    ss->pending = 0;
-    sslice_draw(ss);
-       
-    imodDraw(ss->vi, IMOD_DRAW_XYZ);
+    setClassicMode(ss, state);
     break;
 
   case SLICER_TOGGLE_FFT:
@@ -204,6 +197,21 @@ void slicerStateToggled(SlicerStruct *ss, int index, int state)
       sslice_draw(ss);
     break;
   }
+}
+
+// Toggle classic mode, set center if going to classic and not locked
+static void setClassicMode(SlicerStruct *ss, int state)
+{
+  ss->classic = state;
+  if (!ss->locked && state) {
+    ss->cx = ss->vi->xmouse;
+    ss->cy = ss->vi->ymouse;
+    ss->cz = ss->vi->zmouse;
+  }
+  ss->pending = 0;
+  sslice_draw(ss);
+  
+  imodDraw(ss->vi, IMOD_DRAW_XYZ);
 }
 
 // Selection of a new zscaling option
@@ -364,6 +372,7 @@ int sslice_open(struct ViewInfo *vi)
   ss->toolTime = 0;
   ss->continuous = false;
   ss->closing = 0;
+  ss->ignoreCurPtChg = 0;
 
   slice_trans_step(ss);
   zapGetLongestTimeString(vi, &str);
@@ -597,6 +606,8 @@ void slicerNewTime(bool refresh)
     sliceAngDia->newTime(refresh);
 }
 
+// Tell the slicer angle dialog to set current angles into current row, or
+// into new row if necessary or if flag is set
 void slicerSetCurrentOrNewRow(SlicerStruct *ss, bool newrow)
 {
   ivwControlPriority(ss->vi, ss->ctrl);
@@ -604,6 +615,7 @@ void slicerSetCurrentOrNewRow(SlicerStruct *ss, bool newrow)
                                   newrow);
 }
 
+// Tell the slicer angle dialog to set the current row into the top slicer
 void slicerSetAnglesFromRow(SlicerStruct *ss)
 {
   ivwControlPriority(ss->vi, ss->ctrl);
@@ -707,13 +719,8 @@ void slicerKeyInput(SlicerStruct *ss, QKeyEvent *event)
           
   case Qt::Key_1:
   case Qt::Key_2:
-    if (ss->timeLock) {
-      if (keysym == Qt::Key_1)
-        ss->timeLock = B3DMAX(ss->timeLock - 1, 1);
-      else
-        ss->timeLock = B3DMIN(ss->timeLock + 1, vi->nt);
-    } else
-      handled = 0;
+    slicerStepTime(ss, (keysym == Qt::Key_1) ? -1 : 1);
+    break;
 
   case Qt::Key_S:
     if (shift || ctrl){
@@ -724,6 +731,11 @@ void slicerKeyInput(SlicerStruct *ss, QKeyEvent *event)
     }else
       sslice_showslice(ss);
     dodraw = 0;
+    break;
+
+  case Qt::Key_K:
+    setClassicMode(ss, ss->classic ? 0 : 1);
+    ss->qtWindow->setToggleState(SLICER_TOGGLE_CENTER, ss->classic);
     break;
 
   case Qt::Key_X:
@@ -799,7 +811,7 @@ void slicerKeyInput(SlicerStruct *ss, QKeyEvent *event)
       if (keysym == Qt::Key_Prior)
         vec.z = 1.;
       if (keysym == Qt::Key_Next)
-        vec.z = -1;
+        vec.z = -1.;
       if (translateByRotatedVec(ss, &vec)) {
         dodraw = 1;
         if (!ss->locked && vec.z) {
@@ -811,30 +823,25 @@ void slicerKeyInput(SlicerStruct *ss, QKeyEvent *event)
           if (ss->tang[0] == ss->origAngles[0] && 
               ss->tang[1] == ss->origAngles[1] && 
               ss->tang[2] == ss->origAngles[2] && 
-              vi->xmouse == ss->lastXYZmouse.x && 
-              vi->ymouse == ss->lastXYZmouse.y && 
-              vi->zmouse == ss->lastXYZmouse.z) {
+              vi->xmouse == ss->lastXmouse && 
+              vi->ymouse == ss->lastYmouse && 
+              vi->zmouse == ss->lastZmouse) {
             ss->cumPageMoves += vec.z;
           } else {
             ss->origAngles[0] = ss->tang[0];
             ss->origAngles[1] = ss->tang[1];
             ss->origAngles[2] = ss->tang[2];
-            ss->origXYZmouse.x = vi->xmouse;
-            ss->origXYZmouse.y = vi->ymouse;
-            ss->origXYZmouse.z = vi->zmouse;
+            ss->origZmouse = vi->zmouse;
             ss->cumPageMoves = vec.z;
           }
-          vec.z = 1.;
-          imodMatTransform3D(ss->mat, &vec, &norm);
+          getNormalToPlane(ss, &norm);
 
-          // Now move the [xyz]mouse by cumulative move from original position
-          // and round z to integer
-          vi->xmouse = ss->origXYZmouse.x + ss->cumPageMoves * norm.x;
-          vi->ymouse = ss->origXYZmouse.y + ss->cumPageMoves * norm.y;
-          vi->zmouse = B3DNINT(ss->origXYZmouse.z + ss->cumPageMoves * norm.z);
-          ss->lastXYZmouse.x = vi->xmouse;
-          ss->lastXYZmouse.y = vi->ymouse;
-          ss->lastXYZmouse.z = vi->zmouse;
+          // Now move the zmouse by cumulative move from original position
+          // and round z to integer (decided not to move in X/Y)
+          vi->zmouse = B3DNINT(ss->origZmouse + ss->cumPageMoves * norm.z);
+          ss->lastXmouse = vi->xmouse;
+          ss->lastYmouse = vi->ymouse;
+          ss->lastZmouse = vi->zmouse;
           ivwBindMouse(vi);
           imodDraw(vi, IMOD_DRAW_XYZ);
           dodraw = 0;        
@@ -987,6 +994,7 @@ void slicerMouseMove(SlicerStruct *ss, QMouseEvent *event)
     if (imodPoint3DScaleDistance
         (&(cont->pts[imod->cindex.point]), &cpt, &scale) > 
         scaleModelRes(imod->res, ss->zoom)) {
+      ss->ignoreCurPtChg = 1;
       inputInsertPoint(ss->vi);
       ss->vi->zmouse = zmouse;
     }
@@ -996,10 +1004,10 @@ void slicerMouseMove(SlicerStruct *ss, QMouseEvent *event)
 // Process first mouse button - attach in model, set current point in movie
 static void slicer_attach_point(SlicerStruct *ss, int x, int y)
 {
-  Ipoint pnt;
+  Ipoint pnt, norm;
   Ipoint *spnt;
   int i;
-  float temp_distance;
+  float temp_distance, delta;
   float distance = -1.;
   ImodView *vi = ss->vi;
   Imod *imod = vi->imod;
@@ -1014,11 +1022,12 @@ static void slicer_attach_point(SlicerStruct *ss, int x, int y)
     pnt.z = vi->zmouse;
     imod->cindex.contour = -1;
     imod->cindex.point = -1;
+    slicerSetForwardMatrix(ss);
 
     for (i = 0; i < imod->objsize; i++){
       index.object = i;
       temp_distance = imod_obj_nearest
-        (vi, &(imod->obj[i]), &index , &pnt, selsize);
+        (vi, &(imod->obj[i]), &index , &pnt, selsize, ss->mat);
       if (temp_distance < 0.)
         continue;
       if (distance < 0. || distance > temp_distance) {
@@ -1033,6 +1042,33 @@ static void slicer_attach_point(SlicerStruct *ss, int x, int y)
 	  vi->zmouse = spnt->z;
         }
       }
+
+      if (imod->cindex.point >= 0 && !ss->classic) {
+
+        // Move along direction of normal to plane until reaching a plane that
+        // contains the current point; snap to curpt if this is out of bounds
+        getNormalToPlane(ss, &norm);
+        delta = norm.x * (vi->xmouse - ss->cx) + 
+          norm.y * (vi->ymouse - ss->cy) + norm.z * (vi->zmouse - ss->cz);
+        if (imodDebug('s'))
+          imodPrintStderr("norm %.4f %.4f %.4f  zm %f cz %f delta %.3f\n",
+                          norm.x, norm.y, norm.z, vi->zmouse, ss->cz, delta);
+        
+        // Move to a new plane unconditionally so that modeling can be in
+        // same plane
+        ss->cx += delta * norm.x;
+        ss->cy += delta * norm.y;
+        ss->cz += delta * norm.z;
+          
+        // If this goes out of bounds, just snap to current point
+        if (ss->cx < 0 || ss->cx >= ss->vi->xsize || ss->cy < 0 || 
+            ss->cy >= ss->vi->ysize || ss->cz < 0 || 
+            ss->cz >= ss->vi->zsize - 0.5) {
+          ss->cx = ss->vi->xmouse;
+          ss->cy = ss->vi->ymouse;
+          ss->cz = ss->vi->zmouse;
+        }
+      }
     }
     /* DNM 5/5/03: take out IMAGE flag, use RETHINK only if in model mode */
     drawflag |= IMOD_DRAW_RETHINK;
@@ -1040,6 +1076,8 @@ static void slicer_attach_point(SlicerStruct *ss, int x, int y)
 
   /* DNM: for select hits, do keep cz at an integral value */
   ss->pending = 0;
+  if (!ss->classic)
+    ss->ignoreCurPtChg = 1;
   imodDraw(ss->vi, drawflag);
 }
 
@@ -1048,6 +1086,8 @@ static void slicer_insert_point(SlicerStruct *ss, int x, int y)
   int zmouse;
   if (ss->vi->imod->mousemode == IMOD_MMODEL) {
     zmouse = sslice_setxyz(ss, x, y);
+    if (!ss->classic)
+      ss->ignoreCurPtChg = 1;
     inputInsertPoint(ss->vi);
     ss->vi->zmouse = zmouse;
   } else
@@ -1059,6 +1099,8 @@ static void slicer_modify_point(SlicerStruct *ss, int x, int y)
   int zmouse;
   if (ss->vi->imod->mousemode == IMOD_MMODEL) {
     zmouse = sslice_setxyz(ss, x, y);
+    if (!ss->classic)
+      ss->ignoreCurPtChg = 1;
     inputModifyPoint(ss->vi);
     ss->vi->zmouse = zmouse;
   } else
@@ -1178,6 +1220,10 @@ static void startMovieCheckSnap(SlicerStruct *ss, int dir)
   if (!(vi->zmovie || vi->xmovie || vi->ymovie)) 
     return;
 
+  // move the current point to center point
+  vi->xmouse = ss->cx;
+  vi->ymouse = ss->cy;
+  vi->zmouse = ss->cz;
   setMovieLimits(ss, axis);
 
   // now done if no snapshots are desired.
@@ -1366,24 +1412,48 @@ static void setInverseMatrix(SlicerStruct *ss)
   imodMatRot(ss->mat, (double)(-ss->tang[b3dZ]), b3dZ);
 }
 
-// Translates the center position within or normal to plane, return 1 if the
-// position is changed
+/* Translates the center position within or normal to plane, returns 1 if the
+   position is changed.  The vector is in Z-scaled space; so after 
+   back-rotating it is sclaed downinto original pixel space.  Lateral moves
+   are correct for the panning motion in the window, but vertical moves need
+   to be normalized */
 static int translateByRotatedVec(SlicerStruct *ss, Ipoint *vec)
 {
-  Ipoint norm;
+  Ipoint vrot;
   setInverseMatrix(ss);
-  imodMatTransform3D(ss->mat, vec, &norm);
-  if (ss->cx + norm.x >= 0 && ss->cx + norm.x < ss->vi->xsize && 
-      ss->cy + norm.y >= 0 && ss->cy + norm.y < ss->vi->ysize && 
-      ss->cz + norm.z >= 0 && ss->cz + norm.z < ss->vi->zsize - 0.5) {
-    ss->cx += norm.x;
-    ss->cy += norm.y;
-    ss->cz += norm.z;
+  imodMatTransform3D(ss->mat, vec, &vrot);
+  vrot.z /= slicerGetZScaleBefore(ss);
+  if (vec->z) {
+    imodPointNormalize(&vrot);
+    if (imodDebug('s'))
+      imodPrintStderr("vec %.2f %.2f %.2f vrot %.4f %.4f %.4f\n", vec->x, 
+                      vec->y, vec->z, vrot.x, vrot.y, vrot.z);
+  }
+  if (ss->cx + vrot.x >= 0 && ss->cx + vrot.x < ss->vi->xsize && 
+      ss->cy + vrot.y >= 0 && ss->cy + vrot.y < ss->vi->ysize && 
+      ss->cz + vrot.z >= 0 && ss->cz + vrot.z < ss->vi->zsize - 0.5) {
+    ss->cx += vrot.x;
+    ss->cy += vrot.y;
+    ss->cz += vrot.z;
     return 1;
   }
   return 0;
 }
 
+// Return the normal to the current plane.  Multiply the inverse transformation
+// of a Z vector by the Z scaling before
+static void getNormalToPlane(SlicerStruct *ss, Ipoint *norm)
+{
+  Ipoint vec = {0., 0., 1.};
+  setInverseMatrix(ss);
+  imodMatTransform3D(ss->mat, &vec, norm);
+  norm->z *= slicerGetZScaleBefore(ss);
+  imodPointNormalize(norm);
+}
+
+/*
+ * Set slicer angles to line up the two points along the given axis
+ */
 static void sliceSetAnglesFromPoints(SlicerStruct *ss,
                                      Ipoint *p1, Ipoint *p2, int axis)
 {
@@ -1449,6 +1519,18 @@ static void sliceSetAnglesFromPoints(SlicerStruct *ss,
   ss->tang[b3dY] = a.y / rpd;
   ss->tang[b3dZ] = a.z / rpd;
   ss->qtWindow->setAngles(ss->tang);
+
+  // Center on current point if not locked
+  p2 = imodPointGet(ss->vi->imod);
+  if (p2 && !ss->classic && !ss->locked) {
+    ss->vi->xmouse = p2->x;
+    ss->vi->ymouse = p2->y;
+    ss->vi->zmouse = p2->z;
+    ivwBindMouse(ss->vi);
+    ss->cx = ss->vi->xmouse;
+    ss->cy = ss->vi->ymouse;
+    ss->cz = ss->vi->zmouse;
+  }
 }
 
 /*
@@ -1781,9 +1863,12 @@ void slicerCubeResize(SlicerStruct *ss, int winx, int winy)
 static void slicerDraw_cb(ImodView *vi, void *client, int drawflag)
 {
   SlicerStruct *ss = (SlicerStruct *)client;
-  float usex, usey, usez, delta, factor = 0.;
-  Ipoint norm, vec = {0., 0., 1.};
+  float usex, usey, usez, factor = 0.;
+  int ignoreChg = ss->ignoreCurPtChg;
 
+  // Clear ignore flag before any possible returns
+  ss->ignoreCurPtChg = 0;
+  
   if (drawflag & IMOD_DRAW_COLORMAP) {
     ss->glw->setColormap(*(App->qColormap));
     return;
@@ -1812,11 +1897,11 @@ static void slicerDraw_cb(ImodView *vi, void *client, int drawflag)
 
     // Then determine factor for moving in one step on dominant axis
     if (vi->xmovie && fabs((double)ss->zstep[b3dX]) > 1.e-6)
-      factor = (ss->vi->xmouse - ss->cx) / ss->zstep[b3dX];
+      factor = (vi->xmouse - ss->cx) / ss->zstep[b3dX];
     else if (vi->ymovie && fabs((double)ss->zstep[b3dY]) > 1.e-6)
-      factor = (ss->vi->ymouse - ss->cy) / ss->zstep[b3dY];
+      factor = (vi->ymouse - ss->cy) / ss->zstep[b3dY];
     else if (vi->zmovie && fabs((double)ss->zstep[b3dZ]) > 1.e-6)
-      factor = (ss->vi->zmouse - ss->cz) / ss->zstep[b3dZ];
+      factor = (vi->zmouse - ss->cz) / ss->zstep[b3dZ];
 
     /*imodPrintStderr("%d %d %d factor %f mouse %.1f %.1f %.1f  "
             "cur %.1f %.1f %.1f\n", vi->xmovie, 
@@ -1842,9 +1927,9 @@ static void slicerDraw_cb(ImodView *vi, void *client, int drawflag)
       ss->glw->updateGL();
 
       // Get snapshots if there is a count for doing so
-      if (imcGetSnapshot(ss->vi) && ss->movieSnapCount) {
-        b3dKeySnapshot("slicer", imcGetSnapshot(ss->vi) - 1, 
-                       imcGetSnapshot(ss->vi) % 2, NULL);
+      if (imcGetSnapshot(vi) && ss->movieSnapCount) {
+        b3dKeySnapshot("slicer", imcGetSnapshot(vi) - 1, 
+                       imcGetSnapshot(vi) % 2, NULL);
         ss->movieSnapCount--;
 
         /* When count expires, stop movie */
@@ -1858,6 +1943,7 @@ static void slicerDraw_cb(ImodView *vi, void *client, int drawflag)
     }
   }
 
+  // Process a change in current point when not locked
   if ((drawflag & IMOD_DRAW_XYZ) && !ss->locked) {
 
     if (ss->classic) {
@@ -1868,9 +1954,9 @@ static void slicerDraw_cb(ImodView *vi, void *client, int drawflag)
         usey = ss->pendy;
         usez = ss->pendz;
       } else {
-        usex = ss->vi->xmouse;
-        usey = ss->vi->ymouse;
-        usez = ss->vi->zmouse;
+        usex = vi->xmouse;
+        usey = vi->ymouse;
+        usez = vi->zmouse;
       }
       if ((ss->lx != usex) ||
           (ss->ly != usey) ||
@@ -1885,39 +1971,30 @@ static void slicerDraw_cb(ImodView *vi, void *client, int drawflag)
       }
     } else {
       
-      // If our drawing position is the same as before, move to a plane
-      // containing the current point
+      /* New mode: If our drawing position is the same as before, step cz by
+         amount determined by change in zmouse; step cx and cy if there are
+         single steps detected.  This will respond to arrow keys in other
+         windows but not to clicking a new point. */
       if (ss->lx == ss->cx && ss->ly == ss->cy && ss->lz == ss->cz &&
           ss->lang[0] == ss->tang[0] && ss->lang[1] == ss->tang[1] &&
-          ss->lang[2] == ss->tang[2]) {
-
-        // Move along direction of normal to plane until reaching a plane that
-        // contains the current point; snap to curpt if this is out of bounds
-        setInverseMatrix(ss);
-        imodMatTransform3D(ss->mat, &vec, &norm);
-        delta = norm.x * (ss->vi->xmouse - ss->cx) + 
-          norm.y * (ss->vi->ymouse - ss->cy) + 
-          norm.z * (ss->vi->zmouse - ss->cz);
-        if (imodDebug('s'))
-          imodPrintStderr("norm %.4f %.4f %.4f  delta %.3f\n", norm.x, norm.y, 
-                          norm.z, delta);
-        
-        // Only move to a new plane if the delta is bigger than 0.5
-        if (fabs((double)delta) >= 0.5) {
-          ss->cx += delta * norm.x;
-          ss->cy += delta * norm.y;
-          ss->cz += delta * norm.z;
-          
-          // If this goes out of bounds, just snap to current point
-          if (ss->cx < 0 || ss->cx >= ss->vi->xsize || ss->cy < 0 || 
-              ss->cy >= ss->vi->ysize || ss->cz < 0 || 
-              ss->cz >= ss->vi->zsize) {
-            ss->cx = ss->vi->xmouse;
-            ss->cy = ss->vi->ymouse;
-            ss->cz = ss->vi->zmouse;
-          }
+          ss->lang[2] == ss->tang[2] && !ignoreChg) {
+        if (vi->xmouse == ss->drawnXmouse && vi->ymouse == ss->drawnYmouse && 
+            vi->zmouse != ss->drawnZmouse) {
+          ss->cz += vi->zmouse - ss->drawnZmouse;
+          ss->cz = B3DMIN(vi->zsize - 0.5, B3DMAX(0, ss->cz));
+        } else if (vi->xmouse == ss->drawnXmouse && vi->ymouse != 
+                   ss->drawnYmouse && vi->zmouse == ss->drawnZmouse &&
+                   fabs((double)vi->ymouse - ss->drawnYmouse) < 1.01) {
+          ss->cy += vi->ymouse - ss->drawnYmouse;
+          ss->cy = B3DMIN(vi->ysize - 0.5, B3DMAX(0, ss->cy));
+        } else if (vi->xmouse != ss->drawnXmouse && vi->ymouse == 
+                   ss->drawnYmouse && vi->zmouse == ss->drawnZmouse &&
+                   fabs((double)vi->xmouse - ss->drawnXmouse) < 1.01) {
+          ss->cx += vi->xmouse - ss->drawnXmouse;
+          ss->cx = B3DMIN(vi->xsize - 0.5, B3DMAX(0, ss->cx));
         }
       }
+
       sslice_draw(ss);
       return;
     }
@@ -1968,7 +2045,6 @@ static void slicerUpdateImage(SlicerStruct *ss)
  */
 void slicerPaint(SlicerStruct *ss)
 {
-  int xim, yim, zim;
   int sliceScaleThresh = 4;
   QString qstr;
   if (!ss->image)
@@ -1997,6 +2073,11 @@ void slicerPaint(SlicerStruct *ss)
     else if (!mousePanning)
       ss->scaleToMeanSD = false;
     fillImageArray(ss, mousePanning, 0);
+
+    // Keep track of mouse where it was drawn, update slicer angle window
+    ss->drawnXmouse = ss->vi->xmouse;
+    ss->drawnYmouse = ss->vi->ymouse;
+    ss->drawnZmouse = ss->vi->zmouse;
     if (sliceAngDia && (getTopSlicer() == ss))
       sliceAngDia->topSlicerDrawing
         (ss->tang, ss->cx, ss->cy, ss->cz, 
@@ -2026,18 +2107,8 @@ void slicerPaint(SlicerStruct *ss)
 
   glDrawPixels(ss->winx, ss->winy, format, type, ss->image->id1);
     
-  /* Position of cursor. */
-  b3dColorIndex(App->endpoint);
-  b3dDrawPlus((int)(ss->winx * 0.5f), (int)(ss->winy * 0.5f), 5);
-  if (!ss->classic &&
-      (ss->mousemode == IMOD_MMOVIE || ss->vi->imod->cindex.point < 0)) {
-    b3dColorIndex(App->curpoint);
-    getWindowCoords(ss, ss->vi->xmouse, ss->vi->ymouse, ss->vi->zmouse,
-                    xim, yim, zim);
-    b3dDrawPlus(xim, yim, ImodPrefs->minCurrentImPtSize());
-  }
-  
   sslice_draw_model(ss);
+  drawCurrentPoint(ss);
 
   // Update toolbar for time
   if (ss->vi->nt) {
@@ -2051,6 +2122,88 @@ void slicerPaint(SlicerStruct *ss)
   }
 }
 
+/*
+ * Draw the current point and current contour end points
+ */
+static void drawCurrentPoint(SlicerStruct *ss)
+{
+  int xim, yim, zim;
+  Ipoint norm;
+  float delta;
+  ImodView *vi = ss->vi;
+  Iobj *obj = imodObjectGet(vi->imod);
+  Icont *cont = imodContourGet(vi->imod);
+  Ipoint *pnt = imodPointGet(vi->imod);
+  int imPtSize, modPtSize, backupSize, curSize;
+
+  // Draw cursors. 
+
+  if (!ss->vi->drawcursor)
+    return;
+
+  zapCurrentPointSize(obj, &modPtSize, &backupSize, &imPtSize);
+  b3dLineWidth(1);
+  getNormalToPlane(ss, &norm);
+
+  // Draw crosshairs in center regardless; and draw current
+  // point in movie mode non-classic.  Draw it dimmer if it is off plane
+  b3dColorIndex(App->endpoint);
+  b3dDrawPlus((int)(ss->winx * 0.5f), (int)(ss->winy * 0.5f), 5);
+  if (ss->mousemode == IMOD_MMOVIE || !pnt || !cont) {
+    if (!ss->classic) {
+      delta = norm.x * (ss->vi->xmouse - ss->cx) + norm.y * 
+        (ss->vi->ymouse - ss->cy) + norm.z * (ss->vi->zmouse - ss->cz);
+      if (fabs((double)delta) < 0.5)
+        b3dColorIndex(App->curpoint);
+      else
+        b3dColorIndex(App->shadow);
+      getWindowCoords(ss, ss->vi->xmouse, ss->vi->ymouse, ss->vi->zmouse,
+                      xim, yim, zim);
+      b3dDrawPlus(xim, yim, imPtSize);
+    }
+  } else {
+
+    // Otherwise draw the current model point - change size if needed, draw
+    // as shadow if off-time or out of plane
+    b3dLineWidth(obj->linewidth2);
+    curSize = modPtSize;
+    if (cont->psize > 1 && 
+        (pnt == cont->pts || pnt == cont->pts + cont->psize - 1))
+      curSize = backupSize;
+    delta = norm.x * (pnt->x - ss->cx) + norm.y * (pnt->y - ss->cy) + 
+      norm.z * (pnt->z - ss->cz);
+    if (fabs((double)delta) < 0.5 * ss->depth  &&
+        !ivwTimeMismatch(vi, ss->timeLock, obj, cont))
+      b3dColorIndex(App->curpoint);
+    else
+      b3dColorIndex(App->shadow);
+    getWindowCoords(ss, pnt->x, pnt->y, pnt->z, xim, yim, zim);
+    b3dDrawCircle(xim, yim, curSize);
+  }
+
+  // Draw beginning and end points of current contour
+  if (cont && !ivwTimeMismatch(vi, ss->timeLock, obj, cont) && 
+      cont->psize > 1) {
+    b3dLineWidth(obj->linewidth2);
+    pnt = cont->pts;
+    delta = norm.x * (pnt->x - ss->cx) + norm.y * (pnt->y - ss->cy) +
+      norm.z * (pnt->z - ss->cz);
+    if (fabs((double)delta) < 0.5 * ss->depth) {
+      b3dColorIndex(App->bgnpoint);
+      getWindowCoords(ss, pnt->x, pnt->y, pnt->z, xim, yim, zim);
+      b3dDrawCircle(xim, yim, modPtSize);
+    }
+    pnt = &cont->pts[cont->psize - 1];
+    delta = norm.x * (pnt->x - ss->cx) + norm.y * (pnt->y - ss->cy) +
+      norm.z * (pnt->z - ss->cz);
+    if (fabs((double)delta) < 0.5 * ss->depth) {
+      b3dColorIndex(App->endpoint);
+      getWindowCoords(ss, pnt->x, pnt->y, pnt->z, xim, yim, zim);
+      b3dDrawCircle(xim, yim, modPtSize);
+    }
+  }
+  b3dLineWidth(1);
+}
 
 /* Model drawing routine */
 static void sslice_draw_model(SlicerStruct *ss)
@@ -2087,7 +2240,7 @@ static void sslice_draw_model(SlicerStruct *ss)
 
   glTranslatef(-ss->cx, -ss->cy, -ss->cz);
 
-  imodDrawModel(ss->vi, ss->vi->imod);
+  imodDrawModel(ss->vi, ss->vi->imod, 0);
   glPopMatrix();
   return;
 }
@@ -2236,6 +2389,9 @@ void slicerCubePaint(SlicerStruct *ss)
 
 /*
 $Log$
+Revision 4.43  2007/05/31 16:32:28  mast
+Changes for slicer angle toolbar, classic setting and warning
+
 Revision 4.42  2007/05/29 14:54:43  mast
 Added automatic scaling of >= 4 slices to match mean/SD of single slice,
 scaling of FFT, tapering of image for FFT, new slicer centering mode,
