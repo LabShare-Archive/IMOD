@@ -328,7 +328,7 @@ dist : ALWAYS
 	(cd dist ; \find . -type f -name "*~" -exec rm "{}" \;)
 	($(MAKE) install)
 	-\cp buildlib/*.so $(ARCDIR)/lib/
-	\cp dist/COPYRIGHT dist/start.html dist/installIMOD $(ARCDIR)/
+	\cp dist/COPYRIGHT dist/start.html dist/installIMOD dist/GPL.txt $(ARCDIR)/
 	-\find $(ARCDIR) -depth -name CVS -exec /bin/rm -rf {} \;
 	./installqtlib
 	@echo "Compressing..."
@@ -436,6 +436,9 @@ ALWAYS:
 
 ############################################################################
 #  $Log$
+#  Revision 3.64  2007/02/15 22:59:22  mast
+#  Allow error on find of CVS in dist and src for cygwin
+#
 #  Revision 3.63  2006/10/06 21:25:51  mast
 #  Forgot a quote
 #

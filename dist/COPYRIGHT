@@ -1,6 +1,6 @@
-IMOD Version 3.9.1                      Copyright Notice and Credits
+IMOD Version 3.10.10                     Copyright Notice and Credits
 --------------------------------------------------------------------------
-Except as noted, ALL SOFTWARE LISTED IS Copyright (C) 1994-2006 by
+Except as noted, ALL SOFTWARE LISTED IS Copyright (C) 1994-2007 by
 Boulder Laboratory for 3-Dimensional Electron Microscopy of Cells
 ("BL3DEMC") and the Regents of the University of Colorado.
 
@@ -15,6 +15,15 @@ profit, either in original form or in derivative works.
 THIS SOFTWARE AND/OR DOCUMENTATION IS PROVIDED WITH NO WARRANTY,
 EXPRESS OR IMPLIED, INCLUDING, WITHOUT LIMITATION, WARRANTY OF
 MERCHANTABILITY AND WARRANTY OF FITNESS FOR A PARTICULAR PURPOSE.
+
+Portions of IMOD using Qt, associated libraries, and some other
+components are open source under the General Public License (GPL).  A
+copy of this license is in the file GPL.txt.  This portion of the source
+code is available at http://bio3d.colorado.edu/imod/openSource
+This source package and the complete source package both include a file
+dist/GPLfileList with a complete list of the source files covered by the
+GPL.  Other source code files (ones not listed in this file) may not be
+redistributed without permission.
 
 Programs were written by David Mastronarde, James Kremer, Rick
 Gaudette and Sue Held from the BL3DEMC, some based on work and libraries
