@@ -21,6 +21,9 @@ import etomo.util.DatasetFiles;
  * @notthreadsafe
  * 
  * <p> $Log$
+ * <p> Revision 1.12  2007/05/16 22:59:05  sueh
+ * <p> bug# 964 Added copy(PeetMetaData).
+ * <p>
  * <p> Revision 1.11  2007/05/16 01:53:30  sueh
  * <p> bug# 964 Added resetInitMotlFile(), resetTiltRangeEnd(), and resetTiltRangeString().
  * <p>
@@ -69,9 +72,9 @@ public class PeetMetaData extends BaseMetaData implements ConstPeetMetaData {
   private final IntKeyList initMotlFile = IntKeyList
       .getStringInstance("InitMotlFile");
   private final IntKeyList tiltRangeStart = IntKeyList
-      .getStringInstance("TILT_RANGE_KEY" + ".Start");
+      .getStringInstance(TILT_RANGE_KEY + ".Start");
   private final IntKeyList tiltRangeEnd = IntKeyList
-      .getStringInstance("TILT_RANGE_KEY" + ".End");
+      .getStringInstance(TILT_RANGE_KEY + ".End");
   private final EtomoNumber referenceVolume = new EtomoNumber(REFERENCE_KEY
       + ".Volume");
   private final EtomoNumber referenceParticle = new EtomoNumber(REFERENCE_KEY
