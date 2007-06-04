@@ -19,9 +19,12 @@ import etomo.util.DatasetFiles;
  * 
  * @version $Revision$
  * 
- * <p> $Log$ </p>
+ * <p> $Log$
+ * <p> Revision 1.1  2007/05/02 21:05:37  sueh
+ * <p> bug# 964 filters .prm files.
+ * <p> </p>
  */
-public final class MatlabParamFileFilter extends FileFilter{
+public final class MatlabParamFileFilter extends FileFilter {
   public static final String rcsid = "$Id$";
 
   public boolean accept(File f) {
@@ -34,6 +37,6 @@ public final class MatlabParamFileFilter extends FileFilter{
   }
 
   public String getDescription() {
-    return "MATLAB param file (.prm)";
+    return "MATLAB param file (" + DatasetFiles.MATLAB_PARAM_FILE_EXT + ")";
   }
 }
