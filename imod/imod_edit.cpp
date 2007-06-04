@@ -24,7 +24,7 @@ Log at end of file
 #include "imod_edit.h"
 #include "undoredo.h"
 
-static float imod_distance( float *x, float *y, struct Mod_Point *pnt);
+static float imod_distance( float *x, float *y, Ipoint *pnt);
 
 /* DNM 1/23/03: eliminate imod_movepoint */
 /* moved point by adding x,y, and z to current model point. */
@@ -78,13 +78,11 @@ int imod_redraw(ImodView *vw)
 
 /* DNM 6/17/01: pass the selection size as a parameter so that windows can
    make it zoom-dependent */
-float imod_obj_nearest(ImodView *vi, struct Mod_Object *obj, 
-                       struct Mod_Index *index,
-                       struct Mod_Point *pnt,
-                       float selsize)
+float imod_obj_nearest(ImodView *vi, Iobj *obj, Iindex *index, Ipoint *pnt,
+                       float selsize, Imat *mat)
 {
     
-  struct Mod_Contour *cont;
+  Icont *cont;
   int i, pindex;
   float distance = -1.;
   float temp_distance;
@@ -92,7 +90,7 @@ float imod_obj_nearest(ImodView *vi, struct Mod_Object *obj,
   int cz = (int)floor(pnt->z + 0.5);
   int twod = 0;
   double rad, delz;
-  Ipoint scale;
+  Ipoint scale, pntrot, ptsrot;
     
   /* Don't report points not in our time. DNM - unless time is 0*/
   ivwGetTime(vi, &ctime);
@@ -104,6 +102,9 @@ float imod_obj_nearest(ImodView *vi, struct Mod_Object *obj,
   scale.z = ((vi->imod->zscale > 0. ? vi->imod->zscale : 1.) * vi->zbin) /
     vi->xybin;
 
+  if (mat)
+    imodMatTransform3D(mat, pnt, &pntrot);
+
   for (i = 0; i < obj->contsize; i++){
         
     cont = &(obj->cont[i]);
@@ -113,7 +114,36 @@ float imod_obj_nearest(ImodView *vi, struct Mod_Object *obj,
     if (!cont->psize)
       continue;
         
-    if ((obj->pdrawsize || cont->sizes) && !twod) {
+    if (mat) {
+      
+      // If a matrix is supplied, rotate each point and test with rotated pnt
+      for (pindex = 0; pindex < cont->psize; pindex++) {
+        imodMatTransform3D(mat, &cont->pts[pindex], &ptsrot);
+        if ((fabs((double)(pntrot.x - ptsrot.x)) < selsize) &&
+            (fabs((double)(pntrot.y - ptsrot.y)) < selsize)) {
+          delz = 0.5;
+
+          // get radius of point and maximum Z difference that will work
+          // Assume points are visible on too many sections in slicer
+          if (obj->pdrawsize || cont->sizes) {
+            rad = imodPointGetSize(obj, cont, pindex);
+            if (rad > 1.)
+              delz = sqrt(rad * rad - 1.);
+          }
+          if (fabs((double)(ptsrot.z - pntrot.z)) <= delz) {
+
+            temp_distance = imodPoint3DScaleDistance(&pntrot, &ptsrot, &scale);
+                        
+            if (distance < 0. || distance > temp_distance){
+              distance = temp_distance;
+              index->contour = i;
+              index->point   = pindex;
+            }
+          }
+        }
+      }
+
+    } else if ((obj->pdrawsize || cont->sizes) && !twod) {
 
       // If there could be 3D points, then allow attachment to any point
       // that should be visible on the plane
@@ -171,7 +201,7 @@ float imod_obj_nearest(ImodView *vi, struct Mod_Object *obj,
 }
 
 
-static float imod_distance( float *x, float *y, struct Mod_Point *pnt)
+static float imod_distance( float *x, float *y, Ipoint *pnt)
 {
 
   double distance;
@@ -358,6 +388,9 @@ void imodSelectionNewCurPoint(ImodView *vi, Imod *imod, Iindex indSave,
 
 /*
 $Log$
+Revision 4.9  2006/09/12 15:36:33  mast
+Handled contour member renames
+
 Revision 4.8  2006/08/31 23:27:44  mast
 Changes for stored value display
 
