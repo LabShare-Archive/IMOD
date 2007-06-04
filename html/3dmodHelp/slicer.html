@@ -10,7 +10,7 @@ Modeling can be done.
 Slicer has two to four dockable toolbars that may be floated as separate
 windows so that the image will fill the entire window area.  When they 
 are floated, they will still pass hot keys on to the slicer window.
-
+<P>
 <BR><A HREF = "#Behavior">Window Behavior and Classic Centering Mode</A>
 <BR><A HREF = "#The First Toolbar">The First Toolbar</A>
 <BR><A HREF = "#The Second Toolbar">The Second Toolbar</A>
@@ -28,10 +28,10 @@ The principal differences are:
 <OL>
 <LI> In the new mode, the image can be panned with the first mouse button,
 and clicking in the window changes the current image or model
-point without changing the center of rotation, which is in the center of the
-window.  In classic mode, the image cannot be
-panned, and clicking in the window or changing the current point in another
-window recenters the image on the selected point unless the window is locked.
+point without changing the center of rotation, or shifting the image.
+In classic mode, the image cannot be panned, and clicking in the window or
+changing the current point in another window recenters the image on the
+selected point unless the slicer window is locked.
 <LI> In the new mode, arrow keys pan in the plane of the slice, while the
 PageUp and PageDown keys move the center of rotation perpendicular to the
 plane of the slice.  The Page keys will also move the current
@@ -50,11 +50,11 @@ in classic mode, the center point is kept the same as the current point unless
 a slicer is locked.
 </OL>
 Although the new mode should be more convenient in general, classic mode is
-still useful for keeping the slicer synchronized with the current point being
-displayed in other windows, or for keeping the current model point visible
-while stepping through a contour.  In addition, if one wants to see the
-current point and it is not visible in the slicer, one can simply toggle the
-mode on and back off to center the current point.
+still useful, such as for keeping the slicer synchronized with the current
+point being displayed in other windows, or for keeping the current model point
+visible while stepping through a contour.  In addition, if one wants to see
+the current point and it is not visible in the slicer, one can simply toggle
+the mode on and off again to center the current point.
 <P>
 <A NAME = "The First Toolbar"><H3>The First Toolbar</H3></A>
 <UL>
@@ -192,12 +192,15 @@ slicer as well.)
 <P>In model mode, the buttons do the following:
 <UL>
 <LI><B>First button:</B> Attach to the nearest model point, or detach from the 
-current contour
+current contour.  For open and closed contours, only points within 0.5 pixel 
+of the current plane will be considered, even if more of the model shows up
+because the thickness for model display is set higher than 1.  Spherical
+points can be selected from nearly any plane on which they are visible.
 <LI><B>Second button:</B> Insert a point after the current point.  This button
 can be held down to insert points continuously.  (Classic mode: continuous
 tracing only works with the window position locked.)
 
-<LI><B>Third button:</B> Move the current point to the selected location
+<LI><B>Third button:</B> Move the current model point to the selected location
 </UL>
 By default, these buttons correspond to the left, middle, and right 
 buttons, but you can change these assignments in the 3dmod Preferences 
@@ -252,12 +255,13 @@ orientation in the slicer, provided that all of the contours in a surface are
 at the same orientation, and that the contours are properly spaced apart.
 Follow these procedures:
 <OL>
-<LI>Select an area to model and click on the center of the area.
+<LI>Select an area to model and center it in the window.  You may wish to lock
+the slicer to keep other windows from affecting its position.
 <LI>If there are already contours in this object, start a new surface with 
 <B>N</B>.
 <LI>Model a contour by clicking or dragging with the second mouse button.
-<LI>Step between slices with the <B>PageUp</B> and <B>PageDown</B> keys,
-keeping the window locked.  Start new contours in the same surface with
+<LI>Step between slices with the <B>PageUp</B> and <B>PageDown</B> keys in
+this slicer.  Start new contours in the same surface with
 <B>n</B>.
 <LI>To model another area at a different orientation, be sure to start a new
 surface (use the <B>N</B> hot key instead of <B>n</B>). 

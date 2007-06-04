@@ -292,7 +292,8 @@ Image Description dialog from being brought up for any raw files.
 Specify the type of raw files using a value corresponding to an MRC mode:
 0 for unsigned bytes, 1 for signed
 16-bit integers, 2 for 32-bit floating point, 4 for complex (pairs of floating
-point numbers), or 16 for color files stored as R-G-B triplets of bytes.
+point numbers), 6 for unsigned 16-bit integers, or 16 for color files stored
+as R-G-B triplets of bytes.
 .TP
 .B -H <value>
 Set the size of the header to be skipped, in bytes, for raw image files.
@@ -423,8 +424,8 @@ tooltips can be disabled in the Preferences dialog.
 Snapshots can be taken of image and model view windows with hot keys.
 A TIFF snapshot can be taken with Ctrl-S.  Snapshots in other formats such as
 JPEG, PNG, and SGI RGB can be
-taken with S.  The format of these non-TIFF snapshots can be selected in the
-Preferences dialog.
+taken with Shift-S or Ctrl-Shift-S.  The format of these non-TIFF snapshots
+can be selected in the Preferences dialog.
 
 The Escape key can be used to close all windows except the Information
 Window, or the 3dmodv window when running 3dmodv.
@@ -657,8 +658,13 @@ Image
    Cache Filler... Open a dialog box to control cache filling and
                       select autofilling.
 
-Movies...    Open window to control movie limits in X, Y, Z and
+Movies...     Open window to control movie limits in X, Y, Z and
                  time.
+Fine Grain... Open window to define display properties of 
+                 individual points, contours, or surfaces.
+Angles...     Open window to save and restore angles and positions
+                 of Slicer windows.
+Options...    Open 3dmod preferences dialog to personalize settings
 
 .I Image Menu
    ZaP         Open a ZaP window.  (Z)
@@ -794,8 +800,9 @@ F  -  Find the maximum pixel within 10 pixels and report its value
 
         Other keys active in the ZaP window only
         ----------------------------------------
-S  -  Snapshot image in window to file with current non-TIFF format
+S  -  Snapshot image in window to file with primary non-TIFF format
 Ctrl-S - Snapshot image in window to TIFF file
+Ctrl-Shift-S - Snapshot to second type of non-TIFF file
 Ctrl-A - Select all contours in current object on section or 
            within the rubberband
 b  -  Build a contour while in auto contour mode
@@ -839,10 +846,9 @@ z  -  Open ZaP window
 .SH Slicer Window
 Multiple Slicer Windows can be opened.  Each Slicer Window
 shows a different slice through a 3-D volume.  The Slicer window has
-two movable toolbars.  The large toolbar contains three sliders that
+two to four movable toolbars.  The large toolbar contains three sliders that
 are used to select the orientation of the slice by setting the angles of
-rotation of the data volume around the X, Y and Z axes.
-A small
+rotation of the data volume around the X, Y and Z axes.  A small
 display next to the sliders gives a visual cue to the slice
 location.  This toolbar also has two spin boxes, one to select the
 thickness of the slice being displayed, the other to select the
@@ -858,9 +864,15 @@ zoom factor.
 and slower, cubic interpolation.
    The Lock button will keep the Slicer from changing its
 current position when locked.
+   The Centering button toggles between the default mode in which the window
+can be panned with the mouse, and a mode in which the current image point is
+kept at the center of the window (referred to as "classic" mode).
+   The IM/FFT button toggles between showing an image and an FFT of the image.
    The Show Slice button will draw where the slice
 intersects the X- Y- and Z-planes in the XYZ window, and the Z-plane in the
 ZaP window.  
+   The Contour button sets the angles so that the current contour is flat in
+the slice.
    The Z-Scale control determines whether the model's Z-scale will be
 applied to stretch the volume in the Z dimension and compensate for thinning.
    The Help button opens up on-line help.
@@ -868,7 +880,8 @@ applied to stretch the volume in the Z dimension and compensate for thinning.
 One can model in the Slicer Window, using the first mouse
 button to select the current point, the second mouse button
 to insert a point after the current point, or the third button to modify the
-current point.  In movie mode, the first button selects the current point, and
+current point.  The second button can be held down to insert points
+continuously.  In movie mode, the first button selects the current point, and
 the second or third buttons start movies forward or backward through the data,
 in a direction perpendicular to the slice.
 
@@ -879,9 +892,12 @@ in a direction perpendicular to the slice.
 _/+  -  Decrease/Increase displayed image thickness
 9/0  -  Decrease/Increase displayed model thickness
 s    -  Show slice in ZaP and XYZ windows
-S    -  Snapshot to file with current non-TIFF format
+k    -  Toggle centering mode between new mode and classic mode
+S    -  Snapshot to file with primary non-TIFF format
 Ctrl-S - Snapshot to TIFF file
-x/y/z  - Align current and last model points along X, Y or Z axis
+Ctrl-Shift-S - Snapshot to second type of non-TIFF file
+W    -  Set angles so that current contour is flat in the slice
+x/y/z  - Align current and previous model points along X, Y or Z axis
 X/Y/Z  - Align first and last points of current contour along
             X, Y or Z axis
 
@@ -917,6 +933,7 @@ P    -  Toggle on or off showing a projection of the current
           contour that is open in the XY plane
 S    -  Snapshot to file with current non-TIFF format
 Ctrl-S - Snapshot to TIFF file
+Ctrl-Shift-S - Snapshot to second type of non-TIFF file
 .fi
 .TP
 .I Mouse Buttons in the XYZ Window
@@ -963,7 +980,7 @@ change the size of the volume and the zoom, lock the position, select a
 high-resolution display, or set thresholds for truncating pixels as black
 or white.  The image display in the model view window, accessed from the
 Edit-Image menu entry of that window, will give a faster and better display 
-for most pruposes, but the tumbler display will be a more accurate projection,
+for most purposes, but the tumbler display will be a more accurate projection,
 especially in high-resolution mode.  The hot keys in the tumbler window are:
 .nf
 Keypad up and down arrow keys tumble the volume around the X axis.
@@ -988,6 +1005,8 @@ in the drawing area.
 The [LOCK] button stops the window from tracking the current point.
 The [RESOLUTION] button toggles between taking data from the
 image buffer and taking data from the file.
+The Width spin button lets you select the number of pixels of width across
+which data are averaged perpendicular to the line being graphed.
 
 .SH Model View Window
 This window shows the model in 3D, continually updated as the model is
