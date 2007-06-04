@@ -83,6 +83,7 @@ $(LIBTRACK):	linetrack/*.f linetrack/*.c*
 	$(RANLIB) $(LIBTRACK)
 	$(CP) libtrack.$(LIBEXT) $(LIBDIR)
 
+track:  $(LIBTRACK)
 
 install:
 	$(CP) $(LIBS) $(INSTLIBDIR)
