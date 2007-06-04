@@ -319,6 +319,14 @@ flibs: configure
 	cd flib; $(MAKE) libs
 
 #
+# To make 3dmod and needed libraries
+#
+3dmod : configure clibs
+	cd flib      ;  $(MAKE) configure
+	cd flib/subrs  ; $(MAKE) track
+	cd imod      ; $(MAKE) all
+
+#
 # Make the full software distribution.  Use the options from last setup
 #
 dist : ALWAYS
@@ -436,6 +444,9 @@ ALWAYS:
 
 ############################################################################
 #  $Log$
+#  Revision 3.65  2007/06/04 18:50:52  mast
+#  *** empty log message ***
+#
 #  Revision 3.64  2007/02/15 22:59:22  mast
 #  Allow error on find of CVS in dist and src for cygwin
 #
