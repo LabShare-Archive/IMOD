@@ -21,7 +21,7 @@ static void imodDrawSymbol(Ipoint *point, int sym, int size, int flags,
                            int linewidth);
 
 
-void imodDrawModel(ImodView *vi, Imod *imod)
+void imodDrawModel(ImodView *vi, Imod *imod, int drawCurrent)
 {
   Iobj  *obj;
   Icont *cont;
@@ -75,6 +75,11 @@ void imodDrawModel(ImodView *vi, Imod *imod)
     imodDrawObjectSymbols(vi, obj);
   }
      
+  /* 7/3/07: switched to having slicer draw ends and current point symbol, but
+     leave code in here just in case */
+  if (!drawCurrent)
+    return;
+
   /* draw ends of current contour. */
   /* draw current point symbol.    */
   obj = imodObjectGet(vi->imod);
@@ -106,7 +111,6 @@ void imodDrawModel(ImodView *vi, Imod *imod)
       imodDrawSymbol(pnt, IOBJ_SYM_CIRCLE, curSize, 0, obj->linewidth2);
     }
   }   
-  return;
 }
 
 static void imodDrawContourLines(Iobj *obj, int co, GLenum mode)
@@ -376,6 +380,9 @@ void imodDrawSymbol(Ipoint *point, int sym, int size, int flags, int linewidth)
 
 /*
 $Log$
+Revision 4.14  2006/10/11 23:53:52  mast
+Turn off current and end point drawing if drawcursor off
+
 Revision 4.13  2006/09/12 16:20:37  mast
 Changed to draw current contour as open
 
