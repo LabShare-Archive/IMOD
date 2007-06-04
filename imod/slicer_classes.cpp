@@ -340,7 +340,7 @@ void SlicerWindow::setupToggleButton(HotToolBar *toolBar,
   char *toggleTips[] = {
     "Toggle between regular and high-resolution (interpolated) image",
     "Lock window at current position",
-    "Keep current image or model point centered (classic mode)",
+    "Keep current image or model point centered (classic mode, hot key k)",
     "Toggle between showing image and FFT",
     "Lock window at current time" };
 
@@ -1659,6 +1659,9 @@ static int taper_slice(Islice *sl, int ntaper, int inside)
 
  /*
 $Log$
+Revision 4.17  2007/05/31 16:32:28  mast
+Changes for slicer angle toolbar, classic setting and warning
+
 Revision 4.16  2007/05/29 14:52:35  mast
 Changes for new slicer mode and toolbar buttons
 
