@@ -83,10 +83,16 @@ typedef struct Super_slicer{
   int pending;            /* Flag that there are pending coords from hit */
   float pendx, pendy, pendz;   /* pending coords */
   int movieSnapCount;     /* Counter for doing movie snapshots */
-  Ipoint origXYZmouse;    /* Original [xyz]xmouse when page up/down started */
+  float origZmouse;       /* Original zxmouse when page up/down started */
   float origAngles[3];    /* Original angles at that time */
-  Ipoint lastXYZmouse;    /* Last [xyz]xmouse left by a page up/down */
+  float lastXmouse;       /* Last xmouse left by a page up/down */
+  float lastYmouse;
+  float lastZmouse;
   float cumPageMoves;     /* Cumulative page up/down move since original */
+  float drawnXmouse;      /* xmouse, etc when last drawn */
+  float drawnYmouse;
+  float drawnZmouse;
+  int ignoreCurPtChg;     /* Flag to ignore a current point change in draw */
 
   short nslice;       /* Number of slices to draw */
   Imat  *mat;
@@ -140,6 +146,9 @@ void slicerSetAnglesFromRow(SlicerStruct *ss);
 
 /*
     $Log$
+    Revision 3.15  2007/05/31 16:32:28  mast
+    Changes for slicer angle toolbar, classic setting and warning
+
     Revision 3.14  2007/05/29 14:52:47  mast
     Changes for new slicer mode
 
