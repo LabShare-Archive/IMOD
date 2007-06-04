@@ -3,19 +3,59 @@
 </head>
 <H2>The Slicer Window</H2>
 The slicer allows you to display a slice at an arbitrary angle through the
-volume, centered around a selected point.  Multiple slices can be averaged.
+volume, centered around a selected point.  This center of rotation is always
+displayed in the center of the window.  Multiple slices can be averaged.
 Modeling can be done.
 <P>
-Slicer has two dockable toolbars that may be floated as separate
+Slicer has two to four dockable toolbars that may be floated as separate
 windows so that the image will fill the entire window area.  When they 
 are floated, they will still pass hot keys on to the slicer window.
 
+<BR><A HREF = "#Behavior">Window Behavior and Classic Centering Mode</A>
 <BR><A HREF = "#The First Toolbar">The First Toolbar</A>
 <BR><A HREF = "#The Second Toolbar">The Second Toolbar</A>
+<BR><A HREF = "#Time Toolbar">The Time Toolbar</A>
+<BR><A HREF = "#Angle Saving Toolbar">The Angle Saving Toolbar</A>
 <BR><A HREF = "#Mouse Actions and Movies">Mouse Actions and Movies</A>
 <BR><A HREF = "#Hot Keys">Hot Keys</A>
 <BR><A HREF = "#Modeling Tilted">Modeling Tilted Contours to be Meshed</A>
 
+<A NAME = "Behavior"><H3>Window Behavior and Classic Centering Mode</H3></A>
+The behavior of the slicer was changed in IMOD 3.10.10 so that it works more
+like the Zap window.  The old behavior of the window is called "Classic mode",
+and there is a toolbar button as well as a hot key to switch to this mode.
+The principal differences are:
+<OL>
+<LI> In the new mode, the image can be panned with the first mouse button,
+and clicking in the window changes the current image or model
+point without changing the center of rotation, which is in the center of the
+window.  In classic mode, the image cannot be
+panned, and clicking in the window or changing the current point in another
+window recenters the image on the selected point unless the window is locked.
+<LI> In the new mode, arrow keys pan in the plane of the slice, while the
+PageUp and PageDown keys move the center of rotation perpendicular to the
+plane of the slice.  The Page keys will also move the current
+point in Z by an amount that will keep a Zap window in sync with the slicer.
+In classic mode, the arrow
+keys and PageUp and PageDown move the current point in X, Y, and Z regardless
+of the orientation of the slice, unless the slicer is locked.  
+<LI> In the new
+mode, the slicer will respond to some but not all changes in the current point
+by moving its center point.  Specifically, it will change the Z of its center
+point when only the Z of the current
+point changes, as would be produced by changing Z in another window.  It will
+change the X or Y of its center point by 1 when X or Y of the current point
+changes by 1, as would be produced with arrow keys in other windows.  Again,
+in classic mode, the center point is kept the same as the current point unless
+a slicer is locked.
+</OL>
+Although the new mode should be more convenient in general, classic mode is
+still useful for keeping the slicer synchronized with the current point being
+displayed in other windows, or for keeping the current model point visible
+while stepping through a contour.  In addition, if one wants to see the
+current point and it is not visible in the slicer, one can simply toggle the
+mode on and back off to center the current point.
+<P>
 <A NAME = "The First Toolbar"><H3>The First Toolbar</H3></A>
 <UL>
 <LI>The <B>Up</B> and <B>Down Arrows</B> step the zoom factor up or down.
@@ -23,22 +63,31 @@ are floated, they will still pass hot keys on to the slicer window.
 intermediate zoom factors.
 <LI>The <B>checkerboard</B> button toggles between fast rendering
 (nearest neighbor interpolation) and 
-slower but higher quality image rendering (quadratic interpolation).
-<LI>The <B>lock</B> button will keep the image locked to the current 
-position, even when drawing model points.  When the window is locked,
-points can be added continuously by holding down the second mouse button while
-moving the mouse, just as in the Zap window.  In addition, the image movement
-keys (arrows and PageUp/PageDown) will move the current point by one pixel in
-directions parallel or perpendicular to the plane of the slice.
+slower but higher quality image rendering (cubic interpolation).
+<LI>The <B>lock</B> button will keep the image on the same slice even when
+the current Z value is changed in another window; and conversely, a locked
+slicer can be moved perpendicular to the slice without affecting the current Z
+value for other windows.  In classic mode, the image is also 
+locked to the current 
+position, even when drawing model points.  
+In addition, a locked slicer in classic mode responds to the image movement
+keys (arrows and PageUp/PageDown) by moving the current point by one pixel in
+directions parallel or perpendicular to the plane of the slice - the same
+behavior as in the new mode.
+<LI>The <B>centering</B> button toggles between the new mode of window
+behavior and having the image always 
+centered on the current model point unless locked (classic mode).
 <LI>The <B>IM/FT</B> button toggles between displaying the image slice or
 its Fourier transform.  The entire image in the whole window, including any
-gray borders, will be padded into a square array and Fourier
-transformed, then the portion that fits will be drawn in the window.
+gray borders, is padded into a square array, then the boundaries of the
+actual image are tapered down to match any gray borders.  This image is
+Fourier transformed, then the portion that fits is drawn in the window.
 Thus a non-square window will give a transform that is isotropic in X
-and Y, but portions will be not be visible in one of the dimensions.
-Gray borders in the image will create artifacts, so for best results
-make the window small enough, or zoom up enough, to eliminate such
-borders.  Zooming up does not change the scale of the transform for
+and Y, but portions will be not be visible in one of the dimensions, so use a
+window that is near square to see all of the transform.  Zooming down below 1
+changes the scale of the transform: low frequencies show up farther from the
+origin and high frequencies disappear as a result of subsampling the image.
+Zooming up does not change the scale of the transform for
 zooms above 1; it just decreases the number of pixels that the
 transform is based on.  To see the transform at a higher zoom,
 increase the zoom and increase the window size by the same amount.
@@ -92,15 +141,51 @@ from the data volume.
 On the right are controls for adjusting the thickness of 
 the image slice and the thickness of model that is shown on the slice.
 
+<A NAME = "Time Toolbar"><H3>The Time Toolbar</H3></A>
+If multiple image files have been loaded into 3dmod, an 
+additional toolbar appears, identical to the toolbar in the Zap window. 
+The <B>time lock</B> button will prevent 
+changes in other windows from changing the time (image file) 
+displayed in this slicer; and conversely this slicer's time can be changed
+without affecting other windows.  The <B>left</B> and <B>right arrows</B> will 
+step backward and forward in time.
+
+<A NAME = "Angle Saving Toolbar"><H3>The Angle Saving Toolbar</H3></A>
+Slicer angles and center positions can be saved in the IMOD model by opening
+the Slicer Angles dialog box, using the Edit-Angles menu entry.  When this
+dialog box is opened, all slicers will acquire an additional toolbar with the
+following controls:
+<UL>
+<LI><B>Save</B> saves the angles and position in the current row of the table,
+or into a new row if there are no rows in a table.  
+<LI><B>New</B> saves the angles and position into a new row in the table.
+<LI><B>Set</B> sets the angles and position from the current row of the table.
+<LI><B>Auto</B> selects an automatic (continuous) update of the current row of
+the table from changes in this slicer.  When this option is off, angles are
+saved only when <B>Save</B> is pressed.  The slicer is set to an angle only
+when either the <B>Set</B> toolbar button or the <B>Set Angles</B> button in
+this window is pressed.  When the option is on, angle or position changes in a
+slicer automatically modify the stored values that are shown in the current
+row.  Changing the current row of the table will set the angles in the active
+slicer.  When the time is changed, the slicer is automatically set to the 
+current
+values for the new time (which can be in a different row of the table).  In
+addition, if you edit one of the cells, the values in that row are sent to the
+slicer.
+</UL>
+<P>
+
 <A NAME = "Mouse Actions and Movies"><H3>Mouse Actions and Movies</H3></A>
 All mouse buttons behave as in the Zap and XYZ windows. 
-The first mouse button in movie mode, and all mouse buttons in model 
-mode, will change the current viewing point in the data 
-volume, unless the image position is locked by the lock button.
+In classic mode, unless the image position is locked by the lock button, 
+the first mouse button in movie mode, and all mouse buttons in model 
+mode, will change the current viewing point in the data volume.
 <P>
 In movie mode, the buttons do the following:
 <UL>
-<LI><B>First button:</B> Set current viewing point
+<LI><B>First button:</B> Set the current image point, which affects the
+display in other windows.  (Classic mode: set the current viewing point of the
+slicer as well.)
 <LI><B>Second button:</B> Start movie forward, perpendicular to viewed slice
 <LI><B>Third button:</B> Start movie backward, perpendicular to viewed slice
 </UL>
@@ -108,9 +193,10 @@ In movie mode, the buttons do the following:
 <UL>
 <LI><B>First button:</B> Attach to the nearest model point, or detach from the 
 current contour
-<LI><B>Second button:</B> Insert a point after the current point.  If the
-window position is locked, this button can be held down to insert points
-continuously.
+<LI><B>Second button:</B> Insert a point after the current point.  This button
+can be held down to insert points continuously.  (Classic mode: continuous
+tracing only works with the window position locked.)
+
 <LI><B>Third button:</B> Move the current point to the selected location
 </UL>
 By default, these buttons correspond to the left, middle, and right 
@@ -135,6 +221,8 @@ Decrease/Increase displayed image thickness
 Decrease/Increase displayed model thickness
 <BR><B>s</B> &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
 Show slice in ZaP and XYZ windows
+<BR><B>k</B> &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
+Toggle keeping slice centered on current point (classic mode)
 <BR><B>Ctrl-S</B> &nbsp;
 Snapshot to TIFF file
 <BR><B>Shift-S</B> &nbsp;
@@ -165,7 +253,6 @@ at the same orientation, and that the contours are properly spaced apart.
 Follow these procedures:
 <OL>
 <LI>Select an area to model and click on the center of the area.
-<LI>Turn on the <B>Lock</B> button.
 <LI>If there are already contours in this object, start a new surface with 
 <B>N</B>.
 <LI>Model a contour by clicking or dragging with the second mouse button.
@@ -175,13 +262,14 @@ keeping the window locked.  Start new contours in the same surface with
 <LI>To model another area at a different orientation, be sure to start a new
 surface (use the <B>N</B> hot key instead of <B>n</B>). 
 <LI>To return to modeling a surface after changing the angles, or after the
-lock has been turned off, select one of the existing contours with the first
+plane of the data has been changed by stepping in Z in another window,
+select one of the existing contours with the first
 mouse button.  Press the <B>W</B> hot key or the <B>C</B> button in the first
-toolbar to reorient to the contour.  Lock the window
-then step to the desired slice.
+toolbar to reorient to the contour, then step to the desired slice.
 Using <B>W</B> is very important, not just for getting the same angles, but
 also for getting back to the exact coordinates to preserve the spacing between
-slices.  
+slices.  An alternative is to store the angles and position of one slice
+with the Slicer Angles dialog.
 </OL>
 Note that if you model at intervals of more than one pixel, it is not so
 important to preserve the spacing between slices as just described.
