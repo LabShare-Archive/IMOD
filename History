@@ -1,5 +1,8 @@
 IMOD History
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+6/4/07: Attaching to a model point in Slicer now rotates points for analysis
+so that it will pick points only within 0.5 pixel of the current plane.
+
 5/31/07: In Etomo - PEET, fixed a problem creating the .epe file when importing
 a .prm file or duplicating a project.
 
@@ -18,11 +21,11 @@ selected area of the current slice that takes account of whether the data are
 loaded in flipped and is easily extensible to multiple slices.
 
 5/29/07: Slicer has a new mode in which the center point is not tied to the
-current image/model point and the mouse now pans the image; there is toolbar
+current image/model point and the mouse now pans the image; there is a toolbar
 button to switch between this and classic mode.  A slicer can now be time
 locked too.  Automatic scaling is used to match the image contrast to that of
 a singel slice when 4 or more slices are being summed.  FFT's are also
-autoatically scaled to have contrast in the same range as images.  Images
+automatically scaled to have contrast in the same range as images.  Images
 edges are now tapered before taking an FFT to eliminate artifacts.
 
 5/25/07: Added ssh options to both etomo and processchunks to keep ssh from
