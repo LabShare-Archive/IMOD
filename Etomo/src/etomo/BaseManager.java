@@ -100,6 +100,7 @@ public abstract class BaseManager {
   private ParameterStore parameterStore = null;
 
   abstract public InterfaceType getInterfaceType();
+
   abstract void createComScriptManager();
 
   abstract void createMainPanel();
@@ -135,7 +136,7 @@ public abstract class BaseManager {
   public abstract void setParamFile(File paramFile);
 
   public abstract boolean canSnapshot();
-  
+
   public abstract boolean setParamFile();
 
   abstract void processSucceeded(AxisID axisID, ProcessName processName);
@@ -160,7 +161,7 @@ public abstract class BaseManager {
     imodManager = new ImodManager(this);
     initProgram();
   }
-  
+
   public int getParallelProcessingDefaultNice() {
     return 15;
   }
@@ -217,10 +218,12 @@ public abstract class BaseManager {
     return oldPropertyUserDir;
   }
 
-  void initializeUIParameters(File dataFile, AxisID axisID) {
+  void initializeUIParameters(File dataFile, AxisID axisID,
+      boolean loadedFromADifferentFile) {
     if (!headless) {
       if (dataFile != null) {
-        loadedParamFile = loadParamFile(dataFile, axisID);
+        loadedParamFile = loadParamFile(dataFile, axisID,
+            loadedFromADifferentFile);
       }
     }
     initialized = true;
@@ -228,10 +231,10 @@ public abstract class BaseManager {
 
   void initializeUIParameters(String paramFileName, AxisID axisID) {
     if (paramFileName == null || paramFileName.equals("")) {
-      initializeUIParameters((File) null, axisID);
+      initializeUIParameters((File) null, axisID, false);
     }
     else {
-      initializeUIParameters(new File(paramFileName), axisID);
+      initializeUIParameters(new File(paramFileName), axisID, false);
     }
   }
 
@@ -587,7 +590,8 @@ public abstract class BaseManager {
       if (imodIndex == -1) {
         imodIndex = imodManager.newImod(imodKey, file);
       }
-      imodManager.open(imodKey, imodIndex, absoluteModelPath, true,menuOptions);
+      imodManager
+          .open(imodKey, imodIndex, absoluteModelPath, true, menuOptions);
     }
     catch (AxisTypeException except) {
       except.printStackTrace();
@@ -638,11 +642,17 @@ public abstract class BaseManager {
   }
 
   /**
-   * A message asking the ApplicationManager to load in the information from the
-   * parameter file.
+   * Loads storables, sets the param file, and sets up the ImodManager.  Loads
+   * the meta data object first, and then loads all the storables.  Set
+   * loadedFromADIfferentFile to true if duplicating or extracting data from
+   * another param file to create this project.  In this case storables will not
+   * be loaded.
    * @param paramFile the File object specifiying the data parameter file.
+   * @param loadedFromADifferentFile True if duplicating or extracting data from
+   * another param file to create this project.
    */
-  boolean loadParamFile(File paramFile, AxisID axisID) {
+  boolean loadParamFile(File paramFile, AxisID axisID,
+      boolean loadedFromADifferentFile) {
     FileInputStream processDataStream;
     // Set the current working directory for the application, this is the
     // path to the EDF or EJF file.  The working directory is defined by the current
@@ -659,26 +669,28 @@ public abstract class BaseManager {
       return false;
     }
     this.paramFile = paramFile;
-    // Read in the test parameter data file
-    getParameterStore();
-    //must load meta data before other storables can be constructed
-    try {
-      parameterStore.load(getBaseMetaData());
-      Storable[] storables = getStorables();
-      if (storables != null) {
-        for (int i = 0; i < storables.length; i++) {
-          parameterStore.load(storables[i]);
+    if (!loadedFromADifferentFile) {
+      // Read in the test parameter data file
+      getParameterStore();
+      //must load meta data before other storables can be constructed
+      try {
+        parameterStore.load(getBaseMetaData());
+        Storable[] storables = getStorables();
+        if (storables != null) {
+          for (int i = 0; i < storables.length; i++) {
+            parameterStore.load(storables[i]);
+          }
         }
       }
-    }
-    catch (LogFile.WriteException except) {
-      except.printStackTrace();
-      String[] errorMessage = new String[3];
-      errorMessage[0] = "Test parameter file read error";
-      errorMessage[1] = "Could not find the test parameter data file:";
-      errorMessage[2] = except.getMessage();
-      uiHarness.openMessageDialog(errorMessage, "Etomo Error", axisID);
-      return false;
+      catch (LogFile.WriteException except) {
+        except.printStackTrace();
+        String[] errorMessage = new String[3];
+        errorMessage[0] = "Test parameter file read error";
+        errorMessage[1] = "Could not find the test parameter data file:";
+        errorMessage[2] = except.getMessage();
+        uiHarness.openMessageDialog(errorMessage, "Etomo Error", axisID);
+        return false;
+      }
     }
     // Update the MRU test data filename list
     userConfig.putDataFile(paramFile.getAbsolutePath());
@@ -793,8 +805,8 @@ public abstract class BaseManager {
       message[1] = e.getMessage();
       UIHarness.INSTANCE.openMessageDialog(message,
           "Unable to execute command", axisID);
-      if (processResultDisplay!=null) {
-      processResultDisplay.msgProcessFailedToStart();
+      if (processResultDisplay != null) {
+        processResultDisplay.msgProcessFailedToStart();
       }
       return;
     }
@@ -1174,6 +1186,9 @@ public abstract class BaseManager {
 }
 /**
  * <p> $Log$
+ * <p> Revision 1.82  2007/05/21 22:27:50  sueh
+ * <p> bug# 964 Added abstract function getInterfaceType().
+ * <p>
  * <p> Revision 1.81  2007/05/03 00:45:17  sueh
  * <p> bug# 964 Added getParallelProcessingDefaultNice().
  * <p>
