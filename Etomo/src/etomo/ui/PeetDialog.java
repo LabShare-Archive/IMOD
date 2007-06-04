@@ -24,6 +24,7 @@ import etomo.comscript.ProcesschunksParam;
 import etomo.storage.LogFile;
 import etomo.storage.MatlabParam;
 import etomo.storage.MatlabParamFileFilter;
+import etomo.storage.PeetAndMatlabParamFileFilter;
 import etomo.storage.PeetFileFilter;
 import etomo.storage.autodoc.AutodocFactory;
 import etomo.storage.autodoc.ReadOnlyAutodoc;
@@ -50,6 +51,9 @@ import etomo.type.PeetScreenState;
  * @version $Revision$
  * 
  * <p> $Log$
+ * <p> Revision 1.42  2007/05/31 22:26:59  sueh
+ * <p> bug# 1004 Changed OUTPUT_LABEL to FN_OUTPUT_LABEL.
+ * <p>
  * <p> Revision 1.41  2007/05/18 23:53:35  sueh
  * <p> bug# 987
  * <p>
@@ -293,6 +297,8 @@ public final class PeetDialog implements AbstractParallelDialog, Expandable {
       "Open Reference Files in 3dmod");
   private final MultiLineButton btnDuplicateProject = new MultiLineButton(
       "Duplicate an Existing Project");
+  private final MultiLineButton btnCopyParameters = new MultiLineButton(
+      "Copy Parameters");
 
   private final PanelHeader phRun;
   private final PanelHeader phSetup;
@@ -333,6 +339,7 @@ public final class PeetDialog implements AbstractParallelDialog, Expandable {
     ftfDirectory.setEditable(!paramFileSet);
     btnImportMatlabParamFile.setEnabled(!paramFileSet);
     btnDuplicateProject.setEnabled(!paramFileSet);
+    btnCopyParameters.setEnabled(!paramFileSet);
     ltfFnOutput.setEditable(!paramFileSet);
     btnRun.setEnabled(paramFileSet);
   }
@@ -381,17 +388,21 @@ public final class PeetDialog implements AbstractParallelDialog, Expandable {
    * correct.
    * @param metaData
    */
-  public void setParameters(final ConstPeetMetaData metaData) {
+  public void setParameters(final ConstPeetMetaData metaData,
+      boolean parametersOnly) {
     ltfFnOutput.setText(metaData.getName());
-    volumeTable.setParameters(metaData);
-    ftfReferenceFile.setText(metaData.getReferenceFile());
-    sReferenceVolume.setValue(metaData.getReferenceVolume());
-    ltfReferenceParticle.setText(metaData.getReferenceParticle());
+    if (!parametersOnly) {
+      volumeTable.setParameters(metaData);
+      ftfReferenceFile.setText(metaData.getReferenceFile());
+      sReferenceVolume.setValue(metaData.getReferenceVolume());
+      ltfReferenceParticle.setText(metaData.getReferenceParticle());
+      sYaxisContourModelNumber.setValue(metaData.getYaxisContourModelNumber());
+      ltfYaxisContourObjectNumber.setText(metaData
+          .getYaxisContourObjectNumber());
+      ltfYaxisContourContourNumber.setText(metaData
+          .getYaxisContourContourNumber());
+    }
     ltfEdgeShift.setText(metaData.getEdgeShift());
-    sYaxisContourModelNumber.setValue(metaData.getYaxisContourModelNumber());
-    ltfYaxisContourObjectNumber.setText(metaData.getYaxisContourObjectNumber());
-    ltfYaxisContourContourNumber.setText(metaData
-        .getYaxisContourContourNumber());
   }
 
   /**
@@ -399,17 +410,22 @@ public final class PeetDialog implements AbstractParallelDialog, Expandable {
    * has been loaded.  Do not load fnOutput.  This value cannot be modified after
    * the dataset has been created.
    * @param matlabParamFile
+   * @importDir directory of original .prm file.  May need to set the absolute path of files from .prm file
+   * @paramatersOnly 
    */
-  public void setParameters(final MatlabParam matlabParamFile, File importDir) {
+  public void setParameters(final MatlabParam matlabParamFile, File importDir,
+      boolean parametersOnly) {
     iterationTable.setParameters(matlabParamFile);
-    if (matlabParamFile.useReferenceFile()) {
-      rbReferenceFile.setSelected(true);
-      ftfReferenceFile.setText(matlabParamFile.getReferenceFile());
-    }
-    else {
-      rbReferenceVolume.setSelected(true);
-      sReferenceVolume.setValue(matlabParamFile.getReferenceVolume());
-      ltfReferenceParticle.setText(matlabParamFile.getReferenceParticle());
+    if (!parametersOnly) {
+      if (matlabParamFile.useReferenceFile()) {
+        rbReferenceFile.setSelected(true);
+        ftfReferenceFile.setText(matlabParamFile.getReferenceFile());
+      }
+      else {
+        rbReferenceVolume.setSelected(true);
+        sReferenceVolume.setValue(matlabParamFile.getReferenceVolume());
+        ltfReferenceParticle.setText(matlabParamFile.getReferenceParticle());
+      }
     }
     MatlabParam.InitMotlCode initMotlCode = matlabParamFile.getInitMotlCode();
     if (initMotlCode == null) {
@@ -460,15 +476,19 @@ public final class PeetDialog implements AbstractParallelDialog, Expandable {
     }
     else if (yaxisType == MatlabParam.YaxisType.CONTOUR) {
       rbYaxisTypeContour.setSelected(true);
+      if (!parametersOnly) {
+        sYaxisContourModelNumber.setValue(matlabParamFile
+            .getYaxisContourModelNumber());
+        ltfYaxisContourObjectNumber.setText(matlabParamFile
+            .getYaxisContourObjectNumber());
+        ltfYaxisContourContourNumber.setText(matlabParamFile
+            .getYaxisContourContourNumber());
+      }
     }
-    sYaxisContourModelNumber.setValue(matlabParamFile
-        .getYaxisContourModelNumber());
-    ltfYaxisContourObjectNumber.setText(matlabParamFile
-        .getYaxisContourObjectNumber());
-    ltfYaxisContourContourNumber.setText(matlabParamFile
-        .getYaxisContourContourNumber());
-    volumeTable.setParameters(matlabParamFile, rbInitMotlFiles.isSelected(),
-        cbTiltRange.isSelected(), importDir);
+    if (!parametersOnly) {
+      volumeTable.setParameters(matlabParamFile, rbInitMotlFiles.isSelected(),
+          cbTiltRange.isSelected(), importDir);
+    }
     updateDisplay();
   }
 
@@ -627,7 +647,7 @@ public final class PeetDialog implements AbstractParallelDialog, Expandable {
           MatlabParam.YAXIS_TYPE_KEY);
       rbYaxisTypeYAxis.setToolTipText(section);
       rbYaxisTypeParticleModel.setToolTipText(section);
-      tooltip =rbYaxisTypeContour.setToolTipText(section);
+      tooltip = rbYaxisTypeContour.setToolTipText(section);
       sYaxisContourModelNumber.setToolTipText(tooltip);
       ltfYaxisContourObjectNumber.setToolTipText(tooltip);
       ltfYaxisContourContourNumber.setToolTipText(tooltip);
@@ -635,6 +655,8 @@ public final class PeetDialog implements AbstractParallelDialog, Expandable {
           .setToolTipText("Create a new PEET project from a .prm file.");
       btnDuplicateProject
           .setToolTipText("Create a new PEET project from .epe and .prm files in another directory.");
+      btnCopyParameters
+          .setToolTipText("Create a new PEET project and copy the parameters (everything but the volume table) from .epe and/or .prm file(s) in another directory.");
     }
     catch (FileNotFoundException e) {
       e.printStackTrace();
@@ -679,6 +701,8 @@ public final class PeetDialog implements AbstractParallelDialog, Expandable {
     pnlUseExistingProject.add(btnImportMatlabParamFile.getComponent());
     btnDuplicateProject.setSize();
     pnlUseExistingProject.add(btnDuplicateProject.getComponent());
+    btnCopyParameters.setSize();
+    pnlUseExistingProject.add(btnCopyParameters.getComponent());
     //volume reference
     JPanel pnlVolumeReference = new JPanel();
     pnlVolumeReference.setLayout(new BoxLayout(pnlVolumeReference,
@@ -768,6 +792,12 @@ public final class PeetDialog implements AbstractParallelDialog, Expandable {
         .getBorder());
     pnlCcMode.add(rbCcModeNormalized.getComponent());
     pnlCcMode.add(rbCcModeLocal.getComponent());
+    //ParticlePerCPU
+    JPanel pnlParticlePerCPU=new JPanel();
+    pnlParticlePerCPU.setLayout(new BoxLayout(pnlParticlePerCPU,BoxLayout.X_AXIS));
+    pnlParticlePerCPU.add(Box.createRigidArea(FixedDim.x200_y0));
+    pnlParticlePerCPU.add(lsParticlePerCPU.getContainer());
+    pnlParticlePerCPU.add(Box.createRigidArea(FixedDim.x200_y0));
     //advanced right panel
     JPanel pnlAdvancedRight = new JPanel();
     pnlAdvancedRight
@@ -798,7 +828,7 @@ public final class PeetDialog implements AbstractParallelDialog, Expandable {
     pnlRunBody.add(cbRefFlagAllTom);
     pnlRunBody.add(pnlLstThresholds);
     pnlRunBody.add(cbLstFlagAllTom);
-    pnlRunBody.add(lsParticlePerCPU);
+    pnlRunBody.add(pnlParticlePerCPU);
     pnlRunBody.add(pnlAdvanced);
     pnlRunBody.add(pnlButton);
     //main panel
@@ -857,6 +887,9 @@ public final class PeetDialog implements AbstractParallelDialog, Expandable {
     else if (actionCommand.equals(btnDuplicateProject.getActionCommand())) {
       duplicateExistingProject();
     }
+    else if (actionCommand.equals(btnCopyParameters.getActionCommand())) {
+      copyParameters();
+    }
   }
 
   /**
@@ -887,7 +920,7 @@ public final class PeetDialog implements AbstractParallelDialog, Expandable {
       return;
     }
     matlabParamFile = chooser.getSelectedFile();
-    manager.loadMatlabParam(matlabParamFile);
+    manager.loadMatlabParam(matlabParamFile, false);
   }
 
   /**
@@ -908,7 +941,6 @@ public final class PeetDialog implements AbstractParallelDialog, Expandable {
           "Entry Error");
       return;
     }
-    File peetFile = null;
     JFileChooser chooser = new JFileChooser(dir);
     chooser.setFileFilter(new PeetFileFilter());
     chooser.setPreferredSize(UIParameters.INSTANCE.getFileChooserDimension());
@@ -917,8 +949,38 @@ public final class PeetDialog implements AbstractParallelDialog, Expandable {
     if (returnVal != JFileChooser.APPROVE_OPTION) {
       return;
     }
-    peetFile = chooser.getSelectedFile();
-    manager.loadParamFile(peetFile);
+    File peetFile = chooser.getSelectedFile();
+    manager.loadParamFile(peetFile, false);
+  }
+
+  /**
+   * Create a project out of a peet file or a .prm file from another directory.
+   * Copy everything but the volume table
+   */
+  private void copyParameters() {
+    String path = ftfDirectory.getText();
+    if (path == null || path.matches("\\s*")) {
+      UIHarness.INSTANCE.openMessageDialog("Please set the "
+          + PeetDialog.DIRECTORY_LABEL + "field before copying parameters.",
+          "Entry Error");
+      return;
+    }
+    File dir = new File(ftfDirectory.getText());
+    if (!dir.exists()) {
+      UIHarness.INSTANCE.openMessageDialog("Please create "
+          + dir.getAbsolutePath() + " before copy parameters.", "Entry Error");
+      return;
+    }
+    JFileChooser chooser = new JFileChooser(dir);
+    chooser.setFileFilter(new PeetAndMatlabParamFileFilter());
+    chooser.setPreferredSize(UIParameters.INSTANCE.getFileChooserDimension());
+    chooser.setFileSelectionMode(JFileChooser.FILES_ONLY);
+    int returnVal = chooser.showOpenDialog(rootPanel);
+    if (returnVal != JFileChooser.APPROVE_OPTION) {
+      return;
+    }
+    File file = chooser.getSelectedFile();
+    manager.copyParameters(file);
   }
 
   private void changeTab() {
@@ -1009,6 +1071,7 @@ public final class PeetDialog implements AbstractParallelDialog, Expandable {
     btnAvgVol.addActionListener(actionListener);
     btnRef.addActionListener(actionListener);
     btnDuplicateProject.addActionListener(actionListener);
+    btnCopyParameters.addActionListener(actionListener);
   }
 
   private static final class PDActionListener implements ActionListener {
