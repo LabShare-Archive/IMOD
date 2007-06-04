@@ -3,15 +3,14 @@
  *   Copyright (C) 1995-2004 by Boulder Laboratory for 3-Dimensional Electron
  *   Microscopy of Cells ("BL3DEMC") and the Regents of the University of 
  *   Colorado.  See dist/COPYRIGHT file for full copyright notice.
+ *
+ *  $Id$
  */                                                                           
-
-/*  $Author$
-
-$Date$
-
-$Revision$
-
+/*
 $Log$
+Revision 4.5  2006/08/31 23:27:44  mast
+Changes for stored value display
+
 Revision 4.4  2004/11/21 05:50:34  mast
 Switch from int to float for nearest point distance measurement
 
@@ -39,10 +38,8 @@ typedef struct ViewInfo ImodView;
 
 int imod_setxyzmouse(void);
 void imod_contour_move(int ob);
-float imod_obj_nearest(ImodView *vi, struct Mod_Object *obj, 
-                       struct Mod_Index *index,
-                       struct Mod_Point *pnt,
-                       float selsize);
+float imod_obj_nearest(ImodView *vi, Iobj *obj, Iindex *index, Ipoint *pnt,
+                       float selsize, Imat *mat = NULL);
 int imod_redraw(ImodView *vw);
 void imodSelectionListAdd(ImodView *vi, Iindex newIndex);
 int imodSelectionListClear(ImodView *vi);
