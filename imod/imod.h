@@ -1,21 +1,15 @@
-/*
- *  $Id$
+/*  imod.h - public header file for 3dmod
  *
  *  Original author: James Kremer
  *  Revised by: David Mastronarde   email: mast@colorado.edu
  *
- *  Copyright (C) 1995-2004 by Boulder Laboratory for 3-Dimensional Electron
+ *  Copyright (C) 1995-2007 by Boulder Laboratory for 3-Dimensional Electron
  *  Microscopy of Cells ("BL3DEMC") and the Regents of the University of 
  *  Colorado.  See dist/COPYRIGHT for full copyright notice.
+ *
+ *  $Id$
+ *  Log at end of file
  */
-
-/*  $Author$
-
-    $Date$
-
-    $Revision$
-    Log at end of file
-*/
 #ifndef IMOD_H
 #define IMOD_H
 
@@ -56,9 +50,12 @@ extern "C" {
 
 /*
  *  Draw the model using a 2D line renderer implemented with OpenGL functions.
- *  You will need to set up the view matrix yourself.
+ *  You will need to set up the view matrix yourself.  Set drawCurrent nonzero
+ *  to have current image or model point and current contour end symbols drawn
+ *  too.
  */
-void DLL_EX_IM imodDrawModel(ImodView *inImodView, Imod *inModel);
+  void DLL_EX_IM imodDrawModel(ImodView *inImodView, Imod *inModel, 
+                               int drawCurrent);
 
 /* imod plugin */
 /************************************* defines *******************************/
@@ -140,6 +137,9 @@ int DLL_EX_IM imodShowHelpPage(const char *page);
 
 /*
     $Log$
+    Revision 3.11  2006/02/13 05:13:36  mast
+    Define mouse flag for plugins
+
     Revision 3.10  2004/12/24 02:19:11  mast
     Removed argument from help page call
 
