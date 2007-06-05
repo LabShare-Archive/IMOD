@@ -51,6 +51,9 @@ import etomo.type.PeetScreenState;
  * @version $Revision$
  * 
  * <p> $Log$
+ * <p> Revision 1.43  2007/06/04 23:08:34  sueh
+ * <p> bug# 1005 Passing parametersOnly to getParameters.
+ * <p>
  * <p> Revision 1.42  2007/05/31 22:26:59  sueh
  * <p> bug# 1004 Changed OUTPUT_LABEL to FN_OUTPUT_LABEL.
  * <p>
@@ -198,6 +201,10 @@ public final class PeetDialog implements AbstractParallelDialog, Expandable {
   private static final String REFERENCE_VOLUME_LABEL = "Volume #: ";
   private static final String REFERENCE_FILE_LABEL = "Reference file: ";
   private static final DialogType DIALOG_TYPE = DialogType.PEET;
+  private static final String LST_THRESHOLD_START_TITLE = "Start";
+  private static final String LST_THRESHOLD_INCREMENT_TITLE = "Incr.";
+  private static final String LST_THRESHOLD_END_TITLE = "End";
+  private static final String LST_THRESHOLD_ADDITIONAL_NUMBERS_TITLE = "Additional numbers";
 
   private final JPanel rootPanel = new JPanel();
   private final FileTextField ftfDirectory = new FileTextField(DIRECTORY_LABEL
@@ -225,13 +232,13 @@ public final class PeetDialog implements AbstractParallelDialog, Expandable {
   private final CheckBox cbRefFlagAllTom = new CheckBox(
       "Use equal numbers of particles from all tomogram for new reference");
   private final LabeledTextField ltfLstThresholdsStart = new LabeledTextField(
-      "Start: ");
+      LST_THRESHOLD_START_TITLE + ": ");
   private final LabeledTextField ltfLstThresholdsIncrement = new LabeledTextField(
-      "Incr.: ");
+      LST_THRESHOLD_INCREMENT_TITLE + ": ");
   private final LabeledTextField ltfLstThresholdsEnd = new LabeledTextField(
-      "End: ");
+      LST_THRESHOLD_END_TITLE + ": ");
   private final LabeledTextField ltfLstThresholdsAdditional = new LabeledTextField(
-      " Additional numbers: ");
+      " " + LST_THRESHOLD_ADDITIONAL_NUMBERS_TITLE + ": ");
   private final LabeledTextField ltfYaxisContourObjectNumber = new LabeledTextField(
       " Object #: ");
   private final LabeledTextField ltfYaxisContourContourNumber = new LabeledTextField(
@@ -627,7 +634,16 @@ public final class PeetDialog implements AbstractParallelDialog, Expandable {
           MatlabParam.REF_FLAG_ALL_TOM_KEY);
       cbRefFlagAllTom.setToolTipText(tooltip);
       tooltip = EtomoAutodoc
-          .getTooltip(autodoc, MatlabParam.LST_THRESHOLDS_KEY);
+          .getTooltip(autodoc, MatlabParam.LST_THRESHOLDS_KEY)
+          + "  The list can be either a list descriptor ("
+          + LST_THRESHOLD_START_TITLE
+          + ":"
+          + LST_THRESHOLD_INCREMENT_TITLE
+          + ":"
+          + LST_THRESHOLD_END_TITLE
+          + "), a simple list ("
+          + LST_THRESHOLD_ADDITIONAL_NUMBERS_TITLE
+          + "), or a combination of the two.";
       ltfLstThresholdsStart.setToolTipText(tooltip);
       ltfLstThresholdsIncrement.setToolTipText(tooltip);
       ltfLstThresholdsEnd.setToolTipText(tooltip);
@@ -793,8 +809,9 @@ public final class PeetDialog implements AbstractParallelDialog, Expandable {
     pnlCcMode.add(rbCcModeNormalized.getComponent());
     pnlCcMode.add(rbCcModeLocal.getComponent());
     //ParticlePerCPU
-    JPanel pnlParticlePerCPU=new JPanel();
-    pnlParticlePerCPU.setLayout(new BoxLayout(pnlParticlePerCPU,BoxLayout.X_AXIS));
+    JPanel pnlParticlePerCPU = new JPanel();
+    pnlParticlePerCPU.setLayout(new BoxLayout(pnlParticlePerCPU,
+        BoxLayout.X_AXIS));
     pnlParticlePerCPU.add(Box.createRigidArea(FixedDim.x200_y0));
     pnlParticlePerCPU.add(lsParticlePerCPU.getContainer());
     pnlParticlePerCPU.add(Box.createRigidArea(FixedDim.x200_y0));
