@@ -1,5 +1,8 @@
 IMOD History
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+6/5/07: In Etomo - PEET, added flgWedgeWeight to the interface ("Use tilt range
+in alignment").
+
 6/5/07: In Etomo - PEET, fixed a bug which prevented the "New PEET" menu item
 from being enabled correctly.
 
