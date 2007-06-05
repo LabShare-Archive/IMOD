@@ -15,7 +15,10 @@ import java.io.File;
 * 
 * @version $Revision$
 * 
-* <p> $Log$ </p>
+* <p> $Log$
+* <p> Revision 1.1  2007/03/01 01:14:47  sueh
+* <p> bug# 964 File filter for MOTL files (PEET interface).
+* <p> </p>
 */
 public final class MotlFileFilter extends javax.swing.filechooser.FileFilter
 implements java.io.FileFilter {
@@ -23,13 +26,13 @@ implements java.io.FileFilter {
   
   public boolean accept(File f) {
     //  If this is a file test its extension, all others should return true
-    if (f.isFile() && !f.getAbsolutePath().endsWith("1.em")) {
+    if (f.isFile() && !f.getAbsolutePath().endsWith(".em")) {
       return false;
     }
     return true;
   }
 
   public String getDescription() {
-    return "MOTL file";
+    return "MOTL file (.em)";
   }
 }
