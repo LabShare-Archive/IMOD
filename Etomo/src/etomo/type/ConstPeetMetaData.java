@@ -13,6 +13,9 @@ package etomo.type;
 * @version $Revision$
 * 
 * <p> $Log$
+* <p> Revision 1.6  2007/05/01 22:26:30  sueh
+* <p> bug# 964 Added yaxisType and yaxisContour.
+* <p>
 * <p> Revision 1.5  2007/04/11 22:16:08  sueh
 * <p> bug# 964 Added getEdgeShift.
 * <p>
@@ -44,4 +47,5 @@ public interface ConstPeetMetaData {
   public ConstEtomoNumber getYaxisContourModelNumber();
   public String getYaxisContourObjectNumber();
   public String getYaxisContourContourNumber();
+  public boolean isFlgWedgeWeight();
 }

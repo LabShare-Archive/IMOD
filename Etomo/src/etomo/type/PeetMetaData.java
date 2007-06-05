@@ -21,6 +21,9 @@ import etomo.util.DatasetFiles;
  * @notthreadsafe
  * 
  * <p> $Log$
+ * <p> Revision 1.13  2007/06/04 23:07:42  sueh
+ * <p> bug# 1005 Fixed the tilt range key.
+ * <p>
  * <p> Revision 1.12  2007/05/16 22:59:05  sueh
  * <p> bug# 964 Added copy(PeetMetaData).
  * <p>
@@ -88,6 +91,7 @@ public class PeetMetaData extends BaseMetaData implements ConstPeetMetaData {
       + ".ObjectNumber");
   private final EtomoNumber yaxisContourContourNumber = new EtomoNumber(YAXIS_CONTOUR_KEY
       + ".ContourNumber");
+  private final EtomoBoolean2 flgWedgeWeight = new EtomoBoolean2("FlgWedgeWeight");
 
   public PeetMetaData() {
     fileExtension = DatasetFiles.PEET_DATA_FILE_EXT;
@@ -109,6 +113,7 @@ public class PeetMetaData extends BaseMetaData implements ConstPeetMetaData {
     yaxisContourModelNumber.set(yaxisContourModelNumber);
     yaxisContourObjectNumber.set(yaxisContourObjectNumber);
     yaxisContourContourNumber.set(yaxisContourContourNumber);
+    flgWedgeWeight.reset();
   }
 
   public String getMetaDataFileName() {
@@ -167,6 +172,7 @@ public class PeetMetaData extends BaseMetaData implements ConstPeetMetaData {
     yaxisContourModelNumber.load(props,prepend);
     yaxisContourObjectNumber.load(props,prepend);
     yaxisContourContourNumber.load(props,prepend);
+    flgWedgeWeight.load(props,prepend);
   }
 
   public void store(Properties props, String prepend) {
@@ -183,6 +189,7 @@ public class PeetMetaData extends BaseMetaData implements ConstPeetMetaData {
     yaxisContourModelNumber.store(props,prepend);
     yaxisContourObjectNumber.store(props,prepend);
     yaxisContourContourNumber.store(props,prepend);
+    flgWedgeWeight.store(props,prepend);
   }
   
   public String getEdgeShift() {
@@ -259,6 +266,14 @@ public class PeetMetaData extends BaseMetaData implements ConstPeetMetaData {
 
   public void setReferenceParticle(String referenceParticle) {
     this.referenceParticle.set(referenceParticle);
+  }
+  
+  public void setFlgWedgeWeight(boolean input) {
+    flgWedgeWeight.set(input);
+  }
+  
+  public boolean isFlgWedgeWeight() {
+    return flgWedgeWeight.is();
   }
 
   public void setReferenceVolume(Number referenceVolume) {

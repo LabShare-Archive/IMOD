@@ -51,6 +51,9 @@ import etomo.type.PeetScreenState;
  * @version $Revision$
  * 
  * <p> $Log$
+ * <p> Revision 1.44  2007/06/05 17:59:32  sueh
+ * <p> bug# 1007 Adding to lstThresholds tooltip.
+ * <p>
  * <p> Revision 1.43  2007/06/04 23:08:34  sueh
  * <p> bug# 1005 Passing parametersOnly to getParameters.
  * <p>
@@ -213,7 +216,7 @@ public final class PeetDialog implements AbstractParallelDialog, Expandable {
       FN_OUTPUT_LABEL + ": ");
   private final SpacedPanel pnlSetupBody = new SpacedPanel();
   private final CheckBox cbTiltRange = new CheckBox(
-      "Use tilt range for missing wedge compensation");
+      "Use tilt range in averaging");
   private final LabeledTextField ltfReferenceParticle = new LabeledTextField(
       REFERENCE_PARTICLE_LABEL);
   private final FileTextField ftfReferenceFile = FileTextField
@@ -306,6 +309,7 @@ public final class PeetDialog implements AbstractParallelDialog, Expandable {
       "Duplicate an Existing Project");
   private final MultiLineButton btnCopyParameters = new MultiLineButton(
       "Copy Parameters");
+  private final CheckBox cbFlgWedgeWeight = new CheckBox("Use tilt range in alignment");
 
   private final PanelHeader phRun;
   private final PanelHeader phSetup;
@@ -385,6 +389,7 @@ public final class PeetDialog implements AbstractParallelDialog, Expandable {
     metaData.setYaxisContourObjectNumber(ltfYaxisContourObjectNumber.getText());
     metaData.setYaxisContourContourNumber(ltfYaxisContourContourNumber
         .getText());
+    metaData.setFlgWedgeWeight(cbFlgWedgeWeight.isSelected());
   }
 
   /**
@@ -408,6 +413,7 @@ public final class PeetDialog implements AbstractParallelDialog, Expandable {
           .getYaxisContourObjectNumber());
       ltfYaxisContourContourNumber.setText(metaData
           .getYaxisContourContourNumber());
+      cbFlgWedgeWeight.setSelected(metaData.isFlgWedgeWeight());
     }
     ltfEdgeShift.setText(metaData.getEdgeShift());
   }
@@ -420,21 +426,21 @@ public final class PeetDialog implements AbstractParallelDialog, Expandable {
    * @importDir directory of original .prm file.  May need to set the absolute path of files from .prm file
    * @paramatersOnly 
    */
-  public void setParameters(final MatlabParam matlabParamFile, File importDir,
+  public void setParameters(final MatlabParam matlabParam, File importDir,
       boolean parametersOnly) {
-    iterationTable.setParameters(matlabParamFile);
+    iterationTable.setParameters(matlabParam);
     if (!parametersOnly) {
-      if (matlabParamFile.useReferenceFile()) {
+      if (matlabParam.useReferenceFile()) {
         rbReferenceFile.setSelected(true);
-        ftfReferenceFile.setText(matlabParamFile.getReferenceFile());
+        ftfReferenceFile.setText(matlabParam.getReferenceFile());
       }
       else {
         rbReferenceVolume.setSelected(true);
-        sReferenceVolume.setValue(matlabParamFile.getReferenceVolume());
-        ltfReferenceParticle.setText(matlabParamFile.getReferenceParticle());
+        sReferenceVolume.setValue(matlabParam.getReferenceVolume());
+        ltfReferenceParticle.setText(matlabParam.getReferenceParticle());
       }
     }
-    MatlabParam.InitMotlCode initMotlCode = matlabParamFile.getInitMotlCode();
+    MatlabParam.InitMotlCode initMotlCode = matlabParam.getInitMotlCode();
     if (initMotlCode == null) {
       rbInitMotlFiles.setSelected(true);
     }
@@ -447,34 +453,35 @@ public final class PeetDialog implements AbstractParallelDialog, Expandable {
     else if (initMotlCode == MatlabParam.InitMotlCode.X_AND_Z_AXIS) {
       rbInitMotlXAndZAxis.setSelected(true);
     }
-    cbTiltRange.setSelected(matlabParamFile.useTiltRange());
+    cbTiltRange.setSelected(matlabParam.useTiltRange());
     if (cbTiltRange.isSelected()) {
-      ltfEdgeShift.setText(matlabParamFile.getEdgeShift());
+      ltfEdgeShift.setText(matlabParam.getEdgeShift());
+      cbFlgWedgeWeight.setSelected(matlabParam.isFlgWedgeWeight());
     }
-    ltfSzVolX.setText(matlabParamFile.getSzVolX());
-    ltfSzVolY.setText(matlabParamFile.getSzVolY());
-    ltfSzVolZ.setText(matlabParamFile.getSzVolZ());
-    MatlabParam.CCMode ccMode = matlabParamFile.getCcMode();
+    ltfSzVolX.setText(matlabParam.getSzVolX());
+    ltfSzVolY.setText(matlabParam.getSzVolY());
+    ltfSzVolZ.setText(matlabParam.getSzVolZ());
+    MatlabParam.CCMode ccMode = matlabParam.getCcMode();
     if (ccMode == MatlabParam.CCMode.NORMALIZED) {
       rbCcModeNormalized.setSelected(true);
     }
     else if (ccMode == MatlabParam.CCMode.LOCAL) {
       rbCcModeLocal.setSelected(true);
     }
-    cbMeanFill.setSelected(matlabParamFile.isMeanFill());
-    ltfAlignedBaseName.setText(matlabParamFile.getAlignedBaseName());
-    ltfLowCutoff.setText(matlabParamFile.getLowCutoff());
-    lsDebugLevel.setValue(matlabParamFile.getDebugLevel());
-    ltfLstThresholdsStart.setText(matlabParamFile.getLstThresholdsStart());
-    ltfLstThresholdsIncrement.setText(matlabParamFile
+    cbMeanFill.setSelected(matlabParam.isMeanFill());
+    ltfAlignedBaseName.setText(matlabParam.getAlignedBaseName());
+    ltfLowCutoff.setText(matlabParam.getLowCutoff());
+    lsDebugLevel.setValue(matlabParam.getDebugLevel());
+    ltfLstThresholdsStart.setText(matlabParam.getLstThresholdsStart());
+    ltfLstThresholdsIncrement.setText(matlabParam
         .getLstThresholdsIncrement());
-    ltfLstThresholdsEnd.setText(matlabParamFile.getLstThresholdsEnd());
-    ltfLstThresholdsAdditional.setText(matlabParamFile
+    ltfLstThresholdsEnd.setText(matlabParam.getLstThresholdsEnd());
+    ltfLstThresholdsAdditional.setText(matlabParam
         .getLstThresholdsAdditional());
-    cbRefFlagAllTom.setSelected(matlabParamFile.isRefFlagAllTom());
-    cbLstFlagAllTom.setSelected(matlabParamFile.isLstFlagAllTom());
-    lsParticlePerCPU.setValue(matlabParamFile.getParticlePerCPU());
-    MatlabParam.YaxisType yaxisType = matlabParamFile.getYaxisType();
+    cbRefFlagAllTom.setSelected(matlabParam.isRefFlagAllTom());
+    cbLstFlagAllTom.setSelected(matlabParam.isLstFlagAllTom());
+    lsParticlePerCPU.setValue(matlabParam.getParticlePerCPU());
+    MatlabParam.YaxisType yaxisType = matlabParam.getYaxisType();
     if (yaxisType == MatlabParam.YaxisType.Y_AXIS) {
       rbYaxisTypeYAxis.setSelected(true);
     }
@@ -484,65 +491,68 @@ public final class PeetDialog implements AbstractParallelDialog, Expandable {
     else if (yaxisType == MatlabParam.YaxisType.CONTOUR) {
       rbYaxisTypeContour.setSelected(true);
       if (!parametersOnly) {
-        sYaxisContourModelNumber.setValue(matlabParamFile
+        sYaxisContourModelNumber.setValue(matlabParam
             .getYaxisContourModelNumber());
-        ltfYaxisContourObjectNumber.setText(matlabParamFile
+        ltfYaxisContourObjectNumber.setText(matlabParam
             .getYaxisContourObjectNumber());
-        ltfYaxisContourContourNumber.setText(matlabParamFile
+        ltfYaxisContourContourNumber.setText(matlabParam
             .getYaxisContourContourNumber());
       }
     }
     if (!parametersOnly) {
-      volumeTable.setParameters(matlabParamFile, rbInitMotlFiles.isSelected(),
+      volumeTable.setParameters(matlabParam, rbInitMotlFiles.isSelected(),
           cbTiltRange.isSelected(), importDir);
     }
     updateDisplay();
   }
 
-  public void getParameters(final MatlabParam matlabParamFile) {
-    matlabParamFile.clear();
-    volumeTable.getParameters(matlabParamFile);
-    iterationTable.getParameters(matlabParamFile);
-    matlabParamFile.setFnOutput(ltfFnOutput.getText());
+  public void getParameters(final MatlabParam matlabParam) {
+    matlabParam.clear();
+    volumeTable.getParameters(matlabParam);
+    iterationTable.getParameters(matlabParam);
+    matlabParam.setFnOutput(ltfFnOutput.getText());
     if (rbReferenceVolume.isSelected()) {
-      matlabParamFile.setReferenceVolume(sReferenceVolume.getValue());
-      matlabParamFile.setReferenceParticle(ltfReferenceParticle.getText());
+      matlabParam.setReferenceVolume(sReferenceVolume.getValue());
+      matlabParam.setReferenceParticle(ltfReferenceParticle.getText());
     }
     else if (rbReferenceFile.isSelected()) {
-      matlabParamFile.setReferenceFile(ftfReferenceFile.getText());
+      matlabParam.setReferenceFile(ftfReferenceFile.getText());
     }
-    matlabParamFile.setInitMotlCode(((RadioButton.RadioButtonModel) bgInitMotl
+    matlabParam.setInitMotlCode(((RadioButton.RadioButtonModel) bgInitMotl
         .getSelection()).getEnumeratedType());
-    matlabParamFile.setTiltRangeEmpty(!cbTiltRange.isSelected());
+    matlabParam.setTiltRangeEmpty(!cbTiltRange.isSelected());
     if (ltfEdgeShift.isEnabled()) {
-      matlabParamFile.setEdgeShift(ltfEdgeShift.getText());
+      matlabParam.setEdgeShift(ltfEdgeShift.getText());
     }
-    matlabParamFile.setSzVolX(ltfSzVolX.getText());
-    matlabParamFile.setSzVolY(ltfSzVolY.getText());
-    matlabParamFile.setSzVolZ(ltfSzVolZ.getText());
-    matlabParamFile.setCcMode(((RadioButton.RadioButtonModel) bgCcMode
+    if (cbFlgWedgeWeight.isEnabled()) {
+      matlabParam.setFlgWedgeWeight(cbFlgWedgeWeight.isSelected());
+    }
+    matlabParam.setSzVolX(ltfSzVolX.getText());
+    matlabParam.setSzVolY(ltfSzVolY.getText());
+    matlabParam.setSzVolZ(ltfSzVolZ.getText());
+    matlabParam.setCcMode(((RadioButton.RadioButtonModel) bgCcMode
         .getSelection()).getEnumeratedType());
-    matlabParamFile.setMeanFill(cbMeanFill.isSelected());
-    matlabParamFile.setAlignedBaseName(ltfAlignedBaseName.getText());
-    matlabParamFile.setLowCutoff(ltfLowCutoff.getText());
-    matlabParamFile.setDebugLevel(lsDebugLevel.getValue());
-    matlabParamFile.setLstThresholdsStart(ltfLstThresholdsStart.getText());
-    matlabParamFile.setLstThresholdsIncrement(ltfLstThresholdsIncrement
+    matlabParam.setMeanFill(cbMeanFill.isSelected());
+    matlabParam.setAlignedBaseName(ltfAlignedBaseName.getText());
+    matlabParam.setLowCutoff(ltfLowCutoff.getText());
+    matlabParam.setDebugLevel(lsDebugLevel.getValue());
+    matlabParam.setLstThresholdsStart(ltfLstThresholdsStart.getText());
+    matlabParam.setLstThresholdsIncrement(ltfLstThresholdsIncrement
         .getText());
-    matlabParamFile.setLstThresholdsEnd(ltfLstThresholdsEnd.getText());
-    matlabParamFile.setLstThresholdsAdditional(ltfLstThresholdsAdditional
+    matlabParam.setLstThresholdsEnd(ltfLstThresholdsEnd.getText());
+    matlabParam.setLstThresholdsAdditional(ltfLstThresholdsAdditional
         .getText());
-    matlabParamFile.setRefFlagAllTom(cbRefFlagAllTom.isSelected());
-    matlabParamFile.setLstFlagAllTom(cbLstFlagAllTom.isSelected());
-    matlabParamFile.setParticlePerCPU(lsParticlePerCPU.getValue());
-    matlabParamFile.setYaxisType(((RadioButton.RadioButtonModel) bgYaxisType
+    matlabParam.setRefFlagAllTom(cbRefFlagAllTom.isSelected());
+    matlabParam.setLstFlagAllTom(cbLstFlagAllTom.isSelected());
+    matlabParam.setParticlePerCPU(lsParticlePerCPU.getValue());
+    matlabParam.setYaxisType(((RadioButton.RadioButtonModel) bgYaxisType
         .getSelection()).getEnumeratedType());
     if (rbYaxisTypeContour.isSelected()) {
-      matlabParamFile.setYaxisContourModelNumber(sYaxisContourModelNumber
+      matlabParam.setYaxisContourModelNumber(sYaxisContourModelNumber
           .getValue());
-      matlabParamFile.setYaxisContourObjectNumber(ltfYaxisContourObjectNumber
+      matlabParam.setYaxisContourObjectNumber(ltfYaxisContourObjectNumber
           .getText());
-      matlabParamFile.setYaxisContourContourNumber(ltfYaxisContourContourNumber
+      matlabParam.setYaxisContourContourNumber(ltfYaxisContourContourNumber
           .getText());
     }
   }
@@ -673,6 +683,8 @@ public final class PeetDialog implements AbstractParallelDialog, Expandable {
           .setToolTipText("Create a new PEET project from .epe and .prm files in another directory.");
       btnCopyParameters
           .setToolTipText("Create a new PEET project and copy the parameters (everything but the volume table) from .epe and/or .prm file(s) in another directory.");
+      cbFlgWedgeWeight.setToolTipText(EtomoAutodoc.getTooltip(autodoc,
+          MatlabParam.FLG_WEDGE_WEIGHT_KEY));
     }
     catch (FileNotFoundException e) {
       e.printStackTrace();
@@ -744,12 +756,20 @@ public final class PeetDialog implements AbstractParallelDialog, Expandable {
     pnlInitMotl.add(rbInitMotlZAxis.getComponent());
     pnlInitMotl.add(rbInitMotlXAndZAxis.getComponent());
     pnlInitMotl.add(rbInitMotlFiles.getComponent());
+    //reference and init MOTL
+    JPanel pnlReferenceAndInitMotl = new JPanel();
+    pnlReferenceAndInitMotl.setLayout(new BoxLayout(pnlReferenceAndInitMotl,
+        BoxLayout.X_AXIS));
+    pnlReferenceAndInitMotl.add(pnlReference);
+    pnlReferenceAndInitMotl.add(pnlInitMotl);
     //YaxisContour
     JPanel pnlYaxisContour = new JPanel();
     pnlYaxisContour.setLayout(new BoxLayout(pnlYaxisContour, BoxLayout.X_AXIS));
     pnlYaxisContour.add(rbYaxisTypeContour.getComponent());
     pnlYaxisContour.add(sYaxisContourModelNumber.getContainer());
+    ltfYaxisContourObjectNumber.setTextPreferredWidth(UIParameters.INSTANCE.getIntegerWidth());
     pnlYaxisContour.add(ltfYaxisContourObjectNumber.getContainer());
+    ltfYaxisContourContourNumber.setTextPreferredWidth(UIParameters.INSTANCE.getIntegerWidth());
     pnlYaxisContour.add(ltfYaxisContourContourNumber.getContainer());
     //YaxisType
     pnlYaxisType.setBoxLayout(BoxLayout.Y_AXIS);
@@ -758,28 +778,34 @@ public final class PeetDialog implements AbstractParallelDialog, Expandable {
     pnlYaxisType.add(rbYaxisTypeYAxis);
     pnlYaxisType.add(rbYaxisTypeParticleModel);
     pnlYaxisType.add(pnlYaxisContour);
-    //init MOTL and Y axis type
-    JPanel pnlInitMotlAndYaxisType = new JPanel();
-    pnlInitMotlAndYaxisType.setLayout(new BoxLayout(pnlInitMotlAndYaxisType,
-        BoxLayout.X_AXIS));
-    pnlInitMotlAndYaxisType.add(pnlInitMotl);
-    pnlInitMotlAndYaxisType.add(pnlYaxisType.getContainer());
     //tiltRange and edgeShift
     JPanel pnlTiltRange = new JPanel();
     pnlTiltRange.setLayout(new BoxLayout(pnlTiltRange, BoxLayout.X_AXIS));
     pnlTiltRange.add(cbTiltRange);
-    pnlTiltRange.add(Box.createRigidArea(FixedDim.x40_y0));
+    pnlTiltRange.add(Box.createRigidArea(FixedDim.x20_y0));
     ltfEdgeShift.setTextPreferredWidth(UIParameters.INSTANCE.getIntegerWidth());
     pnlTiltRange.add(ltfEdgeShift.getContainer());
+    //missing wedge compensation
+    SpacedPanel pnlMissingWedgeCompensation = new SpacedPanel();
+    pnlMissingWedgeCompensation.setBoxLayout(BoxLayout.Y_AXIS);
+    pnlMissingWedgeCompensation.setBorder(new EtchedBorder("Missing Wedge Compensation").getBorder());
+    pnlMissingWedgeCompensation.setComponentAlignmentX(Component.LEFT_ALIGNMENT);
+    pnlMissingWedgeCompensation.add(pnlTiltRange);
+    pnlMissingWedgeCompensation.add(cbFlgWedgeWeight);
+    //Y axis type and missing wedge compensation
+    JPanel pnlYaxisTypeAndMissingWedgeCompensation = new JPanel();
+    pnlYaxisTypeAndMissingWedgeCompensation.setLayout(new BoxLayout(pnlYaxisTypeAndMissingWedgeCompensation,
+        BoxLayout.X_AXIS));
+    pnlYaxisTypeAndMissingWedgeCompensation.add(pnlYaxisType.getContainer());
+    pnlYaxisTypeAndMissingWedgeCompensation.add(pnlMissingWedgeCompensation.getContainer());
     //body
     pnlSetupBody.setBoxLayout(BoxLayout.Y_AXIS);
     pnlSetupBody.setComponentAlignmentX(Component.CENTER_ALIGNMENT);
     pnlSetupBody.add(pnlProject);
     pnlSetupBody.add(pnlUseExistingProject);
     pnlSetupBody.add(volumeTable.getContainer());
-    pnlSetupBody.add(pnlReference);
-    pnlSetupBody.add(pnlInitMotlAndYaxisType);
-    pnlSetupBody.add(pnlTiltRange);
+    pnlSetupBody.add(pnlReferenceAndInitMotl);
+    pnlSetupBody.add(pnlYaxisTypeAndMissingWedgeCompensation);
     //main panel
     pnlSetup.setBoxLayout(BoxLayout.Y_AXIS);
     pnlSetup.setBorder(BorderFactory.createEtchedBorder());
@@ -907,6 +933,9 @@ public final class PeetDialog implements AbstractParallelDialog, Expandable {
     else if (actionCommand.equals(btnCopyParameters.getActionCommand())) {
       copyParameters();
     }
+    else if (actionCommand.equals(cbFlgWedgeWeight.getActionCommand())) {
+      updateDisplay();
+    }
   }
 
   /**
@@ -1019,8 +1048,9 @@ public final class PeetDialog implements AbstractParallelDialog, Expandable {
   private void updateDisplay() {
     //tilt range
     ltfEdgeShift.setEnabled(cbTiltRange.isSelected());
-    rbCcModeNormalized.setEnabled(!cbTiltRange.isSelected());
-    if (cbTiltRange.isSelected()) {
+    cbFlgWedgeWeight.setEnabled(cbTiltRange.isSelected());
+    rbCcModeNormalized.setEnabled(!cbFlgWedgeWeight.isSelected());
+    if (cbFlgWedgeWeight.isSelected()) {
       rbCcModeLocal.setSelected(true);
     }
     int size = volumeTable.size();
@@ -1089,6 +1119,7 @@ public final class PeetDialog implements AbstractParallelDialog, Expandable {
     btnRef.addActionListener(actionListener);
     btnDuplicateProject.addActionListener(actionListener);
     btnCopyParameters.addActionListener(actionListener);
+    cbFlgWedgeWeight.addActionListener(actionListener);
   }
 
   private static final class PDActionListener implements ActionListener {

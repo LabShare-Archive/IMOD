@@ -43,6 +43,9 @@ import etomo.util.DatasetFiles;
  * @version $Revision$
  * 
  * <p> $Log$
+ * <p> Revision 1.6  2007/05/16 22:58:44  sueh
+ * <p> bug# 964 Changed setFileDir to setFile.
+ * <p>
  * <p> Revision 1.5  2007/05/16 01:45:37  sueh
  * <p> bug# 964 In setvolumeListSize(int size), set volumeList size to size.
  * <p>
@@ -187,6 +190,8 @@ public final class MatlabParam {
   public static final String YAXIS_TYPE_KEY = "yaxisType";
   public static final String YAXIS_CONTOUR_KEY = "yaxisContour";
   public static final boolean REFERENCE_FILE_DEFAULT = false;
+  public static final String FLG_WEDGE_WEIGHT_KEY = "flgWedgeWeight";
+  public static final boolean FLG_WEDGE_WEIGHT_DEFAULT = false;
 
   private static final int REFERENCE_VOLUME_INDEX = 0;
   private static final int REFERENCE_PARTICLE_INDEX = 1;
@@ -218,6 +223,7 @@ public final class MatlabParam {
   private final ParsedQuotedString referenceFile = new ParsedQuotedString();
   private final ParsedArray reference = ParsedArray.getInstance();
   private final ParsedArray yaxisContour = ParsedArray.getInstance();
+  private final ParsedNumber flgWedgeWeight = new ParsedNumber();
 
   private String lowCutoff = LOW_CUTOFF_DEFAULT;
   private InitMotlCode initMotlCode = InitMotlCode.DEFAULT;
@@ -439,6 +445,10 @@ public final class MatlabParam {
   public void setLstFlagAllTom(final boolean input) {
     lstFlagAllTom.setRawString(input);
   }
+  
+  public void setFlgWedgeWeight(final boolean input) {
+    flgWedgeWeight.setRawString(input);
+  }
 
   public boolean isMeanFill() {
     return meanFill.getRawBoolean();
@@ -450,6 +460,10 @@ public final class MatlabParam {
 
   public boolean isLstFlagAllTom() {
     return lstFlagAllTom.getRawBoolean();
+  }
+  
+  public boolean isFlgWedgeWeight() {
+    return flgWedgeWeight.getRawBoolean();
   }
 
   public String getAlignedBaseName() {
@@ -517,6 +531,7 @@ public final class MatlabParam {
     yaxisType = YaxisType.DEFAULT;
     useYaxisContour = false;
     yaxisContour.clear();
+    flgWedgeWeight.setRawString(FLG_WEDGE_WEIGHT_DEFAULT);
   }
 
   public void clearEdgeShift() {
@@ -755,6 +770,8 @@ public final class MatlabParam {
     useYaxisContour = yaxisType == YaxisType.CONTOUR;
     //YaxisContour
     yaxisContour.parse(autodoc.getAttribute(YAXIS_CONTOUR_KEY));
+    //flgWedgeWeight
+    flgWedgeWeight.parse(autodoc.getAttribute(FLG_WEDGE_WEIGHT_KEY));
   }
 
   /**
@@ -908,6 +925,7 @@ public final class MatlabParam {
     if (useYaxisContour) {
       valueMap.put(YAXIS_CONTOUR_KEY, yaxisContour.getParsableString());
     }
+    valueMap.put(FLG_WEDGE_WEIGHT_KEY, flgWedgeWeight.getParsableString());
   }
 
   /**
