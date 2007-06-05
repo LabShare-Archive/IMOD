@@ -1,5 +1,8 @@
 IMOD History
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+6/5/07: In Etomo - PEET, fixed a bug which prevented the "New PEET" menu item
+from being enabled correctly.
+
 6/4/07: In Etomo - PEET, added "Copy Parameters" button, which allows the reuse
 of a preferred set of parameters.
 
