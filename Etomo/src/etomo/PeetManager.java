@@ -52,6 +52,11 @@ import etomo.util.DatasetFiles;
  * @version $Revision$
  * 
  * <p> $Log$
+ * <p> Revision 1.25  2007/06/04 23:03:59  sueh
+ * <p> bug# 1005 Added boolean parametersOnly to setPeetDialogParameters,
+ * <p> loadMatlabParam, and loadParamFile.  Added boolean metaDataLoaded to
+ * <p> setPeetDialogParameters.
+ * <p>
  * <p> Revision 1.24  2007/05/31 22:23:38  sueh
  * <p> bug# 1004 Using createNewFile() instead of touch() to create the .epe file.
  * <p>
@@ -285,6 +290,8 @@ public final class PeetManager extends BaseManager {
     matlabParam.setFile(propertyUserDir);
     setPeetDialogParameters(matlabParamFile.getParentFile(), false,
         parametersOnly);
+    mainPanel.setStatusBarText(paramFile, metaData);
+    EtomoDirector.getInstance().renameCurrentManager(metaData.getName());
   }
 
   /**
@@ -347,6 +354,8 @@ public final class PeetManager extends BaseManager {
         peetDialog.setFnOutput(newName);
         peetDialog.updateDisplay(true);
         setPeetDialogParameters(null, true, parametersOnly);
+        mainPanel.setStatusBarText(paramFile, metaData);
+        EtomoDirector.getInstance().renameCurrentManager(metaData.getName());
       }
     }
     catch (LogFile.WriteException e) {
