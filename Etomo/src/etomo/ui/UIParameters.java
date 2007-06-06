@@ -12,6 +12,9 @@
  * @version $Revision$
  * 
  * <p> $Log$
+ * <p> Revision 3.13  2007/04/02 21:53:32  sueh
+ * <p> bug# 964 Added integerWidth.
+ * <p>
  * <p> Revision 3.12  2007/03/03 01:08:25  sueh
  * <p> bug# 973 Added integerDoubletWidth.
  * <p>
@@ -188,7 +191,7 @@ public final class UIParameters {
     dimFileField.setSize(20 * height * fontSizeAdjustment, 2 * height
         * fontSizeAdjustment);
     dimFileChooser.setSize(400 * fontSizeAdjustment, 400 * fontSizeAdjustment);
-    numericWidth = (int) (50 * fontSizeAdjustment);
+    numericWidth = (int) (40 * fontSizeAdjustment);
     sectionsWidth = (int) (75 * fontSizeAdjustment);
     integerTripletWidth = (int) (75 * fontSizeAdjustment);
     integerDoubletWidth=(int)(50*fontSizeAdjustment);
