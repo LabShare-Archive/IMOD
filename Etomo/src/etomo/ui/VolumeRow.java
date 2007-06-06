@@ -27,6 +27,9 @@ import etomo.type.Run3dmodMenuOptions;
  * @version $Revision$
  * 
  * <p> $Log$
+ * <p> Revision 1.16  2007/05/16 02:35:58  sueh
+ * <p> bug# 964 Added getIndex(), remove(), and setIndex(int).
+ * <p>
  * <p> Revision 1.15  2007/05/07 17:23:59  sueh
  * <p> bug# 964 Changed MatlabParamFile to MatlabParam.
  * <p>
@@ -95,13 +98,13 @@ final class VolumeRow implements Highlightable {
   private final FieldCell relativeOrientY = FieldCell.getEditableInstance();
   private final FieldCell relativeOrientZ = FieldCell.getEditableInstance();
   private final HighlighterButton btnHighlighter;
-  
+
   private final VolumeTable table;
   private final JPanel panel;
   private final GridBagLayout layout;
   private final GridBagConstraints constraints;
   private final BaseManager manager;
-  
+
   private int imodIndex = -1;
   private int index;
 
@@ -139,7 +142,7 @@ final class VolumeRow implements Highlightable {
     relativeOrientY.setHighlight(highlight);
     relativeOrientZ.setHighlight(highlight);
   }
-  
+
   void remove() {
     number.remove();
     btnHighlighter.remove();
@@ -176,11 +179,11 @@ final class VolumeRow implements Highlightable {
   void expandFnVolume(final boolean expanded) {
     fnVolume.expand(expanded);
   }
-  
+
   int getIndex() {
     return index;
   }
-  
+
   void setIndex(int index) {
     this.index = index;
     number.setText(String.valueOf(index + 1));
@@ -221,8 +224,8 @@ final class VolumeRow implements Highlightable {
     volume.setRelativeOrientZ(relativeOrientZ.getValue());
   }
 
-  void setParameters(final MatlabParam matlabParam,
-      boolean useInitMotlFile, boolean useTiltRange) {
+  void setParameters(final MatlabParam matlabParam, boolean useInitMotlFile,
+      boolean useTiltRange) {
     MatlabParam.Volume volume = matlabParam.getVolume(index);
     if (useInitMotlFile) {
       setExpandableValues(initMotlFile, volume.getInitMotlString());
@@ -254,6 +257,15 @@ final class VolumeRow implements Highlightable {
         .getExpandedValue(), fnModParticle.getExpandedValue(), menuOptions);
   }
 
+  boolean validateRun() {
+    if (fnModParticle.isEmpty()) {
+      UIHarness.INSTANCE.openMessageDialog(VolumeTable.FN_MOD_PARTICLE_HEADER1
+          + " must not be empty.", "Entry Error");
+      return false;
+    }
+    return true;
+  }
+
   private void setExpandableValues(final FieldCell fieldCell,
       final String fileName) {
     //Don't override existing values with null value.
@@ -273,6 +285,10 @@ final class VolumeRow implements Highlightable {
 
   void setInitMotlFile(File initMotlFile) {
     setExpandableValues(this.initMotlFile, initMotlFile);
+  }
+
+  void setFnModParticle(File input) {
+    setExpandableValues(fnModParticle, input);
   }
 
   void setTiltRangeStart(final String tiltRangeStart) {
