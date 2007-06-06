@@ -21,6 +21,11 @@ import etomo.type.ProcessName;
  * @version $Revision$
  * 
  * <p> $Log$
+ * <p> Revision 1.4  2007/05/11 15:46:01  sueh
+ * <p> bug# 964 Added postProcess(BackgroundProcess) to handle mtbParser.
+ * <p> Added postProcess(DetachedProcess) to handle processchunks.  These
+ * <p> functions will save the information needed to find the AvgVol files.
+ * <p>
  * <p> Revision 1.3  2007/04/27 23:39:20  sueh
  * <p> bug# 964 Changed prmParser() to peetParser.
  * <p>
@@ -70,8 +75,6 @@ public final class PeetProcessManager extends BaseProcessManager {
     ProcessName processName = process.getProcessName();
     ProcessDetails processDetails = process.getProcessDetails();
     PeetState state = manager.getState();
-    System.out.println("peet.postProcess.BackgroundProcess:processName=" + processName
-        + ",processDetails=" + processDetails);
     if (processName == null) {
       return;
     }
@@ -87,7 +90,6 @@ public final class PeetProcessManager extends BaseProcessManager {
   }
 
    void postProcess(DetachedProcess process) {
-    System.out.println("peet.postProcess.DetachedProcess");
     PeetState state = manager.getState();
     state.setIterationListSize(state.getParserIterationListSize());
     state.setLstThresholdsArray(state.getParserLstThresholdsArray());
