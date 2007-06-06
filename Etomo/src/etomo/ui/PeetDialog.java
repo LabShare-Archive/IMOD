@@ -4,6 +4,7 @@ import java.awt.Component;
 import java.awt.Container;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
+import java.awt.event.MouseEvent;
 import java.io.File;
 import java.io.FileNotFoundException;
 import java.io.IOException;
@@ -51,6 +52,9 @@ import etomo.type.PeetScreenState;
  * @version $Revision$
  * 
  * <p> $Log$
+ * <p> Revision 1.46  2007/06/06 16:07:01  sueh
+ * <p> bug# 1013 Added validateRun().
+ * <p>
  * <p> Revision 1.45  2007/06/05 21:33:08  sueh
  * <p> bug# 1010 Added flgWedgeWeight.
  * <p>
@@ -197,7 +201,8 @@ import etomo.type.PeetScreenState;
  * <p> </p>
  */
 
-public final class PeetDialog implements AbstractParallelDialog, Expandable {
+public final class PeetDialog implements ContextMenu, AbstractParallelDialog,
+    Expandable {
   public static final String rcsid = "$Id$";
 
   public static final String FN_OUTPUT_LABEL = "Root name for output";
@@ -336,6 +341,7 @@ public final class PeetDialog implements AbstractParallelDialog, Expandable {
     createRunPanel();
     tabPane.add("Setup", pnlSetup.getContainer());
     tabPane.add("Run", pnlRun);
+    tabPane.addMouseListener(new GenericMouseAdapter(this));
     changeTab();
     setDefaults();
     updateDisplay();
@@ -361,6 +367,21 @@ public final class PeetDialog implements AbstractParallelDialog, Expandable {
 
   public Container getContainer() {
     return rootPanel;
+  }
+
+  /**
+   * Right mouse button context menu
+   */
+  public void popUpContextMenu(MouseEvent mouseEvent) {
+    String[] manPagelabel = { "Processchunks", "3dmod" };
+    String[] manPage = { "processchunks.html", "3dmod.html" };
+    String[] logFileLabel = { "Prm", "Start" };
+    String[] logFile = new String[2];
+    logFile[0] = ltfFnOutput.getText() + ".prm.log";
+    logFile[1] = ltfFnOutput.getText() + "-start.log";
+    ContextPopup contextPopup = new ContextPopup(rootPanel, mouseEvent,
+    /* "PEET", ContextPopup.TOMO_GUIDE,*/manPagelabel, manPage, logFileLabel,
+        logFile, manager, axisID);
   }
 
   public DialogType getDialogType() {
