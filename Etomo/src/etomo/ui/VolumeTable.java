@@ -47,6 +47,11 @@ import etomo.type.Run3dmodMenuOptions;
  * @version $Revision$
  * 
  * <p> $Log$
+ * <p> Revision 1.22  2007/06/06 16:09:19  sueh
+ * <p> bug# 1013 Changed addVolume() to addVolumeRow().  Added
+ * <p> setFnModParticle() and validateRun().  In addVolumeRow() no longer
+ * <p> requiring fnModParticle.
+ * <p>
  * <p> Revision 1.21  2007/05/31 22:27:16  sueh
  * <p> bug# 1004 Changed PeetDialog.OUTPUT_LABEL to FN_OUTPUT_LABEL.
  * <p>
@@ -285,26 +290,30 @@ final class VolumeTable implements Expandable, Highlightable,
     pnlBorder.setBoxLayout(BoxLayout.Y_AXIS);
     pnlBorder.setBorder(new EtchedBorder("Volume Table").getBorder());
     pnlBorder.add(pnlTable);
-    //buttons
-    JPanel pnlButtons = new JPanel();
-    pnlButtons.setLayout(new BoxLayout(pnlButtons, BoxLayout.X_AXIS));
+    //buttons 1
+    JPanel pnlButtons1 = new JPanel();
+    pnlButtons1.setLayout(new BoxLayout(pnlButtons1, BoxLayout.X_AXIS));
     btnAddFnVolume.setSize();
-    pnlButtons.add(btnAddFnVolume.getComponent());
+    pnlButtons1.add(btnAddFnVolume.getComponent());
     btnChangeFnModParticle.setSize();
-    pnlButtons.add(btnChangeFnModParticle.getComponent());
+    pnlButtons1.add(btnChangeFnModParticle.getComponent());
     btnSetInitMotlFile.setSize();
-    pnlButtons.add(btnSetInitMotlFile.getComponent());
+    pnlButtons1.add(btnSetInitMotlFile.getComponent());
     btnReadTiltFile.setSize();
-    pnlButtons.add(btnReadTiltFile.getComponent());
-    r3bVolume.setSize();
-    pnlButtons.add(r3bVolume.getComponent());
+    pnlButtons1.add(btnReadTiltFile.getComponent());
     btnDeleteRow.setSize();
-    pnlButtons.add(btnDeleteRow.getComponent());
+    pnlButtons1.add(btnDeleteRow.getComponent());
+    //buttons 2
+    JPanel pnlButtons2 = new JPanel();
+    pnlButtons2.setLayout(new BoxLayout(pnlButtons2, BoxLayout.X_AXIS));
+    r3bVolume.setSize();
+    pnlButtons2.add(r3bVolume.getComponent());
     //root
     rootPanel.setLayout(new BoxLayout(rootPanel, BoxLayout.Y_AXIS));
     rootPanel.setBorder(BorderFactory.createEtchedBorder());
     rootPanel.add(pnlBorder.getContainer());
-    rootPanel.add(pnlButtons);
+    rootPanel.add(pnlButtons1);
+    rootPanel.add(pnlButtons2);
   }
 
   private void run3dmod(String command, Run3dmodMenuOptions menuOptions) {
