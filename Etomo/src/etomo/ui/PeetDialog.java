@@ -51,6 +51,9 @@ import etomo.type.PeetScreenState;
  * @version $Revision$
  * 
  * <p> $Log$
+ * <p> Revision 1.45  2007/06/05 21:33:08  sueh
+ * <p> bug# 1010 Added flgWedgeWeight.
+ * <p>
  * <p> Revision 1.44  2007/06/05 17:59:32  sueh
  * <p> bug# 1007 Adding to lstThresholds tooltip.
  * <p>
@@ -309,7 +312,8 @@ public final class PeetDialog implements AbstractParallelDialog, Expandable {
       "Duplicate an Existing Project");
   private final MultiLineButton btnCopyParameters = new MultiLineButton(
       "Copy Parameters");
-  private final CheckBox cbFlgWedgeWeight = new CheckBox("Use tilt range in alignment");
+  private final CheckBox cbFlgWedgeWeight = new CheckBox(
+      "Use tilt range in alignment");
 
   private final PanelHeader phRun;
   private final PanelHeader phSetup;
@@ -473,11 +477,10 @@ public final class PeetDialog implements AbstractParallelDialog, Expandable {
     ltfLowCutoff.setText(matlabParam.getLowCutoff());
     lsDebugLevel.setValue(matlabParam.getDebugLevel());
     ltfLstThresholdsStart.setText(matlabParam.getLstThresholdsStart());
-    ltfLstThresholdsIncrement.setText(matlabParam
-        .getLstThresholdsIncrement());
+    ltfLstThresholdsIncrement.setText(matlabParam.getLstThresholdsIncrement());
     ltfLstThresholdsEnd.setText(matlabParam.getLstThresholdsEnd());
-    ltfLstThresholdsAdditional.setText(matlabParam
-        .getLstThresholdsAdditional());
+    ltfLstThresholdsAdditional
+        .setText(matlabParam.getLstThresholdsAdditional());
     cbRefFlagAllTom.setSelected(matlabParam.isRefFlagAllTom());
     cbLstFlagAllTom.setSelected(matlabParam.isLstFlagAllTom());
     lsParticlePerCPU.setValue(matlabParam.getParticlePerCPU());
@@ -537,11 +540,10 @@ public final class PeetDialog implements AbstractParallelDialog, Expandable {
     matlabParam.setLowCutoff(ltfLowCutoff.getText());
     matlabParam.setDebugLevel(lsDebugLevel.getValue());
     matlabParam.setLstThresholdsStart(ltfLstThresholdsStart.getText());
-    matlabParam.setLstThresholdsIncrement(ltfLstThresholdsIncrement
-        .getText());
+    matlabParam.setLstThresholdsIncrement(ltfLstThresholdsIncrement.getText());
     matlabParam.setLstThresholdsEnd(ltfLstThresholdsEnd.getText());
-    matlabParam.setLstThresholdsAdditional(ltfLstThresholdsAdditional
-        .getText());
+    matlabParam
+        .setLstThresholdsAdditional(ltfLstThresholdsAdditional.getText());
     matlabParam.setRefFlagAllTom(cbRefFlagAllTom.isSelected());
     matlabParam.setLstFlagAllTom(cbLstFlagAllTom.isSelected());
     matlabParam.setParticlePerCPU(lsParticlePerCPU.getValue());
@@ -767,9 +769,11 @@ public final class PeetDialog implements AbstractParallelDialog, Expandable {
     pnlYaxisContour.setLayout(new BoxLayout(pnlYaxisContour, BoxLayout.X_AXIS));
     pnlYaxisContour.add(rbYaxisTypeContour.getComponent());
     pnlYaxisContour.add(sYaxisContourModelNumber.getContainer());
-    ltfYaxisContourObjectNumber.setTextPreferredWidth(UIParameters.INSTANCE.getIntegerWidth());
+    ltfYaxisContourObjectNumber.setTextPreferredWidth(UIParameters.INSTANCE
+        .getIntegerWidth());
     pnlYaxisContour.add(ltfYaxisContourObjectNumber.getContainer());
-    ltfYaxisContourContourNumber.setTextPreferredWidth(UIParameters.INSTANCE.getIntegerWidth());
+    ltfYaxisContourContourNumber.setTextPreferredWidth(UIParameters.INSTANCE
+        .getIntegerWidth());
     pnlYaxisContour.add(ltfYaxisContourContourNumber.getContainer());
     //YaxisType
     pnlYaxisType.setBoxLayout(BoxLayout.Y_AXIS);
@@ -788,16 +792,19 @@ public final class PeetDialog implements AbstractParallelDialog, Expandable {
     //missing wedge compensation
     SpacedPanel pnlMissingWedgeCompensation = new SpacedPanel();
     pnlMissingWedgeCompensation.setBoxLayout(BoxLayout.Y_AXIS);
-    pnlMissingWedgeCompensation.setBorder(new EtchedBorder("Missing Wedge Compensation").getBorder());
-    pnlMissingWedgeCompensation.setComponentAlignmentX(Component.LEFT_ALIGNMENT);
+    pnlMissingWedgeCompensation.setBorder(new EtchedBorder(
+        "Missing Wedge Compensation").getBorder());
+    pnlMissingWedgeCompensation
+        .setComponentAlignmentX(Component.LEFT_ALIGNMENT);
     pnlMissingWedgeCompensation.add(pnlTiltRange);
     pnlMissingWedgeCompensation.add(cbFlgWedgeWeight);
     //Y axis type and missing wedge compensation
     JPanel pnlYaxisTypeAndMissingWedgeCompensation = new JPanel();
-    pnlYaxisTypeAndMissingWedgeCompensation.setLayout(new BoxLayout(pnlYaxisTypeAndMissingWedgeCompensation,
-        BoxLayout.X_AXIS));
+    pnlYaxisTypeAndMissingWedgeCompensation.setLayout(new BoxLayout(
+        pnlYaxisTypeAndMissingWedgeCompensation, BoxLayout.X_AXIS));
     pnlYaxisTypeAndMissingWedgeCompensation.add(pnlYaxisType.getContainer());
-    pnlYaxisTypeAndMissingWedgeCompensation.add(pnlMissingWedgeCompensation.getContainer());
+    pnlYaxisTypeAndMissingWedgeCompensation.add(pnlMissingWedgeCompensation
+        .getContainer());
     //body
     pnlSetupBody.setBoxLayout(BoxLayout.Y_AXIS);
     pnlSetupBody.setComponentAlignmentX(Component.CENTER_ALIGNMENT);
@@ -907,7 +914,9 @@ public final class PeetDialog implements AbstractParallelDialog, Expandable {
       updateDisplay();
     }
     else if (actionCommand.equals(btnRun.getActionCommand())) {
-      manager.peetParser();
+      if (validateRun()) {
+        manager.peetParser();
+      }
     }
     else if (actionCommand.equals(rbYaxisTypeYAxis.getActionCommand())) {
       updateDisplay();
@@ -936,6 +945,10 @@ public final class PeetDialog implements AbstractParallelDialog, Expandable {
     else if (actionCommand.equals(cbFlgWedgeWeight.getActionCommand())) {
       updateDisplay();
     }
+  }
+
+  private boolean validateRun() {
+    return volumeTable.validateRun();
   }
 
   /**
