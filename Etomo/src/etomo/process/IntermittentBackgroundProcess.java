@@ -219,7 +219,7 @@ public final class IntermittentBackgroundProcess implements Runnable {
     }
     //wait while the processes are ending
     try {
-      Thread.sleep(1000);
+      Thread.sleep(1024);
     }
     catch (InterruptedException e) {
     }
@@ -397,6 +397,9 @@ public final class IntermittentBackgroundProcess implements Runnable {
 }
 /**
  * <p> $Log$
+ * <p> Revision 1.11  2007/06/05 17:41:52  sueh
+ * <p> bug# 994 Increased the wait time in stop().
+ * <p>
  * <p> Revision 1.10  2007/06/04 23:05:17  sueh
  * <p> bug# 994 Increased the wait time in stop().
  * <p>
