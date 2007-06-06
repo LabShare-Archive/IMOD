@@ -52,6 +52,9 @@ import etomo.type.PeetScreenState;
  * @version $Revision$
  * 
  * <p> $Log$
+ * <p> Revision 1.47  2007/06/06 16:59:22  sueh
+ * <p> bug# 1015 Implemented ContextMenu.  Added popUpContextMenu().
+ * <p>
  * <p> Revision 1.46  2007/06/06 16:07:01  sueh
  * <p> bug# 1013 Added validateRun().
  * <p>
@@ -772,6 +775,30 @@ public final class PeetDialog implements ContextMenu, AbstractParallelDialog,
     pnlReference.setBorder(new EtchedBorder("Reference").getBorder());
     pnlReference.add(pnlVolumeReference);
     pnlReference.add(pnlVolumeFile);
+    //tiltRange and edgeShift
+    JPanel pnlTiltRange = new JPanel();
+    pnlTiltRange.setLayout(new BoxLayout(pnlTiltRange, BoxLayout.X_AXIS));
+    pnlTiltRange.add(cbTiltRange);
+    pnlTiltRange.add(Box.createRigidArea(FixedDim.x20_y0));
+    ltfEdgeShift.setTextPreferredWidth(UIParameters.INSTANCE.getIntegerWidth());
+    pnlTiltRange.add(ltfEdgeShift.getContainer());
+    //missing wedge compensation
+    SpacedPanel pnlMissingWedgeCompensation = new SpacedPanel();
+    pnlMissingWedgeCompensation.setBoxLayout(BoxLayout.Y_AXIS);
+    pnlMissingWedgeCompensation.setBorder(new EtchedBorder(
+        "Missing Wedge Compensation").getBorder());
+    pnlMissingWedgeCompensation
+        .setComponentAlignmentX(Component.LEFT_ALIGNMENT);
+    pnlMissingWedgeCompensation.add(pnlTiltRange);
+    pnlMissingWedgeCompensation.add(cbFlgWedgeWeight);
+    //reference and missing wedge compensation
+    JPanel pnlReferenceAndMissingWedgeCompensation = new JPanel();
+    pnlReferenceAndMissingWedgeCompensation.setLayout(new BoxLayout(
+        pnlReferenceAndMissingWedgeCompensation, BoxLayout.X_AXIS));
+    pnlReferenceAndMissingWedgeCompensation.add(pnlReference);
+    pnlReferenceAndMissingWedgeCompensation.add(Box.createRigidArea(FixedDim.x20_y0));
+    pnlReferenceAndMissingWedgeCompensation.add(pnlMissingWedgeCompensation
+        .getContainer());
     //init MOTL
     pnlInitMotl.setLayout(new BoxLayout(pnlInitMotl, BoxLayout.Y_AXIS));
     pnlInitMotl.setBorder(new EtchedBorder("Initial Motive List").getBorder());
@@ -779,12 +806,6 @@ public final class PeetDialog implements ContextMenu, AbstractParallelDialog,
     pnlInitMotl.add(rbInitMotlZAxis.getComponent());
     pnlInitMotl.add(rbInitMotlXAndZAxis.getComponent());
     pnlInitMotl.add(rbInitMotlFiles.getComponent());
-    //reference and init MOTL
-    JPanel pnlReferenceAndInitMotl = new JPanel();
-    pnlReferenceAndInitMotl.setLayout(new BoxLayout(pnlReferenceAndInitMotl,
-        BoxLayout.X_AXIS));
-    pnlReferenceAndInitMotl.add(pnlReference);
-    pnlReferenceAndInitMotl.add(pnlInitMotl);
     //YaxisContour
     JPanel pnlYaxisContour = new JPanel();
     pnlYaxisContour.setLayout(new BoxLayout(pnlYaxisContour, BoxLayout.X_AXIS));
@@ -803,37 +824,21 @@ public final class PeetDialog implements ContextMenu, AbstractParallelDialog,
     pnlYaxisType.add(rbYaxisTypeYAxis);
     pnlYaxisType.add(rbYaxisTypeParticleModel);
     pnlYaxisType.add(pnlYaxisContour);
-    //tiltRange and edgeShift
-    JPanel pnlTiltRange = new JPanel();
-    pnlTiltRange.setLayout(new BoxLayout(pnlTiltRange, BoxLayout.X_AXIS));
-    pnlTiltRange.add(cbTiltRange);
-    pnlTiltRange.add(Box.createRigidArea(FixedDim.x20_y0));
-    ltfEdgeShift.setTextPreferredWidth(UIParameters.INSTANCE.getIntegerWidth());
-    pnlTiltRange.add(ltfEdgeShift.getContainer());
-    //missing wedge compensation
-    SpacedPanel pnlMissingWedgeCompensation = new SpacedPanel();
-    pnlMissingWedgeCompensation.setBoxLayout(BoxLayout.Y_AXIS);
-    pnlMissingWedgeCompensation.setBorder(new EtchedBorder(
-        "Missing Wedge Compensation").getBorder());
-    pnlMissingWedgeCompensation
-        .setComponentAlignmentX(Component.LEFT_ALIGNMENT);
-    pnlMissingWedgeCompensation.add(pnlTiltRange);
-    pnlMissingWedgeCompensation.add(cbFlgWedgeWeight);
-    //Y axis type and missing wedge compensation
-    JPanel pnlYaxisTypeAndMissingWedgeCompensation = new JPanel();
-    pnlYaxisTypeAndMissingWedgeCompensation.setLayout(new BoxLayout(
-        pnlYaxisTypeAndMissingWedgeCompensation, BoxLayout.X_AXIS));
-    pnlYaxisTypeAndMissingWedgeCompensation.add(pnlYaxisType.getContainer());
-    pnlYaxisTypeAndMissingWedgeCompensation.add(pnlMissingWedgeCompensation
-        .getContainer());
+    //init MOTL and Y axis type
+    JPanel pnlInitMotlAndYAxisType = new JPanel();
+    pnlInitMotlAndYAxisType.setLayout(new BoxLayout(pnlInitMotlAndYAxisType,
+        BoxLayout.X_AXIS));
+    pnlInitMotlAndYAxisType.add(pnlInitMotl);
+    pnlInitMotlAndYAxisType.add(Box.createRigidArea(FixedDim.x20_y0));
+    pnlInitMotlAndYAxisType.add(pnlYaxisType.getContainer());
     //body
     pnlSetupBody.setBoxLayout(BoxLayout.Y_AXIS);
     pnlSetupBody.setComponentAlignmentX(Component.CENTER_ALIGNMENT);
     pnlSetupBody.add(pnlProject);
     pnlSetupBody.add(pnlUseExistingProject);
     pnlSetupBody.add(volumeTable.getContainer());
-    pnlSetupBody.add(pnlReferenceAndInitMotl);
-    pnlSetupBody.add(pnlYaxisTypeAndMissingWedgeCompensation);
+    pnlSetupBody.add(pnlReferenceAndMissingWedgeCompensation);
+    pnlSetupBody.add(pnlInitMotlAndYAxisType);
     //main panel
     pnlSetup.setBoxLayout(BoxLayout.Y_AXIS);
     pnlSetup.setBorder(BorderFactory.createEtchedBorder());
