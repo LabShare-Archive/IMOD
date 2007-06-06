@@ -32,6 +32,9 @@ import java.util.Properties;
  * @version $Revision$
  * 
  * <p> $Log$
+ * <p> Revision 1.5  2007/05/16 01:46:16  sueh
+ * <p> bug# 964 Added RowKey.toString().
+ * <p>
  * <p> Revision 1.4  2007/05/11 16:00:05  sueh
  * <p> bug# 964 Added set(String[]), which saves the values of the parameter
  * <p> using the indexes as keys.
@@ -110,7 +113,7 @@ public final class IntKeyList implements ConstIntKeyList {
   public boolean isEmpty() {
     return list.isEmpty();
   }
-  
+
   public void set(final String[] input) {
     if (input == null) {
       return;
@@ -226,6 +229,35 @@ public final class IntKeyList implements ConstIntKeyList {
     }
   }
 
+  public void load(Properties props, String prepend, String tempKey) {
+    if (listKey == null) {
+      return;
+    }
+    prepend = getPrepend(prepend, tempKey);
+    String group = prepend + ".";
+    rowKey.load(props, prepend);
+    for (int i = getFirstKey(); i <= getLastKey(); i++) {
+      String value = props.getProperty(group + String.valueOf(i));
+      if (value != null) {
+        list.put(String.valueOf(i), new Pair(i, value, etomoNumberType));
+      }
+    }
+  }
+  
+  public void remove(Properties props, String prepend, String tempKey) {
+    if (tempKey == null) {
+      return;
+    }
+    prepend = getPrepend(prepend, tempKey);
+    String group = prepend + ".";
+    RowKey oldRowKey = new RowKey(rowKey);
+    oldRowKey.load(props, prepend);
+    for (int i = oldRowKey.getFirstKey(); i <= oldRowKey.getLastKey(); i++) {
+      props.remove(group + String.valueOf(i));
+    }
+    oldRowKey.remove(props, prepend);
+  }
+
   public Walker getWalker() {
     return new Walker(this);
   }
@@ -268,6 +300,15 @@ public final class IntKeyList implements ConstIntKeyList {
     }
     else {
       return prepend + "." + listKey;
+    }
+  }
+
+  private final String getPrepend(String prepend, String tempKey) {
+    if (prepend == "") {
+      return tempKey;
+    }
+    else {
+      return prepend + "." + tempKey;
     }
   }
 
@@ -462,9 +503,9 @@ public final class IntKeyList implements ConstIntKeyList {
       lastKey.set(rowKey.lastKey);
       startKey = rowKey.startKey;
     }
-    
+
     public String toString() {
-      return "[firstKey="+firstKey+",lastKey="+lastKey;
+      return "[firstKey=" + firstKey + ",lastKey=" + lastKey;
     }
 
     void reset() {
