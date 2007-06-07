@@ -1,6 +1,9 @@
 IMOD History
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-6/7/07: In Etomo - PEET, allow nonsuported parameters in the .prm file.
+6/7/07: In Etomo - PEET, allowed the root name to be changed when importing a
+.prm file.
+
+6/7/07: In Etomo - PEET, allowed nonsuported parameters in the .prm file.
 
 6/6/07: IMOD_3-10-10
 6/6/07: Fixed miscentering in Zap window after doing a drag draw, and after
