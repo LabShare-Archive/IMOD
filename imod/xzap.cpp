@@ -1266,6 +1266,7 @@ void zapMousePress(ZapStruct *zap, QMouseEvent *event)
 void zapMouseRelease(ZapStruct *zap, QMouseEvent *event)
 {
   int button1, button2, button3;
+  float imx, imy;
   button1 = event->button() == ImodPrefs->actualButton(1) ? 1 : 0;
   button2 = event->button() == ImodPrefs->actualButton(2) ? 1 : 0;
   button3 = event->button() == ImodPrefs->actualButton(3) ? 1 : 0;
@@ -1307,6 +1308,11 @@ void zapMouseRelease(ZapStruct *zap, QMouseEvent *event)
   } else if (button2) {
     registerDragAdditions(zap);
 
+    // Fix the mouse position and update the info window finally
+    zapGetixy(zap, event->x(), event->y(), &imx, &imy);
+    zap->vi->xmouse = imx;
+    zap->vi->ymouse = imy;
+    imod_info_setxyz();
     if (zap->drawCurrentOnly) {
       zap->drawCurrentOnly = 0;
       zapDraw(zap);
@@ -3851,6 +3857,9 @@ void zapGetLongestTimeString(ImodView *vi, QString *str)
 
 /*
 $Log$
+Revision 4.94  2007/05/31 16:23:10  mast
+Changes for using hot toolbar
+
 Revision 4.93  2007/05/29 14:51:00  mast
 Found most recent active zap for rubberband report, changed info output
 to give trimvol info with size, offset info secondary
