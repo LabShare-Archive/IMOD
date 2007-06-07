@@ -52,6 +52,11 @@ import etomo.util.DatasetFiles;
  * @version $Revision$
  * 
  * <p> $Log$
+ * <p> Revision 1.26  2007/06/05 17:41:39  sueh
+ * <p> bug# 1006 Added calls to mainPanel.setStatusBarText and
+ * <p> EtomoDirectory.renameCurrentManager in loadMatlabParam and
+ * <p> loadParamFile.
+ * <p>
  * <p> Revision 1.25  2007/06/04 23:03:59  sueh
  * <p> bug# 1005 Added boolean parametersOnly to setPeetDialogParameters,
  * <p> loadMatlabParam, and loadParamFile.  Added boolean metaDataLoaded to
@@ -287,6 +292,7 @@ public final class PeetManager extends BaseManager {
     if (!setParamFile()) {
       return;
     }
+    matlabParam.setFnOutput(peetDialog.getFnOutput());
     matlabParam.setFile(propertyUserDir);
     setPeetDialogParameters(matlabParamFile.getParentFile(), false,
         parametersOnly);
