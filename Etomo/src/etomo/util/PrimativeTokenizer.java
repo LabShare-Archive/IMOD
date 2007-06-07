@@ -53,6 +53,9 @@ import etomo.ui.Token;
  * @version $$Revision$$
  *
  * <p> $$Log$
+ * <p> $Revision 1.11  2007/05/14 22:29:26  sueh
+ * <p> $bug# 964 Handling \r\n.
+ * <p> $
  * <p> $Revision 1.10  2007/05/14 22:26:59  sueh
  * <p> $bug# 964 Handling \r\n.
  * <p> $
@@ -122,8 +125,9 @@ public final class PrimativeTokenizer {
   private int streamTokenizerNothingValue;
   private boolean debug = false;
 
-  public PrimativeTokenizer(LogFile file) {
+  public PrimativeTokenizer(LogFile file, boolean debug) {
     this.file = file;
+    this.debug = debug;
   }
 
   public PrimativeTokenizer(String string) {
@@ -151,24 +155,32 @@ public final class PrimativeTokenizer {
 
   private void initializeStreamTokenizer() throws FileNotFoundException,
       LogFile.ReadException {
-    if (file != null) {
-      File readingFile = new File(file.getAbsolutePath());
-      readId = file.openForReading();
-      reader = new FileReader(readingFile);
+    try {
+      if (file != null) {
+        File readingFile = new File(file.getAbsolutePath());
+        readId = file.openForReading();
+        reader = new FileReader(readingFile);
+      }
+      else if (string != null) {
+        reader = new StringReader(string);
+      }
+      else {
+        reader = new StringReader("");
+      }
+      tokenizer = new StreamTokenizer(reader);
+      streamTokenizerNothingValue = tokenizer.ttype;
+      tokenizer.resetSyntax();
+      tokenizer.wordChars('a', 'z');
+      tokenizer.wordChars('A', 'Z');
+      tokenizer.wordChars('0', '9');
+      tokenizer.eolIsSignificant(true);
     }
-    else if (string != null) {
-      reader = new StringReader(string);
+    catch (FileNotFoundException e) {
+      if (readId != LogFile.NO_ID) {
+        file.closeForReading(readId);
+      }
+      throw e;
     }
-    else {
-      reader = new StringReader("");
-    }
-    tokenizer = new StreamTokenizer(reader);
-    streamTokenizerNothingValue = tokenizer.ttype;
-    tokenizer.resetSyntax();
-    tokenizer.wordChars('a', 'z');
-    tokenizer.wordChars('A', 'Z');
-    tokenizer.wordChars('0', '9');
-    tokenizer.eolIsSignificant(true);
   }
 
   /**
@@ -215,9 +227,9 @@ public final class PrimativeTokenizer {
         if (returnFound && whitespaceFound) {
           returnFound = false;
           whitespaceBuffer.deleteCharAt(whitespaceBuffer.length() - 1);
-          if (whitespaceBuffer.length()==0) {
-            whitespaceFound=false;
-            whitespaceBuffer=null;
+          if (whitespaceBuffer.length() == 0) {
+            whitespaceFound = false;
+            whitespaceBuffer = null;
           }
         }
       }
@@ -258,9 +270,6 @@ public final class PrimativeTokenizer {
       if (!nextTokenFound) {
         nextToken();
       }
-    }
-    if (debug) {
-      System.out.println("token=" + token);
     }
     return token;
   }
@@ -351,7 +360,7 @@ public final class PrimativeTokenizer {
   }
 
   private void closeFile() throws IOException {
-    if (file != null) {
+    if (file != null && readId != LogFile.NO_ID) {
       fileClosed = true;
       reader.close();
       file.closeForReading(readId);
