@@ -147,6 +147,10 @@ import etomo.ui.Token;
  * @version $$Revision$$
  *
  * <p> $$Log$
+ * <p> $Revision 1.16  2007/04/13 18:44:17  sueh
+ * <p> $bug# 964 Fixed a recent bug in delimiter change:  AutodocTokenizer wasn't
+ * <p> $being told about the change.
+ * <p> $
  * <p> $Revision 1.15  2007/04/11 22:00:38  sueh
  * <p> $bug# 964 Fixed a bug in emptyLine() where the EOF was being treated as an
  * <p> $empty line.
@@ -295,10 +299,7 @@ final class AutodocParser {
 
   private boolean debug = false;
 
-  AutodocParser(Autodoc autodoc, boolean allowAltComment,
-      boolean versionRequired) {
-    this(autodoc, allowAltComment, versionRequired, false);
-  }
+
 
   AutodocParser(Autodoc autodoc, boolean allowAltComment,
       boolean versionRequired, boolean debug) {
@@ -308,7 +309,7 @@ final class AutodocParser {
     }
     this.autodoc = autodoc;
     name = new String(autodoc.getName());
-    tokenizer = new AutodocTokenizer(autodoc.getAutodocFile(), allowAltComment);
+    tokenizer = new AutodocTokenizer(autodoc.getAutodocFile(), allowAltComment,debug);
     this.versionRequired = versionRequired;
   }
 
@@ -1007,11 +1008,6 @@ final class AutodocParser {
   private boolean isDelimiterChange(Attribute attribute) {
     if (attribute.getNameToken().equals(Token.Type.KEYWORD,
         AutodocTokenizer.DELIMITER_KEYWORD)) {
-      if (debug) {
-        System.out.println("delimiter found");
-        test = true;
-        detailedTest = true;
-      }
       return true;
     }
     return false;
