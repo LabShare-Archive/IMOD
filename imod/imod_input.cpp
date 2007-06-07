@@ -127,6 +127,7 @@ void inputInsertPoint(ImodView *vw)
 void inputDeletePoint(ImodView *vw)
 {
   Icont *cont = imodContourGet(vw->imod);
+  Ipoint *pnt;
 
   // Must be in model mode, have contour and have a current point or be empty
   if (vw->imod->mousemode == IMOD_MMODEL && cont && 
@@ -150,6 +151,14 @@ void inputDeletePoint(ImodView *vw)
         if (vw->imod->cindex.point >= cont->psize)
           vw->imod->cindex.point = cont->psize - 1;
       }
+    }
+
+    // Set current point position to the new current point if any
+    pnt = imodPointGet(vw->imod);
+    if (pnt) {
+      vw->xmouse = pnt->x;
+      vw->ymouse = pnt->y;
+      vw->zmouse = pnt->z;
     }
     imod_info_setxyz();
     imodDraw(vw, IMOD_DRAW_MOD | IMOD_DRAW_XYZ);
@@ -1347,6 +1356,9 @@ bool inputTestMetaKey(QKeyEvent *event)
 
 /*
 $Log$
+Revision 4.29  2007/05/25 05:28:16  mast
+Changes for addition of slicer angle storage
+
 Revision 4.28  2006/09/18 15:51:51  mast
 Stopped time movie with a time step action
 
