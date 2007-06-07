@@ -120,9 +120,9 @@ final class Autodoc extends WriteOnlyStatementList implements WritableAutodoc {
   public String getName() {
     return autodocFile.getName();
   }
-  
+
   public void setDebug(boolean debug) {
-    this.debug=debug;
+    this.debug = debug;
   }
 
   LogFile getAutodocFile() {
@@ -163,7 +163,6 @@ final class Autodoc extends WriteOnlyStatementList implements WritableAutodoc {
   }
 
   public void write() throws LogFile.FileException, LogFile.WriteException {
-    autodocFile.backup();
     long writeId = autodocFile.openWriter();
     for (int i = 0; i < statementList.size(); i++) {
       ((Statement) statementList.get(i)).write(autodocFile, writeId);
@@ -309,7 +308,7 @@ final class Autodoc extends WriteOnlyStatementList implements WritableAutodoc {
       String attributeName) {
     return getAttributeValues(sectionType, attributeName, true);
   }
-  
+
   private Statement getMostRecentStatement() {
     if (statementList.size() == 0) {
       return null;
@@ -355,9 +354,9 @@ final class Autodoc extends WriteOnlyStatementList implements WritableAutodoc {
     }
     return attributeValues;
   }
-  
+
   public void printStatementList() {
-    System.out.println("statementList="+statementList);
+    System.out.println("statementList=" + statementList);
   }
 
   public void printStoredData() {
@@ -559,7 +558,7 @@ final class Autodoc extends WriteOnlyStatementList implements WritableAutodoc {
     if (autodocFile == null) {
       return;
     }
-    parser = new AutodocParser(this, false, true,debug);
+    parser = new AutodocParser(this, false, true, debug);
     if (storeData) {
       parser.initialize();
       parser.parse();
@@ -579,7 +578,7 @@ final class Autodoc extends WriteOnlyStatementList implements WritableAutodoc {
   void initialize(File file, boolean storeData, boolean versionRequired)
       throws FileNotFoundException, IOException, LogFile.ReadException {
     autodocFile = LogFile.getInstance(file);
-    parser = new AutodocParser(this, allowAltComment, versionRequired);
+    parser = new AutodocParser(this, allowAltComment, versionRequired, debug);
     if (storeData) {
       parser.initialize();
       parser.parse();
@@ -599,6 +598,9 @@ final class Autodoc extends WriteOnlyStatementList implements WritableAutodoc {
 }
 /**
  *<p> $$Log$
+ *<p> $Revision 1.20  2007/04/13 18:42:29  sueh
+ *<p> $bug# 964 Added debug member variable.
+ *<p> $
  *<p> $Revision 1.19  2007/04/11 21:59:21  sueh
  *<p> $bug# 964 Added removeNameValuePair(String name):  removes a name/value pair with a simple (one-attribute) name.  Added removeStatement(WritableStatement):  removes the passed-in Statement.
  *<p> $
