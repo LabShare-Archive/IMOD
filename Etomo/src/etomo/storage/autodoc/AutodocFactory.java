@@ -23,6 +23,9 @@ import etomo.type.AxisID;
  * @version $Revision$
  * 
  * <p> $Log$
+ * <p> Revision 1.5  2007/04/13 18:42:59  sueh
+ * <p> bug# 964 Added getDebugInstance(String, AxisID).
+ * <p>
  * <p> Revision 1.4  2007/03/26 23:33:52  sueh
  * <p> bug# 964 Added getInstance(String name) which opens an n'ton autodoc with
  * <p> AxisID.ONLY.
@@ -128,6 +131,22 @@ public final class AutodocFactory {
       autodoc.initialize(name, axisID);
     }
     return autodoc;
+  }
+
+  public static WritableAutodoc getMatlabDebugInstance(File file)
+      throws IOException, LogFile.ReadException {
+    if (file == null) {
+      throw new IllegalStateException("file is null");
+    }
+    Autodoc autodoc = new Autodoc(true);
+    autodoc.setDebug(true);
+    try {
+      autodoc.initialize(file, true, false);
+      return autodoc;
+    }
+    catch (FileNotFoundException e) {
+      return null;
+    }
   }
 
   public static WritableAutodoc getMatlabInstance(File file)
