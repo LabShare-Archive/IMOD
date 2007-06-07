@@ -66,6 +66,9 @@ import etomo.util.PrimativeTokenizer;
  * @version $$Revision$$
  *
  * <p> $$Log$
+ * <p> $Revision 1.8  2007/04/13 18:44:28  sueh
+ * <p> $bug# 964 Added debug member variable.
+ * <p> $
  * <p> $Revision 1.7  2007/03/08 21:57:14  sueh
  * <p> $bug# 964 Improved the StreamTokenizer test.
  * <p> $
@@ -140,9 +143,10 @@ public final class AutodocTokenizer {
   private StringBuffer wordBuffer = null;
   private boolean debug = false;
 
-  AutodocTokenizer(LogFile file,boolean allowAltComment) {
+  AutodocTokenizer(LogFile file,boolean allowAltComment,boolean debug) {
     this.allowAltComment=allowAltComment;
-    primativeTokenizer = new PrimativeTokenizer(file);
+    this.debug=debug;
+    primativeTokenizer = new PrimativeTokenizer(file,debug);
     if (allowAltComment) {
       restrictedSymbols.append(ALT_COMMENT_CHAR);
     }
