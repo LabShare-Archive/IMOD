@@ -909,7 +909,7 @@ void fillImageArray(SlicerStruct *ss, int panning, int meanOnly)
 
   // If computing mean only or scaling to mean, get the mean and SD of the
   // slice with some edges cut off
-  if (meanOnly || (ss->scaleToMeanSD && k > 1) || ss->fftMode) {
+  if (meanOnly || (ss->scaleToMeanSD && ksize > 1) || ss->fftMode) {
     linePtrs = ivwMakeLinePointers(ss->vi, (unsigned char *)cidata, ss->winx, 
                                    jsize, MRC_MODE_USHORT);
     sumSD = 0.;
@@ -1659,6 +1659,9 @@ static int taper_slice(Islice *sl, int ntaper, int inside)
 
  /*
 $Log$
+Revision 4.18  2007/06/04 15:06:34  mast
+Added hot key to tooltip
+
 Revision 4.17  2007/05/31 16:32:28  mast
 Changes for slicer angle toolbar, classic setting and warning
 
