@@ -21,6 +21,10 @@ import etomo.util.DatasetFiles;
  * @notthreadsafe
  * 
  * <p> $Log$
+ * <p> Revision 1.15  2007/06/06 20:44:16  sueh
+ * <p> bug# 1016 Added function load1_0 to provide backward compatibility
+ * <p> functionality for version 1.0.  Storing revisionNumber.
+ * <p>
  * <p> Revision 1.14  2007/06/05 21:28:33  sueh
  * <p> bug# 1010 Added flgWedgeWeight.
  * <p>
@@ -222,7 +226,6 @@ public class PeetMetaData extends BaseMetaData implements ConstPeetMetaData {
     yaxisContourObjectNumber.store(props, prepend);
     yaxisContourContourNumber.store(props, prepend);
     flgWedgeWeight.store(props, prepend);
-    System.out.println("revisionNumber="+revisionNumber);
     revisionNumber.store(props, prepend);
   }
 
