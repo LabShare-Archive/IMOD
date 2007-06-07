@@ -117,7 +117,7 @@ comment = The threshold to generate the reference particle at each stage
 [Field = tiltRange]
 comment = The tilt range used to acquire the tilt series [min max].
 ^This will compenstate  for the missing wedge in generating
-^the alignment and the averages.  A empty array, [], specifies
+^the alignment and the averages.  A empty list, {}, specifies
 ^not to account for the missing wedge (and use more efficient
 ^space domain averaging).
 
