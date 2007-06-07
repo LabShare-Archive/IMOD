@@ -1,5 +1,9 @@
 IMOD History
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+6/6/07: IMOD_3-10-10
+6/6/07: Fixed miscentering in Zap window after doing a drag draw, and after
+deleting points, by setting current point coordinates correctly.
+
 6/6/07: In Etomo - PEET, added "Change Model" button to the Volume Table.
 
 6/5/07: In Etomo - PEET, added flgWedgeWeight to the interface ("Use tilt range
