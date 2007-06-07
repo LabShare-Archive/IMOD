@@ -43,6 +43,9 @@ import etomo.util.DatasetFiles;
  * @version $Revision$
  * 
  * <p> $Log$
+ * <p> Revision 1.7  2007/06/05 21:28:10  sueh
+ * <p> bug# 1010 Added flgWedgeWeight.
+ * <p>
  * <p> Revision 1.6  2007/05/16 22:58:44  sueh
  * <p> bug# 964 Changed setFileDir to setFile.
  * <p>
@@ -307,8 +310,15 @@ public final class MatlabParam {
           + ".adoc.\nLogFile.ReadException:  " + e.getMessage());
     }
     try {
-      //get an empty .prm autodoc
-      WritableAutodoc autodoc = AutodocFactory.getEmptyMatlabInstance(file);
+      WritableAutodoc autodoc = AutodocFactory.getMatlabDebugInstance(file);
+      if (autodoc == null) {
+        //get an empty .prm autodoc if the file doesn't exist
+        autodoc = AutodocFactory.getEmptyMatlabInstance(file);
+      }
+      else {
+        LogFile logFile = LogFile.getInstance(file);
+        logFile.backup();
+      }
       if (commentAutodoc == null) {
         //The peetprm.adoc is not available.
         //Build a new .prm autodoc with no comments
@@ -329,7 +339,7 @@ public final class MatlabParam {
           //Also use the comments from the peetprm.adoc Field sections.
           ReadOnlySection section = null;
           while ((section = commentAutodoc.nextSection(secLoc)) != null) {
-            addNameValuePair(autodoc, section.getName(), (String) valueMap
+            setNameValuePair(autodoc, section.getName(), (String) valueMap
                 .get(section.getName()), section
                 .getAttribute(EtomoAutodoc.COMMENT_KEY));
           }
@@ -445,7 +455,7 @@ public final class MatlabParam {
   public void setLstFlagAllTom(final boolean input) {
     lstFlagAllTom.setRawString(input);
   }
-  
+
   public void setFlgWedgeWeight(final boolean input) {
     flgWedgeWeight.setRawString(input);
   }
@@ -461,7 +471,7 @@ public final class MatlabParam {
   public boolean isLstFlagAllTom() {
     return lstFlagAllTom.getRawBoolean();
   }
-  
+
   public boolean isFlgWedgeWeight() {
     return flgWedgeWeight.getRawBoolean();
   }
@@ -647,7 +657,7 @@ public final class MatlabParam {
       volumeList.add(new Volume());
     }
     //if volume list is too big, remove Volumes from the end
-    for (int i = size;i<volumeList.size();i++) {
+    for (int i = size; i < volumeList.size(); i++) {
       volumeList.remove(i);
     }
   }
@@ -660,7 +670,7 @@ public final class MatlabParam {
       iterationList.add(iteration);
     }
     //if iteration list is too big, remove Iterations from the end
-    for (int i = size;i<iterationList.size();i++) {
+    for (int i = size; i < iterationList.size(); i++) {
       iterationList.remove(i);
     }
   }
@@ -713,7 +723,7 @@ public final class MatlabParam {
     ParsedElement descriptor = lstThresholds.getFirstDescriptor(0);
     return descriptor.getRawString(LST_THRESHOLDS_END_INDEX);
   }
-  
+
   public String[] getLstThresholdsArray() {
     return lstThresholds.getParsableStringArray();
   }
@@ -1136,11 +1146,11 @@ public final class MatlabParam {
     if (attribute == null) {
       if (commentMap == null) {
         //new attribute, so add attribute and name/value pair
-        addNameValuePair(autodoc, name, value, (String) null);
+        setNameValuePair(autodoc, name, value, (String) null);
       }
       else {
         //new attribute, so add comment, attribute, and name/value pair
-        addNameValuePair(autodoc, name, value, (String) commentMap.get(name));
+        setNameValuePair(autodoc, name, value, (String) commentMap.get(name));
       }
     }
     else {
@@ -1149,24 +1159,24 @@ public final class MatlabParam {
   }
 
   /**
-   * Add a new name/value pair.  Adds a new-line and comment (if comment is not
-   * null), an attribute, and a name/value pair.
+   * Adds or updates a name/value pair.  If adding, also trys to add a new-line
+   * and comment.
    * @param autodoc
    * @param attributeName
    * @param attributeValue
    * @param commentAttribute
    */
-  private void addNameValuePair(final WritableAutodoc autodoc,
+  private void setNameValuePair(final WritableAutodoc autodoc,
       final String name, final String value,
       final ReadOnlyAttribute commentAttribute) {
     if (value == null) {
       return;
     }
     if (commentAttribute == null) {
-      addNameValuePair(autodoc, name, value, (String) null);
+      setNameValuePair(autodoc, name, value, (String) null);
     }
     else {
-      addNameValuePair(autodoc, name, value, commentAttribute
+      setNameValuePair(autodoc, name, value, commentAttribute
           .getMultiLineValue());
     }
   }
@@ -1187,27 +1197,35 @@ public final class MatlabParam {
   }
 
   /**
-   * Add a new name/value pair.  Adds a new-line and comment (if comment is not
-   * null), an attribute, and a name/value pair.
+   * Adds or updates a name/value pair.  If adding, also trys to add a new-line
+   * and a comment.
    * @param autodoc
    * @param attributeName
    * @param attributeValue
    * @param comment
    */
-  private void addNameValuePair(final WritableAutodoc autodoc,
+  private void setNameValuePair(final WritableAutodoc autodoc,
       final String attributeName, String attributeValue, String comment) {
-    //try to add a comment
-    if (comment != null) {
-      //theres a comment, so add an empty line first
-      autodoc.addEmptyLine();
-      //Format and add the comment
-      String[] commentArray = EtomoAutodoc.format(attributeName+":\n"+comment);
-      for (int i = 0; i < commentArray.length; i++) {
-        autodoc.addComment(" " + commentArray[i]);
+    WritableAttribute attribute = autodoc.getWritableAttribute(attributeName);
+    if (attribute == null) {
+      //If the attribute doesn't exist try to add a comment and add the attribute
+      if (comment != null) {
+        //there's a comment, so add an empty line first
+        autodoc.addEmptyLine();
+        //Format and add the comment
+        String[] commentArray = EtomoAutodoc.format(attributeName + ":\n"
+            + comment);
+        for (int i = 0; i < commentArray.length; i++) {
+          autodoc.addComment(" " + commentArray[i]);
+        }
       }
+      //Add the attribute and name/value pair
+      autodoc.addNameValuePair(attributeName, attributeValue);
     }
-    //Add the attribute and name/value pair
-    autodoc.addNameValuePair(attributeName, attributeValue);
+    else {
+      //If atttribute does exist, change its value
+      attribute.setValue(attributeValue);
+    }
   }
 
   public static final class InitMotlCode implements EnumeratedType {
