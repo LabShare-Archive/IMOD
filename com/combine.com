@@ -79,5 +79,6 @@ $if ($status) goto error
 $echo "COMBINE SUCCESSFULLY COMPLETED"
 $exit 0
 $error:
+$grep ERROR: $process.log
 $echo "ERROR: $process.com failed"
 $exit 1
