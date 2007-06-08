@@ -7,15 +7,10 @@
  *  Copyright (C) 1995-2004 by Boulder Laboratory for 3-Dimensional Electron
  *  Microscopy of Cells ("BL3DEMC") and the Regents of the University of 
  *  Colorado.  See dist/COPYRIGHT for full copyright notice.
+ *
+ *  $Id$
+ *  Log at end of file
  */
-
-/*  $Author$
-
-$Date$
-
-$Revision$
-Log at end of file
-*/
 
 #include <math.h>
 #include <qapplication.h>
@@ -1064,10 +1059,12 @@ void inputQDefaultKeys(QKeyEvent *event, ImodView *vw)
     break;
           
   case Qt::Key_D:
-    if (shifted)
+    if (shifted && !ctrl)
       inputDeleteContour(vw);
-    else if (ctrl)
+    else if (ctrl && !shifted)
       inputTruncateContour(vw);
+    else if (ctrl && shifted)
+      ImodInfoWin->editSurfaceSlot(ESURFACE_MENU_DELETE);
     else
       handled = 0;
     break;
@@ -1356,6 +1353,9 @@ bool inputTestMetaKey(QKeyEvent *event)
 
 /*
 $Log$
+Revision 4.30  2007/06/07 03:57:24  mast
+Fix xyzmouse after deleting a point
+
 Revision 4.29  2007/05/25 05:28:16  mast
 Changes for addition of slicer angle storage
 
