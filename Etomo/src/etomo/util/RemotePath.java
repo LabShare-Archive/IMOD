@@ -322,7 +322,7 @@ public final class RemotePath {
             "Unable to use remote mount rule, \""
                 + remoteMountRule
                 + "\" because %mountname has no value.  "
-                + "Check $IMOD_CALID_DIR/cpu.adoc.  "
+                + "Check $IMOD_CALIB_DIR/cpu.adoc.  "
                 + "The mount name is defined by the section associated with your local computer.  "
                 + "It will be set to the section name or, optionally, to the value of a mountname attribute in the section.");
       }
@@ -669,6 +669,9 @@ public final class RemotePath {
 }
 /**
  * <p> $Log$
+ * <p> Revision 1.13  2007/05/21 22:32:00  sueh
+ * <p> bug# 1000 Moved ProcessorTable.SECTION_TYPE to CpuAdoc.
+ * <p>
  * <p> Revision 1.12  2007/03/21 19:50:37  sueh
  * <p> bug# 964 Limiting access to autodoc classes by using ReadOnly interfaces.
  * <p> Added AutodocFactory to create Autodoc instances.
