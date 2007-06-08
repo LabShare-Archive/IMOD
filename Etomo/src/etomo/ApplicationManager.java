@@ -171,6 +171,7 @@ public final class ApplicationManager extends BaseManager {
     createState();
     processMgr = new ProcessManager(this);
     initializeUIParameters(paramFileName, axisID);
+    imodManager.setMetaData(metaData);
     initializeAdvanced();
     // Open the etomo data file if one was found on the command line
     if (!EtomoDirector.getInstance().isHeadless()) {
@@ -5230,10 +5231,6 @@ public final class ApplicationManager extends BaseManager {
     return (BaseMetaData) metaData;
   }
 
-  protected void setMetaData(ImodManager imodManager) {
-    imodManager.setMetaData(metaData);
-  }
-
   public MainPanel getMainPanel() {
     return mainPanel;
   }
@@ -5431,6 +5428,9 @@ public final class ApplicationManager extends BaseManager {
 }
 /**
  * <p> $Log$
+ * <p> Revision 3.280  2007/05/21 22:27:29  sueh
+ * <p> bug# 964 Added get getInterfaceType().
+ * <p>
  * <p> Revision 3.279  2007/04/09 19:10:45  sueh
  * <p> bug# 964 Added setParamFile(), which just returns loadedParamFile
  * <p>

@@ -63,6 +63,9 @@ import etomo.util.Utilities;
  * @version $Revision$
  * 
  * <p> $Log$
+ * <p> Revision 1.56  2007/05/21 22:28:10  sueh
+ * <p> bug# 964 Added getInterfaceType().
+ * <p>
  * <p> Revision 1.55  2007/05/11 14:31:36  sueh
  * <p> bug# 964 Changed ImodManager.TRANSFORMED_MODEL to
  * <p> TRANSFORMED_MODEL_KEY.
@@ -429,6 +432,7 @@ public final class JoinManager extends BaseManager {
     createState();
     processMgr = new JoinProcessManager(this, state);
     initializeUIParameters(paramFileName, axisID);
+    imodManager.setMetaData(metaData);
     if (!paramFileName.equals("") && loadedParamFile) {
       mainPanel.setStatusBarText(paramFile, metaData);
     }
@@ -1302,10 +1306,6 @@ public final class JoinManager extends BaseManager {
 
   public BaseMetaData getBaseMetaData() {
     return (BaseMetaData) metaData;
-  }
-
-  protected void setMetaData(ImodManager imodManager) {
-    imodManager.setMetaData(metaData);
   }
 
   public MainPanel getMainPanel() {
