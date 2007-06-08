@@ -52,6 +52,9 @@ import etomo.type.PeetScreenState;
  * @version $Revision$
  * 
  * <p> $Log$
+ * <p> Revision 1.48  2007/06/06 22:05:52  sueh
+ * <p> bug# 1010 Reorganized Setup panel.
+ * <p>
  * <p> Revision 1.47  2007/06/06 16:59:22  sueh
  * <p> bug# 1015 Implemented ContextMenu.  Added popUpContextMenu().
  * <p>
@@ -614,6 +617,47 @@ public final class PeetDialog implements ContextMenu, AbstractParallelDialog,
 
   public void setFnOutput(final String output) {
     ltfFnOutput.setText(output);
+  }
+  
+  public void reset() {
+    cbTiltRange.setSelected(false);
+    ltfReferenceParticle.clear();
+    ftfReferenceFile.clear();
+    ltfSzVolX.clear();
+    ltfSzVolY.clear();
+    ltfSzVolZ.clear();
+    ltfEdgeShift.clear();
+    cbMeanFill.setSelected(false);
+    ltfAlignedBaseName.clear();
+    ltfLowCutoff.clear();
+    cbRefFlagAllTom.setSelected(false);
+    ltfLstThresholdsStart.clear();
+    ltfLstThresholdsIncrement.clear();
+    ltfLstThresholdsEnd.clear();
+    ltfLstThresholdsAdditional.clear();
+    ltfYaxisContourObjectNumber.clear();
+    ltfYaxisContourContourNumber.clear();
+    cbLstFlagAllTom.setSelected(false);
+    rbReferenceVolume.setSelected(false);
+    sReferenceVolume.reset();
+    sYaxisContourModelNumber.reset();
+    rbReferenceFile.setSelected(false);
+    lsParticlePerCPU.setValue(MatlabParam.PARTICLE_PER_CPU_DEFAULT);
+    rbYaxisTypeYAxis.setSelected(false);
+    rbYaxisTypeParticleModel.setSelected(false);
+    rbYaxisTypeContour.setSelected(false);
+    rbInitMotlZero.setSelected(false);
+    rbInitMotlZAxis.setSelected(false);
+    rbInitMotlXAndZAxis.setSelected(false);
+    rbInitMotlFiles.setSelected(false);
+    rbCcModeNormalized.setSelected(false);
+    rbCcModeLocal.setSelected(false);
+    lsDebugLevel.setValue(MatlabParam.DEBUG_LEVEL_DEFAULT);
+    cbFlgWedgeWeight.setSelected(false);
+    volumeTable.reset();
+    iterationTable.reset();
+    setDefaults();
+    updateDisplay();
   }
 
   void msgVolumeTableSizeChanged() {

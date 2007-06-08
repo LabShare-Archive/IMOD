@@ -36,6 +36,10 @@ import etomo.type.EtomoAutodoc;
  * @version $Revision$
  * 
  * <p> $Log$
+ * <p> Revision 1.8  2007/05/15 19:58:17  sueh
+ * <p> bug# 964 Added btnDeleteRow, deleteRow(IterationRow).  In RowList
+ * <p> added delete(IterationRow...) and remove().
+ * <p>
  * <p> Revision 1.7  2007/05/08 01:19:48  sueh
  * <p> bug# 964 Removed the alternative tooltip keys.
  * <p>
@@ -127,6 +131,13 @@ final class IterationTable implements Highlightable {
 
   Container getContainer() {
     return rootPanel;
+  }
+  
+  void reset() {
+    rowList.remove();
+    addRow();
+    updateDisplay();
+    UIHarness.INSTANCE.pack(manager);
   }
   
   void getParameters(final MatlabParam matlabParamFile) {

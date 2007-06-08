@@ -31,6 +31,9 @@ import etomo.util.Utilities;
  * @version $Revision$
  * 
  * <p> $Log$
+ * <p> Revision 1.5  2007/05/18 23:54:07  sueh
+ * <p> bug# 987 Added getLabeledInstance() for a non-default model.
+ * <p>
  * <p> Revision 1.4  2007/05/01 22:30:14  sueh
  * <p> bug# 964 Added getLabeledInstance.
  * <p>
@@ -49,6 +52,7 @@ final class Spinner {
 
   private final SpinnerNumberModel model;
   private final JSpinner spinner;
+  private final Number defaultValue;
   private JPanel panel = null;
   private JLabel label = null;
 
@@ -56,6 +60,7 @@ final class Spinner {
       final int minimum, final int maximum) {
     model = new SpinnerNumberModel(value, minimum, maximum, 1);
     spinner = new JSpinner(model);
+    this.defaultValue=new Integer(value);
     String name = Utilities.convertLabelToName(label);
     spinner.setName(name);
     if (EtomoDirector.getInstance().isPrintNames()) {
@@ -122,6 +127,10 @@ final class Spinner {
     if (label != null) {
       label.setEnabled(enabled);
     }
+  }
+  
+  void reset() {
+    spinner.setValue(defaultValue);
   }
 
   void setMax(final int max) {

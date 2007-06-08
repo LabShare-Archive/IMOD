@@ -47,6 +47,9 @@ import etomo.type.Run3dmodMenuOptions;
  * @version $Revision$
  * 
  * <p> $Log$
+ * <p> Revision 1.23  2007/06/06 22:06:50  sueh
+ * <p> bug# 1013 Made two rows of the buttons.
+ * <p>
  * <p> Revision 1.22  2007/06/06 16:09:19  sueh
  * <p> bug# 1013 Changed addVolume() to addVolumeRow().  Added
  * <p> setFnModParticle() and validateRun().  In addVolumeRow() no longer
@@ -224,6 +227,12 @@ final class VolumeTable implements Expandable, Highlightable,
 
   Container getContainer() {
     return rootPanel;
+  }
+  
+  void reset() {
+    rowList.remove();
+    updateDisplay();
+    UIHarness.INSTANCE.pack(manager);
   }
 
   void getParameters(final PeetMetaData metaData) {
