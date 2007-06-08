@@ -37,6 +37,9 @@ import etomo.util.DatasetFiles;
  * @version $Revision$
  *
  * <p> $Log$
+ * <p> Revision 1.22  2007/02/05 22:59:21  sueh
+ * <p> bug# 962 Handling remapmodel, xfmodel, and xftoxg.
+ * <p>
  * <p> Revision 1.21  2006/10/16 22:42:15  sueh
  * <p> bug# 933  PostProcessing(BackgroundProcess):  moved makejoincom post
  * <p> processing to JoinManager.
@@ -384,6 +387,10 @@ public class JoinProcessManager extends BaseProcessManager {
         state.setRefineEndList(processDetails
             .getIntKeyList(FinishjoinParam.Fields.REFINE_END_LIST));
         manager.updateJoinDialogDisplay();
+      }
+      else if (mode == FinishjoinParam.Mode.TRIAL_REJOIN) {
+        state.setRefineTrialUseEveryNSlices(processDetails
+            .getEtomoNumber(FinishjoinParam.Fields.USE_EVERY_N_SLICES));
       }
     }
     else if (commandName.equals(MakejoincomParam.getName())) {
