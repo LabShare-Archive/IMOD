@@ -43,6 +43,12 @@ import etomo.util.DatasetFiles;
  * @version $Revision$
  * 
  * <p> $Log$
+ * <p> Revision 1.8  2007/06/07 21:30:25  sueh
+ * <p> bug# 1012 In write(), if the autodoc exists read it and return it.  Moved the
+ * <p> file back up out of Autodoc.write() into MatlabParam.write().  Changed the
+ * <p> addNameValuePair functions to setNameValuePair.  In setNameValuePair,
+ * <p> if the attribute already exists, just set its value.
+ * <p>
  * <p> Revision 1.7  2007/06/05 21:28:10  sueh
  * <p> bug# 1010 Added flgWedgeWeight.
  * <p>
@@ -258,30 +264,33 @@ public final class MatlabParam {
   /**
    * Reads data from the .prm autodoc.
    */
-  public synchronized void read() {
+  public synchronized boolean read() {
     clear();
     //if newFile is on, either there is no file, or the user doesn't want to read it
     if (newFile) {
-      return;
+      return true;
     }
     try {
       ReadOnlyAutodoc autodoc = null;
       autodoc = (AutodocFactory.getMatlabInstance(file));
       if (autodoc == null) {
-        UIHarness.INSTANCE.openMessageDialog("Unable to read " + file.getName()
+        UIHarness.INSTANCE.openMessageDialog("Unable to read " + file.getAbsolutePath()
             + ".", "File Error");
-        return;
+        return false;
       }
       parseData(autodoc);
     }
     catch (IOException e) {
-      UIHarness.INSTANCE.openMessageDialog("Unable to load " + file.getName()
+      UIHarness.INSTANCE.openMessageDialog("Unable to load " + file.getAbsolutePath()
           + ".  IOException:  " + e.getMessage(), "File Error");
+      return false;
     }
     catch (LogFile.ReadException e) {
-      UIHarness.INSTANCE.openMessageDialog("Unable to read " + file.getName()
+      UIHarness.INSTANCE.openMessageDialog("Unable to read " + file.getAbsolutePath()
           + ".  LogFile.ReadException:  " + e.getMessage(), "File Error");
+      return false;
     }
+    return true;
   }
 
   /**
