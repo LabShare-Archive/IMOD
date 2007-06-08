@@ -794,8 +794,9 @@ void InfoWindow::editContourSlot(int item)
       break;      
     if (!cont->psize)
       break;      
-    if (!iobjClose(obj->flags)){
-      wprint("\aError: Only Closed contours can be broken by Z\n");
+    if (!iobjPlanar(obj->flags)){
+      wprint("\aError: Only closed contours or contours in open objects "
+             "with automatic new contours can be broken by Z\n");
       break;
     }
     imodGetIndex(imod, &ob, &co, &pt);
@@ -1205,6 +1206,9 @@ static int imodContourBreakByZ(ImodView *vi, Iobj *obj, int ob, int co)
 
 /*
   $Log$
+  Revision 4.30  2007/05/25 05:28:16  mast
+  Changes for addition of slicer angle storage
+
   Revision 4.29  2006/09/30 02:12:30  mast
   Use open/closed messages for contour length, treat 2-pt contour as open
 
