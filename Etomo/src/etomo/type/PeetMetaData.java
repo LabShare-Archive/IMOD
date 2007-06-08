@@ -21,6 +21,9 @@ import etomo.util.DatasetFiles;
  * @notthreadsafe
  * 
  * <p> $Log$
+ * <p> Revision 1.16  2007/06/07 21:33:15  sueh
+ * <p> Removed print statement.
+ * <p>
  * <p> Revision 1.15  2007/06/06 20:44:16  sueh
  * <p> bug# 1016 Added function load1_0 to provide backward compatibility
  * <p> functionality for version 1.0.  Storing revisionNumber.
@@ -72,7 +75,7 @@ public class PeetMetaData extends BaseMetaData implements ConstPeetMetaData {
   public static final String rcsid = "$Id$";
 
   public static final String NEW_TITLE = "PEET";
-  
+
   //do not change these unless backward compatibility work is done
   private static final String TILT_RANGE_KEY = "TiltRange";
   private static final String GROUP_KEY = "Peet";
@@ -82,7 +85,7 @@ public class PeetMetaData extends BaseMetaData implements ConstPeetMetaData {
       .getDefaultInstance("1.1");
   private static final String START_KEY = "Start";
   private static final String END_KEY = "End";
-  
+
   //latest version should change when new backwards compatibility issue come up
   private static final EtomoVersion LATEST_VERSION = VERSION_1_1;
 
@@ -91,9 +94,9 @@ public class PeetMetaData extends BaseMetaData implements ConstPeetMetaData {
   private final IntKeyList initMotlFile = IntKeyList
       .getStringInstance("InitMotlFile");
   private final IntKeyList tiltRangeStart = IntKeyList
-      .getStringInstance(TILT_RANGE_KEY + "."+START_KEY);
+      .getStringInstance(TILT_RANGE_KEY + "." + START_KEY);
   private final IntKeyList tiltRangeEnd = IntKeyList
-      .getStringInstance(TILT_RANGE_KEY + "."+END_KEY);
+      .getStringInstance(TILT_RANGE_KEY + "." + END_KEY);
   private final EtomoNumber referenceVolume = new EtomoNumber(REFERENCE_KEY
       + ".Volume");
   private final EtomoNumber referenceParticle = new EtomoNumber(REFERENCE_KEY
@@ -113,7 +116,7 @@ public class PeetMetaData extends BaseMetaData implements ConstPeetMetaData {
   public PeetMetaData() {
     fileExtension = DatasetFiles.PEET_DATA_FILE_EXT;
     axisType = AxisType.SINGLE_AXIS;
-    revisionNumber.set(VERSION_1_1);
+    reset();
   }
 
   public void copy(PeetMetaData input) {
@@ -125,14 +128,14 @@ public class PeetMetaData extends BaseMetaData implements ConstPeetMetaData {
     tiltRangeEnd.reset();
     tiltRangeEnd.set(input.tiltRangeEnd);
     referenceVolume.set(input.referenceVolume);
-    referenceParticle.set(referenceParticle);
+    referenceParticle.set(input.referenceParticle);
     referenceFile.set(input.referenceFile);
     edgeShift.set(input.edgeShift);
-    yaxisContourModelNumber.set(yaxisContourModelNumber);
-    yaxisContourObjectNumber.set(yaxisContourObjectNumber);
-    yaxisContourContourNumber.set(yaxisContourContourNumber);
-    flgWedgeWeight.reset();
-    revisionNumber.set(revisionNumber);
+    yaxisContourModelNumber.set(input.yaxisContourModelNumber);
+    yaxisContourObjectNumber.set(input.yaxisContourObjectNumber);
+    yaxisContourContourNumber.set(input.yaxisContourContourNumber);
+    flgWedgeWeight.set(input.flgWedgeWeight);
+    revisionNumber.set(input.revisionNumber);
   }
 
   public String getMetaDataFileName() {
@@ -193,22 +196,25 @@ public class PeetMetaData extends BaseMetaData implements ConstPeetMetaData {
     yaxisContourContourNumber.load(props, prepend);
     flgWedgeWeight.load(props, prepend);
     revisionNumber.load(props, prepend);
-    if (revisionNumber.isNull() || revisionNumber.lt(VERSION_1_1)) {
-      load1_0(props, prepend);
+    if (revisionNumber.isNull() || revisionNumber.lt(LATEST_VERSION)) {
+      //backwards compatibility
+      if (revisionNumber.isNull() || revisionNumber.lt(VERSION_1_1)) {
+        load1_0(props, prepend);
+      }
       revisionNumber.set(LATEST_VERSION);
     }
   }
-  
+
   /**
    * Backwards compatability function for versions earlier then 1.1.
    * @param props
    * @param prepend
    */
   public void load1_0(Properties props, String prepend) {
-    tiltRangeStart.load(props,prepend,"TILT_RANGE_KEY"+ "."+START_KEY);
-    tiltRangeStart.remove(props,prepend,"TILT_RANGE_KEY"+ "."+START_KEY);
-    tiltRangeEnd.load(props, prepend,"TILT_RANGE_KEY"+ "."+END_KEY);
-    tiltRangeEnd.remove(props, prepend,"TILT_RANGE_KEY"+ "."+END_KEY);
+    tiltRangeStart.load(props, prepend, "TILT_RANGE_KEY" + "." + START_KEY);
+    tiltRangeStart.remove(props, prepend, "TILT_RANGE_KEY" + "." + START_KEY);
+    tiltRangeEnd.load(props, prepend, "TILT_RANGE_KEY" + "." + END_KEY);
+    tiltRangeEnd.remove(props, prepend, "TILT_RANGE_KEY" + "." + END_KEY);
   }
 
   public void store(Properties props, String prepend) {
@@ -346,5 +352,6 @@ public class PeetMetaData extends BaseMetaData implements ConstPeetMetaData {
     yaxisContourModelNumber.reset();
     yaxisContourObjectNumber.reset();
     yaxisContourContourNumber.reset();
+    revisionNumber.set(LATEST_VERSION);
   }
 }
