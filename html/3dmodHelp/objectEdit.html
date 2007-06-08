@@ -17,6 +17,16 @@ closed contours have a line connecting the last point back
 to the first one; scattered point objects have no 
 connecting lines.
 <P>
+<B>Start new contour at new Z:</B> When this option is selected, a new
+contour will be started whenever you switch to a
+different section from the one with the current contour and start
+inserting points.  This is the standard behavior with closed contour
+objects since it is assumed that they
+consist of contours that should be confined to planes.  This option is
+thus enabled only for open contour objects.  Select it whenever you
+want to use an open contour object to model structures within planes rather
+than between planes.
+<P>
 <B>Front Face:</B> Outside/Inside toggles select which side of the contours 
 will be brightly lit after the object is meshed.  This 
 feature can also be used to select an area of interest as 

@@ -25,6 +25,7 @@ char *Imod_hotkey_help[] = {
 "Delete\tDelete current model point.\n",
 "D\tDelete current contour or all selected contours.\n",
 CTRL_STRING"-D\tTruncate current contour at current point.\n",
+CTRL_STRING"-Shift-D\tDelete current surface.\n",
 "M\tMove contour to selected object or surface.\n",
 "J\tJoin selected contours.\n",
 "m \tToggle model edit mode and movie mode.\n",
