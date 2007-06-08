@@ -123,6 +123,7 @@ typedef struct
   int  write_only;
   unsigned int  pos;
   int  attribute;  /* JRK: keep track of attibutes for files. */
+  char *tailName;  /* Pointer to filename only in fname */
 } Unit;
  
 /******************************************************************************
@@ -175,8 +176,9 @@ void qopen(int *iunit, char *name, char *attribute, int name_l, int attr_l)
   int  noChars;
   char oldfilename[257];
   char matstr[16];
-  int mode;
+  int mode, errSave;
   char *modes[4] = {"rb", "rb+", "wb", "wb+"};
+  char *tailback;
   struct stat buf;
 
   if (unit >= 0) {
@@ -201,11 +203,14 @@ void qopen(int *iunit, char *name, char *attribute, int name_l, int attr_l)
         oldfilename[strlen(oldfilename) + 1] = 0x00;
         oldfilename[strlen(oldfilename)] = '~';
         remove(oldfilename);
+        errno = 0;
         if (rename(u->fname, oldfilename)) {
+          errSave = errno;
           fprintf(stdout, "\nWARNING: qopen - Could not rename '%s' to '%s'"
                   "\n", u->fname, oldfilename);
-          perror("");
-          }
+          if (errSave)
+            fprintf(stdout, "WARNING: from system - %s\n", strerror(errSave));
+        }
       }
       mode = 3;
       u->attribute = UNIT_ATBUT_NEW;
@@ -218,15 +223,27 @@ void qopen(int *iunit, char *name, char *attribute, int name_l, int attr_l)
       mode = 3;
       u->attribute = UNIT_ATBUT_SCRATCH;
     }
-    
+
+    errno = 0;
     u->fp = fopen(u->fname, modes[mode]);
     if (u->fp == NULL) {
-      fprintf(stdout, "\nERROR: qopen - Could not open '%s'\n"
-              , u->fname);
-      perror(""); /* JRK: have system tell why. */
+      fprintf(stdout, "\nERROR: qopen - Could not open '%s'\n" , u->fname);
+      errSave = errno;
+      if (errSave)
+        fprintf(stdout, "ERROR: from system - %s\n", strerror(errSave));
       exit(3);
     }
     *iunit = unit + 1;
+
+    /* Get the tail of the filename for other error messages */
+    u->tailName = strrchr(u->fname, '/');
+    tailback = strrchr(u->fname, '\\');
+    if (tailback > u->tailName)
+      u->tailName = tailback;
+    if (!u->tailName)
+      u->tailName = &u->fname[0];
+    else
+      u->tailName++;
 
   } else {
     *iunit = -1;
@@ -259,12 +276,16 @@ void qread(int *iunit, char *array, int *nitems, int *ier)
   if (u) {
     int bc = *nitems;
     if (u->write_only) {
-      fprintf(stdout, "\nERROR: qread - file is write only.\n");
+      fprintf(stdout, "\nERROR: qread - '%s' is write only.\n", 
+              u->tailName);
       exit(3);
     }
+    errno = 0;
     if (b3dFread(array, 1, bc, u->fp) != bc) {
-      fprintf(stdout, "\nERROR: qread - read error\n");
-      perror("");
+      unit = errno;
+      fprintf(stdout, "\nERROR: qread - reading '%s'\n", u->tailName);
+      if (unit)
+        fprintf(stdout, "ERROR: from system - %s\n", strerror(unit));
       exit(3);
     }
     u->pos += bc;
@@ -282,13 +303,16 @@ void qwrite(int *iunit, char *array, int *nitems)
   Unit *u = check_unit(unit, "qwrite", 1);
   int bc = *nitems;
   if (u->read_only) {
-       fprintf(stdout, "\nERROR: qwrite - file is read only.\n");
-       exit(3);
+    fprintf(stdout, "\nERROR: qwrite - '%s' is read only.\n", u->tailName);
+    exit(3);
   }
 
+  errno = 0;
   if (b3dFwrite(array, 1, bc, u->fp) != bc) {
-    fprintf(stdout, "\nERROR: qwrite - error writing file.\n");
-    perror("");
+    unit = errno;
+    fprintf(stdout, "\nERROR: qwrite - writing '%s'\n", u->tailName);
+    if (unit)
+      fprintf(stdout, "ERROR: from system - %s\n", strerror(unit));
     exit(3);
   }
   u->pos += bc;
@@ -310,10 +334,14 @@ void qseek(int *iunit, int *base, int *line, int *section, int *nxbytes,
             (unsigned int)(*base - 1));
  
   /*  if (lseek(u->fp, u->pos = pos, 0) < 0) */
+  errno = 0;
   if (mrcHugeSeek(u->fp, *base - 1, 0, *line - 1, *section - 1, *nxbytes,
                   *nylines, 1, SEEK_SET)) {
-    fprintf(stdout, "\nERROR: qseek - Error on mrcHugeSeek\n");
-    perror("");
+    unit = errno;
+    fprintf(stdout, "\nERROR: qseek - Doing mrcHugeSeek in '%s'\n", 
+            u->tailName);
+    if (unit)
+      fprintf(stdout, "ERROR: from system - %s\n", strerror(unit));
     exit(3);
   }
 }
@@ -327,11 +355,14 @@ void qback(int *iunit, int *ireclength)
   Unit *u = check_unit(unit, "qback", 1);
   int amt = -(*ireclength);
   u->pos += amt;
-  if (b3dFseek(u->fp, amt, SEEK_CUR))
-    {
-      fprintf(stdout, "\nERROR: qback - Error on seek\n");
-      exit(3);
-    }
+  errno = 0;
+  if (b3dFseek(u->fp, amt, SEEK_CUR)) {
+    unit = errno;
+    fprintf(stdout, "\nERROR: qback - Doing seek in '%s'\n", u->tailName);
+    if (unit)
+      fprintf(stdout, "ERROR: from system - %s\n", strerror(unit));
+    exit(3);
+  }
 }
  
 /* qskip needs to move by large amounts within sections so it takes two numbers
@@ -341,11 +372,14 @@ void qskip(int *iunit, int *ireclength, int *nrecords)
   int unit = *iunit - 1;
   Unit *u = check_unit(unit, "qskip", 1);
   u->pos += *ireclength * *nrecords;
-  if (mrc_big_seek(u->fp, 0, *ireclength, *nrecords, SEEK_CUR))
-    {
-      fprintf(stdout, "\nERROR: qskip - Error on seek\n");
-      exit(3);
-    }
+  errno = 0;
+  if (mrc_big_seek(u->fp, 0, *ireclength, *nrecords, SEEK_CUR)) {
+    unit = errno;
+    fprintf(stdout, "\nERROR: qskip - Doing seek in '%s'\n", u->tailName);
+    if (unit)
+      fprintf(stdout, "ERROR: from system - %s\n", strerror(unit));
+    exit(3);
+  }
 }
 
  /* DNM 8/13/00: added the version for VMS for completeness (not tested), and
@@ -555,6 +589,10 @@ Private undefines
  
 /*
 $Log$
+Revision 3.17  2006/09/28 21:21:58  mast
+Changed qseek and qskip to work with huge images, eliminated the mode array
+and number of characters per item variable
+
 Revision 3.16  2005/02/11 01:42:33  mast
 Warning cleanup: implicit declarations, main return type, parentheses, etc.
 
