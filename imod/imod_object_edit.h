@@ -1,29 +1,8 @@
 /*  imod_object_edit.h - declarations for imod_object_edit.cpp
+ *
+ *  $Id$
+ *  Log at end of file
  */
-/*  $Author$
-
-$Date$
-
-$Revision$
-
-$Log$
-Revision 4.1  2003/02/10 20:41:55  mast
-Merge Qt source
-
-Revision 1.1.2.4  2003/01/27 00:30:07  mast
-Pure Qt version and general cleanup
-
-Revision 1.1.2.3  2003/01/06 15:45:34  mast
-new object color stuf
-
-Revision 1.1.2.2  2002/12/13 06:04:00  mast
-moving imod_object_edit declaration to include file and removing argument
-
-Revision 1.1.2.1  2002/12/05 16:30:22  mast
-First addition to archive
-
-
-*/
 
 #ifndef IMOD_OBJECT_EDIT_H
 #define IMOD_OBJECT_EDIT_H
@@ -68,8 +47,30 @@ void ioew_symbol(int value);
 void ioew_symsize(int value);
 void ioew_sphere_on_sec(int state);
 void ioew_time(int state);
+void ioew_planar(int state);
 int imod_object_edit_draw(void);
 int  imod_object_edit();
 void imod_object_color(int objNum);
 
 #endif /* IMOD_OBJECT_EDIT_H */
+
+/*
+$Log$
+Revision 4.2  2006/06/09 20:25:39  mast
+Added ability to display spheres on center section only
+
+Revision 4.1  2003/02/10 20:41:55  mast
+Merge Qt source
+
+Revision 1.1.2.4  2003/01/27 00:30:07  mast
+Pure Qt version and general cleanup
+
+Revision 1.1.2.3  2003/01/06 15:45:34  mast
+new object color stuf
+
+Revision 1.1.2.2  2002/12/13 06:04:00  mast
+moving imod_object_edit declaration to include file and removing argument
+
+Revision 1.1.2.1  2002/12/05 16:30:22  mast
+First addition to archive
+*/
