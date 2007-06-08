@@ -52,6 +52,9 @@ import etomo.util.DatasetFiles;
  * @version $Revision$
  * 
  * <p> $Log$
+ * <p> Revision 1.27  2007/06/07 23:02:30  sueh
+ * <p> bug# 1009 In loadMatlabParam setting matlabParam.fnOutput from PeetDialog, in case the user set it.
+ * <p>
  * <p> Revision 1.26  2007/06/05 17:41:39  sueh
  * <p> bug# 1006 Added calls to mainPanel.setStatusBarText and
  * <p> EtomoDirectory.renameCurrentManager in loadMatlabParam and
@@ -279,7 +282,9 @@ public final class PeetManager extends BaseManager {
    */
   public void loadMatlabParam(final File matlabParamFile, boolean parametersOnly) {
     matlabParam = new MatlabParam(matlabParamFile, false);
-    matlabParam.read();
+    if (!matlabParam.read()) {
+      return;
+    }
     String fnOutput = peetDialog.getFnOutput();
     if (fnOutput == null || fnOutput.matches("\\s*")) {
       if (parametersOnly) {
@@ -303,7 +308,8 @@ public final class PeetManager extends BaseManager {
   /**
    * Load a param file and a matlab param file from another directory.
    * @param origParamFile
-   * @param parametersOnly - allows the user to reuse a set of parameters, means that fnOutput is required
+   * @param parametersOnly - allows the user to reuse a set of parameters, means
+   * that fnOutput is required
    */
   public void loadParamFile(final File origParamFile, boolean parametersOnly) {
     String newName = peetDialog.getFnOutput();
@@ -351,7 +357,13 @@ public final class PeetManager extends BaseManager {
         //read the matlab param file associated with the original param file
         matlabParam = new MatlabParam(DatasetFiles.getMatlabParamFile(
             origParamFile.getParent(), origMetaData.getName()), false);
-        matlabParam.read();
+        //the .prm file is not readable but paramFile has already been set, so
+        //all the initiazation changes have to be backed out.
+        if (!matlabParam.read()) {
+          clearUIParameters();
+          peetDialog.reset();
+          return;
+        }
         //change the matlab file location to the user-specified directory and
         //change the name of the file to user-specified name
         matlabParam.setFnOutput(newName);
@@ -565,9 +577,6 @@ public final class PeetManager extends BaseManager {
   }
 
   void updateDialog(ProcessName processName, AxisID axisID) {
-  }
-
-  void setMetaData(ImodManager imodManager) {
   }
 
   void processSucceeded(AxisID axisID, ProcessName processName) {
