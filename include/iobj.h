@@ -6,15 +6,10 @@
  *  Copyright (C) 1995-2005 by Boulder Laboratory for 3-Dimensional Electron
  *  Microscopy of Cells ("BL3DEMC") and the Regents of the University of 
  *  Colorado.  See dist/COPYRIGHT for full copyright notice.
+ *
+ *  $Id$
+ *  Log at end of file
  */
-
-/*  $Author$
-
-    $Date$
-
-    $Revision$
-    Log at end
-*/
 
 #ifndef IOBJ_H
 #define IOBJ_H
@@ -38,6 +33,7 @@
 #define IMOD_OBJFLAG_FCOLOR  (1l << 14) /* Use Fill color                    */
 #define IMOD_OBJFLAG_FCOLOR_PNT (1l << 6)  /* Use fill color for spheres     */
 #define IMOD_OBJFLAG_PNT_ON_SEC (1l << 7)  /* Show spheres only on-section   */
+#define IMOD_OBJFLAG_PLANAR     (1l << 13) /* Keep open contours on planes   */
 #define IMOD_OBJFLAG_ANTI_ALIAS (1l << 15) /* Render using anti alias. */
 #define IMOD_OBJFLAG_USE_VALUE  (1l << 12) /* Modify draw with stored values */
 #define IMOD_OBJFLAG_SCALAR  (1l << 16) /* Normals have magnitude. */
@@ -60,7 +56,7 @@
 #define iobjTime(flag)    ((flag)  & IMOD_OBJFLAG_TIME)
 #define iobjDraw(flag)    ((~(flag))  & IMOD_OBJFLAG_OFF)
 #define iobjFlagTime(o)   (iobjTime((o)->flags))
-
+#define iobjPlanar(flag) (iobjClose(flag) || (iobjOpen(flag) && ((flag) & IMOD_OBJFLAG_PLANAR)))
 
 /* new flags for objects V1.2       */
 /* symbol flags  for point display. */
@@ -148,6 +144,9 @@ extern "C" {
 
 /*
     $Log$
+    Revision 3.11  2006/08/31 21:02:45  mast
+    Flag definitions
+
     Revision 3.10  2006/06/09 20:30:17  mast
     Added flag for osphere display on-section only
 
