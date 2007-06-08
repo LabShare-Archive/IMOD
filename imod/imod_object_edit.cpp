@@ -4,19 +4,13 @@
  *  Original author: James Kremer
  *  Revised by: David Mastronarde   email: mast@colorado.edu
  *
- *  Copyright (C) 1995-2004 by Boulder Laboratory for 3-Dimensional Electron
+ *  Copyright (C) 1995-2007 by Boulder Laboratory for 3-Dimensional Electron
  *  Microscopy of Cells ("BL3DEMC") and the Regents of the University of 
  *  Colorado.  See dist/COPYRIGHT for full copyright notice.
+ *
+ *  $Id$
+ *  Log at end of file
  */
-
-/*  $Author$
-
-$Date$
-
-$Revision$
-Log at end of file
-*/
-
 #include "form_object_edit.h"
 #include "imod.h"
 #include "imod_display.h"
@@ -191,6 +185,11 @@ void ioew_sphere_on_sec(int state)
   setObjectFlag(state, 0, IMOD_OBJFLAG_PNT_ON_SEC);
 }
 
+void ioew_planar(int state)
+{
+  setObjectFlag(state, 0, IMOD_OBJFLAG_PLANAR);
+}
+
 /* 
  * Open the object edit dialog
  */
@@ -269,6 +268,8 @@ int imod_object_edit_draw(void)
 
   Ioew_dialog->setFrontSurface(obj->flags & IMOD_OBJFLAG_OUT ? 1 : 0);
   Ioew_dialog->setPointRadius(obj->pdrawsize);
+  Ioew_dialog->setPlanarBox(iobjPlanar(obj->flags) != 0,
+                            iobjOpen(obj->flags) != 0);
 
   return(0);
 }
@@ -433,6 +434,9 @@ void ImodObjColor::keyReleaseSlot ( QKeyEvent * e )
 
 /*
 $Log$
+Revision 4.17  2006/09/12 15:45:16  mast
+Update model view object edit window on type change
+
 Revision 4.16  2006/07/17 15:03:32  mast
 Added adjustSize after creating window
 
