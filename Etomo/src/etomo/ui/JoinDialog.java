@@ -56,6 +56,10 @@ import etomo.util.DatasetFiles;
  * @version $Revision$
  *
  * <p> $Log$
+ * <p> Revision 1.50  2007/05/26 00:32:31  sueh
+ * <p> bug# 994 Not automatically setting button size in SpacedPanel anymore.
+ * <p> Setting button size in UI.
+ * <p>
  * <p> Revision 1.49  2007/05/01 22:27:51  sueh
  * <p> bug# 964 Added yaxisType and yaxisContour.
  * <p>
@@ -1236,8 +1240,8 @@ public final class JoinDialog implements ContextMenu, Run3dmodButtonContainer {
     EtomoNumber spinnerValue = new EtomoNumber(EtomoNumber.Type.INTEGER);
     spinnerValue.set(spinDensityRefSection.getValue());
     spinnerValue.setDisplayValue(1);
-    SpinnerNumberModel spinnerModel = new SpinnerNumberModel(spinnerValue.getInt(),
-        1, numSections < 1 ? 1 : numSections, 1);
+    SpinnerNumberModel spinnerModel = new SpinnerNumberModel(spinnerValue
+        .getInt(), 1, numSections < 1 ? 1 : numSections, 1);
     spinDensityRefSection.setModel(spinnerModel);
     //alignment (join)
     spinnerValue.set((Integer) cbsAlignmentRefSection.getValue());
@@ -1836,8 +1840,17 @@ public final class JoinDialog implements ContextMenu, Run3dmodButtonContainer {
       return true;
     }
     if (command.equals(b3bOpenTrialRejoin.getActionCommand())) {
-      manager.imodOpen(ImodManager.TRIAL_JOIN_KEY, b3bOpenTrialRejoin.getInt(),
-          DatasetFiles.getRefineAlignedModelFileName(manager), menuOptions);
+      ConstEtomoNumber useEveryNSlices = state.getRefineTrialUseEveryNSlices();
+      if (useEveryNSlices.isNull() || useEveryNSlices.gt(1)) {
+        //don't open the model if all the slices have not been included
+        manager.imodOpen(ImodManager.TRIAL_JOIN_KEY, b3bOpenTrialRejoin
+            .getInt(), menuOptions);
+      }
+      else {
+        manager.imodOpen(ImodManager.TRIAL_JOIN_KEY, b3bOpenTrialRejoin
+            .getInt(), DatasetFiles.getRefineAlignedModelFileName(manager),
+            menuOptions);
+      }
       return true;
     }
     if (command.equals(b3bOpenRejoinWithModel.getActionCommand())) {
@@ -1971,7 +1984,8 @@ public final class JoinDialog implements ContextMenu, Run3dmodButtonContainer {
     btnMakeRefiningModel.setToolTipText("Press to create the refining model.");
     ReadOnlyAutodoc autodoc = null;
     try {
-      autodoc = AutodocFactory.getInstance(AutodocFactory.XFJOINTOMO, AxisID.ONLY);
+      autodoc = AutodocFactory.getInstance(AutodocFactory.XFJOINTOMO,
+          AxisID.ONLY);
       ltfBoundariesToAnalyze.setToolTipText(EtomoAutodoc.getTooltip(autodoc,
           XfjointomoParam.BOUNDARIES_TO_ANALYZE_KEY));
       ltfObjectsToInclude.setToolTipText(EtomoAutodoc.getTooltip(autodoc,
@@ -2149,7 +2163,8 @@ public final class JoinDialog implements ContextMenu, Run3dmodButtonContainer {
         group.add(rbRotationTranslationMagnification.getAbstractButton());
         group.add(rbRotationTranslation.getAbstractButton());
         pnlTranslationChooser.add(rbFullLinearTransformation.getComponent());
-        pnlTranslationChooser.add(rbRotationTranslationMagnification.getComponent());
+        pnlTranslationChooser.add(rbRotationTranslationMagnification
+            .getComponent());
         pnlTranslationChooser.add(rbRotationTranslation.getComponent());
         //set default
         set(null);
