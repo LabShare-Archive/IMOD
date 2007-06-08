@@ -5,7 +5,6 @@ import java.io.IOException;
 
 import etomo.comscript.ProcesschunksParam;
 import etomo.process.BaseProcessManager;
-import etomo.process.ImodManager;
 import etomo.process.ParallelProcessManager;
 import etomo.storage.Storable;
 import etomo.type.AxisID;
@@ -167,9 +166,6 @@ public final class ParallelManager extends BaseManager {
     }
   }
 
-  protected void setMetaData(ImodManager imodManager) {
-  }
-
   public void setParamFile(File paramFile) {
     this.paramFile = paramFile;
   }
@@ -275,6 +271,9 @@ public final class ParallelManager extends BaseManager {
 }
 /**
  * <p> $Log$
+ * <p> Revision 1.13  2007/05/21 22:28:23  sueh
+ * <p> bug# 964 Added getInterfaceType().
+ * <p>
  * <p> Revision 1.12  2007/04/09 19:30:19  sueh
  * <p> bug# 964 Added setParamFile(), which just returns loadedParamFile
  * <p>
