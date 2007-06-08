@@ -109,8 +109,6 @@ public abstract class BaseManager {
 
   abstract void updateDialog(ProcessName processName, AxisID axisID);
 
-  abstract void setMetaData(ImodManager imodManager);
-
   public abstract BaseMetaData getBaseMetaData();
 
   public abstract MainPanel getMainPanel();
@@ -216,6 +214,13 @@ public abstract class BaseManager {
     String oldPropertyUserDir = this.propertyUserDir;
     this.propertyUserDir = propertyUserDir;
     return oldPropertyUserDir;
+  }
+  
+  void clearUIParameters() {
+    loadedParamFile = false;
+    paramFile = null;
+    initialized = false;
+    propertyUserDir = null;
   }
 
   void initializeUIParameters(File dataFile, AxisID axisID,
@@ -694,8 +699,6 @@ public abstract class BaseManager {
     }
     // Update the MRU test data filename list
     userConfig.putDataFile(paramFile.getAbsolutePath());
-    //  Initialize a new IMOD manager
-    setMetaData(imodManager);
     return true;
   }
 
@@ -1186,6 +1189,10 @@ public abstract class BaseManager {
 }
 /**
  * <p> $Log$
+ * <p> Revision 1.83  2007/06/04 22:50:58  sueh
+ * <p> bug# 1005 Added boolean loadedFromADifferentFile to
+ * <p> initializeUIParameters and loadParamFile.
+ * <p>
  * <p> Revision 1.82  2007/05/21 22:27:50  sueh
  * <p> bug# 964 Added abstract function getInterfaceType().
  * <p>
