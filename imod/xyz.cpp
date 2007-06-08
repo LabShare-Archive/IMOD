@@ -4,18 +4,13 @@
  *  Original author: James Kremer
  *  Revised by: David Mastronarde   email: mast@colorado.edu
  *
- *  Copyright (C) 1995-2004 by Boulder Laboratory for 3-Dimensional Electron
+ *  Copyright (C) 1995-2007 by Boulder Laboratory for 3-Dimensional Electron
  *  Microscopy of Cells ("BL3DEMC") and the Regents of the University of 
  *  Colorado.  See dist/COPYRIGHT for full copyright notice.
+ *
+ *  $Id$
+ *  Log at end of file
  */
-
-/*  $Author$
-
-$Date$
-
-$Revision$
-Log at end of file
-*/
 
 #include <math.h>
 #include <qdatetime.h>
@@ -503,10 +498,10 @@ void XyzWindow::B2Press(int x, int y)
 
 
   /* DNM: don't make closed contours wild if they're not */
-  if (cont->psize &&  iobjClose(obj->flags) && !(cont->flags & ICONT_WILD)
+  if (cont->psize &&  iobjPlanar(obj->flags) && !(cont->flags & ICONT_WILD)
       && (int)floor(cont->pts[0].z + 0.5) != mz) {
-    wprint("\aXYZ will not add a point on a different section to"
-           " a co-planar closed contour.\n");
+    wprint("\aXYZ will not add a point on a different section to a co-planar"
+           " %s contour.\n", iobjClose(obj->flags) ? "closed" : "");
     return;
   }
   point.x = mx;
@@ -699,7 +694,7 @@ void XyzWindow::B2Drag(int x, int y)
     return;
 
   /* DNM: don't make closed contours wild if they're not */
-  if (cont->psize &&  iobjClose(obj->flags) && !(cont->flags & ICONT_WILD)
+  if (cont->psize &&  iobjPlanar(obj->flags) && !(cont->flags & ICONT_WILD)
       && cont->pts[0].z != mz)
     return;
 
@@ -851,7 +846,7 @@ void XyzWindow::DrawImage()
   // Changes in available data that will require redisplay of XZ and YZ data
   // Load current Z section first to get it into cacheSum
   id = ivwGetCurrentZSection(win->vi);
-  if (ivwSetupFastAccess(win->vi, &imdata, 0, &cacheSum))
+  if (ivwSetupFastAccess(win->vi, &imdata, 0, &cacheSum, win->vi->ct))
     return;
 
   /* Just take the X size, do not allow for possibility of cached data 
@@ -1747,6 +1742,9 @@ void XyzGL::mouseMoveEvent( QMouseEvent * event )
 
 /*
 $Log$
+Revision 4.32  2006/10/11 20:13:24  mast
+Reject mouse event if window closing from escape
+
 Revision 4.31  2006/10/05 15:41:32  mast
 Provided for primary and second non-TIFF snapshot format
 
