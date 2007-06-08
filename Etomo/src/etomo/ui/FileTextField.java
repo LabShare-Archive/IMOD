@@ -24,6 +24,9 @@ import etomo.type.ConstEtomoNumber;
  * @version $Revision$
  * 
  * <p> $Log$
+ * <p> Revision 1.4  2007/04/09 21:17:42  sueh
+ * <p> bug# 964 Added setText(constEtomoNumber).
+ * <p>
  * <p> Revision 1.3  2007/04/02 16:02:15  sueh
  * <p> bug# 964 Commented getActionCommand
  * <p>
@@ -46,11 +49,11 @@ final class FileTextField {
 
   private JLabel label = null;
 
-  FileTextField(String label) {
+  FileTextField(final String label) {
     this(label, true);
   }
 
-  private FileTextField(String label, boolean labeled) {
+  private FileTextField(final String label, final boolean labeled) {
     panel.setBoxLayout(BoxLayout.X_AXIS);
     if (labeled) {
       this.label = new JLabel(label);
@@ -64,7 +67,7 @@ final class FileTextField {
     button.setMaximumSize(FixedDim.folderButton);
   }
 
-  static FileTextField getUnlabeledInstance(String actionCommand) {
+  static FileTextField getUnlabeledInstance(final String actionCommand) {
     return new FileTextField(actionCommand, false);
   }
 
@@ -83,25 +86,29 @@ final class FileTextField {
     return panel.getContainer();
   }
 
-  void addActionListener(ActionListener actionListener) {
+  void addActionListener(final ActionListener actionListener) {
     button.addActionListener(actionListener);
   }
+  
+  void clear() {
+    field.setText("");
+  }
 
-  void setEditable(boolean editable) {
+  void setEditable(final boolean editable) {
     field.setEditable(editable);
     button.setEnabled(editable);
   }
 
-  void setEnabled(boolean enabled) {
+  void setEnabled(final boolean enabled) {
     field.setEnabled(enabled);
     button.setEnabled(enabled);
   }
   
-  void setText(ConstEtomoNumber number) {
+  void setText(final ConstEtomoNumber number) {
     field.setText(number.toString());
   }
 
-  void setText(String text) {
+  void setText(final String text) {
     field.setText(text);
   }
 
@@ -109,7 +116,7 @@ final class FileTextField {
     return field.getText();
   }
 
-  void setToolTipText(String text) {
+  void setToolTipText(final String text) {
     field.setToolTipText(text);
     button.setToolTipText(TooltipFormatter.INSTANCE.format(text));
   }

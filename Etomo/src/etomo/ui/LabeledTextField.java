@@ -25,6 +25,9 @@ import etomo.util.Utilities;
  * @version $Revision$
  *
  * <p> $Log$
+ * <p> Revision 3.24  2007/04/13 18:44:56  sueh
+ * <p> bug# 964 Added debug member variable.
+ * <p>
  * <p> Revision 3.23  2007/03/27 00:04:07  sueh
  * <p> bug# 964 Removed unused functions.
  * <p>
@@ -137,23 +140,23 @@ import etomo.util.Utilities;
  * <p> Initial CVS entry, basic functionality not including combining
  * <p> </p>
  */
-public class LabeledTextField {
+final class LabeledTextField {
   public static final String rcsid = "$Id$";
 
-  private JPanel panel = new JPanel();
-  private JLabel label = new JLabel();
-  private JTextField textField = new JTextField();
+  private final JPanel panel = new JPanel();
+  private final JLabel label = new JLabel();
+  private final JTextField textField = new JTextField();
   private boolean debug = false;
 
   public String toString() {
     return getClass().getName() + "[" + paramString() + "]\n";
   }
 
-  protected String paramString() {
+  String paramString() {
     return "label=" + label.getText() + ",textField=" + textField.getText();
   }
 
-  public LabeledTextField(String tfLabel) {
+  LabeledTextField(final String tfLabel) {
     //set label
     setLabel(tfLabel);
 
@@ -173,7 +176,7 @@ public class LabeledTextField {
     textField.setMaximumSize(maxSize);
   }
 
-  private void setName(String tfLabel) {
+  private void setName(final String tfLabel) {
     String name = Utilities.convertLabelToName(tfLabel);
     textField.setName(name);
     if (EtomoDirector.getInstance().isPrintNames()) {
@@ -183,7 +186,11 @@ public class LabeledTextField {
     }
   }
 
-  public boolean equals(String thatText) {
+  void clear() {
+    textField.setText("");
+  }
+
+  boolean equals(final String thatText) {
     String text = getText();
     if (text == null) {
       if (thatText == null) {
@@ -199,8 +206,8 @@ public class LabeledTextField {
     }
     return false;
   }
-  
-  void setHighlight(boolean highlight) {
+
+  void setHighlight(final boolean highlight) {
     if (highlight) {
       textField.setBackground(Colors.HIGHLIGHT_BACKGROUND);
     }
@@ -209,24 +216,24 @@ public class LabeledTextField {
     }
   }
 
-  public Container getContainer() {
+  Container getContainer() {
     return panel;
   }
 
-  public String getLabel() {
+  String getLabel() {
     return label.getText();
   }
 
-  public void setLabel(String label) {
+  void setLabel(final String label) {
     this.label.setText(label);
     setName(label);
   }
 
-  public String getText() {
+  String getText() {
     return textField.getText();
   }
 
-  public void setText(ConstEtomoNumber text) {
+  void setText(ConstEtomoNumber text) {
     if (text == null) {
       textField.setText("");
     }
@@ -235,58 +242,58 @@ public class LabeledTextField {
     }
   }
 
-  public void setText(String text) {
+  void setText(final String text) {
     textField.setText(text);
   }
 
-  public void setText(int value) {
+  void setText(final int value) {
     textField.setText(String.valueOf(value));
   }
 
-  public void setText(float value) {
+  void setText(final float value) {
     textField.setText(String.valueOf(value));
   }
 
-  public void setText(long value) {
+  void setText(final long value) {
     textField.setText(String.valueOf(value));
   }
 
-  public void setText(double value) {
+  void setText(final double value) {
     textField.setText(String.valueOf(value));
   }
 
-  public void setEnabled(boolean isEnabled) {
+  void setEnabled(final boolean isEnabled) {
     textField.setEnabled(isEnabled);
     label.setEnabled(isEnabled);
   }
 
-  public boolean isEnabled() {
+  boolean isEnabled() {
     return (textField.isEnabled());
   }
 
-  public void setVisible(boolean isVisible) {
+  void setVisible(final boolean isVisible) {
     panel.setVisible(isVisible);
   }
 
-  public void setEditable(boolean editable) {
+  void setEditable(final boolean editable) {
     textField.setEditable(editable);
   }
-  
-  public void setDebug(boolean debug) {
+
+  void setDebug(final boolean debug) {
     this.debug = debug;
   }
 
-  public void addKeyListener(KeyListener listener) {
+  void addKeyListener(final KeyListener listener) {
     textField.addKeyListener(listener);
   }
 
-  public void setTextPreferredWidth(double minWidth) {
+  void setTextPreferredWidth(final double minWidth) {
     Dimension prefSize = textField.getPreferredSize();
     prefSize.setSize(minWidth, prefSize.getHeight());
     textField.setPreferredSize(prefSize);
   }
 
-  public void setMinimumWidth(double minWidth) {
+  void setMinimumWidth(final double minWidth) {
     Dimension prefSize = textField.getPreferredSize();
     prefSize.setSize(minWidth, prefSize.getHeight());
     textField.setMinimumSize(prefSize);
@@ -296,37 +303,37 @@ public class LabeledTextField {
    * Set the absolute preferred size of the panel
    * @param size
 
-  public void setPreferredSize(Dimension size) {
-    panel.setPreferredSize(size);
-  }*/
+   public void setPreferredSize(Dimension size) {
+   panel.setPreferredSize(size);
+   }*/
 
   /**
    * Set the absolute maximum size of the panel
    * @param size
    
-  public void setMaximumSize(Dimension size) {
-    panel.setMaximumSize(size);
-  }*/
+   public void setMaximumSize(Dimension size) {
+   panel.setMaximumSize(size);
+   }*/
 
-  public Dimension getLabelPreferredSize() {
+  Dimension getLabelPreferredSize() {
     return label.getPreferredSize();
   }
 
-  public void setColumns(int columns) {
+  void setColumns(final int columns) {
     textField.setColumns(columns);
   }
 
-  public void setAlignmentX(float alignment) {
+  void setAlignmentX(final float alignment) {
     panel.setAlignmentX(alignment);
   }
 
-  public void setToolTipText(String text) {
+  void setToolTipText(final String text) {
     String tooltip = TooltipFormatter.INSTANCE.format(text);
     panel.setToolTipText(tooltip);
     textField.setToolTipText(tooltip);
   }
 
-  public void addMouseListener(MouseListener listener) {
+  void addMouseListener(final MouseListener listener) {
     panel.addMouseListener(listener);
     label.addMouseListener(listener);
     textField.addMouseListener(listener);
