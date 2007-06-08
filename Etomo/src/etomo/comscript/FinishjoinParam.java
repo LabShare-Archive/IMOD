@@ -32,6 +32,9 @@ import etomo.util.DatasetFiles;
  * @version $Revision$
  * 
  * <p> $Log$
+ * <p> Revision 1.27  2007/05/11 15:27:01  sueh
+ * <p> bug# 964 Added getStringArray().
+ * <p>
  * <p> Revision 1.26  2007/04/23 23:19:01  sueh
  * <p> bug# 991 getRejoinOptions:  get the last end list value.
  * <p>
@@ -296,7 +299,7 @@ public final class FinishjoinParam implements CommandDetails {
   public boolean getBooleanValue(etomo.comscript.Fields field) {
     throw new IllegalArgumentException("field=" + field);
   }
-  
+
   public String[] getStringArray(etomo.comscript.Fields field) {
     throw new IllegalArgumentException("field=" + field);
   }
@@ -443,9 +446,8 @@ public final class FinishjoinParam implements CommandDetails {
     if (mode == Mode.TRIAL_REJOIN) {
       ConstJoinMetaData metaData = manager.getConstMetaData();
       options.add("-t");
-      EtomoNumber rejoinUseEveryNSlices = new EtomoNumber(metaData
-          .getRejoinUseEveryNSlices());
-      options.add(rejoinUseEveryNSlices.toString());
+      useEveryNSlices = new EtomoNumber(metaData.getRejoinUseEveryNSlices());
+      options.add(useEveryNSlices.toString());
       ScriptParameter rejoinBinning = new ScriptParameter(metaData
           .getRejoinTrialBinningParameter());
       if (rejoinBinning.isNotNullAndNotDefault()) {
