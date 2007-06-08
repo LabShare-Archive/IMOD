@@ -1,5 +1,8 @@
 IMOD History
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+6/7/07: Improved error reports from low-level I/O routines for Fortran to 
+include filename and to report a system error string correctly.
+
 6/7/07: Added Ctrl-Shift-D hot key to delete a surface, and added an option
 to Object-Type window to get a new contour automatically on each new section 
 when modeling with open contours.
