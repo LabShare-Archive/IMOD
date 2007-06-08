@@ -1682,13 +1682,16 @@ void zapButton2(ZapStruct *zap, int x, int y, int controlDown)
     if (cont->psize > 0) {
       cz = (int)floor(cont->pts->z + 0.5); 
       pz = (int)point.z;
-      if ((iobjClose(obj->flags) && !(cont->flags & ICONT_WILD) && cz != pz) ||
-          ivwTimeMismatch(vi, zap->timeLock, obj, cont)) {
+      if ((iobjPlanar(obj->flags) && !(cont->flags & ICONT_WILD) && cz != pz) 
+          || ivwTimeMismatch(vi, zap->timeLock, obj, cont)) {
         if (cont->psize == 1) {
           wprint("Started a new contour even though last "
                  "contour had only 1 pt.  ");
-          if (cz != pz)
+          if (cz != pz && iobjClose(obj->flags))
             wprint("\aUse open contours to model across sections.\n");
+          else if (cz != pz)
+            wprint("\aTurn off \"Start new contour at new Z\" to model "
+                   "across sections.\n");
           else
             wprint("\aSet contour time to 0 to model across times.\n");
         }
@@ -2091,9 +2094,9 @@ void zapB2Drag(ZapStruct *zap, int x, int y, int controlDown)
   /* DNM 6/18/03: If Z or time has changed, treat it like a button click so
      new contour can be started */
   // DNM 6/30/04: change to start new for any kind of contour with time change
-  if ((iobjClose(obj->flags) && !(cont->flags & ICONT_WILD) && 
+  if ((iobjPlanar(obj->flags) && !(cont->flags & ICONT_WILD) && 
       (int)floor(lpt->z + 0.5) != (int)cpt.z) ||
-       ivwTimeMismatch(vi, zap->timeLock, obj, cont)) {
+      ivwTimeMismatch(vi, zap->timeLock, obj, cont)) {
     registerDragAdditions(zap);
     zapButton2(zap, x, y, 0);
     return;
@@ -3857,6 +3860,9 @@ void zapGetLongestTimeString(ImodView *vi, QString *str)
 
 /*
 $Log$
+Revision 4.95  2007/06/07 03:56:39  mast
+Fix xyzmouse position when a drag draw finishes, and update info
+
 Revision 4.94  2007/05/31 16:23:10  mast
 Changes for using hot toolbar
 
