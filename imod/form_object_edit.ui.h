@@ -80,6 +80,11 @@ void objectEditForm::widthChanged( int value )
      ioew_linewidth(value);
 }	
 
+void objectEditForm::toggledPlanar( bool state )
+{
+  ioew_planar(state ? 1 : 0);
+}
+
 // Set the state of the widgets initially or when a new object is selected
 void objectEditForm::setSymbolProperties( int which, bool fill, bool markEnds, int size )
 {
@@ -134,6 +139,12 @@ void objectEditForm::setLineWidth( int value )
     diaSetSpinBox(widthSpinBox, value);
 }
 
+void objectEditForm::setPlanarBox( bool state, bool enabled )
+{
+  diaSetChecked(planarCheckBox, state);
+  planarCheckBox->setEnabled(enabled);
+}
+
 // Handle close event; pass on keypress
 void objectEditForm::closeEvent( QCloseEvent *e )
 {
@@ -154,4 +165,3 @@ void objectEditForm::keyReleaseEvent( QKeyEvent * e )
 {
     ivwControlKey(1, e);
 }
-

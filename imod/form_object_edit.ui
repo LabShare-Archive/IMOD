@@ -8,7 +8,7 @@
         <rect>
             <x>0</x>
             <y>0</y>
-            <width>224</width>
+            <width>241</width>
             <height>533</height>
         </rect>
     </property>
@@ -225,6 +225,20 @@
                     </vbox>
                 </widget>
             </hbox>
+        </widget>
+        <widget class="QCheckBox">
+            <property name="name">
+                <cstring>planarCheckBox</cstring>
+            </property>
+            <property name="focusPolicy">
+                <enum>NoFocus</enum>
+            </property>
+            <property name="text">
+                <string>Start new contour at new Z</string>
+            </property>
+            <property name="toolTip" stdset="0">
+                <string>Automatically start new contour in Zap window when on a new section</string>
+            </property>
         </widget>
         <widget class="QGroupBox">
             <property name="name">
@@ -460,6 +474,9 @@
         <widget class="QCheckBox">
             <property name="name">
                 <cstring>onSecCheckBox</cstring>
+            </property>
+            <property name="focusPolicy">
+                <enum>NoFocus</enum>
             </property>
             <property name="text">
                 <string>Show spheres on-section only</string>
@@ -734,6 +751,12 @@
         <receiver>objectEditForm</receiver>
         <slot>toggledOnSection(bool)</slot>
     </connection>
+    <connection>
+        <sender>planarCheckBox</sender>
+        <signal>toggled(bool)</signal>
+        <receiver>objectEditForm</receiver>
+        <slot>toggledPlanar(bool)</slot>
+    </connection>
 </connections>
 <includes>
     <include location="local" impldecl="in implementation">control.h</include>
@@ -757,6 +780,7 @@
     <slot>toggledTime( bool state )</slot>
     <slot>toggledOnSection( bool state )</slot>
     <slot>widthChanged( int value )</slot>
+    <slot>toggledPlanar( bool state )</slot>
     <slot>setSymbolProperties( int which, bool fill, bool markEnds, int size )</slot>
     <slot>setDrawBox( bool state )</slot>
     <slot>setObjectName( char * name )</slot>
@@ -766,6 +790,7 @@
     <slot>setFrontSurface( int value )</slot>
     <slot>setObjectType( int value )</slot>
     <slot>setLineWidth( int value )</slot>
+    <slot>setPlanarBox( bool state, bool enabled )</slot>
     <slot>keyPressEvent( QKeyEvent * e )</slot>
     <slot>keyReleaseEvent( QKeyEvent * e )</slot>
 </slots>
