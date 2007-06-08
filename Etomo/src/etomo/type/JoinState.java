@@ -20,6 +20,10 @@ import etomo.BaseManager;
  * @version $Revision$
  * 
  * <p> $Log$
+ * <p> Revision 1.8  2007/03/01 01:25:47  sueh
+ * <p> bug# 964 Saving immutable Number elements instead of EtomoNumber elements
+ * <p> in IntKeyList.
+ * <p>
  * <p> Revision 1.7  2007/02/08 02:03:32  sueh
  * <p> bug# 962 removed unnecessary print.
  * <p>
@@ -62,6 +66,7 @@ public final class JoinState implements ConstJoinState, BaseState {
   private static final String SHIFT_IN_Y_KEY = "ShiftInY";
   private static final String SIZE_IN_X_KEY = "SizeInX";
   private static final String SIZE_IN_Y_KEY = "SizeInY";
+  private static final String USE_EVERY_N_SLICES_KEY = "UseEveryNSlices";
   public static final ConstEtomoVersion MIN_REFINE_VERSION = EtomoVersion
       .getDefaultInstance("1.1");
 
@@ -70,8 +75,12 @@ public final class JoinState implements ConstJoinState, BaseState {
 
   private static final String groupString = "JoinState";
   private static final String VERSION = "1.1";
-  private static final String XFMODEL_INPUT_FILE=ProcessName.XFMODEL.toString()+"InputFile";
-  private static final String XFMODEL_OUTPUT_FILE=ProcessName.XFMODEL.toString()+"OutputFile";
+  private static final String XFMODEL_INPUT_FILE = ProcessName.XFMODEL
+      .toString()
+      + "InputFile";
+  private static final String XFMODEL_OUTPUT_FILE = ProcessName.XFMODEL
+      .toString()
+      + "OutputFile";
 
   private final EtomoNumber doneMode = new EtomoNumber("DoneMode");
 
@@ -93,10 +102,10 @@ public final class JoinState implements ConstJoinState, BaseState {
 
   private final EtomoVersion joinVersion = EtomoVersion.getInstance(JOIN_KEY
       + '.' + EtomoVersion.DEFAULT_KEY);
-  private final IntKeyList joinStartList = IntKeyList
-      .getNumberInstance(JOIN_KEY + '.' + START_LIST_KEY,EtomoNumber.Type.LONG);
+  private final IntKeyList joinStartList = IntKeyList.getNumberInstance(
+      JOIN_KEY + '.' + START_LIST_KEY, EtomoNumber.Type.LONG);
   private final IntKeyList joinEndList = IntKeyList.getNumberInstance(JOIN_KEY
-      + '.' + END_LIST_KEY,EtomoNumber.Type.LONG);
+      + '.' + END_LIST_KEY, EtomoNumber.Type.LONG);
   private final EtomoNumber joinAlignmentRefSection = new EtomoNumber(JOIN_KEY
       + '.' + ALIGNMENT_REF_SECTION_KEY);
   private final ScriptParameter joinShiftInX = new ScriptParameter(JOIN_KEY
@@ -110,10 +119,10 @@ public final class JoinState implements ConstJoinState, BaseState {
 
   private final EtomoVersion joinTrialVersion = EtomoVersion
       .getInstance(JOIN_KEY + '.' + TRIAL_KEY + '.' + EtomoVersion.DEFAULT_KEY);
-  private final IntKeyList joinTrialStartList = IntKeyList
-      .getNumberInstance(JOIN_KEY + '.' + TRIAL_KEY + '.' + START_LIST_KEY,EtomoNumber.Type.LONG);
-  private final IntKeyList joinTrialEndList = IntKeyList
-      .getNumberInstance(JOIN_KEY + '.' + TRIAL_KEY + '.' + END_LIST_KEY,EtomoNumber.Type.LONG);
+  private final IntKeyList joinTrialStartList = IntKeyList.getNumberInstance(
+      JOIN_KEY + '.' + TRIAL_KEY + '.' + START_LIST_KEY, EtomoNumber.Type.LONG);
+  private final IntKeyList joinTrialEndList = IntKeyList.getNumberInstance(
+      JOIN_KEY + '.' + TRIAL_KEY + '.' + END_LIST_KEY, EtomoNumber.Type.LONG);
   private final EtomoNumber joinTrialAlignmentRefSection = new EtomoNumber(
       JOIN_KEY + '.' + TRIAL_KEY + '.' + ALIGNMENT_REF_SECTION_KEY);
   private final ScriptParameter joinTrialShiftInX = new ScriptParameter(
@@ -126,13 +135,16 @@ public final class JoinState implements ConstJoinState, BaseState {
       + '.' + TRIAL_KEY + '.' + SIZE_IN_Y_KEY);
   private final EtomoNumber joinTrialBinning = new EtomoNumber(JOIN_KEY + '.'
       + TRIAL_KEY + '.' + "Binning");
-  private final IntKeyList refineStartList = IntKeyList
-      .getNumberInstance(REFINE_KEY + '.' + START_LIST_KEY,EtomoNumber.Type.LONG);
-  private final IntKeyList refineEndList = IntKeyList
-      .getNumberInstance(REFINE_KEY + '.' + END_LIST_KEY,EtomoNumber.Type.LONG);
-  private String xfModelOutputFile=null;
+  private final IntKeyList refineStartList = IntKeyList.getNumberInstance(
+      REFINE_KEY + '.' + START_LIST_KEY, EtomoNumber.Type.LONG);
+  private final IntKeyList refineEndList = IntKeyList.getNumberInstance(
+      REFINE_KEY + '.' + END_LIST_KEY, EtomoNumber.Type.LONG);
+  private String xfModelOutputFile = null;
   private boolean debug = false;
-  private final EtomoNumber joinTrialUseEveryNSlices = new EtomoNumber(JOIN_KEY + '.' + TRIAL_KEY + '.' + "UseEveryNSlices");
+  private final EtomoNumber joinTrialUseEveryNSlices = new EtomoNumber(JOIN_KEY
+      + '.' + TRIAL_KEY + '.' + USE_EVERY_N_SLICES_KEY);
+  private final EtomoNumber refineTrialUseEveryNSlices = new EtomoNumber(
+      REFINE_KEY + '.' + TRIAL_KEY + '.' + USE_EVERY_N_SLICES_KEY);
 
   public JoinState(BaseManager manager) {
     reset();
@@ -168,6 +180,7 @@ public final class JoinState implements ConstJoinState, BaseState {
     refineStartList.reset();
     refineEndList.reset();
     joinTrialUseEveryNSlices.reset();
+    refineTrialUseEveryNSlices.reset();
   }
 
   public void store(Properties props) {
@@ -212,14 +225,15 @@ public final class JoinState implements ConstJoinState, BaseState {
     joinTrialBinning.store(props, prepend);
     joinTrialStartList.store(props, prepend);
     joinTrialEndList.store(props, prepend);
-    joinTrialUseEveryNSlices.store(props,prepend);
+    joinTrialUseEveryNSlices.store(props, prepend);
+    refineTrialUseEveryNSlices.store(props, prepend);
     refineStartList.store(props, prepend);
     refineEndList.store(props, prepend);
-    if (xfModelOutputFile==null) {
-      props.remove(prepend+'.'+XFMODEL_OUTPUT_FILE);
+    if (xfModelOutputFile == null) {
+      props.remove(prepend + '.' + XFMODEL_OUTPUT_FILE);
     }
     else {
-      props.setProperty(prepend+'.'+XFMODEL_OUTPUT_FILE,xfModelOutputFile);
+      props.setProperty(prepend + '.' + XFMODEL_OUTPUT_FILE, xfModelOutputFile);
     }
   }
 
@@ -262,7 +276,7 @@ public final class JoinState implements ConstJoinState, BaseState {
       joinTrialBinning.load(props, prepend);
       joinTrialStartList.load(props, prepend);
       joinTrialEndList.load(props, prepend);
-      joinTrialUseEveryNSlices.load(props,prepend);
+      joinTrialUseEveryNSlices.load(props, prepend);
     }
     else {
       loadJoinTrialVersion1_0(props, prepend);
@@ -289,9 +303,10 @@ public final class JoinState implements ConstJoinState, BaseState {
     }
     gapsExist = EtomoBoolean2.load(gapsExist, GAPS_EXIST_KEY, props, prepend);
     refineTrial.load(props, prepend);
+    refineTrialUseEveryNSlices.load(props, prepend);
     refineStartList.load(props, prepend);
     refineEndList.load(props, prepend);
-    xfModelOutputFile=props.getProperty(prepend+'.'+XFMODEL_OUTPUT_FILE);
+    xfModelOutputFile = props.getProperty(prepend + '.' + XFMODEL_OUTPUT_FILE);
   }
 
   /**
@@ -377,7 +392,7 @@ public final class JoinState implements ConstJoinState, BaseState {
       joinSizeInY.set(metaData.getSizeInY());
     }
   }
-  
+
   public void setRefineTrial(boolean trial) {
     refineTrial.set(trial);
   }
@@ -419,11 +434,11 @@ public final class JoinState implements ConstJoinState, BaseState {
   public IntKeyList.Walker getRefineEndListWalker() {
     return refineEndList.getWalker();
   }
-  
+
   public void setDebug(boolean debug) {
-    this.debug=debug;
+    this.debug = debug;
   }
-  
+
   public boolean isRefineStartListEmpty() {
     return refineStartList.isEmpty();
   }
@@ -466,20 +481,28 @@ public final class JoinState implements ConstJoinState, BaseState {
 
   public void setJoinStartList(boolean trial, ConstIntKeyList startList) {
     if (trial) {
-      
+
       joinTrialStartList.set(startList);
     }
     else {
       joinStartList.set(startList);
     }
   }
-  
+
   public void setJoinTrialUseEveryNSlices(ConstEtomoNumber useEveryNSlices) {
     joinTrialUseEveryNSlices.set(useEveryNSlices);
   }
-  
+
+  public void setRefineTrialUseEveryNSlices(ConstEtomoNumber useEveryNSlices) {
+    refineTrialUseEveryNSlices.set(useEveryNSlices);
+  }
+
   public ConstEtomoNumber getJoinTrialUseEveryNSlices() {
     return joinTrialUseEveryNSlices;
+  }
+  
+  public ConstEtomoNumber getRefineTrialUseEveryNSlices() {
+    return refineTrialUseEveryNSlices;
   }
 
   public void setRefineStartList(ConstIntKeyList startList) {
@@ -556,9 +579,9 @@ public final class JoinState implements ConstJoinState, BaseState {
   }
 
   public ConstEtomoNumber getJoinTrialBinning() {
-      return joinTrialBinning;
+    return joinTrialBinning;
   }
-  
+
   public void setJoinTrialBinning(ConstEtomoNumber binning) {
     joinTrialBinning.set(binning);
   }
@@ -705,15 +728,15 @@ public final class JoinState implements ConstJoinState, BaseState {
   public void setTotalRows(int totalRows) {
     this.totalRows.set(totalRows);
   }
-  
+
   public void setXfModelOutputFile(String xfModelOutputFile) {
-    this.xfModelOutputFile=xfModelOutputFile;
+    this.xfModelOutputFile = xfModelOutputFile;
   }
-  
+
   public String getXfModelOutputFile() {
     return xfModelOutputFile;
   }
-  
+
   public void setSampleProduced(boolean sampleProduced) {
     this.sampleProduced = sampleProduced;
   }
