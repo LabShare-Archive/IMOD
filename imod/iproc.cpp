@@ -258,6 +258,23 @@ static void median_cb()
 static void anisoDiff_cb()
 {
   ImodIProc *ip = &proc;
+
+  // Get this memory only when needed because it is so big
+  if (!ip->andfImage) {
+    ip->andfImage = allocate2D_float(ip->vi->ysize + 2, ip->vi->xsize + 2);
+    if (ip->andfImage) {
+      ip->andfImage2 = allocate2D_float(ip->vi->ysize + 2, ip->vi->xsize + 2);
+      if (!ip->andfImage2) {
+        free(ip->andfImage[0]);
+        free(ip->andfImage);
+        ip->andfImage = NULL;
+      }
+    }
+  }
+  if (!ip->andfImage) {
+    wprint("\aCould not get memory for diffusion\n");
+    return;
+  }
   ip->andfK = ip->andfKEdit->text().toDouble();
   ip->andfLambda = ip->andfLambdaEdit->text().toDouble();
   sliceByteAnisoDiff(&s, ip->andfImage, ip->andfImage2, ip->andfStopFunc + 2,
@@ -292,12 +309,10 @@ int iprocRethink(struct ViewInfo *vi)
     proc.isaved = (unsigned char *)malloc(vi->xsize * vi->ysize);
     proc.iwork = (unsigned char *)malloc(vi->xsize * vi->ysize);
 
-    proc.andfImage = allocate2D_float(vi->ysize + 2, vi->xsize + 2);
-    proc.andfImage2 = allocate2D_float(vi->ysize + 2, vi->xsize + 2);
     proc.andfIterDone = 0;
     proc.andfDoneLabel->setText("0 done");
 
-    if (!proc.isaved || !proc.iwork || !proc.andfImage || !proc.andfImage2) {
+    if (!proc.isaved || !proc.iwork) {
       freeArrays(&proc);
       wprint("\aCannot get new memory for processing window!\n");
       proc.dia->close();
@@ -346,10 +361,7 @@ int inputIProcOpen(struct ViewInfo *vi)
     proc.isaved = (unsigned char *)malloc(vi->xsize * vi->ysize);
     proc.iwork = (unsigned char *)malloc(vi->xsize * vi->ysize);
 
-    proc.andfImage = allocate2D_float(vi->ysize + 2, vi->xsize + 2);
-    proc.andfImage2 = allocate2D_float(vi->ysize + 2, vi->xsize + 2);
-
-    if (!proc.isaved || !proc.iwork || !proc.andfImage || !proc.andfImage2) {
+    if (!proc.isaved || !proc.iwork) {
       freeArrays(&proc);
       wprint("\aCannot get memory for processing window!\n");
       return(-1);
@@ -1156,6 +1168,9 @@ void IProcThread::run()
 /*
 
     $Log$
+    Revision 4.20  2006/06/24 16:04:23  mast
+    Added button to report frequency
+
     Revision 4.19  2005/03/23 18:46:37  mast
     Added a and b hot keys, consolidated grow and shrink in threshold
 
