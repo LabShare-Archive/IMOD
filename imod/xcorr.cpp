@@ -13,6 +13,9 @@ $Date$
 $Revision$
 
 $Log$
+Revision 1.7  2006/06/24 16:03:33  mast
+Added arguments to return center coordinate of FFT display
+
 Revision 1.6  2005/03/08 02:50:48  mast
 Fix a return value
 
@@ -94,7 +97,7 @@ float sliceByteBinnedFFT(Islice *sin, int binning, int ix0, int ix1, int iy0,
   // Get array for FFT
   fftArray = (float *)malloc(nPadPix * sizeof(float));
   if (!fftArray) {
-    if (binning)
+    if (binning > 1)
       free(indata);
     return -1.;
   }
