@@ -13,6 +13,10 @@
  * @version $Revision$
  * 
  * <p> $Log$
+ * <p> Revision 1.16  2007/03/13 19:44:40  sueh
+ * <p> bug# 964 Got the test autodoc tests working.  The tests checkout location
+ * <p> should be "imod" because "IMOD" is an alias.  Using the alias caused the "-d" option in the "cvs export" command behave incorrectly.
+ * <p>
  * <p> Revision 1.15  2007/03/08 22:07:27  sueh
  * <p> bug# 964 Allow vectors to be checked out from IMOD/Etomo/tests as well as the
  * <p> original vector location.
@@ -158,8 +162,6 @@ public class TestUtilites {
           throw new SystemProcessException("Cannot delete target: "
               + target.getAbsolutePath());
         }
-        System.out.println("vector="+vector);
-        System.out.println("target="+target);
         if (vector.exists()) {
           //copy vector to target
           String[] copyCommand = new String[3];
