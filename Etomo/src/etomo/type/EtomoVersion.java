@@ -20,6 +20,12 @@ import etomo.storage.Storable;
  * @version $Revision$
  * 
  * <p> $Log$
+ * <p> Revision 1.3  2007/06/08 22:16:47  sueh
+ * <p> bug# 1014 isNull() was not working when empty section where found,
+ * <p> since isNull was testing the size of the array and not looking inside it.
+ * <p> Made sectionList a List instead of an array so it can contain only non-
+ * <p> empty strings.
+ * <p>
  * <p> Revision 1.2  2007/02/05 23:26:52  sueh
  * <p> bug# 962 Added comparison functions.
  * <p>
@@ -104,10 +110,12 @@ public final class EtomoVersion implements ConstEtomoVersion, Storable {
     int length = Math.min(sectionList.size(), version.sectionList.size());
     //loop until a section is not equal then corresponding version section
     for (int i = 0; i < length; i++) {
-      if (((String) sectionList.get(i)).compareTo(version.sectionList.get(i)) > 0) {
+      if (((String) sectionList.get(i)).compareTo((String) version.sectionList
+          .get(i)) > 0) {
         return false;
       }
-      if (((String) sectionList.get(i)).compareTo(version.sectionList.get(i)) < 0) {
+      if (((String) sectionList.get(i)).compareTo((String) version.sectionList
+          .get(i)) < 0) {
         return true;
       }
     }
@@ -133,10 +141,12 @@ public final class EtomoVersion implements ConstEtomoVersion, Storable {
     int length = Math.min(sectionList.size(), version.sectionList.size());
     //loop until a section is not equal then corresponding version section
     for (int i = 0; i < length; i++) {
-      if (((String) sectionList.get(i)).compareTo(version.sectionList.get(i)) > 0) {
+      if (((String) sectionList.get(i)).compareTo((String) version.sectionList
+          .get(i)) > 0) {
         return false;
       }
-      if (((String) sectionList.get(i)).compareTo(version.sectionList.get(i)) < 0) {
+      if (((String) sectionList.get(i)).compareTo((String) version.sectionList
+          .get(i)) < 0) {
         return true;
       }
     }
@@ -158,10 +168,12 @@ public final class EtomoVersion implements ConstEtomoVersion, Storable {
     int length = Math.min(sectionList.size(), version.sectionList.size());
     //loop until a section is not equal then corresponding version section
     for (int i = 0; i < length; i++) {
-      if (((String) sectionList.get(i)).compareTo(version.sectionList.get(i)) > 0) {
+      if (((String) sectionList.get(i)).compareTo((String) version.sectionList
+          .get(i)) > 0) {
         return true;
       }
-      if (((String) sectionList.get(i)).compareTo(version.sectionList.get(i)) < 0) {
+      if (((String) sectionList.get(i)).compareTo((String) version.sectionList
+          .get(i)) < 0) {
         return false;
       }
     }
@@ -187,10 +199,12 @@ public final class EtomoVersion implements ConstEtomoVersion, Storable {
     int length = Math.min(sectionList.size(), version.sectionList.size());
     //loop until a section is not equal then corresponding version section
     for (int i = 0; i < length; i++) {
-      if (((String) sectionList.get(i)).compareTo(version.sectionList.get(i)) > 0) {
+      if (((String) sectionList.get(i)).compareTo((String) version.sectionList
+          .get(i)) > 0) {
         return true;
       }
-      if (((String) sectionList.get(i)).compareTo(version.sectionList.get(i)) < 0) {
+      if (((String) sectionList.get(i)).compareTo((String) version.sectionList
+          .get(i)) < 0) {
         return false;
       }
     }
