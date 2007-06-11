@@ -103,6 +103,7 @@ Length Type  Name       Description
                         Bit 10 on : Mesh - draw mesh data in 3D
                         Bit 11 on : Lines - do not draw contours in 3D
                         Bit 12 on : Use stored values to modify drawing
+                        Bit 13 on : Keep contours planar in open object
                         Bit 14 on : Fill color - use instead of regular color
                         Bit 15 on : Anti-aliasing on
                         Bit 16 on : Normals have magnitudes
@@ -119,7 +120,7 @@ Length Type  Name       Description
                                         Fill   = Lines flag on, Fill flag on
                                  Fill Outline  = Lines flag off, Fill flag on
 
-4      int   axis       Z = 0, X = 1, Y = 2.
+4      int   axis       Z = 0, X = 1, Y = 2. (unused)
 4      int   drawmode   Tells type of scattered points to draw (unused)
 
 4      float red        Color values, range is (0.0 - 1.0)
@@ -134,7 +135,7 @@ Length Type  Name       Description
 1      uchar symsize      Size of 2D symbol; radius in pixels.
 1      uchar linewidth2   Linewidth in 2-D view.
 1      uchar linewidth    Linewidth in 3-D view.
-1      uchar linesty      Line draw style default is 0 = solid. 1 = dashed.
+1      uchar linesty      Line draw style, 0 = solid; 1 = dashed (unused).
 1      uchar symflags     Bit 0 on : Fill the symbol.
                           Bit 1 on : Draw beginning and end symbols.
 1      uchar sympad       Set to 0, for future use.
