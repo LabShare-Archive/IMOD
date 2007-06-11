@@ -32,6 +32,10 @@ import etomo.util.Utilities;
  * @version $$Revision$$
  * 
  * <p> $Log$
+ * <p> Revision 1.24  2006/10/11 10:05:50  sueh
+ * <p> bug# 931 Added delete functionality to LogFile - changed BackupException to
+ * <p> FileException.
+ * <p>
  * <p> Revision 1.23  2006/10/10 05:05:05  sueh
  * <p> bug# 931 Managing the log file with LogFile.
  * <p>
@@ -386,13 +390,14 @@ public class BackgroundComScriptProcess extends ComScriptProcess {
    */
   protected void parse() throws LogFile.ReadException {
     parse(getComScriptName(), true);
+    /*
     int startCommand = comscriptState.getStartCommand();
     int endCommand = comscriptState.getEndCommand();
     int index = startCommand;
     while (index <= endCommand) {
       parse(comscriptState.getCommand(index) + ".com", false);
       index++;
-    }
+    }*/
   }
 
   /** 
