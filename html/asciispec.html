@@ -3,13 +3,15 @@ IMOD Model ASCII File Format.
 </title>
 
 <body>
-<H1>Imod ASCII File Format Version 1.0</H1>
+<H1>Imod ASCII File Format Version 2.0</H1>
 <HR>
 The imod ASCII file format holds a subset of the binary data.
 Its main use is to simplify creating or transferring an IMOD model file.
-The format hasn't been upgraded from the original Version 1.0.
+The format was upgraded in IMOD 3.10.11 to include most object, contour, and
+mesh properties, plus slicer angles and clipping planes, but few model-view
+related properties are stored.
 <p>
-Comment lines begin with a '#' charactor; blank lines are skipped.
+Comment lines begin with a '#' character; blank lines are skipped.
 Data lines begin with a word directive followed by data.  Some directives
 will assume data on new lines.
 <p>
@@ -20,7 +22,7 @@ number of objects in the model on the same line.
 
 <H4>Optional model directives.</H4>
 The following directives are optional. They can be in any order 
-anywhere in the file, except in the middle of data.
+anywhere in the file, except in the middle of contour or mesh data
 Each of these directives have three data values for x, y and z.
 The offsets and angles directive should be set to zero.
 The x and y scale values should be set to 1.0 and the z value
@@ -38,32 +40,108 @@ make the model.
 <b>scale</b> (<i>x</i>) (<i>y</i>) (<i>z</i>)
 <br>
 <b>angle</b> (<i>x</i>) (<i>y</i>) (<i>z</i>)
+</code>
+<P>
+Additional model directives are as follows.  The units should be nm, um, or mm.
+The <b>slicerAngle</b> entry specifies X, Y, and Z angles then the X, Y, Z 
+center position.
+<code>
+<br>
+<b>drawmode</b>  (<i>1 to draw model, -1 not to</i>)
+<br>
+<b>b&w_level</b>   (<i>black_slider,white_slider</i>)
+<br>
+<b>resolution</b>   (<i>pixel spacing for drawing model points</i>)
+<br>
+<b>threshold</b>   (<i>threshold for autocontouring</i>)
+<br>
+<b>pixsize</b>   (<i>pixel size</i>)
+<br>
+<b>units</b>   (<i>units</i>)
+<br>
+<b>slicerAngle</b> (<i>time</i>) (<i>x</i>) (<i>y</i>) (<i>z</i>) (<i>x</i>) (<i>y</i>) (<i>z</i>) (<i>label</i>) 
+<br>
+</code>
 <HR>
 <H3>The object directive.</H3>
-Initialize and select the current object.
-object (index) (number of contours in object) (number of meshes in object)
-
+Initializes and selects the current object.
+<br>
+<code>
+<b>object</b> (<i>index</i>) (<i>number of contours in object</i>) (<i>number of meshes in object</i>)
+</code>
 <H4>optional object directives</H4>
 <code>
 <b>color</b> (<i>red</i>) (<i>green</i>) (<i>blue</i>) (<i>trans</i>)
+<br>
+<b>Fillcolor</b> (<i>red</i>) (<i>green</i>) (<i>blue</i>)
+<br>
+<b>name</b>  (<i>text string with object name</i>)
+<br>
+<b>linewidth</b>   (<i>2D line width</i>)
+<br>
+<b>surfsize </b>   (<i>maximum surface number in object</i>)
+<br>
+<b>pointsize</b>   (<i>3D sphere size</i>)
+<br>
+<b>axis     </b>   (<i>unused</i>)
+<br>
+<b>drawmode </b>   (<i>unused</i>)
+<br>
+<b>width2D  </b>   (<i>2D line width</i>)
+<br>
+<b>symbol   </b>   (<i>symbol type</i>)
+<br>
+<b>symsize  </b>   (<i>symbol size</i>)
+<br>
+<b>symflags </b>   (<i>flags for end symbols</i>)
+<br>
+<b>ambient  </b>   (<i>ambient light value</i>)
+<br>
+<b>diffuse  </b>   (<i>diffuse light value</i>)
+<br>
+<b>specular </b>   (<i>specular setting</i>)
+<br>
+<b>shininess</b>   (<i>shininess setting</i>)
+<br>
+<b>obquality</b>   (<i>sphere drawing quality</i>)
+<br>
+<b>objclips</b> (<i># of planes</i>) (<i>flags</i>) (<i>trans</i>) (<i>current plane</i>) 
 </code>
 <p>
-The following are flags.
+The <b>objclips</b> line is followed by one line per clip plane, containing
+the X, Y, Z components of the normal vector and X, Y, Z coordinates of a point
+in the plane.  The following are flags.
 <code>
 <br>
-<b>open</b>
+<b>open</b>:  Contours are open
 <br>
-<b>closed</b>
+<b>closed</b>:  Contours are not open
 <br>
-<b>scattered</b>
+<b>scattered</b>:  Do not connect points
 <br>
-<b>wild</b>
+<b>fill</b>:   Draw model filled
 <br>
-<b>fill</b>
+<b>drawmesh</b>:   Draw mesh
 <br>
-<B>nodraw</b>
-</code>
+<b>nolines</b>:   Do not draw lines with mesh
+<br>
+<B>nodraw</b>:   Turn off object
+<br>
+<b>bothsides</b>:   Light both sides
+<br>
+<b>insideout</b>:   Light the inside surface
+<br>
+<b>usefill</b>:   Use fill color to draw mesh
+<br>
+<b>pntusefill</b>:   Use fill color for 3D points
+<br>
+<b>pntonsec</b>:   Draw 3D points only on section
+<br>
+<b>antialias</b>:   Antialias line drawing
+<br>
+<b>hastimes</b>:   Contour data has times
 
+</code>
 <HR>
 <H3>The contour directive.</H3>
 The contour directive is used for each contour in current object.
@@ -78,7 +156,15 @@ Point data follows on the next line, one line for each point.
 (<i>x</i>) (<i>y</i>) (<i>z</i>)
 <br>
 (<i>x</i>) (<i>y</i>) (<i>z</i>) </code> ... for each point.
-
+</code>
+<p>
+Following the contour data may be two optional directives:
+<code>
+<br>
+<b>contflags</b>   (<i>contour flags</i>)
+<br>
+<b>conttime</b>   (<i>contour time</i>)
+</code>
 <HR>
 <H3>The mesh directive.</H3>
 An object can have more than one mesh.  A mesh is organized into polygons,
@@ -141,4 +227,14 @@ corresponding vertex, and each triangle is described by only 3 indices:
 <i>index to vertex 2</i>
 <i>index to vertex 3</i>
 </pre>
+<p>
+Following all of the mesh data may be three optional directives:
+<code>
+<br>
+<b>Meshflags</b>   (<i>mesh flags</i>)
+<br>
+<b>Meshsurf</b>   (<i>mesh surface number</i>)
+<br>
+<b>Meshtime</b>   (<i>mesh time</i>)
+</code>
 </body></html>
