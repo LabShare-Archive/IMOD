@@ -32,6 +32,11 @@ import etomo.util.Utilities;
  * @version $$Revision$$
  * 
  * <p> $Log$
+ * <p> Revision 1.25  2007/06/11 21:20:16  sueh
+ * <p> bug# 1017 In parse() removed functionality which went to each log.  This
+ * <p> is unnecessary because combine.com is grepping from error messages
+ * <p> in the child log.
+ * <p>
  * <p> Revision 1.24  2006/10/11 10:05:50  sueh
  * <p> bug# 931 Added delete functionality to LogFile - changed BackupException to
  * <p> FileException.
@@ -194,6 +199,7 @@ public class BackgroundComScriptProcess extends ComScriptProcess {
     this.comscriptState = comscriptState;
     this.axisID = axisID;
     this.manager = manager;
+    setParseLogFile(false);
   }
 
   /**
@@ -390,14 +396,13 @@ public class BackgroundComScriptProcess extends ComScriptProcess {
    */
   protected void parse() throws LogFile.ReadException {
     parse(getComScriptName(), true);
-    /*
     int startCommand = comscriptState.getStartCommand();
     int endCommand = comscriptState.getEndCommand();
     int index = startCommand;
     while (index <= endCommand) {
       parse(comscriptState.getCommand(index) + ".com", false);
       index++;
-    }*/
+    }
   }
 
   /** 
