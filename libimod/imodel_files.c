@@ -1118,7 +1118,9 @@ int imodReadAscii(Imod *imod)
   int conts, meshes, pts;
   int mh, vsize, lsize;
   char line[MAXLINE];
-  int len, idata;
+  char *strptr;
+  int len, idata, idata2, idata3, idata4;
+  SlicerAngles slan;
 
 #ifdef IMODEL_FILES_DEBUG
   fprintf(stderr, "#imodReadAscii: Entry\n");
@@ -1203,6 +1205,8 @@ int imodReadAscii(Imod *imod)
 
       if (meshes)
         obj->mesh = imodMeshesNew(meshes);
+      mh = -1;
+      co = -1;
       continue;
     }
 
@@ -1210,6 +1214,12 @@ int imodReadAscii(Imod *imod)
       sscanf(line, "color %g %g %g %d",
              &(obj->red), &(obj->green), &(obj->blue), &idata);
       obj->trans = idata;
+    }
+    if (substr(line, "Fillcolor ")){
+      sscanf(line, "Fillcolor %d %d %d", &idata, &idata2, &idata3);
+      obj->fillred = idata;
+      obj->fillgreen = idata2;
+      obj->fillblue = idata3;
     }
 
     if (substr(line, "open"))
@@ -1226,6 +1236,30 @@ int imodReadAscii(Imod *imod)
 
     if (substr(line, "insideout"))
       obj->flags |= IMOD_OBJFLAG_OUT;
+
+    if (substr(line, "drawmesh"))
+      obj->flags |= IMOD_OBJFLAG_MESH;
+
+    if (substr(line, "nolines"))
+      obj->flags |= IMOD_OBJFLAG_LINE;
+
+    if (substr(line, "bothsides"))
+      obj->flags |= IMOD_OBJFLAG_TWO_SIDE;
+
+    if (substr(line, "usefill"))
+      obj->flags |= IMOD_OBJFLAG_FCOLOR;
+
+    if (substr(line, "pntusefill"))
+      obj->flags |= IMOD_OBJFLAG_FCOLOR_PNT;
+
+    if (substr(line, "pntonsec"))
+      obj->flags |= IMOD_OBJFLAG_PNT_ON_SEC;
+
+    if (substr(line, "antialias"))
+      obj->flags |= IMOD_OBJFLAG_ANTI_ALIAS;
+
+    if (substr(line, "hastimes"))
+      obj->flags |= IMOD_OBJFLAG_TIME;
 
     if (substr(line, "offsets "))
       sscanf(line, "offsets %g %g %g",
@@ -1274,6 +1308,22 @@ int imodReadAscii(Imod *imod)
         imod->units = IMOD_UNIT_NM;
     }
 	  
+    if (substr(line, "slicerAngle")) {
+      if (!imod->slicerAng)
+        imod->slicerAng = ilistNew(sizeof(SlicerAngles), 4);
+      sscanf(line, "slicerAngle %d %g %g %g %g %g %g\n", &slan.time,
+             &slan.angles[0], &slan.angles[1], &slan.angles[2],
+             &slan.center.x, &slan.center.y, &slan.center.z);
+      strptr = &line[0];
+      slan.label[0] = 0x00;
+      for (i = 0; i < 8 && strptr; i++)
+        strptr = strchr(strptr + 1, ' ');
+      if (strptr)
+        strncpy(slan.label, strptr + 1, ANGLE_STRSIZE);
+      slan.label[ANGLE_STRSIZE - 1] = 0x00;
+      ilistAppend(imod->slicerAng, &slan);
+    }
+    
     if (substr(line, "name"))
       for(i = 0; i < strlen(line) - 5; i++)
         obj->name[i] = line[i + 5];
@@ -1292,6 +1342,65 @@ int imodReadAscii(Imod *imod)
 
     if (substr(line, "drawmode"))
       obj->drawmode = atoi(&(line[8]));
+
+    if (substr(line, "width2D"))
+      obj->linewidth2 = atoi(&(line[7]));
+
+    if (substr(line, "symbol"))
+      obj->symbol = atoi(&(line[6]));
+
+    if (substr(line, "symsize"))
+      obj->symsize = atoi(&(line[7]));
+
+    if (substr(line, "symflags"))
+      obj->symflags = atoi(&(line[8]));
+
+    if (substr(line, "ambient"))
+      obj->ambient = atoi(&(line[7]));
+
+    if (substr(line, "diffuse"))
+      obj->diffuse = atoi(&(line[7]));
+
+    if (substr(line, "specular"))
+      obj->specular = atoi(&(line[8]));
+
+    if (substr(line, "shininess"))
+      obj->shininess = atoi(&(line[9]));
+
+    if (substr(line, "obquality"))
+      obj->quality = atoi(&(line[9]));
+
+    if (substr(line, "objclips")) {
+      sscanf(line, "objclips %d %d %d %d", &idata, &idata2, &idata3, &idata4);
+      obj->clips.count = idata;
+      obj->clips.flags = idata2;
+      obj->clips.trans = idata3;
+      obj->clips.plane = idata4;
+      for (i = 0; i < obj->clips.count; i++) {
+        imodFgetline(imod->file, line, MAXLINE);
+        sscanf(line, "%g %g %g %g %g %g", &obj->clips.normal[i].x,
+               &obj->clips.normal[i].y, &obj->clips.normal[i].z,
+               &obj->clips.point[i].x,
+               &obj->clips.point[i].y, &obj->clips.point[i].z);
+      }
+    }
+
+    if (substr(line, "contflags") && co >= 0 && co < obj->contsize)
+      obj->cont[co].flags = (b3dUInt32)atof(&(line[9]));
+
+    if (substr(line, "conttime") && co >= 0 && co < obj->contsize)
+      obj->cont[co].time = atoi(&(line[8]));
+
+    if (substr(line, "Meshflags") && mh >= 0 && mh < obj->meshsize)
+      obj->mesh[mh].flag = (b3dUInt32)atof(&(line[9]));
+
+    if (substr(line, "Meshtime") && mh >= 0 && mh < obj->meshsize)
+      obj->mesh[mh].time = atoi(&(line[8]));
+
+    if (substr(line, "Meshsurf") && mh >= 0 && mh < obj->meshsize)
+      obj->mesh[mh].surf = atoi(&(line[8]));
+
+
   }
      
   return(0);
@@ -1308,9 +1417,10 @@ int imodWriteAscii(Imod *imod)
   Iobj *obj;
   Icont *cont;
   Imesh *mesh;
+  SlicerAngles *slanp;
 
   rewind(imod->file);
-  fprintf(imod->file, "# imod ascii file version 1.0\n\n");
+  fprintf(imod->file, "# imod ascii file version 2.0\n\n");
   fprintf(imod->file, "imod %d\n", imod->objsize);
   fprintf(imod->file, "max %d %d %d\n", imod->xmax, imod->ymax, imod->zmax);
   fprintf(imod->file, "offsets %g %g %g\n",
@@ -1327,6 +1437,12 @@ int imodWriteAscii(Imod *imod)
   fprintf(imod->file, "threshold  %d\n", imod->thresh);
   fprintf(imod->file, "pixsize    %g\n", imod->pixsize);
   fprintf(imod->file, "units      %s\n", imodUnits(imod));
+  for (i = 0; i < ilistSize(imod->slicerAng); i++) {
+    slanp = (SlicerAngles *)ilistItem(imod->slicerAng, i);
+    fprintf(imod->file, "slicerAngle %d %g %g %g %g %g %g %s\n", slanp->time,
+            slanp->angles[0], slanp->angles[1], slanp->angles[2],
+            slanp->center.x, slanp->center.y, slanp->center.z, slanp->label);
+  }
 
   for (ob = 0; ob < imod->objsize; ob++){
     obj = &(imod->obj[ob]);
@@ -1335,6 +1451,9 @@ int imodWriteAscii(Imod *imod)
     fprintf(imod->file, "name %s\n", obj->name);
     fprintf(imod->file, "color %g %g %g %d\n",
             obj->red, obj->green, obj->blue, obj->trans);
+    if (obj->fillred || obj->fillgreen || obj->fillblue)
+      fprintf(imod->file, "Fillcolor %d %d %d\n",
+              obj->fillred, obj->fillgreen, obj->fillblue);
     if (obj->flags & IMOD_OBJFLAG_OPEN)
       fprintf(imod->file, "open\n");
     if (obj->flags & IMOD_OBJFLAG_SCAT)
@@ -1345,13 +1464,46 @@ int imodWriteAscii(Imod *imod)
       fprintf(imod->file, "insideout\n");
     if (obj->flags & IMOD_OBJFLAG_FILL)
       fprintf(imod->file, "fill\n");
+    if (obj->flags & IMOD_OBJFLAG_MESH)
+      fprintf(imod->file, "drawmesh\n");
+    if (obj->flags & IMOD_OBJFLAG_LINE)
+      fprintf(imod->file, "nolines\n");
+    if (obj->flags & IMOD_OBJFLAG_TWO_SIDE)
+      fprintf(imod->file, "bothsides\n");
+    if (obj->flags & IMOD_OBJFLAG_FCOLOR)
+      fprintf(imod->file, "usefill\n");
+    if (obj->flags & IMOD_OBJFLAG_FCOLOR_PNT)
+      fprintf(imod->file, "pntusefill\n");
+    if (obj->flags & IMOD_OBJFLAG_PNT_ON_SEC)
+      fprintf(imod->file, "pntonsec\n");
+    if (obj->flags & IMOD_OBJFLAG_ANTI_ALIAS)
+      fprintf(imod->file, "antialias\n");
+    if (obj->flags & IMOD_OBJFLAG_TIME)
+      fprintf(imod->file, "hastimes\n");
 
     fprintf(imod->file, "linewidth %d\n", obj->linewidth);
     fprintf(imod->file, "surfsize  %d\n", obj->surfsize);
     fprintf(imod->file, "pointsize %d\n", obj->pdrawsize);
     fprintf(imod->file, "axis      %d\n", obj->axis);
     fprintf(imod->file, "drawmode  %d\n", obj->drawmode);
-	  
+    fprintf(imod->file, "width2D   %d\n", obj->linewidth2);
+    fprintf(imod->file, "symbol    %d\n", obj->symbol);
+    fprintf(imod->file, "symsize   %d\n", obj->symsize);
+    fprintf(imod->file, "symflags  %d\n", obj->symflags);
+    fprintf(imod->file, "ambient   %d\n", obj->ambient);
+    fprintf(imod->file, "diffuse   %d\n", obj->diffuse);
+    fprintf(imod->file, "specular  %d\n", obj->specular);
+    fprintf(imod->file, "shininess %d\n", obj->shininess);
+    fprintf(imod->file, "obquality %d\n", obj->quality);
+    if (obj->clips.count) {
+      fprintf(imod->file, "objclips %d %d %d %d\n", obj->clips.count,
+              obj->clips.flags, obj->clips.trans, obj->clips.plane);
+      for (i = 0; i < obj->clips.count; i++)
+        fprintf(imod->file, "%g %g %g %g %g %g\n", obj->clips.normal[i].x,
+                obj->clips.normal[i].y, obj->clips.normal[i].z,
+                obj->clips.point[i].x,
+                obj->clips.point[i].y, obj->clips.point[i].z);
+    }
 
     for(co = 0; co < obj->contsize; co++){
       cont = &(obj->cont[co]);
@@ -1361,6 +1513,10 @@ int imodWriteAscii(Imod *imod)
         fprintf(imod->file, "%g %g %g\n",
 			    cont->pts[pt].x, cont->pts[pt].y, cont->pts[pt].z);
       }
+      if (cont->flags)
+        fprintf(imod->file, "contflags %d\n", cont->flags);
+      if (cont->time)
+        fprintf(imod->file, "conttime %d\n", cont->time);
     }
 
     for(mh = 0; mh < obj->meshsize; mh++){
@@ -1374,11 +1530,16 @@ int imodWriteAscii(Imod *imod)
       }
       for(i = 0; i < mesh->lsize; i++)
         fprintf(imod->file, "%d\n", mesh->list[i]);
-	       
+      if (mesh->flag)
+        fprintf(imod->file, "Meshflags %d\n", mesh->flag);
+      if (mesh->time)
+        fprintf(imod->file, "Meshtime %d\n", mesh->time);
+      if (mesh->surf)
+        fprintf(imod->file, "Meshsurf %d\n", mesh->surf);
     }
   }
 
-  fprintf(imod->file, "# thats all folks!\n");
+  fprintf(imod->file, "# end of IMOD model\n");
   return(0);
 }
 
@@ -1691,6 +1852,9 @@ int imodPutByte(FILE *fp, unsigned char *dat)
 
 /*
   $Log$
+  Revision 3.27  2007/05/25 05:18:26  mast
+  Changes for slicer angle storage
+
   Revision 3.26  2006/09/13 23:52:43  mast
   Fixed reading of skip list
 
