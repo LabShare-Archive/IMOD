@@ -18,6 +18,10 @@
  * 
  * <p>
  * $Log$
+ * Revision 3.43  2006/10/11 10:07:49  sueh
+ * bug# 931 Added delete functionality to LogFile - changed BackupException to
+ * FileException.
+ *
  * Revision 3.42  2006/10/10 05:08:30  sueh
  * bug# 931 Managing the log file with LogFile.
  *
@@ -409,6 +413,7 @@ public class ComScriptProcess extends Thread implements SystemProcessInterface {
   private final ProcessMessages processMessages = ProcessMessages.getInstance();
   private ProcessResultDisplay processResultDisplay = null;
   protected final LogFile logFile;
+  private boolean parseLogFile = true;
 
   public ComScriptProcess(BaseManager manager, String comScript,
       BaseProcessManager processManager, AxisID axisID, String watchedFileName,
@@ -616,8 +621,8 @@ public class ComScriptProcess extends Thread implements SystemProcessInterface {
     processManager.msgComScriptDone(this, csh.getExitValue());
   }
 
-  protected boolean renameFiles() throws LogFile.FileException{
-      renameFiles(comScriptName, watchedFileName, workingDirectory, logFile);
+  protected boolean renameFiles() throws LogFile.FileException {
+    renameFiles(comScriptName, watchedFileName, workingDirectory, logFile);
     if (processMonitor != null) {
       processMonitor.msgLogFileRenamed();
     }
@@ -625,7 +630,7 @@ public class ComScriptProcess extends Thread implements SystemProcessInterface {
   }
 
   static protected void renameFiles(String name, String watchedFileName,
-      File workingDirectory, LogFile logFile) throws LogFile.FileException{
+      File workingDirectory, LogFile logFile) throws LogFile.FileException {
     // Rename the logfile so that any log file monitor does not get confused
     // by an existing log file
     //String logFileName = parseBaseName(name, ".com") + ".log";
@@ -794,6 +799,10 @@ public class ComScriptProcess extends Thread implements SystemProcessInterface {
     return comScriptName;
   }
 
+  void setParseLogFile(boolean input) {
+    parseLogFile = input;
+  }
+
   /**
    * Load the comscript into a String[] for feeding into vmstocsh since we do
    * not have access to piping or standard input when running commands.
@@ -830,7 +839,10 @@ public class ComScriptProcess extends Thread implements SystemProcessInterface {
    * Parse the log file for warnings. Since the fortran code is no smart enough
    * handle formatted output we need find WARNING: in the middle of the output
    * stream. The error report starts with the WARNING: text instead of the
-   * whole line.
+   * whole line.  If parseLogFile is false, then a logFile name will be constructed
+   * from the name parameter.  Otherwise the logFile member variable will be used.
+   * This is necessary becsause BackgroundComScript needs to parse multiple log
+   * files and not all log file names follow the standard format.
    * 
    * @return A ArrayList containing any errors. If the com script has not been
    *         run then null is returned. If the com script ran with no warnings
@@ -839,11 +851,15 @@ public class ComScriptProcess extends Thread implements SystemProcessInterface {
   protected final void parse(String name, boolean mustExist)
       throws LogFile.ReadException {
     ArrayList errors = new ArrayList();
-    //File file = new File(workingDirectory, parseBaseName(name, ".com") + ".log");
-    if (!logFile.exists() && !mustExist) {
+    LogFile logFileToParse = logFile;
+    if (!parseLogFile) {
+      logFileToParse = LogFile.getInstance(new File(workingDirectory,
+          parseBaseName(name, ".com") + ".log"));
+    }
+    if (!logFileToParse.exists() && !mustExist) {
       return;
     }
-    processMessages.addProcessOutput(logFile);
+    processMessages.addProcessOutput(logFileToParse);
     processMessages.print();
   }
 
