@@ -852,6 +852,7 @@ int clip_splitrgb(MrcHeader *h1, ClipOptions *opt)
     hdr[i].amean = 0;
     hdr[i].amax = 0;
     hdr[i].headerSize = 1024;
+    hdr[i].sectionSkip = 0;
     hdr[i].next = 0;
     mrc_head_label(&hdr[i], "CLIP Split RGB into 3 files");
     if (mrc_head_write(hdr[i].fp, &hdr[i]))
@@ -1489,6 +1490,9 @@ int free_vol(Islice **vol, int z)
 */
 /*
 $Log$
+Revision 3.20  2007/02/04 21:21:29  mast
+Eliminated mrcspectral includes
+
 Revision 3.19  2007/02/04 21:19:48  mast
 Eliminated mrcspectral includes
 
