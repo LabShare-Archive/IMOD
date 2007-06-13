@@ -97,6 +97,7 @@ int mrc_head_read(FILE *fin, MrcHeader *hdata)
           
 
   hdata->headerSize = 1024;
+  hdata->sectionSkip = 0;
   /*     if (hdata->creatid == -16224){ */
   hdata->headerSize += hdata->next;
      
@@ -349,6 +350,7 @@ int mrc_head_new(MrcHeader *hdata,
   /*     hdata->li = NULL; */
 
   hdata->headerSize = 1024;
+  hdata->sectionSkip = 0;
   hdata->pathname = NULL;
   hdata->filedesc = NULL;
   hdata->userData = NULL;
@@ -2131,6 +2133,9 @@ void mrc_swap_floats(fb3dFloat *data, int amt)
 
 /*
 $Log$
+Revision 3.31  2007/04/26 19:47:27  mast
+Fix doc
+
 Revision 3.30  2006/11/22 18:54:16  mast
 Eliminate a warning in VC6
 
