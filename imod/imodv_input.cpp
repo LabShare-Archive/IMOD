@@ -696,9 +696,9 @@ static void imodv_compute_rotation(ImodvApp *a, float x, float y, float z)
   int mx, my;
   unsigned int maskr = imodv_query_pointer(a,&mx,&my);
   int m, mstrt, mend, ip, ipst, ipnd;
+  double alpha, beta, gamma;
   Imat *mat = a->mat;
   Imat *mato, *matp;
-  double alpha, beta, gamma, gamrad;
   Ipoint normal;
   Ipoint scalePoint;
   Imod *imod = a->imod;
@@ -715,16 +715,7 @@ static void imodv_compute_rotation(ImodvApp *a, float x, float y, float z)
   mato = imodMatNew(3);
   matp = imodMatNew(3);
 
-  /* Compute a matrix that resolves X and Y rotations into rotation
-     about a single axis */
-  gamrad = atan2((double)y, (double)x);
-  gamma = gamrad / 0.017453293;
-  alpha = 0.1 * (x * cos(-gamrad) - y * sin(-gamrad));
-
-  imodMatId(mat);
-  imodMatRot(mat, -gamma, b3dZ);
-  imodMatRot(mat, alpha, b3dX);
-  imodMatRot(mat, gamma + (double)(0.1 * z), b3dZ);
+  imodvResolveRotation(mat, 0.1f * z, 0.1f * y, 0.1f * z);
 
   if (!(maskr & Qt::ControlButton)){
 
@@ -807,6 +798,21 @@ static void imodv_compute_rotation(ImodvApp *a, float x, float y, float z)
   imodMatDelete(mato);
   imodMatDelete(matp);
   return;
+}
+
+/* Compute a matrix that resolves X and Y rotations into rotation
+   about a single axis if both are present, and/or rotates about Z */
+void imodvResolveRotation(Imat *mat, float x, float y, float z)
+{
+  double alpha, beta, gamma, gamrad;
+  gamrad = atan2((double)y, (double)x);
+  gamma = gamrad / 0.017453293;
+  alpha = x * cos(-gamrad) - y * sin(-gamrad);
+
+  imodMatId(mat);
+  imodMatRot(mat, -gamma, b3dZ);
+  imodMatRot(mat, alpha, b3dX);
+  imodMatRot(mat, gamma + z, b3dZ);
 }
 
 
@@ -1108,6 +1114,9 @@ void imodvMovieTimeout()
 
 /*
     $Log$
+    Revision 4.23  2007/04/06 22:21:04  mast
+    Chnaged scaling in call to move light
+
     Revision 4.22  2006/10/05 15:41:32  mast
     Provided for primary and second non-TIFF snapshot format
 

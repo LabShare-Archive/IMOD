@@ -12,6 +12,9 @@ $Date$
 $Revision$
 
 $Log$
+Revision 4.3  2003/11/12 18:54:56  mast
+moved quit call out, added raise call
+
 Revision 4.2  2003/02/27 23:12:09  mast
 Change type of imodv_sys_time
 
@@ -44,6 +47,7 @@ initial creation
 #include <qevent.h>
 
 typedef struct __imodv_struct ImodvApp;
+typedef struct imodel_matrix Imat;
 
 void imodvMovieTimeout();
 void imodvKeyPress(QKeyEvent *event);
@@ -55,5 +59,6 @@ void imodv_rotate_model(ImodvApp *a, int x, int y, int z);
 void imodv_zoomd(ImodvApp *a, double zoom);
 int imodv_sys_time(void);
 void imodvInputRaise();
+void imodvResolveRotation(Imat *mat, float x, float y, float z);
   
 #endif
