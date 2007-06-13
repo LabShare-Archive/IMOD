@@ -14,6 +14,11 @@ $Date$
 $Revision$
 
 $Log$
+Revision 3.5  2007/06/13 17:10:54  sueh
+bug# 1019 Added checkPif to recognize .pif files.  In iiLikeMRCCheck,
+initialing info.sectionSkip.  In iiSetupRawHeaders, copying sectionSkip
+from RawImageInfo to MrcHeader.
+
 Revision 3.4  2006/09/21 22:25:05  mast
 Needed to set the mode in the iifile
 
@@ -45,6 +50,7 @@ Initial creation
 static int checkWinkler(FILE *fp, char *filename, RawImageInfo *info);
 static int checkDM3(FILE *fp, char *filename, RawImageInfo *info);
 static int checkEM(FILE *fp, char *filename, RawImageInfo *info);
+static int checkPif(FILE *fp, char *filename, RawImageInfo *info);
 
 /* The resident check list */
 static Ilist *checkList = NULL;
@@ -68,6 +74,7 @@ static int initCheckList()
   iiAddRawCheckFunction(checkEM, "EM");
   iiAddRawCheckFunction(checkDM3, "DM3");
   iiAddRawCheckFunction(checkWinkler, "Winkler");
+  iiAddRawCheckFunction(checkPif, "PIF");
   return 0;
 }
 
@@ -292,16 +299,18 @@ static int checkPif(FILE *fp, char *filename, RawImageInfo *info)
 {
   b3dUInt16 svals[4];
   b3dInt32 ivals[12];
-  b3dByte cvals[5];
+  b3dByte cvals[6];
 
   //is it a pif file (only reading bsoft pif files)
   if (fseek(fp, 32, SEEK_SET) != 0)
   	return IIERR_IO_ERROR;
   
-  if (fread(svals, 1, 5, fp) != 5)
+  if (fread(cvals, 1, 5, fp) != 5)
     return IIERR_IO_ERROR;
-    
-  if (strcmp((char*) cvals,"Bsoft") != 0)
+  
+  //recognize file type 
+  cvals[5] = 0;
+  if (strcmp(cvals,"Bsoft") != 0)
   	return IIERR_NOT_FORMAT;
     
   info->headerSize = 1024;
@@ -311,7 +320,7 @@ static int checkPif(FILE *fp, char *filename, RawImageInfo *info)
   if (fseek(fp, 28, SEEK_SET) != 0)
   	return IIERR_IO_ERROR;
   	
-  if (fread(ivals, 1, 1, fp) != 1)
+  if (fread(ivals, 4, 1, fp) != 1)
     return IIERR_IO_ERROR;
     
   info->swapBytes = 0;
@@ -323,25 +332,37 @@ static int checkPif(FILE *fp, char *filename, RawImageInfo *info)
   if (ivals[0] == 0)
     info->swapBytes = 1;
 #endif
-
-  //Bsoft doesn't allow .pif files with different size images (htype < 1),
-  //unless there is only 1 image.  Not checking htype.
   
-  //set size and mode
-  if (fseek(fp, 68, SEEK_SET) != 0)
+  if (fseek(fp, 24, SEEK_SET) != 0)
     return IIERR_IO_ERROR;
     
-  if (fread(ivals, 1, 4, fp) != 4)
+  if (fread(ivals, 4, 1, fp) != 1)
     return IIERR_IO_ERROR;
-  
+    
   if (info->swapBytes)
-    mrc_swap_longs(ivals, 4);
-      
-  info->nx = ivals[0];
-  info->ny = ivals[1];
-  info->nz = ivals[2];
+    mrc_swap_longs(ivals, 1);
+   
+  //set nz from numimages because nz is 1 
+  info->nz = ivals[0];
+    
+  if (fseek(fp, 64, SEEK_SET) != 0)
+    return IIERR_IO_ERROR;
+    
+  if (fread(ivals, 4, 5, fp) != 5)
+    return IIERR_IO_ERROR;
+ 
+  if (info->swapBytes)
+    mrc_swap_longs(ivals, 5);
+  
+  //If there are images of different sizes and there is more then one image,
+  //fail.
+  if (ivals[0] < 1 && info->nz > 1)
+    return IIERR_NOT_FORMAT;
 
-  switch (ivals[3]) {
+  info->nx = ivals[1];
+  info->ny = ivals[2];
+
+  switch (ivals[4]) {
   case 0:
   case 6:
     info->type = RAW_MODE_BYTE;
