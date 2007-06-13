@@ -194,6 +194,7 @@ typedef struct MRCheader
   int    pos;
   struct LoadInfo *li;
   int    headerSize;
+  int    sectionSkip;
   int    swapped;
 
   char *pathname;
@@ -362,6 +363,9 @@ void mrc_set_cmap_stamp(MrcHeader *hdata);
 
 /*
     $Log$
+    Revision 3.17  2006/09/28 21:13:08  mast
+    Changed xysize for data memory to size_t
+
     Revision 3.16  2006/08/27 23:47:00  mast
     Moved fgetline from mrcfiles to b3dutil
 
