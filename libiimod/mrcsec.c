@@ -7,15 +7,10 @@
  *  Copyright (C) 1995-2005 by Boulder Laboratory for 3-Dimensional Electron
  *  Microscopy of Cells ("BL3DEMC") and the Regents of the University of 
  *  Colorado.  See dist/COPYRIGHT for full copyright notice.
+ *
+ *  $Id$
+ *  Log at end
  */
-
-/*  $Author$
-
-$Date$
-
-$Revision$
-
-Log at end of file */
 
 #include <stdio.h>
 #include <string.h>
@@ -122,7 +117,7 @@ static int mrcReadSectionAny(MrcHeader *hdata, IloadInfo *li,
   float offset = li->offset;
   int   outmin = li->outmin;
   int   outmax = li->outmax;
-  int seek_line, seek_endx, seek_endy;
+  int seek_line, seek_endx, seek_endy, seek_skip;
   float kscale = mrcGetComplexScale();
      
   unsigned int pindex = 0;
@@ -270,9 +265,10 @@ static int mrcReadSectionAny(MrcHeader *hdata, IloadInfo *li,
 
   /* 12/1/04: no longer fix header size in case it is weird */
 
-  /* Seek distance at start of line */
+  /* Seek distance at start and end of line */
   seek_line    = llx * pixSize;
-  seek_endx = nx - urx - 1 ;
+  seek_endx = B3DMAX(0, nx - urx - 1);
+  seek_skip = 0;
      
   if (readY) {
 
@@ -282,8 +278,9 @@ static int mrcReadSectionAny(MrcHeader *hdata, IloadInfo *li,
     if (lly)
     mrc_big_seek(fin, 0, lly, nx * ny * pixSize, SEEK_CUR); */
     seek_endy = ny - 1;
-    mrcHugeSeek(fin, hdata->headerSize, 0, cz, lly, nx, ny, pixSize, SEEK_SET);
-
+    mrcHugeSeek(fin, hdata->headerSize + hdata->sectionSkip * lly, 0, cz, lly,
+                nx, ny, pixSize, SEEK_SET);
+    seek_skip = hdata->sectionSkip;
   } else {
 
     /* If reading X, seek at end of line gets to end of line, first seek
@@ -292,10 +289,9 @@ static int mrcReadSectionAny(MrcHeader *hdata, IloadInfo *li,
     if (lly)
     b3dFseek(fin, lly * nx * pixSize, SEEK_CUR); */
     seek_endy = 0;
-    mrcHugeSeek(fin, hdata->headerSize, 0, lly, cz, nx, ny, pixSize, SEEK_SET);
+    mrcHugeSeek(fin, hdata->headerSize + hdata->sectionSkip * cz, 0, lly, cz,
+                nx, ny, pixSize, SEEK_SET);
   }
-  if (seek_endx < 0)
-    seek_endx = 0;
 
   /* Start loop on Y and read a line of data */
   for (j = lly; j <= ury; j++){
@@ -464,8 +460,9 @@ static int mrcReadSectionAny(MrcHeader *hdata, IloadInfo *li,
     }
 
     /* End loop on Y */
-    if (seek_endx || seek_endy)
-      mrcHugeSeek(fin, 0, seek_endx, seek_endy, 0, nx, ny, pixSize, SEEK_CUR);
+    if (seek_endx || seek_endy || seek_skip)
+      mrcHugeSeek(fin, seek_skip, seek_endx, seek_endy, 0, nx, ny, pixSize, 
+                  SEEK_CUR);
   }
 
   if (needData)
@@ -477,6 +474,9 @@ static int mrcReadSectionAny(MrcHeader *hdata, IloadInfo *li,
 
 /*
 $Log$
+Revision 3.12  2006/09/28 21:15:02  mast
+Changes to work with > 2Gpix and > 4 Gpix images as much as possible
+
 Revision 3.11  2006/08/04 21:04:03  mast
 Add documentation
 

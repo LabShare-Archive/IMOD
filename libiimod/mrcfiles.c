@@ -7,15 +7,10 @@
  *  Copyright (C) 1995-2005 by Boulder Laboratory for 3-Dimensional Electron
  *  Microscopy of Cells ("BL3DEMC") and the Regents of the University of 
  *  Colorado.  See dist/COPYRIGHT for full copyright notice.
+ *
+ *  $Id$
+ *  Log at end
  */
-
-/*  $Author$
-
-$Date$
-
-$Revision$
-
-Log at end of file */
 
 #include <stdio.h>
 #include <stdlib.h>
@@ -559,8 +554,8 @@ float mrc_read_point( FILE *fin, MrcHeader *hdata, int x, int y, int z)
      fseek(fin, (hdata->headerSize + (channel * pixsize *  
      ( (z * hdata->nx * hdata->ny) + (y * hdata->nx) + (x)))),
      SEEK_CUR); */
-  mrcHugeSeek(fin, hdata->headerSize, x, y, z, hdata->nx, hdata->ny, 
-              channel * pixsize, SEEK_SET);
+  mrcHugeSeek(fin, hdata->headerSize + hdata->sectionSkip * z, x, y, z, 
+              hdata->nx, hdata->ny, channel * pixsize, SEEK_SET);
   switch(hdata->mode){
   case MRC_MODE_BYTE:
     fread(&bdata, pixsize, 1, fin);     
@@ -714,6 +709,8 @@ int mrc_read_slice(void *buf, FILE *fin, MrcHeader *hdata, int slice,
         data += dcsize;
         fseek(fin, dcsize * (hdata->nx - 1), SEEK_CUR);
       }
+      if (hdata->sectionSkip)
+        fseek(fin, hdata->sectionSkip, SEEK_CUR);
     }
     break;
 
@@ -732,8 +729,8 @@ int mrc_read_slice(void *buf, FILE *fin, MrcHeader *hdata, int slice,
       }
       data += dcsize * hdata->nx;
       /*fseek(fin, dcsize * (xysize - hdata->nx), SEEK_CUR);*/
-      mrcHugeSeek(fin, 0, 0, hdata->ny - 1, 0, hdata->nx, hdata->ny, dcsize,
-                  SEEK_CUR);
+      mrcHugeSeek(fin, hdata->sectionSkip, 0, hdata->ny - 1, 0, hdata->nx,
+                  hdata->ny, dcsize, SEEK_CUR);
     }
     break;
           
@@ -745,8 +742,8 @@ int mrc_read_slice(void *buf, FILE *fin, MrcHeader *hdata, int slice,
       return(-1);
     /*  fseek( fin, slice * hdata->nx * hdata->ny * dcsize,
         SEEK_CUR); */
-    mrcHugeSeek(fin, 0, 0, 0, slice, hdata->nx, hdata->ny, dcsize,
-                  SEEK_CUR);
+    mrcHugeSeek(fin, slice * hdata->sectionSkip, 0, 0, slice, hdata->nx,
+                hdata->ny, dcsize, SEEK_CUR);
     if (fread(data, dcsize * hdata->nx, hdata->ny, fin) != hdata->ny) {
       b3dError(stderr, "ERROR: mrc_read_slice z - fread error.\n");
       return(-1);
@@ -1032,7 +1029,8 @@ unsigned char **mrc_read_byte(FILE *fin,
   seek_endline = dsize * (hdata->nx - xoff - xsize);
   seek_endrow  = hdata->ny - yoff - ysize;
   if (zoff)
-    mrcHugeSeek(fin, 0, 0, 0, zoff, hdata->nx, hdata->ny, dsize, SEEK_CUR);
+    mrcHugeSeek(fin, hdata->sectionSkip * zoff, 0, 0, zoff, hdata->nx,
+                hdata->ny, dsize, SEEK_CUR);
 
   if (func != ( void (*)(char *) ) NULL){
     sprintf(statstr, "\nReading Image # %3.3d",k+1); 
@@ -1172,9 +1170,9 @@ unsigned char **mrc_read_byte(FILE *fin,
       if (seek_endline)
         fseek(fin, seek_endline, SEEK_CUR);
     }
-    if (seek_endrow)
-      mrcHugeSeek(fin, 0, 0, seek_endrow, 0, hdata->nx, hdata->ny, dsize,
-                  SEEK_CUR);
+    if (seek_endrow || hdata->sectionSkip)
+      mrcHugeSeek(fin, hdata->sectionSkip, 0, seek_endrow, 0, hdata->nx,
+                  hdata->ny, dsize, SEEK_CUR);
 
   }
   free(bdata);
@@ -2133,6 +2131,9 @@ void mrc_swap_floats(fb3dFloat *data, int amt)
 
 /*
 $Log$
+Revision 3.32  2007/06/13 17:12:55  sueh
+bug# 1019 In mrc_head_new and mrc_head_read, setting hdata->sectionSkip to 0.
+
 Revision 3.31  2007/04/26 19:47:27  mast
 Fix doc
 
