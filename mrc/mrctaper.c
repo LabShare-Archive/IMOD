@@ -141,6 +141,7 @@ int main( int argc, char *argv[] )
     /* DNM: eliminate extra header info in the output, and mark it as not
        swapped  */
     hout.headerSize = 1024;
+    hout.sectionSkip = 0;
     hout.next = 0;
     hout.nint = 0;
     hout.nreal = 0;
@@ -205,6 +206,9 @@ int main( int argc, char *argv[] )
 
 /*
 $Log$
+Revision 3.8  2007/05/27 20:22:36  mast
+Added taper routine to library
+
 Revision 3.7  2007/02/04 21:12:20  mast
 Function name changes from mrcslice cleanup
 
