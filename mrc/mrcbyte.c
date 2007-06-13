@@ -16,6 +16,9 @@ $Date$
 $Revision$
 
 $Log$
+Revision 3.5  2005/02/11 01:42:34  mast
+Warning cleanup: implicit declarations, main return type, parentheses, etc.
+
 Revision 3.4  2004/07/07 19:25:30  mast
 Changed exit(-1) to exit(3) for Cygwin
 
@@ -230,6 +233,7 @@ int main( int argc, char *argv[] )
   /* DNM: eliminate extra header info in the output, and mark it as not
      swapped now that we're done reading data */
   hdata.headerSize = 1024;
+  hdata.sectionSkip = 0;
   hdata.next = 0;
   hdata.nint = 0;
   hdata.nreal = 0;
