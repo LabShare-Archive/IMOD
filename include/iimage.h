@@ -105,6 +105,7 @@ extern "C" {
 
     /* extra storage used by each file format functions. */
     int   headerSize;
+    int   sectionSkip;
     char *header;
     char *userData;
     unsigned char *colormap;
@@ -131,6 +132,8 @@ extern "C" {
     float amin, amax;   /* Data min and max, set to 0 if unknown */
     int scanMinMax;     /* Flag that scan is needed, used internally */
     int allMatch;       /* Flag that all files match, used internally */
+    int sectionSkip;    /* Padding after each section - there may be no padding
+                           after last section */
   } RawImageInfo;
 /* END_CODE */
 
@@ -180,6 +183,9 @@ extern "C" {
 
 /*
 $Log$
+Revision 3.11  2006/09/21 22:26:35  mast
+Adedd function to insert check function earlier in list
+
 Revision 3.10  2006/09/03 22:17:07  mast
 Fiddled for raw checking function, documented
 
