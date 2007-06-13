@@ -106,6 +106,7 @@ int iiMRCCheck(ImodImageFile *iif)
   iif->zrot = hdr->tiltangles[5];
 
   iif->headerSize = 1024;
+  iif->sectionSkip = 0;
   iif->header = (char *)hdr;
 
   iif->readSection = iiMRCreadSection;
@@ -266,6 +267,9 @@ int iiMRCLoadPCoord(ImodImageFile *inFile, struct LoadInfo *li, int nx, int ny,
 
 /*
 $Log$
+Revision 3.14  2006/09/03 22:17:59  mast
+Reorganized and switched to IIERR codes
+
 Revision 3.13  2005/12/20 01:39:36  mast
 Changed piece coordinates to unsigned shorts
 
