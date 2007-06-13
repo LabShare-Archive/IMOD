@@ -199,6 +199,7 @@ int iiTIFFCheck(ImodImageFile *inFile)
   inFile->smin   = inFile->amin;
   inFile->smax   = inFile->amax;
   inFile->headerSize = 8;
+  inFile->sectionSkip = 0;
   inFile->header = (char *)tif;
   inFile->fp = (FILE *)tif;    
   inFile->cleanUp = tiffDelete;
@@ -214,6 +215,7 @@ int tiffReopen(ImodImageFile *inFile)
   if (!tif)
     return 1;
   inFile->headerSize = 8;
+  inFile->sectionSkip = 0;
   inFile->header = (char *)tif;    
   inFile->fp = (FILE *)tif;    
   return 0;
@@ -481,6 +483,9 @@ int tiffReadSection(ImodImageFile *inFile, char *buf, int inSection)
 
 /*
   $Log$
+  Revision 3.9  2006/09/12 15:49:58  mast
+  Added include
+
   Revision 3.8  2006/09/03 22:17:59  mast
   Reorganized and switched to IIERR codes
 
