@@ -6,20 +6,15 @@
  *  App structure is maintained.
  *
  *  Original author: James Kremer
- *  Revised by: Rcik Gaudette and David Mastronarde   email: mast@colorado.edu
+ *  Revised by: Rick Gaudette and David Mastronarde   email: mast@colorado.edu
  *
  *  Copyright (C) 1995-2004 by Boulder Laboratory for 3-Dimensional Electron
  *  Microscopy of Cells ("BL3DEMC") and the Regents of the University of 
  *  Colorado.  See dist/COPYRIGHT for full copyright notice.
+ *
+ *  $Id$
+ *  Log at end
  */
-
-/*  $Author$
-
-$Date$
-
-$Revision$
-Log at end of file
-*/
 
 // TODO:
 //  * implement error codes for all functions
@@ -41,6 +36,7 @@ Log at end of file
 #include "imod_info_cb.h"
 #include "imodview.h"
 #include "imodv.h"
+#include "sslice.h"
 #include "imod_io.h"
 #include "imodv_views.h"
 #include "preferences.h"
@@ -572,6 +568,7 @@ static void initModelData(Imod *newModel, bool keepBW)
   /* DNM: needs to set object color of object 1 */
   imod_info_setobjcolor();
   imod_info_setocp();
+  slicerNewTime(true);
 
   /* DNM: try eliminating this, since the setting of mode did it */
   /* imodDraw(App->cvi, IMOD_DRAW_MOD); */
@@ -812,6 +809,9 @@ static int mapErrno(int errorCode)
 
 /*
 $Log$
+Revision 4.23  2006/09/28 21:17:27  mast
+Changes to test for impossible slice sizes and handle slices >2-4Gpixel
+
 Revision 4.22  2006/09/13 00:49:38  mast
 Chnaged to using imodNew to get model structure
 
