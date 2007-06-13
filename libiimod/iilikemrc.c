@@ -14,6 +14,9 @@ $Date$
 $Revision$
 
 $Log$
+Revision 3.4  2006/09/21 22:25:05  mast
+Needed to set the mode in the iifile
+
 Revision 3.3  2006/09/12 19:54:56  mast
 Add proper returns to check functions
 
@@ -99,6 +102,7 @@ int iiLikeMRCCheck(ImodImageFile *inFile)
   CheckEntry *item;
 
   info.swapBytes = 0;
+  info.sectionSkip = 0;
 
   if (!inFile) 
     return IIERR_BAD_CALL;
@@ -131,8 +135,8 @@ int iiLikeMRCCheck(ImodImageFile *inFile)
 /*!
  * Creates an MRC header and fills it and the items in [inFile] from the
  * information in [info]; specifically the {nx}, {ny}, {nz}, {swapBytes},
- * {headerSize}, and {type} members.  Returns IOERR_MEMORY_ERR for error 
- * allocating header.
+ * {headerSize}, {sectionSkip}, and {type} members.  Returns IOERR_MEMORY_ERR
+ * for error allocating header.
  */
 int iiSetupRawHeaders(ImodImageFile *inFile, RawImageInfo *info)
 {
@@ -150,6 +154,7 @@ int iiSetupRawHeaders(ImodImageFile *inFile, RawImageInfo *info)
   inFile->file = IIFILE_RAW;
   hdr->swapped = info->swapBytes;
   hdr->headerSize = info->headerSize;
+  hdr->sectionSkip = info->sectionSkip;
   hdr->fp = inFile->fp;
 
   /* Set flags for type of data */
@@ -273,6 +278,89 @@ static int checkWinkler(FILE *fp, char *filename, RawImageInfo *info)
     info->ny = ivals[2];
     info->nz = 1;
   }
+  
+  /* Set these to signal that the range is unknown */
+  info->amin = 0.;
+  info->amax = 0.;
+  return 0;  
+}
+
+/*
+ * Check for the pif format
+ */
+static int checkPif(FILE *fp, char *filename, RawImageInfo *info)
+{
+  b3dUInt16 svals[4];
+  b3dInt32 ivals[12];
+  b3dByte cvals[5];
+
+  //is it a pif file (only reading bsoft pif files)
+  if (fseek(fp, 32, SEEK_SET) != 0)
+  	return IIERR_IO_ERROR;
+  
+  if (fread(svals, 1, 5, fp) != 5)
+    return IIERR_IO_ERROR;
+    
+  if (strcmp((char*) cvals,"Bsoft") != 0)
+  	return IIERR_NOT_FORMAT;
+    
+  info->headerSize = 1024;
+  info->sectionSkip = 512;
+  
+  //set swapBytes
+  if (fseek(fp, 28, SEEK_SET) != 0)
+  	return IIERR_IO_ERROR;
+  	
+  if (fread(ivals, 1, 1, fp) != 1)
+    return IIERR_IO_ERROR;
+    
+  info->swapBytes = 0;
+  
+#ifdef B3D_LITTLE_ENDIAN
+  if (ivals[0] != 0)
+    info->swapBytes = 1;
+#else
+  if (ivals[0] == 0)
+    info->swapBytes = 1;
+#endif
+
+  //Bsoft doesn't allow .pif files with different size images (htype < 1),
+  //unless there is only 1 image.  Not checking htype.
+  
+  //set size and mode
+  if (fseek(fp, 68, SEEK_SET) != 0)
+    return IIERR_IO_ERROR;
+    
+  if (fread(ivals, 1, 4, fp) != 4)
+    return IIERR_IO_ERROR;
+  
+  if (info->swapBytes)
+    mrc_swap_longs(ivals, 4);
+      
+  info->nx = ivals[0];
+  info->ny = ivals[1];
+  info->nz = ivals[2];
+
+  switch (ivals[3]) {
+  case 0:
+  case 6:
+    info->type = RAW_MODE_BYTE;
+    break;
+  case 1:
+  case 7:
+  case 20:
+  case 88:
+    info->type = RAW_MODE_SHORT;
+    break;
+  case 9:
+    info->type = RAW_MODE_FLOAT;
+    break;
+  default:
+    return IIERR_NO_SUPPORT;
+      break;
+  }
+  
+  //assume dimensions are 2 or 3
   
   /* Set these to signal that the range is unknown */
   info->amin = 0.;
