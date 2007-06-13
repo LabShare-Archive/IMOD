@@ -44,6 +44,9 @@ $Date$
 $Revision$
 
 $Log$
+Revision 3.12  2005/11/11 23:04:13  mast
+Changes to call size test routine and for unsigned ints
+
 Revision 3.11  2005/02/11 01:42:34  mast
 Warning cleanup: implicit declarations, main return type, parentheses, etc.
 
@@ -232,6 +235,7 @@ int main( int argc, char *argv[])
 
   hdata.headerSize = 1024;
   hdata.headerSize += hdata.next;
+  hdata.sectionSkip = 0;
   tonative = hdata.swapped;
   datasize = hdata.nx * hdata.ny * hdata.nz;
   fseek(fin, 0, SEEK_END);
