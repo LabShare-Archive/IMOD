@@ -8,7 +8,7 @@
         <rect>
             <x>0</x>
             <y>0</y>
-            <width>455</width>
+            <width>458</width>
             <height>235</height>
         </rect>
     </property>
@@ -402,12 +402,6 @@
     </connection>
     <connection>
         <sender>table</sender>
-        <signal>pressed(int,int,int,const QPoint&amp;)</signal>
-        <receiver>SlicerAngleForm</receiver>
-        <slot>cellPressed(int,int)</slot>
-    </connection>
-    <connection>
-        <sender>table</sender>
         <signal>currentChanged(int,int)</signal>
         <receiver>SlicerAngleForm</receiver>
         <slot>currentChanged(int,int)</slot>
@@ -479,8 +473,6 @@
 </forwards>
 <variables>
     <variable access="private">bool mIgnoreCurChg;</variable>
-    <variable access="private">bool mDoSetAng;</variable>
-    <variable access="private">int mTimerID;</variable>
     <variable access="private">int mTimeInc;</variable>
     <variable access="private">int mMaxImageTime;</variable>
     <variable access="private">int mMaxModelTime;</variable>
@@ -508,8 +500,7 @@
     <slot>helpClicked()</slot>
     <slot>cellChanged( int row, int col )</slot>
     <slot>currentChanged( int row, int col )</slot>
-    <slot>cellPressed( int row, int col )</slot>
-    <slot>timerEvent( QTimerEvent * e )</slot>
+    <slot>updateTopIfContinuous()</slot>
     <slot>loadRow( SlicerAngles * slanp, int row )</slot>
     <slot>switchTime( int newtime, bool doSet )</slot>
     <slot>finishOrFlushUnit( bool changed )</slot>
