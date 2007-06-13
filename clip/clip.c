@@ -396,6 +396,7 @@ int main( int argc, char *argv[] )
      
   /* DNM 4/2/04: in addition to setting header size, need to zero out "next" */
   hout.headerSize = 1024;
+  hout.sectionSkip = 0;
   hout.next = 0;
   hout.creatid    = 1000;
 
@@ -611,6 +612,9 @@ int *clipMakeSecList(char *clst, int *nofsecs)
 
 /*
 $Log$
+Revision 3.17  2007/02/04 21:19:48  mast
+Eliminated mrcspectral includes
+
 Revision 3.16  2006/06/23 17:12:02  mast
 Added rotx option
 
