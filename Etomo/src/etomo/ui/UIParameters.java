@@ -12,6 +12,9 @@
  * @version $Revision$
  * 
  * <p> $Log$
+ * <p> Revision 3.14  2007/06/06 22:06:17  sueh
+ * <p> bug# 1010 Made numericWidth smaller.
+ * <p>
  * <p> Revision 3.13  2007/04/02 21:53:32  sueh
  * <p> bug# 964 Added integerWidth.
  * <p>
@@ -89,6 +92,7 @@ public final class UIParameters {
   private float fontSize = DEFAULT_FONT_SIZE;
   private float fontSizeAdjustment = 1;
   private int numericWidth;
+  private int wideNumericWidth;
   private int sectionsWidth;
   private int integerTripletWidth;
   private int integerDoubletWidth;
@@ -135,6 +139,10 @@ public final class UIParameters {
 
   int getNumericWidth() {
     return numericWidth;
+  }
+  
+  int getWideNumericWidth() {
+    return wideNumericWidth;
   }
 
   int getSectionsWidth() {
@@ -192,6 +200,7 @@ public final class UIParameters {
         * fontSizeAdjustment);
     dimFileChooser.setSize(400 * fontSizeAdjustment, 400 * fontSizeAdjustment);
     numericWidth = (int) (40 * fontSizeAdjustment);
+    wideNumericWidth = (int) (50 * fontSizeAdjustment);
     sectionsWidth = (int) (75 * fontSizeAdjustment);
     integerTripletWidth = (int) (75 * fontSizeAdjustment);
     integerDoubletWidth=(int)(50*fontSizeAdjustment);
