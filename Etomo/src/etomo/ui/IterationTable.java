@@ -36,6 +36,9 @@ import etomo.type.EtomoAutodoc;
  * @version $Revision$
  * 
  * <p> $Log$
+ * <p> Revision 1.9  2007/06/08 22:21:38  sueh
+ * <p> bug# 1014 Added reset().
+ * <p>
  * <p> Revision 1.8  2007/05/15 19:58:17  sueh
  * <p> bug# 964 Added btnDeleteRow, deleteRow(IterationRow).  In RowList
  * <p> added delete(IterationRow...) and remove().
@@ -100,9 +103,9 @@ final class IterationTable implements Highlightable {
   private final HeaderCell header1HiCutoff = new HeaderCell("High-Freq.");
   private final HeaderCell header2HiCutoff = new HeaderCell("Filter");
   private final HeaderCell header3HiCutoff = new HeaderCell("Cutoff",
-      UIParameters.INSTANCE.getNumericWidth());
+      UIParameters.INSTANCE.getWideNumericWidth());
   private final HeaderCell header3HiCutoffSigma = new HeaderCell("Sigma",
-      UIParameters.INSTANCE.getNumericWidth());
+      UIParameters.INSTANCE.getWideNumericWidth());
   private final HeaderCell header1RefThreshold = new HeaderCell("Reference");
   private final HeaderCell header2RefThreshold = new HeaderCell("Threshold");
   private final HeaderCell header3RefThreshold = new HeaderCell();
