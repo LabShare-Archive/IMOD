@@ -1,5 +1,16 @@
 IMOD History
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+6/15/07: IMOD_3-10-11
+6/15/07: In Slicer, the volume can now be rotated relative to its current
+orientation with mouse or keypad keys just like the model in Model view.
+This is done with Shift key down, or with a new Shift lock toolbar button on.
+Also fixed various synchronization problems with the slicer angle dialog plus
+two bad but obscure bugs.
+
+6/13/07: Added ability for 3dmod to read PIF files produced by Bsoft.
+
+6/11/07: Upgraded ascii model format to retain more properties.
+
 6/7/07: Improved error reports from low-level I/O routines for Fortran to 
 include filename and to report a system error string correctly.
 
