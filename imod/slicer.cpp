@@ -19,6 +19,8 @@
 #include <qapplication.h>
 #include <qobjectlist.h>
 #include <qdatetime.h>
+#include <qcheckbox.h>
+#include <qpushbutton.h>
 
 #include "slicer_classes.h"
 #include "hottoolbar.h"
@@ -51,8 +53,8 @@ static int sslice_setxyz(SlicerStruct *ss, int x, int y);
 static int sslice_getxyz(SlicerStruct *ss, int x, int y, float &xm, float &ym,
                          float &zm);
 static void slicer_attach_point(SlicerStruct *ss, int x, int y);
-static void slicer_insert_point(SlicerStruct *ss, int x, int y);
-static void slicer_modify_point(SlicerStruct *ss, int x, int y);
+static void slicer_insert_point(SlicerStruct *ss, int x, int y, int ctrl);
+static void slicer_modify_point(SlicerStruct *ss, int x, int y, int ctrl);
 static void slicerUpdateImage(SlicerStruct *ss);
 static void drawThickControls(SlicerStruct *ss);
 static void sslice_draw_model(SlicerStruct *ss);
@@ -74,6 +76,7 @@ static int translateByRotatedVec(SlicerStruct *ss, Ipoint *vec);
 static SlicerStruct *getTopSlicer();
 static void setClassicMode(SlicerStruct *ss, int state);
 static void notifySlicersOfAngDia(bool open);
+static void setAngleToolbarState(SlicerWindow *ss, bool open);
 static void getNormalToPlane(SlicerStruct *ss, Ipoint *norm);
 static void getWindowCoords(SlicerStruct *ss, float xcur, float ycur, 
                             float zcur, int &xim, int &yim, int &zim);
@@ -188,6 +191,10 @@ void slicerStateToggled(SlicerStruct *ss, int index, int state)
 
   case SLICER_TOGGLE_CENTER:
     setClassicMode(ss, state);
+    break;
+
+  case SLICER_TOGGLE_SHIFTLOCK:
+    ss->shiftLock = state;
     break;
 
   case SLICER_TOGGLE_FFT:
@@ -347,6 +354,7 @@ int sslice_open(struct ViewInfo *vi)
   ss->vi     = vi;
   ss->locked = 0;
   ss->timeLock = 0;
+  ss->shiftLock = 0;
   ss->zoom   = 1.0;
   ss->lx     = vi->xmouse;
   ss->ly     = vi->ymouse;
@@ -439,7 +447,7 @@ int sslice_open(struct ViewInfo *vi)
   }
   
   if (!sliceAngDia)
-    ss->qtWindow->mSaveAngBar->hide();
+    setAngleToolbarState(ss->qtWindow, false);
 
   ss->qtWindow->show();
   ss->glw->setMouseTracking(pixelViewOpen);
@@ -483,13 +491,27 @@ static void notifySlicersOfAngDia(bool open)
   imodDialogManager.windowList(&objList, -1, SLICER_WINDOW_TYPE);
   for (i = 0; i < objList.count(); i++) {
     slicer = (SlicerWindow *)objList.at(i);
-    if (open)
-      slicer->mSaveAngBar->show();
-    else
-      slicer->mSaveAngBar->hide();
+    setAngleToolbarState(slicer, open);
   }
 }
 
+static void setAngleToolbarState(SlicerWindow *slicer, bool open)
+{
+  slicer->mAutoBox->setEnabled(open);
+  slicer->mSetAngBut->setEnabled(open);
+  slicer->mSaveAngBut->setEnabled(open);
+  slicer->mNewRowBut->setEnabled(open);
+  if (open)
+    slicer->mSaveAngBar->show();
+  else {
+    
+    // Turn off continuous when closing
+    diaSetChecked(slicer->mAutoBox, false);
+    slicer->mSlicer->continuous = false;
+    slicer->mSaveAngBar->hide();
+  }
+  
+}
 // The pixel view window has opened or closed, set mouse tracking for all
 void slicerPixelViewState(bool state)
 {
@@ -526,14 +548,16 @@ static SlicerStruct *getTopSlicer()
   QObjectList objList;
   SlicerStruct *ss;
   ImodControl *ctrlPtr;
-  int i, j, topOne;
+  int i, j, topOne, curSave;
 
   imodDialogManager.windowList(&objList, -1, SLICER_WINDOW_TYPE);
   if (!objList.count())
     return NULL;
 
   // Look through the current control list, find first slicer with matching ID
+  // Here we MUST save and restore current item to avoid screwing up draws
   topOne = -1;
+  curSave = App->cvi->ctrlist->list->current;
   for (j = 0; topOne < 0 && j < ilistSize(App->cvi->ctrlist->list); j++) {
     ctrlPtr = (ImodControl *)ilistItem(App->cvi->ctrlist->list, j);
     for (i = 0; i < objList.count(); i++) {
@@ -544,6 +568,7 @@ static SlicerStruct *getTopSlicer()
       }
     }
   }
+  App->cvi->ctrlist->list->current = curSave;
   if (topOne < 0)
     topOne = 0;
   return ((SlicerWindow *)objList.at(topOne))->mSlicer;
@@ -655,7 +680,7 @@ static void setViewAxisRotation(SlicerStruct *ss, float x, float y, float z)
   if (fabs(alpha) > 90.) {
     alpha += 180. * (alpha > 0. ? -1. : 1);
     beta = (beta >= 0. ? 1. : -1.) * 180. - beta;
-    gamma += 180. * (alpha > 0. ? -1. : 1);
+    gamma += 180. * (gamma > 0. ? -1. : 1);
   }
   ss->tang[b3dX] = alpha;
   ss->tang[b3dY] = beta;
@@ -810,12 +835,22 @@ void slicerKeyInput(SlicerStruct *ss, QKeyEvent *event)
     } else
       handled = 0;
 
-
+    
+  case Qt::Key_Comma:
   case Qt::Key_Less:
-    viewAxisIndex = B3DMAX(0, viewAxisIndex - 1);
+    dodraw = 0;
+    if (keysym == Qt::Key_Comma && !ss->shiftLock)
+      handled = 0;
+    else
+      viewAxisIndex = B3DMAX(0, viewAxisIndex - 1);
     break;
+
+  case Qt::Key_Period:
   case Qt::Key_Greater:
-    if (viewAxisSteps[viewAxisIndex + 1])
+    dodraw = 0;
+    if (keysym == Qt::Key_Comma && !ss->shiftLock)
+      handled = 0;
+    else if (viewAxisSteps[viewAxisIndex + 1])
       viewAxisIndex++;
     break;
 
@@ -830,8 +865,8 @@ void slicerKeyInput(SlicerStruct *ss, QKeyEvent *event)
   case Qt::Key_Next:
   case Qt::Key_Prior:
     dodraw = 0;
-    if ((keypad && !shift && keysym == Qt::Key_Prior) || 
-        (keypad && shift && keysym == Qt::Key_Insert) ||
+    if ((keypad && !(shift || ss->shiftLock) && keysym == Qt::Key_Prior) || 
+        (keypad && (shift || ss->shiftLock) && keysym == Qt::Key_Insert) ||
         (!keypad && ((!ss->locked && ss->classic) || keysym == Qt::Key_End || 
                      keysym == Qt::Key_Insert))) {
       handled = 0;
@@ -894,7 +929,7 @@ void slicerKeyInput(SlicerStruct *ss, QKeyEvent *event)
     }
 
     // Now handle keypad keys
-    if (shift) {
+    if (shift || ss->shiftLock) {
       unit = viewAxisSteps[viewAxisIndex];
       if (keysym == Qt::Key_Down) 
         setViewAxisRotation(ss, -unit, 0., 0.);
@@ -971,7 +1006,8 @@ void slicerKeyRelease(SlicerStruct *ss, QKeyEvent *event)
 // Process press of mouse buttons
 void slicerMousePress(SlicerStruct *ss, QMouseEvent *event)
 {
-  int shift = event->state() & Qt::ShiftButton;
+  int shift = (event->state() & Qt::ShiftButton) + ss->shiftLock;
+  int ctrl = (event->state() & Qt::ControlButton);
   ivwControlPriority(ss->vi, ss->ctrl);
 
   lastmx = firstmx = event->x();
@@ -984,11 +1020,11 @@ void slicerMousePress(SlicerStruct *ss, QMouseEvent *event)
     }
   }
 
-  if ((event->stateAfter() & ImodPrefs->actualButton(2)) && !shift)
-    slicer_insert_point(ss, event->x(), event->y());
+  if ((event->stateAfter() & ImodPrefs->actualButton(2)) && (ctrl || !shift))
+    slicer_insert_point(ss, event->x(), event->y(), ctrl);
   
-  if ((event->stateAfter() & ImodPrefs->actualButton(3)) && !shift)
-    slicer_modify_point(ss, event->x(), event->y());
+  if ((event->stateAfter() & ImodPrefs->actualButton(3)) && (ctrl || !shift))
+    slicer_modify_point(ss, event->x(), event->y(), ctrl);
 }
 
 // Respond to mouse button up
@@ -1022,7 +1058,7 @@ void slicerMouseMove(SlicerStruct *ss, QMouseEvent *event)
   int cumthresh = 6 * 6;
   float delCrit = 20.;
   double transFac = ss->zoom < 4. ? 1. / ss->zoom : 0.25;
-  int shift = event->state() & Qt::ShiftButton;
+  int shift = (event->state() & Qt::ShiftButton) + ss->shiftLock;
   int button2 = event->state() & ImodPrefs->actualButton(2);
   int button3 = event->state() & ImodPrefs->actualButton(3);
   Ipoint vec;
@@ -1073,8 +1109,8 @@ void slicerMouseMove(SlicerStruct *ss, QMouseEvent *event)
   // Button 2 shifted, rotate around view axis in X/Y plane
     if (button2) {
       angleScale = 180. / (3.142 * 0.4 * B3DMIN(ss->winx, ss->winy));
-      dx = (event->x() - lastmx) * angleScale;
-      dy = (event->y() - lastmy) * angleScale;
+      dy = (event->x() - lastmx) * angleScale;
+      dx = (event->y() - lastmy) * angleScale;
     } else {
 
       // Button 3 shifted, rotate around Z view axis
@@ -1189,7 +1225,7 @@ static void slicer_attach_point(SlicerStruct *ss, int x, int y)
   imodDraw(ss->vi, drawflag);
 }
 
-static void slicer_insert_point(SlicerStruct *ss, int x, int y)
+static void slicer_insert_point(SlicerStruct *ss, int x, int y, int ctrl)
 {
   int zmouse;
   if (ss->vi->imod->mousemode == IMOD_MMODEL) {
@@ -1198,11 +1234,11 @@ static void slicer_insert_point(SlicerStruct *ss, int x, int y)
       ss->ignoreCurPtChg = 1;
     inputInsertPoint(ss->vi);
     ss->vi->zmouse = zmouse;
-  } else
+  } else if (ctrl)
     startMovieCheckSnap(ss, 1);
 }
 
-static void slicer_modify_point(SlicerStruct *ss, int x, int y)
+static void slicer_modify_point(SlicerStruct *ss, int x, int y, int ctrl)
 {
   int zmouse;
   if (ss->vi->imod->mousemode == IMOD_MMODEL) {
@@ -1211,7 +1247,7 @@ static void slicer_modify_point(SlicerStruct *ss, int x, int y)
       ss->ignoreCurPtChg = 1;
     inputModifyPoint(ss->vi);
     ss->vi->zmouse = zmouse;
-  } else
+  } else if (ctrl)
     startMovieCheckSnap(ss, -1);
 }
 
@@ -1991,7 +2027,7 @@ static void slicerDraw_cb(ImodView *vi, void *client, int drawflag)
       ss->glw->unsetCursor();
   }
 
-  // imodPrintStderr("flags on draw %x \n", drawflag);
+  //imodPrintStderr("flags on draw %x \n", drawflag);
 
   /* DNM: use a value saved in structure in case more than one window */
   if (ss->zslast != ss->vi->imod->zscale){
@@ -2103,6 +2139,7 @@ static void slicerDraw_cb(ImodView *vi, void *client, int drawflag)
         }
       }
 
+      //imodPrintStderr("STEP draw at %f %f %f\n", ss->cx, ss->cy, ss->cz);
       sslice_draw(ss);
       return;
     }
@@ -2187,10 +2224,9 @@ void slicerPaint(SlicerStruct *ss)
     ss->drawnYmouse = ss->vi->ymouse;
     ss->drawnZmouse = ss->vi->zmouse;
     if (sliceAngDia && (getTopSlicer() == ss))
-      sliceAngDia->topSlicerDrawing
-        (ss->tang, ss->cx, ss->cy, ss->cz, 
-         ss->timeLock ? ss->timeLock : ss->vi->ct, 
-         sliderDragging + mousing, ss->continuous);
+      sliceAngDia->topSlicerDrawing(ss->tang, ss->cx, ss->cy, ss->cz, 
+                                    ss->timeLock ? ss->timeLock : ss->vi->ct, 
+                                    sliderDragging + mousing, ss->continuous);
   }
 
   b3dSetCurSize(ss->winx, ss->winy);
@@ -2497,6 +2533,9 @@ void slicerCubePaint(SlicerStruct *ss)
 
 /*
 $Log$
+Revision 4.45  2007/06/13 15:19:50  mast
+Added view-axis based rotation
+
 Revision 4.44  2007/06/04 15:08:24  mast
 Worked out problems with Z scale, normals, steps etc.
 
