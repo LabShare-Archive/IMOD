@@ -346,7 +346,9 @@ int sslice_open(struct ViewInfo *vi)
              "You can switch to the classic mode with the centering\n"
              "button (two concentric squares) on the first toolbar.\n"
              "You can select classic mode as the default on the Behavior tab\n"
-             "in the 3dmod Preferences dialog, accessed with Edit-Options.");
+             "in the 3dmod Preferences dialog, accessed with Edit-Options.\n\n"
+             "Also, the "CTRL_STRING" key is now needed to start or stop a "
+             "movie with\nthe second or third mouse button.");
 
   ss->cx = vi->xmouse;
   ss->cy = vi->ymouse;
@@ -2533,6 +2535,9 @@ void slicerCubePaint(SlicerStruct *ss)
 
 /*
 $Log$
+Revision 4.46  2007/06/15 21:20:55  mast
+Added shift lock capability and made movie require Ctrl
+
 Revision 4.45  2007/06/13 15:19:50  mast
 Added view-axis based rotation
 
