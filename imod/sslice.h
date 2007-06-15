@@ -44,6 +44,7 @@ typedef struct Super_slicer{
   int          locked;
   int          mousemode;    /* value for keeping track of cursor */
   int          classic;
+  int          shiftLock;    /* toggle button state for shift key or mouse */
 
   struct ViewInfo *vi;
   B3dCIImage   *image;
@@ -146,6 +147,9 @@ void slicerSetAnglesFromRow(SlicerStruct *ss);
 
 /*
     $Log$
+    Revision 3.16  2007/06/04 15:07:31  mast
+    A few more variables to keep track of drawn position
+
     Revision 3.15  2007/05/31 16:32:28  mast
     Changes for slicer angle toolbar, classic setting and warning
 
