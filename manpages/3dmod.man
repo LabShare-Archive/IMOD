@@ -35,7 +35,8 @@ available; in any of the formats supported by the Qt image-reading
 function, which include JPEG, PNG, PPM, and BMP; or in a raw format where
 data are packed sequentially as in MRC files.  Some kinds of raw-type files
 will be recognized automatically and and treated like MRC files.  These
-include Hegerl's EM format, Winkler's FFF format, and DigitalMicrograph
+include Hegerl's EM format, Winkler's FFF format, PIF files produced by Bsoft,
+and DigitalMicrograph
 version 3 files.  MRC files of almost any
 mode can be read in: byte, 16-bit integer,
 real, complex real, complex integer, or color (RGB).  TIFF files may be byte,
@@ -852,7 +853,8 @@ rotation of the data volume around the X, Y and Z axes.  A small
 display next to the sliders gives a visual cue to the slice
 location.  This toolbar also has two spin boxes, one to select the
 thickness of the slice being displayed, the other to select the
-thickness of model that will be projected onto the slice.
+thickness of model that will be projected onto the slice.  It also has a
+Help button to open up on-line help.
 
 The narrow toolbar at the top of the Slicer has the following buttons, from
 left to right.
@@ -867,6 +869,8 @@ current position when locked.
    The Centering button toggles between the default mode in which the window
 can be panned with the mouse, and a mode in which the current image point is
 kept at the center of the window (referred to as "classic" mode).
+   The Shift Lock (Sh) button toggles a mode in which mouse buttons and keypad
+keys can be used to rotate the volume as if the Shift key were held down.
    The IM/FFT button toggles between showing an image and an FFT of the image.
    The Show Slice button will draw where the slice
 intersects the X- Y- and Z-planes in the XYZ window, and the Z-plane in the
@@ -875,15 +879,21 @@ ZaP window.
 the slice.
    The Z-Scale control determines whether the model's Z-scale will be
 applied to stretch the volume in the Z dimension and compensate for thinning.
-   The Help button opens up on-line help.
+
+The orientation of the slice can also be adjusted by rotating the volume
+relative to the current axes rather than the original axes.  With the Shift
+key held down (or with the Shift lock toolbar button on), the second mouse
+button will rotate the volume around an axis in the plane of the slice and
+perpendicular to the direction of mouse movement.  The third mouse button will
+rotate in the plane of the slice, around the center point.
 
 One can model in the Slicer Window, using the first mouse
 button to select the current point, the second mouse button
 to insert a point after the current point, or the third button to modify the
 current point.  The second button can be held down to insert points
 continuously.  In movie mode, the first button selects the current point, and
-the second or third buttons start movies forward or backward through the data,
-in a direction perpendicular to the slice.
+the second or third buttons together with the Ctrl key start movies forward or
+backward through the data, in a direction perpendicular to the slice.
 
 .TP
 .I Hot Keys in the Slicer
@@ -901,11 +911,19 @@ x/y/z  - Align current and previous model points along X, Y or Z axis
 X/Y/Z  - Align first and last points of current contour along
             X, Y or Z axis
 
-Numeric Keypad:
+Numeric Keypad (no Shift)
 4/6  -  (Left/Right) Decrease/Increase last adjusted angle by 0.1
 2/8  -  (Down/Up) Decrease/Increase last adjusted angle by 0.5
 1/3  -  (End/PgDn) Decrease/Increase last adjusted angle by 15.0
 0    -  (Insert) Set last adjusted angle to 0
+
+Numeric Keypad (with Shift key down or Sh button on)
+4/6  -  (Left/Right) Rotate volume around current Y axis
+2/8  -  (Down/Up) Rotate volume around current Y axis
+9/3  -  (PgUp/PgDn) Rotate in plane of slice
+
+</>  -  Decrease/Increase step size for these rotations (,/. also do
+           this if Sh is on)
 .fi
 
 .SH XYZ Window
