@@ -7,8 +7,9 @@ mrc2tif \- Create a series of TIFF image files from an MRC image file.
 mrc2tif [options] <mrc file> <tiff file root name>
 .SH DESCRIPTION
 mrc2tif creates a series of TIFF files with the prefix [tiff root name]
-and with the suffix nnn.tif, where nnn is the z number.  Byte, 16-bit integer,
-and RGB color files (modes 0, 1, 16) can be converted.
+and with the suffix nnn.tif, where nnn is the z number.  Byte, signed and
+unsigned 16-bit integer,
+and RGB color files (modes 0, 1, 6, 16) can be converted.
 
 
 .SH AUTHORS
