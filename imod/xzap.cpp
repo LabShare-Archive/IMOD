@@ -2847,13 +2847,14 @@ void zapReportRubberband()
   QObjectList objList;
   ZapStruct *zap;
   ImodControl *ctrlPtr;
-  int i, j, bin;
+  int i, j, bin, curSave;
   int ixl, ixr, iyb, iyt;
 
   imodDialogManager.windowList(&objList, -1, ZAP_WINDOW_TYPE);
 
   // Loop through the control list and find the first window that is a zap
-  // with a rubberband
+  // with a rubberband.  Best to save and restore ctrlist current item
+  curSave = App->cvi->ctrlist->list->current;
   for (j = 0; j < ilistSize(App->cvi->ctrlist->list); j++) {
     ctrlPtr = (ImodControl *)ilistItem(App->cvi->ctrlist->list, j);
     for (i = 0; i < objList.count(); i++) {
@@ -2883,10 +2884,12 @@ void zapReportRubberband()
         
         imodPrintStderr("Rubberband: %d %d %d %d\n", ixl + 1, iyb + 1, ixr + 1,
                         iyt + 1);
+        App->cvi->ctrlist->list->current = curSave;
         return;
       }
     }
   }
+  App->cvi->ctrlist->list->current = curSave;
   imodPrintStderr("ERROR: No Zap window has usable rubberband coordinates\n");
 }
 
@@ -3860,6 +3863,9 @@ void zapGetLongestTimeString(ImodView *vi, QString *str)
 
 /*
 $Log$
+Revision 4.96  2007/06/08 04:45:15  mast
+Implemented ability to constrain open contours to planes
+
 Revision 4.95  2007/06/07 03:56:39  mast
 Fix xyzmouse position when a drag draw finishes, and update info
 
