@@ -68,6 +68,8 @@ static void findIndexLimits(int isize, int xsize, float xo, float xsx,
 #include "keepCenter.bits"
 #include "time_unlock.bits"
 #include "time_lock.bits"
+#include "shiftlockon.bits"
+#include "shiftlockoff.bits"
 
 static unsigned char showslice_bits[] = {
      0xff, 0x0f, 0xff, 0x0f, 0xff, 0x0f, 0x00, 0x00, 0xff, 0xef, 0xff, 0xef,
@@ -79,6 +81,7 @@ static unsigned char *bitList[MAX_SLICER_TOGGLES][2] =
   { {lowres_bits, highres_bits},
     {unlock_bits, lock_bits},
     {smartCenter_bits, keepCenter_bits}, 
+    {shiftlockoff_bits, shiftlockon_bits},
     {image_bits, fft_bits},
     {time_unlock_bits, time_lock_bits}};
 
@@ -135,7 +138,7 @@ SlicerWindow::SlicerWindow(SlicerStruct *slicer, float maxAngles[],
   // Make the 4 toggle buttons and their signal mapper
   QSignalMapper *toggleMapper = new QSignalMapper(mToolBar);
   connect(toggleMapper, SIGNAL(mapped(int)), this, SLOT(toggleClicked(int)));
-  for (j = 0; j < 4; j++)
+  for (j = 0; j < 5; j++)
     setupToggleButton(mToolBar, toggleMapper, j);
   
   // The showslice button is simpler
@@ -171,12 +174,6 @@ SlicerWindow::SlicerWindow(SlicerStruct *slicer, float maxAngles[],
 	  SLOT(zScaleSelected(int)));
   QToolTip::add(mZscaleCombo, "Select whether to ignore Z scale, or apply it"
                 " before or after rotation");
-
-  // Help button
-  mHelpButton = new QPushButton("Help", mToolBar, "Help button");
-  mHelpButton->setFocusPolicy(QWidget::NoFocus);
-  connect(mHelpButton, SIGNAL(clicked()), this, SLOT(help()));
-  QToolTip::add(mHelpButton, "Open help window");
 
   // THE TIME TOOLBAR
   if (!timeLabel.isEmpty()) {
@@ -230,11 +227,12 @@ SlicerWindow::SlicerWindow(SlicerStruct *slicer, float maxAngles[],
   QToolTip::add(mSetAngBut, "Set angles and position from current row in"
                 " slicer angle table");
 
-  QCheckBox *check = new QCheckBox("Auto", mSaveAngBar);
-  check->setFocusPolicy(QWidget::NoFocus);
-  connect(check, SIGNAL(toggled(bool)), this, SLOT(continuousToggled(bool)));
-  QToolTip::add(check, "Continuously update table from slicer and slicer from"
-                " table");
+  mAutoBox = new QCheckBox("Auto", mSaveAngBar);
+  mAutoBox->setFocusPolicy(QWidget::NoFocus);
+  connect(mAutoBox, SIGNAL(toggled(bool)), this,
+          SLOT(continuousToggled(bool)));
+  QToolTip::add(mAutoBox, "Continuously update table from slicer and slicer "
+                "from table");
 
   // SECOND TOOLBAR
   mToolBar2 = new HotToolBar(this);
@@ -270,16 +268,19 @@ SlicerWindow::SlicerWindow(SlicerStruct *slicer, float maxAngles[],
   mCube = new SlicerCube(slicer, glFormat, cubeFrame);
   cubeLayout->addWidget(mCube);
 
-  // Thickness label
+  // Thickness box and help button
   QVBox *thickBox = new QVBox(mToolBar2);
-  label = new QLabel("Thickness", thickBox);
-  QSize labelSize = label->sizeHint();
+  mHelpButton = new QPushButton("Help", thickBox, "Help button");
+  mHelpButton->setFocusPolicy(QWidget::NoFocus);
+  connect(mHelpButton, SIGNAL(clicked()), this, SLOT(help()));
+  QToolTip::add(mHelpButton, "Open help window");
 
   // Thickness of image spin box
   label = new QLabel("Image", thickBox);
+  QSize labelSize = label->sizeHint();
   mImageBox = new QSpinBox(1, 1000, 1, thickBox);
   mImageBox->setFocusPolicy(QWidget::ClickFocus);
-  mImageBox->setMaximumWidth(labelSize.width()- 4);
+  mImageBox->setMaximumWidth((int)(labelSize.width() * 1.5));
   connect(mImageBox, SIGNAL(valueChanged(int)), this, 
 	  SLOT(imageThicknessChanged(int)));
   QToolTip::add(mImageBox, "Set number of slices to average (hot keys _  and "
@@ -289,7 +290,7 @@ SlicerWindow::SlicerWindow(SlicerStruct *slicer, float maxAngles[],
   label = new QLabel("Model", thickBox);
   mModelBox = new FloatSpinBox(1, 1, 10000, 10, thickBox);
   mModelBox->setFocusPolicy(QWidget::ClickFocus);
-  mModelBox->setMaximumWidth(labelSize.width()- 4);
+  mModelBox->setMaximumWidth((int)(labelSize.width() * 1.5));
   connect(mModelBox, SIGNAL(valueChanged(int)), this, 
 	  SLOT(modelThicknessChanged(int)));
   QToolTip::add(mModelBox, "Set thickness of model to project onto image "
@@ -341,6 +342,7 @@ void SlicerWindow::setupToggleButton(HotToolBar *toolBar,
     "Toggle between regular and high-resolution (interpolated) image",
     "Lock window at current position",
     "Keep current image or model point centered (classic mode, hot key k)",
+    "Use keypad and mouse as if Shift key were down to rotate slice",
     "Toggle between showing image and FFT",
     "Lock window at current time" };
 
@@ -675,16 +677,72 @@ void fillImageArray(SlicerStruct *ss, int panning, int meanOnly)
   maxval = 255;
   minval = 0;
   sswinx = ss->winx;
+  izoom = (int) zoom;
 
-  // Turn off hq drawing if panning.
+  // Turn off hq drawing if mean only.
   // Set flag for filling each window pixel if HQ or fractional zoom, unless
   // it is FFT at higher zoom
-  sshq = (panning || meanOnly) ? 0 : ss->hq;
-  ss->noPixelZoom = (sshq || (int)ss->zoom != ss->zoom) &&
+  // Set flag for doing shortcut HQ method
+  // Set number of slices to draw
+  sshq = meanOnly ? 0 : ss->hq;
+  ss->noPixelZoom = (sshq || izoom != ss->zoom) &&
     (!ss->fftMode || ss->zoom < 1.);
+  shortcut = (sshq && (zoom == izoom) && (zoom > 1.0) && !ss->fftMode) ? 1 : 0;
+  ksize = (ss->vi->colormapImage || meanOnly) ? 1 : ss->nslice;
  
+  // When panning, drop HQ and/or reduce number of slices to maintain
+  // a maximum number of pixel have to be found
+  if (panning) {
+
+    // Get number of pixels to be computed: number in window, divided by
+    // zoom**2 if pixel zoom or shortcut
+    numpix = ss->winx * ss->winy;
+    if (!ss->noPixelZoom || shortcut)
+      numpix /= ss->zoom * ss->zoom;
+
+    // If one slice and it is hq, it is 4 times slower unless shortcut, where
+    // it may still be 2 times slower.  Cancel hq if too many pixels
+    if (ksize == 1 && sshq) {
+      if (shortcut)
+        numpix *= 2;
+      else
+        numpix *= 4;
+      if (numpix > maxPanPixels) {
+        sshq = 0;
+        shortcut = 0;
+        ss->noPixelZoom = izoom != ss->zoom && (!ss->fftMode || ss->zoom < 1.);
+      }
+    } else if (ksize > 1) {
+
+      // If multiple slices, assume shortcut is fully effective and increase
+      // work just for the HQ interpolation
+      if (sshq)
+        numpix *= 4;
+      maxSlice = B3DMAX(1, (int)(maxPanPixels / numpix));
+
+      // Cancel HQ if too many pixels, or if the maximum slices is dropping
+      // below 5 and is more than a reduction of 2 from requested slices
+      if (sshq && (maxPanPixels / numpix < 0.75 || 
+                   (maxSlice < 5 && maxSlice < ksize - 2))) {
+        sshq = 0;
+        shortcut = 0;
+
+        // Re-evaluate flag and number of slices
+        ss->noPixelZoom = izoom != ss->zoom && (!ss->fftMode || ss->zoom < 1.);
+        numpix = ss->winx * ss->winy;
+        if (!ss->noPixelZoom)
+          numpix /= ss->zoom * ss->zoom;
+        maxSlice = B3DMAX(1, (int)(maxPanPixels / numpix));
+      }
+      ksize = B3DMIN(ksize, maxSlice);
+    }
+    if (imodDebug('s'))
+      imodPrintStderr("panning HQ %d ksize %d\n", sshq, ksize);
+  }
+  zoffset = (float)(ksize - 1) * 0.5;
+
   /* DNM 5/16/02: force a cache load of the current z slice at least */
-  iz = (int)floor((double)(ss->cz + 0.5));
+  iz = B3DNINT(ss->cz);
   ivwGetZSection(ss->vi, iz);
 
   /* Set up image pointer tables */
@@ -703,17 +761,6 @@ void fillImageArray(SlicerStruct *ss, int panning, int meanOnly)
     noDataVal = (unsigned char)minval;
   }
 
-  // Set number of slices to draw: reduce the number when panning so that
-  // a maximum number of pixel have to be found
-  ksize = (ss->vi->colormapImage || meanOnly) ? 1 : ss->nslice;
-  if (ksize > 1 && panning) {
-    numpix = ss->winx * ss->winy;
-    if (!ss->noPixelZoom)
-      numpix /= ss->zoom * ss->zoom;
-    maxSlice = B3DMAX(1, (int)(maxPanPixels / numpix));
-    ksize = B3DMIN(ksize, maxSlice);
-  }
-  zoffset = (float)(ksize - 1) * 0.5;
 
   /* DNM 5/5/03: set lx, ly, lz when cx, cy, cz used to fill array */
   xzoom = yzoom = zzoom = ss->zoom;
@@ -852,10 +899,7 @@ void fillImageArray(SlicerStruct *ss, int panning, int meanOnly)
   yzost = yo;
   zzost = zo;
 
-  shortcut = 0;
-  izoom = (int) zoom;
-  if ((sshq != 0) && (zoom == izoom) && (zoom > 1.0) && !ss->fftMode) {
-    shortcut = 1;
+  if (shortcut) {
     ilimshort = izoom * ((isize - 1) / izoom - 1);
     jlimshort = izoom * ((jsize - 1) / izoom - 1);
   } else if (!izoom) {
@@ -1659,6 +1703,9 @@ static int taper_slice(Islice *sl, int ntaper, int inside)
 
  /*
 $Log$
+Revision 4.19  2007/06/07 17:39:38  mast
+Fixed use of wrong variable in testing for whether to take mean/SD
+
 Revision 4.18  2007/06/04 15:06:34  mast
 Added hot key to tooltip
 

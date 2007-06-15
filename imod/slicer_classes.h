@@ -11,10 +11,10 @@
 #ifndef SLICER_CLASSES_H
 #define SLICER_CLASSES_H
 
-#define MAX_SLICER_TOGGLES 5
+#define MAX_SLICER_TOGGLES 6
 
 enum {SLICER_TOGGLE_HIGHRES = 0, SLICER_TOGGLE_LOCK, SLICER_TOGGLE_CENTER, 
-      SLICER_TOGGLE_FFT, SLICER_TOGGLE_TIMELOCK};
+      SLICER_TOGGLE_SHIFTLOCK, SLICER_TOGGLE_FFT, SLICER_TOGGLE_TIMELOCK};
 
 #include <qmainwindow.h>
 #include <qspinbox.h>
@@ -30,6 +30,7 @@ class QSignalMapper;
 class QSlider;
 class MultiSlider;
 class QComboBox;
+class QCheckBox;
 
 typedef struct Super_slicer SlicerStruct;
 class SlicerGL;
@@ -61,6 +62,9 @@ class SlicerWindow : public QMainWindow
   HotToolBar *mTimeBar;
   HotToolBar *mSaveAngBar;
   QPushButton *mSetAngBut;
+  QCheckBox *mAutoBox;
+  QPushButton *mNewRowBut;
+  QPushButton *mSaveAngBut;
 
   public slots:
     void zoomUp();
@@ -104,8 +108,6 @@ class SlicerWindow : public QMainWindow
   QComboBox *mZscaleCombo;
   QLabel *mTimeLabel;
   QPushButton *mHelpButton;
-  QPushButton *mNewRowBut;
-  QPushButton *mSaveAngBut;
 };
 
 class SlicerGL : public QGLWidget
@@ -176,6 +178,9 @@ void fillImageArray(SlicerStruct *ss, int panning, int meanOnly);
 
 /*
 $Log$
+Revision 4.10  2007/05/31 16:32:28  mast
+Changes for slicer angle toolbar, classic setting and warning
+
 Revision 4.9  2007/05/29 14:52:35  mast
 Changes for new slicer mode and toolbar buttons
 
