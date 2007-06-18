@@ -715,7 +715,7 @@ static void imodv_compute_rotation(ImodvApp *a, float x, float y, float z)
   mato = imodMatNew(3);
   matp = imodMatNew(3);
 
-  imodvResolveRotation(mat, 0.1f * z, 0.1f * y, 0.1f * z);
+  imodvResolveRotation(mat, 0.1f * x, 0.1f * y, 0.1f * z);
 
   if (!(maskr & Qt::ControlButton)){
 
@@ -1114,6 +1114,9 @@ void imodvMovieTimeout()
 
 /*
     $Log$
+    Revision 4.24  2007/06/13 15:19:21  mast
+    Made function for computing matrix from angle stpes
+
     Revision 4.23  2007/04/06 22:21:04  mast
     Chnaged scaling in call to move light
 
