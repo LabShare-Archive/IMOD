@@ -1650,8 +1650,8 @@ c
       subroutine findWarpVector(ipos, ivol, outvec, ndim)
       implicit none
       include 'stitchvars.inc'
-      integer*4 ipos(*), ivol, ndim
-      real*4 outvec(*)
+      integer*4 ipos(3), ivol, ndim
+      real*4 outvec(3)
       real*4 pos(3), xpos, ypos, zpos, vec(3)
       equivalence (pos(1),xpos), (pos(2),ypos), (pos(3),zpos)
       integer*4 indp1,indp2,indp3,indp4,inde12,inde13,inde34,inde24,nactivep
@@ -2775,9 +2775,6 @@ c
 
 
 c       $Log$
-c       Revision 3.3  2007/04/10 19:45:03  mast
-c       Made it do pairwise only if more than 2 volumes
-c
 c       Revision 3.2  2007/04/08 23:11:23  mast
 c       Declared lnblnk
 c
