@@ -3,31 +3,11 @@
  *   Copyright (C) 2003 by Boulder Laboratory for 3-Dimensional Electron
  *   Microscopy of Cells ("BL3DEMC") and the Regents of the University of 
  *   Colorado.
+ *
+ *   $Id$
+ *   Log at end
  */                                                                           
 
-/*  $Author$
-
-$Date$
-
-$Revision$
-
-$Log$
-Revision 3.5  2003/10/24 03:02:14  mast
-move routines to new b3dutil file
-
-Revision 3.4  2003/10/08 17:20:55  mast
-New functions for autodoc files
-
-Revision 3.3  2003/08/08 16:22:26  mast
-Add functiond for getting two numbers
-
-Revision 3.2  2003/06/10 23:21:54  mast
-Avoid freeing strings that were never allocated
-
-Revision 3.1  2003/06/05 00:24:02  mast
-Addition to IMOD
-
-*/
 
 #include <stdlib.h>
 #include <string.h>
@@ -61,6 +41,8 @@ Addition to IMOD
 #define pipallowcommadefaults PIPALLOWCOMMADEFAULTS
 #define pipreadoptionfile PIPREADOPTIONFILE
 #define pipsetmanpageoutput PIPSETMANPAGEOUTPUT
+#define pipsetspecialflags PIPSETSPECIALFLAGS
+#define	pipreadstdinifset PIPREADSTDINIFSET
 #else
 #define pipinitialize pipinitialize_
 #define pipexitonerror pipexitonerror_
@@ -87,6 +69,8 @@ Addition to IMOD
 #define pipallowcommadefaults pipallowcommadefaults_
 #define pipreadoptionfile pipreadoptionfile_
 #define pipsetmanpageoutput pipsetmanpageoutput_
+#define pipsetspecialflags pipsetspecialflags_
+#define	pipreadstdinifset pipreadstdinifset_
 #endif
 
 static char *pipf2cstr(char *str, int strSize);
@@ -116,6 +100,17 @@ void pipallowcommadefaults(int *val)
 void pipsetmanpageoutput(int *val)
 {
   PipSetManpageOutput(*val);
+}
+
+void pipsetspecialflags(int *inCase, int *inDone, int *inStd, int *inLines,
+                        int *inAbbrevs)
+{
+  PipSetSpecialFlags(*inCase, *inDone, *inStd, *inLines, *inAbbrevs);
+}
+
+int pipreadstdinifset()
+{
+  return PipReadStdinIfSet();
 }
 
 int pipreadoptionfile(char *progName, int *helpLevel, int *localDir, 
@@ -368,3 +363,24 @@ static char *pipf2cstr(char *str, int strSize)
   return newStr;
 }
 
+/*
+$Log$
+Revision 3.6  2005/02/11 01:42:34  mast
+Warning cleanup: implicit declarations, main return type, parentheses, etc.
+
+Revision 3.5  2003/10/24 03:02:14  mast
+move routines to new b3dutil file
+
+Revision 3.4  2003/10/08 17:20:55  mast
+New functions for autodoc files
+
+Revision 3.3  2003/08/08 16:22:26  mast
+Add functiond for getting two numbers
+
+Revision 3.2  2003/06/10 23:21:54  mast
+Avoid freeing strings that were never allocated
+
+Revision 3.1  2003/06/05 00:24:02  mast
+Addition to IMOD
+
+*/
