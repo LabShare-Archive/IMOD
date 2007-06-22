@@ -56,6 +56,10 @@ EXPORTS
 	imod_to_nff
 	PIPGETTHREEFLOATS
 	PIPGETNONOPTIONARG
+	PIPSETSPECIALFLAGS
+	PipSetSpecialFlags
+	PipReadStdinIfSet
+	PIPREADSTDINIFSET
 	imodObjectNew
 	imodContourMoment
 	imodel_maxpt

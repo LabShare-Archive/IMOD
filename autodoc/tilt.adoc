@@ -1,0 +1,377 @@
+Version = 1.0
+Pip = 1
+
+[Field = InputFile]
+short = input
+type = FN
+usage = Input image file
+tooltip = 
+manpage = Input image file with aligned projections.  If this option is not
+entered, the first non-option argument is taken as the input name.
+
+[Field = OutputFile]
+short = output
+type = FN
+usage = Output file for reconstruction
+tooltip = 
+manpage = Output file for reconstruction.  If this option is not
+entered, the second non-option argument is taken as the output name.
+
+[Field = ANGLES]
+type = FAM
+usage = Tilt angles of the views
+tooltip = 
+manpage = Use this entry to specify the tilt angles of the views if they are
+not in a separate file.  You must enter one tilt
+angle for each view.  Use more than one ANGLES line if necessary.
+This information will override tilt angles specified in the file
+header.  If you enter angles in this way, the file header need not
+contain tilt information.
+
+[Field = COMPFRACTION]
+type = F
+usage = Fraction of distance over which compression occurred
+tooltip = 
+manpage = If the compression measured by TILTALIGN occurred over
+only a fraction of the distance between the fiducials, enter the fraction with
+this option.
+
+[Field = COMPRESS]
+type = FAM
+usage = Compression factors of the views
+tooltip = 
+manpage = With this line, the program will assume that the section has
+compressed in Z by the amount given by the amount given for each
+view.  The compressions would be taken directly from the  output of
+TILTALIGN for incremental compression.  A value must be entered for
+each view.
+
+[Field = COSINTERP]
+type = IA
+usage = Interpolation order and sampling factor for cosine stretching
+tooltip = 
+manpage = Interpolation order and sampling factor for cosine stretching
+for cosine stretching of the input data.  The order can be 1 for linear,
+2 for quadratic, 3 for cubic, or 0 to disable cosine stretching.
+The default is linear to provide some smoothing of the data; higher
+orders are appropriate if data are relatively noise-free.  The factor is
+optional; the default is 2, which prevents further smoothing when
+the stretched data are linearly interpolated during backprojection.  
+
+[Field = DENSWEIGHT]
+type = FA
+usage = Weighting to compute local average tilt increment
+tooltip = 
+manpage = Use this entry to control the weighting of each view proportional
+to the local average tilt increment between views.  The first value specifies
+the number of intervals on EACH side of a view to consider; the default
+is 2, and a value of 0 disables weighting.  Optionally, this value may be
+followed by that number of weights to be applied in averaging the adjacent
+increments (the default is equal weighting).
+
+[Field = DONE]
+type = B
+usage = Terminate input to program
+tooltip = 
+manpage = The entry is equivalent to EndInput, and lines of input following
+it will be ignored.  This option is provided for compatibility with old
+command files.
+
+
+[Field = EXCLUDELIST2]
+type = LIM
+usage = List of views to exclude (comma-separated ranges allowed)
+tooltip = 
+manpage = List of views to be excluded from the reconstruction.  The list
+can consist of individual view numbers, or of ranges (e.g., 1-4), separated
+by commas or spaces.  The EXCLUDE and EXCLUDELIST entries available in
+old versions of the program are treated as this option.
+You may have any number of lines with exclude lists, but they cannot be 
+combined with INCLUDE lines.
+
+[Field = FBPINTERP]
+type = I
+usage = Interpolation order for fast backprojection (default 1)
+tooltip = 
+manpage = The interpolation order for the fast
+backprojection algorithm: 1 for linear interpolation (the default),
+3 for cubic spline interpolation, which will low-pass filter the
+input data more, or 0 to disable fast backprojection.  Entering a 
+value with this option will also force the program to use fast
+backprojection even if the width, thickness, and number of views
+are small enough so that fast backprojection will run slower than
+direct summation.
+
+[Field = FULLIMAGE]
+type = IP
+usage = Full size of original, unaligned images
+tooltip = 
+manpage = Use this line to specify the full size in X and Y of the
+original stack of tilted views, so that a subset of the aligned
+stack can be handled properly when using a global X-axis tilt or
+local alignments.
+
+[Field = IMAGEBINNED]
+type = I
+usage = Binning of input images
+tooltip = 
+manpage = If the input images have been binned, this line can be entered to
+specify the binning and have various other dimensions scaled down by
+this factor.  Values entered with SHIFT, OFFSET, THICKNESS, WIDTH,
+FULLIMAGESIZE, SLICE, and SUBSETSTART will be scaled.  These entries
+thus do not need to be changed when the input binning is changed.
+
+[Field = INCLUDE]
+type = LIM
+usage = List of views to include in the reconstruction
+tooltip = 
+manpage = A subset of views to be used for the
+reconstruction.  The values can be individual view numbers or ranges,
+separated by spaces or commas.  Use more than one INCLUDE line if the numbers
+do not all fit on one line.
+
+[Field = LOCALFILE]
+type = FN
+usage = File with local tilt alignment information
+tooltip = 
+manpage = File containing local tilt alignment information.
+
+[Field = LOCALSCALE]
+type = F
+usage = Factor by which images were scaled relative to local alignment data
+tooltip = 
+manpage = If local tilt alignments were obtained from unreduced data, but the
+aligned stack was reduced by binning or transforming, use this line
+to specify the factor by which the data were scaled, so that the
+local alignment information can be adjusted.  Without this entry, the program
+will use the ratio of the pixel size at which local alignments were computed
+to the pixel size of the aligned images, which should be correct
+if data were binned.
+
+[Field = LOG]
+type = F
+usage = Take the logarithm after adding the given base value
+tooltip = 
+manpage = This line allows one to generate a reconstruction using the
+logarithm of the densities in the input file, with the value BASE 
+added before taking the logarithm.
+
+[Field = MASK]
+type = F
+usage = Value for masking regions with incomplete data
+tooltip = 
+manpage = This line allows a mask to be applied so as to exclude from the
+reconstructed volume those parts which lie outside the volume for
+which the projection data are complete.  This volume is a cylinder whose axis
+lies along the tilt axis.  Grid points outside this volume will be set to the
+given value.  For thick sections, this
+option saves a little execution time but produces sharp edges in the
+reconstruction. 
+
+[Field = MODE]
+type = I
+usage = Output file mode (default 2)
+tooltip = 
+manpage = This line allows one to specify the data mode of the output file,
+which is 2 by default.  Be sure to use an appropriate SCALE line so
+that data will be scaled to the proper range.
+
+[Field = OFFSET]
+type = IA
+usage = 
+tooltip = 
+manpage = This line allows an offset of DELANG degrees to be applied to all
+tilt angles and indicates that the tilt axis is offset in the
+projection images, cutting the X-axis at  NX/2. + DELXX instead of
+NX/2.  DELANG positive rotates reconstructed sections anticlockwise.
+The DELXX entry is optional and defaults to 0 when omitted.  If the
+tilt axis is offset from the center because the projection images are a
+non-centered subset of the full images, use the SUBSETSTART entry
+instead.
+
+[Field = PARALLEL]
+type = B
+usage = Output slices parallel to the plane of the specimen
+tooltip = 
+manpage = Output slices parallel to the plane of the zero tilt projection.
+This option cannot be used with direct writing of data to a single output file
+from parallel Tilt runs.
+
+[Field = PERPENDICULAR]
+type = B
+usage = Output slices perpendicular to the plane of the specimen (default)
+tooltip = 
+manpage = Output slices perpendicular to the plane of the specimen.  This
+output is the default since it corresponds to the way in which slices are
+computed.
+
+[Field = RADIAL]
+type = FP
+usage = Cutoff and sigma of Gaussian falloff for radial weighting function.
+tooltip = 
+manpage = This line controls low-pass filtering with the radial weighting
+function.  The radial weighting function is linear away from the origin out to
+the distance in reciprocal space specified by the first value, followed by a 
+Gaussian fall-off with a s.d. (sigma) given by the second value.  If the
+cutoff is great than 1 the distances are interpreted as pixels in Fourier
+space; otherwise they are treated as frequencies in cycles/pixel, which range
+from 0 to 0.5.
+
+[Field = REPLICATE]
+type = FPM
+usage = Number of times to replicate views, and angle or replication
+tooltip = 
+manpage = With this line, the input views will be replicated the number of
+times given by the first value, with an increment given by the second value in
+degrees added to the original angles for each replication.  For example, if
+you can assume 9-fold symmetry, enter REPLICATE 8 40.
+
+[Field = REPROJECT]
+type = FAM
+usage = Angles for reprojections of reconstructed slices
+tooltip = 
+manpage = With this line, the program will output one or more reprojections 
+of the reconstructed slices at the given angles.  These reprojections should
+match what Xyzproj (1) would produce, but will not match the original
+projections if there were Z factors, local alignments, or any tilting about
+the X-axis.
+
+[Field = SCALE]
+type = FP
+usage = Values to add then scale reconstructed densities by
+tooltip = 
+manpage = With this entry, the values in the reconstruction will be scaled by
+adding the first value then multiplying by the second one.
+After the reconstruction is complete, the program will output the
+scale values that would make the data range from 10 to 245.
+
+[Field = SHIFT]
+type = FA
+usage = Amount to shift reconstructed slice in X and Y
+tooltip = 
+manpage = This line allows one to shift the reconstructed slice in X or Z
+before it is output.  If the X shift is positive, the slice will be
+shifted to the right, and the output will contain the left part of
+the whole potentially reconstructable area.  If the Z shift is positive,
+the slice is shifted upward.  The Z entry is optional and
+defaults to 0 when omitted.
+
+[Field = SLICE]
+type = FA
+usage = Starting and ending slice number, and interval between slices
+tooltip = 
+manpage = Starting and ending slice number to reconstruct, and interval
+between slices.  The numbers refer to slices in the X/Z plane and correspond
+to Y coordinates in the projection images.  Slices are numbered from 0.  
+The interval entry is optional and defaults to 1 when omitted.
+
+[Field = TOTALSLICES]
+type = IP
+usage = Starting and ending slices of entire reconstruction
+tooltip = 
+manpage = This line is used to allow multiple runs of Tilt to compute a subset
+of slices and place them into the same output file.  The values
+specify the first and last slice to be reconstructed in the whole
+volume, numbered from 0.  When this entry is present, the behavior of
+the program depends on the SLICE entry.  The program should be run
+initially with SLICE -1 -1, which will cause it to create the output file
+and write its header.  On successive runs with SLICE indicating a real range
+of slices, the program will open the existing file, write only those slices, 
+and not write the header when it is done.
+
+[Field = SUBSETSTART]
+type = IP
+usage = Lower left X, Y coordinates of aligned stack within whole images
+tooltip = 
+manpage = If the aligned stack contains a subset of the area in the original
+images, and this area is not centered in X or a global X-axis tilt or
+local alignments are being used, use this line to enter the X and Y index
+coordinates (numbered from 0) of the lower left corner of the subset within the
+original images.  A FULLIMAGE line must also be entered.  If the aligned stack
+is larger than the original images, use negative values.
+
+[Field = THICKNESS]
+type = I
+usage = Thickness in Z of reconstructed volume
+tooltip = 
+manpage = Thickness in Z of reconstructed volume, in pixels
+
+[Field = TILTFILE]
+type = FN
+usage = File with list of tilt angles
+tooltip = 
+manpage = Use this line to specify a file containing a list of all tilt
+angles.  The angles may be one per line or many per line.
+
+[Field = TITLE]
+type = CH
+usage = Title string for output file header
+tooltip = 
+manpage = An alphanumeric string giving the title for the job, which will be
+added to the output map.  Limit 50 characters.  This entry is
+optional; the default is "Tomographic reconstruction".
+
+[Field = WIDTH]
+type = I
+usage = Width of output image
+tooltip = 
+manpage = The width of the output image; the default is
+the width of the input image.
+
+[Field = XAXISTILT]
+type = F
+usage = Tilt about X-axis to correct in reconstruction
+tooltip = 
+manpage = This line allows one to rotate the reconstruction around the X axis,
+so that a section that appears to be tilted around the X axis can be
+made flat to fit into a smaller volume.  The angle should be the
+tilt of the section relative to the X-Y plane in an unrotated
+reconstruction.  For example, if the reconstruction extends 500
+slices, and the section is 5 pixels below the middle in the first
+slice and 5 pixels above the middle in the last slice, the angle should
+be 1.1 (the arc sine of 10/500).
+
+[Field = XTILTFILE]
+type = FN
+usage = File with variable tilts around the X-axis
+tooltip = 
+manpage = Use this line to specify a file containing a list of tilts around
+the X axis for the individual views.  A global tilt specified by the
+XAXISTILT line, if any, will be added to these tilts.  If this file contains
+all zeros, the program runs the same as if the file was not entered.
+
+[Field = XTILTINTERP]
+type = I
+usage = Interpolation order for computing X-tilted slices from vertical ones
+tooltip = 
+manpage = This line controls the order for interpolating an output slice
+tilted around the X axis from vertical, untilted slices each computed
+from a single line of input data.  Set the order to 1 for linear, 2 for
+quadratic, 3 for cubic, or 0 to disable this method of X-axis
+tilting and revert to computing the output slice directly from input
+data.  The default is 1; higher orders are appropriate if data are
+particularly noise-free.
+
+[Field = ZFACTORFILE]
+type = FN
+usage = File with Z-factors
+tooltip = 
+manpage = Use this line to specify a file containing factors for adjusting the
+backprojection position in each image as a function of Z height in the
+output slice.  These factors are necessary when input images have been
+transformed to correct for an apparent specimen stretch.  If this entry is
+absent, Z factors in a local alignment file will not be applied.
+
+[Field = ParameterFile]
+short = param
+type = PF
+usage = Read parameter entries from file
+tooltip = 
+manpage = Read parameter entries as keyword-value pairs from a parameter file.
+
+[Field = usage]
+short = help
+type = B
+usage = Print help output
+tooltip = 
+manpage = 

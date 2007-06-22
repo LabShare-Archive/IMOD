@@ -259,6 +259,34 @@ elements at their default values.
 
 .ft B
 .nf
+void PipSetSpecialFlags(int \fInoCase\fB, int \fIdoneEnds\fB,  int \fItakeStdin\fB,
+                        int \fInonOptLines\fB,  int \fInoAbbrevs\fB)
+
+subroutine PipSetSpecialFlags(\fInoCase\fB, \fIdoneEnds\fB,  \fItakeStdin\fB,
+                              \fInonOptLines\fB,  \fInoAbbrevs\fB)
+integer*4 \fInoCase\fB, \fIdoneEnds\fB,  \fItakeStdin\fB, \fInonOptLines\fB, \fInoAbbrevs\fB
+.ft R
+.fi
+
+This call can be used to set flags that modify the behavior as follows:
+.br
+\fInoCase\fB non-zero allows case-insensitive options
+.br
+\fIdoneEnds\fB non-zero allows DONE to be used in place of EndInput
+.br
+\fItakeStdin\fB non-zero runs a program with no arguments as if -StandardInput
+were entered
+.br
+\fInonOptLines\fB greater than zero allows the first few lines of input to be
+taken as non-option arguments, up to a number of lines given by the value.
+.br
+\fInoAbbrevs\fB non-zero means that options must be entered in full
+.br
+The first four behaviors were required to convert Tilt(1) to PIP input without
+retaining the old input code, but none of this should be needed elsewhere.
+
+.ft B
+.nf
 int PipParseInput(int \fIargc\fB, char \fI*argv[]\fB, char \fI*options[]\fB,
                   int \fInumOptions\fB, int \fI*numOptArgs\fB, 
                   int \fI*numNonOptArgs\fB);
@@ -284,7 +312,7 @@ line arguments directly while the Fortran version fetches them with
 \fBgetarg\fR.
 
 There are two alternatives for Fortran usage.  Each option specification
-can placed in a separate element of the \fIoptions\fR array.  In this case,
+can be placed in a separate element of the \fIoptions\fR array.  In this case,
 \fIoptions\fR should be dimensioned to the number of options, \fIseparator\fR
 should be a space character, and the length of the character elements of the
 array should at least as big as the longest option description.  Alternatively,

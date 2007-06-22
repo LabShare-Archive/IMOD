@@ -1,0 +1,98 @@
+     BBoouullddeerr LLaabboorraattoorryy ffoorr 33--DDiimmeennssiioonnaall EElleeccttrroonn MMiiccrroossccooppyy ooff CCeellllss
+
+TILT(1)									TILT(1)
+
+NNAAMMEE
+  tilt - calculates 3-D tomographic reconstruction from a tilt series
+
+SSYYNNOOPPSSIISS
+  tilt [options] [input filename] [output filename]
+
+DDEESSCCRRIIPPTTIIOONN
+
+  Tilt is a program for reconstructing a three-dimensional object from a
+  series of two-dimensional projections.  The projections are assumed to arise
+  from rotation about a fixed tilt axis, subject to minor variations from this
+  scheme.
+
+  The program uses a number of different numerical strategies depending on
+  whether the reconstructed volume is rotated around the X axis and depending
+  on the amount of memory available.  If there is no X-axis tilt being
+  imposed, then each output plane is derived from one line of the input data.
+  The program tries first to use the fast backprojection algorithm developed
+  by Sandberg and Beylkin.  If there is insufficient memory for this, or if
+  other preconditions are not satisfied, it then tries to use preliminary
+  stretching of each input line by the cosine of the tilt angle, which speeds
+  up the direct backprojection.  If there is not enough memory for this method
+  either, the program falls back to direct backprojection from the unstretched
+  input lines. 
+
+  When a tilt around the X axis is specified, then each output slice derives
+  from several lines of input data.  The program tries to do this first by
+  computing untilted slices, one per input line, and interpolating an output
+  slice from the relevant untilted slices.  It uses fast backprojection if
+  possible; if not, it tries to use cosine stretching if possible, or falls
+  back to direct computation.  If there is insufficient memory for this
+  approach, the program reverts to "old-style" X-axis tilting, in which the
+  output slice is computed directly from the various input slices.  In this
+  case,it also tries to use cosine stretching if memory is available.
+
+  The user can disable various strategies by specifying an interpolation order
+  of 0: cosine stretching by entering "COSINTERP 0", fast backprojection by
+  entering "FBPINTERP 0", or the new style of X-axis tilting by entering
+  "XTILTINTERP 0".  There are some cases where the fast backprojection is
+  slower than the conventional approach (e.g., few input views).  The program
+  attempts to detect these cases and use conventional summation instead.  If
+  you use "FBPINTERP 1", you can bypass this checking and force the program to
+  use fast backprojection as long as other conditions are met.
+
+  With perpendicular slices, the header of the output file will set up a
+  coordinate system congruent with that of the original views.  If slices are
+  output in order of increasing slice number, this represents a 90 degree
+  rotation about X, so the slices are inverted about their new Z axis (by
+  using the negative of the tilt angles).  If slices are output in inverted
+  order (IDELSLICE < 0), this represents a -90 degree rotation about X; slices
+  are not inverted in this case. 
+
+  Tilt uses the PIP package for input (see the manual page for pip(1)) but
+  it has several special features to maintain compatibility with the old
+  input method and old command files.  1) Options are case-insensitive and can
+  be entered in upper, lower, or mixed case.  2) If the program is started
+  with no command line arguments, it behaves as if -StandardInput were given
+  and takes lines from standard input.  3) The first two lines taken from
+  standard input can be the input and output filenames, without their
+  respective keywords.  This will not work if the filenames match a subset
+  of any of the option strings.
+
+  The following options can be specified either as command line arguments
+  (with the -) or one per line in a command file or parameter file (without
+  the -):
+
+INSERT OPTION TEXT HERE
+
+  -StandardInput
+     Read parameter entries from standard input.
+
+
+HHIISSTTOORRYY
+
+  Originally written by Mike Lawrence.  Storage of tilt angle data 
+  altered by Guy Vigers; angles can be stored in image stack header by
+  the program ALTERHEADER.
+  David Mastronarde added ability to output slices at selected
+  intervals and in inverse direction, and setting of header
+  information so that coordinates correspond between output file and
+  tilt data set.  Also added ability to specify a subset of views to
+  use or exclude, control of output mode, abilities to take log,
+  replicate views, enter specific tilt angles or read in angles from a
+  file, adjust for compression, set width of output, and shift the
+  output.  Implemented weighting by local tilt increment and padding
+  before filtering.  Added ability to adjust for tilt around the X axis
+  and to use local alignments.  Implemented subroutine calls for the
+  inner loops so that assembly code could be adjusted to minimize very
+  slow steps on the PC.  Implemented cosine stretching of the input
+  data as an alternative solution to this problem that is faster on
+  all machines.  Incorporated the fast backprojection code developed by
+  Kristian Sandberg and Gregory Beylkin.  Implemented X-axis tilting
+  by interpolation from untilted slices, so that the fast
+  backprojection could be used with X-axis tilting.

@@ -1,5 +1,8 @@
 IMOD History
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+6/21/07: Converted Tilt to PIP input without having to retain old code by 
+torturing PIP into accepting a few odd things.
+
 6/18/07: IMOD_3-10-12
 6/18/07: Fixed model view rotation around X axis.
 
