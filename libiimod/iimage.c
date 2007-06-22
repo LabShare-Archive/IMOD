@@ -3,17 +3,13 @@
  *
  *    Authors:  James Kremer and David Mastronarde
  *
- *   Copyright (C) 1995-2003 by Boulder Laboratory for 3-Dimensional Electron
+ *   Copyright (C) 1995-2007 by Boulder Laboratory for 3-Dimensional Electron
  *   Microscopy of Cells ("BL3DEMC") and the Regents of the University of 
  *   Colorado.
+ *
+ *  $Id$
+ *  Log at end of file
  */
-/*  $Author$
-    
-$Date$
-
-$Revision$
-Log at end
-*/
 
 #include <stdio.h>
 #include <stdlib.h>
@@ -221,7 +217,7 @@ int  iiReopen(ImodImageFile *inFile)
  * [inFile] and computes the scaling {slope} and {offset}.
  * Uses the input values [inMin] and [inMax], or the file min and max if these
  * values are equal.  Returns 0.
- * 
+ */
  /* 1/3/04: change from double to float for arguments */
 int  iiSetMM(ImodImageFile *inFile, float inMin, float inMax)
 {
@@ -356,6 +352,9 @@ int iiLoadPCoord(ImodImageFile *inFile, struct LoadInfo *li, int nx, int ny,
 
 /*
 $Log$
+Revision 3.12  2006/09/21 22:25:32  mast
+Adedd function to insert check function earlier in list
+
 Revision 3.11  2006/09/03 22:19:36  mast
 Switched to new error codes, handled properly in iiOpen, documented
 
