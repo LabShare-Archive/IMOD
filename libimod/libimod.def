@@ -4,7 +4,6 @@ LIBRARY      "libimod"
 
 EXPORTS
 	imodPointIsEqual
-	imodPointLineSegDistance
 	istoreAddMinMax
 	imodContourGetName
 	AdocSetCurrent
@@ -56,10 +55,6 @@ EXPORTS
 	imod_to_nff
 	PIPGETTHREEFLOATS
 	PIPGETNONOPTIONARG
-	PIPSETSPECIALFLAGS
-	PipSetSpecialFlags
-	PipReadStdinIfSet
-	PIPREADSTDINIFSET
 	imodObjectNew
 	imodContourMoment
 	imodel_maxpt
@@ -121,7 +116,6 @@ EXPORTS
 	imodPutScaledPoints
 	imodObjectGetMesh
 	AdocGetString
-	imodPlaneTranslate
 	imodGetFlipped
 	imodLabelDelete
 	PIPNUMBEROFARGS
@@ -348,6 +342,7 @@ EXPORTS
 	ilabelMatchReg
 	istoreGetMinMax
 	imodel_unused_surface
+	PIPREADSTDINIFSET
 	PipParseEntries
 	imodMeshGetMaxVert
 	istoreDump
@@ -355,6 +350,7 @@ EXPORTS
 	imodTransFromRefImage
 	imodMeshGetVert
 	AdocSetThreeFloats
+	PipReadStdinIfSet
 	imodContourDup
 	imodPlaneSetPN
 	GETIMODCLIP
@@ -386,6 +382,7 @@ EXPORTS
 	PIPNUMBEROFENTRIES
 	PipGetBoolean
 	PIPGETSTRING
+	PIPSETSPECIALFLAGS
 	b3dIMax
 	ilistItem
 	AdocDone
@@ -446,6 +443,7 @@ EXPORTS
 	imodPointAppend
 	ilistDelete
 	imodClipsInitialize
+	PipSetSpecialFlags
 	imodMatRotateVector
 	b3dRewind
 	IMODARRAYLIMITS
