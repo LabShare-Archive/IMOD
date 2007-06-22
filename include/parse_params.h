@@ -48,6 +48,9 @@ int PipReadOptionFile(char *progName, int helpLevel, int localDir);
 int PipMemoryError(void *ptr, char *routine);
 void PipAllowCommaDefaults(int val);
 void PipSetManpageOutput(int val);
+void PipSetSpecialFlags(int inCase, int inDone, int inStd, int inLines, 
+                        int inAbbrevs);
+int PipReadStdinIfSet();
 int PipStartsWith(char *fullStr, char *subStr);
 int PipGetInOutFile(char *option, int nonOptArgNo, char **filename);
 void PipReadOrParseOptions(int argc, char *argv[], char *options[], 
@@ -65,6 +68,9 @@ int PipGetLineOfValues(char *option, char *strPtr, void *array, int valType,
 
 /*
 $Log$
+Revision 3.7  2006/10/17 18:38:12  mast
+Changed read line function
+
 Revision 3.6  2006/10/16 16:17:48  mast
 Made some functions global
 
