@@ -1,0 +1,53 @@
+<head>
+<title>Image on Model View</title>
+</head>
+<H3>Image View Dialog</H3>
+This dialog allows you to display image planes on the model data.  
+Any of the three native orthogonal planes can be displayed, alone or 
+in combination.  Transparency can be set to allow the model to be seen
+through the image; a projection through multiple slices can also be
+displayed.
+<P>
+The first three check boxes (<B>View X image</B>, etc.) turn on the 
+display of the indicated image planes.  The hot key Z will turn on 
+the Z 
+image if no images are being displayed, or it will turn off all 
+planes if any of them are on.
+<P>
+The <B>X</B>, <B>Y</B>, and <B>Z</B> sliders will track the current point 
+coordinate in 
+3dmod image display windows and can be used to adjust both the 
+current point position and the displayed slice in the model view 
+window.
+<P>
+The <B>X size</B>, <B>Y size</B>, and <B>Z size</B> sliders can be used to 
+set the size of the image that is displayed in each dimension.  The 
+displayed area will be centered on the coordinate unless that would 
+result in the displayed size being smaller than the slider value.
+<P>
+The <B># of slices</B> slider can be used to display multiple slices.  
+You will be able to see through to the last slice but not past the slices,
+unless you turn on transparency.
+<P>
+Use the <B>Transparency</B> slider to see through the image.
+<P>
+The <B>Black Level</B> and <B>White Level</B> sliders can be used to 
+adjust the contrast of the image.  You can reverse the contrast 
+by making Black be higher than White.
+<P>
+The <B>False color</B> checkbox allows images to be displayed in the 
+standard false color scheme.
+<P>
+<I>Limitations of transparency</I>: Image transparency, model object 
+transparency, and the display of multiple slices all use a similar 
+method for generating transparency.  Displays will often not 
+work well when you have more than one item that relies on 
+this transparency method, because the items are not being drawn in 
+order from back to front everywhere that they overlap.  In particular, if you
+are displaying multiple slices, you will need to introduce significant image
+transparency to see any transparent objects.  You may then need to adjust the
+black and white level sliders in this dialog to compensate for the resulting
+change in brightness or contrast of the image data.
+
+<P>
+<A HREF=index.html>Help Index<A>

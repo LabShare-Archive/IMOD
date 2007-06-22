@@ -32,6 +32,7 @@
   <section ref="./index.html" title="Model View Dialogs">
     <section ref="./modvObjectEdit.html" title="Model View Object Edit"/>
     <section ref="./modvControl.html" title="Model View Controls"/>
+    <section ref="./modvImage.html" title="Image View Dialog"/>
     <section ref="./modelMovie.html" title="Model Movie &amp; Montage Control"/>
     <section ref="./depthcue.html" title="Depth Cueing"/>
   </section>
