@@ -19,6 +19,9 @@ c
 c       $Revision$
 c       
 c       $Log$
+c       Revision 3.10  2006/05/05 14:33:38  mast
+c       Removed bad initialization of exit prefix
+c
 c       Revision 3.9  2006/05/04 21:11:28  mast
 c       Added exiterror and subroutine to set error, prefix, called from
 c       read_or_parse_options
@@ -105,7 +108,7 @@ c
       parameter (bufferSize = 1024)
       integer*4 numOptArg, numNonOptArg
       integer*4 iargc, i, lnblnk
-      integer*4 PipNextArg
+      integer*4 PipNextArg,PipReadStdinIfSet
       character*(bufferSize) string
 c       
 c       pass the arguments in one by one
@@ -127,6 +130,13 @@ c
           return
         endif
       enddo
+c       
+c       Or read stdin if the flag is set to do it when no arguments
+c
+      if (iargc() .eq. 0) then
+        PipParseEntries = PipReadStdinIfSet()
+        if (PipParseEntries .ne. 0) return
+      endif
 c       
 c       get numbers to return
 c       
