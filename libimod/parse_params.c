@@ -103,6 +103,12 @@ static int allowDefaults = 0;
 static int outputManpage = 0;
 static char defaultDelim[] = VALUE_DELIM;
 static char *valueDelim = defaultDelim;
+static int noCase = 0;
+static int doneEnds = 0;
+static int takeStdIn = 0;
+static int nonOptLines = 0;
+static int noAbbrevs = 0;
+static int notFoundOK = 0;
 
 /*
  * Initialize option tables for given number of options
@@ -239,6 +245,19 @@ void PipAllowCommaDefaults(int val)
 void PipSetManpageOutput(int val)
 {
   outputManpage = val;
+}
+
+/*
+ * Set noxious special flags for Tilt program 
+ */
+void PipSetSpecialFlags(int inCase, int inDone, int inStd, int inLines,
+                        int inAbbrevs)
+{
+  noCase = inCase;
+  doneEnds = inDone;
+  takeStdIn = inStd;
+  nonOptLines = inLines;
+  noAbbrevs = inAbbrevs;
 }
 
 /*
@@ -1141,14 +1160,22 @@ int PipParseEntries(int argc, char *argv[], int *numOptArgs,
                     int *numNonOptArgs)
 {
   int i, err;
-  /* parse the arguments */
-  for (i = 1; i < argc; i++) {
-    if ((err = PipNextArg(argv[i])) < 0)
+
+  /* Special case: no arguments and flag set to take stdin automatically */
+  if (!argc && takeStdIn) {
+    if ((err = ReadParamFile(stdin)))
       return err;
-    if (err && i == argc - 1) {
-      PipSetError("A value was expected but not found for"
-                  " the last option on the command line");
-      return -1;
+  } else {
+
+  /* parse the arguments */
+    for (i = 1; i < argc; i++) {
+      if ((err = PipNextArg(argv[i])) < 0)
+        return err;
+      if (err && i == argc - 1) {
+        PipSetError("A value was expected but not found for"
+                    " the last option on the command line");
+        return -1;
+      }
     }
   }
   PipNumberOfArgs(numOptArgs, numNonOptArgs);
@@ -1220,9 +1247,14 @@ static int ReadParamFile(FILE *pFile)
   int indst, indnd, optNum, gotEquals, err;
   char *strPtr;
   char *token;
-  
+ 
   while (1) {
 
+  /* If non-option lines are allowed, set flag that it is OK for LookupOption
+     to not find the option, but only for the given number of lines at the
+     start of the input */
+    notFoundOK = (!numOptionArguments && optTable[nonOptInd].count < 
+                  nonOptLines) ? 1 : 0;
     lineLen = PipReadNextLine(pFile, lineStr, LINE_STR_SIZE, '#', 0, 1, 
                               &indst);
     if (lineLen == -3)
@@ -1249,13 +1281,27 @@ static int ReadParamFile(FILE *pFile)
       return -1;
 
     /* Done if it matches end of input string */
-    if (!strcmp(token, STANDARD_INPUT_END))
+    if (!strcmp(token, STANDARD_INPUT_END) || 
+        (doneEnds && strlen(token) == 4 && PipStartsWith("DONE", token)))
       break;
 
     /* Look up option and free the token string */
-    if ((optNum = LookupOption(token, numOptions)) < 0)
-      return optNum;
+    optNum = LookupOption(token, numOptions);
     free(token);
+    if (optNum < 0) {
+
+      /* If no option, process special case if in-line non-options allowed,
+         or error out */
+      if (notFoundOK) {
+        token = PipSubStrDup(lineStr, indst, lineLen - 1);
+        if (PipMemoryError(token, "ReadParamFile"))
+          return -1;
+        if ((err = AddValueString(nonOptInd, token)))
+          return err;
+        continue;
+      } else
+        return optNum;
+    }
 
     if (!strcmp(optTable[optNum].type, PARAM_FILE_STRING)) {
       PipSetError("Trying to open a parameter file while reading a parameter"
@@ -1298,6 +1344,17 @@ static int ReadParamFile(FILE *pFile)
       return err;
     numOptionArguments++;
   }
+  notFoundOK = 0;
+  return 0;
+}
+
+/*
+ * Call from fortran to read stdin if the flag is set to take from stdin
+ */
+int PipReadStdinIfSet()
+{
+  if (takeStdIn)
+    return ReadParamFile(stdin);
   return 0;
 }
 
@@ -1522,10 +1579,12 @@ static int GetNextValueString(char *option, char **strPtr)
 {
   int err;
   int index = 0;
+
   if ((err = LookupOption(option, nonOptInd + 1)) < 0)
     return err;
   if (!optTable[err].count)
     return 1;
+
   if (optTable[err].multiple) {
     index = optTable[err].multiple - 1;
     if (optTable[err].multiple < optTable[err].count)
@@ -1571,16 +1630,21 @@ static int AddValueString(int option, char *strPtr)
  */
 static int LookupOption(char *option, int maxLookup)
 {
-  int i;
+  int i, lenopt;
   int found = LOOKUP_NOT_FOUND;
   char *sname, *lname;
+
+  if (noAbbrevs)
+    lenopt = strlen(option);
 
   /* Look at all of the options specified by maxLookup */
   for (i = 0; i < maxLookup; i++) {
     sname = optTable[i].shortName;
     lname = optTable[i].longName;
-    if ((sname && *sname && strstr(sname, option) == sname) ||
-        (lname && *lname && strstr(lname, option) == lname)) {
+    if ((PipStartsWith(sname, option) && 
+         (!noAbbrevs || lenopt == strlen(sname))) ||
+        (PipStartsWith(lname, option) && 
+         (!noAbbrevs || lenopt == strlen(lname)))) {
 
       /* If it is found, it's an error if one has already been found */
       if (found == LOOKUP_NOT_FOUND)
@@ -1594,7 +1658,9 @@ static int LookupOption(char *option, int maxLookup)
       }
     }
   }
-  if (found == LOOKUP_NOT_FOUND) {
+
+  /* Set error string unless flag set that non-options are OK */
+  if (found == LOOKUP_NOT_FOUND && !notFoundOK) {
     sprintf(tempStr, "Illegal option: %s", option);
     PipSetError(tempStr);
   }
@@ -1658,7 +1724,14 @@ int PipStartsWith(char *fullStr, char *subStr)
     return 0;
   if (!*fullStr || !*subStr)
     return 0;
-  if (strstr(fullStr, subStr) == fullStr)
+  if (noCase) {
+    while (*fullStr && *subStr) {
+      if (toupper(*fullStr++) != toupper(*subStr++))
+        return 0;
+    }
+    if (!*subStr)
+      return 1;
+  }  else if (strstr(fullStr, subStr) == fullStr)
     return 1;
   return 0;
 }
@@ -1737,6 +1810,9 @@ static int CheckKeyword(char *line, char *keyword, char **copyto, int *gotit,
 
 /*
 $Log$
+Revision 3.26  2007/04/04 23:18:23  mast
+Fixed fallback output for C/Python when there are section headers
+
 Revision 3.25  2006/11/22 18:54:29  mast
 Eliminate a warning in VC6
 
