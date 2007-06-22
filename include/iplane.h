@@ -23,7 +23,6 @@ extern "C" {
   void    imodPlaneInit(Iplane *plane);
   void    imodPlaneRotate(Iplane *plane, double angle, Ipoint *pnt);
   void    imodPlaneAxisRotate(Iplane *plane, double angle, int axis);
-  void    imodPlaneTranslate(Iplane *plane, Ipoint *pnt);
   void    imodPlaneSetPN(Iplane *plane, Ipoint *pnt, Ipoint *nor);
   
   /* Clipping plane functions. */

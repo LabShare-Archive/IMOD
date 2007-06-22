@@ -7,14 +7,10 @@
  *  Copyright (C) 1995-2004 by Boulder Laboratory for 3-Dimensional Electron
  *  Microscopy of Cells ("BL3DEMC") and the Regents of the University of 
  *  Colorado.  See dist/COPYRIGHT for full copyright notice.
+ *
+ *  $Id$
+ *  Log at end of file
  */
-/*  $Author$
-
-$Date$
-
-$Revision$
-Log at end of file
-*/
 
 #ifndef IMODEL_H
 #define IMODEL_H
@@ -129,8 +125,6 @@ typedef struct Mod_Point
   b3dFloat           z;
 }Ipoint;
 
-typedef struct {b3dFloat a, b, c, d;} Iplane;
-
 typedef struct Mod_Mesh
 {
   struct Mod_Point *vert;   /* list of points */
@@ -153,7 +147,23 @@ typedef struct Mod_Index
 }Iindex;
 
 
-/* A set of clip planes, in object, view, or object view */
+/* DOC_SECTION PLANES */
+/* DOC_CODE Iplane structure */
+/*
+ * Holds the parameters for a clipping plane described by
+ *    ax + by + cz = d
+ */
+typedef struct Mod_Plane
+{
+  b3dFloat a, b, c, d;
+} Iplane;
+/* END_CODE */
+
+/* DOC_CODE IclipPlanes structure */
+/*
+ * Holds a set of clipping planes, which may be part of an
+ * object, a view, or an object view 
+ */
 typedef struct Mod_Planes
 {
   b3dUByte count;        /* number of clip planes.            */
@@ -163,6 +173,8 @@ typedef struct Mod_Planes
   Ipoint normal[IMOD_CLIPSIZE];   /* Normal vector to plane */
   Ipoint point[IMOD_CLIPSIZE];    /* Negative of point in clip plane */
 } IclipPlanes;
+/* END_CODE */
+/* END_SECTION */
 
 
 /* Describes a 3D view of a model. */
@@ -667,6 +679,9 @@ extern "C" {
 
 /*    
     $Log$
+    Revision 3.36  2007/05/25 05:18:11  mast
+    Changes for slicer angle storage
+
     Revision 3.35  2006/11/02 07:15:15  mast
     Added doc tags
 
