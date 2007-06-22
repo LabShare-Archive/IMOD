@@ -7,12 +7,7 @@ C       a fixed tilt axis.
 c       
 c       See man page for details
 C       
-c       $Author$
-c       
-c       $Date$
-c       
-c       $Revision$
-c       
+c       $Id$
 c       Log at end of file
 c       
       implicit none
@@ -45,7 +40,6 @@ c
       DTOT8=0.
       DMIN=1.E30
       DMAX=-1.E30
-      call setExitPrefix('ERROR: TILT - ')
 C       
 C       Open files and read control data
       CALL INPUT
@@ -1468,14 +1462,15 @@ c
 C       
       RETURN
       END
+
 C       -----------------------------------------------------------------
       SUBROUTINE INPUT
 C       ----------------
       
       implicit none
       include 'tilt.inc'
-      integer numtags
-      parameter (numtags = 37)
+      integer limnum
+      parameter (limnum = 100)
       integer*4 nweight
       real*4 wincr(20)
       COMMON /DENSWT/nweight,wincr
@@ -1492,21 +1487,10 @@ c       7/7/00 CER: remove the encode's; titlech is the temp space
 c       
       character*80 titlech
 C       
-      CHARACTER TAGS(numtags)*20,CARD*80
+      Character*1024 card
       CHARACTER*160 FILIN,FILOUT
-      DATA TAGS/'*TITLE','SLICE','THICKNESS','MASK','RADIAL',
-     &    'OFFSET','SCALE','PERPENDICULAR','PARALLEL','MODE',
-     &    'INCLUDE','EXCLUDE','*EXCLUDELIST','*EXCLUDELIST2','LOG',
-     &    'REPLICATE', 'ANGLES','COMPRESS',
-     &    'COMPFRACTION','DENSWEIGHT','*TILTFILE','WIDTH','SHIFT',
-     &    '*XTILTFILE','XAXISTILT','*LOCALFILE','LOCALSCALE',
-     &    'FULLIMAGE','SUBSETSTART','COSINTERP','FBPINTERP',
-     &    'XTILTINTERP','REPROJECT','*ZFACTORFILE','IMAGEBINNED',
-     &    'TOTALSLICES',
-     &    'DONE'/
-      integer*4 ntags, nfields
-      real*4 XNUM(50)
-      COMMON /CARDS/NTAGS,XNUM,NFIELDS
+      integer*4 nfields,inum(limnum)
+      real*4 XNUM(limnum)
 c       
       integer*4 ivexcl(limview)
       real*4 repinc(limview)
@@ -1518,30 +1502,59 @@ c
       integer*4 nd1,nd2,nv,nslice,indi,i,iex,nvorig,irep,iv
       real*4 vd1,vd2,dtheta,theta,thetanv,rmax,sdg,oversamp,scalescl
       integer*4 nprjp,nwidep,needwrk,needzwrk,neediw,needrw,needout,minsup
-      integer*4 maxsup,nshift,nprj2,nsneed,ninp,nexclist,j,needzw,ind
+      integer*4 maxsup,nshift,nprj2,nsneed,ninp,nexclist,j,needzw,ind, nument
       integer*4 npadtmp,nprpad,ithicknew,nocosPlanes,ifZfac,localZfacs
-      integer*4 ifThickIn,ifSliceIn,ifWidthIn,imageBinned,ifSubsetIn
+      integer*4 ifThickIn,ifSliceIn,ifWidthIn,imageBinned,ifSubsetIn,ierr
       real*4 pixelLocal, dmint,dmaxt,dmeant
-      integer*4 inum,licenseusfft,niceframe
-      external inum
+      integer*4 licenseusfft,niceframe
+c
+      logical pipinput
+      integer*4 numOptArg, numNonOptArg
+      integer*4 PipGetInteger,PipGetBoolean,PipGetLogical,PipGetTwoFloats
+      integer*4 PipGetString,PipGetFloat, PipGetTwoIntegers,PipGetFloatArray
+      integer*4 PipGetInOutFile,PipGetIntegerArray,PipNumberOfEntries
 c       
-      NTAGS = numtags
-      WRITE(6,50)
-      call getinout(2,filin,filout)
-C-------------------------------------------------------------
+c       fallbacks from ../../manpages/autodoc2man -2 2  tilt
+c       
+      integer numOptions
+      parameter (numOptions = 39)
+      character*(40 * numOptions) options(1)
+      options(1) =
+     &    'input:InputFile:FN:@output:OutputFile:FN:@:ANGLES:FAM:@'//
+     &    ':COMPFRACTION:F:@:COMPRESS:FAM:@:COSINTERP:FA:@:DENSWEIGHT:FA:@'//
+     &    ':DONE:B:@:EXCLUDELIST2:LIM:@:FBPINTERP:I:@:FULLIMAGE:IP:@'//
+     &    ':IMAGEBINNED:I:@:INCLUDE:LIM:@:LOCALFILE:FN:@:LOCALSCALE:F:@'//
+     &    ':LOG:F:@:MASK:F:@:MODE:I:@:OFFSET:IA:@:PARALLEL:B:@'//
+     &    ':PERPENDICULAR:B:@:RADIAL:FP:@:REPLICATE:FPM:@:REPROJECT:FAM:@'//
+     &    ':SCALE:FP:@:SHIFT:FA:@:SLICE:FA:@:TOTALSLICES:IP:@'//
+     &    ':SUBSETSTART:IP:@:THICKNESS:I:@:TILTFILE:FN:@:TITLE:CH:@'//
+     &    ':WIDTH:I:@:XAXISTILT:F:@:XTILTFILE:FN:@:XTILTINTERP:I:@'//
+     &    ':ZFACTORFILE:FN:@param:ParameterFile:PF:@help:usage:B:'
+c       
+c       
+c       Pip startup: set error, parse options, check help, set flag if used
+c       
+      call PipSetSpecialFlags(1,1,1,2,0)
+      call PipReadOrParseOptions(options, numOptions, 'tilt',
+     &    'ERROR: TILT - ', .false., 0, 1, 1, numOptArg, numNonOptArg)
+
+      if (PipGetInOutFile('InputFile', 1, ' ', filin) .ne. 0)
+     &    call exitError('NO INPUT FILE SPECIFIED')
+      if (PipGetInOutFile('OutputFile', 2, ' ', filout) .ne. 0)
+     &    call exitError('NO OUTPUT FILE SPECIFIED')
+
 C       
 C       Open input projection file
       CALL IMOPEN(1,FILIN,'RO')
       CALL IRDHDR(1,NPXYZ,MPXYZ,MODE,PMIN,PMAX,PMEAN)
       NVIEWS=NPXYZ(3)
 c       
-      if (nviews.gt.limview) call exitError
-     &    ('Too many images in tilt series.')
+      if (nviews.gt.limview) call exitError('Too many images in tilt series.')
       newangles=0
       iftiltfile=0
 c       
 C-------------------------------------------------------------
-C       Set up defaults for missing cards:
+C       Set up defaults:
 C       
 C...... Default slice is all rows in a projection plane
       ISLICE=1
@@ -1621,356 +1634,317 @@ c...... Default title
       CALL DATE(DAT)
       CALL TIME(TIM)
 c       
-c       7/7/00 CER: remove the encodes
-c       
-c       encode(80,49,title)'Tomographic reconstruction',dat,tim
       write(titlech,49) 'Tomographic reconstruction',dat,tim
       read(titlech,'(20a4)')(title(kti),kti=1,20)
 C       
 C       
-C-------------------------------------------------------------
-C       Begin reading in cards
+
+      if (PipGetString('TITLE', card) .eq. 0) then
+        write(titlech,49) CARD(1:50),DAT,TIM
+        read(titlech,'(20a4)')(TITLE(kti),kti=1,20)
+        WRITE(6,101)TITLE
+      endif
 C       
-1     CALL CREAD(CARD,TAGS,LABEL,*999)
-      GO TO (100,200,300,400,500,600,700,800,900,1000,1100,1200,1250,
-     &    1250,1300,1400,1500,1600,1700,1800,1900,2000,2100,2200,2300,
-     &    2400,2500, 2600,2700,2800,2900,3000,3100,3200,3300,3400,999),LABEL
+      nfields = 0
+      if (PipGetIntegerArray('SLICE', inum, nfields, limnum) .eq. 0) then
+        IF(NFIELDS/2.NE.1)
+     &      call exitError('Wrong number of fields on SLICE line')
+        ISLICE=INUM(1)+1
+        JSLICE=INUM(2)+1
+        if(nfields.gt.2)idelslice=inum(3)
+        ifSliceIn = 1
+      endif
 C       
-C       TITLE card
-C       100     ENCODE(80,49,TITLE)CARD(1:50),DAT,TIM
-100   write(titlech,49) CARD(1:50),DAT,TIM
-      read(titlech,'(20a4)')(TITLE(kti),kti=1,20)
-      WRITE(6,101)TITLE
-      GO TO 1
+      if (PipGetInteger('THICKNESS', ithick) .eq. 0) then
+        if(ithick.gt.limmask)call exitError('Thickness too high for arrays')
+        ifThickIn = 1
+      endif
 C       
-C       SLICE card
-200   IF(NFIELDS/2.NE.1)GO TO 9999
-      ISLICE=INUM(1)+1
-      JSLICE=INUM(2)+1
-      if(nfields.gt.2)idelslice=inum(3)
-      ifSliceIn = 1
-      GO TO 1
+      if (PipGetFloat('MASK', rmask) .eq. 0) then
+        MASK=.TRUE.
+        WRITE(6,401)RMASK
+      endif
 C       
-C       THICKNESS card
-300   IF(NFIELDS.NE.1)GO TO 9999
-      ITHICK=INUM(1)
-      if(ithick.gt.limmask)call exitError('Thickness too high for arrays')
-      ifThickIn = 1
-      GO TO 1
+      
+      if (PipGetTwoFloats('RADIAL', rrmax, rfall) .eq. 0) then
+        irmax=rrmax
+        ifall=rfall
+        if(irmax.eq.0)irmax=npxyz(1)*rrmax
+        if(ifall.eq.0)ifall=npxyz(1)*rfall
+        WRITE(6,501)IRMAX,IFALL
+      endif
 C       
-C       MASK card
-400   IF(NFIELDS.EQ.1)RMASK=XNUM(1)
-      MASK=.TRUE.
-      WRITE(6,401)RMASK
-      GO TO 1
+      nfields = 0
+      if (PipGetFloatArray('OFFSET', xnum, nfields, limnum) .eq. 0) then
+        IF(NFIELDS.EQ.0 .OR. NFIELDS.GE.3)
+     &      call exitError('Wrong number of fields on OFFSET line')
+        IF(NFIELDS.EQ.2)DELXX=XNUM(2)
+        DELANG=XNUM(1)
+      endif
+c
+      if (PipGetTwoFloats('SCALE', flevl, scale) .eq. 0)
+     &    WRITE(6,701)FLEVL,SCALE
 C       
-C       RADIAL card
-500   IF(NFIELDS.EQ.0 .OR. NFIELDS.GE.3)GO TO 9999
-      IF(NFIELDS.EQ.2)rFALL=xNUM(2)
-      rRMAX=xNUM(1)
-      irmax=rrmax
-      ifall=rfall
-      if(irmax.eq.0)irmax=npxyz(1)*rrmax
-      if(ifall.eq.0)ifall=npxyz(1)*rfall
-      WRITE(6,501)IRMAX,IFALL
-      GO TO 1
+      if (PipGetLogical('PERPENDICULAR', PERP) .eq. 0)
+     &    WRITE(6,801)
 C       
-C       OFFSET card
-600   IF(NFIELDS.EQ.0 .OR. NFIELDS.GE.3)GO TO 9999
-      IF(NFIELDS.EQ.2)DELXX=XNUM(2)
-      DELANG=XNUM(1)
-      GO TO 1
-C       
-C       SCALE card
-700   IF(NFIELDS.EQ.0 .OR. NFIELDS.GE.3)GO TO 9999
-      IF(NFIELDS.EQ.2)SCALE=XNUM(2)
-      FLEVL=XNUM(1)
-      WRITE(6,701)FLEVL,SCALE
-      GO TO 1
-C       
-C       PERPENDICULAR card
-800   PERP=.TRUE.
-      WRITE(6,801)
-      GO TO 1
-C       
-C       PARALLEL card
-900   PERP=.FALSE.
-      WRITE(6,901)
-      GO TO 1
+      i = 0
+      if (PipGetBoolean('PARALLEL', i) .eq. 0) then
+        if (i .ne. 0) then
+          PERP=.FALSE.
+          WRITE(6,901)
+        endif
+      endif
 c       
-c       MODE card
-1000  newmode=inum(1)
-      if(newmode.lt.0.or.newmode.gt.15 .or.
-     &    (newmode.gt.2.and.newmode.lt.9))call exitError(
-     &    'Illegal output mode')
-      write(6,1001)newmode
-      go to 1
+      if (PipGetInteger('MODE', newmode) .eq. 0) then
+        if(newmode.lt.0.or.newmode.gt.15 .or. (newmode.gt.2.and.newmode.lt.9))
+     &      call exitError('Illegal output mode')
+        write(6,1001)newmode
+      endif
 C       
-c       INCLUDE card
-1100  if(nvexcl.gt.0)call exitError(
-     &    'Illegal to have both INCLUDE and EXCLUDE cards')
-      do 1110 i=1,nfields
-        if(inum(i).lt.1.or.inum(i).gt.nviews) call exitError(
-     &      'Illegal view number in INCLUDE list')
-        nvuse=nvuse+1
-        mapuse(nvuse)=inum(i)
-1110  continue 
-      go to 1
-C       
-c       EXCLUDE card
-1200  if(nvuse.gt.0)call exitError(
-     &    'Illegal to have both INCLUDE and EXCLUDE cards')
-      do 1210 i=1,nfields
-        if(inum(i).lt.1.or.inum(i).gt.nviews)call exitError(
-     &      'Illegal view number in EXCLUDE list')
-        nvexcl=nvexcl+1
-        ivexcl(nvexcl)=inum(i)
-1210  continue 
-      go to 1
-c       
-c       EXCLUDELIST card
-1250  if(nvuse.gt.0)call exitError(
-     &    'Illegal to have both INCLUDE and EXCLUDE cards')
-      call parselist(card,ivexcl(nvexcl+1),nexclist)
-      do i=nvexcl+1,nvexcl+nexclist
-        if(ivexcl(i).lt.1.or.ivexcl(i).gt.nviews)call exitError(
-     &      'Illegal view number in EXCLUDE list')
-      enddo
-      nvexcl=nvexcl+nexclist
-      go to 1
-c       
-c       LOG card
-1300  iflog=1
-      baselog=xnum(1)
-      write(6,1301)baselog
-      go to 1
-c       
-c       REPLICATE card
-1400  do i=1,inum(1)
-        nreplic=nreplic+1
-        repinc(nreplic)=xnum(2)*i
-      enddo
-      write(6,1401)inum(1),xnum(2)
-      go to 1
-c       
-c       ANGLES card
-1500  do 1510 i=1,nfields
-        newangles=newangles+1
-        angles(newangles)=xnum(i)
-1510  continue
-      go to 1
-c       
-c       COMPRESS card
-1600  do 1610 i=1,nfields
-        ncompress=ncompress+1
-        compress(ncompress)=xnum(i)
-1610  continue
-      go to 1
-c       
-c       COMPFACTOR card
-1700  compfac=xnum(1)
-      write(6,1701)compfac
-      go to 1
-c       
-c       DENSWEIGHT card
-1800  nweight=inum(1)
-      if(nweight.gt.0)then
-        do i=1,nweight
-          wincr(i)=1./(i-0.5)
+      ierr = PipNumberOfEntries('INCLUDE', nument)
+      do j = 1, nument
+        ierr = PipGetString('INCLUDE', card)
+        call parselist(card,mapuse(nvuse+1),nexclist)
+        if (nvuse+nexclist .gt. limview) call exitError(
+     &      'TOO MANY INCLUDED VIEWS FOR ARRAYS')
+        do i=nvuse+1,nvuse+nexclist
+          if(mapuse(i).lt.1.or.mapuse(i).gt.nviews)call exitError(
+     &        'Illegal view number in INCLUDE list')
         enddo
-        if(nfields.eq.nweight+1)then
+        nvuse=nvuse+nexclist
+      enddo
+C       
+      ierr = PipNumberOfEntries('EXCLUDELIST2', nument)
+      do j = 1, nument
+        ierr = PipGetString('EXCLUDELIST2', card)
+        call parselist(card,ivexcl(nvexcl+1),nexclist)
+        if (nvexcl+nexclist .gt. limview) call exitError(
+     &      'TOO MANY EXCLUDED VIEWS FOR ARRAYS')
+        do i=nvexcl+1,nvexcl+nexclist
+          if(ivexcl(i).lt.1.or.ivexcl(i).gt.nviews)call exitError(
+     &        'Illegal view number in EXCLUDE list')
+        enddo
+        nvexcl=nvexcl+nexclist
+      enddo
+c       
+      if(nvuse.gt.0 .and. nvexcl .gt. 0)call exitError(
+     &    'Illegal to have both INCLUDE and EXCLUDE entries')
+c       
+      if (PipGetFloat('LOG', baselog) .eq. 0) then
+        iflog=1
+        write(6,1301)baselog
+      endif
+c       
+      if (PipGetTwoFloats('REPLICATE', xnum(i), xnum(2)) .eq. 0) then
+        inum(1) = nint(xnum(1))
+        do i=1,inum(1)
+          nreplic=nreplic+1
+          repinc(nreplic)=xnum(2)*i
+        enddo
+        write(6,1401)inum(1),xnum(2)
+      endif
+c       
+      ierr = PipNumberOfEntries('ANGLES', nument)
+      do j = 1, nument
+        ierr = PipGetFloatArray('ANGLES',  angles(newangles + 1), nfields,
+     &      limview - newangles)
+        newangles=newangles+nfields
+      enddo
+c
+      ierr = PipNumberOfEntries('COMPRESS', nument)
+      do j = 1, nument
+        ierr = PipGetFloatArray('COMPRESS',  angles(ncompress + 1), nfields,
+     &      limview - ncompress)
+        ncompress=ncompress+nfields
+      enddo
+c       
+      if (PipGetFloat('COMPFRACTION', compfac) .eq. 0)
+     &    write(6,1701)compfac
+c       
+      if (PipGetFloatArray('DENSWEIGHT', xnum, nfields, limnum) .eq. 0) then
+        nweight=nint(xnum(1))
+        if(nweight.gt.0)then
           do i=1,nweight
-            wincr(i)=xnum(i+1)
+            wincr(i)=1./(i-0.5)
           enddo
-        elseif(nfields.ne.1)then
-          go to 9999
-        endif
-        write(6,1801)nweight,(wincr(i),i=1,nweight)
-      else
-        write(6,1802)
-      endif
-      go to 1
-c       
-c       TILTFILE card
-1900  call dopen(3,card,'ro','f')
-      read(3,*)(angles(i),i=1,nviews)
-      close(3)
-      iftiltfile=1
-      go to 1
-c       
-c       WIDTH card
-2000  IF(NFIELDS.NE.1)GO TO 9999
-      IWIDE=INUM(1)
-      ifWidthIn = 1
-      GO TO 1
-c       
-c       SHIFT card
-2100  if((nfields+1)/2.ne.1)go to 9999
-      xoffset=xnum(1)
-      if(nfields.eq.2)yoffset=xnum(2)
-      go to 1
-c       
-c       XTILTFILE card
-2200  call dopen(3,card,'ro','f')
-      read(3,*)(alpha(i),i=1,nviews)
-      close(3)
-      do i=1,nviews
-        if(abs(alpha(i)).gt.1.e-5)ifalpha=2
-      enddo
-      if (ifalpha .eq. 2) write(6,2201)
-      go to 1
-c       
-c       XAXISTILT card
-2300  globalpha=xnum(1)
-      write(6,2301)globalpha
-      if(abs(globalpha).gt.1.e-5.and.ifalpha.eq.0)ifalpha=1
-      go to 1
-c       
-c       LOCALFILE card
-2400  call dopen(3,card,'ro','f')
-      read(3,'(a)')titlech
-c       read(3,*)nxwarp,nywarp,ixswarp,iyswarp,idxwarp,idywarp
-      call frefor(titlech,delbeta,ninp)
-      ifdelalpha=0
-      if(ninp.gt.6)ifdelalpha=nint(delbeta(7))
-      pixelLocal = 0.
-      if (ninp .gt. 7) pixelLocal = delbeta(8)
-      localZfacs = 0
-      if (ninp .gt. 8) localZfacs = delbeta(9)
-      nxwarp=nint(delbeta(1))
-      nywarp=nint(delbeta(2))
-      ixswarp=nint(delbeta(3))
-      iyswarp=nint(delbeta(4))
-      idxwarp=nint(delbeta(5))
-      idywarp=nint(delbeta(6))
-      if(nxwarp*nywarp.gt.limwpos.or.nxwarp*nywarp*nviews.gt.limwarp)
-     &    call exitError(
-     &    'ARRAY SIZE INSUFFICIENT FOR LOCAL TILT ALIGNMENT DATA')
-      if (nxwarp .lt. 2 .or. nywarp .lt. 2) call exitError(
-     &    'THERE MUST BE AT LEAST TWO LOCAL ALIGNMENT AREAS IN X AND IN Y')
-      indbase=0
-      do ipos=1,nxwarp*nywarp
-        indwarp(ipos)=indbase
-        read(3,*)(delbeta(i),i=indbase+1,indbase+nviews)
-        if(ifdelalpha.gt.0)then
-          read(3,*)(delalpha(i),i=indbase+1,indbase+nviews)
+          if(nfields.eq.nweight+1)then
+            do i=1,nweight
+              wincr(i)=xnum(i+1)
+            enddo
+          elseif(nfields.ne.1)then
+            call exitError('Wrong number of fields on DENSWEIGHT line')
+          endif
+          write(6,1801)nweight,(wincr(i),i=1,nweight)
         else
-          do i=indbase+1,indbase+nviews
-            delalpha(i)=0.
-          enddo
+          write(6,1802)
         endif
-c         
-c         Set z factors to zero, read in if supplied, then negate them
-c         
-        do i=indbase+1,indbase+nviews
-          warpxzfac(i)=0.
-          warpyzfac(i)=0.
-        enddo
-        if (localZfacs .gt. 0) read(3,*)(warpxzfac(i), warpyzfac(i),
-     &      i=indbase+1,indbase+nviews)
-        do i=indbase+1,indbase+nviews
-          warpxzfac(i) = -warpxzfac(i)
-          warpyzfac(i) = -warpyzfac(i)
-        enddo
+      endif
+c       
+      if (PipGetString('TILTFILE', card) .eq. 0) then
+        call dopen(3,card,'ro','f')
+        read(3,*)(angles(i),i=1,nviews)
+        close(3)
+        iftiltfile=1
+      endif
+c       
+      if (PipGetInteger('WIDTH', iwide) .eq. 0)  ifWidthIn = 1
+c       
+      if (PipGetFloatArray('SHIFT', xnum, nfields, limnum) .eq. 0) then
+        if((nfields+1)/2.ne.1)
+     &      call exitError('Wrong number of fields on SHIFT line')
+        xoffset=xnum(1)
+        if(nfields.eq.2)yoffset=xnum(2)
+      endif
+c       
+      if (PipGetString('XTILTFILE', card) .eq. 0) then
+        call dopen(3,card,'ro','f')
+        read(3,*)(alpha(i),i=1,nviews)
+        close(3)
         do i=1,nviews
-          call xfread(3,fw(1,1,i+indbase),2410,2410)
+          if(abs(alpha(i)).gt.1.e-5)ifalpha=2
         enddo
-        indbase=indbase+nviews
-      enddo
-      close(3)
-      write(6,2401)
-      go to 1
-2410  call exitError(
-     &    'ERROR READING LOCAL TILT ALIGNMENT DATA FROM FILE')
-c       
-c       LOCALSCALE card
-2500  scalelocal=xnum(1)
-      write(6,2501)scalelocal
-      go to 1
-c       
-c       FULLIMAGE card
-2600  if(nfields.ne.2) go to 9999
-      nxfull=inum(1)
-      nyfull=inum(2)
-      go to 1
-c       
-c       SUBSETSTART card
-2700  if(nfields.ne.2) go to 9999
-      ixsubset=inum(1)
-      iysubset=inum(2)
-      ifSubsetIn = 1
-      go to 1
-c       
-c       COSINTERP card
-2800  interpord=xnum(1)
-      if(nfields.gt.1)interpfac=xnum(2)
-      interpord=max(0,min(3,interpord))
-      if(interpord.eq.0)interpfac=0
-      if(interpfac.eq.0)then
-        print *,'Cosine stretching is disabled'
-      else
-        write(6,2801)interpord,interpfac
+        if (ifalpha .eq. 2) write(6,2201)
       endif
-      go to 1
 c       
-c       FBPINTERP card
-2900  interpfbp=xnum(1)
-      if(interpfbp.gt.1)interpfbp=3
-      if(interpfbp.le.0)then
-        print *,'Fast back projection is disabled'
-      else
-        write(6,2901)interpfbp
+      if (PipGetFloat('XAXISTILT', globalpha) .eq. 0) then
+        write(6,2301)globalpha
+        if(abs(globalpha).gt.1.e-5.and.ifalpha.eq.0)ifalpha=1
       endif
-      go to 1
 c       
-c       XTILTINTERP card
-3000  intordxtilt=xnum(1)
-      if(intordxtilt.gt.2)intordxtilt=3
-      if(intordxtilt.le.0)then
-        print *,'New-style X-tilting with vertical slices is disabled'
-      else
-        write(6,3001)intordxtilt
+c       
+      if (PipGetString('LOCALFILE', card) .eq. 0) then
+        call dopen(3,card,'ro','f')
+        read(3,'(a)')titlech
+c         read(3,*)nxwarp,nywarp,ixswarp,iyswarp,idxwarp,idywarp
+        call frefor(titlech,delbeta,ninp)
+        ifdelalpha=0
+        if(ninp.gt.6)ifdelalpha=nint(delbeta(7))
+        pixelLocal = 0.
+        if (ninp .gt. 7) pixelLocal = delbeta(8)
+        localZfacs = 0
+        if (ninp .gt. 8) localZfacs = delbeta(9)
+        nxwarp=nint(delbeta(1))
+        nywarp=nint(delbeta(2))
+        ixswarp=nint(delbeta(3))
+        iyswarp=nint(delbeta(4))
+        idxwarp=nint(delbeta(5))
+        idywarp=nint(delbeta(6))
+        if(nxwarp*nywarp.gt.limwpos.or.nxwarp*nywarp*nviews.gt.limwarp)
+     &      call exitError(
+     &      'ARRAY SIZE INSUFFICIENT FOR LOCAL TILT ALIGNMENT DATA')
+        if (nxwarp .lt. 2 .or. nywarp .lt. 2) call exitError(
+     &      'THERE MUST BE AT LEAST TWO LOCAL ALIGNMENT AREAS IN X AND IN Y')
+        indbase=0
+        do ipos=1,nxwarp*nywarp
+          indwarp(ipos)=indbase
+          read(3,*)(delbeta(i),i=indbase+1,indbase+nviews)
+          if(ifdelalpha.gt.0)then
+            read(3,*)(delalpha(i),i=indbase+1,indbase+nviews)
+          else
+            do i=indbase+1,indbase+nviews
+              delalpha(i)=0.
+            enddo
+          endif
+c         
+c           Set z factors to zero, read in if supplied, then negate them
+c           
+          do i=indbase+1,indbase+nviews
+            warpxzfac(i)=0.
+            warpyzfac(i)=0.
+          enddo
+          if (localZfacs .gt. 0) read(3,*)(warpxzfac(i), warpyzfac(i),
+     &        i=indbase+1,indbase+nviews)
+          do i=indbase+1,indbase+nviews
+            warpxzfac(i) = -warpxzfac(i)
+            warpyzfac(i) = -warpyzfac(i)
+          enddo
+          do i=1,nviews
+            call xfread(3,fw(1,1,i+indbase),2410,2410)
+          enddo
+          indbase=indbase+nviews
+        enddo
+        close(3)
+        write(6,2401)
       endif
-      go to 1
+c       
+      if (PipGetFloat('LOCALSCALE', scalelocal) .eq. 0) write(6,2501)scalelocal
+c       
+      ierr = PipGetTwoIntegers('FULLIMAGE', nxfull, nyfull)
+      if (PipGetTwoIntegers('SUBSETSTART', ixsubset, iysubset) .eq. 0)
+     &    ifSubsetIn = 1
+c       
+      nfields = 0
+      if (PipGetIntegerArray('COSINTERP', inum, nfields, limnum) .eq. 0) then
+        interpord=inum(1)
+        if(nfields.gt.1)interpfac=inum(2)
+        interpord=max(0,min(3,interpord))
+        if(interpord.eq.0)interpfac=0
+        if(interpfac.eq.0)then
+          print *,'Cosine stretching is disabled'
+        else
+          write(6,2801)interpord,interpfac
+        endif
+      endif
+c       
+      if (PipGetInteger('FBPINTERP', interpfbp) .eq. 0) then
+        if(interpfbp.gt.1)interpfbp=3
+        if(interpfbp.le.0)then
+          print *,'Fast back projection is disabled'
+        else
+          write(6,2901)interpfbp
+        endif
+      endif
+c       
+      if (PipGetInteger('XTILTINTERP', intordxtilt) .eq. 0) then
+        intordxtilt=xnum(1)
+        if(intordxtilt.gt.2)intordxtilt=3
+        if(intordxtilt.le.0)then
+          print *,'New-style X-tilting with vertical slices is disabled'
+        else
+          write(6,3001)intordxtilt
+        endif
+      endif
 C       
-C       REPROJECT card - may have no entry or angles
-3100  if (nfields.eq.0) then
-        nfields = 1
-        xnum(1) = 0.
+c       violates original unless a blank entry is allowed
+      ierr = PipNumberOfEntries('REPROJECT', nument)
+      do j = 1, nument
+        ierr = PipGetFloatArray('REPROJECT',  xnum, nfields, limnum)
+        if (nfields.eq.0) then
+          nfields = 1
+          xnum(1) = 0.
+        endif
+        if (nfields + nreproj .gt. limreproj) call exitError(
+     &      'TOO MANY REPROJECTION ANGLES FOR ARRAYS')
+        do i = 1, nfields
+          nreproj = nreproj + 1
+          cosReproj(nreproj) = cos(dtor * xnum(i))
+          sinReproj(nreproj) = sin(dtor * xnum(i))
+        enddo      
+        if (j. eq. 1)WRITE(6,3101)
+        reproj=.TRUE.
+      enddo
+c       
+      if (PipGetString('ZFACTORFILE', card) .eq. 0) then
+        call dopen(3,card,'ro','f')
+        read(3,*)(xzfac(i),yzfac(i),i=1,nviews)
+        close(3)
+        ifZfac = 1
+        write(6,3201)
       endif
-      if (nfields + nreproj .gt. limreproj) call exitError(
-     &    'TOO MANY REPROJECTION ANGLES FOR ARRAYS')
-      do i = 1, nfields
-        nreproj = nreproj + 1
-        cosReproj(nreproj) = cos(dtor * xnum(i))
-        sinReproj(nreproj) = sin(dtor * xnum(i))
-      enddo      
-      if (.not.reproj)WRITE(6,3101)
-      reproj=.TRUE.
-      GO TO 1
 c       
-c       ZFACTORFILE card
-3200  call dopen(3,card,'ro','f')
-      read(3,*)(xzfac(i),yzfac(i),i=1,nviews)
-      close(3)
-      ifZfac = 1
-      write(6,3201)
-      go to 1
+      if (PipGetInteger('IMAGEBINNED', imageBinned) .eq. 0) then
+        imageBinned = max(1,imageBinned)
+        if (imageBinned .gt. 1) write(6,3301)imageBinned
+      endif
 c       
-c       IMAGEBINNED card
-3300  imageBinned = max(1.,xnum(1))
-      if (imageBinned .gt. 1) write(6,3301)imageBinned
-      go to 1
+      if (PipGetTwoIntegers('TOTALSLICES', inum(1), inum(2)) .eq. 0) then
+        minTotSlice = inum(1) + 1
+        maxTotSlice = inum(2) + 1
+      endif
+      call PipDone()
 c       
-c       TOTALSLICES card
-3400  IF(NFIELDS.NE.2)GO TO 9999
-      minTotSlice = inum(1) + 1
-      maxTotSlice = inum(2) + 1
-      go to 1
-c       
-c       
-C       End of data deck
-C-------------------------------------------------------------
+c       END OF OPTION READING
 C       
 999   WRITE(6,48)
       if(ifalpha.ne.0.and.abs(idelslice).ne.1)call exitError(
@@ -2526,7 +2500,7 @@ c
       endif
       RETURN
 C       
-9999  call exitError('Wrong number of fields on card')
+2410  call exitError('ERROR READING LOCAL TILT ALIGNMENT DATA FROM FILE')
 C       
 C       
 48    FORMAT(//,1X,78('-'))
@@ -2591,121 +2565,6 @@ C
 3401  format(/,' Computed slices are part of a total volume from slice',
      &    i6,' to',i6)
       END
-C       
-C-----------------------------------------------------------------------
-      SUBROUTINE CREAD(CARD,TAGS,LABEL,*)
-C       -----------------------------------
-C       
-C       This subroutine performs the free format read. The calling program must
-C       contain the common block
-      implicit none
-      integer*4 ntags,nfields,label
-      real*4 xnum(50)
-      COMMON /CARDS/NTAGS,XNUM,NFIELDS
-C       In the calling program, TAGS is an array of Character*20 variables
-C       containing the data card flags. To indicate that alphanumeric data
-C       is expected after a particular flag, an asterisk must occur before
-C       the flag, e.g. *TITLE, in the appropriate TAG element signifying that
-C       a data record of the form "TITLE This is the Title" is expected.
-C       Alphanumeric data is placed in the array CARD and numeric data is
-C       placed element by element in the real array XNUM.  
-C       The function INTEG can be used for checking whether a non-integral 
-C       real number has occured in a field where an integer is expected.
-      CHARACTER ASTER*1,BLANK*1,CARD*80,TAGS(*)*20,upcase*80
-      DATA ASTER,BLANK/'*',' '/
-      integer*4 nchar,ktag,ipoint,istar,istart,i,iend,npoint
-      integer*4 lnblnk
-
-c       DNM: switch from Q format to using LNBLNK
-c       12/8/03: swallow blank lines
-5     READ(5,10,END=999)CARD
-10    FORMAT(A)
-      if (card .eq. ' ') go to 5
-      NCHAR = lnblnk(CARD)
-      do while (nchar.gt.1.and.card(1:1).eq.blank)
-        nchar=nchar-1
-        card(1:)=card(2:)
-      enddo
-      WRITE(6,15)CARD
-15    FORMAT(/' DATA LINE ------- : ',A80) 
-C       
-C       Find card
-      call strupcase(upcase,card)
-      DO 100 KTAG=1,NTAGS
-        IPOINT=INDEX(TAGS(KTAG),BLANK)
-        ISTAR=INDEX(TAGS(KTAG),ASTER)+1
-        IF(INDEX(upcase,TAGS(KTAG)(ISTAR:IPOINT)).EQ.1)GO TO 200
-100   CONTINUE
-C       
-C       Unidentified tag
-      WRITE(6,20)CARD
-20    FORMAT(/' Unidentified line: ',A80)
-      call exitError('Unidentified line')
-C       
-C       Tag found
-200   LABEL=KTAG
-      ISTART=IPOINT+1
-      IF(ISTAR.EQ.2)THEN
-C         Character string
-        CARD(1:)=CARD(ISTART-1:)
-C         Numeric string
-      ELSE
-c         DNM: indented, added safety checks for end of line
-C         Zero numbers
-        DO I=1,20
-          XNUM(I)=0.
-        enddo
-        NFIELDS=0
-C         Search for starting point
-        DO WHILE (CARD(ISTART:ISTART).EQ.BLANK)
-          ISTART=ISTART+1
-        END DO
-C         Decode fields
-        DO WHILE (ISTART.LE.NCHAR)
-          NFIELDS=NFIELDS+1
-          NPOINT=INDEX(CARD(ISTART:),BLANK)-1
-          IEND=ISTART+NPOINT-1
-          if(npoint.lt.0)iend=nchar
-c           
-c           switch to standard f77 here, get rid of decode AND variable format
-c           also needed to be * instead f75.0 on sun
-c           
-          read(card(istart:iend),*)XNUM(NFIELDS)
-c           DECODE(NPOINT,30,CARD(ISTART:IEND))XNUM(NFIELDS)
-c           30      FORMAT(f75.0)
-          ISTART=IEND+2
-C           Skip over recurring blanks
-          DO WHILE (istart.le.nchar.and.CARD(ISTART:ISTART).EQ.BLANK)
-            ISTART=ISTART+1
-          END DO
-C           
-c           be brave and get rid of this
-c           I=I+1
-        END DO
-C         All numeric fields decoded
-      END IF
-      RETURN
-C       
-C       End of file
-999   RETURN 1  
-      END
-
-
-      integer*4 FUNCTION INUM(I)
-C       ----------------
-      implicit none
-      integer*4 i,ntags, nfields
-      real*4 XNUM(50),x
-      COMMON /CARDS/NTAGS,XNUM,NFIELDS
-      X=XNUM(I)
-      INUM=INT(X)
-      IF(FLOAT(INUM).EQ.X)RETURN
-      WRITE(6,1)X
-1     FORMAT(//' ERROR: TILT - in free format read, ',F12.2,
-     &    ' is non-integral')
-      call exit(1)
-      END
-
 
 
       subroutine local_factors(ix,iy,iv,ind1,ind2,ind3,ind4,f1,f2,f3,
@@ -2859,6 +2718,9 @@ c
 
 c       
 c       $Log$
+c       Revision 3.33  2007/03/08 23:50:28  mast
+c       Give error if there are less than 2 local areas in each direction
+c
 c       Revision 3.32  2007/03/08 20:12:26  mast
 c       Only put out message about x tilt angles from file if non-zero
 c
