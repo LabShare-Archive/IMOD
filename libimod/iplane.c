@@ -4,22 +4,20 @@
  *  Original author: James Kremer
  *  Revised by: David Mastronarde   email: mast@colorado.edu
  *
- *  Copyright (C) 1995-2005 by Boulder Laboratory for 3-Dimensional Electron
+ *  Copyright (C) 1995-2007 by Boulder Laboratory for 3-Dimensional Electron
  *  Microscopy of Cells ("BL3DEMC") and the Regents of the University of 
  *  Colorado.  See dist/COPYRIGHT for full copyright notice.
+ *
+ *  $Id$
+ *  Log at end of file
  */
-
-/*  $Author$
-
-$Date$
-
-$Revision$
-
-$Log$
-*/
 
 #include "imodel.h"
 
+/*!
+ * Allocates an array of [size] @@Iplane structure@, initializes them, and 
+ * returns the pointer to the array, or NULL for error.
+ */
 Iplane *imodPlanesNew(int size)
 {
      Iplane *pl;
@@ -36,19 +34,26 @@ Iplane *imodPlanesNew(int size)
      return(pl);
 }
 
+/*!
+ * Frees an array of @@Iplane structure@ in [plane].
+ */
 void imodPlaneDelete(Iplane *plane)
 {
      if (plane)
 	  free(plane);
 }
 
+/*!
+ * Initializes the @@Iplane structure@ in [plane] to the X/Y plane with a
+ * negative Z normal.
+ */
 void imodPlaneInit(Iplane *plane)
 {
      /* default plane z <= 0 */
      plane->a = plane->b = plane->d = 0.0f;
      plane->c = -1.0f;
 }
-
+/* Unused, does not maintain a fixed point */
 void imodPlaneAxisRotate(Iplane *plane, double angle, int axis)
 {
      Ipoint rpt;
@@ -78,16 +83,10 @@ void imodPlaneRotate(Iplane *plane, double angle, Ipoint *pnt)
      return;
 }
 
-/* Translate plane by given point (x, y, z) */
-void imodPlaneTranslate(Iplane *plane, Ipoint *pnt)
-{
-     plane->a += pnt->x;
-     plane->b += pnt->y;
-     plane->c += pnt->z;
-     return;
-}
-
-/* set plane parameters from a point on a plane and a normal */
+/*!
+ * Set parameters of [plane] from a point [pnt] on a plane and a normal vector
+ * [nor]
+ */
 void imodPlaneSetPN(Iplane *plane, Ipoint *pnt, Ipoint *nor)
 {
      plane->a = nor->x;
@@ -97,8 +96,11 @@ void imodPlaneSetPN(Iplane *plane, Ipoint *pnt, Ipoint *nor)
      return;
 }
 
-/* Returns True if point is in the half space defined by clipping plane. */
-/* Returns False if point needs to be clipped.                           */
+/*!
+ * Tests whether point [pnt] is in the half space defined by the clipping 
+ * plane [plane], and returns 1 if it is or 0 if the point needs to be 
+ * clipped.
+ */
 int imodPlaneClip(Iplane *plane, Ipoint *pnt)
 {
      if ( ((plane->a * pnt->x) + (plane->b * pnt->y) + 
@@ -108,7 +110,11 @@ int imodPlaneClip(Iplane *plane, Ipoint *pnt)
 	  return(0);
 }
 
-/* Check a series of planes */
+/*!
+ * Tests whether point [pnt] is in the region defined by the [nplanes] 
+ * clipping planes in [plane], and returns 1 if it is or 0 if the point needs
+ * to be clipped.
+ */
 int imodPlanesClip(Iplane *plane, int nplanes, Ipoint *pnt)
 {
      int pn;
@@ -119,8 +125,10 @@ int imodPlanesClip(Iplane *plane, int nplanes, Ipoint *pnt)
      return(1);
 }
 
-
-/* Initialize all clip planes and other parameters of the clip plane set */
+/*!
+ * Initializes all clip planes and other parameters of the clip plane set in
+ * the @@IclipPlanes structure@ [clips]
+ */
 void   imodClipsInitialize(IclipPlanes *clips)
 {
   int i;
@@ -135,7 +143,11 @@ void   imodClipsInitialize(IclipPlanes *clips)
   }
 }
 
-/* Read all the clip planes of a set based on the size of the chunk */
+/*!
+ * Reads all the clip planes of a set into [clips] from the model file in 
+ * [fin]; the number of vectors and normals read is based on the size of the
+ * data chunk 
+ */
 int imodClipsRead(IclipPlanes *clips, FILE *fin)
 {
   int size, nread;
@@ -148,9 +160,12 @@ int imodClipsRead(IclipPlanes *clips, FILE *fin)
   return(ferror(fin));
 }
 
-/* Fix the count of clip planes for old files or for a count set to zero
-   when written in a new file.
-   If clip is 0 and the first plane is not in initialized state,
+/*!
+ * Fixes the count of clip planes in [clips] for old files or for a count set
+ * to zero when written in a new file.  [flags] should be the flags from the
+ * model structure.  
+ */
+/* If the count is 0 and the first plane is not in the initialized state,
    turn off first flag and set clip 1; otherwise, if old model
    and clip is nonzero, set the first flag and make sure clip is 1 */
 void imodClipsFixCount(IclipPlanes *clips, b3dUInt32 flags)
@@ -167,9 +182,15 @@ void imodClipsFixCount(IclipPlanes *clips, b3dUInt32 flags)
   }
 }
 
-/* Set plane parameters from clipping plane sets
-   Either objClips or glbClips can be null; i.e. one set of planes can be used
-   Set nPlanes to zero before first call */
+/*!
+ * Sets plane parameters in the [plane] array from the clipping plane sets
+ * in both [objClips] and [glbClips], based upon which planes are on in
+ * each set.  Either [objClips] or [glbClips] can be NULL; i.e. one set of 
+ * planes can be used.  [maxPlanes] should specify the size of the [plane]
+ * array or the maximum number of planes to set.  [nPlanes] is returned with
+ * the number of planes set up.  It should be set to zero before first the 
+ * (first) call to this function.
+ */
 void imodPlaneSetFromClips(IclipPlanes *objClips, IclipPlanes *glbClips,
                            Iplane *plane, int maxPlanes, int *nPlanes)
 {
@@ -195,7 +216,10 @@ void imodPlaneSetFromClips(IclipPlanes *objClips, IclipPlanes *glbClips,
   }
 }
 
-/* Transform clipping planes; mat has point transform and mat2 has normal */
+/*!
+ * Transforms the clipping planes in [clips], using [mat] to transform the 
+ * points and [mat2] to transform the normals. 
+ */
 void imodClipsTrans(IclipPlanes *clips, Imat *mat, Imat *mat2)
 {
   int i;
@@ -218,3 +242,11 @@ void imodClipsTrans(IclipPlanes *clips, Imat *mat, Imat *mat2)
     clips->normal[i] = pnt;
   }
 }
+
+/*
+$Log$
+Revision 3.3  2005/10/14 22:45:52  mast
+Moved clip transformation to iplane.c
+
+*/
+
