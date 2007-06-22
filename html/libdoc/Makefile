@@ -1,6 +1,7 @@
 include ../../configure
 
 # Make doc files and place them in help directory
+
 all :
 	mkdir -p ../libhelp
 	$(CP) libimod.html libiimod.html ../libhelp 
@@ -22,6 +23,8 @@ all :
 	  ../libhelp/istore.html
 	../../sourcedoc/$(SOURCEDOC_EXE) -d ../../libimod imat.html \
 	  ../libhelp/imat.html
+	../../sourcedoc/$(SOURCEDOC_EXE) -d ../../libimod iplane.html \
+	  ../libhelp/iplane.html
 	../../sourcedoc/$(SOURCEDOC_EXE) -d ../../libimod mod_fwrap.html \
 	  ../libhelp/mod_fwrap.html
 	../../sourcedoc/$(SOURCEDOC_EXE) -d ../../libimod b3dutil.html \
@@ -30,6 +33,8 @@ all :
 	  ../libhelp/autodoc.html
 	../../sourcedoc/$(SOURCEDOC_EXE) -d ../../libiimod mrcfiles.html \
 	  ../libhelp/mrcfiles.html
+	../../sourcedoc/$(SOURCEDOC_EXE) -d ../../libiimod iimage.html \
+	  ../libhelp/iimage.html
 	../../sourcedoc/$(SOURCEDOC_EXE) -d ../../libiimod mrcslice.html \
 	  ../libhelp/mrcslice.html
 	../../sourcedoc/$(SOURCEDOC_EXE) -d ../../libiimod sliceproc.html \
