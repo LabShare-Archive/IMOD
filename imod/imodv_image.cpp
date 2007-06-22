@@ -7,15 +7,10 @@
  *  Copyright (C) 1995-2006 by Boulder Laboratory for 3-Dimensional Electron
  *  Microscopy of Cells ("BL3DEMC") and the Regents of the University of 
  *  Colorado.  See dist/COPYRIGHT for full copyright notice.
+ *
+ *  $Id$
+ *  Log at end of file
  */
-
-/*  $Author$
-
-$Date$
-
-$Revision$
-Log at end of file
-*/
 
 #include <qcheckbox.h>
 #include <qlayout.h>
@@ -801,46 +796,7 @@ void ImodvImage::falseToggled(bool state)
 void ImodvImage::buttonPressed(int which)
 {
   if (which)
-    dia_vasmsg
-      ("~~~~~~~~~~~~~~~~~~~~~~~~\n"
-       "Image Control Dialog Help.\n"
-       "~~~~~~~~~~~~~~~~~~~~~~~~"
-       "\n\n",
-       "This dialog allows you to display image planes on the model data.  "
-       "Any of the three native orthogonal planes can be displayed, alone or "
-       "in combination.  Transparency can be set to allow the model to be seen"
-       " through the image; a projection through multiple slices can also "
-       "displayed.\n\n"
-       "The first three check boxes (\"View X image\", etc.) turn on the "
-       "display of the indicated image planes.  The hot key Z will turn on "
-       "the Z "
-       "image if no images are being displayed, or it will turn off all "
-       "planes if any of them are on.\n\n"
-       "The \"X\", \"Y\", and \"Z\" sliders will track the current point "
-       "coordinate in "
-       "3dmod image display windows and can be used to adjust both the "
-       "current point position and the displayed slice in the model view "
-       "window.\n\n"
-       "The \"X size\", \"Y size\", and \"Z size\" sliders can be used to "
-       "set the size of the image that is displayed in each dimension.  The "
-       "displayed area will be centered on the coordinate unless that would "
-       "result in the displayed size being smaller than the slider value.\n\n"
-       "The \"# of slices\" slider can be used to display multiple slices.  "
-       "You will be able to see through the slices but not past them if you "
-       "do not turn on transparency.\n\n"
-       "Use the \"Transparency\" slider to see through the image.\n\n"
-       "The \"Black Level\" and \"White Level\" sliders can be used to "
-       "adjust the contrast of the image.  You can reverse the contrast "
-       "by making Black be higher than White.\n\n"
-       "The \"False color\" checkbox allows images to be displayed in the "
-       "standard false color scheme.\n\n",
-       "Limitations of transparency: Image transparency, model object "
-       "transparency, and the display of multiple slices all use a similar "
-       "method for generating transparency.  Displays will generally not "
-       "work well when you have more than one item that relies on "
-       "this transparency method, because the items are not being drawn in "
-       "order from back to front everywhere that they overlap.",
-       NULL);
+    imodShowHelpPage("modvImage.html");
   else
     close();
 }
@@ -885,6 +841,9 @@ void ImodvImage::keyReleaseEvent ( QKeyEvent * e )
 
 /*
 $Log$
+Revision 4.15  2006/08/28 05:22:35  mast
+Changes for colormapped images
+
 Revision 4.14  2004/11/04 23:30:55  mast
 Changes for rounded button style
 
