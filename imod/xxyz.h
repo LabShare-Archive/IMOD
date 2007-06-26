@@ -65,7 +65,7 @@ struct xxyzwin
   int whichbox;           /* box that left mouse button went down in */
   int project;            /* Flag to project current contour into planes */
   int mousemode;          /* Current mode for cursor */
-  int recordSubarea;  /* Record the subarea on the next draw */
+  float toolZoom;
 };
 
 
@@ -101,21 +101,23 @@ class XyzWindow : public QMainWindow
   void DrawCurrentLines();
   void keyPressPassedOn ( QKeyEvent * e ) {keyPressEvent(e);};
   void SetCursor(int mode);
-  
+  void setZoomText(float zoom);
+    
   public slots:
     void toggleClicked(int index);
     void toolKeyPress(QKeyEvent *e) {keyPressEvent(e);};
     void toolKeyRelease(QKeyEvent *e) {keyReleaseEvent(e);};
     void zoomUp();
     void zoomDown();
+    void newZoom();
 
  protected:
   void keyPressEvent ( QKeyEvent * e );
   void closeEvent ( QCloseEvent * e );
 
-
  private:
   struct xxyzwin *mXyz;
+  
   QLabel *mSizeLabel;
   QToolButton *mToggleButs[NUM_TOOLBUTTONS];
   int mToggleStates[NUM_TOOLBUTTONS];
@@ -123,6 +125,9 @@ class XyzWindow : public QMainWindow
   void StateToggled(int index, int state);
   void setupToggleButton(HotToolBar *toolBar, QSignalMapper *mapper, int index);
   void stateToggled(int index, int state);
+  void enteredZoom(float newZoom);
+  void setControlAndLimits();
+  void stepZoom(int step);
 };
 
 class XyzGL : public QGLWidget
@@ -146,6 +151,7 @@ class XyzGL : public QGLWidget
   struct xxyzwin *mXyz;
   XyzWindow *mWin;
   bool mMousePressed;
+  void drawTools();
 };
 
 /* Global functions */
@@ -154,6 +160,10 @@ void xyzPixelViewState(bool state);
 
 /*
 $Log$
+Revision 3.8  2007/06/26 17:07:11  sueh
+bug# 1021 Added a button toolbar with a high-resolution button and zoom
+arrows.
+
 Revision 3.7  2006/10/11 20:13:32  mast
 Added closing flag
 
