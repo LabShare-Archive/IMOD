@@ -42,13 +42,14 @@
 #include "undoredo.h"
 #include "istore.h"
 #include "finegrain.h"
-#include "win_support.h"
 #include "arrowbutton.h"
 #include "tooledit.h"
 
 #include "lowres.bits"
 #include "highres.bits"
 
+#define BM_WIDTH 16
+#define BM_HEIGHT 16
 #define XYZ_BSIZE 11
 #define GRAB_LENGTH 7
 #define GRAB_WIDTH 3
@@ -246,14 +247,14 @@ XyzWindow::XyzWindow(struct xxyzwin *xyz, bool rgba, bool doubleBuffer,
   arrow->setAutoRaise(AUTO_RAISE);
   connect(arrow, SIGNAL(clicked()), this, SLOT(zoomDown()));
   QToolTip::add(arrow, "Decrease zoom factor");
-  /*
+  
   mZoomEdit = new ToolEdit(mToolBar, 6, "zoom edit box");
   mZoomEdit->setFocusPolicy(QWidget::ClickFocus);
   mZoomEdit->setAlignment(Qt::AlignRight);
   connect(mZoomEdit, SIGNAL(returnPressed()), this, SLOT(newZoom()));
   connect(mZoomEdit, SIGNAL(focusLost()), this, SLOT(newZoom()));
   QToolTip::add(mZoomEdit, "Enter an arbitrary zoom factor");
-  */
+  
   mSizeLabel = new QLabel(mToolBar, " 0000x0000");
 
 // Make the 4 toggle buttons and their signal mapper
@@ -847,21 +848,52 @@ void XyzWindow::B3Drag(int x, int y)
 
 void XyzWindow::zoomUp()
 {
-  stepZoom(mXyz->vi,mXyz->ctrl,mXyz->recordSubarea, mXyz->zoom, 1, mXyz->glw);
-  
+  stepZoom(1);
 }
 
 void XyzWindow::zoomDown()
 {
-    stepZoom(mXyz->vi,mXyz->ctrl,mXyz->recordSubarea, mXyz->zoom, -1, mXyz->glw);
+  stepZoom(-1);
+}
+
+void XyzWindow::stepZoom(int step)
+{
+  setControlAndLimits();
+  mXyz->zoom = b3dStepPixelZoom(mXyz->zoom, step);
+  Draw();
+}
+
+// Set the control priority and set flag to record subarea and do float
+void XyzWindow::setControlAndLimits()
+{
+  ivwControlPriority(mXyz->vi, mXyz->ctrl);
 }
 
 // A new zoom or section was entered - let zap decide on limits and refresh box
-/*void XyzWindow::newZoom()
+void XyzWindow::newZoom()
 {
   QString str = mZoomEdit->text();
-  zapEnteredZoom(mZap, atof(str.latin1()));
-}*/
+  enteredZoom(atof(str.latin1()));
+}
+
+void XyzWindow::enteredZoom(float newZoom)
+{
+  setControlAndLimits();
+  mXyz->zoom = newZoom;
+  if (mXyz->zoom <= 0.01)
+    mXyz->zoom = 0.01;
+  Draw();
+  mXyz->dialog->setFocus();
+}
+
+void XyzWindow::setZoomText(float zoom)
+{
+  QString str;
+  str.sprintf("%.4f", zoom);
+  if (str.endsWith("00"))
+    str.truncate(str.length() - 2);
+  mZoomEdit->setText(str);
+}
 
 
 void XyzWindow::SetSubimage(int absStart, int winSize, int imSize, 
@@ -1610,7 +1642,7 @@ void XyzWindow::setupToggleButton(HotToolBar *toolBar, QSignalMapper *mapper,
 void XyzWindow::stateToggled(int index, int state)
 {
   int time;
-  setControlAndLimits(mXyz->vi, mXyz->ctrl, mXyz->recordSubarea);
+  setControlAndLimits();
   switch (index) {
   case XYZ_TOGGLE_RESOL:
     mXyz->hq = state;
@@ -1763,9 +1795,19 @@ void XyzGL::paintGL()
 
     xyzShowSlice = 0;
   }
+  drawTools();
   glFlush();
-
 }
+
+  // send a new value of section, zoom, or time label if it has changed
+void XyzGL::drawTools()
+{     
+  if (mXyz->toolZoom != mXyz->zoom){
+    mXyz->toolZoom = mXyz->zoom;
+    mXyz->dialog->setZoomText(mXyz->zoom);
+  }
+}
+
 
 // The routine that initializes or reinitializes upon resize
 void XyzGL::resizeGL( int winx, int winy )
@@ -1862,6 +1904,10 @@ void XyzGL::mouseMoveEvent( QMouseEvent * event )
 
 /*
 $Log$
+Revision 4.34  2007/06/26 17:07:29  sueh
+bug# 1021 Added a button toolbar with a high-resolution button and zoom
+arrows.
+
 Revision 4.33  2007/06/08 04:52:55  mast
 Added protection for planar open contours
 
