@@ -29,13 +29,11 @@
 #include "arrowbutton.h"
 #include "dia_qtutils.h"
 #include "preferences.h"
+#include "win_support.h"
 
 #define AUTO_RAISE true
 #define MIN_SLIDER_WIDTH 20
 #define MAX_SLIDER_WIDTH 100
-
-#define BM_WIDTH 16
-#define BM_HEIGHT 16
 
 // Unfinished business: recovering bitmap files
 #include "unlock.bits"
@@ -439,6 +437,9 @@ void ZapGL::mouseMoveEvent ( QMouseEvent * e )
 
 /*
 $Log$
+Revision 4.20  2007/05/31 16:23:10  mast
+Changes for using hot toolbar
+
 Revision 4.19  2007/05/29 14:49:20  mast
 Moved keep center and snart center bits to files
 

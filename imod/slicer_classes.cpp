@@ -44,11 +44,9 @@
 #include "dia_qtutils.h"
 #include "preferences.h"
 #include "sliceproc.h"
+#include "win_support.h"
 
 #define AUTO_RAISE true
-
-#define BM_WIDTH 16
-#define BM_HEIGHT 16
 
 #define MAX_THREADS 16
 #define NUM_THREADS 4
@@ -1703,6 +1701,9 @@ static int taper_slice(Islice *sl, int ntaper, int inside)
 
  /*
 $Log$
+Revision 4.20  2007/06/15 21:19:54  mast
+Added shift lock toolbar botton
+
 Revision 4.19  2007/06/07 17:39:38  mast
 Fixed use of wrong variable in testing for whether to take mean/SD
 
