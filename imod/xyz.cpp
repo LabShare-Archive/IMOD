@@ -16,6 +16,13 @@
 #include <qdatetime.h>
 #include <qapplication.h>
 #include <qcursor.h>
+#include <hottoolbar.h>
+#include <qlayout.h>
+#include <qlabel.h>
+#include <qtoolbutton.h>
+#include <qsignalmapper.h>
+#include <qtooltip.h>
+#include <qbitmap.h>
 
 #include "imod.h"
 #include "xxyz.h"
@@ -35,10 +42,24 @@
 #include "undoredo.h"
 #include "istore.h"
 #include "finegrain.h"
+#include "win_support.h"
+#include "arrowbutton.h"
+#include "tooledit.h"
+
+#include "lowres.bits"
+#include "highres.bits"
 
 #define XYZ_BSIZE 11
 #define GRAB_LENGTH 7
 #define GRAB_WIDTH 3
+#define AUTO_RAISE false
+#define XYZ_TOGGLE_RESOL 0
+
+static unsigned char *bitList[NUM_TOOLBUTTONS][2] =
+  { {lowres_bits, highres_bits}};
+
+static QBitmap *bitmaps[NUM_TOOLBUTTONS][2];
+static int firstTime = 1;
 
 /*************************** internal functions ***************************/
 static void xyzKey_cb(ImodView *vi, void *client, int released, QKeyEvent *e);
@@ -206,6 +227,44 @@ XyzWindow::XyzWindow(struct xxyzwin *xyz, bool rgba, bool doubleBuffer,
   : QMainWindow(parent, name, f)
 {
   mXyz = xyz;
+  
+    // Get the toolbar, add zoom arrows
+  mToolBar = new HotToolBar(this, "xyz toolbar");
+  
+  if (!AUTO_RAISE)
+    mToolBar->boxLayout()->setSpacing(4);
+  connect(mToolBar, SIGNAL(keyPress(QKeyEvent *)), this,
+    SLOT(toolKeyPress(QKeyEvent *)));
+  connect(mToolBar, SIGNAL(keyRelease(QKeyEvent *)), this,
+    SLOT(toolKeyRelease(QKeyEvent *)));
+
+  ArrowButton *arrow = new ArrowButton(Qt::UpArrow, mToolBar, "zoomup button");
+  arrow->setAutoRaise(AUTO_RAISE);
+  connect(arrow, SIGNAL(clicked()), this, SLOT(zoomUp()));
+  QToolTip::add(arrow, "Increase zoom factor");
+  arrow = new ArrowButton(Qt::DownArrow, mToolBar, "zoom down button");
+  arrow->setAutoRaise(AUTO_RAISE);
+  connect(arrow, SIGNAL(clicked()), this, SLOT(zoomDown()));
+  QToolTip::add(arrow, "Decrease zoom factor");
+  /*
+  mZoomEdit = new ToolEdit(mToolBar, 6, "zoom edit box");
+  mZoomEdit->setFocusPolicy(QWidget::ClickFocus);
+  mZoomEdit->setAlignment(Qt::AlignRight);
+  connect(mZoomEdit, SIGNAL(returnPressed()), this, SLOT(newZoom()));
+  connect(mZoomEdit, SIGNAL(focusLost()), this, SLOT(newZoom()));
+  QToolTip::add(mZoomEdit, "Enter an arbitrary zoom factor");
+  */
+  mSizeLabel = new QLabel(mToolBar, " 0000x0000");
+
+// Make the 4 toggle buttons and their signal mapper
+  QSignalMapper *toggleMapper = new QSignalMapper(mToolBar);
+  connect(toggleMapper, SIGNAL(mapped(int)), this, SLOT(toggleClicked(int)));
+  int j;
+  for (j = 0; j < NUM_TOOLBUTTONS; j++)
+    setupToggleButton(mToolBar, toggleMapper, j);
+
+  firstTime = 0;
+  
   QGLFormat glFormat;
   glFormat.setRgba(rgba);
   glFormat.setDoubleBuffer(doubleBuffer);
@@ -785,6 +844,24 @@ void XyzWindow::B3Drag(int x, int y)
   imodDraw(xx->vi, IMOD_DRAW_XYZ | IMOD_DRAW_MOD);
   return;
 }
+
+void XyzWindow::zoomUp()
+{
+  stepZoom(mXyz->vi,mXyz->ctrl,mXyz->recordSubarea, mXyz->zoom, 1, mXyz->glw);
+  
+}
+
+void XyzWindow::zoomDown()
+{
+    stepZoom(mXyz->vi,mXyz->ctrl,mXyz->recordSubarea, mXyz->zoom, -1, mXyz->glw);
+}
+
+// A new zoom or section was entered - let zap decide on limits and refresh box
+/*void XyzWindow::newZoom()
+{
+  QString str = mZoomEdit->text();
+  zapEnteredZoom(mZap, atof(str.latin1()));
+}*/
 
 
 void XyzWindow::SetSubimage(int absStart, int winSize, int imSize, 
@@ -1509,6 +1586,49 @@ void XyzWindow::Draw()
   mGLw->updateGL();
 }
 
+static char *toggleTips[] = {
+  "Toggle between regular and high-resolution (interpolated) image"};
+
+// Make the two bitmaps, add the toggle button to the tool bar, and add
+// it to the signal mapper
+void XyzWindow::setupToggleButton(HotToolBar *toolBar, QSignalMapper *mapper, 
+                           int ind)
+{
+  if (firstTime) {
+    bitmaps[ind][0] = new QBitmap(BM_WIDTH, BM_HEIGHT, bitList[ind][0], true);
+    bitmaps[ind][1] = new QBitmap(BM_WIDTH, BM_HEIGHT, bitList[ind][1], true);
+  }
+  mToggleButs[ind] = new QToolButton(toolBar, "toolbar toggle");
+  mToggleButs[ind]->setPixmap(*bitmaps[ind][0]);
+  mToggleButs[ind]->setAutoRaise(AUTO_RAISE);
+  mapper->setMapping(mToggleButs[ind],ind);
+  connect(mToggleButs[ind], SIGNAL(clicked()), mapper, SLOT(map()));
+  mToggleStates[ind] = 0;
+  QToolTip::add(mToggleButs[ind], QString(toggleTips[ind]));
+}
+
+void XyzWindow::stateToggled(int index, int state)
+{
+  int time;
+  setControlAndLimits(mXyz->vi, mXyz->ctrl, mXyz->recordSubarea);
+  switch (index) {
+  case XYZ_TOGGLE_RESOL:
+    mXyz->hq = state;
+    Draw();
+    break;
+  }
+}
+
+
+// One of toggle buttons needs to change state
+void XyzWindow::toggleClicked(int index)
+{
+  int state = 1 - mToggleStates[index];
+  mToggleStates[index] = state; 
+  mToggleButs[index]->setPixmap(*bitmaps[index][state]);
+  stateToggled(index, state);
+}
+
 
 // Key handler
 void XyzWindow::keyPressEvent ( QKeyEvent * event )
@@ -1552,9 +1672,9 @@ void XyzWindow::keyPressEvent ( QKeyEvent * event )
 
   case Qt::Key_R:
     if (!ctrl) {
-      xx->hq = 1 - xx->hq;
+      toggleClicked(XYZ_TOGGLE_RESOL);
+      //xx->hq = 1 - xx->hq;
       wprint("\aHigh-resolution mode %s\n", xx->hq ? "ON" : "OFF");
-      Draw();
     } else
       handled = 0;
     break;
@@ -1742,6 +1862,9 @@ void XyzGL::mouseMoveEvent( QMouseEvent * event )
 
 /*
 $Log$
+Revision 4.33  2007/06/08 04:52:55  mast
+Added protection for planar open contours
+
 Revision 4.32  2006/10/11 20:13:24  mast
 Reject mouse event if window closing from escape
 

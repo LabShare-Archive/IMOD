@@ -30,6 +30,13 @@ struct Mod_object;
 struct Mod_contour;
 class XyzWindow;
 class XyzGL;
+class HotToolBar;
+class QLabel;
+class QToolButton;
+class QSignalMapper;
+class ToolEdit;
+
+#define NUM_TOOLBUTTONS 1
 
 struct xxyzwin
 {
@@ -58,6 +65,7 @@ struct xxyzwin
   int whichbox;           /* box that left mouse button went down in */
   int project;            /* Flag to project current contour into planes */
   int mousemode;          /* Current mode for cursor */
+  int recordSubarea;  /* Record the subarea on the next draw */
 };
 
 
@@ -72,6 +80,7 @@ class XyzWindow : public QMainWindow
   ~XyzWindow() {};
 
   XyzGL *mGLw;
+  HotToolBar *mToolBar;
   void Draw();
   int Getxyz(int x, int y, float *mx, float *my, int *mz);
   void B1Press(int x, int y);
@@ -92,6 +101,13 @@ class XyzWindow : public QMainWindow
   void DrawCurrentLines();
   void keyPressPassedOn ( QKeyEvent * e ) {keyPressEvent(e);};
   void SetCursor(int mode);
+  
+  public slots:
+    void toggleClicked(int index);
+    void toolKeyPress(QKeyEvent *e) {keyPressEvent(e);};
+    void toolKeyRelease(QKeyEvent *e) {keyReleaseEvent(e);};
+    void zoomUp();
+    void zoomDown();
 
  protected:
   void keyPressEvent ( QKeyEvent * e );
@@ -99,8 +115,14 @@ class XyzWindow : public QMainWindow
 
 
  private:
-
   struct xxyzwin *mXyz;
+  QLabel *mSizeLabel;
+  QToolButton *mToggleButs[NUM_TOOLBUTTONS];
+  int mToggleStates[NUM_TOOLBUTTONS];
+  ToolEdit *mZoomEdit;
+  void StateToggled(int index, int state);
+  void setupToggleButton(HotToolBar *toolBar, QSignalMapper *mapper, int index);
+  void stateToggled(int index, int state);
 };
 
 class XyzGL : public QGLWidget
@@ -132,6 +154,9 @@ void xyzPixelViewState(bool state);
 
 /*
 $Log$
+Revision 3.7  2006/10/11 20:13:32  mast
+Added closing flag
+
 Revision 3.6  2006/09/17 18:15:59  mast
 Changes to provide mouse position to pixelview
 
