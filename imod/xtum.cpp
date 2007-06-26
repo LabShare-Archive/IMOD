@@ -29,7 +29,6 @@
 #include "preferences.h"
 #include "dia_qtutils.h"
 #include "control.h"
-#include "win_support.h"
 
 #include "imod.h"
 #include "sslice.h"
@@ -43,6 +42,8 @@
 #include "lock.bits"
 #include "unlock.bits"
 
+#define BM_WIDTH 16
+#define BM_HEIGHT 16
 #define XTUM_WIDTH 200
 #define XTUM_HEIGHT 250
 #define XTUM_SIZE_MIN 8
@@ -1256,6 +1257,9 @@ void TumblerGL::paintGL()
 
 /*
 $Log$
+Revision 4.26  2007/06/26 17:05:18  sueh
+bug# 1021 Moved BM_HEIGHT and _WIDTH to win_support.
+
 Revision 4.25  2007/05/29 16:13:12  mast
 Fix stupid bug
 

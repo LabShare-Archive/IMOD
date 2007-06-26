@@ -72,8 +72,7 @@ HEADERS	+= autox.h \
 	pegged.xpm \
 	unpegged.xpm \
 	b3dicon.xpm \
-	iirawimage.h \
-	win_support.h
+	iirawimage.h
 
 SOURCES	+= autox.cpp \
 	b3dfile.c \
@@ -132,8 +131,7 @@ SOURCES	+= autox.cpp \
 	imod_assistant.cpp \
 	iiqimage.cpp \
 	iirawimage.cpp \
-	finegrain.cpp \
-	win_support.cpp
+	finegrain.cpp
 
 FORMS	= form_object_edit.ui \
 	formv_control.ui \

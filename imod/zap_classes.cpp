@@ -29,8 +29,9 @@
 #include "arrowbutton.h"
 #include "dia_qtutils.h"
 #include "preferences.h"
-#include "win_support.h"
 
+#define BM_WIDTH 16
+#define BM_HEIGHT 16
 #define AUTO_RAISE true
 #define MIN_SLIDER_WIDTH 20
 #define MAX_SLIDER_WIDTH 100
@@ -437,6 +438,9 @@ void ZapGL::mouseMoveEvent ( QMouseEvent * e )
 
 /*
 $Log$
+Revision 4.21  2007/06/26 17:08:54  sueh
+bug# 1021 Moved BM_HEIGHT and _WIDTH to win_support.
+
 Revision 4.20  2007/05/31 16:23:10  mast
 Changes for using hot toolbar
 

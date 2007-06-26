@@ -44,8 +44,9 @@
 #include "dia_qtutils.h"
 #include "preferences.h"
 #include "sliceproc.h"
-#include "win_support.h"
 
+#define BM_WIDTH 16
+#define BM_HEIGHT 16
 #define AUTO_RAISE true
 
 #define MAX_THREADS 16
@@ -1701,6 +1702,9 @@ static int taper_slice(Islice *sl, int ntaper, int inside)
 
  /*
 $Log$
+Revision 4.21  2007/06/26 17:04:53  sueh
+bug# 1021 Moved BM_HEIGHT and _WIDTH to win_support.
+
 Revision 4.20  2007/06/15 21:19:54  mast
 Added shift lock toolbar botton
 

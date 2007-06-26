@@ -39,13 +39,14 @@
 #include "b3dgfx.h"
 #include "control.h"
 #include "preferences.h"
-#include "win_support.h"
 
 #include "lowres.bits"
 #include "highres.bits"
 #include "lock.bits"
 #include "unlock.bits"
 
+#define BM_WIDTH 16
+#define BM_HEIGHT 16
 #define XGRAPH_WIDTH 320
 #define XGRAPH_HEIGHT 160
 #define AUTO_RAISE true
@@ -1003,6 +1004,9 @@ static void makeBoundaryPoint(Ipoint pt1, Ipoint pt2, int ix1, int ix2,
 
 /*
     $Log$
+    Revision 4.10  2007/06/26 17:05:07  sueh
+    bug# 1021 Moved BM_HEIGHT and _WIDTH to win_support.
+
     Revision 4.9  2007/03/29 04:55:49  mast
     Fixed crash bug when closing window while focus is in edit/spinbox
 
