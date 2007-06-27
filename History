@@ -1,5 +1,7 @@
 IMOD History
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+6/27/07: Increased point limit in solvematch to 10000.
+
 6/21/07: Converted Tilt to PIP input without having to retain old code by 
 torturing PIP into accepting a few odd things.
 
