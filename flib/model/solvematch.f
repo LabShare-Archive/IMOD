@@ -17,7 +17,7 @@ c
       include 'statsize.inc'
       include 'model.inc'
       integer idim
-      parameter (idim=1000)
+      parameter (idim=10000)
       real*4 xr(msiz,idim)
       real*4 pnta(3,idim),pntb(3,idim),a(3,4),dxyz(3),devxyz(3)
       real*4 devxyzmax(3),orig(3,2),ptrot(3),cenloc(3),aloc(3,4),dxyzloc(3)
@@ -565,6 +565,8 @@ c           print *,(nxyz(i,model),i=1,3)
             do ip=1,npt_in_obj(iobj)
               ipt=abs(object(ibase_obj(iobj)+ip))
               nmodpt=nmodpt+1
+              if (ndat + nmodpt .gt. idim) call exitError(
+     &            'TOO MANY POINTS FOR ARRAYS')
               xr(1+iofs,ndat+nmodpt)=(p_coord(1,ipt)-xofs)/ximscale
      &            - 0.5*nxyz(1,model)
               xr(2+iofs,ndat+nmodpt)=(p_coord(2,ipt)-yofs)/yimscale
@@ -1212,6 +1214,10 @@ c
 
 c
 c       $Log$
+c       Revision 3.17  2007/03/19 19:57:15  mast
+c       Swicthed from a center fit to applying global transform to center points
+c       so it won't screw up if center points are on one surface
+c
 c       Revision 3.16  2006/08/23 23:42:32  mast
 c       Added local fitting and center shift assessment and fixed output of
 c       list of points in B being used
