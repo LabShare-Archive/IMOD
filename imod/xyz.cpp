@@ -23,6 +23,7 @@
 #include <qsignalmapper.h>
 #include <qtooltip.h>
 #include <qbitmap.h>
+#include <qslider.h>
 
 #include "imod.h"
 #include "xxyz.h"
@@ -44,6 +45,8 @@
 #include "finegrain.h"
 #include "arrowbutton.h"
 #include "tooledit.h"
+#include "imod_model_edit.h"
+#include "dia_qtutils.h"
 
 #include "lowres.bits"
 #include "highres.bits"
@@ -55,12 +58,13 @@
 #define GRAB_WIDTH 3
 #define AUTO_RAISE false
 #define XYZ_TOGGLE_RESOL 0
+#define MAX_SLIDER_WIDTH 100
+#define MIN_SLIDER_WIDTH 20
 
 static unsigned char *bitList[NUM_TOOLBUTTONS][2] =
   { {lowres_bits, highres_bits}};
 
 static QBitmap *bitmaps[NUM_TOOLBUTTONS][2];
-static int firstTime = 1;
 
 /*************************** internal functions ***************************/
 static void xyzKey_cb(ImodView *vi, void *client, int released, QKeyEvent *e);
@@ -73,6 +77,8 @@ static struct xxyzwin *XYZ = NULL;
 static QTime but1downt;
 static int xyzShowSlice = 0;
 static bool pixelViewOpen = false;
+static int insertDown = 0;
+static QTime insertTime;
 
 /* routine for opening or raising the window */
 int xxyz_open(ImodView *vi)
@@ -228,6 +234,9 @@ XyzWindow::XyzWindow(struct xxyzwin *xyz, bool rgba, bool doubleBuffer,
   : QMainWindow(parent, name, f)
 {
   mXyz = xyz;
+  mSecPressed = false;
+  mCtrlPressed = false;
+  mDisplayedSection = -1;
   
     // Get the toolbar, add zoom arrows
   mToolBar = new HotToolBar(this, "xyz toolbar");
@@ -264,7 +273,24 @@ XyzWindow::XyzWindow(struct xxyzwin *xyz, bool rgba, bool doubleBuffer,
   for (j = 0; j < NUM_TOOLBUTTONS; j++)
     setupToggleButton(mToolBar, toggleMapper, j);
 
-  firstTime = 0;
+  // Section slider
+  QLabel *label = new QLabel("Z", mToolBar);
+  label->setAlignment(Qt::AlignRight | Qt::AlignVCenter);
+  mSecSlider = new QSlider(1, xyz->vi->zsize, 1, 1, Qt::Horizontal, mToolBar,
+        "section slider");
+
+  QSize hint = mSecSlider->minimumSizeHint();
+  /* fprintf(stderr, "minimum slider size %d minimum hint size %d\n", 
+     mSecSlider->minimumWidth(), hint.width()); */
+  int swidth = xyz->vi->zsize < MAX_SLIDER_WIDTH ? 
+    xyz->vi->zsize : MAX_SLIDER_WIDTH;
+  swidth = swidth > MIN_SLIDER_WIDTH ? swidth : MIN_SLIDER_WIDTH;
+  mSecSlider->setFixedWidth(swidth + hint.width() + 5);
+  connect(mSecSlider, SIGNAL(valueChanged(int)), this, 
+    SLOT(sliderChanged(int)));
+  connect(mSecSlider, SIGNAL(sliderPressed()), this, SLOT(secPressed()));
+  connect(mSecSlider, SIGNAL(sliderReleased()), this, SLOT(secReleased()));
+  QToolTip::add(mSecSlider, "Select or riffle through sections");
   
   QGLFormat glFormat;
   glFormat.setRgba(rgba);
@@ -275,6 +301,7 @@ XyzWindow::XyzWindow(struct xxyzwin *xyz, bool rgba, bool doubleBuffer,
   // Set it as main widget, set focus
   setCentralWidget(mGLw);
   setFocusPolicy(QWidget::StrongFocus);
+  insertTime.start();
 }
 
 // Whan a close event comes in, tell control to remove window, clean up
@@ -893,6 +920,43 @@ void XyzWindow::setZoomText(float zoom)
   if (str.endsWith("00"))
     str.truncate(str.length() - 2);
   mZoomEdit->setText(str);
+}
+
+void XyzWindow::sliderChanged(int value)
+{
+    if (!mSecPressed || (hotSliderFlag() == HOT_SLIDER_KEYDOWN && mCtrlPressed)
+        || (hotSliderFlag() == HOT_SLIDER_KEYUP && !mCtrlPressed))
+      enteredSection(value);
+    else
+      mDisplayedSection = value;
+}
+
+void XyzWindow::setSlider(int section)
+{
+  if (mDisplayedSection == section)
+    return;
+  diaSetSlider(mSecSlider, section);
+  mDisplayedSection = section;
+}
+
+void XyzWindow::secPressed()
+{
+  mSecPressed = true;
+}
+
+void XyzWindow::secReleased()
+{
+  mSecPressed = false;
+  enteredSection(mDisplayedSection);
+}
+
+void XyzWindow::enteredSection(int sec)
+{
+  setControlAndLimits();
+  mXyz->vi->zmouse = sec-1;
+  ivwBindMouse(mXyz->vi);
+  imodDraw(mXyz->vi, IMOD_DRAW_XYZ);
+  mXyz->dialog->setFocus();
 }
 
 
@@ -1626,10 +1690,8 @@ static char *toggleTips[] = {
 void XyzWindow::setupToggleButton(HotToolBar *toolBar, QSignalMapper *mapper, 
                            int ind)
 {
-  if (firstTime) {
-    bitmaps[ind][0] = new QBitmap(BM_WIDTH, BM_HEIGHT, bitList[ind][0], true);
-    bitmaps[ind][1] = new QBitmap(BM_WIDTH, BM_HEIGHT, bitList[ind][1], true);
-  }
+  bitmaps[ind][0] = new QBitmap(BM_WIDTH, BM_HEIGHT, bitList[ind][0], true);
+  bitmaps[ind][1] = new QBitmap(BM_WIDTH, BM_HEIGHT, bitList[ind][1], true);
   mToggleButs[ind] = new QToolButton(toolBar, "toolbar toggle");
   mToggleButs[ind]->setPixmap(*bitmaps[ind][0]);
   mToggleButs[ind]->setAutoRaise(AUTO_RAISE);
@@ -1661,16 +1723,48 @@ void XyzWindow::toggleClicked(int index)
   stateToggled(index, state);
 }
 
+void XyzWindow::keyReleaseEvent (QKeyEvent * e )
+{
+  if (e->key() == hotSliderKey()) {
+    mCtrlPressed = false;
+    releaseKeyboard();
+  }
+  keyRelease(e);
+}
+
+void XyzWindow::keyRelease(QKeyEvent *event)
+{
+  /*  imodPrintStderr ("%d down\n", downtime.elapsed()); */
+  if (!insertDown || !(event->state() & Qt::Keypad) ||
+      (event->key() != Qt::Key_Insert && event->key() != Qt::Key_0))
+    return;
+  insertDown = 0;
+  mXyz->glw->setMouseTracking(pixelViewOpen);
+  releaseKeyboard();
+  mXyz->glw->releaseMouse();
+  if (mXyz->drawCurrentOnly) {
+    mXyz->drawCurrentOnly = 0;
+    Draw();
+  }
+}
 
 // Key handler
 void XyzWindow::keyPressEvent ( QKeyEvent * event )
 {
+  if (hotSliderFlag() != NO_HOT_SLIDER && event->key() == hotSliderKey()) {
+    mCtrlPressed = true;
+    grabKeyboard();
+  }
   struct xxyzwin *xx = mXyz;
-  struct ViewInfo *vi = xx->vi;
+  struct ViewInfo *vi = xx->vi; 
+  Imod *imod = vi->imod;
 
   int keysym = event->key();
   int shifted = event->state() & Qt::ShiftButton;
   int ctrl = event->state() & Qt::ControlButton;
+  
+  int ix, iy, rx;
+  int keypad = event->state() & Qt::Keypad;
 
   if (inputTestMetaKey(event))
     return;
@@ -1724,6 +1818,38 @@ void XyzWindow::keyPressEvent ( QKeyEvent * event )
 
   case Qt::Key_Escape:
     close();
+    break;
+    
+        /* DNM: Keypad Insert key, alternative to middle mouse button */
+  case Qt::Key_Insert:
+  
+    /* But skip out if in movie mode or already active */
+    if (!keypad || imod->mousemode == IMOD_MMOVIE || insertDown)
+      handled = 0;
+      break;
+
+    // It wouldn't work going to a QPoint and accessing it, so do it in shot!
+    ix = (xx->glw->mapFromGlobal(QCursor::pos())).x();
+    iy = (xx->glw->mapFromGlobal(QCursor::pos())).y();
+
+    // Set a flag, set continuous tracking, grab keyboard and mouse
+    insertDown = 1;
+    xx->glw->setMouseTracking(true);
+    grabKeyboard();
+    xx->glw->grabMouse();
+
+    /* Use time since last event to determine whether to treat like
+       single click or drag */
+    rx = insertTime.elapsed();
+    insertTime.restart();
+    imodPrintStderr(" %d %d %d\n ", rx, ix, iy);
+    if(rx > 250)
+      B2Press(ix, iy);
+    else
+      B2Drag(ix, iy); 
+
+    xx->lmx = ix;
+    xx->lmy = iy;
     break;
 
   default:
@@ -1806,6 +1932,7 @@ void XyzGL::drawTools()
     mXyz->toolZoom = mXyz->zoom;
     mXyz->dialog->setZoomText(mXyz->zoom);
   }
+  mWin->setSlider(B3DNINT(mXyz->vi->zmouse));
 }
 
 
@@ -1890,6 +2017,8 @@ void XyzGL::mouseMoveEvent( QMouseEvent * event )
   button1 = event->state() & ImodPrefs->actualButton(1) ? 1 : 0;
   button2 = event->state() & ImodPrefs->actualButton(2) ? 1 : 0;
   button3 = event->state() & ImodPrefs->actualButton(3) ? 1 : 0;
+  
+  button2 = button2 || insertDown ? 1 : 0;
 
   if ( (button1) && (!button2) && (!button3) && but1downt.elapsed() > 250)
     mWin->B1Drag(event->x(), event->y());
@@ -1904,6 +2033,10 @@ void XyzGL::mouseMoveEvent( QMouseEvent * event )
 
 /*
 $Log$
+Revision 4.35  2007/06/26 21:57:43  sueh
+bug# 1021 Removed win_support.  Added functions for zooming and the
+zoom edit box.
+
 Revision 4.34  2007/06/26 17:07:29  sueh
 bug# 1021 Added a button toolbar with a high-resolution button and zoom
 arrows.

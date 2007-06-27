@@ -35,6 +35,7 @@ class QLabel;
 class QToolButton;
 class QSignalMapper;
 class ToolEdit;
+class QSlider;
 
 #define NUM_TOOLBUTTONS 1
 
@@ -66,6 +67,7 @@ struct xxyzwin
   int project;            /* Flag to project current contour into planes */
   int mousemode;          /* Current mode for cursor */
   float toolZoom;
+  int    drawCurrentOnly;
 };
 
 
@@ -102,6 +104,7 @@ class XyzWindow : public QMainWindow
   void keyPressPassedOn ( QKeyEvent * e ) {keyPressEvent(e);};
   void SetCursor(int mode);
   void setZoomText(float zoom);
+  void setSlider(int section);
     
   public slots:
     void toggleClicked(int index);
@@ -110,24 +113,34 @@ class XyzWindow : public QMainWindow
     void zoomUp();
     void zoomDown();
     void newZoom();
+    void sliderChanged(int value);
+    void secPressed();
+    void secReleased();
 
  protected:
   void keyPressEvent ( QKeyEvent * e );
   void closeEvent ( QCloseEvent * e );
+  void keyReleaseEvent ( QKeyEvent * e );
 
  private:
   struct xxyzwin *mXyz;
-  
   QLabel *mSizeLabel;
   QToolButton *mToggleButs[NUM_TOOLBUTTONS];
   int mToggleStates[NUM_TOOLBUTTONS];
   ToolEdit *mZoomEdit;
+  QSlider *mSecSlider;
+  bool mCtrlPressed;
+  int mDisplayedSection;
+  bool mSecPressed;
   void StateToggled(int index, int state);
   void setupToggleButton(HotToolBar *toolBar, QSignalMapper *mapper, int index);
   void stateToggled(int index, int state);
   void enteredZoom(float newZoom);
   void setControlAndLimits();
   void stepZoom(int step);
+  void enteredSection(int sec);
+  void keyRelease(QKeyEvent *event);
+  void setSectionText(int section);
 };
 
 class XyzGL : public QGLWidget
@@ -160,6 +173,11 @@ void xyzPixelViewState(bool state);
 
 /*
 $Log$
+Revision 3.9  2007/06/26 21:57:10  sueh
+bug# 1021 Removed win_support.  Added functions for zooming and the
+zoom edit box.  Removed unnecessary variable from XyzStruct -
+recordSubarea.
+
 Revision 3.8  2007/06/26 17:07:11  sueh
 bug# 1021 Added a button toolbar with a high-resolution button and zoom
 arrows.
