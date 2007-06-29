@@ -33,6 +33,9 @@ $Date$
 $Revision$
 
 $Log$
+Revision 1.3  2004/11/21 05:52:45  mast
+Fixed to prevent two signals on middle mouse click
+
 Revision 1.2  2003/02/10 20:51:22  mast
 Merge Qt source
 
@@ -82,21 +85,24 @@ static char *deciFormats[MAX_DECIMALS + 1] = {"%d", "%.1f", "%.2f", "%.3f",
 					      "%.4f", "%.5f", "%.6f"};
 
 MultiSlider::MultiSlider(QWidget *parent, int numSliders, char *titles[], 
-                         int minVal, int maxVal, int decimals)
+                         int minVal, int maxVal, int decimals, bool horizontal)
 {
-  QVBoxLayout *layOuter;
+  mHorizontal = horizontal;
+  QBoxLayout *layOuter;
   QHBoxLayout *layInner;
   QString str;
   QLabel *titleLabel;
   int i;
-
   // Get arrays for sliders, labels, and pressed flags
   mSliders = new QSlider* [numSliders];
   mPressed = new bool[numSliders];
   mLabels = new QLabel* [numSliders];
   mDecimals = new int [numSliders];
   mNumSliders = numSliders;
-  mBigLayout = new QVBoxLayout(NULL, 0, 10, "multislider big");
+  QBoxLayout::Direction dir = mHorizontal ? QBoxLayout::LeftToRight :
+                              QBoxLayout::TopToBottom;
+  int spacing = mHorizontal ? 2 : 0;
+  mBigLayout = new QBoxLayout(NULL, dir, 0, 10, "multislider big");
 
   // Get signal mappers and connect them to slots
   QSignalMapper *activeMapper = new QSignalMapper(parent);
@@ -111,25 +117,31 @@ MultiSlider::MultiSlider(QWidget *parent, int numSliders, char *titles[],
   for (i = 0; i < numSliders; i++) {
 
     // Make outer layout and slider, add slider to layout
-    layOuter = new QVBoxLayout(0, 0, -1);
+    layOuter = new QBoxLayout(0, dir, spacing, -1);
+    str = titles[i];
+    titleLabel = new QLabel(str, parent);
+    titleLabel->setAlignment(Qt::AlignTop | Qt::AlignLeft);
+    if (horizontal) {
+      layOuter->addWidget(titleLabel);
+    }
     mSliders[i] = new QSlider(minVal, maxVal, 1, minVal, Qt::Horizontal,
                               parent);
     mSliders[i]->setFocusPolicy(QSlider::NoFocus);
     layOuter->addWidget(mSliders[i]);
-
-    // Make inner layout, title, and value label
-    layInner = new QHBoxLayout(0, 0, 6);
-    str = titles[i];
-    titleLabel = new QLabel(str, parent);
-    titleLabel->setAlignment(Qt::AlignTop | Qt::AlignLeft);
-    layInner->addWidget(titleLabel);
-    mLabels[i] = new QLabel("0", parent);
-    mLabels[i]->setAlignment(Qt::AlignTop | Qt::AlignRight);
-    layInner->addWidget(mLabels[i]);
-    layOuter->addLayout(layInner);
+    
+    if (!horizontal) {
+      // Make inner layout, title, and value label
+      layInner = new QHBoxLayout(0, 0, 6);
+      layInner->addWidget(titleLabel);
+      mLabels[i] = new QLabel("0", parent);
+      mLabels[i]->setAlignment(Qt::AlignTop | Qt::AlignRight);
+      layInner->addWidget(mLabels[i]);
+      layOuter->addLayout(layInner);
+      mDecimals[i] = decimals;
+    }
+    
     mBigLayout->addLayout(layOuter);
-    mDecimals[i] = decimals;
-
+    
     // Connect to the mappers and slot
     connect(mSliders[i], SIGNAL(valueChanged(int)), this, 
             SLOT(valueChanged(int)));
@@ -159,6 +171,11 @@ MultiSlider::~MultiSlider()
 // Set the number of decimals to display
 void MultiSlider::setDecimals(int slider, int decimals)
 {
+  /* fprintf(stderr, "setDecimals slider %d decimals %d mHorizontal %d\n", slider,
+          decimals, mHorizontal); */
+  if (mHorizontal) {
+    return;
+  }
   if (decimals < 0)
     decimals = 0;
   if (decimals > MAX_DECIMALS)
@@ -209,6 +226,11 @@ void MultiSlider::processChange()
 // Display the slider value
 void MultiSlider::displayValue(int slider, int value)
 {
+  /* fprintf(stderr, "displayValue slider %d value %d mHorizontal %d\n", slider,
+          value, mHorizontal); */
+  if (mHorizontal) {
+    return;
+  }
   QString str;
   int dec = mDecimals[slider];
   if (dec)
