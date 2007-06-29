@@ -12,6 +12,9 @@ $Date$
 $Revision$
 
 $Log$
+Revision 3.2  2004/06/04 02:57:28  mast
+Implement export/import macro for making libdiaqt be a DLL
+
 Revision 3.1  2003/02/10 20:57:02  mast
 Merge Qt source
 
@@ -32,7 +35,7 @@ Initial creation
 #include "dllexport.h"
 
 class QSlider;
-class QVBoxLayout;
+class QBoxLayout;
 class QLabel;
 
 class DLL_IM_EX MultiSlider : public QObject
@@ -41,13 +44,13 @@ class DLL_IM_EX MultiSlider : public QObject
 
  public:
   MultiSlider(QWidget *parent, int numSliders, char *titles[], int minVal = 0,
-              int maxVal = 255, int decimals = 0);
+              int maxVal = 255, int decimals = 0, bool horizontal = false);
   ~MultiSlider();
 
   void setValue(int slider, int value);
   void setRange(int slider, int minVal, int maxVal);
   QSlider *getSlider(int slider);
-  QVBoxLayout *getLayout() {return mBigLayout;};
+  QBoxLayout *getLayout() {return mBigLayout;};
   void setDecimals(int slider, int decimals);
 
  signals:
@@ -68,9 +71,10 @@ class DLL_IM_EX MultiSlider : public QObject
   int mNewValue;        // incoming new value
   int mActiveSlider;    // Slider that changed
   bool *mPressed;       // pressed flags
-  QVBoxLayout *mBigLayout;
+  QBoxLayout *mBigLayout;
   QSlider **mSliders;
   QLabel **mLabels;
   int *mDecimals;
+  bool mHorizontal;
 };
 #endif
