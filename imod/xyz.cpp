@@ -47,6 +47,7 @@
 #include "tooledit.h"
 #include "imod_model_edit.h"
 #include "dia_qtutils.h"
+#include "multislider.h"
 
 #include "lowres.bits"
 #include "highres.bits"
@@ -62,9 +63,12 @@
 #define MIN_SLIDER_WIDTH 20
 
 static unsigned char *bitList[NUM_TOOLBUTTONS][2] =
-  { {lowres_bits, highres_bits}};
+  {{lowres_bits, highres_bits}};
 
 static QBitmap *bitmaps[NUM_TOOLBUTTONS][2];
+
+static char *sliderLabels[] = {"X", "Y", "Z"};
+enum {X_COORD = 0, Y_COORD, Z_COORD};
 
 /*************************** internal functions ***************************/
 static void xyzKey_cb(ImodView *vi, void *client, int released, QKeyEvent *e);
@@ -234,9 +238,7 @@ XyzWindow::XyzWindow(struct xxyzwin *xyz, bool rgba, bool doubleBuffer,
   : QMainWindow(parent, name, f)
 {
   mXyz = xyz;
-  mSecPressed = false;
   mCtrlPressed = false;
-  mDisplayedSection = -1;
   
     // Get the toolbar, add zoom arrows
   mToolBar = new HotToolBar(this, "xyz toolbar");
@@ -273,24 +275,41 @@ XyzWindow::XyzWindow(struct xxyzwin *xyz, bool rgba, bool doubleBuffer,
   for (j = 0; j < NUM_TOOLBUTTONS; j++)
     setupToggleButton(mToolBar, toggleMapper, j);
 
-  // Section slider
-  QLabel *label = new QLabel("Z", mToolBar);
-  label->setAlignment(Qt::AlignRight | Qt::AlignVCenter);
-  mSecSlider = new QSlider(1, xyz->vi->zsize, 1, 1, Qt::Horizontal, mToolBar,
-        "section slider");
-
-  QSize hint = mSecSlider->minimumSizeHint();
-  /* fprintf(stderr, "minimum slider size %d minimum hint size %d\n", 
-     mSecSlider->minimumWidth(), hint.width()); */
-  int swidth = xyz->vi->zsize < MAX_SLIDER_WIDTH ? 
+  // Make a frame, put a layout in it, and then put multisliders in the layout
+  QFrame *sliderFrame = new QFrame(mToolBar);
+  QVBoxLayout *sliderLayout = new QVBoxLayout(sliderFrame);
+  mSliders = new MultiSlider(sliderFrame, NUM_AXIS, sliderLabels, 0,
+            255, 0, true);
+  sliderLayout->addLayout(mSliders->getLayout());  
+  connect(mSliders, SIGNAL(sliderChanged(int, int, bool)), this, 
+    SLOT(sliderChanged(int, int, bool)));
+    
+    // X slider
+  mSliders->setRange(X_COORD, 0, xyz->vi->xsize - 1);
+  int swidth = xyz->vi->xsize < MAX_SLIDER_WIDTH ? 
+    xyz->vi->xsize : MAX_SLIDER_WIDTH;
+  swidth = swidth > MIN_SLIDER_WIDTH ? swidth : MIN_SLIDER_WIDTH;
+  QSlider *slider = mSliders->getSlider(X_COORD);
+  QSize hint = slider->minimumSizeHint();
+  slider->setFixedWidth(swidth + hint.width() + 5);
+  
+  // Y slider
+  mSliders->setRange(Y_COORD, 0, xyz->vi->ysize - 1);
+  swidth = xyz->vi->ysize < MAX_SLIDER_WIDTH ? 
+    xyz->vi->ysize : MAX_SLIDER_WIDTH;
+  swidth = swidth > MIN_SLIDER_WIDTH ? swidth : MIN_SLIDER_WIDTH;
+  slider = mSliders->getSlider(Y_COORD);
+  hint = slider->minimumSizeHint();
+  slider->setFixedWidth(swidth + hint.width() + 5);
+    
+  // section slider
+  mSliders->setRange(Z_COORD, 0, xyz->vi->zsize - 1);
+  swidth = xyz->vi->zsize < MAX_SLIDER_WIDTH ? 
     xyz->vi->zsize : MAX_SLIDER_WIDTH;
   swidth = swidth > MIN_SLIDER_WIDTH ? swidth : MIN_SLIDER_WIDTH;
-  mSecSlider->setFixedWidth(swidth + hint.width() + 5);
-  connect(mSecSlider, SIGNAL(valueChanged(int)), this, 
-    SLOT(sliderChanged(int)));
-  connect(mSecSlider, SIGNAL(sliderPressed()), this, SLOT(secPressed()));
-  connect(mSecSlider, SIGNAL(sliderReleased()), this, SLOT(secReleased()));
-  QToolTip::add(mSecSlider, "Select or riffle through sections");
+  slider = mSliders->getSlider(Z_COORD);
+  hint = slider->minimumSizeHint();
+  slider->setFixedWidth(swidth + hint.width() + 5);
   
   QGLFormat glFormat;
   glFormat.setRgba(rgba);
@@ -922,38 +941,36 @@ void XyzWindow::setZoomText(float zoom)
   mZoomEdit->setText(str);
 }
 
-void XyzWindow::sliderChanged(int value)
-{
-    if (!mSecPressed || (hotSliderFlag() == HOT_SLIDER_KEYDOWN && mCtrlPressed)
+void XyzWindow::sliderChanged(int which, int value, bool dragging){
+    if (!dragging || (hotSliderFlag() == HOT_SLIDER_KEYDOWN && mCtrlPressed)
         || (hotSliderFlag() == HOT_SLIDER_KEYUP && !mCtrlPressed))
-      enteredSection(value);
+      enteredAxisLocation(which, value);
     else
-      mDisplayedSection = value;
+      mDisplayedAxisLocation[which] = value;
 }
 
-void XyzWindow::setSlider(int section)
+void XyzWindow::setSlider(int which, int section)
 {
-  if (mDisplayedSection == section)
+  if (mDisplayedAxisLocation[which] == section)
     return;
-  diaSetSlider(mSecSlider, section);
-  mDisplayedSection = section;
+  diaSetSlider(mSliders->getSlider(which), section);
+  mDisplayedAxisLocation[which] = section;
 }
 
-void XyzWindow::secPressed()
-{
-  mSecPressed = true;
-}
-
-void XyzWindow::secReleased()
-{
-  mSecPressed = false;
-  enteredSection(mDisplayedSection);
-}
-
-void XyzWindow::enteredSection(int sec)
+void XyzWindow::enteredAxisLocation(int which, int value)
 {
   setControlAndLimits();
-  mXyz->vi->zmouse = sec-1;
+  switch (which) {
+  case X_COORD:
+    mXyz->vi->xmouse = value;
+    break;
+  case Y_COORD:
+    mXyz->vi->ymouse = value;
+    break;
+  case Z_COORD:
+    mXyz->vi->zmouse = value;
+    break;
+  }
   ivwBindMouse(mXyz->vi);
   imodDraw(mXyz->vi, IMOD_DRAW_XYZ);
   mXyz->dialog->setFocus();
@@ -1932,7 +1949,9 @@ void XyzGL::drawTools()
     mXyz->toolZoom = mXyz->zoom;
     mXyz->dialog->setZoomText(mXyz->zoom);
   }
-  mWin->setSlider(B3DNINT(mXyz->vi->zmouse));
+  mWin->setSlider(X_COORD, B3DNINT(mXyz->vi->xmouse));
+  mWin->setSlider(Y_COORD, B3DNINT(mXyz->vi->ymouse));
+  mWin->setSlider(Z_COORD, B3DNINT(mXyz->vi->zmouse));
 }
 
 
@@ -2033,6 +2052,9 @@ void XyzGL::mouseMoveEvent( QMouseEvent * event )
 
 /*
 $Log$
+Revision 4.36  2007/06/27 21:57:40  sueh
+bug# 1021 Added slider.
+
 Revision 4.35  2007/06/26 21:57:43  sueh
 bug# 1021 Removed win_support.  Added functions for zooming and the
 zoom edit box.

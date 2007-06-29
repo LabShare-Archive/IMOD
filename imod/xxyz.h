@@ -36,8 +36,10 @@ class QToolButton;
 class QSignalMapper;
 class ToolEdit;
 class QSlider;
+class MultiSlider;
 
 #define NUM_TOOLBUTTONS 1
+#define NUM_AXIS 3
 
 struct xxyzwin
 {
@@ -67,7 +69,7 @@ struct xxyzwin
   int project;            /* Flag to project current contour into planes */
   int mousemode;          /* Current mode for cursor */
   float toolZoom;
-  int    drawCurrentOnly;
+  int drawCurrentOnly;
 };
 
 
@@ -104,7 +106,7 @@ class XyzWindow : public QMainWindow
   void keyPressPassedOn ( QKeyEvent * e ) {keyPressEvent(e);};
   void SetCursor(int mode);
   void setZoomText(float zoom);
-  void setSlider(int section);
+  void setSlider(int which, int section);
     
   public slots:
     void toggleClicked(int index);
@@ -113,9 +115,7 @@ class XyzWindow : public QMainWindow
     void zoomUp();
     void zoomDown();
     void newZoom();
-    void sliderChanged(int value);
-    void secPressed();
-    void secReleased();
+    void sliderChanged(int which, int value, bool dragging);
 
  protected:
   void keyPressEvent ( QKeyEvent * e );
@@ -128,19 +128,17 @@ class XyzWindow : public QMainWindow
   QToolButton *mToggleButs[NUM_TOOLBUTTONS];
   int mToggleStates[NUM_TOOLBUTTONS];
   ToolEdit *mZoomEdit;
-  QSlider *mSecSlider;
   bool mCtrlPressed;
-  int mDisplayedSection;
-  bool mSecPressed;
+  int mDisplayedAxisLocation[NUM_AXIS];
+  MultiSlider *mSliders;
   void StateToggled(int index, int state);
   void setupToggleButton(HotToolBar *toolBar, QSignalMapper *mapper, int index);
   void stateToggled(int index, int state);
   void enteredZoom(float newZoom);
   void setControlAndLimits();
   void stepZoom(int step);
-  void enteredSection(int sec);
   void keyRelease(QKeyEvent *event);
-  void setSectionText(int section);
+  void enteredAxisLocation(int which, int value);
 };
 
 class XyzGL : public QGLWidget
@@ -173,6 +171,9 @@ void xyzPixelViewState(bool state);
 
 /*
 $Log$
+Revision 3.10  2007/06/27 21:53:21  sueh
+bug# 1021 Added slider.
+
 Revision 3.9  2007/06/26 21:57:10  sueh
 bug# 1021 Removed win_support.  Added functions for zooming and the
 zoom edit box.  Removed unnecessary variable from XyzStruct -
