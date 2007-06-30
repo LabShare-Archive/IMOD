@@ -3,66 +3,17 @@
  *  multislider.cpp       Implementation of class multiple horizontal sliders
  *
  *  Author: David Mastronarde   email: mast@colorado.edu
- */
-
-/*****************************************************************************
- *   Copyright (C) 1995-2002 by Boulder Laboratory for 3-Dimensional         *
- *   Electron Microscopy of Cells ("BL3DEMC") and the Regents of the         *
- *   University of Colorado.                                                 *
- *                                                                           *
- *   BL3DEMC reserves the exclusive rights of preparing derivative works,    *
- *   distributing copies for sale, lease or lending and displaying this      *
- *   software and documentation.                                             *
- *   Users may reproduce the software and documentation as long as the       *
- *   copyright notice and other notices are preserved.                       *
- *   Neither the software nor the documentation may be distributed for       *
- *   profit, either in original form or in derivative works.                 *
- *                                                                           *
- *   THIS SOFTWARE AND/OR DOCUMENTATION IS PROVIDED WITH NO WARRANTY,        *
- *   EXPRESS OR IMPLIED, INCLUDING, WITHOUT LIMITATION, WARRANTY OF          *
- *   MERCHANTABILITY AND WARRANTY OF FITNESS FOR A PARTICULAR PURPOSE.       *
- *                                                                           *
- *   This work is supported by NIH biotechnology grant #RR00592,             *
- *   for the Boulder Laboratory for 3-Dimensional EM of Cells.               *
- *   University of Colorado, MCDB Box 347, Boulder, CO 80309                 *
- *****************************************************************************/
-/*  $Author$
-
-$Date$
-
-$Revision$
-
-$Log$
-Revision 1.3  2004/11/21 05:52:45  mast
-Fixed to prevent two signals on middle mouse click
-
-Revision 1.2  2003/02/10 20:51:22  mast
-Merge Qt source
-
-Revision 1.1.2.1  2003/01/26 20:35:41  mast
-adding as library file
-
-Revision 1.1.2.7  2003/01/18 20:44:26  mast
-resolve some more.  Hate cvs merges!
-
-Revision 1.1.2.6  2003/01/18 20:43:50  mast
-resolve merge conflict
-
-Revision 1.1.2.5  2003/01/14 21:45:48  mast
-fix format for 2-decimal case, block signals when setting range
-
-Revision 1.1.2.4  2003/01/01 05:39:50  mast
-add decimal point capability for value output
-
-Revision 1.1.2.3  2002/12/29 04:21:22  mast
-correct delete statements
-
-Revision 1.1.2.2  2002/12/27 17:50:50  mast
-change statements for getting pointer arrays to make SGI compiler happy
-
-Revision 1.1.2.1  2002/12/27 01:19:47  mast
-Initial creation
-
+ *
+ *  Copyright (C) 1995-2007 by Boulder Laboratory for 3-Dimensional Electron
+ *  Microscopy of Cells ("BL3DEMC") and the Regents of the University of 
+ *  Colorado.  See dist/COPYRIGHT for full copyright notice.
+ * 
+ *  $Id$
+ * $Author$
+ * $Date$
+ * $Revision$
+ * 
+ *  Log at end of file
 */
 
 /* This class provides an arbitrary number of horizontal sliders, each with
@@ -262,3 +213,38 @@ void MultiSlider::sliderReleased(int which)
   mPressed[which] = false;
   emit sliderChanged(which, mSliders[which]->value(), false);
 }
+/*
+$Log$
+Revision 1.4  2007/06/29 21:08:27  sueh
+bug# 1021 Allow horizontal, one-line slider lists.
+
+Revision 1.3  2004/11/21 05:52:45  mast
+Fixed to prevent two signals on middle mouse click
+
+Revision 1.2  2003/02/10 20:51:22  mast
+Merge Qt source
+
+Revision 1.1.2.1  2003/01/26 20:35:41  mast
+adding as library file
+
+Revision 1.1.2.7  2003/01/18 20:44:26  mast
+resolve some more.  Hate cvs merges!
+
+Revision 1.1.2.6  2003/01/18 20:43:50  mast
+resolve merge conflict
+
+Revision 1.1.2.5  2003/01/14 21:45:48  mast
+fix format for 2-decimal case, block signals when setting range
+
+Revision 1.1.2.4  2003/01/01 05:39:50  mast
+add decimal point capability for value output
+
+Revision 1.1.2.3  2002/12/29 04:21:22  mast
+correct delete statements
+
+Revision 1.1.2.2  2002/12/27 17:50:50  mast
+change statements for getting pointer arrays to make SGI compiler happy
+
+Revision 1.1.2.1  2002/12/27 01:19:47  mast
+Initial creation
+*/
