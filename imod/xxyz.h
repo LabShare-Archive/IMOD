@@ -70,6 +70,9 @@ struct xxyzwin
   int mousemode;          /* Current mode for cursor */
   float toolZoom;
   int drawCurrentOnly;
+  int toolMaxX;
+  int toolMaxY;
+  int toolMaxZ;
 };
 
 
@@ -107,6 +110,7 @@ class XyzWindow : public QMainWindow
   void SetCursor(int mode);
   void setZoomText(float zoom);
   void setSlider(int which, int section);
+  void setMaxAxis(int which, int max);
     
   public slots:
     void toggleClicked(int index);
@@ -171,6 +175,10 @@ void xyzPixelViewState(bool state);
 
 /*
 $Log$
+Revision 3.11  2007/06/29 21:09:24  sueh
+bug# 1021 Replacing the Z slider with a multi-slider that shows X, Y, and
+Z sliders.
+
 Revision 3.10  2007/06/27 21:53:21  sueh
 bug# 1021 Added slider.
 

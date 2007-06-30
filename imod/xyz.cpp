@@ -118,6 +118,10 @@ int xxyz_open(ImodView *vi)
   xx->hq = 0;
   xx->project = 0;
   xx->mousemode = IMOD_MMOVIE;
+  xx->toolZoom = 0.0f;
+  xx->toolMaxX = vi->xsize;
+  xx->toolMaxY = vi->ysize;
+  xx->toolMaxZ = vi->zsize;
 
   while (xx->winx > deskWidth - 20 ||
          xx->winy > deskHeight - 40) {
@@ -149,6 +153,7 @@ int xxyz_open(ImodView *vi)
     xx->glw->setColormap(*(App->qColormap));
 
   xx->dialog->setCaption(imodCaption("3dmod XYZ Window"));
+  xx->dialog->mToolBar->setLabel(imodCaption("ZaP Toolbar"));
 
   xx->lx = xx->ly = xx->lz = xx->lastCacheSum -1;
   XYZ  = xx;
@@ -165,7 +170,7 @@ int xxyz_open(ImodView *vi)
     (glSize.height() > 0 ? glSize.height() : 0);
   xx->dialog->resize(xx->winx, newHeight);
 
-  imod_info_input();
+  imod_info_input();  
   xx->dialog->show();
   xx->dialog->SetCursor(vi->imod->mousemode);
   xx->glw->setMouseTracking(pixelViewOpen);
@@ -283,33 +288,12 @@ XyzWindow::XyzWindow(struct xxyzwin *xyz, bool rgba, bool doubleBuffer,
   sliderLayout->addLayout(mSliders->getLayout());  
   connect(mSliders, SIGNAL(sliderChanged(int, int, bool)), this, 
     SLOT(sliderChanged(int, int, bool)));
-    
-    // X slider
-  mSliders->setRange(X_COORD, 0, xyz->vi->xsize - 1);
-  int swidth = xyz->vi->xsize < MAX_SLIDER_WIDTH ? 
-    xyz->vi->xsize : MAX_SLIDER_WIDTH;
-  swidth = swidth > MIN_SLIDER_WIDTH ? swidth : MIN_SLIDER_WIDTH;
-  QSlider *slider = mSliders->getSlider(X_COORD);
-  QSize hint = slider->minimumSizeHint();
-  slider->setFixedWidth(swidth + hint.width() + 5);
+  setMaxAxis(X_COORD, xyz->vi->xsize - 1);
+  setMaxAxis(Y_COORD, xyz->vi->ysize - 1);
+  setMaxAxis(Z_COORD, xyz->vi->zsize - 1);
   
-  // Y slider
-  mSliders->setRange(Y_COORD, 0, xyz->vi->ysize - 1);
-  swidth = xyz->vi->ysize < MAX_SLIDER_WIDTH ? 
-    xyz->vi->ysize : MAX_SLIDER_WIDTH;
-  swidth = swidth > MIN_SLIDER_WIDTH ? swidth : MIN_SLIDER_WIDTH;
-  slider = mSliders->getSlider(Y_COORD);
-  hint = slider->minimumSizeHint();
-  slider->setFixedWidth(swidth + hint.width() + 5);
-    
-  // section slider
-  mSliders->setRange(Z_COORD, 0, xyz->vi->zsize - 1);
-  swidth = xyz->vi->zsize < MAX_SLIDER_WIDTH ? 
-    xyz->vi->zsize : MAX_SLIDER_WIDTH;
-  swidth = swidth > MIN_SLIDER_WIDTH ? swidth : MIN_SLIDER_WIDTH;
-  slider = mSliders->getSlider(Z_COORD);
-  hint = slider->minimumSizeHint();
-  slider->setFixedWidth(swidth + hint.width() + 5);
+  setDockEnabled(mToolBar, Left, FALSE );
+  setDockEnabled(mToolBar, Right, FALSE );
   
   QGLFormat glFormat;
   glFormat.setRgba(rgba);
@@ -359,6 +343,17 @@ void XyzWindow::SetCursor(int mode)
     else
       mGLw->unsetCursor();
   mXyz->mousemode = mode;
+}
+
+
+void XyzWindow::setMaxAxis(int which, int max)
+{
+  mSliders->setRange(which, 0, max - 1);
+  int swidth = max < MAX_SLIDER_WIDTH ? max : MAX_SLIDER_WIDTH;
+  swidth = swidth > MIN_SLIDER_WIDTH ? swidth : MIN_SLIDER_WIDTH;
+  QSlider *slider = mSliders->getSlider(which);
+  QSize hint = slider->minimumSizeHint();
+  slider->setFixedWidth(swidth + hint.width() + 5);
 }
 
 
@@ -1068,12 +1063,15 @@ void XyzWindow::DrawImage()
      offset */
   extraImSize = (int)floor((double)(3. * XYZ_BSIZE / win->zoom + 0.5));
   b3dSetImageOffset(win->winx, nx + nz + extraImSize, win->zoom, &drawsize,
-                    &win->xtrans, &win->xwoffset, &dataOffset);
+                    &win->xtrans, &win->xwoffset, &dataOffset);  
   if (dataOffset)
     win->xwoffset = -(int)floor((double)(dataOffset * win->zoom + 0.5));
 
   b3dSetImageOffset(win->winy, ny + nz + extraImSize, win->zoom, &drawsize,
                     &win->ytrans, &win->ywoffset, &dataOffset);
+  /*imodPrintStderr("nx + nz + extraImSize %d  drawsize %d  win->xtrans %d  win->xwoffset %d  dataOffset %d\n", nx + nz + extraImSize,
+    drawsize, win->xtrans, win->xwoffset, dataOffset);*/
+
   if (dataOffset)
     win->ywoffset = -(int)floor((double)(dataOffset * win->zoom + 0.5));
 
@@ -1088,16 +1086,19 @@ void XyzWindow::DrawImage()
   SetSubimage(win->ywoffset + sy + 2 * XYZ_BSIZE, win->winy, nz, 
 	      win->zoom, &height2, &wy2, &yoffset2);
 
-  /* imodPrintStderr("width1 %d  height1 %d  width2 %d  height2 %d\n", width1,
+   /*imodPrintStderr("width1 %d  height1 %d  width2 %d  height2 %d\n", width1,
      height1, width2, height2);
      imodPrintStderr("wx1 %d  xoffset1 %d  wy1 %d  yoffset1 %d\n", wx1,
-     xoffset1, wy1, yoffset1); */
+     xoffset1, wy1, yoffset1);*/
   if (width1 > 0 && height1 > 0) {
     win->lz = cz;
+    //draw XY view
     b3dDrawGreyScalePixelsHQ(id, nx,ny, xoffset1, yoffset1, wx1, wy1,
                              width1, height1, win->xydata,
                              win->vi->rampbase, win->zoom, win->zoom, 
                              win->hq, cz, App->rgba);
+    /*imodPrintStderr("nx %d  ny %d  xoffset1 %d  yoffset1 %d  wx1 %d  wy1 %d  width1 %d  height1 %d\n",
+     nx, ny, xoffset1, yoffset1, wx1, wy1, width1, height1);*/                           
   }
 
   // Send out a negative xslice or yslice if the data are being reloaded,
@@ -1129,6 +1130,7 @@ void XyzWindow::DrawImage()
         }
       }
     }
+    //draw yz view
     b3dDrawGreyScalePixelsHQ(ivwMakeLinePointers(win->vi, win->fdatayz, nz, ny,
                                                  MRC_MODE_BYTE), 
                              nz, ny, xoffset2, yoffset1,
@@ -1155,7 +1157,8 @@ void XyzWindow::DrawImage()
             fdata[i] = 0;
         }
       }
-    }       
+    }
+    //draw xz view      
     b3dDrawGreyScalePixelsHQ(ivwMakeLinePointers(win->vi, win->fdataxz, nx, nz,
                                                  MRC_MODE_BYTE),
                              nx, nz, xoffset1, yoffset2,
@@ -1200,9 +1203,13 @@ void XyzWindow::DrawCurrentLines()
   ceny = (int)(by2 + z * cz);
   xlim = (int)(bx2 + z * nz);
   ylim = (int)(by2 + z * nz);
+  //draw Z location X line
   b3dDrawLine(bx2, ceny, xlim, ceny);
+  //draw Z location Y line
   b3dDrawLine(cenx, by2, cenx, ylim);
+  //draw XY window box
   b3dDrawRectangle(bx - 1, by - 1, xsize + 1, ysize + 1);
+  /*imodPrintStderr("bx - 1 %d  xsize + 1 %d  xsize + 1 %d  ysize + 1 %d\n", bx - 1, xsize + 1, xsize + 1, ysize + 1);*/
 
   // Back off from edges and draw grab box
   if (cenx < bx2 +  hlen)
@@ -1213,6 +1220,7 @@ void XyzWindow::DrawCurrentLines()
     ceny = by2 +  hlen;
   if (ceny > ylim - hlen)
     ceny = ylim - hlen;
+  //draw Z location grad box
   b3dDrawFilledRectangle(cenx - hlen, ceny - hlen,
                          GRAB_LENGTH, GRAB_LENGTH);
 
@@ -1220,13 +1228,16 @@ void XyzWindow::DrawCurrentLines()
   b3dColorIndex(App->bgnpoint);
   cenx = (int)(bx + z * cx);
   ceny = (int)(by + z * ny + bpad);
+  //draw X location line
   b3dDrawLine(cenx, ceny, xlim, ceny);
+  //draw YZ window box
   b3dDrawRectangle(bx2 - 1, by - 1, zsize + 1, ysize + 1);
 
   if (cenx < bx +  hwidth)
     cenx = bx +  hwidth;
   if (cenx > bx2 - XYZ_BSIZE - hwidth)
     cenx = bx2 - XYZ_BSIZE - hwidth;
+  //draw grab box for X location
   b3dDrawFilledRectangle(cenx - hwidth, ceny - hlen,
                          GRAB_WIDTH, GRAB_LENGTH);
 
@@ -1234,13 +1245,16 @@ void XyzWindow::DrawCurrentLines()
   b3dColorIndex(App->endpoint);
   cenx = (int)(bx + z * nx + bpad);
   ceny = (int)(by + z * cy);
+  //draw Y location line
   b3dDrawLine(cenx, ylim, cenx, ceny);
+  //draw XZ window box
   b3dDrawRectangle(bx - 1, by2 - 1, xsize + 1, zsize + 1);
 
   if (ceny < by +  hwidth)
     ceny = by +  hwidth;
   if (ceny > by2 - XYZ_BSIZE - hwidth)
     ceny = by2 - XYZ_BSIZE - hwidth;
+  //draw grab box for Y location
   b3dDrawFilledRectangle(cenx - hlen, ceny - hwidth,
                          GRAB_LENGTH, GRAB_WIDTH);
   return;
@@ -1944,11 +1958,28 @@ void XyzGL::paintGL()
 
   // send a new value of section, zoom, or time label if it has changed
 void XyzGL::drawTools()
-{     
+{  
+  
+  if (mXyz->toolMaxX != mXyz->vi->xsize) {
+    mXyz->toolMaxX = mXyz->vi->xsize;
+    mXyz->dialog->setMaxAxis(X_COORD, mXyz->toolMaxX);
+  }
+  
+  if (mXyz->toolMaxY != mXyz->vi->ysize) {
+    mXyz->toolMaxY = mXyz->vi->ysize;
+    mXyz->dialog->setMaxAxis(Y_COORD, mXyz->toolMaxY);
+  }
+  
+  if (mXyz->toolMaxZ != mXyz->vi->zsize) {
+    mXyz->toolMaxZ = mXyz->vi->zsize;
+    mXyz->dialog->setMaxAxis(Z_COORD, mXyz->toolMaxZ);
+  }
+     
   if (mXyz->toolZoom != mXyz->zoom){
     mXyz->toolZoom = mXyz->zoom;
     mXyz->dialog->setZoomText(mXyz->zoom);
   }
+  
   mWin->setSlider(X_COORD, B3DNINT(mXyz->vi->xmouse));
   mWin->setSlider(Y_COORD, B3DNINT(mXyz->vi->ymouse));
   mWin->setSlider(Z_COORD, B3DNINT(mXyz->vi->zmouse));
@@ -2052,6 +2083,10 @@ void XyzGL::mouseMoveEvent( QMouseEvent * event )
 
 /*
 $Log$
+Revision 4.37  2007/06/29 21:09:35  sueh
+bug# 1021 Replacing the Z slider with a multi-slider that shows X, Y, and
+Z sliders.
+
 Revision 4.36  2007/06/27 21:57:40  sueh
 bug# 1021 Added slider.
 
