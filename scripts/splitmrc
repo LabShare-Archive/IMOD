@@ -2,6 +2,7 @@
 set pn = "splitmrc"
 @ maxsize = 650
 set equal = 0
+setenv LC_NUMERIC C
 
 set destdir = ""
 
@@ -82,7 +83,7 @@ else
     exit 1
 endif
 
-@ maxsec = ( $maxsize * 1000000 ) / ( $nx * $ny * $pixsize)
+@ maxsec = `echo $maxsize $nx  $ny  $pixsize | awk '{print int(($1 * 1000000) / ($2 * $3 * $4))}'`
 @ nfiles = $nz / $maxsec
 @ rem = $nz - $nfiles * $maxsec
 if ($nfiles == 0 || ($nfiles == 1 && $rem == 0)) then
