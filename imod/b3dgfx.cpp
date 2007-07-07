@@ -1062,7 +1062,7 @@ void b3dDrawGreyScalePixelsHQ(unsigned char **dataPtrs,  /* input data lines */
   int dwidth = (int)(width * zoom);
   int dheight= (int)(height * zoom);
   int xi, pxi, nxi, yi, pyi, nyi, x1, x2, y1, y2;
-  int i, j, izs;
+  int i, j, izs, xistop;
      
   float cx, cy;                            /* current x,y values          */
   float dx, dy;                            /* pixel  offset.              */
@@ -1264,6 +1264,11 @@ void b3dDrawGreyScalePixelsHQ(unsigned char **dataPtrs,  /* input data lines */
       else
         CurXZoom = 1. / izs;
 
+      /* DNM 7/6/07: Need an integer stopping value for integer steps */
+      xistop = (int)(xoffset + trans + 0.5) + dwidth * izs;
+      if (xistop > xsize)
+        xistop = xsize;
+
       for(j = 0, cy = yoffset + trans; cy < ystop; cy += zs, j++) {
 	yi = (int)(cy + 0.5);
 	ibase = j * drawwidth;
@@ -1272,7 +1277,7 @@ void b3dDrawGreyScalePixelsHQ(unsigned char **dataPtrs,  /* input data lines */
 	switch(unpack){
 	case 1:
           if (izs) {
-            for (i = 0; xi < xsize; xi += izs, i++)
+            for (i = 0; xi < xistop; xi += izs, i++)
               bdata[i + ibase] = dataPtrs[yi][xi];
           } 
           else {
@@ -1288,7 +1293,7 @@ void b3dDrawGreyScalePixelsHQ(unsigned char **dataPtrs,  /* input data lines */
 
 	case 2:
           if (izs) {
-            for (i = 0; xi < xsize; xi += izs, i++)
+            for (i = 0; xi < xistop; xi += izs, i++)
               sdata[i + ibase] = dataPtrs[yi][xi] + rbase;
           } 
           else {
@@ -1310,7 +1315,7 @@ void b3dDrawGreyScalePixelsHQ(unsigned char **dataPtrs,  /* input data lines */
 	  switch (rgba) {
 	  case 1:   /* lookup from bytes */
             if (izs) {
-              for (i = 0; xi < xsize; xi += izs, i++)
+              for (i = 0; xi < xistop; xi += izs, i++)
                 idata[i + ibase] = cindex[dataPtrs[yi][xi]];
             } 
             else {
@@ -1326,7 +1331,7 @@ void b3dDrawGreyScalePixelsHQ(unsigned char **dataPtrs,  /* input data lines */
 	    bidata = (unsigned char *)&(idata[ibase]);
 	    bdata = dataPtrs[yi];
             if (izs) {
-              for (i = 0; xi < xsize; xi += izs, i++) {
+              for (i = 0; xi < xistop; xi += izs, i++) {
                 bptr = bdata + 3 * xi;
                 *bidata++ = *bptr++;
                 *bidata++ = *bptr++;
@@ -1350,7 +1355,7 @@ void b3dDrawGreyScalePixelsHQ(unsigned char **dataPtrs,  /* input data lines */
 	  case 4:   /* untested placekeeper fro RGBA data */
 	    rgbadata = (unsigned int *)dataPtrs[yi];
             if (izs) {
-              for (i = 0; xi < xsize; xi += izs, i++)
+              for (i = 0; xi < xistop; xi += izs, i++)
                 idata[i + ibase] = rgbadata[xi];
             } 
             else {
@@ -1374,6 +1379,7 @@ void b3dDrawGreyScalePixelsHQ(unsigned char **dataPtrs,  /* input data lines */
 	  break;
 	}
       }
+
       
       /* Fill the top if necessary */
       for (; j && j < dheight; j++) {
@@ -1986,6 +1992,9 @@ int b3dSnapshot(char *fname)
 
 /*
 $Log$
+Revision 4.30  2007/05/06 03:25:35  mast
+Do not check snapshot file numbers from 0 when movieing
+
 Revision 4.29  2006/10/05 15:41:31  mast
 Provided for primary and second non-TIFF snapshot format
 
