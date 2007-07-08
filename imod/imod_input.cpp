@@ -691,6 +691,7 @@ void inputDeleteContour(ImodView *vw)
   b3dUInt32 delFlag = 2876351;
   Iindex *index;
   QString qstr;
+  static int lastDel = 0;
 
   if (!ilistSize(vw->selectionList)) {
     if (!imodContourGet(imod))
@@ -702,9 +703,14 @@ void inputDeleteContour(ImodView *vw)
 
     // Multiple selection: first confirm if > 2 to delete
     numDel = ilistSize(vw->selectionList);
-    qstr.sprintf("Are you sure you want to delete these %d contours?", numDel);
-    if (numDel > 2 && !dia_ask((char *)qstr.latin1()))
-      return;
+    if (numDel > 2 && lastDel < 2) {
+      qstr.sprintf("Are you sure you want to delete these %d contours?", 
+                   numDel);
+      lastDel = dia_ask_forever((char *)qstr.latin1());
+      if (!lastDel)
+        return;
+    } else
+      wprint("%d contours deleted.\n", numDel);
 
     // Loop through objects, set each as current object
     vw->undo->getOpenUnit();
@@ -1353,6 +1359,9 @@ bool inputTestMetaKey(QKeyEvent *event)
 
 /*
 $Log$
+Revision 4.31  2007/06/08 04:47:29  mast
+Added hot key for surface delete
+
 Revision 4.30  2007/06/07 03:57:24  mast
 Fix xyzmouse after deleting a point
 
