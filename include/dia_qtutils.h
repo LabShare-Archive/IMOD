@@ -3,15 +3,10 @@
  *   Copyright (C) 1995-2006 by Boulder Laboratory for 3-Dimensional Electron
  *   Microscopy of Cells ("BL3DEMC") and the Regents of the University of 
  *   Colorado.  See dist/COPYRIGHT file for full copyright notice.
+ *
+ *  $Id$
+ *  Log at end of file
  */                                                                           
-
-/*  $Author$
-
-$Date$
-
-$Revision$
-Log at end
-*/
 
 #ifndef DIA_QTUTILS_H
 #define DIA_QTUTILS_H
@@ -64,6 +59,7 @@ QString DLL_IM_EX diaOpenFileName(QWidget *parent, char *caption,
 int DLL_IM_EX dia_err(char *message);
 int DLL_IM_EX dia_puts(char *message);
 int DLL_IM_EX dia_ask(char *question);
+int DLL_IM_EX dia_ask_forever(char *question);
 int DLL_IM_EX dia_choice(char *question, char *lab1, char *lab2, char *lab3);
 int DLL_IM_EX diaQInput(int *value, int low, int high, int decimal, 
                         char *prompt);
@@ -74,6 +70,9 @@ void DLL_IM_EX dia_smsg(char **msg);
 
 /*
 $Log$
+Revision 3.7  2006/09/05 14:24:23  mast
+Added labeled spin box creator
+
 Revision 3.6  2006/03/01 19:13:18  mast
 Moved window size/position routines from xzap to dia_qtutils
 
