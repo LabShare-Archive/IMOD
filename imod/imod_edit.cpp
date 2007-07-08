@@ -7,16 +7,10 @@
  *  Copyright (C) 1995-2004 by Boulder Laboratory for 3-Dimensional Electron
  *  Microscopy of Cells ("BL3DEMC") and the Regents of the University of 
  *  Colorado.  See dist/COPYRIGHT for full copyright notice.
+ *
+ *  $Id$
+ *  Log at end of file
  */
-
-/*  $Author$
-
-$Date$
-
-$Revision$
-
-Log at end of file
-*/
 
 #include <math.h>
 #include "imod.h"
@@ -264,6 +258,29 @@ void imod_contour_move(int ob)
   return;
 }
 
+// Move all contours in current object to new object
+void imodMoveAllContours(ImodView *vi, int obNew)
+{
+  int co;
+  Imod *imod = vi->imod;
+  Iobj *obj = imodObjectGet(imod);
+
+  if (ilistSize(obj->store)) {
+    vi->undo->objectPropChg();
+    vi->undo->objectPropChg(obNew);
+    for (co = 0; co <= obj->surfsize; co++) {
+      istoreCopyContSurfItems(obj->store, &imod->obj[obNew].store, co, 
+                              co, 1);
+      istoreDeleteContSurf(obj->store, co, 1);
+    }
+  }
+  /* DNM: need to set contour inside loop because each deletion
+     sets it to -1; and need to not increment counter!  */
+  for (co = 0; co < (int)obj->contsize; ) {
+    imod->cindex.contour = 0;
+    imod_contour_move(obNew);
+  }
+}
 
 // Add an item to the selection list
 void imodSelectionListAdd(ImodView *vi, Iindex newIndex)
@@ -320,6 +337,7 @@ int imodSelectionListClear(ImodView *vi)
 }
 
 // If object-contour is on selection list, return point number; otherwise -2
+// If co < 0, simply tests whether object is on selection list
 int imodSelectionListQuery(ImodView *vi, int ob, int co)
 {
   Iindex *index;
@@ -327,12 +345,30 @@ int imodSelectionListQuery(ImodView *vi, int ob, int co)
 
   for (i = 0; i < ilistSize(vi->selectionList); i++) {
     index = (Iindex *)ilistItem(vi->selectionList, i);
-    if (index->object == ob && index->contour == co) {
+    if (index->object == ob && (index->contour == co || co < 0)) {
       //imodPrintStderr("Query returns %d\n", index->point);
       return index->point;
     }
   }
   return -2;
+}
+
+// Returns the number of selected objects, and the minimum and maximum
+// selected object number
+int imodNumSelectedObjects(ImodView *vi, int &minOb, int &maxOb)
+{
+  int ob, num;
+  num = 0;
+  for (ob = 0; ob < vi->imod->objsize; ob++) {
+    if (imodSelectionListQuery(vi, ob, -1) > -2 || 
+        ob == vi->imod->cindex.object) {
+      if (!num)
+        minOb = ob;
+      num++;
+      maxOb = ob;
+    }
+  }
+  return num;
 }
 
 // Remove the given obj, cont from the selection list if it is on it
@@ -388,6 +424,9 @@ void imodSelectionNewCurPoint(ImodView *vi, Imod *imod, Iindex indSave,
 
 /*
 $Log$
+Revision 4.10  2007/06/04 15:03:45  mast
+Made nearest point function operate on rotated points if matrix supplied
+
 Revision 4.9  2006/09/12 15:36:33  mast
 Handled contour member renames
 
