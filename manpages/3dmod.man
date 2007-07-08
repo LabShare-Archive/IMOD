@@ -583,11 +583,14 @@ Model
 
 Object
    New        Create a new object.  Opens Object Type dialog box.
-   Delete     Delete current object.
+   Delete     Delete current object, or all objects in which a 
+                 contour is selected
    Type...    Edit Object type.
    Color...   Open requester for changing object color.
    Move...    Move all contours from current object to another
                  object.
+   Combine    Combine all objects in which a contour is selected
+                 into one object and delete the other objects.
    Info       Calculate volume and surface area of current object.
    Clean      Delete empty contours in the current object.
    Break by Z Break every contour in the object at every change in
