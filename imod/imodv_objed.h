@@ -3,15 +3,10 @@
  *   Copyright (C) 1995-2002 by Boulder Laboratory for 3-Dimensional Electron
  *   Microscopy of Cells ("BL3DEMC") and the Regents of the University of 
  *   Colorado.  See implementation file for full copyright notice.
+ *
+ *  $Id$
+ *  Log at end of file
  */                                                                           
-
-/*  $Author$
-
-$Date$
-
-$Revision$
-Log at end
-*/
 
 #ifndef IMODV_OBJED_H
 #define IMODV_OBJED_H
@@ -98,6 +93,8 @@ class ImodvObjed : public QObject
   void lineWidthSlot(int which, int value, bool dragging);
   void lineAliasSlot(bool state);
   void lineThickenSlot(bool state);
+  void autoNewContSlot(bool state);
+  void openObjectSlot(bool state);
   void meshShowSlot(int value);
   void meshFalseSlot(bool state);
   void meshSkipLoSlot(bool state);
@@ -162,6 +159,9 @@ class ImodvOlist : public QWidget
 
 /*
 $Log$
+Revision 4.8  2006/09/12 15:48:20  mast
+Added panel to run meshing
+
 Revision 4.7  2006/08/31 23:27:45  mast
 Changes for stored value display
 
