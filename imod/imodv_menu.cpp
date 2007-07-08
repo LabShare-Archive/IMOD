@@ -7,15 +7,10 @@
  *  Copyright (C) 1995-2004 by Boulder Laboratory for 3-Dimensional Electron
  *  Microscopy of Cells ("BL3DEMC") and the Regents of the University of 
  *  Colorado.  See dist/COPYRIGHT for full copyright notice.
+ *
+ *  $Id$
+ *  Log at end of file
  */
-
-/*  $Author$
-
-$Date$
-
-$Revision$
-Log at end of file
-*/
 
 #include <qfiledialog.h>
 #include <qdir.h>
@@ -200,7 +195,10 @@ void imodvHelpMenu(int item)
        "3dmod.  As in 3dmod, multiple contours can be selected by holding the "
        CTRL_STRING" key down; click on a contour to add it to the set of "
        "selected contours or to remove it from the set if it is already "
-       "selected.  Note that "CTRL_STRING"-A can also be used to select all "
+       "selected.  Dragging the mouse with the right button down and the "
+       CTRL_STRING" key down will add contours that are crossed by the mouse "
+       "to the set of selected contours.  "
+       "Note that "CTRL_STRING"-A can also be used to select all "
        "contours that are being drawn in the current object (excluding ones "
        "that are completely clipped).\n",
        NULL);
@@ -622,6 +620,9 @@ void ImodvBkgColor::keyReleaseSlot ( QKeyEvent * e )
 
 /*
 $Log$
+Revision 4.21  2006/10/11 23:52:44  mast
+Changed RGB to NonT in menu
+
 Revision 4.20  2006/09/12 15:47:34  mast
 Handled contour member renames
 
