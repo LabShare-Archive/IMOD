@@ -7,15 +7,10 @@
  *  Copyright (C) 1995-2004 by Boulder Laboratory for 3-Dimensional Electron
  *  Microscopy of Cells ("BL3DEMC") and the Regents of the University of 
  *  Colorado.  See dist/COPYRIGHT for full copyright notice.
+ *
+ *  $Id$
+ *  Log at end of file
  */
-
-/*  $Author$
-
-    $Date$
-
-    $Revision$
-    Log at end of file
-*/
 
 // Movie timer intervals in standalone and model view modes
 #define STANDALONE_INTERVAL 1
@@ -54,12 +49,13 @@
 static void imodv_light_move(ImodvApp *a);
 static void imodv_translate(ImodvApp *a, int x, int y);
 static void imodv_translated(ImodvApp *a, int x, int y, int z);
-static void imodvSelect(ImodvApp *a);
+static void imodvSelect(ImodvApp *a, bool moving);
 static void imodv_translated(ImodvApp *a, int x, int y, int z);
 static void imodv_compute_rotation(ImodvApp *a, float x, float y, float z);
 static void imodv_rotate(ImodvApp *a, int throwFlag);
 static int  imodvStepTime(ImodvApp *a, int tstep);
-static void processHits (ImodvApp *a, GLint hits, GLuint buffer[]);
+static void processHits (ImodvApp *a, GLint hits, GLuint buffer[], 
+                         bool moving);
 static void imodv_start_movie(ImodvApp *a);
 static void registerClipPlaneChg(ImodvApp *a);
 
@@ -402,10 +398,10 @@ void imodvKeyPress(QKeyEvent *event)
       imodvSelectVisibleConts(a, pickedObject, pickedContour);
       imodvDraw(a);
       imod_setxyzmouse();
-      imodPrintStderr("current %d %d  picked %d %d\n",
+      /*imodPrintStderr("current %d %d  picked %d %d\n",
                       a->imod->cindex.object, 
                       a->imod->cindex.contour, pickedObject,
-                      pickedContour);
+                      pickedContour); */
     }
     break;
 
@@ -488,7 +484,7 @@ void imodvMousePress(QMouseEvent *event)
     break;
 
   case Qt::RightButton:
-    imodvSelect(a);
+    imodvSelect(a, false);
     break;
   }
 }
@@ -527,6 +523,8 @@ void imodvMouseMove(QMouseEvent *event)
     else 
       imodv_rotate(a, 0);
   }
+  if (rightDown && (event->state() & Qt::ControlButton))
+    imodvSelect(a, true);
   a->lmx = event->x();
   a->lmy = event->y();
 }
@@ -895,7 +893,7 @@ static void imodv_rotate(ImodvApp *a, int throwFlag)
 #define OBJCONTNAME(a,b) = ((a<<16)|(b))
 /*#define HIT_DEBUG       */
 
-static void processHits (ImodvApp *a, GLint hits, GLuint buffer[])
+static void processHits (ImodvApp *a, GLint hits, GLuint buffer[], bool moving)
 {
   unsigned int i, j;
   GLuint names, *ptr, *ptrstr;
@@ -979,7 +977,8 @@ static void processHits (ImodvApp *a, GLint hits, GLuint buffer[])
   indSave = a->imod->cindex;
   imodSetIndex(a->imod, ob, co, pt);     
   if (!a->standalone){
-    imodSelectionNewCurPoint(a->vi, a->imod, indSave, ctrlDown);
+    if (!moving || imodSelectionListQuery(a->vi, ob, co) < -1)
+      imodSelectionNewCurPoint(a->vi, a->imod, indSave, ctrlDown);
     imod_setxyzmouse();
     pickedContour = a->imod->cindex.contour;
     pickedObject = a->imod->cindex.object;
@@ -988,7 +987,7 @@ static void processHits (ImodvApp *a, GLint hits, GLuint buffer[])
   }
 }
 
-static void imodvSelect(ImodvApp *a)
+static void imodvSelect(ImodvApp *a, bool moving)
 {
   static GLuint buf[SELECT_BUFSIZE];
   GLint hits;
@@ -1011,7 +1010,7 @@ static void imodvSelect(ImodvApp *a)
 
   a->doPick = 0;
   hits = glRenderMode( GL_RENDER );
-  processHits(a, hits, buf);
+  processHits(a, hits, buf, moving);
 
 }
 
@@ -1114,6 +1113,9 @@ void imodvMovieTimeout()
 
 /*
     $Log$
+    Revision 4.25  2007/06/18 16:16:06  mast
+    Fixed stupid bug that ruined rotations
+
     Revision 4.24  2007/06/13 15:19:21  mast
     Made function for computing matrix from angle stpes
 
