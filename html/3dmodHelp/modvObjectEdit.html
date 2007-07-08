@@ -100,19 +100,36 @@ quality setting and the global setting (range 1 - 4).  The global
 setting can also be controlled by the g and G hot keys.
 
 <A NAME = "Lines"><H3>Lines</H3></A>
-The <B>2D Line Width</B> slider changes the line width used when drawing the 
-model in image display windows in 3dmod.  The <B>3D Line Width</B> slider
+This panel has controls that affect the drawing of lines in the model view
+window, as well as some other object properties that you might want to 
+change for multiple objects at once.
+<UL>
+<LI> The <B>2D Line Width</B> slider changes the line width used when drawing the model in image display windows in 3dmod. 
+<LI> The <B>3D Line Width</B> slider
 changes the line width used to draw 
 draw the objects in the model view window.  
-The <B>Anti-alias rendering</B> check box
+<LI> The <B>Anti-alias rendering</B> check box
 selects anti-alias rendering for lines. 
 Lines will look smoother with this option on; however,
-some artifacts may be noticed.  The <B>Thicken current contour</B> check
+some artifacts may be noticed.
+<LI> The <B>Thicken current contour</B> check
 box can be used to highlight the current contour by drawing it thicker
 than other contours.  This will
 have an effect only for objects whose drawing style is <B>Lines</B>. 
 This feature is most useful when using the third mouse button to select
 contours.
+<LI> The <B>Open object type</B> check box is enabled when the object type is
+closed or open, and can be used to switch objects between open and closed.  If
+the <B>Edit</B> combo box is set to <B>All</B> or <B>On's</b>, then changing 
+this setting for the current object will affect all open and closed
+contour objects, or all that are turned on.
+<LI> The <B>New contour at new Z</B> check box is enabled for open contour
+objects and controls whether a new contour is started automatically when 
+drawing on a new section in the Zap window.  If
+the <B>Edit</B> combo box is set to <B>All</B> or <B>On's</b>, then changing 
+this setting for the current object will affect all open
+contour objects, or all that are turned on.
+</UL>
 
 <A NAME = "Values"><H3>Values</H3></A>
 This panel controls the display of values that have been stored in the
