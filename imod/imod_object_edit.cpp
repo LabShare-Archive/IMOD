@@ -89,6 +89,7 @@ void ioew_linewidth(int value)
   obj->linewidth2 = value;
   App->cvi->undo->finishUnit();
   imodDraw(App->cvi, IMOD_DRAW_MOD);
+  imodvObjedNewView();
 }
 
 void ioew_open(int value)
@@ -188,6 +189,7 @@ void ioew_sphere_on_sec(int state)
 void ioew_planar(int state)
 {
   setObjectFlag(state, 0, IMOD_OBJFLAG_PLANAR);
+  imodvObjedNewView();
 }
 
 /* 
@@ -268,8 +270,7 @@ int imod_object_edit_draw(void)
 
   Ioew_dialog->setFrontSurface(obj->flags & IMOD_OBJFLAG_OUT ? 1 : 0);
   Ioew_dialog->setPointRadius(obj->pdrawsize);
-  Ioew_dialog->setPlanarBox(iobjPlanar(obj->flags) != 0,
-                            iobjOpen(obj->flags) != 0);
+  Ioew_dialog->setPlanarBox(iobjPlanar(obj->flags), iobjOpen(obj->flags));
 
   return(0);
 }
@@ -434,6 +435,9 @@ void ImodObjColor::keyReleaseSlot ( QKeyEvent * e )
 
 /*
 $Log$
+Revision 4.18  2007/06/08 04:50:00  mast
+Added planar flag support
+
 Revision 4.17  2006/09/12 15:45:16  mast
 Update model view object edit window on type change
 
