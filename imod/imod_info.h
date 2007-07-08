@@ -4,15 +4,10 @@
  *   Copyright (C) 1995-2003 by Boulder Laboratory for 3-Dimensional Electron
  *   Microscopy of Cells ("BL3DEMC") and the Regents of the University of 
  *   Colorado.  See implementation file for full copyright notice.
+ *
+ *  $Id$
+ *  Log at end of file
  */                                                                           
-
-/*  $Author$
-
-    $Date$
-
-    $Revision$
-    Log at end of file
-*/
 #ifndef IMOD_INFO_H
 #define IMOD_INFO_H
 
@@ -38,7 +33,7 @@ enum {FILE_MENU_NEW, FILE_MENU_OPEN, FILE_MENU_RELOAD, FILE_MENU_SAVE,
       EOBJECT_MENU_NEW, EOBJECT_MENU_DELETE, EOBJECT_MENU_COLOR, 
       EOBJECT_MENU_TYPE, EOBJECT_MENU_INFO, EOBJECT_MENU_MOVE, 
       EOBJECT_MENU_CLEAN, EOBJECT_MENU_FIXZ, EOBJECT_MENU_FLATTEN,
-      EOBJECT_MENU_RENUMBER,
+      EOBJECT_MENU_RENUMBER, EOBJECT_MENU_COMBINE,
       ESURFACE_MENU_NEW, ESURFACE_MENU_GOTO, ESURFACE_MENU_MOVE, 
       ESURFACE_MENU_DELETE,
       ECONTOUR_MENU_NEW, ECONTOUR_MENU_DELETE, ECONTOUR_MENU_MOVE, 
@@ -115,6 +110,9 @@ int imod_info_open();
 
 /*
     $Log$
+    Revision 3.18  2007/05/25 05:28:16  mast
+    Changes for addition of slicer angle storage
+
     Revision 3.17  2006/09/01 20:49:29  mast
     Added menu item to flatten contours in object
 

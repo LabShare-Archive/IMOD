@@ -13,15 +13,10 @@
  *  Copyright (C) 1995-2004 by Boulder Laboratory for 3-Dimensional Electron
  *  Microscopy of Cells ("BL3DEMC") and the Regents of the University of 
  *  Colorado.  See dist/COPYRIGHT for full copyright notice.
+ *
+ *  $Id$
+ *  Log at end of file
  */
-
-/*  $Author$
-
-    $Date$
-
-    $Revision$
-    Log at end of file
-*/
 
 #include "form_info.h"
 #include <qmenubar.h>
@@ -114,6 +109,7 @@ InfoWindow::InfoWindow(QWidget * parent, const char * name, WFlags f)
   mEObjectMenu->insertItem("&Type...", EOBJECT_MENU_TYPE);
   mEObjectMenu->insertItem("&Color...", EOBJECT_MENU_COLOR);
   mEObjectMenu->insertItem("&Move...", EOBJECT_MENU_MOVE);
+  mEObjectMenu->insertItem("C&ombine", EOBJECT_MENU_COMBINE);
   mEObjectMenu->insertItem("&Info", EOBJECT_MENU_INFO);
   mEObjectMenu->insertItem("C&lean", EOBJECT_MENU_CLEAN);
   mEObjectMenu->insertItem("&Break by Z", EOBJECT_MENU_FIXZ);
@@ -541,6 +537,9 @@ static char *truncate_name(char *name, int limit)
 
 /*
     $Log$
+    Revision 4.37  2007/05/25 05:28:16  mast
+    Changes for addition of slicer angle storage
+
     Revision 4.36  2006/09/12 15:43:30  mast
     Disable object delete and renumber if meshing
 

@@ -8,15 +8,10 @@
  *  Copyright (C) 1995-2004 by Boulder Laboratory for 3-Dimensional Electron
  *  Microscopy of Cells ("BL3DEMC") and the Regents of the University of 
  *  Colorado.  See dist/COPYRIGHT for full copyright notice.
+ *
+ *  $Id$
+ *  Log at end of file
  */
-
-/*  $Author$
-
-$Date$
-
-$Revision$
-Log at end of file
-*/
 
 #include <stdio.h>
 #include <math.h>
@@ -350,13 +345,19 @@ void InfoWindow::editObjectSlot(int item)
 {
   Iobj *obj;
   Icont *cont;
-  int ob,co,pt, coind, obOld, obNew, ndone;
+  int ob,co,pt, coind, obOld, obNew, ndone, num, minOb, maxOb;
   float vol;
   int cosave, ptsave;
   QString qstr;
   char *objtype;
   ImodView *vi = App->cvi;
   Imod *imod = vi->imod;
+  static int lastDelete = 0;
+  static int lastCombine = 0;
+  static int lastFixz = 0;
+  static int lastFlatten = 0;
+  int *lastp;
+  bool fixz;
 
   if (ImodForbidLevel)
     return;
@@ -373,10 +374,28 @@ void InfoWindow::editObjectSlot(int item)
     break;
           
   case EOBJECT_MENU_DELETE: /* Delete */
-    if (!obj || !dia_ask("Delete Object?"))
+    num = imodNumSelectedObjects(vi, minOb, maxOb);
+    if (!num || !obj)
       break;
-    vi->undo->objectRemoval();
-    imodDeleteObject(imod, imod->cindex.object);
+    if (lastDelete < 2) {
+      if (num > 1) {
+        qstr.sprintf("%d objects are selected.\nDelete all selected objects?",
+                     num);
+        lastDelete = dia_ask_forever((char *)qstr.latin1());
+      } else
+        lastDelete = dia_ask_forever("Delete Object?");
+      if (!lastDelete)
+        break;
+    } else if (num > 1)
+      wprint("Deleted %d objects\n", num);
+
+    obOld = imod->cindex.object;
+    for (ob = maxOb; ob >= minOb; ob--) {
+      if (imodSelectionListQuery(vi, ob, -1) > -2 || ob == obOld) {
+        vi->undo->objectRemoval(ob);
+        imodDeleteObject(imod, ob);
+      }
+    }
     vi->undo->finishUnit();
     imodSelectionListClear(vi);
     imodDraw(vi, IMOD_DRAW_MOD);
@@ -418,23 +437,8 @@ void InfoWindow::editObjectSlot(int item)
         break;
       obNew = obj_moveto - 1; 
 
-      /* DNM: need to set contour inside loop because each deletion
-         sets it to -1; and need to not increment counter! 
-         And need to not do it if it's the same object! */
       if (obNew != imod->cindex.object) {
-        if (ilistSize(obj->store)) {
-          vi->undo->objectPropChg();
-          vi->undo->objectPropChg(obNew);
-          for (co = 0; co <= obj->surfsize; co++) {
-            istoreCopyContSurfItems(obj->store, &imod->obj[obNew].store, co, 
-                                    co, 1);
-            istoreDeleteContSurf(obj->store, co, 1);
-          }
-        }
-        for (co = 0; co < (int)obj->contsize; ) {
-          imod->cindex.contour = 0;
-          imod_contour_move(obNew);
-        }
+        imodMoveAllContours(vi, obNew);
         imod->cindex.contour = -1;
         imod->cindex.point = -1;
         vi->undo->finishUnit();
@@ -443,11 +447,46 @@ void InfoWindow::editObjectSlot(int item)
         imodSelectionListClear(vi);
         imodDraw(vi, IMOD_DRAW_MOD);
       } else
-        wprint("Must select a different object to move "
+        wprint("\aMust select a different object to move "
                "contours to.\n");
     }
     /* DNM: need to maintain separate object numbers for two functions */
     /*    vi->obj_moveto = obj_moveto; */
+    break;
+
+  case EOBJECT_MENU_COMBINE: /* combine */
+    num = imodNumSelectedObjects(vi, minOb, maxOb);
+    if (num < 2) {
+      wprint("\aYou must select contours in more than one object to combine "
+             "objects.\n");
+      break;
+    }
+    if (lastCombine < 2) {
+      qstr.sprintf("Are you sure you want to combine these %d selected "
+                   "objects into one?", num);
+      lastCombine = dia_ask_forever((char *)qstr.latin1());
+      if (!lastCombine)
+        break;
+    } else
+      wprint("Combined %d objects\n", num);
+
+    obOld = imod->cindex.object;
+    for (ob = maxOb; ob > minOb; ob--) {
+      if (imodSelectionListQuery(vi, ob, -1) > -2 || ob == obOld) {
+        imod->cindex.object = ob;
+        imodMoveAllContours(vi, minOb);
+        vi->undo->objectRemoval(ob);
+        imodDeleteObject(imod, ob);
+      }
+    }
+    imod->cindex.object = ob;
+    imod->cindex.contour = -1;
+    imod->cindex.point = -1;
+    vi->undo->finishUnit();
+    imodSelectionListClear(vi);
+    imodDraw(vi, IMOD_DRAW_MOD);
+    imod_cmap(imod);
+    imod_info_setobjcolor();
     break;
 
   case EOBJECT_MENU_INFO: /* stats */
@@ -531,6 +570,7 @@ void InfoWindow::editObjectSlot(int item)
 
   case EOBJECT_MENU_FIXZ: /* break all contours at z transitions */
   case EOBJECT_MENU_FLATTEN: /* Flatten to nearest integer */
+    fixz = item == EOBJECT_MENU_FIXZ;
     imodGetIndex(imod, &ob, &co, &pt);
     if (iobjClose(obj->flags)) 
       objtype = "closed contour";
@@ -538,17 +578,21 @@ void InfoWindow::editObjectSlot(int item)
       objtype = "scattered point";
     else
       objtype = "open contour";
-    qstr.sprintf("Are you sure you want to %s in object %d, a %s object?", 
-                 (item == EOBJECT_MENU_FIXZ) ? 
-                 "break all contours into different Z planes" : 
-                 "flatten all contours to lie in only one Z plane", 
-                 ob + 1, objtype);
-    if (!dia_ask((char *)(qstr.latin1())))
-      break;
+    lastp = fixz ? &lastFixz : &lastFlatten;
+    if (*lastp < 2) {
+      qstr.sprintf("Are you sure you want to %s in object %d, a %s object?", 
+                   fixz ? "break all contours into different Z planes" : 
+                   "flatten all contours to lie in only one Z plane", 
+                   ob + 1, objtype);
+    
+      *lastp = dia_ask_forever((char *)(qstr.latin1()));
+      if (!*lastp)
+        break;
+    }
     ndone = 0;
     for (coind = obj->contsize - 1; coind >= 0; coind--) {
       cont = &obj->cont[coind];
-      if (cont->psize && item == EOBJECT_MENU_FIXZ) 
+      if (cont->psize && fixz) 
         ndone += imodContourBreakByZ(vi, obj, ob, coind);
       else if (cont->psize) {
         vi->undo->contourDataChg(ob, coind);
@@ -617,6 +661,7 @@ void InfoWindow::editSurfaceSlot(int item)
   int ob, co, pt, coNew, numDel, surfDel;
   QString qstr;
   Imod *imod = App->cvi->imod;
+  static int lastDelete = 0;
 
   if (ImodForbidLevel)
     return;
@@ -646,10 +691,14 @@ void InfoWindow::editSurfaceSlot(int item)
     for (co = 0; co < obj->contsize; co++)
       if (obj->cont[co].surf == surfDel)
         numDel++;
-    qstr.sprintf("Are you sure you want to delete the %d contours in "
-                 "this surface?", numDel);
-    if (numDel > 1 && !dia_ask((char *)qstr.latin1()))
-      break;
+    if (lastDelete < 2 && numDel > 1) {
+      qstr.sprintf("Are you sure you want to delete the %d contours in "
+                   "this surface?", numDel);
+      lastDelete = dia_ask_forever((char *)qstr.latin1());
+      if (!lastDelete)
+        break;
+    } else
+      wprint("Deleted %d contours.\n", numDel);
 
     // Remove contours from end back, adjust current contour when deleted
     imodGetIndex(imod, &ob, &coNew, &pt);
@@ -1206,6 +1255,9 @@ static int imodContourBreakByZ(ImodView *vi, Iobj *obj, int ob, int co)
 
 /*
   $Log$
+  Revision 4.31  2007/06/08 04:45:45  mast
+  Allowed break by Z for planar open contours
+
   Revision 4.30  2007/05/25 05:28:16  mast
   Changes for addition of slicer angle storage
 
