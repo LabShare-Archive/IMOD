@@ -6,15 +6,10 @@
  *  Copyright (C) 1995-2006 by Boulder Laboratory for 3-Dimensional Electron
  *  Microscopy of Cells ("BL3DEMC") and the Regents of the University of 
  *  Colorado.  See dist/COPYRIGHT for full copyright notice.
+ *
+ *  $Id$
+ *  Log at end of file
  */
-
-/*  $Author$
-
-$Date$
-
-$Revision$
-Log at end
-*/
 
 #include <stdarg.h>
 #include <stdlib.h>
@@ -41,9 +36,9 @@ Log at end
 
 char *Dia_title = NULL;
 
-// Make a new push button, add it to the vertical box layout, set for no focus
-QPushButton *diaPushButton(char *text, QWidget *parent, 
-                                  QBoxLayout *layout)
+/*! Makes a new push button with the given [text], adds it to [layout], and 
+  sets it for no focus */
+QPushButton *diaPushButton(char *text, QWidget *parent, QBoxLayout *layout)
 {
   QPushButton *button = new QPushButton(text, parent);
   button->setFocusPolicy(QWidget::NoFocus);
@@ -51,7 +46,8 @@ QPushButton *diaPushButton(char *text, QWidget *parent,
   return button;
 }
 
-// Make a new check box, add it to the vertical box layout, set for no focus
+/*! Makes a new check box with the given [text], adds it to [layout], and sets
+  it for no focus */
 QCheckBox *diaCheckBox(char *text, QWidget *parent, QBoxLayout *layout)
 {
   QCheckBox *button = new QCheckBox(text, parent);
@@ -60,7 +56,7 @@ QCheckBox *diaCheckBox(char *text, QWidget *parent, QBoxLayout *layout)
   return button;
 }
 
-// Make a new radio button, set for no focus
+/*! Makes a new radio button with the given [text] and sets it for no focus */
 QRadioButton *diaRadioButton(char *text, QWidget *parent)
 {
   QRadioButton *button = new QRadioButton(text, parent);
@@ -68,7 +64,7 @@ QRadioButton *diaRadioButton(char *text, QWidget *parent)
   return button;
 }
 
-// Make a new label and add it to the vertical box layout
+/*! Makes a new label with the given [text] and adds it to [layout] */
 QLabel *diaLabel(char *text, QWidget *parent, QBoxLayout *layout)
 {
   QLabel *label = new QLabel(text, parent);
@@ -76,8 +72,14 @@ QLabel *diaLabel(char *text, QWidget *parent, QBoxLayout *layout)
   return label;
 }
 
-// Make a labeled spin box and add it to a layout box; can make a 
-// float spin box if nDecimal is non-zero
+/*! 
+ * Makes a labeled spin box, with the label given by [text] to the left of the
+ * box and right aligned to it, provided that [layout] is a horizontal layout 
+ * box in which to place them.  [minValue], [maxValue], and [step] are the
+ * minimum, maximum, and step sizes for the spin box.  If [nDecimal] is 
+ * non-zero, it creates and returns a FloatSpinBox with that number of decimal
+ * places.
+ */
 QSpinBox *diaLabeledSpin(int nDecimal, int minValue, int maxValue, int step,
                          char *text, QWidget *parent, QBoxLayout *layout)
 {
@@ -95,7 +97,7 @@ QSpinBox *diaLabeledSpin(int nDecimal, int minValue, int maxValue, int step,
   return spin;
 }
 
-// Set a checkbox and block the signals
+/*! Sets a checkbox [button] to [state] with signals blocked */
 void diaSetChecked(QCheckBox *button, bool state)
 {
   button->blockSignals(true);
@@ -103,7 +105,7 @@ void diaSetChecked(QCheckBox *button, bool state)
   button->blockSignals(false);
 }
 
-// Set a slider and block signals
+/*! Sets [slider] to [value] with signals blocked */
 void diaSetSlider(QSlider *slider, int value)
 {
   slider->blockSignals(true);
@@ -111,7 +113,7 @@ void diaSetSlider(QSlider *slider, int value)
   slider->blockSignals(false);
 }
 
-// Set a spin box and block signals
+/*! Sets a spin box [box] to [value] with signals blocked */
 void diaSetSpinBox(QSpinBox *box, int value)
 {
   box->blockSignals(true);
@@ -119,7 +121,8 @@ void diaSetSpinBox(QSpinBox *box, int value)
   box->blockSignals(false);
 }
 
-// Set a spin box including min and max and block signals
+/*! Sets a spin box [box] to [value] and sets its minimum and maximum to [min]
+ * and [max], with signals blocked */
 void diaSetSpinMMVal(QSpinBox *box, int min, int max, int value)
 {
   box->blockSignals(true);
@@ -129,7 +132,7 @@ void diaSetSpinMMVal(QSpinBox *box, int min, int max, int value)
   box->blockSignals(false);
 }
 
-// Set a button group and block signals
+/*! Sets a button group [group] to [value] with signals blocked */
 void diaSetGroup(QButtonGroup *group, int value)
 {
   group->blockSignals(true);
@@ -137,7 +140,7 @@ void diaSetGroup(QButtonGroup *group, int value)
   group->blockSignals(false);
 }
 
-// Set a text edit and block signals
+/*! Sets a text edit [edit] to the given [tex] with signals blocked */
 void diaSetEditText(QLineEdit *edit, const QString &text)
 {
   edit->blockSignals(true);
@@ -145,8 +148,10 @@ void diaSetEditText(QLineEdit *edit, const QString &text)
   edit->blockSignals(false);
 }
 
-// Determine a button width appropriate for the given text, multiplying by
-// the given factor and adding height if rounded is true
+/*!
+ * Determines a button width appropriate for the given [text], multiplying by
+ * [factor] and adding height if [rounded] is true.
+ */
 int diaGetButtonWidth(QWidget *widget, bool rounded, float factor, 
                       const QString &text)
 {
@@ -156,7 +161,11 @@ int diaGetButtonWidth(QWidget *widget, bool rounded, float factor,
   return width;
 }
 
-// Set the fixed width of a button, returning the width for reuse
+/*!
+ * Sets [button] to a fixed width of appropriate for the given [text], 
+ * multiplying by [factor] and adding height if [rounded] is true.  The width 
+ * is returned to use in setting other buttons to the same width.
+ */
 int diaSetButtonWidth(QPushButton *button, bool rounded,
                                 float factor, const QString &text)
 {
@@ -173,14 +182,15 @@ int diaSetButtonWidth(QPushButton *button, bool rounded,
 #define Y_BORDERS 60
 #define TITLE_SPACE 28
 
-// Get the maximum window size = desktop minus borders
+/*! Gets the maximum window size in [width] and [height], i.e., the desktop 
+  size minus assumed borders */
 void diaMaximumWindowSize(int &width, int &height)
 {
   width = QApplication::desktop()->width() - X_BORDERS;
   height = QApplication::desktop()->height() - Y_BORDERS;
 }
 
-// Limit the window size to maximum size
+/*! Limits [width] and [height] to the maximum window size */
 void diaLimitWindowSize(int &width, int &height)
 {
   int limh, limw;
@@ -191,7 +201,12 @@ void diaLimitWindowSize(int &width, int &height)
     height = limh;
 }
 
-// Limit window position in system-dependent way
+/*!
+ * Limits the position of a window with width [neww], height [newh], and 
+ * desired position [newdx], [newdy], adjusting [newdx] and [newdy] so that
+ * the window should be fullyon the screen.  This is done differently for
+ * X11, Mac, and Windows.
+ */
 void diaLimitWindowPos(int neww, int newh, int &newdx, int &newdy)
 {
   int limw = QApplication::desktop()->width();
@@ -224,7 +239,7 @@ void diaLimitWindowPos(int neww, int newh, int &newdx, int &newdy)
 
 
 
-// Set a title into Dia_title
+/*! Sets the application title into the static variable {Dia_title} */
 void diaSetTitle(char *title)
 {
   if (Dia_title)
@@ -232,7 +247,8 @@ void diaSetTitle(char *title)
   Dia_title = strdup(title);
 }
 
-// An application-model box with an information string
+/*! Puts up an application-model message box with the information string in
+  [message] and an OK button */
 int dia_puts(char *message)
 {
   QString str = message;
@@ -244,7 +260,8 @@ int dia_puts(char *message)
   return 0;
 }
 
-// An application-modal box with an error string
+/*! Puts up an application-modal message box with an error string in [message]
+  [message] and an OK button */
 int dia_err(char *message)
 {
   QString str = message;
@@ -256,7 +273,8 @@ int dia_err(char *message)
   return 0;
 }
 
-// An application modal box to ask a yes-no question
+/*! Puts up an application-modal message box with the text in [question] and
+  Yes and No buttons.  Returns 0 for no, 1 for yes. */
 int dia_ask(char *question)
 {
   QString str = question;
@@ -268,7 +286,29 @@ int dia_ask(char *question)
   return retval == QMessageBox::Yes ? 1 : 0;
 }
 
-// An application modal box to give up to three arbitrary responses
+/*!
+ * Puts up an application-modal message box with the text in [question] and
+ * Yes, Yes Always, and No buttons.  Returns 0 for No, 1 for Yes, 2 for Yes 
+ * Always.
+ */
+int dia_ask_forever(char *question)
+{
+  QString str = question;
+  QString title = Dia_title;
+  title += " Query";
+  str += "\n\nPress Yes Always to stop seeing this question.";
+  int retval = QMessageBox::information(0, title, str, QString("Yes"),
+                                        QString("Yes Always"), QString("No"),
+                                        0, 2);
+  return ((retval + 1) % 3);
+}
+
+/*!
+ * Puts up an application-modal message box with the text in [question] and
+ * with up to three buttons, whose labels are in [lab1], [lab2], and [lab3].
+ * Supply a NULL to omit a button.  Returns the number of the button pressed,
+ * numbered from 1.
+ */
 int dia_choice(char *question, char *lab1, char *lab2, char *lab3)
 {
   QString str = question;
@@ -283,8 +323,15 @@ int dia_choice(char *question, char *lab1, char *lab2, char *lab3)
   return  QMessageBox::information(0, title, str, but1, but2, but3) + 1;
 }
 
-// A function to use QInputDialogs to get an integer or float
-// It returns 0 if the user cancels and leave value unchanged
+/*!
+ * Uses QInputDialog to get an integer or float value from the user.  The text
+ * should be in [prompt]; [value] provides a default or initial value and the
+ * new value is returned into this variable unless the user cancels.  The
+ * If [decimal] is 0 it sets up a spin box with [low] and [high] as its limits;
+ * otherwise it gets a float with the given number of decimal places, with 
+ * [low] and [high] specifying scaled lower an upper limits. 
+ * Returns 0 if the user cancels.
+ */
 int diaQInput(int *value, int low, int high, int decimal, char *prompt)
 {
   bool ok = false;
@@ -316,8 +363,12 @@ int diaQInput(int *value, int low, int high, int decimal, char *prompt)
   return ok ? 1 : 0;
 }
 
-// Get a single existing file name with a set of filters; the first will
-// be the default filter
+/*!
+ * Gets the name of a single existing file with a file chooser that will show
+ * [caption] in its title bar.  A set of [numFilters] filters can be given in
+ * [filters]; the first will be the default filter.  Returns an empty string
+ * if the user cancels.
+ */
 QString diaOpenFileName(QWidget *parent, char *caption, int numFilters,
                         char *filters[])
 {
@@ -333,10 +384,11 @@ QString diaOpenFileName(QWidget *parent, char *caption, int numFilters,
   return qname;
 }
 
-// Get a scrolled message window from a variable set of character strings
-// Turn it into an array of strings
+/*! Makes a scrolled text window with the text taken a set of character strings
+  passed as variable arguments */
 void dia_vasmsg(char *msg, ...)
 {
+  // Turn it into an array of strings
   char **argv;
   char *emsg;
   char *tmsg;
@@ -365,7 +417,8 @@ void dia_vasmsg(char *msg, ...)
   free(argv);
 }
 
-// Get a scrolled message window from an array of character strings
+/*! Makes a scrolled text window with the text taken from the array of 
+  character strings in [msg] */
 void dia_smsg( char **msg)
 {
   char *p;
@@ -492,6 +545,9 @@ void dia_smsg( char **msg)
 
 /*
 $Log$
+Revision 1.9  2006/09/05 14:24:40  mast
+Added labeled spin box creator
+
 Revision 1.8  2006/03/01 19:13:23  mast
 Moved window size/position routines from xzap to dia_qtutils
 
