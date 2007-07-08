@@ -135,6 +135,7 @@ class ImodPreferences : public QObject
   int iconifyImageWin() {return mCurrentPrefs.iconifyImageWin;};
   int hotSliderKey() {return mCurrentPrefs.hotSliderKey;};
   int hotSliderFlag() {return mCurrentPrefs.hotSliderFlag;};
+  bool hotSliderActive(int ctrlPressed);
   int minCurrentImPtSize();
   int minCurrentModPtSize();
   bool silentBeep() {return mCurrentPrefs.silentBeep;};
@@ -204,6 +205,9 @@ extern ImodPreferences *ImodPrefs;
 
 /*
 $Log$
+Revision 1.12  2007/05/31 16:25:33  mast
+Added members for classic slicer
+
 Revision 1.11  2006/10/05 15:41:32  mast
 Provided for primary and second non-TIFF snapshot format
 

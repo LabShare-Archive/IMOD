@@ -785,6 +785,12 @@ int hotSliderKey()
   return keys[ImodPrefs->hotSliderKey()];
 }
 
+bool ImodPreferences::hotSliderActive(int ctrlPressed)
+{
+  return ((hotSliderFlag() == HOT_SLIDER_KEYDOWN && ctrlPressed) ||
+          (hotSliderFlag() == HOT_SLIDER_KEYUP && !ctrlPressed));
+}
+
 // Return the second snap format: return PNG if the first one is not PNG, or
 // JPEG if first one is PNG; but return empty if selected one doesn't exist
 QString ImodPreferences::snapFormat2()
@@ -1042,6 +1048,9 @@ bool ImodPreferences::classicWarned()
 
 /*
 $Log$
+Revision 1.25  2007/06/04 15:05:41  mast
+Made shadow of current point brighter
+
 Revision 1.24  2007/05/31 16:27:04  mast
 Additions for classic slicer mode
 
