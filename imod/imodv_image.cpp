@@ -775,8 +775,7 @@ void ImodvImage::sliderMoved(int which, int value, bool dragging)
   }
 
   // draw if slider clicked or is in hot state
-  if (!dragging || (hotSliderFlag() == HOT_SLIDER_KEYDOWN && mCtrlPressed) ||
-      (hotSliderFlag() == HOT_SLIDER_KEYUP && !mCtrlPressed)) {
+  if (!dragging || ImodPrefs->hotSliderActive(mCtrlPressed)) {
     if (which > IIS_Z_COORD)
       imodvDraw(Imodv);
     else
@@ -841,6 +840,9 @@ void ImodvImage::keyReleaseEvent ( QKeyEvent * e )
 
 /*
 $Log$
+Revision 4.16  2007/06/22 00:54:21  mast
+Converted help to html
+
 Revision 4.15  2006/08/28 05:22:35  mast
 Changes for colormapped images
 

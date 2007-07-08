@@ -270,8 +270,7 @@ void ZapWindow::newSection()
 
 void ZapWindow::sliderChanged(int value)
 {
-    if (!mSecPressed || (hotSliderFlag() == HOT_SLIDER_KEYDOWN && mCtrlPressed)
-        || (hotSliderFlag() == HOT_SLIDER_KEYUP && !mCtrlPressed))
+    if (!mSecPressed || ImodPrefs->hotSliderActive(mCtrlPressed))
       zapEnteredSection(mZap, value);
     else
       setSectionText(value);
@@ -438,6 +437,9 @@ void ZapGL::mouseMoveEvent ( QMouseEvent * e )
 
 /*
 $Log$
+Revision 4.22  2007/06/26 21:58:07  sueh
+bug# 1021 Removed win_support.
+
 Revision 4.21  2007/06/26 17:08:54  sueh
 bug# 1021 Moved BM_HEIGHT and _WIDTH to win_support.
 

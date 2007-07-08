@@ -316,9 +316,7 @@ void FineGrainForm::clearClicked( int which )
 // Slots for the individual changes
 void FineGrainForm::transSliderChanged( int which, int value, bool dragging )
 {
-    if (!dragging || 
- (hotSliderFlag() == HOT_SLIDER_KEYDOWN && mCtrlPressed) ||
-        (hotSliderFlag() == HOT_SLIDER_KEYUP && !mCtrlPressed)) {
+    if (!dragging || ImodPrefs->hotSliderActive(mCtrlPressed)) {
         ifgTransChanged(value);
         mLastTrans = value;
     }

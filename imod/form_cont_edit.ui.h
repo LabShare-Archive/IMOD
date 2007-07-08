@@ -78,8 +78,7 @@ void ContSurfPoint::contLabelChanged( const QString &str )
 void ContSurfPoint::pointSliderChanged( int value )
 {
     displayPointSize(value / 10., 0);
-    if (!mSliderPressed || (hotSliderFlag() == HOT_SLIDER_KEYDOWN && mCtrlPressed) ||
-	(hotSliderFlag() == HOT_SLIDER_KEYUP && !mCtrlPressed))
+    if (!mSliderPressed || ImodPrefs->hotSliderActive(mCtrlPressed))
    icePointSize(mSizeDisplayed);
 }
 

@@ -7,15 +7,10 @@
  *  Copyright (C) 1995-2004 by Boulder Laboratory for 3-Dimensional Electron
  *  Microscopy of Cells ("BL3DEMC") and the Regents of the University of 
  *  Colorado.  See dist/COPYRIGHT for full copyright notice.
+ *
+ *  $Id$
+ *  Log at end of file
  */
-
-/*  $Author$
-
-$Date$
-
-$Revision$
-Log at end of file
-*/
 
 #include <stdlib.h>
 #include <math.h>
@@ -138,9 +133,7 @@ void imodInfoNewBW(int which, int value, int dragging)
   }
 
   // Exit if RGBA and there is not a hot slider active
-  if (App->rgba && dragging && 
-      ((ctrlPressed && hotSliderFlag() != HOT_SLIDER_KEYDOWN) || 
-       (!ctrlPressed && hotSliderFlag() != HOT_SLIDER_KEYUP)))
+  if (App->rgba && dragging && !ImodPrefs->hotSliderActive(ctrlPressed))
     return;
 
   // Keep the sliders from crossing
@@ -794,6 +787,9 @@ void imod_imgcnt(char *string)
 
 /*
 $Log$
+Revision 4.24  2006/10/02 15:33:13  mast
+Fixed for > 2 Gpixel image
+
 Revision 4.23  2006/06/26 15:22:25  mast
 Added b3dutil include for samplemeansd
 

@@ -37,8 +37,7 @@ void imodvDepthcueForm::displayStartLabel( int value )
 
 void imodvDepthcueForm::startChanged( int value )
 {
-    if (!mStartPressed || (hotSliderFlag() == HOT_SLIDER_KEYDOWN && mCtrlPressed) ||
-	(hotSliderFlag() == HOT_SLIDER_KEYUP && !mCtrlPressed))
+    if (!mStartPressed || ImodPrefs->hotSliderActive(mCtrlPressed))
 	imodvDepthcueStartEnd(value, false, mStartPressed);
 }
 
@@ -63,8 +62,7 @@ void imodvDepthcueForm::displayEndLabel( int value )
 
 void imodvDepthcueForm::endChanged( int value )
 {
-     if (!mEndPressed || (hotSliderFlag() == HOT_SLIDER_KEYDOWN && mCtrlPressed) ||
-	(hotSliderFlag() == HOT_SLIDER_KEYUP && !mCtrlPressed))
+     if (!mEndPressed || ImodPrefs->hotSliderActive(mCtrlPressed))
 	imodvDepthcueStartEnd(value, true, mEndPressed);
 }
 

@@ -331,8 +331,7 @@ void TumblerWindow::thresholdChanged(int which, int value, bool dragging)
     }
     mTum->minval = value;
   }
-  if (!dragging || (hotSliderFlag() == HOT_SLIDER_KEYDOWN && mCtrlPressed) ||
-      (hotSliderFlag() == HOT_SLIDER_KEYUP && !mCtrlPressed)) {
+  if (!dragging || ImodPrefs->hotSliderActive(mCtrlPressed)) {
     newData(mTum);
     draw(mTum);
   }
@@ -1257,6 +1256,9 @@ void TumblerGL::paintGL()
 
 /*
 $Log$
+Revision 4.27  2007/06/26 21:54:52  sueh
+bug# 1021 Removed win_support.
+
 Revision 4.26  2007/06/26 17:05:18  sueh
 bug# 1021 Moved BM_HEIGHT and _WIDTH to win_support.
 

@@ -7,15 +7,10 @@
  *  Copyright (C) 1995-2004 by Boulder Laboratory for 3-Dimensional Electron
  *  Microscopy of Cells ("BL3DEMC") and the Regents of the University of 
  *  Colorado.  See dist/COPYRIGHT for full copyright notice.
+ *
+ *  $Id$
+ *  Log at end of file
  */
-
-/*  $Author$
-
-$Date$
-
-$Revision$
-Log at end of file
-*/
 
 #include <math.h>
 #include <qcombobox.h>
@@ -372,8 +367,7 @@ void ImodvStereo::sliderMoved(int which, int value, bool dragging)
     imodvStereoData.tbVoffset = value;
   else
     Imodv->plax = (float)(value / 10.);
-  if (!dragging || (hotSliderFlag() == HOT_SLIDER_KEYDOWN && mCtrlPressed) ||
-      (hotSliderFlag() == HOT_SLIDER_KEYUP && !mCtrlPressed))
+  if (!dragging || ImodPrefs->hotSliderActive(mCtrlPressed))
     imodvDraw(Imodv);
 }
 
@@ -486,6 +480,9 @@ void ImodvStereo::keyReleaseEvent ( QKeyEvent * e )
 
 /*
 $Log$
+Revision 4.11  2006/03/01 19:13:06  mast
+Moved window size/position routines from xzap to dia_qtutils
+
 Revision 4.10  2004/11/04 23:30:55  mast
 Changes for rounded button style
 

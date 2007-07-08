@@ -47,9 +47,7 @@ void AutoxWindow::contrastSelected( int which )
 // Pass on slider if it is resolution slider, or if not dragging, or if hot slider enabled
 void AutoxWindow::sliderChanged( int which, int value, bool dragging )
 {
-    if (which || !dragging || 
-	(hotSliderFlag() == HOT_SLIDER_KEYDOWN && mCtrlPressed) ||
-	(hotSliderFlag() == HOT_SLIDER_KEYUP && !mCtrlPressed))
+  if (which || !dragging || ImodPrefs->hotSliderActive(mCtrlPressed))
 	autoxSlider(which, value);
 }
 

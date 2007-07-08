@@ -246,8 +246,7 @@ void slicerAngleChanged(SlicerStruct *ss, int axis, int value,
   sliderDragging = dragging;
 
   // Do complete redraw if not dragging or hot slider enabled
-  if (!dragging || (hotSliderFlag() == HOT_SLIDER_KEYDOWN && ctrlPressed) ||
-      (hotSliderFlag() == HOT_SLIDER_KEYUP && !ctrlPressed)) {
+  if (!dragging || ImodPrefs->hotSliderActive(ctrlPressed)) {
     sslice_draw(ss);
     sslice_showslice(ss);
     slicerCheckMovieLimits(ss);
@@ -2535,6 +2534,11 @@ void slicerCubePaint(SlicerStruct *ss)
 
 /*
 $Log$
+Revision 4.47  2007/06/15 21:26:58  mast
+Added shift lock button and switched movie to requiring Ctrl; also
+fixed slicer angle problems by saving and restoring ctrlist when
+looking for top slicer and disabling angle toolbar buttons.
+
 Revision 4.46  2007/06/15 21:20:55  mast
 Added shift lock capability and made movie require Ctrl
 
