@@ -8,15 +8,10 @@
  *  Copyright (C) 1995-2004 by Boulder Laboratory for 3-Dimensional Electron
  *  Microscopy of Cells ("BL3DEMC") and the Regents of the University of 
  *  Colorado.  See dist/COPYRIGHT for full copyright notice.
+ *
+ *  $Id$
+ *  Log at end of file
  */
-
-/*  $Author$
-
-5B$Date$
-
-$Revision$
-Log at end of file
-*/
 
 #include <sys/types.h>
 #include <math.h>
@@ -65,7 +60,7 @@ static Iobj *objedObject(void);
 static Imod *objedModel(void) { return(Imodv->imod); }
 
 static void objset(ImodvApp *a);
-static void setObjFlag(int flag, int state);
+static void setObjFlag(int flag, int state, int types = 0);
 static void setOnoffButtons(void);
 static void finalSpacer(QWidget *parent, QVBoxLayout *layout);     
 static void setLineColor_cb(void);
@@ -117,7 +112,9 @@ static int ctrlPressed = false;
 #define styleFillOutline 3
 #define FIELD_MARGIN 3          // margin and spacing for layouts inside 
 #define FIELD_SPACING 5         // the edit fields
-
+#define OBJTYPE_CLOSED 1        // Bit flags for the object types
+#define OBJTYPE_OPEN 2
+#define OBJTYPE_SCAT 4
 
 /* Defines and variables for the On-off buttons in this dislaog and in the
    object list dialog */
@@ -694,7 +691,7 @@ static void mkLineColor_cb(int index)
   QToolTip::add(check, "Apply color changes to all objects, all objects that "
                 "are on, or objects in multiple models");
 
-  //finalSpacer(oef->control, layout1);
+  finalSpacer(oef->control, layout1);
 
 }
 
@@ -875,7 +872,6 @@ static void mkMaterial_cb (int index)
                                          FIELD_SPACING, "material layout");
   matSliders = new MultiSlider(oef->control, 4, matTitles);
   layout1->addLayout(matSliders->getLayout());
-  finalSpacer(oef->control, layout1);
   QToolTip::add((QWidget *)matSliders->getSlider(0),
                 "Set non-directional light hitting object");
   QToolTip::add((QWidget *)matSliders->getSlider(1), 
@@ -892,6 +888,7 @@ static void mkMaterial_cb (int index)
           SLOT(bothSidesSlot(bool)));
   QToolTip::add(wBothSides, 
                 "Make front and back surface both appear brightly lit"); 
+  finalSpacer(oef->control, layout1);
 }
 
 
@@ -1025,6 +1022,8 @@ static void mkPoints_cb(int index)
 static MultiSlider *widthSlider;
 static QCheckBox *wLineAlias;
 static QCheckBox *wThickenCont;
+static QCheckBox *wOpenObject;
+static QCheckBox *wAutoNewCont;
 static char *widthLabel[] = {"2D Line Width", "3D Line Width"};
 
 void ImodvObjed::lineWidthSlot(int which, int value, bool dragging)
@@ -1074,6 +1073,24 @@ void ImodvObjed::lineThickenSlot(bool state)
   imodvDraw(Imodv);
 }
 
+void ImodvObjed::openObjectSlot(bool state)
+{
+  setObjFlag(IMOD_OBJFLAG_OPEN, state ? 1 : 0, OBJTYPE_OPEN | OBJTYPE_CLOSED);
+  objset(Imodv);
+  imodvFinishChgUnit();
+  imodvDraw(Imodv);
+  imodvDrawImodImages();
+}
+
+void ImodvObjed::autoNewContSlot(bool state)
+{
+  setObjFlag(IMOD_OBJFLAG_PLANAR, state ? 1 : 0, OBJTYPE_OPEN);
+  objset(Imodv);
+  imodvFinishChgUnit();
+  imodvDraw(Imodv);
+  imodvDrawImodImages();
+}
+
 static void setLines_cb(void)
 {
   Iobj *obj = objedObject();
@@ -1083,6 +1100,10 @@ static void setLines_cb(void)
   widthSlider->setValue(1, obj->linewidth);
   diaSetChecked(wLineAlias, obj->flags & IMOD_OBJFLAG_ANTI_ALIAS );
   diaSetChecked(wThickenCont, obj->flags & IMOD_OBJFLAG_THICK_CONT);
+  diaSetChecked(wOpenObject, iobjOpen(obj->flags));
+  diaSetChecked(wAutoNewCont, iobjPlanar(obj->flags));
+  wOpenObject->setEnabled(!iobjScat(obj->flags));
+  wAutoNewCont->setEnabled(iobjOpen(obj->flags));
 }
 
 static void mkLines_cb(int index)
@@ -1090,7 +1111,7 @@ static void mkLines_cb(int index)
   ObjectEditField *oef = &objectEditFieldData[index];
 
   QVBoxLayout *layout1 = new QVBoxLayout(oef->control, FIELD_MARGIN, 
-                                         FIELD_SPACING, "lines layout");
+                                         2, "lines layout");
   widthSlider = new MultiSlider(oef->control, 2, widthLabel, 1, 10);
   layout1->addLayout(widthSlider->getLayout());
   QObject::connect(widthSlider, SIGNAL(sliderChanged(int, int, bool)), 
@@ -1105,15 +1126,21 @@ static void mkLines_cb(int index)
           SLOT(lineAliasSlot(bool)));
   QToolTip::add(wLineAlias, "Smooth lines with anti-aliasing");
 
-  layout1->addWidget(wLineAlias);
-
   wThickenCont = diaCheckBox("Thicken current contour", oef->control, layout1);
   QObject::connect(wThickenCont, SIGNAL(toggled(bool)), &imodvObjed, 
           SLOT(lineThickenSlot(bool)));
   QToolTip::add(wThickenCont, "Draw current contour thicker");
 
-  layout1->addWidget(wThickenCont);
+  wOpenObject = diaCheckBox("Open object type", oef->control, layout1);
+  QObject::connect(wOpenObject, SIGNAL(toggled(bool)), &imodvObjed, 
+          SLOT(openObjectSlot(bool)));
+  QToolTip::add(wOpenObject, "Select open or closed contour object types");
 
+  wAutoNewCont = diaCheckBox("New contour at new Z", oef->control, layout1);
+  QObject::connect(wAutoNewCont, SIGNAL(toggled(bool)), &imodvObjed, 
+          SLOT(autoNewContSlot(bool)));
+  QToolTip::add(wAutoNewCont, "Automatically start new contour at new "
+                "section");
   finalSpacer(oef->control, layout1);
 }
 
@@ -1270,7 +1297,8 @@ static void mkScalar_cb(int index)
   QToolTip::add(wMeshSkipHi, "Do not draw items with values above high "
                 "limit of black/white sliders");
 
-  finalSpacer(oef->control, layout1);
+  // Skip spacer in longest box, saves a few pixels
+  //finalSpacer(oef->control, layout1);
 }
 
 
@@ -2279,9 +2307,10 @@ static Iobj *objedObject(void)
   return Imodv->obj;
 }
 
-static void setObjFlag(int flag, int state)
+static void setObjFlag(int flag, int state, int types)
 {
   int m, mst, mnd, ob;
+  b3dUInt32 obflags;
 
   if (!Imodv->imod || !objedObject())
     return;
@@ -2289,14 +2318,19 @@ static void setObjFlag(int flag, int state)
   setStartEndModel(mst, mnd);
     
   for (m = mst; m <= mnd; m++) {
-    for (ob = 0; ob < Imodv->mod[m]->objsize; ob++)
-      if (changeModelObject(m, ob)) {
+    for (ob = 0; ob < Imodv->mod[m]->objsize; ob++) {
+      obflags = Imodv->mod[m]->obj[ob].flags;
+      if (changeModelObject(m, ob) && 
+          (!types || ((types & OBJTYPE_CLOSED) && iobjClose(obflags)) ||
+           ((types & OBJTYPE_OPEN) && iobjOpen(obflags)) ||
+           ((types & OBJTYPE_SCAT) && iobjScat(obflags)))) {
         imodvRegisterObjectChg(ob);
         if (state)
           Imodv->mod[m]->obj[ob].flags |= flag;
         else
           Imodv->mod[m]->obj[ob].flags &= ~flag;
       }
+    }
   }
 }
 
@@ -2350,11 +2384,10 @@ static bool changeModelObject(int m, int ob, bool multipleOK)
 /* Central test for whether to draw after a slider change */
 static bool drawOnSliderChange(bool dragging)
 {
-  return(!dragging || (hotSliderFlag() == HOT_SLIDER_KEYDOWN && ctrlPressed) ||
-         (hotSliderFlag() == HOT_SLIDER_KEYUP && !ctrlPressed));
+  return(!dragging || ImodPrefs->hotSliderActive(ctrlPressed));
 }
 
-/* Utility for adding final spacer  */
+/* Utility for adding final spacer.  Can it just be layout->addStretch()?  */
 static void finalSpacer(QWidget *parent, QVBoxLayout *layout)
 {
   QVBox *spacer = new QVBox(parent);
@@ -2375,6 +2408,9 @@ static void makeRadioButton(char *label, QWidget *parent, QButtonGroup *group,
 
 /*
 $Log$
+Revision 4.28  2007/03/23 18:12:36  mast
+Made it refresh Imodv object pointer every time it is requested
+
 Revision 4.27  2006/09/13 23:49:45  mast
 Renamed remesh to meshing
 
