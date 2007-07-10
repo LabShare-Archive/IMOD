@@ -27,6 +27,9 @@ import etomo.type.Run3dmodMenuOptions;
  * @version $Revision$
  * 
  * <p> $Log$
+ * <p> Revision 1.17  2007/06/06 16:07:46  sueh
+ * <p> bug# 1013 Added setFnModParticle() and validateRun().
+ * <p>
  * <p> Revision 1.16  2007/05/16 02:35:58  sueh
  * <p> bug# 964 Added getIndex(), remove(), and setIndex(int).
  * <p>
@@ -259,8 +262,9 @@ final class VolumeRow implements Highlightable {
 
   boolean validateRun() {
     if (fnModParticle.isEmpty()) {
-      UIHarness.INSTANCE.openMessageDialog(VolumeTable.FN_MOD_PARTICLE_HEADER1
-          + " must not be empty.", "Entry Error");
+      UIHarness.INSTANCE.openMessageDialog("In row " + number.getText() + ", "
+          + VolumeTable.FN_MOD_PARTICLE_HEADER1 + " must not be empty.",
+          "Entry Error");
       return false;
     }
     return true;
