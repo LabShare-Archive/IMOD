@@ -21,6 +21,11 @@ import etomo.util.PrimativeTokenizer;
  * @version $Revision$
  * 
  * <p> $Log$
+ * <p> Revision 1.10  2007/05/11 16:01:12  sueh
+ * <p> bug# 964 Added getParsableStringArray(), which expands an array,
+ * <p> converting the array descriptors into arrays, and return the resulting array
+ * <p> in a String[].
+ * <p>
  * <p> Revision 1.9  2007/05/03 21:08:44  sueh
  * <p> bug# 964 Added getFlexibleInstance() and getFlexibleCompactInstance(Type).  Fixed bug in hasParsedNumberSyntax().
  * <p>
@@ -88,6 +93,9 @@ public final class ParsedArray extends ParsedElement {
    * No effect on ParsedArray.  Used to set ParsedArrayDescriptor.compact.
    */
   private final boolean compactDescriptor;
+  /**
+   * When compact is true, only place non-empty elements in the parsable string.
+   */
   private final boolean compact;
 
   private boolean valid = true;

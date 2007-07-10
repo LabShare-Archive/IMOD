@@ -27,6 +27,9 @@ import etomo.util.PrimativeTokenizer;
  * @version $Revision$
  * 
  * <p> $Log$
+ * <p> Revision 1.7  2007/05/03 21:10:27  sueh
+ * <p> bug# 964 Added boolean compactArray.
+ * <p>
  * <p> Revision 1.6  2007/04/26 02:47:39  sueh
  * <p> bug# 964 Fixed problems with defaultValue.  Added ParsedArray.compact
  * <p> when empty array elements should not be displayed (lstThresholds).
@@ -60,6 +63,10 @@ public final class ParsedList {
   private final Type type;
   private final ParsedElementList list = new ParsedElementList();
   private final EtomoNumber.Type etomoNumberType;
+  /**
+   * FlexibleSyntax allows a ParsedArray to look like a ParsedNumber when it is
+   * empty or contains one element that is not a collection.
+   */
   private final boolean flexibleSyntax;
 
   /**
