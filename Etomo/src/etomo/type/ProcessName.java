@@ -15,6 +15,9 @@ import etomo.util.DatasetFiles;
  * @version $$Revision$$
  *
  * <p> $$Log$
+ * <p> $Revision 1.13  2007/04/27 23:39:47  sueh
+ * <p> $bug# 964 Changed prmParser to peetParser.
+ * <p> $
  * <p> $Revision 1.12  2007/04/26 02:48:16  sueh
  * <p> $bug# 964 Added PRMPARSER.
  * <p> $
@@ -104,7 +107,7 @@ public class ProcessName {
   private static final String xftoxg = "xftoxg";
   private static final String xfmodel = "xfmodel";
   private static final String remapmodel = "remapmodel";
-  private static final String peetParser = "mtbParser";
+  private static final String peetParser = "prmParser";
 
   private final String name;
 
