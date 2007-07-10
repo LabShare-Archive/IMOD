@@ -52,6 +52,9 @@ import etomo.type.PeetScreenState;
  * @version $Revision$
  * 
  * <p> $Log$
+ * <p> Revision 1.49  2007/06/08 22:21:59  sueh
+ * <p> bug# 1014 Added reset().
+ * <p>
  * <p> Revision 1.48  2007/06/06 22:05:52  sueh
  * <p> bug# 1010 Reorganized Setup panel.
  * <p>
@@ -1018,7 +1021,10 @@ public final class PeetDialog implements ContextMenu, AbstractParallelDialog,
   }
 
   private boolean validateRun() {
-    return volumeTable.validateRun();
+    if (!volumeTable.validateRun()) {
+      return false;
+    }
+    return iterationTable.validateRun();
   }
 
   /**
