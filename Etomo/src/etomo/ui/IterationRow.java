@@ -21,6 +21,9 @@ import etomo.storage.MatlabParam;
  * @version $Revision$
  * 
  * <p> $Log$
+ * <p> Revision 1.6  2007/05/15 19:56:50  sueh
+ * <p> bug# 964 Added getIndex(),setIndex(int), and remove().
+ * <p>
  * <p> Revision 1.5  2007/05/07 17:21:53  sueh
  * <p> bug# 964 Changed MatlabParamFile to MatlabParam.
  * <p>
@@ -39,43 +42,43 @@ import etomo.storage.MatlabParam;
  * <p> bug# 964 A row of the iteration table, which contain per iteration PEET data.
  * <p> </p>
  */
-final class IterationRow implements Highlightable{
+final class IterationRow implements Highlightable {
   public static final String rcsid = "$Id$";
 
   private final HeaderCell number = new HeaderCell();
-  private final FieldCell dPhiMax =  FieldCell.getEditableInstance();
-  private final FieldCell dPhiIncrement =  FieldCell.getEditableInstance();
+  private final FieldCell dPhiMax = FieldCell.getEditableInstance();
+  private final FieldCell dPhiIncrement = FieldCell.getEditableInstance();
   private final FieldCell dThetaMax = FieldCell.getEditableInstance();
-  private final FieldCell dThetaIncrement =  FieldCell.getEditableInstance();
-  private final FieldCell dPsiMax =  FieldCell.getEditableInstance();
-  private final FieldCell dPsiIncrement =  FieldCell.getEditableInstance();
-  private final FieldCell searchRadius =  FieldCell.getEditableInstance();
-  private final FieldCell hiCutoffCutoff= FieldCell.getEditableInstance();
-  private final FieldCell hiCutoffSigma= FieldCell.getEditableInstance();
-  private final FieldCell refThreshold =  FieldCell.getEditableInstance();
-  
+  private final FieldCell dThetaIncrement = FieldCell.getEditableInstance();
+  private final FieldCell dPsiMax = FieldCell.getEditableInstance();
+  private final FieldCell dPsiIncrement = FieldCell.getEditableInstance();
+  private final FieldCell searchRadius = FieldCell.getEditableInstance();
+  private final FieldCell hiCutoffCutoff = FieldCell.getEditableInstance();
+  private final FieldCell hiCutoffSigma = FieldCell.getEditableInstance();
+  private final FieldCell refThreshold = FieldCell.getEditableInstance();
+
   private final JPanel panel;
   private final GridBagLayout layout;
   private final GridBagConstraints constraints;
   private final HighlighterButton btnHighlighter;
   private final Highlightable parent;
-  
+
   private int index;
 
-  IterationRow(final int index, final Highlightable parent, final JPanel panel, final GridBagLayout layout,
-      final GridBagConstraints constraints) {
+  IterationRow(final int index, final Highlightable parent, final JPanel panel,
+      final GridBagLayout layout, final GridBagConstraints constraints) {
     this.index = index;
-    this.parent=parent;
+    this.parent = parent;
     this.panel = panel;
     this.layout = layout;
     this.constraints = constraints;
     btnHighlighter = HighlighterButton.getInstance(this, parent);
     number.setText(String.valueOf(index + 1));
   }
-  
+
   IterationRow(final int index, final IterationRow iterationRow) {
     this.index = index;
-    this.parent=iterationRow.parent;
+    this.parent = iterationRow.parent;
     this.panel = iterationRow.panel;
     this.layout = iterationRow.layout;
     this.constraints = iterationRow.constraints;
@@ -92,7 +95,7 @@ final class IterationRow implements Highlightable{
     hiCutoffSigma.setValue(iterationRow.hiCutoffSigma.getValue());
     refThreshold.setValue(iterationRow.refThreshold.getValue());
   }
-  
+
   public void highlight(final boolean highlight) {
     dPhiMax.setHighlight(highlight);
     dPhiIncrement.setHighlight(highlight);
@@ -105,7 +108,7 @@ final class IterationRow implements Highlightable{
     hiCutoffSigma.setHighlight(highlight);
     refThreshold.setHighlight(highlight);
   }
-  
+
   void getParameters(final MatlabParam matlabParamFile) {
     MatlabParam.Iteration iteration = matlabParamFile.getIteration(index);
     iteration.setDPhiEnd(dPhiMax.getValue());
@@ -119,7 +122,7 @@ final class IterationRow implements Highlightable{
     iteration.setHiCutoffSigma(hiCutoffSigma.getValue());
     iteration.setRefThreshold(refThreshold.getValue());
   }
-  
+
   void setParameters(final MatlabParam matlabParamFile) {
     MatlabParam.Iteration iteration = matlabParamFile.getIteration(index);
     dPhiMax.setValue(iteration.getDPhiEnd());
@@ -133,20 +136,20 @@ final class IterationRow implements Highlightable{
     hiCutoffSigma.setValue(iteration.getHiCutoffSigma());
     refThreshold.setValue(iteration.getRefThresholdString());
   }
-  
+
   boolean isHighlighted() {
     return btnHighlighter.isHighlighted();
   }
-  
+
   int getIndex() {
     return index;
   }
-  
+
   void setIndex(int index) {
     this.index = index;
     number.setText(String.valueOf(index + 1));
   }
-  
+
   void remove() {
     number.remove();
     btnHighlighter.remove();
@@ -166,19 +169,77 @@ final class IterationRow implements Highlightable{
     constraints.weightx = 0.0;
     constraints.weighty = 0.1;
     constraints.gridwidth = 1;
-    number.add(panel,layout,constraints);
+    number.add(panel, layout, constraints);
     btnHighlighter.add(panel, layout, constraints);
     constraints.weightx = 0.1;
-    dPhiMax.add(panel,layout,constraints);
-    dPhiIncrement.add(panel,layout,constraints);
-    dThetaMax.add(panel,layout,constraints);
-    dThetaIncrement.add(panel,layout,constraints);
-    dPsiMax.add(panel,layout,constraints);
-    dPsiIncrement.add(panel,layout,constraints);
-    searchRadius.add(panel,layout,constraints);
-    hiCutoffCutoff.add(panel,layout,constraints);
-    hiCutoffSigma.add(panel,layout,constraints);
+    dPhiMax.add(panel, layout, constraints);
+    dPhiIncrement.add(panel, layout, constraints);
+    dThetaMax.add(panel, layout, constraints);
+    dThetaIncrement.add(panel, layout, constraints);
+    dPsiMax.add(panel, layout, constraints);
+    dPsiIncrement.add(panel, layout, constraints);
+    searchRadius.add(panel, layout, constraints);
+    hiCutoffCutoff.add(panel, layout, constraints);
+    hiCutoffSigma.add(panel, layout, constraints);
     constraints.gridwidth = GridBagConstraints.REMAINDER;
-    refThreshold.add(panel,layout,constraints);
+    refThreshold.add(panel, layout, constraints);
+  }
+
+  boolean validateRun() {
+    if (dPhiIncrement.getFloatValue() == 0) {
+      //When increment and max are both zero, treat this as an empty descriptor.
+      if (dPhiMax.getFloatValue() == 0 || dPhiMax.isEmpty()) {
+        dPhiIncrement.setValue();
+        dPhiMax.setValue();
+      }
+      else {
+        //In a non-empty descriptor, the increment may not be zero.
+        UIHarness.INSTANCE.openMessageDialog("In row " + number.getText()
+            + ", " + IterationTable.D_PHI_D_THETA_D_PSI_HEADER1 + " "
+            + IterationTable.D_PHI_HEADER2 + " " + IterationTable.D_PHI_HEADER3
+            + " must not be 0.", "Entry Error");
+        return false;
+      }
+    }
+    if (dThetaIncrement.getFloatValue() == 0) {
+      //When increment and max are both zero, treat this as an empty descriptor.
+      if (dThetaMax.getFloatValue() == 0 || dThetaMax.isEmpty()) {
+        dThetaIncrement.setValue();
+        dThetaMax.setValue();
+      }
+      else {
+        //In a non-empty descriptor, the increment may not be zero.
+        UIHarness.INSTANCE
+            .openMessageDialog("In row " + number.getText() + ", "
+                + IterationTable.D_PHI_D_THETA_D_PSI_HEADER1 + " "
+                + IterationTable.D_THETA_HEADER2 + " "
+                + IterationTable.D_THETA_HEADER3 + " must not be 0.",
+                "Entry Error");
+        return false;
+      }
+    }
+    if (dPsiIncrement.getFloatValue() == 0 || dPsiMax.isEmpty()) {
+      //When increment and max are both zero, treat this as an empty descriptor.
+      if (dPsiMax.getFloatValue() == 0 || dPsiMax.isEmpty()) {
+        dPsiIncrement.setValue();
+        dPsiMax.setValue();
+      }
+      else {
+        //In a non-empty descriptor, the increment may not be zero.
+        UIHarness.INSTANCE.openMessageDialog("In row " + number.getText()
+            + ", " + IterationTable.D_PHI_D_THETA_D_PSI_HEADER1 + " "
+            + IterationTable.D_PSI_HEADER2 + " " + IterationTable.D_PSI_HEADER3
+            + " must not be 0.", "Entry Error");
+        return false;
+      }
+    }
+    if (searchRadius.getIntValue() < 1) {
+      UIHarness.INSTANCE.openMessageDialog("In row " + number.getText() + ", "
+          + IterationTable.SEARCH_RADIUS_HEADER1 + " "
+          + IterationTable.SEARCH_RADIUS_HEADER2 + " must not be less then 1.",
+          "Entry Error");
+      return false;
+    }
+    return true;
   }
 }
