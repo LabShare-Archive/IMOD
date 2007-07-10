@@ -36,6 +36,9 @@ import etomo.type.EtomoAutodoc;
  * @version $Revision$
  * 
  * <p> $Log$
+ * <p> Revision 1.10  2007/06/14 19:36:33  sueh
+ * <p> bug# 1020 WIdening cutoff an sigma.
+ * <p>
  * <p> Revision 1.9  2007/06/08 22:21:38  sueh
  * <p> bug# 1014 Added reset().
  * <p>
@@ -70,7 +73,16 @@ import etomo.type.EtomoAutodoc;
  */
 final class IterationTable implements Highlightable {
   public static final String rcsid = "$Id$";
-  
+  static final String D_PHI_D_THETA_D_PSI_HEADER1 = "Angular Search Range";
+  static final String D_PHI_HEADER2 = "Phi";
+  static final String D_PHI_HEADER3 = "Incr.";
+  static final String D_THETA_HEADER2 = "Theta";
+  static final String D_THETA_HEADER3 = "Incr.";
+  static final String D_PSI_HEADER2 = "Psi";
+  static final String D_PSI_HEADER3 = "Incr.";
+  static final String SEARCH_RADIUS_HEADER1 = "Search";
+  static final String SEARCH_RADIUS_HEADER2 = "Radius";
+
   private final JPanel rootPanel = new JPanel();
   private final JPanel pnlTable = new JPanel();
   private final GridBagLayout layout = new GridBagLayout();
@@ -80,24 +92,24 @@ final class IterationTable implements Highlightable {
   private final HeaderCell header2IterationNumber = new HeaderCell();
   private final HeaderCell header3IterationNumber = new HeaderCell();
   private final HeaderCell header1DPhiDThetaDPsi = new HeaderCell(
-      "Angular Search Range");
-  private final HeaderCell header2DPhi = new HeaderCell("Phi");
-  private final HeaderCell header2DTheta = new HeaderCell("Theta");
-  private final HeaderCell header2DPsi = new HeaderCell("Psi");
+      D_PHI_D_THETA_D_PSI_HEADER1);
+  private final HeaderCell header2DPhi = new HeaderCell(D_PHI_HEADER2);
+  private final HeaderCell header2DTheta = new HeaderCell(D_THETA_HEADER2);
+  private final HeaderCell header2DPsi = new HeaderCell(D_PSI_HEADER2);
   private final HeaderCell header3DPhiMax = new HeaderCell("Max",
       UIParameters.INSTANCE.getNumericWidth());
-  private final HeaderCell header3DPhiIncrement = new HeaderCell("Incr.",
+  private final HeaderCell header3DPhiIncrement = new HeaderCell(D_PHI_HEADER3,
       UIParameters.INSTANCE.getNumericWidth());
   private final HeaderCell header3DThetaMax = new HeaderCell("Max",
       UIParameters.INSTANCE.getNumericWidth());
-  private final HeaderCell header3DThetaIncrement = new HeaderCell("Incr.",
-      UIParameters.INSTANCE.getNumericWidth());
+  private final HeaderCell header3DThetaIncrement = new HeaderCell(
+      D_THETA_HEADER3, UIParameters.INSTANCE.getNumericWidth());
   private final HeaderCell header3DPsiMax = new HeaderCell("Max",
       UIParameters.INSTANCE.getNumericWidth());
-  private final HeaderCell header3DPsiIncrement = new HeaderCell("Incr.",
+  private final HeaderCell header3DPsiIncrement = new HeaderCell(D_PSI_HEADER3,
       UIParameters.INSTANCE.getNumericWidth());
-  private final HeaderCell header1SearchRadius = new HeaderCell("Search");
-  private final HeaderCell header2SearchRadius = new HeaderCell("Radius");
+  private final HeaderCell header1SearchRadius = new HeaderCell(SEARCH_RADIUS_HEADER1);
+  private final HeaderCell header2SearchRadius = new HeaderCell(SEARCH_RADIUS_HEADER2);
   private final HeaderCell header3SearchRadius = new HeaderCell(
       UIParameters.INSTANCE.getIntegerTripletWidth());
   private final HeaderCell header1HiCutoff = new HeaderCell("High-Freq.");
@@ -132,25 +144,29 @@ final class IterationTable implements Highlightable {
     updateDisplay();
   }
 
+  boolean validateRun() {
+    return rowList.validateRun();
+  }
+
   Container getContainer() {
     return rootPanel;
   }
-  
+
   void reset() {
     rowList.remove();
     addRow();
     updateDisplay();
     UIHarness.INSTANCE.pack(manager);
   }
-  
+
   void getParameters(final MatlabParam matlabParamFile) {
     rowList.getParameters(matlabParamFile);
   }
-  
+
   void setParameters(final MatlabParam matlabParamFile) {
     //overwrite existing rows
     int rowListSize = rowList.size();
-    for (int i = 0;i<rowListSize;i++) {
+    for (int i = 0; i < rowListSize; i++) {
       rowList.getRow(i).setParameters(matlabParamFile);
     }
     //add new rows
@@ -161,7 +177,7 @@ final class IterationTable implements Highlightable {
     updateDisplay();
     UIHarness.INSTANCE.pack(manager);
   }
-  
+
   private IterationRow addRow() {
     IterationRow row = rowList.add(this, pnlTable, layout, constraints);
     row.display();
@@ -173,7 +189,8 @@ final class IterationTable implements Highlightable {
     header1IterationNumber.setToolTipText(tooltip);
     header2IterationNumber.setToolTipText(tooltip);
     header3IterationNumber.setToolTipText(tooltip);
-    btnCopyRow.setToolTipText("Add a new copy with values from the highlighted row.");
+    btnCopyRow
+        .setToolTipText("Add a new copy with values from the highlighted row.");
     btnDeleteRow.setToolTipText("Delete the highlighted row.");
     try {
       ReadOnlyAutodoc autodoc = AutodocFactory
@@ -184,8 +201,7 @@ final class IterationTable implements Highlightable {
       if (tooltip1 == null) {
         tooltip1 = "";
       }
-      String tooltip2 = EtomoAutodoc.getTooltip(autodoc,
-          MatlabParam.D_PSI_KEY);
+      String tooltip2 = EtomoAutodoc.getTooltip(autodoc, MatlabParam.D_PSI_KEY);
       if (tooltip2 == null) {
         tooltip2 = "";
       }
@@ -200,8 +216,7 @@ final class IterationTable implements Highlightable {
       header3DThetaIncrement.setToolTipText(tooltip1);
       header3DPsiMax.setToolTipText(tooltip2);
       header3DPsiIncrement.setToolTipText(tooltip2);
-      tooltip = EtomoAutodoc.getTooltip(autodoc,
-          MatlabParam.SEARCH_RADIUS_KEY);
+      tooltip = EtomoAutodoc.getTooltip(autodoc, MatlabParam.SEARCH_RADIUS_KEY);
       header1SearchRadius.setToolTipText(tooltip);
       header2SearchRadius.setToolTipText(tooltip);
       header3SearchRadius.setToolTipText(tooltip);
@@ -210,8 +225,7 @@ final class IterationTable implements Highlightable {
       header2HiCutoff.setToolTipText(tooltip);
       header3HiCutoff.setToolTipText(tooltip);
       header3HiCutoffSigma.setToolTipText(tooltip);
-      tooltip = EtomoAutodoc.getTooltip(autodoc,
-          MatlabParam.REF_THRESHOLD_KEY);
+      tooltip = EtomoAutodoc.getTooltip(autodoc, MatlabParam.REF_THRESHOLD_KEY);
       header1RefThreshold.setToolTipText(tooltip);
       header2RefThreshold.setToolTipText(tooltip);
       header3RefThreshold.setToolTipText(tooltip);
@@ -228,7 +242,7 @@ final class IterationTable implements Highlightable {
   }
 
   private void addListeners() {
-    ITActionListener actionListener =new ITActionListener(this);
+    ITActionListener actionListener = new ITActionListener(this);
     btnCopyRow.addActionListener(actionListener);
     btnDeleteRow.addActionListener(actionListener);
   }
@@ -247,7 +261,7 @@ final class IterationTable implements Highlightable {
     rowList.copy(row, this, pnlTable, layout, constraints);
     UIHarness.INSTANCE.pack(manager);
   }
-  
+
   private void deleteRow(IterationRow row) {
     rowList.remove();
     rowList.delete(row, this, pnlTable, layout, constraints);
@@ -356,7 +370,7 @@ final class IterationTable implements Highlightable {
       list.add(row);
       return row;
     }
-    
+
     private void getParameters(final MatlabParam matlabParamFile) {
       matlabParamFile.setIterationListSize(list.size());
       for (int i = 0; i < list.size(); i++) {
@@ -369,17 +383,27 @@ final class IterationTable implements Highlightable {
         final GridBagLayout layout, final GridBagConstraints constraints) {
       int index = row.getIndex();
       list.remove(index);
-      for (int i = index;i<list.size();i++) {
+      for (int i = index; i < list.size(); i++) {
         getRow(i).setIndex(i);
       }
     }
-    
+
+    private boolean validateRun() {
+      for (int i = 0; i < list.size(); i++) {
+        IterationRow row = (IterationRow) list.get(i);
+        if (!row.validateRun()) {
+          return false;
+        }
+      }
+      return true;
+    }
+
     private void remove() {
-      for (int i = 0;i<list.size();i++) {
+      for (int i = 0; i < list.size(); i++) {
         getRow(i).remove();
       }
     }
-    
+
     private synchronized void copy(IterationRow row,
         final Highlightable parent, final JPanel panel,
         final GridBagLayout layout, final GridBagConstraints constraints) {
@@ -388,7 +412,7 @@ final class IterationTable implements Highlightable {
       list.add(copy);
       copy.display();
     }
-    
+
     private int size() {
       return list.size();
     }
@@ -398,7 +422,7 @@ final class IterationTable implements Highlightable {
         ((IterationRow) list.get(i)).display();
       }
     }
-    
+
     private IterationRow getRow(int index) {
       return (IterationRow) list.get(index);
     }
