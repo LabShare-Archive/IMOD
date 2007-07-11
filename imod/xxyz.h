@@ -61,8 +61,8 @@ struct xxyzwin
   int lx, ly, lz;
   int lastCacheSum;       /* Sum of cache Z values on last draw */
 
-  int xtrans, ytrans;     /* translation (pan) in image coords */
-  int xwoffset,ywoffset;  /* offset in window coordinates */
+  int xtrans1, ytrans1, xtrans2, ytrans2;     /* translation (pan) in image coords */
+  int xwoffset1, xwoffset2, ywoffset1, ywoffset2;  /* offset in window coordinates */
   int lmx, lmy;           /* last mouse position for panning */
   int hq;                 /* High resolution flag */
   int whichbox;           /* box that left mouse button went down in */
@@ -73,6 +73,8 @@ struct xxyzwin
   int toolMaxX;
   int toolMaxY;
   int toolMaxZ;
+  int winXdim1,winXdim2,winYdim1,winYdim2;
+  int xorigin1, xorigin2, yorigin1, yorigin2;
 };
 
 
@@ -143,6 +145,7 @@ class XyzWindow : public QMainWindow
   void stepZoom(int step);
   void keyRelease(QKeyEvent *event);
   void enteredAxisLocation(int which, int value);
+  void allocateDim(int size, int zsize, int winsize, int &dim1, int &dim2);
 };
 
 class XyzGL : public QGLWidget
@@ -175,6 +178,9 @@ void xyzPixelViewState(bool state);
 
 /*
 $Log$
+Revision 3.12  2007/06/30 00:42:43  sueh
+bug# 1021 Updating the slider ranges and sizes on draw, in case a flip is done.  Labeled the toolbar and limited it docking options.
+
 Revision 3.11  2007/06/29 21:09:24  sueh
 bug# 1021 Replacing the Z slider with a multi-slider that shows X, Y, and
 Z sliders.
