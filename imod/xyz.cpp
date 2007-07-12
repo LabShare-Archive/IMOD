@@ -384,6 +384,16 @@ void XyzWindow::GetCIImages()
   
   allocateDim(xx->vi->xsize, xx->vi->zsize, xx->winx, xx->winXdim1, xx->winXdim2);
   allocateDim(xx->vi->ysize, xx->vi->zsize, xx->winy, xx->winYdim1, xx->winYdim2);
+  
+  if (xx->winXdim2 > xx->winYdim2) {
+    xx->winXdim1 += xx->winXdim2 - xx->winYdim2;
+    xx->winXdim2 = xx->winYdim2;
+  }
+  else if (xx->winYdim2 > xx->winXdim2) {
+    xx->winYdim1 += xx->winYdim2 - xx->winXdim2;
+    xx->winYdim2 = xx->winXdim2;
+  }
+  
   xx->xorigin1 = XYZ_BSIZE;
   xx->xorigin2 = XYZ_BSIZE * 2 + xx->winXdim1;
   xx->yorigin1 = XYZ_BSIZE;
@@ -758,7 +768,6 @@ void XyzWindow::B1Drag(int x, int y)
       y = xx->winy - (xx->yorigin1 + xx->winYdim1);
     }
   }
-  
   else if (xx->whichbox == 5) {
     if (x < xx->xorigin1) {
       x = xx->xorigin1;
@@ -767,6 +776,22 @@ void XyzWindow::B1Drag(int x, int y)
       x = xx->xorigin1 + xx->winXdim1 - 1;
     }
   }
+  else if (xx->whichbox == 6) {
+    if (x < xx->xorigin2) {
+      x = xx->xorigin2;
+    }
+    else if (x > xx->xorigin2 + xx->winXdim2 - 1) {
+      x = xx->xorigin2 + xx->winXdim2 - 1;
+    }
+    int yinverted = xx->winy - y;
+    if (yinverted < xx->yorigin2 + 1) {
+      y = xx->winy - (xx->yorigin2 + 1);
+    }
+    else if (yinverted > xx->yorigin2 + xx->winYdim2) {
+      y = xx->winy - (xx->yorigin2 + xx->winYdim2);
+    }
+  }
+  
   sy = xx->winy - y - 1;
   sx = x - xx->xwoffset1;
   sy -= xx->ywoffset1;
@@ -781,11 +806,13 @@ void XyzWindow::B1Drag(int x, int y)
   case 1:
     xx->xtrans2 += (x - xx->lmx);
     xx->ytrans1 -= (y - xx->lmy);
+    xx->ytrans2 += (x - xx->lmx);
     Draw();
     return;
   case 2:
     xx->xtrans1 += (x - xx->lmx);
     xx->ytrans2 -= (y - xx->lmy);
+    xx->xtrans2 -= (y - xx->lmy);
     Draw();
     return;
   case 3:
@@ -1141,10 +1168,14 @@ void XyzWindow::DrawImage()
     win->ywoffset = -(int)floor((double)(dataOffset * win->zoom + 0.5));*/
     
   /* Now compute drawing parameters for each of the subareas */
-  b3dSetImageOffset(win->winXdim1, nx, win->zoom, &width1, &win->xtrans1, &wx1, &xoffset1);
-  b3dSetImageOffset(win->winXdim2, nz, win->zoom, &width2, &win->xtrans2, &wx2, &xoffset2);
-  b3dSetImageOffset(win->winYdim1, ny, win->zoom, &height1, &win->ytrans1, &wy1, &yoffset1);
-  b3dSetImageOffset(win->winYdim2, nz, win->zoom, &height2, &win->ytrans2, &wy2, &yoffset2);
+  b3dSetImageOffset(win->winXdim1, nx, win->zoom, width1, win->xtrans1, wx1,
+                    xoffset1, 0);
+  b3dSetImageOffset(win->winXdim2, nz, win->zoom, width2, win->xtrans2, wx2,
+                    xoffset2, 0);
+  b3dSetImageOffset(win->winYdim1, ny, win->zoom, height1, win->ytrans1, wy1,
+                    yoffset1, 0);
+  b3dSetImageOffset(win->winYdim2, nz, win->zoom, height2, win->ytrans2, wy2,
+                    yoffset2, 0);
   
   wx1 += win->xorigin1;
   wx2 += win->xorigin2;
@@ -1423,8 +1454,7 @@ void XyzWindow::DrawContour(Iobj *obj, int ob, int co)
   if (contProps.gap)
     return;
 
-  if (!iobjScat(obj->flags)) {
-
+  if (!iobjScat(obj->flags)) {    
     /* Open or closed contours, if they are wild or there are any changes
        coming, then need to test every
        point and draw lines between points that are visible */
@@ -2037,37 +2067,41 @@ void XyzGL::paintGL()
 
   b3dSetCurSize(xx->winx, xx->winy);
   z = xx->zoom;
-  bx = XYZ_BSIZE + xx->xwoffset1;
-  by = XYZ_BSIZE + xx->ywoffset1;
-  bx2 = (int)(bx + XYZ_BSIZE + floor((double)(xx->vi->xsize * z + 0.5)));
-  by2 = (int)(by + XYZ_BSIZE + floor((double)(xx->vi->ysize * z + 0.5)));
+  bx = xx->xwoffset1;
+  by = xx->ywoffset1;
+  bx2 = xx->xwoffset2;
+  by2 = xx->ywoffset2;
 
 
   mWin->DrawImage();
-
   mWin->DrawModel();
+
   mWin->DrawCurrentLines();
   mWin->DrawCurrentPoint();
   mWin->DrawAuto();
 
   if (xyzShowSlice) {
     b3dColorIndex(App->foreground);
-          
+     
+    b3dSubareaViewport(xx->xorigin1, xx->yorigin1, xx->winXdim1, xx->winYdim1);     
     b3dDrawLine((int)(bx + (xx->vi->slice.zx1 * xx->zoom)), 
                 (int)(by + (xx->vi->slice.zy1 * xx->zoom)),
                 (int)(bx + (xx->vi->slice.zx2 * xx->zoom)), 
                 (int)(by + (xx->vi->slice.zy2 * xx->zoom)));
-
+                
+    b3dSubareaViewport(xx->xorigin1, xx->yorigin2, xx->winXdim1, xx->winYdim2);  
     b3dDrawLine((int)(bx + (xx->vi->slice.yx1 * xx->zoom)),
                 (int)(by2+ (xx->vi->slice.yz1 * xx->zoom)),
                 (int)(bx + (xx->vi->slice.yx2 * xx->zoom)),
                 (int)(by2+ (xx->vi->slice.yz2 * xx->zoom)));
 
+    b3dSubareaViewport(xx->xorigin2, xx->yorigin1, xx->winXdim2, xx->winYdim1);  
     b3dDrawLine((int)(bx2+ (xx->vi->slice.xz1 * xx->zoom)),
                 (int)(by + (xx->vi->slice.xy1 * xx->zoom)),
                 (int)(bx2+ (xx->vi->slice.xz2 * xx->zoom)),
                 (int)(by + (xx->vi->slice.xy2 * xx->zoom)));
 
+    b3dResizeViewportXY(xx->winx, xx->winy);  
     xyzShowSlice = 0;
   }
   drawTools();
