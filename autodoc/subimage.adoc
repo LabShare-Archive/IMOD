@@ -64,16 +64,16 @@ tooltip =
 manpage = Make the mean of the output be zero for each section by subtracting
 the mean difference between sections from the difference.
 
-[Field = LowThreshold]
-short = low
+[Field = LowerThreshold]
+short = lower
 type = F
 usage = Truncate output to eliminate values below this threshold
 tooltip = 
 manpage = Truncate the output by replacing values below this theshold with
 the threshold value.
 
-[Field = HighThreshold]
-short = high
+[Field = UpperThreshold]
+short = upper
 type = F
 usage = Truncate output to eliminate values above this threshold
 tooltip = 
