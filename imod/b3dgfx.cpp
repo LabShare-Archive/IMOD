@@ -6,14 +6,10 @@
  *  Copyright (C) 1995-2004 by Boulder Laboratory for 3-Dimensional Electron
  *  Microscopy of Cells ("BL3DEMC") and the Regents of the University of 
  *  Colorado.  See dist/COPYRIGHT for full copyright notice.
+ *
+ *  $Id$
+ *  Log at end of file
  */
-/*  $Author$
-
-$Date$
-
-$Revision$
-Log at end of file
-*/
 
 #include <stdlib.h>
 #include <math.h>
@@ -50,10 +46,13 @@ void b3dSetCurSize(int width, int height)
 
 float b3dGetCurXZoom() { return CurXZoom;}
 
+/*
+ * Set the viewport to the entire window of the given size, with 1:1 
+ * transformation in drawing
+ */
 void b3dResizeViewportXY(int winx, int winy)
 {
-  glViewport((GLint)0, (GLint)0,
-             (GLsizei)winx, (GLsizei)winy);
+  glViewport((GLint)0, (GLint)0, (GLsizei)winx, (GLsizei)winy);
   glMatrixMode(GL_PROJECTION);
   glLoadIdentity();
 
@@ -62,6 +61,19 @@ void b3dResizeViewportXY(int winx, int winy)
   glLoadIdentity();
 }
 
+/*
+ * Set the viewport to the subarea of the window defined by the start and
+ * size coordinates, still with a 1:1 transformation in drawing but clipping
+ * outside the viewport
+ */
+void b3dSubareaViewport(int xstart, int ystart, int xsize, int ysize)
+{
+  glViewport((GLint)xstart, (GLint)ystart, (GLsizei)xsize, (GLsizei)ysize);
+  glMatrixMode(GL_PROJECTION);
+  glLoadIdentity();
+  glOrtho((GLdouble)xstart, (GLdouble)(xstart + xsize), (GLdouble)ystart,
+          (GLdouble)(ystart + ysize), 0.5, -0.5);
+}
 
 void b3dColorIndex(int pix)
 {
@@ -318,64 +330,67 @@ void b3dDrawBoxout(int llx, int lly, int urx, int ury)
 void b3dSetImageOffset(int winsize,     /* window size in wpixels.          */
                        int imsize,      /* image size in ipixels            */
                        double zoom,     /* zoom factor.                     */
-                       int *drawsize,   /* size drawn in ipixels            */
-                       int *offset,     /* offset from center in ipixels.   */
-                       int *woff,       /* window offset in wpixels.        */
-                       int *doff)       /* data offset in ipixels           */
+                       int &drawsize,   /* size drawn          */
+                       int &offset,     /* offset from center. */
+                       int &woff,       /* window offset.      */
+                       int &doff,       /* data offset in ipixels           */
+                       int fillEdge)    /* Fill window to edge, maybe beyond*/
 {
   /* imodPrintStderr("winsize %d  imsize %d  zoom %f  offset %d\n", winsize, imsize,
      zoom, *offset); */
-  /* Fits compleatly inside of window. */
-  if ( ((imsize - 1) * zoom) < winsize ){
-    *drawsize = imsize;
-    *woff     = (int)(( winsize - ((imsize - 1) * zoom)) / 2);
-    *doff     = 0;
+  /* Fits completely inside of window. (Why test against imsize - 1 ?*/
+  if ( ((imsize - 1) * zoom) < winsize ) {
+    drawsize = imsize;
+    woff     = (int)(( winsize - ((imsize - 1) * zoom)) / 2);
+    doff     = 0;
 
-  }else{
+  } else {
+
     /* Draw sub image. */
-    *woff = 0;
-    *drawsize = (int)(winsize / zoom);
-    *doff = (int)((imsize / 2 ) - (winsize / zoom / 2));
-    *doff -= *offset;
+    woff = 0;
+    drawsize = (int)(winsize / zoom);
+    doff = (int)((imsize / 2 ) - (winsize / zoom / 2));
+    doff -= offset;
 
-    /* Offset in lower corner. */
-    if (*doff < 0){
+    if (doff < 0){
 
+      /* Offset in lower corner. */
       /* maxborder. */
       int maxwoff = winsize/6;
-      *woff = (int)(-(*doff) * zoom);
+      woff = (int)(-(doff) * zoom);
 
       /* DNM 3/8/04: only change offset if woff needs to be limited, to 
          prevent image creep */
-      if (*woff > maxwoff) {
-        *woff = maxwoff;
-        *offset   = (int)(imsize*0.5f - ((winsize*0.5f - *woff)/zoom));
+      if (woff > maxwoff) {
+        woff = maxwoff;
+        offset   = (int)(imsize*0.5f - ((winsize*0.5f - woff)/zoom));
       }
-      *doff = 0;
-      *drawsize = (int)((winsize - *woff) / zoom);
+      doff = 0;
+      drawsize = (int)((winsize - woff) / zoom);
 
-      /* try and fill corners. */
-      if (*drawsize < (imsize-1)) (*drawsize)++;
-      /* imodPrintStderr("ds do offset wo %d %d %d %d\n", *drawsize, *doff, *offset, *woff); */
-      return;
-    }
+    } else if ( (doff + drawsize) > (imsize - 1)){
 
-    /* Offset in upper corner */
-    if ( (*doff + *drawsize) > (imsize - 1)){
-
+      /* Offset in upper corner */
       /* The minimum drawsize. */
       int minds = (int)((winsize * 0.8333333)/zoom);
 
-      *drawsize = imsize - *doff;
+      drawsize = imsize - doff;
 
-      if (*drawsize < minds){
-        *drawsize = minds;
-        *doff     = imsize - *drawsize;
-        *offset   = (int)(imsize * 0.5 - *doff - (winsize*0.5f)/zoom - 2.0f);
+      if (drawsize < minds){
+        drawsize = minds;
+        doff     = imsize - drawsize;
+        offset   = (int)(imsize * 0.5 - doff - (winsize*0.5f)/zoom - 2.0f);
       }
       return;
     }
-    if (*drawsize < (imsize-1)) (*drawsize)++;
+    
+    /* try and fill to edge if flag is +, or at least allow draw of one extra
+       pixel if flag is 0 */
+    if ((fillEdge > 0 && (int)(zoom * drawsize) < winsize - woff) ||
+        (!fillEdge && (int)(zoom * (drawsize + 1) < winsize + 1 - woff)))
+      drawsize++;
+    /* imodPrintStderr("ds do offset wo %d %d %d %d\n", drawsize, doff, offset, woff); */
+
   }
   return;
 }
@@ -1992,6 +2007,9 @@ int b3dSnapshot(char *fname)
 
 /*
 $Log$
+Revision 4.31  2007/07/07 05:30:20  mast
+Fixed limits for filling draw array, which were overrunning array
+
 Revision 4.30  2007/05/06 03:25:35  mast
 Do not check snapshot file numbers from 0 when movieing
 

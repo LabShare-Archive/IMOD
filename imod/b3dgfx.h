@@ -8,15 +8,10 @@
  *  Copyright (C) 1995-2004 by Boulder Laboratory for 3-Dimensional Electron
  *  Microscopy of Cells ("BL3DEMC") and the Regents of the University of 
  *  Colorado.  See dist/COPYRIGHT for full copyright notice.
+ *
+ *  $Id$
+ *  Log at end of file
  */
-
-/*  $Author$
-
-    $Date$
-
-    $Revision$
-    Log at end of file
-*/
 
 #ifndef B3DGFX_H
 #define B3DGFX_H
@@ -59,6 +54,7 @@ typedef struct b3d_ci_image
 
   void b3dSetCurSize(int width, int height);
 void b3dResizeViewportXY(int winx, int winy);
+void b3dSubareaViewport(int xstart, int ystart, int xsize, int ysize);
 void b3dColorIndex(int pix);
 float b3dGetCurXZoom();
 
@@ -110,12 +106,13 @@ void b3dFlushImage(B3dCIImage *image);
 int b3dGetImageType(GLenum *otype, GLenum *oformat);
 double b3dStepPixelZoom(double czoom, int step);
 void b3dSetImageOffset(int winsize,     /* window size         */
-		       int imsize,      /* image size          */
-		       double zoom,     /* zoom factor.        */
-		       int *drawsize,   /* size drawn          */
-		       int *offset,     /* offset from center. */
-		       int *woff,       /* window offset.      */
-		       int *doff);      /* data offset         */
+                       int imsize,      /* image size          */
+                       double zoom,     /* zoom factor.        */
+                       int &drawsize,   /* size drawn          */
+                       int &offset,     /* offset from center. */
+                       int &woff,       /* window offset.      */
+                       int &doff,       /* data offset in ipixels           */
+                       int fillEdge);   /* Fill window to edge, maybe beyond*/
 
 /*
  *   Pixel drawing.
@@ -162,6 +159,9 @@ int b3dSnapshot_TIF(char *fname, int rgbmode, int *limits,
 
 /*
     $Log$
+    Revision 3.12  2007/05/06 03:25:51  mast
+    Added b3dSetMovieSnapping
+
     Revision 3.11  2006/10/05 15:41:31  mast
     Provided for primary and second non-TIFF snapshot format
 
