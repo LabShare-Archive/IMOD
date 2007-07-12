@@ -68,6 +68,9 @@ class SpinnerCell extends InputCell {
       }
       else {
         savedValue.set((Number) spinner.getValue());
+        if (savedValue.equals(0)) {
+          savedValue.set(1);
+        }
         spinner.setValue(disabledValue.getNumber());
       }
     }
@@ -181,6 +184,9 @@ class SpinnerCell extends InputCell {
 }
 /**
  * <p> $Log$
+ * <p> Revision 1.12  2007/04/02 21:53:11  sueh
+ * <p> bug# 964 Implementing Cell interface.
+ * <p>
  * <p> Revision 1.11  2007/03/27 19:32:23  sueh
  * <p> bug# 964 Changed InputCell.setEnabled() to setEditable.
  * <p>
