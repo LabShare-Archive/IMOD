@@ -1,33 +1,12 @@
-      Program SUBIMAGE
-
+c       SUBIMAGE
+c
 c       -----------------------------------------------------
 c       --- This program subtracts one image from another ---
-c       --- Written: 8-feb-1989 sjm                       ---
-c       --- Updates: 31-may-1989, sjm                     ---
-c       --- DNM 11/4/00: added multiple-section capability---
-c       --- DNM 11/6/01: added ability to get statistics only
+c       --- Written: 8-feb-1989 Sam Mitchell              ---
 c       -----------------------------------------------------
-c       
-c       $Author$
-c       
-c       $Date$
-c       
-c       $Revision$
-c       
-c       $Log$
-c       Revision 3.4  2006/09/28 21:25:08  mast
-c       changed call to avgsd8
-c       
-c       Revision 3.3  2005/05/26 04:35:43  mast
-c       Used double precision to get SD correct and for new args to iclavgsd
-c       
-c       Revision 3.2  2003/12/24 20:02:15  mast
-c       Changed to read and write in chunks, converted to PIP input, and
-c       made it have default behavior to subtract two whole volumes
-c       
-c       Revision 3.1  2002/08/18 23:12:21  mast
-c       Changed to call iclavgsd in library, dimensioned bigger and put big
-c       arrays in common
+c
+c       $Id$
+c       Log at end of file
 c       
       implicit none
       integer maxarr,maxlist
@@ -70,8 +49,8 @@ c
      &    'afile:AFileSubtractFrom:FN:@bfile:BFileSubtractOff:FN:@'//
      &    'output:OutputFile:FN:@mode:ModeOfOutput:I:@'//
      &    'asections:ASectionList:LI:@bsections:BSectionList:LI:@'//
-     &    'zero:ZeroMeanOutput:B:@low:LowThreshold:F:@high:HighThreshold:F:@'//
-     &    'param:ParameterFile:PF:@help:usage:B:'
+     &    'zero:ZeroMeanOutput:B:@lower:LowerThreshold:F:@'//
+     &    'upper:UpperThreshold:F:@param:ParameterFile:PF:@help:usage:B:'
 
       limarr = maxarr**2
       cfile = ' '
@@ -95,7 +74,7 @@ c
       endif
 
       if (PipGetInOutFile('AFileSubtractFrom', 1, 'Name of file A', afile)
-     &    .ne. 0) call errorexit('NO INPUT FILE A SPECIFIED')
+     &    .ne. 0) call exitError('NO INPUT FILE A SPECIFIED')
 
       call ialprt(.false.)
       call imopen(1,afile,'ro')
@@ -114,14 +93,14 @@ c         ierr = PipGetInteger('TestLimit', limarr)
         limarr = min(limarr, maxarr**2)
         ierr = PipGetInteger('ModeOfOutput', modeOut)
         ierr = PipGetInteger('ZeroMeanOutput', ifZeroMean)
-        ifLowThresh = 1 - PipGetFloat('LowThreshold', lowThresh)
-        ifHighThresh = 1 - PipGetFloat('HighThreshold', highThresh)
+        ifLowThresh = 1 - PipGetFloat('LowerThreshold', lowThresh)
+        ifHighThresh = 1 - PipGetFloat('UpperThreshold', highThresh)
       else
         print *,'Enter list of section numbers from file A ',
      &      '(ranges OK, / for all)'
         call rdlist(5,listasec,nasec)
       endif
-      if (nasec.gt.maxlist) call errorexit('TOO MANY SECTIONS FOR ARRAYS')
+      if (nasec.gt.maxlist) call exitError('TOO MANY SECTIONS FOR ARRAYS')
 
       if (PipGetInOutFile('BFileSubtractOff', 2,
      &    'Name of file B, or return for A~', bfile) .ne. 0)
@@ -137,7 +116,7 @@ c         ierr = PipGetInteger('TestLimit', limarr)
      &      nasec-1,')'
         call rdlist(5,listbsec,nbsec)
       endif
-      if (nasec.ne.nbsec)call errorexit('NUMBER OF SECTIONS DOES NOT MATCH')
+      if (nasec.ne.nbsec)call exitError('NUMBER OF SECTIONS DOES NOT MATCH')
       ierr = PipGetInOutFile('OutputFile', 3,
      &    'Name of file C, or return for statistics only', cfile)
       call PipDone()
@@ -149,16 +128,16 @@ c         ierr = PipGetInteger('TestLimit', limarr)
       call irdhdr(2,nxyz2,mxyz,mode,dmin,dmax,dmean)
 
       if(nxyz2(1).ne.nx.or.nxyz(2).ne.ny)
-     &    call errorexit( 'IMAGE SIZES DO NOT MATCH')
+     &    call exitError( 'IMAGE SIZES DO NOT MATCH')
 
       do i=1,nasec
         asec=listasec(i)
         bsec=listbsec(i)
         if(asec.lt.0.or.asec.ge.nz.or.bsec.lt.0.or.bsec.ge.nxyz2(3))
-     &      call errorexit( 'ILLEGAL SECTION NUMBER')
+     &      call exitError( 'ILLEGAL SECTION NUMBER')
       enddo
 
-      if(nx.gt.limarr)call errorexit( 'IMAGES TOO LARGE FOR ARRAYS')
+      if(nx.gt.limarr)call exitError( 'IMAGES TOO LARGE FOR ARRAYS')
 
       if(cfile.ne.' ')then
         call imopen(3,cfile,'new')
@@ -289,12 +268,27 @@ c       encode ( 80, 3000, title ) dat, tim
 4000  format(i5,4f15.4)
 5000  format(' all ',4f15.4)
 
-100   call errorexit('READING FILE')
+100   call exitError('READING FILE')
       end
 
-      subroutine errorexit(message)
-      character*(*) message
-      print *
-      print *,'ERROR: SUBIMAGE - ',message
-      call exit(1)
-      end
+c       $Log$
+c       Revision 3.5  2007/07/10 19:40:22  mast
+c       Added options for zero mean and thresholding on output
+c
+c       Revision 3.4  2006/09/28 21:25:08  mast
+c       changed call to avgsd8
+c       
+c       Revision 3.3  2005/05/26 04:35:43  mast
+c       Used double precision to get SD correct and for new args to iclavgsd
+c       
+c       Revision 3.2  2003/12/24 20:02:15  mast
+c       Changed to read and write in chunks, converted to PIP input, and
+c       made it have default behavior to subtract two whole volumes
+c       
+c       Revision 3.1  2002/08/18 23:12:21  mast
+c       Changed to call iclavgsd in library, dimensioned bigger and put big
+c       arrays in common
+c       --- Updates: 31-may-1989, sjm                     ---
+c       --- DNM 11/4/00: added multiple-section capability---
+c       --- DNM 11/6/01: added ability to get statistics only
+c       
