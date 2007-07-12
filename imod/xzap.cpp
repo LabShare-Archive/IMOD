@@ -322,8 +322,8 @@ static void zapSyncImage(ZapStruct *win)
           trystart = win->xstart;
           /* imodPrintStderr ("before %d %d %d %d\n", 
              trydraws, win->xtrans, tryborder, trystart); */
-          b3dSetImageOffset(wsize, vi->xsize, win->zoom, &trydraws,
-                            &trytrans, &tryborder, &trystart);
+          b3dSetImageOffset(wsize, vi->xsize, win->zoom, trydraws,
+                            trytrans, tryborder, trystart, 1);
           /* imodPrintStderr ("after %d %d %d %d\n", 
              trydraws, trytrans, tryborder, trystart); */
           /* Can't use xtrans for a test, need to use the other
@@ -346,8 +346,8 @@ static void zapSyncImage(ZapStruct *win)
           trydraws = win->ydrawsize;
           tryborder = win->yborder;
           trystart = win->ystart;
-          b3dSetImageOffset(wsize, vi->ysize, win->zoom, &trydraws,
-                            &trytrans, &tryborder, &trystart);
+          b3dSetImageOffset(wsize, vi->ysize, win->zoom, trydraws,
+                            trytrans, tryborder, trystart, 1);
           if (tryborder != win->yborder || trystart != win->ystart)
             tripshift += 2;
         }
@@ -3067,12 +3067,12 @@ static void zapDrawGraphics(ZapStruct *zap)
   // b3dSetCurPoint(x, y, zap->section);
 
   b3dSetImageOffset(zap->winx, vi->xsize, zap->zoom,
-                    &zap->xdrawsize, &zap->xtrans, 
-                    &zap->xborder, &zap->xstart);
+                    zap->xdrawsize, zap->xtrans, 
+                    zap->xborder, zap->xstart, 1);
 
   b3dSetImageOffset(zap->winy, vi->ysize, zap->zoom,
-                    &zap->ydrawsize, &zap->ytrans, 
-                    &zap->yborder, &zap->ystart);
+                    zap->ydrawsize, zap->ytrans, 
+                    zap->yborder, zap->ystart, 1);
 
   /* Get the time to display and flush if time is different. */
   if (zap->timeLock)
@@ -3864,6 +3864,9 @@ void zapGetLongestTimeString(ImodView *vi, QString *str)
 
 /*
 $Log$
+Revision 4.99  2007/06/26 21:57:56  sueh
+bug# 1021 Removed win_support.
+
 Revision 4.98  2007/06/26 17:08:40  sueh
 bug# 1021 Moved the bodies of shared functions setControlAndLimits,
 zapDraw, and zapStepZoom to win_support.
