@@ -418,7 +418,6 @@ void XyzWindow::allocateDim(int size, int zsize, int winsize, int &dim1,
 void XyzWindow::GetCIImages()
 {
   struct xxyzwin *xx = mXyz;
-  int xdim, ydim1, ydim2;
   
   allocateDim(xx->vi->xsize, xx->vi->zsize, xx->winx, xx->winXdim1, 
               xx->winXdim2);
@@ -439,22 +438,18 @@ void XyzWindow::GetCIImages()
   xx->yorigin1 = XYZ_BSIZE;
   xx->yorigin2 = XYZ_BSIZE * 2 + xx->winYdim1;
 
-  xdim = xx->winx;
-  ydim1 = ydim2 = xx->winy;
   xx->xydata = (B3dCIImage *)b3dGetNewCIImageSize
-    (xx->xydata, App->depth, xdim, ydim1);
+    (xx->xydata, App->depth, xx->winXdim1, xx->winYdim1);
 
   xx->xzdata = (B3dCIImage *)b3dGetNewCIImageSize
-    (xx->xzdata, App->depth, xdim, ydim2);
+    (xx->xzdata, App->depth,  xx->winXdim1, xx->winYdim2);
 
   xx->yzdata = (B3dCIImage *)b3dGetNewCIImageSize
-    (xx->yzdata, App->depth, xdim, ydim1);
+    (xx->yzdata, App->depth,  xx->winXdim2, xx->winYdim1);
 
   if (!xx->xydata || !xx->xzdata || !xx->yzdata)
     wprint("\aInsufficient memory to run this Xyz window.\n"
             "Try making it smaller or close it.\n");
-
-  return;
 }
 
 /*
@@ -2062,6 +2057,14 @@ XyzGL::XyzGL(struct xxyzwin *xyz, QGLFormat inFormat, XyzWindow * parent,
   mXyz = xyz;
   mWin = parent;
   mClosing = false;
+  mFirstDraw = true;
+}
+
+// When the timer fires after the first draw, do another draw
+void XyzGL::timerEvent(QTimerEvent * e )
+{
+  killTimer(mTimerID);
+  updateGL();
 }
 
 
@@ -2079,6 +2082,11 @@ void XyzGL::paintGL()
     return;
   if (!xx->exposed) return;     /* DNM: avoid crashes if Zap is movieing*/
 
+  if (mFirstDraw) {
+    mTimerID = startTimer(10);
+    mFirstDraw = false;
+  }
+  
   b3dSetCurSize(xx->winx, xx->winy);
   z = xx->zoom;
   bx = xx->xwoffset1;
@@ -2249,6 +2257,9 @@ void XyzGL::mouseMoveEvent( QMouseEvent * event )
 
 /*
 $Log$
+Revision 4.43  2007/07/13 14:50:18  mast
+Cleanup and commented
+
 Revision 4.42  2007/07/13 14:44:02  mast
 cleanup attempt # 1
 
