@@ -176,10 +176,13 @@ class XyzGL : public QGLWidget
   void mousePressEvent(QMouseEvent * e );
   void mouseReleaseEvent ( QMouseEvent * e );
   void mouseMoveEvent ( QMouseEvent * e );
+  void timerEvent(QTimerEvent *e);
 
  private:
   struct xxyzwin *mXyz;
   XyzWindow *mWin;
+  bool mFirstDraw;
+  int mTimerID;
   bool mMousePressed;
   void drawTools();
 };
@@ -190,6 +193,9 @@ void xyzPixelViewState(bool state);
 
 /*
 $Log$
+Revision 3.15  2007/07/13 14:50:03  mast
+cleanup
+
 Revision 3.14  2007/07/13 05:36:05  mast
 Added help and functions for generic model drawing
 
