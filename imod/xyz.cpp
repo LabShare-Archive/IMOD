@@ -1080,9 +1080,9 @@ void XyzWindow::setZoomText(float zoom)
   mZoomEdit->setText(str);
 }
 
-void XyzWindow::sliderChanged(int which, int value, bool dragging){
-  if (!dragging || (hotSliderFlag() == HOT_SLIDER_KEYDOWN && mCtrlPressed)
-      || (hotSliderFlag() == HOT_SLIDER_KEYUP && !mCtrlPressed))
+void XyzWindow::sliderChanged(int which, int value, bool dragging)
+{
+  if (!dragging || ImodPrefs->hotSliderActive(mCtrlPressed))
     enteredAxisLocation(which, value);
   else
     mDisplayedAxisLocation[which] = value;
@@ -1116,32 +1116,9 @@ void XyzWindow::enteredAxisLocation(int which, int value)
 }
 
 
-void XyzWindow::SetSubimage(int absStart, int winSize, int imSize, 
-			       float zoom, int *drawsize, int *woffset,
-			       int *dataStart)
-{
-  *dataStart = 0;
-  *woffset = absStart;
-
-  /* If the absolute starting point is negative, then adjust the data start
-     for this; throw away one more pixel and set a small window offset
-     if necessary to keep pixels synchronized */
-  if (absStart < 0) {
-    *dataStart = (int)(-absStart / zoom);
-    *woffset = 0;
-    if (zoom * *dataStart < -absStart) {
-      (*dataStart)++;
-      *woffset = (int)(zoom * *dataStart + absStart);
-    }
-  }
-
-  /* limit # of pixels to draw if it goes past end of window - this also
-     takes care of case where image starts past end of window */
-  *drawsize = imSize - *dataStart;
-  if (*drawsize * zoom + *woffset > winSize)
-    *drawsize = (int)((winSize - *woffset) / zoom);
-}     
-
+/*
+ * Draw all the image panels
+ */
 void XyzWindow::DrawImage()
 {
   struct xxyzwin *win = mXyz;
@@ -1201,23 +1178,10 @@ void XyzWindow::DrawImage()
   flipped = !win->vi->fakeImage && 
     (!win->vi->vmSize || win->vi->fullCacheFlipped) && win->vi->li->axis == 2;
 
+  /* Now compute drawing parameters for each of the subareas */
   /* Pass the image offset routine the effective image size, including
      de-zoomed borders, and convert a data offset into a negative window
-     offset */
-  /*extraImSize = (int)floor((double)(3. * XYZ_BSIZE / win->zoom + 0.5));
-  b3dSetImageOffset(win->winx, nx + nz + extraImSize, win->zoom, &drawsize,
-                    &win->xtrans, &win->xwoffset, &dataOffset);
-    
-  if (dataOffset)
-    win->xwoffset = -(int)floor((double)(dataOffset * win->zoom + 0.5));
-
-  b3dSetImageOffset(win->winy, ny + nz + extraImSize, win->zoom, &drawsize,
-                    &win->ytrans, &win->ywoffset, &dataOffset);
-
-  if (dataOffset)
-    win->ywoffset = -(int)floor((double)(dataOffset * win->zoom + 0.5));*/
-    
-  /* Now compute drawing parameters for each of the subareas */
+     offset for use in drawing model */
   b3dSetImageOffset(win->winXdim1, nx, win->zoom, width1, win->xtrans1, wx1,
                     xoffset1, 0);
   b3dSetImageOffset(win->winXdim2, nz, win->zoom, width2, win->xtrans2, wx2,
@@ -1233,41 +1197,36 @@ void XyzWindow::DrawImage()
   wy2 += win->yorigin2;
   
   if (xoffset1)
-    win->xwoffset1 = -(int)floor((double)(xoffset1 * win->zoom + 0.5)) + win->xorigin1;
+    win->xwoffset1 = -(int)floor((double)(xoffset1 * win->zoom + 0.5)) + 
+      win->xorigin1;
   else
     win->xwoffset1 = wx1;
   if (xoffset2)
-    win->xwoffset2 = -(int)floor((double)(xoffset2 * win->zoom + 0.5)) + win->xorigin2;
+    win->xwoffset2 = -(int)floor((double)(xoffset2 * win->zoom + 0.5)) +
+      win->xorigin2;
   else
     win->xwoffset2 = wx2;
   if (yoffset1)
-    win->ywoffset1 = -(int)floor((double)(yoffset1 * win->zoom + 0.5)) + win->yorigin1;
+    win->ywoffset1 = -(int)floor((double)(yoffset1 * win->zoom + 0.5)) +
+      win->yorigin1;
   else
     win->ywoffset1 = wy1;
   if (yoffset2)
-    win->ywoffset2 = -(int)floor((double)(yoffset2 * win->zoom + 0.5)) + win->yorigin2;
+    win->ywoffset2 = -(int)floor((double)(yoffset2 * win->zoom + 0.5)) + 
+      win->yorigin2;
   else
     win->ywoffset2 = wy2;
   
-  /*
-  SetSubimage(win->xwoffset + XYZ_BSIZE, win->winx, nx, win->zoom,
-        &width1, &wx1, &xoffset1);                  
-  SetSubimage(win->xwoffset + sx + 2 * XYZ_BSIZE, win->winx, nz, 
-        win->zoom, &width2, &wx2, &xoffset2);
-  SetSubimage(win->ywoffset + XYZ_BSIZE, win->winy, ny, win->zoom,
-        &height1, &wy1, &yoffset1);
-  SetSubimage(win->ywoffset + sy + 2 * XYZ_BSIZE, win->winy, nz, 
-        win->zoom, &height2, &wy2, &yoffset2);*/
-
+  //draw XY view
   if (width1 > 0 && height1 > 0) {
     win->lz = cz;
-    //draw XY view
     b3dDrawGreyScalePixelsHQ(id, nx,ny, xoffset1, yoffset1, wx1, wy1,
                              width1, height1, win->xydata,
                              win->vi->rampbase, win->zoom, win->zoom, 
                              win->hq, cz, App->rgba);                    
   }
 
+  // Load data for YZ view
   // Send out a negative xslice or yslice if the data are being reloaded,
   // this is the best way to signal that they are new to the matching routine
   if (width2 > 0 && height1 > 0) {
@@ -1297,6 +1256,7 @@ void XyzWindow::DrawImage()
         }
       }
     }
+    
     //draw yz view
     b3dDrawGreyScalePixelsHQ(ivwMakeLinePointers(win->vi, win->fdatayz, nz, ny,
                                                  MRC_MODE_BYTE), 
@@ -1306,6 +1266,7 @@ void XyzWindow::DrawImage()
                              win->hq, xslice, App->rgba);
   }
 
+  // Load data for XZ view
   if (width1 > 0 && height2 > 0) {
     yslice = cy;
     fdata  = win->fdataxz;
@@ -1325,6 +1286,7 @@ void XyzWindow::DrawImage()
         }
       }
     }
+
     //draw xz view    
     b3dDrawGreyScalePixelsHQ(ivwMakeLinePointers(win->vi, win->fdataxz, nx, nz,
                                                  MRC_MODE_BYTE),
@@ -1334,10 +1296,11 @@ void XyzWindow::DrawImage()
                              win->hq, yslice, App->rgba);
   }
   win->lastCacheSum = cacheSum;
-
-  return;
 }
 
+/*
+ * Draw the lines around boxes andthe position gadgets
+ */
 void XyzWindow::DrawCurrentLines()
 {
   struct xxyzwin *xx = mXyz;
@@ -1377,21 +1340,13 @@ void XyzWindow::DrawCurrentLines()
   if (ceny == cenylim) {
     b3dDrawLine(xx->xorigin2, ceny, xx->xorigin2 + xx->winXdim2, ceny);
   }
-  //b3dDrawLine(bx2, ceny, xlim, ceny);
+
   //draw Z location Y line
   if (cenx == cenxlim) {
     b3dDrawLine(cenx, xx->yorigin2, cenx, xx->yorigin2 + xx->winYdim2);
   }
-  //b3dDrawLine(cenx, by2, cenx, ylim);
+
   // Back off from edges and draw grab box
-  /*if (cenx < bx2 +  hlen)
-    cenx = bx2 +  hlen;
-  if (cenx > xlim - hlen)
-    cenx = xlim - hlen;
-  if (ceny < by2 +  hlen)
-    ceny = by2 +  hlen;
-  if (ceny > ylim - hlen)
-    ceny = ylim - hlen;*/
   //draw Z location grab box
   if (cenx == cenxlim && ceny == cenylim) {
     b3dDrawFilledRectangle(cenx - hlen, ceny - hlen, GRAB_LENGTH, GRAB_LENGTH);
@@ -1400,57 +1355,45 @@ void XyzWindow::DrawCurrentLines()
   //draw XY window box
   b3dDrawRectangle(xx->xorigin1 - 1, xx->yorigin1 - 1, xx->winXdim1 + 1,
                    xx->winYdim1 + 1);
-  //b3dDrawRectangle(bx - 1, by - 1, xsize + 1, ysize + 1);
-  /*imodPrintStderr("bx - 1 %d  xsize + 1 %d  xsize + 1 %d  ysize + 1 %d\n", bx - 1, xsize + 1, xsize + 1, ysize + 1);*/
+  /*imodPrintStderr("bx - 1 %d  xsize + 1 %d  xsize + 1 %d  ysize + 1 %d\n", 
+    bx - 1, xsize + 1, xsize + 1, ysize + 1);*/
 
        
 
   /* draw x location line and box around X/Z plane */
   b3dColorIndex(App->bgnpoint);
   cenx = (int)(bx + z * (cx+.5));
-  cenxlim = B3DMIN(B3DMAX(cenx, xx->xorigin1 - 1), xx->xorigin1 + xx->winXdim1);
-  //ceny = (int)(by + z * ny + bpad);
+  cenxlim = B3DMIN(B3DMAX(cenx, xx->xorigin1 - 1), xx->xorigin1 + 
+                   xx->winXdim1);
+
   //draw X location line
   b3dDrawLine(cenxlim, xx->yorigin2 - XYZ_BSIZE / 2 - 1,
               xx->xorigin2 + xx->winXdim2, xx->yorigin2 - XYZ_BSIZE / 2 - 1);
-  //b3dDrawLine(cenx, ceny, xlim, ceny);
   
- /* if (cenx < bx +  hwidth)
-    cenx = bx +  hwidth;
-  if (cenx > bx2 - XYZ_BSIZE - hwidth)
-    cenx = bx2 - XYZ_BSIZE - hwidth;*/
   //draw grab box for X location
   if (cenx == cenxlim) {
-    b3dDrawFilledRectangle(cenx - hwidth, xx->yorigin2 - XYZ_BSIZE / 2 - 1 - hlen, GRAB_WIDTH, GRAB_LENGTH);
+    b3dDrawFilledRectangle(cenx - hwidth, xx->yorigin2 - XYZ_BSIZE / 2 - 1 - 
+                           hlen, GRAB_WIDTH, GRAB_LENGTH);
   }
-  //b3dDrawFilledRectangle(cenx - hwidth, ceny - hlen, GRAB_WIDTH, GRAB_LENGTH);
   
   //draw YZ window box
   b3dDrawRectangle(xx->xorigin2 - 1, xx->yorigin1 - 1, xx->winXdim2 + 1,
                    xx->winYdim1 + 1);
-  //b3dDrawRectangle(bx2 - 1, by - 1, zsize + 1, ysize + 1);
 
   /* draw y location line. */
   b3dColorIndex(App->endpoint);
-  //cenx = (int)(bx + z * nx + bpad);
   ceny = (int)(by + z * (cy+.5));
-  cenylim = B3DMIN(B3DMAX(ceny, xx->yorigin1 - 1), xx->yorigin1 + xx->winYdim1);
-  //draw Y location line
+  cenylim = B3DMIN(B3DMAX(ceny, xx->yorigin1 - 1), xx->yorigin1 + 
+                   xx->winYdim1);
   b3dDrawLine(xx->xorigin2 - XYZ_BSIZE / 2 - 1, xx->yorigin2 + xx->winYdim2,
               xx->xorigin2 - XYZ_BSIZE / 2 - 1, cenylim);
-  //b3dDrawLine(cenx, ylim, cenx, ceny);
   
-  /*cenx = (int)(bx + z * nx + bpad);
-  if (ceny < by +  hwidth)
-    ceny = by +  hwidth;
-  if (ceny > by2 - XYZ_BSIZE - hwidth)
-    ceny = by2 - XYZ_BSIZE - hwidth;*/
   //draw grab box for Y location
   //only draw box if the current point is displayed
   if (ceny == cenylim){
-    b3dDrawFilledRectangle(xx->xorigin2 - XYZ_BSIZE / 2 - 1 - hlen, ceny - hwidth, GRAB_LENGTH, GRAB_WIDTH);
+    b3dDrawFilledRectangle(xx->xorigin2 - XYZ_BSIZE / 2 - 1 - hlen, 
+                           ceny - hwidth, GRAB_LENGTH, GRAB_WIDTH);
   }
-  //b3dDrawFilledRectangle(cenx - hlen, ceny - hwidth, GRAB_LENGTH, GRAB_WIDTH);
                          
   //draw XZ window box
   b3dDrawRectangle(xx->xorigin1 - 1, xx->yorigin2 - 1, xx->winXdim1 + 1,
@@ -1459,11 +1402,15 @@ void XyzWindow::DrawCurrentLines()
   return;
 }
 
+// Nonfunctional
 void XyzWindow::DrawGhost()
 {
   return;
 }
 
+/*
+ * The contour drawing routine
+ */
 /* DNM 1/20/02: add argument ob to be able to reset color properly */
 /* DNM 5/5/03: replace calls to ivPointVisible with direct Z tests to speed
    things up, now that floor call is needed */
@@ -1582,6 +1529,7 @@ void XyzWindow::DrawContour(Iobj *obj, int ob, int co)
                 currentCont);
   }
 
+  // Draw symbols for scattered points, spheres, and end markers in each window
   b3dSubareaViewport(xx->xorigin1, xx->yorigin1, xx->winXdim1, xx->winYdim1);
   DrawScatSymAllSpheres(obj, ob, cont, co, &contProps, &ptProps, &stateFlags, 
                         handleFlags, nextChange, 0, 1, 2, vi->zmouse, 
@@ -1598,6 +1546,10 @@ void XyzWindow::DrawContour(Iobj *obj, int ob, int co)
   return;
 }
 
+/*
+ * Generic routine to draw symbols and projection of current contour on
+ * XZ and YZ subwindows
+ */
 void XyzWindow::DrawSymProj(Iobj *obj, Icont *cont, int co,
                             DrawProps *contProps, DrawProps *ptProps,
                             int *stateFlags, int handleFlags, int nextChange,
@@ -1644,6 +1596,10 @@ void XyzWindow::DrawSymProj(Iobj *obj, Icont *cont, int co,
   }
 }
 
+/*
+ * Generic routine to draw symbols on scattered points, scattered points and
+ * other spheres, and contour end markers on one subarea
+ */
 void XyzWindow::DrawScatSymAllSpheres(Iobj *obj, int ob,  Icont *cont, int co, 
                                       DrawProps *contProps,
                                       DrawProps *ptProps, int *stateFlags,
@@ -1746,7 +1702,8 @@ void XyzWindow::DrawScatSymAllSpheres(Iobj *obj, int ob,  Icont *cont, int co,
   }
 }
 
-
+/*
+ * Draw model by looping through all contours */
 void XyzWindow::DrawModel()
 {
   struct xxyzwin *xx = mXyz;
@@ -1769,6 +1726,9 @@ void XyzWindow::DrawModel()
   }
 }
 
+/*
+ * Draw current image or model point and begin/end points of current contour 
+*/
 void XyzWindow::DrawCurrentPoint()
 {
   struct xxyzwin *xx = mXyz;
@@ -1857,6 +1817,7 @@ void XyzWindow::DrawCurrentPoint()
   b3dResizeViewportXY(xx->winx, xx->winy);
 }
 
+// Nonfunctional
 void XyzWindow::DrawAuto()
 {
 #ifdef FIX_xyzDrawAuto_BUG
@@ -2161,7 +2122,7 @@ void XyzGL::paintGL()
   glFlush();
 }
 
-  // send a new value of section, zoom, or time label if it has changed
+// send a new value of section, zoom, or time label if it has changed
 void XyzGL::drawTools()
 {  
   
@@ -2288,16 +2249,22 @@ void XyzGL::mouseMoveEvent( QMouseEvent * event )
 
 /*
 $Log$
+Revision 4.42  2007/07/13 14:44:02  mast
+cleanup attempt # 1
+
 Revision 4.41  2007/07/13 05:34:55  mast
 Got viewports working in all draw actions, fixed insert key modeling,
 set geometry of window to fit toolbar, called routine to refigure the
 window layout when flip occurs
 
 Revision 4.40  2007/07/12 19:47:48  sueh
-bug# 1023 Corrected panning.  Synchronized panning of the top and left windows by synchronizing the height of the top window with the width of the left window.  Fixed the slicer lines.
+bug# 1023 Corrected panning.  Synchronized panning of the top and left windows
+by synchronizing the height of the top window with the width of the left 
+window.  Fixed the slicer lines.
 
 Revision 4.38  2007/06/30 00:42:53  sueh
-bug# 1021 Updating the slider ranges and sizes on draw, in case a flip is done.  Labeled the toolbar and limited it docking options.
+bug# 1021 Updating the slider ranges and sizes on draw, in case a flip is done.
+Labeled the toolbar and limited it docking options.
 
 Revision 4.37  2007/06/29 21:09:35  sueh
 bug# 1021 Replacing the Z slider with a multi-slider that shows X, Y, and
