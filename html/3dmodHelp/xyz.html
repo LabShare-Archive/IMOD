@@ -1,0 +1,81 @@
+<head>
+<title>XYZ Window</title>
+</head>
+<H2>XYZ Window Controls</H2>
+<H3>Mouse Button Assignments</H3>
+Descriptions below refer to the first, second, and third mouse 
+buttons.  By default, these correspond to left, middle, and right 
+buttons of a 3-button mouse, but you can change these assignments in 
+the 3dmod Preferences dialog, accessed via the <B>Edit-Options</B> menu entry.
+
+
+<H3>The Tool Bar</H3>
+<UL>
+<LI>The <B>up</B> and <B>down arrows</B> step the zoom factor up or down.
+<LI>The <B>zoom</B> edit box shows the current zoom factor and allows 
+one to type in a custom zoom.
+<LI>The <B>checkerboard</B> button toggles between fast rendering and 
+slower but higher quality interpolated image rendering.
+<LI>The <B>X slider</B> allow one to change the X location.
+<LI>The <B>Y slider</B> allow one to change the Y location.
+<LI>The <B>Z slider</B> allows one to riffle through images or select a 
+particular section to display.
+</UL>
+
+<H3>Hot Keys special to the XYZ window</H3>
+<UL>
+<LI><B>Ctrl-S</B>, <B>Shift-S</B> or <B>Ctrl-Shift-S</B> saves the Zap window,
+or the area inside the rubber band, into a TIFF file, a file in the primary
+non-TIFF format, or a file in the second non-TIFF format.  (Use the menu entry 
+<B>Edit-Options</B> and go to the Behavior tab to select the primary non-TIFF
+file format.  The second non-TIFF format will be PNG if the primary one is not
+PNG, or JPEG if the primary one is PNG.)
+<LI><B>r</B>, <B>Shift-R</B> toggles between fast rendering and 
+slower but higher quality interpolated image rendering.
+<LI><B>Shift-P</B> Projects the current contour onto the side views.
+<LI><B>Ins</B> on the keypad: In model mode, this key works the same as 
+the second mouse button.  A single keystrike adds one point; 
+holding the key down allows points to be added continuously.
+<LI><B>ESC</B> will close the XYZ window.
+</UL>
+For other keys, see Help - Hot Keys in the 3dmod Info Window.
+
+
+<H3>Mouse button function in movie mode</H3>
+<UL>
+<LI><B>First Button Click</B>: Select the current viewing point, marked by 
+a small cross.
+<LI><B>First Button Drag</B>: Pan an image if it is larger than its view box.
+<LI><B>Second Button Click</B>: Start movie in forward direction, or stop movie.
+<LI><B>Third Button Click</B>: Start movie in backward direction, or stop movie.
+</UL>
+
+<H3>Mouse button function in model mode</H3>
+<UL>
+<LI><B>First Button Click</B>: Make the nearest visible model point be the 
+current model point.  If there is no point nearby, this detaches from 
+the current point and contour and selects a current viewing point 
+instead.
+<LI><B>First Button Drag</B>: Pan an image if it is larger than its view box.
+<LI><B>Second Button Click</B>: Add one point to the current contour.
+<LI><B>Second Button Drag</B>: Continually add points to the current 
+contour as the mouse is moved.
+<LI><B>Third Button Click</B>: Modify the current model point to be at the 
+selected position.
+<LI><B>Third Button Drag</B>: Continually modify points as the mouse is 
+moved.  This only works when the current model point is in the 
+interior of the contour, not at its end.
+</UL>
+
+<H3>Screen Gadgets</H3>
+<UL>
+<LI>Cross-hair (upper right corner):  moves the current point in Z on the visible
+portion of the image.
+<LI>Horizontal slider (between top and main window):  moves the current point in
+X on the visible portion of the image.
+<LI>Vertical slider (between top and main window):  moves the current point in
+Y on the visible portion of the image.
+</UL>
+
+<P>
+<A HREF="index.html">Help Index<A>
