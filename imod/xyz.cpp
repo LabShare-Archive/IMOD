@@ -24,6 +24,7 @@
 #include <qtooltip.h>
 #include <qbitmap.h>
 #include <qslider.h>
+#include <qpushbutton.h>
 
 #include "imod.h"
 #include "xxyz.h"
@@ -87,10 +88,10 @@ static QTime insertTime;
 /* routine for opening or raising the window */
 int xxyz_open(ImodView *vi)
 {
-  float newzoom;
+  double newzoom;
   struct xxyzwin *xx;
-  int deskWidth = QApplication::desktop()->width();
-  int deskHeight = QApplication::desktop()->height();
+  int needWinx, needWiny, maxWinx, maxWiny, xleft, ytop, toolHeight;
+  int newHeight, newWidth;
 
   if (XYZ) {
     XYZ->dialog->raise();
@@ -107,8 +108,6 @@ int xxyz_open(ImodView *vi)
   xx->fdataxz  = (unsigned char *)malloc(vi->xsize * vi->zsize);
   xx->fdatayz  = (unsigned char *)malloc(vi->ysize * vi->zsize);
 
-  xx->winx = vi->xsize + vi->zsize + (3 * XYZ_BSIZE);
-  xx->winy = vi->ysize + vi->zsize + (3 * XYZ_BSIZE);
   xx->vi   = vi;
   xx->exposed = 0;
 
@@ -125,22 +124,11 @@ int xxyz_open(ImodView *vi)
   xx->toolMaxY = vi->ysize;
   xx->toolMaxZ = vi->zsize;
 
-  while (xx->winx > deskWidth - 20 ||
-         xx->winy > deskHeight - 40) {
-    newzoom = b3dStepPixelZoom(xx->zoom, -1);
-    if (newzoom == xx->zoom)
-      break;
-    xx->zoom = newzoom;
-    xx->winx = (int)((vi->xsize + vi->zsize) * xx->zoom + (3 * XYZ_BSIZE));
-    xx->winy = (int)((vi->ysize + vi->zsize) * xx->zoom + (3 * XYZ_BSIZE));
-  }
-     
   xx->dialog = new XyzWindow(xx, App->rgba, App->doublebuffer, 
 			     App->qtEnableDepth, 
                              imodDialogManager.parent(IMOD_IMAGE),
                              "xyz window");
-  if ((!xx->dialog)||
-      (!xx->fdataxz) || (!xx->fdatayz)) {
+  if ((!xx->dialog)|| (!xx->fdataxz) || (!xx->fdatayz)) {
     wprint("Error:\n\tXYZ window can't open due to low memory\n");
     if(xx->fdataxz)
       free(xx->fdataxz);
@@ -166,15 +154,37 @@ int xxyz_open(ImodView *vi)
 			   (void *)xx);
   imodDialogManager.add((QWidget *)xx->dialog, IMOD_IMAGE);
   
-  // This one we can resize before showing, since there is no toolbar size
-  // that needs to get corrected
-  QSize winSize = xx->dialog->sizeHint();
-  QSize glSize = xx->glw->sizeHint();
-  int newHeight = xx->winy + winSize.height() - 
-    (glSize.height() > 0 ? glSize.height() : 0);
-  xx->dialog->resize(xx->winx, newHeight);
-
+  // Determine needed window size, zoom that makes it mostly fit on the screen
+  diaMaximumWindowSize(maxWinx, maxWiny);
+  needWinx = vi->xsize + vi->zsize + (3 * XYZ_BSIZE);
+  needWiny = vi->ysize + vi->zsize + (3 * XYZ_BSIZE);
+  while (needWinx >  1.05 * maxWinx || needWiny > 1.05 * maxWiny) {
+    newzoom = b3dStepPixelZoom(xx->zoom, -1);
+    if (fabs(newzoom - xx->zoom) < 0.0001)
+      break;
+    xx->zoom = newzoom;
+    needWinx = (int)((vi->xsize + vi->zsize) * xx->zoom + (3 * XYZ_BSIZE));
+    needWiny = (int)((vi->ysize + vi->zsize) * xx->zoom + (3 * XYZ_BSIZE));
+  }
+     
+  // Allow input to get the size hints right for toolbars, compute and limit
+  // the new window size
   imod_info_input();  
+  QSize toolSize = xx->dialog->mToolBar->sizeHint();
+  toolHeight = xx->dialog->height() - xx->glw->height();
+  newHeight = needWiny + toolHeight;
+  newWidth = B3DMAX(needWinx, toolSize.width());
+  diaLimitWindowSize(needWinx, needWiny);
+
+  // Fix the position too then set up the window
+  QRect pos = xx->dialog->geometry();
+  xleft = pos.x();
+  ytop = pos.y();
+  diaLimitWindowPos(newWidth, newHeight, xleft, ytop);
+
+  xx->dialog->resize(newWidth, newHeight);
+  xx->dialog->move(xleft, ytop);
+
   xx->dialog->show();
   xx->dialog->SetCursor(vi->imod->mousemode);
   xx->glw->setMouseTracking(pixelViewOpen);
@@ -198,17 +208,21 @@ static void xyzDraw_cb(ImodView *vi, void *client, int drawflag)
   if (drawflag) {
     if (drawflag & IMOD_DRAW_IMAGE) {
 
-      /* This happens whens a flip occurs: get new image spaces */
       xx->lx = xx->ly = xx->lz = -1;
       b3dFlushImage(xx->xydata);
       b3dFlushImage(xx->xzdata);
       b3dFlushImage(xx->yzdata);
-      if(xx->fdataxz)
-        free(xx->fdataxz);
-      if(xx->fdatayz)
-        free(xx->fdatayz);
-      xx->fdataxz  = (unsigned char *)malloc(vi->xsize * vi->zsize);
-      xx->fdatayz  = (unsigned char *)malloc(vi->ysize * vi->zsize);
+
+      /* This happens whens a flip occurs: get new image spaces and geometry */
+      if (xx->toolMaxY != xx->vi->ysize || xx->toolMaxZ != xx->vi->zsize) {
+        if(xx->fdataxz)
+          free(xx->fdataxz);
+        if(xx->fdatayz)
+          free(xx->fdatayz);
+        xx->fdataxz  = (unsigned char *)malloc(vi->xsize * vi->zsize);
+        xx->fdatayz  = (unsigned char *)malloc(vi->ysize * vi->zsize);
+        xx->dialog->GetCIImages();
+      }
     }
     if (drawflag & IMOD_DRAW_SLICE)
       xyzShowSlice = 1;
@@ -292,6 +306,13 @@ XyzWindow::XyzWindow(struct xxyzwin *xyz, bool rgba, bool doubleBuffer,
   sliderLayout->addLayout(mSliders->getLayout());  
   connect(mSliders, SIGNAL(sliderChanged(int, int, bool)), this, 
     SLOT(sliderChanged(int, int, bool)));
+
+  mHelpButton = new QPushButton("Help", mToolBar, "Help button");
+  mHelpButton->setFocusPolicy(QWidget::NoFocus);
+  connect(mHelpButton, SIGNAL(clicked()), this, SLOT(help()));
+  QToolTip::add(mHelpButton, "Open help window");
+  setFontDependentWidths();
+
   setMaxAxis(X_COORD, xyz->vi->xsize - 1);
   setMaxAxis(Y_COORD, xyz->vi->ysize - 1);
   setMaxAxis(Z_COORD, xyz->vi->zsize - 1);
@@ -309,6 +330,17 @@ XyzWindow::XyzWindow(struct xxyzwin *xyz, bool rgba, bool doubleBuffer,
   setCentralWidget(mGLw);
   setFocusPolicy(QWidget::StrongFocus);
   insertTime.start();
+}
+
+
+void XyzWindow::setFontDependentWidths()
+{
+  diaSetButtonWidth(mHelpButton, ImodPrefs->getRoundedStyle(), 1.2, "Help");
+}
+
+void XyzWindow::help()
+{
+  imodShowHelpPage("xyz.html");
 }
 
 // Whan a close event comes in, tell control to remove window, clean up
@@ -360,7 +392,9 @@ void XyzWindow::setMaxAxis(int which, int max)
   slider->setFixedWidth(swidth + hint.width() + 5);
 }
 
-void XyzWindow::allocateDim(int size, int zsize, int winsize, int &dim1, int &dim2) {
+void XyzWindow::allocateDim(int size, int zsize, int winsize, int &dim1, 
+                            int &dim2)
+{
   dim1 = (size * (winsize - 3 * XYZ_BSIZE)) / (size + zsize);
   dim2 = (zsize * (winsize - 3 * XYZ_BSIZE)) / (size + zsize);
   if (dim1 < 2) {
@@ -382,8 +416,10 @@ void XyzWindow::GetCIImages()
   struct xxyzwin *xx = mXyz;
   int xdim, ydim1, ydim2;
   
-  allocateDim(xx->vi->xsize, xx->vi->zsize, xx->winx, xx->winXdim1, xx->winXdim2);
-  allocateDim(xx->vi->ysize, xx->vi->zsize, xx->winy, xx->winYdim1, xx->winYdim2);
+  allocateDim(xx->vi->xsize, xx->vi->zsize, xx->winx, xx->winXdim1, 
+              xx->winXdim2);
+  allocateDim(xx->vi->ysize, xx->vi->zsize, xx->winy, xx->winYdim1,
+              xx->winYdim2);
   
   if (xx->winXdim2 > xx->winYdim2) {
     xx->winXdim1 += xx->winXdim2 - xx->winYdim2;
@@ -751,9 +787,10 @@ void XyzWindow::B1Drag(int x, int y)
 {
   struct xxyzwin *xx = mXyz;
   int sx, sy;
-  int nx, ny;
+  int nx, ny, delx, dely;
   int bx2 = xx->xwoffset2;
   int by2 = xx->ywoffset2;
+  double transFac = xx->zoom < 1. ? 1. / xx->zoom : 1.;
   float scale;
   struct ViewInfo *vi = xx->vi;
   int newVal;
@@ -800,24 +837,26 @@ void XyzWindow::B1Drag(int x, int y)
   ny = (int)(vi->ysize * xx->zoom);
 
   scale = 1.0/xx->zoom;
+  delx = B3DNINT(transFac * (x - xx->lmx));
+  dely = B3DNINT(transFac * (y - xx->lmy));
 
   switch (xx->whichbox) {
   case 0:
   case 1:
-    xx->xtrans2 += (x - xx->lmx);
-    xx->ytrans1 -= (y - xx->lmy);
-    xx->ytrans2 += (x - xx->lmx);
+    xx->xtrans2 += delx;
+    xx->ytrans1 -= dely;
+    xx->ytrans2 += delx;
     Draw();
     return;
   case 2:
-    xx->xtrans1 += (x - xx->lmx);
-    xx->ytrans2 -= (y - xx->lmy);
-    xx->xtrans2 -= (y - xx->lmy);
+    xx->xtrans1 += delx;
+    xx->ytrans2 -= dely;
+    xx->xtrans2 -= dely;
     Draw();
     return;
   case 3:
-    xx->xtrans1 += (x - xx->lmx);
-    xx->ytrans1 -= (y - xx->lmy);
+    xx->xtrans1 += delx;
+    xx->ytrans1 -= dely;
     Draw();
     return;
 
@@ -901,7 +940,7 @@ void XyzWindow::B2Drag(int x, int y)
   if (dist < scaleModelRes(xx->vi->imod->res, xx->zoom))
     return;
 
-  ivwRegisterInsertPoint(xx->vi, cont, &point, pt);
+  ivwRegisterInsertPoint(xx->vi, cont, &point, pt + 1);
 
   xx->vi->xmouse  = mx;
   xx->vi->ymouse  = my;
@@ -1455,6 +1494,9 @@ void XyzWindow::DrawContour(Iobj *obj, int ob, int co)
     return;
 
   if (!iobjScat(obj->flags)) {    
+
+    b3dSubareaViewport(xx->xorigin1, xx->yorigin1, xx->winXdim1, xx->winYdim1);
+
     /* Open or closed contours, if they are wild or there are any changes
        coming, then need to test every
        point and draw lines between points that are visible */
@@ -1516,82 +1558,114 @@ void XyzWindow::DrawContour(Iobj *obj, int ob, int co)
                         ptProps.symtype, ptProps.symsize, ptProps.symflags);
     }
 
+
+
     /* Now draw symbols and points in X/Z and Y/Z views */
-    if (ilistSize(cont->store))
-      nextChange = ifgHandleContChange(obj, co, &contProps, &ptProps, 
-                                       &stateFlags, handleFlags, 0);
-    for (pt = 0; pt < cont->psize; pt++) {
-      point = &(cont->pts[pt]);
-      if (pt == nextChange)
-        nextChange = ifgHandleNextChange(obj, cont->store, &contProps, 
-                                         &ptProps, &stateFlags,
-                                         &changeFlags, handleFlags, 0);
-      next = (pt + 1) % cont->psize;
-      thisVis = (int)(point->y + 0.5) == (int)vi->ymouse;
-        
-      /* Symbol if in plane */
-      if (thisVis && ptProps.symtype != IOBJ_SYM_NONE)
-        zapDrawSymbol((int)(z * point->x + bx), 
-                      (int)(z * point->z + by2),
-                      ptProps.symtype, ptProps.symsize, ptProps.symflags);
-
-      /* connecting line if in plane or if projecting current cont, and not 
-         last point unless closure is appropriate */
-      if (((thisVis && (int)(cont->pts[next].y + 0.5) == (int)vi->ymouse) || 
-           (currentCont && xx->project)) && !ptProps.gap && 
-          (next || (!currentCont &&
-                    (iobjClose(obj->flags) && !(cont->flags & ICONT_OPEN)))))
-        b3dDrawLine((int)(z * point->x + bx),
-                    (int)(z * point->z + by2),
-                    (int)(z * cont->pts[next].x + bx),
-                    (int)(z * cont->pts[next].z + by2));
-
-      thisVis = (int)(point->x + 0.5) == (int)vi->xmouse;
-      if (thisVis && ptProps.symtype != IOBJ_SYM_NONE)
-        zapDrawSymbol((int)(z * point->z + bx2), 
-                      (int)(z * point->y + by),
-                      ptProps.symtype, ptProps.symsize, ptProps.symflags);
-      
-      if (((thisVis && (int)(cont->pts[next].x + 0.5) == (int)vi->ymouse) || 
-           (currentCont && xx->project)) && !ptProps.gap &&
-          (next || (!currentCont &&
-                    (iobjClose(obj->flags) && !(cont->flags & ICONT_OPEN)))))
-        b3dDrawLine((int)(z * point->z + bx2),
-                    (int)(z * point->y + by),
-                    (int)(z * cont->pts[next].z + bx2),
-                    (int)(z * cont->pts[next].y + by));
-    
-      ptProps.gap = 0;
-    }
+    b3dSubareaViewport(xx->xorigin1, xx->yorigin2, xx->winXdim1, xx->winYdim2);
+    DrawSymProj(obj, cont, co, &contProps, &ptProps, &stateFlags, handleFlags,
+                nextChange, 0, 2, 1, (int)vi->ymouse, (float)bx, by2 + 0.5 * z,
+                currentCont);
+    b3dSubareaViewport(xx->xorigin2, xx->yorigin1, xx->winXdim2, xx->winYdim1);
+    DrawSymProj(obj, cont, co, &contProps, &ptProps, &stateFlags, handleFlags,
+                nextChange, 2, 1, 0, (int)vi->xmouse, bx2 + 0.5 * z, (float)by,
+                currentCont);
   }
-     
+
+  b3dSubareaViewport(xx->xorigin1, xx->yorigin1, xx->winXdim1, xx->winYdim1);
+  DrawScatSymAllSpheres(obj, ob, cont, co, &contProps, &ptProps, &stateFlags, 
+                        handleFlags, nextChange, 0, 1, 2, vi->zmouse, 
+                        (float)bx, (float)by, zscale);
+  b3dSubareaViewport(xx->xorigin1, xx->yorigin2, xx->winXdim1, xx->winYdim2);
+  DrawScatSymAllSpheres(obj, ob, cont, co, &contProps, &ptProps, &stateFlags, 
+                        handleFlags, nextChange, 0, 2, 1, vi->ymouse, 
+                        (float)bx, by2 + 0.5 * z, 1.);
+  b3dSubareaViewport(xx->xorigin2, xx->yorigin1, xx->winXdim2, xx->winYdim1);
+  DrawScatSymAllSpheres(obj, ob, cont, co, &contProps, &ptProps, &stateFlags, 
+                        handleFlags, nextChange, 2, 1, 0, vi->xmouse, 
+                        bx2 + 0.5 * z, (float)by, 1.);
+  b3dResizeViewportXY(xx->winx, xx->winy);
+}
+
+void XyzWindow::DrawSymProj(Iobj *obj, Icont *cont, int co,
+                            DrawProps *contProps, DrawProps *ptProps,
+                            int *stateFlags, int handleFlags, int nextChange,
+                            int indx, int indy, int indz, int currentZ,
+                            float bx, float by, bool currentCont)
+{
+  int pt, next;
+  bool thisVis;
+  float *point;
+  float *nexpt;
+  int changeFlags;
+  float z = mXyz->zoom;
+
+  if (ilistSize(cont->store))
+    nextChange = ifgHandleContChange(obj, co, contProps, ptProps, 
+                                       stateFlags, handleFlags, 0);
+  for (pt = 0; pt < cont->psize; pt++) {
+    point = (float *)(&cont->pts[pt]);
+    if (pt == nextChange)
+      nextChange = ifgHandleNextChange(obj, cont->store, contProps, 
+                                       ptProps, stateFlags,
+                                       &changeFlags, handleFlags, 0);
+    next = (pt + 1) % cont->psize;
+    thisVis = (int)point[indz] == currentZ;
+        
+    /* Symbol if in plane */
+    if (thisVis && ptProps->symtype != IOBJ_SYM_NONE)
+      zapDrawSymbol((int)(z * point[indx] + bx), 
+                    (int)(z * point[indy] + by),
+                    ptProps->symtype, ptProps->symsize, ptProps->symflags);
+
+    /* connecting line if in plane or if projecting current cont, and not 
+       last point unless closure is appropriate */
+    nexpt = (float *)(&cont->pts[next]);
+    if (((thisVis && (int)(nexpt[indz]) == currentZ) || 
+         (currentCont && mXyz->project)) && !ptProps->gap && 
+        (next || (!currentCont &&
+                  (iobjClose(obj->flags) && !(cont->flags & ICONT_OPEN)))))
+      b3dDrawLine((int)(z * point[indx] + bx),
+                  (int)(z * point[indy] + by),
+                  (int)(z * nexpt[indx] + bx),
+                  (int)(z * nexpt[indy] + by));
+    ptProps->gap = 0;
+  }
+}
+
+void XyzWindow::DrawScatSymAllSpheres(Iobj *obj, int ob,  Icont *cont, int co, 
+                                      DrawProps *contProps,
+                                      DrawProps *ptProps, int *stateFlags,
+                                      int handleFlags, int nextChange, 
+                                      int indx, int indy, int indz,
+                                      float zmouse, float bx, float by,
+                                      float zscale)
+{
+  int pt, testz;
+  float *point;
+  int changeFlags;
+  int currentZ = indz == 2 ? B3DNINT(zmouse)  : (int)zmouse;
+  float z = mXyz->zoom;
+  float drawsize, delz, radius;
+
   /* scattered contour - symbols in all three planes */
   if (ilistSize(cont->store))
-    nextChange = ifgHandleContChange(obj, co, &contProps, &ptProps, 
-                                       &stateFlags, handleFlags, 0);
+    nextChange = ifgHandleContChange(obj, co, contProps, ptProps, 
+                                       stateFlags, handleFlags, 0);
   if (iobjScat(obj->flags) && 
-      (contProps.symtype != IOBJ_SYM_NONE || nextChange >= 0)) {
+      (contProps->symtype != IOBJ_SYM_NONE || nextChange >= 0)) {
     for (pt = 0; pt < cont->psize; pt++) {
-      point = &(cont->pts[pt]);
+      point = (float *)(&cont->pts[pt]);
       if (pt == nextChange)
-        nextChange = ifgHandleNextChange(obj, cont->store, &contProps, 
-                                         &ptProps, &stateFlags,
+        nextChange = ifgHandleNextChange(obj, cont->store, contProps, 
+                                         ptProps, stateFlags,
                                          &changeFlags, handleFlags, 0);
-      if (ptProps.symtype != IOBJ_SYM_NONE) {
-        if ((int)floor(point->z + 0.5) == currentZ)
-          zapDrawSymbol((int)(z * point->x + bx), 
-                        (int)(z * point->y + by),
-                        ptProps.symtype, ptProps.symsize, ptProps.symflags);
-
-        if ((int)(point->y + 0.5) == (int)vi->ymouse)
-          zapDrawSymbol((int)(z * point->x + bx), 
-                        (int)(z * point->z + by2),
-                        ptProps.symtype, ptProps.symsize, ptProps.symflags);
+      if (ptProps->symtype != IOBJ_SYM_NONE) {
+        testz = indz == 2 ? B3DNINT(point[indz]) : (int)point[indz];
+        if (testz == currentZ)
+          zapDrawSymbol((int)(z * point[indx] + bx), 
+                        (int)(z * point[indy] + by),
+                        ptProps->symtype, ptProps->symsize, ptProps->symflags);
         
-        if ((int)(point->x + 0.5) == (int)vi->xmouse)
-          zapDrawSymbol((int)(z * point->z + bx2), 
-                        (int)(z * point->y + by),
-                        ptProps.symtype, ptProps.symsize, ptProps.symflags);
       }
     }
   }
@@ -1599,108 +1673,65 @@ void XyzWindow::DrawContour(Iobj *obj, int ob, int co)
   /* scattered contour or contour with points to be draw */
   if (iobjScat(obj->flags) || obj->pdrawsize || cont->sizes ) {
     if (ilistSize(cont->store))
-      nextChange = ifgHandleContChange(obj, co, &contProps, &ptProps, 
-                                       &stateFlags, handleFlags, 0);
+      nextChange = ifgHandleContChange(obj, co, contProps, ptProps, 
+                                       stateFlags, handleFlags, 0);
     for (pt = 0; pt < cont->psize; pt++) {
       if (pt == nextChange)
-        nextChange = ifgHandleNextChange(obj, cont->store, &contProps, 
-                                         &ptProps, &stateFlags,
+        nextChange = ifgHandleNextChange(obj, cont->store, contProps, 
+                                         ptProps, stateFlags,
                                          &changeFlags, handleFlags, 0);
-      drawsize = imodPointGetSize(obj, cont, pt) / vi->xybin;
+      drawsize = imodPointGetSize(obj, cont, pt) / mXyz->vi->xybin;
       if (drawsize > 0) {
-        point = &(cont->pts[pt]);
-        if ((int)floor(point->z + 0.5) == currentZ) {
+        point = (float *)(&cont->pts[pt]);
+        testz = indz == 2 ? B3DNINT(point[indz]) : (int)point[indz];
+        if (testz == currentZ) {
+
           /* If there's a size, draw a circle and a plus for a
              circle that's big enough */
-          b3dDrawCircle((int)(bx + z * point->x),
-                        (int)(by + z * point->y), (int)(z * drawsize));
+          b3dDrawCircle((int)(bx + z * point[indx]),
+                        (int)(by + z * point[indy]), (int)(z * drawsize));
           if (drawsize > 3)
-            b3dDrawPlus((int)(bx + z * point->x),
-                        (int)(by + z * point->y), 3);
-        } else {
-          /* for off-section, compute size of circle and draw 
-             that */
-          if (drawsize > 1 && !(obj->flags & IMOD_OBJFLAG_PNT_ON_SEC)) {
-            /* draw a smaller circ if further away. */
-            delz = (point->z - vi->zmouse) * zscale;
-            if (delz < 0)
-              delz = -delz;
-            
-            if (delz < drawsize - 0.01) {
-              radius = (int)(sqrt((double)(drawsize * drawsize - delz * delz))
-                             * z);
-              b3dDrawCircle((int)(bx + z * point->x),
-                            (int)(by + z * point->y), radius);
-            }
+            b3dDrawPlus((int)(bx + z * point[indx]),
+                        (int)(by + z * point[indy]), 3);
+        } else if (drawsize > 1 && !(obj->flags & IMOD_OBJFLAG_PNT_ON_SEC)) {
+
+          /* for off-section, compute size of circle and
+             draw a smaller circ if further away. */
+          delz = (point[indz] - zmouse) * zscale;
+          if (delz < 0)
+            delz = -delz;
+          
+          if (delz < drawsize - 0.01) {
+            radius = (int)(sqrt((double)(drawsize * drawsize - delz * delz))
+                           * z);
+            b3dDrawCircle((int)(bx + z * point[indx]),
+                          (int)(by + z * point[indy]), radius);
           }
         }
-         
-        /* Do the same tests for the XZ plane */
-        delz = (point->y - vi->ymouse);
-        if (delz < 0)
-          delz = -delz;
-        if (delz <= 0.5) {
-          b3dDrawCircle((int)(bx + z * point->x),
-                        (int)(by2 + z * point->z), (int)(z * drawsize));
-          if (drawsize > 3)
-            b3dDrawPlus((int)(bx + z * point->x),
-                        (int)(by2 + z * point->z), 3);
-        } else if (delz < drawsize - 0.01 && 
-                   !(obj->flags & IMOD_OBJFLAG_PNT_ON_SEC)) {
-          radius = (int)(sqrt((double)(drawsize * drawsize - delz * delz))
-                         * z);
-          b3dDrawCircle((int)(bx + z * point->x),
-                        (int)(by2 + z * point->z), radius);
-        }
-
-        /* Do the same tests for the XZ plane */
-        delz = (point->x - vi->xmouse);
-        if (delz < 0)
-          delz = -delz;
-        if (delz <= 0.5) {
-          b3dDrawCircle((int)(bx2 + z * point->z),
-                        (int)(by + z * point->y), (int)(z * drawsize));
-          if (drawsize > 3)
-            b3dDrawPlus((int)(bx2 + z * point->z),
-                        (int)(by + z * point->y), 3);
-        } else if (delz < drawsize - 0.01 &&
-                   !(obj->flags & IMOD_OBJFLAG_PNT_ON_SEC)) {
-          radius = (int)(sqrt((double)(drawsize * drawsize - delz * delz))
-                         * z);
-          b3dDrawCircle((int)(bx2 + z * point->z),
-                        (int)(by + z * point->y), radius);
-        }
-        
       }
     }
   }
 
   /* draw end markers if requested */
-  b3dLineWidth(contProps.linewidth2);
+  b3dLineWidth(contProps->linewidth2);
   if (obj->symflags & IOBJ_SYMF_ENDS) {
     b3dColorIndex(App->bgnpoint);
-    point = cont->pts;
+    point = (float *)cont->pts;
 
     for (pt = 0; pt < 2; pt ++) {
-      if ((int)floor(point->z + 0.5) == currentZ)
-        b3dDrawCross((int)(bx + z * point->x),
-                     (int)(by + z * point->y), obj->symsize/2);
-      if ((int)(point->y + 0.5) == (int)vi->ymouse)
-        b3dDrawCross((int)(bx + z * point->x),
-                     (int)(by2 + z * point->z), obj->symsize/2);
-      if ((int)(point->x + 0.5) == (int)vi->xmouse)
-        b3dDrawCross((int)(bx2 + z * point->z),
-                     (int)(by + z * point->y), obj->symsize/2);
-          
+      testz = indz == 2 ? B3DNINT(point[indz]) : (int)point[indz];
+      if (testz == currentZ)
+        b3dDrawCross((int)(bx + z * point[indx]),
+                     (int)(by + z * point[indy]), obj->symsize/2);
+      
       b3dColorIndex(App->endpoint);
-      point = &(cont->pts[cont->psize-1]);
+      point = (float*)(&cont->pts[cont->psize-1]);
     }
 
     /* DNM 1/21/02: need to reset color this way, not wih b3dColorIndex*/
     imodSetObjectColor(ob);
 
   }
-  return;
 }
 
 
@@ -1724,8 +1755,6 @@ void XyzWindow::DrawModel()
     for (co = 0; co < imod->obj[ob].contsize; co++)
       DrawContour(obj, ob, co);
   }
-
-  return;
 }
 
 void XyzWindow::DrawCurrentPoint()
@@ -1764,16 +1793,24 @@ void XyzWindow::DrawCurrentPoint()
     point = cont->pts;
 
     for (pt = 0; pt < 2; pt ++) {
-      if ((int)(point->z + 0.5) == cz)
+      if (B3DNINT(point->z) == cz) {
+        b3dSubareaViewport(xx->xorigin1, xx->yorigin1, xx->winXdim1, 
+                           xx->winYdim1);
         b3dDrawCircle((int)(z * point->x+bx),
                       (int)(z * point->y+by), modPtSize);
-      if ((int)(point->y + 0.5) == cy)
+      }
+      if ((int)point->y == cy) {
+        b3dSubareaViewport(xx->xorigin1, xx->yorigin2, xx->winXdim1,
+                           xx->winYdim2);
         b3dDrawCircle((int)(z * point->x+bx),
-                      (int)(z * point->z+by2), modPtSize);
-      if ((int)(point->x + 0.5) == cx)
-        b3dDrawCircle((int)(z * point->z+bx2),
+                      (int)(z * (point->z + 0.5) + by2), modPtSize);
+      }
+      if ((int)point->x == cx) {
+        b3dSubareaViewport(xx->xorigin2, xx->yorigin1, xx->winXdim2,
+                           xx->winYdim1);
+        b3dDrawCircle((int)(z * (point->z + 0.5) + bx2),
                       (int)(z * point->y+by), modPtSize);
-
+      }
       b3dColorIndex(App->endpoint);
       point = &(cont->pts[cont->psize-1]);
     }
@@ -1784,24 +1821,28 @@ void XyzWindow::DrawCurrentPoint()
      otherwise draw crosses at current mouse point */
   if (xx->vi->imod->mousemode == IMOD_MMODEL &&  pnt) {
           
-    if ((int)floor(pnt->z + 0.5) == cz && 
-        !ivwTimeMismatch(xx->vi, 0, obj, cont)) {
+    if (B3DNINT(pnt->z) == cz && !ivwTimeMismatch(xx->vi, 0, obj, cont)) {
       b3dColorIndex(App->curpoint);
     }else{
       b3dColorIndex(App->shadow);
     }
+    b3dSubareaViewport(xx->xorigin1, xx->yorigin1, xx->winXdim1, xx->winYdim1);
     b3dDrawCircle((int)(z * pnt->x+bx), (int)(z * pnt->y+by), psize);
     b3dColorIndex(App->curpoint);
-    b3dDrawPlus((int)(z*pnt->x+bx), (int)(z*cz + by2), psize);
-    b3dDrawPlus((int)(z * cz + bx2), (int)(by+z*pnt->y), psize);
-    return;
+    b3dSubareaViewport(xx->xorigin1, xx->yorigin2, xx->winXdim1, xx->winYdim2);
+    b3dDrawPlus((int)(z*pnt->x+bx), (int)(z* (cz + 0.5) + by2), psize);
+    b3dSubareaViewport(xx->xorigin2, xx->yorigin1, xx->winXdim2, xx->winYdim1);
+    b3dDrawPlus((int)(z * (cz + 0.5) + bx2), (int)(by+z*pnt->y), psize);
+  } else {
+    b3dColorIndex(App->curpoint);
+    b3dSubareaViewport(xx->xorigin1, xx->yorigin1, xx->winXdim1, xx->winYdim1);
+    b3dDrawPlus((int)(z*(cx+.5)+bx), (int)(z*(cy+.5)+by), imPtSize);
+    b3dSubareaViewport(xx->xorigin1, xx->yorigin2, xx->winXdim1, xx->winYdim2);
+    b3dDrawPlus((int)(z*(cx+.5)+bx), (int)(z*(cz+.5)+by2), imPtSize);
+    b3dSubareaViewport(xx->xorigin2, xx->yorigin1, xx->winXdim2, xx->winYdim1);
+    b3dDrawPlus((int)(bx2+z*(cz+.5)), (int)(by+z*(cy+.5)), imPtSize);
   }
-  b3dColorIndex(App->curpoint);
-  b3dDrawPlus((int)(z*(cx+.5)+bx), (int)(z*(cy+.5)+by), imPtSize);
-  b3dDrawPlus((int)(z*(cx+.5)+bx), (int)(z*(cz+.5)+by2), imPtSize);
-  b3dDrawPlus((int)(bx2+z*(cz+.5)), (int)(by+z*(cy+.5)), imPtSize);
-     
-  return;
+  b3dResizeViewportXY(xx->winx, xx->winy);
 }
 
 void XyzWindow::DrawAuto()
@@ -1999,13 +2040,14 @@ void XyzWindow::keyPressEvent ( QKeyEvent * event )
     close();
     break;
     
-        /* DNM: Keypad Insert key, alternative to middle mouse button */
+    /* DNM: Keypad Insert key, alternative to middle mouse button */
   case Qt::Key_Insert:
-  
+
     /* But skip out if in movie mode or already active */
-    if (!keypad || imod->mousemode == IMOD_MMOVIE || insertDown)
+    if (!keypad || imod->mousemode == IMOD_MMOVIE || insertDown) {
       handled = 0;
       break;
+    }
 
     // It wouldn't work going to a QPoint and accessing it, so do it in shot!
     ix = (xx->glw->mapFromGlobal(QCursor::pos())).x();
@@ -2021,7 +2063,6 @@ void XyzWindow::keyPressEvent ( QKeyEvent * event )
        single click or drag */
     rx = insertTime.elapsed();
     insertTime.restart();
-    imodPrintStderr(" %d %d %d\n ", rx, ix, iy);
     if(rx > 250)
       B2Press(ix, iy);
     else
@@ -2220,7 +2261,7 @@ void XyzGL::mouseMoveEvent( QMouseEvent * event )
   button2 = event->state() & ImodPrefs->actualButton(2) ? 1 : 0;
   button3 = event->state() & ImodPrefs->actualButton(3) ? 1 : 0;
   
-  button2 = button2 || insertDown ? 1 : 0;
+  button2 = (button2 || insertDown) ? 1 : 0;
 
   if ( (button1) && (!button2) && (!button3) && but1downt.elapsed() > 250)
     mWin->B1Drag(event->x(), event->y());
@@ -2235,6 +2276,9 @@ void XyzGL::mouseMoveEvent( QMouseEvent * event )
 
 /*
 $Log$
+Revision 4.40  2007/07/12 19:47:48  sueh
+bug# 1023 Corrected panning.  Synchronized panning of the top and left windows by synchronizing the height of the top window with the width of the left window.  Fixed the slicer lines.
+
 Revision 4.38  2007/06/30 00:42:53  sueh
 bug# 1021 Updating the slider ranges and sizes on draw, in case a flip is done.  Labeled the toolbar and limited it docking options.
 
