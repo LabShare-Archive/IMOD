@@ -7,15 +7,10 @@
  *  Copyright (C) 1995-2005 by Boulder Laboratory for 3-Dimensional Electron
  *  Microscopy of Cells ("BL3DEMC") and the Regents of the University of 
  *  Colorado.  See dist/COPYRIGHT for full copyright notice.
+ *
+ *  $Id$
+ *  Log at end of file
  */
-
-/*  $Author$
-
-$Date$
-
-$Revision$
-Log at end of file
-*/
 
 #ifndef XXYZ_H
 #define XXYZ_H
@@ -23,6 +18,7 @@ Log at end of file
 #include <qmainwindow.h>
 #include <qgl.h>
 #include "b3dgfx.h"
+#include "imodel.h"
 
 /* Forward declarations to minimize includes */
 struct ViewInfo;
@@ -37,6 +33,7 @@ class QSignalMapper;
 class ToolEdit;
 class QSlider;
 class MultiSlider;
+class QPushButton;
 
 #define NUM_TOOLBUTTONS 1
 #define NUM_AXIS 3
@@ -61,8 +58,10 @@ struct xxyzwin
   int lx, ly, lz;
   int lastCacheSum;       /* Sum of cache Z values on last draw */
 
-  int xtrans1, ytrans1, xtrans2, ytrans2;     /* translation (pan) in image coords */
-  int xwoffset1, xwoffset2, ywoffset1, ywoffset2;  /* offset in window coordinates */
+  int xtrans1, ytrans1;   /* translation (pan) in image coords */
+  int xtrans2, ytrans2; 
+  int xwoffset1, xwoffset2;  /* offset in window coordinates */
+  int ywoffset1, ywoffset2;
   int lmx, lmy;           /* last mouse position for panning */
   int hq;                 /* High resolution flag */
   int whichbox;           /* box that left mouse button went down in */
@@ -108,6 +107,17 @@ class XyzWindow : public QMainWindow
   void DrawContour(struct Mod_Object *obj, int ob, int co);
   void DrawCurrentPoint();
   void DrawCurrentLines();
+  void DrawScatSymAllSpheres(Iobj *obj, int ob,  Icont *cont, int co, 
+                             DrawProps *contProps,
+                             DrawProps *ptProps, int *stateFlags,
+                             int handleFlags, int nextChange, 
+                             int indx, int indy, int indz,
+                             float zmouse, float bx, float by,float zscale);
+  void DrawSymProj(Iobj *obj,  Icont *cont, int co, DrawProps *contProps, 
+                   DrawProps *ptProps, int *stateFlags, 
+                   int handleFlags, int nextChange, int indx, 
+                   int indy, int indz, int currentZ, float bx, float by,
+                   bool currentCont);
   void keyPressPassedOn ( QKeyEvent * e ) {keyPressEvent(e);};
   void SetCursor(int mode);
   void setZoomText(float zoom);
@@ -122,6 +132,7 @@ class XyzWindow : public QMainWindow
     void zoomDown();
     void newZoom();
     void sliderChanged(int which, int value, bool dragging);
+    void help();
 
  protected:
   void keyPressEvent ( QKeyEvent * e );
@@ -137,8 +148,10 @@ class XyzWindow : public QMainWindow
   bool mCtrlPressed;
   int mDisplayedAxisLocation[NUM_AXIS];
   MultiSlider *mSliders;
+  QPushButton *mHelpButton;
   void StateToggled(int index, int state);
-  void setupToggleButton(HotToolBar *toolBar, QSignalMapper *mapper, int index);
+  void setupToggleButton(HotToolBar *toolBar, QSignalMapper *mapper,
+                         int index);
   void stateToggled(int index, int state);
   void enteredZoom(float newZoom);
   void setControlAndLimits();
@@ -146,6 +159,7 @@ class XyzWindow : public QMainWindow
   void keyRelease(QKeyEvent *event);
   void enteredAxisLocation(int which, int value);
   void allocateDim(int size, int zsize, int winsize, int &dim1, int &dim2);
+  void setFontDependentWidths();
 };
 
 class XyzGL : public QGLWidget
@@ -178,6 +192,9 @@ void xyzPixelViewState(bool state);
 
 /*
 $Log$
+Revision 3.13  2007/07/11 22:45:26  sueh
+bug# 1023 Sizing boxes based on window size.  Changed gadgets to slide in visible area only.  Panning the three view independently.
+
 Revision 3.12  2007/06/30 00:42:43  sueh
 bug# 1021 Updating the slider ranges and sizes on draw, in case a flip is done.  Labeled the toolbar and limited it docking options.
 
