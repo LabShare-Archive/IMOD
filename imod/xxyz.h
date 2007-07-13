@@ -101,8 +101,6 @@ class XyzWindow : public QMainWindow
   void DrawModel();
   void DrawImage();
   void GetCIImages();
-  void SetSubimage(int absStart, int winSize, int imSize, float zoom,
-		   int *drawsize, int *woffset, int *dataStart);
   void DrawGhost();
   void DrawContour(struct Mod_Object *obj, int ob, int co);
   void DrawCurrentPoint();
@@ -192,6 +190,9 @@ void xyzPixelViewState(bool state);
 
 /*
 $Log$
+Revision 3.14  2007/07/13 05:36:05  mast
+Added help and functions for generic model drawing
+
 Revision 3.13  2007/07/11 22:45:26  sueh
 bug# 1023 Sizing boxes based on window size.  Changed gadgets to slide in visible area only.  Panning the three view independently.
 
