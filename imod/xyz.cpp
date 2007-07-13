@@ -247,6 +247,7 @@ static void xyzKey_cb(ImodView *vi, void *client, int released, QKeyEvent *e)
     xx->dialog->keyPressPassedOn(e);
 }
 
+// Notification that pixel view is open or closed
 void xyzPixelViewState(bool state)
 {
   pixelViewOpen = state;
@@ -381,7 +382,7 @@ void XyzWindow::SetCursor(int mode)
   mXyz->mousemode = mode;
 }
 
-
+// Set a slider range and fixed size based on max value
 void XyzWindow::setMaxAxis(int which, int max)
 {
   mSliders->setRange(which, 0, max - 1);
@@ -392,6 +393,7 @@ void XyzWindow::setMaxAxis(int which, int max)
   slider->setFixedWidth(swidth + hint.width() + 5);
 }
 
+// Allocate a window size between two image dimensions size and zsize
 void XyzWindow::allocateDim(int size, int zsize, int winsize, int &dim1, 
                             int &dim2)
 {
@@ -410,7 +412,9 @@ void XyzWindow::allocateDim(int size, int zsize, int winsize, int &dim1,
 
 
 /* DNM 1/19/02: Add this function to get the CI Images whenever size has
-   changed - now that we can do HQ graphics, they need to be the window size */
+   changed - now that we can do HQ graphics, they need to be the window size.
+   SRH 7/13/07: This is also the common place to set the subwindow sizes and 
+   origins */
 void XyzWindow::GetCIImages()
 {
   struct xxyzwin *xx = mXyz;
@@ -453,7 +457,10 @@ void XyzWindow::GetCIImages()
   return;
 }
 
-
+/*
+ * Takes a mouse click at x,y and finds which area it is in (the return value)
+ * and computes x, y, z image coordinates for that area
+ */
 int XyzWindow::Getxyz(int x, int y, float *mx, float *my, int *mz)
 {
   struct xxyzwin *xx = mXyz;
@@ -465,8 +472,6 @@ int XyzWindow::Getxyz(int x, int y, float *mx, float *my, int *mz)
   struct ViewInfo *vi = xx->vi;
   
   y = xx->winy - y;
-  //x -= XYZ_BSIZE + xx->xwoffset1;
-  //y -= XYZ_BSIZE + xx->ywoffset2;
 
   nx = (int)(vi->xsize * xx->zoom);
   ny = (int)(vi->ysize * xx->zoom);
@@ -547,7 +552,7 @@ int XyzWindow::Getxyz(int x, int y, float *mx, float *my, int *mz)
   return(0);
 }
 
-
+// Mouse button 1 click
 void XyzWindow::B1Press(int x, int y)
 {
   struct xxyzwin *xx = mXyz;
@@ -618,6 +623,7 @@ void XyzWindow::B1Press(int x, int y)
   return;
 }
 
+// Mouse button 2 click
 void XyzWindow::B2Press(int x, int y)
 {
   struct xxyzwin *xx = mXyz;
@@ -683,7 +689,6 @@ void XyzWindow::B2Press(int x, int y)
     return;
   }
 
-
   /* DNM: don't make closed contours wild if they're not */
   if (cont->psize &&  iobjPlanar(obj->flags) && !(cont->flags & ICONT_WILD)
       && (int)floor(cont->pts[0].z + 0.5) != mz) {
@@ -707,6 +712,7 @@ void XyzWindow::B2Press(int x, int y)
   return;
 }
 
+// Mouse button 3 click
 void XyzWindow::B3Press(int x, int y)
 {
   struct xxyzwin *xx = mXyz;
@@ -782,7 +788,7 @@ void XyzWindow::B3Press(int x, int y)
   return;
 }
 
-/* DNM 1/20/02: add statements to implement pan */
+// Mouse button 1 drag for panning
 void XyzWindow::B1Drag(int x, int y)
 {
   struct xxyzwin *xx = mXyz;
@@ -886,6 +892,7 @@ void XyzWindow::B1Drag(int x, int y)
   return;
 }
 
+// Mouse button 2 drag, continuous insert
 void XyzWindow::B2Drag(int x, int y)
 {
   struct xxyzwin *xx = mXyz;
@@ -951,6 +958,7 @@ void XyzWindow::B2Drag(int x, int y)
   return;
 }
 
+// Mouse button 2 drag, continuous modification
 void XyzWindow::B3Drag(int x, int y)
 {
   struct xxyzwin *xx = mXyz;
@@ -1020,6 +1028,9 @@ void XyzWindow::B3Drag(int x, int y)
   return;
 }
 
+/*
+ * Functions for toolbar elements
+ */
 void XyzWindow::zoomUp()
 {
   stepZoom(1);
@@ -1037,13 +1048,13 @@ void XyzWindow::stepZoom(int step)
   Draw();
 }
 
-// Set the control priority and set flag to record subarea and do float
+// Set the control priority
 void XyzWindow::setControlAndLimits()
 {
   ivwControlPriority(mXyz->vi, mXyz->ctrl);
 }
 
-// A new zoom or section was entered - let zap decide on limits and refresh box
+// A new zoom or section was entered
 void XyzWindow::newZoom()
 {
   QString str = mZoomEdit->text();
@@ -1070,11 +1081,11 @@ void XyzWindow::setZoomText(float zoom)
 }
 
 void XyzWindow::sliderChanged(int which, int value, bool dragging){
-    if (!dragging || (hotSliderFlag() == HOT_SLIDER_KEYDOWN && mCtrlPressed)
-        || (hotSliderFlag() == HOT_SLIDER_KEYUP && !mCtrlPressed))
-      enteredAxisLocation(which, value);
-    else
-      mDisplayedAxisLocation[which] = value;
+  if (!dragging || (hotSliderFlag() == HOT_SLIDER_KEYDOWN && mCtrlPressed)
+      || (hotSliderFlag() == HOT_SLIDER_KEYUP && !mCtrlPressed))
+    enteredAxisLocation(which, value);
+  else
+    mDisplayedAxisLocation[which] = value;
 }
 
 void XyzWindow::setSlider(int which, int section)
@@ -1584,6 +1595,7 @@ void XyzWindow::DrawContour(Iobj *obj, int ob, int co)
                         handleFlags, nextChange, 2, 1, 0, vi->xmouse, 
                         bx2 + 0.5 * z, (float)by, 1.);
   b3dResizeViewportXY(xx->winx, xx->winy);
+  return;
 }
 
 void XyzWindow::DrawSymProj(Iobj *obj, Icont *cont, int co,
@@ -2276,6 +2288,11 @@ void XyzGL::mouseMoveEvent( QMouseEvent * event )
 
 /*
 $Log$
+Revision 4.41  2007/07/13 05:34:55  mast
+Got viewports working in all draw actions, fixed insert key modeling,
+set geometry of window to fit toolbar, called routine to refigure the
+window layout when flip occurs
+
 Revision 4.40  2007/07/12 19:47:48  sueh
 bug# 1023 Corrected panning.  Synchronized panning of the top and left windows by synchronizing the height of the top window with the width of the left window.  Fixed the slicer lines.
 
