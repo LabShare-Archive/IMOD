@@ -318,8 +318,10 @@ c
 c           
 c           set the output lines for this view to the fill value
 c           
+          rayadd = fill
+          if(ifrayscale.eq.0) rayadd = (fill * nraymax(iproj)) / nyslice
           do ind=ioutbase,ioutbase+nslices*nxout-1
-            array(ind)=fill
+            array(ind)=rayadd
           enddo
 c           
 c           loop on pixels along line
@@ -465,6 +467,9 @@ c
 
 c       
 c       $Log$
+c       Revision 3.6  2007/04/26 19:16:01  mast
+c       Added option to give constant scaling
+c
 c       Revision 3.5  2006/06/20 04:52:09  mast
 c       Converted to PIP, changed for changes in set_projection_rays
 c
