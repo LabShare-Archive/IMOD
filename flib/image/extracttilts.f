@@ -102,7 +102,7 @@ C
       else
         maxz=0
         do i=1,npiece
-          maxz=max(maxz,izpiece(i))
+          maxz=max(maxz,izpiece(i)+1)
         enddo
       endif
 c       
@@ -157,6 +157,9 @@ c
       END
 
 c       $Log$
+c       Revision 3.7  2007/05/19 00:04:12  mast
+c       Added exposure dose
+c
 c       Revision 3.6  2006/07/08 13:44:57  mast
 c       Raised limites, switchet to exitError
 c
