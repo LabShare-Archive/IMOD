@@ -67,6 +67,26 @@ static char *typeDescriptions[] = {
   "File name",
   "Unknown argument type"
 };
+
+static char *typeForUsage[] = {
+  "Boolean",
+  "File",
+  "List",
+  "Int",
+  "Float",
+  "2 ints",
+  "2 floats",
+  "3 ints",
+  "3 floats",
+  "Ints",
+  "Floats",
+  "String",
+  "File",
+  "Unknown argument type"
+};
+
+
+
 static char numTypes = 13;
 
 static char nullChar = 0x00;
@@ -625,6 +645,7 @@ int PipPrintHelp(char *progName, int useStdErr, int inputFiles,
   char indent4[] = "    ";
   char *indentStr;
   int linePos = 11;
+  char **descriptions = &typeDescriptions[0];
 
   /* Get correct number of options for Fortran fallback */
   for (i = 0; i < numOptions; i++) {
@@ -651,6 +672,7 @@ int PipPrintHelp(char *progName, int useStdErr, int inputFiles,
     if (!numReal)
       return 0;
     fprintf(out, "Options:\n");
+    descriptions = &typeForUsage[0];
   }
 
   for (i = 0; i < numOptions; i++) {
@@ -732,9 +754,9 @@ int PipPrintHelp(char *progName, int useStdErr, int inputFiles,
           break;
       if (strcmp(optTable[i].type, BOOLEAN_STRING))
         fprintf(out, "%s%s", outputManpage > 0 ? " \t " : "   ", 
-                typeDescriptions[j]);
+                descriptions[j]);
     /* else
-       fprintf(out, "   (%s entry, no value expected)", typeDescriptions[j]);*/
+       fprintf(out, "   (%s entry, no value expected)", descriptions[j]);*/
     } else if (outputManpage == -2 || outputManpage >= 2)
       continue;
 
@@ -1810,6 +1832,9 @@ static int CheckKeyword(char *line, char *keyword, char **copyto, int *gotit,
 
 /*
 $Log$
+Revision 3.27  2007/06/22 05:01:24  mast
+Changes to get Tilt to be able to use PIP
+
 Revision 3.26  2007/04/04 23:18:23  mast
 Fixed fallback output for C/Python when there are section headers
 
