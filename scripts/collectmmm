@@ -1,24 +1,25 @@
 #!/bin/csh -f
 # collectmmm - to collect min, max, mean and pixel # values from a set of
 # log files and set the min/max/mean in an image file header
-#  $Author$
 #
-#  $Date$
-#
-#  $Revision$
+#  $Id$
 #
 #  $Log$
+#  Revision 3.2  2006/08/17 18:36:54  mast
+#  Added locale statement to keep output of awk from having instead of .
+#
 #  Revision 3.1  2006/03/24 23:10:04  mast
 #  *** empty log message ***
 #
 
 if ($#argv < 4) then
     cat <<EOF
-Usage: collectmmm tag rootname #_of_logs image_file
+Usage: collectmmm tag rootname #_of_logs image_file [starting_#]
        tag  =  a unique text string prefix to the min, max, mean, and pixel #
        rootname = root name of numbered log files, rootname-nnn.log
        #_of_logs = number of log files
        image_file = image file to correct the header of 
+       starting_# = option entry of number of first file, default is 1
 EOF
     exit 1
 endif
@@ -29,17 +30,17 @@ set tag = $argv[1]
 set root = $argv[2]
 @ numlogs = $argv[3]
 set imfile = $argv[4]
+@ startnum = 1
+if ($#argv > 4) then
+    @ startnum = $argv[5]
+endif
 
 @ num = 0
 
 while ($num < $numlogs)
     @ num++
-    set numtext = $num
-    if ($num < 10) then
-        set numtext = 00"$numtext"
-    else if ($num < 100) then
-        set numtext = 0"$numtext"
-    endif
+    @ numrec = $num + $startnum - 1
+    set numtext = `echo $numrec | awk '{printf "%03d\n", $1}'`
     set thislog = $root-$numtext.log
 
     # Get the line from the file, insist it has four numbers
