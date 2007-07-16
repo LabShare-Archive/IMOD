@@ -124,20 +124,20 @@ c
 c             
 c             Collect coordinates if they are not defined yet
             if (ixlo(ix).eq.0 .and. ixhi(ix).eq.0) then
-              ixlo(ix) = nx3
-              ixhi(ix) = nx3 + nx - 1
+              ixlo(ix) = 0
+              ixhi(ix) = nx - 1
               nx3 = nx3 + nx
               maxx = max(maxx, nx)
             endif
             if (iylo(iy).eq.0 .and. iyhi(iy).eq.0) then
-              iylo(iy) = ny3
-              iyhi(iy) = ny3 + ny - 1
+              iylo(iy) = 0
+              iyhi(iy) = ny - 1
               ny3 = ny3 + ny
               maxy = max(maxy, ny)
             endif
             if (izlo(iz).eq.0 .and. izhi(iz).eq.0) then
-              izlo(iz) = nz3
-              izhi(iz) = nz3 + nz - 1
+              izlo(iz) = 0
+              izhi(iz) = nz - 1
               nz3 = nz3 + nz
             endif
             if(ixhi(ix).ge.nx.or.iyhi(iy).ge.ny.or.izhi(iz).ge.nz)
@@ -258,6 +258,7 @@ c
       dmean=tmean/nz3
       CALL IWRHDR(1,TITLE,1,DMIN,DMAX,DMEAN)
       CALL IMCLOSE(1)
+      write(*,'(/,i6,a)')nfx * nfy * nfz, ' files reassembled'
       call exit(0)
 99    call exitError('READING FILE')
       end
@@ -277,6 +278,9 @@ c
 
 c	
 c       $Log$
+c       Revision 3.5  2007/07/15 21:15:55  mast
+c       Added ability to enter 0,0 to concatenate files in any direction
+c
 c       Revision 3.4  2005/02/10 17:24:52  mast
 c       Tried to clarify prompts for coordinates
 c	
