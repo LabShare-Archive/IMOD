@@ -32,7 +32,7 @@ usage = Tilt angles of the views
 tooltip = 
 manpage = Use this entry to specify the tilt angles of the views if they are
 not in a separate file.  You must enter one tilt
-angle for each view.  Use more than one ANGLES line if necessary.
+angle for each view.  Use more than one ANGLES entry if necessary.
 This information will override tilt angles specified in the file
 header.  If you enter angles in this way, the file header need not
 contain tilt information.
@@ -49,7 +49,7 @@ this option.
 type = FAM
 usage = Compression factors of the views
 tooltip = 
-manpage = With this line, the program will assume that the section has
+manpage = With this entry, the program will assume that the section has
 compressed in Z by the amount given by the amount given for each
 view.  The compressions would be taken directly from the  output of
 TILTALIGN for incremental compression.  A value must be entered for
@@ -95,8 +95,8 @@ manpage = List of views to be excluded from the reconstruction.  The list
 can consist of individual view numbers, or of ranges (e.g., 1-4), separated
 by commas or spaces.  The EXCLUDE and EXCLUDELIST entries available in
 old versions of the program are treated as this option.
-You may have any number of lines with exclude lists, but they cannot be 
-combined with INCLUDE lines.
+You may have any number of entries with exclude lists, but they cannot be 
+combined with INCLUDE entries.
 
 [Field = FlatFilterFraction]
 type = F
@@ -130,7 +130,7 @@ direct summation.
 type = IP
 usage = Full size of original, unaligned images
 tooltip = 
-manpage = Use this line to specify the full size in X and Y of the
+manpage = Use this entry to specify the full size in X and Y of the
 original stack of tilted views, so that a subset of the aligned
 stack can be handled properly when using a global X-axis tilt or
 local alignments.
@@ -139,7 +139,7 @@ local alignments.
 type = I
 usage = Binning of input images
 tooltip = 
-manpage = If the input images have been binned, this line can be entered to
+manpage = If the input images have been binned, this entry can be entered to
 specify the binning and have various other dimensions scaled down by
 this factor.  Values entered with SHIFT, OFFSET, THICKNESS, WIDTH,
 FULLIMAGESIZE, SLICE, and SUBSETSTART will be scaled.  These entries
@@ -151,7 +151,7 @@ usage = List of views to include in the reconstruction
 tooltip = 
 manpage = A subset of views to be used for the
 reconstruction.  The values can be individual view numbers or ranges,
-separated by spaces or commas.  Use more than one INCLUDE line if the numbers
+separated by spaces or commas.  Use more than one INCLUDE entry if the numbers
 do not all fit on one line.
 
 [Field = LOCALFILE]
@@ -165,7 +165,7 @@ type = F
 usage = Factor by which images were scaled relative to local alignment data
 tooltip = 
 manpage = If local tilt alignments were obtained from unreduced data, but the
-aligned stack was reduced by binning or transforming, use this line
+aligned stack was reduced by binning or transforming, use this entry
 to specify the factor by which the data were scaled, so that the
 local alignment information can be adjusted.  Without this entry, the program
 will use the ratio of the pixel size at which local alignments were computed
@@ -176,7 +176,7 @@ if data were binned.
 type = F
 usage = Take the logarithm after adding the given base value
 tooltip = 
-manpage = This line allows one to generate a reconstruction using the
+manpage = This entry allows one to generate a reconstruction using the
 logarithm of the densities in the input file, with the value BASE 
 added before taking the logarithm.
 
@@ -184,7 +184,7 @@ added before taking the logarithm.
 type = F
 usage = Value for masking regions with incomplete data
 tooltip = 
-manpage = This line allows a mask to be applied so as to exclude from the
+manpage = This entry allows a mask to be applied so as to exclude from the
 reconstructed volume those parts which lie outside the volume for
 which the projection data are complete.  This volume is a cylinder whose axis
 lies along the tilt axis.  Grid points outside this volume will be set to the
@@ -196,15 +196,15 @@ reconstruction.
 type = I
 usage = Output file mode (default 2)
 tooltip = 
-manpage = This line allows one to specify the data mode of the output file,
-which is 2 by default.  Be sure to use an appropriate SCALE line so
+manpage = This entry allows one to specify the data mode of the output file,
+which is 2 by default.  Be sure to use an appropriate SCALE entry so
 that data will be scaled to the proper range.
 
 [Field = OFFSET]
 type = FA
 usage = Offsets for tilt angles and tilt axis
 tooltip = 
-manpage = This line allows an offset of DELANG degrees to be applied to all
+manpage = This entry allows an offset of DELANG degrees to be applied to all
 tilt angles and indicates that the tilt axis is offset in the
 projection images, cutting the X-axis at  NX/2. + DELXX instead of
 NX/2.  DELANG positive rotates reconstructed sections anticlockwise.
@@ -233,7 +233,7 @@ computed.
 type = FP
 usage = Cutoff and sigma of Gaussian falloff for radial weighting function.
 tooltip = 
-manpage = This line controls low-pass filtering with the radial weighting
+manpage = This entry controls low-pass filtering with the radial weighting
 function.  The radial weighting function is linear away from the origin out to
 the distance in reciprocal space specified by the first value, followed by a 
 Gaussian fall-off with a s.d. (sigma) given by the second value.  If the
@@ -245,7 +245,7 @@ from 0 to 0.5.
 type = FPM
 usage = Number of times to replicate views, and angle or replication
 tooltip = 
-manpage = With this line, the input views will be replicated the number of
+manpage = With this entry, the input views will be replicated the number of
 times given by the first value, with an increment given by the second value in
 degrees added to the original angles for each replication.  For example, if
 you can assume 9-fold symmetry, enter REPLICATE 8 40.
@@ -254,7 +254,7 @@ you can assume 9-fold symmetry, enter REPLICATE 8 40.
 type = FAM
 usage = Angles for reprojections of reconstructed slices
 tooltip = 
-manpage = With this line, the program will output one or more reprojections 
+manpage = With this entry, the program will output one or more reprojections 
 of the reconstructed slices at the given angles.  If RecFileToReproject is 
 entered, then the reprojections should match the input projections; otherwise
 the reprojections will be of the computed slices and should match what
@@ -273,7 +273,7 @@ scale values that would make the data range from 10 to 245.
 type = FA
 usage = Amount to shift reconstructed slice in X and Y
 tooltip = 
-manpage = This line allows one to shift the reconstructed slice in X or Z
+manpage = This entry allows one to shift the reconstructed slice in X or Z
 before it is output.  If the X shift is positive, the slice will be
 shifted to the right, and the output will contain the left part of
 the whole potentially reconstructable area.  If the Z shift is positive,
@@ -295,10 +295,10 @@ usage = Lower left X, Y coordinates of aligned stack within whole images
 tooltip = 
 manpage = If the aligned stack contains a subset of the area in the original
 images, and this area is not centered in X or a global X-axis tilt or
-local alignments are being used, use this line to enter the X and Y index
+local alignments are being used, use this entry to enter the X and Y index
 coordinates (numbered from 0) of the lower left corner of the subset within the
-original images.  A FULLIMAGE line must also be entered.  If the aligned stack
-is larger than the original images, use negative values.
+original images.  A FULLIMAGE entry must also be included.  If the aligned
+stack is larger than the original images, use negative values. 
 
 [Field = THICKNESS]
 type = I
@@ -310,7 +310,7 @@ manpage = Thickness in Z of reconstructed volume, in pixels
 type = FN
 usage = File with list of tilt angles
 tooltip = 
-manpage = Use this line to specify a file containing a list of all tilt
+manpage = Use this entry to specify a file containing a list of all tilt
 angles.  The angles may be one per line or many per line.
 
 [Field = TITLE]
@@ -325,7 +325,7 @@ optional; the default is "Tomographic reconstruction".
 type = IP
 usage = Starting and ending slices of entire reconstruction
 tooltip = 
-manpage = This line is used to allow multiple runs of Tilt to compute a subset
+manpage = This entry is used to allow multiple runs of Tilt to compute a subset
 of slices and place them into the same output file.  The values
 specify the first and last slice to be reconstructed in the whole
 volume, numbered from 0.  When this entry is present, the behavior of
@@ -365,7 +365,7 @@ the width of the input image.
 type = F
 usage = Tilt about X-axis to correct in reconstruction
 tooltip = 
-manpage = This line allows one to rotate the reconstruction around the X axis,
+manpage = This entry allows one to rotate the reconstruction around the X axis,
 so that a section that appears to be tilted around the X axis can be
 made flat to fit into a smaller volume.  The angle should be the
 tilt of the section relative to the X-Y plane in an unrotated
@@ -386,16 +386,16 @@ a reconstruction file (numbered from 0).  The default is the whole extent in X.
 type = FN
 usage = File with variable tilts around the X-axis
 tooltip = 
-manpage = Use this line to specify a file containing a list of tilts around
+manpage = Use this entry to specify a file containing a list of tilts around
 the X axis for the individual views.  A global tilt specified by the
-XAXISTILT line, if any, will be added to these tilts.  If this file contains
+XAXISTILT entry, if any, will be added to these tilts.  If this file contains
 all zeros, the program runs the same as if the file was not entered.
 
 [Field = XTILTINTERP]
 type = I
 usage = Interpolation order for computing X-tilted slices from vertical ones
 tooltip = 
-manpage = This line controls the order for interpolating an output slice
+manpage = This entry controls the order for interpolating an output slice
 tilted around the X axis from vertical, untilted slices each computed
 from a single line of input data.  Set the order to 1 for linear, 2 for
 quadratic, 3 for cubic, or 0 to disable this method of X-axis
@@ -416,7 +416,7 @@ The default is the whole extent in Y.
 type = FN
 usage = File with Z-factors
 tooltip = 
-manpage = Use this line to specify a file containing factors for adjusting the
+manpage = Use this entry to specify a file containing factors for adjusting the
 backprojection position in each image as a function of Z height in the
 output slice.  These factors are necessary when input images have been
 transformed to correct for an apparent specimen stretch.  If this entry is
