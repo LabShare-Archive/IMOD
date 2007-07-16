@@ -1,5 +1,21 @@
 IMOD History
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+7/16/07: Splittilt modified to handled reprojections from a tomogram and to
+be compatible with setting up files for iterative operations.
+
+7/16/07: Tilt can now reproject from a tomogram file and produce reprojections
+that match the input data even when X axis tilting, Z factors, or local
+alignments were used.  It can take weighting factors for a relative mass
+normalization.
+
+7/15/07: Added ability to enter 0,0 as limits to assemblevol when there is
+no overlap between volumes being assembled.
+
+7/15/07: Fixed filling of edge areas when using xyzproj with constant scaling.
+
+7/13/07: The Xyz window now has fixed subwindows for each area in which the
+images zoom up and pan around.  Keypad insert key works for modeling here.
+
 7/8/07: 3dmod changes to make bulk model cleanup operations easier: Object
 deletion will delete multiple selected objects.  There is an Object Combine
 menu entry that will move all contours from multiple selected objects into one
