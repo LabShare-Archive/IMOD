@@ -102,7 +102,16 @@ combined with INCLUDE lines.
 type = F
 usage = Fraction of constant filter to mix with R-weighting, or > 1 for SIRT
 tooltip = 
-manpage = 
+manpage = With a value entered between 0 and 1, the radial filter will be set
+up as a linear combination of the standard R-weighting filter and a flat
+filter, which will greatly overemphasize low frequencies.  The entered value
+is the fraction for the flat filter.  The flat filter is scaled to give
+output densities roughly comparable to those obtained with the R-weighting
+filter.  The zero-frequency component of each filter is 0.2 times the
+component at the lowest non-zero frequency.  If the value is greater than one,
+a filter suitable for Simultaneous Iterative Reconstruction (SIRT) is set up,
+scaled so as to distribute input values equally along each ray.  The
+zero-frequency component is the same as the other components in this case.
 
 [Field = FBPINTERP]
 type = I
