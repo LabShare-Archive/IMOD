@@ -20,12 +20,12 @@ DDEESSCCRRIIPPTTIIOONN
   on the amount of memory available.  If there is no X-axis tilt being
   imposed, then each output plane is derived from one line of the input data.
   The program tries first to use the fast backprojection algorithm developed
-  by Sandberg and Beylkin.  If there is insufficient memory for this, or if
-  other preconditions are not satisfied, it then tries to use preliminary
-  stretching of each input line by the cosine of the tilt angle, which speeds
-  up the direct backprojection.  If there is not enough memory for this method
-  either, the program falls back to direct backprojection from the unstretched
-  input lines. 
+  by Sandberg and Beylkin, if there is a license.  If there is insufficient
+  memory for this, or if other preconditions are not satisfied, it then tries
+  to use preliminary stretching of each input line by the cosine of the tilt
+  angle, which speeds up the direct backprojection.  If there is not enough
+  memory for this method either, the program falls back to direct
+  backprojection from the unstretched input lines. 
 
   When a tilt around the X axis is specified, then each output slice derives
   from several lines of input data.  The program tries to do this first by
@@ -53,6 +53,40 @@ DDEESSCCRRIIPPTTIIOONN
   using the negative of the tilt angles).  If slices are output in inverted
   order (IDELSLICE < 0), this represents a -90 degree rotation about X; slices
   are not inverted in this case. 
+
+  The program can do two different kinds of reprojections.  First, it can
+  compute each tomogram slice as usual then, instead of writing the slice to
+  the output file, it outputs a reprojection of that slice at selected
+  angles.  This reprojection should match what xyzproj(1) would produce by
+  reprojecting from the tomogram, but it will not match the input images if
+  the reconstruction is computed with a fixed or variable X axis tilt, Z
+  factors, or local alignments.  Getting a reprojection that matches input
+  images in any of these cases requires multiple slices of reconstruction to
+  get one line of reprojection.  Thus, these reprojections are obtained by
+  first computing the full reconstruction, then providing this file as input
+  to the program on a second run.  On that run, the program needs to know
+  about all the parameters used to make the reconstruction, as well as about
+  the original projection file.
+
+  The scaling of data by the backprojection is somewhat unpredictable.  If the
+  radial filter were scaled to go from 0 at zero frequency to 1 at 0.5
+  cycle/pixel, then the backprojection would produce numbers that correspond
+  approximately to the underlying densities; i.e., their reprojection by
+  summation would give numbers comparable to those in the input projections.
+  Unfortunately, the radial filter goes from 0 to NX / 2, where NX is the X
+  dimension of the input data.  This means that in order to get output
+  that would reproject to give values comparable to the input, you would need
+  to: a) not take the log of the data; and b) set the scaling factor in the
+  SCALE entry to 2/NX.  
+
+  The scaling of data in the reprojection from a tomogram takes the
+  backprojection scaling into account.  Specifically, the program first undoes
+  the output scaling that was specified by the SCALE entry, then it multiplies
+  by 2.2 / NX.  The reprojection is computed by summing these unscaled
+  values.  If the log was not being taken in the backprojection, these sums
+  are then divided by the weighting factors entered with WeightFile, if any,
+  and output.  If the log was taken, the sums are adjusted by adding an amount
+  that should give a constant mean level, then the exponential is taken.
 
   Tilt uses the PIP package for input (see the manual page for pip(1)) but
   it has several special features to maintain compatibility with the old
