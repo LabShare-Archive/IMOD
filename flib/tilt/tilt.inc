@@ -33,7 +33,7 @@ c       parameter (limstack=2200000)
       parameter (limmask=20000)
       parameter (limview=720,limwidth=20000)
       parameter (limwpos=1600,limwarp=192000)
-      parameter (limrays = 2 * limwidth, limreproj = 40)
+      parameter (limrays = 2 * limwidth, limreproj = limview)
 c       
       integer*4 NSTACK,maxstack
       real*4 ARRAY(limstack)
@@ -46,10 +46,11 @@ c
      &    ,ANGLES,TITLE,npad,ithickout
       equivalence (nprj,npxyz(1)),(mprj,npxyz(2)),(nviews,npxyz(3))
 c       
-      LOGICAL MASK,PERP,fastbp,reproj
+      LOGICAL MASK,PERP,fastbp,reproj,recReproj,debug
 c       
       real*4 DELXX,xcenin,slicen,XCEN,YCEN,baselog,compress(limview),yoffset
-      real*4 xzfac(limview), yzfac(limview)
+      real*4 xzfac(limview), yzfac(limview), edgeFill, zeroWeight, flatFrac
+      real*4 expWeight(limview)
       integer*4 IMAP,nbase,ITHWID ,idelslice,newmode,mapuse(limview),
      &    iflog,nreplic ,iplane,ipextra,interpfac,interpord ,ifbpwrk,
      &    ifbpzwrk,ifbpiw,ifbprw,ifbpzw,nprjfbp ,nvertneed,intordxtilt,
@@ -58,8 +59,8 @@ c
      &    ,idelslice,newmode,mapuse,iflog,baselog,nreplic
      &    ,compress,iplane,ipextra,interpfac,interpord,fastbp
      &    ,ifbpwrk,ifbpzwrk,ifbpiw,ifbprw,ifbpzw,nprjfbp,yoffset
-     &    ,nvertneed,intordxtilt,reproj,xzfac,yzfac,
-     &    minTotSlice, maxTotSlice
+     &    ,nvertneed,intordxtilt,reproj,recReproj,debug,xzfac,yzfac,expWeight,
+     &    minTotSlice, maxTotSlice, edgeFill, zeroWeight, flatFrac
 c       
       integer*4 nstretch(limview),indstretch(limview)
       real*4 ofstretch(limview)
@@ -88,8 +89,13 @@ c
      &    ifdelalpha,indwarp,delbeta, delalpha,cwarpb,swarpb,
      &    cwarpa,swarpa,fw,warpXZfac, warpYZfac
 c       
-      integer*4 nreproj, nraymax(limreproj), nrayinc(limrays)
+      integer*4 nreproj, nraymax(limreproj), nrayinc(limrays), maxZreproj
+      integer*4 minXreproj, maxXreproj, minYreproj, maxYreproj, minZreproj
+      integer*4 ithickReproj, minXload, maxXload
+      real*4 xprjOffset, yprjOffset, projMean, filterScale
       real*4 xraystr(limrays), yraystr(limrays), cosReproj(limreproj)
       real*4 sinReproj(limreproj)
-      common /reprjc/nreproj, nraymax, nrayinc, xraystr, yraystr, cosReproj,
-     &    sinReproj
+      common /reprjc/nreproj, minXreproj, maxXreproj, minYreproj, maxYreproj,
+     &    minZreproj, maxZreproj, xprjOffset, yprjOffset, ithickReproj,
+     &    minXload, maxXload, nraymax, nrayinc, projMean, filterScale, xraystr,
+     &    yraystr, cosReproj, sinReproj
