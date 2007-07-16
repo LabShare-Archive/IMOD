@@ -1,10 +1,10 @@
 Version = 1.0
 Pip = 1
 
-[Field = InputFile]
+[Field = InputProjections]
 short = input
 type = FN
-usage = Input image file
+usage = Input image file with aligned projections
 tooltip = 
 manpage = Input image file with aligned projections.  If this option is not
 entered, the first non-option argument is taken as the input name.
@@ -12,10 +12,19 @@ entered, the first non-option argument is taken as the input name.
 [Field = OutputFile]
 short = output
 type = FN
-usage = Output file for reconstruction
+usage = Output file for reconstruction or reprojection
 tooltip = 
-manpage = Output file for reconstruction.  If this option is not
-entered, the second non-option argument is taken as the output name.
+manpage = Output file for reconstruction or reprojection.  If this option is
+not entered, the second non-option argument is taken as the output name. 
+
+[Field = RecFileToReproject]
+short = recfile
+type = FN
+usage = Reconstruction file to reproject
+tooltip = 
+manpage = Reconstruction file to reproject.  When using this option, all of the
+entries to the program used when building this reconstruction should be
+included as well.
 
 [Field = ANGLES]
 type = FAM
@@ -88,6 +97,12 @@ by commas or spaces.  The EXCLUDE and EXCLUDELIST entries available in
 old versions of the program are treated as this option.
 You may have any number of lines with exclude lists, but they cannot be 
 combined with INCLUDE lines.
+
+[Field = FlatFilterFraction]
+type = F
+usage = Fraction of constant filter to mix with R-weighting, or > 1 for SIRT
+tooltip = 
+manpage = 
 
 [Field = FBPINTERP]
 type = I
@@ -177,8 +192,8 @@ which is 2 by default.  Be sure to use an appropriate SCALE line so
 that data will be scaled to the proper range.
 
 [Field = OFFSET]
-type = IA
-usage = 
+type = FA
+usage = Offsets for tilt angles and tilt axis
 tooltip = 
 manpage = This line allows an offset of DELANG degrees to be applied to all
 tilt angles and indicates that the tilt axis is offset in the
@@ -231,10 +246,10 @@ type = FAM
 usage = Angles for reprojections of reconstructed slices
 tooltip = 
 manpage = With this line, the program will output one or more reprojections 
-of the reconstructed slices at the given angles.  These reprojections should
-match what Xyzproj (1) would produce, but will not match the original
-projections if there were Z factors, local alignments, or any tilting about
-the X-axis.
+of the reconstructed slices at the given angles.  If RecFileToReproject is 
+entered, then the reprojections should match the input projections; otherwise
+the reprojections will be of the computed slices and should match what
+Xyzproj(1) would produce.
 
 [Field = SCALE]
 type = FP
@@ -264,20 +279,6 @@ manpage = Starting and ending slice number to reconstruct, and interval
 between slices.  The numbers refer to slices in the X/Z plane and correspond
 to Y coordinates in the projection images.  Slices are numbered from 0.  
 The interval entry is optional and defaults to 1 when omitted.
-
-[Field = TOTALSLICES]
-type = IP
-usage = Starting and ending slices of entire reconstruction
-tooltip = 
-manpage = This line is used to allow multiple runs of Tilt to compute a subset
-of slices and place them into the same output file.  The values
-specify the first and last slice to be reconstructed in the whole
-volume, numbered from 0.  When this entry is present, the behavior of
-the program depends on the SLICE entry.  The program should be run
-initially with SLICE -1 -1, which will cause it to create the output file
-and write its header.  On successive runs with SLICE indicating a real range
-of slices, the program will open the existing file, write only those slices, 
-and not write the header when it is done.
 
 [Field = SUBSETSTART]
 type = IP
@@ -311,6 +312,39 @@ manpage = An alphanumeric string giving the title for the job, which will be
 added to the output map.  Limit 50 characters.  This entry is
 optional; the default is "Tomographic reconstruction".
 
+[Field = TOTALSLICES]
+type = IP
+usage = Starting and ending slices of entire reconstruction
+tooltip = 
+manpage = This line is used to allow multiple runs of Tilt to compute a subset
+of slices and place them into the same output file.  The values
+specify the first and last slice to be reconstructed in the whole
+volume, numbered from 0.  When this entry is present, the behavior of
+the program depends on the SLICE entry (or the ZMinAndMax entry when
+reprojecting from a tomogram).  The program should be run initially with SLICE
+-1 -1 (or ZMinAndMax -1 -1 when reprojecting), which will cause it to create
+the output file and write its header.  On successive runs with SLICE or
+ZMinAndMax indicating a real range of slices, the program will open the
+existing file, write only those slices, and not write the header when it is
+done.
+
+[Field = ViewsToReproject]
+type = LI
+usage = List of views to reproject (0 for all, not just included ones)
+tooltip = 
+manpage = List of views to reproject from a reconstruction file.  The default
+is to project just the views that were included in the reconstruction.  To
+project all views in the input projection file, enter 0.
+
+[Field = WeightFile]
+type = FN
+usage = File with list of weighting factors for all views
+tooltip = 
+manpage = Name of a file containing a list of weighting factors to be applied
+to the views, such as for mass normalization.  The factors may be one per line 
+or many per line.  These weights are ignored if the log is being taken of the 
+data.
+
 [Field = WIDTH]
 type = I
 usage = Width of output image
@@ -330,6 +364,14 @@ reconstruction.  For example, if the reconstruction extends 500
 slices, and the section is 5 pixels below the middle in the first
 slice and 5 pixels above the middle in the last slice, the angle should
 be 1.1 (the arc sine of 10/500).
+
+[Field = XMinAndMaxReproj]
+short = xminmax
+type = IP
+usage = Starting and ending X index coordinates to reproject
+tooltip = 
+manpage = Starting and ending X index coordinates of region to reproject from
+a reconstruction file (numbered from 0).  The default is the whole extent in X.
 
 [Field = XTILTFILE]
 type = FN
@@ -352,6 +394,15 @@ tilting and revert to computing the output slice directly from input
 data.  The default is 1; higher orders are appropriate if data are
 particularly noise-free.
 
+[Field = YMinAndMaxReproj]
+short = yminmax
+type = IP
+usage = Starting and ending Y index coordinates to reproject
+tooltip = 
+manpage = Starting and ending Y index coordinates of region to reproject from
+a reconstruction file (numbered from 0).  Y is the thickness dimension. 
+The default is the whole extent in Y.
+
 [Field = ZFACTORFILE]
 type = FN
 usage = File with Z-factors
@@ -361,6 +412,15 @@ backprojection position in each image as a function of Z height in the
 output slice.  These factors are necessary when input images have been
 transformed to correct for an apparent specimen stretch.  If this entry is
 absent, Z factors in a local alignment file will not be applied.
+
+[Field = ZMinAndMaxReproj]
+short = zminmax
+type = IP
+usage = Starting and ending Z index coordinates to reproject
+tooltip = 
+manpage = Starting and ending Z index coordinates of region to reproject from
+a reconstruction file (numbered from 0).  Z is the the dimension along the
+tilt axis.  The default is the whole extent in Z.
 
 [Field = ParameterFile]
 short = param
