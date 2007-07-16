@@ -24,7 +24,7 @@ short = rotation
 type = F
 usage = Angle to rotate in X/Y plane
 tooltip =
-manpage = Angle to rotate all volumes in the X/Y plane.	 If this option is not
+manpage = Angle to rotate all volumes in the X/Y plane.  If this option is not
 entered, the program will find the angle that brings the centers of the
 aligned volumes onto a rectangular grid.  Enter an angle or zero to override
 this behavior.
@@ -82,7 +82,7 @@ short = xrun
 type = IP
 usage = Starting and ending volumes in X to analyze
 tooltip =
-manpage = Starting and ending volumes in X to analyze, numbered from 1.	 The
+manpage = Starting and ending volumes in X to analyze, numbered from 1.  The
 default is to do all volumes in X.
 
 [Field = YRunStartEnd]
@@ -90,7 +90,7 @@ short = yrun
 type = IP
 usage = Starting and ending volumes in Y to analyze
 tooltip =
-manpage = Starting and ending volumes in Y to analyze, numbered from 1.	 The
+manpage = Starting and ending volumes in Y to analyze, numbered from 1.  The
 default is to do all volumes in Y.
 
 [Field = VectorSpacingFactor]
@@ -111,7 +111,7 @@ usage = Analyze all volumes in a single minimization procedure
 tooltip =
 manpage = Analyze all volumes in a single minimization procedure.  The default
 is to get a solution for each pair of overlapping volumes and resolve the
-results into a single solution.	 When parameters are searched for all volumes
+results into a single solution.  When parameters are searched for all volumes
 togther, the results are poor, probably due to multiple minima.
 
 [Field = ParameterFile]
