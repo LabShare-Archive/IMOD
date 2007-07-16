@@ -1,11 +1,7 @@
 #! /bin/csh -f
 # splittilt: splits tilt command file into multiple files to do in chunks
 #
-#  $Author$
-#
-#  $Date$
-#
-#  $Revision$
+#  $Id$
 #
 #  Log at end
 
@@ -32,6 +28,8 @@ Usage: $pn [options] command_file
       -v     Do vertical slices instead of old-style X-axis tilting
       -f     Allow fast backprojection where possible
       -c     Write chunks to separate files, not directly to single output file
+      -i #   Set initial command file number to #
+      -o     Leave command set open, finish with -sync instead of -finish
 EOF
 exit 0
 endif
@@ -46,6 +44,10 @@ set vertical = 0
 set oldstyle = "#"
 set nofbp = "FBPINTERP 0"
 set direct = 1
+set reproj = 0
+set ifstartnum = 0
+set leaveopen = 0
+@ startnum = 1
 
 while ($#argv > 1)
   switch ($argv[1])
@@ -89,6 +91,17 @@ while ($#argv > 1)
       shift
       breaksw
 
+    case -i:
+      set ifstartnum = 1
+      @ startnum = $argv[2]
+      shift; shift
+      breaksw
+
+    case -o:
+      set leaveopen = 1
+      shift
+      breaksw
+
     default:
       echo "ERROR: $pn - unrecognized option $argv[1]"
       exit 1
@@ -116,25 +129,32 @@ set thickness = `grep -i thickness $comname | grep -v '^#' | sed '/[^0-9\.]/s///
 set slices = `grep -i slice $comname | grep -v '^#' | sed '/[^ 0-9\.]/s///g'`
 set local = `grep -i localfile $comname | grep -v '^#'`
 set binning = `grep -i imagebinned $comname | grep -v '^#' | sed '/[^0-9\.]/s///g'`
+set alifile = `grep -i inputproj $comname | grep -v '^#' | sed '/[^ 0-9\.]/s///g'`
+set recfile = `grep -i outputfile $comname | grep -v '^#' | sed '/[^ 0-9\.]/s///g'`
+set rectoproj = `grep -i recfiletoreproj $comname | grep -v '^#' | sed '/[^ 0-9\.]/s///g'`
+set sliceproj = `grep -i "^ *reproject" $comname`
 
-# Get the input image file name from the command file
+
+# Get the input image file name from the command file if necessary
 #
-set topline  = `vmstocsh < $comname | awk '/tilt/{print NR}' | \
+if ("$recfile" == "" || "$alifile" == "") then
+    set topline  = `vmstocsh < $comname | awk '/tilt/{print NR}' | \
                 sed '/[[:cntrl:]]/s///g'`
-if ($#topline > 1) then
-    @ topnum = $topline[1]
-else
-    @ topnum = $topline
+    if ($#topline > 1) then
+        @ topnum = $topline[1]
+    else
+        @ topnum = $topline
+    endif
+    @ nextline = $topnum + 1
+    if ("$alifile" == "") set alifile = `vmstocsh < $comname | awk '{if (NR==LINE) print}' \
+                LINE=$nextline | sed '/[[:cntrl:]]/s///g'`
+    @ nextline = $topnum + 2
+    if ("$recfile" == "") set recfile = `vmstocsh < $comname | awk '{if (NR==LINE) print}' \
+                LINE=$nextline | sed '/[[:cntrl:]]/s///g'`
 endif
-@ nextline = $topnum + 1
-set alifile = `vmstocsh < $comname | awk '{if (NR==LINE) print}' \
-                LINE=$nextline | sed '/[[:cntrl:]]/s///g'`
-@ nextline = $topnum + 2
-set recfile = `vmstocsh < $comname | awk '{if (NR==LINE) print}' \
-                LINE=$nextline | sed '/[[:cntrl:]]/s///g'`
 
 if (! -e $alifile && $#fullimage == 0 && "$slices" == "") then
-    echo "ERROR: $pn - Command file has neither a SLICES nor a FULLIMAGE entry and image file does not exist yet"
+    echo "ERROR: $pn - Command file has neither a SLICE nor a FULLIMAGE entry and image file does not exist yet"
     exit 1
 endif
 
@@ -143,16 +163,25 @@ if ($thickness == "") then
     exit 1
 endif
 
+set recext = $recfile:e
+
 # Divide thickness and slice entries by the binning for computations
 #
-if ("$binning" != "") @ binval = $binning[1]
+@ binval = 1
+if ("$binning" != "") then
+    @ binval = $binning[1]
+endif
 @ thickness /= $binval
 
 # Remove any previous files now in case the number has changed or 
 # direct/indirect mode
 #
-\find . -type f -name  "$rootname-[0-9]*.*" -exec rm -f "{}" \;
-\rm -f $rootname-start.com $rootname-finish.com
+if ($startnum > 1) then
+    \find . -type f -name  "$rootname-[0-9]*.[^c]*[^m]" -exec rm -f "{}" \;
+else
+    \find . -type f -name  "$rootname-[0-9]*.*" -exec rm -f "{}" \;
+    \rm -f $rootname-start.com $rootname-finish.com
+endif
 
 # Get the size from the aligned stack instead of relying on FULLIMAGE if
 # possible, and scale them up by binning
@@ -170,7 +199,7 @@ if (-e $alifile) then
     @ num *= $binval
     set fullimage[2] = $num
 else
-    echo "WARNING: $pn - aligned stack ot found; sizes will be taken from FULLIMAGE entry"
+    echo "WARNING: $pn - aligned stack not found; sizes will be taken from FULLIMAGE entry"
 endif
 
 if ($#fullimage > 1) then
@@ -184,6 +213,22 @@ if ($#slices > 1) then
     @ firstslice /= $binval
     @ numslices = $slices[2]
     @ numslices = ($numslices / $binval) + 1 - $firstslice
+endif
+
+# If reprojecting from tomo, need to get real number of slices and starting one
+#
+if ("$rectoproj" != "" || "$sliceproj" != "") set reproj = 1
+set slicedel = 'SLICE'
+if ("$rectoproj" != "") then
+    set slicedel = 'ZMinAndMax'
+    set slices = `grep -i ZMinAndMax $comname | grep -v '^#' | sed '/[^ 0-9\.]/s///g'`
+    @ firstslice = 0
+    if ($#slices > 1) then
+        @ firstslice = $slices[1]
+        @ numslices = $slices[2]
+        @ numslices = $numslices + 1 - $firstslice
+    endif
+    @ binval = 1
 endif
 
 # Start with target size, make sure bigger than minimum
@@ -243,6 +288,7 @@ endif
 @ slabsize = $numslices / $numslabs
 @ remainder = $numslices - $numslabs * $slabsize
 
+set donetext = '$echo CHUNK DONE'
 set recroot = $recfile:r
 set templist = ()
 set recsed = $recfile
@@ -253,10 +299,16 @@ if ($direct) then
     set totsed = THICKNESS
     set recsed = gibberish
     set thiscom = $rootname-start.com
-    sed -e "/SLICE/d" \
+    if ($startnum > 1) then
+        set numtext = `echo $startnum | awk '{printf "%03d\n", $1}'`
+        @ startnum++
+        set thiscom = $rootname-$numtext-sync.com
+    endif
+
+    sed -e "/$slicedel/d" \
         -e '/savework/d' \
         -e "/THICKNESS/a\\
-SLICE -1 -1\
+$slicedel -1 -1\
 " \
         -e "/THICKNESS/a\\
 TOTALSLICES $mintotslice $maxtotslice\
@@ -265,19 +317,16 @@ TOTALSLICES $mintotslice $maxtotslice\
     cat <<EOF >> $thiscom
 \$sync
 EOF
+if ($startnum > 1) echo "$donetext" >> $thiscom
 endif
 
 @ num = 0
 while ($num < $numslabs)
     @ num++
-    set numtext = $num
-    if ($num < 10) then
-        set numtext = 00"$numtext"
-    else if ($num < 100) then
-        set numtext = 0"$numtext"
-    endif
+    @ numrec = $num + $startnum - 1
+    set numtext = `echo $numrec | awk '{printf "%03d\n", $1}'`
     set thiscom = $rootname-$numtext.com
-    set tempname = $recroot-$numtext.rec
+    set tempname = $recroot-$numtext.$recext
     set templist = ($templist $tempname)
     @ lastslice = $firstslice + $slabsize - 1
     if ($num <= $remainder) @ lastslice++
@@ -295,10 +344,10 @@ while ($num < $numslabs)
 \$sync
 EOF
     sed -e "/$recsed/s//$tempname/" \
-        -e "/SLICE/d" \
+        -e "/$slicedel/d" \
         -e '/savework/d' \
         -e "/THICKNESS/a\\
-SLICE $ubfirst $ublast\
+$slicedel $ubfirst $ublast\
 " \
         -e "/THICKNESS/a\\
 $oldstyle\
@@ -309,38 +358,65 @@ TOTALSLICES $mintotslice $maxtotslice\
         -e "/THICKNESS/a\\
 $nofbp\
 " $comname >> $thiscom
-    cat <<EOF >> $thiscom
-\$echo CHUNK DONE
-EOF
+    echo "$donetext" >> $thiscom
 
     @ firstslice = $lastslice + 1
 end
 
 set finish = $rootname-finish.com
-if (! $direct) then
+set cleanup = '$'"\rm -f $rootname-[0-9]*.*"
+if ($leaveopen) then
+    @ numrec = $num + $startnum
+    set numtext = `echo $numrec | awk '{printf "%03d\n", $1}'`
+    set finish = $rootname-$numtext-sync.com
+    set cleanup = '$'"\rm -f "
+    if ($direct) set cleanup = ""
+endif
+if (! $direct && ! $reproj) then
     cat <<EOF >! $finish
 \$newstack -StandardInput
 OutputFile $recfile
 EOF
-@ num = 0
-while ($num < $numslabs)
-    @ num++
-    echo "InputFile $templist[$num]" >> $finish
-end
-cat <<EOF >> $finish
-\$\\rm -f $rootname-[0-9]*.* $recroot-[0-9]*.rec
+    @ num = 0
+    while ($num < $numslabs)
+        @ num++
+        echo "InputFile $templist[$num]" >> $finish
+    end
+    echo "$cleanup $recroot-[0-9]*.$recext" >> $finish
+else if (! $direct) then
+    cat <<EOF >! $finish
+\$assemblevol
+$recfile
+1,$numslabs,1
+0,0
 EOF
+    # Write the 0,0 for each slab then the one for Z
+    @ num = 0
+    while ($num <= $numslabs)
+        @ num++
+        echo "0,0" >> $finish
+    end
+    @ num = 0
+    while ($num < $numslabs)
+        @ num++
+        echo "$templist[$num]" >> $finish
+    end
+    echo "$cleanup $recroot-[0-9]*.$recext" >> $finish
 else
     cat <<EOF >! $finish
-\$collectmmm pixels= $rootname $numslabs $recfile
-\$\\rm -f $rootname-[0-9]*.*
+\$collectmmm pixels= $rootname $numslabs $recfile $startnum
+$cleanup
 EOF
 endif
+if ($leaveopen) echo "$donetext" >> $finish
 
 echo "Command files for $numslabs chunks created and ready to run with:"
 echo "  processchunks machine_list $rootname"
 
 #  $Log$
+#  Revision 3.10  2006/08/17 18:36:55  mast
+#  Added locale statement to keep output of awk from having , instead of .
+#
 #  Revision 3.9  2006/05/10 22:18:30  mast
 #  Added sync statements to the direct -start file and each chunk for Mac
 #
