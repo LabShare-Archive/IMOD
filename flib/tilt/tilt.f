@@ -12,7 +12,6 @@ c       Log at end of file
 c       
       implicit none
       include 'tilt.inc'
-      real*4 fp(2,3)
       integer*4 nxyztmp(3),nxyzst(3)
       data nxyzst/0.,0.,0./
       character*20 radtxt1/'Radial weighting'/
@@ -27,8 +26,9 @@ c
       real*4 dmin,dmax,ycenfix,abssal,tanalpha,dxassay,dxtmp,xx,yy,zz
       real*4 xp,yp,xp2,yp2,xp3,yp3,xp4,yp4,f1,f2,f3,f4,valmin,xsum,stmean
       integer*4 ibase,lstart,nv,ISTART,NL,iyload,nsum,ix,ipad,ioffset
-      integer*4 iringstart,mode
+      integer*4 iringstart,mode,ixassay
       real*4 endmean,f,unscmin,unscmax,recscale,recflevl,DMEAN,pixelTot
+      real*4 xprojf, xprojz, yprojf, yprojz, xproj, yproj
       real*8 dtot8
 
       TMASK = -1.E+30
@@ -40,10 +40,17 @@ c
       DTOT8=0.
       DMIN=1.E30
       DMAX=-1.E30
+      debug = .false.
 C       
 C       Open files and read control data
       CALL INPUT
       NSLICE=(JSLICE-ISLICE)/idelslice+1
+      valmin = 1.e-3 * (pmax - pmin)
+      edgeFill = pmean
+      if (iflog .ne. 0) edgeFill = alog10(max(valmin, pmean + baselog))
+      edgeFill = edgeFill * zeroWeight
+      
+      print *,'scale=',scale,'  edgefill=',edgefill
 c       
 c       recompute items not in common
 c       
@@ -79,12 +86,14 @@ c
         NPLANES=MIN(NPLANES,MPRJ)
       endif       
       NI=NPLANES*IPLANE
-      WRITE(6,900)maxSTACK,radtxt1,imap-1,radtxt2,ITHWID
-      if(ifalpha.lt.0)write(6,902)nvertneed,nvertneed*ithick*iwide
-      write(6,903)NPLANES,NI
-      if (ipextra.ne.0)write(6,901)ipextra
-      call maskprep
-c       print *,'slicen',slicen,', imap',imap,', nbase',nbase
+      if (.not. recReproj) then
+        WRITE(6,900)maxSTACK,radtxt1,imap-1,radtxt2,ITHWID
+        if(ifalpha.lt.0)write(6,902)nvertneed,nvertneed*ithick*iwide
+        write(6,903)NPLANES,NI
+        if (ipextra.ne.0)write(6,901)ipextra
+        call maskprep
+      endif
+      if (debug) print *,'slicen',slicen,', imap',imap,', nbase',nbase
       if(ifalpha.ge.0)then
         loadlimit=jslice
       else
@@ -99,12 +108,13 @@ c       print *,'slicen',slicen,', imap',imap,', nbase',nbase
 C       
 C       Main loop over slices perpendicular to tilt axis
 C       ------------------------------------------------
-      DO 100 LSLICEout=ISLICE,JSLICE,idelslice
+      LSLICEout=ISLICE
+      DO while (idir * LSLICEout .le. idir * JSLICE)
 c         
 c         get limits for slices that are needed: the slice itself for regular
 c         work, or required vertical slices for new-style X tilting
 c         
-c         print *,'working on',lsliceout
+        if (debug) print *,'working on',lsliceout
         if(ifalpha.ge.0)then
           lsstart=lsliceout
           lsend=lsliceout
@@ -114,7 +124,7 @@ c         print *,'working on',lsliceout
      &        0.5*ithickout*abssal-1.
           lsmax=slicen+(lsliceout-slicen)*cal(1)+yoffset*sal(1)+
      &        0.5*ithickout*abssal+2.
-c           print *,'need slices',lsmin,lsmax
+          if (debug) print *,'need slices',lsmin,lsmax
           lsmin=max(1,lsmin)
           lsmax=min(mprj,lsmax)
           if(idir.gt.0)then
@@ -130,8 +140,9 @@ c           print *,'need slices',lsmin,lsmax
 c         
 c         loop on needed vertical slices
 c         
-c         print *,'looping to get',lsstart,lsend
-        do lslice=lsstart,lsend,idir
+        if (debug) print *,'looping to get',lsstart,lsend
+        
+        do lslice = lsstart, lsend, idir
 C           
 C           Load stack with as many lines from projections as will
 C           fit into the remaining space. The stack is constructed as
@@ -180,77 +191,74 @@ c
 c                 for old-style X-tilt or local alignment, determine what
 c                 slices are needed by sampling 
 c                 set up sample points: left and right if no warp,
-c                 or twice the warp spacing 
+c                 or half the warp spacing 
 c                 
-                ixleft=1-xcen+xcenin+delxx
                 if(nxwarp.eq.0)then
                   nxassay=2
-                  dxassay=ixleft+iwide-1
+                  dxassay=iwide-1
                 else
                   dxtmp=idxwarp/2
                   nxassay=max(2.,iwide/dxtmp+1.)
                   dxassay=(iwide-1.)/(nxassay-1.)
                 endif
-c                 
+c                   
 c                 sample top and bottom at each position
 c                 
                 minslice=mprj+1
                 maxslice=0
                 do iassay=1,nxassay
-                  ixsam=nint(ixleft+(iassay-1)*dxassay)
+                  ixassay = nint(1+(iassay-1)*dxassay)
                   do iv=1,nviews
-                    if(nxwarp.ne.0) call local_factors
-     &                  (ixsam,itry,mapuse(iv),ind1,ind2,ind3,ind4,
-     &                  f1,f2,f3,f4)
-                    do iy=1,ithick,ithick-1
-c                       
-c                       for each position, find back-projection location
-c                       transform if necessary, and use to get min and
-c                       max slices needed to get this position
-c                       
-                      xx=ixsam-xcen
-                      yy=itry-slicen
-                      zz=iy-ycen
-                      xp=xx*cbet(iv)+yy*sal(iv)*sbet(iv)+
-     &                    zz*(cal(iv)*sbet(iv)+xzfac(iv))+ xcenin+delxx
-                      yp=yy*cal(iv)-zz*(sal(iv)-yzfac(iv))+slicen
-                      if(nxwarp.ne.0)then
-                        xp=xx*cwarpb(ind1)+yy*swarpa(ind1)*swarpb(ind1)+
-     &                      zz*(cwarpa(ind1)*swarpb(ind1)+warpxzfac(ind1))+
-     &                      xcenin+delxx
-                        yp=yy*cwarpa(ind1)-
-     &                      zz*(swarpa(ind1)-warpyzfac(ind1))+slicen
-                        call xfapply(fw(1,1,ind1),xcenin,slicen,xp,yp,
-     &                      xp,yp)
-                        xp2=xx*cwarpb(ind2)+yy*swarpa(ind2)*swarpb(ind2)+
-     &                      zz*(cwarpa(ind2)*swarpb(ind2)+warpxzfac(ind2))+
-     &                      xcenin+delxx
-                        yp2=yy*cwarpa(ind2)-
-     &                      zz*(swarpa(ind2)-warpyzfac(ind2))+slicen
-                        call xfapply(fw(1,1,ind2),xcenin,slicen,xp2,yp2,
-     &                      xp2,yp2)
-                        xp3=xx*cwarpb(ind3)+yy*swarpa(ind3)*swarpb(ind3)+
-     &                      zz*(cwarpa(ind3)*swarpb(ind3)+warpxzfac(ind3))+
-     &                      xcenin+delxx
-                        yp3=yy*cwarpa(ind3)-
-     &                      zz*(swarpa(ind3)-warpyzfac(ind3))+slicen
-                        call xfapply(fw(1,1,ind3),xcenin,slicen,xp3,yp3,
-     &                      xp3,yp3)
-                        xp4=xx*cwarpb(ind4)+yy*swarpa(ind4)*swarpb(ind4)+
-     &                      zz*(cwarpa(ind4)*swarpb(ind4)+warpxzfac(ind4))+
-     &                      xcenin+delxx
-                        yp4=yy*cwarpa(ind4)-
-     &                      zz*(swarpa(ind4)-warpyzfac(ind4))+slicen
-                        call xfapply(fw(1,1,ind4),xcenin,slicen,xp4,yp4,
-     &                      xp4,yp4)
-                        xp=f1*xp+f2*xp2+f3*xp3+f4*xp4
-                        yp=f1*yp+f2*yp2+f3*yp3+f4*yp4
+                    if (.not. recReproj) then
+                      ixsam=nint(ixassay-xcen+xcenin+delxx)
+                      if(nxwarp.ne.0) then
+                        call localProjFactors(ixassay, itry, iv, xprojf,
+     &                      xprojz, yprojf, yprojz)
                       endif
-                      iyp=max(1.,yp)
-                      minslice=min(minslice,iyp)
-                      maxslice=max(maxslice,min(mprj,iyp+1))
-c                       print *,xx,yy,zz,iyp,minslice,maxslice
-                    enddo
+                      do iy=1,ithick,ithick-1
+c                         
+c                         for each position, find back-projection location
+c                         transform if necessary, and use to get min and
+c                         max slices needed to get this position
+c                         
+                        xx=ixsam-xcen
+                        yy=itry-slicen
+                        zz=iy-ycen
+                        xp=xx*cbet(iv)+yy*sal(iv)*sbet(iv)+
+     &                      zz*(cal(iv)*sbet(iv)+xzfac(iv))+ xcenin+delxx
+                        yp=yy*cal(iv)-zz*(sal(iv)-yzfac(iv))+slicen
+                        if(nxwarp.ne.0)then
+                          xp = xprojf + xprojz * zz
+                          yp = yprojf + yprojz * zz
+                        endif
+                        iyp=max(1.,yp)
+                        minslice=min(minslice,iyp)
+                        maxslice=max(maxslice,min(mprj,iyp+1))
+c                        if (debug) print *,xx,yy,zz,iyp,minslice,maxslice
+                      enddo
+                    else
+c                       
+c                       Projections: get Y coordinate in original projection
+c                       if local, get the X coordinate in reconstruction too
+c                       then get the refinement 
+                      xproj = ixassay + xprjOffset
+                      yproj = itry + yprjOffset
+                      do iy=1,ithickReproj,ithickReproj-1
+                        zz = iy + minYreproj - 1 - ycen
+                        yy = (yproj + zz*(sal(iv)-yzfac(iv))-slicen) / cal(iv)
+     &                      + slicen
+                        if (nxwarp.ne.0) then
+                          xx = (xproj - yy*sal(iv)*sbet(iv) - zz * (cal(iv)*
+     &                        sbet(iv) +xzfac(iv)) - xcenin-delxx) / cbet(iv)
+     &                        + xcen
+                          call findProjectingPoint(xproj, yproj, zz, iv, xx,
+     &                        yy)
+                        endif
+                        iyp = max(1., yy - yprjOffset)
+                        minslice=min(minslice,iyp)
+                        maxslice=max(maxslice,min(mprj,iyp+1))
+                      enddo
+                    endif                      
                   enddo
                 enddo
 c                 
@@ -280,8 +288,8 @@ c
               endif
               itry=itry+idelslice
             enddo
-c             print *,'itryend,needstart,needend,lastready',itryend,
-c             &           needstart,needend,lastready
+            if (debug) print *,'itryend,needstart,needend,lastready',itryend,
+     &           needstart,needend,lastready
             if(needend.eq.0) call exitError
      &          ('INSUFFICIENT STACK SPACE TO DO A SINGLE SLICE')
 c             
@@ -293,61 +301,84 @@ c
             do i=nbase,nbase+nalready*iplane-1
               array(i)=array(i+ioffset)
             enddo
-c             if(nalready.ne.0)print *,'shifting',needstart,inloadend
+            if(nalready.ne.0.and.debug)print *,'shifting',needstart,inloadend
 c             
 c             load the planes in one plane high if stretching
 c             
             IBASE=NBASE+nalready*iplane+ipextra
             lstart=needstart+idir*nalready
 C             
-c             print *,'loading',lstart,needend
-            DO 200 NV=1,NVIEWS
-              ISTART=IBASE
-              DO 210 NL=lstart,needend,idelslice
-C                 Position to read from projection NV at record NL
-                iyload=max(0,min(mprj-1,nl-1))
-                CALL IMPOSN(1,mapuse(NV)-1,iyload)
-                CALL IRDLIN(1,ARRAY(ISTART),*999)
-c                 Take log if requested
-c                 3/31/04: limit values to .001 time dynamic range
-                if(iflog.ne.0)then
-                  valmin = 1.e-3 * (pmax - pmin)
-                  do 220 ix=istart,istart+nprj-1
-                    array(ix)=alog10(max(valmin,array(ix)+baselog))
-220               continue
-                endif
-c                 
-                if(.not.fastbp)then
+            if (debug) print *,'loading',lstart,needend
+            if (.not. recReproj) then
+              DO NV=1,NVIEWS
+                ISTART=IBASE
+                DO NL=lstart,needend,idelslice
+C                   Position to read from projection NV at record NL
+                  iyload=max(0,min(mprj-1,nl-1))
+                  CALL IMPOSN(1,mapuse(NV)-1,iyload)
+                  CALL IRDLIN(1,ARRAY(ISTART),*999)
+c                   Take log if requested
+c                   3/31/04: limit values to .001 time dynamic range
+                  if(iflog.ne.0)then
+                    do ix=istart,istart+nprj-1
+                      array(ix)=alog10(max(valmin,array(ix)+baselog))
+                    enddo
+                  else
+                    do ix=istart,istart+nprj-1
+                      array(ix) = array(ix) * expWeight(nv)
+                    enddo
+                  endif
 c                   
-c                   pad with taper between start and end of line
+                  if(.not.fastbp)then
+c                     
+c                     pad with taper between start and end of line
+c                     
+                    nsum=0
+                    xsum=0.
+                    do ix=istart,istart+min(2,nprj-1)
+                      nsum=nsum+1
+                      xsum=xsum+array(ix)
+                    enddo
+                    stmean=xsum/nsum
+                    if(nsum.eq.0)print *,'stmean bogus'
+                    nsum=0
+                    xsum=0.
+                    do ix=istart+max(0,nprj-3),istart+nprj-1
+                      nsum=nsum+1
+                      xsum=xsum+array(ix)
+                    enddo
+                    if(nsum.eq.0)print *,'ndmean bogus'
+                    endmean=xsum/nsum
+                    do ipad=1,npad
+                      f=ipad/(npad+1.)
+                      array(istart+nprj+ipad-1)=f*stmean+(1.-f)*endmean
+                    enddo
+                  endif
 c                   
-                  nsum=0
-                  xsum=0.
-                  do ix=istart,istart+min(2,nprj-1)
-                    nsum=nsum+1
-                    xsum=xsum+array(ix)
-                  enddo
-                  stmean=xsum/nsum
-                  if(nsum.eq.0)print *,'stmean bogus'
-                  nsum=0
-                  xsum=0.
-                  do ix=istart+max(0,nprj-3),istart+nprj-1
-                    nsum=nsum+1
-                    xsum=xsum+array(ix)
-                  enddo
-                  if(nsum.eq.0)print *,'ndmean bogus'
-                  endmean=xsum/nsum
-                  do ipad=1,npad
-                    f=ipad/(npad+1.)
-                    array(istart+nprj+ipad-1)=f*stmean+(1.-f)*endmean
-                  enddo
-                endif
+                  ISTART=ISTART+IPLANE
+                enddo
+                IBASE=IBASE+NPRJ2
+              enddo
+c               
+            else
+c               
+c               Load reconstruction for projections
+              DO NL=lstart,needend,idelslice
+                call imposn(1, nl - 1, 0)
+                call irdpas(1, array(ibase), maxXload + 1 - minXload,
+     &              ithickReproj, minXload - 1, maxXload - 1, minYreproj - 1,
+     &              maxYreproj - 1, *999)
 c                 
-                ISTART=ISTART+IPLANE
-210           continue
-              IBASE=IBASE+NPRJ2
-200         continue
-            if(.not.fastbp)then
+c                 Undo the scaling that was used to write, and apply a
+c                 scaling that will make the data close for projecting
+                do i = 0, ithwid - 1
+                  array(i + ibase) = (array(i + ibase) / scale - flevl) /
+     &                filterScale
+                enddo
+                ibase = ibase + iplane
+              enddo
+            endif
+            if(.not.fastbp .and.  .not.recReproj)then
               IBASE=NBASE+nalready*iplane
               DO  NL=lstart,needend,idelslice
                 call transform(ibase)
@@ -361,73 +392,84 @@ c
 C           
 C           Stack is full.
 c           
-C           Zero array and set background mask if required
-          CALL ZEROM
-C           Process all views for current slice
           ISTART=NBASE+IPLANE*(lslice-inloadstr)/idelslice
+          if (.not.recReproj) then
+C             Process all views for current slice
+            
+C             Zero array and set background mask if required
+            CALL ZEROM
 c           
-c           If new-style X tilt, set  the Y center based on the slice
-c           number, and adjust the y offset slightly
-c           
-          if(ifalpha.lt.0)ycen=ycenfix+(cal(1)-1.)*yoffset
-     &        -nint(tanalpha*(lslice-slicen))
-c           
-c           print *,nbase,lslice,inloadstr
-c           print *,'projecting',lslice,' at',istart,', ycen =',ycen
-          CALL PROJECT(ISTART,lslice)
-c           
-c           move vertical slice into ring buffer, adjust ring variables
-c           
-          if(ifalpha.lt.0)then
-c             print *,'moving slice to ring position',nextfreevs
-            ioffset=ithwid+(nextfreevs-1)*ithick*iwide
-            do i=imap,imap+ithick*iwide-1
-              array(i+ioffset)=array(i)
-            enddo
-            if(nvsinring.lt.nvertneed)then
-              if(nvsinring.eq.0)lvsstart=lslice
-              nvsinring=nvsinring+1
-            else
-              lvsstart=lvsstart+idir
+c             If new-style X tilt, set  the Y center based on the slice
+c             number, and adjust the y offset slightly
+c             
+            if(ifalpha.lt.0)ycen=ycenfix+(cal(1)-1.)*yoffset
+     &          -nint(tanalpha*(lslice-slicen))
+c             
+c             print *,nbase,lslice,inloadstr
+c             print *,'projecting',lslice,' at',istart,', ycen =',ycen
+            CALL PROJECT(ISTART,lslice)
+c             
+c             move vertical slice into ring buffer, adjust ring variables
+c             
+            if(ifalpha.lt.0)then
+c               print *,'moving slice to ring position',nextfreevs
+              ioffset=ithwid+(nextfreevs-1)*ithick*iwide
+              do i=imap,imap+ithick*iwide-1
+                array(i+ioffset)=array(i)
+              enddo
+              if(nvsinring.lt.nvertneed)then
+                if(nvsinring.eq.0)lvsstart=lslice
+                nvsinring=nvsinring+1
+              else
+                lvsstart=lvsstart+idir
+              endif
+              lvsend=lslice
+              nextfreevs=nextfreevs+1
+              if(nextfreevs.gt.nvertneed)nextfreevs=1
             endif
-            lvsend=lslice
-            nextfreevs=nextfreevs+1
-            if(nextfreevs.gt.nvertneed)nextfreevs=1
           endif
         enddo
 c         
-        if(ifalpha.lt.0)then
-c           
-c           interpolate output slice from vertical slices
-c           
-          iringstart=1
-          if(nvsinring.eq.nvertneed)iringstart=nextfreevs
-c           print *,'composing',lsliceout,' from',lvsstart,lvsend,iringstart
-          call compose(lsliceout,lvsstart,lvsend,idir,iringstart)
-        endif
-C         
-C         Write out current slice
-        CALL DUMP(LSLICEout,DMIN,DMAX,DTOT8)
-c         DNM 10/22/03:  Can't use flush in Windows/Intel because of sample.com
-c         call flush(6)
-c         
-c         write out header periodically, restore writing position
-c         
-        if(perp.and.interhsave.gt.0.and..not.reproj .and. minTotSlice.le.0)then
-          nsliceout=nsliceout+1
-          nxyztmp(1)=iwide
-          nxyztmp(2)=ithickout
-          nxyztmp(3)=nsliceout
-          if(mod(nsliceout,interhsave).eq.1)then 
-            call ialsiz(2,nxyztmp,nxyzst)
-            DMEAN=DTOT8/(float(NSLICEout)*IWIDE*ITHICK)
-            CALL IWRHDR(2,TITLE,-1,DMIN,DMAX,DMEAN)
-            call imposn(2,nsliceout,0)
+        if (.not.recReproj) then
+          if(ifalpha.lt.0)then
+c             
+c             interpolate output slice from vertical slices
+c             
+            iringstart=1
+            if(nvsinring.eq.nvertneed)iringstart=nextfreevs
+c             print *,'composing',lsliceout,' from',lvsstart,lvsend,iringstart
+            call compose(lsliceout,lvsstart,lvsend,idir,iringstart)
           endif
+C           
+C           Write out current slice
+          CALL DUMP(LSLICEout,DMIN,DMAX,DTOT8)
+c           DNM 10/22/03:  Can't use flush in Windows/Intel because of sample.com
+c           call flush(6)
+c           
+c           write out header periodically, restore writing position
+c           
+          if(perp.and.interhsave.gt.0.and..not.reproj .and.
+     &        minTotSlice.le.0)then
+            nsliceout=nsliceout+1
+            nxyztmp(1)=iwide
+            nxyztmp(2)=ithickout
+            nxyztmp(3)=nsliceout
+            if(mod(nsliceout,interhsave).eq.1)then 
+              call ialsiz(2,nxyztmp,nxyzst)
+              DMEAN=DTOT8/(float(NSLICEout)*IWIDE*ITHICK)
+              CALL IWRHDR(2,TITLE,-1,DMIN,DMAX,DMEAN)
+              call imposn(2,nsliceout,0)
+            endif
+          endif
+          lsliceOut = lsliceOut + idelslice
+        else
+c           
+c           Reproject all ready slices to minimize file mangling
+          call reprojectRec(lsliceOut, lastReady, inloadstr, inloadend, DMIN,
+     &        DMAX,DTOT8)
+          lsliceOut = lastReady + 1
         endif
-C         %     WRITE(6,1000)LSLICE-1
-C         %1000 FORMAT(' Slice',I10,' processed')
-100   CONTINUE
+      enddo
 C       
 C       End of main loop
 C-----------------
@@ -435,16 +477,19 @@ C
 C       Close files
       CALL IMCLOSE(1)
       pixelTot = float(NSLICE)*IWIDE*ITHICK
-      if (reproj) pixelTot = float(NSLICE)*IWIDE*nreproj
+      if (reproj.or.recReproj) pixelTot = float(NSLICE)*IWIDE*nreproj
       DMEAN=DTOT8/pixelTot
-
       if (minTotSlice.le.0) then
-        if(perp.and.interhsave.gt.0.and..not.reproj)then
+        if(perp.and.interhsave.gt.0.and..not.(reproj.or.recReproj))then
           nxyztmp(3)=nslice
           call ialsiz(2,nxyztmp,nxyzst)
         endif
         CALL IWRHDR(2,TITLE,1,DMIN,DMAX,DMEAN)
-        WRITE(6,930)
+        if (.not.(reproj.or.recReproj)) then
+          WRITE(6,930)'reconstruction'
+        else
+          WRITE(6,930)'reprojection'
+        endif
         CALL IRDHDR(2,nxyztmp,nxyzst,MODE,DMIN,DMAX,DMEAN)
       else
         write(*,'(a,3g15.7,f15.0)')'Min, max, mean, # pixels=',dmin,dmax,dmean,
@@ -455,12 +500,14 @@ C       Close files
         scale=scale/1000.
         flevl=flevl/1000.
       endif
-      unscmin=dmin/scale-flevl
-      unscmax=dmax/scale-flevl
-      recscale=nviews*nreplic*245./(unscmax-unscmin)
-      recflevl=(10.*(unscmax-unscmin)/245.-unscmin)/(nviews*nreplic)
-      write(6,905)recflevl,recscale
-      WRITE(6,910)NSLICE
+      if (.not.(reproj.or.recReproj)) then
+        unscmin=dmin/scale-flevl
+        unscmax=dmax/scale-flevl
+        recscale=nviews*nreplic*245./(unscmax-unscmin)
+        recflevl=(10.*(unscmax-unscmin)/245.-unscmin)/(nviews*nreplic)
+        write(6,905)recflevl,recscale
+        WRITE(6,910)NSLICE
+      endif
       call exit(0)
 999   WRITE(6,920)mapuse(NV),nL
       call exit(1)
@@ -480,7 +527,7 @@ C
      &    //,1X,78('-'))
 920   FORMAT(//' ERROR: TILT -  reading in view',I3,' for slice'
      &    ,I5,/)
-930   FORMAT(//' Header on reconstructed map file'/
+930   FORMAT(//' Header on ',a,' file'/
      &    ' --------------------------------'//)
       END
 
@@ -496,8 +543,8 @@ C       Linear ramp plus Gaussian fall off
       integer*4 nweight,IRMAXin,IFALLin
       real*4 wincr(20)
       COMMON/DENSWT/nweight,wincr
-      integer*4 nprj2,IEND,irmax,ifall,iv,iw,ibase,i
-      real*4 stretch,avgint,atten,sumint,wsum,z,arg
+      integer*4 nprj2,IEND,irmax,ifall,iv,iw,ibase,i,impbase
+      real*4 stretch,avgint,atten,sumint,wsum,z,arg,attensum
       
 c       
       nprj2=nprj+2+npad
@@ -505,10 +552,13 @@ c
       stretch=float(nprj+npad)/nprj
       irmax=nint(irmaxin*stretch)
       ifall=nint(ifallin*stretch)
-      if(nweight.gt.0)then
+      avgint = 1.
+      attensum = 0.
+      zeroWeight = 0.
+      if(nweight.gt.0 .and. nviews.gt.1)then
         avgint=(angles(nviews)-angles(1))/(nviews-1)
-c         write(6,401)
-c         401     format(/' View  Angle Weighting')
+        if (debug) write(6,401)
+401      format(/' View  Angle Weighting')
       endif
 C       
 C       Set up linear ramp
@@ -530,15 +580,32 @@ C       Set up linear ramp
             endif
           enddo
           atten=atten*(sumint/wsum)/avgint
-c           write(6,402)iv,angles(iv),atten
-c           402     format(i4,f8.2,f10.5)
+          if (debug) write(6,402)iv,angles(iv),atten
+402       format(i4,f8.2,f10.5)
         endif
+        attensum = attensum + atten
         ibase=(iv-1)*nprj2
         DO  I=1,min(IRMAX,iend)
-          ARRAY(ibase+2*I-1)=atten*(I-1)
-          ARRAY(ibase+2*I)=atten*(I-1)
+c           This was the basic filter
+c           ARRAY(ibase+2*I-1)=atten*(I-1)
+c           This is the mixture of the basic filter and a flat filter with
+c           a scaling that would give approximately the same output magnitude 
+          ARRAY(ibase+2*I-1)=atten*((1.-flatFrac)*(I-1) + flatFrac*filterScale)
+c           
+c           This 0.2 is what Kak and Slaney's weighting function gives at 0
+          if (i.eq.1) ARRAY(ibase+2*I-1) = atten*0.2
+c           
+c           This is the SIRT filter, which divides the error equally among
+c           the pixels on a ray.
+          if (flatFrac .gt. 1) ARRAY(ibase+2*I-1) = atten * filterScale /
+     &        (ithick / cbet(iv))
+c           
+c           And just the value and compute the mean zero weighting
+          ARRAY(ibase+2*I)=ARRAY(ibase+2*I-1)
+          if (i .eq. 1) zeroWeight = zeroWeight + ARRAY(ibase+2*I-1) / nviews
         enddo
       enddo
+      if (debug) print *,'Mean weighting factor', attensum/nviews
 C       
 C       Set up Gaussian
       DO I=IRMAX+1,IEND
@@ -560,8 +627,8 @@ C       ---------------------------------------------------------------------
       SUBROUTINE MASKPREP
 C       ----------------
 C       
-C       This subroutine prepares the limits of the slice width to be computed if
-c       masking is used
+C       This subroutine prepares the limits of the slice width to be computed
+c       if masking is used
       implicit none
       include 'tilt.inc'
       real*4 radlft,radrt,y, yy
@@ -760,22 +827,12 @@ C
       real*4 xprojf(limwidth),xprojz(limwidth)
       real*4 yprojf(limwidth),yprojz(limwidth)
       integer*4 jstrt(3),jend(3)
-      real*8 xp,yp,xp2,xp3,xp4
-      real*4 fp(2,3)
       real*8 xproj8
       integer*4 nprj2,isshift,ifshift,ipdel,irep,IPOINT,NV,iv,INDEX,i,j
       real*4 fbpshift,ycenorig,CBETA,SBETA,zz,zpart,yy,yproj,YFRAC,omyfrac
-      integer*4 jPROJ,jlft,jrt,iproj,ip1,ip2,ind,ipbase,ifytest,ixc
-      integer*4 ind1,ind2,ind3,ind4,jtstlft,jtstrt,ISTART,lslice,jregion
-      real*4 xlft,xrt,x,xfrac,omxfrac,zbot,ztop,f1,f2,f3,f4,xx
-      real*4 calf,salf,a11,a12,a21,a22,xadd,yadd,xalladd,yalladd,xproj
-      real*4 calf2,salf2,a112,a122,a212,a222,xadd2,yadd2
-      real*4 calf3,salf3,a113,a123,a213,a223,xadd3,yadd3
-      real*4 calf4,salf4,a114,a124,a214,a224,xadd4,yadd4
-      real*4 f1x,f2x,f3x,f4x,f1xy,f2xy,f3xy,f4xy
-      real*4 f1y,f2y,f3y,f4y,f1yy,f2yy,f3yy,f4yy
-      real*4 xp1f,xp1z,yp1f,xp2f,xp2z,yp2f,xp3f,xp3z,yp3f,xp4f,xp4z,yp4f
-      real*4 cbeta2,sbeta2,cbeta3,sbeta3,cbeta4,sbeta4
+      integer*4 jPROJ,jlft,jrt,iproj,ip1,ip2,ind,ipbase,ifytest
+      integer*4 jtstlft,jtstrt,ISTART,lslice,jregion
+      real*4 xlft,xrt,x,xfrac,omxfrac,zbot,ztop,xproj
 
       if(fastbp)then
         nprj2=nprj+npad
@@ -849,6 +906,9 @@ c
 c               
 c               set up starting index and projection position
 c               
+              do ind = index + masklft(i) - 1, index + jlft - 2
+                array(ind) = array(ind) + edgeFill
+              enddo                
               index=index+(jlft-1)
               x=jlft-xcen
               if(interpfac.ne.0)then
@@ -887,6 +947,10 @@ c
                       ip1=ip1+interpfac
                       ip2=ip2+interpfac
                     enddo
+                  else
+                    do ind = index, index + jrt+1-jlft-1
+                      array(ind) = array(ind) + edgeFill
+                    enddo                
                   endif
                   index=index+jrt+1-jlft
                 endif
@@ -916,10 +980,16 @@ c
                     call bpsumxtilt(array,index,ipbase,ipdel,jrt+1-jlft,
      &                  xproj8,cbeta,yfrac,omyfrac)
                   else
+                    do ind = index, index + jrt+1-jlft-1
+                      array(ind) = array(ind) + edgeFill
+                    enddo                
                     index=index+jrt+1-jlft
                   endif
                 endif
               endif
+              do ind = index, index + iwide - jrt - 1
+                array(ind) = array(ind) + edgeFill
+              enddo                
               index=index+iwide-jrt
             enddo
 C             
@@ -956,112 +1026,11 @@ c
             ztop=(ithick-ycen)*compress(nv)
             DO J=1,IWIDE
 c               
-c               get transform and angle adjustment
-c               
-              ixc=nint(j-xcen+xcenin+delxx)
-              call local_factors(ixc,lslice,mapuse(nv),
-     &            ind1,ind2,ind3,ind4,f1,f2,f3, f4)
-c               
-c               get all the factors needed to compute a projection position
-c               from the four local transforms
-c               
-              cbeta=cwarpb(ind1)
-              sbeta=swarpb(ind1)
-              calf=cwarpa(ind1)
-              salf=swarpa(ind1)
-              a11=fw(1,1,ind1)
-              a12=fw(1,2,ind1)
-              a21=fw(2,1,ind1)
-              a22=fw(2,2,ind1)
-              xadd=fw(1,3,ind1)+xcenin-xcenin*a11-slicen*a12
-              yadd=fw(2,3,ind1)+slicen-xcenin*a21-slicen*a22
-c               
-              cbeta2=cwarpb(ind2)
-              sbeta2=swarpb(ind2)
-              calf2=cwarpa(ind2)
-              salf2=swarpa(ind2)
-              a112=fw(1,1,ind2)
-              a122=fw(1,2,ind2)
-              a212=fw(2,1,ind2)
-              a222=fw(2,2,ind2)
-              xadd2=fw(1,3,ind2)+xcenin-xcenin*a112-slicen*a122
-              yadd2=fw(2,3,ind2)+slicen-xcenin*a212-slicen*a222
-c               
-              cbeta3=cwarpb(ind3)
-              sbeta3=swarpb(ind3)
-              calf3=cwarpa(ind3)
-              salf3=swarpa(ind3)
-              a113=fw(1,1,ind3)
-              a123=fw(1,2,ind3)
-              a213=fw(2,1,ind3)
-              a223=fw(2,2,ind3)
-              xadd3=fw(1,3,ind3)+xcenin-xcenin*a113-slicen*a123
-              yadd3=fw(2,3,ind3)+slicen-xcenin*a213-slicen*a223
-c               
-              cbeta4=cwarpb(ind4)
-              sbeta4=swarpb(ind4)
-              calf4=cwarpa(ind4)
-              salf4=swarpa(ind4)
-              a114=fw(1,1,ind4)
-              a124=fw(1,2,ind4)
-              a214=fw(2,1,ind4)
-              a224=fw(2,2,ind4)
-              xadd4=fw(1,3,ind4)+xcenin-xcenin*a114-slicen*a124
-              yadd4=fw(2,3,ind4)+slicen-xcenin*a214-slicen*a224
-c               
-              f1x=f1*a11
-              f2x=f2*a112
-              f3x=f3*a113
-              f4x=f4*a114
-              f1xy=f1*a12
-              f2xy=f2*a122
-              f3xy=f3*a123
-              f4xy=f4*a124
-c               fxfromy=f1*a12+f2*a122+f3*a123+f4*a124
-              f1y=f1*a21
-              f2y=f2*a212
-              f3y=f3*a213
-              f4y=f4*a214
-              f1yy=f1*a22
-              f2yy=f2*a222
-              f3yy=f3*a223
-              f4yy=f4*a224
-c               fyfromy=f1*a22+f2*a222+f3*a223+f4*a224
-              xalladd=f1*xadd+f2*xadd2+f3*xadd3+f4*xadd4
-              yalladd=f1*yadd+f2*yadd2+f3*yadd3+f4*yadd4
-c               
-c               Each projection position is a sum of a fixed factor ("..f")
-c               and a factor that multiplies z ("..z")
-c               
-              xx=j-xcen
-              yy=lslice-slicen
-              xp1f=xx*cbeta + yy*salf*sbeta + xcenin+delxx
-              xp1z=calf*sbeta + warpxzfac(ind1)
-              xp2f=xx*cbeta2 + yy*salf2*sbeta2 + xcenin+delxx
-              xp2z=calf2*sbeta2 + warpxzfac(ind2)
-              xp3f=xx*cbeta3 + yy*salf3*sbeta3 + xcenin+delxx
-              xp3z=calf3*sbeta3 + warpxzfac(ind3)
-              xp4f=xx*cbeta4 + yy*salf4*sbeta4 + xcenin+delxx
-              xp4z=calf4*sbeta4 + warpxzfac(ind4)
-
-              yp1f=yy*calf + slicen
-              yp2f=yy*calf2 + slicen
-              yp3f=yy*calf3 + slicen
-              yp4f=yy*calf4 + slicen
-c               
-c               store the fixed and z-dependent component of the
+c               get the fixed and z-dependent component of the
 c               projection coordinates
-c               
-              xprojf(j)=f1x*xp1f+f2x*xp2f+f3x*xp3f+f4x*xp4f+
-     &            f1xy*yp1f+f2xy*yp2f+f3xy*yp3f+f4xy*yp4f+xalladd
-              xprojz(j)=f1x*xp1z+f2x*xp2z+f3x*xp3z+f4x*xp4z-
-     &            (f1xy*(salf-warpyzfac(ind1))+f2xy*(salf2-warpyzfac(ind2))+
-     &            f3xy*(salf3-warpyzfac(ind3))+f4xy*(salf4-warpyzfac(ind4)))
-              yprojf(j)=f1y*xp1f+f2y*xp2f+f3y*xp3f+f4y*xp4f+
-     &            f1yy*yp1f+f2yy*yp2f+f3yy*yp3f+f4yy*yp4f+yalladd
-              yprojz(j)=f1y*xp1z+f2y*xp2z+f3y*xp3z+f4y*xp4z-
-     &            (f1yy*(salf-warpyzfac(ind1))+f2yy*(salf2-warpyzfac(ind2))+
-     &            f3yy*(salf3-warpyzfac(ind3))+f4yy*(salf4-warpyzfac(ind4)))
+
+              call localProjFactors(j, lslice, nv, xprojf(j),  xprojz(j),
+     &            yprojf(j), yprojz(j))
 c               
 c               see if any y testing is needed in the inner loop by checking
 c               yproj at top and bottom in Z
@@ -1148,12 +1117,17 @@ c
                       ip1=ipoint+(jproj-lslice)*ipdel+iproj
                       ip2=ip1+ipdel
                       if(ip1.ge.nbase.and.ip2.ge.nbase.and.
-     &                    ip1.lt.nstack .and.ip2.lt.nstack)
-     &                    ARRAY(INDEX)=ARRAY(INDEX)+
-     &                    (1.-yfrac)*((1.-XFRAC)*ARRAY(IP1)
-     &                    +XFRAC*ARRAY(IP1+1)) +
-     &                    yfrac*((1.-XFRAC)*ARRAY(IP2)
-     &                    +XFRAC*ARRAY(IP2+1))
+     &                    ip1.lt.nstack .and.ip2.lt.nstack) then
+                        ARRAY(INDEX)=ARRAY(INDEX)+
+     &                      (1.-yfrac)*((1.-XFRAC)*ARRAY(IP1)
+     &                      +XFRAC*ARRAY(IP1+1)) +
+     &                      yfrac*((1.-XFRAC)*ARRAY(IP2)
+     &                      +XFRAC*ARRAY(IP2+1))
+                      else
+                        ARRAY(INDEX)=ARRAY(INDEX)+edgeFill
+                      endif
+                    else
+                      ARRAY(INDEX)=ARRAY(INDEX)+edgeFill
                     endif
                     index=index+1
                   enddo   
@@ -1341,7 +1315,7 @@ c
             endif
           endif
 c           
-c           do linear interpolation if conditions are right, otherwise 0 fill
+c           do linear interpolation if conditions are right, otherwise fill
 c           
           if(ind2(2).ne.0.and.ind2(3).ne.0.and.ind3(2).ne.0.and.
      &        ind3(3).ne.0)then
@@ -1360,7 +1334,7 @@ c
           else
 c             print *,'filling',j
             do i=1,iwide
-              array(i+ibase)=0
+              array(i+ibase)=edgeFill*nviews
             enddo
           endif
         endif
@@ -1398,9 +1372,9 @@ C--------------Scale
           END IF
         enddo
 c         
-c         Fill value assumes zero mean from radial filtering
+c         Fill value assumes edge fill value
 c
-        fill = flevl * scale
+        fill = (edgeFill + flevl) * scale
         do j = 1, nreproj
           i=(j-1) * iwide + 1
           call reproject(array(imap), iwide, ithick, iwide, sinReproj(j),
@@ -1464,7 +1438,7 @@ C
       END
 
 C       -----------------------------------------------------------------
-      SUBROUTINE INPUT
+      SUBROUTINE INPUT()
 C       ----------------
       
       implicit none
@@ -1475,7 +1449,7 @@ C       ----------------
       real*4 wincr(20)
       COMMON /DENSWT/nweight,wincr
 C       
-      integer*4 MPXYZ(3),MOXYZ(3),NOXYZ(3),NXYZST(3)
+      integer*4 MPXYZ(3),NOXYZ(3),nrxyz(3)
       real*4 outilt(3),cell(6),dtor
       data outilt/90.,0.,0./
       data cell/0.,0.,0.,90.,90.,90./
@@ -1488,27 +1462,27 @@ c
       character*80 titlech
 C       
       Character*1024 card
-      CHARACTER*160 FILIN,FILOUT
+      CHARACTER*160 FILIN,FILOUT,recfile
       integer*4 nfields,inum(limnum)
       real*4 XNUM(limnum)
 c       
-      integer*4 ivexcl(limview)
-      real*4 repinc(limview)
+      integer*4 ivexcl(limview),ivreprj(limview)
+      real*4 repinc(limview),angReproj(limview)
       include 'fbpswitch.inc'
       integer*4 mode,newangles,iftiltfile,nvuse,nvexcl
-      real*4 delang,compfac,globalpha,xoffset,scalelocal,rrmax,rfall
+      real*4 delang,compfac,globalpha,xoffset,scalelocal,rrmax,rfall,xoffAdj
       integer*4 irmax,ifall,ncompress,nxfull,nyfull,ixsubset,iysubset
-      integer*4 interpfbp,kti,indbase,ipos,idtype,lens,label
+      integer*4 interpfbp,kti,indbase,ipos,idtype,lens
       integer*4 nd1,nd2,nv,nslice,indi,i,iex,nvorig,irep,iv
       real*4 vd1,vd2,dtheta,theta,thetanv,rmax,sdg,oversamp,scalescl
       integer*4 nprjp,nwidep,needwrk,needzwrk,neediw,needrw,needout,minsup
       integer*4 maxsup,nshift,nprj2,nsneed,ninp,nexclist,j,needzw,ind, nument
       integer*4 npadtmp,nprpad,ithicknew,nocosPlanes,ifZfac,localZfacs
       integer*4 ifThickIn,ifSliceIn,ifWidthIn,imageBinned,ifSubsetIn,ierr
-      real*4 pixelLocal, dmint,dmaxt,dmeant
+      real*4 pixelLocal, dmint,dmaxt,dmeant, frac
+      integer*4 nViewsReproj, iwideReproj, k, ind1, ind2, ifExpWeight
       integer*4 licenseusfft,niceframe
 c
-      logical pipinput
       integer*4 numOptArg, numNonOptArg
       integer*4 PipGetInteger,PipGetBoolean,PipGetLogical,PipGetTwoFloats
       integer*4 PipGetString,PipGetFloat, PipGetTwoIntegers,PipGetFloatArray
@@ -1517,20 +1491,26 @@ c
 c       fallbacks from ../../manpages/autodoc2man -2 2  tilt
 c       
       integer numOptions
-      parameter (numOptions = 39)
+      parameter (numOptions = 46)
       character*(40 * numOptions) options(1)
       options(1) =
-     &    'input:InputFile:FN:@output:OutputFile:FN:@:ANGLES:FAM:@'//
-     &    ':COMPFRACTION:F:@:COMPRESS:FAM:@:COSINTERP:FA:@:DENSWEIGHT:FA:@'//
-     &    ':DONE:B:@:EXCLUDELIST2:LIM:@:FBPINTERP:I:@:FULLIMAGE:IP:@'//
-     &    ':IMAGEBINNED:I:@:INCLUDE:LIM:@:LOCALFILE:FN:@:LOCALSCALE:F:@'//
-     &    ':LOG:F:@:MASK:F:@:MODE:I:@:OFFSET:IA:@:PARALLEL:B:@'//
-     &    ':PERPENDICULAR:B:@:RADIAL:FP:@:REPLICATE:FPM:@:REPROJECT:FAM:@'//
-     &    ':SCALE:FP:@:SHIFT:FA:@:SLICE:FA:@:TOTALSLICES:IP:@'//
-     &    ':SUBSETSTART:IP:@:THICKNESS:I:@:TILTFILE:FN:@:TITLE:CH:@'//
-     &    ':WIDTH:I:@:XAXISTILT:F:@:XTILTFILE:FN:@:XTILTINTERP:I:@'//
-     &    ':ZFACTORFILE:FN:@param:ParameterFile:PF:@help:usage:B:'
+     &    'input:InputProjections:FN:@output:OutputFile:FN:@'//
+     &    'recfile:RecFileToReproject:FN:@:ANGLES:FAM:@:COMPFRACTION:F:@'//
+     &    ':COMPRESS:FAM:@:COSINTERP:IA:@:DENSWEIGHT:FA:@:DONE:B:@'//
+     &    ':EXCLUDELIST2:LIM:@:FlatFilterFraction:F:@:FBPINTERP:I:@'//
+     &    ':FULLIMAGE:IP:@:IMAGEBINNED:I:@:INCLUDE:LIM:@:LOCALFILE:FN:@'//
+     &    ':LOCALSCALE:F:@:LOG:F:@:MASK:F:@:MODE:I:@:OFFSET:IA:@'//
+     &    ':PARALLEL:B:@:PERPENDICULAR:B:@:RADIAL:FP:@:REPLICATE:FPM:@'//
+     &    ':REPROJECT:FAM:@xminmax:XMinAndMaxReproj:IP:@'//
+     &    'yminmax:YMinAndMaxReproj:IP:@zminmax:ZMinAndMaxReproj:IP:@'//
+     &    ':ViewsToReproject:LI:@:SCALE:FP:@:SHIFT:FA:@:SLICE:FA:@'//
+     &    ':TOTALSLICES:IP:@:SUBSETSTART:IP:@:THICKNESS:I:@:TILTFILE:FN:@'//
+     &    ':TITLE:CH:@:WeightFile:FN:@:WIDTH:I:@:XAXISTILT:F:@'//
+     &    ':XTILTFILE:FN:@:XTILTINTERP:I:@:ZFACTORFILE:FN:@'//
+     &    'param:ParameterFile:PF:@help:usage:B:'
 c       
+      recReproj = .false.
+      nViewsReproj = 0
 c       
 c       Pip startup: set error, parse options, check help, set flag if used
 c       
@@ -1538,8 +1518,8 @@ c
       call PipReadOrParseOptions(options, numOptions, 'tilt',
      &    'ERROR: TILT - ', .false., 0, 1, 1, numOptArg, numNonOptArg)
 
-      if (PipGetInOutFile('InputFile', 1, ' ', filin) .ne. 0)
-     &    call exitError('NO INPUT FILE SPECIFIED')
+      if (PipGetInOutFile('InputProjections', 1, ' ', filin) .ne. 0)
+     &    call exitError('NO INPUT FILE WITH PROJECTIONS SPECIFIED')
       if (PipGetInOutFile('OutputFile', 2, ' ', filout) .ne. 0)
      &    call exitError('NO OUTPUT FILE SPECIFIED')
 
@@ -1547,11 +1527,48 @@ C
 C       Open input projection file
       CALL IMOPEN(1,FILIN,'RO')
       CALL IRDHDR(1,NPXYZ,MPXYZ,MODE,PMIN,PMAX,PMEAN)
+      call irtdat(1,idtype,lens,nd1,nd2,vd1,vd2)
       NVIEWS=NPXYZ(3)
+c       
+c       The approximate implicit scaling caused by the default radial filter
+      filterScale = npxyz(1) / 2.2
 c       
       if (nviews.gt.limview) call exitError('Too many images in tilt series.')
       newangles=0
       iftiltfile=0
+c       
+c       Get entries for reprojection from rec file
+      if (PipGetString('RecFileToReproject', recfile) .eq. 0) then
+        recReproj = .true.
+        projMean = pmean
+        call imclose(1)
+        call IMOPEN(1,recfile,'RO')
+        CALL IRDHDR(1,NRXYZ,MPXYZ,MODE,PMIN,PMAX,PMEAN)
+        minXreproj = 0
+        minYreproj = 0
+        minZreproj = 0
+        maxXreproj = nrxyz(1) - 1
+        maxYreproj = nrxyz(2) - 1
+        maxZreproj = nrxyz(3) - 1
+        ierr = PipGetTwoIntegers('XMinAndMaxReproj', minXreproj, maxXreproj)
+        ierr = PipGetTwoIntegers('YMinAndMaxReproj', minYreproj, maxYreproj)
+        ierr = PipGetTwoIntegers('ZMinAndMaxReproj', minZreproj, maxZreproj)
+        if (minXreproj .lt. 0 .or. minYreproj .lt. 0 .or. maxXreproj .ge.
+     &      nrxyz(1) .or. maxYreproj .ge. nrxyz(2)) call exitError(
+     &      'Min or Max X, or Y coordinate to project is out of range')
+        if (PipGetString('ViewsToReproj', card) .eq. 0) then
+          call parselist(card, ivreprj, nViewsReproj)
+          if (nViewsReproj .gt. limview) call exitError(
+     &        'TOO MANY VIEWS IN LIST TO REPROJECT FOR ARRAYS')
+        endif
+        minXreproj = minXreproj + 1
+        maxXreproj = maxXreproj + 1
+        minYreproj = minYreproj + 1
+        maxYreproj = maxYreproj + 1
+        minZreproj = minZreproj + 1
+        maxZreproj = maxZreproj + 1
+      endif
+        
 c       
 C-------------------------------------------------------------
 C       Set up defaults:
@@ -1591,6 +1608,7 @@ c...... Default overall and individual compression of 1; no alpha tilt
         alpha(nv)=0.
         xzfac(nv) = 0.
         yzfac(nv) = 0.
+        expWeight(nv) = 1.
       enddo
       ifalpha=0
       globalpha=0.
@@ -1618,6 +1636,7 @@ c
       ifWidthIn = 0
       ifSliceIn = 0
       ifSubsetIn = 0
+      ifExpWeight = 0
       minTotSlice = -1
       maxTotSlice = -1
 c       
@@ -1629,12 +1648,14 @@ c...... Default double-width linear interpolation in cosine stretching
       perp=.true.
       reproj=.false.
       nreproj = 0
+      flatFrac = 0.
 c       
 c...... Default title
       CALL DATE(DAT)
       CALL TIME(TIM)
 c       
       write(titlech,49) 'Tomographic reconstruction',dat,tim
+      if (recReproj)write(titlech,49) 'Reprojection from tomogram',dat,tim
       read(titlech,'(20a4)')(title(kti),kti=1,20)
 C       
 C       
@@ -1783,7 +1804,7 @@ c
 c       
       if (PipGetString('TILTFILE', card) .eq. 0) then
         call dopen(3,card,'ro','f')
-        read(3,*)(angles(i),i=1,nviews)
+        read(3,*,err=2411,end=2411)(angles(i),i=1,nviews)
         close(3)
         iftiltfile=1
       endif
@@ -1799,12 +1820,19 @@ c
 c       
       if (PipGetString('XTILTFILE', card) .eq. 0) then
         call dopen(3,card,'ro','f')
-        read(3,*)(alpha(i),i=1,nviews)
+        read(3,*,err=2412,end=2412)(alpha(i),i=1,nviews)
         close(3)
         do i=1,nviews
           if(abs(alpha(i)).gt.1.e-5)ifalpha=2
         enddo
         if (ifalpha .eq. 2) write(6,2201)
+      endif
+c       
+      if (PipGetString('WeightFile', card) .eq. 0) then
+        ifExpWeight = 1
+        call dopen(3,card,'ro','f')
+        read(3,*,err=2414,end=2414)(expWeight(i),i=1,nviews)
+        close(3)
       endif
 c       
       if (PipGetFloat('XAXISTILT', globalpha) .eq. 0) then
@@ -1815,7 +1843,7 @@ c
 c       
       if (PipGetString('LOCALFILE', card) .eq. 0) then
         call dopen(3,card,'ro','f')
-        read(3,'(a)')titlech
+        read(3,'(a)',err=2410,end=2410)titlech
 c         read(3,*)nxwarp,nywarp,ixswarp,iyswarp,idxwarp,idywarp
         call frefor(titlech,delbeta,ninp)
         ifdelalpha=0
@@ -1838,9 +1866,9 @@ c         read(3,*)nxwarp,nywarp,ixswarp,iyswarp,idxwarp,idywarp
         indbase=0
         do ipos=1,nxwarp*nywarp
           indwarp(ipos)=indbase
-          read(3,*)(delbeta(i),i=indbase+1,indbase+nviews)
+          read(3,*,err=2410,end=2410)(delbeta(i),i=indbase+1,indbase+nviews)
           if(ifdelalpha.gt.0)then
-            read(3,*)(delalpha(i),i=indbase+1,indbase+nviews)
+            read(3,*,err=2410,end=2410)(delalpha(i),i=indbase+1,indbase+nviews)
           else
             do i=indbase+1,indbase+nviews
               delalpha(i)=0.
@@ -1853,8 +1881,8 @@ c
             warpxzfac(i)=0.
             warpyzfac(i)=0.
           enddo
-          if (localZfacs .gt. 0) read(3,*)(warpxzfac(i), warpyzfac(i),
-     &        i=indbase+1,indbase+nviews)
+          if (localZfacs .gt. 0) read(3,*,err=2410,end=2410)(warpxzfac(i),
+     &        warpyzfac(i), i=indbase+1,indbase+nviews)
           do i=indbase+1,indbase+nviews
             warpxzfac(i) = -warpxzfac(i)
             warpyzfac(i) = -warpyzfac(i)
@@ -1918,16 +1946,17 @@ c       violates original unless a blank entry is allowed
      &      'TOO MANY REPROJECTION ANGLES FOR ARRAYS')
         do i = 1, nfields
           nreproj = nreproj + 1
+          angReproj(nreproj) = xnum(i)
           cosReproj(nreproj) = cos(dtor * xnum(i))
           sinReproj(nreproj) = sin(dtor * xnum(i))
         enddo      
         if (j. eq. 1)WRITE(6,3101)
-        reproj=.TRUE.
+        reproj=.not.recReproj
       enddo
 c       
       if (PipGetString('ZFACTORFILE', card) .eq. 0) then
         call dopen(3,card,'ro','f')
-        read(3,*)(xzfac(i),yzfac(i),i=1,nviews)
+        read(3,*,err=2413,end=2413)(xzfac(i),yzfac(i),i=1,nviews)
         close(3)
         ifZfac = 1
         write(6,3201)
@@ -1942,6 +1971,9 @@ c
         minTotSlice = inum(1) + 1
         maxTotSlice = inum(2) + 1
       endif
+c       
+      ierr = PipGetFloat('FlatFilterFraction', flatFrac)
+      flatFrac = max(0.,  flatFrac)
       call PipDone()
 c       
 c       END OF OPTION READING
@@ -1958,6 +1990,8 @@ C
      &    'YOU MUST ENTER THE FULL IMAGE SIZE IF YOU HAVE A SUBSET')
       if (.not.perp .and. minTotSlice.gt.0) call exitError(
      &    'Cannot do chunk writing with parallel slices')
+      if (nreproj .gt. 0 .and. nViewsReproj .gt. 0) call exitError(
+     &    'You cannot enter both views and angles to reproject')
 c       
 c       scale dimensions down by binning then report them
 c       
@@ -1977,21 +2011,37 @@ c
         xoffset = xoffset / imageBinned
         yoffset = yoffset / imageBinned
         if (ifWidthIn .ne. 0) iwide = iwide / imageBinned
-        if (minTotSlice .ge. 0) then
+        if (minTotSlice .ge. 0 .and. .not. recReproj) then
           minTotSlice = max(1, min(npxyz(2),
      &        (minTotSlice + imageBinned - 1) / imageBinned))
           maxTotSlice = max(1, min(npxyz(2),
      &        (maxTotSlice + imageBinned - 1) / imageBinned))
         endif
       endif
-      if (ifSliceIn .ne. 0) WRITE(6,201)ISLICE,JSLICE,idelslice
-      if (ifThickIn .ne. 0) WRITE(6,301)ITHICK
-      if (delang .ne. 0. .or. delxx .ne. 0.) WRITE(6,601)DELANG,DELXX
-      if (nxfull .ne. 0 .or. nyfull .ne. 0) write(6,2601)nxfull,nyfull
-      if (ifSubsetIn .ne. 0) write(6,2701)ixsubset,iysubset
-      if (ifWidthIn .ne. 0) WRITE(6,2001)IWIDE
-      if (xoffset .ne. 0 .or. yoffset .ne. 0) WRITE(6,2101)yoffset,xoffset
-      if (minTotSlice .gt. 0) write(6,3401)minTotSlice,maxTotSlice
+      if (recReproj) then
+        print *,minTotSlice,maxTotSlice,minZreproj,maxZreproj,nrxyz(3)
+        if ((minTotSlice .le. 0 .and. (minZreproj .le. 0 .or. maxZreproj .gt.
+     &      nrxyz(3))) .or. (minTotSlice .ge. 0 .and.
+     &      maxTotSlice .gt. nrxyz(3))) call exitError(
+     &      'Min or Max Z coordinate to project is out of range')
+
+        if (.not.perp) call exitError(
+     &      'Cannot reproject from reconstruction output with PARALLEL')
+        if (idelslice .ne. 1) call exitError(
+     &      'Cannot reprojection from reconstruction with a slice increment')
+        if (iwide .ne. nrxyz(1) .or. jslice + 1 - islice .ne. nrxyz(3) .or.
+     &      ithick .ne. nrxyz(2)) call exitError(
+     &      'Dimensions of rec file do not match expected values')
+      else
+        if (ifSliceIn .ne. 0) WRITE(6,201)ISLICE,JSLICE,idelslice
+        if (ifThickIn .ne. 0) WRITE(6,301)ITHICK
+        if (delang .ne. 0. .or. delxx .ne. 0.) WRITE(6,601)DELANG,DELXX
+        if (nxfull .ne. 0 .or. nyfull .ne. 0) write(6,2601)nxfull,nyfull
+        if (ifSubsetIn .ne. 0) write(6,2701)ixsubset,iysubset
+        if (ifWidthIn .ne. 0) WRITE(6,2001)IWIDE
+        if (xoffset .ne. 0 .or. yoffset .ne. 0) WRITE(6,2101)yoffset,xoffset
+        if (minTotSlice .gt. 0) write(6,3401)minTotSlice,maxTotSlice
+      endif
 c       
 c       If NEWANGLES is 0, get angles from file header.  Otherwise check if angles OK
 c       
@@ -2004,7 +2054,7 @@ c         care should be taken, since missing views may have severe
 c         effects on the quality of the reconstruction.
 c         
 c         
-        call irtdat(1,idtype,lens,nd1,nd2,vd1,vd2)
+c        call irtdat(1,idtype,lens,nd1,nd2,vd1,vd2)
 c         
         if (idtype.ne.1) call exitError( ' Not tilt data.')
 c         
@@ -2050,99 +2100,65 @@ c
           alpha(iv)=alpha(iv)-globalpha
         enddo
       endif
-C       
-C       Open output map file
-      if((minTotSlice.le.0 .and. (islice.lt.1.or.jslice.lt.1))
-     &    .or.islice.gt.npxyz(2).or. jslice.gt.npxyz(2)) call exitError(
-     &    'SLICE NUMBERS OUT OF RANGE')
-      NSLICE=(JSLICE-ISLICE)/idelslice+1
-      if (minTotSlice.gt.0 .and. islice .lt. 1)
-     &    nslice = maxTotSlice + 1 - minTotSlice
-c      print *,'NSLICE',minTotSlice,maxTotSlice,islice,nslice
-      if(nslice.le.0)call exitError( 'SLICE NUMBERS REVERSED')
-      if(iwide.gt.limwidth.and.nxwarp.ne.0)call exitError('OUTPUT'//
-     &    ' SLICE TOO WIDE FOR ARRAYS IF DOING LOCAL ALIGNMENTS')
 c       
-c       DNM 7/27/02: transfer pixel sizes depending on orientation of output
-c       
-      call irtdel(1,delta)
-      NOXYZ(1)=iwide
-      cell(1)=iwide*delta(1)
-      IF(PERP)THEN
-        NOXYZ(2)=ITHICK
-        NOXYZ(3)=NSLICE
-        cell(2)=ithick*delta(1)
-        cell(3)=abs(nslice*idelslice)*delta(2)
-      ELSE
-        NOXYZ(2)=NSLICE
-        NOXYZ(3)=ITHICK
-        cell(3)=ithick*delta(1)
-        cell(2)=abs(nslice*idelslice)*delta(2)
-      END IF
-      if (reproj)then
-        NOXYZ(2)=NSLICE
-        NOXYZ(3)=nreproj
-        cell(2)=abs(nslice*idelslice)*delta(2)
-        cell(3)=delta(1)*nreproj
-        if (iwide * nreproj .gt. limrays) call exitError(
-     &      'TOO MANY REPROJECTIONS FOR ARRAYS WITH IMAGES THIS WIDE')
-        if (iwide .gt. limwidth) call exitError(
-     &      'OUTPUT TOO WIDE FOR REPROJECTION ARRAY')
-        do i = 1, nreproj
-          j=(i-1) * iwide + 1
-          call set_projection_rays(sinReproj(i), cosReproj(i), iwide, ithick,
-     &        iwide, xraystr(j), yraystr(j), nrayinc(j), nraymax(i))
-        enddo
+      if (ifExpWeight .ne. 0) then
+        if (iflog .eq. 0) write(6,*)
+     &      ' Weighting factors were entered from a file'
+        if (iflog .ne. 0) write(6,*) ' Weighting factors were entered '//
+     &      'but will be ignored because log is being taken'
       endif
-c       
-c       open old file if in chunk mode and there is real starting slice
-c       otherwise open new file
-c
-      if (minTotSlice .gt. 0 .and. islice .gt. 0) then
-        CALL IMOPEN(2,FILOUT,'OLD')
-        CALL IRDHDR(2,NOXYZ,MPXYZ,newmode,dmint,dmaxt,dmeant)
-      else
-        CALL IMOPEN(2,FILOUT,'NEW')
-        CALL ICRHDR(2,NOXYZ,NOXYZ,newmode,title,0)
-      endif
-      CALL ITRLAB(2,1)
-      call ialcel(2,cell)
-c       
-c       if doing perpendicular slices, set up header info to make coordinates
-c       congruent with those of tilt series in simplest case
-c       
-      if(perp)then
-        outilt(1)=sign(90,idelslice)
-        call ialorg(2,cell(1)/2.+delxx,cell(2)/2.,
-     &      float(sign(max(0,islice-1),-idelslice)))
-        call ialtlt(2,outilt)
-      endif
-c       
-c       chunk mode starter run: write header and exit
-c
-      if (minTotSlice .gt. 0 .and. islice .le. 0) then
-        CALL IWRHDR(2,TITLE,1,PMIN,PMAX,PMEAN)
-        CALL IMCLOSE(2)
-        print *,'Exiting after setting up output file for chunk writing'
-        call exit(0)
-      endif
-      if (minTotSlice .gt. 0) call imposn(2, islice - minTotSlice, 0)
 C       
 c       if no INCLUDE cards, set up map to views, excluding any specified by
 c       EXCLUDE cards
-c       
       if(nvuse.eq.0)then
-        do 1120 i=1,nviews
-          do 1118 iex=1,nvexcl
-            if(i.eq.ivexcl(iex))go to 1120
-1118      continue
-          nvuse=nvuse+1
-          mapuse(nvuse)=i
-1120    continue
+        do i=1,nviews
+          ierr = 0
+          do iex=1,nvexcl
+            if(i.eq.ivexcl(iex))ierr = 1
+          enddo
+          if (ierr .eq. 0) then
+            nvuse=nvuse+1
+            mapuse(nvuse)=i
+          endif
+        enddo
+      endif
+c       
+c       If reprojecting from rec and no angles entered, copy angles in original
+c       order
+      if (recReproj .and. nreproj .eq. 0) then
+        if (nViewsReproj .eq. 1 .and. ivreprj(1) .eq. 0) then
+          nreproj = nviews
+          do i = 1, nviews
+            angReproj(i) = angles(i)
+          enddo
+        else if (nViewsReproj .gt. 0) then
+          nreproj = nViewsReproj
+          do i = 1, nreproj
+            if (ivreprj(i) .lt. 1 .or. ivreprj(i) .gt. nviews) call exitError(
+     &          'View number to reproject is out of range')
+            angReproj(i) = angles(ivreprj(i))
+          enddo
+        else
+c           
+c           For default set of included views, order them by view number by
+c           first ordering the mapuse array by view number
+          do i=1,nvuse-1
+            do j=i+1,nvuse
+              if (mapuse(i) .gt. mapuse(j)) then
+                indi=mapuse(i)
+                mapuse(i)=mapuse(j)
+                mapuse(j)=indi
+              endif
+            enddo
+          enddo
+          nreproj = nvuse
+          do i = 1, nvuse
+            angReproj(i) = angles(mapuse(i))
+          enddo
+        endif
       endif
 c       
 c       order the MAPUSE array by angle
-c       
       do i=1,nvuse-1
         do j=i+1,nvuse
           indi=mapuse(i)
@@ -2153,29 +2169,190 @@ c
           endif
         enddo
       enddo
+C       
+C       Open output map file
+      call irtdel(1,delta)
+      if (.not. recReproj) then
+        if((minTotSlice.le.0 .and. (islice.lt.1.or.jslice.lt.1))
+     &      .or.islice.gt.npxyz(2).or. jslice.gt.npxyz(2)) call exitError(
+     &      'SLICE NUMBERS OUT OF RANGE')
+        NSLICE=(JSLICE-ISLICE)/idelslice+1
+        if (minTotSlice.gt.0 .and. islice .lt. 1)
+     &      nslice = maxTotSlice + 1 - minTotSlice
+c         print *,'NSLICE',minTotSlice,maxTotSlice,islice,nslice
+        if(nslice.le.0)call exitError( 'SLICE NUMBERS REVERSED')
+        if(iwide.gt.limwidth.and.nxwarp.ne.0)call exitError('OUTPUT'//
+     &      ' SLICE TOO WIDE FOR ARRAYS IF DOING LOCAL ALIGNMENTS')
+c       
+c         DNM 7/27/02: transfer pixel sizes depending on orientation of output
+c         
+        NOXYZ(1)=iwide
+        cell(1)=iwide*delta(1)
+        IF(PERP)THEN
+          NOXYZ(2)=ITHICK
+          NOXYZ(3)=NSLICE
+          cell(2)=ithick*delta(1)
+          cell(3)=abs(nslice*idelslice)*delta(2)
+        ELSE
+          NOXYZ(2)=NSLICE
+          NOXYZ(3)=ITHICK
+          cell(3)=ithick*delta(1)
+          cell(2)=abs(nslice*idelslice)*delta(2)
+        END IF
+        if (reproj)then
+          NOXYZ(2)=NSLICE
+          NOXYZ(3)=nreproj
+          cell(2)=abs(nslice*idelslice)*delta(2)
+          cell(3)=delta(1)*nreproj
+          if (iwide * nreproj .gt. limrays) call exitError(
+     &        'TOO MANY REPROJECTIONS FOR ARRAYS WITH IMAGES THIS WIDE')
+          if (iwide .gt. limwidth) call exitError(
+     &        'OUTPUT TOO WIDE FOR REPROJECTION ARRAY')
+          do i = 1, nreproj
+            j=(i-1) * iwide + 1
+            call set_projection_rays(sinReproj(i), cosReproj(i), iwide, ithick,
+     &          iwide, xraystr(j), yraystr(j), nrayinc(j), nraymax(i))
+          enddo
+        endif
+      else
+        noxyz(1) = maxXreproj + 1 - minXreproj
+        noxyz(2) = maxZreproj + 1 - minZreproj
+        ithickReproj = maxYreproj + 1 - minYreproj
+        if (minTotSlice.gt.0 .and. minZreproj .lt. 1)
+     &      noxyz(2) = maxTotSlice + 1 - minTotSlice
+        if (noxyz(1) .lt. 1 .or. noxyz(2) .lt. 1 .or. ithickReproj .lt. 1)
+     &      call exitError('Min and max limits for output are reversed for '//
+     &      'X, Y, or Z')
+        noxyz(3) = nreproj
+        cell(1) = noxyz(1)*delta(1)
+        cell(2) = noxyz(2)*delta(1)
+        cell(3) = delta(1)*nreproj
+      endif
+c       
+c       open old file if in chunk mode and there is real starting slice
+c       otherwise open new file
+c
+      if (minTotSlice .gt. 0 .and. ((.not.recReproj .and. islice .gt. 0) .or.
+     &    (recReproj .and. minZreproj .gt. 0))) then
+        CALL IMOPEN(2,FILOUT,'OLD')
+        CALL IRDHDR(2,NOXYZ,MPXYZ,newmode,dmint,dmaxt,dmeant)
+      else
+        CALL IMOPEN(2,FILOUT,'NEW')
+        CALL ICRHDR(2,NOXYZ,NOXYZ,newmode,title,0)
+c        print *,'created',NOXYZ
+      endif
+      CALL ITRLAB(2,1)
+      call ialcel(2,cell)
+c       
+c       if doing perpendicular slices, set up header info to make coordinates
+c       congruent with those of tilt series in simplest case
+c       
+      if (recReproj) then
+        call ialorg(2, 0., 0., 0.)
+        outilt(1) = 0.
+        call ialtlt(2,outilt)
+      else if(perp)then
+        outilt(1)=sign(90,idelslice)
+        call ialorg(2,cell(1)/2.+delxx,cell(2)/2.,
+     &      float(sign(max(0,islice-1),-idelslice)))
+        call ialtlt(2,outilt)
+      endif
+c       
+c       chunk mode starter run: write header and exit
+c
+      if (minTotSlice .gt. 0 .and. ((.not.recReproj .and. islice .le. 0) .or.
+     &    (recReproj .and. minZreproj .le. 0))) then
+        CALL IWRHDR(2,TITLE,1,PMIN,PMAX,PMEAN)
+        CALL IMCLOSE(2)
+        print *,'Exiting after setting up output file for chunk writing'
+        call exit(0)
+      endif
+      if (minTotSlice .gt. 0 .and. .not.recReproj)
+     &    call imposn(2, islice - minTotSlice, 0)
+c
+c       If reprojecting, need to look up each angle in full list of angles and
+c       find ones to interpolate from, then pack data into arrays that are
+c       otherwise used for packing these factors down
+      if (recReproj) then
+        do i = 1, nreproj
+          sbet(i) = angReproj(i)
+          call lookupAngle(angReproj(i), angles, nviews, ind1, ind2, frac)
+          cbet(i) = (1. - frac) * compress(ind1) + frac * compress(ind2)
+          sal(i) = (1. - frac) * alpha(ind1) + frac * alpha(ind2)
+          cal(i) = (1. - frac) * xzfac(ind1) + frac * xzfac(ind2)
+          array(i) = (1. - frac) * yzfac(ind1) + frac * yzfac(ind2)
+          array(i+nviews) = (1. - frac)*expWeight(ind1) + frac*expWeight(ind2)
+        enddo
+c         
+c         Do the same thing with all the local data: pack it into the spot at
+c         the top of the local data then copy it back into the local area
+        if (nxwarp .gt. 0) then
+          do i=1,nxwarp*nywarp
+            do iv=1,nreproj
+              call lookupAngle(angReproj(iv), angles, nviews, ind1, ind2, frac)
+              ind1 = ind1 + indwarp(i)
+              ind2 = ind2 + indwarp(i)
+              delbeta(indbase+iv) = (1.-frac)*delbeta(ind1) +
+     &            frac*delbeta(ind2)
+              delalpha(indbase+iv) = (1.-frac)*delalpha(ind1) + 
+     &            frac*delalpha(ind2)
+              warpxzfac(indbase+iv) = (1.-frac)*warpxzfac(ind1) +
+     &            frac*warpxzfac(ind2)
+              warpyzfac(indbase+iv) = (1.-frac)*warpyzfac(ind1) +
+     &            frac*warpyzfac(ind2)
+              do j = 1, 2
+                do k = 1, 3
+                  fw(j,k,indbase+iv) = (1.-frac)*fw(j,k,ind1) +
+     &                frac*fw(j,k,ind2)
+                enddo
+              enddo
+            enddo
+            do iv=1,nreproj
+              ind1 = indbase+iv
+              ind2 = indwarp(i) + iv
+              delbeta(ind2) = delbeta(ind1)
+              delalpha(ind2) = delalpha(ind1)
+              warpxzfac(ind2) = warpxzfac(ind1)
+              warpyzfac(ind2) = warpyzfac(ind1)
+              do j = 1, 2
+                do k = 1, 3
+                  fw(j,k,ind2) = fw(j,k,ind1)
+                enddo
+              enddo
+            enddo
+          enddo
+        endif
+c         
+c         Replace the mapuse array
+        nvuse = nreproj
+        do i = 1, nvuse
+          mapuse(i) = i
+        enddo
+      else
 c       
 c       pack angles and other data down as specified by MAPUSE
 c       Negate the z factors since things are upside down here
 c       Note that local data is not packed but always referenced by mapuse
 c       
-      do i=1,nvuse
-        sbet(i)=angles(mapuse(i))
-        cbet(i)=compress(mapuse(i))
-        sal(i)=alpha(mapuse(i))
-        cal(i)=-xzfac(mapuse(i))
-        array(i)=-yzfac(mapuse(i))
-      enddo
+        do i=1,nvuse
+          sbet(i)=angles(mapuse(i))
+          cbet(i)=compress(mapuse(i))
+          sal(i)=alpha(mapuse(i))
+          cal(i)=xzfac(mapuse(i))
+          array(i)=yzfac(mapuse(i))
+          array(i+nviews) = expWeight(mapuse(i))
+        enddo
+      endif
       do i=1,nvuse
         angles(i)=sbet(i)
         compress(i)=cbet(i)
         alpha(i)=sal(i)
-        xzfac(i)=cal(i)
-        yzfac(i)=array(i)
+        xzfac(i)=-cal(i)
+        yzfac(i)=-array(i)
+        expWeight(i) = array(i+nviews)
       enddo
       nvorig=nviews
       nviews=nvuse
-      scale=scale/(nviews*nreplic)
-      flevl=flevl*nviews*nreplic
 c       
       WRITE(6,51)(ANGLES(NV),NV=1,NVIEWS)
       WRITE(6,52)
@@ -2208,14 +2385,14 @@ c
       if (ifZfac .gt. 0 .and. ifalpha .eq. 0) ifalpha = 1
       ithickout=ithick
       if(ifalpha.eq.1.and.nxwarp.eq.0.and.intordxtilt.gt.0 .and.
-     &    ifZfac .eq. 0)then
+     &    ifZfac .eq. 0 .and. .not.recReproj)then
         ifalpha=-1
         ithickout=ithick
         ithick=ithick/cal(1)+4.5
         nvertneed=ithickout*abs(sal(1))+5.
       endif
 C       
-C       Set centre of output plane and center of input for transformations
+C       Set center of output plane and center of input for transformations
 c       Allow the full size to be less than the aligned stack, with a negative
 c       subset start
 c       
@@ -2223,9 +2400,98 @@ c
       if (nyfull .eq. 0) nyfull = npxyz(2)
       xcenin=nxfull/2.+0.5-ixsubset
       slicen=nyfull/2.+0.5-iysubset
-      xoffset=xoffset-(npxyz(1)/2+ixsubset-nxfull/2)
-      XCEN=IWIDE/2+0.5+delxx+xoffset
+      xoffAdj=xoffset-(npxyz(1)/2+ixsubset-nxfull/2)
+      XCEN=IWIDE/2+0.5+delxx+xoffAdj
       YCEN=ITHICK/2+0.5+yoffset
+c       
+c       if doing warping, convert the angles to radians and set sign
+c       Also cancel the z factors if global entry was not made
+c       
+      if(nxwarp.gt.0)then
+        do i=1,nvorig*nxwarp*nywarp
+          delbeta(i)=dtor*sign(1,-idelslice)*delbeta(i)
+        enddo
+        do iv=1,nviews
+          do i=1,nxwarp*nywarp
+            ind=indwarp(i)+mapuse(iv)
+            cwarpb(ind)=cos(angles(iv)+delbeta(ind))
+            swarpb(ind)=sin(angles(iv)+delbeta(ind))
+            cwarpa(ind)=cos(dtor*(alpha(iv)+delalpha(ind)))
+            swarpa(ind)=sign(1,-idelslice)*
+     &          sin(dtor*(alpha(iv)+delalpha(ind)))
+            if (ifZfac .eq. 0) then
+              warpxzfac(ind)= 0.
+              warpyzfac(ind)= 0.
+            endif
+          enddo
+        enddo
+c         
+c         See if local scale was entered; if not see if it can be set from
+c         pixel size and local align pixel size
+        if (scalelocal .le. 0.) then
+          scalelocal = 1.
+          if (pixelLocal .gt. 0) then
+            scalelocal = pixelLocal / delta(1)
+            if (abs(scalelocal - 1.).gt.0.001) write(6,53)scaleLocal
+          endif
+        endif
+c         
+c         scale the x and y dimensions and shifts if aligned data were
+c         shrunk relative to the local alignment solution
+c         10/16/04: fixed to use mapuse to scale used views properly
+c         
+        if(scalelocal.ne.1.)then
+          ixswarp=nint(ixswarp*scalelocal)
+          iyswarp=nint(iyswarp*scalelocal)
+          idxwarp=nint(idxwarp*scalelocal)
+          idywarp=nint(idywarp*scalelocal)
+          do iv=1,nviews
+            do i=1,nxwarp*nywarp
+              ind=indwarp(i)+mapuse(iv)
+              fw(1,3,ind)=fw(1,3,ind)*scalelocal
+              fw(2,3,ind)=fw(2,3,ind)*scalelocal
+            enddo
+          enddo
+        endif
+c         
+c         if the input data is a subset in X or Y, subtract starting
+c         coordinates from ixswarp and iyswarp
+c         
+        ixswarp=ixswarp-ixsubset
+        iyswarp=iyswarp-iysubset
+      endif
+c       
+c       If reprojecting, set the pointers and return
+      if (recReproj) then
+        fastbp = .false.
+        imap = 1
+        minXload = minXreproj
+        maxXload = maxXreproj
+        if (nxwarp .ne. 0) then
+          minXload = max(1, minXload - 100)
+          maxXload = min(nrxyz(1), maxXload + 100)
+        endif
+        iwideReproj = maxXload + 1 - minXload
+        ithwid = iwideReproj * ithickReproj
+        iplane = ithwid
+        if (nxwarp .ne. 0) iplane = ithwid + 4 * iwideReproj
+c         
+c         Get projection offsets and replace the slice limits
+        xprjOffset = minXreproj - 1 + npxyz(1) / 2 - iwide / 2 - xoffset
+        yprjOffset = minZreproj + islice - 2
+        islice = minZreproj
+        jslice = maxZreproj
+        iwide = noxyz(1)
+        mprj = nrxyz(3)
+        pmean = (pmean / scale - flevl) / filterScale
+        nbase = iwide + 1
+        ipextra = 0
+        npad = 0
+        return
+      endif
+c
+      scale=scale/(nviews*nreplic)
+      flevl=flevl*nviews*nreplic
 c       
 c       determine if fast bp can be used
 c       
@@ -2243,7 +2509,7 @@ c
      &          //' with old-style X-tilt,',' Z factors, or local alignments'
           else
             fastbp=.not.mask.and.delxx.eq.0..and.nreplic.eq.1.and.
-     &          ncompress.eq.0.and.iwide.le.npxyz(1).and.xoffset.eq.0.
+     &          ncompress.eq.0.and.iwide.le.npxyz(1).and.xoffAdj.eq.0.
             if(.not.fastbp)write(*,'(/,a,/,a,/)')' No fast back '//
      &          'projection is available with shift, offset, mask,'
      &          //' replication',' or compression options, or if'//
@@ -2343,6 +2609,7 @@ c         call getini
 c         
 c         Set up padding: 10% of X size or minimum of 16, max of 50
         npadtmp=min(50,2*max(8,npxyz(1)/20))
+c        npadtmp = 2 * npxyz(1)
         nprpad=niceframe(2*((npxyz(1)+npadtmp)/2),2,19)
         npad=nprpad-npxyz(1)
         ITHWID=IWIDE*ITHICK
@@ -2441,66 +2708,13 @@ c
 C         Set up radial weighting
         CALL RADWT(IRMAX,IFALL)
       endif
-c       
-c       if doing warping, convert the angles to radians and set sign
-c       Also cancel the z factors if global entry was not made
-c       
-      if(nxwarp.gt.0)then
-        do i=1,nvorig*nxwarp*nywarp
-          delbeta(i)=dtor*sign(1,-idelslice)*delbeta(i)
-        enddo
-        do iv=1,nviews
-          do i=1,nxwarp*nywarp
-            ind=indwarp(i)+mapuse(iv)
-            cwarpb(ind)=cos(angles(iv)+delbeta(ind))
-            swarpb(ind)=sin(angles(iv)+delbeta(ind))
-            cwarpa(ind)=cos(dtor*(alpha(iv)+delalpha(ind)))
-            swarpa(ind)=sign(1,-idelslice)*
-     &          sin(dtor*(alpha(iv)+delalpha(ind)))
-            if (ifZfac .eq. 0) then
-              warpxzfac(ind)= 0.
-              warpyzfac(ind)= 0.
-            endif
-          enddo
-        enddo
-c         
-c         See if local scale was entered; if not see if it can be set from
-c         pixel size and local align pixel size
-        if (scalelocal .le. 0.) then
-          scalelocal = 1.
-          if (pixelLocal .gt. 0) then
-            scalelocal = pixelLocal / delta(1)
-            if (abs(scalelocal - 1.).gt.0.001) write(6,53)scaleLocal
-          endif
-        endif
-c         
-c         scale the x and y dimensions and shifts if aligned data were
-c         shrunk relative to the local alignment solution
-c         10/16/04: fixed to use mapuse to scale used views properly
-c         
-        if(scalelocal.ne.1.)then
-          ixswarp=nint(ixswarp*scalelocal)
-          iyswarp=nint(iyswarp*scalelocal)
-          idxwarp=nint(idxwarp*scalelocal)
-          idywarp=nint(idywarp*scalelocal)
-          do iv=1,nviews
-            do i=1,nxwarp*nywarp
-              ind=indwarp(i)+mapuse(iv)
-              fw(1,3,ind)=fw(1,3,ind)*scalelocal
-              fw(2,3,ind)=fw(2,3,ind)*scalelocal
-            enddo
-          enddo
-        endif
-c         
-c         if the input data is a subset in X or Y, subtract starting
-c         coordinates from ixswarp and iyswarp
-c         
-        ixswarp=ixswarp-ixsubset
-        iyswarp=iyswarp-iysubset
-      endif
       RETURN
 C       
-2410  call exitError('ERROR READING LOCAL TILT ALIGNMENT DATA FROM FILE')
+2410  call exitError('READING LOCAL TILT ALIGNMENT DATA FROM FILE')
+2411  call exitError('READING TILT ANGLES FROM FILE')
+2412  call exitError('READING X-AXIS TILT ANGLES FROM FILE')
+2413  call exitError('READING Z FACTORS FROM FILE')
+2414  call exitError('READING WEIGHTING FACTORS FROM FILE')
 C       
 C       
 48    FORMAT(//,1X,78('-'))
@@ -2522,7 +2736,7 @@ C
      &    F6.0)
 501   FORMAT(/' Radial weighting function parameters IRMAX =',I4,
      &    '  IWIDE =',I4)
-601   FORMAT(/' Output map rotated by',F6.1,' degrees about tilt axis'
+601   FORMAT(/' Output map rotated by',F6.1,' degrees about tilt axis',
      &    ' with respect to tilt origin'/
      &    ' Tilt axis displaced by',F6.3,' grid units from centre'
      &    ,' of projection')
@@ -2566,9 +2780,37 @@ C
      &    i6,' to',i6)
       END
 
-
-      subroutine local_factors(ix,iy,iv,ind1,ind2,ind3,ind4,f1,f2,f3,
-     &    f4)
+      subroutine lookupAngle(proj, angles, nviews, ind1, ind2, frac)
+      implicit none
+      real*4 proj, angles(*), frac
+      integer*4 nviews, ind1, ind2, i
+      ind1 = 0
+      ind2 = 0
+      do i = 1, nviews
+        if (proj .ge. angles(i)) then
+          if (ind1 .eq. 0) ind1 = i
+          if (angles(i) .gt. angles(ind1)) ind1 = i
+        else
+          if (ind2 .eq. 0) ind2 = i
+          if (angles(i) .lt. angles(ind2)) ind2 = i
+        endif
+      enddo
+      frac = 0.
+      if (ind1 .eq. 0) then
+        ind1 = ind2
+      elseif (ind2 .eq. 0) then
+        ind2 = ind1
+      else
+        frac = (proj - angles(ind1)) / (angles(ind2) - angles(ind1))
+      endif
+      return
+      end
+      
+c       return indices to four local areas, and fractions to apply for each
+c       at location ix, iy in view iv, where ix and iy are indexes in
+c       the reconstruction adjusted to match coordinates of projections
+c
+      subroutine local_factors(ix,iy,iv,ind1,ind2,ind3,ind4,f1,f2,f3,f4)
 c       
       implicit none
       include 'tilt.inc'
@@ -2593,6 +2835,232 @@ c
       return
       end
 
+
+c       Compute local projection factors at a position in a column for view iv:
+c       j is X index in the reconstruction, lslice is slice # in aligned stack
+c
+      subroutine localProjFactors(j, lslice, iv, xprojf, xprojz, yprojf,
+     &    yprojz)
+      implicit none
+      include 'tilt.inc'
+      integer*4 j, lslice, iv
+      real*4 xprojf, xprojz, yprojf, yprojz
+      integer*4 ind1,ind2,ind3,ind4,ixc
+      real*4 f1,f2,f3,f4,xx,yy
+      real*4 calf,salf,a11,a12,a21,a22,xadd,yadd,xalladd,yalladd
+      real*4 calf2,salf2,a112,a122,a212,a222,xadd2,yadd2
+      real*4 calf3,salf3,a113,a123,a213,a223,xadd3,yadd3
+      real*4 calf4,salf4,a114,a124,a214,a224,xadd4,yadd4
+      real*4 f1x,f2x,f3x,f4x,f1xy,f2xy,f3xy,f4xy
+      real*4 f1y,f2y,f3y,f4y,f1yy,f2yy,f3yy,f4yy
+      real*4 xp1f,xp1z,yp1f,xp2f,xp2z,yp2f,xp3f,xp3z,yp3f,xp4f,xp4z,yp4f
+      real*4 cbeta,sbeta,cbeta2,sbeta2,cbeta3,sbeta3,cbeta4,sbeta4
+c       
+c       get transform and angle adjustment
+c       
+      ixc=nint(j-xcen+xcenin+delxx)
+      call local_factors(ixc,lslice,mapuse(iv),ind1,ind2,ind3,ind4,f1,f2,f3,f4)
+c       
+c       get all the factors needed to compute a projection position
+c       from the four local transforms
+c       
+      cbeta=cwarpb(ind1)
+      sbeta=swarpb(ind1)
+      calf=cwarpa(ind1)
+      salf=swarpa(ind1)
+      a11=fw(1,1,ind1)
+      a12=fw(1,2,ind1)
+      a21=fw(2,1,ind1)
+      a22=fw(2,2,ind1)
+      xadd=fw(1,3,ind1)+xcenin-xcenin*a11-slicen*a12
+      yadd=fw(2,3,ind1)+slicen-xcenin*a21-slicen*a22
+c       
+      cbeta2=cwarpb(ind2)
+      sbeta2=swarpb(ind2)
+      calf2=cwarpa(ind2)
+      salf2=swarpa(ind2)
+      a112=fw(1,1,ind2)
+      a122=fw(1,2,ind2)
+      a212=fw(2,1,ind2)
+      a222=fw(2,2,ind2)
+      xadd2=fw(1,3,ind2)+xcenin-xcenin*a112-slicen*a122
+      yadd2=fw(2,3,ind2)+slicen-xcenin*a212-slicen*a222
+c       
+      cbeta3=cwarpb(ind3)
+      sbeta3=swarpb(ind3)
+      calf3=cwarpa(ind3)
+      salf3=swarpa(ind3)
+      a113=fw(1,1,ind3)
+      a123=fw(1,2,ind3)
+      a213=fw(2,1,ind3)
+      a223=fw(2,2,ind3)
+      xadd3=fw(1,3,ind3)+xcenin-xcenin*a113-slicen*a123
+      yadd3=fw(2,3,ind3)+slicen-xcenin*a213-slicen*a223
+c       
+      cbeta4=cwarpb(ind4)
+      sbeta4=swarpb(ind4)
+      calf4=cwarpa(ind4)
+      salf4=swarpa(ind4)
+      a114=fw(1,1,ind4)
+      a124=fw(1,2,ind4)
+      a214=fw(2,1,ind4)
+      a224=fw(2,2,ind4)
+      xadd4=fw(1,3,ind4)+xcenin-xcenin*a114-slicen*a124
+      yadd4=fw(2,3,ind4)+slicen-xcenin*a214-slicen*a224
+c       
+      f1x=f1*a11
+      f2x=f2*a112
+      f3x=f3*a113
+      f4x=f4*a114
+      f1xy=f1*a12
+      f2xy=f2*a122
+      f3xy=f3*a123
+      f4xy=f4*a124
+c       fxfromy=f1*a12+f2*a122+f3*a123+f4*a124
+      f1y=f1*a21
+      f2y=f2*a212
+      f3y=f3*a213
+      f4y=f4*a214
+      f1yy=f1*a22
+      f2yy=f2*a222
+      f3yy=f3*a223
+      f4yy=f4*a224
+c       fyfromy=f1*a22+f2*a222+f3*a223+f4*a224
+      xalladd=f1*xadd+f2*xadd2+f3*xadd3+f4*xadd4
+      yalladd=f1*yadd+f2*yadd2+f3*yadd3+f4*yadd4
+c       
+c       Each projection position is a sum of a fixed factor ("..f")
+c       and a factor that multiplies z ("..z")
+c       
+      xx=j-xcen
+      yy=lslice-slicen
+      xp1f=xx*cbeta + yy*salf*sbeta + xcenin+delxx
+      xp1z=calf*sbeta + warpxzfac(ind1)
+      xp2f=xx*cbeta2 + yy*salf2*sbeta2 + xcenin+delxx
+      xp2z=calf2*sbeta2 + warpxzfac(ind2)
+      xp3f=xx*cbeta3 + yy*salf3*sbeta3 + xcenin+delxx
+      xp3z=calf3*sbeta3 + warpxzfac(ind3)
+      xp4f=xx*cbeta4 + yy*salf4*sbeta4 + xcenin+delxx
+      xp4z=calf4*sbeta4 + warpxzfac(ind4)
+
+      yp1f=yy*calf + slicen
+      yp2f=yy*calf2 + slicen
+      yp3f=yy*calf3 + slicen
+      yp4f=yy*calf4 + slicen
+c       
+c       store the fixed and z-dependent component of the
+c       projection coordinates
+c       
+      xprojf=f1x*xp1f+f2x*xp2f+f3x*xp3f+f4x*xp4f+
+     &    f1xy*yp1f+f2xy*yp2f+f3xy*yp3f+f4xy*yp4f+xalladd
+      xprojz=f1x*xp1z+f2x*xp2z+f3x*xp3z+f4x*xp4z-
+     &    (f1xy*(salf-warpyzfac(ind1))+f2xy*(salf2-warpyzfac(ind2))+
+     &    f3xy*(salf3-warpyzfac(ind3))+f4xy*(salf4-warpyzfac(ind4)))
+      yprojf=f1y*xp1f+f2y*xp2f+f3y*xp3f+f4y*xp4f+
+     &    f1yy*yp1f+f2yy*yp2f+f3yy*yp3f+f4yy*yp4f+yalladd
+      yprojz=f1y*xp1z+f2y*xp2z+f3y*xp3z+f4y*xp4z-
+     &    (f1yy*(salf-warpyzfac(ind1))+f2yy*(salf2-warpyzfac(ind2))+
+     &    f3yy*(salf3-warpyzfac(ind3))+f4yy*(salf4-warpyzfac(ind4)))
+      return
+      end
+
+
+c       This is the former code for assessing backprojection positions, 
+c       new method using localProjFactors verified to give the same result
+c       But this shows how the BP position can be computed directly
+c$$$      call local_factors (ixsam,itry,mapuse(iv),ind1,ind2,
+c$$$     &    ind3, ind4, f1,f2,f3,f4)
+c$$$c       
+c$$$c       for each position, find back-projection location
+c$$$c       transform if necessary, and use to get min and
+c$$$c       max slices needed to get this position
+c$$$c       
+c$$$      xx=ixsam-xcen
+c$$$      yy=itry-slicen
+c$$$      zz=iy-ycen
+c$$$c       Global bp position
+c$$$      xp=xx*cbet(iv)+yy*sal(iv)*sbet(iv)+ zz*(cal(iv)*sbet(iv)+xzfac(iv))+
+c$$$     &    xcenin+delxx
+c$$$      yp=yy*cal(iv)-zz*(sal(iv)-yzfac(iv))+slicen
+c$$$c       Local position:
+c$$$      xp=xx*cwarpb(ind1)+yy*swarpa(ind1)*swarpb(ind1)+
+c$$$     &    zz*(cwarpa(ind1)*swarpb(ind1)+warpxzfac(ind1))+ xcenin+delxx
+c$$$      yp=yy*cwarpa(ind1)- zz*(swarpa(ind1)-warpyzfac(ind1))+slicen
+c$$$      call xfapply(fw(1,1,ind1),xcenin,slicen,xp,yp, xp,yp)
+c$$$      xp2=xx*cwarpb(ind2)+yy*swarpa(ind2)*swarpb(ind2)+
+c$$$     &    zz*(cwarpa(ind2)*swarpb(ind2)+warpxzfac(ind2))+ xcenin+delxx
+c$$$      yp2=yy*cwarpa(ind2)- zz*(swarpa(ind2)-warpyzfac(ind2))+slicen
+c$$$      call xfapply(fw(1,1,ind2),xcenin,slicen,xp2,yp2, xp2,yp2)
+c$$$      xp3=xx*cwarpb(ind3)+yy*swarpa(ind3)*swarpb(ind3)+
+c$$$     &    zz*(cwarpa(ind3)*swarpb(ind3)+warpxzfac(ind3))+ xcenin+delxx
+c$$$      yp3=yy*cwarpa(ind3)- zz*(swarpa(ind3)-warpyzfac(ind3))+slicen
+c$$$      call xfapply(fw(1,1,ind3),xcenin,slicen,xp3,yp3, xp3,yp3)
+c$$$      xp4=xx*cwarpb(ind4)+yy*swarpa(ind4)*swarpb(ind4)+
+c$$$     &    zz*(cwarpa(ind4)*swarpb(ind4)+warpxzfac(ind4))+ xcenin+delxx
+c$$$      yp4=yy*cwarpa(ind4)- zz*(swarpa(ind4)-warpyzfac(ind4))+slicen
+c$$$      call xfapply(fw(1,1,ind4),xcenin,slicen,xp4,yp4, xp4,yp4)
+c$$$      xp=f1*xp+f2*xp2+f3*xp3+f4*xp4
+c$$$      yp=f1*yp+f2*yp2+f3*yp3+f4*yp4
+
+
+c       Finds the point at centered Z coordinate zz projecting to
+c       xproj, yproj in view iv of original projections.  xx is X index in
+c       reconstruction, yy is slice number in original projections
+c                        
+      subroutine findProjectingPoint(xproj, yproj, zz, iv, xx, yy)
+      implicit none
+      include 'tilt.inc'
+      real*4 xproj, yproj, zz, xx, yy
+      integer*4 iv, iter, ifdone, ixassay, iyassay
+      real*4 xprojf11, xprojz11, yprojf11, yprojz11, xprojf21, xprojz21,
+     &    yprojf21, yprojz21, xprojf12, xprojz12, yprojf12, yprojz12
+      real*4 xp11, yp11, xp12, yp12, xp21, yp21, xerr, yerr, dxpx, dxpy, dypx
+      real*4 dypy, fx, fy, den
+      integer*4 myFloor
+c
+      iter = 1
+      ifdone = 0
+      do while (ifdone .eq. 0 .and. iter .le. 5)
+        ixassay = myFloor(xx)
+        iyassay = myFloor(yy)
+        call localProjFactors(ixassay, iyassay, iv, xprojf11, xprojz11,
+     &      yprojf11, yprojz11)
+        call localProjFactors(ixassay + 1, iyassay, iv, xprojf21, xprojz21,
+     &      yprojf21, yprojz21)
+        call localProjFactors(ixassay, iyassay + 1, iv, xprojf12, xprojz12,
+     &      yprojf12, yprojz12)
+        xp11 = xprojf11 + xprojz11 * zz
+        yp11 = yprojf11 + yprojz11 * zz
+        xp21 = xprojf21 + xprojz21 * zz
+        yp21 = yprojf21 + yprojz21 * zz
+        xp12 = xprojf12 + xprojz12 * zz
+        yp12 = yprojf12 + yprojz12 * zz
+        xerr = xproj - xp11
+        yerr = yproj - yp11
+        dxpx = xp21 - xp11
+        dxpy = xp12 - xp11
+        dypx = yp21 - yp11
+        dypy = yp12 - yp11
+        den = dxpx * dypy - dxpy * dypx
+        fx = (xerr * dypy - yerr * dxpy) / den
+        fy = (dxpx * yerr - dypx * xerr) / den
+        xx = ixassay + fx
+        yy = iyassay + fy
+        if (fx .gt. -0.1 .and. fx.lt.1.1 .and. fy .gt. -0.1 .and. fy.lt.1.1)
+     &      ifdone = 1
+        iter = iter + 1
+      enddo
+      return
+      end
+
+      integer*4 function myFloor(xx)
+      if (xx .lt. 0) then
+        myFloor = xx - 1.
+      else
+        myFloor = xx
+      endif
+      return
+      end
 
 c       
 c       Compute space needed for cosine stretched data, returning the
@@ -2716,8 +3184,484 @@ c
       return
       end
 
+
+      subroutine reprojectRec(lsStart, lsEnd, inloadstr, inloadend, DMIN,DMAX,
+     &    DTOT8)
+      implicit none
+      include 'tilt.inc'
+      integer*4 lsStart, lsEnd, inloadstr, inloadend
+      real*4 dmin, dmax, warpDelz(2 * limwpos)
+      integer*4 iv, ix, iy, iz, ixp, line, i, numz, kz, iys, ixnd, ixst, ind
+      integer*4 ind1, ind2, ind3, ind4, load
+      real*4 calf, salf, cbeta, sbeta, delz, delx, znum, fz, omfz, zz, xx, fx
+      real*4 omfx, yy, fy, omfy, xproj, yproj, yslice, d11, d12, d21, d22
+      real*4 dxdelz, f1, f2, f3, f4, xxgood, yygood, zzgood
+      real*4 ytol, xprojMin, xprojMax, xjump, zjump, dely,diffxmax,diffymax
+      integer*4 indbase, nxload, ndelz, ixc, lastZdone, iter, ifdone, ifout
+      integer*4 ijump, njump
+      real*8 sum, dtot8
+      logical*4 tryjump
+      real*4 reprojDelz
+      integer*4 myFloor
+
+      ytol = 0.05
+      xjump = 5.
+      nxload = maxXload + 1 - minXload
+      do iv = 1, nviews
+        if (nxwarp .eq. 0) then
+c           
+c           Get the delta z for this view
+          calf = cal(iv)
+          salf = sal(iv)
+          cbeta = cbet(iv)
+          sbeta = sbet(iv)
+          delz = reprojDelz(sbeta, cbeta, salf, calf, xzfac(iv), yzfac(iv))
+c          print *,sbeta, cbeta, salf, calf, xzfac(iv), yzfac(iv)
+          delx = 1. / cbeta
+c          print *,delx, delz
+          do line = lsStart, lsEnd
+            do i = 0, iwide - 1
+              array(imap + i) = 0.
+            enddo
+c             
+            znum = (ithickReproj - 1) / delz
+            numz = znum
+            if (znum - numz .ge. 0.1) numz = numz + 1
+            do kz = 1, numz
+              zz = 1 + (kz - 1) * delz
+              iz = zz
+              fz = zz - iz
+              omfz = 1. - fz
+c               
+c               If Z is past the top, drop back one line and set up fractions
+c               to take just a fraction of the top line
+              if (zz .ge. numz) then
+                zz = numz
+                iz = numz - 1
+                fz = omfz
+                omfz = 0.
+              endif
+              zz = zz + minYreproj - 1 - ycen
+c               
+c               Get y slice for this z value
+              yproj = line + yprjOffset
+              yy = (yproj + zz * (salf - yzfac(iv)) - slicen) / calf
+              yslice = yy + slicen - yprjOffset
+              if (ifalpha .eq. 0) yslice = line
+c              print *,kz,zz,iz,fz,omfz,yproj,yy,yslice
+              if (yslice .lt. inloadstr - ytol .or.
+     &            yslice .gt. inloadend + ytol) then
+c                 
+c                 Really out of bounds, do fill
+c                print *,'Out of bounds, view, line, zz',iv, line, zz
+                do i = 0, iwide - 1
+                  array(imap + i) = array(imap + i) + pmean
+                enddo
+              else
+c                 
+c                 otherwise set up iy and interpolation factors
+                iys = myFloor(yslice)
+                if (iys .lt. inloadstr) then
+                  iys = inloadstr
+                  fy = 0.
+                else if (iys .gt. inloadend) then
+                  iys = inloadend - 1
+                  fy = 1.
+                else
+                  fy = yslice - iys
+                endif
+                omfy = 1. - fy
+c                 
+c                 Now get starting X coordinate, fill to left
+                xproj = 1 + xprjOffset
+                xx = (xproj - (yy * salf * sbeta + zz * (calf * sbeta +
+     &              xzfac(iv)) + xcenin+delxx)) / cbeta + xcen - (minXreproj-1)
+                ixst = 1
+                if (xx .lt. 1) then
+                  ixst = (1. - xx) / delx + 1
+                  do i = 0, ixst - 2
+                    array(imap + i) = array(imap + i) + pmean
+                  enddo
+                  xx = xx + (ixst - 1) * delx
+                endif
+c                 
+c                 get ending X coordinate, fill to right
+                ixnd = iwide
+                if (xx + (ixnd - ixst) * delx .gt. iwide) then
+                  ixnd = iwide - (xx + (ixnd - ixst) * delx - iwide) / delx - 1
+                  do i = ixnd, iwide - 1
+                    array(imap + i) = array(imap + i) + pmean
+                  enddo
+                endif
+c                 
+c                 Add the line in: do simple 2x2 interpolation if no alpha
+                indbase = nbase + iplane * (iys - inloadstr) + (iz - 1) *nxload
+                if (ifalpha .eq. 0) then
+                  do i = ixst - 1, ixnd - 1
+                    ix = xx
+                    fx = xx - ix
+                    omfx = 1. - fx
+                    ind = indbase + ix - 1
+                    array(imap+i) = array(imap+i) + omfz * omfx * array(ind) +
+     &                  omfz * fx * array(ind + 1) +
+     &                  fz * omfx * array(ind + nxload) +
+     &                  fz * fx * array(ind + nxload + 1)
+                    xx = xx + delx
+                  enddo
+                else
+c                   
+c                   Or do the full 3D interpolation if any variation in Y
+                  do i = ixst - 1, ixnd - 1
+                    ix = xx
+                    fx = xx - ix
+                    omfx = 1. - fx
+                    d11 = omfx * omfy
+                    d12 = omfx * fy
+                    d21 = fx * omfy
+                    d22 = fx * fy
+                    ind = indbase + ix - 1
+                    array(imap+i) = array(imap+i) + omfz * (d11 * array(ind)
+     &                  + d12 * array(ind + iplane) + d21 * array(ind + 1)
+     &                  + d22 * array(ind + iplane + 1))
+     &                  + fz * (d11 * array(ind + nxload)
+     &                  + d12 * array(ind + iplane + nxload)
+     &                  + d21 * array(ind + 1 + nxload)
+     &                  + d22 * array(ind + iplane + 1 + nxload))
+                    xx = xx + delx
+                  enddo
+                endif
+              endif
+            enddo
+            call writeReprojLine(iv, line, DMIN,DMAX,DTOT8)
+          enddo
+        else
+c           
+C           LOCAL ALIGNMENTS
+c
+c           first step: precompute all the x/yprojf/z  for all slices
+          xprojMin = 10000000.
+          xprojMax = 0.
+          do load = inloadstr, inloadend
+            indbase = nbase + iplane * (load - inloadstr) +
+     &          ithickReproj * nxload
+            iys = nint(load + yprjOffset - (minZreproj -1))
+            do ix = 1, nxload
+              ind = indbase + 4 * (ix - 1)
+              call localProjFactors(ix + minXload - 1, iys, iv, array(ind),
+     &            array(ind + 1), array(ind + 2), array(ind + 3))
+              if (ix .eq. 1) xprojMin = min(xprojMin,
+     &            array(ind) + (minYreproj - ycen) * array(ind+1),  array(ind)
+     &            + (minYreproj + ithickReproj - ycen) * array(ind+1))
+              if (ix .eq. nxload) xprojMax = max(xprojMax,
+     &            array(ind) + (minYreproj - ycen) * array(ind+1),  array(ind)
+     &            + (minYreproj + ithickReproj - ycen) * array(ind+1))
+            enddo
+          enddo
+c          print *,'xprojmin, max', xprojMin, xprojMax
+c
+c           loop on lines to be done
+          indbase = nbase - iplane * inloadstr + ithickReproj * nxload - 4
+          do line = lsStart, lsEnd
+c             
+c             compute delta z as function of X across the loaded slice
+c             which is not ideal since the data will not be coming from slice
+            dxdelz = idxwarp / 2.
+            ndelz = max(2., min((nxload - 1) / dxdelz, 2 * limwpos)) + 1
+            dxdelz = (nxload - 1.) / (ndelz - 1.)
+            iys = nint(line + yprjOffset - (minZreproj -1))
+            do i = 1, ndelz
+              xx = 1 + dxdelz * (i - 1)
+              ixc=nint(xx + minXload - 1 -xcen+xcenin+delxx)
+              call local_factors(ixc, iys, iv, ind1, ind2, ind3, ind4, f1, f2,
+     &            f3, f4)
+              warpDelz(i) = f1 * reprojDelz(swarpb(ind1), cwarpb(ind1),
+     &            swarpa(ind1), cwarpa(ind1), warpxzfac(ind1), warpyzfac(ind1))
+     &            + f2 * reprojDelz(swarpb(ind2), cwarpb(ind2),
+     &            swarpa(ind2), cwarpa(ind2), warpxzfac(ind2), warpyzfac(ind2))
+     &            + f3 * reprojDelz(swarpb(ind3), cwarpb(ind3),
+     &            swarpa(ind3), cwarpa(ind3), warpxzfac(ind3), warpyzfac(ind3))
+     &            + f4 * reprojDelz(swarpb(ind4), cwarpb(ind4),
+     &            swarpa(ind4), cwarpa(ind4), warpxzfac(ind4), warpyzfac(ind4))
+            enddo
+c            print *,'got delz eg:',warpDelz(1), warpDelz(ndelz/2),
+c     &          warpDelz(ndelz)
+c            print *,iv,line, inloadstr,inloadend
+c             
+c             loop on pixels across line
+            yproj = line + yprjOffset - (minZreproj -1)
+            do ixp = 1, iwide
+c
+c               Get x projection coord, starting centered Z coordinate, and
+c               approximate x and y coordinates 
+c               X coordinate needs to be a loaded X index
+c               Y coordinate is in slices of reconstruction
+              xproj = ixp + xprjOffset
+              zz = minYreproj - ycen
+              sum = 0.
+c              print *,ixp,xproj,yproj,xx,yy
+              xx = (xproj - yy*sal(iv)*sbet(iv) - zz * (cal(iv)* sbet(iv) +
+     &            xzfac(iv)) - xcenin-delxx) / cbet(iv) + xcen - (minXload - 1)
+              yy = (yproj + zz*(sal(iv)-yzfac(iv))-slicen) / cal(iv) + slicen
+     &            - yprjOffset + (minZreproj - 1)
+c               
+c               Move on ray up in Z
+              lastZdone = 0
+              tryjump = .true.
+              diffxmax = 0
+              diffymax = 0
+              
+              zjump = xjump * cbet(iv) / max(0.2, sbet(iv))
+              do while (zz .lt. ithickReproj + minYreproj - ycen .and.
+     &            lastZdone .eq. 0)
+                if (xproj .lt. xprojMin - 5. .or. xproj .gt. xprojMax +5.) then
+                  sum = sum + pmean
+                else
+                  call loadedProjectingPoint(xproj, yproj, zz, indbase, nxload,
+     &                inloadstr, inloadend, xx, yy)
+c                 
+c                   If X or Y is out of bounds, fill with mean
+                  if (yy .lt. inloadstr - ytol .or.
+     &                yy .gt. inloadend + ytol .or. xx .lt. 1. .or.
+     &                xx .ge. nxload) then
+                    sum = sum + pmean
+                  else
+c                     
+c                     otherwise, get x, y, z indexes, clamp y to limits, allow
+c                     a fractional Z pixel at top of volume
+                    ix = xx
+                    fx = xx - ix
+                    omfx = 1. - fx
+                    yy = max(float(inloadstr), min(inloadend - 0.01, yy))
+                    iy = yy
+                    fy = yy - iy
+                    omfy = 1. - fy
+                    iz = max(1., zz + ycen)
+                    fz = zz + ycen - iz
+                    omfz = 1. - fz
+                    if (iz .eq. ithickReproj) then
+                      iz = iz - 1
+                      fz = omfz
+                      omfz = 0.
+                      lastZdone = 1
+                    endif
+c                     
+c                     Do the interpolation
+                    d11 = omfx * omfy
+                    d12 = omfx * fy
+                    d21 = fx * omfy
+                    d22 = fx * fy
+                    ind = nbase + iplane * (iy - inloadstr) + (iz - 1) * nxload
+     &                  + ix - 1 
+                    sum = sum + omfz * (d11 * array(ind)
+     &                  + d12 * array(ind + iplane) + d21 * array(ind + 1)
+     &                  + d22 * array(ind + iplane + 1))
+     &                  + fz * (d11 * array(ind + nxload)
+     &                  + d12 * array(ind + iplane + nxload)
+     &                  + d21 * array(ind + 1 + nxload)
+     &                  + d22 * array(ind + iplane + 1 + nxload))
+c                     
+                    do while(tryjump)
+c                       
+c                       If jumping is OK, save the current position and compute
+c                       how many steps can be jumped, stopping below the top
+                      xxgood = xx
+                      yygood = yy
+                      zzgood = zz
+                      ind = max(1., min(float(ndelz), xx / dxdelz))
+                      delz = warpDelz(ind)
+                      njump = zjump / delz
+                      if (zz + zjump .gt. ithickReproj + minYreproj - ycen -
+     &                    2) then
+                        njump = (ithickReproj + minYreproj - ycen -2 -zz)/delz
+                        tryjump = .false.
+                      endif
+                      if (njump .gt. 0) then
+c                         
+c                         Make the jump, find the projecting point;
+c                         if it's out of bounds restore last point
+                        zz = zz + njump * delz
+                        xx = xx + njump * sbet(iv)
+                        call loadedProjectingPoint(xproj, yproj, zz, indbase,
+     &                      nxload, inloadstr, inloadend, xx, yy)
+                        if (yy .lt. inloadstr .or. yy .gt. inloadend .or.
+     &                      xx .lt. 1. .or. xx .ge. nxload) then
+                          njump = 0
+                          xx = xxgood
+                          yy = yygood
+                          zz = zzgood
+                          tryjump = .false.
+                        else
+                          delx = (xx - xxgood) / njump
+                          dely = (yy - yygood) / njump
+                        endif
+                      endif
+c                       
+c                       Loop on points from last one to final one
+                      do ijump = 1, njump
+                        xx = xxgood + ijump * delx
+                        yy = yygood + ijump * dely
+                        zz = zzgood + ijump * delz
+                        ix = xx
+                        fx = xx - ix
+                        omfx = 1. - fx
+                        iy = yy
+                        fy = yy - iy
+                        omfy = 1. - fy
+                        iz = zz + ycen
+                        fz = zz + ycen - iz
+                        omfz = 1. - fz
+                        d11 = omfx * omfy
+                        d12 = omfx * fy
+                        d21 = fx * omfy
+                        d22 = fx * fy
+                        ind = nbase + iplane * (iy - inloadstr) + (iz - 1) *
+     &                      nxload + ix - 1 
+                        sum = sum + omfz * (d11 * array(ind)
+     &                      + d12 * array(ind + iplane) + d21 * array(ind + 1)
+     &                      + d22 * array(ind + iplane + 1))
+     &                      + fz * (d11 * array(ind + nxload)
+     &                      + d12 * array(ind + iplane + nxload)
+     &                      + d21 * array(ind + 1 + nxload)
+     &                      + d22 * array(ind + iplane + 1 + nxload))
+c                        fx = xx
+c                        fy = yy
+c                        call loadedProjectingPoint(xproj, yproj, zz, indbase,
+c     &                      nxload, inloadstr, inloadend, fx, fy)
+c                        diffxmax = max(diffxmax , abs(fx - xx))
+c                        diffymax = max(diffymax , abs(fy - yy))
+                      enddo
+                    enddo
+                  endif
+                endif
+c                 
+c                 Adjust Z by local factor, move X approximately for next pixel
+                ind = max(1., min(float(ndelz), xx / dxdelz))
+                zz = zz + warpDelz(ind)
+                xx = xx + sbet(iv)
+              enddo
+              array(imap+ixp-1) = sum
+c              write (*,'(i5,2f10.4)')ixp,diffxmax,diffymax
+            enddo
+            call writeReprojLine(iv, line, DMIN,DMAX,DTOT8)
+          enddo
+        endif
+      enddo
+      end
+
+c       Finds loaded point that projects to xproj, yproj at centered Z value
+c       zz, using stored values for [y]zfac[fv].  Takes starting value in xx,yy
+c       and returns found value.
+c       X coordinate needs to be a loaded X index
+c       Y coordinate is in slices of reconstruction
+c
+      subroutine loadedProjectingPoint(xproj, yproj, zz, indbase, nxload,
+     &    inloadstr, inloadend, xx, yy)
+      implicit none
+      include 'tilt.inc'
+      real*4 xproj, yproj, zz,xx, yy
+      integer*4 nxload, inloadstr, inloadend, indbase
+      integer*4 iter, ifdone, ind, ix, iy, ifout,i
+      real*4 xp11, yp11, xp12, yp12, xp21, yp21, xerr, yerr, dypx, dxpy,dxpx
+      real*4 dypy, den, fx, fy
+      integer*4 myFloor
+
+      iter = 0
+      ifdone = 0
+      do while (ifdone .eq. 0 .and. iter .lt. 5)
+        ix = myFloor(xx)
+        iy = myFloor(yy)
+        ifout = 0
+        if (ix .lt. 1 .or. ix .ge. nxload .or. iy .lt. inloadstr .or.
+     &      iy .ge. inloadend) then
+          ifout = 1
+          ix = min(nxload - 1, max(1, ix))
+          iy = min(inloadend - 1, max(inloadstr, iy))
+        endif
+        ind = indbase + iy * iplane + 4 * ix
+        xp11 = array(ind) + array(ind+1) * zz
+        yp11 = array(ind+2) + array(ind+3) * zz
+        xp21 = array(ind+4) + array(ind+5) * zz
+        yp21 = array(ind+6) + array(ind+7) * zz
+        xp12 = array(ind+iplane) + array(ind+1+iplane) * zz
+        yp12 = array(ind+2+iplane) + array(ind+3+iplane) * zz
+c         write(*,101)'facs', (array(i), i=ind,ind+7)
+c         write(*,101)'xps',xx,yy,zz,xp11,yp11,xp21,yp21,xp12,yp12
+101     format(a,9f8.2)
+        xerr = xproj - xp11
+        yerr = yproj - yp11
+        dxpx = xp21 - xp11
+        dxpy = xp12 - xp11
+        dypx = yp21 - yp11
+        dypy = yp12 - yp11
+        den = dxpx * dypy - dxpy * dypx
+        fx = (xerr * dypy - yerr * dxpy) / den
+        fy = (dxpx * yerr - dypx * xerr) / den
+c         write(*,101)'dx,err,f',dxpx,dxpy,dypx,dypy,den,xerr,yerr,fx,fy
+        xx = ix + fx
+        yy = iy + fy
+        if (fx .gt. -0.1 .and. fx.lt.1.1 .and. fy .gt. -0.1 .and.
+     &      fy.lt.1.1) ifdone = 1
+        if (ifout .ne. 0 .and. (iter .gt. 0 .or.  xx .lt. 0. .or.
+     &      xx .gt. nxload + 1 .or. yy .lt. inloadstr - 1. .or.
+     &      yy.gt. inloadend + 1.)) ifdone = 1
+        iter = iter + 1
+      enddo
+      return
+      end
+
+
+c       Computes the change in Z that moves by 1 pixel along a projection
+c       ray given the sines and cosines of alpha and beta and the z factors
+c
+      real*4 function reprojDelz(sbeta, cbeta, salf, calf, xzfac, yzfac)
+      implicit none
+      real*4 sbeta, cbeta, salf, calf, xzfac, yzfac,  dyfac
+      dyfac = (salf - yzfac) / calf
+      reprojDelz = 1. / sqrt(1. + dyfac**2 +
+     &    ((dyfac * salf * sbeta + calf * sbeta + xzfac) / cbeta)**2)
+      return
+      end
+
+
+c       Writes line LINE for view IV of a reprojection
+c
+      subroutine writeReprojLine(iv, line,DMIN,DMAX,DTOT8)
+      implicit none
+      include 'tilt.inc'
+      integer*4 line, i, iyout, iv
+      real*4 dmin,dmax,val
+      real*8 dtot8
+c             
+c       Write the line after scaling.  Scale log data to give approximately
+c       constant mean levels.  Descale non-log data by exposure weights
+      if (iflog .ne. 0) then
+        val = alog10(projMean + baselog) - ithickReproj * pmean / cbet(iv)
+        do i = 0, iwide - 1
+          array(imap + i) = 10**(array(imap + i) + val) - baselog
+        enddo
+      else
+        do i = 0, iwide - 1
+          array(imap + i) = array(imap + i) / expWeight(iv)
+        enddo
+      endif
+      do i = 0, iwide - 1
+        val = array(imap + i)
+        dmin = min(dmin, val)
+        dmax = max(dmax, val)
+        dtot8 = dtot8 + val
+      enddo
+      iyout = line - islice
+      if (minTotSlice .gt. 0) iyout = line - minTotSlice
+      call imposn(2, iv - 1, iyout)
+      call iwrlin(2, array(imap))
+      return
+      end
+
 c       
 c       $Log$
+c       Revision 3.34  2007/06/22 05:04:34  mast
+c       Converted to PIP
+c
 c       Revision 3.33  2007/03/08 23:50:28  mast
 c       Give error if there are less than 2 local areas in each direction
 c
