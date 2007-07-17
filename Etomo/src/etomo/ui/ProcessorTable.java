@@ -17,10 +17,6 @@ import etomo.comscript.ProcesschunksParam;
 import etomo.storage.CpuAdoc;
 import etomo.storage.LogFile;
 import etomo.storage.Storable;
-import etomo.storage.autodoc.ReadOnlyAttribute;
-import etomo.storage.autodoc.ReadOnlyAutodoc;
-import etomo.storage.autodoc.ReadOnlySection;
-import etomo.storage.autodoc.SectionLocation;
 import etomo.type.AxisID;
 import etomo.type.EtomoNumber;
 import etomo.util.HashedArray;
@@ -42,8 +38,6 @@ import etomo.util.Utilities;
 public final class ProcessorTable implements Storable {
   public static final String rcsid = "$Id$";
 
-  private static final String SPEED_ADOC_KEY = "speed";
-  private static final String MEMORY_ADOC_KEY = "memory";
   private static final String STORE_PREPEND = "ProcessorTable";
 
   private static final int MAXIMUM_ROWS = 15;
@@ -123,88 +117,62 @@ public final class ProcessorTable implements Storable {
   }
 
   private void initTable() {
-    usersColumn = CpuAdoc.getInstance(axisID).isUsersColumn();
+    CpuAdoc cpuAdoc = CpuAdoc.getInstance(axisID, manager);
+    usersColumn = cpuAdoc.isUsersColumn();
     //build rows
-    //get autodoc
-    ReadOnlyAutodoc autodoc = ParallelPanel.getAutodoc(axisID);
-    if (autodoc == null) {
-      return;
-    }
-    //get units
-    ReadOnlyAttribute unitsAttribute = autodoc.getAttribute("units");
     //get speed units
     try {
-      speedUnits = unitsAttribute.getAttribute(SPEED_ADOC_KEY).getValue();
+      speedUnits = cpuAdoc.getUnitsSpeed();
     }
     catch (NullPointerException e) {
     }
     //get memory units
     try {
-      memoryUnits = unitsAttribute.getAttribute(MEMORY_ADOC_KEY).getValue();
+      memoryUnits = cpuAdoc.getUnitsMemory();
     }
     catch (NullPointerException e) {
     }
-    //get first section
-    SectionLocation sectionLocation = autodoc
-        .getSectionLocation(CpuAdoc.SECTION_TYPE);
-    ReadOnlySection section = autodoc.nextSection(sectionLocation);
-    EtomoNumber number = new EtomoNumber(EtomoNumber.Type.INTEGER);
-    String userName = System.getProperty("user.name");
+    //loop through the computers
+    EtomoNumber number = new EtomoNumber();
+    String name = null;
     //loop on sections
-    while (section != null) {
+    for (int i = 0; i < cpuAdoc.getNumComputers(); i++) {
       //get name of the section
-      String computerName = section.getName();
-      //exclude any section with the "exclude-interface" attribute set to the
+      String computerName = cpuAdoc.getName(i);
+      CpuAdoc.Computer computer = cpuAdoc.getComputer(i);
+      //exclude any computer with the "exclude-interface" attribute set to the
       //current interface
-      CpuAdoc cpuAdoc = CpuAdoc.getInstance(axisID);
-      if (manager.getInterfaceType() != cpuAdoc
-          .getExcludeInterface(computerName)
-          && (cpuAdoc.isUsersEmpty(computerName) || cpuAdoc.findUser(
-              computerName, userName) != -1)) {
+      if (!computer.isExcludedInterface(manager.getInterfaceType())
+          && (!computer.isExcludedUser(System.getProperty("user.name")) )){
         //get the number attribute
         //set numberColumn to true if an number attribute is returned
-        number.set(1);
-        try {
-          number.set(section.getAttribute("number").getValue());
+        number.set(computer.getNumber());
+        if (!number.isDefault()) {
           numberColumn = true;
-        }
-        catch (NullPointerException e) {
         }
         //get the type attribute
         //set typeColumn to true if an type attribute is returned
-        String type = null;
-        try {
-          type = section.getAttribute("type").getValue();
+        String type = computer.getType();
+        if (!type.matches("\\s*")) {
           typeColumn = true;
-        }
-        catch (NullPointerException e) {
         }
         //get the speed attribute
         //set speedColumn to true if an speed attribute is returned
-        String speed = null;
-        try {
-          speed = section.getAttribute(SPEED_ADOC_KEY).getValue();
+        String speed = computer.getSpeed();
+        if (!speed.matches("\\s*")) {
           speedColumn = true;
-        }
-        catch (NullPointerException e) {
         }
         //get the memory attribute
         //set memoryColumn to true if an memory attribute is returned
-        String memory = null;
-        try {
-          memory = section.getAttribute(MEMORY_ADOC_KEY).getValue();
+        String memory = computer.getMemory();
+        if (!memory.matches("\\s*")) {
           memoryColumn = true;
-        }
-        catch (NullPointerException e) {
         }
         //get the os attribute
         //set osColumn to true if an os attribute is returned
-        String os = null;
-        try {
-          os = section.getAttribute("os").getValue();
+        String os = computer.getOs();
+        if (!os.matches("\\s*")) {
           osColumn = true;
-        }
-        catch (NullPointerException e) {
         }
         //create the row
         ProcessorTableRow row = new ProcessorTableRow(this, computerName,
@@ -212,8 +180,6 @@ public final class ProcessorTable implements Storable {
         //add the row to the rows HashedArray
         rows.add(computerName, row);
       }
-      //get the next section
-      section = autodoc.nextSection(sectionLocation);
     }
     //create headers
     //header 1
@@ -276,10 +242,6 @@ public final class ProcessorTable implements Storable {
       constraints.gridwidth = 2;
     }
     header1NumberCPUs.add(tablePanel, layout, constraints);
-    ReadOnlyAutodoc autodoc = ParallelPanel.getAutodoc(axisID);
-    if (autodoc == null) {
-      return;
-    }
     if (Utilities.isWindowsOS()) {
       constraints.gridwidth = 1;
       header1CPUUsage.add(tablePanel, layout, constraints);
@@ -665,18 +627,20 @@ public final class ProcessorTable implements Storable {
     ((ProcessorTableRow) rows.get(computer)).setCPUUsage(cpuUsage);
   }
 
-  void clearLoadAverage(String computer, String reason,String tooltip) {
+  void clearLoadAverage(String computer, String reason, String tooltip) {
     if (rows == null) {
       return;
     }
-    ((ProcessorTableRow) rows.get(computer)).clearLoadAverage(reason,tooltip);
+    ((ProcessorTableRow) rows.get(computer)).clearLoadAverage(reason, tooltip);
   }
 
-  void clearFailureReason(String computer, String failureReason1,String failureReason2) {
+  void clearFailureReason(String computer, String failureReason1,
+      String failureReason2) {
     if (rows == null) {
       return;
     }
-    ((ProcessorTableRow) rows.get(computer)).clearFailureReason(failureReason1, failureReason2);
+    ((ProcessorTableRow) rows.get(computer)).clearFailureReason(failureReason1,
+        failureReason2);
   }
 
   void clearFailureReason(boolean selectedComputers) {
@@ -799,6 +763,10 @@ public final class ProcessorTable implements Storable {
 }
 /**
  * <p> $Log$
+ * <p> Revision 1.44  2007/05/25 00:28:19  sueh
+ * <p> bug# 964 Added tooltip to clearLoadAverage.  Added a second reason to
+ * <p> clearFailureReason.
+ * <p>
  * <p> Revision 1.43  2007/05/22 21:21:40  sueh
  * <p> bug# 999 Checking CpuAdoc.users before adding a row.
  * <p>
