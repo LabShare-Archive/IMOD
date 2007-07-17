@@ -32,7 +32,6 @@ import etomo.util.RemotePath.InvalidMountRuleException;
 public final class ProcesschunksParam implements DetachedCommand, ParallelParam {
   public static final String rcsid = "$Id$";
 
-  public static final int NICE_FLOOR_DEFAULT = 4;
   public static final int NICE_CEILING = 19;
   public static final int DROP_VALUE = 5;
   public static final String WORKING_DIR_OPTION = "-w";
@@ -58,13 +57,7 @@ public final class ProcesschunksParam implements DetachedCommand, ParallelParam 
     this.axisID = axisID;
     this.manager = manager;
     nice.set(manager.getParallelProcessingDefaultNice());
-    CpuAdoc cpuAdoc = CpuAdoc.getInstance(axisID);
-    if (cpuAdoc.isMinNiceNull()) {
-      nice.setFloor(NICE_FLOOR_DEFAULT);
-    }
-    else {
-      nice.setFloor(cpuAdoc.getMinNice());
-    }
+    nice.setFloor(CpuAdoc.getInstance(axisID,manager).getMinNice());
     nice.setCeiling(NICE_CEILING);
   }
 
@@ -338,6 +331,9 @@ public final class ProcesschunksParam implements DetachedCommand, ParallelParam 
 }
 /**
  * <p> $Log$
+ * <p> Revision 1.24  2007/05/18 23:52:13  sueh
+ * <p> bug# 987 Made CpuAdoc thread-safe.  Added minNice.
+ * <p>
  * <p> Revision 1.23  2007/05/11 15:30:40  sueh
  * <p> bug# 964 Reformat.
  * <p>
