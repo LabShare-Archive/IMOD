@@ -1,5 +1,7 @@
 IMOD History
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+7/16/07: Added Densnorm for density (mass) normalization.
+
 7/16/07: Splittilt modified to handled reprojections from a tomogram and to
 be compatible with setting up files for iterative operations.
 
