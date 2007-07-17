@@ -32,6 +32,7 @@ import javax.swing.SpinnerNumberModel;
 
 import etomo.ApplicationManager;
 import etomo.EtomoDirector;
+import etomo.storage.CpuAdoc;
 import etomo.storage.MagGradientFileFilter;
 import etomo.storage.StackFileFilter;
 import etomo.storage.DistortionFileFilter;
@@ -300,7 +301,8 @@ public class SetupDialog extends ProcessDialog implements ContextMenu,
         BoxLayout.X_AXIS));
     pnlParallelProcess.add(Box.createRigidArea(FixedDim.x5_y0));
     pnlParallelProcess.add(cbParallelProcess);
-    boolean validAutodoc = ParallelPanel.isValidAutodoc(AxisID.ONLY);
+    boolean validAutodoc = CpuAdoc.getInstance(AxisID.ONLY, applicationManager)
+        .isValid();
     if (validAutodoc) {
       cbParallelProcess.setSelected(true);
     }
@@ -1069,6 +1071,10 @@ public class SetupDialog extends ProcessDialog implements ContextMenu,
 }
 /**
  * <p> $Log$
+ * <p> Revision 3.56  2007/03/07 21:14:04  sueh
+ * <p> bug# 981 Turned RadioButton into a wrapper rather then a child of JRadioButton,
+ * <p> because it is getting more complicated.
+ * <p>
  * <p> Revision 3.55  2007/02/09 00:53:04  sueh
  * <p> bug# 962 Made TooltipFormatter a singleton and moved its use to low-level ui
  * <p> classes.

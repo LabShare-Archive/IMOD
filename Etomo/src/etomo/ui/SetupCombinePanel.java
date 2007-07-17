@@ -17,6 +17,7 @@ import javax.swing.JPanel;
 import etomo.ApplicationManager;
 import etomo.comscript.CombineParams;
 import etomo.comscript.ConstCombineParams;
+import etomo.storage.CpuAdoc;
 import etomo.type.AxisID;
 import etomo.type.CombinePatchSize;
 import etomo.type.ConstEtomoNumber;
@@ -50,6 +51,10 @@ import etomo.type.TomogramState;
  * 
  * <p>
  * $Log$
+ * Revision 3.48  2007/03/07 21:13:52  sueh
+ * bug# 981 Turned RadioButton into a wrapper rather then a child of JRadioButton,
+ * because it is getting more complicated.
+ *
  * Revision 3.47  2007/02/09 00:52:55  sueh
  * bug# 962 Made TooltipFormatter a singleton and moved its use to low-level ui
  * classes.
@@ -635,7 +640,8 @@ public final class SetupCombinePanel implements ContextMenu,
   }
 
   void setParameters(ConstMetaData metaData) {
-    boolean validAutodoc = ParallelPanel.isValidAutodoc(AxisID.ONLY);
+    boolean validAutodoc = CpuAdoc.getInstance(AxisID.ONLY, applicationManager)
+        .isValid();
     ConstEtomoNumber combineVolcombineParallel = metaData
         .getCombineVolcombineParallel();
     cbParallelProcess.setEnabled(validAutodoc);
