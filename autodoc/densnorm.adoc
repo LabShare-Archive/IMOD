@@ -1,0 +1,170 @@
+Version=1.0
+Pip=1
+
+[Field = InputImageFile]
+short = input
+type = FN
+usage = Input image file with images to be normalized or with exposure data
+tooltip =
+manpage = Input file with images to be normalized, or whose header contains
+the exposure data needed for scaling.  This entry is optional unless an output
+image file is entered.
+If the option is not entered and there is a non-option argument, the latter
+will be used as the input file.
+
+[Field = OutputImageFile]
+short = output
+type = FN
+usage = Output file for normalized images
+tooltip =
+manpage = Output file for normalized images.  If this option is not entered,
+the second non-option argument will be used for this output file. 
+
+[Field = WeightOutputFile]
+short = weight
+type = FN
+usage = Output file with weighting factors (optional)
+tooltip =
+manpage = Output file with weighting factors that can be supplied to Tilt(1),
+which can be either relative factors with a mean of 1 or factors that would
+convert each image to transmittances.
+
+[Field = ImagesWithExposures]
+short = images
+type = FN
+usage = Image file with exposure information in header
+tooltip =
+manpage = Image file with exposure information in header.  Use this option to
+specify a raw stack if the images to be normalized no longer have exposure
+data in their header, such as would occur with montages. 
+
+[Field = ReferenceImageFile]
+short = rifile
+type = FN
+usage = File with a reference image of the blank beam
+tooltip =
+manpage = File with a reference image of the blank beam.  If the mean value
+and the exposure for a reference image is known, then the exposure value for
+each image can be used to scale the data to transmittances.
+
+[Field = MeanOfReferenceImage]
+short = rimean
+type = F
+usage = Mean value of a reference image for absolute normalization
+tooltip =
+manpage = Mean value of a reference image, which can be used for absolute
+normalization to transmittances.  This option and the reference image file
+cannot both be entered.
+
+[Field = ExposureOfReferenceImage]
+short = riexp
+type = F
+usage = Exposure time or electron dose for a reference image
+tooltip =
+manpage = Exposure time or electron dose of a reference image, which can be 
+combined with the exposure values for each view to achieve absolute
+normalization.  If this option is entered together with a reference image
+file, the given value supercedes the exposure value in the header of the
+reference image, if any.
+
+[Field = LogOfOutput]
+short = log
+type = F
+usage = Take log of output values after adding the given value
+tooltip =
+manpage = 
+
+[Field = ModeOfOutput]
+short = mode
+type = I
+usage = Mode of output file: 0 byte, 1/6 signed/unsigned integer, 2 float
+tooltip =
+manpage = Mode of output file: 0 for bytes (almost certainly useless), 1 for
+signed 16-bit integers, 6 for unsigned 16-bit integers, or 2 for floating
+point numbers.  The default is to use the mode of the input file.
+
+[Field = ScalingFactor]
+short = scale
+type = F
+usage = Factor for scaling the output after normalizing and taking log
+tooltip =
+manpage = Factor for scaling the output after data are normalized and the log
+is taken.  If the mode of the output is 2, the default scale factor is 1
+regardless of whether the log is being taken.  The scale is also 1 if there
+is relative normalization without taking logs.  Otherwise, the scale factor
+for logarithms is 5000, +/-10000, or +/-50 for modes 1, 6, or 0; the scale for
+absolute linear normalizations is 25000, -50000, or -250 for modes 1, 6, or 0.
+Negative scaling is needed to fit absolute normalized data into the unsigned
+modes.
+
+[Field = ReverseContrast]
+short = reverse
+type = B
+usage = Reverse contrast from input data by using negative scaling
+tooltip =
+manpage = Reverse contrast from input data by using negative scaling.
+With positive scaling, the values produced by the program will have the same
+contrast polarity as the input, with density dark, but absolute normalization
+will produce negative numbers.
+
+[Field = IgnoreExposures]
+short = ignore
+type = B
+usage = Ignore exposure data in image file when producing log output
+tooltip =
+manpage = Use this option if you just want to take the logarithm of the input
+images without normalizing by exposure data in image file header.
+
+[Field = ExposureFile]
+short = expfile
+type = FN
+usage = File with an exposure value for each image
+tooltip =
+manpage = File with an exposure value for each image, one per line.  These
+can be either electron doses, or exposure times if the beam intensity was
+constant.
+
+[Field = TiltFile]
+short = tiltfile
+type = FN
+usage = File with tilt angles for using cosines as weights
+tooltip =
+manpage = File with tilt angles, one per line.  If this option is entered,
+the program will compute normalization factors by assuming that the exposures 
+were inversely proportional to the cosine of the tilt angle, possibly raised
+to a power as specified by -power.
+
+[Field = CosinePowerInverse]
+short = power
+type = I
+usage = Inverse of power applied to cosine of tilt angle
+tooltip =
+manpage = When varying the exposure by the inverse of the cosine of the tilt
+angle, SerialEM has an option to moderate the amount of exposure change by
+taking this inverse to 1/2, 1/3, 1/4 or 1/5 power.  Use this option to specify
+the selected power if normalization is being done with a tilt angle file.
+
+[Field = MinimumLogFactor]
+short = minlog
+type = F
+usage = Minimum fraction of dynamic range to allow when taking log
+tooltip =
+manpage = Minimum fraction of dynamic range to allow when taking the log. 
+Before taking the log, small values will be truncated at this
+fraction times the difference between the maximum and minimum of the input
+file.  The default is 0.001, the same value that is used in Tilt(1) to prevent
+small values from dominating the contrast range.
+
+[Field = ParameterFile]
+short = param
+type = PF
+usage = Read parameter entries from file
+tooltip = 
+manpage = Read parameter entries as keyword-value pairs from a parameter file.
+
+[Field = usage]
+short = help
+type = B
+usage = Print help output
+tooltip = 
+manpage = 

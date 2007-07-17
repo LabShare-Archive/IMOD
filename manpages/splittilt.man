@@ -59,6 +59,10 @@ of chunks is further reduced until the penalty for doing vertical slices
 matches the penalty for switching to old-style
 tilting.  In all cases, the number of chunks is constrained by the minimum
 number of slices in each chunk.
+.P
+The program will also operate on a command file for reprojecting from a
+tomogram.  The complicated logic just described is still applied, even though
+some of it is irrelevant.
 
 .SS Options
 When the program is invoked with no arguments, it gives a usage statement that
@@ -97,6 +101,17 @@ licenses for fast backprojection.
 Write chunks to separate files named setname-nnn.rec and assemble the output
 file from these
 at the end.  The default is to write directly to the output file.
+.TP
+.B -s <value>
+Start with given command file number instead of 1.  When this option is
+entered, the program will not delete any existing command files.  If data are
+being written directly to output file, the first file is named -nnn-sync.com
+instead of -start.com.
+.TP
+.B -o
+Leave the command file set open by naming the command file for reassembly 
+-nnn-sync.com instead of -finish.com, and by not cleaning up command and log
+files in the reassembly file.
 .SH FILES
 The finishing command file deletes all the
 command and log files for the chunks after collecting minimun, maximum, and
