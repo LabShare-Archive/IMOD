@@ -376,6 +376,18 @@ while ($numdone < $#comlist)
                     @ numdone++
                     set anydone = 1
                     echo "$comlist[$ind] finished on $machines[$proc]"
+
+                    # copy the log for the first chunk
+                    #
+                    if ($ind == 1) then
+                        if (-e $rootname.log) \mv $rootname.log $rootname.log~
+                        cat >! $rootname.log << EOF
+THIS FILE IS JUST THE LOG FOR ONE CHUNK AND WAS COPIED BY PROCESSCHUNKS FROM
+$logname
+
+EOF
+                        cat $logname >> $rootname.log
+                    endif
                 else
 
                     # otherwise set flag to redo it
@@ -708,6 +720,10 @@ exit 3
 
 #
 #  $Log$
+#  Revision 3.29  2007/05/25 18:56:03  mast
+#  Added ssh options the same as are used in etomo, to prevent password
+#  requests and problems with host keys
+#
 #  Revision 3.28  2007/05/03 23:49:42  mast
 #  Fixed bug when there is failure to run a sync file and improved error
 #  extraction from log; fixed bug when log file is empty and PID file exist
