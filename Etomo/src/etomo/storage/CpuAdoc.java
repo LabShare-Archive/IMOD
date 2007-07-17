@@ -2,21 +2,30 @@ package etomo.storage;
 
 import java.io.FileNotFoundException;
 import java.io.IOException;
+import java.util.ArrayList;
 import java.util.Hashtable;
+import java.util.List;
 import java.util.Map;
 
+import etomo.BaseManager;
 import etomo.storage.autodoc.AutodocFactory;
 import etomo.storage.autodoc.ReadOnlyAttribute;
 import etomo.storage.autodoc.ReadOnlyAutodoc;
 import etomo.storage.autodoc.ReadOnlySection;
 import etomo.storage.autodoc.SectionLocation;
 import etomo.type.AxisID;
+import etomo.type.ConstEtomoNumber;
 import etomo.type.EtomoNumber;
 import etomo.type.InterfaceType;
 import etomo.util.EnvironmentVariable;
 
 /**
- * <p>Description: </p>
+ * <p>Description:</p>
+ * <p>Represents the cpu.adoc file except the mount rules, which
+ * are handled by RemotePath.</p>
+ * 
+ * <p>Assumptions:</p>
+ * <p>The Computer section names in cpu.adoc must be unique.</p>
  * 
  * <p>Copyright: Copyright 2006</p>
  *
@@ -35,32 +44,43 @@ import etomo.util.EnvironmentVariable;
 public class CpuAdoc {
   public static final String rcsid = "$Id$";
 
+  public static final String LOCAL_HOST = "localhost";
   public static final String SECTION_TYPE = "Computer";
+
+  private static final int MIN_NICE_DEFAULT = 4;
 
   private static CpuAdoc INSTANCE = null;
 
+  private final List computerList = new ArrayList();
   private final Map computerMap = new Hashtable();
+  private final EtomoNumber minNice = new EtomoNumber();
+  private final EtomoNumber maxTilt = new EtomoNumber();
+  private final EtomoNumber maxVolcombine = new EtomoNumber();
 
   private boolean separateChunks;
-  private int minNice;
   private boolean usersColumn;
+  private String unitsSpeed = "";
+  private String unitsMemory = "";
 
   private CpuAdoc() {
+    minNice.setDisplayValue(MIN_NICE_DEFAULT);
+    minNice.setDefault(MIN_NICE_DEFAULT);
   }
 
-  public static CpuAdoc getInstance(AxisID axisID) {
+  public static CpuAdoc getInstance(AxisID axisID, BaseManager manager) {
     if (INSTANCE != null) {
       return INSTANCE;
     }
-    return createInstance(axisID);
+    return createInstance(axisID, manager);
   }
 
-  private static synchronized CpuAdoc createInstance(AxisID axisID) {
+  private static synchronized CpuAdoc createInstance(AxisID axisID,
+      BaseManager manager) {
     if (INSTANCE != null) {
       return INSTANCE;
     }
     INSTANCE = new CpuAdoc();
-    INSTANCE.load(axisID);
+    INSTANCE.load(axisID, manager);
     return INSTANCE;
   }
 
@@ -72,63 +92,78 @@ public class CpuAdoc {
     return usersColumn;
   }
 
-  public boolean isMinNiceNull() {
-    return EtomoNumber.isNull(minNice);
-  }
-
   public int getMinNice() {
-    return minNice;
+    return minNice.getInt();
   }
 
-  public InterfaceType getExcludeInterface(String key) {
-    Computer computer = (Computer) computerMap.get(key);
-    if (computer == null) {
-      return null;
-    }
-    return computer.interfaceType;
-  }
-  
-  /**
-   * Returns true if computerMap doesn't contain an entry
-   * @param key
-   * @return
-   */
-  public boolean isUsersEmpty(String key) {
-    Computer computer = (Computer) computerMap.get(key);
-    if (computer == null||computer.users==null) {
-      return true;
-    }
-    return computer.users.length==0;
-  }
-  
-  /**
-   * Returns the index of the user in Computer.users or -1 if not find
-   * @param key
-   * @param user
-   * @return
-   */
-  public int findUser(String key, String user) {
-    Computer computer = (Computer) computerMap.get(key);
-    if (computer == null) {
-      return -1;
-    }
-    for (int i = 0;i<computer.users.length;i++) {
-      if (computer.users[i].equals(user)) {
-        return i;
-      }
-    }
-    return -1;
+  public String getUnitsSpeed() {
+    return unitsSpeed;
   }
 
-  private void load(AxisID axisID) {
+  public String getUnitsMemory() {
+    return unitsMemory;
+  }
+
+  public ConstEtomoNumber getMaxTilt() {
+    return maxTilt;
+  }
+
+  public ConstEtomoNumber getMaxVolcombine() {
+    return maxVolcombine;
+  }
+
+  public String getName(int index) {
+    String name = (String) computerList.get(index);
+    if (name == null) {
+      return "";
+    }
+    return name;
+  }
+
+  public Computer getComputer(int index) {
+    Computer computer = (Computer) computerMap.get(getName(index));
+    if (computer == null) {
+      return new Computer();
+    }
+    return computer;
+  }
+
+  public int getNumComputers() {
+    return computerList.size();
+  }
+
+  private void load(AxisID axisID, BaseManager manager) {
     ReadOnlyAutodoc autodoc = getAutodoc(axisID);
     if (autodoc == null) {
+      loadImodProcessors(axisID,  manager);
+    }
+    else {
+      separateChunks = loadBooleanAttribute(autodoc, "separate-chunks");
+      loadAttribute(minNice, autodoc, "min", "nice");
+      usersColumn = loadBooleanAttribute(autodoc, "users-column");
+      unitsSpeed = loadStringAttribute(autodoc, "units", "speed");
+      unitsMemory = loadStringAttribute(autodoc, "units", "memory");
+      loadAttribute(maxTilt, autodoc, "max", "tilt");
+      loadAttribute(maxTilt, autodoc, "max", "volcombine");
+      loadComputers(autodoc);
+      if (computerList.size() == 0) {
+        loadImodProcessors(axisID,  manager);
+      }
+    }
+  }
+  
+  private void loadImodProcessors(AxisID axisID, BaseManager manager) {
+    EtomoNumber imodProcessors = new EtomoNumber();
+    imodProcessors.set(EnvironmentVariable.INSTANCE.getValue(manager
+        .getPropertyUserDir(), "IMOD_PROCESSORS", axisID));
+    if (imodProcessors.isNull()) {
       return;
     }
-    separateChunks = loadBoolean(autodoc, "separate-chunks");
-    minNice = loadInt(autodoc, "min", "nice");
-    usersColumn = loadBoolean(autodoc, "users-column");
-    loadComputerMap(autodoc);
+    loadComputers(imodProcessors);
+  }
+
+  public boolean isValid() {
+    return computerList.size() > 0;
   }
 
   private ReadOnlyAutodoc getAutodoc(AxisID axisID) {
@@ -153,7 +188,7 @@ public class CpuAdoc {
     return autodoc;
   }
 
-  private void loadComputerMap(ReadOnlyAutodoc autodoc) {
+  private void loadComputers(ReadOnlyAutodoc autodoc) {
     SectionLocation location = autodoc.getSectionLocation(SECTION_TYPE);
     if (location == null) {
       return;
@@ -161,13 +196,27 @@ public class CpuAdoc {
     ReadOnlySection section = null;
     while ((section = autodoc.nextSection(location)) != null) {
       Computer computer = Computer.getInstance(section);
+      String name = section.getName();
       if (computer != null) {
-        computerMap.put(section.getName(), computer);
+        computerList.add(name);
+        computerMap.put(name, computer);
       }
     }
   }
 
-  private boolean loadBoolean(ReadOnlyAutodoc autodoc, String key) {
+  private void loadComputers(EtomoNumber imodProcessors) {
+    if (imodProcessors == null || imodProcessors.isNull()
+        || !imodProcessors.isValid()) {
+      return;
+    }
+    Computer computer = Computer.getInstance(imodProcessors.getInt());
+    if (computer != null) {
+      computerList.add(LOCAL_HOST);
+      computerMap.put(LOCAL_HOST, computer);
+    }
+  }
+
+  private boolean loadBooleanAttribute(ReadOnlyAutodoc autodoc, String key) {
     ReadOnlyAttribute attrib = autodoc.getAttribute(key);
     if (attrib != null
         && (attrib.getValue() == null || !attrib.getValue().equals("0"))) {
@@ -176,29 +225,51 @@ public class CpuAdoc {
     return false;
   }
 
-  private int loadInt(ReadOnlyAutodoc autodoc, String key1, String key2) {
-    EtomoNumber number = new EtomoNumber();
+  private void loadAttribute(EtomoNumber number, ReadOnlyAutodoc autodoc,
+      String key1, String key2) {
+    number.reset();
     ReadOnlyAttribute attrib = autodoc.getAttribute(key1);
     if (attrib == null) {
-      return number.getInt();
+      return;
     }
     attrib = attrib.getAttribute(key2);
     if (attrib == null) {
-      return number.getInt();
+      return;
     }
     number.set(attrib.getValue());
-    return number.getInt();
+  }
+
+  private String loadStringAttribute(ReadOnlyAutodoc autodoc, String key1,
+      String key2) {
+    ReadOnlyAttribute attrib = autodoc.getAttribute(key1);
+    if (attrib == null) {
+      return "";
+    }
+    attrib = attrib.getAttribute(key2);
+    if (attrib == null) {
+      return "";
+    }
+    return attrib.getValue();
   }
 
   /**
    * @threadsafe
    */
-  private static final class Computer {
+  public static final class Computer {
+    private final static int NUMBER_DEFAULT = 1;
+    private final EtomoNumber cpuNumber = new EtomoNumber();
 
-    private InterfaceType interfaceType=null;
-    private String[] users=null;
+    private InterfaceType excludeInterface = null;
+    private String[] users = null;
+    private EtomoNumber number = new EtomoNumber();
+    private String type = "";
+    private String memory = "";
+    private String os = "";
+    private String speed = "";
 
     private Computer() {
+      number.setDisplayValue(NUMBER_DEFAULT);
+      number.setDefault(NUMBER_DEFAULT);
     }
 
     private static Computer getInstance(ReadOnlySection section) {
@@ -207,27 +278,106 @@ public class CpuAdoc {
       return instance;
     }
 
+    private static Computer getInstance(int imodProcessor) {
+      Computer instance = new Computer();
+      instance.load(imodProcessor);
+      return instance;
+    }
+
+    private void load(int imodProcessor) {
+      number.set(imodProcessor);
+    }
+
     private void load(ReadOnlySection section) {
       ReadOnlyAttribute attribute = section.getAttribute("exclude-interface");
       if (attribute != null) {
-        InterfaceType interfaceType = InterfaceType.getInstance(attribute
-            .getValue());
-        if (interfaceType != null) {
-          this.interfaceType = interfaceType;
-        }
+        excludeInterface = InterfaceType.getInstance(attribute.getValue());
       }
       attribute = section.getAttribute("users");
       if (attribute != null) {
         String list = attribute.getValue();
-        if (list !=null) {
+        if (list != null) {
           users = list.split("\\s*,\\s*");
         }
       }
+      attribute = section.getAttribute("number");
+      if (attribute != null) {
+        number.set(attribute.getValue());
+      }
+      attribute = section.getAttribute("memory");
+      if (attribute != null) {
+        memory = attribute.getValue();
+      }
+      attribute = section.getAttribute("os");
+      if (attribute != null) {
+        os = attribute.getValue();
+      }
+      attribute = section.getAttribute("speed");
+      if (attribute != null) {
+        speed = attribute.getValue();
+      }
+      attribute = section.getAttribute("type");
+      if (attribute != null) {
+        type = attribute.getValue();
+      }
+    }
+
+    public String getMemory() {
+      return memory;
+    }
+
+    public int getNumber() {
+      return number.getInt();
+    }
+
+    public String getOs() {
+      return os;
+    }
+
+    public String getSpeed() {
+      return speed;
+    }
+
+    public String getType() {
+      return type;
+    }
+
+    /**
+     * Use the users array to decide whether a user should be excluded.
+     * @param user
+     * @return
+     */
+    public boolean isExcludedUser(String user) {
+      if (users == null || users.length == 0) {
+        return false;
+      }
+      for (int i = 0; i < users.length; i++) {
+        if (users[i].equals(user)) {
+          return false;
+        }
+      }
+      return true;
+    }
+
+    /**
+     * Use the excludeInterface member variable to decide whether an interface 
+     * should be excluded.
+     * @param user
+     * @return
+     */
+    public boolean isExcludedInterface(InterfaceType input) {
+      if (excludeInterface == null || excludeInterface != input) {
+        return false;
+      }
+      return true;
     }
   }
 }
 /**
  * <p> $Log$
+ * <p> Revision 1.8  2007/05/22 21:07:57  sueh
+ * <p> bug# 999 Added class Computer, to hold section level data.  Added users.
+ * <p>
  * <p> Revision 1.7  2007/05/21 22:29:13  sueh
  * <p> bug# 1000 Added excludeInterface and loadExcludeInterfaceMap().
  * <p>
