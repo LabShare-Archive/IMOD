@@ -17,7 +17,7 @@ PROGS = addtostack$(E) alterheader$(E) assemblevol$(E) avganova$(E) \
  subimstat$(E) taperoutvol$(E) tapervoledge$(E) tiltxcorr$(E) tomopieces$(E) \
  vmstocsh$(E) warpvol$(E) xcorr$(E) xfinverse$(E) xfproduct$(E) xfsimplex$(E) \
  xftoxg$(E) xyzproj$(E) extractmagrad$(E) mtffilter$(E) maxjoinsize$(E) \
- binvol$(E) numericdiff$(E) stitchalign$(E)
+ binvol$(E) numericdiff$(E) stitchalign$(E) densnorm$(E)
 
 LIBS = $(FORTCLIBS)
 
@@ -58,6 +58,9 @@ combinefft$(E): combinefft.$(O)
 
 densmatch$(E): densmatch.$(O)
 	$(FC) -o densmatch densmatch.$(O) $(LDFLG) $(IMLIBS) $(LIBS)
+
+densnorm$(E): densnorm.$(O)
+	$(FC) -o densnorm densnorm.$(O) $(LDFLG) $(IMLIBS) $(LIBS)
 
 edmont$(E): edmont.$(O)
 	$(FC) -o edmont edmont.$(O) $(LDFLG) $(IMLIBS) $(LIBS)
@@ -208,6 +211,9 @@ enhance.$(O): $(INCDIR)/ftbuf.inc
 fftrans.$(O): $(INCDIR)/ftbuf.inc
 
 #  $Log$
+#  Revision 3.12  2007/04/08 16:17:06  mast
+#  Added stitchalign
+#
 #  Revision 3.11  2006/06/22 01:09:45  mast
 #  Replaced LDFLAGS with LDFFLAGS for Intel Mac
 #
