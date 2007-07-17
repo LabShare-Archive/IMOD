@@ -3,8 +3,6 @@ package etomo.ui;
 import java.awt.Container;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
-import java.io.FileNotFoundException;
-import java.io.IOException;
 
 import javax.swing.BorderFactory;
 import javax.swing.Box;
@@ -17,18 +15,11 @@ import etomo.comscript.SplittiltParam;
 import etomo.process.LoadAverageMonitor;
 import etomo.process.ParallelProcessMonitor;
 import etomo.storage.CpuAdoc;
-import etomo.storage.LogFile;
-import etomo.storage.autodoc.AutodocFactory;
-import etomo.storage.autodoc.ReadOnlyAttribute;
-import etomo.storage.autodoc.ReadOnlyAutodoc;
 import etomo.type.AxisID;
 import etomo.type.ConstEtomoNumber;
 import etomo.type.EtomoBoolean2;
-import etomo.type.EtomoNumber;
 import etomo.type.PanelHeaderState;
-import etomo.type.ProcessName;
 import etomo.type.ProcessResultDisplay;
-import etomo.util.EnvironmentVariable;
 import etomo.util.HashedArray;
 
 /**
@@ -112,13 +103,7 @@ public final class ParallelPanel implements ParallelProgressDisplay,
     southPanel.add(ltfCPUsSelected);
     southPanel.add(btnRestartLoad);
     //sNice
-    CpuAdoc cpuAdoc = CpuAdoc.getInstance(axisID);
-    if (cpuAdoc.isMinNiceNull()) {
-      niceFloor = ProcesschunksParam.NICE_FLOOR_DEFAULT;
-    }
-    else {
-      niceFloor = cpuAdoc.getMinNice();
-    }
+      niceFloor = CpuAdoc.getInstance(axisID, manager).getMinNice();
     sNice = Spinner.getLabeledInstance("Nice: ", manager
         .getParallelProcessingDefaultNice(), niceFloor,
         ProcesschunksParam.NICE_CEILING);
@@ -195,7 +180,7 @@ public final class ParallelPanel implements ParallelProgressDisplay,
 
   public LoadAverageMonitor getLoadAverageMonitor() {
     if (loadAverageMonitor == null) {
-      loadAverageMonitor = new LoadAverageMonitor(this, axisID);
+      loadAverageMonitor = new LoadAverageMonitor(this, axisID, manager);
     }
     return loadAverageMonitor;
   }
@@ -249,86 +234,6 @@ public final class ParallelPanel implements ParallelProgressDisplay,
     else if (command == btnRestartLoad.getActionCommand()) {
       loadAverageMonitor.restart();
     }
-  }
-
-  static boolean isValidAutodoc(final AxisID axisID) {
-    if (validAutodoc != null) {
-      return validAutodoc.is();
-    }
-    validAutodoc = new EtomoBoolean2();
-    ReadOnlyAutodoc autodoc = getAutodoc(axisID);
-    if (autodoc != null && autodoc.sectionExists(CpuAdoc.SECTION_TYPE)) {
-      validAutodoc.set(true);
-    }
-    return validAutodoc.is();
-  }
-
-  /**
-   * get cpu autodoc
-   * @param axisID
-   * @return
-   */
-  static ReadOnlyAutodoc getAutodoc(final AxisID axisID) {
-    ReadOnlyAutodoc autodoc = null;
-    try {
-      autodoc = AutodocFactory.getInstance(AutodocFactory.CPU, axisID);
-    }
-    catch (FileNotFoundException except) {
-      except.printStackTrace();
-    }
-    catch (IOException except) {
-      except.printStackTrace();
-    }
-    catch (LogFile.ReadException except) {
-      except.printStackTrace();
-    }
-    if (autodoc == null) {
-      System.err
-          .println("Unable to display the rows of the processor table./nMissing $"
-              + EnvironmentVariable.CALIB_DIR
-              + "/cpu.adoc file./nSee $IMOD_DIR/autodoc/cpu.adoc.");
-    }
-    return autodoc;
-  }
-
-  /**
-   * get the maximum recommended CPUs for the process
-   * 
-   * saves the value in a hashed array if it is found
-   * @param axisID
-   * @param process
-   * @return
-   */
-  static ConstEtomoNumber getMaxCPUs(final AxisID axisID,
-      ProcessName processName) {
-    String process = processName.toString();
-    EtomoNumber maxCPUs = null;
-    //look for maxCPUs in maxCPUList
-    if (maxCPUList != null) {
-      maxCPUs = (EtomoNumber) maxCPUList.get(process);
-    }
-    if (maxCPUs != null) {
-      return maxCPUs;
-    }
-    //look for maxCPUs in cpu.adoc
-    maxCPUs = new EtomoNumber();
-    ReadOnlyAutodoc autodoc = getAutodoc(axisID);
-    if (autodoc == null) {
-      return maxCPUs;
-    }
-    ReadOnlyAttribute maxAttribute = autodoc.getAttribute("max");
-    try {
-      maxCPUs.set(maxAttribute.getAttribute(process).getValue());
-    }
-    catch (NullPointerException e) {
-    }
-    //add maxCPUs to maxCPUList
-    if (maxCPUs != null && !maxCPUs.isNull()) {
-      if (maxCPUList != null) {
-        maxCPUList.add(process, maxCPUs);
-      }
-    }
-    return maxCPUs;
   }
 
   public void addRestart(final String computer) {
@@ -489,6 +394,9 @@ public final class ParallelPanel implements ParallelProgressDisplay,
 }
 /**
  * <p> $Log$
+ * <p> Revision 1.53  2007/05/26 00:32:56  sueh
+ * <p> bug# 994 Using getInstance in ParallelPanel.  Added btnRestartLoad.
+ * <p>
  * <p> Revision 1.52  2007/05/25 00:26:59  sueh
  * <p> bug# 994 Passing tooltip to msgLoadAverageFailed and
  * <p> msgStartingProcess.
