@@ -3,6 +3,7 @@ package etomo.process;
 import java.util.ArrayList;
 import java.util.HashMap;
 
+import etomo.BaseManager;
 import etomo.comscript.IntermittentCommand;
 import etomo.storage.CpuAdoc;
 import etomo.type.AxisID;
@@ -39,9 +40,9 @@ public class LoadAverageMonitor implements IntermittentProcessMonitor, Runnable 
   //program.  Also set externally to stop the run() program.
   private boolean stopped = true;
 
-  public LoadAverageMonitor(LoadAverageDisplay display, AxisID axisID) {
+  public LoadAverageMonitor(LoadAverageDisplay display, AxisID axisID, BaseManager manager) {
     this.display = display;
-    usersColumn = CpuAdoc.getInstance(axisID).isUsersColumn();
+    usersColumn = CpuAdoc.getInstance(axisID, manager).isUsersColumn();
   }
 
   public void run() {
@@ -425,6 +426,10 @@ public class LoadAverageMonitor implements IntermittentProcessMonitor, Runnable 
 }
 /**
  * <p> $Log$
+ * <p> Revision 1.23  2007/05/26 00:28:19  sueh
+ * <p> bug# 964 Removed allowRestart.  Added restart() to do restarts with a
+ * <p> button press instead of automatically.
+ * <p>
  * <p> Revision 1.22  2007/05/25 00:24:19  sueh
  * <p> bug# 994 In ProgramState, add dataReceived and getFailureReason().
  * <p>
