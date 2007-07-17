@@ -3366,7 +3366,7 @@ c
 c             compute delta z as function of X across the loaded slice
 c             which is not ideal since the data will not be coming from slice
             dxdelz = idxwarp / 2.
-            ndelz = max(2., min((nxload - 1) / dxdelz, 2 * limwpos)) + 1
+            ndelz = max(2., min((nxload - 1) / dxdelz, 2. * limwpos)) + 1
             dxdelz = (nxload - 1.) / (ndelz - 1.)
             iys = nint(line + yprjOffset - (minZreproj -1))
             do i = 1, ndelz
@@ -3659,6 +3659,9 @@ c       constant mean levels.  Descale non-log data by exposure weights
 
 c       
 c       $Log$
+c       Revision 3.35  2007/07/16 05:11:05  mast
+c       Added reprojection from tomogram with local alignments, etc.
+c
 c       Revision 3.34  2007/06/22 05:04:34  mast
 c       Converted to PIP
 c
