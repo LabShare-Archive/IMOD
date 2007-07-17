@@ -246,7 +246,6 @@ public final class RemotePath {
   public static final String rcsid = "$Id$";
 
   public static final RemotePath INSTANCE = new RemotePath();
-  static final String LOCAL_HOST = "localhost";
   static final String MOUNT_RULE = "mountrule";
   static final String LOCAL = "local";
   static final String REMOTE = "remote";
@@ -287,7 +286,7 @@ public final class RemotePath {
     if (sectionName == null) {
       return false;
     }
-    if (sectionName.equals(LOCAL_HOST)) {
+    if (sectionName.equals(CpuAdoc.LOCAL_HOST)) {
       return true;
     }
     loadMountRules(manager, axisID);
@@ -387,7 +386,7 @@ public final class RemotePath {
           || (localSection = loadMountRules(autodoc, hostName.substring(0,
               stripIndex), true)) == null) {
         //look for a section name called "localhost"
-        localSection = loadMountRules(autodoc, LOCAL_HOST, false);
+        localSection = loadMountRules(autodoc, CpuAdoc.LOCAL_HOST, false);
       }
     }
     //load global mount rules
@@ -507,7 +506,7 @@ public final class RemotePath {
               + ".  Cannot use "
               + MOUNT_NAME_TAG
               + " because there is no mountname.\nEither there is no mountname entry under the "
-              + sectionType + LOCAL_HOST + AutodocTokenizer.CLOSE_CHAR
+              + sectionType + CpuAdoc.LOCAL_HOST + AutodocTokenizer.CLOSE_CHAR
               + " section or there is no section for this computer.\n");
       //pass this problem so that it can be shown to the user
       return true;
@@ -669,6 +668,9 @@ public final class RemotePath {
 }
 /**
  * <p> $Log$
+ * <p> Revision 1.14  2007/06/08 22:22:53  sueh
+ * <p> Corrected typo in function getRemotePath.
+ * <p>
  * <p> Revision 1.13  2007/05/21 22:32:00  sueh
  * <p> bug# 1000 Moved ProcessorTable.SECTION_TYPE to CpuAdoc.
  * <p>

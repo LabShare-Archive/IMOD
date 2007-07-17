@@ -381,7 +381,7 @@ public class RemotePathTest extends TestCase {
       }
     }
     else {
-      sectionName = RemotePath.LOCAL_HOST;
+      sectionName = CpuAdoc.LOCAL_HOST;
     }
     //write the section
     addSection(bufferedWriter, sectionName);
@@ -931,9 +931,9 @@ public class RemotePathTest extends TestCase {
     if (Utilities.isWindowsOS()) {
       return;
     }
-    assertTrue(RemotePath.INSTANCE.isLocalSection(RemotePath.LOCAL_HOST,
+    assertTrue(RemotePath.INSTANCE.isLocalSection(CpuAdoc.LOCAL_HOST,
         MANAGER, AxisID.ONLY));
-    assertFalse(RemotePath.INSTANCE.isLocalSection(RemotePath.LOCAL_HOST
+    assertFalse(RemotePath.INSTANCE.isLocalSection(CpuAdoc.LOCAL_HOST
         .toUpperCase(), MANAGER, AxisID.ONLY));
   }
 
@@ -998,6 +998,9 @@ public class RemotePathTest extends TestCase {
 }
 /**
  * <p> $Log$
+ * <p> Revision 1.36  2007/05/21 22:32:08  sueh
+ * <p> bug# 1000 Moved ProcessorTable.SECTION_TYPE to CpuAdoc.
+ * <p>
  * <p> Revision 1.35  2007/03/21 19:50:55  sueh
  * <p> bug# 964 Limiting access to autodoc classes by using ReadOnly interfaces.
  * <p> Added AutodocFactory to create Autodoc instances.
