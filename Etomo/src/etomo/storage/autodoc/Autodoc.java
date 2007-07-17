@@ -470,6 +470,13 @@ final class Autodoc extends WriteOnlyStatementList implements WritableAutodoc {
     return autodocFile.getAbsolutePath();
   }
 
+  public String toString() {
+    if (autodocFile == null) {
+      return "";
+    }
+    return autodocFile.getAbsolutePath();
+  }
+
   private File getDir(String envVariable, String dirName, AxisID axisID) {
     File parentDir = Utilities.getExistingDir(envVariable, axisID);
     if (parentDir == null) {
@@ -598,6 +605,10 @@ final class Autodoc extends WriteOnlyStatementList implements WritableAutodoc {
 }
 /**
  *<p> $$Log$
+ *<p> $Revision 1.21  2007/06/07 21:31:26  sueh
+ *<p> $bug# 1012 Moved the file back up out of Autodoc.write() into
+ *<p> $MatlabParam.write().
+ *<p> $
  *<p> $Revision 1.20  2007/04/13 18:42:29  sueh
  *<p> $bug# 964 Added debug member variable.
  *<p> $
