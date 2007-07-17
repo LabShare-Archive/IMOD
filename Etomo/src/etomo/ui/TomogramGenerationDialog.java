@@ -25,6 +25,7 @@ import javax.swing.SpinnerNumberModel;
 import etomo.ApplicationManager;
 import etomo.EtomoDirector;
 import etomo.comscript.ParallelParam;
+import etomo.storage.CpuAdoc;
 import etomo.storage.LogFile;
 import etomo.storage.MtfFileFilter;
 import etomo.storage.autodoc.AutodocFactory;
@@ -34,7 +35,6 @@ import etomo.type.ConstEtomoNumber;
 import etomo.type.DialogType;
 import etomo.type.EtomoAutodoc;
 import etomo.type.PanelHeaderState;
-import etomo.type.ProcessName;
 import etomo.type.ProcessResultDisplay;
 import etomo.type.ProcessResultDisplayFactory;
 import etomo.type.ReconScreenState;
@@ -60,6 +60,10 @@ import etomo.type.ViewType;
  * 
  * <p>
  * $Log$
+ * Revision 3.106  2007/05/26 00:33:32  sueh
+ * bug# 994 Not automatically setting button size in SpacedPanel anymore.
+ * Setting button size in UI.
+ *
  * Revision 3.105  2007/05/01 22:30:26  sueh
  * bug# 964 In LabeledSpinner, saving SpinnerNumberModel so that the
  * maximum can be changed.
@@ -1426,8 +1430,8 @@ public class TomogramGenerationDialog extends ProcessDialog implements
    */
   private Container layoutTiltPanel() {
     //fields
-    ConstEtomoNumber maxCPUs = ParallelPanel.getMaxCPUs(axisID,
-        ProcessName.TILT);
+    ConstEtomoNumber maxCPUs = CpuAdoc.getInstance(axisID, applicationManager)
+        .getMaxTilt();
     if (maxCPUs != null && !maxCPUs.isNull()) {
       cbParallelProcess = new CheckBox(ParallelPanel.TITLE
           + ParallelPanel.MAX_CPUS_STRING + maxCPUs.toString());

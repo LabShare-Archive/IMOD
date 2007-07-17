@@ -24,6 +24,7 @@ import etomo.comscript.SetParam;
 import etomo.comscript.MatchorwarpParam;
 import etomo.comscript.Patchcrawl3DParam;
 import etomo.comscript.SolvematchParam;
+import etomo.storage.CpuAdoc;
 import etomo.type.AxisID;
 import etomo.type.CombineProcessType;
 import etomo.type.ConstEtomoNumber;
@@ -31,7 +32,6 @@ import etomo.type.ConstMetaData;
 import etomo.type.DialogType;
 import etomo.type.MatchMode;
 import etomo.type.MetaData;
-import etomo.type.ProcessName;
 import etomo.type.ProcessResultDisplay;
 import etomo.type.ReconScreenState;
 import etomo.type.TomogramState;
@@ -50,6 +50,9 @@ import etomo.type.TomogramState;
  * @version $Revision$
  *
  * <p> $Log$
+ * <p> Revision 3.52  2006/10/13 22:30:55  sueh
+ * <p> bug# 927 Added ltfLowFromBothRadius to final tab.
+ * <p>
  * <p> Revision 3.51  2006/10/10 05:24:43  sueh
  * <p> bug# 931 Allowing UITest to manipulate the tabs by changing to
  * <p> etomo.ui.TabbedPane.
@@ -379,8 +382,8 @@ public final class TomogramCombinationDialog extends ProcessDialog implements
 
   public TomogramCombinationDialog(ApplicationManager appMgr) {
     super(appMgr, AxisID.FIRST, DialogType.TOMOGRAM_COMBINATION);
-    ConstEtomoNumber maxCPUs = ParallelPanel.getMaxCPUs(AxisID.ONLY,
-        ProcessName.VOLCOMBINE);
+    ConstEtomoNumber maxCPUs = CpuAdoc.getInstance(AxisID.ONLY, appMgr)
+        .getMaxVolcombine();
     if (maxCPUs != null && !maxCPUs.isNull()) {
       parallelProcessCheckBoxText = ParallelPanel.TITLE
           + ParallelPanel.MAX_CPUS_STRING + maxCPUs.toString();
@@ -455,20 +458,6 @@ public final class TomogramCombinationDialog extends ProcessDialog implements
   public static ProcessResultDisplay getRestartVolcombineDisplay() {
     return FinalCombinePanel
         .getRestartVolcombineDisplay(DialogType.TOMOGRAM_COMBINATION);
-  }
-
-  static CheckBox getParallelProcessCheckBox() {
-    ConstEtomoNumber maxCPUs = ParallelPanel.getMaxCPUs(AxisID.ONLY,
-        ProcessName.VOLCOMBINE);
-    CheckBox parallelProcessCheckBox;
-    if (maxCPUs != null && !maxCPUs.isNull()) {
-      parallelProcessCheckBox = new CheckBox(ParallelPanel.TITLE
-          + ParallelPanel.MAX_CPUS_STRING + maxCPUs.toString());
-    }
-    else {
-      parallelProcessCheckBox = new CheckBox(ParallelPanel.TITLE);
-    }
-    return parallelProcessCheckBox;
   }
 
   /**
@@ -582,8 +571,7 @@ public final class TomogramCombinationDialog extends ProcessDialog implements
     pnlInitial.getSolvematchParams(solvematchParams);
   }
 
-  public void getParameters(MatchvolParam param)
-      throws NumberFormatException {
+  public void getParameters(MatchvolParam param) throws NumberFormatException {
     pnlInitial.getParameters(param);
   }
 
@@ -599,7 +587,7 @@ public final class TomogramCombinationDialog extends ProcessDialog implements
   public void setReductionFactorParams(ConstSetParam setParam) {
     pnlFinal.setReductionFactorParams(setParam);
   }
-  
+
   public void setLowFromBothRadiusParams(ConstSetParam setParam) {
     pnlFinal.setLowFromBothRadiusParams(setParam);
   }
@@ -618,7 +606,7 @@ public final class TomogramCombinationDialog extends ProcessDialog implements
   public void getReductionFactorParam(SetParam setParam) {
     pnlFinal.getReductionFactorParam(setParam);
   }
-  
+
   public void getLowFromBothRadiusParam(SetParam setParam) {
     pnlFinal.getLowFromBothRadiusParam(setParam);
   }
@@ -626,11 +614,11 @@ public final class TomogramCombinationDialog extends ProcessDialog implements
   public void enableReductionFactor(boolean enable) {
     pnlFinal.enableReductionFactor(enable);
   }
-  
+
   public void enableLowFromBothRadius(boolean enable) {
     pnlFinal.enableLowFromBothRadius(enable);
   }
-  
+
   MatchMode getMatchMode() {
     return pnlSetup.getMatchMode();
   }
@@ -736,7 +724,7 @@ public final class TomogramCombinationDialog extends ProcessDialog implements
     tabbedPane.setEnabledAt(FINAL_INDEX, enableTabs);
     pnlSetup.updateDisplay(enableTabs);
   }
-  
+
   public void updatePatchVectorModelDisplay() {
     pnlFinal.updatePatchVectorModelDisplay();
   }

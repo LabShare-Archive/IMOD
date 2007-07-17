@@ -137,9 +137,10 @@ public final class TomogramGenerationExpert extends ReconUIExpert {
       processchunks(manager, dialog, processResultDisplay);
     }
   }
-  
+
   public void reconnectTilt(ProcessName processName) {
-    ProcessResultDisplay display = manager.getProcessResultDisplayFactory(axisID).getGenerateTomogram();
+    ProcessResultDisplay display = manager.getProcessResultDisplayFactory(
+        axisID).getGenerateTomogram();
     sendMsgProcessStarting(display);
     manager.reconnectTilt(axisID, processName, display);
   }
@@ -564,7 +565,8 @@ public final class TomogramGenerationExpert extends ReconUIExpert {
     if (!getParallelPanel().getParameters(param)) {
       return null;
     }
-    param.setSeparateChunks(CpuAdoc.getInstance(axisID).isSeparateChunks());
+    param.setSeparateChunks(CpuAdoc.getInstance(axisID, manager)
+        .isSeparateChunks());
     return param;
   }
 
@@ -680,7 +682,7 @@ public final class TomogramGenerationExpert extends ReconUIExpert {
       getBinningFromNewst = false;
       dialog.setBinning(binning);
     }
-    boolean validAutodoc = ParallelPanel.isValidAutodoc(AxisID.ONLY);
+    boolean validAutodoc = CpuAdoc.getInstance(AxisID.ONLY, manager).isValid();
     ConstEtomoNumber tomoGenTiltParallel = metaData
         .getTomoGenTiltParallel(axisID);
     dialog.setParallelProcessEnabled(validAutodoc);
@@ -1029,6 +1031,9 @@ public final class TomogramGenerationExpert extends ReconUIExpert {
 }
 /**
  * <p> $Log$
+ * <p> Revision 1.12  2007/05/18 23:54:20  sueh
+ * <p> bug# 987 Made CpuAdoc thread-safe.  Added minNice.
+ * <p>
  * <p> Revision 1.11  2007/03/21 19:47:27  sueh
  * <p> bug# 964 Limiting access to autodoc classes by using ReadOnly interfaces.
  * <p> Added AutodocFactory to create Autodoc instances.
