@@ -6,6 +6,7 @@ import java.awt.GridBagLayout;
 import javax.swing.JPanel;
 
 import etomo.storage.MatlabParam;
+import etomo.type.EtomoNumber;
 
 /**
  * <p>Description: </p>
@@ -21,6 +22,9 @@ import etomo.storage.MatlabParam;
  * @version $Revision$
  * 
  * <p> $Log$
+ * <p> Revision 1.7  2007/07/10 00:38:03  sueh
+ * <p> bug# 1022 added validateRun.
+ * <p>
  * <p> Revision 1.6  2007/05/15 19:56:50  sueh
  * <p> bug# 964 Added getIndex(),setIndex(int), and remove().
  * <p>
@@ -186,9 +190,10 @@ final class IterationRow implements Highlightable {
   }
 
   boolean validateRun() {
-    if (dPhiIncrement.getFloatValue() == 0) {
+    if (dPhiIncrement.getEtomoNumber(EtomoNumber.Type.FLOAT).equals(0)) {
       //When increment and max are both zero, treat this as an empty descriptor.
-      if (dPhiMax.getFloatValue() == 0 || dPhiMax.isEmpty()) {
+      if (dPhiMax.getEtomoNumber(EtomoNumber.Type.FLOAT).equals(0)
+          || dPhiMax.isEmpty()) {
         dPhiIncrement.setValue();
         dPhiMax.setValue();
       }
@@ -201,9 +206,10 @@ final class IterationRow implements Highlightable {
         return false;
       }
     }
-    if (dThetaIncrement.getFloatValue() == 0) {
+    if (dThetaIncrement.getEtomoNumber(EtomoNumber.Type.FLOAT).equals(0)) {
       //When increment and max are both zero, treat this as an empty descriptor.
-      if (dThetaMax.getFloatValue() == 0 || dThetaMax.isEmpty()) {
+      if (dThetaMax.getEtomoNumber(EtomoNumber.Type.FLOAT).equals(0)
+          || dThetaMax.isEmpty()) {
         dThetaIncrement.setValue();
         dThetaMax.setValue();
       }
@@ -218,9 +224,11 @@ final class IterationRow implements Highlightable {
         return false;
       }
     }
-    if (dPsiIncrement.getFloatValue() == 0 || dPsiMax.isEmpty()) {
+    if (dPsiIncrement.getEtomoNumber(EtomoNumber.Type.FLOAT).equals(0)
+        || dPsiMax.isEmpty()) {
       //When increment and max are both zero, treat this as an empty descriptor.
-      if (dPsiMax.getFloatValue() == 0 || dPsiMax.isEmpty()) {
+      if (dPsiMax.getEtomoNumber(EtomoNumber.Type.FLOAT).equals(0)
+          || dPsiMax.isEmpty()) {
         dPsiIncrement.setValue();
         dPsiMax.setValue();
       }
@@ -233,7 +241,7 @@ final class IterationRow implements Highlightable {
         return false;
       }
     }
-    if (searchRadius.getIntValue() < 1) {
+    if (searchRadius.getEtomoNumber().lt(1)) {
       UIHarness.INSTANCE.openMessageDialog("In row " + number.getText() + ", "
           + IterationTable.SEARCH_RADIUS_HEADER1 + " "
           + IterationTable.SEARCH_RADIUS_HEADER2 + " must not be less then 1.",
