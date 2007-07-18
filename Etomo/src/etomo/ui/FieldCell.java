@@ -22,6 +22,10 @@ import etomo.type.EtomoNumber;
  * @version $Revision$
  * 
  * <p> $Log$
+ * <p> Revision 1.19  2007/04/09 21:13:09  sueh
+ * <p> bug# 964 Added clearExpandableValues().  Clears contractedValue and
+ * <p> expandedValue, and sets the displayed value to nothing.
+ * <p>
  * <p> Revision 1.18  2007/04/02 21:49:28  sueh
  * <p> bug# 964 Added FieldCell.editable to make instances of FieldCell that can't be
  * <p> edited.  This allows FieldCell.setEditable and setEnabled to be called without
@@ -279,7 +283,19 @@ final class FieldCell extends InputCell {
       return EtomoNumber.FLOAT_NULL_VALUE;
     }
   }
-
+  
+  ConstEtomoNumber getEtomoNumber() {
+    EtomoNumber number = new EtomoNumber();
+    number.set(textField.getText());
+    return number;
+  }
+  
+  ConstEtomoNumber getEtomoNumber(EtomoNumber.Type type) {
+    EtomoNumber number = new EtomoNumber(type);
+    number.set(textField.getText());
+    return number;
+  }
+  
   long getLongValue() {
 
     try {
