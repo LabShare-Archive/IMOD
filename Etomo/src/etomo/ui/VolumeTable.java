@@ -47,6 +47,9 @@ import etomo.type.Run3dmodMenuOptions;
  * @version $Revision$
  * 
  * <p> $Log$
+ * <p> Revision 1.24  2007/06/08 22:22:29  sueh
+ * <p> bug# 1014 Added reset().
+ * <p>
  * <p> Revision 1.23  2007/06/06 22:06:50  sueh
  * <p> bug# 1013 Made two rows of the buttons.
  * <p>
@@ -156,9 +159,9 @@ final class VolumeTable implements Expandable, Highlightable,
   private final HeaderCell header2FnVolume = new HeaderCell();
   private final HeaderCell header2FnModParticle = new HeaderCell();
   private final HeaderCell header2InitMotlFile = new HeaderCell("MOTL");
-  private final HeaderCell header2TiltRangeStart = new HeaderCell("Start",
+  private final HeaderCell header2TiltRangeStart = new HeaderCell("Min",
       UIParameters.INSTANCE.getNumericWidth());
-  private final HeaderCell header2TiltRangeEnd = new HeaderCell("End",
+  private final HeaderCell header2TiltRangeEnd = new HeaderCell("Max",
       UIParameters.INSTANCE.getNumericWidth());
   private final HeaderCell header2RelativeOrientX = new HeaderCell("X",
       UIParameters.INSTANCE.getNumericWidth());
