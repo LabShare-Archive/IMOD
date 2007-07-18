@@ -811,6 +811,9 @@ public final class LogFile {
 
   public synchronized void write(String string, long writeId)
       throws WriteException {
+    if (string == null) {
+      return;
+    }
     if (fileWriter == null || !lock.isLocked(LockType.WRITE, writeId)) {
       throw new WriteException(this, writeId);
     }
@@ -1369,6 +1372,9 @@ public final class LogFile {
 }
 /**
  * <p> $Log$
+ * <p> Revision 1.11  2007/03/23 20:24:52  sueh
+ * <p> bug# 964 Added write(char, long).
+ * <p>
  * <p> Revision 1.10  2007/03/01 01:14:23  sueh
  * <p> bug# 964 Added openForReading and closeForReading.  Made reader list non-
  * <p> static for simplicity.
