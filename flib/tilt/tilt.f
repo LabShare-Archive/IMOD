@@ -50,7 +50,7 @@ C       Open files and read control data
       if (iflog .ne. 0) edgeFill = alog10(max(valmin, pmean + baselog))
       edgeFill = edgeFill * zeroWeight
       
-      print *,'scale=',scale,'  edgefill=',edgefill
+c      print *,'scale=',scale,'  edgefill=',edgefill
 c       
 c       recompute items not in common
 c       
@@ -3659,6 +3659,9 @@ c       constant mean levels.  Descale non-log data by exposure weights
 
 c       
 c       $Log$
+c       Revision 3.36  2007/07/17 15:20:07  mast
+c       Fix int/float mismatch in min statement
+c
 c       Revision 3.35  2007/07/16 05:11:05  mast
 c       Added reprojection from tomogram with local alignments, etc.
 c
