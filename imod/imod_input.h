@@ -54,6 +54,7 @@ void inputFirstPoint(ImodView *vw);
 void inputLastPoint(ImodView *vw);
 void inputNextTime(ImodView *vw);
 void inputPrevTime(ImodView *vw);
+void inputLimitingTime(ImodView *vw, int dir);
 void inputRestorePointIndex(ImodView *vw);
 void inputKeepContourAtSameTime(ImodView *vw);
 void inputContourDup(ImodView *vw);
@@ -69,6 +70,9 @@ int mouse_in_box(int llx, int lly, int urx, int  ury, int mousex, int mousey);
 #endif /* imod_input.h */
 /*
   $Log$
+  Revision 3.11  2006/02/27 19:46:40  mast
+  Added go to surface function
+
   Revision 3.10  2004/11/20 05:05:27  mast
   Changes for undo/redo capability
 

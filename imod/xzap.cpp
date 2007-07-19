@@ -848,7 +848,7 @@ void zapKeyInput(ZapStruct *zap, QKeyEvent *event)
   static int trans = 5;
   int *limits;
   int limarr[4];
-  int rx, ix, iy, i, obst, obnd, ob;
+  int rx, ix, iy, i, obst, obnd, ob, start, end;
   int keypad = event->state() & Qt::Keypad;
   int shifted = event->state() & Qt::ShiftButton;
   int ctrl = event->state() & Qt::ControlButton;
@@ -952,6 +952,17 @@ void zapKeyInput(ZapStruct *zap, QKeyEvent *event)
       handled = 1;
     }
     break;
+
+  case Qt::Key_At:
+  case Qt::Key_Exclam:
+    if (zap->timeLock) {
+      imcGetStartEnd(vi, 3, &start, &end);
+      zap->timeLock = (keysym == Qt::Key_At) ? end + 1 : start + 1;
+      zapDraw(zap);
+      handled = 1;
+    }
+    break;
+
 
   case Qt::Key_Home:
     if (keypad && imod->mousemode == IMOD_MMOVIE) {
@@ -3864,6 +3875,9 @@ void zapGetLongestTimeString(ImodView *vi, QString *str)
 
 /*
 $Log$
+Revision 4.100  2007/07/12 17:32:07  mast
+Changed for new version of offset routine
+
 Revision 4.99  2007/06/26 21:57:56  sueh
 bug# 1021 Removed win_support.
 

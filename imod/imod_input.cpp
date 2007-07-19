@@ -649,6 +649,20 @@ void inputPrevTime(ImodView *vw)
   imodDraw(vw, IMOD_DRAW_ALL);
 }
 
+void inputLimitingTime(ImodView *vw, int dir)
+{
+  int time, start, end;
+  if (!ivwGetTime(vw, &time))
+    return;
+  imcGetStartEnd(vw, 3, &start, &end);
+  if (dir > 0)
+    ivwSetTime(vw, end + 1);
+  else
+    ivwSetTime(vw, start + 1);
+  slicerNewTime(false);
+  imodDraw(vw, IMOD_DRAW_ALL);
+}
+
 void inputFirstPoint(ImodView *vw)
 {
   Icont *cont = imodContourGet(vw->imod);
@@ -1117,9 +1131,19 @@ void inputQDefaultKeys(QKeyEvent *event, ImodView *vw)
     inputNewObject(vw);
     break;
 
+  case Qt::Key_Exclam:
+    inputMovieTime(vw, 0);
+    inputLimitingTime(vw, -1);
+    break;
+
   case Qt::Key_1:
     inputMovieTime(vw, 0);
     inputPrevTime(vw);
+    break;
+
+  case Qt::Key_At:
+    inputMovieTime(vw, 0);
+    inputLimitingTime(vw, 1);
     break;
 
   case Qt::Key_2:
@@ -1359,6 +1383,9 @@ bool inputTestMetaKey(QKeyEvent *event)
 
 /*
 $Log$
+Revision 4.32  2007/07/08 16:49:24  mast
+Added use of yes always option
+
 Revision 4.31  2007/06/08 04:47:29  mast
 Added hot key for surface delete
 

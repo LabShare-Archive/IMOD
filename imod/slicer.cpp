@@ -718,7 +718,7 @@ void slicerKeyInput(SlicerStruct *ss, QKeyEvent *event)
   int keypad = event->state() & Qt::Keypad;
   float unit;
   Ipoint *p1, *p2;
-  int ob, co, pt, axis;
+  int ob, co, pt, axis, start, end;
   Icont *cont;
   Ipoint norm, vec = {0., 0., 0.};
   ImodView *vi = ss->vi;
@@ -780,6 +780,16 @@ void slicerKeyInput(SlicerStruct *ss, QKeyEvent *event)
   case Qt::Key_2:
     slicerStepTime(ss, (keysym == Qt::Key_1) ? -1 : 1);
     break;
+
+  case Qt::Key_At:
+  case Qt::Key_Exclam:
+    if (ss->timeLock) {
+      imcGetStartEnd(vi, 3, &start, &end);
+      ss->timeLock = (keysym == Qt::Key_At) ? end + 1 : start + 1;
+    } else
+      handled = 0;
+    break;
+
 
   case Qt::Key_S:
     if (shift || ctrl){
@@ -2534,6 +2544,9 @@ void slicerCubePaint(SlicerStruct *ss)
 
 /*
 $Log$
+Revision 4.48  2007/07/08 16:04:49  mast
+Used new hot slider function
+
 Revision 4.47  2007/06/15 21:26:58  mast
 Added shift lock button and switched movie to requiring Ctrl; also
 fixed slicer angle problems by saving and restoring ctrlist when
