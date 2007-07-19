@@ -325,6 +325,8 @@ The step size, lambda, is specified with the
 .B -l
 option; the default is 0.2, which should be small enough to give stable 
 results.
+These computations correspond to those done in the image processing window in
+3dmod(1), but better results will generally by obtained with nad_eed_3d(1).
 .TP
 .B fft
 Calculate a Fast Fourier Transform.
