@@ -371,7 +371,7 @@ FlatFilterFraction   2\
 \$while (\$i <= $lastdel)
 \$    set numtext = \$i
 \$    if (\$i < 10) set numtext = "0"\$i
-\$    \\rm -f $setname.${sirtname}\$numtext
+\$    \\rm -f $setname.${sirtext}\$numtext
 \$    @ i++
 \$end
 \$\\rm -f $srecname $projname~ $drecname~ $lastname~
@@ -391,4 +391,7 @@ echo "  processchunks machine_list $sirtname"
 exit 0
 
 #  $Log$
+#  Revision 3.1  2007/07/19 05:49:42  mast
+#  First shot
+#
 #
