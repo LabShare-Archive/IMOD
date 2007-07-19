@@ -297,7 +297,7 @@ echo "IMOD-related files in $installdir :"
 cd ..
 ls -l | grep -i imod | grep -vi tempDir
 echo ""
-set oldlist = `\find . -type d -name 'imod_*.*[0-9]' -print | sed -e '/^\.\//s///g' -e "/imod_$vernum/d"`
+set oldlist = `\find . -type d -maxdepth 1 -name 'imod_*.*[0-9]' -print | sed -e '/^\.\//s///g' -e "/imod_$vernum/d"`
 if ("$oldlist" != "") then
     echo "Do you want to remove these other versions?"
     echo "    " $oldlist
@@ -312,6 +312,9 @@ exit 0
 
 #
 #  $Log$
+#  Revision 3.13  2006/11/10 22:39:43  mast
+#  Tried to change security contect of libs if selinux is on
+#
 #  Revision 3.12  2006/10/19 19:13:45  mast
 #  Removed current version from old version list
 #
