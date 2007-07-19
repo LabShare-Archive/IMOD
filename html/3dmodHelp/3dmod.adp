@@ -14,6 +14,7 @@
   <section ref="./index.html" title="Image Display Windows">
     <section ref="./zap.html" title="Zap Window"/>
     <section ref="./slicer.html" title="Slicer Window"/>
+    <section ref="./xyz.html" title="XYZ Window"/>
     <section ref="./tumbler.html" title="Tumbler Window"/>
     <section ref="./graph.html" title="Graph Window"/>
   </section>

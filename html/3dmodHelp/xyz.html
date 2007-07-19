@@ -1,7 +1,25 @@
 <head>
 <title>XYZ Window</title>
 </head>
-<H2>XYZ Window Controls</H2>
+<H2>XYZ Window</H2>
+The XYZ window displays three slices: through an XY plane in the lower
+left, through a YZ plane in the lower right, and through an XZ plane in
+the upper left.  The intersection of the model with these planes will
+be drawn.  Marker lines and crosses indicate the position of the
+current image or model point, whose coordinates determine which slices are
+shown within the volume.
+Clicking or dragging the mouse in the vicinity of a marker line will also
+change one coordinate to the clicked location; each marker
+line's color matches the color of the border around the plane whose coordinate
+is changed.
+When the XYZ window is resized, the window is
+reapportioned between the three view boxes.
+When an image plane is too large to fit in its view box, the image can be
+panned with the first mouse button.  The windows do not all pan independently;
+there are just three underlying pan offsets, for X, Y and Z, so that when you
+pan, two windows will usually move together to keep corresponding regions of
+the volume visible.
+
 <H3>Mouse Button Assignments</H3>
 Descriptions below refer to the first, second, and third mouse 
 buttons.  By default, these correspond to left, middle, and right 
@@ -24,15 +42,9 @@ particular section to display.
 
 <H3>Hot Keys special to the XYZ window</H3>
 <UL>
-<LI><B>Ctrl-S</B>, <B>Shift-S</B> or <B>Ctrl-Shift-S</B> saves the Zap window,
-or the area inside the rubber band, into a TIFF file, a file in the primary
-non-TIFF format, or a file in the second non-TIFF format.  (Use the menu entry 
-<B>Edit-Options</B> and go to the Behavior tab to select the primary non-TIFF
-file format.  The second non-TIFF format will be PNG if the primary one is not
-PNG, or JPEG if the primary one is PNG.)
-<LI><B>r</B>, <B>Shift-R</B> toggles between fast rendering and 
+<LI><B>r</B> toggles between fast rendering and 
 slower but higher quality interpolated image rendering.
-<LI><B>Shift-P</B> Projects the current contour onto the side views.
+<LI><B>P</B> Projects the current contour onto the side views.
 <LI><B>Ins</B> on the keypad: In model mode, this key works the same as 
 the second mouse button.  A single keystrike adds one point; 
 holding the key down allows points to be added continuously.
@@ -43,36 +55,56 @@ For other keys, see Help - Hot Keys in the 3dmod Info Window.
 
 <H3>Mouse button function in movie mode</H3>
 <UL>
-<LI><B>First Button Click</B>: Select the current viewing point, marked by 
-a small cross.
-<LI><B>First Button Drag</B>: Pan an image if it is larger than its view box.
-<LI><B>Second Button Click</B>: Start movie in forward direction, or stop movie.
-<LI><B>Third Button Click</B>: Start movie in backward direction, or stop movie.
+<LI><B>First Button Click</B>: Select the current image point, marked by 
+a small cross in the three planes.  In one of the three view boxes, this
+will change the
+coordinates displayed in the other two planes.  Clicking in the horizontal
+gutter region occupied by the green marker line will change the current X
+coordinate and the YZ plane.  Clicking in the
+vertical gutter region will select a new Y coordinate and XZ plane.  Clicking
+in the upper right region will select a new Z coordinate and XY plane, as
+indicated by the crossed marker lines.
+<LI><B>First Button Drag</B>: In one of the three view boxes, this pans an 
+image if it is larger than its view box.  In the horizontal or vertical gutter
+or the upper right region, this riffles through YZ, XZ, or XY planes,
+respectively.
+<LI><B>Second Button Click</B>: In one of the three view boxes,
+start movie
+through the planes in the
+forward direction, or stop movie, 
+<LI><B>Third Button Click</B>: In one of the three view boxes, start movie 
+through the planes in the backward direction, or stop movie.
 </UL>
 
 <H3>Mouse button function in model mode</H3>
 <UL>
-<LI><B>First Button Click</B>: Make the nearest visible model point be the 
-current model point.  If there is no point nearby, this detaches from 
+<LI><B>First Button Click</B>: In the XY view box, this makes the nearest
+visible model point be the current model point.  If there is no point nearby,
+it detaches from 
 the current point and contour and selects a current viewing point 
-instead.
-<LI><B>First Button Drag</B>: Pan an image if it is larger than its view box.
-<LI><B>Second Button Click</B>: Add one point to the current contour.
-<LI><B>Second Button Drag</B>: Continually add points to the current 
-contour as the mouse is moved.
-<LI><B>Third Button Click</B>: Modify the current model point to be at the 
-selected position.
-<LI><B>Third Button Drag</B>: Continually modify points as the mouse is 
-moved.  This only works when the current model point is in the 
+instead.  Elsewhere, this click behaves as in movie mode.
+<LI><B>First Button Drag</B>: Pans images or riffles through planes, just as
+in model mode.
+<LI><B>Second Button Click</B>: In the XY view box, adds one point to the
+current contour.
+<LI><B>Second Button Drag</B>: In the XY view box, continually adds points to
+the current contour as the mouse is moved.
+<LI><B>Third Button Click</B>: In the XY view box, modifies the current model
+point to be at the selected position.
+<LI><B>Third Button Drag</B>: In the XY view box, continually modifies points
+as the mouse is moved.  This only works when the current model point is in the 
 interior of the contour, not at its end.
 </UL>
 
-<H3>Screen Gadgets</H3>
+<H3>Marker Lines</H3>
+The marker lines have little boxes indicating the position of the current
+point, if it is visible in the image.  These can also be used as sliders, as
+follows:
 <UL>
-<LI>Cross-hair (upper right corner):  moves the current point in Z on the visible
-portion of the image.
-<LI>Horizontal slider (between top and main window):  moves the current point in
-X on the visible portion of the image.
+<LI>Cross-hair (upper right corner):  moves the current point in Z on the
+visible portion of the image.
+<LI>Horizontal slider (between top and main window):  moves the current point
+in X on the visible portion of the image.
 <LI>Vertical slider (between top and main window):  moves the current point in
 Y on the visible portion of the image.
 </UL>
