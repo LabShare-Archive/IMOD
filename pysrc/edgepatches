@@ -7,6 +7,9 @@
 # $Id$
 #
 # $Log$
+# Revision 1.4  2007/05/11 05:35:10  mast
+# Fixed weird duplicate text
+#
 # Revision 1.3  2007/04/11 15:45:42  mast
 # Added Z limits for edges
 #
@@ -199,6 +202,18 @@ def findPatches(lower, upper, edge):
         mins[i] = max(borderXY, borderXY - edge[kShift][i])
         maxes[i] = min(lower[kSize][i] - 1 - borderXY, \
                        upper[kSize][i] - 1 - borderXY - edge[kShift][i])
+        if maxes[i] - mins[i] <= sizes[i]:
+            print '%s Border in X and Y and/or patch size in %s needs to be\n'\
+                  'ERROR:     reduced to fit in overlap for edge %s' % \
+                  (prefix, ('X','Y')[i], edge['name'])
+            overspace = min(lower[kSize][i], upper[kSize][i] -edge[kShift][i])\
+                        - max(0, -edge[kShift][i])
+            wanted = 2. * borderXY + sizes[i]
+            frac = overspace / wanted
+            print 'ERROR:     Overlap = %d; e.g., X/Y border %d and patch ' \
+                  'size %d would work' % (overspace, int(frac * borderXY), \
+                                          int(frac * sizes[i]))
+            sys.exit(1)
 
     # Get number of patches
     delta = intervals
@@ -221,6 +236,8 @@ def findPatches(lower, upper, edge):
              'XMinAndMax %d %d' % (mins[0], maxes[0]),
              'YMinAndMax %d %d' % (mins[1], maxes[1]),
              'ZMinAndMax %d %d' % (mins[2], maxes[2]),
+             'BSourceBorderXLoHi %d %d' % (borderXY, borderXY),
+             'BSourceBorderYZLoHi %d %d' % (borderXY, borderXY),
              'NumberOfPatchesXYZ %d %d %d' % (numpat[0], numpat[1], numpat[2])]
 
     if lower.has_key(kModel):
@@ -426,6 +443,7 @@ if neededges and (not rootname or xOverlap <= 0 or yOverlap <= 0):
     sys.exit(1)
 
 # Add the new pieces
+addedData = 0
 if addingxy:
     predata[kNoZvals] = str(nozopt)
     for z in range(addZlo, addZhi + 1):
@@ -435,6 +453,7 @@ if addingxy:
                                        nozopt, underscore)
                 filename = fileroot + recExt
                 if os.path.exists(filename):
+                    addedData = 1
                     piece = {}
                     pieces.append(piece)
                     piece[kFrame] = [x, y, z]
@@ -462,6 +481,7 @@ for i in range(len(pieces)):
     pieceMap[fxyz[0] - xmin + xsize * (fxyz[1] - ymin) + \
              xysize * (fxyz[2] - zmin)] = i
     if not pieces[i].has_key(kSize):
+        addedData = 1
         try:
             pieces[i][kSize] = getmrcsize(pieces[i]['file'])
         except ImodpyError, errout:
@@ -485,6 +505,7 @@ for z in zlist:
 
                     # An edge exists if lower and upper pieces exist
                     if lower >= 0 and upper >= 0:
+                        addedData = 1
                         edge = {}
                         edges.append(edge)
                         xstr = str(x)
@@ -517,9 +538,10 @@ for z in zlist:
         if int(slice[kZvalue]) == z:
             break
     else:
+        addedData = 1
         slice = {}
         slices.append(slice)
-        if predata[kNoZvals]:
+        if predata.has_key(kNoZvals) and predata[kNoZvals]:
             slice['name'] = rootname
             slice[kZvalue] = '0'
         else:
@@ -559,14 +581,19 @@ if anyrun:
                             sys.exit(1)
 
                         if redoShifts or not edge.has_key(kShiftDone):
+                            addedData = 1
                             findEdgeShifts(pieces[lower], pieces[upper], edge)
                         if not (skipDone and edge.has_key(kPatch)):
+                            addedData = 1
                             findPatches(pieces[lower], pieces[upper], edge)
                         
             delx = 0
             dely = 1
 
 # Write the info file 
-writeMontInfo(infofile, predata, slices, pieces, edges)
-print 'New info file written'
+if addedData:
+    writeMontInfo(infofile, predata, slices, pieces, edges)
+    print 'New info file written'
+else:
+    print 'Nothing was done'
 sys.exit(0)
