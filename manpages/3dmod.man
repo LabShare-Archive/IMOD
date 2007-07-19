@@ -801,12 +801,13 @@ F  -  Find the maximum pixel within 10 pixels and report its value
 =  -  Increase Zoom
 3  -  Start or stop a movie through time in the forward direction
 4  -  Start or stop a movie through time in the backward direction
+S  -  Snapshot image in window to file with primary non-TIFF 
+         format
+Ctrl-S - Snapshot image in window to TIFF file
+Ctrl-Shift-S - Snapshot to second type of non-TIFF file
 
         Other keys active in the ZaP window only
         ----------------------------------------
-S  -  Snapshot image in window to file with primary non-TIFF format
-Ctrl-S - Snapshot image in window to TIFF file
-Ctrl-Shift-S - Snapshot to second type of non-TIFF file
 Ctrl-A - Select all contours in current object on section or 
            within the rubberband
 b  -  Build a contour while in auto contour mode
@@ -834,6 +835,8 @@ End           -  Go to Z = 1
 Home          -  Go to Z = max
 Insert        -  Go to middle Z of stack
 1,2           -  Previous,Next Time Index
+!,@           -  Go to first or last time index, or to Start or End
+                    value for Time shown in Edit-Movies dialog
 
 Keypad Arrows -  Move current model point in model mode,
               -  Pan in ZaP window in movie mode. 
@@ -910,7 +913,8 @@ S    -  Snapshot to file with primary non-TIFF format
 Ctrl-S - Snapshot to TIFF file
 Ctrl-Shift-S - Snapshot to second type of non-TIFF file
 W    -  Set angles so that current contour is flat in the slice
-x/y/z  - Align current and previous model points along X, Y or Z axis
+x/y/z  - Align current and previous model points along X, Y or Z 
+            axis
 X/Y/Z  - Align first and last points of current contour along
             X, Y or Z axis
 
@@ -925,8 +929,8 @@ Numeric Keypad (with Shift key down or Sh button on)
 2/8  -  (Down/Up) Rotate volume around current Y axis
 9/3  -  (PgUp/PgDn) Rotate in plane of slice
 
-</>  -  Decrease/Increase step size for these rotations (,/. also do
-           this if Sh is on)
+</>  -  Decrease/Increase step size for these rotations (,/. also
+           do this if Sh is on)
 .fi
 
 .SH XYZ Window
@@ -935,10 +939,10 @@ left, through a YZ plane in the lower right, and through an XZ plane in
 the upper left.  The intersection of the model with these planes will
 be drawn.  Marker lines and crosses indicate the position of the
 current point and of the slices within the volume.  Like the ZaP window,
-the XYZ window can be resized, and the image can be zoomed with hot
-keys and panned with the left mouse button.  Basic modeling capability
-is available in the XY plane.  One can movie through one or more of the planes 
-simultaneously.  
+the XYZ window can be resized, and the images can be zoomed with hot
+keys and panned within their view boxes with the left mouse button.  Basic
+modeling capability is available in the XY plane.  One can movie through one
+or more of the planes simultaneously.  
 In addition, the marker lines have handles that can be dragged with the
 mouse to riffle through images in a plane.  Each marker
 line's color matches the color of the border around the plane that is
