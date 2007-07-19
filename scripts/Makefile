@@ -13,7 +13,7 @@ SCRIPTS = copytomocoms finishjoin makejoincom matchorwarp matchshifts\
  dm2mrc alignlog transferfid submfg imodpsview settmpdir matchrotpairs\
  chunksetup processchunks splittilt splitcombine tomosnapshot clipflipyz\
  archiveorig imodkillgroup collectmmm sampletilt splitblend runpyscript\
- $(GENERATED_SCRIPTS)
+ sirtsetup $(GENERATED_SCRIPTS)
 
 all:
 
@@ -27,6 +27,9 @@ clean:
 	$(FIND) . -type f -name "*~"   -exec rm "{}" \;
 
 #  $Log$
+#  Revision 3.21  2007/04/10 19:41:49  mast
+#  Change for new copywrapper script
+#
 #  Revision 3.20  2007/04/08 16:47:05  mast
 #  Added splitblend
 #
