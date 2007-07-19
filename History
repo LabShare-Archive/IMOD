@@ -1,15 +1,15 @@
 IMOD History
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-7/18/07: IMOD_3-10-13
-7/18/07: Added sirtsetup to set up command files for SIRT (no man page yet).
+7/19/07: Added sirtsetup to set up command files for SIRT.
 
+7/18/07: IMOD_3-10-13
 7/18/07: Fixed some probelms with edgepatches run with narrow overlap zones.
 
 7/16/07: Added Densnorm for density (mass) normalization.
 
 7/16/07: A small zero-frequency component was added to the backprojection
 in Tilt to prevent some artifacts from lines having different mean levels;
-ALL MACHINES USED FOR PARALLEL PROCESSING MUST UPGRADE TO THIS VERSION.
+ALL MACHINES USED FOR PARALLEL PROCESSING MUST USE TO THIS VERSION IF ANY DO.
 
 7/16/07: Splittilt modified to handle reprojections from a tomogram and to
 be compatible with setting up files for iterative operations.
