@@ -52,6 +52,9 @@ import etomo.type.PeetScreenState;
  * @version $Revision$
  * 
  * <p> $Log$
+ * <p> Revision 1.50  2007/07/10 00:43:49  sueh
+ * <p> bug# 1022 In validateRun, calling IterationTable.validateRun().
+ * <p>
  * <p> Revision 1.49  2007/06/08 22:21:59  sueh
  * <p> bug# 1014 Added reset().
  * <p>
@@ -250,7 +253,7 @@ public final class PeetDialog implements ContextMenu, AbstractParallelDialog,
   private final LabeledTextField ltfLowCutoff = new LabeledTextField(
       "Low frequency filter: ");
   private final CheckBox cbRefFlagAllTom = new CheckBox(
-      "Use equal numbers of particles from all tomogram for new reference");
+      "Use equal numbers of particles from all tomograms for new reference");
   private final LabeledTextField ltfLstThresholdsStart = new LabeledTextField(
       LST_THRESHOLD_START_TITLE + ": ");
   private final LabeledTextField ltfLstThresholdsIncrement = new LabeledTextField(
