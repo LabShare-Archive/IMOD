@@ -109,10 +109,12 @@ enum.1.tooltip = True local correlation coefficient
 [Field = refThreshold]
 comment = The threshold to generate the reference particle at each stage
 ^If this is less than 1 it specifies a cross correlation
-^coefficient threshold, if it is greater than 1 it specfies the
+^coefficient threshold, if it is greater than 1 it specifies the
 ^number of particles to use
 
 [Field = refFlagAllTom]
+tooltip = Take equal number of particles from each tomogram instead of 
+selecting by a single cross-correlation threshold
 
 [Field = tiltRange]
 comment = The tilt range used to acquire the tilt series [min max].
@@ -135,6 +137,8 @@ comment = The list of thresholds to use for computing the final volumes.
 ^fnOutout_AvgVol_navg_thresh_iteration.mrc
 
 [Field = lstFlagAllTom]
+tooltip = Take equal number of particles from each tomogram instead of 
+selecting by a single cross-correlation threshold
 
 [Field = meanFill]
 comment = If any particles are partially out of the volume fill with the
