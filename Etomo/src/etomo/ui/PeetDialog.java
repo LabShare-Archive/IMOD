@@ -52,6 +52,9 @@ import etomo.type.PeetScreenState;
  * @version $Revision$
  * 
  * <p> $Log$
+ * <p> Revision 1.51  2007/07/20 19:16:17  mast
+ * <p> Add s to tomograms
+ * <p>
  * <p> Revision 1.50  2007/07/10 00:43:49  sueh
  * <p> bug# 1022 In validateRun, calling IterationTable.validateRun().
  * <p>
@@ -514,8 +517,8 @@ public final class PeetDialog implements ContextMenu, AbstractParallelDialog,
     ltfLstThresholdsEnd.setText(matlabParam.getLstThresholdsEnd());
     ltfLstThresholdsAdditional
         .setText(matlabParam.getLstThresholdsAdditional());
-    cbRefFlagAllTom.setSelected(matlabParam.isRefFlagAllTom());
-    cbLstFlagAllTom.setSelected(matlabParam.isLstFlagAllTom());
+    cbRefFlagAllTom.setSelected(!matlabParam.isRefFlagAllTom());
+    cbLstFlagAllTom.setSelected(!matlabParam.isLstFlagAllTom());
     lsParticlePerCPU.setValue(matlabParam.getParticlePerCPU());
     MatlabParam.YaxisType yaxisType = matlabParam.getYaxisType();
     if (yaxisType == MatlabParam.YaxisType.Y_AXIS) {
@@ -577,8 +580,8 @@ public final class PeetDialog implements ContextMenu, AbstractParallelDialog,
     matlabParam.setLstThresholdsEnd(ltfLstThresholdsEnd.getText());
     matlabParam
         .setLstThresholdsAdditional(ltfLstThresholdsAdditional.getText());
-    matlabParam.setRefFlagAllTom(cbRefFlagAllTom.isSelected());
-    matlabParam.setLstFlagAllTom(cbLstFlagAllTom.isSelected());
+    matlabParam.setRefFlagAllTom(!cbRefFlagAllTom.isSelected());
+    matlabParam.setLstFlagAllTom(!cbLstFlagAllTom.isSelected());
     matlabParam.setParticlePerCPU(lsParticlePerCPU.getValue());
     matlabParam.setYaxisType(((RadioButton.RadioButtonModel) bgYaxisType
         .getSelection()).getEnumeratedType());
