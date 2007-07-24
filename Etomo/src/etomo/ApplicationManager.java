@@ -167,15 +167,15 @@ public final class ApplicationManager extends BaseManager {
    */
   ApplicationManager(String paramFileName, AxisID axisID) {
     super();
-    this.metaData = new MetaData(this);
+    metaData = new MetaData(this);
     createState();
     processMgr = new ProcessManager(this);
     initializeUIParameters(paramFileName, axisID);
-    imodManager.setMetaData(metaData);
     initializeAdvanced();
     // Open the etomo data file if one was found on the command line
     if (!EtomoDirector.getInstance().isHeadless()) {
       if (!paramFileName.equals("")) {
+        imodManager.setMetaData(metaData);
         if (loadedParamFile) {
           openProcessingPanel();
           mainPanel.setStatusBarText(paramFile, metaData);
@@ -5428,6 +5428,9 @@ public final class ApplicationManager extends BaseManager {
 }
 /**
  * <p> $Log$
+ * <p> Revision 3.281  2007/06/08 21:50:18  sueh
+ * <p> bug# 1014 Removed setMetaData(ImodManager) and placing the call to ImodManager.setMetaData after the call to initializeUIParameters.
+ * <p>
  * <p> Revision 3.280  2007/05/21 22:27:29  sueh
  * <p> bug# 964 Added get getInterfaceType().
  * <p>
