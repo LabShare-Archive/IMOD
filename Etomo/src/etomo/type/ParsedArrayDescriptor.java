@@ -34,6 +34,10 @@ import etomo.util.PrimativeTokenizer;
  * @version $Revision$
  * 
  * <p> $Log$
+ * <p> Revision 1.9  2007/05/11 16:02:06  sueh
+ * <p> bug# 964 Added getArray(List), which converts an array descriptor into
+ * <p> an array.
+ * <p>
  * <p> Revision 1.8  2007/05/03 21:08:59  sueh
  * <p> bug# 964 Fixed bug in hasParsedNumberSyntax().
  * <p>
@@ -147,15 +151,15 @@ public final class ParsedArrayDescriptor extends ParsedElement {
     }
     //two or three numbers means that it is a descriptor, so expand the descriptor
     //into the list of numbers
-    EtomoNumber increment =  new EtomoNumber(etomoNumberType);
+    EtomoNumber increment = new EtomoNumber(etomoNumberType);
     ParsedNumber lastNumber = null;
     if (list.size() == 2) {
       increment.set(1);
-      lastNumber=(ParsedNumber)list.get(1);
+      lastNumber = (ParsedNumber) list.get(1);
     }
     else {
       increment.set(list.get(1).getRawNumber());
-      lastNumber=(ParsedNumber)list.get(2);
+      lastNumber = (ParsedNumber) list.get(2);
     }
     //if the increment is 0, return the first and last number
     //not sure if this is right, but it makes sense
@@ -165,17 +169,26 @@ public final class ParsedArrayDescriptor extends ParsedElement {
     }
     //increment the number and save the result until you get to the last number
     //the increment can be positive or negative
-    ParsedNumber curNumber = (ParsedNumber)list.get(0);
-    ParsedNumber prevNumber;
-    while ((increment.isPositive() && curNumber.lt(lastNumber))
-        || (increment.isNegative() && curNumber.gt(lastNumber))) {
-      prevNumber=curNumber;
+    ParsedNumber curNumber = (ParsedNumber) list.get(0);
+    ParsedNumber prevNumber = curNumber;
+    boolean done = false;
+    while (!done) {
+      prevNumber = curNumber;
       curNumber = new ParsedNumber(etomoNumberType);
       curNumber.setRawString(prevNumber.getRawNumber());
       curNumber.plus(increment);
-      parsedNumberArray.add(curNumber);
+      if ((increment.isPositive() && curNumber.lt(lastNumber))
+          || (increment.isNegative() && curNumber.gt(lastNumber))) {
+        parsedNumberArray.add(curNumber);
+      }
+      else {
+        done = true;
+      }
     }
-    parsedNumberArray.add(lastNumber);
+    /* Parser ignores the last number, so don't add it
+    if (!curNumber.equals(lastNumber)) {
+      parsedNumberArray.add(lastNumber);
+    }*/
     return parsedNumberArray;
   }
 
