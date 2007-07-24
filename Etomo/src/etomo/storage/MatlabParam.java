@@ -43,6 +43,9 @@ import etomo.util.DatasetFiles;
  * @version $Revision$
  * 
  * <p> $Log$
+ * <p> Revision 1.9  2007/06/08 22:14:58  sueh
+ * <p> bug# 1014 Return false if read() failed.
+ * <p>
  * <p> Revision 1.8  2007/06/07 21:30:25  sueh
  * <p> bug# 1012 In write(), if the autodoc exists read it and return it.  Moved the
  * <p> file back up out of Autodoc.write() into MatlabParam.write().  Changed the
@@ -734,7 +737,7 @@ public final class MatlabParam {
   }
 
   public String[] getLstThresholdsArray() {
-    return lstThresholds.getParsableStringArray();
+    return lstThresholds.getPaddedStringArray();
   }
 
   /**
