@@ -22,6 +22,10 @@ import etomo.util.PrimativeTokenizer;
  * @version $Revision$
  * 
  * <p> $Log$
+ * <p> Revision 1.9  2007/05/11 16:04:21  sueh
+ * <p> bug# 964 Added getArray(List), which adds itself to the list, if it is not
+ * <p> empty.
+ * <p>
  * <p> Revision 1.8  2007/04/26 02:47:50  sueh
  * <p> bug# 964 Fixed problems with defaultValue.  Added ParsedArray.compact
  * <p> when empty array elements should not be displayed (lstThresholds).
@@ -71,6 +75,10 @@ public final class ParsedNumber extends ParsedElement implements ConstParsedNumb
 
   public ParsedNumber() {
     this(null);
+  }
+  
+  public boolean equals(ParsedNumber input) {
+    return rawNumber.equals(input.rawNumber);
   }
 
   public ParsedNumber(EtomoNumber.Type etomoNumberType) {
