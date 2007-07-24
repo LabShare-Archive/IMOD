@@ -21,6 +21,9 @@ import etomo.util.PrimativeTokenizer;
  * @version $Revision$
  * 
  * <p> $Log$
+ * <p> Revision 1.11  2007/07/10 00:31:44  sueh
+ * <p> bug# 1022 Added a comment.
+ * <p>
  * <p> Revision 1.10  2007/05/11 16:01:12  sueh
  * <p> bug# 964 Added getParsableStringArray(), which expands an array,
  * <p> converting the array descriptors into arrays, and return the resulting array
@@ -141,18 +144,29 @@ public final class ParsedArray extends ParsedElement {
 
   /**
    * Get the array stored in this.array, excluding empty ParsedNumbers and
-   * expanding array descriptors.
+   * expanding array descriptors.  Pad numbers with zeros.
    * @return parsable string version of array
    */
-  public String[] getParsableStringArray() {
+  public String[] getPaddedStringArray() {
     List parsedNumberArray = getArray(null);
     if (parsedNumberArray == null) {
       return new String[0];
     }
+    int maxDigits = 0;
+    StringBuffer[] bufferArray = new StringBuffer[parsedNumberArray.size()];
+    for (int i = 0; i < parsedNumberArray.size(); i++) {
+      bufferArray[i] = new StringBuffer();
+      bufferArray[i].append(((ParsedNumber) parsedNumberArray.get(i))
+          .getParsableString());
+      maxDigits = Math.max(maxDigits, bufferArray[i].length());
+    }
     String[] returnArray = new String[parsedNumberArray.size()];
     for (int i = 0; i < parsedNumberArray.size(); i++) {
-      returnArray[i] = ((ParsedNumber) parsedNumberArray.get(i))
-          .getParsableString();
+      int padding = maxDigits - bufferArray[i].length();
+      for (int j = 0; j < padding; j++) {
+        bufferArray[i].insert(0, '0');
+      }
+      returnArray[i] = bufferArray[i].toString();
     }
     return returnArray;
   }
