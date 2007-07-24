@@ -265,8 +265,8 @@ type = FP
 usage = Values to add then scale reconstructed densities by
 tooltip = 
 manpage = With this entry, the values in the reconstruction will be scaled by
-adding the first value then multiplying by the second one.
-After the reconstruction is complete, the program will output the
+adding the first value then multiplying by the second one.  The default is
+0,1.  After the reconstruction is complete, the program will output the
 scale values that would make the data range from 10 to 245.
 
 [Field = SHIFT]
