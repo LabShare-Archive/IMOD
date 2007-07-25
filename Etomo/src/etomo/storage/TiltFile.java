@@ -18,14 +18,17 @@ import etomo.type.EtomoNumber;
  * 
  * @version $Revision$
  * 
- * <p> $Log$ </p>
+ * <p> $Log$
+ * <p> Revision 1.1  2007/03/26 23:32:47  sueh
+ * <p> bug# 964 File to read a tilt file (.tlt).
+ * <p> </p>
  */
 
 public final class TiltFile {
   public static final String rcsid = "$Id$";
 
-  private final EtomoNumber startAngle = new EtomoNumber(EtomoNumber.Type.FLOAT);
-  private final EtomoNumber endAngle = new EtomoNumber(EtomoNumber.Type.FLOAT);
+  private final EtomoNumber minAngle = new EtomoNumber(EtomoNumber.Type.FLOAT);
+  private final EtomoNumber maxAngle = new EtomoNumber(EtomoNumber.Type.FLOAT);
   private final File file;
 
   public TiltFile(File file) {
@@ -33,25 +36,31 @@ public final class TiltFile {
     LogFile fileReader = LogFile.getInstance(file);
     try {
       long readId = fileReader.openReader();
-      startAngle.set(fileReader.readLine(readId));
+      minAngle.set(fileReader.readLine(readId));
       //read until end of file, preserving last line read
       String prevLine = null;
       String line = null;
       while ((line = fileReader.readLine(readId)) != null) {
         prevLine = line;
       }
-      endAngle.set(prevLine);
+      maxAngle.set(prevLine);
+      //minAngle must be smaller then maxAngle
+      if (maxAngle.lt(minAngle)) {
+        float temp = minAngle.getFloat();
+        minAngle.set(maxAngle);
+        maxAngle.set(temp);
+      }
     }
     catch (LogFile.ReadException e) {
       e.printStackTrace();
     }
   }
   
-  public ConstEtomoNumber getStartAngle() {
-    return startAngle;
+  public ConstEtomoNumber getMinAngle() {
+    return minAngle;
   }
   
-  public ConstEtomoNumber getEndAngle() {
-    return endAngle;
+  public ConstEtomoNumber getMaxAngle() {
+    return maxAngle;
   }
 }

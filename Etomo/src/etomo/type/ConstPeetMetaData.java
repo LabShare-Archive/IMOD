@@ -13,6 +13,9 @@ package etomo.type;
 * @version $Revision$
 * 
 * <p> $Log$
+* <p> Revision 1.7  2007/06/05 21:28:23  sueh
+* <p> bug# 1010 Added flgWedgeWeight.
+* <p>
 * <p> Revision 1.6  2007/05/01 22:26:30  sueh
 * <p> bug# 964 Added yaxisType and yaxisContour.
 * <p>
@@ -37,8 +40,8 @@ public interface ConstPeetMetaData {
   
   public String getName();
   public String getInitMotlFile(int key);
-  public String getTiltRangeStart(int key);
-  public String getTiltRangeEnd(int key);
+  public String getTiltRangeMin(int key);
+  public String getTiltRangeMax(int key);
   public AxisType getAxisType();
   public String getReferenceFile();
   public ConstEtomoNumber getReferenceParticle();
