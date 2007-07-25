@@ -1,5 +1,8 @@
 IMOD History
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+7/25/07: In eTomo PEET added the ability to read the tilt log file to retrieve a
+tilt range.
+
 7/24/07: IMOD_3-10-14
 7/23/07: In eTomo PEET screens, fixed button to bring up averages, and 
 changed sense of the checkboxes to take reference or average equally from all
@@ -11,7 +14,7 @@ to start and end limits on Time set in the Edit-Movies dialog.
 7/19/07: Added sirtsetup to set up command files for SIRT.  No man page yet.
 
 7/18/07: IMOD_3-10-13
-7/18/07: Fixed some probelms with edgepatches run with narrow overlap zones.
+7/18/07: Fixed some problems with edgepatches run with narrow overlap zones.
 
 7/16/07: Added Densnorm for density (mass) normalization.
 
