@@ -25,6 +25,8 @@ import etomo.storage.ModelFileFilter;
 import etomo.storage.MotlFileFilter;
 import etomo.storage.TiltFile;
 import etomo.storage.TiltFileFilter;
+import etomo.storage.TiltLog;
+import etomo.storage.TiltLogFileFilter;
 import etomo.storage.TomogramFileFilter;
 import etomo.storage.autodoc.AutodocFactory;
 import etomo.storage.autodoc.ReadOnlyAutodoc;
@@ -47,6 +49,9 @@ import etomo.type.Run3dmodMenuOptions;
  * @version $Revision$
  * 
  * <p> $Log$
+ * <p> Revision 1.25  2007/07/18 22:38:22  sueh
+ * <p> bug# 1024
+ * <p>
  * <p> Revision 1.24  2007/06/08 22:22:29  sueh
  * <p> bug# 1014 Added reset().
  * <p>
@@ -134,7 +139,7 @@ import etomo.type.Run3dmodMenuOptions;
 final class VolumeTable implements Expandable, Highlightable,
     Run3dmodButtonContainer {
   public static final String rcsid = "$Id$";
-  
+
   static final String FN_MOD_PARTICLE_HEADER1 = "Model";
 
   private final RowList rowList = new RowList();
@@ -150,7 +155,8 @@ final class VolumeTable implements Expandable, Highlightable,
   private final Run3dmodButton r3bVolume;
   private final HeaderCell header1VolumeNumber = new HeaderCell();
   private final HeaderCell header1FnVolume = new HeaderCell("Volume");
-  private final HeaderCell header1FnModParticle = new HeaderCell(FN_MOD_PARTICLE_HEADER1);
+  private final HeaderCell header1FnModParticle = new HeaderCell(
+      FN_MOD_PARTICLE_HEADER1);
   private final HeaderCell header1InitMotlFile = new HeaderCell("Initial");
   private final HeaderCell header1TiltRange = new HeaderCell("Tilt Range");
   private final HeaderCell header1RelativeOrient = new HeaderCell(
@@ -231,7 +237,7 @@ final class VolumeTable implements Expandable, Highlightable,
   Container getContainer() {
     return rootPanel;
   }
-  
+
   void reset() {
     rowList.remove();
     updateDisplay();
@@ -558,16 +564,27 @@ final class VolumeTable implements Expandable, Highlightable,
       return;
     }
     JFileChooser chooser = getFileChooserInstance();
-    chooser.setFileFilter(new TiltFileFilter());
+    chooser.addChoosableFileFilter(new TiltFileFilter());
+    //Add the default file filter (tilt log)
+    TiltLogFileFilter tiltLogFileFilter = new TiltLogFileFilter();
+    chooser.addChoosableFileFilter(tiltLogFileFilter);
     chooser.setPreferredSize(UIParameters.INSTANCE.getFileChooserDimension());
     chooser.setFileSelectionMode(JFileChooser.FILES_ONLY);
     int returnVal = chooser.showOpenDialog(rootPanel);
     if (returnVal == JFileChooser.APPROVE_OPTION) {
       File file = chooser.getSelectedFile();
       lastLocation = file.getParentFile();
-      TiltFile tiltFile = new TiltFile(file);
-      row.setTiltRangeStart(tiltFile.getStartAngle().toString());
-      row.setTiltRangeEnd(tiltFile.getEndAngle().toString());
+      if (tiltLogFileFilter.accept(file)) {
+        TiltLog tiltLog = new TiltLog(file);
+        tiltLog.read();
+        row.setTiltRangeMin(tiltLog.getMinAngle());
+        row.setTiltRangeMax(tiltLog.getMaxAngle());
+      }
+      else {
+        TiltFile tiltFile = new TiltFile(file);
+        row.setTiltRangeMin(tiltFile.getMinAngle().toString());
+        row.setTiltRangeMax(tiltFile.getMaxAngle().toString());
+      }
     }
   }
 
@@ -657,8 +674,8 @@ final class VolumeTable implements Expandable, Highlightable,
 
     private void getParameters(final PeetMetaData metaData) {
       metaData.resetInitMotlFile();
-      metaData.resetTiltRangeStart();
-      metaData.resetTiltRangeEnd();
+      metaData.resetTiltRangeMin();
+      metaData.resetTiltRangeMax();
       for (int i = 0; i < list.size(); i++) {
         VolumeRow row = (VolumeRow) list.get(i);
         row.getParameters(metaData);
