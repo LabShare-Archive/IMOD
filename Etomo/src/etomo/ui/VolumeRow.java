@@ -27,6 +27,9 @@ import etomo.type.Run3dmodMenuOptions;
  * @version $Revision$
  * 
  * <p> $Log$
+ * <p> Revision 1.18  2007/07/10 00:44:12  sueh
+ * <p> bug# 1022 In validateRun, added the row # to the error message.
+ * <p>
  * <p> Revision 1.17  2007/06/06 16:07:46  sueh
  * <p> bug# 1013 Added setFnModParticle() and validateRun().
  * <p>
@@ -95,8 +98,8 @@ final class VolumeRow implements Highlightable {
   private final FieldCell fnModParticle = FieldCell.getExpandableInstance();
   private final FieldCell fnVolume = FieldCell.getExpandableInstance();
   private final FieldCell initMotlFile = FieldCell.getExpandableInstance();
-  private final FieldCell tiltRangeStart = FieldCell.getEditableInstance();
-  private final FieldCell tiltRangeEnd = FieldCell.getEditableInstance();
+  private final FieldCell tiltRangeMin = FieldCell.getEditableInstance();
+  private final FieldCell tiltRangeMax = FieldCell.getEditableInstance();
   private final FieldCell relativeOrientX = FieldCell.getEditableInstance();
   private final FieldCell relativeOrientY = FieldCell.getEditableInstance();
   private final FieldCell relativeOrientZ = FieldCell.getEditableInstance();
@@ -139,8 +142,8 @@ final class VolumeRow implements Highlightable {
     fnVolume.setHighlight(highlight);
     fnModParticle.setHighlight(highlight);
     initMotlFile.setHighlight(highlight);
-    tiltRangeStart.setHighlight(highlight);
-    tiltRangeEnd.setHighlight(highlight);
+    tiltRangeMin.setHighlight(highlight);
+    tiltRangeMax.setHighlight(highlight);
     relativeOrientX.setHighlight(highlight);
     relativeOrientY.setHighlight(highlight);
     relativeOrientZ.setHighlight(highlight);
@@ -152,8 +155,8 @@ final class VolumeRow implements Highlightable {
     fnVolume.remove();
     fnModParticle.remove();
     initMotlFile.remove();
-    tiltRangeStart.remove();
-    tiltRangeEnd.remove();
+    tiltRangeMin.remove();
+    tiltRangeMax.remove();
     relativeOrientX.remove();
     relativeOrientY.remove();
     relativeOrientZ.remove();
@@ -171,8 +174,8 @@ final class VolumeRow implements Highlightable {
     fnModParticle.add(panel, layout, constraints);
     initMotlFile.add(panel, layout, constraints);
     constraints.gridwidth = 1;
-    tiltRangeStart.add(panel, layout, constraints);
-    tiltRangeEnd.add(panel, layout, constraints);
+    tiltRangeMin.add(panel, layout, constraints);
+    tiltRangeMax.add(panel, layout, constraints);
     relativeOrientX.add(panel, layout, constraints);
     relativeOrientY.add(panel, layout, constraints);
     constraints.gridwidth = GridBagConstraints.REMAINDER;
@@ -202,8 +205,8 @@ final class VolumeRow implements Highlightable {
 
   void getParameters(final PeetMetaData metaData) {
     metaData.setInitMotlFile(initMotlFile.getExpandedValue(), index);
-    metaData.setTiltRangeStart(tiltRangeStart.getValue(), index);
-    metaData.setTiltRangeEnd(tiltRangeEnd.getValue(), index);
+    metaData.setTiltRangeMin(tiltRangeMin.getValue(), index);
+    metaData.setTiltRangeMax(tiltRangeMax.getValue(), index);
   }
 
   void setParameters(final ConstPeetMetaData metaData) {
@@ -211,8 +214,8 @@ final class VolumeRow implements Highlightable {
       return;
     }
     setExpandableValues(initMotlFile, metaData.getInitMotlFile(index));
-    setTiltRangeStart(metaData.getTiltRangeStart(index));
-    setTiltRangeEnd(metaData.getTiltRangeEnd(index));
+    setTiltRangeMin(metaData.getTiltRangeMin(index));
+    setTiltRangeMax(metaData.getTiltRangeMax(index));
   }
 
   void getParameters(final MatlabParam matlabParamFile) {
@@ -220,8 +223,8 @@ final class VolumeRow implements Highlightable {
     volume.setFnVolume(fnVolume.getExpandedValue());
     volume.setFnModParticle(fnModParticle.getExpandedValue());
     volume.setInitMotl(initMotlFile.getExpandedValue());
-    volume.setTiltRangeStart(tiltRangeStart.getValue());
-    volume.setTiltRangeEnd(tiltRangeEnd.getValue());
+    volume.setTiltRangeStart(tiltRangeMin.getValue());
+    volume.setTiltRangeEnd(tiltRangeMax.getValue());
     volume.setRelativeOrientX(relativeOrientX.getValue());
     volume.setRelativeOrientY(relativeOrientY.getValue());
     volume.setRelativeOrientZ(relativeOrientZ.getValue());
@@ -234,8 +237,8 @@ final class VolumeRow implements Highlightable {
       setExpandableValues(initMotlFile, volume.getInitMotlString());
     }
     if (useTiltRange) {
-      setTiltRangeStart(volume.getTiltRangeStart());
-      setTiltRangeEnd(volume.getTiltRangeEnd());
+      setTiltRangeMin(volume.getTiltRangeStart());
+      setTiltRangeMax(volume.getTiltRangeEnd());
     }
     relativeOrientX.setValue(volume.getRelativeOrientX());
     relativeOrientY.setValue(volume.getRelativeOrientY());
@@ -251,8 +254,8 @@ final class VolumeRow implements Highlightable {
   }
 
   void registerTiltRangeColumn(Column column) {
-    column.add(tiltRangeStart);
-    column.add(tiltRangeEnd);
+    column.add(tiltRangeMin);
+    column.add(tiltRangeMax);
   }
 
   void imodVolume(Run3dmodMenuOptions menuOptions) {
@@ -295,18 +298,18 @@ final class VolumeRow implements Highlightable {
     setExpandableValues(fnModParticle, input);
   }
 
-  void setTiltRangeStart(final String tiltRangeStart) {
-    if (tiltRangeStart == null) {
+  void setTiltRangeMin(final String input) {
+    if (input == null) {
       return;
     }
-    this.tiltRangeStart.setValue(tiltRangeStart);
+    tiltRangeMin.setValue(input);
   }
 
-  void setTiltRangeEnd(String tiltRangeEnd) {
-    if (tiltRangeEnd == null) {
+  void setTiltRangeMax(final String input) {
+    if (input == null) {
       return;
     }
-    this.tiltRangeEnd.setValue(tiltRangeEnd);
+    tiltRangeMax.setValue(input);
   }
 
   boolean isHighlighted() {

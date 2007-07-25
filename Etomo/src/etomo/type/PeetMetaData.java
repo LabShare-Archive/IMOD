@@ -21,6 +21,10 @@ import etomo.util.DatasetFiles;
  * @notthreadsafe
  * 
  * <p> $Log$
+ * <p> Revision 1.17  2007/06/08 22:20:59  sueh
+ * <p> bug# 1014 Fixed the function copy and added revisionNumber to the
+ * <p> reset function.
+ * <p>
  * <p> Revision 1.16  2007/06/07 21:33:15  sueh
  * <p> Removed print statement.
  * <p>
@@ -93,9 +97,9 @@ public class PeetMetaData extends BaseMetaData implements ConstPeetMetaData {
   private final StringProperty rootName = new StringProperty("RootName");
   private final IntKeyList initMotlFile = IntKeyList
       .getStringInstance("InitMotlFile");
-  private final IntKeyList tiltRangeStart = IntKeyList
+  private final IntKeyList tiltRangeMin = IntKeyList
       .getStringInstance(TILT_RANGE_KEY + "." + START_KEY);
-  private final IntKeyList tiltRangeEnd = IntKeyList
+  private final IntKeyList tiltRangeMax = IntKeyList
       .getStringInstance(TILT_RANGE_KEY + "." + END_KEY);
   private final EtomoNumber referenceVolume = new EtomoNumber(REFERENCE_KEY
       + ".Volume");
@@ -123,10 +127,10 @@ public class PeetMetaData extends BaseMetaData implements ConstPeetMetaData {
     rootName.set(input.rootName);
     initMotlFile.reset();
     initMotlFile.set(input.initMotlFile);
-    tiltRangeStart.reset();
-    tiltRangeStart.set(input.tiltRangeStart);
-    tiltRangeEnd.reset();
-    tiltRangeEnd.set(input.tiltRangeEnd);
+    tiltRangeMin.reset();
+    tiltRangeMin.set(input.tiltRangeMin);
+    tiltRangeMax.reset();
+    tiltRangeMax.set(input.tiltRangeMax);
     referenceVolume.set(input.referenceVolume);
     referenceParticle.set(input.referenceParticle);
     referenceFile.set(input.referenceFile);
@@ -185,8 +189,8 @@ public class PeetMetaData extends BaseMetaData implements ConstPeetMetaData {
     String group = prepend + ".";
     rootName.load(props, prepend);
     initMotlFile.load(props, prepend);
-    tiltRangeStart.load(props, prepend);
-    tiltRangeEnd.load(props, prepend);
+    tiltRangeMin.load(props, prepend);
+    tiltRangeMax.load(props, prepend);
     referenceVolume.load(props, prepend);
     referenceParticle.load(props, prepend);
     referenceFile.load(props, prepend);
@@ -211,10 +215,10 @@ public class PeetMetaData extends BaseMetaData implements ConstPeetMetaData {
    * @param prepend
    */
   public void load1_0(Properties props, String prepend) {
-    tiltRangeStart.load(props, prepend, "TILT_RANGE_KEY" + "." + START_KEY);
-    tiltRangeStart.remove(props, prepend, "TILT_RANGE_KEY" + "." + START_KEY);
-    tiltRangeEnd.load(props, prepend, "TILT_RANGE_KEY" + "." + END_KEY);
-    tiltRangeEnd.remove(props, prepend, "TILT_RANGE_KEY" + "." + END_KEY);
+    tiltRangeMin.load(props, prepend, "TILT_RANGE_KEY" + "." + START_KEY);
+    tiltRangeMin.remove(props, prepend, "TILT_RANGE_KEY" + "." + START_KEY);
+    tiltRangeMax.load(props, prepend, "TILT_RANGE_KEY" + "." + END_KEY);
+    tiltRangeMax.remove(props, prepend, "TILT_RANGE_KEY" + "." + END_KEY);
   }
 
   public void store(Properties props, String prepend) {
@@ -222,8 +226,8 @@ public class PeetMetaData extends BaseMetaData implements ConstPeetMetaData {
     String group = prepend + ".";
     rootName.store(props, prepend);
     initMotlFile.store(props, prepend);
-    tiltRangeStart.store(props, prepend);
-    tiltRangeEnd.store(props, prepend);
+    tiltRangeMin.store(props, prepend);
+    tiltRangeMax.store(props, prepend);
     referenceVolume.store(props, prepend);
     referenceParticle.store(props, prepend);
     referenceFile.store(props, prepend);
@@ -255,28 +259,28 @@ public class PeetMetaData extends BaseMetaData implements ConstPeetMetaData {
     this.initMotlFile.reset();
   }
 
-  public void setTiltRangeStart(String tiltRangeStart, int key) {
-    this.tiltRangeStart.put(key, tiltRangeStart);
+  public void setTiltRangeMin(String input, int key) {
+    tiltRangeMin.put(key, input);
   }
 
-  public void resetTiltRangeStart() {
-    this.tiltRangeStart.reset();
+  public void resetTiltRangeMin() {
+    tiltRangeMin.reset();
   }
 
-  public void setTiltRangeEnd(String tiltRangeEnd, int key) {
-    this.tiltRangeEnd.put(key, tiltRangeEnd);
+  public void setTiltRangeMax(String input, int key) {
+    tiltRangeMax.put(key, input);
   }
 
-  public void resetTiltRangeEnd() {
-    this.tiltRangeEnd.reset();
+  public void resetTiltRangeMax() {
+    tiltRangeMax.reset();
   }
 
-  public String getTiltRangeStart(int key) {
-    return tiltRangeStart.getString(key);
+  public String getTiltRangeMin(int key) {
+    return tiltRangeMin.getString(key);
   }
 
-  public String getTiltRangeEnd(int key) {
-    return tiltRangeEnd.getString(key);
+  public String getTiltRangeMax(int key) {
+    return tiltRangeMax.getString(key);
   }
 
   public String getReferenceFile() {
@@ -344,8 +348,8 @@ public class PeetMetaData extends BaseMetaData implements ConstPeetMetaData {
 
   private void reset() {
     initMotlFile.reset();
-    tiltRangeStart.reset();
-    tiltRangeEnd.reset();
+    tiltRangeMin.reset();
+    tiltRangeMax.reset();
     referenceVolume.reset();
     referenceParticle.reset();
     referenceFile.reset();
