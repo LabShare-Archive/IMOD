@@ -191,7 +191,7 @@ public final class ApplicationManager extends BaseManager {
       }
     }
   }
-  
+
   public boolean setParamFile() {
     return loadedParamFile;
   }
@@ -495,7 +495,7 @@ public final class ApplicationManager extends BaseManager {
     setupDialog = null;
     saveStorables(AxisID.ONLY);
   }
-  
+
   public InterfaceType getInterfaceType() {
     return InterfaceType.RECON;
   }
@@ -1652,8 +1652,8 @@ public final class ApplicationManager extends BaseManager {
     }
     // Create a new dialog panel and map it the generic reference
     Utilities.timestamp("new", "FiducialModelDialog", Utilities.STARTED_STATUS);
-    FiducialModelDialog fiducialModelDialog = new FiducialModelDialog(this,
-        axisID);
+    FiducialModelDialog fiducialModelDialog = FiducialModelDialog.getInstance(
+        this, axisID);
     Utilities
         .timestamp("new", "FiducialModelDialog", Utilities.FINISHED_STATUS);
     if (axisID == AxisID.SECOND) {
@@ -1868,7 +1868,8 @@ public final class ApplicationManager extends BaseManager {
    * Using Fiducial Model as Seed
    * @param axisID
    */
-  public void makeFiducialModelSeedModel(AxisID axisID) {
+  public boolean makeFiducialModelSeedModel(AxisID axisID) {
+    boolean retval = true;
     String seedModelFilename = propertyUserDir + File.separator
         + metaData.getDatasetName() + axisID.getExtension() + ".seed";
     File seedModel = new File(seedModelFilename);
@@ -1878,10 +1879,10 @@ public final class ApplicationManager extends BaseManager {
     if (!fiducialModel.exists()) {
       uiHarness.openMessageDialog("Fiducial model does not exist.",
           BeadtrackPanel.USE_MODEL_LABEL + " failed.", axisID);
-      return;
+      return false;
     }
     if (!okToMakeFiducialModelSeedModel(axisID)) {
-      return;
+      return false;
     }/*
      * if (seedModel.exists() && seedModel.lastModified() >
      * fiducialModel.lastModified()) { String[] message = new String[3];
@@ -1911,6 +1912,7 @@ public final class ApplicationManager extends BaseManager {
     catch (IOException except) {
       uiHarness.openMessageDialog(except.getMessage(), "File Rename Error",
           axisID);
+      retval = false;
     }
     try {
       if (imodManager.isOpen(ImodManager.COARSE_ALIGNED_KEY, axisID)) {
@@ -1928,15 +1930,18 @@ public final class ApplicationManager extends BaseManager {
     catch (AxisTypeException e) {
       e.printStackTrace();
       System.err.println("Axis type exception in replaceRawStack");
+      retval = false;
     }
     catch (IOException e) {
       e.printStackTrace();
       uiHarness.openMessageDialog(e.getMessage(), "IO Exception", axisID);
+      retval = false;
     }
     catch (SystemProcessException e) {
       e.printStackTrace();
       uiHarness.openMessageDialog(e.getMessage(), "System Process Exception",
           axisID);
+      retval = false;
     }
     File seedFile = DatasetFiles.getSeedFile(this, axisID);
     if (seedFile.exists()) {
@@ -1959,6 +1964,7 @@ public final class ApplicationManager extends BaseManager {
         fiducialModelDialogA.updateDisplay();
       }
     }
+    return retval;
   }
 
   public long getFiducialDiameterPerPixel() {
@@ -5428,6 +5434,9 @@ public final class ApplicationManager extends BaseManager {
 }
 /**
  * <p> $Log$
+ * <p> Revision 3.282  2007/07/24 19:24:48  sueh
+ * <p> bug# 1032 Don't set meta data in imod manager unless paramFileName is set.
+ * <p>
  * <p> Revision 3.281  2007/06/08 21:50:18  sueh
  * <p> bug# 1014 Removed setMetaData(ImodManager) and placing the call to ImodManager.setMetaData after the call to initializeUIParameters.
  * <p>
