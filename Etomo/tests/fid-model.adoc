@@ -6,15 +6,13 @@ function = run
 
 [function = run]
 mb.beadtracker-open = 1
-bn.track-fiducial-seed-model =
+bn.track-seed-model =
 waitfor.process.track = done
 assert.file.exists = track%{axis}.log
-bn.use-fiducial-model-as-seed = 
-bn.track-fiducial-seed-model =
+bn.track-with-fiducial-model-as-seed = 
 assert.file.exists = track%{axis}.log~
 waitfor.process.track = done
-bn.use-fiducial-model-as-seed = 
-bn.track-fiducial-seed-model =
+bn.track-with-fiducial-model-as-seed =
 waitfor.process.track = done
 bn.done =
 
