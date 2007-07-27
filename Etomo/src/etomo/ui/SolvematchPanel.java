@@ -44,6 +44,10 @@ import etomo.type.Run3dmodMenuOptions;
  * @version $Revision$
  * 
  * <p> $Log$
+ * <p> Revision 3.31  2007/03/21 19:46:50  sueh
+ * <p> bug# 964 Limiting access to autodoc classes by using ReadOnly interfaces.
+ * <p> Added AutodocFactory to create Autodoc instances.
+ * <p>
  * <p> Revision 3.30  2007/03/07 21:14:14  sueh
  * <p> bug# 981 Turned RadioButton into a wrapper rather then a child of JRadioButton,
  * <p> because it is getting more complicated.
@@ -410,7 +414,12 @@ public final class SolvematchPanel implements Run3dmodButtonContainer,
     combineParams.setTransfer(!cbUseCorrespondingPoints.isSelected());
     combineParams.setFiducialMatchListA(ltfFiducialMatchListA.getText());
     combineParams.setFiducialMatchListB(ltfFiducialMatchListB.getText());
-    combineParams.setUseList(ltfUseList.getText());
+    if (ltfUseList.getText().matches("\\s*/\\s*")) {
+      combineParams.setUseList("");
+    }
+    else {
+      combineParams.setUseList(ltfUseList.getText());
+    }
   }
 
   void setParameters(ConstSolvematchParam solvematchParam) {
@@ -649,7 +658,8 @@ public final class SolvematchPanel implements Run3dmodButtonContainer,
     ReadOnlySection section;
     ReadOnlyAutodoc autodoc = null;
     try {
-      autodoc = AutodocFactory.getInstance(AutodocFactory.SOLVEMATCH, AxisID.ONLY);
+      autodoc = AutodocFactory.getInstance(AutodocFactory.SOLVEMATCH,
+          AxisID.ONLY);
     }
     catch (FileNotFoundException except) {
       except.printStackTrace();
