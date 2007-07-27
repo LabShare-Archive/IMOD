@@ -25,6 +25,10 @@ import etomo.util.MRCHeader;
  * @version $Revision$
  *
  * <p> $Log$
+ * <p> Revision 3.10  2006/07/19 15:14:37  sueh
+ * <p> bug# 903 Change patchZMin and Max to EtomoNumbers so they won't generate
+ * <p> an exception when they are set to a blank string.
+ * <p>
  * <p> Revision 3.9  2006/05/16 21:20:23  sueh
  * <p> bug# 856 Added transfer and useList.  Removed dialogMatchMode from
  * <p> CombineParam.  Letting the screen save the script state, since it already is.
@@ -195,6 +199,10 @@ public class CombineParams extends ConstCombineParams implements Storable {
 
   public void setUseList(String useList) {
     this.useList.parseString(useList);
+  }
+  
+  public void resetUseList() {
+    useList.parseString("");
   }
 
   public void setFiducialMatchListA(String list) {
