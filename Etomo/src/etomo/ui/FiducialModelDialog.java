@@ -5,7 +5,6 @@ import java.awt.event.*;
 import javax.swing.*;
 
 import etomo.ApplicationManager;
-import etomo.process.ImodProcess;
 import etomo.type.AxisID;
 import etomo.type.BaseScreenState;
 import etomo.type.DialogType;
@@ -31,6 +30,10 @@ import etomo.comscript.FortranInputSyntaxException;
  * @version $Revision$
  *
  * <p> $Log$
+ * <p> Revision 3.35  2007/02/09 00:48:55  sueh
+ * <p> bug# 962 Made TooltipFormatter a singleton and moved its use to low-level ui
+ * <p> classes.
+ * <p>
  * <p> Revision 3.34  2006/07/31 16:36:32  sueh
  * <p> bug# 902 changed "View Fiducial Model" label to "View Seed Model"
  * <p>
@@ -248,7 +251,7 @@ public class FiducialModelDialog extends ProcessDialog implements ContextMenu,
 
   private static final String SEEDING_NOT_DONE_LABEL = "Seed Fiducial Model";
   private static final String SEEDING_DONE_LABEL = "View Seed Model";
-  
+
   private JPanel pnlFiducialModel = new JPanel();
 
   private BeveledBorder border = new BeveledBorder("Fiducial Model Generation");
@@ -258,29 +261,23 @@ public class FiducialModelDialog extends ProcessDialog implements ContextMenu,
   private TransferfidPanel pnlTransferfid = null;
   private BeadtrackPanel pnlBeadtrack;
 
-  private final Run3dmodButton btnFixModel;
-
   private boolean transferfidEnabled = false;
   private final FiducialModelActionListener actionListener;
 
-  public FiducialModelDialog(ApplicationManager appMgr, AxisID axisID) {
+  private FiducialModelDialog(ApplicationManager appMgr, AxisID axisID) {
     super(appMgr, axisID, DialogType.FIDUCIAL_MODEL);
     ProcessResultDisplayFactory displayFactory = appMgr
         .getProcessResultDisplayFactory(axisID);
     btnSeed = (Run3dmodButton) displayFactory.getSeedFiducialModel();
     btnSeed.setRun3dmodButtonContainer(this);
-    btnFixModel = (Run3dmodButton) displayFactory.getFixFiducialModel();
-    btnFixModel.setRun3dmodButtonContainer(this);
     setToolTipText();
     fixRootPanel(rootSize);
-    pnlBeadtrack = new BeadtrackPanel(appMgr, axisID, dialogType);
+    pnlBeadtrack = BeadtrackPanel.getInstance(appMgr, axisID, dialogType);
 
     btnExecute.setText("Done");
 
     btnSeed.setAlignmentX(Component.CENTER_ALIGNMENT);
     btnSeed.setSize();
-    btnFixModel.setAlignmentX(Component.CENTER_ALIGNMENT);
-    btnFixModel.setSize();
 
     pnlFiducialModel
         .setLayout(new BoxLayout(pnlFiducialModel, BoxLayout.Y_AXIS));
@@ -298,20 +295,29 @@ public class FiducialModelDialog extends ProcessDialog implements ContextMenu,
 
     pnlFiducialModel.add(pnlBeadtrack.getContainer());
     pnlFiducialModel.add(Box.createRigidArea(FixedDim.x0_y5));
-
-    pnlFiducialModel.add(Box.createRigidArea(FixedDim.x0_y5));
-
-    pnlFiducialModel.add(btnFixModel.getComponent());
     rootPanel.setLayout(new BoxLayout(rootPanel, BoxLayout.Y_AXIS));
     rootPanel.add(pnlFiducialModel);
     addExitButtons();
 
+    //  Set the advanced state to the default
+    updateAdvanced(isAdvanced);
+    updateEnabled();
+    updateDisplay();
+    actionListener = new FiducialModelActionListener(this);
+  }
+
+  public static FiducialModelDialog getInstance(ApplicationManager appMgr,
+      AxisID axisID) {
+    FiducialModelDialog instance = new FiducialModelDialog(appMgr, axisID);
+    instance.addListeners();
+    return instance;
+  }
+
+  private void addListeners() {
     //
     //  Action listener assignments for the buttons
     //
-    actionListener = new FiducialModelActionListener(this);
     btnSeed.addActionListener(actionListener);
-    btnFixModel.addActionListener(actionListener);
 
     if (applicationManager.isDualAxis()) {
       btnTransferFiducials = pnlTransferfid.getButton();
@@ -323,13 +329,8 @@ public class FiducialModelDialog extends ProcessDialog implements ContextMenu,
     //  Mouse adapter for context menu
     GenericMouseAdapter mouseAdapter = new GenericMouseAdapter(this);
     pnlFiducialModel.addMouseListener(mouseAdapter);
-
-    //  Set the advanced state to the default
-    updateAdvanced(isAdvanced);
-    updateEnabled();
-    updateDisplay();
   }
-  
+
   public void updateDisplay() {
     if (applicationManager.getState().isSeedingDone(axisID)) {
       btnSeed.setText(SEEDING_DONE_LABEL);
@@ -409,8 +410,6 @@ public class FiducialModelDialog extends ProcessDialog implements ContextMenu,
     }
     btnSeed.setButtonState(screenState.getButtonState(btnSeed
         .getButtonStateKey()));
-    btnFixModel.setButtonState(screenState.getButtonState(btnFixModel
-        .getButtonStateKey()));
     pnlBeadtrack.setParameters(screenState);
   }
 
@@ -453,7 +452,6 @@ public class FiducialModelDialog extends ProcessDialog implements ContextMenu,
    */
   private void setToolTipText() {
     btnSeed.setToolTipText("Open new or existing seed model in 3dmod.");
-    btnFixModel.setToolTipText("Load fiducial model into 3dmod.");
   }
 
   public void run3dmod(Run3dmodButton button, Run3dmodMenuOptions menuOptions) {
@@ -463,8 +461,6 @@ public class FiducialModelDialog extends ProcessDialog implements ContextMenu,
   private void run3dmod(String command, Run3dmodMenuOptions menuOptions) {
     if (command.equals(btnSeed.getActionCommand())) {
       applicationManager.imodSeedFiducials(axisID, menuOptions, btnSeed);
-    } else if (command.equals(btnFixModel.getActionCommand())) {
-      applicationManager.imodFixFiducials(axisID, menuOptions, btnFixModel, ImodProcess.GAP_MODE);
     }
   }
 
@@ -474,7 +470,8 @@ public class FiducialModelDialog extends ProcessDialog implements ContextMenu,
     if (btnTransferFiducials != null
         && command.equals(btnTransferFiducials.getActionCommand())) {
       applicationManager.transferfid(axisID, btnTransferFiducials);
-    } else {
+    }
+    else {
       run3dmod(command, new Run3dmodMenuOptions());
     }
   }
@@ -485,7 +482,6 @@ public class FiducialModelDialog extends ProcessDialog implements ContextMenu,
         btnTransferFiducials.removeActionListener(actionListener);
       }
       btnSeed.removeActionListener(actionListener);
-      btnFixModel.removeActionListener(actionListener);
       pnlBeadtrack.done();
       setDisplayed(false);
     }
