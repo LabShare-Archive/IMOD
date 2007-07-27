@@ -14,6 +14,7 @@ import javax.swing.JPanel;
 import etomo.ApplicationManager;
 import etomo.comscript.BeadtrackParam;
 import etomo.comscript.FortranInputSyntaxException;
+import etomo.process.ImodProcess;
 import etomo.storage.LogFile;
 import etomo.storage.autodoc.AutodocFactory;
 import etomo.storage.autodoc.ReadOnlyAutodoc;
@@ -24,6 +25,7 @@ import etomo.type.DialogType;
 import etomo.type.EtomoAutodoc;
 import etomo.type.InvalidEtomoNumberException;
 import etomo.type.ProcessResultDisplay;
+import etomo.type.Run3dmodMenuOptions;
 
 /**
  * <p>Description: </p>
@@ -38,6 +40,10 @@ import etomo.type.ProcessResultDisplay;
  * @version $Revision$
  *
  * <p> $Log$
+ * <p> Revision 3.18  2007/03/21 19:44:49  sueh
+ * <p> bug# 964 Limiting access to autodoc classes by using ReadOnly interfaces.
+ * <p> Added AutodocFactory to create Autodoc instances.
+ * <p>
  * <p> Revision 3.17  2007/03/01 01:27:17  sueh
  * <p> bug# 964 Added LogFile to Autodoc.
  * <p>
@@ -133,15 +139,17 @@ import etomo.type.ProcessResultDisplay;
  * <p> Initial CVS entry, basic functionality not including combining
  * <p> </p>
  */
-public final class BeadtrackPanel implements Expandable {
+public final class BeadtrackPanel implements Expandable,
+    Run3dmodButtonContainer {
   public static final String rcsid = "$Id$";
 
-  public static final String TRACK_LABEL = "Track Fiducial Seed Model";
-  public static final String USE_MODEL_LABEL = "Use Fiducial Model as Seed";
+  public static final String TRACK_LABEL = "Track Seed Model";
+  public static final String USE_MODEL_LABEL = "Track with Fiducial Model as Seed";
 
   private final JPanel panelBeadtrack = new JPanel();
   private final JPanel panelBeadtrackBody = new JPanel();
   private final AxisID axisID;
+  private final Run3dmodButton btnFixModel;
 
   private final LabeledTextField ltfViewSkipList = new LabeledTextField(
       "View skip list: ");
@@ -214,7 +222,6 @@ public final class BeadtrackPanel implements Expandable {
   private final MultiLineButton btnTrack;
   private final MultiLineButton btnUseModel = new MultiLineButton(
       USE_MODEL_LABEL);
-  private final JPanel pnlTrack = new JPanel();
   private final BeadtrackPanelActionListener actionListener = new BeadtrackPanelActionListener(
       this);
 
@@ -222,12 +229,15 @@ public final class BeadtrackPanel implements Expandable {
    * Construct a new beadtrack panel.
    * @param label specifies the suffix for the logfile
    */
-  public BeadtrackPanel(ApplicationManager manager, AxisID id,
+  private BeadtrackPanel(ApplicationManager manager, AxisID id,
       DialogType dialogType) {
     this.manager = manager;
     axisID = id;
     btnTrack = (MultiLineButton) manager.getProcessResultDisplayFactory(axisID)
         .getTrackFiducials();
+    btnFixModel = (Run3dmodButton) manager.getProcessResultDisplayFactory(
+        axisID).getFixFiducialModel();
+    btnFixModel.setRun3dmodButtonContainer(this);
     expertParametersHeader = PanelHeader.getInstance("Expert Parameters", this,
         dialogType);
     header = PanelHeader.getAdvancedBasicInstance("Beadtracker", this,
@@ -297,11 +307,16 @@ public final class BeadtrackPanel implements Expandable {
 
     btnTrack.setAlignmentX(Component.CENTER_ALIGNMENT);
     btnTrack.setSize();
-    btnUseModel.setSize();
+    panelBeadtrackBody.add(btnTrack.getComponent());
+    
+    JPanel pnlTrack = new JPanel();
     pnlTrack.setLayout(new BoxLayout(pnlTrack, BoxLayout.X_AXIS));
     pnlTrack.setAlignmentX(Component.CENTER_ALIGNMENT);
-    pnlTrack.add(btnTrack.getComponent());
+    btnFixModel.setAlignmentX(Component.CENTER_ALIGNMENT);
+    btnFixModel.setSize();
+    pnlTrack.add(btnFixModel.getComponent());
     pnlTrack.add(Box.createRigidArea(FixedDim.x5_y0));
+    btnUseModel.setSize();
     pnlTrack.add(btnUseModel.getComponent());
     panelBeadtrackBody.add(Box.createRigidArea(FixedDim.x0_y5));
     panelBeadtrackBody.add(pnlTrack);
@@ -311,11 +326,21 @@ public final class BeadtrackPanel implements Expandable {
     panelBeadtrack.setBorder(BorderFactory.createEtchedBorder());
     panelBeadtrack.add(header.getContainer());
     panelBeadtrack.add(panelBeadtrackBody);
-
     setToolTipText();
+  }
+
+  public static BeadtrackPanel getInstance(ApplicationManager manager,
+      AxisID id, DialogType dialogType) {
+    BeadtrackPanel instance = new BeadtrackPanel(manager, id, dialogType);
+    instance.addListeners();
+    return instance;
+  }
+
+  private void addListeners() {
     cbLocalAreaTracking.addActionListener(actionListener);
     btnTrack.addActionListener(actionListener);
     btnUseModel.addActionListener(actionListener);
+    btnFixModel.addActionListener(actionListener);
   }
 
   public static ProcessResultDisplay getTrackFiducialsDisplay(
@@ -346,6 +371,8 @@ public final class BeadtrackPanel implements Expandable {
   public void setParameters(BaseScreenState screenState) {
     expertParametersHeader.setButtonStates(screenState, false);
     header.setButtonStates(screenState);
+    btnFixModel.setButtonState(screenState.getButtonState(btnFixModel
+        .getButtonStateKey()));
   }
 
   public void getParameters(BaseScreenState screenState) {
@@ -560,13 +587,26 @@ public final class BeadtrackPanel implements Expandable {
       manager.fiducialModelTrack(axisID, btnTrack);
     }
     else if (command.equals(btnUseModel.getActionCommand())) {
-      manager.makeFiducialModelSeedModel(axisID);
-      if (btnTrack.isSelected()) {
-        btnTrack.setSelected(false);
+      if (manager.makeFiducialModelSeedModel(axisID)) {
+        manager.fiducialModelTrack(axisID, btnUseModel);
       }
     }
-    if (command.equals(cbLocalAreaTracking.getText())) {
+    else if (command.equals(cbLocalAreaTracking.getText())) {
       setEnabled();
+    }
+    else {
+      run3dmod(command, new Run3dmodMenuOptions());
+    }
+  }
+
+  public void run3dmod(Run3dmodButton button, Run3dmodMenuOptions menuOptions) {
+    run3dmod(button.getActionCommand(), menuOptions);
+  }
+
+  private void run3dmod(String command, Run3dmodMenuOptions menuOptions) {
+    if (command.equals(btnFixModel.getActionCommand())) {
+      manager.imodFixFiducials(axisID, menuOptions, btnFixModel,
+          ImodProcess.GAP_MODE);
     }
   }
 
@@ -599,6 +639,7 @@ public final class BeadtrackPanel implements Expandable {
 
   public void done() {
     btnTrack.removeActionListener(actionListener);
+    btnFixModel.removeActionListener(actionListener);
   }
 
   //  ToolTip string setup
@@ -683,10 +724,10 @@ public final class BeadtrackPanel implements Expandable {
         BeadtrackParam.ROUNDS_OF_TRACKING_KEY));
     btnTrack
         .setToolTipText("Run Beadtrack to produce fiducial model from seed model.");
+    btnFixModel.setToolTipText("Load fiducial model into 3dmod.");
     btnUseModel
-        .setToolTipText("Turn the output of Beadtrack (fiducial model) into a new seed model.  "
-            + "Your original seed model will be moved into an _orig.seed file."
-            + "To use the new seed model, press Track Fiducial Seed Model.");
+        .setToolTipText("Turn the output of Beadtrack (fiducial model) into a new seed model and then track.  "
+            + "Your original seed model will be moved into an _orig.seed file.");
   }
 
   private class BeadtrackPanelActionListener implements ActionListener {
