@@ -64,6 +64,9 @@ import etomo.util.Utilities;
  * @version $Revision$
  * 
  * <p> $Log$
+ * <p> Revision 1.58  2007/07/30 18:33:25  sueh
+ * <p> bug# 1002 ParameterStore.getInstance can return null - handle it.
+ * <p>
  * <p> Revision 1.57  2007/06/08 21:50:27  sueh
  * <p> bug# 1014 Removed setMetaData(ImodManager) and placing the call to ImodManager.setMetaData after the call to initializeUIParameters.
  * <p>
@@ -436,8 +439,8 @@ public final class JoinManager extends BaseManager {
     createState();
     processMgr = new JoinProcessManager(this, state);
     initializeUIParameters(paramFileName, axisID);
-    imodManager.setMetaData(metaData);
     if (!paramFileName.equals("") && loadedParamFile) {
+      imodManager.setMetaData(metaData);
       mainPanel.setStatusBarText(paramFile, metaData);
     }
     if (!EtomoDirector.getInstance().isHeadless()) {
@@ -450,7 +453,32 @@ public final class JoinManager extends BaseManager {
     return InterfaceType.JOIN;
   }
 
+  public boolean saveParamFile() throws LogFile.FileException,
+      LogFile.WriteException {
+    boolean retval;
+    if ((retval = super.saveParamFile())) {
+      endSetupMode();
+    }
+    return retval;
+  }
+
   public boolean setParamFile() {
+    if (!loadedParamFile && joinDialog != null) {
+      String dir = joinDialog.getWorkingDirName();
+      String root = joinDialog.getRootName();
+      if (dir != null && !dir.matches("\\s*") && root != null
+          && !root.matches("\\s*")) {
+        File file = new File(dir, root + DatasetFiles.JOIN_DATA_FILE_EXT);
+        if (!file.exists()) {
+          processMgr.createNewFile(file.getAbsolutePath());
+        }
+        initializeUIParameters(file, AxisID.ONLY, false);
+        if (loadedParamFile) {
+          imodManager.setMetaData(metaData);
+          mainPanel.setStatusBarText(paramFile, metaData);
+        }
+      }
+    }
     return loadedParamFile;
   }
 
@@ -515,7 +543,14 @@ public final class JoinManager extends BaseManager {
     if (!loadedParamFile && rootName != null && !rootName.matches("\\s*+")) {
       paramFile = new File(propertyUserDir, rootName
           + metaData.getFileExtension());
-      loadedParamFile = true;
+      if (!paramFile.exists()) {
+        processMgr.createNewFile(paramFile.getAbsolutePath());
+      }
+      initializeUIParameters(paramFile, AxisID.ONLY, false);
+      if (loadedParamFile) {
+        imodManager.setMetaData(metaData);
+        mainPanel.setStatusBarText(paramFile, metaData);
+      }
     }
     joinDialog.getMetaData(metaData);
     joinDialog.getScreenState(screenState);
@@ -762,6 +797,9 @@ public final class JoinManager extends BaseManager {
     if (paramFile == null) {
       endSetupMode();
     }
+    if (!joinDialog.getMetaData(metaData)) {
+      return;
+    }
     try {
       threadNameA = processMgr.makejoincom(makejoincomParam);
     }
@@ -825,7 +863,14 @@ public final class JoinManager extends BaseManager {
     imodManager.setMetaData(metaData);
     paramFile = new File(propertyUserDir, metaData.getRootName()
         + metaData.getFileExtension());
-    loadedParamFile = true;
+    if (!paramFile.exists()) {
+      processMgr.createNewFile(paramFile.getAbsolutePath());
+    }
+    initializeUIParameters(paramFile, AxisID.ONLY, false);
+    if (loadedParamFile) {
+      imodManager.setMetaData(metaData);
+      mainPanel.setStatusBarText(paramFile, metaData);
+    }
     mainPanel.setStatusBarText(paramFile, metaData);
     return true;
   }
