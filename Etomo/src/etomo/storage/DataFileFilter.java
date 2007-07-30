@@ -18,6 +18,9 @@ import etomo.util.DatasetFiles;
  * @version $Revision$
  * 
  * <p> $Log$
+ * <p> Revision 1.5  2007/05/02 16:34:13  sueh
+ * <p> bug# 964 Moved newstuff into mainstream.
+ * <p>
  * <p> Revision 1.4  2007/03/03 00:44:44  sueh
  * <p> bug# 964 Removed a mention of PEET that escaped the newstuff setting.
  * <p>
@@ -41,7 +44,7 @@ public class DataFileFilter extends javax.swing.filechooser.FileFilter
   public boolean accept(File f) {
     //  If this is a file test its extension, all others should return true
     if (f.isFile() && !f.getAbsolutePath().endsWith(".edf")
-        && !f.getAbsolutePath().endsWith(".ejf")
+        && !f.getAbsolutePath().endsWith(DatasetFiles.JOIN_DATA_FILE_EXT)
         && !f.getAbsolutePath().endsWith(DatasetFiles.PARALLEL_DATA_FILE_EXT)
         && !f.getAbsolutePath().endsWith(DatasetFiles.PEET_DATA_FILE_EXT)) {
       return false;

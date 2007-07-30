@@ -6,6 +6,7 @@ import java.util.Properties;
 
 import etomo.comscript.MakejoincomParam;
 import etomo.ui.JoinDialog;
+import etomo.util.DatasetFiles;
 import etomo.util.Utilities;
 
 /**
@@ -22,6 +23,10 @@ import etomo.util.Utilities;
  * @version $Revision$
  * 
  * <p> $Log$
+ * <p> Revision 1.13  2007/03/01 01:24:24  sueh
+ * <p> bug# 964 Saving immutable Number elements instead of EtomoNumber elements
+ * <p> in IntKeyList.
+ * <p>
  * <p> Revision 1.12  2007/02/08 02:02:39  sueh
  * <p> bug# 962 Added rejoinTrialBinning and rejoinUseEveryNSlices.
  * <p>
@@ -220,7 +225,7 @@ public abstract class ConstJoinMetaData extends BaseMetaData {
 
   public ConstJoinMetaData() {
     axisType=AxisType.SINGLE_AXIS;
-    fileExtension = ".ejf";
+    fileExtension = DatasetFiles.JOIN_DATA_FILE_EXT;
     densityRefSection.setDefault(1).useDefaultAsDisplayValue();
     alignmentRefSection.setDefault(1).useDefaultAsDisplayValue();
     trialBinning.setDefault(1).useDefaultAsDisplayValue();

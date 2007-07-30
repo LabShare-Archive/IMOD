@@ -26,6 +26,7 @@ public final class DatasetFiles {
   public static final String rcsid = "$Id$";
 
   public static final String TILT_FILE_EXT = ".tlt";
+  public static final String JOIN_DATA_FILE_EXT = ".ejf";
   public static final String MATLAB_PARAM_FILE_EXT = ".prm";
   public static final String PARALLEL_DATA_FILE_EXT = ".epp";
   public static final String PEET_DATA_FILE_EXT = ".epe";
@@ -425,6 +426,9 @@ public final class DatasetFiles {
 }
 /**
  * <p> $Log$
+ * <p> Revision 1.40  2007/07/10 00:44:29  sueh
+ * <p> bug# 1022 Added TILT_FILE_EXT.
+ * <p>
  * <p> Revision 1.39  2007/05/16 23:48:28  sueh
  * <p> bug# 964 Added getPeetRootName().
  * <p>

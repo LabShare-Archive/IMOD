@@ -5,6 +5,7 @@ import java.util.Properties;
 
 import etomo.BaseManager;
 import etomo.ui.UIHarness;
+import etomo.util.DatasetFiles;
 
 /**
  * <p>Description: </p>
@@ -20,6 +21,9 @@ import etomo.ui.UIHarness;
  * @version $Revision$
  * 
  * <p> $Log$
+ * <p> Revision 1.9  2007/02/08 02:03:01  sueh
+ * <p> bug# 962 Added rejoinTrialBinning and rejoinUseEveryNSlices.
+ * <p>
  * <p> Revision 1.8  2007/02/05 23:27:58  sueh
  * <p> bug# 962 Added Model and Rejoin fields.
  * <p>
@@ -113,8 +117,8 @@ public class JoinMetaData extends ConstJoinMetaData {
     sectionTableData = null;
     densityRefSection.reset();
     rootName = "";
-    boundariesToAnalyze=null;
-    objectsToInclude=null;
+    boundariesToAnalyze = null;
+    objectsToInclude = null;
     gapStart.reset();
     gapEnd.reset();
     gapInc.reset();
@@ -156,18 +160,20 @@ public class JoinMetaData extends ConstJoinMetaData {
       loadVersion1_0(props, prepend);
     }
     else {
-      alignTransform =Transform.load(props, prepend, ALIGN_TRANFORM_KEY, TRANSFORM_DEFAULT);
+      alignTransform = Transform.load(props, prepend, ALIGN_TRANFORM_KEY,
+          TRANSFORM_DEFAULT);
     }
-    modelTransform =Transform.load(props, prepend, MODEL_TRANFORM_KEY, TRANSFORM_DEFAULT);
+    modelTransform = Transform.load(props, prepend, MODEL_TRANFORM_KEY,
+        TRANSFORM_DEFAULT);
     rootName = props.getProperty(group + rootNameString, "");
     boundariesToAnalyze = props.getProperty(group + BOUNDARIES_TO_ANALYZE_KEY);
     objectsToInclude = props.getProperty(group + OBJECTS_TO_INCLUDE_KEY);
-    gapStart.load(props,prepend);
-    gap.load(props,prepend);
-    gapEnd.load(props,prepend);
-    gapInc.load(props,prepend);
-    pointsToFitMin.load(props,prepend);
-    pointsToFitMax.load(props,prepend);
+    gapStart.load(props, prepend);
+    gap.load(props, prepend);
+    gapEnd.load(props, prepend);
+    gapInc.load(props, prepend);
+    pointsToFitMin.load(props, prepend);
+    pointsToFitMax.load(props, prepend);
     densityRefSection.load(props, prepend);
     sigmaLowFrequency.load(props, prepend);
     cutoffHighFrequency.load(props, prepend);
@@ -197,12 +203,13 @@ public class JoinMetaData extends ConstJoinMetaData {
       int rowIndex = row.getRowIndex();
       if (rowIndex < 0) {
         UIHarness.INSTANCE.openMessageDialog("Invalid row index: " + rowIndex,
-            "Corrupted .ejf file", AxisID.ONLY);
+            "Corrupted " + DatasetFiles.JOIN_DATA_FILE_EXT + " file",
+            AxisID.ONLY);
       }
       sectionTableData.add(row.getRowIndex(), row);
     }
-    boundaryRowStartList.load(props,prepend);
-    boundaryRowEndList.load(props,prepend);
+    boundaryRowStartList.load(props, prepend);
+    boundaryRowEndList.load(props, prepend);
     rejoinUseEveryNSlices.load(props, prepend);
   }
 
@@ -235,7 +242,7 @@ public class JoinMetaData extends ConstJoinMetaData {
   public void setUseEveryNSlices(Object useEveryNSlices) {
     this.useEveryNSlices.set((Integer) useEveryNSlices);
   }
-  
+
   public void setRejoinUseEveryNSlices(Object rejoinUseEveryNSlices) {
     this.rejoinUseEveryNSlices.set((Integer) rejoinUseEveryNSlices);
   }
@@ -243,11 +250,11 @@ public class JoinMetaData extends ConstJoinMetaData {
   public void setTrialBinning(Object trialBinning) {
     this.trialBinning.set((Integer) trialBinning);
   }
-  
+
   public void setRejoinTrialBinning(Object rejoinTrialBinning) {
     this.rejoinTrialBinning.set((Integer) rejoinTrialBinning);
   }
-  
+
   public void setGap(boolean gap) {
     this.gap.set(gap);
   }
@@ -255,31 +262,31 @@ public class JoinMetaData extends ConstJoinMetaData {
   public void setRootName(String rootName) {
     this.rootName = rootName;
   }
-  
+
   public void setBoundariesToAnalyze(String boundariesToAnalyze) {
-    this.boundariesToAnalyze=boundariesToAnalyze;
+    this.boundariesToAnalyze = boundariesToAnalyze;
   }
-  
+
   public void setObjectsToInclude(String objectsToInclude) {
-    this.objectsToInclude=objectsToInclude;
+    this.objectsToInclude = objectsToInclude;
   }
-  
+
   public void setGapStart(String gapStart) {
     this.gapStart.set(gapStart);
   }
-  
+
   public void setPointsToFitMax(String pointsToFitMax) {
     this.pointsToFitMax.set(pointsToFitMax);
   }
-  
+
   public void setPointsToFitMin(String pointsToFitMin) {
     this.pointsToFitMin.set(pointsToFitMin);
   }
-  
+
   public void setGapEnd(String gapEnd) {
     this.gapEnd.set(gapEnd);
   }
-  
+
   public void setGapInc(String gapInc) {
     this.gapInc.set(gapInc);
   }
@@ -318,13 +325,13 @@ public class JoinMetaData extends ConstJoinMetaData {
   public void setAlignmentRefSection(Object alignmentRefSection) {
     this.alignmentRefSection.set((Integer) alignmentRefSection);
   }
-  
+
   public void setAlignTransform(Transform alignTransform) {
-    this.alignTransform =alignTransform;
+    this.alignTransform = alignTransform;
   }
-  
+
   public void setModelTransform(Transform modelTransform) {
-    this.modelTransform =modelTransform;
+    this.modelTransform = modelTransform;
   }
 
   public ConstEtomoNumber setSizeInX(String sizeInX) {
