@@ -27,6 +27,9 @@ import junit.framework.TestCase;
  * @version $Revision$
  * 
  * <p> $Log$
+ * <p> Revision 3.17  2006/11/18 01:16:49  sueh
+ * <p> bug# 956 Temporarily not running problem tests on Windows.
+ * <p>
  * <p> Revision 3.16  2006/11/15 20:49:12  sueh
  * <p> bug# 872 testStore_Properties:  throw LogFile exceptions because properties is
  * <p> using LogFile.
@@ -143,12 +146,12 @@ public class MetaDataTest extends TestCase {
 
       //  Load in the original etomo data file
       File origFile = new File(testDir, edfList[i]);
-      ParameterStore paramStore = new ParameterStore(origFile);
+      ParameterStore paramStore =  ParameterStore.getInstance(origFile);
       paramStore.load(origMetaData);
 
       //  Create a new output file
       File newFile = new File(testDir, edfList[i] + "new");
-      paramStore = new ParameterStore(newFile);
+      paramStore =  ParameterStore.getInstance(newFile);
 
       //  Write out the meta data to the new file
       paramStore.save(origMetaData);
@@ -174,7 +177,7 @@ public class MetaDataTest extends TestCase {
     }
     for (int i = 0; i < edfList.length; i++) {
       MetaData metaData = new MetaData(manager);
-      ParameterStore paramStore = new ParameterStore(new File(testDir, edfList[i]));
+      ParameterStore paramStore =  ParameterStore.getInstance(new File(testDir, edfList[i]));
       paramStore.load(metaData);
       //  Check some basic parameters to see if we actually loaded something
       if (metaData.getDatasetName().equals("")) {

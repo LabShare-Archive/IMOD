@@ -29,6 +29,7 @@ import etomo.process.ImodManager;
 import etomo.process.ImodProcess;
 import etomo.storage.LogFile;
 import etomo.storage.ModelFileFilter;
+import etomo.storage.ParameterStore;
 import etomo.storage.autodoc.AutodocFactory;
 import etomo.storage.autodoc.ReadOnlyAutodoc;
 import etomo.type.AxisID;
@@ -56,6 +57,10 @@ import etomo.util.DatasetFiles;
  * @version $Revision$
  *
  * <p> $Log$
+ * <p> Revision 1.51  2007/06/08 23:58:28  sueh
+ * <p> bug# 995 Opening the rejoin trial without the model unless it was created
+ * <p> with all slices.
+ * <p>
  * <p> Revision 1.50  2007/05/26 00:32:31  sueh
  * <p> bug# 994 Not automatically setting button size in SpacedPanel anymore.
  * <p> Setting button size in UI.
@@ -1649,7 +1654,10 @@ public final class JoinDialog implements ContextMenu, Run3dmodButtonContainer {
       JoinMetaData metaData = manager.getJoinMetaData();
       getMetaData(metaData);
       try {
-        manager.getParameterStore().save(metaData);
+        ParameterStore parameterStore = manager.getParameterStore();
+        if (parameterStore != null) {
+          parameterStore.save(metaData);
+        }
       }
       catch (LogFile.FileException e) {
         UIHarness.INSTANCE.openMessageDialog("Unable to save JoinMetaData.\n"

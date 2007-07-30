@@ -579,7 +579,7 @@ public final class ConstEtomoNumberTest extends TestCase {
     String name = "TestStore_PropertiesName";
     EtomoNumber test = new EtomoNumber(name);
     test.set(smallInteger);
-    ParameterStore properties = new ParameterStore(propertiesFile);
+    ParameterStore properties =  ParameterStore.getInstance(propertiesFile);
     //test: no IOException thrown on save
     properties.save(test);
     //test: write parameter to file
@@ -1371,6 +1371,9 @@ public final class ConstEtomoNumberTest extends TestCase {
 }
 /**
  * <p> $Log$
+ * <p> Revision 1.45  2007/05/18 23:53:01  sueh
+ * <p> bug# 987 Made isNull(int) static.
+ * <p>
  * <p> Revision 1.44  2007/03/26 18:37:39  sueh
  * <p> bug# 964 Changed getDouble(boolean defaultIfNull) to getDefaultDouble() so that
  * <p> the functionality will be remembered and used.  Also changed getValue(boolean).

@@ -16,6 +16,7 @@ import etomo.EtomoDirector;
 import etomo.comscript.ProcesschunksParam;
 import etomo.storage.CpuAdoc;
 import etomo.storage.LogFile;
+import etomo.storage.ParameterStore;
 import etomo.storage.Storable;
 import etomo.type.AxisID;
 import etomo.type.EtomoNumber;
@@ -143,7 +144,7 @@ public final class ProcessorTable implements Storable {
       //exclude any computer with the "exclude-interface" attribute set to the
       //current interface
       if (!computer.isExcludedInterface(manager.getInterfaceType())
-          && (!computer.isExcludedUser(System.getProperty("user.name")) )){
+          && (!computer.isExcludedUser(System.getProperty("user.name")))) {
         //get the number attribute
         //set numberColumn to true if an number attribute is returned
         number.set(computer.getNumber());
@@ -212,7 +213,11 @@ public final class ProcessorTable implements Storable {
       header2OS = new HeaderCell();
     }
     try {
-      EtomoDirector.getInstance().getParameterStore().load(this);
+      ParameterStore parameterStore = EtomoDirector.getInstance()
+          .getParameterStore();
+      if (parameterStore != null) {
+        parameterStore.load(this);
+      }
     }
     catch (LogFile.WriteException e) {
       UIHarness.INSTANCE.openMessageDialog("Unable to load parameters.\n"
@@ -763,6 +768,9 @@ public final class ProcessorTable implements Storable {
 }
 /**
  * <p> $Log$
+ * <p> Revision 1.45  2007/07/17 21:44:05  sueh
+ * <p> bug# 1018 Adding all cpu.adoc information from CpuAdoc.
+ * <p>
  * <p> Revision 1.44  2007/05/25 00:28:19  sueh
  * <p> bug# 964 Added tooltip to clearLoadAverage.  Added a second reason to
  * <p> clearFailureReason.
