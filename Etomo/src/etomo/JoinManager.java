@@ -24,6 +24,7 @@ import etomo.process.JoinProcessManager;
 import etomo.process.ProcessMessages;
 import etomo.process.SystemProcessException;
 import etomo.storage.LogFile;
+import etomo.storage.ParameterStore;
 import etomo.storage.Storable;
 import etomo.type.AxisID;
 import etomo.type.AxisType;
@@ -63,6 +64,9 @@ import etomo.util.Utilities;
  * @version $Revision$
  * 
  * <p> $Log$
+ * <p> Revision 1.57  2007/06/08 21:50:27  sueh
+ * <p> bug# 1014 Removed setMetaData(ImodManager) and placing the call to ImodManager.setMetaData after the call to initializeUIParameters.
+ * <p>
  * <p> Revision 1.56  2007/05/21 22:28:10  sueh
  * <p> bug# 964 Added getInterfaceType().
  * <p>
@@ -441,7 +445,7 @@ public final class JoinManager extends BaseManager {
       setMode();
     }
   }
-  
+
   public InterfaceType getInterfaceType() {
     return InterfaceType.JOIN;
   }
@@ -1198,7 +1202,11 @@ public final class JoinManager extends BaseManager {
       return false;
     }
     try {
-      getParameterStore().save(metaData);
+      ParameterStore parameterStore = getParameterStore();
+      if (parameterStore == null) {
+        return false;
+      }
+      parameterStore.save(metaData);
     }
     catch (LogFile.FileException e) {
       uiHarness.openMessageDialog("Cannot save metaData.\n" + e.getMessage(),

@@ -636,7 +636,10 @@ public class EtomoDirector {
         userConfig.setMainWindowWidth(size.width);
         userConfig.setMainWindowHeight(size.height);
         //  Write out the user configuration data
-        getParameterStore().save(userConfig);
+        getParameterStore();
+        if (parameterStore != null) {
+          parameterStore.save(userConfig);
+        }
         return true;
       }
     }
@@ -667,7 +670,7 @@ public class EtomoDirector {
             + userConfigFile.getAbsolutePath());
         System.err.println(except.getMessage());
       }
-      parameterStore = new ParameterStore(userConfigFile);
+      parameterStore =  ParameterStore.getInstance(userConfigFile);
       return parameterStore;
     }
   }
@@ -716,6 +719,9 @@ public class EtomoDirector {
     userConfig = new UserConfiguration();
     //  Create a File object specifying the user configuration file
     getParameterStore();
+    if (parameterStore == null) {
+      return;
+    }
     try {
       parameterStore.load(userConfig);
     }
@@ -1002,7 +1008,11 @@ public class EtomoDirector {
 
   public void saveSettingsDialog() {
     try {
-      getParameterStore().save(userConfig);
+      getParameterStore();
+      if (parameterStore==null) {
+        return;
+      }
+      parameterStore.save(userConfig);
     }
     catch (LogFile.FileException e) {
       uiHarness.openMessageDialog("Unable to save preferences to "
@@ -1136,6 +1146,10 @@ public class EtomoDirector {
 }
 /**
  * <p> $Log$
+ * <p> Revision 1.62  2007/05/29 19:16:00  sueh
+ * <p> bug# 994 In exitProgram, stop the ProcessRestarter and all the
+ * <p> IntermittentBackgroundProcesses.
+ * <p>
  * <p> Revision 1.61  2007/05/02 21:05:19  sueh
  * <p> bug# 964 Removed Import PRM and Duplicate PEET menu items.
  * <p>

@@ -215,7 +215,7 @@ public abstract class BaseManager {
     this.propertyUserDir = propertyUserDir;
     return oldPropertyUserDir;
   }
-  
+
   void clearUIParameters() {
     loadedParamFile = false;
     paramFile = null;
@@ -363,7 +363,7 @@ public abstract class BaseManager {
       if (parameterStore != null) {
         return parameterStore;
       }
-      parameterStore = new ParameterStore(paramFile);
+      parameterStore = ParameterStore.getInstance(paramFile);
       return parameterStore;
     }
   }
@@ -677,6 +677,9 @@ public abstract class BaseManager {
     if (!loadedFromADifferentFile) {
       // Read in the test parameter data file
       getParameterStore();
+      if (parameterStore == null) {
+        return false;
+      }
       //must load meta data before other storables can be constructed
       try {
         parameterStore.load(getBaseMetaData());
@@ -1089,7 +1092,11 @@ public abstract class BaseManager {
         return;
       }
       mainPanel.setProgressBar("Saving defaults", 1, axisID);
-      EtomoDirector.getInstance().getParameterStore().save(storable);
+      ParameterStore localParameterStore = EtomoDirector.getInstance()
+          .getParameterStore();
+      if (localParameterStore != null) {
+        localParameterStore.save(storable);
+      }
     }
     catch (LogFile.FileException e) {
       uiHarness.openMessageDialog("Unable to save preferences.\n"
@@ -1189,6 +1196,11 @@ public abstract class BaseManager {
 }
 /**
  * <p> $Log$
+ * <p> Revision 1.84  2007/06/08 21:49:21  sueh
+ * <p> bug# 1014 Added clearUIParameters, to back out the changes made in
+ * <p> initializeUIParameters.  Removing call to setMetaData in loadParamFile
+ * <p> because it shouldn't be backed out.
+ * <p>
  * <p> Revision 1.83  2007/06/04 22:50:58  sueh
  * <p> bug# 1005 Added boolean loadedFromADifferentFile to
  * <p> initializeUIParameters and loadParamFile.

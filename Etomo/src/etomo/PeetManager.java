@@ -52,6 +52,12 @@ import etomo.util.DatasetFiles;
  * @version $Revision$
  * 
  * <p> $Log$
+ * <p> Revision 1.28  2007/06/08 22:13:17  sueh
+ * <p> bug# 1014 Removed setMetaData(ImodManager).  When importing
+ * <p> a .prm, duplicating a project, or copying parameters fail if reading
+ * <p> the .prm file fails.  If initializeUIParameters has been called, back out the
+ * <p> changes by calling clearUIParameters.
+ * <p>
  * <p> Revision 1.27  2007/06/07 23:02:30  sueh
  * <p> bug# 1009 In loadMatlabParam setting matlabParam.fnOutput from PeetDialog, in case the user set it.
  * <p>
@@ -331,14 +337,16 @@ public final class PeetManager extends BaseManager {
     }
     //load the original param file
     PeetMetaData origMetaData = new PeetMetaData();
-    ParameterStore origParameterStore = new ParameterStore(origParamFile);
+    ParameterStore origParameterStore =  ParameterStore.getInstance(origParamFile);
     try {
+      if (origParameterStore!=null) {
       origParameterStore.load(origMetaData);
       Storable[] storables = getStorables(0);
       if (storables != null) {
         for (int i = 0; i < storables.length; i++) {
           origParameterStore.load(storables[i]);
         }
+      }
       }
       //If the user didn't specify a name, use the one from the origParamFile
       if (emptyNewName) {

@@ -357,9 +357,11 @@ public final class ApplicationManager extends BaseManager {
     // sharing a directory.
     for (int i = 0; i < edfFiles.length; i++) {
       MetaData savedMetaData = new MetaData(this);
-      ParameterStore paramStore = new ParameterStore(edfFiles[i]);
+      ParameterStore paramStore = ParameterStore.getInstance(edfFiles[i]);
       try {
-        paramStore.load(savedMetaData);
+        if (paramStore != null) {
+          paramStore.load(savedMetaData);
+        }
       }
       catch (LogFile.WriteException e) {
         e.printStackTrace();
@@ -5434,6 +5436,11 @@ public final class ApplicationManager extends BaseManager {
 }
 /**
  * <p> $Log$
+ * <p> Revision 3.283  2007/07/27 16:50:05  sueh
+ * <p> bug# 979 In openFiducialModelDialog returning success/failure boolean.  Using
+ * <p> getInstance to construct FiducialModelDialog because it uses action listeners,
+ * <p> which shouldn't be created during construction.
+ * <p>
  * <p> Revision 3.282  2007/07/24 19:24:48  sueh
  * <p> bug# 1032 Don't set meta data in imod manager unless paramFileName is set.
  * <p>

@@ -39,6 +39,11 @@ import etomo.util.Utilities;
  * @version $Revision$
  * 
  * <p> $Log$
+ * <p> Revision 1.58  2007/05/31 22:25:39  sueh
+ * <p> bug# 1004 Added createNewFile(), a more reliable way to create a new
+ * <p> file.  Changed touch() to check for the files existence after it has been
+ * <p> created.
+ * <p>
  * <p> Revision 1.57  2007/05/14 17:32:56  sueh
  * <p> bug# 964 Removed print statements.
  * <p>
@@ -736,9 +741,13 @@ public abstract class BaseProcessManager {
   }
 
   private void saveProcessData(ProcessData processData) {
-    ParameterStore paramStore = new ParameterStore(manager.getParamFile());
+    ParameterStore paramStore = ParameterStore.getInstance(manager
+        .getParamFile());
+    if (paramStore == null) {
+      return;
+    }
     try {
-      manager.getParameterStore().save(processData);
+      paramStore.save(processData);
     }
     catch (LogFile.FileException e) {
       e.printStackTrace();
