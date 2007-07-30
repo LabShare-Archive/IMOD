@@ -1,9 +1,12 @@
 IMOD History
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+7/30/07: In eTomo Join, allowing the project to be saved before "Make Samples"
+is pressed.
+
 7/27/07: In eTomo Tomogram Combination the "Starting points to use from A"
 field can now take "/", which it will convert to an empty string.
 
-7/27/07: Clarified the Etomo fiducial tracking interface.  Instead of a separate
+7/27/07: Clarified the etomo fiducial tracking interface.  Instead of a separate
 button to copy the fiducial model to the seed model, there is now a button to
 copy and then track the resulting seed model.
 
