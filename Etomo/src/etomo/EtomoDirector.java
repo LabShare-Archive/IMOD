@@ -30,6 +30,7 @@ import etomo.type.UserConfiguration;
 import etomo.ui.SettingsDialog;
 import etomo.ui.UIHarness;
 import etomo.ui.UIParameters;
+import etomo.util.DatasetFiles;
 import etomo.util.EnvironmentVariable;
 import etomo.util.UniqueHashedArray;
 import etomo.util.UniqueKey;
@@ -670,7 +671,7 @@ public class EtomoDirector {
             + userConfigFile.getAbsolutePath());
         System.err.println(except.getMessage());
       }
-      parameterStore =  ParameterStore.getInstance(userConfigFile);
+      parameterStore = ParameterStore.getInstance(userConfigFile);
       return parameterStore;
     }
   }
@@ -734,7 +735,13 @@ public class EtomoDirector {
   private final void printHelpMessage() {
     String helpMessage = "Usage:  etomo [options] [data_file1 data_file2 ...]\n"
         + "data_file:  A file created by etomo.  Can be either a tomogram data\n"
-        + "            file (.edf) or a join data file (.ejf).\n"
+        + "            file (.edf), a join data file ("
+        + DatasetFiles.JOIN_DATA_FILE_EXT
+        + "), a parallel processing data file ("
+        + DatasetFiles.PARALLEL_DATA_FILE_EXT
+        + "), or a PEET data file ("
+        + DatasetFiles.PEET_DATA_FILE_EXT
+        + ").\n"
         + "Options:\n"
         + "  -h           Send this message to standard out and exit.\n"
         + "  --debug      Send extra information to standard error.  The debug\n"
@@ -1009,7 +1016,7 @@ public class EtomoDirector {
   public void saveSettingsDialog() {
     try {
       getParameterStore();
-      if (parameterStore==null) {
+      if (parameterStore == null) {
         return;
       }
       parameterStore.save(userConfig);
@@ -1146,6 +1153,9 @@ public class EtomoDirector {
 }
 /**
  * <p> $Log$
+ * <p> Revision 1.63  2007/07/30 18:31:23  sueh
+ * <p> bug# 1002 ParameterStore.getInstance can return null - handle it.
+ * <p>
  * <p> Revision 1.62  2007/05/29 19:16:00  sueh
  * <p> bug# 994 In exitProgram, stop the ProcessRestarter and all the
  * <p> IntermittentBackgroundProcesses.
