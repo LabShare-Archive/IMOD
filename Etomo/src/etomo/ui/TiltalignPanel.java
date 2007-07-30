@@ -1240,9 +1240,9 @@ final class TiltalignPanel implements Expandable {
     pnlRBRotation.setLayout(new BoxLayout(pnlRBRotation, BoxLayout.Y_AXIS));
     RadioButton[] items = new RadioButton[4];
     items[0] = rbRotationNone;
-    items[1] = rbRotationAll;
+    items[1] = rbRotationOne;
     items[2] = rbRotationAutomap;
-    items[3] = rbRotationOne;
+    items[3] = rbRotationAll;
     createRadioBox(pnlRBRotation, bgRotationSolution, items);
     createVariablePanel(pnlRotationSolution, pnlRBRotation,
         ltfRotationGroupSize, ltfRotationNonDefaultGroups,
@@ -1253,8 +1253,8 @@ final class TiltalignPanel implements Expandable {
     pnlRBTiltAngle.setLayout(new BoxLayout(pnlRBTiltAngle, BoxLayout.Y_AXIS));
     items = new RadioButton[3];
     items[0] = rbTiltAngleFixed;
-    items[1] = rbTiltAngleAll;
-    items[2] = rbTiltAngleAutomap;
+    items[1] = rbTiltAngleAutomap;
+    items[2] = rbTiltAngleAll;
     createRadioBox(pnlRBTiltAngle, bgTiltAngleSolution, items);
     createVariablePanel(pnlTiltAngleSolution, pnlRBTiltAngle,
         ltfTiltAngleGroupSize, ltfTiltAngleNonDefaultGroups,
@@ -1266,8 +1266,8 @@ final class TiltalignPanel implements Expandable {
         BoxLayout.Y_AXIS));
     items = new RadioButton[3];
     items[0] = rbMagnificationFixed;
-    items[1] = rbMagnificationAll;
-    items[2] = rbMagnificationAutomap;
+    items[1] = rbMagnificationAutomap;
+    items[2] = rbMagnificationAll;
     createRadioBox(pnlRBMagnification, bgMagnificationSolution, items);
     createVariablePanel(pnlMagnificationSolution, pnlRBMagnification,
         ltfMagnificationReferenceView, ltfMagnificationGroupSize,
@@ -1296,10 +1296,10 @@ final class TiltalignPanel implements Expandable {
     pnlGlobalVariableBody.add(Box.createRigidArea(FixedDim.x0_y5));
     pnlGlobalVariableBody.add(pnlRotationSolution);
     pnlGlobalVariableBody.add(Box.createRigidArea(FixedDim.x0_y5));
-    pnlGlobalVariableBody.add(pnlTiltAngleSolution);
+    pnlGlobalVariableBody.add(pnlMagnificationSolution);
     pnlGlobalVariableBody.add(Box.createRigidArea(FixedDim.x0_y5));
     pnlGlobalVariableBody.add(Box.createVerticalGlue());
-    pnlGlobalVariableBody.add(pnlMagnificationSolution);
+    pnlGlobalVariableBody.add(pnlTiltAngleSolution);
     pnlGlobalVariableBody.add(Box.createRigidArea(FixedDim.x0_y5));
     pnlGlobalVariableBody.add(Box.createVerticalGlue());
     pnlGlobalVariableBody.add(pnlDistortionSolution);
@@ -1381,11 +1381,11 @@ final class TiltalignPanel implements Expandable {
 
     pnlLocalSolutionBody.add(Box.createVerticalGlue());
     pnlLocalSolutionBody.add(Box.createRigidArea(FixedDim.x0_y10));
-    pnlLocalSolutionBody.add(pnlLocalTiltAngleSolution);
-
+    pnlLocalSolutionBody.add(pnlLocalMagnificationSolution);
+    
     pnlLocalSolutionBody.add(Box.createVerticalGlue());
     pnlLocalSolutionBody.add(Box.createRigidArea(FixedDim.x0_y10));
-    pnlLocalSolutionBody.add(pnlLocalMagnificationSolution);
+    pnlLocalSolutionBody.add(pnlLocalTiltAngleSolution);
 
     pnlLocalSolutionBody.add(Box.createVerticalGlue());
     pnlLocalSolutionBody.add(Box.createRigidArea(FixedDim.x0_y10));
@@ -1838,6 +1838,10 @@ final class TiltalignPanel implements Expandable {
 
 /**
  * <p> $Log$
+ * <p> Revision 3.44  2007/04/13 20:39:32  sueh
+ * <p> bug# 964 Removed radioValue from radio buttons, and added EnumeratedType,
+ * <p> which is the interface for enumeration types.
+ * <p>
  * <p> Revision 3.43  2007/03/21 19:47:03  sueh
  * <p> bug# 964 Limiting access to autodoc classes by using ReadOnly interfaces.
  * <p> Added AutodocFactory to create Autodoc instances.
