@@ -323,7 +323,7 @@ public abstract class BaseManager {
    * A message asking the ApplicationManager to save the parameter
    * information to a file.
    */
-  public final boolean saveParamFile() throws LogFile.FileException,
+  public boolean saveParamFile() throws LogFile.FileException,
       LogFile.WriteException {
     setParamFile();
     if (getParameterStore() == null) {
@@ -1196,6 +1196,9 @@ public abstract class BaseManager {
 }
 /**
  * <p> $Log$
+ * <p> Revision 1.85  2007/07/30 18:31:12  sueh
+ * <p> bug# 1002 ParameterStore.getInstance can return null - handle it.
+ * <p>
  * <p> Revision 1.84  2007/06/08 21:49:21  sueh
  * <p> bug# 1014 Added clearUIParameters, to back out the changes made in
  * <p> initializeUIParameters.  Removing call to setMetaData in loadParamFile
