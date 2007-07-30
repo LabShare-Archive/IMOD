@@ -301,10 +301,6 @@ final class ProcessorTableRow implements Storable {
     }
   }
 
-  void resetResults() {
-    cellSuccesses.setValue();
-  }
-
   long getSuccesses() {
     return cellSuccesses.getLongValue();
   }
@@ -339,6 +335,13 @@ final class ProcessorTableRow implements Storable {
       successes++;
     }
     cellSuccesses.setValue(successes);
+  }
+  
+  void resetResults() {
+    cellSuccesses.setValue();
+    cellRestarts.setValue();
+    cellRestarts.setError(false);
+    cellRestarts.setWarning(false);
   }
 
   void addRestart() {
@@ -493,6 +496,10 @@ final class ProcessorTableRow implements Storable {
 }
 /**
  * <p> $Log$
+ * <p> Revision 1.30  2007/05/25 00:28:35  sueh
+ * <p> bug# 964 Added tooltip to clearLoadAverage.  Added a second reason to
+ * <p> clearFailureReason.
+ * <p>
  * <p> Revision 1.29  2007/05/21 18:11:30  sueh
  * <p> bug# 992 Added usersColumn.  Do not display Users column when
  * <p> usersColumn is false.
