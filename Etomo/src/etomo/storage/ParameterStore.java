@@ -16,6 +16,9 @@ import java.util.*;
  * @version $Revision$
  *
  * <p> $Log$
+ * <p> Revision 3.7  2007/02/21 04:17:48  sueh
+ * <p> bug# 964 Removing unnecessary print.
+ * <p>
  * <p> Revision 3.6  2007/02/05 23:05:55  sueh
  * <p> bug# 962 Added debug member variable.
  * <p>
@@ -71,8 +74,18 @@ public final class ParameterStore {
    * @param paramFile a File object specifying where the parameters are stored
    * or to be stored.  <i>What happens when the file does not exist</i>
    */
-  public ParameterStore(File paramFile) {
+  private ParameterStore(File paramFile) {
     dataFile = LogFile.getInstance(paramFile);
+  }
+
+  /**
+   * If paramFile is null, returns null.
+   */
+  public static ParameterStore getInstance(File paramFile) {
+    if (paramFile == null) {
+      return null;
+    }
+    return new ParameterStore(paramFile);
   }
 
   /**
