@@ -34,6 +34,9 @@ import etomo.util.PrimativeTokenizer;
  * @version $Revision$
  * 
  * <p> $Log$
+ * <p> Revision 1.10  2007/07/24 04:04:33  sueh
+ * <p> bug# 1030 Fixed getArray(List); it was handling the last number incorrectly.
+ * <p>
  * <p> Revision 1.9  2007/05/11 16:02:06  sueh
  * <p> bug# 964 Added getArray(List), which converts an array descriptor into
  * <p> an array.
@@ -177,8 +180,8 @@ public final class ParsedArrayDescriptor extends ParsedElement {
       curNumber = new ParsedNumber(etomoNumberType);
       curNumber.setRawString(prevNumber.getRawNumber());
       curNumber.plus(increment);
-      if ((increment.isPositive() && curNumber.lt(lastNumber))
-          || (increment.isNegative() && curNumber.gt(lastNumber))) {
+      if ((increment.isPositive() && curNumber.le(lastNumber))
+          || (increment.isNegative() && curNumber.ge(lastNumber))) {
         parsedNumberArray.add(curNumber);
       }
       else {
