@@ -22,6 +22,9 @@ import etomo.util.PrimativeTokenizer;
  * @version $Revision$
  * 
  * <p> $Log$
+ * <p> Revision 1.10  2007/07/24 04:05:00  sueh
+ * <p> bug# 1030 added equals(ParsedNumber).
+ * <p>
  * <p> Revision 1.9  2007/05/11 16:04:21  sueh
  * <p> bug# 964 Added getArray(List), which adds itself to the list, if it is not
  * <p> empty.
@@ -56,7 +59,8 @@ import etomo.util.PrimativeTokenizer;
  * <p> bug# 964 Parses a Matlab number.
  * <p> </p>
  */
-public final class ParsedNumber extends ParsedElement implements ConstParsedNumber{
+public final class ParsedNumber extends ParsedElement implements
+    ConstParsedNumber {
   public static final String rcsid = "$Id$";
 
   private final EtomoNumber rawNumber;
@@ -76,7 +80,7 @@ public final class ParsedNumber extends ParsedElement implements ConstParsedNumb
   public ParsedNumber() {
     this(null);
   }
-  
+
   public boolean equals(ParsedNumber input) {
     return rawNumber.equals(input.rawNumber);
   }
@@ -214,31 +218,41 @@ public final class ParsedNumber extends ParsedElement implements ConstParsedNumb
     }
     return ParsedElementList.EmptyParsedElement.INSTANCE.getRawString();
   }
-  
+
   boolean equals(int number) {
     return rawNumber.equals(number);
   }
-  
+
   boolean isPositive() {
     return rawNumber.isPositive();
   }
-  
+
   boolean isNegative() {
     return rawNumber.isNegative();
   }
-  
+
+  boolean le(ParsedNumber element) {
+    return rawNumber.lt(element.rawNumber)
+        || rawNumber.equals(element.rawNumber);
+  }
+
   boolean lt(ParsedNumber element) {
     return rawNumber.lt(element.rawNumber);
   }
-  
+
+  boolean ge(ParsedNumber element) {
+    return rawNumber.gt(element.rawNumber)
+        || rawNumber.equals(element.rawNumber);
+  }
+
   boolean gt(ParsedNumber element) {
     return rawNumber.gt(element.rawNumber);
   }
-  
+
   void setRawString(Number number) {
     rawNumber.set(number);
   }
-  
+
   void plus(ConstEtomoNumber number) {
     rawNumber.plus(number);
   }
@@ -265,7 +279,7 @@ public final class ParsedNumber extends ParsedElement implements ConstParsedNumb
   boolean hasParsedNumberSyntax() {
     return true;
   }
-  
+
   /**
    * If rawNumber is not null append this to parsedNumberArray.  Create
    * parsedNumberArray if parsedNumberArray == null and rawNumber is not null.
@@ -276,8 +290,8 @@ public final class ParsedNumber extends ParsedElement implements ConstParsedNumb
     if (rawNumber.isNull()) {
       return parsedNumberArray;
     }
-    if (parsedNumberArray==null) {
-      parsedNumberArray=new ArrayList();
+    if (parsedNumberArray == null) {
+      parsedNumberArray = new ArrayList();
     }
     parsedNumberArray.add(this);
     return parsedNumberArray;
