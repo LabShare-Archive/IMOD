@@ -34,6 +34,10 @@ import etomo.util.PrimativeTokenizer;
  * @version $Revision$
  * 
  * <p> $Log$
+ * <p> Revision 1.11  2007/07/31 16:30:00  sueh
+ * <p> bug# 1033 In getArray(List) include the last number in the arrray, if it is one of the
+ * <p> number specified by the start and increment numbers.
+ * <p>
  * <p> Revision 1.10  2007/07/24 04:04:33  sueh
  * <p> bug# 1030 Fixed getArray(List); it was handling the last number incorrectly.
  * <p>
@@ -125,6 +129,23 @@ public final class ParsedArrayDescriptor extends ParsedElement {
   }
 
   /**
+   * Returns true only when all numbers in the array are greater then or equal
+   * to the number parameter.  Expands any array descriptors into the arrays
+   * they represent.
+   */
+  public boolean ge(int number) {
+    List array = getArray(null);
+    boolean greaterOrEqual = true;
+    for (int i = 0; i < array.size(); i++) {
+      if (!((ParsedElement) array.get(i)).ge(number)) {
+        greaterOrEqual = false;
+        break;
+      }
+    }
+    return greaterOrEqual;
+  }
+
+  /**
    * Append an array of non-empty ParsedNumbers described by this.descriptor.
    * @param parsedNumberArray the array to be added to and returned - may be null
    * @return parsedNumberArray
@@ -133,7 +154,7 @@ public final class ParsedArrayDescriptor extends ParsedElement {
     if (descriptor.size() == 0) {
       return parsedNumberArray;
     }
-    //exclude empty parsed numbers
+    //exclude empty descriptor numbers
     ParsedElementList list = new ParsedElementList();
     for (int i = 0; i < descriptor.size(); i++) {
       if (!descriptor.get(i).isEmpty()) {
@@ -189,9 +210,9 @@ public final class ParsedArrayDescriptor extends ParsedElement {
       }
     }
     /* Parser ignores the last number, so don't add it
-    if (!curNumber.equals(lastNumber)) {
-      parsedNumberArray.add(lastNumber);
-    }*/
+     if (!curNumber.equals(lastNumber)) {
+     parsedNumberArray.add(lastNumber);
+     }*/
     return parsedNumberArray;
   }
 

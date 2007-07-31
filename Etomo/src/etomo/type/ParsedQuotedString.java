@@ -21,6 +21,9 @@ import etomo.util.PrimativeTokenizer;
  * @version $Revision$
  * 
  * <p> $Log$
+ * <p> Revision 1.8  2007/05/11 16:04:36  sueh
+ * <p> bug# 964 Added getArray(List), which does nothing.
+ * <p>
  * <p> Revision 1.7  2007/04/26 02:47:59  sueh
  * <p> bug# 964 Fixed problems with defaultValue.  Added ParsedArray.compact
  * <p> when empty array elements should not be displayed (lstThresholds).
@@ -145,6 +148,10 @@ public final class ParsedQuotedString extends ParsedElement {
 
   public String toString() {
     return "[rawString:" + rawString + "]";
+  }
+  
+  boolean ge(int number) {
+    return false;
   }
   
   public void moveElement(int fromIndex, int toIndex) {

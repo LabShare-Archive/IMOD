@@ -22,6 +22,9 @@ import etomo.util.PrimativeTokenizer;
  * @version $Revision$
  * 
  * <p> $Log$
+ * <p> Revision 1.11  2007/07/31 16:30:28  sueh
+ * <p> bug# 1033 Added ge(ParsedNumber) and le(ParsedNumber).
+ * <p>
  * <p> Revision 1.10  2007/07/24 04:05:00  sueh
  * <p> bug# 1030 added equals(ParsedNumber).
  * <p>
@@ -238,6 +241,10 @@ public final class ParsedNumber extends ParsedElement implements
 
   boolean lt(ParsedNumber element) {
     return rawNumber.lt(element.rawNumber);
+  }
+
+  boolean ge(int number) {
+    return rawNumber.gt(number) || rawNumber.equals(number);
   }
 
   boolean ge(ParsedNumber element) {

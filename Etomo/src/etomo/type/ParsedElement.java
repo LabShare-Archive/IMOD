@@ -21,6 +21,10 @@ import etomo.util.PrimativeTokenizer;
  * @version $Revision$
  * 
  * <p> $Log$
+ * <p> Revision 1.8  2007/05/11 16:03:17  sueh
+ * <p> bug# 964 Added getArray(List), which adds itself to the list, if it is not
+ * <p> empty.
+ * <p>
  * <p> Revision 1.7  2007/04/26 02:47:15  sueh
  * <p> bug# 964 Fixed problems with defaultValue.  Added ParsedArray.compact
  * <p> when empty array elements should not be displayed (lstThresholds).
@@ -86,8 +90,11 @@ public abstract class ParsedElement {
   abstract void setDefaultValue(int numberIndex, Integer[] defaultValueArray);
 
   abstract void removeElement(int index);
+
   abstract boolean isDefaultedEmpty();
   
+  abstract boolean ge(int number);
+
   /**
    * Append non-null ParsedNumbers to parsedNumberArray.  Create
    * parsedNumberArray if parsedNumberArray == null and !this.isEmpty().

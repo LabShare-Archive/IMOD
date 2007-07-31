@@ -21,6 +21,12 @@ import etomo.util.PrimativeTokenizer;
  * @version $Revision$
  * 
  * <p> $Log$
+ * <p> Revision 1.12  2007/07/24 04:03:52  sueh
+ * <p> bug# 1030 Changed ParsedArray.getParsableStringArray to
+ * <p> getPaddedStringArray.  The function is only being used by lstThresholds and it
+ * <p> needs padded strings.  Also fixed bugs in the function; it was handling the last
+ * <p> number incorrectly.
+ * <p>
  * <p> Revision 1.11  2007/07/10 00:31:44  sueh
  * <p> bug# 1022 Added a comment.
  * <p>
@@ -290,6 +296,21 @@ public final class ParsedArray extends ParsedElement {
       e.printStackTrace();
       valid = false;
     }
+  }
+  
+  /**
+   * Returns true only when all numbers in the array are greater then or equal
+   * to the number parameter.
+   */
+  public boolean ge(int number) {
+    boolean greaterOrEqual = true;
+    for (int i = 0; i < array.size(); i++) {
+      if (!array.get(i).ge(number)) {
+        greaterOrEqual = false;
+        break;
+      }
+    }
+    return greaterOrEqual;
   }
 
   public void setRawString(int index, float number) {
