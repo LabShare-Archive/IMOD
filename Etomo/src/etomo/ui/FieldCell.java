@@ -7,6 +7,7 @@ import javax.swing.JTextField;
 
 import etomo.type.ConstEtomoNumber;
 import etomo.type.EtomoNumber;
+import etomo.type.ParsedArray;
 
 /**
  * <p>Description: </p>
@@ -22,6 +23,10 @@ import etomo.type.EtomoNumber;
  * @version $Revision$
  * 
  * <p> $Log$
+ * <p> Revision 1.20  2007/07/18 23:21:07  sueh
+ * <p> bug# 1022 Added getEtomoNumber() and
+ * <p> getEtomoNumber(EtomoNumber.Type).
+ * <p>
  * <p> Revision 1.19  2007/04/09 21:13:09  sueh
  * <p> bug# 964 Added clearExpandableValues().  Clears contractedValue and
  * <p> expandedValue, and sets the displayed value to nothing.
@@ -288,6 +293,12 @@ final class FieldCell extends InputCell {
     EtomoNumber number = new EtomoNumber();
     number.set(textField.getText());
     return number;
+  }
+  
+  ParsedArray getParsedArray() {
+    ParsedArray array = ParsedArray.getInstance();
+    array.setRawString(textField.getText());
+    return array;
   }
   
   ConstEtomoNumber getEtomoNumber(EtomoNumber.Type type) {
