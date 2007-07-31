@@ -22,6 +22,10 @@ import etomo.type.EtomoNumber;
  * @version $Revision$
  * 
  * <p> $Log$
+ * <p> Revision 1.8  2007/07/18 23:22:05  sueh
+ * <p> bug# 1022 In validateRun using getting the numbers with etomo number
+ * <p> so that lists can be handled as nulls.
+ * <p>
  * <p> Revision 1.7  2007/07/10 00:38:03  sueh
  * <p> bug# 1022 added validateRun.
  * <p>
@@ -241,7 +245,7 @@ final class IterationRow implements Highlightable {
         return false;
       }
     }
-    if (searchRadius.getEtomoNumber().lt(1)) {
+    if (!searchRadius.getParsedArray().ge(1)) {
       UIHarness.INSTANCE.openMessageDialog("In row " + number.getText() + ", "
           + IterationTable.SEARCH_RADIUS_HEADER1 + " "
           + IterationTable.SEARCH_RADIUS_HEADER2 + " must not be less then 1.",
