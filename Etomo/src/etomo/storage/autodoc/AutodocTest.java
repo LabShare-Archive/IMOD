@@ -54,6 +54,7 @@ public final class AutodocTest extends TestCase {
     ReadOnlyAutodoc autodoc = AutodocFactory.getInstance(TestUtilites
         .getVector(manager, AutodocTests.TEST_ROOT_DIR.getAbsolutePath(),
             TEST_DIR_NAME, "cpu.adoc"));
+    //autodoc.runInternalTest(Autodoc.InternalTestType.PARSER,false,false);
     assertFalse(autodoc.isError());
   }
 
@@ -65,7 +66,7 @@ public final class AutodocTest extends TestCase {
     //only use with getTestInstance
     //autodoc.runInternalTest(AutodocFactory.INSTANCE.InternalTestType.PARSER,false,false);
     //only use with getInstance
-    autodoc.printStoredData();
+    //autodoc.printStoredData();
     assertFalse(autodoc.isError());
   }
 
@@ -251,6 +252,10 @@ public final class AutodocTest extends TestCase {
 }
 /**
  * <p> $Log$
+ * <p> Revision 1.15  2007/03/21 18:15:58  sueh
+ * <p> bug# 964 Limiting access to autodoc classes by using ReadOnly interfaces.
+ * <p> Added AutodocFactory to create Autodoc instances.
+ * <p>
  * <p> Revision 1.14  2007/03/13 19:41:52  sueh
  * <p> bug# 964 Got the test autodoc tests working.
  * <p>
