@@ -1,6 +1,10 @@
 package etomo.storage.autodoc;
 
+import java.io.IOException;
 import java.util.HashMap;
+
+import etomo.storage.LogFile;
+import etomo.storage.autodoc.Autodoc.InternalTestType;
 
 /**
  * <p>Description: </p>
@@ -16,6 +20,14 @@ import java.util.HashMap;
  * @version $Revision$
  * 
  * <p> $Log$
+ * <p> Revision 1.3  2007/04/09 20:45:18  sueh
+ * <p> bug# 964 Changed NameValuePair to an abstract class called Statement and
+ * <p> child classes representing name/value pair, comment, empty line, and
+ * <p> subsection.  Made delimiter change an attribute of the name/value pair class.
+ * <p> Added ReadOnlyStatement to provide a public interface for Statement classes.
+ * <p> Saving Attribute instance in name instead of strings so as not to create
+ * <p> duplications.
+ * <p>
  * <p> Revision 1.2  2007/03/23 20:36:11  sueh
  * <p> bug# 964 Added getAttributeMultiLineValues, to get a hash map of value strings
  * <p> which retains EOL information.
@@ -36,4 +48,6 @@ public interface ReadOnlyAutodoc extends ReadOnlyStatementList {
   public ReadOnlyAttribute getAttribute(String name);
   public SectionLocation getSectionLocation(String type);
   public ReadOnlySection nextSection(SectionLocation location);
+  void runInternalTest(InternalTestType type, boolean showTokens,
+      boolean showDetails) throws IOException, LogFile.ReadException;
 }

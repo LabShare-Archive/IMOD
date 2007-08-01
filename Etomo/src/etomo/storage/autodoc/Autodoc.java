@@ -518,7 +518,7 @@ final class Autodoc extends WriteOnlyStatementList implements WritableAutodoc {
    * @throws IOException
    * @throws LogFile.ReadException
    */
-  void runInternalTest(InternalTestType type, boolean showTokens,
+  public void runInternalTest(InternalTestType type, boolean showTokens,
       boolean showDetails) throws IOException, LogFile.ReadException {
     if (type == InternalTestType.STREAM_TOKENIZER) {
       parser.testStreamTokenizer(showTokens, showDetails);
@@ -605,6 +605,9 @@ final class Autodoc extends WriteOnlyStatementList implements WritableAutodoc {
 }
 /**
  *<p> $$Log$
+ *<p> $Revision 1.22  2007/07/17 21:32:52  sueh
+ *<p> $bug# 1018 Added toString().
+ *<p> $
  *<p> $Revision 1.21  2007/06/07 21:31:26  sueh
  *<p> $bug# 1012 Moved the file back up out of Autodoc.write() into
  *<p> $MatlabParam.write().
