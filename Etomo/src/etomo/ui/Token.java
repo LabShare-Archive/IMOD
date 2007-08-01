@@ -68,6 +68,9 @@ import etomo.storage.LogFile;
  * @version $$Revision$$
  *
  * <p> $$Log$
+ * <p> $Revision 1.18  2007/04/11 22:22:35  sueh
+ * <p> $bug# 964 Changed the ONE_OR_MORE token type string to ANYTHING.
+ * <p> $
  * <p> $Revision 1.17  2007/04/09 21:23:03  sueh
  * <p> $bug# 964 Added boolean debug.
  * <p> $
@@ -390,6 +393,10 @@ public final class Token {
     set(new StringBuffer().append(value).toString());
   }
 
+  public void set(Type type, Character value) {
+    set(type, value.charValue());
+  }
+
   /**
    * Sets the type and value of the token.
    * @param type
@@ -471,6 +478,10 @@ public final class Token {
       return false;
     }
     return key.length() == 1 && key.charAt(0) == value;
+  }
+
+  public boolean equals(Type type, Character value) {
+    return equals(type, value.charValue());
   }
 
   /**
@@ -571,6 +582,8 @@ public final class Token {
     public static final Type WORD = new Type();
     public static final Type KEYWORD = new Type();
     public static final Type ANYTHING = new Type();
+    public static final Type SUBOPEN = new Type();
+    public static final Type SUBCLOSE = new Type();
 
     public String toString() {
 
@@ -615,6 +628,12 @@ public final class Token {
       }
       else if (this == ANYTHING) {
         return "ANYTHING";
+      }
+      else if (this == SUBOPEN) {
+        return "SUBOPEN";
+      }
+      else if (this == SUBCLOSE) {
+        return "SUBCLOSE";
       }
       return "UNKNOWN";
     }

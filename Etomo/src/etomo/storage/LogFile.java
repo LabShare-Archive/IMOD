@@ -836,6 +836,10 @@ public final class LogFile {
       throw new WriteException(this, writeId, e);
     }
   }
+  
+  public synchronized void write(Character ch, long writeId) throws WriteException {
+    write(ch.charValue(),writeId);
+  }
 
   public synchronized void newLine(long writeId) throws WriteException {
     if (fileWriter == null || !lock.isLocked(LockType.WRITE, writeId)) {
@@ -1372,6 +1376,9 @@ public final class LogFile {
 }
 /**
  * <p> $Log$
+ * <p> Revision 1.12  2007/07/18 23:20:16  sueh
+ * <p> bug# 1025 Fixed a null pointer exception in write(String,long).
+ * <p>
  * <p> Revision 1.11  2007/03/23 20:24:52  sueh
  * <p> bug# 964 Added write(char, long).
  * <p>
