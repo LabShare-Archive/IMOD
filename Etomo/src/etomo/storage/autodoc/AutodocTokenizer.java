@@ -66,6 +66,9 @@ import etomo.util.PrimativeTokenizer;
  * @version $$Revision$$
  *
  * <p> $$Log$
+ * <p> $Revision 1.9  2007/06/07 21:32:40  sueh
+ * <p> $bug# 1012 Passing debug in constructor.
+ * <p> $
  * <p> $Revision 1.8  2007/04/13 18:44:28  sueh
  * <p> $bug# 964 Added debug member variable.
  * <p> $
@@ -119,19 +122,19 @@ public final class AutodocTokenizer {
 
   //special characters
   public static final char COMMENT_CHAR = '#';
-  public static final char ALT_COMMENT_CHAR='%';
+  public static final char ALT_COMMENT_CHAR = '%';
   public static final char SEPARATOR_CHAR = '.';
-  public static final char OPEN_CHAR = '[';
-  public static final char CLOSE_CHAR = ']';
+  public static final Character OPEN_CHAR = new Character('[');
+  public static final Character CLOSE_CHAR = new Character(']');
   public static final String DEFAULT_DELIMITER = "=";
   //keywords - keywords may not contain special characters
   public static final String VERSION_KEYWORD = "Version";
   public static final String PIP_KEYWORD = "Pip";
   public static final String DELIMITER_KEYWORD = "KeyValueDelimiter";
-  
+
   private final boolean allowAltComment;
   private final StringBuffer restrictedSymbols = new StringBuffer(COMMENT_CHAR
-      + SEPARATOR_CHAR + OPEN_CHAR + CLOSE_CHAR);
+      + SEPARATOR_CHAR + OPEN_CHAR.charValue() + CLOSE_CHAR.charValue());
 
   private String delimiterString = DEFAULT_DELIMITER;
   private PrimativeTokenizer primativeTokenizer = null;
@@ -142,21 +145,23 @@ public final class AutodocTokenizer {
   private boolean useNextToken = false;
   private StringBuffer wordBuffer = null;
   private boolean debug = false;
+  private boolean lookAhead = false;
 
-  AutodocTokenizer(LogFile file,boolean allowAltComment,boolean debug) {
-    this.allowAltComment=allowAltComment;
-    this.debug=debug;
-    primativeTokenizer = new PrimativeTokenizer(file,debug);
+  AutodocTokenizer(LogFile file, boolean allowAltComment, boolean debug) {
+    this.allowAltComment = allowAltComment;
+    this.debug = debug;
+    primativeTokenizer = new PrimativeTokenizer(file, debug);
     if (allowAltComment) {
       restrictedSymbols.append(ALT_COMMENT_CHAR);
     }
   }
-  
+
   void setDebug(boolean debug) {
     this.debug = debug;
   }
 
-  void initialize() throws FileNotFoundException, IOException,LogFile.ReadException {
+  void initialize() throws FileNotFoundException, IOException,
+      LogFile.ReadException {
     primativeTokenizer.initialize();
   }
 
@@ -193,12 +198,14 @@ public final class AutodocTokenizer {
       autodocToken = new Token(nextToken);
       return autodocToken;
     }
-    primativeToken = primativeTokenizer.next();
+    if (!lookAhead) {
+      primativeToken = primativeTokenizer.next();
+    }
     autodocToken = new Token(findToken());
     return autodocToken;
   }
 
-  void test(boolean tokens) throws IOException,LogFile.ReadException {
+  void test(boolean tokens) throws IOException, LogFile.ReadException {
     initialize();
     Token token = null;
     do {
@@ -215,18 +222,21 @@ public final class AutodocTokenizer {
     } while (!token.is(Token.Type.EOF));
   }
 
-  void testPrimativeTokenizer(boolean tokens) throws IOException,LogFile.ReadException {
+  void testPrimativeTokenizer(boolean tokens) throws IOException,
+      LogFile.ReadException {
     primativeTokenizer.test(tokens);
   }
 
-  void testStreamTokenizer(boolean tokens,boolean details) throws IOException,LogFile.ReadException {
-    primativeTokenizer.testStreamTokenizer(tokens,details);
+  void testStreamTokenizer(boolean tokens, boolean details) throws IOException,
+      LogFile.ReadException {
+    primativeTokenizer.testStreamTokenizer(tokens, details);
   }
 
   private Token findToken() throws IOException {
     boolean buildingWord = false;
+    lookAhead = false;
     do {
-      if (findSimpleToken()) {
+      if (findSimpleToken() || findLookAheadToken()) {
         if (buildingWord) {
           buildingWord = false;
           makeWord();
@@ -269,17 +279,12 @@ public final class AutodocTokenizer {
     else if (primativeToken.equals(Token.Type.SYMBOL, COMMENT_CHAR)) {
       token.set(Token.Type.COMMENT, COMMENT_CHAR);
     }
-    else if (allowAltComment&&primativeToken.equals(Token.Type.SYMBOL, ALT_COMMENT_CHAR)) {
+    else if (allowAltComment
+        && primativeToken.equals(Token.Type.SYMBOL, ALT_COMMENT_CHAR)) {
       token.set(Token.Type.COMMENT, ALT_COMMENT_CHAR);
     }
     else if (primativeToken.equals(Token.Type.SYMBOL, SEPARATOR_CHAR)) {
       token.set(Token.Type.SEPARATOR, SEPARATOR_CHAR);
-    }
-    else if (primativeToken.equals(Token.Type.SYMBOL, OPEN_CHAR)) {
-      token.set(Token.Type.OPEN, OPEN_CHAR);
-    }
-    else if (primativeToken.equals(Token.Type.SYMBOL, CLOSE_CHAR)) {
-      token.set(Token.Type.CLOSE, CLOSE_CHAR);
     }
     else if (primativeToken.equals(Token.Type.SYMBOL, delimiterString)) {
       //Found a one character DELIMITER.
@@ -291,11 +296,54 @@ public final class AutodocTokenizer {
     return true;
   }
 
+  private boolean findLookAheadToken() throws IOException {
+    if (primativeToken.equals(Token.Type.SYMBOL, OPEN_CHAR)) {
+      if (matchWithLookAhead(Token.Type.SYMBOL, OPEN_CHAR)) {
+        token.set(Token.Type.SUBOPEN, OPEN_CHAR.toString()
+            + OPEN_CHAR.toString());
+      }
+      else {
+        token.set(Token.Type.OPEN, OPEN_CHAR);
+      }
+    }
+    else if (primativeToken.equals(Token.Type.SYMBOL, CLOSE_CHAR)) {
+      if (matchWithLookAhead(Token.Type.SYMBOL, CLOSE_CHAR)) {
+        token.set(Token.Type.SUBCLOSE, CLOSE_CHAR.toString() + CLOSE_CHAR
+            .toString());
+      }
+      else {
+        token.set(Token.Type.CLOSE, CLOSE_CHAR);
+      }
+    }
+    else {
+      return false;
+    }
+    return true;
+  }
+
+  /**
+   * Looks ahead to match a type and character.  If the match fails, set
+   * lookAhead to true.
+   * @param matchType
+   * @param matchChar
+   * @return
+   * @throws IOException
+   */
+  private boolean matchWithLookAhead(Token.Type matchType, Character matchChar)
+      throws IOException {
+    primativeToken = primativeTokenizer.next();
+    if (primativeToken.equals(matchType, matchChar)) {
+      return true;
+    }
+    lookAhead = true;
+    return false;
+  }
+
   /**
    * Tries to build a multi-character delimiter
    * Assumes that findSimpleToken() has already been called
    * The delimiter string can only contain symbols that are not found by
-   * findSimpleToken().
+   * findSimpleToken() and findLookAheadToken().
    * @return
    * @throws IOException
    */
