@@ -34,6 +34,9 @@ import etomo.util.DatasetFiles;
  * @version $Revision$
  *
  * <p> $Log$
+ * <p> Revision 3.54  2007/05/15 21:44:57  sueh
+ * <p> bug# 964 Added ref ImodState.
+ * <p>
  * <p> Revision 3.53  2007/05/11 19:28:30  sueh
  * <p> bug# 964 In open(String,String[]), create a new ImodState if the
  * <p> fileNameArray has changed.
@@ -703,8 +706,9 @@ public class ImodManager {
     //openFiducialModel
   }
 
-  public void open(String key, String[] fileNameArray)
-      throws AxisTypeException, SystemProcessException, IOException {
+  public void open(String key, String[] fileNameArray,
+      Run3dmodMenuOptions menuOptions) throws AxisTypeException,
+      SystemProcessException, IOException {
     key = getPrivateKey(key);
     ImodState imodState = get(key, AxisID.ONLY);
     if (imodState == null || !imodState.equalsFileNameArray(fileNameArray)) {
@@ -712,7 +716,7 @@ public class ImodManager {
       imodState = get(key, AxisID.ONLY);
     }
     if (imodState != null) {
-      imodState.open(new Run3dmodMenuOptions());
+      imodState.open(menuOptions);
     }
   }
 
@@ -1523,7 +1527,7 @@ public class ImodManager {
     ImodState imodState = new ImodState(manager, fileNameArray, AxisID.ONLY);
     return imodState;
   }
-  
+
   private ImodState newRef(String[] fileNameArray) {
     ImodState imodState = new ImodState(manager, fileNameArray, AxisID.ONLY);
     return imodState;
