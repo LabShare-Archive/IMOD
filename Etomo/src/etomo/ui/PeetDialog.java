@@ -37,6 +37,7 @@ import etomo.type.DialogType;
 import etomo.type.EtomoAutodoc;
 import etomo.type.PeetMetaData;
 import etomo.type.PeetScreenState;
+import etomo.type.Run3dmodMenuOptions;
 
 /**
  * <p>Description: </p>
@@ -52,6 +53,9 @@ import etomo.type.PeetScreenState;
  * @version $Revision$
  * 
  * <p> $Log$
+ * <p> Revision 1.52  2007/07/24 04:08:18  sueh
+ * <p> bug# 1031 Reverse the value of refFlagAllTom and lstFlagAllTom.
+ * <p>
  * <p> Revision 1.51  2007/07/20 19:16:17  mast
  * <p> Add s to tomograms
  * <p>
@@ -217,7 +221,7 @@ import etomo.type.PeetScreenState;
  */
 
 public final class PeetDialog implements ContextMenu, AbstractParallelDialog,
-    Expandable {
+    Expandable, Run3dmodButtonContainer {
   public static final String rcsid = "$Id$";
 
   public static final String FN_OUTPUT_LABEL = "Root name for output";
@@ -318,16 +322,16 @@ public final class PeetDialog implements ContextMenu, AbstractParallelDialog,
           MatlabParam.DEBUG_LEVEL_MIN, MatlabParam.DEBUG_LEVEL_MAX, 1));
   private final MultiLineButton btnImportMatlabParamFile = new MultiLineButton(
       "Import a .prm File");
-  private final MultiLineButton btnAvgVol = new MultiLineButton(
-      "Open Averaged Volumes in 3dmod");
+  private final Run3dmodButton btnAvgVol = new Run3dmodButton(
+      "Open Averaged Volumes in 3dmod", this);
   private final JPanel pnlInitMotl = new JPanel();
   private final TabbedPane tabPane = new TabbedPane();
   private final SpacedPanel pnlSetup = new SpacedPanel();
   private final JPanel pnlRun = new JPanel();
   private final SpacedPanel pnlYaxisType = new SpacedPanel();
   private final JPanel pnlCcMode = new JPanel();
-  private final MultiLineButton btnRef = new MultiLineButton(
-      "Open Reference Files in 3dmod");
+  private final Run3dmodButton btnRef = new Run3dmodButton(
+      "Open Reference Files in 3dmod", this);
   private final MultiLineButton btnDuplicateProject = new MultiLineButton(
       "Duplicate an Existing Project");
   private final MultiLineButton btnCopyParameters = new MultiLineButton(
@@ -627,7 +631,7 @@ public final class PeetDialog implements ContextMenu, AbstractParallelDialog,
   public void setFnOutput(final String output) {
     ltfFnOutput.setText(output);
   }
-  
+
   public void reset() {
     cbTiltRange.setSelected(false);
     ltfReferenceParticle.clear();
@@ -849,7 +853,8 @@ public final class PeetDialog implements ContextMenu, AbstractParallelDialog,
     pnlReferenceAndMissingWedgeCompensation.setLayout(new BoxLayout(
         pnlReferenceAndMissingWedgeCompensation, BoxLayout.X_AXIS));
     pnlReferenceAndMissingWedgeCompensation.add(pnlReference);
-    pnlReferenceAndMissingWedgeCompensation.add(Box.createRigidArea(FixedDim.x20_y0));
+    pnlReferenceAndMissingWedgeCompensation.add(Box
+        .createRigidArea(FixedDim.x20_y0));
     pnlReferenceAndMissingWedgeCompensation.add(pnlMissingWedgeCompensation
         .getContainer());
     //init MOTL
@@ -966,6 +971,19 @@ public final class PeetDialog implements ContextMenu, AbstractParallelDialog,
     pnlRun.add(phRun.getContainer());
   }
 
+  public void run3dmod(Run3dmodButton button, Run3dmodMenuOptions menuOptions) {
+    run3dmod(button.getActionCommand(), menuOptions);
+  }
+
+  private void run3dmod(String actionCommand, Run3dmodMenuOptions menuOptions) {
+    if (actionCommand.equals(btnAvgVol.getActionCommand())) {
+      manager.imodAvgVol(menuOptions);
+    }
+    else if (actionCommand.equals(btnRef.getActionCommand())) {
+      manager.imodRef(menuOptions);
+    }
+  }
+
   private void action(ActionEvent action) {
     String actionCommand = action.getActionCommand();
     if (actionCommand.equals(ftfDirectory.getActionCommand())) {
@@ -1009,12 +1027,6 @@ public final class PeetDialog implements ContextMenu, AbstractParallelDialog,
     else if (actionCommand.equals(btnImportMatlabParamFile.getActionCommand())) {
       importMatlabParam();
     }
-    else if (actionCommand.equals(btnAvgVol.getActionCommand())) {
-      manager.imodAvgVol();
-    }
-    else if (actionCommand.equals(btnRef.getActionCommand())) {
-      manager.imodRef();
-    }
     else if (actionCommand.equals(btnDuplicateProject.getActionCommand())) {
       duplicateExistingProject();
     }
@@ -1023,6 +1035,9 @@ public final class PeetDialog implements ContextMenu, AbstractParallelDialog,
     }
     else if (actionCommand.equals(cbFlgWedgeWeight.getActionCommand())) {
       updateDisplay();
+    }
+    else {
+      run3dmod(actionCommand, new Run3dmodMenuOptions());
     }
   }
 
