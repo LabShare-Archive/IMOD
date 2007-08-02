@@ -32,6 +32,7 @@ import etomo.type.PeetState;
 import etomo.type.ProcessEndState;
 import etomo.type.ProcessName;
 import etomo.type.ProcessResultDisplay;
+import etomo.type.Run3dmodMenuOptions;
 import etomo.ui.MainPanel;
 import etomo.ui.MainPeetPanel;
 import etomo.ui.ParallelPanel;
@@ -52,6 +53,9 @@ import etomo.util.DatasetFiles;
  * @version $Revision$
  * 
  * <p> $Log$
+ * <p> Revision 1.29  2007/07/30 18:33:36  sueh
+ * <p> bug# 1002 ParameterStore.getInstance can return null - handle it.
+ * <p>
  * <p> Revision 1.28  2007/06/08 22:13:17  sueh
  * <p> bug# 1014 Removed setMetaData(ImodManager).  When importing
  * <p> a .prm, duplicating a project, or copying parameters fail if reading
@@ -485,7 +489,7 @@ public final class PeetManager extends BaseManager {
   /**
    * Open the *AvgVol*.mrc files in 3dmod
    */
-  public void imodAvgVol() {
+  public void imodAvgVol(Run3dmodMenuOptions menuOptions) {
     //build the list of files - they should be in order
     IntKeyList.Walker lstThresholds = state.getLstThresholds();
     final StringBuffer name = new StringBuffer(metaData.getName());
@@ -497,13 +501,13 @@ public final class PeetManager extends BaseManager {
       fileName.append(name).append(lstThresholds.nextString()).append(".mrc");
       fileNameList.add(fileName.toString());
     }
-    imod(ImodManager.AVG_VOL_KEY, fileNameList);
+    imod(ImodManager.AVG_VOL_KEY, fileNameList,menuOptions);
   }
 
   /**
    * Open the *Ref*.mrc files in 3dmod
    */
-  public void imodRef() {
+  public void imodRef(Run3dmodMenuOptions menuOptions) {
     //build the list of files - they should be in order
     int iterationListSize = state.getIterationListSize();
     final StringBuffer name = new StringBuffer(metaData.getName());
@@ -515,10 +519,10 @@ public final class PeetManager extends BaseManager {
       fileName.append(name).append(i).append(".mrc");
       fileNameList.add(fileName.toString());
     }
-    imod(ImodManager.REF_KEY, fileNameList);
+    imod(ImodManager.REF_KEY, fileNameList,menuOptions);
   }
 
-  private void imod(String key, List fileNameList) {
+  private void imod(String key, List fileNameList,Run3dmodMenuOptions menuOptions) {
     String[] fileNameArray;
     if (fileNameList.size() == 0) {
       fileNameArray = new String[0];
@@ -532,7 +536,7 @@ public final class PeetManager extends BaseManager {
           .size()]);
     }
     try {
-      imodManager.open(key, fileNameArray);
+      imodManager.open(key, fileNameArray,menuOptions);
     }
     catch (IOException e) {
       e.printStackTrace();
