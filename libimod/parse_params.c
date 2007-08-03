@@ -13,6 +13,7 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <stdarg.h>
+#include <ctype.h>
 
 #define NON_OPTION_STRING "NonOptionArgument"
 #define STANDARD_INPUT_STRING "StandardInput"
@@ -1373,7 +1374,7 @@ static int ReadParamFile(FILE *pFile)
 /*
  * Call from fortran to read stdin if the flag is set to take from stdin
  */
-int PipReadStdinIfSet()
+int PipReadStdinIfSet(void)
 {
   if (takeStdIn)
     return ReadParamFile(stdin);
@@ -1489,7 +1490,6 @@ int PipGetLineOfValues(char *option, char *strPtr, void *array, int valType,
   char *fullStr;
   int *iarray = (int *)array;
   float *farray = (float *)array;
-  int err;
   int numGot = 0;
   int gotComma = 1;
   char sepStr[] = ",\t /";
@@ -1652,7 +1652,7 @@ static int AddValueString(int option, char *strPtr)
  */
 static int LookupOption(char *option, int maxLookup)
 {
-  int i, lenopt;
+  int i, lenopt = 0;
   int found = LOOKUP_NOT_FOUND;
   char *sname, *lname;
 
@@ -1832,6 +1832,9 @@ static int CheckKeyword(char *line, char *keyword, char **copyto, int *gotit,
 
 /*
 $Log$
+Revision 3.28  2007/07/15 20:56:25  mast
+Try abbreviations for the types in the usage stagements
+
 Revision 3.27  2007/06/22 05:01:24  mast
 Changes to get Tilt to be able to use PIP
 

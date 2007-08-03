@@ -50,7 +50,7 @@ void PipAllowCommaDefaults(int val);
 void PipSetManpageOutput(int val);
 void PipSetSpecialFlags(int inCase, int inDone, int inStd, int inLines, 
                         int inAbbrevs);
-int PipReadStdinIfSet();
+int PipReadStdinIfSet(void);
 int PipStartsWith(char *fullStr, char *subStr);
 int PipGetInOutFile(char *option, int nonOptArgNo, char **filename);
 void PipReadOrParseOptions(int argc, char *argv[], char *options[], 
@@ -68,6 +68,9 @@ int PipGetLineOfValues(char *option, char *strPtr, void *array, int valType,
 
 /*
 $Log$
+Revision 3.8  2007/06/22 04:58:42  mast
+Added special flag function
+
 Revision 3.7  2006/10/17 18:38:12  mast
 Changed read line function
 
