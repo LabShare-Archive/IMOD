@@ -990,6 +990,12 @@ public class EtomoDirector {
    */
   public void getSettingsParameters() {
     if (settingsDialog != null) {
+      if (settingsDialog.isAppearanceSettingChanged(userConfig)) {
+        uiHarness
+            .openInfoMessageDialog(
+                "You must exit from eTomo and re-run it for this change to fully take effect.",
+                "Settings", AxisID.FIRST);
+      }
       settingsDialog.getParameters(userConfig);
       setUserPreferences();
       uiHarness.repaintWindow();
@@ -1153,6 +1159,9 @@ public class EtomoDirector {
 }
 /**
  * <p> $Log$
+ * <p> Revision 1.64  2007/07/30 22:37:04  sueh
+ * <p> bug# 963 Updated usage message.
+ * <p>
  * <p> Revision 1.63  2007/07/30 18:31:23  sueh
  * <p> bug# 1002 ParameterStore.getInstance can return null - handle it.
  * <p>
