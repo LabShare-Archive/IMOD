@@ -57,7 +57,8 @@ Main directory for IMOD plugins; set by startup scripts to be inside IMOD.
 .TP
 .B IMOD_PROCESSORS
 Number of processors in the computer; used by slicer to decide how many threads
-to run in parallel.
+to run in parallel.  Also used to create a parallel processing table when
+cpu.adoc is not found.
 .TP
 .B IMOD_PS_FONT
 Name of a font (instead of Helvetica) to use in the Postscript output from 
