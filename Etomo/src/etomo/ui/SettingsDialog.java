@@ -16,27 +16,24 @@ import etomo.type.UserConfiguration;
  * Window>Preferences>Java>Code Generation.
  */
 public class SettingsDialog extends JDialog {
-  public static final String rcsid =
-    "$Id$";
+  public static final String rcsid = "$Id$";
 
   // Font selection panel
   JPanel panelFontSelect = new JPanel();
-  String[] fontFamilies =
-    GraphicsEnvironment
-      .getLocalGraphicsEnvironment()
+  String[] fontFamilies = GraphicsEnvironment.getLocalGraphicsEnvironment()
       .getAvailableFontFamilyNames();
   JList listFontFamily = new JList(fontFamilies);
   JScrollPane scrollFontFamily = new JScrollPane(listFontFamily);
   LabeledTextField ltfFontSize = new LabeledTextField("Size:");
   /*  String[] fontStyles = { "Plain", "Bold", "Italic" };
-    JList listFontStyle = new JList(fontStyles);
-    JScrollPane scrollFontStyle = new JScrollPane(listFontStyle);
-  */
+   JList listFontStyle = new JList(fontStyles);
+   JScrollPane scrollFontStyle = new JScrollPane(listFontStyle);
+   */
   JPanel panelSettings = new JPanel();
-  LabeledTextField ltfTooltipsInitialDelay =
-    new LabeledTextField("Tooltips initial delay");
-  LabeledTextField ltfTooltipsDismissDelay =
-    new LabeledTextField("Tooltips dismiss delay");
+  LabeledTextField ltfTooltipsInitialDelay = new LabeledTextField(
+      "Tooltips initial delay");
+  LabeledTextField ltfTooltipsDismissDelay = new LabeledTextField(
+      "Tooltips dismiss delay");
   CheckBox cbNativeLAF = new CheckBox("Native look & feel");
   CheckBox cbAdvancedDialogs = new CheckBox("Always use advanced dialogs");
   CheckBox cbAutoFit = new CheckBox("Auto-fit");
@@ -62,10 +59,10 @@ public class SettingsDialog extends JDialog {
     panelFontSelect.add(scrollFontFamily);
     panelFontSelect.add(ltfFontSize.getContainer());
     /*    panelFontSelect.add(new JLabel("Style:"));
-        listFontStyle.setSelectionMode(ListSelectionModel.SINGLE_SELECTION);
-        listFontStyle.setVisibleRowCount(3);
-        panelFontSelect.add(scrollFontStyle);
-    */
+     listFontStyle.setSelectionMode(ListSelectionModel.SINGLE_SELECTION);
+     listFontStyle.setVisibleRowCount(3);
+     panelFontSelect.add(scrollFontStyle);
+     */
     panelSettings.add(panelFontSelect);
     panelSettings.add(ltfTooltipsInitialDelay.getContainer());
     panelSettings.add(ltfTooltipsDismissDelay.getContainer());
@@ -95,10 +92,10 @@ public class SettingsDialog extends JDialog {
 
   public void setParameters(UserConfiguration userConfig) {
     //  Convert the tooltips times to seconds
-    ltfTooltipsInitialDelay.setText(
-      userConfig.getToolTipsInitialDelay() / 1000);
-    ltfTooltipsDismissDelay.setText(
-      userConfig.getToolTipsDismissDelay() / 1000);
+    ltfTooltipsInitialDelay
+        .setText(userConfig.getToolTipsInitialDelay() / 1000);
+    ltfTooltipsDismissDelay
+        .setText(userConfig.getToolTipsDismissDelay() / 1000);
     cbAutoFit.setSelected(userConfig.isAutoFit());
     cbNativeLAF.setSelected(userConfig.getNativeLookAndFeel());
     cbAdvancedDialogs.setSelected(userConfig.getAdvancedDialogs());
@@ -145,6 +142,17 @@ public class SettingsDialog extends JDialog {
     userConfig.setFontFamily(fontFamilies[listFontFamily.getSelectedIndex()]);
   }
 
+  public boolean isAppearanceSettingChanged(UserConfiguration userConfig) {
+    if (userConfig.getNativeLookAndFeel() != cbNativeLAF.isSelected()
+        || userConfig.getCompactDisplay() != cbCompactDisplay.isSelected()
+        || userConfig.getFontSize() != Integer.parseInt(ltfFontSize.getText())
+        || !userConfig.getFontFamily().equals(
+            fontFamilies[listFontFamily.getSelectedIndex()])) {
+      return true;
+    }
+    return false;
+  }
+
   void buttonCancelAction() {
     EtomoDirector.getInstance().closeSettingsDialog();
   }
@@ -171,6 +179,7 @@ class buttonSettingsCancelListener implements ActionListener {
   buttonSettingsCancelListener(SettingsDialog adaptee) {
     this.adaptee = adaptee;
   }
+
   public void actionPerformed(ActionEvent e) {
     adaptee.buttonCancelAction();
   }
@@ -183,6 +192,7 @@ class buttonSettingsApplyListener implements ActionListener {
   buttonSettingsApplyListener(SettingsDialog adaptee) {
     this.adaptee = adaptee;
   }
+
   public void actionPerformed(ActionEvent e) {
     adaptee.buttonApplyAction();
   }
@@ -195,6 +205,7 @@ class buttonSettingsDoneListener implements ActionListener {
   buttonSettingsDoneListener(SettingsDialog adaptee) {
     this.adaptee = adaptee;
   }
+
   public void actionPerformed(ActionEvent e) {
     adaptee.buttonDoneAction();
   }
