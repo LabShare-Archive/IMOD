@@ -1152,10 +1152,17 @@ void inputQDefaultKeys(QKeyEvent *event, ImodView *vw)
     break;
 
   case Qt::Key_3:
-    inputMovieTime(vw, -1);
+    inputMovieTime(vw, 1);
     break;
   case Qt::Key_4:
-    inputMovieTime(vw, 1);
+    inputMovieTime(vw, -1);
+    break;
+
+  case Qt::Key_NumberSign:
+    imodMovieXYZT(vw, MOVIE_DEFAULT, MOVIE_DEFAULT, 1, MOVIE_DEFAULT);
+    break;
+  case Qt::Key_Dollar:
+    imodMovieXYZT(vw, MOVIE_DEFAULT, MOVIE_DEFAULT, -1, MOVIE_DEFAULT);
     break;
 
   case Qt::Key_5:
@@ -1383,6 +1390,9 @@ bool inputTestMetaKey(QKeyEvent *event)
 
 /*
 $Log$
+Revision 4.33  2007/07/19 22:29:19  mast
+Added hot keys for jumping to set limits in time
+
 Revision 4.32  2007/07/08 16:49:24  mast
 Added use of yes always option
 
