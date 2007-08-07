@@ -47,6 +47,7 @@ CTRL_STRING"-Shift-S\tMake snapshot with second non-TIFF format.\n",
 "-\tDecrease Zoom\n",
 "=\tIncrease Zoom\n",
 "3/4\tStart or stop a movie through time in forward/reverse direction.\n"
+"#/$\tStart or stop a movie through Z in forward/reverse direction.\n"
 "\n",
 "        Position control, move current viewing point.\n",
 "        -----------------------------------------------------------\n",
