@@ -18,6 +18,9 @@ import etomo.util.DatasetFiles;
  * @version $Revision$
  * 
  * <p> $Log$
+ * <p> Revision 1.6  2007/07/30 22:39:04  sueh
+ * <p> bug# 963 Added DatasetFiles.JOIN_DATA_FILE_EXT.
+ * <p>
  * <p> Revision 1.5  2007/05/02 16:34:13  sueh
  * <p> bug# 964 Moved newstuff into mainstream.
  * <p>
@@ -56,6 +59,8 @@ public class DataFileFilter extends javax.swing.filechooser.FileFilter
    * @see javax.swing.filechooser.FileFilter#getDescription()
    */
   public String getDescription() {
-    return "Etomo, Join, Parallel Process, or PEET data file";
+    return "Data file (" + ".edf, " + DatasetFiles.JOIN_DATA_FILE_EXT + ", "
+        + DatasetFiles.PARALLEL_DATA_FILE_EXT + ", "
+        + DatasetFiles.PEET_DATA_FILE_EXT + ")";
   }
 }
