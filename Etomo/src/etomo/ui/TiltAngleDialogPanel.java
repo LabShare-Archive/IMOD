@@ -11,6 +11,7 @@ import javax.swing.JPanel;
 
 import etomo.type.TiltAngleType;
 import etomo.type.TiltAngleSpec;
+import etomo.type.UserConfiguration;
 import etomo.ui.TooltipFormatter;
 
 /**
@@ -26,6 +27,10 @@ import etomo.ui.TooltipFormatter;
  * @version $Revision$
  *
  * <p> $Log$
+ * <p> Revision 3.5  2007/03/07 21:15:28  sueh
+ * <p> bug# 981 Turned RadioButton into a wrapper rather then a child of JRadioButton,
+ * <p> because it is getting more complicated.
+ * <p>
  * <p> Revision 3.4  2007/02/09 00:53:54  sueh
  * <p> bug# 962 Made TooltipFormatter a singleton and moved its use to low-level ui
  * <p> classes.
@@ -68,6 +73,8 @@ import etomo.ui.TooltipFormatter;
 public class TiltAngleDialogPanel {
   public static final String rcsid = "$Id$";
 
+  static final String EXISTING_RAWTILT_FILE = "Tilt angles in existing rawtlt file";
+
   private JPanel panelTiltAngleSource = new JPanel();
 
   private RadioButton rbTiltAngleExtract = new RadioButton(
@@ -79,8 +86,7 @@ public class TiltAngleDialogPanel {
   private LabeledTextField ltfAngleMin = new LabeledTextField("Starting angle:");
   private LabeledTextField ltfAngleStep = new LabeledTextField("Increment:");
 
-  private RadioButton rbTiltAngleFile = new RadioButton(
-      "Tilt angles in existing rawtlt file");
+  private RadioButton rbTiltAngleFile = new RadioButton(EXISTING_RAWTILT_FILE);
 
   private ButtonGroup bgTiltAngleSource = new ButtonGroup();
 
@@ -121,18 +127,18 @@ public class TiltAngleDialogPanel {
     return panelTiltAngleSource;
   }
 
-  void setFields(TiltAngleSpec tiltAngleSpec) {
-    if (tiltAngleSpec.getType() == TiltAngleType.EXTRACT) {
+  void setFields(TiltAngleSpec tiltAngleSpec,UserConfiguration userConfig) {
+    if (tiltAngleSpec.getType() == TiltAngleType.FILE||userConfig.getTiltAnglesRawtltFile()) {
+      rbTiltAngleFile.setSelected(true);
+      enableTiltAngleSpecifyFields(false);
+    }
+    else if (tiltAngleSpec.getType() == TiltAngleType.EXTRACT) {
       rbTiltAngleExtract.setSelected(true);
       enableTiltAngleSpecifyFields(false);
     }
-    if (tiltAngleSpec.getType() == TiltAngleType.RANGE) {
+    else if (tiltAngleSpec.getType() == TiltAngleType.RANGE) {
       rbTiltAngleSpecify.setSelected(true);
       enableTiltAngleSpecifyFields(true);
-    }
-    if (tiltAngleSpec.getType() == TiltAngleType.FILE) {
-      rbTiltAngleFile.setSelected(true);
-      enableTiltAngleSpecifyFields(false);
     }
 
     ltfAngleMin.setText(String.valueOf(tiltAngleSpec.getRangeMin()));

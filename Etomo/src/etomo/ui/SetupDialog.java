@@ -42,6 +42,7 @@ import etomo.type.ConstMetaData;
 import etomo.type.DialogType;
 import etomo.type.MetaData;
 import etomo.type.Run3dmodMenuOptions;
+import etomo.type.UserConfiguration;
 import etomo.type.ViewType;
 import etomo.util.DatasetFiles;
 import etomo.util.InvalidParameterException;
@@ -54,6 +55,8 @@ public class SetupDialog extends ProcessDialog implements ContextMenu,
 
   static final String DATASET_NAME_LABEL = "Dataset name: ";
   static final String FIDUCIAL_DIAMETER_LABEL = "Fiducial diameter (nm): ";
+  static final String AXIS_TYPE_LABEL = "Axis Type";
+  static final String SINGLE_AXIS_LABEL = "Single axis";
 
   private JPanel pnlDataParameters = new JPanel();
   private UIHarness uiHarness = UIHarness.INSTANCE;
@@ -73,7 +76,7 @@ public class SetupDialog extends ProcessDialog implements ContextMenu,
   //  Data type GUI objects
   private JPanel pnlDataType = new JPanel();
   private JPanel pnlAxisType = new JPanel();
-  private RadioButton rbSingleAxis = new RadioButton("Single axis");
+  private RadioButton rbSingleAxis = new RadioButton(SINGLE_AXIS_LABEL);
   private RadioButton rbDualAxis = new RadioButton("Dual axis");
   private ButtonGroup bgAxisType = new ButtonGroup();
 
@@ -236,7 +239,7 @@ public class SetupDialog extends ProcessDialog implements ContextMenu,
     bgAxisType.add(rbDualAxis.getAbstractButton());
     pnlAxisType.setLayout(new BoxLayout(pnlAxisType, BoxLayout.Y_AXIS));
     pnlAxisType.setPreferredSize(dimDataTypePref);
-    pnlAxisType.setBorder(new EtchedBorder("Axis Type").getBorder());
+    pnlAxisType.setBorder(new EtchedBorder(AXIS_TYPE_LABEL).getBorder());
     pnlAxisType.add(rbSingleAxis.getComponent());
     pnlAxisType.add(rbDualAxis.getComponent());
     bgViewType.add(rbSingleView.getAbstractButton());
@@ -301,15 +304,6 @@ public class SetupDialog extends ProcessDialog implements ContextMenu,
         BoxLayout.X_AXIS));
     pnlParallelProcess.add(Box.createRigidArea(FixedDim.x5_y0));
     pnlParallelProcess.add(cbParallelProcess);
-    boolean validAutodoc = CpuAdoc.getInstance(AxisID.ONLY, applicationManager)
-        .isValid();
-    if (validAutodoc) {
-      cbParallelProcess.setSelected(true);
-    }
-    else {
-      cbParallelProcess.setEnabled(false);
-    }
-
     pnlImageRows.setLayout(new BoxLayout(pnlImageRows, BoxLayout.Y_AXIS));
     pnlImageRows.add(pnlStackInfo);
     pnlImageRows.add(Box.createRigidArea(FixedDim.x0_y10));
@@ -389,20 +383,34 @@ public class SetupDialog extends ProcessDialog implements ContextMenu,
     return rootPanel;
   }
 
-  public void initializeFields(ConstMetaData metaData) {
+  public void initializeFields(ConstMetaData metaData,
+      UserConfiguration userConfig) {
 
     if (!metaData.getDatasetName().equals("")) {
       String canonicalPath = applicationManager.getPropertyUserDir() + "/"
           + metaData.getDatasetName();
       ltfDataset.setText(canonicalPath);
     }
-
+    boolean validAutodoc = CpuAdoc.getInstance(AxisID.ONLY, applicationManager)
+        .isValid();
+    if (validAutodoc && !userConfig.getNoParallelProcessing()) {
+      cbParallelProcess.setSelected(true);
+    }
+    else if (!validAutodoc) {
+      cbParallelProcess.setEnabled(false);
+    }
     ltfBackupDirectory.setText(metaData.getBackupDirectory());
     ltfDistortionFile.setText(metaData.getDistortionFile());
     ltfMagGradientFile.setText(metaData.getMagGradientFile());
     cbAdjustedFocusA.setSelected(metaData.getAdjustedFocusA().is());
     cbAdjustedFocusB.setSelected(metaData.getAdjustedFocusB().is());
-    setAxisType(metaData.getAxisType());
+    if (metaData.getAxisType() == AxisType.SINGLE_AXIS
+        || userConfig.getSingleAxis()) {
+      rbSingleAxis.setSelected(true);
+    }
+    else {
+      rbDualAxis.setSelected(true);
+    }
     setViewType(metaData.getViewType());
     if (!Double.isNaN(metaData.getPixelSize())) {
       ltfPixelSize.setText(metaData.getPixelSize());
@@ -415,9 +423,9 @@ public class SetupDialog extends ProcessDialog implements ContextMenu,
     }
     spnBinning.setValue(new Integer(metaData.getBinning()));
 
-    tiltAnglesA.setFields(metaData.getTiltAngleSpecA());
+    tiltAnglesA.setFields(metaData.getTiltAngleSpecA(), userConfig);
     ltfExcludeListA.setText(metaData.getExcludeProjectionsA());
-    tiltAnglesB.setFields(metaData.getTiltAngleSpecB());
+    tiltAnglesB.setFields(metaData.getTiltAngleSpecB(), userConfig);
     ltfExcludeListB.setText(metaData.getExcludeProjectionsB());
     if (metaData.getAxisType() == AxisType.SINGLE_AXIS) {
       tiltAnglesB.setEnabled(false);
@@ -576,16 +584,6 @@ public class SetupDialog extends ProcessDialog implements ContextMenu,
     spnBinning.setVisible(advanced);
     pnlMagGradientInfo.setVisible(advanced);
     uiHarness.pack(AxisID.ONLY, applicationManager);
-  }
-
-  //  Axis type radio button
-  void setAxisType(AxisType axisType) {
-    if (axisType == AxisType.SINGLE_AXIS) {
-      rbSingleAxis.setSelected(true);
-    }
-    else {
-      rbDualAxis.setSelected(true);
-    }
   }
 
   AxisType getAxisType() {
@@ -1071,6 +1069,9 @@ public class SetupDialog extends ProcessDialog implements ContextMenu,
 }
 /**
  * <p> $Log$
+ * <p> Revision 3.57  2007/07/17 21:44:35  sueh
+ * <p> bug# 1018 Adding cpu.adoc information from CpuAdoc.
+ * <p>
  * <p> Revision 3.56  2007/03/07 21:14:04  sueh
  * <p> bug# 981 Turned RadioButton into a wrapper rather then a child of JRadioButton,
  * <p> because it is getting more complicated.
