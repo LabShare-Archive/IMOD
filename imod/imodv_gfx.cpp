@@ -1,40 +1,18 @@
-/*  IMOD VERSION 2.7.9
- *
+/*  
  *  imodv_gfx.c -- Higher level drawing functions for imodv - contains 
  *                 functions to respond to initialize, resize, and paint calls
  *                 in the GL widget, and snapshot routines
  *
  *  Original author: James Kremer
  *  Revised by: David Mastronarde   email: mast@colorado.edu
+ *
+ *  Copyright (C) 1995-2004 by Boulder Laboratory for 3-Dimensional Electron
+ *  Microscopy of Cells ("BL3DEMC") and the Regents of the University of 
+ *  Colorado.  See dist/COPYRIGHT for full copyright notice.
+ *
+ *  $Id$
+ *  Log at end of file
  */
-
-/*****************************************************************************
- *   Copyright (C) 1995-2001 by Boulder Laboratory for 3-Dimensional Fine    *
- *   Structure ("BL3DFS") and the Regents of the University of Colorado.     *
- *                                                                           *
- *   BL3DFS reserves the exclusive rights of preparing derivative works,     *
- *   distributing copies for sale, lease or lending and displaying this      *
- *   software and documentation.                                             *
- *   Users may reproduce the software and documentation as long as the       *
- *   copyright notice and other notices are preserved.                       *
- *   Neither the software nor the documentation may be distributed for       *
- *   profit, either in original form or in derivative works.                 *
- *                                                                           *
- *   THIS SOFTWARE AND/OR DOCUMENTATION IS PROVIDED WITH NO WARRANTY,        *
- *   EXPRESS OR IMPLIED, INCLUDING, WITHOUT LIMITATION, WARRANTY OF          *
- *   MERCHANTABILITY AND WARRANTY OF FITNESS FOR A PARTICULAR PURPOSE.       *
- *                                                                           *
- *   This work is supported by NIH biotechnology grant #RR00592,             *
- *   for the Boulder Laboratory for 3-Dimensional Fine Structure.            *
- *   University of Colorado, MCDB Box 347, Boulder, CO 80309                 *
- *****************************************************************************/
-/*  $Author$
-
-$Date$
-
-$Revision$
-Log at end of file
-*/
 
 #include <stdlib.h>
 #include <math.h>
@@ -64,12 +42,13 @@ static void imodv_clear(ImodvApp *a);
 
 
 /*
- *  Set the current OpenGL rendering context to the
- *  window being used by Imodv.
+ *  Set the current OpenGL rendering context to the window being used by Imodv.
+ *  It generates errors to do this after entering selection mode
  */
 int imodv_winset(ImodvApp *a)
 {
-  a->mainWin->mCurGLw->makeCurrent();
+  if (!a->doPick)
+    a->mainWin->mCurGLw->makeCurrent();
   return(1);
 }
 
@@ -78,7 +57,8 @@ int imodv_winset(ImodvApp *a)
  */
 void imodv_swapbuffers(ImodvApp *a)
 {
-  if (a->doPick) return;
+  if (a->doPick) 
+    return;
   a->mainWin->mCurGLw->makeCurrent();
   
   if (a->db)
@@ -86,10 +66,10 @@ void imodv_swapbuffers(ImodvApp *a)
   glFlush();
 }
           
-// Clear the window
+// Clear the window - set context only if not in selection mode
 static void imodv_clear(ImodvApp *a)
 {
-  a->mainWin->mCurGLw->makeCurrent();
+  imodv_winset(a);
   glClearColor(a->rbgcolor->red() / 256., a->rbgcolor->green() / 256.,
 	       a->rbgcolor->blue() / 256., 1.0);
   glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
@@ -175,9 +155,13 @@ void imodvPaintGL()
   if (!a->imod)
     return;
 
-  if (!a->doPick)
-    imodv_winset(a);
-
+  // Set context (if not done already for selection mode) then set selection
+  // mode.  Is it really necessary to set context?
+  imodv_winset(a);
+  if (a->doPick) {
+    glRenderMode( GL_SELECT);
+    glInitNames();
+  }
   // 6/6/04: deleted code for drawing whole model as dlist (unused)
 
   imodv_clear(a);
@@ -371,6 +355,9 @@ static int imodv_snapshot(ImodvApp *a, char *fname)
 
 /*
 $Log$
+Revision 4.12  2004/11/29 19:25:21  mast
+Changes to do QImage instead of RGB snapshots
+
 Revision 4.11  2004/06/08 15:40:45  mast
 Restore clears for stereo drawing, needed for SGI
 
