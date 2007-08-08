@@ -39,7 +39,8 @@ public final class ParallelPanel implements ParallelProgressDisplay,
     Expandable, LoadAverageDisplay {
   public static final String rcsid = "$Id$";
 
-  static final String TITLE = "Parallel Processing";
+  private static final String TITLE = "Parallel Processing";
+  static final String FIELD_LABEL = "Parallel processing";
   static final String MAX_CPUS_STRING = ":  Maximum number of CPUs recommended is ";
 
   private static HashedArray maxCPUList = null;
@@ -48,7 +49,6 @@ public final class ParallelPanel implements ParallelProgressDisplay,
   private final JPanel tablePanel = new JPanel();
   private final LabeledTextField ltfCPUsSelected = new LabeledTextField(
       "CPUs: ");
-  //"CPUs selected: ");
   private final LabeledTextField ltfChunksFinished = new LabeledTextField(
       "Chunks finished: ");
   private final MultiLineButton btnResume = new MultiLineButton("Resume");
@@ -394,6 +394,10 @@ public final class ParallelPanel implements ParallelProgressDisplay,
 }
 /**
  * <p> $Log$
+ * <p> Revision 1.54  2007/07/17 21:36:35  sueh
+ * <p> bug# 1018 Moved getAutodoc, getMaxCPUs, and isValidAutodoc
+ * <p> functionality to CpuAdoc.
+ * <p>
  * <p> Revision 1.53  2007/05/26 00:32:56  sueh
  * <p> bug# 994 Using getInstance in ParallelPanel.  Added btnRestartLoad.
  * <p>
