@@ -50,6 +50,9 @@ import etomo.type.TomogramState;
  * @version $Revision$
  *
  * <p> $Log$
+ * <p> Revision 3.53  2007/07/17 21:44:59  sueh
+ * <p> bug# 1018 Getting cpu.adoc information from CpuAdoc.
+ * <p>
  * <p> Revision 3.52  2006/10/13 22:30:55  sueh
  * <p> bug# 927 Added ltfLowFromBothRadius to final tab.
  * <p>
@@ -385,11 +388,11 @@ public final class TomogramCombinationDialog extends ProcessDialog implements
     ConstEtomoNumber maxCPUs = CpuAdoc.getInstance(AxisID.ONLY, appMgr)
         .getMaxVolcombine();
     if (maxCPUs != null && !maxCPUs.isNull()) {
-      parallelProcessCheckBoxText = ParallelPanel.TITLE
+      parallelProcessCheckBoxText = ParallelPanel.FIELD_LABEL
           + ParallelPanel.MAX_CPUS_STRING + maxCPUs.toString();
     }
     else {
-      parallelProcessCheckBoxText = ParallelPanel.TITLE;
+      parallelProcessCheckBoxText = ParallelPanel.FIELD_LABEL;
     }
     // Instantiate the tab pane contents
     pnlSetup = new SetupCombinePanel(this, applicationManager, dialogType);

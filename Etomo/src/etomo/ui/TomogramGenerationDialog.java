@@ -60,6 +60,9 @@ import etomo.type.ViewType;
  * 
  * <p>
  * $Log$
+ * Revision 3.107  2007/07/17 21:45:10  sueh
+ * bug# 1018 Getting cpu.adoc information from CpuAdoc.
+ *
  * Revision 3.106  2007/05/26 00:33:32  sueh
  * bug# 994 Not automatically setting button size in SpacedPanel anymore.
  * Setting button size in UI.
@@ -1433,11 +1436,11 @@ public class TomogramGenerationDialog extends ProcessDialog implements
     ConstEtomoNumber maxCPUs = CpuAdoc.getInstance(axisID, applicationManager)
         .getMaxTilt();
     if (maxCPUs != null && !maxCPUs.isNull()) {
-      cbParallelProcess = new CheckBox(ParallelPanel.TITLE
+      cbParallelProcess = new CheckBox(ParallelPanel.FIELD_LABEL
           + ParallelPanel.MAX_CPUS_STRING + maxCPUs.toString());
     }
     else {
-      cbParallelProcess = new CheckBox(ParallelPanel.TITLE);
+      cbParallelProcess = new CheckBox(ParallelPanel.FIELD_LABEL);
     }
     //panels
     JPanel tiltPanel = new JPanel();
