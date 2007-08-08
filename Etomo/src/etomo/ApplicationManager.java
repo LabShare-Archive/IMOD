@@ -284,7 +284,7 @@ public final class ApplicationManager extends BaseManager {
       setupDialog = new SetupDialog(this, distortionDir != null
           && distortionDir.exists());
       Utilities.timestamp("new", "SetupDialog", Utilities.FINISHED_STATUS);
-      setupDialog.initializeFields((ConstMetaData) metaData);
+      setupDialog.initializeFields((ConstMetaData) metaData, userConfig);
     }
     mainPanel.openSetupPanel(setupDialog);
     Dimension screenSize = Toolkit.getDefaultToolkit().getScreenSize();
@@ -465,6 +465,10 @@ public final class ApplicationManager extends BaseManager {
         // set paramFile so meta data can be saved
         paramFile = new File(propertyUserDir, metaData.getMetaDataFileName());
         mainPanel.setStatusBarText(paramFile, metaData);
+        if (userConfig.getSwapYAndZ()) {
+          TrimvolParam trimvolParam = metaData.getTrimvolParam();
+          trimvolParam.setSwapYZ(true);
+        }
         userConfig.putDataFile(paramFile.getAbsolutePath());
         loadedParamFile = true;
         state.initialize();
@@ -5436,6 +5440,9 @@ public final class ApplicationManager extends BaseManager {
 }
 /**
  * <p> $Log$
+ * <p> Revision 3.284  2007/07/30 18:30:56  sueh
+ * <p> bug# 1002 ParameterStore.getInstance can return null - handle it.
+ * <p>
  * <p> Revision 3.283  2007/07/27 16:50:05  sueh
  * <p> bug# 979 In openFiducialModelDialog returning success/failure boolean.  Using
  * <p> getInstance to construct FiducialModelDialog because it uses action listeners,
