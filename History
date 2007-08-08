@@ -1,5 +1,9 @@
 IMOD History
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+8/8/07: Added Default values to the Settings dialog so that the user can
+customize the initial value of some fields on the Setup and Post Processing
+dialogs.
+
 8/7/07: Fixed picking of points in model view to avoid context-setting error 
 messages.
 
