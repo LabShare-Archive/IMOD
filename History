@@ -1,5 +1,8 @@
 IMOD History
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+8/7/07: Fixed picking of points in model view to avoid context-setting error 
+messages.
+
 8/6/07: Added #/$ hot keys to start/stop movies in Z in place of mouse click.
 
 7/30/07: In eTomo Join, allowing the project to be saved before "Make Samples"
