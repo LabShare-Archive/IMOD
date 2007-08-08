@@ -36,6 +36,10 @@ import etomo.type.Run3dmodMenuOptions;
  * @version $Revision$
  * 
  * <p> $Log$
+ * <p> Revision 3.23  2007/03/07 21:16:57  sueh
+ * <p> bug# 981 Turned RadioButton into a wrapper rather then a child of JRadioButton,
+ * <p> because it is getting more complicated.
+ * <p>
  * <p> Revision 3.22  2007/02/09 00:55:11  sueh
  * <p> bug# 962 Made TooltipFormatter a singleton and moved its use to low-level ui
  * <p> classes.
@@ -171,6 +175,8 @@ public final class TrimvolPanel implements Run3dmodButtonContainer {
   private static final String FIXED_SCALE_MAX_LABEL = " white: ";
   private static final String SECTION_SCALE_MIN_LABEL = "Z min: ";
   private static final String SECTION_SCALE_MAX_LABEL = " Z max: ";
+  static final String SWAP_YZ_LABEL = "Swap Y and Z dimensions";
+  static final String REORIENTATION_GROUP_LABEL = "Reorientation:";
 
   private ApplicationManager applicationManager;
 
@@ -205,8 +211,7 @@ public final class TrimvolPanel implements Run3dmodButtonContainer {
   private final JPanel pnlReorientationChoices = new JPanel();
   private final ButtonGroup bgReorientation = new ButtonGroup();
   private final RadioButton rbNone = new RadioButton("None");
-  private final RadioButton rbSwapYZ = new RadioButton(
-      "Swap Y and Z dimensions");
+  private final RadioButton rbSwapYZ = new RadioButton(SWAP_YZ_LABEL);
   private final RadioButton rbRotateX = new RadioButton("Rotate around X axis");
   private final JLabel lWarning1 = new JLabel("Warning:");
   private final JLabel lWarning2 = new JLabel("For serial joins, use");
@@ -323,8 +328,8 @@ public final class TrimvolPanel implements Run3dmodButtonContainer {
     pnlReorientation.setBoxLayout(BoxLayout.X_AXIS);
     pnlReorientationChoices.setLayout(new BoxLayout(pnlReorientationChoices,
         BoxLayout.Y_AXIS));
-    pnlReorientationChoices.setBorder(new EtchedBorder("Reorientation:")
-        .getBorder());
+    pnlReorientationChoices.setBorder(new EtchedBorder(
+        REORIENTATION_GROUP_LABEL).getBorder());
     pnlReorientationChoices.setAlignmentX(Component.RIGHT_ALIGNMENT);
     bgReorientation.add(rbNone.getAbstractButton());
     bgReorientation.add(rbSwapYZ.getAbstractButton());
@@ -378,7 +383,7 @@ public final class TrimvolPanel implements Run3dmodButtonContainer {
    * Set the panel values with the specified parameters
    * @param trimvolParam
    */
-  public void setParameters(TrimvolParam trimvolParam) {
+  void setParameters(TrimvolParam trimvolParam) {
     ltfXMin.setText(trimvolParam.getXMin());
     ltfXMax.setText(trimvolParam.getXMax());
     //  Y and Z  are swapped to present the user with Z as the depth domain
