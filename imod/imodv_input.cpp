@@ -891,7 +891,7 @@ static void imodv_rotate(ImodvApp *a, int throwFlag)
 /*****************************************************************************/
 #define SELECT_BUFSIZE 4096
 #define OBJCONTNAME(a,b) = ((a<<16)|(b))
-/*#define HIT_DEBUG       */
+//#define HIT_DEBUG
 
 static void processHits (ImodvApp *a, GLint hits, GLuint buffer[], bool moving)
 {
@@ -902,9 +902,12 @@ static void processHits (ImodvApp *a, GLint hits, GLuint buffer[], bool moving)
   int mo, ob, co, pt;
   Iindex indSave;
 
-  if (!hits) return;
+  if (!hits) 
+    return;
+
   /* If it overflowed, process what's there */
-  if (hits == -1) hits = SELECT_BUFSIZE/3; 
+  if (hits < 0) 
+    hits = SELECT_BUFSIZE/3; 
 
   imodGetIndex(a->imod, &ob, &co, &pt);
 
@@ -916,9 +919,11 @@ static void processHits (ImodvApp *a, GLint hits, GLuint buffer[], bool moving)
   pt = -1;
 
   for (i = 0; i < hits; i++) {    /* for each hit */
-    if (ptr - ptrstr >= SELECT_BUFSIZE) break;
+    if (ptr - ptrstr >= SELECT_BUFSIZE) 
+      break;
     names = *ptr; ptr++;
-    if ((ptr - ptrstr) + names + 2 > SELECT_BUFSIZE) break;
+    if ((ptr - ptrstr) + names + 2 > SELECT_BUFSIZE) 
+      break;
           
     z1 = *ptr; ptr++;
     z2 = *ptr; ptr++;
@@ -987,6 +992,7 @@ static void processHits (ImodvApp *a, GLint hits, GLuint buffer[], bool moving)
   }
 }
 
+// For select mode, set up for picking then call draw routine
 static void imodvSelect(ImodvApp *a, bool moving)
 {
   static GLuint buf[SELECT_BUFSIZE];
@@ -996,22 +1002,20 @@ static void imodvSelect(ImodvApp *a, bool moving)
   imodv_winset(a);
   imodv_query_pointer(a, &x, &y);
   glSelectBuffer(SELECT_BUFSIZE, buf);
-  glRenderMode( GL_SELECT);
 
+  // Defer entering selection mode until inside the paint routine and context
+  // is already set.  This avoid context-setting errors on some systems
   a->xPick = x;
   a->yPick = a->winy - y;
 
   a->wPick = a->hPick = 10;
   a->doPick = 1;
      
-  glInitNames();
-     
   imodvDraw(a);
 
   a->doPick = 0;
   hits = glRenderMode( GL_RENDER );
   processHits(a, hits, buf, moving);
-
 }
 
 static int imodvStepTime(ImodvApp *a, int tstep)
@@ -1113,6 +1117,9 @@ void imodvMovieTimeout()
 
 /*
     $Log$
+    Revision 4.26  2007/07/08 16:53:19  mast
+    Added drag selection of contours crossed by mouse
+
     Revision 4.25  2007/06/18 16:16:06  mast
     Fixed stupid bug that ruined rotations
 
