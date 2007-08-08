@@ -17,6 +17,9 @@ import java.util.*;
  * @version $Revision$
  *
  * <p> $Log$
+ * <p> Revision 3.4  2006/07/31 21:42:35  sueh
+ * <p> bug# 438 Added compactDisplay
+ * <p>
  * <p> Revision 3.3  2005/05/13 18:49:08  sueh
  * <p> bug# 615 Temporarily setting autofit on all the time.
  * <p>
@@ -57,6 +60,7 @@ public class UserConfiguration implements Storable {
     "$Id$";
   
   private static final String COMPACT_DISPLAY_KEY = "CompactDisplay";
+  private static final String DEFAULTS_KEY = "Defaults";
 
   private String revisionNumber = "1.2";
   private boolean nativeLookAndFeel = false;
@@ -70,7 +74,12 @@ public class UserConfiguration implements Storable {
   private int fontSize = 12;
   private int mainWindowWidth = 800;
   private int mainWindowHeight = 600;
-  private boolean autoFit = false;
+  private boolean autoFit =false;
+  private EtomoBoolean2 singleAxis = new EtomoBoolean2(DEFAULTS_KEY+".SingleAxis");
+  private EtomoBoolean2 noParallelProcessing = new EtomoBoolean2(DEFAULTS_KEY+".NoParallelProcessing");
+  private EtomoBoolean2 tiltAnglesRawtltFile = new EtomoBoolean2(DEFAULTS_KEY+".TiltAnglesRawtltFile");
+  private EtomoBoolean2 swapYAndZ = new EtomoBoolean2(DEFAULTS_KEY+".SwapYAndZ");
+  
 
   public UserConfiguration() {
     MRUFileList = new CircularBuffer(4);
@@ -108,7 +117,8 @@ public class UserConfiguration implements Storable {
       group = "";
     }
     else {
-      group = prepend + ".Setup.";
+      prepend = prepend + ".Setup";
+      group = prepend + ".";
     }
     props.setProperty(group + "RevisionNumber", revisionNumber);
     props.setProperty(
@@ -128,7 +138,11 @@ public class UserConfiguration implements Storable {
       String.valueOf(toolTipsDismissDelay));
     props.setProperty(group + "FontFamily", String.valueOf(fontFamily));
     props.setProperty(group + "FontSize", String.valueOf(fontSize));
-
+    singleAxis.store(props,prepend);
+    noParallelProcessing.store(props,prepend);
+    tiltAnglesRawtltFile.store(props,prepend);
+    swapYAndZ.store(props, prepend);
+    
     props.setProperty(
       group + "MainWindowWidth",
       String.valueOf(mainWindowWidth));
@@ -206,6 +220,10 @@ public class UserConfiguration implements Storable {
     //TEMP bug# 614
     autoFit = true;
     //TEMP
+    singleAxis.load(props,prepend);
+    noParallelProcessing.load(props,prepend);
+    tiltAnglesRawtltFile.load(props,prepend);
+    swapYAndZ.load(props, prepend);
   }
 
   /**
@@ -393,4 +411,35 @@ public class UserConfiguration implements Storable {
     this.autoFit = autoFit;
   }
 
+  public boolean getNoParallelProcessing() {
+    return noParallelProcessing.is();
+  }
+
+  public boolean getSingleAxis() {
+    return singleAxis.is();
+  }
+
+  public boolean getSwapYAndZ() {
+    return swapYAndZ.is();
+  }
+
+  public boolean getTiltAnglesRawtltFile() {
+    return tiltAnglesRawtltFile.is();
+  }
+
+  public void setNoParallelProcessing(boolean input) {
+    noParallelProcessing.set(input);
+  }
+
+  public void setSingleAxis(boolean input) {
+    singleAxis.set(input);
+  }
+
+  public void setSwapYAndZ(boolean input) {
+    swapYAndZ.set(input);
+  }
+
+  public void setTiltAnglesRawtltFile(boolean input) {
+    tiltAnglesRawtltFile.set(input);
+  }
 }

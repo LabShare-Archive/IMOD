@@ -25,10 +25,6 @@ public class SettingsDialog extends JDialog {
   JList listFontFamily = new JList(fontFamilies);
   JScrollPane scrollFontFamily = new JScrollPane(listFontFamily);
   LabeledTextField ltfFontSize = new LabeledTextField("Size:");
-  /*  String[] fontStyles = { "Plain", "Bold", "Italic" };
-   JList listFontStyle = new JList(fontStyles);
-   JScrollPane scrollFontStyle = new JScrollPane(listFontStyle);
-   */
   JPanel panelSettings = new JPanel();
   LabeledTextField ltfTooltipsInitialDelay = new LabeledTextField(
       "Tooltips initial delay");
@@ -43,6 +39,14 @@ public class SettingsDialog extends JDialog {
   JButton buttonCancel = new JButton("Cancel");
   JButton buttonApply = new JButton("Apply");
   JButton buttonDone = new JButton("Done");
+  CheckBox cbSingleAxis = new CheckBox(SetupDialog.AXIS_TYPE_LABEL + ":  "
+      + SetupDialog.SINGLE_AXIS_LABEL);
+  CheckBox cbNoParallelProcessing = new CheckBox("Start with "
+      + ParallelPanel.FIELD_LABEL + " off");
+  CheckBox cbTiltAnglesRawtltFile = new CheckBox("Angle Source:  "
+      + TiltAngleDialogPanel.EXISTING_RAWTILT_FILE);
+  CheckBox cbSwapYAndZ = new CheckBox(TrimvolPanel.REORIENTATION_GROUP_LABEL
+      + "  " + TrimvolPanel.SWAP_YZ_LABEL);
 
   public SettingsDialog() {
     panelSettings = (JPanel) getContentPane();
@@ -51,18 +55,12 @@ public class SettingsDialog extends JDialog {
     setTitle("eTomo Settings");
 
     //  Layout the font panel
-    //panelFontSelect.setLayout(new )
     panelFontSelect.add(new JLabel("Font family:"));
     listFontFamily.setSelectionMode(ListSelectionModel.SINGLE_SELECTION);
     listFontFamily.setVisibleRowCount(3);
     ltfFontSize.setColumns(3);
     panelFontSelect.add(scrollFontFamily);
     panelFontSelect.add(ltfFontSize.getContainer());
-    /*    panelFontSelect.add(new JLabel("Style:"));
-     listFontStyle.setSelectionMode(ListSelectionModel.SINGLE_SELECTION);
-     listFontStyle.setVisibleRowCount(3);
-     panelFontSelect.add(scrollFontStyle);
-     */
     panelSettings.add(panelFontSelect);
     panelSettings.add(ltfTooltipsInitialDelay.getContainer());
     panelSettings.add(ltfTooltipsDismissDelay.getContainer());
@@ -73,6 +71,15 @@ public class SettingsDialog extends JDialog {
     panelSettings.add(cbNativeLAF);
     panelSettings.add(cbAdvancedDialogs);
     panelSettings.add(cbCompactDisplay);
+    panelSettings.add(Box.createRigidArea(FixedDim.x0_y10));
+    JPanel panelDefaults = new JPanel();
+    panelDefaults.setLayout(new BoxLayout(panelDefaults, BoxLayout.Y_AXIS));
+    panelDefaults.setBorder(new EtchedBorder("Defaults").getBorder());
+    panelDefaults.add(cbSingleAxis);
+    panelDefaults.add(cbNoParallelProcessing);
+    panelDefaults.add(cbTiltAnglesRawtltFile);
+    panelDefaults.add(cbSwapYAndZ);
+    panelSettings.add(panelDefaults);
     panelSettings.add(Box.createRigidArea(FixedDim.x0_y10));
 
     //  Bind the buttons and lay them out
@@ -100,6 +107,10 @@ public class SettingsDialog extends JDialog {
     cbNativeLAF.setSelected(userConfig.getNativeLookAndFeel());
     cbAdvancedDialogs.setSelected(userConfig.getAdvancedDialogs());
     cbCompactDisplay.setSelected(userConfig.getCompactDisplay());
+    cbSingleAxis.setSelected(userConfig.getSingleAxis());
+    cbNoParallelProcessing.setSelected(userConfig.getNoParallelProcessing());
+    cbTiltAnglesRawtltFile.setSelected(userConfig.getTiltAnglesRawtltFile());
+    cbSwapYAndZ.setSelected(userConfig.getSwapYAndZ());
 
     // Get the current font parameters to set the UI
     // Since they may not be all the same make the assumption that the first
@@ -124,7 +135,6 @@ public class SettingsDialog extends JDialog {
       }
     }
     ltfFontSize.setText(currentFontSize);
-
   }
 
   public void getParameters(UserConfiguration userConfig) {
@@ -140,11 +150,21 @@ public class SettingsDialog extends JDialog {
     userConfig.setCompactDisplay(cbCompactDisplay.isSelected());
     userConfig.setFontSize(Integer.parseInt(ltfFontSize.getText()));
     userConfig.setFontFamily(fontFamilies[listFontFamily.getSelectedIndex()]);
+    userConfig.setSingleAxis(cbSingleAxis.isSelected());
+    userConfig.setNoParallelProcessing(cbNoParallelProcessing.isSelected());
+    userConfig.setTiltAnglesRawtltFile(cbTiltAnglesRawtltFile.isSelected());
+    userConfig.setSwapYAndZ(cbSwapYAndZ.isSelected());
   }
 
   public boolean isAppearanceSettingChanged(UserConfiguration userConfig) {
     if (userConfig.getNativeLookAndFeel() != cbNativeLAF.isSelected()
         || userConfig.getCompactDisplay() != cbCompactDisplay.isSelected()
+        || userConfig.getSingleAxis() != cbSingleAxis.isSelected()
+        || userConfig.getNoParallelProcessing() != cbNoParallelProcessing
+            .isSelected()
+        || userConfig.getTiltAnglesRawtltFile() != cbTiltAnglesRawtltFile
+            .isSelected()
+        || userConfig.getSwapYAndZ() != cbSwapYAndZ.isSelected()
         || userConfig.getFontSize() != Integer.parseInt(ltfFontSize.getText())
         || !userConfig.getFontFamily().equals(
             fontFamilies[listFontFamily.getSelectedIndex()])) {
