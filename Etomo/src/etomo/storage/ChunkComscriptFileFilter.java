@@ -27,7 +27,8 @@ public class ChunkComscriptFileFilter extends javax.swing.filechooser.FileFilter
     if (file.isDirectory()) {
       return true;
     }
-    if (!file.getName().endsWith("-001.com")) {
+    if (!file.getName().endsWith("-001.com") && 
+        !file.getName().endsWith("-001-sync.com")) {
       return false;
     }
     return true;
@@ -39,6 +40,10 @@ public class ChunkComscriptFileFilter extends javax.swing.filechooser.FileFilter
 }
 /**
 * <p> $Log$
+* <p> Revision 1.2  2006/04/06 20:51:32  sueh
+* <p> bug# 840 Only pick the first chunk .com file, since it always has to be
+* <p> there.
+* <p>
 * <p> Revision 1.1  2006/03/20 17:52:58  sueh
 * <p> bug# 835 A file filter for parallel processing .com scripts.
 * <p> </p>
