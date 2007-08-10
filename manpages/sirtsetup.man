@@ -71,6 +71,14 @@ named tiltroot_sirt-*.com.  These files can be run from the command line with
 .br
 or from the parallel processing interface in eTomo.
 
+Each of the log files from performing operation 5 above uses "clip stat" to
+get statistics from
+a central area of 10 slices from the difference reconstruction.  The summary
+values from these statistics are gathered at the end of the
+tiltroot_sirt-finish.log file.  The last two numbers on each line are the mean
+and the standard deviation of the difference reconstruction.  The fall in the
+latter value provides some indication of the progress of the iterations.
+
 .SS Options
 .TP
 .B -n <value>
