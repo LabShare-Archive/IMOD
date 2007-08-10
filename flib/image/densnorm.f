@@ -27,11 +27,12 @@ c
       integer*4 modeIn,modeOut,ind,iz
       real*4 cospower, refMean,refDose,dmin,dmax,dmean,dmin2,dmax2,dmean2
       real*4 tmin,tmax,tmean, sum, scale,rangeFrac,dosefac,valmin, baselog
+      real*4 addback, resubval
       real*8 dsum8
       character*160 infile,outfile,expfile,tiltfile,wgtfile,reffile,otherfile
       character*80 titlech
       character dat*9, tim*8, reltext*8, logtext*11
-      logical*4 relative,reverse, ignoreExp
+      logical*4 relative,reverse, ignoreExp,subtracted,resubtract, divideby2
       real*4 cosd
       common /bigarr/ array
 
@@ -43,17 +44,18 @@ c
 c       fallbacks from ../../manpages/autodoc2man -2 2  densnorm
 c       
       integer numOptions
-      parameter (numOptions = 18)
+      parameter (numOptions = 21)
       character*(40 * numOptions) options(1)
       options(1) =
      &    'input:InputImageFile:FN:@output:OutputImageFile:FN:@'//
      &    'weight:WeightOutputFile:FN:@images:ImagesWithExposures:FN:@'//
      &    'rifile:ReferenceImageFile:FN:@rimean:MeanOfReferenceImage:F:@'//
-     &    'riexp:ExposureOfReferenceImage:F:@log:LogOfOutput:F:@'//
-     &    'mode:ModeOfOutput:i:@scale:ScalingFactor:F:@'//
-     &    'reverse:ReverseContrast:B:@ignore:IgnoreExposures:B:@'//
-     &    'expfile:ExposureFile:FN:@'//
-     &    'tiltfile:TiltFile:FN:@cos:CosinePowerInverse:I:@'//
+     &    'riexp:ExposureOfReferenceImage:F:@'//
+     &    'subtracted:SubtractedIntegers:B:@resub:Resubtract:B:@'//
+     &    'divide:DivideBy2:B:@log:LogOfOutput:F:@mode:ModeOfOutput:I:@'//
+     &    'scale:ScalingFactor:F:@reverse:ReverseContrast:B:@'//
+     &    'ignore:IgnoreExposures:B:@expfile:ExposureFile:FN:@'//
+     &    'tiltfile:TiltFile:FN:@power:CosinePowerInverse:I:@'//
      &    'minlog:MinimumLogFactor:F:@param:ParameterFile:PF:@help:usage:B:'
 c       
 c       Defaults
@@ -70,6 +72,9 @@ c       Defaults
       relative = .true.
       rangeFrac = 0.001
       baselog = 0.
+      subtracted = .false.
+      resubtract = .false.
+      divideby2 = .false.
 c       
 c	  Pip startup: set error, parse options, do help output
       call PipReadOrParseOptions(options, numOptions, 'densnorm',
@@ -109,6 +114,9 @@ c       Other options than can be gotten at this time
       ierr = PipGetInteger('CosinePowerInverse', cosPower)
       ierr = PipGetLogical('ReverseContrast', reverse)
       ierr = PipGetFloat('MinimumLogFactor', rangeFrac)
+      ierr = PipGetLogical('SubtractedIntegers', subtracted)
+      ierr = PipGetLogical('Resubtract', resubtract)
+      ierr = PipGetLogical('DivideBy2', divideby2)
       ifpack = 1
       ndose = 0
       if (infile .ne. ' ') then
@@ -121,6 +129,8 @@ c         a montage; otherwise doses should be packed for existing Z values
      &      ndose, ixpiece, iypiece, izpcInput, maxpiece, maxzInput,
      &      npcInput)
         if (npcInput .ne. 0) ifpack = 0
+        modeOut = modeIn
+        ierr = PipGetInteger('ModeOfOutput', modeOut)
       endif
 c       
 c       Get exposures from somewhere: exposure file
@@ -174,6 +184,9 @@ c         Now evaluate whether there is reference data
         if (reffile .ne. ' ') then
           call imopen(2, reffile, 'RO')
           call irdhdr(2,nxyz2,mxyz,mode2,dmin2,dmax2,dmean2)
+          if (subtracted .and. mode2 .ne. 1 .and. mode2 .ne. 2) call exitError(
+     &        'REFERENCE IMAGE FILE IS NOT THE RIGHT MODE TO CONTAIN '//
+     &        'SUBTRACTED VALUES')
           if (ifRefDose .eq. 0) then
 c             
 c             Get doses from reference image
@@ -195,12 +208,31 @@ c           Get mean of reference image
             enddo
           enddo
           refMean = (dsum8 / nxyz2(1)) / nxyz2(2)
+          if (subtracted) refMean = refMean + 32768
           ifRefMean = 1
           call imclose(2)
         endif
 c       
 c         Determine if the scaling is relative
         if (ifRefMean .eq. 1 .and. ifRefDose .eq. 1) relative = .false.
+c       
+c       If doing output, check state of subtractions
+      if (outfile .ne. ' ') then
+        if (subtracted .and. modeIn .ne. 1 .and. modeIn .ne. 2) call exitError(
+     &      'INPUT IMAGE FILE IS NOT THE RIGHT MODE TO CONTAIN '//
+     &      'SUBTRACTED VALUES')
+        if (resubtract .and. divideby2) call exitError(
+     &      'YOU CANNOT ENTER BOTH -resubtract AND -divideby2')
+        if ((resubtract .or. divideby2) .and. .not.subtracted) call exitError(
+     &      'YOU CANNOT ENTER -resubtract OR -divideby2 UNLESS DATA WERE '//
+     &      'SUBTRACTED')
+        if ((resubtract .or. divideby2) .and. (modeOut .ne. 1 .or.
+     &      .not.relative .or. ifLog .ne. 0)) call exitError(
+     &      'YOU CANNOT ENTER -resubtract OR -divideby2 UNLESS DOING '//
+     &      'RELATIVE NORMALIZATIONS WITH OUTPUT MODE OF 1 AND NO LOG')
+        if (subtracted .and. baselog .gt. 30000) call exitError(
+     &      'YOU SHOULD ENTER "-log 0" WITH -subtracted')
+      endif
 c       
 c         Make the weights
         if (relative) then
@@ -249,8 +281,6 @@ c       Done if not producing output
 c
       call imopen(2, outfile, 'new')
       call itrhdr(2, 1)
-      modeOut = modeIn
-      ierr = PipGetInteger('ModeOfOutput', modeOut)
       call ialmod(2, modeOut)
 c       
 c       Set scaling to 1 for float output, then to 25000 for attenuations,
@@ -269,6 +299,11 @@ c       then to 5000 for logs
         print *,'Output will be scaled by default factor of', scale
       endif
       if (reverse) scale = -scale
+      addback = 0.
+      resubval = 0.
+      if (subtracted) addback = 32768.
+      if (divideby2) scale = scale * 0.5
+      if (resubtract) resubval = 32768.
       call PipDone()
 c       
 c       Process the image file in chunks
@@ -296,20 +331,20 @@ c
 c           Log scaling (relative or absolute)
           if (ifLog .ne. 0) then
             do i = 1 , nx*numLines
-              array(i) = scale * alog10(max(valmin, (array(i) + baselog) *
-     &            doseFac))
+              array(i) = scale * alog10(max(valmin, (array(i) + addback +
+     &            baselog) * doseFac))
             enddo
 c             
 c             Relative linear scaling
           elseif (relative) then
             do i = 1 , nx*numLines
-              array(i) = array(i) * scale * doseFac
+              array(i) = (array(i) + addback) * scale * doseFac - resubval
             enddo
           else
 c             
 c             Absolute linear scaling
             do i = 1 , nx*numLines
-              array(i) = scale * (array(i) * doseFac - 1.)
+              array(i) = scale * ((array(i) + addback) * doseFac - 1.)
             enddo
           endif
           call iclden(array,nx,numLines,1,nx,1,numLines,tmin,tmax,tmean)
@@ -398,4 +433,7 @@ c       pack the values down
       end
 
 c       $Log$
+c       Revision 3.1  2007/07/17 03:36:39  mast
+c       Added to package
+c
 c
