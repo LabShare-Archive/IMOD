@@ -154,7 +154,7 @@ public final class ParallelDialog implements AbstractParallelDialog {
       try {
         String comFileName = chunkComscript.getName();
         ltfProcessName.setText(comFileName.substring(0, comFileName
-            .lastIndexOf('-')));
+            .lastIndexOf("-001")));
         workingDir = chunkComscript.getParentFile();
       }
       catch (Exception e) {
@@ -165,8 +165,8 @@ public final class ParallelDialog implements AbstractParallelDialog {
 
   private void setToolTipText() {
     ltfProcessName
-        .setToolTipText("The process name is based on the name of the first comscript (-001.com).");
-    btnChunkComscript.setToolTipText("Selects the first comscript (-001.com).");
+        .setToolTipText("The process name is based on the name of the first comscript (-001.com or -001-sync.com).");
+    btnChunkComscript.setToolTipText("Selects the first comscript (-001.com or -001-sync.com).");
     btnRunProcess.setToolTipText("Runs the process.");
   }
 
@@ -196,6 +196,10 @@ public final class ParallelDialog implements AbstractParallelDialog {
 }
 /**
  * <p> $Log$
+ * <p> Revision 1.14  2007/02/09 00:50:54  sueh
+ * <p> bug# 962 Made TooltipFormatter a singleton and moved its use to low-level ui
+ * <p> classes.
+ * <p>
  * <p> Revision 1.13  2006/11/07 22:50:00  sueh
  * <p> bug# 954 Added setToolTipText().
  * <p>
