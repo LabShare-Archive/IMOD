@@ -25,11 +25,11 @@ Usage: $pn [options] command_file
       -i #    Number of iterations (default $iterations)
       -l #    Leave this number of reconstructions (default $leaverecs)
       -f #    Flat filter fraction for starting reconstruction (default $flatfrac)
-      -r1 #,# Radius and sigma for radial filter in starting reconstruction
-      -r2 #,# Radius and sigma for radial filter in difference reconstructions
+      -ri #,# Radius and sigma for radial filter in starting reconstruction
+      -rd #,# Radius and sigma for radial filter in difference reconstructions
       -zp     Constrain reconstruction to positive values
       -zn     Constrain reconstruction to negative values
-      -c      Write projections to separate chunks, not directly to output file
+      -c      Write reconstructions to separate chunks, not directly to file
       -d      Directly write projections to single output file
       -m #    Output file mode (default $mode)
       -t      Test mode, leave command and log files at end of processing
@@ -74,12 +74,12 @@ while ($#argv > 1)
       shift; shift
       breaksw
 
-    case -r1:
+    case -ri:
       set radial1 = $argv[2]
       shift; shift
       breaksw
 
-    case -r2:
+    case -rd:
       set radial2 = $argv[2]
       shift; shift
       breaksw
@@ -142,6 +142,7 @@ set alifile = `grep -i inputproj $comname | grep -v '^#' | sed '/[^ 0-9\.]/s///g
 set recfile = `grep -i outputfile $comname | grep -v '^#' | sed '/[^ 0-9\.]/s///g'`
 set width = `grep -i width $comname | grep -v '^#' | sed '/[^ 0-9\.]/s///g'`
 set thickness = `grep -i thickness $comname | grep -v '^#' | sed '/[^0-9\.]/s///g'`
+set logbase = `grep -i '^ *log' $comname | sed '/[^ 0-9\.]/s///g'`
 
 # Keep track of whether these are non option args
 #
@@ -238,22 +239,43 @@ if (! $startfirst) then
     endif
 endif
 
+set aliuse = "$alifile"
+if ("$logbase" != "") then
+    set aliuse = "${alifile}log10"
+    if (! $startfirst && ! -e $aliuse) then
+        echo "ERROR: $pn - $aliuse does not exist"
+        exit 1
+    endif
+endif
+
 # Clean up previous stuff that splittilt might not get
 #
 \find . -type f -name  "$sirtname-[0-9]*.*" -exec rm -f "{}" \;
+\rm -f $sirtname-start.com
 
 # Make an initial reconstruction 
 #
 @ comnum = 1
 if ($startfirst) then
+    
+    # But first take the log if necessary, advance com file number
+    #
+    if ("$logbase" != "") then
+        cat <<EOF >! $sirtname-001-sync.com
+\$if (-e $aliuse) \\rm -f $aliuse
+\$densnorm -log $logbase $alifile $aliuse
+EOF
+        @ comnum++
+    endif
     set srecname = $setname.${sirtext}00
     sed -e "/$recfile/s//$srecname/" \
+        -e "/$alifile/s//$aliuse/" \
         -e "/^MODE.*/s//Mode   $mode/" \
         -e "/^RADIAL.*/s//RADIAL   $radial1/" \
         -e "/THICKNESS/a\\
 FlatFilterFraction   $flatfrac\
-" < $comname >! $sirtname.com
-    set splitout = `splittilt -n $numproc -o $recchunk $sirtname.com`
+" < $comname | grep -v -i '^ *log' >! $sirtname.com
+    set splitout = `splittilt -n $numproc -o $recchunk -i $comnum $sirtname.com`
     if ($status) then
         echo "$splitout"
         echo "ERROR: $pn - splittilt failed on initial run"
@@ -265,6 +287,8 @@ FlatFilterFraction   $flatfrac\
         exit 1
     endif
 
+    # If the number started past 1 there was no -start file, so add one
+    if ($comnum > 1 && "$recchunk" == "") @ comnum++
     @ chunkval = $numchunk
     @ comnum += $chunkval + 1
 endif
@@ -288,6 +312,7 @@ while ($iter < $iterations)
     # Make the projection file
     #
     sed -e "/$recfile/s//$projname/" \
+        -e "/$alifile/s//$aliuse/" \
         -e "/^ *MODE.*/s//Mode   $mode/" \
         -e "/SLICE/d" \
         -e "/THICKNESS/a\\
@@ -298,7 +323,7 @@ ViewsToReproj     0\
 " \
         -e "/THICKNESS/a\\
 RecFileToReproj     $lastname\
-" < $comname >! $sirtname.com
+" < $comname | grep -v -i '^ *log' >! $sirtname.com
     
     set splitout = `splittilt -n $numproc -o -i $comnum $projchunk $sirtname.com`
     if ($status) then
@@ -322,7 +347,7 @@ RecFileToReproj     $lastname\
     set outfile = $sirtname-$numtext-sync.com
     cat <<EOF >! $outfile
 \$\\rm -f $setname.diff $projname~ $drecname~
-\$subimage $projsubzero $projname $alifile $setname.diff
+\$subimage $projsubzero $projname $aliuse $setname.diff
 \$echo CHUNK DONE
 EOF
 
@@ -340,7 +365,7 @@ SLICE     $slices\
 " \
         -e "/THICKNESS/a\\
 FlatFilterFraction   2\
-" < $comname >! $sirtname.com
+" < $comname | grep -v -i '^ *log' >! $sirtname.com
 
     set splitout = `splittilt -n $numproc -o -i $comnum $recchunk $sirtname.com`
     if ($status) then
@@ -378,7 +403,7 @@ FlatFilterFraction   2\
 \$clip stat $ixtext $iytext -iz 10 $drecname
 \$subimage $recsubthresh $lastname $drecname $srecname
 EOF
-    if ($iter == $iterations) echo '$'"grep '@ z' $sirtname-[0-9]*sync.log" >> $outfile
+    if ($iter == $iterations) echo '$'"sed -n '/@ z/p' $sirtname-[0-9]*sync.log" >> $outfile
     if ($iter == $iterations && ! $testmode) echo '$\rm -f '"$sirtname-[0-9]*.*" >> $outfile
     if ($iter < $iterations) @ comnum++
     echo '$echo CHUNK DONE' >> $outfile
@@ -391,6 +416,9 @@ echo "  processchunks machine_list $sirtname"
 exit 0
 
 #  $Log$
+#  Revision 3.2  2007/07/19 15:53:48  mast
+#  Fixed removal of rec files
+#
 #  Revision 3.1  2007/07/19 05:49:42  mast
 #  First shot
 #
