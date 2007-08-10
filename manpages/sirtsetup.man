@@ -1,0 +1,166 @@
+.na
+.nh
+.TH sirtsetup 1 3.10.15 BL3DEMC
+.SH NAME
+sirtsetup \- Produce multiple command files for iterative reconstruction
+.SH SYNOPSIS
+sirtsetup [options] <Tilt command file>
+.SH DESCRIPTION
+Sirtsetup sets up command files to do a form of Simultaneous Iterative
+Reconstruction Technique (SIRT) using backprojection and reprojection with the
+Tilt(1) program.  Because reprojection is done with Tilt(1) and not
+Xyzproj(1), the reconstruction can include options such as local alignments
+and Z factors.
+The SIRT uses the following scheme:
+  1) An initial reconstruction is computed, using a filter function that is
+either flat or a mixture of flat and R-weighted.
+  2) The reconstruction is reprojected with Tilt(1).
+  3) The original projections are subtracted from these reprojections.
+  4) This reprojection difference is backprojected with a flat filter function
+and appropriate scaling to distribute differences among the pixels along a
+ray.
+  5) The error reconstruction is subtracted from the initial reconstruction.
+
+To iterate, steps 2 through 5 are repeated with the original reconstruction
+replaced by the corrected reconstruction created in step 5.  The
+reconstructions are named setname.srec00, setname.srec01, etc.  Once some of
+these reconstructions exist, it is easy to
+do additional iterations simply by running this script again.
+
+Sirtsetup is meant to be used with a command file for running Tilt(1) that has
+all of the entries produced when running through eTomo.  There is one main
+restriction on this file.  The reconstruction must be the
+same size in X and Y as the aligned stack; i.e., SLICE and WIDTH entries are
+not allowed.  This means that if you want to do a trial reconstruction on a
+subarea, you need to make the aligned stack smaller, either by copying it to a
+smaller size with Newstack(1) or by modifying the command used to make it in
+newst.com or blend.com.  In addition, you need to change the SUBSETSTART entry
+in the tilt command file to indicate the starting coordinates of this subarea.
+Typically the starting coordinate would be (full size - trimmed size) / 2.
+For example, if the original size of the aligned stack would be 2048x2048 and
+you make a 512x512 subarea, the SUBSETSTART entry would be 768 768.  The
+SUBSETSTART entry must be in unbinned pixels, if binning was used.  The
+FULLIMAGESIZE entry would stay the same.
+
+If the tilt command file takes the log of the projection data, then the
+starting command file will use Densnorm(1) to create a new stack with the
+logarithm of the projections.  This log stack will be used in all of the
+operations listed above.
+
+If you are not taking the log, you may still want to scale the projection data
+to provide a mass normalization.  You can do this with Densnorm(1).  If you
+just want a 
+relative normalization to compensate for different exposures, you have two
+choices: 1) Use Densnorm(1) to create a normalized stack, then either rename
+it to the aligned stack name or modify the
+input file name in the tilt command file.  2) Use Densnorm(1) to create a file
+with weighting factors, and add a WeightFile entry to the tilt command file.
+If you want an absolute normalization so that you can experiment with
+constraining the data to be positive or negative, then you need to create a
+normalized stack and either rename
+it to the aligned stack name or change the input file name in the command
+file.
+If you use Densnorm(1) to normalize the data absolutely, they will be negative
+values, in which case the 
+.B -zn
+option would be used to constrain the reconstruction to negative values.
+
+If the name of the command file is tiltroot.com, this script produces files
+named tiltroot_sirt-*.com.  These files can be run from the command line with
+   processchunks machine_list tiltroot_sirt
+.br
+or from the parallel processing interface in eTomo.
+
+.SS Options
+.TP
+.B -n <value>
+Use this option to specify the number of machines that you expect to run
+the command files on.  It is passed directly to Splittilt(1).  The default is
+8.
+.TP
+.B -s
+Do an initial reconstruction, numbered 00, even if it or later reconstructions
+already exist.  The default is to iterate from the last existing
+reconstruction.
+.TP
+.B -i <value>
+Set the number of iterations to run; the default is 10.
+.TP
+.B -l <value>
+Set the number of reconstructions to leave for examination; the default is 5.
+.TP
+.B -f <value>
+Set the fraction of a flat filter function to apply in the initial
+reconstruction.  A flat function will be mixed with the standard radial filter
+if the fraction is less than 1; this may given quicker convergence. 
+The default is 1.0 for no mixing.
+.TP
+.B -ri <#,#>
+Set the radius and sigma for the high-frequency cutoff of the radial filter in
+the initial reconstruction.  The default is 0.5,0.05 for no filtering.
+.TP
+.B -rd <#,#>
+Set the radius and sigma for the high-frequency cutoff of the radial filter in
+the difference reconstructions.  The default is 0.5,0.05 for no filtering.
+.TP
+.B -zp
+Constrain the reconstruction to positive values when subtracting the
+difference reconstruction.  This option is appropriate only if the projection
+data are normalized to be linearly proportional to projected mass density
+and have positive values.
+.TP
+.B -zn
+Constrain the reconstruction to negative values when subtracting the
+difference reconstruction.  This option is appropriate only if the projection
+data are normalized to be linearly proportional to projected mass density
+and have negative values, as usually produced by Densnorm(1).
+.TP
+.B -c
+Write reconstructions in chunks to separate files and assemble these into a
+single tomogram.
+The default is to write directly to the output file.  This option should be
+needed only if the corresponding option is needed with Splittilt(1) for
+parallel reconstructions on your computer systems.
+.TP
+.B -d
+Write reprojections directly to a single
+output file.  The default is to write chunks to separate files that are
+assembled with Assemblevol(1), because direct writing can give empty lines
+with a typical multiple-computer setup.  This option may be safe if no remote
+machines are used for processing, particularly if the local machine is not
+writing to a remote server.
+.TP
+.B -m <value> 
+Set the mode of the output files.  The default is 2 because scaling is
+somewhat unpredictable, and values generally become much larger than in
+standard R-weighted back-projection with Tilt(1).
+.TP
+.B -t
+Run in a test mode that leaves command and log files at the end of the 
+processing.
+
+.SH FILES
+This procedure creates many large files, so it generally purges a previous
+version of each file before a new one is created.  The files produced
+during the procedure are:
+.nf
+setname.alilog10    Log of projections if the tilt command file contains
+                         a LOG entry
+setname.srec00      Initial reconstruction
+setname.srecnn      Numbered iterative reconstructions
+setname.proj        Reprojection of current reconstruction
+setname.diff        Difference of reprojection and original projections
+setname.drec        Correction reconstruction from projection difference
+.fi
+
+.SH AUTHOR
+David Mastronarde  
+
+.SH SEE ALSO
+tilt(1), densnorm(1), newstack(1), subimage(1), processchunks(1), splittilt(1)
+.SH BUGS
+There is not yet a way to tell when to stop iterating.  Densities get
+progressively farther off at the edges of the reconstruction.
+
+Email bug reports to mast@colorado.edu.
+
