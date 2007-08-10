@@ -1,13 +1,12 @@
-c	  $Author$
+c       $Id$
 c
-c	  $Date$
-c
-c	  $Revision$
-c
-c	  $Log$
-c	  Revision 3.1  2006/05/17 00:05:18  mast
-c	  Added to library after extracting from xyzproj
+c       $Log$
+c       Revision 3.2  2006/06/20 04:48:18  mast
+c       Changed origin definition to make projections match input data to Tilt
+c       Changed arguments so sinang and cosang could be modified
 c	
+c       Revision 3.1  2006/05/17 00:05:18  mast
+c       Added to library after extracting from xyzproj
 c
 c       !
 c       Sets up information about projection rays at an angle whose sine and
@@ -46,7 +45,7 @@ c         (limit was 0.01, try it at 0.001)
             yraytmp=nyslice-1.
             xraytmp=nxslice/2 + 1 + nxout/2 - ixout 
           endif		
-          if(xraytmp.gt.1 .and. xraytmp.lt.nxslice)
+          if(xraytmp.ge.1 .and. xraytmp.le.nxslice)
      &        nraytmp=nyslice-2
 c           
 c           if a near-horizontal projection, set up to be exactly horizontal
@@ -61,7 +60,7 @@ c
             xraytmp=nxslice-1.
             yraytmp=nyslice/2 + ixout - nxout/2
           endif
-          if(yraytmp.gt.1 .and. yraytmp.lt.nyslice)
+          if(yraytmp.ge.1 .and. yraytmp.le.nyslice)
      &        nraytmp=nxslice-2
 c           
 c           otherwise need to look at intersections with slice box
