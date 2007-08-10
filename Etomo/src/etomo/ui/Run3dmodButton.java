@@ -8,7 +8,6 @@ import javax.swing.JMenuItem;
 import javax.swing.JPopupMenu;
 
 import etomo.type.DialogType;
-import etomo.type.ProcessResultDisplay;
 import etomo.type.Run3dmodMenuOptions;
 
 /**
@@ -26,7 +25,7 @@ import etomo.type.Run3dmodMenuOptions;
  * 
  * @version $Revision$
  */
-final class Run3dmodButton extends MultiLineButton implements ContextMenu, ProcessResultDisplay {
+final class Run3dmodButton extends MultiLineButton implements ContextMenu {
   public static final String rcsid = "$Id$";
 
   private final JPopupMenu contextMenu = new JPopupMenu("3dmod Options");
@@ -115,6 +114,9 @@ final class Run3dmodButton extends MultiLineButton implements ContextMenu, Proce
 }
 /**
  * <p> $Log$
+ * <p> Revision 1.8  2006/02/06 21:21:45  sueh
+ * <p> bug# 521 Getting toggle buttons through ProcessResultDisplayFactory.
+ * <p>
  * <p> Revision 1.7  2006/01/12 22:16:22  sueh
  * <p> bug# 401 For toggle buttons set selected to true every time a menu item is
  * <p> selected.
