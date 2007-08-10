@@ -1,5 +1,8 @@
 IMOD History
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+8/10/07: Densnorm has new options to handle data stored as signed integers
+with 32768 subtracted.
+
 8/8/07: Added Default values to the Settings dialog so that the user can
 customize the initial value of some fields on the Setup and Post Processing
 dialogs.

@@ -67,12 +67,42 @@ normalization.  If this option is entered together with a reference image
 file, the given value supercedes the exposure value in the header of the
 reference image, if any.
 
+[Field = SubtractedIntegers]
+short = subtracted
+type = B
+usage = 32768 was subtracted from the data before storing as signed integers
+tooltip =
+manpage = One of the ways of storing data from a 16-bit camera into the
+signed integer mode, 1, is to subtract 32768.  Use this option to indicate
+that this occurred, and to have 32768 added back before normalization.
+
+[Field = Resubtract]
+short = resub
+type = B
+usage = Subtract 32768 off again after normalizing subtracted integers
+tooltip =
+manpage = Subtract 32768 off again after normalizing subtracted integers.
+
+[Field = DivideBy2]
+short = divide
+type = B
+usage = Divide by 2 after normalizing subtracted integers
+tooltip =
+manpage = Divide by 2 after normalizing subtracted integers.
+This option and -resubtract are relevant only if the data were subtracted
+integers, a relative normalization is being done, the mode of the output file
+is 1, and logs are not being taken.  If there are values above 0 in the input
+file, one or the other option is needed to avoid truncating these values.
+
 [Field = LogOfOutput]
 short = log
 type = F
 usage = Take log of output values after adding the given value
 tooltip =
-manpage = 
+manpage = Take log of output values after adding the given value.  If the data
+have had 32768 subtracted from them, and you are just taking the log, you can
+enter "-log 32768" without using the -subtracted option, or "-log 0" with the
+-subtracted option.
 
 [Field = ModeOfOutput]
 short = mode
