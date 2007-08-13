@@ -1,5 +1,9 @@
 IMOD History
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+8/12/07: IMOD_3-10-15
+8/10/07: Sirtsetup has a man page and can work with a tilt command file that
+has a LOG entry.
+
 8/10/07: Densnorm has new options to handle data stored as signed integers
 with 32768 subtracted.
 
