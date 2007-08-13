@@ -120,12 +120,16 @@ int  imod_zap_open(struct ViewInfo *vi);
 int zapSubsetLimits(ViewInfo *vi, int &ixStart, int &iyStart, int &nxUse, 
                     int &nyUse);
 void zapReportRubberband();
+void zapSetImageOrBandCenter(float imx, float imy, bool incremental);
 int zapRubberbandCoords(float &rbX0, float &rbX1, float &rbY0, float &rbY1);
 void zapPixelViewState(bool state);
 void zapGetLongestTimeString(ImodView *vi, QString *str);
 
 /*
 $Log$
+Revision 3.24  2007/05/31 16:23:10  mast
+Changes for using hot toolbar
+
 Revision 3.23  2007/03/29 04:55:50  mast
 Fixed crash bug when closing window while focus is in edit/spinbox
 

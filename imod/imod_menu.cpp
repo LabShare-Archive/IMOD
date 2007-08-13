@@ -47,6 +47,7 @@
 #include "imod_iscale.h"
 #include "b3dgfx.h"
 #include "autox.h"
+#include "locator.h"
 #include "finegrain.h"
 #include "preferences.h"
 #include "undoredo.h"
@@ -1142,6 +1143,10 @@ void InfoWindow::imageSlot(int item)
     xtumOpen(App->cvi);
     break;
 
+  case IMAGE_MENU_LOCATOR: /* locator */
+    locatorOpen(App->cvi);
+    break;
+
   case IMAGE_MENU_MODV: /* model view */
     imod_autosave(App->cvi->imod);
     imodv_open();
@@ -1255,6 +1260,9 @@ static int imodContourBreakByZ(ImodView *vi, Iobj *obj, int ob, int co)
 
 /*
   $Log$
+  Revision 4.32  2007/07/08 16:46:48  mast
+  Added object combine
+
   Revision 4.31  2007/06/08 04:45:45  mast
   Allowed break by Z for planar open contours
 

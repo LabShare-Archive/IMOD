@@ -67,6 +67,7 @@ HEADERS	+= autox.h \
 	special_module.h \
 	xcorr.h \
 	undoredo.h \
+	locator.h \
 	imod_assistant.h \
 	finegrain.h \
 	pegged.xpm \
@@ -128,6 +129,7 @@ SOURCES	+= autox.cpp \
 	beadfix.cpp \
 	xcorr.cpp \
 	undoredo.cpp \
+	locator.cpp \
 	imod_assistant.cpp \
 	iiqimage.cpp \
 	iirawimage.cpp \

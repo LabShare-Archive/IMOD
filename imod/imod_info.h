@@ -47,6 +47,7 @@ enum {FILE_MENU_NEW, FILE_MENU_OPEN, FILE_MENU_RELOAD, FILE_MENU_SAVE,
       EIMAGE_MENU_FLIP, EIMAGE_MENU_FILLCACHE, EIMAGE_MENU_FILLER, 
       IMAGE_MENU_GRAPH, IMAGE_MENU_SLICER, IMAGE_MENU_TUMBLER, 
       IMAGE_MENU_MODV, IMAGE_MENU_ZAP, IMAGE_MENU_XYZ, IMAGE_MENU_PIXEL,
+      IMAGE_MENU_LOCATOR,
       HELP_MENU_MAN, HELP_MENU_MENUS, HELP_MENU_HOTKEY, HELP_MENU_ABOUT};
 
 
@@ -110,6 +111,9 @@ int imod_info_open();
 
 /*
     $Log$
+    Revision 3.19  2007/07/08 16:47:00  mast
+    Added object combine
+
     Revision 3.18  2007/05/25 05:28:16  mast
     Changes for addition of slicer angle storage
 

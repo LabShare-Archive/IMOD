@@ -175,7 +175,9 @@ InfoWindow::InfoWindow(QWidget * parent, const char * name, WFlags f)
   mImageMenu->insertItem("&Pixel View", IMAGE_MENU_PIXEL);
   mImageMenu->insertItem("&Graph", IMAGE_MENU_GRAPH);
   mImageMenu->setAccel(SHIFT + Key_G, IMAGE_MENU_GRAPH);
+  mImageMenu->insertItem("&Locator", IMAGE_MENU_LOCATOR);
   mImageMenu->insertItem("&Tumbler", IMAGE_MENU_TUMBLER);
+
 
   // plugin menu
   int plugs   = imodPlugLoaded(IMOD_PLUG_MENU);
@@ -431,6 +433,8 @@ void InfoWindow::openSelectedWindows(char *keys)
     imageSlot(IMAGE_MENU_TUMBLER);
   if (strchr(keys, 'x') && imageOK)
     imageSlot(IMAGE_MENU_PIXEL);
+  if (strchr(keys, 'm') && imageOK)
+    imageSlot(IMAGE_MENU_LOCATOR);
   if (strchr(keys, 'T'))
     imodPlugOpenByName("Line Track");
   if (strchr(keys, 'F') && imageOK)
@@ -537,6 +541,9 @@ static char *truncate_name(char *name, int limit)
 
 /*
     $Log$
+    Revision 4.38  2007/07/08 16:47:42  mast
+    Added object combine
+
     Revision 4.37  2007/05/25 05:28:16  mast
     Changes for addition of slicer angle storage
 
