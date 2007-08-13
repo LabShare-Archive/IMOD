@@ -91,6 +91,8 @@ char *Imod_menus_help[] = {
 "     Model View \tOpen a 3dmod model view (3dmodv) window. (v)\n",
 "     Pixel View \tView pixel values in a grid.\n",
 "     Graph \t\tOpen the Image Graph window. (G)\n",
+"     Locator \tOpen window showing subarea of active zap window. (G)\n",
+
 "     Tumbler \tOpen 3-D projection window.\n",
 "",
  NULL};
