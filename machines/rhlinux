@@ -64,7 +64,7 @@ set m64flags =
 set libflags =
 if ($m64bit == true) then
     if ($compiler != intel) then
-        set m64flags = "-m64"
+        if ($m64notIA == true) set m64flags = "-m64"
         set libflags = "-fPIC"
     endif
     set include_flags = "$include_flags -I/usr/lib64"
