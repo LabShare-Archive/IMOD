@@ -99,7 +99,7 @@ Most manual model editing is done within the ZaP Window.
 
 Additional windows that may be
 opened via menu selection are the Slicer, XYZ, Tumbler, 
-Graph, Pixel View, and Model View windows.
+Graph, Pixel View, Locator, and Model View windows.
    The Slicer Window allows one to view slices through the 3-D 
 image data.  If the image cache is turned on, only images in
 the cache will be displayed in views that contain data from 
@@ -112,8 +112,14 @@ of the area around the current point.
 axis or along a given contour.
    The Pixel View Window shows the actual pixel values from the
 image file around a given point.
+   The Locator Window shows the whole image area and
+a box that allows you to see and change the subarea shown in the ZaP window.
    The Model View Window views the model in a 3D rendering
-while it's being built.
+while it is being built.
+
+These windows are described below.  However, see the on-line help
+available from each window (as well as from most dialog boxes) for a
+comprehensive description of all of the available features.
 
 .SS Options
 3dmod will accept some
@@ -534,8 +540,8 @@ When this box is checked, both the float operation when
 going between sections and the autocontrast operation
 will be based only on the image area displayed in the most recently 
 active Zap window.  
-If there is a rubberband in the active Zap window, the area inside the 
-rubberband is used instead.
+If there is a rubber band in the active Zap window, the area inside the 
+rubber band is used instead.
 When this box is not checked, these operations are based on the entire 
 section.
 
@@ -677,6 +683,7 @@ Options...    Open 3dmod preferences dialog to personalize settings
    Model View  Open a 3dmod model view window.  (v)
    Pixel View  Open window displaying pixel values.
    Graph       Open an image Graph window.  (G)
+   Locator     Open a window to show the ZaP window subarea.
    Tumbler     Open a 3-D Tumbler window.
 
 .I Special menu
@@ -809,7 +816,7 @@ Ctrl-Shift-S - Snapshot to second type of non-TIFF file
         Other keys active in the ZaP window only
         ----------------------------------------
 Ctrl-A - Select all contours in current object on section or 
-           within the rubberband
+           within the rubber band
 b  -  Build a contour while in auto contour mode
 a  -  Advance to and fill next section when auto contouring
 u  -  Smooth a filled area when auto contouring
@@ -835,8 +842,8 @@ End           -  Go to Z = 1
 Home          -  Go to Z = max
 Insert        -  Go to middle Z of stack
 1,2           -  Previous,Next Time Index
-!,@           -  Go to first or last time index, or to Start or End
-                    value for Time shown in Edit-Movies dialog
+!,@           -  Go to first or last time index, or to Start or
+                   End value for Time shown in Edit-Movies dialog
 
 Keypad Arrows -  Move current model point in model mode,
               -  Pan in ZaP window in movie mode. 
@@ -1032,6 +1039,29 @@ The [RESOLUTION] button toggles between taking data from the
 image buffer and taking data from the file.
 The Width spin button lets you select the number of pixels of width across
 which data are averaged perpendicular to the line being graphed.
+.SH Locator Window
+This window displays a zoomed-down view of the entire image area and a
+red rectangle representing the subarea displayed in the most
+recently active ZaP window.  If the rubber band is on in that ZaP window, the
+rectangle shows the position of the rubber band instead.  The window can eb
+made smaller or larger to change the zoom of the display.  You can also
+control the area displayed in the ZaP window, and/or the position of the
+rubber band, in two ways.  You can click with the
+first mouse button to select a new center.  You can press and hold the second
+mouse button, and as you move the mouse, the ZaP center position will be moved
+by the corresponding amount.
+.SH Pixel View Window
+The Pixel View window displays a 7x7 grid of buttons showing values from the
+image file around the current point.  The pixel positions in X and Y are shown
+as labels on the left and bottom edges of the window.  If you click a button,
+that coordinate will become
+the current point and the value shown there will move to the central button.
+The buttons with the highest and lowest values are shown with red and blue
+backgrounds, respectively.  At the top of the window is a continuous readout
+of the cursor position and image value at that position whenever the
+mouse is in a ZaP, Slicer, or XYZ window.  This readout shows the byte value
+from program memory unless you turn on a checkbox to have it show values from
+the image file.  
 
 .SH Model View Window
 This window shows the model in 3D, continually updated as the model is
@@ -1171,9 +1201,10 @@ IMGDIR path_to_image_directory
 directory pointed to by the IMOD_PLUGIN_DIR environment 
 variable.  The directories /usr/IMOD/plugins, /usr/local/IMOD/plugins,
 and /usr/freeware/lib/imodplugs/ are loaded by default if they
-exist.  To write your own plugins, look for the IMOD
-software development kit on the IMOD home page at 
-http://bio3d.colorado.edu/imod.  (Not yet available for the Qt version.)
+exist.  Plugins work in all supported operating systems.  
+To write your own plugins, the easiest way would be to get the IMOD source
+code and use the old version of the Bead Fixer plugin as an example.
+See http://bio3d.colorado.edu/imod/source.html.
 
 .SH AUTHORS
 .nf
@@ -1181,10 +1212,9 @@ Jim Kremer
 David Mastronarde
 .SH SEE ALSO
 .nf
-Viewing programs  3dmodv, midas
-Model conversion  imod2nff, imod2synu
-Image conversion  tomrc, frommrc (convert to/from sgi images)
-                  tif2mrc, raw2mrc, dm2mrc.
-.if
+Viewing programs  3dmodv(1), midas(1)
+Model conversion  imodinfo(1), imod2vrml(1)
+Image conversion  tif2mrc(1), raw2mrc(1), dm2mrc(1), mrc2tif(1)
+.fi
 .SH BUGS
 Please email all bug reports to mast@colorado.edu.
