@@ -10,6 +10,8 @@
 #include <qgl.h>
 
 class LocatorGL;
+class QPushButton;
+class QLabel;
 typedef struct ViewInfo ImodView;
 typedef struct b3d_ci_image B3dCIImage;
 
@@ -27,13 +29,21 @@ class LocatorWindow : public QMainWindow
   ~LocatorWindow() {};
 
   int mCtrl;
+  QLabel *mZoomLabel;
   
+ public slots:
+  void help();
+  void zoomUp();
+  void zoomDown();
 
  protected:
   void closeEvent ( QCloseEvent * e );
   void keyPressEvent ( QKeyEvent * e );
+  void fontChange( const QFont & oldFont ) {setFontDependentWidths();};
 
  private:
+  void setFontDependentWidths();
+  QPushButton *mHelpButton;
 };
 
 class LocatorGL : public QGLWidget
@@ -79,5 +89,8 @@ protected:
 
 /*
 $Log$
+Revision 1.1  2007/08/13 16:05:25  mast
+Added to program
+
 
 */

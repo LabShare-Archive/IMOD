@@ -13,7 +13,13 @@
 
 #include <qcursor.h>
 #include <qtooltip.h>
+#include <qlabel.h>
+#include <qvbox.h>
+#include <qhbox.h>
+#include <qpushbutton.h>
 
+#include "arrowbutton.h"
+#include "dia_qtutils.h"
 #include "imod.h"
 #include "imod_input.h"
 #include "imod_info_cb.h"
@@ -113,16 +119,40 @@ LocatorWindow::LocatorWindow(bool rgba, bool doubleBuffer, bool enableDepth,
                 QWidget * parent, const char * name, WFlags f)
   : QMainWindow(parent, name, f)
 {
+  QVBox *central = new QVBox(this, "central");
+  setCentralWidget(central);
+  QHBox *topHBox = new QHBox(central, "topHBox");
+  topHBox->setSpacing(4);
+
+  ArrowButton *arrow = new ArrowButton(Qt::UpArrow, topHBox, "zoomup button");
+  connect(arrow, SIGNAL(clicked()), this, SLOT(zoomUp()));
+  QToolTip::add(arrow, "Increase window size by 1.5 (hot key =)");
+  arrow = new ArrowButton(Qt::DownArrow, topHBox, "zoom down button");
+  connect(arrow, SIGNAL(clicked()), this, SLOT(zoomDown()));
+  QToolTip::add(arrow, "Decrease window size by 1.5 (hot key -)");
+  mZoomLabel = new QLabel("Zoom 1.00", topHBox);
+
+  // Help button
+  mHelpButton = new QPushButton("Help", topHBox, "Help button");
+  mHelpButton->setFocusPolicy(QWidget::NoFocus);
+  connect(mHelpButton, SIGNAL(clicked()), this, SLOT(help()));
+  setFontDependentWidths();
+  QHBox *topSpacer = new QHBox(topHBox);
+  topHBox->setStretchFactor(topSpacer, 1);
+
   QGLFormat glFormat;
   glFormat.setRgba(rgba);
   glFormat.setDoubleBuffer(doubleBuffer);
   glFormat.setDepth(enableDepth);
-  GLw = new LocatorGL(glFormat, this);
-  setCentralWidget(GLw);
+  GLw = new LocatorGL(glFormat, central);
   setFocusPolicy(QWidget::StrongFocus);
+  central->setStretchFactor(GLw, 1);
   adjustSize();
-  QToolTip::add(GLw, "Click first mouse to set center, drag second mouse to"
-                " move area; -/= zooms down/up");
+}
+
+void LocatorWindow::setFontDependentWidths()
+{
+  diaSetButtonWidth(mHelpButton, ImodPrefs->getRoundedStyle(), 1.2, "Help");
 }
 
 void LocatorWindow::closeEvent ( QCloseEvent * e )
@@ -132,6 +162,20 @@ void LocatorWindow::closeEvent ( QCloseEvent * e )
   b3dFreeCIImage(GLw->mImage);
   LocWin = NULL;
   e->accept();
+}
+
+void LocatorWindow::help()
+{
+  imodShowHelpPage("locator.html");
+}
+
+void LocatorWindow::zoomUp()
+{
+  GLw->changeSize(1.5);
+}
+void LocatorWindow::zoomDown()
+{
+  GLw->changeSize(0.6667);
 }
 
 /*
@@ -297,6 +341,11 @@ void LocatorGL::paintGL()
                    mYborder + (int)(mZoom * mLastY0) - 1,
                    (int)(mZoom * mLastNx) + 1,
                    (int)(mZoom * mLastNy) + 1);
+
+  // Set the zoom label
+  QString str;
+  str.sprintf("Zoom %.2f", mZoom);
+  LocWin->mZoomLabel->setText(str);
 }
 
 /*
@@ -358,5 +407,8 @@ void LocatorGL::mouseMoveEvent ( QMouseEvent * e )
 
 /*
 $Log$
+Revision 1.1  2007/08/13 16:05:25  mast
+Added to program
+
 
 */
