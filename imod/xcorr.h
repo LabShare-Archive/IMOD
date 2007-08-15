@@ -1,19 +1,10 @@
 #ifndef IMOD_XCORR_H
 #define IMOD_XCORR_H
-/*  $Author$
-
-    $Date$
-
-    $Revision$
-
-    $Log$
-    Revision 1.2  2004/11/11 15:55:34  mast
-    Changes to do FFT in a subarea
-
-    Revision 1.1  2004/11/07 22:59:09  mast
-    Initial creation
-
-*/
+/*  xcorr.h  -  Declarations for xcorr.cpp
+ *
+ *  $Id$
+ *  Log at end
+ */
 
 #include "mrcslice.h"
 
@@ -27,9 +18,6 @@ int sliceFourierFilter(Islice *sin, float sigma1, float sigma2, float radius1,
                        float radius2);
 void XCorrTaperOutPad(void *array, int type, int nxbox, int nybox, 
                       float *brray, int nxdim, int nx, int ny);
-void XCorrTaperInPad(void *array, int type, int nxdimin, int ix0, int ix1,
-                     int iy0, int iy1, float *brray, int nxdim, int nx, int ny,
-                     int nxtap, int nytap);
 void XCorrExtractConvert(float *array, int nxdim, int ixlo, int iylo,
                          void *brray, int type, int nx, int ny,
                          float outMin, float outMax);
@@ -44,3 +32,15 @@ void XCorrFilterPart(float *fft, float *array, int nx, int ny, float *ctf,
 #endif
 
 #endif
+/*
+$Log$
+Revision 1.3  2006/06/24 16:03:33  mast
+Added arguments to return center coordinate of FFT display
+
+Revision 1.2  2004/11/11 15:55:34  mast
+Changes to do FFT in a subarea
+
+Revision 1.1  2004/11/07 22:59:09  mast
+Initial creation
+
+*/

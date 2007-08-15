@@ -4,43 +4,17 @@
  *   Copyright (C) 1995-2004 by Boulder Laboratory for 3-Dimensional Electron
  *   Microscopy of Cells ("BL3DEMC") and the Regents of the University of 
  *   Colorado.
- */                                                                           
-
-/*  $Author$
-    
-$Date$
-
-$Revision$
-
-$Log$
-Revision 1.7  2006/06/24 16:03:33  mast
-Added arguments to return center coordinate of FFT display
-
-Revision 1.6  2005/03/08 02:50:48  mast
-Fix a return value
-
-Revision 1.5  2005/03/08 02:36:04  mast
-Put FFT of subarea into the subarea, filled with mean
-
-Revision 1.4  2004/11/11 15:55:34  mast
-Changes to do FFT in a subarea
-
-Revision 1.3  2004/11/09 17:53:28  mast
-Fixed problems with taperoutpad
-
-Revision 1.2  2004/11/08 05:46:34  mast
-Fixed an int32 to be int16
-
-Revision 1.1  2004/11/07 22:59:09  mast
-Initial creation
-
-*/
+ *
+ *  $Id$
+ *  Log at end
+ */
 
 #include <stdlib.h>
 #include <math.h>
 #include "xcorr.h"
 #include "mrcc.h"
 #include "cfft.h"
+#include "sliceproc.h"
 #include "imod.h"
 #include "imodview.h"
 
@@ -103,7 +77,7 @@ float sliceByteBinnedFFT(Islice *sin, int binning, int ix0, int ix1, int iy0,
   }
 
   // Put into array, take FFT
-  XCorrTaperInPad(indata, SLICE_MODE_BYTE, nxDim, ix0, ix1, iy0, iy1,
+  sliceTaperInPad(indata, SLICE_MODE_BYTE, nxDim, ix0, ix1, iy0, iy1,
                   fftArray, nPadSize + 2, nPadSize, nPadSize, nTaper, nTaper);
   if (binning > 1)
     free(indata);
@@ -577,123 +551,30 @@ void XCorrFilterPart(float *fft, float *array, int nx, int ny, float *ctf,
   return;
 }
 
-/* TAPERINPAD pads an image, located at IX0 to IX1 and IY0 to IY1 in 
-   ARRAY, into the center of a larger array.  NXDIMIN is the X dimension of
-   ARRAY.  The padded image in BRRAY
-   will have size NX by NY while the BRRAY will be dimensioned
-   NXDIM by NY.  The values of the image at its edge will be
-   tapered down to the mean value at the edge, over a width of the
-   original image area equal to NXTAP or NYTAP.
+/*
+$Log$
+Revision 1.8  2007/06/09 00:22:37  mast
+Fixed bug freeing indata when upon memory error
+
+Revision 1.7  2006/06/24 16:03:33  mast
+Added arguments to return center coordinate of FFT display
+
+Revision 1.6  2005/03/08 02:50:48  mast
+Fix a return value
+
+Revision 1.5  2005/03/08 02:36:04  mast
+Put FFT of subarea into the subarea, filled with mean
+
+Revision 1.4  2004/11/11 15:55:34  mast
+Changes to do FFT in a subarea
+
+Revision 1.3  2004/11/09 17:53:28  mast
+Fixed problems with taperoutpad
+
+Revision 1.2  2004/11/08 05:46:34  mast
+Fixed an int32 to be int16
+
+Revision 1.1  2004/11/07 22:59:09  mast
+Initial creation
+
 */
-
-void XCorrTaperInPad(void *array, int type, int nxdimin, int ix0, int ix1,
-                     int iy0, int iy1, float *brray, int nxdim, int nx, int ny,
-                     int nxtap, int nytap)
-{
-  int lobase, hibase, x1, x2, ixlo, ixhi, iylo, iyhi, ix, iy, ixbase;
-  int nsum, nxbox, nybox, ixlim;
-  float sum, dmean, fracx, fracy, fmin;
-  b3dUByte *bytein;
-  b3dInt16 *intin;
-  b3dUInt16 *uintin;
-  float *floatin;
-  float *out;
-  
-  nxbox = ix1 + 1 - ix0;
-  nybox = iy1 + 1 - iy0;
-  ixlo=nx/2-nxbox/2 - 1;
-  ixhi=ixlo+nxbox;
-  iylo=ny/2-nybox/2 - 1;
-  iyhi=iylo+nybox;
-  
-  for (iy = iy0; iy <= iy1; iy++) {
-    out = brray + ixlo + 1 + (iylo + 1 + iy - iy0) * nxdim;
-    switch (type) {
-    case SLICE_MODE_BYTE:
-      bytein = (b3dUByte *)array + ix0 + iy * nxdimin;
-      for (ix = ix0; ix <= ix1; ix++)
-        *out++ = *bytein++;
-      break;
-      
-    case SLICE_MODE_SHORT:
-      intin = (b3dInt16 *)array + ix0 + iy * nxdimin;
-      for (ix = ix0; ix <= ix1; ix++)
-        *out++ = *intin++;
-      break;
-         
-    case SLICE_MODE_USHORT:
-      uintin = (b3dUInt16 *)array + ix0 + iy * nxdimin;
-      for (ix = ix0; ix <= ix1; ix++)
-        *out++ = *uintin++;
-      break;
-         
-    case SLICE_MODE_FLOAT:
-      floatin = (float *)array + ix0 + iy * nxdimin;
-      for (ix = ix0; ix <= ix1; ix++)
-        *out++ = *floatin++;
-      break;
-
-    }
-  }
-
-  /* get edge mean */
-  sum=0.;
-  lobase = (iylo + 1) * nxdim;
-  hibase = iyhi * nxdim;
-  for (ix = ixlo + 1; ix <= ixhi; ix++)
-    sum += brray[ix + lobase] + brray[ix + hibase];
-  for (iy = iylo + 2; iy < iyhi; iy++) {
-    ixbase = iy * nxdim;
-    sum += brray[ixlo + 1 + ixbase] + brray[ixhi + ixbase];
-  }
-  
-  nsum=(2*(nxbox+nybox-2));
-  dmean=sum/nsum;
-    
-  /* fill the rest of the array with dmean */
-  if (nxbox != nx || nybox != ny) {
-    for (iy = iylo + 1; iy <= iyhi; iy++) {
-      ixbase = iy * nxdim;
-      for (ix = 0; ix <= ixlo; ix++)
-        brray[ix + ixbase] = dmean;
-      for (ix = ixhi + 1; ix < nx; ix++)
-        brray[ix + ixbase] = dmean;
-    }
-    for (iy = 0; iy <= iylo; iy++) {
-      ixbase = iy * nxdim;
-      for (ix = 0; ix < nx; ix++)
-        brray[ix + ixbase] = dmean;
-    }
-    for (iy = iyhi + 1; iy < ny; iy++) {
-      ixbase = iy * nxdim;
-      for (ix = 0; ix < nx; ix++)
-        brray[ix + ixbase] = dmean;
-    }
-  }
-  
-  /* Taper the edges */
-  for (iy = 0; iy < (nybox+1)/2; iy++) {
-    fracy=1.;
-    ixlim = nxtap;
-    if (iy < nytap) {
-      fracy=(iy + 1.)/(nytap+1.);
-      ixlim = (nxbox+1)/2;
-    }
-    for (ix = 0; ix < ixlim; ix++) {
-      fracx=1.;
-      if (ix < nxtap)
-        fracx=(ix + 1.)/(nxtap+1.);
-      fmin=fracx < fracy ? fracx : fracy;
-      if(fmin < 1.) {
-        x1 = ix + 1 + ixlo;
-        x2 = ixhi - ix;
-        lobase = (iy + 1 + iylo) * nxdim;
-        hibase = (iyhi - iy) *nxdim;
-        brray[x1 + lobase]=fmin*(brray[x1 + lobase]-dmean)+dmean;
-        brray[x1 + hibase]=fmin*(brray[x1 + hibase]-dmean)+dmean;
-        brray[x2 + lobase]=fmin*(brray[x2 + lobase]-dmean)+dmean;
-        brray[x2 + hibase]=fmin*(brray[x2 + hibase]-dmean)+dmean;
-      }
-    }
-  }
-}
