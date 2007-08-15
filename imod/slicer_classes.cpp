@@ -1151,6 +1151,8 @@ static void findIndexLimits(int isize, int xsize, float xo, float xsx,
   float endCoord = xo + (isize - 1) * xsx + offset;
   float startCoord = xo + offset;
  
+  /*if (debug) 
+    imodPrintStderr("xo = %f, xsx = %f, start = %f, end = %f\n", xo,xsx,startCoord, endCoord); */
   /* If start and end is all to one side of data, set limits to middle to skip
      the line */
   if ((startCoord < 0 && endCoord < 0) || 
@@ -1160,13 +1162,15 @@ static void findIndexLimits(int isize, int xsize, float xo, float xsx,
  
     /* Otherwise evaluate place where line cuts volume for this coordinate */
   } else if (xsx > 1.e-6 || xsx < -1.e-6) {
-    flower = -startCoord / xsx;
-    fupper = (xsize - startCoord) / xsx;
-    if (flower > fupper) {
+    flower = -(startCoord + 1.) / xsx;
+    fupper = (xsize - 1. - startCoord) / xsx;
+    if (xsx < 0) {
       ftmp = flower;
       flower = fupper;
       fupper = ftmp;
     }
+    /*if (debug) 
+      imodPrintStderr("lower = %f, upper = %f\n", flower, fupper); */
     if (flower > *fstart)
       *fstart = flower;
     if (fupper < *fend)
@@ -1403,7 +1407,21 @@ static void fillArraySegment(int jstart, int jlimit)
             xi = (int)x;
             yi = (int)y;
             zi = (int)(z + 0.5);
+            /*if (xi >= 0 && xi < xsize && yi >= 0 && yi < ysize &&
+              zi >= 0 && zi < zsize) */
             val = (*ivwFastGetValue)(xi, yi, zi);
+            /*else {
+              imodPrintStderr("BAD %d %d %d %d %d %f %f %d %d\n", i, j, xi, yi,
+                              zi, fstart, fend, innerStart, innerEnd);
+              fstart = 0;
+              fend = isize;
+              findIndexLimits(isize, xsize, xo, xsx, 0., &fstart, &fend);
+              imodPrintStderr("X %f %f\n", fstart, fend); 
+              findIndexLimits(isize, ysize, yo, ysx, 0., &fstart, &fend,1);
+              imodPrintStderr("Y %f %f\n", fstart, fend); 
+              findIndexLimits(isize, zsize, zo, zsx, 0.5, &fstart, &fend);
+              imodPrintStderr("Z %f %f\n", fstart, fend); 
+              } */
             cidata[i + cindex] = val;
             x += xsx;
             y += ysx;
@@ -1702,6 +1720,9 @@ static int taper_slice(Islice *sl, int ntaper, int inside)
 
  /*
 $Log$
+Revision 4.22  2007/06/26 21:53:42  sueh
+bug# 1021 Removed win_support.
+
 Revision 4.21  2007/06/26 17:04:53  sueh
 bug# 1021 Moved BM_HEIGHT and _WIDTH to win_support.
 
