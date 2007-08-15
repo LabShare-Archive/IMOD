@@ -38,6 +38,9 @@ extern "C" {
                           double k, double lambda, int iterations, 
                           int *iterDone);
   int sliceTaperAtFill(Islice *sl, int ntaper, int inside);
+  void sliceTaperInPad(void *array, int type, int nxdimin, int ix0, int ix1,
+                       int iy0, int iy1, float *brray, int nxdim, int nx, 
+                       int ny, int nxtap, int nytap);
 
 
 #ifdef __cplusplus
@@ -46,6 +49,9 @@ extern "C" {
 
 #endif
 /*  $Log$
+    Revision 3.6  2007/05/27 21:18:24  mast
+    Added taper routine
+
     Revision 3.5  2005/03/31 23:45:57  mast
     Fixed declaration of updateMatrix
 
