@@ -1,5 +1,11 @@
 IMOD History
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+8/15/07: Fixed bug in slicer that crashed 3dmod, which showed up with new mouse
+rotations.
+
+8/13/07: Added a Locator window to 3dmod to keep track of and manipulate the
+area displayed in the Zap window.
+
 8/12/07: IMOD_3-10-15
 8/10/07: Sirtsetup has a man page and can work with a tilt command file that
 has a LOG entry.
