@@ -11,6 +11,10 @@
  * @version $Revision$
  *
  * <p> $Log$
+ * <p> Revision 3.23  2007/03/07 21:03:27  sueh
+ * <p> bug# 981 Gave XTILTFILE a default and made sure that it would only be used
+ * <p> when the corresponding file existed.
+ * <p>
  * <p> Revision 3.22  2007/02/05 22:47:55  sueh
  * <p> bug# 962 Made EtomoNumber type info an inner class.
  * <p>
@@ -169,6 +173,8 @@ import etomo.util.Montagesize;
 public final class TiltParam extends ConstTiltParam implements CommandParam {
   public static final String rcsid = "$Id$";
 
+  public static final String SUBSETSTART_KEY = "SUBSETSTART";
+
   public TiltParam(ApplicationManager manager, String datasetName, AxisID axisID) {
     super(manager, datasetName, axisID);
   }
@@ -298,7 +304,7 @@ public final class TiltParam extends ConstTiltParam implements CommandParam {
           incrSlice = Integer.parseInt(params[2]);
         }
       }
-      if (tokens[0].equals("SUBSETSTART")) {
+      if (tokens[0].equals(SUBSETSTART_KEY)) {
         String[] params = tokens[1].split("\\s+", 2);
         idxXSubsetStart = Integer.parseInt(params[0]);
         idxYSubsetStart = Integer.parseInt(params[1]);
@@ -603,6 +609,48 @@ public final class TiltParam extends ConstTiltParam implements CommandParam {
     excludeList.setNElements(0);
   }
 
+  public void setMontageSubsetStart() throws InvalidParameterException,
+      IOException {
+    resetSubsetStart();
+    Montagesize montagesize = Montagesize.getInstance(manager, axisID);
+    montagesize.read();
+    if (montagesize.isFileExists()) {
+      Goodframe goodframe = new Goodframe(manager.getPropertyUserDir(), axisID);
+      goodframe.run(montagesize.getX().getInt(), montagesize.getY().getInt());
+      MRCHeader header = MRCHeader.getInstance(manager, axisID, ".ali");
+      try {
+        header.read();
+        idxXSubsetStart = (int) ((goodframe.getFirstOutput().getInt() - header
+            .getNColumns()
+            * setImageBinned().getLong()) / 2);
+        idxYSubsetStart = (int) ((goodframe.getSecondOutput().getInt() - header
+            .getNRows()
+            * setImageBinned().getLong()) / 2);
+      }
+      catch (IOException e) {
+        //ok if tilt is being updated before .ali exists
+      }
+    }
+  }
+
+  public void resetSubsetStart() {
+    idxXSubsetStart = 0;
+    idxYSubsetStart = 0;
+  }
+
+  public void setSubsetStart() throws InvalidParameterException, IOException {
+    resetSubsetStart();
+    MRCHeader stackHeader = MRCHeader.getInstance(manager, axisID, ".st");
+    stackHeader.read();
+    MRCHeader aliHeader = MRCHeader.getInstance(manager, axisID, ".ali");
+    aliHeader.read();
+    idxXSubsetStart = (int) ((stackHeader.getNColumns() - aliHeader
+        .getNColumns()
+        * setImageBinned().getLong()) / 2);
+    idxYSubsetStart = (int) ((stackHeader.getNColumns() - aliHeader.getNRows()
+        * setImageBinned().getLong()) / 2);
+  }
+
   public void setMontageFullImage() {
     Montagesize montagesize = Montagesize.getInstance(manager, axisID);
     try {
@@ -763,16 +811,6 @@ public final class TiltParam extends ConstTiltParam implements CommandParam {
    */
   public void setScaleFLevel(float scaleFLevel) {
     this.scaleFLevel = scaleFLevel;
-  }
-
-  public void setSubsetStart(int xStart, int yStart) {
-    idxXSubsetStart = xStart;
-    idxYSubsetStart = yStart;
-  }
-
-  public void resetSubsetStart() {
-    idxXSubsetStart = Integer.MIN_VALUE;
-    idxYSubsetStart = Integer.MIN_VALUE;
   }
 
   public void setThickness(String newThickness) {
