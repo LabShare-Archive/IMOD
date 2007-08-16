@@ -25,26 +25,30 @@ DDEESSCCRRIIPPTTIIOONN
        the --OO option, then a startup dialog will open to allow options to be
        set.
 
-
        The model must be in the IMOD model format.  Images can be in the MRC
        image format; in the TIFF format, if the appropriate TIFF library is
        available; in any of the formats supported by the Qt image-reading
        function, which include JPEG, PNG, PPM, and BMP; or in a raw format
-       where data are packed sequentially as in MRC files.  MRC files of
-       almost any mode can be read in: byte, 16-bit integer, real, complex
-       real, complex integer, or color (RGB).  TIFF files may be byte, 16-bit
-       integer, or color; they may be organized in strips or in tiles.  TIFF
-       files with various kinds of compression can be read, depending on the
-       capabilities of the libraries on the system.  Raw files can be read if
-       their dimensions, data type, and header size are defined.  This infor-
-       mation can be provided with the options --rr,, --tt,, and --HH or through a
-       dialog box that is brought up when a file is encountered that cannot be
-       read by other means.
+       where data are packed sequentially as in MRC files.  Some kinds of raw-
+       type files will be recognized automatically and and treated like MRC
+       files.  These include Hegerl's EM format, Winkler's FFF format, PIF
+       files produced by Bsoft, and DigitalMicrograph version 3 files.  MRC
+       files of almost any mode can be read in: byte, 16-bit integer, real,
+       complex real, complex integer, or color (RGB).  TIFF files may be byte,
+       16-bit integer, or color, where the color can be either 24-bit (RGB) or
+       8-bit using an embedded color map.  TIFF files may be organized in
+       strips or in tiles, and files with various kinds of compression can be
+       read, depending on the capabilities of the libraries on the system.
+       Raw files can be read if their dimensions, data type, and header size
+       are defined.  This information can be provided with the options --rr,, --tt,,
+       and --HH or through a dialog box that is brought up when a file is
+       encountered that cannot be read by other means.
 
-       When multiple files are read in, they do not need to be the same mode
-       or even the same format (except that if any file is an RGB file, all
-       files must be.)  Images are loaded into an image cache under certain
-       circumstances: whenever more than one file is specified, when montaged
+       When multiple files are read in, they usually do not need to be the
+       same mode or even the same format.  The exceptions are that if any file
+       is an RGB file, all files must be, and if any file has a colormap, all
+       files must.  Images are loaded into an image cache under certain cir-
+       cumstances: whenever more than one file is specified, when montaged
        data are loaded, or when you enter the --CC option to limit the size of
        the cache.  By default, the cache will be fully loaded upon program
        startup and the program will behave the same as with regular data load-
@@ -71,7 +75,7 @@ DDEESSCCRRIIPPTTIIOONN
        tion Window will report the status of the image load.  Selecting the
        Quit menu item from the File menu will cancel the image load.  If the
        image cache feature is used, the image window will open up after the
-       first image section is loaded; otherwise, the image window won’t open
+       first image section is loaded; otherwise, the image window won't open
        until the entire image has been loaded.
 
        The ZaP Window is the default image display window used by 3dmod.  It
@@ -92,7 +96,7 @@ DDEESSCCRRIIPPTTIIOONN
        given contour.
           The Pixel View Window shows the actual pixel values from the image
        file around a given point.
-          The Model View Window views the model in a 3D rendering while it’s
+          The Model View Window views the model in a 3D rendering while it's
        being built.
 
 
@@ -155,7 +159,7 @@ DDEESSCCRRIIPPTTIIOONN
               gle-image files.
 
        --hh --hheellpp
-              Print some quick help for 3dmod’s command line options to the
+              Print some quick help for 3dmod's command line options to the
               terminal.
 
        --OO     Open the startup dialog box for setting program options and
@@ -171,7 +175,7 @@ DDEESSCCRRIIPPTTIIOONN
               value with m or M on the end.  For example, --CC 220000MM will limit
               the cache to 200 megabytes.  The reason for using this option is
               either to decrease start up time or to view large data sets that
-              can’t fit into main memory.  This features works best with the
+              can't fit into main memory.  This features works best with the
               ZaP Window, which always loads the image that it needs into the
               cache.  Other image windows will only be able to access image
               data that are already within the cache.  As a special case,
@@ -195,7 +199,7 @@ DDEESSCCRRIIPPTTIIOONN
               frame in the input image stack.  Using the piece list option
               will also turn on the image cache with a default size equal to
               the total number of image z-planes that contain data.  The image
-              cache can’t be turned off, but the size can be changed with the
+              cache can't be turned off, but the size can be changed with the
               --CC option.
 
        --PP <<nnxx,,nnyy>>
@@ -220,8 +224,8 @@ DDEESSCCRRIIPPTTIIOONN
               Specify the type of raw files using a value corresponding to an
               MRC mode: 0 for unsigned bytes, 1 for signed 16-bit integers, 2
               for 32-bit floating point, 4 for complex (pairs of floating
-              point numbers), or 16 for color files stored as R-G-B triplets
-              of bytes.
+              point numbers), 6 for unsigned 16-bit integers, or 16 for color
+              files stored as R-G-B triplets of bytes.
 
        --HH <<vvaalluuee>>
               Set the size of the header to be skipped, in bytes, for raw
@@ -258,6 +262,18 @@ DDEESSCCRRIIPPTTIIOONN
               than in 24-bit color mode.  Color index mode only has 8 bits and
               works rather poorly under Qt.
 
+       --ccmm <<ffiillee>>
+              Read a specification for the false color map used in 3dmod from
+              a file.  This file can have one of two forms.  One form starts
+              with a line with 256, then has 256 lines with red, green, and
+              blue values from 0-255.  The other form starts with the number
+              of lines to follow; then each following line has a red, green,
+              and blue value (0-255) plus an arbitrary integer indicating the
+              relative location of that value along the 256-color range.
+              These location values must be in order.  If the colors being
+              specified are to be equally spaced, the location values can sim-
+              ply be sequential values.
+
        --GG     Display an RGB-mode MRC file in gray-scale rather than in color.
               If the list of files being loaded includes a color TIFF file,
               all files will be displayed in color regardless of this option.
@@ -273,13 +289,17 @@ DDEESSCCRRIIPPTTIIOONN
               set, s for Surf/Cont/Point, v for Contour Move, c for Contour
               Copy, a for Auto Contour, b for Contour Break, j for contour
               Join, p for Image Process, r for Image Reload, f for Image Cache
-              Filler, u for Tumbler, x for Pixel View.  If the --VV option is
-              given, then model view dialog boxes can also be opened with key
-              letters the same as their hot keys (m, O, C, L, B, M, V, I), or
-              with D for depth cue and S for stereo.
+              Filler, u for Tumbler, x for Pixel View, A for Slicer Angles, G
+              for Fine Grain.  If the --VV option is given, then model view dia-
+              log boxes can also be opened with key letters the same as their
+              hot keys (m, O, C, L, B, M, V, I), or with D for depth cue and S
+              for stereo.
 
        --WW     Output the window ID of the 3dmod Information Window and do not
               put 3dmod in the background automatically.
+
+       --LL     Listen for messages on standard input instead of the clipboard,
+              and do not put 3dmod in the background automatically.
 
        --DD     Run in debug mode with diagnostic output and without becoming a
               background process.  Key letters can be added after the D (but
@@ -331,15 +351,16 @@ UUsseerr IInntteerrffaaccee FFeeaattuurreess
 
        Snapshots can be taken of image and model view windows with hot keys.
        A TIFF snapshot can be taken with Ctrl-S.  Snapshots in other formats
-       such as JPEG, PNG, and SGI RGB can be taken with S.  The format of
-       these non-TIFF snapshots can be selected in the Preferences dialog.
+       such as JPEG, PNG, and SGI RGB can be taken with Shift-S or Ctrl-Shift-
+       S.  The format of these non-TIFF snapshots can be selected in the Pref-
+       erences dialog.
 
        The Escape key can be used to close all windows except the Information
        Window, or the 3dmodv window when running 3dmodv.
 
 
 IInnffoorrmmaattiioonn WWiinnddooww
-       The Information Window is 3dmod’s main control window and it is open at
+       The Information Window is 3dmod's main control window and it is open at
        all times while 3dmod is running.  All other windows can be opened and
        closed without restarting 3dmod.
 
@@ -433,7 +454,7 @@ IInnffoorrmmaattiioonn WWiinnddooww
 
        _T_h_e _M_o_d_e _T_o_g_g_l_e _B_u_t_t_o_n_s_.
               One can toggle between _M_o_v_i_e _m_o_d_e and _M_o_d_e_l _m_o_d_e_.  The model
-              can’t be edited with keys and mouse buttons while in movie mode.
+              can't be edited with keys and mouse buttons while in movie mode.
               When 3dmod first opens a new model it switches to movie mode.
 
 
@@ -446,6 +467,7 @@ TThhee MMeennuu bbaarr
        _F_i_l_e _M_e_n_u
        New Model         Create a new model.
        Open Model...     Load a model from disk.
+       Reload Model      Reload the current model from file.
        Save Model        Save model.  (s)
        Save Model as...  Save model with new name.
        Write Model as    Write model as Imod, wimp, NFF or Synu files.
@@ -457,7 +479,7 @@ TThhee MMeennuu bbaarr
 
        _E_d_i_t _M_e_n_u
        Model
-          Header...   Set the model’s Z-Scale for viewing, its pixel
+          Header...   Set the model's Z-Scale for viewing, its pixel
                          size, resolution (spacing between points during
                          contour drawing), and whether the model is drawn
                          or not.
@@ -468,16 +490,23 @@ TThhee MMeennuu bbaarr
 
        Object
           New        Create a new object.  Opens Object Type dialog box.
-          Delete     Delete current object.
+          Delete     Delete current object, or all objects in which a
+                        contour is selected
           Type...    Edit Object type.
           Color...   Open requester for changing object color.
           Move...    Move all contours from current object to another
                         object.
+          Combine    Combine all objects in which a contour is selected
+                        into one object and delete the other objects.
           Info       Calculate volume and surface area of current object.
           Clean      Delete empty contours in the current object.
           Break by Z Break every contour in the object at every change in
                         Z, creating as many contours as necessary so that
                         each lies in a single Z plane.  The program will
+                        ask you to confirm the operation.
+          Flatten    Flatten every contour in the object by replacing its
+                        Z values with the mean Z of the contour, rounded
+                        to the nearest integer.  The program will
                         ask you to confirm the operation.
 
        Surface
@@ -540,8 +569,13 @@ TThhee MMeennuu bbaarr
           Cache Filler... Open a dialog box to control cache filling and
                              select autofilling.
 
-       Movies...    Open window to control movie limits in X, Y, Z and
+       Movies...     Open window to control movie limits in X, Y, Z and
                         time.
+       Fine Grain... Open window to define display properties of
+                        individual points, contours, or surfaces.
+       Angles...     Open window to save and restore angles and positions
+                        of Slicer windows.
+       Options...    Open 3dmod preferences dialog to personalize settings
 
        _I_m_a_g_e _M_e_n_u
           ZaP         Open a ZaP window.  (Z)
@@ -663,11 +697,13 @@ ZZaaPP WWiinnddooww
               =  -  Increase Zoom
               3  -  Start or stop a movie through time in the forward direction
               4  -  Start or stop a movie through time in the backward direction
+              S  -  Snapshot image in window to file with primary non-TIFF
+                       format
+              Ctrl-S - Snapshot image in window to TIFF file
+              Ctrl-Shift-S - Snapshot to second type of non-TIFF file
 
                       Other keys active in the ZaP window only
                       ----------------------------------------
-              S  -  Snapshot image in window to file with current non-TIFF format
-              Ctrl-S - Snapshot image in window to TIFF file
               Ctrl-A - Select all contours in current object on section or
                          within the rubberband
               b  -  Build a contour while in auto contour mode
@@ -695,6 +731,8 @@ ZZaaPP WWiinnddooww
               Home          -  Go to Z = max
               Insert        -  Go to middle Z of stack
               1,2           -  Previous,Next Time Index
+              !,@           -  Go to first or last time index, or to Start or End
+                                  value for Time shown in Edit-Movies dialog
 
               Keypad Arrows -  Move current model point in model mode,
                             -  Pan in ZaP window in movie mode.
@@ -710,14 +748,15 @@ ZZaaPP WWiinnddooww
 
 SSlliicceerr WWiinnddooww
        Multiple Slicer Windows can be opened.  Each Slicer Window shows a dif-
-       ferent slice through a 3-D volume.  The Slicer window has two movable
-       toolbars.  The large toolbar contains three sliders that are used to
-       select the orientation of the slice by setting the angles of rotation
-       of the data volume around the X, Y and Z axes.  A small display next to
-       the sliders gives a visual cue to the slice location.  This toolbar
-       also has two spin boxes, one to select the thickness of the slice being
-       displayed, the other to select the thickness of model that will be pro-
-       jected onto the slice.
+       ferent slice through a 3-D volume.  The Slicer window has two to four
+       movable toolbars.  The large toolbar contains three sliders that are
+       used to select the orientation of the slice by setting the angles of
+       rotation of the data volume around the X, Y and Z axes.  A small dis-
+       play next to the sliders gives a visual cue to the slice location.
+       This toolbar also has two spin boxes, one to select the thickness of
+       the slice being displayed, the other to select the thickness of model
+       that will be projected onto the slice.  It also has a Help button to
+       open up on-line help.
 
        The narrow toolbar at the top of the Slicer has the following buttons,
        from left to right.
@@ -729,19 +768,39 @@ SSlliicceerr WWiinnddooww
        cubic interpolation.
           The Lock button will keep the Slicer from changing its current posi-
        tion when locked.
+          The Centering button toggles between the default mode in which the
+       window can be panned with the mouse, and a mode in which the current
+       image point is kept at the center of the window (referred to as "clas-
+       sic" mode).
+          The Shift Lock (Sh) button toggles a mode in which mouse buttons and
+       keypad keys can be used to rotate the volume as if the Shift key were
+       held down.
+          The IM/FFT button toggles between showing an image and an FFT of the
+       image.
           The Show Slice button will draw where the slice intersects the X- Y-
        and Z-planes in the XYZ window, and the Z-plane in the ZaP window.
-          The Z-Scale control determines whether the model’s Z-scale will be
+          The Contour button sets the angles so that the current contour is
+       flat in the slice.
+          The Z-Scale control determines whether the model's Z-scale will be
        applied to stretch the volume in the Z dimension and compensate for
        thinning.
-          The Help button opens up on-line help.
+
+       The orientation of the slice can also be adjusted by rotating the vol-
+       ume relative to the current axes rather than the original axes.  With
+       the Shift key held down (or with the Shift lock toolbar button on), the
+       second mouse button will rotate the volume around an axis in the plane
+       of the slice and perpendicular to the direction of mouse movement.  The
+       third mouse button will rotate in the plane of the slice, around the
+       center point.
 
        One can model in the Slicer Window, using the first mouse button to
        select the current point, the second mouse button to insert a point
        after the current point, or the third button to modify the current
-       point.  In movie mode, the first button selects the current point, and
-       the second or third buttons start movies forward or backward through
-       the data, in a direction perpendicular to the slice.
+       point.  The second button can be held down to insert points continu-
+       ously.  In movie mode, the first button selects the current point, and
+       the second or third buttons together with the Ctrl key start movies
+       forward or backward through the data, in a direction perpendicular to
+       the slice.
 
 
        _H_o_t _K_e_y_s _i_n _t_h_e _S_l_i_c_e_r
@@ -749,17 +808,29 @@ SSlliicceerr WWiinnddooww
               _/+  -  Decrease/Increase displayed image thickness
               9/0  -  Decrease/Increase displayed model thickness
               s    -  Show slice in ZaP and XYZ windows
-              S    -  Snapshot to file with current non-TIFF format
+              k    -  Toggle centering mode between new mode and classic mode
+              S    -  Snapshot to file with primary non-TIFF format
               Ctrl-S - Snapshot to TIFF file
-              x/y/z  - Align current and last model points along X, Y or Z axis
+              Ctrl-Shift-S - Snapshot to second type of non-TIFF file
+              W    -  Set angles so that current contour is flat in the slice
+              x/y/z  - Align current and previous model points along X, Y or Z
+                          axis
               X/Y/Z  - Align first and last points of current contour along
                           X, Y or Z axis
 
-              Numeric Keypad:
+              Numeric Keypad (no Shift)
               4/6  -  (Left/Right) Decrease/Increase last adjusted angle by 0.1
               2/8  -  (Down/Up) Decrease/Increase last adjusted angle by 0.5
               1/3  -  (End/PgDn) Decrease/Increase last adjusted angle by 15.0
               0    -  (Insert) Set last adjusted angle to 0
+
+              Numeric Keypad (with Shift key down or Sh button on)
+              4/6  -  (Left/Right) Rotate volume around current Y axis
+              2/8  -  (Down/Up) Rotate volume around current Y axis
+              9/3  -  (PgUp/PgDn) Rotate in plane of slice
+
+              </>  -  Decrease/Increase step size for these rotations (,/. also
+                         do this if Sh is on)
 
 
 XXYYZZ WWiinnddooww
@@ -768,13 +839,13 @@ XXYYZZ WWiinnddooww
        the upper left.  The intersection of the model with these planes will
        be drawn.  Marker lines and crosses indicate the position of the cur-
        rent point and of the slices within the volume.  Like the ZaP window,
-       the XYZ window can be resized, and the image can be zoomed with hot
-       keys and panned with the left mouse button.  Basic modeling capability
-       is available in the XY plane.  One can movie through one or more of the
-       planes simultaneously.  In addition, the marker lines have handles that
-       can be dragged with the mouse to riffle through images in a plane.
-       Each marker line’s color matches the color of the border around the
-       plane that is controlled by its handle.
+       the XYZ window can be resized, and the images can be zoomed with hot
+       keys and panned within their view boxes with the left mouse button.
+       Basic modeling capability is available in the XY plane.  One can movie
+       through one or more of the planes simultaneously.  In addition, the
+       marker lines have handles that can be dragged with the mouse to riffle
+       through images in a plane.  Each marker line's color matches the color
+       of the border around the plane that is controlled by its handle.
 
 
        _H_o_t _K_e_y_s _i_n _t_h_e _X_Y_Z _W_i_n_d_o_w
@@ -785,6 +856,7 @@ XXYYZZ WWiinnddooww
                         contour that is open in the XY plane
               S    -  Snapshot to file with current non-TIFF format
               Ctrl-S - Snapshot to TIFF file
+              Ctrl-Shift-S - Snapshot to second type of non-TIFF file
 
        _M_o_u_s_e _B_u_t_t_o_n_s _i_n _t_h_e _X_Y_Z _W_i_n_d_o_w
                Actions in Movie Mode:
@@ -835,7 +907,7 @@ TTuummbblleerr WWiinnddooww
        high-resolution display, or set thresholds for truncating pixels as
        black or white.  The image display in the model view window, accessed
        from the Edit-Image menu entry of that window, will give a faster and
-       better display for most pruposes, but the tumbler display will be a
+       better display for most purposes, but the tumbler display will be a
        more accurate projection, especially in high-resolution mode.  The hot
        keys in the tumbler window are:
        Keypad up and down arrow keys tumble the volume around the X axis.
@@ -857,7 +929,9 @@ GGrraapphh WWiinnddooww
        toolbar adjust the zoom in the drawing area.  The [LOCK] button stops
        the window from tracking the current point.  The [RESOLUTION] button
        toggles between taking data from the image buffer and taking data from
-       the file.
+       the file.  The Width spin button lets you select the number of pixels
+       of width across which data are averaged perpendicular to the line being
+       graphed.
 
 
 MMooddeell VViieeww WWiinnddooww
@@ -922,8 +996,8 @@ AAUUTTOOSSAAVVEE AANNDD BBAACCKKUUPP FFIILLEESS
        program exits normally.  The first time that you save a model file, the
        existing model file will be renamed to model_file_name~, and any exist-
        ing file by that name will be deleted.  This backup file will not be
-       overwritten each time that you save thereafter, so that it will pre-
-       serve the state of the model when 3dmod was started.
+       overwritten each time that you save thereafter, so that it will
+       preserve the state of the model when 3dmod was started.
 
        Automatic saves can be controlled or disabled by using the 3dmod Pref-
        erences dialog or by setting environment variables (obsolete).  The
@@ -998,8 +1072,8 @@ SSEEEE AALLSSOO
        Model conversion  imod2nff, imod2synu
        Image conversion  tomrc, frommrc (convert to/from sgi images)
                          tif2mrc, raw2mrc, dm2mrc.
-       Please email all bug reports to mast@colorado.edu.
+       Please email all bug reports to mast at colorado dot edu.
 
 
 
-BL3DEMC                             3.4.16                            3dmod(1)
+BL3DEMC                             3.10.15                           3dmod(1)
