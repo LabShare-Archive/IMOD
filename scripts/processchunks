@@ -117,12 +117,14 @@ if ($#machines < 1) then
 endif
 
 set rootname = $argv[2]
-set comlist = `ls $rootname-[0-9]*.com`
+set comlist = `\find . -name "$rootname-[0-9][0-9][0-9][^0-9]*com" -print | sed '/\.\//s///' | sort`
 
 if ($#comlist < 1) then
     echo "ERROR: $pn - There are no command files matching $rootname-nnn.com"
     exit 1
 endif
+set thoulist = `\find . -name "$rootname-[0-9][0-9][0-9][0-9]*com" -print | sed '/\.\//s///' | sort`
+if ($#thoulist > 0) set comlist = ($comlist $thoulist)
 
 set thishost = `hostname`
 set hostroot = $thishost:r:r:r
@@ -720,6 +722,9 @@ exit 3
 
 #
 #  $Log$
+#  Revision 3.30  2007/07/17 22:05:39  mast
+#  Make it copy the first log to rootname.log
+#
 #  Revision 3.29  2007/05/25 18:56:03  mast
 #  Added ssh options the same as are used in etomo, to prevent password
 #  requests and problems with host keys
