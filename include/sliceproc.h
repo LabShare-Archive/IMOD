@@ -48,35 +48,39 @@ extern "C" {
 #endif
 
 #endif
-/*  $Log$
-    Revision 3.6  2007/05/27 21:18:24  mast
-    Added taper routine
+/*
+  $Log$
+  Revision 3.7  2007/08/15 00:06:46  mast
+  Added taperinpad function, renamed from xcorr
 
-    Revision 3.5  2005/03/31 23:45:57  mast
-    Fixed declaration of updateMatrix
+  Revision 3.6  2007/05/27 21:18:24  mast
+  Added taper routine
+  
+  Revision 3.5  2005/03/31 23:45:57  mast
+  Fixed declaration of updateMatrix
 
-    Revision 3.4  2005/03/09 21:17:25  mast
-    Converted diffusion to float, removed processor argument
-
-    Revision 3.3  2005/01/28 05:40:45  mast
-    Needed separate byte routine for anisotropic diffusion
-
-    Revision 3.2  2005/01/27 05:57:05  mast
-    Added anisotropic diffusion
-
-    Revision 3.1  2005/01/07 20:01:17  mast
-    Moved to libiimod so putthis file in include
-
-    Revision 3.4  2004/12/22 15:21:15  mast
-    Fixed problems discovered with Visual C compiler
-
-    Revision 3.3  2004/11/07 23:01:42  mast
-    Added fast min-max routine
-
-    Revision 3.2  2004/11/05 19:08:12  mast
-    Include local files with quotes, not brackets
-
-    Revision 3.1  2002/12/01 15:34:41  mast
-    Changes to get clean compilation with g++
+  Revision 3.4  2005/03/09 21:17:25  mast
+  Converted diffusion to float, removed processor argument
+  
+  Revision 3.3  2005/01/28 05:40:45  mast
+  Needed separate byte routine for anisotropic diffusion
+  
+  Revision 3.2  2005/01/27 05:57:05  mast
+  Added anisotropic diffusion
+  
+  Revision 3.1  2005/01/07 20:01:17  mast
+  Moved to libiimod so putthis file in include
+  
+  Revision 3.4  2004/12/22 15:21:15  mast
+  Fixed problems discovered with Visual C compiler
+  
+  Revision 3.3  2004/11/07 23:01:42  mast
+  Added fast min-max routine
+  
+  Revision 3.2  2004/11/05 19:08:12  mast
+  Include local files with quotes, not brackets
+  
+  Revision 3.1  2002/12/01 15:34:41  mast
+  Changes to get clean compilation with g++
 
 */
