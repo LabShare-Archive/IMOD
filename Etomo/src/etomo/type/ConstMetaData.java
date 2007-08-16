@@ -158,8 +158,10 @@ public abstract class ConstMetaData extends BaseMetaData {
     noBeamTiltSelectedB.setDisplayValue(true);//backwards compatibility
     sizeToOutputInXandYA.setIntegerType(new boolean[] { true, true });
     sizeToOutputInXandYA.setPropertiesKey("A.SizeToOutputInXandY");
+    sizeToOutputInXandYA.setDefault();
     sizeToOutputInXandYB.setIntegerType(new boolean[] { true, true });
     sizeToOutputInXandYB.setPropertiesKey("B.SizeToOutputInXandY");
+    sizeToOutputInXandYB.setDefault();
   }
 
   String getFirstAxisPrepend() {
@@ -807,6 +809,9 @@ public abstract class ConstMetaData extends BaseMetaData {
 
 /**
  * <p> $Log$
+ * <p> Revision 3.42  2007/08/16 16:33:32  sueh
+ * <p> bug# 1035 Added sizeToOutputInXandYA and B.
+ * <p>
  * <p> Revision 3.41  2007/03/21 19:43:08  sueh
  * <p> bug# 964 Limiting access to autodoc classes by using ReadOnly interfaces.
  * <p> Added AutodocFactory to create Autodoc instances.
