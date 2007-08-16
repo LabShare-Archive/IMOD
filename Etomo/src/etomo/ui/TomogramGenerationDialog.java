@@ -24,6 +24,7 @@ import javax.swing.JPanel;
 import javax.swing.SpinnerNumberModel;
 import etomo.ApplicationManager;
 import etomo.EtomoDirector;
+import etomo.comscript.NewstParam;
 import etomo.comscript.ParallelParam;
 import etomo.storage.CpuAdoc;
 import etomo.storage.LogFile;
@@ -60,6 +61,9 @@ import etomo.type.ViewType;
  * 
  * <p>
  * $Log$
+ * Revision 3.108  2007/08/08 15:04:58  sueh
+ * bug# 834 Fixed the parallel processing check box label.
+ *
  * Revision 3.107  2007/07/17 21:45:10  sueh
  * bug# 1018 Getting cpu.adoc information from CpuAdoc.
  *
@@ -618,6 +622,8 @@ public class TomogramGenerationDialog extends ProcessDialog implements
   public static final String X_AXIS_TILT_TOOLTIP = "This line allows one to rotate the reconstruction around the X axis, so "
       + "that a section that appears to be tilted around the X axis can be "
       + "made flat to fit into a smaller volume.";
+  static final String SIZE_TO_OUTPUT_IN_X_AND_Y_LABEL = "Size to output";
+
   private JPanel pnlTilt = new JPanel();
 
   // Fiducialess parameters
@@ -708,6 +714,8 @@ public class TomogramGenerationDialog extends ProcessDialog implements
   private JPanel filterBodyPanel;
   private SpacedPanel newstBodyPanel;
   private SpacedPanel trialBodyPanel;
+  private LabeledTextField ltfSizeToOutputInXandY = new LabeledTextField(
+      SIZE_TO_OUTPUT_IN_X_AND_Y_LABEL + " (X,Y - unbinned): ");
 
   //backward compatibility functionality - if the metadata binning is missing
   //get binning from newst
@@ -1154,7 +1162,7 @@ public class TomogramGenerationDialog extends ProcessDialog implements
       if (tiltHeader.equalsOpenClose(button)) {
         tiltBodyPanel.setVisible(button.isExpanded());
       }
-      if (tiltHeader.equalsAdvancedBasic(button)) {
+      else if (tiltHeader.equalsAdvancedBasic(button)) {
         updateAdvancedTilt(button.isExpanded());
       }
     }
@@ -1166,10 +1174,15 @@ public class TomogramGenerationDialog extends ProcessDialog implements
         updateAdvancedFilter(button.isExpanded());
       }
     }
-    if (newstHeader != null && newstHeader.equalsOpenClose(button)) {
-      newstBodyPanel.setVisible(button.isExpanded());
+    if (newstHeader != null) {
+      if (newstHeader.equalsOpenClose(button)) {
+        newstBodyPanel.setVisible(button.isExpanded());
+      }
+      else if (newstHeader.equalsAdvancedBasic(button)) {
+        updateAdvancedNewst(button.isExpanded());
+      }
     }
-    else if (trialHeader != null && trialHeader.equalsOpenClose(button)) {
+    if (trialHeader != null && trialHeader.equalsOpenClose(button)) {
       trialBodyPanel.setVisible(button.isExpanded());
     }
     UIHarness.INSTANCE.pack(axisID, applicationManager);
@@ -1182,6 +1195,10 @@ public class TomogramGenerationDialog extends ProcessDialog implements
     //btnFilter
     //btnViewFilter
     //btnUseFilter
+  }
+
+  private void updateAdvancedNewst(boolean advanced) {
+    ltfSizeToOutputInXandY.setVisible(advanced);
   }
 
   private void updateAdvancedTilt(boolean advanced) {
@@ -1212,8 +1229,13 @@ public class TomogramGenerationDialog extends ProcessDialog implements
 
   void setAdvanced() {
     boolean headerAdvanced = filterHeader.isAdvanced();
-    if (headerAdvanced != isAdvanced
-        && headerAdvanced == tiltHeader.isAdvanced()) {
+    if (headerAdvanced != tiltHeader.isAdvanced()) {
+      return;
+    }
+    if (headerAdvanced != newstHeader.isAdvanced()) {
+      return;
+    }
+    if (headerAdvanced != isAdvanced) {
       super.setAdvanced(headerAdvanced);
     }
   }
@@ -1241,6 +1263,7 @@ public class TomogramGenerationDialog extends ProcessDialog implements
   private void updateAdvanced() {
     filterHeader.setAdvanced(isAdvanced);
     tiltHeader.setAdvanced(isAdvanced);
+    newstHeader.setAdvanced(isAdvanced);
 
     UIHarness.INSTANCE.pack(axisID, applicationManager);
   }
@@ -1251,6 +1274,14 @@ public class TomogramGenerationDialog extends ProcessDialog implements
 
   boolean isParallelProcess() {
     return cbParallelProcess.isSelected();
+  }
+
+  String getSizeToOutputInXandY() {
+    return ltfSizeToOutputInXandY.getText();
+  }
+
+  void setSizeToOutputInXandY(String input) {
+    ltfSizeToOutputInXandY.setText(input);
   }
 
   boolean isRadialFallOffSet() {
@@ -1339,10 +1370,12 @@ public class TomogramGenerationDialog extends ProcessDialog implements
     buttonPanel.setLayout(new BoxLayout(buttonPanel, BoxLayout.X_AXIS));
     //header
     if (applicationManager.getMetaData().getViewType() == ViewType.MONTAGE) {
-      newstHeader = PanelHeader.getInstance("Blendmont", this, dialogType);
+      newstHeader = PanelHeader.getAdvancedBasicInstance("Blendmont", this,
+          dialogType);
     }
     else {
-      newstHeader = PanelHeader.getInstance("Newstack", this, dialogType);
+      newstHeader = PanelHeader.getAdvancedBasicInstance("Newstack", this,
+          dialogType);
     }
     //initialization
     SpinnerNumberModel integerModel = new SpinnerNumberModel(1, 1, 8, 1);
@@ -1359,6 +1392,7 @@ public class TomogramGenerationDialog extends ProcessDialog implements
     newstBodyPanel.add(spinBinning);
     newstBodyPanel.add(cbFiducialess);
     newstBodyPanel.add(ltfRotation);
+    newstBodyPanel.add(ltfSizeToOutputInXandY);
     newstBodyPanel.add(buttonPanel);
     newstBodyPanel.alignComponentsX(Component.LEFT_ALIGNMENT);
     //newstPanel
@@ -1519,7 +1553,6 @@ public class TomogramGenerationDialog extends ProcessDialog implements
     tiltPanel.add(tiltBodyPanel);
     UIUtilities.alignComponentsX(tiltPanel, Component.LEFT_ALIGNMENT);
     //configure
-    //tiltHeader.setOpen(true);
     btnTilt.setSize();
     btn3dmodTomogram.setSize();
     btnDeleteStack.setSize();
@@ -1902,5 +1935,21 @@ public class TomogramGenerationDialog extends ProcessDialog implements
     ltfExtraExcludeList
         .setToolTipText("List of views to exclude from the reconstruction, in addition to the ones"
             + "excluded from fine alignment.");
+    try {
+      autodoc = AutodocFactory.getInstance(AutodocFactory.NEWSTACK, axisID);
+    }
+    catch (FileNotFoundException except) {
+      except.printStackTrace();
+    }
+    catch (IOException except) {
+      except.printStackTrace();
+    }
+    catch (LogFile.ReadException e) {
+      e.printStackTrace();
+    }
+    if (autodoc != null) {
+      ltfSizeToOutputInXandY.setToolTipText(EtomoAutodoc.getTooltip(autodoc,
+          NewstParam.SIZE_TO_OUTPUT_IN_X_AND_Y));
+    }
   }
 }
