@@ -11,6 +11,9 @@
  * @version $Revision$
  *
  * <p> $Log$
+ * <p> Revision 3.15  2007/02/05 22:39:26  sueh
+ * <p> bug# 962 Changed getCommandMode to return CommandMode.
+ * <p>
  * <p> Revision 3.14  2006/03/22 21:28:42  sueh
  * <p> bug# 803 Added DATA_MODE_OPTION and
  * <p> FLOAT_DENSITIES_OPTION.
@@ -124,10 +127,13 @@ import etomo.type.AxisID;
 
 public class NewstParam extends ConstNewstParam implements CommandParam {
   public static final String rcsid = "$Id$";
+  
+  public static final String SIZE_TO_OUTPUT_IN_X_AND_Y = "SizeToOutputInXandY";
 
   public NewstParam(AxisID axisID) {
     super(axisID);
   }
+
   /**
    * Get the parameters from the ComScriptCommand
    * @param scriptCommand the ComScriptCommand containg the newst command
@@ -193,7 +199,7 @@ public class NewstParam extends ConstNewstParam implements CommandParam {
         else if (cmdLineArgs[i].toLowerCase().startsWith("-r")) {
           i++;
           rotateByAngle = Float.parseFloat(cmdLineArgs[i]);
-        }       
+        }
         else if (cmdLineArgs[i].toLowerCase().startsWith("-e")) {
           i++;
           expandByFactor = Float.parseFloat(cmdLineArgs[i]);
@@ -224,7 +230,7 @@ public class NewstParam extends ConstNewstParam implements CommandParam {
         else if (cmdLineArgs[i].toLowerCase().startsWith("-im")) {
           i++;
           imagesAreBinned = Integer.parseInt(cmdLineArgs[i]);
-        }        
+        }
         else if (cmdLineArgs[i].toLowerCase().startsWith("-te")) {
           i++;
           testLimits.validateAndSet(cmdLineArgs[i]);
@@ -356,14 +362,14 @@ public class NewstParam extends ConstNewstParam implements CommandParam {
     }
     int nArgs = cmdLineArgs.size();
     scriptCommand.setCommandLineArgs((String[]) cmdLineArgs
-      .toArray(new String[nArgs]));
+        .toArray(new String[nArgs]));
 
     // If the command is currently newst change it to newstack
     if (scriptCommand.getCommand().equals("newst")) {
       scriptCommand.setCommand("newstack");
     }
   }
-  
+
   public void initializeDefaults() {
   }
 
@@ -432,7 +438,7 @@ public class NewstParam extends ConstNewstParam implements CommandParam {
   public void setFloatDensities(int floatDensities) {
     this.floatDensities = floatDensities;
   }
-  
+
   public void setFiducialessAlignment(boolean fiducialessAlignment) {
     this.fiducialessAlignment = fiducialessAlignment;
   }
@@ -526,12 +532,23 @@ public class NewstParam extends ConstNewstParam implements CommandParam {
     sectionsToRead.addAll(sections);
   }
 
+  public void resetSizeToOutputInXandY() throws FortranInputSyntaxException {
+    sizeToOutputInXandY.validateAndSet("/");
+  }
+
   /**
    * @param sizeToOutputInXandY The sizeToOutputInXandY to set.
    */
-  public void setSizeToOutputInXandY(String size)
+  public void setSizeToOutputInXandY(String size, int binning)
       throws FortranInputSyntaxException {
     sizeToOutputInXandY.validateAndSet(size);
+    if (binning != 1 && !sizeToOutputInXandY.isDefault()
+        && !sizeToOutputInXandY.isEmpty()) {
+      int iSize = sizeToOutputInXandY.getInt(0);
+      sizeToOutputInXandY.set(0, (int) iSize / binning);
+      iSize = sizeToOutputInXandY.getInt(1);
+      sizeToOutputInXandY.set(1, (int) iSize / binning);
+    }
   }
 
   /**
@@ -554,7 +571,7 @@ public class NewstParam extends ConstNewstParam implements CommandParam {
   public void setUseTransformLines(String useTransformLines) {
     this.useTransformLines = useTransformLines;
   }
-  
+
   public void setCommandMode(Mode commandMode) {
     this.commandMode = commandMode;
   }
