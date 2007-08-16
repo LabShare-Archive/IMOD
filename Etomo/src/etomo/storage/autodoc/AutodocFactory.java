@@ -23,6 +23,9 @@ import etomo.type.AxisID;
  * @version $Revision$
  * 
  * <p> $Log$
+ * <p> Revision 1.6  2007/06/07 21:31:52  sueh
+ * <p> bug# 1012 Added function getMatlabDebugInstance.
+ * <p>
  * <p> Revision 1.5  2007/04/13 18:42:59  sueh
  * <p> bug# 964 Added getDebugInstance(String, AxisID).
  * <p>
@@ -59,6 +62,7 @@ public final class AutodocFactory {
   public static final String CPU = "cpu";
   public static final String UITEST = "uitest";
   public static final String PEET_PRM = "peetprm";
+  public static final String NEWSTACK = "newstack";
 
   private static final String TEST = "test";
   private static final String UITEST_AXIS = "uitest_axis";
@@ -77,6 +81,7 @@ public final class AutodocFactory {
   private static Autodoc CORR_SEARCH_3D_INSTANCE = null;
   private static Autodoc XFJOINTOMO_INSTANCE = null;
   private static Autodoc PEET_PRM_INSTANCE = null;
+  private static Autodoc NEWSTACK_INSTANCE = null;
 
   private static final HashMap UITEST_AXIS_MAP = new HashMap();
 
@@ -300,6 +305,9 @@ public final class AutodocFactory {
     if (name.equals(MTF_FILTER)) {
       return MTF_FILTER_INSTANCE;
     }
+    if (name.equals(NEWSTACK)) {
+      return NEWSTACK_INSTANCE;
+    }
     if (name.equals(COMBINE_FFT)) {
       return COMBINE_FFT_INSTANCE;
     }
@@ -349,6 +357,9 @@ public final class AutodocFactory {
     }
     else if (name.equals(MTF_FILTER)) {
       MTF_FILTER_INSTANCE = null;
+    }
+    else if (name.equals(NEWSTACK)) {
+      NEWSTACK_INSTANCE = null;
     }
     else if (name.equals(COMBINE_FFT)) {
       COMBINE_FFT_INSTANCE = null;
