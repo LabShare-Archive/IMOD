@@ -1,5 +1,7 @@
 IMOD History
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+8/15/07: Fixed processchunks to work with > 999 chunks, up to 9999.
+
 8/15/07: Fixed bug in slicer that crashed 3dmod, which showed up with new mouse
 rotations.
 
