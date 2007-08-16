@@ -23,6 +23,9 @@ import etomo.type.ConstEtomoNumber;
  * @version $Revision$
  *
  * <p> $Log$
+ * <p> Revision 3.15  2007/03/03 00:34:40  sueh
+ * <p> bug# 973 Added active and isEmpty().
+ * <p>
  * <p> Revision 3.14  2006/09/05 17:34:24  sueh
  * <p> bug# 917 Added option to change the default divider (',').
  * <p>
@@ -90,7 +93,7 @@ public class FortranInputString {
   public static final String rcsid = "$Id$";
 
   private static final char DEFAULT_DIVIDER = ',';
-  
+
   private int nParams;
   private boolean[] isInteger;
   private double[] minimum;
@@ -98,7 +101,8 @@ public class FortranInputString {
   private Double[] value;
   private String key = null;
   private char divider = DEFAULT_DIVIDER;
-  private boolean active=true;
+  private boolean active = true;
+  private String propertiesKey = null;
 
   /**
    * Create a FortranInputString with nParams parameters.
@@ -176,8 +180,35 @@ public class FortranInputString {
     return instance;
   }
 
+  /**
+   * Loads from props, does not set nParams.
+   * @param props
+   * @param group
+   */
+  public void load(Properties props, String group) {
+    String list = props.getProperty(makePrepend(group));
+    try {
+      validateAndSet(list);
+    }
+    catch (FortranInputSyntaxException e) {
+      reset();
+    }
+  }
+
+  private String makePrepend(String group) {
+    if (propertiesKey != null) {
+      if (group == null || group.matches("\\s*")) {
+        group = propertiesKey;
+      }
+      else {
+        group = group + "." + propertiesKey;
+      }
+    }
+    return group;
+  }
+
   public void store(Properties props, String group) {
-    props.setProperty(group, toString());
+    props.setProperty(makePrepend(group), toString());
   }
 
   void reset() {
@@ -186,11 +217,11 @@ public class FortranInputString {
       value[i] = new Double(Double.NEGATIVE_INFINITY);
     }
   }
-  
+
   public void setActive(boolean active) {
-    this.active=active;
+    this.active = active;
   }
-  
+
   public boolean isActive() {
     return active;
   }
@@ -230,11 +261,11 @@ public class FortranInputString {
   public void updateScriptParameter(ComScriptCommand scriptCommand) {
     ParamUtilities.updateScriptParameter(scriptCommand, key, this);
   }
-  
+
   void setDivider(char divider) {
     this.divider = divider;
   }
-  
+
   void resetDivider() {
     divider = DEFAULT_DIVIDER;
   }
@@ -255,6 +286,9 @@ public class FortranInputString {
    */
   public void validateAndSet(String newValues)
       throws FortranInputSyntaxException {
+    if (newValues == null) {
+      newValues = "";
+    }
     //  Handle a simple default string
     if (newValues.equals("/")) {
       for (int i = 0; i < value.length; i++) {
@@ -340,7 +374,7 @@ public class FortranInputString {
   public void set(int index, double newValue) {
     value[index] = new Double(newValue);
   }
-  
+
   public void set(int index, String newValue) {
     value[index] = new Double(String.valueOf(newValue));
   }
@@ -357,6 +391,10 @@ public class FortranInputString {
     for (int i = 0; i < nParams; i++) {
       value[i] = new Double(newValue.getDouble(i));
     }
+  }
+
+  public void setPropertiesKey(String input) {
+    propertiesKey = input;
   }
 
   public void setDefault() {
@@ -514,7 +552,7 @@ public class FortranInputString {
     }
     return value[index].isInfinite();
   }
-  
+
   /**
    * @return false if any value is set
    */
