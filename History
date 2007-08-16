@@ -1,5 +1,10 @@
 IMOD History
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+8/16/07: In eTomo added support for the newstack parameter sizeToOutputInXandY
+to the advanced section of the Newstack/Blendmont panel.  The blendmont
+parameter StartingAndEndingX and Y will be calculated from this field.
+SUBSETSTART in tilt will also be affected.
+
 8/15/07: Fixed processchunks to work with > 999 chunks, up to 9999.
 
 8/15/07: Fixed bug in slicer that crashed 3dmod, which showed up with new mouse
