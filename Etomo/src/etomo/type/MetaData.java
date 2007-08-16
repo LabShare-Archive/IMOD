@@ -6,6 +6,7 @@ import java.util.Properties;
 import etomo.ApplicationManager;
 import etomo.comscript.CombineParams;
 import etomo.comscript.ConstTiltParam;
+import etomo.comscript.FortranInputSyntaxException;
 import etomo.comscript.TiltalignParam;
 import etomo.comscript.TransferfidParam;
 
@@ -22,6 +23,10 @@ import etomo.comscript.TransferfidParam;
  * @version $Revision$
  *
  * <p> $Log$
+ * <p> Revision 3.35  2007/03/21 19:44:34  sueh
+ * <p> bug# 964 Metadata should always use local strings as keys, otherwise
+ * <p> backwards compatibility issues might be inadventently created.
+ * <p>
  * <p> Revision 3.34  2007/03/07 21:09:17  sueh
  * <p> bug# 981 Added noBeamTiltSelected, fixedBeamTiltSelected, and fixedBeamTilt.
  * <p>
@@ -375,6 +380,16 @@ public class MetaData extends ConstMetaData {
     this.bStackProcessed.set(bStackProcessed);
   }
 
+  public void setSizeToOutputInXandY(AxisID axisID, String size)
+      throws FortranInputSyntaxException {
+    if (axisID == AxisID.SECOND) {
+      sizeToOutputInXandYB.validateAndSet(size);
+    }
+    else {
+      sizeToOutputInXandYA.validateAndSet(size);
+    }
+  }
+
   public void setTomoGenBinning(AxisID axisID, int tomoGenBinning) {
     if (axisID == AxisID.SECOND) {
       tomoGenBinningB.set(tomoGenBinning);
@@ -612,6 +627,8 @@ public class MetaData extends ConstMetaData {
     tomoPosBinningB.load(props, prepend);
     tomoGenBinningA.load(props, prepend);
     tomoGenBinningB.load(props, prepend);
+    sizeToOutputInXandYA.load(props, prepend);
+    sizeToOutputInXandYB.load(props, prepend);
     String propertyValue = props.getProperty(group
         + TOMO_GEN_A_TILT_PARALLEL_GROUP);
     if (propertyValue != null) {
@@ -637,11 +654,11 @@ public class MetaData extends ConstMetaData {
     tiltParamB.load(props, group + secondAxisPrepend);
     //use default for backward compatibility, since this new parameter may not
     //be in any file yet
-    targetPatchSizeXandY = props.getProperty(group +  "tiltalign."
+    targetPatchSizeXandY = props.getProperty(group + "tiltalign."
         + TiltalignParam.TARGET_PATCH_SIZE_X_AND_Y_KEY,
         TiltalignParam.TARGET_PATCH_SIZE_X_AND_Y_DEFAULT);
-    numberOfLocalPatchesXandY = props.getProperty(group 
-        + "tiltalign." + TiltalignParam.NUMBER_OF_LOCAL_PATCHES_X_AND_Y_KEY,
+    numberOfLocalPatchesXandY = props.getProperty(group + "tiltalign."
+        + TiltalignParam.NUMBER_OF_LOCAL_PATCHES_X_AND_Y_KEY,
         TiltalignParam.NUMBER_OF_LOCAL_PATCHES_X_AND_Y_DEFAULT);
     noBeamTiltSelectedA.load(props, prepend);
     fixedBeamTiltSelectedA.load(props, prepend);

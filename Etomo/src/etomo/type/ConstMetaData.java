@@ -7,6 +7,7 @@ import etomo.ApplicationManager;
 import etomo.comscript.ConstCombineParams;
 import etomo.comscript.CombineParams;
 import etomo.comscript.ConstTiltParam;
+import etomo.comscript.FortranInputString;
 import etomo.comscript.SqueezevolParam;
 import etomo.comscript.TiltParam;
 import etomo.comscript.TiltalignParam;
@@ -132,6 +133,10 @@ public abstract class ConstMetaData extends BaseMetaData {
   protected final EtomoNumber fixedBeamTiltB = new EtomoNumber(
       EtomoNumber.Type.FLOAT, AxisID.SECOND.getExtension() + "."
           + DialogType.FINE_ALIGNMENT.getStorableName() + ".FixedBeamTilt");
+  protected final FortranInputString sizeToOutputInXandYA = new FortranInputString(
+      2);
+  protected final FortranInputString sizeToOutputInXandYB = new FortranInputString(
+      2);
 
   public abstract void load(Properties props);
 
@@ -151,6 +156,10 @@ public abstract class ConstMetaData extends BaseMetaData {
     sampleThicknessB.setDisplayValue(DEFAULT_SAMPLE_THICKNESS);
     noBeamTiltSelectedA.setDisplayValue(true);//backwards compatibility
     noBeamTiltSelectedB.setDisplayValue(true);//backwards compatibility
+    sizeToOutputInXandYA.setIntegerType(new boolean[] { true, true });
+    sizeToOutputInXandYA.setPropertiesKey("A.SizeToOutputInXandY");
+    sizeToOutputInXandYB.setIntegerType(new boolean[] { true, true });
+    sizeToOutputInXandYB.setPropertiesKey("B.SizeToOutputInXandY");
   }
 
   String getFirstAxisPrepend() {
@@ -250,6 +259,8 @@ public abstract class ConstMetaData extends BaseMetaData {
     noBeamTiltSelectedB.store(props, prepend);
     fixedBeamTiltSelectedB.store(props, prepend);
     fixedBeamTiltB.store(props, prepend);
+    sizeToOutputInXandYA.store(props, prepend);
+    sizeToOutputInXandYB.store(props, prepend);
   }
 
   public ConstEtomoNumber getNoBeamTiltSelected(AxisID axisID) {
@@ -334,6 +345,13 @@ public abstract class ConstMetaData extends BaseMetaData {
 
   public String getDistortionFile() {
     return distortionFile;
+  }
+
+  public FortranInputString getSizeToOutputInXandY(AxisID axisID) {
+    if (axisID == AxisID.SECOND) {
+      return sizeToOutputInXandYB;
+    }
+    return sizeToOutputInXandYA;
   }
 
   public String getMagGradientFile() {
@@ -789,6 +807,10 @@ public abstract class ConstMetaData extends BaseMetaData {
 
 /**
  * <p> $Log$
+ * <p> Revision 3.41  2007/03/21 19:43:08  sueh
+ * <p> bug# 964 Limiting access to autodoc classes by using ReadOnly interfaces.
+ * <p> Added AutodocFactory to create Autodoc instances.
+ * <p>
  * <p> Revision 3.40  2007/03/07 21:09:04  sueh
  * <p> bug# 981 Added noBeamTiltSelected, fixedBeamTiltSelected, and fixedBeamTilt.
  * <p>
