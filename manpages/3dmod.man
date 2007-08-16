@@ -881,7 +881,7 @@ and slower, cubic interpolation.
 current position when locked.
    The Centering button toggles between the default mode in which the window
 can be panned with the mouse, and a mode in which the current image point is
-kept at the center of the window (referred to as "classic" mode).
+kept at the center of the window (referred to as 'classic' mode).
    The Shift Lock (Sh) button toggles a mode in which mouse buttons and keypad
 keys can be used to rotate the volume as if the Shift key were held down.
    The IM/FFT button toggles between showing an image and an FFT of the image.
