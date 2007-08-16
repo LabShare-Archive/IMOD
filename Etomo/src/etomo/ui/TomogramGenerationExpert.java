@@ -209,14 +209,33 @@ public final class TomogramGenerationExpert extends ReconUIExpert {
     }
     advanced = dialog.isAdvanced();
     // Get the user input data from the dialog box
-    getParameters(metaData);
+    try {
+      getParameters(metaData);
+    }
+    catch (FortranInputSyntaxException e) {
+      UIHarness.INSTANCE.openMessageDialog(e.getMessage(), "Data File Error");
+    }
     getParameters(screenState);
     if (!UIExpertUtilities.INSTANCE.updateFiducialessParams(manager, dialog,
         axisID)) {
       return false;
     }
     if (metaData.getViewType() == ViewType.MONTAGE) {
-      updateBlendCom();
+      try {
+        updateBlendCom();
+      }
+      catch (FortranInputSyntaxException e) {
+        UIHarness.INSTANCE
+            .openMessageDialog(e.getMessage(), "Update Com Error");
+      }
+      catch (InvalidParameterException e) {
+        UIHarness.INSTANCE
+            .openMessageDialog(e.getMessage(), "Update Com Error");
+      }
+      catch (IOException e) {
+        UIHarness.INSTANCE
+            .openMessageDialog(e.getMessage(), "Update Com Error");
+      }
     }
     else {
       if (updateNewstCom() == null) {
@@ -238,7 +257,8 @@ public final class TomogramGenerationExpert extends ReconUIExpert {
    * @param axisID
    * @return
    */
-  private BlendmontParam updateBlendCom() {
+  private BlendmontParam updateBlendCom() throws FortranInputSyntaxException,
+      InvalidParameterException, IOException {
     if (dialog == null) {
       return null;
     }
@@ -251,7 +271,7 @@ public final class TomogramGenerationExpert extends ReconUIExpert {
   }
 
   /**
-   * Update the newst.com from the TomogramGenerationDialog reads metaData
+   * Update the newst.com from the TomogramGenerationDialog.  Reads metaData.
    * 
    * @param axisID
    * @return true if successful
@@ -270,7 +290,6 @@ public final class TomogramGenerationExpert extends ReconUIExpert {
       newstParam = comScriptMgr.getNewstComNewstParam(axisID);
       // Make sure the size output is removed, it was only there for a
       // copytomocoms template
-      newstParam.setSizeToOutputInXandY("/");
       newstParam.setCommandMode(NewstParam.Mode.FULL_ALIGNED_STACK);
       newstParam.setFiducialessAlignment(metaData
           .isFiducialessAlignment(axisID));
@@ -358,6 +377,15 @@ public final class TomogramGenerationExpert extends ReconUIExpert {
           "Tilt Parameter Syntax Error", axisID);
       return false;
     }
+    catch (IOException e) {
+      String[] errorMessage = new String[3];
+      errorMessage[0] = "Tilt Parameter";
+      errorMessage[1] = "Axis: " + axisID.getExtension();
+      errorMessage[2] = e.getMessage();
+      UIHarness.INSTANCE.openMessageDialog(errorMessage, "Tilt Parameter",
+          axisID);
+      return false;
+    }
     return true;
   }
 
@@ -439,7 +467,21 @@ public final class TomogramGenerationExpert extends ReconUIExpert {
     ConstNewstParam newstParam = null;
     BlendmontParam blendmontParam = null;
     if (metaData.getViewType() == ViewType.MONTAGE) {
-      blendmontParam = updateBlendCom();
+      try {
+        blendmontParam = updateBlendCom();
+      }
+      catch (FortranInputSyntaxException e) {
+        UIHarness.INSTANCE
+            .openMessageDialog(e.getMessage(), "Update Com Error");
+      }
+      catch (InvalidParameterException e) {
+        UIHarness.INSTANCE
+            .openMessageDialog(e.getMessage(), "Update Com Error");
+      }
+      catch (IOException e) {
+        UIHarness.INSTANCE
+            .openMessageDialog(e.getMessage(), "Update Com Error");
+      }
     }
     else {
       newstParam = updateNewstCom();
@@ -693,6 +735,8 @@ public final class TomogramGenerationExpert extends ReconUIExpert {
     else {
       dialog.setParallelProcess(validAutodoc && tomoGenTiltParallel.is());
     }
+    dialog.setSizeToOutputInXandY(metaData.getSizeToOutputInXandY(axisID)
+        .toString(true));
     updateParallelProcess();
   }
 
@@ -727,12 +771,22 @@ public final class TomogramGenerationExpert extends ReconUIExpert {
     dialog.getTrialHeaderState(screenState.getTomoGenTrialTiltHeaderState());
   }
 
-  private void getParameters(MetaData metaData) {
+  private void getParameters(MetaData metaData)
+      throws FortranInputSyntaxException {
     if (dialog == null) {
       return;
     }
     metaData.setTomoGenBinning(axisID, dialog.getBinning());
     metaData.setTomoGenTiltParallel(axisID, dialog.isParallelProcess());
+    try {
+      metaData.setSizeToOutputInXandY(axisID, dialog.getSizeToOutputInXandY());
+    }
+    catch (FortranInputSyntaxException e) {
+      e.printStackTrace();
+      throw new FortranInputSyntaxException(
+          TomogramGenerationDialog.SIZE_TO_OUTPUT_IN_X_AND_Y_LABEL + ":  "
+              + e.getMessage());
+    }
   }
 
   private void setBlendParams(BlendmontParam blendmontParam) {
@@ -793,7 +847,8 @@ public final class TomogramGenerationExpert extends ReconUIExpert {
   }
 
   //  Copy the newstack parameters from the GUI to the NewstParam object
-  private void getNewstParams(NewstParam newstParam) {
+  private void getNewstParams(NewstParam newstParam)
+      throws FortranInputSyntaxException {
     if (dialog == null) {
       return;
     }
@@ -807,21 +862,35 @@ public final class TomogramGenerationExpert extends ReconUIExpert {
     else {
       newstParam.setBinByFactor(Integer.MIN_VALUE);
     }
+    newstParam.setSizeToOutputInXandY(dialog.getSizeToOutputInXandY(), dialog
+        .getBinning());
   }
 
-  private void getBlendParams(BlendmontParam blendmontParam) {
+  private void getBlendParams(BlendmontParam blendmontParam)
+      throws FortranInputSyntaxException, InvalidParameterException,
+      IOException {
     if (dialog == null) {
       return;
     }
     blendmontParam.setLinearInterpolation(dialog.isUseLinearInterpolation());
     blendmontParam.setBinByFactor(dialog.getBinning());
+    try {
+      blendmontParam.convertToStartingAndEndingXandY(dialog
+          .getSizeToOutputInXandY());
+    }
+    catch (FortranInputSyntaxException e) {
+      e.printStackTrace();
+      throw new FortranInputSyntaxException(
+          TomogramGenerationDialog.SIZE_TO_OUTPUT_IN_X_AND_Y_LABEL + ":  "
+              + e.getMessage());
+    }
   }
 
   /**
    * Get the tilt parameters from the requested axis panel
    */
   private void getTiltParams(TiltParam tiltParam) throws NumberFormatException,
-      InvalidParameterException {
+      InvalidParameterException, IOException {
     if (dialog == null) {
       return;
     }
@@ -953,10 +1022,21 @@ public final class TomogramGenerationExpert extends ReconUIExpert {
           && dialog.isUseZFactorsEnabled());
       metaData.setUseZFactors(axisID, dialog.isUseZFactors());
       tiltParam.setExcludeList2(dialog.getExtraExcludeList());
+      badParameter = TiltParam.SUBSETSTART_KEY;
+      if (metaData.getViewType() == ViewType.MONTAGE) {
+        tiltParam.setMontageSubsetStart();
+      }
+      else {
+        tiltParam.setSubsetStart();
+      }
     }
     catch (NumberFormatException except) {
       String message = badParameter + " " + except.getMessage();
       throw new NumberFormatException(message);
+    }
+    catch (IOException e) {
+      e.printStackTrace();
+      throw new IOException(badParameter + ":  " + e.getMessage());
     }
   }
 
@@ -1031,6 +1111,9 @@ public final class TomogramGenerationExpert extends ReconUIExpert {
 }
 /**
  * <p> $Log$
+ * <p> Revision 1.13  2007/07/17 21:45:21  sueh
+ * <p> bug# 1018 Getting cpu.adoc information from CpuAdoc.
+ * <p>
  * <p> Revision 1.12  2007/05/18 23:54:20  sueh
  * <p> bug# 987 Made CpuAdoc thread-safe.  Added minNice.
  * <p>
