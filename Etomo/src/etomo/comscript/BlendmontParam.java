@@ -1,6 +1,7 @@
 package etomo.comscript;
 
 import java.io.File;
+import java.io.IOException;
 import java.util.Hashtable;
 
 import etomo.ApplicationManager;
@@ -12,6 +13,7 @@ import etomo.type.EtomoNumber;
 import etomo.type.EtomoState;
 import etomo.type.ProcessName;
 import etomo.type.ScriptParameter;
+import etomo.util.Montagesize;
 
 /**
  * <p>Description: </p>
@@ -47,7 +49,12 @@ public class BlendmontParam implements CommandParam, CommandDetails {
   private String imageOutputFile;
   private Mode mode = Mode.XCORR;
   private ScriptParameter binByFactor;
+
   private final ApplicationManager manager;
+  private final FortranInputString startingAndEndingX = new FortranInputString(
+      "StartingAndEndingX", 2);
+  private final FortranInputString startingAndEndingY = new FortranInputString(
+      "StartingAndEndingY", 2);
 
   public BlendmontParam(ApplicationManager manager, String datasetName,
       AxisID axisID) {
@@ -72,6 +79,8 @@ public class BlendmontParam implements CommandParam, CommandDetails {
     // Only explcitly write out the binning if its value is something other than
     // the default of 1 to keep from cluttering up the com script  
     binByFactor.setDefault(1);
+    startingAndEndingX.setIntegerType(new boolean[] { true, true });
+    startingAndEndingY.setIntegerType(new boolean[] { true, true });
   }
 
   public void parseComScriptCommand(ComScriptCommand scriptCommand)
@@ -84,6 +93,8 @@ public class BlendmontParam implements CommandParam, CommandDetails {
     justUndistort.parse(scriptCommand);
     imageOutputFile = scriptCommand.getValue(IMAGE_OUTPUT_FILE_KEY);
     binByFactor.parse(scriptCommand);
+    startingAndEndingX.validateAndSet(scriptCommand);
+    startingAndEndingY.validateAndSet(scriptCommand);
   }
 
   public void updateComScriptCommand(ComScriptCommand scriptCommand)
@@ -94,6 +105,8 @@ public class BlendmontParam implements CommandParam, CommandDetails {
     justUndistort.updateComScript(scriptCommand);
     scriptCommand.setValue(IMAGE_OUTPUT_FILE_KEY, imageOutputFile);
     binByFactor.updateComScript(scriptCommand);
+    startingAndEndingX.updateScriptParameter(scriptCommand);
+    startingAndEndingY.updateScriptParameter(scriptCommand);
   }
 
   private void reset() {
@@ -103,9 +116,57 @@ public class BlendmontParam implements CommandParam, CommandDetails {
     justUndistort.reset();
     imageOutputFile = null;
     binByFactor.reset();
+    startingAndEndingX.reset();
+    startingAndEndingY.reset();
   }
 
   public void initializeDefaults() {
+  }
+
+  /**
+   * If nx is the size of the raw montage in X, and the user requests a size mx,
+   * then the starting coordinate to give blendmont is:
+   * int(nx/2) - int((mx+1)/2)
+   * The ending coordinate is the starting coordinate + mx - 1
+   * Blendmont expects unbinned numbers here.
+   * @param sizeToOutputInXandY
+   * @throws FortranInputSyntaxException
+   * @throws etomo.util.InvalidParameterException
+   * @throws IOException
+   */
+  public void convertToStartingAndEndingXandY(String sizeToOutputInXandY)
+      throws FortranInputSyntaxException, etomo.util.InvalidParameterException,
+      IOException {
+    startingAndEndingX.reset();
+    startingAndEndingY.reset();
+    FortranInputString fisSizeToOutputInXandY = new FortranInputString(2);
+    fisSizeToOutputInXandY.setIntegerType(new boolean[] { true, true });
+    fisSizeToOutputInXandY.validateAndSet(sizeToOutputInXandY);
+    if (fisSizeToOutputInXandY.isDefault() || fisSizeToOutputInXandY.isEmpty()) {
+      return;
+    }
+    Montagesize montagesize = Montagesize.getInstance(manager, axisID);
+    montagesize.read();
+    convertToStartingAndEnding(startingAndEndingX, montagesize.getX().getInt(),
+        fisSizeToOutputInXandY.getInt(0));
+    convertToStartingAndEnding(startingAndEndingY, montagesize.getY().getInt(),
+        fisSizeToOutputInXandY.getInt(1));
+  }
+
+  private void convertToStartingAndEnding(FortranInputString startingAndEnding,
+      int montageSize, int size) {
+    int starting = ((int) montageSize / 2) - ((int) (size + 1) / 2);
+    startingAndEnding.set(0, starting);
+    if (size == 0) {
+      startingAndEnding.set(1, starting);
+    }
+    else {
+      startingAndEnding.set(1, starting + size - 1);
+    }
+  }
+
+  public void resetStartingAndEndingXandY() {
+    startingAndEndingX.reset();
   }
 
   public void setMode(Mode mode) {
@@ -215,11 +276,11 @@ public class BlendmontParam implements CommandParam, CommandDetails {
     }
     throw new IllegalArgumentException("field=" + field);
   }
-  
+
   public String getString(etomo.comscript.Fields field) {
     throw new IllegalArgumentException("field=" + field);
   }
-  
+
   public String[] getStringArray(etomo.comscript.Fields field) {
     throw new IllegalArgumentException("field=" + field);
   }
@@ -231,11 +292,11 @@ public class BlendmontParam implements CommandParam, CommandDetails {
   public double getDoubleValue(etomo.comscript.Fields field) {
     throw new IllegalArgumentException("field=" + field);
   }
-  
+
   public ConstEtomoNumber getEtomoNumber(etomo.comscript.Fields field) {
     throw new IllegalArgumentException("field=" + field);
   }
-  
+
   public ConstIntKeyList getIntKeyList(etomo.comscript.Fields field) {
     throw new IllegalArgumentException("field=" + field);
   }
@@ -257,7 +318,7 @@ public class BlendmontParam implements CommandParam, CommandDetails {
     if (mode == Mode.XCORR) {
       return ProcessName.XCORR;
     }
-    if (mode==Mode.WHOLE_TOMOGRAM_SAMPLE) {
+    if (mode == Mode.WHOLE_TOMOGRAM_SAMPLE) {
       return ProcessName.BLEND;
     }
     throw new IllegalArgumentException("mode=" + mode);
@@ -311,6 +372,9 @@ public class BlendmontParam implements CommandParam, CommandDetails {
 }
 /**
  * <p> $Log$
+ * <p> Revision 1.23  2007/05/11 15:06:21  sueh
+ * <p> bug# 964 Added getStringArray().
+ * <p>
  * <p> Revision 1.22  2007/02/05 21:32:22  sueh
  * <p> bug# 962 Put mode info into an inner class.
  * <p>
