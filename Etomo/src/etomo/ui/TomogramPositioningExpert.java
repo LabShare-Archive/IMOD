@@ -479,6 +479,7 @@ public final class TomogramPositioningExpert extends ReconUIExpert {
     metaData.getTiltParam(tiltParam, axisID);
     getTiltAngleOffset(tiltParam);
     getZShift(tiltParam);
+    tiltParam.resetSubsetStart();
     comScriptMgr.saveTilt(tiltParam, axisID);
     metaData.setTiltParam(tiltParam, axisID);
   }
@@ -588,7 +589,7 @@ public final class TomogramPositioningExpert extends ReconUIExpert {
       // Make sure the size output is removed, it was only there as a 
       // copytomocoms template
       newstParam.setCommandMode(NewstParam.Mode.WHOLE_TOMOGRAM_SAMPLE);
-      newstParam.setSizeToOutputInXandY("/");
+      newstParam.resetSizeToOutputInXandY();
     }
     catch (FortranInputSyntaxException e) {
       e.printStackTrace();
@@ -616,6 +617,7 @@ public final class TomogramPositioningExpert extends ReconUIExpert {
     getParameters(blendmontParam);
     blendmontParam.setMode(BlendmontParam.Mode.WHOLE_TOMOGRAM_SAMPLE);
     blendmontParam.setBlendmontState();
+    blendmontParam.resetStartingAndEndingXandY();
     comScriptMgr.saveBlend(blendmontParam, axisID);
     return blendmontParam;
   }
@@ -915,6 +917,10 @@ public final class TomogramPositioningExpert extends ReconUIExpert {
 }
 /**
  * <p> $Log$
+ * <p> Revision 1.18  2007/02/09 00:54:22  sueh
+ * <p> bug# 962 Made TooltipFormatter a singleton and moved its use to low-level ui
+ * <p> classes.
+ * <p>
  * <p> Revision 1.17  2007/02/05 23:46:14  sueh
  * <p> bug# 962 Moved comscript mode info to inner class.
  * <p>
