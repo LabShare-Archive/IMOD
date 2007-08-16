@@ -14,21 +14,21 @@ import etomo.type.ConstEtomoNumber;
 import etomo.type.EtomoNumber;
 
 /**
-* <p>Description: Runs montagesize on .st files.  Creates once instance per file
-* Rereads only when file has changed.</p>
-* 
-* <p>Copyright: Copyright (c) 2005</p>
-*
-*<p>Organization:
-* Boulder Laboratory for 3-Dimensional Electron Microscopy of Cells (BL3DEM),
-* University of Colorado</p>
-* 
-* @author $Author$
-* 
-* @version $Revision$
-*/
+ * <p>Description: Runs montagesize on .st files.  Creates once instance per file
+ * Rereads only when file has changed.</p>
+ * 
+ * <p>Copyright: Copyright (c) 2005</p>
+ *
+ *<p>Organization:
+ * Boulder Laboratory for 3-Dimensional Electron Microscopy of Cells (BL3DEM),
+ * University of Colorado</p>
+ * 
+ * @author $Author$
+ * 
+ * @version $Revision$
+ */
 public class Montagesize {
-  public static  final String  rcsid =  "$Id$";
+  public static final String rcsid = "$Id$";
   private static final String fileExtension = ".st";
   //
   //n'ton member variables
@@ -44,15 +44,14 @@ public class Montagesize {
   private EtomoNumber x = new EtomoNumber(EtomoNumber.Type.INTEGER);
   private EtomoNumber y = new EtomoNumber(EtomoNumber.Type.INTEGER);
   private EtomoNumber z = new EtomoNumber(EtomoNumber.Type.INTEGER);
-  
+
   private final File file;
   private final String propertyUserDir;
   private final AxisID axisID;
-  
+
   private boolean fileExists = false;
   String[] commandArray = null;
-  
-  
+
   //
   //n'ton functions
   //
@@ -65,6 +64,7 @@ public class Montagesize {
     this.axisID = axisID;
     modifiedFlag = new FileModifiedFlag(file);
   }
+
   /**
    * Function to get an instance of the class
    * @param directory
@@ -81,6 +81,7 @@ public class Montagesize {
     }
     return montagesize;
   }
+
   /**
    * Function to create and save an instance of the class.  Just returns the
    * instance if it already exists.
@@ -89,8 +90,8 @@ public class Montagesize {
    * @param axisID
    * @return
    */
-  private static synchronized Montagesize createInstance(String propertyUserDir,
-      String key, File file, AxisID axisID) {
+  private static synchronized Montagesize createInstance(
+      String propertyUserDir, String key, File file, AxisID axisID) {
     Montagesize montagesize = (Montagesize) instances.get(key);
     if (montagesize != null) {
       return montagesize;
@@ -100,6 +101,7 @@ public class Montagesize {
     montagesize.selfTestInvariants();
     return montagesize;
   }
+
   /**
    * Make a unique key from a file
    * @param file
@@ -108,6 +110,11 @@ public class Montagesize {
   private static String makeKey(File file) {
     return file.getAbsolutePath();
   }
+
+  public String getFile() {
+    return file.getAbsolutePath();
+  }
+
   //
   //other functions
   //
@@ -136,7 +143,7 @@ public class Montagesize {
     z.reset();
     commandArray = null;
   }
-  
+
   private final void buildCommand() {
     if (commandArray != null) {
       return;
@@ -157,16 +164,17 @@ public class Montagesize {
       commandArray[2] = pieceListFile.getAbsolutePath();
     }
   }
-  
+
   /**
    * run montagesize on the file
    * @throws IOException
    * @throws InvalidParameterException
    * @returns true if attempted to read
    */
-  public synchronized boolean read() throws IOException, InvalidParameterException {
+  public synchronized boolean read() throws IOException,
+      InvalidParameterException {
     if (file.isDirectory()) {
-      throw new IOException("No stack specified.");
+      throw new IOException(file + "is not a file.");
     }
     if (!file.exists()) {
       reset();
@@ -192,11 +200,13 @@ public class Montagesize {
       if (stdOutput != null && stdOutput.length > 0) {
         ProcessMessages messages = montagesize.getProcessMessages();
         if (messages.errorListSize() > 0) {
-          String message = "montagesize returned an error:\n";
+          String message = "montagesize returned an error while reading"
+              + file.getAbsolutePath() + ":\n";
           for (int i = 0; i < messages.errorListSize(); i++) {
             message = message + messages.getError(i) + "\n";
           }
-          Utilities.timestamp("read", "montagesize", file, Utilities.FAILED_STATUS);
+          Utilities.timestamp("read", "montagesize", file,
+              Utilities.FAILED_STATUS);
           throw new InvalidParameterException(message);
         }
       }
@@ -204,7 +214,8 @@ public class Montagesize {
     // Throw an exception if the file can not be read
     String[] stdError = montagesize.getStdError();
     if (stdError != null && stdError.length > 0) {
-      String message = "montagesize returned an error:\n";
+      String message = "montagesize returned an error while reading"
+          + file.getAbsolutePath() + ":\n";
       for (int i = 0; i < stdError.length; i++) {
         message = message + stdError[i] + "\n";
       }
@@ -216,7 +227,8 @@ public class Montagesize {
     String[] stdOutput = montagesize.getStdOutput();
     if (stdOutput == null || stdOutput.length < 1) {
       Utilities.timestamp("read", "montagesize", file, Utilities.FAILED_STATUS);
-      throw new IOException("montagesize returned no data");
+      throw new IOException("montagesize returned no data while reading"
+          + file.getAbsolutePath());
     }
 
     for (int i = 0; i < stdOutput.length; i++) {
@@ -226,25 +238,30 @@ public class Montagesize {
       if (outputLine.startsWith("Total NX, NY, NZ:")) {
         String[] tokens = outputLine.split("\\s+");
         if (tokens.length < 7) {
-          Utilities.timestamp("read", "montagesize", file, Utilities.FAILED_STATUS);
+          Utilities.timestamp("read", "montagesize", file,
+              Utilities.FAILED_STATUS);
           throw new IOException(
-              "Montagesize returned less than three parameters for image size");
+              "Montagesize returned less than three parameters for image size while reading"
+                  + file.getAbsolutePath());
         }
         x.set(tokens[4]);
         y.set(tokens[5]);
         z.set(tokens[6]);
         if (!x.isValid() || x.isNull()) {
-          Utilities.timestamp("read", "montagesize", file, Utilities.FAILED_STATUS);
+          Utilities.timestamp("read", "montagesize", file,
+              Utilities.FAILED_STATUS);
           throw new NumberFormatException("NX is not set, token is "
               + tokens[4] + "\n" + x.getInvalidReason());
         }
         if (!y.isValid() || y.isNull()) {
-          Utilities.timestamp("read", "montagesize", file, Utilities.FAILED_STATUS);
+          Utilities.timestamp("read", "montagesize", file,
+              Utilities.FAILED_STATUS);
           throw new NumberFormatException("NY is not set, token is "
               + tokens[5] + "\n" + y.getInvalidReason());
         }
         if (!z.isValid() || z.isNull()) {
-          Utilities.timestamp("read", "montagesize", file, Utilities.FAILED_STATUS);
+          Utilities.timestamp("read", "montagesize", file,
+              Utilities.FAILED_STATUS);
           throw new NumberFormatException("NZ is not set, token is "
               + tokens[6] + "\n" + z.getInvalidReason());
         }
@@ -253,6 +270,7 @@ public class Montagesize {
     Utilities.timestamp("read", "montagesize", file, Utilities.FINISHED_STATUS);
     return true;
   }
+
   /**
    * 
    * @return
@@ -260,6 +278,7 @@ public class Montagesize {
   public ConstEtomoNumber getX() {
     return x;
   }
+
   /**
    * 
    * @return
@@ -267,6 +286,7 @@ public class Montagesize {
   public ConstEtomoNumber getY() {
     return y;
   }
+
   /**
    * 
    * @return
@@ -274,18 +294,20 @@ public class Montagesize {
   public ConstEtomoNumber getZ() {
     return z;
   }
+
   /**
    * 
    * @return
    */
   public boolean isFileExists() {
     return fileExists;
-  } 
+  }
+
   //
   //self test functions
   //
   void selfTestInvariants() {
-    if(!Utilities.isSelfTest()) {
+    if (!Utilities.isSelfTest()) {
       return;
     }
     if (instances == null) {
@@ -296,25 +318,30 @@ public class Montagesize {
     }
     String key = makeKey(file);
     if (key == null || key.matches("\\s*")) {
-      throw new IllegalStateException("unable to make key: filename=" + file.getAbsolutePath());
+      throw new IllegalStateException("unable to make key: filename="
+          + file.getAbsolutePath());
     }
     Montagesize montagesize = (Montagesize) instances.get(key);
     if (montagesize == null) {
-      throw new IllegalStateException("this instance is not in instances: key="+key);
+      throw new IllegalStateException("this instance is not in instances: key="
+          + key);
     }
   }
-  
+
   public String toString() {
     return getClass().getName() + "[" + super.toString() + paramString() + "]";
   }
 
   protected String paramString() {
-    return ",file=" + file + ",fileExists=" + fileExists + ",x=" + x
-        + ",y=" + y + ",z=" + z + ",axisID=" + axisID;
+    return ",file=" + file + ",fileExists=" + fileExists + ",x=" + x + ",y="
+        + y + ",z=" + z + ",axisID=" + axisID;
   }
 }
 /**
  * <p> $Log$
+ * <p> Revision 1.13  2007/02/05 23:47:15  sueh
+ * <p> bug# 962 Moved EtomoNumber type info to inner class.
+ * <p>
  * <p> Revision 1.12  2005/11/02 22:15:51  sueh
  * <p> bug# 754 Parsing errors and warnings inside ProcessMessages.
  * <p>
