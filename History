@@ -1,9 +1,11 @@
 IMOD History
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-8/16/07: In eTomo added support for the newstack parameter sizeToOutputInXandY
-to the advanced section of the Newstack/Blendmont panel.  The blendmont
-parameter StartingAndEndingX and Y will be calculated from this field.
-SUBSETSTART in tilt will also be affected.
+8/16/07: IMOD_3-10-16
+8/16/07: In eTomo, added ability to set the size of the aligned stack in
+the advanced section of the Newstack/Blendmont panel.  This is to allow the
+SIRT procedure to be used on a trial subarea, and to allow oversized
+recontructions to recover area lost due to rotation of the tilt axis to
+vertical.
 
 8/15/07: Fixed processchunks to work with > 999 chunks, up to 9999.
 
