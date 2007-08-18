@@ -217,7 +217,7 @@ if ("$width" != "" ||  "$slices" != "") then
         endif
     endif
 endif
-@ aliy--
+@ aliy = $aliy * $binval - 1
 set slices = (0 $aliy)
 
 # Get starting reconstruction #
@@ -264,14 +264,19 @@ if ($startfirst) then
         cat <<EOF >! $sirtname-001-sync.com
 \$if (-e $aliuse) \\rm -f $aliuse
 \$densnorm -log $logbase $alifile $aliuse
+\$echo CHUNK DONE
 EOF
         @ comnum++
     endif
     set srecname = $setname.${sirtext}00
     sed -e "/$recfile/s//$srecname/" \
         -e "/$alifile/s//$aliuse/" \
-        -e "/^MODE.*/s//Mode   $mode/" \
-        -e "/^RADIAL.*/s//RADIAL   $radial1/" \
+        -e "/^ *SLICE/d" \
+        -e "/^ *MODE.*/s//MODE   $mode/" \
+        -e "/^ *RADIAL.*/s//RADIAL   $radial1/" \
+        -e "/THICKNESS/a\\
+SLICE     $slices\
+" \
         -e "/THICKNESS/a\\
 FlatFilterFraction   $flatfrac\
 " < $comname | grep -v -i '^ *log' >! $sirtname.com
@@ -313,8 +318,8 @@ while ($iter < $iterations)
     #
     sed -e "/$recfile/s//$projname/" \
         -e "/$alifile/s//$aliuse/" \
-        -e "/^ *MODE.*/s//Mode   $mode/" \
-        -e "/SLICE/d" \
+        -e "/^ *MODE.*/s//MODE   $mode/" \
+        -e "/^ *SLICE/d" \
         -e "/THICKNESS/a\\
 SLICE     $slices\
 " \
@@ -359,7 +364,7 @@ EOF
         -e "/$alifile/s//$diffname/" \
         -e "/^ *MODE.*/s//MODE   $mode/" \
         -e "/^ *RADIAL.*/s//RADIAL   $radial2/" \
-        -e "/SLICE/d" \
+        -e "/^ *SLICE/d" \
         -e "/THICKNESS/a\\
 SLICE     $slices\
 " \
@@ -416,6 +421,9 @@ echo "  processchunks machine_list $sirtname"
 exit 0
 
 #  $Log$
+#  Revision 3.3  2007/08/10 22:17:52  mast
+#  Added ability to make log stack, fixed extraction of stats to use sed
+#
 #  Revision 3.2  2007/07/19 15:53:48  mast
 #  Fixed removal of rec files
 #
