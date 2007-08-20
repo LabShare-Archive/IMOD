@@ -17,6 +17,9 @@ c
 c       $Revision$
 c       
 c       $Log$
+c       Revision 3.3  2006/06/28 23:37:23  mast
+c       Fixed bug in computing number of pixels to truncate
+c
 c       Revision 3.2  2006/03/07 20:05:18  mast
 c       Converted to PIP and made it take unflipped coordinates with option
 c       for flipped.
@@ -33,7 +36,7 @@ C
       integer*4 NXYZ(3),MXYZ(3), nx, ny, nz
       real*4 array(idim)
       integer*4 ihist(-limden:limden)
-      real*4 DMIN,DMAX,DMEAN,areafac
+      real*4 DMIN,DMAX,DMEAN,areafac,histScale,rlo,rhi
       integer*4 mode,iylo,iyhi,ixlo,ixhi,izlo,izhi,ntrunclo,ntrunchi,nxt,nyt
       integer*4 maxlines,nchunk,ivmin,ivmax,iz,ichunk,iyend,iychunk,ival
       integer*4 ntrunc,ilo,ihi,iclo,ichi,i,nylines, ierr, izlim, iylim
@@ -73,8 +76,11 @@ C
       CALL IMOPEN(1,filbig,'RO')
       CALL IRDHDR(1,NXYZ,MXYZ,MODE,DMIN,DMAX,DMEAN)
 C       
-      if (mode.ne.1.and.(dmin.lt.-limden.or.dmax.gt.limden)) call exitError(
-     &    '- DATA VALUES HAVE TOO LARGE A RANGE FOR ARRAYS')
+      histScale = 1.
+      if (mode.ne.1.and.(dmin.lt.-limden.or.dmax.gt.limden)) then
+        if (dmin.lt.-limden) histScale = -limden/dmin
+        if (dmax.gt.limden) histScale = min(histScale, limden/dmax)
+      endif
 
       if (nx .gt. idim) call exitError('IMAGES TOO LARGE IN X FOR ARRAYS')
 
@@ -162,7 +168,7 @@ c
           call imposn(1,iz,0)
           call irdpas(1,array,nxt,nylines,ixlo,ixhi,iychunk,iyend)
           do i=1,nxt*nylines
-            ival=nint(array(i))
+            ival=nint(histScale*array(i))
             ihist(ival)=ihist(ival)+1
             ivmin=min(ivmin,ival)
             ivmax=max(ivmax,ival)
@@ -185,13 +191,15 @@ c
         ihi=ihi-1
       enddo
 c	write(*,'(i7,9i8)')(ihist(i),i=ivmin,ivmax)
-      iclo=255*(ilo-dmin)/(dmax-dmin)
-      ichi=255*(ihi-dmin)/(dmax-dmin)+0.99
-      write(*,101)ivmin,ivmax,ilo,ihi,iclo,ichi
-101   format('Min and max density levels in the analyzed volume are',
-     &    i7,' and',i7,/,
-     &    'Min and max density levels with truncation are',
-     &    i7,' and',i7,/,'Implied black and white contrast levels are'
+      rlo = ilo / histScale
+      rhi = ihi / histScale
+      iclo=255*(rlo-dmin)/(dmax-dmin)
+      ichi=255*(rhi-dmin)/(dmax-dmin)+0.99
+      write(*,101)ivmin/histScale,ivmax/histScale,rlo,rhi,iclo,ichi
+101   format('Min and max densities in the analyzed volume are',
+     &    g13.5,' and',g13.5,/,
+     &    'Min and max densities with truncation are',
+     &    g13.5,' and',g13.5,/,'Implied black and white contrast levels are'
      &    ,i4,' and',i4)
       call exit(0)
       END
