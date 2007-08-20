@@ -1,5 +1,7 @@
 IMOD History
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+8/20/07: Fixed Findcontrast to work with densities over 1000000.
+
 8/17/07: IMOD_3-10-16
 8/17/07: Fixed sirtsetup to work with binning and when making a log stack.
 
