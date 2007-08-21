@@ -4,8 +4,11 @@ import java.awt.Dimension;
 import java.awt.Toolkit;
 import java.io.BufferedWriter;
 import java.io.File;
+import java.io.FileInputStream;
+import java.io.FileNotFoundException;
 import java.io.FileWriter;
 import java.io.IOException;
+import java.nio.channels.FileChannel;
 
 import etomo.comscript.ArchiveorigParam;
 import etomo.comscript.BeadtrackParam;
@@ -3448,6 +3451,21 @@ public final class ApplicationManager extends BaseManager {
     sendMsgProcessSucceeded(processResultDisplay);
   }
 
+  public long getTomogramSize(AxisID axisID) {
+    long size = 0;
+    FileInputStream stream;
+    try {
+      stream = new FileInputStream(DatasetFiles.getTomogram(this, axisID));
+      FileChannel fileChannel = stream.getChannel();
+      size = fileChannel.size();
+    }
+    catch (FileNotFoundException e) {
+    }
+    catch (IOException e) {
+    }
+    return size;
+  }
+
   /**
    * Open the tomogram combination dialog
    */
@@ -3478,6 +3496,9 @@ public final class ApplicationManager extends BaseManager {
       CombineParams combineParams = new CombineParams(metaData
           .getCombineParams());
       if (!combineParams.isPatchBoundarySet()) {
+        //The first time combine is opened for this dataset, set tomogram size
+        state.setTomogramSize(AxisID.FIRST, getTomogramSize(AxisID.FIRST));
+        state.setTomogramSize(AxisID.SECOND, getTomogramSize(AxisID.SECOND));
         String recFileName;
         MatchMode matchMode = combineParams.getMatchMode();
         if (matchMode == null || matchMode == MatchMode.B_TO_A) {
@@ -3836,7 +3857,7 @@ public final class ApplicationManager extends BaseManager {
    * 
    * @param tomogramCombinationDialog the calling dialog.
    */
-  public void createCombineScripts(ProcessResultDisplay processResultDisplay) {
+  public boolean createCombineScripts(ProcessResultDisplay processResultDisplay) {
     sendMsgProcessStarting(processResultDisplay);
     mainPanel.startProgressBar("Creating combine scripts", AxisID.ONLY,
         ProcessName.SOLVEMATCH);
@@ -3844,7 +3865,7 @@ public final class ApplicationManager extends BaseManager {
     try {
       if (!processMgr.setupCombineScripts(metaData, processResultDisplay)) {
         mainPanel.stopProgressBar(AxisID.ONLY, ProcessEndState.FAILED);
-        return;
+        return false;
       }
       processTrack.setTomogramCombinationState(ProcessState.INPROGRESS);
       mainPanel.setTomogramCombinationState(ProcessState.INPROGRESS);
@@ -3854,7 +3875,7 @@ public final class ApplicationManager extends BaseManager {
       except.printStackTrace();
       uiHarness.openMessageDialog("Can't run setupcombine\n"
           + except.getMessage(), "Setupcombine IOException", AxisID.ONLY);
-      return;
+      return false;
     }
     // Reload the initial and final match paramaters from the newly created
     // scripts
@@ -3867,6 +3888,9 @@ public final class ApplicationManager extends BaseManager {
     loadVolcombine();
     loadCombineComscript();
     mainPanel.stopProgressBar(AxisID.ONLY);
+    state.setTomogramSize(AxisID.FIRST, getTomogramSize(AxisID.FIRST));
+    state.setTomogramSize(AxisID.SECOND, getTomogramSize(AxisID.SECOND));
+    return true;
   }
 
   /**
@@ -5440,6 +5464,10 @@ public final class ApplicationManager extends BaseManager {
 }
 /**
  * <p> $Log$
+ * <p> Revision 3.285  2007/08/08 14:44:46  sueh
+ * <p> bug# 834 In doneSetupDialog, setting MetaData.TrimvolParam.swapYZ if it is set
+ * <p> in userConfig.
+ * <p>
  * <p> Revision 3.284  2007/07/30 18:30:56  sueh
  * <p> bug# 1002 ParameterStore.getInstance can return null - handle it.
  * <p>
