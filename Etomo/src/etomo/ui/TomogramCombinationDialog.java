@@ -50,6 +50,9 @@ import etomo.type.TomogramState;
  * @version $Revision$
  *
  * <p> $Log$
+ * <p> Revision 3.54  2007/08/08 15:04:36  sueh
+ * <p> bug# 834 Fixed the parallel processing check box label.
+ * <p>
  * <p> Revision 3.53  2007/07/17 21:44:59  sueh
  * <p> bug# 1018 Getting cpu.adoc information from CpuAdoc.
  * <p>
@@ -544,7 +547,7 @@ public final class TomogramCombinationDialog extends ProcessDialog implements
   }
 
   public void show() {
-    pnlSetup.show();
+    pnlSetup.show(!isChanged(applicationManager.getState()));
     setDisplayed(true);
   }
 
