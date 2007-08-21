@@ -11,6 +11,9 @@
  * @version $Revision$
  * 
  * <p> $Log$
+ * <p> Revision 3.24  2007/05/11 15:33:17  sueh
+ * <p> bug# 964 Added getStringArray().
+ * <p>
  * <p> Revision 3.23  2007/02/05 22:48:39  sueh
  * <p> bug# 962 Added getEtomoNumber, getIntKeyList, and getString.
  * <p>
@@ -390,6 +393,11 @@ public class TrimvolParam implements CommandDetails {
     for (int i = 0; i < options.size(); i++) {
       commandArray[i + commandSize] = (String) options.get(i);
     }
+    //TEMP
+    for (int i = 0;i<commandArray.length;i++) {
+      System.err.print(commandArray[i] +" ");
+    }
+    System.err.println();
   }
 
   /**
