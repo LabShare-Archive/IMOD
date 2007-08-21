@@ -26,6 +26,9 @@ import etomo.util.MRCHeader;
  * @version $Revision$
  * 
  * <p> $Log$
+ * <p> Revision 1.29  2007/05/11 16:06:24  sueh
+ * <p> bug# 964 Reduced the visibility of createPrepend(String).
+ * <p>
  * <p> Revision 1.28  2007/02/05 23:31:46  sueh
  * <p> bug# 962 Moved EtomoNumber type info to inner class.
  * <p>
@@ -227,6 +230,10 @@ public class TomogramState implements BaseState {
   private final ApplicationManager manager;
   private String firstAxisGroup = null;
   private String secondAxisGroup = null;
+  private EtomoNumber tomogramSizeA = new EtomoNumber(EtomoNumber.Type.LONG,
+      "A.TomogramSize");
+  private EtomoNumber tomogramSizeB = new EtomoNumber(EtomoNumber.Type.LONG,
+      "B.TomogramSize");
 
   public TomogramState(ApplicationManager manager) {
     this.manager = manager;
@@ -330,6 +337,8 @@ public class TomogramState implements BaseState {
     fixedFiducialsB.store(props, prepend);
     seedingDoneA.store(props, prepend);
     seedingDoneB.store(props, prepend);
+    tomogramSizeA.store(props, prepend);
+    tomogramSizeB.store(props, prepend);
     //backwards compatibility
     props.remove(COMBINE_MATCH_MODE_BACK_KEY);
     if (combineMatchMode == null) {
@@ -476,6 +485,8 @@ public class TomogramState implements BaseState {
     fixedFiducialsB.load(props, prepend);
     seedingDoneA.load(props, prepend);
     seedingDoneB.load(props, prepend);
+    tomogramSizeA.load(props, prepend);
+    tomogramSizeB.load(props, prepend);
     combineMatchMode = MatchMode.getInstance(props.getProperty(prepend + "."
         + COMBINE_MATCH_MODE_KEY));
     //backwards compatibility
@@ -537,6 +548,22 @@ public class TomogramState implements BaseState {
 
   public ConstEtomoNumber setSqueezevolFlipped(boolean squeezevolFlipped) {
     return this.squeezevolFlipped.set(squeezevolFlipped);
+  }
+
+  public void setTomogramSize(AxisID axisID, long input) {
+    if (axisID == AxisID.SECOND) {
+      tomogramSizeB.set(input);
+    }
+    else {
+      tomogramSizeA.set(input);
+    }
+  }
+
+  public ConstEtomoNumber getTomogramSize(AxisID axisID) {
+    if (axisID == AxisID.SECOND) {
+      return tomogramSizeB;
+    }
+    return tomogramSizeA;
   }
 
   public ConstEtomoNumber setMadeZFactors(AxisID axisID, boolean madeZFactors) {
