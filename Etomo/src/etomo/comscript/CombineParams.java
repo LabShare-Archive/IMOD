@@ -25,6 +25,9 @@ import etomo.util.MRCHeader;
  * @version $Revision$
  *
  * <p> $Log$
+ * <p> Revision 3.12  2007/07/27 21:38:32  sueh
+ * <p> bug# 980 Removed unnecessary resetUserList.
+ * <p>
  * <p> Revision 3.11  2007/07/27 21:23:31  sueh
  * <p> bug# 980 Added resetUseList.
  * <p>
@@ -513,18 +516,7 @@ public class CombineParams extends ConstCombineParams implements Storable {
     MRCHeader mrcHeader = MRCHeader.getInstance(manager.getPropertyUserDir(),
         fileName, AxisID.ONLY);
     mrcHeader.read();
-
-    // Logic from setupcombine to provide the default border size, the variable
-    // names used match those from the setupcombine script
-    int[] xyborders = { 24, 36, 54, 68, 80 };
-    int borderinc = 1000;
-
-    //  Assume that Y and Z domains are swapped
-    int minsize = Math.min(mrcHeader.getNColumns(), mrcHeader.getNSections());
-    int borderindex = (int) (minsize / borderinc);
-    if (borderindex > 4)
-      borderindex = 4;
-    int xyborder = xyborders[borderindex];
+    int xyborder = getXYBorder( mrcHeader);
     patchXMin = xyborder;
     patchXMax = mrcHeader.getNColumns() - xyborder;
     patchYMin = xyborder;
@@ -532,5 +524,24 @@ public class CombineParams extends ConstCombineParams implements Storable {
     patchZMin.set(1);
     patchZMax.set(mrcHeader.getNRows());
     maxPatchZMax = patchZMax.getInt();
+  }
+  
+  /**
+   * gets the border for xy using logic from setupcombine and the mrcheader
+   * @param mrcHeader
+   * @return
+   */
+  public static int getXYBorder(MRCHeader mrcHeader) {
+    // Logic from setupcombine to provide the default border size, the variable
+    // names used match those from the setupcombine script
+    int[] xyborders = { 24, 36, 54, 68, 80 };
+    int borderinc = 1000;
+    
+    //  Assume that Y and Z domains are swapped
+    int minsize = Math.min(mrcHeader.getNColumns(), mrcHeader.getNSections());
+    int borderindex = (int) (minsize / borderinc);
+    if (borderindex > 4)
+      borderindex = 4;
+    return xyborders[borderindex];
   }
 }
