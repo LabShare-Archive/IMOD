@@ -22,6 +22,10 @@ import etomo.util.InvalidParameterException;
  * @version $Revision$
  *
  * <p> $Log$
+ * <p> Revision 3.6  2007/02/09 00:51:42  sueh
+ * <p> bug# 962 Made TooltipFormatter a singleton and moved its use to low-level ui
+ * <p> classes.
+ * <p>
  * <p> Revision 3.5  2006/07/31 21:44:56  sueh
  * <p> bug# 438 Making a compact version of the process control button
  * <p>
@@ -68,7 +72,7 @@ public class ProcessControlPanel {
 
   static Dimension dimPanelProcess = new Dimension(80, 130);
   static String[] textStates = { "Not Started", "In Progress", "Complete" };
-  static Color colorNotStarted = new Color(0.75f, 0.0f, 0.0f);
+  static final Color colorNotStarted = new Color(0.75f, 0.0f, 0.0f);
   static Color colorInProgress = new Color(0.75f, 0.0f, 0.75f);
   //static Color colorComplete = new Color(0.0f, 0.75f, 0.0f);
   static Color colorComplete = new Color(0, 153, 0);
