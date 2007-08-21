@@ -6,6 +6,7 @@ import java.awt.GridLayout;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.awt.event.MouseEvent;
+import java.io.IOException;
 
 import javax.swing.BorderFactory;
 import javax.swing.Box;
@@ -30,6 +31,9 @@ import etomo.type.ProcessResultDisplay;
 import etomo.type.ReconScreenState;
 import etomo.type.Run3dmodMenuOptions;
 import etomo.type.TomogramState;
+import etomo.util.DatasetFiles;
+import etomo.util.InvalidParameterException;
+import etomo.util.MRCHeader;
 
 /**
  * <p>
@@ -51,6 +55,9 @@ import etomo.type.TomogramState;
  * 
  * <p>
  * $Log$
+ * Revision 3.49  2007/07/17 21:44:24  sueh
+ * bug# 1018 Adding cpu.adoc information from CpuAdoc.
+ *
  * Revision 3.48  2007/03/07 21:13:52  sueh
  * bug# 981 Turned RadioButton into a wrapper rather then a child of JRadioButton,
  * because it is getting more complicated.
@@ -381,6 +388,10 @@ public final class SetupCombinePanel implements ContextMenu,
     Expandable {
   public static final String rcsid = "$Id$";
 
+  private static final String TOMOGRAM_SIZE_CHECK_STRING = " - check min and max values";
+  private static final String TOMOGRAM_SIZE_CHANGED_STRING = "THE TOMOGRAM HAS CHANGED";
+  private static final String TOMOGRAM_SIZE_UNEQUAL_STRING = "A AND B AREN'T THE SAME SIZE IN X AND Y";
+
   private TomogramCombinationDialog tomogramCombinationDialog;
   private ApplicationManager applicationManager;
 
@@ -446,6 +457,8 @@ public final class SetupCombinePanel implements ContextMenu,
       FinalCombinePanel.NO_VOLCOMBINE_TITLE);
   private final CheckBox cbParallelProcess;
   private final SetupCombineActionListener actionListener;
+  private final JLabel lTomogramSizeWarning = new JLabel();
+  private final MultiLineButton btnDefaults = new MultiLineButton("Defaults");
 
   /**
    * Default constructor
@@ -490,6 +503,11 @@ public final class SetupCombinePanel implements ContextMenu,
     bgPatchSize.add(rbLargePatch.getAbstractButton());
     pnlPatchParamsBody.setLayout(new BoxLayout(pnlPatchParamsBody,
         BoxLayout.Y_AXIS));
+    pnlPatchParamsBody.add(Box.createRigidArea(FixedDim.x0_y5));
+    pnlPatchParamsBody.add(lTomogramSizeWarning);
+    lTomogramSizeWarning.setForeground(ProcessControlPanel.colorNotStarted);
+    lTomogramSizeWarning.setVisible(false);
+    lTomogramSizeWarning.setAlignmentX(Component.CENTER_ALIGNMENT);
     JPanel pnlPatchRB = new JPanel();
     pnlPatchRB.setLayout(new BoxLayout(pnlPatchRB, BoxLayout.Y_AXIS));
     pnlPatchRB.add(rbSmallPatch.getComponent());
@@ -516,7 +534,13 @@ public final class SetupCombinePanel implements ContextMenu,
     pnlPatchRegion.add(ltfXMax.getContainer());
     pnlPatchRegion.add(ltfYMax.getContainer());
     pnlPatchRegion.add(ltfZMax.getContainer());
-    pnlPatchParamsBody.add(pnlPatchRegion);
+    JPanel pnlDefaults = new JPanel();
+    pnlDefaults.setLayout(new BoxLayout(pnlDefaults, BoxLayout.X_AXIS));
+    pnlDefaults.add(pnlPatchRegion);
+    pnlDefaults.add(Box.createRigidArea(FixedDim.x10_y0));
+    pnlDefaults.add(btnDefaults.getComponent());
+    btnDefaults.setSize();
+    pnlPatchParamsBody.add(pnlDefaults);
     pnlPatchParams.setBorder(BorderFactory.createEtchedBorder());
     patchParamsHeader = PanelHeader.getInstance(
         "Patch Parameters for Refining Alignment", this, dialogType);
@@ -563,6 +587,7 @@ public final class SetupCombinePanel implements ContextMenu,
     btnImodVolumeB.addActionListener(actionListener);
     btnCreate.addActionListener(actionListener);
     btnCombine.addActionListener(actionListener);
+    btnDefaults.addActionListener(actionListener);
     cbParallelProcess.addActionListener(actionListener);
 
     //  Bind the radio buttons to the action listener
@@ -623,8 +648,61 @@ public final class SetupCombinePanel implements ContextMenu,
     return pnlRoot;
   }
 
-  void show() {
+  void show(boolean enableCombine) {
     pnlSolvematch.show();
+    updateTomogramSizeWarning(enableCombine);
+  }
+
+  private boolean isTomogramSizeChanged() {
+    AxisID toAxisID = matchBtoA ? AxisID.FIRST : AxisID.SECOND;
+    return !applicationManager.getState().getTomogramSize(toAxisID).equals(
+        applicationManager.getTomogramSize(toAxisID));
+  }
+
+  private void updateTomogramSizeWarning(boolean enableCombine) {
+    boolean changed = isTomogramSizeChanged();
+    boolean different = false;
+    if (!enableCombine) {
+      AxisID toAxisID = matchBtoA ? AxisID.FIRST : AxisID.SECOND;
+      MRCHeader toMrcHeader = MRCHeader.getInstance(applicationManager
+          .getPropertyUserDir(), DatasetFiles.getTomogramName(
+          applicationManager, toAxisID), AxisID.ONLY);
+      AxisID fromAxisID = matchBtoA ? AxisID.SECOND : AxisID.FIRST;
+      MRCHeader fromMrcHeader = MRCHeader.getInstance(applicationManager
+          .getPropertyUserDir(), DatasetFiles.getTomogramName(
+          applicationManager, fromAxisID), AxisID.ONLY);
+      try {
+        toMrcHeader.read();
+        fromMrcHeader.read();
+        if (toMrcHeader.getNColumns() != fromMrcHeader.getNSections()
+            || toMrcHeader.getNSections() != fromMrcHeader.getNColumns()) {
+          different = true;
+        }
+      }
+      catch (InvalidParameterException e) {
+        e.printStackTrace();
+      }
+      catch (IOException e) {
+        e.printStackTrace();
+      }
+    }
+    if (!changed && !different) {
+      lTomogramSizeWarning.setVisible(false);
+      return;
+    }
+    StringBuffer buffer = new StringBuffer();
+    if (changed) {
+      buffer.append(TOMOGRAM_SIZE_CHANGED_STRING);
+      if (different) {
+        buffer.append(" & ");
+      }
+    }
+    if (different) {
+      buffer.append(TOMOGRAM_SIZE_UNEQUAL_STRING);
+    }
+    buffer.append(TOMOGRAM_SIZE_CHECK_STRING);
+    lTomogramSizeWarning.setText(buffer.toString());
+    lTomogramSizeWarning.setVisible(true);
   }
 
   ProcessResultDisplay getCombineResultDisplay() {
@@ -635,8 +713,9 @@ public final class SetupCombinePanel implements ContextMenu,
     metaData.setCombineVolcombineParallel(cbParallelProcess.isSelected());
   }
 
-  void updateDisplay(boolean enable) {
-    btnCombine.setEnabled(enable);
+  void updateDisplay(boolean enableCombine) {
+    btnCombine.setEnabled(enableCombine);
+    updateTomogramSizeWarning(enableCombine);
   }
 
   void setParameters(ConstMetaData metaData) {
@@ -1002,7 +1081,7 @@ public final class SetupCombinePanel implements ContextMenu,
     String command = event.getActionCommand();
 
     if (command.equals(btnCreate.getActionCommand())) {
-      applicationManager.createCombineScripts(btnCreate);
+      updateTomogramSizeWarning(applicationManager.createCombineScripts(btnCreate));
     }
     else if (command.equals(btnCombine.getActionCommand())) {
       applicationManager.combine(btnCombine);
@@ -1010,11 +1089,34 @@ public final class SetupCombinePanel implements ContextMenu,
     else if (command.equals(cbParallelProcess.getActionCommand())) {
       tomogramCombinationDialog.updateParallelProcess();
     }
+    else if (command.equals(btnDefaults.getActionCommand())) {
+      resetXandY();
+    }
     else {
       run3dmod(command, new Run3dmodMenuOptions());
     }
     //  Check the combine scripts state and set the start button accordingly
     //updateStartCombine();
+  }
+
+  private void resetXandY() {
+    AxisID toAxisID = matchBtoA ? AxisID.FIRST : AxisID.SECOND;
+    MRCHeader mrcHeader = MRCHeader.getInstance(applicationManager
+        .getPropertyUserDir(), DatasetFiles.getTomogramName(applicationManager,
+        toAxisID), AxisID.ONLY);
+    try {
+      mrcHeader.read();
+      int xyborder = CombineParams.getXYBorder(mrcHeader);
+      ltfXMin.setText(xyborder);
+      ltfXMax.setText(mrcHeader.getNColumns() - xyborder);
+      ltfYMin.setText(xyborder);
+      ltfYMax.setText(mrcHeader.getNSections() - xyborder);
+      tomogramCombinationDialog.synchronizeFromCurrentTab();
+    }
+    catch (IOException e) {
+    }
+    catch (InvalidParameterException e) {
+    }
   }
 
   /**
@@ -1034,7 +1136,7 @@ public final class SetupCombinePanel implements ContextMenu,
     MatchMode scriptMatchMode = state.getCombineMatchMode();
     return (scriptMatchMode == null || scriptMatchMode == MatchMode.A_TO_B
         && !rbAtoB.isSelected())
-        || (scriptMatchMode == MatchMode.B_TO_A && !rbBtoA.isSelected());
+        || (scriptMatchMode == MatchMode.B_TO_A && !rbBtoA.isSelected() || isTomogramSizeChanged());
   }
 
   private void updateMatchTo() {
