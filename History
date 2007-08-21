@@ -1,5 +1,8 @@
 IMOD History
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+8/21/07: In eTomo added a warning message to Tomogram Combination for situations
+where the X and Y min and max values should be changed.
+
 8/20/07: Fixed Findcontrast to work with densities over 1000000.
 
 8/17/07: IMOD_3-10-16
