@@ -36,6 +36,9 @@ import etomo.util.Utilities;
  * @version $Revision$
  * 
  * <p> $Log$
+ * <p> Revision 1.53  2007/05/18 23:52:33  sueh
+ * <p> bug# 987 Made CpuAdoc thread-safe.  Added minNice.
+ * <p>
  * <p> Revision 1.52  2007/05/11 15:50:33  sueh
  * <p> bug# 964 Added lt(ConstEtomoNumber) which returns true if this is less
  * <p> then the parameter.  Added plus(Number,Number) which adds the two
@@ -1174,6 +1177,10 @@ public abstract class ConstEtomoNumber implements Storable {
   }
 
   public boolean equals(int value) {
+    return equals(getValue(), newNumber(value));
+  }
+  
+  public boolean equals(long value) {
     return equals(getValue(), newNumber(value));
   }
 
