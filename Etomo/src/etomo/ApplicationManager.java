@@ -550,6 +550,7 @@ public final class ApplicationManager extends BaseManager {
     // Check to see if the com files are present otherwise pop up a dialog
     // box informing the user to run the setup process
     if (!UIExpertUtilities.INSTANCE.areScriptsCreated(metaData, axisID)) {
+      mainPanel.showBlankProcess(axisID);
       return;
     }
     setCurrentDialogType(DialogType.PRE_PROCESSING, axisID);
@@ -1090,6 +1091,7 @@ public final class ApplicationManager extends BaseManager {
     // Check to see if the com files are present otherwise pop up a dialog
     // box informing the user to run the setup process
     if (!UIExpertUtilities.INSTANCE.areScriptsCreated(metaData, axisID)) {
+      mainPanel.showBlankProcess(axisID);
       return;
     }
     setCurrentDialogType(DialogType.COARSE_ALIGNMENT, axisID);
@@ -1652,6 +1654,7 @@ public final class ApplicationManager extends BaseManager {
     // Check to see if the com files are present otherwise pop up a dialog
     // box informing the user to run the setup process
     if (!UIExpertUtilities.INSTANCE.areScriptsCreated(metaData, axisID)) {
+      mainPanel.showBlankProcess(axisID);
       return;
     }
     setCurrentDialogType(DialogType.FIDUCIAL_MODEL, axisID);
@@ -2108,6 +2111,7 @@ public final class ApplicationManager extends BaseManager {
     // Check to see if the com files are present otherwise pop up a dialog
     // box informing the user to run the setup process
     if (!UIExpertUtilities.INSTANCE.areScriptsCreated(metaData, axisID)) {
+      mainPanel.showBlankProcess(axisID);
       return;
     }
     setCurrentDialogType(DialogType.FINE_ALIGNMENT, axisID);
@@ -3473,6 +3477,7 @@ public final class ApplicationManager extends BaseManager {
     // Check to see if the com files are present otherwise pop up a dialog
     // box informing the user to run the setup process
     if (!UIExpertUtilities.INSTANCE.areScriptsCreated(metaData, AxisID.ONLY)) {
+      mainPanel.showBlankProcess(AxisID.ONLY);
       return;
     }
     // Verify that this process is applicable
@@ -3480,6 +3485,7 @@ public final class ApplicationManager extends BaseManager {
       uiHarness.openMessageDialog(
           "This step is valid only for a dual axis tomogram",
           "Invalid tomogram combination selection", AxisID.ONLY);
+      mainPanel.showBlankProcess(AxisID.ONLY);
       return;
     }
     setCurrentDialogType(DialogType.TOMOGRAM_COMBINATION, AxisID.FIRST);
@@ -3520,6 +3526,7 @@ public final class ApplicationManager extends BaseManager {
               + recFileName, AxisID.ONLY);
           // Delete the dialog
           tomogramCombinationDialog = null;
+          mainPanel.showBlankProcess(AxisID.ONLY);
           return;
         }
         catch (IOException except) {
@@ -3527,6 +3534,7 @@ public final class ApplicationManager extends BaseManager {
               + recFileName, AxisID.ONLY);
           // Delete the dialog
           tomogramCombinationDialog = null;
+          mainPanel.showBlankProcess(AxisID.ONLY);
           return;
         }
       }
@@ -4670,6 +4678,7 @@ public final class ApplicationManager extends BaseManager {
     // Check to see if the com files are present otherwise pop up a dialog
     // box informing the user to run the setup process
     if (!UIExpertUtilities.INSTANCE.areScriptsCreated(metaData, AxisID.ONLY)) {
+      mainPanel.showBlankProcess(AxisID.ONLY);
       return;
     }
     // Open the dialog in the appropriate mode for the current state of
@@ -4698,6 +4707,7 @@ public final class ApplicationManager extends BaseManager {
             + trimvolParam.getInputFileName(), AxisID.ONLY);
         // Delete the dialog
         postProcessingDialog = null;
+        mainPanel.showBlankProcess(AxisID.ONLY);
         return;
       }
       catch (IOException except) {
@@ -4705,6 +4715,7 @@ public final class ApplicationManager extends BaseManager {
             + trimvolParam.getInputFileName(), AxisID.ONLY);
         // Delete the dialog
         postProcessingDialog = null;
+        mainPanel.showBlankProcess(AxisID.ONLY);
         return;
       }
       postProcessingDialog.setTrimvolParams(trimvolParam);
@@ -4722,6 +4733,7 @@ public final class ApplicationManager extends BaseManager {
     // Check to see if the com files are present otherwise pop up a dialog
     // box informing the user to run the setup process
     if (!UIExpertUtilities.INSTANCE.areScriptsCreated(metaData, AxisID.ONLY)) {
+      mainPanel.showBlankProcess(AxisID.ONLY);
       return;
     }
     // Open the dialog in the appropriate mode for the current state of
@@ -5464,6 +5476,10 @@ public final class ApplicationManager extends BaseManager {
 }
 /**
  * <p> $Log$
+ * <p> Revision 3.286  2007/08/21 21:48:35  sueh
+ * <p> bug# 771 Added getTomogramSize.  Setting state.tomogramSize in
+ * <p> createCombineScripts and openTomogramCombinationDialog.
+ * <p>
  * <p> Revision 3.285  2007/08/08 14:44:46  sueh
  * <p> bug# 834 In doneSetupDialog, setting MetaData.TrimvolParam.swapYZ if it is set
  * <p> in userConfig.
