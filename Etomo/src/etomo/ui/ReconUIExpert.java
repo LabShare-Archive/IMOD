@@ -60,6 +60,7 @@ public abstract class ReconUIExpert implements UIExpert {
     //  Check to see if the com files are present otherwise pop up a dialog
     //  box informing the user to run the setup process
     if (!UIExpertUtilities.INSTANCE.areScriptsCreated(metaData, axisID)) {
+      mainPanel.showBlankProcess(axisID);
       return false;
     }
     manager.setCurrentDialogType(dialogType, axisID);
@@ -199,6 +200,9 @@ public abstract class ReconUIExpert implements UIExpert {
 }
 /**
  * <p> $Log$
+ * <p> Revision 1.3  2006/10/24 23:34:19  sueh
+ * <p> bug# 947 Passing the ProcessName to AxisProcessPanel.
+ * <p>
  * <p> Revision 1.2  2006/07/28 19:57:37  sueh
  * <p> bug# 868 Changed AbstractParallelDialog.isParallel to
  * <p> usingParallelProcessing because isParallel is too similar to a standard get
