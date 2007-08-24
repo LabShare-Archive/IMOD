@@ -1,0 +1,32 @@
+Version = 1.2
+#waitfor = FineAlign
+verbose =
+
+[Dialog = PreProc]
+adoc = pre-proc.adoc
+function = build
+
+[Dialog = CoarseAlign]
+adoc = coarse-align.adoc
+function = montage
+waitfor =  FineAlign
+
+[Dialog = FidModel]
+mb.transfer-fiducials-open = 1
+bn.transfer-fiducials-from-other-axis =
+waitfor.process.transferfid = done
+adoc = fid-model.adoc
+function = run
+
+[Dialog = FineAlign]
+adoc = fine-align.adoc
+function = build
+
+[Dialog = TomoPos]
+adoc = tomo-pos.adoc
+function = build
+
+[Dialog = TomoGen]
+adoc = tomo-gen.adoc
+function = montage
+bn.done =
