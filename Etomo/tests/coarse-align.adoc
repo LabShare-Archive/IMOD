@@ -7,6 +7,13 @@ function = open-newstack
 function = newstack
 function = done
 
+[function = montage]
+function = open-tiltxcorr
+function = tiltxcorr
+function = open-blendmont
+function = blendmont
+function = done
+
 [function = build-fidless]
 function = open-tiltxcorr
 function = tiltxcorr
@@ -47,9 +54,16 @@ assert.file.exists = xcorr%{axis}.log~
 [function = open-newstack]
 mb.newstack-open = 1
 
+[function = open-blendmont]
+mb.blendmont-open = 1
+
 [function = newstack]
 bn.generate-coarse-aligned-stack =
 waitfor.process.prenewst = done
+
+[function = blendmont]
+bn.generate-coarse-aligned-stack =
+waitfor.process.blendmont = done
 
 [function = test-newstack]
 assert.file.exists = prenewst%{axis}.log

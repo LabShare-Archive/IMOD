@@ -5,6 +5,14 @@ function = dataset
 function = scan-header
 function = done
 
+[function = montage]
+function = dataset
+rb.montage =
+tf.pixel-size = %{pixel-size}
+tf.fiducial-diameter = %{fiducial-diameter}
+tf.image-rotation = %{image-rotation}
+function = done
+
 [function = build_single]
 function = dataset
 function = single
