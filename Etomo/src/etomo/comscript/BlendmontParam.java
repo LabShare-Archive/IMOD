@@ -77,10 +77,12 @@ public class BlendmontParam implements CommandParam, CommandDetails {
     imageOutputFile = null;
     binByFactor = new ScriptParameter(EtomoNumber.Type.INTEGER, "BinByFactor");
     // Only explcitly write out the binning if its value is something other than
-    // the default of 1 to keep from cluttering up the com script  
+    // the default of 1 to keep from cluttering up the com script
     binByFactor.setDefault(1);
     startingAndEndingX.setIntegerType(new boolean[] { true, true });
+    startingAndEndingX.setDivider(' ');
     startingAndEndingY.setIntegerType(new boolean[] { true, true });
+    startingAndEndingY.setDivider(' ');
   }
 
   public void parseComScriptCommand(ComScriptCommand scriptCommand)
@@ -372,6 +374,10 @@ public class BlendmontParam implements CommandParam, CommandDetails {
 }
 /**
  * <p> $Log$
+ * <p> Revision 1.24  2007/08/16 16:26:03  sueh
+ * <p> bug# 1035 Added startingAndEndingX and Y.  Added functions
+ * <p> convertToStartingAndEndingXandY and resetStartingAndEndingXandY.
+ * <p>
  * <p> Revision 1.23  2007/05/11 15:06:21  sueh
  * <p> bug# 964 Added getStringArray().
  * <p>
