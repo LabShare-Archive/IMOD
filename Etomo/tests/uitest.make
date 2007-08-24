@@ -16,3 +16,5 @@ build-single:
 	$(IMOD_UITEST_SCRIPT)/uitest build-single
 build-dual-fidless:
 	$(IMOD_UITEST_SCRIPT)/uitest build-dual-fidless
+build-dual-montage:
+	$(IMOD_UITEST_SCRIPT)/uitest build-dual-montage
