@@ -1,49 +1,14 @@
-/*  IMOD VERSION 2.7.9
- *
+/* 
  *  dialog_frame.cpp       Implementation of a base class for non-modal dialogs
  *
  *  Author: David Mastronarde   email: mast@colorado.edu
- */
-
-/*****************************************************************************
- *   Copyright (C) 1995-2002 by Boulder Laboratory for 3-Dimensional         *
- *   Electron Microscopy of Cells ("BL3DEMC") and the Regents of the         *
- *   University of Colorado.                                                 *
- *                                                                           *
- *   BL3DEMC reserves the exclusive rights of preparing derivative works,    *
- *   distributing copies for sale, lease or lending and displaying this      *
- *   software and documentation.                                             *
- *   Users may reproduce the software and documentation as long as the       *
- *   copyright notice and other notices are preserved.                       *
- *   Neither the software nor the documentation may be distributed for       *
- *   profit, either in original form or in derivative works.                 *
- *                                                                           *
- *   THIS SOFTWARE AND/OR DOCUMENTATION IS PROVIDED WITH NO WARRANTY,        *
- *   EXPRESS OR IMPLIED, INCLUDING, WITHOUT LIMITATION, WARRANTY OF          *
- *   MERCHANTABILITY AND WARRANTY OF FITNESS FOR A PARTICULAR PURPOSE.       *
- *                                                                           *
- *   This work is supported by NIH biotechnology grant #RR00592,             *
- *   for the Boulder Laboratory for 3-Dimensional EM of Cells.               *
- *   University of Colorado, MCDB Box 347, Boulder, CO 80309                 *
- *****************************************************************************/
-/*  $Author$
-
-$Date$
-
-$Revision$
-Log at end of file
-*/
-
-/* DialogFrame provides a widget whose default style is to be a dialog box that
-   destroys itself on closing.  Its main area is a QVBoxLayout, mLayout,
-   that can be populated with widgets by the inheriting class.  The bottom
-   row(s) will have numButton buttons, with text given in "labels".  The
-   buttons will be equally sized if equalSized is true; otherwise they will
-   all be just big enough for their respective text.  The window title will
-   be set to "caption", or to "fallback" if "caption" is null.
-   The alternate construction with "numRows" and "rounded" allows the buttons 
-   to be on more than one row and allows specification of whether the style
-   has rounded buttons.
+ *
+ *  Copyright (C) 1995-2006 by Boulder Laboratory for 3-Dimensional Electron
+ *  Microscopy of Cells ("BL3DEMC") and the Regents of the University of 
+ *  Colorado.  See dist/COPYRIGHT for full copyright notice.
+ *
+ *  $Id$
+ *  Log at end of file
  */
 
 #include <qlayout.h>
@@ -54,6 +19,21 @@ Log at end of file
 #include "dialog_frame.h"
 #include "dia_qtutils.h"
 
+/*!
+ * DialogFrame provides a widget whose default style is to be a dialog box that
+ * destroys itself on closing.  Its main area is a QVBoxLayout, protected
+ * member {mLayout}, that can be populated with widgets by the inheriting 
+ * class.  The bottom row(s) will have [numButton] buttons, with text given in
+ * [labels].  Tooltips for each button can be provided in [tips] if it is
+ * non-NULL.  The buttons will be equally sized if [equalSized] is true; 
+ * otherwise they will all be just big enough for their respective text.  The
+ * window title will be set to [caption], or to [fallback] if [caption] is 
+ * NULL.  [name] defaults to 0, [fl] defaults to
+ * Qt::WDestructiveClose | Qt::WType_TopLevel.
+ * ^ The class emits two signals: actionPressed(int which) and 
+ * actionClicked(int which)
+ * with the argument providing the number of the button pressed or clicked.
+ */
 DialogFrame::DialogFrame(QWidget *parent, int numButtons, char *labels[], 
 			 char *tips[],
 			 bool equalSized, char *caption, char *fallback,
@@ -64,6 +44,11 @@ DialogFrame::DialogFrame(QWidget *parent, int numButtons, char *labels[],
                   caption, fallback, name, fl);
 }
 
+/*!
+ * This alternate constructor includes [numRows] to specify the number of rows,
+ * and [rounded] to indicate that the style has rounded buttons.  Other
+ * items are as above.
+ */
 DialogFrame::DialogFrame(QWidget *parent, int numButtons, int numRows,
                          char *labels[], char *tips[], bool equalSized,
                          bool rounded, char *caption, char *fallback,
@@ -172,6 +157,11 @@ void DialogFrame::setFontDependentWidths()
   }
 }
 
+/*!
+ * A virtual protected function that maintains the size of the buttons upon
+ * font change.  Note that the class has a non-virtual {setFontDependentWidths}
+ * member function so a different name would be needed in the inheriting class.
+ */
 void DialogFrame::fontChange(const QFont &oldFont)
 {
   setFontDependentWidths();
@@ -190,6 +180,9 @@ void DialogFrame::actionButtonClicked(int which)
 
 /*
 $Log$
+Revision 1.6  2004/11/04 23:32:44  mast
+Changes for rounded button style
+
 Revision 1.5  2004/06/23 03:35:41  mast
 Added ability to put buttons on multiple lines
 

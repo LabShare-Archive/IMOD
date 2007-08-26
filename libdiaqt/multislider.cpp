@@ -1,6 +1,5 @@
-/*  IMOD VERSION 2.7.9
- *
- *  multislider.cpp       Implementation of class multiple horizontal sliders
+/*
+ *  multislider.cpp     Implementation of class for multiple horizontal sliders
  *
  *  Author: David Mastronarde   email: mast@colorado.edu
  *
@@ -9,17 +8,7 @@
  *  Colorado.  See dist/COPYRIGHT for full copyright notice.
  * 
  *  $Id$
- * $Author$
- * $Date$
- * $Revision$
- * 
  *  Log at end of file
-*/
-
-/* This class provides an arbitrary number of horizontal sliders, each with
- * a label and an integer numeric output that is managed as the slider is
- * dragged.  As the value changes, it emits a signal that indicates the
- * slider number, its value, and whether it is being dragged. 
  */
 
 #include <math.h>
@@ -34,6 +23,22 @@
 
 static char *deciFormats[MAX_DECIMALS + 1] = {"%d", "%.1f", "%.2f", "%.3f",
 					      "%.4f", "%.5f", "%.6f"};
+
+/*!
+ * This class provides an arbitrary number of horizontal sliders, each with
+ * a label and an integer numeric output that is managed as the slider is
+ * dragged.  The number of sliders is set in [numSliders], their text labels 
+ * in [titles].  Overall minimal and maximum values and number of decimal
+ * places can be set with [minVal] (default 0), [maxVal] (default 255), and
+ * [decimals] (default 0).  Set [horizontal] flag to true to have the sliders
+ * arranged in a QHBoxLayout instead of a QVBoxLayout.  The layout can be
+ * obtained with:
+ * ^   QBoxLayout *getLayout();
+ * ^ As a slider value changes, the class emits a signal:
+ * ^   void sliderChanged(int slider, int value, bool dragging);
+ * ^ with [slider] equal to the slider number, [value] with the new integer
+ * value, and [dragging] true if the slider is being dragged.
+ */
 
 MultiSlider::MultiSlider(QWidget *parent, int numSliders, char *titles[], 
                          int minVal, int maxVal, int decimals, bool horizontal)
@@ -119,7 +124,10 @@ MultiSlider::~MultiSlider()
   delete [] mDecimals;
 }
 
-// Set the number of decimals to display
+/*! 
+ * Sets the number of decimals to display for the given slider number to 
+ * [decimals].
+ */
 void MultiSlider::setDecimals(int slider, int decimals)
 {
   /* fprintf(stderr, "setDecimals slider %d decimals %d mHorizontal %d\n", slider,
@@ -134,7 +142,9 @@ void MultiSlider::setDecimals(int slider, int decimals)
   mDecimals[slider] = decimals;
 }
 
-// They emit signals when they are set, which is a trap for the unwary
+/*!
+ * Sets the value of the given slider to [value] with signals blocked.
+ */
 void MultiSlider::setValue(int slider, int value)
 {
   if (slider >=0 && slider < mNumSliders) {
@@ -145,6 +155,10 @@ void MultiSlider::setValue(int slider, int value)
   }    
 }
 
+/*!
+ * Sets the range of the given slider to [minVal], [maxVal] with signals
+ * blocked.
+ */
 void MultiSlider::setRange(int slider, int minVal, int maxVal)
 {
   if (slider >=0 && slider < mNumSliders) {
@@ -154,6 +168,9 @@ void MultiSlider::setRange(int slider, int minVal, int maxVal)
   }
 }
 
+/*!
+ * Returns a pointer to the given slider, or NULL if the value is out of range.
+ */
 QSlider *MultiSlider::getSlider(int slider)
 {
   if (slider >=0 && slider < mNumSliders)
@@ -215,6 +232,9 @@ void MultiSlider::sliderReleased(int which)
 }
 /*
 $Log$
+Revision 1.5  2007/06/30 00:41:33  sueh
+bug# 1021 Fixed the copyright.
+
 Revision 1.4  2007/06/29 21:08:27  sueh
 bug# 1021 Allow horizontal, one-line slider lists.
 

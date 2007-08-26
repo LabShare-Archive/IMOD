@@ -7,28 +7,29 @@
  *  Copyright (C) 1995-2005 by Boulder Laboratory for 3-Dimensional Electron
  *  Microscopy of Cells ("BL3DEMC") and the Regents of the University of 
  *  Colorado.  See dist/COPYRIGHT for full copyright notice.
+ *
+ *  $Id$
+ *  Log at end of file
  */
-
-
-/*  $Author$
-
-$Date$
-
-$Revision$
-
-Log at end
-*/
 
 #include <string.h>
 #include <math.h>
 #include "imodel.h"
 
+/*!
+ * Allocates a new array of @@Iview structure@ of the given size. 
+ * Returns NULL for error.
+ */
 Iview *imodViewNew(int size)
 {
   Iview *view = (Iview *)malloc(sizeof(Iview) * size);
   return view;
 }
 
+/*!
+ * Frees the @@Iview structure@ or array of Iviews in [vw], without freeing
+ * any object views.
+ */
 void imodViewDelete(Iview *vw)
 {
   if (vw)
@@ -36,8 +37,10 @@ void imodViewDelete(Iview *vw)
   return;
 }
 
-/* Set default entries for a view with no model information, i.e. set the
-   rad to 1.0 and have no object views */
+/*!
+ * Sets default entries for the view [vw] with no model information, i.e. sets
+ * the rad to 1.0 and assumes no object views 
+ */
 void imodViewDefault(Iview *vw)
 {
   int i;
@@ -70,7 +73,13 @@ void imodViewDefault(Iview *vw)
   return;
 }
 
-/* Set the default scaling for a view based on current model dimensions */
+/*!
+ * Sets the default scaling for a view [vw] based on current model dimensions
+ * in model [imod].  If the model is empty and has no extent, it assumes the
+ * image dimensions given in [imageMax].  The ratio of Z binning to X/Y binning
+ * given in [binScale], as well as the model {zscale}, is used to scale the 
+ * Z dimensions.
+ */
 void imodViewDefaultScale(Imod *imod, Iview *vw, Ipoint *imageMax, 
                           float binScale)
 {
@@ -115,8 +124,11 @@ void imodViewDefaultScale(Imod *imod, Iview *vw, Ipoint *imageMax,
   return;
 }
 
-/* Set up a default view given model information that can give scale.
-   No longer used in 3dmod but kept for consistency and for RIB conversion */
+/*!
+ * Sets up a default view in [vw] given model information in [imod] and image 
+ * dimensions in [imageMax].
+ * No longer used in 3dmod but kept for consistency and for RIB conversion 
+ */
 void imodViewModelDefault(Imod *imod, Iview *vw, Ipoint *imageMax)
 {
   if (!imod || !vw)
@@ -130,10 +142,13 @@ void imodViewModelDefault(Imod *imod, Iview *vw, Ipoint *imageMax)
    9/19/04, added clip plane arrays */
 #define BYTES_PER_OBJVIEW (43 + 24 * IMOD_CLIPSIZE)
 
-/* Write a view, including object views and model clip plane chunk
-   For backward compatibility, need to add all new elements at end of write
+/*!
+ * Writes an @@Iview structure@ [vw], including object views and a model clip
+ * plane chunk, to the file [fout].  Clip plane points are scaled by [scale],
+ * and normals are scaled by the inverse.  Returns IMOD_ERROR_WRITE for error.
+ */
+/* For backward compatibility, need to add all new elements at end of write
    so the array elements after the first have to be written at end */
-
 int imodViewWrite(Iview *vw, FILE *fout, Ipoint *scale)
 {
   unsigned int id;
@@ -210,6 +225,11 @@ int imodViewWrite(Iview *vw, FILE *fout, Ipoint *scale)
     return(0);
 }
 
+/*
+ * Writes all actual views (1 through {viewsize}) in model [imod] to the model
+ * element {file}, with clip planes scaled by [scale].  Returns 
+ * IMOD_ERROR_WRITE for error.
+ */
 int imodViewModelWrite(Imod *imod, Ipoint *scale)
 {
   int i, id, bsize;
@@ -229,6 +249,11 @@ int imodViewModelWrite(Imod *imod, Ipoint *scale)
   return(0);
 }
 
+/*!
+ * Reads one @@Iview structure@ into model [imod] from the model element 
+ * {file}, and adds it to the model's view array.  Reads object views as well.
+ * Returns IMOD_ERROR_READ for error.
+ */
 int imodViewModelRead(Imod *imod)
 {
   FILE *fin = imod->file;
@@ -355,13 +380,20 @@ int imodViewModelRead(Imod *imod)
     return(0);
 }
 
-/* Read the variable-sized model clip plane chunk */
+/*! 
+ * Reads the variable-sized model clip plane chunk.  Returns
+ * IMOD_ERROR_READ for error.
+ */
 int imodViewClipRead(Imod *imod)
 {
   Iview *vw = &imod->view[imod->viewsize - 1];
   return(imodClipsRead(&vw->clips, imod->file));
 }
 
+/*!
+ * Adds a new view to {view} array in the model [imod] and assigns it default 
+ * properties.  Returns IMOD_ERROR_MEMORY for memory error.
+ */
 int imodViewModelNew(Imod *imod)
 {
   int i, ni = imod->viewsize + 1;
@@ -380,7 +412,10 @@ int imodViewModelNew(Imod *imod)
   return(0);
 }
 
-/* Copy all of the characteristics from an object view to an object */
+/*!
+ * Copies all of the characteristics from the @@Objview structure@ [objview]
+ * to the object [obj]
+ */
 void imodObjviewToObject(Iobjview *objview, Iobj *obj)
 {
   obj->flags = objview->flags;
@@ -397,7 +432,10 @@ void imodObjviewToObject(Iobjview *objview, Iobj *obj)
 }
 
 
-/* Copy all of the characteristics from an object to an object view */
+/*!
+ * Copies all of the characteristics from the object [obj] to the object view
+ * [objview].
+ */
 void imodObjviewFromObject(Iobj *obj, Iobjview *objview)
 {
   objview->flags = obj->flags;
@@ -413,6 +451,11 @@ void imodObjviewFromObject(Iobj *obj, Iobjview *objview)
   memcpy (&objview->fillred, &obj->fillred, 12);
 }
 
+/*!
+ * Makes the view specified by the {cview} element of model [imod] be the 
+ * current view by copying it to the default view (element 0 of the {view}
+ * array) and setting object properties from any object views.
+ */
 void imodViewUse(Imod *imod)
 {
   int nobj, i;
@@ -440,6 +483,11 @@ void imodViewUse(Imod *imod)
     imodObjviewToObject(&vw->objview[i], &imod->obj[i]);
 }
 
+/*!
+ * Stores the default view and information about all objects in the [cview]
+ * element of the {view} array of model [imod].  Returns IMOD_ERROR_MEMORY for
+ * memory error.
+ */
 int imodViewStore(Imod *imod, int cview)
 {
   int i;
@@ -465,8 +513,11 @@ int imodViewStore(Imod *imod, int cview)
   return (0);
 }
 
-/* Make the model views have a complete set of objviews, copying from 
- object properties into all views if any need to be created */
+/*!
+ * Makes the actual model views in [imod] have a complete set of object views,
+ * copying from object properties into all views if any need to be created.
+ * Returns IMOD_ERROR_MEMORY for error.
+ */
 int imodObjviewComplete(Imod *imod)
 {
   int i, j;
@@ -497,7 +548,10 @@ int imodObjviewComplete(Imod *imod)
   return 0;
 }
 
-/* Delete the object views for one object from all of the views */
+/*!
+ * Deletes the object views for object [index] from all of the views in model
+ * [imod].
+ */
 void imodObjviewDelete(Imod *imod, int index)
 {
   int i, j;
@@ -521,7 +575,9 @@ void imodObjviewDelete(Imod *imod, int index)
   }
 }
 
-/* Free the object views from all views */
+/*! 
+ * Frees the object views from all views in model [imod].
+ */
 void imodObjviewsFree(Imod *imod)
 {
   int i;
@@ -537,7 +593,10 @@ void imodObjviewsFree(Imod *imod)
 }
 
 /* Image File view functions. */
-
+/*!
+ * Allocates an @@IrefImage structure@ and reads the IMONX chunk for model
+ * [imod].  Returns -1 for error.
+ */
 int imodIMNXRead(Imod *imod)
 {
   FILE *fin  = imod->file;
@@ -561,6 +620,10 @@ int imodIMNXRead(Imod *imod)
   return(0);
 }
 
+/*!
+ * Writes the @@IrefImage structure@ {refImage} in model [imod] if any.
+ * Returns -1 if there is none.
+ */
 int imodIMNXWrite(Imod *imod)
 {
   int id = ID_IMNX;
@@ -581,6 +644,9 @@ int imodIMNXWrite(Imod *imod)
 
 /*
 $Log$
+Revision 3.14  2006/09/13 02:44:08  mast
+Fixed memory leaks
+
 Revision 3.13  2006/08/31 21:11:29  mast
 Changed mat1 and mt3 to real names
 

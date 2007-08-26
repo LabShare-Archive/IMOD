@@ -176,14 +176,16 @@ typedef struct Mod_Planes
 /* END_CODE */
 /* END_SECTION */
 
+/* DOC_SECTION VIEWS */
 
-/* Describes a 3D view of a model. */
-#define VIEW_WORLD_ON         1
-#define VIEW_WORLD_LIGHT      (1l << 1)
-#define VIEW_WORLD_DEPTH_CUE  (1l << 2)
-#define VIEW_WORLD_WIREFRAME  (1l << 3)
+/* DOC_CODE World flags */
+/* Definitions for bits of the Iview world flag */
+#define VIEW_WORLD_ON         1         /* Use mat matrix for transformation */
+#define VIEW_WORLD_LIGHT      (1l << 1)  /* Use lighting */
+#define VIEW_WORLD_DEPTH_CUE  (1l << 2)  /* Enable depth cueing */
+#define VIEW_WORLD_WIREFRAME  (1l << 3)  /* Show wireframe not surface */
 
-#define VIEW_WORLD_STEREO   (1l << 4) /* Stereo flags */
+#define VIEW_WORLD_STEREO   (1l << 4)    /* Stereo flags (Unused 8/21/07) */
 #define VIEW_WORLD_HARDWARE (1l << 5)
 #define VIEW_WORLD_UPDOWN   (1l << 6)
 #define VIEW_WORLD_LOWRES  (1l << 7)
@@ -192,9 +194,11 @@ typedef struct Mod_Planes
 #define WORLD_QUALITY_SHIFT  8
 #define WORLD_QUALITY_BITS   (7l << WORLD_QUALITY_SHIFT)
 
-#define WORLD_KICKOUT_CLIPS (1l << 11)
-#define WORLD_MOVE_ALL_CLIP (1l << 12)
+#define WORLD_KICKOUT_CLIPS (1l << 11)  /* Push Z clipping planes far out */
+#define WORLD_MOVE_ALL_CLIP (1l << 12)  /* Move all clipping planes together */
+/* END_CODE */
 
+/* DOC_CODE Iobjview structure */
 /* Properties of an object that are stored in a view */
 typedef struct Mod_Object_View
 {
@@ -226,7 +230,10 @@ typedef struct Mod_Object_View
   b3dUByte mat3b2;    /* First two bits: skip low and high end in value draw */
   b3dUByte mat3b3;    /* Unused */
 }Iobjview;
+/* END_CODE */
 
+/* DOC_CODE Iview structure */
+/* Properties of a model view */
 typedef struct
 {
   /* Set up the camera */
@@ -234,29 +241,32 @@ typedef struct
   b3dFloat  rad;    /* viewing radius of sphere encloseing bounding box. */
   b3dFloat  aspect; /* aspect ratio */
   b3dFloat  cnear;  /* clip near range 0.0 to 1.0, default 0.0. */
-  b3dFloat  cfar;   
+  b3dFloat  cfar;   /* clip far range 0.0 to 1.0, default 1.0. */
      
-  /* Model transformation values for model view.
-   */
+  /* Model transformation values for model view. */
   Ipoint rot;
   Ipoint trans;
   Ipoint scale;
 
-  /* World OpenGL transformation matrix. */
+  /* World OpenGL transformation matrix (unused 8/21/07). */
   b3dFloat mat[16];
 
-  b3dInt32 world;    /* flags, true if we use world matrix. */
-  b3dByte  label[32];
+  b3dInt32 world;       /* flags */
+  b3dByte  label[32];   /* Label for view */
 
-  b3dFloat dcstart, dcend;
-  b3dFloat lightx, lighty;
-  b3dFloat plax;
-  IclipPlanes clips;
-  Iobjview *objview;    /* properties of each object */
-  b3dInt32 objvsize;       /* Number of objects properties exist for */
+  b3dFloat dcstart, dcend;  /* Depth cue start and end */
+  b3dFloat lightx, lighty;  /* Light position X and Y */
+  b3dFloat plax;            /* Parallax angle for stereo */
+  IclipPlanes clips;        /* Global clipping planes */
+  Iobjview *objview;        /* Array of properties of each object */
+  b3dInt32 objvsize;        /* Number of objects properties exist for */
      
 }Iview;
+/* END_CODE */
 
+/* DOC_CODE IrefImage structure */
+/* A structure for keeping track of current and previous image transformation
+ * information for a model loaded on an image file */
 typedef struct
 {
   Ipoint oscale;
@@ -268,25 +278,30 @@ typedef struct
   Ipoint crot;
 
 }IrefImage;
+/* END_CODE */
+/* END_SECTION */
 
-
+/* DOC_SECTION LABELS */
+/* DOC_CODE Ilabel structure */
 /*
- *  Label Data for Contours.
+ *  Label Data for Contours and points.
  */
 typedef struct
 {
-  b3dByte *name;
-  b3dInt32  len;
-  b3dInt32 index;
+  b3dByte *name;     /* The name string for this item */
+  b3dInt32  len;     /* Length of name string */
+  b3dInt32 index;    /* A value associated with this label */
 }IlabelItem;
 
 typedef struct
 {
-  b3dByte       *name;
-  b3dInt32         len;
-  b3dInt32        nl;
-  IlabelItem *label;
+  b3dByte       *name;   /* The name string for the label */
+  b3dInt32         len;  /* Length of name */
+  b3dInt32        nl;    /* Number of sub-label items */
+  IlabelItem *label;     /* Array of items */
 }Ilabel;
+/* END_CODE */
+/* END_SECTION */
 
 
 /* DOC_SECTION MESHPARAMS */
@@ -679,6 +694,9 @@ extern "C" {
 
 /*    
     $Log$
+    Revision 3.37  2007/06/22 04:58:54  mast
+    Doc changes
+
     Revision 3.36  2007/05/25 05:18:11  mast
     Changes for slicer angle storage
 

@@ -1,49 +1,15 @@
-/*  IMOD VERSION 2.7.9
- *
+/* 
  *  colorselector.cpp       Implementation of color selector class
  *
  *  Author: David Mastronarde   email: mast@colorado.edu
+ *
+ *  Copyright (C) 1995-2006 by Boulder Laboratory for 3-Dimensional Electron
+ *  Microscopy of Cells ("BL3DEMC") and the Regents of the University of 
+ *  Colorado.  See dist/COPYRIGHT for full copyright notice.
+ *
+ *  $Id$
+ *  Log at end of file
  */
-
-/*****************************************************************************
- *   Copyright (C) 1995-2002 by Boulder Laboratory for 3-Dimensional         *
- *   Electron Microscopy of Cells ("BL3DEMC") and the Regents of the         *
- *   University of Colorado.                                                 *
- *                                                                           *
- *   BL3DEMC reserves the exclusive rights of preparing derivative works,    *
- *   distributing copies for sale, lease or lending and displaying this      *
- *   software and documentation.                                             *
- *   Users may reproduce the software and documentation as long as the       *
- *   copyright notice and other notices are preserved.                       *
- *   Neither the software nor the documentation may be distributed for       *
- *   profit, either in original form or in derivative works.                 *
- *                                                                           *
- *   THIS SOFTWARE AND/OR DOCUMENTATION IS PROVIDED WITH NO WARRANTY,        *
- *   EXPRESS OR IMPLIED, INCLUDING, WITHOUT LIMITATION, WARRANTY OF          *
- *   MERCHANTABILITY AND WARRANTY OF FITNESS FOR A PARTICULAR PURPOSE.       *
- *                                                                           *
- *   This work is supported by NIH biotechnology grant #RR00592,             *
- *   for the Boulder Laboratory for 3-Dimensional EM of Cells.               *
- *   University of Colorado, MCDB Box 347, Boulder, CO 80309                 *
- *****************************************************************************/
-/*  $Author$
-
-$Date$
-
-$Revision$
-Log at end of file
-*/
-
-/* This class provides a color selector with a smaple color panel, and three
- * sliders for adjusting red, green, and blue.  It manages the color of the
- * panel continuously during changes, and emits a signal for a new color
- * if the slider is clicked.  It will also emit signals during a drag if 
- * hotFlag is not 2; if the key given by hotKey is up when hotFlag is 0;
- * or when it is down when hotFlag is 1.
- * It also emits signals when done is pressed, when it is closing, and 
- * when keys are pressed or released
- */
-
 #include <qframe.h>
 #include <qlayout.h>
 #include <qlabel.h>
@@ -62,6 +28,25 @@ static char *buttonTips[] =
    "Restore to starting color when selector was opened",
    "Select color with Qt color selector box"};
 
+/*!
+ * This class provides a color selector with a sample color panel, and three
+ * sliders for adjusting red, green, and blue.  [label] is used to set a
+ * label at the top of the panel, and the color is initialized with [red], 
+ * [green], and [blue].  It manages the color of the
+ * panel continuously during changes, and emits a signal for a new color
+ * if the slider is clicked.  It will also emit signals during a drag if 
+ * [hotFlag] is not 2; if the key given by [hotKey] is up when [hotFlag] is 0;
+ * or if that key is down when [hotFlag] is 1.  [name] defaults to NULL, and
+ * the window flags default to Qt::WDestructiveClose | Qt::WType_TopLevel.
+ * ^     Signals emitted are:
+ * ^ void newColor(int r, int g, int b);  -  When the color changes
+ * ^ void done();   -  When the Done button is pressed
+ * ^ void closing();  -  When the window is closing
+ * ^ void keyPress(QKeyEvent *e);   -  When a key is pressed
+ * ^ void keyRelease(QKeyEvent *e);  -  When a key is released
+ * ^     In addition, there is one method:
+ * ^ bool hotSliding();  -  Returns true is a slider is being dragged
+ */
 ColorSelector::ColorSelector(QWidget *parent, QString label, int red,
                              int green, int blue, int hotFlag, int hotKey,
                              bool rounded, const char *name, WFlags fl)
@@ -224,6 +209,9 @@ void ColorSelectorGL::timerEvent(QTimerEvent *e)
 
 /*
 $Log$
+Revision 1.10  2004/11/20 05:06:48  mast
+Provide a way to determine if sliders are being dragged
+
 Revision 1.9  2004/11/04 23:32:44  mast
 Changes for rounded button style
 

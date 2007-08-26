@@ -1,60 +1,27 @@
-/*  IMOD VERSION 2.02
- *
+/*
  *  ilabel.c -- labels for points and contours.
  *
- *  Author: James Kremer email: kremer@colorado.edu
+ *  Author: James Kremer
+ *
+ *  Copyright (C) 1995-2006 by Boulder Laboratory for 3-Dimensional Electron
+ *  Microscopy of Cells ("BL3DEMC") and the Regents of the University of 
+ *  Colorado.  See dist/COPYRIGHT for full copyright notice.
+ *
+ *  $Id$
+ *  Log at end of file
  */
-
-/*****************************************************************************
- *   Copyright (C) 1995-1996 by Boulder Laboratory for 3-Dimensional Fine    *
- *   Structure ("BL3DFS") and the Regents of the University of Colorado.     *
- *                                                                           *
- *   BL3DFS reserves the exclusive rights of preparing derivative works,     *
- *   distributing copies for sale, lease or lending and displaying this      *
- *   software and documentation.                                             *
- *   Users may reproduce the software and documentation as long as the       *
- *   copyright notice and other notices are preserved.                       *
- *   Neither the software nor the documentation may be distributed for       *
- *   profit, either in original form or in derivative works.                 *
- *                                                                           *
- *   THIS SOFTWARE AND/OR DOCUMENTATION IS PROVIDED WITH NO WARRANTY,        *
- *   EXPRESS OR IMPLIED, INCLUDING, WITHOUT LIMITATION, WARRANTY OF          *
- *   MERCHANTABILITY AND WARRANTY OF FITNESS FOR A PARTICULAR PURPOSE.       *
- *                                                                           *
- *   This work is supported by NIH biotechnology grant #RR00592,             *
- *   for the Boulder Laboratory for 3-Dimensional Fine Structure.            *
- *   University of Colorado, MCDB Box 347, Boulder, CO 80309                 *
- *****************************************************************************/
-/*  $Author$
-
-$Date$
-
-$Revision$
-
-$Log$
-Revision 3.4  2004/11/05 18:53:00  mast
-Include local files with quotes, not brackets
-
-Revision 3.3  2004/09/21 20:10:42  mast
-Added tag argument for label writing
-
-Revision 3.2  2003/02/27 00:34:40  mast
-add projects' *.dsw *.dsp
-
-Revision 3.1  2003/02/21 22:20:37  mast
-Use new b3d types
-
-*/
 
 #include <string.h>
 #include "imodel.h"
 
-/*#include <unistd.h>*/
-
-/* create a new empty label. */
+/*!
+ * Create a new empty @@Ilabel structure@.  Returns NULL for error. 
+ */
 Ilabel *imodLabelNew()
 {
   Ilabel *label = (Ilabel *)malloc(sizeof(Ilabel));
+  if (!label)
+    return NULL;
   label->nl     = 0;
   label->name   = NULL;
   label->label  = NULL;
@@ -62,7 +29,9 @@ Ilabel *imodLabelNew()
   return(label);
 }
 
-/* delete a label, free all data. */
+/*!
+ * Deletes[label], freeing all data.
+ */
 void imodLabelDelete(Ilabel *label)
 {
   int l;
@@ -80,7 +49,10 @@ void imodLabelDelete(Ilabel *label)
   free(label);
 }
 
-/* Duplicate a label; return NULL if error or no existing label */
+/*!
+ * Duplicates [label] and returns the copy; returns NULL if error or if no 
+ * existing label, i.e. [label] is NULL
+ */
 Ilabel *imodLabelDup(Ilabel *label)
 {
   Ilabel *newLabel;
@@ -110,7 +82,10 @@ Ilabel *imodLabelDup(Ilabel *label)
   return newLabel;
 }
 
-/* Give the label a title given by val. */
+/*!
+ * Give [label] the title in [val], i.e., set the {name} element of the 
+ * @@Ilabel structure@.
+ */
 void imodLabelName(Ilabel *label, char *val)
 {
   int len;
@@ -132,7 +107,10 @@ void imodLabelName(Ilabel *label, char *val)
   return;
 }
 
-/* Add a label item with the title val and the value given by index. */
+/*!
+ * Adds a label item to [label] with the {name} given by [val] and the value 
+ * given by [index]. 
+ */
 void imodLabelItemAdd(Ilabel *label, char *val, int index)
 {
   IlabelItem *li;
@@ -173,6 +151,10 @@ void imodLabelItemAdd(Ilabel *label, char *val, int index)
   return;
 }
 
+/*!
+ * Changes the index to [to_index] for any item in [label] that has index 
+ * [from_index].
+ */
 void imodLabelItemMove(Ilabel *label, int to_index, int from_index)
 {
   int i;
@@ -186,36 +168,53 @@ void imodLabelItemMove(Ilabel *label, int to_index, int from_index)
   return;
 }
 
+/*!
+ * Deletes the first label item in [label] that has {index} value equal to
+ * [index].
+ */
 void imodLabelItemDelete(Ilabel *label, int index)
 {
   int i;
   int deli = -1;
 
-  if (!label) return;
+  if (!label) 
+    return;
 
-  for(i = 0; i < label->nl; i++)
+  for (i = 0; i < label->nl; i++)
     if (index == label->label[i].index){
       deli = i;
       break;
     }
-  if (deli < 0) return;
+  if (deli < 0) 
+    return;
+  if (label->label[deli].name)
+    free(label->label[deli].name);
   label->nl--;
   for(i = deli; i < label->nl; i++)
     label->label[i] = label->label[i+1];
   return;
 }
 
+/*!
+ * Returns a pointer to the {name} element of the first label item in [label]
+ * that has the {index} value [index].  Returns NULL if none is found or
+ * the label is NULL or has no items.
+ */
 char *imodLabelItemGet(Ilabel *label, int index)
 {
   int i;
 
-  if ((!label) || (!label->nl)) return(NULL);
-  for(i = 0; i < label->nl; i++)
+  if ((!label) || (!label->nl)) 
+    return(NULL);
+  for (i = 0; i < label->nl; i++)
     if (index == label->label[i].index)
       return(label->label[i].name);
   return(NULL);
 }
 
+/*!
+ * Prints the contour label [lab] and its items to file [fout].
+ */
 void imodLabelPrint(Ilabel *lab, FILE *fout)
 {
   if (!lab) return;
@@ -230,7 +229,7 @@ void imodLabelPrint(Ilabel *lab, FILE *fout)
   return;
 }
 
-
+/* MATCHING STUFF, UNUSED 8/21/07 */
 /*
  * return true if label name matches the test strin tstr.
  */
@@ -329,7 +328,9 @@ static int getpadlen(char *string)
   return len;
 }
 
-
+/*!
+ * Writes a label [lab] with the chunk ID in [tag] to the model file [fout].
+ */
 int imodLabelWrite(Ilabel *lab, b3dUInt32 tag, FILE *fout)
 {
   b3dUInt32 id;
@@ -388,16 +389,19 @@ int imodLabelWrite(Ilabel *lab, b3dUInt32 tag, FILE *fout)
     return(0);
 }
 
+/*!
+ * Reads a label chunk from the model file [fin].  Returns NULL and sets [err]
+ * to IMOD_ERROR_MEMORY for memory errors.
+ */
 Ilabel *imodLabelRead(FILE *fin, int *err)
 {
   int retcode = 0;
   Ilabel *lab = imodLabelNew();
   b3dInt32 ml, l;
+  *err = IMOD_ERROR_MEMORY;
 
-  if (!lab){
-    *err = IMOD_ERROR_MEMORY;
+  if (!lab)
     return(NULL);
-  }
 
   /* size of data chunk. */
   ml = imodGetInt(fin);
@@ -408,6 +412,8 @@ Ilabel *imodLabelRead(FILE *fin, int *err)
   /* The name of the label list. */
   lab->len   = imodGetInt(fin);
   lab->name  = (char *)malloc(lab->len);
+  if (!lab->name)
+    return NULL;
   imodGetBytes(fin, (unsigned char *)lab->name, lab->len);
 
   /* The label list. */
@@ -416,6 +422,8 @@ Ilabel *imodLabelRead(FILE *fin, int *err)
     lab->label[l].index = imodGetInt(fin);
     lab->label[l].len   = imodGetInt(fin);
     lab->label[l].name  = (char *)malloc(lab->label[l].len);
+    if (!lab->label[l].name)
+      return NULL;
     imodGetBytes(fin, (unsigned char *)lab->label[l].name, 
                  lab->label[l].len);
   }
@@ -424,3 +432,20 @@ Ilabel *imodLabelRead(FILE *fin, int *err)
   return(lab);
 }
 
+/* $Log$
+Revision 3.5  2004/11/20 04:16:32  mast
+Added duplicate function
+
+Revision 3.4  2004/11/05 18:53:00  mast
+Include local files with quotes, not brackets
+
+Revision 3.3  2004/09/21 20:10:42  mast
+Added tag argument for label writing
+
+Revision 3.2  2003/02/27 00:34:40  mast
+add projects' *.dsw *.dsp
+
+Revision 3.1  2003/02/21 22:20:37  mast
+Use new b3d types
+
+*/

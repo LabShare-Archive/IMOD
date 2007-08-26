@@ -414,6 +414,10 @@ static const char* const down_data[] = {
 ".S#q.M#h.6.e#r#r#h#s.S#t.K",
 ".s.T.8#s#u.7.q#v#u#w.K.U.N"};
 
+/*!
+ * A toolbutton with an arrow icon.  [type] should be one of Qt::UpArrow,
+ * Qt::DownArrow, Qt::LeftArrow, Qt::RightArrow.  [name] defaults to 0.
+ */
 ArrowButton::ArrowButton ( ArrowType type, QWidget * parent, 
                            const char * name) 
   : QToolButton(parent, name)
