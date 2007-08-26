@@ -27,6 +27,7 @@ set debug           = false
 set bin_dir         = $source_dir/bin
 set inc_dir         = $source_dir/include
 set lib_dir         = $source_dir/buildlib
+set libhelp_dir     = $source_dir/html/libhelp
 set include_flags   = "-I. -I$inc_dir"
 set optimization    = "-O2"
 set gfx             = default
@@ -613,6 +614,7 @@ if (! -e include/imod.h) ln -s ../imod/imod.h include/imod.h
 #
 mkdir -p $bin_dir
 mkdir -p $lib_dir
+mkdir -p $libhelp_dir
 mkdir -p $inst_bin_dir
 mkdir -p $inst_lib_dir
 mkdir -p $inst_plug_parent
@@ -918,6 +920,9 @@ exit
 
 #
 #  $Log$
+#  Revision 1.25  2007/08/13 04:58:53  mast
+#  Provisional changes for itanic
+#
 #  Revision 1.24  2006/11/21 00:03:51  mast
 #  Added a /bin/rm -f for RM
 #
