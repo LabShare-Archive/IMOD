@@ -1,0 +1,29 @@
+<html><head><title>
+Iview Module
+</title>
+<body>
+<H2  align="center">Iview Module</H2>
+This module contains functions for manipulating Iview structures, which
+control the model display in the model view window.  These structures also
+contain object view structures, usually one per object, with nearly all of the
+display properties such as color, transparency, etc, associated with
+individual objects.  The model contains an array of view structures.  The
+first element of this array is called the default view, and it used in 3dmod
+as the primary source for display properties.  This default view does not
+contain any object views; the objects themselves are the source of the
+properties used to display them.  Also, the default view is not saved to the
+model file.  The default view is always associated with one of the actual
+views in the array, the current view.  Usually, the current view mirrors the
+default view and has object views that mirror the properties of the objects.
+<P>
+This module also has two functions for reading and writing the image
+transformation information associated with a model.
+<P>
+LIST FUNCTIONS FROM iview.c
+<P>
+LIST CODE FROM ../include/imodel.h VIEWS
+<P>
+DESCRIBE FUNCTIONS FROM iview.c
+<P>
+DESCRIBE CODE FROM ../include/imodel.h VIEWS
+</body>
