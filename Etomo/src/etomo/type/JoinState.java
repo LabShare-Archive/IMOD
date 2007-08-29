@@ -20,6 +20,9 @@ import etomo.BaseManager;
  * @version $Revision$
  * 
  * <p> $Log$
+ * <p> Revision 1.9  2007/06/08 23:57:52  sueh
+ * <p> bug# 995 Added refineTrialUseEveryNSlices.
+ * <p>
  * <p> Revision 1.8  2007/03/01 01:25:47  sueh
  * <p> bug# 964 Saving immutable Number elements instead of EtomoNumber elements
  * <p> in IntKeyList.
@@ -49,7 +52,7 @@ import etomo.BaseManager;
  * <p> processes are run.
  * <p> </p>
  */
-public final class JoinState implements ConstJoinState, BaseState {
+public final class JoinState extends BaseState implements ConstJoinState {
   public static final String rcsid = "$Id$";
 
   public static final String ROTATION_ANGLE_X = "RotationAngleX";
@@ -147,7 +150,6 @@ public final class JoinState implements ConstJoinState, BaseState {
       REFINE_KEY + '.' + TRIAL_KEY + '.' + USE_EVERY_N_SLICES_KEY);
 
   public JoinState(BaseManager manager) {
-    reset();
     this.manager = manager;
   }
 
@@ -155,39 +157,12 @@ public final class JoinState implements ConstJoinState, BaseState {
     return "[joinVersion=" + joinVersion + ",joinSizeInX=" + joinSizeInX + "]";
   }
 
-  void reset() {
-    doneMode.reset();
-    sampleProduced = defaultSampleProduced;
-    gapsExist = null;
-    refineTrial.reset();
-    joinVersion.reset();
-    joinStartList.reset();
-    joinEndList.reset();
-    joinAlignmentRefSection.reset();
-    joinShiftInX.reset();
-    joinShiftInY.reset();
-    joinSizeInX.reset();
-    joinSizeInY.reset();
-    joinTrialVersion.reset();
-    joinTrialStartList.reset();
-    joinTrialEndList.reset();
-    joinTrialAlignmentRefSection.reset();
-    joinTrialShiftInX.reset();
-    joinTrialShiftInY.reset();
-    joinTrialSizeInX.reset();
-    joinTrialSizeInY.reset();
-    joinTrialBinning.reset();
-    refineStartList.reset();
-    refineEndList.reset();
-    joinTrialUseEveryNSlices.reset();
-    refineTrialUseEveryNSlices.reset();
-  }
-
   public void store(Properties props) {
     store(props, "");
   }
 
   public void store(Properties props, String prepend) {
+    super.store( props,  prepend);
     prepend = createPrepend(prepend);
     String group = prepend + ".";
     joinVersion.store(props, prepend);
@@ -238,10 +213,13 @@ public final class JoinState implements ConstJoinState, BaseState {
   }
 
   public boolean equals(JoinState that) {
+    if (!super.equals(that)) {
+      return false;
+    }
     return true;
   }
 
-  protected static String createPrepend(String prepend) {
+    String createPrepend(String prepend) {
     if (prepend == "") {
       return groupString;
     }
@@ -253,7 +231,34 @@ public final class JoinState implements ConstJoinState, BaseState {
   }
 
   public void load(Properties props, String prepend) {
-    reset();
+    super.load( props,  prepend);
+    //reset
+    doneMode.reset();
+    sampleProduced = defaultSampleProduced;
+    gapsExist = null;
+    refineTrial.reset();
+    joinVersion.reset();
+    joinStartList.reset();
+    joinEndList.reset();
+    joinAlignmentRefSection.reset();
+    joinShiftInX.reset();
+    joinShiftInY.reset();
+    joinSizeInX.reset();
+    joinSizeInY.reset();
+    joinTrialVersion.reset();
+    joinTrialStartList.reset();
+    joinTrialEndList.reset();
+    joinTrialAlignmentRefSection.reset();
+    joinTrialShiftInX.reset();
+    joinTrialShiftInY.reset();
+    joinTrialSizeInX.reset();
+    joinTrialSizeInY.reset();
+    joinTrialBinning.reset();
+    refineStartList.reset();
+    refineEndList.reset();
+    joinTrialUseEveryNSlices.reset();
+    refineTrialUseEveryNSlices.reset();
+    //load
     prepend = createPrepend(prepend);
     String group = prepend + ".";
     joinVersion.load(props, prepend);

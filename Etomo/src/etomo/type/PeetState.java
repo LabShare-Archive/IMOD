@@ -15,9 +15,13 @@ import java.util.Properties;
 * 
 * @version $Revision$
 * 
-* <p> $Log$ </p>
+* <p> $Log$
+* <p> Revision 1.1  2007/05/11 16:05:45  sueh
+* <p> bug# 964 Class to store the states of variables used in processes after
+* <p> the processes are finished.
+* <p> </p>
 */
-public final class PeetState implements BaseState {
+public final class PeetState extends BaseState {
   public static  final String  rcsid =  "$Id$";
   
   private static final String KEY = "PeetState";
@@ -71,24 +75,27 @@ public final class PeetState implements BaseState {
     return lstThresholdsArray.getWalker();
   }
   
-  private void reset() {
-    parserIterationListSize.reset();
-    parserLstThresholdsArray.reset();
-    iterationListSize.reset();
-    lstThresholdsArray.reset();
-  }
-  
-  private void store(final Properties props, String prepend) {
+  public void store(final Properties props, String prepend) {
+    super.store(props,prepend);
     prepend = createPrepend(prepend);
     parserIterationListSize.store(props,prepend);
     parserLstThresholdsArray.store(props,prepend);
     iterationListSize.store(props,prepend);
     lstThresholdsArray.store(props,prepend);
   }
+  
+  public boolean equals(PeetState input) {
+    return super.equals(input);
+  }
 
-
-  private void load(final Properties props, String prepend) {
-    reset();
+  public void load(final Properties props, String prepend) {
+    super.load(props,prepend);
+    //reset
+    parserIterationListSize.reset();
+    parserLstThresholdsArray.reset();
+    iterationListSize.reset();
+    lstThresholdsArray.reset();
+    //load
     prepend = createPrepend(prepend);
     parserIterationListSize.load(props,prepend);
     parserLstThresholdsArray.load(props,prepend);
@@ -96,7 +103,7 @@ public final class PeetState implements BaseState {
     lstThresholdsArray.load(props,prepend);
   }
   
-  private String createPrepend(final String prepend) {
+   String createPrepend(final String prepend) {
     if (prepend == "") {
       return KEY;
     }

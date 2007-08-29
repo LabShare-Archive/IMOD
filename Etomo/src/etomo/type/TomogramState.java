@@ -26,6 +26,9 @@ import etomo.util.MRCHeader;
  * @version $Revision$
  * 
  * <p> $Log$
+ * <p> Revision 1.30  2007/08/21 21:52:14  sueh
+ * <p> bug# 771 Added tomogramSizeA and B.
+ * <p>
  * <p> Revision 1.29  2007/05/11 16:06:24  sueh
  * <p> bug# 964 Reduced the visibility of createPrepend(String).
  * <p>
@@ -137,7 +140,7 @@ import etomo.util.MRCHeader;
  * <p> bug# 564 Contains state variables to be saved in the .edf file.
  * <p> </p>
  */
-public class TomogramState implements BaseState {
+public class TomogramState extends BaseState {
   public static final String rcsid = "$Id$";
 
   private static final String groupString = "ReconstructionState";
@@ -237,7 +240,6 @@ public class TomogramState implements BaseState {
 
   public TomogramState(ApplicationManager manager) {
     this.manager = manager;
-    reset();
   }
 
   /**
@@ -253,39 +255,6 @@ public class TomogramState implements BaseState {
       firstAxisGroup += '.';
       secondAxisGroup += '.';
     }
-  }
-
-  private void reset() {
-    trimvolFlipped.reset();
-    squeezevolFlipped.reset();
-    madeZFactorsA.reset();
-    madeZFactorsB.reset();
-    newstFiducialessAlignmentA.reset();
-    newstFiducialessAlignmentB.reset();
-    usedLocalAlignmentsA.reset();
-    usedLocalAlignmentsB.reset();
-    invalidEdgeFunctionsA.reset();
-    invalidEdgeFunctionsB.reset();
-    axisZShiftA.reset();
-    axisZShiftB.reset();
-    angleOffsetA.reset();
-    angleOffsetB.reset();
-    sampleAxisZShiftA.reset();
-    sampleAxisZShiftB.reset();
-    sampleAngleOffsetA.reset();
-    sampleAngleOffsetB.reset();
-    sampleXAxisTiltA.reset();
-    sampleXAxisTiltB.reset();
-    fidFileLastModifiedA.reset();
-    fidFileLastModifiedB.reset();
-    seedFileLastModifiedA.reset();
-    seedFileLastModifiedB.reset();
-    fixedFiducialsA.reset();
-    fixedFiducialsB.reset();
-    combineMatchMode = null;
-    combineScriptsCreated.reset();
-    sampleFiducialessA = null;
-    sampleFiducialessB = null;
   }
 
   public void initialize() {
@@ -307,6 +276,7 @@ public class TomogramState implements BaseState {
   }
 
   public void store(Properties props, String prepend) {
+    super.store(props,prepend);
     prepend = createPrepend(prepend);
     String group = prepend + ".";
     trimvolFlipped.store(props, prepend);
@@ -360,6 +330,9 @@ public class TomogramState implements BaseState {
   }
 
   public boolean equals(TomogramState that) {
+    if (!super.equals(that)) {
+      return false;
+    }
     if (!trimvolFlipped.equals(that.trimvolFlipped)) {
       return false;
     }
@@ -441,7 +414,7 @@ public class TomogramState implements BaseState {
     return true;
   }
 
-  static String createPrepend(String prepend) {
+   String createPrepend(String prepend) {
     if (prepend == "") {
       return groupString;
     }
@@ -453,7 +426,39 @@ public class TomogramState implements BaseState {
   }
 
   public void load(Properties props, String prepend) {
-    reset();
+    super.load(props,prepend);
+    //reset
+    trimvolFlipped.reset();
+    squeezevolFlipped.reset();
+    madeZFactorsA.reset();
+    madeZFactorsB.reset();
+    newstFiducialessAlignmentA.reset();
+    newstFiducialessAlignmentB.reset();
+    usedLocalAlignmentsA.reset();
+    usedLocalAlignmentsB.reset();
+    invalidEdgeFunctionsA.reset();
+    invalidEdgeFunctionsB.reset();
+    axisZShiftA.reset();
+    axisZShiftB.reset();
+    angleOffsetA.reset();
+    angleOffsetB.reset();
+    sampleAxisZShiftA.reset();
+    sampleAxisZShiftB.reset();
+    sampleAngleOffsetA.reset();
+    sampleAngleOffsetB.reset();
+    sampleXAxisTiltA.reset();
+    sampleXAxisTiltB.reset();
+    fidFileLastModifiedA.reset();
+    fidFileLastModifiedB.reset();
+    seedFileLastModifiedA.reset();
+    seedFileLastModifiedB.reset();
+    fixedFiducialsA.reset();
+    fixedFiducialsB.reset();
+    combineMatchMode = null;
+    combineScriptsCreated.reset();
+    sampleFiducialessA = null;
+    sampleFiducialessB = null;
+    //load
     prepend = createPrepend(prepend);
     String group = prepend + ".";
     setAxisPrepends(manager.getMetaData());
