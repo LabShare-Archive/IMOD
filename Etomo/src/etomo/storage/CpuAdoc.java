@@ -144,7 +144,7 @@ public class CpuAdoc {
       unitsSpeed = loadStringAttribute(autodoc, "units", "speed");
       unitsMemory = loadStringAttribute(autodoc, "units", "memory");
       loadAttribute(maxTilt, autodoc, "max", "tilt");
-      loadAttribute(maxTilt, autodoc, "max", "volcombine");
+      loadAttribute(maxVolcombine, autodoc, "max", "volcombine");
       loadComputers(autodoc);
       if (computerList.size() == 0) {
         loadImodProcessors(axisID,  manager);
@@ -375,6 +375,10 @@ public class CpuAdoc {
 }
 /**
  * <p> $Log$
+ * <p> Revision 1.9  2007/07/17 21:25:47  sueh
+ * <p> bug# 1018 Move data reading and storage to CpuAdoc, except mount
+ * <p> rules.
+ * <p>
  * <p> Revision 1.8  2007/05/22 21:07:57  sueh
  * <p> bug# 999 Added class Computer, to hold section level data.  Added users.
  * <p>
