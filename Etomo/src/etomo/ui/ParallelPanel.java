@@ -223,7 +223,7 @@ public final class ParallelPanel implements ParallelProgressDisplay,
   private void action(final ActionEvent event) {
     String command = event.getActionCommand();
     if (command == btnResume.getActionCommand()) {
-      manager.resume(axisID, processchunksParam, processResultDisplay);
+      manager.resume(axisID, processchunksParam, processResultDisplay,rootPanel);
     }
     else if (command == btnPause.getActionCommand()) {
       manager.pause(axisID);
@@ -394,6 +394,9 @@ public final class ParallelPanel implements ParallelProgressDisplay,
 }
 /**
  * <p> $Log$
+ * <p> Revision 1.55  2007/08/08 14:53:30  sueh
+ * <p> bug# 834 Fixed the parallel processing check box label.
+ * <p>
  * <p> Revision 1.54  2007/07/17 21:36:35  sueh
  * <p> bug# 1018 Moved getAutodoc, getMaxCPUs, and isValidAutodoc
  * <p> functionality to CpuAdoc.
