@@ -2,7 +2,6 @@ package etomo.ui;
 
 import java.awt.Component;
 import java.awt.Container;
-import java.awt.Dimension;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.io.File;
@@ -10,13 +9,11 @@ import java.io.File;
 import javax.swing.BoxLayout;
 import javax.swing.ImageIcon;
 import javax.swing.JButton;
-import javax.swing.JFileChooser;
 
-import etomo.EtomoDirector;
+import etomo.BaseManager;
 import etomo.ParallelManager;
 import etomo.comscript.ParallelParam;
 import etomo.comscript.ProcesschunksParam;
-import etomo.storage.ChunkComscriptFileFilter;
 import etomo.type.AxisID;
 import etomo.type.BaseScreenState;
 import etomo.type.DialogType;
@@ -141,16 +138,9 @@ public final class ParallelDialog implements AbstractParallelDialog {
   }
 
   void chunkComscriptAction() {
-    //  Open up the file chooser in the working directory
-    JFileChooser chooser = new JFileChooser(new File(EtomoDirector
-        .getInstance().getOriginalUserDir()));
-    ChunkComscriptFileFilter filter = new ChunkComscriptFileFilter();
-    chooser.setFileFilter(filter);
-    chooser.setPreferredSize(new Dimension(400, 400));
-    chooser.setFileSelectionMode(JFileChooser.FILES_ONLY);
-    int returnVal = chooser.showOpenDialog(pnlRoot.getContainer());
-    if (returnVal == JFileChooser.APPROVE_OPTION) {
-      File chunkComscript = chooser.getSelectedFile();
+    File chunkComscript = BaseManager.chunkComscriptAction(pnlRoot
+        .getContainer());
+    if (chunkComscript != null) {
       try {
         String comFileName = chunkComscript.getName();
         ltfProcessName.setText(comFileName.substring(0, comFileName
@@ -166,7 +156,8 @@ public final class ParallelDialog implements AbstractParallelDialog {
   private void setToolTipText() {
     ltfProcessName
         .setToolTipText("The process name is based on the name of the first comscript (-001.com or -001-sync.com).");
-    btnChunkComscript.setToolTipText("Selects the first comscript (-001.com or -001-sync.com).");
+    btnChunkComscript
+        .setToolTipText("Selects the first comscript (-001.com or -001-sync.com).");
     btnRunProcess.setToolTipText("Runs the process.");
   }
 
@@ -196,6 +187,9 @@ public final class ParallelDialog implements AbstractParallelDialog {
 }
 /**
  * <p> $Log$
+ * <p> Revision 1.15  2007/08/10 17:05:31  mast
+ * <p> Set the process name properly if starting file is -001-sync.com
+ * <p>
  * <p> Revision 1.14  2007/02/09 00:50:54  sueh
  * <p> bug# 962 Made TooltipFormatter a singleton and moved its use to low-level ui
  * <p> classes.
