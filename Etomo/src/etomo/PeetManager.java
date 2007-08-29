@@ -53,6 +53,9 @@ import etomo.util.DatasetFiles;
  * @version $Revision$
  * 
  * <p> $Log$
+ * <p> Revision 1.30  2007/08/02 22:37:39  sueh
+ * <p> bug# 1034 Adding a right click menu to imodAvgVol and imodRef.
+ * <p>
  * <p> Revision 1.29  2007/07/30 18:33:36  sueh
  * <p> bug# 1002 ParameterStore.getInstance can return null - handle it.
  * <p>
@@ -594,7 +597,7 @@ public final class PeetManager extends BaseManager {
   void processSucceeded(AxisID axisID, ProcessName processName) {
   }
 
-  BaseState getBaseState() {
+  public BaseState getBaseState() {
     return null;
   }
 
