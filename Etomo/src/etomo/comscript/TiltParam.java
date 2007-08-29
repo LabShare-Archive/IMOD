@@ -11,6 +11,10 @@
  * @version $Revision$
  *
  * <p> $Log$
+ * <p> Revision 3.24  2007/08/16 16:31:25  sueh
+ * <p> bug# 1035 Calculating instead of setting subset start.  Removed parameters
+ * <p> from setSubsetStart.  Added setMontageSubsetStart.
+ * <p>
  * <p> Revision 3.23  2007/03/07 21:03:27  sueh
  * <p> bug# 981 Gave XTILTFILE a default and made sure that it would only be used
  * <p> when the corresponding file existed.
@@ -638,17 +642,22 @@ public final class TiltParam extends ConstTiltParam implements CommandParam {
     idxYSubsetStart = 0;
   }
 
-  public void setSubsetStart() throws InvalidParameterException, IOException {
+  public void setSubsetStart() throws InvalidParameterException {
     resetSubsetStart();
     MRCHeader stackHeader = MRCHeader.getInstance(manager, axisID, ".st");
-    stackHeader.read();
-    MRCHeader aliHeader = MRCHeader.getInstance(manager, axisID, ".ali");
-    aliHeader.read();
-    idxXSubsetStart = (int) ((stackHeader.getNColumns() - aliHeader
-        .getNColumns()
-        * setImageBinned().getLong()) / 2);
-    idxYSubsetStart = (int) ((stackHeader.getNColumns() - aliHeader.getNRows()
-        * setImageBinned().getLong()) / 2);
+    try {
+      stackHeader.read();
+      MRCHeader aliHeader = MRCHeader.getInstance(manager, axisID, ".ali");
+      aliHeader.read();
+      idxXSubsetStart = (int) ((stackHeader.getNColumns() - aliHeader
+          .getNColumns()
+          * setImageBinned().getLong()) / 2);
+      idxYSubsetStart = (int) ((stackHeader.getNColumns() - aliHeader
+          .getNRows()
+          * setImageBinned().getLong()) / 2);
+    }
+    catch (IOException e) {
+    }
   }
 
   public void setMontageFullImage() {
