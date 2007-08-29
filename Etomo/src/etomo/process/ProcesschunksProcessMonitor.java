@@ -140,7 +140,8 @@ public class ProcesschunksProcessMonitor implements OutfileProcessMonitor,
     return pid;
   }
 
-  protected boolean updateState() throws LogFile.ReadException ,LogFile.FileException{
+  protected boolean updateState() throws LogFile.ReadException,
+      LogFile.FileException {
     createProcessOutput();
     if (processOutputReadId == LogFile.NO_ID) {
       processOutputReadId = processOutput.openReader();
@@ -219,20 +220,20 @@ public class ProcesschunksProcessMonitor implements OutfileProcessMonitor,
         else if (strings.length > 1) {
           if (line.startsWith("Dropping")) {
             String failureReason;
-            if (line.indexOf("it cannot cd to")!=-1) {
-              failureReason =  "cd failed";
+            if (line.indexOf("it cannot cd to") != -1) {
+              failureReason = "cd failed";
             }
-            else if (line.indexOf("cannot connect")!=-1) {
-              failureReason =  "connect failed";
+            else if (line.indexOf("cannot connect") != -1) {
+              failureReason = "connect failed";
             }
-            else if (line.indexOf("it cannot run IMOD commands")!=-1) {
-              failureReason =  "run error";
+            else if (line.indexOf("it cannot run IMOD commands") != -1) {
+              failureReason = "run error";
             }
-            else if (line.indexOf("it failed (with time out)")!=-1) {
-              failureReason =  "chunk timed out";
+            else if (line.indexOf("it failed (with time out)") != -1) {
+              failureReason = "chunk timed out";
             }
-            else if (line.indexOf("it failed (with chunk error)")!=-1) {
-              failureReason =  "chunk error";
+            else if (line.indexOf("it failed (with chunk error)") != -1) {
+              failureReason = "chunk error";
             }
             else {
               failureReason = "unknown error";
@@ -328,6 +329,8 @@ public class ProcesschunksProcessMonitor implements OutfileProcessMonitor,
           }
         }
       }
+      manager.getBaseState()
+          .setKilledProcesschunksProcessName(axisID, rootName);
     }
     catch (LogFile.WriteException e) {
       e.printStackTrace();
@@ -340,6 +343,8 @@ public class ProcesschunksProcessMonitor implements OutfileProcessMonitor,
       parallelProgressDisplay.msgPausingProcess();
       pausing = true;
       setProgressBarTitle = true;
+      manager.getBaseState()
+      .setKilledProcesschunksProcessName(axisID, rootName);
     }
     catch (LogFile.WriteException e) {
       e.printStackTrace();
@@ -406,7 +411,8 @@ public class ProcesschunksProcessMonitor implements OutfileProcessMonitor,
       return;
     }
     if (commandsPipe == null) {
-      commandsPipe = LogFile.getInstance(manager.getPropertyUserDir(),DatasetFiles.getCommandsFileName(rootName));
+      commandsPipe = LogFile.getInstance(manager.getPropertyUserDir(),
+          DatasetFiles.getCommandsFileName(rootName));
       //commandsPipe.createNewFile();
     }
     if (commandsPipeWriteId == LogFile.NO_ID) {
@@ -427,17 +433,17 @@ public class ProcesschunksProcessMonitor implements OutfileProcessMonitor,
   public final boolean isProcessRunning() {
     return processRunning;
   }
-  
+
   protected final boolean isStarting() {
     return starting;
   }
-  
+
   protected final boolean isFinishing() {
     return finishing;
   }
-  
+
   protected synchronized void closeProcessOutput() {
-    if (processOutput != null&& processOutputReadId != LogFile.NO_ID) {
+    if (processOutput != null && processOutputReadId != LogFile.NO_ID) {
       processOutput.closeReader(processOutputReadId);
       processOutput = null;
     }
@@ -447,7 +453,7 @@ public class ProcesschunksProcessMonitor implements OutfileProcessMonitor,
    * make sure process output file is new and set processOutputFile.  This
    * function should be first run before the process starts.
    */
-  private synchronized void createProcessOutput() throws LogFile.FileException{
+  private synchronized void createProcessOutput() throws LogFile.FileException {
     if (processOutput == null) {
       processOutput = LogFile.getInstance(manager.getPropertyUserDir(),
           DatasetFiles.getOutFileName(manager, ProcessName.PROCESSCHUNKS
@@ -457,13 +463,16 @@ public class ProcesschunksProcessMonitor implements OutfileProcessMonitor,
     }
   }
 
-  public final String getProcessOutputFileName()throws LogFile.FileException {
+  public final String getProcessOutputFileName() throws LogFile.FileException {
     createProcessOutput();
     return processOutput.getName();
   }
 }
 /**
  * <p> $Log$
+ * <p> Revision 1.28  2007/02/22 20:36:51  sueh
+ * <p> bug# 964 Printing processchunks output to the etomo_err.log for now.
+ * <p>
  * <p> Revision 1.27  2006/12/02 04:38:06  sueh
  * <p> bug# 944 Made this class a parent of ProcesschunksVolcombineMonitor.
  * <p>
