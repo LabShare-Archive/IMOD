@@ -1,5 +1,8 @@
 IMOD History
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+8/28/07: In eTomo parallel processing allowing Resume after exiting and re-
+starting eTomo.
+
 8/21/07: In eTomo added a warning message to Tomogram Combination for situations
 where the X and Y min and max values should be changed.
 
