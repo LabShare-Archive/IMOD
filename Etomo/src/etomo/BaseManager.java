@@ -1,11 +1,14 @@
 package etomo;
 
+import java.awt.Container;
 import java.awt.Dimension;
 import java.io.File;
 import java.io.FileInputStream;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Vector;
+
+import javax.swing.JFileChooser;
 
 import etomo.comscript.ComScriptManager;
 import etomo.comscript.LoadAverageParam;
@@ -16,6 +19,7 @@ import etomo.process.ImodqtassistProcess;
 import etomo.process.SystemProcessException;
 import etomo.process.SystemProcessInterface;
 import etomo.process.ProcessData;
+import etomo.storage.ChunkComscriptFileFilter;
 import etomo.storage.LogFile;
 import etomo.storage.ParameterStore;
 import etomo.storage.Storable;
@@ -117,7 +121,7 @@ public abstract class BaseManager {
 
   abstract BaseProcessTrack getProcessTrack();
 
-  abstract BaseState getBaseState();
+  public abstract BaseState getBaseState();
 
   public abstract void kill(AxisID axisID);
 
@@ -1129,13 +1133,36 @@ public abstract class BaseManager {
     }
   }
 
+  public static File chunkComscriptAction(Container root) {
+    //  Open up the file chooser in the working directory
+    JFileChooser chooser = new JFileChooser(new File(EtomoDirector
+        .getInstance().getOriginalUserDir()));
+    ChunkComscriptFileFilter filter = new ChunkComscriptFileFilter();
+    chooser.setFileFilter(filter);
+    chooser.setPreferredSize(new Dimension(400, 400));
+    chooser.setFileSelectionMode(JFileChooser.FILES_ONLY);
+    int returnVal = chooser.showOpenDialog(root);
+    if (returnVal == JFileChooser.APPROVE_OPTION) {
+      return chooser.getSelectedFile();
+    }
+    return null;
+  }
+
   public final void resume(AxisID axisID, ProcesschunksParam param,
-      ProcessResultDisplay processResultDisplay) {
+      ProcessResultDisplay processResultDisplay, Container root) {
     sendMsgProcessStarting(processResultDisplay);
     if (param == null) {
-      uiHarness.openMessageDialog("No command to resume", "Resume");
-      sendMsgProcessFailedToStart(processResultDisplay);
-      return;
+      ProcessName processName = getBaseState()
+          .getKilledProcesschunksProcessName(axisID);
+      if (processName != null) {
+        param = new ProcesschunksParam(this, axisID);
+        param.setProcessName(processName);
+      }
+      else {
+        uiHarness.openMessageDialog("No command to resume", "Resume");
+        sendMsgProcessFailedToStart(processResultDisplay);
+        return;
+      }
     }
     ParallelPanel parallelPanel = getMainPanel().getParallelPanel(axisID);
     parallelPanel.getResumeParameters(param);
@@ -1153,7 +1180,6 @@ public abstract class BaseManager {
       return;
     }
     setThreadName(threadName, axisID);
-
   }
 
   /**
@@ -1196,6 +1222,10 @@ public abstract class BaseManager {
 }
 /**
  * <p> $Log$
+ * <p> Revision 1.86  2007/07/30 22:36:41  sueh
+ * <p> bug# 963 Need to overide saveParamFile in JoinManager - removing "final"
+ * <p> keyword.
+ * <p>
  * <p> Revision 1.85  2007/07/30 18:31:12  sueh
  * <p> bug# 1002 ParameterStore.getInstance can return null - handle it.
  * <p>
