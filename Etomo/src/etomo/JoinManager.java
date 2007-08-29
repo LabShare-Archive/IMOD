@@ -64,6 +64,11 @@ import etomo.util.Utilities;
  * @version $Revision$
  * 
  * <p> $Log$
+ * <p> Revision 1.59  2007/07/30 22:38:40  sueh
+ * <p> bug# 963 Using initializeUIParameters to to set param file.  In endSetupMode,
+ * <p> loading meta data twice because its being reset by calling
+ * <p> initializeUIParameters.  Added saveParamFile().
+ * <p>
  * <p> Revision 1.58  2007/07/30 18:33:25  sueh
  * <p> bug# 1002 ParameterStore.getInstance can return null - handle it.
  * <p>
@@ -1385,7 +1390,7 @@ public final class JoinManager extends BaseManager {
     return startJoinParam;
   }
 
-  protected BaseState getBaseState() {
+  public BaseState getBaseState() {
     return state;
   }
 

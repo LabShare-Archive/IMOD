@@ -5263,7 +5263,7 @@ public final class ApplicationManager extends BaseManager {
     return state;
   }
 
-  protected BaseState getBaseState() {
+  public BaseState getBaseState() {
     return state;
   }
 
@@ -5476,6 +5476,9 @@ public final class ApplicationManager extends BaseManager {
 }
 /**
  * <p> $Log$
+ * <p> Revision 3.287  2007/08/22 14:58:35  sueh
+ * <p> bug# 1036 Showing a blank process when opening a dialog fails.
+ * <p>
  * <p> Revision 3.286  2007/08/21 21:48:35  sueh
  * <p> bug# 771 Added getTomogramSize.  Setting state.tomogramSize in
  * <p> createCombineScripts and openTomogramCombinationDialog.
