@@ -1,5 +1,7 @@
 package etomo.type;
 
+import java.io.File;
+
 import etomo.util.DatasetFiles;
 
 /**
@@ -15,6 +17,9 @@ import etomo.util.DatasetFiles;
  * @version $$Revision$$
  *
  * <p> $$Log$
+ * <p> $Revision 1.14  2007/07/10 00:35:55  sueh
+ * <p> $bug# 1022 Changed peetParser back to prmParser.
+ * <p> $
  * <p> $Revision 1.13  2007/04/27 23:39:47  sueh
  * <p> $bug# 964 Changed prmParser to peetParser.
  * <p> $
@@ -173,6 +178,15 @@ public class ProcessName {
     return false;
   }
 
+  public static ProcessName getInstance(String nameAndExtension, AxisID axisID) {
+    if (axisID.getExtension().length() > 0
+        && nameAndExtension.endsWith(axisID.getExtension())) {
+      return getInstance(nameAndExtension.substring(0, nameAndExtension
+          .lastIndexOf(axisID.getExtension())));
+    }
+    return getInstance(nameAndExtension);
+  }
+
   /**
    * Takes a string representation of an ProcessName type and returns the 
    * correct
@@ -180,6 +194,9 @@ public class ProcessName {
    * string is not one of the known process names.
    */
   public static ProcessName getInstance(String name) {
+    if (name == null) {
+      return null;
+    }
     if (name.endsWith(DatasetFiles.COMSCRIPT_EXT)) {
       int extIndex = name.lastIndexOf(DatasetFiles.COMSCRIPT_EXT);
       name = name.substring(0, extIndex);
@@ -320,6 +337,30 @@ public class ProcessName {
       base = stripExtension(base, axisID.getExtension());
     }
     return getInstance(base);
+  }
+
+  public static ProcessName getInstance(File file, String excludeString) {
+    if (file == null) {
+      return null;
+    }
+    String fileName = file.getName();
+    StringBuffer processStringBuffer = new StringBuffer(fileName.substring(0,
+        fileName.lastIndexOf(excludeString)));
+    ProcessName processName;
+    if ((processName = ProcessName.getInstance(processStringBuffer.toString())) != null) {
+      return processName;
+    }
+    if (processStringBuffer.toString().endsWith(AxisID.FIRST.getExtension())) {
+      return ProcessName.getInstance(processStringBuffer
+          .substring(processStringBuffer.lastIndexOf(AxisID.FIRST
+              .getExtension())));
+    }
+    if (processStringBuffer.toString().endsWith(AxisID.SECOND.getExtension())) {
+      return ProcessName.getInstance(processStringBuffer
+          .substring(processStringBuffer.lastIndexOf(AxisID.SECOND
+              .getExtension())));
+    }
+    return null;
   }
 
   private static String stripExtension(String fileName, String extension) {
