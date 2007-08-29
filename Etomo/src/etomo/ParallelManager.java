@@ -111,7 +111,7 @@ public final class ParallelManager extends BaseManager {
     return screenState;
   }
 
-  protected BaseState getBaseState() {
+  public BaseState getBaseState() {
     return null;
   }
 
@@ -271,6 +271,9 @@ public final class ParallelManager extends BaseManager {
 }
 /**
  * <p> $Log$
+ * <p> Revision 1.14  2007/06/08 21:50:42  sueh
+ * <p> bug# 1014 Removed setMetaData(ImodManager).
+ * <p>
  * <p> Revision 1.13  2007/05/21 22:28:23  sueh
  * <p> bug# 964 Added getInterfaceType().
  * <p>
