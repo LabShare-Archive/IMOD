@@ -39,6 +39,7 @@ bn.generate-tomogram =
 waitfor.process.processchunks = done
 assert.file.exists = tilt%{axis}-finish.log~
 assert.file.exists = tilt%{axis}-start.log~
+bn.delete-aligned-image-stack =
 
 [function = montage]
 mb.blendmont-open = 1
@@ -79,3 +80,4 @@ bn.generate-tomogram =
 waitfor.process.processchunks = done
 assert.file.exists = tilt%{axis}-finish.log~
 assert.file.exists = tilt%{axis}-start.log~
+bn.delete-aligned-image-stack =
