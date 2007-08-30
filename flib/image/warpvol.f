@@ -491,7 +491,8 @@ C
               call irepak(brray,brray,limout,limout,
      &            0,nxyzcube(1,ixcube)-1,0,nxyzcube(2,iycube)-1)
               call iwrsec(iunit,brray)
-              izinfile(ixcube,iycube,iz)=izsec(iunit)
+              izinfile(ixcube + (iycube-1) * ncubes(1) +
+     &            (iz-1) * ncubes(1) * ncubes(2)) = izsec(iunit)
               izsec(iunit)=izsec(iunit)+1
             enddo
 c	      print *,ixcube,iycube,izcube
@@ -633,6 +634,9 @@ c               Copy transform from closest position
 
 c       
 c       $Log$
+c       Revision 3.11  2007/04/07 22:16:25  mast
+c       Redimensioned and allowed for patchy warping file (not tested yet!)
+c
 c       Revision 3.10  2006/06/01 14:16:48  mast
 c       Fixed bug created by deferring opening of output file, switched to
 c       exiterror

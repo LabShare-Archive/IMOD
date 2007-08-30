@@ -8,6 +8,9 @@ c
 c       $Revision$
 c       
 c       $Log$
+c       Revision 3.4  2006/06/03 00:03:00  mast
+c       How about nominal 500 MB instead
+c
 c       Revision 3.3  2006/06/01 14:17:48  mast
 c       Increased dimensions to nominal 256 MB
 c
@@ -21,9 +24,9 @@ c
 c       keep limdim less than 2/3 of inpdim**2
 c       with this assumptiom, memory in MB is 16/3 * inpdim**3 + 10 * inpdim**2
 c       
-      integer inpdim, limdim, lmcube, limout
+      integer inpdim, limdim, lmcube, limout, limizfile
       parameter (inpdim=450,limdim=130000,lmcube=limdim/inpdim)
-      parameter (limout=(inpdim*3)/2)
+      parameter (limout=(inpdim*3)/2, limizfile=4*limout*lmcube)
 c       
       real*4 array(inpdim,inpdim,inpdim),brray(limout,limout)
       common /bigarr/array,brray
@@ -39,7 +42,7 @@ c
 c       
       real*4 minv(3,3),title(20),dmeanin
       integer*4 ncubes(3),mode
-      integer*4 nxyzcube(3,lmcube),ixyzcube(3,lmcube)
-      integer*2 ifile(lmcube,lmcube),izinfile(lmcube,lmcube,limout)
+      integer*4 nxyzcube(3,lmcube),ixyzcube(3,lmcube),izinfile(limizfile)
+      integer*2 ifile(lmcube,lmcube)
       common /cubes/minv,ncubes,nxyzcube,ixyzcube, mode,title,dmeanin,
      &    ifile,izinfile

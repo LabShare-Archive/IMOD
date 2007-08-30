@@ -8,6 +8,9 @@ c
 c	  $Revision$
 c
 c	  $Log$
+c	  Revision 3.6  2006/06/01 14:16:00  mast
+c	  Switched to exiterror, added different error message for warpvol
+c	
 c	  Revision 3.5  2006/01/23 19:31:22  mast
 c	  Increased format for status output from i4 to i6
 c	
@@ -71,6 +74,8 @@ c
 	enddo
 	if (nxout * (nxyzcubas(2) + 1) .ge. inpdim**3)
      &	    call exiterror('OUTPUT IMAGE TOO WIDE FOR ARRAYS')
+        if (ncubes(1) * ncubes(2) * nxyzscr(3) .gt. limizfile) call exitError
+     &      ('TOO MANY SLICES IN A LAYER OF CUBES FOR IZ ARRAY')
 c	  
 c	  get an array of file numbers for each cube in X/Y plane
 c
@@ -333,7 +338,8 @@ C
 		call irepak(brray,brray,limout,limout,
      &		    0,nxyzcube(1,ixcube)-1,0,nxyzcube(2,iycube)-1)
 		call iwrsec(iunit,brray)
-		izinfile(ixcube,iycube,iz)=izsec(iunit)
+		izinfile(ixcube + (iycube-1) * ncubes(1) +
+     &              (iz-1) * ncubes(1) * ncubes(2)) = izsec(iunit)
 		izsec(iunit)=izsec(iunit)+1
 	      enddo
 c	      print *,ixcube,iycube,izcube
@@ -367,7 +373,7 @@ c
 	implicit none
 	include 'rotmatwarp.inc'
 	real*4 dmin, dmax, tsum,tmin,tmax,tmean,tmpsum
-	integer*4 iz, iycube, ixcube, izcube, nLinesOut, longint, iunit
+	integer*4 iz, iycube, ixcube, izcube, nLinesOut, izsec, iunit
 c	    
 c	    whole layer of cubes in z is done.  now reread and compose one
 c	    row of the output section at a time in array
@@ -378,8 +384,9 @@ c
 	    nLinesOut = nxyzcube(2,iycube)
 	    do ixcube=1,ncubes(1)
 	      iunit=ifile(ixcube,iycube)
-	      longint=izinfile(ixcube,iycube,iz)
-	      call imposn(iunit,longint,0)
+	      izsec=izinfile(ixcube + (iycube-1) * ncubes(1) +
+     &            (iz-1) * ncubes(1) * ncubes(2))
+	      call imposn(iunit,izsec,0)
 	      call irdsec(iunit,brray,*99)
 	      call pack_piece(array,nxout,nyout,ixyzcube(1,ixcube),
      &		  0,brray,nxyzcube(1,ixcube), nLinesOut)
