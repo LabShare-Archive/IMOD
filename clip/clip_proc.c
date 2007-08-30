@@ -426,10 +426,15 @@ int clipDiffusion(MrcHeader *hin, MrcHeader *hout, ClipOptions *opt)
  */
 int grap_flip(MrcHeader *hin, MrcHeader *hout, ClipOptions *opt)
 {
-  int i,j,k, rotx;
+  int i,j,k, rotx, numDone, numTodo, maxSlices, yst, ynd, ydir, csize, dsize;
+  int err;
+  int memlim = 512000000;
+  size_t lineOfs;
   float ycen, zcen;
   Islice *sl, *tsl;
+  Islice **yslice;
   Ival val;
+  IloadInfo li;
 
   hout->mode = hin->mode;
 
@@ -496,6 +501,7 @@ int grap_flip(MrcHeader *hin, MrcHeader *hout, ClipOptions *opt)
     puts(" Done!");
     return(0);
   }
+
   if ((!strncmp(opt->command, "flipyz",6)) ||
       (!strncmp(opt->command, "flipzy",6)) ||
       (!strncmp(opt->command, "rotx",4))) {
@@ -527,18 +533,78 @@ int grap_flip(MrcHeader *hin, MrcHeader *hout, ClipOptions *opt)
       
     if (mrc_head_write(hout->fp, hout))
       return -1;
-    sl = sliceCreate(hout->nx, hout->ny, hout->mode);
-    for (k = 0, j = 0; k < hin->ny; k++,j++) {
-      if (mrc_read_slice(sl->data.b, hin->fp, hin, j, 'y'))
-        return -1;
-      if (mrc_write_slice(sl->data.b, hout->fp, hout, 
-                          rotx ? hin->ny - k - 1 : k, 'z'))
-        return -1;
+
+    /* Get the maximum number of output slices to load, and get input slices
+       with that size in Y */
+    mrc_getdcsize(hout->mode, &dsize, &csize);
+    maxSlices = (memlim / (dsize * hout->nx)) / hout->ny;
+    maxSlices = B3DMAX(1, B3DMIN(hout->nz / (2 * dsize), maxSlices));
+    yslice = (Islice **)malloc(hin->nz * sizeof(Islice));
+    if (!yslice) {
+      printf("ERROR: CLIP - getting memory for slice array\n");
+      return (-1);
     }
-    sliceFree(sl);
+    for (k = 0; k < hin->nz; k++) {
+      yslice[k] = sliceCreate(hout->nx, maxSlices, hout->mode);
+      if (!yslice[k]) {
+        printf("ERROR: CLIP - getting memory for slices\n");
+        return (-1);
+      }
+    }
+    mrc_init_li(&li, NULL);
+    mrc_init_li(&li, hin);
+    numDone = 0;
+
+    /* Loop on chunks in Z of output */
+    while (numDone < hout->nz) {
+      numTodo = B3DMIN(maxSlices, hout->nz - numDone);
+
+      /* Set up loading limits and limits for output loop */
+      if (rotx) {
+        li.ymax = hout->nz - 1 - numDone;
+        li.ymin  = li.ymax - (numTodo - 1);
+        ydir = -1;
+        yst = numTodo - 1;
+        ynd = 0;
+      } else {
+        li.ymin = numDone;
+        li.ymax = numDone + numTodo - 1;
+        ydir = 1;
+        ynd = numTodo - 1;
+        yst = 0;
+      }
+
+      /* Load the slices within the Y range*/
+      for (k = 0; k < hin->nz; k++) {
+        if ((err = mrcReadZ(hin, &li, yslice[k]->data.b, k))) {
+          printf("ERROR: CLIP - Reading section %d, y %d to %d (error # %d)\n",
+                 k, li.ymin, li.ymax, err);
+          return -1;
+        }
+      }
+      
+      /* Write Z slices in order, line by line */
+      for (j = yst; j * ydir <= ynd * ydir; j += ydir) {
+        lineOfs = (size_t)(hout->nx * dsize) * (size_t)j;
+        for (k = 0; k < hin->nz; k++) {
+          if (b3dFwrite(yslice[k]->data.b + lineOfs, dsize, hout->nx, hout->fp)
+              != hout->nx) {
+            printf("ERROR: CLIP - Writing section %d, line %d\n", numDone + 
+                   ydir * (j - yst), k);
+            return -1;
+          }
+        }
+      }
+      numDone += numTodo;
+    }
+
+    /* Clean up */
+    for (k = 0; k < hin->nz; k++)
+      sliceFree(yslice[k]);
     puts(" Done!");
     return(0);
   }
+
   if ((!strncmp(opt->command, "flipx",5)) ||
       (!strncmp(opt->command, "flipy",5))){
     if (!strncmp(opt->command, "flipx",5))
@@ -1490,6 +1556,9 @@ int free_vol(Islice **vol, int z)
 */
 /*
 $Log$
+Revision 3.21  2007/06/13 17:03:25  sueh
+bug# 1019 Setting hdr.sectionSkip in clip_splitrgb.
+
 Revision 3.20  2007/02/04 21:21:29  mast
 Eliminated mrcspectral includes
 
