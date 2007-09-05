@@ -16,6 +16,7 @@ import java.util.Properties;
 
 import etomo.type.AxisID;
 import etomo.type.ProcessName;
+import etomo.ui.UIHarness;
 import etomo.util.DatasetFiles;
 import etomo.util.Utilities;
 
@@ -58,7 +59,7 @@ public final class LogFile {
 
   private static final Hashtable logFileHashTable = new Hashtable();
 
-  private final Lock lock = new Lock();
+  private final Lock lock;
   private ReadingTokenList readerList = ReadingTokenList.getReaderInstance();
   private ReadingTokenList readingTokenList = ReadingTokenList
       .getReadingTokenInstance();
@@ -73,6 +74,7 @@ public final class LogFile {
   private boolean backedUp = false;
 
   private LogFile(File file) {
+    lock = new Lock(this);
     this.fileAbsolutePath = file.getAbsolutePath();
   }
 
@@ -190,7 +192,7 @@ public final class LogFile {
       fileId = lock.lock(LockType.FILE);
     }
     catch (LockException e) {
-      throw new FileException(this, fileId, e);
+      throw new FileException(fileId, e);
     }
     createBackupFile();
     if (!file.exists()) {
@@ -271,7 +273,7 @@ public final class LogFile {
       fileId = lock.lock(LockType.FILE);
     }
     catch (LockException e) {
-      throw new FileException(this, fileId, e);
+      throw new FileException(fileId, e);
     }
     if (file.exists()) {
       //nothing to create
@@ -289,7 +291,7 @@ public final class LogFile {
       file.createNewFile();
     }
     catch (IOException e) {
-      throw new FileException(this, e);
+      throw new FileException(e);
     }
     boolean success = file.exists();
     try {
@@ -317,7 +319,7 @@ public final class LogFile {
       fileId = lock.lock(LockType.FILE);
     }
     catch (LockException e) {
-      throw new FileException(this, fileId, e);
+      throw new FileException(fileId, e);
     }
     if (!file.exists()) {
       //nothing to delete
@@ -363,7 +365,7 @@ public final class LogFile {
       fileId = lock.lock(LockType.FILE);
     }
     catch (LockException e) {
-      throw new FileException(this, fileId, e);
+      throw new FileException(fileId, e);
     }
     if (!file.exists()) {
       //nothing to move
@@ -399,7 +401,7 @@ public final class LogFile {
       targetFileId = target.lock.lock(LockType.FILE);
     }
     catch (LockException e) {
-      throw new FileException(this, targetFileId, e);
+      throw new FileException(targetFileId, e);
     }
     target.createFile();
     file.renameTo(target.file);
@@ -457,7 +459,7 @@ public final class LogFile {
       writeId = lock.lock(LockType.WRITE);
     }
     catch (LockException e) {
-      throw new WriteException(this, e);
+      throw new WriteException(e);
     }
     if (openWriter) {
       try {
@@ -470,7 +472,7 @@ public final class LogFile {
         catch (LockException e0) {
           e0.printStackTrace();
         }
-        throw new WriteException(this, e);
+        throw new WriteException(e);
       }
     }
     return writeId;
@@ -491,7 +493,7 @@ public final class LogFile {
       writeId = lock.lock(LockType.WRITE);
     }
     catch (LockException e) {
-      throw new WriteException(this, e);
+      throw new WriteException(e);
     }
     try {
       createInputStream();
@@ -503,7 +505,7 @@ public final class LogFile {
       catch (LockException e0) {
         e0.printStackTrace();
       }
-      throw new WriteException(this, e);
+      throw new WriteException(e);
     }
     return writeId;
   }
@@ -519,7 +521,7 @@ public final class LogFile {
       writeId = lock.lock(LockType.WRITE);
     }
     catch (LockException e) {
-      throw new WriteException(this, e);
+      throw new WriteException(e);
     }
     try {
       createOutputStream();
@@ -531,7 +533,7 @@ public final class LogFile {
       catch (LockException e0) {
         e0.printStackTrace();
       }
-      throw new WriteException(this, e);
+      throw new WriteException(e);
     }
     return writeId;
   }
@@ -683,7 +685,7 @@ public final class LogFile {
     }
     catch (LockException e) {
       e.printStackTrace();
-      throw new ReadException(this, e);
+      throw new ReadException(e);
     }
     createFile();
     String idKey = ReadingTokenList.makeKey(readId);
@@ -697,7 +699,7 @@ public final class LogFile {
       catch (LockException e0) {
         e0.printStackTrace();
       }
-      throw new ReadException(this, readId, e);
+      throw new ReadException(readId, e);
     }
     return readId;
   }
@@ -709,7 +711,7 @@ public final class LogFile {
     }
     catch (LockException e) {
       e.printStackTrace();
-      throw new ReadException(this, e);
+      throw new ReadException(e);
     }
     createFile();
     String idKey = ReadingTokenList.makeKey(readId);
@@ -723,7 +725,7 @@ public final class LogFile {
       catch (LockException e0) {
         e0.printStackTrace();
       }
-      throw new ReadException(this, readId, e);
+      throw new ReadException(readId, e);
     }
     return readId;
   }
@@ -779,7 +781,7 @@ public final class LogFile {
       return readerList.getReader(ReadingTokenList.makeKey(readId)).readLine();
     }
     catch (IOException e) {
-      throw new ReadException(this, readId, e);
+      throw new ReadException(readId, e);
     }
   }
 
@@ -792,7 +794,7 @@ public final class LogFile {
       properties.load(inputStream);
     }
     catch (IOException e) {
-      throw new WriteException(this, writeId, e);
+      throw new WriteException(writeId, e);
     }
   }
 
@@ -805,7 +807,7 @@ public final class LogFile {
       properties.store(outputStream, null);
     }
     catch (IOException e) {
-      throw new WriteException(this, writeId, e);
+      throw new WriteException(writeId, e);
     }
   }
 
@@ -821,7 +823,7 @@ public final class LogFile {
       bufferedWriter.write(string);
     }
     catch (IOException e) {
-      throw new WriteException(this, writeId, e);
+      throw new WriteException(writeId, e);
     }
   }
 
@@ -833,12 +835,13 @@ public final class LogFile {
       bufferedWriter.write(ch);
     }
     catch (IOException e) {
-      throw new WriteException(this, writeId, e);
+      throw new WriteException(writeId, e);
     }
   }
-  
-  public synchronized void write(Character ch, long writeId) throws WriteException {
-    write(ch.charValue(),writeId);
+
+  public synchronized void write(Character ch, long writeId)
+      throws WriteException {
+    write(ch.charValue(), writeId);
   }
 
   public synchronized void newLine(long writeId) throws WriteException {
@@ -849,7 +852,7 @@ public final class LogFile {
       bufferedWriter.newLine();
     }
     catch (IOException e) {
-      throw new WriteException(this, writeId, e);
+      throw new WriteException(writeId, e);
     }
   }
 
@@ -861,10 +864,10 @@ public final class LogFile {
       bufferedWriter.flush();
     }
     catch (IOException e) {
-      throw new WriteException(this, writeId, e);
+      throw new WriteException(writeId, e);
     }
     catch (NullPointerException e) {
-      throw new WriteException(this, writeId,
+      throw new WriteException(writeId,
           "Must open with openWriter() to be able to call flush().", e);
     }
   }
@@ -1026,14 +1029,13 @@ public final class LogFile {
       super("id=" + id + ",logFile=" + logFile + PUBLIC_EXCEPTION_MESSAGE);
     }
 
-    ReadException(LogFile logFile, Exception e) {
-      super(e.toString() + "\nlogFile=" + logFile + PUBLIC_EXCEPTION_MESSAGE);
+    ReadException(Exception e) {
+      super(e.toString() + PUBLIC_EXCEPTION_MESSAGE);
       e.printStackTrace();
     }
 
-    ReadException(LogFile logFile, long id, Exception e) {
-      super(e.toString() + "\nid=" + id + ",logFile=" + logFile
-          + PUBLIC_EXCEPTION_MESSAGE);
+    ReadException(long id, Exception e) {
+      super(e.toString() + "\nid=" + id + PUBLIC_EXCEPTION_MESSAGE);
       e.printStackTrace();
     }
   }
@@ -1043,8 +1045,8 @@ public final class LogFile {
       super("id=" + id + ",logFile=" + logFile + PUBLIC_EXCEPTION_MESSAGE);
     }
 
-    WriteException(LogFile logFile, Exception e) {
-      super(e.toString() + "\nlogFile=" + logFile + PUBLIC_EXCEPTION_MESSAGE);
+    WriteException(Exception e) {
+      super(e.toString() + PUBLIC_EXCEPTION_MESSAGE);
       e.printStackTrace();
     }
 
@@ -1053,23 +1055,21 @@ public final class LogFile {
           + PUBLIC_EXCEPTION_MESSAGE);
     }
 
-    WriteException(LogFile logFile, long id, Exception e) {
-      super(e.toString() + "\nid=" + id + ",logFile=" + logFile
-          + PUBLIC_EXCEPTION_MESSAGE);
+    WriteException(long id, Exception e) {
+      super(e.toString() + "\nid=" + id + PUBLIC_EXCEPTION_MESSAGE);
       e.printStackTrace();
     }
 
-    WriteException(LogFile logFile, long id, String message, Exception e) {
-      super(message + '\n' + e.toString() + "\nid=" + id + ",logFile="
-          + logFile + PUBLIC_EXCEPTION_MESSAGE);
+    WriteException(long id, String message, Exception e) {
+      super(message + '\n' + e.toString() + "\nid=" + id
+          + PUBLIC_EXCEPTION_MESSAGE);
       e.printStackTrace();
     }
   }
 
   public static final class FileException extends Exception {
-    FileException(LogFile logFile, long id, Exception e) {
-      super(e.toString() + "\nid=" + id + ",logFile=" + logFile
-          + PUBLIC_EXCEPTION_MESSAGE);
+    FileException(long id, Exception e) {
+      super(e.toString() + "\nid=" + id + PUBLIC_EXCEPTION_MESSAGE);
       e.printStackTrace();
     }
 
@@ -1078,40 +1078,46 @@ public final class LogFile {
           + PUBLIC_EXCEPTION_MESSAGE);
     }
 
-    FileException(LogFile logFile, Exception e) {
-      super(e.toString() + "\nlogFile=" + logFile + PUBLIC_EXCEPTION_MESSAGE);
+    FileException(Exception e) {
+      super(e.toString() + PUBLIC_EXCEPTION_MESSAGE);
       e.printStackTrace();
     }
   }
 
   private static final class LockException extends Exception {
-    LockException(Lock lock) {
-      super("lock=" + lock);
+    LockException(LogFile logFile) {
+      super("logFile=" + logFile);
     }
 
-    LockException(Lock lock, LockType lockType) {
-      super("lockType=" + lockType + ",lock=" + lock);
+    LockException(LogFile logFile, LockType lockType) {
+      super("lockType=" + lockType + ",logFile=" + logFile);
     }
 
-    LockException(Lock lock, LockType lockType, long id) {
-      super("lockType=" + lockType + ",id=" + id + ",lock=" + lock);
+    LockException(LogFile logFile, LockType lockType, long id) {
+      super("lockType=" + lockType + ",id=" + id + ",logFile=" + logFile);
     }
   }
 
   private static final class Lock {
-    private boolean locked = false;
+    private final HashMap readIdHashMap = new HashMap();
+    private final LogFile logFile;
 
+    private boolean warningDisplayed = false;
+    private boolean locked = false;
     private long currentId = NO_ID;
-    private HashMap readIdHashMap = null;
     private long writeId = NO_ID;
     private long fileId = NO_ID;
+
+    private Lock(LogFile logFile) {
+      this.logFile = logFile;
+    }
 
     private static String makeKey(long id) {
       return String.valueOf(id);
     }
 
     public String toString() {
-      return "\n[readIdHashMap=" + readIdHashMap + ",\nwrite=Id=" + writeId
+      return "\n[readIdHashMap=" + readIdHashMap + ",\nwriteId=" + writeId
           + ",fileId=" + fileId + "]";
     }
 
@@ -1129,7 +1135,6 @@ public final class LogFile {
         currentId = 0;
       }
       if (lockType == LockType.READ) {
-        createReadIdHashMap();
         readIdHashMap.put(makeKey(currentId), null);
       }
       else if (lockType == LockType.WRITE) {
@@ -1143,7 +1148,6 @@ public final class LogFile {
 
     void unlock(LockType lockType, long id) throws LockException {
       assertUnlockable(lockType, id);
-      createReadIdHashMap();
       //unsetting the matching saved id
       String readKey = makeKey(id);
       if (lockType == LockType.READ && readIdHashMap.containsKey(readKey)) {
@@ -1156,7 +1160,15 @@ public final class LogFile {
         fileId = NO_ID;
       }
       else {
-        throw new LockException(this, lockType);
+        LockException e = new LockException(logFile, lockType);
+        if (Utilities.isWindowsOS()) {
+          throw e;
+        }
+        if (!warningDisplayed) {
+          warningDisplayed = true;
+          UIHarness.INSTANCE.openMessageDialog(e.getMessage()
+              + PUBLIC_EXCEPTION_MESSAGE, "File Lock Warning");
+        }
       }
       //turn off locked if all the saved ids are empty
       if (readIdHashMap.isEmpty() && writeId == NO_ID && fileId == NO_ID) {
@@ -1169,7 +1181,6 @@ public final class LogFile {
       if (!locked || lockType == null || id == NO_ID) {
         return false;
       }
-      createReadIdHashMap();
       return (lockType == LockType.READ && readIdHashMap
           .containsKey(makeKey(id)))
           || (lockType == LockType.WRITE && id == writeId)
@@ -1180,7 +1191,6 @@ public final class LogFile {
       if (!locked || lockType == null) {
         return false;
       }
-      createReadIdHashMap();
       return (lockType == LockType.READ && !readIdHashMap.isEmpty())
           || (lockType == LockType.WRITE && writeId != NO_ID)
           || (lockType == LockType.FILE && fileId != NO_ID);
@@ -1188,7 +1198,15 @@ public final class LogFile {
 
     void assertNoLocks() throws LockException {
       if (locked) {
-        throw new LockException(this);
+        LockException e = new LockException(logFile);
+        if (Utilities.isWindowsOS()) {
+          throw e;
+        }
+        if (!warningDisplayed) {
+          warningDisplayed = true;
+          UIHarness.INSTANCE.openMessageDialog(e.getMessage()
+              + PUBLIC_EXCEPTION_MESSAGE, "File Lock Warning");
+        }
       }
     }
 
@@ -1201,7 +1219,15 @@ public final class LogFile {
       //only one write can be done at a time
       if (lockType == LockType.FILE || fileId != NO_ID
           || (lockType == LockType.WRITE && writeId != NO_ID)) {
-        throw new LockException(this, lockType);
+        LockException e = new LockException(logFile, lockType);
+        if (Utilities.isWindowsOS()) {
+          throw e;
+        }
+        if (!warningDisplayed) {
+          warningDisplayed = true;
+          UIHarness.INSTANCE.openMessageDialog(e.getMessage()
+              + PUBLIC_EXCEPTION_MESSAGE, "File Lock Warning");
+        }
       }
       //compatible:
       //multiple reads
@@ -1209,10 +1235,17 @@ public final class LogFile {
     }
 
     void assertUnlockable(LockType lockType, long id) throws LockException {
+      LockException e = new LockException(logFile, lockType, id);
       if (!locked) {
-        throw new LockException(this, lockType, id);
+        if (Utilities.isWindowsOS()) {
+          throw e;
+        }
+        if (!warningDisplayed) {
+          warningDisplayed = true;
+          UIHarness.INSTANCE.openMessageDialog(e.getMessage()
+              + PUBLIC_EXCEPTION_MESSAGE, "File Lock Warning");
+        }
       }
-      createReadIdHashMap();
       if (readIdHashMap.isEmpty() && writeId == NO_ID && fileId == NO_ID) {
         throw new IllegalStateException(
             "Ids don't match the locked boolean:\nlocked=" + locked
@@ -1225,17 +1258,19 @@ public final class LogFile {
           || (lockType == LockType.FILE && id == fileId)) {
         return;
       }
-      throw new LockException(this, lockType, id);
+      e = new LockException(logFile, lockType, id);
+      if (Utilities.isWindowsOS()) {
+        throw e;
+      }
+      if (!warningDisplayed) {
+        warningDisplayed = true;
+        UIHarness.INSTANCE.openMessageDialog(e.getMessage()
+            + PUBLIC_EXCEPTION_MESSAGE, "File Lock Warning");
+      }
     }
 
     long getWriteId() {
       return writeId;
-    }
-
-    private void createReadIdHashMap() {
-      if (readIdHashMap == null) {
-        readIdHashMap = new HashMap();
-      }
     }
   }
 
@@ -1376,6 +1411,10 @@ public final class LogFile {
 }
 /**
  * <p> $Log$
+ * <p> Revision 1.13  2007/08/01 22:42:28  sueh
+ * <p> bug# 985 Changed the type of AutodocTokenizer.OPEN_CHAR and
+ * <p> CLOSE_CHAR to Character.
+ * <p>
  * <p> Revision 1.12  2007/07/18 23:20:16  sueh
  * <p> bug# 1025 Fixed a null pointer exception in write(String,long).
  * <p>
