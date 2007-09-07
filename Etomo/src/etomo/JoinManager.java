@@ -64,6 +64,9 @@ import etomo.util.Utilities;
  * @version $Revision$
  * 
  * <p> $Log$
+ * <p> Revision 1.60  2007/08/29 21:22:38  sueh
+ * <p> bug# 1041 Made getBaseState public.
+ * <p>
  * <p> Revision 1.59  2007/07/30 22:38:40  sueh
  * <p> bug# 963 Using initializeUIParameters to to set param file.  In endSetupMode,
  * <p> loading meta data twice because its being reset by calling
@@ -448,7 +451,7 @@ public final class JoinManager extends BaseManager {
       imodManager.setMetaData(metaData);
       mainPanel.setStatusBarText(paramFile, metaData);
     }
-    if (!EtomoDirector.getInstance().isHeadless()) {
+    if (!EtomoDirector.INSTANCE.isHeadless()) {
       openJoinDialog();
       setMode();
     }
@@ -795,7 +798,7 @@ public final class JoinManager extends BaseManager {
       return;
     }
     String rootName = metaData.getRootName();
-    EtomoDirector.getInstance().renameCurrentManager(rootName);
+    EtomoDirector.INSTANCE.renameCurrentManager(rootName);
     createEmptyXfFile(rootName);
     MakejoincomParam makejoincomParam = new MakejoincomParam(metaData, state,
         this);

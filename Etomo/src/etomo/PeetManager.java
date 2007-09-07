@@ -53,6 +53,9 @@ import etomo.util.DatasetFiles;
  * @version $Revision$
  * 
  * <p> $Log$
+ * <p> Revision 1.31  2007/08/29 21:40:11  sueh
+ * <p> bug# 1041 Made getBaseState public.
+ * <p>
  * <p> Revision 1.30  2007/08/02 22:37:39  sueh
  * <p> bug# 1034 Adding a right click menu to imodAvgVol and imodRef.
  * <p>
@@ -191,7 +194,7 @@ public final class PeetManager extends BaseManager {
     if (loadedParamFile) {
       setMatlabParam(false);
     }
-    if (!EtomoDirector.getInstance().isHeadless()) {
+    if (!EtomoDirector.INSTANCE.isHeadless()) {
       openProcessingPanel();
       mainPanel.setStatusBarText(paramFile, metaData);
       openPeetDialog();
@@ -315,7 +318,7 @@ public final class PeetManager extends BaseManager {
     setPeetDialogParameters(matlabParamFile.getParentFile(), false,
         parametersOnly);
     mainPanel.setStatusBarText(paramFile, metaData);
-    EtomoDirector.getInstance().renameCurrentManager(metaData.getName());
+    EtomoDirector.INSTANCE.renameCurrentManager(metaData.getName());
   }
 
   /**
@@ -388,7 +391,7 @@ public final class PeetManager extends BaseManager {
         peetDialog.updateDisplay(true);
         setPeetDialogParameters(null, true, parametersOnly);
         mainPanel.setStatusBarText(paramFile, metaData);
-        EtomoDirector.getInstance().renameCurrentManager(metaData.getName());
+        EtomoDirector.INSTANCE.renameCurrentManager(metaData.getName());
       }
     }
     catch (LogFile.WriteException e) {

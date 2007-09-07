@@ -176,7 +176,7 @@ public final class ApplicationManager extends BaseManager {
     initializeUIParameters(paramFileName, axisID);
     initializeAdvanced();
     // Open the etomo data file if one was found on the command line
-    if (!EtomoDirector.getInstance().isHeadless()) {
+    if (!EtomoDirector.INSTANCE.isHeadless()) {
       if (!paramFileName.equals("")) {
         imodManager.setMetaData(metaData);
         if (loadedParamFile) {
@@ -206,7 +206,7 @@ public final class ApplicationManager extends BaseManager {
    * 
    */
   private void initializeAdvanced() {
-    boolean isAdvanced = EtomoDirector.getInstance().getAdvanced();
+    boolean isAdvanced = EtomoDirector.INSTANCE.getAdvanced();
     for (int i = 0; i < DialogType.TOTAL_RECON; i++) {
       advancedA[i] = isAdvanced;
       advancedB[i] = isAdvanced;
@@ -493,7 +493,7 @@ public final class ApplicationManager extends BaseManager {
       }
       processTrack.setSetupState(ProcessState.COMPLETE);
       metaData.setComScriptCreated(true);
-      EtomoDirector.getInstance().renameCurrentManager(
+      EtomoDirector.INSTANCE.renameCurrentManager(
           metaData.getDatasetName());
       closeImods(ImodManager.PREVIEW_KEY, AxisID.FIRST, "Axis A preview stack");
       closeImods(ImodManager.PREVIEW_KEY, AxisID.SECOND, "Axis B preview stack");
@@ -5476,6 +5476,9 @@ public final class ApplicationManager extends BaseManager {
 }
 /**
  * <p> $Log$
+ * <p> Revision 3.288  2007/08/29 21:20:51  sueh
+ * <p> bug# 1041 Made getBaseState public.
+ * <p>
  * <p> Revision 3.287  2007/08/22 14:58:35  sueh
  * <p> bug# 1036 Showing a blank process when opening a dialog fails.
  * <p>

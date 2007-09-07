@@ -64,7 +64,7 @@ public final class ParallelManager extends BaseManager {
     createState();
     processMgr = new ParallelProcessManager(this);
     initializeUIParameters(paramFileName, AXIS_ID);
-    if (!EtomoDirector.getInstance().isHeadless()) {
+    if (!EtomoDirector.INSTANCE.isHeadless()) {
       openProcessingPanel();
       mainPanel.setStatusBarText(paramFile, metaData);
       openParallelDialog();
@@ -260,7 +260,7 @@ public final class ParallelManager extends BaseManager {
     }
     setParamFile(new File(propertyUserDir, metaData.getMetaDataFileName()));
     System.err.println("paramFile: " + paramFile);
-    EtomoDirector.getInstance().renameCurrentManager(metaData.getRootName());
+    EtomoDirector.INSTANCE.renameCurrentManager(metaData.getRootName());
     mainPanel.setStatusBarText(paramFile, metaData);
     return true;
   }
@@ -271,6 +271,9 @@ public final class ParallelManager extends BaseManager {
 }
 /**
  * <p> $Log$
+ * <p> Revision 1.15  2007/08/29 21:33:21  sueh
+ * <p> bug# 1041 Made getBaseState public.
+ * <p>
  * <p> Revision 1.14  2007/06/08 21:50:42  sueh
  * <p> bug# 1014 Removed setMetaData(ImodManager).
  * <p>

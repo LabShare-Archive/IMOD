@@ -65,7 +65,7 @@ public abstract class BaseManager {
   private static boolean headless = false;
   //protected MainFrame mainFrame = null;
   UIHarness uiHarness = UIHarness.INSTANCE;
-  static UserConfiguration userConfig = EtomoDirector.getInstance()
+  static UserConfiguration userConfig = EtomoDirector.INSTANCE
       .getUserConfiguration();
 
   //protected variables
@@ -155,8 +155,8 @@ public abstract class BaseManager {
     createProcessTrack();
     createComScriptManager();
     //  Initialize the program settings
-    debug = EtomoDirector.getInstance().isDebug();
-    headless = EtomoDirector.getInstance().isHeadless();
+    debug = EtomoDirector.INSTANCE.isDebug();
+    headless = EtomoDirector.INSTANCE.isHeadless();
     if (!headless) {
       createMainPanel();
     }
@@ -333,7 +333,7 @@ public abstract class BaseManager {
     if (getParameterStore() == null) {
       return false;
     }
-    if (!EtomoDirector.getInstance().isMemoryAvailable()) {
+    if (!EtomoDirector.INSTANCE.isMemoryAvailable()) {
       return true;
     }
     save();
@@ -544,7 +544,7 @@ public abstract class BaseManager {
    * @return
    */
   public static String getIMODBinPath() {
-    return EtomoDirector.getInstance().getIMODDirectory().getAbsolutePath()
+    return EtomoDirector.INSTANCE.getIMODDirectory().getAbsolutePath()
         + File.separator + "bin" + File.separator;
   }
 
@@ -1082,7 +1082,7 @@ public abstract class BaseManager {
 
   public final void makeCurrent() {
     if (propertyUserDir == null) {
-      EtomoDirector.getInstance().makeCurrent();
+      EtomoDirector.INSTANCE.makeCurrent();
     }
     else {
       System.setProperty("user.dir", propertyUserDir);
@@ -1096,7 +1096,7 @@ public abstract class BaseManager {
         return;
       }
       mainPanel.setProgressBar("Saving defaults", 1, axisID);
-      ParameterStore localParameterStore = EtomoDirector.getInstance()
+      ParameterStore localParameterStore = EtomoDirector.INSTANCE
           .getParameterStore();
       if (localParameterStore != null) {
         localParameterStore.save(storable);
@@ -1136,7 +1136,7 @@ public abstract class BaseManager {
   public static File chunkComscriptAction(Container root) {
     //  Open up the file chooser in the working directory
     JFileChooser chooser = new JFileChooser(new File(EtomoDirector
-        .getInstance().getOriginalUserDir()));
+        .INSTANCE.getOriginalUserDir()));
     ChunkComscriptFileFilter filter = new ChunkComscriptFileFilter();
     chooser.setFileFilter(filter);
     chooser.setPreferredSize(new Dimension(400, 400));
@@ -1222,6 +1222,9 @@ public abstract class BaseManager {
 }
 /**
  * <p> $Log$
+ * <p> Revision 1.87  2007/08/29 21:22:17  sueh
+ * <p> bug# 1041 Added chunkComscriptAction.  In resume, if param is null, create it.
+ * <p>
  * <p> Revision 1.86  2007/07/30 22:36:41  sueh
  * <p> bug# 963 Need to overide saveParamFile in JoinManager - removing "final"
  * <p> keyword.
