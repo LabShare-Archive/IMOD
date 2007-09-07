@@ -5,8 +5,6 @@ import java.io.FileOutputStream;
 import java.io.IOException;
 import java.util.Properties;
 
-import etomo.EtomoDirector;
-import etomo.JUnitTests;
 import etomo.type.EtomoNumber;
 import etomo.util.DatasetFiles;
 import etomo.util.Utilities;
@@ -27,6 +25,9 @@ import junit.framework.TestCase;
  * @version $Revision$
  * 
  * <p> $Log$
+ * <p> Revision 1.3  2007/07/30 18:53:33  sueh
+ * <p> bug# 1002 ParameterStore.getInstance can return null - handle it.
+ * <p>
  * <p> Revision 1.2  2006/11/18 01:16:05  sueh
  * <p> bug# 956 Temporarily not running problem bugs on Windows.
  * <p>
@@ -57,7 +58,6 @@ public final class ParameterStoreTest extends TestCase {
     setupData = new Data(1, 2.3, "four", 5);
     //make test dir
     testDir.mkdirs();
-    EtomoDirector.createInstance_test(JUnitTests.ETOMO_ARGUMENTS);
     initFiles();
   }
 
