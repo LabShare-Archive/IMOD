@@ -60,22 +60,11 @@ public class EtomoDirector {
   public static final int NUMBER_STORABLES = 2;
   private static final String JAVA_MEMORY_LIMIT_ENV_VAR = "JAVA_MEM_LIM";
 
-  private static EtomoDirector theEtomoDirector = null;
+  public static final EtomoDirector INSTANCE = new EtomoDirector();
   private File IMODDirectory;
   private File IMODCalibDirectory;
   //private MainFrame mainFrame = null;
   private UserConfiguration userConfig = null;
-  private boolean debug = false;
-  private boolean demo = false;
-  private boolean test = false;
-  private boolean headless = false;
-  private boolean selfTest = false;
-  private boolean newstuff = false;
-  private boolean displayMemory = false;
-  private boolean help = false;
-  private boolean printNames = false;
-  private int displayMemoryInterval = 0;
-  private int newstuffNum = 0;
   private UniqueHashedArray managerList = null;
   private UniqueKey currentManagerKey = null;
   private String homeDirectory;
@@ -92,56 +81,18 @@ public class EtomoDirector {
   private boolean testDone = false;
   private ParameterStore parameterStore = null;
   private EtomoNumber javaMemoryLimit = null;
-
-  public static void main(String[] args) {
-    createInstance(args);
-  }
-
-  /**
-   * Initializes and sets initialized to true.  This should be the only place which sets
-   * initialized to true.
-   * May want to make this a private, non-synchronized function if DataFlowTests
-   * is removed.
-   * Prevents Etomo from being run by anything but EtomoDirector and DataFlowTests,
-   * unless the test mode is set.
-   * This allows parts of the code which could be run independently from Etomo
-   * to because independent.
-   * @param args
-   * @return
-   */
-  synchronized static EtomoDirector createInstance(String[] args) {
-    if (theEtomoDirector == null) {
-      Utilities.setStartTime();
-      theEtomoDirector = new EtomoDirector();
-      theEtomoDirector.initialize(args);
-    }
-    return theEtomoDirector;
-  }
-
-  public synchronized static EtomoDirector createInstance_test(String[] args) {
-    createInstance(args);
-    if (!theEtomoDirector.test) {
-      throw new IllegalStateException("Not in test mode");
-    }
-    return theEtomoDirector;
-  }
-
-  /**
-   * Get the singleton instance of EtomoDirector
-   * @return
-   */
-  public static EtomoDirector getInstance() {
-    if (theEtomoDirector == null) {
-      throw new IllegalStateException("Etomo is not running");
-    }
-    return theEtomoDirector;
-  }
+  private static Arguments arguments = null;
 
   private EtomoDirector() {
   }
 
-  private void initialize(String[] args) {
-    headless = GraphicsEnvironment.isHeadless();
+  public static void main(String[] args) {
+    Utilities.setStartTime();
+    EtomoDirector.arguments = Arguments.getInstance(args);
+    INSTANCE.initialize();
+  }
+
+  private void initialize() {
     // Get the HOME directory environment variable to find the program
     // configuration file
     homeDirectory = System.getProperty("user.home");
@@ -156,8 +107,8 @@ public class EtomoDirector {
     //  Set the user preferences
     createUserConfiguration();
     setUserPreferences();
-    ArrayList paramFileNameList = parseCommandLine(args);
-    if (help) {
+    ArrayList paramFileNameList = arguments.paramFileNameList;
+    if (arguments.isHelp()) {
       printHelpMessage();
       return;
     }
@@ -247,7 +198,7 @@ public class EtomoDirector {
       imodCalibDirectoryName = EnvironmentVariable.INSTANCE.getValue(null,
           EnvironmentVariable.CALIB_DIR, AxisID.ONLY);
       if (!imodCalibDirectoryName.equals("")) {
-        if (debug) {
+        if (arguments.isDebug()) {
           System.err.println(EnvironmentVariable.CALIB_DIR + " (env): "
               + imodCalibDirectoryName);
         }
@@ -261,7 +212,7 @@ public class EtomoDirector {
       }
     }
     else {
-      if (debug) {
+      if (arguments.isDebug()) {
         System.err.println(EnvironmentVariable.CALIB_DIR + " (-D): "
             + imodCalibDirectoryName);
       }
@@ -304,13 +255,13 @@ public class EtomoDirector {
         System.exit(1);
       }
       else {
-        if (debug) {
+        if (arguments.isDebug()) {
           System.err.println("IMOD_DIR (env): " + imodDirectoryName);
         }
       }
     }
     else {
-      if (debug) {
+      if (arguments.isDebug()) {
         System.err.println("IMOD_DIR (-D): " + imodDirectoryName);
       }
     }
@@ -324,26 +275,25 @@ public class EtomoDirector {
    * executed after a process is finished.
    * @return the current manager
    */
-  BaseManager getCurrentManager() {
+  public BaseManager getCurrentManager() {
     if (currentManagerKey == null) {
       throw new IllegalStateException("No current manager");
     }
     return (BaseManager) managerList.get(currentManagerKey);
   }
 
-  public BaseManager getCurrentManager_test() {
-    if (!test) {
-      throw new IllegalStateException("test-only function");
-    }
-    return getCurrentManager();
-  }
-
   protected final int getDisplayMemoryInterval() {
-    return displayMemoryInterval;
+    if (arguments == null) {
+      return 0;
+    }
+    return arguments.getDisplayMemoryInterval();
   }
 
   protected final boolean isDisplayMemory() {
-    return displayMemory;
+    if (arguments == null) {
+      return false;
+    }
+    return arguments.isDisplayMemory();
   }
 
   /**
@@ -352,7 +302,7 @@ public class EtomoDirector {
    * @return the old property user dir
    */
   public String setCurrentPropertyUserDir(String propertyUserDir) {
-    if (!test) {
+    if (!arguments.isTest()) {
       throw new IllegalStateException("test-only function");
     }
     if (currentManagerKey == null) {
@@ -604,8 +554,8 @@ public class EtomoDirector {
    * @param failed
    */
   public void setTestDone(boolean testDone) {
-    if (!test) {
-      throw new IllegalStateException("test=" + test);
+    if (!arguments.isTest()) {
+      throw new IllegalStateException("test=" + arguments.isTest());
     }
     this.testDone = testDone;
   }
@@ -766,83 +716,6 @@ public class EtomoDirector {
   }
 
   /**
-   * Parse the command line. This method will return a non-empty string if there
-   * is a etomo data .
-   * 
-   * @param The
-   *          command line arguments
-   * @return A string that will be set to the etomo data filename if one is
-   *         found on the command line otherwise it is "".
-   */
-  private ArrayList parseCommandLine(String[] args) {
-    ArrayList paramFileNameList = new ArrayList();
-    //  Parse the command line arguments
-    int i = 0;
-    while (i < args.length) {
-      // Filename argument should be the only one not beginning with at least
-      // one dash
-      if (!args[i].startsWith("-")) {
-        paramFileNameList.add(args[i]);
-      }
-      if (args[i].equals("-h") || args[i].equals("--help")) {
-        help = true;
-      }
-      if (args[i].equals("--debug")) {
-        debug = true;
-      }
-      if (args[i].equals("--demo")) {
-        demo = true;
-      }
-      if (args[i].equals("--test")) {
-        test = true;
-      }
-      if (args[i].equals("--headless")) {
-        headless = true;
-      }
-      if (args[i].equals("--selftest")) {
-        selfTest = true;
-      }
-      if (args[i].equals("--names")) {
-        printNames = true;
-      }
-      if (args[i].equals("--memory")) {
-        displayMemory = true;
-        //--memory can be used alone, or followed by an integer
-        //(displayMemoryInterval).  If displayMemoryInterval is set, then the
-        //memory usage will be sent to etomo_err.log every displayMemoryInterval
-        //minutes.
-        if (i + 1 < args.length && !args[i + 1].startsWith("--")) {
-          try {
-            int displayMemoryInterval = Integer.parseInt(args[++i]);
-            this.displayMemoryInterval = displayMemoryInterval;
-          }
-          catch (NumberFormatException e) {
-            i--;
-          }
-        }
-      }
-      if (args[i].equals("--timestamp")) {
-        Utilities.setTimestamp(true);
-      }
-      if (args[i].equals("--newstuff")) {
-        newstuff = true;
-        //--newstuff can be used alone, or followed by a 1 or 0 (default).
-        if (i + 1 < args.length && !args[i + 1].startsWith("--")) {
-          try {
-            newstuffNum = Integer.parseInt(args[++i]);
-          }
-          catch (NumberFormatException e) {
-            newstuffNum = 0;
-            i--;
-          }
-        }
-      }
-      i++;
-    }
-    return paramFileNameList;
-  }
-
-  /**
    * Set the user preferences
    */
   private void setUserPreferences() {
@@ -871,32 +744,32 @@ public class EtomoDirector {
     //  System.err.println(plaf[i].getClassName());
     //}
     String osName = System.getProperty("os.name");
-    if (debug) {
+    if (arguments.isDebug()) {
       System.err.println("os.name: " + osName);
     }
     if (nativeLookAndFeel) {
       if (osName.startsWith("Mac OS X")) {
         lookAndFeelClassName = "apple.laf.AquaLookAndFeel";
-        if (debug) {
+        if (arguments.isDebug()) {
           System.err.println("Setting AquaLookAndFeel");
         }
       }
       else if (osName.startsWith("Windows")) {
         lookAndFeelClassName = "com.sun.java.swing.plaf.windows.WindowsLookAndFeel";
-        if (debug) {
+        if (arguments.isDebug()) {
           System.err.println("Setting WindowsLookAndFeel");
         }
       }
       else {
         lookAndFeelClassName = "com.sun.java.swing.plaf.motif.MotifLookAndFeel";
-        if (debug) {
+        if (arguments.isDebug()) {
           System.err.println("Setting MotifLookAndFeel");
         }
       }
     }
     else {
       lookAndFeelClassName = UIManager.getCrossPlatformLookAndFeelClassName();
-      if (debug) {
+      if (arguments.isDebug()) {
         System.err.println("Setting MetalLookAndFeel");
       }
     }
@@ -931,31 +804,65 @@ public class EtomoDirector {
   }
 
   public boolean isDebug() {
-    return debug;
+    if (arguments == null) {
+      return false;
+    }
+    return arguments.isDebug();
   }
 
+  /**
+   * If arguments hasn't been initialized yet, then
+   * assume that this is a self test is true because UITest does alot of work
+   * before it can
+   * run EtomoDirector.main.
+   * @return
+   */
   public boolean isSelfTest() {
-    return selfTest;
+    if (arguments == null) {
+      return true;
+    }
+    return arguments.isSelfTest();
   }
 
   public boolean isDemo() {
-    return demo;
+    if (arguments == null) {
+      return false;
+    }
+    return arguments.isDemo();
   }
 
+  /**
+   * Returns arguments.test.  If arguments hasn't been initialized yet, then
+   * assume that this is a test because UITest does alot of work before it can
+   * run EtomoDirector.main.
+   * @return
+   */
   public boolean isTest() {
-    return test;
+    if (arguments == null) {
+      return true;
+    }
+    return arguments.isTest();
   }
 
   public boolean isHeadless() {
-    return headless;
+    if (arguments == null) {
+      return Arguments.HEADLESS_DEFAULT;
+    }
+    return arguments.isHeadless();
   }
 
   public boolean isNewstuff() {
-    return newstuff;
+    if (arguments == null) {
+      return false;
+    }
+    return arguments.isNewstuff();
   }
 
   public boolean isPrintNames() {
-    return printNames;
+    if (arguments == null) {
+      return false;
+    }
+    return arguments.isPrintNames();
   }
 
   public int getManagerListSize() {
@@ -1086,7 +993,7 @@ public class EtomoDirector {
     //System.out.println("Available memory = " + availableMemory);
     //System.out.println("Memory in use    = " + usedMemory);
     //System.out.println();
-    if (debug || displayMemory) {
+    if (arguments.isDebug() || arguments.isDisplayMemory()) {
       System.err.println("Available memory = " + availableMemory);
       System.err.println("Memory in use    = " + usedMemory);
     }
@@ -1140,11 +1047,11 @@ public class EtomoDirector {
       }
       try {
         System.err.println(new Date());
-        EtomoDirector.getInstance().isMemoryAvailable();
+        INSTANCE.isMemoryAvailable();
         while (!stop) {
           Thread.sleep(1000 * 60 * displayMemoryInterval);
           System.err.println(new Date());
-          EtomoDirector.getInstance().isMemoryAvailable();
+          INSTANCE.isMemoryAvailable();
         }
       }
       catch (InterruptedException e) {
@@ -1156,9 +1063,156 @@ public class EtomoDirector {
       this.stop = stop;
     }
   }
+
+  private static final class Arguments {
+    private static final boolean HEADLESS_DEFAULT = GraphicsEnvironment
+        .isHeadless();
+
+    private final ArrayList paramFileNameList = new ArrayList();
+
+    private boolean debug = false;
+    private boolean demo = false;
+    private boolean test = false;
+    private boolean headless = HEADLESS_DEFAULT;
+    private boolean selfTest = false;
+    private boolean newstuff = false;
+    private boolean displayMemory = false;
+    private boolean help = false;
+    private boolean printNames = false;
+    private int displayMemoryInterval = 0;
+    private int newstuffNum = 0;
+
+    private Arguments() {
+    }
+
+    private static Arguments getInstance(String[] args) {
+      Arguments instance = new Arguments();
+      instance.parseCommandLine(args);
+      return instance;
+    }
+
+    /**
+     * Parse the command line. This method will return a non-empty string if there
+     * is a etomo data .
+     * 
+     * @param The
+     *          command line arguments
+     * @return A string that will be set to the etomo data filename if one is
+     *         found on the command line otherwise it is "".
+     */
+    private ArrayList parseCommandLine(String[] args) {
+      //  Parse the command line arguments
+      int i = 0;
+      while (i < args.length) {
+        // Filename argument should be the only one not beginning with at least
+        // one dash
+        if (!args[i].startsWith("-")) {
+          paramFileNameList.add(args[i]);
+        }
+        if (args[i].equals("-h") || args[i].equals("--help")) {
+          help = true;
+        }
+        if (args[i].equals("--debug")) {
+          debug = true;
+        }
+        if (args[i].equals("--demo")) {
+          demo = true;
+        }
+        if (args[i].equals("--test")) {
+          test = true;
+        }
+        if (args[i].equals("--headless")) {
+          headless = true;
+        }
+        if (args[i].equals("--selftest")) {
+          selfTest = true;
+        }
+        if (args[i].equals("--names")) {
+          printNames = true;
+        }
+        if (args[i].equals("--memory")) {
+          displayMemory = true;
+          //--memory can be used alone, or followed by an integer
+          //(displayMemoryInterval).  If displayMemoryInterval is set, then the
+          //memory usage will be sent to etomo_err.log every displayMemoryInterval
+          //minutes.
+          if (i + 1 < args.length && !args[i + 1].startsWith("--")) {
+            try {
+              int displayMemoryInterval = Integer.parseInt(args[++i]);
+              this.displayMemoryInterval = displayMemoryInterval;
+            }
+            catch (NumberFormatException e) {
+              i--;
+            }
+          }
+        }
+        if (args[i].equals("--timestamp")) {
+          Utilities.setTimestamp(true);
+        }
+        if (args[i].equals("--newstuff")) {
+          newstuff = true;
+          //--newstuff can be used alone, or followed by a 1 or 0 (default).
+          if (i + 1 < args.length && !args[i + 1].startsWith("--")) {
+            try {
+              newstuffNum = Integer.parseInt(args[++i]);
+            }
+            catch (NumberFormatException e) {
+              newstuffNum = 0;
+              i--;
+            }
+          }
+        }
+        i++;
+      }
+      return paramFileNameList;
+    }
+
+    private boolean isTest() {
+      return test;
+    }
+
+    private boolean isHeadless() {
+      return headless;
+    }
+
+    private boolean isDemo() {
+      return demo;
+    }
+
+    private boolean isSelfTest() {
+      return selfTest;
+    }
+
+    private boolean isHelp() {
+      return help;
+    }
+
+    private boolean isPrintNames() {
+      return printNames;
+    }
+
+    private boolean isNewstuff() {
+      return newstuff;
+    }
+
+    private boolean isDebug() {
+      return debug;
+    }
+
+    private int getDisplayMemoryInterval() {
+      return displayMemoryInterval;
+    }
+
+    private boolean isDisplayMemory() {
+      return displayMemory;
+    }
+  }
 }
 /**
  * <p> $Log$
+ * <p> Revision 1.65  2007/08/06 19:53:30  sueh
+ * <p> bug# 916 Warning when making a settings change can effect appearance.
+ * <p>
  * <p> Revision 1.64  2007/07/30 22:37:04  sueh
  * <p> bug# 963 Updated usage message.
  * <p>
