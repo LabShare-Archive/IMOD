@@ -46,7 +46,6 @@ public class DataFlowTests {
   static boolean fiducialless = false;
 
   public static void main(String[] args) {
-
     // Parse the command line
     parseCommandLine(args);
 
@@ -76,8 +75,8 @@ public class DataFlowTests {
     /*String[] argsIn = new String[1];
      argsIn[0] = System.getProperty("user.dir") + File.separator + datasetName
      + ".edf";*/
-    EtomoDirector.createInstance(argsIn);
-    applicationManager = (ApplicationManager) EtomoDirector.getInstance()
+    EtomoDirector.main(argsIn);
+    applicationManager = (ApplicationManager) EtomoDirector.INSTANCE
         .getCurrentManager();
     //mainFrame = EtomoDirector.getInstance().getMainFrame();
     // A hack around the const object returned we really know is not const
@@ -354,6 +353,10 @@ public class DataFlowTests {
 }
 /**
  * <p> $Log$
+ * <p> Revision 3.20  2006/07/26 16:32:21  sueh
+ * <p> bug# 868 Moved functions associated with TomogramGenerationDialog from
+ * <p> ApplicationManager to TomogramGenerationExpert.
+ * <p>
  * <p> Revision 3.19  2006/06/09 19:50:22  sueh
  * <p> bug# 870 Changed UIExpert.doneDialog() to doneDialog(DIalogExitState).
  * <p>
