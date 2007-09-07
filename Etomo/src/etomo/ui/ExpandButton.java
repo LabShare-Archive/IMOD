@@ -36,6 +36,10 @@ import etomo.util.Utilities;
  * @version $Revision$
  * 
  * <p> $Log$
+ * <p> Revision 1.15  2007/03/20 00:44:28  sueh
+ * <p> bug# 964 Added remove() to remove component from the jpanelContainer which
+ * <p> was saved in add().
+ * <p>
  * <p> Revision 1.14  2007/03/01 01:33:21  sueh
  * <p> bug# 964 removed unnecesary protected modifier
  * <p>
@@ -174,7 +178,7 @@ final class ExpandButton extends MultiLineButton {
     String name = Utilities.convertLabelToName(label) + "-"
         + type.getExpandedState();
     getButton().setName(name);
-    if (EtomoDirector.getInstance().isPrintNames()) {
+    if (EtomoDirector.INSTANCE.isPrintNames()) {
       System.out.println(UITestField.MINI_BUTTON.toString()
           + AutodocTokenizer.SEPARATOR_CHAR + name + ' '
           + AutodocTokenizer.DEFAULT_DELIMITER + ' ');

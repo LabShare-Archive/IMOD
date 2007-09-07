@@ -21,6 +21,7 @@ import etomo.storage.autodoc.ReadOnlySection;
 import etomo.type.AxisID;
 import etomo.type.DialogType;
 import etomo.type.UITestAction;
+import etomo.ui.UIHarness;
 import etomo.util.EnvironmentVariable;
 import etomo.util.Utilities;
 import junit.extensions.jfcunit.JFCTestCase;
@@ -46,8 +47,8 @@ public final class UITest extends JFCTestCase implements AdocCommandFactory {
       AxisID.ONLY);
   private static final File DATA_DIR = Utilities.getExistingDir(
       "IMOD_UITEST_DATA", AxisID.ONLY);
-  static final long DEFAULT_SLEEP = 1000;
   private static final String[] ARGS = new String[] { "--selftest", "--test" };
+  static final long DEFAULT_SLEEP = 1000;
 
   private static Throwable uncaughtException = null;
 
@@ -283,17 +284,17 @@ public final class UITest extends JFCTestCase implements AdocCommandFactory {
     }
     //run Etomo
     if (dataFileName == null) {
-      etomo = EtomoDirector.createInstance_test(ARGS);
-    }
-    else {
+      EtomoDirector.main(ARGS);
+    }else {
       File dataFile = new File(System.getProperty("user.dir"), dataFileName);
       String[] args = new String[ARGS.length + 1];
       for (int i = 0; i < ARGS.length; i++) {
         args[i] = ARGS[i];
       }
       args[ARGS.length] = dataFile.getAbsolutePath();
-      etomo = EtomoDirector.createInstance_test(args);
+      EtomoDirector.main(args);
     }
+    etomo = EtomoDirector.INSTANCE;
     //Create the UITestAxis instances
     if (autodocA != null) {
       axisAUITest = new UITestAxis(this, autodocA, helper, axisIDA,
@@ -624,6 +625,9 @@ public final class UITest extends JFCTestCase implements AdocCommandFactory {
 }
 /**
  * <p> $Log$
+ * <p> Revision 1.25  2007/04/09 21:23:53  sueh
+ * <p> Bug# 964 Changed NameValuePair to Statement and child classes.
+ * <p>
  * <p> Revision 1.24  2007/03/21 19:48:12  sueh
  * <p> bug# 964 Limiting access to autodoc classes by using ReadOnly interfaces.
  * <p> Added AutodocFactory to create Autodoc instances.  Moved AdocCommand

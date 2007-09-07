@@ -50,7 +50,7 @@ public class Goodframe {
     commandArray[2] = Integer.toString(secondInput);
     SystemProgram groupframe = new SystemProgram(propertyUserDir, commandArray,
         axisID);
-    groupframe.setDebug(EtomoDirector.getInstance().isDebug());
+    groupframe.setDebug(EtomoDirector.INSTANCE.isDebug());
     groupframe.run();
 
     if (groupframe.getExitValue() != 0) {
@@ -122,6 +122,9 @@ public class Goodframe {
 }
 /**
 * <p> $Log$
+* <p> Revision 1.9  2007/02/05 23:47:04  sueh
+* <p> bug# 962 Moved EtomoNumber type info to inner class.
+* <p>
 * <p> Revision 1.8  2005/11/02 22:15:37  sueh
 * <p> bug# 754 Parsing errors and warnings inside ProcessMessages.
 * <p>

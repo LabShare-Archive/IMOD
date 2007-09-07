@@ -31,6 +31,9 @@ import etomo.util.Utilities;
  * @version $$Revision$$
  * 
  * <p> $$Log$
+ * <p> $Revision 1.22  2006/10/24 21:18:13  sueh
+ * <p> $bug# 947 Passing the ProcessName to AxisProcessPanel.
+ * <p> $
  * <p> $Revision 1.21  2006/10/11 10:07:34  sueh
  * <p> $bug# 931 Added delete functionality to LogFile - changed BackupException to
  * <p> $FileException.
@@ -198,7 +201,7 @@ public class CombineProcessMonitor implements DetachedProcessMonitor {
     this.axisID = axisID;
     this.combineComscriptState = combineComscriptState;
     this.processResultDisplay = processResultDisplay;
-    selfTest = EtomoDirector.getInstance().isSelfTest();
+    selfTest = EtomoDirector.INSTANCE.isSelfTest();
     runSelfTest(CONSTRUCTED_STATE);
     displayFactory = manager.getProcessResultDisplayFactory(axisID);
   }

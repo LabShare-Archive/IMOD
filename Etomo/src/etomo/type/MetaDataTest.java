@@ -4,7 +4,6 @@ import java.io.File;
 
 import etomo.ApplicationManager;
 import etomo.EtomoDirector;
-import etomo.JUnitTests;
 import etomo.process.SystemProcessException;
 import etomo.storage.LogFile;
 import etomo.storage.ParameterStore;
@@ -27,6 +26,9 @@ import junit.framework.TestCase;
  * @version $Revision$
  * 
  * <p> $Log$
+ * <p> Revision 3.18  2007/07/30 18:53:55  sueh
+ * <p> bug# 1002 ParameterStore.getInstance can return null - handle it.
+ * <p>
  * <p> Revision 3.17  2006/11/18 01:16:49  sueh
  * <p> bug# 956 Temporarily not running problem tests on Windows.
  * <p>
@@ -108,8 +110,7 @@ public class MetaDataTest extends TestCase {
   private final ApplicationManager manager;
   
   public MetaDataTest() {
-    EtomoDirector.createInstance_test(JUnitTests.ETOMO_ARGUMENTS);
-    manager = (ApplicationManager) EtomoDirector.getInstance().getCurrentManager_test();
+    manager = (ApplicationManager) EtomoDirector.INSTANCE.getCurrentManager();
   }
 
   protected void setUp() throws Exception {
@@ -117,7 +118,7 @@ public class MetaDataTest extends TestCase {
     if (Utilities.isWindowsOS()) {
       return;
     }
-    EtomoDirector etomoDirector = EtomoDirector.getInstance();
+    EtomoDirector etomoDirector = EtomoDirector.INSTANCE;
     testDir = new File(TypeTests.TEST_ROOT_DIR, testDirectory);
     if (!testDir.exists()) {
       assertTrue(testDir.mkdirs());

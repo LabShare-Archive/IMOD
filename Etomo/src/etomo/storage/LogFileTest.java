@@ -4,7 +4,6 @@ import java.io.File;
 import java.util.Properties;
 
 import etomo.EtomoDirector;
-import etomo.JUnitTests;
 import etomo.type.AxisID;
 import etomo.type.ProcessName;
 import etomo.util.DatasetFiles;
@@ -25,6 +24,9 @@ import junit.framework.TestCase;
  * @version $Revision$
  * 
  * <p> $Log$
+ * <p> Revision 1.6  2007/02/05 23:04:47  sueh
+ * <p> bug# 962  Added testMove.
+ * <p>
  * <p> Revision 1.5  2006/11/15 20:04:01  sueh
  * <p> bug# 872 Testing input and output streams.  Testing Id creation.  Testing the
  * <p> write lock.
@@ -66,7 +68,6 @@ public class LogFileTest extends TestCase {
   protected void setUp() throws Exception {
     super.setUp();
     testDir.mkdirs();
-    EtomoDirector.createInstance_test(JUnitTests.ETOMO_ARGUMENTS);
     createLog();
     if (backupLog.exists()) {
       backupLog.delete();
@@ -751,7 +752,7 @@ public class LogFileTest extends TestCase {
 
   private void createLog() {
     if (!log.exists()) {
-      EtomoDirector.getInstance().getCurrentManager_test().touch(
+      EtomoDirector.INSTANCE.getCurrentManager().touch(
           log.getAbsolutePath());
       try {
         Thread.sleep(500);

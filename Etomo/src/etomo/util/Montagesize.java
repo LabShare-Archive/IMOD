@@ -191,7 +191,7 @@ public class Montagesize {
     buildCommand();
     SystemProgram montagesize = new SystemProgram(propertyUserDir,
         commandArray, axisID);
-    montagesize.setDebug(EtomoDirector.getInstance().isDebug());
+    montagesize.setDebug(EtomoDirector.INSTANCE.isDebug());
     modifiedFlag.setReadingNow();
     montagesize.run();
 
@@ -339,6 +339,9 @@ public class Montagesize {
 }
 /**
  * <p> $Log$
+ * <p> Revision 1.14  2007/08/16 16:38:23  sueh
+ * <p> bug# 1035 Added getFile().
+ * <p>
  * <p> Revision 1.13  2007/02/05 23:47:15  sueh
  * <p> bug# 962 Moved EtomoNumber type info to inner class.
  * <p>

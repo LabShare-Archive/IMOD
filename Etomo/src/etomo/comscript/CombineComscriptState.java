@@ -21,6 +21,9 @@ import etomo.util.DatasetFiles;
 * @version $$Revision$$
 *
 * <p> $Log$
+* <p> Revision 1.8  2006/10/10 05:02:05  sueh
+* <p> bug# 931 Getting the patch out file name from DatasetFiles.
+* <p>
 * <p> Revision 1.7  2005/09/16 17:14:53  sueh
 * <p> bug# 532 Getting command strings from ProcessName.
 * <p>
@@ -128,7 +131,7 @@ public class CombineComscriptState implements ComscriptState {
     
   public CombineComscriptState() {
     initializeComscriptMatchString();
-    selfTest = EtomoDirector.getInstance().isSelfTest();
+    selfTest = EtomoDirector.INSTANCE.isSelfTest();
     runSelfTest(CONSTRUCTED_STATE);
   }
   

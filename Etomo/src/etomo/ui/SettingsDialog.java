@@ -174,17 +174,17 @@ public class SettingsDialog extends JDialog {
   }
 
   void buttonCancelAction() {
-    EtomoDirector.getInstance().closeSettingsDialog();
+    EtomoDirector.INSTANCE.closeSettingsDialog();
   }
 
   void buttonApplyAction() {
-    EtomoDirector.getInstance().getSettingsParameters();
+    EtomoDirector.INSTANCE.getSettingsParameters();
   }
 
   void buttonDoneAction() {
-    EtomoDirector.getInstance().getSettingsParameters();
-    EtomoDirector.getInstance().saveSettingsDialog();
-    EtomoDirector.getInstance().closeSettingsDialog();
+    EtomoDirector.INSTANCE.getSettingsParameters();
+    EtomoDirector.INSTANCE.saveSettingsDialog();
+    EtomoDirector.INSTANCE.closeSettingsDialog();
   }
 
 }

@@ -12,6 +12,9 @@
  * @version $Revision$
  * 
  * <p> $Log$
+ * <p> Revision 3.15  2007/06/14 19:38:01  sueh
+ * <p> bug# 1020 Added wideNumericWidth.
+ * <p>
  * <p> Revision 3.14  2007/06/06 22:06:17  sueh
  * <p> bug# 1010 Made numericWidth smaller.
  * <p>
@@ -180,7 +183,7 @@ public final class UIParameters {
   private void calcSizes() {
     double height;
     //  Create a temporary check box and get its height
-    if (!EtomoDirector.getInstance().isHeadless()) {
+    if (!EtomoDirector.INSTANCE.isHeadless()) {
       JCheckBox temp = new JCheckBox();
       height = temp.getPreferredSize().getHeight();
     }

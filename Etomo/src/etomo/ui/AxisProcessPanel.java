@@ -33,6 +33,9 @@ import etomo.util.Utilities;
  * @version $Revision$
  *
  * <p> $Log$
+ * <p> Revision 3.31  2007/05/26 00:31:45  sueh
+ * <p> bug# 994 Using getInstance in ParallelPanel.
+ * <p>
  * <p> Revision 3.30  2007/02/05 23:32:33  sueh
  * <p> bug# 962 Moved EtomoNumber type info to inner class.
  * <p>
@@ -300,7 +303,7 @@ abstract class AxisProcessPanel implements ContextMenu {
     }
     buttonKillProcess.setName(Utilities.convertLabelToName(KILL_BUTTON_LABEL,
         processName));
-    if (EtomoDirector.getInstance().isPrintNames()) {
+    if (EtomoDirector.INSTANCE.isPrintNames()) {
       System.out.println(UITestAction.WAIT_FOR.toString()
           + AutodocTokenizer.SEPARATOR_CHAR + UITestField.PROCESS
           + AutodocTokenizer.SEPARATOR_CHAR + processName.toString() + ' '

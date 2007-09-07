@@ -22,6 +22,9 @@ import etomo.util.InvalidParameterException;
  * @version $Revision$
  *
  * <p> $Log$
+ * <p> Revision 3.7  2007/08/21 21:52:42  sueh
+ * <p> bug# 771 Made colorNotStarted final.
+ * <p>
  * <p> Revision 3.6  2007/02/09 00:51:42  sueh
  * <p> bug# 962 Made TooltipFormatter a singleton and moved its use to low-level ui
  * <p> classes.
@@ -87,7 +90,7 @@ public class ProcessControlPanel {
   private DialogType dialogType;
 
   ProcessControlPanel(DialogType dialogType) {
-    boolean compactDisplay = EtomoDirector.getInstance().getUserConfiguration()
+    boolean compactDisplay = EtomoDirector.INSTANCE.getUserConfiguration()
         .getCompactDisplay();
     if (compactDisplay) {
       command = dialogType.getCompactLabel();

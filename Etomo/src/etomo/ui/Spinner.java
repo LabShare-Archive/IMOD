@@ -31,6 +31,9 @@ import etomo.util.Utilities;
  * @version $Revision$
  * 
  * <p> $Log$
+ * <p> Revision 1.6  2007/06/08 22:22:21  sueh
+ * <p> bug# 1014 Added reset().
+ * <p>
  * <p> Revision 1.5  2007/05/18 23:54:07  sueh
  * <p> bug# 987 Added getLabeledInstance() for a non-default model.
  * <p>
@@ -63,7 +66,7 @@ final class Spinner {
     this.defaultValue=new Integer(value);
     String name = Utilities.convertLabelToName(label);
     spinner.setName(name);
-    if (EtomoDirector.getInstance().isPrintNames()) {
+    if (EtomoDirector.INSTANCE.isPrintNames()) {
       System.out.println(UITestField.SPINNER.toString()
           + AutodocTokenizer.SEPARATOR_CHAR + name + ' '
           + AutodocTokenizer.DEFAULT_DELIMITER + ' ');

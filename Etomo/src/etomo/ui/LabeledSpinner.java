@@ -12,6 +12,9 @@
  * @version $Revision$
  * 
  * <p> $Log$
+ * <p> Revision 1.18  2007/05/01 22:28:09  sueh
+ * <p> bug# 964 Added setMax(int).
+ * <p>
  * <p> Revision 1.17  2007/03/01 01:39:08  sueh
  * <p> bug# 964 Moved colors from UIUtilities to Colors.
  * <p>
@@ -117,7 +120,7 @@ public class LabeledSpinner {
     //set name
     String name = Utilities.convertLabelToName(spinLabel);
     spinner.setName(name);
-    if (EtomoDirector.getInstance().isPrintNames()) {
+    if (EtomoDirector.INSTANCE.isPrintNames()) {
       System.out.println(UITestField.SPINNER.toString()
           + AutodocTokenizer.SEPARATOR_CHAR + name + ' '
           + AutodocTokenizer.DEFAULT_DELIMITER + ' ');

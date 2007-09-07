@@ -6,7 +6,6 @@ import java.io.IOException;
 
 import etomo.BaseManager;
 import etomo.EtomoDirector;
-import etomo.JUnitTests;
 import etomo.process.SystemProcessException;
 import etomo.storage.LogFile;
 import etomo.type.AxisID;
@@ -43,9 +42,8 @@ public final class AutodocTest extends TestCase {
     super.setUp();
     File testDir = new File(AutodocTests.TEST_ROOT_DIR, TEST_DIR_NAME);
     testDir.mkdirs();
-    EtomoDirector.createInstance_test(JUnitTests.ETOMO_ARGUMENTS);
-    manager = (BaseManager) EtomoDirector.getInstance()
-        .getCurrentManager_test();
+    manager = (BaseManager) EtomoDirector.INSTANCE
+        .getCurrentManager();
     Autodoc.resetAbsoluteDir();
   }
 
@@ -252,6 +250,9 @@ public final class AutodocTest extends TestCase {
 }
 /**
  * <p> $Log$
+ * <p> Revision 1.16  2007/08/01 22:44:50  sueh
+ * <p> bug# 985 Removed unnecessary prints.
+ * <p>
  * <p> Revision 1.15  2007/03/21 18:15:58  sueh
  * <p> bug# 964 Limiting access to autodoc classes by using ReadOnly interfaces.
  * <p> Added AutodocFactory to create Autodoc instances.

@@ -20,6 +20,9 @@
  * 
  * <p>
  * $Log$
+ * Revision 3.115  2007/02/05 23:02:32  sueh
+ * bug# 962 Handling remapmodel, xfmodel, and xftoxg.
+ *
  * Revision 3.114  2006/11/15 19:59:35  sueh
  * bug# 872 Changed getParamFileStorableArray to getStorables in the managers.
  *
@@ -905,7 +908,7 @@ public class ProcessManager extends BaseProcessManager {
   public boolean setupComScripts(ConstMetaData metaData, AxisID axisID) {
     CopyTomoComs copyTomoComs = new CopyTomoComs(appManager);
 
-    if (EtomoDirector.getInstance().isDebug()) {
+    if (EtomoDirector.INSTANCE.isDebug()) {
       System.err.println("copytomocoms command line: "
           + copyTomoComs.getCommandLine());
     }
@@ -1767,7 +1770,7 @@ public class ProcessManager extends BaseProcessManager {
         .getPropertyUserDir(), commandArray, axisID);
     systemProgram
         .setWorkingDirectory(new File(appManager.getPropertyUserDir()));
-    systemProgram.setDebug(EtomoDirector.getInstance().isDebug());
+    systemProgram.setDebug(EtomoDirector.INSTANCE.isDebug());
     long logWriteId = LogFile.NO_ID;
     if (logFile != null) {
       logWriteId = logFile.openForWriting();

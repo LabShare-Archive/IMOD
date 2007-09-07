@@ -26,6 +26,9 @@ import etomo.util.MRCHeader;
  * @version $Revision$
  * 
  * <p> $Log$
+ * <p> Revision 3.16  2006/10/24 21:40:46  sueh
+ * <p> bug# 947 Passing the ProcessName to AxisProcessPanel.
+ * <p>
  * <p> Revision 3.15  2006/09/22 18:19:09  sueh
  * <p> bug# 931 Passing the process name to super().
  * <p>
@@ -202,7 +205,7 @@ final class TiltProcessMonitor extends FileSizeProcessMonitor {
     long fileSize = 1024 + (long) nX * nY * (nZ / imageBinned) * modeBytes;
     nKBytes = (int) (fileSize / 1024);
 
-    if (EtomoDirector.getInstance().isDebug()) {
+    if (EtomoDirector.INSTANCE.isDebug()) {
       System.err.println("TiltProcessMonitor.calcFileSize:fileSize=" + fileSize
           + ",nX=" + nX + ",nY=" + nY + ",nZ=" + nZ + ",imageBinned="
           + imageBinned);

@@ -92,7 +92,7 @@ final class TextField {
   private void setName(String reference) {
     String name = Utilities.convertLabelToName(reference);
     textField.setName(name);
-    if (EtomoDirector.getInstance().isPrintNames()) {
+    if (EtomoDirector.INSTANCE.isPrintNames()) {
       System.out.println(UITestField.TEXT_FIELD.toString()
           + AutodocTokenizer.SEPARATOR_CHAR + name + ' '
           + AutodocTokenizer.DEFAULT_DELIMITER + ' ');
@@ -101,6 +101,9 @@ final class TextField {
 }
 /**
  * <p> $Log$
+ * <p> Revision 1.3  2007/03/30 23:54:19  sueh
+ * <p> bug# 964 Wrapping JTextField instead of inheriting it.  Added automatic sizing.
+ * <p>
  * <p> Revision 1.2  2007/02/09 00:53:33  sueh
  * <p> bug# 962 Made TooltipFormatter a singleton and moved its use to low-level ui
  * <p> classes.

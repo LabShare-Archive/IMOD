@@ -18,6 +18,9 @@
  * 
  * <p>
  * $Log$
+ * Revision 3.15  2006/07/19 15:17:00  sueh
+ * bug# 903 genOptions:  throw an exception when patchZMin or Max is null.
+ *
  * Revision 3.14  2006/06/07 17:46:31  sueh
  * bug# 766 Don't use uselist unless it has data
  *
@@ -210,7 +213,7 @@ public class SetupCombine {
   public SetupCombine(ApplicationManager manager) throws SystemProcessException{
     this.manager = manager;
     metaData = manager.getConstMetaData();
-    debug = EtomoDirector.getInstance().isDebug();
+    debug = EtomoDirector.INSTANCE.isDebug();
 
     //  Create a new SystemProgram object for setupcombine, set the
     //  working directory and stdin array.

@@ -13,6 +13,9 @@
  * @version $Revision$
  * 
  * <p> $Log$
+ * <p> Revision 1.17  2007/06/11 21:20:48  sueh
+ * <p> Removed print statements.
+ * <p>
  * <p> Revision 1.16  2007/03/13 19:44:40  sueh
  * <p> bug# 964 Got the test autodoc tests working.  The tests checkout location
  * <p> should be "imod" because "IMOD" is an alias.  Using the alias caused the "-d" option in the "cvs export" command behave incorrectly.
@@ -198,12 +201,12 @@ public class TestUtilites {
     System.out.println("testDir="+testDir);
     System.out.println("checkoutLocation="+checkoutLocation);
     //set working directory
-    String originalDirName = EtomoDirector.getInstance()
+    String originalDirName = EtomoDirector.INSTANCE
         .setCurrentPropertyUserDir(testRootDir.getAbsolutePath());
     //delete existing target
     if (target.exists() && !target.delete()) {
       //unable to delete - reset working directory and throw exception
-      EtomoDirector.getInstance().setCurrentPropertyUserDir(originalDirName);
+      EtomoDirector.INSTANCE.setCurrentPropertyUserDir(originalDirName);
       throw new SystemProcessException("Cannot delete target: "
           + target.getAbsolutePath());
     }
@@ -233,7 +236,7 @@ public class TestUtilites {
           + manager.getPropertyUserDir() + ",testRootDir="
           + testRootDir.getAbsolutePath() + "\ntestDir="
           + testDir.getAbsolutePath() + ",target=" + target.getAbsolutePath();
-      EtomoDirector.getInstance().setCurrentPropertyUserDir(originalDirName);
+      EtomoDirector.INSTANCE.setCurrentPropertyUserDir(originalDirName);
       throw new SystemProcessException(message);
     }
     // NOTE: some version of cvs (1.11.2) have bug that results in a checkout
@@ -250,7 +253,7 @@ public class TestUtilites {
       rm.run();
     }
     //reset working directory
-    EtomoDirector.getInstance().setCurrentPropertyUserDir(originalDirName);
+    EtomoDirector.INSTANCE.setCurrentPropertyUserDir(originalDirName);
     return target;
   }
 }

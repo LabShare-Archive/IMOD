@@ -4,7 +4,6 @@ import java.io.File;
 import java.io.IOException;
 
 import etomo.EtomoDirector;
-import etomo.JUnitTests;
 import etomo.process.SystemProcessException;
 import etomo.type.AxisID;
 
@@ -23,6 +22,9 @@ import junit.framework.TestCase;
  * @version $Revision$
  * 
  * <p> $Log$
+ * <p> Revision 3.21  2006/11/18 01:17:04  sueh
+ * <p> bug# 956 Temporarily not running problem tests on Windows.
+ * <p>
  * <p> Revision 3.20  2006/11/15 21:37:18  sueh
  * <p> bug# 872 In setup:  create the etomo instance the same way other test classes
  * <p> create it.
@@ -146,24 +148,6 @@ public class MRCHeaderTest extends TestCase {
         + "/headerTest.st", AxisID.ONLY);
   }
 
-  /**
-   * @see TestCase#setUp()
-   */
-  protected void setUp() throws Exception {
-    super.setUp();
-    EtomoDirector.createInstance_test(JUnitTests.ETOMO_ARGUMENTS);
-  }
-
-  /**
-   * @see TestCase#tearDown()
-   */
-  protected void tearDown() throws Exception {
-    super.tearDown();
-  }
-
-  public void testMRCHeader() {
-  }
-
   public void testEmptyFilename() throws InvalidParameterException {
     try {
       emptyFilename.read();
@@ -201,8 +185,8 @@ public class MRCHeaderTest extends TestCase {
 
     // Check out the test header stack into the required directories
     try {
-      TestUtilites.getVector(EtomoDirector.getInstance()
-          .getCurrentManager_test(), testDirPath, testDirectory1,
+      TestUtilites.getVector(EtomoDirector.INSTANCE
+          .getCurrentManager(), testDirPath, testDirectory1,
           headerTestStack);
     }
     catch (SystemProcessException except) {
@@ -252,8 +236,8 @@ public class MRCHeaderTest extends TestCase {
     }
     // Check out the test header stack into the required directories
     try {
-      TestUtilites.getVector(EtomoDirector.getInstance()
-          .getCurrentManager_test(), testDirPath, testDirectory2,
+      TestUtilites.getVector(EtomoDirector.INSTANCE
+          .getCurrentManager(), testDirPath, testDirectory2,
           "headerTest.st");
     }
     catch (SystemProcessException except) {

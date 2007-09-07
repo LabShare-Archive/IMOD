@@ -12,6 +12,9 @@
  * @version $$Revision$
  *
  * <p> $$Log$
+ * <p> $Revision 3.52  2007/03/01 01:48:23  sueh
+ * <p> $bug# 964 Added LogFile to Autodoc.
+ * <p> $
  * <p> $Revision 3.51  2006/10/24 23:35:40  sueh
  * <p> $bug# 947, bug# 948
  * <p> $
@@ -516,7 +519,7 @@ public class Utilities {
    * @param string
    */
   static public void debugPrint(String string, boolean toOut) {
-    if (EtomoDirector.getInstance().isDebug()) {
+    if (EtomoDirector.INSTANCE.isDebug()) {
       if (toOut) {
         System.out.println(string);
       }
@@ -719,7 +722,7 @@ public class Utilities {
 
   public static boolean isDebug() {
     if (!retrievedDebug) {
-      debug = EtomoDirector.getInstance().isDebug();
+      debug = EtomoDirector.INSTANCE.isDebug();
       retrievedDebug = true;
     }
     return debug;
@@ -731,7 +734,7 @@ public class Utilities {
 
   public static boolean isSelfTest() {
     if (!retrievedSelfTest) {
-      selfTest = EtomoDirector.getInstance().isSelfTest();
+      selfTest = EtomoDirector.INSTANCE.isSelfTest();
       retrievedSelfTest = true;
     }
     return selfTest;

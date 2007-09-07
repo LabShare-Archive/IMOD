@@ -25,6 +25,9 @@ import etomo.util.Utilities;
  * @version $Revision$
  *
  * <p> $Log$
+ * <p> Revision 3.25  2007/06/08 22:21:47  sueh
+ * <p> bug# 1014 Added clear().
+ * <p>
  * <p> Revision 3.24  2007/04/13 18:44:56  sueh
  * <p> bug# 964 Added debug member variable.
  * <p>
@@ -179,7 +182,7 @@ final class LabeledTextField {
   private void setName(final String tfLabel) {
     String name = Utilities.convertLabelToName(tfLabel);
     textField.setName(name);
-    if (EtomoDirector.getInstance().isPrintNames()) {
+    if (EtomoDirector.INSTANCE.isPrintNames()) {
       System.out.println(UITestField.TEXT_FIELD.toString()
           + AutodocTokenizer.SEPARATOR_CHAR + name + ' '
           + AutodocTokenizer.DEFAULT_DELIMITER + ' ');

@@ -34,8 +34,7 @@ public class RemotePathTest extends TestCase {
   public static final String rcsid = "$Id$";
 
   private static final String RCSID = "rcsid";
-  private static final BaseManager MANAGER = EtomoDirector.createInstance_test(
-      new String[] { "--test", "--headless" }).getCurrentManager_test();
+  private static final BaseManager MANAGER = EtomoDirector.INSTANCE.getCurrentManager();
   private static final File TEST_DIR = new File(UtilTests.TEST_ROOT_DIR,
       "RemotePath");
   private static final String TEST_FILE_NAME = DatasetFiles
@@ -998,6 +997,9 @@ public class RemotePathTest extends TestCase {
 }
 /**
  * <p> $Log$
+ * <p> Revision 1.37  2007/07/17 21:45:59  sueh
+ * <p> bug# 108 Moved LOCAL_HOST to CpuAdoc.
+ * <p>
  * <p> Revision 1.36  2007/05/21 22:32:08  sueh
  * <p> bug# 1000 Moved ProcessorTable.SECTION_TYPE to CpuAdoc.
  * <p>

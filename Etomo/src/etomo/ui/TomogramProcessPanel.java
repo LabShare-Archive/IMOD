@@ -31,6 +31,10 @@ import etomo.util.Utilities;
  * @version $Revision$
  * 
  * <p> $Log$
+ * <p> Revision 1.26  2007/02/09 00:54:33  sueh
+ * <p> bug# 962 Made TooltipFormatter a singleton and moved its use to low-level ui
+ * <p> classes.
+ * <p>
  * <p> Revision 1.25  2006/08/08 21:16:47  sueh
  * <p> bug# 438 Correct compact display.
  * <p>
@@ -421,7 +425,7 @@ public class TomogramProcessPanel extends AxisProcessPanel {
     setToolTipText();
     panelProcessSelect.add(Box.createRigidArea(FixedDim.x0_y5));
     int layoutAxis = BoxLayout.X_AXIS;
-    boolean compactDisplay = EtomoDirector.getInstance().getUserConfiguration()
+    boolean compactDisplay = EtomoDirector.INSTANCE.getUserConfiguration()
         .getCompactDisplay();
     if (compactDisplay) {
       layoutAxis = BoxLayout.Y_AXIS;

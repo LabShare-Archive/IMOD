@@ -6,7 +6,6 @@ import junit.framework.TestCase;
 
 import etomo.ApplicationManager;
 import etomo.EtomoDirector;
-import etomo.JUnitTests;
 import etomo.process.SystemProgram;
 
 /**
@@ -22,6 +21,9 @@ import etomo.process.SystemProgram;
  * @version $Revision$
  *
  * <p> $$Log$
+ * <p> $Revision 3.15  2006/05/22 22:51:42  sueh
+ * <p> $bug# 577 Placed commands in a String[] rather then a String.
+ * <p> $
  * <p> $Revision 3.14  2006/01/03 23:22:19  sueh
  * <p> $bug# 675 Removed the tests involving unreadable or unwriteable files or
  * <p> $directories.
@@ -188,9 +190,7 @@ public class ConstMetaDataTest extends TestCase {
    */
   public ConstMetaDataTest(String arg0) {
     super(arg0);
-    EtomoDirector.createInstance_test(JUnitTests.ETOMO_ARGUMENTS);
-    manager = (ApplicationManager) EtomoDirector.getInstance()
-        .getCurrentManager_test();
+    manager = (ApplicationManager) EtomoDirector.INSTANCE.getCurrentManager();
   }
 
   /*
@@ -341,7 +341,7 @@ public class ConstMetaDataTest extends TestCase {
 
     //invalid directories
     //non-existant directories
-    String workingDir = EtomoDirector.getInstance().setCurrentPropertyUserDir(
+    String workingDir = EtomoDirector.INSTANCE.setCurrentPropertyUserDir(
         dummyDir.getAbsolutePath());
     testInst.setBackupDirectory(dummyDir2.getAbsolutePath());
     testInst.setDatasetName(validDatasetName);
@@ -356,20 +356,20 @@ public class ConstMetaDataTest extends TestCase {
     }
     //Test successes
     testInst.setDatasetName(validDatasetName);
-    EtomoDirector.getInstance().setCurrentPropertyUserDir(
+    EtomoDirector.INSTANCE.setCurrentPropertyUserDir(
         validFileDir.getAbsolutePath());
 
     //working dir, single axis
     assertTrue(testInst.isDatasetNameValid());
 
     //backup dir, dual axis
-    EtomoDirector.getInstance().setCurrentPropertyUserDir(
+    EtomoDirector.INSTANCE.setCurrentPropertyUserDir(
         emptyDir.getAbsolutePath());
     testInst.setBackupDirectory(validFileDir.getAbsolutePath());
     testInst.setAxisType(AxisType.DUAL_AXIS);
     assertTrue(testInst.isDatasetNameValid());
 
-    EtomoDirector.getInstance().setCurrentPropertyUserDir(workingDir);
+    EtomoDirector.INSTANCE.setCurrentPropertyUserDir(workingDir);
 
   }
 
@@ -378,7 +378,7 @@ public class ConstMetaDataTest extends TestCase {
    */
   final public void testIsValid() {
     String invalidReason;
-    String workingDir = EtomoDirector.getInstance().setCurrentPropertyUserDir(
+    String workingDir = EtomoDirector.INSTANCE.setCurrentPropertyUserDir(
         validFileDir.getAbsolutePath());
     //Test failures
 
@@ -451,7 +451,7 @@ public class ConstMetaDataTest extends TestCase {
     testInst.setFiducialDiameter(15);
     assertTrue(testInst.isValid(true));
 
-    EtomoDirector.getInstance().setCurrentPropertyUserDir(workingDir);
+    EtomoDirector.INSTANCE.setCurrentPropertyUserDir(workingDir);
 
   }
 }

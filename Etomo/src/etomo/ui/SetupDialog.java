@@ -628,7 +628,7 @@ public class SetupDialog extends ProcessDialog implements ContextMenu,
   protected void btnDatasetAction(ActionEvent event) {
     //  Open up the file chooser in the working directory
     JFileChooser chooser = new JFileChooser(new File(EtomoDirector
-        .getInstance().getOriginalUserDir()));
+        .INSTANCE.getOriginalUserDir()));
     StackFileFilter stackFilter = new StackFileFilter();
     chooser.setFileFilter(stackFilter);
     chooser.setPreferredSize(new Dimension(400, 400));
@@ -650,7 +650,7 @@ public class SetupDialog extends ProcessDialog implements ContextMenu,
     //  Open up the file chooser in the working directory
     String currentBackupDirectory = ltfBackupDirectory.getText();
     if (currentBackupDirectory.equals("")) {
-      currentBackupDirectory = EtomoDirector.getInstance().getOriginalUserDir();
+      currentBackupDirectory = EtomoDirector.INSTANCE.getOriginalUserDir();
     }
     JFileChooser chooser = new JFileChooser(new File(currentBackupDirectory));
     chooser.setPreferredSize(new Dimension(400, 400));
@@ -672,7 +672,7 @@ public class SetupDialog extends ProcessDialog implements ContextMenu,
     //otherwise open in the working directory
     String currentDistortionDirectory = ltfDistortionFile.getText();
     if (currentDistortionDirectory.equals("")) {
-      File calibrationDir = EtomoDirector.getInstance().getIMODCalibDirectory();
+      File calibrationDir = EtomoDirector.INSTANCE.getIMODCalibDirectory();
       File distortionDir = new File(calibrationDir.getAbsolutePath(),
           "Distortion");
       if (distortionDir.exists()) {
@@ -709,7 +709,7 @@ public class SetupDialog extends ProcessDialog implements ContextMenu,
     //otherwise open in the working directory
     String currentMagGradientDirectory = ltfMagGradientFile.getText();
     if (currentMagGradientDirectory.equals("")) {
-      File calibrationDir = EtomoDirector.getInstance().getIMODCalibDirectory();
+      File calibrationDir = EtomoDirector.INSTANCE.getIMODCalibDirectory();
       File magGradientDir = new File(calibrationDir.getAbsolutePath(),
           "Distortion");
       if (magGradientDir.exists()) {
@@ -1069,6 +1069,9 @@ public class SetupDialog extends ProcessDialog implements ContextMenu,
 }
 /**
  * <p> $Log$
+ * <p> Revision 3.58  2007/08/08 15:04:14  sueh
+ * <p> bug# 834 Using UserConfiguration to initialize fields.
+ * <p>
  * <p> Revision 3.57  2007/07/17 21:44:35  sueh
  * <p> bug# 1018 Adding cpu.adoc information from CpuAdoc.
  * <p>

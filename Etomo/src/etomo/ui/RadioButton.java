@@ -71,7 +71,7 @@ final class RadioButton implements RadioButtonInterface {
   void setName(final String text) {
     String name = Utilities.convertLabelToName(text);
     radioButton.setName(name);
-    if (EtomoDirector.getInstance().isPrintNames()) {
+    if (EtomoDirector.INSTANCE.isPrintNames()) {
       System.out.println(UITestField.RADIO_BUTTON.toString()
           + AutodocTokenizer.SEPARATOR_CHAR + name + ' '
           + AutodocTokenizer.DEFAULT_DELIMITER + ' ');
@@ -185,6 +185,9 @@ final class RadioButton implements RadioButtonInterface {
 }
 /**
  * <p> $Log$
+ * <p> Revision 1.14  2007/05/17 23:50:02  sueh
+ * <p> bug# 964 In setToolTipText(), return the tooltip.
+ * <p>
  * <p> Revision 1.13  2007/05/08 01:20:51  sueh
  * <p> bug# 964 Added setToolTipText(ReadOnlySection) to set an enum tooltip.
  * <p>

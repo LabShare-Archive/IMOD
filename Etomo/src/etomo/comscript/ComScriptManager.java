@@ -33,6 +33,9 @@ import etomo.util.Utilities;
  * @version $Revision$
  *
  * <p> $Log$
+ * <p> Revision 3.50  2007/03/07 20:58:48  sueh
+ * <p> bug# 981 Passing manager to TiltalignParam().
+ * <p>
  * <p> Revision 3.49  2007/02/05 21:36:13  sueh
  * <p> bug# 962 Put comscript mode info into an inner class.
  * <p>
@@ -1485,7 +1488,7 @@ public class ComScriptManager {
         Utilities.STARTED_STATUS);
     // Read in the template file from the IMOD_DIR/com directory replacing all
     // instances of the tag g5a and g5b with the appropriate dataset name
-    String comDirectory = EtomoDirector.getInstance().getIMODDirectory()
+    String comDirectory = EtomoDirector.INSTANCE.getIMODDirectory()
         .getAbsolutePath()
         + File.separator + "com";
 
@@ -1558,7 +1561,7 @@ public class ComScriptManager {
     Utilities.timestamp("copy from template", scriptName,
         Utilities.STARTED_STATUS);
     // Copy the template file from the IMOD_DIR/com directory to the script
-    String comDirectory = EtomoDirector.getInstance().getIMODDirectory()
+    String comDirectory = EtomoDirector.INSTANCE.getIMODDirectory()
         .getAbsolutePath()
         + File.separator + "com";
 

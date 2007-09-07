@@ -43,6 +43,9 @@ import java.lang.String;
  * @version $Revision$
  *
  * <p> $Log$
+ * <p> Revision 3.27  2007/03/01 01:39:53  sueh
+ * <p> bug# 964 Added functions getWidth, getBorder, and getHeight.
+ * <p>
  * <p> Revision 3.26  2007/02/09 00:50:44  sueh
  * <p> bug# 962 Made TooltipFormatter a singleton and moved its use to low-level ui
  * <p> classes.
@@ -300,7 +303,7 @@ class MultiLineButton implements ProcessResultDisplay {
   void setName(String label) {
     String name = Utilities.convertLabelToName(label);
     button.setName(name);
-    if (EtomoDirector.getInstance().isPrintNames()) {
+    if (EtomoDirector.INSTANCE.isPrintNames()) {
       System.out.println(UITestField.BUTTON.toString()
           + AutodocTokenizer.SEPARATOR_CHAR + name + ' '
           + AutodocTokenizer.DEFAULT_DELIMITER + ' ');

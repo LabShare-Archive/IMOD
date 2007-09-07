@@ -14,6 +14,10 @@
  * @version $Revision$
  *
  * <p> $Log$
+ * <p> Revision 3.29  2007/03/21 19:46:27  sueh
+ * <p> bug# 964 Limiting access to autodoc classes by using ReadOnly interfaces.
+ * <p> Added AutodocFactory to create Autodoc instances.
+ * <p>
  * <p> Revision 3.28  2007/03/07 21:12:21  sueh
  * <p> bug# 981 Reduce the visibility of members to package private because the
  * <p> inheritance of this class is in-package only.
@@ -203,7 +207,7 @@ public abstract class ProcessDialog implements AbstractParallelDialog {
     //set name
     String name = dialogType.getStorableName();
     rootPanel.setName(name);
-    if (EtomoDirector.getInstance().isPrintNames()) {
+    if (EtomoDirector.INSTANCE.isPrintNames()) {
       System.out.println(AutodocTokenizer.OPEN_CHAR
           + UITestAxisDialogCommand.SECTION_TYPE + ' '
           + AutodocTokenizer.DEFAULT_DELIMITER + ' ' + name

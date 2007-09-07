@@ -39,7 +39,7 @@ final class TabbedPane extends JTabbedPane {
     else {
       name = getName();
     }
-    if (EtomoDirector.getInstance().isPrintNames()) {
+    if (EtomoDirector.INSTANCE.isPrintNames()) {
       System.out.println(UITestField.TABBED_PANE.toString()
           + AutodocTokenizer.SEPARATOR_CHAR + name
           + AutodocTokenizer.SEPARATOR_CHAR + (tabCount - 1) + " "
@@ -48,5 +48,9 @@ final class TabbedPane extends JTabbedPane {
   }
 }
 /**
- * <p> $Log$ </p>
+ * <p> $Log$
+ * <p> Revision 1.1  2006/04/25 19:23:04  sueh
+ * <p> bug# 787 Made a subclass of JTabbedPane so tabbed panes could be
+ * <p> named automatically.  The name is the first tab.
+ * <p> </p>
  */

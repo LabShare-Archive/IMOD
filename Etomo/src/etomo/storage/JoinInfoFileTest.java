@@ -4,7 +4,6 @@ import java.io.File;
 
 import etomo.BaseManager;
 import etomo.EtomoDirector;
-import etomo.JUnitTests;
 import etomo.util.DatasetFiles;
 import etomo.util.Utilities;
 import junit.framework.TestCase;
@@ -23,6 +22,9 @@ import junit.framework.TestCase;
  * @version $Revision$
  * 
  * <p> $Log$
+ * <p> Revision 1.2  2006/11/18 01:15:53  sueh
+ * <p> bug# 956 Temporarily not running problem bugs on Windows.
+ * <p>
  * <p> Revision 1.1  2006/10/16 22:45:21  sueh
  * <p> bug# 919  File to test JoinInfoFile.
  * <p> </p>
@@ -40,15 +42,14 @@ public class JoinInfoFileTest extends TestCase {
       return;
     }
     testDir.mkdirs();
-    BaseManager manager = EtomoDirector.createInstance_test(
-        JUnitTests.ETOMO_ARGUMENTS).getCurrentManager_test();
+    BaseManager manager = EtomoDirector.INSTANCE.getCurrentManager();
     LogFile infoFile = LogFile.getInstance(testDir.getAbsolutePath(),
         DatasetFiles.getJoinInfoName(manager));
     infoFile.delete();
     JoinInfoFile test = new JoinInfoFile(infoFile);
     assertNull("Should return null when there is no file", test
         .getInverted(0));
-    EtomoDirector.getInstance().getCurrentManager_test().touch(
+    EtomoDirector.INSTANCE.getCurrentManager().touch(
         infoFile.getAbsolutePath());
     try {
       Thread.sleep(500);

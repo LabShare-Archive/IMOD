@@ -78,7 +78,7 @@ public class ProcesschunksProcessMonitor implements OutfileProcessMonitor,
     this.parallelProgressDisplay = parallelProgressDisplay;
     this.rootName = rootName;
     this.computerList = computerList;
-    debug = EtomoDirector.getInstance().isDebug();
+    debug = EtomoDirector.INSTANCE.isDebug();
     parallelProgressDisplay.setParallelProcessMonitor(this);
   }
 
@@ -357,7 +357,7 @@ public class ProcesschunksProcessMonitor implements OutfileProcessMonitor,
 
   public final void drop(String computer) {
     if (computerList.indexOf(computer) != -1) {
-      if (EtomoDirector.getInstance().isDebug()) {
+      if (EtomoDirector.INSTANCE.isDebug()) {
         System.err.println("try to drop " + computer);
       }
       try {
@@ -470,6 +470,10 @@ public class ProcesschunksProcessMonitor implements OutfileProcessMonitor,
 }
 /**
  * <p> $Log$
+ * <p> Revision 1.29  2007/08/29 21:43:14  sueh
+ * <p> bug# 1041 Set BaseState.KilledProcesschunksProcessName when a kill or
+ * <p> pause is done.
+ * <p>
  * <p> Revision 1.28  2007/02/22 20:36:51  sueh
  * <p> bug# 964 Printing processchunks output to the etomo_err.log for now.
  * <p>

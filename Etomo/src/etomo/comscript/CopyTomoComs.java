@@ -18,6 +18,9 @@
  * 
  * <p>
  * $Log$
+ * Revision 3.18  2006/06/05 16:11:34  sueh
+ * bug# 766 Using multi line messages automatically; don't have to set it.
+ *
  * Revision 3.17  2006/05/22 22:38:36  sueh
  * bug# 577 Placed the command in an ArrayList rather then a String.
  *
@@ -215,7 +218,7 @@ public final class CopyTomoComs {
   public CopyTomoComs(ApplicationManager manager) {
     this.manager = manager;
     metaData = manager.getConstMetaData();
-    debug = EtomoDirector.getInstance().isDebug();
+    debug = EtomoDirector.INSTANCE.isDebug();
 
     // Create a new SystemProgram object for copytomocom, set the
     // working directory and stdin array.

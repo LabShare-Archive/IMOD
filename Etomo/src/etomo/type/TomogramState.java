@@ -26,6 +26,9 @@ import etomo.util.MRCHeader;
  * @version $Revision$
  * 
  * <p> $Log$
+ * <p> Revision 1.31  2007/08/29 21:45:50  sueh
+ * <p> bug# 1041 Made BaseState an abstract class.
+ * <p>
  * <p> Revision 1.30  2007/08/21 21:52:14  sueh
  * <p> bug# 771 Added tomogramSizeA and B.
  * <p>
@@ -844,7 +847,7 @@ public class TomogramState extends BaseState {
   public boolean getBackwardCompatibleTrimvolFlipped() {
     //If trimvol has not been run, then assume that the tomogram has not been
     //flipped.
-    EtomoDirector etomoDirector = EtomoDirector.getInstance();
+    EtomoDirector etomoDirector = EtomoDirector.INSTANCE;
     String datasetName = manager.getName();
     File trimvolFile = new File(manager.getPropertyUserDir(), TrimvolParam
         .getOutputFileName(datasetName));
@@ -917,7 +920,7 @@ public class TomogramState extends BaseState {
    * @return
    */
   public boolean getBackwardCompatibleMadeZFactors(AxisID axisID) {
-    EtomoDirector etomoDirector = EtomoDirector.getInstance();
+    EtomoDirector etomoDirector = EtomoDirector.INSTANCE;
     String userDir = manager.getPropertyUserDir();
     String datasetName = manager.getName();
     File zFactorFile = new File(userDir, TiltalignParam

@@ -72,7 +72,7 @@ public final class UIHarness {
    * @param title
    */
   public synchronized void openMessageDialog(String message, String title, AxisID axisID) {
-    if (isHead() && !EtomoDirector.getInstance().isTestDone()) {
+    if (isHead() && !EtomoDirector.INSTANCE.isTestDone()) {
       if (log) {
         log("openMessageDialog", message, title, axisID);
       }
@@ -84,7 +84,7 @@ public final class UIHarness {
   }
   
   public synchronized void openInfoMessageDialog(String message, String title, AxisID axisID) {
-    if (isHead() && !EtomoDirector.getInstance().isTestDone()) {
+    if (isHead() && !EtomoDirector.INSTANCE.isTestDone()) {
       if (log) {
         log("openMessageDialog", message, title, axisID);
       }
@@ -101,7 +101,7 @@ public final class UIHarness {
    * @param title
    */
   public synchronized void openErrorMessageDialog(ProcessMessages message, String title, AxisID axisID) {
-    if (isHead() && !EtomoDirector.getInstance().isTestDone()) {
+    if (isHead() && !EtomoDirector.INSTANCE.isTestDone()) {
       if (log) {
         logError("openMessageDialog", message, title, axisID);
       }
@@ -118,7 +118,7 @@ public final class UIHarness {
    * @param title
    */
   public synchronized void openWarningMessageDialog(ProcessMessages messages, String title, AxisID axisID) {
-    if (isHead() && !EtomoDirector.getInstance().isTestDone()) {
+    if (isHead() && !EtomoDirector.INSTANCE.isTestDone()) {
       if (log) {
         logWarning("openMessageDialog", messages, title, axisID);
       }
@@ -135,7 +135,7 @@ public final class UIHarness {
    * @param title
    */
   public synchronized void openMessageDialog(String message, String title) {
-    if (isHead() && !EtomoDirector.getInstance().isTestDone()) {
+    if (isHead() && !EtomoDirector.INSTANCE.isTestDone()) {
       if (log) {
         log("openMessageDialog", message, title);
       }
@@ -152,7 +152,7 @@ public final class UIHarness {
    * @param title
    */
   public synchronized void openMessageDialog(String[] message, String title, AxisID axisID) {
-    if (isHead() && !EtomoDirector.getInstance().isTestDone()) {
+    if (isHead() && !EtomoDirector.INSTANCE.isTestDone()) {
       if (log) {
         log("openMessageDialog", message, title, axisID);
       }
@@ -164,7 +164,7 @@ public final class UIHarness {
   }
   
   public synchronized int openYesNoCancelDialog(String[] message, AxisID axisID) {
-    if (isHead() && !EtomoDirector.getInstance().isTestDone()) {
+    if (isHead() && !EtomoDirector.INSTANCE.isTestDone()) {
       if (log) {
         log("openYesNoCancelDialog", message, axisID);
       }
@@ -175,7 +175,7 @@ public final class UIHarness {
   }
   
   public synchronized boolean openYesNoDialog(String message, AxisID axisID) {
-    if (isHead() && !EtomoDirector.getInstance().isTestDone()) {
+    if (isHead() && !EtomoDirector.INSTANCE.isTestDone()) {
       if (log) {
         log("openYesNoDialog", message, axisID);
       }
@@ -186,7 +186,7 @@ public final class UIHarness {
   }
   
   public synchronized boolean openDeleteDialog(String[] message, AxisID axisID) {
-    if (isHead() && !EtomoDirector.getInstance().isTestDone()) {
+    if (isHead() && !EtomoDirector.INSTANCE.isTestDone()) {
       if (log) {
         log("openDeleteDialog", message, axisID);
       }
@@ -197,7 +197,7 @@ public final class UIHarness {
   }
   
   public synchronized boolean openYesNoWarningDialog(String message, AxisID axisID) {
-    if (isHead() && !EtomoDirector.getInstance().isTestDone()) {
+    if (isHead() && !EtomoDirector.INSTANCE.isTestDone()) {
       if (log) {
         log("openYesNoWarningDialog", message, axisID);
       }
@@ -208,7 +208,7 @@ public final class UIHarness {
   }
   
   public synchronized boolean openYesNoDialog(String[] message, AxisID axisID) {
-    if (isHead() && !EtomoDirector.getInstance().isTestDone()) {
+    if (isHead() && !EtomoDirector.INSTANCE.isTestDone()) {
       if (log) {
         log("openYesNoDialog", message, axisID);
       }
@@ -432,7 +432,7 @@ public final class UIHarness {
    */
   private void initialize() {
     initialized = true;
-    EtomoDirector etomo = EtomoDirector.getInstance();
+    EtomoDirector etomo = EtomoDirector.INSTANCE;
     headless = etomo.isHeadless();
   }
   
@@ -522,6 +522,9 @@ public final class UIHarness {
 }
 /**
 * <p> $Log$
+* <p> Revision 1.27  2007/05/02 21:07:45  sueh
+* <p> bug# 964 Removed Import PRM and Duplicate PEET menu items.
+* <p>
 * <p> Revision 1.26  2007/04/19 22:07:03  sueh
 * <p> bug# 964 Preventing a ull point buger.
 * <p>

@@ -20,6 +20,10 @@ import etomo.util.Utilities;
 * @version $Revision$
 * 
 * <p> $Log$
+* <p> Revision 1.9  2007/02/09 00:47:40  sueh
+* <p> bug# 962 Made TooltipFormatter a singleton and moved its use to low-level ui
+* <p> classes.
+* <p>
 * <p> Revision 1.8  2007/02/05 23:34:30  sueh
 * <p> bug# 962 Removed commented out functions.
 * <p>
@@ -65,7 +69,7 @@ final class CheckBox extends JCheckBox {
   public void setName(String text) {
     String name = Utilities.convertLabelToName(text);
     super.setName(name);
-    if (EtomoDirector.getInstance().isPrintNames()) {
+    if (EtomoDirector.INSTANCE.isPrintNames()) {
       System.out.println(UITestField.CHECK_BOX.toString()
           + AutodocTokenizer.SEPARATOR_CHAR + name
           + ' ' + AutodocTokenizer.DEFAULT_DELIMITER + ' ');
@@ -78,6 +82,10 @@ final class CheckBox extends JCheckBox {
 }
 /**
 * <p> $Log$
+* <p> Revision 1.9  2007/02/09 00:47:40  sueh
+* <p> bug# 962 Made TooltipFormatter a singleton and moved its use to low-level ui
+* <p> classes.
+* <p>
 * <p> Revision 1.8  2007/02/05 23:34:30  sueh
 * <p> bug# 962 Removed commented out functions.
 * <p>

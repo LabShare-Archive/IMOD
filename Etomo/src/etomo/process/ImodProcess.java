@@ -36,6 +36,10 @@ import etomo.util.Utilities;
  * 
  * <p>
  * $Log$
+ * Revision 3.43  2007/05/11 15:41:20  sueh
+ * bug# 964 Added ImodProcess(BaseManager, String[]) to handle multiple
+ * files without a model.
+ *
  * Revision 3.42  2006/09/19 22:21:19  sueh
  * bug# 928 Added WindowOpenOption, to use 3dmod's window open command-
  * line functionality.
@@ -776,14 +780,14 @@ public class ImodProcess {
     String[] commandArray = new String[commandOptions.size()];
     for (int i = 0; i < commandOptions.size(); i++) {
       commandArray[i] = (String) commandOptions.get(i);
-      if (EtomoDirector.getInstance().isDebug()) {
+      if (EtomoDirector.INSTANCE.isDebug()) {
         System.err.print(commandArray[i] + " ");
       }
       else if (debug) {
         System.out.print(commandArray[i] + " ");
       }
     }
-    if (EtomoDirector.getInstance().isDebug()) {
+    if (EtomoDirector.INSTANCE.isDebug()) {
       System.err.println();
     }
     else if (debug) {
@@ -1222,7 +1226,7 @@ public class ImodProcess {
     for (int i = 0; i < args.length; i++) {
       command[i + 2] = args[i];
     }
-    if (EtomoDirector.getInstance().isDebug()) {
+    if (EtomoDirector.INSTANCE.isDebug()) {
       System.err.print(command);
     }
     InteractiveSystemProgram imodSendEvent = new InteractiveSystemProgram(
@@ -1237,7 +1241,7 @@ public class ImodProcess {
     catch (Exception except) {
       except.printStackTrace();
     }
-    if (EtomoDirector.getInstance().isDebug()) {
+    if (EtomoDirector.INSTANCE.isDebug()) {
       System.err.println("...done");
     }
 
@@ -1543,7 +1547,7 @@ public class ImodProcess {
       }
       if (buffer.length() > 0) {
         try {
-          if (EtomoDirector.getInstance().isDebug()) {
+          if (EtomoDirector.INSTANCE.isDebug()) {
             System.err.println(buffer.toString());
           }
           // send the string to 3dmod's stdin
@@ -1603,7 +1607,7 @@ public class ImodProcess {
         boolean failure = false;
         while ((response = getStderr()) != null) {
           responseReceived = true;
-          if (EtomoDirector.getInstance().isDebug()) {
+          if (EtomoDirector.INSTANCE.isDebug()) {
             System.err.println(response);
           }
           response = response.trim();

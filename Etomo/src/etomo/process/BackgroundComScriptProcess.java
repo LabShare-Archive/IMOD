@@ -32,6 +32,12 @@ import etomo.util.Utilities;
  * @version $$Revision$$
  * 
  * <p> $Log$
+ * <p> Revision 1.26  2007/06/12 00:23:41  sueh
+ * <p> bug# 1017 In parse() restored functionality which went to each log.  The
+ * <p> grep in combine.com will be removed.  It is more portable to place this
+ * <p> functionality in Etomo.  For compatibility with ComScriptProcesses with a
+ * <p> non-standard log file, ComScriptProcess.parseLogFile has been added.
+ * <p>
  * <p> Revision 1.25  2007/06/11 21:20:16  sueh
  * <p> bug# 1017 In parse() removed functionality which went to each log.  This
  * <p> is unnecessary because combine.com is grepping from error messages
@@ -325,7 +331,7 @@ public class BackgroundComScriptProcess extends ComScriptProcess {
         command, getDetachedMonitor(), getAxisID());
     setSystemProgram(program);
     program.setWorkingDirectory(workingDirectory);
-    program.setDebug(EtomoDirector.getInstance().isDebug());
+    program.setDebug(EtomoDirector.INSTANCE.isDebug());
 
     ParseBackgroundPID parsePID = new ParseBackgroundPID(program, processID,
         outFile, getProcessData());

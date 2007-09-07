@@ -41,7 +41,7 @@ final class SpacedTextField {
     //set name
     String name = Utilities.convertLabelToName(label);
     textField.setName(name);
-    if (EtomoDirector.getInstance().isPrintNames()) {
+    if (EtomoDirector.INSTANCE.isPrintNames()) {
       System.out.println(UITestField.TEXT_FIELD.toString()
           + AutodocTokenizer.SEPARATOR_CHAR + name + ' '
           + AutodocTokenizer.DEFAULT_DELIMITER + ' ');
@@ -134,6 +134,9 @@ final class SpacedTextField {
 }
 /**
 * <p> $Log$
+* <p> Revision 1.4  2007/03/01 01:44:01  sueh
+* <p> bug# 964 Formatting tooltip.
+* <p>
 * <p> Revision 1.3  2006/09/13 23:56:29  sueh
 * <p> bug# 920 Added setText(ConstEtomoNumber)
 * <p>

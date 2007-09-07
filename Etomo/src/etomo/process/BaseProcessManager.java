@@ -39,6 +39,9 @@ import etomo.util.Utilities;
  * @version $Revision$
  * 
  * <p> $Log$
+ * <p> Revision 1.59  2007/07/30 18:33:51  sueh
+ * <p> bug# 1002 ParameterStore.getInstance can return null - handle it.
+ * <p>
  * <p> Revision 1.58  2007/05/31 22:25:39  sueh
  * <p> bug# 1004 Added createNewFile(), a more reliable way to create a new
  * <p> file.  Changed touch() to check for the files existence after it has been
@@ -356,7 +359,7 @@ public abstract class BaseProcessManager {
   Thread processMonitorA = null;
   Thread processMonitorB = null;
   private HashMap killedList = new HashMap();
-  EtomoDirector etomoDirector = EtomoDirector.getInstance();
+  EtomoDirector etomoDirector = EtomoDirector.INSTANCE;
   UIHarness uiHarness = UIHarness.INSTANCE;
   private final ProcessData savedProcessDataA;
   private final ProcessData savedProcessDataB;

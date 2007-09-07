@@ -32,6 +32,10 @@ import etomo.type.AxisID;
  * @version $Revision$
  *
  * <p> $Log$
+ * <p> Revision 3.11  2007/06/06 16:58:37  sueh
+ * <p> bug# 1015 Added ContextPopup constructor with no guide anchor.
+ * <p> Handled a null guide in globalItemAction().
+ * <p>
  * <p> Revision 3.10  2006/06/21 15:51:43  sueh
  * <p> bug# 581 Using Imodqtassist instead of HTMLPageWindow() to pop up help.
  * <p>
@@ -696,14 +700,14 @@ public class ContextPopup {
    */
   private void calcImodURL() {
     try {
-      imodURL = EtomoDirector.getInstance().getIMODDirectory().toURL()
+      imodURL = EtomoDirector.INSTANCE.getIMODDirectory().toURL()
           .toString()
           + "/html/";
     }
     catch (MalformedURLException except) {
       except.printStackTrace();
       System.err.println("Malformed URL:");
-      System.err.println(EtomoDirector.getInstance().getIMODDirectory()
+      System.err.println(EtomoDirector.INSTANCE.getIMODDirectory()
           .toString());
     }
   }

@@ -11,6 +11,9 @@
  * @version $Revision$
  *
  * <p> $Log$
+ * <p> Revision 3.11  2006/10/13 22:19:03  sueh
+ * <p> bug# 927 Added getScriptCommandIndex(String,int,boolean).
+ * <p>
  * <p> Revision 3.10  2005/09/01 17:45:34  sueh
  * <p> bug# 688 putting temporary prints (for finding cause of undistort
  * <p> parameters being set in xcorr) into the error log
@@ -432,7 +435,7 @@ public class ComScript {
    */
   public void writeComFile() throws FileNotFoundException, IOException,
       BadComScriptException {
-    if (!EtomoDirector.getInstance().isMemoryAvailable()) {
+    if (!EtomoDirector.INSTANCE.isMemoryAvailable()) {
       return;
     }
     //TEMP

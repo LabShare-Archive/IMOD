@@ -61,6 +61,9 @@ import etomo.type.ViewType;
  * 
  * <p>
  * $Log$
+ * Revision 3.109  2007/08/16 16:34:43  sueh
+ * bug# 1035 Added ltfSizeToOutputInXandY to advanced newstPanel.
+ *
  * Revision 3.108  2007/08/08 15:04:58  sueh
  * bug# 834 Fixed the parallel processing check box label.
  *
@@ -1603,7 +1606,7 @@ public class TomogramGenerationDialog extends ProcessDialog implements
     //otherwise open in the working directory
     String currentMtfDirectory = ltfMtfFile.getText();
     if (currentMtfDirectory.equals("")) {
-      File calibrationDir = EtomoDirector.getInstance().getIMODCalibDirectory();
+      File calibrationDir = EtomoDirector.INSTANCE.getIMODCalibDirectory();
       File cameraDir = new File(calibrationDir.getAbsolutePath(), "Camera");
       if (cameraDir.exists()) {
         currentMtfDirectory = cameraDir.getAbsolutePath();

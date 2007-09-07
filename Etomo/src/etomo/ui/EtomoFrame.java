@@ -50,7 +50,7 @@ abstract class EtomoFrame extends JFrame {
 
   private static final int messageWidth = 60;
   private static final int maxMessageLines = 20;
-  private static final boolean printNames = EtomoDirector.getInstance()
+  private static final boolean printNames = EtomoDirector.INSTANCE
       .isPrintNames();
   private static final String ETOMO_QUESTION = "Etomo question";
   private static final String YES = "Yes";
@@ -115,21 +115,21 @@ abstract class EtomoFrame extends JFrame {
   void menuFileAction(ActionEvent event) {
     AxisID axisID = getAxisID();
     if (menu.equalsFileNewTomogram(event)) {
-      EtomoDirector.getInstance().openTomogram(true, axisID);
+      EtomoDirector.INSTANCE.openTomogram(true, axisID);
     }
     else if (menu.equalsFileNewJoin(event)) {
-      EtomoDirector.getInstance().openJoin(true, axisID);
+      EtomoDirector.INSTANCE.openJoin(true, axisID);
     }
     else if (menu.equalsFileNewParallel(event)) {
-      EtomoDirector.getInstance().openParallel(true, axisID);
+      EtomoDirector.INSTANCE.openParallel(true, axisID);
     }
     else if (menu.equalsFileNewPeet(event)) {
-      EtomoDirector.getInstance().openPeet(true, axisID);
+      EtomoDirector.INSTANCE.openPeet(true, axisID);
     }
     else if (menu.equalsFileOpen(event)) {
       File dataFile = openDataFileDialog();
       if (dataFile != null) {
-        EtomoDirector.getInstance().openManager(dataFile, true, axisID);
+        EtomoDirector.INSTANCE.openManager(dataFile, true, axisID);
       }
     }
     else if (menu.equalsFileSave(event)) {
@@ -139,11 +139,11 @@ abstract class EtomoFrame extends JFrame {
       saveAs(axisID);
     }
     else if (menu.equalsFileClose(event)) {
-      EtomoDirector.getInstance().closeCurrentManager(axisID);
+      EtomoDirector.INSTANCE.closeCurrentManager(axisID);
     }
     else if (menu.equalsFileExit(event)) {
       //  Check to see if we need to save any data
-      if (EtomoDirector.getInstance().exitProgram(axisID)) {
+      if (EtomoDirector.INSTANCE.exitProgram(axisID)) {
         System.exit(0);
       }
     }
@@ -200,7 +200,7 @@ abstract class EtomoFrame extends JFrame {
    * @param event
    */
   void menuFileMRUListAction(ActionEvent event) {
-    EtomoDirector.getInstance().openManager(new File(event.getActionCommand()),
+    EtomoDirector.INSTANCE.openManager(new File(event.getActionCommand()),
         true, getAxisID());
   }
 
@@ -213,14 +213,14 @@ abstract class EtomoFrame extends JFrame {
     // Get the URL to the IMOD html directory
     String imodURL = "";
     try {
-      imodURL = EtomoDirector.getInstance().getIMODDirectory().toURL()
+      imodURL = EtomoDirector.INSTANCE.getIMODDirectory().toURL()
           .toString()
           + "/html/";
     }
     catch (MalformedURLException except) {
       except.printStackTrace();
       System.err.println("Malformed URL:");
-      System.err.println(EtomoDirector.getInstance().getIMODDirectory()
+      System.err.println(EtomoDirector.INSTANCE.getIMODDirectory()
           .toString());
       return;
     }
@@ -274,7 +274,7 @@ abstract class EtomoFrame extends JFrame {
    */
   protected void menuOptionsAction(ActionEvent event) {
     if (menu.equalsSettings(event)) {
-      EtomoDirector.getInstance().openSettingsDialog();
+      EtomoDirector.INSTANCE.openSettingsDialog();
     }
     //Run fitWindow on both frames.
     else if (menu.equalsFitWindow(event)) {
@@ -767,7 +767,7 @@ abstract class EtomoFrame extends JFrame {
 
   void pack(boolean force) {
     if (!force
-        && !EtomoDirector.getInstance().getUserConfiguration().isAutoFit()) {
+        && !EtomoDirector.INSTANCE.getUserConfiguration().isAutoFit()) {
       setVisible(true);
     }
     else {
@@ -856,6 +856,9 @@ abstract class EtomoFrame extends JFrame {
 }
 /**
  * <p> $Log$
+ * <p> Revision 1.33  2007/05/02 21:05:48  sueh
+ * <p> bug# 964 Removed Import PRM and Duplicate PEET menu items.
+ * <p>
  * <p> Revision 1.32  2007/03/31 03:00:24  sueh
  * <p> bug# 964 Added Duplicate Peet and Import .prm File menu items.
  * <p>

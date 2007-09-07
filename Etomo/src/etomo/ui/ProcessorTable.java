@@ -213,7 +213,7 @@ public final class ProcessorTable implements Storable {
       header2OS = new HeaderCell();
     }
     try {
-      ParameterStore parameterStore = EtomoDirector.getInstance()
+      ParameterStore parameterStore = EtomoDirector.INSTANCE
           .getParameterStore();
       if (parameterStore != null) {
         parameterStore.load(this);
@@ -768,6 +768,9 @@ public final class ProcessorTable implements Storable {
 }
 /**
  * <p> $Log$
+ * <p> Revision 1.46  2007/07/30 18:54:16  sueh
+ * <p> bug# 1002 ParameterStore.getInstance can return null - handle it.
+ * <p>
  * <p> Revision 1.45  2007/07/17 21:44:05  sueh
  * <p> bug# 1018 Adding all cpu.adoc information from CpuAdoc.
  * <p>
