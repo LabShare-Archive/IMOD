@@ -14,6 +14,7 @@ import java.util.HashMap;
 import java.util.Hashtable;
 import java.util.Properties;
 
+import etomo.EtomoDirector;
 import etomo.type.AxisID;
 import etomo.type.ProcessName;
 import etomo.ui.UIHarness;
@@ -245,7 +246,7 @@ public final class LogFile {
           + backupFile.getAbsolutePath());
       StringBuffer message = new StringBuffer("Unable to rename "
           + file.getAbsolutePath() + " to " + backupFile.getAbsolutePath());
-      if (Utilities.isWindowsOS()) {
+      if (lock.isThrowException()) {
         message
             .append("\nIf either of these files is open in 3dmod, close 3dmod.");
       }
@@ -1100,6 +1101,7 @@ public final class LogFile {
 
   private static final class Lock {
     private final HashMap readIdHashMap = new HashMap();
+    private final boolean throwException;
     private final LogFile logFile;
 
     private boolean warningDisplayed = false;
@@ -1108,12 +1110,18 @@ public final class LogFile {
     private long writeId = NO_ID;
     private long fileId = NO_ID;
 
-    private Lock(LogFile logFile) {
+    private Lock(final LogFile logFile) {
       this.logFile = logFile;
+      throwException = Utilities.isWindowsOS()
+          || EtomoDirector.INSTANCE.isTest();
     }
 
-    private static String makeKey(long id) {
+    private static String makeKey(final long id) {
       return String.valueOf(id);
+    }
+
+    private boolean isThrowException() {
+      return throwException;
     }
 
     public String toString() {
@@ -1121,7 +1129,7 @@ public final class LogFile {
           + ",fileId=" + fileId + "]";
     }
 
-    long lock(LockType lockType) throws LockException {
+    private long lock(final LockType lockType) throws LockException {
       assertLockable(lockType);
       //set the lock
       locked = true;
@@ -1146,7 +1154,8 @@ public final class LogFile {
       return currentId;
     }
 
-    void unlock(LockType lockType, long id) throws LockException {
+    private void unlock(final LockType lockType, final long id)
+        throws LockException {
       assertUnlockable(lockType, id);
       //unsetting the matching saved id
       String readKey = makeKey(id);
@@ -1161,7 +1170,7 @@ public final class LogFile {
       }
       else {
         LockException e = new LockException(logFile, lockType);
-        if (Utilities.isWindowsOS()) {
+        if (throwException) {
           throw e;
         }
         if (!warningDisplayed) {
@@ -1177,7 +1186,7 @@ public final class LogFile {
       return;
     }
 
-    boolean isLocked(LockType lockType, long id) {
+    private boolean isLocked(final LockType lockType, final long id) {
       if (!locked || lockType == null || id == NO_ID) {
         return false;
       }
@@ -1187,7 +1196,7 @@ public final class LogFile {
           || (lockType == LockType.FILE && id == fileId);
     }
 
-    boolean isLocked(LockType lockType) {
+    private boolean isLocked(final LockType lockType) {
       if (!locked || lockType == null) {
         return false;
       }
@@ -1196,10 +1205,10 @@ public final class LogFile {
           || (lockType == LockType.FILE && fileId != NO_ID);
     }
 
-    void assertNoLocks() throws LockException {
+    private void assertNoLocks() throws LockException {
       if (locked) {
         LockException e = new LockException(logFile);
-        if (Utilities.isWindowsOS()) {
+        if (throwException) {
           throw e;
         }
         if (!warningDisplayed) {
@@ -1210,7 +1219,7 @@ public final class LogFile {
       }
     }
 
-    private void assertLockable(LockType lockType) throws LockException {
+    private void assertLockable(final LockType lockType) throws LockException {
       if (!locked || lockType == null) {
         //succeed - not locked
         return;
@@ -1220,7 +1229,7 @@ public final class LogFile {
       if (lockType == LockType.FILE || fileId != NO_ID
           || (lockType == LockType.WRITE && writeId != NO_ID)) {
         LockException e = new LockException(logFile, lockType);
-        if (Utilities.isWindowsOS()) {
+        if (throwException) {
           throw e;
         }
         if (!warningDisplayed) {
@@ -1234,10 +1243,11 @@ public final class LogFile {
       //a read and write (either can be started first)
     }
 
-    void assertUnlockable(LockType lockType, long id) throws LockException {
+    private void assertUnlockable(final LockType lockType, final long id)
+        throws LockException {
       LockException e = new LockException(logFile, lockType, id);
       if (!locked) {
-        if (Utilities.isWindowsOS()) {
+        if (throwException) {
           throw e;
         }
         if (!warningDisplayed) {
@@ -1259,7 +1269,7 @@ public final class LogFile {
         return;
       }
       e = new LockException(logFile, lockType, id);
-      if (Utilities.isWindowsOS()) {
+      if (throwException) {
         throw e;
       }
       if (!warningDisplayed) {
@@ -1269,7 +1279,7 @@ public final class LogFile {
       }
     }
 
-    long getWriteId() {
+    private long getWriteId() {
       return writeId;
     }
   }
@@ -1411,6 +1421,11 @@ public final class LogFile {
 }
 /**
  * <p> $Log$
+ * <p> Revision 1.14  2007/09/05 17:08:49  sueh
+ * <p> bug# 989 In Lock popping up a message (only once per logfile instance) instead
+ * <p> of throwing an exception, except when using Windows.  Improved the
+ * <p> LockException error message, since it is used in the popup.
+ * <p>
  * <p> Revision 1.13  2007/08/01 22:42:28  sueh
  * <p> bug# 985 Changed the type of AutodocTokenizer.OPEN_CHAR and
  * <p> CLOSE_CHAR to Character.
