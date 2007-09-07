@@ -90,7 +90,7 @@ c
       real*4 gl(2,3,limsect),h(2,3,limnpc),fastf(2,3),hit(2,3),fstmp(2,3)
 c       the former rotrans structures
       real*4 hcum(6,limneg),hadj(6,limneg),r(6,limneg,2),hfram(6),rnet(6)
-      integer*4 modepow(0:15)/8,15,8,0,0,0,15,0,0,9,10,11,12,13,14,15/
+      integer*4 modepow(0:15)/8,15,8,0,0,0,16,0,0,9,10,11,12,13,14,15/
       integer*4  minxwant, maxxwant, modeParallel, nzAllWant, numOut, numChunks
       integer*4  minywant, maxywant, maxSects, numExtra
 c       
@@ -278,6 +278,7 @@ c
       else
         definmax=2**modepow(modein)-1.
         definmin=0.
+        if (modein.eq.1) definmin = -definmax
       endif
 c       
       filnam = ' '
@@ -2763,6 +2764,9 @@ c
 
 c       
 c       $Log$
+c       Revision 3.31  2007/05/22 23:21:11  mast
+c       Fixed shifting of origin; delta was being gotten after it was used
+c
 c       Revision 3.30  2007/04/10 15:43:53  mast
 c       Added option to exclude gray areas from edge analysis
 c
