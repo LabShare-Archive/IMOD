@@ -1768,13 +1768,15 @@ c
 c       
       ierr = PipNumberOfEntries('ANGLES', nument)
       do j = 1, nument
-        ierr = PipGetFloatArray('ANGLES',  angles(newangles + 1), nfields,
+       nfields = 0
+       ierr = PipGetFloatArray('ANGLES',  angles(newangles + 1), nfields,
      &      limview - newangles)
         newangles=newangles+nfields
       enddo
 c
       ierr = PipNumberOfEntries('COMPRESS', nument)
       do j = 1, nument
+        nfields = 0
         ierr = PipGetFloatArray('COMPRESS',  angles(ncompress + 1), nfields,
      &      limview - ncompress)
         ncompress=ncompress+nfields
@@ -1783,6 +1785,7 @@ c
       if (PipGetFloat('COMPFRACTION', compfac) .eq. 0)
      &    write(6,1701)compfac
 c       
+      nfields = 0
       if (PipGetFloatArray('DENSWEIGHT', xnum, nfields, limnum) .eq. 0) then
         nweight=nint(xnum(1))
         if(nweight.gt.0)then
@@ -1811,6 +1814,7 @@ c
 c       
       if (PipGetInteger('WIDTH', iwide) .eq. 0)  ifWidthIn = 1
 c       
+      nfields = 0
       if (PipGetFloatArray('SHIFT', xnum, nfields, limnum) .eq. 0) then
         if((nfields+1)/2.ne.1)
      &      call exitError('Wrong number of fields on SHIFT line')
@@ -1937,6 +1941,7 @@ C
 c       violates original unless a blank entry is allowed
       ierr = PipNumberOfEntries('REPROJECT', nument)
       do j = 1, nument
+        nfields = 0
         ierr = PipGetFloatArray('REPROJECT',  xnum, nfields, limnum)
         if (nfields.eq.0) then
           nfields = 1
@@ -3659,6 +3664,9 @@ c       constant mean levels.  Descale non-log data by exposure weights
 
 c       
 c       $Log$
+c       Revision 3.37  2007/07/19 02:46:41  mast
+c       Removed debugging output
+c
 c       Revision 3.36  2007/07/17 15:20:07  mast
 c       Fix int/float mismatch in min statement
 c
