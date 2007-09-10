@@ -157,7 +157,8 @@ Length    Type         Name      Description.
 4         int          psize   Number of points in contour.
 4         uint         flags   Bit 3 on : open, do not connect endpoints
                                Bit 4 on : wild, not in one Z plane
-                               Bit 15 on : type variable contains time index
+                               Bit 17 on : contour has pairs of scan lines
+                               Bits 18, 19, 31 : reserved for temporary use 
 4         int          time    The time index used by this contour.
 4         int          surf    The surface index used by this contour.
 12*psize  float * 3    pt      Array of point triplets.
