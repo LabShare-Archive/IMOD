@@ -43,6 +43,10 @@ import java.lang.String;
  * @version $Revision$
  *
  * <p> $Log$
+ * <p> Revision 3.28  2007/09/07 00:27:38  sueh
+ * <p> bug# 989 Using a public INSTANCE to refer to the EtomoDirector singleton
+ * <p> instead of getInstance and createInstance.
+ * <p>
  * <p> Revision 3.27  2007/03/01 01:39:53  sueh
  * <p> bug# 964 Added functions getWidth, getBorder, and getHeight.
  * <p>
@@ -158,7 +162,7 @@ import java.lang.String;
  * <p> Bug325 New class, behaves like JButton, except that it automatically makes button text multi-line.
  * <p> </p>
  */
-class MultiLineButton implements ProcessResultDisplay {
+ class MultiLineButton implements ProcessResultDisplay {
   public static final String rcsid = "$$Id$$";
 
   public static final String ENABLED_TEXT_COLOR_PROPERTY = "Button.foreground";
@@ -355,9 +359,7 @@ class MultiLineButton implements ProcessResultDisplay {
   }
 
   public String toString() {
-    return "[enabledTextColor=" + enabledTextColor + ",\n  disabledTextColor ="
-        + disabledTextColor + ",\n  button=" + button + ",\n "
-        + super.toString() + "]\n";
+    return getButtonStateKey()+": selected="+button.isSelected()+"\n";
   }
 
   final void addActionListener(ActionListener actionListener) {
@@ -457,6 +459,7 @@ class MultiLineButton implements ProcessResultDisplay {
    */
   public final void setScreenState(BaseScreenState screenState) {
     this.screenState = screenState;
+    button.setSelected(screenState.getButtonState(getButtonStateKey()));
   }
 
   final void setSelected(boolean selected) {
@@ -564,13 +567,5 @@ class MultiLineButton implements ProcessResultDisplay {
 
   public int getDependencyIndex() {
     return processResultDisplayState.getDependencyIndex();
-  }
-
-  public boolean isInitialized() {
-    return processResultDisplayState.isInitialized();
-  }
-
-  public void setInitialized(boolean initialize) {
-    processResultDisplayState.setInitialized(initialize);
   }
 }
