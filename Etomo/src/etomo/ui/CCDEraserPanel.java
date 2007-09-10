@@ -224,10 +224,9 @@ public class CCDEraserPanel implements ContextMenu, Run3dmodButtonContainer {
         dialogType);
   }
 
-  public static ProcessResultDisplay getCreateFixedStackDisplay(
-      DialogType dialogType) {
-    return MultiLineButton.getToggleButtonInstance("Create Fixed Stack",
-        dialogType);
+  public static ProcessResultDisplay getCreateFixedStackDisplay(DialogType dialogType) {
+    return MultiLineButton.getToggleButtonInstance(
+        "Create Fixed Stack", dialogType);
   }
 
   public static ProcessResultDisplay getUseFixedStackDisplay(
@@ -274,12 +273,12 @@ public class CCDEraserPanel implements ContextMenu, Run3dmodButtonContainer {
   }
 
   public final void setParameters(ReconScreenState screenState) {
-    btnReplaceRawStack.setButtonState(screenState
-        .getButtonState(btnReplaceRawStack.getButtonStateKey()));
-    btnErase.setButtonState(screenState.getButtonState(btnErase
-        .getButtonStateKey()));
-    btnFindXRays.setButtonState(screenState.getButtonState(btnFindXRays
-        .getButtonStateKey()));
+    //btnReplaceRawStack.setButtonState(screenState
+     //   .getButtonState(btnReplaceRawStack.getButtonStateKey()));
+    //btnErase.setButtonState(screenState.getButtonState(btnErase
+    //    .getButtonStateKey()));
+    //btnFindXRays.setButtonState(screenState.getButtonState(btnFindXRays
+    //    .getButtonStateKey()));
   }
 
   public void getParameters(CCDEraserParam ccdEraserParams) {
@@ -490,11 +489,12 @@ public class CCDEraserPanel implements ContextMenu, Run3dmodButtonContainer {
             + "your data you must commit the raw stack when you are satisfied with"
             + " your ccderaser output stack.");
     btnViewErased.setToolTipText("View the erased stack in 3dmod.");
-    btnReplaceRawStack.setToolTipText("Use the raw stack with the output from ccderaser.  "
-        + "NOTE: subsequent processing uses the "
-        + "raw stack filename, therefore for ccderaser to have an effect on "
-        + "your data you must commit the raw stack when you are satisfied with"
-        + " your ccderaser output stack.");
+    btnReplaceRawStack
+        .setToolTipText("Use the raw stack with the output from ccderaser.  "
+            + "NOTE: subsequent processing uses the "
+            + "raw stack filename, therefore for ccderaser to have an effect on "
+            + "your data you must commit the raw stack when you are satisfied with"
+            + " your ccderaser output stack.");
   }
 
   //  Action listener
@@ -514,6 +514,10 @@ public class CCDEraserPanel implements ContextMenu, Run3dmodButtonContainer {
 
 /**
  * <p> $Log$
+ * <p> Revision 3.23  2007/03/21 19:45:01  sueh
+ * <p> bug# 964 Limiting access to autodoc classes by using ReadOnly interfaces.
+ * <p> Added AutodocFactory to create Autodoc instances.
+ * <p>
  * <p> Revision 3.22  2007/03/01 01:27:27  sueh
  * <p> bug# 964 Added LogFile to Autodoc.
  * <p>

@@ -12,6 +12,10 @@
  * @version $Revision$
  * 
  * <p> $Log$
+ * <p> Revision 1.23  2007/05/01 22:29:54  sueh
+ * <p> bug# 964 In LabeledSpinner, saving SpinnerNumberModel so that the
+ * <p> maximum can be changed.
+ * <p>
  * <p> Revision 1.22  2007/02/09 00:51:33  sueh
  * <p> bug# 962 Made TooltipFormatter a singleton and moved its use to low-level ui
  * <p> classes.
@@ -232,8 +236,8 @@ public final class PrenewstPanel implements ContextMenu, Expandable {
   }
 
   public void setParameters(BaseScreenState screenState) {
-    btnCoarseAlign.setButtonState(screenState.getButtonState(btnCoarseAlign
-        .getButtonStateKey()));
+    //btnCoarseAlign.setButtonState(screenState.getButtonState(btnCoarseAlign
+     //   .getButtonStateKey()));
     header.setButtonStates(screenState);
   }
 

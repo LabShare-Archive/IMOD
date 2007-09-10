@@ -40,6 +40,9 @@ import etomo.type.Run3dmodMenuOptions;
  * @version $Revision$
  *
  * <p> $Log$
+ * <p> Revision 3.19  2007/07/27 16:53:57  sueh
+ * <p> bug# 979 Rearranged "Track Seed Model", "Fix Fiducial Model", and "Use fid as seed".  Changed "Use fid as seed" to "Track with Fiducial Model as Seed", which copies the fid to the seed and then tracks.
+ * <p>
  * <p> Revision 3.18  2007/03/21 19:44:49  sueh
  * <p> bug# 964 Limiting access to autodoc classes by using ReadOnly interfaces.
  * <p> Added AutodocFactory to create Autodoc instances.
@@ -371,15 +374,15 @@ public final class BeadtrackPanel implements Expandable,
   public void setParameters(BaseScreenState screenState) {
     expertParametersHeader.setButtonStates(screenState, false);
     header.setButtonStates(screenState);
-    btnFixModel.setButtonState(screenState.getButtonState(btnFixModel
-        .getButtonStateKey()));
+    //btnFixModel.setButtonState(screenState.getButtonState(btnFixModel
+    //    .getButtonStateKey()));
+    //btnTrack.setButtonState(screenState.getButtonState(btnTrack
+     //   .getButtonStateKey()));
   }
 
   public void getParameters(BaseScreenState screenState) {
     expertParametersHeader.getButtonStates(screenState);
     header.getButtonStates(screenState);
-    btnTrack.setButtonState(screenState.getButtonState(btnTrack
-        .getButtonStateKey()));
   }
 
   /**

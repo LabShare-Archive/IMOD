@@ -30,6 +30,11 @@ import etomo.comscript.FortranInputSyntaxException;
  * @version $Revision$
  *
  * <p> $Log$
+ * <p> Revision 3.36  2007/07/27 16:54:50  sueh
+ * <p> bug# 979 Moved "Fix Fiducial Model" to BeadtrackPanel.  Using getInstance to
+ * <p> construct FiducialModelDialog because it uses action listeners, which shouldn't
+ * <p> be created during construction.
+ * <p>
  * <p> Revision 3.35  2007/02/09 00:48:55  sueh
  * <p> bug# 962 Made TooltipFormatter a singleton and moved its use to low-level ui
  * <p> classes.
@@ -408,8 +413,8 @@ public class FiducialModelDialog extends ProcessDialog implements ContextMenu,
     if (applicationManager.isDualAxis()) {
       pnlTransferfid.setParameters(screenState);
     }
-    btnSeed.setButtonState(screenState.getButtonState(btnSeed
-        .getButtonStateKey()));
+    //btnSeed.setButtonState(screenState.getButtonState(btnSeed
+     //   .getButtonStateKey()));
     pnlBeadtrack.setParameters(screenState);
   }
 

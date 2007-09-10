@@ -36,6 +36,10 @@ import etomo.type.Run3dmodMenuOptions;
  * @version $Revision$
  *
  * <p> $Log$
+ * <p> Revision 3.27  2007/05/26 00:31:14  sueh
+ * <p> bug# 994 Not automatically setting button size in SpacedPanel anymore.
+ * <p> Setting button size in UI.
+ * <p>
  * <p> Revision 3.26  2007/03/07 21:10:39  sueh
  * <p> bug# 981 Added isValid.
  * <p>
@@ -356,8 +360,8 @@ public final class AlignmentEstimationDialog extends ProcessDialog implements
   }
 
   public final void setParameters(ReconScreenState screenState) {
-    btnComputeAlignment.setButtonState(screenState
-        .getButtonState(btnComputeAlignment.getButtonStateKey()));
+    //btnComputeAlignment.setButtonState(screenState
+    //    .getButtonState(btnComputeAlignment.getButtonStateKey()));
   }
 
   public void setParameters(ConstMetaData metaData) {

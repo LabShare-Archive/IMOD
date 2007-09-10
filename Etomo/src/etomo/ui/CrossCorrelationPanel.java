@@ -11,6 +11,10 @@
  * @version $Revision$
  *
  * <p> $Log$
+ * <p> Revision 3.25  2007/03/21 19:45:28  sueh
+ * <p> bug# 964 Limiting access to autodoc classes by using ReadOnly interfaces.
+ * <p> Added AutodocFactory to create Autodoc instances.
+ * <p>
  * <p> Revision 3.24  2007/03/01 01:28:53  sueh
  * <p> bug# 964 Added LogFile to Autodoc.
  * <p>
@@ -330,8 +334,8 @@ final class CrossCorrelationPanel implements ContextMenu, Expandable {
   }
 
   public void setParameters(BaseScreenState screenState) {
-    btnCrossCorrelate.setButtonState(screenState
-        .getButtonState(btnCrossCorrelate.getButtonStateKey()));
+    //btnCrossCorrelate.setButtonState(screenState
+    //    .getButtonState(btnCrossCorrelate.getButtonStateKey()));
     header.setButtonStates(screenState);
   }
 

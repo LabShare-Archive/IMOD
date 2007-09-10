@@ -170,10 +170,10 @@ public final class TransferfidPanel implements Expandable {
   }
 
   public void setParameters(ReconScreenState screenState) {
-    if (buttonTransferfid != null) {
-      buttonTransferfid.setButtonState(screenState
-          .getButtonState(buttonTransferfid.getButtonStateKey()));
-    }
+    //if (buttonTransferfid != null) {
+      //buttonTransferfid.setButtonState(screenState
+      //    .getButtonState(buttonTransferfid.getButtonStateKey()));
+    //}
     header.setButtonStates(screenState);
   }
 
@@ -270,6 +270,10 @@ public final class TransferfidPanel implements Expandable {
 
 /**
  * <p> $Log$
+ * <p> Revision 3.14  2007/03/07 21:16:45  sueh
+ * <p> bug# 981 Turned RadioButton into a wrapper rather then a child of JRadioButton,
+ * <p> because it is getting more complicated.
+ * <p>
  * <p> Revision 3.13  2007/02/09 00:54:58  sueh
  * <p> bug# 962 Made TooltipFormatter a singleton and moved its use to low-level ui
  * <p> classes.

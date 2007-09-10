@@ -11,6 +11,10 @@
  * @version $Revision$
  *
  * <p> $Log$
+ * <p> Revision 3.43  2007/05/26 00:31:58  sueh
+ * <p> bug# 994 Not automatically setting button size in SpacedPanel anymore.
+ * <p> Setting button size in UI.
+ * <p>
  * <p> Revision 3.42  2007/02/09 00:48:30  sueh
  * <p> bug# 962 Made TooltipFormatter a singleton and moved its use to low-level ui
  * <p> classes.
@@ -430,12 +434,12 @@ public final class CoarseAlignDialog extends ProcessDialog implements
   public void setParameters(ReconScreenState screenState) {
     pnlCrossCorrelation.setParameters(screenState);
     pnlPrenewst.setParameters(screenState);
-    btnMidas.setButtonState(screenState.getButtonState(btnMidas
-        .getButtonStateKey()));
-    btnFixEdgesMidas.setButtonState(screenState.getButtonState(btnFixEdgesMidas
-        .getButtonStateKey()));
-    btnDistortionCorrectedStack.setButtonState(screenState
-        .getButtonState(btnDistortionCorrectedStack.getButtonStateKey()));
+    //btnMidas.setButtonState(screenState.getButtonState(btnMidas
+    //    .getButtonStateKey()));
+    //btnFixEdgesMidas.setButtonState(screenState.getButtonState(btnFixEdgesMidas
+    //    .getButtonStateKey()));
+    //btnDistortionCorrectedStack.setButtonState(screenState
+    //    .getButtonState(btnDistortionCorrectedStack.getButtonStateKey()));
   }
 
   public void getParameters(BaseScreenState screenState) {
