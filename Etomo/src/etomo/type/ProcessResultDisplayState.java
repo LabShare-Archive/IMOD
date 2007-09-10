@@ -23,7 +23,6 @@ public final class ProcessResultDisplayState {
   private Vector failureDisplayList = null;
   private Vector successDisplayList = null;
   private int dependencyIndex = -1;
-  private boolean initialized = false;
 
   //will go back to the original state if the process failed to run
   private boolean originalState = false;
@@ -38,14 +37,6 @@ public final class ProcessResultDisplayState {
 
   public final void setOriginalState(boolean originalState) {
     this.originalState = originalState;
-  }
-
-  public final boolean isInitialized() {
-    return initialized;
-  }
-
-  public final void setInitialized(boolean initialized) {
-    this.initialized = initialized;
   }
 
   /**
@@ -198,6 +189,9 @@ public final class ProcessResultDisplayState {
 }
 /**
  * <p> $Log$
+ * <p> Revision 1.4  2006/07/26 16:38:42  sueh
+ * <p> bug# 868 Added msg(ProcessResult)
+ * <p>
  * <p> Revision 1.3  2006/02/06 21:18:45  sueh
  * <p> bug# 521 Changed following display to dependent display.  Added
  * <p> dependecy index and initialized.

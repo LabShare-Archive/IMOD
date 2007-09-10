@@ -333,18 +333,13 @@ public final class ProcessResultDisplayStateTest extends TestCase {
     public String getName() {
       return "";
     }
-    
-    public void setInitialized(boolean initialized) {
-      state.setInitialized(initialized);
-    }
-    
-    public boolean isInitialized() {
-      return state.isInitialized();
-    }
   }
 }
 /**
 * <p> $Log$
+* <p> Revision 1.4  2006/07/26 16:38:59  sueh
+* <p> bug# 868 Added msg(ProcessResult) to Display
+* <p>
 * <p> Revision 1.3  2006/02/06 21:19:13  sueh
 * <p> bug# 521 ProcessResultDisplayState:  changed following display to
 * <p> dependent display.  Added dependecy index and initialized.

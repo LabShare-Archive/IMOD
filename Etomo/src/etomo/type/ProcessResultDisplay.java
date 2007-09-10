@@ -18,15 +18,6 @@ package etomo.type;
 public interface ProcessResultDisplay {
   public static final String rcsid = "$Id$";
 
-  /**
-   * setting for the factory because display must all be created because they can
-   * be initialized
-   * @return
-   */
-  public boolean isInitialized();
-  
-  public void setInitialized(boolean initialized);
-  
   public String getName();
   /**
    * get the original state of the display.  Will return to this state if the
@@ -120,6 +111,9 @@ public interface ProcessResultDisplay {
 }
 /**
  * <p> $Log$
+ * <p> Revision 1.5  2006/07/26 16:36:45  sueh
+ * <p> bug# 868 Added msg(ProcessResult)
+ * <p>
  * <p> Revision 1.4  2006/02/06 21:16:17  sueh
  * <p> bug# 521 Changed following display to dependent display.  Added
  * <p> dependecy index and initialized.
