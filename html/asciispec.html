@@ -9,7 +9,9 @@ The imod ASCII file format holds a subset of the binary data.
 Its main use is to simplify creating or transferring an IMOD model file.
 The format was upgraded in IMOD 3.10.11 to include most object, contour, and
 mesh properties, plus slicer angles and clipping planes, but few model-view
-related properties are stored.
+related properties are stored.  For the complete definition of any flags,
+check the <A href="binspec.html">description</A> of the binary model file
+format.
 <p>
 Comment lines begin with a '#' character; blank lines are skipped.
 Data lines begin with a word directive followed by data.  Some directives
@@ -93,7 +95,8 @@ Initializes and selects the current object.
 <br>
 <b>symsize  </b>   (<i>symbol size</i>)
 <br>
-<b>symflags </b>   (<i>flags for end symbols</i>)
+<b>symflags </b>   (<i>flags for end symbols: bit 0 fill, bit 1 draw
+beginning/end symbols</i>)
 <br>
 <b>ambient  </b>   (<i>ambient light value</i>)
 <br>
@@ -110,7 +113,10 @@ Initializes and selects the current object.
 <p>
 The <b>objclips</b> line is followed by one line per clip plane, containing
 the X, Y, Z components of the normal vector and X, Y, Z coordinates of a point
-in the plane.  The following are flags.
+in the plane.  Bits 0-6 of <i>flags</i> indicate which planes are on, and bit
+7 indicates whether to ignore global clipping planes.
+<p>
+The following are object flags.
 <code>
 <br>
 <b>open</b>:  Contours are open
@@ -161,7 +167,8 @@ Point data follows on the next line, one line for each point.
 Following the contour data may be two optional directives:
 <code>
 <br>
-<b>contflags</b>   (<i>contour flags</i>)
+<b>contflags</b>   (<i>contour flags: bit 3 open, bit 4 wild, bit 17 scan
+contour</i>)
 <br>
 <b>conttime</b>   (<i>contour time</i>)
 </code>
@@ -231,7 +238,8 @@ corresponding vertex, and each triangle is described by only 3 indices:
 Following all of the mesh data may be three optional directives:
 <code>
 <br>
-<b>Meshflags</b>   (<i>mesh flags</i>)
+<b>Meshflags</b>   (<i>mesh flags; bit 16 normals have magnitudes; bits 20-23
+resolution</i>)
 <br>
 <b>Meshsurf</b>   (<i>mesh surface number</i>)
 <br>
