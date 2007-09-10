@@ -116,8 +116,21 @@ public final class ProcessResultDisplayFactory {
   private final ProcessResultDisplay squeezeVolume = PostProcessingDialog
       .getSqueezeVolumeDisplay();
 
-  public ProcessResultDisplayFactory(BaseScreenState screenState) {
+  private ProcessResultDisplayFactory(BaseScreenState screenState) {
     this.screenState = screenState;
+  }
+
+  public static ProcessResultDisplayFactory getInstance(
+      BaseScreenState screenState) {
+    ProcessResultDisplayFactory instance = new ProcessResultDisplayFactory(
+        screenState);
+    instance.initialize();
+    return instance;
+  }
+
+  private void initialize() {
+    //initialize global dependency list
+
     //preprocessing
     addDependency(findXRays);
     addDependency(createFixedStack);
@@ -157,6 +170,87 @@ public final class ProcessResultDisplayFactory {
     //post processing
     addDependency(squeezeVolume);
     addDependency(trimVolume);
+
+    //add dependents
+
+    //preprocessing
+    findXRays.setScreenState(screenState);
+    addDependents(findXRays);
+    createFixedStack.setScreenState(screenState);
+    addDependents(createFixedStack);
+    useFixedStack.setScreenState(screenState);
+    addDependents(useFixedStack);
+    //coarse alignment
+    crossCorrelate.setScreenState(screenState);
+    addDependents(crossCorrelate);
+    distortionCorrectedStack.setScreenState(screenState);
+    addDependents(distortionCorrectedStack);
+    fixEdgesMidas.setScreenState(screenState);
+    addDependents(fixEdgesMidas);
+    coarseAlign.setScreenState(screenState);
+    addDependents(coarseAlign);
+    midas.setScreenState(screenState);
+    addDependents(midas);
+    //fiducial model
+    transferFiducials.setScreenState(screenState);
+    addDependents(transferFiducials);
+    seedFiducialModel.setScreenState(screenState);
+    addDependents(seedFiducialModel);
+    trackFiducials.setScreenState(screenState);
+    addDependents(trackFiducials);
+    fixFiducialModel.setScreenState(screenState);
+    addDependents(fixFiducialModel);
+    //fine alignment
+    computeAlignment.setScreenState(screenState);
+    addDependents(computeAlignment);
+    //positioning
+    sampleTomogram.setScreenState(screenState);
+    addDependents(sampleTomogram);
+    computePitch.setScreenState(screenState);
+    addDependents(computePitch);
+    finalAlignment.setScreenState(screenState);
+    addDependents(finalAlignment);
+    //generation
+    fullAlignedStack.setScreenState(screenState);
+    addDependents(fullAlignedStack);
+    filter.setScreenState(screenState);
+    //filter is optional
+    filter.addDependentDisplay(useFilteredStack);
+    useFilteredStack.setScreenState(screenState);
+    addDependents(useFilteredStack);
+    useTrialTomogram.setScreenState(screenState);
+    //use trial tomogram and generate tomogram are equals in the dependency order
+    addDependents(generateTomogram);
+    generateTomogram.setScreenState(screenState);
+    addDependents(generateTomogram);
+    deleteAlignedStack.setScreenState(screenState);
+    addDependents(deleteAlignedStack);
+    //combination
+    createCombine.setScreenState(screenState);
+    addDependents(createCombine);
+    combine.setScreenState(screenState);
+    //combine and restart combine are equals in the dependency order
+    addDependents(restartCombine);
+    //combine and restart combine run the same process (solvematch)
+    restartCombine.addFailureDisplay(restartCombine);
+    restartCombine.addSuccessDisplay(restartCombine);
+    restartCombine.setScreenState(screenState);
+    addDependents(restartCombine);
+    //combine and restart combine run the same process (solvematch)
+    restartCombine.addFailureDisplay(getCombine());
+    restartCombine.addSuccessDisplay(combine);
+    restartMatchvol1.setScreenState(screenState);
+    addDependents(restartMatchvol1);
+    restartPatchcorr.setScreenState(screenState);
+    addDependents(restartPatchcorr);
+    restartMatchorwarp.setScreenState(screenState);
+    addDependents(restartMatchorwarp);
+    restartVolcombine.setScreenState(screenState);
+    addDependents(restartVolcombine);
+    //post processing
+    trimVolume.setScreenState(screenState);
+    addDependents(trimVolume);
+    squeezeVolume.setScreenState(screenState);
   }
 
   private synchronized void addDependency(ProcessResultDisplay display) {
@@ -181,310 +275,148 @@ public final class ProcessResultDisplayFactory {
   //preprocessing
 
   public ProcessResultDisplay getFindXRays() {
-    if (!findXRays.isInitialized()) {
-      findXRays.setInitialized(true);
-      findXRays.setScreenState(screenState);
-      addDependents(findXRays);
-    }
     return findXRays;
   }
 
   public ProcessResultDisplay getCreateFixedStack() {
-    if (!createFixedStack.isInitialized()) {
-      createFixedStack.setInitialized(true);
-      createFixedStack.setScreenState(screenState);
-      addDependents(createFixedStack);
-    }
     return createFixedStack;
   }
 
   public ProcessResultDisplay getUseFixedStack() {
-    if (!useFixedStack.isInitialized()) {
-      useFixedStack.setInitialized(true);
-      useFixedStack.setScreenState(screenState);
-      addDependents(useFixedStack);
-    }
     return useFixedStack;
   }
 
   //coarse alignment
 
   public ProcessResultDisplay getCrossCorrelate() {
-    if (!crossCorrelate.isInitialized()) {
-      crossCorrelate.setInitialized(true);
-      crossCorrelate.setScreenState(screenState);
-      addDependents(crossCorrelate);
-    }
     return crossCorrelate;
   }
 
   public ProcessResultDisplay getDistortionCorrectedStack() {
-    if (!distortionCorrectedStack.isInitialized()) {
-      distortionCorrectedStack.setInitialized(true);
-      distortionCorrectedStack.setScreenState(screenState);
-      addDependents(distortionCorrectedStack);
-    }
     return distortionCorrectedStack;
   }
 
   public ProcessResultDisplay getFixEdgesMidas() {
-    if (!fixEdgesMidas.isInitialized()) {
-      fixEdgesMidas.setInitialized(true);
-      fixEdgesMidas.setScreenState(screenState);
-      addDependents(fixEdgesMidas);
-    }
     return fixEdgesMidas;
   }
 
   public ProcessResultDisplay getCoarseAlign() {
-    if (!coarseAlign.isInitialized()) {
-      coarseAlign.setInitialized(true);
-      coarseAlign.setScreenState(screenState);
-      addDependents(coarseAlign);
-    }
     return coarseAlign;
   }
 
   public ProcessResultDisplay getMidas() {
-    if (!midas.isInitialized()) {
-      midas.setInitialized(true);
-      midas.setScreenState(screenState);
-      addDependents(midas);
-    }
     return midas;
   }
 
   //fiducial model
 
   public ProcessResultDisplay getTransferFiducials() {
-    if (!transferFiducials.isInitialized()) {
-      transferFiducials.setInitialized(true);
-      transferFiducials.setScreenState(screenState);
-      addDependents(transferFiducials);
-    }
     return transferFiducials;
   }
 
   public ProcessResultDisplay getSeedFiducialModel() {
-    if (!seedFiducialModel.isInitialized()) {
-      seedFiducialModel.setInitialized(true);
-      seedFiducialModel.setScreenState(screenState);
-      addDependents(seedFiducialModel);
-    }
     return seedFiducialModel;
   }
 
   public ProcessResultDisplay getTrackFiducials() {
-    if (!trackFiducials.isInitialized()) {
-      trackFiducials.setInitialized(true);
-      trackFiducials.setScreenState(screenState);
-      addDependents(trackFiducials);
-    }
     return trackFiducials;
   }
 
   public ProcessResultDisplay getFixFiducialModel() {
-    if (!fixFiducialModel.isInitialized()) {
-      fixFiducialModel.setInitialized(true);
-      fixFiducialModel.setScreenState(screenState);
-      addDependents(fixFiducialModel);
-    }
     return fixFiducialModel;
   }
 
   //fine alignment
 
   public ProcessResultDisplay getComputeAlignment() {
-    if (!computeAlignment.isInitialized()) {
-      computeAlignment.setInitialized(true);
-      computeAlignment.setScreenState(screenState);
-      addDependents(computeAlignment);
-    }
     return computeAlignment;
   }
 
   //positioning
 
   public ProcessResultDisplay getSampleTomogram() {
-    if (!sampleTomogram.isInitialized()) {
-      sampleTomogram.setInitialized(true);
-      sampleTomogram.setScreenState(screenState);
-      addDependents(sampleTomogram);
-    }
     return sampleTomogram;
   }
 
   public ProcessResultDisplay getComputePitch() {
-    if (!computePitch.isInitialized()) {
-      computePitch.setInitialized(true);
-      computePitch.setScreenState(screenState);
-      addDependents(computePitch);
-    }
     return computePitch;
   }
 
   public ProcessResultDisplay getFinalAlignment() {
-    if (!finalAlignment.isInitialized()) {
-      finalAlignment.setInitialized(true);
-      finalAlignment.setScreenState(screenState);
-      addDependents(finalAlignment);
-    }
     return finalAlignment;
   }
 
   //generation
 
   public ProcessResultDisplay getFullAlignedStack() {
-    if (!fullAlignedStack.isInitialized()) {
-      fullAlignedStack.setInitialized(true);
-      fullAlignedStack.setScreenState(screenState);
-      addDependents(fullAlignedStack);
-    }
     return fullAlignedStack;
   }
 
   public ProcessResultDisplay getFilter() {
-    if (!filter.isInitialized()) {
-      filter.setInitialized(true);
-      filter.setScreenState(screenState);
-      //filter is optional
-      filter.addDependentDisplay(getUseFilteredStack());
-    }
     return filter;
   }
 
   public ProcessResultDisplay getUseFilteredStack() {
-    if (!useFilteredStack.isInitialized()) {
-      useFilteredStack.setInitialized(true);
-      useFilteredStack.setScreenState(screenState);
-      addDependents(useFilteredStack);
-    }
     return useFilteredStack;
   }
 
   public ProcessResultDisplay getUseTrialTomogram() {
-    if (!useTrialTomogram.isInitialized()) {
-      useTrialTomogram.setInitialized(true);
-      useTrialTomogram.setScreenState(screenState);
-      //use trial tomogram and generate tomogram are equals in the dependency order
-      addDependents(getGenerateTomogram());
-    }
     return useTrialTomogram;
   }
 
   public ProcessResultDisplay getGenerateTomogram() {
-    if (!generateTomogram.isInitialized()) {
-      generateTomogram.setInitialized(true);
-      generateTomogram.setScreenState(screenState);
-      addDependents(generateTomogram);
-    }
     return generateTomogram;
   }
 
   public ProcessResultDisplay getDeleteAlignedStack() {
-    if (!deleteAlignedStack.isInitialized()) {
-      deleteAlignedStack.setInitialized(true);
-      deleteAlignedStack.setScreenState(screenState);
-      addDependents(deleteAlignedStack);
-    }
     return deleteAlignedStack;
   }
 
   //combination
 
   public ProcessResultDisplay getCreateCombine() {
-    if (!createCombine.isInitialized()) {
-      createCombine.setInitialized(true);
-      createCombine.setScreenState(screenState);
-      addDependents(createCombine);
-    }
     return createCombine;
   }
 
   public ProcessResultDisplay getCombine() {
-    if (!combine.isInitialized()) {
-      combine.setInitialized(true);
-      combine.setScreenState(screenState);
-      //combine and restart combine are equals in the dependency order
-      addDependents(getRestartCombine());
-      //combine and restart combine run the same process (solvematch)
-      restartCombine.addFailureDisplay(restartCombine);
-      restartCombine.addSuccessDisplay(restartCombine);
-    }
     return combine;
   }
 
   public ProcessResultDisplay getRestartCombine() {
-    if (!restartCombine.isInitialized()) {
-      restartCombine.setInitialized(true);
-      restartCombine.setScreenState(screenState);
-      addDependents(restartCombine);
-      //combine and restart combine run the same process (solvematch)
-      restartCombine.addFailureDisplay(getCombine());
-      restartCombine.addSuccessDisplay(combine);
-    }
     return restartCombine;
   }
 
   public ProcessResultDisplay getRestartMatchvol1() {
-    if (!restartMatchvol1.isInitialized()) {
-      restartMatchvol1.setInitialized(true);
-      restartMatchvol1.setScreenState(screenState);
-      addDependents(restartMatchvol1);
-
-    }
     return restartMatchvol1;
   }
 
   public ProcessResultDisplay getRestartPatchcorr() {
-    if (!restartPatchcorr.isInitialized()) {
-      restartPatchcorr.setInitialized(true);
-      restartPatchcorr.setScreenState(screenState);
-      addDependents(restartPatchcorr);
-    }
     return restartPatchcorr;
   }
 
   public ProcessResultDisplay getRestartMatchorwarp() {
-    if (!restartMatchorwarp.isInitialized()) {
-      restartMatchorwarp.setInitialized(true);
-      restartMatchorwarp.setScreenState(screenState);
-      addDependents(restartMatchorwarp);
-    }
     return restartMatchorwarp;
   }
 
   public ProcessResultDisplay getRestartVolcombine() {
-    if (!restartVolcombine.isInitialized()) {
-      restartVolcombine.setInitialized(true);
-      restartVolcombine.setScreenState(screenState);
-      addDependents(restartVolcombine);
-    }
     return restartVolcombine;
   }
 
   //post processing
 
   public ProcessResultDisplay getTrimVolume() {
-    if (!trimVolume.isInitialized()) {
-      trimVolume.setInitialized(true);
-      trimVolume.setScreenState(screenState);
-      addDependents(trimVolume);
-
-    }
     return trimVolume;
   }
 
   public ProcessResultDisplay getSqueezeVolume() {
-    if (!squeezeVolume.isInitialized()) {
-      squeezeVolume.setInitialized(true);
-      squeezeVolume.setScreenState(screenState);
-    }
     return squeezeVolume;
   }
 }
 /**
  * <p> $Log$
+ * <p> Revision 1.3  2006/03/20 17:59:11  sueh
+ * <p> reformatted
+ * <p>
  * <p> Revision 1.2  2006/02/06 21:18:17  sueh
  * <p> bug 521 Added all the process dialog toggle buttons.  Added an array
  * <p> of dependent displays.  Making the displays final so they can be added as
