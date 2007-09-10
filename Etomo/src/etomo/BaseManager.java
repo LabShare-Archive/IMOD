@@ -198,13 +198,13 @@ public abstract class BaseManager {
       AxisID axisID) {
     if (axisID == AxisID.SECOND) {
       if (processResultDisplayFactoryB == null) {
-        processResultDisplayFactoryB = new ProcessResultDisplayFactory(
+        processResultDisplayFactoryB =  ProcessResultDisplayFactory.getInstance(
             getBaseScreenState(axisID));
       }
       return processResultDisplayFactoryB;
     }
     if (processResultDisplayFactoryA == null) {
-      processResultDisplayFactoryA = new ProcessResultDisplayFactory(
+      processResultDisplayFactoryA =  ProcessResultDisplayFactory.getInstance(
           getBaseScreenState(axisID));
     }
     return processResultDisplayFactoryA;
@@ -1222,6 +1222,10 @@ public abstract class BaseManager {
 }
 /**
  * <p> $Log$
+ * <p> Revision 1.88  2007/09/07 00:15:13  sueh
+ * <p> bug# 989 Using a public INSTANCE for EtomoDirector instead of getInstance
+ * <p> and createInstance.
+ * <p>
  * <p> Revision 1.87  2007/08/29 21:22:17  sueh
  * <p> bug# 1041 Added chunkComscriptAction.  In resume, if param is null, create it.
  * <p>
