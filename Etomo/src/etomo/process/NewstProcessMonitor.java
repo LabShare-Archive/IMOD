@@ -11,6 +11,9 @@
  * @version $Revision$
  * 
  * <p> $Log$
+ * <p> Revision 3.15  2006/10/24 21:27:44  sueh
+ * <p> bug# 947 Passing the ProcessName to AxisProcessPanel.
+ * <p>
  * <p> Revision 3.14  2006/10/10 05:10:53  sueh
  * <p> bug# 931 Managing the log file with LogFile.
  * <p>
@@ -162,8 +165,14 @@ final class NewstProcessMonitor extends FileSizeProcessMonitor {
     MRCHeader rawStack = MRCHeader.getInstance(applicationManager
         .getPropertyUserDir(), rawStackFilename, axisID);
     rawStack.read();
-    nX = rawStack.getNRows();
-    nY = rawStack.getNColumns();
+    if (newstParam.isSizeToOutputInXandYSet()) {
+      nX = newstParam.getSizeToOutputInX();
+      nY = newstParam.getSizeToOutputInY();
+    }
+    else {
+      nX = rawStack.getNRows();
+      nY = rawStack.getNColumns();
+    }
     nZ = rawStack.getNSections();
     switch (rawStack.getMode()) {
     case 0:
@@ -198,10 +207,10 @@ final class NewstProcessMonitor extends FileSizeProcessMonitor {
 
     // Assumption: newst will write the output file with the same mode as the
     // the input file 
-    long fileSize = 1024 + nX * nY * nZ * modeBytes;
+    long fileSize = 1024 + ((long) nX * nY) * nZ * modeBytes;
     nKBytes = (int) (fileSize / 1024);
     applicationManager.getMainPanel().setProgressBar("Creating aligned stack",
-        nKBytes, axisID,processName);
+        nKBytes, axisID, processName);
   }
 
   private void loadNewstParam() {
