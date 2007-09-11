@@ -40,6 +40,7 @@ cat <<EOF
                            (Coordinate flipping controlled by -f/-u)
      -sx start,end   Starting and ending X coordinates to use to find contrast
      -sy start,end   Starting and ending Y coordinates to use to find contrast
+     -mm min,max     New minimum and maximum for scaling to integers
      -yz             Flip Y and Z in output volume
      -rx             Rotate volume by -90 around X axis
      -i              Treat as index coordinates (numbered from 0) rather than
@@ -51,7 +52,8 @@ cat <<EOF
      You cannot use both -x and -nx; -y and -ny; -z and -nz; or -c and -s.
      If a size or starting and ending coordinates are not entered, the default
             is the full size for that dimension.
-     If you use the -c or -s option, the output file will be bytes; otherwise
+     If you use the -c, -s, or -sz option, the output file will be bytes; if
+            you use the -mm option the output will be integers, otherwise
             the output file will have the same mode as the input file.
 EOF
   exit 0
@@ -110,6 +112,10 @@ while ($#argv > 2)
       set zslices = $argv[2]
       shift; shift
       breaksw
+    case -mm:
+      set inmm = $argv[2]
+      shift; shift
+      breaksw
     case -yz:
       set doflip = "flipyz"
       shift
@@ -135,14 +141,14 @@ while ($#argv > 2)
       exit 1
   endsw
 end
+
+if ($#argv < 2) then
+    echo "ERROR: $pn - Command needs both input and output file names"
+    exit 1
+endif
 if (! -e "$argv[1]")then
   echo "ERROR: $pn - input file $argv[1] does not exist"
   exit 1
-endif
-
-if ($?slices && $?contrast) then
-    echo "ERROR: $pn - cannot use both -c and -s options"
-    exit 1
 endif
 
 if ($?zslices) then
@@ -152,6 +158,16 @@ if ($?zslices) then
     endif
     set slices = $zslices
     if ($flipyz) set fliparg = "-flip"
+endif
+
+if ($?slices && $?contrast) then
+    echo "ERROR: $pn - cannot use both -c and -s or -sz options"
+    exit 1
+endif
+
+if (($?slices || $?contrast) && $?inmm) then
+    echo "ERROR: $pn - cannot use -mm with the -c, -s, or -sz options"
+    exit 1
 endif
 
 if ($?ix && $?inx) then
@@ -227,7 +243,7 @@ endif
 if ($?ix) then
     set xentry = `echo $ix | sed 's/,/ /g'`
     if ($#xentry < 2) then
-	echo "ERROR: $pn - incorrect argument -x $ix"
+	echo "ERROR: $pn - incorrect argument -x $ix: needs two values"
 	exit 1
     endif
     @ xst = $xentry[1]
@@ -259,7 +275,7 @@ endif
 if ($?iy) then
     set yentry = `echo $iy | sed 's/,/ /g'`
     if ($#yentry < 2) then
-	echo "ERROR: $pn - incorrect argument -$inlet $iy"
+	echo "ERROR: $pn - incorrect argument -$inlet $iy: needs two values"
 	exit 1
     endif
     @ yst = $yentry[1]
@@ -295,7 +311,7 @@ endif
 if ($?iz) then
     set zentry = `echo $iz | sed 's/,/ /g'`
     if ($#zentry < 2) then
-	echo "ERROR: $pn - incorrect argument -$inlet $iz"
+	echo "ERROR: $pn - incorrect argument -$inlet $iz: needs two values"
 	exit 1
     endif
     @ zst = $zentry[1]
@@ -314,7 +330,7 @@ endif
 if ($?sx) then
     set xentry = `echo $sx | sed 's/,/ /g'`
     if ($#xentry < 2) then
-	echo "ERROR: $pn - incorrect argument -sx $sx"
+	echo "ERROR: $pn - incorrect argument -sx $sx: needs two values"
 	exit 1
     endif
     @ xst = $xentry[1]
@@ -329,7 +345,7 @@ endif
 if ($?sy) then
     set yentry = `echo $sy | sed 's/,/ /g'`
     if ($#yentry < 2) then
-	echo "ERROR: $pn - incorrect argument -sy $sy"
+	echo "ERROR: $pn - incorrect argument -sy $sy: needs two values"
 	exit 1
     endif
     @ yst = $yentry[1]
@@ -344,6 +360,15 @@ endif
 set contout = ""
 if ($?contrast) then
     set contout = "-mo 0 -co $contrast"
+endif
+
+if ($?inmm) then
+    set mmentry = `echo $inmm | sed 's/,/ /g'`
+    if ($#mmentry < 2) then
+	echo "ERROR: $pn - incorrect argument -mm $inmm: needs two values"
+	exit 1
+    endif
+    set contout = "-mo 1 -sc $inmm"
 endif
 
 set newstout = "$argv[2]"
@@ -411,6 +436,9 @@ clean:
 exit 1
 
 #  $Log$
+#  Revision 3.15  2006/09/25 16:26:14  mast
+#  Made work with space in IMOD_DIR and spaces in file names
+#
 #  Revision 3.14  2006/08/15 21:15:03  mast
 #  Switched -sx and -sy inputs to be numbered from 1 unless -i given
 #
