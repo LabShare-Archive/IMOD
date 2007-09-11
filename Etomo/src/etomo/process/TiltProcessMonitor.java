@@ -26,6 +26,10 @@ import etomo.util.MRCHeader;
  * @version $Revision$
  * 
  * <p> $Log$
+ * <p> Revision 3.17  2007/09/07 00:19:37  sueh
+ * <p> bug# 989 Using a public INSTANCE to refer to the EtomoDirector singleton
+ * <p> instead of getInstance and createInstance.
+ * <p>
  * <p> Revision 3.16  2006/10/24 21:40:46  sueh
  * <p> bug# 947 Passing the ProcessName to AxisProcessPanel.
  * <p>
@@ -202,7 +206,7 @@ final class TiltProcessMonitor extends FileSizeProcessMonitor {
         nY = sliceRange / tiltParam.getIncrSlice() / imageBinned;
       }
     }
-    long fileSize = 1024 + (long) nX * nY * (nZ / imageBinned) * modeBytes;
+    long fileSize = 1024 + ((long) nX * nY) * (nZ / imageBinned) * modeBytes;
     nKBytes = (int) (fileSize / 1024);
 
     if (EtomoDirector.INSTANCE.isDebug()) {
