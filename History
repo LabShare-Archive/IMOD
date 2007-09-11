@@ -3,6 +3,9 @@ IMOD History
 9/11/07: Added options to sirtsetup for better management of intermediate
 reconstructions, and added more instructions to man page.
 
+9/11/07: Added an option to trimvol to allow scaling of floating point to 
+integer.
+
 9/8/07: Fixed Tilt's reading of SHIFT and some other options, broken in PIP 
 upgrade, 3.10.13.
 

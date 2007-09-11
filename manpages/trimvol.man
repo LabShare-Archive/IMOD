@@ -8,9 +8,10 @@ trimvol [options] <input file>  <output file>
 .SH DESCRIPTION
 trimvol provides a command-line interface to the programs findcontrast(1) and
 newstack(1), for copying a selected portion of an MRC image volume into a new
-file, with automatic scaling to bytes.
+file, with automatic scaling to bytes.  
 There are options for specifying the volume to be extracted, and for 
-controlling the scaling to bytes.
+controlling the scaling to bytes.  There is also an option to scale 
+floating point numbers to integers.
 By default, coordinates are numbered from 1.
 
 If you use the 
@@ -39,8 +40,9 @@ then coordinates will always be taken as coming from a flipped volume.
 You can enter only one of
 .B -c,
 .B -s,
+.B -sz
 or
-.B -sz.
+.B -mm.
 Similarly, you cannot enter both
 .B -x
 and
@@ -98,11 +100,17 @@ behavior).
 .TP
 .B -sy <Y0,Y1>
 Analyze the region from X0 to X1 in X, or from Y0 to Y1 in Y, inclusive, in
-determining the scaling.
+determining the scaling to bytes.
 .TP
 .B -c <black,white>
 Scale to bytes, with relative intensities between "black" and "white" (on a
 scale of 0 to 255) stretched to occupy the full range of byte values.
+.TP
+.B -mm <min,max>
+Scale to integers (mode 1), so that the current minimum and maximum of the file
+would be scaled to the given values of minimum and maximum.  Newstack(1) is
+run with the -scale option and the entered values.  This option would be used
+to scale from mode 2 (floating point) to mode 1.
 .TP
 .B -yz
 Flip Y and Z in the output volume by first creating a temporary trimmed volume

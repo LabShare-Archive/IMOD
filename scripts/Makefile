@@ -13,7 +13,7 @@ SCRIPTS = copytomocoms finishjoin makejoincom matchorwarp matchshifts\
  dm2mrc alignlog transferfid submfg imodpsview settmpdir matchrotpairs\
  chunksetup processchunks splittilt splitcombine tomosnapshot clipflipyz\
  archiveorig imodkillgroup collectmmm sampletilt splitblend runpyscript\
- sirtsetup $(GENERATED_SCRIPTS)
+ sirtsetup managesirt $(GENERATED_SCRIPTS)
 
 all:
 
@@ -27,6 +27,9 @@ clean:
 	$(FIND) . -type f -name "*~"   -exec rm "{}" \;
 
 #  $Log$
+#  Revision 3.22  2007/07/19 14:52:50  mast
+#  Added sirtsetup
+#
 #  Revision 3.21  2007/04/10 19:41:49  mast
 #  Change for new copywrapper script
 #
