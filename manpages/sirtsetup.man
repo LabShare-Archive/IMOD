@@ -40,7 +40,8 @@ Typically the starting coordinate would be (full size - trimmed size) / 2.
 For example, if the original size of the aligned stack would be 2048x2048 and
 you make a 512x512 subarea, the SUBSETSTART entry would be 768 768.  The
 SUBSETSTART entry must be in unbinned pixels, if binning was used.  The
-FULLIMAGESIZE entry would stay the same.
+FULLIMAGESIZE entry would stay the same.  These changes are all handled when
+making a subset aligned stack in eTomo.
 
 If the tilt command file takes the log of the projection data, then the
 starting command file will use Densnorm(1) to create a new stack with the
@@ -81,23 +82,56 @@ latter value provides some indication of the progress of the iterations.
 
 .SS Options
 .TP
-.B -n <value>
+.B -nu <value>
 Use this option to specify the number of machines that you expect to run
 the command files on.  It is passed directly to Splittilt(1).  The default is
 8.
 .TP
-.B -s
+.B -st
 Do an initial reconstruction, numbered 00, even if it or later reconstructions
 already exist.  The default is to iterate from the last existing
 reconstruction.
 .TP
-.B -i <value>
+.B -it <value>
 Set the number of iterations to run; the default is 10.
 .TP
-.B -l <value>
+.B -le <value>
 Set the number of reconstructions to leave for examination; the default is 5.
 .TP
-.B -f <value>
+.B -al
+Always retain that number of reconstructions during the iterations, deleting 
+older ones as new ones are made after the number is reached.  The default is
+to retain only the reconstructions at the end of the set of iterations.
+For example, if 15 iteration are being done and 5 are being retained, by
+default only the reconstructions for iterations 11 through 15 would be saved.
+With this option, there would be 5 retained reconstructions throughout the
+processing.
+.TP
+.B -sc <min,max>
+Scale each retained reconstruction to integers, with the minimum and maximum
+in the reconstruction scaled to the given min and max values.  This will reduce
+the space needed for retained reconstructions twofold, since by default each
+reconstruction is generated as floating point.  This scaling is done on 
+each file after it is superceded by a new iteration, so at the end of the 
+processing the last reconstruction will still be floating point while the 
+previous retained one will be scaled to integers.  The file setname.srec01 is
+scaled to setname.sint01, etc.  To scale the final
+reconstruction to integers in the same way, just run 
+   newstack -sc min,max
+.br
+Values of -20000,20000 are recommended.
+.TP
+.B -tr <options>
+Run Trimvol(1) on each retained reconstruction with the given options.  The
+options must be enclosed in single or double quotes.  If the options specify
+a scaling to bytes, this will reduce the space needed for retained
+reconstructions by at least fourfold.  Each reconstruction to be retained is
+trimmed as soon as it is made, so at the end of the processing the last
+reconstruction exists in both floating point and trimmed form.  The file
+setname.srec01 is trimmed to setname.strm01, etc.  The trimvol options can
+be extracted from etomo_err.log after running the Trimvol step in eTomo.
+.TP
+.B -fl <value>
 Set the fraction of a flat filter function to apply in the initial
 reconstruction.  A flat function will be mixed with the standard radial filter
 if the fraction is less than 1; this may given quicker convergence. 
@@ -123,14 +157,14 @@ difference reconstruction.  This option is appropriate only if the projection
 data are normalized to be linearly proportional to projected mass density
 and have negative values, as usually produced by Densnorm(1).
 .TP
-.B -c
+.B -ch
 Write reconstructions in chunks to separate files and assemble these into a
 single tomogram.
 The default is to write directly to the output file.  This option should be
 needed only if the corresponding option is needed with Splittilt(1) for
 parallel reconstructions on your computer systems.
 .TP
-.B -d
+.B -di
 Write reprojections directly to a single
 output file.  The default is to write chunks to separate files that are
 assembled with Assemblevol(1), because direct writing can give empty lines
@@ -138,14 +172,78 @@ with a typical multiple-computer setup.  This option may be safe if no remote
 machines are used for processing, particularly if the local machine is not
 writing to a remote server.
 .TP
-.B -m <value> 
+.B -mo <value> 
 Set the mode of the output files.  The default is 2 because scaling is
 somewhat unpredictable, and values generally become much larger than in
 standard R-weighted back-projection with Tilt(1).
 .TP
-.B -t
-Run in a test mode that leaves command and log files at the end of the 
+.B -te <value>
+Run in a test mode.  A value of 1 will leave the reprojection, projection
+difference, and difference reconstruction at the end of every iteration.
+A value of 2 will also leaves command and log files at the end of the 
 processing.
+
+.SH EXAMPLE
+It is important that the reconstruction include all significant
+material, including gold fiducials on both sides of a section, if any.  Thus,
+in Tomogram Positioning, you need to draw contours that include all of the
+fiducials.
+
+If the number of desired iterations is not known in advance, a subarea can be
+reconstructed with the following steps:
+
+Set the Size to output in Advanced mode in the Newstack/Blendmont section of
+the Tomogram Generation panel in eTomo.  Generate the aligned stack.  Apply
+2D filter if desired.
+
+Turn off local alignments if they are on, to speed up this test.
+Generate a reconstruction by standard back-projection.
+
+Run sirtsetup with the needed number of iterations, and retaining as many
+reconstructions as might be needed.  For example, if you are confident that at
+least 15 iterations are needed and want to run 25, then use
+   sirtsetup -it 25 -le 11 tilt.com
+
+If storage space is an issue, also use "-sc -20000,20000".  However, loading
+the retained reconstructions is simpler if you do not.
+
+Run processchunks on "tilt_sirt".
+
+Load the trial reconstructions into 3dmod
+   3dmod -Y setname.srec* setname.rec
+.br
+for one axis of a dual axis set, or for a single axis set:
+   3dmod -Y setname_full.srec* setname_full.rec
+
+If you need to do more iterations, just rerun sirtsetup and process some more.
+Once you have decided on the right number of iterations, you should remove or
+rename all of the .srec and/or .sint files:
+   rm -f setname*.srec* setname*.sint*
+
+Remove the Size to output entry in eTomo and regenerate the aligned stack.
+Apply 2D filter if desired.
+
+Turn local alignments back on if they were turned off.
+Generate a reconstruction by standard back-projection if desired.  If not, be
+sure to press Postpone or Done in the Tomogram Generation panel to ensure that
+tilt.com is saved.
+
+Run sirtsetup with the needed number of iterations, and retaining only the
+last, e.g.:
+   sirtsetup -it 17 -le 1 tilt.com
+
+If you still want to leave more than one iteration, then disk space becomes a
+serious issue.  For a single axis data set, the best approach would be to run
+Trimvol on the standard reconstruction.  Then extract the trimvol command
+from etomo_err.log, e.g.:
+    grep trimvol etomo_err.log
+.br
+Cut and paste the options (excluding "trimvol" and the file names) and enter
+them within quotes, e.g.:
+    sirtsetup -tr "-rx -f -z 30,160 -sz 50,99" -it 19 -le 5 tilt.com
+
+Otherwise, especially for a dual-axis data set where it is not convenient to
+run Trimvol in eTomo, use "-sc -20000,20000" instead of the "-tr" option.
 
 .SH FILES
 This procedure creates many large files, so it generally purges a previous
@@ -159,16 +257,21 @@ setname.srecnn      Numbered iterative reconstructions
 setname.proj        Reprojection of current reconstruction
 setname.diff        Difference of reprojection and original projections
 setname.drec        Correction reconstruction from projection difference
+setname.sintnn      Iterative reconstruction scaled to integers
+setname.strmnn      Iterative reconstruction run through Trimvol(1)
 .fi
 
 .SH AUTHOR
 David Mastronarde  
 
 .SH SEE ALSO
-tilt(1), densnorm(1), newstack(1), subimage(1), processchunks(1), splittilt(1)
+tilt(1), densnorm(1), newstack(1), subimage(1), processchunks(1),
+splittilt(1), trimvol(1)
+
 .SH BUGS
 There is not yet a way to tell when to stop iterating.  Densities get
-progressively farther off at the edges of the reconstruction.
+progressively farther off at the edges of the reconstruction.  There are low
+frequency artifacts, particularly near edges.
 
 Email bug reports to mast@colorado.edu.
 
