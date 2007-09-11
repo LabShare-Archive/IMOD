@@ -1,10 +1,25 @@
 IMOD History
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+9/11/07: Added options to sirtsetup for better management of intermediate
+reconstructions, and added more instructions to man page.
+
+9/8/07: Fixed Tilt's reading of SHIFT and some other options, broken in PIP 
+upgrade, 3.10.13.
+
+9/7/07: Fixed Blendmont to stop truncating integer input data at 0 for mode 1 
+or 32767 for mode 6.
+
+8/30/07: Fixed Rotatevol, Matchvol, Warpvol to work with more than 32767 slices
+in a layer of cubes.
+
+8/30/07: Made clip flipyz/rotx read multiple slices of data up to 500 MB worth
+then write the slices out, reducing real time consumed by 6-10 fold.
+
 8/28/07: In eTomo parallel processing allowing Resume after exiting and re-
 starting eTomo.
 
-8/21/07: In eTomo added a warning message to Tomogram Combination for situations
-where the X and Y min and max values should be changed.
+8/21/07: In eTomo added a warning message to Tomogram Combination for
+situations where the X and Y min and max values should be changed.
 
 8/20/07: Fixed Findcontrast to work with densities over 1000000.
 
