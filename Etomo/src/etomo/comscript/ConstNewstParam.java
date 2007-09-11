@@ -22,6 +22,9 @@ import etomo.type.ConstIntKeyList;
  * @version $Revision$
  *
  * <p> $Log$
+ * <p> Revision 3.19  2007/05/11 15:06:47  sueh
+ * <p> bug# 964 Added getStringArray().
+ * <p>
  * <p> Revision 3.18  2007/02/05 21:39:17  sueh
  * <p> bug# 962 Put mode info into an inner class.
  * <p>
@@ -357,6 +360,14 @@ public class ConstNewstParam implements CommandDetails {
   public String getSizeToOutputInXandY() {
     return sizeToOutputInXandY.toString();
   }
+  
+  public int getSizeToOutputInX() {
+    return sizeToOutputInXandY.getInt(0);
+  }
+  
+  public int getSizeToOutputInY() {
+    return sizeToOutputInXandY.getInt(1);
+  }
 
   /**
    * @return Returns the testLimits.
@@ -377,6 +388,10 @@ public class ConstNewstParam implements CommandDetails {
    */
   public String getUseTransformLines() {
     return useTransformLines;
+  }
+  
+  public boolean isSizeToOutputInXandYSet() {
+    return sizeToOutputInXandY.valuesSet() && (!sizeToOutputInXandY.isDefault());
   }
 
   /**
