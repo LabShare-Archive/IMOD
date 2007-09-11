@@ -1,0 +1,120 @@
+#! /bin/csh -f
+# managesirt: manages reconstructions left behind after each iteration
+#
+#  $Id$
+#
+#  Log at end
+
+set pn = managesirt
+
+if ($#argv < 1) then
+cat <<EOF
+Usage: $pn -it # -le # [-sc | -tr] setname
+   Manages reconstructions left behind after a SIRT iteration
+   Options:
+      -it #    Iteration number
+      -le #    Last reconstruction number to retain
+      -sc #,#  Scale each retained reconstruction to integers with given range
+      -tr opt  Run trimvol with given options on retained reconstuctions
+EOF
+
+exit 0
+endif
+if ($?IMOD_DIR) then
+    setenv PATH "$IMOD_DIR/bin:$PATH"
+endif
+
+set sirtext = srec
+set intext = sint
+set trimext = strm
+
+set trimarg = ""
+set integer = 0
+@ lastleave = -999
+@ iteration = 0
+
+# Process options
+#
+while ($#argv > 1)
+  switch ($argv[1])
+
+    case -it:
+      @ iteration = $argv[2]
+      shift; shift
+      breaksw
+
+    case -le:
+      @ lastleave = $argv[2]
+      shift; shift
+      breaksw
+
+    case -sc:
+      set integer = 1
+      set minmax = $argv[2]
+      shift; shift
+      breaksw
+
+    case -tr:
+      set trimarg = "$argv[2]"
+      shift; shift
+      breaksw
+
+    default:
+      echo "ERROR: $pn - unrecognized option $argv[1]"
+      exit 1
+  endsw
+end
+
+if ($#argv < 1) then
+    echo "ERROR: $pn - You must enter the setname as last argument"
+    exit 1
+endif
+
+set setname = $argv[1]
+
+if ($iteration < 1 || $lastleave == -999) then
+    echo "ERROR: $pn - You must enter an iteration # > 0 and last # to leave"
+    exit 1
+endif
+
+if ($integer != 0 && "$trimarg" != "") then
+    echo "ERROR: $pn - You cannot enter both -sc and -tr"
+    exit 1
+endif
+
+# Convert last rec to int if retaining that one, then delete it
+@ i = $iteration - 1
+set numtext = $i
+if ($i < 10) set numtext = "0"$i
+set lastrec = $setname.${sirtext}$numtext
+if ($integer != 0 && $i >= $lastleave) then
+    \rm -f $setname.${intext}$numtext
+    newstack -mode 1 -scale $minmax $lastrec $setname.${intext}$numtext
+    \rm -f $lastrec
+endif
+
+# Or run trimvol on this rec if retaining it; delete previous one first
+if ("$trimarg" != "" && $iteration >= $lastleave) then
+    if (-e $setname.${trimext}$numtext) \rm -f $lastrec
+    set numtext = $iteration
+    if ($iteration < 10) set numtext = "0"$iteration
+    set thistrim = $setname.${trimext}$numtext
+    \rm -f $thistrim
+    trimvol $trimarg $setname.${sirtext}$numtext $thistrim
+endif
+
+# Delete non-retained recs up to current one
+# Delete non-retained ints and trims 
+#
+@ i = 0
+while ($i < $lastleave && $i <= $iteration)
+    set numtext = $i
+    if ($i < 10) set numtext = "0"$i
+    if ($i < $iteration) \rm -f $setname.${sirtext}$numtext
+    \rm -f $setname.${trimext}$numtext $setname.${intext}$numtext
+    @ i++
+end
+
+exit 0
+
+#  $Log$
