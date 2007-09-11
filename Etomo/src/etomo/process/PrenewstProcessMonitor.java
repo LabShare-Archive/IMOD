@@ -11,6 +11,9 @@
  * @version $Revision$
  * 
  * <p> $Log$
+ * <p> Revision 3.10  2006/10/24 21:37:46  sueh
+ * <p> bug# 947 Passing the ProcessName to AxisProcessPanel.
+ * <p>
  * <p> Revision 3.9  2006/09/22 18:18:58  sueh
  * <p> bug# 931 Passing the process name to super().
  * <p>
@@ -119,7 +122,7 @@ public class PrenewstProcessMonitor extends FileSizeProcessMonitor {
       nX = nX / binBy;
       nY = nY / binBy;
     }
-    long fileSize = 1024 + nX * nY * nZ * modeBytes;
+    long fileSize = 1024 + ((long) nX * nY) * nZ * modeBytes;
     nKBytes = (int) (fileSize / 1024);
     applicationManager.getMainPanel().setProgressBar("Creating coarse stack", nKBytes, axisID,ProcessName.PRENEWST);
   }
