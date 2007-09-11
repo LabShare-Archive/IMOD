@@ -18,6 +18,9 @@ import etomo.type.EtomoNumber;
 * @version $Revision$
 * 
 * <p> $Log$
+* <p> Revision 1.2  2006/06/14 00:44:26  sueh
+* <p> bug# Removed selfTestInvariants() because there isn't much to test.
+* <p>
 * <p> Revision 1.1  2005/06/20 17:04:28  sueh
 * <p> bug# 522 A class to hold the last read state of a file.  Can be used to
 * <p> prevent unnecessary reads.
@@ -46,5 +49,9 @@ class FileModifiedFlag {
   
   long getLastModified() {
     return lastModified;
+  }
+  
+  public String toString() {
+    return file.getAbsolutePath()+": "+lastModified;
   }
 }
