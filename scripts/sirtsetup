@@ -20,19 +20,22 @@ cat <<EOF
 Usage: $pn [options] command_file
    Produces multiple command files for running iterative reconstruction
    Options:
-      -n #    Target or expected number of machines (default $numproc)
-      -s      Do starting reconstruction
-      -i #    Number of iterations (default $iterations)
-      -l #    Leave this number of reconstructions (default $leaverecs)
-      -f #    Flat filter fraction for starting reconstruction (default $flatfrac)
-      -ri #,# Radius and sigma for radial filter in starting reconstruction
-      -rd #,# Radius and sigma for radial filter in difference reconstructions
-      -zp     Constrain reconstruction to positive values
-      -zn     Constrain reconstruction to negative values
-      -c      Write reconstructions to separate chunks, not directly to file
-      -d      Directly write projections to single output file
-      -m #    Output file mode (default $mode)
-      -t      Test mode, leave command and log files at end of processing
+      -nu #    Target or expected number of machines (default $numproc)
+      -st      Do starting reconstruction
+      -it #    Number of iterations (default $iterations)
+      -le #    Leave this number of reconstructions (default $leaverecs)
+      -al      Leave that number after all iterations, not just last one
+      -sc #,#  Convert retained reconstructions to integers with given min/max
+      -tr opt  Run trimvol with given options on retained reconstuctions
+      -fl #    Flat filter fraction for starting reconstruction (default $flatfrac)
+      -ri #,#  Radius and sigma for radial filter in starting reconstruction
+      -rd #,#  Radius and sigma for radial filter in difference reconstructions
+      -zp      Constrain reconstruction to positive values
+      -zn      Constrain reconstruction to negative values
+      -ch      Write reconstructions to separate chunks, not directly to file
+      -di      Directly write projections to single output file
+      -mo #    Output file mode (default $mode)
+      -te #    Test mode, 1: retain proj, drec; 2: leave command and log files
 EOF
 exit 0
 endif
@@ -50,26 +53,29 @@ set projsubzero = "-zero"
 set recsubthresh = ""
 set startfirst = 0
 set sirtext = srec
-set testmode = 0
+@ testmode = 0
+set trimarg = ""
+set always = 0
+set integer = ""
 
 while ($#argv > 1)
   switch ($argv[1])
-    case -n:
+    case -nu:
       set numproc = $argv[2]
       shift; shift
       breaksw
 
-    case -c:
+    case -ch:
       set recchunk = "-c"
       shift
       breaksw
 
-    case -d:
+    case -di:
       set projchunk = ""
       shift
       breaksw
 
-    case -f:
+    case -fl:
       set  flatfrac = $argv[2]
       shift; shift
       breaksw
@@ -84,7 +90,7 @@ while ($#argv > 1)
       shift; shift
       breaksw
 
-    case -i:
+    case -it:
       @ iterations = $argv[2]
       shift; shift
       breaksw
@@ -101,25 +107,40 @@ while ($#argv > 1)
       shift
       breaksw
 
-    case -l:
+    case -le:
       @ leaverecs = $argv[2]
-      if ($leaverecs < 2) @ leaverecs = 2
+      if ($leaverecs < 1) @ leaverecs = 1
       shift; shift
       breaksw
 
-    case -m:
+    case -al:
+      set always = 1
+      shift
+      breaksw
+
+    case -mo:
       @ mode = $argv[2]
       shift; shift
       breaksw
 
-    case -s:
+    case -sc:
+      set integer = "-sc $argv[2]"
+      shift; shift
+      breaksw
+
+    case -tr:
+      set trimarg = "$argv[2]"
+      shift; shift
+      breaksw
+
+    case -st:
       set startfirst = 1
       shift
       breaksw
 
-    case -t:
-      set testmode = 1
-      shift
+    case -te:
+      @ testmode = $argv[2]
+      shift; shift
       breaksw
 
     default:
@@ -128,10 +149,20 @@ while ($#argv > 1)
   endsw
 end
 
+if ($#argv < 1) then
+    echo "ERROR: $pn - You must enter the command file name as last argument"
+    exit 1
+endif
+
 set rootname = $argv[1]:r
 set comname = $rootname.com
 if (! -e $comname) then
     echo "ERROR: $pn - command file $comname does not exist"
+    exit 1
+endif
+
+if ("$integer" != "" && "$trimarg" != "") then
+    echo "ERROR: $pn - You cannot enter both -sc and -tr"
     exit 1
 endif
 
@@ -351,10 +382,11 @@ RecFileToReproj     $lastname\
     set numtext = `echo $comnum | awk '{printf "%03d\n", $1}'`
     set outfile = $sirtname-$numtext-sync.com
     cat <<EOF >! $outfile
-\$\\rm -f $setname.diff $projname~ $drecname~
+\$\\rm -f $setname.diff $projname~ $drecname~ $drecname
 \$subimage $projsubzero $projname $aliuse $setname.diff
-\$echo CHUNK DONE
 EOF
+    if (! $testmode) echo '$\rm -f'" $projname" >> $outfile
+    echo '$echo CHUNK DONE' >> $outfile
 
     # Make the error reconstruction file
     #
@@ -393,23 +425,29 @@ FlatFilterFraction   2\
     set numtext = `echo $comnum | awk '{printf "%03d\n", $1}'`
     set outfile = $sirtname-$numtext-sync.com
     @ lastnum++
-    @ lastdel = $recnum - $leaverecs
+    @ lastleave = ( $recnum + 1 + $iterations - $iter ) - $leaverecs
+    if ($always) @ lastleave = $recnum + 1 - $leaverecs
 
     if ($iter == $iterations) set outfile = $sirtname-finish.com
+    set deldiff = $diffname
+    if ($testmode) set deldiff = ""
     cat <<EOF >! $outfile
-\$@ i = 0
-\$while (\$i <= $lastdel)
-\$    set numtext = \$i
-\$    if (\$i < 10) set numtext = "0"\$i
-\$    \\rm -f $setname.${sirtext}\$numtext
-\$    @ i++
-\$end
-\$\\rm -f $srecname $projname~ $drecname~ $lastname~
+\$\\rm -f $srecname $projname~ $deldiff $drecname~ $lastname~
 \$clip stat $ixtext $iytext -iz 10 $drecname
 \$subimage $recsubthresh $lastname $drecname $srecname
 EOF
+    if (! $testmode) echo '$\rm -f'" $drecname" >> $outfile
+    if ("$trimarg" != "") then
+        cat <<EOF >> $outfile
+\$managesirt -it $recnum -le $lastleave -tr "$trimarg" $setname
+EOF
+    else
+        cat <<EOF >> $outfile
+\$managesirt -it $recnum -le $lastleave $integer $setname
+EOF
+endif
     if ($iter == $iterations) echo '$'"sed -n '/@ z/p' $sirtname-[0-9]*sync.log" >> $outfile
-    if ($iter == $iterations && ! $testmode) echo '$\rm -f '"$sirtname-[0-9]*.*" >> $outfile
+    if ($iter == $iterations && $testmode < 2) echo '$\rm -f '"$sirtname-[0-9]*.*" >> $outfile
     if ($iter < $iterations) @ comnum++
     echo '$echo CHUNK DONE' >> $outfile
 end
@@ -421,6 +459,9 @@ echo "  processchunks machine_list $sirtname"
 exit 0
 
 #  $Log$
+#  Revision 3.4  2007/08/18 03:21:22  mast
+#  Fixed to work with binning and to add chunk done to densnorm file
+#
 #  Revision 3.3  2007/08/10 22:17:52  mast
 #  Added ability to make log stack, fixed extraction of stats to use sed
 #
