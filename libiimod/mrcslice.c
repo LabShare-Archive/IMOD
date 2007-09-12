@@ -366,8 +366,9 @@ float sliceGetValMagnitude(Ival val, int mode)
  * a new data array as needed.  Complex values are converted to others by 
  * taking the magnitude.  Values are converted to complex modes by setting the
  * real component to the value, and the imaginary component to 0.  RGB values
- * are converted by taking a weighted sum of components.  Returns the new mode
- * or -1 for error.
+ * are converted by taking a weighted sum of components.  When converting to a
+ * mode with integer or byte values, the data are truncated to fit within the
+ * range of the new mode.  Returns the new mode or -1 for error.
  */
 int sliceNewMode(Islice *s, int mode)
 {
@@ -1787,6 +1788,9 @@ int mrc_vol_wrap(struct MRCvolume *v)
 
 /*
 $Log$
+Revision 3.17  2007/02/04 21:16:57  mast
+Fixing stupid things in checkin
+
 Revision 3.14  2007/02/04 21:00:56  mast
 Documentation and cleanup of duplicate and bad code
 
