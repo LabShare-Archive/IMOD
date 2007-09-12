@@ -1,0 +1,49 @@
+Version = 1.0
+Pip = 1
+
+[Field = InputFile]
+short = input
+type = FN
+usage = Input model file
+tooltip = 
+manpage = Input model file.  If this option
+is not entered, the first non-option argument will be used for the input
+file.
+
+[Field = OutputFile]
+short = output
+type = FN
+usage = Output text file for points
+tooltip = 
+manpage = Output text file for points.  If this option
+is not entered, the second non-option argument will be used for the output
+file.
+
+[Field = FloatingPoint]
+short = float
+type = B
+usage = Output model coordinates as floating point, not integer
+tooltip = 
+manpage = 
+
+[Field = ObjectAndContour]
+short = object
+type = B
+usage = Output object and contour numbers for each point (numbered from 1)
+tooltip = 
+manpage = 
+
+[Field = Contour]
+short = contour
+type = B
+usage = Output contour number for each point (numbered from 1)
+tooltip = 
+manpage = 
+
+[Field = usage]
+short = help
+long = usage
+type = B
+usage = Print help output
+tooltip = 
+manpage = Print help output. 
