@@ -118,6 +118,7 @@ public class LoadAverageParam implements IntermittentCommand {
     command.add("-x");
     command.add("-o");
     command.add("StrictHostKeyChecking=no");
+    //Removed because it doesn't work with older versions of Redhat (see bug# 1043).
     //maximum connection timeout for a down computer
     //command.add("-o");
     //command.add("ConnectTimeout=5");
@@ -157,6 +158,9 @@ public class LoadAverageParam implements IntermittentCommand {
 }
 /**
  * <p> $Log$
+ * <p> Revision 1.10  2007/09/14 15:56:17  sueh
+ * <p> bug# 1043 Removed ConnectTimeout from ssh command.
+ * <p>
  * <p> Revision 1.9  2007/05/24 23:39:11  sueh
  * <p> bug# 994 Added ConnectTimeout and PreferredAuthentications options to
  * <p> buildRemoteCommand().
