@@ -413,7 +413,7 @@ option can be used to apply a 2D filter that considers only the pixels in one
 section.  Note that an even size will offset the data by half a pixel.
 .TP
 .B resize 
-Cut out or pad an image to a new sizewithout doing any other operations.
+Cut out or pad an image to a new size without doing any other operations.
 Resize 3d cuts out an image of size ix, iy, iz, centered
 around cx, cy, and cz.  The output size of the file is 
 ox, oy, and oz.  The default input size is the size of the 
