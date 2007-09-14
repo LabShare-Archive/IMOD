@@ -1,0 +1,47 @@
+<head>
+<title>Auto Contour</title>
+</head>
+<H2>Auto Contour</H2>
+Auto contour creates closed contours that belong to the current object.  The
+contours surround areas that  are either above or below a selected threshold.
+<P>
+To start using it, switch to High Contrast to see what areas fall above or below
+threshold.  Adjust the threshold to the proper level to segment your features of
+interest, switching back and forth between Regular and High contrast as needed.
+Select the Alternate mouse to use the mouse buttons to control the filling
+operation.  Then click on the interior of a desired area to flood that area in
+red.  Adjust the area if necessary then press the Build button or the b hot key
+to build a contour around the area.
+<P>
+<BR><A HREF = "#Controls"></A>
+<P>
+<A NAME = "Controls"><H3>Controls</H3></A>
+<UL>
+<LI><B>Contrast</B>:  <B>Regular</B> contrast shows the image data, <B>High</B>
+contrast shows the threshold level.
+<LI>The <B>Threshold</B> slider controls the grey level that segments the data.
+<LI>The <B>Resolution</B> slider controls point reduction in the generated contour.
+Points are originally created at intervals of about 1 pixel.  Points are removed
+if they are within this distance of a line segment between the remaining points.
+<LI>The <B>Alternate mouse</B> checkbox allows the use of alternate mouse functions:"
+	<UL><LI>First  - Select area by flooding around point.
+	<LI>Second - Add pixel to flood area (it will appear as yellow).
+	<LI>Third  - Delete pixel from flood area (it will appear as dark).
+	</UL>
+Second and third buttons may be held down while moving the mouse to add or
+delete a series of pixels.
+<LI>The <B>Follow diagonals</B> checkbox:  when flooding an area, add pixels
+that are touching pixels already in the area only on their corners.
+</UL>
+<H4>Control Buttons</H4>
+<UL>
+<LI>Smooth - Smooth a flooded area (Expand followed by Shrink).
+<LI>Next   - Flood fill next section.
+<LI>Build  - Build contour around flooded area.
+<LI>Fill   - Flood fill area at current point.
+<LI>Clear  - Clear a flooded area.
+<LI>Done   - Exit auto contour.
+<LI>Shrink - Shrink a flooded area by one pixel.
+<LI>Expand - Expand a flooded area by one pixel.
+<LI>Help   - Gives you this help window.
+</UL>

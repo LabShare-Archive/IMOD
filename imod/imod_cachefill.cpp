@@ -625,60 +625,7 @@ void ImodCacheFill::buttonPressed(int which)
     close();
     break;
   case 2:
-    dia_vasmsg
-      ("~~~~~~~~~~~~~~~~~~~~~~~~\n"
-       "3dmod Cache Filler \n"
-       "~~~~~~~~~~~~~~~~~~~~~~~~"
-       "\n\n",
-       "The Cache Filler can be used to fill some or all of the image ",
-       "cache in one operation, and can also fill the cache "
-       "automatically when the next image to be displayed is not yet "
-       "loaded into cache.  It is primarily designed to make the loading "
-       "of flipped images from large files much more efficient, but it "
-       "could also be useful when loading unflipped images.\n\n",
-       "The \"Fill\" radio buttons select whether the program will "
-       "fill all, half, or one-quarter of the image cache in the next "
-       "operation.\n\n"
-       "If there are multiple image files loaded (multiple times), then "
-       "there will be a set of radio buttons to set the priority among "
-       "the files.  The choices are:\n",
-       "\tAllocate the amount of cache to be filled equally among all "
-       "times.\n"
-       "\tDivide available cache space equally among the current time "
-       "and the previous and next times; then if any space remains to be "
-       "filled, divide it equally among the remaining times.\n"
-       "\tAllocate as much of the cache as needed to the current time, "
-       "then divide remaining space equally among the rest of the times.\n"
-       "\tFill the cache only for the current time.\n\n"
-       "If the Autofill check box is selected, then the program will "
-       "fill the cache according to the other settings in this dialog "
-       "whenever an image is to be displayed that is not in the cache.\n\n"
-       "With Autofill on, if an image is reached by stepping forward or "
-       "backward in Z, "
-       "then the program will retain some existing sections to provide "
-       "the amount of overlap indicated in the \"Overlap by\" radio "
-       "buttons, namely by half, a quarter, or an eighth of the amount of "
-       "cache to be filled.  For example, if the cache is 64 images, "
-       "it contains sections 36 to 99, "
-       "all of it is to be filled, and you step up from section 99 to 100 "
-       "then sections 68 to 99 will be retained and 100 to 131 will be "
-       "loaded if \"1/2\" is selected; whereas 92 to 99 will be retained "
-       "and 100 to 155 loaded if \"1/8\" is selected.\n\n",
-       "The Fill button will fill the cache according to the current "
-       "settings, and has the same effect as the \"Edit-Image-Fill Cache\""
-       " menu entry.\n\n",
-       "To visualize large image files in flipped mode most conveniently, "
-       "start 3dmod without the -Y option and with the desired cache size "
-       "specified in megabytes (e.g., -C 100M).  Select the Z "
-       "level that you want to see after flipping by clicking at the "
-       "corresponding Y level in the Zap window with the left mouse "
-       "button.  Open the Cache Filler window and select appropriate "
-       "filling options, including Autofill.  Then flip the image.\n\n"
-       "The program will not accept input while loading, but will report "
-       "progress in the Info window with a dot every 10 slices.  When "
-       "loading flipped images, a dot will appear for every 10 of the "
-       "native Z slices that are loaded from the file.\n",
-       NULL);
+    imodShowHelpPage("cachefill.html");
     break;
   }
 }
@@ -737,6 +684,9 @@ void ImodCacheFill::keyReleaseEvent ( QKeyEvent * e )
 
 /*
 $Log$
+Revision 4.10  2004/11/04 23:30:55  mast
+Changes for rounded button style
+
 Revision 4.9  2004/05/31 23:35:26  mast
 Switched to new standard error functions for all debug and user output
 

@@ -48,58 +48,7 @@ static AutoxWindow *autoWindow = NULL;
  */
 void autoxHelp()
 {
-  dia_vasmsg
-    ("Auto Contour Help\n",
-     "-----------------\n",
-     "Auto contour creates closed contours ",
-     "that belong to the current object.  The contours surround areas that "
-     "are either above or below a selected threshold.\n",
-     "\n",
-     "To start using it, switch to High Contrast to see what areas fall above "
-     "or below threshold.  Adjust the threshold to the proper level to segment"
-     " your features of interest, switching back and forth between Regular and"
-     " High contrast as needed.  Select the Alternate mouse to use the mouse "
-     "buttons to control the filling operation.  Then click on the interior of"
-     " a desired area to flood that area in red.  Adjust the area if necessary"
-     " then press the Build button or the b hot key to build a contour around "
-     "the area.\n\n"
-     "Controls are as follows:\n"
-     "\n",
-     "Threshold - controls the grey level ",
-     "that segments the data.\n",
-     "\n",
-     "Resolution - controls point reduction in the ",
-     "generated contour.  Points are originally created at "
-     "intervals of about 1 pixel.  Points are removed if they are "
-     "within this distance of a line segment between the remaining "
-     "points.\n"
-     "\n",
-     "Regular or High Contrast - Select contrast: "
-     "high contrast shows the threshold level, "
-     "regular contrast shows the image data.\n",
-     "\n",
-     "Alt mouse - Use alternate mouse functions:\n"
-     "\tFirst  - Select area by flooding around point.\n",
-     "\tSecond - Add pixel to flood area (it will appear as yellow).\n",
-     "\tThird  - Delete pixel from flood area (it will appear as dark)"
-     ".\n",
-     "Second and third buttons may be held down while moving the mouse "
-     "to add or delete a series of pixels.\n"
-     "\n"
-     "Follow diagonals - when flooding an area, add pixels that are "
-     "touching pixels already in the area only on their corners.\n",
-     "\n"
-     "Control Buttons:\n"
-     "Smooth - Smooth a flooded area (Expand followed by Shrink).\n"
-     "Next   - Flood fill next section.\n"
-     "Build  - Build contour around flooded area.\n"
-     "Fill   - Flood fill area at current point.\n"
-     "Clear  - Clear a flooded area.\n"
-     "Done   - Exit auto contour.\n"
-     "Shrink - Shrink a flooded area by one pixel.\n"
-     "Expand - Expand a flooded area by one pixel.\n"
-     "Help   - Gives you this help window.\n",
-     NULL);
+  imodShowHelpPage("autox.html");
 }
 
 void autoxSlider(int which, int value)
@@ -865,6 +814,9 @@ static void autox_clear(Autox *ax, unsigned char bit)
 
 /*
 $Log$
+Revision 4.8  2005/03/20 19:55:36  mast
+Eliminating duplicate functions
+
 Revision 4.7  2004/11/20 05:05:27  mast
 Changes for undo/redo capability
 

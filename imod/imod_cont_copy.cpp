@@ -547,39 +547,7 @@ void ContourCopy::buttonPressed(int which)
     break;
 
   case 2:
-    dia_vasmsg
-      ("3dmod Contour Copy Help\n"
-       "---------------------------------------------------------------\n",
-       "\n",
-       "This dialog allows one to copy the current contour, or "
-       "selected contours in the current object to a selected section, "
-       "object or time index.\n",
-       "If copying to a section or time index, only contours matching "
-       "the section number or time of the current contour will be copied.\n\n",
-       
-       "The selection box provides options for copying contours to "
-       "a particular object, to a particular section, or to a different time "
-       "index.  In each of these cases, the spin box will be active and allow "
-       "you to select or enter the number of the object, section, or time "
-       "the contours will be copied to.  In addition, you can select copying "
-       "to the next or previous section, or duplicating contours on the same "
-       "section.  In these cases the spin box is inactive.\n\n"
-
-       "The radio buttons determine the number of contours copied.  The "
-       "standard choices are to copy just the current contour, all contours "
-       "with the same surface number, or all contours in the object.  Again, "
-       "only those contours matching the section or time index of the current "
-       "contour will be copied when copying to a section or time index, while "
-       "all eligible contours in an object will be copied when copying to "
-       "another object.\n"
-       "When copying to a time index, another option is available, to copy "
-       "all contours in all objects from the current time index to the "
-       "selected time index.\n\n"
-       "Push Apply to execute the copy operation using the current "
-       "settings.\n",
-       "Push Done to close the dialog without doing any "
-       "copy operation.",
-       NULL);
+    imodShowHelpPage("contourCopy.html");
     break;
   }
 }
@@ -614,6 +582,9 @@ void ContourCopy::keyReleaseEvent ( QKeyEvent * e )
 
 /*
 $Log$
+Revision 4.14  2006/09/12 15:34:54  mast
+Handled contour member renames
+
 Revision 4.13  2005/06/29 05:38:40  mast
 Changes to manipulate fine grain properties and do undos correctly
 
