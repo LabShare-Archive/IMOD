@@ -41,6 +41,7 @@ extern "C" {
   void sliceTaperInPad(void *array, int type, int nxdimin, int ix0, int ix1,
                        int iy0, int iy1, float *brray, int nxdim, int nx, 
                        int ny, int nxtap, int nytap);
+  int niceFrame(int num, int idnum, int limit);
 
 
 #ifdef __cplusplus
@@ -50,6 +51,9 @@ extern "C" {
 #endif
 /*
   $Log$
+  Revision 3.8  2007/08/16 16:44:37  mast
+  Eliminated comment marks here
+
   Revision 3.7  2007/08/15 00:06:46  mast
   Added taperinpad function, renamed from xcorr
 
