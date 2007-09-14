@@ -65,7 +65,7 @@ float sliceByteBinnedFFT(Islice *sin, int binning, int ix0, int ix1, int iy0,
   squareSize = B3DMAX(nxProc, nyProc);
   nTaper = (int)(taperFrac * squareSize);
   nPad = (int)(padFrac * squareSize);
-  nPadSize = XCorrNiceFrame(squareSize + nPad, 2, 19);
+  nPadSize = niceFrame(squareSize + nPad, 2, 19);
   nPadPix = (nPadSize + 2) * nPadSize;
   
   // Get array for FFT
@@ -182,8 +182,8 @@ int sliceFourierFilter(Islice *sin, float sigma1, float sigma2, float radius1,
   pady = (int)(0.05 * ny);
   if (pady < 8)
     pady = 8;
-  nxpad = XCorrNiceFrame(nx + padx, 2, 19);
-  nypad = XCorrNiceFrame(ny + pady, 2, 19);
+  nxpad = niceFrame(nx + padx, 2, 19);
+  nypad = niceFrame(ny + pady, 2, 19);
   brray = (float *)malloc((nxpad + 2) * nypad * sizeof(float));
   if (!brray)
     return 1;
@@ -412,30 +412,6 @@ void XCorrExtractConvert(float *array, int nxdim, int ixlo, int iylo,
 }
 
 
-/*  NICEFRAME returns NUM if it has no prime factor greater
-    than LIMIT, or adds IDNUM to NUM until it reaches a number with this
-    tractable property */
-
-int XCorrNiceFrame(int num, int idnum, int limit)
-{
-#ifdef USE_FFTW
-  if (limit == 19)
-    limit = 13;
-#endif
-  int numin, numtmp, ifac;
-  numin=2 * ((num + 1) / 2);
-  do {
-    numtmp=numin;
-    for (ifac = 2; ifac <= limit; ifac++)
-      while (numtmp % ifac == 0)
-        numtmp=numtmp/ifac;
-    
-    if (numtmp > 1)
-      numin += idnum;
-  } while (numtmp > 1);
-  return numin;
-}
-
 /*  SETCTF takes the filter parameters SIGMA1,2 and RADIUS1,2 and sets
     up the contrast
     transfer function in the array CTF, which should be dimensioned
@@ -553,6 +529,9 @@ void XCorrFilterPart(float *fft, float *array, int nx, int ny, float *ctf,
 
 /*
 $Log$
+Revision 1.9  2007/08/15 00:05:42  mast
+Moved XCorrTaperInPad to libiimod and renamed
+
 Revision 1.8  2007/06/09 00:22:37  mast
 Fixed bug freeing indata when upon memory error
 
