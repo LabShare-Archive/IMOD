@@ -118,9 +118,9 @@ public class LoadAverageParam implements IntermittentCommand {
     command.add("-x");
     command.add("-o");
     command.add("StrictHostKeyChecking=no");
-    command.add("-o");
     //maximum connection timeout for a down computer
-    command.add("ConnectTimeout=5");
+    //command.add("-o");
+    //command.add("ConnectTimeout=5");
     command.add("-o");
     //prevents password prompts when the publickey authentication fails
     command.add("PreferredAuthentications=publickey");
@@ -157,6 +157,10 @@ public class LoadAverageParam implements IntermittentCommand {
 }
 /**
  * <p> $Log$
+ * <p> Revision 1.9  2007/05/24 23:39:11  sueh
+ * <p> bug# 994 Added ConnectTimeout and PreferredAuthentications options to
+ * <p> buildRemoteCommand().
+ * <p>
  * <p> Revision 1.8  2007/02/22 20:34:58  sueh
  * <p> bug# 964 In buildLocalCommand, matching the shell to the $SHELL variable if
  * <p> $SHELL equals bash.
