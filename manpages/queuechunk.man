@@ -80,6 +80,9 @@ The program creates a script file named rootname.job and places queue
 submission output into a file named rootname.qid.  The job script deletes the
 rootname.csh file upon completion.
 
+.SH BUGS
+This script probably works only on the two systems on which it has been tested.
+
 .SH AUTHOR
 David Mastronarde  <mast@colorado.edu>
 .SH SEE ALSO
