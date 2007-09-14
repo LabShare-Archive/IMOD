@@ -1,11 +1,8 @@
 #!/bin/csh -f
 # A script to process command files on multiple machines
 #
-#  $Author$
+#  $Id$
 #
-#  $Date$
-#
-#  $Revision$
 #  Log at end of file
 #
 
@@ -16,7 +13,7 @@ set nice = 18
 @ maxchunkerr = 5
 set sleepsec = 2
 @ timeout = 30
-set sshopts = "-o ConnectTimeout=5 -o PreferredAuthentications=publickey -o StrictHostKeyChecking=no"
+set queuename = queue
 
 if ($#argv < 2) then
 cat <<EOF
@@ -34,6 +31,8 @@ Will process multiple command files on multiple processors or machines
     -e #   Quit after the given # of processing errors for a chunk (default $maxchunkerr)
     -c name  Check file "name" for commands P, Q, and D
     -w path  Full path to working directory on remote machines
+    -q #   Run on cluster queue with given maximum # of jobs at once
+    -Q name  Machine name to use for the queue (default $queuename)
     -P     Output process ID
 EOF
 exit 0
@@ -43,10 +42,22 @@ if ($?IMOD_DIR) then
     setenv PATH "$IMOD_DIR/bin:$PATH"
 endif
 
+# Set the ssh options based on ssh version
+#
+set sshopts = "-o PreferredAuthentications=publickey -o StrictHostKeyChecking=no"
+set sshvers = `ssh -V | & sed '/.*_\([0-9]\)\.\([0-9]\).*/s//\1\2/'`
+if ("$sshvers" != "") then
+    @ version = $sshvers
+    if ($version >= 39) set sshopts = "-o ConnectTimeout=5 $sshopts"
+endif
+
 set retain = 0
 set justgo = 0
 set skipprobe = 0
 set checkfile = ""
+@ queue = 0
+set sshext = ssh
+set pidext = pid
 
 while ($#argv > 2)
   switch ($argv[1])
@@ -91,6 +102,16 @@ while ($#argv > 2)
       shift ; shift
       breaksw
 
+    case -q:
+      @ queue = $argv[2]
+      shift ; shift
+      breaksw
+
+    case -Q:
+      set queuename = $argv[2]
+      shift ; shift
+      breaksw
+
     default:
         echo "ERROR: $pn - Unrecognized option $argv[1]"
         exit 1
@@ -98,7 +119,23 @@ while ($#argv > 2)
   endsw
 end
 
-if ("$argv[1]" == "ALL" || "$argv[1]" == "all") then
+if ($queue) then
+
+    # For a queue, make a machine list that is all the same name
+    #
+    set queuecom = "$argv[1]"
+    @ i = 0
+    set machines = ()
+    while ($i < $queue)
+        @ i++
+        set machines = ($machines $queuename)
+    end
+    set skipprobe = 1
+    set justgo = 1
+    set sshext = job
+    set pidext = qid
+
+else if ("$argv[1]" == "ALL" || "$argv[1]" == "all") then
     if ($?IMOD_ALL_MACHINES) then
         set machines = `echo $IMOD_ALL_MACHINES | sed '/,/s// /g'`
         echo "The All-machine list is:"
@@ -236,12 +273,21 @@ end
 @ numdone = 0
 if ($retain == 0) then
     \find . -type f -name  "$rootname-[0-9]*.log" -exec rm -f "{}" \;
-    if (-e $rootname-start.com) then
-        echo "Going to run $rootname-start first..."
-        vmstocsh $rootname-start.log < $rootname-start.com | csh -ef
-        if ($status) then
-            echo "ERROR: RUNNING $rootname-start.com, FROM $rootname-start.log:"
-            sed -n '/.*ERROR:/s//ERROR:/p' $rootname-start.log
+    set startroot = $rootname-start
+    if (-e $startroot.com) then
+        echo "Going to run $startroot first..."
+        vmstocsh $startroot.log < $startroot.com >! $startroot.csh
+        if ($queue) then
+            $queuecom -w "$curdir" -a S $startroot
+            set retval = $status
+        else
+            csh -ef $startroot.csh
+            set retval = $status
+        endif
+        \rm -f $startroot.csh
+        if ($retval) then
+            echo "ERROR: RUNNING $startroot.com, FROM $startroot.log:"
+            sed -n '/.*ERROR:/s//ERROR:/p' $startroot.log
             exit 1
         endif
     endif
@@ -254,7 +300,7 @@ else
         @ num++
         set logname = $comlist[$num]:r.log
         if (-e $logname) then
-            set lastline = `tail -n 1 $logname`
+            set lastline = `tail -n 1 $logname | sed '/[[:cntrl:]]/s///g'`
             if ("$lastline" == "CHUNK DONE") then
                 set flags[$num] = 2
                 @ numdone++
@@ -265,8 +311,8 @@ endif
 
 # Clean up .ssh and .pid files to avoid confusion
 #
-\find . -type f -name  "$rootname-[0-9]*.ssh" -exec rm -f "{}" \;
-\find . -type f -name  "$rootname-[0-9]*.pid" -exec rm -f "{}" \;
+\find . -type f -name  "$rootname-[0-9]*.$sshext" -exec rm -f "{}" \;
+\find . -type f -name  "$rootname-[0-9]*.$pidext" -exec rm -f "{}" \;
 
 onintr report
 echo $numdone OF $#comlist DONE SO FAR
@@ -355,8 +401,8 @@ while ($numdone < $#comlist)
         if ($ind != 0) then
             set logname = $comlist[$ind]:r.log
             set cshname = $comlist[$ind]:r.csh
-            set sshname = $comlist[$ind]:r.ssh
-            set pidname = $comlist[$ind]:r.pid
+            set sshname = $comlist[$ind]:r.$sshext
+            set pidname = $comlist[$ind]:r.$pidext
             set errormess = ""
             set dropmess = ""
             set checkpid = ""
@@ -414,14 +460,21 @@ EOF
                             set ans = "E"
                             goto command
                         endif
-                    else if (-e $pidname) then
+                    else if (! $queue && -e $pidname) then
                         
                         # If log is zero length, check for something in .pid
                         #
                         set checkpid = `grep -v PID: $pidname`
                     endif
                 endif
-            else 
+            else if ($queue && ! -e $pidname) then
+
+                # For a queue, the qid file should be there
+                #
+                set dropout = 1
+                set dropmess = "it failed to be submitted to queue"
+
+            else if (! $queue) then
 
                 # Either there is no log file or the .csh is still present:
                 # check the ssh file and accumulate timeout
@@ -522,15 +575,21 @@ EOF
                 set comname = $comlist[$num]
                 set logname = $comname:r.log
                 set cshname = $comname:r.csh
-                set pidname = $comname:r.pid
-                set sshname = $comname:r.ssh
+                set pidname = $comname:r.$pidext
+                set sshname = $comname:r.$sshext
                 set machname = $machines[$proc]
                 if (-e $logname) \mv $logname $logname~
                 if (-e $pidname) \rm -f $pidname
                 echo "Running $comname on $machname ..."
-                \echo "nice +$nice" >! $cshname
+                if ($queue) then
+                    \echo -n >! $cshname
+                else
+                    \echo "nice +$nice" >! $cshname
+                endif
                 vmstocsh $logname < $comname >> $cshname
-                if ("$machname" == $hostroot || "$machname" == localhost) then
+                if ($queue) then
+                    $queuecom -w "$curdir" -a R $comname:r
+                else if ("$machname" == $hostroot || "$machname" == localhost) then
                     csh -ef < $cshname >& $pidname ; \rm -f $cshname &
                 else
                     ssh -x $sshopts $machname bash --login -c \'"cd $curdir && (csh -ef < $cshname >& $pidname ; \rm -f $cshname)"\' >&! $sshname &
@@ -546,9 +605,18 @@ EOF
     if ($numdone >= $nextsync - 1) then
         set comname = $comlist[$nextsync]
         set logname = $comname:r.log
+        set cshname = $comname:r.csh
+        vmstocsh $logname < $comname >! $cshname
         echo "Running $comname to synchronize ..."
-        vmstocsh $logname < $comname | csh -ef
-        if ($status) then
+        if ($queue) then
+            $queuecom -w "$curdir" -a S $comname:r
+            set retval = $status
+        else
+            csh -ef $cshname
+            set retval = $status
+        endif
+        \rm -f $cshname
+        if ($retval) then
             echo "ERROR: RUNNING $comname, FROM ${logname}:"
             set errormess = `sed -n '/.*ERROR:/s//ERROR:/p' $logname`
             if ("$errormess" == "") then
@@ -568,11 +636,20 @@ EOF
 end
 
 onintr finishkilled
-echo "ALL DONE - going to run $rootname-finish to reassemble"
-vmstocsh $rootname-finish.log < $rootname-finish.com | csh -ef
-if ($status) then
-    echo "ERROR: RUNNING $rootname-finish.com, FROM $rootname-finish.log:"
-    sed -n '/.*ERROR:/s//ERROR:/p' $rootname-finish.log
+set endroot = $rootname-finish
+echo "ALL DONE - going to run $endroot to reassemble"
+vmstocsh $endroot.log < $endroot.com >! $endroot.csh
+if ($queue) then
+    $queuecom -w "$curdir" -a S $endroot
+    set retval = $status
+else
+    csh -ef $endroot.csh
+    set retval = $status
+endif
+\rm -f $endroot.csh
+if ($retval) then
+    echo "ERROR: RUNNING $endroot.com, FROM $endroot.log:"
+    sed -n '/.*ERROR:/s//ERROR:/p' $endroot.log
     exit 1
 endif
 if ("$checkfile" != "" && -e "$checkfile") \rm -f $checkfile
@@ -606,7 +683,7 @@ end
 command:
 set pausing = 0
 if ("$ans" == "P") set pausing = 1
-if ("$ans" == "C" || "$ans" == "P") goto continue
+if ("$ans" == "C" || ("$ans" == "P" && ! $queue)) goto continue
 
 # now try to kill jobs
 @ proc = 0
@@ -632,9 +709,14 @@ while ($proc < $#machines)
     endif
     if ($ind != 0 && $kill != 0) then
         set flags[$ind] = 0
-        set pidname = $comlist[$ind]:r.pid
-        if (-e $pidname) then
-            set cshname = $comlist[$ind]:r.csh
+        set pidname = $comlist[$ind]:r.$pidext
+        set cshname = $comlist[$ind]:r.csh
+        if ($queue && "$ans" != "D") then
+            set action = $ans
+            if ("$ans" != "P") set action = "K"
+            $queuecom -w "$curdir" -a $action $comlist[$ind]:r
+            if (! $status) set assigned[$proc] = 0
+        else if (-e $pidname) then
             echo "Killing $comlist[$ind] on $machname"
 
             # If the pid file is not really there yet, do a sync and wait for
@@ -702,7 +784,7 @@ if ("$ans" == "E") then
     exit 4
 endif
 
-if ("$ans" == "D") then
+if ("$ans" == "D" || "$ans" == "P") then
     echo "Resuming processing"
     goto continue
 endif
@@ -722,6 +804,9 @@ exit 3
 
 #
 #  $Log$
+#  Revision 3.31  2007/08/16 05:01:49  mast
+#  Changes to handle up to 10000 command files, nnn then nnnn.com
+#
 #  Revision 3.30  2007/07/17 22:05:39  mast
 #  Make it copy the first log to rootname.log
 #
