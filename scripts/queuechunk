@@ -1,0 +1,288 @@
+#!/bin/bash
+# A script to submit a .csh file to a queue and delete or kill a job
+#  $Id$
+#
+#  Log at end of file
+#
+
+# Leave the connection timeout out of these options, there should not be
+# connection problems the way there are with 
+sshopts="-o PreferredAuthentications=publickey -o StrictHostKeyChecking=no"
+pn=queuechunk
+qstattmp=queuechunk.$$
+
+headnode=
+queuename=
+qtype=
+action=
+
+# Current directory, with spaces escaped
+curdir=`pwd | sed '/ /s//\\ /g'`
+
+# FUNCTIONS
+
+# Get the job ID
+#
+getJobID() {
+    jobID=0
+    if ! [ -e $qidname ] ; then return ; fi
+    if [ $qtype == "pbs" ] ; then
+
+        # May need to take the full server name in some cases, i.e. just cat
+        #
+        jobID=(`sed 's/[^0-9]//g' $qidname`)
+    else
+        jobID=(`sed 's/^.*job \([0-9]*\) .*/\1/' $qidname`)
+    fi
+}
+
+# Run a command to the queue system, possibly via ssh to head node
+#
+runQcommand() {
+    qcom=$1
+#    echo $qcom
+    if [ -n "$headnode" ] ; then
+        if [ $2 == "1" ] ; then qcom="cd $curdir && ($qcom)" ; fi
+#        echo $qcom
+        ssh -x $sshopts $headnode  bash --login -c \'"$qcom"\'
+        runstat=$?
+    else
+        eval $qcom
+        runstat=$?
+    fi
+}
+
+# Get the status of a job, jobID should already be gotten
+#
+getStatus() {
+    com=qstat
+#    if [ -n "$queuename" ] ; then com="qstat -q $queuename" ; fi
+    if [ $qtype == "pbs" ] ; then
+        com="$com $jobID | tail -n 1 > $qstattmp"
+    else
+        com="$com -u \\\$user | grep \"^ *$jobID \" > $qstattmp"
+    fi
+    runQcommand "$com" 1
+    #echo $runstat
+    #cat $qstattmp
+    jobStat=D
+    if ! [ -e $qstattmp ] ; then return ; fi
+    statline=(`cat $qstattmp`)
+    rm -f $qstattmp
+    if [ -z $qstattmp ] ; then return ; fi
+    stat=${statline[4]}
+
+    # Simplify to Q if not run yet, R if running, D if done
+    #
+    if [ $qtype == "pbs" ] ; then
+        if [[ $stat == "R" ]] ; then jobStat=R ; fi
+        if [[ $stat == "Q" || $stat == "H" ]] ; then jobStat=Q ; fi
+    else
+        if [[ $stat == "r" || $stat == "R" ]] ; then jobStat=R ; fi
+        if [[ $stat == "qw" || $stat == "q" || $stat == "t" || $stat == "h" ]] ; then 
+            jobStat=Q
+        fi
+    fi    
+}
+
+# Start of script execution: test for usage statement
+#
+if [ $# -eq 0 ] ; then
+    cat <<EOF
+Usage: $pn [options] comfile_root
+Will perform an action on a batch queue for the given com file (omit .com)
+The com file root may be omitted if the action is L
+  Options:
+    -q name   Name of queue
+    -h name   Name of head node, to be contacted via ssh
+    -t type   Type of batch manager (pbs or sge, required)
+    -a type   Action: R run, S run synchronous, P pause, K kill, L load
+    -w dir    Working directory
+EOF
+    exit 1
+fi
+
+# Scan for options.  This is not perfect, may break if options with no args
+# are added
+#
+while [ $# -gt 1 ]; do
+    case $1 in
+        -a) action=$2 
+            shift;;
+        -q) queuename=$2
+            shift;;
+        -h) headnode=$2
+            shift;;
+        -w) curdir="$2"
+            shift;;
+        -t) qtype=$2
+            shift;;
+        *)  echo "ERROR: $pn - unknown option $1"
+            exit 1
+            ;;
+    esac
+    shift
+done
+
+if ! [[ $qtype == "pbs" || $qtype == "sge" ]] ; then
+    echo "ERROR: $pn - queue type must be entered and be sge or pbs"
+    exit 1
+fi
+
+# Get the root name unless doing load
+#
+if [ $action != "L" ] ; then
+    if [ $# -ne 1 ] ; then
+        echo "ERROR: $pn - Cannot find com file root name, remaining args $*"
+        exit 1
+    fi
+    comroot=$1
+    qidname=$comroot.qid
+fi
+
+# Prevent Ctrl C to processchunks from screwing up ssh commands
+#
+trap "" 2
+
+# Test for the different actions
+#
+if [[ $action == "R" || $action == "S" ]] ; then
+
+    # RUN OR RUN WITH SYNC
+    #
+    jobname=$comroot.job
+    cshname=$comroot.csh
+
+    # If it is a sync run, add a chunk done statement
+    #
+    if [ $action == "S" ] ; then echo "echo CHUNK DONE >> $comroot.log" >> $cshname ; fi
+
+    # Prepare the job file
+    #
+    cat <<EOF > $jobname
+cd $curdir
+csh -ef $cshname
+rm -f $cshname
+EOF
+
+    # Set up the command
+    #
+    com="qsub -e /dev/null -o /dev/null -r n -V"
+    if [ -n "$queuename" ] ; then com="$com -q $queuename" ; fi
+    if [[ $qtype == "sge" && $action == "S" ]] ; then 
+        com="$com -sync y $jobname" 
+    else
+        com="$com $jobname > $qidname" 
+    fi
+
+    # Run the command, check for error there
+    #
+    runQcommand "$com" 1
+    if [ $runstat -ne 0 ] ; then
+        if [[ $qtype == "sge" && $action == "S" ]] ; then 
+            echo "ERROR: $pn - running $comroot synchronously"
+        else
+            echo "ERROR: $pn - Submitting $comroot to the queue"
+            rm -f $qidname
+        fi
+        rm -f $jobname
+        exit 1
+    fi
+
+    if [ $action == "R" ] ; then exit 0 ; fi
+
+    # Now deal with synchronous run without -sync option
+    #
+    if [ $qtype == "pbs" ] ; then
+        sync
+        getJobID
+        while [ 1 ] ; do
+            getStatus
+            if [ $jobStat == "D" ] ; then break ; fi
+            sleep 2
+        done
+        rm -f $qidname
+    fi
+
+    # Check for CHUNK DONE
+    rm -f $jobname
+    lastline=`tail -n 1 $comroot.log | sed '/[[:cntrl:]]/s///g'`
+    if [ "$lastline" != "CHUNK DONE" ] ; then 
+        echo "ERROR: $pn - Running $comroot (last line $lastline)"
+        exit 1
+    fi
+
+elif [[ $action == "P" || $action == "K" ]] ; then
+
+    # PAUSE OR KILL:
+    # First get the status, then setup and run qdel
+    # Exit with 0 if something successfully killed, with 100 if it is done
+    # or 101 if pausing and it is running
+    #
+    sync
+    getJobID
+    getStatus
+    if [ $jobStat == "D" ] ; then exit 100 ; fi
+    if [[ $jobStat == "R" && $action == "P" ]] ; then exit 101 ; fi
+#        com=qdel
+#        if [ -n "$queuename" ] ; then com="$com -q $queuename" ; fi
+    com="qdel $jobID"
+    runQcommand "$com" 0
+    echo Ran $com to kill $comroot with result $runstat
+    exit $runstat
+
+elif [ $action == "L" ] ; then
+
+    # LOAD
+    #
+    load=NA
+    if [ $qtype == "sge" ] ; then
+        com="qstat -g c"
+        if [ -n "$queuename" ] ; then com="$com -q $queuename" ; fi
+        com="$com | tail -n 1 > $qstattmp"
+        runQcommand "$com" 1
+
+        if [[ $runstat -eq 0 && -e $qstattmp ]] ; then
+            statline=(`cat $qstattmp`)
+            load=${statline[1]}
+        fi
+    else
+
+        # PBS is more complex and not satisfactory based on our one example
+        #
+        com="qstat -B | tail -n 1 > $qstattmp"
+        runQcommand "$com" 1
+        if [[ $runstat -eq 0 && -e $qstattmp ]] ; then
+            statline=(`cat $qstattmp`)
+            nrun=${statline[4]}
+            nmax=${statline[1]}
+
+            # If the max is 0, need to read all queues and get max
+            #
+            if [ $nmax -eq 0 ] ; then
+                rm -f $qstattmp
+                com="qstat -Q | tail -n +3 > $qstattmp"
+                runQcommand "$com" 1
+                if [[ $runstat -eq 0 && -e $qstattmp ]] ; then
+                  nmax=`awk 'BEGIN { MAX = 0 } {if ($2 > MAX) MAX = $2} END {print MAX}' $qstattmp`
+                fi
+            fi
+            if [ $nmax -gt 0 ] ; then
+                load=`echo $nrun $nmax | awk '{printf "%.2f", $1 / $2}'`
+            fi
+        fi
+    fi
+    if [[ $runstat -eq 0 && "$load" == "NA" ]] ; then runstat=1 ; fi
+    echo "$load"
+    exit $runstat
+    rm -f $qstattmp
+
+else
+    echo "ERROR: $pn - Action must be entered and be R, S, P, K or L"
+    exit 1
+fi
+
+exit 0
+
+#
+#  $Log$
