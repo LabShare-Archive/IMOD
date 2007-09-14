@@ -30,6 +30,7 @@ EXPORTS
 	iiReopen
 	slicePutVal
 	mrc_set_cmap_stamp
+	niceFrame
 	analyzeDM3
 	iiMRCreadSectionByte
 	iiClose

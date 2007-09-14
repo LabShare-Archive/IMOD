@@ -1232,8 +1232,34 @@ void sliceTaperInPad(void *array, int type, int nxdimin, int ix0, int ix1,
   }
 }
 
+/*!
+ * Returns [num] if it is even and has no prime factor greater than [limit],
+ * or makes the number even and adds [idnum] until it reaches a value with this
+ * property.  Values of 2 for [idnum] and 19 for [limit] will give a value
+ * suitable for taking the FFT with the routines in IMOD.
+ */
+int niceFrame(int num, int idnum, int limit)
+{
+  int numin, numtmp, ifac;
+  numin=2 * ((num + 1) / 2);
+  do {
+    numtmp=numin;
+    for (ifac = 2; ifac <= limit; ifac++)
+      while (numtmp % ifac == 0)
+        numtmp=numtmp/ifac;
+    
+    if (numtmp > 1)
+      numin += idnum;
+  } while (numtmp > 1);
+  return numin;
+}
+
+
 /*
     $Log$
+    Revision 3.8  2007/08/15 00:06:21  mast
+    Added taperinpad function, renamed from xcorr
+
     Revision 3.7  2007/05/27 21:17:57  mast
     Added taper routine here, and documented
 
