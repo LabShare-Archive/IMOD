@@ -1,5 +1,7 @@
 IMOD History
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+9/14/07: Added script by which Processchunks can put jobs on a cluster queue.
+
 9/12/07: Added options to model2point for getting non-integer output, and
 object and contour numbers.
 

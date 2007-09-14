@@ -1,0 +1,87 @@
+.na
+.nh
+.TH queuechunk 1 3.10.18 BL3DEMC
+.SH NAME
+queuechunk \- Place a csh script file on a queue or kill a job
+.SH SYNOPSIS
+queuechunk [options] <root name of script file>
+
+.SH DESCRIPTION
+Queuechunk will take a csh script file and submit it to a cluster queue,
+and also allows such jobs to be removed from the queue.  It is designed to
+perform these actions when it is
+called by Processchunks(1) with csh files produced from IMOD command files
+with Vmstocsh(1).  The script file will be deleted when the operation
+finishes.  
+
+The filesystem on which Queuechunk is run must be accessible from the cluster.
+
+The script file must be named with the extension .csh.  The last argument of
+the command to Queuechunk must be the root name of the script file, excluding
+the extension .csh but including everything before the extension (-001, etc).
+If the action is L to report a load average, this argument may be omitted.
+
+.SS Options
+.TP
+.B -t <type>
+Type of queue.  This option must be entered with the value of either pbs (for
+a PBS queue) or sge (for a Grid Engine queue).
+.TP
+.B -q <name>
+Name of queue to submit to.
+.TP
+.B -h <name>
+Name of the head node.  When this option is entered, the qsub, qstat, and qdel
+operations are run via ssh to the head node.  It is necessary to have 
+passwordless access between machines for this to work.
+.TP
+.B -w <dir>
+Name of the current working directory, as it must be used by the machine
+running the job.  If this name contains spaces, they should be escaped
+with backslashes.  The default is the current directory name.
+.TP
+.B -a <action>
+The action to be performed:
+   R  -  Run the job by placing it on the queue
+   S  -  Run the job on the queue but synchronously, waiting until it is done
+   K  -  Kill the job unconditionally
+   P  -  Delete the job if it has not started yet (pause)
+   L  -  Report a load average
+
+.SS Specifications
+Here are the essential features of this script, which would have to replicated
+by any program to be run from Processchunks(1).
+
+The program must accept the 
+.B -w
+option with a working directory name.
+
+The program must accept the 
+.B -a
+option with at least the four actions, R, S, K, and P.  For running from
+eTomo, the program must also respond to the L action with
+either NA for no information, or one or more values separated by commas.
+
+A secondary script file should be created to submit to the queue, with the
+name rootname.job.  It should run rootname.csh with "csh -ef" and end by
+deleting the rootname.csh file.  The .job file will be cleaned up by
+Processchunks.
+
+Output from the queue when the job is submitted should be placed into a file
+named rootname.qid.  This file will also be cleaned up by Processchunks.
+
+When a job is run with the S action, the program must not return until the job
+is finished, and should exit with an error status if the job failed.
+Queuechunk does this by submitting to the queue, but as an alternative,
+the .csh file could be run on the local host with "csh -ef".
+
+.SH FILES
+The program creates a script file named rootname.job and places queue
+submission output into a file named rootname.qid.  The job script deletes the
+rootname.csh file upon completion.
+
+.SH AUTHOR
+David Mastronarde  <mast@colorado.edu>
+.SH SEE ALSO
+processchunks(1), vmstocsh(1)
+
