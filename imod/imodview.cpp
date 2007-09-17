@@ -559,12 +559,15 @@ int ivwReadBinnedSection(ImodView *vi, char *buf, int section)
 
 #ifdef __linux
 static fpos_t startPos;
+static bool skipDumping = false;
 #endif
 
 void ivwGetFileStartPos(ImodImageFile *image)
 {
 #ifdef __linux
-  if (!image->fp || (image->file != IIFILE_MRC && image->file != IIFILE_RAW))
+  skipDumping = (getenv("IMOD_RETAIN_FSCACHE") != NULL);
+  if (skipDumping || !image->fp || 
+      (image->file != IIFILE_MRC && image->file != IIFILE_RAW))
     return;
   fgetpos(image->fp, &startPos);
 #endif
@@ -577,7 +580,8 @@ void ivwDumpFileSysCache(ImodImageFile *image)
   int filedes;
   long long start, end;
   off_t diff;
-  if (!image->fp || (image->file != IIFILE_MRC && image->file != IIFILE_RAW))
+  if (skipDumping || !image->fp || 
+      (image->file != IIFILE_MRC && image->file != IIFILE_RAW))
     return;
   filedes = fileno(image->fp);
   fgetpos(image->fp, &endPos);
@@ -2553,6 +2557,9 @@ void ivwBinByN(unsigned char *array, int nxin, int nyin, int nbin,
 
 /*
 $Log$
+Revision 4.56  2007/05/29 14:43:48  mast
+Added optional time argument to fast setup routine
+
 Revision 4.55  2007/04/26 19:10:31  mast
 Adjusted reference scaling info for FFT mirroring
 
