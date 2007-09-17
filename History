@@ -1,5 +1,8 @@
 IMOD History
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+9/17/07: Added environment variable IMOD_RETAIN_FSCACHE to keep 3dmod from
+dismissing data in file system cache while loading it (see man imodenv).
+
 9/16/07: Enhanced install scripts to provide options for specifying the
 destination to copy startup scripts to or skipping this step, added help
 output, fixed handling of relative path for install location.
@@ -427,7 +430,7 @@ changes are displayed in model view.
 11/2/06: Fixed a problem with numeric precision of circle fits in 
 Imodcurvature.
 
-10/31/06: Made Imodemesh propagate properties like gaps to created connector
+10/31/06: Made Imodmesh propagate properties like gaps to created connector
 points made when meshing complex geometry.
 
 10/30/06: Fixed Resamplemod rotation when mean vector has a negative Z 
