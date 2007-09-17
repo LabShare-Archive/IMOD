@@ -1,0 +1,144 @@
+Version = 1.0
+Pip = 1
+
+[Field = Parameter]
+short = param
+type = PF 
+usage = specifies a parameter file
+tooltip = 
+manpage =
+
+[Field = ConfigFile]
+short = config
+type = FN
+usage = Configure file specifies the noise files used to estimate the noise
+tooltip = 
+manpage = Configure file specifies the noise files used to estimate the noise
+floor. These noise files are collected at various beam intensities without 
+specimen in the beam.
+
+[Field = InputStack]
+short = input
+type = FN
+usage = Input stack whose defocus will be estimated
+tooltip =
+manpage = Input stack whose defocus will be estimated.
+
+[Field = AngleFile]
+short = angleFn
+type = FN
+usage = File contains tilt angles for the input stack
+tooltip =
+manpage =Each line of this file is the tilt angle for a slice of the input
+stack. The angles are listed in order starting from slice 1.
+
+[Field = AxisAngle]
+short = aAngle
+type = F
+usage = Specifies how much the tilt axis  deviates from vertical (Y axis)
+tooltip =
+manpage = Specifies how much the tilt axis deviates from vertical (Y axis). 
+This angle is in degrees. It follows the right hand rule and 
+counter-clockwise is positive. 
+
+[Field = DefocusFile]
+short = defFn
+type = FN
+usage = File to store found defocuses
+tooltip = 
+manpage = File to store found defocuses
+
+[Field = PSResolution]
+short = psRes
+type = I
+usage = The number of points on which CTF will be computed 
+tooltip =
+manpage = The number of points on which CTF will be computed. The Nyquist 
+frequency is divided into equal intervals defined by these points
+
+[Field = TileSize]
+short = tileSize
+type = I
+usage = The tile size each strip will be tessellate into
+tooltip =
+manpage = The tile size each strip will be tessellate into.  The size is in
+pixels and the tiles are square. Each slice is first divided into strips 
+that are considered to have constant defocus.
+
+[Field = Voltage]
+short = volt
+type = I
+usage = Microscope voltage in Kv 
+tooltip =
+manpage = Microscope voltage in Kv.
+
+[Field = SphericalAberration]
+short = cs
+type = F
+usage = Microscope spherical aberration in millimeters
+tooltip =
+manpage = Microscope spherical aberration in millimeters
+
+[Field = DefocusTol]
+short = defTol
+type = I
+usage = Defocus tolerance in nanometers defines the center strips
+tooltip =
+manpage = Defocus tolerance defines the center strips. The center region of a
+slice that has defocus difference less than this tolerance is defined as a
+center strip. This kind of center strips from all slices within AngleRange 
+are considered to have a constant defocus and are used to compute the initial
+CTF after being further tessellated into tiles.
+
+[Field = PixelSize]
+short = pixelSize
+type = F
+usage = Image pixel size in nanometers
+tooltip =
+manpage =  Image pixel size in nanometers.
+
+[Field = AmplitudeContrast]
+short = ampContrast
+type = F
+usage = The percentage of amplitude contrast.
+tooltip =
+manpage = The percentage of amplitude contrast. For Cryo-EM, 
+it should be between 0.07 and 0.14
+
+[Field = ExpectedDefocus]
+short = expDef
+type = F
+usage = Expected defocus at the tilt axis in nanometers.
+tooltip =
+manpage = Expected defocus at the tilt axis in nanometers. The frequency where 
+the first zero of the CTF curve with the expected defocus is located is first 
+computed. The segments of the CTF curve of the input stack around that frequency
+are selected to be fitted.
+
+[Field = LeftDefTol]
+short = leftTol 
+type = F
+usage = Defocus tolerance in nanometers defines strips to the left of 
+the center strip
+tooltip =
+manpage = Defocus tolerance in namometers defines strips to the left of 
+the center strip. Those left strips have defocus difference less than 
+leftDefTol.  
+
+[Field = RightDefTol]
+short = rightTol
+type = F
+usage = Defocus tolerance in nanometers defines strips to the right of 
+the center strip
+tooltip =
+manpage = Defocus tolerance in nanometers defines strips to the right of 
+the center strip. Those right strips have defocus difference less than
+rightDefTol  
+
+[Field = AngleRange]
+short = range
+type = FP
+usage = Tilt angles in degrees define a range 
+tooltip =
+manpage = Tilt angles in degrees define a range. Slices with tilt angle within
+this range are used to compute the CTF curve.

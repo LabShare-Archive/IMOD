@@ -1,0 +1,118 @@
+Version = 1.0
+Pip = 1
+
+[Field = Parameter]
+short = param
+type = PF 
+usage = specifies a parameter file
+tooltip = 
+manpage =
+
+[Field = InputStack]
+short = input
+type = FN
+usage = Input stack that will be corrected
+tooltip =
+manpage = Input stack that will be corrected
+
+[Field = AngleFile]
+short = angleFn
+type =  FN
+usage = File contains tilt angles for the input stack
+tooltip =
+manpage = Each line of this file is the tilt angle for a slice of the input
+stack. The angles are listed in order starting from slice 1.
+
+[Field = AxisAngle]
+short = aAngle 
+type = F
+usage = This option is not supported 
+tooltip =
+manpage = This option is not supported. The tilt axis has to be vertical, i.e.,
+to be coincident with the Y axis. Usually this means the input stack has to be
+the aligned stack.
+
+[Field = DefocusTol]
+short = defTol
+type = I
+usage =  Defocus tolerance in nanometers defines the strips
+tooltip =
+manpage =  Defocus tolerance in nanometers defines the strips. An image region
+with defocus difference less than this tolerance is defined as a strip 
+and is considered to have constant defocus. Each strip is
+corrected with the defocus at the center of the strip.
+
+[Field = InterpolationWidth]
+short = iWidth
+type = I
+usage = The distance in pixels between two consecutive strips  
+tooltip =
+manpage = The distance in pixels between the center lines of two consecutive 
+strips. A pixel inside the region between those two center lines resides in
+both strips. As the two strips are corrected seperately, that pixel will have 2
+corrected values. The final value for that pixel is a linear interpolation of
+the 2 corrected values. 
+
+[Field = PixelSize]
+short = pixelSize
+type = F
+usage = Image pixel size in nanometers
+tooltip =
+manpage = Image pixel size in nanometers
+
+[Field = Voltage]
+short = volt
+type = I
+usage =  Microscope voltage in Kv
+tooltip =
+manpage =  Microscope voltage in Kv
+
+[Field = SphericalAberration]
+short = cs
+type = F
+usage = Microscope spherical aberration in millimeters
+tooltip =
+manpage = Microscope spherical aberration in millimeters
+
+[Field = AmplitudeContrast]
+short = ampContrast
+type = F
+usage = The percentage of amplitude contrast
+tooltip =
+manpage = The percentage of amplitude contrast. For Cryo-EM, 
+it should be between 0.07 and 0.14
+
+[Field = DefocusFile]
+short = defFn
+type = FN
+usage = A file stores the defocus value in nanometers
+tooltip =
+manpage = A file stores the defocus value in nanometers. This is an optional
+field. The default is the root stack filename with .defocus appended.
+
+[Field = StartingEndingViews]
+short = views
+type = IP
+usage = The starting slice and the ending slice need to be corrected for one run
+of the program.
+tooltip =
+manpage = The starting slice and the ending slice need to be corrected for one
+run of the program. This is
+an optional field. The default is all the slices in the input stack.
+
+[Field = TotalViews]
+short = totalViews
+type = IP
+usage = The starting slice and the ending slice need to be corrected in all
+parallel runs of the program.
+tooltip =
+manpage = The starting slice and the ending slice need to be corrected in all
+parallel runs of the program . This field is only needed when doing parallel
+runs.
+
+[Field = OutputFileName]
+short = output
+type = FN
+usage = Output file name to store the corrected slices
+tooltip =
+manpage = Output file name to store the corrected slices

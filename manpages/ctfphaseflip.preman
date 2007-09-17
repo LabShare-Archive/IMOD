@@ -1,0 +1,36 @@
+.nh
+.TH ctfphaseflip 1
+.SH NAME
+ctfphaseflip \- correct input tilt series by simple phase flipping 
+.SH SYNOPSIS
+ctfphaseflip  options
+.SH DESCRIPTION
+This program will correct the CTF of an input tilt series by simple phase flipping.
+The user can select a subset of slices of the input tilt series to correct and
+can specify a defocus value for each selected slice through a text defocus file.
+The output file of 'ctfplotter' is usally used as the defocus file.
+
+Ctfphaseflip corrects each slice strip by strip. A strip is defined as a slice
+region whose defocus difference is less than a user specified value. 
+
+It can be run in a parallel mode similiar to the 'tilt' program by setting the
+TotalViews option.
+
+.SS Options
+Ctfphaseflip uses the PIP package for input (see the manual page
+for pip(1)).  Options can be specified either as command line
+arguments (with the -) or one per line in a command file
+(without the -):
+INSERT OPTION TEXT HERE
+.TP
+.B -StandardInput
+Read parameter entries from standard input
+
+.SH AUTHOR
+.nf
+Quanren Xiong
+.fi
+.SH SEE ALSO
+ctfplotter(1)
+.SH BUGS
+Email bug reports to xiongq@colorado.edu.

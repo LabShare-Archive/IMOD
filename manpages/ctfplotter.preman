@@ -1,0 +1,33 @@
+.nh
+.TH ctfplotter 1
+.SH NAME
+ctfplotter \- estimate defocus values of the input tilt series 
+.SH SYNOPSIS
+ctfplotter  options
+.SH DESCRIPTION
+This GUI program will plot the logarithm of the CTF curve of an input tilt 
+series after subtracting a noise floor. The method is based on peridogram 
+averaging. The user can interactively choose which slices are included in the
+averaging. 
+
+Found defocus values can be saved in a text file that can be used as
+input to the CTF correction program ctfphaseflip.
+
+.SS Options
+Ctfplotter uses the PIP package for input (see the manual page
+for pip(1)).  Options can be specified either as command line
+arguments (with the -) or one per line in a command file
+(without the -):
+INSERT OPTION TEXT HERE
+.TP
+.B -StandardInput
+Read parameter entries from standard input
+
+.SH AUTHOR
+.nf
+Quanren Xiong
+.fi
+.SH SEE ALSO
+ctfphaseflip(1)
+.SH BUGS
+Email bug reports to xiongq@colorado.edu.
