@@ -32,6 +32,17 @@ static void b3dDrawGreyScalePixels15
  B3dCIImage *image,        /* tmp image data. */
  int base, int slice, int rgba
  );
+static void getCubicFactors(float cx, int xsize, int &pxi, int &xi, int &nxi,
+                            int &nxi2, float &fx1, float &fx2, float &fx3,
+                            float &fx4);
+
+// Structure to hold factors for cubic interpolation
+typedef struct cubic_factors
+{
+  int pxi, xi, nxi, nxi2;
+  float fx1, fx2, fx3, fx4;
+} cubicFactors;
+
 
 static int          CurWidth;
 static int          CurHeight;
@@ -1095,8 +1106,12 @@ void b3dDrawGreyScalePixelsHQ(unsigned char **dataPtrs,  /* input data lines */
   int sidefill;
   int ibase;
   int drawwidth;
-  int wxdraw;
+  int wxdraw, nyi2;
   CurXZoom = zoom;
+  cubicFactors *cubFacs, *cf;
+  cubicFactors nullFacs;
+  unsigned char *yptr;
+  float fy1, fy2, fy3, fy4;
 
   if (!dataPtrs){
     b3dColorIndex(base);
@@ -1187,80 +1202,86 @@ void b3dDrawGreyScalePixelsHQ(unsigned char **dataPtrs,  /* input data lines */
     idata = (unsigned int  *)sdata;
     if (quality > 0 && rgba < 2){
 
-      /* For HQ, step to each display pixel and use quadratic 
+      /* For HQ, step to each display pixel and use cubic
 	 interpolation at each position.  Not for color data */
-      for(j = 0, cy = yoffset + trans; j < dheight; cy += zs, j++) {
-	yi = (int)(cy + 0.5);
-        if (yi >= ysize)
-          yi = ysize - 1;
-	pyi = yi - 1;
-	nyi = yi + 1;
-	if (pyi < 0) 
-          pyi = 0;
-	if (nyi >= ysize)
-          nyi = yi;
-	ibase = j * drawwidth;
-	if (sidefill)
-	  for (i = 0; i < wx; i++)
-	    idata[ibase++] = fillval;
 
-	for(i = 0, cx = xoffset + trans; 
-	    i < dwidth; cx += zs, i++){
-	  xi = (int)(cx + 0.5);
-          val = dataPtrs[yi][xi];
-                         
-	  dx = cx - xi;
-	  dy = cy - yi;
-	  pxi = xi - 1;
-	  nxi = xi + 1;
-                         
-	  if (pxi < 0)
-            pxi = 0;
-	  if (nxi >= xsize) {
-            if (xi >= xsize)
-              xi = xsize - 1;
-            nxi = xi;
-          }
-                         
-          x1 = dataPtrs[yi][pxi];
-	  x2 = dataPtrs[yi][nxi];
-	  y1 = dataPtrs[pyi][xi];
-	  y2 = dataPtrs[nyi][xi];
-                         
-	  a = (x1 + x2) * 0.5f - (float)val;
-	  b = (y1 + y2) * 0.5f - (float)val;
-	  c = (x2 - x1) * 0.5f;
-	  d = (y2 - y1) * 0.5f;
-                         
-	  ival = (a * dx * dx) + (b * dy * dy) +
-	    (c * dx) + (d * dy) + val;
-	  if (ival > pixmax)
-	    val = (unsigned char)pixmax;
-	  else if (ival < pixmin)
-	    val = (unsigned char)pixmin;
-	  else 
-	    val = (unsigned char)(ival + 0.5f);
-
-	  switch(unpack){
-	  case 1:
-	    bdata[i + ibase] = val;
-	    break;
-	  case 2:
-	    sdata[i + ibase] = val + rbase;
-	    break;
-	  case 4:
-	    idata[i + ibase] = cindex[val];
-	    break;
-	  } 
-	}
-
-	if (sidefill) {
-	  ibase += dwidth;
-	  for (i = wx + dwidth; i < CurWidth; i++)
-	    idata[ibase++] = fillval;
-	} 
+      // First set up cubic factors for each position in X
+      cubFacs = (cubicFactors *)malloc(dwidth * sizeof(cubicFactors));
+      if (cubFacs) {
+	for (i = 0, cx = xoffset + trans; i < dwidth; cx += zs, i++) {
+          cf = &cubFacs[i];
+          getCubicFactors(cx, xsize, cf->pxi, cf->xi, cf->nxi, cf->nxi2, 
+                          cf->fx1, cf->fx2, cf->fx3, cf->fx4);
+        } 
       }
-    }else{
+
+      // Loop on lines
+      for (j = 0, cy = yoffset + trans; j < dheight; cy += zs, j++) {
+
+        // Get cubic factors for the position in Y
+        getCubicFactors(cy, ysize, pyi, yi, nyi, nyi2, fy1, fy2, fy3, fy4);
+
+        ibase = j * drawwidth;
+        if (sidefill)
+          for (i = 0; i < wx; i++)
+            idata[ibase++] = fillval;
+        
+        // Loop across the line
+        for (i = 0, cx = xoffset + trans; i < dwidth; cx += zs, i++) {
+
+          // Do the cubic interpolation: fall back to computing the factors on
+          // the fly
+          if (cubFacs) {
+            cf = &cubFacs[i];
+          } else {
+            cf = &nullFacs;
+            getCubicFactors(cx, xsize, cf->pxi, cf->xi, cf->nxi, cf->nxi2, 
+                            cf->fx1, cf->fx2, cf->fx3, cf->fx4);
+          }
+          yptr = dataPtrs[pyi];
+          a = cf->fx1 * yptr[cf->pxi] + cf->fx2 * yptr[cf->xi] + 
+            cf->fx3 * yptr[cf->nxi] + cf->fx4 * yptr[cf->nxi2];
+          yptr = dataPtrs[yi];
+          b = cf->fx1 * yptr[cf->pxi] + cf->fx2 * yptr[cf->xi] + 
+            cf->fx3 * yptr[cf->nxi] + cf->fx4 * yptr[cf->nxi2];
+          yptr = dataPtrs[nyi];
+          c = cf->fx1 * yptr[cf->pxi] + cf->fx2 * yptr[cf->xi] + 
+            cf->fx3 * yptr[cf->nxi] + cf->fx4 * yptr[cf->nxi2];
+          yptr = dataPtrs[nyi2];
+          d = cf->fx1 * yptr[cf->pxi] + cf->fx2 * yptr[cf->xi] + 
+            cf->fx3 * yptr[cf->nxi] + cf->fx4 * yptr[cf->nxi2];
+          ival = fy1 * a + fy2 * b + fy3 * c + fy4 * d;
+
+          // Limit the value and put in the array
+          if (ival > pixmax)
+            val = (unsigned char)pixmax;
+          else if (ival < pixmin)
+            val = (unsigned char)pixmin;
+          else 
+            val = (unsigned char)(ival + 0.5f);
+          switch(unpack){
+          case 1:
+            bdata[i + ibase] = val;
+            break;
+          case 2:
+            sdata[i + ibase] = val + rbase;
+            break;
+          case 4:
+            idata[i + ibase] = cindex[val];
+            break;
+          } 
+        }
+        
+        if (sidefill) {
+          ibase += dwidth;
+          for (i = wx + dwidth; i < CurWidth; i++)
+            idata[ibase++] = fillval;
+        }
+      }
+      if (cubFacs)
+        free(cubFacs);
+
+    } else {
 
       /* For low quality, non-integer zooms, use nearest neighbor
 	 interpolation at each pixel */
@@ -1418,6 +1439,24 @@ void b3dDrawGreyScalePixelsHQ(unsigned char **dataPtrs,  /* input data lines */
   return;
 }
 
+static void getCubicFactors(float cx, int xsize, int &pxi, int &xi, int &nxi,
+                            int &nxi2, float &fx1, float &fx2, float &fx3,
+                            float &fx4)
+{
+  float dx, dxm1, dxdxm1;
+  xi = (int)cx;
+  xi = B3DMIN(xsize - 1, B3DMAX(0, xi));
+  pxi = B3DMAX(0, xi - 1);
+  nxi = B3DMIN(xsize - 1, xi + 1);
+  nxi2 = B3DMIN(xsize - 1, xi + 2);
+  dx = cx - (float)xi;
+  dxm1 = dx - 1.f;
+  dxdxm1 = dx * dxm1;
+  fx1 = -dxm1 * dxdxm1;
+  fx4 = dx * dxdxm1;
+  fx2 = 1.f + dx * dx * (dx - 2.f);
+  fx3 = dx * (1.f - dxdxm1);
+}
 
 double b3dStepPixelZoom(double czoom, int step)
 {
@@ -2007,6 +2046,9 @@ int b3dSnapshot(char *fname)
 
 /*
 $Log$
+Revision 4.32  2007/07/12 17:31:47  mast
+Added subarea viewport function and added fill flag to offset routine
+
 Revision 4.31  2007/07/07 05:30:20  mast
 Fixed limits for filling draw array, which were overrunning array
 
