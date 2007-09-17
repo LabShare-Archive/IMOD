@@ -14,7 +14,6 @@ set scriptdir = ""
 set custom = 0
 set skipcopy = 0
 
-echo In installIMOD: $*
 # First peel off any recognized arguments
 #
 while ($#argv > 0) 
@@ -317,14 +316,24 @@ if ($os == linux && -e /usr/sbin/sestatus) then
     if ("$test" != "") then
         echo ""
         echo "SELinux is enabled - Trying to change security context of libraries."
-        chcon -t texrel_shlib_t lib/*.so pylib/*.so >& /dev/null
-        if ($status) then
+
+        # Try in order of the first one that was suppose dto be used, the one
+        # that works in targeted mode, and the other one that Nvidia lists
+        #
+        foreach con (texrel_shlib_t shlib_t textrel_shlib_t)
+            chcon -t $con lib/*.so pylib/*.so >& /dev/null
+            set constat = $status
+            if (! $constat) then
+                if (-e qtlib) chcon -t $con qtlib/*.so >& /dev/null
+                break
+            endif
+        end
+        if ($constat) then
             echo "  Errors occurred changing the security context."
 	    set test = `/usr/sbin/sestatus | sed -n '/Policy from .*targeted/p'`
 	    if ("$test" != "") echo "  This is probably OK since your policy is targeted."
             echo "  Disable SELinux if you have permission problems running IMOD programs."
         endif
-        if (-e qtlib) chcon -t texrel_shlib_t qtlib/*.so >& /dev/null
     endif
 endif
 
@@ -367,6 +376,11 @@ exit 0
 
 #
 #  $Log$
+#  Revision 3.15  2007/09/17 04:02:53  mast
+#  Implemented options for specifying or skipping the script copying and
+#  for getting help; tested for existence of directories; handled relative script
+#  directory; tested for targeted security context and said error probably OK
+#
 #  Revision 3.14  2007/07/19 15:45:35  mast
 #  Limited depth of search for IMOD versions
 #
