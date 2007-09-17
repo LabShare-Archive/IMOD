@@ -1,5 +1,12 @@
 IMOD History
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+9/16/07: Enhanced install scripts to provide options for specifying the
+destination to copy startup scripts to or skipping this step, added help
+output, fixed handling of relative path for install location.
+
+9/16/07: Switched high resolution drawing in 3dmod from quadratic to cubic
+interpolation, which gives less pixelation at high zoom amd is only 15% slower.
+
 9/14/07: Added script by which Processchunks can put jobs on a cluster queue.
 
 9/12/07: Added options to model2point for getting non-integer output, and
