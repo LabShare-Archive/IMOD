@@ -291,7 +291,7 @@ QMAKE_LFLAGS_DEBUG += /LIBPATH:"..\buildlib" /NODEFAULTLIB:libc.lib /NODEFAULTLI
 EOF
 
 cat <<EOF >! $ctfplot_qconf
-LIBS += liblapack.lib libblas.lib libiimod.lib libimod.lib libtiff.lib libifft.lib
+LIBS += liblapack.lib libblas.lib libiimod.lib libimod.lib libtiff.lib libifft.lib qassistantclient.lib
 QMAKE_LFLAGS_RELEASE += /LIBPATH:"..\buildlib" /NODEFAULTLIB:libc.lib /NODEFAULTLIB:libcd.lib /NODEFAULTLIB:msvcrtd.lib /LARGEADDRESSAWARE
 QMAKE_LFLAGS_DEBUG += /LIBPATH:"..\buildlib" /NODEFAULTLIB:libc.lib /NODEFAULTLIB:libcd.lib /NODEFAULTLIB:msvcrt.lib /LARGEADDRESSAWARE
 EOF
