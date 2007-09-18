@@ -1,10 +1,20 @@
 #ifndef LINEARFITTING_H
 #define LINEARFITTING_H
+#include "imodconfig.h"
+
+#ifdef F77FUNCAP
+#define dgels DGELS
+#define dgelss DGELSS
+#else
+#define dgels dgels_
+#define dgelss dgelss_
+#endif
+
 extern "C" {
   //QR decomposition;
-  void dgels_( char* TRANS, int* M, int* N, int* NRHS, double* A, int* LDA, 
+  void dgels( char* TRANS, int* M, int* N, int* NRHS, double* A, int* LDA, 
       double* B, int* LDB, double* WORK, int* LWORK, int* INFO ); 
-  void dgelss_(int*M, int*N, int* NRHS, double* A, int*LDA, double* B, 
+  void dgelss(int*M, int*N, int* NRHS, double* A, int*LDA, double* B, 
       int* LDB,  double* S, double* RCOND, int* RANK, double* WORK, 
       int* LWORK, int* INFO); //SVD
 }

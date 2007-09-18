@@ -71,7 +71,7 @@ int LinearFitting::computeFitting(double *fitting, double *model, int nModel,
 
   //Solve the minimum norm problem || b- A^T * X ||, 
   //M is the number of rows of A^T, the solution is stored in b.  
-  dgelss_(&M, &N, &NRHS, a, &M, b, &M, sv, &RCOND, &RANK, work, &LWORK, 
+  dgelss(&M, &N, &NRHS, a, &M, b, &M, sv, &RCOND, &RANK, work, &LWORK, 
           &INFO);
   for(i=0;i<nDim;i++)
     for(j=0;j<N;j++) fitting[i]+=b[j]*(*(aa+j*nDim+i));
