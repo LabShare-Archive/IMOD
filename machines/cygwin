@@ -290,7 +290,7 @@ QMAKE_LFLAGS_RELEASE += /LIBPATH:"..\buildlib" /NODEFAULTLIB:libc.lib /NODEFAULT
 QMAKE_LFLAGS_DEBUG += /LIBPATH:"..\buildlib" /NODEFAULTLIB:libc.lib /NODEFAULTLIB:libcd.lib /NODEFAULTLIB:msvcrt.lib /LARGEADDRESSAWARE
 EOF
 
-set warn = (warn_on warn_off warn_on warn_on warn_on)
+set warn = (warn_on warn_on warn_on warn_on warn_off warn_on)
 @ i = 0
 while ($i < $#qdir)
     @ i++
