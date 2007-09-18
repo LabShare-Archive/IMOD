@@ -703,7 +703,7 @@ EOF
         while ($i < 4)
             @ i++
             cat <<EOF  >> $qconf[$i]
-INSTALLS += $qprog[$i]
+INSTALLS += $qrun[$i]
 $qrun[$i].path = $inst_bin_dir
 $qrun[$i].extra = \\cp -f $qrun[$i] $inst_bin_dir/$qprog[$i] ; \
 $strip $qprog[$i].app/Contents/MacOS/$qprog[$i] ; \
@@ -920,6 +920,9 @@ exit
 
 #
 #  $Log$
+#  Revision 1.27  2007/09/18 05:10:04  mast
+#  Added ctfplotter, rewrote Qt massaging into several loops
+#
 #  Revision 1.26  2007/08/26 06:55:30  mast
 #  Make libhelp directory
 #
