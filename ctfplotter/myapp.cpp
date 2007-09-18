@@ -16,6 +16,7 @@
 #include "sliceproc.h"
 #include "cfft.h"
 
+#define MY_PI 3.1415926
 #define MIN_ANGLE 1.0e-6  //tilt Angle less than this is treated as 0.0;
 
 int MyApp::nDim=0;
@@ -50,15 +51,15 @@ int MyApp::tileSize=0;
 //plot and fit the PS stored in 'rAverage', find the defocus and update display;
 void MyApp::plotFitPS()
 {
-    double ps[nDim];
+    double *ps=(double*)malloc(nDim*sizeof(double) );
     CurveData data[3];
-    double resSimplex[nDim];
-    double resLinear[nDim];
+    double *resSimplex=(double*)malloc(nDim*sizeof(double));
+    double *resLinear=(double *)malloc(nDim*sizeof(double));
     double model[2]={0,1.0};
     double err;
     int ii;
     //Dividing the Noise PS;
-    double nps[nDim];
+    double *nps=(double*)malloc(nDim*sizeof(double));
     for(ii=0;ii<nDim;ii++){
       nps[ii]=lowPs[ii]+(highPs[ii]-lowPs[ii])*
              (stackMean-lowMean)/(highMean-lowMean);
@@ -127,6 +128,10 @@ void MyApp::plotFitPS()
     }else defocusFinder.setDefocus(-2000.0);
     plotter->zeroLabel->setText(zeroString);
     plotter->defocusLabel->setText(defocusString);
+    free(ps);
+    free(resSimplex);
+    free(resLinear);
+    free(nps);
 }
 
 void MyApp::setSlice(char *stackFile, char *angleFile)
@@ -225,7 +230,7 @@ void MyApp::setSlice(char *stackFile, char *angleFile)
         exit(1);
       }
 
-    tiltAngle[sIndex]=currAngle*M_PI/180.0;
+    tiltAngle[sIndex]=currAngle*MY_PI/180.0;
     if( fabs(tiltAngle[sIndex]) > MIN_ANGLE ) 
       stripPixelNum=fabs( defocusTol/tan(tiltAngle[sIndex]) )/pixelSize;
     else stripPixelNum=nx;
@@ -247,23 +252,23 @@ int  MyApp::computeInitPS()
   int idir=0; //FFT transform;
   int tileNum=0;
   int xOffset=0;
-  float tile[tileSize][tileSize+2];
-  double fftSum[tileSize][(tileSize+2)/2];
+  float *tile=(float *)malloc(tileSize*(tileSize+2)*sizeof(float) );
+  double *fftSum=(double*)malloc( tileSize*((tileSize+2)/2)*sizeof(double) );
   int counter;
   double localMean, tmpMean;
   int i,j,k,ii,jj;
-  double diagonal=sqrt(nxx*nxx+nyy*nyy);
+  double diagonal=sqrt((double)(nxx*nxx+nyy*nyy) );
   double axisXAngle, centerX, centerY, r, alpha,d;
 
   //tilt axis angle with X coordinate, [0, 2*pi];
   axisXAngle=90+tiltAxisAngle; 
-  axisXAngle=axisXAngle*M_PI/180.0;
+  axisXAngle=axisXAngle*MY_PI/180.0;
   //if(axisXAngle<0) axisXAngle=2.0*M_PI+axisXAngle;
 
   counter=0;
   localMean=0.0;
   for(i=0;i<tileSize;i++)
-    for(j=0;j<(tileSize+2)/2;j++) fftSum[i][j]=0;
+    for(j=0;j<(tileSize+2)/2;j++) *(fftSum+ i*(tileSize+2)/2+j)=0;
   for(i=0;i<sliceNum;i++) tileIncluded[i]=0;
 
   for(k=0;k<sliceNum;k++){
@@ -278,7 +283,7 @@ int  MyApp::computeInitPS()
       for(j=0;j<nyy/halfSize-1;j++){
         centerX=i*halfSize+halfSize-nxx/2;//center coordinate of the tile;
         centerY=j*halfSize+halfSize-nyy/2;
-        r=sqrt(centerX*centerX+centerY*centerY);
+        r=sqrt((double)(centerX*centerX+centerY*centerY));
         alpha=atan2(centerY, centerX);
         //if(alpha<0) alpha=2.0*M_PI+alpha;//convert to [0,2*pi];
         d=r*fabs(sin(alpha-axisXAngle));// distance to the tilt axis in pixels;
@@ -290,20 +295,21 @@ int  MyApp::computeInitPS()
         tileIncluded[k]++;
         sliceTaperInPad(slice[k]->data.f, SLICE_MODE_FLOAT, nxx, 
             i*halfSize+xOffset, i*halfSize+xOffset+tileSize-1, j*halfSize,
-            j*halfSize+tileSize-1,&tile[0][0],tileSize+2,tileSize,tileSize,9,9);
+            j*halfSize+tileSize-1,tile,tileSize+2,tileSize,tileSize,9,9);
 
         tmpMean=0.0;
         for(ii=0;ii<tileSize;ii++)
-          for(jj=0;jj<tileSize;jj++)tmpMean+=tile[ii][jj];
+          for(jj=0;jj<tileSize;jj++)tmpMean+=*(tile+ii*(tileSize+2)+jj);
         tmpMean=tmpMean/(tileSize*tileSize);
         localMean+=tmpMean;
 
-        todfft(&tile[0][0], &tileSize, &tileSize, &idir);
+        todfft(tile, &tileSize, &tileSize, &idir);
 
         for(ii=0;ii<tileSize;ii++)
           for(jj=0;jj<(tileSize+2)/2;jj++)
-            fftSum[ii][jj]+=tile[ii][2*jj]*tile[ii][2*jj]+ 
-              tile[ii][2*jj+1]*tile[ii][2*jj+1];
+            *(fftSum+ii*(tileSize+2)/2+jj)+=
+              *(tile+ii*(tileSize+2)+2*jj) * ( *(tile+ii*(tileSize+2)+2*jj)) + 
+              *(tile+ii*(tileSize+2)+2*jj+1)* (*(tile+ii*(tileSize+2)+2*jj+1));
       }
   }//k loop;
 
@@ -312,12 +318,12 @@ int  MyApp::computeInitPS()
 
   if(counter){
     for(ii=0;ii<tileSize;ii++)
-      for(jj=0;jj<(tileSize+2)/2;jj++) fftSum[ii][jj]/=counter;
+      for(jj=0;jj<(tileSize+2)/2;jj++) *(fftSum+ii*(tileSize+2)/2+jj)/=counter;
     //two sided rotational averaging;
     float freqInc=1.0/(nDim-1);
     int nyquist=(tileSize+2)/2;
     int rIndex;
-    int freqCounter[nDim];
+    int *freqCounter=(int*)malloc(nDim*sizeof(int));
 
     for(i=0;i<nDim;i++){
       freqCounter[i]=0;
@@ -325,10 +331,11 @@ int  MyApp::computeInitPS()
     }
     for(i=0;i<nyquist-1;i++)
       for(j=0;j<nyquist;j++){
-        rIndex=ceil(sqrt(i*i+j*j)/(nyquist-1)/freqInc );
+        rIndex=ceil(sqrt((double)(i*i+j*j))/(nyquist-1)/freqInc );
         if(rIndex>=nDim) continue;
         // two side average;
-        rAverage[rIndex]+=(fftSum[i][j]+fftSum[tileSize-1-i][j]);
+        rAverage[rIndex]+=(*(fftSum+i*(tileSize+2)/2+j)+
+            *(fftSum+(tileSize-1-i)*(tileSize+2)/2+j) );
         freqCounter[rIndex]+=2;
       }
     //return the PS
@@ -336,10 +343,13 @@ int  MyApp::computeInitPS()
       rAverage[i]=rAverage[i]/freqCounter[i];
     }
     stackMean=localMean/counter; //stack is Not noise, set stackMean;
+    free(freqCounter);
+    free( tile);
+    free(fftSum);
     return -1;
   }else{//need to compute mean;
     for(i=0;i<nDim;i++) rAverage[i]=0.1; //set it to 0.1 to make log valid
-    tileNum=floor(nxx/halfSize);
+    tileNum=floor((float)nxx/(float)halfSize);
     xOffset=0;
     for(k=0;k<sliceNum;k++){
       for(i=0;i<tileNum-1;i++)
@@ -347,11 +357,11 @@ int  MyApp::computeInitPS()
           counter++;
           sliceTaperInPad(slice[k]->data.f, SLICE_MODE_FLOAT, nxx,
               i*halfSize+xOffset, i*halfSize+xOffset+tileSize-1, j*halfSize,
-              j*halfSize+tileSize-1, &tile[0][0], tileSize+2, tileSize, 
+              j*halfSize+tileSize-1, tile, tileSize+2, tileSize, 
               tileSize, 9, 9);
           tmpMean=0.0;
           for(ii=0;ii<tileSize;ii++)
-            for(jj=0;jj<tileSize;jj++)tmpMean+=tile[ii][jj];
+            for(jj=0;jj<tileSize;jj++)tmpMean+=*(tile+ii*(tileSize+2)+jj);
           tmpMean=tmpMean/(tileSize*tileSize);
           localMean+=tmpMean;
         }
@@ -363,25 +373,29 @@ int  MyApp::computeInitPS()
     }
     printf("No tile is included. Please change defocus tolerance \
         or angle range. \n");
+    free( tile);
+    free(fftSum);
     return 0;
   }// else
+  free( tile);
+  free(fftSum);
 }
 
 void MyApp::moreTile()
 {
   int halfSize=tileSize/2;
-  float tile[tileSize][tileSize+2];
+  float *tile=(float *)malloc(tileSize*(tileSize+2)*sizeof(float) );
   int leftCounter, rightCounter;
   int k, ii,jj;
   int idir=0; //FFT transform;
-  double leftFftSum[tileSize][(tileSize+2)/2];
-  double rightFftSum[tileSize][(tileSize+2)/2];
+  double *leftFftSum=(double *)malloc(tileSize*((tileSize+2)/2)*sizeof(double));
+  double *rightFftSum=(double *)malloc(tileSize*((tileSize+2)/2)*sizeof(double));
   double deltaZ; // in microns;
   float freqInc=1.0/(nDim-1);
   int stripRIndex;
-  int stripCounter[nDim];
-  double stripAvg[nDim];
-  double nps[nDim];
+  int *stripCounter=(int*)malloc(nDim*sizeof(int));;
+  double *stripAvg=(double*)malloc(nDim*sizeof(double));
+  double *nps=(double*)malloc(nDim*sizeof(double));
   double coef;
   double leftMean, rightMean, tmpMean, effectiveDefocus, effectiveZero;
   int plusShift, minusShift, xShift;
@@ -389,15 +403,15 @@ void MyApp::moreTile()
   //zeroCrossing*coef=theta*
   coef=0.5*defocusFinder.wavelength*defocusFinder.csTwo/pixelSize;
 
-  int tileMax=floor(nxx/halfSize);
+  int tileMax=floor((float)nxx/(float)halfSize);
   double axisXAngle; //tilt axis angle with X coordinate, [0, 2*pi];
-  double diagonal=sqrt(nxx*nxx+nyy*nyy);
+  double diagonal=sqrt((double)(nxx*nxx+nyy*nyy));
   double stripPixelNum; 
   double centerX, centerY, r, alpha,d;
   int x, y, scanCounter;
   bool isOnLeft; // is the tile center on the left of the tilt axis;
 
-  double psRatio[nDim];
+  double *psRatio=(double*)malloc(nDim*sizeof(double));
 
   ((Plotter *)mainWidget())->tileButton->setEnabled(false);
   //below set 'rAverage' to be PS ratio, i.e., rAverage[i]=rAverage[i]/nps[i];
@@ -410,6 +424,13 @@ void MyApp::moreTile()
  
   if(defocusOption && defocusFinder.getDefocus()<0){
     printf("Warning invalid defocus, computation halts\n");
+    free(tile);
+    free(leftFftSum);
+    free(rightFftSum);
+    free(stripCounter);
+    free(stripAvg);
+    free(nps);
+    free(psRatio);
     return;
   }
   //defocusFinder.setDefocus(defocusFinder.getExpDefocus());
@@ -417,8 +438,8 @@ void MyApp::moreTile()
   
   //tilt axis angle with X coordinate, [0, 2*pi];
   axisXAngle=90+tiltAxisAngle; 
-  axisXAngle=axisXAngle*M_PI/180.0;
-  if(axisXAngle<0) axisXAngle=2.0*M_PI+axisXAngle;
+  axisXAngle=axisXAngle*MY_PI/180.0;
+  if(axisXAngle<0) axisXAngle=2.0*MY_PI+axisXAngle;
 
   if(defocusOption) {
     effectiveDefocus=defocusFinder.getDefocus();
@@ -456,8 +477,8 @@ void MyApp::moreTile()
                          
       for(ii=0;ii<tileSize;ii++)
         for(jj=0;jj<(tileSize+2)/2;jj++){
-          leftFftSum[ii][jj]=0.0;
-          rightFftSum[ii][jj]=0.0;
+          *(leftFftSum+ii*(tileSize+2)/2+jj)=0.0;
+          *(rightFftSum+ii*(tileSize+2)/2+jj)=0.0;
         }
       leftCounter=0;
       rightCounter=0;
@@ -468,9 +489,9 @@ void MyApp::moreTile()
         for(y=0;y<nyy/halfSize-1;y++){
           centerX=x*halfSize+halfSize-nxx/2;//center coordinate of the tile;
           centerY=y*halfSize+halfSize-nyy/2;
-          r=sqrt(centerX*centerX+centerY*centerY);
+          r=sqrt((double)(centerX*centerX+centerY*centerY));
           alpha=atan2(centerY, centerX);
-          if(alpha<0) alpha=2.0*M_PI+alpha;//convert to [0,2*pi];
+          if(alpha<0) alpha=2.0*MY_PI+alpha;//convert to [0,2*pi];
           d=r*fabs(sin(alpha-axisXAngle));//distance to the tilt axis in pixels;
 
           //outside of the strip, continue;
@@ -478,11 +499,11 @@ void MyApp::moreTile()
             continue;
           scanCounter++;
 
-          if(axisXAngle<=M_PI){
-            if( alpha>axisXAngle && alpha<axisXAngle+M_PI) isOnLeft=true;
+          if(axisXAngle<=MY_PI){
+            if( alpha>axisXAngle && alpha<axisXAngle+MY_PI) isOnLeft=true;
             else isOnLeft=false;
           }else{
-            if( alpha>axisXAngle && alpha<axisXAngle-M_PI) isOnLeft=true;
+            if( alpha>axisXAngle && alpha<axisXAngle-MY_PI) isOnLeft=true;
             else isOnLeft=false;
           }
 
@@ -492,34 +513,37 @@ void MyApp::moreTile()
 
           sliceTaperInPad(slice[k]->data.f, SLICE_MODE_FLOAT, nxx, x*halfSize, 
               x*halfSize+tileSize-1, y*halfSize, y*halfSize+tileSize-1,
-              &tile[0][0], tileSize+2, tileSize, tileSize, 9, 9);
+              tile, tileSize+2, tileSize, tileSize, 9, 9);
           tmpMean=0.0;
           for(ii=0;ii<tileSize;ii++)
-            for(jj=0;jj<tileSize;jj++) tmpMean+=tile[ii][jj];
+            for(jj=0;jj<tileSize;jj++) tmpMean+=*(tile+ii*(tileSize+2)+jj);
           tmpMean=tmpMean/(tileSize*tileSize);
-          todfft(&tile[0][0], &tileSize, &tileSize, &idir);
+          todfft(tile, &tileSize, &tileSize, &idir);
 
           if(isOnLeft){
             leftCounter++;
             leftMean+=tmpMean;
             for(ii=0;ii<tileSize;ii++)
               for(jj=0;jj<(tileSize+2)/2;jj++)
-                leftFftSum[ii][jj]+=tile[ii][2*jj]*tile[ii][2*jj] + 
-                  tile[ii][2*jj+1]*tile[ii][2*jj+1];
+                *(leftFftSum+ii*(tileSize+2)/2+jj)+=
+                *(tile+ii*(tileSize+2)+2*jj)* (*(tile+ii*(tileSize+2)+2*jj))+ 
+                *(tile+ii*(tileSize+2)+2*jj+1)*(*(tile+ii*(tileSize+2)+2*jj+1));
           }else{ //right side;
             rightCounter++;
             rightMean+=tmpMean;
             for(ii=0;ii<tileSize;ii++)
               for(jj=0;jj<(tileSize+2)/2;jj++)
-                rightFftSum[ii][jj]+=tile[ii][2*jj]*tile[ii][2*jj] +
-                  tile[ii][2*jj+1]*tile[ii][2*jj+1];
+                *(rightFftSum+ii*(tileSize+2)/2+jj)+=
+                *(tile+ii*(tileSize+2)+2*jj)* (*(tile+ii*(tileSize+2)+2*jj))+ 
+                *(tile+ii*(tileSize+2)+2*jj+1)*(*(tile+ii*(tileSize+2)+2*jj+1));
           }
         } //for x-y loop;
 
       if(leftCounter){ //left side has tiles included;
         leftMean=leftMean/leftCounter;
         for(ii=0;ii<tileSize;ii++)
-          for(jj=0;jj<(tileSize+2)/2;jj++) leftFftSum[ii][jj]/=leftCounter;
+          for(jj=0;jj<(tileSize+2)/2;jj++) 
+            *(leftFftSum+ii*(tileSize+2)/2+jj)/=leftCounter;
 
         for(ii=0;ii<nDim;ii++){
           stripCounter[ii]=0;
@@ -527,9 +551,11 @@ void MyApp::moreTile()
         }
         for(ii=0;ii<tileSize/2;ii++)
           for(jj=0;jj<(tileSize+2)/2;jj++){
-            stripRIndex=ceil( sqrt(ii*ii+jj*jj)/halfSize/freqInc );
+            stripRIndex=ceil( sqrt((double)(ii*ii+jj*jj))/halfSize/freqInc );
             if(stripRIndex>=nDim) continue;
-            stripAvg[stripRIndex]+=(leftFftSum[ii][jj]+leftFftSum[tileSize-1-ii][jj]);
+            stripAvg[stripRIndex]+=
+              *(leftFftSum+ii*(tileSize+2)/2+jj)+
+              *(leftFftSum+(tileSize-1-ii)*(tileSize+2)/2+jj);
             stripCounter[stripRIndex]+=2;
           }
         for(ii=0;ii<nDim;ii++) {
@@ -552,7 +578,8 @@ void MyApp::moreTile()
       if(rightCounter){
         rightMean=rightMean/rightCounter;
         for(ii=0;ii<tileSize;ii++)
-          for(jj=0;jj<(tileSize+2)/2;jj++) rightFftSum[ii][jj]/=rightCounter;
+          for(jj=0;jj<(tileSize+2)/2;jj++) 
+            *(rightFftSum+ii*(tileSize+2)/2+jj)/=rightCounter;
 
         for(ii=0;ii<nDim;ii++){
           stripCounter[ii]=0;
@@ -560,10 +587,11 @@ void MyApp::moreTile()
         }
         for(ii=0;ii<tileSize/2;ii++)
           for(jj=0;jj<(tileSize+2)/2;jj++){
-            stripRIndex=ceil( sqrt(ii*ii+jj*jj)/halfSize/freqInc );
+            stripRIndex=ceil( sqrt((double)(ii*ii+jj*jj))/halfSize/freqInc );
             if(stripRIndex>=nDim) continue;
-            stripAvg[stripRIndex]+=(rightFftSum[ii][jj]+
-                rightFftSum[tileSize-1-ii][jj]);
+            stripAvg[stripRIndex]+=
+              *(rightFftSum+ii*(tileSize+2)/2+jj)+
+                *(rightFftSum+(tileSize-1-ii)*(tileSize+2)/2+jj);
             stripCounter[stripRIndex]+=2;
           }
         for(ii=0;ii<nDim;ii++) {
@@ -596,6 +624,15 @@ void MyApp::moreTile()
   for(ii=0;ii<nDim;ii++) rAverage[ii]=rAverage[ii]*psRatio[ii];  
   //plot and fit the modified PS; 
   plotFitPS();
+
+  free(tile);
+  free(leftFftSum);
+  free(rightFftSum);
+  free(stripCounter);
+  free(stripAvg);
+  free(nps);
+  free(psRatio);
+
 }  
 
 MyApp::~MyApp()
@@ -615,7 +652,7 @@ void MyApp::rangeChanged(double x1_1, double x1_2, double x2_1, double x2_2)
 
   int i;
   CurveData data;
-  double result[nDim];
+  double *result=(double *)malloc(nDim*sizeof(double) );
   double model_0[2]={0, 1.0};
   //double model_0[4]={0, 0.5, 1.0, 2.0};
   double err;
@@ -651,7 +688,7 @@ void MyApp::rangeChanged(double x1_1, double x1_2, double x2_1, double x2_2)
   n1= x2_1*(nDim-1) ;
   n2= x2_2*(nDim-1) ;
   CurveData data1;
-  double result1[nDim];
+  double *result1=(double *)malloc(nDim*sizeof(double) );
 
   x2Idx1=n1; x2Idx2=n2;
   switch(x2MethodIndex){
@@ -690,6 +727,9 @@ void MyApp::rangeChanged(double x1_1, double x1_2, double x2_1, double x2_2)
   //printf("myApp zeroString=%s \n", zeroString);
   ( (Plotter *)mainWidget() )->zeroLabel->setText(zeroString);
   ( (Plotter *)mainWidget() )->defocusLabel->setText(defocusString);
+
+  free(result);
+  free(result1);
 }
 
 

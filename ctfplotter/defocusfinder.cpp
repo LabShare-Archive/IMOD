@@ -1,11 +1,13 @@
 #include <math.h>
 #include <stdio.h>
+#include <stdlib.h>
 #include "defocusfinder.h"
 
 #define DEF_START -1.0
 #define DEF_END -20.0
 #define ZERO_START 0.2
 #define ZERO_END 0.8
+#define MY_PI 3.1415926
 
 DefocusFinder::DefocusFinder(int volt, double pSize,
     double ampContrast, double inputCs, 
@@ -29,7 +31,8 @@ int DefocusFinder::findZero(const double* simplexRes, const double* linearRes,
     return -1;
   }
   int dim=x2-x1+1;
-  double diff[dim], minDiff; 
+  double *diff=(double*)malloc(dim*sizeof(double));
+  double minDiff; 
   int i, minIndex; 
   for(i=x1;i<x1+dim;i++){
     diff[i-x1]=simplexRes[i]-linearRes[i];
@@ -51,6 +54,7 @@ int DefocusFinder::findZero(const double* simplexRes, const double* linearRes,
   if( (minIndex-1)<0 || (minIndex+1)>(dim-1) ){
     printf("findZero() error: the sign of values can not be determined.  \
         zeroIndex=%d\n", minIndex);
+    free(diff);
     return -1;
   }
 
@@ -60,6 +64,7 @@ int DefocusFinder::findZero(const double* simplexRes, const double* linearRes,
                      (diff[minIndex+1]-diff[minIndex-1]);
     *zero=(double)(x1+minIndex+interpolate)/(nDim-1);
     zeroCrossing=*zero;
+    free(diff);
     return 0;
   }else{
     minDiff=fabs(diff[middle]);
@@ -73,6 +78,7 @@ int DefocusFinder::findZero(const double* simplexRes, const double* linearRes,
     if( (minIndex-1)<0 || (minIndex+1)>(dim-1) ){
       printf("findZero() error: the sign of values can not be determined.  \
           zeroIndex=%d\n", minIndex);
+      free(diff);
       return -1;
     }
     if( diff[minIndex-1]*diff[minIndex+1]<0.0 ){ // it is a crossing
@@ -81,11 +87,13 @@ int DefocusFinder::findZero(const double* simplexRes, const double* linearRes,
                          (diff[minIndex+1]-diff[minIndex-1]);
       *zero=(double)(x1+minIndex+interpolate)/(nDim-1);
       zeroCrossing=*zero;
+      free(diff);
       return 0;
     }
   }//else
 
   printf("findZero(): no intersection found\n");
+  free(diff);
   return -1;
 }
 
@@ -104,7 +112,7 @@ void DefocusFinder::setExpDefocus(double expDef)
   for(i=0;i<dim;i++){
     q=(0.5/pixelSize)*(i*defInc+ZERO_START);
     theta=q*wavelength*csTwo;
-    wtheta[i]=2.0*M_PI*( theta*theta*theta*theta/4.0-(theta*theta/2.0)
+    wtheta[i]=2.0*MY_PI*( theta*theta*theta*theta/4.0-(theta*theta/2.0)
               *(expDef/csOne) );
     //wtheta=2*pi*(theta**4/4.0 - theta**2 * deltaZ); deltaZ=-deltaZ'/cs1;
   }
@@ -182,7 +190,7 @@ int DefocusFinder::findDefocus(double *focus)
   double *wtheta=new double[dim];
   int i,j;
   for(i=0;i<dim;i++)
-    wtheta[i]=2.0*M_PI*( theta*theta*theta*theta/4.0-(theta*theta/2.0)
+    wtheta[i]=2.0*MY_PI*( theta*theta*theta*theta/4.0-(theta*theta/2.0)
                          *-(DEF_START-i*defInc)/csOne );
     //wtheta=2*pi*(theta**4/4.0 - theta**2 * deltaZ); deltaZ=-deltaZ'/cs1;
 

@@ -73,13 +73,13 @@ int main(int argc, char *argv[])
   if(PipGetTwoFloats("AngleRange", &lowAngle, &highAngle))
     exitError("No AngleRange specified\n");
  
-  double rAvg[nDim];
+  double *rAvg=(double *)malloc(nDim*sizeof(double));
   MyApp app(argc, argv, volt, pixelSize, (double)ampContrast, cs, defFn,
       (int)nDim, (double)defocusTol, tileSize, 
       (double)tiltAxisAngle, -90.0, 90.0, (double)expectedDef, 
       (double)leftDefTol, (double)rightDefTol);
   //set the angle range for noise PS computing;
-  app.setPS(&rAvg[0]);
+  app.setPS(rAvg);
   
   Plotter plotter;
   plotter.setCaption(QObject::tr("CTF Plot"));
@@ -91,38 +91,30 @@ int main(int argc, char *argv[])
     printf("ERROR: - could not open config file %s\n", cfgFn);
     exit(1);
   }
-  char *p;
-  size_t numOfChar=0;
-  ssize_t read;
+  char p[1024];
+  int read;
   int noiseFileCounter=0;
   
-  // only to find how many noise file are provided;
-  p=NULL;
-  while( (read=getline(&p, &numOfChar, fpCfg))!=-1 ){
-    noiseFileCounter++;
-    delete p;
-    p=NULL;
-  }
+  // only to find how many noise files are provided;
+  while( (read=fgetline(fpCfg, p, 1024)) >0 ) noiseFileCounter++;
   rewind(fpCfg);
   printf("There are %d noise files specified\n", noiseFileCounter);
   
-  double noisePs[noiseFileCounter][nDim];
-  double noiseMean[noiseFileCounter];
+  double *noisePs=(double *)malloc( noiseFileCounter*nDim*sizeof(double));
+  double *noiseMean=(double *)malloc( noiseFileCounter*sizeof(double) );
   double *currPS;
-  int index[noiseFileCounter];
+  int *index=(int *)malloc(noiseFileCounter*sizeof(double) );
   int i, j;
   
-  p=NULL;
   noiseFileCounter=0;
-  while( (read=getline(&p, &numOfChar, fpCfg))!=-1){
-    if(p[read-1]=='\n') p[read-1]='\0';  //remove '\n' at the end;
+  while( (read=fgetline(fpCfg, p, 1024))>0){
+    //if(p[read-1]=='\n') p[read-1]='\0';  //remove '\n' at the end;
     app.setSlice(p, NULL);
     app.computeInitPS();
     currPS=app.getPS();
-    for(i=0;i<nDim;i++) noisePs[noiseFileCounter][i]=*(currPS+i);
+    //for(i=0;i<nDim;i++) noisePs[noiseFileCounter][i]=*(currPS+i);
+    for(i=0;i<nDim;i++) *(noisePs+noiseFileCounter*nDim+i)=*(currPS+i);
     noiseMean[noiseFileCounter]=app.getStackMean();
-    delete p;
-    p=NULL;
     noiseFileCounter++;
   }
   for(i=0;i<noiseFileCounter;i++){
@@ -161,15 +153,15 @@ int main(int argc, char *argv[])
   }
   printf("Stack mean=%f, Interplating between noise file %d and file %d for \
       noise level of this mean\n", stackMean, i, j);
-  app.setNoisePS(&noisePs[ index[i] ][0], &noisePs[ index[j] ][0]);
+  app.setNoisePS(noisePs+ index[i]*nDim, noisePs+index[j]*nDim);
   app.setNoiseMean(noiseMean[i], noiseMean[j]);
 
   if(app.defocusFinder.getExpDefocus()>0) {
-    int firstZeroIndex=round( app.defocusFinder.getExpZero()*nDim );
+    int firstZeroIndex=B3DNINT( app.defocusFinder.getExpZero()*nDim );
     app.setX1Range(firstZeroIndex-16, firstZeroIndex-1);
     double coef=0.5*app.defocusFinder.wavelength*app.defocusFinder.csTwo/ \
                pixelSize;
-    int secZeroIndex=round( ( sqrt(2.0*app.defocusFinder.csOne/ \
+    int secZeroIndex=B3DNINT( ( sqrt(2.0*app.defocusFinder.csOne/ \
             app.defocusFinder.getExpDefocus())/coef )*nDim );
     app.setX2Range(firstZeroIndex+1, secZeroIndex);
     app.simplexEngine=new SimplexFitting(nDim);
@@ -182,5 +174,9 @@ int main(int argc, char *argv[])
   
   plotter.resize(1280, 1024);
   plotter.show();
-  return app.exec();
+  app.exec();
+  free(rAvg);
+  free(noisePs);
+  free(noiseMean);
+  free(index);
 }

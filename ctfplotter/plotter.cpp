@@ -554,7 +554,7 @@ void PlotSettings::adjustAxis(double &min, double &max,
 {
     const int MinTicks = 4;
     double grossStep = (max - min) / MinTicks;
-    double step = pow(10, floor(log10(grossStep)));
+    double step = pow(10.0, floor(log10(grossStep)));
 
     if (5 * step < grossStep)
         step *= 5;
