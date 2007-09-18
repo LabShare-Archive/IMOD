@@ -466,7 +466,7 @@ void MyApp::moreTile()
       tmpMean=tmpMean/defocusFinder.csOne; //convert to Z*;
       tmpMean=sqrt(1.0/tmpMean); // convert to  theta*;
       tmpMean=tmpMean/coef; // highDef is the new zero;
-      plusShift=round( (effectiveZero-tmpMean)/freqInc );
+      plusShift=B3DNINT( (effectiveZero-tmpMean)/freqInc );
       tmpMean=effectiveDefocus-deltaZ;
       tmpMean=tmpMean/defocusFinder.csOne; //convert to Z*;
       tmpMean=sqrt(1.0/tmpMean); // convert to  theta*;
