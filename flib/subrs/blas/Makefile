@@ -1,4 +1,4 @@
-include ../../make.inc
+include ../../configure
 
 #######################################################################
 #  This is the makefile to create a library for the BLAS.
@@ -49,111 +49,46 @@ include ../../make.inc
 #  Susan Ostrouchov, Last updated September 30, 1994
 #
 #######################################################################
+CFLAGS = $(LIBCFLAGS)
+FFLAGS = $(LIBFFLAGS)
 
-all: single double complex complex16
- 
+O        = $(OBJEXT)
+
+#all: single double complex complex16
+all: double 
+
 #---------------------------------------------------------
 #  Comment out the next 6 definitions if you already have
 #  the Level 1 BLAS.
 #---------------------------------------------------------
-SBLAS1 = isamax.o sasum.o saxpy.o scopy.o sdot.o snrm2.o \
-	srot.o srotg.o sscal.o sswap.o
-$(SBLAS1): $(FRC)
-
-CBLAS1 = scasum.o scnrm2.o icamax.o caxpy.o ccopy.o \
-	cdotc.o cdotu.o csscal.o crotg.o cscal.o cswap.o
-$(CBLAS1): $(FRC)
-
-DBLAS1 = idamax.o dasum.o daxpy.o dcopy.o ddot.o dnrm2.o \
-	drot.o drotg.o dscal.o dswap.o
-$(DBLAS1): $(FRC)
-
-ZBLAS1 = dcabs1.o dzasum.o dznrm2.o izamax.o zaxpy.o zcopy.o \
-	zdotc.o zdotu.o zdscal.o zrotg.o zscal.o zswap.o
-$(ZBLAS1): $(FRC)
-
-CB1AUX = isamax.o sasum.o saxpy.o scopy.o snrm2.o sscal.o
-$(CB1AUX): $(FRC)
-
-ZB1AUX = idamax.o dasum.o daxpy.o dcopy.o dnrm2.o dscal.o
-$(ZB1AUX): $(FRC)
+DBLAS1 = idamax.$(O) dasum.$(O) daxpy.$(O) dcopy.$(O) ddot.$(O) dnrm2.$(O) \
+	drot.$(O) drotg.$(O) dscal.$(O) dswap.$(O)
 
 #---------------------------------------------------------------------
 #  The following line defines auxiliary routines needed by both the
 #  Level 2 and Level 3 BLAS.  Comment it out only if you already have
 #  both the Level 2 and 3 BLAS.
 #---------------------------------------------------------------------
-ALLBLAS  = lsame.o xerbla.o
-$(ALLBLAS) : $(FRC)
+ALLBLAS  = lsame.$(O) xerbla.$(O)
 
 #---------------------------------------------------------
 #  Comment out the next 4 definitions if you already have
 #  the Level 2 BLAS.
 #---------------------------------------------------------
-SBLAS2 = sgemv.o sgbmv.o ssymv.o ssbmv.o sspmv.o \
-	strmv.o stbmv.o stpmv.o strsv.o stbsv.o stpsv.o \
-	sger.o ssyr.o sspr.o ssyr2.o sspr2.o
-$(SBLAS2): $(FRC)
-
-CBLAS2 = cgemv.o cgbmv.o chemv.o chbmv.o chpmv.o \
-	ctrmv.o ctbmv.o ctpmv.o ctrsv.o ctbsv.o ctpsv.o \
-	cgerc.o cgeru.o cher.o chpr.o cher2.o chpr2.o
-$(CBLAS2): $(FRC)
-
-DBLAS2 = dgemv.o dgbmv.o dsymv.o dsbmv.o dspmv.o \
-	dtrmv.o dtbmv.o dtpmv.o dtrsv.o dtbsv.o dtpsv.o \
-	dger.o dsyr.o dspr.o dsyr2.o dspr2.o
-$(DBLAS2): $(FRC)
-
-ZBLAS2 = zgemv.o zgbmv.o zhemv.o zhbmv.o zhpmv.o \
-	ztrmv.o ztbmv.o ztpmv.o ztrsv.o ztbsv.o ztpsv.o \
-	zgerc.o zgeru.o zher.o zhpr.o zher2.o zhpr2.o
-$(ZBLAS2): $(FRC)
+DBLAS2 = dgemv.$(O) dgbmv.$(O) dsymv.$(O) dsbmv.$(O) dspmv.$(O) \
+	dtrmv.$(O) dtbmv.$(O) dtpmv.$(O) dtrsv.$(O) dtbsv.$(O) dtpsv.$(O) \
+	dger.$(O) dsyr.$(O) dspr.$(O) dsyr2.$(O) dspr2.$(O)
 
 #---------------------------------------------------------
 #  Comment out the next 4 definitions if you already have
 #  the Level 3 BLAS.
 #---------------------------------------------------------
-SBLAS3 = sgemm.o ssymm.o ssyrk.o ssyr2k.o strmm.o strsm.o 
-$(SBLAS3): $(FRC)
+DBLAS3 = dgemm.$(O) dsymm.$(O) dsyrk.$(O) dsyr2k.$(O) dtrmm.$(O) dtrsm.$(O)
 
-CBLAS3 = cgemm.o csymm.o csyrk.o csyr2k.o ctrmm.o ctrsm.o \
-	chemm.o cherk.o cher2k.o
-$(CBLAS3): $(FRC)
-
-DBLAS3 = dgemm.o dsymm.o dsyrk.o dsyr2k.o dtrmm.o dtrsm.o
-$(DBLAS3): $(FRC)
-
-ZBLAS3 = zgemm.o zsymm.o zsyrk.o zsyr2k.o ztrmm.o ztrsm.o \
-	zhemm.o zherk.o zher2k.o
-$(ZBLAS3): $(FRC)
-
-
-single: $(SBLAS1) $(ALLBLAS) $(SBLAS2) $(SBLAS3)
-	$(ARCH) $(ARCHFLAGS) $(BLASLIB) $(SBLAS1) $(ALLBLAS) \
-	$(SBLAS2) $(SBLAS3)
-	$(RANLIB) $(BLASLIB)
 
 double: $(DBLAS1) $(ALLBLAS) $(DBLAS2) $(DBLAS3)
-	$(ARCH) $(ARCHFLAGS) $(BLASLIB) $(DBLAS1) $(ALLBLAS) \
-	$(DBLAS2) $(DBLAS3)
-	$(RANLIB) $(BLASLIB)
-
-complex: $(CBLAS1) $(CB1AUX) $(ALLBLAS) $(CBLAS2) $(CBLAS3)
-	$(ARCH) $(ARCHFLAGS) $(BLASLIB) $(CBLAS1) $(CB1AUX) \
-	$(ALLBLAS) $(CBLAS2) $(CBLAS3)
-	$(RANLIB) $(BLASLIB)
-
-complex16: $(ZBLAS1) $(ZB1AUX) $(ALLBLAS) $(ZBLAS2) $(ZBLAS3)
-	$(ARCH) $(ARCHFLAGS) $(BLASLIB) $(ZBLAS1) $(ZB1AUX) \
-	$(ALLBLAS) $(ZBLAS2) $(ZBLAS3)
-	$(RANLIB) $(BLASLIB)
-
-FRC:
-	@FRC=$(FRC)
 
 clean:
-	rm -f *.o
-
-.f.o: 
-	$(FORTRAN) $(OPTS) -c $*.f
+	$(FIND) . -type f -name "*.o*" -exec rm "{}" \;
+	$(FIND) . -type f -name "*~" -exec rm "{}" \;
+	$(FIND) . -type f -name "#*#" -exec rm "{}" \;

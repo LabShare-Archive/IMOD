@@ -9,6 +9,8 @@ LIBCOMPAT = libb3dcmpt.$(DLLEXT)
 LIBTRACK  = libtrack.$(DLLEXT)
 LIBSMLMOD = libsmlmod.$(WMODEXT)
 LIBWMOD = libwmod.$(WMODEXT)
+LIBBLAS = libblas.$(STATICEXT)
+LIBLAPACK = liblapack.$(STATICEXT)
 
 COMPATSRC = compat/ransub.f compat/ourrnd.c compat/degtrig.f $(DATESRC)
 COMPATOBJ = compat/ransub.$(O) compat/ourrnd.$(O) compat/degtrig.$(O) \
@@ -17,8 +19,9 @@ COMPATOBJ = compat/ransub.$(O) compat/ourrnd.$(O) compat/degtrig.$(O) \
 LIBS = $(LIBHVEM) $(LIBIM) $(LIBNMCAR) $(LIBTRACK) $(LINUXFLIBS) \
  $(LIBWMOD) $(LIBSMLMOD)
 
-all : $(LIBS)
+STATICS = $(LIBBLAS) $(LIBLAPACK)
 
+all : $(LIBS) $(STATICS)
 
 $(LIBHVEM): $(LIBIM) piecesubs/*.f hvem/*.f xfsubs/*.f statsubs/*.f
 	(cd piecesubs ; $(MAKE) all)
@@ -65,7 +68,7 @@ $(LIBIFFT):	ifftsub/*.f
 $(LIBNMCAR):	graphics/*.f graphics/*.c*
 	(cd graphics ; $(MAKE) all)
 	$(RM) $(LIBNMCAR)
-	$(MAKENONDLL)$(LIBNMCAR) graphics/*.$(O)
+	$(MAKENMCAR)$(LIBNMCAR) graphics/*.$(O)
 	$(RANLIB) $(LIBNMCAR)
 	$(CP) libdnmncar.$(NMCAREXT) $(LIBDIR)
 
@@ -75,6 +78,20 @@ $(LIBCOMPAT):	$(COMPATSRC)
 	$(FAR) $(ARFLAGS)$(LIBCOMPAT) $(COMPATOBJ)
 	$(RANLIB) $(LIBCOMPAT)
 	$(CP) libb3dcmpt.$(LIBEXT) $(LIBDIR)
+
+$(LIBBLAS): blas/*.f
+	(cd blas; $(MAKE) all)
+	$(RM) $(LIBNMCAR)
+	$(MAKESTATICLIB)$(LIBBLAS) blas/*.$(O)
+	$(RANLIB) $(LIBBLAS)
+	$(CP) $(LIBBLAS) $(LIBDIR)
+
+$(LIBLAPACK): lapack/*.f
+	(cd lapack; $(MAKE) all)
+	$(RM) $(LIBNMCAR)
+	$(MAKESTATICLIB)$(LIBLAPACK) lapack/*.$(O)
+	$(RANLIB) $(LIBLAPACK)
+	$(CP) $(LIBLAPACK) $(LIBDIR)
 
 $(LIBTRACK):	linetrack/*.f linetrack/*.c*
 	(cd linetrack; $(MAKE) all)

@@ -1,4 +1,4 @@
-include ../make.inc
+include ../../configure
 
 #######################################################################
 #  This is the makefile to create a library for LAPACK.
@@ -37,57 +37,42 @@ include ../make.inc
 #  installation guide, LAPACK Working Note 41, for instructions.
 #
 #######################################################################
+CFLAGS = $(LIBCFLAGS)
+FFLAGS = $(LIBFFLAGS)
+
+O        = $(OBJEXT)
+
+all: double
  
-ALLAUX = ilaenv.o ieeeck.o lsame.o lsamen.o xerbla.o
+ALLAUX = ilaenv.$(O) ieeeck.$(O) lsame.$(O) lsamen.$(O) xerbla.$(O)
 
 DZLAUX = \
-   dbdsdc.o \
-   dbdsqr.o ddisna.o dlabad.o dlacpy.o dladiv.o dlae2.o  dlaebz.o \
-   dlaed0.o dlaed1.o dlaed2.o dlaed3.o dlaed4.o dlaed5.o dlaed6.o \
-   dlaed7.o dlaed8.o dlaed9.o dlaeda.o dlaev2.o dlagtf.o \
-   dlagts.o dlamch.o dlamrg.o dlanst.o \
-   dlapy2.o dlapy3.o dlarnv.o \
-   dlarrb.o dlarre.o dlarrf.o \
-   dlartg.o dlaruv.o dlas2.o  dlascl.o \
-   dlasd0.o dlasd1.o dlasd2.o dlasd3.o dlasd4.o dlasd5.o dlasd6.o \
-   dlasd7.o dlasd8.o dlasd9.o dlasda.o dlasdq.o dlasdt.o \
-   dlaset.o dlasq1.o dlasq2.o dlasq3.o dlasq4.o dlasq5.o dlasq6.o \
-   dlasr.o  dlasrt.o dlassq.o dlasv2.o dpttrf.o dstebz.o dstedc.o \
-   dsteqr.o dsterf.o dsecnd.o
+   dbdsdc.$(O) \
+   dbdsqr.$(O) ddisna.$(O) dlabad.$(O) dlacpy.$(O) dladiv.$(O) dlae2.$(O)  dlaebz.$(O) \
+   dlaed0.$(O) dlaed1.$(O) dlaed2.$(O) dlaed3.$(O) dlaed4.$(O) dlaed5.$(O) dlaed6.$(O) \
+   dlaed7.$(O) dlaed8.$(O) dlaed9.$(O) dlaeda.$(O) dlaev2.$(O) dlagtf.$(O) \
+   dlagts.$(O) dlamch.$(O) dlamrg.$(O) dlanst.$(O) \
+   dlapy2.$(O) dlapy3.$(O) dlarnv.$(O) \
+   dlarrb.$(O) dlarre.$(O) dlarrf.$(O) \
+   dlartg.$(O) dlaruv.$(O) dlas2.$(O)  dlascl.$(O) \
+   dlasd0.$(O) dlasd1.$(O) dlasd2.$(O) dlasd3.$(O) dlasd4.$(O) dlasd5.$(O) dlasd6.$(O) \
+   dlasd7.$(O) dlasd8.$(O) dlasd9.$(O) dlasda.$(O) dlasdq.$(O) dlasdt.$(O) \
+   dlaset.$(O) dlasq1.$(O) dlasq2.$(O) dlasq3.$(O) dlasq4.$(O) dlasq5.$(O) dlasq6.$(O) \
+   dlasr.$(O)  dlasrt.$(O) dlassq.$(O) dlasv2.$(O) dpttrf.$(O) dstebz.$(O) dstedc.$(O) \
+   dsteqr.$(O) dsterf.$(O) dsecnd.$(O)
 
 DLASRC = \
-   dgelss.o dgeqrf.o dlange.o dlarfb.o dlarft.o dorgbr.o dorglq.o \
-   dorgqr.o dormbr.o dormlq.o dormqr.o drscl.o dbdsqr.o dlabad.o \
-   dlacpy.o dlamch.o dlartg.o dlas2.o dlascl.o dlaset.o dlasq1.o \
-   dlasq2.o dlasq3.o dlasq4.o dlasq5.o dlasq6.o dlasr.o dlasrt.o \
-   dlassq.o dlasv2.o ilaenv.o ieeeck.o lsame.o xerbla.o dgebrd.o \
-   dgelqf.o dgeqr2.o dlabrd.o dlarf.o dlarfg.o dorg2r.o dorgl2.o \
-   dorm2r.o dorml2.o dlapy2.o dgebd2.o dgelq2.o
+   dgelss.$(O) dgeqrf.$(O) dlange.$(O) dlarfb.$(O) dlarft.$(O) dorgbr.$(O) dorglq.$(O) \
+   dorgqr.$(O) dormbr.$(O) dormlq.$(O) dormqr.$(O) drscl.$(O) dbdsqr.$(O) dlabad.$(O) \
+   dlacpy.$(O) dlamch.$(O) dlartg.$(O) dlas2.$(O) dlascl.$(O) dlaset.$(O) dlasq1.$(O) \
+   dlasq2.$(O) dlasq3.$(O) dlasq4.$(O) dlasq5.$(O) dlasq6.$(O) dlasr.$(O) dlasrt.$(O) \
+   dlassq.$(O) dlasv2.$(O) ilaenv.$(O) ieeeck.$(O) lsame.$(O) xerbla.$(O) dgebrd.$(O) \
+   dgelqf.$(O) dgeqr2.$(O) dlabrd.$(O) dlarf.$(O) dlarfg.$(O) dorg2r.$(O) dorgl2.$(O) \
+   dorm2r.$(O) dorml2.$(O) dlapy2.$(O) dgebd2.$(O) dgelq2.$(O)
 
 double: $(DLASRC) $(ALLAUX) $(DZLAUX)
-	$(ARCH) $(ARCHFLAGS) ../$(LAPACKLIB) $(DLASRC) $(ALLAUX) \
-	$(DZLAUX)
-	$(RANLIB) ../$(LAPACKLIB)
-
-
-$(ALLAUX): $(FRC)
-$(SCLAUX): $(FRC)
-$(DZLAUX): $(FRC)
-$(SLASRC): $(FRC)
-$(CLASRC): $(FRC)
-$(DLASRC): $(FRC)
-$(ZLASRC): $(FRC)
-
-FRC:
-	@FRC=$(FRC)
 
 clean:
-	rm -f *.o
-
-slamch.o: slamch.f
-	$(FORTRAN) $(NOOPT) -c $<
-dlamch.o: dlamch.f
-	$(FORTRAN) $(NOOPT) -c $<
-
-.f.o: 
-	$(FORTRAN) $(OPTS) -c $<
+	$(FIND) . -type f -name "*.o*" -exec rm "{}" \;
+	$(FIND) . -type f -name "*~" -exec rm "{}" \;
+	$(FIND) . -type f -name "#*#" -exec rm "{}" \;
