@@ -81,14 +81,14 @@ $(LIBCOMPAT):	$(COMPATSRC)
 
 $(LIBBLAS): blas/*.f
 	(cd blas; $(MAKE) all)
-	$(RM) $(LIBNMCAR)
+	$(RM) $(LIBBLAS)
 	$(MAKESTATICLIB)$(LIBBLAS) blas/*.$(O)
 	$(RANLIB) $(LIBBLAS)
 	$(CP) $(LIBBLAS) $(LIBDIR)
 
 $(LIBLAPACK): lapack/*.f
 	(cd lapack; $(MAKE) all)
-	$(RM) $(LIBNMCAR)
+	$(RM) $(LIBLAPACK)
 	$(MAKESTATICLIB)$(LIBLAPACK) lapack/*.$(O)
 	$(RANLIB) $(LIBLAPACK)
 	$(CP) $(LIBLAPACK) $(LIBDIR)
