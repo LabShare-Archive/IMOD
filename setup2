@@ -281,7 +281,7 @@ mkdir -p $lib_dir
 # Manage files that have to be in place before qmakes are run
 # update imod_assistant files in subsidiary directories
 #
-foreach dir ($qtassist_dir)
+foreach dir ($qtassist_dir $ctfplot_dir)
     \find $dir -name imod_assistant.cpp ! -newer $imod_dir/imod_assistant.cpp -exec \rm -f '{}' \;
     \find $dir -name imod_assistant.h ! -newer $imod_dir/imod_assistant.h -exec \rm -f '{}' \;
     if (! -e $dir/imod_assistant.cpp) \cp $imod_dir/imod_assistant.cpp $dir
@@ -920,6 +920,9 @@ exit
 
 #
 #  $Log$
+#  Revision 1.28  2007/09/18 05:29:36  mast
+#  Fixed Mac Qt INSTALL output
+#
 #  Revision 1.27  2007/09/18 05:10:04  mast
 #  Added ctfplotter, rewrote Qt massaging into several loops
 #
