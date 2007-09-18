@@ -638,7 +638,7 @@ if ($machine != cygwin) then
     # manage qconfigure files
     #
     echo LIBS += -L$lib_dir -liimod -limod -ldiaqt -ltiff -lqassistantclient >> $midas_qconf
-    echo LIBS += -L$lib_dir -lm -llapack -lblas -liimod -limod -ltiff -lifft >! $ctfplot_qconf
+    echo LIBS += -L$lib_dir -lm -llapack -lblas -liimod -limod -ltiff -lifft  -lqassistantclient >! $ctfplot_qconf
     foreach i ($midas_qconf $ctfplot_qconf)
         echo INCLUDEPATH += $inc_dir >> $i
         echo MOC_DIR = tmp >> $i
@@ -920,6 +920,9 @@ exit
 
 #
 #  $Log$
+#  Revision 1.29  2007/09/18 22:09:10  xiongq
+#  Added imod_assistant for ctfplotter
+#
 #  Revision 1.28  2007/09/18 05:29:36  mast
 #  Fixed Mac Qt INSTALL output
 #
