@@ -1,0 +1,160 @@
+#! /bin/csh -f
+# splitblend: splits blend command file into multiple files to do in chunks
+#
+#  $Id$
+#
+#  Log at end
+
+set pn = splitblend
+@ numproc = 4
+@ maxslices = 5
+@ targetratio = 4
+@ targetslabs = 0
+
+if ($#argv < 1) then
+cat <<EOF
+Usage: $pn [options] command_file
+   Produces multiple command files for running 'ctfPhaseFlip' in parallel.
+   Only -m is supported for now.
+   Options:
+      -n #   Target or expected number of machines (default $numproc)
+      -m #   Maximum number of slices to be corrected per chunk (default $maxslices)
+      -t #   Target # of chunks (default $targetratio times # of machines)
+      -c     Write chunks to separate files, not directly to single output file
+EOF
+exit 0
+endif
+
+setenv LC_NUMERIC C
+
+if ($?IMOD_DIR) then
+    setenv PATH "$IMOD_DIR/bin:$PATH"
+endif
+
+set direct = 1
+
+while ($#argv > 1)
+  switch ($argv[1])
+    case -n:
+      @ numproc = $argv[2]
+      shift; shift
+      breaksw
+
+    case -m:
+      @ maxslices = $argv[2]
+      shift; shift
+      breaksw
+
+    case -t:
+      @ targetslabs = $argv[2]
+      shift; shift
+      breaksw
+
+    case -c:
+      set direct = 0
+      shift
+      breaksw
+
+    default:
+      echo "ERROR: $pn - unrecognized option $argv[1]"
+      exit 1
+  endsw
+end
+
+set rootname = $argv[1]:r
+set comname = $rootname.com
+set setupcom = $rootname-setup.com
+set setuplog = $rootname-setup.log
+if (! -e $comname) then
+    echo "ERROR: $pn - command file $comname does not exist"
+    exit 1
+endif
+
+# Set target slabs if not entered
+#
+if ($targetslabs == 0) @ targetslabs = $targetratio * $numproc
+
+# Get name of output file
+set outline = `sed -n -e '/	/s// /g' -e '/[[:cntrl:]]/s///g' -e '/^ *OutputF/p' $comname`
+if ($#outline < 2) then
+    echo "ERROR: $pn - Cannot find name of output file in $comname"
+    exit 1
+endif
+set outfile = $outline[2]
+
+\find . -type f -name  "$rootname-[0-9]*.*" -exec rm -f "{}" \;
+\rm -f $rootname-start.com $rootname-finish.com
+
+set views = `grep -i StartingEndingViews $comname | grep -v '^#' | sed '/[^ 0-9\.]/s///g'`
+set inStack = `grep -i InputStack $comname | grep -v '^#'` 
+if ($#views <2 ) then
+   set dimensions = `header -s $inStack[2] | sed '/[[:cntrl:]]/s///g'`
+   set views = `echo "1  $dimensions[3]"`
+endif
+
+set viewdel = 'StartingEndingViews'
+@ total = 1 + $views[2] - $views[1]
+
+set outroot = $outfile:r
+set outext = $outfile:e
+set templist = ()
+set outsed = $outfile
+set mode = -3
+if ($direct) then
+    set mode = -2
+    set outsed = gibberish
+    set thiscom = $rootname-start.com
+    sed -e "/$viewdel/d" \
+        -e "/ComputedDefocus/a\\
+$viewdel -1  -1\
+" \
+        -e "/ComputedDefocus/a\\
+TotalViews $views[1] $views[2]\
+" \
+  $comname >! $thiscom
+    cat <<EOF >> $thiscom
+\$sync
+EOF
+endif
+
+@ num = 0
+set currSlice = 0
+set origOffset = $views[1]
+
+while ($currSlice < $total)
+    @ num++
+    set numtext = $num
+    if ($num < 10) then
+        set numtext = 00"$numtext"
+    else if ($num < 100) then
+        set numtext = 0"$numtext"
+    endif
+    set thiscom = $rootname-$numtext.com
+
+    @ currSlice = $currSlice + $maxslices
+
+    if ($currSlice > $total ) then
+        set origEnd = $views[2]
+    else
+        @ origEnd = $origOffset + $maxslices - 1 
+    endif
+
+    sed -e "/$viewdel/d" \
+        -e "/ComputedDefocus/a\\
+$viewdel $origOffset  $origEnd\
+" \
+        -e "/ComputedDefocus/a\\
+TotalViews $views[1] $views[2]\
+" \
+  $comname >! $thiscom
+    cat <<EOF >> $thiscom
+\$echo CHUNK DONE
+EOF
+   @ origOffset =$origOffset + $maxslices
+end
+
+set finish = $rootname-finish.com
+   cat <<EOF >! $finish
+\$collectmmm pixels= $rootname $num $outline[2]
+\$\\rm -f $rootname-[0-9]*.* $rootname-start*.* $rootname-finish*.* 
+EOF
