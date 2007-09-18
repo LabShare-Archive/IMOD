@@ -53,12 +53,12 @@ irix5:
 if ($compiler == gnu) then
 	echo "CC      = gcc"  >> $configure
 	echo "CXX     = g++"  >> $configure
-	echo "FC      = g77" >> $configure
+        set fcomp = "g77"
 	# DNM 11/10/01: Other flags below need to be fixed for this probably!
 else
 	echo "CC      = cc"  >> $configure
 	echo "CXX     = CC"  >> $configure
-	echo "FC      = f77" >> $configure
+        set fcomp = "f77"
 endif
 
 # Watch out for the tab in the build rule
@@ -201,6 +201,9 @@ if ($distname == "") set distname = _irix6.5
 
 
 #  $Log$
+#  Revision 3.33  2006/09/12 16:34:54  mast
+#  Added mesh library for 3dmod
+#
 #  Revision 3.32  2005/12/09 06:02:33  mast
 #  Added extend_source flag for fortran
 #

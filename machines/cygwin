@@ -31,7 +31,7 @@ if ($compiler == intel) then
     set inc_dir = `cygpath --mixed $inc_dir`
     set rgbprogs = 
     set fcmpldFlags = "/C90 /4Yportlib"
-    set fortcomp = ifl
+    set fcomp = ifl
     set fcompFlags = "/4L132"
     
     # Get the version from icl, assuming we have matched c++/fortran compilers
@@ -53,7 +53,7 @@ if ($compiler == intel) then
     # but this Intel bug was fixed in ifort 9.1.29
     # There was a temporary need to remove delayload for 9.0, removed 4/6/06
     if ($iclversion > 7) then
-        set fortcomp = ifort
+        set fcomp = ifort
         set fcmpldFlags = "/4Yportlib /F66000000"
         if ("$iclbuild" != "") then
             @ build = $iclbuild
@@ -93,7 +93,6 @@ endif
 if ($compiler == intel) then
     echo "CC        = icl"              >> $configure
     echo "CXX       = icl"              >> $configure
-    echo "FC        = $fortcomp"              >> $configure
    # set usfftdir = $source_dir/USFFTlib/pc-intel
     echo '#define F77FUNCAP' >> $hconfigure
 else
@@ -101,7 +100,7 @@ else
 # of #define in imodconfig because it must precede all system includes.
     set defines = -D_FILE_OFFSET_BITS=64
     echo "CC        = gcc"              >> $configure
-    echo "FC        = g77"              >> $configure
+    set fcomp = "g77"
     #
     # tell the C routines being called by Fortran that they need two __
     #
@@ -146,7 +145,7 @@ if ($compiler == intel) then
             # Also need to make separate static libwmod, because it accesses
             # common in the program
             #
-            set makenondll = 'link -lib /NOLOGO /out:'
+            set makenmcar = '$(MAKESTATICLIB)'
         else
             echo "ARFLAGS = -lib /NOLOGO /out:"                >> $configure
             echo 'MAKELIBCPP = $(ARCPP) $(ARFLAGS)' >> $configure
@@ -154,11 +153,12 @@ if ($compiler == intel) then
         set lwmod = 'libwmod.lib'
         set lsmlmod = 'libsmlmod.lib'
         set wmodext = 'lib'
-        set makewmod = '$(MAKENONDLL)'
+        set makewmod = '$(MAKESTATICLIB)'
         echo "LIBEXT  = lib"                  >> $configure
 	echo "RANLIB    = true"            >> $configure
         set makestaticlib = "link -lib /NOLOGO /out:"
         set staticranlib = true
+        set staticext = lib
 else
         #
         # setup for cygwin static stuff
@@ -310,7 +310,7 @@ while ($i < $#qdir)
         # enough so need to delete the qmake commands
         # 3/20/05: Removed strip from install - it removes 3KB of symbols that
         # are needed for plugins to work
-        (cd $qdir[$i] ; qmake -o makefile.tmp $qpro[$i])
+        (cd $qdir[$i] ; qmake -o makefile.tmp $qprog[$i].pro)
         set badrules = `sed -n '/{.*}.*{.*}/p' < $qdir[$i]/makefile.tmp`
         sed -e '/^<</d'  -e '/^	$/d' -e '/-del/s//-rm -f/' -e '/@<< */s//\\/' \
         -e '/DEL_FILE.*=.*del/s/del/rm -f/' -e '/makefile.tmp/s//Makefile/g' \
