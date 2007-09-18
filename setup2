@@ -62,6 +62,7 @@ set sendevent_dir   = sendevent
 set imod_dir        = imod
 set qtassist_dir    = qtassist
 set sourcedoc_dir   = sourcedoc
+set ctfplot_dir     = ctfplotter
 set plugsrc_dir     = plugs
 set libdiaqt_dir    = libdiaqt
 set etomo_dir       = Etomo
@@ -72,6 +73,7 @@ set imod_qconf      = imod/qconfigure
 set sendevent_qconf = sendevent/qconfigure
 set qtassist_qconf  = qtassist/qconfigure
 set sourcedoc_qconf = sourcedoc/qconfigure
+set ctfplot_qconf   = ctfplotter/qconfigure
 set sourcedoc_exe   = sourcedoc
 set qtdel1          = ""
 set fort_cpplibs    =
@@ -93,8 +95,8 @@ set moc             = '$(QTDIR)/bin/moc'
 set rgbprogs        = 
 set makestaticlib   = "ar ruv "
 set staticranlib    = ranlib
-set makenondll      = '$(AR) $(ARFLAGS)'
-set modelallo       = 'model/*.$(OBJEXT)'
+set staticext       = a
+set makenmcar       = '$(AR) $(ARFLAGS)'
 set nmcarext        = '$(LIBEXT)'
 set far             = '$(AR)'
 set lwmod           = -lwmod
@@ -124,89 +126,89 @@ set inargv = ($argv)
 
 
 while($#argv > 0)
-        switch($argv[1])
-                case -d:
-		case -debug:
-			set debug = true
-			breaksw
+    switch($argv[1])
+            case -d:
+    	case -debug:
+    		set debug = true
+    		breaksw
 
-		case -shared:
-			set shared_libs = true
-			breaksw
-		case -no_shared:
-			set shared_libs = false
-			breaksw
+    	case -shared:
+    		set shared_libs = true
+    		breaksw
+    	case -no_shared:
+    		set shared_libs = false
+    		breaksw
 
-		case -tiff:
-			set tifflibs = true
-			breaksw
-		case -no_tiff:
-			set tifflibs = false
-			breaksw
+    	case -tiff:
+    		set tifflibs = true
+    		breaksw
+    	case -no_tiff:
+    		set tifflibs = false
+    		breaksw
 
-		case -m:
-		case -mach:
-		case -machine:
-			shift
-			set machine = $argv[1]
-			breaksw
+    	case -m:
+    	case -mach:
+    	case -machine:
+    		shift
+    		set machine = $argv[1]
+    		breaksw
 
-		case -flags:
-			shift
-			set flags  = "$argv[1]"
-                        breaksw
-		case -i:
-		case -inst:
-			shift
-			set inst_dir = $argv[1]
-			breaksw
+    	case -flags:
+    		shift
+    		set flags  = "$argv[1]"
+                    breaksw
+    	case -i:
+    	case -inst:
+    		shift
+    		set inst_dir = $argv[1]
+    		breaksw
 
-		case -compiler:
-		case -c:
-			shift
-			set compiler = $argv[1]
-			breaksw
+    	case -compiler:
+    	case -c:
+    		shift
+    		set compiler = $argv[1]
+    		breaksw
 
-		case -swapieee:
-			set swap_ieee = true
-			breaksw
+    	case -swapieee:
+    		set swap_ieee = true
+    		breaksw
 
-		case -swapvms:
-			set swap_ieee = false
-			breaksw
+    	case -swapvms:
+    		set swap_ieee = false
+    		breaksw
 
-                case -no_xlibs:
-                        set no_xlibs = true
-                        breaksw
-                 
-                case -name:
-                        shift
-                        set distname = _$argv[1]
-                        breaksw
+        case -no_xlibs:
+                set no_xlibs = true
+                breaksw
+         
+        case -name:
+                shift
+                set distname = _$argv[1]
+                breaksw
 
-                case -packqt:
-                        set packqt = true
-                        breaksw
+        case -packqt:
+                set packqt = true
+                breaksw
 
-                case -useqt:
-                        set useqt = true
-                        breaksw
+        case -useqt:
+                set useqt = true
+                breaksw
 
-		case -use_etomo:
-			shift
-			set use_etomo = $argv[1]
-			breaksw
+    	case -use_etomo:
+    		shift
+    		set use_etomo = $argv[1]
+    		breaksw
 
-		case -h:
-		case -help:
-			goto usage
+    	case -h:
+    	case -help:
+    		goto usage
 
-		default:
-			echo Bad option
-			goto usage
-			breaksw
-	endsw
-        shift
+    	default:
+    		echo Bad option
+    		goto usage
+    		breaksw
+    endsw
+    shift
 end
 
 #
@@ -286,10 +288,15 @@ foreach dir ($qtassist_dir)
     if (! -e $dir/imod_assistant.h) \cp $imod_dir/imod_assistant.h $dir
 end
 
-# Make lists of qt directories and project names
+# Make lists of qt directories and project names.  List them in order of
+# the ones that can be treated the same for runscripts, etc, then midas, then
+# oddballs
 #
-set qdir = ($midas_dir $imod_dir $sendevent_dir $qtassist_dir $sourcedoc_dir)
-set qpro = (midas.pro imod.pro imodsendevent.pro imodqtassist.pro sourcedoc.pro)
+set qdir = ($sendevent_dir $qtassist_dir $ctfplot_dir $midas_dir $imod_dir \
+  $sourcedoc_dir)
+set qprog = (imodsendevent imodqtassist ctfplotter midas imod sourcedoc)
+set qconf = ($sendevent_qconf $qtassist_qconf $ctfplot_qconf $midas_qconf \
+  $imod_qconf $sourcedoc_qconf)
 
 # Manage imodhelp for the qmake without having to delete a good one
 if (! -e $imod_dir/imodhelp.h) touch $imod_dir/imodhelp.h
@@ -398,7 +405,7 @@ exit 1
 echo "CC      = cc"               >> $configure
 echo "CXX     = CC"               >> $configure
 echo "CPPC    = CC"               >> $configure
-echo "FC     = f77"              >> $configure
+set fcomp = "f77"
 
 # May need to define as \cp and \find if you have aliases
 echo "CP      = cp"          	  >> $configure
@@ -630,11 +637,14 @@ if ($machine != cygwin) then
     #
     # manage qconfigure files
     #
-    echo INCLUDEPATH += $inc_dir >> $midas_qconf
     echo LIBS += -L$lib_dir -liimod -limod -ldiaqt -ltiff -lqassistantclient >> $midas_qconf
-    echo MOC_DIR = tmp >> $midas_qconf
-    echo OBJECTS_DIR = tmp >> $midas_qconf
-    echo target.path = $inst_bin_dir >> $midas_qconf
+    echo LIBS += -L$lib_dir -lm -llapack -lblas -liimod -limod -ltiff -lifft >! $ctfplot_qconf
+    foreach i ($midas_qconf $ctfplot_qconf)
+        echo INCLUDEPATH += $inc_dir >> $i
+        echo MOC_DIR = tmp >> $i
+        echo OBJECTS_DIR = tmp >> $i
+        echo target.path = $inst_bin_dir >> $i
+    end
     echo target.path = $inst_bin_dir >! $sendevent_qconf
     echo LIBS += -lqassistantclient >! $qtassist_qconf
     echo target.path = $inst_bin_dir >> $qtassist_qconf
@@ -653,7 +663,7 @@ target.path = $inst_bin_dir
 3dmodv.path = $inst_bin_dir
 EOF
 
-    foreach i ($midas_qconf $sendevent_qconf $imod_qconf $qtassist_qconf $sourcedoc_qconf)
+    foreach i ($qconf)
         if ($debug == true) then
             echo CONFIG += debug warn_on >> $i
             if ($m64notIA == true) echo QMAKE_CXXFLAGS_DEBUG += -m64 >> $i
@@ -675,43 +685,31 @@ if [ -e 3dmod ] ; then strip 3dmod ; fi ; \\rm -f 3dmodv imod imodv ; \
 ln -s 3dmod 3dmodv ; ln -s 3dmod imod ; ln -s 3dmodv imodv
 EOF
 
-        cat <<EOF  >> $midas_qconf
+        @ i = 0
+        while ($i < 4)
+            @ i++
+            cat <<EOF  >> $qconf[$i]
 INSTALLS += strip
 strip.path = $inst_bin_dir
-strip.extra = strip midas ; if [ -e $inst_bin_dir/midas ] ; then strip $inst_bin_dir/midas ; fi
+strip.extra = $strip $qprog[$i] ; if [ -e $inst_bin_dir/$qprog[$i] ] ; then $strip $inst_bin_dir/$qprog[$i] ; fi
 EOF
-
-        cat <<EOF  >> $sendevent_qconf
-INSTALLS += strip
-strip.path = $inst_bin_dir
-strip.extra = strip imodsendevent ; if [ -e $inst_bin_dir/imodsendevent ] ; then strip $inst_bin_dir/imodsendevent ; fi
-EOF
-
-        cat <<EOF  >> $qtassist_qconf
-INSTALLS += strip
-strip.path = $inst_bin_dir
-strip.extra = strip imodqtassist ; if [ -e $inst_bin_dir/imodqtassist] ; then strip $inst_bin_dir/imodqtassist ; fi
-EOF
+        end
 
     else
 
         # For Mac, copy the run files, also strip (-x needed for 3dmod)
         #
-        cat << EOF >> $sendevent_qconf
-INSTALLS += runsendevent
-runsendevent.path = $inst_bin_dir
-runsendevent.extra = \\cp -f runsendevent $inst_bin_dir/imodsendevent ; \
-strip imodsendevent.app/Contents/MacOS/imodsendevent ; \
-if [ -e $inst_bin_dir/imodsendevent.app ] ; then strip $inst_bin_dir/imodsendevent.app/Contents/MacOS/imodsendevent ; fi
+        @ i = 0
+        while ($i < 4)
+            @ i++
+            cat <<EOF  >> $qconf[$i]
+INSTALLS += $qprog[$i]
+$qrun[$i].path = $inst_bin_dir
+$qrun[$i].extra = \\cp -f $qrun[$i] $inst_bin_dir/$qprog[$i] ; \
+$strip $qprog[$i].app/Contents/MacOS/$qprog[$i] ; \
+if [ -e $inst_bin_dir/$qprog[$i].app ] ; then $strip $inst_bin_dir/$qprog[$i].app/Contents/MacOS/$qprog[$i] ; fi
 EOF
-
-        cat << EOF  >> $midas_qconf
-INSTALLS += runmidas
-runmidas.path = $inst_bin_dir
-runmidas.extra = \\cp -f runmidas $inst_bin_dir/midas ; \
-strip midas.app/Contents/MacOS/midas ; \
-if [ -e $inst_bin_dir/midas.app ] ; then strip $inst_bin_dir/midas.app/Contents/MacOS/midas ; fi
-EOF
+        end
 
         cat << EOF >> $imod_qconf
 3dmodv.extra = \\cp -f runimodv $inst_bin_dir/3dmodv ; \
@@ -721,13 +719,6 @@ strip -x 3dmod.app/Contents/MacOS/3dmod ; \
 if [ -e 3dmod.app ] ; then strip -x 3dmod.app/Contents/MacOS/3dmod ; fi
 EOF
 
-        cat << EOF >> $qtassist_qconf
-INSTALLS += runqtassist
-runqtassist.path = $inst_bin_dir
-runqtassist.extra = \\cp -f runqtassist $inst_bin_dir/imodqtassist ; \
-strip imodqtassist.app/Contents/MacOS/imodqtassist ; \
-if [ -e $inst_bin_dir/imodqtassist.app ] ; then strip $inst_bin_dir/imodqtassist.app/Contents/MacOS/imodqtassist ; fi
-EOF
     endif
 
     # Finally run qmake and doctor the Makefiles if necessary
@@ -735,7 +726,7 @@ EOF
     @ i = 0
     while ($i < $#qdir)
         @ i++
-        (cd $qdir[$i] ; qmake $qpro[$i])
+        (cd $qdir[$i] ; qmake $qprog[$i].pro)
         if ($status) then
             echo "ERROR: setup - executing qmake"
             exit 1
@@ -747,6 +738,7 @@ EOF
             \mv $qdir[$i]/makefile.tmp $qdir[$i]/Makefile
         endif
     end
+
     (cd $imod_dir ; \rm -f 3dmodv ; ln -s 3dmod 3dmodv)
 
     set qt_libs = `sed -n '/^LIBS /s/^LIBS.*-L\$(QTDIR/-L\$(QTDIR/p' $sendevent_dir/Makefile`
@@ -761,7 +753,7 @@ if (\$?IMOD_QTLIBDIR) then
 endif
 \$IMOD_DIR/bin/${qtapp_path}\$*
 EOF
-    chmod +x $scripts_dir/runimodqtapp
+    chmod a+x $scripts_dir/runimodqtapp
    
     # Make the script for etomo to source to set library path
     #
@@ -774,6 +766,12 @@ EOF
 
 endif
 
+# Set ctfplotter to link with fortran compiler
+#
+sed -e "/^LINK *=/s/=.*/= $fcomp/" \
+    < $ctfplot_dir/Makefile >! $ctfplot_dir/Makefile.tmp
+\mv $ctfplot_dir/Makefile.tmp $ctfplot_dir/Makefile
+
 # After qmake: remove empty imodhelp and take care of dependencies on version
 #
 \find $imod_dir -name imodhelp.h -size 0 -exec \rm -f '{}' \;
@@ -785,10 +783,12 @@ echo "RGBPROGS = $rgbprogs" >> $configure
 echo "LDFFLAGS = $ldfflags" >> $configure
 echo "MAKESTATICLIB = $makestaticlib" >> $configure
 echo "STATICRANLIB = $staticranlib" >> $configure
+echo "STATICEXT = $staticext" >> $configure
 echo "DLLEXT = $dllext" >> $configure
-echo "MAKENONDLL = $makenondll" >> $configure
+echo "MAKENMCAR = $makenmcar" >> $configure
 echo "NMCAREXT = $nmcarext" >> $configure
 echo "FAR = $far" >> $configure
+echo "FC = $fcomp"              >> $configure
 echo "WMODEXT = $wmodext" >> $configure
 echo "MAKEWMOD = $makewmod" >> $configure
 echo "LWMOD = $lwmod" >> $configure
@@ -920,6 +920,9 @@ exit
 
 #
 #  $Log$
+#  Revision 1.26  2007/08/26 06:55:30  mast
+#  Make libhelp directory
+#
 #  Revision 1.25  2007/08/13 04:58:53  mast
 #  Provisional changes for itanic
 #
