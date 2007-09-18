@@ -8,6 +8,9 @@
 #  $Revision$
 #
 #  $Log$
+#  Revision 3.8  2005/11/23 16:24:17  mast
+#  Use strip variable
+#
 #  Revision 3.7  2005/03/11 19:42:13  mast
 #  Added nad_eed_3d
 #
@@ -38,7 +41,7 @@ E = $(BINEXT)
 MRCVOBJS  = mrcv.o mrcv_movie.o mrcv_draw.o mrcv_batch.o rgbv.o colormap.o
 
 PROGS     = mrc2tif$(E) raw2mrc$(E) tif2mrc$(E) mrcbyte$(E) mrcx$(E) \
- mrctaper$(E) dm3props$(E) nad_eed_3d$(E) $(RGBPROGS)
+ mrctaper$(E) dm3props$(E) nad_eed_3d$(E) ctfphaseflip$(E) $(RGBPROGS)
 
 
 IILIBS    =  $(LIIMOD) $(LIMOD) $(TIFFLIBS)
@@ -73,6 +76,11 @@ dm3props$(E) : dm3props.$(O)
 nad_eed_3d$(E) : nad_eed_3d.$(O) nrutil.$(O)
 	$(CC) -o nad_eed_3d nad_eed_3d.$(O) nrutil.$(O) $(LDFLAGS) $(IILIBS) \
 	 $(CLIBS)
+
+ctfphaseflip$(E) : ctfphaseflip.$(O) 
+	$(CXX) -o ctfphaseflip ctfphaseflip.$(O) $(LDFLAGS) $(IILIBS) \
+	 $(LIFFT) $(CLIBS)
+
 
 #
 # SGI only programs
