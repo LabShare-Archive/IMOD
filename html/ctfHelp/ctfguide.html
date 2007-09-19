@@ -1,0 +1,120 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN">
+<html>
+<head>
+  <meta content="text/html; charset=ISO-8859-1"
+ http-equiv="content-type">
+  <title>ctfguide.html</title>
+</head>
+<body>
+<a name="overall"></a><big>1. The red curve is the logrithm of the CTF
+curve of the selected slices after subtracting the noise floor. <br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; The green curve fits the red
+curve from X1_starts to X1_ends which can be set in the fitting range
+dialog.<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; The blue </big><big>curve
+fits the red curve from X2_starts to X2_ends which can be set in the
+fitting range dialog.<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; The intersection point of
+the green curve and the blue curve is where the program find the first
+zero of the CTF is.<br>
+</big><a name="Intro"></a><big>2. To zoom in an area, hold the left
+mouse down to
+draw rubber bands around that area.<br>
+<a name="intro2"></a>3.
+Use arrow keys to scroll vertically and horizontally.</big><br>
+<br>
+<big><big>Tool button usage:</big></big><br>
+<br>
+<a name="zoominButton"></a> <img alt="zoominButton" src="zoomin.png"
+ style="width: 22px; height: 22px;">&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
+<big>Zoom in.<br>
+<a name="zoomoutButton"></a> <img alt="zoomoutButton" src="zoomout.png"
+ style="width: 22px; height: 22px;">&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
+Zoom out.<br>
+<a name="angleButton"></a> <img alt="rangButton" src="range.png"
+ style="width: 48px; height: 48px;">&nbsp; Bring up the fitting range
+dialog.<br>
+<a name="rangeButton"></a> <img alt="angleButton" src="angle.png"
+ style="width: 48px; height: 48px;">&nbsp; Bring up the tilt angle
+range
+dialog. <br>
+<a name="moreTileButton"></a>&nbsp; <img alt="moretileButton"
+ src="moreTile.png" style="width: 32px; height: 32px;">&nbsp;&nbsp;&nbsp;
+<big><big><small><small>Adding Noncenter Strips button</small>. </small></big></big>Add
+the non-center strips to the estimation that was based only on center
+strips.<br>
+<a name="saveButton"></a> <img alt="saveButton" src="save.png"
+ style="width: 32px; height: 32px;">&nbsp;&nbsp;&nbsp;&nbsp; To save
+the defocus found for
+selected slices in the output file.<br>
+<a name="printerButton"></a> <img alt="printerButton" src="printer.png"
+ style="width: 48px; height: 48px;">&nbsp; Print the plotted curves.<br>
+<a name="helpButton"></a> <img alt="helpButton" src="ctfhelp.png"
+ style="width: 22px; height: 22px;">&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
+Bring up Qt assistant to display
+this page.</big>
+<br>
+<br>
+<big><big>The fitting range dialog:<br>
+<br>
+<img alt="rangeDialog" src="rangedialog.png"
+ style="width: 397px; height: 260px;"><br>
+<br>
+<small>x1 sets the fitting range for the green curve. Use the radio
+button to choose linear or Gaussian fitting method.<br>
+</small></big></big><big><big><small>x2 sets the fitting range for the
+blue curve. Use the radio button to choose linear or Gaussian fitting
+method.<br>
+Push the Apply button to make the changes made effective.<br>
+Push the Close button to close this dialog.<br>
+<br>
+<big>The tilt angle range dialog:<br>
+<br>
+<img alt="angleDialog" src="angledialog.png"
+ style="width: 525px; height: 259px;"><br>
+</big></small></big></big><big><big><small>Expected defocus: <br>
+input&nbsp; the defocus the user expects this tilt series may have.<br>
+Use the radio button to its right, the user can specify whether to use
+the expected defocus or <br>
+the defocus previously found by the program as an intial guess for the
+next round defocus detection.<br>
+<br>
+Center defocus tol: <br>
+The image region with defocus less than this tolerance is defined as
+the center region.<br>
+<br>
+Left defocus tol: <br>
+The image region left to the center region with defocus less than this
+tolerance <br>
+will be included after the Adding Noncenter Strips button is pushed.<br>
+<br>
+</small></big></big><big><big><small>Right defocus tol: <br>
+The image region right to the center region with defocus less than this
+tolerance <br>
+will be included after the Adding Noncenter Strips button is pushed.</small></big></big><br>
+<big><big><small><br>
+Tilt angle starts<br>
+</small></big></big><big><big><small>Tilt angle ends: <br>
+</small></big></big><big><big><small>&nbsp;The slices with tilt angle
+great than the starting angle but less than the ending angle<br>
+&nbsp;will be included in the estimation.<br>
+<br>
+Tile size: <br>
+The tile size in pixels.<br>
+<br>
+Tilt axis angle:<br>
+The amount in degrees that the tilt axis deviates from being vertical
+(Y axis).<br>
+<br>
+Initial tiles to include radio button:<br>
+Choose whether or not to include the noncenter regions to the initial
+estimation.<br>
+<br>
+Push the 'Store current defocus' to store the defocus found to the
+output file.<br>
+Push the Apply button to make the changes made effective.<br>
+Push the Close button to close this dialog.</small></big></big><br>
+<big><big><small><br>
+</small></big></big>
+</body>
+</html>
