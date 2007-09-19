@@ -159,7 +159,8 @@ int main(int argc, char *argv[])
 
   //Get detected defocus for each slice;
   int beginNum, endNum;
-  float beginAngle, endAngle, rangeDefocus, defocus[nz];
+  float beginAngle, endAngle, rangeDefocus;
+  float *defocus=(float *)malloc(nz*sizeof(float));
   for(k=0;k<nz;k++) defocus[k]=-1.0;
    while( fgets(defStr, 100, fpDef) ) {
       sscanf(defStr, "%d%d%f%f%f", &beginNum, &endNum, &beginAngle, 
@@ -381,5 +382,6 @@ int main(int argc, char *argv[])
   }
   fclose(foutput);
   fclose(fpStack);
+  free(defocus);
   if(fpAngle) fclose(fpAngle);
 }
