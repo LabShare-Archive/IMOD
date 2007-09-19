@@ -11,6 +11,7 @@
 #include "parse_params.h"
 
 #define MIN_ANGLE 1.0e-6  //tilt Angle less than this is treated as 0.0;
+#define MY_PI 3.1415926
 
 using namespace std;
 
@@ -191,7 +192,7 @@ int main(int argc, char *argv[])
     printf("defocus[%d]=%f microns\n",k ,defocus[k]); 
 
   WL=12.3/sqrt(volt*1000.0+volt*volt); //wavelength;
-  C1=M_PI*WL;
+  C1=MY_PI*WL;
   C2=-C1*cs*1000000.0*WL*WL/2.0;
 
 
@@ -237,7 +238,7 @@ int main(int argc, char *argv[])
       if( sliceNewMode(currSlice, SLICE_MODE_FLOAT)<0 )
        exitError("converting slice to float\n");
 
-    currAngle=currAngle*M_PI/180.0; 
+    currAngle=currAngle*MY_PI/180.0; 
     if( fabs(currAngle)>MIN_ANGLE ) {
       stripPixelNum=fabs(defocusTol/tan(currAngle))/pixelSize;
       interPixelNum=fabs(iWidth/tan(currAngle))/pixelSize;
@@ -252,7 +253,7 @@ int main(int argc, char *argv[])
     interPixelNum=36; // must be less than stripPixelNum/2;
     printf("stripPixelNum=%d interPixelNum=%d \n", stripPixelNum,
         interPixelNum);
-    float strip[2][ny][stripPixelNum+2];
+    float *strip=(float *)malloc(2*ny*(stripPixelNum+2)*sizeof(float));
     bool finished=false;
     int stripBegin;
     int stripEnd;
@@ -281,9 +282,9 @@ int main(int argc, char *argv[])
         tan(currAngle)*pixelSize; //in nm;
 
         sliceTaperInPad(currSlice->data.f, SLICE_MODE_FLOAT, nx, stripBegin, 
-            stripEnd, 0, ny-1, &strip[stripIdx%2][0][0], stripPixelNum+2, 
-            stripPixelNum, ny, 9, 9);
-        todfft(&strip[stripIdx%2][0][0], &stripPixelNum, &ny, &dir);
+            stripEnd, 0, ny-1, strip+(stripIdx%2)*ny*(stripPixelNum+2), 
+            stripPixelNum+2, stripPixelNum, ny, 9, 9);
+        todfft(strip+(stripIdx%2)*ny*(stripPixelNum+2),&stripPixelNum,&ny,&dir);
         //fipping the phase;
         for(fy=0;fy<ny;fy++){
           fyy=fy;
@@ -296,17 +297,21 @@ int main(int argc, char *argv[])
               -ampContrast*cos(waveAberration);
             if( ctf <0) sign=1.0;
             else sign=-1.0; 
-            strip[stripIdx%2][fy][2*fx]*=sign;
-            strip[stripIdx%2][fy][2*fx+1]*=sign;
+            //strip[stripIdx%2][fy][2*fx]*=sign;
+            *(strip+(stripIdx%2)*ny*(stripPixelNum+2)+
+                fy*(stripPixelNum+2)+2*fx)*=sign;
+            //strip[stripIdx%2][fy][2*fx+1]*=sign;
+            *(strip+(stripIdx%2)*ny*(stripPixelNum+2)+
+                fy*(stripPixelNum+2)+2*fx+1)*=sign;
           }
         }
         //inverse FFT;
-      todfft(&strip[stripIdx%2][0][0], &stripPixelNum, &ny, &idir);
+      todfft(strip+(stripIdx%2)*ny*(stripPixelNum+2),&stripPixelNum,&ny,&idir);
 
       if(stripIdx==0){ //The starting strip needs special handling;
         for( row=0;row<ny;row++)
           for(column=0;column<stripPixelNum/2;column++)
-            *(restoredArray+row*nx+column)=strip[0][row][column];
+           *(restoredArray+row*nx+column)=*(strip+row*(stripPixelNum+2)+column);
         //printf("column=1 ... %d \n", stripPixelNum/2);
       }else{
           for( row=0;row<ny;row++)
@@ -315,10 +320,21 @@ int main(int argc, char *argv[])
             {
               stripDist[0]=column-(stripBegin+stripEnd)/2+stripStride-1;
               stripDist[1]=(stripBegin+stripEnd)/2+1-column;
-              *(restoredArray+row*nx+column)=(stripDist[0]*strip[stripIdx%2]
-                  [row][stripPixelNum/2-stripDist[1]] + 
-                  stripDist[1]*strip[(stripIdx-1)%2][row][stripPixelNum/2+
-                  stripDist[0]])/(float)stripStride;
+              *(restoredArray+row*nx+column)     =   (
+                                                      stripDist[0]*(  
+                                                     *(strip+
+                           (stripIdx%2)*ny*(stripPixelNum+2)+
+                                       row*(stripPixelNum+2)+
+                                stripPixelNum/2-stripDist[1])      
+                                                                     ) + 
+                                                       stripDist[1]*(
+                                                      *(strip+
+                        ((stripIdx-1)%2)*ny*(stripPixelNum+2)+
+                                        row*(stripPixelNum+2)+
+                                  stripPixelNum/2+ stripDist[0]) 
+                                                                    )
+                                                    )
+                /(float)stripStride;
             }
           //printf("column=%d ... %d \n", (stripBegin+stripEnd)/2-
           // stripStride+1+1, (stripBegin+stripEnd)/2+1 );
@@ -327,14 +343,17 @@ int main(int argc, char *argv[])
       if(finished){ //last strip
         for( row=0;row<ny;row++)
             for(column=(stripBegin+stripEnd)/2+1;column<nx;column++)
-              *(restoredArray+row*nx+column)=strip[stripIdx%2][row]
-                [stripPixelNum/2+column-(stripBegin+stripEnd)/2-1];
+              *(restoredArray+row*nx+column)  = *(strip+
+                      (stripIdx%2)*ny*(stripPixelNum+2)+
+                                  row*(stripPixelNum+2)+
+        stripPixelNum/2+column-(stripBegin+stripEnd)/2-1);
         //printf("column=%d ... %d \n", (stripBegin+stripEnd)/2+1+1, nx);
       }
 
       //printf("stripIdx=%d\n", stripIdx);
       stripIdx++;
     }//while strip loop
+    free(strip);
     sliceMMM(outSlice);
     if( outSlice->min < amin) amin=outSlice->min;
     if( outSlice->max > amax) amax=outSlice->max;
