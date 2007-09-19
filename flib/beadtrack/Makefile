@@ -14,8 +14,8 @@ tiltali.$(O): tiltali.f
 	$(FC) -c $(NOOPFFLAGS) tiltali.f
 
 $(PROG): $(BDOBJS)
-	$(FC) -o beadtrack $(BDOBJS) $(LDFFLAGS) $(LSMLMOD) $(IMLIBS) \
-	$(FORTCLIBS) $(TILTALILIB)
+	$(FC) -o beadtrack $(BDOBJS) $(LDFFLAGS) $(LSMLMOD) $(LIMOD) \
+	 $(IMLIBS) $(FORTCLIBS) $(TILTALILIB)
 
 beadtrack.$(O):   $(INCDIR)/smallmodel.inc  $(INCDIR)/statsize.inc \
  $(INCDIR)/alivar.inc tltcntrl.inc

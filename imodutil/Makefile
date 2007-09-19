@@ -1,20 +1,16 @@
 #
 # Makefile for IMOD model utility programs
 #
-#  $Author$
-#
-#  $Date$
-#
-#  $Revision$
-#
-#  Log at end
+# $Id$
+# Log at end
 #
 include ../configure
 
 O = $(OBJEXT)
 E = $(BINEXT)
 
-IILIBS    = $(LIMOD) $(LIIMOD) $(TIFFLIBS)
+IILIBS    = $(LIIMOD) $(LIMOD) $(LCFSHR) $(TIFFLIBS)
+MODLIBS   = $(LIMOD) $(LCFSHR)
 
 PROGS = imodauto$(E) imodinfo$(E) imodmesh$(E) imodtrans$(E) imodmop$(E) \
  rec2imod$(E) imod2rib$(E) imod2vrml$(E) imod2meta$(E) \
@@ -25,12 +21,11 @@ PROGS = imodauto$(E) imodinfo$(E) imodmesh$(E) imodtrans$(E) imodmop$(E) \
 all : $(PROGS)
 
 imodinfo$(E) : imodinfo.$(O)
-	$(CC) -o imodinfo imodinfo.$(O) $(LDFLAGS) $(LIMOD) \
-	$(CLIBS)
+	$(CC) -o imodinfo imodinfo.$(O) $(LDFLAGS) $(MODLIBS) $(CLIBS)
 
 imodmesh$(E) : imodmesh.$(O) 
 	$(CC) -o imodmesh imodmesh.$(O) \
-	$(LDFLAGS) $(LIMESH) $(LIMOD) $(CLIBS)
+	$(LDFLAGS) $(LIMESH) $(MODLIBS) $(CLIBS)
 
 imodtrans$(E) : imodtrans.$(O)
 	$(CC) -o imodtrans imodtrans.$(O) $(LDFLAGS) $(IILIBS) $(CLIBS)
@@ -42,46 +37,48 @@ imodauto$(E) : imodauto.$(O)
 	$(CC) -o imodauto imodauto.$(O) $(LDFLAGS) $(IILIBS) $(CLIBS)
 
 rec2imod$(E) : rec2imod.$(O) recfile.$(O)
-	$(CC) -o rec2imod rec2imod.$(O) recfile.$(O) $(LDFLAGS) $(LIMOD) $(CLIBS)
+	$(CC) -o rec2imod rec2imod.$(O) recfile.$(O) $(LDFLAGS) $(MODLIBS) \
+	$(CLIBS)
 
 imod2rib$(E): imod2rib.$(O)
-	$(CC) -o imod2rib imod2rib.$(O) $(LDFLAGS) $(LIMOD) $(CLIBS)
+	$(CC) -o imod2rib imod2rib.$(O) $(LDFLAGS) $(MODLIBS) $(CLIBS)
 
 imod2vrml$(E) : imod2vrml.$(O)
-	$(CC) -o imod2vrml imod2vrml.$(O) $(LDFLAGS) $(LIMOD) $(CLIBS)
+	$(CC) -o imod2vrml imod2vrml.$(O) $(LDFLAGS) $(MODLIBS) $(CLIBS)
 
 imod2meta$(E) : imod2meta.$(O)
-	$(CC) -o imod2meta imod2meta.$(O) $(LDFLAGS) $(LIMOD) $(CLIBS)
+	$(CC) -o imod2meta imod2meta.$(O) $(LDFLAGS) $(MODLIBS) $(CLIBS)
 
 wmod2imod$(E) : wmod2imod.$(O)
-	$(CC) -o wmod2imod wmod2imod.$(O) $(LDFLAGS) $(LIMOD) $(CLIBS)
+	$(CC) -o wmod2imod wmod2imod.$(O) $(LDFLAGS) $(MODLIBS) $(CLIBS)
 
 imodjoin$(E) :  imodjoin.$(O)
 	$(CC) -o imodjoin imodjoin.$(O) $(LDFLAGS) $(IILIBS) $(CLIBS)
 
 imodextract$(E) : imodextract.$(O)
-	$(CC) -o imodextract imodextract.$(O) $(LDFLAGS) $(LIMOD) $(CLIBS)
+	$(CC) -o imodextract imodextract.$(O) $(LDFLAGS) $(MODLIBS) $(CLIBS)
 
 imodsortsurf$(E) : imodsortsurf.$(O)
-	$(CC) -o imodsortsurf imodsortsurf.$(O) $(LDFLAGS) $(LIMOD) $(CLIBS)
+	$(CC) -o imodsortsurf imodsortsurf.$(O) $(LDFLAGS) $(MODLIBS) $(CLIBS)
 
 imodexplode$(E) : imodexplode.$(O)
-	$(CC) -o imodexplode imodexplode.$(O) $(LDFLAGS) $(LIMOD) $(CLIBS)
+	$(CC) -o imodexplode imodexplode.$(O) $(LDFLAGS) $(MODLIBS) $(CLIBS)
 
 patch2imod$(E) : patch2imod.$(O) 
-	$(CC) -o patch2imod patch2imod.$(O) $(LDFLAGS) $(LIMOD) $(CLIBS)
+	$(CC) -o patch2imod patch2imod.$(O) $(LDFLAGS) $(MODLIBS) $(CLIBS)
 
 imod2patch$(E) : imod2patch.$(O) 
-	$(CC) -o imod2patch imod2patch.$(O) $(LDFLAGS) $(LIMOD) $(CLIBS)
+	$(CC) -o imod2patch imod2patch.$(O) $(LDFLAGS) $(MODLIBS) $(CLIBS)
 
 echo2$(E) : echo2.$(O) 
 	$(CC) -o echo2 echo2.$(O) $(LDFLAGS)
 
 imodfillin$(E) : imodfillin.$(O)
-	$(CC) -o imodfillin imodfillin.$(O) $(LDFLAGS) $(LIMOD) $(CLIBS)
+	$(CC) -o imodfillin imodfillin.$(O) $(LDFLAGS) $(MODLIBS) $(CLIBS)
 
 imodcurvature$(E) : imodcurvature.$(O)
-	$(CC) -o imodcurvature imodcurvature.$(O) $(LDFLAGS) $(LIMOD) $(CLIBS)
+	$(CC) -o imodcurvature imodcurvature.$(O) $(LDFLAGS) $(MODLIBS) \
+	$(CLIBS)
 
 imodwincpu.exe : imodwincpu.obj
 	$(CC) -o imodwincpu imodwincpu.obj $(LDFLAGS)
@@ -105,29 +102,32 @@ clean :
 # unsupported programs
 
 imod2nff : imod2nff.$(O)
-	$(CC) -o imod2nff imod2nff.$(O) $(LDFLAGS) $(LIMOD) $(CLIBS)
+	$(CC) -o imod2nff imod2nff.$(O) $(LDFLAGS) $(MODLIBS) $(CLIBS)
 
 imod2synu : imod2synu.$(O)
-	$(CC) -o imod2synu imod2synu.$(O) $(LDFLAGS) $(LIMOD) $(CLIBS)
+	$(CC) -o imod2synu imod2synu.$(O) $(LDFLAGS) $(MODLIBS) $(CLIBS)
 
 imod2wmod : imod2wmod.$(O) $(IMODELOBJS)
-	$(CC) -o imod2wmod imod2wmod.$(O) $(LDFLAGS) $(LIMOD) $(CLIBS)
+	$(CC) -o imod2wmod imod2wmod.$(O) $(LDFLAGS) $(MODLIBS) $(CLIBS)
 
 # oldpore, help edit old yeast pore models
 oldpore : oldpore.$(O)
-	$(CC) -o oldpore oldpore.$(O) $(LDFLAGS) $(LIMOD) $(CLIBS)
+	$(CC) -o oldpore oldpore.$(O) $(LDFLAGS) $(MODLIBS) $(CLIBS)
 
 imodclean : imodclean.$(O)
-	$(CC) -o imodclean imodclean.$(O) $(LDFLAGS) $(LIMOD) $(CLIBS)
+	$(CC) -o imodclean imodclean.$(O) $(LDFLAGS) $(MODLIBS) $(CLIBS)
 
 imodold : imodold.$(O) 
-	$(CC) -o imodold imodold.$(O) $(LDFLAGS) $(LIMOD) $(CLIBS)
+	$(CC) -o imodold imodold.$(O) $(LDFLAGS) $(MODLIBS) $(CLIBS)
 
 imodmkhv : imodmkhv.$(O) 
-	$(CC) -o imodmkhv imodmkhv.$(O) $(LDFLAGS) $(LIMOD) $(CLIBS)
+	$(CC) -o imodmkhv imodmkhv.$(O) $(LDFLAGS) $(MODLIBS) $(CLIBS)
 
 
 #  $Log$
+#  Revision 3.17  2007/04/26 19:13:48  mast
+#  Removed imodcmopp
+#
 #  Revision 3.16  2006/09/19 22:24:47  mast
 #  Added a flag for imodwincpu
 #

@@ -19,8 +19,8 @@ PROGS = convertmod$(E) model2point$(E) imavgstat$(E) solvematch$(E) \
  tomopitch$(E) fiberpitch$(E) corrsearch3d$(E) repackseed$(E) resamplemod$(E) \
  findhotpixels$(E) xfjointomo$(E)
 
-WLIBS = $(LWMOD) $(IMLIBS) $(FORTCLIBS)
-SMALLLIBS = $(LSMLMOD) $(IMLIBS) $(FORTCLIBS)
+WLIBS = $(LWMOD) $(LIMOD) $(IMLIBS) $(FORTCLIBS)
+SMALLLIBS = $(LSMLMOD) $(LIMOD) $(IMLIBS) $(FORTCLIBS)
 
 
 all: $(PROGS)
@@ -147,6 +147,9 @@ clean:
 	-\rm -f *.o* *~ *.exe $(PROGS)
 
 #  $Log$
+#  Revision 3.13  2006/10/26 19:08:08  mast
+#  Added xfjointomo
+#
 #  Revision 3.12  2006/10/17 22:58:55  mast
 #  Added findhotpixels
 #

@@ -3,7 +3,7 @@ include ../configure
 O        = $(OBJEXT)
 LIBHVEM  = libhvem.$(DLLEXT)
 LIBIFFT  = libifft.$(DLLEXT)
-LIBIM    = libim.$(DLLEXT)
+LIBMRCIM    = libmrcim.$(DLLEXT)
 LIBNMCAR = libdnmncar.$(NMCAREXT)
 LIBCOMPAT = libb3dcmpt.$(DLLEXT)
 LIBTRACK  = libtrack.$(DLLEXT)
@@ -16,14 +16,14 @@ COMPATSRC = compat/ransub.f compat/ourrnd.c compat/degtrig.f $(DATESRC)
 COMPATOBJ = compat/ransub.$(O) compat/ourrnd.$(O) compat/degtrig.$(O) \
   $(DIRDATEOBJ)
 
-LIBS = $(LIBHVEM) $(LIBIM) $(LIBNMCAR) $(LIBTRACK) $(LINUXFLIBS) \
+LIBS = $(LIBHVEM) $(LIBMRCIM) $(LIBNMCAR) $(LIBTRACK) $(LINUXFLIBS) \
  $(LIBWMOD) $(LIBSMLMOD)
 
 STATICS = $(LIBBLAS) $(LIBLAPACK)
 
 all : $(LIBS) $(STATICS)
 
-$(LIBHVEM): $(LIBIM) piecesubs/*.f hvem/*.f xfsubs/*.f statsubs/*.f
+$(LIBHVEM): $(LIBMRCIM) piecesubs/*.f hvem/*.f xfsubs/*.f statsubs/*.f
 	(cd piecesubs ; $(MAKE) all)
 	(cd hvem ; $(MAKE) all)
 	(cd xfsubs ; $(MAKE) all)
@@ -47,14 +47,14 @@ $(LIBSMLMOD): model/*.f $(INCDIR)/smallmodel.inc
 	$(RANLIB) $(LIBSMLMOD)
 	$(CP) libsmlmod.$(LIBEXT) $(LIBDIR)
 
-$(LIBIM): imsubs/*.f imsubs/*.c imsubs2/*.f
+$(LIBMRCIM): imsubs/*.f imsubs/*.c imsubs2/*.f
 	(cd imsubs ; $(MAKE) all)
 	(cd imsubs2 ; $(MAKE) all)
-	$(RM) $(LIBIM)
-	$(FAR) $(ARFLAGS)$(LIBIM) $(LIBIMDEF) imsubs/$(IMSUBSOBJ) \
+	$(RM) $(LIBMRCIM)
+	$(FAR) $(ARFLAGS)$(LIBMRCIM) $(LIBMRCIMDEF) imsubs/$(IMSUBSOBJ) \
 	imsubs2/*.$(O)
-	$(RANLIB) $(LIBIM)
-	$(CP) libim.$(LIBEXT) $(LIBDIR)
+	$(RANLIB) $(LIBMRCIM)
+	$(CP) libmrcim.$(LIBEXT) $(LIBDIR)
 
 # libblockio eliminated version 3.15, 6/28/06
 

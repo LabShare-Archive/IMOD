@@ -1,14 +1,42 @@
 #####################
 # Makefile for clip
 #
+# $Id$
+# Log at end
 #
-#  $Author$
-#
-#  $Date$
-#
-#  $Revision$
-#
+include ../configure
+
+O = $(OBJEXT)
+OBJS = clip.$(O) clip_proc.$(O) clip_transform.$(O) clip_io.$(O)\
+	correlation.$(O) fft.$(O) filter.$(O)
+
+PROG = clip$(BINEXT)
+
+all : $(PROG)
+
+# DNM 10/24/04: removed F77LIBS now that libifft is C
+$(PROG) : $(OBJS)
+	$(CC) -o clip $(OBJS) $(LDFLAGS)  \
+	$(LIIMOD) $(LCFSHR) $(LIFFT) $(TIFFLIBS) $(LIBS)
+
+install : $(PROG)
+	$(STRIP) $(PROG)
+	$(CP) $(PROG) $(INSTBINDIR)
+
+clean : 
+	$(FIND) . -type f -name "*.o*" -exec rm "{}" \;
+	$(FIND) . -name "*~" -exec rm "{}" \;
+	$(FIND) . -type f -name "core*" -exec rm "{}" \;
+	$(FIND) . -type f -name "clip" -exec rm "{}" \;
+	$(FIND) . -type f -name "clip.exe" -exec rm "{}" \;
+
+$(OBJS) : clip.h
+clip.$(O) : ../.version
+
 #  $Log$
+#  Revision 3.6  2005/11/23 16:25:11  mast
+#  Use strip variable
+#
 #  Revision 3.5  2004/10/24 21:21:19  mast
 #  Changes for libifft now being C version
 #
@@ -30,33 +58,3 @@
 #  Revision 1.2  2001/11/27 15:59:17  mast
 #  Add dependency on .version file
 #
-#
-include ../configure
-
-O = $(OBJEXT)
-OBJS = clip.$(O) clip_proc.$(O) clip_transform.$(O) clip_io.$(O)\
-	correlation.$(O) fft.$(O) filter.$(O)
-
-PROG = clip$(BINEXT)
-
-all : $(PROG)
-
-# DNM 10/24/04: removed F77LIBS now that libifft is C
-$(PROG) : $(OBJS)
-	$(CC) -o clip $(OBJS) $(LDFLAGS)  \
-	$(LIIMOD) $(LIMOD) $(LIFFT) $(TIFFLIBS) $(LIBS)
-
-install : $(PROG)
-	$(STRIP) $(PROG)
-	$(CP) $(PROG) $(INSTBINDIR)
-
-clean : 
-	$(FIND) . -type f -name "*.o*" -exec rm "{}" \;
-	$(FIND) . -name "*~" -exec rm "{}" \;
-	$(FIND) . -type f -name "core*" -exec rm "{}" \;
-	$(FIND) . -type f -name "clip" -exec rm "{}" \;
-	$(FIND) . -type f -name "clip.exe" -exec rm "{}" \;
-
-$(OBJS) : clip.h
-clip.$(O) : ../.version
-

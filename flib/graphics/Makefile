@@ -18,10 +18,10 @@ avgstatplot$(E): avgstatplot.$(O)
 	$(FC) -o avgstatplot avgstatplot.$(O) $(LDFLG) $(LIBS)
 
 mtpairing$(E): mtpairing.$(O)
-	$(FC) -o mtpairing mtpairing.$(O) $(LDFLG) $(LWMOD) $(LIBS)
+	$(FC) -o mtpairing mtpairing.$(O) $(LDFLG) $(LWMOD) $(LIMOD) $(LIBS)
 
 mtoverlap$(E): mtoverlap.$(O)
-	$(FC) -o mtoverlap mtoverlap.$(O) $(LDFLG) $(LWMOD) $(LIBS)
+	$(FC) -o mtoverlap mtoverlap.$(O) $(LDFLG) $(LWMOD)  $(LIMOD) $(LIBS)
 
 install: $(PROGS)
 	$(STRIP) $(PROGS)

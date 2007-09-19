@@ -85,6 +85,7 @@ set xplax           = qtplax.o
 set objext          = o
 set binext          =
 set limod           = -limod
+set lcfshr          = -lcfshr
 set liimod          = -liimod
 set ltiff           = -ltiff
 set ldnmncar        = -ldnmncar
@@ -440,7 +441,7 @@ echo 'FORTCLIBS   = $(LIBS)'               >> $configure
 echo "XLIBS       = -lXm -lXt -lX11 -lXext" >> $configure
 
 # Libraries for non-graphical and graphics Fortran programs
-echo "IMLIBS     = -lhvem -lim -lifft -limod" >> $configure
+echo "IMLIBS     = -lhvem -lim -lifft -lcfshr" >> $configure
 echo 'GRAPHLIBS    = '"$ldnmncar"' $(IMLIBS) $(XLIBS)' >> $configure
 
 # extra library and option entries for making imod run plugins
@@ -586,6 +587,7 @@ if ($shared_libs == false) set inst_lib_dir = $lib_dir
 echo "OBJEXT =    $objext" >> $configure
 echo "BINEXT =    $binext" >> $configure
 echo "LIMOD  =    $limod" >> $configure
+echo "LCFSHR =    $lcfshr" >> $configure
 echo "LIIMOD =    $liimod" >> $configure
 echo "LIFFT =     $lifft" >> $configure
 echo "LIMESH =    $limesh" >> $configure
@@ -642,8 +644,8 @@ if ($machine != cygwin) then
     #
     # manage qconfigure files
     #
-    echo LIBS += -L$lib_dir -liimod -limod -ldiaqt -ltiff -lqassistantclient >> $midas_qconf
-    echo LIBS += -L$lib_dir -lm -llapack -lblas -liimod -limod -ltiff -lifft  -lqassistantclient >! $ctfplot_qconf
+    echo LIBS += -L$lib_dir -liimod -limod -lcfshr -ldiaqt -ltiff -lqassistantclient >> $midas_qconf
+    echo LIBS += -L$lib_dir -lm -llapack -lblas -liimod -lcfshr -ltiff -lifft  -lqassistantclient >! $ctfplot_qconf
     foreach i ($midas_qconf $ctfplot_qconf)
         echo INCLUDEPATH += $inc_dir >> $i
         echo MOC_DIR = tmp >> $i
@@ -690,7 +692,7 @@ if [ -e 3dmod ] ; then strip 3dmod ; fi ; \\rm -f 3dmodv imod imodv ; \
 ln -s 3dmod 3dmodv ; ln -s 3dmod imod ; ln -s 3dmodv imodv
 EOF
 
-        @ i = 0
+        @ i = 0    # Loop on imodsendevent imodqtassist ctfplotter midas
         while ($i < 4)
             @ i++
             cat <<EOF  >> $qconf[$i]
@@ -705,7 +707,7 @@ EOF
         # For Mac, copy the run files, also strip (-x needed for 3dmod)
         #
         @ i = 0
-        while ($i < 4)
+        while ($i < 4)  # Loop on imodsendevent imodqtassist ctfplotter midas
             @ i++
             cat <<EOF  >> $qconf[$i]
 INSTALLS += $qrun[$i]
@@ -926,6 +928,9 @@ exit
 
 #
 #  $Log$
+#  Revision 1.31  2007/09/19 22:31:08  mast
+#  Incorporated intel compiler static build option
+#
 #  Revision 1.30  2007/09/18 22:34:57  mast
 #  Add assistant lib to ctfplot LIB line
 #

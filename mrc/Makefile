@@ -1,36 +1,8 @@
 #
 # Makefile for mrc programs.
 #
-#  $Author$
-#
-#  $Date$
-#
-#  $Revision$
-#
-#  $Log$
-#  Revision 3.8  2005/11/23 16:24:17  mast
-#  Use strip variable
-#
-#  Revision 3.7  2005/03/11 19:42:13  mast
-#  Added nad_eed_3d
-#
-#  Revision 3.6  2003/11/01 14:36:14  mast
-#  *** empty log message ***
-#
-#  Revision 3.5  2003/10/24 02:30:40  mast
-#  Changes for windows/Intel compiler
-#
-#  Revision 3.4  2003/02/28 18:09:32  mast
-#  Changes for cygwin/windows
-#
-#  Revision 3.3  2002/11/05 23:20:19  mast
-#  Made raw2mrc use libiimod also
-#
-#  Revision 3.2  2002/11/05 23:56:07  mast
-#  Added -limod to be able to call imodCopyright
-#
-#  Revision 3.1  2001/12/31 19:21:25  mast
-#  Added dm3props
+# $Id$
+# Log at end
 #
 
 include ../configure
@@ -44,7 +16,7 @@ PROGS     = mrc2tif$(E) raw2mrc$(E) tif2mrc$(E) mrcbyte$(E) mrcx$(E) \
  mrctaper$(E) dm3props$(E) nad_eed_3d$(E) ctfphaseflip$(E) $(RGBPROGS)
 
 
-IILIBS    =  $(LIIMOD) $(LIMOD) $(TIFFLIBS)
+IILIBS    =  $(LIIMOD) $(LCFSHR) $(TIFFLIBS)
 
 all : $(PROGS)
 
@@ -145,3 +117,31 @@ mrcshort$(E) : mrcshort.$(O)
 mrcmmm$(E) : mrcmmm.$(O) 
 	$(CC) -o mrcmmm mrcmmm.$(O) -L$(LIBDIR) $(LIBS)
 
+#  $Log$
+#  Revision 3.9  2007/09/18 05:07:53  mast
+#  Added ctfphaseflip
+#
+#  Revision 3.8  2005/11/23 16:24:17  mast
+#  Use strip variable
+#
+#  Revision 3.7  2005/03/11 19:42:13  mast
+#  Added nad_eed_3d
+#
+#  Revision 3.6  2003/11/01 14:36:14  mast
+#  *** empty log message ***
+#
+#  Revision 3.5  2003/10/24 02:30:40  mast
+#  Changes for windows/Intel compiler
+#
+#  Revision 3.4  2003/02/28 18:09:32  mast
+#  Changes for cygwin/windows
+#
+#  Revision 3.3  2002/11/05 23:20:19  mast
+#  Made raw2mrc use libiimod also
+#
+#  Revision 3.2  2002/11/05 23:56:07  mast
+#  Added -limod to be able to call imodCopyright
+#
+#  Revision 3.1  2001/12/31 19:21:25  mast
+#  Added dm3props
+#

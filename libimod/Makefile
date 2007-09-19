@@ -13,16 +13,13 @@ CFLAGS = $(LIBCFLAGS)
 IMODELOBJS = imodel.$(O) iobj.$(O) icont.$(O) imodel_to.$(O)\
              imodel_from.$(O) ipoint.$(O) imodel_files.$(O) imesh.$(O)\
              imodel_fwrap.$(O) imat.$(O) iplane.$(O) iview.$(O)\
-	     ilist.$(O) ilabel.$(O) b3dutil.$(O) parselist.$(O) istore.$(O)\
-             amoeba.$(O) samplemeansd.$(O) colormap.$(O) 
-
-PIPOBJS = parse_params.$(O) pip_fwrap.$(O) autodoc.$(O) adoc_fwrap.$(O)
+	     ilabel.$(O) istore.$(O)\
 
 all : $(LIBI)
 
-$(LIBI) : $(IMODELOBJS) $(PIPOBJS)
+$(LIBI) : $(IMODELOBJS)
 	$(FIND) . -type f -name $(LIBI) -exec rm "{}" \;
-	$(MAKELIB)$(LIBI) $(LIBIMODDEF) $(IMODELOBJS) $(PIPOBJS)
+	$(MAKELIB)$(LIBI) $(LIBIMODDEF) $(IMODELOBJS)
 	$(RANLIB) $(LIBI)
 	$(CP) libimod.$(LIBEXT) $(LIBDIR)
 
@@ -35,12 +32,6 @@ clean :
 	$(FIND) . -type f -name "*.o*"  -exec rm "{}" \;
 	$(FIND) . -type f -name "*~"   -exec rm "{}" \;
 	$(FIND) . -type f -name "#*#"  -exec rm "{}" \;
-
-# make a working version of the lib while debugging
-# other subsystems
-work : clean
-	touch $(IMODELOBJS) $(PIPOBJS)
-	touch $(LIBI)
 
 #
 # Some depends.
@@ -55,18 +46,14 @@ ipoint.$(O) : $(INCDIR)/ipoint.h
 iplane.$(O) : $(INCDIR)/iplane.h
 iview.$(O)  : $(INCDIR)/iview.h
 imat.$(O)   : $(INCDIR)/imat.h
-ilist.$(O)  : $(INCDIR)/ilist.h
 istore.$(O)  : $(INCDIR)/istore.h 
-b3dutil.$(O) : $(INCDIR)/b3dutil.h  ../.version
 imodel_files.$(O) : $(INCDIR)/b3dutil.h $(INCDIR)/istore.h
 imodel_from.$(O) : $(INCDIR)/b3dutil.h
-$(PIPOBJS) : $(INCDIR)/parse_params.h
-pip_fwrap.$(O) : $(INCDIR)/b3dutil.h
-colormap.$(O) : $(INCDIR)/b3dutil.h
-autodoc.$(O) : $(INCDIR)/autodoc.h
-adoc_fwrap.$(O) : $(INCDIR)/autodoc.h
 
 #  $Log$
+#  Revision 3.14  2006/10/17 18:15:30  mast
+#  Added autodoc
+#
 #  Revision 3.13  2006/08/27 23:44:46  mast
 #  Added colormap
 #

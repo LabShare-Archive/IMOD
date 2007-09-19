@@ -26,7 +26,7 @@ INCOBJS = sda.$(O) sdmodel.$(O) sddist.$(O) surfden.$(O) kerneldens.$(O) \
 #CFLAGS = -O -I$(INCDIR)
 #FFLAGS = -O -I$(INCDIR) 
 
-LIBS = $(LWMOD) $(GRAPHLIBS) $(FORTCLIBS)
+LIBS = $(LWMOD) $(LIMOD) $(GRAPHLIBS) $(FORTCLIBS)
 
 all: $(PROGS)
 

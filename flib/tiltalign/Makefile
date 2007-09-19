@@ -15,8 +15,8 @@ tiltalign.$(O): tiltalign.f
 	$(FC) -c $(NOOPFFLAGS) tiltalign.f
 
 $(PROG): $(TAOBJS)
-	$(FC) -o tiltalign $(TAOBJS) $(LDFFLAGS) $(LSMLMOD) $(IMLIBS) \
-	$(FORTCLIBS) $(TILTALILIB)
+	$(FC) -o tiltalign $(TAOBJS) $(LDFFLAGS) $(LSMLMOD) $(LIMOD) \
+	 $(IMLIBS) $(FORTCLIBS) $(TILTALILIB)
 
 
 input_model.$(O): $(INCDIR)/smallmodel.inc
