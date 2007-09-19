@@ -35,6 +35,7 @@ set compiler        = default
 set machine         =
 set defines         = 
 set shared_libs     = default
+set intelstat       = false
 set flags           = 
 set fallback        = 
 set swap_ieee       = true
@@ -184,6 +185,10 @@ while($#argv > 0)
         case -name:
                 shift
                 set distname = _$argv[1]
+                breaksw
+
+        case -static:
+                set intelstat = true
                 breaksw
 
         case -packqt:
@@ -911,6 +916,7 @@ echo "             -no_tiff     Do not try to link with TIFF libraries"
 echo "             -no_xlibs    Do not try to make X version of plax routines"
 echo "             -compiler,-c Use specified compilers (intel or gfortran for"
 echo "                          rhlinux, gnu for cygwin)"
+echo "             -static      Link to static Intel libraries"
 echo "             -packqt      Pack Qt library into distribution (Linux only)"
 echo "             -useqt       Use local Qt in startup script in distribution"
 echo "             -flags       Set flags for compilation"
@@ -920,6 +926,9 @@ exit
 
 #
 #  $Log$
+#  Revision 1.30  2007/09/18 22:34:57  mast
+#  Add assistant lib to ctfplot LIB line
+#
 #  Revision 1.29  2007/09/18 22:09:10  xiongq
 #  Added imod_assistant for ctfplotter
 #
