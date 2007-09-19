@@ -14,6 +14,8 @@ using namespace std;
 #include "angledialog.h"
 #include "plotter.h"
 #include "myapp.h"
+#include "ctfmain.h"
+
 #include "b3dutil.h"
 
 Plotter::Plotter(QWidget *parent, const char *name, WFlags flags)
@@ -43,6 +45,12 @@ Plotter::Plotter(QWidget *parent, const char *name, WFlags flags)
     printButton->adjustSize();
     QToolTip::add( printButton, "Print" );
     connect(printButton, SIGNAL(clicked()), this, SLOT(printIt()) );
+
+    helpButton= new QToolButton(this);
+    helpButton->setIconSet( QPixmap::fromMimeSource("ctfhelp.png") );
+    helpButton->adjustSize();
+    QToolTip::add( helpButton, "Help");
+    connect(helpButton, SIGNAL(clicked()), this, SLOT(ctfHelp()) );
 
     saveButton=new  QToolButton(this);
     saveButton->setIconSet( QPixmap::fromMimeSource("save.png") );
@@ -185,6 +193,11 @@ void Plotter::printIt()
   }
 }
 
+void Plotter::ctfHelp()
+{
+  ctfShowHelpPage("ctfHelp/ctfguide.html");
+}
+
 void Plotter::saveIt()
 {
     char *defFn=((MyApp *)qApp)->getDefFn();
@@ -294,7 +307,7 @@ void Plotter::resizeEvent(QResizeEvent *)
                        + zoomOutButton->width() +printButton->width() +
                        rangeButton->width()+zeroLabel->width()+
                        defocusLabel->width() + tileButton->width()+
-                       angleButton->width()+ saveButton->width()+45);
+                       angleButton->width()+ saveButton->width()+75);
     zeroLabel->move(x, 5);
     defocusLabel->move(x+zeroLabel->width()+5, 5);
     zoomInButton->move(x+zeroLabel->width()+defocusLabel->width()+10, 5);
@@ -315,6 +328,11 @@ void Plotter::resizeEvent(QResizeEvent *)
         zoomInButton->width()+zoomOutButton->width()+
         rangeButton->width()+angleButton->width()+
         tileButton->width()+saveButton->width()+40, 5);
+    helpButton->move(x+zeroLabel->width()+defocusLabel->width()+
+        zoomInButton->width()+zoomOutButton->width()+
+        rangeButton->width()+angleButton->width()+
+        tileButton->width()+saveButton->width() +
+        printButton->width()+45, 5);
     refreshPixmap();
 }
 

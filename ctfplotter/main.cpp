@@ -6,6 +6,7 @@
 #include "simplexfitting.h"
 #include "linearfitting.h"
 #include "plotter.h"
+#include "imod_assistant.h"
 #include "myapp.h"
 
 #include "b3dutil.h"
@@ -15,6 +16,8 @@
 #include "parse_params.h"
 
 #define MIN_ANGLE 1.0e-6  //tilt Angle less than this is treated as 0.0;
+ImodAssistant *ctfHelp=NULL;
+
 int main(int argc, char *argv[])
 {
   int numOptArgs, numNonOptArgs;
@@ -74,6 +77,8 @@ int main(int argc, char *argv[])
     exitError("No AngleRange specified\n");
  
   double *rAvg=(double *)malloc(nDim*sizeof(double));
+
+  ctfHelp = new ImodAssistant("html","IMOD.adp", "ctfguide");
   MyApp app(argc, argv, volt, pixelSize, (double)ampContrast, cs, defFn,
       (int)nDim, (double)defocusTol, tileSize, 
       (double)tiltAxisAngle, -90.0, 90.0, (double)expectedDef, 
@@ -179,4 +184,12 @@ int main(int argc, char *argv[])
   free(noisePs);
   free(noiseMean);
   free(index);
+}
+
+int ctfShowHelpPage(const char *page)
+{
+  if(ctfHelp)
+    return (ctfHelp->showPage(page)>0 ? 1 : 0);
+  else
+    return 1;
 }

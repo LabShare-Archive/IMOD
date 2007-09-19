@@ -38,6 +38,7 @@ public slots:
     void rangeDiag();
     void angleDiag();
     void saveIt();
+    void ctfHelp();
 
 protected:
     void paintEvent(QPaintEvent *event);
@@ -63,6 +64,7 @@ private:
     QToolButton *rangeButton;
     QToolButton *angleButton;
     QToolButton *saveButton;
+    QToolButton *helpButton;
     RangeDialog *rDialog;
     AngleDialog *aDialog;
     std::map<int, CurveData> curveMap;
