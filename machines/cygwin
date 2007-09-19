@@ -131,11 +131,12 @@ if ($compiler == intel) then
             set dllext = dll
             echo "ARFLAGS = -dll /NOLOGO /out:"         >> $configure
             echo 'MAKELIBCPP = link -dll /NOLOGO /out:' >> $configure
-            echo 'LIBIIMODDEF = /def:libiimod.def ../buildlib/libimod.lib ../buildlib/libtiff.lib'   >> $configure
-            echo 'LIBIMODDEF = /def:libimod.def'     >> $configure
+            echo 'LIBIIMODDEF = /def:libiimod.def ../buildlib/libcfshr.lib ../buildlib/libtiff.lib'   >> $configure
+            echo 'LIBIMODDEF = /def:libimod.def ../buildlib/libcfshr.lib'  >> $configure
+            echo 'LIBCFSHRDEF = /def:libcfshr.def'     >> $configure
             echo 'LIBIMESHDEF = /def:libimesh.def ../buildlib/libimod.lib'     >> $configure
-            echo 'LIBIMDEF = /def:libim.def ../../buildlib/libifft.lib ../../buildlib/libimod.lib'  >> $configure
-            echo 'LIBHVEMDEF = /def:libhvem.def libim.lib ../../buildlib/libimod.lib'  >> $configure
+            echo 'LIBMRCIMDEF = /def:libmrcim.def ../../buildlib/libifft.lib ../../buildlib/libcfshr.lib'  >> $configure
+            echo 'LIBHVEMDEF = /def:libhvem.def ../../buildlib/libmrcim.lib ../../buildlib/libcfshr.lib'  >> $configure
             echo 'LIBIFFTDEF = /def:libifft.def'     >> $configure
             echo 'LIBTRACKDEF = /def:libtrack.def'   >> $configure
             set inst_lib_dir = $inst_dir/bin
@@ -179,19 +180,20 @@ if ($compiler == intel) then
     echo "XLIBS   = " >> $configure
     echo "CLIBS   = " >> $configure
     set limod = libimod.lib
+    set lcfshr = libcfshr.lib
     set liimod = libiimod.lib
     set limesh = libimesh.lib
     set lifft = libifft.lib
     set ltiff = libtiff.lib
     set imsubsobj = '*.obj'
     set ldnmncar = "libdnmncar.lib"
-    echo 'IMLIBS     =  $(LIBWMOD) libhvem.lib libim.lib libifft.lib libimod.lib' >> $configure
+    echo 'IMLIBS     =  $(LIBWMOD) libhvem.lib libmrcim.lib libifft.lib libcfshr.lib' >> $configure
     echo 'LINUXFLIBS = ' >> $configure
     echo '#define WIN32_BIGFILE' >> $hconfigure
 else
     echo "CLIBS   = -lc -lm" >> $configure
     echo "XLIBS   = -lXm -lXt -lSM -lICE -lXext -lX11" >> $configure
-    echo "IMLIBS     = -lhvem -lim -lifft  -limod -lb3dcmpt" >> $configure
+    echo "IMLIBS     = -lhvem -lmrcim -lifft -lcfshr -lb3dcmpt" >> $configure
     echo 'LINUXFLIBS = $(LIBCOMPAT)' >> $configure
 endif
 echo 'LIBS    = $(CLIBS)'  >> $configure
@@ -278,20 +280,20 @@ echo CONFIG += CONSOLE >! $sourcedoc_qconf
 cat << EOF >! $imod_qconf
 SOURCES += linegui.cpp
 HEADERS += linegui.h
-LIBS += libdiaqt.lib libiimod.lib libimesh.lib libimod.lib libtiff.lib libtrack.lib libifft.lib qassistantclient.lib
+LIBS += libdiaqt.lib libiimod.lib libimesh.lib libimod.lib libcfshr.lib libtiff.lib libtrack.lib libifft.lib qassistantclient.lib
 QMAKE_LFLAGS_RELEASE += /LIBPATH:"..\buildlib" /NODEFAULTLIB:libc.lib /NODEFAULTLIB:libcd.lib /NODEFAULTLIB:msvcrtd.lib /LARGEADDRESSAWARE
 QMAKE_LFLAGS_DEBUG += /LIBPATH:"..\buildlib" /NODEFAULTLIB:libc.lib /NODEFAULTLIB:libcd.lib /NODEFAULTLIB:msvcrt.lib /LARGEADDRESSAWARE
 RC_FILE = 3dmod.rc
 EOF
 
 cat <<EOF >! $midas_qconf
-LIBS += libdiaqt.lib libiimod.lib libimod.lib libtiff.lib
+LIBS += libdiaqt.lib libiimod.lib libcfshr.lib libtiff.lib
 QMAKE_LFLAGS_RELEASE += /LIBPATH:"..\buildlib" /NODEFAULTLIB:libc.lib /NODEFAULTLIB:libcd.lib /NODEFAULTLIB:msvcrtd.lib /LARGEADDRESSAWARE
 QMAKE_LFLAGS_DEBUG += /LIBPATH:"..\buildlib" /NODEFAULTLIB:libc.lib /NODEFAULTLIB:libcd.lib /NODEFAULTLIB:msvcrt.lib /LARGEADDRESSAWARE
 EOF
 
 cat <<EOF >! $ctfplot_qconf
-LIBS += liblapack.lib libblas.lib libiimod.lib libimod.lib libtiff.lib libifft.lib qassistantclient.lib
+LIBS += liblapack.lib libblas.lib libiimod.lib libcfshr.lib libtiff.lib libifft.lib qassistantclient.lib
 QMAKE_LFLAGS_RELEASE += /LIBPATH:"..\buildlib" /NODEFAULTLIB:libc.lib /NODEFAULTLIB:libcd.lib /NODEFAULTLIB:msvcrtd.lib /LARGEADDRESSAWARE
 QMAKE_LFLAGS_DEBUG += /LIBPATH:"..\buildlib" /NODEFAULTLIB:libc.lib /NODEFAULTLIB:libcd.lib /NODEFAULTLIB:msvcrt.lib /LARGEADDRESSAWARE
 EOF
@@ -367,7 +369,7 @@ if ($compiler == intel) then
 
     # Set variables for library/dll makes that depended on qt_libs
     #
-    echo "MAKELIBSO = link -dll /NOLOGO  $qt_libs ../../buildlib/libimod.lib ../../imod/3dmod.lib ../../buildlib/libdiaqt.lib /out:" >> $configure
+    echo "MAKELIBSO = link -dll /NOLOGO  $qt_libs ../../buildlib/libimod.lib ../../buildlib/libcfshr.lib ../../imod/3dmod.lib ../../buildlib/libdiaqt.lib /out:" >> $configure
     if ($shared_libs == true) then
         set opengl_lib = `sed -n '/^LIBS[ 	]*=/s/^.*\(opengl[^ ]*.lib\).*$/\1/p' $midas_dir/Makefile`
         echo "LIBDIAQTDEF = $qt_libs qassistantclient.lib $opengl_lib" >> $configure
@@ -432,7 +434,7 @@ EOF
     if ($iclversion > 8 && $subversion > 0) echo "WINCPUVC = /Qvc7.1" >> $configure
 else
     set makefile_ext = dummy
-    set makefile_dirs = ($midas_dir $imod_dir $sendevent_dir $libdiaqt_dir $plugsrc_dir $qtassist_dir $sourcedoc_dir)
+    set makefile_dirs = ($qdir $libdiaqt_dir $plugsrc_dir)
     set sourcedoc_exe = '$(VCEXEDIR)/sourcedoc'
 
 endif

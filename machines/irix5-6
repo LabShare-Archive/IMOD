@@ -2,12 +2,8 @@
 ###########################################################################
 # SGI running IRIX 6
 #
-#  $Author$
-#
-#  $Date$
-#
-#  $Revision$
-#   Log at end of file
+# $Id$
+# Log at end
 #
 
 # 
@@ -102,7 +98,7 @@ echo 'LIBS     = $(CLIBS)'                              >> $configure
 echo 'FORTCLIBS = $(CLIBS)'                              >> $configure
 
 echo "XLIBS      = -lXm -lXt -lX11 -lXext -lPW" >> $configure
-echo "IMLIBS     = -lhvem -lim -lifft -limod" >> $configure
+echo "IMLIBS     = -lhvem -lmrcim -lifft -lcfshr" >> $configure
 
 echo 'IMODCC    = $(CC)'  >> $configure
 echo  'MAKEF77PLUGIN  = ld $(LDFLAGS) -shared -all -lftn -o'  >> $configure
@@ -201,6 +197,9 @@ if ($distname == "") set distname = _irix6.5
 
 
 #  $Log$
+#  Revision 3.34  2007/09/18 05:10:37  mast
+#  Changes for ctfplotter and qt stuff
+#
 #  Revision 3.33  2006/09/12 16:34:54  mast
 #  Added mesh library for 3dmod
 #

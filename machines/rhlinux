@@ -112,9 +112,9 @@ echo 'LIBS    = $(CLIBS)'  >> $configure
 echo 'FORTCLIBS = '  >> $configure
 
 if ($compiler == intel) then
-    echo "IMLIBS     = -lhvem -lim -lifft  -limod" >> $configure
+    echo "IMLIBS     = -lhvem -lmrcim -lifft -lcfshr" >> $configure
 else
-    echo "IMLIBS     = -lhvem -lim -lifft  -limod -lb3dcmpt" >> $configure
+    echo "IMLIBS     = -lhvem -lmrcim -lifft -lcfshr -lb3dcmpt" >> $configure
 endif
 
 #
@@ -212,7 +212,7 @@ EOF
 cat << EOF >! $imod_qconf
 SOURCES += linegui.cpp
 HEADERS += linegui.h
-LIBS += -L$lib_dir -liimod -limesh -limod -ldiaqt -lifft -ltrack -ltiff 
+LIBS += -L$lib_dir -liimod -limesh -limod -lcfshr -ldiaqt -lifft -ltrack -ltiff
 LIBS += -lqassistantclient -lm
 DEFINES	+= _FILE_OFFSET_BITS=64
 QMAKE_LFLAGS_DEBUG += -Wl,-E 
