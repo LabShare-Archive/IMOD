@@ -14,7 +14,12 @@ set defines = -D_FILE_OFFSET_BITS=64
 
 set fcompFlags = ""
 if ($compiler == intel) then
-    echo 'LDFLAGS = -L$(LIBDIR) -i-dynamic' >> $configure
+    set dynamic = '-i-dynamic'
+    if ($intelstat == true) then
+        set dynamic = "-i-static"
+        set shared_libs = false
+    endif
+    echo 'LDFLAGS = -L$(LIBDIR)'" $dynamic" >> $configure
     echo "CC        = icc"              >> $configure
     echo "CXX       = icpc"              >> $configure
     set fcomp = "ifort"
@@ -107,7 +112,7 @@ echo 'LIBS    = $(CLIBS)'  >> $configure
 echo 'FORTCLIBS = '  >> $configure
 
 if ($compiler == intel) then
-    echo "IMLIBS     = -lhvem -lim -lifft  -limod " >> $configure
+    echo "IMLIBS     = -lhvem -lim -lifft  -limod" >> $configure
 else
     echo "IMLIBS     = -lhvem -lim -lifft  -limod -lb3dcmpt" >> $configure
 endif
@@ -140,9 +145,8 @@ echo '#define STAY_ON_TOP_HACK' >> $hconfigure
 echo '#define SENDEVENT_RETRY_HACK 0' >> $hconfigure
 
 if ($compiler == intel) then
-    ## -axK fails on tiltalign-beadtrack
-    set optimization = "-O2 -unroll -w"
-    #set optimization = "-O2 -w"
+    set optimization = "-O2 -w"
+    if ($m64bit == true) set optimization = "-O2 -unroll -w -axWPT"
     if ($debug == true) set optimization = "-g -O0"
 else
     set optimization = "-O3 -w"
@@ -217,24 +221,28 @@ EOF
 
 # Set up to massage QT makefiles for intel, and take care of DLL copies
 if ($compiler == intel) then
-    set ccdir = `which icc`
-    set cclibdir = $ccdir:h:h/lib
-    echo "DLLSOURCEDIR1 = $cclibdir" >> $configure
-    set fortdir = `which ifort`
-    set fortlibdir = $fortdir:h:h/lib
-    echo "DLLSOURCEDIR2 = $fortlibdir" >> $configure
-    echo "DLLSTOCOPY2 = libifcore libifport" >> $configure
-    echo "DLLDESTDIR = lib" >> $configure
+    if ($intelstat == false) then
+        set ccdir = `which icc`
+        set cclibdir = $ccdir:h:h/lib
+        echo "DLLSOURCEDIR1 = $cclibdir" >> $configure
+        set fortdir = `which ifort`
+        set fortlibdir = $fortdir:h:h/lib
+        echo "DLLSOURCEDIR2 = $fortlibdir" >> $configure
+        echo "DLLSTOCOPY2 = libifcore libifport" >> $configure
+        echo "DLLDESTDIR = lib" >> $configure
+    endif
     setenv QMAKESPEC linux-icc
 
     if ($m64bit == true) then
-        echo "DLLSTOCOPY1 = libcxaguard libirc libimf libsvml" >> $configure
+        if ($intelstat == false) \
+          echo "DLLSTOCOPY1 = libcxaguard libirc libimf libsvml" >> $configure
         set qtdel1 = "-m64"
         set qtdel2 = "-mtune=nocona"
         set qtsub1f = "X11R6\/lib "
         set qtsub1t = "X11R6\/lib64 "
     else
-        echo "DLLSTOCOPY1 = libcxaguard libirc libimf" >> $configure
+        if ($intelstat == false) \
+            echo "DLLSTOCOPY1 = libcxaguard libirc libimf" >> $configure
         set qtdel1 = "-m32"
         set qtdel2 = "-fasynchronous-unwind-tables"
         set qtsub1f = gibberish
