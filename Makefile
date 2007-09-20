@@ -180,8 +180,8 @@ configure : setup .version
 # Install cstuff
 #
 install : configure man sourcedoc
-	cd libimod    ; $(MAKE) $@
 	cd libcfshr   ; $(MAKE) $@
+	cd libimod    ; $(MAKE) $@
 	cd libiimod   ; $(MAKE) $@
 	cd libmesh    ; $(MAKE) $@
 	cd libdiaqt   ; $(MAKE) $@
@@ -221,8 +221,8 @@ sourcedoc : configure ALWAYS
 # Install clibs only or all libs, helps if doing multiple architectures
 #
 installclibs : configure
-	cd libimod   ; $(MAKE) install
 	cd libcfshr  ; $(MAKE) install
+	cd libimod   ; $(MAKE) install
 	cd libiimod  ; $(MAKE) install
 	cd libmesh   ; $(MAKE) install
 	cd libdiaqt  ; $(MAKE) install
@@ -235,8 +235,8 @@ installlibs : installclibs
 # Clean up our mess.
 #
 clean : configure
-	cd libimod    ; $(MAKE) $@
 	cd libcfshr   ; $(MAKE) $@
+	cd libimod    ; $(MAKE) $@
 	cd libiimod   ; $(MAKE) $@
 	cd libmesh    ; $(MAKE) $@
 	cd libdiaqt   ; $(MAKE) $@
@@ -268,8 +268,8 @@ clean : configure
 #
 
 cleanclibs : configure
-	cd libimod   ; $(MAKE) clean
 	cd libcfshr  ; $(MAKE) clean
+	cd libimod   ; $(MAKE) clean
 	cd libiimod  ; $(MAKE) clean
 	cd libmesh   ; $(MAKE) clean
 	cd libdiaqt  ; $(MAKE) clean
@@ -304,8 +304,8 @@ cleanexe : configure
 # Shortcut for making libs only, helps for debugging.
 #
 clibs : configure
-	cd libimod   ; $(MAKE) all
 	cd libcfshr  ; $(MAKE) all
+	cd libimod   ; $(MAKE) all
 	cd libiimod  ; $(MAKE) all
 	cd libmesh   ; $(MAKE) all
 	cd libdiaqt  ; $(MAKE) all
@@ -455,6 +455,9 @@ ALWAYS:
 
 ############################################################################
 #  $Log$
+#  Revision 3.67  2007/09/20 02:49:32  mast
+#  Changes for ctf stuff and library rearrangement
+#
 #  Revision 3.66  2007/06/04 20:53:13  sueh
 #  Added entry for minimal make for 3dmod
 #
