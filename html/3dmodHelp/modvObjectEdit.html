@@ -159,10 +159,19 @@ individual
 object as well as global clipping planes that will be applied to all
 objects.  The position and orientation of a plane is adjusted by
 holding down the Ctrl key and doing the same operations that would
-ordinarily move the model.
+ordinarily move or rotate the model.
 <P>
+The controls at the top of the panel affect the behavior of the program rather
+than applying to the current object.  Select <B>Show current plane</B> to have
+the current plane drawn as a semi-transparent plane so that you can see its
+position better.  When you switch planes or objects, you will see the new
+current plane, if any.
 Use the <B>Object</B> and <B>Global</B> radio buttons to select
 whether to adjust global planes or planes for the current object. 
+<P>
+The remaining controls affect stored properties of the global clipping planes,
+or the current object and its
+clipping planes.
 If you want the current object to be clipped only by its own planes
 and not by any global planes, turn on <B>Skip global planes</B>. 
 The <B>Plane #</B> spin box allows you to select the current plane, the one
@@ -173,9 +182,9 @@ one plane past the highest one that has already been defined, so you can add
 another plane just by selecting the next available number and turning the
 plane on.
 <P>
-The
-<B>Reset</B> button moves the plane back to its default location and
-orientation through the middle of the object or model.  The <B>Invert</B>
+The <B>Reset X, Y, Z</B> buttons move the plane back to its default location
+through the middle of the object or model and orient it perpendicular to the
+X, Y or Z axis.  The <B>Invert</B>
 button inverts the direction of the clipping plane.
 Turn on <B>Adjust all planes</B> to operate on all of the object or
 global planes at once; these operations include moving, rotating, and
