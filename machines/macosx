@@ -212,7 +212,7 @@ echo  'MAKEF77PLUGIN  = $(FC)  -bundle -dynamic -bundle_loader '"$plug_loader"' 
 # Make some more lists for looping
 #
 set qrun = (runsendevent runqtassist runctfplotter runmidas)
-set qtarget = (send_target assist_target ctf_target)
+set qtarget = ($send_target $assist_target $ctf_target)
 
 # make script files to run programs
 # Set DYLD_LIBRARY_PATH with qtlib before running program
