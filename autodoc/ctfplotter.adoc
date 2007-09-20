@@ -54,12 +54,12 @@ type = I
 usage = The number of points on which CTF will be computed 
 tooltip =
 manpage = The number of points on which CTF will be computed. The Nyquist 
-frequency is divided into equal intervals defined by these points
+frequency is divided into equal intervals delineated by these points
 
 [Field = TileSize]
 short = tileSize
 type = I
-usage = The tile size each strip will be tessellate into
+usage = The tile size each strip will be tessellated into
 tooltip =
 manpage = The tile size each strip will be tessellate into.  The size is in
 pixels and the tiles are square. Each slice is first divided into strips 
@@ -85,8 +85,8 @@ type = I
 usage = Defocus tolerance in nanometers defines the center strips
 tooltip =
 manpage = Defocus tolerance defines the center strips. The center region of a
-slice that has defocus difference less than this tolerance is defined as a
-center strip. This kind of center strips from all slices within AngleRange 
+slice that has defocus difference less than this tolerance is defined as
+center strips. This kind of center strips from all slices within AngleRange 
 are considered to have a constant defocus and are used to compute the initial
 CTF after being further tessellated into tiles.
 
@@ -110,10 +110,10 @@ short = expDef
 type = F
 usage = Expected defocus at the tilt axis in nanometers.
 tooltip =
-manpage = Expected defocus at the tilt axis in nanometers. The frequency where 
-the first zero of the CTF curve with the expected defocus is located is first 
-computed. The segments of the CTF curve of the input stack around that frequency
-are selected to be fitted.
+manpage = Expected defocus at the tilt axis in nanometers. The frequency 
+the first zero of the CTF curve with the expected defocus is located at 
+is first computed. The segments of the CTF curve of the input stack around 
+that frequency are selected to be fitted.
 
 [Field = LeftDefTol]
 short = leftTol 
