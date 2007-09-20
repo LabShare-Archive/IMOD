@@ -10,19 +10,16 @@
  *  Copyright (C) 1995-2005 by Boulder Laboratory for 3-Dimensional Electron
  *  Microscopy of Cells ("BL3DEMC") and the Regents of the University of 
  *  Colorado.  See dist/COPYRIGHT for full copyright notice.
+ *
+ * $Id$
+ * Log at end of file
  */
-/*  $Author$
-
-$Date$
-
-$Revision$
-
-Log at end of file
-*/
 
 #include <stdio.h>
 #include <math.h>
+#include <string.h>
 #include "imodel.h"
+
 /* These values should match max_obj_num and max_pt in model.inc */
 #define FWRAP_MAX_OBJECT 750000
 #define FWRAP_MAX_POINTS 10000000
@@ -1700,6 +1697,9 @@ int getimodnesting(int *ob, int *inOnly, int *level, int *inIndex,
 
 /*
 $Log$
+Revision 3.31  2007/01/06 23:54:03  mast
+Added functions for getting and putting back contour point sizes
+
 Revision 3.30  2006/09/12 15:22:15  mast
 renamed cont type to time
 
