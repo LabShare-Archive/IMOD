@@ -1,11 +1,14 @@
 #include <qlabel.h>
 #include <qfile.h>
 #include <qtoolbutton.h>
+#include <qcursor.h>
 
 #include <stdio.h>
 #include <math.h>
 
 #include "plotter.h"
+#include "rangedialog.h"
+#include "angledialog.h"
 #include "myapp.h"
 #include "simplexfitting.h"
 #include "linearfitting.h"
@@ -736,7 +739,13 @@ void MyApp::rangeChanged(double x1_1, double x1_2, double x2_1, double x2_2)
 void MyApp::angleChanged(double lAngle, double hAngle, double expDefocus, 
    double defTol, int tSize, double axisAngle, double leftTol, double rightTol)
 {  
-  
+   QCursor cursor(Qt::WaitCursor);
+   ((Plotter *)mainWidget())->setCursor(cursor);
+   if(((Plotter *)mainWidget())->aDialog)
+      ((Plotter *)mainWidget())->aDialog->setCursor(cursor);
+   if(((Plotter *)mainWidget())->rDialog)
+      ((Plotter *)mainWidget())->rDialog->setCursor(cursor);
+
    defocusTol=defTol;
    leftDefTol=leftTol;
    rightDefTol=rightTol;
@@ -756,6 +765,12 @@ void MyApp::angleChanged(double lAngle, double hAngle, double expDefocus,
      ((Plotter *)mainWidget())->tileButton->setEnabled(true);
      plotFitPS(); // only plot;
    }
+   cursor.setShape(Qt::ArrowCursor);
+   ((Plotter *)mainWidget())->setCursor(cursor);
+   if(((Plotter *)mainWidget())->aDialog)
+      ((Plotter *)mainWidget())->aDialog->setCursor(cursor);
+   if(((Plotter *)mainWidget())->rDialog)
+      ((Plotter *)mainWidget())->rDialog->setCursor(cursor);
 }
 
 void MyApp::setInitTileOption(int index){

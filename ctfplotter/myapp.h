@@ -60,7 +60,9 @@ class MyApp : public QApplication
       double defTol,int tSize,double axisAngle,double leftTol,double rightTol);
     void moreTile();
     void setX1Method(int index){x1MethodIndex=index;}
+    int getX1Method(){return x1MethodIndex;}
     void setX2Method(int index){x2MethodIndex=index;}
+    int getX2Method(){return x2MethodIndex;}
     void setDefOption(int index){defocusOption=index;}
     void setInitTileOption(int index);
  private:
