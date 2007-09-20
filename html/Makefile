@@ -1,14 +1,27 @@
 #
 # Makefile for html directory: installs all files with extensions; add other
-# files to the NOEXT list
+# files and directories to the NOEXT list
 #
-#  $Author$
+# $Id$
+# Log at end
 #
-#  $Date$
-#
-#  $Revision$
-#
+include ../configure
+
+NOEXT = 3dmodimages etomoImages 3dmodHelp libhelp joinImages ctfHelp
+
+install : clean
+	cd libdoc ; $(MAKE)
+	./makeadp $(INSTDIR)
+	if [ `pwd` != $(INSTDIR)/html ] ; then $(CP) -r *.* $(NOEXT) $(INSTDIR)/html ; fi
+
+clean : 
+	$(FIND) . -type f -name "*~"    -exec rm "{}" \;
+	$(FIND) . -type f -name "#*#"   -exec rm "{}" \;
+
 #  $Log$
+#  Revision 3.11  2006/06/20 22:08:08  mast
+#  Added joinImages
+#
 #  Revision 3.10  2006/06/19 14:11:48  mast
 #  Passed install dir to makeadp
 #
@@ -45,16 +58,3 @@
 #  Revision 1.1  2001/11/28 15:39:48  mast
 #  Added Makefile so that make install will install these files
 #
-#
-include ../configure
-
-NOEXT = 3dmodimages etomoImages 3dmodHelp libhelp joinImages
-
-install : clean
-	cd libdoc ; $(MAKE)
-	./makeadp $(INSTDIR)
-	if [ `pwd` != $(INSTDIR)/html ] ; then $(CP) -r *.* $(NOEXT) $(INSTDIR)/html ; fi
-
-clean : 
-	$(FIND) . -type f -name "*~"    -exec rm "{}" \;
-	$(FIND) . -type f -name "#*#"   -exec rm "{}" \;

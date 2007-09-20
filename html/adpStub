@@ -16,6 +16,7 @@
   <section ref="./tomoguide.html" title="Tomography Guide"/>
   <section ref="./tomoExtra.html" title="Tomography Extra Topics"/>
   <section ref="./tomojoin.html" title="Joining Serial Tomograms"/>
+  <section ref="ctfHelp/ctfguide.html" title="Guide to CTF Plotter"/>
   <section ref="./serialalign.txt" title="Aligning Serial Sections"/>
   <section ref="./program_listing.html" title="Program Listing"/>
   <section ref="./binspec.html" title="Binary Model Format"/>
