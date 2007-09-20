@@ -45,6 +45,7 @@ autodoc.$(O) : $(INCDIR)/autodoc.h
 adoc_fwrap.$(O) : $(INCDIR)/autodoc.h
 
 #  $Log$
+#
 #  Revision 1.1  2007/09/20 02:43:08  mast
 #  Moved to new library
 #
