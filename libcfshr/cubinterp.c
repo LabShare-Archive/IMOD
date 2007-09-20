@@ -6,6 +6,16 @@
  * $Id$
  * Log at end
  */
+#include <math.h>
+#include "imodconfig.h"
+#include "b3dutil.h"
+
+#ifdef F77FUNCAP
+#define cubinterpfwrap CUBINTERP
+#else
+#define cubinterpfwrap cubinterp_
+#endif
+
 /*!
  * Applies a linear transformation to an image using cubic or linear 
  * interpolation.  It eliminates all range tests from the inner loop, but 
@@ -25,25 +35,14 @@
  * ^  [linear] - Set non-zero to do linear interpolation
  * ^The coordinate transformation from (Xi, Yi) in the input image to the
  * (Xo, Yo) in the output image is given by:
- * ^    Xo = a11(Xi - Xc) + a12(Yi - Yc) + NXB/2. + XT
- * ^    Yo = a21(Xi - Xc) + a22(Yi - Yc) + NYB/2. + YT
- * ^When calling from C, indices in [amat] are transposed: a11 = amat[0][0],
- * a12 = amat[1][0], a21 = amat[0][1], a22 = amat[1][1]
+ * ^    Xo = a11(Xi - Xc) + a12(Yi - Yc) + nxb/2. + xt
+ * ^    Yo = a21(Xi - Xc) + a22(Yi - Yc) + nyb/2. + yt
+ * ^When calling from C, indices in [amat] are transposed: a11 = amat\[0\]\[0\],
+ * a12 = amat\[1\]\[0\], a21 = amat\[0\]\[1\], a22 = amat\[1\]\[1\]
  * ^To call from Fortran, use arguments of the same type and in the same order.
  * Indices in [amat] are in logical order: a11 = amat(1,1), a12 = amat(1,2), 
  * etc.
  */   
-
-#include <math.h>
-#include "imodconfig.h"
-#include "b3dutil.h"
-
-#ifdef F77FUNCAP
-#define cubinterpfwrap CUBINTERP
-#else
-#define cubinterpfwrap cubinterp_
-#endif
-
 void cubinterp(float *array, float *bray, int nxa, int nya, int nxb, int nyb,
                float amat[2][2], float xc, float yc, float xt, float yt, 
                float scale, float dmean, int linear)
@@ -274,6 +273,9 @@ void cubinterpfwrap(float *array, float *bray, int *nxa, int *nya, int *nxb,
 /*
 
 $Log$
+Revision 1.1  2007/09/20 02:42:37  mast
+Added C translation to new library
+
 Revision 3.3  2006/03/27 19:50:47  mast
 Fixed problem with starting X value too large for integer truncations
 

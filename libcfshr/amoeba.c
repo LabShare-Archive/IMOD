@@ -51,7 +51,7 @@
  * limit for the fractional change in function value, and the array [ptol],
  * which has limits for the change of each variable.  [iterP] is returned with 
  * the number of iterations; [iloP] is returned with the index of the minimum
- * vector in p (p[i][iloP] in C, p(iloP, i) in fortran).
+ * vector in [p] (p\[i\]\[iloP\] in C, p(iloP, i) in fortran).
  * ^ From fortran the subroutine is called as:
  * ^ call amoeba(p, y, mp, ndim, ftol, funk, iter, ptol, ilo)
  * ^ where [funk] is: 
@@ -224,6 +224,9 @@ void amoebainitfwrap(float *p, float *y, int *mp, int *ndim, float *delfac,
 /*
 
 $Log$
+Revision 1.1  2007/09/20 02:43:08  mast
+Moved to new library
+
 Revision 3.6  2006/06/18 19:36:46  mast
 Changed to take a function that returns the value as an argument because
 it is more portable than the return value (float failed on 64-bit)

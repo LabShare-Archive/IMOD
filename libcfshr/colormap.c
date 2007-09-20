@@ -10,6 +10,9 @@
 $Id$
   
 $Log$
+Revision 1.1  2007/09/20 02:43:08  mast
+Moved to new library
+
 Revision 1.1  2006/08/27 23:44:57  mast
 Added to library
 
@@ -19,6 +22,7 @@ Added to library
 #include <stdio.h>
 #include "b3dutil.h"
 
+/* DOC_SECTION COLORRAMP */
 /* DOC_CODE Standard color ramps */
 /* The standard color ramp specification used in 3dmod */
 static int standardRampData[] =
@@ -61,6 +65,8 @@ static int invertedRampData[] =
     179,    0,  255,  569,
     255,    0,  255,  616,
   };
+/* END_CODE */
+/* END_SECTION */
 
 /*!
  * Returns a pointer to the color ramp specification for the standard false
