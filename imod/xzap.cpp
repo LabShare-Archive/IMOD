@@ -48,8 +48,6 @@
 #include "undoredo.h"
 #include "finegrain.h"
 
-#define RADIANS_PER_DEGREE 0.0174532925
-
 static void zapDraw_cb(ImodView *vi, void *client, int drawflag);
 
 static void zapClose_cb(ImodView *vi, void *client, int drawflag);
@@ -4052,6 +4050,9 @@ void zapGetLongestTimeString(ImodView *vi, QString *str)
 
 /*
 $Log$
+Revision 4.102  2007/08/13 16:04:50  mast
+Changes for locator window
+
 Revision 4.101  2007/07/19 22:29:19  mast
 Added hot keys for jumping to set limits in time
 

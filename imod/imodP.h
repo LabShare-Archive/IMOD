@@ -8,15 +8,10 @@
  *  Copyright (C) 1995-2004 by Boulder Laboratory for 3-Dimensional Electron
  *  Microscopy of Cells ("BL3DEMC") and the Regents of the University of 
  *  Colorado.  See dist/COPYRIGHT for full copyright notice.
+ *
+ *  $Id$
+ *  Log at end of file
  */
-
-/*  $Author$
-
-$Date$
-
-$Revision$
-Log at end of file
-*/
 
 #ifndef IMODP_H
 #define IMODP_H
@@ -217,6 +212,7 @@ extern int (*ivwFastGetValue)(int x, int y, int z);
 
 #define IMOD_SELSIZE 15   /* Distance for selecting model points with mouse. */
 
+#define RADIANS_PER_DEGREE 0.017453293
 #define MOVIE_DEFAULT 52965
 #define IMOD_MM_TOGGLE 0
 
@@ -265,6 +261,9 @@ bool imodDebug(char key);
 
 /*
 $Log$
+Revision 3.36  2006/09/28 21:17:51  mast
+Changed xysize to unsigned FWIW
+
 Revision 3.35  2006/08/28 05:19:05  mast
 Added variable for colormapped images
 

@@ -15,10 +15,6 @@
 #ifndef SSLICE_H
 #define SSLICE_H
 
-#ifndef RADIANS_PER_DEGREE
-#define RADIANS_PER_DEGREE 0.017453293
-#endif 
-
 #define SLICE_ZSCALE_OFF    0
 #define SLICE_ZSCALE_BEFORE 1
 #define SLICE_ZSCALE_AFTER  2
@@ -147,6 +143,9 @@ void slicerSetAnglesFromRow(SlicerStruct *ss);
 
 /*
     $Log$
+    Revision 3.17  2007/06/15 21:19:23  mast
+    Added shift lock
+
     Revision 3.16  2007/06/04 15:07:31  mast
     A few more variables to keep track of drawn position
 
