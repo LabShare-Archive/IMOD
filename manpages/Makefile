@@ -8,6 +8,9 @@
 #  $Revision$
 #
 #  $Log$
+#  Revision 3.4  2007/02/20 19:27:58  mast
+#  Added robots.txt file to prevent scanning to the html/man directory
+#
 #  Revision 3.3  2006/02/10 14:54:20  mast
 #  Added dependency onproglist.h
 #
@@ -40,9 +43,9 @@ install : mantohtml autodoc2man
 	echo 'User-agent: *' > $(INSTDIR)/html/man/robots.txt
 	echo 'Disallow: /' >> $(INSTDIR)/html/man/robots.txt
 
-autodoc2man : autodoc2man.$(O) ../libimod/parse_params.$(O)
+autodoc2man : autodoc2man.$(O) ../libcfshr/parse_params.$(O)
 	$(CC) $(CFLAGS) -o autodoc2man autodoc2man.$(O) \
-	../libimod/parse_params.$(O) $(CLIBS)
+	../libcfshr/parse_params.$(O) $(CLIBS)
 
 mantohtml : mantohtml.$(O)
 	$(CC) $(CFLAGS) -o mantohtml mantohtml.$(O) $(CLIBS)

@@ -8,6 +8,9 @@
 #  $Revision$
 #
 #  $Log$
+#  Revision 3.3  2003/10/24 02:30:57  mast
+#  Changes for windows/Intel compiler
+#
 #  Revision 3.2  2003/10/08 17:15:57  mast
 #  Changes to work with autodoc files
 #
@@ -35,9 +38,9 @@ install : $(THERE)/mantohtml $(THERE)/autodoc2man
 $(THERE)/mantohtml : 
 	(cd $(THERE) ; $(CC) $(CFLAGS) -o mantohtml mantohtml.c)
 
-$(THERE)/autodoc2man : $(THERE)/autodoc2man.$(O) ../../libimod/parse_params.$(O)
+$(THERE)/autodoc2man : $(THERE)/autodoc2man.$(O) ../../libcfshr/parse_params.$(O)
 	(cd $(THERE) ; $(CC) $(CFLAGS) -o autodoc2man autodoc2man.$(O) \
-	../libimod/parse_params.$(O) $(CLIBS) )
+	../libcfshr/parse_params.$(O) $(CLIBS) )
 
 clean :
 	$(FIND) . -type f -name "*.html"   -exec rm "{}" \;
