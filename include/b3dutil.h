@@ -71,6 +71,15 @@ extern "C" {
   int cmapConvertRamp(int *rampData, unsigned char table[3][256]);
   int cmapReadConvert(char *filename, unsigned char table[3][256]);
 
+  /* cubinterp.c */
+  void cubinterp(float *array, float *bray, int nxa, int nya, int nxb, int nyb,
+                 float amat[2][2], float xc, float yc, float xt, float yt,
+                 float scale, float dmean, int linear);
+
+  /* reduce_by_binning.c */
+  int reduceByBinning(void *datain, int mode, int nx, int ny, int nbin,
+                      void *dataout, int *nxr, int *nyr);
+
 #ifdef __cplusplus
 }
 #endif
@@ -80,6 +89,9 @@ extern "C" {
 
 /*
 $Log$
+Revision 1.13  2007/04/26 19:07:44  mast
+Add B3DNINT
+
 Revision 1.12  2006/09/28 21:13:23  mast
 Added huge seek routine
 
