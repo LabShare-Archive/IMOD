@@ -396,7 +396,7 @@ csrc : ALWAYS
 	imod/*.bits imod/*.png imod/*.xpm \
 	imod/3dmod.dsw imod/Makefile.dummy imod/b3dicon.i* \
 	imodutil/*.[ch] imodutil/Makefile \
-	mrc/*.[ch]    mrc/Makefile \
+	mrc/*.[ch] mrc/*.cpp   mrc/Makefile \
 	clip/*.[ch]   clip/Makefile \
 	midas/*.[ch] midas/*.cpp midas/midas.pro \
 	midas/Makefile.dummy \
@@ -455,6 +455,9 @@ ALWAYS:
 
 ############################################################################
 #  $Log$
+#  Revision 3.69  2007/09/20 14:21:16  mast
+#  There will be no ctfplotter.dsp - can't build fortran libs in Visual C
+#
 #  Revision 3.68  2007/09/20 03:21:34  mast
 #  Needed to make libcfshr before libimod for windows
 #
