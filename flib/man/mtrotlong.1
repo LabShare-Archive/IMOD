@@ -14,10 +14,11 @@ DDEESSCCRRIIPPTTIIOONN
   orientation, and with one end of the item in the center of the extracted
   subvolume.  To use it, model each fiber in 3dmod(1) with a single open
   contour along its axis.  Then run Mtrotlong with entries indicating which
-  contours to analyze and how to orient them, and it will produce a file
-  with commands for extracting the subvolumes with Rotatevol(1).  This
-  allows the rotation angles to be edited if necessary to produce a better
-  result, using angles found in the Slicer window.
+  contours to analyze and how to orient them, and it will produce an IMOD
+  command file for extracting the subvolumes with Rotatevol(1).  This command
+  file would then be run with "subm command_file".  This allows the rotation
+  angles to be edited if necessary to produce a better result, using angles
+  found in the Slicer window.
 
   The program will determine the orientation near the end of a fiber by
   fitting to a specified number of points.  It is thus desirable to have
