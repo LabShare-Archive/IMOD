@@ -49,6 +49,7 @@ else
     echo "DLLSOURCEDIR1 = /usr/local/lib" >> $configure
     if ($fortvers[1] == 3) then
         set fcomp = "g77"
+        set ctfplot_flibs = "-lg2c"
 
         # tell the C routines being called by Fortran that they need two __
         #
