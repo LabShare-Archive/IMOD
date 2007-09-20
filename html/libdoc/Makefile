@@ -4,6 +4,7 @@ SDEXE = ../../sourcedoc/$(SOURCEDOC_EXE)
 LHD = ../libhelp
 INCD = ../../include
 IMD = ../../libimod
+CFD = ../../libcfshr
 IIMD = ../../libiimod
 QTD = ../../libdiaqt
 
@@ -14,7 +15,8 @@ $(LHD)/imat.html $(LHD)/iplane.html $(LHD)/iview.html $(LHD)/ilabel.html \
 $(LHD)/mod_fwrap.html $(LHD)/b3dutil.html $(LHD)/autodoc.html \
 $(LHD)/mrcfiles.html $(LHD)/iimage.html $(LHD)/plist.html \
 $(LHD)/mrcslice.html $(LHD)/sliceproc.html $(LHD)/libmesh.html \
-$(LHD)/libifft.html $(LHD)/libdiaqt.html
+$(LHD)/libifft.html $(LHD)/libdiaqt.html $(LHD)/libcfshr.html \
+$(LHD)/cfutils.html
 
 # Make doc files and place them in help directory
 
@@ -22,6 +24,8 @@ all : $(HTMLS)
 
 $(LHD)/libimod.html: libimod.html
 	$(CP) libimod.html $(LHD)
+$(LHD)/libcfshr.html: libcfshr.html
+	$(CP) libcfshr.html $(LHD)
 $(LHD)/libiimod.html: libiimod.html
 	$(CP) libiimod.html $(LHD)
 
@@ -43,8 +47,8 @@ $(LHD)/imesh.html: imesh.html $(IMD)/imesh.c
 $(LHD)/imodel_files.html: imodel_files.html $(IMD)/imodel_files.c
 	$(SDEXE) -d $(IMD) imodel_files.html $(LHD)/imodel_files.html
 
-$(LHD)/ilist.html: ilist.html $(IMD)/ilist.c
-	$(SDEXE) -d $(IMD) ilist.html $(LHD)/ilist.html
+$(LHD)/ilist.html: ilist.html $(CFD)/ilist.c
+	$(SDEXE) -d $(CFD) ilist.html $(LHD)/ilist.html
 
 $(LHD)/istore.html: istore.html $(IMD)/istore.c $(INCD)/istore.h
 	$(SDEXE) -d $(IMD) istore.html $(LHD)/istore.html
@@ -64,12 +68,16 @@ $(LHD)/ilabel.html: ilabel.html $(IMD)/ilabel.c $(INCD)/imodel.h
 $(LHD)/mod_fwrap.html: mod_fwrap.html $(IMD)/imodel_fwrap.c
 	$(SDEXE) -d $(IMD) mod_fwrap.html $(LHD)/mod_fwrap.html
 
-$(LHD)/b3dutil.html: b3dutil.html $(IMD)/b3dutil.c $(IMD)/parselist.c \
-	$(IMD)/amoeba.c $(IMD)/samplemeansd.c
-	$(SDEXE) -d $(IMD) b3dutil.html $(LHD)/b3dutil.html
+$(LHD)/b3dutil.html: b3dutil.html $(CFD)/b3dutil.c 
+	$(SDEXE) -d $(CFD) b3dutil.html $(LHD)/b3dutil.html
 
-$(LHD)/autodoc.html: autodoc.html $(IMD)/autodoc.c
-	$(SDEXE) -d $(IMD) autodoc.html $(LHD)/autodoc.html
+$(LHD)/cfutils.html: cfutils.html $(CFD)/parselist.c \
+	$(CFD)/amoeba.c $(CFD)/samplemeansd.c $(CFD)/colormap.c \
+	$(CFD)/reduce_by_binning.c $(CFD)/cubinterp.c
+	$(SDEXE) -d $(CFD) cfutils.html $(LHD)/cfutils.html
+
+$(LHD)/autodoc.html: autodoc.html $(CFD)/autodoc.c
+	$(SDEXE) -d $(CFD) autodoc.html $(LHD)/autodoc.html
 
 $(LHD)/mrcfiles.html: mrcfiles.html $(IIMD)/mrcfiles.c
 	$(SDEXE) -d $(IIMD) mrcfiles.html $(LHD)/mrcfiles.html

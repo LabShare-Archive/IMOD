@@ -3,8 +3,10 @@ IMOD Library libimod
 </title>
 <body>
 <H2  align="center">IMOD Library libimod</H2>
-The libimod library contains functions primarily for working with an
-IMOD model. It also contains some utility functions, including the PIP
+The libimod library contains functions for working with an
+IMOD model.  Note that many utility functions and the 
+<A HREF="ilist.html">list functions</A> were moved to a new library,
+<A HREF="libcfshr.html">libcfshr</A>, in IMOD 3.10.18.
 package.
 <P>
 Whenever the documentation indicates that a function returns a
@@ -21,8 +23,6 @@ points and manipulating points in contours.
 <LI> <A HREF="imesh.html">Mesh functions</A> for working with meshes.
 <LI> <A HREF="imodel_files.html">Model I/O functions</A> for
 reading and writing models.
-<LI> <A HREF="ilist.html">List functions</A> for working with an
-Ilist, a structure for holding arrays of arbitrary items.
 <LI> <A HREF="istore.html">General storage functions</A> for working with
 lists of Istore elements, which are used to store extra data about
 model elements.
@@ -34,14 +34,5 @@ planes.
 view structures.
 <LI> <A HREF="ilabel.html">Label functions</A> for working with contour and
 point labels.
-<LI><A HREF="b3dutil.html">Utility functions</A> for version and
-copyright, getting stripped program name, making a backup file, doing
-large-file I/O, and handling errors from library functions.
-<LI> <A HREF="mod_fwrap.html">Fortran-callable functions</A> for
-retrieving and storing an IMOD model.
-<LI><A HREF="../man/pip.html">PIP package</A> for parsing input
-parameters.
-<LI><A HREF="autodoc.html">Autodoc functions</A> for accessing and manipulating
-and autodoc-like file.
 </UL>
 </body>
