@@ -9,6 +9,9 @@ include ../../configure
 #  $Revision$
 #
 #  $Log$
+#  Revision 3.8  2005/12/09 06:23:05  mast
+#  Needed to move b3dxor into  here
+#
 #  Revision 3.7  2005/02/28 15:09:33  mast
 #  undistinterp had to go in libhvem
 #
@@ -36,7 +39,7 @@ FFLAGS = $(LIBFFLAGS)
 O        = $(OBJEXT)
 OBJS =  bigfft.$(O) bigfilt.$(O) cinterp.$(O) filter.$(O) icalc_angles.$(O) \
  icalc_matrix.$(O) iclcdn.$(O) iclden.$(O) iclscl.$(O) inside.$(O) \
- interp.$(O) qdinterp.$(O) filterpart.$(O) cubinterp.$(O) \
+ interp.$(O) qdinterp.$(O) filterpart.$(O) \
  strupcase.$(O) iclavgsd.$(O) b3dxor.$(O)
 
 bigfft.$(O): $(INCDIR)/ftbuf.inc
