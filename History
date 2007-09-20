@@ -1,5 +1,15 @@
 IMOD History
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+9/20/07: Added ability to visualize the current clipping plane as a
+semitransparent plane and improved predictability of clipping planes by making
+them rotate around the point closest to the center of the window.
+
+9/20/07: Added ctfplotter for determining defocus in groups of low-dose tilt
+images, and ctfphaseflip to correct for CTF in tilted images with phase
+flipping only.
+
+9/20/07: Split libimod into pure model library and a utility library.
+
 9/17/07: Added environment variable IMOD_RETAIN_FSCACHE to keep 3dmod from
 dismissing data in file system cache while loading it (see man imodenv).
 
