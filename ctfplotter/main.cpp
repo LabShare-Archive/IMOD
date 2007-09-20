@@ -37,7 +37,8 @@ int main(int argc, char *argv[])
   float expectedDef, leftDefTol, rightDefTol;
   float ampContrast, cs;
 
-  PipReadOrParseOptions(argc, argv, options, numOptions, argv[0], 
+  //PipReadOrParseOptions(argc, argv, options, numOptions, argv[0], 
+  PipReadOrParseOptions(argc, argv, options, numOptions, "ctfplotter", 
       1, 0, 0, &numOptArgs, &numNonOptArgs, NULL);
 
   if (PipGetString("ConfigFile", &cfgFn))
@@ -177,7 +178,7 @@ int main(int argc, char *argv[])
     exit(-1);
   }
   
-  plotter.resize(1280, 1024);
+  plotter.resize(768, 624);
   plotter.show();
   app.exec();
   free(rAvg);
