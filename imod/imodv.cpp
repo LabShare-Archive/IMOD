@@ -7,15 +7,10 @@
  *  Copyright (C) 1995-2004 by Boulder Laboratory for 3-Dimensional Electron
  *  Microscopy of Cells ("BL3DEMC") and the Regents of the University of 
  *  Colorado.  See dist/COPYRIGHT for full copyright notice.
+ *
+ *  $Id$
+ *  Log at end of file
  */
-
-/*  $Author$
-
-$Date$
-
-$Revision$
-Log at end of file
-*/
 
 #include <stdio.h>
 #include <stdlib.h>
@@ -162,6 +157,7 @@ static int imodv_init(ImodvApp *a, struct Mod_Draw *md)
   a->depthcue  = 0;
   a->wireframe = 0;
   a->lowres = 0;
+  a->drawClip = 0;
 
   // DNM 6/6/04: Gte rid of stereo command initialization
 
@@ -680,6 +676,9 @@ void imodvQuit()
 
 /*
 $Log$
+Revision 4.31  2006/09/12 15:46:32  mast
+Handled contour member renames
+
 Revision 4.30  2006/07/03 19:52:05  mast
 Request disconnect of message handler on exit
 

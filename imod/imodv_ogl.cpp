@@ -7,14 +7,10 @@
  *  Copyright (C) 1995-2005 by Boulder Laboratory for 3-Dimensional Electron
  *  Microscopy of Cells ("BL3DEMC") and the Regents of the University of 
  *  Colorado.  See dist/COPYRIGHT for full copyright notice.
+ *
+ *  $Id$
+ *  Log at end of file
  */
-/*  $Author$
-
-$Date$
-
-$Revision$
-Log at end of file
-*/
 
 #include <stdlib.h>
 #include <math.h>
@@ -27,6 +23,7 @@ Log at end of file
 #include "imod_edit.h"
 #include "imodv_gfx.h"
 #include "imodv_ogl.h"
+#include "imodv_input.h"
 #include "imodv_light.h"
 #include "imodv_stereo.h"
 #include "istore.h"
@@ -88,6 +85,7 @@ static int load_cmap(unsigned char table[3][256], int *rampData);
 static int clip_obj(Imod *imod, Iobj *obj, int flag);
 static int skipNonCurrentSurface(Imesh *mesh, int *ip, Iobj *obj);
 static bool checkThickerContour(int co);
+static void drawCurrentClipPlane(ImodvApp *a);
 
 static int CTime = -1;
 static float depthShift;
@@ -509,7 +507,8 @@ void imodvDraw_model(ImodvApp *a, Imod *imod)
   glFinish();
   
   glPopName();
-  return;
+  if (a->drawClip && imod == a->imod)
+    drawCurrentClipPlane(a);
 }
 
 static int clip_obj(Imod *imod, Iobj *obj, int flag)
@@ -2354,7 +2353,70 @@ void imodvSelectVisibleConts(ImodvApp *a, int &pickedOb, int &pickedCo)
 }
 
 /*
+ * Draw the current clip plane if it is on
+ */
+static void drawCurrentClipPlane(ImodvApp *a)
+{
+  IclipPlanes *clips;
+  float smallVal = 1.e-4;
+  double beta, alpha, zrot, normz;
+  Imat *mat = imodMatNew(3);
+  Iview *vw = a->imod->view;
+  float xcen, ycen, zcen, tt, radfrac = 0.95f;
+  Ipoint corner, xcorn, cen;
+  int ind, ip;
+  float vx[4], vy[4], vz[4];
+  float zscale = a->imod->zscale ? a->imod->zscale : 1.;
+
+  if (!mat || !a->obj)
+    return;
+  clips = a->imod->editGlobalClip ? &a->imod->view->clips : &a->obj->clips;
+  ip = clips->plane;
+  if (!(clips->flags & (1 << ip)))
+    return;
+
+  clipCenterAndAngles(a, &clips->point[ip], &clips->normal[ip], &cen, alpha,
+                      beta);
+  imodMatRot(mat, -(float)(alpha / RADIANS_PER_DEGREE), b3dX);
+  imodMatRot(mat, -(float)(beta / RADIANS_PER_DEGREE), b3dY);
+
+  // Compute and draw 4 corner points.
+  // It works best if you draw lines before plane
+  glColor4ub(255, 0, 0, 255);
+  glBegin(GL_LINE_LOOP);
+  for (ind = 0; ind < 4; ind++) {
+    corner.x = ((ind == 1 || ind == 2) ? -1 : 1) * radfrac * vw->rad;
+    corner.y = ((ind / 2 == 1) ? -1 : 1) * radfrac * vw->rad;
+    corner.z = 0.;
+    imodMatTransform3D(mat, &corner, &xcorn);
+    vx[ind] = cen.x + xcorn.x;
+    vy[ind] = cen.y + xcorn.y;
+    vz[ind] = cen.z + xcorn.z / zscale;
+    glVertex3f(vx[ind], vy[ind], vz[ind]);
+    //    imodPrintStderr("xcorn %.2f %.2f %.2f\n", xcorn.x, xcorn.y, xcorn.z);
+  }
+  glEnd();
+  glBlendFunc(GL_SRC_ALPHA,  GL_ONE_MINUS_SRC_ALPHA); 
+  glEnable(GL_BLEND); 
+
+  glColor4ub(255, 0, 0, 96);
+  glBegin(GL_POLYGON);
+
+  for (ind = 0; ind < 4; ind++)
+    glVertex3f(vx[ind], vy[ind], vz[ind]);
+  glEnd();
+  glBlendFunc(GL_ONE,  GL_ZERO);
+  glDisable(GL_BLEND);
+
+  imodMatDelete(mat);
+}
+
+/*
 $Log$
+Revision 4.33  2006/11/03 06:43:21  mast
+Fixed problems with missing bits of contour line or point draw due to color
+changes- needed to do glEnd/glBegin pairs
+
 Revision 4.32  2006/09/12 15:44:07  mast
 Handled mesh member renames
 

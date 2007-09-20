@@ -142,6 +142,8 @@ void imodvKeyPress(QKeyEvent *event)
                       (clips->normal[ip].y * clips->point[ip].y) +
                       (clips->normal[ip].z * clips->point[ip].z)));
         imodPrintInfo(qstr.latin1());
+        /* imodPrintStderr("%.2f %.2f %.2f\n", clips->point[ip].x, 
+           clips->point[ip].y, clips->point[ip].z); */
       }
     }
     break;
@@ -548,7 +550,6 @@ static void imodv_light_move(ImodvApp *a)
     light_moveby(mx - a->lmx, my - a->lmy);
   }
   imodvDraw(a);
-  return;
 }
 
 
@@ -564,7 +565,6 @@ static void imodv_translate(ImodvApp *a, int x, int y)
   dy = my - a->lmy;
 
   imodv_translated(a, dx, dy, 0);
-  return;
 }
 
 
@@ -579,8 +579,6 @@ void imodv_zoomd(ImodvApp *a, double zoom)
   }else{
     a->imod->view->rad /= zoom;
   }
-
-  return;
 }
 
 /* Register a clip plane change for model or object on the first move */
@@ -607,6 +605,7 @@ static void imodv_translated(ImodvApp *a, int x, int y, int z)
   Ipoint ipt, opt, spt;
   int m, mstrt, mend;
   float scrnscale;
+  double alpha, beta;
 
   if ((maskr & Qt::ControlButton) || !a->moveall) {
     mstrt = a->cm;
@@ -658,6 +657,11 @@ static void imodv_translated(ImodvApp *a, int x, int y, int z)
             clips->point[ip].x += opt.x;
             clips->point[ip].y += opt.y;
             clips->point[ip].z += opt.z;
+            clipCenterAndAngles(a, &clips->point[ip], &clips->normal[ip], 
+                                &spt, alpha, beta);
+            clips->point[ip].x = -spt.x;
+            clips->point[ip].y = -spt.y;
+            clips->point[ip].z = -spt.z;
           }
       }
     }else{ 
@@ -668,7 +672,6 @@ static void imodv_translated(ImodvApp *a, int x, int y, int z)
   }
     
   imodvDraw(a);
-  return;
 }
     
 
@@ -686,7 +689,6 @@ void imodv_rotate_model(ImodvApp *a, int x, int y, int z)
   }
   imodv_compute_rotation(a, (float)x, (float)y, (float)z);
   imodvDraw(a);
-  return;
 }
 
 static void imodv_compute_rotation(ImodvApp *a, float x, float y, float z)
@@ -789,6 +791,12 @@ static void imodv_compute_rotation(ImodvApp *a, float x, float y, float z)
           (imod->view->scale.z * imod->zscale);
         imodPointNormalize(&(clips->normal[ip]));
 
+        // Reset the fixed point to point nearest center of field
+        clipCenterAndAngles(a, &clips->point[ip], &clips->normal[ip], 
+                            &normal, alpha, beta);
+        clips->point[ip].x = -normal.x;
+        clips->point[ip].y = -normal.y;
+        clips->point[ip].z = -normal.z;
       }
     }
   }
@@ -885,6 +893,46 @@ static void imodv_rotate(ImodvApp *a, int throwFlag)
   /* imodvDraw(a); */
   return;
 }
+
+/*
+ * Compute the point on a clipping plane that is closest to the center of the
+ * of the window view center, and the angles of rotation for the normal
+ */
+void clipCenterAndAngles(ImodvApp *a, Ipoint *clipPoint, Ipoint *clipNormal, 
+                         Ipoint *cen, double &alpha, double &beta)
+{
+  float smallVal = 1.e-4;
+  double zrot;
+  Iview *vw = a->imod->view;
+  float tt;
+  Ipoint normal, trans, point;
+  float zscale = a->imod->zscale ? a->imod->zscale : 1.;
+
+  normal = *clipNormal;
+  normal.z /= zscale;
+  imodPointNormalize(&normal);
+  trans = vw->trans;
+  trans.z *= zscale;
+  point = *clipPoint;
+  point.z *= zscale;
+  alpha = 0.;
+  beta = 0.;
+  if (fabs((double)normal.x) > smallVal || fabs((double)normal.z) > smallVal)
+    beta = -atan2((double)normal.x, normal.z);
+  zrot = normal.z * cos(beta) - normal.x * sin(beta);
+  alpha = -(atan2(zrot, normal.y) - 1.570796);
+
+  // Get a center point: point on plane closest to the center of the display
+  tt = imodPointDot(&normal, &trans) - imodPointDot(&normal, &point);
+  cen->x = normal.x * tt - trans.x;
+  cen->y = normal.y * tt - trans.y;
+  cen->z = normal.z * tt - trans.z;
+  /*imodPrintStderr("cen %.2f %.2f %.2f  d %.2f cen prod %.2f \n", cen->x,
+                  cen->y, cen->z, -imodPointDot(&normal, &point),
+                  imodPointDot(&normal, cen)); */
+  cen->z /= zscale;
+}
+
 
 /* DNM 12/16/02: removed unused callback code */
 
@@ -1117,6 +1165,9 @@ void imodvMovieTimeout()
 
 /*
     $Log$
+    Revision 4.27  2007/08/08 03:05:02  mast
+    Fixed setting up of point picking to avoid context-setting errors
+
     Revision 4.26  2007/07/08 16:53:19  mast
     Added drag selection of contours crossed by mouse
 

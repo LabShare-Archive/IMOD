@@ -102,8 +102,9 @@ class ImodvObjed : public QObject
   void meshLevelSlot(int which, int value, bool dragging);
   void clipGlobalSlot(int value);
   void clipSkipSlot(bool state);
+  void clipShowSlot(bool state);
   void clipPlaneSlot(int value);
-  void clipResetSlot();
+  void clipResetSlot(int which);
   void clipInvertSlot();
   void clipToggleSlot(bool state);
   void clipMoveAllSlot(bool state);
@@ -159,6 +160,9 @@ class ImodvOlist : public QWidget
 
 /*
 $Log$
+Revision 4.9  2007/07/08 16:44:14  mast
+Added slots for open/closed and auto new cont
+
 Revision 4.8  2006/09/12 15:48:20  mast
 Added panel to run meshing
 

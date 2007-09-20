@@ -7,15 +7,10 @@
  *  Copyright (C) 1995-2004 by Boulder Laboratory for 3-Dimensional Electron
  *  Microscopy of Cells ("BL3DEMC") and the Regents of the University of 
  *  Colorado.  See dist/COPYRIGHT for full copyright notice.
+ *
+ *  $Id$
+ *  Log at end of file
  */
-
-/*  $Author$
-
-$Date$
-
-$Revision$
-Log at end of file
-*/
 
 #ifndef IMODV_H
 #define IMODV_H
@@ -93,6 +88,7 @@ typedef struct __imodv_struct
   float throwFactor;   /* Speed multiplier if throw occurs */
   int movieTimes[MAX_MOVIE_TIMES];  /* Ring buffer of times */
   int snap_fileno;     /* Snapshot file number */
+  int drawClip;    /* Draw current clip plane */
 
   /* start-up flags */
   int  moveall;    /* move all models if true.                 */
@@ -115,7 +111,6 @@ typedef struct __imodv_struct
   int depthcue;
   int wireframe;
   int lowres;
-
 } ImodvApp;
 
 extern ImodvApp *Imodv;
@@ -137,6 +132,9 @@ void imodvQuit();
 
 /*
 $Log$
+Revision 3.16  2004/11/21 06:07:49  mast
+Changes for undo/redo
+
 Revision 3.15  2004/11/05 19:08:12  mast
 Include local files with quotes, not brackets
 

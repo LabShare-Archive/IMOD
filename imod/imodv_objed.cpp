@@ -78,6 +78,7 @@ static void setScalar_cb(void);
 static void mkScalar_cb(int index);
 static void setClip_cb(void);
 static void mkClip_cb(int index);
+static void fixClip_cb(void);
 static void mkMove_cb(int index);
 static void fixMove_cb(void);
 static void mkSubsets_cb(int index);
@@ -116,7 +117,7 @@ static int ctrlPressed = false;
 #define OBJTYPE_OPEN 2
 #define OBJTYPE_SCAT 4
 
-/* Defines and variables for the On-off buttons in this dislaog and in the
+/* Defines and variables for the On-off buttons in this dialog and in the
    object list dialog */
 #define MAX_ONOFF_BUTTONS  48
 #define MAX_ONOFF_COLUMNS   6
@@ -140,7 +141,7 @@ ObjectEditField objectEditFieldData[]    = {
   {"Points",     mkPoints_cb,    setPoints_cb,    NULL,       NULL},
   {"Lines",      mkLines_cb,     setLines_cb,     NULL,       NULL},
   {"Values",     mkScalar_cb,    setScalar_cb,    NULL,       NULL},
-  {"Clip",       mkClip_cb,      setClip_cb,      NULL,       NULL},
+  {"Clip",       mkClip_cb,      setClip_cb,      fixClip_cb, NULL},
   {"Move",       mkMove_cb,      NULL,            fixMove_cb, NULL},
   {"Subsets",    mkSubsets_cb,   NULL,            NULL,       NULL},
   {"Meshing",    mkMakeMesh_cb,  setMakeMesh_cb,  NULL,       NULL},
@@ -1297,8 +1298,7 @@ static void mkScalar_cb(int index)
   QToolTip::add(wMeshSkipHi, "Do not draw items with values above high "
                 "limit of black/white sliders");
 
-  // Skip spacer in longest box, saves a few pixels
-  //finalSpacer(oef->control, layout1);
+  finalSpacer(oef->control, layout1);
 }
 
 
@@ -1310,6 +1310,13 @@ static QCheckBox *wClipSkipGlobal;
 static QButtonGroup *wClipGlobalGroup;
 static QSpinBox *wClipPlaneSpin;
 static QCheckBox *wClipMoveAll;
+static QPushButton *wClipButtons[4];
+
+void ImodvObjed::clipShowSlot(bool state)
+{
+  Imodv->drawClip = state ? 1 : 0;
+  imodvDraw(Imodv);
+}
 
 void ImodvObjed::clipGlobalSlot(int value)
 {
@@ -1342,9 +1349,11 @@ void ImodvObjed::clipPlaneSlot(int value)
   }
   imodvFinishChgUnit();
   setClip_cb();
+  if (Imodv->drawClip)
+    imodvDraw(Imodv);
 }
 
-void ImodvObjed::clipResetSlot()
+void ImodvObjed::clipResetSlot(int which)
 {
   Ipoint min, max, mid;
   int ip;
@@ -1366,8 +1375,13 @@ void ImodvObjed::clipResetSlot()
   mid.z = (max.z + min.z) * -0.5f;
   ip = clips->plane;
   clips->point[ip] = mid;
-  clips->normal[ip].x = clips->normal[ip].y = 0.0f;
-  clips->normal[ip].z = -1.0f;
+  clips->normal[ip].x = clips->normal[ip].y = clips->normal[ip].z = 0.0f;
+  if (which == 2)
+    clips->normal[ip].z = -1.0f;
+  else if (which == 1)
+    clips->normal[ip].y = -1.0f;
+  else
+    clips->normal[ip].x = -1.0f;
   imodvFinishChgUnit();
   imodvDraw(Imodv);
 }
@@ -1443,7 +1457,7 @@ void ImodvObjed::clipToggleSlot(bool state)
       if (clips->point[ip].x == 0.0 && clips->point[ip].y == 0.0 &&
           clips->point[ip].z == 0.0 && clips->normal[ip].x == 0.0 &&
           clips->normal[ip].y == 0.0 && clips->normal[ip].z == -1.0) {
-        clipResetSlot();
+        clipResetSlot(2);
         return;
       }
     }
@@ -1494,11 +1508,19 @@ static void setClip_cb(void)
 
 static void mkClip_cb(int index)
 {
-  QPushButton *button;
   ObjectEditField *oef = &objectEditFieldData[index];
 
   QVBoxLayout *layout1 = new QVBoxLayout(oef->control, FIELD_MARGIN, 
-                                         FIELD_SPACING, "clip layout");
+                                         B3DMAX(3, FIELD_SPACING-2),
+                                         "clip layout");
+
+  // Show current plane is a global display property, so do it first
+  QCheckBox *cbox = diaCheckBox("Show current plane", oef->control, layout1);
+  diaSetChecked(cbox, Imodv->drawClip != 0);
+  QObject::connect(cbox, SIGNAL(toggled(bool)), &imodvObjed,
+                   SLOT(clipShowSlot(bool)));
+  QToolTip::add(cbox, "Draw semi-transparent plane for clipping plane being"
+                " edited");
 
   // Set up the radio button in a group box
   wClipGlobalGroup = new QHButtonGroup("Planes to edit", oef->control);
@@ -1540,22 +1562,29 @@ static void mkClip_cb(int index)
           SLOT(clipToggleSlot(bool)));
   QToolTip::add(wClipToggle, "Toggle selected clipping plane");
 
-  // reset and invert buttons
+  // 3 mapped reset buttons
+  QSignalMapper *mapper = new QSignalMapper(oef->control);
+  QObject::connect(mapper, SIGNAL(mapped(int)), &imodvObjed,
+                   SLOT(clipResetSlot(int)));
   hLayout = new QHBoxLayout(layout1);
-  button = new QPushButton("Reset", oef->control);
-  hLayout->addWidget(button);
-  button->setFocusPolicy(QWidget::NoFocus);
-  QObject::connect(button, SIGNAL(clicked()), &imodvObjed, 
-                   SLOT(clipResetSlot()));
-  QToolTip::add(button, "Reset clipping plane back to X/Y plane through center"
-                " of object or model");
+  diaLabel("Reset:", oef->control, hLayout);
 
-  button = new QPushButton("Invert", oef->control);
-  hLayout->addWidget(button);
-  button->setFocusPolicy(QWidget::NoFocus);
-  QObject::connect(button, SIGNAL(clicked()), &imodvObjed,
+  for (int i = 0; i < 3; i++) {
+    wClipButtons[i] = diaPushButton((char *)(i ? (i == 1 ? "Y" : "Z") : "X"),
+                           oef->control, hLayout);
+    mapper->setMapping(wClipButtons[i], i);
+    QObject::connect(wClipButtons[i], SIGNAL(clicked()), mapper, SLOT(map()));
+    QToolTip::add(wClipButtons[i], QString("Reset clipping plane back to ") +
+                  QString(i ? (i == 1 ? "Y/Z" : "X/Z") :"X/Y") +
+                  " plane through center of object or model");
+  }
+
+  // Invert button
+  hLayout->addStretch();
+  wClipButtons[3] = diaPushButton("Invert", oef->control, hLayout);
+  QObject::connect(wClipButtons[3], SIGNAL(clicked()), &imodvObjed,
                    SLOT(clipInvertSlot()));
-  QToolTip::add(button, 
+  QToolTip::add(wClipButtons[3], 
                 "Make clipped part visible, clip visible part of object");
 
   wClipMoveAll = diaCheckBox("Adjust all ON planes", oef->control, layout1);
@@ -1568,7 +1597,16 @@ static void mkClip_cb(int index)
   //diaLabel("adjust with mouse or keys", oef->control, layout1);
   //diaLabel("plane with mouse or", oef->control, layout1);
   //diaLabel("keypad & arrow keys", oef->control, layout1); */
+  fixClip_cb();
   finalSpacer(oef->control, layout1);
+}
+
+static void fixClip_cb() 
+{
+  for (int i = 0; i < 3; i++)
+    diaSetButtonWidth(wClipButtons[i], ImodPrefs->getRoundedStyle(), 1.9, "X");
+  diaSetButtonWidth(wClipButtons[3], ImodPrefs->getRoundedStyle(), 1.4,
+                    "Invert");
 }
 
 
@@ -2387,12 +2425,11 @@ static bool drawOnSliderChange(bool dragging)
   return(!dragging || ImodPrefs->hotSliderActive(ctrlPressed));
 }
 
-/* Utility for adding final spacer.  Can it just be layout->addStretch()?  */
+/* Utility for adding final spacer.  It used to be a QVBox but this allows
+   even the longest panel to have one without making dialog bigger */
 static void finalSpacer(QWidget *parent, QVBoxLayout *layout)
 {
-  QVBox *spacer = new QVBox(parent);
-  layout->addWidget(spacer);
-  layout->setStretchFactor(spacer, 100);
+  layout->addStretch();
 }
 
 static void makeRadioButton(char *label, QWidget *parent, QButtonGroup *group,
@@ -2408,6 +2445,10 @@ static void makeRadioButton(char *label, QWidget *parent, QButtonGroup *group,
 
 /*
 $Log$
+Revision 4.29  2007/07/08 16:43:46  mast
+Added open/closed and auto new contour boxes, fixed some sync and layout
+problems, switched to new hot slider function
+
 Revision 4.28  2007/03/23 18:12:36  mast
 Made it refresh Imodv object pointer every time it is requested
 
