@@ -65,12 +65,16 @@
 
   connect(x1_edit_1, SIGNAL(textChanged(const QString &)), this,
       SLOT(enableApplyButton(const QString &)) );
-  connect(x1_edit_1, SIGNAL(textChanged(const QString &)), this,
+  connect(x1_edit_2, SIGNAL(textChanged(const QString &)), this,
       SLOT(enableApplyButton(const QString &)) );
   connect(x2_edit_1, SIGNAL(textChanged(const QString &)), this,
       SLOT(enableApplyButton(const QString &)) );
   connect(x2_edit_2, SIGNAL(textChanged(const QString &)), this,
       SLOT(enableApplyButton(const QString &)) );
+  connect(x1Group, SIGNAL(clicked(int )), this,
+      SLOT(enableApplyButtonX1(int)) );
+  connect(x2Group, SIGNAL(clicked(int )), this,
+      SLOT(enableApplyButtonX2(int )) );
 
   connect(applyButton, SIGNAL(clicked()), this, SLOT(rangeSetted()) );
   connect(closeButton, SIGNAL(clicked()), this, SLOT(close()) );
@@ -142,6 +146,7 @@ void RangeDialog::rangeSetted()
     emit range(x1_1, x1_2, x2_1, x2_2); 
   else
     printf("Invalid range for x2 or x1 \n");
+  applyButton->setEnabled(false);
 }
 
 
@@ -149,6 +154,19 @@ void RangeDialog::enableApplyButton(const QString &text)
 {
   applyButton->setEnabled(!text.isEmpty() );
 }
+
+void RangeDialog::enableApplyButtonX1(int id)
+{
+  if( id!=((MyApp *)qApp)->getX1Method() )
+    applyButton->setEnabled(true);
+}
+
+void RangeDialog::enableApplyButtonX2(int id)
+{
+  if( id!=((MyApp *)qApp)->getX2Method() )
+    applyButton->setEnabled(true);
+}
+
 
 void RangeDialog::x1LinearChecked()
 {

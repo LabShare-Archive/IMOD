@@ -21,6 +21,8 @@ signals:
 private slots:
     void rangeSetted();
     void enableApplyButton(const QString &text);
+    void enableApplyButtonX1(int);
+    void enableApplyButtonX2(int);
     void x1LinearChecked();
     void x1SimplexChecked();
     void x2LinearChecked();
