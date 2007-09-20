@@ -3,6 +3,5 @@ include ../configure
 all :
 
 install	:
-	$(CP) $(VCEXEDIR)/ctfplotter.exe $(INSTBINDIR)
 
 clean :
