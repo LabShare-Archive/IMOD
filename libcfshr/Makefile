@@ -19,7 +19,7 @@ all : $(LIBI)
 
 $(LIBI) : $(UTILOBJS) $(PIPOBJS)
 	$(FIND) . -type f -name $(LIBI) -exec rm "{}" \;
-	$(MAKELIB)$(LIBI) $(LIBIMODDEF) $(UTILOBJS) $(PIPOBJS)
+	$(MAKELIB)$(LIBI) $(LIBCFSHRDEF) $(UTILOBJS) $(PIPOBJS)
 	$(RANLIB) $(LIBI)
 	$(CP) libcfshr.$(LIBEXT) $(LIBDIR)
 
@@ -45,3 +45,6 @@ autodoc.$(O) : $(INCDIR)/autodoc.h
 adoc_fwrap.$(O) : $(INCDIR)/autodoc.h
 
 #  $Log$
+#  Revision 1.1  2007/09/20 02:43:08  mast
+#  Moved to new library
+#
