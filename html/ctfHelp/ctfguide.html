@@ -6,7 +6,19 @@
   <title>ctfguide.html</title>
 </head>
 <body>
-<a name="overall"></a><big>1. The red curve is the logrithm of the CTF
+<a name="overall"></a><big>1. The X coordinate is normalized frequency.
+1.0 equals the Nyquist frequency determined by the pixel size.<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; In our case the pixel
+size is in nanometers, the Nyquist frequency in 1/nm would be
+0.5*1.0/pixel_size.<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; The Edit field marked
+with Z at the top center reports the found normalized frequency of the
+first zero.<br>
+&nbsp; &nbsp; &nbsp; &nbsp;&nbsp; The absolute frequency of the first
+zero in 1/nm is (normalized frequency)*(Nyquist frequency).<br>
+&nbsp; &nbsp; &nbsp; &nbsp;&nbsp; The Edit field marked with D at the
+top center reports the found defocus in microns.<br>
+<a name="two"></a>2. The red curve is the logrithm of the CTF
 curve of the selected slices after subtracting the noise floor. <br>
 &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; The green curve fits the red
 curve from X1_starts to X1_ends which can be set in the fitting range
@@ -15,14 +27,23 @@ dialog.<br>
 fits the red curve from X2_starts to X2_ends which can be set in the
 fitting range dialog.<br>
 &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; The intersection point of
-the green curve and the blue curve is where the program find the first
-zero of the CTF is.<br>
-</big><a name="Intro"></a><big>2. To zoom in an area, hold the left
-mouse down to
-draw rubber bands around that area.<br>
-<a name="intro2"></a>3.
-Use arrow keys to scroll vertically and horizontally.</big><br>
-<br>
+the green curve and the blue curve is where the program finds the first
+zero of the CTF.<br>
+</big><a name="Intro"></a><big>3. To zoom in an area, hold down the
+left
+mouse button to
+draw rubber bands around that area. <br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; To go back to previous zoom
+level, push the Zoom_out icon.<br>
+<a name="intro2"></a>4.
+Use arrow keys to scroll vertically and horizontally.<br>
+<a name="five"></a>5. Double clicking at a point in the plot will set
+the found frequency of the first zero to the frequency that point is
+located at.<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; The found defocus field will
+change accordingly. This is usefull in manually locating the first zero
+and finding its corresponding defocus.<br>
+</big><br>
 <big><big>Tool button usage:</big></big><br>
 <br>
 <a name="zoominButton"></a> <img alt="zoominButton" src="zoomin.png"
@@ -40,13 +61,15 @@ range
 dialog. <br>
 <a name="moreTileButton"></a>&nbsp; <img alt="moretileButton"
  src="moreTile.png" style="width: 32px; height: 32px;">&nbsp;&nbsp;&nbsp;
-<big><big><small><small>Adding Noncenter Strips button</small>. </small></big></big>Add
-the non-center strips to the estimation that was based only on center
-strips.<br>
+<big><big><small><small>Adding Non-center Strips button</small>. </small></big></big>If
+this button is enabled, the current estimation is based only on center
+strips, <br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
+push this button to add non-center strips to the current estimation.<br>
 <a name="saveButton"></a> <img alt="saveButton" src="save.png"
- style="width: 32px; height: 32px;">&nbsp;&nbsp;&nbsp;&nbsp; To save
+ style="width: 32px; height: 32px;">&nbsp;&nbsp;&nbsp;&nbsp; Save
 the defocus found for
-selected slices in the output file.<br>
+the selected slices in the output file.<br>
 <a name="printerButton"></a> <img alt="printerButton" src="printer.png"
  style="width: 48px; height: 48px;">&nbsp; Print the plotted curves.<br>
 <a name="helpButton"></a> <img alt="helpButton" src="ctfhelp.png"
@@ -73,23 +96,34 @@ Push the Close button to close this dialog.<br>
 <img alt="angleDialog" src="angledialog.png"
  style="width: 525px; height: 259px;"><br>
 </big></small></big></big><big><big><small>Expected defocus: <br>
-input&nbsp; the defocus the user expects this tilt series may have.<br>
-Use the radio button to its right, the user can specify whether to use
-the expected defocus or <br>
-the defocus previously found by the program as an intial guess for the
-next round defocus detection.<br>
+The first time this diaglog is brought up, the expected defocus value
+the user specifies in the parameter file is shown.<br>
+When ctfplotter computes its first estimation, It finds the frequency
+the first zero of the CTF curve with this original<br>
+&nbsp;expected defocus locates at. The segments of the CTF curve of the
+input stack around that frequency are selected to be fitted.<br>
+For the subsequent estimation,&nbsp; ctfplotter uses a defocus to
+compute shifts needed to align the CTF curves of non-center <br>
+strips with the CTF curve of center strips. By the radio button group
+'Which defocus to use', the user can specify <br>
+whether to use the expected defocus shown in the 'Expected defocus
+(um)' Edit field or the defocus previously found by the <br>
+program as the defocus for computing the shifts.<br>
 <br>
 Center defocus tol: <br>
-The image region with defocus less than this tolerance is defined as
+The image region with defocus difference less than this tolerance is
+defined as
 the center region.<br>
 <br>
 Left defocus tol: <br>
-The image region left to the center region with defocus less than this
+The image region left to the center region with defocus difference less
+than this
 tolerance <br>
 will be included after the Adding Noncenter Strips button is pushed.<br>
 <br>
 </small></big></big><big><big><small>Right defocus tol: <br>
-The image region right to the center region with defocus less than this
+The image region right to the center region with defocus difference
+less than this
 tolerance <br>
 will be included after the Adding Noncenter Strips button is pushed.</small></big></big><br>
 <big><big><small><br>
@@ -106,15 +140,28 @@ Tilt axis angle:<br>
 The amount in degrees that the tilt axis deviates from being vertical
 (Y axis).<br>
 <br>
-Initial tiles to include radio button:<br>
-Choose whether or not to include the noncenter regions to the initial
-estimation.<br>
-<br>
+'Initial tiles to include' radio button group:<br>
+Choose whether or not to include the noncenter strips to the estimation
+after pushing the Apply button.<br>
+If the 'Only central tile' is checked, after pushing the Apply button,
+only the center region defined by <br>
+'Center defocus tol' will be included and the '</small></big></big><big><big><big><small><small>Adding
+Non-center Strips' button will be enabled. <br>
+The user needs to push that button to add the left region defind by
+'Left defocus tol' and the right region<br>
+defined by 'Right defocus tol' to the estimation.<br>
+If the 'All tiles'&nbsp; is checked, after pushing the Apply button,
+all regions (center, left, right) will be included in<br>
+the estimation and the </small></small></big></big></big><big><big><small>'</small></big></big><big><big><big><small><small>Adding
+Non-center Strips' button will be disabled.</small></small></big></big></big><br>
+<big><big><small><br>
 Push the 'Store current defocus' to store the defocus found to the
 output file.<br>
 Push the Apply button to make the changes made effective.<br>
-Push the Close button to close this dialog.</small></big></big><br>
-<big><big><small><br>
+Push the Close button to close this dialog.<br>
+<br>
+<a href="../man/ctfplotter.html">Refer to ctfplotter man page</a><br>
+</small></big></big><big><big><small><br>
 </small></big></big>
 </body>
 </html>
