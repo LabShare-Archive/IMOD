@@ -59,10 +59,19 @@ void imodvObjedForm::setFontDependentSizes(int width, int height)
     panelFrame->setMinimumWidth(width + 8);   
     panelFrame->setMinimumHeight(height + 8);
     
-    // Set size of list box
-    panelListBox->setMinimumWidth(panelListBox->maxItemWidth() + 4);
+    // Set size of list box: it used to be done with maxItemWidth() + 4
+    // but this was big and not always adjusted right after font change
+    int wid, maxWidth = 0;
+    for (int i = 0; i < panelListBox->maxItemWidth(); i++) {
+      wid = panelListBox->fontMetrics().width(panelListBox->text(i));
+      if (maxWidth < wid)
+        maxWidth = wid;
+    }
+    panelListBox->setMinimumWidth(maxWidth + 10);
     panelListBox->setMinimumHeight(panelListBox->count() * 
 				   panelListBox->itemHeight() + 4);
+    /*printf("panel max width %d  computed width %d\n", 
+      panelListBox->maxItemWidth(), maxWidth);*/
 }
 
 // Need to adjust and measure sizes of widgets on font change
