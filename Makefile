@@ -407,7 +407,7 @@ csrc : ALWAYS
 	sourcedoc/*.cpp sourcedoc/sourcedoc.pro \
 	sourcedoc/Makefile.dummy sourcedoc/sourcedoc.dsp \
 	ctfplotter/*.cpp ctfplotter/*.h ctfplotter/ctfplotter.pro \
-	ctfplotter/Makefile.dummy ctfplotter/ctfplotter.dsp ctfplotter/images \
+	ctfplotter/Makefile.dummy ctfplotter/images \
 	html/*.* html/Makefile html/3dmodimages html/etomoImages \
 	html/3dmodHelp html/joinImages html/adpStub html/makeadp \
 	html/ctfHelp html/libdoc/Makefile html/libdoc/*.html \
@@ -455,6 +455,9 @@ ALWAYS:
 
 ############################################################################
 #  $Log$
+#  Revision 3.68  2007/09/20 03:21:34  mast
+#  Needed to make libcfshr before libimod for windows
+#
 #  Revision 3.67  2007/09/20 02:49:32  mast
 #  Changes for ctf stuff and library rearrangement
 #
