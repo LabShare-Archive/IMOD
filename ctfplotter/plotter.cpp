@@ -19,7 +19,7 @@ using namespace std;
 #include "b3dutil.h"
 
 Plotter::Plotter(QWidget *parent, const char *name, WFlags flags)
-    : QWidget(parent, name, flags | WNoAutoErase)
+    : QWidget(parent, name, flags )
 {
     setBackgroundMode(PaletteDark);
     setSizePolicy(QSizePolicy::Expanding, QSizePolicy::Expanding);
