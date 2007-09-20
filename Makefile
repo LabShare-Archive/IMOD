@@ -158,17 +158,18 @@ default : all
 # Make all the fortran programs then all the C programs.
 #
 all : configure clibs
-	cd Etomo     ; $(MAKE) all
-	cd flib      ; $(MAKE) all
-	cd imod      ; $(MAKE) all
-	cd imodutil  ; $(MAKE) all
-	cd sendevent ; $(MAKE) all
-	cd qtassist  ; $(MAKE) all
-	cd mrc       ; $(MAKE) all
-	cd clip      ; $(MAKE) all
-	cd midas     ; $(MAKE) all
-	cd pysrc     ; $(MAKE) all
-	cd plugs     ; $(MAKE) all
+	cd Etomo      ; $(MAKE) all
+	cd flib       ; $(MAKE) all
+	cd imod       ; $(MAKE) all
+	cd imodutil   ; $(MAKE) all
+	cd sendevent  ; $(MAKE) all
+	cd qtassist   ; $(MAKE) all
+	cd ctfplotter ; $(MAKE) all
+	cd mrc        ; $(MAKE) all
+	cd clip       ; $(MAKE) all
+	cd midas      ; $(MAKE) all
+	cd pysrc      ; $(MAKE) all
+	cd plugs      ; $(MAKE) all
 
 ##############################################################################
 # If a setup gets run automatically, it uses the last options
@@ -179,25 +180,27 @@ configure : setup .version
 # Install cstuff
 #
 install : configure man sourcedoc
-	cd libimod   ; $(MAKE) $@
-	cd libiimod  ; $(MAKE) $@
-	cd libmesh   ; $(MAKE) $@
-	cd libdiaqt  ; $(MAKE) $@
-	cd libcfft   ; $(MAKE) $@
-	cd imod      ; $(MAKE) $@
-	cd imodutil  ; $(MAKE) $@
-	cd sendevent ; $(MAKE) $@
-	cd qtassist  ; $(MAKE) $@
-	cd mrc       ; $(MAKE) $@
-	cd midas     ; $(MAKE) $@
-	cd pysrc     ; $(MAKE) $@
-	cd plugs     ; $(MAKE) $@
-	cd clip      ; $(MAKE) $@
-	cd scripts   ; $(MAKE) $@
-	cd flib      ; $(MAKE) $@
-	cd com       ; $(MAKE) $@
-	cd html      ; $(MAKE) $@
-	cd Etomo	 ; $(MAKE) $@
+	cd libimod    ; $(MAKE) $@
+	cd libcfshr   ; $(MAKE) $@
+	cd libiimod   ; $(MAKE) $@
+	cd libmesh    ; $(MAKE) $@
+	cd libdiaqt   ; $(MAKE) $@
+	cd libcfft    ; $(MAKE) $@
+	cd imod       ; $(MAKE) $@
+	cd imodutil   ; $(MAKE) $@
+	cd sendevent  ; $(MAKE) $@
+	cd qtassist   ; $(MAKE) $@
+	cd ctfplotter ; $(MAKE) $@
+	cd mrc        ; $(MAKE) $@
+	cd midas      ; $(MAKE) $@
+	cd pysrc      ; $(MAKE) $@
+	cd plugs      ; $(MAKE) $@
+	cd clip       ; $(MAKE) $@
+	cd scripts    ; $(MAKE) $@
+	cd flib       ; $(MAKE) $@
+	cd com        ; $(MAKE) $@
+	cd html       ; $(MAKE) $@
+	cd Etomo      ; $(MAKE) $@
 	./packMacApps
 #
 # Make the manual pages .1 from .man, and .html from .1, copy to directories
@@ -219,6 +222,7 @@ sourcedoc : configure ALWAYS
 #
 installclibs : configure
 	cd libimod   ; $(MAKE) install
+	cd libcfshr  ; $(MAKE) install
 	cd libiimod  ; $(MAKE) install
 	cd libmesh   ; $(MAKE) install
 	cd libdiaqt  ; $(MAKE) install
@@ -231,27 +235,29 @@ installlibs : installclibs
 # Clean up our mess.
 #
 clean : configure
-	cd libimod   ; $(MAKE) $@
-	cd libiimod  ; $(MAKE) $@
-	cd libmesh   ; $(MAKE) $@
-	cd libdiaqt  ; $(MAKE) $@
-	cd libcfft   ; $(MAKE) $@
-	cd imod      ; $(MAKE) $@
-	cd imodutil  ; $(MAKE) $@
-	cd sendevent ; $(MAKE) $@
-	cd qtassist  ; $(MAKE) $@
-	cd mrc       ; $(MAKE) $@
-	cd midas     ; $(MAKE) $@
-	cd pysrc     ; $(MAKE) $@
-	cd plugs     ; $(MAKE) $@
-	cd clip      ; $(MAKE) $@
-	cd sourcedoc ; $(MAKE) $@
-	cd scripts   ; $(MAKE) $@
-	cd manpages  ; $(MAKE) $@
-	cd flib      ; $(MAKE) $@
-	cd flib/man  ; $(MAKE) $@
-	cd com       ; $(MAKE) $@
-	cd html      ; $(MAKE) $@
+	cd libimod    ; $(MAKE) $@
+	cd libcfshr   ; $(MAKE) $@
+	cd libiimod   ; $(MAKE) $@
+	cd libmesh    ; $(MAKE) $@
+	cd libdiaqt   ; $(MAKE) $@
+	cd libcfft    ; $(MAKE) $@
+	cd imod       ; $(MAKE) $@
+	cd imodutil   ; $(MAKE) $@
+	cd sendevent  ; $(MAKE) $@
+	cd qtassist   ; $(MAKE) $@
+	cd ctfplotter ; $(MAKE) $@
+	cd mrc        ; $(MAKE) $@
+	cd midas      ; $(MAKE) $@
+	cd pysrc      ; $(MAKE) $@
+	cd plugs      ; $(MAKE) $@
+	cd clip       ; $(MAKE) $@
+	cd sourcedoc  ; $(MAKE) $@
+	cd scripts    ; $(MAKE) $@
+	cd manpages   ; $(MAKE) $@
+	cd flib       ; $(MAKE) $@
+	cd flib/man   ; $(MAKE) $@
+	cd com        ; $(MAKE) $@
+	cd html       ; $(MAKE) $@
 	(cd include ; \find . -type f -name "GLw*.h" -exec rm "{}" \;)
 	(cd buildlib ; \find . -type f -name "libGLw.a" -exec rm "{}" \;)
 	\find . -type f -name "configure" -exec rm "{}" \;
@@ -263,6 +269,7 @@ clean : configure
 
 cleanclibs : configure
 	cd libimod   ; $(MAKE) clean
+	cd libcfshr  ; $(MAKE) clean
 	cd libiimod  ; $(MAKE) clean
 	cd libmesh   ; $(MAKE) clean
 	cd libdiaqt  ; $(MAKE) clean
@@ -275,13 +282,14 @@ cleanlibs : cleanclibs
 # Clean up everything that depends on Qt
 #
 cleanqt : configure
-	cd libdiaqt  ; $(MAKE) clean
-	cd plugs     ; $(MAKE) clean
-	cd imod      ; $(MAKE) clean
-	cd midas     ; $(MAKE) clean
-	cd sendevent ; $(MAKE) clean
-	cd qtassist  ; $(MAKE) clean
-	cd sourcedoc ; $(MAKE) clean
+	cd libdiaqt   ; $(MAKE) clean
+	cd plugs      ; $(MAKE) clean
+	cd imod       ; $(MAKE) clean
+	cd midas      ; $(MAKE) clean
+	cd sendevent  ; $(MAKE) clean
+	cd qtassist   ; $(MAKE) clean
+	cd ctfplotter ; $(MAKE) clean
+	cd sourcedoc  ; $(MAKE) clean
 	cd flib/subrs ; \find . -type f -name '*dnmncar*' -exec /bin/rm -f '{}' \;
 	cd flib/subrs/graphics ; $(MAKE) clean
 	cd flib/ndasda ; $(MAKE) clean
@@ -297,6 +305,7 @@ cleanexe : configure
 #
 clibs : configure
 	cd libimod   ; $(MAKE) all
+	cd libcfshr  ; $(MAKE) all
 	cd libiimod  ; $(MAKE) all
 	cd libmesh   ; $(MAKE) all
 	cd libdiaqt  ; $(MAKE) all
@@ -397,9 +406,11 @@ csrc : ALWAYS
 	qtassist/Makefile.dummy qtassist/imodqtassist.dsp \
 	sourcedoc/*.cpp sourcedoc/sourcedoc.pro \
 	sourcedoc/Makefile.dummy sourcedoc/sourcedoc.dsp \
+	ctfplotter/*.cpp ctfplotter/*.h ctfplotter/ctfplotter.pro \
+	ctfplotter/Makefile.dummy ctfplotter/ctfplotter.dsp ctfplotter/images \
 	html/*.* html/Makefile html/3dmodimages html/etomoImages \
 	html/3dmodHelp html/joinImages html/adpStub html/makeadp \
-	html/libdoc/Makefile html/libdoc/*.html \
+	html/ctfHelp html/libdoc/Makefile html/libdoc/*.html \
 	dist scripts pysrc com manpages autodoc \
 	plugs/*/*.[chf] plugs/*/*.cpp plugs/*/Makefile \
 	plugs/Makefile.unix plugs/Makefile.dummy \
@@ -444,6 +455,9 @@ ALWAYS:
 
 ############################################################################
 #  $Log$
+#  Revision 3.66  2007/06/04 20:53:13  sueh
+#  Added entry for minimal make for 3dmod
+#
 #  Revision 3.65  2007/06/04 18:50:52  mast
 #  *** empty log message ***
 #
