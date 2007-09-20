@@ -5,6 +5,7 @@
 #include <qbuttongroup.h>
 #include <qradiobutton.h>
 #include <qgroupbox.h>
+#include <qerrormessage.h>
 
 
 #include "angledialog.h"
@@ -196,7 +197,9 @@ void AngleDialog::saveCurrentDefocus(){
     }else fp=fopen(defFn, "a");
 
    if(!fp){
-     printf("can not open file %s\n", defFn);
+      QErrorMessage* errorMessage = new QErrorMessage( this );
+      errorMessage->message( "Can not open output file" );
+      return;
    }
    int startingSlice=((MyApp *)qApp)->getInitSlice();
    int sliceNum=((MyApp *)qApp)->getSliceNum();

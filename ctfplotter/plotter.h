@@ -30,6 +30,8 @@ public:
     QLabel* zeroLabel;
     QLabel* defocusLabel;
     QToolButton *tileButton;
+    RangeDialog *rDialog;
+    AngleDialog *aDialog;
 
 public slots:
     void zoomIn();
@@ -65,8 +67,6 @@ private:
     QToolButton *angleButton;
     QToolButton *saveButton;
     QToolButton *helpButton;
-    RangeDialog *rDialog;
-    AngleDialog *aDialog;
     std::map<int, CurveData> curveMap;
     std::vector<PlotSettings> zoomStack;
     int curZoom;

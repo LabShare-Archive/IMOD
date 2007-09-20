@@ -6,6 +6,7 @@
 #include <qtoolbutton.h>
 #include <qprinter.h>
 #include <qtooltip.h>
+#include <qerrormessage.h>
 
 #include <cmath>
 using namespace std;
@@ -211,7 +212,9 @@ void Plotter::saveIt()
     }else fp=fopen(defFn, "a");
 
     if(!fp) {
-      printf("can not open file %s\n", defFn);
+      QErrorMessage* errorMessage = new QErrorMessage( this );
+      errorMessage->message( "Can not open output file" );
+      return;
     }
     int startingSlice=((MyApp *)qApp)->getInitSlice();
     int sliceNum=((MyApp *)qApp)->getSliceNum();
