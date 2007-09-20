@@ -6,9 +6,6 @@ EXPORTS
 	imodPointIsEqual
 	istoreAddMinMax
 	imodContourGetName
-	AdocSetCurrent
-	PipGetLineOfValues
-	AdocGetTwoFloats
 	imodTransform
 	OPENIMODDATA
 	imodChecksum
@@ -18,113 +15,74 @@ EXPORTS
 	imodDeleteObject
 	imodMeshNearestRes
 	imodReadAscii
-	cmapReadConvert
-	parselist
-	ADOCSETINTEGER
 	imodObjectCleanSurf
 	imodUnits
 	imodContourFlatten
 	imod_to_RIB
-	ilistPop
-	ADOCGETTHREEFLOATS
 	imodel_contour_newsurf
 	imodContourMakeDirection
 	imodGetMaxObject
 	imodGetIndex
 	imodContourCopy
 	WRITEIMOD
-	ADOCGETTWOINTEGERS
 	imodContoursDeleteToEnd
 	imodPointSetSize
 	imodPointAreaScale
-	ADOCGETSTRING
 	istoreShiftIndex
 	imodContourJoin
-	ADOCGETINTEGERARRAY
-	PipGetInteger
 	imodel_object_centroid
 	imodObjectVolume
 	imodObjectDefault
-	ADOCSETKEYVALUE
-	f2cString
 	imodObjviewComplete
 	imodMeshDeleteIndex
 	imodel_contour_whole
-	PipAllowCommaDefaults
-	ilistNext
 	imod_to_nff
-	PIPGETTHREEFLOATS
-	PIPGETNONOPTIONARG
 	imodObjectNew
 	imodContourMoment
 	imodel_maxpt
-	mrcHugeSeek
-	ilistInsert
-	AdocGetThreeFloats
-	ilistRemove
-	PIPNEXTARG
 	imodReadFile
 	istoreChecksum
-	AdocSetKeyValue
 	imodClipsTrans
 	imodObjectDelete
 	imodViewStore
 	imodGetPixelSize
 	istoreSkipToIndex
-	PIPREADOPTIONFILE
 	imodPlaneClip
 	imodMeshDelete
-	amoeba
 	imodCleanSurf
-	PIPDONE
 	imodel_unlock
 	imodGetShort
-	IMODBACKUPFILE
 	imodContourStrip
 	imodDefault
-	PipSetManpageOutput
 	imodObjectGetContour
 	imodMatTrans
 	imodObjectRemoveContour
-	ADOCGETNUMBEROFSECTIONS
 	imodel_transform_slice
 	imodObjectClip
 	istorePointIsGap
-	AdocDeleteKeyValue
 	imodViewDefault
-	PipStartsWith
 	imodWriteStore
 	imodGetByte
-	b3dError
-	imodCopyright
 	imodMatMult
 	imodObjectGetValue
 	imodContourFill
-	PIPGETTWOINTEGERS
-	PIPGETERROR
 	imodContourCenterMoment
 	imodel_contour_swapxy
 	imeshSurfaceArea
-	b3dHeaderItemBytes
 	imodContoursNew
 	imodPointLineDistance
 	FROMVMSFLOATS
-	imodBackupFile
 	imodClipsRead
 	imodel_contour_sort
 	imodMatDelete
 	imodPutScaledPoints
 	imodObjectGetMesh
-	AdocGetString
 	imodGetFlipped
 	imodLabelDelete
-	PIPNUMBEROFARGS
 	imodPointNormalize
 	istoreRetainPoint
-	AdocGetThreeIntegers
 	imodPlaneDelete
 	imodContourAutoSort
-	B3DHEADERITEMBYTES
 	imodPutInts
 	imodPointGet
 	istoreTransStateMatches
@@ -132,20 +90,13 @@ EXPORTS
 	imodObjectSort
 	imodFromVmsFloats
 	imodMeshCopy
-	ilistFloat
 	imodContourLongAxis
 	imodContourScale
 	imodMeshPolyNormFactors
-	PIPGETFLOATARRAY
-	PipAddOption
 	imodContourMakeZTables
-	ilistTruncate
 	GETIMODMESH
-	PipParseInput
 	imodLabelName
-	ADOCGETTHREEINTEGERS
 	imodContZDirection
-	b3dGetError
 	imodMatScale
 	imodNewPoint
 	imodContourGetFirst
@@ -158,98 +109,65 @@ EXPORTS
 	imodLabelWrite
 	imodContourCircularity
 	imodFgetline
-	AdocNew
 	imodLabelNew
-	PIPGETTWOFLOATS
-	PIPALLOWCOMMADEFAULTS
 	imodMeshGetMaxIndex
 	istoreFirstChangeIndex
 	imodContourGetTimeIndex
 	imeshParamsDefault
 	imodPrevPoint
-	ilistSwap
 	imodGetZScale
 	imodViewNew
 	imodel_overlap_fractions
-	ilistPush
-	ADOCDELETEKEYVALUE
 	imodLabelItemMove
-	PIPINITIALIZE
 	imodContourUnique
 	imodMeshAddVert
-	sampleMeanSD
 	imodMatNew
 	imodViewModelNew
 	imodContourGetSurface
 	imodPrevContour
 	PUTIMODMAXES
 	imodContourGetPoint
-	AdocWrite
 	imodMatCopy
 	imodContourFreeZTables
 	imodObjectGetNext
 	istoreCountItems
 	GETIMODFLAGS
-	ADOCDONE
 	GETIMODSIZES
 	imodMatTransform
-	ilistAppend
 	imodMeshGetIndex
 	imodMatRot
 	imodel_contour_scan
 	imodContourSplice
 	imodContourPrincipalAxis
-	AMOEBA
 	imodClipsFixCount
-	AdocGetFloatArray
-	ADOCWRITE
 	imodel_contour_nearest
 	imodObjectInsertContour
 	imodSetIndex
 	imodObjectsDelete
 	imodObjectDup
 	imodContoursFromImagePoints
-	b3dSetStoreError
-	ADOCGETFLOATARRAY
 	imodIMNXWrite
-	PipDone
-	cmapConvertRamp
 	PUTOBJCOLOR
 	imodPutFloats
-	ADOCSETTHREEINTEGERS
-	AdocGetTwoIntegers
 	istoreCopyContSurfItems
-	ADOCGETINTEGER
 	imodContoursDelete
 	imodNewObject
-	imodProgName
 	imodFileWrite
 	istoreFindBreak
-	ADOCGETFLOAT
-	ADOCGETSECTIONNAME
 	imeshParamsDelete
-	PipReadOptionFile
 	imodMatFindVector
 	imodGetInt
 	GETIMODSCAT
-	setExitPrefix
-	AdocSetThreeIntegers
 	imodPutShort
-	AdocSetTwoIntegers
 	imodel_contour_centroid
-	PipNumberOfEntries
 	IMODPARTIALMODE
 	imodLabelItemGet
-	PipGetThreeIntegers
-	PIPGETINTEGER
 	imodContourGetNext
 	imodel_contour_length
-	ADOCADDSECTION
 	imodDeletePoint
 	imodPointAdd
 	imodObjectSetColor
 	imodPlaneRotate
-	AdocRead
 	istoreDeleteContSurf
 	imodMatTransform2D
 	imodel_minpt
@@ -260,8 +178,6 @@ EXPORTS
 	GETIMODSURFACES
 	istoreNextChange
 	imodFlipYZ
-	PipGetError
-	b3dFwrite
 	imodNew
 	imodMoveObject
 	istoreConnectNumber
@@ -273,57 +189,35 @@ EXPORTS
 	istoreCleanEnds
 	istoreBreakContour
 	istoreInvert
-	PIPSETERROR
 	imeshCopySkipList
 	imodObjectGet
-	exitError
-	AdocSetFloat
-	c2fString
-	PipExitOnError
 	imod_to_wmod
 	imodContourShave
 	imodContourSetSurface
 	imodContourFitPlane
-	PipInitialize
 	imodViewModelDefault
-	PipNumberOfArgs
 	PUTSYMTYPE
 	imodLabelItemAdd
-	cmapInvertedRamp
 	istoreCountObjectItems
 	imodPlaneSetFromClips
 	istoreClearRange
 	imodMatPrint
-	PipMemoryError
-	ADOCSETTHREEFLOATS
 	imodel_contour_invert
 	imodGetFloat
-	PIPPRINTHELP
 	imodPointCross
 	imodContourCenterOfMass
-	PipGetFloat
-	PipSetError
-	amoebaInit
-	PipGetIntegerArray
-	AdocGetSectionName
 	imodContourFindPoint
 	imodContourArea
 	imodel_point_dist
 	imodObjectGetMaxContour
-	PIPGETTHREEINTEGERS
 	istorePointDrawProps
 	imodIMNXRead
 	imodPointGetNext
-	PipGetTwoIntegers
 	imodel_contour_sortx
-	ADOCSETTWOFLOATS
 	imodObjectGetBBox
 	imodInsertPoint
 	imodel_dist
 	GETIMODOBJLIST
-	PIPADDOPTION
-	AMOEBAINIT
-	ilistFirst
 	istoreGenPointItems
 	imodMeshDup
 	imodel_mesh_add
@@ -334,23 +228,17 @@ EXPORTS
 	imodGetFloats
 	istoreDefaultDrawProps
 	imodContourNestLevels
-	ilistLast
 	GETIMODTIMES
 	imodPointGetSize
 	imodObjectGetColor
-	PipGetTwoFloats
 	ilabelMatchReg
 	istoreGetMinMax
 	imodel_unused_surface
-	PIPREADSTDINIFSET
-	PipParseEntries
 	imodMeshGetMaxVert
 	istoreDump
 	imodViewWrite
 	imodTransFromRefImage
 	imodMeshGetVert
-	AdocSetThreeFloats
-	PipReadStdinIfSet
 	imodContourDup
 	imodPlaneSetPN
 	GETIMODCLIP
@@ -360,67 +248,45 @@ EXPORTS
 	imodel_contour_check_wild
 	imodContourRotateZ
 	imodNextObject
-	ilistShift
 	imodPointGetFirst
 	imodMatTransform3D
 	imodel_model_clean
 	imodPointIntersect
 	imodViewModelWrite
 	imodObjectAddMesh
-	PipNextArg
-	ilistSize
 	imodPrevObject
 	PUTCONTPOINTSIZES
 	imodReadStore
 	imodPointPlaneEdge
 	imodDelete
-	b3dFread
 	imodLabelItemDelete
 	imodContourCheckNesting
 	istoreAddOneIndexItem
 	imodDeleteContour
-	PIPNUMBEROFENTRIES
-	PipGetBoolean
-	PIPGETSTRING
-	PIPSETSPECIALFLAGS
-	b3dIMax
-	ilistItem
-	AdocDone
 	imodGetInts
-	PIPGETBOOLEAN
 	imodWrite
 	imodContourNew
 	imodPointDot
-	PipReadOrParseOptions
-	PIPGETINTEGERARRAY
 	imodContourGetMaxPoint
 	istoreNextObjItem
 	GETIMODOBJNAME
 	PUTIMODSCAT
 	imodObjectAddContour
 	imodFileRead
-	PIPSETMANPAGEOUTPUT
-	PipGetString
-	AdocGetNumberOfSections
-	cmapStandardRamp
 	imodPutByte
 	imodObjviewToObject
 	istoreEndChange
-	PipGetThreeFloats
-	PipReadNextLine
 	imodMeshesNew
 	imodContourSetPointData
 	imodPutInt
 	istoreBreakChanges
 	imodMeshInsertIndex
-	b3dIMin
 	istoreClearOneIndexItem
 	istoreInsertChange
 	istoreDeletePoint
 	imodPoint3DScaleDistance
 	imodObjectsNew
 	istoreInsert
-	mrc_big_seek
 	imodCloseFile
 	imodNextPoint
 	imodMatInverse
@@ -441,52 +307,37 @@ EXPORTS
 	imodPointArea
 	imodContourFreeNests
 	imodPointAppend
-	ilistDelete
 	imodClipsInitialize
-	PipSetSpecialFlags
 	imodMatRotateVector
-	b3dRewind
 	IMODARRAYLIMITS
-	IMODGETENV
 	imod_mesh_to_synu
 	imodContourDefault
 	getimodheado
 	imodLabelMatch
 	imodPutFloat
 	istoreExtractChanges
-	ilistNew
 	GETIMODVERTS
 	imodel_contour_double
 	imodContourGetLabel
 	istoreGenerateItems
-	imodUsageHeader
-	fgetline
 	GETIMODOBJRANGE
 	imodContourSetTimeIndex
 	GETCONTPOINTSIZES
 	PUTSYMSIZE
-	PipGetFloatArray
 	PUTIMODROTATION
 	imodel_transform
-	PIPEXITONERROR
 	imodViewUse
 	imodContourGetPoints
-	AdocAddSection
-	ADOCSETTWOINTEGERS
 	NEWIMOD
-	ilistQuantum
 	imeshParamsNew
 	imodObjectSetValue
-	AdocSetTwoFloats
 	imodContourNearest
-	ADOCREAD
 	imodContourSwap
 	imodObjviewsFree
 	imodOpenFile
 	imodPoint2DAngle
 	imodRead
 	imodNewContour
-	ilistDup
 	imodContourLength
 	imodMatId
 	GETIMODMAXES
@@ -503,7 +354,6 @@ EXPORTS
 	imodContourBreak
 	imodel_contour_sorty
 	istoreListPointProps
-	AdocGetFloat
 	imodObjviewDelete
 	imodMeshNew
 	istoreSort
@@ -511,30 +361,17 @@ EXPORTS
 	GETIMODHEAD
 	imodViewDelete
 	istoreContSurfDrawProps
-	ADOCNEW
 	imod_to_synu
 	imodContourGetBBox
-	b3dFseek
 	imodContourClear
-	imodVersion
-	AdocSetInteger
-	ADOCSETCURRENT
-	ADOCGETTWOFLOATS
-	AdocGetInteger
 	imodPointDistance
-	ADOCSETFLOAT
 	imodPlaneInit
 	imodGetBytes
 	substr
-	PIPGETFLOAT
-	PipGetInOutFile
 	DELETEIMOD
-	PipPrintHelp
 	imodDelCurrentContour
 	imodLabelItemMatch
-	AdocGetIntegerArray
 	PUTIMODMESH
-	PipGetNonOptionArg
 	imodel_contour_on
 	imodContourZValue
 	imodContourGet
