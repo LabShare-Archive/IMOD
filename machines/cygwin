@@ -134,7 +134,7 @@ if ($compiler == intel) then
             echo 'LIBIIMODDEF = /def:libiimod.def ../buildlib/libcfshr.lib ../buildlib/libtiff.lib'   >> $configure
             echo 'LIBIMODDEF = /def:libimod.def ../buildlib/libcfshr.lib'  >> $configure
             echo 'LIBCFSHRDEF = /def:libcfshr.def'     >> $configure
-            echo 'LIBIMESHDEF = /def:libimesh.def ../buildlib/libimod.lib'     >> $configure
+            echo 'LIBIMESHDEF = /def:libimesh.def ../buildlib/libcfshr.lib ../buildlib/libimod.lib'     >> $configure
             echo 'LIBMRCIMDEF = /def:libmrcim.def ../../buildlib/libifft.lib ../../buildlib/libcfshr.lib'  >> $configure
             echo 'LIBHVEMDEF = /def:libhvem.def ../../buildlib/libmrcim.lib ../../buildlib/libcfshr.lib'  >> $configure
             echo 'LIBIFFTDEF = /def:libifft.def'     >> $configure
@@ -287,7 +287,7 @@ RC_FILE = 3dmod.rc
 EOF
 
 cat <<EOF >! $midas_qconf
-LIBS += libdiaqt.lib libiimod.lib libcfshr.lib libtiff.lib
+LIBS += libdiaqt.lib libiimod.lib libimod.lib libcfshr.lib libtiff.lib
 QMAKE_LFLAGS_RELEASE += /LIBPATH:"..\buildlib" /NODEFAULTLIB:libc.lib /NODEFAULTLIB:libcd.lib /NODEFAULTLIB:msvcrtd.lib /LARGEADDRESSAWARE
 QMAKE_LFLAGS_DEBUG += /LIBPATH:"..\buildlib" /NODEFAULTLIB:libc.lib /NODEFAULTLIB:libcd.lib /NODEFAULTLIB:msvcrt.lib /LARGEADDRESSAWARE
 EOF
