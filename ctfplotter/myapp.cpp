@@ -204,8 +204,8 @@ void MyApp::setSlice(char *stackFile, char *angleFile)
     }
 
     if(sIndex>=MAXSLICENUM){
-      printf("Stack has more than maximal number of slice in \
-          the specified angle range. exit.\n");
+      printf("Stack has more than the maximal number of slices in \
+the specified angle range. Only %d slices are included \n", MAXSLICENUM);
       fclose(fpStack);
       fclose(fpAngle);
       sliceNum=sIndex-1;
