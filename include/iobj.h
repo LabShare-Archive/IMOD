@@ -58,6 +58,11 @@
 #define iobjFlagTime(o)   (iobjTime((o)->flags))
 #define iobjPlanar(flag) (iobjClose(flag) || (iobjOpen(flag) && ((flag) & IMOD_OBJFLAG_PLANAR)))
 
+/* Flags in other places in object structure */
+#define MATFLAGS2_SKIP_LOW    1         /* Skip drawing below valblack */
+#define MATFLAGS2_SKIP_HIGH   (1 << 1)  /* Skip drawing above valwhite */
+#define MATFLAGS2_CONSTANT    (1 << 2)  /* Draw with constant color */
+
 /* new flags for objects V1.2       */
 /* symbol flags  for point display. */
 #define IOBJ_SYM_CIRCLE   0
@@ -144,6 +149,9 @@ extern "C" {
 
 /*
     $Log$
+    Revision 3.12  2007/06/08 04:44:29  mast
+    Added planar flag and macro to test for planar contours
+
     Revision 3.11  2006/08/31 21:02:45  mast
     Flag definitions
 
