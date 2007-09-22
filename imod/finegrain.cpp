@@ -6,16 +6,10 @@
  *  Copyright (C) 1995-2004 by Boulder Laboratory for 3-Dimensional Electron
  *  Microscopy of Cells ("BL3DEMC") and the Regents of the University of 
  *  Colorado.  See dist/COPYRIGHT for full copyright notice.
+ * 
+ * $Id$
+ * Log at end
  */
-
-/*  $Author$
-    
-    $Date$
-
-    $Revision$
-    Log at end
-*/
-
 
 #include <qgl.h>
 #include "form_finegrain.h"
@@ -1090,6 +1084,7 @@ static float valMin, valSlope;
 static int skipLow, skipHigh;
 static unsigned char valueCmap[3][256];
 static int valSetup = 0;
+static int valConstant = 0;
 
 /*
  * Test whether value drawing is possible and set up variables
@@ -1105,15 +1100,17 @@ int ifgSetupValueDrawing(Iobj *obj, int type)
   if (max <= valMin)
     return 0;
   valSlope = 255.9 / (max - valMin);
-  ifgMakeValueMap(obj, valueCmap);
+  valConstant = obj->matflags2 & MATFLAGS2_CONSTANT;
+  if (!valConstant)
+    ifgMakeValueMap(obj, valueCmap);
 
   // Interpret the flags for skipping low and high values as skipping low and
   // high indices, taking inversion of colormap into account
   skipLow = 0;
   skipHigh = 255;
-  if (obj->mat3b2 & 1)
+  if (obj->matflags2 & MATFLAGS2_SKIP_LOW)
     skipLow = B3DMIN(obj->valblack, obj->valwhite);
-  if (obj->mat3b2 & 2)
+  if (obj->matflags2 & MATFLAGS2_SKIP_HIGH)
     skipHigh = B3DMAX(obj->valblack, obj->valwhite);
   valSetup = 1;
   if (imodDebug('g'))
@@ -1134,11 +1131,23 @@ void ifgResetValueSetup()
   valSetup = 0;
 }
 
+// Handle the value change
 static void ifgHandleValue1(DrawProps *defProps, DrawProps *contProps, 
                             int *stateFlags, int *changeFlags)
 {
   int index;
-  if (*stateFlags & CHANGED_VALUE1) {
+  if (valConstant) {
+
+    // For constant color drawing, just set gaps
+    if (*stateFlags & CHANGED_VALUE1) {
+      index = valSlope * (contProps->value1 - valMin);
+      if (index < skipLow || index > skipHigh)
+        contProps->gap = 1;
+    }
+    return;
+  } else if (*stateFlags & CHANGED_VALUE1) {
+
+    // Otherwise modify color, potentially set gap
     index = valSlope * (contProps->value1 - valMin);
     if (index < 0)
       index = 0;
@@ -1161,6 +1170,9 @@ static void ifgHandleValue1(DrawProps *defProps, DrawProps *contProps,
 
 /*
   $Log$
+  Revision 1.10  2006/08/31 23:27:44  mast
+  Changes for stored value display
+
   Revision 1.9  2006/05/08 16:37:29  mast
   Added connection numbers for contours
 
