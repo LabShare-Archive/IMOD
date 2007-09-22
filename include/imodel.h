@@ -227,7 +227,7 @@ typedef struct Mod_Object_View
   b3dUInt32 mat2;     /* set to 0, use as flags.  Unused */
   b3dUByte valblack;  /* Black level for showing values */
   b3dUByte valwhite;  /* White level for showing values */
-  b3dUByte mat3b2;    /* First two bits: skip low and high end in value draw */
+  b3dUByte matflags2; /* First two bits: skip low and high end in value draw */
   b3dUByte mat3b3;    /* Unused */
 }Iobjview;
 /* END_CODE */
@@ -412,7 +412,7 @@ typedef struct Mod_Object
   b3dUInt32 mat2;     /* set to 0, use as flags.  Unused */
   b3dUByte valblack;  /* Black level for showing values */
   b3dUByte valwhite;  /* White level for showing values */
-  b3dUByte mat3b2;    /* First two bits: skip low and high end in value draw */
+  b3dUByte matflags2; /* First two bits: skip low and high end in value draw */
   b3dUByte mat3b3;    /* Unused */
 
   Ilabel *label;      /* Labels for surfaces */
@@ -428,8 +428,6 @@ typedef struct Mod_Model
   /* Run time data */
   Iobj  *obj;          /* Object data.                       */
   FILE  *file;         /* Current file handle.               */
-  int   lock;          /* Locks model data for shared procs. */
-  int   redraw;        /* Used for shared procs.             */
   int   ctime;         /* current time index.                */
 
   /* data written to file  */
@@ -694,6 +692,9 @@ extern "C" {
 
 /*    
     $Log$
+    Revision 3.38  2007/08/26 06:56:34  mast
+    Documentation changes
+
     Revision 3.37  2007/06/22 04:58:54  mast
     Doc changes
 
