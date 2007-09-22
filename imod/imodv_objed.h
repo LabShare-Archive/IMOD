@@ -97,6 +97,7 @@ class ImodvObjed : public QObject
   void openObjectSlot(bool state);
   void meshShowSlot(int value);
   void meshFalseSlot(bool state);
+  void meshConstantSlot(bool state);
   void meshSkipLoSlot(bool state);
   void meshSkipHiSlot(bool state);
   void meshLevelSlot(int which, int value, bool dragging);
@@ -160,6 +161,9 @@ class ImodvOlist : public QWidget
 
 /*
 $Log$
+Revision 4.10  2007/09/20 22:06:55  mast
+Changes for visualizing clipping plane
+
 Revision 4.9  2007/07/08 16:44:14  mast
 Added slots for open/closed and auto new cont
 
