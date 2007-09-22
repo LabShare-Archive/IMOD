@@ -7,16 +7,10 @@
  *  Copyright (C) 1995-2005 by Boulder Laboratory for 3-Dimensional Electron
  *  Microscopy of Cells ("BL3DEMC") and the Regents of the University of 
  *  Colorado.  See dist/COPYRIGHT for full copyright notice.
+ * 
+ * $Id$
+ * Log at end
  */
-
-/*  $Author$
-
-$Date$
-
-$Revision$
-
-Log at end 
-*/
 
 #include <math.h>
 #include "imodel.h"
@@ -1250,37 +1244,7 @@ int imodel_transform_slice(Imod *model, float *mat, int slice)
   return(0);
 }
 
-/*****************************************************************************/
-/* Locks object data for shared groups. If flag is true and the object
- * data array is already locked 0 is returned.
- *  Otherwise the object array is locked and 1 is returned.
- */
-int imodel_lock(Imod *mod, int flag)
-{
-  if (mod->lock){
-    if (flag)
-      return(0);
-
-#ifdef __sgi__oldlock
-    else
-      /* wait for data to become available. */
-      /* To do: wait for signal instead of polling. */
-
-      while (mod->lock)
-        sginap(1);
-#endif
-  }
-     
-  mod->lock = TRUE;
-  return(1);
-}
-
-/* Unlock data after locking. */
-int imodel_unlock(Imod *mod)
-{
-  mod->lock = FALSE;
-  return(0);
-}
+/* 9/21/07: Removed model locking code (!?) */
 
 /*!
  * Cleans model [mod] by removing empty contours, removing empty objects if
@@ -1501,7 +1465,7 @@ int imodChecksum(Imod *imod)
         clips->point[i].z;
     }
     osum += obj->fillred + obj->fillgreen + obj->fillblue + obj->quality;
-    osum += obj->valblack + obj->valwhite + obj->mat3b2 + obj->mat3b3;
+    osum += obj->valblack + obj->valwhite + obj->matflags2 + obj->mat3b3;
     osum += istoreChecksum(obj->store);
     for(co = 0; co < obj->contsize; co++){
       cont = &(obj->cont[co]);
@@ -1553,7 +1517,7 @@ int imodChecksum(Imod *imod)
             clips->point[i].z;
         }
         osum += obv->fillred + obv->fillgreen + obv->fillblue + obv->quality;
-        osum += obv->valblack + obv->valwhite + obv->mat3b2 + obv->mat3b3;
+        osum += obv->valblack + obv->valwhite + obv->matflags2 + obv->mat3b3;
         sum += osum;
       }
     }
@@ -1815,6 +1779,9 @@ int   imodGetFlipped(Imod *imod)
 
 /*
 $Log$
+Revision 3.27  2007/05/25 05:18:26  mast
+Changes for slicer angle storage
+
 Revision 3.26  2006/09/13 02:42:38  mast
 Clarify documentation
 
