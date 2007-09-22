@@ -7,14 +7,10 @@
  *  Copyright (C) 1995-2004 by Boulder Laboratory for 3-Dimensional Electron
  *  Microscopy of Cells ("BL3DEMC") and the Regents of the University of 
  *  Colorado.  See dist/COPYRIGHT for full copyright notice.
+ * 
+ * $Id$
+ * Log at end
  */
-/*  $Author$
-
-$Date$
-
-$Revision$
-Log at end
-*/
 
 #include <stdio.h>
 #include <string.h>
@@ -99,7 +95,7 @@ void imodObjectDefault(Iobj *obj)
   obj->mat2 = 0;
   obj->valblack = 0;
   obj->valwhite = 255;
-  obj->mat3b2 = 0;
+  obj->matflags2 = 0;
   obj->mat3b3 = 0;
   obj->label = NULL;
   obj->meshParam = NULL;
@@ -783,6 +779,9 @@ void  imodObjectSetValue(Iobj *inObject, int inValueType, int inValue)
 
 /*
 $Log$
+Revision 3.14  2006/09/12 15:23:14  mast
+Handled mesh parameters and member renames
+
 Revision 3.13  2006/08/31 21:11:29  mast
 Changed mat1 and mt3 to real names
 
