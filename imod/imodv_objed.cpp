@@ -89,6 +89,7 @@ static void meshObject();
 static void finishMesh();
 static void optionSetFlags (b3dUInt32 *flag);
 static void toggleObj(int ob, bool state);
+static void finishChangeAndDraw(int doObjset, int drawImages);
 static void setStartEndModel(int &mst, int &mnd, bool multipleOK = true);
 static bool changeModelObject(int m, int ob, bool multipleOK = true);
 static void setMat3Flag(int flag, int index, int state);
@@ -229,10 +230,8 @@ void imodvObjedDrawData(int option)
   default:
     break;
   }
-  imodvFinishChgUnit();
   setOnoffButtons();
-  imodvDraw(Imodv);
-  imodvDrawImodImages();
+  finishChangeAndDraw(0, 1);
 }
 
 
@@ -259,8 +258,7 @@ void imodvObjedStyleData(int option)
   default:
     break;
   }
-  imodvFinishChgUnit();
-  imodvDraw(Imodv);
+  finishChangeAndDraw(0, 0);
 }
 
 // Edit Each/All option
@@ -329,11 +327,7 @@ static void toggleObj(int ob, bool state)
   if (ob < numOolistButtons && ob < Imodv->imod->objsize)
     diaSetChecked(OolistButtons[ob], state);
 
-  if (objed_dialog)
-    objset(Imodv);
-  imodvFinishChgUnit();
-  imodvDraw(Imodv);
-  imodvDrawImodImages();
+  finishChangeAndDraw(1, 1);
 }
 
 // User selected a new frame; update the frame
@@ -708,17 +702,13 @@ static QCheckBox *wFillPntToggle = 0;
 void ImodvObjed::fillToggleSlot(bool state)
 {
   setObjFlag(IMOD_OBJFLAG_FCOLOR, state ? 1 : 0);
-  objset(Imodv);
-  imodvFinishChgUnit();
-  imodvDraw(Imodv);
+  finishChangeAndDraw(1, 0);
 }
 
 void ImodvObjed::fillPntToggleSlot(bool state)
 {
   setObjFlag(IMOD_OBJFLAG_FCOLOR_PNT, state ? 1 : 0);
-  objset(Imodv);
-  imodvFinishChgUnit();
-  imodvDraw(Imodv);
+  finishChangeAndDraw(1, 0);
 }
 
 void ImodvObjed::fillColorSlot(int color, int value, bool dragging)
@@ -847,9 +837,7 @@ void ImodvObjed::materialSlot(int which, int value, bool dragging)
 void ImodvObjed::bothSidesSlot(bool state)
 {
   setObjFlag(IMOD_OBJFLAG_TWO_SIDE, state ? 1 : 0);
-  objset(Imodv);
-  imodvFinishChgUnit();
-  imodvDraw(Imodv);
+  finishChangeAndDraw(1, 0);
 }
 
 static void setMaterial_cb(void)
@@ -918,10 +906,7 @@ void ImodvObjed::pointSizeSlot(int i)
         Imodv->mod[m]->obj[ob].pdrawsize = i;
       }
   }
-  imodvFinishChgUnit();
-  imodvDraw(Imodv);     
-  imodvDrawImodImages();
-  return;
+  finishChangeAndDraw(0, 1);
 }
 
 void ImodvObjed::pointQualitySlot(int value)
@@ -941,8 +926,7 @@ void ImodvObjed::pointQualitySlot(int value)
         Imodv->mod[m]->obj[ob].quality = value;
       }
   }
-  imodvFinishChgUnit();
-  imodvDraw(Imodv);     
+  finishChangeAndDraw(0, 0);
 }
 
 void ImodvObjed::globalQualitySlot(int value)
@@ -959,8 +943,7 @@ void ImodvObjed::globalQualitySlot(int value)
     Imodv->mod[m]->view->world = 
       (Imodv->mod[m]->view->world & ~WORLD_QUALITY_BITS) |
       (value << WORLD_QUALITY_SHIFT);
-  imodvFinishChgUnit();
-  imodvDraw(Imodv);     
+  finishChangeAndDraw(0, 0);
 }
 
 static void setPoints_cb(void)
@@ -1061,35 +1044,25 @@ void ImodvObjed::lineWidthSlot(int which, int value, bool dragging)
 void ImodvObjed::lineAliasSlot(bool state)
 {
   setObjFlag(IMOD_OBJFLAG_ANTI_ALIAS, state ? 1 : 0);
-  objset(Imodv);
-  imodvFinishChgUnit();
-  imodvDraw(Imodv);
+  finishChangeAndDraw(1, 0);
 }
 
 void ImodvObjed::lineThickenSlot(bool state)
 {
   setObjFlag(IMOD_OBJFLAG_THICK_CONT, state ? 1 : 0);
-  objset(Imodv);
-  imodvFinishChgUnit();
-  imodvDraw(Imodv);
+  finishChangeAndDraw(1, 0);
 }
 
 void ImodvObjed::openObjectSlot(bool state)
 {
   setObjFlag(IMOD_OBJFLAG_OPEN, state ? 1 : 0, OBJTYPE_OPEN | OBJTYPE_CLOSED);
-  objset(Imodv);
-  imodvFinishChgUnit();
-  imodvDraw(Imodv);
-  imodvDrawImodImages();
+  finishChangeAndDraw(1, 1);
 }
 
 void ImodvObjed::autoNewContSlot(bool state)
 {
   setObjFlag(IMOD_OBJFLAG_PLANAR, state ? 1 : 0, OBJTYPE_OPEN);
-  objset(Imodv);
-  imodvFinishChgUnit();
-  imodvDraw(Imodv);
-  imodvDrawImodImages();
+  finishChangeAndDraw(1, 1);
 }
 
 static void setLines_cb(void)
@@ -1152,6 +1125,7 @@ static void mkLines_cb(int index)
 static QCheckBox *wMeshSkipLo;
 static QCheckBox *wMeshSkipHi;
 static QCheckBox *wMeshFalse;
+static QCheckBox *wMeshConstant;
 static MultiSlider *meshSliders;
 static QButtonGroup *wMeshGroup;
 static int meshMin, meshMax;
@@ -1164,19 +1138,19 @@ void ImodvObjed::meshShowSlot(int value)
   setObjFlag(IMOD_OBJFLAG_USE_VALUE, value == 1 ? 1 : 0);
   wMeshSkipLo->setEnabled(value == 1);
   wMeshSkipHi->setEnabled(value == 1);
-  objset(Imodv);
-  imodvFinishChgUnit();
-  imodvDraw(Imodv);
-  imodvDrawImodImages();
+  finishChangeAndDraw(1, 1);
 }
 
 void ImodvObjed::meshFalseSlot(bool state)
 {
   setObjFlag(IMOD_OBJFLAG_MCOLOR, state ? 1 : 0);
-  objset(Imodv);
-  imodvFinishChgUnit();
-  imodvDraw(Imodv);
-  imodvDrawImodImages();
+  finishChangeAndDraw(1, 1);
+}
+
+void ImodvObjed::meshConstantSlot(bool state)
+{
+  setMat3Flag(MATFLAGS2_CONSTANT, 0, state ? 1 : 0);
+  finishChangeAndDraw(1, 1);
 }
 
 void ImodvObjed::meshLevelSlot(int which, int value, bool dragging)
@@ -1190,20 +1164,14 @@ void ImodvObjed::meshLevelSlot(int which, int value, bool dragging)
 
 void ImodvObjed::meshSkipLoSlot(bool state)
 {
-  setMat3Flag(1, 0, state ? 1 : 0);
-  objset(Imodv);
-  imodvFinishChgUnit();
-  imodvDraw(Imodv);
-  imodvDrawImodImages();
+  setMat3Flag(MATFLAGS2_SKIP_LOW, 0, state ? 1 : 0);
+  finishChangeAndDraw(1, 1);
 }
 
 void ImodvObjed::meshSkipHiSlot(bool state)
 {
-  setMat3Flag(2, 0, state ? 1 : 0);
-  objset(Imodv);
-  imodvFinishChgUnit();
-  imodvDraw(Imodv);
-  imodvDrawImodImages();
+  setMat3Flag(MATFLAGS2_SKIP_HIGH, 0, state ? 1 : 0);
+  finishChangeAndDraw(1, 1);
 }
 
 static void setScalar_cb(void)
@@ -1227,8 +1195,11 @@ static void setScalar_cb(void)
   diaSetGroup(wMeshGroup, which);
 
   diaSetChecked(wMeshFalse, IMOD_OBJFLAG_MCOLOR & obj->flags);
-  diaSetChecked(wMeshSkipLo, (obj->mat3b2 & 1) != 0);
-  diaSetChecked(wMeshSkipHi, (obj->mat3b2 & 2) != 0);
+  diaSetChecked(wMeshSkipLo, (obj->matflags2 & MATFLAGS2_SKIP_LOW) != 0);
+  diaSetChecked(wMeshSkipHi, (obj->matflags2 & MATFLAGS2_SKIP_HIGH) != 0);
+  diaSetChecked(wMeshConstant, (obj->matflags2 & MATFLAGS2_CONSTANT) != 0);
+  wMeshConstant->setEnabled(which == 1);
+  wMeshFalse->setEnabled(which != 1 || !(obj->matflags2 & MATFLAGS2_CONSTANT));
   wMeshSkipLo->setEnabled(which == 1);
   wMeshSkipHi->setEnabled(which == 1);
      
@@ -1278,13 +1249,24 @@ static void mkScalar_cb(int index)
   QToolTip::add((QWidget *)meshSliders->getSlider(1), "Set high end of "
                 "contrast ramp for displaying values");
 
-  wMeshFalse = diaCheckBox("False color", oef->control, layout1);
+  QHBoxLayout *hLayout = new QHBoxLayout(layout1);
+  QLabel *label = new QLabel("Color:", oef->control);
+  label->setAlignment(Qt::AlignRight | Qt::AlignVCenter);
+  hLayout->addWidget(label);
+
+  wMeshFalse = diaCheckBox("False", oef->control, hLayout);
   QObject::connect(wMeshFalse, SIGNAL(toggled(bool)), &imodvObjed, 
           SLOT(meshFalseSlot(bool)));
   QToolTip::add(wMeshFalse, "Show values in false color");
 
-  QHBoxLayout *hLayout = new QHBoxLayout(layout1);
-  QLabel *label = new QLabel("Turn off:", oef->control);
+  wMeshConstant = diaCheckBox("Fixed", oef->control, hLayout);
+  QObject::connect(wMeshConstant, SIGNAL(toggled(bool)), &imodvObjed, 
+          SLOT(meshConstantSlot(bool)));
+  QToolTip::add(wMeshConstant, "Keep color constant instead of changing with"
+                " value");
+
+  hLayout = new QHBoxLayout(layout1);
+  label = new QLabel("Turn off:", oef->control);
   label->setAlignment(Qt::AlignRight | Qt::AlignVCenter);
   hLayout->addWidget(label);
   wMeshSkipLo = diaCheckBox("Low", oef->control, hLayout);
@@ -1332,8 +1314,7 @@ void ImodvObjed::clipSkipSlot(bool state)
     obj->clips.flags |= (1 << 7);
   else
     obj->clips.flags &= ~(1 << 7);
-  imodvFinishChgUnit();
-  imodvDraw(Imodv);
+  finishChangeAndDraw(0, 0);
 }
 
 void ImodvObjed::clipPlaneSlot(int value)
@@ -1382,8 +1363,7 @@ void ImodvObjed::clipResetSlot(int which)
     clips->normal[ip].y = -1.0f;
   else
     clips->normal[ip].x = -1.0f;
-  imodvFinishChgUnit();
-  imodvDraw(Imodv);
+  finishChangeAndDraw(0, 0);
 }
 
 void ImodvObjed::clipInvertSlot()
@@ -1412,8 +1392,7 @@ void ImodvObjed::clipInvertSlot()
       clips->normal[ip].z = -clips->normal[ip].z;
     }
   }
-  imodvFinishChgUnit();
-  imodvDraw(Imodv);
+  finishChangeAndDraw(0, 0);
 }
 
 void ImodvObjed::clipToggleSlot(bool state)
@@ -1462,9 +1441,7 @@ void ImodvObjed::clipToggleSlot(bool state)
       }
     }
   }
-  objset(Imodv);
-  imodvFinishChgUnit();
-  imodvDraw(Imodv);
+  finishChangeAndDraw(1, 0);
 }
 
 void ImodvObjed::clipMoveAllSlot(bool state)
@@ -2387,7 +2364,7 @@ static void setMat3Flag(int flag, int index, int state)
     for (ob = 0; ob < Imodv->mod[m]->objsize; ob++)
       if (changeModelObject(m, ob)) {
         imodvRegisterObjectChg(ob);
-        ub = (unsigned char *)&(Imodv->mod[m]->obj[ob].mat3b2);
+        ub = (unsigned char *)&(Imodv->mod[m]->obj[ob].matflags2);
         if (state)
           ub[index] |= (unsigned char)flag;
         else
@@ -2396,6 +2373,16 @@ static void setMat3Flag(int flag, int index, int state)
   }
 }
 
+// Finish change unit and draw model after changing a flag
+static void finishChangeAndDraw(int doObjset, int drawImages)
+{
+  if (doObjset && objed_dialog)
+    objset(Imodv);
+  imodvFinishChgUnit();
+  imodvDraw(Imodv);
+  if (drawImages)
+    imodvDrawImodImages();
+}
 
 /* Maintain Imodv->ob and set the starting and ending model to change based 
    on global flags and possible flag for individual entity*/
@@ -2445,6 +2432,9 @@ static void makeRadioButton(char *label, QWidget *parent, QButtonGroup *group,
 
 /*
 $Log$
+Revision 4.30  2007/09/20 22:06:55  mast
+Changes for visualizing clipping plane
+
 Revision 4.29  2007/07/08 16:43:46  mast
 Added open/closed and auto new contour boxes, fixed some sync and layout
 problems, switched to new hot slider function
