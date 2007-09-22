@@ -1,5 +1,8 @@
 IMOD History
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+9/21/07: Added option to show stored values with constant color to make it
+possible to distinguish ones below and just above a threshold.
+
 9/20/07: Added ability to visualize the current clipping plane as a
 semitransparent plane and improved predictability of clipping planes by making
 them rotate around the point closest to the center of the window.

@@ -141,15 +141,23 @@ you to select whether to <B>Show stored values</B> or to
 <B>Show normal magnitudes</B>.  
 <P>
 The <B>Black</B> and <B>White</B> sliders adjust the contrast range
-of the displayed values, and <B>False color</B> will display the
-values in false color rather than as an intensity modulation of the
-object's color.  The intensity ramp can be inverted by setting the
-<B>Black</B> slider higher than the <B>White</B> one.  The <B>Turn off
-Low</B> and <B>High</B> buttons can be used to turn off the drawing of
-contours or points whose stored values fall below the lower of the
-Black and White
-levels or above the higher of the two levels, respectively.  This
-feature does not work for mesh displays.
+of the displayed values.  The intensity ramp can be inverted by setting the
+<B>Black</B> slider higher than the <B>White</B> one. 
+<P> 
+By default, the values
+will be shown as an intensity modulation of the
+object's color.  Use the <B>False color</B> checkbox to display the
+values in false color instead.  Alternatively, the <B>Fixed color</B> checkbox
+can be used to keep the color constant instead of modulating it with the
+stored values.
+<P>
+The <B>Turn off Low</B> and <B>High</B> buttons can be used to turn off the
+drawing of contours or points whose stored values fall below the lower of the
+Black and White levels or above the higher of the two levels, respectively.
+This feature does not work for mesh displays.  If you do not
+want to view values in false color, you can used the <B>Fixed color</B> option
+to distinguish clearly between items below and above the low threshold
+(otherwise, items just above the threshold will be too dark to see).
 <P>
 Note that once the drawing of stored values is turned on, it is applied
 to model features drawn in the image display windows, if any.
