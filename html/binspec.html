@@ -359,8 +359,9 @@ Length Type         Description
 4  uint  mat2       Set to 0, use as flags.  Unused.
 1  uchar valblack   Black level for showing stored values.
 1  uchar valwhite   White level for showing stored values.
-1  uchar mat3b2     Flags: bit 0 on: skip low end data in value draw 
+1  uchar matflags2  Flags: bit 0 on: skip low end data in value draw 
                            bit 1 on: skip high end data in value draw
+                           bit 2 on: keep color constant, not varied with value
 1  uchar mat3b3     Unused.
 
 Prior to IMOD 2.7.1, the 4 bytes of mat1 (fillred to quality) and the 4 bytes 
