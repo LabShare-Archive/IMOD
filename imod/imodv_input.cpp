@@ -918,9 +918,9 @@ void clipCenterAndAngles(ImodvApp *a, Ipoint *clipPoint, Ipoint *clipNormal,
   alpha = 0.;
   beta = 0.;
   if (fabs((double)normal.x) > smallVal || fabs((double)normal.z) > smallVal)
-    beta = -atan2((double)normal.x, normal.z);
+    beta = -atan2((double)normal.x, (double)normal.z);
   zrot = normal.z * cos(beta) - normal.x * sin(beta);
-  alpha = -(atan2(zrot, normal.y) - 1.570796);
+  alpha = -(atan2(zrot, (double)normal.y) - 1.570796);
 
   // Get a center point: point on plane closest to the center of the display
   tt = imodPointDot(&normal, &trans) - imodPointDot(&normal, &point);
@@ -1165,6 +1165,9 @@ void imodvMovieTimeout()
 
 /*
     $Log$
+    Revision 4.28  2007/09/20 22:06:55  mast
+    Changes for visualizing clipping plane
+
     Revision 4.27  2007/08/08 03:05:02  mast
     Fixed setting up of point picking to avoid context-setting errors
 
