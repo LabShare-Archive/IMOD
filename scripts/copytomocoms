@@ -12,6 +12,8 @@ set CCDBORDERFAC = 2.0            # extra size of border for CCD images
 set RESIDUAL_SCALE = 10           # scaling for tiltalign residuals
 set MONTAGE_XCORR_MAX = 2048      # Max size for blended stack for doing xcorr
 set backupname = "./savework"
+set TILTSIZES = (950 1400 1900 2850 3800 5700 7600 11400 15200 22800)
+set TILTSCALES = (1000 700 500 330  250  170  125  80    60    40)
 
 set single_srcname = "g5a"
 set seedname = "empty.seed"
@@ -1103,6 +1105,16 @@ EOF
 	set alysize = `goodframe $ysize | sed '/[[:cntrl:]]/s///g'`
     endif
 
+    # Get a scaling for tilt appropriate to the X size: look up in table
+    #
+    @ i = $#TILTSIZES
+    while ($i >= 1)
+        set tiltscale = $TILTSCALES[$i]
+        @ tiltsize = $TILTSIZES[$i]
+        if ($alxsize >= $tiltsize) break
+        @ i--
+    end
+
     set srcfile = $srcdir/"tilt"$srcext
     set dstfile = "tilt"$dstext
     set backuplist = ($backuplist $dstfile)
@@ -1110,6 +1122,7 @@ EOF
     sed -e s/$srcname/$dstname/g\
         -e "/^LOG/s/LOG.*/LOG $logbase/"\
         -e "/MODE/s/MODE.*/MODE $mode/"\
+        -e "/SCALE/s/SCALE.*/SCALE 0 $tiltscale/"\
 	-e "/FULLIMAGE/s//FULLIMAGE $alxsize $alysize/"\
 	-e "/EXCLUDELIST/s//EXCLUDELIST $excludelist/"\
 	-e "/$delexclude/d"\
@@ -1370,6 +1383,9 @@ exit 0
 
 #
 #  $Log$
+#  Revision 3.53  2006/09/18 21:24:44  mast
+#  Switched sample.com to use sampletilt script for eventual python transition
+#
 #  Revision 3.52  2006/08/17 18:36:54  mast
 #  Added locale statement to keep output of awk from having instead of .
 #
