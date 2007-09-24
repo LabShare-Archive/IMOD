@@ -1,5 +1,10 @@
 IMOD History
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+9/24/07: IMOD_3-10-18
+9/24/07: Copytomocoms now sets up a SCALE entry in tilt.com that roughly 
+compensates for the dependence of Tilt's scaling on the width of the input 
+data.
+
 9/21/07: Added option to show stored values with constant color to make it
 possible to distinguish ones below and just above a threshold.
 
