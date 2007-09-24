@@ -1,46 +1,56 @@
 Version = 1.0
 Pip = 1
 
-[Field = Parameter]
-short = param
-type = PF 
-usage = specifies a parameter file
-tooltip = 
-manpage =
-
 [Field = InputStack]
 short = input
 type = FN
 usage = Input stack that will be corrected
 tooltip =
-manpage = Input stack that will be corrected
+manpage = 
+
+[Field = OutputFileName]
+short = output
+type = FN
+usage = Name of output file for the corrected views
+tooltip =
+manpage = 
 
 [Field = AngleFile]
 short = angleFn
 type =  FN
-usage = File contains tilt angles for the input stack
+usage = File containing tilt angles for the input stack
 tooltip =
-manpage = Each line of this file is the tilt angle for a slice of the input
-stack. The angles are listed in order starting from slice 1.
+manpage = File containing tilt angles for the input stack.  Each line of this
+file is the tilt angle for a view of the input stack.  The angles are listed
+in order starting from view 1.
 
-[Field = AxisAngle]
-short = aAngle 
-type = F
-usage = This option is not supported 
+[Field = DefocusFile]
+short = defFn
+type = FN
+usage = File with list of tilt angle ranges and defocus values in nanometers
 tooltip =
-manpage = This option is not supported. The tilt axis has to be vertical, i.e.,
-to be coincident with the Y axis. Usually this means the input stack has to be
-the aligned stack.
+manpage = File with list of tilt angle ranges and defocus values in
+nanometers, such as was output by ctfplotter(1).  Each line should have a
+starting and ending tilt angle and a defocus value.  The program will assign
+that defocus value to the midpoint of the range.  For a view at a given tilt
+angle, it will find the defocus either by interpolating between two
+surrounding midpoint angles, if there are such angles, or by taking the nearest
+defocus value, if the angle is beyond the range of the available midpoint
+angles.  To correct a tilt series with a single value of defocus, supply a
+file with a single line containing "0 0 defocus_value".
 
 [Field = DefocusTol]
 short = defTol
 type = I
-usage =  Defocus tolerance in nanometers defines the strips
+usage =  Defocus tolerance in nanometers limiting the strip width
 tooltip =
-manpage =  Defocus tolerance in nanometers defines the strips. An image region
-with defocus difference less than this tolerance is defined as a strip 
-and is considered to have constant defocus. Each strip is
-corrected with the defocus at the center of the strip.
+manpage =  Defocus tolerance in nanometers that limits the width of the strips.
+An image region
+with defocus difference less than this tolerance 
+is considered to have constant defocus and can be corrected as one strip. The
+strip width is either the width of this region or 256 pixels, whichever is
+smaller.  Each strip is corrected based on the defocus at the center of the
+strip. 
 
 [Field = InterpolationWidth]
 short = iWidth
@@ -49,7 +59,7 @@ usage = The distance in pixels between two consecutive strips
 tooltip =
 manpage = The distance in pixels between the center lines of two consecutive 
 strips. A pixel inside the region between those two center lines resides in
-both strips. As the two strips are corrected seperately, that pixel will have 2
+both strips. As the two strips are corrected separately, that pixel will have 2
 corrected values. The final value for that pixel is a linear interpolation of
 the 2 corrected values. 
 
@@ -63,9 +73,9 @@ manpage = Image pixel size in nanometers
 [Field = Voltage]
 short = volt
 type = I
-usage =  Microscope voltage in Kv
+usage =  Microscope voltage in kV
 tooltip =
-manpage =  Microscope voltage in Kv
+manpage =  Microscope voltage in kV
 
 [Field = SphericalAberration]
 short = cs
@@ -80,39 +90,43 @@ type = F
 usage = The percentage of amplitude contrast
 tooltip =
 manpage = The percentage of amplitude contrast. For Cryo-EM, 
-it should be between 0.07 and 0.14
-
-[Field = DefocusFile]
-short = defFn
-type = FN
-usage = A file stores the defocus value in nanometers
-tooltip =
-manpage = A file stores the defocus value in nanometers. This is an optional
-field. The default is the root stack filename with .defocus appended.
+it should be between 0.07 and 0.14.  The value should be the same as was used
+when detecting the defocus.
 
 [Field = StartingEndingViews]
 short = views
 type = IP
-usage = The starting slice and the ending slice need to be corrected for one run
-of the program.
+usage = The starting and ending views to correct (numbered from 1)
 tooltip =
-manpage = The starting slice and the ending slice need to be corrected for one
-run of the program. This is
-an optional field. The default is all the slices in the input stack.
+manpage = The starting view and the ending view to correct in this run
+of the program, numbered from 1.  This is
+an optional field.  The default is to correct all views in the input stack.
 
 [Field = TotalViews]
 short = totalViews
 type = IP
-usage = The starting slice and the ending slice need to be corrected in all
+usage = The starting and ending views that need to be corrected in all
 parallel runs of the program.
 tooltip =
-manpage = The starting slice and the ending slice need to be corrected in all
-parallel runs of the program . This field is only needed when doing parallel
-runs.
+manpage = The starting view and the ending view that need to be corrected in
+all parallel runs of the program.  This field is only needed when doing
+parallel runs with direct writing to a single output file.  The program is
+run initially with a StartingEndingViews entry of -1,-1 to set up the output
+file.  Then it is run with actual starting and ending views for each parallel
+run, and each run writes to the existing output file.
 
-[Field = OutputFileName]
-short = output
-type = FN
-usage = Output file name to store the corrected slices
+[Field = AxisAngle]
+short = aAngle 
+type = F
+usage = This option is not supported 
 tooltip =
-manpage = Output file name to store the corrected slices
+manpage = This option is not supported.  The tilt axis has to be vertical,
+i.e., to be coincident with the Y axis.  Usually this means the input stack
+has to be the aligned stack.
+
+[Field = Parameter]
+short = param
+type = PF 
+usage = Read parameter entries from file
+tooltip = 
+manpage = Read parameter entries from this file.

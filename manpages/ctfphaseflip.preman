@@ -1,19 +1,23 @@
+.na
 .nh
-.TH ctfphaseflip 1
+.TH ctfphaseflip 1 3.10.18 BL3DEMC
 .SH NAME
-ctfphaseflip \- correct input tilt series by simple phase flipping 
+ctfphaseflip \- correct tilt series for microscope CTF by phase flipping 
 .SH SYNOPSIS
 ctfphaseflip  options
 .SH DESCRIPTION
-This program will correct the CTF of an input tilt series by simple phase flipping.
-The user can select a subset of slices of the input tilt series to correct and
-can specify a defocus value for each selected slice through a text defocus file.
-The output file of 'ctfplotter' is usally used as the defocus file.
+This program will correct the CTF of an input tilt series by simple phase
+flipping.  The user can select a subset of projection views of the input tilt
+series to correct and
+can specify a defocus value for each selected view through a text defocus
+file.
+The output file of ctfplotter(1) is usually used as the defocus file.
 
-Ctfphaseflip corrects each slice strip by strip. A strip is defined as a slice
-region whose defocus difference is less than a user specified value. 
+Ctfphaseflip corrects each view strip by strip.  A strip is defined as an image
+region whose defocus difference is less than a user specified value, but the
+width is also limited to 256 pixels.
 
-It can be run in a parallel mode similiar to the 'tilt' program by setting the
+It can be run in a parallel mode similiar to the Tilt(1) program by setting the
 TotalViews option.
 
 .SS Options
