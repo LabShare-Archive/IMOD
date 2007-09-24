@@ -1,22 +1,6 @@
 Version = 1.0
 Pip = 1
 
-[Field = Parameter]
-short = param
-type = PF 
-usage = specifies a parameter file
-tooltip = 
-manpage =
-
-[Field = ConfigFile]
-short = config
-type = FN
-usage = Configure file specifies the noise files used to estimate the noise
-tooltip = 
-manpage = Configure file specifies the noise files used to estimate the noise
-floor. These noise files are collected at various beam intensities without 
-specimen in the beam.
-
 [Field = InputStack]
 short = input
 type = FN
@@ -27,50 +11,65 @@ manpage = Input stack whose defocus will be estimated.
 [Field = AngleFile]
 short = angleFn
 type = FN
-usage = File contains tilt angles for the input stack
+usage = File containing tilt angles for the input stack
 tooltip =
-manpage =Each line of this file is the tilt angle for a slice of the input
-stack. The angles are listed in order starting from slice 1.
+manpage = File containing tilt angles for the input stack.  Each line of this
+file is the tilt angle for a view of the input stack.  The angles are listed
+in order starting from view 1.
 
-[Field = AxisAngle]
-short = aAngle
-type = F
-usage = Specifies how much the tilt axis  deviates from vertical (Y axis)
-tooltip =
-manpage = Specifies how much the tilt axis deviates from vertical (Y axis). 
-This angle is in degrees. It follows the right hand rule and 
-counter-clockwise is positive. 
+[Field = ConfigFile]
+short = config
+type = FN
+usage = File with a list of noise files used to estimate the noise
+tooltip = 
+manpage = The configure file specifies the noise files used to estimate the
+noise floor, one file per line.  These noise files are collected at various
+beam intensities without specimen in the beam, with one image per file.  
+The mean counts in these files
+should span the range of the mean counts in the data being analyzed.  The
+interval between intensities can be a factor of 1.5.
 
 [Field = DefocusFile]
 short = defFn
 type = FN
 usage = File to store found defocuses
 tooltip = 
-manpage = File to store found defocuses
+manpage = File to store found defocuses.  Each entry in the file will consist
+of the starting and ending angle of the tilt angle range being fit to, and the
+defocus value.
+
+[Field = AxisAngle]
+short = aAngle
+type = F
+usage = Specifies how much the tilt axis deviates from vertical (Y axis)
+tooltip =
+manpage = Specifies how much the tilt axis deviates from vertical (Y axis). 
+This angle is in degrees.  It follows the right hand rule and 
+counter-clockwise is positive. 
 
 [Field = PSResolution]
 short = psRes
 type = I
-usage = The number of points on which CTF will be computed 
+usage = The number of points over which CTF will be computed 
 tooltip =
-manpage = The number of points on which CTF will be computed. The Nyquist 
-frequency is divided into equal intervals delineated by these points
+manpage = The number of points over which CTF will be computed.  The Nyquist 
+frequency is divided into equal intervals delineated by these points.
 
 [Field = TileSize]
 short = tileSize
 type = I
 usage = The tile size each strip will be tessellated into
 tooltip =
-manpage = The tile size each strip will be tessellate into.  The size is in
-pixels and the tiles are square. Each slice is first divided into strips 
+manpage = The tile size each strip will be tessellated into.  The size is in
+pixels and the tiles are square.  Each view is first divided into strips 
 that are considered to have constant defocus.
 
 [Field = Voltage]
 short = volt
 type = I
-usage = Microscope voltage in Kv 
+usage = Microscope voltage in kV 
 tooltip =
-manpage = Microscope voltage in Kv.
+manpage = Microscope voltage in kV.
 
 [Field = SphericalAberration]
 short = cs
@@ -82,11 +81,12 @@ manpage = Microscope spherical aberration in millimeters
 [Field = DefocusTol]
 short = defTol
 type = I
-usage = Defocus tolerance in nanometers defines the center strips
+usage = Defocus tolerance in nanometers defining the center strips
 tooltip =
-manpage = Defocus tolerance defines the center strips. The center region of a
-slice that has defocus difference less than this tolerance is defined as
-center strips. This kind of center strips from all slices within AngleRange 
+manpage = Defocus tolerance in nanometers defining the center strips.  The
+center strips are taken from the 
+central region of a view that has defocus difference less than this tolerance.
+These kind of center strips from all views within AngleRange 
 are considered to have a constant defocus and are used to compute the initial
 CTF after being further tessellated into tiles.
 
@@ -95,7 +95,7 @@ short = pixelSize
 type = F
 usage = Image pixel size in nanometers
 tooltip =
-manpage =  Image pixel size in nanometers.
+manpage = Image pixel size in nanometers.
 
 [Field = AmplitudeContrast]
 short = ampContrast
@@ -103,7 +103,7 @@ type = F
 usage = The percentage of amplitude contrast.
 tooltip =
 manpage = The percentage of amplitude contrast. For Cryo-EM, 
-it should be between 0.07 and 0.14
+it should be between 0.07 and 0.14.
 
 [Field = ExpectedDefocus]
 short = expDef
@@ -111,34 +111,42 @@ type = F
 usage = Expected defocus at the tilt axis in nanometers.
 tooltip =
 manpage = Expected defocus at the tilt axis in nanometers. The frequency 
-the first zero of the CTF curve with the expected defocus is located at 
-is first computed. The segments of the CTF curve of the input stack around 
-that frequency are selected to be fitted.
+of the first zero of the CTF curve 
+is first computed based on this expected defocus.  The segments of the CTF
+curve of the input stack around that frequency are selected to be fitted.
 
 [Field = LeftDefTol]
 short = leftTol 
 type = F
-usage = Defocus tolerance in nanometers defines strips to the left of 
+usage = Defocus tolerance in nanometers for strips to the left of center
 the center strip
 tooltip =
-manpage = Defocus tolerance in namometers defines strips to the left of 
-the center strip. Those left strips have defocus difference less than 
-leftDefTol.  
+manpage = Defocus tolerance in nanometers for strips to the left of 
+the center strip.  When non-center strips are included in the average, strips
+to the left of center are included if their defocus difference is less than 
+the given value.
 
 [Field = RightDefTol]
 short = rightTol
 type = F
-usage = Defocus tolerance in nanometers defines strips to the right of 
-the center strip
+usage = Defocus tolerance in nanometers for strips to the right of center
 tooltip =
-manpage = Defocus tolerance in nanometers defines strips to the right of 
-the center strip. Those right strips have defocus difference less than
-rightDefTol  
+manpage = Defocus tolerance in nanometers for strips to the right of 
+the center strip.  When non-center strips are included in the average, strips
+to the right of center are included if their defocus difference is less than 
+the given value.
 
 [Field = AngleRange]
 short = range
 type = FP
-usage = Tilt angles in degrees define a range 
+usage = Starting and ending tilt angles for initial analysis
 tooltip =
-manpage = Tilt angles in degrees define a range. Slices with tilt angle within
-this range are used to compute the CTF curve.
+manpage = Starting and ending tilt angles for initial analysis.  Views with a
+tilt angle within this range are used to compute the CTF curve.
+
+[Field = Parameter]
+short = param
+type = PF 
+usage = Read parameter entries from file
+tooltip = 
+manpage = Read parameter entries from this file.

@@ -1,20 +1,21 @@
+.na
 .nh
-.TH ctfplotter 1
+.TH imodcurvature 1 3.10.18 BL3DEMC
 .SH NAME
-ctfplotter \- estimate defocus values of the input tilt series 
+ctfplotter \- estimate defocus values of a tilt series 
 .SH SYNOPSIS
 ctfplotter  options
 .SH DESCRIPTION
 This GUI program will plot the logarithm of the CTF curve of an input tilt 
-series after subtracting the noise floor. The method is based on peridogram 
-averaging. The user can interactively choose which slices are included in the
-averaging. 
+series after subtracting the noise floor.  The method is based on periodogram 
+averaging.  The user can interactively choose which projection views are
+included in the averaging.
 
 To read a general description of the plots and tool buttons, click the handbook
 icon to access the HTML help page.
 
 Found defocus values can be saved in a text file that can be used as
-input to the CTF correction program 'ctfphaseflip'.
+input to the CTF correction program ctfphaseflip(1).
 
 .SS Options
 Ctfplotter uses the PIP package for input (see the manual page
