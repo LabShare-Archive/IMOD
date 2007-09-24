@@ -242,7 +242,7 @@ elif [ $action == "L" ] ; then
         com="$com | tail -n 1 > $qstattmp"
         runQcommand "$com" 1
 
-        if [[ $runstat -eq 0 && -e $qstattmp ]] ; then
+        if [[ $runstat -eq 0 && -s $qstattmp ]] ; then
             statline=(`cat $qstattmp`)
             load=${statline[1]}
         fi
@@ -252,9 +252,9 @@ elif [ $action == "L" ] ; then
         #
         com="qstat -B | tail -n 1 > $qstattmp"
         runQcommand "$com" 1
-        if [[ $runstat -eq 0 && -e $qstattmp ]] ; then
+        if [[ $runstat -eq 0 && -s $qstattmp ]] ; then
             statline=(`cat $qstattmp`)
-            nrun=${statline[4]}
+            nrun=${statline[5]}
             nmax=${statline[1]}
 
             # If the max is 0, need to read all queues and get max
@@ -263,7 +263,7 @@ elif [ $action == "L" ] ; then
                 rm -f $qstattmp
                 com="qstat -Q | tail -n +3 > $qstattmp"
                 runQcommand "$com" 1
-                if [[ $runstat -eq 0 && -e $qstattmp ]] ; then
+                if [[ $runstat -eq 0 && -s $qstattmp ]] ; then
                   nmax=`awk 'BEGIN { MAX = 0 } {if ($2 > MAX) MAX = $2} END {print MAX}' $qstattmp`
                 fi
             fi
@@ -286,3 +286,6 @@ exit 0
 
 #
 #  $Log$
+#  Revision 3.1  2007/09/14 21:55:16  mast
+#  Added to package
+#
