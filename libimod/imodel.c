@@ -1602,9 +1602,40 @@ void  imodFlipYZ(Imod *imod)
 }
 
 /*!
+ * Sets the @@IrefImage structure@ {refImage} in [imod] with the image 
+ * coordinate information in the MRC header [hdata].  Returns 1 for memory 
+ * error allocating the structure.
+ */
+int imodSetRefImage(Imod *imod, MrcHeader *hdata)
+{
+  IrefImage *ref;
+  if (!imod->refImage) {
+    imod->refImage = (IrefImage *)malloc(sizeof(IrefImage));
+    if (!imod->refImage)
+      return 1;
+  }
+  ref = imod->refImage;
+  ref->ctrans.x = hdata->xorg;
+  ref->ctrans.y = hdata->yorg;
+  ref->ctrans.z = hdata->zorg;
+  ref->crot.x = hdata->tiltangles[3];
+  ref->crot.y = hdata->tiltangles[4];
+  ref->crot.z = hdata->tiltangles[5];
+  ref->cscale.x = ref->cscale.y = ref->cscale.z = 1.;
+  if (hdata->xlen && hdata->mx)
+    ref->cscale.x = hdata->xlen/(float)hdata->mx;
+  if (hdata->ylen && hdata->my)
+    ref->cscale.y = hdata->ylen/(float)hdata->my;
+  if (hdata->xlen && hdata->mz)
+    ref->cscale.z = hdata->zlen/(float)hdata->mz;
+  return 0;
+}
+
+/*!
  * Transforms the model in [imod] according the old and current shift, scale,
- * and rotation in [iref], with the additional scaling required for binning in
- * each dimension specified in [binScale].  Returns 1 for memory errors.
+ * and rotation in the @@IrefImage structure@ [iref], with the additional 
+ * scaling required for binning in each dimension specified in [binScale].
+ * Returns 1 for memory errors.
  */
 int imodTransFromRefImage(Imod *imod, IrefImage *iref, Ipoint binScale)
 {
@@ -1779,6 +1810,9 @@ int   imodGetFlipped(Imod *imod)
 
 /*
 $Log$
+Revision 3.28  2007/09/22 00:07:01  mast
+Removed model locking code, changed mat3b2 to matflags2
+
 Revision 3.27  2007/05/25 05:18:26  mast
 Changes for slicer angle storage
 
