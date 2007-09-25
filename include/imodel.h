@@ -16,12 +16,13 @@
 #define IMODEL_H
 #define IMOD_MODEL_H
 
+#include <stdio.h>
+#include <stdlib.h>
 #include "imodconfig.h"
 #include "hvemtypes.h"
 
-#include <stdio.h>
-#include <stdlib.h>
 #include "ilist.h"
+#include "mrcfiles.h"
 
 /* Mouse mode. */
 #define IMOD_MMODEL 1   /* Mouse edits model points.  */
@@ -573,6 +574,7 @@ extern "C" {
   int   imodDefault(Imod *imod);
   void  imodCleanSurf(Imod *imod);
   void  imodFlipYZ(Imod *imod);
+  int imodSetRefImage(Imod *imod, MrcHeader *hdata);
   int imodTransFromRefImage(Imod *imod, IrefImage *iref, Ipoint binScale);
   void imodTransFromMats(Imod *imod, Imat *mat, Imat *matNorm, Imat *matClip);
 
@@ -692,6 +694,9 @@ extern "C" {
 
 /*    
     $Log$
+    Revision 3.39  2007/09/22 00:05:28  mast
+    Renamed mat3b2 to matflags2, removed lock and redraw variables
+
     Revision 3.38  2007/08/26 06:56:34  mast
     Documentation changes
 
