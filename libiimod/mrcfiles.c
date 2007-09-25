@@ -811,7 +811,9 @@ unsigned char **read_mrc_byte(FILE *fin,
  * specifying the limits and scaling of the load, and [func] is a function to
  * receive a status string after each slice.  Data memory is allocated with
  * @mrcGetDataMemory and should be freed with @mrcFreeDataMemory.  Should work
- * with planes > 4 GB on 64-bit systems.  Returns NULL for error.
+ * with planes > 4 GB on 64-bit systems.  The dimensions and mode in [hdata]
+ * (as well as the {mx} and {xlen} members, etc.), are modified so as to be 
+ * appropriate if the data volume is written.  Returns NULL for error.
  */
 unsigned char **mrc_read_byte(FILE *fin, 
                               MrcHeader *hdata, 
@@ -844,6 +846,7 @@ unsigned char **mrc_read_byte(FILE *fin,
   int doscale = 0;
   int contig = 0;
   float slope, offset, total = 0;
+  float xscale, yscale, zscale;
   char statstr[128];            /* message sent to callback function. */
   unsigned char **idata;        /* image data to return. */
   unsigned char *idatap;
@@ -1184,12 +1187,15 @@ unsigned char **mrc_read_byte(FILE *fin,
   hdata->ny = ysize;
   hdata->nz = zsize;
   hdata->mode = MRC_MODE_BYTE; 
+  xscale = (hdata->mx && hdata->xlen) ? hdata->xlen / (float)hdata->mx : 1.;
+  yscale = (hdata->my && hdata->ylen) ? hdata->ylen / (float)hdata->my : 1.;
+  zscale = (hdata->mz && hdata->zlen) ? hdata->zlen / (float)hdata->mz : 1.;
   hdata->mx = hdata->nx;
   hdata->my = hdata->ny;
   hdata->mz = hdata->nz;
-  hdata->xlen = hdata->nx;
-  hdata->ylen = hdata->ny;
-  hdata->zlen = hdata->nz;
+  hdata->xlen = hdata->nx * xscale;
+  hdata->ylen = hdata->ny * yscale;
+  hdata->zlen = hdata->nz * zscale;
      
   sprintf(statstr, "\n");
   if (func != ( void (*)(char *) ) NULL)
@@ -2131,6 +2137,9 @@ void mrc_swap_floats(fb3dFloat *data, int amt)
 
 /*
 $Log$
+Revision 3.33  2007/06/13 22:52:37  mast
+Modifications for reading with intersection section skip
+
 Revision 3.32  2007/06/13 17:12:55  sueh
 bug# 1019 In mrc_head_new and mrc_head_read, setting hdata->sectionSkip to 0.
 
