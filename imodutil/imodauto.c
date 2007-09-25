@@ -7,39 +7,10 @@
  *  Copyright (C) 1995-2004 by Boulder Laboratory for 3-Dimensional Electron
  *  Microscopy of Cells ("BL3DEMC") and the Regents of the University of 
  *  Colorado.  See dist/COPYRIGHT for full copyright notice.
+ *
+ * $Id$
+ * Log at end of file
  */
-/*  $Author$
-
-$Date$
-
-$Revision$
-
-$Log$
-Revision 3.8  2005/03/20 19:56:05  mast
-Eliminating duplicate functions
-
-Revision 3.7  2004/11/05 19:05:29  mast
-Include local files with quotes, not brackets
-
-Revision 3.6  2004/07/07 19:25:30  mast
-Changed exit(-1) to exit(3) for Cygwin
-
-Revision 3.5  2004/06/24 15:36:39  mast
-Added -X, -Y, -Z options for doing subvolume
-
-Revision 3.4  2003/10/24 03:05:23  mast
-open as binary, strip program name and/or use routine for backup file
-
-Revision 3.3  2002/12/23 21:38:08  mast
-fixed exit status
-
-Revision 3.2  2002/06/20 00:09:21  mast
-Added option to interpret thresholds as unscaled values
-
-Revision 3.1  2002/06/18 17:23:03  mast
-Added option to set color of model object
-
-*/
 
 #include <math.h>
 #include <limits.h>
@@ -108,9 +79,11 @@ int main(int argc, char *argv[])
 
   Iobj *obj, *tobj;
   Imod *imod = NULL;
-  struct MRCheader hdata;
+  MrcHeader hdata;
   struct LoadInfo li;
+  IrefImage ref;
   unsigned char **idata;
+  
   FILE *fin, *fout;
   double ht = 255.0, lt = 0.0;
   double shave = 0.0;
@@ -309,7 +282,6 @@ int main(int argc, char *argv[])
   }
   imod->file = fout;
      
-     
   idata = mrc_read_byte(fin, &hdata, &li, mrc_default_status);
   if (!idata){
     fprintf(stderr, "%s: Error reading image data\n", progname);
@@ -351,6 +323,9 @@ int main(int argc, char *argv[])
   imod->zmax = hdata.nz;
   imod->cindex.object = imod->objsize - 1;
 
+  /* Set up image reference information.  Safer to do this before 
+     mrc_read_byte modifies header, but this should work here */
+  imodSetRefImage(imod, &hdata);
 
   imodWrite(imod, fout);
   fclose(fout);
@@ -900,3 +875,33 @@ static void auto_expand(unsigned char *data, int imax, int jmax)
   return;
 
 }
+
+/*  $Log$
+Revision 3.9  2005/04/04 22:41:32  mast
+Fixed problem with argument order to imdContourGetBBox
+
+Revision 3.8  2005/03/20 19:56:05  mast
+Eliminating duplicate functions
+
+Revision 3.7  2004/11/05 19:05:29  mast
+Include local files with quotes, not brackets
+
+Revision 3.6  2004/07/07 19:25:30  mast
+Changed exit(-1) to exit(3) for Cygwin
+
+Revision 3.5  2004/06/24 15:36:39  mast
+Added -X, -Y, -Z options for doing subvolume
+
+Revision 3.4  2003/10/24 03:05:23  mast
+open as binary, strip program name and/or use routine for backup file
+
+Revision 3.3  2002/12/23 21:38:08  mast
+fixed exit status
+
+Revision 3.2  2002/06/20 00:09:21  mast
+Added option to interpret thresholds as unscaled values
+
+Revision 3.1  2002/06/18 17:23:03  mast
+Added option to set color of model object
+
+*/
