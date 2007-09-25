@@ -102,7 +102,6 @@ EXPORTS
 	imodObjviewFromObject
 	imodLabelRead
 	imodTransFromMats
-	imodSetRefImage
 	imodel_contour_sortz
 	imodWriteAscii
 	imodLabelDup
@@ -359,6 +358,7 @@ EXPORTS
 	imodViewClipRead
 	GETIMODHEAD
 	imodViewDelete
+	imodSetRefImage
 	istoreContSurfDrawProps
 	imod_to_synu
 	imodContourGetBBox
