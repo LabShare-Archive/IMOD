@@ -102,6 +102,7 @@ EXPORTS
 	imodObjviewFromObject
 	imodLabelRead
 	imodTransFromMats
+	imodSetRefImage
 	imodel_contour_sortz
 	imodWriteAscii
 	imodLabelDup
