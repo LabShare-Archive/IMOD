@@ -50,7 +50,8 @@ The action to be performed:
 
 .SS Specifications
 Here are the essential features of this script, which would have to replicated
-by any program to be run from Processchunks(1).
+by any program to be run from Processchunks(1).  In order to work from eTomo
+as well, the script mush be in bash.
 
 The program must accept the 
 .B -w
