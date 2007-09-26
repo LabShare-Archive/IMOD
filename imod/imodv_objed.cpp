@@ -272,6 +272,8 @@ void imodvObjedSelect(int which)
 {
   Imodv->ob = which - 1;
   objset(Imodv);
+  if (Imodv->drawClip)
+    imodvDraw(Imodv);
 }
 
 // A name is changed
@@ -1350,7 +1352,7 @@ void ImodvObjed::clipResetSlot(int which)
     clips = &obj->clips;
     imodObjectGetBBox(obj, &min, &max);
   }
-     
+
   mid.x = (max.x + min.x) * -0.5f;
   mid.y = (max.y + min.y) * -0.5f;
   mid.z = (max.z + min.z) * -0.5f;
@@ -2432,6 +2434,9 @@ static void makeRadioButton(char *label, QWidget *parent, QButtonGroup *group,
 
 /*
 $Log$
+Revision 4.31  2007/09/22 00:07:26  mast
+Added fixed button to value display
+
 Revision 4.30  2007/09/20 22:06:55  mast
 Changes for visualizing clipping plane
 
