@@ -33,6 +33,10 @@ import etomo.util.Utilities;
  * @version $Revision$
  *
  * <p> $Log$
+ * <p> Revision 3.32  2007/09/07 00:25:48  sueh
+ * <p> bug# 989 Using a public INSTANCE to refer to the EtomoDirector singleton
+ * <p> instead of getInstance and createInstance.
+ * <p>
  * <p> Revision 3.31  2007/05/26 00:31:45  sueh
  * <p> bug# 994 Using getInstance in ParallelPanel.
  * <p>
@@ -383,20 +387,20 @@ abstract class AxisProcessPanel implements ContextMenu {
 
   private final void startParallelPanel() {
     parallelShowing = true;
-    parallelPanel.start();
+    parallelPanel.getLoadDisplay().startLoad();
     parallelStatusPanel.setVisible(true);
     UIHarness.INSTANCE.pack(axisID, manager);
   }
   
   void endThreads() {
     if (parallelPanel !=null) {
-      parallelPanel.end();
+      parallelPanel.getLoadDisplay().endLoad();
     }
   }
 
   private final void stopParallelPanel() {
     parallelShowing = false;
-    parallelPanel.stop();
+    parallelPanel.getLoadDisplay().stopLoad();
     parallelStatusPanel.setVisible(false);
     UIHarness.INSTANCE.pack(axisID, manager);
   }
