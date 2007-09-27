@@ -53,6 +53,10 @@ import etomo.util.DatasetFiles;
  * @version $Revision$
  * 
  * <p> $Log$
+ * <p> Revision 1.32  2007/09/07 00:16:41  sueh
+ * <p> bug# 989 Using a public INSTANCE for EtomoDirector instead of getInstance
+ * <p> and createInstance.
+ * <p>
  * <p> Revision 1.31  2007/08/29 21:40:11  sueh
  * <p> bug# 1041 Made getBaseState public.
  * <p>
@@ -728,7 +732,7 @@ public final class PeetManager extends BaseManager {
       return;
     }
     //param should never be set to resume
-    parallelPanel.resetResults();
+    parallelPanel.getParallelProgressDisplay().resetResults();
     processchunks(AxisID.ONLY, param, null);
   }
 }

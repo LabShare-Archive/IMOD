@@ -5414,7 +5414,7 @@ public final class ApplicationManager extends BaseManager {
     }
     mainPanel.setState(ProcessState.INPROGRESS, axisID, dialogType);
     //param should never be set to resume
-    parallelPanel.resetResults();
+    parallelPanel.getParallelProgressDisplay().resetResults();
     processchunks(axisID, param, processResultDisplay);
   }
 
@@ -5476,6 +5476,10 @@ public final class ApplicationManager extends BaseManager {
 }
 /**
  * <p> $Log$
+ * <p> Revision 3.289  2007/09/07 00:14:57  sueh
+ * <p> bug# 989 Using a public INSTANCE for EtomoDirector instead of getInstance
+ * <p> and createInstance.
+ * <p>
  * <p> Revision 3.288  2007/08/29 21:20:51  sueh
  * <p> bug# 1041 Made getBaseState public.
  * <p>

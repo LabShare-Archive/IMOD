@@ -239,8 +239,7 @@ public final class ParallelManager extends BaseManager {
       sendMsgProcessFailedToStart(processResultDisplay);
       return;
     }
-    //param should never be set to resume
-    parallelPanel.resetResults();
+    parallelPanel.getParallelProgressDisplay().resetResults();
     processchunks(axisID, param, processResultDisplay);
   }
 
@@ -271,6 +270,10 @@ public final class ParallelManager extends BaseManager {
 }
 /**
  * <p> $Log$
+ * <p> Revision 1.16  2007/09/07 00:16:30  sueh
+ * <p> bug# 989 Using a public INSTANCE for EtomoDirector instead of getInstance
+ * <p> and createInstance.
+ * <p>
  * <p> Revision 1.15  2007/08/29 21:33:21  sueh
  * <p> bug# 1041 Made getBaseState public.
  * <p>
