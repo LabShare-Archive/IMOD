@@ -1,5 +1,6 @@
 package etomo.ui;
 
+import java.awt.Component;
 import java.awt.Container;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
@@ -12,8 +13,6 @@ import javax.swing.JPanel;
 import etomo.BaseManager;
 import etomo.comscript.ProcesschunksParam;
 import etomo.comscript.SplittiltParam;
-import etomo.process.LoadAverageMonitor;
-import etomo.process.ParallelProcessMonitor;
 import etomo.storage.CpuAdoc;
 import etomo.type.AxisID;
 import etomo.type.ConstEtomoNumber;
@@ -35,8 +34,7 @@ import etomo.util.HashedArray;
  * 
  * @version $Revision$
  */
-public final class ParallelPanel implements ParallelProgressDisplay,
-    Expandable, LoadAverageDisplay {
+public final class ParallelPanel implements Expandable {
   public static final String rcsid = "$Id$";
 
   private static final String TITLE = "Parallel Processing";
@@ -47,6 +45,8 @@ public final class ParallelPanel implements ParallelProgressDisplay,
   private static EtomoBoolean2 validAutodoc = null;
 
   private final JPanel tablePanel = new JPanel();
+  private final JPanel computerTablePanel = new JPanel();
+  private final JPanel queueTablePanel = new JPanel();
   private final LabeledTextField ltfCPUsSelected = new LabeledTextField(
       "CPUs: ");
   private final LabeledTextField ltfChunksFinished = new LabeledTextField(
@@ -59,17 +59,18 @@ public final class ParallelPanel implements ParallelProgressDisplay,
   private final JPanel rootPanel = new JPanel();
   private final MultiLineButton btnRestartLoad = new MultiLineButton(
       "Restart Load");
+  private final CheckBox cbCluster = new CheckBox("Use a cluster");
 
   private final BaseManager manager;
   private final AxisID axisID;
-  private final ProcessorTable processorTable;
+  private final ProcessorTable computerTable;
+  private final ProcessorTable queueTable;
   private final Spinner sNice;
   private final PanelHeader header;
   private final AxisProcessPanel parent;
   private final int niceFloor;
 
-  private LoadAverageMonitor loadAverageMonitor = null;
-  private ParallelProcessMonitor parallelProcessMonitor = null;
+  //private ParallelProcessMonitor parallelProcessMonitor = null;
   private boolean visible = true;
   private boolean open = true;
   private boolean pauseEnabled = false;
@@ -90,8 +91,8 @@ public final class ParallelPanel implements ParallelProgressDisplay,
     this.axisID = axisID;
     this.parent = parent;
     //initialize table
-    //boolean expanded = PanelHeader.isMoreLessExpanded(state);
-    processorTable = new ProcessorTable(manager, this, axisID);//, expanded);
+    computerTable = new ProcessorTable(manager, this, axisID, false);
+    queueTable = new ProcessorTable(manager, this, axisID, true);
     //panels
     rootPanel.setLayout(new BoxLayout(rootPanel, BoxLayout.Y_AXIS));
     rootPanel.setBorder(BorderFactory.createEtchedBorder());
@@ -103,7 +104,7 @@ public final class ParallelPanel implements ParallelProgressDisplay,
     southPanel.add(ltfCPUsSelected);
     southPanel.add(btnRestartLoad);
     //sNice
-      niceFloor = CpuAdoc.getInstance(axisID, manager).getMinNice();
+    niceFloor = CpuAdoc.getInstance(axisID, manager).getMinNice();
     sNice = Spinner.getLabeledInstance("Nice: ", manager
         .getParallelProcessingDefaultNice(), niceFloor,
         ProcesschunksParam.NICE_CEILING);
@@ -117,6 +118,17 @@ public final class ParallelPanel implements ParallelProgressDisplay,
     bodyPanel.addRigidArea();
     bodyPanel.add(tablePanel);
     bodyPanel.add(southPanel);
+    if (CpuAdoc.getInstance(axisID, manager).hasComputers()
+        && CpuAdoc.getInstance(axisID, manager).hasQueues()) {
+      JPanel clusterPanel = new JPanel();
+      clusterPanel.setLayout(new BoxLayout(clusterPanel, BoxLayout.LINE_AXIS));
+      clusterPanel.setAlignmentX(Component.RIGHT_ALIGNMENT);
+      clusterPanel.add(cbCluster);
+      bodyPanel.add(clusterPanel);
+    }
+    else if (CpuAdoc.getInstance(axisID, manager).hasQueues()) {
+      cbCluster.setSelected(true);
+    }
     //header
     header = PanelHeader.getMoreLessInstance(TITLE, this, null);
     //rootPanel
@@ -128,9 +140,9 @@ public final class ParallelPanel implements ParallelProgressDisplay,
     ltfCPUsSelected.setTextPreferredWidth(UIParameters.INSTANCE
         .getFourDigitWidth());
     ltfCPUsSelected.setEditable(false);
-    processorTable.msgCPUsSelectedChanged();
     btnPause.setEnabled(false);
     header.setState(state);
+    selectTable();
     setToolTipText();
   }
 
@@ -141,57 +153,29 @@ public final class ParallelPanel implements ParallelProgressDisplay,
     btnPause.addActionListener(actionListener);
     btnSaveDefaults.addActionListener(actionListener);
     btnRestartLoad.addActionListener(actionListener);
+    cbCluster.addActionListener(actionListener);
   }
 
   private void buildTablePanel() {
     tablePanel.removeAll();
     tablePanel.add(Box.createHorizontalGlue());
-    tablePanel.add(processorTable.getContainer());
+    tablePanel.add(computerTable.getContainer());
+    tablePanel.add(queueTable.getContainer());
     tablePanel.add(Box.createHorizontalGlue());
   }
 
-  void start() {
-    processorTable.startGetLoadAverage(this);
-  }
-
-  void end() {
-    processorTable.endGetLoadAverage(this);
-  }
-
-  void stop() {
-    processorTable.stopGetLoadAverage(this);
-  }
-
-  void startGetLoadAverage(final String computer) {
-    manager.startGetLoadAverage(this, computer);
-  }
-
-  void endGetLoadAverage(final String computer) {
-    if (loadAverageMonitor != null) {
-      manager.endGetLoadAverage(this, computer);
+  public ParallelProgressDisplay getParallelProgressDisplay() {
+    if (cbCluster.isSelected()) {
+      return queueTable;
     }
+    return computerTable;
   }
 
-  void stopGetLoadAverage(String computer) {
-    if (loadAverageMonitor != null) {
-      manager.stopGetLoadAverage(this, computer);
+  public LoadDisplay getLoadDisplay() {
+    if (cbCluster.isSelected()) {
+      return queueTable;
     }
-  }
-
-  public LoadAverageMonitor getLoadAverageMonitor() {
-    if (loadAverageMonitor == null) {
-      loadAverageMonitor = new LoadAverageMonitor(this, axisID, manager);
-    }
-    return loadAverageMonitor;
-  }
-
-  public void setLoadAverage(final String computer, final double load1,
-      final double load5, final int users, final String usersTooltip) {
-    processorTable.setLoadAverage(computer, load1, load5, users, usersTooltip);
-  }
-
-  public void setCPUUsage(final String computer, final double cpuUsage) {
-    processorTable.setCPUUsage(computer, cpuUsage);
+    return computerTable;
   }
 
   void setPauseEnabled(final boolean pauseEnabled) {
@@ -203,7 +187,7 @@ public final class ParallelPanel implements ParallelProgressDisplay,
     parent.setParallelInUse(pauseEnabled);
   }
 
-  void msgCPUsSelectedChanged(final int cpusSelected) {
+  void setCPUsSelected(final int cpusSelected) {
     ltfCPUsSelected.setText(cpusSelected);
   }
 
@@ -223,41 +207,63 @@ public final class ParallelPanel implements ParallelProgressDisplay,
   private void action(final ActionEvent event) {
     String command = event.getActionCommand();
     if (command == btnResume.getActionCommand()) {
-      manager.resume(axisID, processchunksParam, processResultDisplay,rootPanel);
+      manager.resume(axisID, processchunksParam, processResultDisplay,
+          rootPanel);
     }
     else if (command == btnPause.getActionCommand()) {
       manager.pause(axisID);
     }
     else if (command == btnSaveDefaults.getActionCommand()) {
-      manager.savePreferences(axisID, processorTable);
+      if (cbCluster.isSelected()) {
+        manager.savePreferences(axisID, queueTable);
+      }
+      else {
+        manager.savePreferences(axisID, computerTable);
+      }
     }
     else if (command == btnRestartLoad.getActionCommand()) {
-      loadAverageMonitor.restart();
+      if (cbCluster.isSelected()) {
+        queueTable.restartLoadMonitor();
+      }
+      else {
+        computerTable.restartLoadMonitor();
+      }
+    }
+    else if (command == cbCluster.getActionCommand()) {
+      selectTable();
     }
   }
 
-  public void addRestart(final String computer) {
-    processorTable.addRestart(computer);
+  private void selectTable() {
+    if (cbCluster.isSelected()) {
+      computerTable.stopLoad();
+      queueTable.startLoad();
+      computerTable.setVisible(false);
+      queueTable.setVisible(true);
+      queueTable.msgCPUsSelectedChanged();
+      sNice.setEnabled(false);
+    }
+    else {
+      queueTable.stopLoad();
+      computerTable.startLoad();
+      queueTable.setVisible(false);
+      computerTable.setVisible(true);
+      computerTable.msgCPUsSelectedChanged();
+      sNice.setEnabled(true);
+    }
+    UIHarness.INSTANCE.pack(axisID, manager);
   }
 
-  public void msgDropped(final String computer, final String reason) {
-    processorTable.msgDropped(computer, reason);
+  void msgEndingProcess() {
+    cbCluster.setEnabled(true);
   }
 
-  public void addSuccess(final String computer) {
-    processorTable.addSuccess(computer);
-  }
-
-  public void resetResults() {
-    processorTable.resetResults();
-  }
-
-  public void msgKillingProcess() {
+  void msgKillingProcess() {
     btnPause.setEnabled(false);
     btnResume.setEnabled(true);
   }
 
-  public void msgPausingProcess() {
+  void msgPausingProcess() {
     btnResume.setEnabled(true);
   }
 
@@ -265,30 +271,58 @@ public final class ParallelPanel implements ParallelProgressDisplay,
     ConstEtomoNumber numMachines = param.setNumMachines(ltfCPUsSelected
         .getText());
     if (!numMachines.isValid()) {
-      UIHarness.INSTANCE.openMessageDialog(ltfCPUsSelected.getLabel() + " "
-          + numMachines.getInvalidReason() + "  "
-          + processorTable.getHelpMessage(), TITLE + " Table Error", axisID);
+      UIHarness.INSTANCE.openMessageDialog(ltfCPUsSelected.getLabel()
+          + " "
+          + numMachines.getInvalidReason()
+          + "  "
+          + (cbCluster.isSelected() ? queueTable : computerTable)
+              .getHelpMessage(), TITLE + " Table Error", axisID);
       return false;
     }
     return true;
   }
 
+  /**
+   * If getting parameters, must not allow the user to change the current table
+   * until that parameters have been used.
+   * @param param
+   */
   public void getResumeParameters(final ProcesschunksParam param) {
+    cbCluster.setEnabled(false);
     param.setResume(true);
     param.setNice(sNice.getValue());
     param.resetMachineName();
-    processorTable.getParameters(param);
+    if (cbCluster.isSelected()) {
+      queueTable.getParameters(param);
+    }
+    else {
+      computerTable.getParameters(param);
+    }
   }
 
+  /**
+   * If getting parameters, must not allow the user to change the current table
+   * until that parameters have been used.
+   * @param param
+   */
   public boolean getParameters(final ProcesschunksParam param) {
+    cbCluster.setEnabled(false);
     param.setNice(sNice.getValue());
-    processorTable.getParameters(param);
+    param.setCPUNumber(ltfCPUsSelected.getText());
+    if (cbCluster.isSelected()) {
+      queueTable.getParameters(param);
+    }
+    else {
+      computerTable.getParameters(param);
+    }
     String error = param.validate();
     if (error == null) {
       return true;
     }
-    UIHarness.INSTANCE.openMessageDialog(error + "  "
-        + processorTable.getHelpMessage(), TITLE + " Table Error", axisID);
+    UIHarness.INSTANCE.openMessageDialog(error
+        + "  "
+        + (cbCluster.isSelected() ? queueTable : computerTable)
+            .getHelpMessage(), TITLE + " Table Error", axisID);
     return false;
   }
 
@@ -296,7 +330,8 @@ public final class ParallelPanel implements ParallelProgressDisplay,
     if (!visible || !open) {
       return;
     }
-    processorTable.pack();
+    computerTable.pack();
+    queueTable.pack();
   }
 
   /**
@@ -307,55 +342,18 @@ public final class ParallelPanel implements ParallelProgressDisplay,
     if (header.equalsOpenClose(button)) {
       open = button.isExpanded();
       bodyPanel.setVisible(open);
+      UIHarness.INSTANCE.pack(axisID, manager);
     }
     else if (header.equalsMoreLess(button)) {
-      if (processorTable == null) {
-        return;
-      }
       boolean expanded = button.isExpanded();
       btnSaveDefaults.setVisible(expanded);
-      processorTable.setExpanded(expanded);
+      queueTable.setExpanded(expanded);
+      computerTable.setExpanded(expanded);
       buildTablePanel();
     }
     else {
       return;
     }
-    UIHarness.INSTANCE.pack(axisID, manager);
-  }
-
-  /**
-   * Clears the load average from the display.  Does not ask the monitor to
-   * drop the computer because processchunks handles this very well, and it is
-   * possible that the computer may still be available.
-   */
-  public void msgLoadAverageFailed(final String computer, final String reason,
-      final String tooltip) {
-    processorTable.clearLoadAverage(computer, reason, tooltip);
-  }
-
-  /**
-   * Clear failure reason, if failure reason equals failureReason1 or 2.  This means
-   * that intermittent processes only clear their own messages.  This is useful
-   * for restarting an intermittent process without losing the processchunks
-   * failure reason.
-   */
-  public void msgStartingProcess(final String computer,
-      final String failureReason1, final String failureReason2) {
-    processorTable.clearFailureReason(computer, failureReason1, failureReason2);
-  }
-
-  public void msgStartingProcessOnSelectedComputers() {
-    processorTable.clearFailureReason(true);
-  }
-
-  /**
-   * sets parallelProcessMonitor with a monitor which is monitoring a parallel
-   * process associated with this ParallelProgressDisplay
-   * @param ParallelProcessMonitor
-   */
-  public void setParallelProcessMonitor(
-      final ParallelProcessMonitor parallelProcessMonitor) {
-    this.parallelProcessMonitor = parallelProcessMonitor;
   }
 
   void getHeaderState(final PanelHeaderState headerState) {
@@ -394,6 +392,9 @@ public final class ParallelPanel implements ParallelProgressDisplay,
 }
 /**
  * <p> $Log$
+ * <p> Revision 1.56  2007/08/29 21:50:04  sueh
+ * <p> bug# 1041 In action, passing rootPanel to manager.resume.
+ * <p>
  * <p> Revision 1.55  2007/08/08 14:53:30  sueh
  * <p> bug# 834 Fixed the parallel processing check box label.
  * <p>
