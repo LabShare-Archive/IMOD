@@ -42,6 +42,7 @@ public final class ProcesschunksParam implements DetachedCommand, ParallelParam 
   private final EtomoBoolean2 resume = new EtomoBoolean2();
   private final EtomoNumber nice = new EtomoNumber();
   private final ArrayList machineNames = new ArrayList();
+  private final EtomoNumber cpuNumber = new EtomoNumber();
 
   private final AxisID axisID;
   private final BaseManager manager;
@@ -52,12 +53,14 @@ public final class ProcesschunksParam implements DetachedCommand, ParallelParam 
   private boolean valid = true;
   private ProcessName processName = null;
   private boolean debug = true;
+  private String queueCommand = null;
+  private String queue = null;
 
   public ProcesschunksParam(final BaseManager manager, final AxisID axisID) {
     this.axisID = axisID;
     this.manager = manager;
     nice.set(manager.getParallelProcessingDefaultNice());
-    nice.setFloor(CpuAdoc.getInstance(axisID,manager).getMinNice());
+    nice.setFloor(CpuAdoc.getInstance(axisID, manager).getMinNice());
     nice.setCeiling(NICE_CEILING);
   }
 
@@ -105,6 +108,22 @@ public final class ProcesschunksParam implements DetachedCommand, ParallelParam 
     }
     commandArray = null;
     this.nice.set(nice);
+  }
+
+  public void setDebug(final boolean input) {
+    debug = input;
+  }
+
+  public void setQueue(final String queue) {
+    this.queue = queue;
+  }
+
+  public void setQueueCommand(final String command) {
+    queueCommand = command;
+  }
+
+  public void setCPUNumber(String input) {
+    cpuNumber.set(input);
   }
 
   public void setProcessName(final ProcessName processName) {
@@ -231,7 +250,9 @@ public final class ProcesschunksParam implements DetachedCommand, ParallelParam 
   }
 
   public String validate() {
-    if (machineNames == null || machineNames.size() == 0) {
+    System.err.println("queueCommand=" + queueCommand);
+    if ((queueCommand == null && (machineNames == null || machineNames.size() == 0))
+        || (queueCommand != null && cpuNumber.lt(0))) {
       return "No CPUs where selected.";
     }
     return null;
@@ -247,9 +268,11 @@ public final class ProcesschunksParam implements DetachedCommand, ParallelParam 
     if (resume.is()) {
       command.add("-r");
     }
-    command.add("-g");
-    command.add("-n");
-    command.add(nice.toString());
+    if (queueCommand == null) {
+      command.add("-g");
+      command.add("-n");
+      command.add(nice.toString());
+    }
     String remoteUserDir = null;
     try {
       remoteUserDir = RemotePath.INSTANCE.getRemotePath(manager, manager
@@ -270,12 +293,20 @@ public final class ProcesschunksParam implements DetachedCommand, ParallelParam 
     command.add("-c");
     command.add(DatasetFiles.getCommandsFileName(rootName));
     command.add("-P");
-    //add machine names
-    buildMachineList();
-    if (machineList != null) {
-      command.add(machineList.toString());
+    if (queueCommand == null) {
+      //add machine names
+      buildMachineList();
+      if (machineList != null) {
+        command.add(machineList.toString());
+      }
     }
-
+    else {
+      command.add("-Q");
+      command.add(queue);
+      command.add("-q");
+      command.add(cpuNumber.toString());
+      command.add("\"" + queueCommand + "\"");
+    }
     command.add(rootName);
     int commandSize = command.size();
     commandArray = new String[commandSize];
@@ -331,6 +362,9 @@ public final class ProcesschunksParam implements DetachedCommand, ParallelParam 
 }
 /**
  * <p> $Log$
+ * <p> Revision 1.25  2007/07/17 20:56:40  sueh
+ * <p> bug# 1018 Moved nice floor default to CpuAdoc.
+ * <p>
  * <p> Revision 1.24  2007/05/18 23:52:13  sueh
  * <p> bug# 987 Made CpuAdoc thread-safe.  Added minNice.
  * <p>
