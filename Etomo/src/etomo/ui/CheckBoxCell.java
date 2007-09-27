@@ -5,6 +5,7 @@ import java.awt.event.ActionListener;
 
 import javax.swing.BorderFactory;
 import javax.swing.JCheckBox;
+import javax.swing.event.ChangeListener;
 import javax.swing.plaf.ColorUIResource;
 
 import etomo.type.EtomoBoolean2;
@@ -22,7 +23,7 @@ import etomo.type.EtomoBoolean2;
  * 
  * @version $Revision$
  */
-final class CheckBoxCell extends InputCell {
+final class CheckBoxCell extends InputCell implements ToggleCell{
   public static final String rcsid = "$Id$";
 
   private JCheckBox checkBox = new JCheckBox();
@@ -44,56 +45,60 @@ final class CheckBoxCell extends InputCell {
     return checkBox;
   }
 
-  public void setEnabled(boolean enabled) {
+  public void setEnabled(final boolean enabled) {
     setEditable(enabled);
   }
 
-  void setLabel(String label) {
+  public void setLabel(final String label) {
     unformattedLabel = label;
     setForeground();
   }
 
-  private void setHtmlLabel(ColorUIResource color) {
+  private void setHtmlLabel(final ColorUIResource color) {
     checkBox.setText("<html><P style=\"font-weight:normal; color:rgb("
         + color.getRed() + "," + color.getGreen() + "," + color.getBlue()
         + ")\">" + unformattedLabel + "</style>");
   }
 
-  final String getLabel() {
+  public  String getLabel() {
     return unformattedLabel;
   }
 
-  final void setValue(String value) {
+   void setValue(final String value) {
     checkBox.setSelected(new EtomoBoolean2().set(value).is());
   }
 
-  final boolean isSelected() {
+   public boolean isSelected() {
     return checkBox.isSelected();
   }
 
-  final void setSelected(boolean selected) {
+   public void setSelected(final boolean selected) {
     checkBox.setSelected(selected);
   }
 
-  public final void addActionListener(ActionListener actionListener) {
+  public  void addActionListener(final ActionListener actionListener) {
     checkBox.addActionListener(actionListener);
   }
+  
+  public void addChangeListener(ChangeListener listener) {
+    checkBox.addChangeListener(listener);
+  }
 
-  protected final void setForeground() {
+  private  void setForeground() {
     checkBox.setForeground(Colors.CELL_FOREGROUND);
     setHtmlLabel(Colors.CELL_FOREGROUND);
   }
 
-  final int getHeight() {
+   public int getHeight() {
     return checkBox.getHeight()
         + checkBox.getBorder().getBorderInsets(checkBox).bottom - 1;
   }
 
-  final int getWidth() {
+   public int getWidth() {
     return checkBox.getWidth();
   }
 
-  final int getLeftBorder() {
+   int getLeftBorder() {
     return checkBox.getBorder().getBorderInsets(checkBox).left;
   }
 
@@ -103,6 +108,9 @@ final class CheckBoxCell extends InputCell {
 }
 /**
  * <p> $Log$
+ * <p> Revision 1.12  2007/04/02 21:44:31  sueh
+ * <p> bug# 964 Implementing Cell interface.
+ * <p>
  * <p> Revision 1.11  2007/03/27 19:30:37  sueh
  * <p> bug# 964 Changed InputCell.setEnabled() to setEditable.  Added setEnabled().
  * <p>
