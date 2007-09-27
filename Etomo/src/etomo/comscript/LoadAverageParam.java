@@ -28,8 +28,8 @@ public class LoadAverageParam implements IntermittentCommand {
 
   private final String computer;
   private final BaseManager manager;
-  private String[] localCommandArray = null;
-  private String[] remoteCommandArray = null;
+  private String[] localStartCommandArray = null;
+  private String[] remoteStartCommandArray = null;
   private String intermittentCommand = null;
   private String endCommand = null;
 
@@ -56,18 +56,18 @@ public class LoadAverageParam implements IntermittentCommand {
     this.manager = manager;
   }
 
-  public final String[] getLocalCommand() {
-    if (localCommandArray == null) {
-      buildLocalCommand();
+  public final String[] getLocalStartCommand() {
+    if (localStartCommandArray == null) {
+      buildLocalStartCommand();
     }
-    return localCommandArray;
+    return localStartCommandArray;
   }
 
-  public final String[] getRemoteCommand() {
-    if (remoteCommandArray == null) {
-      buildRemoteCommand();
+  public final String[] getRemoteStartCommand() {
+    if (remoteStartCommandArray == null) {
+      buildRemoteStartCommand();
     }
-    return remoteCommandArray;
+    return remoteStartCommandArray;
   }
 
   public String getIntermittentCommand() {
@@ -88,7 +88,7 @@ public class LoadAverageParam implements IntermittentCommand {
     return 5000;
   }
 
-  private final void buildLocalCommand() {
+  private final void buildLocalStartCommand() {
     ArrayList command = new ArrayList();
     //If the user is a bash user, a bad .cshrc might cause local load average to
     //fail without causing any other symptoms.  So its safer to use the bash
@@ -103,13 +103,13 @@ public class LoadAverageParam implements IntermittentCommand {
       command.add("tcsh");
     }
     int commandSize = command.size();
-    localCommandArray = new String[commandSize];
+    localStartCommandArray = new String[commandSize];
     for (int i = 0; i < commandSize; i++) {
-      localCommandArray[i] = (String) command.get(i);
+      localStartCommandArray[i] = (String) command.get(i);
     }
   }
 
-  private final void buildRemoteCommand() {
+  private final void buildRemoteStartCommand() {
     ArrayList command = new ArrayList();
     command.add("ssh");
     //prevents ssh from waiting for an answer when connecting to a computer for
@@ -129,9 +129,9 @@ public class LoadAverageParam implements IntermittentCommand {
     command.add(computer);
 
     int commandSize = command.size();
-    remoteCommandArray = new String[commandSize];
+    remoteStartCommandArray = new String[commandSize];
     for (int i = 0; i < commandSize; i++) {
-      remoteCommandArray[i] = (String) command.get(i);
+      remoteStartCommandArray[i] = (String) command.get(i);
     }
   }
 
@@ -158,6 +158,9 @@ public class LoadAverageParam implements IntermittentCommand {
 }
 /**
  * <p> $Log$
+ * <p> Revision 1.11  2007/09/14 16:01:09  sueh
+ * <p> bug# 1043
+ * <p>
  * <p> Revision 1.10  2007/09/14 15:56:17  sueh
  * <p> bug# 1043 Removed ConnectTimeout from ssh command.
  * <p>
