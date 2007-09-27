@@ -43,7 +43,7 @@ abstract class InputCell implements Cell{
 
   abstract void setToolTipText(String toolTipText);
 
-  final void add(JPanel panel, GridBagLayout layout,
+  public final void add(JPanel panel, GridBagLayout layout,
       GridBagConstraints constraints) {
     layout.setConstraints(getComponent(), constraints);
     panel.add(getComponent());
@@ -68,7 +68,7 @@ abstract class InputCell implements Cell{
     setBackground();
   }
 
-  final void setWarning(boolean warning) {
+  public final void setWarning(boolean warning) {
     //if switching from error to warning, turn off error first
     if (warning && error) {
       this.warning = false;//prevent recursion
@@ -143,6 +143,9 @@ abstract class InputCell implements Cell{
 }
 /**
  * <p> $Log$
+ * <p> Revision 1.9  2007/04/02 21:49:50  sueh
+ * <p> bug# 964 Implementing Cell interface.
+ * <p>
  * <p> Revision 1.8  2007/03/27 19:31:11  sueh
  * <p> bug# 964 Changed InputCell.setEnabled() to setEditable.
  * <p>
