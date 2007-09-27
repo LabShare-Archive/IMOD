@@ -1,6 +1,7 @@
 package etomo.process;
 
 import java.io.BufferedReader;
+import java.io.IOException;
 
 import etomo.type.AxisID;
 
@@ -17,15 +18,45 @@ import etomo.type.AxisID;
  * 
  * @version $Revision$
  */
-public class IntermittentSystemProgram extends SystemProgram {
+public class IntermittentSystemProgram {
   public static final String rcsid = "$Id$";
 
   private final String outputKeyPhrase;
+  private final SystemProgram program;
+  private final boolean useStartCommand;
 
-  public IntermittentSystemProgram(String propertyUserDir, String[] cmdArray,
-      AxisID axisID, String outputKeyPhrase) {
-    super(propertyUserDir, cmdArray, axisID);
+  private IntermittentSystemProgram(String propertyUserDir, String[] cmdArray,
+      AxisID axisID, String outputKeyPhrase, boolean useStartCommand) {
+    program = new SystemProgram(propertyUserDir, cmdArray, axisID);
     this.outputKeyPhrase = outputKeyPhrase;
+    this.useStartCommand = useStartCommand;
+  }
+
+  public static IntermittentSystemProgram getStartInstance(String propertyUserDir,
+      String[] startCmdArray, AxisID axisID, String outputKeyPhrase) {
+    return new IntermittentSystemProgram(propertyUserDir, startCmdArray,
+        axisID, outputKeyPhrase, true);
+  }
+
+  /**
+   * IntermittentCommand will be split on whitespace.  It must not contain any
+   * whitespace in the directory path.
+   * @param propertyUserDir
+   * @param intermittentCommand
+   * @param axisID
+   * @param outputKeyPhrase
+   * @return
+   */
+  public static IntermittentSystemProgram getIntermittentInstance(
+      String propertyUserDir, String intermittentCommand, AxisID axisID,
+      String outputKeyPhrase) {
+    
+    return new IntermittentSystemProgram(propertyUserDir, intermittentCommand.split("\\s+"),
+        axisID, outputKeyPhrase, false);
+  }
+  
+  boolean useStartCommand() {
+    return useStartCommand;
   }
 
   OutputBufferManager newOutputBufferManager(BufferedReader cmdBuffer) {
@@ -46,7 +77,39 @@ public class IntermittentSystemProgram extends SystemProgram {
    * by running stderr.get();
    */
   void clearStdError() {
-    stderr.get();
+    program.stderr.get();
+  }
+  
+  public boolean isDone() {
+    return program.isDone();
+  }
+  
+  public boolean isStarted() {
+    return program.isStarted();
+  }
+  
+  void destroy() {
+    program.destroy();
+  }
+  
+  public String[] getStdError() {
+    return program.getStdError();
+  }
+  
+  void setAcceptInputWhileRunning(boolean acceptInputWhileRunning) {
+    program.setAcceptInputWhileRunning(acceptInputWhileRunning);
+  }
+  
+  public void setCurrentStdInput(String input) throws IOException {
+    program.setCurrentStdInput(input);
+  }
+  
+  void start() {
+    new Thread(program).start();
+  }
+  
+  public void setDebug(boolean state) {
+    program.setDebug(state);
   }
 
   /**
@@ -55,10 +118,10 @@ public class IntermittentSystemProgram extends SystemProgram {
    * the program.  Each line of standard out is stored in a String.
    */
   public String[] getStdOutput(IntermittentProcessMonitor monitor) {
-    if (stdout == null) {
+    if (program.stdout == null) {
       return null;
     }
-    String[] stdOutputArray = stdout.get(monitor);
+    String[] stdOutputArray = program.stdout.get(monitor);
     return stdOutputArray;
   }
 
@@ -68,21 +131,25 @@ public class IntermittentSystemProgram extends SystemProgram {
    * the program.  Each line of standard err is stored in a String.
    */
   public String[] getStdError(IntermittentProcessMonitor monitor) {
-    if (stderr == null) {
+    if (program.stderr == null) {
       return null;
     }
-    String[] stdErrorArray = stderr.get(monitor);
+    String[] stdErrorArray = program.stderr.get(monitor);
     return stdErrorArray;
   }
 
   public void msgDroppedMonitor(IntermittentProcessMonitor monitor) {
-    if (stdout != null) {
-      stdout.drop(monitor);
+    if (program.stdout != null) {
+      program.stdout.drop(monitor);
     }
   }
 }
 /**
  * <p> $Log$
+ * <p> Revision 1.16  2007/05/26 00:25:58  sueh
+ * <p> bug# 964 Removed setDebug call.  It was causing a compile error on
+ * <p> ashtray.
+ * <p>
  * <p> Revision 1.15  2007/05/25 00:22:47  sueh
  * <p> bug# 994 Added functions clearStdError and getStdError.
  * <p>
