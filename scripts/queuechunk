@@ -254,7 +254,7 @@ elif [ $action == "L" ] ; then
         runQcommand "$com" 1
         if [[ $runstat -eq 0 && -s $qstattmp ]] ; then
             statline=(`cat $qstattmp`)
-            nrun=${statline[5]}
+            nrun=${statline[4]}
             nmax=${statline[1]}
 
             # If the max is 0, need to read all queues and get max
@@ -274,8 +274,8 @@ elif [ $action == "L" ] ; then
     fi
     if [[ $runstat -eq 0 && "$load" == "NA" ]] ; then runstat=1 ; fi
     echo "$load"
-    exit $runstat
     rm -f $qstattmp
+    exit $runstat
 
 else
     echo "ERROR: $pn - Action must be entered and be R, S, P, K or L"
@@ -286,6 +286,9 @@ exit 0
 
 #
 #  $Log$
+#  Revision 3.2  2007/09/24 22:04:23  mast
+#  Fixes in qstat: test for non-zero file, not existence, and use right column
+#
 #  Revision 3.1  2007/09/14 21:55:16  mast
 #  Added to package
 #
