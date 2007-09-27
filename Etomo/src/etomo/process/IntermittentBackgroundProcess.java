@@ -284,30 +284,47 @@ public final class IntermittentBackgroundProcess implements Runnable {
     failureReason = null;
     //use a local SystemProgram because stops and starts may overlap
     IntermittentSystemProgram localProgram;
-    if (RemotePath.INSTANCE.isLocalSection(command.getComputer(), manager,
-        AxisID.ONLY)) {
-      localProgram = new IntermittentSystemProgram(
-          manager.getPropertyUserDir(), command.getLocalCommand(), AxisID.ONLY,
+    String[] localStartCommand = command.getLocalStartCommand();
+    String[] remoteStartCommand = command.getRemoteStartCommand();
+    boolean localSection = RemotePath.INSTANCE.isLocalSection(command
+        .getComputer(), manager, AxisID.ONLY);
+    if (localSection && localStartCommand != null) {
+      localProgram = IntermittentSystemProgram.getStartInstance(manager
+          .getPropertyUserDir(), localStartCommand, AxisID.ONLY,
+          outputKeyPhrase);
+    }
+    else if (!localSection && remoteStartCommand != null) {
+      localProgram = IntermittentSystemProgram.getStartInstance(manager
+          .getPropertyUserDir(), command.getRemoteStartCommand(), AxisID.ONLY,
           outputKeyPhrase);
     }
     else {
-      localProgram = new IntermittentSystemProgram(
-          manager.getPropertyUserDir(), command.getRemoteCommand(),
-          AxisID.ONLY, outputKeyPhrase);
+      localProgram = IntermittentSystemProgram.getIntermittentInstance(manager
+          .getPropertyUserDir(), command.getIntermittentCommand(), AxisID.ONLY,
+          outputKeyPhrase);
     }
     //place the most recent local SystemProgram in the member SystemProgram
     //non-local request (getting and setting standard input and output) will go
     //to the most recent local SystemProgram.
     program = localProgram;
-    localProgram.setAcceptInputWhileRunning(true);
-    new Thread(localProgram).start();
+    if (localProgram.useStartCommand()) {
+      localProgram.setAcceptInputWhileRunning(true);
+      localProgram.start();
+    }
     int interval = command.getInterval();
     String intermittentCommand = command.getIntermittentCommand();
     try {
       //see load average requests while the program is not stopped and this
       //program is the same as the most recent program run
       while (!stopped && localProgram == program) {
-        localProgram.setCurrentStdInput(intermittentCommand);
+        if (localProgram.useStartCommand()) {
+          localProgram.setCurrentStdInput(intermittentCommand);
+        }
+        else {
+          if (localProgram.isDone()||!localProgram.isStarted()) {
+            localProgram.start();
+          }
+        }
         if (command.notifySentIntermittentCommand() && monitors != null) {
           for (int i = 0; i < monitors.size(); i++) {
             ((IntermittentProcessMonitor) monitors.get(i))
@@ -338,7 +355,10 @@ public final class IntermittentBackgroundProcess implements Runnable {
         localProgram.destroy();
       }
       else {
-        localProgram.setCurrentStdInput(command.getEndCommand());
+        String endCommand = command.getEndCommand();
+        if (endCommand != null) {
+          localProgram.setCurrentStdInput(command.getEndCommand());
+        }
       }
     }
     catch (IOException e) {
@@ -397,6 +417,9 @@ public final class IntermittentBackgroundProcess implements Runnable {
 }
 /**
  * <p> $Log$
+ * <p> Revision 1.13  2007/06/07 21:27:14  sueh
+ * <p> bug# 994 Decreased the wait time in stop() to make etomo end faster.
+ * <p>
  * <p> Revision 1.12  2007/06/06 16:06:15  sueh
  * <p> bug# 994 Increased the wait time in stop().
  * <p>
