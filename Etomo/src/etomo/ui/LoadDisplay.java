@@ -1,6 +1,5 @@
 package etomo.ui;
 
-import etomo.process.LoadAverageMonitor;
 
 /**
 * <p>Description: </p>
@@ -15,17 +14,24 @@ import etomo.process.LoadAverageMonitor;
 * 
 * @version $Revision$
 */
-public interface LoadAverageDisplay {
+public interface LoadDisplay {
   public static  final String  rcsid =  "$Id$";
   
-  public LoadAverageMonitor getLoadAverageMonitor();
-  public void setLoadAverage(String computer, double load1, double load5, int users, String usersTooltip);
-  public void msgLoadAverageFailed(String computer, String reason,String tooltip);
+  public void setLoad(String computer, double load1, double load5, int users, String usersTooltip);
+  public void msgLoadFailed(String computer, String reason,String tooltip);
   public void msgStartingProcess(String computer, String failureReason1,String failureReason2);
   public void setCPUUsage(String computer, double CPUUsage);
+  public void startLoad();
+  public void stopLoad();
+  public void endLoad();
+  public void setLoad(String computer, String[] loadArray);
 }
 /**
 * <p> $Log$
+* <p> Revision 1.11  2007/05/25 00:26:31  sueh
+* <p> bug# 994 Passing tooltip to msgLoadAverageFailed and
+* <p> msgStartingProcess.
+* <p>
 * <p> Revision 1.10  2006/11/29 00:19:37  sueh
 * <p> bug# 934 Added the parameter String failureReason to msgStarting(), so that it
 * <p> won't delete a failure reason by another processes.
