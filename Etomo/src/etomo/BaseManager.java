@@ -11,11 +11,12 @@ import java.util.Vector;
 import javax.swing.JFileChooser;
 
 import etomo.comscript.ComScriptManager;
-import etomo.comscript.LoadAverageParam;
+import etomo.comscript.IntermittentCommand;
 import etomo.comscript.ProcesschunksParam;
 import etomo.process.BaseProcessManager;
 import etomo.process.ImodManager;
 import etomo.process.ImodqtassistProcess;
+import etomo.process.LoadMonitor;
 import etomo.process.SystemProcessException;
 import etomo.process.SystemProcessInterface;
 import etomo.process.ProcessData;
@@ -38,7 +39,6 @@ import etomo.type.ProcessResultDisplay;
 import etomo.type.ProcessResultDisplayFactory;
 import etomo.type.Run3dmodMenuOptions;
 import etomo.type.UserConfiguration;
-import etomo.ui.LoadAverageDisplay;
 import etomo.ui.MainPanel;
 import etomo.ui.AbstractParallelDialog;
 import etomo.ui.ParallelPanel;
@@ -198,14 +198,14 @@ public abstract class BaseManager {
       AxisID axisID) {
     if (axisID == AxisID.SECOND) {
       if (processResultDisplayFactoryB == null) {
-        processResultDisplayFactoryB =  ProcessResultDisplayFactory.getInstance(
-            getBaseScreenState(axisID));
+        processResultDisplayFactoryB = ProcessResultDisplayFactory
+            .getInstance(getBaseScreenState(axisID));
       }
       return processResultDisplayFactoryB;
     }
     if (processResultDisplayFactoryA == null) {
-      processResultDisplayFactoryA =  ProcessResultDisplayFactory.getInstance(
-          getBaseScreenState(axisID));
+      processResultDisplayFactoryA = ProcessResultDisplayFactory
+          .getInstance(getBaseScreenState(axisID));
     }
     return processResultDisplayFactoryA;
   }
@@ -806,7 +806,7 @@ public abstract class BaseManager {
     String threadName;
     try {
       threadName = getProcessManager().processchunks(axisID, param,
-          parallelPanel, processResultDisplay);
+          parallelPanel.getParallelProgressDisplay(), processResultDisplay);
     }
     catch (SystemProcessException e) {
       e.printStackTrace();
@@ -1059,25 +1059,19 @@ public abstract class BaseManager {
     return !lastProcessA.equals("");
   }
 
-  public final void startGetLoadAverage(LoadAverageDisplay display,
-      String computer) {
-    LoadAverageParam param = LoadAverageParam.getInstance(computer, this);
-    getProcessManager().startGetLoadAverage(param,
-        display.getLoadAverageMonitor());
+  public final void startLoad(IntermittentCommand param,
+      LoadMonitor monitor) {
+    getProcessManager().startLoad(param, monitor);
   }
 
-  public final void endGetLoadAverage(LoadAverageDisplay display,
-      String computer) {
-    LoadAverageParam param = LoadAverageParam.getInstance(computer, this);
-    getProcessManager().endGetLoadAverage(param,
-        display.getLoadAverageMonitor());
+  public final void endLoad(IntermittentCommand param,
+      LoadMonitor monitor) {
+    getProcessManager().endLoad(param, monitor);
   }
 
-  public final void stopGetLoadAverage(LoadAverageDisplay display,
-      String computer) {
-    LoadAverageParam param = LoadAverageParam.getInstance(computer, this);
-    getProcessManager().stopGetLoadAverage(param,
-        display.getLoadAverageMonitor());
+  public final void stopLoad(IntermittentCommand param,
+      LoadMonitor monitor) {
+    getProcessManager().stopLoad(param, monitor);
   }
 
   public final void makeCurrent() {
@@ -1135,8 +1129,8 @@ public abstract class BaseManager {
 
   public static File chunkComscriptAction(Container root) {
     //  Open up the file chooser in the working directory
-    JFileChooser chooser = new JFileChooser(new File(EtomoDirector
-        .INSTANCE.getOriginalUserDir()));
+    JFileChooser chooser = new JFileChooser(new File(EtomoDirector.INSTANCE
+        .getOriginalUserDir()));
     ChunkComscriptFileFilter filter = new ChunkComscriptFileFilter();
     chooser.setFileFilter(filter);
     chooser.setPreferredSize(new Dimension(400, 400));
@@ -1169,7 +1163,7 @@ public abstract class BaseManager {
     String threadName;
     try {
       threadName = getProcessManager().processchunks(axisID, param,
-          parallelPanel, processResultDisplay);
+          parallelPanel.getParallelProgressDisplay(), processResultDisplay);
     }
     catch (SystemProcessException e) {
       e.printStackTrace();
@@ -1222,6 +1216,9 @@ public abstract class BaseManager {
 }
 /**
  * <p> $Log$
+ * <p> Revision 1.89  2007/09/10 20:24:14  sueh
+ * <p> bug# 925 Using getInstance to construct ProcessResultDisplayFactory.
+ * <p>
  * <p> Revision 1.88  2007/09/07 00:15:13  sueh
  * <p> bug# 989 Using a public INSTANCE for EtomoDirector instead of getInstance
  * <p> and createInstance.
