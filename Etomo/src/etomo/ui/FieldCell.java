@@ -23,6 +23,9 @@ import etomo.type.ParsedArray;
  * @version $Revision$
  * 
  * <p> $Log$
+ * <p> Revision 1.21  2007/07/31 20:42:20  sueh
+ * <p> bug# 1028 Added getParsedArray().
+ * <p>
  * <p> Revision 1.20  2007/07/18 23:21:07  sueh
  * <p> bug# 1022 Added getEtomoNumber() and
  * <p> getEtomoNumber(EtomoNumber.Type).
@@ -143,6 +146,13 @@ final class FieldCell extends InputCell {
   static FieldCell getIneditableInstance() {
     FieldCell instance =  new FieldCell(false);
     instance.setEditable(false);
+    return instance;
+  }
+  
+  static FieldCell getIneditableInstance(String value) {
+    FieldCell instance =  new FieldCell(false);
+    instance.setEditable(false);
+    instance.setValue(value);
     return instance;
   }
 
@@ -347,6 +357,10 @@ final class FieldCell extends InputCell {
     else if (!expanded && contractedValue != null) {
       setValue(contractedValue);
     }
+  }
+  
+  boolean equals(String comp) {
+   return getValue().equals(comp);
   }
 
   String getContractedValue() {
