@@ -79,7 +79,7 @@ public class ProcesschunksProcessMonitor implements OutfileProcessMonitor,
     this.rootName = rootName;
     this.computerList = computerList;
     debug = EtomoDirector.INSTANCE.isDebug();
-    parallelProgressDisplay.setParallelProcessMonitor(this);
+    //  parallelProgressDisplay.setParallelProcessMonitor(this);
   }
 
   public final void setProcess(SystemProcessInterface process) {
@@ -118,7 +118,7 @@ public class ProcesschunksProcessMonitor implements OutfileProcessMonitor,
       endMonitor(ProcessEndState.FAILED);
       e.printStackTrace();
     }
-    parallelProgressDisplay.setParallelProcessMonitor(null);
+    // parallelProgressDisplay.setParallelProcessMonitor(null);
     //make sure commmandsPipe is deleted and disable its use
     try {
       deleteCommandsPipe(false);
@@ -126,6 +126,7 @@ public class ProcesschunksProcessMonitor implements OutfileProcessMonitor,
     catch (LogFile.FileException e) {
       e.printStackTrace();
     }
+    parallelProgressDisplay.msgEndingProcess();
   }
 
   public final void msgLogFileRenamed() {
@@ -344,7 +345,7 @@ public class ProcesschunksProcessMonitor implements OutfileProcessMonitor,
       pausing = true;
       setProgressBarTitle = true;
       manager.getBaseState()
-      .setKilledProcesschunksProcessName(axisID, rootName);
+          .setKilledProcesschunksProcessName(axisID, rootName);
     }
     catch (LogFile.WriteException e) {
       e.printStackTrace();
@@ -470,6 +471,10 @@ public class ProcesschunksProcessMonitor implements OutfileProcessMonitor,
 }
 /**
  * <p> $Log$
+ * <p> Revision 1.30  2007/09/07 00:19:14  sueh
+ * <p> bug# 989 Using a public INSTANCE to refer to the EtomoDirector singleton
+ * <p> instead of getInstance and createInstance.
+ * <p>
  * <p> Revision 1.29  2007/08/29 21:43:14  sueh
  * <p> bug# 1041 Set BaseState.KilledProcesschunksProcessName when a kill or
  * <p> pause is done.
