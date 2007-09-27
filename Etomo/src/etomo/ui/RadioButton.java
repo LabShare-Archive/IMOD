@@ -1,5 +1,6 @@
 package etomo.ui;
 
+import java.awt.Color;
 import java.awt.Component;
 import java.awt.Dimension;
 import java.awt.event.ActionListener;
@@ -9,6 +10,8 @@ import javax.swing.ButtonGroup;
 import javax.swing.ButtonModel;
 import javax.swing.JRadioButton;
 import javax.swing.JToggleButton;
+import javax.swing.border.Border;
+import javax.swing.event.ChangeListener;
 
 import etomo.EtomoDirector;
 import etomo.storage.autodoc.AutodocTokenizer;
@@ -34,7 +37,7 @@ import etomo.util.Utilities;
 final class RadioButton implements RadioButtonInterface {
   public static final String rcsid = "$Id$";
 
-  private final JRadioButton radioButton;
+   final JRadioButton radioButton;
   private final EnumeratedType enumeratedType;
 
   RadioButton(final String text) {
@@ -43,6 +46,10 @@ final class RadioButton implements RadioButtonInterface {
 
   RadioButton(final String text, ButtonGroup group) {
     this(text, null, group);
+  }
+  
+  RadioButton(ButtonGroup group) {
+    this("", null, group);
   }
 
   RadioButton(final String text, final EnumeratedType enumeratedType) {
@@ -67,7 +74,31 @@ final class RadioButton implements RadioButtonInterface {
     radioButton.setText(text);
     setName(text);
   }
-
+  
+   void setBorderPainted(boolean b) {
+    radioButton.setBorderPainted(b);
+  }
+   
+   public void setBorder(Border border) {
+     radioButton.setBorder( border);
+   }
+   
+   public void setForeground(Color fg) {
+     radioButton.setForeground(fg);
+   }
+   
+   public int getWidth() {
+     return radioButton.getWidth();
+   }
+   
+   public int getHeight() {
+     return radioButton.getHeight();
+   }
+   
+   public Border getBorder() {
+     return radioButton.getBorder();
+   }
+   
   void setName(final String text) {
     String name = Utilities.convertLabelToName(text);
     radioButton.setName(name);
@@ -104,6 +135,10 @@ final class RadioButton implements RadioButtonInterface {
 
   void addActionListener(final ActionListener actionListener) {
     radioButton.addActionListener(actionListener);
+  }
+  
+   void addChangeListener(final ChangeListener listener) {
+    radioButton.addChangeListener(listener);
   }
 
   void setSelected(final boolean selected) {
@@ -185,6 +220,10 @@ final class RadioButton implements RadioButtonInterface {
 }
 /**
  * <p> $Log$
+ * <p> Revision 1.15  2007/09/07 00:28:23  sueh
+ * <p> bug# 989 Using a public INSTANCE to refer to the EtomoDirector singleton
+ * <p> instead of getInstance and createInstance.
+ * <p>
  * <p> Revision 1.14  2007/05/17 23:50:02  sueh
  * <p> bug# 964 In setToolTipText(), return the tooltip.
  * <p>
