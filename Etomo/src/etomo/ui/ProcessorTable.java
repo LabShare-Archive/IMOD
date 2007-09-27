@@ -6,6 +6,7 @@ import java.awt.GridBagConstraints;
 import java.awt.GridBagLayout;
 import java.util.Properties;
 
+import javax.swing.ButtonGroup;
 import javax.swing.JPanel;
 import javax.swing.JScrollPane;
 import javax.swing.SwingUtilities;
@@ -13,7 +14,13 @@ import javax.swing.border.LineBorder;
 
 import etomo.BaseManager;
 import etomo.EtomoDirector;
+import etomo.comscript.IntermittentCommand;
+import etomo.comscript.LoadAverageParam;
 import etomo.comscript.ProcesschunksParam;
+import etomo.comscript.QueuechunkParam;
+import etomo.process.LoadAverageMonitor;
+import etomo.process.LoadMonitor;
+import etomo.process.QueuechunkLoadMonitor;
 import etomo.storage.CpuAdoc;
 import etomo.storage.LogFile;
 import etomo.storage.ParameterStore;
@@ -36,39 +43,41 @@ import etomo.util.Utilities;
  * 
  * @version $Revision$
  */
-public final class ProcessorTable implements Storable {
+public final class ProcessorTable implements Storable, ParallelProgressDisplay,
+    LoadDisplay {
   public static final String rcsid = "$Id$";
 
   private static final String STORE_PREPEND = "ProcessorTable";
 
   private static final int MAXIMUM_ROWS = 15;
+  private final JPanel rootPanel = new JPanel();
   private JScrollPane scrollPane;
   private JPanel tablePanel;
   private GridBagLayout layout = null;
   private GridBagConstraints constraints = null;
-  private final HeaderCell header1Computer = new HeaderCell("Computer");
+  private final HeaderCell header1Computer = new HeaderCell();
   private final HeaderCell header1NumberCPUs = new HeaderCell("# CPUs");
   private final HeaderCell header1Load = new HeaderCell("Load Average");
   private final HeaderCell header1Users = new HeaderCell("Users");
   private final HeaderCell header1CPUUsage = new HeaderCell("CPU Usage");
-  private HeaderCell header1CPUType = null;
-  private HeaderCell header1Speed = null;
-  private HeaderCell header1RAM = null;
-  private HeaderCell header1OS = null;
+  private final HeaderCell header1CPUType = new HeaderCell("CPU Type");
+  private final HeaderCell header1Speed = new HeaderCell("Speed");
+  private final HeaderCell header1RAM = new HeaderCell("RAM");
+  private final HeaderCell header1OS = new HeaderCell("OS");
   private final HeaderCell header1Restarts = new HeaderCell("Restarts");
   private final HeaderCell header1Finished = new HeaderCell("Finished");
   private final HeaderCell header1Failure = new HeaderCell("Failure");
   private final HeaderCell header2Computer = new HeaderCell();
   private final HeaderCell header2NumberCPUsUsed = new HeaderCell("Used");
-  private HeaderCell header2NumberCPUsMax = null;
+  private final HeaderCell header2NumberCPUsMax = new HeaderCell("Max.");
   private final HeaderCell header2Load1 = new HeaderCell("1 Min.");
   private final HeaderCell header2Load5 = new HeaderCell("5 Min.");
   private final HeaderCell header2Users = new HeaderCell();
   private final HeaderCell header2CPUUsage = new HeaderCell();
-  private HeaderCell header2CPUType = null;
-  private HeaderCell header2Speed = null;
-  private HeaderCell header2RAM = null;
-  private HeaderCell header2OS = null;
+  private final HeaderCell header2CPUType = new HeaderCell();
+  private final HeaderCell header2Speed = new HeaderCell();
+  private final HeaderCell header2RAM = new HeaderCell();
+  private final HeaderCell header2OS = new HeaderCell();
   private final HeaderCell header2Restarts = new HeaderCell();
   private final HeaderCell header2Finished = new HeaderCell("Chunks");
   private final HeaderCell header2Failure = new HeaderCell("Reason");
@@ -77,6 +86,8 @@ public final class ProcessorTable implements Storable {
   private final ParallelPanel parent;
   private final AxisID axisID;
   private final BaseManager manager;
+  private final boolean displayQueues;
+  private final LoadMonitor loadMonitor;
 
   private boolean numberColumn = false;
   private boolean typeColumn = false;
@@ -88,12 +99,22 @@ public final class ProcessorTable implements Storable {
   private String memoryUnits = null;
   private boolean scrolling = false;
 
-  private boolean expanded;
+  private HeaderCell[] header1LoadArray;
+  private HeaderCell[] header2LoadArray;
+  private boolean expanded = false;
 
-  ProcessorTable(BaseManager manager, ParallelPanel parent, AxisID axisID) {
+  ProcessorTable(BaseManager manager, ParallelPanel parent, AxisID axisID,
+      boolean displayQueues) {
     this.manager = manager;
     this.parent = parent;
     this.axisID = axisID;
+    this.displayQueues = displayQueues;
+    if (displayQueues) {
+      loadMonitor = new QueuechunkLoadMonitor(this, axisID, manager);
+    }
+    else {
+      loadMonitor = new LoadAverageMonitor(this, axisID, manager);
+    }
     expanded = true;
     initTable();
     buildScrollPane();
@@ -107,110 +128,136 @@ public final class ProcessorTable implements Storable {
     buildScrollPane();
   }
 
+  void setVisible(boolean visible) {
+    rootPanel.setVisible(visible);
+  }
+
   void buildScrollPane() {
+    rootPanel.removeAll();
     buildTable();
     //scrollPane
     scrollPane = new JScrollPane(tablePanel);
     scrollPane
         .setVerticalScrollBarPolicy(JScrollPane.VERTICAL_SCROLLBAR_ALWAYS);
+    rootPanel.add(scrollPane);
     //configure
     UIHarness.INSTANCE.repaintWindow();
   }
 
   private void initTable() {
     CpuAdoc cpuAdoc = CpuAdoc.getInstance(axisID, manager);
-    usersColumn = cpuAdoc.isUsersColumn();
-    //build rows
-    //get speed units
-    try {
-      speedUnits = cpuAdoc.getUnitsSpeed();
+    usersColumn = cpuAdoc.isUsersColumn() && !displayQueues;
+    speedUnits = cpuAdoc.getSpeedUnits();
+    memoryUnits = cpuAdoc.getMemoryUnits();
+    String[] loadUnitsArray = null;
+    if (displayQueues) {
+      loadUnitsArray = cpuAdoc.getLoadUnits();
+      if (loadUnitsArray.length == 0) {
+        header1LoadArray = new HeaderCell[1];
+        header1LoadArray[0] = new HeaderCell("Load");
+      }
+      else {
+        header1LoadArray = new HeaderCell[loadUnitsArray.length];
+        for (int i = 0; i < loadUnitsArray.length; i++) {
+          header1LoadArray[i] = new HeaderCell(loadUnitsArray[i]);
+        }
+      }
+      header2LoadArray = new HeaderCell[header1LoadArray.length];
+      for (int i = 0; i < header2LoadArray.length; i++) {
+        header2LoadArray[i] = new HeaderCell();
+      }
     }
-    catch (NullPointerException e) {
-    }
-    //get memory units
-    try {
-      memoryUnits = cpuAdoc.getUnitsMemory();
-    }
-    catch (NullPointerException e) {
-    }
-    //loop through the computers
+    //loop through the sections
     EtomoNumber number = new EtomoNumber();
-    String name = null;
     //loop on sections
-    for (int i = 0; i < cpuAdoc.getNumComputers(); i++) {
+    int size;
+    if (displayQueues) {
+      size = cpuAdoc.getNumQueues();
+    }
+    else {
+      size = cpuAdoc.getNumComputers();
+    }
+    ButtonGroup buttonGroup = null;
+    if (displayQueues) {
+      buttonGroup = new ButtonGroup();
+    }
+    for (int i = 0; i < size; i++) {
       //get name of the section
-      String computerName = cpuAdoc.getName(i);
-      CpuAdoc.Computer computer = cpuAdoc.getComputer(i);
-      //exclude any computer with the "exclude-interface" attribute set to the
+      String name;
+      CpuAdoc.Section section;
+      if (displayQueues) {
+        name = cpuAdoc.getQueueName(i);
+        section = cpuAdoc.getQueue(i);
+      }
+      else {
+        name = cpuAdoc.getComputerName(i);
+        section = cpuAdoc.getComputer(i);
+      }
+      //exclude any section with the "exclude-interface" attribute set to the
       //current interface
-      if (!computer.isExcludedInterface(manager.getInterfaceType())
-          && (!computer.isExcludedUser(System.getProperty("user.name")))) {
+      if (!section.isExcludedInterface(manager.getInterfaceType())
+          && (!section.isExcludedUser(System.getProperty("user.name")))) {
         //get the number attribute
         //set numberColumn to true if an number attribute is returned
-        number.set(computer.getNumber());
+        number.set(section.getNumber());
         if (!number.isDefault()) {
           numberColumn = true;
         }
         //get the type attribute
         //set typeColumn to true if an type attribute is returned
-        String type = computer.getType();
+        String type = section.getType();
         if (!type.matches("\\s*")) {
           typeColumn = true;
         }
         //get the speed attribute
         //set speedColumn to true if an speed attribute is returned
-        String speed = computer.getSpeed();
+        String speed = section.getSpeed();
         if (!speed.matches("\\s*")) {
           speedColumn = true;
         }
         //get the memory attribute
         //set memoryColumn to true if an memory attribute is returned
-        String memory = computer.getMemory();
+        String memory = section.getMemory();
         if (!memory.matches("\\s*")) {
           memoryColumn = true;
         }
         //get the os attribute
         //set osColumn to true if an os attribute is returned
-        String os = computer.getOs();
+        String os = section.getOs();
         if (!os.matches("\\s*")) {
           osColumn = true;
         }
         //create the row
-        ProcessorTableRow row = new ProcessorTableRow(this, computerName,
-            number.getInt(), type, speed, memory, os);
+        ProcessorTableRow row;
+        if (displayQueues) {
+          row = ProcessorTableRow.getQueueInstance(this, name, number.getInt(),
+              type, speed, memory, os, buttonGroup, header2LoadArray.length);
+        }
+        else {
+          row = ProcessorTableRow.getComputerInstance(this, name, number
+              .getInt(), type, speed, memory, os);
+        }
         //add the row to the rows HashedArray
-        rows.add(computerName, row);
+        rows.add(name, row);
       }
     }
-    //create headers
-    //header 1
-    if (typeColumn) {
-      header1CPUType = new HeaderCell("CPU Type");
+    //set custom header text
+    if (displayQueues) {
+      header1Computer.setText("Queue");
+    }
+    else {
+      header1Computer.setText("Computer");
     }
     if (speedColumn) {
-      header1Speed = new HeaderCell("Speed");
+      header2Speed.setText(speedUnits);
     }
     if (memoryColumn) {
-      header1RAM = new HeaderCell("RAM");
+      header2RAM.setText(memoryUnits);
     }
-    if (osColumn) {
-      header1OS = new HeaderCell("OS");
-    }
-    //header row 2
-    if (numberColumn) {
-      header2NumberCPUsMax = new HeaderCell("Max.");
-    }
-    if (typeColumn) {
-      header2CPUType = new HeaderCell();
-    }
-    if (speedColumn) {
-      header2Speed = new HeaderCell(speedUnits);
-    }
-    if (memoryColumn) {
-      header2RAM = new HeaderCell(memoryUnits);
-    }
-    if (osColumn) {
-      header2OS = new HeaderCell();
+    if (displayQueues) {
+      if (loadUnitsArray == null || loadUnitsArray.length == 0) {
+
+      }
     }
     try {
       ParameterStore parameterStore = EtomoDirector.INSTANCE
@@ -224,6 +271,9 @@ public final class ProcessorTable implements Storable {
           + e.getMessage(), "Etomo Error", axisID);
     }
     setToolTipText();
+    if (displayQueues && rows.size() == 1) {
+      ((ProcessorTableRow) rows.get(0)).setSelected(true);
+    }
   }
 
   private void buildTable() {
@@ -252,11 +302,21 @@ public final class ProcessorTable implements Storable {
       header1CPUUsage.add(tablePanel, layout, constraints);
     }
     else {
-      constraints.gridwidth = 2;
-      header1Load.add(tablePanel, layout, constraints);
-      constraints.gridwidth = 1;
-      if (usersColumn) {
-        header1Users.add(tablePanel, layout, constraints);
+      if (displayQueues) {
+        constraints.gridwidth = 1;
+        for (int i = 0; i < header1LoadArray.length; i++) {
+          header1LoadArray[i].add(tablePanel, layout, constraints);
+        }
+      }
+      else {
+        constraints.gridwidth = 2;
+        header1Load.add(tablePanel, layout, constraints);
+        constraints.gridwidth = 1;
+        //The users column contains a load value, so it can't be used when
+        //displaying queues.
+        if (usersColumn) {
+          header1Users.add(tablePanel, layout, constraints);
+        }
       }
     }
     if (useTypeColumn()) {
@@ -290,10 +350,17 @@ public final class ProcessorTable implements Storable {
       header2CPUUsage.add(tablePanel, layout, constraints);
     }
     else {
-      header2Load1.add(tablePanel, layout, constraints);
-      header2Load5.add(tablePanel, layout, constraints);
-      if (usersColumn) {
-        header2Users.add(tablePanel, layout, constraints);
+      if (displayQueues) {
+        for (int i = 0; i < header2LoadArray.length; i++) {
+          header2LoadArray[i].add(tablePanel, layout, constraints);
+        }
+      }
+      else {
+        header2Load1.add(tablePanel, layout, constraints);
+        header2Load5.add(tablePanel, layout, constraints);
+        if (usersColumn) {
+          header2Users.add(tablePanel, layout, constraints);
+        }
       }
     }
     if (useTypeColumn()) {
@@ -330,7 +397,7 @@ public final class ProcessorTable implements Storable {
   }
 
   Container getContainer() {
-    return scrollPane;
+    return rootPanel;
   }
 
   JPanel getTablePanel() {
@@ -345,7 +412,7 @@ public final class ProcessorTable implements Storable {
     return constraints;
   }
 
-  void resetResults() {
+  public void resetResults() {
     for (int i = 0; i < rows.size(); i++) {
       ((ProcessorTableRow) rows.get(i)).resetResults();
     }
@@ -363,7 +430,19 @@ public final class ProcessorTable implements Storable {
     if (rows == null) {
       return;
     }
-    parent.msgCPUsSelectedChanged(getCPUsSelected());
+    parent.setCPUsSelected(getCPUsSelected());
+  }
+
+  public void msgEndingProcess() {
+    parent.msgEndingProcess();
+  }
+
+  public void msgKillingProcess() {
+    parent.msgKillingProcess();
+  }
+
+  public void msgPausingProcess() {
+    parent.msgPausingProcess();
   }
 
   int getCPUsSelected() {
@@ -401,6 +480,10 @@ public final class ProcessorTable implements Storable {
         scrollPane.setPreferredSize(size);
       }
     }
+  }
+
+  void restartLoadMonitor() {
+    loadMonitor.restart();
   }
 
   void pack() {
@@ -465,10 +548,17 @@ public final class ProcessorTable implements Storable {
     if (useNumberColumn()) {
       width += header2NumberCPUsMax.getWidth();
     }
-    width += header2Load1.getWidth();
-    width += header2Load5.getWidth();
-    if (usersColumn) {
-      width += header2Users.getWidth();
+    if (displayQueues) {
+      for (int i = 0; i < header2LoadArray.length; i++) {
+        width += header2LoadArray[i].getWidth();
+      }
+    }
+    else {
+      width += header2Load1.getWidth();
+      width += header2Load5.getWidth();
+      if (usersColumn) {
+        width += header2Users.getWidth();
+      }
     }
     if (useTypeColumn()) {
       width += header2CPUType.getWidth();
@@ -538,6 +628,13 @@ public final class ProcessorTable implements Storable {
     if (rows == null) {
       return;
     }
+    if (displayQueues) {
+      String queue = ((ProcessorTableRow) rows.get(getFirstSelectedIndex()))
+          .getComputer();
+      param.setQueueCommand(CpuAdoc.getInstance(axisID, manager)
+          .getQueue(queue).getCommand());
+      param.setQueue(queue);
+    }
     for (int i = 0; i < rows.size(); i++) {
       ((ProcessorTableRow) rows.get(i)).getParameters(param);
     }
@@ -556,7 +653,7 @@ public final class ProcessorTable implements Storable {
     return null;
   }
 
-  void addRestart(String computer) {
+  public void addRestart(String computer) {
     ProcessorTableRow row = getRow(computer);
     if (row == null) {
       return;
@@ -564,7 +661,7 @@ public final class ProcessorTable implements Storable {
     row.addRestart();
   }
 
-  void addSuccess(String computer) {
+  public void addSuccess(String computer) {
     ProcessorTableRow row = getRow(computer);
     if (row == null) {
       return;
@@ -572,7 +669,7 @@ public final class ProcessorTable implements Storable {
     row.addSuccess();
   }
 
-  void msgDropped(String computer, String reason) {
+  public void msgDropped(String computer, String reason) {
     ProcessorTableRow row = getRow(computer);
     if (row == null) {
       return;
@@ -586,60 +683,98 @@ public final class ProcessorTable implements Storable {
         + " " + header2NumberCPUsUsed.getText() + " column where available.";
   }
 
-  void startGetLoadAverage(ParallelPanel display) {
+  public void startLoad() {
     if (rows == null) {
       return;
     }
     for (int i = 0; i < rows.size(); i++) {
-      display.startGetLoadAverage(((ProcessorTableRow) rows.get(i))
-          .getComputer());
+      manager.startLoad(getIntermittentCommand(i), loadMonitor);
     }
   }
 
-  void endGetLoadAverage(ParallelPanel display) {
+  private IntermittentCommand getIntermittentCommand(int index) {
+    ProcessorTableRow row = (ProcessorTableRow) rows.get(index);
+    String computer = row.getComputer();
+    if (displayQueues) {
+      return QueuechunkParam.getLoadInstance(computer, axisID, manager);
+    }
+    return LoadAverageParam.getInstance(computer, manager);
+  }
+
+  /**
+   * sets parallelProcessMonitor with a monitor which is monitoring a parallel
+   * process associated with this ParallelProgressDisplay
+   * @param ParallelProcessMonitor
+   */
+  /*  public void setParallelProcessMonitor(
+   final ParallelProcessMonitor parallelProcessMonitor) {
+   parent.setParallelProcessMonitor(parallelProcessMonitor);
+   }*/
+
+  public void endLoad() {
     if (rows == null) {
       return;
     }
     for (int i = 0; i < rows.size(); i++) {
-      display
-          .endGetLoadAverage(((ProcessorTableRow) rows.get(i)).getComputer());
+      manager.endLoad(getIntermittentCommand(i), loadMonitor);
     }
   }
 
-  void stopGetLoadAverage(ParallelPanel display) {
+  public void stopLoad() {
     if (rows == null) {
       return;
     }
     for (int i = 0; i < rows.size(); i++) {
-      display.stopGetLoadAverage(((ProcessorTableRow) rows.get(i))
-          .getComputer());
+      manager.stopLoad(getIntermittentCommand(i), loadMonitor);
     }
   }
 
-  void setLoadAverage(String computer, double load1, double load5, int users,
+  public void setLoad(String computer, double load1, double load5, int users,
       String usersTooltip) {
     if (rows == null) {
       return;
     }
-    ((ProcessorTableRow) rows.get(computer)).setLoadAverage(load1, load5,
-        users, usersTooltip);
+    ((ProcessorTableRow) rows.get(computer)).setLoad(load1, load5, users,
+        usersTooltip);
   }
 
-  void setCPUUsage(String computer, double cpuUsage) {
+  public void setLoad(String computer, String[] loadArray) {
+    if (rows == null) {
+      return;
+    }
+    ((ProcessorTableRow) rows.get(computer)).setLoad(loadArray);
+  }
+
+  public void setCPUUsage(String computer, double cpuUsage) {
     if (rows == null) {
       return;
     }
     ((ProcessorTableRow) rows.get(computer)).setCPUUsage(cpuUsage);
   }
 
-  void clearLoadAverage(String computer, String reason, String tooltip) {
+  /**
+   * Clears the load from the display.  Does not ask the monitor to
+   * drop the computer because processchunks handles this very well, and it is
+   * possible that the computer may still be available.
+   */
+  public void msgLoadFailed(String computer, String reason, String tooltip) {
     if (rows == null) {
       return;
     }
-    ((ProcessorTableRow) rows.get(computer)).clearLoadAverage(reason, tooltip);
+    ((ProcessorTableRow) rows.get(computer)).clearLoad(reason, tooltip);
   }
 
-  void clearFailureReason(String computer, String failureReason1,
+  public void msgStartingProcessOnSelectedComputers() {
+    clearFailureReason(true);
+  }
+
+  /**
+   * Clear failure reason, if failure reason equals failureReason1 or 2.  This means
+   * that intermittent processes only clear their own messages.  This is useful
+   * for restarting an intermittent process without losing the processchunks
+   * failure reason.
+   */
+  public void msgStartingProcess(String computer, String failureReason1,
       String failureReason2) {
     if (rows == null) {
       return;
@@ -768,6 +903,10 @@ public final class ProcessorTable implements Storable {
 }
 /**
  * <p> $Log$
+ * <p> Revision 1.47  2007/09/07 00:28:13  sueh
+ * <p> bug# 989 Using a public INSTANCE to refer to the EtomoDirector singleton
+ * <p> instead of getInstance and createInstance.
+ * <p>
  * <p> Revision 1.46  2007/07/30 18:54:16  sueh
  * <p> bug# 1002 ParameterStore.getInstance can return null - handle it.
  * <p>
