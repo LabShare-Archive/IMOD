@@ -347,7 +347,7 @@ public class RemotePathTest extends TestCase {
   private final void addSection(BufferedWriter bufferedWriter,
       String sectionName) throws IOException {
     bufferedWriter.write(AutodocTokenizer.OPEN_CHAR
-        + CpuAdoc.SECTION_TYPE + ' '
+        + CpuAdoc.COMPUTER_SECTION_TYPE + ' '
         + AutodocTokenizer.DEFAULT_DELIMITER + ' ' + sectionName
         + AutodocTokenizer.CLOSE_CHAR);
     bufferedWriter.newLine();
@@ -997,6 +997,10 @@ public class RemotePathTest extends TestCase {
 }
 /**
  * <p> $Log$
+ * <p> Revision 1.38  2007/09/07 00:31:18  sueh
+ * <p> bug# 989 Using a public INSTANCE to refer to the EtomoDirector singleton
+ * <p> instead of getInstance and createInstance.
+ * <p>
  * <p> Revision 1.37  2007/07/17 21:45:59  sueh
  * <p> bug# 108 Moved LOCAL_HOST to CpuAdoc.
  * <p>
