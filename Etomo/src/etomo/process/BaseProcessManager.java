@@ -10,9 +10,9 @@ import etomo.EtomoDirector;
 import etomo.comscript.Command;
 import etomo.comscript.CommandDetails;
 import etomo.comscript.DetachedCommand;
+import etomo.comscript.IntermittentCommand;
 import etomo.comscript.ProcessDetails;
 import etomo.comscript.ComscriptState;
-import etomo.comscript.LoadAverageParam;
 import etomo.comscript.ProcesschunksParam;
 import etomo.comscript.TomosnapshotParam;
 import etomo.storage.LogFile;
@@ -39,6 +39,10 @@ import etomo.util.Utilities;
  * @version $Revision$
  * 
  * <p> $Log$
+ * <p> Revision 1.60  2007/09/07 00:18:34  sueh
+ * <p> bug# 989 Using a public INSTANCE to refer to the EtomoDirector singleton
+ * <p> instead of getInstance and createInstance.
+ * <p>
  * <p> Revision 1.59  2007/07/30 18:33:51  sueh
  * <p> bug# 1002 ParameterStore.getInstance can return null - handle it.
  * <p>
@@ -394,18 +398,18 @@ public abstract class BaseProcessManager {
         + uiHarness + "," + super.toString();
   }
 
-  public final void startGetLoadAverage(LoadAverageParam param,
-      LoadAverageMonitor monitor) {
+  public final void startLoad(IntermittentCommand param,
+      LoadMonitor monitor) {
     IntermittentBackgroundProcess.startInstance(manager, param, monitor);
   }
 
-  public final void endGetLoadAverage(LoadAverageParam param,
-      LoadAverageMonitor monitor) {
+  public final void endLoad(IntermittentCommand param,
+      LoadMonitor monitor) {
     IntermittentBackgroundProcess.endInstance(manager, param, monitor);
   }
 
-  public final void stopGetLoadAverage(LoadAverageParam param,
-      LoadAverageMonitor monitor) {
+  public final void stopLoad(IntermittentCommand param,
+      LoadMonitor monitor) {
     IntermittentBackgroundProcess.stopInstance(manager, param, monitor);
   }
 
