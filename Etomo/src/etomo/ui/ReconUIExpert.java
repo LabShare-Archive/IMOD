@@ -177,7 +177,7 @@ public abstract class ReconUIExpert implements UIExpert {
     }
     setDialogState(ProcessState.INPROGRESS);
     //param should never be set to resume
-    parallelPanel.resetResults();
+    parallelPanel.getParallelProgressDisplay().resetResults();
     manager.processchunks(axisID, param, processResultDisplay);
   }
 
@@ -200,6 +200,9 @@ public abstract class ReconUIExpert implements UIExpert {
 }
 /**
  * <p> $Log$
+ * <p> Revision 1.4  2007/08/22 14:59:00  sueh
+ * <p> bug# 1036 In showDialog, showing a blank process when opening a dialog fails.
+ * <p>
  * <p> Revision 1.3  2006/10/24 23:34:19  sueh
  * <p> bug# 947 Passing the ProcessName to AxisProcessPanel.
  * <p>
