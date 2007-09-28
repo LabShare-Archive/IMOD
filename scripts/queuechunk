@@ -169,6 +169,11 @@ EOF
     #
     com="qsub -e /dev/null -o /dev/null -r n -V"
     if [ -n "$queuename" ] ; then com="$com -q $queuename" ; fi
+
+    # This was needed to get one job per processor on the PBS we tested
+    #
+    if [ $qtype == "pbs" ] ; then com="$com -l nodes=1" ; fi
+
     if [[ $qtype == "sge" && $action == "S" ]] ; then 
         com="$com -sync y $jobname" 
     else
