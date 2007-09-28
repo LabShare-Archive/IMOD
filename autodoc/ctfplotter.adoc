@@ -35,8 +35,9 @@ type = FN
 usage = File to store found defocuses
 tooltip = 
 manpage = File to store found defocuses.  Each entry in the file will consist
-of the starting and ending angle of the tilt angle range being fit to, and the
-defocus value. 
+of the starting and ending view number of the range of views being fit to
+(numbered from 1), the starting and ending angle of the tilt angle range being
+fit to, and the defocus value. 
 
 [Field = AxisAngle]
 short = aAngle

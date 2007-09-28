@@ -31,13 +31,14 @@ usage = File with list of tilt angle ranges and defocus values in nanometers
 tooltip =
 manpage = File with list of tilt angle ranges and defocus values in
 nanometers, such as was output by ctfplotter(1).  Each line should have a
-starting and ending tilt angle and a defocus value.  The program will assign
-that defocus value to the midpoint of the range.  For a view at a given tilt
+starting and ending view number (numbered from 1), a starting and ending tilt
+angle, and a defocus value.  The program will assign that defocus value to the
+midpoint of the range of views.  For a view at a given tilt
 angle, it will find the defocus either by interpolating between two
 surrounding midpoint angles, if there are such angles, or by taking the nearest
 defocus value, if the angle is beyond the range of the available midpoint
 angles.  To correct a tilt series with a single value of defocus, supply a
-file with a single line containing "0 0 defocus_value".
+file with a single line containing "20 20 0. 0. defocus_value".
 
 [Field = DefocusTol]
 short = defTol
