@@ -21,10 +21,13 @@ desired (See \fBTest Section and Attributes\fR).  The test will run under a dire
 called UITests, which will be created in the run directory if it doesn't exist.
 
 .SS Environment Variables
+
+.TP
 .B IMOD_UITEST_SOURCE
 Required.
 The location of the uitest.adoc and all autodocs it refers to.
 
+.TP
 .B IMOD_UITEST_DATA
 Required.
 The root directory of directories containing the stacks and other files to be copied to
