@@ -25,6 +25,7 @@ c
       integer*4 nx,ny,nsize,j
 
       call setctfnoscl(SIGMA1,SIGMA2,RADIUS1,RADIUS2,ctf,nx,ny,delta,nsize)
+      if (delta .eq. 0.) return
       SUM = 0.0
       do j=2,nsize
         SUM = SUM + CTF(J)
