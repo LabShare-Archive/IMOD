@@ -7,6 +7,11 @@
 # $Id$
 #
 # $Log$
+# Revision 1.5  2007/07/19 02:46:20  mast
+# Made it detect problems with patches not fitting in a range in X/y and
+# suggest changes in border and size; fixed a problem with nozvals and made
+# it write info file only if data was added to it
+#
 # Revision 1.4  2007/05/11 05:35:10  mast
 # Fixed weird duplicate text
 #
@@ -64,10 +69,14 @@ def findEdgeShifts(lower, upper, edge):
         projcom = 'xyzproj -ax Y -an 0,0,0 -mo 2 -xm %d,%d -ym %d,%d %s %s' % \
                   (xyminlo[0], xymaxlo[0], xyminlo[1], xymaxlo[1], \
                    lower['file'], tmpproj1)
+        if verbose:
+            print projcom
         runcmd(projcom, None)
         projcom = 'xyzproj -ax Y -an 0,0,0 -mo 2 -xm %d,%d -ym %d,%d %s %s' % \
                   (xyminup[0], xymaxup[0], xyminup[1], xymaxup[1], \
                    upper['file'], tmpproj2)
+        if verbose:
+            print projcom
         runcmd(projcom, None)
         runcmd('newstack %s %s %s' % (tmpproj1, tmpproj2, tmpprojst), None)
         padx = int(padFrac * (xymaxup[0] + 1 - xyminup[0]))
@@ -76,7 +85,11 @@ def findEdgeShifts(lower, upper, edge):
         print "Correlating projections of overlap zones"
         txccom = 'tiltxcorr -ang 0,0 -pad %d,%d -sigma1 0.03 -rot 0. %s %s' % \
                  (padx, pady, tmpprojst, tmpxf)
+        if verbose:
+            print txccom
         txcout = runcmd(txccom, None)
+        verboseOutput('TILTXCORR OUTPUT:', txcout)
+            
         txcout.reverse()
         failed = 0
         for line in txcout:
@@ -95,6 +108,8 @@ def findEdgeShifts(lower, upper, edge):
             sys.exit(1)
 
         # Subtract amount to shift upper to get new coordinate shift
+        if verbose:
+            print 'Initial shift: %d, %d' % (intshift[0], intshift[1])
         intshift[0] -= int(round(float(line[0])))
         intshift[1] -= int(round(float(line[1])))
         print 'Shift from correlation: %.1f, %.1f     Total shift %d, %d' % \
@@ -127,16 +142,22 @@ def findEdgeShifts(lower, upper, edge):
                  '%d,%d,%d' % (cenlo[0], cenlo[1], cenlo[2]),
                  '%d,%d,%d' % (pad[0], pad[1], pad[2]),
                  '%d,%d,%d' % (taper[0], taper[1], taper[2])]
+        verboseOutput('tapervoledge input for run 1', input)
         runcmd('tapervoledge', input)
+
         input[0] = upper['file']
         input[1] = tmpvol2
         input[3] = '%d,%d,%d' % (cenup[0], cenup[1], cenup[2])
+        verboseOutput('tapervoledge input for run 2', input)
         runcmd('tapervoledge', input)
 
         # Run clip, this order of files should give shift of B coordinates
         print "Correlating subvolumes to find 3D shift"
         clipcom = 'clip corr -3d -n 0 %s %s %s' % (tmpvol1, tmpvol2, tmpcor)
+        if verbose:
+            print clipcom
         clipout = runcmd(clipcom, None)
+        verboseOutput('CLIP OUTPUT:', clipout)
         for line in clipout:
             if line.startswith('('):
                 line = re.sub('^.*\((.*)\).*', '\\1', line).strip().split(',')
@@ -153,13 +174,15 @@ def findEdgeShifts(lower, upper, edge):
                intshift[1], intshift[2])
 
         # Clean up
+        os.remove(tmpcor)
+        if leavetmp:
+            return
+        os.remove(tmpprojst)
         os.remove(tmpproj1)
         os.remove(tmpproj2)
-        os.remove(tmpprojst)
         os.remove(tmpxf)
         os.remove(tmpvol1)
         os.remove(tmpvol2)
-        os.remove(tmpcor)
         return
 
     except ImodpyError, errout:
@@ -248,7 +271,9 @@ def findPatches(lower, upper, edge):
         input.append('KernelSigma %f' % kernel)
 
     try:
+        verboseOutput('CORRSEARCH3D COMMAND:', input)
         csout = runcmd('corrsearch3d -StandardInput', input)
+        verboseOutput('CORRSEARCH3D OUTPUT:', csout)
         edge[kPatch] = patchname
         csout.reverse()
         for line in csout:
@@ -278,6 +303,18 @@ def composeName(root, x, y, z, noz, under):
         name += '_'
     name += 'z' + z
     return name
+
+# Function for verbose multiline output
+def verboseOutput(startLine, outputLines):
+    if verbose:
+        if len(startLine):
+            print startLine
+        for line in outputLines:
+            if line.endswith('\n'):
+                print line,
+            else:
+                print line
+    return
 
 #### MAIN PROGRAM  ####
 #
@@ -323,18 +360,21 @@ borderXY = 50
 borderZ = 10
 forceZ = 0
 kernel = 0.
+testMode = 0
+verbose = 0
+leavetmp = 0
 
 # Fallbacks from ../manpages/autodoc2man 3 1 edgepatches
 options = ["info:InfoFile:FN:", "noz:NoZValues:B:", "root:RootName:CH:",
            "overlap:OverlapInXandY:IP:", "underscore:UnderscoreXYZ:B:",
            "ext:ExtensionOnVolumes:CH:", "xyadd:AddMontageXandY:IP:",
-           "zadd:AddMontageZRange:IP:", "all:RunAll:B:",
-           "xrun:XRunStartEnd:IP:", "yrun:YRunStartEnd:IP:",
+           "zadd:AddMontageZRange:IP:", "model:DefaultRegionModel:FN:",
+           "all:RunAll:B:", "xrun:XRunStartEnd:IP:", "yrun:YRunStartEnd:IP:",
            "zrun:ZRunStartEnd:IP:", "skip:SkipDone:B:", "redo:RedoShifts:B:",
-           "size:PatchSizeXYZ:IT:", "intervals:IntervalsShortLongZ:IT:",
-           "force:ForceNumberInZ:I:", "borders:BordersInXYandZ:IP:",
-           "model:DefaultRegionModel:FN:", "kernel:KernelSigma:F:",
-           "long:LongFraction:F:"]
+           "long:LongFraction:F:", "size:PatchSizeXYZ:IT:",
+           "intervals:IntervalsShortLongZ:IT:", "force:ForceNumberInZ:I:",
+           "borders:BordersInXYandZ:IP:", "kernel:KernelSigma:F:",
+           "test:TestMode:I:"]
 
 (numOpts, numNonOpts) = PipReadOrParseOptions(sys.argv, options, progname, 2, \
         1, 0)
@@ -399,6 +439,11 @@ patchSize = PipGetThreeIntegers('PatchSizeXYZ', patchSize[0],
 defaultModel = PipGetString('DefaultRegionModel', "")
 forceZ = PipGetInteger('ForceNumberInZ', forceZ)
 kernel = PipGetFloat('KernelSigma', kernel)
+testMode = PipGetInteger('TestMode', testMode)
+if testMode > 1:
+    leavetmp = 1
+if testMode % 2:
+    verbose = 1
 
 PipDone()
 
