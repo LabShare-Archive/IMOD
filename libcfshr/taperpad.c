@@ -18,7 +18,7 @@
 #define taperinpad TAPERINPAD
 #else
 #define taperoutpad taperoutpad_
-#define taperinpad taperinpadtst_
+#define taperinpad taperinpad_
 #endif
 
 /*!
@@ -289,6 +289,9 @@ void taperinpad(void *array, int *nxbox, int *nybox, float *brray, int *nxdim,
 }
 
 /*  $Log$
+/*  Revision 1.1  2007/10/01 15:26:09  mast
+/*  *** empty log message ***
+/*
 
 
 */
