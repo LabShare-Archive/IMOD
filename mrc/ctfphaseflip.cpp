@@ -12,6 +12,7 @@
 
 #define MIN_ANGLE 1.0e-6  //tilt Angle less than this is treated as 0.0;
 #define MY_PI 3.1415926
+#define UNUSED_DEFOCUS -2000000.0
 
 using namespace std;
 
@@ -161,32 +162,38 @@ int main(int argc, char *argv[])
   int beginNum, endNum;
   float beginAngle, endAngle, rangeDefocus;
   float *defocus=(float *)malloc(nz*sizeof(float));
-  for(k=0;k<nz;k++) defocus[k]=-1.0;
-   while( fgets(defStr, 100, fpDef) ) {
+  
+  //sets to UNUSED_DEFOCUS since ctfplotter saves defocus with that value
+  // when defocus is not computed.
+  for(k=0;k<nz;k++) defocus[k]=UNUSED_DEFOCUS;
+  while( fgets(defStr, 100, fpDef) ) {
       sscanf(defStr, "%d%d%f%f%f", &beginNum, &endNum, &beginAngle, 
           &endAngle, &rangeDefocus);
+      k=(beginNum+endNum)/2-1;
+      if( k<0 || k>=nz) exitError("slice numbers are out of range\n");
       //convert to microns;
-      for(k=beginNum-1;k<=endNum-1;k++) defocus[k]=rangeDefocus/1000.0;
-      //printf("beginNum=%d endNum=%d defocus=%f\n", beginNum, endNum,\
-      //defocus[k-1]);
+      defocus[k]=rangeDefocus/1000.0;
+      //printf("beginNum=%d endNum=%d k=%d defocus=%f\n", beginNum, endNum, k,\
+      //defocus[k]);
   }
 
   //defocus interpolation; 
    int first=-1,second=0; 
    for(k=0;k<nz;k++){
-     if(defocus[k]==-1.0) continue;
+     if(defocus[k]==UNUSED_DEFOCUS) continue;
      second=k;
      if(first==-1){
        for(row=0;row<second;row++) defocus[row]=defocus[second];
      }else{
        for(row=first+1;row<second;row++)
-         defocus[row]=0.5*(defocus[first]+defocus[second]);
+         defocus[row]=((row-first)*defocus[second]+(second-row)*defocus[first])
+           /(float)(second-first);
      }
      first=second;
    }
 
    for(k=nz-1;k>=0;k--)
-     if(defocus[k]==-1.0) defocus[k]=defocus[second];
+     if(defocus[k]==UNUSED_DEFOCUS) defocus[k]=defocus[second];
      else break;
 
    for(k=0;k<nz;k++)
@@ -222,6 +229,9 @@ int main(int argc, char *argv[])
       currAngle=0.0;
       printf("No angle is specified, set to 0.0\n");
     }
+
+    if( defocus[k-1]==UNUSED_DEFOCUS )
+      exitError("specified defocus is wrong for slice %d\n", k);
 
     currSlice=sliceCreate(nx, ny, sliceMode);
     outSlice=sliceCreate(nx, ny, SLICE_MODE_FLOAT);
