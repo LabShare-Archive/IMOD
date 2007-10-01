@@ -1,14 +1,36 @@
+# Makefile for imsubs2 routines
+#
+# $Id$
+# Log at end
+
 include ../../configure
-#
-# 7/18/00 CER add move strupcase.o here from hvem
-#
-#  $Author$
-#
-#  $Date$
-#
-#  $Revision$
+
+FFLAGS = $(LIBFFLAGS)
+
+O        = $(OBJEXT)
+OBJS =  bigfft.$(O) bigfilt.$(O) cinterp.$(O) filter.$(O) icalc_angles.$(O) \
+ icalc_matrix.$(O) iclcdn.$(O) iclden.$(O) iclscl.$(O) inside.$(O) \
+ interp.$(O) qdinterp.$(O) \
+ strupcase.$(O) iclavgsd.$(O) b3dxor.$(O)
+
+bigfft.$(O): $(INCDIR)/ftbuf.inc
+bigfilt.$(O): $(INCDIR)/ftbuf.inc
+
+
+all: $(OBJS)
+
+
+clean:
+	$(FIND) . -type f -name "*.o*" -exec rm "{}" \;
+	$(FIND) . -type f -name "*~" -exec rm "{}" \;
+	$(FIND) . -type f -name "#*#" -exec rm "{}" \;
+
+
 #
 #  $Log$
+#  Revision 3.9  2007/09/20 02:34:16  mast
+#  Removed cubinterp
+#
 #  Revision 3.8  2005/12/09 06:23:05  mast
 #  Needed to move b3dxor into  here
 #
@@ -33,25 +55,6 @@ include ../../configure
 #  Revision 3.1  2002/08/18 23:01:58  mast
 #  Added iclavgsd
 #
-
-FFLAGS = $(LIBFFLAGS)
-
-O        = $(OBJEXT)
-OBJS =  bigfft.$(O) bigfilt.$(O) cinterp.$(O) filter.$(O) icalc_angles.$(O) \
- icalc_matrix.$(O) iclcdn.$(O) iclden.$(O) iclscl.$(O) inside.$(O) \
- interp.$(O) qdinterp.$(O) filterpart.$(O) \
- strupcase.$(O) iclavgsd.$(O) b3dxor.$(O)
-
-bigfft.$(O): $(INCDIR)/ftbuf.inc
-bigfilt.$(O): $(INCDIR)/ftbuf.inc
-
-
-all: $(OBJS)
-
-
-clean:
-	$(FIND) . -type f -name "*.o*" -exec rm "{}" \;
-	$(FIND) . -type f -name "*~" -exec rm "{}" \;
-	$(FIND) . -type f -name "#*#" -exec rm "{}" \;
-
+# 7/18/00 CER add move strupcase.o here from hvem
+#
 
