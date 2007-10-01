@@ -1110,129 +1110,6 @@ int sliceTaperAtFill(Islice *sl, int ntaper, int inside)
 
 
 /*!
- * Extracts a subarea of an image, places it into the center of a potentially 
- * larger array with padding, and tapers the image down to the mean value at
- * its edge, tapering pixels inside the extracted image area.  The image data
- * are in [array], their X dimension is [nxdimin], and their SLICE_MODE is 
- * given in [type].  The starting and ending coordinates to extract in X and Y
- * are [ix0] to [ix1] and [iy0] to [iy1].  The output image array is [brray] 
- * and its X dimension is specified by [nxdim].  The padded image size is 
- * specified by [nx] and [ny], and [nxtap] and [nytap] indicate the number of
- * pixels over which to taper in X and Y.
- */
-void sliceTaperInPad(void *array, int type, int nxdimin, int ix0, int ix1,
-                     int iy0, int iy1, float *brray, int nxdim, int nx, int ny,
-                     int nxtap, int nytap)
-{
-  int lobase, hibase, x1, x2, ixlo, ixhi, iylo, iyhi, ix, iy, ixbase;
-  int nsum, nxbox, nybox, ixlim;
-  float sum, dmean, fracx, fracy, fmin;
-  b3dUByte *bytein;
-  b3dInt16 *intin;
-  b3dUInt16 *uintin;
-  float *floatin;
-  float *out;
-  
-  nxbox = ix1 + 1 - ix0;
-  nybox = iy1 + 1 - iy0;
-  ixlo=nx/2-nxbox/2 - 1;
-  ixhi=ixlo+nxbox;
-  iylo=ny/2-nybox/2 - 1;
-  iyhi=iylo+nybox;
-  
-  for (iy = iy0; iy <= iy1; iy++) {
-    out = brray + ixlo + 1 + (iylo + 1 + iy - iy0) * nxdim;
-    switch (type) {
-    case SLICE_MODE_BYTE:
-      bytein = (b3dUByte *)array + ix0 + iy * nxdimin;
-      for (ix = ix0; ix <= ix1; ix++)
-        *out++ = *bytein++;
-      break;
-      
-    case SLICE_MODE_SHORT:
-      intin = (b3dInt16 *)array + ix0 + iy * nxdimin;
-      for (ix = ix0; ix <= ix1; ix++)
-        *out++ = *intin++;
-      break;
-         
-    case SLICE_MODE_USHORT:
-      uintin = (b3dUInt16 *)array + ix0 + iy * nxdimin;
-      for (ix = ix0; ix <= ix1; ix++)
-        *out++ = *uintin++;
-      break;
-         
-    case SLICE_MODE_FLOAT:
-      floatin = (float *)array + ix0 + iy * nxdimin;
-      for (ix = ix0; ix <= ix1; ix++)
-        *out++ = *floatin++;
-      break;
-
-    }
-  }
-
-  /* get edge mean */
-  sum=0.;
-  lobase = (iylo + 1) * nxdim;
-  hibase = iyhi * nxdim;
-  for (ix = ixlo + 1; ix <= ixhi; ix++)
-    sum += brray[ix + lobase] + brray[ix + hibase];
-  for (iy = iylo + 2; iy < iyhi; iy++) {
-    ixbase = iy * nxdim;
-    sum += brray[ixlo + 1 + ixbase] + brray[ixhi + ixbase];
-  }
-  
-  nsum=(2*(nxbox+nybox-2));
-  dmean=sum/nsum;
-    
-  /* fill the rest of the array with dmean */
-  if (nxbox != nx || nybox != ny) {
-    for (iy = iylo + 1; iy <= iyhi; iy++) {
-      ixbase = iy * nxdim;
-      for (ix = 0; ix <= ixlo; ix++)
-        brray[ix + ixbase] = dmean;
-      for (ix = ixhi + 1; ix < nx; ix++)
-        brray[ix + ixbase] = dmean;
-    }
-    for (iy = 0; iy <= iylo; iy++) {
-      ixbase = iy * nxdim;
-      for (ix = 0; ix < nx; ix++)
-        brray[ix + ixbase] = dmean;
-    }
-    for (iy = iyhi + 1; iy < ny; iy++) {
-      ixbase = iy * nxdim;
-      for (ix = 0; ix < nx; ix++)
-        brray[ix + ixbase] = dmean;
-    }
-  }
-  
-  /* Taper the edges */
-  for (iy = 0; iy < (nybox+1)/2; iy++) {
-    fracy=1.;
-    ixlim = nxtap;
-    if (iy < nytap) {
-      fracy=(iy + 1.)/(nytap+1.);
-      ixlim = (nxbox+1)/2;
-    }
-    for (ix = 0; ix < ixlim; ix++) {
-      fracx=1.;
-      if (ix < nxtap)
-        fracx=(ix + 1.)/(nxtap+1.);
-      fmin=fracx < fracy ? fracx : fracy;
-      if(fmin < 1.) {
-        x1 = ix + 1 + ixlo;
-        x2 = ixhi - ix;
-        lobase = (iy + 1 + iylo) * nxdim;
-        hibase = (iyhi - iy) *nxdim;
-        brray[x1 + lobase]=fmin*(brray[x1 + lobase]-dmean)+dmean;
-        brray[x1 + hibase]=fmin*(brray[x1 + hibase]-dmean)+dmean;
-        brray[x2 + lobase]=fmin*(brray[x2 + lobase]-dmean)+dmean;
-        brray[x2 + hibase]=fmin*(brray[x2 + hibase]-dmean)+dmean;
-      }
-    }
-  }
-}
-
-/*!
  * Returns [num] if it is even and has no prime factor greater than [limit],
  * or makes the number even and adds [idnum] until it reaches a value with this
  * property.  Values of 2 for [idnum] and 19 for [limit] will give a value
@@ -1257,6 +1134,9 @@ int niceFrame(int num, int idnum, int limit)
 
 /*
     $Log$
+    Revision 3.9  2007/09/14 05:24:29  mast
+    *** empty log message ***
+
     Revision 3.8  2007/08/15 00:06:21  mast
     Added taperinpad function, renamed from xcorr
 
