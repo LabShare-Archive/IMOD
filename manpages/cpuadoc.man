@@ -105,14 +105,21 @@ specific machine or to override a global mount rule.
 
 .TP
 .B [Queue = \fIqueue_name\fB]
-Each section describes one queue in a cluster.  \fIQueue_name\fR will be sent to
-processchunks with the -Q option.  \fBComputer\fR section attributes are all valid in
+Each section describes one queue in a cluster.  \fIQueue_name\fR will be
+displayed in the parallel processing table and sent to
+processchunks with the -Q option, but it does not need to match the actual
+name of a queue.  \fBComputer\fR section attributes are all valid in
 the \fBQueue\fR sections.
 
 .TP
 .B command = \fIcommand_to_run_queuechunk\fR
-Required.  \fBQueuechunk\fR is a site-level script that allows eTomo to work
-with any cluster software in a standard way.
+Required.  \fBQueuechunk\fR is a script in IMOD that allows eTomo to work
+with specific types of cluster software, but can be modified or replaced to
+work with any cluster software.  Se the man page for Queuechunk(1) for the 
+specifications that such a script must meet.  If the version in IMOD is
+modified or replaced, it should be given a different name, and placed
+somewhere on the IMOD user's path other than IMOD/bin.  That name would be
+used in place of "queuechunk" in the command defined in this section.
 
 A PBS example where there is only one queue:
 .br
@@ -122,8 +129,8 @@ A PBS example where there are multiple queues:
 .br
 .B command = \fRqueuechunk -t pbs -q \fIqueue_name
 
-This command will be passed in quotes to processchunks.  It will also be used to
-get the load from the queue.
+This command will be passed in quotes to processchunks.  It will also be used
+to get the load from the queue.
 
 .SS Global Attributes
 
@@ -137,8 +144,8 @@ The order of the attributes is not important.
 
 .TP
 .B Version = 1.2
-The Version attribute is usually required.  It refers to the syntax used in
-.adoc files and should be set to 1.2.
+The Version attribute is usually required.  It refers to the syntax used 
+in .adoc files and should be set to 1.2.
 
 .TP
 .B units.speed = \fIunits_for_the_speed_attributes
