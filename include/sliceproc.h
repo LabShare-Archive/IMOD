@@ -38,9 +38,6 @@ extern "C" {
                           double k, double lambda, int iterations, 
                           int *iterDone);
   int sliceTaperAtFill(Islice *sl, int ntaper, int inside);
-  void sliceTaperInPad(void *array, int type, int nxdimin, int ix0, int ix1,
-                       int iy0, int iy1, float *brray, int nxdim, int nx, 
-                       int ny, int nxtap, int nytap);
   int niceFrame(int num, int idnum, int limit);
 
 
@@ -51,6 +48,9 @@ extern "C" {
 #endif
 /*
   $Log$
+  Revision 3.9  2007/09/14 05:24:24  mast
+  Added niceFrame
+
   Revision 3.8  2007/08/16 16:44:37  mast
   Eliminated comment marks here
 
