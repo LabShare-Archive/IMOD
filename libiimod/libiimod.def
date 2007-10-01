@@ -17,7 +17,6 @@ EXPORTS
 	iiPlistLoadF
 	mrc_slice_putvol
 	sliceGetPixelMagnitude
-	sliceTaperInPad
 	iiLikeMRCDelete
 	read_mrc_byte
 	mrc_plist_proc

@@ -105,8 +105,8 @@ void amoeba(float *p, float *y, int mp, int ndim, float ftol,
     /* DNM 6/17/06: protect against hard zeros by testing for equality first */
     if (y[ihi] == y[ilo])
       break;
-	rtol = 2.*fabs((double)(y[ihi] - y[ilo]))/
-      (fabs((double)y[ihi])+ fabs((double)y[ilo]));
+	rtol = (float)(2.*fabs((double)(y[ihi] - y[ilo]))/
+      (fabs((double)y[ihi])+ fabs((double)y[ilo])));
 	if (rtol < ftol)
       break;
 
@@ -124,12 +124,12 @@ void amoeba(float *p, float *y, int mp, int ndim, float ftol,
     }
     for (j = 0; j < ndim; j++) {
 	  pbar[j] = pbar[j]/ndim;
-	  pr[j] = (1.+alpha)*pbar[j] - alpha*p[ihi + j * mp];
+	  pr[j] = (1.f+alpha)*pbar[j] - alpha*p[ihi + j * mp];
     }
 	funk(pr, &ypr);
     if (ypr <= y[ilo]) {
 	  for (j = 0; j < ndim; j++)
-	    prr[j] = gamma*pr[j]+(1. - gamma)*pbar[j];
+	    prr[j] = gamma*pr[j]+(1.f - gamma)*pbar[j];
 	  funk(prr, &yprr);
 	  if (yprr < y[ilo]) {
 	    for (j = 0; j < ndim; j++)
@@ -147,7 +147,7 @@ void amoeba(float *p, float *y, int mp, int ndim, float ftol,
 	    y[ihi] = ypr;
 	  }
       for (j = 0; j < ndim; j++)
-	    prr[j] = beta*p[ihi + j * mp]+(1. - beta)*pbar[j];
+	    prr[j] = beta*p[ihi + j * mp]+(1.f - beta)*pbar[j];
 	  funk(prr, &yprr);
       if (yprr < y[ihi]) {
 	    for (j = 0; j < ndim; j++)
@@ -157,7 +157,7 @@ void amoeba(float *p, float *y, int mp, int ndim, float ftol,
         for (i = 0; i < mpts; i++) {
 	      if (i != ilo) {
             for (j = 0; j < ndim; j++) {
-              pr[j] = 0.5*(p[i + j * mp]+p[ilo + j * mp]);
+              pr[j] = 0.5f*(p[i + j * mp]+p[ilo + j * mp]);
               p[i + j * mp] = pr[j];
             }
             funk(pr, &y[i]);
@@ -224,6 +224,9 @@ void amoebainitfwrap(float *p, float *y, int *mp, int *ndim, float *delfac,
 /*
 
 $Log$
+Revision 1.2  2007/09/20 15:42:32  mast
+Documentation fixes
+
 Revision 1.1  2007/09/20 02:43:08  mast
 Moved to new library
 

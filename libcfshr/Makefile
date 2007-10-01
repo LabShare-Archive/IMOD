@@ -11,7 +11,9 @@ O     = $(OBJEXT)
 CFLAGS = $(LIBCFLAGS)
 
 UTILOBJS = b3dutil.$(O) ilist.$(O) parselist.$(O) amoeba.$(O) \
-	samplemeansd.$(O) colormap.$(O) cubinterp.$(O) reduce_by_binning.$(O)
+	samplemeansd.$(O) colormap.$(O) cubinterp.$(O) reduce_by_binning.$(O) \
+	scaledsobel.$(O) filtxcorr.$(O) taperpad.$(O) circlefit.$(O) \
+	insidecontour.$(O)
 
 PIPOBJS = parse_params.$(O) pip_fwrap.$(O) autodoc.$(O) adoc_fwrap.$(O)
 
@@ -36,7 +38,7 @@ clean :
 #
 # Some depends.
 #
-$(UTILOBJS) : $(INCDIR)/b3dutil.h
+$(UTILOBJS) : $(INCDIR)/b3dutil.h $(INCDIR)/cfsemshare.h
 ilist.c : $(INCDIR)/ilist.h
 b3dutil.$(O) :  ../.version
 $(PIPOBJS) : $(INCDIR)/parse_params.h
@@ -45,6 +47,9 @@ autodoc.$(O) : $(INCDIR)/autodoc.h
 adoc_fwrap.$(O) : $(INCDIR)/autodoc.h
 
 #  $Log$
+#  Revision 1.3  2007/09/20 03:18:57  mast
+#  Get the def entry right
+#
 #
 #  Revision 1.1  2007/09/20 02:43:08  mast
 #  Moved to new library

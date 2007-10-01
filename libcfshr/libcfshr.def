@@ -3,6 +3,7 @@
 LIBRARY      "libcfshr"
 
 EXPORTS
+	SETCTFWSR
 	AdocSetCurrent
 	PipGetLineOfValues
 	AdocGetTwoFloats
@@ -12,12 +13,16 @@ EXPORTS
 	ilistPop
 	ADOCGETTHREEFLOATS
 	cubinterp
+	TAPERINPADTST
+	MEANZERO
 	ADOCGETTWOINTEGERS
 	ADOCGETSTRING
+	sliceTaperOutPad
 	ADOCGETINTEGERARRAY
 	PipGetInteger
 	ADOCSETKEYVALUE
 	f2cString
+	sliceTaperInPad
 	PipAllowCommaDefaults
 	ilistNext
 	PIPGETTHREEFLOATS
@@ -43,6 +48,7 @@ EXPORTS
 	b3dHeaderItemBytes
 	imodBackupFile
 	AdocGetString
+	XCORRPEAKFIND
 	PIPNUMBEROFARGS
 	AdocGetThreeIntegers
 	B3DHEADERITEMBYTES
@@ -53,6 +59,8 @@ EXPORTS
 	PipParseInput
 	ADOCGETTHREEINTEGERS
 	b3dGetError
+	XCorrSetCTFnoScl
+	FILTERPART
 	AdocNew
 	PIPGETTWOFLOATS
 	PIPALLOWCOMMADEFAULTS
@@ -63,6 +71,7 @@ EXPORTS
 	sampleMeanSD
 	AdocWrite
 	ADOCDONE
+	INSIDECONTOUR
 	ilistAppend
 	AMOEBA
 	AdocGetFloatArray
@@ -102,16 +111,22 @@ EXPORTS
 	PIPPRINTHELP
 	PipGetFloat
 	PipSetError
+	SETCTFNOSCL
 	amoebaInit
 	PipGetIntegerArray
 	AdocGetSectionName
 	PIPGETTHREEINTEGERS
+	XCorrPeakFind
+	conjugateProduct
+	fitSphere
 	PipGetTwoIntegers
 	ADOCSETTWOFLOATS
 	PIPADDOPTION
 	AMOEBAINIT
 	ilistFirst
+	circleThrough3Pts
 	ilistLast
+	TAPEROUTPAD
 	PipGetTwoFloats
 	PIPREADSTDINIFSET
 	PipParseEntries
@@ -119,9 +134,12 @@ EXPORTS
 	PipReadStdinIfSet
 	CUBINTERP
 	ilistShift
+	XCorrFilterPart
 	PipNextArg
+	SCALEDSOBEL
 	ilistSize
 	b3dFread
+	XCorrSetCTF
 	PIPNUMBEROFENTRIES
 	PipGetBoolean
 	PIPGETSTRING
@@ -142,6 +160,7 @@ EXPORTS
 	mrc_big_seek
 	ilistDelete
 	PipSetSpecialFlags
+	scaledSobel
 	b3dRewind
 	IMODGETENV
 	ilistNew
@@ -156,6 +175,8 @@ EXPORTS
 	AdocSetTwoFloats
 	ADOCREAD
 	ilistDup
+	XCorrMeanZero
+	InsideContour
 	AdocGetFloat
 	ADOCNEW
 	b3dFseek
