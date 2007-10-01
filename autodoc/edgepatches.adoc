@@ -186,3 +186,9 @@ Patches will be smoothed before correlating with 3x3x3 kernel (for sigma <
 proportional to a Gaussian with the given sigma centered on the central
 pixel.
 
+[Field = TestMode]
+short = test
+type = I
+usage = Sum of 1 for verbose output and 2 to leave temporary files
+tooltip =
+manpage = 
