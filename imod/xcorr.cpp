@@ -14,6 +14,7 @@
 #include "xcorr.h"
 #include "mrcc.h"
 #include "cfft.h"
+#include "cfsemshare.h"
 #include "sliceproc.h"
 #include "imod.h"
 #include "imodview.h"
@@ -193,8 +194,8 @@ int sliceFourierFilter(Islice *sin, float sigma1, float sigma2, float radius1,
     sin->data.b[i + nx * (ny / 2)],sin->data.b[i + nx * (ny / 2 + 1)]); */
   
   XCorrSetCTF(sigma1, sigma2, radius1, radius2, ctf, nxpad, nypad, &delta);
-  XCorrTaperOutPad((void *)sin->data.b, sin->mode, nx, ny, brray, nxpad + 2,
-                   nxpad, nypad);
+  sliceTaperOutPad((void *)sin->data.b, sin->mode, nx, ny, brray, nxpad + 2,
+                   nxpad, nypad, 0, 0.);
   /* for (i = 0; i < nxpad; i++)
      imodPrintStderr("%d %f %f %f\n", i, brray[i + (nxpad + 2) *
      ( nypad / 2 -1 )], brray[i + (nxpad + 2) * nypad / 2], 
@@ -225,106 +226,6 @@ int sliceFourierFilter(Islice *sin, float sigma1, float sigma2, float radius1,
   return 0;
 }
 
-
-/*  TAPEROUTPAD pads an image, dimensions NXBOX by NYBOX in ARRAY,
- *  into the center of a larger array.  The padded image in BRRAY will
- *  have size NX by NY while the BRRAY will be dimensioned NXDIM by NY
- *  The values of the image at its edge will be tapered out to the mean at
- *  the pre-existing edge of the image
- */
-void XCorrTaperOutPad(void *array, int type, int nxbox, int nybox, 
-                      float *brray, int nxdim, int nx, int ny)
-{
-  b3dUByte *bytein;
-  b3dInt16 *intin;
-  b3dUInt16 *uintin;
-  float *floatin;
-  float *out;
-  int ixlo, ixhi, iylo, iyhi, ix, iy, nxtop, nytop, iytoplin;
-  float sum, dmean, edgel, edger, wedge, wmean, prodmean;
-
-  ixlo = (nx - nxbox) / 2;
-  ixhi = ixlo + nxbox;
-  iylo = (ny - nybox) / 2;
-  iyhi = iylo + nybox;
-  for (iy = nybox - 1; iy >= 0; iy--) {
-    out = brray + ixhi + (iylo + iy) * nxdim - 1;
-    switch (type) {
-    case SLICE_MODE_BYTE:
-      bytein = (b3dUByte *)array + (iy + 1) * nxbox - 1;
-      for (ix = nxbox - 1; ix >= 0; ix--)
-        *out-- = *bytein--;
-      break;
-      
-    case SLICE_MODE_SHORT:
-      intin = (b3dInt16 *)array + (iy + 1) * nxbox - 1;
-      for (ix = nxbox - 1; ix >= 0; ix--)
-        *out-- = *intin--;
-      break;
-      
-    case SLICE_MODE_USHORT:
-      uintin = (b3dUInt16 *)array + (iy + 1) * nxbox - 1;
-      for (ix = nxbox - 1; ix >= 0; ix--)
-        *out-- = *uintin--;
-      break;
-      
-    case SLICE_MODE_FLOAT:
-      floatin = (float *)array + (iy + 1) * nxbox - 1;
-      for (ix = nxbox - 1; ix >= 0; ix--)
-        *out-- = *floatin--;
-      break;
-    }
-  }
-
-  /* Do the taper if there is any padding */
-  if (nxbox != nx || nybox != ny) {
-    sum=0.;
-    for (ix = ixlo; ix < ixhi; ix++)
-      sum += brray[ix + iylo * nxdim] + brray[ix + (iyhi - 1) * nxdim];
-
-    for (iy = iylo + 1; iy < iyhi - 1; iy++)
-      sum += brray[ixlo + iy * nxdim] + brray[ixhi - 1 + iy * nxdim];
-
-    dmean = sum / (2 * (nxbox + nybox - 2));
-    nxtop = nx - 1;
-    nytop = ny - 1;
-
-    /*  if there is a mismatch between left and right, add a column on 
-        right; similarly for bottom versus top, add a row on top */
-    if (nx - ixhi > ixlo) {
-      nxtop--;
-      for (iy = 0; iy < ny; iy++)
-        brray[nx - 1 + iy * nxdim] = dmean;
-    }
-    if (ny - iyhi > iylo) {
-      nytop--;
-      for (ix = 0; ix < nx; ix++)
-        brray[ix + (ny - 1) * nxdim] = dmean;
-    }
-    
-    for (iy = iylo; iy < iyhi; iy++) {
-      edgel = brray[ixlo + iy * nxdim];
-      edger = brray[ixhi - 1 + iy * nxdim];
-      for (ix = 0; ix < ixlo; ix++) {
-        wedge = ((float)ix) / ixlo;
-        wmean = 1. - wedge;
-        brray[ix + iy * nxdim] = wmean * dmean + wedge * edgel;
-        brray[nxtop - ix + iy * nxdim] = wmean * dmean + wedge * edger;
-      }
-    }
-
-    for (iy = 0; iy < iylo; iy++) {
-      wedge = ((float)iy) / iylo;
-      prodmean = (1. - wedge) * dmean;
-      iytoplin = nytop - iy;
-      for (ix = 0; ix < nx; ix++) {
-        brray[ix + iy * nxdim] = prodmean + wedge * brray[ix + iylo * nxdim];
-        brray[ix + iytoplin * nxdim] = prodmean + 
-          wedge * brray[ix + (iyhi - 1) * nxdim];
-      }
-    }
-  }
-}
 
 /* Extract a subarea from a float ARRAY with X dimension NXDIM, with the 
  * subarea starting at IXLO, IYLO and having size NX by BY.  Place it into
@@ -412,123 +313,11 @@ void XCorrExtractConvert(float *array, int nxdim, int ixlo, int iylo,
 }
 
 
-/*  SETCTF takes the filter parameters SIGMA1,2 and RADIUS1,2 and sets
-    up the contrast
-    transfer function in the array CTF, which should be dimensioned
-    at least 8193.  The real image size is NX by NY, and the step
-    size between CTF values is returned in DELTA, or 0 if no filtering
-    is selected.
-*/
-
-void XCorrSetCTF(float sigma1, float sigma2, float radius1, float radius2,
-                 float *ctf, int nx,int ny, float *delta)
-{
-  double beta1, beta2, alpha;
-  float asize, s, ssqrd, sum, scl;
-  int nsize, j;
-
-  *delta=0.;
-  if(sigma1 == 0. && sigma2 == 0.)
-    return;
-
-  alpha = 0.0;
-  beta1 = 0.0;
-  beta2 = 0.0;
-  nsize = 1024;
-  if (2 * nx > nsize)
-    nsize = 2 * nx;
-  if (2 * ny > nsize)
-    nsize = 2 * ny;
-  if (nsize > 8192)
-    nsize = 8192;
-       
-  asize = nsize;
-  nsize = nsize + 1;
-  if ((sigma1 >= 0 ? sigma1 : -sigma1) > 1.e-6)
-    alpha = -0.5/(sigma1 * sigma1);
-  if ((sigma2 >= 0 ? sigma2 : -sigma2) > 1.e-6)
-    beta1  = -0.5/(sigma2*sigma2);
-  beta2=beta1;
-  *delta = 1.0/(.71*asize);
-  s = 0.0;
-  for (j = 0; j < nsize; j++) {
-    if (s < radius1) 
-      ctf[j] = exp(beta1*(s - radius1)*(s - radius1));
-    else if (s > radius2)
-      ctf[j] = exp(beta2*(s - radius2)*(s - radius2));
-    else
-      ctf[j] = 1.0;
-
-    s = s + *delta;
-    if(sigma2 < -1.e-6) ctf[j]=1. - ctf[j];
-  }
-  if (sigma1 > 1.e-6) {
-    s=0.;
-    for (j = 0; j < nsize; j++) {
-      ctf[j] = ctf[j]*(1.0 - exp(alpha*s*s));
-      s = s + *delta;
-    }
-  } else if (sigma1 < -1.e-6) {
-    s=0.;
-    for (j = 0; j < nsize; j++) {
-      ssqrd=s*s;
-      ctf[j]=ctf[j]*ssqrd*exp(alpha*ssqrd);
-      s = s + *delta;
-    }
-  }
-  sum = 0.0;
-  for (j = 1; j < nsize; j++)
-    sum = sum + ctf[j];
-
-  scl = asize/sum;
-  for (j = 1; j < nsize; j++)
-    ctf[j] = ctf[j]*scl;
-  return;
-}
-
-/*  FILTERPART applies the filter in CTF to the array in FFT, puts result
-    into ARRAY.  NX and NY are real image dimensions, DELTA is the
-    interval in reciprocal space for the CTF.
-*/
-
-void XCorrFilterPart(float *fft, float *array, int nx, int ny, float *ctf, 
-                     float delta)
-{
-  float x, delx, dely, y, s;
-  double y2;
-  int ix, iy, index, ind, indp1, indf, nxo2, nx21, nym1;
-
-  nxo2 = nx/2;
-  nx21 = nxo2 + 1;
-  nym1 = ny - 1;
-  delx = 1.0/nx;
-  dely = 1.0/ny;
-
-  /*   apply filter function on fft, put result in array */
-
-  index = 0;
-  for (iy = 0; iy <= nym1; iy++) {
-    y = iy*dely;
-    if (y > 0.5)
-      y = 1.0 - y;
-    y2 = y*y;
-    x = 0.0;
-    for (ix = 0; ix <= nxo2; ix++) {
-      ind = 2 * (index + ix);
-      indp1 = ind + 1;
-      s = sqrt(x*x + y2);
-      indf = (int)(s/delta + 0.5f);
-      array[ind] = fft[ind] * ctf[indf];
-      array[indp1] = fft[indp1] * ctf[indf];
-      x = x + delx;
-    }
-    index = index + nx21;
-  }
-  return;
-}
-
 /*
 $Log$
+Revision 1.10  2007/09/14 05:26:12  mast
+moved niceframe to library
+
 Revision 1.9  2007/08/15 00:05:42  mast
 Moved XCorrTaperInPad to libiimod and renamed
 
