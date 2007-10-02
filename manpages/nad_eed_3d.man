@@ -63,7 +63,9 @@ iterations, all into the same output file.
 .B -o <value>
 Single slice to output (numbered from 1).  This option is useful when
 adjusting parameters if you can
-judge the performance by looking at just one slice.
+judge the performance by looking at just one slice.  It will not make the
+program do the computation on only one slice; it will still operate on the
+whole input volume.
 .TP
 .B -m <value>
 Mode for output file: 0 for byte, 1 for integer, 2 for real.  By default, the
