@@ -1,5 +1,17 @@
 IMOD History
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+10/1/07: IMOD_3-10-19
+10/1/07: Added test mode output to Edgepatches.
+
+10/1/07: Handling of defocus values in multiple tilt ranges improved in 
+Ctfphaseflip; documentation of defocus file fixed.
+
+10/1/07: Fixed bug in filter setup function that would crash Tiltxcorr if run
+with no filtering (broken in 3.10.10).
+
+9/28/07: Etomo now supports parallel processing on a cluster defined in 
+cpu.adoc, and queuechunk is fixed to work better on a PBS queue.
+
 9/24/07: IMOD_3-10-18
 9/24/07: Copytomocoms now sets up a SCALE entry in tilt.com that roughly 
 compensates for the dependence of Tilt's scaling on the width of the input 
