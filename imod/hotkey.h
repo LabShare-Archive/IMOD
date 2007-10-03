@@ -1,4 +1,4 @@
-char *Imod_hotkey_help[] = {
+/*char *Imod_hotkey_help[] = {
 "3dmod Help for Hot Keys\n",
 "----------------------\n",
 "The following hot keys are available in the Zap, XYZ and Slicer Windows.\n",
@@ -96,4 +96,4 @@ CTRL_STRING"-R\tRaise all 3dmod windows above other windows.\n"
 "\n",
 "\n",
 "",
- NULL};
+ NULL};*/
