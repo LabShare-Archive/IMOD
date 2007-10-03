@@ -6,14 +6,13 @@
  * Copyright Max-Planck-Institut for Biochemistry, Martinsried, Germany
  * Incorporated into IMOD with permission
  * Changes for IMOD are confined to main() amd associated routines at end
+ *
+ *  $Id$
  */
-/*  $Author$
+/*  $Log$
+    Revision 3.6  2007/10/03 22:54:33  mast
+    Added support for mode 6 using new function
 
-    $Date$
-
-    $Revision$
-
-    $Log$
     Revision 3.5  2006/06/26 14:42:04  mast
     Removed imodel include
 
@@ -967,7 +966,8 @@ void usage(char *progname, float ht, int pmax, float sigma, float lambda)
          "\t-n #\tNumber of iterations (default %d)\n"
          "\t-i list\tList of iterations at which to write output\n"
          "\t-o #\tOutput only the given Z slice (numbered from 1)\n"
-         "\t-m #\tMode for output file, 0=byte, 1=int, 2=real\n"
+         "\t-m #\tMode for output file, 0=byte, 1=int, 2=real, 6=unsigned int"
+         "\n"
          "\t-s #\tSigma for smoothing of structure tensor (default %.1f)\n"
          "\t-t #\tTime step (default %.2f)\n",
          progname, progname, lambda, pmax, sigma, ht);
