@@ -68,7 +68,8 @@ program do the computation on only one slice; it will still operate on the
 whole input volume.
 .TP
 .B -m <value>
-Mode for output file: 0 for byte, 1 for integer, 2 for real.  By default, the
+Mode for output file: 0 for byte, 1 for integer, 2 for real, or 6 for unsigned
+integer.  By default, the
 output file will have the same mode as the input file.  This works for byte
 data because densities will never
 become more extreme than in the original volume.  However, if you have byte
