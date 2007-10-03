@@ -288,7 +288,7 @@ mkdir -p $lib_dir
 # Manage files that have to be in place before qmakes are run
 # update imod_assistant files in subsidiary directories
 #
-foreach dir ($qtassist_dir $ctfplot_dir)
+foreach dir ($qtassist_dir $ctfplot_dir $midas_dir)
     \find $dir -name imod_assistant.cpp ! -newer $imod_dir/imod_assistant.cpp -exec \rm -f '{}' \;
     \find $dir -name imod_assistant.h ! -newer $imod_dir/imod_assistant.h -exec \rm -f '{}' \;
     if (! -e $dir/imod_assistant.cpp) \cp $imod_dir/imod_assistant.cpp $dir
@@ -931,6 +931,9 @@ exit
 
 #
 #  $Log$
+#  Revision 1.33  2007/09/20 05:14:08  mast
+#  Added fortran lob variable for ctfplotter, edited Makefile only for Linux
+#
 #  Revision 1.32  2007/09/19 23:45:37  mast
 #  Changes for library rearrangements
 #
