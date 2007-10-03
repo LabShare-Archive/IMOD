@@ -186,6 +186,25 @@ void sliceClear(Islice *s, Ival val)
   return;
 }
 
+/*!
+ * For the MRC_MODE_... type in [mrcMode], returns the corresponding defined
+ * SLICE_MODE_... value if the mode is byte, signed or unsigned short integer, 
+ * or float, otherwise returns -1.
+ */
+int sliceModeIfReal(int mrcMode)
+{
+  if (mrcMode == MRC_MODE_BYTE)
+    return SLICE_MODE_BYTE;
+  else if (mrcMode == MRC_MODE_SHORT)
+    return SLICE_MODE_SHORT;
+  else if (mrcMode == MRC_MODE_USHORT)
+    return SLICE_MODE_USHORT;
+  else if (mrcMode == MRC_MODE_FLOAT)
+    return SLICE_MODE_FLOAT;
+  return -1;
+}
+
+
 /*! Returns the X size of [slice] */
 int sliceGetXSize(Islice *slice)
 {
@@ -1788,6 +1807,9 @@ int mrc_vol_wrap(struct MRCvolume *v)
 
 /*
 $Log$
+Revision 3.18  2007/09/12 17:09:30  xiongq
+add comments to sliceNewMode
+
 Revision 3.17  2007/02/04 21:16:57  mast
 Fixing stupid things in checkin
 
