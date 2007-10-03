@@ -30,6 +30,9 @@ $Date$
 $Revision$
 
 $Log$
+Revision 3.5  2003/09/16 02:07:24  mast
+Changed to copy image data into a buffer using new line pointers
+
 Revision 3.4  2003/05/12 19:13:06  mast
 Fix hot key spelling
 
@@ -621,55 +624,7 @@ void LineTrack::buttonPressed(int which)
     close();
     break;
   case 4:
-    dia_vasmsg
-      ("Line Track Plugin Help\n\n",
-       "Line Track will create points along a line between "
-       "the current selected model point and the previous "
-       "point.  It does this by filtering with a collection "
-       "of elongated kernels at a range of orientations.\n",
-       "\nThis Plugin also has a Contour Copying function which will "
-       "copy the current contour onto an adjacent section (the "
-       "section being displayed) then adjust the position of the "
-       "contour to match the image on that section.  It uses kernels "
-       "that are shaped like the contour.\n\n",
-       "Hot Keys: Space bar to add points between the last and the "
-       "current point\n",
-       "          Ctrl-Space to track from the current point "
-       "and close the contour\n",
-       "          Apostrophe to copy contour to current section\n",
-       "          u or Semicolon to undo last action\n",
-       "\nParameters:\n\n",
-       "0 Light, 1 Dark Lines: Set to 0 or 1 to follow bright "
-       "or dark lines.\n\n",
-       "Offset from line: Amount to offset model points from the "
-       "center of the line.  Set positive for a positive offset "
-       "when modeling to the right.\n\n"
-       "Sigma (Line width): Sigma is actually the half-width of "
-       "the central part of the kernel, but should be set to somewhat "
-       "more than half the width of the lines you are trying to "
-       "track.\n\n",
-       "H (half-length): The half-length of the kernel in its "
-       "elongated direction.\n\n",
-       "Kernel Half-size: Should be at least H and 3 * Sigma "
-       "but could be reduced to run faster.\n\n",
-       "Reduction Tolerance: After finding a path, the program will "
-       "remove any points that are within this distance of lines "
-       "between the remaining points.\n\n",
-       "Copy Tolerance: Maximum distance that the program will search "
-       "for best position when copying a contour to a new section.\n\n"
-       "Copy Pooling: Number of points that will be considered "
-       "together when trying to shift a particular point.  Bigger "
-       "numbers will give more smoothing.  With a positive value, the "
-       " point being shifted will be given the most weight; with a "
-       "negative value, all points will be given equal weight, "
-       "resulting in even more smoothing.\n\n"
-       "Copy Smoothing: Number of points to fit to in the final "
-       "smoothing of the contour (0 for no smoothing, higher values "
-       "for more smoothing).\n\n"
-       "Number of Kernels: Could be reduced to run faster.\n\n",
-       "Step Size: Size of step to move between points; could be "
-       "reduced to run faster.\n",
-       NULL);
+    imodShowHelpPage("lineTracker.html");
     break;
   }
 }

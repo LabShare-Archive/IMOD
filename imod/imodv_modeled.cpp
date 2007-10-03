@@ -37,43 +37,7 @@ static void updateWorkArea(void);
 
 void imodvModeledHelp()
 {
-  dia_vasmsg
-    ("Model Edit Dialog Help.\n\n",
-     "\tMultiple models can be loaded with 3dmodv, either on the command "
-     "line or through the File menu.  ",
-     "To page through the different models use the Current ",
-     "Model # spin button box or the 9 and 0 hot keys.\n\n",
-     "\tThe Move radio buttons allow one to choose between ",
-     "having actions move just the current model, \"One\", or ",
-     "having actions move \"All\" of the models.\n\n",
-     "\tThe View selection box allows one to choose between ",
-     "viewing just the current model, viewing the ",
-     "current ",
-     "model and the previous model, viewing the current ",
-     "model and the next model, ",
-     "or viewing all of the models.  The 8 hot key toggles between viewing "
-     "one and viewing all models.\n\n"
-     "\tThe Edit radio buttons toggle between editing just ",
-     "the current model, \"One\", and editing \"All\" of the ",
-     "models for each model edit.  This can include editing done ",
-     "in the Edit Objects and Edit Controls menus.\n",
-     "\tIn the Edit Objects menu, numerous features can be changed in "
-     "tandem for the same object in all models, or even for all objects "
-     "in all models.  These include: material properties, "
-     "transparency, point size, line width, the drawing data type and "
-     "style, object color, and whether objects are on or off.\n"
-     "\tIn the Edit Controls menu, the clipping planes and perspective "
-     "can be changed together, and typing a value into the [Scale] "
-     "box will set all models to the same scale.  If the zoom is "
-     "changed with arrow buttons or hot keys, all models will change "
-     "their zoom by the same amount.\n\n",
-     "\tThe \"Internal name\" text box allows you to enter a name that is "
-     "stored in the Imod model, separate from the filename.\n\n"
-     "\tThe \"Pixel size\" text box allows you to set the pixel size of "
-     "the model, which is needed for extracting quantitative information.  "
-     "Enter a number then the units of measurement.  Available units are "
-     "km, m, cm, um, nm, A, and pm.\n",
-     NULL);
+  imodShowHelpPage("modvModelEdit.html");
   return;
 }
 

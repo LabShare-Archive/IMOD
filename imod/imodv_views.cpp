@@ -112,53 +112,7 @@ void imodvAutoStoreView(ImodvApp *a)
 
 void imodvViewsHelp()
 {
-  dia_vasmsg
-    ("View Edit Dialog Help.\n\n",
-     "\tEvery model is initialized with one view that is continually updated "
-     "as you change the model display, and that is saved with the model.  "
-     "This dialog lets you save additional, independent views.\n"
-     "\tWhen you store a view, you save the orientation, size, and "
-     "lighting conditions of the whole model, and also the color,"
-     " display type, material, and other properties of all of the "
-     "objects.\n\n"
-     "\tClick a view in the list to select and"
-     " display it.\n"
-     "\tThe [Store] button stores the properties of the current display"
-     " in the currently selected view.\n"
-     "\tThe [Revert] button returns the display to the stored values of"
-     " the currently selected view.\n"
-     "\tThe [Delete] button deletes the currently selected view.\n"
-     "\tThe [New View] button adds a new view to the list, with the "
-     "properties of the current display.\n",
-     "\tThe [Save Model] button will save the model to a file and make "
-     "the existing file be a backup with extension ~.\n"
-     "\tThe [Autostore] toggle button controls whether view changes are "
-     "automatically saved for you.  If this button is selected, the "
-     "current display properties are stored into the current view "
-     "whenever you go to a different view and whenever you save the "
-     "model.  In other words, what you see is what you save, without "
-     "your having to push the [Store] button.  To return to the stored "
-     "settings of a view when operating in this mode, press the [Revert]"
-     "button or double-click on the view in the list "
-     "before going on to a different view or saving the model.  If "
-     "[Autostore] is not selected, your display changes are not saved "
-     "into the current view unless you push [Store]."
-     "\n\n"
-     "\tYou can edit the name of the currently selected view in the "
-     "edit box at the bottom.  Press Enter after changing a name.\n\n"
-     "\tHot keys: The regular up and down arrow keys (not the ones in the "
-     "numeric keypad) can be used to go up or down by one view, and PageUp and"
-     " PageDown can be used to go up or down in the list by many views.  "
-     "Escape will close the dialog box, and "
-     "other keys are passed on to the model display window.\n\n",
-     "\tWhen you create a new object, its properties will be added to all of "
-     "the views when you take some action that causes views to be stored "
-     "(i.e., pushing [Store], going to another view, or saving the model when "
-     "[Autostore] is selected).  This means that if you have more than one "
-     "view, you should set the basic object properties such as open versus "
-     "closed or 3-D point size before saving or changing views, otherwise only"
-     " the current view will acquire those new properties.",
-     NULL);
+  imodShowHelpPage("modvViewEdit.html");
   return;
 }
 
@@ -406,6 +360,9 @@ static void build_list(ImodvApp *a)
 /*
 
     $Log$
+    Revision 4.10  2005/10/13 20:08:00  mast
+    Add bin scaling argument (1)
+
     Revision 4.9  2004/11/21 06:07:49  mast
     Changes for undo/redo
 

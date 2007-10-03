@@ -1187,10 +1187,10 @@ void InfoWindow::helpSlot(int item)
       dia_smsg(Imod_help_text);
     break;
   case HELP_MENU_MENUS:
-    dia_smsg(Imod_menus_help);
+    imodShowHelpPage("menus.html");
     break;
   case HELP_MENU_HOTKEY:
-    dia_smsg(Imod_hotkey_help);
+    imodShowHelpPage("keyboard.html");
     break;
 
   case HELP_MENU_ABOUT:
@@ -1260,6 +1260,9 @@ static int imodContourBreakByZ(ImodView *vi, Iobj *obj, int ob, int co)
 
 /*
   $Log$
+  Revision 4.33  2007/08/13 16:04:50  mast
+  Changes for locator window
+
   Revision 4.32  2007/07/08 16:46:48  mast
   Added object combine
 

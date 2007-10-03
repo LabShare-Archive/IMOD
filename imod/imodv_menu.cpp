@@ -92,116 +92,15 @@ void imodvHelpMenu(int item)
 {
   switch(item) {
   case VHELP_MENU_MENUS:
-    dia_vasmsg
-      ("3dmodv Help for menus\n",
-       "---------------------------------\n",
-       "File Menu:\n",
-       "     Open Model\t\tLoad a new model to view.\n",
-       "     Save Model\t\tSave the current model.\n",
-       "     Save Model As...\tSave model under a different name.\n",
-       "     Snap TIFF As...\tSave a snapshot to a specified TIFF file.\n",
-       "     Snap NonT As...\tSave a snapshot to a specified non-TIFF file.\n",
-       "     Zero Snap File #\tReset the counter for snapshot files to 0.\n",
-       "     Movie...\t\tProgram a sequence of displays and save them.\n",
-       "     Close\t\tQuit 3dmodv or close model view window in imod.\n",
-                
-       "\nEdit Menu:\n",
-       "     Objects...\t\tOpen the object edit dialog.\n",
-       "     Controls...\t\tOpen the display control dialog.\n",
-       "     Object List...\t\tShow objects by name with On/Off buttons.\n",
-       "     Background...\tChange the background color.\n",
-       "     Models...\t\tControl the display of multiple models.\n",
-       "     Views...\t\tOpen a dialog to save and restore views.\n",
-       "     Image...\t\tDisplay an image slice on the model.\n",
-                
-       "\nView - Rendering Options\n",
-       "     Double Buffer\tChange between double and single\n",
-       "\t\t\t     buffer visual.\n",
-       "     Lighting\t\tTurn rendering with a light on or off.\n"
-       "     Wireframe\t\tRender data in wireframe only.\n",
-       "     Low Res\t\tDisplay low resolution mesh.\n",
-       "     Stereo...\t\tOpen stereo control dialog.\n",
-       "     Depth Cue...\t\tControl dimming of display with distance.\n",
-       NULL);
+    imodShowHelpPage("modvMenus.html");
     break;
 
   case VHELP_MENU_KEYBOARD:
-    dia_vasmsg
-      ("3dmodv Help for Keyboard Commands\n",
-       "----------------------------------------------------------\n",
-       "\nKeys \tCommand \n",
-       "----------------------------------------------------------\n",
-       "Arrows\tTranslate model in x and y\n",
-       "Page  \tUp and Down keys translate model in z\n",
-       "Keypad\tRotates model in x, y and z. the '5' key toggles\n",
-       "      \tmovie mode on/off\n"
-       " Esc/q\tQuit this program\n",
-       "  s   \tToggle stereo mode\n",
-       "  S   \tSnapshot image as a non-TIFF file to modvnnnn.xxx\n",
-       CTRL_STRING"-S\tSnapshot image as a TIFF file to modvnnnn.tif\n",
-       "  o   \tOutput transformation information and movie frames/sec\n",
-       "  c   \tOutput clipping plane information\n",
-       " -/=  \tDecrease/Increase zoom\n",
-       " _/+  \tDecrease/Increase zoom by big steps\n"
-       "  m   \tOpen movie control window\n",
-       "  O   \tOpen Object Edit window\n",
-       "  C   \tOpen controls window\n",
-       "  B   \tOpen background color window\n",
-       "  L   \tOpen Object List window\n",
-       "  M   \tOpen model selection window\n",
-       "  V   \tOpen view editing window\n",
-       "  I   \tOpen image overlay control window\n",
-       "  I   \tOpen Z plane image overlay\n",
-       "  b   \tToggle double buffering\n",
-       "  r   \tToggle low resolution drawing of mesh and spheres\n",
-       " g/G  \tIncrease/Decrease the quality of sphere drawing\n",
-       " [/]  \tAdjust parallax for stereo viewing\n",
-       "  l   \tInvert the parallax angle\n",
-       " ,/.  \tDecrease/Increase rotation increment and speed\n",
-       " 1/2  \tDecrease/Increase time for 4D models\n",
-       "  8   \tToggle displaying all models or one model\n",
-       " 9/0  \tPrevious/Next model\n",
-       CTRL_STRING"-A\tSelect all visible contours in current object\n",
-       " D    \tDelete selected contour(s) if picked in model view\n",
-       "----------------------------------------------------------\n",
-       NULL);
+    imodShowHelpPage("modvKeyboard.html");
     break;
   
   case VHELP_MENU_MOUSE:
-    dia_vasmsg
-      ("3dmodv Help for Mouse Controls\n",
-       "----------------------------------------------------------\n",
-       "Left Mouse Button Drag\n",
-       "\tThe left mouse button moves the model when held down.\n\n",
-       "\tWhen the "CTRL_STRING" key is held down the left mouse button "
-       "moves the current object clipping plane.\n\n",
-       "Middle Mouse Button Drag\n",
-       "\tThe middle mouse button rotates the model around an axis "
-       "perpendicular to the direction of motion of the mouse.  It can also "
-       "be used to \"throw\" the model in a new direction if the model "
-       "is already rotating automatically, or if a button or hot key has been "
-       "pressed to start rotation.  The model will rotate continuously in the "
-       "direction of movement, and the speed of rotation will be proportional "
-       "to the distance moved.  (Moving 100 pixels will make it rotate at "
-       "the standard speed.)\n\n"
-       "\tWhen the Shift key is held down the middle ",
-       "mouse button rotates the light source instead.\n\n",
-       "\tWhen the "CTRL_STRING" key is held down the middle mouse button "
-       "rotates the current object clipping plane instead.\n\n",
-       "Right Mouse Button\n",
-       "\tWhen running Model View from 3dmod, clicking on a point in the "
-       "model with the right mouse button will select the nearest, "
-       "frontmost point in the model as the current model point within "
-       "3dmod.  As in 3dmod, multiple contours can be selected by holding the "
-       CTRL_STRING" key down; click on a contour to add it to the set of "
-       "selected contours or to remove it from the set if it is already "
-       "selected.  Dragging the mouse with the right button down and the "
-       CTRL_STRING" key down will add contours that are crossed by the mouse "
-       "to the set of selected contours.  "
-       "Note that "CTRL_STRING"-A can also be used to select all "
-       "contours that are being drawn in the current object (excluding ones "
-       "that are completely clipped).\n",
-       NULL);
+    imodShowHelpPage("modvMouse.html");
     break;
 
   case VHELP_MENU_ABOUT:
@@ -620,6 +519,9 @@ void ImodvBkgColor::keyReleaseSlot ( QKeyEvent * e )
 
 /*
 $Log$
+Revision 4.22  2007/07/08 16:57:00  mast
+Added to mouse help
+
 Revision 4.21  2006/10/11 23:52:44  mast
 Changed RGB to NonT in menu
 

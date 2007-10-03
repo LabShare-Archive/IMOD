@@ -382,21 +382,7 @@ void ContourBreak::buttonPressed(int which)
     break;
 
   case 2: 
-    dia_vasmsg
-      ("Contour Break Help:\n\n"
-       "Break a single contour into two contours.  "
-       "The break will occur at one or two set points.  "
-       "To set a point, first select the current point then "
-       "select the [Set 1] or [Set 2] button.\n\n",
-       "If only one set point is set the original contour will "
-       "contain all the points before the set point and a new "
-       "contour will contain the set point and all the points "
-       "after the set point.\n\n",
-       "If both points are set the second contour will contain "
-       "points between and including the two set points "
-       " and the first contour "
-       "will contain the remaining points.",
-       NULL);
+    imodShowHelpPage("contourBreak.html");
     break;
   }
 }
@@ -1827,107 +1813,7 @@ void iceGhostToggled(int state, int flag)
 
 void iceShowHelp()
 {
-  dia_vasmsg
-    ("Surface/Contour/Point Edit Help\n"
-     "---------------------------\n\n",
-                
-     "Surface controls:\n",
-     "------------------------\n",
-     "Each contour has its own surface number.  "
-     "The surface number can be used for subgrouping contours "
-     "without having to create new objects.  The surface number "
-     "of the current contour is displayed in the spin box.  To the right "
-     "of the spin box is the maximum surface number in the current object "
-     "(\"/ #\").  You can go to the first contour in the next or previous "
-     "surface by clicking the up or down arrows of the spin box; or you can "
-     "go to the first contour of any surface by entering a number "
-     "in the box and pressing Enter.\n\n",
-                
-     "The Surface Up and Down arrows can be used to move to the "
-     "first contour in the next or previous surface, respectively. "
-     "Non-existent surfaces are skipped when you move between surfaces by "
-     "either means.  If you enter the number of a non-existent surface, the "
-     "program selects the nearest available surface.\n\n"
-
-     "The \"Contour in surf\" Up and Down arrows can be used to "
-     "step to the next and previous contours within the current "
-     "surface.\n\n"
-
-     "The \"New Surf\" button will start a new surface with the "
-     "next free number and "
-     "create an empty contour with that surface number.\n\n"
-
-     "The \"Ghost\" toggle button may be used during model "
-     "editing to highlight the current contour, along with all "
-     "other contours with the same surface number. \n\n",
-
-     "It is possible to have a label for each surface.  The \"Label\" text "
-     "box shows the label of the current surface; simply enter or change "
-     "text in this box.\n\n"
-
-     "Contour controls:\n",
-     "-----------------\n",
-     "The \"Closed\" and \"Open\" radio buttons select between closed and "
-     "open contours in an object defined as having closed contours.  "
-     "The default is a closed contour where the last point is "
-     "connected to the first.  ",
-     "An open contour will not be connected between the "
-     "last and first points, thus allowing a partially cut surface "
-     "to be represented by an object containing both closed and "
-     "open contours.  This setting has no effect for an object "
-     "defined as having open or scattered point contours, so the buttons are "
-     "disabled in that case.\n\n",
-
-     "The time index of contours in 4-dimensional datasets can "
-     "be changed with the Time Index spin box.  "
-     "The box shows the time index of the current contour, which can be "
-     "incremented or decremented with the spin box arrows, or changed by "
-     "typing in a new number followed by Enter.  Contours with a non-zero "
-     "time index display at only the relevant time; contours with a zero "
-     "index display at all times.  This box is active only "
-     "when the Time Data toggle is selected for the particular "
-     "object in the Edit-Object-Type dialog.\n\n"
-
-     "It is possible to have a label for each contour.  The \"Label\" text "
-     "box shows the label of the current contour; simply enter or change "
-     "text in this box.\n\n"
-
-     "Point controls:\n",
-     "-----------------\n",
-     "It is possible to assign a size for each point.  "
-     "Any point with an individual size will be displayed as a 3D sphere of "
-     "this radius, even if the object type is not scattered points.  "
-     "The units are pixels in the image file, i.e., unbinned "
-     "pixels if images are loaded in binned.  Points without a size will still"
-     " be displayed at "
-     "the size specified for the object as a whole.  You can "
-     "change a size either by typing a number into the text box "
-     "(followed by Enter) or by using the slider.  If a point has "
-     "no size, the text box displays global point size for the object and "
-     "\"-Default\".\n\n",
-
-     "Each individual point can also have its own label..  The \"Label\" text "
-     "box shows the label of the current point; simply enter or change "
-     "text in this box.\n\n"
-
-     "Section ghost controls:\n",
-     "-----------------\n",
-     "These items may be used to control "
-     "the section-to-section ghost display mode.  Use the spin box to set "
-     "the maximum number of sections that contours will be displayed as "
-     "ghosts on.  For example, with a value of 3, contours will be displayed "
-     "as ghosts from up to 3 sections away.  If the \"Up\" "
-     "box is checked, then contours will be displayed as ghosts on "
-     "following sections; the \"Down\" check box will display contours "
-     "as ghosts on previous sections.  The \"g\" hot key will "
-     "toggle "
-     "the combination selected by these boxes on and off.\n\n",
-     "If \"Lighter\" box is checked, the ghost contours will be displayed "
-     "in a lighter color, otherwise they will be drawn with a darker color.  "
-     "If the \"All objects\" box is checked, ghosts will be drawn for "
-     "all objects instead of just for the current object.\n\n",
-     NULL);
-
+  imodShowHelpPage("contourType.html");
   return;
 }
 
@@ -1966,6 +1852,9 @@ void ContourFrame::keyReleaseEvent ( QKeyEvent * e )
 /*
 
 $Log$
+Revision 4.28  2006/09/12 15:34:53  mast
+Handled contour member renames
+
 Revision 4.27  2006/02/27 19:46:16  mast
 Moved go to surface functionality to imod_input, needed from finegrain too
 
