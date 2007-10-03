@@ -7,7 +7,6 @@ HEADERS	+= autox.h \
 	b3dgfx.h \
 	b3dfile.h \
 	imod_edit.h \
-	hotkey.h \
 	imod_client_message.h \
 	imod.h \
 	imod_info.h \
@@ -25,7 +24,6 @@ HEADERS	+= autox.h \
 	imodv.h \
 	imod_workprocs.h \
 	iproc.h \
-	menus.h \
 	slicer_classes.h \
 	sslice.h \
 	xtum.h \
