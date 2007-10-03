@@ -1,0 +1,113 @@
+<head>
+<title>Information Window Menus</title>
+</head>
+<H2>Information Window Menus</H2>
+<P>
+<UL>
+<LI><B>File</B> Menu
+<UL>
+<LI><B>New Model</B>:&emsp;Clear current model and creates a new one.
+<LI><B>Open Model</B>:&emsp;Load a new model file.
+<LI><B>Reload Model</B>:&emsp;Reload the current model from file.
+<LI><B>Save Model</B>:&emsp;Save model file to current file name.
+<LI><B>Save Model as...</B>:&emsp;Save model file, and prompts for a name.
+<LI><B>Write Model as &rarr;</B>:&emsp;Write model to one of the following formats.
+<UL>
+<LI>Imod &ndash; native model format.
+<LI>Imod &ndash; Used on BL3DEMC VAX machine.
+<LI>NFF
+<LI>Synu &ndash; San Diego format.
+</UL>
+<LI><B>Memory to TIF</B>:&emsp;Save entire color image from memory to TIFF file.
+<LI><B>Quit</B>:&emsp;Exit program.
+</UL>
+<LI><B>Edit</B> Menu
+<UL>
+<LI><B>Model &rarr;</B>
+<UL>
+<LI><B>Header...</B>:&emsp;  Settings.
+<UL>
+<LI>Whether model will be drawn or not&emsp;[t]
+<LI>The Z scale for viewing the model
+<LI>The resolution (spacing between points)
+<LI>The pixel size in real units (nm, um, mm)
+</UL>
+<LI><B>Offsets...</B>:&emsp;Shift model data in X, Y, and Z.
+<LI><B>Clean</B>:&emsp;Delete all objects that have no points.
+</UL>
+<LI><B>Object</B> &rarr;
+<UL>
+<LI><B>New</B>:&emsp;Create a new object.
+<LI><B>Delete</B>:&emsp;Delete current object or all selected objects.
+<LI><B>Type...</B>:&emsp;Edit Object type.
+<LI><B>Color...</B>:&emsp;Opens requester for changing object color.
+<LI><B>Move...</B>:&emsp;Move all contours in object to a different object.
+<LI><B>Combine</B>:&emsp;Combine all selected objects into one object.
+<LI><B>Info</B>:&emsp;Print total volume and surface area of object.
+<LI><B>Clean</B>:&emsp;Delete empty contours from object.
+<LI><B>Break by Z</B>:&emsp;Break all contours in object into separate ones by Z.
+<LI><B>Flatten</B>:&emsp;Flatten all contours in object to lie in single Z plane.
+<LI><B>Renumber...</B>:&emsp;Move the current object to a new object number.
+</UL>
+<LI><B>Surface &rarr;</B>
+<UL>
+<LI><B>New</B>:&emsp;Create a new contour on a new surface.&emsp;[N]
+<LI><B>Go To...</B>:&emsp;Go to a different surface.
+<LI><B>Move...</B>:&emsp;Move contours to new surfaces within object.
+<LI><B>Delete</B>:&emsp;Delete all contours in the current surface.
+</UL>
+<LI><B>Contour &rarr;</B>
+<UL>
+<LI><B>New</B>:&emsp;Create a new contour.&emsp;[n]
+<LI><B>Delete</B>:&emsp;Delete current contour or all selected contours.&emsp;[D]
+<LI><B>Move...</B>:&emsp;Move current contour to a new object #.
+<LI><B>Copy...</B>:&emsp;Copy contours to new object or new Z level.
+<LI><B>Sort</B>:&emsp;Sort all contours in object by their Z values.
+<LI>&ndash;&ndash;&ndash;&ndash;&ndash;&ndash;&ndash;
+<LI><B>Break...</B>:&emsp;Break a contour into two contours.
+<LI><B>Join...</B>:&emsp;Join two contours together.
+<LI><B>Break by Z</B>:&emsp;Break a closed contour into separate ones by Z.
+<LI><B>Fill in Z</B>:&emsp;Add point at each Z level skipped by existing points.
+<LI><B>Loopback</B>:&emsp;Add duplicate points in reverse to make a complex cap.
+<LI><B>Invert</B>:&emsp;Invert the order of points in the current contour.
+<LI>&ndash;&ndash;&ndash;&ndash;&ndash;&ndash;&ndash;
+<LI><B>Info</B>:&emsp;Print area and length of current contour.
+<LI><B>Auto...</B>:&emsp;Open window for making new contours using threshold.
+<LI><B>Type...</B>:&emsp;Select a surface, time index or label for a contour.
+</UL>
+<LI><B>Point &rarr;</B>
+<UL>
+<LI><B>Delete</B>:&emsp;Delete Current point.&emsp;[Delete]
+<LI><B>Size...</B>:&emsp;Set size of individual points.
+<LI><B>Distance</B>:&emsp;Show distance between model points.
+<LI><B>Value</B>:&emsp;Show current voxel value.
+<LI><B>Sort by dist</B>:&emsp;Sort points in contour by interpoint distance.
+<LI><B>Sort by Z</B>:&emsp;Sort points in contour by their Z values.
+</UL>
+<LI><B>Image &rarr;</B>
+<UL>
+<LI><B>Flip</B>:&emsp;Exchange Y and Z dimensions of the image data.
+<LI><B>Process...</B>:&emsp;Process images by filtering.
+<LI><B>Reload...</B>:&emsp;Reload image data with current contrast.
+<LI><B>Fill Cache</B>:&emsp;Fill the image cache if there is one.
+<LI><B>Cache Filler...</B>:&emsp;Open window to control cache filling.
+</UL>
+<LI><B>Movies...</B>:&emsp;Open window to control range and speed of movies.
+<LI><B>Fine grain...</B>:&emsp;Open window to set fine grained display properties.
+<LI><B>Angles...</B>:&emsp;Open window to save and restore slicer angles.
+<LI><B>Options...</B>:&emsp;Open window to set program preferences.
+</UL>
+<LI><B>Image</B> Menu
+<UL>
+<LI><B>ZaP</B>:&emsp;Open a Zoom and Pan modeling window.
+<LI><B>XYZ</B>:&emsp;Open the XYZ slice viewing window.
+<LI><B>Slicer</B>:&emsp;Open Window showing a sliced view of the image data.&emsp;[\]
+<LI><B>Model View</B>:&emsp;Open a 3dmod model view (3dmodv) window.&emsp;[v]
+<LI><B>Pixel View</B>:&emsp;View pixel values in a grid.
+<LI><B>Graph</B>:&emsp;Open the Image Graph window.&emsp;[G]
+<LI><B>Locator</B>:&emsp;Open window showing subarea of active zap window.
+<LI><B>Tumbler</B>:&emsp;Open 3-D projection window.
+</UL>
+</UL>
+<P>
+<A HREF=index.html>Help Index<A>

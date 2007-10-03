@@ -1,0 +1,81 @@
+<head>
+<title>Contour Type</title>
+</head>
+<H2>Contour Type</H2>
+<P>
+<H3>Surface controls</H3>
+<P>
+Each contour has its own surface number.  The surface number can be used for
+subgrouping contours without having to create new objects.  The surface number
+of the current contour is displayed in the <B>Surface</B> spin box.  To the
+right of the spin box is the maximum surface number in the current object
+("/ #").  You can go to the first contour in the next or previous surface by
+clicking the up or down arrows of the spin box.  Non-existent surfaces are
+skipped when you move between surfaces.  You can also go to the first contour of
+any surface by entering a number in the box and pressing Enter; the program will
+select the nearest available surface.
+<P>
+The <B>Contour in surf</B> Up and Down arrows can be used to step to the next
+and previous contours within the current surface.
+<P>
+The <B>New</B> button will start a new surface with the next free number and
+create an empty contour with that surface number.
+<P>
+The <B>Ghost</B> check box may be used during model editing to highlight the
+current contour, along with all other contours with the same surface number.
+<P>
+It is possible to have a label for each surface.  The <B>Label</B> text box
+shows the label of the current surface; simply enter or change text in this box.
+<P>
+<H3>Contour controls</H3>
+<P>
+The <B>Closed</B> and <B>Open</B> radio buttons select between closed and open
+contours in an object defined as having closed contours.  The default is a
+closed contour where the last point is connected to the first.  An open contour
+will not be connected between the last and first points, thus allowing a
+partially cut surface to be represented by an object containing both closed and
+open contours.  This setting has no effect for an object defined as having open
+or scattered point contours, so the buttons are disabled in that case.
+<P>
+The time index of contours in 4-dimensional datasets can be changed with the
+<B>Time Index</B> spin box.  The box shows the time index of the current
+contour, which can be incremented or decremented with the spin box arrows, or
+changed by typing in a new number followed by <B>Enter</B>.  Contours with a
+non-zero time index display at only the relevant time; contours with a zero
+index display at all times.  This box is active only when the <B>Contours have
+time values</B> check box is selected for the particular object in the
+<B>Edit</B>-<B>Object</B>-<B>Type</B> dialog.
+<P>
+It is possible to have a label for each contour.  The <B>Label</B> text box
+shows the label of the current contour; simply enter or change text in this box.
+<P>
+<H3>Point controls</H3>
+<P>
+It is possible to assign a size for each point.  Any point with an individual
+size will be displayed as a 3D sphere of this radius, even if the object type is
+not scattered points.  The units are pixels in the image file, i.e., unbinned
+pixels if images are loaded in binned.  Points without a size will still be
+displayed at the size specified for the object as a whole.  You can change a
+size either by typing a number into the text box (followed by <B>Enter</B>) or
+by using the slider.  If a point has no size, the text box displays global point
+size for the object and "-Default".
+<P>
+Each individual point can also have its own label.  The <B>Label</B> text box
+shows the label of the current point; simply enter or change text in this box.
+<P>
+<H3>Section ghost controls</H3>
+<P>
+These items may be used to control the section-to-section ghost display mode.
+Use the spin box to set the maximum number of sections that contours will be
+displayed as ghosts on.  For example, with a value of 3, contours will be
+displayed as ghosts from up to 3 sections away.  If the <B>Up</B> box is
+checked, then contours will be displayed as ghosts on following sections; the
+<B>Down</B> check box will display contours as ghosts on previous sections.  The
+<B>g</B> hot key will toggle the combination selected by these boxes on and off.
+<P>
+If <B>Lighter</B> box is checked, the ghost contours will be displayed in a
+lighter color, otherwise they will be drawn with a darker color.  If the
+<B>All objects</B> box is checked, ghosts will be drawn for all objects instead
+of just for the current object.
+<P>
+<A HREF=index.html>Help Index<A>

@@ -1,0 +1,51 @@
+<HEAD>
+<TITLE>Line Tracker Plugin</TITLE>
+</HEAD>
+<H2>Line Tracker Plugin</H2>
+<P>
+Line Track will create points along a line between the current selected model
+point and the previous point.  It does this by filtering with a collection of
+elongated kernels at a range of orientations.
+<P>
+This Plugin also has a Contour Copying function which will copy the current
+contour onto an adjacent section (the section being displayed) then adjust the
+position of the contour to match the image on that section.  It uses kernels
+that are shaped like the contour.
+<H3>Hot Keys</H3>
+<UL>
+<LI>Space bar to add points between the last and the current point
+<LI>[Ctrl]-Space or [Shift]-Space to track from the current point and close the
+contour
+<LI>Apostrophe to copy contour to current section
+<LI>u or Semicolon to undo last modeling action
+</UL>
+<H3>Parameters</H3>
+<UL>
+<LI><B>0 Light, 1 Dark Lines</B>:&emsp;Set to 0 or 1 to follow bright or dark
+lines.
+<LI><B>Offset from line</B>:&emsp;Amount to offset model points from the center
+of the line.  Set positive for a positive offset when modeling to the right.
+<LI><B>Sigma (Line width)</B>:&emsp;Sigma is actually the half-width of the
+central part of the kernel, but should be set to somewhat more than half the
+width of the lines you are trying to track.
+<LI><B>H (half-length)</B>:&emsp;The half-length of the kernel in its elongated
+direction.
+<LI><B>Kernel Half-size</B>:&emsp;Should be at least H and 3 * Sigma but could
+be reduced to run faster.
+<LI><B>Reduction Tolerance</B>:&emsp;After finding a path, the program will
+remove any points that are within this distance of lines between the remaining
+points.
+<LI><B>Copy Tolerance</B>:&emsp;Maximum distance that the program will search
+for best position when copying a contour to a new section.
+<LI><B>Copy Pooling</B>:&emsp;Number of points that will be considered together
+when trying to shift a particular point.  Bigger numbers will give more
+smoothing.  With a positive value, the  point being shifted will be given the
+most weight; with a negative value, all points will be given equal weight,
+resulting in even more smoothing.
+<LI><B>Copy Smoothing</B>:&emsp;Number of points to fit to in the final
+smoothing of the contour (0 for no smoothing, higher values for more smoothing).
+<LI><B>Number of Kernels</B>:&emsp;Could be reduced to run faster.
+<LI><B>Step Size</B>:&emsp;Size of step to move between points; could be reduced
+to run faster.
+<P>
+<A HREF="index.html">Help Index<A>

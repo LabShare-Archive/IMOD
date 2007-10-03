@@ -1,0 +1,43 @@
+<HEAD>
+<TITLE>3dmodv Stereo Dialog</TITLE>
+</HEAD>
+<H2>3dmodv Stereo Dialog</H2>
+<P>
+This window provides control over two or three kinds of stereo displays,
+depending on whether the graphics hardware supports stereo.  The combo box
+allows one to turn a particular kind of stereo on or off, the <B>Angle</B>
+slider allows one to adjust the angle of parallax between the two views, and the
+<B>Vertical Offset</B> slider allows one to adjust the offset between views in
+top/bottom stereo to bring the views into register when the monitor does two
+vertical scans per frame.
+<DL>
+<DT>SIDE-BY-SIDE
+<DD>This mode is the default when no internal or external hardware seems to
+available.  Some people may find this useful if they can fuse the two images
+somehow.
+<DT>TOP/BOTTOM
+<DD>This mode is designed to be used when the monitor can be set to display the top
+and bottom of the display in two successive scans.  When you activate this mode,
+the model view window will be stretched to the full height of the screen and the
+model will be shown in the top and bottom of this window.  After you switch the
+monitor to display two scans, adjust the vertical offset slider until the two
+images coincide.  Once you have determined this offset, you can define an
+environment variable IMOD_STEREO_TBOFFSET to have this value, and this offset
+will be applied automatically in the future.
+<DT>HARDWARE
+<DD>This mode is available only if the display hardware supports left and right
+stereo buffers in OpenGL.  When the mode is activated, the command defined in
+the environment variable IMOD_STEREO_COMMAND is executed.  The two images are
+then drawn into the left and right buffers.  When the mode is turned off, the
+command defined in the environment variable IMOD_STEREO_RESTORE is executed.
+This mode is known to work only on an SGI, where the proper specialized calls
+are made to use the stereo buffers, and the proper commands are built in to call
+setmon and change the monitor mode.
+</DL>
+<H3>Hot Keys</H3>
+Stereo is toggled with the [s] hot key.  The first time this is used, the
+program will go into Top/Bottom mode if IMOD_STEREO_TBOFFSET is defined,
+otherwise into Hardware mode if stereo buffers are available, otherwise into
+Side-by-side mode.
+<P>
+<A HREF="index.html">Help Index<A>
