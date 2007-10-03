@@ -1,7 +1,7 @@
 SOURCES += midas.cpp slots.cpp file_io.cpp graphics.cpp transforms.cpp \
-        amat_to_rotmagstr.cpp gaussj.cpp
+        amat_to_rotmagstr.cpp gaussj.cpp imod_assistant.cpp
 
-HEADERS += midas.h graphics.h slots.h
+HEADERS += midas.h graphics.h slots.h imod_assistant.h
 
 #MOC_DIR = tmp
 #OBJECTS_DIR = tmp

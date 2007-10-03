@@ -7,15 +7,10 @@
  *  Copyright (C) 1995-2005 by Boulder Laboratory for 3-Dimensional Electron
  *  Microscopy of Cells ("BL3DEMC") and the Regents of the University of 
  *  Colorado.  See dist/COPYRIGHT for full copyright notice.
+ *
+ *  $Id$
+ *  Log at end of file
  */
-/*  $Author$
-
-$Date$
-
-$Revision$
-
-Log at end of file
-*/
 
 #include <stdlib.h>
 #include <math.h>
@@ -30,6 +25,7 @@ Log at end of file
 #include <qfiledialog.h>
 #include "dia_qtutils.h"
 #include "b3dutil.h"
+#include "imod_assistant.h"
 
 static int incDecimals[3] = {2, 4, 2};
 static int paramDecimals[5] = {2, 4, 4, 2, 2};
@@ -49,6 +45,7 @@ MidasSlots::MidasSlots()
 {
   mBlackPressed = false;
   mWhitePressed = false;
+  mImodHelp = new ImodAssistant("html", "IMOD.adp", "midas");
 }
 
 MidasSlots::~MidasSlots()
@@ -251,6 +248,8 @@ void MidasSlots::slotMidas_quit()
       }
     }
   }
+  if (mImodHelp)
+    delete mImodHelp;
   qApp->quit();
 }
 
@@ -769,13 +768,19 @@ void MidasSlots::slotHelpmenu(int item)
 
   switch(item){
   case HELP_MENU_CONTROLS: 
+    // showHelpPage("midasHelp/controls.html")
     control_help();
     break;
   case HELP_MENU_HOTKEYS:
+    // showHelpPage("midasHelp/hotkeys.html")
     hotkey_help();
     break;
   case HELP_MENU_MOUSE:
+    // showHelpPage("midasHelp/mouse.html")
     mouse_help();
+    break;
+  case HELP_MENU_MANPAGE:
+    showHelpPage("man/midas.html");
     break;
   case HELP_MENU_ABOUT: /* About */
     dia_vasmsg("Midas version",
@@ -2082,8 +2087,22 @@ void MidasSlots::convertNumLock(int &keysym, int &keypad)
   return;
 }
 
+/* Show a help page in Qt Assistant; provide a full
+   path if the path is not relative to IMOD_DIR/html
+   Returns 1 for error, 0 for success */
+int MidasSlots::showHelpPage(const char *page)
+{
+  if (mImodHelp)
+    return (mImodHelp->showPage(page) > 0 ? 1 : 0);
+  else
+    return 1;
+}
+
 /*
 $Log$
+Revision 3.15  2006/07/08 15:32:13  mast
+Changes to implement second fixed point for stretching
+
 Revision 3.14  2006/06/26 15:48:19  mast
 Added autocontrast function
 

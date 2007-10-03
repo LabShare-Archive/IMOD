@@ -1,6 +1,14 @@
+/* slots.h - include file for slots class
+ *
+ *  $Id$
+ *  Log at end of file
+ */
 #ifndef MIDASSLOTS_H
 #define MIDASSLOTS_H
 #include "midas.h"
+
+class ImodAssistant;
+
 class MidasSlots : public QObject
 {
   Q_OBJECT
@@ -26,6 +34,7 @@ class MidasSlots : public QObject
   void mouse_stretch(unsigned int maskr);
   void midas_keyinput(QKeyEvent *event);
   void synchronizeChunk(int sec);
+  int showHelpPage(const char *page);
 
   public slots:
     void slotFilemenu(int item);
@@ -90,6 +99,10 @@ class MidasSlots : public QObject
   bool mWhitePressed;
   int mBlackDisplayed;   // Value last displayed during drag
   int mWhiteDisplayed;
+  ImodAssistant *mImodHelp;
 };
 
 #endif
+/*  $Log$
+
+*/

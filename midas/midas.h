@@ -9,16 +9,10 @@
  *  Copyright (C) 1995-2005 by Boulder Laboratory for 3-Dimensional Electron
  *  Microscopy of Cells ("BL3DEMC") and the Regents of the University of 
  *  Colorado.  See dist/COPYRIGHT for full copyright notice.
+ *
+ *  $Id$
+ *  Log at end of file
  */
-
-/*  $Author$
-
-$Date$
-
-$Revision$
-
-Log at end of file
-*/
 
 class MidasWindow;
 class MidasSlots;
@@ -89,7 +83,8 @@ enum MenuIDs {
   HELP_MENU_ABOUT,
   HELP_MENU_CONTROLS,
   HELP_MENU_HOTKEYS,
-  HELP_MENU_MOUSE
+  HELP_MENU_MOUSE,
+  HELP_MENU_MANPAGE
 };
 
 class MidasWindow : public QMainWindow
@@ -375,8 +370,11 @@ void amat_to_rotmagstr(float *amat, float *theta, float *smag, float *str,
 int gaussj(float *a, int n, int np, float *b, int m, int mp);
 #endif  // MIDAS_H
 
-/*
-$Log$
+/*  $Log$
+
+Revision 3.13  2006/07/08 15:32:13  mast
+Changes to implement second fixed point for stretching
+
 Revision 3.12  2006/05/20 16:07:56  mast
 Changes to allow mirroring around X axis
 
