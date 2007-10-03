@@ -54,8 +54,6 @@
 
 /****help text data include files*****/
 #include "imodhelp.h" 
-#include "menus.h"
-#include "hotkey.h"
 
 
 static int obj_moveto = 0;
@@ -1260,6 +1258,9 @@ static int imodContourBreakByZ(ImodView *vi, Iobj *obj, int ob, int co)
 
 /*
   $Log$
+  Revision 4.34  2007/10/03 19:29:38  sueh
+  bug# 1038 Replacing help strings with an .html file.
+
   Revision 4.33  2007/08/13 16:04:50  mast
   Changes for locator window
 
