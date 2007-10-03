@@ -14,6 +14,9 @@
     $Revision$
 
     $Log$
+    Revision 3.5  2006/06/26 14:42:04  mast
+    Removed imodel include
+
     Revision 3.4  2005/03/14 18:32:18  mast
     Fixed crash with bad argument
 
@@ -1032,6 +1035,11 @@ int main (int argc, char **argv)
         break;
       case 'm':
         outMode = atoi(argv[++iarg]);
+        if (sliceModeIfReal(outMode) < 0) {
+          printf("ERROR: %s - Output mode %d not allowed\n", progname, 
+                 outMode);
+          exit(3);
+        }
         break;
       case 't':
         ht = atof(argv[++iarg]);
@@ -1082,13 +1090,8 @@ int main (int argc, char **argv)
   }
 
   // Check if it is the correct data type and set slice type
-  if (header.mode == MRC_MODE_BYTE)
-    sliceMode = SLICE_MODE_BYTE;
-  else if (header.mode == MRC_MODE_SHORT)
-    sliceMode = SLICE_MODE_SHORT;
-  else if (header.mode == MRC_MODE_FLOAT)
-    sliceMode = SLICE_MODE_FLOAT;
-  else {
+  sliceMode = sliceModeIfReal(header.mode);
+  if (sliceMode < 0) {
     printf("ERROR: %s - File mode is %d; only byte, short, integer allowed\n", 
            progname, header.mode);
     exit(1);
@@ -1150,15 +1153,9 @@ int main (int argc, char **argv)
     sprintf(outFile, "%s: Edge-enhancing anisotropic diffusion", progname);
   mrc_head_label(&header, outFile);
 
-  // Adjust output mode if valid entry made
-  if (outMode == MRC_MODE_BYTE) {
-    sliceMode = SLICE_MODE_BYTE;
-    header.mode = outMode;
-  } else if (outMode == MRC_MODE_SHORT) {
-    sliceMode = SLICE_MODE_SHORT;
-    header.mode = outMode;
-  } else if (outMode == MRC_MODE_FLOAT) {
-    sliceMode = SLICE_MODE_FLOAT;
+  // Adjust output mode if valid entry made (it was tested on arg processing)
+  if (outMode >= 0) {
+    sliceMode = sliceModeIfReal(outMode);
     header.mode = outMode;
   }
 
