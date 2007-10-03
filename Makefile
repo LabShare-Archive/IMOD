@@ -410,7 +410,7 @@ csrc : ALWAYS
 	ctfplotter/Makefile.dummy ctfplotter/images \
 	html/*.* html/Makefile html/3dmodimages html/etomoImages \
 	html/3dmodHelp html/joinImages html/adpStub html/makeadp \
-	html/ctfHelp html/libdoc/Makefile html/libdoc/*.html \
+	html/ctfHelp html/midasHelp html/libdoc/Makefile html/libdoc/*.html \
 	dist scripts pysrc com manpages autodoc \
 	plugs/*/*.[chf] plugs/*/*.cpp plugs/*/Makefile \
 	plugs/Makefile.unix plugs/Makefile.dummy \
@@ -455,6 +455,9 @@ ALWAYS:
 
 ############################################################################
 #  $Log$
+#  Revision 3.70  2007/09/20 16:16:34  mast
+#  Add mrc/*.cpp to src
+#
 #  Revision 3.69  2007/09/20 14:21:16  mast
 #  There will be no ctfplotter.dsp - can't build fortran libs in Visual C
 #

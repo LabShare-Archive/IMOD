@@ -7,7 +7,7 @@
 #
 include ../configure
 
-NOEXT = 3dmodimages etomoImages 3dmodHelp libhelp joinImages ctfHelp
+NOEXT = 3dmodimages etomoImages 3dmodHelp libhelp joinImages ctfHelp midasHelp
 
 install : clean
 	cd libdoc ; $(MAKE)
@@ -19,6 +19,9 @@ clean :
 	$(FIND) . -type f -name "#*#"   -exec rm "{}" \;
 
 #  $Log$
+#  Revision 3.12  2007/09/20 20:31:27  mast
+#  *** empty log message ***
+#
 #  Revision 3.11  2006/06/20 22:08:08  mast
 #  Added joinImages
 #
