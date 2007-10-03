@@ -40,6 +40,6 @@ is to set surface numbers to zero.
 David Mastronarde,  mast@colorado.edu
 .SH SEE ALSO
 imodmesh(1), 3dmod(1)
-.BUGS
+.SH BUGS
 When surfaces are split into new objects, contour and surface labels will be
 lost.  Also, stored view information will not be copied to the new objects.
