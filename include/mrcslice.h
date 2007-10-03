@@ -86,6 +86,7 @@ extern "C" {
   int     sliceInit   (Islice *s, int xsize, int ysize, int mode, void *data);
   void    sliceFree   (Islice *s);
   void    sliceClear  (Islice *sl, Ival val);
+  int     sliceModeIfReal(int mrcMode);
   int     sliceGetXSize(Islice *slice);
   int     sliceGetYSize(Islice *slice);
   int     sliceGetVal (Islice *s, int x, int y, Ival val);
@@ -165,6 +166,9 @@ extern "C" {
 
 /*
   $Log$
+  Revision 3.6  2007/02/04 21:24:16  mast
+  Fix declaration of sliceMMM
+
   Revision 3.5  2007/02/04 20:57:14  mast
   Changes for documentation and cleanup
 
