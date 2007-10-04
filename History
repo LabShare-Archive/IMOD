@@ -1,5 +1,8 @@
 IMOD History
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+10/4/07: Made Corrsearch3d compute positions and correlation coefficients more
+carefully to avoid numeric problems correlating solid gray areas.
+
 10/3/07: Made Processchunks able to run without a -finish.com file.
 
 10/3/07: Made Taperoutvol set the origin to match the coordinate system of the
