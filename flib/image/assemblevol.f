@@ -38,6 +38,7 @@ C
 C       
       integer*4 nfx,nfy,nfz,nx3,ny3,nz3,maxx,maxy,i,ifile,ix,iy,iz
       real*4 dmin2,dmax2,dmean2,dmin,dmax,dmean,tmin,tmax,tmean,tmpmn
+      real*4 origx,origy,origz
       integer*4 mode,mode1,kti,izf,iunit,iyofs,ixofs,nybox,nxbox
       integer*4 ixf,iyf,layerFile
       logical openLayer
@@ -117,10 +118,12 @@ c
             read(5,101)files(ifile)
             call imopen(2,files(ifile),'ro')
             CALL IRDHDR(2,NXYZ,MXYZ,MODE,DMIN2,DMAX2,DMEAN2)
-            call irtdel(2,delta)
+            if (ix .eq. 1 .and. iy .eq. 1 .and. iz .eq. 1) then
+              call irtdel(2,delta)
+              call irtorg(2,origx, origy, origz)
+            endif
             if(ifile.eq.1) mode1=mode
-            if(mode.ne.mode1)call exitError(
-     &          'MODE MISMATCH FOR THIS FILE')
+            if(mode.ne.mode1)call exitError( 'MODE MISMATCH FOR THIS FILE')
 c             
 c             Collect coordinates if they are not defined yet
             if (ixlo(ix).eq.0 .and. ixhi(ix).eq.0) then
@@ -164,6 +167,9 @@ c
       CELL2(4)=90.
       CELL2(5)=90.
       CELL2(6)=90.
+      origx = origx - ixlo(1) * delta(1)
+      origy = origy - iylo(1) * delta(2)
+      origz = origz - izlo(1) * delta(3)
 C       
       call time(tim)
       call date(dat)
@@ -172,8 +178,9 @@ C
 301   FORMAT('ASSEMBLEVOL: Reassemble a volume from pieces',t57,a9,2x,a8)
       CALL ICRHDR(1,NXYZ2,MXYZ2,mode,TITLE,0)
       CALL IALCEL(1,CELL2)
-      dmin=1.e10
-      dmax=-1.e10
+      call ialorg(1,origx, origy, origz)
+      dmin=1.e30
+      dmax=-1.e30
       tmin=0.
 c       
       ifile=1
@@ -278,6 +285,9 @@ c
 
 c	
 c       $Log$
+c       Revision 3.6  2007/07/16 04:39:55  mast
+c       Fixed problem after testing
+c
 c       Revision 3.5  2007/07/15 21:15:55  mast
 c       Added ability to enter 0,0 to concatenate files in any direction
 c
