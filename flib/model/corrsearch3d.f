@@ -889,7 +889,8 @@ c
       integer*4 idxglb,idyglb,idzglb,ix,iy,iz,iseq,idy,idz
       integer*4 idycor,idzcor,ix0cor,ix1cor,iy0cor,iy1cor,iz0cor,iz1cor
       integer*4 indmax
-      real*4 cx,y1,y2,y3,denom,cy,cz
+      real*4 cx,cy,cz,y1,y2,y3
+      real*4 parabolicFitPosition
 c       
 c       get global displacement of b, including the load offset
 c       
@@ -996,28 +997,16 @@ c
 c       
 c       do independent parabolic fits in 3 dimensions
 c       
-      cx=0.
       y1=corrs(-1,0,0)
       y2=corrs(0,0,0)
       y3=corrs(1,0,0)
-      denom=2.*(y1+y3-2.*y2)
-      if(abs(denom).gt.1.e-6)cx=(y1-y3)/denom
-      if(abs(cx).gt.0.5)cx=sign(0.5,cx)
-c       
-      cy=0.
+      cx = parabolicFitPosition(y1, y2, y3)
       y1=corrs(0,-1,0)
       y3=corrs(0,1,0)
-      denom=2.*(y1+y3-2.*y2)
-      if(abs(denom).gt.1.e-6)cy=(y1-y3)/denom
-      if(abs(cy).gt.0.5)cy=sign(0.5,cy)
-c      print *,y1,y2,y3,cy
-c       
-      cz=0.
+      cy = parabolicFitPosition(y1, y2, y3)
       y1=corrs(0,0,-1)
       y3=corrs(0,0,1)
-      denom=2.*(y1+y3-2.*y2)
-      if(abs(denom).gt.1.e-6)cz=(y1-y3)/denom
-      if(abs(cz).gt.0.5)cz=sign(0.5,cz)
+      cz = parabolicFitPosition(y1, y2, y3)
 c       
       dxadj=idxglb+cx+loadbx0-loadax0
       dyadj=idyglb+cy+loadby0-loaday0
@@ -1119,7 +1108,7 @@ c
       subroutine oneCorrCoeff(array, nxa, nya, nza, brray,nxb,nyb,nzb,
      &    nxpatch,nypatch,nzpatch,dx,dy,dz,corr2)
       implicit none
-      real*4 array(*),brray(*),corr2,dx,dy,dz
+      real*4 array(*),brray(*),corr2,dx,dy,dz,denom
       real*8 asum, sum2, bsum2, asumsq, bsumsq2
       integer*4 ix0,ix1,iy0,iy1, iz0,iz1,idx,idy,idz,nxa,nxb,nya,nyb,nza,nzb
       integer*4 iz,izb,iy,iyb,indbasea,inddelb,ix,ixb,nsum
@@ -1159,14 +1148,27 @@ c
         enddo
       enddo	
       nsum=(iz1+1-iz0)*(iy1+1-iy0)*(ix1+1-ix0)
-      corr2 = (nsum * sum2 - asum * bsum2) /
-     &    sqrt((nsum * asumsq - asum**2) * (nsum * bsumsq2 - bsum2**2))
+      denom = (nsum * asumsq - asum**2) * (nsum * bsumsq2 - bsum2**2)
+c       
+c       Set the ccc to 0 if the denominator is illegal, otherwise limit it
+c       to +/-1
+      if (denom .le. 0.) then
+        corr2 = 0.
+      else
+        denom = sqrt(denom)
+        corr2 = (nsum * sum2 - asum * bsum2)
+        if (denom .lt. corr2) then
+          corr2 = sign(1., corr2)
+        else
+          corr2 = corr2 / denom
+        endif
+      endif
 c	print *,idx,idy,idz,corr2
       return
       end
 
        
-c       kernelSmooth applies a 3D gauusian kernel to the data in ARRAY and
+c       kernelSmooth applies a 3D gaussian kernel to the data in ARRAY and
 c       places the result in BRRAY.  The image size is NX x NY x NZ and the
 c       dimensions of the arrays are NXDIM x NY x NZ.  ISIZE specifies the
 c       kernel size (3 or 5) and sigma is the standard deviation of the
@@ -1342,8 +1344,9 @@ c
       integer*4 nxdim, ny, nz
       real*4 array(nxdim, ny, nz), xpeak, ypeak, zpeak, peak
       integer*4 ix, iy, iz, ixpeak,iypeak, izpeak, nx
-      real*4 cx, cy, cz, y1, y2, y3, denom
+      real*4 cx, cy, cz, y1, y2, y3
       integer*4 indmap
+      real*4 parabolicFitPosition
 c       
       nx = nxdim - 2
       peak = -1.e30
@@ -1362,27 +1365,18 @@ c
 c       
 c       simply fit a parabola to the two adjacent points in X or Y or Z
 c       
-      cx=0.
       y1=array(indmap(ixpeak-1,nx),iypeak,izpeak)
       y2=peak
       y3=array(indmap(ixpeak+1,nx),iypeak,izpeak)
-      denom=2.*(y1+y3-2.*y2)
-      if(abs(denom).gt.-1.e6)cx=(y1-y3)/denom
-      if(abs(cx).gt.0.5)cx=sign(0.5,cx)
-      cy=0.
+      cx = parabolicFitPosition(y1, y2, y3)
+
       y1=array(ixpeak,indmap(iypeak-1,ny),izpeak)
       y3=array(ixpeak,indmap(iypeak+1,ny),izpeak)
-      denom=2.*(y1+y3-2.*y2)
-      if(abs(denom).gt.-1.e6)cy=(y1-y3)/denom
-      if(abs(cy).gt.0.5)cy=sign(0.5,cy)
-c      print *,y1,y2,y3,cy
-      cz=0.
+      cy = parabolicFitPosition(y1, y2, y3)
+
       y1=array(ixpeak,iypeak,indmap(izpeak-1,nz))
-      y2=peak
       y3=array(ixpeak,iypeak,indmap(izpeak+1,nz))
-      denom=2.*(y1+y3-2.*y2)
-      if(abs(denom).gt.-1.e6)cz=(y1-y3)/denom
-      if(abs(cz).gt.0.5)cz=sign(0.5,cz)
+      cz = parabolicFitPosition(y1, y2, y3)
 c       
 c       return adjusted pixel coordinate minus 1
 c       
@@ -1817,6 +1811,9 @@ c
 
 
 c       $Log$
+c       Revision 3.15  2007/03/02 15:51:56  mast
+c       Increased string sizes from 80 to 160
+c
 c       Revision 3.14  2006/08/21 16:49:22  mast
 c       Changed initial offset to volume offset and provided for a separate
 c       initial offset
