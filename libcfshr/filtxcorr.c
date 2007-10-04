@@ -19,12 +19,14 @@
 #define filterpart FILTERPART
 #define xcorrpeakfind XCORRPEAKFIND
 #define meanzero MEANZERO
+#define parabolicfitposition PARABOLICFITPOSITION
 #else
 #define setctfwsr setctfwsr_
 #define setctfnoscl setctfnoscl_
 #define filterpart filterpart_
 #define xcorrpeakfind xcorrpeakfind_
 #define meanzero meanzero_
+#define parabolicfitposition parabolicfitposition_
 #endif
 
 /*!
@@ -353,30 +355,14 @@ void XCorrPeakFind(float *array, int nxdim, int ny, float  *xpeak,
     
     /* simply fit a parabola to the two adjacent points in X or Y */
     
-    cx=0.;
     y1=array[(ixpeak + nx - 1) % nx + iypeak * nxdim];
     y2=peak[i];
     y3=array[(ixpeak + 1) % nx + iypeak * nxdim];
-    denom=2.f*(y1+y3-2.f*y2);
+    cx = parabolicFitPosition(y1, y2, y3);
 
-    /* This seems better than testing if zero */
-    if (fabs((double)denom) > fabs(1.e-6 * (y1-y3)))
-      cx=(y1-y3)/denom;
-    if (cx > 0.5)
-      cx = 0.5;
-    if (cx < -0.5)
-      cx = -0.5;
-    
-    cy=0.;
     y1=array[ixpeak + ((iypeak + ny - 1) % ny) * nxdim];
     y3=array[ixpeak + ((iypeak + 1) % ny) * nxdim];
-    denom=2.f*(y1+y3-2.f*y2);
-    if (fabs((double)denom) > fabs(1.e-6 * (y1-y3)))
-      cy=(y1-y3)/denom;
-    if (cy > 0.5)
-      cy = 0.5;
-    if (cy < -0.5)
-      cy = -0.5;
+    cy = parabolicFitPosition(y1, y2, y3);
     
     /*    return adjusted pixel coordinate */
     xpeak[i]=ixpeak+cx;
@@ -396,6 +382,35 @@ void xcorrpeakfind(float *array, int *nxdim, int *ny, float  *xpeak,
                    float *ypeak, float *peak, int *maxpeaks)
 {
   XCorrPeakFind(array, *nxdim, *ny, xpeak, ypeak, peak, *maxpeaks);
+}
+
+/*!
+ * Given values at three successive positions, [y1], [y2], and [y3], where
+ * [y2] is the peak value, this fits a parabola to the values and returns the
+ * offset of the peak from the center position, a number between -0.5 and 0.5.
+ */
+float parabolicFitPosition(float y1, float y2, float y3)
+{
+  float denom, cx = 0.;
+  denom=2.f*(y1+y3-2.f*y2);
+  
+  /* y2 is the highest, so in the absence of numerical error due to numbers
+     being very close to each other, the peak must be in the interval.
+     This seems better than testing if zero or testing against 1.e-6 */
+  if (fabs((double)denom) > fabs(1.e-2 * (y1-y3)))
+    cx=(y1-y3)/denom;
+  if (cx > 0.5)
+    cx = 0.5;
+  if (cx < -0.5)
+    cx = -0.5;
+  return cx;
+}
+/*!
+ * Fortran wrapper to @parabolicFitPosition
+ */
+float parabolicfitposition(float *y1, float *y2, float *y3)
+{
+  return (parabolicFitPosition(*y1, *y2, *y3));
 }
 
 /*!
@@ -420,6 +435,9 @@ void conjugateProduct(float *array, float *brray, int nx, int ny)
 }
 
 /*  $Log$
+/*  Revision 1.1  2007/10/01 15:26:09  mast
+/*  *** empty log message ***
+/*
 
 
 */
