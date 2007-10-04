@@ -30,11 +30,13 @@ individual command files with statements like
 .br
 $if (-e /usr/tmp/tmpfil.$$) rm -f /usr/tmp/tmpfil.$$
 
-In addition to the files for individual chunks, there must
-also be a file, rootname-finish.com, for final assembly and cleanup.
-There may also be a file, rootname-start.com, to perform initial
-tasks.  If such a file exists, Processchunks will run this on the current
-machine before starting to distribute the chunks.
+In addition to the files for individual chunks, there may
+also be two additinal files: rootname-start.com, to perform initial
+tasks, and rootname-finish.com, for final assembly and cleanup.
+If the start file exists, Processchunks will run this on the current
+machine before starting to distribute the chunks; and if the finish file
+exists, it will also be run on the current machine when all chunks are
+finished.
 
 It is also possible to execute groups of command files in parallel, then run
 one command file when all of these are done, then go on to another group of

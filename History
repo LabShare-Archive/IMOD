@@ -1,5 +1,11 @@
 IMOD History
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+10/3/07: Made Processchunks able to run without a -finish.com file.
+
+10/3/07: Made Taperoutvol set the origin to match the coordinate system of the
+input volume, and made Assemblevol set the origin based on the origin of the
+first input subvolume.  Thus origins should be preserved through chunk processing and reassembly.
+
 10/3/07: Made nad_eed_3d work with unsigned integer (mode 6) input.
 
 10/1/07: IMOD_3-10-19
