@@ -987,7 +987,7 @@ void inputQDefaultKeys(QKeyEvent *event, ImodView *vw)
   case Qt::Key_Insert:
     if (!keypad) {
       vw->zmouse = vw->zsize/2;
-      imodDraw(vw, IMOD_DRAW_XYZ);
+      imodDraw(vw, IMOD_DRAW_XYZ | IMOD_DRAW_NOSYNC);
     } else
       handled = 0;
     break;
@@ -1000,14 +1000,14 @@ void inputQDefaultKeys(QKeyEvent *event, ImodView *vw)
   case Qt::Key_Home:
     if (!keypad) {
       vw->zmouse = vw->zsize - 1;
-      imodDraw(vw, IMOD_DRAW_XYZ);
+      imodDraw(vw, IMOD_DRAW_XYZ | IMOD_DRAW_NOSYNC);
     } else
       handled = 0;
     break;
   case Qt::Key_End:
     if (!keypad) {
       vw->zmouse = 0;
-      imodDraw(vw, IMOD_DRAW_XYZ);
+      imodDraw(vw, IMOD_DRAW_XYZ | IMOD_DRAW_NOSYNC);
     } else
       handled = 0;
     break;
@@ -1390,6 +1390,9 @@ bool inputTestMetaKey(QKeyEvent *event)
 
 /*
 $Log$
+Revision 4.34  2007/08/07 00:53:13  mast
+Added hot keys to start and stop movies in Z
+
 Revision 4.33  2007/07/19 22:29:19  mast
 Added hot keys for jumping to set limits in time
 
