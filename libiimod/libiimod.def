@@ -81,6 +81,7 @@ EXPORTS
 	mrc_read_byte
 	sliceComplexFloat
 	mrc_bandpass_filter
+	sliceModeIfReal
 	slice_mat_filter
 	mrc_write_idata
 	iiOpen
