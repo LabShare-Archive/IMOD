@@ -637,23 +637,33 @@ end
 
 onintr finishkilled
 set endroot = $rootname-finish
-echo "ALL DONE - going to run $endroot to reassemble"
-vmstocsh $endroot.log < $endroot.com >! $endroot.csh
-if ($queue) then
-    $queuecom -w "$curdir" -a S $endroot
-    set retval = $status
+if (-e "$endroot.com") then
+    echo "ALL DONE - going to run $endroot to reassemble"
+    vmstocsh $endroot.log < $endroot.com >! $endroot.csh
+    if ($queue) then
+        $queuecom -w "$curdir" -a S $endroot
+        set retval = $status
+    else
+        csh -ef $endroot.csh
+        set retval = $status
+    endif
+    \rm -f $endroot.csh
+    if ($retval) then
+        echo "ERROR: RUNNING $endroot.com, FROM $endroot.log:"
+        sed -n '/.*ERROR:/s//ERROR:/p' $endroot.log
+        exit 1
+    endif
 else
-    csh -ef $endroot.csh
-    set retval = $status
+
+    # Etomo is looking for "to reassemble"
+    #
+    echo "ALL DONE - nothing to reassemble"
 endif
-\rm -f $endroot.csh
-if ($retval) then
-    echo "ERROR: RUNNING $endroot.com, FROM $endroot.log:"
-    sed -n '/.*ERROR:/s//ERROR:/p' $endroot.log
-    exit 1
-endif
-if ("$checkfile" != "" && -e "$checkfile") \rm -f $checkfile
+
+# Etomo is looking for this line too
+#
 echo "Finished reassembling"
+if ("$checkfile" != "" && -e "$checkfile") \rm -f $checkfile
 exit
 
 report:
@@ -804,6 +814,9 @@ exit 3
 
 #
 #  $Log$
+#  Revision 3.32  2007/09/14 21:54:18  mast
+#  Added cluster support
+#
 #  Revision 3.31  2007/08/16 05:01:49  mast
 #  Changes to handle up to 10000 command files, nnn then nnnn.com
 #
