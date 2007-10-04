@@ -147,6 +147,7 @@ EXPORTS
 	b3dIMax
 	ilistItem
 	AdocDone
+	parabolicFitPosition
 	PIPGETBOOLEAN
 	PipReadOrParseOptions
 	PIPGETINTEGERARRAY
@@ -178,6 +179,7 @@ EXPORTS
 	XCorrMeanZero
 	InsideContour
 	AdocGetFloat
+	PARABOLICFITPOSITION
 	ADOCNEW
 	b3dFseek
 	imodVersion
