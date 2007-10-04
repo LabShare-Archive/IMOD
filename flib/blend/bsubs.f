@@ -15,7 +15,6 @@ c       COUNTEDGES
 c       DXYDGRINTERP
 c       CROSSVALUE
 c       XCORREDGE
-c       PEAKFIND
 c       FIND_BEST_SHIFTS
 c       findBestGradient
 c       findEdgeToUse
@@ -1599,7 +1598,7 @@ c
 c       
       if(delta.ne.0.)call filterpart(xcray,xcray,nxpad,nypad,ctf,delta)
       call todfft(xcray,nxpad,nypad,1)
-      call peakfind(xcray,nxpad+2,nypad,xpeak,ypeak,peak)
+      call xcorrPeakFind(xcray,nxpad+2,nypad,xpeak,ypeak,peak,1)
       call dumpedge(xcray,nxpad+2,nxpad,nypad,ixy,1)
 c       
 c       return the amount to shift upper to align it to lower (verified)
@@ -1658,93 +1657,6 @@ c       write(*,'(2f8.2,2f8.2)')xpeak,ypeak,xdisp,ydisp
       return
       end
 
-
-
-c       PEAKFIND finds the coordinates of the the absolute peak, XPEAK, YPEAK
-c       in the array ARRAY, which is dimensioned to nx+2 by ny.
-c       
-      subroutine peakfind(array,nxplus,nyrot,xpeak,ypeak,peak)
-      real*4 array(nxplus,nyrot),amat(9)
-      nxrot=nxplus-2
-c       
-c       find peak
-c       
-      peak=-1.e30
-      do iy=1,nyrot
-        do ix=1,nxrot
-          if(array(ix,iy).gt.peak)then
-            peak=array(ix,iy)
-            ixpeak=ix
-            iypeak=iy
-          endif
-        enddo
-      enddo
-c       print *,ixpeak,iypeak
-c       
-c       simply fit a parabola to the two adjacent points in X or Y
-c       
-      cx=0.
-      y1=array(indmap(ixpeak-1,nxrot),iypeak)
-      y2=peak
-      y3=array(indmap(ixpeak+1,nxrot),iypeak)
-      denom=2.*(y1+y3-2.*y2)
-      if(abs(denom).gt.-1.e6)cx=(y1-y3)/denom
-      if(abs(cx).gt.0.5)cx=sign(0.5,cx)
-c       print *,'X',y1,y2,y3,cx
-      cy=0.
-      y1=array(ixpeak,indmap(iypeak-1,nyrot))
-      y3=array(ixpeak,indmap(iypeak+1,nyrot))
-      denom=2.*(y1+y3-2.*y2)
-      if(abs(denom).gt.-1.e6)cy=(y1-y3)/denom
-      if(abs(cy).gt.0.5)cy=sign(0.5,cy)
-c       print *,'Y',y1,y2,y3,cy
-c       
-c       return adjusted pixel coordinate minus 1
-c       
-      xpeak=ixpeak+cx-1.
-      ypeak=iypeak+cy-1.
-      if(xpeak.gt.nxrot/2)xpeak=xpeak-nxrot
-      if(ypeak.gt.nyrot/2)ypeak=ypeak-nyrot
-c       print *,xpeak,ypeak
-      return
-      end
-
-c$$$    
-c$$$    
-c$$$    
-c$$$    c         PEAKFIND finds the coordinates of the the absolute peak, XPEAK, YPEAK
-c$$$    c         in the array ARRAY, which is dimensioned to nx+2 by ny.
-c$$$    c
-c$$$    subroutine peakfind(array,nxplus,nyrot,xpeak,ypeak,peak)
-c$$$    real*4 array(nxplus,nyrot)
-c$$$    nxrot=nxplus-2
-c$$$    c         
-c$$$    c         find peak
-c$$$    c
-c$$$    peak=-1.e30
-c$$$    do iy=1,nyrot
-c$$$    do ix=1,nxrot
-c$$$    if(array(ix,iy).gt.peak)then
-c$$$    peak=array(ix,iy)
-c$$$    ixpeak=ix
-c$$$    iypeak=iy
-c$$$    endif
-c$$$    enddo
-c$$$    enddo
-c$$$    c       print *,ixpeak,iypeak
-c$$$    c         
-c$$$    c         return adjusted pixel coordinate minus 1
-c$$$    c
-c$$$    xpeak=ixpeak-1.
-c$$$    ypeak=iypeak-1.
-c$$$    if(xpeak.gt.nxrot/2)xpeak=xpeak-nxrot
-c$$$    if(ypeak.gt.nyrot/2)ypeak=ypeak-nyrot
-c$$$    c       print *,xpeak,ypeak
-c$$$    return
-c$$$    end
-
-c       DNM 8/18/02: add array argument, remove hinv as argument and
-c       access it through common
 
       subroutine find_best_shifts(a,maxvar,dxgridmean,dygridmean,idir,izsect,h,
      &    nsum,bavg,bmax,aavg,amax)
@@ -2469,6 +2381,10 @@ c
 
 c       
 c       $Log$
+c       Revision 3.23  2007/04/10 15:41:11  mast
+c       Add ability to exclude gray areas from edges and not take actual data
+c       instead of gray data all the way across an edge
+c
 c       Revision 3.22  2007/04/07 21:31:01  mast
 c       Added functions for using edges from other Z values
 c
