@@ -167,18 +167,11 @@ void MyApp::setSlice(char *stackFile, char *angleFile)
     printf("ERROR: - reading header of input file %s\n",  fnStack);
     exit(1);
   }
-  // Check if it is the correct data type and set slice type
-  if (header.mode == MRC_MODE_BYTE)
-    sliceMode = SLICE_MODE_BYTE;
-  else if (header.mode == MRC_MODE_SHORT)
-    sliceMode = SLICE_MODE_SHORT;
-  else if (header.mode == MRC_MODE_FLOAT)
-    sliceMode = SLICE_MODE_FLOAT;
-  else {
-    printf("ERROR:- File mode is %d; only byte, short, integer allowed\n", 
-        header.mode);
-    exit(1);
-  }
+
+  sliceMode = sliceModeIfReal(header.mode);
+   if (sliceMode < 0) 
+     printf("ERROR: %s - File mode is %d; only byte, short, integer allowed\n",
+            "ctfplotter", header.mode);
 
   int nx = header.nx;
   int ny = header.ny;

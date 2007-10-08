@@ -95,7 +95,7 @@ int main(int argc, char *argv[])
      startingView=1;
      endingView=header.nz;
    }
-  // Check if it is the correct data type and set slice type
+  /*  Check if it is the correct data type and set slice type
   if (header.mode == MRC_MODE_BYTE)
     sliceMode = SLICE_MODE_BYTE;
   else if (header.mode == MRC_MODE_SHORT)
@@ -107,6 +107,11 @@ int main(int argc, char *argv[])
   else 
     exitError("File mode is %d; only byte, short,integer allowed\n", 
         header.mode);
+  */
+  sliceMode=sliceModeIfReal(header.mode);
+  if (sliceMode < 0)
+     printf("ERROR: %s - File mode is %d; only byte, short, integer allowed\n",
+            "ctfphaseflip", header.mode);
 
   //The number of slices this run deals with;
   int currNz=endingView-startingView+1;
