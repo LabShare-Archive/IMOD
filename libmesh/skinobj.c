@@ -51,7 +51,6 @@ static int mesh_open_obj(Iobj *obj, Ipoint *scale, int incz,
                          int zlsize, int *numatz, int **contatz, Ipoint *pmin, 
                          Ipoint *pmax);
 
-static int inside_cont(Icont *cont, Ipoint pt);
 static int eliminate_overlap(Icont *c1, Icont *c2);
 static Icont *connect_orphans(Iobj *obj, Icont *cout, int *list, int *used,
                               int *justinl, int njustin, int *inlist, 
@@ -2041,85 +2040,6 @@ static Imesh *imeshContourCap(Iobj *obj, Icont *cont, int coNum, int side,
   return(makeCapMesh(cont, &cm, meshdir, &contProps, contState, stateTest));
 }
 
-
-
-
-
-/* DNM: functions to eliminate overlap between contours, which screw things
-   up when one needs to add a point and join them */
-
-static int inside_cont(Icont *cont, Ipoint pt)
-{
-  Ipoint *pts = cont->pts;
-  int rstrad, lstrad;
-
-  int nrcross=0;
-  int nlcross=0;
-  int np = cont->psize;
-  float x = pt.x;
-  float y = pt.y;
-  float xp, yp, xc, yc, xcross;
-  int j, jl;
-
-  yp = pts[np - 1].y;
-  j = 0;
-  while(j < np) {
-    if (yp < y) {
-              
-      /* if last point below y, search for first that is not below */
-               
-      while(j < np && pts[j].y < y) 
-        j++;
-
-    } else if (yp > y) {
-
-      /* or if last point above y, search for first that is not 
-         above */
-
-      while(j < np && pts[j].y > y)
-        j++;
-    }
-
-    if (j < np) {
-      jl=j-1;
-      if (jl < 0)
-        jl=np - 1;
-      xp=pts[jl].x;
-      yp=pts[jl].y;
-      xc=pts[j].x;
-      yc=pts[j].y;
-            
-      /*  return if point is a vertex */
-
-      if (x == xc && y == yc)
-        return 1;
-            
-      /* does edge straddle the ray to the right or the left? */
-
-      rstrad=(yc > y) != (yp > y);
-      lstrad=(yc < y) != (yp < y);
-      if (lstrad || rstrad) {
-              
-        /* if so, compute the crossing of the ray, add up crossings */
-
-        xcross=xp+(y-yp)*(xc-xp)/(yc-yp);
-        if (rstrad && (xcross > x))
-          nrcross++;
-        if (lstrad && (xcross < x))
-          nlcross++;
-      }
-      yp=yc;
-    }
-    j++;
-  }
-  
-  /*  if left and right crossings don't match, it's on an edge
-      otherwise, inside iff crossings are odd */
-  if (nrcross % 2 !=  nlcross % 2)
-    return 1;
-  return((nrcross % 2) > 0);
-}
-
 static void interpolate_point(Ipoint pt1, Ipoint pt2, float frac, Ipoint *pt3)
 {
   pt3->x = frac * pt2.x + (1 - frac) * pt1.x;
@@ -2135,7 +2055,7 @@ static void backoff_overlap(Icont *c1, Icont *c2)
      
   /* find first point outside */
   for (firstout = 0; firstout < c1->psize; firstout++) {
-    if (!inside_cont(c2, c1->pts[firstout]))
+    if (!imodPointInsideCont(c2, &c1->pts[firstout]))
       break;
   }
 
@@ -2149,7 +2069,7 @@ static void backoff_overlap(Icont *c1, Icont *c2)
   for (i = 0; i < c1->psize; i++) {
     if (firstin == c1->psize)
       firstin = 0;
-    if (inside_cont(c2, c1->pts[firstin]))
+    if (imodPointInsideCont(c2, &c1->pts[firstin]))
       break;
     lastout = firstin;
     firstin++;
@@ -2163,7 +2083,7 @@ static void backoff_overlap(Icont *c1, Icont *c2)
   before = 0;
   for (i = 9; i > 1; i--) {
     interpolate_point(c1->pts[lastout], c1->pts[firstin], 0.1 * i, &pt3);
-    if (!inside_cont(c2, pt3)) {
+    if (!imodPointInsideCont(c2, &pt3)) {
       interpolate_point(c1->pts[lastout], c1->pts[firstin], 
                         0.1 * (i - 1), &ptbefore);
       /*               printf ("before frac %d\n", i-1); */
@@ -2178,7 +2098,7 @@ static void backoff_overlap(Icont *c1, Icont *c2)
   for (i = 0; i < c1->psize; i++) {
     if (firstout == c1->psize)
       firstout = 0;
-    if (!inside_cont(c2, c1->pts[firstout]))
+    if (!imodPointInsideCont(c2, &c1->pts[firstout]))
       break;
     lastin = firstout;
     firstout++;
@@ -2188,7 +2108,7 @@ static void backoff_overlap(Icont *c1, Icont *c2)
   after = 0;
   for (i = 9; i > 1; i--) {
     interpolate_point(c1->pts[firstout], c1->pts[lastin], 0.1 * i, &pt3);
-    if (!inside_cont(c2, pt3)) {
+    if (!imodPointInsideCont(c2, &pt3)) {
       interpolate_point(c1->pts[firstout], c1->pts[lastin], 
                         0.1 * (i - 1), &ptafter);
       /*               printf ("after frac %d\n", i-1); */
@@ -2210,7 +2130,7 @@ static void backoff_overlap(Icont *c1, Icont *c2)
 
   /* Just delete all points inside */
   for (i = 0; i < c1->psize; i++) {
-    if (inside_cont(c2, c1->pts[i])) {
+    if (imodPointInsideCont(c2, &c1->pts[i])) {
       imodPointDelete(c1, i);
       /*               printf ("deleting %d\n", i); */
       i--;
@@ -2293,14 +2213,14 @@ static int check_legal_joiner(Ipoint pt1, Ipoint pt2, Icont *c1, Icont *c2,
     mid.x = (1. - frac) * pt1.x + frac * pt2.x;
     mid.y = (1. - frac) * pt1.y + frac * pt2.y;
     if (other)
-      if (inside_cont(other, mid))
+      if (imodPointInsideCont(other, &mid))
         return retval;
     for (i = 0; i < nothersame; i++)
-      if (inside_cont(&obj->cont[olist[i]], mid))
+      if (imodPointInsideCont(&obj->cont[olist[i]], &mid))
         return retval;
     retval = 1 - retval;
     for (i = nothersame; i < nother; i++)
-      if (inside_cont(&obj->cont[olist[i]], mid))
+      if (imodPointInsideCont(&obj->cont[olist[i]], &mid))
         return retval;
   }
   return (retval);
@@ -2898,6 +2818,10 @@ static int break_contour_inout(Icont *cin, int st1, int st2,  int fill,
 /* 
 mkmesh.c got the big log from before the split
 $Log$
+Revision 1.4  2007/03/31 03:50:33  mast
+In meshing open contours, made it ignore a single point in favor of other
+contours if there are any.
+
 Revision 1.3  2006/11/05 01:00:32  mast
 Added time to tube meshes
 
