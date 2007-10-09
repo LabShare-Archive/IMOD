@@ -7,37 +7,10 @@
  *  Copyright (C) 1995-2004 by Boulder Laboratory for 3-Dimensional Electron
  *  Microscopy of Cells ("BL3DEMC") and the Regents of the University of 
  *  Colorado.  See dist/COPYRIGHT for full copyright notice.
+ *
+ * $Id$
+ * Log at end of file
  */
-
-/*  $Author$
-
-    $Date$
-
-    $Revision$
-
-    $Log$
-    Revision 3.8  2005/06/20 22:25:39  mast
-    Chnages for managing general storage
-
-    Revision 3.7  2005/04/23 23:37:31  mast
-    Documented functions
-
-    Revision 3.6  2005/03/20 19:56:49  mast
-    Eliminating duplicate functions
-
-    Revision 3.5  2004/12/02 21:56:04  mast
-    Revamped imodPointIntersect for segment intersections in zap window
-
-    Revision 3.4  2004/11/20 04:29:23  mast
-    Changes to add point function
-
-    Revision 3.3  2004/11/05 18:53:00  mast
-    Include local files with quotes, not brackets
-
-    Revision 3.2  2004/09/10 21:33:46  mast
-    Eliminated long variables
-
-*/
 
 #include <math.h>
 #include "imodel.h"
@@ -504,3 +477,112 @@ float imodPointAreaScale(Ipoint *p1, Ipoint *p2, Ipoint *p3, Ipoint *s)
      
   return((float)(sqrt(n.x*n.x + n.y*n.y + n.z*n.z) * 0.5));
 }
+
+/* Based on algorithm in "Computational Geometry in C", Joseph O'Rourke,
+   1998, with modifications to speed up search for ray crossings.  First
+   written in fortran then translated to C.
+*/
+
+/*!
+ * Returns 1 if the point [pt] is inside or on the contour [cont], otherwise
+ * returns 0.  Uses the same code as in @@cfutils.html#InsideContour@.
+ */
+int imodPointInsideCont(Icont *cont, Ipoint *pt)
+{
+  Ipoint *pts = cont->pts;
+  int rstrad, lstrad;
+
+  int nrcross=0;
+  int nlcross=0;
+  int np = cont->psize;
+  float x = pt->x;
+  float y = pt->y;
+  float xp, yp, xc, yc, xcross;
+  int j, jl;
+
+  yp = pts[np - 1].y;
+  j = 0;
+  while(j < np) {
+    if (yp < y) {
+              
+      /* if last point below y, search for first that is not below */
+               
+      while(j < np && pts[j].y < y) 
+        j++;
+
+    } else if (yp > y) {
+
+      /* or if last point above y, search for first that is not 
+         above */
+
+      while(j < np && pts[j].y > y)
+        j++;
+    }
+
+    if (j < np) {
+      jl=j-1;
+      if (jl < 0)
+        jl=np - 1;
+      xp=pts[jl].x;
+      yp=pts[jl].y;
+      xc=pts[j].x;
+      yc=pts[j].y;
+            
+      /*  return if point is a vertex */
+
+      if (x == xc && y == yc)
+        return 1;
+            
+      /* does edge straddle the ray to the right or the left? */
+
+      rstrad=(yc > y) != (yp > y);
+      lstrad=(yc < y) != (yp < y);
+      if (lstrad || rstrad) {
+              
+        /* if so, compute the crossing of the ray, add up crossings */
+
+        xcross=xp+(y-yp)*(xc-xp)/(yc-yp);
+        if (rstrad && (xcross > x))
+          nrcross++;
+        if (lstrad && (xcross < x))
+          nlcross++;
+      }
+      yp=yc;
+    }
+    j++;
+  }
+  
+  /*  if left and right crossings don't match, it's on an edge
+      otherwise, inside iff crossings are odd */
+  if (nrcross % 2 !=  nlcross % 2)
+    return 1;
+  return((nrcross % 2) > 0);
+}
+
+/*  $Log$
+
+Revision 3.9  2007/04/26 19:09:46  mast
+Fixed segment distance function
+
+Revision 3.8  2005/06/20 22:25:39  mast
+Changes for managing general storage
+
+Revision 3.7  2005/04/23 23:37:31  mast
+Documented functions
+
+Revision 3.6  2005/03/20 19:56:49  mast
+Eliminating duplicate functions
+
+Revision 3.5  2004/12/02 21:56:04  mast
+Revamped imodPointIntersect for segment intersections in zap window
+
+Revision 3.4  2004/11/20 04:29:23  mast
+Changes to add point function
+
+Revision 3.3  2004/11/05 18:53:00  mast
+Include local files with quotes, not brackets
+
+Revision 3.2  2004/09/10 21:33:46  mast
+Eliminated long variables
+
+*/
