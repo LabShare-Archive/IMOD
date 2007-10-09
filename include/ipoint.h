@@ -48,6 +48,7 @@ int imodPointIntersect(Ipoint *a, Ipoint *b, Ipoint *c, Ipoint *d);
 double imodel_point_dist(Ipoint *pnt1, Ipoint *pnt2);
 float imodPointLineSegDistance(Ipoint *lp1, Ipoint *lp2, Ipoint *p,
                                float *tval);
+int imodPointInsideCont(Icont *cont, Ipoint *pt);
 
 #ifdef __cplusplus
 }

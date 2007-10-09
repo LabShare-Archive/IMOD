@@ -139,6 +139,7 @@ EXPORTS
 	imodContourSplice
 	imodContourPrincipalAxis
 	imodClipsFixCount
+	imodPointInsideCont
 	imodel_contour_nearest
 	imodObjectInsertContour
 	imodSetIndex
