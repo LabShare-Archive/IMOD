@@ -64,6 +64,10 @@ import etomo.util.Utilities;
  * @version $Revision$
  * 
  * <p> $Log$
+ * <p> Revision 1.61  2007/09/07 00:15:52  sueh
+ * <p> bug# 989 Using a public INSTANCE for EtomoDirector instead of getInstance
+ * <p> and createInstance.
+ * <p>
  * <p> Revision 1.60  2007/08/29 21:22:38  sueh
  * <p> bug# 1041 Made getBaseState public.
  * <p>
@@ -876,7 +880,7 @@ public final class JoinManager extends BaseManager {
     }
     initializeUIParameters(paramFile, AxisID.ONLY, false);
     if (loadedParamFile) {
-      imodManager.setMetaData(metaData);
+      //imodManager.setMetaData(metaData);
       mainPanel.setStatusBarText(paramFile, metaData);
     }
     mainPanel.setStatusBarText(paramFile, metaData);
