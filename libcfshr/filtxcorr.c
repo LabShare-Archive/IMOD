@@ -358,11 +358,11 @@ void XCorrPeakFind(float *array, int nxdim, int ny, float  *xpeak,
     y1=array[(ixpeak + nx - 1) % nx + iypeak * nxdim];
     y2=peak[i];
     y3=array[(ixpeak + 1) % nx + iypeak * nxdim];
-    cx = parabolicFitPosition(y1, y2, y3);
+    cx = (float)parabolicFitPosition(y1, y2, y3);
 
     y1=array[ixpeak + ((iypeak + ny - 1) % ny) * nxdim];
     y3=array[ixpeak + ((iypeak + 1) % ny) * nxdim];
-    cy = parabolicFitPosition(y1, y2, y3);
+    cy = (float)parabolicFitPosition(y1, y2, y3);
     
     /*    return adjusted pixel coordinate */
     xpeak[i]=ixpeak+cx;
@@ -389,15 +389,15 @@ void xcorrpeakfind(float *array, int *nxdim, int *ny, float  *xpeak,
  * [y2] is the peak value, this fits a parabola to the values and returns the
  * offset of the peak from the center position, a number between -0.5 and 0.5.
  */
-float parabolicFitPosition(float y1, float y2, float y3)
+double parabolicFitPosition(float y1, float y2, float y3)
 {
-  float denom, cx = 0.;
+  double denom, cx = 0.;
   denom=2.f*(y1+y3-2.f*y2);
   
   /* y2 is the highest, so in the absence of numerical error due to numbers
      being very close to each other, the peak must be in the interval.
      This seems better than testing if zero or testing against 1.e-6 */
-  if (fabs((double)denom) > fabs(1.e-2 * (y1-y3)))
+  if (fabs(denom) > fabs(1.e-2 * (y1-y3)))
     cx=(y1-y3)/denom;
   if (cx > 0.5)
     cx = 0.5;
@@ -408,7 +408,7 @@ float parabolicFitPosition(float y1, float y2, float y3)
 /*!
  * Fortran wrapper to @parabolicFitPosition
  */
-float parabolicfitposition(float *y1, float *y2, float *y3)
+double parabolicfitposition(float *y1, float *y2, float *y3)
 {
   return (parabolicFitPosition(*y1, *y2, *y3));
 }
@@ -435,6 +435,9 @@ void conjugateProduct(float *array, float *brray, int nx, int ny)
 }
 
 /*  $Log$
+/*  Revision 1.2  2007/10/04 16:24:57  mast
+/*  Added parabolic fit function to do it right everywhere
+/*
 /*  Revision 1.1  2007/10/01 15:26:09  mast
 /*  *** empty log message ***
 /*

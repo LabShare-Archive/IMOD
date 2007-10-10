@@ -59,7 +59,7 @@ extern "C" {
   void XCorrMeanZero(float *array, int nxdim, int nx, int ny);
   void XCorrPeakFind(float *array, int nxdim, int ny, float  *xpeak,
                      float *ypeak, float *peak, int maxpeaks);
-  float parabolicFitPosition(float y1, float y2, float y3);
+  double parabolicFitPosition(float y1, float y2, float y3);
   void conjugateProduct(float *array, float *brray, int nx, int ny);
 
   /* taperpad.c */
@@ -95,6 +95,9 @@ extern "C" {
 
 /*
 $Log$
+Revision 3.2  2007/10/04 16:24:29  mast
+Added parabolic fit function to do it right everywhere
+
 Revision 3.1  2007/10/01 15:27:13  mast
 Split b3dutil.h, this one goes to SerialEM
 
