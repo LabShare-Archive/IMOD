@@ -14,13 +14,8 @@ c       See man page for details.
 c       
 c       David Mastronarde, 7/16/01
 c       
-c       $Author$
-c       
-c       $Date$
-c       
-c       $Revision$
-c       
-c       Log at end
+c       $Id$
+c       Log at end of file
 c       
       implicit none
       integer idim,limvert,limcont,limpat,limwork
@@ -263,16 +258,18 @@ c
      &    'PATCHES TOO LARGE FOR WORKING ARRAY FOR 3D FFT')
       nxctf = nxXCpad
 c       
-c       Initialize transform, require b source dimensions if one is entered or
-c       fall back to current B volume size; read in transform and add shifts
-c
+c       Initialize transform: since this is a center-based transform, 
+c       neutralize component of volume coordinate shift due to size difference
       do i = 1,3
         do j = 1,3
           asrc(i,j) = 0.
         enddo
-        dxyzsrc(i) = -dxyzVol(i)
+        dxyzsrc(i) = (nxyz2(i) - nxyz(i)) / 2. - dxyzVol(i)
         asrc(i,i) = 1.
       enddo
+c
+c       require b source dimensions if one is entered or
+c       fall back to current B volume size; read in transform and add shifts
       if (nxyzbsrc(1) .eq. 0) then 
         if (xffile .ne. ' ') call exitError(
      &      'B SOURCE FILE DIMENSIONS MUST BE ENTERED TO USE 3D TRANSFORMS')
@@ -280,12 +277,13 @@ c
           nxyzbsrc(i) = nxyz2(i)
         enddo
       endif
-c      
+c       
+c       Read transform, add volume-shift component of center-based transform
       if (xffile .ne. ' ') then
         call dopen(1, xffile, 'ro', 'f')
         do i = 1, 3
-          read(1,*,err=95, end =95) (asrc(i,j),j=1,3), dxyzSrc(i)
-          dxyzSrc(i) = dxyzSrc(i) - dxyzVol(i)
+          read(1,*,err=95, end =95) (asrc(i,j),j=1,3), tmp
+          dxyzSrc(i) = dxyzSrc(i) + tmp
         enddo
         close(1)
       endif        
@@ -295,8 +293,8 @@ c       to Y/Z dimensions
 c
       ncont=0
       if (modelfile.ne.' ') then
-        call get_region_contours(modelfile, 'CORRSEARCH3D', xvert, yvert, nvert,
-     &      indvert, zcont, ncont, ifflip, limcont, limvert)
+        call get_region_contours(modelfile, 'CORRSEARCH3D', xvert, yvert,
+     &      nvert, indvert, zcont, ncont, ifflip, limcont, limvert)
         
         if (ifdebug .gt.0) write(*,'(5(f7.0,f8.0))')
      &        (xvert(i), yvert(i),i = indvert(1), indvert(1) + nvert(1)-1)
@@ -325,8 +323,8 @@ c         For b model, get its coordinates in the source native section plane
 c         then transform to coordinates in A volume native plane
 c         
         print *,'Processing model on source for second volume'
-        call get_region_contours(bmodel, 'CORRSEARCH3D', xvertb, yvertb, nvertb,
-     &      indvertb, zcontb, ncontb, ifflipb, limcont, limvert)
+        call get_region_contours(bmodel, 'CORRSEARCH3D', xvertb, yvertb,
+     &      nvertb, indvertb, zcontb, ncontb, ifflipb, limcont, limvert)
         do j = 1, ncontb
           if (ifdebug .gt.0) write(*,'(5(f7.0,f8.0))')
      &        (xvertb(i), yvertb(i),i = indvertb(j), indvertb(j) + nvertb(j)-1)
@@ -890,7 +888,7 @@ c
       integer*4 idycor,idzcor,ix0cor,ix1cor,iy0cor,iy1cor,iz0cor,iz1cor
       integer*4 indmax
       real*4 cx,cy,cz,y1,y2,y3
-      real*4 parabolicFitPosition
+      real*8 parabolicFitPosition
 c       
 c       get global displacement of b, including the load offset
 c       
@@ -1346,7 +1344,7 @@ c
       integer*4 ix, iy, iz, ixpeak,iypeak, izpeak, nx
       real*4 cx, cy, cz, y1, y2, y3
       integer*4 indmap
-      real*4 parabolicFitPosition
+      real*8 parabolicFitPosition
 c       
       nx = nxdim - 2
       peak = -1.e30
@@ -1811,6 +1809,10 @@ c
 
 
 c       $Log$
+c       Revision 3.16  2007/10/04 16:18:27  mast
+c       Called new parabolic fit function and protected correlation coefficient
+c       from numeric errors
+c
 c       Revision 3.15  2007/03/02 15:51:56  mast
 c       Increased string sizes from 80 to 160
 c
