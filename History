@@ -1,5 +1,8 @@
 IMOD History
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+10/10/07: Fixed Corrsearch3d's handling of volume shifts when volume sizes
+are unequal.
+
 10/4/07: Made Corrsearch3d compute positions and correlation coefficients more
 carefully to avoid numeric problems correlating solid gray areas.
 
