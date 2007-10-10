@@ -735,6 +735,7 @@ c
       real*4 peak,xrot,yrot,cx,y1,y2,y3,denom,cy,costh,sinth
       real*4 cosd,sind
       integer*4 indmap
+      real*8 parabolicFitPosition
 c       
       nxrot=nxplus-2
 c       
@@ -779,20 +780,14 @@ c	print *,ixpeak,iypeak
 c       
 c       simply fit a parabola to the two adjacent points in X or Y
 c       
-      cx=0.
       y1=array(indmap(ixpeak-1,nxrot),iypeak)
       y2=peak
       y3=array(indmap(ixpeak+1,nxrot),iypeak)
-      denom=2.*(y1+y3-2.*y2)
-      if(abs(denom).gt.-1.e6)cx=(y1-y3)/denom
-      if(abs(cx).gt.0.5)cx=sign(0.5,cx)
+      cx=parabolicFitPosition(y1, y2, y3)
 c	print *,'X',y1,y2,y3,cx
-      cy=0.
       y1=array(ixpeak,indmap(iypeak-1,nyrot))
       y3=array(ixpeak,indmap(iypeak+1,nyrot))
-      denom=2.*(y1+y3-2.*y2)
-      if(abs(denom).gt.-1.e6)cy=(y1-y3)/denom
-      if(abs(cy).gt.0.5)cy=sign(0.5,cy)
+      cy=parabolicFitPosition(y1, y2, y3)
 c	print *,'Y',y1,y2,y3,cy
 c       
 c       return adjusted pixel coordinate minus 1
@@ -832,6 +827,10 @@ c	print *,xpeak,ypeak
 
 c       
 c       $Log$
+c       Revision 3.23  2006/07/26 23:57:35  mast
+c       Fixed cumulative correlation to avoid inverting stretch with two
+c       equal lowest angles
+c
 c       Revision 3.22  2006/04/08 23:33:51  mast
 c       Disabled shifting of tilt axis to center with no cosine stretching
 c
