@@ -69,6 +69,8 @@ extern "C" {
   void sliceTaperInPad(void *array, int type, int nxdimin, int ix0, int ix1,
                        int iy0, int iy1, float *brray, int nxdim, int nx,
                        int ny, int nxtap, int nytap);
+  double sliceEdgeMean(float *array, int nxdim, int ixlo, int ixhi, int iylo,
+                       int iyhi);
 
   /* circlefit.c */
   int circleThrough3Pts(float x1, float y1, float x2, float y2, float x3, 
@@ -95,6 +97,9 @@ extern "C" {
 
 /*
 $Log$
+Revision 3.3  2007/10/10 18:54:52  mast
+Functions callable by fortran must return double not float!
+
 Revision 3.2  2007/10/04 16:24:29  mast
 Added parabolic fit function to do it right everywhere
 
