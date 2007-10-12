@@ -38,6 +38,9 @@
 /*  $Id$
 
 $Log$
+Revision 1.3  2006/11/03 17:28:38  mast
+Added documentation, author and license statements
+
 Revision 1.2  2005/02/11 01:42:33  mast
 Warning cleanup: implicit declarations, main return type, parentheses, etc.
 
@@ -52,7 +55,8 @@ Added C version of library to package
 #include <math.h>
 /*!
  * Performs a two-dimensional FFT in place in [array].  The data are organized
- * as [nyp] rows of [nxp] values in the real space image.  The direction 
+ * as [nyp] rows of [nxp] values in the real space image, which must be 
+ * contained in a float array whose X dimension is [nxp] + 2.  The direction 
  * of the transform is determined by [idirp]: ^
  *     0   forward  transform :  exp(+2PIirs) ^
  *     1   inverse transform  :  exp(-2PIirs) ^
@@ -60,7 +64,8 @@ Added C version of library to package
  * The origin of the transform is at the first point.  The Y coordinate of the
  * transform progresses from Y = 0 on the first line, to Y = [nyp] / 2 - 1 on
  * the middle line, then from -[nyp] / 2 on the next line up, to -1 on the 
- * last line.
+ * last line.  ^
+ * Can be called from either C or Fortran by this name.
  */
 void todfft(float *array, int *nxp, int *nyp, int *idirp)
 {

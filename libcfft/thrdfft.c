@@ -8,6 +8,9 @@
 /*  $Id$
 
 $Log$
+Revision 1.2  2006/11/03 17:28:38  mast
+Added documentation, author and license statements
+
 Revision 1.1  2004/10/24 21:18:39  mast
 Added C version of library to package
 
@@ -18,7 +21,8 @@ Added C version of library to package
 /*!
  * Performs a three-dimensional FFT in place on data in [array].
  * Data are organized as [nzp] slices each consisting of [nyp] rows of [nxp]
- * values in the real-space image.  [brray] is for working storage and must be
+ * values in the real-space image, which must be contained in a float array
+ * whose X dimension is [nxp] + 2.  [brray] is for working storage and must be
  * dimensioned to at least [nxp] + 2 * [nzp].  The direction of the transform 
  * is determined by [idirp]: ^
  *     0   forward transform ^
@@ -29,7 +33,8 @@ Added C version of library to package
  * transform progresses from Y = 0 on the first line, to Y = [nyp] / 2 - 1 on
  * the middle line, then from -[nyp] / 2 on the next line up, to -1 on the 
  * last line.  Similarly the Z coordinate progresses from Z = 0 on the first
- * slice to Z = [nzp] / 2 - 1, then from -[nzp] / 2 to -1.
+ * slice to Z = [nzp] / 2 - 1, then from -[nzp] / 2 to -1.  ^
+ * Can be called from either C or Fortran by this name.
  */
 void thrdfft(float *array, float *brray, int *nxp, int *nyp, int *nzp,
              int *idirp)

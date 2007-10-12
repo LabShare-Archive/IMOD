@@ -37,6 +37,9 @@
 /*  $Id$
 
 $Log$
+Revision 1.4  2006/11/03 17:28:38  mast
+Added documentation, author and license statements
+
 Revision 1.3  2005/02/11 01:42:33  mast
 Warning cleanup: implicit declarations, main return type, parentheses, etc.
 
@@ -54,7 +57,8 @@ Added C version of library to package
 #include <math.h>
 /*!
  * Performs [nyp] 1-D FFT'S in place.  The data are organized as [nyp] lines of
- * data of length [nxp] in the real space image.  The origin of the transform
+ * data of length [nxp] in the real space image, which must be contained in a
+ * float array whose X dimension is [nxp] + 2.  The origin of the transform
  * is at the first point on each line.  The direction of the transform is 
  * determined by [idirp]: ^
  *     0 Forward  (Real --> Complex)     exp(+2PIirs) ^
@@ -64,7 +68,8 @@ Added C version of library to package
  *    -3 Reverse  (Real --> Complex)     exp(-2PIirs) ^
  * For Real/complex or Complex/real, only the unique portion of the transform
  * is written to the array  (positive frequencies).  For Complex/complex, the
- * entire transform is written
+ * entire transform is written.  ^
+ * Can be called from either C or Fortran by this name.
  */
 void odfft(float *array, int *nxp, int *nyp, int *idirp)
 {
