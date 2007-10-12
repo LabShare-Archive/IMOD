@@ -97,7 +97,7 @@ int InsideContour(float *ptX, float *ptY, int np, float x, float y)
 }
 
 /*!
- * Fortran wrapper to @InsideContour.  But it is more convenient to call
+ * Fortran wrapper to @InsideContour .  But it is more convenient to call
  * ^   logical function inside(ptX, ptY, np, x, y)
  */
 int insidecontour(float *ptX, float *ptY, int *np, float *x, float *y)
@@ -106,6 +106,9 @@ int insidecontour(float *ptX, float *ptY, int *np, float *x, float *y)
 }
 
 /*  $Log$
+/*  Revision 1.1  2007/10/01 15:26:09  mast
+/*  *** empty log message ***
+/*
 
 
 */
