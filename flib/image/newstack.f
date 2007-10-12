@@ -10,12 +10,7 @@ c       output files.
 *       
 *       For all details see the man page.
 *       
-c       $Author$
-c       
-c       $Date$
-c       
-c       $Revision$
-c       
+c       $Id$
 c       Log at end of file
 c       
       implicit none
@@ -648,8 +643,10 @@ c
           frot(1,2) = -sind(rotateAngle)
           frot(2,2) = frot(1,1)
           frot(2,1) = -frot(1,2)
-          frot(1,3) = 0.5 * (frot(1,1) + frot(1,2)) - 0.5
-          frot(2,3) = 0.5 * (frot(2,1) + frot(2,2)) - 0.5
+c           This was needed to correct for cubinterp rotating off center,
+c           changed 10/12/07
+c          frot(1,3) = 0.5 * (frot(1,1) + frot(1,2)) - 0.5
+c          frot(2,3) = 0.5 * (frot(2,1) + frot(2,2)) - 0.5
         endif
         if (expandFactor .eq. 0.) expandFactor = 1.
         call xfunit(fexp, expandFactor)
@@ -1850,10 +1847,10 @@ c
 C       
 C       Calc inverse transformation
 C       
-      XCEN = NXB/2. + XT + 1
-      YCEN = NYB/2. + YT + 1
-      XCO = XC + 1
-      YCO = YC + 1
+      XCEN = NXB/2. + XT + 0.5
+      YCEN = NYB/2. + YT + 0.5
+      XCO = XC + 0.5
+      YCO = YC + 0.5
       DENOM = AMAT(1,1)*AMAT(2,2) - AMAT(1,2)*AMAT(2,1)
       A11 =  AMAT(2,2)/DENOM
       A12 = -AMAT(1,2)/DENOM
@@ -1872,6 +1869,10 @@ c
 ************************************************************************
 *       
 c       $Log$
+c       Revision 3.44  2007/02/12 18:52:03  mast
+c       Fixed setting of origin for binning when output size is specified and
+c       there are no transformations
+c
 c       Revision 3.43  2006/12/20 05:30:03  mast
 c       Added options for blank output sections and for sections at an increment
 c
