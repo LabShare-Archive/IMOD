@@ -18,6 +18,11 @@ $(LHD)/mrcslice.html $(LHD)/sliceproc.html $(LHD)/libmesh.html \
 $(LHD)/libifft.html $(LHD)/libdiaqt.html $(LHD)/libcfshr.html \
 $(LHD)/cfutils.html
 
+CFUTILS = $(CFD)/parselist.c $(CFD)/circlefit.c $(CFD)/filtxcorr.c \
+$(CFD)/amoeba.c $(CFD)/samplemeansd.c $(CFD)/colormap.c $(CFD)/taperpad.c \
+$(CFD)/reduce_by_binning.c $(CFD)/cubinterp.c $(CFD)/insidecontour.c \
+$(CFD)/scaledsobel.c
+
 # Make doc files and place them in help directory
 
 all : $(HTMLS)
@@ -71,9 +76,7 @@ $(LHD)/mod_fwrap.html: mod_fwrap.html $(IMD)/imodel_fwrap.c
 $(LHD)/b3dutil.html: b3dutil.html $(CFD)/b3dutil.c 
 	$(SDEXE) -d $(CFD) b3dutil.html $(LHD)/b3dutil.html
 
-$(LHD)/cfutils.html: cfutils.html $(CFD)/parselist.c \
-	$(CFD)/amoeba.c $(CFD)/samplemeansd.c $(CFD)/colormap.c \
-	$(CFD)/reduce_by_binning.c $(CFD)/cubinterp.c
+$(LHD)/cfutils.html: cfutils.html $(CFUTILS)
 	$(SDEXE) -d $(CFD) cfutils.html $(LHD)/cfutils.html
 
 $(LHD)/autodoc.html: autodoc.html $(CFD)/autodoc.c
