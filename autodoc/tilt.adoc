@@ -219,7 +219,7 @@ usage = Output slices parallel to the plane of the specimen
 tooltip = 
 manpage = Output slices parallel to the plane of the zero tilt projection.
 This option cannot be used with direct writing of data to a single output file
-from parallel Tilt runs.
+from parallel Tilt runs.  It inverts the handedness of the reconstruction.
 
 [Field = PERPENDICULAR]
 type = B
