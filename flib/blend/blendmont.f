@@ -502,6 +502,10 @@ c
         endif
       endif
 c       
+c       Add 0.5 to get the center of rotation to be around the center of image
+      gxcen = gxcen + 0.5
+      gycen = gycen + 0.5
+c       
 c       get list of sections desired, set up default as all sections
 c       
       do i=1,nlistz
@@ -2764,6 +2768,9 @@ c
 
 c       
 c       $Log$
+c       Revision 3.32  2007/09/07 11:05:10  mast
+c       Fixed truncation when input is integers, mode 1 or 6
+c
 c       Revision 3.31  2007/05/22 23:21:11  mast
 c       Fixed shifting of origin; delta was being gotten after it was used
 c
