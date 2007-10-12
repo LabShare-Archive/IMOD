@@ -20,26 +20,28 @@
  * Applies a linear transformation to an image using cubic or linear 
  * interpolation.  It eliminates all range tests from the inner loop, but 
  * falls back from cubic to quadratic interpolation (which range tests) around
- * the edges of the input image area.
- * ^  [array] - The input image array
- * ^  [bray] - The output image array
- * ^  [nxa],[nya] - The dimensions of [array]
- * ^  [nxb],[nyb] - The dimensions of [bray]
- * ^  [amat] - A 2x2 matrix to specify rotation, scaling, and skewing
- * ^  [xc],[yc] - The coordinates of the center of [array]
- * ^  [xt],[yt] - The translation to add to the final image. The
- * center of the output array is taken as [nxb] / 2, [nyb] / 2
- * ^  [scale] - A multiplicative scale factor for the intensities
- * ^  [dmean] - Mean intensity of image or other value with which to fill 
- * empty image area
- * ^  [linear] - Set non-zero to do linear interpolation
- * ^The coordinate transformation from (Xi, Yi) in the input image to the
- * (Xo, Yo) in the output image is given by:
- * ^    Xo = a11(Xi - Xc) + a12(Yi - Yc) + nxb/2. + xt
- * ^    Yo = a21(Xi - Xc) + a22(Yi - Yc) + nyb/2. + yt
- * ^When calling from C, indices in [amat] are transposed: a11 = amat\[0\]\[0\],
- * a12 = amat\[1\]\[0\], a21 = amat\[0\]\[1\], a22 = amat\[1\]\[1\]
- * ^To call from Fortran, use arguments of the same type and in the same order.
+ * the edges of the input image area.  ^
+ *   [array] - The input image array  ^
+ *   [bray] - The output image array  ^
+ *   [nxa],[nya] - The dimensions of [array]  ^
+ *   [nxb],[nyb] - The dimensions of [bray]  ^
+ *   [amat] - A 2x2 matrix to specify rotation, scaling, and skewing  ^
+ *   [xc],[yc] - The coordinates of the center of [array]  ^
+ *   [xt],[yt] - The translation to add to the final image. The
+ * center of the output array is taken as [nxb] / 2., [nyb] / 2.  ^
+ *   [scale] - A multiplicative scale factor for the intensities  ^
+ *   [dmean] - Mean intensity of image or other value with which to fill 
+ * empty image area  ^
+ *   [linear] - Set non-zero to do linear interpolation  ^
+ * The coordinate transformation from (Xi, Yi) in the input image to the
+ * (Xo, Yo) in the output image is given by:  ^
+ *     Xo = a11(Xi - Xc) + a12(Yi - Yc) + nxb/2. + xt  ^
+ *     Yo = a21(Xi - Xc) + a22(Yi - Yc) + nyb/2. + yt  ^
+ * where Xi is a coordinate running from 0 at the left edge of the first pixel
+ * to [nxa] at the right edge of the last pixel in X, and similarly for Y.  ^
+ * When calling from C, indices in [amat] are transposed: a11 = amat\[0\]\[0\],
+ * a12 = amat\[1\]\[0\], a21 = amat\[0\]\[1\], a22 = amat\[1\]\[1\]  ^
+ * To call from Fortran, use arguments of the same type and in the same order.
  * Indices in [amat] are in logical order: a11 = amat(1,1), a12 = amat(1,2), 
  * etc.
  */   
@@ -54,10 +56,10 @@ void cubinterp(float *array, float *bray, int nxa, int nya, int nxb, int nyb,
   int ixnd,ixst,ixfbst,ixfbnd,iqst,iqnd,ifall,ind,indpnxa,indmnxa,indpnxa2;
 
   /* Calc inverse transformation */
-  xcen = nxb / 2. + xt + 1;
-  ycen = nyb / 2. + yt + 1;
-  xco = xc + 1;
-  yco = yc + 1;
+  xcen = nxb / 2. + xt + 0.5;
+  ycen = nyb / 2. + yt + 0.5;
+  xco = xc + 0.5;
+  yco = yc + 0.5;
   denom = amat[0][0] * amat[1][1] - amat[1][0] * amat[0][1];
   a11 =  amat[1][1] / denom;
   a12 = -amat[1][0] / denom;
@@ -273,6 +275,9 @@ void cubinterpfwrap(float *array, float *bray, int *nxa, int *nya, int *nxb,
 /*
 
 $Log$
+Revision 1.2  2007/09/20 15:42:32  mast
+Documentation fixes
+
 Revision 1.1  2007/09/20 02:42:37  mast
 Added C translation to new library
 
