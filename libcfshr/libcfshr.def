@@ -97,6 +97,7 @@ EXPORTS
 	ADOCADDSECTION
 	AdocRead
 	PipGetError
+	sliceEdgeMean
 	b3dFwrite
 	PIPSETERROR
 	exitError
