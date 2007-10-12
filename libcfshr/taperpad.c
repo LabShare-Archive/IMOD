@@ -79,18 +79,10 @@ void sliceTaperOutPad(void *array, int type, int nxbox, int nybox,
 
   /* Do the taper if there is any padding */
   if (nxbox != nx || nybox != ny) {
-    if (ifmean) {
+    if (ifmean)
       dmean = dmeanin;
-    } else {
-      sum=0.;
-      for (ix = ixlo; ix < ixhi; ix++)
-        sum += brray[ix + iylo * nxdim] + brray[ix + (iyhi - 1) * nxdim];
-      
-      for (iy = iylo + 1; iy < iyhi - 1; iy++)
-        sum += brray[ixlo + iy * nxdim] + brray[ixhi - 1 + iy * nxdim];
-      
-      dmean = sum / (2 * (nxbox + nybox - 2));
-    }
+    else
+      dmean = (float)sliceEdgeMean(brray, nxdim, ixlo, ixhi-1,iylo,iyhi-1);
     nxtop = nx - 1;
     nytop = ny - 1;
 
@@ -159,14 +151,16 @@ void sliceTaperInPad(void *array, int type, int nxdimin, int ix0, int ix1,
                      int nxtap, int nytap)
 {
   int lobase, hibase, x1, x2, ixlo, ixhi, iylo, iyhi, ix, iy, ixbase;
-  int nsum, nxbox, nybox, ixlim, y1, y2;
-  float sum, dmean, fracx, fracy, fmin;
+  int nxbox, nybox, ixlim, y1, y2;
+  float dmean, fracx, fracy, fmin;
   b3dUByte *bytein;
   b3dInt16 *intin;
   b3dUInt16 *uintin;
   float *floatin;
   float *out;
   
+  /* ixlo, iylo are last index below image location in output array, 
+     ixhi, iyhi are last index within image location */
   nxbox = ix1 + 1 - ix0;
   nybox = iy1 + 1 - iy0;
   ixlo=nx/2-nxbox/2 - 1;
@@ -205,18 +199,7 @@ void sliceTaperInPad(void *array, int type, int nxdimin, int ix0, int ix1,
   }
 
   /* get edge mean */
-  sum=0.;
-  lobase = (iylo + 1) * nxdim;
-  hibase = iyhi * nxdim;
-  for (ix = ixlo + 1; ix <= ixhi; ix++)
-    sum += brray[ix + lobase] + brray[ix + hibase];
-  for (iy = iylo + 2; iy < iyhi; iy++) {
-    ixbase = iy * nxdim;
-    sum += brray[ixlo + 1 + ixbase] + brray[ixhi + ixbase];
-  }
-  
-  nsum=(2*(nxbox+nybox-2));
-  dmean=sum/nsum;
+  dmean = (float)sliceEdgeMean(brray, nxdim, ixlo+1, ixhi, iylo+1, iyhi);
     
   /* fill the rest of the array with dmean */
   if (nxbox != nx || nybox != ny) {
@@ -288,7 +271,33 @@ void taperinpad(void *array, int *nxbox, int *nybox, float *brray, int *nxdim,
                   *nybox - 1, brray, *nxdim, *nx, *ny, *nxtap, *nytap);
 }
 
+
+/*!
+ * Computes the mean along the edge for the portion of the image in [array]
+ * bounded by X indices [ixlo] and [ixhi] and Y indices [iylo] and [iyhi],
+ * inclusive.  [nxdim] is the X dimension of the array.  The mean is based
+ * solely on the single columns at [ixlo] and [ixhi] and the single rows at 
+ * [iylo] and [iyhi].
+ */
+double sliceEdgeMean(float *array, int nxdim, int ixlo, int ixhi, int iylo,
+                    int iyhi)
+{
+  double dmean, sum = 0.;
+  int ix, iy;
+  for (ix = ixlo; ix <= ixhi; ix++)
+    sum += array[ix + iylo * nxdim] + array[ix + iyhi * nxdim];
+      
+  for (iy = iylo + 1; iy < iyhi; iy++)
+    sum += array[ixlo + iy * nxdim] + array[ixhi + iy * nxdim];
+      
+  dmean = sum / (2 * (ixhi - ixlo + iyhi - iylo));
+  return dmean;
+}
+
 /*  $Log$
+/*  Revision 1.2  2007/10/01 16:22:12  mast
+/*  Fixed wrapper name from tst
+/*
 /*  Revision 1.1  2007/10/01 15:26:09  mast
 /*  *** empty log message ***
 /*
