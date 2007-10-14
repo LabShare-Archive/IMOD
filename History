@@ -1,5 +1,8 @@
 IMOD History
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+10/14/07: Fixed model2point to output index coordinates by default and added
+an option to get scaled model coordinates instead.
+
 10/14/07: Changed file size shown when opening a file to be in KB instead of
 512-byte blocks and labeled with a K.
 

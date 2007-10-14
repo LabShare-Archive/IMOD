@@ -26,6 +26,15 @@ usage = Output model coordinates as floating point, not integer
 tooltip = 
 manpage = 
 
+[Field = ScaledCoordinates]
+short = scaled
+type = B
+usage = Output coordinates in model coordinate system, not as pixel indices
+tooltip = 
+manpage = Output coordinates in model coordinate system, scaled by the pixel
+size and offset by origin values.  The default is to output index coordinates
+corresponding the the pixel coordinates in the image.
+
 [Field = ObjectAndContour]
 short = object
 type = B
