@@ -12,14 +12,9 @@
  * REVISIONS..:
  *   Ross Dargahi                December 1990
  *
- ******************************************************************************/
-/*  $Author$
-
-$Date$
-
-$Revision$
-Log at end
-*/
+ * $Id$
+ * Log at end
+ *****************************************************************************/
  
 #define BLOCKIO_C    /*define source name for includes*/
  
@@ -403,7 +398,7 @@ void qinquire(int *iunit, char *filename, int *flen, int filename_l)
     struct stat buf;
     stat(u->fname, &buf);
     set_fstr(filename, filename_l, u->fname);
-    *flen = buf.st_size / 512;
+    *flen = buf.st_size / 1024;
   } else {
 
       /* DNM: HUH? */
@@ -589,6 +584,10 @@ Private undefines
  
 /*
 $Log$
+Revision 3.18  2007/06/08 23:24:54  mast
+Add tail of filename to various error messages, direct system errors to
+standard out with correct prefix, and only if set
+
 Revision 3.17  2006/09/28 21:21:58  mast
 Changed qseek and qskip to work with huge images, eliminated the mode array
 and number of characters per item variable
