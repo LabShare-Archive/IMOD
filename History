@@ -1,5 +1,13 @@
 IMOD History
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+10/14/07: Changed file size shown when opening a file to be in KB instead of
+512-byte blocks and labeled with a K.
+
+10/12/07: Changed interpolation routines used by Newstack and Blendmont to
+operate around the true center of the image instead of being offset by half a
+pixel.  This will change some output, but now the tilt axis should be located
+properly for aligned tilt series rotated by large angles like 90 degrees.
+
 10/10/07: Fixed Corrsearch3d's handling of volume shifts when volume sizes
 are unequal.
 
@@ -10,7 +18,8 @@ carefully to avoid numeric problems correlating solid gray areas.
 
 10/3/07: Made Taperoutvol set the origin to match the coordinate system of the
 input volume, and made Assemblevol set the origin based on the origin of the
-first input subvolume.  Thus origins should be preserved through chunk processing and reassembly.
+first input subvolume.  Thus origins should be preserved through chunk 
+processing and reassembly.
 
 10/3/07: Made nad_eed_3d work with unsigned integer (mode 6) input.
 
