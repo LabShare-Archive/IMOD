@@ -22,6 +22,27 @@
 #define scaledfwrap scaledsobel_
 #endif
 
+/*! 
+ * Applies a sobel-type gradient filter to an image after scaling it by a
+ * specified amount.  When an image is being scaled down, some of the scaling
+ * can be done with binning and the remainder is done with interpolation.
+ * ^  [inImage] - input image
+ * ^  [nxin], [nyin] - size of image, which is assumed to be contiguous in
+ * the image array (X dimension equals [nxin].)
+ * ^  [scaleFac] - overall amount by which image is being scaled down (a value 
+ * < 1 will scale an image up).
+ * ^  [minInterp] - minimum amount of this scaling to be done by interpolation.
+ * ^  [linear] - set nonzero to use linear rather than cubic interpolation
+ * ^  [center] - weighting of center pixel, 2 for Sobel or 1 for Prewitt filter
+ * ^  [outImage] - output image
+ * ^  [nxout], [nyout] - returned with size of output image
+ * ^  [xOffset], [yOffset] - coordinate offset in output image: 
+ * ^     input_coord = output_coord * scalingFactor + xOffset ^
+ * The return value is 1 for a failure to allocate a temporary array.  ^
+ * If [inImage] is NULL or [center] < 0, the function will compute the output
+ * sizes and offsets and return.  ^
+ * The call from Fortran is the same as that from C.
+ */
 int scaledSobel(float *inImage, int nxin, int nyin, float scaleFac, 
                 float minInterp, int linear, float center, float *outImage,
                 int *nxout, int *nyout, float *xOffset, float *yOffset)
@@ -29,7 +50,7 @@ int scaledSobel(float *inImage, int nxin, int nyin, float scaleFac,
   float interpScale = scaleFac;
   int binning = 1;
   int nxbin, nybin, nxo, nyo, i, j, ind;
-  float scale, amat[2][2];
+  float scale, edge, amat[2][2];
   double Sr, Sc;
   float *tmpImage, *srcImage, *dest;
   size_t xysize;
@@ -64,7 +85,7 @@ int scaledSobel(float *inImage, int nxin, int nyin, float scaleFac,
   // Get a temporary image of needed size
   xysize = binning > 1 ? nxbin * nybin : nxo * nyo;
   tmpImage = (float *)malloc(xysize * sizeof(float));
-  if (tmpImage) 
+  if (!tmpImage) 
     return 1;
   if (binning > 1) {
     reduceByBinning(inImage, SLICE_MODE_FLOAT, nxin, nyin, binning, tmpImage,
@@ -77,10 +98,11 @@ int scaledSobel(float *inImage, int nxin, int nyin, float scaleFac,
   }
 
   // Do interpolation
+  edge = (float)sliceEdgeMean(srcImage, nxbin, 0, nxbin - 1, 0, nybin - 1);
   amat[0][0] = amat[1][1] = 1. / interpScale;
   amat[0][1] = amat[1][0] = 0.;
   cubinterp(srcImage, dest, nxbin, nybin, nxo, nyo, amat, nxbin / 2.,
-            nybin / 2., 0., 0., 1., 0., linear);
+            nybin / 2., 0., 0., 1., edge, linear);
 
   // If binned, copy data back to temp
   if (binning > 1) {
@@ -127,6 +149,9 @@ int scaledfwrap(float *inImage, int *nxin, int *nyin, float *scaleFac,
 }
 
 /*  $Log$
+/*  Revision 1.1  2007/10/01 15:26:05  mast
+/*  Preliminary checkin - untested
+/*
 
 
 */
