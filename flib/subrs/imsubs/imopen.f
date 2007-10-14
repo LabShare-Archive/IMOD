@@ -2,42 +2,10 @@ C       *IMOPEN
 C       
 C       Open file NAME with qualities ATBUTE ('RO' 'OLD' 'NEW' SCRATCH')
 C       and associate with stream ISTREAM 
-C       (ISTREAM = # between 1 & 12 ; MAX of  10 files opened at any time!!)
-c       DNM 8/22/00: changed size limit for detecting swapped bytes to 60000
-c       
-c       $Author$
-c       
-c       $Date$
-c       
-c       $Revision$
-c       
-c       $Log$
-c       Revision 3.8  2006/09/28 21:23:22  mast
-c       Changes for brief output and new qseek call
+C       (ISTREAM = # between 1 & 20 ; MAX of  20 files opened at any time)
 c
-c       Revision 3.7  2006/09/22 18:17:18  mast
-c       Fixed flush by fixing test for attribute
-c
-c       Revision 3.6  2006/09/22 00:02:13  mast
-c       Made it flush after printing a new filename
-c
-c       Revision 3.5  2005/11/11 22:36:07  mast
-c       Changed swap test to allow larger files, added nb value for unsigned
-c       
-c       Revision 3.4  2004/04/24 04:41:12  mast
-c       initialized spityp
-c       
-c       Revision 3.3  2002/07/31 17:57:41  mast
-c       Finished standardizing error output, added implicit none, changed
-c       line spacing for output, used lnblnk instead of len to truncate
-c       the filename output
-c       
-c       Revision 3.2  2002/07/21 19:17:31  mast
-c       Standardized error output to ERROR: ROUTINE
-c       
-c       Revision 3.1  2002/06/26 00:23:44  mast
-c       Changed STOP statements to print and call exit(1)
-c       
+c       $Id$
+c       Log at end
 c       
       SUBROUTINE IMOPEN(ISTREAM,NAME,ATBUTE)
       implicit none
@@ -141,30 +109,27 @@ c
 c         CER change VAXism TYPE='OLD' to STATUS='OLD' for g77
 c         alse delete RECORDTYPE='FIXED',SHARED,READONLY
 c         
-        OPEN(UNIT=30+j,FILE=NAME,STATUS='OLD',
-     &      ACCESS='DIRECT',FORM='UNFORMATTED',
-     &      RECL=LENREC)
+        OPEN(UNIT=30+j,FILE=NAME,STATUS='OLD', ACCESS='DIRECT',FORM=
+     &      'UNFORMATTED', RECL=LENREC)
         ncrs(1,j)=lenrec
       endif
 C       
 C       Get and print file name
 C       DNM: QINQUIRE returns nothing if J>5, then write crashes, so just skip it
+c       DNM 10/14/07: That is no longer the case, make it unconditional
 C       DNM: for unix, change len(at2) to len(atbute)
 c       DNM 9/21/06: flush so etomo can know about renames being done
-      if(j.le.5)then
-        CALL QINQUIRE(J,FULLNAME,NFILSZ)
-        IF (AT2(1:len(atbute)) .EQ. 'NEW' .OR. AT2 .EQ. 'SCRATCH') THEN
-          if (print)WRITE(6,2000) AT2(1:len(atbute)),ISTREAM,
-     &        FULLNAME(1:lnblnk(fullname))
-          call flush(6)
-        ELSE
-          if (print)WRITE(6,2100) AT2(1:len(atbute)),ISTREAM,
-     &        FULLNAME(1:lnblnk(fullname)),nfilsz
-        ENDIF
-      endif
+      CALL QINQUIRE(J,FULLNAME,NFILSZ)
+      IF (AT2(1:len(atbute)) .EQ. 'NEW' .OR. AT2 .EQ. 'SCRATCH') THEN
+        if (print)WRITE(6,2000) AT2(1:len(atbute)),ISTREAM,
+     &      FULLNAME(1:lnblnk(fullname))
+        call flush(6)
+      ELSE
+        if (print)WRITE(6,2100) AT2(1:len(atbute)),ISTREAM,
+     &      FULLNAME(1:lnblnk(fullname)),nfilsz
+      ENDIF
 2000  FORMAT(/,1x,A,' image file on unit',I4,' : ',A)
-2100  FORMAT(/,1x,A,' image file on unit',I4,' : ',A,
-     &    '     Size= ',I12)
+2100  FORMAT(/,1x,A,' image file on unit',I4,' : ',A, '     Size= ',I10,' K')
       if(spider(j).and.print .and. ifBrief .le. 0)write(6,2200)
 2200  format(/,20x,'This is a SPIDER file.')
       if(mrcflip(j).and.print .and. ifBrief .le. 0)write(6,2300)
@@ -186,3 +151,36 @@ C
       if (numopen .lt. 0) numopen = 0
       RETURN
       END
+
+c       $Log$
+c       Revision 3.9  2006/10/06 19:23:19  mast
+c       Renamed variable to IMOD_BRIEF_HEADER
+c
+c       Revision 3.8  2006/09/28 21:23:22  mast
+c       Changes for brief output and new qseek call
+c
+c       Revision 3.7  2006/09/22 18:17:18  mast
+c       Fixed flush by fixing test for attribute
+c
+c       Revision 3.6  2006/09/22 00:02:13  mast
+c       Made it flush after printing a new filename
+c
+c       Revision 3.5  2005/11/11 22:36:07  mast
+c       Changed swap test to allow larger files, added nb value for unsigned
+c       
+c       Revision 3.4  2004/04/24 04:41:12  mast
+c       initialized spityp
+c       
+c       Revision 3.3  2002/07/31 17:57:41  mast
+c       Finished standardizing error output, added implicit none, changed
+c       line spacing for output, used lnblnk instead of len to truncate
+c       the filename output
+c       
+c       Revision 3.2  2002/07/21 19:17:31  mast
+c       Standardized error output to ERROR: ROUTINE
+c       
+c       Revision 3.1  2002/06/26 00:23:44  mast
+c       Changed STOP statements to print and call exit(1)
+c       
+c       DNM 8/22/00: changed size limit for detecting swapped bytes to 60000
+c       
