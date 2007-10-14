@@ -10,10 +10,13 @@ c       See man page for details
 c
 c       $Id$
 c       $Log$
+c       Revision 3.1  2007/09/12 16:29:25  mast
+c       PIP conversion and output options
+c
 c       
       implicit none
       character*160 modelfile,pointfile
-      logical*4 printObj, printCont, floating
+      logical*4 printObj, printCont, floating, scaled
       integer*4 ierr,iobject,ninobj,ipt,ipnt,modObj, modCont, npnts
       logical exist,readw_or_imod
 c       
@@ -35,6 +38,7 @@ c
       printObj = .false.
       printCont = .false.
       floating = .false.
+      scaled = .false.
 c       
 c       Pip startup: set error, parse options, check help, set flag if used
 c       
@@ -50,6 +54,7 @@ c       read model in
 c       
       exist=readw_or_imod(modelfile)
       if(.not.exist)call exitError('READING MODEL FILE')
+      if (.not.scaled) call scale_model(0)
 c       
       call dopen(1,pointfile,'new','f')
       ierr = PipGetLogical('ObjectAndContour', printObj)
