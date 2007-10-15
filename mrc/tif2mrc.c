@@ -666,25 +666,29 @@ static float minmaxmean(unsigned char *tifdata, int mode, int unsign,
   return (tmean / (xsize * ysize));
 }
 
-/*  $Log$
+/* 
+   $Log$
+   Revision 3.15  2007/10/15 21:36:24  mast
+   Fixed output of unequal sized data to use b3dFwrite instead of fputc, made
+   it put out centered data and work for all modes, added output size option
 
-Revision 3.14  2006/08/28 05:26:44  mast
-Added abiity to handle colormapped images
-
-Revision 3.13  2006/01/13 05:00:50  mast
-Added option to suppress reading of multiple pages.
-
-Revision 3.12  2005/11/11 21:55:28  mast
-Outputs unsigned file mode
-
-Revision 3.11  2005/02/11 01:42:34  mast
-Warning cleanup: implicit declarations, main return type, parentheses, etc.
-
-Revision 3.10  2004/11/05 18:53:10  mast
-Include local files with quotes, not brackets
-
-Revision 3.9  2004/09/10 21:33:31  mast
-Eliminated long variables
-
+   Revision 3.14  2006/08/28 05:26:44  mast
+   Added abiity to handle colormapped images
+   
+   Revision 3.13  2006/01/13 05:00:50  mast
+   Added option to suppress reading of multiple pages.
+   
+   Revision 3.12  2005/11/11 21:55:28  mast
+   Outputs unsigned file mode
+   
+   Revision 3.11  2005/02/11 01:42:34  mast
+   Warning cleanup: implicit declarations, main return type, parentheses, etc.
+   
+   Revision 3.10  2004/11/05 18:53:10  mast
+   Include local files with quotes, not brackets
+   
+   Revision 3.9  2004/09/10 21:33:31  mast
+   Eliminated long variables
+   
 */
 
