@@ -7,31 +7,10 @@
  *  Copyright (C) 1995-2005 by Boulder Laboratory for 3-Dimensional Electron
  *  Microscopy of Cells ("BL3DEMC") and the Regents of the University of 
  *  Colorado.  See dist/COPYRIGHT for full copyright notice.
+ *
+ *  $Id$
+ *  Log at end
  */
-
-/*  $Author$
-
-    $Date$
-
-    $Revision$
-
-    $Log$
-    Revision 3.13  2006/01/13 05:00:50  mast
-    Added option to suppress reading of multiple pages.
-
-    Revision 3.12  2005/11/11 21:55:28  mast
-    Outputs unsigned file mode
-
-    Revision 3.11  2005/02/11 01:42:34  mast
-    Warning cleanup: implicit declarations, main return type, parentheses, etc.
-
-    Revision 3.10  2004/11/05 18:53:10  mast
-    Include local files with quotes, not brackets
-
-    Revision 3.9  2004/09/10 21:33:31  mast
-    Eliminated long variables
-
-*/
 
 /* tif2mrc [-b file] [tiff files] [mrcfile] */
 
@@ -77,13 +56,17 @@ int main( int argc, char *argv[])
   int forceSigned = 0;
   int readFirst = 0;
   int xsize = XSIZE, ysize = YSIZE;
-  int mrcxsize, mrcysize, mrcsizeset;
+  int mrcxsize = 0, mrcysize = 0, mrcsizeset;
   int bpix;
   float mean, tmean;
   int pixel;
-  short int *sptr;
-  short int *bgshort;
-  int bgBits, bgxsize, bgysize, xdo, ydo;
+  b3dInt16 *sptr;
+  b3dInt16 *bgshort;
+  int bgBits, bgxsize, bgysize, xdo, ydo, xoffset, yoffset;
+  unsigned char *fillPtr;
+  unsigned char byteFill[3];
+  b3dInt16 shortFill;
+  b3dUInt16 ushortFill;
   char *openmode = "rb";
   char *bgfile;
   char *progname = imodProgName(argv[0]);
@@ -112,6 +95,7 @@ int main( int argc, char *argv[])
     fprintf(stderr, "\t-s      Store as signed integers (mode 1) even if data "
             "are unsigned\n");
     fprintf(stderr, "\t-f      Read only first image of multi-page file\n");
+    fprintf(stderr, "\t-o x,y  Set output file size in X and Y\n");
     fprintf(stderr, "\t-b file Background subtract image in given file\n");
 
     exit(3);
@@ -153,7 +137,10 @@ int main( int argc, char *argv[])
         /*  bgfp = fopen(argv[++i], "rb"); */
         bg = TRUE;
         break;
-         
+
+      case 'o': /* Set output size */
+        sscanf(argv[++i], "%d%*c%d", &mrcxsize, &mrcysize);
+
       default:
         break;
       }
@@ -208,6 +195,10 @@ int main( int argc, char *argv[])
                 "multi-paged images.\n");
         exit(1);
       }
+
+      if (mrcxsize) 
+        fprintf(stderr, "Warning: output file size option ignored for "
+                "multi-paged file\n");
 
       if (!tiff.iifile) {
         read_tiffheader(tiffp, &(tiff.header));
@@ -281,14 +272,6 @@ int main( int argc, char *argv[])
         mrc_big_seek( mrcfp, 1024, section, xysize * pixSize, SEEK_SET);
          
         b3dFwrite(tifdata, pixSize, xsize * ysize, mrcfp);
-        /* linePtr = tifdata;
-           linePtr += xsize*ysize*pixSize;
-           linePtr -= xsize*pixSize;
-           for (y = 0; y < ysize ; y++){
-           fwrite(linePtr, pixSize, xsize, mrcfp);
-           linePtr-=xsize*pixSize;
-           } */
-         
           
         free(tifdata);
       }
@@ -349,8 +332,6 @@ int main( int argc, char *argv[])
     bgxsize = tiff.directory[WIDTHINDEX].value;
     bgysize = tiff.directory[LENGTHINDEX].value;
 
-
-
     if (bgBits == 8) {
       max = 0;
       min = 255;
@@ -392,10 +373,7 @@ int main( int argc, char *argv[])
   mrc_head_new(&hdata, xsize, ysize, argc - i - 1, mode);
   mrc_head_write(mrcfp, &hdata);
 
-  mrcxsize = mrcysize = 0;
   mrcsizeset = i;
-
-
 
   /* Loop through all the tiff files adding them to the MRC stack. */
   for (; i < argc - 1 ; i++){
@@ -406,6 +384,7 @@ int main( int argc, char *argv[])
       exit(3);
     }
     printf("Opening %s for input\n", argv[i]);
+    fflush(stdout);
     tiffp = tiff.fp;
        
     /* Read in tiff file */
@@ -419,8 +398,10 @@ int main( int argc, char *argv[])
     ysize = tiff.directory[LENGTHINDEX].value;
 
     if (mrcsizeset == i){
-      mrcxsize = xsize;
-      mrcysize = ysize;
+      if (!mrcxsize || !mrcysize) {
+        mrcxsize = xsize;
+        mrcysize = ysize;
+      }
       pixSize = 1;
       if (tiff.BitsPerSample == 16){
         mode = MRC_MODE_SHORT;
@@ -479,8 +460,8 @@ int main( int argc, char *argv[])
           }
         }
       } else {
-        sptr = (short int *)tifdata;
-        bgshort = (short int *)bgdata;
+        sptr = (b3dInt16 *)tifdata;
+        bgshort = (b3dInt16 *)bgdata;
         for (y = 0; y < ydo; y++)
           for (x = 0; x < xdo; x++)
             sptr[x + (y * xdo)] -= bgshort[x + (y * xdo)];
@@ -488,39 +469,58 @@ int main( int argc, char *argv[])
       }
     }
        
-    mean += minmaxmean(tifdata, mode, unsign, divide, xsize, ysize, &min,
+    tmean = minmaxmean(tifdata, mode, unsign, divide, xsize, ysize, &min,
                        &max);
+    mean += tmean;
 
     if ((xsize == mrcxsize) && (ysize == mrcysize)){
       /* Write out mrc file */    
 
       b3dFwrite(tifdata , pixSize, xsize*ysize, mrcfp);
-      /*        unsigned char *linePtr = tifdata;
-                linePtr += xsize*ysize*pixSize;
-                linePtr -= xsize*pixSize;
-                for (y = 0; y < ysize ; y++){
-                fwrite(linePtr, pixSize, xsize, mrcfp);
-                linePtr-=xsize*pixSize;
-                } */
 
     }else{
-      fprintf(stderr, "tif2mrc: Warning, file %s not same size.\n",
-              argv[i]);
-      if (pixSize > 1){
-        fprintf(stderr, "tif2mrc Error: Non byte data must be"
-                " the same size.\n");
-        exit(3);
+      fprintf(stderr, "tif2mrc: Warning, file %s not same size.\n", argv[i]);
+
+      /* Unequal sizes: set the fill value and pointer */
+      switch (mode) {
+      case MRC_MODE_BYTE:
+        byteFill[0] = tmean;
+        fillPtr = &byteFill[0];
+        break;
+      case MRC_MODE_RGB:
+        byteFill[0] = byteFill[1] = byteFill[2] = 128;
+        fillPtr = &byteFill[0];
+        break;
+      case MRC_MODE_SHORT:
+        shortFill = tmean;
+        fillPtr = &shortFill;
+        break;
+      case MRC_MODE_USHORT:
+        ushortFill = tmean;
+        fillPtr = &ushortFill;
+        break;
       }
-      /* todo: center file if not same size. */
-      /*  for(y = mrcysize - 1; y >= 0; y--) */
-      for(y = 0; y < mrcysize; y++)
-        for(x = 0; x < mrcxsize; x++){
-          bpix = 128;
-          if ((y < ysize) && (x < xsize))
-            bpix = tifdata[x + y * xsize];
-          /* bpix = tifdata[x + ((ysize - y - 1) * xsize)]; */
-          fputc(bpix, mrcfp);
+
+      /* Output centered data */
+      yoffset = (ysize - mrcysize) / 2;
+      xoffset = (xsize - mrcxsize) / 2;
+      for (y = 0; y < mrcysize; y++) {
+        if (y + yoffset < 0 || y + yoffset >= ysize) {
+
+          /* Do fill lines */
+          for (x = 0; x < mrcxsize; x++)
+            b3dFwrite(fillPtr, pixSize, 1, mrcfp);
+        } else {
+
+          /* Fill left edge if necessary, write data, fill right if needed */
+          for (x = xoffset; x < 0; x++)
+            b3dFwrite(fillPtr, pixSize, 1, mrcfp);
+          xdo = pixSize * (B3DMAX(0, xoffset) + (y + yoffset) * xsize);
+          b3dFwrite (&tifdata[xdo], pixSize, B3DMIN(xsize, mrcxsize), mrcfp);
+          for (x = 0; x < mrcxsize - xsize + xoffset; x++)
+            b3dFwrite(fillPtr, pixSize, 1, mrcfp);
         }
+      }
     }
 
     tiff_close_file(&tiff);
@@ -610,8 +610,8 @@ static float minmaxmean(unsigned char *tifdata, int mode, int unsign,
 {
   float tmean = 0.;
   int x, y, pixel;
-  short int *sptr;
-  unsigned short int *usptr;
+  b3dInt16 *sptr;
+  b3dUInt16 *usptr;
 
   if (mode == MRC_MODE_BYTE)
     for (x = 0; x < xsize * ysize; x++) {
@@ -624,12 +624,12 @@ static float minmaxmean(unsigned char *tifdata, int mode, int unsign,
     }
 
   if (mode == MRC_MODE_SHORT) {
-    sptr = (short int *)tifdata;
+    sptr = (b3dInt16 *)tifdata;
 
     /* DNM 11/17/01: if unsigned ints, either divide by 2 or 
        subtract 32768 to get into range of signed ints */
     if (unsign) {
-      usptr = (unsigned short int *)tifdata;
+      usptr = (b3dUInt16 *)tifdata;
       if (divide) {
         for (x = 0; x < xsize * ysize; x++) {
           pixel = usptr[x];
@@ -653,7 +653,7 @@ static float minmaxmean(unsigned char *tifdata, int mode, int unsign,
     }
   }
   if (mode == MRC_MODE_USHORT) {
-    usptr = (unsigned short int *)tifdata;
+    usptr = (b3dUInt16 *)tifdata;
     for (x = 0; x < xsize * ysize; x++) {
       pixel = usptr[x];
       if (pixel < *min)
@@ -665,3 +665,26 @@ static float minmaxmean(unsigned char *tifdata, int mode, int unsign,
   }
   return (tmean / (xsize * ysize));
 }
+
+/*  $Log$
+
+Revision 3.14  2006/08/28 05:26:44  mast
+Added abiity to handle colormapped images
+
+Revision 3.13  2006/01/13 05:00:50  mast
+Added option to suppress reading of multiple pages.
+
+Revision 3.12  2005/11/11 21:55:28  mast
+Outputs unsigned file mode
+
+Revision 3.11  2005/02/11 01:42:34  mast
+Warning cleanup: implicit declarations, main return type, parentheses, etc.
+
+Revision 3.10  2004/11/05 18:53:10  mast
+Include local files with quotes, not brackets
+
+Revision 3.9  2004/09/10 21:33:31  mast
+Eliminated long variables
+
+*/
+
