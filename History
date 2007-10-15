@@ -1,5 +1,9 @@
 IMOD History
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+10/15/07: Fixed Tif2mrc when reading unequally sized images on Windows, added
+an option to set output size, made different sizes work with all data modes and
+made the image be centered in the output area when it is clipped or padded.
+
 10/14/07: Fixed model2point to output index coordinates by default and added
 an option to get scaled model coordinates instead.
 
