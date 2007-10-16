@@ -1247,6 +1247,8 @@ static void slicer_insert_point(SlicerStruct *ss, int x, int y, int ctrl)
     ss->vi->zmouse = zmouse;
   } else if (ctrl)
     startMovieCheckSnap(ss, 1);
+  else
+    wprint("\aUse "CTRL_STRING"-middle button to start movie\n");
 }
 
 static void slicer_modify_point(SlicerStruct *ss, int x, int y, int ctrl)
@@ -1411,7 +1413,7 @@ static void startMovieCheckSnap(SlicerStruct *ss, int dir)
 }
 
 // Get the Z scale of the volume before slicing: it is the product of
-// an implicit Z scael from the ration of Z to XY binning, and actual z scale
+// an implicit Z scale from the ratio of Z to XY binning, and actual z scale
 // if zscale before is selected 
 float slicerGetZScaleBefore(SlicerStruct *ss)
 {
@@ -2029,6 +2031,11 @@ static void slicerDraw_cb(ImodView *vi, void *client, int drawflag)
     return;
   }
 
+  // Clamp the cx, cy, cz to the current data size in case of image flip
+  ss->cx = B3DMIN(vi->xsize, B3DMAX(0, ss->cx));
+  ss->cy = B3DMIN(vi->ysize, B3DMAX(0, ss->cy));
+  ss->cz = B3DMIN(vi->zsize - 0.5, B3DMAX(0, ss->cz));
+
   /* Adjust the cursor if necessary */
   if (vi->imod->mousemode != ss->mousemode) {
     ss->mousemode = vi->imod->mousemode;
@@ -2544,6 +2551,9 @@ void slicerCubePaint(SlicerStruct *ss)
 
 /*
 $Log$
+Revision 4.49  2007/07/19 22:29:19  mast
+Added hot keys for jumping to set limits in time
+
 Revision 4.48  2007/07/08 16:04:49  mast
 Used new hot slider function
 
