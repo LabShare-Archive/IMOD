@@ -4,17 +4,11 @@
  * Original Author: David Mastronarde
  * Translated to C: David 
  * This code is released under the General Public License.
+ *
+ * $Id$
+ * Log at end of file
  */
-/*  $Id$
 
-$Log$
-Revision 1.2  2006/11/03 17:28:38  mast
-Added documentation, author and license statements
-
-Revision 1.1  2004/10/24 21:18:39  mast
-Added C version of library to package
-
-*/
 #include "cfft.h"
 #include <math.h>
 
@@ -23,8 +17,8 @@ Added C version of library to package
  * Data are organized as [nzp] slices each consisting of [nyp] rows of [nxp]
  * values in the real-space image, which must be contained in a float array
  * whose X dimension is [nxp] + 2.  [brray] is for working storage and must be
- * dimensioned to at least [nxp] + 2 * [nzp].  The direction of the transform 
- * is determined by [idirp]: ^
+ * dimensioned to at least ([nxp] + 2) * [nzp].  The direction of the 
+ * transform is determined by [idirp]: ^
  *     0   forward transform ^
  *     1   inverse transform (for sake of completeness) ^
  *    -1   inverse transform with no complex conjugate in 2D FFTs ^
@@ -84,3 +78,15 @@ void thrdfft(float *array, float *brray, int *nxp, int *nyp, int *nzp,
   return;
 }
 
+/*
+$Log$
+Revision 1.3  2007/10/12 18:33:01  mast
+Fix documentation to describe X dimension of array
+
+Revision 1.2  2006/11/03 17:28:38  mast
+Added documentation, author and license statements
+
+Revision 1.1  2004/10/24 21:18:39  mast
+Added C version of library to package
+
+*/
