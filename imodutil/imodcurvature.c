@@ -951,37 +951,41 @@ int findConnectedContours(Iobj *obj, Icont *cont, int zdir, Ilist *list)
   return 0;
 }
 
-/* $Log$
-/* Revision 3.10  2006/11/05 00:59:45  mast
-/* Fixed treatment of ends of open contours
 /*
-   Revision 3.9  2006/11/02 22:04:09  mast
-Fixed a precision problem in the 3 point fits and added summary output
-
-Revision 3.8  2006/10/14 20:00:49  mast
-Added option to rotate to plane, and let open contour fits use half window
-length to fit all the way to end
-
-Revision 3.7  2006/09/20 23:04:28  mast
-Added callback for copyright to read/parse function call
-
-Revision 3.6  2006/08/31 23:13:38  mast
-Added value storage
-
-Revision 3.5  2006/08/27 23:49:26  mast
-Switched palette argument to allow a file, fixed initialization bug
-
-Revision 3.4  2006/06/26 14:48:48  mast
-Added b3dutil include for parselist
-
-Revision 3.3  2006/06/18 19:37:11  mast
-Changed for new amoeba function type
-
-Revision 3.2  2006/06/14 14:21:01  mast
-Needed to eliminate ;;
-
-Revision 3.1  2006/06/14 04:28:43  mast
-Initial creation
+  $Log$
+  Revision 3.11  2007/10/01 15:39:10  mast
+  Moved circlefit to library for ease of sharing with SerialEM
+  
+  Revision 3.10  2006/11/05 00:59:45  mast
+  Fixed treatment of ends of open contours
+  
+  Revision 3.9  2006/11/02 22:04:09  mast
+  Fixed a precision problem in the 3 point fits and added summary output
+  
+  Revision 3.8  2006/10/14 20:00:49  mast
+  Added option to rotate to plane, and let open contour fits use half window
+  length to fit all the way to end
+  
+  Revision 3.7  2006/09/20 23:04:28  mast
+  Added callback for copyright to read/parse function call
+  
+  Revision 3.6  2006/08/31 23:13:38  mast
+  Added value storage
+  
+  Revision 3.5  2006/08/27 23:49:26  mast
+  Switched palette argument to allow a file, fixed initialization bug
+  
+  Revision 3.4  2006/06/26 14:48:48  mast
+  Added b3dutil include for parselist
+  
+  Revision 3.3  2006/06/18 19:37:11  mast
+  Changed for new amoeba function type
+  
+  Revision 3.2  2006/06/14 14:21:01  mast
+  Needed to eliminate ;;
+  
+  Revision 3.1  2006/06/14 04:28:43  mast
+  Initial creation
 
 
 */
