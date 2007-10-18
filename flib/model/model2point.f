@@ -10,6 +10,9 @@ c       See man page for details
 c
 c       $Id$
 c       $Log$
+c       Revision 3.2  2007/10/14 18:03:42  mast
+c       Made it output index coordinates unless option given
+c
 c       Revision 3.1  2007/09/12 16:29:25  mast
 c       PIP conversion and output options
 c
@@ -17,28 +20,30 @@ c
       implicit none
       character*160 modelfile,pointfile
       logical*4 printObj, printCont, floating, scaled
-      integer*4 ierr,iobject,ninobj,ipt,ipnt,modObj, modCont, npnts
+      integer*4 ierr,iobject,ninobj,ipt,ipnt,modObj, modCont, npnts, numOffset
       logical exist,readw_or_imod
 c       
       include 'model.inc'
 
       integer*4 numOptArg, numNonOptArg
-      integer*4 PipGetLogical
+      integer*4 PipGetLogical,PipGetBoolean
       integer*4 PipGetInOutFile
 c       
 c       fallbacks from ../../manpages/autodoc2man -2 2  model2point
 c       
       integer numOptions
-      parameter (numOptions = 6)
+      parameter (numOptions = 7)
       character*(40 * numOptions) options(1)
       options(1) =
      &    'input:InputFile:FN:@output:OutputFile:FN:@float:FloatingPoint:B:@'//
-     &    'object:ObjectAndContour:B:@contour:Contour:B:@help:usage:B:'
+     &    'object:ObjectAndContour:B:@contour:Contour:B:@'//
+     &    'zero:NumberedFromZero:B:@help:usage:B:'
 c
       printObj = .false.
       printCont = .false.
       floating = .false.
       scaled = .false.
+      numOffset = 0
 c       
 c       Pip startup: set error, parse options, check help, set flag if used
 c       
@@ -60,6 +65,7 @@ c
       ierr = PipGetLogical('ObjectAndContour', printObj)
       ierr = PipGetLogical('Contour', printCont)
       ierr = PipGetLogical('FloatingPoint', floating)
+      ierr = PipGetBoolean('NumberedFromZero', numOffset)
 c       
 c       scan through all objects to get points
 c       
@@ -71,8 +77,8 @@ c
           do ipt=1,ninobj
             ipnt=object(ipt+ibase_obj(iobject))
             if(ipnt.gt.0)then
-              if (printObj) write(1,103)modObj
-              if (printCont .or. printObj) write(1,103)modCont
+              if (printObj) write(1,103)modObj - numOffset
+              if (printCont .or. printObj) write(1,103)modCont - numOffset
               if (floating) then
                 write(1,104) p_coord(1,ipnt), p_coord(2,ipnt), p_coord(3,ipnt)
               else
