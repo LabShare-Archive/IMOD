@@ -16,7 +16,7 @@ PROGS = imodauto$(E) imodinfo$(E) imodmesh$(E) imodtrans$(E) imodmop$(E) \
  rec2imod$(E) imod2rib$(E) imod2vrml$(E) imod2meta$(E) \
  wmod2imod$(E) imodjoin$(E) imodextract$(E) imodsortsurf$(E) imodexplode$(E) \
  patch2imod$(E) imod2patch$(E) echo2$(E) imodfillin$(E) imodcurvature$(E) \
- $(IMODWINCPU)
+ point2model$(E) $(IMODWINCPU)
 
 all : $(PROGS)
 
@@ -80,6 +80,10 @@ imodcurvature$(E) : imodcurvature.$(O)
 	$(CC) -o imodcurvature imodcurvature.$(O) $(LDFLAGS) $(MODLIBS) \
 	$(CLIBS)
 
+point2model$(E) : point2model.$(O)
+	$(CC) -o point2model point2model.$(O) $(LDFLAGS) $(MODLIBS) \
+	$(CLIBS)
+
 imodwincpu.exe : imodwincpu.obj
 	$(CC) -o imodwincpu imodwincpu.obj $(LDFLAGS)
 
@@ -125,6 +129,9 @@ imodmkhv : imodmkhv.$(O)
 
 
 #  $Log$
+#  Revision 3.18  2007/09/19 23:48:39  mast
+#  Changes for library rearrangements
+#
 #  Revision 3.17  2007/04/26 19:13:48  mast
 #  Removed imodcmopp
 #
