@@ -270,17 +270,17 @@ integer*4 \fInoCase\fB, \fIdoneEnds\fB,  \fItakeStdin\fB, \fInonOptLines\fB, \fI
 
 This call can be used to set flags that modify the behavior as follows:
 .br
-\fInoCase\fB non-zero allows case-insensitive options
+\fInoCase\fR non-zero allows case-insensitive options
 .br
-\fIdoneEnds\fB non-zero allows DONE to be used in place of EndInput
+\fIdoneEnds\fR non-zero allows DONE to be used in place of EndInput
 .br
-\fItakeStdin\fB non-zero runs a program with no arguments as if -StandardInput
+\fItakeStdin\fR non-zero runs a program with no arguments as if -StandardInput
 were entered
 .br
-\fInonOptLines\fB greater than zero allows the first few lines of input to be
+\fInonOptLines\fR greater than zero allows the first few lines of input to be
 taken as non-option arguments, up to a number of lines given by the value.
 .br
-\fInoAbbrevs\fB non-zero means that options must be entered in full
+\fInoAbbrevs\fR non-zero means that options must be entered in full
 .br
 The first four behaviors were required to convert Tilt(1) to PIP input without
 retaining the old input code, but none of this should be needed elsewhere.
