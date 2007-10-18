@@ -1,0 +1,61 @@
+Version = 1.0
+Pip = 1
+
+[Field = InputFile]
+short = input
+type = FN
+usage = Input model file
+tooltip = 
+manpage = Input model file.  If this option
+is not entered, the first non-option argument will be used for the input
+file.
+
+[Field = OutputFile]
+short = output
+type = FN
+usage = Output text file for points
+tooltip = 
+manpage = Output text file for points.  If this option
+is not entered, the second non-option argument will be used for the output
+file.
+
+[Field = OpenContours]
+short = open
+type = B
+usage = Make objects be open contour type (default is closed contour)
+tooltip = 
+manpage = The default is to make all objects be closed contour type.  This
+option and -scat can be used to make all objects be open or scattered,
+respectively. 
+
+[Field = ScatteredPoints]
+short = scat
+type = B
+usage = Make objects be scattered point type
+tooltip = 
+manpage = 
+
+[Field = PointsPerContour]
+short = number
+type = B
+usage = Maximum number of points per contour
+tooltip = 
+manpage = Maximum number of points per contour.  The default is to put all 
+points into one contour.  This option is not allowed if the point file has
+contour numbers.
+
+[Field = PlanarContours]
+short = planar
+type = B
+usage = Start a new contour at each new Z value encountered
+tooltip = 
+manpage = Start a new contour at each new Z value encountered when reading
+sequentially through the lines of input.  This option is not allowed if the
+point file has contour numbers.
+
+[Field = NumberedFromZero]
+short = zero
+type = B
+usage = Objects and contours are numbered from 0 instead of 1
+tooltip = 
+manpage = 

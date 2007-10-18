@@ -1,0 +1,31 @@
+.na
+.nh
+.TH point2model 1 3.10.20 BL3DEMC
+.SH NAME
+point2model -\ Convert point listing to IMOD model file
+.SH SYNOPSIS
+point2model [options] <point_file> <model_file>
+.SH DESCRIPTION
+Point2model will convert a text file with a simple list of 3D point
+coordinates, one per line, to an IMOD model.  The file can be in one of three
+forms: each line consisting of X, Y, and Z coordinates; each line having a
+contour number followed by the
+coordinates; or each line having an object number and a contour number
+followed by the coordinates.  The objects and contours can be numbered from
+either 1 or 0.  These forms correspond to the different forms that can be
+output by the companion program, Model2point(1).  When contour numbers are not
+contained in the file, there are options to place points into different 
+contours based on the number of points or their Z values.
+.SS Options
+Point2model uses the PIP package for input (see the manual page for pip(1)).
+Options can be specified either as command line arguments (with the -)
+or one per line in a command file (without the -):
+INSERT OPTION TEXT HERE
+.TP
+.B -StandardInput
+Read parameter entries from standard input
+
+.SH AUTHOR
+David Mastronarde
+.SH SEE ALSO
+model2point(1)

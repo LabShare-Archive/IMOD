@@ -16,6 +16,10 @@ DDEESSCCRRIIPPTTIIOONN
   with no information about which object or contour the point came from,
   or with contour numbers, or with object numbers.
 
+  Model2point and the companion program, Point2model(1), provide a more
+  simple, but less versatile, way of converting data from and to an IMOD model
+  than the Ascii format that can be output by Imodinfo(1).
+
   Model2point uses the PIP package for input (see the manual page for pip(1)).
   The following options can be specified either as command line arguments
   (with the -) or one per line in a command file or parameter file (without

@@ -33,7 +33,7 @@ usage = Output coordinates in model coordinate system, not as pixel indices
 tooltip = 
 manpage = Output coordinates in model coordinate system, scaled by the pixel
 size and offset by origin values.  The default is to output index coordinates
-corresponding the the pixel coordinates in the image.
+corresponding to the pixel coordinates in the image.
 
 [Field = ObjectAndContour]
 short = object
@@ -46,6 +46,13 @@ manpage =
 short = contour
 type = B
 usage = Output contour number for each point (numbered from 1)
+tooltip = 
+manpage = 
+
+[Field = NumberedFromZero]
+short = zero
+type = B
+usage = Output object and contour numbers starting from 0 instead of 1
 tooltip = 
 manpage = 
 
