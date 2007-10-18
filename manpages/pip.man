@@ -799,7 +799,9 @@ character*N \fIprefix\fB
 \fBexitError\fR prints an error string after the prefix, which 
 is set by calling \fBsetExitPrefix\fR.  The Fortran version takes the 
 error string while the C version takes variable arguments like \fBprintf\fR.
-The prefix is also set automatically
+A space will be printed between the prefix and error string, and a newline
+printed after the error, so it is not necessary to include a newline in the
+string.  The prefix is also set automatically
 by calling \fBPipReadOrParseOptions\fR or \fBPipExitOnError\fR; in the latter
 case the destination for error output can be specified, whereas using 
 \fBsetExitPrefix\fR will cause output to go to standard out.  These two
