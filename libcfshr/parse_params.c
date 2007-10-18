@@ -24,6 +24,7 @@
 #define LOOKUP_AMBIGUOUS -2
 #define TEMP_STR_SIZE  1024
 #define LINE_STR_SIZE  10240
+#define PREFIX_SIZE    64
 #ifdef _WIN32
 #define PATH_SEPARATOR '\\'
 #else
@@ -113,7 +114,7 @@ static int tableSize = 0;
 static int numOptions = 0;
 static int nonOptInd;
 static char *errorString = NULL;
-static char *exitPrefix = NULL;
+static char exitPrefix[PREFIX_SIZE] = "";
 static int errorDest = 0;
 static int nextOption = 0;
 static int nextArgBelongsTo = -1;
@@ -210,9 +211,6 @@ void PipDone(void)
   if (errorString)
     free(errorString);
   errorString = NULL;
-  if (exitPrefix)
-    free(exitPrefix);
-  exitPrefix = NULL;
   nextOption = 0;
   nextArgBelongsTo = -1;
   numOptionArguments = 0;
@@ -231,21 +229,15 @@ void PipDone(void)
 int PipExitOnError(int useStdErr, char *prefix)
 {
   /* Get rid of existing string; and if called with null string,
-     then cancel an existing exit on error */
-  if (exitPrefix)
-    free(exitPrefix);
-  exitPrefix = NULL;
+     this cancels an existing exit on error */
+  exitPrefix[0] = 0x00;
     
   if (!prefix || !*prefix)
     return 0;
     
   errorDest = useStdErr;
-  exitPrefix = strdup(prefix);
-  if (!exitPrefix) {
-    fprintf(useStdErr ? stderr : stdout, "Failure to get memory in "
-            "PipExitOnError");
-    exit(1);
-  }
+  strncpy(exitPrefix, prefix, PREFIX_SIZE - 1);
+  exitPrefix[PREFIX_SIZE - 1] = 0x00;
   return 0;
 }
 
@@ -826,10 +818,10 @@ int PipSetError(char *errString)
   if (errorString)
     free(errorString);
   errorString = strdup(errString);
-  if (!errorString && !exitPrefix)
+  if (!errorString && !exitPrefix[0])
     return -1;
 
-  if (exitPrefix) {
+  if (exitPrefix[0]) {
     fprintf(outFile, "%s ", exitPrefix);
     fprintf(outFile, "%s\n", errorString ? errorString : "Unspecified error");
     exit(1);
@@ -1218,7 +1210,7 @@ void PipReadOrParseOptions(int argc, char *argv[], char *options[],
   char *errString;
   char *prefix;
   prefix = (char *)malloc(strlen(progName) + 12);
-  sprintf(prefix, "ERROR: %s - ", progName);
+  sprintf(prefix, "ERROR: %s -", progName);
 
   /* Startup with fallback */
   ierr = PipReadOptionFile(progName, 0, 0);
@@ -1832,6 +1824,9 @@ static int CheckKeyword(char *line, char *keyword, char **copyto, int *gotit,
 
 /*
 $Log$
+Revision 1.1  2007/09/20 02:43:08  mast
+Moved to new library
+
 Revision 3.29  2007/08/03 16:40:15  mast
 Fixes for clean compile
 
