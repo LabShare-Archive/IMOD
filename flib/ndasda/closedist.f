@@ -1,15 +1,8 @@
-c       GRAPHDEN produces a series of "graphs" of average density (per
-c       unit area) of neighboring items as a function of radial distance
-c       from an average reference point.  The reference points and the
+c       CLOSEDIST produces a series of "graphs" of spatial density
+c       of neighboring items as a function of radial distance
+c       from an average reference item.  The reference points and the
 c       neighboring points may be of various types or sets of types, as
-c       defined separately for each graph.  The subroutine accurately
-c       corrects for edge effects, so that the points may be contained
-c       within an arbitrary, irregular boundary and the routine will compute
-c       density based only on the area within the boundary.
-c       NVERT is the number of boundary points
-c       BX, BY are the coordinates of the boundary points
-c       NPOINT is the number of items
-c       SX, SY, ITYPE are the coordinates and types of the items
+c       defined separately for each graph.  
 c       DELR is the bin width (in distance units) desired for the graphs
 c       NBINS is the number of bins for each graph
 c       NGRAPH is the number of graphs
@@ -19,14 +12,25 @@ c       ITYPREF(I,J) is the Ith reference type for the Jth graph
 c       ITYPNEIGH(I,J) is the Ith neighbor type for the Jth graph
 c       GRAPHS(I,J) is returned with the density at the Ith bin of Jth graph
 c       FRACSUM(I,J) is returned with total area contributing to that bin
+c       XMT, YMT, ZMT are arrays with point or line coordinates
+c       INDSTRT is the starting index for each object (contour)
+c       NPNTOBJ is the number of point in each object
+c       NMT is the number of those objects
+c       ICOLOR has the type for eavh object
+c       POWER is the exponent for distance in the volume component
+c       LIMFIT
+c       WINMIN, WINMAX are window limits for saving connectors
+c       NINWIN  returned with # of distances in window
+c       IOBJWIN has the object number of points in window
+c       NOBJWIN is number of objects in window
+c       etc, better luck next time...
 c       
-c       $Author$
-c       
-c       $Date$
-c       
-c       $Revision$
+c       $Id$
 c       
 c       $Log$
+c       Revision 3.2  2006/05/12 14:38:00  mast
+c       Keep track of surfaces in window with negative numbers
+c
 c       Revision 3.1  2006/05/01 21:14:50  mast
 c       Increased number of bins to 1001
 c
@@ -38,7 +42,7 @@ c
      &    ifscatsurf,irefflag,neighflag,xyscal,zscal,powergrf,zgapst,
      &    zgapnd,ngaps,manyrandom,onlyshifted)
       include 'mtk.inc'
-      parameter (limgraphs=50,limbins=301,limwobj=30000,
+      parameter (limgraphs=50,limbins=1001,limwobj=30000,
      &    limtyp=50,itypall=999,limxyz=50000)
       parameter (limind=limverts*6,limbinsave=limind*2,limtmp=1000)
       parameter (limsizes=limxyz)
@@ -524,7 +528,6 @@ c
 c                         
 c                         OLD CODE FOR Z-BASED LINES
 c                         
-                        
                         nfitneigh=min(limfit,npntobj(iobjneigh))
                         limneigh=indneigh+npntobj(iobjneigh)-nfitneigh
                         minneigh=indneigh
@@ -886,8 +889,8 @@ c               NEIGHBOR IS A MESH
 c               
               do imesh=1,nmeshloaded
                 isneigh=0
-                do jj=1,ngraph
-                  if(neighpt(jj,imesh))isneigh=1
+                do jj = 1, needref
+                  if(neighpt(igraphref(jj),imesh))isneigh=1
                 enddo
                 if(isneigh.eq.1)then
 c                   
