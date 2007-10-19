@@ -89,6 +89,7 @@ EXPORTS
 	ADOCGETSECTIONNAME
 	PipReadOptionFile
 	setExitPrefix
+	SLICEEDGEMEAN
 	AdocSetThreeIntegers
 	AdocSetTwoIntegers
 	PipNumberOfEntries
