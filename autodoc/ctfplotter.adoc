@@ -37,7 +37,7 @@ tooltip =
 manpage = File to store found defocuses.  Each entry in the file will consist
 of the starting and ending view number of the range of views being fit to
 (numbered from 1), the starting and ending angle of the tilt angle range being
-fit to, and the defocus value. 
+fit to, and the defocus value in nanometers (underfocus positive).
 
 [Field = AxisAngle]
 short = aAngle
@@ -111,8 +111,8 @@ short = expDef
 type = F
 usage = Expected defocus at the tilt axis in nanometers.
 tooltip =
-manpage = Expected defocus at the tilt axis in nanometers. The frequency 
-of the first zero of the CTF curve 
+manpage = Expected defocus at the tilt axis in nanometers, with a positive
+valie for underfocus.  The frequency of the first zero of the CTF curve 
 is first computed based on this expected defocus.  The segments of the CTF
 curve of the input stack around that frequency are selected to be fitted.
 
