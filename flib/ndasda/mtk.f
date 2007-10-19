@@ -305,7 +305,8 @@ c
      &    ' 40: Unshift an object',/,
      &    ' 41: Toggle between including and excluding items that ',
      &    'failed to shift',/,
-     &    ' 42: Export graph values or points for drawing to file')
+     &    ' 42: Export graph values or points for drawing to file',/,
+     &    ' 43: List distances of close approach between min/max limits')
 c       
 40    write(*,'(1x,a,$)')'Option, or -1 for list of choices: '
       read(in5,*,err=40, end=225)iopt
@@ -314,7 +315,7 @@ c
      &    nOptNeedModel, iopt)) go to 40
       go to(201,202,203,204,205,206,207,208,209,210, 210,212,213,214,
      &    215,216,217,218,219,220, 221,222,222,224,225,226,222,228,
-     &    228,228,228,228,228,213,235,235,228,228,228,240,241,228),iopt
+     &    228,228,228,228,228,213,235,235,228,228,228,240,241,228,243),iopt
       go to 40
 c       
 c       type bins
@@ -1181,6 +1182,25 @@ c
       endif
       go to 40
 
+243   if (ninwin .le. 0) then
+        print *,'No distances have been found in window'
+        go to 40
+      endif
+      sum = 0.
+      sumsq = 0.
+      print *,'Length of connector lines:'
+      do i = 1, ninwin
+        ii = indstrt(nmt)+npntobj(nmt) + 3 * (i - 1)
+        dist = sqrt((xmt(ii) - xmt(ii+2))**2 + (ymt(ii) - ymt(ii+2))**2 +
+     &      (zmt(ii) - zmt(ii+2))**2)
+        sum = sum + dist
+        sumsq = sumsq + dist**2
+        write(*,'(f12.5)')dist
+      enddo
+      call sums_to_avgsd(sum, sumsq, ninwin, connavg, connsd)
+      write(*,1243)ninwin, connavg, connsd
+1243  format('N = ',i7,'   mean = ',f12.5,'   SD = ',f12.5)
+      go to 40
 c       
 c       
 c       
@@ -1273,6 +1293,9 @@ c
       end
 
 c       $Log$
+c       Revision 3.14  2007/10/19 00:32:52  mast
+c       WIMP->IMOD
+c
 c       Revision 3.13  2006/11/15 06:14:51  mast
 c       Allowed 10000000 points in mt arrays and put them in common
 c
