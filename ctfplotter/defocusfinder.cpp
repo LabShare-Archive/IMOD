@@ -99,7 +99,7 @@ int DefocusFinder::findZero(const double* simplexRes, const double* linearRes,
 
 void DefocusFinder::setExpDefocus(double expDef)
 {
-  expDefocus=expDef/1000.0; //convert to microns;
+  //expDefocus=expDef/1000.0; //convert to microns;
   // convert relative frequency to absolute;
   double q=(0.5/pixelSize)*zeroCrossing; 
   // theta=theta'(cs/lambda)^0.25, theta'=q*lambda;
