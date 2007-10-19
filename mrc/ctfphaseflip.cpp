@@ -269,6 +269,7 @@ int main(int argc, char *argv[])
     interPixelNum=36; // must be less than stripPixelNum/2;
     printf("stripPixelNum=%d interPixelNum=%d \n", stripPixelNum,
         interPixelNum);
+    //Allocat 2 strips, even and odd strip;
     float *strip=(float *)malloc(2*ny*(stripPixelNum+2)*sizeof(float));
     bool finished=false;
     int stripBegin;
@@ -294,13 +295,15 @@ int main(int argc, char *argv[])
       //printf("stripIdx=%d stripBegin=%d stripEnd=%d \n", 
       //stripIdx, stripBegin, stripEnd); 
       
-      stripDefocus=defocus[k-1] - ( nx/2-(stripBegin+stripEnd)/2 )*
+      stripDefocus=defocus[k-1]*1000.0 - ( nx/2-(stripBegin+stripEnd)/2 )*
         tan(currAngle)*pixelSize; //in nm;
+      //printf("defocus is %6.1f\n", stripDefocus);
 
         sliceTaperInPad(currSlice->data.f, SLICE_MODE_FLOAT, nx, stripBegin, 
             stripEnd, 0, ny-1, strip+(stripIdx%2)*ny*(stripPixelNum+2), 
             stripPixelNum+2, stripPixelNum, ny, 9, 9);
         todfft(strip+(stripIdx%2)*ny*(stripPixelNum+2),&stripPixelNum,&ny,&dir);
+
         //fipping the phase;
         for(fy=0;fy<ny;fy++){
           fyy=fy;
@@ -352,7 +355,7 @@ int main(int argc, char *argv[])
                                                     )
                 /(float)stripStride;
             }
-          //printf("column=%d ... %d \n", (stripBegin+stripEnd)/2-
+         // printf("column=%d ... %d \n", (stripBegin+stripEnd)/2-
           // stripStride+1+1, (stripBegin+stripEnd)/2+1 );
       }
 
@@ -369,6 +372,7 @@ int main(int argc, char *argv[])
       //printf("stripIdx=%d\n", stripIdx);
       stripIdx++;
     }//while strip loop
+
     free(strip);
     sliceMMM(outSlice);
     if( outSlice->min < amin) amin=outSlice->min;
