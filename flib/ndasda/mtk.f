@@ -6,12 +6,7 @@ c
 c       David Mastronarde  November 1991
 c       General object version March 2000
 c       
-c       $Author$
-c       
-c       $Date$
-c       
-c       $Revision$
-c       
+c       $Id$
 c       log at end
 c       
       call plax_initialize('mtk')
@@ -297,7 +292,7 @@ c
      &    ,' to specify rejection probabilities for random points',/,
      &    ' 19/26/20: Do current region(s) with shuffled/converted',
      &    ' types or random shifts',/,' 21: Save current set of ',
-     &    'objects and their types as a WIMP model',/,
+     &    'objects and their types as an IMOD model',/,
      &    ' 22/27/23: Do many sets & integrals with ',
      &    'shuffled/converted types/random shifts',
      &    /,' 24: Take command input from file        25: Exit',
@@ -1278,6 +1273,9 @@ c
       end
 
 c       $Log$
+c       Revision 3.13  2006/11/15 06:14:51  mast
+c       Allowed 10000000 points in mt arrays and put them in common
+c
 c       Revision 3.12  2006/07/15 03:04:25  mast
 c       Copied power to mean and sd graphs for random data
 c
