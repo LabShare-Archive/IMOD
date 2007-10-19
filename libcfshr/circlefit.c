@@ -19,10 +19,11 @@ static void sphereErr(float *y, float *error);
 #define determ3(a1,a2,a3,b1,b2,b3,c1,c2,c3) ((a1)*(b2)*(c3) - (a1)*(b3)*(c2) +\
   (a2)*(b3)*(c1) - (a2)*(b1)*(c3) + (a3)*(b1)*(c2) - (a3)*(b2)*(c1))
 
-/*
- * Compute the radius rad and center xc, yc for a circle through the 3 given
- * points
-*/
+/*!
+ * Computes the radius [rad] and center ([xc], [yc]) for a circle through the 3
+ * given points ([x1], [y1]), ([x2], [y2]), and ([x3], [y3]).  Returns 1 for
+ * error (square root of negative number).
+ */
 int circleThrough3Pts(float x1, float y1, float x2, float y2, float x3, 
                       float y3, float *rad, float *xc, float *yc)
 {
@@ -61,12 +62,13 @@ static float *zp;
 static int numpt;
 #define MAXVAR 5
 
-/* 
- * Fit a circle or sphere to a set of points.
- * Inputs: X and Y coordinates in arrays xpt, ypt; zpt is NULL for a circle fit
- * or has the array of Z coordinate; number of points in numPts.  
- * Outputs: radius in rad, center coordinate in xcen, ycen, (zcen),
- * and RMS error in rmsErr.
+/*! 
+ * Fit a circle or sphere to a set of points using a simplex search with
+ * the @amoeba routine.
+ * Inputs: X and Y coordinates in arrays [xpt], [ypt]; [zpt] is NULL for a 
+ * circle fit or has the array of Z coordinate; number of points in [numPts].  
+ * Outputs: radius in [rad], center coordinate in [xcen], [ycen], and [zcen]
+ * for a sphere fit, and RMS error in [rmsErr].  Returns 0.
  */
 int fitSphere(float *xpt, float *ypt, float *zpt, int numPts, float *rad, 
               float *xcen, float *ycen, float *zcen, float *rmsErr)
@@ -168,7 +170,9 @@ static void sphereErr(float *y, float *error)
   *error = (float)(err / numpt);
 }
 
-/*  $Log$
-
-
+/*
+  $Log$
+  Revision 1.1  2007/10/01 15:26:09  mast
+  *** empty log message ***
+  
 */
