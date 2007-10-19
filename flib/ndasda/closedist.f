@@ -18,22 +18,26 @@ c       NPNTOBJ is the number of point in each object
 c       NMT is the number of those objects
 c       ICOLOR has the type for eavh object
 c       POWER is the exponent for distance in the volume component
-c       LIMFIT
+c       POWERGRF is the array of power values for each graph
+c       LIMFIT is number of points to fit to lines over (Z based lines)
 c       WINMIN, WINMAX are window limits for saving connectors
-c       NINWIN  returned with # of distances in window
-c       IOBJWIN has the object number of points in window
-c       NOBJWIN is number of objects in window
-c       etc, better luck next time...
+c       NINWIN  returned with # of distances in window saved in arrays
+c       IOBJWIN has the object or negative surface? number of items in window
+c       NOBJWIN is number of objects in that list (pass in - to find end sep)
+c       IREFFLAG and NEIGHFLAG have values for the object types (closed, etc)
+c       XYZEND  has coordinates of endpoints
+c       ENDSEP is returned with end separation
+c       SAMPLEN sampling length for lines
+c       IFCLOSEG to measure to closest point on segment
+c       IFSCATSURF  flag to measure scattered points from surface
+c       ZGAPST, ZAPGND are starting and ending Z of gaps
+c       NGAPS is the number of gaps
+c       XYSCAL, ZSCAL are the pixel size and Z scaling applied to the model
+c       MANYRANDOM is a flag to suppress output if many random sets being done
+c       ONLYSHIFTED is logical to compute only agains sucessfully shifted items
 c       
 c       $Id$
-c       
-c       $Log$
-c       Revision 3.2  2006/05/12 14:38:00  mast
-c       Keep track of surfaces in window with negative numbers
-c
-c       Revision 3.1  2006/05/01 21:14:50  mast
-c       Increased number of bins to 1001
-c
+c       Log at end
 
       subroutine closedist(xmt,ymt,zmt,indstrt,npntobj,icolor,nmt,
      &    delr,nbins, ngraph,nreftyp,nneightyp,itypref, itypneigh,
@@ -1532,3 +1536,15 @@ c
       nmeshloaded=0
       return
       end
+c
+c       $Log$
+c       Revision 3.3  2007/10/19 00:31:31  mast
+c       Fixed number of bins, and fixed test for mesh neighbors with multiple
+c       graphs
+c
+c       Revision 3.2  2006/05/12 14:38:00  mast
+c       Keep track of surfaces in window with negative numbers
+c
+c       Revision 3.1  2006/05/01 21:14:50  mast
+c       Increased number of bins to 1001
+c
