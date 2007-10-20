@@ -1,5 +1,8 @@
 IMOD History
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+10/19/07: IMOD_3-10-20
+10/19/07: Fixed defocus scaling bugs in ctfplotter and ctfphaseflip.
+
 10/19/07: Fixed two bugs in mtk: computation of multiple graphs (broken 1/5/06)
 and selection of neighboring mesh objects with multiple graphs.  Also added
 an option to get lengths of connector lines between points of close approach.
