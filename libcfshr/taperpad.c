@@ -16,9 +16,11 @@
 #ifdef F77FUNCAP
 #define taperoutpad TAPEROUTPAD
 #define taperinpad TAPERINPAD
+#define sliceedgemean SLICEEDGEMEAN
 #else
 #define taperoutpad taperoutpad_
 #define taperinpad taperinpad_
+#define sliceedgemean sliceedgemean_
 #endif
 
 /*!
@@ -294,13 +296,24 @@ double sliceEdgeMean(float *array, int nxdim, int ixlo, int ixhi, int iylo,
   return dmean;
 }
 
-/*  $Log$
-/*  Revision 1.2  2007/10/01 16:22:12  mast
-/*  Fixed wrapper name from tst
+/*!
+ * Fortran wrapper to @sliceEdgeMean .  The indexes are numbered from 1.
+ */
+double sliceedgemean(float *array, int *nxdim, int *ixlo, int *ixhi, int *iylo,
+                     int *iyhi)
+{
+  return sliceEdgeMean(array, *nxdim, *ixlo + 1, *ixhi + 1, *iylo + 1, 
+                       *iyhi + 1);
+} 
 /*
-/*  Revision 1.1  2007/10/01 15:26:09  mast
-/*  *** empty log message ***
-/*
+  $Log$
+  Revision 1.3  2007/10/12 04:16:34  mast
+  Added edge mean function and used it in pad functions
+  
+  Revision 1.2  2007/10/01 16:22:12  mast
+  Fixed wrapper name from tst
 
+  Revision 1.1  2007/10/01 15:26:09  mast
+  *** empty log message ***
 
 */
