@@ -302,11 +302,14 @@ double sliceEdgeMean(float *array, int nxdim, int ixlo, int ixhi, int iylo,
 double sliceedgemean(float *array, int *nxdim, int *ixlo, int *ixhi, int *iylo,
                      int *iyhi)
 {
-  return sliceEdgeMean(array, *nxdim, *ixlo + 1, *ixhi + 1, *iylo + 1, 
-                       *iyhi + 1);
+  return sliceEdgeMean(array, *nxdim, *ixlo - 1, *ixhi - 1, *iylo - 1, 
+                       *iyhi - 1);
 } 
 /*
   $Log$
+  Revision 1.4  2007/10/20 03:04:07  mast
+  Added fortran wrapper for edgemean
+
   Revision 1.3  2007/10/12 04:16:34  mast
   Added edge mean function and used it in pad functions
   
