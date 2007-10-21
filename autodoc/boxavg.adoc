@@ -1,0 +1,131 @@
+Version = 1.0
+Pip = 1
+
+[Field = InputImageFile]
+short = image
+type = FN
+usage = Input image file
+tooltip = 
+manpage = Input file with images containing features to average.  If this
+option is not entered, the first non-option argument will be used for this
+input file.
+
+[Field = PointModelFile]
+short = points
+type = FN
+usage =  Name of model file with points to be averaged
+tooltip = 
+manpage = Name of model file with points to be averaged.  If this option
+is not entered, the second non-option argument will be used for this input
+file
+
+[Field = OutputFile]
+short = output
+type = FN
+usage = Output file for average image
+tooltip = 
+manpage = Output file for average image.  If this option
+is not entered, the third non-option argument will be used for this output
+file.
+
+[Field = PieceListFile]
+short = 
+long = PieceListFile
+type = FN
+usage = Name of piece list file if image is montaged or out of sequence
+tooltip =
+manpage =  
+
+[Field = ObjectsToAverage]
+short = objects
+type = LI
+usage = List of objects with points to average
+tooltip = 
+manpage = List of objects with points to average (comma-separated ranges
+allowed).  The default is to take all points from all open contour or
+scattered point objects.  This option can be used to select a subset of
+objects
+in the model or force the use of a closed contour object.
+
+[Field = BoxSizeXandY]
+short = box
+type = IP
+usage = Size of box to average in X and Y
+tooltip = 
+manpage = 
+
+[Field = ModeOfOutput]
+short = mode
+type = I
+usage = Mode for output (default is same as input)
+tooltip = 
+manpage = Mode for output: 0 for byte, 1 for integer, 2 for real, 6 for
+unsigned integer.  The default is the same as that of the input.
+
+[Field = PassesThroughData]
+short = passes
+type = I
+usage = Number of passes (1 or 2, default is 2 to align to first average)
+tooltip = 
+manpage = Number of passes through the data, either 1 or 2.  On the second
+pass, the boxes will be aligned to the average from the first pass.  The
+default is 2; enter 1 to skip the alignment pass.
+
+[Field = LinearInterpolation]
+short = linear
+type = B
+usage = Use linear instead of cubic interpolation when extracting box
+tooltip = 
+manpage = 
+
+[SectionHeader = ObsoleteOptions]
+usage = OBSOLETE OPTIONS
+manpage = OBSOLETE OPTIONS
+^  These options are not needed when Xcorr(1) is used to correlate an average
+with images.
+
+[Field = SizeOfOutputXandY]
+short = size
+type = IP
+usage = Size of output file in X and Y (default is same size as box)
+tooltip = 
+manpage = 
+
+[Field = FillValue]
+short = fill
+type = F
+usage = Value to fill with when output array is bigger than box
+tooltip = 
+manpage = Value to fill with when output array is bigger than box.  The
+default is the mean along the edge of the average image.  This entry is
+ignored if the output is the same size as the box.
+
+[Field = SplitIntoCorners]
+short = split
+type = B
+usage = Split average into the four corners of the output array
+tooltip = 
+manpage = 
+
+[Field = ZeroMean]
+short = zero
+type = B
+usage = Shift the output to have a zero mean value
+tooltip = 
+manpage = Shift the output to have a zero mean value.  This option is ignored
+if the data mode of the output is bytes or unsigned integers.
+
+[Field = ParameterFile]
+short = param
+type = PF
+usage = Read parameter entries from file
+tooltip = 
+manpage = Read parameter entries as keyword-value pairs from a parameter file.
+
+[Field = usage]
+short = help
+type = B
+usage = Print help output
+tooltip = 
+manpage = 
+
