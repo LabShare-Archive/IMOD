@@ -41,9 +41,6 @@ avgstack$(E): avgstack.$(O)
 binvol$(E): binvol.$(O)
 	$(FC) -o binvol binvol.$(O) $(LDFLG) $(IMLIBS) $(LIBS)
 
-boxavg$(E): boxavg.$(O)
-	$(FC) -o boxavg boxavg.$(O) $(LDFLG) $(IMLIBS) $(LIBS)
-
 calc$(E): calc.$(O)
 	$(FC) -o calc calc.$(O) $(LDFLG) $(IMLIBS) $(LIBS)
 
@@ -211,6 +208,9 @@ enhance.$(O): $(INCDIR)/ftbuf.inc
 fftrans.$(O): $(INCDIR)/ftbuf.inc
 
 #  $Log$
+#  Revision 3.13  2007/07/17 03:37:23  mast
+#  Added densnorm
+#
 #  Revision 3.12  2007/04/08 16:17:06  mast
 #  Added stitchalign
 #
