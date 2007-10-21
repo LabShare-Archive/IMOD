@@ -29,7 +29,7 @@ is not entered, the third non-option argument will be used for this output
 file.
 
 [Field = PieceListFile]
-short = 
+short = piece
 long = PieceListFile
 type = FN
 usage = Name of piece list file if image is montaged or out of sequence

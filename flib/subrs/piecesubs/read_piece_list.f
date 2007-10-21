@@ -18,6 +18,6 @@ c
 	go to 10
 20	close(2)
 	return
-30      write(*'(/,a)')'ERROR: read_piece_list - reading piece list file'
+30      write(*,'(/,a)')'ERROR: read_piece_list - reading piece list file'
         call exit(1)
 	end
