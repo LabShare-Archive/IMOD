@@ -8,7 +8,7 @@ E        = $(BINEXT)
 LDFLG    = $(LDFFLAGS)
 
 PROGS = addtostack$(E) alterheader$(E) assemblevol$(E) avganova$(E) \
- avgstack$(E) boxavg$(E) calc$(E) checkxforms$(E) combinefft$(E) \
+ avgstack$(E) calc$(E) checkxforms$(E) combinefft$(E) \
  densmatch$(E) edmont$(E) edpiecepoint$(E) enhance$(E) eraser$(E) excise$(E) \
  extposition$(E) extracttilts$(E) extractpieces$(E) extstack$(E) fftrans$(E) \
  filltomo$(E) findcontrast$(E) findsection$(E) fixmont$(E) goodframe$(E) \
@@ -208,6 +208,9 @@ enhance.$(O): $(INCDIR)/ftbuf.inc
 fftrans.$(O): $(INCDIR)/ftbuf.inc
 
 #  $Log$
+#  Revision 3.14  2007/10/21 17:14:05  mast
+#  Remove boxavg
+#
 #  Revision 3.13  2007/07/17 03:37:23  mast
 #  Added densnorm
 #
