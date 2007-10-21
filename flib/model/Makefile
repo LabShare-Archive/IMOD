@@ -17,7 +17,7 @@ PROGS = convertmod$(E) model2point$(E) imavgstat$(E) solvematch$(E) \
  smoothsurf$(E) reducecont$(E) fenestra$(E) ccderaser$(E) edgeeraser$(E) \
  refinematch$(E) findwarp$(E) sumdensity$(E) mtrotlong$(E) howflared$(E) \
  tomopitch$(E) fiberpitch$(E) corrsearch3d$(E) repackseed$(E) resamplemod$(E) \
- findhotpixels$(E) xfjointomo$(E)
+ findhotpixels$(E) xfjointomo$(E) boxavg$(E)
 
 WLIBS = $(LWMOD) $(LIMOD) $(IMLIBS) $(FORTCLIBS)
 SMALLLIBS = $(LSMLMOD) $(LIMOD) $(IMLIBS) $(FORTCLIBS)
@@ -139,6 +139,9 @@ findhotpixels$(E): findhotpixels.$(O)
 xfjointomo$(E): xfjointomo.$(O)
 	$(FC) -o xfjointomo xfjointomo.$(O) $(LDFLG) $(SMALLLIBS)
 
+boxavg$(E): boxavg.$(O)
+	$(FC) -o boxavg boxavg.$(O) $(LDFLG) $(SMALLLIBS)
+
 install: $(PROGS)
 	$(STRIP) $(PROGS)
 	$(CP) $(PROGS) $(INSTBINDIR)
@@ -147,6 +150,9 @@ clean:
 	-\rm -f *.o* *~ *.exe $(PROGS)
 
 #  $Log$
+#  Revision 3.14  2007/09/19 23:48:14  mast
+#  Changes for library rearrangements
+#
 #  Revision 3.13  2006/10/26 19:08:08  mast
 #  Added xfjointomo
 #
