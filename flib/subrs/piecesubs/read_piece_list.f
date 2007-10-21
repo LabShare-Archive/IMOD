@@ -13,9 +13,11 @@ c
 	if(filpcl.eq.' ')return
 	call dopen(2,filpcl,'ro','f')
 10	i=npclist+1
-	read(2,*,end=20)ixpclist(i),iypclist(i),izpclist(i)
+	read(2,*,end=20,err=30)ixpclist(i),iypclist(i),izpclist(i)
 	npclist=i
 	go to 10
 20	close(2)
 	return
+30      write(*'(/,a)')'ERROR: read_piece_list - reading piece list file'
+        call exit(1)
 	end
