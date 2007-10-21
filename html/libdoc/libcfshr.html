@@ -5,7 +5,8 @@ IMOD Library libcfshr
 <H2  align="center">IMOD Library libcfshr</H2>
 The libcfshr library contains various utility functions, the PIP and Autodoc
 modules, and also functions
-easily callable from C and Fortran, including some image processing ones.
+easily callable from C and Fortran.  It includes some image processing
+functions, but excludes model-related ones, which are in libimod.
 Modules shared with SerialEM are also maintained in this library.
 <P>
 Whenever the documentation indicates that a function returns a
@@ -18,8 +19,6 @@ copyright, getting stripped program name, making a backup file, doing
 large-file I/O, and handling errors from library functions.
 <LI><A HREF="cfutils.html">Other utility functions</A>, often defined in
 separate files.
-<LI> <A HREF="mod_fwrap.html">Fortran-callable functions</A> for
-retrieving and storing an IMOD model.
 <LI><A HREF="../man/pip.html">PIP package</A> for parsing input
 parameters.
 <LI><A HREF="autodoc.html">Autodoc functions</A> for accessing and manipulating

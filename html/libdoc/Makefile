@@ -70,7 +70,8 @@ $(LHD)/iview.html: iview.html $(IMD)/iview.c $(INCD)/imodel.h
 $(LHD)/ilabel.html: ilabel.html $(IMD)/ilabel.c $(INCD)/imodel.h
 	$(SDEXE) -d $(IMD) ilabel.html $(LHD)/ilabel.html
 
-$(LHD)/mod_fwrap.html: mod_fwrap.html $(IMD)/imodel_fwrap.c
+$(LHD)/mod_fwrap.html: mod_fwrap.html $(IMD)/imodel_fwrap.c \
+	../../flib/subrs/model/readw_or_imod.f
 	$(SDEXE) -d $(IMD) mod_fwrap.html $(LHD)/mod_fwrap.html
 
 $(LHD)/b3dutil.html: b3dutil.html $(CFD)/b3dutil.c 
