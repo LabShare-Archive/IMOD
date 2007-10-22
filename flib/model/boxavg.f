@@ -412,7 +412,7 @@ c
           enddo
 c           
           nsum=nxbox*nybox
-          sd=sqrt(max(0,(sumsq-sum**2/nsum)/(nsum-1.)))
+          sd=sqrt(max(0.,(sumsq-sum**2/nsum)/(nsum-1.)))
           if(sd.lt.sdmin)then
             sdmin=sd
             idxbest=idx
@@ -430,4 +430,8 @@ c            write(*,101)dxbest + idx*delshift,dybest + idy*delshift,sd
       end
 
 c       $Log$
+c       Revision 3.1  2007/10/21 17:35:57  mast
+c       Converted to PIP, made it use model input and operate on non-integer
+c       coordinates
+c
 c       
