@@ -192,7 +192,6 @@ EXPORTS
 	imodObjectGet
 	imod_to_wmod
 	imodContourShave
-	IMODINSIDECONTOUR
 	imodContourSetSurface
 	imodContourFitPlane
 	imodViewModelDefault
