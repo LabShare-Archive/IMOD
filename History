@@ -1,5 +1,6 @@
 IMOD History
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+10/24/07: IMOD_3-9-4
 10/24/07: Fixed install script to work on Vista and allowed alternate
 installation directory for Windows (also has all the new options from 3.10)
 
