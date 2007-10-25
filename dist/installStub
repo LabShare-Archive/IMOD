@@ -12,6 +12,8 @@ set packname = $rootname:r.tar.gz
 set tempdir = IMODtempDir
 set installdir = ""
 set custom = 0
+set skipopt = ""
+set scriptopt = ""
 
 # Find the end of this script
 #
@@ -39,8 +41,32 @@ while ($#argv > 0)
             breaksw
 
         case -d*:
+
+            # Here and for script dir, need to make an absolute path before
+            # going into temp dir and running install script
+            #
             set installdir = $argv[2]
+            set absolute = `echo $installdir | grep '^/'`
+            if ($status) set installdir = "`pwd`""/$installdir"
             shift ; shift
+            breaksw
+
+        case -sc*:
+            set sysdir = "$argv[2]"
+            set absolute = `echo $sysdir | grep '^/'`
+            if ($status) set sysdir = "`pwd`""/$sysdir"
+            set scriptopt = "-script $sysdir"
+            shift; shift
+            breaksw
+        
+        case -sk*:
+            set skipopt = "-skip"
+            shift
+            breaksw
+
+        case -h*:
+        case --help:
+            goto usage
             breaksw
 
         default:
@@ -100,9 +126,9 @@ if ($extract == 0) then
     echo "This script will install IMOD in $installdir and rename"
     echo "any previous version, or remove another copy of this version."
     echo ""
-    if ($#sysfiles == 0) then
+    if ($#sysfiles == 0 && "$skipopt" == "") then
         echo "It will copy $scripts[1] and $scripts[2] to /etc/profile.d"
-    else
+    else if ("$skipopt" == "") then
         echo -n "It will edit $sysfiles[1]"
         if ($#sysfiles == 2) then
             echo -n " and $sysfiles[2]"
@@ -111,13 +137,8 @@ if ($extract == 0) then
         echo " in $installdir/IMOD unless they already appear to do so"
     endif
     
-    if ($os != windows && $custom == 0) then 
-        echo ""
-        echo "Your can add the option -dir install_dir to install to install_dir"
-        echo "instead of to $installdir (enter a full, absolute path for install_dir)"
-    endif
     echo ""
-    echo "You can add the option -extract to just extract the tar file and not install"
+    echo "You can add the option -h to see a full list of options"
     echo ""
     echo -n "Enter Y if you want to proceed: "
     set yesno = $<
@@ -156,23 +177,47 @@ endif
 
 # It has to be run by tcsh for Irix; there is some bug in csh
 
-if ($test == 0) tcsh -f $installer -d $installdir $packname
+if ($test == 0) tcsh -f $installer -d $installdir $scriptopt $skipopt $packname
 
 echo " "
-echo "Cleaning up $packname and $installer"
+echo "Cleaning up $packname, $installer, and $tempdir"
 \rm $installer $packname
 cd ..
-rmdir $tempdir
+\rm -rf $tempdir
 
 exit 0
 
-#  $Author$
-#
-#  $Date$
-#
-#  $Revision$
+usage:
+cat <<EOF
+This is a self-installing IMOD package which will install IMOD in a default
+or specified location and set up startup files.
+Options can be added after the name of the package on the command line.  
+Options may be abbreviated.  The options are:
+  -dir dir     Install IMOD within the given directory.  The directory must
+                 exist and you must have permission to write to it.  
+                 This option is not available on Windows.
+  -extract     Just extract the package and the real IMOD install script into
+                 a directory named $tempdir, without installing
+  -script dir  Place the IMOD startup scripts in the given directory.  On Linux
+                 and Windows, scripts will be copied there instead of to 
+                 /etc/profile.d.  On Mac and SGI, scripts will be copied there
+                 and the system startup files will not be modified.
+  -skip        Skip copying startup scripts (Linux and Windows) or modifying
+                  system startup files (Mac and SGI)
+  -test        Run this self-installing script but not the real install script
+  -h, --help   Print this help
+EOF
+exit 0
+
+#  $Id$
 #
 #  $Log$
+#  Revision 3.12  2007/09/17 04:04:10  mast
+#  Added help, script dir and skipping options, handled relative paths properly
+#
+#  Revision 3.11  2006/02/16 21:07:10  mast
+#  Run tcsh with -f flag
+#
 #  Revision 3.10  2005/06/11 14:27:41  mast
 #  Fix if statement on sysfiles for SGI
 #
