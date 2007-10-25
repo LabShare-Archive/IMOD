@@ -335,9 +335,10 @@ Then install it with <br>
 for a PowerPC (G4, G5, etc) or <code>_osx_intel</code> for an Intel
 processor.&nbsp; The self-installing package will install to
 /Applications or to
-an alternate location with the <code>-dir</code> option.&nbsp; It will
+an alternate location with the <code>-dir</code> option.&nbsp; <span
+ style="font-weight: bold; color: rgb(255, 0, 0);">It will
 not work by clicking on it, only by running it at the command
-line.&nbsp; It will
+line.</span>&nbsp; It will
 place appropriate "source" commands for defining the user environment
 in <code>/etc/csh.login<span style="font-family: sans-serif;"> </span></code>and
   <code>/etc/profile</code>.&nbsp;You
@@ -435,15 +436,15 @@ under Windows, including the ability to run
 shell scripts and to build tomograms, you need to install a Unix-like
 environment called <a href="http://www.cygwin.com">Cygwin</a>.
 &nbsp;We have provided a <a
- href="http://bio3d.colorado.edu/imod/windows/cygwinForIMOD1006.exe">Cygwin
-package</a> (from October, 2006) to make this process simpler and more
+ href="http://bio3d.colorado.edu/imod/windows/cygwinForIMOD1007.exe">Cygwin
+package</a> (from October, 2007) to make this process simpler and more
 predictable.
 &nbsp;This installation will occupy ~75 MB, all located under a single
 directory that can be removed easily. &nbsp;The installation will also
 create icons on the desktop and in the Start Menu, and make several
 simple entries to the Windows registry.&nbsp; To satisfy the terms
 of the Cygwin open source license, we also provide the <a
- href="http://bio3d.colorado.edu/imod/openSource/cygwinSource1006.zip">
+ href="http://bio3d.colorado.edu/imod/openSource/cygwinSource1007.zip">
 source code</a>
 matching the binaries in our package.<br>
   <br>
@@ -497,6 +498,29 @@ home directory is created in&nbsp;<code>/home</code>&nbsp;(<code>C:\cygwin\home<
 and some bash
 startup files are copied there.<br>
   <br>
+  <span style="color: rgb(255, 0, 0);">Vista notes:</span> Some problems will
+  be encountered in Vista.
+<ol>
+<li> The icon
+may not show up right after installation.&nbsp; Either log out and log
+back in, or use Start - Programs - Cygwin - Bash shell to start a
+terminal window.&nbsp; 
+<li> The first time, it will probably fail to
+create a home directory, fail to copy startup files, and give a message
+about running <code>mkpasswd</code> and <code>mkgroup</code>.&nbsp;
+Do what it says, i.e. run<br>
+
+<code>mkpasswd -l &gt; /etc/passwd</code><br>
+<code>mkgroup -l &gt; /etc/group<br>
+</code>
+<li> Then close the window and start a new terminal window; it will
+create the home directory and copy files correctly.&nbsp; 
+<li> To have
+the regular Cygwin shortcut or the <code>rxvt</code> one appear with
+the traditional Cygwin icon, right-click on the shortcut to edit its
+properties, and press the button to change the icon to select the
+Cygwin icon.
+</ol><br>
 The primary advantage of the <code>rxvt<span
  style="font-family: sans-serif;"> </span></code>window is that you
 can
@@ -549,8 +573,9 @@ is safer to use the package that we provide if it is adequate.<br>
   <h4>Installing IMOD on a Windows PC</h4>
   </a>The self-installing package will install IMOD in /usr/local and
 copy <code>IMOD-cygwin.sh</code>&nbsp;and <code>IMOD-cygwin.csh</code>&nbsp;to
-  <code>/etc/profile.d</code>. It will not work by clicking on it, only
-by executing it from the command line.&nbsp; To
+  <code>/etc/profile.d</code>. <span
+ style="font-weight: bold; color: rgb(255, 0, 0);">It will not work by clicking on it, only
+by executing it from the command line.</span>&nbsp; To
 install IMOD, start a Cygwin terminal window, change to the
 directory where the package is located, and enter, e.g.:<br>
 &nbsp;&nbsp;&nbsp;&nbsp;<code>csh imod_3.9.2_win.csh<br>
