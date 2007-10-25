@@ -1,5 +1,10 @@
 IMOD History
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+10/24/07: Fixed install script to work on Vista and allowed alternate
+installation directory for Windows (also has all the new options from 3.10)
+
+4/23/07: Fixed ability of Fortran programs to read header of mode 16 files.
+
 3/23/07: Fixed bug that crashed 3dmod when model view object edit window was
 opened after creating a new object.
 
