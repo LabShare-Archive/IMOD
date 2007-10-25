@@ -76,6 +76,7 @@ c       Some defaults and initializations
       amat(2,1) = 0.
       amat(2,2) = 1.
       maxshift = 3
+      ifsplit = 0
 c
 c       PIP startup
       call PipReadOrParseOptions(options, numOptions, 'boxavg',
@@ -430,6 +431,9 @@ c            write(*,101)dxbest + idx*delshift,dybest + idy*delshift,sd
       end
 
 c       $Log$
+c       Revision 3.2  2007/10/22 07:56:51  mast
+c       Fix for intel compiler
+c
 c       Revision 3.1  2007/10/21 17:35:57  mast
 c       Converted to PIP, made it use model input and operate on non-integer
 c       coordinates
