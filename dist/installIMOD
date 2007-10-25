@@ -114,8 +114,7 @@ endsw
 if ("$installdir" == "") set installdir = $defaultdir
 if ("$installdir" != "$defaultdir") set custom = 1
 if ($os == windows && $custom == 1) then
-    echo "You can not set the install directory on Windows"
-    exit 1
+    \echo "In Window environment variables, set IMOD_DIR to "`cygpath -w "$installdir"`
 endif
 
 switch ($package)
@@ -153,15 +152,35 @@ if (! $skipcopy && ! -d "$sysdir") then
 endif
 
 if (! -w "$installdir") then
-    echo "You do not have permission to write to $installdir"
-    echo  "Run this command with sudo or as root"
-    exit 1
+    if ($os == windows) then
+        echo gibberish > "$installdir/testfile"
+        if ($status) then
+            echo "There is a error writing files to $installdir"
+            echo "Make sure the /etc/passwd and /etc/group files are up to date"
+            exit 1
+        endif
+        \rm -f "$installdir/testfile"
+    else
+        echo "You do not have permission to write to $installdir"
+        echo  "Run this command with sudo or as root"
+        exit 1
+    endif
 endif
 
 if (! $skipcopy && ! -w "$sysdir") then
-    echo "You do not have permission to write to $sysdir"
-    echo  "Run this command with sudo or as root"
-    exit 1
+    if ($os == windows) then
+        echo gibberish > "$sysdir/testfile"
+        if ($status) then
+            echo "There is a error writing files to $sysdir"
+            echo "Make sure the /etc/passwd and /etc/group files are up to date"
+            exit 1
+        endif
+        \rm -f "$sysdir/testfile"
+    else
+        echo "You do not have permission to write to $sysdir"
+        echo  "Run this command with sudo or as root"
+        exit 1
+    endif
 endif
 
 # Construct absolute path to package if necessary
@@ -367,7 +386,7 @@ Usage: installIMOD [options] [package file name]
   Installs IMOD using a package in the current directory if there is only one,
     or using the specified package file.
   Options (may be abbreviated):
-    -dir dir     Directory in which to install IMOD  (not available on Windows)
+    -dir dir     Directory in which to install IMOD
     -script dir  Directory in which to place the IMOD startup scripts
     -skip        Skip copying startup scripts or modifying system startup files
     -h, --help   Print this help
@@ -376,6 +395,9 @@ exit 0
 
 #
 #  $Log$
+#  Revision 3.16  2007/09/17 17:37:32  mast
+#  Made the chcon more elaborate as Nvidia hints, and it works better
+#
 #  Revision 3.15  2007/09/17 04:02:53  mast
 #  Implemented options for specifying or skipping the script copying and
 #  for getting help; tested for existence of directories; handled relative script
