@@ -8,6 +8,7 @@
 #include <qtooltip.h>
 #include <qerrormessage.h>
 
+#include <iostream>
 #include <cmath>
 using namespace std;
 
