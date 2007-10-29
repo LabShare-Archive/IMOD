@@ -1,0 +1,118 @@
+Version = 1.0
+Pip = 1
+
+[Field = StackInputFile]
+short = stack
+type = FN
+usage = Input file with stack of images to correlate with a single image
+tooltip = 
+manpage = Input file with stack of images to correlate with a single image. If
+this option is not entered, the first non-option argument will be used for
+this input file.
+
+[Field = SingleInputFile]
+short = single
+type = FN
+usage = Input file with single image to correlate with the stack of images
+tooltip = 
+manpage = Input file with single image to correlate with the stack of images.
+If this option is not entered, the second non-option argument will be used for
+this input file.
+
+[Field = OutputFile]
+short = output
+type = FN
+usage = Output file for correlation images
+tooltip = 
+manpage = Output file for correlation images.  If this option is not entered,
+the third non-option argument will be used for this output file.
+
+[Field = StartingEndingSections]
+short = sections
+type = IP
+usage = Starting and ending sections to correlate (numbered from 0)
+tooltip = 
+manpage = Starting and ending sections in the input stack to correlate with
+the single image.  Sections are numbered from 0.  The Z origin of the output
+file will be adjusted so that a model generated on the input stack will
+display correctly on the correlation stack.
+
+[Field = FilterRadius1]
+short = rad1
+type = F
+usage = Left cutoff radius for filter
+tooltip = 
+manpage = Low spatial frequencies in the cross-correlation will be attenuated
+by a Gaussian curve that is 1 at this cutoff radius and falls off below this
+radius with a standard deviation specified by FilterSigma2.  Spatial
+frequency units range from 0 to 0.5.  Use FilterSigma1 instead of this entry
+for more predictable attenuation of low frequencies.
+
+[Field = FilterRadius2]
+short = rad2
+type = F
+usage = Right cutoff radius for filter
+tooltip = High frequency cutoff radius for Gaussian filter
+manpage = High spatial frequencies in the cross-correlation will be attenuated
+by a Gaussian curve that is 1 at this cutoff radius and falls off above this
+radius with a standard deviation specified by FilterSigma2.
+
+[Field = FilterSigma1]
+short = sig1
+type = F
+usage = Sigma for low-frequency inverted Gaussian filter
+tooltip = 
+manpage = Sigma value to filter low frequencies in the correlations with a
+curve that is an inverted Gaussian.  This filter is 0 at 0 frequency and decays
+up to 1 with the given sigma value.  However, if a negative value of radius1
+is entered, this filter will be zero from 0 to |radius1| then decay up to 1.
+
+[Field = FilterSigma2]
+short = sig2
+type = F
+usage = Sigma for Gaussian rolloff below radius1 and above radius2
+tooltip = Sigma for Gaussian rolloff below low frequency cutoff and above 
+high frequency cutoff
+manpage = Sigma value for the Gaussian rolloff below and above the cutoff
+frequencies specified by FilterRadius1 and FilterRadius2
+
+[Field = ModeOfOutput]
+short = mode
+type = I
+usage = Mode for correlation images (default same as input)
+tooltip = 
+manpage = Mode for correlation images: 0 for byte, 1 for short integer, 2 for
+floating point, 6 for unsigned short integer.  Except for floating point
+output, each correlation image will be scaled to fill the positive dynamic
+range of the mode.  The default is the same mode as the input.
+
+[Field = SplitIntoCorners]
+short = split
+type = B
+usage = Split a single image into 4 corners even if same size as stack
+tooltip = 
+manpage = If the single image is the same size as the input stack, this option
+can be used to the middle shifted to the lower left corner, just as occurs for
+smaller single images.
+
+[Field = FillValue]
+short = fill
+type = F
+usage = Value to fill when embedding image into a larger array
+tooltip = 
+manpage = Value to fill when embedding image into a larger array.  The default
+is to fill with the mean at the edge of the image.
+
+[Field = ParameterFile]
+short = param
+type = PF
+usage = Read parameter entries from file
+tooltip = 
+manpage = Read parameter entries as keyword-value pairs from a parameter file.
+
+[Field = usage]
+short = help
+type = B
+usage = Print help output
+tooltip = 
+manpage = 
