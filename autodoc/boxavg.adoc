@@ -81,7 +81,7 @@ manpage =
 [SectionHeader = ObsoleteOptions]
 usage = OBSOLETE OPTIONS
 manpage = OBSOLETE OPTIONS
-^  These options are not needed when Xcorr(1) is used to correlate 
+^  These options are not needed when Xcorrstack(1) is used to correlate 
 ^  an average with images.
 
 [Field = SizeOfOutputXandY]
