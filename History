@@ -1,5 +1,15 @@
 IMOD History
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+10/29/07: Converted Xcorr to PIP input, removed redundant filters, adjusted 
+origin when run on a subset of stack, rename dto Xcorrstack to reduce confusion
+with xcorr.com.
+
+10/24/07: Fixed install script to work on Vista and allowed alternate
+installation directory for Windows.
+
+10/21/07: Converted Boxavg to PIP input, made it take a model file instead of
+a point file, and made it operate with and align to non-integer coordinates.
+
 10/19/07: IMOD_3-10-20
 10/19/07: Fixed defocus scaling bugs in ctfplotter and ctfphaseflip.
 
