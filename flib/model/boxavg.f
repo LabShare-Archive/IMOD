@@ -172,7 +172,7 @@ c           For needed object , load it, unscale, and get coordinates
             print *, 'ERROR: BOXAVG - LOADING DATA FOR OBJECT #',imodobj
             call exit(1)
           endif
-          call scale_model(0)
+          call scaleModelToImage(1, 0)
 
           do iobj = 1, max_mod_obj
         
@@ -431,6 +431,9 @@ c            write(*,101)dxbest + idx*delshift,dybest + idy*delshift,sd
       end
 
 c       $Log$
+c       Revision 3.3  2007/10/25 02:47:18  mast
+c       fixed initialization of split option
+c
 c       Revision 3.2  2007/10/22 07:56:51  mast
 c       Fix for intel compiler
 c
