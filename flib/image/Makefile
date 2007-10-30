@@ -15,9 +15,9 @@ PROGS = addtostack$(E) alterheader$(E) assemblevol$(E) avganova$(E) \
  header$(E) matchvol$(E) montagesize$(E) mtdetect$(E) mtteach$(E) \
  newstack$(E) rotatevol$(E) rotmont$(E) subimage$(E) subimanova$(E) \
  subimstat$(E) taperoutvol$(E) tapervoledge$(E) tiltxcorr$(E) tomopieces$(E) \
- vmstocsh$(E) warpvol$(E) xcorr$(E) xfinverse$(E) xfproduct$(E) xfsimplex$(E) \
+ vmstocsh$(E) warpvol$(E) xcorrstack$(E) xfinverse$(E) xfproduct$(E) \
  xftoxg$(E) xyzproj$(E) extractmagrad$(E) mtffilter$(E) maxjoinsize$(E) \
- binvol$(E) numericdiff$(E) stitchalign$(E) densnorm$(E)
+ binvol$(E) numericdiff$(E) stitchalign$(E) densnorm$(E) xfsimplex$(E)
 
 LIBS = $(FORTCLIBS)
 
@@ -173,8 +173,8 @@ vmstocsh$(E): vmstocsh.$(O)
 warpvol$(E): warpvol.$(O) rotmatwarpsubs.$(O)
 	$(FC) -o warpvol rotmatwarpsubs.$(O) warpvol.$(O) $(LDFLG) $(IMLIBS) $(LIBS)
 
-xcorr$(E): xcorr.$(O)
-	$(FC) -o xcorr xcorr.$(O) $(LDFLG) $(IMLIBS) $(LIBS)
+xcorrstack$(E): xcorrstack.$(O)
+	$(FC) -o xcorrstack xcorrstack.$(O) $(LDFLG) $(IMLIBS) $(LIBS)
 
 xfinverse$(E): xfinverse.$(O)
 	$(FC) -o xfinverse xfinverse.$(O) $(LDFLG) $(IMLIBS) $(LIBS)
@@ -208,6 +208,9 @@ enhance.$(O): $(INCDIR)/ftbuf.inc
 fftrans.$(O): $(INCDIR)/ftbuf.inc
 
 #  $Log$
+#  Revision 3.15  2007/10/21 17:38:37  mast
+#  Really remove boxavg
+#
 #  Revision 3.14  2007/10/21 17:14:05  mast
 #  Remove boxavg
 #
