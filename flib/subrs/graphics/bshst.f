@@ -746,7 +746,7 @@ c82	if(ifimg.gt.0)call flushb
 	end
 
 	subroutine gnhst(xx,ngx,nx,nsymb,ngrps,iflog)
-	dimension xx(*),ngx(*),nsymb(*),iz(5000),jz(100)
+	dimension xx(*),ngx(*),nsymb(*),iz(100000),jz(5000)
      1,namx(1),col(1),irec(1)
 	common /hstp/ifgnh
 	data ifgnh/0/
