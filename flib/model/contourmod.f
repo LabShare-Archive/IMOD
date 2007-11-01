@@ -55,8 +55,8 @@ c	  or several black lines, make them 240, 239, 238, etc or 0, 1, 2, etc.
 c	  
 c	  David Mastronarde  12/1/90, using CONTUR package from Tim Baker
 c
-	parameter (maxarr=1025*1025,maxcolrow=2100,maxsec=500,
-     &	    maxtour=100)
+	parameter (maxarr=8200*8200,maxcolrow=210000,maxsec=10000,
+     &	    maxtour=1000)
 c
 	include 'model.inc'
 c
@@ -65,7 +65,7 @@ c
 	integer*4 nxyz(3),mxyz(3),listz(maxsec),icoltour(maxtour)
 	real*4 tour(maxtour)
 	equivalence (nxyz,nx)
-	character*80 imagefile,modelfile
+	character*160 imagefile,modelfile
 	common /veccom/nx,ny,nz,icolor,izcur,xofset,yofset,sclx,scly
 c
 	write(*,'(1x,a,$)')'Name of image file to contour: '
@@ -73,6 +73,10 @@ c
 100	format(a)
 	call imopen(1,imagefile,'ro')
 	call irdhdr(1,nxyz,mxyz,mode,dmin,dmax,dmean)
+        if (nx * ny .gt. maxarr) then
+          print *,'ERROR: contourmod - image too large for arrays'
+          call exit(1)
+        endif
 c	  
 	write(*,'(1x,a,$)')'Name of model file to place contours in: '
 	read(5,100)modelfile
@@ -151,7 +155,7 @@ c
 	max_mod_obj=n_object
 	print *,n_point,' points in',n_object,' objects written in model'
 	call write_wmod(modelfile)
-	stop
+	call exit(0)
 99	stop 'ERROR READING IMAGE FILE'
 	end
 
