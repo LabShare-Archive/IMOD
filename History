@@ -1,7 +1,9 @@
 IMOD History
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+11/1/07: Fixed reading of ascii model with DOS line endings
+
 10/29/07: Converted Xcorr to PIP input, removed redundant filters, adjusted 
-origin when run on a subset of stack, rename dto Xcorrstack to reduce confusion
+origin when run on a subset of stack, renamed to Xcorrstack to reduce confusion
 with xcorr.com.
 
 10/24/07: Fixed install script to work on Vista and allowed alternate
