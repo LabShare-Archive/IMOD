@@ -7,31 +7,9 @@
  *  Copyright (C) 1995-2005 by Boulder Laboratory for 3-Dimensional Electron
  *  Microscopy of Cells ("BL3DEMC") and the Regents of the University of 
  *  Colorado.  See dist/COPYRIGHT for full copyright notice.
- */
-
-/*  $Author$
-
-$Date$
-
-$Revision$
-Log at end of file
-*/
-
-/*
- * Functions                           Discription
- * ---------------------------------------------------------------------------
- * int   imodOpenFile(char *filename,  Open a file with the given mode for
- *                    char *mode,      the given model.
- *                    Imod *imod); 
- * int   imodCloseFile(Imod *imod);    Close imod file.
- * int   imodReadFile(Imod *imod);     Read model using opened file.
- * Imod *imodRead(char *filename);     Read model into memory and close file.
- *
- * int imodWriteFile(Imod *imod);      Write an imod file.
- * int imodWrite(Imod *imod,           Write a model to given file.
- *               FILE *fout);
- * int imodWriteAscii(Imod *imod);     Write an imod file in ascii format.
- *
+ * 
+ * $Id$
+ * Log at end
  */
 
 #include <stdio.h>
@@ -1559,7 +1537,8 @@ int imodFgetline(FILE *fp, char s[],int limit)
   i = 0;
   do{
     c = getc(fp);
-    s[i++] = c;
+    if (c != '\r')
+      s[i++] = c;
   }while( (c != EOF) && (i < (limit-1)) && (c != '\n'));
      
   if (i == 1){
@@ -1852,6 +1831,9 @@ int imodPutByte(FILE *fp, unsigned char *dat)
 
 /*
   $Log$
+  Revision 3.28  2007/06/12 05:39:25  mast
+  Upgraded ascii format
+
   Revision 3.27  2007/05/25 05:18:26  mast
   Changes for slicer angle storage
 
