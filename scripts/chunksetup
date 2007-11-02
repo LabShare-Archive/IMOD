@@ -1,39 +1,9 @@
 #!/bin/csh -f
 # A script to set up command files to process volumes in chunks
 #
-#  $Author$
+#  $Id$
 #
-#  $Date$
-#
-#  $Revision$
-#
-#  $Log$
-#  Revision 3.8  2005/05/12 20:59:08  mast
-#  Handle case of missing newline in master com  file
-#
-#  Revision 3.7  2004/07/22 18:17:20  mast
-#  Change to better sed command for stripping Ctrl M
-#
-#  Revision 3.6  2004/06/29 02:46:36  mast
-#  Removed all parallel script code and -f option because of new
-#  processchunks script
-#
-#  Revision 3.5  2004/06/24 23:07:29  mast
-#  Made parallel script run the finish when done, and report on numbers of
-#  ones undone upon interrupt
-#
-#  Revision 3.4  2004/06/24 15:33:28  mast
-#  Added -c option to subm and an if test to the removal of input file
-#
-#  Revision 3.3  2004/06/23 19:27:05  mast
-#  Fixed missing endif
-#
-#  Revision 3.2  2004/06/19 21:01:03  mast
-#  Added a monitor for parallel script and took care of case of # of machines
-#  > # of chunks
-#
-#  Revision 3.1  2004/06/17 16:00:53  mast
-#  Initial creation
+#  Log at end of file
 #
 
 # Set defaults for filename identifiers and tomopieces call
@@ -109,28 +79,40 @@ set mastercom = $argv[1]
 set infile = $argv[2]
 set outfile = $argv[3]
 
-set rootname = $mastercom:r
-set allname = $rootname-all.com
-set finishname = $rootname-finish.com
+set fullroot = $mastercom:r
+set rootname = $fullroot:t
+set allname = $fullroot-all.com
+set finishname = $fullroot-finish.com
+
+# The input and output files may be relative to the location of the command
+# file which need not be in current dir
+#
+set masthead = $mastercom:h
+set infromhere = $infile
+set cleandir = .
+if ("$masthead" != "$mastercom") then
+    set infromhere = $masthead/$infile
+    set cleandir = $masthead
+endif
 
 if (! -e $mastercom) then
-    echo "Command file $mastercom does not exist"
+    echo "ERROR: $pn - Command file $mastercom does not exist"
     exit 1
 endif
 
-if (! -e $infile) then
-    echo "Image file $infile does not exist"
+if (! -e $infromhere) then
+    echo "ERROR: $pn - Image file $infile does not exist"
     exit 1
 endif
 
 set testin = `grep $masterin $mastercom`
 set testout = `grep $masterout $mastercom`
 if ("$testin" == "" || "$testout" == "") then
-    echo "The master command file does not contain both $masterin and $masterout"
+    echo "ERROR: $pn - The master command file does not contain both $masterin and $masterout"
     exit 1
 endif
 
-# Find out if need to a newline at end of master file
+# Find out if need to add a newline at end of master file
 #
 set lastbytes = `tail -n 1 $mastercom | od -b`
 @ ind = $#lastbytes - 1
@@ -139,7 +121,7 @@ if ($ind > 0) then
     if ($ending != 12 && $ending != 15) set neednl = 1
 endif
 
-set ranlist = `tomopieces -tomo $infile $mega -xp $pad -yp $pad -zp $pad $overlap -xmax $maxxp -ymax $maxyp | sed '/[[:cntrl:]]/s///g'`
+set ranlist = `tomopieces -tomo $infromhere $mega -xp $pad -yp $pad -zp $pad $overlap -xmax $maxxp -ymax $maxyp | sed '/[[:cntrl:]]/s///g'`
 
 if ($status) then
     echo $ranlist
@@ -148,7 +130,8 @@ endif
 
 # Remove any previous files now in case the number has changed
 #
-\find . -type f -name  "$rootname-[0-9]*.*" -exec rm -f "{}" \;
+\find $cleandir -type f -name  "$rootname-[0-9]*.*" -exec rm -f "{}" \;
+\find $cleandir -type f -name  "$rootname-start.*" -exec rm -f "{}" \;
 
 @ npiecex = $ranlist[1]
 shift ranlist
@@ -182,7 +165,7 @@ while ($znum < $npiecez)
                 set numtext = 0"$numtext"
             endif
             
-            set comfile = $rootname-$numtext.com
+            set comfile = $fullroot-$numtext.com
             set imagein = $rootname-$numtext.in
             set imageout = $rootname-$numtext.out
             cat <<EOCAT >! $comfile
@@ -266,7 +249,7 @@ cat <<EOF
 
 $npiecetot command files were generated and are ready to run.
 
-You can run $allname (with subm) to run all command files in 
+You can run $allname:t (with subm) to run all command files in 
 sequence, reassemble the volume, and clean up intermediate image and 
 command files.
 
@@ -276,6 +259,38 @@ to do these operations in parallel, where machine_list is a comma-separated
 list of available machines
 
 Or, you can run the files individually and, when they are all done,
-run $finishname to reassemble the volume and 
+run $finishname:t to reassemble the volume and 
 clean up intermediate files.
 EOF
+
+#
+#  $Log$
+#  Revision 3.9  2005/11/19 04:31:26  mast
+#  Quote path setting to preserve spaces
+#
+#  Revision 3.8  2005/05/12 20:59:08  mast
+#  Handle case of missing newline in master com  file
+#
+#  Revision 3.7  2004/07/22 18:17:20  mast
+#  Change to better sed command for stripping Ctrl M
+#
+#  Revision 3.6  2004/06/29 02:46:36  mast
+#  Removed all parallel script code and -f option because of new
+#  processchunks script
+#
+#  Revision 3.5  2004/06/24 23:07:29  mast
+#  Made parallel script run the finish when done, and report on numbers of
+#  ones undone upon interrupt
+#
+#  Revision 3.4  2004/06/24 15:33:28  mast
+#  Added -c option to subm and an if test to the removal of input file
+#
+#  Revision 3.3  2004/06/23 19:27:05  mast
+#  Fixed missing endif
+#
+#  Revision 3.2  2004/06/19 21:01:03  mast
+#  Added a monitor for parallel script and took care of case of # of machines
+#  > # of chunks
+#
+#  Revision 3.1  2004/06/17 16:00:53  mast
+#  Initial creation
