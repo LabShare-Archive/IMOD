@@ -14,7 +14,8 @@ multiple processors.
 
 To use this procedure, first make a master command file (the first required 
 argument) that performs the needed operation, in the format required by
-Vmstocsh, as ordinarily run with subm.  The input file for the
+Vmstocsh, as ordinarily run with subm.  Instead of using the actual filenames,
+the input file for the
 operation in this command file should be entered as INPUTFILE, and the final 
 output of the operation
 as OUTPUTFILE.  (Note that OUTPUTFILE should not be used for the name of the
@@ -39,6 +40,13 @@ and end your temporary file names with ".$tmpext".  In this case, you should
 remove the files at the end of the command file with statements like:
 .br
 $if (-e chunktemp.$tmpext) rm -f chunktemp.$tmpext
+
+The input and output files need not be in the same directory as the command
+files; a path specification can precede each filename.  Also, the master
+command file need not be in the current directory; the chunk command files
+will be placed in the directory where it is located.  In this case, however,
+you must enter the path to the input and output files relative to the command
+file's directory, not relative to the current directory.
 
 When chunksetup is run, it first calls Tomopieces, which analyzes the
 dimensions of the input file to determine how to chop it up optimally.
