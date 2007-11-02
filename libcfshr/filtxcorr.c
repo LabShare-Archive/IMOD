@@ -143,6 +143,11 @@ void XCorrSetCTFnoScl(float sigma1, float sigma2, float radius1, float radius2,
     }
   }
 
+  // Set small numbers to zero to avoid numerical problems and slow inverse
+  // FFT's in 3D or 2D
+  for (j = 0; j < nsize; j++)
+    if (ctf[j] < 1.e-6)
+      ctf[j] = 0.;
   *nsizeOut = nsize;
 }
 
@@ -435,6 +440,9 @@ void conjugateProduct(float *array, float *brray, int nx, int ny)
 }
 
 /*  $Log$
+/*  Revision 1.3  2007/10/10 18:55:05  mast
+/*  Functions callable by fortran must return double not float!
+/*
 /*  Revision 1.2  2007/10/04 16:24:57  mast
 /*  Added parabolic fit function to do it right everywhere
 /*
