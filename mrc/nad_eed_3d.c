@@ -8,27 +8,9 @@
  * Changes for IMOD are confined to main() amd associated routines at end
  *
  *  $Id$
+ *  Log at end
  */
-/*  $Log$
-    Revision 3.6  2007/10/03 22:54:33  mast
-    Added support for mode 6 using new function
 
-    Revision 3.5  2006/06/26 14:42:04  mast
-    Removed imodel include
-
-    Revision 3.4  2005/03/14 18:32:18  mast
-    Fixed crash with bad argument
-
-    Revision 3.3  2005/03/12 15:50:45  mast
-    Added imodel.h include for parselist
-
-    Revision 3.2  2005/03/11 22:33:48  mast
-    Added output mode option and slice # and iterations to title
-
-    Revision 3.1  2005/03/11 19:42:16  mast
-    Added to package
-
-*/
 /* IMOD modifications above here */
 /*--------------------------------------------------------------------------*/
 
@@ -957,6 +939,10 @@ return;
 #include "b3dutil.h"
 #include "mrcfiles.h"
 #include "mrcslice.h"
+#ifndef _WIN32
+#include <sys/types.h>
+#include <unistd.h>
+#endif
 
 void usage(char *progname, float ht, int pmax, float sigma, float lambda)
 {
@@ -969,7 +955,8 @@ void usage(char *progname, float ht, int pmax, float sigma, float lambda)
          "\t-m #\tMode for output file, 0=byte, 1=int, 2=real, 6=unsigned int"
          "\n"
          "\t-s #\tSigma for smoothing of structure tensor (default %.1f)\n"
-         "\t-t #\tTime step (default %.2f)\n",
+         "\t-t #\tTime step (default %.2f)\n"
+         "\t-P  \tPrint PID to standard error\n",
          progname, progname, lambda, pmax, sigma, ht);
   exit(1);
 }
@@ -1047,6 +1034,10 @@ int main (int argc, char **argv)
       case 'i':
         writeList = parselist(argv[++iarg], &nWrite);
         writeArg = iarg;
+        break;
+      case 'P':
+        fprintf(stderr, "PID: %d\n", getpid());
+        fflush(stderr);
         break;
       default:
         printf("ERROR: %s - Invalid option %s\n", progname, argv[iarg]);
@@ -1287,3 +1278,28 @@ int main (int argc, char **argv)
   exit(0);
 }
 
+/*  
+    
+$Log$
+Revision 3.7  2007/10/03 22:57:46  mast
+Fixed usage string
+
+Revision 3.6  2007/10/03 22:54:33  mast
+Added support for mode 6 using new function
+
+Revision 3.5  2006/06/26 14:42:04  mast
+Removed imodel include
+
+Revision 3.4  2005/03/14 18:32:18  mast
+Fixed crash with bad argument
+
+Revision 3.3  2005/03/12 15:50:45  mast
+Added imodel.h include for parselist
+
+Revision 3.2  2005/03/11 22:33:48  mast
+Added output mode option and slice # and iterations to title
+
+Revision 3.1  2005/03/11 19:42:16  mast
+Added to package
+
+*/
