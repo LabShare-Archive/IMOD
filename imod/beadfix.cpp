@@ -5,15 +5,10 @@
  *  Copyright (C) 1995-2005 by Boulder Laboratory for 3-Dimensional Electron
  *  Microscopy of Cells ("BL3DEMC") and the Regents of the University of 
  *  Colorado.  See dist/COPYRIGHT for full copyright notice.
- */
-/*  $Author$
-
-    $Date$
-
-    $Revision$
-
-    Log at end of file
-*/
+ *
+ * $Id$
+ * Log at end of file
+ */                                                                           
 
 /* include needed Qt headers and imod headers
  */
@@ -34,6 +29,7 @@
 #include <qdir.h>
 #include <qstringlist.h>
 #include <qfile.h>
+#include <qslider.h>
 #include <qprocess.h>
 
 
@@ -50,9 +46,11 @@
 #include "control.h"
 #include "dia_qtutils.h"
 #include "beadfix.h"
+#include "multislider.h"
 #include "pegged.xpm"
 #include "unpegged.xpm"
 #include "imod_input.h"
+#include "imod_edit.h"
 #include "preferences.h"
 #include "undoredo.h"
 
@@ -1501,12 +1499,58 @@ void BeadFixer::setOverlay(int doIt, int state)
                       (plug->lightBead + plug->reverseOverlay) % 2);
 }
 
+void BeadFixer::threshChanged(int slider, int value, bool dragging)
+{
+  Imod *imod = ivwGetModel(plug->view);
+  Iobj *obj;
+  int ob;
+  int valblack = B3DNINT((255. * (value - mPeakMin)) / (mPeakMax - mPeakMin));
+  for (ob = 0; ob < imod->objsize; ob++) {
+    obj = &imod->obj[ob];
+    if ((obj->flags & IMOD_OBJFLAG_USE_VALUE) && 
+        (obj->matflags2 & MATFLAGS2_SKIP_LOW))
+      obj->valblack = (unsigned char)valblack;
+  }
+  ivwDraw(plug->view, IMOD_DRAW_MOD | IMOD_DRAW_NOSYNC);
+}
+
+void BeadFixer::deleteBelow()
+{
+  Imod *imod = ivwGetModel(plug->view);
+  Iobj *obj;
+  int ob, i;
+  Istore *store;
+  Iindex index;
+  float thresh = threshSlider->getSlider(0)->value() / 1000.;
+  index.point = -1;
+  for (ob = 0; ob < imod->objsize; ob++) {
+    obj = &imod->obj[ob];
+    index.object = ob;
+    if ((obj->flags & IMOD_OBJFLAG_USE_VALUE) && 
+        (obj->matflags2 & MATFLAGS2_SKIP_LOW)) {
+      for (i = 0; i < ilistSize(obj->store); i++) {
+        store = (Istore *)ilistItem(obj->store, i);
+        if (store->type == GEN_STORE_VALUE1 && 
+            !(store->flags & GEN_STORE_SURFACE) && store->value.f < thresh) {
+          index.contour = store->index.i;
+          imodSelectionListAdd(plug->view, index);
+        }
+      }
+    }
+  }
+  inputDeleteContour(plug->view);
+}
+
 void BeadFixer::modeSelected(int value)
 {
   // Manage seed mode items
   showWidget(seedModeBox, value == SEED_MODE);
   showWidget(overlayHbox, value == SEED_MODE);
   showWidget(reverseBox, value == SEED_MODE);
+  showWidget(deleteBelowBut, value == SEED_MODE);
+  if (threshSlider)
+    showWidget((QWidget *)(threshSlider->getSlider(0)), value == SEED_MODE);
+
 
   // Manage gap filling items
   showWidget(nextGapBut, value == GAP_MODE);
@@ -1555,6 +1599,7 @@ void BeadFixer::showWidget(QWidget *widget, bool state)
  
 static char *buttonLabels[] = {"Done", "Help"};
 static char *buttonTips[] = {"Close Bead Fixer", "Open help window"};
+static char *threshTitle[] = {"Threshold peak value"};
 
 BeadFixer::BeadFixer(QWidget *parent, const char *name)
   : DialogFrame(parent, 2, 1, buttonLabels, buttonTips, true, 
@@ -1563,8 +1608,14 @@ BeadFixer::BeadFixer(QWidget *parent, const char *name)
   QPushButton *button;
   QCheckBox *box;
   QString qstr;
+  Imod *imod = App->cvi->imod;
+  Iobj *obj;
+  float min, max;
+  int ob;
   overlayHbox = NULL;
   reverseBox = NULL;
+  deleteBelowBut = NULL;
+  threshSlider = NULL;
   mRunningAlign = false;
   mTopTimerID = 0;
   mStayOnTop = false;
@@ -1680,6 +1731,33 @@ BeadFixer::BeadFixer(QWidget *parent, const char *name)
     QToolTip::add(reverseBox, "Show color overlay in reverse contrast");
     diaSetChecked(reverseBox, plug->reverseOverlay != 0);
   }    
+
+  // Determine if any object has a value display set
+  for (ob = 0; ob < imod->objsize; ob++) {
+    obj = &imod->obj[ob];
+    if ((obj->flags & IMOD_OBJFLAG_USE_VALUE) && 
+        (obj->matflags2 & MATFLAGS2_SKIP_LOW)) {
+      istoreGetMinMax(obj->store, obj->contsize, GEN_STORE_MINMAX1, &min,
+                      &max);
+      mPeakMin = B3DNINT(min * 1000.);
+      mPeakMax = B3DNINT(max * 1000.);
+      
+      threshSlider = new MultiSlider(this, 1, threshTitle, mPeakMin, mPeakMax,
+                                     3);
+      mLayout->addLayout(threshSlider->getLayout());
+      QObject::connect(threshSlider, SIGNAL(sliderChanged(int, int, bool)),
+                       this, SLOT(threshChanged(int, int, bool)));
+      QToolTip::add((QWidget *)threshSlider->getSlider(0), 
+                    "Set threshold peak strength for viewing points");
+      threshSlider->setValue(0, B3DNINT(obj->valblack * (mPeakMax - mPeakMin) /
+                                       255. + mPeakMin));
+
+      deleteBelowBut = diaPushButton("Delete below", this, mLayout);
+      connect(deleteBelowBut, SIGNAL(clicked()), this, SLOT(deleteBelow()));
+      QToolTip::add(deleteBelowBut, "Delete all contours below threshold");
+      break;
+    }
+  }
 
   nextGapBut = diaPushButton("Go to Next Gap", this, mLayout);
   connect(nextGapBut, SIGNAL(clicked()), this, SLOT(nextGap()));
@@ -1986,6 +2064,9 @@ void BeadFixer::keyReleaseEvent ( QKeyEvent * e )
 
 /*
     $Log$
+    Revision 1.40  2006/10/18 21:22:24  mast
+    Made it remember auto new center mode across sessions
+
     Revision 1.39  2006/09/06 22:14:45  mast
     Really make it ignore the reopne message regardless of state
 
