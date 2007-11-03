@@ -30,6 +30,7 @@ class QSpinBox;
 class QHBox;
 class QVButtonGroup;
 class QProcess;
+class MultiSlider;
 
 // A structure to hold all of the residual data that is read in, plus what
 // local area it is in and whether it has been looked at in this run-through
@@ -102,6 +103,8 @@ class BeadFixer : public DialogFrame
   void reverseToggled(bool state);
   void setOverlay(int doIt, int state);
   void keepOnTop(bool state);
+  void threshChanged(int slider, int value, bool dragging); 
+  void deleteBelow();
   void runAlign();
   void alignExited();
   void setFontDependentWidths();
@@ -169,15 +172,21 @@ class BeadFixer : public DialogFrame
   QHBox *diameterHbox;
   QHBox *cenLightHbox;
   QHBox *overlayHbox;
+  MultiSlider *threshSlider;
+  QPushButton *deleteBelowBut;
   bool mStayOnTop;
   bool mRunningAlign;
   int mTopTimerID;
   QProcess *mAlignProcess;
+  int mPeakMin, mPeakMax;
 };
 
 #endif
 /*
 $Log$
+Revision 1.19  2006/10/18 21:23:56  mast
+Removed seedmode variable
+
 Revision 1.18  2006/07/18 04:17:47  mast
 Removed up down arrow box
 
