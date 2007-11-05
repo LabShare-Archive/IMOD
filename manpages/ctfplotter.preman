@@ -17,6 +17,9 @@ icon to access the HTML help page.
 Found defocus values can be saved in a text file that can be used as
 input to the CTF correction program ctfphaseflip(1).
 
+A sample parameter file for running the program can be found in the
+IMOD/com directory.
+
 .SS Options
 Ctfplotter uses the PIP package for input (see the manual page
 for pip(1)).  Options can be specified either as command line

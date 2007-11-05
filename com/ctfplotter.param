@@ -1,16 +1,39 @@
-ConfigFile  /usr/local/ImodCalib/F20.cfg
-InputStack  /home2/cschwart/cryo/eg5/eg5_3_082207/series4/series4-8um.ali 
-AngleFile   /home2/cschwart/cryo/eg5/eg5_3_082207/series4/series4-8um.rawtlt
+# Parameter file to run ctfplotter
+#
+# run as 
+# ctfplotter -param ctfplotter.param
+#
+ConfigFile  /usr/local/ImodCalib/CTFnoise/F20.cfg
+InputStack  series4-8um.st
+#
+# The tilt angle file - .rawtlt could be used instead if .tlt not available yet
+AngleFile   series4-8um.tlt
 DefocusFile series4-8um.defocus
+#
+# How many the tilt axis deviates from vertical (Y axis) (CCW positive)
 AxisAngle   -4.8 
+#
+# Image pixel size in nanometers
+PixelSize  0.906
+#
+# Expected defocus at the tilt axis in nanometers (underfocus is positive)
+ExpectedDefocus 8000.0 
+#
+# Starting and ending tilt angles for initial analysis
+AngleRange  -10.0  10.0
+#
+# Microscope voltage in kV
+Voltage      200
+#
+# Microscope spherical aberration in millimeters
+SphericalAberration 2
+#
+# Fraction of amplitude contrast
+AmplitudeContrast 0.07
+#
+# Defocus tolerance in nanometers defining the center strips
+DefocusTol   200
 PSResolution 101
 TileSize     256
-Voltage      200
-SphericalAberration 2
-DefocusTol   200
-PixelSize  0.906
-AmplitudeContrast 0.07
-ExpectedDefocus 8000.0 
-LeftDefTol  200.0
-RightDefTol 200.0 
-AngleRange  -10.0  10.0
+LeftDefTol  2000.0
+RightDefTol 2000.0 

@@ -17,7 +17,7 @@ usage =  Name of model file with points to be averaged
 tooltip = 
 manpage = Name of model file with points to be averaged.  If this option
 is not entered, the second non-option argument will be used for this input
-file
+file.
 
 [Field = OutputFile]
 short = output

@@ -89,9 +89,9 @@ manpage = Microscope spherical aberration in millimeters
 [Field = AmplitudeContrast]
 short = ampContrast
 type = F
-usage = The percentage of amplitude contrast
+usage = The fraction of amplitude contrast
 tooltip =
-manpage = The percentage of amplitude contrast. For Cryo-EM, 
+manpage = The fraction of amplitude contrast. For Cryo-EM, 
 it should be between 0.07 and 0.14.  The value should be the same as was used
 when detecting the defocus.
 

@@ -20,6 +20,9 @@ width is also limited to 256 pixels.
 It can be run in a parallel mode similiar to the Tilt(1) program by setting the
 TotalViews option.
 
+A sample command file for running the program with "subm" can be found in the
+IMOD/com directory (ctfcorrection.com).
+
 .SS Options
 Ctfphaseflip uses the PIP package for input (see the manual page
 for pip(1)).  Options can be specified either as command line
