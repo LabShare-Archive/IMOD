@@ -22,6 +22,9 @@ import etomo.util.PrimativeTokenizer;
  * @version $Revision$
  * 
  * <p> $Log$
+ * <p> Revision 1.12  2007/07/31 20:41:12  sueh
+ * <p> bug# 1028 added ge(int).
+ * <p>
  * <p> Revision 1.11  2007/07/31 16:30:28  sueh
  * <p> bug# 1033 Added ge(ParsedNumber) and le(ParsedNumber).
  * <p>
@@ -69,33 +72,32 @@ public final class ParsedNumber extends ParsedElement implements
   private final EtomoNumber rawNumber;
   private final EtomoNumber.Type etomoNumberType;
 
-  private boolean valid = true;
-  private boolean debug = false;
-
-  private static final StringBuffer SYMBOL_STRING = new StringBuffer(
-      ParsedList.OPEN_SYMBOL.toString() + ParsedList.CLOSE_SYMBOL.toString()
-          + ParsedList.DIVIDER_SYMBOL.toString()
-          + ParsedArray.OPEN_SYMBOL.toString()
-          + ParsedArray.CLOSE_SYMBOL.toString()
-          + ParsedArray.DIVIDER_SYMBOL.toString()
-          + ParsedArrayDescriptor.DIVIDER_SYMBOL.toString());
+  private final StringBuffer SYMBOL_STRING;
 
   public ParsedNumber() {
-    this(null);
-  }
-
-  public boolean equals(ParsedNumber input) {
-    return rawNumber.equals(input.rawNumber);
+    this(null, false);
   }
 
   public ParsedNumber(EtomoNumber.Type etomoNumberType) {
+    this(etomoNumberType, false);
+  }
+
+  public ParsedNumber(EtomoNumber.Type etomoNumberType,
+      boolean usingIteratorDescriptor) {
     this.etomoNumberType = etomoNumberType;
     rawNumber = new EtomoNumber(etomoNumberType);
+    SYMBOL_STRING = new StringBuffer(ParsedList.OPEN_SYMBOL.toString()
+        + ParsedList.CLOSE_SYMBOL.toString()
+        + ParsedList.DIVIDER_SYMBOL.toString()
+        + ParsedArray.OPEN_SYMBOL.toString()
+        + ParsedArray.CLOSE_SYMBOL.toString()
+        + ParsedArray.DIVIDER_SYMBOL.toString()
+        + ParsedDescriptor.getDividerSymbol(usingIteratorDescriptor).toString());
   }
 
   public void parse(ReadOnlyAttribute attribute) {
     rawNumber.reset();
-    valid = true;
+    resetFailed();
     if (attribute == null) {
       return;
     }
@@ -108,7 +110,7 @@ public final class ParsedNumber extends ParsedElement implements
     }
     catch (IOException e) {
       e.printStackTrace();
-      fail();
+      fail(e.getMessage());
     }
   }
 
@@ -118,6 +120,26 @@ public final class ParsedNumber extends ParsedElement implements
 
   public boolean getRawBoolean() {
     return rawNumber.getDefaultedBoolean();
+  }
+
+  /**
+   * When an index is passed, treat ParsedNumber as an array of 1
+   */
+  public ParsedElement getElement(int index) {
+    if (index == 0) {
+      return this;
+    }
+    return ParsedElementList.EmptyParsedElement.INSTANCE;
+  }
+
+  /**
+   * When an index is passed, treat ParsedNumber as an array of 1
+   */
+  public String getRawString(int index) {
+    if (index == 0) {
+      return getRawString();
+    }
+    return ParsedElementList.EmptyParsedElement.INSTANCE.getRawString();
   }
 
   public Number getRawNumber() {
@@ -156,37 +178,6 @@ public final class ParsedNumber extends ParsedElement implements
     return number.toString();
   }
 
-  public void setRawString(String number) {
-    rawNumber.set(number);
-    valid = rawNumber.isValid();
-  }
-
-  public void setRawString(String number, String fieldDescription) {
-    rawNumber.set(number);
-    valid = rawNumber.isValid();
-    if (fieldDescription != null) {
-      rawNumber.isValid("Entry Error", fieldDescription);
-    }
-  }
-
-  public void setRawString(float number) {
-    rawNumber.set(number);
-  }
-
-  public void setRawString(int index, float number) {
-    if (index != 0) {
-      return;
-    }
-    rawNumber.set(number);
-  }
-
-  public void setRawString(int index, String string) {
-    if (index != 0) {
-      return;
-    }
-    setRawString(string);
-  }
-
   public void setRawString(boolean bool) {
     rawNumber.set(bool);
   }
@@ -202,24 +193,45 @@ public final class ParsedNumber extends ParsedElement implements
   public void moveElement(int fromIndex, int toIndex) {
   }
 
-  /**
-   * When an index is passed, treat ParsedNumber as an array of 1
-   */
-  public ParsedElement getElement(int index) {
-    if (index == 0) {
-      return this;
-    }
-    return ParsedElementList.EmptyParsedElement.INSTANCE;
+  public void setRawString(String number) {
+    rawNumber.set(number);
+    setFailed(!rawNumber.isValid(), rawNumber.getInvalidReason());
   }
 
-  /**
-   * When an index is passed, treat ParsedNumber as an array of 1
-   */
-  public String getRawString(int index) {
-    if (index == 0) {
-      return getRawString();
+  void setRawString(String number, String fieldDescription) {
+    rawNumber.set(number);
+    if (fieldDescription != null) {
+      rawNumber.isValid("Entry Error", fieldDescription);
     }
-    return ParsedElementList.EmptyParsedElement.INSTANCE.getRawString();
+  }
+
+  String validate() {
+    if (!rawNumber.isValid()) {
+      return rawNumber.getInvalidReason();
+    }
+    return getFailedMessage();
+  }
+
+  void setRawString(float number) {
+    rawNumber.set(number);
+  }
+
+  boolean equals(ParsedNumber input) {
+    return rawNumber.equals(input.rawNumber);
+  }
+
+  void setRawString(int index, float number) {
+    if (index != 0) {
+      return;
+    }
+    rawNumber.set(number);
+  }
+
+  void setRawString(int index, String string) {
+    if (index != 0) {
+      return;
+    }
+    setRawString(string);
   }
 
   boolean equals(int number) {
@@ -288,25 +300,29 @@ public final class ParsedNumber extends ParsedElement implements
   }
 
   /**
-   * If rawNumber is not null append this to parsedNumberArray.  Create
-   * parsedNumberArray if parsedNumberArray == null and rawNumber is not null.
-   * @param parsedNumberArray
-   * @return parsedNumberArray
+   * If rawNumber is not null append this to parsedNumberExpandedArray.  Create
+   * parsedNumberExpandedArray if parsedNumberExpandedArray == null.
+   * @param parsedNumberExpandedArray
+   * @return parsedNumberExpandedArray
    */
-  List getArray(List parsedNumberArray) {
+  List getParsedNumberExpandedArray(List parsedNumberExpandedArray) {
+    if (parsedNumberExpandedArray == null) {
+      parsedNumberExpandedArray = new ArrayList();
+    }
     if (rawNumber.isNull()) {
-      return parsedNumberArray;
+      return parsedNumberExpandedArray;
     }
-    if (parsedNumberArray == null) {
-      parsedNumberArray = new ArrayList();
-    }
-    parsedNumberArray.add(this);
-    return parsedNumberArray;
+    parsedNumberExpandedArray.add(this);
+    return parsedNumberExpandedArray;
   }
 
   Token parse(Token token, PrimativeTokenizer tokenizer) {
+    if (isDebug()) {
+      System.out.println("ParsedNumber.parse:token=" + token);
+      System.out.println("SYMBOL_STRING=" + SYMBOL_STRING);
+    }
     rawNumber.reset();
-    valid = true;
+    resetFailed();
     if (token == null) {
       return null;
     }
@@ -314,7 +330,7 @@ public final class ParsedNumber extends ParsedElement implements
     //Loop until whitespace, EOL, EOF, or a recognized symbol is found; that
     //should be the end of the number.
     StringBuffer buffer = new StringBuffer();
-    while (valid
+    while (!isFailed()
         && token != null
         && !token.is(Token.Type.WHITESPACE)
         && !token.is(Token.Type.EOL)
@@ -323,15 +339,25 @@ public final class ParsedNumber extends ParsedElement implements
             token.getChar()) != -1)) {
       //build the number
       buffer.append(token.getValue());
+      if (isDebug()) {
+        System.out.println("buffer=" + buffer);
+      }
       try {
         token = tokenizer.next();
       }
       catch (IOException e) {
         e.printStackTrace();
-        fail();
+        fail(e.getMessage());
       }
     }
+    if (isDebug()) {
+      System.out.println("buffer=" + buffer);
+    }
+    rawNumber.setDebug(isDebug());
     rawNumber.set(buffer.toString());
+    if (isDebug()) {
+      System.out.println("rawNumber=" + rawNumber);
+    }
     return token;
   }
 
@@ -343,15 +369,7 @@ public final class ParsedNumber extends ParsedElement implements
     return rawNumber.isDefaultedNull();
   }
 
-  void setDebug(boolean debug) {
-    this.debug = debug;
-  }
-
   int size() {
     return 1;
-  }
-
-  void fail() {
-    valid = false;
   }
 }

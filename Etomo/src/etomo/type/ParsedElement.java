@@ -21,6 +21,9 @@ import etomo.util.PrimativeTokenizer;
  * @version $Revision$
  * 
  * <p> $Log$
+ * <p> Revision 1.9  2007/07/31 20:40:10  sueh
+ * <p> bug# 1028 added ge(int).
+ * <p>
  * <p> Revision 1.8  2007/05/11 16:03:17  sueh
  * <p> bug# 964 Added getArray(List), which adds itself to the list, if it is not
  * <p> empty.
@@ -55,25 +58,29 @@ import etomo.util.PrimativeTokenizer;
 public abstract class ParsedElement {
   public static final String rcsid = "$Id$";
 
+  private boolean failed = false;
+  private String failedMessage = null;
+  private boolean debug = false;
+
   public abstract String getRawString();
 
   public abstract Number getRawNumber();
 
   public abstract boolean isEmpty();
 
-  public abstract void setRawString(String number);
-
-  public abstract ParsedElement getElement(int index);
-
-  public abstract void moveElement(int fromIndex, int toIndex);
-
-  public abstract void setRawString(int index, float number);
-
-  public abstract void setRawString(int index, String string);
-
   public abstract String getRawString(int index);
 
-  abstract void fail();
+  abstract void setRawString(String number);
+
+  abstract ParsedElement getElement(int index);
+
+  abstract void moveElement(int fromIndex, int toIndex);
+
+  abstract void setRawString(int index, float number);
+
+  abstract void setRawString(int index, String string);
+
+  abstract String validate();
 
   abstract Token parse(Token token, PrimativeTokenizer tokenizer);
 
@@ -83,8 +90,6 @@ public abstract class ParsedElement {
 
   abstract boolean isCollection();
 
-  abstract void setDebug(boolean debug);
-
   abstract boolean hasParsedNumberSyntax();
 
   abstract void setDefaultValue(int numberIndex, Integer[] defaultValueArray);
@@ -92,30 +97,76 @@ public abstract class ParsedElement {
   abstract void removeElement(int index);
 
   abstract boolean isDefaultedEmpty();
-  
+
   abstract boolean ge(int number);
 
   /**
-   * Append non-null ParsedNumbers to parsedNumberArray.  Create
-   * parsedNumberArray if parsedNumberArray == null and !this.isEmpty().
-   * @param parsedNumberArray
-   * @return parsedNumberArray
+   * Append non-null ParsedNumbers to parsedNumberExpandedArray.  Create
+   * parsedNumberExpandedArray if parsedNumberExpandedArray == null.
+   * @param parsedNumberExpandedArray
+   * @return parsedNumberExpandedArray
    */
-  abstract List getArray(List parsedNumberArray);
+  abstract List getParsedNumberExpandedArray(List parsedNumberExpandedArray);
 
-  final PrimativeTokenizer createTokenizer(String value) {
+  final PrimativeTokenizer createTokenizer(final String value) {
     PrimativeTokenizer tokenizer = new PrimativeTokenizer(value);
     try {
       tokenizer.initialize();
     }
     catch (IOException e) {
       e.printStackTrace();
-      fail();
+      fail(e.getMessage());
     }
     catch (LogFile.ReadException e) {
       e.printStackTrace();
-      fail();
+      fail(e.getMessage());
     }
     return tokenizer;
+  }
+
+  final void fail(final String message) {
+    failed = true;
+    failedMessage = message;
+  }
+
+  final void resetFailed() {
+    failed = false;
+    failedMessage = null;
+  }
+
+  final void setFailed(final boolean failed, final String failedMessage) {
+    this.failed = failed;
+    if (failed) {
+      this.failedMessage = failedMessage;
+    }
+    else {
+      this.failedMessage = null;
+    }
+  }
+
+  final boolean isFailed() {
+    return failed;
+  }
+
+  /**
+   * Returns null if not failed, otherwise returns a string.
+   * @return
+   */
+  final String getFailedMessage() {
+    if (!failed) {
+      return null;
+    }
+    if (failedMessage == null) {
+      return "Unable to parse.";
+    }
+    return failedMessage;
+  }
+  
+  final boolean isDebug() {
+    return debug;
+  }
+  
+  void setDebug(boolean debug) {
+    this.debug=debug;
   }
 }
