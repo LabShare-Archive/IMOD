@@ -18,6 +18,10 @@ import etomo.comscript.FortranInputString;
  * @version $Revision$
  * 
  * <p> $Log$
+ * <p> Revision 1.16  2007/05/11 15:58:10  sueh
+ * <p> bug# 964 Added plus(ConstEtomoNumber) which adds the parametes to
+ * <p> currentValue.
+ * <p>
  * <p> Revision 1.15  2007/02/05 23:25:53  sueh
  * <p> bug# 962 Moved EtomoNumber type info to inner class.
  * <p>
@@ -150,6 +154,21 @@ public class EtomoNumber extends ConstEtomoNumber {
       set(props.getProperty(prepend + "." + name));
     }
   }
+  
+  public void load(Properties props, String prepend,int defaultValue) {
+    if (loadIfPresent(props,  prepend)) {
+      return;
+    }
+    set(defaultValue);
+  }
+
+  public boolean loadIfPresent(Properties props, String prepend) {
+    if (props.getProperty(prepend == null ? name : prepend + "." + name) == null) {
+      return false;
+    }
+    load(props, prepend);
+    return true;
+  }
 
   /**
    * Attempt to get the property specified by prepend and name.  If it doesn't
@@ -208,6 +227,9 @@ public class EtomoNumber extends ConstEtomoNumber {
    * @return
    */
   public EtomoNumber set(String value) {
+    if (isDebug()) {
+      System.out.println("EtomoNumber.set:value="+value);
+    }
     resetInvalidReason();
     if (value == null || value.matches("\\s*")) {
       currentValue = newNumber();
@@ -222,6 +244,9 @@ public class EtomoNumber extends ConstEtomoNumber {
     }
     currentValue = applyCeilingValue(applyFloorValue(currentValue));
     setInvalidReason();
+    if (isDebug()) {
+      System.out.println("currentValue="+currentValue);
+    }
     return this;
   }
 
