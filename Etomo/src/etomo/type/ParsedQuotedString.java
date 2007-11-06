@@ -1,6 +1,7 @@
 package etomo.type;
 
 import java.io.IOException;
+import java.util.ArrayList;
 import java.util.List;
 
 import etomo.storage.autodoc.ReadOnlyAttribute;
@@ -21,6 +22,9 @@ import etomo.util.PrimativeTokenizer;
  * @version $Revision$
  * 
  * <p> $Log$
+ * <p> Revision 1.9  2007/07/31 20:41:23  sueh
+ * <p> bug# 1028 added ge(int).
+ * <p>
  * <p> Revision 1.8  2007/05/11 16:04:36  sueh
  * <p> bug# 964 Added getArray(List), which does nothing.
  * <p>
@@ -57,16 +61,8 @@ public final class ParsedQuotedString extends ParsedElement {
   private static final Character CLOSE_SYMBOL = OPEN_SYMBOL;
 
   private String rawString = "";
-  private boolean valid = true;
-  private boolean debug = false;
 
   public ParsedQuotedString() {
-  }
-
-  public static ParsedQuotedString getInstance(ReadOnlyAttribute attribute) {
-    ParsedQuotedString instance = new ParsedQuotedString();
-    instance.parse(attribute);
-    return instance;
   }
 
   /**
@@ -90,7 +86,7 @@ public final class ParsedQuotedString extends ParsedElement {
 
   public void parse(ReadOnlyAttribute attribute) {
     rawString = "";
-    valid = true;
+    resetFailed();
     if (attribute == null) {
       return;
     }
@@ -103,26 +99,30 @@ public final class ParsedQuotedString extends ParsedElement {
     }
     catch (IOException e) {
       e.printStackTrace();
-      valid = false;
+      fail(e.getMessage());
     }
   }
 
   public String getRawString() {
     return rawString;
   }
-  
+
+  public boolean isEmpty() {
+    return rawString == null || rawString.equals("");
+  }
+
   public String getRawString(int index) {
     if (index == 0) {
       return rawString;
     }
     return ParsedElementList.EmptyParsedElement.INSTANCE.getRawString();
   }
-  
-  public void setRawString (int index ,String string){
-    if (index!=0) {
+
+  void setRawString(int index, String string) {
+    if (index != 0) {
       return;
     }
-    rawString=string;
+    rawString = string;
   }
 
   public Number getRawNumber() {
@@ -149,30 +149,34 @@ public final class ParsedQuotedString extends ParsedElement {
   public String toString() {
     return "[rawString:" + rawString + "]";
   }
-  
+
   boolean ge(int number) {
     return false;
   }
-  
-  public void moveElement(int fromIndex, int toIndex) {
+
+  void moveElement(int fromIndex, int toIndex) {
   }
-  
+
   public void clear() {
     rawString = "";
   }
-  
-  public ParsedElement getElement(int index) {
+
+  ParsedElement getElement(int index) {
     if (index == 0) {
       return this;
     }
     return ParsedElementList.EmptyParsedElement.INSTANCE;
   }
-  
-  public void setRawString(int index,float number) {
-    if (index>0) {
+
+  void setRawString(int index, float number) {
+    if (index > 0) {
       return;
     }
-    rawString=String.valueOf(number);
+    rawString = String.valueOf(number);
+  }
+
+  String validate() {
+    return null;
   }
 
   Token parse(Token token, PrimativeTokenizer tokenizer) {
@@ -185,61 +189,61 @@ public final class ParsedQuotedString extends ParsedElement {
       }
       if (token == null
           || !token.equals(Token.Type.SYMBOL, OPEN_SYMBOL.charValue())) {
-        valid = false;
+        fail(OPEN_SYMBOL + " not found.");
         return token;
       }
       token = tokenizer.next();
       //everything within OPEN and CLose symbols ("'" and "'") is part of the
       //rawString.
       token = parseElement(token, tokenizer);
-      if (!valid) {
+      if (isFailed()) {
         return token;
       }
       if (token == null
           || !token.equals(Token.Type.SYMBOL, CLOSE_SYMBOL.charValue())) {
-        valid = false;
+        fail(CLOSE_SYMBOL + " not found.");
         return token;
       }
       token = tokenizer.next();
     }
     catch (IOException e) {
       e.printStackTrace();
-      valid = false;
+      fail(e.getMessage());
     }
     return token;
   }
-  
+
   boolean hasParsedNumberSyntax() {
     return false;
   }
-  
+
   /**
-   * Append non-null ParsedNumbers to parsedNumberArray.  Create parsedNumberArray
-   * if parsedNumberArray == null and !this.isEmpty().
-   * @param parsedNumberArray
-   * @return parsedNumberArray
+   * Append non-null ParsedNumbers to parsedNumberExpandedArray.  Create
+   * parsedNumberExpandedArray if parsedNumberExpandedArray == null.
+   * @param parsedNumberExpandedArray
+   * @return parsedNumberExpandedArray
    */
-  List getArray(List parsedNumberArray) {
-    return parsedNumberArray;
+  List getParsedNumberExpandedArray(List parsedNumberExpandedArray) {
+    if (parsedNumberExpandedArray == null) {
+      parsedNumberExpandedArray = new ArrayList();
+    }
+    return parsedNumberExpandedArray;
   }
 
   boolean isCollection() {
     return false;
   }
-  
+
   boolean isDefaultedEmpty() {
     return isEmpty();
   }
-  
-  void setDefaultValue(int numberIndex,Integer[] defaultValueArray) {}
-  
-  void setDebug(boolean debug) {
-    this.debug = debug;
+
+  void setDefaultValue(int numberIndex, Integer[] defaultValueArray) {
   }
-  
+
   void removeElement(int index) {
-    if (index==0) {
-      rawString="";
+    if (index == 0) {
+      rawString = "";
     }
   }
 
@@ -247,17 +251,9 @@ public final class ParsedQuotedString extends ParsedElement {
     return 1;
   }
 
-  void fail() {
-    valid = false;
-  }
-
-  public boolean isEmpty() {
-    return rawString == null || rawString.equals("");
-  }
-
   private Token parseElement(Token token, PrimativeTokenizer tokenizer) {
     rawString = "";
-    valid = true;
+    resetFailed();
     if (token == null) {
       return null;
     }
@@ -265,7 +261,7 @@ public final class ParsedQuotedString extends ParsedElement {
     //Loop until CLOSE_SYMBOL, EOL, EOF is found; that
     //should be the end of the string.
     StringBuffer buffer = new StringBuffer();
-    while (valid && token != null
+    while (!isFailed() && token != null
         && !token.equals(Token.Type.SYMBOL, CLOSE_SYMBOL.charValue())
         && !token.is(Token.Type.EOL) && !token.is(Token.Type.EOF)) {
       //build the number
@@ -275,7 +271,7 @@ public final class ParsedQuotedString extends ParsedElement {
       }
       catch (IOException e) {
         e.printStackTrace();
-        fail();
+        fail(e.getMessage());
       }
     }
     rawString = buffer.toString();

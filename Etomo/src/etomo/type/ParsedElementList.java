@@ -1,5 +1,6 @@
 package etomo.type;
 
+import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -21,6 +22,9 @@ import etomo.util.PrimativeTokenizer;
  * @version $Revision$
  * 
  * <p> $Log$
+ * <p> Revision 1.9  2007/07/31 20:40:26  sueh
+ * <p> bug# 1028 added ge(int).
+ * <p>
  * <p> Revision 1.8  2007/05/11 16:04:00  sueh
  * <p> bug# 964 Added EmptyParsedElement.getArray(List), which does nothing.
  * <p>
@@ -135,8 +139,6 @@ final class ParsedElementList {
     public static final String rcsid = "$Id$";
 
     static final EmptyParsedElement INSTANCE = new EmptyParsedElement();
-    
-    private boolean debug = false;
 
     private EmptyParsedElement() {
     }
@@ -148,50 +150,53 @@ final class ParsedElementList {
     public String getRawString() {
       return "";
     }
-    
+
     public String getRawString(int index) {
       return "";
-    }
-    
-    boolean ge(int number) {
-      return false;
-    }
-
-    public void setRawString(String input) {
-    }
-    
-    public  void setRawString(int index,String string) {
     }
 
     public Number getRawNumber() {
       return new EtomoNumber().getNumber();
     }
 
-    public void setDebug(boolean debug) {
-      this.debug = debug;
+    String validate() {
+      return null;
     }
 
-    public void moveElement(int fromIndex, int toIndex) {
+    void setRawString(int index, String string) {
     }
 
-    public ParsedElement getElement(int index) {
+    void moveElement(int fromIndex, int toIndex) {
+    }
+
+    ParsedElement getElement(int index) {
       return this;
     }
 
-    public void setRawString(int index, float number) {
+    void setRawString(int index, float number) {
     }
-    
-    List getArray(List parsedNumberArray) {
-      return parsedNumberArray;
+
+    boolean ge(int number) {
+      return false;
     }
-    
-    void setDefaultValue(int numberIndex,Integer[] defaultValueArray) {
+
+    void setRawString(String input) {
+    }
+
+    List getParsedNumberExpandedArray(List parsedNumberExpandedArray) {
+      if (parsedNumberExpandedArray == null) {
+        parsedNumberExpandedArray = new ArrayList();
+      }
+      return parsedNumberExpandedArray;
+    }
+
+    void setDefaultValue(int numberIndex, Integer[] defaultValueArray) {
     }
 
     Token parse(Token token, PrimativeTokenizer tokenizer) {
       return null;
     }
-    
+
     void removeElement(int index) {
     }
 
@@ -202,7 +207,7 @@ final class ParsedElementList {
     public boolean isEmpty() {
       return true;
     }
-    
+
     boolean isDefaultedEmpty() {
       return true;
     }
@@ -210,16 +215,13 @@ final class ParsedElementList {
     String getParsableString() {
       return "";
     }
-    
+
     boolean hasParsedNumberSyntax() {
       return true;
     }
 
     boolean isCollection() {
       return false;
-    }
-
-    void fail() {
     }
   }
 }
