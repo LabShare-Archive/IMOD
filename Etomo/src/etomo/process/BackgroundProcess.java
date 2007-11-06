@@ -26,6 +26,12 @@ import etomo.ui.UIHarness;
  * @version $Revision$
  * 
  * <p> $Log$
+ * <p> Revision 3.34  2007/05/11 15:37:04  sueh
+ * <p> bug# 964 Added processDone(int, boolean); an overrideable function
+ * <p> which calls processManager.msgProcessDone().  This allows the call to
+ * <p> msgProcessDone to be overridden so that postProcess(DetachedProcess)
+ * <p> can be called.
+ * <p>
  * <p> Revision 3.33  2006/12/01 00:24:59  sueh
  * <p> bug# 937 Removed final directive from getShellProcessID and notifyKilled because they must be overridden by DetachedProcess, which relies on its
  * <p> monitor to control the process.
@@ -330,6 +336,16 @@ public class BackgroundProcess extends Thread implements SystemProcessInterface 
     processData = ProcessData.getManagedInstance(axisID, manager, processName);
   }
 
+  public BackgroundProcess(BaseManager manager, String[] commandArray,
+      BaseProcessManager processManager, AxisID axisID, ProcessName processName) {
+    this.manager = manager;
+    this.axisID = axisID;
+    this.commandArray = commandArray;
+    this.processManager = processManager;
+    commandProcessID = new StringBuffer("");
+    processData = ProcessData.getManagedInstance(axisID, manager, processName);
+  }
+
   public BackgroundProcess(BaseManager manager, Command command,
       BaseProcessManager processManager, AxisID axisID, ProcessName processName) {
     this.manager = manager;
@@ -358,7 +374,7 @@ public class BackgroundProcess extends Thread implements SystemProcessInterface 
   public final AxisID getAxisID() {
     return axisID;
   }
-  
+
   public ProcessName getProcessName() {
     return processData.getProcessName();
   }
@@ -395,7 +411,7 @@ public class BackgroundProcess extends Thread implements SystemProcessInterface 
   final boolean isForceNextProcess() {
     return forceNextProcess;
   }
-  
+
   /**
    * Always returns false because this object mostly runs scripts, which stop
    * when etomo exits.  It also runs extractmagrad, extracttilts, and
@@ -416,8 +432,12 @@ public class BackgroundProcess extends Thread implements SystemProcessInterface 
     return workingDirectory;
   }
 
-   Command getCommand() {
+  Command getCommand() {
     return command;
+  }
+
+  CommandDetails getCommandDetails() {
+    return commandDetails;
   }
 
   /**
@@ -454,7 +474,7 @@ public class BackgroundProcess extends Thread implements SystemProcessInterface 
     return commandLine.toString();
   }
 
-  public final ProcessDetails getProcessDetails() {
+  public ProcessDetails getProcessDetails() {
     return processDetails;
   }
 
@@ -495,7 +515,7 @@ public class BackgroundProcess extends Thread implements SystemProcessInterface 
     this.debug = debug;
   }
 
-   boolean newProgram() {
+  boolean newProgram() {
     if (commandArray != null) {
       program = new SystemProgram(manager.getPropertyUserDir(), commandArray,
           axisID);
@@ -519,7 +539,7 @@ public class BackgroundProcess extends Thread implements SystemProcessInterface 
     return null;
   }
 
-   void waitForPid() {
+  void waitForPid() {
     ParsePID parsePID = new ParsePID(program, commandProcessID, processData);
     Thread parsePIDThread = new Thread(parsePID);
     parsePIDThread.start();
@@ -560,7 +580,7 @@ public class BackgroundProcess extends Thread implements SystemProcessInterface 
     processDone(getProgram().getExitValue());
   }
 
-   final void processDone(int exitValue) {
+  final void processDone(int exitValue) {
     ProcessMessages processMessages = getProcessMessages();
     ProcessMessages monitorMessages = getMonitorMessages();
     //  Check to see if the exit value is non-zero
@@ -619,8 +639,8 @@ public class BackgroundProcess extends Thread implements SystemProcessInterface 
     }
     processDone(exitValue, errorFound);
   }
-  
-  void processDone(int exitValue,boolean errorFound) {
+
+  void processDone(int exitValue, boolean errorFound) {
     processManager.msgProcessDone(this, exitValue, errorFound);
   }
 
@@ -631,7 +651,7 @@ public class BackgroundProcess extends Thread implements SystemProcessInterface 
     return program.getProcessMessages();
   }
 
-   ProcessMessages getMonitorMessages() {
+  ProcessMessages getMonitorMessages() {
     return null;
   }
 
@@ -698,7 +718,7 @@ public class BackgroundProcess extends Thread implements SystemProcessInterface 
     processManager.signalKill(this, axisID);
   }
 
-   final void setProgram(SystemProgram program) {
+  final void setProgram(SystemProgram program) {
     this.program = program;
   }
 }
