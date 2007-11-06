@@ -12,6 +12,10 @@
  * @version $Revision$
  * 
  * <p> $Log$
+ * <p> Revision 3.16  2007/09/07 00:29:51  sueh
+ * <p> bug# 989 Using a public INSTANCE to refer to the EtomoDirector singleton
+ * <p> instead of getInstance and createInstance.
+ * <p>
  * <p> Revision 3.15  2007/06/14 19:38:01  sueh
  * <p> bug# 1020 Added wideNumericWidth.
  * <p>
@@ -101,6 +105,7 @@ public final class UIParameters {
   private int integerDoubletWidth;
   private int integerWidth;
   private int fourDigitWidth = 40;
+  private int listWidth;
 
   private UIParameters() {
     calcSizes();
@@ -168,6 +173,9 @@ public final class UIParameters {
     return fourDigitWidth;
   }
 
+  int getListWidth() {
+    return listWidth;
+  }
   /**
    * Get the amount to adjust a fields based on the current font size
    * @return
@@ -209,5 +217,6 @@ public final class UIParameters {
     integerDoubletWidth=(int)(50*fontSizeAdjustment);
     integerWidth=(int)(30*fontSizeAdjustment);
     fourDigitWidth = (int) (40 * fontSizeAdjustment);
+    listWidth = (int) (140 * fontSizeAdjustment);
   }
 }
