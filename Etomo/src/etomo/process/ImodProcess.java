@@ -36,6 +36,10 @@ import etomo.util.Utilities;
  * 
  * <p>
  * $Log$
+ * Revision 3.44  2007/09/07 00:19:05  sueh
+ * bug# 989 Using a public INSTANCE to refer to the EtomoDirector singleton
+ * instead of getInstance and createInstance.
+ *
  * Revision 3.43  2007/05/11 15:41:20  sueh
  * bug# 964 Added ImodProcess(BaseManager, String[]) to handle multiple
  * files without a model.
@@ -537,28 +541,20 @@ public class ImodProcess {
   private String windowID = "";
 
   private boolean swapYZ = false;
-
   private boolean modelView = false;
-
   private boolean useModv = false;
-
   private boolean outputWindowID = true;
-
   private boolean openWithModel = true;
-
   private File workingDirectory = null;
-
   private int binning = defaultBinning;
-
   private int binningXY = defaultBinning;
-
   InteractiveSystemProgram imod = null;
-
   private Vector sendArguments = new Vector();
   private String[] datasetNameArray = null;
   private boolean frames = false;
   private String pieceListFileName = null;
   private AxisID axisID;
+  private boolean flip = false;
   private Thread imodThread;
   private final BaseManager manager;
   private long beadfixerDiameter = ImodManager.DEFAULT_BEADFIXER_DIAMETER;
@@ -566,6 +562,7 @@ public class ImodProcess {
   private LinkedList stderrQueue = new LinkedList();
   private ArrayList windowOpenOptionList = null;
   private boolean debug = false;
+  private String subdirName = null;
 
   /**
    * Constructor for using imodv
@@ -585,6 +582,14 @@ public class ImodProcess {
   public ImodProcess(BaseManager manager, String dataset, AxisID axisID) {
     this.manager = manager;
     this.axisID = axisID;
+    datasetName = dataset;
+  }
+
+  public ImodProcess(BaseManager manager, String dataset, AxisID axisID,
+      boolean flip) {
+    this.manager = manager;
+    this.axisID = axisID;
+    this.flip = flip;
     datasetName = dataset;
   }
 
@@ -636,6 +641,14 @@ public class ImodProcess {
    */
   public void setDatasetName(String datasetName) {
     this.datasetName = datasetName;
+  }
+  
+  public void setSubdirName(String input) {
+    subdirName=input;
+  }
+  
+  public String getSubdirName() {
+    return subdirName;
   }
 
   /**
@@ -769,7 +782,12 @@ public class ImodProcess {
 
     if (datasetNameArray != null) {
       for (int i = 0; i < datasetNameArray.length; i++) {
+        if (subdirName==null) {
         commandOptions.add(datasetNameArray[i]);
+        }
+        else {
+          commandOptions.add(new File(subdirName,datasetNameArray[i]).getPath());
+        }
       }
     }
 
@@ -1465,6 +1483,10 @@ public class ImodProcess {
    */
   public void setOutputWindowID(boolean b) {
     outputWindowID = b;
+  }
+  
+  public void setDebug(boolean input) {
+    debug=input;
   }
 
   public void setBinning(int binning) {
