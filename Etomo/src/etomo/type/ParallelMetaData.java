@@ -2,6 +2,7 @@ package etomo.type;
 
 import java.util.Properties;
 
+import etomo.ui.AnisotropicDiffusionDialog;
 import etomo.util.DatasetFiles;
 
 /**
@@ -21,12 +22,34 @@ public final class ParallelMetaData extends BaseMetaData {
   public static final String rcsid = "$Id$";
 
   public static final String NEW_TITLE = "Parallel Processing";
-  
+
   private static final String REVISION_KEY = "Revision";
   private static final String CURRENT_REVISION = "1.0";
-  private static final String GROUP_KEY = "Parallel";
+  private static final String PARALLEL_GROUP_KEY = "Parallel";
   private static final String ROOT_NAME_KEY = "RootName";
+  static final String ANISOTROPIC_DIFFUSION_GROUP_KEY = "AnisotropicDiffusion";
 
+  private final EtomoBoolean2 loadWithFlipping = new EtomoBoolean2(
+      "LoadWithFlipping");
+  private final StringProperty volume = new StringProperty("Volume");
+  private final EtomoNumber xMin = new EtomoNumber("XMin");
+  private final EtomoNumber xMax = new EtomoNumber("XMax");
+  private final EtomoNumber yMin = new EtomoNumber("YMin");
+  private final EtomoNumber yMax = new EtomoNumber("YMax");
+  private final EtomoNumber zMin = new EtomoNumber("ZMin");
+  private final EtomoNumber zMax = new EtomoNumber("ZMax");
+  private final StringProperty kValueList = new StringProperty("KValueList");
+  private final EtomoNumber iteration = new EtomoNumber("Iteration");
+  private final EtomoNumber kValue = new EtomoNumber(EtomoNumber.Type.FLOAT,
+      "KValue");
+  private final StringProperty iterationList = new StringProperty(
+      "IterationList");
+  private final EtomoNumber finalKValue = new EtomoNumber(
+      EtomoNumber.Type.FLOAT, "FinalKValue");
+  private final EtomoNumber finalIteration = new EtomoNumber("FinalIteration");
+  private final EtomoNumber memoryPerChunk = new EtomoNumber("MemoryPerChunk");
+
+  private DialogType dialogType = DialogType.getDefault(TabType.PARALLEL);
   private String revision = null;
   private String rootName = null;
 
@@ -40,13 +63,29 @@ public final class ParallelMetaData extends BaseMetaData {
     return getClass().getName() + "[" + paramString() + "]\n";
   }
 
-  protected String paramString() {
+  String paramString() {
     return "revision=" + revision + ",rootName=" + rootName;
   }
 
   private void reset() {
     revision = null;
     rootName = null;
+    loadWithFlipping.reset();
+    volume.reset();
+    xMin.reset();
+    xMax.reset();
+    yMin.reset();
+    yMax.reset();
+    zMin.reset();
+    zMax.reset();
+    kValueList.reset();
+    iteration.reset();
+    dialogType = DialogType.getDefault(TabType.PARALLEL);
+    kValue.reset();
+    iterationList.reset();
+    finalKValue.reset();
+    finalIteration.reset();
+    memoryPerChunk.reset();
   }
 
   public String getName() {
@@ -82,8 +121,136 @@ public final class ParallelMetaData extends BaseMetaData {
     this.rootName = rootName;
   }
 
+  public void setLoadWithFlipping(boolean input) {
+    loadWithFlipping.set(input);
+  }
+
+  public boolean isLoadWithFlipping() {
+    return loadWithFlipping.is();
+  }
+
   public String getRootName() {
     return rootName;
+  }
+
+  public void setVolume(String input) {
+    volume.set(input);
+  }
+
+  public String getVolume() {
+    return volume.toString();
+  }
+
+  public void setXMin(String input) {
+    xMin.set(input);
+  }
+
+  public String getXMin() {
+    return xMin.toString();
+  }
+
+  public void setXMax(String input) {
+    xMax.set(input);
+  }
+
+  public String getXMax() {
+    return xMax.toString();
+  }
+
+  public void setYMin(String input) {
+    yMin.set(input);
+  }
+
+  public String getYMin() {
+    return yMin.toString();
+  }
+
+  public void setYMax(String input) {
+    yMax.set(input);
+  }
+
+  public String getYMax() {
+    return yMax.toString();
+  }
+
+  public void setZMin(String input) {
+    zMin.set(input);
+  }
+
+  public String getZMin() {
+    return zMin.toString();
+  }
+
+  public void setZMax(String input) {
+    zMax.set(input);
+  }
+
+  public String getZMax() {
+    return zMax.toString();
+  }
+
+  public void setKValueList(String input) {
+    kValueList.set(input);
+  }
+
+  public String getKValueList() {
+    return kValueList.toString();
+  }
+
+  public void setFinalKValue(String input) {
+    finalKValue.set(input);
+  }
+
+  public String getFinalKValue() {
+    return finalKValue.toString();
+  }
+
+  public void setFinalIteration(Number input) {
+    finalIteration.set(input);
+  }
+
+  public ConstEtomoNumber getFinalIteration() {
+    return finalIteration;
+  }
+
+  public void setIteration(Number input) {
+    iteration.set(input);
+  }
+
+  public ConstEtomoNumber getIteration() {
+    return iteration;
+  }
+
+  public void setMemoryPerChunk(Number input) {
+    memoryPerChunk.set(input);
+  }
+
+  public ConstEtomoNumber getMemoryPerChunk() {
+    return memoryPerChunk;
+  }
+
+  public void setKValue(String input) {
+    kValue.set(input);
+  }
+
+  public String getKValue() {
+    return kValue.toString();
+  }
+
+  public void setIterationList(String input) {
+    iterationList.set(input);
+  }
+
+  public String getIterationList() {
+    return iterationList.toString();
+  }
+
+  public void setDialogType(DialogType input) {
+    dialogType = input;
+  }
+
+  public DialogType getDialogType() {
+    return dialogType;
   }
 
   public void load(Properties props) {
@@ -92,28 +259,72 @@ public final class ParallelMetaData extends BaseMetaData {
 
   public void load(Properties props, String prepend) {
     reset();
+    dialogType = DialogType.load(TabType.PARALLEL, props,
+        DialogType.PROPERTIES_KEY);
     prepend = createPrepend(prepend);
     String group = prepend + ".";
     revision = props.getProperty(group + REVISION_KEY, CURRENT_REVISION);
     rootName = props.getProperty(group + ROOT_NAME_KEY);
+    loadWithFlipping.load(props, prepend);
+    volume.load(props, prepend);
+    xMin.load(props, prepend);
+    xMax.load(props, prepend);
+    yMin.load(props, prepend);
+    yMax.load(props, prepend);
+    zMin.load(props, prepend);
+    zMax.load(props, prepend);
+    kValueList.load(props, prepend);
+    iteration.load(props, prepend);
+    kValue.load(props, prepend);
+    iterationList.load(props, prepend);
+    finalKValue.load(props, prepend);
+    finalIteration.load(props, prepend);
+    memoryPerChunk.load(props, prepend,
+        AnisotropicDiffusionDialog.MEMORY_PER_CHUNK_DEFAULT);
   }
 
   public void store(Properties props, String prepend) {
     prepend = createPrepend(prepend);
     String group = prepend + ".";
+    dialogType.store(props, DialogType.PROPERTIES_KEY);
     props.setProperty(group + REVISION_KEY, CURRENT_REVISION);
     props.setProperty(group + ROOT_NAME_KEY, rootName);
+    loadWithFlipping.store(props, prepend);
+    volume.store(props, prepend);
+    xMin.store(props, prepend);
+    xMax.store(props, prepend);
+    yMin.store(props, prepend);
+    yMax.store(props, prepend);
+    zMin.store(props, prepend);
+    zMax.store(props, prepend);
+    kValueList.store(props, prepend);
+    iteration.store(props, prepend);
+    kValue.store(props, prepend);
+    iterationList.store(props, prepend);
+    finalKValue.store(props, prepend);
+    finalIteration.store(props, prepend);
+    memoryPerChunk.store(props, prepend);
   }
 
-  protected static String createPrepend(String prepend) {
-    if (prepend == "") {
-      return GROUP_KEY;
+  private String createPrepend(String prepend) {
+    String groupKey;
+    if (dialogType == DialogType.ANISOTROPIC_DIFFUSION) {
+      groupKey = ANISOTROPIC_DIFFUSION_GROUP_KEY;
     }
-    return prepend + "." + GROUP_KEY;
+    else {
+      groupKey = PARALLEL_GROUP_KEY;
+    }
+    if (prepend == "") {
+      return groupKey;
+    }
+    return prepend + "." + groupKey;
   }
 }
 /**
  * <p> $Log$
+ * <p> Revision 1.3  2007/02/21 04:20:34  sueh
+ * <p> bug# 964 Set fileExtension.
+ * <p>
  * <p> Revision 1.2  2006/04/10 19:02:57  sueh
  * <p> buG# 835 enabling "New Parallel Process" when processchunks is run.
  * <p>
