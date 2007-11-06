@@ -1,5 +1,5 @@
 #! /bin/csh -f
-# splitblend: splits blend command file into multiple files to do in chunks
+# splitcorrection: splits ctfphaseflip command file into multiple files to do in chunks
 #
 #  $Id$
 #
@@ -14,7 +14,7 @@ set pn = splitblend
 if ($#argv < 1) then
 cat <<EOF
 Usage: $pn [options] command_file
-   Produces multiple command files for running 'ctfPhaseFlip' in parallel.
+   Produces multiple command files for running 'ctfphaseflip' in parallel.
    Options:
       -m #   Maximum number of slices to be corrected per chunk (default $maxslices)
 EOF
@@ -31,26 +31,10 @@ set direct = 1
 
 while ($#argv > 1)
   switch ($argv[1])
-    case -n:
-      @ numproc = $argv[2]
-      shift; shift
-      breaksw
-
     case -m:
       @ maxslices = $argv[2]
       shift; shift
       breaksw
-
-    case -t:
-      @ targetslabs = $argv[2]
-      shift; shift
-      breaksw
-
-    case -c:
-      set direct = 0
-      shift
-      breaksw
-
     default:
       echo "ERROR: $pn - unrecognized option $argv[1]"
       exit 1
@@ -101,10 +85,10 @@ if ($direct) then
     set outsed = gibberish
     set thiscom = $rootname-start.com
     sed -e "/$viewdel/d" \
-        -e "/ComputedDefocus/a\\
+        -e "/DefocusFile/a\\
 $viewdel -1  -1\
 " \
-        -e "/ComputedDefocus/a\\
+        -e "/DefocusFile/a\\
 TotalViews $views[1] $views[2]\
 " \
   $comname >! $thiscom
@@ -136,10 +120,10 @@ while ($currSlice < $total)
     endif
 
     sed -e "/$viewdel/d" \
-        -e "/ComputedDefocus/a\\
+        -e "/DefocusFile/a\\
 $viewdel $origOffset  $origEnd\
 " \
-        -e "/ComputedDefocus/a\\
+        -e "/DefocusFile/a\\
 TotalViews $views[1] $views[2]\
 " \
   $comname >! $thiscom
@@ -154,3 +138,6 @@ set finish = $rootname-finish.com
 \$collectmmm pixels= $rootname $num $outline[2]
 \$\\rm -f $rootname-[0-9]*.* $rootname-start*.* $rootname-finish*.* 
 EOF
+
+#  $Log$
+#
