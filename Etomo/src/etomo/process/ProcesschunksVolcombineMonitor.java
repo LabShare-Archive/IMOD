@@ -19,7 +19,11 @@ import etomo.util.DatasetFiles;
  * 
  * @version $Revision$
  * 
- * <p> $Log$ </p>
+ * <p> $Log$
+ * <p> Revision 1.1  2006/12/02 04:39:05  sueh
+ * <p> bug# 944 A Processchunks monitor which does specialized process for
+ * <p> volcombine.  Watches volcombine-start.log and volcombine-finish.log
+ * <p> </p>
  */
 public final class ProcesschunksVolcombineMonitor extends
     ProcesschunksProcessMonitor {
@@ -34,7 +38,7 @@ public final class ProcesschunksVolcombineMonitor extends
   public ProcesschunksVolcombineMonitor(BaseManager manager, AxisID axisID,
       ParallelProgressDisplay parallelProgressDisplay, String rootName,
       String computerList) {
-    super(manager, axisID, parallelProgressDisplay, rootName, computerList);
+    super(manager, axisID, parallelProgressDisplay, rootName, computerList,null);
   }
 
   protected boolean updateState() throws LogFile.ReadException,
