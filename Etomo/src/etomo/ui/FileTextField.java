@@ -2,13 +2,12 @@ package etomo.ui;
 
 import java.awt.Container;
 import java.awt.event.ActionListener;
+import java.io.File;
 
 import javax.swing.BoxLayout;
 import javax.swing.ImageIcon;
 import javax.swing.JButton;
 import javax.swing.JLabel;
-
-import etomo.type.ConstEtomoNumber;
 
 /**
  * <p>Description: </p>
@@ -24,6 +23,9 @@ import etomo.type.ConstEtomoNumber;
  * @version $Revision$
  * 
  * <p> $Log$
+ * <p> Revision 1.5  2007/06/08 22:21:18  sueh
+ * <p> bug# 1014 Added clear().
+ * <p>
  * <p> Revision 1.4  2007/04/09 21:17:42  sueh
  * <p> bug# 964 Added setText(constEtomoNumber).
  * <p>
@@ -48,6 +50,7 @@ final class FileTextField {
   private final TextField field;
 
   private JLabel label = null;
+  private File file = null;
 
   FileTextField(final String label) {
     this(label, true);
@@ -92,6 +95,11 @@ final class FileTextField {
   
   void clear() {
     field.setText("");
+    file=null;
+  }
+  
+  void setFieldEditable(final boolean editable) {
+    field.setEditable(editable);
   }
 
   void setEditable(final boolean editable) {
@@ -104,12 +112,33 @@ final class FileTextField {
     button.setEnabled(enabled);
   }
   
-  void setText(final ConstEtomoNumber number) {
-    field.setText(number.toString());
+  void setButtonEnabled(final boolean enabled) {
+    button.setEnabled(enabled);
+  }
+  
+  void setFile(final File file) {
+    this.file = file;
+    field.setText(file.getAbsolutePath());
+  }
+  
+  File getFile() {
+    return file;
+  }
+  
+  String getFileName() {
+    if (file==null) {
+      return field.getText();
+    }
+    return file.getName();
+  }
+  
+  String getFileAbsolutePath() {
+    return file.getAbsolutePath();
   }
 
   void setText(final String text) {
     field.setText(text);
+    file=new File(text);
   }
 
   String getText() {
