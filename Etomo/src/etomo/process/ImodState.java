@@ -174,6 +174,9 @@ import etomo.type.Run3dmodMenuOptions;
  * @version $$Revision$$
  * 
  * <p> $$Log$
+ * <p> $Revision 1.42  2007/05/11 19:29:12  sueh
+ * <p> $bug# 964 Save fileNameArray.  Added equalsFileNameArray(String[]).
+ * <p> $
  * <p> $Revision 1.41  2007/05/11 15:43:57  sueh
  * <p> $bug# 964 Added ImodState(BaseManager, String[], AxisID) to open 3dmod
  * <p> $with multiple files and no model.
@@ -398,7 +401,7 @@ public final class ImodState {
 
   //internal state information
   private final ImodProcess process;
-  private String[] fileNameArray=null;
+  private String[] fileNameArray = null;
   private boolean warnedStaleFile = false;
   //initial state information
   boolean initialModeSet = false;
@@ -406,6 +409,7 @@ public final class ImodState {
   private final BaseManager manager;
 
   private String logName = null;
+  private boolean debug = false;
 
   //constructors
   //they can set final state variables
@@ -459,7 +463,7 @@ public final class ImodState {
     setModelViewType(modelViewType);
     reset();
   }
-  
+
   /**
    * Use this constructor to create an instance of ImodProcess using
    * ImodProcess(String dataset) and set either model view or imodv, and open a
@@ -496,12 +500,22 @@ public final class ImodState {
     process = new ImodProcess(manager, file.getAbsolutePath(), axisID);
     reset();
   }
-  
+
   ImodState(BaseManager manager, String[] fileNameArray, AxisID axisID) {
     this.manager = manager;
     this.axisID = axisID;
-    this.fileNameArray=fileNameArray;
+    this.fileNameArray = fileNameArray;
     process = new ImodProcess(manager, fileNameArray);
+    reset();
+  }
+
+  ImodState(BaseManager manager, String[] fileNameArray, AxisID axisID,
+      String subdirName) {
+    this.manager = manager;
+    this.axisID = axisID;
+    this.fileNameArray = fileNameArray;
+    process = new ImodProcess(manager, fileNameArray);
+    process.setSubdirName(subdirName);
     reset();
   }
 
@@ -760,17 +774,30 @@ public final class ImodState {
     }
   }
   
+  void setDebug(boolean input) {
+    debug = input;
+    process.setDebug(debug);
+  }
+  
+  boolean equalsSubdirName(String input) {
+    return process.getSubdirName().equals(input);
+  }
+
   boolean equalsFileNameArray(String[] input) {
-    if (fileNameArray==null&&input==null) {
+    if (debug) {
+      System.out.println("ImodState.equalsFileNameArray:input.length="
+          + input.length + ",fileNameArray.length=" + fileNameArray.length);
+    }
+    if (fileNameArray == null && input == null) {
       return true;
     }
-    if (fileNameArray==null||input==null) {
+    if (fileNameArray == null || input == null) {
       return false;
     }
-    if (fileNameArray.length!=input.length) {
+    if (fileNameArray.length != input.length) {
       return false;
     }
-    for (int i = 0;i<fileNameArray.length;i++) {
+    for (int i = 0; i < fileNameArray.length; i++) {
       if (!fileNameArray[i].equals(input[i])) {
         return false;
       }
@@ -949,12 +976,12 @@ public final class ImodState {
 
   void setOpenLogOff() {
     logName = null;
-    
+
   }
-  
+
   void setOpenLog(boolean openLog, String logName) {
     if (openLog) {
-    this.logName = logName;
+      this.logName = logName;
     }
     else {
       this.logName = null;
@@ -1038,8 +1065,8 @@ public final class ImodState {
   final void setNoMenuOptions(boolean noMenuOptions) {
     this.noMenuOptions = noMenuOptions;
   }
-  
-  public void reopenLog() throws SystemProcessException, IOException{
+
+  public void reopenLog() throws SystemProcessException, IOException {
     process.reopenLog();
   }
 
@@ -1079,10 +1106,10 @@ public final class ImodState {
 
   /**
    * @return string
-   */
+   
   public String toString() {
     return getClass().getName() + "[" + paramString() + "]";
-  }
+  }*/
 
   /**
    * @return string
