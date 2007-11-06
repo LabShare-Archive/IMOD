@@ -1,0 +1,43 @@
+.na
+.nh
+.TH splitcorrection 1
+.SH NAME
+splitcorrection \- Produce multiple command files for running ctfphaseflip in parallel
+.SH SYNOPSIS
+splitcorrection [options] <ctfphaseflip command file>
+.SH DESCRIPTION
+splitcorrection will take a command file for running the ctfphaseflip(1) program 
+and produce multiple command files that can be run in parallel by
+Processchunks(1). 
+.P
+The only argument that the typical user needs to give is
+.B -m
+to specify the number of views to be processed by each chunk.
+The default value is printed out by the program's usage
+statement.  Thus, a typical command might be
+.br
+   splitcorrection -m 6 correction.com
+.br
+After giving this command, there will be a series of command files
+correction-nnn.com to compute the chunks, a file correction-start.com,
+and a file correction-finish.com to finish the
+task and clean up intermediate files. One can then enter
+.br
+   processchunks machine_list correction
+.br
+where "machine_list" is the comma-separated list of machines to use.
+
+.SS Options
+When the program is invoked with no arguments, it gives a usage statement that
+shows the default values for these options.
+.TP
+.B -m <value>
+Set the number of views to be processed per chunk to the given value (the default is 5 ).
+.SH FILES
+The finishing command file deletes all the
+command and log files for the chunks after collecting minimun, maximum, and
+mean density information from the log files.
+.SH AUTHOR
+Quanren Xiong  <xiongq@colorado.edu>
+.SH SEE ALSO
+processchunks(1), ctfphaseflip(1) 
