@@ -43,6 +43,11 @@ import etomo.util.DatasetFiles;
  * @version $Revision$
  * 
  * <p> $Log$
+ * <p> Revision 1.10  2007/07/24 04:02:36  sueh
+ * <p> bug# 1030 Changed ParsedArray.getParsableStringArray to
+ * <p> getPaddedStringArray.  The function is only being used by lstThresholds and it
+ * <p> needs padded strings.
+ * <p>
  * <p> Revision 1.9  2007/06/08 22:14:58  sueh
  * <p> bug# 1014 Return false if read() failed.
  * <p>
@@ -277,20 +282,22 @@ public final class MatlabParam {
       ReadOnlyAutodoc autodoc = null;
       autodoc = (AutodocFactory.getMatlabInstance(file));
       if (autodoc == null) {
-        UIHarness.INSTANCE.openMessageDialog("Unable to read " + file.getAbsolutePath()
-            + ".", "File Error");
+        UIHarness.INSTANCE.openMessageDialog("Unable to read "
+            + file.getAbsolutePath() + ".", "File Error");
         return false;
       }
       parseData(autodoc);
     }
     catch (IOException e) {
-      UIHarness.INSTANCE.openMessageDialog("Unable to load " + file.getAbsolutePath()
-          + ".  IOException:  " + e.getMessage(), "File Error");
+      UIHarness.INSTANCE.openMessageDialog("Unable to load "
+          + file.getAbsolutePath() + ".  IOException:  " + e.getMessage(),
+          "File Error");
       return false;
     }
     catch (LogFile.ReadException e) {
-      UIHarness.INSTANCE.openMessageDialog("Unable to read " + file.getAbsolutePath()
-          + ".  LogFile.ReadException:  " + e.getMessage(), "File Error");
+      UIHarness.INSTANCE.openMessageDialog("Unable to read "
+          + file.getAbsolutePath() + ".  LogFile.ReadException:  "
+          + e.getMessage(), "File Error");
       return false;
     }
     return true;
@@ -736,8 +743,8 @@ public final class MatlabParam {
     return descriptor.getRawString(LST_THRESHOLDS_END_INDEX);
   }
 
-  public String[] getLstThresholdsArray() {
-    return lstThresholds.getPaddedStringArray();
+  public String[] getLstThresholdsExpandedArray() {
+    return lstThresholds.getPaddedStringExpandedArray();
   }
 
   /**
