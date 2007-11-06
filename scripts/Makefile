@@ -13,7 +13,7 @@ SCRIPTS = copytomocoms finishjoin makejoincom matchorwarp matchshifts\
  dm2mrc alignlog transferfid submfg imodpsview settmpdir matchrotpairs\
  chunksetup processchunks splittilt splitcombine tomosnapshot clipflipyz\
  archiveorig imodkillgroup collectmmm sampletilt splitblend runpyscript\
- sirtsetup managesirt queuechunk $(GENERATED_SCRIPTS)
+ sirtsetup managesirt queuechunk splitcorrection $(GENERATED_SCRIPTS)
 
 all:
 
@@ -27,6 +27,9 @@ clean:
 	$(FIND) . -type f -name "*~"   -exec rm "{}" \;
 
 #  $Log$
+#  Revision 3.24  2007/09/14 21:51:22  mast
+#  *** empty log message ***
+#
 #  Revision 3.23  2007/09/11 22:30:56  mast
 #  *** empty log message ***
 #
