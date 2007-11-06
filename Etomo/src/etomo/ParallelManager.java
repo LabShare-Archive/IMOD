@@ -2,25 +2,36 @@ package etomo;
 
 import java.io.File;
 import java.io.IOException;
+import java.util.List;
 
+import etomo.comscript.AnisotropicDiffusionParam;
+import etomo.comscript.ChunksetupParam;
 import etomo.comscript.ProcesschunksParam;
+import etomo.comscript.TrimvolParam;
 import etomo.process.BaseProcessManager;
 import etomo.process.ParallelProcessManager;
+import etomo.process.SystemProcessException;
+import etomo.storage.LogFile;
 import etomo.storage.Storable;
 import etomo.type.AxisID;
 import etomo.type.AxisType;
+import etomo.type.AxisTypeException;
 import etomo.type.BaseMetaData;
 import etomo.type.BaseProcessTrack;
 import etomo.type.BaseScreenState;
 import etomo.type.BaseState;
+import etomo.type.DialogType;
 import etomo.type.InterfaceType;
 import etomo.type.ParallelMetaData;
+import etomo.type.ParallelState;
 import etomo.type.ProcessEndState;
 import etomo.type.ProcessName;
 import etomo.type.ProcessResultDisplay;
-import etomo.ui.AbstractParallelDialog;
+import etomo.type.Run3dmodMenuOptions;
+import etomo.ui.AnisotropicDiffusionDialog;
 import etomo.ui.MainPanel;
 import etomo.ui.MainParallelPanel;
+import etomo.ui.ParallelChooser;
 import etomo.ui.ParallelDialog;
 import etomo.ui.ParallelPanel;
 import etomo.ui.UIHarness;
@@ -46,10 +57,12 @@ public final class ParallelManager extends BaseManager {
 
   private final BaseScreenState screenState = new BaseScreenState(AXIS_ID,
       AxisType.SINGLE_AXIS);
+  private final ParallelState state = new ParallelState();
 
   private final ParallelMetaData metaData;
 
   private ParallelDialog parallelDialog = null;
+  private AnisotropicDiffusionDialog anisotropicDiffusionDialog = null;
 
   private MainParallelPanel mainPanel;
   private ParallelProcessManager processMgr;
@@ -58,7 +71,7 @@ public final class ParallelManager extends BaseManager {
     this("");
   }
 
-  public ParallelManager(String paramFileName) {
+  public ParallelManager(final String paramFileName) {
     super();
     this.metaData = new ParallelMetaData();
     createState();
@@ -67,14 +80,28 @@ public final class ParallelManager extends BaseManager {
     if (!EtomoDirector.INSTANCE.isHeadless()) {
       openProcessingPanel();
       mainPanel.setStatusBarText(paramFile, metaData);
-      openParallelDialog();
+      if (paramFile == null) {
+        openParallelChooser();
+      }
+      else {
+        if (metaData.getDialogType() == DialogType.PARALLEL) {
+          openParallelDialog();
+        }
+        else if (metaData.getDialogType() == DialogType.ANISOTROPIC_DIFFUSION) {
+          openAnisotropicDiffusionDialog();
+        }
+      }
     }
   }
-  
+
+  public ParallelState getState() {
+    return state;
+  }
+
   public boolean setParamFile() {
     return loadedParamFile;
   }
-  
+
   public InterfaceType getInterfaceType() {
     return InterfaceType.PP;
   }
@@ -90,7 +117,8 @@ public final class ParallelManager extends BaseManager {
   protected void createComScriptManager() {
   }
 
-  protected void processSucceeded(AxisID axisID, ProcessName processName) {
+  protected void processSucceeded(final AxisID axisID,
+      final ProcessName processName) {
   }
 
   protected void createMainPanel() {
@@ -107,7 +135,7 @@ public final class ParallelManager extends BaseManager {
     return metaData;
   }
 
-  public final BaseScreenState getBaseScreenState(AxisID axisID) {
+  public BaseScreenState getBaseScreenState(final AxisID axisID) {
     return screenState;
   }
 
@@ -119,11 +147,12 @@ public final class ParallelManager extends BaseManager {
     return mainPanel;
   }
 
-  protected final Storable[] getStorables(int offset) {
-    Storable[] storables = new Storable[2 + offset];
+  Storable[] getStorables(final int offset) {
+    Storable[] storables = new Storable[3 + offset];
     int index = offset;
     storables[index++] = metaData;
     storables[index++] = screenState;
+    storables[index++] = state;
     return storables;
   }
 
@@ -135,23 +164,24 @@ public final class ParallelManager extends BaseManager {
     return null;
   }
 
-  protected void getProcessTrack(Storable[] storable, int index) {
+  protected void getProcessTrack(final Storable[] storable, final int index) {
   }
 
-  public void kill(AxisID axisID) {
+  public void kill(final AxisID axisID) {
     processMgr.kill(axisID);
   }
 
-  public void pause(AxisID axisID) {
+  public void pause(final AxisID axisID) {
     processMgr.pause(axisID);
   }
 
-  public void save(AxisID axisID) throws IOException {
+  public void save() throws LogFile.FileException, LogFile.WriteException {
+    super.save();
     mainPanel.done();
     saveDialog();
   }
 
-  public boolean exitProgram(AxisID axisID) {
+  public boolean exitProgram(final AxisID axisID) {
     try {
       if (super.exitProgram(axisID)) {
         endThreads();
@@ -166,15 +196,18 @@ public final class ParallelManager extends BaseManager {
     }
   }
 
-  public void setParamFile(File paramFile) {
+  public void setParamFile(final File paramFile) {
     this.paramFile = paramFile;
   }
 
-  protected void startNextProcess(AxisID axisID, String nextProcess,
-      ProcessResultDisplay processResultDisplay) {
+  protected void startNextProcess(final AxisID axisID,
+      final String nextProcess, ProcessResultDisplay processResultDisplay) {
+    if (nextProcess.equals(ProcessName.ANISOTROPIC_DIFFUSION.toString())) {
+      anisotropicDiffusion();
+    }
   }
 
-  public void touch(String absolutePath) {
+  public void touch(final String absolutePath) {
     processMgr.touch(absolutePath);
   }
 
@@ -182,7 +215,7 @@ public final class ParallelManager extends BaseManager {
     return metaData.getName();
   }
 
-  protected void updateDialog(ProcessName processName, AxisID axisID) {
+  protected void updateDialog(final ProcessName processName, final AxisID axisID) {
   }
 
   private void openProcessingPanel() {
@@ -190,9 +223,14 @@ public final class ParallelManager extends BaseManager {
     setPanel();
   }
 
-  private void openParallelDialog() {
+  private void openParallelChooser() {
+    ParallelChooser parallelChooser = ParallelChooser.getInstance(this);
+    mainPanel.showProcess(parallelChooser.getContainer(), AXIS_ID);
+  }
+
+  public void openParallelDialog() {
     if (parallelDialog == null) {
-      parallelDialog = new ParallelDialog(this, AXIS_ID);
+      parallelDialog = ParallelDialog.getInstance(this, AXIS_ID);
     }
     mainPanel.setParallelDialog(AXIS_ID, parallelDialog
         .usingParallelProcessing());
@@ -204,19 +242,42 @@ public final class ParallelManager extends BaseManager {
     mainPanel.showProcess(parallelDialog.getContainer(), AXIS_ID);
   }
 
+  public void openAnisotropicDiffusionDialog() {
+    metaData.setDialogType(DialogType.ANISOTROPIC_DIFFUSION);
+    if (anisotropicDiffusionDialog == null) {
+      anisotropicDiffusionDialog = AnisotropicDiffusionDialog.getInstance(this,
+          AXIS_ID);
+    }
+    mainPanel.setParallelDialog(AXIS_ID, anisotropicDiffusionDialog
+        .usingParallelProcessing());
+    if (paramFile != null && metaData.isValid()) {
+      anisotropicDiffusionDialog.setParameters(metaData);
+    }
+    mainPanel.showProcess(anisotropicDiffusionDialog.getContainer(), AXIS_ID);
+  }
+
   private void saveParallelDialog() {
     if (parallelDialog == null) {
       return;
     }
     parallelDialog.getParameters(screenState);
+    saveStorables(AXIS_ID);
+  }
+
+  private void saveAnisotropicDiffusionDialog() {
+    if (anisotropicDiffusionDialog == null) {
+      return;
+    }
+    anisotropicDiffusionDialog.getParameters(metaData);
+    saveStorables(AXIS_ID);
   }
 
   /**
    * set the paramFile and change the state, if necessary
    * run BaseManager.processchunks
    */
-  public final void processchunks(AxisID axisID, AbstractParallelDialog dialog,
-      ProcessResultDisplay processResultDisplay) {
+  public final void processchunks(
+      final ProcessResultDisplay processResultDisplay) {
     if (parallelDialog == null) {
       return;
     }
@@ -227,20 +288,323 @@ public final class ParallelManager extends BaseManager {
       parallelDialog.updateDisplay(false);
     }
     sendMsgProcessStarting(processResultDisplay);
-    if (dialog == null) {
+    if (parallelDialog == null) {
       sendMsgProcessFailedToStart(processResultDisplay);
       return;
     }
-    ProcesschunksParam param = new ProcesschunksParam(this, axisID);
-    ParallelPanel parallelPanel = getMainPanel().getParallelPanel(axisID);
-    dialog.getParameters(param);
+    ProcesschunksParam param = new ProcesschunksParam(this, AxisID.ONLY);
+    ParallelPanel parallelPanel = getMainPanel().getParallelPanel(AxisID.ONLY);
+    parallelDialog.getParameters(param);
     if (!parallelPanel.getParameters(param)) {
       getMainPanel().stopProgressBar(AxisID.ONLY, ProcessEndState.FAILED);
       sendMsgProcessFailedToStart(processResultDisplay);
       return;
     }
     parallelPanel.getParallelProgressDisplay().resetResults();
-    processchunks(axisID, param, processResultDisplay);
+    processchunks(AxisID.ONLY, param, processResultDisplay);
+  }
+
+  public boolean setNewParamFile(final File file) {
+    if (loadedParamFile) {
+      return true;
+    }
+    //set paramFile and propertyUserDir
+    propertyUserDir = file.getParentFile().getAbsolutePath();
+    System.err.println("propertyUserDir: " + propertyUserDir);
+    anisotropicDiffusionDialog.getInitialParameters(metaData);
+    String errorMessage = metaData.validate();
+    if (errorMessage != null) {
+      UIHarness.INSTANCE.openMessageDialog(errorMessage,
+          "Anisotropic Diffusion Dialog error", AXIS_ID);
+      return false;
+    }
+    imodManager.setMetaData(metaData);
+    setParamFile(new File(propertyUserDir, metaData.getMetaDataFileName()));
+    EtomoDirector.INSTANCE.renameCurrentManager(metaData.getRootName());
+    mainPanel.setStatusBarText(paramFile, metaData);
+    return true;
+  }
+
+  public void imod(final String key, final File file,
+      final Run3dmodMenuOptions menuOptions, final boolean flip) {
+    if (file == null) {
+      uiHarness.openMessageDialog("No file to open", "Entry Error");
+      return;
+    }
+    try {
+      imodManager.open(key, file, menuOptions, flip);
+    }
+    catch (IOException e) {
+      e.printStackTrace();
+    }
+    catch (SystemProcessException e) {
+      e.printStackTrace();
+    }
+    catch (AxisTypeException e) {
+      e.printStackTrace();
+    }
+  }
+
+  public void imodVaryingKValue(String key, Run3dmodMenuOptions menuOptions,
+      String subdirName) {
+    List fileNameList = AnisotropicDiffusionParam.getTestnadFileNameList(this,
+        state.getKValueList(), state.getIteration());
+    imod(key, menuOptions, subdirName, fileNameList);
+  }
+
+  public void imodVaryingIteration(String key, Run3dmodMenuOptions menuOptions,
+      String subdirName) {
+    List fileNameList = AnisotropicDiffusionParam.getTestnadFileNameList(this,
+        state.getKValue(), state.getIterationList());
+    imod(key, menuOptions, subdirName, fileNameList);
+  }
+
+  private void imod(String key, Run3dmodMenuOptions menuOptions,
+      String subdirName, List fileNameList) {
+    String[] fileNameArray;
+    if (fileNameList.size() == 0) {
+      fileNameArray = new String[0];
+    }
+    else if (fileNameList.size() == 1) {
+      fileNameArray = new String[1];
+      fileNameArray[0] = (String) fileNameList.get(0);
+    }
+    else {
+      fileNameArray = (String[]) fileNameList.toArray(new String[fileNameList
+          .size()]);
+    }
+    try {
+      imodManager.open(key, fileNameArray, menuOptions, subdirName);
+    }
+    catch (IOException e) {
+      e.printStackTrace();
+    }
+    catch (SystemProcessException e) {
+      e.printStackTrace();
+    }
+    catch (AxisTypeException e) {
+      e.printStackTrace();
+    }
+  }
+
+  public void makeSubdir(final String subdirName) {
+    if (paramFile == null) {
+      uiHarness.openMessageDialog("Must pick a volume.", "Entry Error");
+      return;
+    }
+    File subdir = new File(propertyUserDir, subdirName);
+    if (!subdir.exists()) {
+      subdir.mkdir();
+    }
+  }
+
+  private TrimvolParam updateTrimvolParam() {
+    // Get trimvol param data from dialog.
+    TrimvolParam param = new TrimvolParam(this);
+    anisotropicDiffusionDialog.getParameters(param);
+    return param;
+  }
+
+  private AnisotropicDiffusionParam updateAnisotropicDiffusionParamForVaryingK(
+      final String subdirName) throws LogFile.WriteException,
+      LogFile.FileException {
+    AnisotropicDiffusionParam param = new AnisotropicDiffusionParam(this);
+    if (!anisotropicDiffusionDialog.getParametersForVaryingK(param)) {
+      return null;
+    }
+    param.deleteTestnadFiles();
+    param.createTestnadFiles();
+    return param;
+  }
+
+  private void updateAnisotropicDiffusionParam() throws LogFile.FileException,
+      LogFile.WriteException {
+    AnisotropicDiffusionParam param = new AnisotropicDiffusionParam(this);
+    anisotropicDiffusionDialog.getParameters(param);
+    param.createFullnadFile();
+  }
+
+  private ChunksetupParam updateChunksetupParam() {
+    ChunksetupParam param = new ChunksetupParam();
+    anisotropicDiffusionDialog.getParameters(param);
+    return param;
+  }
+
+  public boolean setupAnisotropicDiffusion() {
+    try {
+      updateAnisotropicDiffusionParam();
+    }
+    catch (LogFile.WriteException e) {
+      e.printStackTrace();
+      uiHarness.openMessageDialog(
+          "Anisotropic diffusion comscripts could not be created",
+          "Write Comscript Error", AxisID.ONLY);
+      return false;
+    }
+    catch (LogFile.FileException e) {
+      e.printStackTrace();
+      uiHarness.openMessageDialog(
+          "Anisotropic diffusion comscripts could not be created",
+          "Write Comscript Error", AxisID.ONLY);
+      return false;
+    }
+    return true;
+  }
+
+  private AnisotropicDiffusionParam updateAnisotropicDiffusionParamForVaryingIteration(
+      final String subdirName) {
+    AnisotropicDiffusionParam param = new AnisotropicDiffusionParam(this);
+    if (!anisotropicDiffusionDialog.getParametersForVaryingIteration(param)) {
+      return null;
+    }
+    return param;
+  }
+
+  public void chunksetup() {
+    if (anisotropicDiffusionDialog == null) {
+      uiHarness.openMessageDialog("Anisotropic diffusion dialog not open",
+          "Program logic error", AxisID.ONLY);
+      return;
+    }
+    ChunksetupParam param = updateChunksetupParam();
+    if (param == null) {
+      return;
+    }
+    setNextProcess(AxisID.ONLY, ProcessName.ANISOTROPIC_DIFFUSION.toString());
+    String threadName;
+    try {
+      threadName = processMgr.chunksetup(param);
+    }
+    catch (SystemProcessException e) {
+      e.printStackTrace();
+      String[] message = new String[2];
+      message[0] = "Can not execute" + ProcessName.CHUNKSETUP + "command";
+      message[1] = e.getMessage();
+      uiHarness.openMessageDialog(message, "Unable to execute command",
+          AxisID.ONLY);
+      return;
+    }
+    setThreadName(threadName, AxisID.ONLY);
+    mainPanel.startProgressBar(ProcessName.CHUNKSETUP.toString(), AxisID.ONLY,
+        ProcessName.CHUNKSETUP);
+  }
+
+  public void anisotropicDiffusionVaryingIteration(final String subdirName) {
+    if (anisotropicDiffusionDialog == null) {
+      uiHarness.openMessageDialog("Anisotropic diffusion dialog not open",
+          "Program logic error", AxisID.ONLY);
+      return;
+    }
+    AnisotropicDiffusionParam param = updateAnisotropicDiffusionParamForVaryingIteration(subdirName);
+    if (param == null) {
+      return;
+    }
+    // Start the trimvol process
+    String threadName;
+    try {
+      threadName = processMgr.anisotropicDiffusion(param);
+    }
+    catch (SystemProcessException e) {
+      e.printStackTrace();
+      String[] message = new String[2];
+      message[0] = "Can not execute" + ProcessName.ANISOTROPIC_DIFFUSION
+          + "command";
+      message[1] = e.getMessage();
+      uiHarness.openMessageDialog(message, "Unable to execute command",
+          AxisID.ONLY);
+      return;
+    }
+    setThreadName(threadName, AxisID.ONLY);
+    mainPanel.startProgressBar(ProcessName.ANISOTROPIC_DIFFUSION.toString(),
+        AxisID.ONLY, ProcessName.ANISOTROPIC_DIFFUSION);
+  }
+
+  public void anisotropicDiffusion() {
+    if (anisotropicDiffusionDialog == null) {
+      uiHarness.openMessageDialog("Anisotropic diffusion dialog not open",
+          "Program logic error", AxisID.ONLY);
+      return;
+    }
+    ProcesschunksParam param = new ProcesschunksParam(this, AxisID.ONLY);
+    ParallelPanel parallelPanel = getMainPanel().getParallelPanel(AxisID.ONLY);
+    anisotropicDiffusionDialog.getParameters(param);
+    if (!parallelPanel.getParameters(param)) {
+      getMainPanel().stopProgressBar(AxisID.ONLY, ProcessEndState.FAILED);
+      return;
+    }
+    parallelPanel.getParallelProgressDisplay().resetResults();
+    processchunks(AxisID.ONLY, param, null);
+  }
+
+  public void anisotropicDiffusionVaryingK(final String subdirName) {
+    if (anisotropicDiffusionDialog == null) {
+      uiHarness.openMessageDialog("Anisotropic diffusion dialog not open",
+          "Program logic error", AxisID.ONLY);
+      return;
+    }
+    AnisotropicDiffusionParam anisotropicDiffusionParam;
+    try {
+      anisotropicDiffusionParam = updateAnisotropicDiffusionParamForVaryingK(subdirName);
+      if (anisotropicDiffusionParam == null) {
+        return;
+      }
+    }
+    catch (LogFile.WriteException e) {
+      e.printStackTrace();
+      uiHarness.openMessageDialog(
+          "Anisotropic diffusion comscripts could not be created",
+          "Write Comscript Error", AxisID.ONLY);
+      return;
+    }
+    catch (LogFile.FileException e) {
+      e.printStackTrace();
+      uiHarness.openMessageDialog(
+          "Anisotropic diffusion comscripts could not be created",
+          "Write Comscript Error", AxisID.ONLY);
+      return;
+    }
+    ProcesschunksParam param = new ProcesschunksParam(this, AxisID.ONLY);
+    param.setSubcommandDetails(anisotropicDiffusionParam);
+    ParallelPanel parallelPanel = getMainPanel().getParallelPanel(AxisID.ONLY);
+    anisotropicDiffusionDialog.getParameters(param);
+    if (!parallelPanel.getParameters(param)) {
+      getMainPanel().stopProgressBar(AxisID.ONLY, ProcessEndState.FAILED);
+      return;
+    }
+    parallelPanel.getParallelProgressDisplay().resetResults();
+    processchunks(AxisID.ONLY, param, null);
+  }
+
+  /**
+   * Execute trimvol
+   */
+  public void trimVolume() {
+    if (anisotropicDiffusionDialog == null) {
+      uiHarness.openMessageDialog("Anisotropic diffusion dialog not open",
+          "Program logic error", AxisID.ONLY);
+      return;
+    }
+    TrimvolParam param = updateTrimvolParam();
+    if (param == null) {
+      return;
+    }
+    // Start the trimvol process
+    String threadName;
+    try {
+      threadName = processMgr.trimVolume(param);
+    }
+    catch (SystemProcessException e) {
+      e.printStackTrace();
+      String[] message = new String[2];
+      message[0] = "Can not execute trimvol command";
+      message[1] = e.getMessage();
+      uiHarness.openMessageDialog(message, "Unable to execute command",
+          AxisID.ONLY);
+      return;
+    }
+    setThreadName(threadName, AxisID.ONLY);
+    mainPanel.startProgressBar("Trimming volume", AxisID.ONLY,
+        ProcessName.TRIMVOL);
   }
 
   private boolean setNewParamFile() {
@@ -254,7 +618,7 @@ public final class ParallelManager extends BaseManager {
     String errorMessage = metaData.validate();
     if (errorMessage != null) {
       UIHarness.INSTANCE.openMessageDialog(errorMessage,
-          "Parallel Process error", AXIS_ID);
+          "Anisotropic Diffusion Error", AXIS_ID);
       return false;
     }
     setParamFile(new File(propertyUserDir, metaData.getMetaDataFileName()));
@@ -266,10 +630,15 @@ public final class ParallelManager extends BaseManager {
 
   private void saveDialog() {
     saveParallelDialog();
+    saveAnisotropicDiffusionDialog();
   }
 }
 /**
  * <p> $Log$
+ * <p> Revision 1.17  2007/09/27 19:21:11  sueh
+ * <p> bug# 1044 Made ProcessorTable the ParallelProgress display instead of
+ * <p> ParallelPanel.
+ * <p>
  * <p> Revision 1.16  2007/09/07 00:16:30  sueh
  * <p> bug# 989 Using a public INSTANCE for EtomoDirector instead of getInstance
  * <p> and createInstance.
