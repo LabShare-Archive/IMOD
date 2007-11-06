@@ -3,17 +3,17 @@ Version = 1.2
 [function = build]
 function = create
 function = use
-function = done
+bn.done =
 
 [function = test]
 function = test1
 function = create
 function = test-create
 function = create
-function = test-backup
+function = test-create-backup
 function = use
 function = test2
-function = done
+bn.done =
 
 [function = create]
 bn.create-fixed-stack =
@@ -22,22 +22,16 @@ waitfor.process.eraser = done
 [function = test-create]
 assert.file.exists = eraser%{axis}.log
 
-[function = test-backup]
+[function = test-create-backup]
 assert.file.exists = eraser%{axis}.log~
 
 [function = use]
 bn.use-fixed-stack = 
 
-[function = done]
-bn.done =
-
-[function = popup]
-waitfor.popup.etomo-question = Yes
-
 [function = test1]
 #
-#
 # copytomocoms
+#
 assert.file.exists = align%{axis}.com
 assert.file.exists = eraser%{axis}.com
 assert.file.exists = mtffilter%{axis}.com
