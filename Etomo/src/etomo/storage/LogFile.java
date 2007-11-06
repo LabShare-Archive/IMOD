@@ -264,6 +264,11 @@ public final class LogFile {
     return success;
   }
 
+  /**
+   * Creates the file if it doesn't already exist.
+   * @return
+   * @throws FileException
+   */
   public synchronized boolean create() throws FileException {
     createFile();
     if (file.exists()) {
@@ -1421,6 +1426,13 @@ public final class LogFile {
 }
 /**
  * <p> $Log$
+ * <p> Revision 1.15  2007/09/07 00:23:12  sueh
+ * <p> bug# 989 Only throw LockException when necessary.  Added boolean
+ * <p> Lock.throwException, which is true when a windows OS is used or unit tests are
+ * <p> being run.  When throwException is true, pop up a warning instead of throughing
+ * <p> an exception.  Added boolean Lock.warningDisplayed, to prevent a warning from
+ * <p> popping up multiple times per file.
+ * <p>
  * <p> Revision 1.14  2007/09/05 17:08:49  sueh
  * <p> bug# 989 In Lock popping up a message (only once per logfile instance) instead
  * <p> of throwing an exception, except when using Windows.  Improved the
