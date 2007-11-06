@@ -17,6 +17,9 @@ import etomo.util.DatasetFiles;
  * @version $$Revision$$
  *
  * <p> $$Log$
+ * <p> $Revision 1.15  2007/08/29 21:45:33  sueh
+ * <p> $bug# 1041 Added getInstance(File,String) and getInstance(String,AxisID).
+ * <p> $
  * <p> $Revision 1.14  2007/07/10 00:35:55  sueh
  * <p> $bug# 1022 Changed peetParser back to prmParser.
  * <p> $
@@ -113,6 +116,8 @@ public class ProcessName {
   private static final String xfmodel = "xfmodel";
   private static final String remapmodel = "remapmodel";
   private static final String peetParser = "prmParser";
+  private static final String anisotropicDiffusion = "nad_eed_3d";
+  private static final String chunksetup = "chunksetup";
 
   private final String name;
 
@@ -163,6 +168,8 @@ public class ProcessName {
   public static final ProcessName XFMODEL = new ProcessName(xfmodel);
   public static final ProcessName REMAPMODEL = new ProcessName(remapmodel);
   public static final ProcessName PEET_PARSER = new ProcessName(peetParser);
+  public static final ProcessName ANISOTROPIC_DIFFUSION = new ProcessName(anisotropicDiffusion);
+  public static final ProcessName CHUNKSETUP = new ProcessName(chunksetup);
 
   /**
    * Returns a string representation of the object.
@@ -326,6 +333,12 @@ public class ProcessName {
     }
     if (name.compareToIgnoreCase(peetParser) == 0) {
       return PEET_PARSER;
+    }
+    if (name.compareToIgnoreCase(anisotropicDiffusion) == 0) {
+      return ANISOTROPIC_DIFFUSION;
+    }
+    if (name.compareToIgnoreCase(chunksetup) == 0) {
+      return CHUNKSETUP;
     }
     return null;
   }
