@@ -48,15 +48,13 @@ public final class ParallelDialog implements AbstractParallelDialog {
       .getToggleButtonInstance("Run Parallel Process");
 
   private final ParallelActionListener actionListener;
-  private final ChunkComscriptActionListener chunkComscriptActionListener;
   private final ParallelManager manager;
   private final AxisID axisID;
 
   private File workingDir = null;
 
-  public ParallelDialog(ParallelManager manager, AxisID axisID) {
+  private ParallelDialog(ParallelManager manager, AxisID axisID) {
     actionListener = new ParallelActionListener(this);
-    chunkComscriptActionListener = new ChunkComscriptActionListener(this);
     this.manager = manager;
     this.axisID = axisID;
     //process name panel
@@ -72,8 +70,19 @@ public final class ParallelDialog implements AbstractParallelDialog {
     btnRunProcess.setSize();
     pnlRoot.add(btnRunProcess);
     pnlRoot.alignComponentsX(Component.CENTER_ALIGNMENT);
-    setActionListener();
     setToolTipText();
+  }
+
+  public static ParallelDialog getInstance(ParallelManager manager,
+      AxisID axisID) {
+    ParallelDialog instance = new ParallelDialog(manager, axisID);
+    instance.addListeners();
+    return instance;
+  }
+
+  private void addListeners() {
+    btnChunkComscript.addActionListener(new ChunkComscriptActionListener(this));
+    btnRunProcess.addActionListener(actionListener);
   }
 
   public Container getContainer() {
@@ -86,11 +95,6 @@ public final class ParallelDialog implements AbstractParallelDialog {
 
   public File getWorkingDir() {
     return workingDir;
-  }
-
-  private void setActionListener() {
-    btnChunkComscript.addActionListener(chunkComscriptActionListener);
-    btnRunProcess.addActionListener(actionListener);
   }
 
   public void done() {
@@ -131,9 +135,8 @@ public final class ParallelDialog implements AbstractParallelDialog {
 
   void action(ActionEvent event) {
     String command = event.getActionCommand();
-    System.out.println(btnChunkComscript.getText());
     if (command.equals(btnRunProcess.getText())) {
-      manager.processchunks(axisID, this, btnRunProcess);
+      manager.processchunks(btnRunProcess);
     }
   }
 
@@ -187,6 +190,9 @@ public final class ParallelDialog implements AbstractParallelDialog {
 }
 /**
  * <p> $Log$
+ * <p> Revision 1.16  2007/08/29 21:49:17  sueh
+ * <p> bug# 1041 In chunkComscriptAction, calling BaseManager.chunkComscriptAction.
+ * <p>
  * <p> Revision 1.15  2007/08/10 17:05:31  mast
  * <p> Set the process name properly if starting file is -001-sync.com
  * <p>
