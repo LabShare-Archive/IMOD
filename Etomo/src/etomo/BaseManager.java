@@ -11,6 +11,7 @@ import java.util.Vector;
 import javax.swing.JFileChooser;
 
 import etomo.comscript.ComScriptManager;
+import etomo.comscript.CommandDetails;
 import etomo.comscript.IntermittentCommand;
 import etomo.comscript.ProcesschunksParam;
 import etomo.process.BaseProcessManager;
@@ -805,8 +806,15 @@ public abstract class BaseManager {
     ParallelPanel parallelPanel = getMainPanel().getParallelPanel(axisID);
     String threadName;
     try {
+      String subdirName = param.getSubdirName();
+      if (subdirName==null) {
       threadName = getProcessManager().processchunks(axisID, param,
           parallelPanel.getParallelProgressDisplay(), processResultDisplay);
+      }else {
+        threadName = getProcessManager().processchunks(axisID, param,
+            parallelPanel.getParallelProgressDisplay(), processResultDisplay,
+            subdirName,param.getShortCommandName());
+      }
     }
     catch (SystemProcessException e) {
       e.printStackTrace();
@@ -1059,18 +1067,15 @@ public abstract class BaseManager {
     return !lastProcessA.equals("");
   }
 
-  public final void startLoad(IntermittentCommand param,
-      LoadMonitor monitor) {
+  public final void startLoad(IntermittentCommand param, LoadMonitor monitor) {
     getProcessManager().startLoad(param, monitor);
   }
 
-  public final void endLoad(IntermittentCommand param,
-      LoadMonitor monitor) {
+  public final void endLoad(IntermittentCommand param, LoadMonitor monitor) {
     getProcessManager().endLoad(param, monitor);
   }
 
-  public final void stopLoad(IntermittentCommand param,
-      LoadMonitor monitor) {
+  public final void stopLoad(IntermittentCommand param, LoadMonitor monitor) {
     getProcessManager().stopLoad(param, monitor);
   }
 
@@ -1143,7 +1148,8 @@ public abstract class BaseManager {
   }
 
   public final void resume(AxisID axisID, ProcesschunksParam param,
-      ProcessResultDisplay processResultDisplay, Container root) {
+      ProcessResultDisplay processResultDisplay, Container root,
+      CommandDetails subcommandDetails) {
     sendMsgProcessStarting(processResultDisplay);
     if (param == null) {
       ProcessName processName = getBaseState()
@@ -1151,6 +1157,7 @@ public abstract class BaseManager {
       if (processName != null) {
         param = new ProcesschunksParam(this, axisID);
         param.setProcessName(processName);
+        param.setSubcommandDetails(subcommandDetails);
       }
       else {
         uiHarness.openMessageDialog("No command to resume", "Resume");
@@ -1162,8 +1169,16 @@ public abstract class BaseManager {
     parallelPanel.getResumeParameters(param);
     String threadName;
     try {
-      threadName = getProcessManager().processchunks(axisID, param,
-          parallelPanel.getParallelProgressDisplay(), processResultDisplay);
+      String subdirName = param.getSubdirName();
+      if (subdirName == null) {
+        threadName = getProcessManager().processchunks(axisID, param,
+            parallelPanel.getParallelProgressDisplay(), processResultDisplay);
+      }
+      else {
+        threadName = getProcessManager().processchunks(axisID, param,
+            parallelPanel.getParallelProgressDisplay(), processResultDisplay,
+            subdirName,param.getShortCommandName());
+      }
     }
     catch (SystemProcessException e) {
       e.printStackTrace();
@@ -1216,6 +1231,10 @@ public abstract class BaseManager {
 }
 /**
  * <p> $Log$
+ * <p> Revision 1.90  2007/09/27 19:20:56  sueh
+ * <p> bug# 1044 Made ProcessorTable the ParallelProgress display instead of
+ * <p> ParallelPanel.  Generalized load functionality.
+ * <p>
  * <p> Revision 1.89  2007/09/10 20:24:14  sueh
  * <p> bug# 925 Using getInstance to construct ProcessResultDisplayFactory.
  * <p>
