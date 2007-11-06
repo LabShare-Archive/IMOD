@@ -31,6 +31,10 @@ import etomo.util.Utilities;
  * @version $Revision$
  * 
  * <p> $Log$
+ * <p> Revision 1.7  2007/09/07 00:29:00  sueh
+ * <p> bug# 989 Using a public INSTANCE to refer to the EtomoDirector singleton
+ * <p> instead of getInstance and createInstance.
+ * <p>
  * <p> Revision 1.6  2007/06/08 22:22:21  sueh
  * <p> bug# 1014 Added reset().
  * <p>
@@ -60,10 +64,10 @@ final class Spinner {
   private JLabel label = null;
 
   private Spinner(final String label, final boolean labeled, final int value,
-      final int minimum, final int maximum) {
-    model = new SpinnerNumberModel(value, minimum, maximum, 1);
+      final int minimum, final int maximum, int step) {
+    model = new SpinnerNumberModel(value, minimum, maximum, step);
     spinner = new JSpinner(model);
-    this.defaultValue=new Integer(value);
+    this.defaultValue = new Integer(value);
     String name = Utilities.convertLabelToName(label);
     spinner.setName(name);
     if (EtomoDirector.INSTANCE.isPrintNames()) {
@@ -83,31 +87,34 @@ final class Spinner {
     Dimension maxSize = spinner.getMaximumSize();
     if (this.label != null
         && this.label.getFont().getSize() > spinner.getFont().getSize()) {
-      maxSize.setSize(maxSize.getWidth(), 2 * this.label
-          .getFont().getSize());
+      maxSize.setSize(maxSize.getWidth(), 2 * this.label.getFont().getSize());
     }
     else {
-      maxSize.setSize(maxSize.getWidth(), 2 * spinner
-          .getFont().getSize());
+      maxSize.setSize(maxSize.getWidth(), 2 * spinner.getFont().getSize());
     }
     spinner.setMaximumSize(maxSize);
   }
-  
+
   private final JFormattedTextField getTextField() {
     return ((JSpinner.DefaultEditor) spinner.getEditor()).getTextField();
   }
 
   static Spinner getInstance(final String name) {
-    return new Spinner(name, false, 1, 1, 1);
+    return new Spinner(name, false, 1, 1, 1, 1);
   }
 
   static Spinner getLabeledInstance(final String label) {
-    return new Spinner(label, true, 1, 1, 1);
+    return new Spinner(label, true, 1, 1, 1, 1);
   }
 
   static Spinner getLabeledInstance(final String label, final int value,
       final int minimum, final int maximum) {
-    return new Spinner(label, true, value, minimum, maximum);
+    return new Spinner(label, true, value, minimum, maximum, 1);
+  }
+
+  static Spinner getLabeledInstance(final String label, final int value,
+      final int minimum, final int maximum, final int step) {
+    return new Spinner(label, true, value, minimum, maximum, step);
   }
 
   void setToolTipText(final String text) {
@@ -116,6 +123,10 @@ final class Spinner {
     if (label != null) {
       label.setToolTipText(tooltip);
     }
+  }
+
+  void setAlignmentX(float alignmentX) {
+    panel.setAlignmentX(alignmentX);
   }
 
   Container getContainer() {
@@ -131,7 +142,7 @@ final class Spinner {
       label.setEnabled(enabled);
     }
   }
-  
+
   void reset() {
     spinner.setValue(defaultValue);
   }
