@@ -11,6 +11,9 @@
  * @version $Revision$
  *
  * <p> $Log$
+ * <p> Revision 3.13  2007/05/11 15:26:31  sueh
+ * <p> bug# 964 Added getStringArray().
+ * <p>
  * <p> Revision 3.12  2007/03/07 21:00:26  sueh
  * <p> bug# 981 Reduced visibility of protected fields to package private.
  * <p>
@@ -505,7 +508,11 @@ public class ConstTiltParam implements ProcessDetails {
     }
     throw new IllegalArgumentException("field=" + field);
   }
-  
+
+  public float getFloatValue(etomo.comscript.Fields field) {
+    throw new IllegalArgumentException("field=" + field);
+  }
+
   public String[] getStringArray(etomo.comscript.Fields field) {
     throw new IllegalArgumentException("field=" + field);
   }
