@@ -15,6 +15,7 @@ import etomo.type.AxisTypeException;
 import etomo.type.ConstJoinMetaData;
 import etomo.type.ConstMetaData;
 import etomo.type.ConstPeetMetaData;
+import etomo.type.ParallelMetaData;
 import etomo.type.Run3dmodMenuOptions;
 import etomo.util.DatasetFiles;
 
@@ -34,6 +35,9 @@ import etomo.util.DatasetFiles;
  * @version $Revision$
  *
  * <p> $Log$
+ * <p> Revision 3.55  2007/08/02 22:38:24  sueh
+ * <p> bug# 1034 Passing the right click menu to open(String,String[]).
+ * <p>
  * <p> Revision 3.54  2007/05/15 21:44:57  sueh
  * <p> bug# 964 Added ref ImodState.
  * <p>
@@ -454,6 +458,7 @@ public class ImodManager {
   protected ImodState ref;
 
   private boolean metaDataSet = false;
+  private boolean debug = false;
 
   //public keys
 
@@ -487,7 +492,12 @@ public class ImodManager {
   public static final String TRANSFORMED_MODEL_KEY = new String(
       "transformed model");
   public static final String AVG_VOL_KEY = new String("AvgVol");
-  public static final String REF_KEY = new String("AvgVol");
+  public static final String REF_KEY = new String("Ref");
+  public static final String VOLUME_KEY = new String("Volume");
+  public static final String TEST_VOLUME_KEY = new String("TestVolume");
+  public static final String VARYING_K_TEST_KEY = new String("VaryingKTest");
+  public static final String VARYING_ITERATION_TEST_KEY = new String("VaryingIterationTest");
+  public static final String ANISOTROPIC_DIFFUSION_VOLUME_KEY = new String("AnisotropicDiffusionVolume");
 
   //private keys - used with imodMap
   private static final String rawStackKey = RAW_STACK_KEY;
@@ -516,6 +526,11 @@ public class ImodManager {
   private static final String transformedModelKey = TRANSFORMED_MODEL_KEY;
   private static final String avgVolKey = AVG_VOL_KEY;
   private static final String refKey = REF_KEY;
+  private static final String volumeKey = VOLUME_KEY;
+  private static final String testVolumeKey = VOLUME_KEY;
+  private static final String varyingKTestKey = VARYING_K_TEST_KEY;
+  private static final String varyingIterationTestKey = VARYING_ITERATION_TEST_KEY;
+  private static final String anisotropicDiffusionVolumeKey = ANISOTROPIC_DIFFUSION_VOLUME_KEY;
 
   private boolean useMap = true;
   private final BaseManager manager;
@@ -587,8 +602,19 @@ public class ImodManager {
     loadPeetMap();
   }
 
+  public void setMetaData(ParallelMetaData metaData) {
+    metaDataSet = true;
+    axisType = metaData.getAxisType();
+    datasetName = metaData.getName();
+    if (datasetName.equals("")) {
+      new IllegalStateException("DatasetName is empty.").printStackTrace();
+    }
+    createPrivateKeys();
+    loadParallelMap();
+  }
+
   private int newImod(String key) throws AxisTypeException {
-    return newImod(key, null, null);
+    return newImod(key, (AxisID) null, null);
   }
 
   public int newImod(String key, AxisID axisID) throws AxisTypeException {
@@ -647,6 +673,25 @@ public class ImodManager {
     return vector.lastIndexOf(imodState);
   }
 
+  public int newImod(String key, String[] fileNameArray, String subdirName)
+      throws AxisTypeException {
+    Vector vector;
+    ImodState imodState;
+    key = getPrivateKey(key);
+    vector = getVector(key);
+    if (vector == null) {
+      vector = newVector(key, fileNameArray, subdirName);
+      imodMap.put(key, vector);
+      return 0;
+    }
+    imodState = newImodState(key, fileNameArray, subdirName);
+    vector.add(imodState);
+    if (debug) {
+      System.out.println("vector=" + vector);
+    }
+    return vector.lastIndexOf(imodState);
+  }
+
   public void open(String key) throws AxisTypeException,
       SystemProcessException, IOException {
     open(key, null, null, new Run3dmodMenuOptions());
@@ -685,6 +730,34 @@ public class ImodManager {
     open(key, axisID, null, new Run3dmodMenuOptions());
   }
 
+  public void open(String key, File file, Run3dmodMenuOptions menuOptions)
+      throws AxisTypeException, SystemProcessException, IOException {
+    key = getPrivateKey(key);
+    ImodState imodState = get(key);
+    if (imodState == null) {
+      newImod(key, file);
+      imodState = get(key);
+    }
+    if (imodState != null) {
+      imodState.open(menuOptions);
+    }
+  }
+
+  public void open(String key, File file, Run3dmodMenuOptions menuOptions,
+      boolean swapYZ) throws AxisTypeException, SystemProcessException,
+      IOException {
+    key = getPrivateKey(key);
+    ImodState imodState = get(key);
+    if (imodState == null) {
+      newImod(key, file);
+      imodState = get(key);
+    }
+    if (imodState != null) {
+      imodState.setSwapYZ(swapYZ);
+      imodState.open(menuOptions);
+    }
+  }
+
   public void open(String key, AxisID axisID, String model,
       Run3dmodMenuOptions menuOptions) throws AxisTypeException,
       SystemProcessException, IOException {
@@ -702,8 +775,6 @@ public class ImodManager {
         imodState.open(model, menuOptions);
       }
     }
-    //used for:
-    //openFiducialModel
   }
 
   public void open(String key, String[] fileNameArray,
@@ -713,6 +784,21 @@ public class ImodManager {
     ImodState imodState = get(key, AxisID.ONLY);
     if (imodState == null || !imodState.equalsFileNameArray(fileNameArray)) {
       newImod(key, fileNameArray);
+      imodState = get(key, AxisID.ONLY);
+    }
+    if (imodState != null) {
+      imodState.open(menuOptions);
+    }
+  }
+
+  public void open(String key, String[] fileNameArray,
+      Run3dmodMenuOptions menuOptions, String subdirName)
+      throws AxisTypeException, SystemProcessException, IOException {
+    key = getPrivateKey(key);
+    ImodState imodState = get(key, AxisID.ONLY);
+    if (imodState == null || !imodState.equalsSubdirName(subdirName)
+        || !imodState.equalsFileNameArray(fileNameArray)) {
+      newImod(key, fileNameArray, subdirName);
       imodState = get(key, AxisID.ONLY);
     }
     if (imodState != null) {
@@ -1189,28 +1275,37 @@ public class ImodManager {
     return newVector(newImodState(key, fileNameArray));
   }
 
+  protected Vector newVector(String key, String[] fileNameArray,
+      String subdirName) {
+    return newVector(newImodState(key, fileNameArray, subdirName));
+  }
+
   protected ImodState newImodState(String key) {
-    return newImodState(key, null, null, null, null);
+    return newImodState(key, null, null, null, null, null);
   }
 
-  protected ImodState newImodState(String key, AxisID axisID) {
-    return newImodState(key, axisID, null, null, null);
+  ImodState newImodState(String key, AxisID axisID) {
+    return newImodState(key, axisID, null, null, null, null);
   }
 
-  protected ImodState newImodState(String key, AxisID axisID, String datasetName) {
-    return newImodState(key, axisID, datasetName, null, null);
+  ImodState newImodState(String key, AxisID axisID, String datasetName) {
+    return newImodState(key, axisID, datasetName, null, null, null);
   }
 
-  protected ImodState newImodState(String key, File file) {
-    return newImodState(key, null, null, file, null);
+  ImodState newImodState(String key, File file) {
+    return newImodState(key, null, null, file, null, null);
   }
 
-  protected ImodState newImodState(String key, String[] fileNameArray) {
-    return newImodState(key, null, null, null, fileNameArray);
+  ImodState newImodState(String key, String[] fileNameArray) {
+    return newImodState(key, null, null, null, fileNameArray, null);
+  }
+
+  ImodState newImodState(String key, String[] fileNameArray, String subdirName) {
+    return newImodState(key, null, null, null, fileNameArray, subdirName);
   }
 
   ImodState newImodState(String key, AxisID axisID, String datasetName,
-      File file, String[] fileNameArray) {
+      File file, String[] fileNameArray, String subdirName) {
     if (key.equals(RAW_STACK_KEY) && axisID != null) {
       return newRawStack(axisID);
     }
@@ -1290,6 +1385,21 @@ public class ImodManager {
     if (key.equals(REF_KEY)) {
       return newRef(fileNameArray);
     }
+    if (key.equals(VOLUME_KEY)) {
+      return newVolume(file);
+    }
+    if (key.equals(TEST_VOLUME_KEY)) {
+      return newTestVolume(file);
+    }
+    if (key.equals(VARYING_K_TEST_KEY)) {
+      return newVaryingKTest(fileNameArray, subdirName);
+    }
+    if (key.equals(VARYING_ITERATION_TEST_KEY)) {
+      return newVaryingIterationTest(fileNameArray, subdirName);
+    }
+    if (key.equals(ANISOTROPIC_DIFFUSION_VOLUME_KEY)) {
+      return newAnisotropicDiffusionVolume(file);
+    }
     throw new IllegalArgumentException(key + " cannot be created in "
         + axisType.toString() + " with axisID=" + axisID.getExtension());
   }
@@ -1332,6 +1442,9 @@ public class ImodManager {
   }
 
   protected void loadPeetMap() {
+  }
+
+  protected void loadParallelMap() {
   }
 
   protected void loadDualAxisMap() {
@@ -1530,6 +1643,33 @@ public class ImodManager {
 
   private ImodState newRef(String[] fileNameArray) {
     ImodState imodState = new ImodState(manager, fileNameArray, AxisID.ONLY);
+    return imodState;
+  }
+
+  private ImodState newVolume(File file) {
+    ImodState imodState = new ImodState(manager, file, AxisID.ONLY);
+    return imodState;
+  }
+
+  private ImodState newTestVolume(File file) {
+    ImodState imodState = new ImodState(manager, file, AxisID.ONLY);
+    return imodState;
+  }
+
+  private ImodState newVaryingKTest(String[] fileNameArray, String subdirName) {
+    ImodState imodState = new ImodState(manager, fileNameArray, AxisID.ONLY,
+        subdirName);
+    return imodState;
+  }
+  
+  private ImodState newVaryingIterationTest(String[] fileNameArray, String subdirName) {
+    ImodState imodState = new ImodState(manager, fileNameArray, AxisID.ONLY,
+        subdirName);
+    return imodState;
+  }
+  
+  private ImodState newAnisotropicDiffusionVolume(File file) {
+    ImodState imodState = new ImodState(manager, file, AxisID.ONLY);
     return imodState;
   }
 
