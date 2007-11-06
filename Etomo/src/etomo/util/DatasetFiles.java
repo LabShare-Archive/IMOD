@@ -47,9 +47,10 @@ public final class DatasetFiles {
   public static final String VOLCOMBINE_START_LOG = ProcessName.VOLCOMBINE
       .toString()
       + "-start" + LOG_EXT;
+  public static final String PROCESSCHUNKS_FINISH_NAME = "-finish";
   public static final String VOLCOMBINE_FINISH_LOG = ProcessName.VOLCOMBINE
       .toString()
-      + "-finish" + LOG_EXT;
+      + PROCESSCHUNKS_FINISH_NAME + LOG_EXT;
   public static final String JOIN_EXT = ".join";
   public static final String REFINE_NAME = "_refine";
   public static final String XFJOINTOMO_LOG = "xfjointomo" + LOG_EXT;
@@ -232,10 +233,9 @@ public final class DatasetFiles {
         .getName()
         + MATLAB_PARAM_FILE_EXT);
   }
-  
-  public static File getMatlabParamFile(String directory,String name) {
-    return new File(directory, name
-        + MATLAB_PARAM_FILE_EXT);
+
+  public static File getMatlabParamFile(String directory, String name) {
+    return new File(directory, name + MATLAB_PARAM_FILE_EXT);
   }
 
   public static String getRefineXfFileName(BaseManager manager) {
@@ -301,12 +301,16 @@ public final class DatasetFiles {
 
   //other etomo files
 
-  public static File getCommandsFile(BaseManager manager, String rootName) {
-    return new File(manager.getPropertyUserDir(), getCommandsFileName(rootName));
+  public static File getCommandsFile(BaseManager manager, String subdirName, String rootName) {
+    return new File(manager.getPropertyUserDir(), getCommandsFileName(subdirName,rootName));
   }
 
-  public static String getCommandsFileName(String rootName) {
-    return rootName + ".cmds";
+  public static String getCommandsFileName(String subdirName, String rootName) {
+    String commandsFileName = rootName + ".cmds";
+    if (subdirName == null) {
+      return commandsFileName;
+    }
+    return new File(subdirName, commandsFileName).getPath();
   }
 
   public static File getAutodoc(File dir, String name) {
@@ -324,17 +328,14 @@ public final class DatasetFiles {
         + axisID.getExtension() + ".csh");
   }
 
-  public static File getOutFile(BaseManager manager, String commandName,
-      AxisID axisID) {
+  public static String getOutFileName(BaseManager manager, String subdirName,
+      String commandName, AxisID axisID) {
     axisID = correctAxisID(manager.getBaseMetaData(), axisID);
-    return new File(manager.getPropertyUserDir(), getOutFileName(manager,
-        commandName, axisID));
-  }
-
-  public static String getOutFileName(BaseManager manager, String commandName,
-      AxisID axisID) {
-    axisID = correctAxisID(manager.getBaseMetaData(), axisID);
-    return commandName + axisID.getExtension() + ".out";
+    String outFileName = commandName + axisID.getExtension() + ".out";
+    if (subdirName == null) {
+      return outFileName;
+    }
+    return new File(subdirName, outFileName).getPath();
   }
 
   //log files
@@ -402,17 +403,17 @@ public final class DatasetFiles {
   public static String getParallelDataFileName(String rootName) {
     return rootName + PARALLEL_DATA_FILE_EXT;
   }
-  
+
   public static String getPeetDataFileName(String rootName) {
     return rootName + PEET_DATA_FILE_EXT;
   }
-  
+
   public static String getPeetRootName(String fileName) {
-    return fileName.substring(0,fileName.indexOf(PEET_DATA_FILE_EXT));
+    return fileName.substring(0, fileName.indexOf(PEET_DATA_FILE_EXT));
   }
-  
-  public static File getPeetDataFile(String path,String rootName) {
-    return new File(path,getPeetDataFileName(rootName));
+
+  public static File getPeetDataFile(String path, String rootName) {
+    return new File(path, getPeetDataFileName(rootName));
   }
 
   public static String getRootName(File paramFile) {
@@ -426,6 +427,9 @@ public final class DatasetFiles {
 }
 /**
  * <p> $Log$
+ * <p> Revision 1.41  2007/07/30 22:40:02  sueh
+ * <p> bug# 963 Added DatasetFiles.JOIN_DATA_FILE_EXT.
+ * <p>
  * <p> Revision 1.40  2007/07/10 00:44:29  sueh
  * <p> bug# 1022 Added TILT_FILE_EXT.
  * <p>
