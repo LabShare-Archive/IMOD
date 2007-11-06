@@ -5020,7 +5020,7 @@ public final class ApplicationManager extends BaseManager {
     // Add input and output files.
     trimvolParam.setInputFileName(metaData.getAxisType(), metaData
         .getDatasetName());
-    trimvolParam.setOutputFileName(metaData.getDatasetName());
+    trimvolParam.setOutputFileName(metaData.getDatasetName() + ".rec");
     return trimvolParam;
   }
 
@@ -5476,6 +5476,10 @@ public final class ApplicationManager extends BaseManager {
 }
 /**
  * <p> $Log$
+ * <p> Revision 3.290  2007/09/27 19:18:33  sueh
+ * <p> bug# 1044 Made ProcessorTable the ParallelProgress display instead of
+ * <p> ParallelPanel.
+ * <p>
  * <p> Revision 3.289  2007/09/07 00:14:57  sueh
  * <p> bug# 989 Using a public INSTANCE for EtomoDirector instead of getInstance
  * <p> and createInstance.
