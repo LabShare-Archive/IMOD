@@ -204,7 +204,7 @@ public class CpuAdoc {
     imodProcessors.set(EnvironmentVariable.INSTANCE.getValue(manager
         .getPropertyUserDir(), "IMOD_PROCESSORS", axisID));
     if (imodProcessors.isNull()) {
-      return;
+      imodProcessors.set(1);
     }
     loadComputers(imodProcessors);
   }
@@ -497,6 +497,9 @@ public class CpuAdoc {
 }
 /**
  * <p> $Log$
+ * <p> Revision 1.11  2007/09/27 20:30:38  sueh
+ * <p> bug# 1044 Retrieving Queue sections.
+ * <p>
  * <p> Revision 1.10  2007/08/29 22:42:32  sueh
  * <p> bug# 1040 Fixing a bug in load(AxisID, BaseManager) where the value max
  * <p> volcombine value was loaded into maxTilt.
