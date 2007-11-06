@@ -11,6 +11,9 @@
  * @version $Revision$
  * 
  * <p> $Log$
+ * <p> Revision 3.25  2007/08/21 21:51:35  sueh
+ * <p> Temporarily sending the trimvol command to err.
+ * <p>
  * <p> Revision 3.24  2007/05/11 15:33:17  sueh
  * <p> bug# 964 Added getStringArray().
  * <p>
@@ -173,14 +176,9 @@ public class TrimvolParam implements CommandDetails {
   private static final String VERSION_KEY = "Version";
 
   public static final String PARAM_ID = "Trimvol";
-  public static final String XMIN = "XMin";
-  public static final String XMAX = "XMax";
-  public static final String YMIN = "YMin";
-  public static final String YMAX = "YMax";
-  public static final String ZMIN = "ZMin";
-  public static final String ZMAX = "ZMax";
   public static final String CONVERT_TO_BYTES = "ConvertToBytes";
   public static final String FIXED_SCALING = "FixedScaling";
+  public static final String FLIPPED_VOLUME = "FlippedVolume";
   private static final String swapYZString = "SwapYZ";
   private static final String ROTATE_X_KEY = "RotateX";
   public static final String INPUT_FILE = "InputFile";
@@ -189,15 +187,16 @@ public class TrimvolParam implements CommandDetails {
   private static final int commandSize = 3;
   private static final String commandName = "trimvol";
 
-  private int xMin = Integer.MIN_VALUE;
-  private int xMax = Integer.MIN_VALUE;
-  private int yMin = Integer.MIN_VALUE;
-  private int yMax = Integer.MIN_VALUE;
-  private int zMin = Integer.MIN_VALUE;
-  private int zMax = Integer.MIN_VALUE;
+  private EtomoNumber xMin = new EtomoNumber("XMin");
+  private EtomoNumber xMax = new EtomoNumber("XMax");
+  private EtomoNumber yMin = new EtomoNumber("YMin");
+  private EtomoNumber yMax = new EtomoNumber("YMax");
+  private EtomoNumber zMin = new EtomoNumber("ZMin");
+  private EtomoNumber zMax = new EtomoNumber("ZMax");
   private final XYParam scaleXYParam = new XYParam("Scale");
   private boolean convertToBytes = true;
   private boolean fixedScaling = false;
+  private boolean flippedVolume = false;
   private final EtomoNumber sectionScaleMin = new EtomoNumber("SectionScaleMin");
   private final EtomoNumber sectionScaleMax = new EtomoNumber("SectionScaleMax");
   private final EtomoNumber fixedScaleMin = new EtomoNumber("FixedScaleMin");
@@ -232,14 +231,15 @@ public class TrimvolParam implements CommandDetails {
     prepend += PARAM_ID;
     group = prepend + ".";
     props.setProperty(prepend + "." + VERSION_KEY, VERSION);
-    props.setProperty(group + XMIN, String.valueOf(xMin));
-    props.setProperty(group + XMAX, String.valueOf(xMax));
-    props.setProperty(group + YMIN, String.valueOf(yMin));
-    props.setProperty(group + YMAX, String.valueOf(yMax));
-    props.setProperty(group + ZMIN, String.valueOf(zMin));
-    props.setProperty(group + ZMAX, String.valueOf(zMax));
+    xMin.store(props, prepend);
+    xMax.store(props, prepend);
+    yMin.store(props, prepend);
+    yMax.store(props, prepend);
+    zMin.store(props, prepend);
+    zMax.store(props, prepend);
     props.setProperty(group + CONVERT_TO_BYTES, String.valueOf(convertToBytes));
     props.setProperty(group + FIXED_SCALING, String.valueOf(fixedScaling));
+    props.setProperty(group + FLIPPED_VOLUME, String.valueOf(flippedVolume));
     sectionScaleMin.store(props, prepend);
     sectionScaleMax.store(props, prepend);
     fixedScaleMax.store(props, prepend);
@@ -272,24 +272,12 @@ public class TrimvolParam implements CommandDetails {
     oldVersion = props.getProperty(group + VERSION_KEY) == null;
     // Load the trimvol values if they are present, don't change the
     // current value if the property is not present
-    xMin = Integer.valueOf(
-        props.getProperty(group + XMIN, Integer.toString(xMin))).intValue();
-
-    xMax = Integer.valueOf(
-        props.getProperty(group + XMAX, Integer.toString(xMax))).intValue();
-
-    yMin = Integer.valueOf(
-        props.getProperty(group + YMIN, Integer.toString(yMin))).intValue();
-
-    yMax = Integer.valueOf(
-        props.getProperty(group + YMAX, Integer.toString(yMax))).intValue();
-
-    zMin = Integer.valueOf(
-        props.getProperty(group + ZMIN, Integer.toString(zMin))).intValue();
-
-    zMax = Integer.valueOf(
-        props.getProperty(group + ZMAX, Integer.toString(zMax))).intValue();
-
+    xMin.loadIfPresent(props, prepend);
+    xMax.loadIfPresent(props, prepend);
+    yMin.loadIfPresent(props, prepend);
+    yMax.loadIfPresent(props, prepend);
+    zMin.loadIfPresent(props, prepend);
+    zMax.loadIfPresent(props, prepend);
     convertToBytes = Boolean.valueOf(
         props.getProperty(group + CONVERT_TO_BYTES, Boolean
             .toString(convertToBytes))).booleanValue();
@@ -298,6 +286,9 @@ public class TrimvolParam implements CommandDetails {
         .valueOf(
             props.getProperty(group + FIXED_SCALING, Boolean
                 .toString(fixedScaling))).booleanValue();
+    flippedVolume = Boolean.valueOf(
+        props.getProperty(group + FLIPPED_VOLUME, Boolean
+            .toString(flippedVolume))).booleanValue();
     sectionScaleMin.load(props, prepend);
     sectionScaleMax.load(props, prepend);
     fixedScaleMin.load(props, prepend);
@@ -339,7 +330,7 @@ public class TrimvolParam implements CommandDetails {
     if (!scaleXYParam.getYMin().isNull()) {
       min = scaleXYParam.getYMin().getInt();
       max = scaleXYParam.getYMax().getInt();
-      shift = getScaleShift( min, max);
+      shift = getScaleShift(min, max);
       scaleXYParam.setYMin(min + shift);
       scaleXYParam.setYMax(max + shift);
     }
@@ -394,8 +385,8 @@ public class TrimvolParam implements CommandDetails {
       commandArray[i + commandSize] = (String) options.get(i);
     }
     //TEMP
-    for (int i = 0;i<commandArray.length;i++) {
-      System.err.print(commandArray[i] +" ");
+    for (int i = 0; i < commandArray.length; i++) {
+      System.err.print(commandArray[i] + " ");
     }
     System.err.println();
   }
@@ -409,17 +400,17 @@ public class TrimvolParam implements CommandDetails {
 
     // TODO add error checking and throw an exception if the parameters have not
     // been set
-    if (xMin >= 0 && xMax >= 0) {
+    if (xMin.getInt() >= 0 && xMax.getInt() >= 0) {
       options.add("-x");
-      options.add(String.valueOf(xMin) + "," + String.valueOf(xMax));
+      options.add(xMin.toString() + "," + xMax.toString());
     }
-    if (yMin >= 0 && yMax >= 0) {
+    if (yMin.getInt() >= 0 && yMax.getInt() >= 0) {
       options.add("-y");
-      options.add(String.valueOf(yMin) + "," + String.valueOf(yMax));
+      options.add(yMin.toString() + "," + yMax.toString());
     }
-    if (zMin >= 0 && zMax >= 0) {
+    if (zMin.getInt() >= 0 && zMax.getInt() >= 0) {
       options.add("-z");
-      options.add(String.valueOf(zMin) + "," + String.valueOf(zMax));
+      options.add(zMin.toString() + "," + zMax.toString());
     }
     if (convertToBytes) {
       if (fixedScaling) {
@@ -444,6 +435,10 @@ public class TrimvolParam implements CommandDetails {
               + scaleXYParam.getYMax().toString());
         }
       }
+    }
+
+    if (flippedVolume) {
+      options.add("-f");
     }
 
     if (swapYZ) {
@@ -510,28 +505,28 @@ public class TrimvolParam implements CommandDetails {
    * @return int
    */
   public int getXMax() {
-    return xMax;
+    return xMax.getInt();
   }
 
   /**
    * @return int
    */
   public int getXMin() {
-    return xMin;
+    return xMin.getInt();
   }
 
   /**
    * @return int
    */
   public int getYMax() {
-    return yMax;
+    return yMax.getInt();
   }
 
   /**
    * @return int
    */
   public int getYMin() {
-    return yMin;
+    return yMin.getInt();
   }
 
   /**
@@ -545,14 +540,14 @@ public class TrimvolParam implements CommandDetails {
    * @return int
    */
   public int getZMax() {
-    return zMax;
+    return zMax.getInt();
   }
 
   /**
    * @return int
    */
   public int getZMin() {
-    return zMin;
+    return zMin.getInt();
   }
 
   /**
@@ -599,6 +594,10 @@ public class TrimvolParam implements CommandDetails {
     return this.sectionScaleMin.set(scaleSectionMin);
   }
 
+  public void setFlippedVolume(boolean input) {
+    flippedVolume = input;
+  }
+
   /**
    * Sets the swapYZ.
    * @param swapYZ The swapYZ to set
@@ -615,53 +614,54 @@ public class TrimvolParam implements CommandDetails {
    * Sets the xMax.
    * @param xMax The xMax to set
    */
-  public void setXMax(int xMax) {
-    this.xMax = xMax;
+  public void setXMax(String xMax) {
+    this.xMax.set(xMax);
   }
 
   /**
    * Sets the xMin.
    * @param xMin The xMin to set
    */
-  public void setXMin(int xMin) {
-    this.xMin = xMin;
+  public void setXMin(String xMin) {
+    this.xMin.set(xMin);
   }
 
   /**
    * Sets the yMax.
    * @param yMax The yMax to set
    */
-  public void setYMax(int yMax) {
-    this.yMax = yMax;
+  public void setYMax(String yMax) {
+    this.yMax.set(yMax);
   }
 
   /**
    * Sets the yMin.
    * @param yMin The yMin to set
    */
-  public void setYMin(int yMin) {
-    this.yMin = yMin;
+  public void setYMin(String yMin) {
+    this.yMin.set(yMin);
   }
 
   /**
    * Sets the zMax.
    * @param zMax The zMax to set
    */
-  public void setZMax(int zMax) {
-    this.zMax = zMax;
+  public void setZMax(String zMax) {
+    this.zMax.set(zMax);
   }
 
   /**
    * Sets the zMin.
    * @param zMin The zMin to set
    */
-  public void setZMin(int zMin) {
-    this.zMin = zMin;
+  public void setZMin(String zMin) {
+    this.zMin.set(zMin);
   }
 
-  public void setDefaultRange(String fileName) throws InvalidParameterException,IOException{
+  public void setDefaultRange(String fileName)
+      throws InvalidParameterException, IOException {
     //Don't override existing values
-    if (xMin != Integer.MIN_VALUE) {
+    if (xMin.getInt() != Integer.MIN_VALUE) {
       return;
     }
     // Get the data size limits from the image stack
@@ -669,23 +669,23 @@ public class TrimvolParam implements CommandDetails {
     MRCHeader mrcHeader = MRCHeader.getInstance(manager.getPropertyUserDir(),
         TrimvolParam.getInputFileName(metaData.getAxisType(), metaData
             .getName()), AxisID.ONLY);
-      mrcHeader.read();
-    xMin = 1;
-    xMax = mrcHeader.getNColumns();
-    yMin = 1;
-    yMax = mrcHeader.getNRows();
-    zMin = 1;
-    zMax = mrcHeader.getNSections();
+    mrcHeader.read();
+    xMin.set(1);
+    xMax.set(mrcHeader.getNColumns());
+    yMin.set(1);
+    yMax.set(mrcHeader.getNRows());
+    zMin.set(1);
+    zMax.set(mrcHeader.getNSections());
 
     // Check the swapped YZ state or rotateX state to decide which dimension to use for the 
     // section range
     if (swapYZ || rotateX) {
-      sectionScaleMin.set(yMax / 3);
-      sectionScaleMax.set(yMax * 2 / 3);
+      sectionScaleMin.set(yMax.getInt() / 3);
+      sectionScaleMax.set(yMax.getInt() * 2 / 3);
     }
     else {
-      sectionScaleMin.set(zMax / 3);
-      sectionScaleMax.set(zMax * 2 / 3);
+      sectionScaleMin.set(zMax.getInt() / 3);
+      sectionScaleMax.set(zMax.getInt() * 2 / 3);
     }
   }
 
@@ -719,6 +719,10 @@ public class TrimvolParam implements CommandDetails {
     inputFile = getInputFileName(axisType, datasetName);
   }
 
+  public void setInputFileName(String fileName) {
+    inputFile = fileName;
+  }
+
   /**
    * 
    * @return
@@ -735,8 +739,8 @@ public class TrimvolParam implements CommandDetails {
    * 
    * @param datasetName
    */
-  public void setOutputFileName(String datasetName) {
-    outputFile = datasetName + ".rec";
+  public void setOutputFileName(String file) {
+    outputFile = file;
   }
 
   public boolean getBooleanValue(etomo.comscript.Fields field) {
@@ -748,11 +752,15 @@ public class TrimvolParam implements CommandDetails {
     }
     throw new IllegalArgumentException("field=" + field);
   }
-  
+
+  public float getFloatValue(etomo.comscript.Fields field) {
+    throw new IllegalArgumentException("field=" + field);
+  }
+
   public String[] getStringArray(etomo.comscript.Fields field) {
     throw new IllegalArgumentException("field=" + field);
   }
-  
+
   public String getString(etomo.comscript.Fields field) {
     throw new IllegalArgumentException("field=" + field);
   }
@@ -760,11 +768,11 @@ public class TrimvolParam implements CommandDetails {
   public double getDoubleValue(etomo.comscript.Fields field) {
     throw new IllegalArgumentException("field=" + field);
   }
-  
+
   public ConstEtomoNumber getEtomoNumber(etomo.comscript.Fields field) {
     throw new IllegalArgumentException("field=" + field);
   }
-  
+
   public ConstIntKeyList getIntKeyList(etomo.comscript.Fields field) {
     throw new IllegalArgumentException("field=" + field);
   }
@@ -787,6 +795,10 @@ public class TrimvolParam implements CommandDetails {
       buffer.append(commandArray[i] + " ");
     }
     return buffer.toString();
+  }
+
+  public CommandDetails getSubcommandDetails() {
+    return null;
   }
 
   public String getCommandName() {
@@ -819,22 +831,22 @@ public class TrimvolParam implements CommandDetails {
    * @return
    */
   public boolean equals(TrimvolParam trim) {
-    if (xMin != trim.getXMin()) {
+    if (!xMin.equals(trim.getXMin())) {
       return false;
     }
-    if (xMax != trim.getXMax()) {
+    if (!xMax.equals(trim.getXMax())) {
       return false;
     }
-    if (yMin != trim.getYMin()) {
+    if (!yMin.equals(trim.getYMin())) {
       return false;
     }
-    if (yMax != trim.getYMax()) {
+    if (!yMax.equals(trim.getYMax())) {
       return false;
     }
-    if (zMin != trim.getZMin()) {
+    if (!zMin.equals(trim.getZMin())) {
       return false;
     }
-    if (zMax != trim.getZMax()) {
+    if (!zMax.equals(trim.getZMax())) {
       return false;
     }
     if (convertToBytes != trim.isConvertToBytes()) {

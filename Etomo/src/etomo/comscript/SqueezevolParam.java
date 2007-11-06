@@ -19,6 +19,9 @@ import etomo.type.ConstEtomoNumber;
 * @version $Revision$
 * 
 * <p> $Log$
+* <p> Revision 1.6  2006/01/20 20:48:06  sueh
+* <p> updated copyright year
+* <p>
 * <p> Revision 1.5  2005/07/29 00:49:55  sueh
 * <p> bug# 709 Going to EtomoDirector to get the current manager is unreliable
 * <p> because the current manager changes when the user changes the tab.
@@ -67,7 +70,9 @@ public class SqueezevolParam extends ConstSqueezevolParam {
   public ConstEtomoNumber setReductionFactorX(String reductionFactorX) {
     return this.reductionFactorX.set(reductionFactorX);
   }
-  
+  public CommandDetails getSubcommandDetails() {
+    return null;
+  }
   public ConstEtomoNumber setReductionFactorY(String reductionFactorY) {
     return this.reductionFactorY.set(reductionFactorY);
   }

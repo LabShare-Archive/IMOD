@@ -84,7 +84,7 @@ public class ConstTiltalignParam implements CommandDetails {
   public static final String FIX_XYZ_COORDINATES_KEY = "FixXYZCoordinates";
   static final String OUTPUT_X_AXIS_TILT_FILE_KEY = "OutputXAxisTiltFile";
   public static final String BEAM_TILT_OPTION_KEY = "BeamTiltOption";
-  public static final String FIXED_OR_INITIAL_BEAM_TILT="FixedOrInitialBeamTilt";
+  public static final String FIXED_OR_INITIAL_BEAM_TILT = "FixedOrInitialBeamTilt";
 
   static final String modelFileString = "ModelFile";
   static final String imageFileString = "ImageFile";
@@ -475,6 +475,10 @@ public class ConstTiltalignParam implements CommandDetails {
     return null;
   }
 
+  public CommandDetails getSubcommandDetails() {
+    return null;
+  }
+
   public File getCommandOutputFile() {
     return null;
   }
@@ -493,10 +497,14 @@ public class ConstTiltalignParam implements CommandDetails {
     throw new IllegalArgumentException("field=" + field);
   }
 
+  public float getFloatValue(etomo.comscript.Fields field) {
+    throw new IllegalArgumentException("field=" + field);
+  }
+
   public String getString(etomo.comscript.Fields field) {
     throw new IllegalArgumentException("field=" + field);
   }
-  
+
   public String[] getStringArray(etomo.comscript.Fields field) {
     throw new IllegalArgumentException("field=" + field);
   }
@@ -998,6 +1006,9 @@ public class ConstTiltalignParam implements CommandDetails {
 
 /**
  * <p> $Log$
+ * <p> Revision 3.31  2007/05/11 15:26:07  sueh
+ * <p> bug# 964 Added getStringArray().
+ * <p>
  * <p> Revision 3.30  2007/03/07 20:59:50  sueh
  * <p> bug# 981 Added beamTiltOption and fixedOrInitialBeamTilt.
  * <p>

@@ -154,6 +154,10 @@ public class BlendmontParam implements CommandParam, CommandDetails {
     convertToStartingAndEnding(startingAndEndingY, montagesize.getY().getInt(),
         fisSizeToOutputInXandY.getInt(1));
   }
+  
+  public CommandDetails getSubcommandDetails() {
+    return null;
+  }
 
   private void convertToStartingAndEnding(FortranInputString startingAndEnding,
       int montageSize, int size) {
@@ -294,6 +298,10 @@ public class BlendmontParam implements CommandParam, CommandDetails {
   public double getDoubleValue(etomo.comscript.Fields field) {
     throw new IllegalArgumentException("field=" + field);
   }
+  
+  public float getFloatValue(etomo.comscript.Fields field) {
+    throw new IllegalArgumentException("field=" + field);
+  }
 
   public ConstEtomoNumber getEtomoNumber(etomo.comscript.Fields field) {
     throw new IllegalArgumentException("field=" + field);
@@ -374,6 +382,9 @@ public class BlendmontParam implements CommandParam, CommandDetails {
 }
 /**
  * <p> $Log$
+ * <p> Revision 1.25  2007/08/24 16:33:56  sueh
+ * <p> bug# 1042 Set startingAndEndingX and Y divider to a space.
+ * <p>
  * <p> Revision 1.24  2007/08/16 16:26:03  sueh
  * <p> bug# 1035 Added startingAndEndingX and Y.  Added functions
  * <p> convertToStartingAndEndingXandY and resetStartingAndEndingXandY.

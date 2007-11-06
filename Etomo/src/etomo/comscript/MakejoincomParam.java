@@ -37,6 +37,9 @@ import etomo.util.DatasetFiles;
  * <p> </p>
  * 
  * <p> $Log$
+ * <p> Revision 1.25  2007/05/11 15:27:55  sueh
+ * <p> bug# 964 Added getStringArray().
+ * <p>
  * <p> Revision 1.24  2007/03/26 18:34:51  sueh
  * <p> bug# 964 Changed getDouble(boolean defaultIfNull) to getDefaultDouble() so that
  * <p> the functionality will be remembered and used.
@@ -344,6 +347,10 @@ public final class MakejoincomParam implements CommandDetails {
     throw new IllegalArgumentException("field=" + field);
   }
 
+  public CommandDetails getSubcommandDetails() {
+    return null;
+  }
+
   public ConstEtomoNumber getEtomoNumber(etomo.comscript.Fields field) {
     throw new IllegalArgumentException("field=" + field);
   }
@@ -358,7 +365,11 @@ public final class MakejoincomParam implements CommandDetails {
     }
     throw new IllegalArgumentException("field=" + field);
   }
-  
+
+  public float getFloatValue(etomo.comscript.Fields field) {
+    throw new IllegalArgumentException("field=" + field);
+  }
+
   public String[] getStringArray(etomo.comscript.Fields field) {
     throw new IllegalArgumentException("field=" + field);
   }

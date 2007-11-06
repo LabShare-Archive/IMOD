@@ -24,6 +24,10 @@ import etomo.type.Transform;
  * @version $Revision$
  * 
  * <p> $Log$
+ * <p> Revision 1.17  2007/03/07 21:04:08  sueh
+ * <p> bug# 981 Changed ScriptParameter.isUseInScript to isNotNullAndNotDefault for
+ * <p> clarity.
+ * <p>
  * <p> Revision 1.16  2007/02/05 22:49:06  sueh
  * <p> bug# 962 Put comscript mode info into an inner class.
  * <p>
@@ -160,7 +164,9 @@ public class XfalignParam implements Command {
   public String[] getCommandArray() {
     return commandArray;
   }
-
+  public CommandDetails getSubcommandDetails() {
+    return null;
+  }
   public String getCommandLine() {
     StringBuffer buffer = new StringBuffer();
     for (int i = 0; i < commandArray.length; i++) {

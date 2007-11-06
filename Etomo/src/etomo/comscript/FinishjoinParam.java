@@ -32,6 +32,9 @@ import etomo.util.DatasetFiles;
  * @version $Revision$
  * 
  * <p> $Log$
+ * <p> Revision 1.28  2007/06/08 23:55:59  sueh
+ * <p> bug# 995 Saving the value of useEveryNSlices when is REJOIN_TRIAL mode.
+ * <p>
  * <p> Revision 1.27  2007/05/11 15:27:01  sueh
  * <p> bug# 964 Added getStringArray().
  * <p>
@@ -300,6 +303,10 @@ public final class FinishjoinParam implements CommandDetails {
     throw new IllegalArgumentException("field=" + field);
   }
 
+  public float getFloatValue(etomo.comscript.Fields field) {
+    throw new IllegalArgumentException("field=" + field);
+  }
+
   public String[] getStringArray(etomo.comscript.Fields field) {
     throw new IllegalArgumentException("field=" + field);
   }
@@ -351,6 +358,10 @@ public final class FinishjoinParam implements CommandDetails {
 
   public CommandMode getCommandMode() {
     return mode;
+  }
+
+  public CommandDetails getSubcommandDetails() {
+    return null;
   }
 
   /**

@@ -23,7 +23,10 @@ import etomo.util.DatasetFiles;
 * 
 * @version $Revision$
 * 
-* <p> $Log$ </p>
+* <p> $Log$
+* <p> Revision 1.1  2007/02/05 22:51:16  sueh
+* <p> bug# 962 Xftoxg parameter object.
+* <p> </p>
 */
 public final class XftoxgParam implements Command{
   public static  final String  rcsid =  "$Id$";
@@ -92,7 +95,9 @@ public final class XftoxgParam implements Command{
     }
     return buffer.toString();
   }
-  
+  public CommandDetails getSubcommandDetails() {
+    return null;
+  }
   public CommandMode getCommandMode() {
     return null;
   }

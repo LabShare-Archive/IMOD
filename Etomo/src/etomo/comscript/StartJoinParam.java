@@ -9,63 +9,66 @@ import etomo.type.ConstIntKeyList;
 import etomo.type.ProcessName;
 
 /**
-* <p>Description: </p>
-* 
-* <p>Copyright: Copyright (c) 2006</p>
-*
-* <p>Organization:
-* Boulder Laboratory for 3-Dimensional Electron Microscopy of Cells (BL3DEMC),
-* University of Colorado</p>
-* 
-* @author $Author$
-* 
-* @version $Revision$
-*/
+ * <p>Description: </p>
+ * 
+ * <p>Copyright: Copyright (c) 2006</p>
+ *
+ * <p>Organization:
+ * Boulder Laboratory for 3-Dimensional Electron Microscopy of Cells (BL3DEMC),
+ * University of Colorado</p>
+ * 
+ * @author $Author$
+ * 
+ * @version $Revision$
+ */
 public class StartJoinParam implements CommandDetails {
-  public static  final String  rcsid =  "$Id$";
-  
+  public static final String rcsid = "$Id$";
+
   private static final ProcessName PROCESS_NAME = ProcessName.STARTJOIN;
-  private static final boolean debug=true;
-  
+  private static final boolean debug = true;
+
   private final AxisID axisID;
-  
+
   private Hashtable rotationAnglesList = null;
   private boolean rotate = false;
   private int totalRows = 0;
-  
+
   public StartJoinParam(AxisID axisID) {
     this.axisID = axisID;
   }
-  
+
   public void setRotate(boolean rotate) {
     this.rotate = rotate;
   }
-  
+
   public void setRotationAnglesList(Hashtable rotationAnglesList) {
     this.rotationAnglesList = rotationAnglesList;
   }
-  
+
   public void setTotalRows(int totalRows) {
     this.totalRows = totalRows;
   }
-  
+
   public String getCommandLine() {
     return getCommand();
   }
-  
+
+  public CommandDetails getSubcommandDetails() {
+    return null;
+  }
+
   public String getCommand() {
-    String command=PROCESS_NAME.getComscript(axisID);
+    String command = PROCESS_NAME.getComscript(axisID);
     if (debug) {
       System.err.println(command);
     }
     return command;
   }
-  
+
   public AxisID getAxisID() {
     return axisID;
   }
-  
-  
+
   public Hashtable getHashtable(etomo.comscript.Fields field) {
     if (field == Fields.ROTATION_ANGLES_LIST) {
       return rotationAnglesList;
@@ -79,79 +82,86 @@ public class StartJoinParam implements CommandDetails {
     }
     throw new IllegalArgumentException("field=" + field);
   }
-  
+
+  public float getFloatValue(etomo.comscript.Fields field) {
+    throw new IllegalArgumentException("field=" + field);
+  }
+
   public String[] getStringArray(etomo.comscript.Fields field) {
     throw new IllegalArgumentException("field=" + field);
   }
-  
+
   public String getString(etomo.comscript.Fields field) {
     throw new IllegalArgumentException("field=" + field);
   }
-  
+
   public double getDoubleValue(etomo.comscript.Fields field) {
     throw new IllegalArgumentException("field=" + field);
   }
-  
+
   public ConstEtomoNumber getEtomoNumber(etomo.comscript.Fields field) {
     throw new IllegalArgumentException("field=" + field);
   }
-  
+
   public ConstIntKeyList getIntKeyList(etomo.comscript.Fields field) {
     throw new IllegalArgumentException("field=" + field);
   }
-  
+
   public int getIntValue(etomo.comscript.Fields field) {
     if (field == Fields.TOTAL_ROWS) {
       return totalRows;
     }
     throw new IllegalArgumentException("field=" + field);
   }
-  
+
   public String[] getCommandArray() {
     return null;
   }
-  
+
   public String getCommandName() {
     return null;
   }
-  
+
   public CommandMode getCommandMode() {
     return null;
   }
-  
+
   public File getCommandOutputFile() {
     return null;
   }
-  
+
   public static final class Fields implements etomo.comscript.Fields {
     private Fields() {
     }
-    
+
     public static final Fields ROTATION_ANGLES_LIST = new Fields();
     public static final Fields TOTAL_ROWS = new Fields();
     public static final Fields ROTATE = new Fields();
   }
 }
 /**
-* <p> $Log$
-* <p> Revision 1.5  2007/02/05 22:46:06  sueh
-* <p> bug# 962 Added getEtomoNumber, getIntKeyList, and getString.
-* <p>
-* <p> Revision 1.4  2006/06/05 16:16:50  sueh
-* <p> bug# 766 In ProcessName:  Changed getCommand() and getCommandArray() to
-* <p> getComscript... because the fuctions are specialized for comscripts.
-* <p>
-* <p> Revision 1.3  2006/05/22 22:40:37  sueh
-* <p> bug# 577 Added getCommand().
-* <p>
-* <p> Revision 1.2  2006/05/11 19:48:22  sueh
-* <p> bug# 838 Add CommandDetails, which extends Command and
-* <p> ProcessDetails.  Changed ProcessDetails to only contain generic get
-* <p> functions.  Command contains all the command oriented functions.
-* <p>
-* <p> Revision 1.1  2006/04/06 19:38:23  sueh
-* <p> bug# 808 Added this param so that it could hold state data that is passed
-* <p> to it when makejoincom is successful.  The data is passed to JoinState
-* <p> when startjoin is successful.
-* <p> </p>
-*/
+ * <p> $Log$
+ * <p> Revision 1.6  2007/05/11 15:33:07  sueh
+ * <p> bug# 964 Added getStringArray().
+ * <p>
+ * <p> Revision 1.5  2007/02/05 22:46:06  sueh
+ * <p> bug# 962 Added getEtomoNumber, getIntKeyList, and getString.
+ * <p>
+ * <p> Revision 1.4  2006/06/05 16:16:50  sueh
+ * <p> bug# 766 In ProcessName:  Changed getCommand() and getCommandArray() to
+ * <p> getComscript... because the fuctions are specialized for comscripts.
+ * <p>
+ * <p> Revision 1.3  2006/05/22 22:40:37  sueh
+ * <p> bug# 577 Added getCommand().
+ * <p>
+ * <p> Revision 1.2  2006/05/11 19:48:22  sueh
+ * <p> bug# 838 Add CommandDetails, which extends Command and
+ * <p> ProcessDetails.  Changed ProcessDetails to only contain generic get
+ * <p> functions.  Command contains all the command oriented functions.
+ * <p>
+ * <p> Revision 1.1  2006/04/06 19:38:23  sueh
+ * <p> bug# 808 Added this param so that it could hold state data that is passed
+ * <p> to it when makejoincom is successful.  The data is passed to JoinState
+ * <p> when startjoin is successful.
+ * <p> </p>
+ */

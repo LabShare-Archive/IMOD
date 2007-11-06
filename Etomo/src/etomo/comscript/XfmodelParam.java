@@ -30,6 +30,9 @@ import etomo.util.DatasetFiles;
  * @version $Revision$
  * 
  * <p> $Log$
+ * <p> Revision 1.4  2007/05/11 15:33:26  sueh
+ * <p> bug# 964 Added getStringArray().
+ * <p>
  * <p> Revision 1.3  2007/03/01 01:13:30  sueh
  * <p> bug# 964 Saving immutable Number elements instead of EtomoNumber elements
  * <p> in IntKeyList.
@@ -109,6 +112,10 @@ public final class XfmodelParam implements CommandDetails {
       options.add(outputFile);
     }
     return options;
+  }
+
+  public CommandDetails getSubcommandDetails() {
+    return null;
   }
 
   public boolean isValid() {
@@ -222,7 +229,11 @@ public final class XfmodelParam implements CommandDetails {
   public boolean getBooleanValue(etomo.comscript.Fields field) {
     throw new IllegalArgumentException("field=" + field);
   }
-  
+
+  public float getFloatValue(etomo.comscript.Fields field) {
+    throw new IllegalArgumentException("field=" + field);
+  }
+
   public String[] getStringArray(etomo.comscript.Fields field) {
     throw new IllegalArgumentException("field=" + field);
   }

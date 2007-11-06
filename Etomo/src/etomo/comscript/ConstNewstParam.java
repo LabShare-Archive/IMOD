@@ -22,6 +22,9 @@ import etomo.type.ConstIntKeyList;
  * @version $Revision$
  *
  * <p> $Log$
+ * <p> Revision 3.20  2007/09/11 21:16:21  sueh
+ * <p> bug# 1035 Added getSizeToOutputInX and Y and isSizeToOutputInXandYSet.
+ * <p>
  * <p> Revision 3.19  2007/05/11 15:06:47  sueh
  * <p> bug# 964 Added getStringArray().
  * <p>
@@ -221,6 +224,10 @@ public class ConstNewstParam implements CommandDetails {
     return expandByFactor;
   }
 
+  public CommandDetails getSubcommandDetails() {
+    return null;
+  }
+
   /**
    * @return Returns the fileOfInputs.
    */
@@ -360,11 +367,11 @@ public class ConstNewstParam implements CommandDetails {
   public String getSizeToOutputInXandY() {
     return sizeToOutputInXandY.toString();
   }
-  
+
   public int getSizeToOutputInX() {
     return sizeToOutputInXandY.getInt(0);
   }
-  
+
   public int getSizeToOutputInY() {
     return sizeToOutputInXandY.getInt(1);
   }
@@ -389,9 +396,10 @@ public class ConstNewstParam implements CommandDetails {
   public String getUseTransformLines() {
     return useTransformLines;
   }
-  
+
   public boolean isSizeToOutputInXandYSet() {
-    return sizeToOutputInXandY.valuesSet() && (!sizeToOutputInXandY.isDefault());
+    return sizeToOutputInXandY.valuesSet()
+        && (!sizeToOutputInXandY.isDefault());
   }
 
   /**
@@ -429,7 +437,7 @@ public class ConstNewstParam implements CommandDetails {
     fiducialessAlignment = false;
     magGradientFile = null;
   }
-  
+
   public String getCommand() {
     return getCommandFileName(axisID);
   }
@@ -472,11 +480,15 @@ public class ConstNewstParam implements CommandDetails {
     }
     throw new IllegalArgumentException("field=" + field);
   }
-  
+
+  public float getFloatValue(etomo.comscript.Fields field) {
+    throw new IllegalArgumentException("field=" + field);
+  }
+
   public String[] getStringArray(etomo.comscript.Fields field) {
     throw new IllegalArgumentException("field=" + field);
   }
-  
+
   public String getString(etomo.comscript.Fields field) {
     throw new IllegalArgumentException("field=" + field);
   }
@@ -484,19 +496,19 @@ public class ConstNewstParam implements CommandDetails {
   public double getDoubleValue(etomo.comscript.Fields field) {
     throw new IllegalArgumentException("field=" + field);
   }
-  
+
   public ConstEtomoNumber getEtomoNumber(etomo.comscript.Fields field) {
     throw new IllegalArgumentException("field=" + field);
   }
-  
+
   public ConstIntKeyList getIntKeyList(etomo.comscript.Fields field) {
     throw new IllegalArgumentException("field=" + field);
   }
-  
+
   public Hashtable getHashtable(etomo.comscript.Fields field) {
     throw new IllegalArgumentException("field=" + field);
   }
-  
+
   public static final class Fields implements etomo.comscript.Fields {
     private Fields() {
     }
@@ -504,8 +516,8 @@ public class ConstNewstParam implements CommandDetails {
     public static final Fields FIDUCIALESS_ALIGNMENT = new Fields();
     public static final Fields BINNING = new Fields();
   }
-  
-  public static final class Mode implements CommandMode{
+
+  public static final class Mode implements CommandMode {
     public static final Mode WHOLE_TOMOGRAM_SAMPLE = new Mode();
     public static final Mode FULL_ALIGNED_STACK = new Mode();
   }

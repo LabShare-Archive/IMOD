@@ -70,6 +70,10 @@ public class ArchiveorigParam implements Command {
     return mode;
   }
   
+  public CommandDetails getSubcommandDetails() {
+    return null;
+  }
+  
   public File getCommandOutputFile() {
     return outputFile;
   }
@@ -86,6 +90,9 @@ public class ArchiveorigParam implements Command {
 }
 /**
 * <p> $Log$
+* <p> Revision 1.10  2007/02/05 21:31:03  sueh
+* <p> bug# 962 Put mode info into an inner class.
+* <p>
 * <p> Revision 1.9  2006/06/07 17:45:09  sueh
 * <p> bug# 766 Running archiveorig with tcsh for windows
 * <p>

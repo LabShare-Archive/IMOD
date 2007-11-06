@@ -8,6 +8,7 @@ import etomo.storage.MatlabParam;
 import etomo.type.AxisID;
 import etomo.type.ConstEtomoNumber;
 import etomo.type.ConstIntKeyList;
+
 import etomo.type.ProcessName;
 import etomo.util.EnvironmentVariable;
 
@@ -25,6 +26,9 @@ import etomo.util.EnvironmentVariable;
  * @version $Revision$
  * 
  * <p> $Log$
+ * <p> Revision 1.2  2007/05/11 15:29:29  sueh
+ * <p> bug# 964 Implemented CommandDetails.
+ * <p>
  * <p> Revision 1.1  2007/04/27 23:38:09  sueh
  * <p> bug# 964 Changed prmParser() to peetParser.
  * <p>
@@ -32,12 +36,12 @@ import etomo.util.EnvironmentVariable;
  * <p> bug# 964 Represents the prmParser command.
  * <p> </p>
  */
-public final class PeetParserParam implements CommandDetails{
+public final class PeetParserParam implements CommandDetails {
   public static final String rcsid = "$Id$";
 
   private final File prmFile;
   private final BaseManager manager;
-  
+
   private boolean debug = true;
   private String[] command = null;
   private int iterationListSize;
@@ -53,12 +57,12 @@ public final class PeetParserParam implements CommandDetails{
       return command;
     }
     command = new String[3];
-    command[0]="sh";
+    command[0] = "sh";
     File commandFile = new File(new File(EnvironmentVariable.INSTANCE.getValue(
         manager.getPropertyUserDir(), "PARTICLE_DIR", AxisID.ONLY), "bin"),
         ProcessName.PEET_PARSER.toString());
-    command[1]=commandFile.getAbsolutePath();
-    command[2]=prmFile.getName();
+    command[1] = commandFile.getAbsolutePath();
+    command[2] = prmFile.getName();
     if (debug) {
       for (int i = 0; i < command.length; i++) {
         if (i > 0) {
@@ -70,81 +74,94 @@ public final class PeetParserParam implements CommandDetails{
     }
     return command;
   }
-  
+
   public File getLogFile() {
-    return new File(prmFile.getAbsolutePath()+".log");
+    return new File(prmFile.getAbsolutePath() + ".log");
   }
-  
+
   public void getParameters(MatlabParam matlabParam) {
-    iterationListSize=matlabParam.getIterationListSize();
-    lstThresholdsArray=matlabParam.getLstThresholdsArray();
+    iterationListSize = matlabParam.getIterationListSize();
+    lstThresholdsArray = matlabParam.getLstThresholdsExpandedArray();
   }
-  
+
   public CommandMode getCommandMode() {
     return null;
   }
-  
+
   public File getCommandOutputFile() {
     return null;
   }
-  
+
   public String getCommandName() {
     return null;
   }
-  
+
   public String getCommandLine() {
     return getCommand();
   }
-  
+
+  public CommandDetails getSubcommandDetails() {
+    return null;
+  }
+
   public AxisID getAxisID() {
     return AxisID.ONLY;
   }
-  
+
   public String getCommand() {
-    String command=ProcessName.PEET_PARSER.getComscript(AxisID.ONLY);
+    String command = ProcessName.PEET_PARSER.getComscript(AxisID.ONLY);
     if (debug) {
       System.err.println(command);
     }
     return command;
   }
-  
+
   public int getIntValue(etomo.comscript.Fields field) {
     if (field == Fields.ITERATION_LIST_SIZE) {
       return iterationListSize;
     }
     throw new IllegalArgumentException("field=" + field);
   }
-  
+
   public String[] getStringArray(etomo.comscript.Fields field) {
-    if (field==Fields.LST_THRESHOLDS_ARRAY) {
+    if (field == Fields.LST_THRESHOLDS_ARRAY) {
       return lstThresholdsArray;
     }
     throw new IllegalArgumentException("field=" + field);
   }
-  
+
   public boolean getBooleanValue(etomo.comscript.Fields field) {
     throw new IllegalArgumentException("field=" + field);
   }
+
+  public float getFloatValue(etomo.comscript.Fields field) {
+    throw new IllegalArgumentException("field=" + field);
+  }
+
   public double getDoubleValue(etomo.comscript.Fields field) {
     throw new IllegalArgumentException("field=" + field);
   }
+
   public Hashtable getHashtable(etomo.comscript.Fields field) {
     throw new IllegalArgumentException("field=" + field);
   }
+
   public ConstEtomoNumber getEtomoNumber(etomo.comscript.Fields field) {
     throw new IllegalArgumentException("field=" + field);
   }
+
   public ConstIntKeyList getIntKeyList(etomo.comscript.Fields field) {
     throw new IllegalArgumentException("field=" + field);
   }
+
   public String getString(etomo.comscript.Fields field) {
     throw new IllegalArgumentException("field=" + field);
   }
-  
+
   public static final class Fields implements etomo.comscript.Fields {
     private Fields() {
     }
-    
+
     public static final Fields ITERATION_LIST_SIZE = new Fields();
     public static final Fields LST_THRESHOLDS_ARRAY = new Fields();
   }

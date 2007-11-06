@@ -90,9 +90,15 @@ public final class TomosnapshotParam implements Command {
     }
     return commandArray;
   }
+  public CommandDetails getSubcommandDetails() {
+    return null;
+  }
 }
 /**
  * <p> $Log$
+ * <p> Revision 1.6  2007/02/05 22:48:08  sueh
+ * <p> bug# 962 Changed getCommandMode to return CommandMode.
+ * <p>
  * <p> Revision 1.5  2006/05/22 22:41:07  sueh
  * <p> bug# 577 Moved the call to buildCommand to getCommandArray().  Made
  * <p> getCommand() conform to the Command interface.

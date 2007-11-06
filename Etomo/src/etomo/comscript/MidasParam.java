@@ -25,6 +25,9 @@ import etomo.type.SectionTableRowData;
 * @version $Revision$
 * 
 * <p> $Log$
+* <p> Revision 1.12  2007/02/05 22:37:24  sueh
+* <p> bug# 962 Using BaseMetaData.getName instead of JoinMetaData.getRootName.
+* <p>
 * <p> Revision 1.11  2006/05/22 22:39:27  sueh
 * <p> bug# 577 Added getCommand().
 * <p>
@@ -135,7 +138,9 @@ public class MidasParam implements Command {
   public String[] getCommandArray() {
     return commandArray;
   }
-  
+  public CommandDetails getSubcommandDetails() {
+    return null;
+  }
   public String getCommandLine() {
     StringBuffer buffer = new StringBuffer();
     for (int i = 0; i < commandArray.length; i++) {
