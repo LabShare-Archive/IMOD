@@ -46,7 +46,8 @@ public final class ProcesschunksParam implements DetachedCommand, ParallelParam 
 
   private final AxisID axisID;
   private final BaseManager manager;
-
+  
+  private CommandDetails subcommandDetails=null;
   private String[] commandArray = null;
   private String rootName = null;
   private StringBuffer machineList = null;
@@ -55,6 +56,9 @@ public final class ProcesschunksParam implements DetachedCommand, ParallelParam 
   private boolean debug = true;
   private String queueCommand = null;
   private String queue = null;
+  private String subdirName = null;
+  private boolean test = false;
+  private CommandMode subcommandMode=null;
 
   public ProcesschunksParam(final BaseManager manager, final AxisID axisID) {
     this.axisID = axisID;
@@ -78,6 +82,14 @@ public final class ProcesschunksParam implements DetachedCommand, ParallelParam 
 
   public AxisID getAxisID() {
     return axisID;
+  }
+  
+  public void setSubcommandMode(CommandMode input) {
+    subcommandMode = input;
+  }
+  
+  public CommandMode getSubcommandMode() {
+    return subcommandMode;
   }
 
   /**
@@ -110,8 +122,20 @@ public final class ProcesschunksParam implements DetachedCommand, ParallelParam 
     this.nice.set(nice);
   }
 
+  public void setSubdirName(final String input) {
+    subdirName = input;
+  }
+
   public void setDebug(final boolean input) {
     debug = input;
+  }
+  
+  public void setSubcommandDetails(CommandDetails input) {
+     subcommandDetails=input;
+  }
+
+  public CommandDetails getSubcommandDetails() {
+    return subcommandDetails;
   }
 
   public void setQueue(final String queue) {
@@ -122,7 +146,7 @@ public final class ProcesschunksParam implements DetachedCommand, ParallelParam 
     queueCommand = command;
   }
 
-  public void setCPUNumber(String input) {
+  public void setCPUNumber(final String input) {
     cpuNumber.set(input);
   }
 
@@ -151,6 +175,10 @@ public final class ProcesschunksParam implements DetachedCommand, ParallelParam 
     return resume;
   }
 
+  public String getSubdirName() {
+    return subdirName;
+  }
+
   public String getMachineList() {
     if (machineList == null) {
       buildMachineList();
@@ -162,7 +190,7 @@ public final class ProcesschunksParam implements DetachedCommand, ParallelParam 
   }
 
   /**
-   * Clears macinesNames.  This value can be set after the command is built because it
+   * Clears machinesNames.  This value can be set after the command is built because it
    * comes from the parallel panel and can be changed for a resume.
    * 
    * Causes commandArray to be set to null.
@@ -185,6 +213,10 @@ public final class ProcesschunksParam implements DetachedCommand, ParallelParam 
 
   public String getCommandName() {
     return ProcessName.PROCESSCHUNKS.toString();
+  }
+  
+  public String getShortCommandName() {
+    return "pc";
   }
 
   public String getCommandLine() {
@@ -250,7 +282,6 @@ public final class ProcesschunksParam implements DetachedCommand, ParallelParam 
   }
 
   public String validate() {
-    System.err.println("queueCommand=" + queueCommand);
     if ((queueCommand == null && (machineNames == null || machineNames.size() == 0))
         || (queueCommand != null && cpuNumber.lt(0))) {
       return "No CPUs where selected.";
@@ -291,7 +322,13 @@ public final class ProcesschunksParam implements DetachedCommand, ParallelParam 
     command.add("-d");
     command.add(String.valueOf(DROP_VALUE));
     command.add("-c");
-    command.add(DatasetFiles.getCommandsFileName(rootName));
+    StringBuffer commandsFileName = new StringBuffer();
+    if (subdirName != null) {
+      commandsFileName.append("../");
+    }
+    commandsFileName.append(new StringBuffer(DatasetFiles.getCommandsFileName(
+        subdirName, rootName)));
+    command.add(commandsFileName.toString());
     command.add("-P");
     if (queueCommand == null) {
       //add machine names
@@ -362,6 +399,9 @@ public final class ProcesschunksParam implements DetachedCommand, ParallelParam 
 }
 /**
  * <p> $Log$
+ * <p> Revision 1.26  2007/09/27 19:22:56  sueh
+ * <p> bug# 1044 Added support for submitting chunks to a queue.
+ * <p>
  * <p> Revision 1.25  2007/07/17 20:56:40  sueh
  * <p> bug# 1018 Moved nice floor default to CpuAdoc.
  * <p>
