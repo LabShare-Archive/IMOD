@@ -27,9 +27,13 @@ public interface Command {
   public String[] getCommandArray();
   public AxisID getAxisID();
   public String getCommand();//return the command or comscript file name
+  public CommandDetails getSubcommandDetails();
 }
 /**
 * <p> $Log$
+* <p> Revision 1.11  2007/02/05 21:34:29  sueh
+* <p> bug# 962 Changed getCommandMode to return an interface for inner Mode classes (CommandMode) instead of an int.
+* <p>
 * <p> Revision 1.10  2006/05/22 22:35:33  sueh
 * <p> bug# 577 Added getCommand().
 * <p>
