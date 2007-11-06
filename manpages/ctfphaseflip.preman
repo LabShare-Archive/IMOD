@@ -18,7 +18,8 @@ region whose defocus difference is less than a user specified value, but the
 width is also limited to 256 pixels.
 
 It can be run in a parallel mode similiar to the Tilt(1) program by setting the
-TotalViews option.
+TotalViews option.  The script Splitcorrection(1) can be used to prepare 
+command files for running the program in parallel.
 
 A sample command file for running the program with "subm" can be found in the
 IMOD/com directory (ctfcorrection.com).
