@@ -43,6 +43,10 @@ import java.lang.String;
  * @version $Revision$
  *
  * <p> $Log$
+ * <p> Revision 3.29  2007/09/10 20:43:31  sueh
+ * <p> bug# 925 Removed lazy initialization for ProcessResultDisplay so initialized is
+ * <p> no longer needed.  In setScreenState, calling button.setSelected() immediately
+ * <p>
  * <p> Revision 3.28  2007/09/07 00:27:38  sueh
  * <p> bug# 989 Using a public INSTANCE to refer to the EtomoDirector singleton
  * <p> instead of getInstance and createInstance.
@@ -359,7 +363,7 @@ import java.lang.String;
   }
 
   public String toString() {
-    return getButtonStateKey()+": selected="+button.isSelected()+"\n";
+    return getText();
   }
 
   final void addActionListener(ActionListener actionListener) {
