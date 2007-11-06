@@ -1036,7 +1036,7 @@ int main (int argc, char **argv)
         writeArg = iarg;
         break;
       case 'P':
-        fprintf(stderr, "PID: %d\n", getpid());
+        fprintf(stderr, "Shell PID: %d\n", getpid());
         fflush(stderr);
         break;
       default:
@@ -1281,6 +1281,9 @@ int main (int argc, char **argv)
 /*  
     
 $Log$
+Revision 3.8  2007/11/02 22:37:15  mast
+Added process ID option
+
 Revision 3.7  2007/10/03 22:57:46  mast
 Fixed usage string
 
