@@ -22,6 +22,7 @@ public interface ProcessDetails {
   public static final String rcsid = "$Id$";
 
   public int getIntValue(etomo.comscript.Fields field);
+  public float getFloatValue(etomo.comscript.Fields field);
   public boolean getBooleanValue(etomo.comscript.Fields field);
   public double getDoubleValue(etomo.comscript.Fields field);
   public Hashtable getHashtable(etomo.comscript.Fields field);
@@ -32,6 +33,9 @@ public interface ProcessDetails {
 }
 /**
  * <p> $Log$
+ * <p> Revision 1.6  2007/05/11 15:32:58  sueh
+ * <p> bug# 964 Added getStringArray().
+ * <p>
  * <p> Revision 1.5  2007/02/05 22:40:16  sueh
  * <p> bug# 962 Added getEtomoNumber, getIntKeyList, and getString.
  * <p>
