@@ -27,6 +27,9 @@ import etomo.util.PrimativeTokenizer;
  * @version $Revision$
  * 
  * <p> $Log$
+ * <p> Revision 1.8  2007/07/10 00:31:52  sueh
+ * <p> bug# 1022 Added a comment.
+ * <p>
  * <p> Revision 1.7  2007/05/03 21:10:27  sueh
  * <p> bug# 964 Added boolean compactArray.
  * <p>
@@ -81,47 +84,46 @@ public final class ParsedList {
    */
   private Integer[] defaultValueArray = null;
 
-  private boolean valid = true;
+  private boolean failed = false;
   private boolean debug = false;
 
   private ParsedList(Type type, EtomoNumber.Type etomoNumberType,
-      boolean flexibleSyntax, boolean compactDescriptor,boolean compactArray) {
+      boolean flexibleSyntax, boolean compactDescriptor, boolean compactArray) {
     this.type = type;
     this.etomoNumberType = etomoNumberType;
     this.flexibleSyntax = flexibleSyntax;
     this.compactDescriptor = compactDescriptor;
-    this.compactArray =compactArray;
+    this.compactArray = compactArray;
   }
 
   public static ParsedList getNumericInstance() {
-    return new ParsedList(Type.NUMERIC, null, false, false,false);
+    return new ParsedList(Type.NUMERIC, null, false, false, false);
   }
 
   public static ParsedList getNumericInstance(EtomoNumber.Type etomoNumberType) {
-    return new ParsedList(Type.NUMERIC, etomoNumberType, false, false,false);
-  }
-  
-  public static ParsedList getFlexibleInstance() {
-    return new ParsedList(Type.NUMERIC, null, true, false,false);
+    return new ParsedList(Type.NUMERIC, etomoNumberType, false, false, false);
   }
 
-  public static ParsedList getFlexibleInstance(
-      EtomoNumber.Type etomoNumberType) {
-    return new ParsedList(Type.NUMERIC, etomoNumberType, true, false,false);
+  public static ParsedList getFlexibleInstance() {
+    return new ParsedList(Type.NUMERIC, null, true, false, false);
+  }
+
+  public static ParsedList getFlexibleInstance(EtomoNumber.Type etomoNumberType) {
+    return new ParsedList(Type.NUMERIC, etomoNumberType, true, false, false);
   }
 
   public static ParsedList getFlexibleCompactArrayInstance(
       EtomoNumber.Type etomoNumberType) {
-    return new ParsedList(Type.NUMERIC, etomoNumberType, true, false,true);
+    return new ParsedList(Type.NUMERIC, etomoNumberType, true, false, true);
   }
-  
+
   public static ParsedList getFlexibleCompactDescriptorInstance(
       EtomoNumber.Type etomoNumberType) {
-    return new ParsedList(Type.NUMERIC, etomoNumberType, true, true,false);
+    return new ParsedList(Type.NUMERIC, etomoNumberType, true, true, false);
   }
 
   public static ParsedList getStringInstance() {
-    return new ParsedList(Type.STRING, null, false, false,false);
+    return new ParsedList(Type.STRING, null, false, false, false);
   }
 
   /**
@@ -199,7 +201,7 @@ public final class ParsedList {
    */
   public void parse(ReadOnlyAttribute attribute) {
     list.clear();
-    valid = true;
+    resetFailed();
     if (attribute == null) {
       return;
     }
@@ -215,7 +217,7 @@ public final class ParsedList {
       }
       if (token == null
           || !token.equals(Token.Type.SYMBOL, OPEN_SYMBOL.charValue())) {
-        valid = false;
+        fail();
         return;
       }
       token = tokenizer.next();
@@ -224,7 +226,7 @@ public final class ParsedList {
         token = tokenizer.next();
       }
       token = parseList(token, tokenizer);
-      if (!valid) {
+      if (isFailed()) {
         return;
       }
       if (token != null && token.is(Token.Type.WHITESPACE)) {
@@ -233,13 +235,13 @@ public final class ParsedList {
       //if the close symbol wasn't found, fail
       if (token == null
           || !token.equals(Token.Type.SYMBOL, CLOSE_SYMBOL.charValue())) {
-        valid = false;
+        fail();
         return;
       }
     }
     catch (IOException e) {
       e.printStackTrace();
-      valid = false;
+      fail();
     }
   }
 
@@ -250,11 +252,11 @@ public final class ParsedList {
     }
     catch (IOException e) {
       e.printStackTrace();
-      valid = false;
+      fail();
     }
     catch (LogFile.ReadException e) {
       e.printStackTrace();
-      valid = false;
+      fail();
     }
     return tokenizer;
   }
@@ -265,7 +267,7 @@ public final class ParsedList {
     }
     boolean dividerFound = true;
     //loop until a divider isn't found, this should be the end of the list
-    while (dividerFound && valid) {
+    while (dividerFound && !isFailed()) {
       try {
         //parse an element.
         token = parseElement(token, tokenizer);
@@ -287,7 +289,7 @@ public final class ParsedList {
       }
       catch (IOException e) {
         e.printStackTrace();
-        valid = false;
+        fail();
         return token;
       }
     }
@@ -321,8 +323,8 @@ public final class ParsedList {
       //when flexibleSyntax is true, numeric elements are always ParsedArrays
       //because they can be parsed and written to look like ParsedNumbers when
       //they are empty or contain only one number
-      element = new ParsedArray(etomoNumberType, flexibleSyntax,compactArray,
-          compactDescriptor);
+      element = new ParsedArray(etomoNumberType, flexibleSyntax, compactArray,
+          compactDescriptor, null, false);
     }
     else {
       element = new ParsedNumber(etomoNumberType);
@@ -332,6 +334,18 @@ public final class ParsedList {
     token = element.parse(token, tokenizer);
     list.add(element);
     return token;
+  }
+  
+  final boolean isFailed() {
+    return failed;
+  }
+  
+  final void resetFailed() {
+    failed = false;
+  }
+  
+  final void fail() {
+    failed = true;
   }
 
   private static final class Type {
