@@ -15,12 +15,8 @@ if ($#argv < 1) then
 cat <<EOF
 Usage: $pn [options] command_file
    Produces multiple command files for running 'ctfPhaseFlip' in parallel.
-   Only -m is supported for now.
    Options:
-      -n #   Target or expected number of machines (default $numproc)
       -m #   Maximum number of slices to be corrected per chunk (default $maxslices)
-      -t #   Target # of chunks (default $targetratio times # of machines)
-      -c     Write chunks to separate files, not directly to single output file
 EOF
 exit 0
 endif
