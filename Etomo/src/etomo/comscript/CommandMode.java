@@ -13,8 +13,11 @@ package etomo.comscript;
  * 
  * @version $Revision$
  * 
- * <p> $Log$ </p>
+ * <p> $Log$
+ * <p> Revision 1.1  2007/02/05 21:35:41  sueh
+ * <p> bug# 962 An interface for inner Mode classes.
+ * <p> </p>
  */
-interface CommandMode {
+public interface CommandMode {
   public static final String rcsid = "$Id$";
 }
