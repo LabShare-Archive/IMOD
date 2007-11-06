@@ -208,7 +208,7 @@ public final class ParallelPanel implements Expandable {
     String command = event.getActionCommand();
     if (command == btnResume.getActionCommand()) {
       manager.resume(axisID, processchunksParam, processResultDisplay,
-          rootPanel);
+          rootPanel,null);
     }
     else if (command == btnPause.getActionCommand()) {
       manager.pause(axisID);
@@ -392,6 +392,11 @@ public final class ParallelPanel implements Expandable {
 }
 /**
  * <p> $Log$
+ * <p> Revision 1.57  2007/09/27 20:54:34  sueh
+ * <p> bug# 1044 Added Queue processor table and the "Use a cluster" checkbox.
+ * <p> Moved the implementation of ParallelPRogressDisplay and LoadAverageDisplay
+ * <p> to ProcessorTable.
+ * <p>
  * <p> Revision 1.56  2007/08/29 21:50:04  sueh
  * <p> bug# 1041 In action, passing rootPanel to manager.resume.
  * <p>
