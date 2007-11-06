@@ -45,6 +45,7 @@ public class ProcesschunksProcessMonitor implements OutfileProcessMonitor,
   private final String computerList;
   private final ProcessMessages messages = ProcessMessages
       .getInstanceForParallelProcessing();
+  private final String subdirName;
 
   private boolean setProgressBarTitle = false;//turn on to changed the progress bar title
   private boolean reassembling = false;
@@ -72,14 +73,14 @@ public class ProcesschunksProcessMonitor implements OutfileProcessMonitor,
    */
   public ProcesschunksProcessMonitor(BaseManager manager, AxisID axisID,
       ParallelProgressDisplay parallelProgressDisplay, String rootName,
-      String computerList) {
+      String computerList,String subdirName) {
     this.manager = manager;
     this.axisID = axisID;
     this.parallelProgressDisplay = parallelProgressDisplay;
     this.rootName = rootName;
     this.computerList = computerList;
+    this.subdirName=subdirName;
     debug = EtomoDirector.INSTANCE.isDebug();
-    //  parallelProgressDisplay.setParallelProcessMonitor(this);
   }
 
   public final void setProcess(SystemProcessInterface process) {
@@ -386,7 +387,7 @@ public class ProcesschunksProcessMonitor implements OutfileProcessMonitor,
     //delete the commands pipe even if it was never created (just to be sure)
     if (commandsPipe == null) {
       commandsPipe = LogFile.getInstance(manager.getPropertyUserDir(),
-          DatasetFiles.getCommandsFileName(rootName));
+          DatasetFiles.getCommandsFileName(subdirName,rootName));
     }
     if (commandsPipeWriteId != LogFile.NO_ID) {
       commandsPipe.closeWriter(commandsPipeWriteId);
@@ -413,7 +414,7 @@ public class ProcesschunksProcessMonitor implements OutfileProcessMonitor,
     }
     if (commandsPipe == null) {
       commandsPipe = LogFile.getInstance(manager.getPropertyUserDir(),
-          DatasetFiles.getCommandsFileName(rootName));
+          DatasetFiles.getCommandsFileName(subdirName,rootName));
       //commandsPipe.createNewFile();
     }
     if (commandsPipeWriteId == LogFile.NO_ID) {
@@ -457,7 +458,7 @@ public class ProcesschunksProcessMonitor implements OutfileProcessMonitor,
   private synchronized void createProcessOutput() throws LogFile.FileException {
     if (processOutput == null) {
       processOutput = LogFile.getInstance(manager.getPropertyUserDir(),
-          DatasetFiles.getOutFileName(manager, ProcessName.PROCESSCHUNKS
+          DatasetFiles.getOutFileName(manager, subdirName,ProcessName.PROCESSCHUNKS
               .toString(), axisID));
       //avoid looking at a file from a previous run
       processOutput.backup();
@@ -471,6 +472,12 @@ public class ProcesschunksProcessMonitor implements OutfileProcessMonitor,
 }
 /**
  * <p> $Log$
+ * <p> Revision 1.31  2007/09/27 20:27:11  sueh
+ * <p> bug# 1044 Giving a message that the process is ending at the end of the run()
+ * <p> function so that the "Use a cluster" checkbox can be turned back on.  No longer
+ * <p> setting the parallel process monitor in the parallel progress display since it is
+ * <p> never used.
+ * <p>
  * <p> Revision 1.30  2007/09/07 00:19:14  sueh
  * <p> bug# 989 Using a public INSTANCE to refer to the EtomoDirector singleton
  * <p> instead of getInstance and createInstance.

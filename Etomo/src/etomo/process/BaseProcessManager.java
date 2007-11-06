@@ -39,6 +39,9 @@ import etomo.util.Utilities;
  * @version $Revision$
  * 
  * <p> $Log$
+ * <p> Revision 1.61  2007/09/27 19:27:28  sueh
+ * <p> bug# 1044 Generalized load functionality.
+ * <p>
  * <p> Revision 1.60  2007/09/07 00:18:34  sueh
  * <p> bug# 989 Using a public INSTANCE to refer to the EtomoDirector singleton
  * <p> instead of getInstance and createInstance.
@@ -398,18 +401,15 @@ public abstract class BaseProcessManager {
         + uiHarness + "," + super.toString();
   }
 
-  public final void startLoad(IntermittentCommand param,
-      LoadMonitor monitor) {
+  public final void startLoad(IntermittentCommand param, LoadMonitor monitor) {
     IntermittentBackgroundProcess.startInstance(manager, param, monitor);
   }
 
-  public final void endLoad(IntermittentCommand param,
-      LoadMonitor monitor) {
+  public final void endLoad(IntermittentCommand param, LoadMonitor monitor) {
     IntermittentBackgroundProcess.endInstance(manager, param, monitor);
   }
 
-  public final void stopLoad(IntermittentCommand param,
-      LoadMonitor monitor) {
+  public final void stopLoad(IntermittentCommand param, LoadMonitor monitor) {
     IntermittentBackgroundProcess.stopInstance(manager, param, monitor);
   }
 
@@ -422,7 +422,8 @@ public abstract class BaseProcessManager {
    */
   public final String processchunks(AxisID axisID, ProcesschunksParam param,
       ParallelProgressDisplay parallelProgressDisplay,
-      ProcessResultDisplay processResultDisplay) throws SystemProcessException {
+      ProcessResultDisplay processResultDisplay)
+      throws SystemProcessException {
     //  Instantiate the process monitor
     ProcesschunksProcessMonitor monitor;
     if (param.getProcessName() == ProcessName.VOLCOMBINE) {
@@ -431,10 +432,38 @@ public abstract class BaseProcessManager {
     }
     else {
       monitor = new ProcesschunksProcessMonitor(manager, axisID,
-          parallelProgressDisplay, param.getRootName(), param.getMachineList());
+          parallelProgressDisplay, param.getRootName(), param.getMachineList(),
+          param.getSubdirName());
     }
     BackgroundProcess process = startDetachedProcess(param, axisID, monitor,
         processResultDisplay, ProcessName.PROCESSCHUNKS);
+    return process.getName();
+  }
+  
+  /**
+   * run processchunks, optionally in a subdir
+   * @param axisID
+   * @param param
+   * @return
+   * @throws SystemProcessException
+   */
+  public final String processchunks(AxisID axisID, ProcesschunksParam param,
+      ParallelProgressDisplay parallelProgressDisplay,
+      ProcessResultDisplay processResultDisplay, String subdirName,String shortCommandName)
+      throws SystemProcessException {
+    //  Instantiate the process monitor
+    ProcesschunksProcessMonitor monitor;
+    if (param.getProcessName() == ProcessName.VOLCOMBINE) {
+      monitor = new ProcesschunksVolcombineMonitor(manager, axisID,
+          parallelProgressDisplay, param.getRootName(), param.getMachineList());
+    }
+    else {
+      monitor = new ProcesschunksProcessMonitor(manager, axisID,
+          parallelProgressDisplay, param.getRootName(), param.getMachineList(),
+          param.getSubdirName());
+    }
+    BackgroundProcess process = startDetachedProcess(param, axisID, monitor,
+        processResultDisplay, ProcessName.PROCESSCHUNKS, subdirName,shortCommandName);
     return process.getName();
   }
 
@@ -1238,13 +1267,31 @@ public abstract class BaseProcessManager {
         axisID, null);
   }
 
+  BackgroundProcess startBackgroundProcess(String[] commandArray,
+      AxisID axisID, ProcessName processName) throws SystemProcessException {
+    BackgroundProcess backgroundProcess = new BackgroundProcess(manager,
+        commandArray, this, axisID, processName);
+    return startBackgroundProcess(backgroundProcess, commandArray.toString(),
+        axisID, null);
+  }
+
   BackgroundProcess startDetachedProcess(DetachedCommand detachedCommand,
       AxisID axisID, OutfileProcessMonitor monitor,
-      ProcessResultDisplay processResultDisplay, ProcessName processName)
-      throws SystemProcessException {
+      ProcessResultDisplay processResultDisplay, ProcessName processName) throws SystemProcessException {
     DetachedProcess detachedProcess = new DetachedProcess(manager,
         detachedCommand, this, axisID, monitor, processResultDisplay,
         processName);
+    return startBackgroundProcess(detachedProcess, detachedCommand
+        .getCommandLine(), axisID, monitor);
+  }
+  
+  BackgroundProcess startDetachedProcess(DetachedCommand detachedCommand,
+      AxisID axisID, OutfileProcessMonitor monitor,
+      ProcessResultDisplay processResultDisplay, ProcessName processName,
+      String subdirName,String shortCommandName) throws SystemProcessException {
+    DetachedProcess detachedProcess = new DetachedProcess(manager,
+        detachedCommand, this, axisID, monitor, processResultDisplay,
+        processName, subdirName,shortCommandName);
     return startBackgroundProcess(detachedProcess, detachedCommand
         .getCommandLine(), axisID, monitor);
   }

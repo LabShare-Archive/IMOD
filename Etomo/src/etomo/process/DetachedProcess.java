@@ -35,19 +35,44 @@ final class DetachedProcess extends BackgroundProcess {
   private final BaseManager manager;
   private final OutfileProcessMonitor monitor;
   private final BaseProcessManager processManager;
-  
+
+  /**
+   * If subdirName is set then multiple processes may be able to run in the same
+   * directory under that same axis at the same time using different dataset
+   * files (.epp).  The sub-directory is used to hide generic files that would
+   * cause conflict.  Use the sub-directory name to create a unique run file
+   * name.
+   */
+  private String subdirName = null;
+  private String shortCommandName = "";
+
   public DetachedProcess(BaseManager manager, DetachedCommand command,
       BaseProcessManager processManager, AxisID axisID,
-      OutfileProcessMonitor monitor, ProcessResultDisplay processResultDisplay, ProcessName processName) {
-    super(manager, command, processManager, axisID,processName);
+      OutfileProcessMonitor monitor, ProcessResultDisplay processResultDisplay,
+      ProcessName processName) {
+    super(manager, command, processManager, axisID, processName);
     this.axisID = axisID;
     this.manager = manager;
     this.monitor = monitor;
-    this.processManager=processManager;
+    this.processManager = processManager;
     setProcessResultDisplay(processResultDisplay);
   }
 
-   final boolean newProgram() {
+  public DetachedProcess(BaseManager manager, DetachedCommand command,
+      BaseProcessManager processManager, AxisID axisID,
+      OutfileProcessMonitor monitor, ProcessResultDisplay processResultDisplay,
+      ProcessName processName, String subdirName, String shortCommandName) {
+    super(manager, command, processManager, axisID, processName);
+    this.axisID = axisID;
+    this.manager = manager;
+    this.monitor = monitor;
+    this.processManager = processManager;
+    this.subdirName = subdirName;
+    this.shortCommandName = shortCommandName;
+    setProcessResultDisplay(processResultDisplay);
+  }
+
+  final boolean newProgram() {
     String[] runCommand;
     try {
       runCommand = makeRunFile();
@@ -73,7 +98,7 @@ final class DetachedProcess extends BackgroundProcess {
     setProgram(program);
     return true;
   }
-  
+
   protected void waitForPid() {
     if (monitor == null) {
       super.waitForPid();
@@ -81,7 +106,7 @@ final class DetachedProcess extends BackgroundProcess {
     }
     new Thread(new PidThread(monitor, getProcessData())).start();
   }
-  
+
   /**
    * Always returns true because the process is detached.
    */
@@ -89,8 +114,15 @@ final class DetachedProcess extends BackgroundProcess {
     return true;
   }
 
-  private final String[] makeRunFile() throws IOException,LogFile.FileException {
-    String commandName = getCommandName();
+  private final String[] makeRunFile() throws IOException,
+      LogFile.FileException {
+    String commandName;
+    if (subdirName == null) {
+      commandName = getCommandName();
+    }
+    else {
+      commandName = subdirName + "-" + shortCommandName;
+    }
     AxisID axisID = getAxisID();
     File runFile = DatasetFiles.getShellScript(manager, commandName, axisID);
     if (runFile.exists()) {
@@ -105,8 +137,13 @@ final class DetachedProcess extends BackgroundProcess {
     }
     bufferedWriter.write("nohup");
     bufferedWriter.newLine();
+    if (subdirName != null) {
+      bufferedWriter.write("cd " + subdirName);
+      bufferedWriter.newLine();
+    }
     bufferedWriter.write(((DetachedCommand) getCommand()).getCommandString()
-        + " >& " + monitor.getProcessOutputFileName() + "&");
+        + " >& ");
+    bufferedWriter.write(monitor.getProcessOutputFileName() + "&");
     bufferedWriter.newLine();
     bufferedWriter.close();
     if (getWorkingDirectory() == null) {
@@ -118,14 +155,14 @@ final class DetachedProcess extends BackgroundProcess {
     runCommand[2] = runFile.getName();
     return runCommand;
   }
-  
+
   public String getShellProcessID() {
     if (monitor == null) {
       return super.getShellProcessID();
     }
     return monitor.getPid();
   }
-  
+
   public void notifyKilled() {
     super.notifyKilled();
     if (monitor == null) {
@@ -133,8 +170,8 @@ final class DetachedProcess extends BackgroundProcess {
     }
     monitor.endMonitor(getProcessEndState());
   }
-  
-   ProcessMessages getMonitorMessages() {
+
+  ProcessMessages getMonitorMessages() {
     return monitor.getProcessMessages();
   }
 
@@ -146,8 +183,8 @@ final class DetachedProcess extends BackgroundProcess {
   final ProcessEndState getProcessEndState() {
     return monitor.getProcessEndState();
   }
-  
-  void processDone(int exitValue,boolean errorFound) {
+
+  void processDone(int exitValue, boolean errorFound) {
     processManager.msgProcessDone(this, exitValue, errorFound);
   }
 
@@ -162,16 +199,16 @@ final class DetachedProcess extends BackgroundProcess {
   final String getStatusString() {
     return monitor.getStatusString();
   }
-  
+
   final class PidThread implements Runnable {
     private final OutfileProcessMonitor monitor;
     private final ProcessData processData;
-    
+
     PidThread(OutfileProcessMonitor monitor, ProcessData processData) {
       this.monitor = monitor;
       this.processData = processData;
     }
-    
+
     public void run() {
       //wait until monitor is running
       while (!monitor.isProcessRunning()) {
@@ -180,7 +217,7 @@ final class DetachedProcess extends BackgroundProcess {
         }
         catch (InterruptedException except) {
           return;
-        } 
+        }
       }
       //wait for pid
       String pid = null;
@@ -201,6 +238,10 @@ final class DetachedProcess extends BackgroundProcess {
 }
 /**
  * <p> $Log$
+ * <p> Revision 1.11  2007/05/11 15:39:59  sueh
+ * <p> bug# 964 Overrode processDone(int,boolean) to call ProcessManager.
+ * <p> msgProcessDone(DetachedProcess...).
+ * <p>
  * <p> Revision 1.10  2006/12/01 00:56:01  sueh
  * <p> bug# 937 Overrode getShellProcessID and notifyKilled so that a process
  * <p> associated with this class can be killed.
