@@ -53,7 +53,7 @@ public final class PostProcessingDialog extends ProcessDialog implements
         axisID).getSqueezeVolume();
     rootPanel.setLayout(new BoxLayout(rootPanel, BoxLayout.Y_AXIS));
     rootPanel.setBorder(new BeveledBorder("Post Processing").getBorder());
-    trimvolPanel = new TrimvolPanel(applicationManager, dialogType, axisID);
+    trimvolPanel = new TrimvolPanel(applicationManager, axisID);
     rootPanel.add(trimvolPanel.getContainer());
     rootPanel.add(createSqueezeVolPanel());
     addExitButtons();
@@ -275,6 +275,10 @@ public final class PostProcessingDialog extends ProcessDialog implements
 }
 /**
  * <p> $Log$
+ * <p> Revision 3.32  2007/05/26 00:33:06  sueh
+ * <p> bug# 994 Not automatically setting button size in SpacedPanel anymore.
+ * <p> Setting button size in UI.
+ * <p>
  * <p> Revision 3.31  2007/02/09 00:51:17  sueh
  * <p> bug# 962 Made TooltipFormatter a singleton and moved its use to low-level ui
  * <p> classes.

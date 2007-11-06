@@ -18,7 +18,6 @@ import etomo.comscript.TrimvolParam;
 import etomo.process.ImodManager;
 import etomo.process.ImodProcess;
 import etomo.type.AxisID;
-import etomo.type.DialogType;
 import etomo.type.InvalidEtomoNumberException;
 import etomo.type.ReconScreenState;
 import etomo.type.Run3dmodMenuOptions;
@@ -36,6 +35,9 @@ import etomo.type.Run3dmodMenuOptions;
  * @version $Revision$
  * 
  * <p> $Log$
+ * <p> Revision 3.24  2007/08/08 15:08:27  sueh
+ * <p> bug# 834 Sharing fields labels.
+ * <p>
  * <p> Revision 3.23  2007/03/07 21:16:57  sueh
  * <p> bug# 981 Turned RadioButton into a wrapper rather then a child of JRadioButton,
  * <p> because it is getting more complicated.
@@ -228,7 +230,6 @@ public final class TrimvolPanel implements Run3dmodButtonContainer {
   private MultiLineButton btnGetCoordinates = new MultiLineButton(
       "Get XY Volume Range From 3dmod");
   private JPanel pnlImodFull = new JPanel();
-  private final DialogType dialogType;
   private final ButtonListener buttonActonListener;
   private final RubberbandPanel pnlScaleRubberband;
   private final AxisID axisID;
@@ -236,24 +237,19 @@ public final class TrimvolPanel implements Run3dmodButtonContainer {
   /**
    * Default constructor
    */
-  public TrimvolPanel(ApplicationManager appMgr, DialogType dialogType,
-      AxisID axisID) {
+  public TrimvolPanel(ApplicationManager appMgr, AxisID axisID) {
     this.axisID = axisID;
     applicationManager = appMgr;
-    this.dialogType = dialogType;
-    RubberbandPanel.Strings scaleStrings = new RubberbandPanel.Strings(
-        ImodManager.COMBINED_TOMOGRAM_KEY,
-        "Scaling from sub-area:",
-        "Get XY Sub-Area From 3dmod",
-        "X Min: ",
-        " X Max: ",
-        "Y Min: ",
-        " Y Max: ",
-        "Minimum X coordinate on the left side to analyze for contrast range.",
-        "Maximum X coordinate on the right side to analyze for contrast range.",
-        "The lower Y coordinate to analyze for contrast range.",
-        "The upper Y coordinate to analyze for contrast range.");
-    pnlScaleRubberband = new RubberbandPanel(appMgr, scaleStrings);
+    pnlScaleRubberband = RubberbandPanel
+        .getInstance(
+            appMgr,
+            ImodManager.COMBINED_TOMOGRAM_KEY,
+            "Scaling from sub-area:",
+            "Get XY Sub-Area From 3dmod",
+            "Minimum X coordinate on the left side to analyze for contrast range.",
+            "Maximum X coordinate on the right side to analyze for contrast range.",
+            "The lower Y coordinate to analyze for contrast range.",
+            "The upper Y coordinate to analyze for contrast range.");
     btnTrimvol = (MultiLineButton) appMgr.getProcessResultDisplayFactory(
         AxisID.ONLY).getTrimVolume();
 
@@ -421,13 +417,13 @@ public final class TrimvolPanel implements Run3dmodButtonContainer {
    * @param trimvolParam
    */
   public boolean getParameters(TrimvolParam trimvolParam) {
-    trimvolParam.setXMin(Integer.parseInt(ltfXMin.getText()));
-    trimvolParam.setXMax(Integer.parseInt(ltfXMax.getText()));
+    trimvolParam.setXMin(ltfXMin.getText());
+    trimvolParam.setXMax(ltfXMax.getText());
     //  Y and Z  are swapped to present the user with Z as the depth domain
-    trimvolParam.setYMin(Integer.parseInt(ltfZMin.getText()));
-    trimvolParam.setYMax(Integer.parseInt(ltfZMax.getText()));
-    trimvolParam.setZMin(Integer.parseInt(ltfYMin.getText()));
-    trimvolParam.setZMax(Integer.parseInt(ltfYMax.getText()));
+    trimvolParam.setYMin(ltfZMin.getText());
+    trimvolParam.setYMax(ltfZMax.getText());
+    trimvolParam.setZMin(ltfYMin.getText());
+    trimvolParam.setZMax(ltfYMax.getText());
     trimvolParam.setSwapYZ(rbSwapYZ.isSelected());
     trimvolParam.setRotateX(rbRotateX.isSelected());
 
