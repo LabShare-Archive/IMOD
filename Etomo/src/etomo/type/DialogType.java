@@ -1,5 +1,7 @@
 package etomo.type;
 
+import java.util.Properties;
+
 /**
  * <p>Description: </p>
  * 
@@ -14,6 +16,9 @@ package etomo.type;
  * @version $Revision$
  * 
  * <p> $Log$
+ * <p> Revision 1.10  2007/02/19 21:54:26  sueh
+ * <p> bug# 964 Added PEET dialog type.
+ * <p>
  * <p> Revision 1.9  2006/10/19 16:19:12  sueh
  * <p> bug# 438 Changed compact label for Fiducial Model to "Track".
  * <p>
@@ -52,6 +57,8 @@ package etomo.type;
  */
 public final class DialogType {
   public static final String rcsid = "$Id$";
+  
+  public static final String PROPERTIES_KEY="DialogType";
 
   private static final int setupIndex = 0;
   private static final int preProcessingIndex = 1;
@@ -67,13 +74,14 @@ public final class DialogType {
   public static final int TOTAL_RECON = cleanUpIndex + 1;
 
   private static final int parallelIndex = 0;
+  private static final int anisotropicDiffusionIndex = 1;
 
-  public static final int TOTAL_PARALLEL = parallelIndex + 1;
-  
+  public static final int TOTAL_PARALLEL = anisotropicDiffusionIndex + 1;
+
   private static final int peetIndex = 0;
 
   public static final int TOTAL_PEET = peetIndex + 1;
-  
+
   private static final String SETUP_RECON_NAME = "SetupRecon";
   private static final String PRE_PROCESSING_NAME = "PreProc";
   private static final String COARSE_ALIGNMENT_NAME = "CoarseAlign";
@@ -85,6 +93,7 @@ public final class DialogType {
   private static final String POST_PROCESSING_NAME = "PostProc";
   private static final String CLEAN_UP_NAME = "CleanUp";
   private static final String PARALLEL_NAME = "Parallel";
+  private static final String ANISOTROPIC_DIFFUSION_NAME = "AnisotropicDiffusion";
   private static final String PEET_NAME = "Peet";
 
   private final String name;
@@ -107,7 +116,7 @@ public final class DialogType {
   public String getStorableName() {
     return getStorableName(tabType, index);
   }
-  
+
   public String getCompactLabel() {
     return getCompactLabel(tabType, index);
   }
@@ -116,28 +125,33 @@ public final class DialogType {
     return index;
   }
 
-  public static final DialogType SETUP_RECON = new DialogType(TabType.RECON, setupIndex);
-  public static final DialogType PRE_PROCESSING = new DialogType(TabType.RECON, 
+  public static final DialogType SETUP_RECON = new DialogType(TabType.RECON,
+      setupIndex);
+  public static final DialogType PRE_PROCESSING = new DialogType(TabType.RECON,
       preProcessingIndex);
-  public static final DialogType COARSE_ALIGNMENT = new DialogType(TabType.RECON, 
-      coarseAlignmentIndex);
-  public static final DialogType FIDUCIAL_MODEL = new DialogType(TabType.RECON, 
+  public static final DialogType COARSE_ALIGNMENT = new DialogType(
+      TabType.RECON, coarseAlignmentIndex);
+  public static final DialogType FIDUCIAL_MODEL = new DialogType(TabType.RECON,
       fiducialModelIndex);
-  public static final DialogType FINE_ALIGNMENT = new DialogType(TabType.RECON, 
+  public static final DialogType FINE_ALIGNMENT = new DialogType(TabType.RECON,
       fineAlignmentIndex);
 
-  public static final DialogType TOMOGRAM_POSITIONING = new DialogType(TabType.RECON, 
-      tomogramPositioningIndex);
-  public static final DialogType TOMOGRAM_GENERATION = new DialogType(TabType.RECON, 
-      tomogramGenerationIndex);
-  public static final DialogType TOMOGRAM_COMBINATION = new DialogType(TabType.RECON, 
-      tomogramCombinationIndex);
-  public static final DialogType POST_PROCESSING = new DialogType(TabType.RECON, 
-      postProcessingIndex);
-  public static final DialogType CLEAN_UP = new DialogType(TabType.RECON, cleanUpIndex);
-  
-  public static final DialogType PARALLEL = new DialogType(TabType.PARALLEL, parallelIndex);
-  
+  public static final DialogType TOMOGRAM_POSITIONING = new DialogType(
+      TabType.RECON, tomogramPositioningIndex);
+  public static final DialogType TOMOGRAM_GENERATION = new DialogType(
+      TabType.RECON, tomogramGenerationIndex);
+  public static final DialogType TOMOGRAM_COMBINATION = new DialogType(
+      TabType.RECON, tomogramCombinationIndex);
+  public static final DialogType POST_PROCESSING = new DialogType(
+      TabType.RECON, postProcessingIndex);
+  public static final DialogType CLEAN_UP = new DialogType(TabType.RECON,
+      cleanUpIndex);
+
+  public static final DialogType PARALLEL = new DialogType(TabType.PARALLEL,
+      parallelIndex);
+  public static final DialogType ANISOTROPIC_DIFFUSION = new DialogType(
+      TabType.PARALLEL, anisotropicDiffusionIndex);
+
   public static final DialogType PEET = new DialogType(TabType.PEET, peetIndex);
 
   private String toString(TabType tabType, int index) {
@@ -169,6 +183,8 @@ public final class DialogType {
       switch (index) {
       case parallelIndex:
         return "Parallel";
+      case anisotropicDiffusionIndex:
+        return "Anisotropic Diffusion";
       }
     }
     else if (tabType == TabType.PEET) {
@@ -179,7 +195,7 @@ public final class DialogType {
     }
     return "";
   }
-  
+
   /**
    * Return a name without spaces.  All storable names must be unique to
    * DialogType.
@@ -216,6 +232,8 @@ public final class DialogType {
       switch (index) {
       case parallelIndex:
         return "Para";
+      case anisotropicDiffusionIndex:
+        return "NAD";
       }
     }
     else if (tabType == TabType.PEET) {
@@ -263,6 +281,8 @@ public final class DialogType {
       switch (index) {
       case parallelIndex:
         return PARALLEL_NAME;
+      case anisotropicDiffusionIndex:
+        return ANISOTROPIC_DIFFUSION_NAME;
       }
     }
     else if (tabType == TabType.PEET) {
@@ -273,14 +293,18 @@ public final class DialogType {
     }
     return "";
   }
-  
+
   public boolean equals(String storableName) {
     if (storableName == null) {
       return false;
     }
     return getStorableName(tabType, index).equals(storableName);
   }
-  
+
+  public void store(Properties props, String key) {
+    props.setProperty(key, getStorableName(tabType, index));
+  }
+
   /**
    * 
    * @param storableName
@@ -323,7 +347,28 @@ public final class DialogType {
     if (storableName.equals(PARALLEL_NAME)) {
       return PARALLEL;
     }
+    if (storableName.equals(ANISOTROPIC_DIFFUSION_NAME)) {
+      return ANISOTROPIC_DIFFUSION;
+    }
     if (storableName.equals(PEET_NAME)) {
+      return PEET;
+    }
+    return null;
+  }
+
+  public static DialogType load(TabType tabType, Properties props, String key) {
+    DialogType defaultType = getDefault(tabType);
+    if (defaultType != null) {
+      return getInstance(props.getProperty(key, defaultType.toString()));
+    }
+    return getInstance(props.getProperty(key));
+  }
+
+  public static DialogType getDefault(TabType tabType) {
+    if (tabType == TabType.PARALLEL) {
+      return PARALLEL;
+    }
+    if (tabType == TabType.PEET) {
       return PEET;
     }
     return null;
