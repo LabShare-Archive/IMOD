@@ -36,6 +36,9 @@ import etomo.util.Utilities;
  * @version $Revision$
  * 
  * <p> $Log$
+ * <p> Revision 1.54  2007/08/21 21:51:56  sueh
+ * <p> bug# 771 Added equals(long).
+ * <p>
  * <p> Revision 1.53  2007/05/18 23:52:33  sueh
  * <p> bug# 987 Made CpuAdoc thread-safe.  Added minNice.
  * <p>
@@ -397,7 +400,7 @@ public abstract class ConstEtomoNumber implements Storable {
       invalidReason = new StringBuffer(instance.invalidReason.toString());
     }
   }
-  
+
   public static boolean isNull(int value) {
     return value == INTEGER_NULL_VALUE;
   }
@@ -408,6 +411,10 @@ public abstract class ConstEtomoNumber implements Storable {
 
   public String getName() {
     return name;
+  }
+  
+  boolean isDebug() {
+    return debug;
   }
 
   public int getDisplayInteger() {
@@ -1022,8 +1029,39 @@ public abstract class ConstEtomoNumber implements Storable {
     }
   }
 
+  /**
+   * Must show the string version of getValue();
+   */
   public String toString() {
     return toString(getValue());
+  }
+
+  /**
+   * Add leading zeros to the number up to maxZeros.  If the size of the number
+   * (or the size of the number left of the decimal if the type is float or
+   * double) is greater or equal to maxZeros then nothing is done.
+   * Examples:
+   * If the number is 1 and maxZeros is 3, returns 001
+   * If the number is .08 and maxZeros is 1, return 0.08
+   * @param maxZeros
+   * @return
+   */
+  public String toStringWithLeadingZeros(int maxZeros) {
+    String wholeNumbers = toString();
+    int decimalPlace = wholeNumbers.indexOf('.');
+    if (decimalPlace != -1) {
+      wholeNumbers = wholeNumbers.substring(0, decimalPlace);
+    }
+    int length = wholeNumbers.length();
+    if (length > maxZeros || length == maxZeros) {
+      return toString();
+    }
+    StringBuffer retval = new StringBuffer();
+    for (int i = 0; i < maxZeros - length; i++) {
+      retval.append("0");
+    }
+    retval.append(toString());
+    return retval.toString();
   }
 
   /**
@@ -1179,7 +1217,7 @@ public abstract class ConstEtomoNumber implements Storable {
   public boolean equals(int value) {
     return equals(getValue(), newNumber(value));
   }
-  
+
   public boolean equals(long value) {
     return equals(getValue(), newNumber(value));
   }
