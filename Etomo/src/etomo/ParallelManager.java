@@ -140,7 +140,7 @@ public final class ParallelManager extends BaseManager {
   }
 
   public BaseState getBaseState() {
-    return null;
+    return state;
   }
 
   public MainPanel getMainPanel() {
@@ -635,6 +635,9 @@ public final class ParallelManager extends BaseManager {
 }
 /**
  * <p> $Log$
+ * <p> Revision 1.18  2007/11/06 18:57:48  sueh
+ * <p> bug# 1047 Added anisotropic diffusion dialog.
+ * <p>
  * <p> Revision 1.17  2007/09/27 19:21:11  sueh
  * <p> bug# 1044 Made ProcessorTable the ParallelProgress display instead of
  * <p> ParallelPanel.
