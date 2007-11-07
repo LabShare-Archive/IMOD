@@ -30,7 +30,10 @@ import etomo.util.DatasetFiles;
  * 
  * @version $Revision$
  * 
- * <p> $Log$ </p>
+ * <p> $Log$
+ * <p> Revision 1.1  2007/11/06 18:58:33  sueh
+ * <p> bug# 1047 Represents the parameters of nad_eed_3d.
+ * <p> </p>
  */
 public final class AnisotropicDiffusionParam implements CommandDetails {
   public static final String rcsid = "$Id$";
@@ -149,7 +152,8 @@ public final class AnisotropicDiffusionParam implements CommandDetails {
     command.add(K_VALUE_TAG);
     command.add(kValue.toString());
     command.add("-i");
-    command.add(iterationList.getRawString());
+    command.add("\""+iterationList.getRawString()+"\"");
+    command.add("-P");
     command.add(new File(subdir, inputFileName).getPath());
     command.add(new File(subdir, getTestnadFileRoot(kValue)).getPath());
     if (debug) {
