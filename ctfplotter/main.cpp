@@ -93,10 +93,8 @@ int main(int argc, char *argv[])
   
   /*****begin of computing noise PS;**********/
   FILE *fpCfg;
-  if( (fpCfg=fopen(cfgFn, "r"))==0 ){
-    printf("ERROR: - could not open config file %s\n", cfgFn);
-    exit(1);
-  }
+  if( (fpCfg=fopen(cfgFn, "r"))==0 )
+    exitError(" could not open config file %s\n", cfgFn);
   char p[1024];
   int read;
   int noiseFileCounter=0;
@@ -174,8 +172,7 @@ int main(int argc, char *argv[])
     app.linearEngine=new LinearFitting(nDim);
     app.plotFitPS(); //fit and plot the stack PS;
   }else{
-    printf("Invalid expected defocus, it must be >0\n");
-    exit(-1);
+    exitError("Invalid expected defocus, it must be >0\n");
   }
   
   plotter.resize(768, 624);

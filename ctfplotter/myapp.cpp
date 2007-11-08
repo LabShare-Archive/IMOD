@@ -18,6 +18,7 @@
 #include "mrcslice.h"
 #include "sliceproc.h"
 #include "cfft.h"
+#include "parse_params.h" //for exitError()
 
 #define MY_PI 3.1415926
 #define MIN_ANGLE 1.0e-6  //tilt Angle less than this is treated as 0.0;
@@ -152,10 +153,9 @@ void MyApp::setSlice(char *stackFile, char *angleFile)
   int sliceMode;
   char angleStr[30];
 
-  if( (fpStack=fopen(fnStack, "rb"))==0 ){
-    printf("ERROR: - could not open input file %s\n", fnStack);
-    exit (1);
-  }
+  if( (fpStack=fopen(fnStack, "rb"))==0 )
+    exitError("could not open input file %s\n", fnStack);
+  
   if(fnAngle){
     if( (fpAngle=fopen(fnAngle, "r"))==0 ){
       printf("could not open angle file %s, tiltAngle is set to 0.0\n",fnAngle);
@@ -163,10 +163,8 @@ void MyApp::setSlice(char *stackFile, char *angleFile)
   }
 
   /* read header */	
-  if (mrc_head_read(fpStack, &header)) {
-    printf("ERROR: - reading header of input file %s\n",  fnStack);
-    exit(1);
-  }
+  if (mrc_head_read(fpStack, &header)) 
+    exitError("could not read header of input file %s\n",  fnStack);
 
   sliceMode = sliceModeIfReal(header.mode);
    if (sliceMode < 0) 
@@ -208,23 +206,17 @@ the specified angle range. Only %d slices are included \n", MAXSLICENUM);
     if( currAngle<lowAngle || currAngle>highAngle) continue;
     if( startingSlice==-1) startingSlice=k+1;
     slice[sIndex]=sliceCreate(nx, ny, sliceMode);
-    if(!slice[sIndex]){
-      printf("ERROR: -creating slice for input\n");
-      exit(1);
-    }
+    if(!slice[sIndex])
+      exitError("could not create slice for input\n");
 
-    if( mrc_read_slice(slice[sIndex]->data.b, fpStack, &header, k, 'Z') ){
-      printf("ERROR: -reading slice\n");
-      exit(1);
-    }
+    if( mrc_read_slice(slice[sIndex]->data.b, fpStack, &header, k, 'Z') )
+      exitError("could not read slice\n");
     printf("Slice %d of stack %s is included\n", k, fnStack);
 
     //convert slice to floats
     if(sliceMode !=SLICE_MODE_FLOAT)
-      if( sliceNewMode(slice[sIndex], SLICE_MODE_FLOAT)<0 ){
-        printf("ERROR: -converting slice to float\n");
-        exit(1);
-      }
+      if( sliceNewMode(slice[sIndex], SLICE_MODE_FLOAT)<0 )
+        exitError("could not convert slice to float\n");
 
     tiltAngle[sIndex]=currAngle*MY_PI/180.0;
     if( fabs(tiltAngle[sIndex]) > MIN_ANGLE ) 
