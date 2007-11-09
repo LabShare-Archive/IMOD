@@ -7,7 +7,7 @@ import java.util.List;
 
 import etomo.BaseManager;
 import etomo.storage.LogFile;
-import etomo.storage.TestnadFileFilter;
+import etomo.storage.TestNADFileFilter;
 import etomo.type.AxisID;
 import etomo.type.ConstEtomoNumber;
 import etomo.type.ConstIntKeyList;
@@ -31,6 +31,10 @@ import etomo.util.DatasetFiles;
  * @version $Revision$
  * 
  * <p> $Log$
+ * <p> Revision 1.2  2007/11/07 14:54:25  sueh
+ * <p> bug# 1047 In buildCommand put the iteration list in quotes because the
+ * <p> command string doesn't work without quotes when run from the command line.
+ * <p>
  * <p> Revision 1.1  2007/11/06 18:58:33  sueh
  * <p> bug# 1047 Represents the parameters of nad_eed_3d.
  * <p> </p>
@@ -58,7 +62,7 @@ public final class AnisotropicDiffusionParam implements CommandDetails {
   private String subdirName = "";
   private String inputFileName = "";
   private boolean debug = true;
-  private CommandMode commandMode= null;
+  private CommandMode commandMode = null;
 
   public AnisotropicDiffusionParam(final BaseManager manager) {
     this.manager = manager;
@@ -90,11 +94,11 @@ public final class AnisotropicDiffusionParam implements CommandDetails {
     inputFileName = input;
   }
 
-  public void deleteTestnadFiles() {
-    File[] testnadFileList = new File(manager.getPropertyUserDir(), subdirName)
-        .listFiles(new TestnadFileFilter());
-    for (int i = 0; i < testnadFileList.length; i++) {
-      testnadFileList[i].delete();
+  public void deleteTestFiles() {
+    File[] testFileList = new File(manager.getPropertyUserDir(), subdirName)
+        .listFiles(new TestNADFileFilter());
+    for (int i = 0; i < testFileList.length; i++) {
+      testFileList[i].delete();
     }
   }
 
@@ -103,25 +107,25 @@ public final class AnisotropicDiffusionParam implements CommandDetails {
    * @throws LogFile.FileException
    * @throws LogFile.WriteException
    */
-  public void createFullnadFile() throws LogFile.FileException,
+  public void createFilterFullFile() throws LogFile.FileException,
       LogFile.WriteException {
     File subdir = new File(manager.getPropertyUserDir(), subdirName);
-    LogFile fullnadFile = LogFile.getInstance(new File(subdir,
-        getFullnadFileName()));
-    fullnadFile.create();
-    long writeId = fullnadFile.openWriter();
-    fullnadFile.write(COMMAND_CHAR + ProcessName.ANISOTROPIC_DIFFUSION + " "
-        + K_VALUE_TAG + " " + kValue + " " + ITERATION_TAG + " " + iteration 
+    LogFile filterFullFile = LogFile.getInstance(new File(subdir,
+        getFilterFullFileName()));
+    filterFullFile.create();
+    long writeId = filterFullFile.openWriter();
+    filterFullFile.write(COMMAND_CHAR + ProcessName.ANISOTROPIC_DIFFUSION + " "
+        + K_VALUE_TAG + " " + kValue + " " + ITERATION_TAG + " " + iteration
         + " " + "INPUTFILE" + " " + "OUTPUTFILE", writeId);
-    fullnadFile.newLine(writeId);
-    fullnadFile.closeWriter(writeId);
-  }
-  
-  public static String getFullnadFileName() {
-    return ProcessName.ANISOTROPIC_DIFFUSION +DatasetFiles.COMSCRIPT_EXT;
+    filterFullFile.newLine(writeId);
+    filterFullFile.closeWriter(writeId);
   }
 
-  public void createTestnadFiles() throws LogFile.WriteException,
+  public static String getFilterFullFileName() {
+    return ProcessName.ANISOTROPIC_DIFFUSION + DatasetFiles.COMSCRIPT_EXT;
+  }
+
+  public void createTestFiles() throws LogFile.WriteException,
       LogFile.FileException {
     File subdir = new File(manager.getPropertyUserDir(), subdirName);
     EtomoNumber index = new EtomoNumber();
@@ -129,19 +133,19 @@ public final class AnisotropicDiffusionParam implements CommandDetails {
     for (int i = 0; i < kValueList.size(); i++) {
       index.set(i + 1);
       k.set(kValueList.getRawString(i));
-      LogFile testnadFile = LogFile.getInstance(new File(subdir,
-          TestnadFileFilter.FILE_NAME_BODY + index.toStringWithLeadingZeros(3)
-              + TestnadFileFilter.FILE_NAME_EXT));
-      testnadFile.create();
-      long writeId = testnadFile.openWriter();
-      testnadFile.write(COMMAND_CHAR + ProcessName.ANISOTROPIC_DIFFUSION + " "
+      LogFile testFile = LogFile.getInstance(new File(subdir,
+          TestNADFileFilter.FILE_NAME_BODY + index.toStringWithLeadingZeros(3)
+              + TestNADFileFilter.FILE_NAME_EXT));
+      testFile.create();
+      long writeId = testFile.openWriter();
+      testFile.write(COMMAND_CHAR + ProcessName.ANISOTROPIC_DIFFUSION + " "
           + K_VALUE_TAG + " " + kValueList.getRawString(i) + " "
           + ITERATION_TAG + " " + iteration.toString() + " " + inputFileName
-          + " " + getTestnadFileName(k, iteration), writeId);
-      testnadFile.newLine(writeId);
-      testnadFile.write(COMMAND_CHAR + "echo CHUNK DONE", writeId);
-      testnadFile.newLine(writeId);
-      testnadFile.closeWriter(writeId);
+          + " " + getTestFileName(k, iteration), writeId);
+      testFile.newLine(writeId);
+      testFile.write(COMMAND_CHAR + "echo CHUNK DONE", writeId);
+      testFile.newLine(writeId);
+      testFile.closeWriter(writeId);
     }
   }
 
@@ -152,56 +156,65 @@ public final class AnisotropicDiffusionParam implements CommandDetails {
     command.add(K_VALUE_TAG);
     command.add(kValue.toString());
     command.add("-i");
-    command.add("\""+iterationList.getRawString()+"\"");
+    command.add(iterationList.getRawString());
     command.add("-P");
     command.add(new File(subdir, inputFileName).getPath());
-    command.add(new File(subdir, getTestnadFileRoot(kValue)).getPath());
+    command.add(new File(subdir, getTestFileRoot(kValue)).getPath());
     if (debug) {
-      for (int i=0;i<command.size();i++) {
-        System.err.print(command.get(i)+" ");
+      for (int i = 0; i < command.size(); i++) {
+        System.err.print(command.get(i) + " ");
       }
       System.err.println();
     }
   }
 
-  public static List getTestnadFileNameList(BaseManager manager,
-      ParsedArray kValueList, ConstEtomoNumber iteration) {
+  /**
+   * The test volume and the output volues
+   * @param manager
+   * @param kValueList
+   * @param iteration
+   * @return
+   */
+  public static List getTestFileNameList(BaseManager manager,
+      ParsedArray kValueList, ConstEtomoNumber iteration, String testVolumeName) {
     EtomoNumber index = new EtomoNumber();
     EtomoNumber kValue = new EtomoNumber(EtomoNumber.Type.FLOAT);
     List list = new ArrayList();
+    list.add(testVolumeName);
     for (int i = 0; i < kValueList.size(); i++) {
       kValue.set(kValueList.getRawString(i));
-      list.add(getTestnadFileName(kValue, iteration));
+      list.add(getTestFileName(kValue, iteration));
     }
     return list;
   }
 
-  public static List getTestnadFileNameList(BaseManager manager,
-      ConstEtomoNumber kValue, ParsedArray iterationList) {
+  public static List getTestFileNameList(BaseManager manager,
+      ConstEtomoNumber kValue, ParsedArray iterationList, String testVolumeName) {
     EtomoNumber index = new EtomoNumber();
     EtomoNumber iteration = new EtomoNumber();
     List list = new ArrayList();
+    list.add(testVolumeName);
     List expandedArray = iterationList.getParsedNumberExpandedArray(null);
     for (int i = 0; i < expandedArray.size(); i++) {
       iteration.set(((ParsedNumber) expandedArray.get(i)).getRawString());
-      list.add(getTestnadFileName(kValue, iteration));
+      list.add(getTestFileName(kValue, iteration));
     }
     return list;
   }
 
-  private static String getTestnadFileName(ConstEtomoNumber k,
+  private static String getTestFileName(ConstEtomoNumber k,
       ConstEtomoNumber iteration) {
-    return getTestnadFileRoot(k) + "-" + iteration.toStringWithLeadingZeros(3);
+    return getTestFileRoot(k) + "-" + iteration.toStringWithLeadingZeros(3);
   }
 
-  private static String getTestnadFileRoot(ConstEtomoNumber k) {
+  private static String getTestFileRoot(ConstEtomoNumber k) {
     return "test.K" + k.toStringWithLeadingZeros(1);
   }
 
   public AxisID getAxisID() {
     return AxisID.ONLY;
   }
-  
+
   public void setCommandMode(CommandMode input) {
     commandMode = input;
   }
