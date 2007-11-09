@@ -15,24 +15,27 @@ import java.util.Properties;
  * 
  * @version $Revision$
  * 
- * <p> $Log$ </p>
+ * <p> $Log$
+ * <p> Revision 1.1  2007/11/06 19:38:00  sueh
+ * <p> bug# 1047 Added process state for anisotropic diffusion.
+ * <p> </p>
  */
 public final class ParallelState extends BaseState {
   public static final String rcsid = "$Id$";
 
   private static final String GROUP_KEY = "State";
 
-  private final ParsedArray kValueList = ParsedArray.getInstance(
-      EtomoNumber.Type.FLOAT, "KValueList");
-  private final EtomoNumber iteration = new EtomoNumber("Iteration");
+  private final ParsedArray testKValueList = ParsedArray.getInstance(
+      EtomoNumber.Type.FLOAT, "TestKValueList");
+  private final EtomoNumber testIteration = new EtomoNumber("TestIteration");
   /**
    * IterationList may contain array descriptors in the form start-end.
    * Example: "2,4 - 9,10".
    */
-  private final ParsedArray iterationList = ParsedArray
-      .getIteratorInstance("IterationList");
-  private final EtomoNumber kValue = new EtomoNumber(EtomoNumber.Type.FLOAT,
-      "KValue");
+  private final ParsedArray testIterationList = ParsedArray
+      .getIteratorInstance("TestIterationList");
+  private final EtomoNumber testKValue = new EtomoNumber(
+      EtomoNumber.Type.FLOAT, "TestKValue");
 
   public void store(final Properties props) {
     store(props, "");
@@ -41,10 +44,10 @@ public final class ParallelState extends BaseState {
   public void store(final Properties props, String prepend) {
     super.store(props, prepend);
     prepend = createPrepend(prepend);
-    kValueList.store(props, prepend);
-    iteration.store(props, prepend);
-    iterationList.store(props, prepend);
-    kValue.store(props, prepend);
+    testKValueList.store(props, prepend);
+    testIteration.store(props, prepend);
+    testIterationList.store(props, prepend);
+    testKValue.store(props, prepend);
   }
 
   public void load(final Properties props) {
@@ -54,10 +57,10 @@ public final class ParallelState extends BaseState {
   public void load(final Properties props, String prepend) {
     super.load(props, prepend);
     prepend = createPrepend(prepend);
-    kValueList.load(props, prepend);
-    iteration.load(props, prepend);
-    iterationList.load(props, prepend);
-    kValue.load(props, prepend);
+    testKValueList.load(props, prepend);
+    testIteration.load(props, prepend);
+    testIterationList.load(props, prepend);
+    testKValue.load(props, prepend);
   }
 
   String createPrepend(final String prepend) {
@@ -68,35 +71,35 @@ public final class ParallelState extends BaseState {
         + ParallelMetaData.ANISOTROPIC_DIFFUSION_GROUP_KEY;
   }
 
-  public void setKValueList(String input) {
-    kValueList.setRawString(input);
+  public void setTestKValueList(String input) {
+    testKValueList.setRawString(input);
   }
 
-  public ParsedArray getKValueList() {
-    return kValueList;
+  public ParsedArray getTestKValueList() {
+    return testKValueList;
   }
 
-  public void setIteration(int input) {
-    iteration.set(input);
+  public void setTestIteration(int input) {
+    testIteration.set(input);
   }
 
-  public ConstEtomoNumber getIteration() {
-    return iteration;
+  public ConstEtomoNumber getTestIteration() {
+    return testIteration;
   }
 
-  public void setIterationList(String input) {
-    iterationList.setRawString(input);
+  public void setTestIterationList(String input) {
+    testIterationList.setRawString(input);
   }
 
-  public ParsedArray getIterationList() {
-    return iterationList;
+  public ParsedArray getTestIterationList() {
+    return testIterationList;
   }
 
-  public void setKValue(float input) {
-    kValue.set(input);
+  public void setTestKValue(float input) {
+    testKValue.set(input);
   }
 
-  public ConstEtomoNumber getKValue() {
-    return kValue;
+  public ConstEtomoNumber getTestKValue() {
+    return testKValue;
   }
 }

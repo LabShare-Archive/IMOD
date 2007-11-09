@@ -38,15 +38,16 @@ public final class ParallelMetaData extends BaseMetaData {
   private final EtomoNumber yMax = new EtomoNumber("YMax");
   private final EtomoNumber zMin = new EtomoNumber("ZMin");
   private final EtomoNumber zMax = new EtomoNumber("ZMax");
-  private final StringProperty kValueList = new StringProperty("KValueList");
-  private final EtomoNumber iteration = new EtomoNumber("Iteration");
+  private final StringProperty testKValueList = new StringProperty(
+      "TestKValueList");
+  private final EtomoNumber testIteration = new EtomoNumber("TestIteration");
+  private final EtomoNumber testKValue = new EtomoNumber(
+      EtomoNumber.Type.FLOAT, "TestKValue");
+  private final StringProperty testIterationList = new StringProperty(
+      "TestIterationList");
   private final EtomoNumber kValue = new EtomoNumber(EtomoNumber.Type.FLOAT,
       "KValue");
-  private final StringProperty iterationList = new StringProperty(
-      "IterationList");
-  private final EtomoNumber finalKValue = new EtomoNumber(
-      EtomoNumber.Type.FLOAT, "FinalKValue");
-  private final EtomoNumber finalIteration = new EtomoNumber("FinalIteration");
+  private final EtomoNumber iteration = new EtomoNumber("Iteration");
   private final EtomoNumber memoryPerChunk = new EtomoNumber("MemoryPerChunk");
 
   private DialogType dialogType = DialogType.getDefault(TabType.PARALLEL);
@@ -78,13 +79,13 @@ public final class ParallelMetaData extends BaseMetaData {
     yMax.reset();
     zMin.reset();
     zMax.reset();
-    kValueList.reset();
-    iteration.reset();
+    testKValueList.reset();
+    testIteration.reset();
     dialogType = DialogType.getDefault(TabType.PARALLEL);
+    testKValue.reset();
+    testIterationList.reset();
     kValue.reset();
-    iterationList.reset();
-    finalKValue.reset();
-    finalIteration.reset();
+    iteration.reset();
     memoryPerChunk.reset();
   }
 
@@ -189,44 +190,12 @@ public final class ParallelMetaData extends BaseMetaData {
     return zMax.toString();
   }
 
-  public void setKValueList(String input) {
-    kValueList.set(input);
+  public void setTestKValueList(String input) {
+    testKValueList.set(input);
   }
 
-  public String getKValueList() {
-    return kValueList.toString();
-  }
-
-  public void setFinalKValue(String input) {
-    finalKValue.set(input);
-  }
-
-  public String getFinalKValue() {
-    return finalKValue.toString();
-  }
-
-  public void setFinalIteration(Number input) {
-    finalIteration.set(input);
-  }
-
-  public ConstEtomoNumber getFinalIteration() {
-    return finalIteration;
-  }
-
-  public void setIteration(Number input) {
-    iteration.set(input);
-  }
-
-  public ConstEtomoNumber getIteration() {
-    return iteration;
-  }
-
-  public void setMemoryPerChunk(Number input) {
-    memoryPerChunk.set(input);
-  }
-
-  public ConstEtomoNumber getMemoryPerChunk() {
-    return memoryPerChunk;
+  public String getTestKValueList() {
+    return testKValueList.toString();
   }
 
   public void setKValue(String input) {
@@ -237,12 +206,44 @@ public final class ParallelMetaData extends BaseMetaData {
     return kValue.toString();
   }
 
-  public void setIterationList(String input) {
-    iterationList.set(input);
+  public void setIteration(Number input) {
+    iteration.set(input);
   }
 
-  public String getIterationList() {
-    return iterationList.toString();
+  public ConstEtomoNumber getIteration() {
+    return iteration;
+  }
+
+  public void setTestIteration(Number input) {
+    testIteration.set(input);
+  }
+
+  public ConstEtomoNumber getTestIteration() {
+    return testIteration;
+  }
+
+  public void setMemoryPerChunk(Number input) {
+    memoryPerChunk.set(input);
+  }
+
+  public ConstEtomoNumber getMemoryPerChunk() {
+    return memoryPerChunk;
+  }
+
+  public void setTestKValue(String input) {
+    testKValue.set(input);
+  }
+
+  public String getTestKValue() {
+    return testKValue.toString();
+  }
+
+  public void setTestIterationList(String input) {
+    testIterationList.set(input);
+  }
+
+  public String getTestIterationList() {
+    return testIterationList.toString();
   }
 
   public void setDialogType(DialogType input) {
@@ -273,12 +274,12 @@ public final class ParallelMetaData extends BaseMetaData {
     yMax.load(props, prepend);
     zMin.load(props, prepend);
     zMax.load(props, prepend);
-    kValueList.load(props, prepend);
-    iteration.load(props, prepend);
+    testKValueList.load(props, prepend);
+    testIteration.load(props, prepend);
+    testKValue.load(props, prepend);
+    testIterationList.load(props, prepend);
     kValue.load(props, prepend);
-    iterationList.load(props, prepend);
-    finalKValue.load(props, prepend);
-    finalIteration.load(props, prepend);
+    iteration.load(props, prepend);
     memoryPerChunk.load(props, prepend,
         AnisotropicDiffusionDialog.MEMORY_PER_CHUNK_DEFAULT);
   }
@@ -297,12 +298,12 @@ public final class ParallelMetaData extends BaseMetaData {
     yMax.store(props, prepend);
     zMin.store(props, prepend);
     zMax.store(props, prepend);
-    kValueList.store(props, prepend);
-    iteration.store(props, prepend);
+    testKValueList.store(props, prepend);
+    testIteration.store(props, prepend);
+    testKValue.store(props, prepend);
+    testIterationList.store(props, prepend);
     kValue.store(props, prepend);
-    iterationList.store(props, prepend);
-    finalKValue.store(props, prepend);
-    finalIteration.store(props, prepend);
+    iteration.store(props, prepend);
     memoryPerChunk.store(props, prepend);
   }
 
@@ -322,6 +323,9 @@ public final class ParallelMetaData extends BaseMetaData {
 }
 /**
  * <p> $Log$
+ * <p> Revision 1.4  2007/11/06 19:37:15  sueh
+ * <p> bug# 1047 Added meta data for the anisotropic diffusion dialog.
+ * <p>
  * <p> Revision 1.3  2007/02/21 04:20:34  sueh
  * <p> bug# 964 Set fileExtension.
  * <p>
