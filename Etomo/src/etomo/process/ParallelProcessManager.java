@@ -66,9 +66,9 @@ public final class ParallelProcessManager extends BaseProcessManager {
     if (commandDetails.getCommandName().equals(
         ProcessName.ANISOTROPIC_DIFFUSION.toString())) {
       ParallelState state = manager.getState();
-      state.setKValue(commandDetails
+      state.setTestKValue(commandDetails
           .getFloatValue(AnisotropicDiffusionParam.Fields.K_VALUE));
-      state.setIterationList(commandDetails
+      state.setTestIterationList(commandDetails
           .getString(AnisotropicDiffusionParam.Fields.ITERATION_LIST));
     }
   }
@@ -107,9 +107,9 @@ public final class ParallelProcessManager extends BaseProcessManager {
               ProcessName.ANISOTROPIC_DIFFUSION.toString())
           && subcommandDetails.getCommandMode() == AnisotropicDiffusionParam.Mode.VARYING_K) {
         ParallelState state = manager.getState();
-        state.setKValueList(subcommandDetails
+        state.setTestKValueList(subcommandDetails
             .getString(AnisotropicDiffusionParam.Fields.K_VALUE_LIST));
-        state.setIteration(subcommandDetails
+        state.setTestIteration(subcommandDetails
             .getIntValue(AnisotropicDiffusionParam.Fields.ITERATION));
       }
     }
@@ -117,6 +117,9 @@ public final class ParallelProcessManager extends BaseProcessManager {
 }
 /**
  * <p> $Log$
+ * <p> Revision 1.4  2007/11/06 19:24:21  sueh
+ * <p> bug# 1047 Added post processing for anisotropic diffusion processes.
+ * <p>
  * <p> Revision 1.3  2006/08/02 22:24:10  sueh
  * <p> bug# 769 Added empty functions errorProcess and postProcess.
  * <p>
