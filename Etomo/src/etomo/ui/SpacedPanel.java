@@ -33,6 +33,9 @@ import javax.swing.border.Border;
  * @version $Revision$
  * 
  * <p> $Log$
+ * <p> Revision 1.20  2007/11/06 20:32:03  sueh
+ * <p> bug# 1047 Added addRigidArea(Dimension).
+ * <p>
  * <p> Revision 1.19  2007/05/26 00:33:23  sueh
  * <p> bug# 994 Not automatically setting button size in SpacedPanel anymore.
  * <p> Setting button size in UI.
@@ -125,7 +128,7 @@ final class SpacedPanel {
 
   private final JPanel panel = new JPanel();
   private final JPanel innerPanel = new JPanel();
-  private final JPanel outerPanel;
+  private final JPanel outerPanel= new JPanel();
   private final StringBuffer xDescription = new StringBuffer();
   private final StringBuffer yDescription = new StringBuffer();
 
@@ -146,7 +149,6 @@ final class SpacedPanel {
    */
   SpacedPanel(final boolean yAxisPadding) {
     //panels
-    outerPanel = new JPanel();
     outerPanel.setLayout(new BoxLayout(outerPanel, BoxLayout.Y_AXIS));
     innerPanel.setLayout(new BoxLayout(innerPanel, BoxLayout.X_AXIS));
     //innerPanel
@@ -420,6 +422,16 @@ final class SpacedPanel {
   }
 
   Container getContainer() {
+    if (outerPanel != null) {
+      return outerPanel;
+    }
+    if (innerPanel != null) {
+      return innerPanel;
+    }
+    return panel;
+  }
+  
+  Component getComponent() {
     if (outerPanel != null) {
       return outerPanel;
     }
