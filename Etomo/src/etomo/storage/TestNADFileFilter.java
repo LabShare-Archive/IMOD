@@ -16,9 +16,12 @@ import java.io.FileFilter;
  * 
  * @version $Revision$
  * 
- * <p> $Log$ </p>
+ * <p> $Log$
+ * <p> Revision 1.1  2007/11/06 19:34:47  sueh
+ * <p> bug# 1047 Filter for nad_eed_3d chunk scripts.
+ * <p> </p>
  */
-public final class TestnadFileFilter implements FileFilter{
+public final class TestNADFileFilter implements FileFilter{
   public static final String rcsid = "$Id$";
   
   public static final String FILE_NAME_BODY = "nad_eed_3d-";
