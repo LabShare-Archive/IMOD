@@ -346,16 +346,16 @@ public final class ParallelManager extends BaseManager {
   }
 
   public void imodVaryingKValue(String key, Run3dmodMenuOptions menuOptions,
-      String subdirName) {
-    List fileNameList = AnisotropicDiffusionParam.getTestnadFileNameList(this,
-        state.getKValueList(), state.getIteration());
+      String subdirName, String testVolumeName) {
+    List fileNameList = AnisotropicDiffusionParam.getTestFileNameList(this,
+        state.getTestKValueList(), state.getTestIteration(), testVolumeName);
     imod(key, menuOptions, subdirName, fileNameList);
   }
 
   public void imodVaryingIteration(String key, Run3dmodMenuOptions menuOptions,
-      String subdirName) {
-    List fileNameList = AnisotropicDiffusionParam.getTestnadFileNameList(this,
-        state.getKValue(), state.getIterationList());
+      String subdirName, String testVolumeName) {
+    List fileNameList = AnisotropicDiffusionParam.getTestFileNameList(this,
+        state.getTestKValue(), state.getTestIterationList(), testVolumeName);
     imod(key, menuOptions, subdirName, fileNameList);
   }
 
@@ -412,8 +412,8 @@ public final class ParallelManager extends BaseManager {
     if (!anisotropicDiffusionDialog.getParametersForVaryingK(param)) {
       return null;
     }
-    param.deleteTestnadFiles();
-    param.createTestnadFiles();
+    param.deleteTestFiles();
+    param.createTestFiles();
     return param;
   }
 
@@ -421,7 +421,7 @@ public final class ParallelManager extends BaseManager {
       LogFile.WriteException {
     AnisotropicDiffusionParam param = new AnisotropicDiffusionParam(this);
     anisotropicDiffusionDialog.getParameters(param);
-    param.createFullnadFile();
+    param.createFilterFullFile();
   }
 
   private ChunksetupParam updateChunksetupParam() {
@@ -635,6 +635,9 @@ public final class ParallelManager extends BaseManager {
 }
 /**
  * <p> $Log$
+ * <p> Revision 1.19  2007/11/07 14:53:16  sueh
+ * <p> bug# 1047 Fixed getBaseState.
+ * <p>
  * <p> Revision 1.18  2007/11/06 18:57:48  sueh
  * <p> bug# 1047 Added anisotropic diffusion dialog.
  * <p>
