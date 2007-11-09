@@ -7,7 +7,6 @@ import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.util.Vector;
 
-import javax.swing.Box;
 import javax.swing.BoxLayout;
 import javax.swing.JPanel;
 
@@ -36,7 +35,7 @@ public final class RubberbandPanel {
 
   private final BaseManager manager;
 
-  private final JPanel pnlRubberband = new JPanel();
+  private final SpacedPanel pnlRubberband = new SpacedPanel();
   private final JPanel pnlRange = new JPanel();
   private final LabeledTextField ltfXMin = new LabeledTextField("X min: ");
   private final LabeledTextField ltfXMax = new LabeledTextField("X max: ");
@@ -54,12 +53,12 @@ public final class RubberbandPanel {
   private final String yMaxTooltip;
   private final String zMinTooltip;
   private final String zMaxTooltip;
-  private final Run3dmodButton run3dmodButton;
+  private final Run3dmodButton btnImod;
 
   private RubberbandPanel(BaseManager manager, String imodKey,
       String borderLabel, String buttonLabel, String xMinTooltip,
       String xMaxTooltip, String yMinTooltip, String yMaxTooltip,
-      String zMinTooltip, String zMaxTooltip, Run3dmodButton run3dmodButton) {
+      String zMinTooltip, String zMaxTooltip, Run3dmodButton btnImod) {
     this.imodKey = imodKey;
     this.borderLabel = borderLabel;
     this.buttonLabel = buttonLabel;
@@ -69,18 +68,22 @@ public final class RubberbandPanel {
     this.yMaxTooltip = yMaxTooltip;
     this.zMinTooltip = zMinTooltip;
     this.zMaxTooltip = zMaxTooltip;
-    this.run3dmodButton = run3dmodButton;
+    this.btnImod = btnImod;
     this.manager = manager;
     pnlRubberband.setBorder(new EtchedBorder(borderLabel).getBorder());
     btnRubberband = new MultiLineButton(buttonLabel);
     btnRubberband.setSize();
-    pnlRubberband.setLayout(new BoxLayout(pnlRubberband, BoxLayout.Y_AXIS));
-    JPanel pnlButtons = null;
-    if (run3dmodButton != null) {
-      pnlButtons = new JPanel();
-      run3dmodButton.setSize();
-      pnlButtons.add(run3dmodButton.getComponent());
-      pnlButtons.add(btnRubberband.getComponent());
+    pnlRubberband.setBoxLayout(BoxLayout.Y_AXIS);
+    SpacedPanel pnlButtons = null;
+    if (btnImod != null) {
+      pnlButtons = new SpacedPanel();
+      pnlButtons.setBoxLayout(BoxLayout.X_AXIS);
+      pnlButtons.addHorizontalGlue();
+      btnImod.setSize();
+      pnlButtons.add(btnImod);
+      pnlButtons.addHorizontalGlue();
+      pnlButtons.add(btnRubberband);
+      pnlButtons.addHorizontalGlue();
       pnlRange.setLayout(new GridLayout(3, 2, 4, 2));
     }
     else {
@@ -90,16 +93,16 @@ public final class RubberbandPanel {
     pnlRange.add(ltfXMax.getContainer());
     pnlRange.add(ltfYMin.getContainer());
     pnlRange.add(ltfYMax.getContainer());
-    if (run3dmodButton != null) {
+    if (btnImod != null) {
       pnlRange.add(ltfZMin.getContainer());
       pnlRange.add(ltfZMax.getContainer());
-      pnlRubberband.add(pnlButtons);
+      pnlRubberband.add(pnlButtons.getContainer());
     }
     pnlRubberband.add(pnlRange);
-    if (run3dmodButton == null) {
-      pnlRubberband.add(Box.createRigidArea(FixedDim.x0_y5));
+    if (btnImod == null) {
+      pnlRubberband.addRigidArea();
       btnRubberband.setAlignmentX(Component.CENTER_ALIGNMENT);
-      pnlRubberband.add(btnRubberband.getComponent());
+      pnlRubberband.add(btnRubberband);
     }
     setToolTipText();
   }
@@ -108,8 +111,8 @@ public final class RubberbandPanel {
       String borderLabel, String buttonLabel, String xMinTooltip,
       String xMaxTooltip, String yMinTooltip, String yMaxTooltip) {
     RubberbandPanel instance = new RubberbandPanel(manager, imodKey,
-        borderLabel, buttonLabel, xMinTooltip, xMaxTooltip, yMinTooltip, "",
-        "", yMaxTooltip, null);
+        borderLabel, buttonLabel, xMinTooltip, xMaxTooltip, yMinTooltip,
+        yMaxTooltip, "", "", null);
     instance.addListeners();
     return instance;
   }
@@ -117,10 +120,10 @@ public final class RubberbandPanel {
   static RubberbandPanel getInstance(BaseManager manager, String imodKey,
       String borderLabel, String buttonLabel, String xMinTooltip,
       String xMaxTooltip, String yMinTooltip, String yMaxTooltip,
-      String zMinTooltip, String zMaxTooltip, Run3dmodButton run3dmodButton) {
+      String zMinTooltip, String zMaxTooltip, Run3dmodButton btnIdmod) {
     RubberbandPanel instance = new RubberbandPanel(manager, imodKey,
         borderLabel, buttonLabel, xMinTooltip, xMaxTooltip, yMinTooltip,
-        zMinTooltip, zMaxTooltip, yMaxTooltip, run3dmodButton);
+        yMaxTooltip, zMinTooltip, zMaxTooltip, btnIdmod);
     instance.addListeners();
     return instance;
   }
@@ -130,11 +133,11 @@ public final class RubberbandPanel {
   }
 
   Component getComponent() {
-    return pnlRubberband;
+    return pnlRubberband.getComponent();
   }
-  
+
   Container getContainer() {
-    return pnlRubberband;
+    return pnlRubberband.getContainer();
   }
 
   void buttonAction(ActionEvent event) {
@@ -192,7 +195,7 @@ public final class RubberbandPanel {
     xyParam.setYMin(ltfYMin.getText());
     xyParam.setYMax(ltfYMax.getText());
   }
-  
+
   public void getParameters(TrimvolParam trimvolParam) {
     trimvolParam.setXMin(ltfXMin.getText());
     trimvolParam.setXMax(ltfXMax.getText());
@@ -201,7 +204,7 @@ public final class RubberbandPanel {
     trimvolParam.setZMin(ltfZMin.getText());
     trimvolParam.setZMax(ltfZMax.getText());
   }
-  
+
   public void getParameters(ParallelMetaData metaData) {
     metaData.setXMin(ltfXMin.getText());
     metaData.setXMax(ltfXMax.getText());
@@ -210,7 +213,7 @@ public final class RubberbandPanel {
     metaData.setZMin(ltfZMin.getText());
     metaData.setZMax(ltfZMax.getText());
   }
-  
+
   public void setParameters(ParallelMetaData metaData) {
     ltfXMin.setText(metaData.getXMin());
     ltfXMax.setText(metaData.getXMax());
@@ -228,15 +231,17 @@ public final class RubberbandPanel {
   }
 
   private void setToolTipText() {
-    String text;
     ltfXMin.setToolTipText(xMinTooltip);
     ltfXMax.setToolTipText(xMaxTooltip);
     ltfYMin.setToolTipText(yMinTooltip);
     ltfYMax.setToolTipText(yMaxTooltip);
-    btnRubberband.setToolTipText("After pressing the " + buttonLabel
-        + " button, " + "press shift-B in the ZaP window.  "
-        + "Create a rubberband around the contrast range.  "
-        + "Then press this button to retrieve X and Y coordinates.");
+    ltfZMin.setToolTipText(zMinTooltip);
+    ltfZMax.setToolTipText(zMaxTooltip);
+    btnRubberband
+        .setToolTipText("After opening the volume in 3dmod, press shift-B in "
+            + "the ZaP window.  Create a rubberband around the contrast "
+            + "range.  Then press this button to retrieve the X" + (btnImod == null ? " and Y"
+            : ", Y, and Z") + " coordinates.");
   }
 
   private static final class RubberbandActionListener implements ActionListener {
@@ -253,6 +258,9 @@ public final class RubberbandPanel {
 }
 /**
  * <p> $Log$
+ * <p> Revision 1.5  2007/11/06 20:30:53  sueh
+ * <p> bug# 1047 Generalize and make more flexible.
+ * <p>
  * <p> Revision 1.4  2007/02/09 00:52:25  sueh
  * <p> bug# 962 Made TooltipFormatter a singleton and moved its use to low-level ui
  * <p> classes.
