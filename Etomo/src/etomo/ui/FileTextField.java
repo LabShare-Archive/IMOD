@@ -23,6 +23,9 @@ import javax.swing.JLabel;
  * @version $Revision$
  * 
  * <p> $Log$
+ * <p> Revision 1.6  2007/11/06 19:52:41  sueh
+ * <p> bug# 1047 Giving access to the File in the text field.
+ * <p>
  * <p> Revision 1.5  2007/06/08 22:21:18  sueh
  * <p> bug# 1014 Added clear().
  * <p>
@@ -51,6 +54,7 @@ final class FileTextField {
 
   private JLabel label = null;
   private File file = null;
+  private boolean showPartialPath = false;
 
   FileTextField(final String label) {
     this(label, true);
@@ -92,12 +96,16 @@ final class FileTextField {
   void addActionListener(final ActionListener actionListener) {
     button.addActionListener(actionListener);
   }
-  
+
   void clear() {
     field.setText("");
-    file=null;
+    file = null;
   }
-  
+
+  void setShowPartialPath() {
+    showPartialPath = true;
+  }
+
   void setFieldEditable(final boolean editable) {
     field.setEditable(editable);
   }
@@ -111,36 +119,66 @@ final class FileTextField {
     field.setEnabled(enabled);
     button.setEnabled(enabled);
   }
-  
+
   void setButtonEnabled(final boolean enabled) {
     button.setEnabled(enabled);
   }
-  
+
   void setFile(final File file) {
     this.file = file;
-    field.setText(file.getAbsolutePath());
+    setFieldFromFile();
   }
-  
+
   File getFile() {
     return file;
   }
-  
+
   String getFileName() {
-    if (file==null) {
+    if (file == null) {
       return field.getText();
     }
     return file.getName();
   }
-  
+
   String getFileAbsolutePath() {
     return file.getAbsolutePath();
   }
 
   void setText(final String text) {
-    field.setText(text);
-    file=new File(text);
+    if (text == null || text.matches("\\s*")) {
+      file = null;
+    }
+    else {
+      file = new File(text);
+    }
+    setFieldFromFile();
   }
 
+  private void setFieldFromFile() {
+    if (file == null) {
+      field.setText("");
+      return;
+    }
+    if (!showPartialPath) {
+      field.setText(file.getAbsolutePath());
+      return;
+    }
+    String parent = file.getParent();
+    int separatorIndex = parent.toString().lastIndexOf(File.separatorChar);
+    if (separatorIndex != -1) {
+      parent = parent.substring(separatorIndex);
+    }
+    StringBuffer text = new StringBuffer("...");
+    if (!parent.startsWith(File.separator)) {
+      text.append(File.separator);
+    }
+    text.append(parent);
+    if (!parent.endsWith(File.separator)) {
+      text.append(File.separator);
+    }
+    text.append(file.getName());
+    field.setText(text.toString());
+  }
   String getText() {
     return field.getText();
   }
