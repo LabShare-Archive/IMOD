@@ -332,7 +332,19 @@ to "edit" a mesh that has problems, by skinning only a few Z planes with the
 option.
 .TP
 .B -e
-Erase all mesh data instead of creating new data.
+Erase all mesh data instead of creating new data.  Other options besides
+.B -l
+and
+.B -o
+are ignored.
+.TP
+.B -n
+Recompute the normals in the existing mesh, without computing a new mesh from
+contours.  Other options besides
+.B -l
+and
+.B -o
+are ignored.
 .TP
 .B -n
 Rescale the normals in the existing mesh by the value given in the 
