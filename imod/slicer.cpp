@@ -798,7 +798,12 @@ void slicerKeyInput(SlicerStruct *ss, QKeyEvent *event)
       ss->glw->updateGL();
       b3dKeySnapshot("slicer", shift, ctrl, NULL);
     }else
-      sslice_showslice(ss);
+      inputSaveModel(vi);
+    dodraw = 0;
+    break;
+
+  case Qt::Key_L:
+    sslice_showslice(ss);
     dodraw = 0;
     break;
 
@@ -2551,6 +2556,10 @@ void slicerCubePaint(SlicerStruct *ss)
 
 /*
 $Log$
+Revision 4.50  2007/10/16 23:56:08  mast
+Added warning if using middle button in movie mode; fixed cx,cy,cz if
+out of bounds after an image flip
+
 Revision 4.49  2007/07/19 22:29:19  mast
 Added hot keys for jumping to set limits in time
 
