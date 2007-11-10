@@ -234,6 +234,9 @@ corresponding vertex, and each triangle is described by only 3 indices:
 <i>index to vertex 2</i>
 <i>index to vertex 3</i>
 </pre>
+It is also legal to have polygons consisting only of vertices, without
+normals; these polygons start with -21 and each triangles is described by
+3 indices as above for the polygons starting with -25.
 <p>
 Following all of the mesh data may be three optional directives:
 <code>

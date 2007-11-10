@@ -191,7 +191,7 @@ array plus negative index values with following meanings:
 <pre>
 	-1   end of list array                
 	-20  next item on list is normal vector.
-	-21  begin concave polygon
+	-21  begin polygon with vertices and vertex indices only
         -22  end polygon
 	-23  begin vertex,normal polygon pairs with normal,vertex indices
 	-24  begin large convex polygon with normals.
@@ -217,6 +217,9 @@ corresponding vertex, and each triangle is described by only 3 indices:
 <i>index to vertex 2</i>
 <i>index to vertex 3</i>
 </pre>
+In polygons starting with -21, there are only vertices, no normals, and 
+each triangle is described by the 3 indices as shown above for polygons
+starting with -25.
 <HR>
 <H3>
 Optional extra data chunks.
