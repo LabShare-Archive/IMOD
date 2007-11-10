@@ -1515,7 +1515,7 @@ void b3dSetMovieSnapping(bool snapping)
  */
 void b3dSetSnapDirectory(void)
 {
-  QString dir;
+  QString dir = QDir::currentDirPath();
   if (!snapDirectory.isEmpty())
     dir = snapDirectory;
   snapDirectory = QFileDialog::getExistingDirectory
@@ -1584,17 +1584,15 @@ QString b3dGetSnapshotName(char *name, int format_type, int digits,
 
 QString b3dShortSnapName(QString fname)
 {
-  QString sname;
+  QString sname = QDir::convertSeparators(fname);
   char sep = QDir::separator();
-  int index = fname.findRev(sep);
+  int index = sname.findRev(sep);
   if (index > 1) {
-    index = fname.findRev(sep, index - 1);
-    if (index >= 0) {
-      sname = fname.replace(0, index, "...");
-      return sname;
-    }
+    index = sname.findRev(sep, index - 1);
+    if (index >= 0)
+      sname = sname.replace(0, index, "...");
   }
-  return fname;
+  return sname;
 }
 
 /* Take a snapshot of the current window with prefix in name */
@@ -2082,6 +2080,9 @@ int b3dSnapshot(QString fname)
 
 /*
 $Log$
+Revision 4.34  2007/11/10 04:07:10  mast
+Changes for setting snapshot directory
+
 Revision 4.33  2007/09/17 04:58:40  mast
 Switched from quadratic to cubic for HQ drawing
 
