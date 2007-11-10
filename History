@@ -1,5 +1,10 @@
 IMOD History
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+11/10/07: Made s save model in slicer window, assigned l hot key to show
+slice instead.  Fixed updating of slicer angle window when new model is
+created, and stopped synchronization to slicer angle table when Auto button is
+turned on since direction of action is ambiguous.
+
 11/9/07: Added option to imodmesh to recompute normals from an existing mesh.
 
 11/9/07: Added ability to set a directory to receive snapshots in 3dmod.

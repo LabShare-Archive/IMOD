@@ -187,7 +187,10 @@ slicer.  When the time is changed, the slicer is automatically set to the
 current
 values for the new time (which can be in a different row of the table).  In
 addition, if you edit one of the cells, the values in that row are sent to the
-slicer.
+slicer.  When this option is turned on, neither the slicer position nor the
+angles in the table are changed because it is not known which action you
+desire - it is up to you to sychronize the angles in the table and the slicer
+window one way or the other.
 </UL>
 <P>
 
@@ -233,8 +236,8 @@ points can be selected from nearly any plane on which they are visible.
 current point.  This button can be held down to insert points continuously.
 (Classic mode: continuous tracing only works with the window position locked.)
 
-<LI><B>Third Button Click:</B> (if <B>Sh</B> not on) Move the current model point to
-the selected location 
+<LI><B>Third Button Click:</B> (if <B>Sh</B> not on) Move the current model
+point to the selected location 
 </UL>
 By default, these buttons correspond to the left, middle, and right 
 buttons, but you can change these assignments in the 3dmod Preferences 
@@ -256,10 +259,12 @@ Decrease/Increase zoom
 Decrease/Increase displayed image thickness
 <BR><B>9/0</B> &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
 Decrease/Increase displayed model thickness
-<BR><B>s</B> &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
-Show slice in ZaP and XYZ windows
+<BR><B>l</B> &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
+(Letter L) Show slice in ZaP and XYZ windows
 <BR><B>k</B> &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
 Toggle keeping slice centered on current point (classic mode)
+<BR><B>s</B> &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
+Save model to file
 <BR><B>Ctrl-S</B> &nbsp;
 Snapshot to TIFF file
 <BR><B>Shift-S</B> &nbsp;
