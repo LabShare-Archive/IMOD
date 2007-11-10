@@ -451,11 +451,10 @@ void SlicerWindow::newRowClicked()
   slicerSetCurrentOrNewRow(mSlicer, true);
 }
 
+// Do not synchronize when this is turned on, direction is ambiguous
 void SlicerWindow::continuousToggled(bool state)
 {
   mSlicer->continuous = state;
-  if (state)
-    slicerSetCurrentOrNewRow(mSlicer, false);
 }
 
 // Functions for setting state of the controls
@@ -1720,6 +1719,9 @@ static int taper_slice(Islice *sl, int ntaper, int inside)
 
  /*
 $Log$
+Revision 4.23  2007/08/15 19:50:18  mast
+Added 1 pixel margin in computation of index limits to avoid crashes
+
 Revision 4.22  2007/06/26 21:53:42  sueh
 bug# 1021 Removed win_support.
 
