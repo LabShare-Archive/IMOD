@@ -7,15 +7,10 @@
  *  Copyright (C) 1995-2006 by Boulder Laboratory for 3-Dimensional Electron
  *  Microscopy of Cells ("BL3DEMC") and the Regents of the University of 
  *  Colorado.  See dist/COPYRIGHT for full copyright notice.
+ *
+ *  $Id$
+ *  Log at end of file
  */
-
-/*  $Author$
-
-$Date$
-
-$Revision$
-Log at end
-*/
 
 #include <stdlib.h>
 #include <stdio.h>
@@ -86,6 +81,7 @@ static int imodmesh_usage(char *prog, int retcode)
   fprintf(stderr, "\t-a \tAppend mesh data to object, replacing mesh"
           " in same z range.\n");
   fprintf(stderr, "\t-e  \tErase meshes, overrides other options.\n");
+  fprintf(stderr, "\t-N \tRecompute normals for existing meshes.\n");
   fprintf(stderr, "\t-n \tRescale normals using the -Z value "
           "for existing meshes.\n");
   fprintf(stderr, "\t-Z #\tNormal scaling z multiplier.\n");
@@ -110,6 +106,7 @@ int main(int argc, char **argv)
   int ob, i, ch;
   int erase_mesh = FALSE;
   int renorm     = FALSE;
+  int remeshNorm = FALSE;
   int cap = IMESH_CAP_OFF;
   int times = TRUE;
   int capTubes = FALSE;
@@ -224,6 +221,9 @@ int main(int argc, char **argv)
         
         case 'n':
           renorm = TRUE;
+          break;
+        case 'N':
+          remeshNorm = TRUE;
           break;
         
         case 't':
@@ -395,6 +395,10 @@ int main(int argc, char **argv)
           spnt.x = spnt.y = 1.0f;
           spnt.z = zscale;
           imodMeshesRescaleNormal(obj->mesh, &obj->meshsize, &spnt);
+        } else if (remeshNorm) {
+          if (obj->meshsize)
+            obj->mesh = imeshReMeshNormal(obj->mesh, &obj->meshsize, &spnt,
+                                          resol);
         } else {
           if (!iobjScat(obj->flags)) {
 
@@ -803,6 +807,9 @@ static int ObjOnList(int ob, int list[], int nlist)
 
 /*
 $Log$
+Revision 3.17  2006/09/13 23:49:28  mast
+A few more bugs
+
 Revision 3.16  2006/09/12 14:56:18  mast
 Rebuilt to use library and object parameters
 
