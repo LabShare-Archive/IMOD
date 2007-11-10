@@ -650,6 +650,7 @@ int createNewModel(char *modelFilename)
 
   /* DNM: notify imodv of new model after scaling*/
   imodv_new_model(Model);
+  slicerNewTime(true);
 
   /* Set the checksum to avoid save requests */
   App->cvi->imod->csum = imodChecksum(App->cvi->imod);
@@ -809,6 +810,9 @@ static int mapErrno(int errorCode)
 
 /*
 $Log$
+Revision 4.24  2007/06/13 23:51:49  mast
+Inform slicer of new model
+
 Revision 4.23  2006/09/28 21:17:27  mast
 Changes to test for impossible slice sizes and handle slices >2-4Gpixel
 
