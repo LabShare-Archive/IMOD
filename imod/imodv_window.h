@@ -7,7 +7,6 @@
  *  $Id$
  *  Log at end of file
  */
- */                                                                           
 
 #ifndef IMODV_WINDOW_H
 #define IMODV_WINDOW_H
@@ -95,6 +94,9 @@ protected:
 /*
 
 $Log$
+Revision 4.3  2007/11/10 04:07:10  mast
+Changes for setting snapshot directory
+
 Revision 4.2  2003/04/11 18:56:34  mast
 switch to watching event types to manage hide/show events
 
