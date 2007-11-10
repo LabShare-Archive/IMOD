@@ -325,12 +325,17 @@ void imodvFileMenu(int item)
                                           " snapshot into:");
     if (qname.isEmpty())
       break;
-    imodv_auto_snapshot((char *)qname.latin1(), item == VFILE_MENU_SNAPRGB ? 
+    imodv_auto_snapshot(qname, item == VFILE_MENU_SNAPRGB ? 
                         SnapShot_RGB : SnapShot_TIF);
     break;
 
   case VFILE_MENU_ZEROSNAP:
     imodvResetSnap();
+    break;
+
+  case VFILE_MENU_SNAPDIR:
+    Imodv->mainWin->releaseKeyboard();
+    b3dSetSnapDirectory();
     break;
 
   case VFILE_MENU_MOVIE:
@@ -519,6 +524,9 @@ void ImodvBkgColor::keyReleaseSlot ( QKeyEvent * e )
 
 /*
 $Log$
+Revision 4.23  2007/10/03 19:30:22  sueh
+bug# 1038 Replacing help strings with an .html file.
+
 Revision 4.22  2007/07/08 16:57:00  mast
 Added to mouse help
 

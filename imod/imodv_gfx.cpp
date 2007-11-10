@@ -34,7 +34,7 @@
 #include "imodv_stereo.h"
 
 /* local functions */
-static int imodv_snapshot(ImodvApp *a, char *fname);
+static int imodv_snapshot(ImodvApp *a, QString fname);
 static void imodv_clear(ImodvApp *a);
 
 
@@ -228,21 +228,20 @@ void imodvResetSnap()
   Imodv->snap_fileno = 0;
 }
 
-int imodv_auto_snapshot(char *inName, int format_type)
+int imodv_auto_snapshot(QString fname, int format_type)
 {
   ImodvApp *a = Imodv;
-  char fname[32];
-  char *usename = inName;
+  QString sname;
 
-  if (!inName) {
-    usename = fname;
+  if (fname.isEmpty()) {
 
     /* DNM 6/4/03: add logic to avoid overwriting files */
     /* DNM 12/28/03: use common routine to get filename */
-    b3dGetSnapshotName(fname, "modv", format_type, 4, a->snap_fileno);
+    fname = b3dGetSnapshotName("modv", format_type, 4, a->snap_fileno);
   }
+  sname = b3dShortSnapName(fname);
 
-  imodPrintStderr("3dmodv: Saving image to %s", usename);
+  imodPrintStderr("3dmodv: Saving image to %s", sname.latin1());
 
   if (a->db)
     a->mainWin->mCurGLw->setBufferSwapAuto(false);
@@ -253,12 +252,12 @@ int imodv_auto_snapshot(char *inName, int format_type)
     imodvDraw(Imodv);
     b3dSetCurSize(Imodv->winx, Imodv->winy);
     if (format_type == SnapShot_TIF)
-      b3dSnapshot_TIF(usename, 1, NULL, NULL);
+      b3dSnapshot_TIF(fname, 1, NULL, NULL);
     else
-      b3dSnapshot_NonTIF(usename, 1, NULL);
+      b3dSnapshot_NonTIF(fname, 1, NULL);
     imodPrintStderr(".\n");
   } else {
-    if (imodv_snapshot(Imodv, usename))
+    if (imodv_snapshot(Imodv, fname))
       imodPrintStderr(" : error writing file\n");
     else
       imodPrintStderr(".\n");
@@ -273,7 +272,8 @@ int imodv_auto_snapshot(char *inName, int format_type)
   return(0);
 }
 
-static int imodv_snapshot(ImodvApp *a, char *fname)
+// Save snapshot as SGI RGB file
+static int imodv_snapshot(ImodvApp *a, QString fname)
 {
   FILE *fout;
   unsigned char *pixels;
@@ -281,9 +281,11 @@ static int imodv_snapshot(ImodvApp *a, char *fname)
   int i, xysize;
   GLint xoffset;
   char iname[80];
+  char sep = QDir::separator();
+  QString tailname = QDir::convertSeparators(fname);
 
   errno = 0;
-  fout = fopen((QDir::convertSeparators(QString(fname))).latin1(), "wb");
+  fout = fopen(tailname.latin1(), "wb");
   if (!fout){
     QString qerr = "3dmodv: error opening file\n";
     if (errno)
@@ -291,6 +293,9 @@ static int imodv_snapshot(ImodvApp *a, char *fname)
     imodPrintStderr(qerr.latin1());
     return(-1);
   }
+  i = tailname.findRev(sep) + 1;
+  tailname = tailname.right(tailname.length() - i);
+  tailname.truncate(59);
 
   width = a->winx;
   height = a->winy;
@@ -326,7 +331,7 @@ static int imodv_snapshot(ImodvApp *a, char *fname)
   iputlong (fout, 0l);        /* PIXMIN is 0          */
   iputlong (fout, 255l);      /* PIXMAX is 255        */
   iputlong (fout, 0);         /* DUMMY 4 bytes        */
-  sprintf(iname, "%s, Created by 3dmodv.", fname);
+  sprintf(iname, "%s, Created by 3dmodv.", tailname.latin1());
   fwrite(iname, 80, 1, fout); /* IMAGENAME            */
   iputlong (fout, 0);         /* COLORMAP is 0        */
   for(i=0; i<404; i++)        /* DUMMY 404 bytes      */
@@ -355,6 +360,9 @@ static int imodv_snapshot(ImodvApp *a, char *fname)
 
 /*
 $Log$
+Revision 4.13  2007/08/08 03:05:21  mast
+Avoid setting context after entering selection mode
+
 Revision 4.12  2004/11/29 19:25:21  mast
 Changes to do QImage instead of RGB snapshots
 

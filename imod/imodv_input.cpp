@@ -192,11 +192,11 @@ void imodvKeyPress(QKeyEvent *event)
     if (shifted) {
       if (ctrl)
         ImodPrefs->set2ndSnapFormat();
-      imodv_auto_snapshot(NULL, SnapShot_RGB);
+      imodv_auto_snapshot(QString::null, SnapShot_RGB);
       if (ctrl)
         ImodPrefs->restoreSnapFormat();
     } else if (ctrl)
-      imodv_auto_snapshot(NULL, SnapShot_TIF);
+      imodv_auto_snapshot(QString::null, SnapShot_TIF);
     else
       imodvStereoToggle();
     break;
@@ -1165,6 +1165,9 @@ void imodvMovieTimeout()
 
 /*
     $Log$
+    Revision 4.29  2007/09/23 15:16:00  mast
+    Cast args of atn2 to double
+
     Revision 4.28  2007/09/20 22:06:55  mast
     Changes for visualizing clipping plane
 

@@ -3116,7 +3116,7 @@ static void montageSnapshot(ZapStruct *zap)
   int limits[4];
   unsigned char *framePix, *fullPix, **linePtrs;
   double zoomSave;
-  char fname[256];
+  QString fname, sname;
   static int fileno = 0;
   int factor = imcGetMontageFactor();
   double junk = 1.;
@@ -3186,8 +3186,9 @@ static void montageSnapshot(ZapStruct *zap)
   // Reset the file number to zero unless doing movie, then get name and save
   if (!zap->movieSnapCount)
     fileno = 0;
-  b3dGetSnapshotName(fname, "zap", SnapShot_TIF, 3, fileno);
-  imodPrintStderr("3dmod: Saving zap montage to %s", fname);
+  fname = b3dGetSnapshotName("zap", SnapShot_TIF, 3, fileno);
+  sname = b3dShortSnapName(fname);
+  imodPrintStderr("3dmod: Saving zap montage to %s", sname.latin1());
   b3dSnapshot_TIF(fname, 4, limits, linePtrs);
   imodPuts("");
 
@@ -4050,6 +4051,9 @@ void zapGetLongestTimeString(ImodView *vi, QString *str)
 
 /*
 $Log$
+Revision 4.103  2007/09/20 22:05:37  mast
+Defined RADIANS_PER_DEGREE once
+
 Revision 4.102  2007/08/13 16:04:50  mast
 Changes for locator window
 

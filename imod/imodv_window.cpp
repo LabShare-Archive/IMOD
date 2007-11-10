@@ -6,15 +6,10 @@
  *  Copyright (C) 1995-2006 by Boulder Laboratory for 3-Dimensional Electron
  *  Microscopy of Cells ("BL3DEMC") and the Regents of the University of 
  *  Colorado.  See dist/COPYRIGHT for full copyright notice.
+ *
+ *  $Id$
+ *  Log at end of file
  */
-
-/*  $Author$
-
-$Date$
-
-$Revision$
-Log at end of file 
-*/
 
 #include <stdio.h>
 #include <qmenubar.h>
@@ -55,6 +50,7 @@ ImodvWindow::ImodvWindow(bool standAlone, int enableDepthDB,
   mFileMenu->insertItem("Snap &Tiff As...", VFILE_MENU_SNAPTIFF);
   mFileMenu->insertItem("Snap &NonT As...", VFILE_MENU_SNAPRGB);
   mFileMenu->insertItem("&Zero Snap File #", VFILE_MENU_ZEROSNAP);
+  mFileMenu->insertItem("S&et Snap Dir...", VFILE_MENU_SNAPDIR);
   mFileMenu->insertItem("&Movie...", VFILE_MENU_MOVIE);
   mFileMenu->setAccel(Key_M, VFILE_MENU_MOVIE);
 
@@ -297,6 +293,9 @@ void ImodvGL::mouseMoveEvent ( QMouseEvent * e )
 
 /*
 $Log$
+Revision 4.12  2006/10/11 23:53:05  mast
+Changed RGB to NonT in menu
+
 Revision 4.11  2006/08/31 23:23:14  mast
 Removed hot key for Save As
 

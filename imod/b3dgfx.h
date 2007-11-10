@@ -17,6 +17,7 @@
 #define B3DGFX_H
 
 #include <qgl.h>
+#include <qstring.h>
 
 #define SnapShot_Default 0
 #define SnapShot_RGB     1
@@ -142,16 +143,18 @@ void b3dDrawGreyScalePixelsSubArea(B3dCIImage *image,
 
 
 
+void b3dSetSnapDirectory(void);
+QString b3dShortSnapName(QString fname);
 void b3dSetMovieSnapping(bool snapping);     
-int b3dSnapshot(char *fname);
+int b3dSnapshot(QString fname);
 
-void b3dGetSnapshotName(char *fname, char *name, int format_type, int digits,
-                        int &fileno);
+QString b3dGetSnapshotName(char *name, int format_type, int digits,
+                           int &fileno);
 int b3dAutoSnapshot(char *name, int format_type, int *limits);
 int b3dKeySnapshot(char *name, int shifted, int ctrl, int *limits);
-int b3dSnapshot_NonTIF(char *fname, int rgbmode, int *limits);
-int b3dSnapshot_TIF(char *fname, int rgbmode, int *limits, 
-		     unsigned char **data);
+int b3dSnapshot_NonTIF(QString fname, int rgbmode, int *limits);
+int b3dSnapshot_TIF(QString fname, int rgbmode, int *limits, 
+                    unsigned char **data);
 
 
 
@@ -159,6 +162,9 @@ int b3dSnapshot_TIF(char *fname, int rgbmode, int *limits,
 
 /*
     $Log$
+    Revision 3.13  2007/07/12 17:31:47  mast
+    Added subarea viewport function and added fill flag to offset routine
+
     Revision 3.12  2007/05/06 03:25:51  mast
     Added b3dSetMovieSnapping
 

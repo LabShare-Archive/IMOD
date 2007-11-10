@@ -925,7 +925,7 @@
                         <cstring>TextLabel3</cstring>
                     </property>
                     <property name="text">
-                        <string># of montage frames in X &amp;&amp; Y</string>
+                        <string># of montage frames in X &amp; Y</string>
                     </property>
                     <property name="alignment">
                         <set>AlignVCenter|AlignLeft</set>

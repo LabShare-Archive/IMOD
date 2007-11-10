@@ -69,6 +69,7 @@ InfoWindow::InfoWindow(QWidget * parent, const char * name, WFlags f)
   mFileMenu->setAccel(Key_S, FILE_MENU_SAVE);
   mFileMenu->insertItem("S&ave Model As...", FILE_MENU_SAVEAS);
   mFileMenu->insertItem("&Write Model As", mFWriteMenu);
+  mFileMenu->insertItem("S&et Snap Dir...", FILE_MENU_SNAPDIR);
   mFileMenu->insertItem("&Memory to TIF...", FILE_MENU_TIFF);
   mFileMenu->insertItem("&Quit", FILE_MENU_QUIT);
 
@@ -541,6 +542,9 @@ static char *truncate_name(char *name, int limit)
 
 /*
     $Log$
+    Revision 4.39  2007/08/13 16:04:50  mast
+    Changes for locator window
+
     Revision 4.38  2007/07/08 16:47:42  mast
     Added object combine
 

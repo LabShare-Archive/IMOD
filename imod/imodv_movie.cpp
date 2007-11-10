@@ -6,15 +6,10 @@
  *  Copyright (C) 1995-2004 by Boulder Laboratory for 3-Dimensional Electron
  *  Microscopy of Cells ("BL3DEMC") and the Regents of the University of 
  *  Colorado.  See dist/COPYRIGHT for full copyright notice.
+ *
+ *  $Id$
+ *  Log at end of file
  */
-
-/*  $Author$
-
-    $Date$
-
-    $Revision$
-    Log at end of file
-*/
 
 #include <qapplication.h>
 #include "formv_movie.h"
@@ -369,7 +364,7 @@ static void imodvMakeMovie(int frames)
     if (movie->saved) {
       if (movie->file_format == 2)
         ImodPrefs->set2ndSnapFormat();
-      imodv_auto_snapshot(NULL, movie->file_format ? SnapShot_RGB : 
+      imodv_auto_snapshot(QString::null, movie->file_format ? SnapShot_RGB : 
                           SnapShot_TIF);
       if (movie->file_format == 2)
         ImodPrefs->restoreSnapFormat();
@@ -434,7 +429,7 @@ static void imodvMakeMontage(int frames, int overlap)
   unsigned char *fullPix = NULL;
   unsigned char **linePtrs = NULL;
   int limits[4];
-  char fname[32];
+  QString fname, sname;
 
   /* limit the overlap */
   if (frames <= 1)
@@ -569,8 +564,9 @@ static void imodvMakeMontage(int frames, int overlap)
       limits[0] = limits[1] = 0;
       limits[2] = xFullSize;
       limits[3] = yFullSize;
-      b3dGetSnapshotName(fname, "modv", SnapShot_TIF, 4, a->snap_fileno);
-      imodPrintStderr("3dmodv: Saving montage to %s", fname);
+      fname = b3dGetSnapshotName("modv", SnapShot_TIF, 4, a->snap_fileno);
+      sname = b3dShortSnapName(fname);
+      imodPrintStderr("3dmodv: Saving montage to %s", sname.latin1());
       b3dSnapshot_TIF(fname, 4, limits, linePtrs);
       imodPuts("");
     }
@@ -594,6 +590,9 @@ static void imodvMakeMontage(int frames, int overlap)
 
 /*
     $Log$
+    Revision 4.14  2006/11/22 18:16:45  mast
+    Added check for perspective, which does not work
+
     Revision 4.13  2006/10/05 15:41:32  mast
     Provided for primary and second non-TIFF snapshot format
 

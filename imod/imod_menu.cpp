@@ -133,7 +133,15 @@ void InfoWindow::fileSlot(int item)
     SaveasModel(App->cvi->imod);
     imod_info_enable();
     break;
-          
+
+  case FILE_MENU_SNAPDIR:
+      imod_info_forbid();
+      imod_info_input();
+      releaseKeyboard();
+      b3dSetSnapDirectory();
+      imod_info_enable();
+      break;
+
   case FILE_MENU_TIFF:  /* Save raw image to tiff file */
     if (!App->cvi->rawImageStore)
       wprint("This option works only with color images.\n");
@@ -154,7 +162,7 @@ void InfoWindow::fileSlot(int item)
       limits[0] = limits[1] = 0;
       limits[2] = App->cvi->xsize;
       limits[3] = App->cvi->ysize;
-      b3dSnapshot_TIF((char *)qname.latin1(), 3, limits, data);
+      b3dSnapshot_TIF(qname, 3, limits, data);
     }
     break;
 
@@ -1258,6 +1266,9 @@ static int imodContourBreakByZ(ImodView *vi, Iobj *obj, int ob, int co)
 
 /*
   $Log$
+  Revision 4.35  2007/10/03 20:46:49  mast
+  Removes includes for menu and hotkey help
+
   Revision 4.34  2007/10/03 19:29:38  sueh
   bug# 1038 Replacing help strings with an .html file.
 

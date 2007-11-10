@@ -16,6 +16,7 @@
 #include <errno.h>
 #include <qglcolormap.h>
 #include <qdir.h>
+#include <qfiledialog.h>
 #include <qimage.h>
 #include "imod.h"
 #include "b3dgfx.h"
@@ -1500,11 +1501,25 @@ double b3dStepPixelZoom(double czoom, int step)
 /* DNM 12/28/03: just define default as TIF (not really used) */
 static int SnapShotFormat = SnapShot_TIF;
 
+static QString snapDirectory = "";
+
 // So that movie snapshots can avoid checking file number from 0
 static bool  movieSnapping = false;
 void b3dSetMovieSnapping(bool snapping)
 {
   movieSnapping = snapping;
+}
+
+/*
+ * Set the snapshot directory, starting in previous one if any
+ */
+void b3dSetSnapDirectory(void)
+{
+  QString dir;
+  if (!snapDirectory.isEmpty())
+    dir = snapDirectory;
+  snapDirectory = QFileDialog::getExistingDirectory
+    (dir, NULL, NULL, "Directory to Save Snapshots to");
 }
 
 /*
@@ -1514,12 +1529,16 @@ void b3dSetMovieSnapping(bool snapping)
  * will start checking for free file name from this number, but if previous
  * file number does not exist it will start checking from 0.
  */
-void b3dGetSnapshotName(char *fname, char *name, int format_type, int digits,
+QString b3dGetSnapshotName(char *name, int format_type, int digits,
                         int &fileno)
 {
-  char format[12];
-  QString snapFormat, fext;
-  sprintf(format, "%%s%%0%dd.%%s", digits);
+  char format[14];
+  QString snapFormat, fext, fname;
+  QString dir = snapDirectory;
+  char sep = QDir::separator();
+  if (!dir.isEmpty() && (dir.findRev(sep) != dir.length() - 1))
+    dir += sep;
+  sprintf(format, "%%s%%s%%0%dd.%%s", digits);
   bool firstCheck = false;
 
   switch(format_type){
@@ -1545,13 +1564,13 @@ void b3dGetSnapshotName(char *fname, char *name, int format_type, int digits,
   // Loop until a file is found that does not exist
   for (;;) {
     if (fileno < (int)pow(10., double(digits)))
-      sprintf(fname, format, name, fileno++, fext.latin1());
+      fname.sprintf(format, dir.latin1(), name, fileno++, fext.latin1());
     else
-      sprintf(fname, "%s%d.%s", name, fileno++, fext.latin1());
+      fname.sprintf("%s%s%d.%s", dir.latin1(), name, fileno++, fext.latin1());
 
     // If file does not exist and it is the first check on previous file,
     // set file number to 0 to start from 0.  Otherwise, take this file
-    if (!QFile::exists(QDir::convertSeparators(QString(fname)))) {
+    if (!QFile::exists(QDir::convertSeparators(fname))) {
       if (firstCheck) {
         fileno = 0;
         firstCheck = false;
@@ -1560,12 +1579,28 @@ void b3dGetSnapshotName(char *fname, char *name, int format_type, int digits,
     }
     firstCheck = false;
   }
+  return fname;
+}
+
+QString b3dShortSnapName(QString fname)
+{
+  QString sname;
+  char sep = QDir::separator();
+  int index = fname.findRev(sep);
+  if (index > 1) {
+    index = fname.findRev(sep, index - 1);
+    if (index >= 0) {
+      sname = fname.replace(0, index, "...");
+      return sname;
+    }
+  }
+  return fname;
 }
 
 /* Take a snapshot of the current window with prefix in name */
 int b3dAutoSnapshot(char *name, int format_type, int *limits)
 {
-  char fname[256];
+  QString fname, sname;
   static int fileno = 0;
   int retval;
 
@@ -1573,9 +1608,10 @@ int b3dAutoSnapshot(char *name, int format_type, int *limits)
   if (!movieSnapping)
     fileno = 0;
 
-  b3dGetSnapshotName(fname, name, format_type, 3, fileno);
+  fname = b3dGetSnapshotName(name, format_type, 3, fileno);
+  sname = b3dShortSnapName(fname);
 
-  wprint("%s: Saving image to %s\n", name, fname);
+  wprint("%s: Saving image to %s\n", name, sname.latin1());
 
   switch (format_type){
   case SnapShot_RGB:
@@ -1641,7 +1677,7 @@ static void puttiffentry(short tag, short type,
  * rgbmode non-zero indicates rgb rather than color index
  * if limits is non-NULL, it contains lower left X, Y and size X,Y for a subset
  */
-int b3dSnapshot_NonTIF(char *fname, int rgbmode, int *limits)
+int b3dSnapshot_NonTIF(QString fname, int rgbmode, int *limits)
 {
   FILE *fout = NULL;
   int i;
@@ -1666,7 +1702,7 @@ int b3dSnapshot_NonTIF(char *fname, int rgbmode, int *limits)
 
   // Open file if RGB mode
   if (format == "RGB") {
-    fout = fopen((QDir::convertSeparators(QString(fname))).latin1(), "wb");
+    fout = fopen((QDir::convertSeparators(fname)).latin1(), "wb");
     if (!fout) {
       QString qerr = "Snapshot: error opening file\n";
       if (errno)
@@ -1786,7 +1822,7 @@ int b3dSnapshot_NonTIF(char *fname, int rgbmode, int *limits)
     QImage *qim = new QImage(pixels, rpWidth, rpHeight, 32, NULL, 0, 
                              QImage::IgnoreEndian);
     j = format == "JPEG" ? ImodPrefs->snapQuality() : -1;
-    imret = qim->save(QString(fname), format.latin1(), j);
+    imret = qim->save(fname, format.latin1(), j);
     delete qim;
   }
   free(pixels);
@@ -1801,7 +1837,7 @@ int b3dSnapshot_NonTIF(char *fname, int rgbmode, int *limits)
  * If data is non-NULL, it supplies the data already as line pointers, and
  * rgbmode should be 3 for RGB and 4 for RGBA data 
  */
-int b3dSnapshot_TIF(char *fname, int rgbmode, int *limits, 
+int b3dSnapshot_TIF(QString fname, int rgbmode, int *limits, 
                      unsigned char **data)
 {
   FILE *fout;
@@ -1826,7 +1862,7 @@ int b3dSnapshot_TIF(char *fname, int rgbmode, int *limits,
   int rpHeight = CurHeight;
 
   errno = 0;
-  fout = fopen((QDir::convertSeparators(QString(fname))).latin1(), "wb");
+  fout = fopen((QDir::convertSeparators(fname)).latin1(), "wb");
   if (!fout){
 
     // DNM 5/31/04: output to standard error in case there are many errors
@@ -2035,7 +2071,7 @@ int b3dSnapshot_TIF(char *fname, int rgbmode, int *limits,
 
 
 
-int b3dSnapshot(char *fname)
+int b3dSnapshot(QString fname)
 {
   if (SnapShotFormat == SnapShot_RGB)
     return(b3dSnapshot_NonTIF(fname, App->rgba, NULL));
@@ -2046,6 +2082,9 @@ int b3dSnapshot(char *fname)
 
 /*
 $Log$
+Revision 4.33  2007/09/17 04:58:40  mast
+Switched from quadratic to cubic for HQ drawing
+
 Revision 4.32  2007/07/12 17:31:47  mast
 Added subarea viewport function and added fill flag to offset routine
 
