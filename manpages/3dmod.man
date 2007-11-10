@@ -432,7 +432,9 @@ Snapshots can be taken of image and model view windows with hot keys.
 A TIFF snapshot can be taken with Ctrl-S.  Snapshots in other formats such as
 JPEG, PNG, and SGI RGB can be
 taken with Shift-S or Ctrl-Shift-S.  The format of these non-TIFF snapshots
-can be selected in the Preferences dialog.
+can be selected in the Preferences dialog.  There is an entry in the file menu
+that allows you to select (and create) a directory in which snapshots will be
+saved.
 
 The Escape key can be used to close all windows except the Information
 Window, or the 3dmodv window when running 3dmodv.
@@ -569,6 +571,9 @@ Open Model...     Load a model from disk.
 Reload Model      Reload the current model from file.
 Save Model        Save model.  (s)
 Save Model as...  Save model with new name.
+Set Snap Dir...   Set a directory to put snapshots into.  The same 
+                    directory will be used for snapshots from the 
+                    model view window.
 Write Model as    Write model as Imod, wimp, NFF or Synu files.
 Memory to TIFF... Write the whole section of a raw color image
                     stored inside 3dmod to a TIFF file, in order
