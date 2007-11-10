@@ -1,5 +1,7 @@
 IMOD History
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+11/9/07: Added ability to set a directory to receive snapshots in 3dmod.
+
 11/1/07: Fixed reading of ascii model with DOS line endings
 
 10/29/07: Converted Xcorr to PIP input, removed redundant filters, adjusted 
