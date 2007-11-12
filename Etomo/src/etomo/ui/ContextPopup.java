@@ -32,6 +32,10 @@ import etomo.type.AxisID;
  * @version $Revision$
  *
  * <p> $Log$
+ * <p> Revision 3.12  2007/09/07 00:26:32  sueh
+ * <p> bug# 989 Using a public INSTANCE to refer to the EtomoDirector singleton
+ * <p> instead of getInstance and createInstance.
+ * <p>
  * <p> Revision 3.11  2007/06/06 16:58:37  sueh
  * <p> bug# 1015 Added ContextPopup constructor with no guide anchor.
  * <p> Handled a null guide in globalItemAction().
@@ -344,6 +348,88 @@ public class ContextPopup {
             TextPageWindow logFileWindow = new TextPageWindow();
             logFileWindow.setVisible(logFileWindow.setFile(manager
                 .getPropertyUserDir()
+                + File.separator + getLogFileName()[i]));
+          }
+        }
+
+        //  Search the standard items
+        globalItemAction(actionEvent, guideLocation, guideToAnchor, manager,
+            axisID);
+
+        //  Close the  the menu
+        setVisible(false);
+      }
+    };
+
+    addLogFileMenuItems(logFileLabel, logFile);
+    contextMenu.add(new JPopupMenu.Separator());
+    addManPageMenuItems(manPageLabel, manPage);
+    contextMenu.add(new JPopupMenu.Separator());
+    addStandardMenuItems();
+    showMenu(component);
+  }
+
+  /**
+   * Constructor to show a man page list and log file items in addition to the
+   * the standard menu items.
+   * @param component The component to which the popup is attached.
+   * @param mouseEvent The mouse event that opened the menu.
+   * @param tomoAnchor The guide HTML anchor for the current popup.
+   * @param guideToAnchor The guide containing the HTML anchor.
+   * @param manPageLabel The string array of man page labels for the menu.
+   * @param manPage The name of the HTML man pages.
+   * @param logFileLabel The string arrays of log file labels for the menu.
+   * @param logFile The string arrays of names of the log files.
+   * @param subdirName The subdirectory where the .log files are.
+   * @param manager
+   */
+  public ContextPopup(Component component, MouseEvent mouseEvent,
+      String tomoAnchor, final String guideToAnchor, String[] manPageLabel,
+      String[] manPage, String[] logFileLabel, String[] logFile,
+      final BaseManager manager, final AxisID axisID, final String subdirName) {
+
+    // Check to make sure that the menu label and man page arrays are the same
+    // length
+    if (manPageLabel.length != manPage.length) {
+      String message = "menu label and man page arrays must be the same length";
+      throw new IllegalArgumentException(message);
+    }
+    if (logFileLabel.length != logFile.length) {
+      String message = "log file label and log file arrays must be the same length";
+      throw new IllegalArgumentException(message);
+    }
+
+    this.mouseEvent = mouseEvent;
+    anchor = tomoAnchor;
+    calcImodURL();
+
+    //  Instantiate a new ActionListener to handle the menu selection
+    actionListener = new ActionListener() {
+      public void actionPerformed(ActionEvent actionEvent) {
+        String guideLocation = guideToAnchor;
+        String anchor = getAnchor();
+        if (anchor != null && !anchor.equals("")) {
+          guideLocation += "#" + anchor;
+        }
+        JMenuItem[] manPageItem = getManPageItem();
+        for (int i = 0; i < manPageItem.length; i++) {
+          if (actionEvent.getActionCommand() == manPageItem[i].getText()) {
+            /*HTMLPageWindow manpage = new HTMLPageWindow();
+             manpage.openURL(getImodURL() + "man/" + getManPageName()[i]);
+             manpage.setVisible(true);*/
+            ImodqtassistProcess.INSTANCE.open(manager, "man/"
+                + getManPageName()[i], axisID);
+          }
+        }
+
+        //  Search the logfile items
+        JMenuItem[] logFileItem = getLogFileItem();
+        for (int i = 0; i < logFileItem.length; i++) {
+          if (actionEvent.getActionCommand() == logFileItem[i].getText()) {
+            TextPageWindow logFileWindow = new TextPageWindow();
+            logFileWindow.setVisible(logFileWindow.setFile(manager
+                .getPropertyUserDir()
+                + (subdirName != null ? File.separator + subdirName : "")
                 + File.separator + getLogFileName()[i]));
           }
         }
@@ -700,15 +786,13 @@ public class ContextPopup {
    */
   private void calcImodURL() {
     try {
-      imodURL = EtomoDirector.INSTANCE.getIMODDirectory().toURL()
-          .toString()
+      imodURL = EtomoDirector.INSTANCE.getIMODDirectory().toURL().toString()
           + "/html/";
     }
     catch (MalformedURLException except) {
       except.printStackTrace();
       System.err.println("Malformed URL:");
-      System.err.println(EtomoDirector.INSTANCE.getIMODDirectory()
-          .toString());
+      System.err.println(EtomoDirector.INSTANCE.getIMODDirectory().toString());
     }
   }
 
