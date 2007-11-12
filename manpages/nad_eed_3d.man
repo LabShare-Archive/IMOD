@@ -35,6 +35,11 @@ that the desired K value falls in one of these intervals, then try 5 K values
 to fill in the interval with finer steps, such as 2.4, 3.2, 4.0, 4.8, and 5.6
 for the interval from 1.6 and 6.4.  Once you have chosen your parameters, you
 can process the whole volume.
+.P
+The eTomo program contains an
+interface for extracting a subvolume, testing different K values and iteration
+numbers, and running the diffusion on a full volume.  From the File menu,
+select "New Parallel Process" then press the "Nonlinear Anisotropic Diffusion" button.
 .SS Options
 .TP
 .B -k <value>
