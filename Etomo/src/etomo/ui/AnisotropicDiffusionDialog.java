@@ -37,6 +37,9 @@ import etomo.type.Run3dmodMenuOptions;
  * @version $Revision$
  * 
  * <p> $Log$
+ * <p> Revision 1.2  2007/11/09 17:46:26  sueh
+ * <p> bug# 1047 Added tooltips.
+ * <p>
  * <p> Revision 1.1  2007/11/06 19:51:55  sueh
  * <p> bug# 1047 Dialog to choose values and run nad_eed_3d.
  * 
@@ -144,8 +147,6 @@ public final class AnisotropicDiffusionDialog implements
     btnViewFilteredVolume
         .setToolTipText("View filtered volume (filename.nad) in 3dmod");
   }
-  
-  
 
   private AnisotropicDiffusionDialog(final ParallelManager manager) {
     this.manager = manager;
@@ -315,7 +316,7 @@ public final class AnisotropicDiffusionDialog implements
 
   public void getInitialParameters(final ParallelMetaData metaData) {
     metaData.setRootName(ftfVolume.getFileName());
-    metaData.setVolume(ftfVolume.getText());
+    metaData.setVolume(ftfVolume.getFileAbsolutePath());
   }
 
   public void getParameters(final ParallelMetaData metaData) {
@@ -497,11 +498,12 @@ public final class AnisotropicDiffusionDialog implements
     }
     else if (command.equals(btnViewVaryingK.getActionCommand())) {
       manager.imodVaryingKValue(ImodManager.VARYING_K_TEST_KEY, menuOptions,
-          subdirName, TEST_VOLUME_NAME);
+          subdirName, TEST_VOLUME_NAME, cbLoadWithFlipping.isSelected());
     }
     else if (command.equals(btnViewVaryingIteration.getActionCommand())) {
       manager.imodVaryingIteration(ImodManager.VARYING_ITERATION_TEST_KEY,
-          menuOptions, subdirName, TEST_VOLUME_NAME);
+          menuOptions, subdirName, TEST_VOLUME_NAME, cbLoadWithFlipping
+              .isSelected());
     }
     else if (command.equals(btnViewFilteredVolume.getActionCommand())) {
       manager.imod(ImodManager.ANISOTROPIC_DIFFUSION_VOLUME_KEY, new File(
