@@ -35,6 +35,9 @@ import etomo.util.DatasetFiles;
  * @version $Revision$
  *
  * <p> $Log$
+ * <p> Revision 3.56  2007/11/06 19:21:59  sueh
+ * <p> bug# 1047 Added keys for anisotropic diffusion.
+ * <p>
  * <p> Revision 3.55  2007/08/02 22:38:24  sueh
  * <p> bug# 1034 Passing the right click menu to open(String,String[]).
  * <p>
@@ -496,8 +499,10 @@ public class ImodManager {
   public static final String VOLUME_KEY = new String("Volume");
   public static final String TEST_VOLUME_KEY = new String("TestVolume");
   public static final String VARYING_K_TEST_KEY = new String("VaryingKTest");
-  public static final String VARYING_ITERATION_TEST_KEY = new String("VaryingIterationTest");
-  public static final String ANISOTROPIC_DIFFUSION_VOLUME_KEY = new String("AnisotropicDiffusionVolume");
+  public static final String VARYING_ITERATION_TEST_KEY = new String(
+      "VaryingIterationTest");
+  public static final String ANISOTROPIC_DIFFUSION_VOLUME_KEY = new String(
+      "AnisotropicDiffusionVolume");
 
   //private keys - used with imodMap
   private static final String rawStackKey = RAW_STACK_KEY;
@@ -792,7 +797,7 @@ public class ImodManager {
   }
 
   public void open(String key, String[] fileNameArray,
-      Run3dmodMenuOptions menuOptions, String subdirName)
+      Run3dmodMenuOptions menuOptions, String subdirName, boolean swapYZ)
       throws AxisTypeException, SystemProcessException, IOException {
     key = getPrivateKey(key);
     ImodState imodState = get(key, AxisID.ONLY);
@@ -802,6 +807,7 @@ public class ImodManager {
       imodState = get(key, AxisID.ONLY);
     }
     if (imodState != null) {
+      imodState.setSwapYZ(swapYZ);
       imodState.open(menuOptions);
     }
   }
@@ -1661,13 +1667,14 @@ public class ImodManager {
         subdirName);
     return imodState;
   }
-  
-  private ImodState newVaryingIterationTest(String[] fileNameArray, String subdirName) {
+
+  private ImodState newVaryingIterationTest(String[] fileNameArray,
+      String subdirName) {
     ImodState imodState = new ImodState(manager, fileNameArray, AxisID.ONLY,
         subdirName);
     return imodState;
   }
-  
+
   private ImodState newAnisotropicDiffusionVolume(File file) {
     ImodState imodState = new ImodState(manager, file, AxisID.ONLY);
     return imodState;
