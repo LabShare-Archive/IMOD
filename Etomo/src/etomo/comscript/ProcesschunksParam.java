@@ -304,10 +304,10 @@ public final class ProcesschunksParam implements DetachedCommand, ParallelParam 
       command.add("-n");
       command.add(nice.toString());
     }
-    StringBuffer remoteUserDir = new StringBuffer();
+    String remoteUserDir = null;
     try {
-      remoteUserDir.append(RemotePath.INSTANCE.getRemotePath(manager, manager
-          .getPropertyUserDir(), axisID));
+      remoteUserDir = RemotePath.INSTANCE.getRemotePath(manager, manager
+          .getPropertyUserDir(), axisID);
     }
     catch (InvalidMountRuleException e) {
       UIHarness.INSTANCE.openMessageDialog("ERROR:  Remote path error.  "
@@ -315,10 +315,10 @@ public final class ProcesschunksParam implements DetachedCommand, ParallelParam 
           + e.getMessage(), "Processchunks Error", axisID);
       valid = false;
     }
-    if (remoteUserDir.length() != 0) {
+    if (remoteUserDir != null) {
       command.add(WORKING_DIR_OPTION);
       if (subdirName != null) {
-        remoteUserDir.append(File.separator + subdirName);
+        remoteUserDir += File.separator + subdirName;
       }
       command.add(remoteUserDir.toString());
     }
@@ -402,6 +402,10 @@ public final class ProcesschunksParam implements DetachedCommand, ParallelParam 
 }
 /**
  * <p> $Log$
+ * <p> Revision 1.28  2007/11/12 14:53:59  sueh
+ * <p> bug# 1047 Added the sub-directory to the remote path when the sub-directory is
+ * <p> set.
+ * <p>
  * <p> Revision 1.27  2007/11/06 19:15:50  sueh
  * <p> bug# 1047 Added access to the command that processchunks is running.
  * <p>
