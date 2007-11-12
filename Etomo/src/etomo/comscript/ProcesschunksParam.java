@@ -46,8 +46,8 @@ public final class ProcesschunksParam implements DetachedCommand, ParallelParam 
 
   private final AxisID axisID;
   private final BaseManager manager;
-  
-  private CommandDetails subcommandDetails=null;
+
+  private CommandDetails subcommandDetails = null;
   private String[] commandArray = null;
   private String rootName = null;
   private StringBuffer machineList = null;
@@ -58,7 +58,7 @@ public final class ProcesschunksParam implements DetachedCommand, ParallelParam 
   private String queue = null;
   private String subdirName = null;
   private boolean test = false;
-  private CommandMode subcommandMode=null;
+  private CommandMode subcommandMode = null;
 
   public ProcesschunksParam(final BaseManager manager, final AxisID axisID) {
     this.axisID = axisID;
@@ -83,11 +83,11 @@ public final class ProcesschunksParam implements DetachedCommand, ParallelParam 
   public AxisID getAxisID() {
     return axisID;
   }
-  
+
   public void setSubcommandMode(CommandMode input) {
     subcommandMode = input;
   }
-  
+
   public CommandMode getSubcommandMode() {
     return subcommandMode;
   }
@@ -129,9 +129,9 @@ public final class ProcesschunksParam implements DetachedCommand, ParallelParam 
   public void setDebug(final boolean input) {
     debug = input;
   }
-  
+
   public void setSubcommandDetails(CommandDetails input) {
-     subcommandDetails=input;
+    subcommandDetails = input;
   }
 
   public CommandDetails getSubcommandDetails() {
@@ -214,7 +214,7 @@ public final class ProcesschunksParam implements DetachedCommand, ParallelParam 
   public String getCommandName() {
     return ProcessName.PROCESSCHUNKS.toString();
   }
-  
+
   public String getShortCommandName() {
     return "pc";
   }
@@ -304,10 +304,10 @@ public final class ProcesschunksParam implements DetachedCommand, ParallelParam 
       command.add("-n");
       command.add(nice.toString());
     }
-    String remoteUserDir = null;
+    StringBuffer remoteUserDir = new StringBuffer();
     try {
-      remoteUserDir = RemotePath.INSTANCE.getRemotePath(manager, manager
-          .getPropertyUserDir(), axisID);
+      remoteUserDir.append(RemotePath.INSTANCE.getRemotePath(manager, manager
+          .getPropertyUserDir(), axisID));
     }
     catch (InvalidMountRuleException e) {
       UIHarness.INSTANCE.openMessageDialog("ERROR:  Remote path error.  "
@@ -315,9 +315,12 @@ public final class ProcesschunksParam implements DetachedCommand, ParallelParam 
           + e.getMessage(), "Processchunks Error", axisID);
       valid = false;
     }
-    if (remoteUserDir != null) {
+    if (remoteUserDir.length() != 0) {
       command.add(WORKING_DIR_OPTION);
-      command.add(remoteUserDir);
+      if (subdirName != null) {
+        remoteUserDir.append(File.separator + subdirName);
+      }
+      command.add(remoteUserDir.toString());
     }
     command.add("-d");
     command.add(String.valueOf(DROP_VALUE));
@@ -399,6 +402,9 @@ public final class ProcesschunksParam implements DetachedCommand, ParallelParam 
 }
 /**
  * <p> $Log$
+ * <p> Revision 1.27  2007/11/06 19:15:50  sueh
+ * <p> bug# 1047 Added access to the command that processchunks is running.
+ * <p>
  * <p> Revision 1.26  2007/09/27 19:22:56  sueh
  * <p> bug# 1044 Added support for submitting chunks to a queue.
  * <p>
