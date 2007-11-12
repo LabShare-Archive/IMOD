@@ -378,15 +378,18 @@ public final class RemotePath {
     //first load section-level mount rules
     //look for a section name that is the same as the output of hostname
     hostName = getHostName(manager, axisID);
-    if ((localSection = loadMountRules(autodoc, CpuAdoc.COMPUTER_SECTION_TYPE,hostName, true)) == null) {
+    if ((localSection = loadMountRules(autodoc, CpuAdoc.COMPUTER_SECTION_TYPE,
+        hostName, true)) == null) {
       //try looking for a section name that is the same as the stripped version
       //of the hostname.
       int stripIndex = hostName.indexOf('.');
       if (stripIndex == -1
-          || (localSection = loadMountRules(autodoc, CpuAdoc.COMPUTER_SECTION_TYPE,hostName.substring(0,
-              stripIndex), true)) == null) {
+          || (localSection = loadMountRules(autodoc,
+              CpuAdoc.COMPUTER_SECTION_TYPE, hostName.substring(0, stripIndex),
+              true)) == null) {
         //look for a section name called "localhost"
-        localSection = loadMountRules(autodoc, CpuAdoc.COMPUTER_SECTION_TYPE,CpuAdoc.LOCAL_HOST, false);
+        localSection = loadMountRules(autodoc, CpuAdoc.COMPUTER_SECTION_TYPE,
+            CpuAdoc.LOCAL_HOST, false);
       }
     }
     //load global mount rules
@@ -399,10 +402,9 @@ public final class RemotePath {
    * @param sectionName
    * @return false if section doesn't exist
    */
-  private final ReadOnlySection loadMountRules(ReadOnlyAutodoc autodoc, String sectionType, String sectionName,
-      boolean sectionNameCanBeMountName) {
-    ReadOnlySection section = autodoc.getSection(sectionType,
-        sectionName);
+  private final ReadOnlySection loadMountRules(ReadOnlyAutodoc autodoc,
+      String sectionType, String sectionName, boolean sectionNameCanBeMountName) {
+    ReadOnlySection section = autodoc.getSection(sectionType, sectionName);
     if (section == null) {
       return null;
     }
@@ -423,7 +425,7 @@ public final class RemotePath {
       }
     }
     //load mount rules
-    loadMountRules(section.getAttribute(MOUNT_RULE), sectionType,sectionName);
+    loadMountRules(section.getAttribute(MOUNT_RULE), sectionType, sectionName);
     return section;
   }
 
@@ -432,25 +434,28 @@ public final class RemotePath {
    * @param autodoc
    */
   private final void loadMountRules(ReadOnlyAutodoc autodoc) {
-    loadMountRules(autodoc.getAttribute(MOUNT_RULE), null ,null);
+    loadMountRules(autodoc.getAttribute(MOUNT_RULE), null, null);
   }
 
   /**
    * Loads mount rules from a mountrule attribute.
    * @param mountRules
    */
-  private final void loadMountRules(ReadOnlyAttribute mountRules, String sectionType, String sectionName) {
+  private final void loadMountRules(ReadOnlyAttribute mountRules,
+      String sectionType, String sectionName) {
     if (mountRules == null) {
       return;
     }
     //load the rules in order of the mountrule number
     int attributeNumber = 1;
-    ReadOnlyAttribute numberAttribute = mountRules.getAttribute(attributeNumber);
+    ReadOnlyAttribute numberAttribute = mountRules
+        .getAttribute(attributeNumber);
     while (numberAttribute != null) {
       ReadOnlyAttribute localRule = numberAttribute.getAttribute(LOCAL);
       ReadOnlyAttribute remoteRule = numberAttribute.getAttribute(REMOTE);
       //run valid rule check
-      if (isValidRule(localRule, remoteRule, attributeNumber, sectionType, sectionName)) {
+      if (isValidRule(localRule, remoteRule, attributeNumber, sectionType,
+          sectionName)) {
         //add rule
         localMountRules.add(localRule.getValue());
         remoteMountRules.add(remoteRule.getValue());
@@ -468,19 +473,19 @@ public final class RemotePath {
    * @param sectionName
    * @return true if the rule is valid, false if it is invalid
    */
-  private final boolean isValidRule(ReadOnlyAttribute localRule, ReadOnlyAttribute remoteRule,
-      int mountRuleNumber, String sectionType, String sectionName) {
+  private final boolean isValidRule(ReadOnlyAttribute localRule,
+      ReadOnlyAttribute remoteRule, int mountRuleNumber, String sectionType,
+      String sectionName) {
     //create the start of the error message
     StringBuffer errorTitle = new StringBuffer("Warning:  Problem");
     if (hostName != null) {
       errorTitle.append(" using " + hostName);
     }
     errorTitle.append(" with " + DatasetFiles.getAutodocName(AUTODOC));
-    if (sectionType ==null) {
+    if (sectionType == null) {
       sectionType = CpuAdoc.COMPUTER_SECTION_TYPE;
     }
-    String sectionHeader = AutodocTokenizer.OPEN_CHAR
-        + sectionType + ' '
+    String sectionHeader = AutodocTokenizer.OPEN_CHAR + sectionType + ' '
         + AutodocTokenizer.DEFAULT_DELIMITER + ' ';
     if (sectionName != null) {
       errorTitle.append(", section " + sectionHeader + sectionName
@@ -509,7 +514,8 @@ public final class RemotePath {
               + ".  Cannot use "
               + MOUNT_NAME_TAG
               + " because there is no mountname.\nEither there is no mountname entry under the "
-              + sectionHeader + CpuAdoc.LOCAL_HOST + AutodocTokenizer.CLOSE_CHAR
+              + sectionHeader + CpuAdoc.LOCAL_HOST
+              + AutodocTokenizer.CLOSE_CHAR
               + " section or there is no section for this computer.\n");
       //pass this problem so that it can be shown to the user
       return true;
@@ -525,8 +531,8 @@ public final class RemotePath {
    * @param ruleType
    * @return
    */
-  private final boolean isValidRule(ReadOnlyAttribute rule, int mountRuleNumber,
-      String errorTitle, String ruleType) {
+  private final boolean isValidRule(ReadOnlyAttribute rule,
+      int mountRuleNumber, String errorTitle, String ruleType) {
     //rule must exist
     if (rule == null) {
       System.err.println(errorTitle + ruleType + " mount rule "
@@ -671,6 +677,9 @@ public final class RemotePath {
 }
 /**
  * <p> $Log$
+ * <p> Revision 1.17  2007/09/27 21:07:12  sueh
+ * <p> bug# 1044 Added Queue sections to CpuAdoc.
+ * <p>
  * <p> Revision 1.16  2007/09/07 00:31:09  sueh
  * <p> bug# 989 Using a public INSTANCE to refer to the EtomoDirector singleton
  * <p> instead of getInstance and createInstance.
