@@ -4,6 +4,7 @@ import java.awt.Component;
 import java.awt.Container;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
+import java.awt.event.MouseEvent;
 import java.io.File;
 
 import javax.swing.BoxLayout;
@@ -37,6 +38,10 @@ import etomo.type.Run3dmodMenuOptions;
  * @version $Revision$
  * 
  * <p> $Log$
+ * <p> Revision 1.3  2007/11/12 15:03:26  sueh
+ * <p> bug# 1047 Added the subdirectory to the remote path when the sub-directory is
+ * <p> set.  Setting the absolute path from ftfVolume rather then the text because ftfVolume is displaying an abbreviated path.
+ * <p>
  * <p> Revision 1.2  2007/11/09 17:46:26  sueh
  * <p> bug# 1047 Added tooltips.
  * <p>
@@ -45,7 +50,7 @@ import etomo.type.Run3dmodMenuOptions;
  * 
  * <p> </p>
  */
-public final class AnisotropicDiffusionDialog implements
+public final class AnisotropicDiffusionDialog implements ContextMenu,
     AbstractParallelDialog, Run3dmodButtonContainer {
   public static final String rcsid = "$Id$";
 
@@ -140,12 +145,32 @@ public final class AnisotropicDiffusionDialog implements
     spMemoryPerChunk
         .setToolTipText("Maximum memory in megabytes to use while running "
             + "diffusion on one chunk. Reduce if there is less memory per "
-            + "processor or if you want to break the job into more chunks.");
+            + "processor or if you want to break the job into more chunks.  The"
+            + " number of voxels in each chunk will be 1/36 of this memory "
+            + "limit or less.");
     btnRunFilterFullVolume
         .setToolTipText("Run diffusion on the full volume in chunks, creates "
             + "filename.nad");
     btnViewFilteredVolume
         .setToolTipText("View filtered volume (filename.nad) in 3dmod");
+    btnCleanup
+        .setToolTipText("Remove subdirectory with all temporary and test files "
+            + "(naddir.filename).");
+  }
+  
+  /**
+   * Right mouse button context menu
+   */
+  public void popUpContextMenu(MouseEvent mouseEvent) {
+    String[] manPagelabel = { "Anisotropic Diffusion",  "3dmod","Processchunks","Chunksetup" };
+    String[] manPage = { ProcessName.ANISOTROPIC_DIFFUSION+".html", "3dmod.html","processchunks.html","chunksetup.html" };
+    String[] logFileLabel = { "Anisotropic Diffusion" };
+    String[] logFile = new String[1];
+    logFile[0] = ProcessName.ANISOTROPIC_DIFFUSION+ ".log";
+    //    ContextPopup contextPopup =
+    new ContextPopup(rootPanel.getComponent(), mouseEvent, "ANISOTROPIC DIFFUSION",
+        ContextPopup.TOMO_GUIDE, manPagelabel, manPage, logFileLabel, logFile,
+        manager, AxisID.ONLY,subdirName);
   }
 
   private AnisotropicDiffusionDialog(final ParallelManager manager) {
@@ -289,6 +314,7 @@ public final class AnisotropicDiffusionDialog implements
     btnRunFilterFullVolume.addActionListener(listener);
     btnViewFilteredVolume.addActionListener(listener);
     btnCleanup.addActionListener(listener);
+    rootPanel.addMouseListener(new GenericMouseAdapter(this));
   }
 
   public void getParameters(ParallelParam param) {
