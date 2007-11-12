@@ -345,22 +345,24 @@ public final class ParallelManager extends BaseManager {
     }
   }
 
-  public void imodVaryingKValue(String key, Run3dmodMenuOptions menuOptions,
-      String subdirName, String testVolumeName) {
+  public void imodVaryingKValue(final String key,
+      final Run3dmodMenuOptions menuOptions, final String subdirName,
+      final String testVolumeName, final boolean flip) {
     List fileNameList = AnisotropicDiffusionParam.getTestFileNameList(this,
         state.getTestKValueList(), state.getTestIteration(), testVolumeName);
-    imod(key, menuOptions, subdirName, fileNameList);
+    imod(key, menuOptions, subdirName, fileNameList, flip);
   }
 
-  public void imodVaryingIteration(String key, Run3dmodMenuOptions menuOptions,
-      String subdirName, String testVolumeName) {
+  public void imodVaryingIteration(final String key,
+      final Run3dmodMenuOptions menuOptions, final String subdirName,
+      final String testVolumeName, final boolean flip) {
     List fileNameList = AnisotropicDiffusionParam.getTestFileNameList(this,
         state.getTestKValue(), state.getTestIterationList(), testVolumeName);
-    imod(key, menuOptions, subdirName, fileNameList);
+    imod(key, menuOptions, subdirName, fileNameList, flip);
   }
 
   private void imod(String key, Run3dmodMenuOptions menuOptions,
-      String subdirName, List fileNameList) {
+      String subdirName, List fileNameList, final boolean flip) {
     String[] fileNameArray;
     if (fileNameList.size() == 0) {
       fileNameArray = new String[0];
@@ -374,7 +376,7 @@ public final class ParallelManager extends BaseManager {
           .size()]);
     }
     try {
-      imodManager.open(key, fileNameArray, menuOptions, subdirName);
+      imodManager.open(key, fileNameArray, menuOptions, subdirName, flip);
     }
     catch (IOException e) {
       e.printStackTrace();
@@ -635,6 +637,10 @@ public final class ParallelManager extends BaseManager {
 }
 /**
  * <p> $Log$
+ * <p> Revision 1.20  2007/11/09 17:17:21  sueh
+ * <p> bug# 1047 Add the test volume to the imods that display varying k and varying
+ * <p> iteration.
+ * <p>
  * <p> Revision 1.19  2007/11/07 14:53:16  sueh
  * <p> bug# 1047 Fixed getBaseState.
  * <p>
