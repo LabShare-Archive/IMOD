@@ -1,5 +1,13 @@
 IMOD History
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+11/13/07: Added setting in 3dmod preferences to control the volume size at
+which slicer speeds up its computations, made it drop high-resolution display
+before radically reducing number of slices averaged, gave credit for multiple
+processors if defined by IMOD_PROCESSORS, and eliminated double draws when
+changing slicer angles.
+
+11/12/07: Interface to anisotropic diffusion added to eTomo.
+
 11/10/07: Made s save model in slicer window, assigned l hot key to show
 slice instead.  Fixed updating of slicer angle window when new model is
 created, and stopped synchronization to slicer angle table when Auto button is
