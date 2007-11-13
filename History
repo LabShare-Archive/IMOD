@@ -1,5 +1,8 @@
 IMOD History
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+11/13/07: Fixed linklibs-mac to work on OS X 10.5, to include new IMOD
+library, and to provide more error checks.
+
 11/13/07: Added setting in 3dmod preferences to control the volume size at
 which slicer speeds up its computations, made it drop high-resolution display
 before radically reducing number of slices averaged, gave credit for multiple
