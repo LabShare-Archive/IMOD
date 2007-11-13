@@ -66,7 +66,6 @@ static void slicerKey_cb(ImodView *vi, void *client, int released,
 static double fixangle(double angle);
 static void slicerDraw_cb(ImodView *vi, void *client, int drawflag);
 static void slicerClose_cb(ImodView *vi, void *client, int junk);
-static int sslice_showslice(SlicerStruct *ss);
 static void startMovieCheckSnap(SlicerStruct *ss, int dir);
 static void setMovieLimits(SlicerStruct *ss, int axis);
 static void findMovieAxis(SlicerStruct *ss, int *xmovie, int *ymovie, 
@@ -153,14 +152,15 @@ void slicerStepTime(SlicerStruct *ss, int step)
  
 
 /* 
- * Show the location of the slice in the XYZ and Zap windows. 
+ * Show the location of the slice in the XYZ and Zap windows by doing a general
+ * draw after setting slice location.  This will draw this slicer if it is
+ * the active or top window.
  */
 void slicerShowSlice(SlicerStruct *ss)
 {
   slice_trans_step(ss);
-  sslice_showslice(ss);
+  imodDraw(ss->vi, IMOD_DRAW_SLICE);
 }
-
 
 /*
  * Toolbar Toggle buttons
@@ -247,8 +247,7 @@ void slicerAngleChanged(SlicerStruct *ss, int axis, int value,
 
   // Do complete redraw if not dragging or hot slider enabled
   if (!dragging || ImodPrefs->hotSliderActive(ctrlPressed)) {
-    sslice_draw(ss);
-    sslice_showslice(ss);
+    slicerShowSlice(ss);
     slicerCheckMovieLimits(ss);
   } else {
 
@@ -596,8 +595,11 @@ int setTopSlicerAngles(float angles[3], Ipoint *center, bool draw)
     if (draw)
       imodDraw(ss->vi, IMOD_DRAW_XYZ | IMOD_DRAW_SLICE | IMOD_DRAW_ACTIVE);
   } else if (draw) {
+
+    // This needs a potentially double draw because the top slicer may not
+    // be the top or active window
     sslice_draw(ss);
-    sslice_showslice(ss);
+    slicerShowSlice(ss);
   }
   return 0;
 }
@@ -650,16 +652,6 @@ void slicerSetAnglesFromRow(SlicerStruct *ss)
 {
   ivwControlPriority(ss->vi, ss->ctrl);
   sliceAngDia->setAnglesFromRow(ss->timeLock ? ss->timeLock : ss->vi->ct);
-}
-
-/* Broadcast position of this slice, and let other windows
- * show where this slice intersects with their views.
- * DNM 1/6/03: removed extraneous code
- */
-static int sslice_showslice(SlicerStruct *ss)
-{
-  imodDraw(ss->vi, IMOD_DRAW_SLICE);
-  return(0);
 }
 
 /* 
@@ -803,7 +795,7 @@ void slicerKeyInput(SlicerStruct *ss, QKeyEvent *event)
     break;
 
   case Qt::Key_L:
-    sslice_showslice(ss);
+    slicerShowSlice(ss);
     dodraw = 0;
     break;
 
@@ -983,8 +975,7 @@ void slicerKeyInput(SlicerStruct *ss, QKeyEvent *event)
 
     ss->qtWindow->setAngles(ss->tang);
 
-    sslice_draw(ss);
-    sslice_showslice(ss);
+    slicerShowSlice(ss);
     docheck = 1;
     break;
 
@@ -1046,6 +1037,7 @@ void slicerMousePress(SlicerStruct *ss, QMouseEvent *event)
 // Respond to mouse button up
 void slicerMouseRelease(SlicerStruct *ss, QMouseEvent *event)
 {
+  ivwControlPriority(ss->vi, ss->ctrl);
 
   // For button 1 up, if not classic mode, either end panning or call attach
   if (event->button() == ImodPrefs->actualButton(1) && !ss->classic) {
@@ -1080,6 +1072,7 @@ void slicerMouseMove(SlicerStruct *ss, QMouseEvent *event)
   Ipoint vec;
   double delx, dely, startang, endang;
  
+  ivwControlPriority(ss->vi, ss->ctrl);
   if (pixelViewOpen) {
     zmouse = sslice_getxyz(ss, event->x(), event->y(), xm, ym, zm);
     pvNewMousePosition(ss->vi, xm, ym, zmouse);
@@ -1152,9 +1145,10 @@ void slicerMouseMove(SlicerStruct *ss, QMouseEvent *event)
         fabs(drot) >= 0.1) {
       setViewAxisRotation(ss, dx, dy, drot);
       ss->qtWindow->setAngles(ss->tang);
-      sslice_draw(ss);
-      sslice_showslice(ss);
       mouseRotating = 1;
+      if (imodDebug('s'))
+        imodPuts("Mouse rotating");
+      slicerShowSlice(ss);
     }
   }
   lastmx = event->x();
@@ -2050,7 +2044,8 @@ static void slicerDraw_cb(ImodView *vi, void *client, int drawflag)
       ss->glw->unsetCursor();
   }
 
-  //imodPrintStderr("flags on draw %x \n", drawflag);
+  if (imodDebug('s'))
+    imodPrintStderr("flags on draw %x \n", drawflag);
 
   /* DNM: use a value saved in structure in case more than one window */
   if (ss->zslast != ss->vi->imod->zscale){
@@ -2132,7 +2127,8 @@ static void slicerDraw_cb(ImodView *vi, void *client, int drawflag)
         ss->cy = usey;
         ss->cz = usez;
         ss->pending = 0;
-        //imodPrintStderr("XYZ draw at %f %f %f\n", ss->cx, ss->cy, ss->cz);
+        if (imodDebug('s'))
+          imodPrintStderr("XYZ draw at %f %f %f\n", ss->cx, ss->cy, ss->cz);
         sslice_draw(ss);
         return;
       }
@@ -2162,7 +2158,8 @@ static void slicerDraw_cb(ImodView *vi, void *client, int drawflag)
         }
       }
 
-      //imodPrintStderr("STEP draw at %f %f %f\n", ss->cx, ss->cy, ss->cz);
+      if (imodDebug('s'))
+        imodPrintStderr("STEP draw at %f %f %f\n", ss->cx, ss->cy, ss->cz);
       sslice_draw(ss);
       return;
     }
@@ -2176,7 +2173,8 @@ static void slicerDraw_cb(ImodView *vi, void *client, int drawflag)
       ss->cz = ss->pendz;
       ss->pending = 0;
     }
-    //imodPrintStderr("ACTIVE draw at %f %f %f\n", ss->cx, ss->cy, ss->cz);
+    if (imodDebug('s'))
+      imodPrintStderr("ACTIVE draw at %f %f %f\n", ss->cx, ss->cy, ss->cz);
     sslice_draw(ss);
     return;
   }
@@ -2185,7 +2183,8 @@ static void slicerDraw_cb(ImodView *vi, void *client, int drawflag)
   // mode, then redraw the filled image
   if ((drawflag & IMOD_DRAW_MOD) || 
       (!ss->classic && (drawflag & IMOD_DRAW_XYZ))){
-    //imodPrintStderr("MOD draw at %f %f %f\n", ss->cx, ss->cy, ss->cz);
+    if (imodDebug('s'))
+      imodPrintStderr("MOD draw at %f %f %f\n", ss->cx, ss->cy, ss->cz);
     slicerUpdateImage(ss);
   }
 }
@@ -2214,7 +2213,8 @@ static void slicerUpdateImage(SlicerStruct *ss)
 void slicerPaint(SlicerStruct *ss)
 {
   int sliceScaleThresh = 4;
-  int mousing = mousePanning + mouseRotating;
+  int mousing = mousePanning + mouseRotating +
+    (ImodPrefs->speedupSlider() ? sliderDragging : 0);
   QString qstr;
   if (!ss->image)
     return;
@@ -2231,6 +2231,9 @@ void slicerPaint(SlicerStruct *ss)
   // Skip draw if minimized!
   if (ss->qtWindow->isMinimized())
     return;
+
+  if (imodDebug('s'))
+    imodPrintStderr("Paint, image filled %d\n", ss->imageFilled);
 
   if (!ss->imageFilled) {
 
@@ -2556,6 +2559,9 @@ void slicerCubePaint(SlicerStruct *ss)
 
 /*
 $Log$
+Revision 4.51  2007/11/10 17:25:18  mast
+Switch hot key for show slice and make s be save hotkey
+
 Revision 4.50  2007/10/16 23:56:08  mast
 Added warning if using middle button in movie mode; fixed cx,cy,cz if
 out of bounds after an image flip
