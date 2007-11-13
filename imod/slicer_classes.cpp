@@ -626,7 +626,7 @@ static int sshq, sswinx;
 // The top-level routine called to fill the image array
 void fillImageArray(SlicerStruct *ss, int panning, int meanOnly)
 {
-  float maxPanPixels = 1.e6;
+  float maxPanPixels = 1000. * ImodPrefs->slicerPanKb();
   int i, j, k;
   unsigned short rbase;
   float xo, yo, zo;  /* coords of the lower left zap origin. */
@@ -655,7 +655,7 @@ void fillImageArray(SlicerStruct *ss, int panning, int meanOnly)
   unsigned char **linePtrs;
   int vmnullvalue;
   int numThreads = 1;
-  char *procChar;
+  char *procChar = NULL;
 #ifdef QT_THREAD_SUPPORT
   SlicerThread *threads[MAX_THREADS];
 #endif  
@@ -688,6 +688,18 @@ void fillImageArray(SlicerStruct *ss, int panning, int meanOnly)
   shortcut = (sshq && (zoom == izoom) && (zoom > 1.0) && !ss->fftMode) ? 1 : 0;
   ksize = (ss->vi->colormapImage || meanOnly) ? 1 : ss->nslice;
  
+  // Set up number of threads early so pan limit can be modified
+  // Start with defined number of threads and modify with environment variable
+  numThreads = NUM_THREADS;
+#ifdef QT_THREAD_SUPPORT
+  procChar = getenv("IMOD_PROCESSORS");
+  if (procChar) {
+    numThreads = atoi(procChar);
+    numThreads = B3DMIN(MAX_THREADS, B3DMAX(1, numThreads));
+    maxPanPixels *= numThreads;
+  }
+#endif
+
   // When panning, drop HQ and/or reduce number of slices to maintain
   // a maximum number of pixel have to be found
   if (panning) {
@@ -719,9 +731,9 @@ void fillImageArray(SlicerStruct *ss, int panning, int meanOnly)
       maxSlice = B3DMAX(1, (int)(maxPanPixels / numpix));
 
       // Cancel HQ if too many pixels, or if the maximum slices is dropping
-      // below 5 and is more than a reduction of 2 from requested slices
+      // by more than 25%
       if (sshq && (maxPanPixels / numpix < 0.75 || 
-                   (maxSlice < 5 && maxSlice < ksize - 2))) {
+                   ((float)maxSlice / ksize < 0.75))) {
         sshq = 0;
         shortcut = 0;
 
@@ -910,14 +922,6 @@ void fillImageArray(SlicerStruct *ss, int panning, int meanOnly)
   /* DNM: don't need to clear array in advance */
 
 #ifdef QT_THREAD_SUPPORT
-
-  // Start with defined number of threads and modify with environment variable
-  numThreads = NUM_THREADS;
-  procChar = getenv("IMOD_PROCESSORS");
-  if (procChar) {
-    numThreads = atoi(procChar);
-    numThreads = B3DMIN(MAX_THREADS, B3DMAX(1, numThreads));
-  }
 
   // Use threads if image is big enough
   if (numThreads > 1 && jsize > 8 * numThreads && 
@@ -1719,6 +1723,9 @@ static int taper_slice(Islice *sl, int ntaper, int inside)
 
  /*
 $Log$
+Revision 4.24  2007/11/10 17:25:45  mast
+Do not sync angles when auto button is turned on
+
 Revision 4.23  2007/08/15 19:50:18  mast
 Added 1 pixel margin in computation of index limits to avoid crashes
 
