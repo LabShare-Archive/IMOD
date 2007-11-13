@@ -19,6 +19,7 @@ are floated, they will still pass hot keys on to the slicer window.
 <BR><A HREF = "#Mouse Actions and Movies">Mouse Actions and Movies</A>
 <BR><A HREF = "#Hot Keys">Hot Keys</A>
 <BR><A HREF = "#Modeling Tilted">Modeling Tilted Contours to be Meshed</A>
+<BR><A HREF = "#Performance">Managing Slicer Performance</A>
 
 <A NAME = "Behavior"><H3>Angles, Window Behavior and Classic Centering Mode</H3></A>
 The orientation of the slice is governed by the Z, Y, and X rotation angles,
@@ -330,5 +331,45 @@ with the Slicer Angles dialog.
 </OL>
 Note that if you model at intervals of more than one pixel, it is not so
 important to preserve the spacing between slices as just described.
+<P>
+<A NAME = "Performance"><H3>Managing Slicer Performance</H3></A>
+The time that the slicer takes to compute a new image depends on three
+factors: the size of the image window, the number of slices being averaged,
+and whether high quality interpolation is selected.  For large windows and
+many slices, the computation time could take hundreds of milliseconds.  The
+slicer uses several methods to manage the computation time, and you can affect
+them, as follows:
+<UL>
+<LI> By default, the slicer uses 4 threads executing simultaneously to compute
+the image.  With one processor, this will make no difference, with 2
+processors the time will be
+cut in half; with 4 or more processors the time will be one quarter.  
+If the environment variable
+IMOD_PROCESSORS is set, it will set the number of threads to the value of this
+variable.  
+Thus, if you
+have more than 4 processors, you can set IMOD_PROCESSORS to make
+the slicer work even faster.
+<LI> When you pan or rotate the image with the mouse, the slicer will evaluate
+the number of voxels that needs to be computed and, if necessary, turn off the
+high quality interpolation and reduce the number of slices to keep the
+computation time reasonable.  This behavior is controlled by a limiting number
+of voxels that can be adjusted in the Appearances tab of the 3dmod Preferences
+dialog.  If you find the slicer too sluggish when using the mouse with
+averaged slices, reduce the value; if you want to keep it from reducing the
+quality as much as it does, increase the value.
+<LI> This dynamic reduction in quality will not occur when dragging the angle
+sliders, unless you check the box to apply the voxel limit to this operation
+as well in the Appearances tab of the 3dmod Preferences dialog.
+<LI> The evaluation of computation time assumes a single processor unless
+IMOD_PROCESSORS is set, in which case it divides by the number of processors,
+with the result that it reduces the quality at a higher number of voxels.
+If you work on several computers with radically different capabilities on a
+single home filesystem, you could set IMOD_PROCESSORS appropriately on each to
+make a single voxel limit work more comparably on all of them.
+</OL>
+In general, whenever performance is an issue, it is advisable to keep the
+size of the slicer window to just what is needed to examine the area of
+interest.
 <P>
 <A HREF="index.html">Help Index<A>
