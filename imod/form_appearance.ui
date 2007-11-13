@@ -1,4 +1,4 @@
-<!DOCTYPE UI><UI version="3.1" stdsetdef="1">
+<!DOCTYPE UI><UI version="3.3" stdsetdef="1">
 <class>AppearanceForm</class>
 <widget class="QWidget">
     <property name="name">
@@ -8,8 +8,8 @@
         <rect>
             <x>0</x>
             <y>0</y>
-            <width>340</width>
-            <height>390</height>
+            <width>352</width>
+            <height>514</height>
         </rect>
     </property>
     <property name="caption">
@@ -593,6 +593,76 @@
                 </widget>
             </vbox>
         </widget>
+        <widget class="QGroupBox">
+            <property name="name">
+                <cstring>groupBox3</cstring>
+            </property>
+            <property name="title">
+                <string>Voxel limit for speeding up slicer</string>
+            </property>
+            <vbox>
+                <property name="name">
+                    <cstring>unnamed</cstring>
+                </property>
+                <widget class="QLayoutWidget">
+                    <property name="name">
+                        <cstring>layout13</cstring>
+                    </property>
+                    <hbox>
+                        <property name="name">
+                            <cstring>unnamed</cstring>
+                        </property>
+                        <widget class="QLabel">
+                            <property name="name">
+                                <cstring>textLabel1_2</cstring>
+                            </property>
+                            <property name="text">
+                                <string>Limit when moving with mouse:</string>
+                            </property>
+                        </widget>
+                        <widget class="QSpinBox">
+                            <property name="name">
+                                <cstring>voxLimitSpinBox</cstring>
+                            </property>
+                            <property name="maxValue">
+                                <number>100000</number>
+                            </property>
+                            <property name="minValue">
+                                <number>500</number>
+                            </property>
+                            <property name="lineStep">
+                                <number>500</number>
+                            </property>
+                            <property name="value">
+                                <number>3000</number>
+                            </property>
+                            <property name="toolTip" stdset="0">
+                                <string>Limit governing how many fewer slices are averaged when panning or rotating slicer image with mouse</string>
+                            </property>
+                        </widget>
+                        <widget class="QLabel">
+                            <property name="name">
+                                <cstring>textLabel2_2</cstring>
+                            </property>
+                            <property name="text">
+                                <string>KB</string>
+                            </property>
+                        </widget>
+                    </hbox>
+                </widget>
+                <widget class="QCheckBox">
+                    <property name="name">
+                        <cstring>limitSliderBox</cstring>
+                    </property>
+                    <property name="text">
+                        <string>Apply limit when rotating with sliders</string>
+                    </property>
+                    <property name="toolTip" stdset="0">
+                        <string>Use same speedup method when dragging angle sliders</string>
+                    </property>
+                </widget>
+            </vbox>
+        </widget>
         <spacer>
             <property name="name">
                 <cstring>spacer14</cstring>
@@ -606,7 +676,7 @@
             <property name="sizeHint">
                 <size>
                     <width>20</width>
-                    <height>40</height>
+                    <height>16</height>
                 </size>
             </property>
         </spacer>
@@ -724,6 +794,7 @@
     <slot>autoSDChanged( int value )</slot>
     <slot>styleSelected( const QString &amp; key )</slot>
     <slot>setTargetClicked()</slot>
+    <slot>unload()</slot>
     <slot>displayCurrentZoom()</slot>
     <slot>newZoomIndex( int value )</slot>
     <slot>unloadZoomValue()</slot>

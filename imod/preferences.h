@@ -115,6 +115,12 @@ typedef struct imod_pref_struct
   int snapQuality;        // Quality factor, controls compression
   int snapQualityDflt;
   bool snapQualityChgd;
+  int slicerPanKb;        // Maximum KB for slicer panning
+  int slicerPanKbDflt;
+  bool slicerPanKbChgd;
+  bool speedupSlider;     // Apply limit when using sliders too
+  bool speedupSliderDflt;
+  bool speedupSliderChgd;
 
 } ImodPrefStruct;
 
@@ -165,6 +171,8 @@ class ImodPreferences : public QObject
   bool getRoundedStyle();
   QString snapFormat() {return mCurrentPrefs.snapFormat;};
   int snapQuality() {return mCurrentPrefs.snapQuality;};
+  int slicerPanKb() {return mCurrentPrefs.slicerPanKb;};
+  bool speedupSlider() {return mCurrentPrefs.speedupSlider;};
   QString snapFormat2();
   void set2ndSnapFormat();
   void restoreSnapFormat();
@@ -205,6 +213,9 @@ extern ImodPreferences *ImodPrefs;
 
 /*
 $Log$
+Revision 1.13  2007/07/08 16:03:49  mast
+Added hot slider active function
+
 Revision 1.12  2007/05/31 16:25:33  mast
 Added members for classic slicer
 

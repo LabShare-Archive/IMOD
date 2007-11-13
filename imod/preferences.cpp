@@ -13,7 +13,7 @@
 /* Checklist for adding an item:
  * Add structure variable for item, default value, and boolean for change
  * Add function for returning current value
- * Set default value
+ * Set default value of the Dflt variable
  * Read the setting, including any checks on validity
  * Write the setting if changed in saveSettings()
  * In donePressed, record change in value
@@ -145,6 +145,8 @@ ImodPreferences::ImodPreferences(char *cmdLineStyle)
   prefs->snapFormatDflt = "JPEG";
 #endif
   prefs->snapQualityDflt = 80;
+  prefs->slicerPanKbDflt = 3000;
+  prefs->speedupSliderDflt = false;
 
   prefs->hotSliderKey = settings->readNumEntry(IMOD_NAME"hotSliderKey", 
                                               prefs->hotSliderKeyDflt,
@@ -203,6 +205,12 @@ ImodPreferences::ImodPreferences(char *cmdLineStyle)
   prefs->snapQuality = settings->readNumEntry(IMOD_NAME"snapQuality",
                                         prefs->snapQualityDflt,
                                         &prefs->snapQualityChgd);
+  prefs->slicerPanKb = settings->readNumEntry(IMOD_NAME"slicerPanKb",
+                                        prefs->slicerPanKbDflt,
+                                        &prefs->slicerPanKbChgd);
+  prefs->speedupSlider = settings->readBoolEntry(IMOD_NAME"speedupSlider",
+                                                 prefs->speedupSliderDflt,
+                                                 &prefs->speedupSliderChgd);
 
   // Make sure an output format is on the list; if not drop to PNG then RGB
   strList = (snapFormatList()).grep(prefs->snapFormat);
@@ -455,6 +463,10 @@ void ImodPreferences::saveSettings()
     settings->writeEntry(IMOD_NAME"snapFormat", prefs->snapFormat);
   if (prefs->snapQualityChgd)
     settings->writeEntry(IMOD_NAME"snapQuality", prefs->snapQuality);
+  if (prefs->slicerPanKbChgd)
+    settings->writeEntry(IMOD_NAME"slicerPanKb", prefs->slicerPanKb);
+  if (prefs->speedupSliderChgd)
+    settings->writeEntry(IMOD_NAME"speedupSlider", prefs->speedupSlider);
 
   if (prefs->zoomsChgd) {
     for (i = 0; i < MAXZOOMS; i++) {
@@ -566,7 +578,7 @@ void ImodPreferences::donePressed()
   int i;
   bool autosaveChanged = false;
   mBehaveForm->unload();
-  mAppearForm->unloadZoomValue();
+  mAppearForm->unload();
   mCurrentPrefs = mDialogPrefs;
 
   curp->hotSliderKeyChgd |= newp->hotSliderKey != oldp->hotSliderKey;
@@ -595,6 +607,9 @@ void ImodPreferences::donePressed()
   curp->autoTargetSDChgd |= newp->autoTargetSD != oldp->autoTargetSD;
   curp->snapFormatChgd |= newp->snapFormat != oldp->snapFormat;
   curp->snapQualityChgd |= newp->snapQuality != oldp->snapQuality;
+  curp->slicerPanKbChgd |= newp->slicerPanKb != oldp->slicerPanKb;
+  curp->speedupSliderChgd |= !equiv(newp->speedupSlider, 
+                                     oldp->speedupSlider);
 
   for (i = 0; i < MAXZOOMS; i++)
       curp->zoomsChgd |= newp->zooms[i] != oldp->zooms[i];
@@ -674,6 +689,8 @@ void ImodPreferences::defaultPressed()
     pointSizeChanged();
     for (i = 0; i < MAXZOOMS; i++)
       prefs->zooms[i] = prefs->zoomsDflt[i];
+    prefs->slicerPanKb = prefs->slicerPanKbDflt;
+    prefs->speedupSlider = prefs->speedupSliderDflt;
     mAppearForm->update();
     break;
 
@@ -1048,6 +1065,9 @@ bool ImodPreferences::classicWarned()
 
 /*
 $Log$
+Revision 1.26  2007/07/08 16:03:49  mast
+Added hot slider active function
+
 Revision 1.25  2007/06/04 15:05:41  mast
 Made shadow of current point brighter
 

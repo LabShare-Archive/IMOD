@@ -78,6 +78,8 @@ void AppearanceForm::update()
   diaSetSpinBox(modelPtSpinBox, mPrefs->minModPtSize);
   diaSetSpinBox(autoMeanSpinBox, mPrefs->autoTargetMean);
   diaSetSpinBox(autoSDspinBox, mPrefs->autoTargetSD);
+  diaSetSpinBox(voxLimitSpinBox, mPrefs->slicerPanKb);
+  diaSetChecked(limitSliderBox, mPrefs->speedupSlider);
   displayCurrentZoom();
 }
 
@@ -170,6 +172,13 @@ void AppearanceForm::setTargetClicked()
   mPrefs->autoTargetSD = autoSDspinBox->value();
 }
 
+// General unload function
+void AppearanceForm::unload()
+{
+  mPrefs->slicerPanKb = voxLimitSpinBox->value();
+  mPrefs->speedupSlider = limitSliderBox->isChecked();
+  unloadZoomValue();
+}
 
 void AppearanceForm::displayCurrentZoom()
 {
