@@ -4,6 +4,7 @@ import java.awt.BorderLayout;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.awt.event.MouseEvent;
+import java.io.File;
 import java.util.Vector;
 
 import javax.swing.Box;
@@ -36,6 +37,11 @@ import etomo.type.Run3dmodMenuOptions;
  * @version $Revision$
  *
  * <p> $Log$
+ * <p> Revision 3.28  2007/09/10 20:41:39  sueh
+ * <p> bug# 925 Should only load button states once.  Changed
+ * <p> ProcessResultDisplayFactory to load button states immediately, so removing
+ * <p> button state load in the dialogs.
+ * <p>
  * <p> Revision 3.27  2007/05/26 00:31:14  sueh
  * <p> bug# 994 Not automatically setting button size in SpacedPanel anymore.
  * <p> Setting button size in UI.
@@ -406,11 +412,21 @@ public final class AlignmentEstimationDialog extends ProcessDialog implements
     String alignCommandName = logWindowLabel[0];
 
     String[] alignLabels = { "Errors", "Solution", "Surface Angles", "Locals",
-        "Complete Log", "Large Residual", "Mappings", "Coordinates" };
+        "Complete Log", "Large Residual", "Mappings", "Coordinates",
+        "Beam Tilt" };
     logFileLabel.add(alignLabels);
 
     Vector logFile = new Vector(1);
-    String[] logFileList = new String[8];
+    String beamtiltLogName = "taBeamtilt" + axisID.getExtension() + ".log";
+    File beamtiltLog = new File(applicationManager.getPropertyUserDir(),
+        beamtiltLogName);
+    String[] logFileList;
+    if (beamtiltLog.length()>0) {
+      logFileList = new String[9];
+    }
+    else {
+      logFileList = new String[8];
+    }
     logFileList[0] = "taError" + axisID.getExtension() + ".log";
     logFileList[1] = "taSolution" + axisID.getExtension() + ".log";
     logFileList[2] = "taAngles" + axisID.getExtension() + ".log";
@@ -419,6 +435,9 @@ public final class AlignmentEstimationDialog extends ProcessDialog implements
     logFileList[5] = "taResiduals" + axisID.getExtension() + ".log";
     logFileList[6] = "taMappings" + axisID.getExtension() + ".log";
     logFileList[7] = "taCoordinates" + axisID.getExtension() + ".log";
+    if (beamtiltLog.length()>0) {
+      logFileList[8] = beamtiltLogName;
+    }
 
     logFile.add(logFileList);
 
