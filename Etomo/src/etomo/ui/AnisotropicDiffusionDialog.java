@@ -38,9 +38,13 @@ import etomo.type.Run3dmodMenuOptions;
  * @version $Revision$
  * 
  * <p> $Log$
+ * <p> Revision 1.4  2007/11/12 22:13:00  sueh
+ * <p> bug# 1047 Implementing ContextMenu.
+ * <p>
  * <p> Revision 1.3  2007/11/12 15:03:26  sueh
  * <p> bug# 1047 Added the subdirectory to the remote path when the sub-directory is
- * <p> set.  Setting the absolute path from ftfVolume rather then the text because ftfVolume is displaying an abbreviated path.
+ * <p> set.  Setting the absolute path from ftfVolume rather then the text
+ * <p> because ftfVolume is displaying an abbreviated path.
  * <p>
  * <p> Revision 1.2  2007/11/09 17:46:26  sueh
  * <p> bug# 1047 Added tooltips.
@@ -157,20 +161,22 @@ public final class AnisotropicDiffusionDialog implements ContextMenu,
         .setToolTipText("Remove subdirectory with all temporary and test files "
             + "(naddir.filename).");
   }
-  
+
   /**
    * Right mouse button context menu
    */
   public void popUpContextMenu(MouseEvent mouseEvent) {
-    String[] manPagelabel = { "Anisotropic Diffusion",  "3dmod","Processchunks","Chunksetup" };
-    String[] manPage = { ProcessName.ANISOTROPIC_DIFFUSION+".html", "3dmod.html","processchunks.html","chunksetup.html" };
+    String[] manPagelabel = { "Anisotropic Diffusion", "3dmod",
+        "Processchunks", "Chunksetup" };
+    String[] manPage = { ProcessName.ANISOTROPIC_DIFFUSION + ".html",
+        "3dmod.html", "processchunks.html", "chunksetup.html" };
     String[] logFileLabel = { "Anisotropic Diffusion" };
     String[] logFile = new String[1];
-    logFile[0] = ProcessName.ANISOTROPIC_DIFFUSION+ ".log";
+    logFile[0] = ProcessName.ANISOTROPIC_DIFFUSION + ".log";
     //    ContextPopup contextPopup =
-    new ContextPopup(rootPanel.getComponent(), mouseEvent, "ANISOTROPIC DIFFUSION",
-        ContextPopup.TOMO_GUIDE, manPagelabel, manPage, logFileLabel, logFile,
-        manager, AxisID.ONLY,subdirName);
+    new ContextPopup(rootPanel.getComponent(), mouseEvent,
+        "ANISOTROPIC DIFFUSION", ContextPopup.TOMO_GUIDE, manPagelabel,
+        manPage, logFileLabel, logFile, manager, AxisID.ONLY, subdirName);
   }
 
   private AnisotropicDiffusionDialog(final ParallelManager manager) {
