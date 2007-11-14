@@ -11,6 +11,10 @@
  * @version $Revision$
  * 
  * <p> $Log$
+ * <p> Revision 3.6  2006/06/27 23:09:46  sueh
+ * <p> bug# 886 Fixed problem:  Was placing an empty string in alignLogCommand
+ * <p> when the axisID is ONLY.  This caused alignlog to fail.
+ * <p>
  * <p> Revision 3.5  2006/05/22 22:43:44  sueh
  * <p> bug# 577 Placed the command in a String[] rather then a String.
  * <p>
@@ -67,6 +71,7 @@ public class AlignLogGenerator {
     runArgument("-m", "taMappings");
     runArgument("-r", "taResiduals");
     runArgument("-s", "taSolution");
+    runArgument("-b", "taBeamtilt");
   }
 
   private void runArgument(String argument, String logFile) throws IOException {
