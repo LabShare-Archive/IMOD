@@ -214,6 +214,23 @@ void mapNamedColors()
   mapOneNamedColor(App->background);
 }
 
+// Set a custom ghost color
+void customGhostColor(int red, int green, int blue)
+{
+  mapcolor(App->ghost, red, green, blue); 
+  b3dColorIndex(App->ghost);  
+  
+  /* if it's RGB, have to set the color here after the call */
+  if (App->rgba)
+    glColor3f(red/255., green/255., blue/255.);
+}
+
+// restore the ghost color after using it temporarily
+void resetGhostColor(void)
+{
+  mapOneNamedColor(App->ghost);
+}
+
 // get one color from preferences and call mapcolor with it
 static void mapOneNamedColor(int index)
 {
@@ -532,6 +549,9 @@ int imodFindQGLFormat(ImodApp *ap, char **argv)
 
 /*
 $Log$
+Revision 4.18  2006/09/12 15:40:24  mast
+Handled contour member renames
+
 Revision 4.17  2006/08/28 05:22:01  mast
 Added colormap loading to redraw routine
 

@@ -9,6 +9,9 @@
 $Date$
 
 $Log$
+Revision 4.3  2004/11/02 20:15:04  mast
+Added call to map all named colors
+
 Revision 4.2  2004/06/06 21:27:21  mast
 Eliminated stereo-command related items
 
@@ -67,6 +70,7 @@ void imodSetObjectColor(int ob);
 int  imodDraw(ImodView *vw, int flag);
 int mapcolor(int color, int red, int green, int blue);
 void mapNamedColors(void);
-
+void resetGhostColor(void);
+void customGhostColor(int red, int green, int blue);
 
 #endif
