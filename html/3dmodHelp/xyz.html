@@ -14,18 +14,24 @@ line's color matches the color of the border around the plane whose coordinate
 is changed.
 When the XYZ window is resized, the window is
 reapportioned between the three view boxes.
+<P>
 When an image plane is too large to fit in its view box, the image can be
 panned with the first mouse button.  The windows do not all pan independently;
 there are just three underlying pan offsets, for X, Y and Z, so that when you
 pan, two windows will usually move together to keep corresponding regions of
 the volume visible.
+<P>
+For volumes that are much larger in X and Y than in Z, the 
+The allocation of the window space among the three view boxes can be changed by
+dragging the light blue square, at the intersection of the X and Y marker
+lines.  This square will move along a diagonal so as to keep the Z sizes of
+the XZ and YZ view boxes the same.
 
 <H3>Mouse Button Assignments</H3>
 Descriptions below refer to the first, second, and third mouse 
 buttons.  By default, these correspond to left, middle, and right 
 buttons of a 3-button mouse, but you can change these assignments in 
 the 3dmod Preferences dialog, accessed via the <B>Edit-Options</B> menu entry.
-
 
 <H3>The Tool Bar</H3>
 <UL>
@@ -34,17 +40,24 @@ the 3dmod Preferences dialog, accessed via the <B>Edit-Options</B> menu entry.
 one to type in a custom zoom.
 <LI>The <B>checkerboard</B> button toggles between fast rendering and 
 slower but higher quality interpolated image rendering.
-<LI>The <B>X slider</B> allow one to change the X location.
-<LI>The <B>Y slider</B> allow one to change the Y location.
+<LI>The <B>centering</B> button will pan the images to bring the current point
+as close as possible to the center of each view box.  The centered point is
+either the current image point in movie mode or the current model point in
+model mode.
+<LI>The <B>X slider</B> allows one to change the X location.
+<LI>The <B>Y slider</B> allows one to change the Y location.
 <LI>The <B>Z slider</B> allows one to riffle through images or select a 
 particular section to display.
 </UL>
 
 <H3>Hot Keys special to the XYZ window</H3>
 <UL>
+<LI><B>k</B>will pan the images to bring the current point
+as close as possible to the center of each view box, just as with the 
+<B>centering</B> toolbar button.
 <LI><B>r</B> toggles between fast rendering and 
 slower but higher quality interpolated image rendering.
-<LI><B>P</B> Projects the current contour onto the side views.
+<LI><B>P</B> Toggles the projection of the current contour onto the side views.
 <LI><B>Ins</B> on the keypad: In model mode, this key works the same as 
 the second mouse button.  A single keystrike adds one point; 
 holding the key down allows points to be added continuously.
@@ -67,7 +80,8 @@ indicated by the crossed marker lines.
 <LI><B>First Button Drag</B>: In one of the three view boxes, this pans an 
 image if it is larger than its view box.  In the horizontal or vertical gutter
 or the upper right region, this riffles through YZ, XZ, or XY planes,
-respectively.
+respectively.  On the small blue square at the intersection of the marker
+lines, this adjusts the allocation of window space among the view boxes.
 <LI><B>Second Button Click</B>: In one of the three view boxes,
 start movie
 through the planes in the
