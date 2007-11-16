@@ -33,7 +33,12 @@ void clipCenterAndAngles(ImodvApp *a, Ipoint *clipPoint, Ipoint *clipNormal,
   
 #endif
 
-/*  $Log$
+/*  
+
+$Log$
+Revision 4.5  2007/09/20 22:06:55  mast
+Changes for visualizing clipping plane
+
     
 Revision 4.4  2007/06/13 15:19:21  mast
 Made function for computing matrix from angle stpes
