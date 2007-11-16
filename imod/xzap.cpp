@@ -3858,7 +3858,7 @@ static void zapDrawGhost(ZapStruct *zap)
       }
     }
   }
-  return;
+  resetGhostColor();
 }
 
 static void zapSetGhostColor(ZapStruct *zap, float obr, float obg, float obb)
@@ -3871,12 +3871,7 @@ static void zapSetGhostColor(ZapStruct *zap, float obr, float obg, float obb)
   green = (int)(((base + obg) * 255.0) / 3.0);
   blue = (int)(((base + obb) * 255.0) / 3.0);
     
-  mapcolor(App->ghost, red, green, blue); 
-  b3dColorIndex(App->ghost);  
-  
-  /* DNM: if it's RGB, just have to set the color here */
-  if (App->rgba)
-    glColor3f(red/255., green/255., blue/255.);
+  customGhostColor(red, green, blue); 
 }
 
 static int zapDrawAuto(ZapStruct *zap)
@@ -4051,6 +4046,9 @@ void zapGetLongestTimeString(ImodView *vi, QString *str)
 
 /*
 $Log$
+Revision 4.104  2007/11/10 04:07:10  mast
+Changes for setting snapshot directory
+
 Revision 4.103  2007/09/20 22:05:37  mast
 Defined RADIANS_PER_DEGREE once
 
