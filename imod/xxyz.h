@@ -74,6 +74,7 @@ struct xxyzwin
   int toolMaxZ;
   int winXdim1,winXdim2,winYdim1,winYdim2;
   int xorigin1, xorigin2, yorigin1, yorigin2;
+  float xzFraction, yzFraction;
 };
 
 
@@ -129,6 +130,7 @@ class XyzWindow : public QMainWindow
     void zoomUp();
     void zoomDown();
     void newZoom();
+    void centerClicked();
     void sliderChanged(int which, int value, bool dragging);
     void help();
 
@@ -139,7 +141,6 @@ class XyzWindow : public QMainWindow
 
  private:
   struct xxyzwin *mXyz;
-  QLabel *mSizeLabel;
   QToolButton *mToggleButs[NUM_TOOLBUTTONS];
   int mToggleStates[NUM_TOOLBUTTONS];
   ToolEdit *mZoomEdit;
@@ -156,7 +157,7 @@ class XyzWindow : public QMainWindow
   void stepZoom(int step);
   void keyRelease(QKeyEvent *event);
   void enteredAxisLocation(int which, int value);
-  void allocateDim(int size, int zsize, int winsize, int &dim1, int &dim2);
+  void allocateDim(int winsize, float zFraction, int &dim1, int &dim2);
   void setFontDependentWidths();
 };
 
@@ -193,6 +194,9 @@ void xyzPixelViewState(bool state);
 
 /*
 $Log$
+Revision 3.16  2007/07/13 17:28:50  sueh
+bug# 1023 Added mFirstDraw and mTimerID to fix a first draw problem.
+
 Revision 3.15  2007/07/13 14:50:03  mast
 cleanup
 
