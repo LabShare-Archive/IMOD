@@ -30,8 +30,8 @@ C
       integer*4 NXYZ(3),MXYZ(3),NXYZST(3), NXYZ2(3),MXYZ2(3)
       real*4 CELL2(6),cell(6), TITLE(20), delt(3), xorig, yorig, zorig
 C       
-      CHARACTER*120 FILIN(lmfil),FILOUT(lmfil),xffil,filistin,filistout
-      character*120 idfFile, magGradFile
+      CHARACTER*320 FILIN(lmfil),FILOUT(lmfil),xffil,filistin,filistout
+      character*320 idfFile, magGradFile
       character*100000 listString
       equivalence (listString, array)
       EQUIVALENCE (NX,NXYZ)
@@ -65,7 +65,7 @@ c
 c       
       logical rescale,blankOutput
       character dat*9,tim*8,tempext*9
-      character*80 tempname,temp_filename
+      character*320 tempname,temp_filename
       logical nbytes_and_flags
 c       
 c       7/7/00 CER: remove the encode's; titlech is the temp space
@@ -1668,7 +1668,8 @@ c
       integer*4 ifOnePerFile, nfilein
       integer*4 lmsec, nLinetemp, iy, ierr, i, PipGetString, lnblnk
       character*(*) error, option, listString
-      character *80 concat, errString
+      character*320 concat
+      character*80 errString
       logical*4 pipinput
 c       
       write(errString, '(a,a,a)')'TOO MANY ', error, ' NUMBERS FOR ARRAYS'
@@ -1869,6 +1870,9 @@ c
 ************************************************************************
 *       
 c       $Log$
+c       Revision 3.45  2007/10/12 20:58:26  mast
+c       Adjusted to change in interpolation center to be around center of image
+c
 c       Revision 3.44  2007/02/12 18:52:03  mast
 c       Fixed setting of origin for binning when output size is specified and
 c       there are no transformations

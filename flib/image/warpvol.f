@@ -34,7 +34,7 @@ c
       integer*4 inmin(3),inmax(3)
       real*4 freinp(10)
 c       
-      character*160 filein,fileout,fileinv,tempdir,tempext
+      character*320 filein,fileout,fileinv,tempdir,tempext
 c       
 c	DNM 3/8/01: initialize the time in case time(tim) doesn't work
 c       
@@ -634,6 +634,9 @@ c               Copy transform from closest position
 
 c       
 c       $Log$
+c       Revision 3.12  2007/08/30 20:13:38  mast
+c       Change izinfile from i*2 3d to i*4 1D array
+c
 c       Revision 3.11  2007/04/07 22:16:25  mast
 c       Redimensioned and allowed for patchy warping file (not tested yet!)
 c

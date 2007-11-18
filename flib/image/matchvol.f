@@ -9,11 +9,7 @@ c       uses the same algorithm as ROTATEVOL for rotating large volumes.
 c       
 c       See man page for more information
 c       
-c       $Author$
-c       
-c       $Date$
-c       
-c       $Revision$
+c       $Id$
 c       Log and other history at end
 c       
       implicit none
@@ -24,7 +20,7 @@ c
       real*4 angles(3),tiltold(3),tiltnew(3),orig(3),xtmp(3)
       real*4 atmp1(3,3),atmp2(3,3),dtmp1(3),dtmp2(3),delta(3)
 c       
-      character*160 filein,fileout,tempdir,tempext,imfileOut
+      character*320 filein,fileout,tempdir,tempext,imfileOut
 c       
 c	DNM 3/8/01: initialize the time in case time(tim) doesn't work
 c       
@@ -243,6 +239,9 @@ c
 
 c       
 c       $Log$
+c       Revision 3.10  2006/09/23 16:30:23  mast
+c       Tested for negative output size
+c
 c       Revision 3.9  2006/06/01 14:17:23  mast
 c       switched to exiterror
 c

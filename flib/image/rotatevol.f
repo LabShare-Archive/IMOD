@@ -18,11 +18,7 @@ c       layer.
 c       
 c       See man page for more details
 c       
-c       $Author$
-c       
-c       $Date$
-c       
-c       $Revision$
+c       $Id$
 c       Log and other history at end
 c       
       implicit none
@@ -33,7 +29,7 @@ c
       real*4 mfor(3,3),mold(3,3),mnew(3,3),moldinv(3,3)
       real*4 angles(3),tiltold(3),tiltnew(3),orig(3),xtmp(3),delta(3)
 c       
-      character*120 filein,fileout,tempdir,tempext
+      character*320 filein,fileout,tempdir,tempext
 c       
 c	DNM 3/8/01: initialize the time in case time(tim) doesn't work
 c       
@@ -226,6 +222,9 @@ c
 
 c
 c       $Log$
+c       Revision 3.11  2007/01/31 16:24:05  mast
+c       Added option to set fill value
+c
 c       Revision 3.10  2006/06/23 17:13:48  mast
 c       Modified origin computation so it works with a 90 degree rotation
 c
