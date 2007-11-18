@@ -1,5 +1,9 @@
 IMOD History
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+11/17/07: Increased allowed length of concatenated and temporary file names
+in Fortran programs from 80 to 320; increased filename lengths to 320 for
+rotatevol, matchvol, warpvol and newstack.
+
 10/16/07: Added ability to make the side views bigger or smaller relative to
 the XY view in the XYZ window, and added a centering button.
 

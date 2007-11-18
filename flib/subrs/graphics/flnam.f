@@ -3,7 +3,7 @@ c	  and it can supply an extension if desired.
 c
 	subroutine flnam (name,ifmes,ext)
 	character*(*) name,ext
-	character*80 concat
+	character*320 concat
 	if(ifmes.ne.0)then
 	  if(ext.eq.'0')then
 	    write(*,'(1x,a,$)')'File name: '
