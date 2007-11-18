@@ -67,7 +67,7 @@ c
       integer*4 PipGetInteger,PipNumberOfEntries
       integer*4 PipGetString,PipGetFloat,PipGetBoolean
       character*40 PrependLocal
-      character*80 concat
+      character*320 concat
 c       
       powertilt=1.
       powercomp=1.
@@ -1058,7 +1058,7 @@ c
       implicit none
       character*(*) string
       integer*4 iflocal
-      character*80 concat
+      character*320 concat
       prependLocal = string
       if (iflocal.ne.0) prependlocal = concat('Local', string)
       return
@@ -1080,7 +1080,7 @@ c
       integer*4 iflocal,ifpip,nview,i, iref, len, numEntry, numTot, numGot
       real*4 fixval
       character*40 mapOption
-      character*80 concat
+      character*320 concat
       character*40 PrependLocal
       integer*4 PipNumberOfEntries, lnblnk, PipGetIntegerArray
 
@@ -1122,6 +1122,10 @@ c
 c       2/16/07: removed filetoview function that errored on nonexistent views
 
 c       $Log$
+c       Revision 3.16  2007/05/04 00:00:18  mast
+c       Only allocate one variable for projection stretch and store the rotation
+c       angle needed for that in common
+c
 c       Revision 3.15  2007/03/05 22:30:54  mast
 c       Changed initial beam tilt option
 c

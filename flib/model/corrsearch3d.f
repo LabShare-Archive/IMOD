@@ -1588,7 +1588,7 @@ c
       implicit none
       integer*4 nx, nbxlo, nbxhi, nxpatch, numxpat, ixstart, ixdelta, iaxis
       character*6 axis
-      character*80 concat
+      character*320 concat
 c       
 c       check basic input properties
 c       
@@ -1763,7 +1763,8 @@ c
       integer*4 nfile /1/
       save nfile
       character*4 buf
-      character*80 filename, concat
+      character*320 concat
+      character*160 filename
       
       mode = 0
       call int_iwrite(buf, nfile, iz)
@@ -1809,6 +1810,9 @@ c
 
 
 c       $Log$
+c       Revision 3.17  2007/10/10 19:51:55  mast
+c       Handle volume shifts properly when volume sizes differ
+c
 c       Revision 3.16  2007/10/04 16:18:27  mast
 c       Called new parabolic fit function and protected correlation coefficient
 c       from numeric errors

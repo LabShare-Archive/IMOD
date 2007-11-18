@@ -32,7 +32,7 @@ c
       real*4 viewmeanres(maxview),viewsdres(maxview)
       
       logical ordererr,nearbyerr
-      character*120 modelfile,residualfile,pointFile
+      character*160 modelfile,residualfile,pointFile
 c       
       real*4 fl(2,3,maxview),fa(2,3),fb(2,3),fc(2,3),fpstr(2,3)
 c       
@@ -80,7 +80,7 @@ c
       integer*4 imageBinned, nunknowtot2, ifDoLocal, ninThresh
       real*4 atand,sind,cosd
       integer*4 nearest_view,lnblnk
-      character*80 concat
+      character*320 concat
 c       
       logical pipinput
       integer*4 numOptArg, numNonOptArg
@@ -1509,6 +1509,9 @@ c
 
 c       
 c       $Log$
+c       Revision 3.34  2007/05/03 23:58:50  mast
+c       Switched from projection stretch to projection skew
+c
 c       Revision 3.33  2007/03/08 23:48:57  mast
 c       Enforced minimum of 2 x 2 local areas, adjusted arguments to runMetro
 c

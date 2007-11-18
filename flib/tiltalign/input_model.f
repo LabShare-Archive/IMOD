@@ -3,12 +3,7 @@ c       image file, sorts out the model points that are to be included in
 c       the analysis, and converts the coordinates to "index" coordinates
 c       with the origin at the center of the section
 c       
-c       $Author$
-c       
-c       $Date$
-c       
-c       $Revision$
-c       
+c       $Id$
 c       Log at end
 c       
       subroutine input_model(xx,yy,isecview,maxprojpt,maxreal,
@@ -23,7 +18,7 @@ c
       integer*4 iwhichout, iuangle,iuxtilt,nfileviews
       character*(*) modelfile,pointfile,residualFile
 c       
-      character*80 solufile,anglefile
+      character*160 solufile,anglefile
       logical stereopair,exist,readSmallMod,pipinput
       integer getimodhead,getimodscales,getimodmaxes,lnblnk
 c       
@@ -41,7 +36,7 @@ c
       character*1024 listString
       integer*4 PipGetThreeIntegers
       integer*4 PipGetString,PipGetTwoIntegers, PipGetTwoFloats
-      character*80 concat
+      character*320 concat
       logical b3dxor
 c       
 c       read model in
@@ -480,6 +475,9 @@ c
 
 c       
 c       $Log$
+c       Revision 3.17  2006/06/29 04:53:36  mast
+c       Set up to use small model
+c
 c       Revision 3.16  2005/12/09 04:45:32  mast
 c       gfortran: .xor., continuation, or byte fixes
 c       

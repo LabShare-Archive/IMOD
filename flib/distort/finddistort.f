@@ -10,24 +10,8 @@ c       See man page for more details.
 c       
 c       David Mastronarde, February 2006
 c
-c       $Author$
-c       
-c       $Date$
-c       
-c       $Revision$
-c
-c       $Log$
-c       Revision 1.11  2006/03/07 16:06:38  mast
-c       Switched to new model of stretch transformation
-c
-c       Revision 1.10  2006/03/04 00:55:11  mast
-c       Added edge function shift to upper piece position as indicated by
-c       latest equations, added option to get coverage image, and fixed
-c       extent of sample data to have one more column
-c
-c       Revision 1.9  2006/02/10 05:22:08  mast
-c       Added header to file
-c
+c       $Id$
+c       Log at end
 c
       implicit none
       integer maxImDim, maxGrids, iGridDim, msiz, maxVars, matLim
@@ -43,11 +27,12 @@ c
       parameter (lenIwrk = maxData * 10 + 10)
       integer*4 nxyz(3),mxyz(3),nx,ny,nz,nxyz2(3)
       equivalence (nx,nxyz(1)),(ny,nxyz(2)),(nz,nxyz(3))
-      character*120 infile,tempfile, strFile, covFile
+      character*160 infile,tempfile, strFile, covFile
+      character*160 outRoot,outfile,xffile, stFile, patchFile, quietStr
       character*320 comString
       character*12 endvStr, ypadStr
       character dat*9,tim*8
-      character*80 concat,outRoot,outfile,xffile, stFile, patchFile, quietStr
+      character*320 concat
       character*80 titlech
       logical exist
 
@@ -177,16 +162,16 @@ c
      &    numNonOptArg)
 
       if (PipGetInOutFile('InputFile', 1, ' ', infile)
-     &    .ne. 0) call errorexit('NO INPUT FILE SPECIFIED')
+     &    .ne. 0) call exitError('NO INPUT FILE SPECIFIED')
       if (PipGetInOutFile('OutputRoot', 2, ' ', outRoot)
-     &    .ne. 0) call errorexit('NO OUTPUT ROOT NAME SPECIFIED')
+     &    .ne. 0) call exitError('NO OUTPUT ROOT NAME SPECIFIED')
 
       CALL IMOPEN(1,INFILE,'RO')
       CALL IRDHDR(1,NXYZ,MXYZ,MODE,DMIN,DMAX,DMEAN)
-      IF (NX * NY .GT. maxImDim * maxImDim) call errorexit(
+      IF (NX * NY .GT. maxImDim * maxImDim) call exitError(
      &    'IMAGE TOO LARGE FOR ARRAYS')
 
-      if (nz .gt. maxGrids * 2) call errorexit(
+      if (nz .gt. maxGrids * 2) call exitError(
      &    'TOO MANY IMAGES FOR ARRAYS')
       call irtdel(1, valRow)
       pixelSize = valRow(1)
@@ -201,7 +186,7 @@ c       ierr = PipGetString('TransformFile', xffile)
       ierr = PipGetLogical('UseOldTransforms', useOldXf)
       saveXfs = .not.useOldXf
 c       saveXfs = xffile .ne. ' ' .and. .not.useOldXf
-c       if (useOldXf .and. xffile .eq. ' ') call errorexit(
+c       if (useOldXf .and. xffile .eq. ' ') call exitError(
 c       &           'TRANSFORM FILE MUST BE SPECIFIED TO USE OLD TRANSFORMS')
 c       
 c       get pairs and check their validity
@@ -209,14 +194,14 @@ c
       if (PipGetString('PairsToAnalyze', comString) .eq. 0)
      &    call parselist(comString, listPairs, nPairList)
       numPairs = nPairList / 2
-      if (numPairs .gt. maxGrids) call errorexit(
+      if (numPairs .gt. maxGrids) call exitError(
      &    'TOO MANY PAIRS OF IMAGES FOR ARRAYS')
       maxZ = 0
       do i = 1, numPairs * 2
         if (listPairs(i) .lt. 0 .or. listPairs(i) .gt. nz - 1)
-     &      call errorexit('SECTION NUMBER OUT OF RANGE')
+     &      call exitError('SECTION NUMBER OUT OF RANGE')
         if (mod(i, 2) .eq. 1 .and. listPairs(i + 1) .ne. listPairs(i) + 1)
-     &      call errorexit(
+     &      call exitError(
      &      'FOR NOW, PAIRS MUST BE ADJACENT SECTIONS IN FILE')
         maxZ = max(maxZ, listPairs(i))
       enddo
@@ -240,7 +225,7 @@ c       tempfile = temp_filename(infile, ' ', 'xf')
       xffile = concat(outRoot, '.rawxf')
       outfile = concat(outRoot, '.nosidf')
       call int_iwrite(ypadStr, ny / 2, lenYpad)
-      if (maxSect .lt. nz) call errorexit(
+      if (maxSect .lt. nz) call exitError(
      &    'TOO MANY SECTIONS FOR TRANSFORM ARRAY')
 
       iter = 1
@@ -255,7 +240,7 @@ c
         if (useOldXf) then
           call dopen(3, xffile, 'ro', 'f')
           call xfrdall(3, xform, nxfRead, *98)
-          if (nxfRead .gt. maxSect) call errorexit(
+          if (nxfRead .gt. maxSect) call exitError(
      &        'TOO MANY TRANSFORMS IN FILE FOR ARRAY')
           close(3)
         endif
@@ -277,7 +262,7 @@ c           check for result
 c           
           call system(comString)
           inquire(file=stFile,exist=exist)
-          if (.not.exist) call errorexit(
+          if (.not.exist) call exitError(
      &        'NEWSTACK FAILED TO MAKE UNDISTORTED STACK')
         endif
 
@@ -308,7 +293,7 @@ c             check for and get result
 c             
             call system(comString)
             inquire(file=tempfile,exist=exist)
-            if (.not.exist) call errorexit(
+            if (.not.exist) call exitError(
      &          'TILTXCORR FAILED TO MAKE TRANSFORM FILE')
             
             open(3, file=tempfile, status='OLD', form='FORMATTED')
@@ -476,9 +461,9 @@ c
 c           numVars = numTotField + numPairs
           numVars = numTotField
           if (nPtField(1) .gt. iGridDim .or. nPtField(2) .gt. iGridDim .or.
-     &        numVars .gt. maxVars) call errorexit(
+     &        numVars .gt. maxVars) call exitError(
      &        'TOO MANY VARIABLES TO SOLVE FOR TO FIT IN ARRAYS')
-          if (doMultr .and. numVars .ge. msiz) call errorexit(
+          if (doMultr .and. numVars .ge. msiz) call exitError(
      &        'TOO MANY VARIABLES TO DO MULTR SOLUTION')
           print *,'Solving for',nPtField(1),' by', nPtField(2),' =',
      &        numTotField, ' field positions'
@@ -591,7 +576,7 @@ c
                   endif
                 enddo
               enddo
-              if (numNeigh .eq. 0) call errorexit(
+              if (numNeigh .eq. 0) call exitError(
      &            'NO NEAR NEIGHBORS WITH DATA FOR A POINT IN FIELD')
 c               
 c               set up coefficients to make the orphan variable be the
@@ -798,7 +783,7 @@ c         take out the net mag change and get the no-mag transform
 c
         call dopen(1, strFile, 'ro', 'f')
         call xfrdall(1, xform, nxfRead, *98)
-        if (nxfRead .gt. maxSect) call errorexit(
+        if (nxfRead .gt. maxSect) call exitError(
      &      'TOO MANY TRANSFORMS IN FILE FOR ARRAY')
         call amat_to_rotmagstr(xform(1,1,nxfRead), theta, smag, str, phi)
         smagMean = smag * sqrt(str)
@@ -927,9 +912,9 @@ c
       close(1)
 c       
       call exit(0)
-97    call errorexit('WRITING TRANSFORMS TO FILE')
-98    call errorexit('READING TRANSFORMS FROM FILE')
-99    call errorexit('READING FILE')
+97    call exitError('WRITING TRANSFORMS TO FILE')
+98    call exitError('READING TRANSFORMS FROM FILE')
+99    call exitError('READING FILE')
       end
 
 
@@ -1015,9 +1000,9 @@ c
 c       
 c       check for legality
 c       
-      if (doMultr .and. numRows .ge. matLim) call errorexit(
+      if (doMultr .and. numRows .ge. matLim) call exitError(
      &    'TOO MANY DATA POINTS TO SOLVE WITH MULTR')
-      if (numRows .ge. maxData) call errorexit(
+      if (numRows .ge. maxData) call exitError(
      &    'TOO MANY DATA POINTS FOR ARRAYS')
 c       
 c       increment number of rows, save shifts, get index from ia
@@ -1100,10 +1085,19 @@ c       Then IW contains the I values, the starting index for each row
       return
       end
 
-      subroutine errorexit(message)
-      implicit none
-      character*(*) message
-      print *
-      print *,'ERROR: FINDDISTORT - ',message
-      call exit(1)
-      end
+c
+c       $Log$
+c       Revision 1.12  2007/04/10 15:51:07  mast
+c       Added arguments to setgridchars call
+c
+c       Revision 1.11  2006/03/07 16:06:38  mast
+c       Switched to new model of stretch transformation
+c
+c       Revision 1.10  2006/03/04 00:55:11  mast
+c       Added edge function shift to upper piece position as indicated by
+c       latest equations, added option to get coverage image, and fixed
+c       extent of sample data to have one more column
+c
+c       Revision 1.9  2006/02/10 05:22:08  mast
+c       Added header to file
+c

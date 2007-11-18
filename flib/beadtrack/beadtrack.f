@@ -8,12 +8,9 @@ c
 c       David Mastronarde, 1995
 c       added tilt alignment, 10/6/97
 c       
-c       $Author$
-c       
-c       $Date$
-c       
-c       $Revision$
+c       $Id$
 c       Log at end of file
+c
       implicit none
       include 'smallmodel.inc'
       include 'statsize.inc'
@@ -40,7 +37,7 @@ C
       complex ARRAY(maxarr/2),BRRAY(maxarr/2)
 C       
       integer*4 ixpclist(limpcl),iypclist(limpcl),izpclist(limpcl)
-      CHARACTER*80 FILIN,FILOUT,plfile,modelfile
+      CHARACTER*160 FILIN,FILOUT,plfile,modelfile
       integer*4 idxin(liminside),idyin(liminside)
       integer*4 idxedge(limedge),idyedge(limedge)
       integer*4 listz(maxview),izexclude(maxview)
@@ -105,7 +102,7 @@ c
       real*4 sigma1,sigma2,radius2,radius1,deltactf
       integer*4 maxDrop, nDrop, ndatFit, nareaTot
       real*4 cosd,sind
-      character*80 concat
+      character*320 concat
       integer*4 getImodObjsize, niceframe
       logical itemOnList
 c       
@@ -1644,6 +1641,9 @@ c
 c       
 c       
 c       $Log$
+c       Revision 3.24  2006/10/05 19:38:28  mast
+c       Exit with error if seed model is empty
+c
 c       Revision 3.23  2006/06/29 04:53:31  mast
 c       Set up to use small model
 c

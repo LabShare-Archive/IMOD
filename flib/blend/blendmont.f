@@ -24,11 +24,7 @@ c       built on other machines
 c       6/1/01: implemented ability to write and read in edge correlation
 c       displacements; added a search step to improve on cross-correlations  
 c       
-c       $Author$
-c       
-c       $Date$
-c       
-c       $Revision$
+c       $Id$
 c       Log at end
 c       
       implicit none
@@ -36,8 +32,8 @@ c
       include 'recl_bytes.inc'
       include 'blend.inc'
       character*160 filnam,edgenam,plOutfile, outFile
-      character*80 rootname
-      character*80 concat
+      character*160 rootname
+      character*320 concat
       character*4 edgeext(2)/'.xef','.yef'/
       character*4 xcorrext/'.ecd'/
       character*18 actionStr
@@ -2768,6 +2764,9 @@ c
 
 c       
 c       $Log$
+c       Revision 3.33  2007/10/12 20:57:53  mast
+c       Changed center corrdinate so that center of rotation is around image center
+c
 c       Revision 3.32  2007/09/07 11:05:10  mast
 c       Fixed truncation when input is integers, mode 1 or 6
 c

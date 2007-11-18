@@ -21,7 +21,7 @@ c
       equivalence (nxyz,nx)
       common//nx,ny,nz
       character*160 afile, bfile, cfile
-      character*80 concat
+      character*320 concat
       character dat*9, tim*8
       character*10000 listString
 c       
@@ -272,6 +272,9 @@ c       encode ( 80, 3000, title ) dat, tim
       end
 
 c       $Log$
+c       Revision 3.6  2007/07/12 01:51:15  mast
+c       Changed high to upper to preserve -h for help
+c
 c       Revision 3.5  2007/07/10 19:40:22  mast
 c       Added options for zero mean and thresholding on output
 c

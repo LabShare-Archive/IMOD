@@ -12,13 +12,11 @@ c       See man page for more details.
 c       
 c       David Mastronarde, February 2006
 c
-c       $Author$
-c       
-c       $Date$
-c       
-c       $Revision$
-c
+c       $Id$
 c       $Log$
+c       Revision 1.3  2006/06/18 19:38:18  mast
+c       Changed to use new C function for amoeba
+c
 c       Revision 1.2  2006/02/08 05:38:33  mast
 c       Added header to file
 c
@@ -45,7 +43,7 @@ c
       integer*4 numSince
       logical separate
       character*40 numString
-      character*80 concat
+      character*320 concat
       character*1 starout
 c       
       logical pipinput
@@ -291,12 +289,12 @@ c
       real*4 p(*), funcErr
       include 'findgradient.inc'
 c       
-      character*80 paramName,outName
+      character*160 paramName,outName
       character*240 comstring
       real*4 error, errSum,xnum(limnum)
       character*1 starout
       integer*4 ierr, i, imodBackupFile,lnblnk,numeric(limnum),nfield
-      character*80 concat
+      character*320 concat
 c	
       nTrial = nTrial + 1
       paramName = concat(tmpRoot, '.param')
