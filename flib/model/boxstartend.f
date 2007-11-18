@@ -75,6 +75,9 @@ c
 c       $Revision$
 c       
 c       $Log$
+c       Revision 3.5  2005/12/09 04:43:27  mast
+c       gfortran: .xor., continuation, format tab continuation or byte fixes
+c
 c       Revision 3.4  2004/10/29 22:05:25  mast
 c       Added offsets to center extracted data properly
 c       
@@ -97,12 +100,12 @@ c
       integer*4 nxyz(3),mxyz(3),nxyz2(3),nxyzst(3),ind(3)
       equivalence (nx,nxyz(1)),(ny,nxyz(2)),(nz,nxyz(3))
       logical exist,readw_or_imod
-      character*80 modelfile
+      character*160 modelfile
       real*4 delt(3),orig(3),cell(6),title(20),offset(3)
       integer*4 ixpclist(limpcl),iypclist(limpcl),izpclist(limpcl),
      &    listz(limpcl),icolclip(256)
-      character*80 filin,filpcl,filpcl2
-      character*80 concat,convnum,rootname
+      character*160 filin,filpcl,filpcl2,convnum,rootname
+      character*320 concat
       data nxyzst/0,0,0/
       character*9 dat
       character*8 tim
