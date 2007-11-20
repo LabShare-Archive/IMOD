@@ -15,8 +15,8 @@ the file, and variables can be defined in Python then used in the command or
 standard input lines.  A small number of C-shell commands will also be
 recognized and translated to the appropriate Python statements.
 .P
-The easiest way to use this program is through the submbg script
-together with an alias to run submbg in the background, which is provided in
+The easiest way to use this program is through the submfg script
+together with an alias to run submfg in the background, which is provided in
 the IMOD startup scripts as the alias subm.  If you command file is named
 "stuff.pcm", you can give the command "subm stuff".  If it is named with a
 different extension, such as the traditional ".com", you need to indicate
