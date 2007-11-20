@@ -3,13 +3,12 @@
 #
 # Author: David Mastronarde
 #
-#  $Author$
-#
-#  $Date$
-#
-#  $Revision$
+# $Id$
 #
 #  $Log$
+#  Revision 1.2  2006/10/01 13:37:06  mast
+#  Used backup file function
+#
 #  Revision 1.1  2006/09/26 23:02:48  mast
 #  Added to package
 #
@@ -106,6 +105,8 @@ print >> out, "  sys.path.append(os.path.join(os.environ['IMOD_DIR'], 'pylib'))"
 print >> out, "else:"
 print >> out, "  print >> log, 'ERROR: IMOD_DIR is not defined'"
 print >> out, "  sys.exit(1)"
+print >> out, "if os.getenv('IMOD_QTLIBDIR') != None and os.getenv['LD_LIBRARY_PATH'] != None:"
+print >> out, "  os.environ['LD_LIBRARY_PATH'] = os.environ['IMOD_QTLIBDIR'] + os.pathsep + os.environ['LD_LIBRARY_PATH']"
 print >> out, "from imodpy import *"
 print >> out, "# Back up and open log file"
 print >> out, "makeBackupFile('" + logname + "')"
