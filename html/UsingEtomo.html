@@ -11,6 +11,9 @@
 $Revision$
 
 $Log$
+Revision 3.10  2007/02/20 19:25:57  mast
+Eliminated even disguised email addresses
+
 Revision 3.9  2006/10/14 15:28:12  mast
 *** empty log message ***
 
@@ -85,10 +88,8 @@ eTomo</font></font></p>
 <p class="western"
  style="margin-left: 2cm; margin-top: 0.42cm; page-break-after: avoid;"
  align="left">
-<a href="#Usage%7Coutline">Usage</a></p>
-<p class="western"
- style="margin-left: 2cm; margin-top: 0.42cm; page-break-after: avoid;"
- align="left">
+<a href="#Usage%7Coutline">Usage</a><br>
+<a href="#Other_Interfaces">Other Interfaces in eTomo</a><br>
 <a href="#Reporting%20bugs%7Coutline">Reporting bugs</a></p>
 <p class="western" style="margin-top: 0.42cm; page-break-after: avoid;"
  align="left">
@@ -127,8 +128,8 @@ the relative path to the .edf file on the command line, such as</p>
 <h2 class="western">The Setup Panel</h2>
 <p class="western">When eTomo is first started the <b>Setup Panel</b>
 is shown; at this point you can either setup the processing for a new
-tomogram, open one that was previously being worked on, or open the
-setup panel for joining tomograms from serial sections. </p>
+tomogram, open one that was previously being worked on, or open several
+other interfaces (see below). </p>
 <p class="western">To start working on a new dataset you need to fill
 out the fields in the <b>Setup Panel</b>. </p>
 <ul>
@@ -198,7 +199,10 @@ that processing step. The parameters and buttons on each <b>Process
 Panel</b> are typically laid out from top to bottom in the order they
 should be executed. When you execute a process (by pressing a button
 on one of the <b>Process Panels</b>) the <b>Process Monitor</b> will
-indicate what the process is doing and when it is complete.</p>
+indicate what the process is doing and when it is complete.&nbsp; In
+many cases, the button that you pressed will turn dark to indicate that
+the operation has been completed.<br>
+</p>
 <p class="western">The text output of a particular process is written
 to a log file named for the particular process; this log file can be
 viewed by right clicking the mouse pointer over the window region
@@ -223,15 +227,16 @@ bottom of most processing panels is the <b>Advanced</b> button. This
 will present a much more complete list of parameters for each step,
 which are mostly needed for unique or extreme cases.</p>
 <p class="western">Since the number of parameters that a particular
-step requires can vary significantly, the amount of screen space the
+step requires can vary significantly, <span
+ style="font-family: helvetica,arial,sans-serif;">.epp</span>the amount
+of screen space the
 GUI needs to present that information also changes. The current version
 of the program will adjust the window size automatically to fit tightly
 around the <b>Process Panel </b>whenever you change
 screens or change the amount of information displayed (such as by
 changing to advanced mode).&nbsp; You make this fitting occur
 automatically by selecting the <b>Options/Fit Window</b>
-menu item or using <br>
-Ctrl-F hot key.&nbsp; Whenever the window is
+menu item or using Ctrl-F hot key.&nbsp; Whenever the window is
 too small to display the information, scroll bars will appear so that
 you can pan across the <b>Process Panel</b>.&nbsp; To reduce the need
 for scrolling, several of the large panels are divided into sections
@@ -335,11 +340,21 @@ a configuration file called cpu.adoc located in the IMOD calibration
 directory, which is /usr/local/ImodCalib by default.&nbsp; Run "man
 cpuadoc" for a full description of how to set up such a file.&nbsp; A
 two-line file is sufficient to use a single multiprocessor
-system.&nbsp; You
+system.&nbsp; Alternatively, you can enable parallel processing by
+setting an environment variable IMOD_PROCESSORS to the number of
+processors in the computer.&nbsp; For example, if you have 4 processors
+and use tcsh for your shell, place <br>
+&nbsp; <span style="font-style: italic;">setenv IMOD_PROCESSORS 4</span><br>
+in your .cshrc file, or if you use the bash shell, place<br>
+&nbsp; <span style="font-style: italic;">export IMOD_PROCESSORS=4</span><br>
+in your .bashrc file.&nbsp; You
 will also need to be able to log in via ssh without entering a password
 (see below) and run IMOD on all of the other computers that you want to
 use.&nbsp;
-When parallel processing is available, you will be able to select
+<br>
+</span></p>
+<p><span style="font-family: helvetica,arial,sans-serif;">When parallel
+processing is available, you will be able to select
 whether to use it with checkboxes on the Tomogram Generation and the
 Combination Final Match pages.&nbsp; With it selected, a parallel
 processing table and controls will appear in the Process Monitor area
@@ -361,7 +376,8 @@ processing more gracefully by allowing all currently running chunks to
 finish.</span></li>
   <li><span style="font-family: helvetica,arial,sans-serif;">The <span
  style="font-weight: bold;">Resume</span> button can be used after
-either a Kill or a Pause to resume processingwithout having to redo any
+either a Kill or a Pause to resume processing without having to redo
+any
 chunks that were already completed.</span></li>
   <li><span style="font-family: helvetica,arial,sans-serif;">The <span
  style="font-weight: bold;">Save as Defaults</span> button will save
@@ -395,12 +411,71 @@ $HOME/.ssh/id_dsa.pub $HOME/.ssh/authorized_keys2</span><br>
 If necessary, distribute this authorized_keys2 file to the .ssh
 directories on other machines that do not have the same home
 directory.&nbsp; The three different kinds of platforms (Linux/Unix,
-Mac OSX, Windows) may require separately generated keys.&nbsp; If this seems
+Mac OSX, Windows) may require separately generated keys.&nbsp; If this
+seems
 to be the case, run
 ssh-keygen once on each type of machine then combine the
 .ssh/id_dsa.pub files from each into one authorized_keys2 file.&nbsp;
 Distribute this combined authorized_keys2 file to the .ssh directories.<br>
-&nbsp;</span><span style="font-weight: bold;"></span>
+&nbsp;
+<br>
+</span>
+<h1 class="western"><a name="Other_Interfaces"></a>Other Interfaces in
+Etomo</h1>
+<p><span style="font-family: helvetica,arial,sans-serif;">eTomo
+provides a good framework for developing new interfaces for managing
+parameter files and running processes, so we continue to add interfaces
+for operations other than generating a tomogram.&nbsp; All of these
+interfaces are available through the <span style="font-weight: bold;">File</span>
+menu via the various selections starting with <span
+ style="font-weight: bold;">New</span>.&nbsp; They include interfaces
+for:<br>
+</span></p>
+<ul>
+  <li><span style="font-family: helvetica,arial,sans-serif;">Joining
+together tomograms from serial sections, opened by selecting <span
+ style="font-weight: bold;">File/New Join</span>.&nbsp; See&nbsp;
+the&nbsp;&nbsp;<a href="tomojoin.html">Guide to Joining Tomograms</a>
+for instructions.&nbsp; The processing state is saved to a file with
+extension <span style="font-style: italic;">.ejf</span>, which you can
+reopen to resume your work.<span style="text-decoration: underline;"></span></span><br>
+  </li>
+  <li><span style="font-family: helvetica,arial,sans-serif;">Running
+the PEET volume alignment and averaging software, opened by selecting <span
+ style="font-weight: bold;">File/New PEET</span>.&nbsp; The processing
+state is saved to a file with extension <span
+ style="font-style: italic;">.epe</span>, which you can reopen to
+resume working on a data set.</span></li>
+  <li><span style="font-family: helvetica,arial,sans-serif;">Running
+parallel processing on an appropriate set of command files, such as the
+ones created by the programs <a href="man/chunksetup.html">chunksetup</a>,
+    <a href="man/sirtsetup.html">sirtsetup</a>, and <a
+ href="man/splitcorrection.html">splitcorrection</a>.&nbsp; This
+interface is opened by selecting <span style="font-weight: bold;">File/New
+Parallel Process</span> then pressing the <span
+ style="font-weight: bold;">Generic Parallel Process</span>
+button.&nbsp; The program state is saved in a file with extension<span
+ style="font-style: italic;"> .epp</span>, which you can reopen to
+process files with the same name as previously. <br>
+    </span></li>
+  <li><span style="font-family: helvetica,arial,sans-serif;">Filtering
+by nonlinear anisotropic diffusion.&nbsp; This procedure often requires
+finding the right parameter settings with a small test volume before
+running on the full volume, so the interface provides tools for doing
+this conveniently.&nbsp; All of the temporary and working files are
+kept in a subdirectory that you can remove at the end.&nbsp; The
+interface is opened by </span><span
+ style="font-family: helvetica,arial,sans-serif;">selecting <span
+ style="font-weight: bold;">File/New Parallel Process</span> then
+pressing the <span style="font-weight: bold;">Nonlinear Anisotropic
+Diffusion</span> button. </span><span
+ style="font-family: helvetica,arial,sans-serif;">The program state is
+saved in a file with extension <span style="font-style: italic;">.epp</span>.&nbsp;
+See the&nbsp;<a href="man/nad_eed_3d.html">nad_eed_3d man page</a> for
+more details.<br>
+    </span></li>
+</ul>
+<span style="font-weight: bold;"></span>
 <h1 class="western"><a name="Reporting bugs|outline"></a>Reporting
 bugs</h1>
 <p class="western">We very much appreciate feedback from our
@@ -419,7 +494,8 @@ reasonably fast), then select the menu item <span
  style="font-weight: bold;">File/Run Tomosnapshot</span>.&nbsp; You can
 then send the resulting tar file (setname-snapshot.tar.gz), along with
 a description of what you did and the undesired result, to&nbsp;
-David Mastronarde or Sue Held (see <a href="http://bio3d.colorado.edu"> web
+David Mastronarde or Sue Held (see <a href="http://bio3d.colorado.edu">
+web
 site</a> for addresses).&nbsp; You can
 also report bugs and make suggestions or comments by posting a message
 on the IMOD mailing list at the University of
