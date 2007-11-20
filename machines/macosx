@@ -221,53 +221,62 @@ set qtarget = ($send_target $assist_target $ctf_target)
 while ($i < 3)
     @ i++
 cat <<EOF >! $qdir[$i]/$qrun[$i]
-#!/bin/csh -f
-setenv DYLD_LIBRARY_PATH "\${IMOD_QTLIBDIR}:\$DYLD_LIBRARY_PATH"
-\$IMOD_DIR/bin/${qtarget[$i]} \$*
+#!/bin/sh
+export DYLD_LIBRARY_PATH="\${IMOD_QTLIBDIR}:\$DYLD_LIBRARY_PATH"
+\$IMOD_DIR/bin/${qtarget[$i]} "\$@"
 EOF
 chmod a+x $qdir[$i]/$qrun[$i]
 end
 
 cat <<EOF >! $imod_dir/runimod
-#!/bin/csh -f
-setenv DYLD_LIBRARY_PATH "\${IMOD_QTLIBDIR}:\$DYLD_LIBRARY_PATH"
-set background = 1
-foreach i (\$*)
-    if ("\$i" == '-D' || "\$i" == '-W' || "\$i" == '-L') set background = 0
-end
-if (\$background == 0) then
-    \$IMOD_DIR/bin/${imod_target} \$*
+#!/bin/sh
+export DYLD_LIBRARY_PATH="\${IMOD_QTLIBDIR}:\$DYLD_LIBRARY_PATH"
+background=1
+for i
+do
+    if [[ "\$i" == '-D' || "\$i" == '-W' || "\$i" == '-L' ]] ; then
+        background=0
+    fi
+done
+if [[ \$background == "0" ]] ; then
+    \$IMOD_DIR/bin/${imod_target} "\$@"
 else
-    \$IMOD_DIR/bin/${imod_target} \$* &
-endif
+    \$IMOD_DIR/bin/${imod_target} "\$@" &
+fi
 EOF
 
 cat <<EOF >! $imod_dir/runimodv
-#!/bin/csh -f
-setenv DYLD_LIBRARY_PATH "\${IMOD_QTLIBDIR}:\$DYLD_LIBRARY_PATH"
-set background = 1
-foreach i (\$*)
-    if ("\$i" == '-D' || "\$i" == '-W' || "\$i" == '-L') set background = 0
-end
-if (\$background == 0) then
-    \$IMOD_DIR/bin/${imod_target} -view \$*
+#!/bin/sh
+export DYLD_LIBRARY_PATH="\${IMOD_QTLIBDIR}:\$DYLD_LIBRARY_PATH"
+background=1
+for i
+do
+    if [[ "\$i" == '-D' || "\$i" == '-W' || "\$i" == '-L' ]] ; then
+        background=0
+    fi
+done
+if [[ \$background == "0" ]] ; then
+    \$IMOD_DIR/bin/${imod_target} -view "\$@"
 else
-    \$IMOD_DIR/bin/${imod_target} -view \$* &
-endif
+    \$IMOD_DIR/bin/${imod_target} -view "\$@" &
+fi
 EOF
 
 cat <<EOF >! $midas_dir/runmidas
-#!/bin/csh -f
-setenv DYLD_LIBRARY_PATH "\${IMOD_QTLIBDIR}:\$DYLD_LIBRARY_PATH"
-set background = 1
-foreach i (\$*)
-    if ("\$i" == '-D') set background = 0
-end
-if (\$background == 0) then
-    \$IMOD_DIR/bin/${midas_target} \$*
+#!/bin/sh
+export DYLD_LIBRARY_PATH="\${IMOD_QTLIBDIR}:\$DYLD_LIBRARY_PATH"
+background=1
+for i
+do
+    if [[ "\$i" == '-D' ]] ; then
+        background=0
+    fi
+done
+if [[ \$background == "0" ]] ; then
+    \$IMOD_DIR/bin/${midas_target} "\$@"
 else
-    \$IMOD_DIR/bin/${midas_target} \$* &
-endif
+    \$IMOD_DIR/bin/${midas_target} "\$@" &
+fi
 EOF
 
 chmod a+x $imod_dir/runimod $imod_dir/runimodv $midas_dir/runmidas 
@@ -286,11 +295,26 @@ LIBS += -lqassistantclient -lm
 RC_FILE = b3dicon.icns
 EOF
 
+# Make run scripts for the fortran Qt programs
+# They have to be named run... because the programs install in bin first
+#
+set fortqtprogs = (mtk nda sda genhstplt mtoverlap mtpairing avgstatplot)
+set gen_scripts = ()
+foreach i ($fortqtprogs)
+    set gen_scripts = ($gen_scripts run$i)
+    cat <<EOF >! $scripts_dir/run$i
+#!/bin/sh
+export DYLD_LIBRARY_PATH="\${IMOD_QTLIBDIR}:\$DYLD_LIBRARY_PATH"
+\$IMOD_DIR/bin/$i.app/Contents/MacOS/$i "\$@"
+EOF
+    chmod a+x $scripts_dir/run$i
+end
+
 #
 # Set up to copy qt lib for a distribution, and set name of LD_LIBRARY variable
 echo 'QTINSTLIBDIR = qtlib' >> $configure
 set ld_lib_var      = DYLD_LIBRARY_PATH
-echo 'MACAPPS = mtk nda sda genhstplt mtoverlap mtpairing avgstatplot' >> $configure
+echo "MACAPPS = $fortqtprogs" >> $configure
 set qtapp_path  = '$1.app/Contents/MacOS/'
 echo 'INSTALL_FILES = IMOD-mac.csh mac.cshrc IMOD-mac.sh mac.bashrc linklibs-mac' >> $configure
 if ($distname == "") then
