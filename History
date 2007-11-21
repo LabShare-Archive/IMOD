@@ -1,5 +1,11 @@
 IMOD History
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+11/20/07: IMOD_3-10-22
+11/20/07: Switched to using individual script for each Fortran graphics program
+(nda, mtk, etc) in the Mac so they can run from command files without using
+runimodqtapp; added commands to put qtlib on the library path to scripts
+produced by vmstocsh and vmstopy.
+
 11/17/07: Increased allowed length of concatenated and temporary file names
 in Fortran programs from 80 to 320; increased filename lengths to 320 for
 rotatevol, matchvol, warpvol and newstack.
