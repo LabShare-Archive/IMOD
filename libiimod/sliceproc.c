@@ -26,7 +26,6 @@
 #define GETSVAL(t, i, j) ((t)->data.s[(i) + ((j) * (t)->xsize)])
 #define GETFVAL(s, i, j) ((s)->data.f[(i) + ((j) * (s)->xsize)])
 
-static void sliceScaleAndFree(Islice *sout, Islice *sin);
 static float selectFloat(int s, float *r, int num);
 static int selectInt(int s, int *r, int num);
 
@@ -745,10 +744,12 @@ int sliceMinMax(Islice *s)
   return 0;
 }
 
-/* Determine min and max of slice sout, determine scaling to match them to the 
-   min and max values provided in slice sin, scale data into sin and free sout
+/*!
+  Determines min and max of slice [sout], determines scaling to match them to the 
+  min and max values provided in the byte slice [sin], scales data into [sin] and
+  free [sout].
 */ 
-static void sliceScaleAndFree(Islice *sout, Islice *sin)
+void sliceScaleAndFree(Islice *sout, Islice *sin)
 {
   float aval, mval;
   int imax, i;
@@ -1134,6 +1135,9 @@ int niceFrame(int num, int idnum, int limit)
 
 /*
     $Log$
+    Revision 3.10  2007/10/01 15:28:34  mast
+    Moved slice taper function to libcfshr
+
     Revision 3.9  2007/09/14 05:24:29  mast
     *** empty log message ***
 
