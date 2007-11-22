@@ -23,7 +23,7 @@
 #endif
 
 /*! 
- * Applies a sobel-type gradient filter to an image after scaling it by a
+ * Applies a Sobel-type gradient filter to an image after scaling it by a
  * specified amount.  When an image is being scaled down, some of the scaling
  * can be done with binning and the remainder is done with interpolation.
  * ^  [inImage] - input image
@@ -41,6 +41,8 @@
  * The return value is 1 for a failure to allocate a temporary array.  ^
  * If [inImage] is NULL or [center] < 0, the function will compute the output
  * sizes and offsets and return.  ^
+ * If [center] is 0, the scaled image is computed and returned without Sobel 
+ * filtering. ^
  * The call from Fortran is the same as that from C.
  */
 int scaledSobel(float *inImage, int nxin, int nyin, float scaleFac, 
@@ -110,6 +112,13 @@ int scaledSobel(float *inImage, int nxin, int nyin, float scaleFac,
       tmpImage[i] = outImage[i];
   }
 
+  if (!center) {
+    for (i = 0; i < nxo * nyo; i++)
+      outImage[i] = tmpImage[i];
+    free(tmpImage);
+    return 0;
+  }
+
   // Do the sobel/prewitt filter on interior pixels
   for (j = 1; j < nyo - 1; j++) {
     for (i = 1; i < nxo - 1; i++) {
@@ -149,6 +158,9 @@ int scaledfwrap(float *inImage, int *nxin, int *nyin, float *scaleFac,
 }
 
 /*  $Log$
+/*  Revision 1.2  2007/10/14 18:03:09  mast
+/*  Got it working
+/*
 /*  Revision 1.1  2007/10/01 15:26:05  mast
 /*  Preliminary checkin - untested
 /*
