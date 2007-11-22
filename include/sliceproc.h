@@ -39,6 +39,7 @@ extern "C" {
                           int *iterDone);
   int sliceTaperAtFill(Islice *sl, int ntaper, int inside);
   int niceFrame(int num, int idnum, int limit);
+  void sliceScaleAndFree(Islice *sout, Islice *sin);
 
 
 #ifdef __cplusplus
@@ -48,6 +49,9 @@ extern "C" {
 #endif
 /*
   $Log$
+  Revision 3.10  2007/10/01 15:27:23  mast
+  Rearranging
+
   Revision 3.9  2007/09/14 05:24:24  mast
   Added niceFrame
 
