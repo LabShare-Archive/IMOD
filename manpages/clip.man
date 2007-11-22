@@ -196,8 +196,10 @@ The default value is 0.
 K threshold value for anisotropic diffusion; the default is 2.0.
 .TP
 .B -l <level>
-Level for low pass filter. Range is (0.0 - 0.71 / pixel).
-The default value is 1.0.  With diffusion, this specifies the lambda value or 
+Has multiple uses: 1) Level for low pass filter. Range is (0.0 - 0.71 / pixel).
+The default value is 1.0.  2) Sigma of Gaussian kernel for smoothing; the
+deafult is to use the standard kernel shown below.
+3) With diffusion, this specifies the lambda value or 
 step size; the default is 0.2.
 .TP
 .B -cc <value>
@@ -437,14 +439,20 @@ coordinate system of the original volume, as is done by Rotatevol(1).
 .TP
 .B laplacian
 .PD
-These options will filter images by convolving with a simple 3x3 kernel, using
+These options will filter images by convolving with a simple 3x3 or larger
+kernel, using
 the same method as for the respective entry in the 3dmod image processing
-dialog.  The smoothing filter is the most useful; its kernel is
+dialog.  The smoothing filter is the most useful; by default, its kernel is
 .nf
     1 2 1
     2 4 2
     1 2 1
 .fi
+However, a Gaussian kernel can be used for smoothing instead if a standard
+deviation (sigma) is entered with the 
+.B -l
+option.  The kernel will be 3x3 for sigma up to 1.0, 5x5
+for sigma up to 2.0, and 7x7 for higher sigma values.
 .TP
 .B splitrgb
 Output the 3 color channels of an RGB file into three separate files, so that

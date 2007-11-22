@@ -2,12 +2,23 @@
 <title>Image Processing</title>
 </head>
 <H3>Image Processing</H3>
+<P>
+
+
 Various kinds of simple filters can be applied with these 
 controls.  The filter will always be applied to the current 
 section.  Note that many of these filters can be applied to a whole image
 stack through the
 <A HREF = "../man/clip.html">Clip</A> program.
 <P>
+<BR><A HREF = "#General">General Controls</A>
+<BR><A HREF = "#FourierFilter">Fourier Filtering</A>
+<BR><A HREF = "#FFT">Fourier Transforms</A>
+<BR><A HREF = "#Smoothing">Smoothing</A>
+<BR><A HREF = "#Median">Median Filtering</A>
+<BR><A HREF = "#Diffusion">Anisotropic Diffusion</A>
+<P>
+<A NAME = "General"><H4>General Controls</H4></A>
 Single-click in the list of filters to select the current filter 
 to be applied to the data; in some cases there will be further 
 parameters to select.
@@ -25,7 +36,7 @@ volume will all restore the original image data for a section,
 unless you press the <B>Save</B> button.  <B>Save</B> will permanently 
 replace the image data in memory with the processed data.
 <P>
-<H4>Fourier Filtering</H4>
+<A NAME = "FourierFilter"><H4>Fourier Filtering</H4></A>
 The Fourier filter is done by taking Fourier transforms and its 
 parameters are the <B>radius</B> and <B>sigma</B> parameters used in 
 several other IMOD programs.  Namely, the <B>Low frequency sigma</B> is 
@@ -37,7 +48,7 @@ cycles per pixel, ranging from 0 to 0.5.  The same filtering can be done
 at the command line with "mtffilter -high sigma -low cutoff,falloff", where
 "sigma", "cutoff", and "falloff" are the values used in this panel.
 <P>
-<H4>Fourier Transforms</H4>
+<A NAME = "FFT"><H4>Fourier Transforms</H4></A>
 To take a Fourier transform (FFT), the program will pad the image 
 into a square array slightly larger than the original image, taper 
 the image at its edges to minimize edge artifacts, take the FFT, 
@@ -69,7 +80,25 @@ shown to provide a resolution value in real space units.
 <P>
 The panel also shows the scale that is used to convert from pixels 
 in the FFT to frequency units.  
-<H4>Median Filtering</H4>
+<P>
+<A NAME = "Smoothing"><H4>Smoothing</H4></A>
+Smoothing replaces each pixel by a weighted sum of neighboring pixels.
+The image is multiplied by a small square matrix of weighting values, called a
+kernel.  The standard smoothing filter uses a 3x3 kernel with weights:
+<pre>
+    1  2  1
+    2  4  1
+    1  2  1
+</Pre>
+A Gaussian function can be used for the weights if
+a standard deviation for the Gaussian is set in the <B>Kernel sigma</B> spin
+box.  Initially this box shows <B>None</B>, which means that the standard
+kernel will be used.  The latter gives approximately the same result as a
+kernel sigma of 1.0.  The program uses a 3x3 kernel for sigma up to 1.0, a 5x5
+kernel for sigma up to 2.0, and a 7x7 kernel for higher sigma values.  The
+computation will take longer with the larger kernels.
+<P>
+<A NAME = "Median"><H4>Median Filtering</H4></A>
 Median filtering replaces each pixel by the median value of neighboring
 pixels, where the <B>Size</B> parameter determines the size of the block of
 pixels.  The default is to do the filtering in 3D, and take the median in a
@@ -80,14 +109,16 @@ filtering, pressing <B>More</B> will not have much effect and will not be the
 same as iterative filtering in 3D, because only the central slice has been
 filtered.
 <P>
-<H4>Anisotropic Diffusion</H4>
+<A NAME = "Diffusion"><H4>Anisotropic Diffusion</H4></A>
 This panel provides parameters for running a simple anisotropic diffusion
 algorithm using the Perona and Malik filtering
 method, based on a program by Alejandro Canterero.  The gradients in this
 method are simply pixel-to-pixel differences.  The ratio between these
 pixel-to-pixel differences and the threshold <B>K</B> determines how much
 diffusion is allowed between pixels.  Note that much better results will
-generally we achieved with <A HREF = "../man/nad_eed_3d.html">Nad_eed_3d</A>.
+generally be achieved with <A HREF = "../man/nad_eed_3d.html">Nad_eed_3d</A>,
+There is an interface for using that method in eTomo, available
+through the <B>File-Parallel Processing</B> menu entry.
 <P>
 The <B>Edge Stopping Function</B> radio buttons allow you to choose
 between the <B>Rational edge</B> stopping function and the <B>Tukey
