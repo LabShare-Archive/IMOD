@@ -28,6 +28,7 @@
 #ifndef FLT_MAX
 #define FLT_MAX INT_MAX
 #endif
+#define KERNEL_MAXSIZE 7
 
 /*
  * Common routine for the rescaling options including resize (no scale)
@@ -202,7 +203,7 @@ int clip_convolve(MrcHeader *hin,
 {
   Islice *s;
   float *blur;
-  int i, k, z;
+  int i, k, z, dim = 3;
   float smoothKernel[] = {
     0.0625f, 0.125f, 0.0625f,
     0.125f,  0.25f,  0.125f, 
@@ -215,6 +216,7 @@ int clip_convolve(MrcHeader *hin,
     1.,  1., 1.,
     1.,  -4., 1.,
     1.,  1., 1.};
+  float gaussianKernel[KERNEL_MAXSIZE * KERNEL_MAXSIZE];
   Islice *slice;
   char *message;
 
@@ -228,9 +230,17 @@ int clip_convolve(MrcHeader *hin,
   /* give message, add title */
   switch (process) {
   case IP_SMOOTH:
-    message = "Smoothing";
-    mrc_head_label(hout, "clip: smooth");
-    blur = smoothKernel;
+    if (opt->low > 0.) {
+      scaledGaussianKernel(&gaussianKernel[0], &dim, KERNEL_MAXSIZE, opt->low);
+      message = "Gaussian kernel smoothing";
+      mrc_head_label(hout, "clip: smooth with gaussian kernel");
+      blur = gaussianKernel;
+    } else {
+    
+      message = "Smoothing";
+      mrc_head_label(hout, "clip: smooth");
+      blur = smoothKernel;
+    }
     break;
   case IP_SHARPEN:
     message = "Sharpening";
@@ -256,7 +266,7 @@ int clip_convolve(MrcHeader *hin,
     }
 
     s->mean = hin->amean;
-    slice = slice_mat_filter(s, blur, 3);
+    slice = slice_mat_filter(s, blur, dim);
     sliceFree(s);
 
     if (clipWriteSlice(slice, hout, opt, k, &z, 1))
@@ -1556,6 +1566,9 @@ int free_vol(Islice **vol, int z)
 */
 /*
 $Log$
+Revision 3.22  2007/08/30 20:14:16  mast
+Made flipyz/rotx go in chunks, much faster
+
 Revision 3.21  2007/06/13 17:03:25  sueh
 bug# 1019 Setting hdr.sectionSkip in clip_splitrgb.
 

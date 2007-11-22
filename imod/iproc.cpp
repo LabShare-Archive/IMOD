@@ -7,15 +7,10 @@
  *  Copyright (C) 1995-2005 by Boulder Laboratory for 3-Dimensional Electron
  *  Microscopy of Cells ("BL3DEMC") and the Regents of the University of 
  *  Colorado.  See dist/COPYRIGHT for full copyright notice.
+ *
+ *  $Id$
+ *  Log at end
  */
-
-/*  $Author$
-
-$Date$
-
-$Revision$
-Log at end of file
-*/
 
 #include <qlabel.h>
 #include <qwidgetstack.h>
@@ -31,6 +26,7 @@ Log at end of file
 #include <qvbuttongroup.h>
 #include "dia_qtutils.h"
 #include "tooledit.h"
+#include "floatspinbox.h"
 #include "multislider.h"
 #include "imod.h"
 #include "imod_display.h"
@@ -66,17 +62,21 @@ static void mkFFT_cb(IProcWindow *win, QWidget *parent, QVBoxLayout *layout);
 static void fft_cb();
 static void mkMedian_cb(IProcWindow *win, QWidget *parent, 
                         QVBoxLayout *layout);
+static void mkSmooth_cb(IProcWindow *win, QWidget *parent, 
+                        QVBoxLayout *layout);
 static void median_cb();
 static void mkAnisoDiff_cb(IProcWindow *win, QWidget *parent,
                            QVBoxLayout *layout);
 static void anisoDiff_cb();
 
+#define NO_KERNEL_SIGMA 0.4f
+#define KERNEL_MAXSIZE 7
 
 /* The table of entries and callbacks */
 ImodIProcData proc_data[] = {
   {"FFT", fft_cb, mkFFT_cb, NULL},
   {"Fourier filter", fourFilt_cb, mkFourFilt_cb, NULL},
-  {"smooth", smooth_cb, NULL, "Smooth Image."},
+  {"smooth", smooth_cb, mkSmooth_cb, NULL},
   {"median", median_cb, mkMedian_cb, NULL},
   {"diffusion", anisoDiff_cb, mkAnisoDiff_cb, NULL},
   {"edge", edge_cb, mkedge_cb, NULL},
@@ -172,8 +172,18 @@ static void thresh_cb()
 // Smoothing
 static void smooth_cb()
 {
-  setSliceMinMax(true);
-  sliceByteSmooth(&s);
+  float kernel[KERNEL_MAXSIZE*KERNEL_MAXSIZE];
+  int dim;
+  Islice *sout;
+  if (proc.kernelSigma > NO_KERNEL_SIGMA + 0.001) {
+    sliceMMM(&s);
+    scaledGaussianKernel(kernel, &dim, KERNEL_MAXSIZE, proc.kernelSigma);
+    sout = slice_mat_filter(&s, kernel, dim);
+    sliceScaleAndFree(sout, &s);
+  } else {
+    setSliceMinMax(true);
+    sliceByteSmooth(&s);
+  }
 }
 
 // Sharpening
@@ -334,6 +344,7 @@ int inputIProcOpen(struct ViewInfo *vi)
       proc.threshGrow = false;
       proc.threshShrink = false;
       proc.edge = 0;
+      proc.kernelSigma = NO_KERNEL_SIGMA;
       proc.sigma1 = 0.;
       proc.sigma2 = 0.05f;
       proc.radius1 = 0.;
@@ -515,6 +526,21 @@ static void mkedge_cb(IProcWindow *win, QWidget *parent, QVBoxLayout *layout)
                    SLOT(edgeSelected(int)));
 }
 
+static void mkSmooth_cb(IProcWindow *win, QWidget *parent, QVBoxLayout *layout)
+{
+  diaLabel("Smoothing", parent, layout);
+  diaLabel(" Uses standard 3x3 kernel", parent, layout);
+  diaLabel(" or Gaussian kernel if sigma set", parent, layout);
+  QHBoxLayout *hLayout = new QHBoxLayout(layout);
+  proc.kernelSpin = (FloatSpinBox *)diaLabeledSpin
+    (2, B3DNINT(100.*NO_KERNEL_SIGMA), 1000, 10, "Kernel sigma", parent, hLayout);
+  proc.kernelSpin->setSpecialValueText("None");
+  proc.kernelSpin->setValue(B3DNINT(proc.kernelSigma * 100.));
+  QObject::connect(proc.kernelSpin, SIGNAL(valueChanged(int)), win, 
+                   SLOT(kernelChanged(int)));
+
+}
+
 static void mkthresh_cb(IProcWindow *win, QWidget *parent, QVBoxLayout *layout)
 {
   char *sliderLabel[] = {"Threshold filter value" };
@@ -561,13 +587,9 @@ static void mkFourFilt_cb(IProcWindow *win, QWidget *parent,
 static void mkFFT_cb(IProcWindow *win, QWidget *parent, QVBoxLayout *layout)
 {
   diaLabel("Fourier transform", parent, layout);
+  
   QHBoxLayout *hLayout = new QHBoxLayout(layout);
-  QLabel *label = new QLabel("Binning", parent);
-  label->setAlignment(Qt::AlignRight | Qt::AlignVCenter);
-  hLayout->addWidget(label);
-  proc.fftBinSpin = new QSpinBox(1, 8, 1, parent);
-  hLayout->addWidget(proc.fftBinSpin);
-  proc.fftBinSpin->setFocusPolicy(QWidget::ClickFocus);
+  proc.fftBinSpin = diaLabeledSpin(0, 1, 8, 1, "Binning", parent, hLayout);
   QObject::connect(proc.fftBinSpin, SIGNAL(valueChanged(int)), win, 
                    SLOT(binningChanged(int)));
   QCheckBox *check = diaCheckBox("Use Zap window subarea", parent, layout);
@@ -802,6 +824,11 @@ void IProcWindow::fourFiltChanged(int which, int value, bool dragging)
     proc.sigma2 = 0.001 * value;
 }
 
+void IProcWindow::kernelChanged(int val)
+{
+  setFocus();
+  proc.kernelSigma = val / 100.;
+}
 void IProcWindow::binningChanged(int val)
 {
   setFocus();
@@ -1168,6 +1195,9 @@ void IProcThread::run()
 /*
 
     $Log$
+    Revision 4.21  2007/06/09 00:22:06  mast
+    Only allocate diffusion arrays when needed
+
     Revision 4.20  2006/06/24 16:04:23  mast
     Added button to report frequency
 

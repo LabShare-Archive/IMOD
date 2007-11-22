@@ -7,15 +7,10 @@
  *  Copyright (C) 1995-2005 by Boulder Laboratory for 3-Dimensional Electron
  *  Microscopy of Cells ("BL3DEMC") and the Regents of the University of 
  *  Colorado.  See dist/COPYRIGHT for full copyright notice.
+ *
+ *  $Id$
+ *  Log at end
  */
-/*  $Author$
-
-    $Date$
-
-    $Revision$
-
-    Log at end of file
-*/
 
 #ifndef BD_IPROC_H_
 #define BD_IPROC_H_
@@ -32,6 +27,7 @@ class QLabel;
 class QSpinBox;
 class QPushButton;
 class ToolEdit;
+class FloatSpinBox;
 
 typedef struct ViewInfo ImodView;
 
@@ -68,6 +64,7 @@ class IProcWindow : public DialogFrame
   void threshChanged(int which, int value, bool dragging);
   void fourFiltChanged(int which, int value, bool dragging);
   void binningChanged(int val);
+  void kernelChanged(int val);
   void subsetChanged(bool state);
   void growChanged(bool state);
   void shrinkChanged(bool state);
@@ -115,6 +112,8 @@ typedef struct
   bool          threshGrow;
   bool          threshShrink;
   int           edge;
+  float         kernelSigma;
+  FloatSpinBox  *kernelSpin;
   float         radius1;
   float         radius2;
   float         sigma1;
@@ -163,6 +162,9 @@ bool iprocBusy(void);
 #endif /* BD_IPROC_H_ */
 /*
     $Log$
+    Revision 3.14  2006/06/24 16:04:23  mast
+    Added button to report frequency
+
     Revision 3.13  2005/03/23 18:47:29  mast
     Added threshold grow and shrink states
 
