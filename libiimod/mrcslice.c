@@ -1476,6 +1476,41 @@ Islice *slice_mat_filter(Islice *sin, float *mat, int dim)
 }
 
 /*!
+ * Fills [mat] with the coefficients of a [dim] x [dim] Gaussian kernel with 
+ * standard deviation [sigma].  The coefficients are scaled to sum to 1.
+ */
+void sliceGaussianKernel(float *mat, int dim, float sigma)
+{
+  float sum = 0.;
+  int i, j;
+  double mid = (dim - 1)/ 2.;
+  for (j = 0; j < dim; j++) {
+    for (i = 0; i < dim; i++) {
+      mat[i + j * dim] = (float)exp(-((i-mid) * (i-mid) + (j-mid) * (j-mid)) / 
+                                  (sigma * sigma));
+      
+      sum += mat[i + j * dim];
+    }
+  }
+  for (j = 0; j < dim; j++)
+    for (i = 0; i < dim; i++)
+      mat[i + j * dim] /= sum;
+}
+
+/*!
+ * Fills [mat] with the coefficients of a Gaussian kernel with standard deviation 
+ * [sigma].  The size of the kernel is set to 3 for [sigma] up to 1., 5 for [sigma]
+ * up to 2., etc., up to the size given by [limit]. The size is returned in [dim].
+ * The coefficients are scaled to sum to 1.
+ */
+void scaledGaussianKernel(float *mat, int *dim, int limit, float sigma)
+{
+  *dim = 2 * (int)ceil((double)sigma) + 1;
+  *dim = B3DMIN(limit, *dim);
+  sliceGaussianKernel(mat, *dim, sigma);
+}
+
+/*!
  * Extracts a square matrix of size [dim] from the slice [sin], centered 
  * around position [x], [y] and places the result into the array [mat].
  */
@@ -1807,6 +1842,9 @@ int mrc_vol_wrap(struct MRCvolume *v)
 
 /*
 $Log$
+Revision 3.19  2007/10/03 22:55:02  mast
+Added function to convert from MRC mode to SLICE mode for real data
+
 Revision 3.18  2007/09/12 17:09:30  xiongq
 add comments to sliceNewMode
 

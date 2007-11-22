@@ -123,6 +123,8 @@ extern "C" {
   Islice *sliceGradient(Islice *sin);
   int     mrc_bandpass_filter(Islice *sin, double low, double high);
   Islice *slice_mat_filter(Islice *sin, float *mat, int dim);
+  void sliceGaussianKernel(float *mat, int dim, float sigma);
+  void scaledGaussianKernel(float *mat, int *dim, int limit, float sigma);
   void   mrc_slice_mat_getimat(Islice *sin, int x, int y, int dim, float *mat);
   float  mrc_slice_mat_mult(float *m1, float *m2, int dim);
   Islice *mrc_slice_translate(Islice *sin, double dx, double dy,
@@ -166,6 +168,9 @@ extern "C" {
 
 /*
   $Log$
+  Revision 3.7  2007/10/03 22:55:35  mast
+  Added function to get from MRC to SLICE mode
+
   Revision 3.6  2007/02/04 21:24:16  mast
   Fix declaration of sliceMMM
 
