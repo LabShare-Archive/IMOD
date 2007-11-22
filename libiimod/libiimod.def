@@ -97,6 +97,7 @@ EXPORTS
 	mrcReadSectionByte
 	sliceByteAdd
 	mrc_head_read
+	sliceScaleAndFree
 	mrc_slice_resize
 	sliceByteAnisoDiff
 	tiffReadSectionByte
@@ -120,6 +121,7 @@ EXPORTS
 	mrc_slice_rotate
 	mrc_swap_shorts
 	mrc_slice_real
+	scaledGaussianKernel
 	mrc_write_byte
 	sliceFree
 	sliceMinMax
@@ -132,6 +134,7 @@ EXPORTS
 	sliceFloat
 	iiMRCCheck
 	iiAddRawCheckFunction
+	sliceGaussianKernel
 	iiMRCreadSection
 	get_loadinfo
 	mrc_test_size
