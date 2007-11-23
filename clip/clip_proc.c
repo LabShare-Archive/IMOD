@@ -203,7 +203,8 @@ int clip_convolve(MrcHeader *hin,
 {
   Islice *s;
   float *blur;
-  int i, k, z, dim = 3;
+  int i, k, z, iter, dim = 3, niter = 1;
+  char title[60];
   float smoothKernel[] = {
     0.0625f, 0.125f, 0.0625f,
     0.125f,  0.25f,  0.125f, 
@@ -230,17 +231,20 @@ int clip_convolve(MrcHeader *hin,
   /* give message, add title */
   switch (process) {
   case IP_SMOOTH:
+    if (opt->val > 1.)
+      niter = B3DNINT(opt->val);
     if (opt->low > 0.) {
       scaledGaussianKernel(&gaussianKernel[0], &dim, KERNEL_MAXSIZE, opt->low);
       message = "Gaussian kernel smoothing";
-      mrc_head_label(hout, "clip: smooth with gaussian kernel");
+      sprintf(title, "clip: Gaussian smoothing, sigma %.2f, %d iterations",
+              opt->low, niter);
       blur = gaussianKernel;
     } else {
-    
       message = "Smoothing";
-      mrc_head_label(hout, "clip: smooth");
+      sprintf(title, "clip: Standard smoothing, %d iterations", niter);
       blur = smoothKernel;
     }
+    mrc_head_label(hout, title);
     break;
   case IP_SHARPEN:
     message = "Sharpening";
@@ -265,9 +269,18 @@ int clip_convolve(MrcHeader *hin,
       return(-1);
     }
 
-    s->mean = hin->amean;
-    slice = slice_mat_filter(s, blur, dim);
-    sliceFree(s);
+    for (iter = 0; iter < niter; iter++) {
+      s->mean = hin->amean;
+      if (process == IP_SMOOTH)
+        sliceMMM(s);
+      slice = slice_mat_filter(s, blur, dim);
+      if (!slice) {
+        show_error("clip: Error getting new slice for filtering.");
+        return(-1);
+      }
+      sliceFree(s);
+      s = slice;
+    }
 
     if (clipWriteSlice(slice, hout, opt, k, &z, 1))
       return -1;
@@ -1566,6 +1579,9 @@ int free_vol(Islice **vol, int z)
 */
 /*
 $Log$
+Revision 3.23  2007/11/22 20:48:30  mast
+Added gaussian kernel smoothing
+
 Revision 3.22  2007/08/30 20:14:16  mast
 Made flipyz/rotx go in chunks, much faster
 
