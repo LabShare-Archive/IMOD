@@ -185,8 +185,9 @@ The following options are valid for selected processes:
 Switch, use depends on process.
 .TP
 .B -m <mode>
-Output modes: 'byte', 'short', 'float', 'complex', 'rgb', or 0-4 or 16. 
-0 = byte, 1 = short, 2 = float, 3 = complex short, 4 = complex float, 16 = rgb.
+Output modes: 'byte', 'short', 'float', 'complex', 'ushort', 'rgb', or 0-4, 
+6, or 16.  0 = byte, 1 = short, 2 = float, 3 = complex short, 4 = complex
+float, 6 = unsigned short, 16 = rgb.
 .TP
 .B -h <level>
 Level for high pass filter. Range is (0.0 - 0.71 / pixel).
@@ -198,7 +199,7 @@ K threshold value for anisotropic diffusion; the default is 2.0.
 .B -l <level>
 Has multiple uses: 1) Level for low pass filter. Range is (0.0 - 0.71 / pixel).
 The default value is 1.0.  2) Sigma of Gaussian kernel for smoothing; the
-deafult is to use the standard kernel shown below.
+default is to use the standard kernel shown below.
 3) With diffusion, this specifies the lambda value or 
 step size; the default is 0.2.
 .TP
@@ -209,8 +210,8 @@ function, 2 for rational function, 3 for Tukey biweight.  The default is 2.
 .B -n <value>
 Input number. Use depends on process: threshold for averaging, scaling factor
 for brightness/contrast/shadow, padding for correlations,
-iterations for anisotropic diffusion, size for
-median filter.
+iterations for smoothing or anisotropic diffusion, size for
+median filter. 
 .TP
 .B -r <value>
 Red value;   Range is (0.0 - 1.0) Default is 1.0.

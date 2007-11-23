@@ -94,8 +94,10 @@ A Gaussian function can be used for the weights if
 a standard deviation for the Gaussian is set in the <B>Kernel sigma</B> spin
 box.  Initially this box shows <B>None</B>, which means that the standard
 kernel will be used.  The latter gives approximately the same result as a
-kernel sigma of 1.0.  The lowest sigma value available is 0.5, since values
-below this give insignificant filtering.
+kernel sigma of 1.0 pixel.  The lowest sigma value available is 0.5 pixel, 
+since values
+below this give insignificant filtering.  Note that this sigma specifies
+pixels in real space, unlike the sigmas in Fourier filtering.
 The program uses a 3x3 kernel for sigma up to 1.0, a 5x5
 kernel for sigma up to 2.0, and a 7x7 kernel for higher sigma values.  The
 computation will take longer with the larger kernels.
