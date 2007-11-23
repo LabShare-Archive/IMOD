@@ -7,15 +7,10 @@
  *  Copyright (C) 1995-2005 by Boulder Laboratory for 3-Dimensional Electron
  *  Microscopy of Cells ("BL3DEMC") and the Regents of the University of 
  *  Colorado.  See dist/COPYRIGHT for full copyright notice.
+ *
+ *  $Id$
+ *  Log at end
  */
-
-/*  $Author$
-
-$Date$
-
-$Revision$
-Log at end of file
-*/
 
 #include <stdlib.h>
 #include <string.h>
@@ -73,6 +68,7 @@ void usage(void)
   fprintf(stderr, "\t[-v]  view output data.\n");
   fprintf(stderr, "\t[-3d] or [-2d] treat image as 3d (default) or 2d.\n");
   fprintf(stderr, "\t[-s] Switch, [-n #] Amount; Depends on function.\n");
+  fprintf(stderr, "\t[-n #] [-l #] Iterations and Gaussian sigma for smoothing.\n");
   fprintf(stderr, "\t[-h #] [-l #] values for high/low pass filters.\n");
   fprintf(stderr, "\t[-cc #] [-l #] [-k #] values for anisotropic diffusion.\n");
   fprintf(stderr, "\t[-r #] [-g #] [-b #] red, green, blue values.\n");
@@ -612,6 +608,9 @@ int *clipMakeSecList(char *clst, int *nofsecs)
 
 /*
 $Log$
+Revision 3.18  2007/06/13 17:04:43  sueh
+bug# 1019 Setting hout.sectionSkip in main.
+
 Revision 3.17  2007/02/04 21:19:48  mast
 Eliminated mrcspectral includes
 
