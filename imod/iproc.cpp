@@ -533,7 +533,9 @@ static void mkSmooth_cb(IProcWindow *win, QWidget *parent, QVBoxLayout *layout)
   diaLabel(" or Gaussian kernel if sigma set", parent, layout);
   QHBoxLayout *hLayout = new QHBoxLayout(layout);
   proc.kernelSpin = (FloatSpinBox *)diaLabeledSpin
-    (2, B3DNINT(100.*NO_KERNEL_SIGMA), 1000, 10, "Kernel sigma", parent, hLayout);
+    (2, B3DNINT(100.*NO_KERNEL_SIGMA), 1000, 10, "Kernel sigma", parent,
+     hLayout);
+  diaLabel("pixels", parent, hLayout);
   proc.kernelSpin->setSpecialValueText("None");
   proc.kernelSpin->setValue(B3DNINT(proc.kernelSigma * 100.));
   QObject::connect(proc.kernelSpin, SIGNAL(valueChanged(int)), win, 
@@ -1195,6 +1197,9 @@ void IProcThread::run()
 /*
 
     $Log$
+    Revision 4.22  2007/11/22 20:49:44  mast
+    Added gaussian kernel smoothing
+
     Revision 4.21  2007/06/09 00:22:06  mast
     Only allocate diffusion arrays when needed
 
