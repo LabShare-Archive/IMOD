@@ -3340,7 +3340,7 @@ void    imodContourSetSurface(Icont *inContour, int inSurface)
  to the off if [inState is 0 or on if [inState] is nonzero. */
 void imodContourSetFlag(Icont *inContour, unsigned int inFlag, int inState)
 {
-  if (state)
+  if (inState)
     inContour->flags |= inFlag;
   else
     inContour->flags &= ~inFlag;
@@ -3368,6 +3368,9 @@ char *imodContourGetName(Icont *inContour)
 /* END_SECTION */
 /*
   $Log$
+  Revision 3.24  2007/11/27 21:28:33  mast
+  Added functions for getting and setting bit flags in contour
+
   Revision 3.23  2006/10/31 15:31:01  mast
   Propagated properties into fill point in contour join
 
