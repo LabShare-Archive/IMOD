@@ -3,40 +3,11 @@
  *   Copyright (C) 1995-2003 by Boulder Laboratory for 3-Dimensional Electron
  *   Microscopy of Cells ("BL3DEMC") and the Regents of the University of 
  *   Colorado.  See implementation file for full copyright notice.
+ *
+ *  $Id$
+ *  Log at end
  */                                                                           
 
-/*  $Author$
-
-$Date$
-
-$Revision$
-
-$Log$
-Revision 1.8  2005/12/08 05:57:13  mast
-Added time argument to cache flushing call
-
-Revision 1.7  2004/11/20 05:05:27  mast
-Changes for undo/redo capability
-
-Revision 1.6  2004/11/07 22:59:52  mast
-Make binning routine global
-
-Revision 1.5  2004/10/27 20:38:30  mast
-Changed arguments for cache dump routines
-
-Revision 1.4  2004/10/22 22:17:22  mast
-Added functions for dumping file system cache
-
-Revision 1.3  2004/01/05 17:55:45  mast
-Changes for binning
-
-Revision 1.2  2003/12/30 06:39:21  mast
-Make memreccpy globally available
-
-Revision 1.1  2003/10/01 05:01:29  mast
-Initial creation; functions pulled from imodP.h
-
-*/
 #ifndef IMODVIEWP_H
 #define IMODVIEWP_H
 
@@ -89,3 +60,35 @@ bool ivwTimeMismatch(ImodView *vi, int timelock, Iobj *obj, Icont *cont);
 int ivwRegisterInsertPoint(ImodView *vi, Icont *cont, Ipoint *pt, int index);
 
 #endif
+
+/*
+
+$Log$
+Revision 1.9  2007/05/29 14:43:48  mast
+Added optional time argument to fast setup routine
+
+Revision 1.8  2005/12/08 05:57:13  mast
+Added time argument to cache flushing call
+
+Revision 1.7  2004/11/20 05:05:27  mast
+Changes for undo/redo capability
+
+Revision 1.6  2004/11/07 22:59:52  mast
+Make binning routine global
+
+Revision 1.5  2004/10/27 20:38:30  mast
+Changed arguments for cache dump routines
+
+Revision 1.4  2004/10/22 22:17:22  mast
+Added functions for dumping file system cache
+
+Revision 1.3  2004/01/05 17:55:45  mast
+Changes for binning
+
+Revision 1.2  2003/12/30 06:39:21  mast
+Make memreccpy globally available
+
+Revision 1.1  2003/10/01 05:01:29  mast
+Initial creation; functions pulled from imodP.h
+
+*/
