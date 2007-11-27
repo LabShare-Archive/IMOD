@@ -92,6 +92,7 @@ void ivwInit(ImodView *vi)
   vi->insertmode = 0;
   vi->overlaySec = 0;
   vi->overlayRamp = -1;
+  vi->drawStipple = 0;
 
   vi->fakeImage     = 0;
   vi->rawImageStore = 0;
@@ -2317,6 +2318,11 @@ void ivwClearExtraObject(ImodView *inImodView)
   obj->cont = NULL;
 }
 
+void ivwEnableStipple(ImodView *inImodView, int enable)
+{
+  inImodView->drawStipple = enable;
+}
+
 int ivwOverlayOK(ImodView *inImodView)
 {
   return (App->rgba == 1 && !App->cvi->rawImageStore);
@@ -2557,6 +2563,9 @@ void ivwBinByN(unsigned char *array, int nxin, int nyin, int nbin,
 
 /*
 $Log$
+Revision 4.57  2007/09/17 19:10:23  mast
+Added environment variable to skip dumping the FS cache
+
 Revision 4.56  2007/05/29 14:43:48  mast
 Added optional time argument to fast setup routine
 

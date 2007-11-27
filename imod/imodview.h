@@ -3,40 +3,11 @@
  *   Copyright (C) 1995-2003 by Boulder Laboratory for 3-Dimensional Electron
  *   Microscopy of Cells ("BL3DEMC") and the Regents of the University of 
  *   Colorado.  See implementation file for full copyright notice.
+ *
+ *  $Id$
+ *  Log at end of file
  */                                                                           
 
-/*  $Author$
-
-$Date$
-
-$Revision$
-
-$Log$
-Revision 1.8  2006/07/03 04:14:21  mast
-Changes for beadfixer overlay mode
-
-Revision 1.7  2006/02/13 05:11:32  mast
-Added function to get movie/mouse mode
-
-Revision 1.6  2005/02/19 01:29:38  mast
-Added function to clear extra object
-
-Revision 1.5  2004/11/20 05:05:27  mast
-Changes for undo/redo capability
-
-Revision 1.4  2004/07/11 18:19:38  mast
-Functions to set time of new contour and get/make contour for adding points
-
-Revision 1.3  2004/05/31 23:10:56  mast
-Added macros for exporting/importing under Windows
-
-Revision 1.2  2004/01/05 17:55:45  mast
-Changes for binning
-
-Revision 1.1  2003/10/01 05:01:01  mast
-Initial creation; declarations pulled from imod.h
-
-*/
 #ifndef IMODVIEW_H
 #define IMODVIEW_H
 
@@ -134,6 +105,11 @@ Iobj DLL_EX_IM *ivwGetExtraObject(ImodView *inImodView);
 void DLL_EX_IM ivwClearExtraObject(ImodView *inImodView);
 
 /*
+ * Enable or disable drawing of stippled contours
+ */
+void DLL_EX_IM ivwEnableStipple(ImodView *inImodView, int enable);
+
+/*
  * Get the current contour or make a new one if there is none, at the current
  * time or the time indicated by timeLock
  */
@@ -159,3 +135,35 @@ void DLL_EX_IM ivwSetOverlayMode(ImodView *inImodView, int sec, int reverse,
 }
 
 #endif
+
+/* 
+
+$Log$
+Revision 1.9  2006/07/05 04:16:50  mast
+Added arguments for overlay mode
+
+Revision 1.8  2006/07/03 04:14:21  mast
+Changes for beadfixer overlay mode
+
+Revision 1.7  2006/02/13 05:11:32  mast
+Added function to get movie/mouse mode
+
+Revision 1.6  2005/02/19 01:29:38  mast
+Added function to clear extra object
+
+Revision 1.5  2004/11/20 05:05:27  mast
+Changes for undo/redo capability
+
+Revision 1.4  2004/07/11 18:19:38  mast
+Functions to set time of new contour and get/make contour for adding points
+
+Revision 1.3  2004/05/31 23:10:56  mast
+Added macros for exporting/importing under Windows
+
+Revision 1.2  2004/01/05 17:55:45  mast
+Changes for binning
+
+Revision 1.1  2003/10/01 05:01:01  mast
+Initial creation; declarations pulled from imod.h
+
+*/
