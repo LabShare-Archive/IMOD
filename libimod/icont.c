@@ -3336,6 +3336,23 @@ void    imodContourSetSurface(Icont *inContour, int inSurface)
   inContour->surf = inSurface;
 }
 
+/*! Sets bit flags defined by [inFlag] in the {flag} element of [inContour]
+ to the off if [inState is 0 or on if [inState] is nonzero. */
+void imodContourSetFlag(Icont *inContour, unsigned int inFlag, int inState)
+{
+  if (state)
+    inContour->flags |= inFlag;
+  else
+    inContour->flags &= ~inFlag;
+}
+
+/* Returns the value of the bit flags defined by [inFlag] in the {flag} 
+   element of [inContour] */
+int imodContourGetFlag(Icont *inContour, unsigned int inFlag)
+{
+  return (inContour->flags & inFlag);
+}
+
 /*! Returns pointer to name string of [inContour], or to empty string if 
   none */
 char *imodContourGetName(Icont *inContour)
@@ -3351,6 +3368,9 @@ char *imodContourGetName(Icont *inContour)
 /* END_SECTION */
 /*
   $Log$
+  Revision 3.23  2006/10/31 15:31:01  mast
+  Propagated properties into fill point in contour join
+
   Revision 3.22  2006/10/11 04:06:47  mast
   Changed to plane fitting from mean normal routine
 

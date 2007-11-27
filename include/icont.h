@@ -90,6 +90,9 @@ void    imodContourSetTimeIndex(Icont *inContour, int inTime);
 int     imodContourGetSurface(Icont *inContour);
 void    imodContourSetSurface(Icont *inContour, int inSurface);
 
+void imodContourSetFlag(Icont *inContour, unsigned int inFlag, int inState);
+int imodContourGetFlag(Icont *inContour, unsigned int inFlag);
+
 /*
  *
  */
@@ -198,6 +201,9 @@ void imodContourNestLevels(Nesting *nests, int *nestind, int numnests);
 
 /*
 $Log$
+Revision 3.12  2007/11/27 17:52:30  mast
+Add stippled falg
+
 Revision 3.11  2006/10/11 04:06:36  mast
 Changed to plane fitting from mean normal routine
 
