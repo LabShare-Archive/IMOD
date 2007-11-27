@@ -43,7 +43,7 @@ typedef struct privateStruct ImodView;
 #define IMODVIEWP_H
 #define CONTROLP_H
 #define IMODPLUGP_H
-#define UNDOREDO_H
+#define UNDOREDOP_H
 #include "imod.h"
 #include "control.h"
 #include "imodplug.h"
