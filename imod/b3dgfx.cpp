@@ -49,7 +49,7 @@ static int          CurWidth;
 static int          CurHeight;
 static float        CurXZoom;
 
-/* DNM: needed so that imodv can use snapshot functions */
+/* Set a current window size for the drawing routines */
 void b3dSetCurSize(int width, int height)
 {
   CurWidth = width;
@@ -348,13 +348,14 @@ void b3dSetImageOffset(int winsize,     /* window size in wpixels.          */
                        int &doff,       /* data offset in ipixels           */
                        int fillEdge)    /* Fill window to edge, maybe beyond*/
 {
-  /* imodPrintStderr("winsize %d  imsize %d  zoom %f  offset %d\n", winsize, imsize,
-     zoom, *offset); */
+  /*imodPrintStderr("winsize %d  imsize %d  zoom %f  offset %d\n", winsize, imsize,
+    zoom, offset); */
   /* Fits completely inside of window. (Why test against imsize - 1 ?*/
   if ( ((imsize - 1) * zoom) < winsize ) {
     drawsize = imsize;
     woff     = (int)(( winsize - ((imsize - 1) * zoom)) / 2);
     doff     = 0;
+    //imodPrintStderr("1 ds do offset wo %d %d %d %d\n", drawsize, doff, offset, woff);
 
   } else {
 
@@ -393,6 +394,7 @@ void b3dSetImageOffset(int winsize,     /* window size in wpixels.          */
         doff     = imsize - drawsize;
         offset   = (int)(imsize * 0.5 - doff - (winsize*0.5f)/zoom - 2.0f);
       }
+      //imodPrintStderr("2 ds do offset wo %d %d %d %d\n", drawsize, doff, offset, woff);
       return;
     }
     
@@ -401,7 +403,7 @@ void b3dSetImageOffset(int winsize,     /* window size in wpixels.          */
     if ((fillEdge > 0 && (int)(zoom * drawsize) < winsize - woff) ||
         (!fillEdge && (int)(zoom * (drawsize + 1) < winsize + 1 - woff)))
       drawsize++;
-    /* imodPrintStderr("ds do offset wo %d %d %d %d\n", drawsize, doff, offset, woff); */
+    //imodPrintStderr("3 ds do offset wo %d %d %d %d\n", drawsize, doff, offset, woff);
 
   }
   return;
@@ -866,7 +868,6 @@ static void b3dDrawGreyScalePixels15
   int sw, sh; /* scaled width and height. */
   int maxj;
   unsigned int fillval;
-  int sidefill;
   int drawwidth;
   int wxdraw;
   unsigned char *fillpt = (unsigned char *)(&fillval);
@@ -880,34 +881,18 @@ static void b3dDrawGreyScalePixels15
   sw = (int)(((float)width * 1.5f) );
   sh = (int)(((float)height * 1.5f));
 
-  /* DNM: limit the pixels to the existing display */
-  if (sh > CurHeight - wy)
-    sh = CurHeight - wy;
-  if (sw > CurWidth - wx)
-    sw = CurWidth - wx;
+  /* DNM: limit the pixels to the existing display and to the subarea array*/
+  sh = B3DMIN(CurHeight - wy, B3DMIN(image->height, sh));
+  sw = B3DMIN(CurWidth - wx, B3DMIN(image->width, sw));
 
   if (!dataPtrs){
     b3dDrawFilledRectangle(wx, wy, sw, sh);
     return;
   }
 
-  /* DNM: add the hack for the PC, rgb mode only */
-  sidefill =0;
-#ifdef PIXELDRAW_HACK
-  if (unpack == 4)
-    sidefill = 1;
-#endif
-  if (sidefill) {
-    wxdraw = 0;
-    drawwidth = CurWidth;
-    *fillpt++ = 64;
-    *fillpt++ = 64;
-    *fillpt++ = 96;
-    *fillpt++ = 0;
-  } else {
-    wxdraw = wx;
-    drawwidth = sw;
-  }
+  /* DNM: 11/26/07: eliminate side filling hack */
+  wxdraw = wx;
+  drawwidth = sw;
 
   maxj = height;
           
@@ -969,10 +954,6 @@ static void b3dDrawGreyScalePixels15
         break;
                  
       case 4:
-        /* DNM: add the fill on the sides for PC hack */
-        if (sidefill) 
-          for (i = 0; i < wx; i++)
-            idata[di++] = fillval;
         switch (rgba) {
         case 1:   /* Look up RGBA value from map with byte */
           for (i = istart; i < ilim; i++){
@@ -1029,9 +1010,6 @@ static void b3dDrawGreyScalePixels15
           }
           break;
         }
-        if (sidefill) 
-          for (i = sw + wx; i < CurWidth; i++)
-            idata[di++] = fillval;
         if ( j % 2 ){
           memcpy(&idata[di], &idata[di-drawwidth], drawwidth*4);
           di += drawwidth;
@@ -1043,8 +1021,8 @@ static void b3dDrawGreyScalePixels15
 
     }
   }
-  /* imodPrintStderr("1.5 wx %d wy %d sw %d sh %d window %d %d\n",
-     wxdraw, wy, drawwidth, sh, CurWidth, CurHeight); */
+  /*imodPrintStderr("1.5 wx %d wy %d sw %d sh %d window %d %d\n",
+    wxdraw, wy, drawwidth, sh, CurWidth, CurHeight); */
 
   glPixelZoom((GLfloat)1.0f, (GLfloat)1.0f);
 
@@ -1104,7 +1082,6 @@ void b3dDrawGreyScalePixelsHQ(unsigned char **dataPtrs,  /* input data lines */
   unsigned int *cindex = App->cvi->cramp->ramp;
   unsigned int fillval;
   unsigned char *fillpt = (unsigned char *)(&fillval);
-  int sidefill;
   int ibase;
   int drawwidth;
   int wxdraw, nyi2;
@@ -1159,13 +1136,8 @@ void b3dDrawGreyScalePixelsHQ(unsigned char **dataPtrs,  /* input data lines */
     }
   }
 
-  if (dwidth > CurWidth){
-    dwidth = CurWidth;
-  }
-  if ( dheight > CurHeight){
-    dheight = CurHeight;
-  }
-
+  dwidth = B3DMIN(CurWidth, B3DMIN(image->width, dwidth));
+  dheight = B3DMIN(CurHeight, B3DMIN(image->height, dheight));
 
   if (App->depth == 8){
     rbase = 0;
@@ -1173,23 +1145,9 @@ void b3dDrawGreyScalePixelsHQ(unsigned char **dataPtrs,  /* input data lines */
     pixmax = RAMPMAX;
   }
 
-  /* DNM for PC: need to fill sides of array to work around display bug */
-  sidefill =0;
-#ifdef PIXELDRAW_HACK
-  if (unpack == 4)
-    sidefill = 1;
-#endif
-  if (sidefill) {
-    wxdraw = 0;
-    drawwidth = CurWidth;
-    *fillpt++ = 64;
-    *fillpt++ = 64;
-    *fillpt++ = 96;
-    *fillpt++ = 0;
-  } else {
-    wxdraw = wx;
-    drawwidth = dwidth;
-  }
+  // DNM 11/26/07: eliminate side filling hack
+  wxdraw = wx;
+  drawwidth = dwidth;
 
   /* DNM: test and send quality rather than 1 so that it can tell whether
      fractional zooms are truly hq or not */
@@ -1223,9 +1181,6 @@ void b3dDrawGreyScalePixelsHQ(unsigned char **dataPtrs,  /* input data lines */
         getCubicFactors(cy, ysize, pyi, yi, nyi, nyi2, fy1, fy2, fy3, fy4);
 
         ibase = j * drawwidth;
-        if (sidefill)
-          for (i = 0; i < wx; i++)
-            idata[ibase++] = fillval;
         
         // Loop across the line
         for (i = 0, cx = xoffset + trans; i < dwidth; cx += zs, i++) {
@@ -1273,11 +1228,6 @@ void b3dDrawGreyScalePixelsHQ(unsigned char **dataPtrs,  /* input data lines */
           } 
         }
         
-        if (sidefill) {
-          ibase += dwidth;
-          for (i = wx + dwidth; i < CurWidth; i++)
-            idata[ibase++] = fillval;
-        }
       }
       if (cubFacs)
         free(cubFacs);
@@ -1345,10 +1295,6 @@ void b3dDrawGreyScalePixelsHQ(unsigned char **dataPtrs,  /* input data lines */
 	  break;
 
 	case 4:
-	  if (sidefill)
-	    for (i = 0; i < wx; i++)
-	      idata[ibase++] = fillval;
-
 	  switch (rgba) {
 	  case 1:   /* lookup from bytes */
             if (izs) {
@@ -1407,12 +1353,6 @@ void b3dDrawGreyScalePixelsHQ(unsigned char **dataPtrs,  /* input data lines */
 
 	  for (; i && i < drawwidth; i++)
 	    idata[i + ibase] = 	idata[i + ibase - 1];
-
-	  if (sidefill){
-	    ibase += dwidth;
-	    for (i = wx + dwidth; i < CurWidth; i++)
-	      idata[ibase++] = fillval;
-	  }
 	  break;
 	}
       }
@@ -2080,6 +2020,9 @@ int b3dSnapshot(QString fname)
 
 /*
 $Log$
+Revision 4.35  2007/11/10 15:21:14  mast
+Snap dir fixes for windows: get short name correctly, start in current dir
+
 Revision 4.34  2007/11/10 04:07:10  mast
 Changes for setting snapshot directory
 
