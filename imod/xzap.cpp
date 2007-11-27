@@ -3503,6 +3503,11 @@ static void zapDrawContour(ZapStruct *zap, int co, int ob)
   if (contProps.gap)
     return;
 
+  if (vi->drawStipple && (cont->flags & ICONT_STIPPLED)) {
+    glLineStipple(3, 0xAAAA);
+    glEnable(GL_LINE_STIPPLE);
+  }
+
   /* Open or closed contour */
   // Skip if not wild and not on section
   lastVisible = zapPointVisable(zap, &(cont->pts[0]));
@@ -3624,6 +3629,9 @@ static void zapDrawContour(ZapStruct *zap, int co, int ob)
         }
     }
   }
+
+  if (vi->drawStipple && (cont->flags & ICONT_STIPPLED))
+    glDisable(GL_LINE_STIPPLE);
 
   // Draw end markers
   if ((obj->symflags & IOBJ_SYMF_ENDS) && ob >= 0){
@@ -4046,6 +4054,9 @@ void zapGetLongestTimeString(ImodView *vi, QString *str)
 
 /*
 $Log$
+Revision 4.105  2007/11/16 23:12:12  mast
+Use new routines to set and restore ghost color
+
 Revision 4.104  2007/11/10 04:07:10  mast
 Changes for setting snapshot directory
 
