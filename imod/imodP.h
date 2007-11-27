@@ -171,6 +171,7 @@ typedef struct ViewInfo
   int    overlayRamp;     /* Color ramp when first started overlay mode */
   int    whichGreen;      /* Whether main section (0) or other (1) is green */
   int    reverseOverlay;  /* Toggle reverse contrast when going in or out */
+  int    drawStipple;     /* Flag to draw contours with stipple if flag set */
      
   int      flippable;     /* Flag that images can be y-z flipped */
   short    fakeImage;     /* No real image data. */
@@ -261,6 +262,9 @@ bool imodDebug(char key);
 
 /*
 $Log$
+Revision 3.37  2007/09/20 22:05:37  mast
+Defined RADIANS_PER_DEGREE once
+
 Revision 3.36  2006/09/28 21:17:51  mast
 Changed xysize to unsigned FWIW
 
