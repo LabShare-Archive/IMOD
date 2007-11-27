@@ -7,16 +7,10 @@
  *  Copyright (C) 1995-2005 by Boulder Laboratory for 3-Dimensional Electron
  *  Microscopy of Cells ("BL3DEMC") and the Regents of the University of 
  *  Colorado.  See dist/COPYRIGHT for full copyright notice.
+ *
+ *  $Id$
+ *  Log at end of file
  */
-
-/*  $Author$
-
-$Date$
-
-$Revision$
-Log at end
-*/
-
 #ifndef ICONT_H
 #define ICONT_H
 
@@ -27,6 +21,7 @@ Log at end
 
 #define ICONT_OPEN       (1l << 3 ) /* Don't close end points.               */
 #define ICONT_WILD       (1l << 4 ) /* No sane constrains on data.           */
+#define ICONT_STIPPLED   (1l << 5 ) /* Draw stippled lines                   */
 #define ICONT_NOCONNECT  (1l << 9 ) /* Don't connect contour points.         */
 #define ICONT_SCANLINE   (1l << 17) /* Points are in pairs for scanline.     */
 #define ICONT_CONNECT_TOP    (1l << 18) /* Contour connected above in mkmesh.*/
@@ -203,6 +198,9 @@ void imodContourNestLevels(Nesting *nests, int *nestind, int numnests);
 
 /*
 $Log$
+Revision 3.11  2006/10/11 04:06:36  mast
+Changed to plane fitting from mean normal routine
+
 Revision 3.10  2006/09/12 15:20:15  mast
 Added mean normal routine, cleaned up flags
 
