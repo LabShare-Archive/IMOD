@@ -1253,9 +1253,133 @@ BackupItem *UndoRedo::findPoolItem(int ID)
   }
   return NULL;
 }
+
+///////////////////////////////////////////////
+// Exported functions that take a vi argument
+void undoPointChange(ImodView *vi, int type, int object,
+                     int contour, int point, int point2) {
+  vi->undo->pointChange(type, object,
+                  contour, point, point2);
+}
+void undoContourChange(ImodView *vi, int type, int object,
+                       int contour, int object2, int contour2) {
+  vi->undo->contourChange(type, object,
+                    contour, object2, contour2);
+}
+void undoObjectChange(ImodView *vi, int type, int object,
+                      int object2) {
+  vi->undo->objectChange(type, object,
+                   object2);
+}
+void undoModelChange(ImodView *vi, int type, Ipoint *point) {
+  vi->undo->modelChange(type, point);
+}
+
+  // Convenience calls that assume the current obj/cont/pt as much as possible
+void undoPointShiftCP(ImodView *vi) {
+  vi->undo->pointShift();
+}
+void undoPointShift(ImodView *vi, int point) {
+  vi->undo->pointShift(point);
+}
+
+void undoPointAdditionCC(ImodView *vi, int point) {
+  vi->undo->pointAddition(point);
+}
+void undoPointAdditionCC2(ImodView *vi, int point, int point2) {
+  vi->undo->pointAddition(point, point2);
+}
+void undoPointAddition(ImodView *vi, int object, int contour,
+                       int point) {
+  vi->undo->pointAddition(object, contour,
+                    point);
+}
+
+void undoPointRemovalCP(ImodView *vi) {
+  vi->undo->pointRemoval();
+}
+void undoPointRemoval(ImodView *vi, int point) {
+  vi->undo->pointRemoval(point);
+}
+void undoPointRemoval2(ImodView *vi, int point, int point2) {
+  vi->undo->pointRemoval(point, point2);
+}
+
+void undoContourDataChgCC(ImodView *vi) {
+  vi->undo->contourDataChg();
+}
+void undoContourDataChg(ImodView *vi, int object, int contour) {
+  vi->undo->contourDataChg(object, contour);
+}
+
+void undoContourPropChgCC(ImodView *vi) {
+  vi->undo->contourPropChg();
+}
+void undoContourPropChg(ImodView *vi, int object, int contour) {
+  vi->undo->contourPropChg(object, contour);
+}
+
+void undoContourRemovalCC(ImodView *vi) {
+  vi->undo->contourRemoval();
+}
+void undoContourRemovalCO(ImodView *vi, int contour) {
+  vi->undo->contourRemoval(contour);
+}
+void undoContourRemoval(ImodView *vi, int object, int contour) {
+  vi->undo->contourRemoval(object, contour);
+}
+
+void undoContourAdditionCO(ImodView *vi, int contour) {
+  vi->undo->contourAddition(contour);
+}
+void undoContourAddition(ImodView *vi, int object, int contour) {
+  vi->undo->contourAddition(object, contour);
+}
+
+void undoContourMove(ImodView *vi, int object, int contour,
+                     int object2, int contour2) {
+  vi->undo->contourMove(object, contour,
+                  object2, contour2);
+}
+
+void undoObjectPropChgCO(ImodView *vi) {
+  vi->undo->objectPropChg();
+}
+void undoObjectPropChg(ImodView *vi, int object) {
+  vi->undo->objectPropChg(object);
+}
+
+void undoObjectRemovalCO(ImodView *vi) {
+  vi->undo->objectRemoval();
+}
+void undoObjectRemoval(ImodView *vi, int object) {
+  vi->undo->objectRemoval(object);
+}
+
+void undoObjectAddition(ImodView *vi, int object) {
+  vi->undo->objectAddition(object);
+}
+void undoObjectMove(ImodView *vi, int object, int object2) {
+  vi->undo->objectMove(object, object2);
+}
+
+void undoModelShift(ImodView *vi, Ipoint *point) {
+  vi->undo->modelShift(point);
+}
+
+void undoFinishUnit(ImodView *vi) {
+  vi->undo->finishUnit();
+}
+void undoFlushUnit(ImodView *vi) {
+  vi->undo->flushUnit();
+}
+
  
 /*
   $Log$
+  Revision 4.9  2007/05/25 05:28:16  mast
+  Changes for addition of slicer angle storage
+
   Revision 4.8  2006/09/12 15:45:49  mast
   Changes for mesh parameters
   

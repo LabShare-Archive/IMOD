@@ -12,6 +12,9 @@ $Date$
 $Revision$
 
 $Log$
+Revision 4.2  2004/11/21 05:54:02  mast
+Changes for working from model view
+
 Revision 4.1  2004/11/20 05:04:40  mast
 initial addition
 
@@ -19,50 +22,93 @@ initial addition
 #ifndef UNDOREDO_H
 #define UNDOREDO_H
 
-#include "imodel.h"
+#ifndef IMODP_H
 typedef struct ViewInfo ImodView;
+#endif
+typedef struct undo_state UndoState;
+typedef struct undo_unit UndoUnit;
+typedef struct undo_change  UndoChange;
+typedef struct backup_item BackupItem;
 
-// Structure for assessing/setting state of model before/after  change
-typedef struct undo_state {
-  Iindex index;
-  Iindex size;
-} UndoState;
+#ifndef UNDOREDOP_H
+#include "undoredoP.h"
+#endif
 
-// Structure to describe one set of changes applied as a unit
-typedef struct undo_unit {
-  UndoState before;
-  UndoState after;
-  Ilist *changes;
-} UndoUnit;
+/* Define macro for export of functions under Windows */
+#ifndef DLL_EX_IM
+#ifdef _WIN32
+#define DLL_EX_IM _declspec(dllexport)
+#else
+#define DLL_EX_IM
+#endif
+#endif
 
-// A structure to describe a basic change of the model
-typedef struct undo_change {
-  int type;        // Type of model change
-  int object;      // Object being changed
-  int contour;     // Contour being changed
-  int obj2_pt1;    // Object being moved to / Starting point
-  int cont2_pt2;   // Contour being moved to / Ending point
-  int ID;          // Unique ID for item in pool, -1 if none
-  int bytes;       // Number of bytes occupied by item in pool
-} UndoChange;
+extern "C" {
 
-union ModObjCont {
-  Imod *mod;
-  Iobj *obj;
-  Icont *cont;
-  Ipoint *pts;
-};
+  // The full-blown calls
+  void DLL_EX_IM undoPointChange(ImodView *vi, int type, int object,
+                                 int contour, int point, int point2);
+  void DLL_EX_IM undoContourChange(ImodView *vi, int type, int object,
+                                   int contour, int object2, int contour2);
+  void DLL_EX_IM undoObjectChange(ImodView *vi, int type, int object,
+                                  int object2);
+  void DLL_EX_IM undoModelChange(ImodView *vi, int type, Ipoint *point);
 
-// Structure for an item in the backup pool
-typedef struct backup_item {
-  union ModObjCont p;       // The pointer to the model item
-  int type;                 // Type item type
-  int ID;                   // The unique ID, or -1 if deleted already
-} BackupItem;
+  // Convenience calls that assume the current obj/cont/pt as much as possible
+  void DLL_EX_IM undoPointShiftCP(ImodView *vi);
+  void DLL_EX_IM undoPointShift(ImodView *vi, int point);
 
-class UndoRedo 
+  void DLL_EX_IM undoPointAdditionCC(ImodView *vi, int point);
+  void DLL_EX_IM undoPointAdditionCC2(ImodView *vi, int point, int point2);
+  void DLL_EX_IM undoPointAddition(ImodView *vi, int object, int contour,
+                                   int point);
+
+  void DLL_EX_IM undoPointRemovalCP(ImodView *vi);
+  void DLL_EX_IM undoPointRemoval(ImodView *vi, int point);
+  void DLL_EX_IM undoPointRemoval2(ImodView *vi, int point, int point2);
+
+  void DLL_EX_IM undoContourDataChgCC(ImodView *vi);
+  void DLL_EX_IM undoContourDataChg(ImodView *vi, int object, int contour);
+
+  void DLL_EX_IM undoContourPropChgCC(ImodView *vi);
+  void DLL_EX_IM undoContourPropChg(ImodView *vi, int object, int contour);
+
+  void DLL_EX_IM undoContourRemovalCC(ImodView *vi);
+  void DLL_EX_IM undoContourRemovalCO(ImodView *vi, int contour);
+  void DLL_EX_IM undoContourRemoval(ImodView *vi, int object, int contour);
+
+  void DLL_EX_IM undoContourAdditionCO(ImodView *vi, int contour);
+  void DLL_EX_IM undoContourAddition(ImodView *vi, int object, int contour);
+
+  void DLL_EX_IM undoContourMove(ImodView *vi, int object, int contour,
+                                 int object2, int contour2);
+
+  void DLL_EX_IM undoObjectPropChgCC(ImodView *vi);
+  void DLL_EX_IM undoObjectPropChg(ImodView *vi, int object);
+
+  void DLL_EX_IM undoObjectRemovalCO(ImodView *vi);
+  void DLL_EX_IM undoObjectRemoval(ImodView *vi, int object);
+
+  void DLL_EX_IM undoObjectAddition(ImodView *vi, int object);
+  void DLL_EX_IM undoObjectMove(ImodView *vi, int object, int object2);
+
+  void DLL_EX_IM undoModelShift(ImodView *vi, Ipoint *point);
+
+  void DLL_EX_IM undoFinishUnit(ImodView *vi);
+  void DLL_EX_IM undoFlushUnit(ImodView *vi);
+
+
+class DLL_EX_IM UndoRedo 
 {
  public:
+  enum ChangeTypes {ContourData, ContourProperty, ContourRemoved, 
+                    ContourAdded, ContourMoved, ObjectChanged, ObjectRemoved,
+                    ObjectAdded, ObjectMoved, ModelChanged, PointsAdded,
+                    PointsRemoved, PointShifted, ModelShifted, ViewChanged};
+  enum ItemTypes {Model, Object, Contour, Points};
+  enum ErrorTypes {NoError = 0, NoneAvailable, StateMismatch, MemoryError,
+                   NoBackupItem};
+
   UndoRedo(ImodView *vi);
   ~UndoRedo();
 
@@ -129,13 +175,6 @@ class UndoRedo
   void clearUnits();
   int undo();
   int redo();
-  enum ChangeTypes {ContourData, ContourProperty, ContourRemoved, 
-                    ContourAdded, ContourMoved, ObjectChanged, ObjectRemoved,
-                    ObjectAdded, ObjectMoved, ModelChanged, PointsAdded,
-                    PointsRemoved, PointShifted, ModelShifted, ViewChanged};
-  enum ItemTypes {Model, Object, Contour, Points};
-  enum ErrorTypes {NoError = 0, NoneAvailable, StateMismatch, MemoryError,
-                   NoBackupItem};
 
  private:
   int contourBytes(Icont *cont);
@@ -180,4 +219,5 @@ class UndoRedo
   int mNumFreedInPool;
 };
 
+}
 #endif
