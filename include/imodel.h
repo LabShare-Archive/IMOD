@@ -116,7 +116,6 @@
 #define IMODF_MAT1_IS_BYTES (1l << 13)  /* mat1 and mat3 are stored as bytes */
 #define IMODF_MULTIPLE_CLIP (1l << 12)  /* multiple clip planes possible */
 
-
 /****************************** Structures ***********************************/
 
 typedef struct Mod_Point
@@ -126,6 +125,7 @@ typedef struct Mod_Point
   b3dFloat           z;
 }Ipoint;
 
+#ifndef IMODELP_H
 typedef struct Mod_Mesh
 {
   struct Mod_Point *vert;   /* list of points */
@@ -146,7 +146,7 @@ typedef struct Mod_Index
   b3dInt32  contour;
   b3dInt32  point;
 }Iindex;
-
+#endif
 
 /* DOC_SECTION PLANES */
 /* DOC_CODE Iplane structure */
@@ -199,6 +199,7 @@ typedef struct Mod_Planes
 #define WORLD_MOVE_ALL_CLIP (1l << 12)  /* Move all clipping planes together */
 /* END_CODE */
 
+#ifndef IMODELP_H
 /* DOC_CODE Iobjview structure */
 /* Properties of an object that are stored in a view */
 typedef struct Mod_Object_View
@@ -303,7 +304,7 @@ typedef struct
 }Ilabel;
 /* END_CODE */
 /* END_SECTION */
-
+#endif
 
 /* DOC_SECTION MESHPARAMS */
 /* DOC_CODE MeshParams structure */
@@ -333,6 +334,7 @@ typedef struct Meshing_Param
 /* END_CODE */
 /* END_SECTION */
 
+#ifndef IMODELP_H
 /*
  * Contours are an array of points describing an open or closed contour.
  * The points can also be unconnected or the points can be in pairs
@@ -541,6 +543,7 @@ typedef struct slicer_angles
   Ipoint center;
   char label[ANGLE_STRSIZE];
 } SlicerAngles;
+#endif
 
 /* include functions in iobj.c, icont.c, imesh.c, ipoint.c */
 #include "iobj.h"
@@ -694,6 +697,9 @@ extern "C" {
 
 /*    
     $Log$
+    Revision 3.40  2007/09/25 15:45:05  mast
+    Added ref image function
+
     Revision 3.39  2007/09/22 00:05:28  mast
     Renamed mat3b2 to matflags2, removed lock and redraw variables
 
