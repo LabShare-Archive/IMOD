@@ -37,6 +37,7 @@ static void paintTubularLines(Iobj *obj, Islice *islice, Islice *pslice[3],
 static void putSliceValue(Iobj *obj,  Islice *islice, Islice *pslice[3],
                           int numChan, IloadInfo *li, int x, int y, 
                           Ival inval);
+static int itemOnList(int item, int *list, int num);
 
 #define FILE_STR_SIZE 4096
 #define MAX_TUBE_DIAMS 1024
@@ -54,7 +55,7 @@ int main( int argc, char *argv[])
   char *dot = ".";
   char *tempDir = dot;
   int numObj = 0, scat2D = 0, scat3D = 0, retain = 0, constScale = 0;
-  int numDiams, numTubes = 0;
+  int numDiams, numTubes = 0, border = -1000;
   int black = 0, white = 255;
   float bkgFill = 0., bkgRed = 1., bkgGreen = 1., bkgBlue = 1.;
   char *listString;
@@ -64,6 +65,7 @@ int main( int argc, char *argv[])
   Imod *imod;
   Iobj *obj;
   Ipoint *pts;
+  Ipoint minpt, maxpt;
   int ob, co, pt;
   float xload, yload, zload;
   IrefImage *ref;
@@ -80,22 +82,23 @@ int main( int argc, char *argv[])
   int xmin, ymin, zmin, xmax, ymax, zmax, numChan, numFiles, objnum;
   int nxout, nyout, nzout, inside, numOptArgs,numNonOptArgs;
   float start_tilt, end_tilt, inc_tilt;
-  float thresh, smin, smax, revMax;
+  float thresh, smin, smax, revMax, size;
   Ival val, pval, bkgVal;
 
   /* Fallbacks from    ../manpages/autodoc2man 2 1 imodmop  */
-  int numOptions = 21;
+  int numOptions = 22;
   char *options[] = {
     "xminmax:XMinAndMax:IP:", "yminmax:YMinAndMax:IP:",
-    "zminmax:ZMinAndMax:IP:", "invert:InvertPaintedArea:B:",
-    "reverse:ReverseContrast:B:", "thresh:Threshold:F:", "fv:FillValue:F:",
-    "fc:FillColor:FT:", "objects:ObjectsToDo:LI:",
-    "2dscat:2DScatteredPoints:B:", "3dscat:3DScatteredPoints:B:",
-    "tube:TubeObjects:LI:", "diam:DiameterForTubes:F:",
-    "color:ColorOutput:B:", "scale:ScalingMinMax:FP:",
-    "project:ProjectTiltSeries:FT:", "axis:AxisToTiltAround:CH:",
-    "constant:ConstantScaling:B:", "bw:BlackAndWhite:IP:",
-    "tempdir:TemporaryDirectory:CH:", "keep:KeepTempFiles:B:"};
+    "zminmax:ZMinAndMax:IP:", "border:BorderAroundObjects:I:",
+    "invert:InvertPaintedArea:B:", "reverse:ReverseContrast:B:",
+    "thresh:Threshold:F:", "fv:FillValue:F:", "fc:FillColor:FT:",
+    "objects:ObjectsToDo:LI:", "2dscat:2DScatteredPoints:B:",
+    "3dscat:3DScatteredPoints:B:", "tube:TubeObjects:LI:",
+    "diam:DiameterForTubes:F:", "color:ColorOutput:B:",
+    "scale:ScalingMinMax:FP:", "project:ProjectTiltSeries:FT:",
+    "axis:AxisToTiltAround:CH:", "constant:ConstantScaling:B:",
+    "bw:BlackAndWhite:IP:", "tempdir:TemporaryDirectory:CH:",
+    "keep:KeepTempFiles:B:"};
 
   char *progname = imodProgName(argv[0]);
 
@@ -121,15 +124,15 @@ int main( int argc, char *argv[])
   /* Get input model */
   imod = imodRead(modfile);
   if (!imod)
-    exitError("Reading model file %s\n", modfile);
+    exitError("Reading model file %s", modfile);
   free(modfile);
   
   /* Open input image, read header */
   gfin = fopen(infile, "rb");
   if (gfin == NULL)
-    exitError("Could not open %s\n", infile);
+    exitError("Could not open %s", infile);
   if (mrc_head_read(gfin, &hdata))
-    exitError("Reading header of %s\n", infile);
+    exitError("Reading header of %s", infile);
   free(infile);
 
   /* Get more options after setting defaults */
@@ -147,7 +150,7 @@ int main( int argc, char *argv[])
   li.ymax = B3DMIN(hdata.ny - 1, li.ymax);
   li.zmax = B3DMIN(hdata.nz - 1, li.zmax);
   if (li.xmax <= li.xmin || li.ymax <= li.ymin || li.zmax < li.zmin)
-    exitError("Coordinate limits are out of order\n");
+    exitError("Coordinate limits are out of order");
 
   PipGetBoolean("InvertPaintedArea", &invert);
   PipGetBoolean("ReverseContrast", &reverse);
@@ -162,26 +165,32 @@ int main( int argc, char *argv[])
     PipGetTwoIntegers("BlackAndWhite", &black, &white);
     PipGetString("AxisToTiltAround", &axis);
     if (!strcmp(axis, "X") && !strcmp(axis, "Y") && !strcmp(axis, "Z"))
-      exitError("Axis extry must be X, Y, or Z\n");
+      exitError("Axis extry must be X, Y, or Z");
 
     if ((start_tilt > end_tilt) && (inc_tilt > 0))
       exitError("Ending tilt must be > starting tilt with a positive "
-                "increment\n");
+                "increment");
     if ((end_tilt > start_tilt) && (inc_tilt < 0))
       exitError("Ending tilt must be < starting tilt with a negative "
-                "increment\n");
+                "increment");
     if (!inc_tilt && end_tilt == start_tilt)
-      exitError("Tilt increment must be non-zero unless start equals end\n");
+      exitError("Tilt increment must be non-zero unless start equals end");
 
     if (black < 0 || black > 255 || white < 0 || white > 255 || black == white)
-      exitError("Black/white values must be in range 0-255 and nonequal\n");
+      exitError("Black/white values must be in range 0-255 and nonequal");
   }
 
   PipGetBoolean("KeepTempFiles", &retain);
   PipGetBoolean("2DScatteredPoints", &scat2D);
   PipGetBoolean("3DScatteredPoints", &scat3D);
   if (scat2D && scat3D)
-    exitError("You can not enter both -2 and -3\n");
+    exitError("You can not enter both -2 and -3");
+  if (!PipGetInteger("BorderAroundObjects", &border)) {
+    if (ifXin + ifYin)
+      exitError("You can not use -border with -xminmax or -yminmax");
+    if (border < 0) 
+      exitError("The border must be >= 0");
+  }
 
   /* Get object and tube lists */
   if (!PipGetString("ObjectsToDo", &listString)) {
@@ -214,7 +223,7 @@ int main( int argc, char *argv[])
   PipGetThreeFloats("FillColor", &bkgRed, &bkgGreen, &bkgBlue);
   if (bkgRed < 0. || bkgRed > 1. || bkgGreen < 0. || bkgGreen > 1. || 
       bkgBlue < 0. || bkgBlue > 1.) 
-    exitError("Red, green, blue fill color values must be between 0 and 1\n");
+    exitError("Red, green, blue fill color values must be between 0 and 1");
   if (((hdata.mode == MRC_MODE_RGB || hdata.mode == MRC_MODE_BYTE) &&
        (bkgFill < 0 || bkgFill > 255)) ||
       (hdata.mode == MRC_MODE_SHORT && (bkgFill < -32767 || bkgFill > 32767))
@@ -232,21 +241,90 @@ int main( int argc, char *argv[])
       hdata.mode == MRC_MODE_COMPLEX_SHORT) {
     if (reverse || rgbOut || ifProj)
       exitError("You can not use -reverse, -color, or -project"
-                " with FFT data\n");
+                " with FFT data");
     if (ifXin || ifYin)
-      exitError("You can not limit the X or Y range with FFT data\n");
+      exitError("You can not limit the X or Y range with FFT data");
     if (ifZin && scat3D)
-      exitError("You can not limit the Z range of 3D FFT data\n");
+      exitError("You can not limit the Z range of 3D FFT data");
   }
 
   if (hdata.mode == MRC_MODE_RGB && (rgbOut || ifProj))
-    exitError("You can not use -color or -project with RGB input data\n");
+    exitError("You can not use -color or -project with RGB input data");
 
   if (rgbOut && invert)
-    exitError("You can not use -invert when making colored data\n");
+    exitError("You can not use -invert when making colored data");
 
   if (mrc_getdcsize(hdata.mode, &dsize, &csize))
-    exitError("Unsupported input data mode %d\n", hdata.mode);
+    exitError("Unsupported input data mode %d", hdata.mode);
+
+  /* Determine limits with border option */
+  if (border >= 0) {
+    li.xmin = li.ymin = 10000000;
+    li.xmax = li.ymax = -10000000;
+    if (!ifZin) {
+      li.zmin = 10000000;
+      li.zmax = -10000000;
+    }
+    for (objnum = 0; objnum < imod->objsize; objnum++) {
+      if (itemOnList(objnum + 1, objList, numObj) < -1)
+        continue;
+      obj = &(imod->obj[objnum]);
+
+      if (iobjOpen(obj->flags)) {
+        i = itemOnList(objnum + 1, tubeList, numTubes);
+        if (i >= 0) {
+          
+          /* For a tube, add radius to bounding box in X/Y */
+          imodObjectGetBBox(obj, &minpt, &maxpt);
+          minpt.x -= tubeDiams[i] / 2;
+          minpt.y -= tubeDiams[i] / 2;
+          maxpt.x += tubeDiams[i] / 2;
+          maxpt.y += tubeDiams[i] / 2;
+        }
+      } else if (iobjScat(obj->flags)) {
+        if (scat2D || scat3D) {
+
+          /* For scattered point, allow for radius of each point */
+          minpt.x = minpt.y = minpt.z = 1.e30;
+          maxpt.x = maxpt.y = maxpt.z = -1.e30;
+          for (co = 0; co < obj->contsize; co++) {
+            for (pt = 0; pt < obj->cont[co].psize; pt++) {
+              size = imodPointGetSize(obj, &obj->cont[co], pt);
+              pts = &obj->cont[co].pts[pt];
+              minpt.x = B3DMIN(minpt.x, pts->x - size);
+              minpt.y = B3DMIN(minpt.y, pts->y - size);
+              minpt.z = B3DMIN(minpt.z, pts->z - (scat3D ? size : 0));
+              maxpt.x = B3DMAX(maxpt.x, pts->x + size);
+              maxpt.y = B3DMAX(maxpt.y, pts->y + size);
+              maxpt.z = B3DMAX(maxpt.z, pts->z + (scat3D ? size : 0));
+            }
+          }
+        }
+      } else {
+        imodObjectGetBBox(obj, &minpt, &maxpt);
+      }
+
+      /* Form mins and maxes over all objects */
+      li.xmin = B3DMIN(li.xmin, B3DNINT(minpt.x - border));
+      li.ymin = B3DMIN(li.ymin, B3DNINT(minpt.y - border));
+      li.xmax = B3DMAX(li.xmax, B3DNINT(maxpt.x + border));
+      li.ymax = B3DMAX(li.ymax, B3DNINT(maxpt.y + border));
+      if (!ifZin) {
+        li.zmin = B3DMIN(li.zmin, B3DNINT(minpt.z));
+        li.zmax = B3DMAX(li.zmax, B3DNINT(maxpt.z));
+      }
+    }
+
+    /* Limit mins and maxes and check */
+    li.xmin = B3DMAX(0, li.xmin);
+    li.ymin = B3DMAX(0, li.ymin);
+    li.zmin = B3DMAX(0, li.zmin);
+    li.xmax = B3DMIN(hdata.nx - 1, li.xmax);
+    li.ymax = B3DMIN(hdata.ny - 1, li.ymax);
+    li.zmax = B3DMIN(hdata.nz - 1, li.zmax);
+    if (li.xmax <= li.xmin || li.ymax <= li.ymin || li.zmax < li.zmin)
+      exitError("There are no objects to define the volume to output");
+  }
 
   /* Set up scaling for rgb volume output; default for byte input is no
      scaling */
@@ -266,7 +344,7 @@ int main( int argc, char *argv[])
         smax = val[0];
       }
       if (smin >= smax)
-        exitError("Minimum density for scaling should be less than maximum\n");
+        exitError("Minimum density for scaling should be less than maximum");
     }
   }
 
@@ -300,7 +378,7 @@ int main( int argc, char *argv[])
   imodBackupFile(outfile);
   gfout = fopen(outfile, "wb");
   if (gfout == NULL)
-    exitError("Could not open %s\n", outfile);
+    exitError("Could not open %s", outfile);
   free(outfile);
      
   /* Open temp files for projections */
@@ -339,16 +417,16 @@ int main( int argc, char *argv[])
   /* Get slices for input and output data */
   islice = sliceCreate(nxout, nyout, hdata.mode);
   if (!islice)
-    exitError("Memory error creating slice for input\n");
+    exitError("Memory error creating slice for input");
   for (i = 0; i < numChan; i++) {
     pslice[i] = sliceCreate(nxout, nyout, hdata.mode);
     if (!pslice[i])
-      exitError("Memory error creating slice for painted data\n");
+      exitError("Memory error creating slice for painted data");
   }
   if (rgbOut && !ifProj) {
     rgbslice = sliceCreate(nxout, nyout, MRC_MODE_RGB);
     if (!rgbslice)
-      exitError("Memory error creating slice for RGB painted data\n");
+      exitError("Memory error creating slice for RGB painted data");
   }
      
   /* Loop on slices */
@@ -394,22 +472,13 @@ int main( int argc, char *argv[])
         //printf("iz %d pass %d object %d\n", k, inside, objnum);
 
         /* Check if object on list */
-        if (numObj) {
-          i = 0;
-          for (ix = 0; ix < numObj; ix++)
-            if (objList[ix] == objnum + 1)
-              i = 1;
-          if (!i)
-            continue;
-        }
+        if (itemOnList(objnum + 1, objList, numObj) < -1)
+          continue;
         obj = &(imod->obj[objnum]);
 
         /* Do open objects if on tube list */
         if (iobjOpen(obj->flags)) {
-          i = -1;
-          for (ix = 0; ix < numTubes; ix++)
-            if (tubeList[ix] == objnum + 1)
-              i = ix;
+          i = itemOnList(objnum + 1, tubeList, numTubes);
           if (i >= 0 && !inside)
             paintTubularLines(obj, islice, pslice, numChan, &li,
                               tubeDiams[i] /2., k);
@@ -425,7 +494,7 @@ int main( int argc, char *argv[])
               (!inside && !(obj->flags & IMOD_OBJFLAG_OUT))) {
             if (paintContours(obj, islice, pslice, numChan, inside, &li, k,
                               bkgVal))
-              exitError("Analyzing contours for object %d\n", objnum + 1);
+              exitError("Analyzing contours for object %d", objnum + 1);
           }
         }
       }
@@ -457,7 +526,7 @@ int main( int argc, char *argv[])
       hdout[i].amean += oslice->mean / nzout;
       if (mrc_write_slice(oslice->data.b, files[i], &hdout[i], k - li.zmin,
                           'Z'))
-        exitError("Writing slice at Z = %d to file # %d\n", k - li.zmin, i +1);
+        exitError("Writing slice at Z = %d to file # %d", k - li.zmin, i +1);
     }
     printf("\r");
   }
@@ -466,7 +535,7 @@ int main( int argc, char *argv[])
   /* Write headers, close files, delete slices */
   for (i = 0; i < numFiles; i++) {
     if (mrc_head_write(files[i], &hdout[i]))
-      exitError("Writing header to file # %d\n", i + 1);
+      exitError("Writing header to file # %d", i + 1);
     fclose(files[i]);
   }
   fclose(gfin);
@@ -488,7 +557,7 @@ int main( int argc, char *argv[])
             invert || bkgFill ? " " : "-fill 0", recnames[i], xyznames[i]);
     ix = system(comStr);
     if (ix)
-      exitError("Running xyzproj on file %d (return value %d)\n",
+      exitError("Running xyzproj on file %d (return value %d)",
                 recnames[i], ix);
     if (!retain)
       remove(recnames[i]);
@@ -501,9 +570,9 @@ int main( int argc, char *argv[])
   for (i = 0; i < numFiles; i++) {
     files[i] = fopen(xyznames[i], "rb");
     if (files[i] == NULL)
-      exitError("Could not open %s\n", xyznames[i]);
+      exitError("Could not open %s", xyznames[i]);
     if (mrc_head_read(files[i], &hdout[i]))
-      exitError("Reading header of %s\n", xyznames[i]);
+      exitError("Reading header of %s", xyznames[i]);
     smin = B3DMIN(smin, hdout[i].amin);
     smax = B3DMAX(smax, hdout[i].amax);
   }
@@ -526,18 +595,18 @@ int main( int argc, char *argv[])
   /* Get slices for new size of data */
   oslice = sliceCreate(hdout[0].nx, hdout[0].ny, outMode);
   if (!oslice)
-    exitError("Memory error creating slice for output\n");
+    exitError("Memory error creating slice for output");
   for (i = 0; i < numFiles; i++) {
     pslice[i] = sliceCreate(hdout[0].nx, hdout[0].ny, hdout[0].mode);
     if (!pslice[i])
-      exitError("Memory error creating slice for reading projections\n");
+      exitError("Memory error creating slice for reading projections");
   }
 
   /* Read in the data and scale it into output, write it */
   for (k = 0; k < hdout[0].nz; k++) {
     for (i = 0; i < numFiles; i++) {
       if (mrc_read_slice(pslice[i]->data.b, files[i], &hdout[i], k, 'Z'))
-        exitError("Reading slice %d from file # %d\n", k, i + 1);
+        exitError("Reading slice %d from file # %d", k, i + 1);
     }
     scaleAndCombineSlices(pslice, oslice, smin, smax, numFiles);
     sliceMMM(oslice);
@@ -545,12 +614,12 @@ int main( int argc, char *argv[])
     hdbyte.amax = B3DMAX(hdbyte.amax, oslice->max);
     hdbyte.amean += oslice->mean / hdbyte.nz;
     if (mrc_write_slice(oslice->data.b, gfout, &hdbyte, k, 'Z'))
-        exitError("Writing slice at Z = %d to final output file\n", k);
+        exitError("Writing slice at Z = %d to final output file", k);
   }
 
   /* Finalize header and clean up */
   if (mrc_head_write(gfout, &hdbyte))
-    exitError("Writing header to final output file\n");
+    exitError("Writing header to final output file");
   fclose(gfout);
   sliceFree(oslice);
   for (i = 0; i < numFiles; i++) {
@@ -804,6 +873,8 @@ static void paintTubularLines(Iobj *obj, Islice *islice, Islice *pslice[3],
   radsq = rad * rad;
   for (co = 0; co < obj->contsize; co++) {
     cont = &obj->cont[co];
+    if (cont->psize < 2)
+      continue;
     ptlas = cont->pts;
     dzlas = fabs((double)ptlas->z - iz);
     for (pt = 1; pt < cont->psize; pt++) {
@@ -877,9 +948,22 @@ static void scaleAndCombineSlices(Islice *pslice[3], Islice *oslice,
   }
 }
 
+static int itemOnList(int item, int *list, int num)
+{
+  int i;
+  if (!num)
+    return -1;
+  for (i = 0; i < num; i++)
+    if (list[i] == item)
+      return i;
+  return -2;
+}
 
 /*
 $Log$
+Revision 3.8  2007/05/18 20:19:49  mast
+But don't reverse zero if no fill value entered!
+
 Revision 3.7  2007/05/18 20:12:38  mast
 Reverse the fill value if reverse is used, test on that
 
