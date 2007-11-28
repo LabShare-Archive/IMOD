@@ -14,19 +14,19 @@ struct privateStruct
      int privateData;
 };
 
-typedef struct { float x, y, z; }    Ipoint;
-typedef struct { float a, b, c, d; } Iplane;
-
 typedef struct privateStruct Imod;    /* The entire main model structure. */
 typedef struct privateStruct Iview;   /* The view or camera structure.    */
 typedef struct privateStruct Iobj;    /* Object data structure.           */
 typedef struct privateStruct Imesh;   /* Mesh data structure.             */ 
 typedef struct privateStruct Icont;   /* Contour data structure.          */
 typedef struct privateStruct Ilabel;  /* Point label structure.           */
+typedef struct privateStruct IrefImage; /* Image reference structure.     */
+typedef struct privateStruct Iobjview;  /* Object view structure.         */
 
 #define IMOD_NoIndex -1
 
-#include "model.h"
+#define IMODELP_H
+#include "imodel.h"
 
 /* Define structures needed for imod.h */
 typedef struct privateStruct ImodView;
