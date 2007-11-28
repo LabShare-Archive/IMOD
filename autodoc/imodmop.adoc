@@ -40,7 +40,7 @@ limits to extract in X and Y, but the limits in Z are determined just from the
 points on the contours.  For scattered points, the radius of each point is
 taken into account in determining limits to extract in all 3 dimensions.
 If Z limits are entered with the -zminmax option, then they supercede the
-Z limits computed from the objects.  That option can thus be used to give
+Z limits computed from the objects with this option; this is the way to get
 extra slices in Z.  This option cannot be used with -xminmax or -yminmax.
 
 [Field = InvertPaintedArea]
