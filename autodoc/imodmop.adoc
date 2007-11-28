@@ -28,6 +28,21 @@ tooltip =
 manpage = Starting and ending Z slices to extract into the output
 volume (numbered from 0).
 
+[Field = BorderAroundObjects]
+short = border
+type = I
+usage = Border in X and Y for extracting just the volume containing objects
+tooltip = 
+manpage = Use this option to extract just the volume necessary to contain all 
+of the objects being painted, with the given border added in X and Y.  For
+tubular lines, the radius of the tube is taken into account in determining the
+limits to extract in X and Y, but the limits in Z are determined just from the
+points on the contours.  For scattered points, the radius of each point is
+taken into account in determining limits to extract in all 3 dimensions.
+If Z limits are entered with the -zminmax option, then they supercede the
+Z limits computed from the objects.  That option can thus be used to give
+extra slices in Z.  This option cannot be used with -xminmax or -yminmax.
+
 [Field = InvertPaintedArea]
 short = invert
 type = B
