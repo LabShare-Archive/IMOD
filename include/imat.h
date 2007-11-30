@@ -35,6 +35,8 @@ void imodMatPrint(Imat *mat);
 int imodMatRotateVector(Imat *mat, double angle, Ipoint *v);
 int imodMatFindVector(Imat *mat, double *angle, Ipoint *v);
 int imodMatGetNatAngles(Imat *mat, double *x, double *y, double *z);
+void imodMatUniqueAngles(double *x, double *y, double *z);
+void imodMatUniqueRotationPt(Ipoint *pt);
 Imat *imodMatInverse(Imat *mat);
 
 #ifdef __cplusplus

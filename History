@@ -1,6 +1,12 @@
 IMOD History
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-1/22/07: Generalize the kernel smoothing in 3dmod and clip to use Gaussian
+11/30/07: Added ability to link model view to top slicer and rotate them
+together.
+
+11/27/07: Added option to imodmop to extract just volume needed for objects
+being painted.
+
+11/22/07: Generalize the kernel smoothing in 3dmod and clip to use Gaussian
 kernels, 3x3, 5x5, or 7x7, with specified sigma.  Using a larger sigma should
 reduce need to iterate, but also added an option to iterate smoothing in clip.
 
