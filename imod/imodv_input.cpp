@@ -745,6 +745,7 @@ static void imodv_compute_rotation(ImodvApp *a, float x, float y, float z)
       imod->view->rot.y = beta;
       imod->view->rot.z = gamma;
     }
+    imodvNewModelAngles(&imod->view->rot);
           
   } else {
     ipst = ipnd = clips->plane;
@@ -1165,6 +1166,9 @@ void imodvMovieTimeout()
 
 /*
     $Log$
+    Revision 4.30  2007/11/10 04:07:10  mast
+    Changes for setting snapshot directory
+
     Revision 4.29  2007/09/23 15:16:00  mast
     Cast args of atn2 to double
 

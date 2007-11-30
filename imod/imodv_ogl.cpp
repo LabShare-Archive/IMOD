@@ -284,9 +284,7 @@ static void imodvSetModelTrans(Imod *imod)
 
   glTranslatef(0.0f, 0.0f, -depthShift);
 
-  vw->rot.x = fmod(vw->rot.x, 360.0f);
-  vw->rot.y = fmod(vw->rot.y, 360.0f);
-  vw->rot.z = fmod(vw->rot.z, 360.0f);
+  imodMatUniqueRotationPt(&vw->rot);
 
   glRotatef(vw->rot.x, 1.0f, 0.0f, 0.0f);
   glRotatef(vw->rot.y, 0.0f, 1.0f, 0.0f); 
@@ -2413,6 +2411,9 @@ static void drawCurrentClipPlane(ImodvApp *a)
 
 /*
 $Log$
+Revision 4.34  2007/09/20 22:06:55  mast
+Changes for visualizing clipping plane
+
 Revision 4.33  2006/11/03 06:43:21  mast
 Fixed problems with missing bits of contour line or point draw due to color
 changes- needed to do glEnd/glBegin pairs

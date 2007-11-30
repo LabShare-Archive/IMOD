@@ -38,6 +38,7 @@
 #include "imod_client_message.h"
 #include "undoredo.h"
 #include "imod_assistant.h"
+#include "sslice.h"
 
 #include "b3dicon.xpm"
 
@@ -158,6 +159,7 @@ static int imodv_init(ImodvApp *a, struct Mod_Draw *md)
   a->wireframe = 0;
   a->lowres = 0;
   a->drawClip = 0;
+  a->linkToSlicer = 0;
 
   // DNM 6/6/04: Gte rid of stereo command initialization
 
@@ -585,6 +587,19 @@ void imodv_new_model(Imod *mod)
   imodvSelectModel(Imodv, 0);
 }
 
+int imodvLinkedToSlicer()
+{
+  if (ImodvClosed)
+    return 0;
+  return Imodv->linkToSlicer;
+}
+
+void imodvNewModelAngles(Ipoint *rot)
+{
+  if (Imodv->linkToSlicer)
+    setTopSlicerFromModelView(rot);
+}
+
 void imodvSetCaption()
 {
   ImodvApp *a = Imodv;
@@ -606,11 +621,12 @@ void imodvSetCaption()
 }
 
 // To call imodDraw if not in standalone mode
-void imodvDrawImodImages()
+void imodvDrawImodImages(int skipDraw)
 {
   if (Imodv->standalone)
     return;
-  imodDraw(Imodv->vi, IMOD_DRAW_MOD);
+  if (!skipDraw)
+    imodDraw(Imodv->vi, IMOD_DRAW_MOD | IMOD_DRAW_SKIPMODV);
   imod_object_edit_draw();
   imod_info_setobjcolor();
 }
@@ -676,6 +692,9 @@ void imodvQuit()
 
 /*
 $Log$
+Revision 4.32  2007/09/20 22:06:55  mast
+Changes for visualizing clipping plane
+
 Revision 4.31  2006/09/12 15:46:32  mast
 Handled contour member renames
 

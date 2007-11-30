@@ -44,6 +44,7 @@
 #include "preferences.h"
 #include "form_slicerangle.h"
 #include "imodv_input.h"
+#include "imodv.h"
 
 
 /* internal functions. */
@@ -159,7 +160,8 @@ void slicerStepTime(SlicerStruct *ss, int step)
 void slicerShowSlice(SlicerStruct *ss)
 {
   slice_trans_step(ss);
-  imodDraw(ss->vi, IMOD_DRAW_SLICE);
+  imodDraw(ss->vi, IMOD_DRAW_SLICE | ss->drawModView);
+  ss->drawModView = 0;
 }
 
 /*
@@ -247,6 +249,7 @@ void slicerAngleChanged(SlicerStruct *ss, int axis, int value,
 
   // Do complete redraw if not dragging or hot slider enabled
   if (!dragging || ImodPrefs->hotSliderActive(ctrlPressed)) {
+    ss->drawModView = imodvLinkedToSlicer() ? IMOD_DRAW_MOD : 0;
     slicerShowSlice(ss);
     slicerCheckMovieLimits(ss);
   } else {
@@ -385,6 +388,7 @@ int sslice_open(struct ViewInfo *vi)
   ss->continuous = false;
   ss->closing = 0;
   ss->ignoreCurPtChg = 0;
+  ss->alreadyDrew = false;
 
   slice_trans_step(ss);
   zapGetLongestTimeString(vi, &str);
@@ -578,6 +582,7 @@ static SlicerStruct *getTopSlicer()
 // top slicer
 int setTopSlicerAngles(float angles[3], Ipoint *center, bool draw)
 {
+  int drawflag = (draw && imodvLinkedToSlicer()) ? IMOD_DRAW_MOD : 0;
   SlicerStruct *ss = getTopSlicer();
   if (!ss)
     return 1;
@@ -593,14 +598,33 @@ int setTopSlicerAngles(float angles[3], Ipoint *center, bool draw)
     ss->vi->ymouse = ss->cy;
     ss->vi->zmouse = ss->cz;
     if (draw)
-      imodDraw(ss->vi, IMOD_DRAW_XYZ | IMOD_DRAW_SLICE | IMOD_DRAW_ACTIVE);
+      imodDraw(ss->vi, IMOD_DRAW_XYZ | IMOD_DRAW_SLICE | IMOD_DRAW_ACTIVE |
+               drawflag);
   } else if (draw) {
 
-    // This needs a potentially double draw because the top slicer may not
+    // This needs a guaranteed draw because the top slicer may not
     // be the top or active window
+    ss->drawModView = drawflag;
     sslice_draw(ss);
+    ss->alreadyDrew = true;
     slicerShowSlice(ss);
   }
+  return 0;
+}
+
+int setTopSlicerFromModelView(Ipoint *rot)
+{
+  SlicerStruct *ss = getTopSlicer();
+  if (!ss)
+    return 1;
+  ss->tang[b3dX] = rot->x;
+  ss->tang[b3dY] = rot->y;
+  ss->tang[b3dZ] = rot->z;
+  ss->qtWindow->setAngles(ss->tang);
+  sslice_draw(ss);
+  ss->alreadyDrew = true;
+  imodDraw(ss->vi, IMOD_DRAW_XYZ | IMOD_DRAW_SLICE | IMOD_DRAW_ACTIVE | 
+           IMOD_DRAW_SKIPMODV);
   return 0;
 }
 
@@ -636,6 +660,8 @@ void slicerNewTime(bool refresh)
 {
   if (sliceAngDia)
     sliceAngDia->newTime(refresh);
+  if (imodvLinkedToSlicer())
+    imodv_draw();
 }
 
 // Tell the slicer angle dialog to set current angles into current row, or
@@ -667,14 +693,10 @@ static void setViewAxisRotation(SlicerStruct *ss, float x, float y, float z)
   slicerSetForwardMatrix(ss);
   imodvResolveRotation(rmat, x, y, z);
   imodMatMult(ss->mat, rmat, pmat);
+
+  // 11/28/07: this now returns unique angles with |alpha| <= 90.
   imodMatGetNatAngles(pmat, &alpha, &beta, &gamma);
 
-  // If X is out of bounds, invert Z and take complement of Y
-  if (fabs(alpha) > 90.) {
-    alpha += 180. * (alpha > 0. ? -1. : 1);
-    beta = (beta >= 0. ? 1. : -1.) * 180. - beta;
-    gamma += 180. * (gamma > 0. ? -1. : 1);
-  }
   ss->tang[b3dX] = alpha;
   ss->tang[b3dY] = beta;
   ss->tang[b3dZ] = gamma;
@@ -974,6 +996,7 @@ void slicerKeyInput(SlicerStruct *ss, QKeyEvent *event)
     }
 
     ss->qtWindow->setAngles(ss->tang);
+    ss->drawModView = imodvLinkedToSlicer() ? IMOD_DRAW_MOD : 0;
 
     slicerShowSlice(ss);
     docheck = 1;
@@ -1148,6 +1171,7 @@ void slicerMouseMove(SlicerStruct *ss, QMouseEvent *event)
       mouseRotating = 1;
       if (imodDebug('s'))
         imodPuts("Mouse rotating");
+      ss->drawModView = imodvLinkedToSlicer() ? IMOD_DRAW_MOD : 0;
       slicerShowSlice(ss);
     }
   }
@@ -1747,7 +1771,8 @@ int slicerAnglesFromContour(SlicerStruct *ss)
   ss->vi->xmouse = ss->cx;
   ss->vi->ymouse = ss->cy;
   ss->vi->zmouse = ss->cz;
-  imodDraw(ss->vi, IMOD_DRAW_XYZ);
+  pt = imodvLinkedToSlicer() ? IMOD_DRAW_MOD : 0;
+  imodDraw(ss->vi, IMOD_DRAW_XYZ | pt);
 
   return 0;
 }
@@ -2023,7 +2048,13 @@ static void slicerDraw_cb(ImodView *vi, void *client, int drawflag)
   int ignoreChg = ss->ignoreCurPtChg;
 
   // Clear ignore flag before any possible returns
+  // Skip out if already drawn
   ss->ignoreCurPtChg = 0;
+  if (ss->alreadyDrew) {
+    ss->alreadyDrew = false;
+    if (!(drawflag & IMOD_DRAW_COLORMAP))
+      return;
+  }
   
   if (drawflag & IMOD_DRAW_COLORMAP) {
     ss->glw->setColormap(*(App->qColormap));
@@ -2201,7 +2232,7 @@ static void sslice_draw(SlicerStruct *ss)
 /* Redraw image, assuming data array is filled */
 static void slicerUpdateImage(SlicerStruct *ss)
 {
-  ss->imageFilled = 1;
+  ss->imageFilled++;
   ss->glw->updateGL();
   ss->imageFilled = 0;
   sslice_cube_draw(ss);
@@ -2235,7 +2266,7 @@ void slicerPaint(SlicerStruct *ss)
   if (imodDebug('s'))
     imodPrintStderr("Paint, image filled %d\n", ss->imageFilled);
 
-  if (!ss->imageFilled) {
+  if (ss->imageFilled <= 0) {
 
     // If filling array, first assess mean and SD for scaling multiple slices
     // to single slice, then fill array for real and update angles
@@ -2559,6 +2590,10 @@ void slicerCubePaint(SlicerStruct *ss)
 
 /*
 $Log$
+Revision 4.52  2007/11/13 19:13:34  mast
+Eliminated double drawing wherever possible when calling the show slice
+routine, made an option for quality reduction when dragging sliders
+
 Revision 4.51  2007/11/10 17:25:18  mast
 Switch hot key for show slice and make s be save hotkey
 

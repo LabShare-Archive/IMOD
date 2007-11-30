@@ -509,7 +509,10 @@ void SlicerAngleForm::finishOrFlushUnit( bool changed )
 void SlicerAngleForm::newTime(bool refresh)
 {
   bool continuous;
-  int newtime = getTopSlicerTime(continuous) + mTimeInc;
+  int newtime = getTopSlicerTime(continuous);
+  if (newtime < 0)
+    ivwGetTime(App->cvi, &newtime);
+  newtime += mTimeInc;
   if (newtime != mCurTime || refresh)
     switchTime(newtime, true);
 }

@@ -1643,6 +1643,7 @@ void ImodvObjed::moveAxisSlot(int which)
     break;
   }
   imod->view->rot = rot;
+  imodvNewModelAngles(&rot);
 
   if (Imodv->moveall)
     for (m = 0; m < Imodv->nm; m++)
@@ -2434,6 +2435,9 @@ static void makeRadioButton(char *label, QWidget *parent, QButtonGroup *group,
 
 /*
 $Log$
+Revision 4.32  2007/09/26 04:35:20  mast
+Redraw when object canges and current clipping plane being drawn
+
 Revision 4.31  2007/09/22 00:07:26  mast
 Added fixed button to value display
 

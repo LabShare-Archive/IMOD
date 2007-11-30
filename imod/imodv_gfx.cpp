@@ -26,6 +26,7 @@
 #include "b3dgfx.h"
 #include "b3dfile.h"
 #include "imodv.h"
+#include "sslice.h"
 #include "imodv_control.h"
 #include "imodv_gfx.h"
 #include "imodv_ogl.h"
@@ -139,6 +140,27 @@ void imodvResizeGL(ImodvGL *GLw, int winx, int winy)
 // The central draw entry: just call to update through the paint routine
 void imodvDraw(ImodvApp *a)
 {
+  int m, mstrt, mend, time;
+  Ipoint center;
+  float angles[3];
+
+  // But first update all model angles if linked to slicer
+  if (a->linkToSlicer && !getTopSlicerAngles(angles, &center, time)) {
+    if (!a->moveall) {
+      mstrt = a->cm;
+      mend = mstrt + 1;
+    } else {
+      mstrt = 0;
+      mend = a->nm;
+    }
+
+    for (m = mstrt; m < mend; m++) {
+      a->mod[m]->view->rot.x = angles[b3dX];
+      a->mod[m]->view->rot.y = angles[b3dY];
+      a->mod[m]->view->rot.z = angles[b3dZ];
+    }
+  }
+
   a->mainWin->mCurGLw->updateGL();
 }
 
@@ -360,6 +382,9 @@ static int imodv_snapshot(ImodvApp *a, QString fname)
 
 /*
 $Log$
+Revision 4.14  2007/11/10 04:07:10  mast
+Changes for setting snapshot directory
+
 Revision 4.13  2007/08/08 03:05:21  mast
 Avoid setting context after entering selection mode
 

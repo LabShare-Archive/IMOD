@@ -222,29 +222,37 @@ void imodvControlAxisButton(int axisDir)
 void imodvControlAxisText(int axis, float rot)
 {
   ImodvApp *a = Imodv;
-  int m;
-
+  int m, mstrt, mend;
+  if (!a->moveall) {
+    mstrt = a->cm;
+    mend = mstrt + 1;
+  } else {
+    mstrt = 0;
+    mend = a->nm;
+  }
+  
   switch(axis){
   case IMODV_CONTROL_XAXIS:
-    a->imod->view->rot.x = rot;
-    if (a->moveall)
-      for(m = 0; m < a->nm; m++)
-        a->mod[m]->view->rot.x = rot;
+    for(m = mstrt; m < mend; m++)
+      a->mod[m]->view->rot.x = rot;
+    lastX = -999;
     break;
   case IMODV_CONTROL_YAXIS:
-    a->imod->view->rot.y = rot;
-    if (a->moveall)
-      for(m = 0; m < a->nm; m++)
-        a->mod[m]->view->rot.y = rot;
+    for(m = mstrt; m < mend; m++)
+      a->mod[m]->view->rot.y = rot;
+    lastY = -999;
     break;
   case IMODV_CONTROL_ZAXIS:
-    a->imod->view->rot.z = rot;
-    if (a->moveall)
-      for(m = 0; m < a->nm; m++)
-        a->mod[m]->view->rot.z = rot;
+    for(m = mstrt; m < mend; m++)
+      a->mod[m]->view->rot.z = rot;
+    lastZ = -999;
     break;
   }
-  imodvDraw(Imodv);
+  for(m = mstrt; m < mend; m++) {
+    imodMatUniqueRotationPt(&a->mod[m]->view->rot);
+  }
+  imodvNewModelAngles(&a->imod->view->rot);
+  imodvDraw(a);
 }
 
 /* A change in the rotation rate slider*/
@@ -404,6 +412,9 @@ int imodv_control(ImodvApp *a, int state)
 
 /*
     $Log$
+    Revision 4.10  2006/05/11 02:17:42  mast
+    Draw images when Z scale changes
+
     Revision 4.9  2005/12/11 18:23:54  mast
     Added ability to set extreme clipping planes out farther
 

@@ -203,7 +203,8 @@ void imodvViewsGoto(int item, bool draw, bool regChg)
   ved->a->imod->cview = item;
 
   imodViewUse(ved->a->imod);
-  imodvDrawImodImages();
+  imodvNewModelAngles(&ved->a->imod->view->rot);
+  imodvDrawImodImages(ved->a->linkToSlicer);
 
   imodvUpdateView(ved->a);
   if (draw) 
@@ -360,6 +361,9 @@ static void build_list(ImodvApp *a)
 /*
 
     $Log$
+    Revision 4.11  2007/10/03 19:31:10  sueh
+    bug# 1038 Replacing help strings with an .html file.
+
     Revision 4.10  2005/10/13 20:08:00  mast
     Add bin scaling argument (1)
 

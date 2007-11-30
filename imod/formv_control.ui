@@ -8,8 +8,8 @@
         <rect>
             <x>0</x>
             <y>0</y>
-            <width>233</width>
-            <height>554</height>
+            <width>257</width>
+            <height>590</height>
         </rect>
     </property>
     <property name="caption">
@@ -17,6 +17,9 @@
     </property>
     <property name="focusPolicy">
         <enum>StrongFocus</enum>
+    </property>
+    <property name="toolTip" stdset="0">
+        <string>Tie model rotation to rotation in top slicer window</string>
     </property>
     <vbox>
         <property name="name">
@@ -910,6 +913,14 @@
                         <string>Start or stop continuous rotation (push arrow key next to start)</string>
                     </property>
                 </widget>
+                <widget class="QCheckBox">
+                    <property name="name">
+                        <cstring>linkSlicerCheckBox</cstring>
+                    </property>
+                    <property name="text">
+                        <string>Link to top Slicer angles</string>
+                    </property>
+                </widget>
                 <widget class="QLayoutWidget">
                     <property name="name">
                         <cstring>layout18</cstring>
@@ -1307,7 +1318,7 @@
         <sender>scaleLineEdit</sender>
         <signal>returnPressed()</signal>
         <receiver>imodvControlForm</receiver>
-        <slot>newScale()</slot>
+        <slot>setFocus()</slot>
     </connection>
     <connection>
         <sender>scaleLineEdit</sender>
@@ -1331,7 +1342,7 @@
         <sender>speedLineEdit</sender>
         <signal>returnPressed()</signal>
         <receiver>imodvControlForm</receiver>
-        <slot>newSpeed()</slot>
+        <slot>setFocus()</slot>
     </connection>
     <connection>
         <sender>SpeedUpToolButton</sender>
@@ -1361,7 +1372,7 @@
         <sender>XLineEdit</sender>
         <signal>returnPressed()</signal>
         <receiver>imodvControlForm</receiver>
-        <slot>newXrotation()</slot>
+        <slot>setFocus()</slot>
     </connection>
     <connection>
         <sender>XUpToolButton</sender>
@@ -1379,7 +1390,7 @@
         <sender>YLineEdit</sender>
         <signal>returnPressed()</signal>
         <receiver>imodvControlForm</receiver>
-        <slot>newYrotation()</slot>
+        <slot>setFocus()</slot>
     </connection>
     <connection>
         <sender>YUpToolButton</sender>
@@ -1397,7 +1408,7 @@
         <sender>ZLineEdit</sender>
         <signal>returnPressed()</signal>
         <receiver>imodvControlForm</receiver>
-        <slot>newZrotation()</slot>
+        <slot>setFocus()</slot>
     </connection>
     <connection>
         <sender>zScaleSlider</sender>
@@ -1453,6 +1464,12 @@
         <receiver>imodvControlForm</receiver>
         <slot>kickBoxToggled(bool)</slot>
     </connection>
+    <connection>
+        <sender>linkSlicerCheckBox</sender>
+        <signal>toggled(bool)</signal>
+        <receiver>imodvControlForm</receiver>
+        <slot>linkBoxToggled(bool)</slot>
+    </connection>
 </connections>
 <includes>
     <include location="local" impldecl="in implementation">dia_qtutils.h</include>
@@ -1460,6 +1477,7 @@
     <include location="global" impldecl="in implementation">stdlib.h</include>
     <include location="local" impldecl="in implementation">imodv_control.h</include>
     <include location="local" impldecl="in implementation">preferences.h</include>
+    <include location="local" impldecl="in implementation">imodv.h</include>
     <include location="local" impldecl="in implementation">formv_control.ui.h</include>
 </includes>
 <variables>
@@ -1501,6 +1519,7 @@
     <slot>newYrotation()</slot>
     <slot>newZrotation()</slot>
     <slot>startStop()</slot>
+    <slot>linkBoxToggled( bool state )</slot>
     <slot>rateChanged( int value )</slot>
     <slot>newSpeed()</slot>
     <slot>increaseSpeed()</slot>

@@ -283,6 +283,7 @@ int imodDraw(ImodView *vw, int flag)
    * IMOD_DRAW_XYZ:   x,y,z position changed.
    * IMOD_DRAW_MOD:   model has changed.
    * IMOD_DRAW_SLICE: slice has changed in slicer
+   * IMOD_DRAW_SKIPMODV: Skip drawing model view even though _MOD is set
    * IMOD_DRAW_COLORMAP: color index map has changed, do not combine with
    *                     other flags
    */
@@ -310,28 +311,23 @@ int imodDraw(ImodView *vw, int flag)
   if (imod_info_bwfloat(vw, cz, time) && App->rgba)
     flag |= IMOD_DRAW_IMAGE;            // DO WE NEED NOSYNC?
 
-  if (flag & IMOD_DRAW_RETHINK){
+  if (flag & IMOD_DRAW_RETHINK)
     flag |= rethink(vw);
-  }
 
-  if (flag & IMOD_DRAW_MOD){
+  if (flag & IMOD_DRAW_MOD)
     imod_info_setocp();
-  }
 
   /* DNM 11/24/02: deleted conditional on using controls, stopped drawing
      xyz window separately (it now has a control) */
 
   ivwControlListDraw(vw, flag);
 
-  if (flag & IMOD_DRAW_XYZ){
+  if (flag & IMOD_DRAW_XYZ)
     imod_info_setxyz();
-  }
 
-  if (flag & IMOD_DRAW_MOD || (flag & IMOD_DRAW_XYZ && Imodv->texMap)) {
+  if (((flag & IMOD_DRAW_MOD) || ((flag & IMOD_DRAW_XYZ) && Imodv->texMap)) &&
+      ! (flag & IMOD_DRAW_SKIPMODV))
     imodv_draw();
-  }
-
-
 
   return(0);
 }
@@ -549,6 +545,9 @@ int imodFindQGLFormat(ImodApp *ap, char **argv)
 
 /*
 $Log$
+Revision 4.19  2007/11/16 23:11:52  mast
+Added routines for redefining and restting ghost color
+
 Revision 4.18  2006/09/12 15:40:24  mast
 Handled contour member renames
 

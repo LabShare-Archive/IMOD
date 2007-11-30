@@ -36,7 +36,8 @@ class QKeyEvent;
 #define IMOD_DRAW_MOD      (1<<2) /* model data has been changed.         */
 #define IMOD_DRAW_SLICE    (1<<3) /* A slice location has changed.        */
 #define IMOD_DRAW_CMAP     (1<<4) /* Colormap has changed.                */
-#define IMOD_DRAW_MODVIEW  (1<<5) /* model view changed. */
+#define IMOD_DRAW_MODVIEW  (1<<5) /* model view changed (unused)          */
+#define IMOD_DRAW_SKIPMODV (1<<5) /* skip drawing model view              */
 #define IMOD_DRAW_COLORMAP (1<<11)  /* Colormap has changed (index mode)  */
 #define IMOD_DRAW_NOSYNC  (1<<12) /* do not resync image to model point.  */
 #define IMOD_DRAW_RETHINK (1<<13) /* recalc cursor position               */
@@ -137,6 +138,9 @@ int DLL_EX_IM imodShowHelpPage(const char *page);
 
 /*
     $Log$
+    Revision 3.12  2007/06/04 15:02:33  mast
+    Added argument to draw model function
+
     Revision 3.11  2006/02/13 05:13:36  mast
     Define mouse flag for plugins
 

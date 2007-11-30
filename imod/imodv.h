@@ -89,6 +89,7 @@ typedef struct __imodv_struct
   int movieTimes[MAX_MOVIE_TIMES];  /* Ring buffer of times */
   int snap_fileno;     /* Snapshot file number */
   int drawClip;    /* Draw current clip plane */
+  int linkToSlicer;    /* Flag to link to top slicer */
 
   /* start-up flags */
   int  moveall;    /* move all models if true.                 */
@@ -123,15 +124,20 @@ void imodv_close(void);
 void imodv_new_model(Imod *mod);
 int  imodv_main(int argc, char **argv);
 void imodvSetCaption();
-void imodvDrawImodImages();
+void imodvDrawImodImages(int skipDraw = 0);
 int imodvByteImagesExist();
 void imodvRegisterModelChg();
 void imodvRegisterObjectChg(int object);
 void imodvFinishChgUnit();
 void imodvQuit();
+int imodvLinkedToSlicer();
+void imodvNewModelAngles(Ipoint *rot);
 
 /*
 $Log$
+Revision 3.17  2007/09/20 22:06:55  mast
+Changes for visualizing clipping plane
+
 Revision 3.16  2004/11/21 06:07:49  mast
 Changes for undo/redo
 

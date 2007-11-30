@@ -97,6 +97,8 @@ typedef struct Super_slicer{
   int   fftMode;      /* Flag to do FFT of slice */
   int   toolTime;     /* Value of time when label sent to toolbar */
   bool  continuous;   /* Flag for continuous mode in slicer angle update */
+  int   drawModView;  /* Draw flag to draw model view on next redraw */
+  bool  alreadyDrew;  /* Flag that window was already drawn before draw_cb */
   int   closing;      /* Flag for window closing */
 } SlicerStruct;     
 
@@ -139,10 +141,14 @@ void slicerAnglesClosing();
 void slicerNewTime(bool refresh);
 void slicerSetCurrentOrNewRow(SlicerStruct *ss, bool newrow);
 void slicerSetAnglesFromRow(SlicerStruct *ss);
+int setTopSlicerFromModelView(Ipoint *rot);
 #endif
 
 /*
     $Log$
+    Revision 3.18  2007/09/20 22:05:36  mast
+    Defined RADIANS_PER_DEGREE once
+
     Revision 3.17  2007/06/15 21:19:23  mast
     Added shift lock
 
