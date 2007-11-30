@@ -237,6 +237,7 @@ EXPORTS
 	istoreDump
 	imodViewWrite
 	imodTransFromRefImage
+	imodContourGetFlag
 	imodMeshGetVert
 	imodContourDup
 	imodPlaneSetPN
@@ -259,6 +260,7 @@ EXPORTS
 	imodPointPlaneEdge
 	imodDelete
 	imodLabelItemDelete
+	imodMatUniqueRotationPt
 	imodContourCheckNesting
 	istoreAddOneIndexItem
 	imodDeleteContour
@@ -308,6 +310,7 @@ EXPORTS
 	imodPointAppend
 	imodClipsInitialize
 	imodMatRotateVector
+	imodMatUniqueAngles
 	IMODARRAYLIMITS
 	imod_mesh_to_synu
 	imodContourDefault
@@ -331,6 +334,7 @@ EXPORTS
 	imeshParamsNew
 	imodObjectSetValue
 	imodContourNearest
+	imodContourSetFlag
 	imodContourSwap
 	imodObjviewsFree
 	imodOpenFile
