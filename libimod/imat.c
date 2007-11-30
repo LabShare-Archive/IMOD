@@ -7,14 +7,15 @@
  *  Copyright (C) 1995-2005 by Boulder Laboratory for 3-Dimensional Electron
  *  Microscopy of Cells ("BL3DEMC") and the Regents of the University of 
  *  Colorado.  See dist/COPYRIGHT for full copyright notice.
+ *
+ *  $Id$
  */
-/*  $Author$
-
-$Date$
-
-$Revision$
+/*
 
 $Log$
+Revision 3.3  2005/10/19 14:05:16  mast
+Added 3D inversion and a print function, documented for sourcedoc
+
 */
 
 #include <math.h>
@@ -418,7 +419,51 @@ int imodMatGetNatAngles(Imat *mat, double *x, double *y, double *z)
   *x = alpha/cnv;
   *y = beta/cnv;
   *z = gamma/cnv;
+  imodMatUniqueAngles(x, y, z);
   return 0;
+}
+
+/*!
+ * Converts the three angles [x], [y], and [z] for rotations about the X, Y, 
+ * and Z axes into a unique set of angles, with [x] between +/-90
+ * and [y] and [z] between +/-180.  Angles are in degrees.  If [x] is out of
+ * bounds, it inverts the sign of [z] and takes the complement of [y].
+ */
+void imodMatUniqueAngles(double *x, double *y, double *z)
+{
+  while (*x > 180.)
+    *x -= 360.;
+  while (*x <= -180.)
+    *x += 360.;
+  while (*y > 180.)
+    *y -= 360.;
+  while (*y <= -180.)
+    *y += 360.;
+  while (*z > 180.)
+    *z -= 360.;
+  while (*z <= -180.)
+    *z += 360.;
+  if (fabs(*x) > 90.) {
+    *x += 180. * ((*x) > 0. ? -1. : 1);
+    *y = ((*y) >= 0. ? 1. : -1.) * 180. - (*y);
+    *z += 180. * ((*z) > 0. ? -1. : 1);
+  }
+}
+
+/*!
+ * Calls @imodMatUniqueAngles with the X, Y, and Z angles in the three
+ * members of [pt].
+ */
+void imodMatUniqueRotationPt(Ipoint *pt)
+{
+  double x, y, z;
+  x = pt->x;
+  y = pt->y;
+  z = pt->z;
+  imodMatUniqueAngles(&x, &y, &z);
+  pt->x = (float)x;
+  pt->y = (float)y;
+  pt->z = (float)z;
 }
 
 /*!
