@@ -616,11 +616,6 @@ typedef $float32 b3dFloat;
 EOF
 
 #
-# Make needed links in include
-#
-if (! -e include/imod.h) ln -s ../imod/imod.h include/imod.h
-
-#
 # Make the directories if needed.
 #
 mkdir -p $bin_dir
@@ -934,6 +929,9 @@ exit
 
 #
 #  $Log$
+#  Revision 1.35  2007/11/20 22:54:31  mast
+#  Switched Mac to using individual scripts for fortran qt progs
+#
 #  Revision 1.34  2007/10/03 21:37:42  mast
 #  Added imod_assistant to midas directory
 #
