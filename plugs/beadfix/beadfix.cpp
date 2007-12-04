@@ -1,68 +1,19 @@
 /*
- *  beadfix.c -- Special plugin for fixing fiducial models
+ *  beadfix.cpp -- Early version of the bead fixer to test building and
+ *  to provide an example of plugin programming.
  *
+ *  It is named "Bead Fixer2" and the class is BeadFixer2 so it can be
+ *  loaded without conflicting with the special module BeadFixer.
+ *
+ *  It does NOT treat undo/redo correctly; see real imod/beadfix.cpp or
+ *  other code in 3dmod for examples of that.
+ *
+ *  $Id$
+ *  Log at end of file
  */
 
-/*****************************************************************************
- *   Copyright (C) 1997-2000 by Boulder Laboratory for 3-Dimensional Fine    *
- *   Structure ("BL3DFS") and the Regents of the University of Colorado.     *
- *                                                                           *
- *   BL3DFS reserves the exclusive rights of preparing derivative works,     *
- *   distributing copies for sale, lease or lending and displaying this      *
- *   software and documentation.                                             *
- *   Users may reproduce the software and documentation as long as the       *
- *   copyright notice and other notices are preserved.                       *
- *   Neither the software nor the documentation may be distributed for       *
- *   profit, either in original form or in derivative works.                 *
- *                                                                           *
- *   THIS SOFTWARE AND/OR DOCUMENTATION IS PROVIDED WITH NO WARRANTY,        *
- *   EXPRESS OR IMPLIED, INCLUDING, WITHOUT LIMITATION, WARRANTY OF          *
- *   MERCHANTABILITY AND WARRANTY OF FITNESS FOR A PARTICULAR PURPOSE.       *
- *                                                                           *
- *   This work is supported by NIH biotechnology grant #RR00592,             *
- *   for the Boulder Laboratory for 3-Dimensional Fine Structure.            *
- *   University of Colorado, MCDB Box 347, Boulder, CO 80309                 *
- *****************************************************************************/
 
-/*  $Author$
-
-    $Date$
-
-    $Revision$
-
-    $Log$
-    Revision 3.11  2004/09/24 17:55:38  mast
-    Added example of executing message
-
-    Revision 3.10  2004/06/01 00:52:38  mast
-    Set up as test for plugin building
-
-    Revision 3.9  2003/08/01 00:16:51  mast
-    Made "examine once" be default and rearranged buttons
-
-    Revision 3.8  2003/07/07 21:32:49  mast
-    Fix stupid malloc/realloc problem in pointer list
-
-    Revision 3.7  2003/06/29 14:34:41  mast
-    Fix problem of multiple vector displays
-
-    Revision 3.6  2003/06/29 14:23:20  mast
-    Added ability to back up to previous residual
-
-    Revision 3.5  2003/06/27 20:25:11  mast
-    Implemented display of residual vectors in extra object
-
-    Revision 3.4  2003/05/29 05:03:43  mast
-    Make filter for align*.log only
-
-    Revision 3.3  2003/05/12 19:13:39  mast
-    Add hot key summary and fix spelling
-
-*/
-
-/* include needed Qt headers and imod headers
- * This version is to test building as a plugin in with public interfaces only
- */
+/* include needed Qt headers and imod headers */
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
@@ -73,6 +24,9 @@
 #include <qtooltip.h>
 #include <qstringlist.h>
 
+/* Leave this commented out to test building as a plugin in with public 
+   interfaces only; uncomment to test with access to structure members */
+//#define NO_PRIVATE_STRUCT
 #include "imodplugin.h"
 #include "dia_qtutils.h"
 #include "beadfix.h"
@@ -122,7 +76,7 @@ typedef struct
   int    curArea;                       /* Current local area index */
   AreaData *areaList;                   /* Data about areas */
   int    areaMax;                       /* Size allocated */
-  
+  int    extraObjNum;
 }PlugData;
 
 
@@ -134,7 +88,8 @@ static PlugData thisPlug = { 0, 0 };
 char *imodPlugInfo(int *type)
 {
   if (type)
-    *type = IMOD_PLUG_MENU + IMOD_PLUG_KEYS + IMOD_PLUG_MESSAGE;
+    *type = IMOD_PLUG_MENU + IMOD_PLUG_KEYS + IMOD_PLUG_MESSAGE + 
+      IMOD_PLUG_MOUSE + IMOD_PLUG_EVENT;
   return("Bead Fixer2");
 }
 
@@ -210,7 +165,7 @@ void imodPlugExecute(ImodView *inImodView)
 
   plug->view = inImodView;
   ivwGetImageSize(inImodView, &plug->xsize, &plug->ysize, &plug->zsize);
-
+  
   /* 
    * Initialize data. 
    */
@@ -231,7 +186,7 @@ void imodPlugExecute(ImodView *inImodView)
   plug->curArea = -1;
   plug->areaList = NULL;
   plug->areaMax = 0;
-
+  plug->extraObjNum = ivwGetFreeExtraObjectNumber(plug->view);
   /*
    * This creates the plug window.
    */
@@ -240,6 +195,7 @@ void imodPlugExecute(ImodView *inImodView)
 
   imodDialogManager.add((QWidget *)plug->window, IMOD_DIALOG);
   plug->window->show();
+  ivwTrackMouseForPlugs(plug->view, 1);
 }
 
 /* Execute the message in the strings, leave arg as index of last component 
@@ -253,6 +209,64 @@ int imodPlugExecuteMessage(ImodView *vw, QStringList *strings, int *arg)
     return 1;
   plug->window->reread(0);
   return 0;
+}
+
+/*
+ * Process a mouse event: An example of a circular cursor with radius 
+ * specified in image coordinates
+ */
+int imodPlugMouse(ImodView *vw, QMouseEvent *event, float imx,
+                         float imy, int but1, int but2, int but3)
+{
+  PlugData *plug = &thisPlug;
+  Iobj *xobj = ivwGetAnExtraObject(plug->view, plug->extraObjNum);
+  Icont *con;
+  float rad = 30.;
+  double angle;
+  int i, ix, iy,iz;
+  Ipoint tpt;
+  if (!plug->window || !xobj)
+    return 0;
+
+  // Initialize extra object
+
+  ivwClearAnExtraObject(plug->view, plug->extraObjNum);
+  imodObjectSetColor(xobj, 1., 0., 0.);
+  imodObjectSetValue(xobj, IobjFlagClosed, 1);
+  con = imodContourNew();
+  if (!con)
+    return 0;
+  ivwGetLocation(plug->view, &ix, &iy, &iz);
+  for (i = 0; i < 100; i++) {
+    angle = 2 * 3.14159 * i / 100.;
+    tpt.x = imx + rad * cos(angle);
+    tpt.y = imy + rad * sin(angle);
+    tpt.z = iz;
+    imodPointAppend(con, &tpt);
+  }
+  imodContourSetFlag(con, ICONT_CURSOR_LIKE | ICONT_MMODEL_ONLY, 1);
+  imodObjectAddContour(xobj, con);
+  return 2;
+}
+
+/*
+ * Process wheel events (doesn't work some places...)
+ */
+int imodPlugEvent(ImodView *vw, QEvent *event, float imx, float imy)
+{
+  if (!thisPlug.window)
+    return 0;
+  int retval = 0;
+  if (event->type() == QEvent::User)
+    imodPuts("Custom event");
+  else if (event->type() == QEvent::Enter) {
+    //imodPuts("Enter");
+  } else if (event->type() == QEvent::Leave) {
+    //imodPuts("Leave");
+  } else if (event->type() == QEvent::Wheel) {
+    imodPuts("Wheel");
+  }
+  return retval;
 }
 
 /* Open a tiltalign log file to find points with big residuals */
@@ -1020,6 +1034,8 @@ void BeadFixer2::closeEvent ( QCloseEvent * e )
   PlugData *plug = &thisPlug;
   imodDialogManager.remove((QWidget *)plug->window);
   clearExtraObj();
+  ivwFreeExtraObject(plug->view, plug->extraObjNum);
+  ivwTrackMouseForPlugs(plug->view, 0);
 
   plug->view = NULL;
   plug->window = NULL;
@@ -1048,3 +1064,20 @@ void BeadFixer2::keyReleaseEvent ( QKeyEvent * e )
 {
   ivwControlKey(1, e);
 }
+
+/*
+
+$Log$
+Revision 3.12  2004/11/20 15:45:41  mast
+Had to cast layouts to QBoxLayout (why here an not in 3dmod?)
+
+Revision 3.11  2004/09/24 17:55:38  mast
+Added example of executing message
+
+Revision 3.10  2004/06/01 00:52:38  mast
+Set up as test for plugin building
+
+See imod/beadfix.cpp for previous history
+
+*/
+
