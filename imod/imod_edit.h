@@ -22,16 +22,12 @@ void imodMoveAllContours(ImodView *vi, int obNew);
 float imod_obj_nearest(ImodView *vi, Iobj *obj, Iindex *index, Ipoint *pnt,
                        float selsize, Imat *mat = NULL);
 int imod_redraw(ImodView *vw);
-void imodSelectionListAdd(ImodView *vi, Iindex newIndex);
-int imodSelectionListClear(ImodView *vi);
-int imodSelectionListQuery(ImodView *vi, int ob, int co);
-void imodSelectionListRemove(ImodView *vi, int ob, int co);
-void imodSelectionNewCurPoint(ImodView *vi, Imod *imod, Iindex indSave, 
-                              int controlDown);
-int imodNumSelectedObjects(ImodView *vi, int &minOb, int &maxOb);
 #endif
 /*
 $Log$
+Revision 4.7  2007/07/08 16:45:55  mast
+Added selected object count and contour move functions
+
 Revision 4.6  2007/06/04 15:04:47  mast
 Added optional matrix argument to nearest point function
 
