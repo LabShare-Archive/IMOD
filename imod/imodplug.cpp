@@ -3,16 +3,10 @@
  *   Copyright (C) 1995-2002 by Boulder Laboratory for 3-Dimensional Electron
  *   Microscopy of Cells ("BL3DEMC") and the Regents of the University of 
  *   Colorado.  See implementation file for full copyright notice.
+ *
+ *  $Id$
+ *  Log at end of file
  */                                                                           
-
-/*  $Author$
-
-$Date$
-
-$Revision$
-
-Log at end of file
-*/
 
 #include <string.h>
 #include <qpopupmenu.h>
@@ -26,7 +20,7 @@ Log at end of file
 #include "linegui.h"
 #endif
 
-enum {IP_INFO, IP_EXECUTE, IP_EXECUTETYPE, IP_KEYS, IP_MOUSE, 
+enum {IP_INFO, IP_EXECUTE, IP_EXECUTETYPE, IP_KEYS, IP_MOUSE, IP_EVENT, 
       IP_EXECUTE_MESSAGE};
 
 typedef struct
@@ -63,7 +57,6 @@ int imodPlugInit(void)
   /* Add internal modules to list first */
   ipAddInternalModules();
 
-#ifndef NOPLUGS  
   /* load plugs in environment varialble. */
   imodPlugLoadDir(envdir);
 
@@ -71,7 +64,6 @@ int imodPlugInit(void)
   imodPlugLoadDir(defdir1);
   imodPlugLoadDir(defdir2);
   imodPlugLoadDir(defdir3);
-#endif
 
   maxPlug = ilistSize(plugList);
   return(maxPlug);
@@ -104,7 +96,6 @@ static int ipAddInternalModules()
   return mi;
 }
 
-#ifndef NOPLUGS
 /*
  * Load all the plugins in a given directory 
  */
@@ -190,7 +181,6 @@ static int imodPlugLoad(QString plugpath)
                     plugpath.latin1(), thePlug.name);
   return 0;
 }
-#endif
 
 /*
  * Open a plugin when selected from Special menu 
@@ -206,19 +196,18 @@ void imodPlugOpen(int item)
   /* Get function from internal module or plugin*/
   
   fptr = (SpecialExecute)ipGetFunction(pd, IP_EXECUTE);
-  if (!fptr)
-    nfptr = (SpecialExecuteType)ipGetFunction(pd, IP_EXECUTETYPE);
-    
-  /* invoke function */
   if (fptr) {
     (*fptr)(App->cvi);
     return;
   }
+  nfptr = (SpecialExecuteType)ipGetFunction(pd, IP_EXECUTETYPE);
+    
+  /* invoke function */
   if (!nfptr){
     wprint("\nError invoking %s\n", pd->name);
     return;
   }
-  (*nfptr)(App->cvi, 1 /*IMOD_PLUG_MENU*/, 0);
+  (*nfptr)(App->cvi, IMOD_PLUG_MENU, IMOD_REASON_EXECUTE);
 }
 
 /*
@@ -349,7 +338,7 @@ int imodPlugHandleMouse(ImodView *vw, QMouseEvent *event, float imx, float imy,
                         int but1, int but2, int but3)
 {
   PlugData *pd;
-  int handled, i, mi = ilistSize(plugList);
+  int handled, i, needDraw = 0, mi = ilistSize(plugList);
   SpecialMouse fptr;
 
   if (!mi) 
@@ -365,19 +354,43 @@ int imodPlugHandleMouse(ImodView *vw, QMouseEvent *event, float imx, float imy,
       fptr = (SpecialMouse)ipGetFunction(pd, IP_MOUSE);
       if (fptr){
 	handled = (*fptr)(vw, event, imx, imy, but1, but2, but3);
-	if (handled)
-          return 1;
+	if (handled & 1)
+          return handled;
+        needDraw |= handled;
       }
 
     }
   }
-  return 0;
+  return needDraw;
 }
 
-void imodPlugClean(void)
+int imodPlugHandleEvent(ImodView *vw, QEvent *event, float imx, float imy)
 {
-  imodPlugCall(App->cvi, 0, IMOD_REASON_CLEANUP);
-  return;
+  PlugData *pd;
+  int handled, i, needDraw = 0, mi = ilistSize(plugList);
+  SpecialEvent fptr;
+
+  if (!mi) 
+    return 0;
+  pd = (PlugData *)ilistFirst(plugList);
+  for(i = 0; i < mi; i++){
+          
+    pd = (PlugData *)ilistItem(plugList, i);
+    if (!pd) 
+      continue;
+          
+    if (pd->type & IMOD_PLUG_EVENT){
+      fptr = (SpecialEvent)ipGetFunction(pd, IP_EVENT);
+      if (fptr){
+	handled = (*fptr)(vw, event, imx, imy);
+	if (handled & 1)
+          return handled;
+        needDraw |= handled;
+      }
+
+    }
+  }
+  return needDraw;
 }
 
 /*
@@ -446,7 +459,6 @@ static void *ipGetFunction(PlugData *pd, int which)
     default:
       return NULL;
     }
-#ifndef NOPLUGS
   } else {
     switch (which) {
     case IP_INFO:
@@ -461,69 +473,21 @@ static void *ipGetFunction(PlugData *pd, int which)
       return pd->library->resolve("imodPlugKeys");
     case IP_MOUSE:
       return pd->library->resolve("imodPlugMouse");
+    case IP_EVENT:
+      return pd->library->resolve("imodPlugEvent");
     default:
       return NULL;
     }
-#endif
   }
   return NULL;
 }
 
 
-#ifdef USE_PLUG_FILE
-typedef struct
-{
-  /* Must be set by plugin. */
-  int   xsize, ysize, zsize;
-  int   type;      /* IMOD_UNSIGNED_CHAR, IMOD_SHORT, IMOD_FLOAT */
-  int   format;    /* IMOD_LUMINANCE, IMOD_RGB */
-
-  /* Should be set by plugin. */
-  int   axis;
-  float scale[3];           /* All default to 1.0f */
-  float translate[3];       /* All default to 0.0f */
-  float rotate[3];          /* All default to 0.0f */
-  float amin, amax, amean;  /* All default to 0.0f */
-
-  /* Read only for plugin */
-  char *filename;
-  char *timelabel;
-  int   time;
-
-  /* internal use only */
-  /* functions pointers to load this image. */
-
-  /* plugImageSectionRead(PlugLoad, unsigned char *buf, int z); */
-    
-
-}PlugLoad;
-
-static PlugData *filePlug = NULL;
-static PlugLoad plugLoad;
-
-int imodPlugImageHandle(char *filename)
-{
-  PlugData *pd;
-  int i, mi = ilistSize(plugList);
-    
-  plugLoad.filename = filename;
-
-  for(i = 0; i < mi; i++){
-    pd = ilistItem(plugList, i);
-    if (!pd) continue;
-    if (pd->type & IMOD_PLUG_FILE){
-            
-    }
-  }
-  return(plugs);
-    
-}
-
-
-#endif
-
 /*
 $Log$
+Revision 4.13  2006/02/13 05:09:57  mast
+Added mouse capability
+
 Revision 4.12  2004/12/17 16:43:02  mast
 Added a load call before resolving first symbol to get better diagnostics
 
