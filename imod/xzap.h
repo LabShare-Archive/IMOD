@@ -53,12 +53,14 @@ typedef struct zapwin
   int    centerDefined;  /* Flag that center was defined with mouse */
   int    centerMarked;   /* Flag that center was displayed in extra object */
   int    shiftRegistered;  /* Flag that contour changes have been registered */
+  int    shiftObjNum;    /* Extra object number for center marker */
   int    dragAddCount; /* Number of points added and not registered for undo */
   Iindex dragAddIndex; /* Starting obj, cont, point for first such point*/
   int    dragAddEnd;   /* Ending or last point not registered */
 
   int movieSnapCount; /* Counter if this window is doing movie snapshots */
   int recordSubarea;  /* Record the subarea on the next draw */
+  bool   drewExtraCursor;  /* Flag that extra cursor was drawn */
 
   float  zoom;
   float  xzoom;    /* Possibly slightly different X zoom */
@@ -97,25 +99,22 @@ typedef struct zapwin
 
 }ZapStruct;
 
-void zapClosing(struct zapwin *zap);
-void zapPaint(struct zapwin *zap);
-void zapResize(struct zapwin *zap, int winx, int winy);
-void zapKeyInput(struct zapwin *zap, QKeyEvent *e);
-void zapKeyRelease(struct zapwin *zap, QKeyEvent *e);
-void zapMousePress(struct zapwin *zap, QMouseEvent *e);
-void zapMouseRelease(struct zapwin *zap, QMouseEvent *e);
-void zapMouseMove(struct zapwin *zap, QMouseEvent *e, bool mousePressed);
+void zapClosing(ZapStruct *zap);
+void zapPaint(ZapStruct *zap);
+void zapResize(ZapStruct *zap, int winx, int winy);
+void zapKeyInput(ZapStruct *zap, QKeyEvent *e);
+void zapKeyRelease(ZapStruct *zap, QKeyEvent *e);
+void zapMousePress(ZapStruct *zap, QMouseEvent *e);
+void zapMouseRelease(ZapStruct *zap, QMouseEvent *e);
+void zapMouseMove(ZapStruct *zap, QMouseEvent *e, bool mousePressed);
+void zapGeneralEvent(ZapStruct *zap, QEvent *e);
 void zapHelp(void);
-void zapEnteredZoom(struct zapwin *zap, float newZoom);
-void zapEnteredSection(struct zapwin *zap, int section);
-void zapStepZoom(struct zapwin *zap, int step);
-void zapStateToggled(struct zapwin *zap, int index, int state);
-void zapPrintInfo(struct zapwin *zap);
-void zapStepTime(struct zapwin *zap, int step);
-void zapDrawSymbol(int mx, int my, unsigned char sym, unsigned char size,
-                   unsigned char flags);
-void zapCurrentPointSize(Iobj *obj, int *modPtSize, int *backupSize,
-                         int *imPtSize);
+void zapEnteredZoom(ZapStruct *zap, float newZoom);
+void zapEnteredSection(ZapStruct *zap, int section);
+void zapStepZoom(ZapStruct *zap, int step);
+void zapStateToggled(ZapStruct *zap, int index, int state);
+void zapPrintInfo(ZapStruct *zap);
+void zapStepTime(ZapStruct *zap, int step);
 int  imod_zap_open(struct ViewInfo *vi);
 int zapSubsetLimits(ViewInfo *vi, int &ixStart, int &iyStart, int &nxUse, 
                     int &nyUse);
@@ -123,10 +122,13 @@ void zapReportRubberband();
 void zapSetImageOrBandCenter(float imx, float imy, bool incremental);
 int zapRubberbandCoords(float &rbX0, float &rbX1, float &rbY0, float &rbY1);
 void zapPixelViewState(bool state);
-void zapGetLongestTimeString(ImodView *vi, QString *str);
+void zapSetMouseTracking();
 
 /*
 $Log$
+Revision 3.25  2007/08/13 16:04:50  mast
+Changes for locator window
+
 Revision 3.24  2007/05/31 16:23:10  mast
 Changes for using hot toolbar
 
