@@ -10,11 +10,11 @@ Log at end */
 #include "imod.h"
 #include "imod_display.h"
 #include "b3dgfx.h"
-#include "xzap.h"
 #include "istore.h"
 #include "finegrain.h"
 
-static void imodDrawContourLines(Iobj *obj, int co, GLenum mode);
+static void imodDrawContourLines(ImodView * vi, Iobj *obj, int co,
+                                 GLenum mode);
 static void imodDrawObjectSymbols(ImodView *vi, Iobj *obj);
 static void imodDrawSpheres(ImodView *vi, Iobj *obj);
 static void imodDrawSymbol(Ipoint *point, int sym, int size, int flags, 
@@ -67,9 +67,9 @@ void imodDrawModel(ImodView *vi, Imod *imod, int drawCurrent)
 	
 	if (iobjOpen(obj->flags) || (cont->flags & ICONT_OPEN) ||
             (ob == curob && co == curco))
-	  imodDrawContourLines(obj, co, GL_LINE_STRIP);
+	  imodDrawContourLines(vi, obj, co, GL_LINE_STRIP);
 	else
-	  imodDrawContourLines(obj, co, GL_LINE_LOOP);
+	  imodDrawContourLines(vi, obj, co, GL_LINE_LOOP);
       }
     }
     imodDrawObjectSymbols(vi, obj);
@@ -85,7 +85,7 @@ void imodDrawModel(ImodView *vi, Imod *imod, int drawCurrent)
   obj = imodObjectGet(vi->imod);
   cont = imodContourGet(vi->imod);
   pnt = imodPointGet(vi->imod);
-  zapCurrentPointSize(obj, &modPtSize, &backupSize, &imPtSize);
+  utilCurrentPointSize(obj, &modPtSize, &backupSize, &imPtSize);
 
   /* draw if current contour exists and it is not at wrong time */
   if (cont && cont->psize && !ivwTimeMismatch(vi, 0, obj, cont) && 
@@ -113,7 +113,7 @@ void imodDrawModel(ImodView *vi, Imod *imod, int drawCurrent)
   }   
 }
 
-static void imodDrawContourLines(Iobj *obj, int co, GLenum mode)
+static void imodDrawContourLines(ImodView * vi, Iobj *obj, int co, GLenum mode)
 {
   Ipoint *point;
   Icont *cont = &obj->cont[co];
@@ -132,6 +132,8 @@ static void imodDrawContourLines(Iobj *obj, int co, GLenum mode)
   if (contProps.gap)
     return;
 
+  utilEnableStipple(vi, cont);
+
   glBegin(GL_LINE_STRIP);
   for (pt = 0; pt < lpt; pt++, point++) {
     glVertex3fv((float *)point);
@@ -149,7 +151,7 @@ static void imodDrawContourLines(Iobj *obj, int co, GLenum mode)
     glVertex3fv((float *)cont->pts);
 
   glEnd();
-  return;
+  utilDisableStipple(vi, cont);
 }
 
 static void imodDrawObjectSymbols(ImodView *vi, Iobj *obj)
@@ -380,6 +382,9 @@ void imodDrawSymbol(Ipoint *point, int sym, int size, int flags, int linewidth)
 
 /*
 $Log$
+Revision 4.15  2007/06/04 15:00:47  mast
+Added argument to skip drawing of current point/contour symbols
+
 Revision 4.14  2006/10/11 23:53:52  mast
 Turn off current and end point drawing if drawcursor off
 

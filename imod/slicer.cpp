@@ -25,7 +25,6 @@
 #include "slicer_classes.h"
 #include "hottoolbar.h"
 #include "imod.h"
-#include "xzap.h"
 #include "imod_display.h"
 #include "b3dgfx.h"
 #include "sslice.h"
@@ -391,7 +390,7 @@ int sslice_open(struct ViewInfo *vi)
   ss->alreadyDrew = false;
 
   slice_trans_step(ss);
-  zapGetLongestTimeString(vi, &str);
+  utilGetLongestTimeString(vi, &str);
   ss->qtWindow = new SlicerWindow(ss, maxAngle,  str, App->rgba,
                                   App->doublebuffer, App->qtEnableDepth,
                                   imodDialogManager.parent(IMOD_IMAGE),
@@ -598,8 +597,7 @@ int setTopSlicerAngles(float angles[3], Ipoint *center, bool draw)
     ss->vi->ymouse = ss->cy;
     ss->vi->zmouse = ss->cz;
     if (draw)
-      imodDraw(ss->vi, IMOD_DRAW_XYZ | IMOD_DRAW_SLICE | IMOD_DRAW_ACTIVE |
-               drawflag);
+      imodDraw(ss->vi, IMOD_DRAW_XYZ | IMOD_DRAW_SLICE | drawflag);
   } else if (draw) {
 
     // This needs a guaranteed draw because the top slicer may not
@@ -623,8 +621,7 @@ int setTopSlicerFromModelView(Ipoint *rot)
   ss->qtWindow->setAngles(ss->tang);
   sslice_draw(ss);
   ss->alreadyDrew = true;
-  imodDraw(ss->vi, IMOD_DRAW_XYZ | IMOD_DRAW_SLICE | IMOD_DRAW_ACTIVE | 
-           IMOD_DRAW_SKIPMODV);
+  imodDraw(ss->vi, IMOD_DRAW_XYZ | IMOD_DRAW_SLICE | IMOD_DRAW_SKIPMODV);
   return 0;
 }
 
@@ -2342,7 +2339,7 @@ static void drawCurrentPoint(SlicerStruct *ss)
   if (!ss->vi->drawcursor)
     return;
 
-  zapCurrentPointSize(obj, &modPtSize, &backupSize, &imPtSize);
+  utilCurrentPointSize(obj, &modPtSize, &backupSize, &imPtSize);
   b3dLineWidth(1);
   getNormalToPlane(ss, &norm);
 
@@ -2590,6 +2587,9 @@ void slicerCubePaint(SlicerStruct *ss)
 
 /*
 $Log$
+Revision 4.53  2007/11/30 06:51:50  mast
+Changes for linking slicer to model view
+
 Revision 4.52  2007/11/13 19:13:34  mast
 Eliminated double drawing wherever possible when calling the show slice
 routine, made an option for quality reduction when dragging sliders

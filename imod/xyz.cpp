@@ -1,3 +1,4 @@
+
 /*
  *  xyz.c -- Open the XYZ Window; View the X, Y and Z axis.
  *
@@ -30,7 +31,6 @@
 #include "xxyz.h"
 #include "imod_display.h"
 #include "b3dgfx.h"
-#include "xzap.h"
 #include "control.h"
 #include "imod_info_cb.h"
 #include "imod_input.h"
@@ -1509,6 +1509,8 @@ void XyzWindow::DrawContour(Iobj *obj, int ob, int co)
   if (contProps.gap)
     return;
 
+  utilEnableStipple(vi, cont);
+
   if (!iobjScat(obj->flags)) {    
 
     b3dSubareaViewport(xx->xorigin1, xx->yorigin1, xx->winXdim1, xx->winYdim1);
@@ -1536,9 +1538,10 @@ void XyzWindow::DrawContour(Iobj *obj, int ob, int co)
                                            &ptProps, &stateFlags, 
                                            &changeFlags, handleFlags, 0);
         if (thisVis && ptProps.symtype != IOBJ_SYM_NONE)
-          zapDrawSymbol((int)(z * thisPt->x + bx), 
-                        (int)(z * thisPt->y + by),
-                        ptProps.symtype, ptProps.symsize, ptProps.symflags);
+          utilDrawSymbol((int)(z * thisPt->x + bx), 
+                         (int)(z * thisPt->y + by),
+                         ptProps.symtype, ptProps.symsize, 
+                         ptProps.symflags);
         
         lastVis = thisVis;
         lastPt = thisPt;
@@ -1569,9 +1572,10 @@ void XyzWindow::DrawContour(Iobj *obj, int ob, int co)
             
       if (ptProps.symtype != IOBJ_SYM_NONE)
         for (pt = 0; pt < cont->psize; pt++)
-          zapDrawSymbol((int)(z * cont->pts[pt].x + bx), 
+          utilDrawSymbol((int)(z * cont->pts[pt].x + bx), 
                         (int)(z * cont->pts[pt].y + by),
-                        ptProps.symtype, ptProps.symsize, ptProps.symflags);
+                         ptProps.symtype, ptProps.symsize,
+                         ptProps.symflags);
     }
 
 
@@ -1587,6 +1591,8 @@ void XyzWindow::DrawContour(Iobj *obj, int ob, int co)
                 currentCont);
   }
 
+  utilDisableStipple(vi, cont);
+
   // Draw symbols for scattered points, spheres, and end markers in each window
   b3dSubareaViewport(xx->xorigin1, xx->yorigin1, xx->winXdim1, xx->winYdim1);
   DrawScatSymAllSpheres(obj, ob, cont, co, &contProps, &ptProps, &stateFlags, 
@@ -1601,7 +1607,6 @@ void XyzWindow::DrawContour(Iobj *obj, int ob, int co)
                         handleFlags, nextChange, 2, 1, 0, vi->xmouse, 
                         bx2 + 0.5 * z, (float)by, 1.);
   b3dResizeViewportXY(xx->winx, xx->winy);
-  return;
 }
 
 /*
@@ -1635,9 +1640,10 @@ void XyzWindow::DrawSymProj(Iobj *obj, Icont *cont, int co,
         
     /* Symbol if in plane */
     if (thisVis && ptProps->symtype != IOBJ_SYM_NONE)
-      zapDrawSymbol((int)(z * point[indx] + bx), 
-                    (int)(z * point[indy] + by),
-                    ptProps->symtype, ptProps->symsize, ptProps->symflags);
+      utilDrawSymbol((int)(z * point[indx] + bx), 
+                     (int)(z * point[indy] + by),
+                     ptProps->symtype, ptProps->symsize, 
+                     ptProps->symflags);
 
     /* connecting line if in plane or if projecting current cont, and not 
        last point unless closure is appropriate */
@@ -1688,9 +1694,10 @@ void XyzWindow::DrawScatSymAllSpheres(Iobj *obj, int ob,  Icont *cont, int co,
       if (ptProps->symtype != IOBJ_SYM_NONE) {
         testz = indz == 2 ? B3DNINT(point[indz]) : (int)point[indz];
         if (testz == currentZ)
-          zapDrawSymbol((int)(z * point[indx] + bx), 
-                        (int)(z * point[indy] + by),
-                        ptProps->symtype, ptProps->symsize, ptProps->symflags);
+          utilDrawSymbol((int)(z * point[indx] + bx), 
+                         (int)(z * point[indy] + by),
+                         ptProps->symtype, ptProps->symsize, 
+                         ptProps->symflags);
         
       }
     }
@@ -1809,7 +1816,7 @@ void XyzWindow::DrawCurrentPoint()
     return;
 
   b3dLineWidth(obj->linewidth2);
-  zapCurrentPointSize(obj, &modPtSize, &backupSize, &imPtSize);
+  utilCurrentPointSize(obj, &modPtSize, &backupSize, &imPtSize);
   psize = modPtSize;
   if (cont && cont->psize > 1 && 
       (pnt == cont->pts || pnt == cont->pts + cont->psize - 1))
@@ -2355,6 +2362,11 @@ void XyzGL::mouseMoveEvent( QMouseEvent * event )
 
 /*
 $Log$
+Revision 4.45  2007/11/16 23:18:54  mast
+Added ability to adjust balance between the panel sizes, added simple
+centering button, fixed behavior with pixel view open, fixed panning
+to start when mouse has moved far enough.
+
 Revision 4.44  2007/07/13 17:29:47  sueh
 bug# 1023 Added mFirstDraw and mTimerID to fix a first draw problem.
 In GetCIImages, allocating space based on the size of the views.
