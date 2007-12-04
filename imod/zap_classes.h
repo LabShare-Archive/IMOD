@@ -87,6 +87,7 @@ class ZapWindow : public QMainWindow
     void keyReleaseEvent ( QKeyEvent * e );
     void closeEvent ( QCloseEvent * e );
     void fontChange(const QFont &oldFont) {setFontDependentWidths();};
+  void wheelEvent ( QEvent * e);
 
  private:
     void setupToggleButton(HotToolBar *toolBar, QSignalMapper *mapper, 
@@ -116,6 +117,7 @@ class ZapGL : public QGLWidget
         const char * name = 0);
   ~ZapGL() {};
   void setBufferSwapAuto(bool state) { setAutoBufferSwap(state); };
+  bool extraCursorInWindow() {return (mMousePressed || mMouseInWindow);};
   struct zapwin *mZap;
  
 protected:
@@ -125,15 +127,22 @@ protected:
   void mouseReleaseEvent ( QMouseEvent * e );
   void mouseMoveEvent ( QMouseEvent * e );
   void timerEvent(QTimerEvent *e);
+  void leaveEvent ( QEvent * e);
+  void enterEvent ( QEvent * e);
+  void wheelEvent ( QEvent * e);
 
  private:
   bool mMousePressed;
+  int mMouseInWindow;
   bool mFirstDraw;
   int mTimerID;
 };
 
 /*
 $Log$
+Revision 4.10  2007/05/31 16:23:10  mast
+Changes for using hot toolbar
+
 Revision 4.9  2006/09/17 18:15:59  mast
 Changes to provide mouse position to pixelview
 
