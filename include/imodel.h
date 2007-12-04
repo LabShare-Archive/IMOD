@@ -137,6 +137,7 @@ typedef struct Mod_Mesh
   b3dInt16        surf;     /* Surface  */
   Ilist          *store;
 }Imesh;
+#endif
 
 
 /* Describes current object, contour and point. */
@@ -146,7 +147,6 @@ typedef struct Mod_Index
   b3dInt32  contour;
   b3dInt32  point;
 }Iindex;
-#endif
 
 /* DOC_SECTION PLANES */
 /* DOC_CODE Iplane structure */
@@ -697,6 +697,9 @@ extern "C" {
 
 /*    
     $Log$
+    Revision 3.41  2007/11/28 01:30:31  mast
+    Added conditional sections so it can be used instead of model.h
+
     Revision 3.40  2007/09/25 15:45:05  mast
     Added ref image function
 
