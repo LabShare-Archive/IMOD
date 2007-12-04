@@ -141,9 +141,10 @@ typedef struct ViewInfo
   /* Grey Scale Ramp Data. */
   Cramp *cramp;
 
-  /* THE MODEL and an extra object and the selection list */
+  /* THE MODEL and extra objects and the selection list */
   Imod  *imod;
-  Iobj  *extraObj;
+  Iobj  *extraObj;        /* The general extra object array */
+  int   numExtraObj;      /* Number of extra objects allocated */
   Ilist *selectionList;
 
   /* storage for list of line pointers and a blank line */
@@ -172,6 +173,7 @@ typedef struct ViewInfo
   int    whichGreen;      /* Whether main section (0) or other (1) is green */
   int    reverseOverlay;  /* Toggle reverse contrast when going in or out */
   int    drawStipple;     /* Flag to draw contours with stipple if flag set */
+  int    trackMouseForPlugs; /* Number of plugins that want mouse tracking */
      
   int      flippable;     /* Flag that images can be y-z flipped */
   short    fakeImage;     /* No real image data. */
@@ -251,10 +253,6 @@ extern int (*ivwFastGetValue)(int x, int y, int z);
 
 int imodLoopStarted();
 void imod_quit(void);
-char *imodwfname(char *intro);
-char *imodwEithername(char *intro, char *filein, int modelFirst);
-char *imodwGivenName(char *intro, char *filein);
-QString imodCaption(char *intro);
 bool imodDebug(char key);
 
 #endif     
@@ -262,6 +260,9 @@ bool imodDebug(char key);
 
 /*
 $Log$
+Revision 3.38  2007/11/27 17:53:54  mast
+Add element to enable stipple drawing
+
 Revision 3.37  2007/09/20 22:05:37  mast
 Defined RADIANS_PER_DEGREE once
 
