@@ -191,6 +191,20 @@ is applied before all other image transformations.  If no output size is
 specified, the size of the input image will be scaled appropriately so that
 the output will contain the entire image.
 
+[Field = AdjustOrigin]
+short = origin
+type = B
+usage = Adjust the image origin for changes in image size and location
+tooltip = 
+manpage = Adjust the origin values in the image file header for changes in
+image size or the centering of a subarea.  With this adjustment, a model
+built on the input stack should be correctly located when loaded onto the
+output stack in 3dmod(1).  Model points will be correctly located in Z
+provided that a contiguous set of sections is output.  They will be correct
+in X and Y provided that the only operations on the data are a change in size
+of the output, binning with -bin, scaling with -expand, and shifting with
+-offset.
+
 [Field = LinearInterpolation]
 short = linear
 type = B
