@@ -1,12 +1,7 @@
 #
 # Makefile for libimesh
 #
-#
-#  $Author$
-#
-#  $Date$
-#
-#  $Revision$
+# $Id$
 #
 # Log at end
 #
@@ -40,6 +35,9 @@ clean :
 # Some depends.
 #
 $(OBJS) : $(INCDIR)/mkmesh.h $(INCDIR)/iobj.h $(INCDIR)/icont.h \
-$(INCDIR)/ipoint.h $(INCDIR)/imesh.h $(INCDIR)/b3dutil.h $(INCDIR)/model.h
+$(INCDIR)/ipoint.h $(INCDIR)/imesh.h $(INCDIR)/b3dutil.h $(INCDIR)/imodel.h
 
 #  $Log$
+#  Revision 1.1  2006/09/12 14:57:10  mast
+#  New library
+#
