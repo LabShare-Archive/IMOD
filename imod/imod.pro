@@ -23,6 +23,7 @@ HEADERS	+= autox.h \
 	control.h \
 	imodv.h \
 	imod_workprocs.h \
+	imod_utilities.h \
 	iproc.h \
 	slicer_classes.h \
 	sslice.h \
@@ -107,6 +108,7 @@ SOURCES	+= autox.cpp \
 	imodv_stereo.cpp \
 	imodv_views.cpp \
 	imod_workprocs.cpp \
+	imod_utilities.cpp \
 	iproc.cpp \
 	pixelview.cpp \
 	slicer.cpp \
