@@ -63,13 +63,10 @@ c
       real*4 pixelMagGrad, axisRot
       real*4 tiltAngles(lmsec), dmagPerUm(lmsec), rotPerUm(lmsec)
 c       
-      logical rescale,blankOutput
+      logical rescale,blankOutput,adjustOrigin
       character dat*9,tim*8,tempext*9
       character*320 tempname,temp_filename
       logical nbytes_and_flags
-c       
-c       7/7/00 CER: remove the encode's; titlech is the temp space
-c       
       character*80 titlech
       integer*4 inunit,nfilein,listot,noutot,nfileout,nx3,ny3,idim
       integer*4 newmode,ifoffset,ifxform,nxforms,nlineuse,ifmean,iffloat
@@ -107,7 +104,7 @@ c
 c       fallbacks from ../../manpages/autodoc2man -2 2  newstack
 c       
       integer numOptions
-      parameter (numOptions = 31)
+      parameter (numOptions = 32)
       character*(40 * numOptions) options(1)
       options(1) =
      &    'input:InputFile:FNM:@output:OutputFile:FNM:@'//
@@ -119,12 +116,13 @@ c
      &    'xform:TransformFile:FN:@uselines:UseTransformLines:LIM:@'//
      &    'onexform:OneTransformPerFile:B:@rotate:RotateByAngle:F:@'//
      &    'expand:ExpandByFactor:F:@bin:BinByFactor:I:@'//
-     &    'linear:LinearInterpolation:B:@float:FloatDensities:I:@'//
-     &    'contrast:ContrastBlackWhite:IP:@scale:ScaleMinAndMax:FP:@'//
-     &    'fill:FillValue:F:@multadd:MultiplyAndAdd:FPM:@'//
-     &    'distort:DistortionField:FN:@imagebinned:ImagesAreBinned:I:@'//
-     &    'fields:UseFields:LIM:@gradient:GradientFile:FN:@'//
-     &    'test:TestLimits:IP:@param:ParameterFile:PF:@help:usage:B:'
+     &    'origin:AdjustOrigin:B:@linear:LinearInterpolation:B:@'//
+     &    'float:FloatDensities:I:@contrast:ContrastBlackWhite:IP:@'//
+     &    'scale:ScaleMinAndMax:FP:@fill:FillValue:F:@'//
+     &    'multadd:MultiplyAndAdd:FPM:@distort:DistortionField:FN:@'//
+     &    'imagebinned:ImagesAreBinned:I:@fields:UseFields:LIM:@'//
+     &    'gradient:GradientFile:FN:@test:TestLimits:IP:@'//
+     &    'param:ParameterFile:PF:@help:usage:B:'
 c       
 c       Pip startup: set error, parse options, check help, set flag if used
 c       
@@ -157,6 +155,7 @@ c
       numScaleFacs = 0
       ifUseFill = 0
       blankOutput = .false.
+      adjustOrigin = .false.
       listIncrement = 1
 C       
 C       Read in list of input files
@@ -571,6 +570,7 @@ c
         ierr = PipGetInteger('BinByFactor', iBinning)
         ierr = PipGetString('DistortionField', idfFile)
         ierr = PipGetString('GradientFile', magGradFile)
+        ierr = PipGetLogical('AdjustOrigin', adjustOrigin)
         ierr = PipGetTwoIntegers('TestLimits', limdim, lenTemp)
         limdim = min(limdim, maxdim)
         lenTemp = min(lenTemp, maxTemp)
@@ -890,22 +890,44 @@ c
 		iyOriginOff = iBinning * (ny3 / 2 - nybin / 2) - iyOffset -
      &		    (ny3 * iBinning - ny) / 2
 	      endif
-              print *,ixOffset, ixOriginOff
-	      call ialorg(2, xorig + delt(1) * ixOriginOff,
-     &		  yorig + delt(1) * iyOriginOff, zorig)
+c               print *,ixOffset, ixOriginOff
+              xorig = xorig + delt(1) * ixOriginOff
+              yorig = yorig + delt(2) * iyOriginOff
 	    endif
-c             
-c             7/7/00 CER: remove the encodes
+c
+c             Adjust origin if requested: it is different depending on whether
+c             there are transforms and whether offset was applied before or 
+c             after.  Delt can be modified, it will be reread
+            if (adjustOrigin) then
+              zorig = zorig - nsecred * delt(3)
+              delt(1) = delt(1) * iBinning / expandFactor
+              delt(2) = delt(2) * iBinning / expandFactor
+              if (ifxform .eq. 0) then
+                xorig = xorig - (nxbin / 2 + nint(xcen(isec)) - nx3 / 2) *
+     &              delt(1)
+                yorig = yorig - (nybin / 2 + nint(ycen(isec)) - ny3 / 2) *
+     &              delt(2)
+              elseif (applyFirst .ne. 0) then
+                xorig = xorig - (expandFactor * (nxbin / 2. + xcen(isec))  -
+     &              nx3 / 2.) * delt(1)
+                yorig = yorig - (expandFactor * (nybin / 2. + ycen(isec)) -
+     &              ny3 / 2.) * delt(2)
+              else
+                xorig = xorig - (expandFactor * nxbin / 2. + xcen(isec) -
+     &              nx3 / 2.) * delt(1)
+                yorig = yorig - (expandFactor * nybin / 2. + ycen(isec) -
+     &              ny3 / 2.) * delt(2)
+              endif
+            endif
+            if (adjustOrigin .or. iBinning .gt. 1)
+     &          call ialorg(2, xorig, yorig, zorig)
 c             
             if(trunctxt.eq.' ')then
               write(titlech,302) xftext,floatxt,dat,tim
-              read(titlech,'(20a4)')(TITLE(kti),kti=1,20)
-C		ENCODE(80,302,TITLE)xftext,floatxt,dat,tim
             else
               write(titlech,301) xftext,floatxt,trunctxt
-              read(titlech,'(20a4)')(TITLE(kti),kti=1,20)
-C               ENCODE(80,301,TITLE)xftext,floatxt,trunctxt
             endif
+            read(titlech,'(20a4)')(TITLE(kti),kti=1,20)
 301         FORMAT('NEWSTACK: Images copied',a13,a18,a20)
 302         FORMAT('NEWSTACK: Images copied',a13,a18,t57,a9,2x,a8)
             DMAX=-1.e30
@@ -1870,6 +1892,9 @@ c
 ************************************************************************
 *       
 c       $Log$
+c       Revision 3.46  2007/11/18 04:53:46  mast
+c       Increased filename limits to 320
+c
 c       Revision 3.45  2007/10/12 20:58:26  mast
 c       Adjusted to change in interpolation center to be around center of image
 c
