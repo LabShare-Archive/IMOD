@@ -28,11 +28,11 @@
 #include "multislider.h"
 #include "preferences.h"
 #include "dia_qtutils.h"
-#include "control.h"
 
 #include "imod.h"
 #include "sslice.h"
 #include "xtum.h"
+#include "control.h"
 
 #include "imod_input.h"
 #include "b3dgfx.h"
@@ -1256,6 +1256,9 @@ void TumblerGL::paintGL()
 
 /*
 $Log$
+Revision 4.28  2007/07/08 16:04:50  mast
+Used new hot slider function
+
 Revision 4.27  2007/06/26 21:54:52  sueh
 bug# 1021 Removed win_support.
 
