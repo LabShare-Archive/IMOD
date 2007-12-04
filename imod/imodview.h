@@ -81,7 +81,7 @@ char DLL_EX_IM *ivwGetTimeLabel(ImodView *inImodView);
 char DLL_EX_IM *ivwGetTimeIndexLabel(ImodView *inImodView, int inIndex);
 
 /*!
- * Sets the time for a new contour [cont[ in object pobj] to match the 
+ * Sets the time for a new contour [cont] in object [obj] to match the 
  * current image time. 
  */
 void DLL_EX_IM ivwSetNewContourTime(ImodView *vw, Iobj *obj, Icont *cont);
@@ -246,6 +246,9 @@ int DLL_EX_IM imodNumSelectedObjects(ImodView *vi, int &minOb, int &maxOb);
 /* 
 
 $Log$
+Revision 1.11  2007/12/04 18:50:54  mast
+Added mouse tracking, extra objects enhancement, and documentation
+
 Revision 1.10  2007/11/27 17:56:57  mast
 Added function to enable stipple drawing
 
