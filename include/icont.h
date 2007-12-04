@@ -19,12 +19,15 @@
 /*****************************************************************************/
 /* contour flags                                                             */
 
-#define ICONT_OPEN       (1l << 3 ) /* Don't close end points.               */
-#define ICONT_WILD       (1l << 4 ) /* No sane constrains on data.           */
-#define ICONT_STIPPLED   (1l << 5 ) /* Draw stippled lines                   */
-#define ICONT_NOCONNECT  (1l << 9 ) /* Don't connect contour points.         */
-#define ICONT_SCANLINE   (1l << 17) /* Points are in pairs for scanline.     */
-#define ICONT_CONNECT_TOP    (1l << 18) /* Contour connected above in mkmesh.*/
+#define ICONT_OPEN         (1l << 3 ) /* Don't close end points.             */
+#define ICONT_WILD         (1l << 4 ) /* Points are not in one Z plane       */
+#define ICONT_STIPPLED     (1l << 5 ) /* Draw stippled lines                 */
+#define ICONT_CURSOR_LIKE  (1l << 6 ) /* Draw if mouse in window, ignore Z   */
+#define ICONT_DRAW_ALLZ    (1l << 7 ) /* Draw an all planes; ignore Z        */
+#define ICONT_MMODEL_ONLY  (1l << 8 ) /* Draw only in model mode             */
+#define ICONT_NOCONNECT    (1l << 9 ) /* Don't connect contour points.       */
+#define ICONT_SCANLINE     (1l << 17) /* Points are in pairs for scanline    */
+#define ICONT_CONNECT_TOP  (1l << 18) /* Contour connected above in mkmesh.*/
 #define ICONT_CONNECT_BOTTOM (1l << 19) /* Contour connected below in mkmesh.*/
 #define ICONT_TEMPUSE      (1l << 31)   /* Temporary marker flag */
 
@@ -201,6 +204,9 @@ void imodContourNestLevels(Nesting *nests, int *nestind, int numnests);
 
 /*
 $Log$
+Revision 3.13  2007/11/27 21:28:47  mast
+Added functions for getting and setting bit flags in contour
+
 Revision 3.12  2007/11/27 17:52:30  mast
 Add stippled falg
 
