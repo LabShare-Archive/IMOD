@@ -12,6 +12,9 @@ $Date$
 $Revision$
 
 $Log$
+Revision 1.4  2006/02/13 05:10:14  mast
+Added mouse function
+
 Revision 1.3  2004/09/24 18:09:31  mast
 Added message function
 
@@ -34,6 +37,7 @@ void imodPlugMenu(QPopupMenu *parent); /* build plugin menu. */
 int imodPlugHandleKey(ImodView *vw, QKeyEvent *event);
 int imodPlugHandleMouse(ImodView *vw, QMouseEvent *event, float imx, float imy,
                         int but1, int but2, int but3);
+int imodPlugHandleEvent(ImodView *vw, QEvent *event, float imx, float imy);
 void imodPlugOpen(int item);
 void imodPlugOpenByName(char *name);
 int imodPlugMessage(ImodView *vw, QStringList *strings, int *arg);
