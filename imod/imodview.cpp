@@ -36,6 +36,7 @@ Log at end of file
 #include "imod_iscale.h"
 #include "iproc.h"
 #include "autox.h"
+#include "xzap.h"
 #include "xcramp.h"
 #include "imod_workprocs.h"
 #include "preferences.h"
@@ -46,6 +47,7 @@ static int ivwManageInitialFlips(ImodView *vi);
 static int ivwCheckLinePtrAllocation(ImodView *vi, int ysize);
 static int ivwCheckBinning(ImodView *vi, int nx, int ny, int nz);
 static void deletePlistBuf(void);
+static void startExtraObjectIfNone(ImodView *vi);
 
 /* default settings for the view info structure. */
 void ivwInit(ImodView *vi)
@@ -93,11 +95,13 @@ void ivwInit(ImodView *vi)
   vi->overlaySec = 0;
   vi->overlayRamp = -1;
   vi->drawStipple = 0;
+  vi->trackMouseForPlugs = 0;
 
   vi->fakeImage     = 0;
   vi->rawImageStore = 0;
   vi->multiFileZ = 0;
-  vi->extraObj = imodObjectNew();
+  vi->extraObj = NULL;
+  startExtraObjectIfNone(vi);
   vi->linePtrs = NULL;
   vi->linePtrMax = 0;
   vi->blankLine = NULL;
@@ -2297,30 +2301,87 @@ Imod *ivwGetModel(ImodView *inImodView)
   return(inImodView->imod);
 }
 
+static void startExtraObjectIfNone(ImodView *vi)
+{
+  if (!vi->extraObj) {
+    vi->extraObj = imodObjectNew();
+    vi->numExtraObj = vi->extraObj ? 1 : 0;
+  }
+}
+
 Iobj *ivwGetExtraObject(ImodView *inImodView)
 {
-  if (inImodView == NULL) 
+  return ivwGetAnExtraObject(inImodView, 0);
+}
+
+int ivwGetFreeExtraObjectNumber(ImodView *vi)
+{
+  int i, found = 0;
+  for (i = 1; i < vi->numExtraObj; i++) {
+    if (vi->extraObj[i].flags & IMOD_OBJFLAG_TEMPUSE) {
+      vi->extraObj[i].flags |= IMOD_OBJFLAG_TEMPUSE;
+      return i;
+    }
+  }
+  startExtraObjectIfNone(vi);
+  if (!vi->extraObj)
+    return -1;
+  vi->numExtraObj++;
+  vi->extraObj = (Iobj *)realloc(vi->extraObj, vi->numExtraObj * sizeof(Iobj));
+  if (!vi->extraObj) {
+    vi->numExtraObj = 0;
+    return -1;
+  }
+  imodObjectDefault(&vi->extraObj[vi->numExtraObj - 1]);
+  return (vi->numExtraObj - 1);
+}
+
+int ivwFreeExtraObject(ImodView *vi, int objNum)
+{
+  if (objNum < 1 || objNum >= vi->numExtraObj || 
+      (!vi->extraObj[objNum].flags & IMOD_OBJFLAG_TEMPUSE))
+    return 1;
+  vi->extraObj[objNum].flags &= ~IMOD_OBJFLAG_TEMPUSE;
+  ivwClearAnExtraObject(vi, objNum);
+}
+
+Iobj *ivwGetAnExtraObject(ImodView *inImodView, int objNum)
+{
+  if (inImodView == NULL || objNum < 0 || 
+      objNum >= inImodView->numExtraObj)
     return(NULL);
-  return(inImodView->extraObj);
+  return &inImodView->extraObj[objNum];
 }
 
 /* Delete all contours in extra object */
 void ivwClearExtraObject(ImodView *inImodView)
 {
-  Iobj *obj;
-  if (inImodView == NULL) 
-    return;
-  obj = inImodView->extraObj;
-  if (!obj->contsize)
+  ivwClearAnExtraObject(inImodView, 0);
+}
+
+void ivwClearAnExtraObject(ImodView *inImodView, int objNum)
+{
+  Iobj *obj = ivwGetAnExtraObject(inImodView, objNum);
+  if (!obj || !obj->contsize)
     return;
   imodContoursDelete(obj->cont, obj->contsize);
   obj->contsize = 0;
   obj->cont = NULL;
+  if (obj->store)
+    ilistDelete(obj->store);
+  obj->store = NULL;
 }
 
 void ivwEnableStipple(ImodView *inImodView, int enable)
 {
   inImodView->drawStipple = enable;
+}
+
+void ivwTrackMouseForPlugs(ImodView *inImodView, int enable)
+{
+  inImodView->trackMouseForPlugs = B3DMAX
+    (0, inImodView->trackMouseForPlugs + (enable ? 1 : -1));
+  zapSetMouseTracking();
 }
 
 int ivwOverlayOK(ImodView *inImodView)
@@ -2563,6 +2624,9 @@ void ivwBinByN(unsigned char *array, int nxin, int nyin, int nbin,
 
 /*
 $Log$
+Revision 4.58  2007/11/27 17:57:14  mast
+Added function to enable stipple drawing
+
 Revision 4.57  2007/09/17 19:10:23  mast
 Added environment variable to skip dumping the FS cache
 
