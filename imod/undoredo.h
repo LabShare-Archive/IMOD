@@ -12,6 +12,9 @@ $Date$
 $Revision$
 
 $Log$
+Revision 4.3  2007/11/27 18:00:00  mast
+Added exposed functions usable from plugin
+
 Revision 4.2  2004/11/21 05:54:02  mast
 Changes for working from model view
 
@@ -46,55 +49,123 @@ typedef struct backup_item BackupItem;
 extern "C" {
 
   // The full-blown calls
+  /*!
+   * Register change of given [type] for [contour] in [object], between
+   * [point] and [point2].  The default for [object], [contour] and [point] 
+   * are the current object, contour, or point if any is < -1;
+   * the default for [point2] is [point] if [point2] < 0. 
+   */
   void DLL_EX_IM undoPointChange(ImodView *vi, int type, int object,
                                  int contour, int point, int point2);
+
+  /*!
+   * Register change of given [type] for [contour] in [object], potentially
+   * involving [contour2] in [object2].  The default for [object] or 
+   * [contour] are the current object or contour if one is < -1.
+   */
   void DLL_EX_IM undoContourChange(ImodView *vi, int type, int object,
                                    int contour, int object2, int contour2);
+
+  /*!
+   * Register change of given [type] for [[object], potentially
+   * involving [object2].  The default for [object] is
+   * the current object if it is < -1.
+   */
   void DLL_EX_IM undoObjectChange(ImodView *vi, int type, int object,
                                   int object2);
+
+  /*! Register change in the model of given [type].  [point] specifies the
+    shift for a PointShift */
   void DLL_EX_IM undoModelChange(ImodView *vi, int type, Ipoint *point);
 
   // Convenience calls that assume the current obj/cont/pt as much as possible
+  /*! Register shift of current point */
   void DLL_EX_IM undoPointShiftCP(ImodView *vi);
+
+  /*! Register shift of point with index [point] in current contour */
   void DLL_EX_IM undoPointShift(ImodView *vi, int point);
 
+  /*! Register addition of point with index [point] in current contour */
   void DLL_EX_IM undoPointAdditionCC(ImodView *vi, int point);
+
+  /*! Register addition of points from index [point] to index [point2] in 
+    current contour */
   void DLL_EX_IM undoPointAdditionCC2(ImodView *vi, int point, int point2);
+
+  /*! Register addition of a point at index [point] in [contour] of [object] */
   void DLL_EX_IM undoPointAddition(ImodView *vi, int object, int contour,
                                    int point);
 
+  /*! Register deletion of the current point */
   void DLL_EX_IM undoPointRemovalCP(ImodView *vi);
+  /*! Register deletion of the point at index [point] in the current contour */
   void DLL_EX_IM undoPointRemoval(ImodView *vi, int point);
+
+  /*! Register deletion of points from index [point] to [point2] in the
+   current contour. */
   void DLL_EX_IM undoPointRemoval2(ImodView *vi, int point, int point2);
 
+  /*! Register change in the data (points) of the current contour */
   void DLL_EX_IM undoContourDataChgCC(ImodView *vi);
+
+  /*! Register change in the data  of [contour] in [object] */
   void DLL_EX_IM undoContourDataChg(ImodView *vi, int object, int contour);
 
+  /*! Register change in properties only of the current contour */
   void DLL_EX_IM undoContourPropChgCC(ImodView *vi);
+
+  /*! Register change in properties only of [contour] in [object] */
   void DLL_EX_IM undoContourPropChg(ImodView *vi, int object, int contour);
 
+  /*! Register deletion of current contour */
   void DLL_EX_IM undoContourRemovalCC(ImodView *vi);
+
+  /*! Register deletion of contour with index [contour] in current object */
   void DLL_EX_IM undoContourRemovalCO(ImodView *vi, int contour);
+
+  /*! Register deletion of [contour] in [object] */
   void DLL_EX_IM undoContourRemoval(ImodView *vi, int object, int contour);
 
+  /*! Register addition of contour at index [contour] in current object */
   void DLL_EX_IM undoContourAdditionCO(ImodView *vi, int contour);
+
+  /*! Register addition of contour at index [contour] in [object] */
   void DLL_EX_IM undoContourAddition(ImodView *vi, int object, int contour);
 
+  /*! Register move of a contour from [object], [contour] to [object2],
+   [contour2]. */
   void DLL_EX_IM undoContourMove(ImodView *vi, int object, int contour,
                                  int object2, int contour2);
 
-  void DLL_EX_IM undoObjectPropChgCC(ImodView *vi);
+  /*! Register a change in properties of the current object */
+  void DLL_EX_IM undoObjectPropChgCO(ImodView *vi);
+
+  /*! Register a change in properties of object at index [object] */
   void DLL_EX_IM undoObjectPropChg(ImodView *vi, int object);
 
+  /*! Register deletion of the current object */
   void DLL_EX_IM undoObjectRemovalCO(ImodView *vi);
+
+  /*! Register deletion of an object at index [object] */
   void DLL_EX_IM undoObjectRemoval(ImodView *vi, int object);
 
+  /*! Register addition of an object at index [object] */
   void DLL_EX_IM undoObjectAddition(ImodView *vi, int object);
+
+  /*! Register moving an object from index [object] to [object2] */
   void DLL_EX_IM undoObjectMove(ImodView *vi, int object, int object2);
 
+  /*! Register a shift of the model by amounts in [point] */
   void DLL_EX_IM undoModelShift(ImodView *vi, Ipoint *point);
 
+  /*! Finish (close) a unit of changes to the model.  Either this function 
+   * or the flush function must always be called eventually after registering
+   * changes. */
   void DLL_EX_IM undoFinishUnit(ImodView *vi);
+
+  /*! Flush all the changes that were registered since this unit of changes 
+    was started.  Call this function if an operation is aborted due to an
+    error after changes were registered.  */
   void DLL_EX_IM undoFlushUnit(ImodView *vi);
 
 

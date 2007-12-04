@@ -17,6 +17,7 @@ class QKeyEvent;
 
 #ifndef IMODP_H
 #include "imodP.h"
+#include "imod_utilities.h"
 #endif
 
 /* Define macro for export of functions under Windows */
@@ -29,12 +30,17 @@ class QKeyEvent;
 #endif
 
 /*********************** Graphics functions. *********************************/
-
-/* defines for imodDraw(); */
+/* DOC_SECTION DEFINES */
+/* DOC_CODE Draw flags */
+/* 
+ * Defines for imodDraw() and ivwDraw().  IMOD_DRAW_ACTIVE and IMOD_DRAW_TOP
+ * are flags added by the control module when calling the active or top window
+ * and would not be included in calls to the draw routines.
+ */
 #define IMOD_DRAW_IMAGE       (1) /* image data has been changed.         */
 #define IMOD_DRAW_XYZ      (1<<1) /* current point has been changed.      */
 #define IMOD_DRAW_MOD      (1<<2) /* model data has been changed.         */
-#define IMOD_DRAW_SLICE    (1<<3) /* A slice location has changed.        */
+#define IMOD_DRAW_SLICE    (1<<3) /* A slicer location has changed.        */
 #define IMOD_DRAW_CMAP     (1<<4) /* Colormap has changed.                */
 #define IMOD_DRAW_MODVIEW  (1<<5) /* model view changed (unused)          */
 #define IMOD_DRAW_SKIPMODV (1<<5) /* skip drawing model view              */
@@ -45,22 +51,30 @@ class QKeyEvent;
 #define IMOD_DRAW_TOP     (1<<15) /* current window has highest priority. */
 
 #define IMOD_DRAW_ALL (IMOD_DRAW_IMAGE | IMOD_DRAW_XYZ | IMOD_DRAW_MOD)
+/* END_CODE */
+/* END_SECTION */
 
 #include "imodview.h"
+
 extern "C" {
 
-/*
+/*!
  *  Draw the model using a 2D line renderer implemented with OpenGL functions.
- *  You will need to set up the view matrix yourself.  Set drawCurrent nonzero
- *  to have current image or model point and current contour end symbols drawn
- *  too.
+ *  This is the function used to draw the slicer window.  You will need to set
+ *  up the view matrix yourself, including Z limits in the projection to avoid
+ *  getting the whole model drawn on a slice.  Set drawCurrent nonzero to have
+ *  current image or model point and current contour end symbols drawn too.
  */
-  void DLL_EX_IM imodDrawModel(ImodView *inImodView, Imod *inModel, 
+void DLL_EX_IM imodDrawModel(ImodView *inImodView, Imod *inModel, 
                                int drawCurrent);
-
-/* imod plugin */
+/* 3dmod plugin */
 /************************************* defines *******************************/
-
+/* DOC_SECTION DEFINES */
+/* DOC_CODE Plugin flags */
+/* The IMOD_PLUG_ flags are ones that a plugin sends back in response to
+ * the ImodPlugInfo call.  The IMOD_REASON_ values are sent to the plugin in 
+ * the imodPlugExecute call 
+ */
 #define IMOD_PLUG_MENU     1   /* Add to special plugin menu. */
 #define IMOD_PLUG_TOOL     2   /* Add to toolbar (future)     */
 #define IMOD_PLUG_PROC     4   /* Add to image proc window. (future)  */
@@ -69,17 +83,16 @@ extern "C" {
 #define IMOD_PLUG_FILE    32   /* Allow other image files to be loaded. */
 #define IMOD_PLUG_MESSAGE 64   /* Execute messages */
 #define IMOD_PLUG_MOUSE  128   /* Handle mouse events */
+#define IMOD_PLUG_EVENT  256   /* Handle other events (wheel, enter, leave) */
 
-#define IMOD_REASON_EXECUTE 1  /* Execute plugin command.                */
-#define IMOD_REASON_CLEANUP 2  /* Imod is exiting. Clean up your mess.   */
-#define IMOD_REASON_STARTUP 3  /* Imod has started. Initalize your plug. */
+#define IMOD_REASON_EXECUTE 1  /* Execute plugin after selection from menu  */
+#define IMOD_REASON_STARTUP 3  /* 3dmod has started. Initialize plugin. */
+/* END_CODE */
 
 
 /**************************** Application Data *******************************/
 
-int           imodDepth(void);
-
-
+/* DOC_CODE Color defines */
 /* color defines. */
 #define COLOR_BACKGROUND 1  /* background color */
 #define COLOR_FOREGROUND 2  /* foreground color */
@@ -91,42 +104,50 @@ int           imodDepth(void);
 #define COLOR_GHOST      8  /* ghost color, darker version of object. */
 #define COLOR_MIN        9  /* The index of the minimum image value. */
 #define COLOR_MAX       10  /* The index of the maximum image value. */
+/* END_CODE */
+/* END_SECTION */
 
-/*
- * return the pixel value of the given IMOD_COLOR value.
+/*!
+ * Gets the color depth; 24 on current systems with no color index mode *
+ */
+int DLL_EX_IM imodDepth(void);
+
+/*!
+ * Returns the pixel value of the given COLOR_ value in [inColor], used to 
+ * call b3dColorIndex
  */
 int DLL_EX_IM imodColorValue(int inColor);
 
 
 /************************ utility functions. *********************************/
 
-/* print text to the imod information window.
- * the usage of this function is similar to the usage of the
+/*! Print text to the 3dmod information window.
+ * The usage of this function is similar to the usage of the
  * stdio function printf.
  */
 void DLL_EX_IM wprint(char *fmt, ...);
 
-/* Print an error message with printf-type arguments
-   This function will output a message box if "out" is NULL or under Windows;
-   otherwise it will print to "out" */
+/*! Prints an error message with printf-type arguments
+   This function will output a message box if [out] is NULL or under Windows;
+   otherwise it will print to [out], which should be {stdout} or {stderr} */
 void DLL_EX_IM imodError(FILE *out, const char *format, ...);
 
-/* Print a message to standard error with printf-type arguments
-   This function will flush stderr under Windows */
+/*! Prints a message to standard error with printf-type arguments
+  This function will flush stderr under Windows */
 void DLL_EX_IM imodPrintStderr(const char *format, ...);
 
-/* Print a message to standard out, or to a message box under Windows */
-void DLL_EX_IM imodPrintInfo(const char *message);
-
-/* Put a message to standard error like "puts", but flush under Windows */
+/*! Puts [message] to standard error like puts, but flushes under Windows */
 void DLL_EX_IM imodPuts(const char *message);
 
+/*! Prints [message] to standard out, or to a message box under Windows */
+void DLL_EX_IM imodPrintInfo(const char *message);
 
-/* Call with a keyevent to execute 3dmod hot keys */
+
+/*! Passes [even] to the general key handler to execute 3dmod hot keys */
 void DLL_EX_IM imodDefaultKeys(QKeyEvent *event, ImodView *vw);
 
-/* Show a help page in Qt Assistant; provide a full
- * path if the path is not relative to IMOD_DIR/html/3dmodHelp
+/*! Shows a help page with filename [page] in Qt Assistant; provide a full
+ * path if the path is not relative to IMOD_DIR/html/3dmodHelp.
  * Returns 1 for error, 0 for success 
  */
 int DLL_EX_IM imodShowHelpPage(const char *page);
@@ -138,6 +159,9 @@ int DLL_EX_IM imodShowHelpPage(const char *page);
 
 /*
     $Log$
+    Revision 3.13  2007/11/30 06:51:50  mast
+    Changes for linking slicer to model view
+
     Revision 3.12  2007/06/04 15:02:33  mast
     Added argument to draw model function
 

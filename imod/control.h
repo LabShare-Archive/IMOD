@@ -3,44 +3,13 @@
  *   Copyright (C) 1995-2002 by Boulder Laboratory for 3-Dimensional Electron
  *   Microscopy of Cells ("BL3DEMC") and the Regents of the University of 
  *   Colorado.  See implementation file for full copyright notice.
+ *
+ *  $Id$
+ *  Log at end of file
  */                                                                           
-
-/*  $Author$
-
-$Date$
-
-$Revision$
-Log at end of file
-*/
 
 #ifndef CONTROL_H
 #define CONTROL_H
-
-/* Classes of windows for the dialog manager */
-#define IMODV_DIALOG 0
-#define IMOD_DIALOG  1
-#define IMOD_IMAGE   2
-
-/* Types of windows for finding geometries */
-enum {ZAP_WINDOW_TYPE, SLICER_WINDOW_TYPE, GRAPH_WINDOW_TYPE, UNKNOWN_TYPE};
-
-typedef struct ilist_struct Ilist;
-
-#ifndef IMODP_H
-typedef struct ViewInfo ImodView;
-#endif
-class QKeyEvent;
-class QString;
-class QWidget;
-class QRect;
-class QObjectList;
-
-typedef void (*ImodControlProc)(struct ViewInfo *, void *, int);
-typedef void (*ImodControlKey)(struct ViewInfo *, void *, int,  QKeyEvent *);
-
-#ifndef CONTROLP_H
-#include "controlP.h"
-#endif
 
 /* Define macro for export of functions under Windows */
 #ifndef DLL_EX_IM
@@ -51,52 +20,107 @@ typedef void (*ImodControlKey)(struct ViewInfo *, void *, int,  QKeyEvent *);
 #endif
 #endif
 
+/* DOC_SECTION MANAGERDEF */
+/* DOC_CODE Dialog Manager */
+// A dialog manager class for hiding, showing, and closing windows in concert
+class DialogManager;
+
+/* Global instances */
+extern DLL_EX_IM DialogManager imodvDialogManager;
+extern DLL_EX_IM DialogManager imodDialogManager;
+
+/* Classes of windows for the dialog manager */
+#define IMODV_DIALOG 0
+#define IMOD_DIALOG  1
+#define IMOD_IMAGE   2
+
+/* Types of windows for finding geometries and finding top windows */
+enum {ZAP_WINDOW_TYPE, SLICER_WINDOW_TYPE, GRAPH_WINDOW_TYPE, UNKNOWN_TYPE};
+/* END_CODE */
+/* END_SECTION */
+
+typedef struct ilist_struct Ilist;
+
+/* DOC_SECTION CONTROLDEF */
+/* DOC_CODE Control callbacks */
+/* Function typedefs for the callback functions passed to @ivwNewControl.  
+   The second argument will have the [data] value passed to @ivwNewControl. */
+typedef void (*ImodControlProc)(struct ViewInfo *, void *, int);
+typedef void (*ImodControlKey)(struct ViewInfo *, void *, int,  QKeyEvent *);
+/* END_CODE */
+/* END_SECTION */
+
+#ifndef IMODP_H
+typedef struct ViewInfo ImodView;
+#endif
+class QKeyEvent;
+class QString;
+class QWidget;
+class QRect;
+class QObjectList;
+
+#ifndef CONTROLP_H
+#include "controlP.h"
+#endif
+
 extern "C" {
 
 /****************************************************************************/
-/* Create a new drawing control for an imod view. 
- * A nonzero integer that is used as the inCtrlId
- * in other control functions is returned.
- *
- * The inDrawFunction is called when the imod draw function
- * is called.  The integer in the third argument contains
- * the draw flags.
- *
- * The inQuitFunction is called when a user quits imod.
- *
- */
 
+/*!
+ * Creates a new image drawing control for a 3dmod view and returns a
+ * nonzero integer that is used as the [inCtrlId] when calling other control 
+ * functions.  ^
+ * ^  The [inDrawFunction] is called when the 3dmod draw function is called.
+ * The integer in the third argument contains the draw flags.
+ * ^  The [inQuitFunction] is called when a user quits 3dmod.
+ * ^  The [inKeyFunction] is optional and if it is not NULL it is called with 
+ * key events that dialogs do not accept.
+ * ^  [data] should be a pointer to the window's data structure so that 
+ * multiple instances can be distinguished
+ */
 int DLL_EX_IM ivwNewControl(ImodView *inImodView,
                             ImodControlProc inDrawFunction,
                             ImodControlProc inQuitFunction,
                             ImodControlKey inKeyFunction,
                             void *data);
 
-/* delete the control associated with the inCtrlId value.
- * this will also call the close or quit method of the control.
+/*!
+ * Deletes the control associated with the ID [inCtrlId].
+ * This will also call the quit callback function of the control.
  */
 int DLL_EX_IM ivwDeleteControl(ImodView *iv, int inCtrlId);
 
-/* remove the control associated with the inCtrlId value.
- * do not call the close method of the control
+/*!
+ * Removes the control associated with the ID [inCtrlId].
+ * This does not call the quit callback function of the control and is 
+ * typically  called by the control itself when it is closing.
  */
 int DLL_EX_IM ivwRemoveControl(ImodView *iv, int inCtrlId);
 
-/* move control to top of control Q if it exists
- * also sets or clears the control active flag.
- * returns the id of the highest priority control id.
+/*!
+ * Moves the control with ID [inCtrlId] to the top of the control queue if it
+ * exists.  Also sets this one as the active control, which means that it alone
+ * is drawn with the IMOD_DRAW_ACTIVE flag.  If necessary, pending draws are
+ * stopped before the conrol queue is reordered.
+ * Returns the ID of the highest priority control.
  */
 int DLL_EX_IM ivwControlPriority(ImodView *iv, int inCtrlId);
 
-/* make the given control the active one.
- * A zero value for inCtrlId make no control the active one.
+/*!
+ * Makes the control with ID [inCtrlId] the active one, which means that if it
+ * is also the top priority control, it is drawn with the IMOD_DRAW_ACTIVE
+ * flag.  A zero value for inCtrlId make no control the active one.
  */
 void DLL_EX_IM ivwControlActive(ImodView *iv, int inCtrlId);    
 
-/* Pass a key event on to the first control on the list that has a callback
+/*!
+ * Passes a key event [e] on to the first control on the list that has a key
+ * callback.
  */
 void DLL_EX_IM ivwControlKey(int released, QKeyEvent *e);
 
+/* DOC_SECTION MANAGER */
 
 // A dialog manager class for hiding, showing, and closing windows in concert
 class DLL_EX_IM DialogManager
@@ -104,12 +128,21 @@ class DLL_EX_IM DialogManager
  public:
   DialogManager();
   ~DialogManager() {};
+
+  /*! Adds [widget] to the list for this {DialogManager}.  The class of dialog
+   * or window is given in [dlgClass] and the specific type, if any, in
+   * [dlgType].  */
   void add(QWidget *widget, int dlgClass = IMODV_DIALOG, 
            int dlgType = UNKNOWN_TYPE);
+
+  /*! Removes [widget] from the list for this {DialogManager}. */
   void remove(QWidget *widget);
   void close();
   void hide();
   void show();
+
+  /*! Returns the parent window for the give type of dialog/window, [dlgType].
+   */
   QWidget *parent(int dlgClass);
   void raise(int dlgClass);
   QRect biggestGeometry(int dlgType);
@@ -120,15 +153,16 @@ class DLL_EX_IM DialogManager
   Ilist *mDialogList;
   QRect mLastZapGeom;
 };
+/* END_SECTION */
 
-/* Global instances */
-extern DLL_EX_IM DialogManager imodvDialogManager;
-extern DLL_EX_IM DialogManager imodDialogManager;
 }
 #endif
 
 /*
 $Log$
+Revision 4.12  2006/08/24 21:30:52  mast
+Added identifier for graph windows
+
 Revision 4.11  2004/08/12 17:02:33  mast
 added SLICER type
 
