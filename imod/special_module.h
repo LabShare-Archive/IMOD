@@ -1,25 +1,8 @@
 /*   special_module.h  -  simple class to have an internal module treated like
  *                          a plugin and appear in Special menu
  *
- *   Copyright (C) 1995-2002 by Boulder Laboratory for 3-Dimensional Electron
- *   Microscopy of Cells ("BL3DEMC") and the Regents of the University of 
- *   Colorado.  See implementation file for full copyright notice.
- */                                                                           
-
-/*  $Author$
-
-$Date$
-
-$Revision$
-
-$Log$
-Revision 1.2  2004/09/24 18:08:34  mast
-Added message execution function
-
-Revision 1.1  2003/10/01 05:08:32  mast
-Initial creation
-
-*/
+ *  $Id$
+ */
 
 #ifndef SPECIAL_CLASS_H
 #define SPECIAL_CLASS_H
@@ -38,6 +21,7 @@ typedef void (*SpecialExecute)(ImodView *);
 typedef int (*SpecialKeys)(ImodView *, QKeyEvent *);
 typedef int (*SpecialMouse)(ImodView *, QMouseEvent *, float, float,
                         int, int, int);
+typedef int (*SpecialEvent)(ImodView *, QEvent *, float, float);
 
 class SpecialModule
 {
@@ -48,6 +32,22 @@ class SpecialModule
   SpecialExecute mExecute;
   SpecialKeys mKeys;
   SpecialMouse mMouse;
+  SpecialEvent mEvent;
 };
 
 #endif
+
+/*
+
+$Log$
+Revision 1.3  2006/02/13 05:11:03  mast
+Added mouse function
+
+Revision 1.2  2004/09/24 18:08:34  mast
+Added message execution function
+
+Revision 1.1  2003/10/01 05:08:32  mast
+Initial creation
+
+*/
+
