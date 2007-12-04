@@ -20,10 +20,7 @@ $(PLUGS) : beadfix.$(O) moc_beadfix.$(O)
 moc_beadfix.cpp : beadfix.h
 	$(MOC) beadfix.h -o moc_beadfix.cpp
 
-beadfix.$(O) : imodplugin.h imod.h imodview.h imodplug.h control.h undoredo.h
-
-imodplugin.h : ../../devkit/imodplugin.h
-	$(CP) -f ../../devkit/imodplugin.h .
+beadfix.$(O) : imod.h imodview.h imodplug.h control.h undoredo.h
 
 imod.h : ../../imod/imod.h
 	$(CP) -f ../../imod/imod.h .

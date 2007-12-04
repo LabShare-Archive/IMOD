@@ -7,6 +7,7 @@ IMD = ../../libimod
 CFD = ../../libcfshr
 IIMD = ../../libiimod
 QTD = ../../libdiaqt
+PLD = ../../imod
 
 HTMLS = $(LHD)/libimod.html $(LHD)/libiimod.html $(LHD)/imodel.html \
 $(LHD)/iobj.html $(LHD)/icont.html $(LHD)/ipoint.html $(LHD)/imesh.html \
@@ -16,7 +17,7 @@ $(LHD)/mod_fwrap.html $(LHD)/b3dutil.html $(LHD)/autodoc.html \
 $(LHD)/mrcfiles.html $(LHD)/iimage.html $(LHD)/plist.html \
 $(LHD)/mrcslice.html $(LHD)/sliceproc.html $(LHD)/libmesh.html \
 $(LHD)/libifft.html $(LHD)/libdiaqt.html $(LHD)/libcfshr.html \
-$(LHD)/cfutils.html
+$(LHD)/cfutils.html $(LHD)/3dmodplug.html
 
 CFUTILS = $(CFD)/parselist.c $(CFD)/circlefit.c $(CFD)/filtxcorr.c \
 $(CFD)/amoeba.c $(CFD)/samplemeansd.c $(CFD)/colormap.c $(CFD)/taperpad.c \
@@ -111,6 +112,11 @@ $(LHD)/libdiaqt.html: libdiaqt.html $(QTD)/arrowbutton.cpp \
 	$(QTD)/dialog_frame.cpp $(QTD)/floatspinbox.cpp \
 	$(QTD)/multislider.cpp $(QTD)/tooledit.cpp
 	$(SDEXE) -d $(QTD) libdiaqt.html $(LHD)/libdiaqt.html
+
+
+$(LHD)/3dmodplug.html: 3dmodplug.html $(PLD)/imodplug.h $(PLD)/imodview.h \
+	$(PLD)/imod.h $(PLD)/control.h $(PLD)/undoredo.cpp $(PLD)/undoredo.h
+	$(SDEXE) -d $(PLD) 3dmodplug.html $(LHD)/3dmodplug.html
 
 # For testing
 #	../../sourcedoc/$(SOURCEDOC_EXE) testin.html testout.html

@@ -1,4 +1,4 @@
-# IMOD 3.8.26
+# IMOD 3.10.23
 #
 # Startup file for bash users of IMOD under Linux - place it in /etc/profile.d
 #
@@ -22,7 +22,9 @@ export IMOD_JAVADIR=${IMOD_JAVADIR:=/usr/local/java}
 
 # Put the IMOD programs on the path
 #
-export PATH=$IMOD_DIR/bin:$PATH
+if ! echo ${PATH} | /bin/grep -q $IMOD_DIR/bin ; then
+    export PATH=$IMOD_DIR/bin:$PATH
+fi
 
 # Set variable with location of the IMOD plugins
 #

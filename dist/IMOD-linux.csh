@@ -1,4 +1,4 @@
-# IMOD 3.8.26
+# IMOD 3.10.23
 #
 # Startup file for tcsh users of IMOD under Linux - place it in /etc/profile.d
 #
@@ -21,7 +21,9 @@ if (! $?IMOD_JAVADIR) setenv IMOD_JAVADIR /usr/local/java
 # Put the IMOD programs on the path
 #
 if ($?PATH) then
-    setenv PATH "$IMOD_DIR/bin:$PATH"
+    if ( "$PATH" !~ *$IMOD_DIR/bin* ) then
+        setenv PATH "$IMOD_DIR/bin:$PATH"
+    endif
 else
     setenv PATH $IMOD_DIR/bin
 endif
