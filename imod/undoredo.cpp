@@ -11,6 +11,7 @@
  *  Log at end of file
  */
 
+/* DOC_CODE Essay on Undo/Redo */
 /* This module records various kinds of changes to the model so that changes 
    can be undone and redone.  An individual change is specified by one call
    to one of the four change routines.  Changes are organized into groups 
@@ -20,21 +21,21 @@
    object/contour/point before and after the change, as well as state
    information that is required to match before a unit will be undone or 
    redone: the # of objects, the # of contours in the current object, and the
-   number of points in the current contour.
+   number of points in the current contour. ^
 
    A unit is "opened" automatically when a change call comes in, i.e., it is
    created and added to the list and the starting state recorded.  Further
    changes are added to the same unit until an explicit call is made to
    finishUnit to close the unit.  If an error occurs while recording a change,
    the entire undo stack is flushed and further changes are ignore until the
-   the next finishUnit call.
+   the next finishUnit call. ^
 
    This protocol dictates that a change call be made before any actual changes
    to the model (except current contour and point changes).  Also, the 
    finishUnit call must be made after all changes to the model, preferably
    after the current contour and point are set.  If an error occurs after
    starting a unit, flushUnit can be used to clear the changes within that
-   unit but leave the previous undo stack intact.
+   unit but leave the previous undo stack intact. ^
 
    Most changes involve recording some data such as a contour structure or
    complete contour including points.  These data are copied into backup pool
@@ -43,7 +44,7 @@
    from these items when no longer needed and the pool list is periodically 
    repacked to remove empty items.  The number of backup units is limited by
    mMaxUnits and can be quite large; in practice it will be limited by the
-   maximum number of bytes of data allowed in the pool, mMaxBytes.
+   maximum number of bytes of data allowed in the pool, mMaxBytes. ^
 
    The variety of changes allow for relatively efficient recording of most 
    changes.  Points may be added or deleted singly or in groups, or the current
@@ -55,7 +56,7 @@
    views every time.  Object rearrangements invoke a model change.  A change
    of model view invokes an object change for each view, since that is the only
    way to preserve the current state of the objects and of the object views 
-   separately. 
+   separately. ^
 
    The presence of data in a contour or object general storage structure will
    sometimes modify the behavior.  A call to register addition or removal of 
@@ -64,6 +65,7 @@
    will cause an object property change to be registered first if the affected
    object store has data.
  */
+/* END_CODE */
 
 #include "undoredo.h"
 #include "imod.h"
@@ -1377,6 +1379,9 @@ void undoFlushUnit(ImodView *vi) {
  
 /*
   $Log$
+  Revision 4.10  2007/11/27 18:00:18  mast
+  Added exposed functions usable from plugin
+
   Revision 4.9  2007/05/25 05:28:16  mast
   Changes for addition of slicer angle storage
 
