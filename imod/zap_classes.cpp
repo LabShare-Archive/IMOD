@@ -377,6 +377,11 @@ void ZapWindow::keyReleaseEvent (QKeyEvent * e )
   }
   zapKeyRelease(mZap, e);
 }
+void ZapWindow::wheelEvent ( QEvent * e)
+{
+  imodPuts("Zapwin wheelEvent");
+  zapGeneralEvent(mZap, e);
+}
 
 // Whan a close event comes in, inform zap, and accept
 void ZapWindow::closeEvent (QCloseEvent * e )
@@ -390,6 +395,7 @@ ZapGL::ZapGL(struct zapwin *zap, QGLFormat inFormat, QWidget * parent,
   : QGLWidget(inFormat, parent, name)
 {
   mMousePressed = false;
+  mMouseInWindow = -1;
   mZap = zap;
   mFirstDraw = true;
 }
@@ -432,11 +438,31 @@ void ZapGL::mouseReleaseEvent ( QMouseEvent * e )
 
 void ZapGL::mouseMoveEvent ( QMouseEvent * e )
 {
+  mMouseInWindow = true;
   zapMouseMove(mZap, e, mMousePressed);
+}
+
+void ZapGL::enterEvent ( QEvent * e)
+{
+  mMouseInWindow = 1;
+  zapGeneralEvent(mZap, e);
+}
+void ZapGL::leaveEvent ( QEvent * e)
+{
+  mMouseInWindow = 0;
+  zapGeneralEvent(mZap, e);
+}
+void ZapGL::wheelEvent ( QEvent * e)
+{
+  imodPuts("ZapGL wheel");
+  zapGeneralEvent(mZap, e);
 }
 
 /*
 $Log$
+Revision 4.23  2007/07/08 16:04:50  mast
+Used new hot slider function
+
 Revision 4.22  2007/06/26 21:58:07  sueh
 bug# 1021 Removed win_support.
 
