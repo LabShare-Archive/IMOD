@@ -1,5 +1,19 @@
 IMOD History
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+12/4/07: Converted Boxstartend for extracting subvolumes at model points to
+PIP input and made it able to output practically any size volume.
+
+12/4/07: Added option to Newstack to adjust origin values for scaling, binning,
+and outputting a subarea of the original volume, and made Trimvol use this 
+option, so that models built on a volume will display correctly on a subvolume.
+
+12/3/07: Changed 3dmod to support cursor-like extra object drawn by plugin, and
+implemented array of extra objects to avoid conflicts between components using
+them.  Documented 3dmod functions available to plugins, exported undo/redo and
+selection list functions, and modified beadfixer2 to serve as better example.
+
+12/3/07: Chamged Linux startup scripts to place IMOD/bin on path only once.
+
 11/30/07: Added ability to link model view to top slicer and rotate them
 together.
 
