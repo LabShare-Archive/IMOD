@@ -14,10 +14,16 @@ DDEESSCCRRIIPPTTIIOONN
   each volume into a separate file, or stack all the extracted volumes into a
   single output file.  In the latter case, the program can generate two lists
   of piece coordinates to allow the volumes to be examined in two different
-  ways.  One list will assemble all of the volumes into a single square array,
-  with the extracted starting or ending points all appearing on the same
-  section.  The other list will display each piece in its true position in the
-  original volume of images.
+  ways in 3dmod(1).  One list will assemble all of the volumes into a single
+  square array, with the extracted starting or ending points all appearing on
+  the same section.  The other list will display each piece in its true
+  position in the original volume of images.
+
+  When all subvolumes are stacked in to a single file, an average will also be
+  accumulated and saved in the file after the last extracted subvolume.  This
+  average will show up as the rightmost item in the top row when viewing the
+  square array in 3dmod(1).  If there is insufficient memory, the average will
+  not be computed.
 
   Boxstartend uses the PIP package for input (see the manual page for pip(1))
   and can also still take input interactively.  The following options can be

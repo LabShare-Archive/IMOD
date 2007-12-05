@@ -1,0 +1,161 @@
+Version = 1.0
+Pip = 1
+
+[Field = InputImageFile]
+short = image
+type = FN
+usage = Input image file
+tooltip = 
+manpage = Input file with volume to be extracted from.  If this
+option is not entered, the first non-option argument will be used for this
+input file.
+
+[Field = ModelFile]
+short = model
+type = FN
+usage =	 Name of model file with points to be extracted
+tooltip = 
+manpage = Name of model file with points to be extracted.  If this option
+is not entered, the second non-option argument will be used for this input
+file.
+
+[Field = OutputFile]
+short = output
+type = FN
+usage = Output file for single stack of all extracted subvolumes
+tooltip = 
+manpage = Output file for single stack of all extracted subvolumes.  If this
+option is not entered, the third non-option argument will be used for this
+output file.  Either an output file or a root name for a series of files must
+be entered.
+
+[Field = SeriesRootName]
+short = series
+type = CH
+usage = Root name to use for series of numbered files
+tooltip = 
+manpage = Root name to use for series of numbered files, one per point being
+extracted.  A dot and the number
+will be appended to the root name for each file.  The number of digits used
+for the number will be the same for all files so that they will list in order.
+
+[Field = PieceListFile]
+short = piece
+type = FN
+usage = Name of input piece list file if image is montaged or out of sequence
+tooltip =
+manpage =  
+
+[Field = ArrayPieceList]
+short = array
+type = FN
+usage = Name of piece list file for viewing extracted volumes in an array
+tooltip =
+manpage =  
+
+[Field = TruePieceList]
+short = true
+type = FN
+usage = Name of piece list file for viewing subvolumes in original positions
+tooltip =
+manpage =  
+
+[Field = ObjectsToUse]
+short = objects
+type = LI
+usage = List of model objects with points to extract
+tooltip = 
+manpage = List of model objects with points to extract (comma-separated ranges
+allowed).  The default is to use all open contour or scattered point objects.
+This option can be used to select a subset of objects in the model or force
+the use of a closed contour object.
+
+[Field = BoxSizeXY]
+short = box
+type = I
+usage = Size of square box to extract in X/Y plane
+tooltip = 
+manpage = 
+
+[Field = SlicesBelowAndAbove]
+short = slices
+type = IP
+usage = Number of slices to extract below and above points in Z
+tooltip = 
+manpage = Number of slices to extract below and above points in Z.  The
+default is to extract a cube, based on the box size in X and Y.
+
+[Field = WhichPointsToExtract]
+short = which
+type = I
+usage = Which points to extract: 0 for start, 1 for end, -1 for all
+tooltip = 
+manpage = Which points to extract from each contour: 0 for starting points, 
+1 for ending points, or -1 for all points.  The default is -1.
+
+[Field = XMinAndMax]
+short = xminmax
+type = IP
+usage = Minimum and maximum coordinates in X for points to extract
+tooltip = 
+manpage = Minimum and maximum coordinates in X for points to extract.  The
+default is to extract for any point contained within the full volume and to
+fill areas outside the volume with the mean intensity.
+
+[Field = YMinAndMax]
+short = yminmax
+type = IP
+usage = Minimum and maximum coordinates in Y for points to extract
+tooltip = 
+manpage = 
+
+[Field = ZMinAndMax]
+short = zminmax
+type = IP
+usage = Minimum and maximum sections (numbered from 0) for volumes to extract
+tooltip = 
+manpage = Minimum and maximum sections within which volumes must be contained
+in order to be extracted.  The default is to extract a volume for any point
+contained within the full volume, which will lead to blank slices for points
+vey near the top or bottom of the volume.  If this limit is set, the whole
+extracted volume, not just the center point, must be contained with in the
+limits.  Sections are numbered from 0.
+
+[Field = XformsToApply]
+short = xforms
+type = FN
+usage = File of transforms to apply to points before extracting
+tooltip =
+manpage = File of transforms to apply to points before extracting.  The first
+transform in the file should correspond to the first section in the file.
+
+[Field = BackTransform]
+short = back
+type = B
+usage = Back-transform the points with the inverse of those transforms
+tooltip =
+manpage = Back-transform the points with the inverse of the transforms 
+entered with -xforms.  These options could be used to take coordinates from an
+aligned model and extract images from unaligned images.
+
+[Field = BlankBetweenImages]
+short = blank
+type = I
+usage = Pixels of blank space between images in array piece list (default 5)
+tooltip = 
+manpage = 
+
+[Field = ParameterFile]
+short = param
+type = PF
+usage = Read parameter entries from file
+tooltip = 
+manpage = Read parameter entries as keyword-value pairs from a parameter file.
+
+[Field = usage]
+short = help
+type = B
+usage = Print help output
+tooltip = 
+manpage = 
+
