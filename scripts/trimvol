@@ -407,10 +407,10 @@ if ($?slices) then
 	exit 1
     endif
 
-    set contout = "-mo 0 -co $bwout[1],$bwout[3]"
+    set contout = "-mod 0 -con $bwout[1],$bwout[3]"
 endif
 
-newstack -si $xsize,$ysize -of $xoffset,$yoffset $contout $secout "$argv[1]" "$newstout"
+newstack -ori -siz $xsize,$ysize -off $xoffset,$yoffset $contout $secout "$argv[1]" "$newstout"
 
 if ($status) goto clean
 
@@ -420,7 +420,7 @@ if ($?slices) then
 endif
 echo " "
 echo "The newstack command was:"
-echo "newstack -si $xsize,$ysize -of $xoffset,$yoffset $contout $secout $argv[1] $newstout"
+echo "newstack -ori -siz $xsize,$ysize -off $xoffset,$yoffset $contout $secout $argv[1] $newstout"
 
 if ($doflip != "0") then
     echo "Running clip $doflip ..."
@@ -436,6 +436,9 @@ clean:
 exit 1
 
 #  $Log$
+#  Revision 3.16  2007/09/11 22:31:14  mast
+#  Added integer scaling option
+#
 #  Revision 3.15  2006/09/25 16:26:14  mast
 #  Made work with space in IMOD_DIR and spaces in file names
 #
