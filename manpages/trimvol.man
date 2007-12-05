@@ -6,8 +6,8 @@ trimvol \- Trim a volume and scale it to bytes.
 .SH SYNOPSIS
 trimvol [options] <input file>  <output file>
 .SH DESCRIPTION
-trimvol provides a command-line interface to the programs findcontrast(1) and
-newstack(1), for copying a selected portion of an MRC image volume into a new
+Trimvol provides a command-line interface to the programs Findcontrast(1) and
+Newstack(1), for copying a selected portion of an MRC image volume into a new
 file, with automatic scaling to bytes.  
 There are options for specifying the volume to be extracted, and for 
 controlling the scaling to bytes.  There is also an option to scale 
@@ -18,7 +18,7 @@ If you use the
 .B -sz
 or 
 .B -s 
-option, then findcontrast(1) will be run on the specified sections.  By
+option, then Findcontrast(1) will be run on the specified sections.  By
 default, regions
 within 10% of the lateral borders of each section are omitted, but a different
 region can be set with
@@ -35,6 +35,13 @@ a flipped volume only if the
 option is entered.  If you use
 .B -s
 then coordinates will always be taken as coming from a flipped volume.
+
+The origin of the output file will be adjusted so that a model built on the
+input volume will display correctly on the output file.  This will even work
+for a volume rotated with
+.B -rx
+but not for one flipped with
+.B -yz.
 
 .SS Options
 You can enter only one of
