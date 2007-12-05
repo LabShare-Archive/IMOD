@@ -133,13 +133,13 @@ Imod DLL_EX_IM *ivwGetModel(ImodView *inImodView);
  * -1 for an error.  A plugin could claim an object it opens and free it when
  * it closes.
  */
-int ivwGetFreeExtraObjectNumber(ImodView *vi);
+int DLL_EX_IM ivwGetFreeExtraObjectNumber(ImodView *vi);
 
 /*!
  * Clears out and releases the extra object specified by [objNum].  Returns 1 
  * for an object number out of bounds.
  */
-int ivwFreeExtraObject(ImodView *vi, int objNum);
+int DLL_EX_IM ivwFreeExtraObject(ImodView *vi, int objNum);
 
 /*!
  * Gets pointer to the extra object specified by [objNum].  Do not save this 
@@ -246,6 +246,9 @@ int DLL_EX_IM imodNumSelectedObjects(ImodView *vi, int &minOb, int &maxOb);
 /* 
 
 $Log$
+Revision 1.12  2007/12/04 22:03:31  mast
+Changes for documentation and exposing selection functions
+
 Revision 1.11  2007/12/04 18:50:54  mast
 Added mouse tracking, extra objects enhancement, and documentation
 
