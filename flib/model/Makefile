@@ -44,7 +44,7 @@ xfmodel$(E): xfmodel.$(O)
 	$(FC) -o xfmodel xfmodel.$(O) $(LDFLG) $(WLIBS)
 
 boxstartend$(E): boxstartend.$(O)
-	$(FC) -o boxstartend boxstartend.$(O) $(LDFLG) $(WLIBS)
+	$(FC) -o boxstartend boxstartend.$(O) $(LDFLG) $(SMALLLIBS)
 
 endmodel$(E): endmodel.$(O)
 	$(FC) -o endmodel endmodel.$(O) $(LDFLG) $(WLIBS)
@@ -150,6 +150,9 @@ clean:
 	-\rm -f *.o* *~ *.exe $(PROGS)
 
 #  $Log$
+#  Revision 3.15  2007/10/21 17:13:40  mast
+#  Add boxavg
+#
 #  Revision 3.14  2007/09/19 23:48:14  mast
 #  Changes for library rearrangements
 #
