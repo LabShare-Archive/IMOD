@@ -730,8 +730,8 @@ void InfoWindow::editSurfaceSlot(int item)
  */
 void InfoWindow::editContourSlot(int item)
 {
-  struct Mod_Object *obj;
-  struct Mod_Contour *cont;
+  Iobj *obj;
+  Icont *cont;
   int ob,co,pt, ptb, open;
   double dist;
   ImodView *vi = App->cvi;
@@ -740,7 +740,8 @@ void InfoWindow::editContourSlot(int item)
   if (ImodForbidLevel)
     return;
 
-  cont = (struct Mod_Contour *)imodContourGet(imod);
+  cont = imodContourGet(imod);
+  obj = imodObjectGet(imod);
      
   switch(item){
   case ECONTOUR_MENU_NEW: /* new */
@@ -757,15 +758,17 @@ void InfoWindow::editContourSlot(int item)
     break;
           
   case ECONTOUR_MENU_SORT: /* sort */
-    if (imod->mousemode == IMOD_MMODEL){
+    if (imod->mousemode != IMOD_MMODEL){
+      wprint("\aError: Must be in Model mode to Sort.\n");
+    } else if (!obj || iobjScat(obj->flags)) {
+      wprint("\aError: Scattered point objects cannot be sorted.\n");
+    } else {
       vi->undo->clearUnits();
       imodObjectSort(imodObjectGet(imod));
       imod->cindex.contour = -1;
       imod->cindex.point   = -1;
       imodSelectionListClear(vi);
       imod_info_setocp();
-    }else{
-      wprint("\aError: Must be in Model mode to Sort.\n");
     }
     break;
 
@@ -1266,6 +1269,9 @@ static int imodContourBreakByZ(ImodView *vi, Iobj *obj, int ob, int co)
 
 /*
   $Log$
+  Revision 4.36  2007/11/10 04:07:10  mast
+  Changes for setting snapshot directory
+
   Revision 4.35  2007/10/03 20:46:49  mast
   Removes includes for menu and hotkey help
 
