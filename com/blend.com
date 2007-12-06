@@ -1,6 +1,6 @@
 # Command file to run BLENDMONT
 #
-####CreatedVersion#### 3.6.1
+####CreatedVersion#### 3.10.23
 #
 $ blendmont -StandardInput
 ImageInputFile		g5a.st
@@ -18,4 +18,5 @@ ReadInXcorrs	0
 OldEdgeFunctions	0
 StartingAndEndingX	/
 StartingAndEndingY	/
+AdjustOrigin    1
 $mrctaper g5a.ali
