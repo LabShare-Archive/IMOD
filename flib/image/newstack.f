@@ -1011,6 +1011,7 @@ c
             dmean2 = dmin2
             go to 80
           endif
+c          print *,'rescale', rescale
 c           
 c           if transforming, and apply first is selected, get the shifts by
 c           applying the offset first then multiplying that by the transform
@@ -1348,6 +1349,7 @@ C
 c               
               CALL IREPAK2(array(ibchunk),ARRAY,nxbin,nyload,IX1,IX2,IY1,
      &            IY2,dmeansec)
+c              print *,'did repack'
             endif
 c	      
 c             if no rescaling, or if mean is needed now, accumulate sums for
@@ -1367,6 +1369,7 @@ c		  print *,'chunk mean&sd',ichunk,avgsec,sdsec
               tmpmin=min(tmpmin,tmin2)
               tmpmax=max(tmpmax,tmax2)
               dsum=dsum+tsum
+c               print *,'did iclden ',tmin2,tmax2,tmpmin,tmpmax
             else
 c               
 c               otherwise get new min and max quickly
@@ -1467,7 +1470,9 @@ c		print *,'writing',ichunk
 c             
 c             if not scaling
 c             
-            dmean2=dsum
+            dmin2 = tmpmin
+            dmax2 = tmpmax
+            dmean2 = dsum
           endif
 c           
           dmean2=dmean2/(float(nx3)*ny3)
@@ -1892,6 +1897,9 @@ c
 ************************************************************************
 *       
 c       $Log$
+c       Revision 3.47  2007/12/04 18:24:03  mast
+c       Added option to adjust origin
+c
 c       Revision 3.46  2007/11/18 04:53:46  mast
 c       Increased filename limits to 320
 c
