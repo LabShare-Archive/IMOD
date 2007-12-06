@@ -1,10 +1,6 @@
 #! /bin/csh -f
-
-#  $Author$
 #
-#  $Date$
-#
-#  $Revision$
+#  $Id$
 #
 #  Log at end
 #
@@ -21,6 +17,7 @@ set fliparg = ""
 set sxarg = ""
 set syarg = ""
 set dorot = "0"
+set adjust = "-ori"
 
 if ($#argv == 0)then
   echo "Usage: $pn [options] input_file output_file"
@@ -46,6 +43,7 @@ cat <<EOF
      -i              Treat as index coordinates (numbered from 0) rather than
                            as 3dmod coordinates (numbered from 1, the default)
      -f              Treat coordinates as coming from a flipped volume
+     -k              Keep origin the same in output from Newstack (legacy)
      -P              Output process ID
 
   Notes:
@@ -130,6 +128,10 @@ while ($#argv > 2)
       breaksw
     case -i:
       set index = "1"
+      shift
+      breaksw
+    case -k:
+      set adjust = ""
       shift
       breaksw
     case -P:
@@ -410,7 +412,7 @@ if ($?slices) then
     set contout = "-mod 0 -con $bwout[1],$bwout[3]"
 endif
 
-newstack -ori -siz $xsize,$ysize -off $xoffset,$yoffset $contout $secout "$argv[1]" "$newstout"
+newstack -siz $xsize,$ysize -off $xoffset,$yoffset $adjust $contout $secout "$argv[1]" "$newstout"
 
 if ($status) goto clean
 
@@ -420,7 +422,7 @@ if ($?slices) then
 endif
 echo " "
 echo "The newstack command was:"
-echo "newstack -ori -siz $xsize,$ysize -off $xoffset,$yoffset $contout $secout $argv[1] $newstout"
+echo "newstack -siz $xsize,$ysize -off $xoffset,$yoffset $adjust $contout $secout $argv[1] $newstout"
 
 if ($doflip != "0") then
     echo "Running clip $doflip ..."
@@ -436,6 +438,9 @@ clean:
 exit 1
 
 #  $Log$
+#  Revision 3.17  2007/12/05 16:29:26  mast
+#  Added option to newstack command to adjust origin
+#
 #  Revision 3.16  2007/09/11 22:31:14  mast
 #  Added integer scaling option
 #
