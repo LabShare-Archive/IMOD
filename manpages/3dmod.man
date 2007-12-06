@@ -629,8 +629,8 @@ Contour
                 surface.
    Copy...    Copy contours to a different object, Z-level, or
                  time.
-   Sort       Sort contours in the object by their Z values and by 
-                 their time values.
+   Sort       Sort contours in a closed or open contour object by
+                 their Z values and by their time values.
    Break...   Break contour into two contours.  Closed contours
                  can have two break points.
    Join...    Join two contours together.  Closed contours will be 
