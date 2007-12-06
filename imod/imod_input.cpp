@@ -991,6 +991,7 @@ void inputQDefaultKeys(QKeyEvent *event, ImodView *vw)
     } else
       handled = 0;
     break;
+  case Qt::Key_Backspace:
   case Qt::Key_Delete:
     if (!keypad)
       inputDeletePoint(vw);
@@ -1390,6 +1391,9 @@ bool inputTestMetaKey(QKeyEvent *event)
 
 /*
 $Log$
+Revision 4.35  2007/10/04 02:23:44  mast
+Stopped zap window from syncing to model point on home/end/middle keys
+
 Revision 4.34  2007/08/07 00:53:13  mast
 Added hot keys to start and stop movies in Z
 
