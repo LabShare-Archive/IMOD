@@ -36,12 +36,15 @@ option is entered.  If you use
 .B -s
 then coordinates will always be taken as coming from a flipped volume.
 
-The origin of the output file will be adjusted so that a model built on the
-input volume will display correctly on the output file.  This will even work
-for a volume rotated with
+By default, the origin of the output file will be adjusted so that a model
+built on the input volume will display correctly on the output file.  This
+will even work for a volume rotated with
 .B -rx
 but not for one flipped with
 .B -yz.
+This adjustment can be turned off with the 
+.B -k
+option.
 
 .SS Options
 You can enter only one of
@@ -154,6 +157,12 @@ Interpret
 and
 .B -sz
 entries as referring to a flipped volume, with Y and Z transposed.
+.TP
+.B -k
+Keep the origin the same in the output from Newstack(1) instead of passing it
+the -origin option to adjust the origin for the location of the subvolume
+being created.  This option can be used to reproduce a volume created with 
+earlier versions of IMOD.
 .TP 
 .B -P
 Output process ID.

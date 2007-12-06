@@ -264,6 +264,18 @@ usage = Minimum and maximum Y index coordinates to output
 tooltip = 
 manpage = Minimum and maximum Y index coordinates to output.
 
+[Field = AdjustOrigin]
+short = origin
+type = B
+usage = Adjust the image origin for the range of X and Y output
+tooltip = 
+manpage = Adjust the origin values in the image file header based on the
+starting X, Y, and Y that are output.  With this adjustment, a model
+built on the input stack should be correctly located when loaded onto the
+output stack in 3dmod(1).  Model points will be correctly located in Z
+provided that a contiguous set of sections is output.  This origin adjustment
+is inappropriate if an output piece list is used to read the data into 3dmod.
+
 [Field = BinByFactor]
 short = bin
 long = BinByFactor

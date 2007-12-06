@@ -60,8 +60,7 @@ machines, the command will be run with ssh.  You must be set up to log into
 each of the machines with ssh without having to enter a password (see below).
 Each machine must have access to the current directory.  If the directory path
 starts with "/localscratch" this will be replaced by "/scratch/hostname" where
-"hostname" is the name of the current machine.  (This works for the scratch
-filesystem at the BL3DEMC.)  For other situations, the 
+"hostname" is the name of the current machine.  For other situations, the 
 .B
 -w
 option can be used to specify the path by which remote machines can access the
@@ -138,6 +137,18 @@ separately generated keys.  If this seems to be the case, run ssh-keygen once
 on each type of machine then
 combine the .ssh/id_dsa.pub files from each into one authorized_keys2 file.
 Distribute this combined authorized_keys2 file to the .ssh directories.
+
+Processchunks runs jobs via ssh by starting a non-interactive bash login shell
+on the remote computer.  Any programs to be run must be on your path when
+logging in as a bash user.  If you use only IMOD programs in the command file
+and IMOD has been installed by the default method, there should be no problem.
+However, if you set up the IMOD environment in your own startup files instead
+of in the default way, you need to make sure that the environment is defined
+when running this bash shell.  Specifically, you need to set the IMOD_DIR
+environment variable then source $IMOD_DIR/IMOD-....sh in your ~/.bash_profile
+and not in your ~/.bashrc, since the latter is not run by the non-interactive
+shell.  Similarly, if you are running programs outside IMOD whose environment
+is set up in your own startup files, you need to do that in .bash_profile.
 
 Parallel processing through eTomo uses Processchunks.  The available machines
 are generally defined in a file "cpu.adoc" that is located in the directory
