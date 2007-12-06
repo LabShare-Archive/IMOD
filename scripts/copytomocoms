@@ -1,6 +1,8 @@
 #! /bin/csh -f
 # SCRIPT TO COPY AND MODIFY COMMAND FILES FOR TOMOGRAPHY
-
+#  $Id$
+# Log at end of file
+#
 set SAMPLESIZE = 10               # Size of sample tomogram
 set SAMPALISIZE = 60              # Size of aligned stack for sampling
 @ MINBORDER1 = 30                 # Minimum border size
@@ -20,15 +22,6 @@ set seedname = "empty.seed"
 set pn = "copytomocoms"
 
 setenv LC_NUMERIC C
-
-#  $Author$
-#
-#  $Date$
-#
-#  $Revision$
-#
-# Log at end of file
-#
 
 if ($?IMOD_DIR) then
 
@@ -806,6 +799,7 @@ EOF
                 -e "/^AdjustedFocus/s/0/$focusAdj/"\
 	        -e "/^SloppyMontage/s/0/1/"\
 	        -e "/^ShiftPieces/s/0/1/"\
+                -e "/AdjustOrigin/d"\
 		-e "/^StartingAndEndingX/s/[ 	].*/	$xstart $xend/"\
 		-e "/^StartingAndEndingY/s/[ 	].*/	$ystart $yend/"\
                 -e /mrctaper/d\
@@ -1185,6 +1179,7 @@ EOF
                 sed -e "s/-offset 0,0/-offset 0,$offind/"\
                     -e "/\(-size *[0-9]*,\)[0-9]* /s//\1$sampali /"\
                     -e "/if (-e/d"\
+                    -e "/-origin/s///"\
                     -e "/mrctaper/d"\
                     -e "/THIS IS A COMMAND FILE/s//THESE ARE COMMANDS/"\
                     <newst$dstext >>$dstfile
@@ -1193,6 +1188,7 @@ EOF
             sed -e "/^OldEdgeFunctions/s/0/1/"\
                 -e "/^StartingAndEndingY/s/[ 	].*/	$ymin $ymax/"\
                 -e "/if (-e/d"\
+                -e "/AdjustOrigin/d"\
                 -e "/mrctaper/d"\
                  -e "/Command file/s//Commands/"\
                 <blend$dstext >>$dstfile
@@ -1383,6 +1379,9 @@ exit 0
 
 #
 #  $Log$
+#  Revision 3.54  2007/09/24 23:07:17  mast
+#  Set tilt scaling based on lookup table
+#
 #  Revision 3.53  2006/09/18 21:24:44  mast
 #  Switched sample.com to use sampletilt script for eventual python transition
 #
