@@ -1,13 +1,12 @@
 #!/bin/csh -f
 # sampletilt - makes a tilt sample using the current tilt.com
 #
-#  $Author$
-#
-#  $Date$
-#
-#  $Revision$
+#  $Id$
 #
 #  $Log$
+#  Revision 3.2  2006/09/19 19:13:32  mast
+#  Even the shortest script can have a stupid bug
+#
 #  Revision 3.1  2006/09/18 21:25:47  mast
 #  Added to allow easier transition to python
 #
@@ -28,7 +27,7 @@ set tiltname = $argv[6]
 
 sed -e '/^[$#]/d' -e "/SUBSETSTART.*/s//SUBSETSTART 0 $ystart/" \
  -e "/$setname.*\.rec/s//$recname/" -e '/SLICE/d' -e '/WIDTH/d' \
- -e '/[[:cntrl:]]/s///g' -e '/THICKNESS/a\\
+ -e '/AdjustOrigin/s' -e '/[[:cntrl:]]/s///g' -e '/THICKNESS/a\\
 SLICE'" $slstart $slend"' 1\
 ' $tiltname |tilt
 exit $status
