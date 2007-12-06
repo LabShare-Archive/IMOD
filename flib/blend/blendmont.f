@@ -41,9 +41,6 @@ c
       real*4 cell(6)/1.,1.,1.,0.,0.,0./
       real*4 delta(3),xorig, yorig, zorig
       real*4 binline(maxlinelength)
-c       
-c       7/7/00 CER: remove the encode's; titlech is the temp space
-c       
       character*80 titlech
 c       
 c	structure /rotrans/
@@ -78,7 +75,7 @@ c
       logical edgedone(limedge,2),multineg(limsect),active4(3,2)
       logical anypixels,inframe,dofast,anyneg,anylinesout,xinlong,testMode
       logical shifteach,docross,fromedge,exist,xcreadin,xclegacy,outputpl
-      logical xcorrDebug,verySloppy,useEdges,edgesIncomplete
+      logical xcorrDebug,verySloppy,useEdges,edgesIncomplete,adjustOrigin
       real*4 dxgridmean(limedge,2),dygridmean(limedge,2)
       real*4 edgedispx(limedge,2),edgedispy(limedge,2)
       real*4 aftermean(2),aftermax(2)
@@ -143,7 +140,7 @@ c
 c       cut and pasted from ../../manpages/autodoc2man -2 2 blendmont
 c       
       integer numOptions
-      parameter (numOptions = 55)
+      parameter (numOptions = 56)
       character*(40 * numOptions) options(1)
       options(1) =
      &    'imin:ImageInputFile:FN:@plin:PieceListInput:FN:@'//
@@ -160,8 +157,8 @@ c
      &    'shift:ShiftPieces:B:@edge:ShiftFromEdges:B:@'//
      &    'xcorr:ShiftFromXcorrs:B:@readxcorr:ReadInXcorrs:B:@'//
      &    'sections:SectionsToDo:LI:@xminmax:StartingAndEndingX:IP:@'//
-     &    'yminmax:StartingAndEndingY:IP:@bin:BinByFactor:I:@'//
-     &    'maxsize:MaximumNewSizeXandY:IP:@'//
+     &    'yminmax:StartingAndEndingY:IP:@origin:AdjustOrigin:B:@'//
+     &    'bin:BinByFactor:I:@maxsize:MaximumNewSizeXandY:IP:@'//
      &    'minoverlap:MinimumOverlapXandY:IP:@oldedge:OldEdgeFunctions:B:@'//
      &    'perneg:FramesPerNegativeXandY:IP:@'//
      &    'missing:MissingFromFirstNegativeXandY:IP:@'//
@@ -204,6 +201,7 @@ c
       testMode = .false.
       undistortOnly = .false.
       limitData = .false.
+      adjustOrigin = .false.
       iBinning = 1
       numAngles = 0
       numUseEdge = 0
@@ -256,7 +254,7 @@ c
       endif
       if(modeout.lt.0.or.modeout.gt.15.or.
      &    (modeout.ge.3.and.modeout.le.8.and.modeout.ne.6))call exitError(
-     &    'bad mode value')
+     &    'BAD MODE VALUE')
 c       
 c       set up output range, and default input range and minimum.  If real
 c       input, use actual input range and min; otherwise use theoretical
@@ -305,20 +303,20 @@ c
       call fill_listz(izpclist,npclist,listz,nlistz)
       if(dogxforms)then
         if (nlistz.gt.nglist) call exitError(
-     &      'More sections than g transforms')
+     &      'MORE SECTIONS THAN G TRANSFORMS')
 
-        skipxforms=.false.
-        if(nlistz.lt.nsect)then
-          if(nglist.eq.nlistz)then
-            print *,'Looks like there are transforms only for '//
-     &          'the sections that exist in file'
-          elseif(nglist.eq.nsect)then
-            print *,'There seem to be transforms for each z value,'
-     &          //' including ones missing from file'
-            skipxforms=.true.
-          else
-            call exitError('Cannot tell how transforms match up to '//
-     &          'sections, because of missing sections')
+        SKIPXFORMS=.FALSE.
+        IF(NLISTZ.LT.NSECT)THEN
+          IF(NGLIST.EQ.NLISTZ)THEN
+            PRINT *,'LOOKS LIKE THERE ARE TRANSFORMS ONLY FOR '//
+     &          'THE SECTIONS THAT EXIST IN FILE'
+          ELSEIF(NGLIST.EQ.NSECT)THEN
+            PRINT *,'THERE SEEM TO BE TRANSFORMS FOR EACH Z VALUE,'
+     &          //' INCLUDING ONES MISSING FROM FILE'
+            SKIPXFORMS=.TRUE.
+          ELSE
+            CALL EXITERROR('CANNOT TELL HOW TRANSFORMS MATCH UP TO '//
+     &          'SECTIONS, BECAUSE OF MISSING SECTIONS')
           endif
         endif
       endif
@@ -330,7 +328,7 @@ c
       call checklist(iypclist,npclist,1,nyin,minypiece,nypieces,
      &    nyoverlap)
       if(nxpieces.le.0. or. nypieces.le.0)call exitError
-     &    ('CHECKLIST reported 0 pieces in one direction')
+     &    ('CHECKLIST REPORTED 0 PIECES IN ONE DIRECTION')
 c       
       nxtotpix=nxpieces*(nxin-nxoverlap)+nxoverlap
       nytotpix=nypieces*(nyin-nyoverlap)+nyoverlap
@@ -383,12 +381,12 @@ c
         enddo
         if ((anyneg .or. ioptabs .ne. 0) .and. (shifteach .or. xcreadin)
      &      .and. .not.undistortOnly)
-     &      call exitError('you cannot use ShiftPieces or '//
-     &      'ReadInXcorrs with multiple negatives')
+     &      call exitError('YOU CANNOT USE ShiftPieces OR '//
+     &      'ReadInXcorrs WITH MULTIPLE NEGATIVES')
         if (fromedge .and. xclegacy .and. .not.undistortOnly) call exitError
-     &      ('you cannot use both ShiftFromEdges and ShiftFromXcorrs')
+     &      ('YOU CANNOT USE BOTH ShiftFromEdges AND ShiftFromXcorrs')
         if ((izUseDefLow .ge. 0 .or. numUseEdge .gt. 0) .and. shifteach) call
-     &      exitError('you cannot use good edge limits when shifting pieces')
+     &      exitError('YOU CANNOT USE GOOD EDGE LIMITS WHEN SHIFTING PIECES')
       else
         if(anyneg)then
           print *,'There are multi-negative specifications in list file'
@@ -565,6 +563,7 @@ c
         if (pipinput) then
           ierr = PipGetLogical('TestMode', testMode)
           ierr = PipGetLogical('XcorrDebug', xcorrDebug)
+          ierr = PipGetLogical('AdjustOrigin', adjustOrigin)
           ierr = PipGetLogical('ExcludeFillFromEdges', limitData)
           ierr = PipGetTwoIntegers('StartingAndEndingX', minxwant, maxxwant)
           ierr = PipGetTwoIntegers('StartingAndEndingY', minywant, maxywant)
@@ -593,7 +592,7 @@ c
         endif					!the user have it.
         ntrial=ntrial+1
         if(newxframe.gt. maxlinelength) call exitError
-     &      ('output size is too large in X for arrays')
+     &      ('OUTPUT SIZE IS TOO LARGE IN X FOR ARRAYS')
 c         
         call setoverlap(nxtotwant,minxoverlap,newxframe,2,newxpieces,
      &      newxoverlap,newxtotpix)
@@ -601,11 +600,11 @@ c
      &      newyoverlap,newytotpix)
 c         
         if (.not.outputpl .and. (newxpieces.gt.1 .or. newypieces.gt.1))
-     &      call exitError('you must specify an output piece list file'
-     &      //' to have more than one output frame')
+     &      call exitError('YOU MUST SPECIFY AN OUTPUT PIECE LIST FILE'
+     &      //' TO HAVE MORE THAN ONE OUTPUT FRAME')
         if (iBinning .gt. 1 .and. (newxpieces.gt.1 .or. newypieces.gt.1))
-     &      call exitError('With binning, output must be into a '//
-     &      'single frame')
+     &      call exitError('WITH BINNING, OUTPUT MUST BE INTO A '//
+     &      'SINGLE FRAME')
         if (pipinput) print *,'Output file:'
         write(*,115)newxtotpix,'X',newxpieces,newxframe,newxoverlap
         write(*,115)newytotpix,'Y',newypieces,newyframe,newyoverlap
@@ -774,12 +773,12 @@ c
         if(nedgetmp(1,1).ne.nedge(1).or.nedgetmp(1,2).ne.nedge(2))then
           call convert_longs(nedgetmp,10)
           if(nedgetmp(1,1).ne.nedge(1).or.nedgetmp(1,2).ne.nedge(2))
-     &        call exitError('wrong # of edges in edge function file')
+     &        call exitError('WRONG # OF EDGES IN EDGE FUNCTION FILE')
           needbyteswap=1
         endif
         if (nedgetmp(4,1) .ne. nedgetmp(5,2) .or.
      &      nedgetmp(5,1) .ne. nedgetmp(4,2)) call exitError(
-     &      'inconsistent grid spacings between edge function files')
+     &      'INCONSISTENT GRID SPACINGS BETWEEN EDGE FUNCTION FILES')
 c         
 c         set up record size and reopen with right record size
 c         
@@ -920,7 +919,7 @@ c
         call dopen(4,edgenam,'ro','f')
         read(4,*)nedgetmp(1,1),nedgetmp(1,2)
         if(nedgetmp(1,1).ne.nedge(1).or.nedgetmp(1,2).ne.nedge(2))
-     &      call exitError('wrong # of edges in edge correlation file')
+     &      call exitError('WRONG # OF EDGES IN EDGE CORRELATION FILE')
         read(4,*)((edgedispx(i,ixy),edgedispy(i,ixy),i=1,nedge(ixy))
      &      ,ixy=1,2)
         close(4)
@@ -984,7 +983,7 @@ c
           else
             if (PipGetThreeFloats('TiltGeometry', pixelMagGrad, axisRot,
      &          tiltOffset) .ne. 0) call exitError(
-     &          '-tilt or -gradient must be entered with -add')
+     &          '-tilt OR -gradient MUST BE ENTERED WITH -add')
             pixelMagGrad = pixelMagGrad * 10.
             numMagGrad = 1
             dmagPerUm(1) = delDmagPerUm
@@ -1099,8 +1098,14 @@ c         Do as much of header as possible, shift origin same as in newstack
         call ialsiz(2,nxyzbin,nxyzst)
         call irtdel(1,delta)
         call irtorg(1, xorig, yorig, zorig)
-        call ialorg(2, xorig - delta(1) * ixOffset,
-     &      yorig - delta(1) * iyOffset, zorig)
+        xorig = xorig - delta(1) * ixOffset
+        yorig = yorig - delta(2) * iyOffset
+        if (adjustOrigin) then
+          xorig = xorig - delta(1) * (newminxpiece - minxpiece)
+          yorig = yorig - delta(2) * (newminypiece - minypiece)
+          zorig = zorig - delta(3) * (izwant(1) - listz(1))
+        endif
+        call ialorg(2, xorig, yorig, zorig)
         cell(1)=nxbin*delta(1)*iBinning
         cell(2)=nybin*delta(2)*iBinning
 c         
@@ -2764,8 +2769,12 @@ c
 
 c       
 c       $Log$
+c       Revision 3.34  2007/11/18 04:57:27  mast
+c       Redeclared concat at 320
+c
 c       Revision 3.33  2007/10/12 20:57:53  mast
-c       Changed center corrdinate so that center of rotation is around image center
+c       Changed center corrdinate so that center of rotation is around image 
+c       enter
 c
 c       Revision 3.32  2007/09/07 11:05:10  mast
 c       Fixed truncation when input is integers, mode 1 or 6
