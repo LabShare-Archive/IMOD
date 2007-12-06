@@ -1479,8 +1479,9 @@ c
       integer*4 maxsup,nshift,nprj2,nsneed,ninp,nexclist,j,needzw,ind, nument
       integer*4 npadtmp,nprpad,ithicknew,nocosPlanes,ifZfac,localZfacs
       integer*4 ifThickIn,ifSliceIn,ifWidthIn,imageBinned,ifSubsetIn,ierr
-      real*4 pixelLocal, dmint,dmaxt,dmeant, frac
+      real*4 pixelLocal, dmint,dmaxt,dmeant, frac, origx, origy, origz
       integer*4 nViewsReproj, iwideReproj, k, ind1, ind2, ifExpWeight
+      logical*4 adjustOrigin
       integer*4 licenseusfft,niceframe
 c
       integer*4 numOptArg, numNonOptArg
@@ -1491,23 +1492,22 @@ c
 c       fallbacks from ../../manpages/autodoc2man -2 2  tilt
 c       
       integer numOptions
-      parameter (numOptions = 46)
+      parameter (numOptions = 47)
       character*(40 * numOptions) options(1)
       options(1) =
      &    'input:InputProjections:FN:@output:OutputFile:FN:@'//
-     &    'recfile:RecFileToReproject:FN:@:ANGLES:FAM:@:COMPFRACTION:F:@'//
-     &    ':COMPRESS:FAM:@:COSINTERP:IA:@:DENSWEIGHT:FA:@:DONE:B:@'//
-     &    ':EXCLUDELIST2:LIM:@:FlatFilterFraction:F:@:FBPINTERP:I:@'//
+     &    'recfile:RecFileToReproject:FN:@:AdjustOrigin:B:@:ANGLES:FAM:@'//
+     &    ':COMPFRACTION:F:@:COMPRESS:FAM:@:COSINTERP:IA:@:DENSWEIGHT:FA:@'//
+     &    ':DONE:B:@:EXCLUDELIST2:LIM:@:FlatFilterFraction:F:@:FBPINTERP:I:@'//
      &    ':FULLIMAGE:IP:@:IMAGEBINNED:I:@:INCLUDE:LIM:@:LOCALFILE:FN:@'//
-     &    ':LOCALSCALE:F:@:LOG:F:@:MASK:F:@:MODE:I:@:OFFSET:IA:@'//
+     &    ':LOCALSCALE:F:@:LOG:F:@:MASK:F:@:MODE:I:@:OFFSET:FA:@'//
      &    ':PARALLEL:B:@:PERPENDICULAR:B:@:RADIAL:FP:@:REPLICATE:FPM:@'//
-     &    ':REPROJECT:FAM:@xminmax:XMinAndMaxReproj:IP:@'//
-     &    'yminmax:YMinAndMaxReproj:IP:@zminmax:ZMinAndMaxReproj:IP:@'//
-     &    ':ViewsToReproject:LI:@:SCALE:FP:@:SHIFT:FA:@:SLICE:FA:@'//
-     &    ':TOTALSLICES:IP:@:SUBSETSTART:IP:@:THICKNESS:I:@:TILTFILE:FN:@'//
-     &    ':TITLE:CH:@:WeightFile:FN:@:WIDTH:I:@:XAXISTILT:F:@'//
-     &    ':XTILTFILE:FN:@:XTILTINTERP:I:@:ZFACTORFILE:FN:@'//
-     &    'param:ParameterFile:PF:@help:usage:B:'
+     &    ':REPROJECT:FAM:@:SCALE:FP:@:SHIFT:FA:@:SLICE:FA:@'//
+     &    ':SUBSETSTART:IP:@:THICKNESS:I:@:TILTFILE:FN:@:TITLE:CH:@'//
+     &    ':TOTALSLICES:IP:@:ViewsToReproject:LI:@:WeightFile:FN:@:WIDTH:I:@'//
+     &    ':XAXISTILT:F:@xminmax:XMinAndMaxReproj:IP:@:XTILTFILE:FN:@'//
+     &    ':XTILTINTERP:I:@yminmax:YMinAndMaxReproj:IP:@:ZFACTORFILE:FN:@'//
+     &    'zminmax:ZMinAndMaxReproj:IP:@param:ParameterFile:PF:@help:usage:B:'
 c       
       recReproj = .false.
       nViewsReproj = 0
@@ -1649,6 +1649,7 @@ c...... Default double-width linear interpolation in cosine stretching
       reproj=.false.
       nreproj = 0
       flatFrac = 0.
+      adjustorigin = .false.
 c       
 c...... Default title
       CALL DATE(DAT)
@@ -1979,6 +1980,8 @@ c
 c       
       ierr = PipGetFloat('FlatFilterFraction', flatFrac)
       flatFrac = max(0.,  flatFrac)
+c       
+      ierr = PipGetLogical('AdjustOrigin', adjustOrigin)
       call PipDone()
 c       
 c       END OF OPTION READING
@@ -2177,6 +2180,7 @@ c       order the MAPUSE array by angle
 C       
 C       Open output map file
       call irtdel(1,delta)
+      call irtorg(1,origx, origy, origz)
       if (.not. recReproj) then
         if((minTotSlice.le.0 .and. (islice.lt.1.or.jslice.lt.1))
      &      .or.islice.gt.npxyz(2).or. jslice.gt.npxyz(2)) call exitError(
@@ -2250,7 +2254,7 @@ c        print *,'created',NOXYZ
       call ialcel(2,cell)
 c       
 c       if doing perpendicular slices, set up header info to make coordinates
-c       congruent with those of tilt series in simplest case
+c       congruent with those of tilt series
 c       
       if (recReproj) then
         call ialorg(2, 0., 0., 0.)
@@ -2258,8 +2262,22 @@ c
         call ialtlt(2,outilt)
       else if(perp)then
         outilt(1)=sign(90,idelslice)
-        call ialorg(2,cell(1)/2.+delxx,cell(2)/2.,
-     &      float(sign(max(0,islice-1),-idelslice)))
+        if (adjustOrigin) then
+c           
+c           Full adjustment if requested
+          origx = origx  - delta(1) * (npxyz(1) / 2 - iwide / 2 - xoffset)
+          origz = origy - delta(1) * float(sign(max(0,islice-1),idelslice))
+          if (minTotSlice .gt. 0 .and. islice .le. 0)
+     &        origz = origy - delta(1) * (minTotSlice-1)
+          origy = delta(1) * (ithick / 2 + yoffset)
+        else
+c           
+c           Legacy origin.  All kinds of wrong.
+          origx = cell(1)/2.+delxx
+          origy = cell(2)/2.
+          origz = float(sign(max(0,islice-1),-idelslice))
+        endif
+        call ialorg(2,origx, origy, origz)
         call ialtlt(2,outilt)
       endif
 c       
@@ -3664,6 +3682,9 @@ c       constant mean levels.  Descale non-log data by exposure weights
 
 c       
 c       $Log$
+c       Revision 3.38  2007/09/08 20:57:58  mast
+c       Fixed reading of SHIFT, REPROJECT, and some other entries
+c
 c       Revision 3.37  2007/07/19 02:46:41  mast
 c       Removed debugging output
 c
