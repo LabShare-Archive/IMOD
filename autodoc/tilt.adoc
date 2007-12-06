@@ -26,6 +26,21 @@ manpage = Reconstruction file to reproject.  When using this option, all of the
 entries to the program used when building this reconstruction should be
 included as well.
 
+[Field = AdjustOrigin]
+type = B
+usage = Adjust origin for shifts and size changes
+tooltip = 
+manpage = Adjust origin for shifts with the SHIFT option and size changes
+with WIDTH and SLICES, and base the origin on that of the aligned stack.  With
+this option, reconstructions in PERPENDICULAR mode of different size and
+location will have congruent coordinate systems and will load models
+interchangeably.  In addition, reconstructions from different sized projection
+stacks will have congruent coordinates provided that the origin was adjusted
+when making the projection stack (e.g., with the -origin option to
+Newstack(1)).  The default is to produce legacy origin values that are not
+adjusted for these operations, with the origin in X and Y in the center of the
+volume.
+
 [Field = ANGLES]
 type = FAM
 usage = Tilt angles of the views
