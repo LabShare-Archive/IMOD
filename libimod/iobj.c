@@ -283,37 +283,24 @@ int imodObjectSort(Iobj *obj)
 
   if (obj == NULL)
     return(-1);
-  if (obj->flags & IMOD_OBJFLAG_OPEN)
+  if (iobjScat(obj->flags))
     return(-1);
   cont = obj->cont;
 
   if (cont == NULL)
     return(-1);
 
-  /* Delete Empty contours. */
-  /*
-    for (i = 0; i < obj->contsize; i++){
-    if (cont[i].psize)
-    continue;
-    obj->contsize--;
-    sindex = obj->contsize;
-    tcont        = cont[i];
-    cont[i]      = cont[sindex];
-    cont[sindex] = tcont;
-    }
-  */
-
   for (i = 0; i < obj->contsize - 1; i++){
     sindex = i;
     if (cont[i].psize)
-      sz = cont[i].pts[0].z;
+      sz = B3DNINT(cont[i].pts[0].z);
     else
       sz = INT_MAX;
     st = cont[i].time;
 
     for (j = i + 1; j < obj->contsize; j++){
       if (cont[j].psize)
-        z = cont[j].pts[0].z;
+        z = B3DNINT(cont[j].pts[0].z);
       else
         z = INT_MAX;
       t = cont[j].time;
@@ -779,6 +766,9 @@ void  imodObjectSetValue(Iobj *inObject, int inValueType, int inValue)
 
 /*
 $Log$
+Revision 3.15  2007/09/22 00:09:37  mast
+rename mat3b2
+
 Revision 3.14  2006/09/12 15:23:14  mast
 Handled mesh parameters and member renames
 
