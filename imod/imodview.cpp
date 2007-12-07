@@ -1239,11 +1239,12 @@ void ivwSetLocation(ImodView *vi, int x, int y, int z)
 void ivwSetLocationPoint(ImodView *vi, Ipoint *pnt)
 {
   int x,y,z;
-  double fc = 0.5;
 
-  x = (int)floor(pnt->x + fc);
-  y = (int)floor(pnt->y + fc);
-  z = (int)floor(pnt->z + fc);
+  // everything within a pixel should come out to the same pixel number,
+  // but Z needs nearest int
+  x = (int)floor((double)pnt->x);
+  y = (int)floor((double)pnt->y);
+  z = B3DNINT(pnt->z);
 
   ivwSetLocation(vi, x, y, z);
   return;
@@ -2624,6 +2625,9 @@ void ivwBinByN(unsigned char *array, int nxin, int nyin, int nbin,
 
 /*
 $Log$
+Revision 4.59  2007/12/04 18:50:32  mast
+Added mouse tracking function and unlimited extra object capability
+
 Revision 4.58  2007/11/27 17:57:14  mast
 Added function to enable stipple drawing
 
