@@ -1,5 +1,9 @@
 IMOD History
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+12/9/07: Added ability for Ccderaser to erase points inside of boundary
+contours and in circles around scattered points; the latter can be used to
+erase fiducials.
+
 12/6/07: Added option to Blendmont to adjust origin for starting X, Y, Z.
 
 12/6/07: Fixed Newstack min/max values in output header when not rescaling.
@@ -22,7 +26,7 @@ implemented array of extra objects to avoid conflicts between components using
 them.  Documented 3dmod functions available to plugins, exported undo/redo and
 selection list functions, and modified beadfixer2 to serve as better example.
 
-12/4/07: Chamged Linux startup scripts to place IMOD/bin on path only once.
+12/4/07: Changed Linux startup scripts to place IMOD/bin on path only once.
 
 11/30/07: Added ability to link model view to top slicer and rotate them
 together.

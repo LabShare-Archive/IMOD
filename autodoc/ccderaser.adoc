@@ -148,6 +148,14 @@ entered, and / to specify all objects.
 manpage = List of objects that define lines to be replaced.  Ranges can be
 entered, and / to specify all objects.
 
+[Field = BoundaryObjects]
+short = boundary
+type = LI
+usage = Objects that contain boundary contours around points to be replaced
+tooltip = 
+manpage = List of objects that contain boundary contours around pixels to be
+replaced.  Ranges can be entered, and / to specify all objects.
+ 
 [Field = AllSectionObjects]
 short = allsec
 type = LI
@@ -156,6 +164,28 @@ tooltip = List of objects with points to be replaced on all sections.
 Ranges can be entered, and / to specify all objects.
 manpage = List of objects with points to be replaced on all sections.
 Ranges can be entered, and / to specify all objects.
+
+[Field = CircleObjects]
+short = circle
+type = LI
+usage = Objects with scattered points for replacing pixels within a circle
+tooltip = 
+manpage = List of objects that contain scattered points for replacing pixels
+within a circle around each point.  The sphere radius, which can be an
+individual value for each point, is used to indicate the size of circle to
+replace.  Ranges can be entered, and / to specify all objects.
+
+[Field = BetterRadius]
+short = better
+type = FA
+usage = Radii to use in place of defaults for points with no individual size
+tooltip = 
+manpage = For circle objects, this entry specifies a radius to use for points
+without an individual point size instead of the
+object's default sphere radius.  This entry is floating point and can be used
+to overcome the limitations of having an integer default sphere radius.  If
+there are multiple circle objects, enter one value to apply to all objects or
+a value for each object.
 
 [Field = MergePatches]
 short = merge
