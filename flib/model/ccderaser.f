@@ -16,11 +16,7 @@ c       See the man page for a description of the operation and inputs.
 c       
 c       David Mastronarde 11/10/98
 c       
-c       $Author$
-c       
-c       $Date$
-c       
-c       $Revision$
+c       $Id$
 c       Log at end of file
 c       
       implicit none
@@ -32,38 +28,44 @@ c
       real*4 diffArr(limdiff, limdiff), exceedCrit(limpatchout)
       integer*4 nxyz(3),mxyz(3),nx,ny,nz
       equivalence (nx,nxyz(1)),(ny,nxyz(2)),(nz,nxyz(3))
-      character*120 infile,outfile,ptfile,modelout
+      character*160 infile,outfile,ptfile,modelout
       integer*4 ixfix(limpatch),iyfix(limpatch)
       integer*4 ixout(limptout),iyout(limptout),izout(limptout)
-      integer*4 indPatch(limpatchout)
-      integer*4 iobjline(limobj),iobjdoall(limobj)
-      common /bigcom/array,diffArr,exceedCrit,indPatch,ixout,iyout,izout
-      logical readw_or_imod, typeonlist
-c       
-c       7/7/00 CER: remove the encode's; titlech is the temp space
-c       
-      character*80 titlech, line
+      integer*4 indPatch(limpatchout), iobjCircle(limobj)
+      integer*4 iobjline(limobj),iobjdoall(limobj), iobjBound(limobj)
+      integer*4 indSize(max_obj_num)
+      real*4 sizes(max_pt),betterRadius(limobj),betterIn(limobj)
+      common /bigcom/array,diffArr,exceedCrit,indPatch,ixout,iyout,izout,
+     &    indSize, sizes
+c
+      character*80 titlech
       character dat*9, tim*8
+      character*1024 line
 c       
       integer*4 mode,imfilout,i,j,nobjdoall,nobjline,nborder,iorder
       integer*4 ifincadj,iobj,ibase,itype,imodobj,imodcont,ip,ipt,jtype,jobj
       real*4 dmin,dmax,dmean,tmin,tmax,tsum,dmint,dmaxt,dmeant,tmean
-      real*4 zmin,zmax,xmin,xmax,ymin,ymax
+      real*4 zmin,zmax,xmin,xmax,ymin,ymax,diamMerge
       integer*4 izsect,nfix,linefix,ip1,ip2,ix1,ix2,iy1,iy2,kti,ninobj
       integer*4 ierr,ierr2,ifflip,numPtOut, numPatchOut,numObjOrig,ifMerge
-      integer*4 getimodhead,getimodscales
       real*4 xyscal,zscale,xofs,yofs,zofs,ximscale, yimscale, zimscale
       real*4 critMain, critGrow, critScan, critDiff, radiusMax, outerRadius
-      real*4 scanOverlap, annulusWidth, radSq
+      real*4 scanOverlap, annulusWidth, radSq, sizemax, size, xcen, ycen, dist
       integer*4 ifPeakSearch, iScanSize,ifVerbose,numPatch,numPixels,ifTouch
       integer*4 ifTrialMode,nEdgePixels, maxObjectsOut, maxInDiffPatch,ifGrew
       integer*4 jp1,jp2,jx1,jx2,jy1,jy2,iborder, iBordLo, iBordHi, idir,jbase
-      logical nearby
+      integer*4 nobjBound, nobjCircle, numBetterIn, numCircleObj
+      integer*4 indfree, indcont, numSizes, loopst, loopnd, loop, numConSize
+      integer*4 ixfmin, ixfmax, iyfmin, iyfmax
+      logical*4 circleCont, allSecCont
+      logical readw_or_imod, typeonlist, nearby
+      integer*4 getimodhead,getimodscales,getImodObjSize,getImodSizes
+      integer*4 getContPointSizes
 c       
       logical pipinput
       integer*4 numOptArg, numNonOptArg
       integer*4 PipGetInteger,PipGetBoolean
-      integer*4 PipGetString,PipGetFloat
+      integer*4 PipGetString,PipGetFloat,PipGetFloatArray
       integer*4 PipGetNonOptionArg, PipGetInOutFile
 c       
 c       fallbacks from ../../manpages/autodoc2man -2 2  ccderaser
@@ -91,6 +93,10 @@ c
       iobjdoall(1)=-999
       nobjline=1
       iobjline(1)=-999
+      nobjBound = 1
+      iobjBound(1)=-999
+      nobjCircle = 1
+      iobjCircle(1) = -999
       nborder=2
       iorder=2
       ifincadj=1
@@ -109,6 +115,9 @@ c
       maxInDiffPatch = 2
       ifMerge = 0
       maxObjectsOut = 4
+      do i = 1, limobj
+        betterRadius(i) = -1.
+      enddo
 
       call date(dat)
       call time(tim)
@@ -121,7 +130,7 @@ c
       pipinput = numOptArg + numNonOptArg .gt. 0
 c       
       if (PipGetInOutFile('InputFile', 1, 'Name of input file', infile)
-     &    .ne. 0) call errorexit('NO INPUT FILE SPECIFIED')
+     &    .ne. 0) call exitError('NO INPUT FILE SPECIFIED')
 c       call irtdel(1,delt)
 c       call irtorg(1,orig(1),orig(2),orig(3))
 c       
@@ -147,8 +156,7 @@ c
       endif
 
       call irdhdr(1,nxyz,mxyz,mode,dmin,dmax,dmean)
-      if(nx*ny.gt.imsiz**2) call errorexit
-     &    ('IMAGE TOO LARGE FOR ARRAYS')
+      if(nx*ny.gt.imsiz**2) call exitError('IMAGE TOO LARGE FOR ARRAYS')
 
       imfilout=1
       if(ifTrialMode .eq. 0 .and. outfile.ne.' ')then
@@ -167,9 +175,10 @@ c
         read(*,'(a)')ptfile
       endif
       if (.not. pipinput .or. ierr .eq. 0) then
-        if(.not.readw_or_imod(ptfile))
-     &      call errorexit('READING MODEL FILE')
+        if(.not.readw_or_imod(ptfile)) call exitError('READING MODEL FILE')
         call scale_model(0)
+        if (getImodObjSize() .gt. limobj) call exitError(
+     &      'TOO MANY OBJECTS IN MODEL FOR ARRAYS')
       endif
       numObjOrig = max_mod_obj
 c       
@@ -187,6 +196,17 @@ c
           call parselist(line, iobjline,nobjline)
         else
           nobjline = 0
+        endif
+
+        if (PipGetString('CircleObjects', line) .eq. 0)then
+          call parselist(line, iobjCircle,nobjCircle)
+        else
+          nobjCircle = 0
+        endif
+        if (PipGetString('BoundaryObjects', line) .eq. 0)then
+          call parselist(line, iobjBound,nobjBound)
+        else
+          nobjBound = 0
         endif
 
         ierr = PipGetInteger('BorderSize', nborder)
@@ -208,12 +228,23 @@ c
         ierr = PipGetInteger('MaxPixelsInDiffPatch', maxInDiffPatch)
         ierr = PipGetFloat('OuterRadius', outerRadius)
         ierr2 = PipGetFloat('AnnulusWidth', annulusWidth)
-        if (ierr .eq. 0 .and. ierr2 .eq. 0) call errorexit(
+        if (ierr .eq. 0 .and. ierr2 .eq. 0) call exitError(
      &      'YOU CANNOT ENTER BOTH -outer AND -width')
         if (ierr2 .eq. 0) outerRadius = radiusMax + annulusWidth
 
         modelout = ' '
         ierr = PipGetString('PointModel', modelout)
+        numBetterIn = 0
+        ierr = PipGetFloatArray('BetterRadius', betterIn, numBetterIn, limobj)
+        if (nobjCircle .gt. 0 .and. iobjCircle(1) .ne. -999) then
+          if (numBetterIn .gt. 1 .and. numBetterIn .ne. nobjCircle) call
+     &        exitError('THE NUMBER OF BETTER RADIUS VALUES MUST BE EITHER '//
+     &        '1 OR THE SAME AS THE NUMBER OF CIRCLE OBJECTS')
+          do i = 1, nobjCircle
+            if (iobjCircle(i) .gt. 0 .and. iobjCircle(i) .le. limobj)
+     &          betterRadius(iobjCircle(i)) = betterIn(min(i, numBetterIn))
+          enddo
+        endif
       else
 c         
 c         interactive input for old parameters only
@@ -241,7 +272,7 @@ c
       endif
       call PipDone()
 
-      if (max_mod_obj .eq. 0 .and. ifPeakSearch .eq. 0) call errorexit
+      if (max_mod_obj .eq. 0 .and. ifPeakSearch .eq. 0) call exitError
      &    ('NO MODEL POINTS AND NO PEAK SEARCH SPECIFIED')
 c       
 c       check input values, set reasonable limits
@@ -266,33 +297,67 @@ c
       tmax=-1.e10
       tsum=0.
 c       
+c       Check that lists are mutually exclusive
+      numCircleObj = 0
+      do itype = 1, getImodObjSize()
+        ibase = 0
+        if(typeonlist(itype,iobjCircle,nobjCircle)) then
+          ibase = 1
+          if (typeonlist(itype,iobjdoall,nobjdoall)) then
+            write(*,106)itype,'is on both the circle and the all-section list'
+106         format('ERROR: CCDERASER - Object',i4,1x,a)
+            call exit(1)
+          endif
+          numCircleObj = numCircleObj + 1
+          if (nobjCircle .eq. 1 .and. iobjCircle(1) .eq. -999)
+     &        betterRadius(itype) = betterIn(min(numCircleObj, numBetterIn))
+        endif
+        if(typeonlist(itype,iobjline,nobjline)) ibase = ibase + 1
+        if(typeonlist(itype,iobjBound,nobjBound)) ibase = ibase + 1
+        if (ibase .gt. 1) then
+          write(*,106)itype,
+     &        'is included in more than one list (circle, line, boundary)'
+          call exit(1)
+        endif
+      enddo
+      if (numCircleObj .gt. 0 .and. numBetterIn .gt. 1 .and. numCircleObj .ne.
+     &    numBetterIn) call exitError('THE NUMBER OF BETTER RADIUS VALUES '//
+     &    'MUST BE EITHER 1 OR THE SAME AS THE NUMBER OF CIRCLE OBJECTS')
+c       
+c       Convert boundary objects to interior point collections
+      ibase = max_mod_obj
+      do iobj=1,ibase
+        itype = 256-obj_color(2,iobj)
+        if(npt_in_obj(iobj).gt.2 .and. typeonlist(itype,iobjBound,nobjBound))
+     &      call convertBoundary(iobj, nx, ny, array, array(imsiz * imsiz / 2))
+      enddo          
+c       
+c       Check all but circle objects
       do iobj=1,max_mod_obj
         if(npt_in_obj(iobj).gt.0)then
           ibase=ibase_obj(iobj)
           itype = 256-obj_color(2,iobj)
           call objtocont(iobj,obj_color,imodobj,imodcont)
+ 
           if(typeonlist(itype,iobjline,nobjline)) then
             if(npt_in_obj(iobj).ne.2) then
-              print *,'ERROR: CCDERASER - object',imodobj,
-     &            ', contour',imodcont,
-     &            ' does not have only two points'
+              write(*,107)imodobj,imodcont, 'does not have exactly two points'
+107           format('ERROR: CCDERASER - object',i4,', contour',i6,1x,a)
               call exit(1)
             endif
             ip1 = object(ibase+1)
             ip2 = object(ibase+2)
             if (nint(p_coord(3,ip1)).ne.nint(p_coord(3,ip2))) then
-              print *,'ERROR: CCDERASER - object',imodobj,', contour',
-     &            imodcont, ' is supposed to be a line and ',
-     &            ' is not in one Z-plane'
+              write(*,107)imodobj,imodcont,
+     &            'is supposed to be a line and is not in one Z-plane'
               call exit(1)
             elseif(nint(p_coord(1,ip1)+0.5).ne.nint(p_coord(1,ip2)+0.5).and.
      &            nint(p_coord(2,ip1)+0.5).ne.nint(p_coord(2,ip2)+0.5)) then
-              print *,'ERROR: CCDERASER - object',imodobj,', contour',
-     &            imodcont, ' is supposed to be a line and ',
-     &            'is not horizontal or vertical'
+              write(*,107)imodobj,imodcont,'is supposed to be a line and is'//
+     &            ' not horizontal or vertical'
               call exit(1)
             endif
-          else
+          else if (.not.typeonlist(itype,iobjCircle,nobjCircle)) then
             zmin=1.e10
             zmax=-1.e10
             xmin=zmin
@@ -301,8 +366,7 @@ c
             ymax=zmax
             ninobj=npt_in_obj(iobj)
             if (ninobj.gt.limpatch)then
-              print *,'ERROR: CCDERASER - object',imodobj,', contour',
-     &            imodcont, ' has too many points for arrays'
+              write(*,107)imodobj,imodcont,'has too many points for arrays'
               call exit(1)
             endif
             do ip=1,ninobj
@@ -315,20 +379,63 @@ c
               zmax=max(zmax,p_coord(3,ipt))
             enddo
             if(xmax-xmin.ge.mxd/2 .or.ymax-ymin.ge.mxd/2)then
-              print *,'ERROR: CCDERASER - object',imodobj,', contour',
-     &            imodcont, ' has points too far apart, ',
-     &            'so patch is too large'
+              write(*,107)imodobj,imodcont,
+     &            'has points too far apart, so patch is too large'
               call exit(1)
             endif
             if(.not.typeonlist(itype,iobjdoall,nobjdoall).and.
      &          zmax.ne.zmin)then
-              print *,'ERROR: CCDERASER - object',imodobj,', contour',
-     &            imodcont, ' is not in one Z-plane'
+              write(*,107)'is not in one Z-plane'
               call exit(1)
             endif
           endif
         endif
       enddo
+c       
+c       Load point sizes
+      indfree = 1
+      indcont = 1
+      sizemax = -1.
+      do itype = 1, getImodObjSize()
+        if(typeonlist(itype,iobjCircle,nobjCircle)) then
+          ierr = getImodSizes(itype, sizes(indfree), max_pt - indfree,
+     &        numSizes)
+          if (ierr .ne. 0) call exitError('LOADING POINT SIZES FROM MODEL')
+c           
+c           Make indexes to all contours in this object
+          do iobj=1,max_mod_obj
+            call objtocont(iobj, obj_color, imodobj, imodcont)
+            if (npt_in_obj(iobj).gt.0 .and. itype .eq. imodobj) then
+              indSize(iobj) = indcont
+              indcont = indcont + npt_in_obj(iobj)
+c               
+c               If there is a better radius for this object, get the sizes
+c               for this contour and replacethe defaults
+              if (betterRadius(itype) .gt. 0) then
+                ierr = getContPointSizes(imodobj, imodcont, array, imsiz*imsiz,
+     &              numConSize)
+                if (numConSize .gt. 0 .and. numConSize .ne. npt_in_obj(iobj))
+     &              call exitError(
+     &              'MISMATCH BETWEEN CONTOUR AND POINT ARRAY SIZE')
+                do i = 1, npt_in_obj(iobj)
+                  if (numConSize .eq. 0 .or. array(i) .lt. 0.)
+     &                sizes(indSize(iobj)+i-1) = betterRadius(itype)
+                enddo
+              endif
+            endif          
+          enddo
+          do i = indfree, indfree + numSizes - 1
+            sizeMax = max(sizeMax, sizes(i))
+          enddo
+          indfree = indfree + numSizes
+          if (indcont .gt. indfree) call exitError(
+     &        'MISMATCH BETWEEN LOADED POINT SIZES AND POINTS IN CONTOURS')
+        endif
+      enddo
+      if (ifVerbose .ne. 0 .and. sizeMax .gt. 0)
+     &    print *,'Maximum point size', sizemax
+      if (3.1416 * sizemax**2 + 5 .gt. limpatch) call exitError(
+     &    'THE LARGEST CIRCLE RADIUS IS TOO BIG FOR THE ARRAYS')
 c       
 c       start looping on sections; need to read regardless
 c       
@@ -346,12 +453,14 @@ c
           if(npt_in_obj(iobj).gt.0)then
             ibase=ibase_obj(iobj)
             itype = 256-obj_color(2,iobj)
+            circleCont = typeonlist(itype,iobjCircle,nobjCircle)
+            allSecCont = typeonlist(itype,iobjdoall,nobjdoall)
 c             
 c             first see if this has a line to do
 c             
             if(typeonlist(itype,iobjline,nobjline))then
-              if(nint(p_coord(3,object(ibase+1))).eq.izsect .or.
-     &            typeonlist(itype,iobjdoall,nobjdoall)) then
+              if(nint(p_coord(3,object(ibase+1))).eq.izsect .or. allSecCont)
+     &            then
                 if(linefix.eq.0)write(*,'(a,$)')' fixing lines -' 
                 linefix=linefix+1
                 ip1=object(ibase+1)
@@ -409,85 +518,180 @@ c
                   enddo
                 enddo
                 iBordHi = iBorder
-                print *,ix1,iy1,ix2,iy2, iBordLo, iBordHi
+c                print *,ix1,iy1,ix2,iy2, iBordLo, iBordHi
                 call cleanline(array,nx,ny,ix1,iy1,ix2,iy2, iBordLo, iBordHi)
               endif
-
-            elseif(nint(p_coord(3,object(ibase+1))).eq.izsect .or.
-     &            typeonlist(itype,iobjdoall,nobjdoall))then
-              ninobj=min(npt_in_obj(iobj), limpatch)
-              do ip=1,ninobj
-                ipt=object(ibase+ip)
-                ixfix(ip)=p_coord(1,ipt)+1.01
-                iyfix(ip)=p_coord(2,ipt)+1.01
-              enddo
-              if(nfix.eq.0)write(*,'(a,$)')' fixing points -' 
-              nfix=nfix+1
 c               
-c               see if there are patches to merge - loop on objects until
-c               patch stops growing
+c               Then check circle or other contour at Z
+            elseif(nint(p_coord(3,object(ibase+1))).eq.izsect .or. circleCont
+     &            .or. allSecCont) then
 c               
-              if (.not. typeonlist(itype,iobjdoall,nobjdoall) .and.
-     &            ifMerge .ne. 0) then
-                radSq = (2*radiusMax)**2
-                ifGrew = 1
-                do while (ifGrew .gt. 0)
-                  ifGrew = 0
-                  do i = 1, numObjOrig
-                    ibase=ibase_obj(i)
-                    itype = 256-obj_color(2,i)
-                    if (i .ne. iobj .and. npt_in_obj(i).gt.0 .and.
-     &                  nint(p_coord(3,object(ibase+1))).eq.izsect .and.
-     &                  .not. typeonlist(itype,iobjline,nobjline) .and.
-     &                  .not. typeonlist(itype,iobjdoall,nobjdoall) .and.
-     &                  ninobj + npt_in_obj(i) .le. limpatch) then
-c                       
-c                       Loop on all pairs of points and make sure none are
-c                       too far and see if one touches
-c                       
-                      ifTouch = 0
-                      ip1 = 1
-                      do while (ip1 .le. npt_in_obj(i) .and. ifTouch .ge. 0)
-                        ipt = object(ibase+ip1)
-                        ix1 = p_coord(1,ipt)+1.01
-                        iy1 = p_coord(2,ipt)+1.01
-                        ip2 = 1
-                        do while (ip2 .le. ninobj .and. ifTouch .ge. 0)
-                          ix2 = (ix1-ixfix(ip2))**2 + (iy1-iyfix(ip2))**2
-                          if (ix2 .le. 2) ifTouch = 1
-                          if (ix2 .gt. radSq) ifTouch = -1
-                          ip2 = ip2 + 1
-                        enddo
-                        ip1 = ip1 + 1
-                      enddo
-c                       
-c                       Merge the patch, set # of points to 0, and set # of
-c                       points 0 for starting patch to avoid duplicate hits
-c                       
-                      if (ifTouch .gt. 0) then
-                        if (ifVerbose .ne. 0) then
-                          call objtocont(iobj,obj_color,ix1,iy1)
-                          call objtocont(i,obj_color,ix2,iy2)
-                          write (*,'(a,2i5,a,2i5)')'Merging',ix2,iy2,' to',
-     &                        ix1,iy1
-                        endif
-                        do ip=1,npt_in_obj(i)
-                          ipt=object(ibase+ip)
-                          ninobj = ninobj + 1
-                          ixfix(ninobj)=p_coord(1,ipt)+1.01
-                          iyfix(ninobj)=p_coord(2,ipt)+1.01
-                        enddo
-                        npt_in_obj(i) = 0
-                        ifGrew = 1
-                      endif
-                    endif
+c               Set up to loop once or on circle points
+              loopst = 1
+              loopnd = 1
+              if (circleCont) loopnd  = npt_in_obj(iobj)
+              do loop = loopst, loopnd
+                ixfmin = 100000000
+                ixfmax = -100000000
+                iyfmin = 100000000
+                iyfmax = -100000000
+                if (circleCont) then
+c                   
+c                   add circle point to patch if on this Z
+                  ipt = object(ibase + loop)
+                  ninobj = 0
+                  size = sizes(indSize(iobj) + loop - 1)
+                  if (nint(p_coord(3, ipt)) .eq. izsect .and. size .gt. 0)
+     &                call addCircleToPatch(iobj, loop, size, nx, ny, ixfix,
+     &                iyfix, ninobj, ixfmin, ixfmax, iyfmin, iyfmax)
+                  diamMerge = mxd
+                else
+c                   
+c                   Or add contour points to patch
+                  ninobj=min(npt_in_obj(iobj), limpatch)
+                  do ip=1,ninobj
+                    ipt=object(ibase+ip)
+                    ixfix(ip)=p_coord(1,ipt)+1.01
+                    iyfix(ip)=p_coord(2,ipt)+1.01
+                    ixfmin = min(ixfmin, ixfix(ip))
+                    ixfmax = max(ixfmax, ixfix(ip))
+                    iyfmin = min(iyfmin, iyfix(ip))
+                    iyfmax = max(iyfmax, iyfix(ip))
                   enddo
-                enddo
-                npt_in_obj(iobj) = 0
-              endif
+                  diamMerge = 2*radiusMax
+                endif
+c
+                if(nfix.eq.0)write(*,'(a,$)')' fixing points -' 
+                nfix=nfix+1
 c               
-              call cleanarea(array,nx,ny,nx,ny,ixfix
-     &            ,iyfix,ninobj,nborder,iorder,ifincadj,ifVerbose)
+c                 see if there are patches to merge - loop on objects until
+c                 patch stops growing
+c               
+                if (.not. allSecCOnt .and. ninobj .gt. 0 .and.  ifMerge .ne. 0)
+     &              then
+c
+c                   The radius criterion for being too large is based on the
+c                   maximum radius entry unless there is a circle in the merge,
+c                   tehn it is based on the mxd parameter
+                  radSq = diamMerge**2
+                  ifGrew = 1
+                  do while (ifGrew .gt. 0)
+                    ifGrew = 0
+                    do i = 1, numObjOrig
+                      jbase=ibase_obj(i)
+                      jtype = 256-obj_color(2,i)
+                      if (typeonlist(jtype,iobjCircle,nobjCircle)) then
+c                         
+c                         For a circle contour, loop on points, first check Z,
+c                         space in patch, and against the min/max of patch 
+                        do ip1 = 1, npt_in_obj(i)
+                          ipt = object(jbase + ip1)
+                          size = sizes(indSize(i) + ip1 - 1)
+                          if (nint(p_coord(3, ipt)) .eq. izsect .and.
+     &                        size .gt. 0 .and.
+     &                        (i.ne.iobj .or. loop.ne.ip1) .and.
+     &                        ninobj + 3.1416*size**2 + 5 .le. limpatch) then
+                            xcen = p_coord(1, ipt)
+                            ycen = p_coord(2, ipt)
+                            if (xcen + size + 1 .ge. ixfmin .and.
+     &                          xcen - size - 1 .le. ixfmax .and.
+     &                          ycen + size + 1 .ge. iyfmin .and.
+     &                          ycen - size - 1 .le. iyfmax) then
+c                               
+c                               Then check each pixel for ones close enough to
+c                               touch and ones far enough to make patch too big
+                              ifTouch = 0
+                              ip2 = 1
+                              do while (ip2 .le. ninobj .and. ifTouch .ge. 0)
+                                dist = sqrt((xcen-ixfix(ip2))**2 +
+     &                              (ycen-iyfix(ip2))**2)
+                                if (dist - size .lt. 1.5) ifTouch = 1
+                                if (dist + size .gt. mxd) ifTouch = -1
+                                ip2 = ip2 + 1
+                              enddo
+c                               
+c                               Merge if touch and size not too big
+                              if (ifTouch .gt. 0) then
+                                if (ifVerbose .ne. 0) then
+                                  call objtocont(iobj,obj_color,ix1,iy1)
+                                  call objtocont(i,obj_color,ix2,iy2)
+                                  write (*,'(a,3i5,a,3i5)')'Merging',ix2,iy2,
+     &                                ip1,' to', ix1,iy1,loop
+                                endif
+                                diamMerge = mxd
+                                call addCircleToPatch(i, ip1, size, nx, ny,
+     &                              ixfix, iyfix, ninobj, ixfmin, ixfmax,
+     &                              iyfmin, iyfmax)
+                                sizes(indSize(i) + ip1 - 1) = 0.
+                              endif
+                            endif
+                          endif
+                        enddo
+c                         
+c                         Check regular contour
+                      else if (i .ne. iobj .and. npt_in_obj(i).gt.0 .and.
+     &                      nint(p_coord(3,object(jbase+1))).eq.izsect .and.
+     &                      .not. typeonlist(jtype,iobjline,nobjline) .and.
+     &                      .not. typeonlist(jtype,iobjdoall,nobjdoall) .and.
+     &                      ninobj + npt_in_obj(i) .le. limpatch) then
+c                         
+c                         Loop on all pairs of points and make sure none are
+c                         too far and see if one touches
+c                         
+                        ifTouch = 0
+                        ip1 = 1
+                        do while (ip1 .le. npt_in_obj(i) .and. ifTouch .ge. 0)
+                          ipt = object(jbase+ip1)
+                          ix1 = p_coord(1,ipt)+1.01
+                          iy1 = p_coord(2,ipt)+1.01
+                          ip2 = 1
+                          do while (ip2 .le. ninobj .and. ifTouch .ge. 0)
+                            ix2 = (ix1-ixfix(ip2))**2 + (iy1-iyfix(ip2))**2
+                            if (ix2 .le. 2) ifTouch = 1
+                            if (ix2 .gt. radSq) ifTouch = -1
+                            ip2 = ip2 + 1
+                          enddo
+                          ip1 = ip1 + 1
+                        enddo
+c                         
+c                         Merge the patch, set # of points to 0, and set # of
+c                         points 0 for starting patch to avoid duplicate hits
+c                         
+                        if (ifTouch .gt. 0) then
+                          if (ifVerbose .ne. 0) then
+                            call objtocont(iobj,obj_color,ix1,iy1)
+                            call objtocont(i,obj_color,ix2,iy2)
+                            write (*,'(a,2i5,a,3i5)')'Merging',ix2,iy2,' to',
+     &                          ix1,iy1,loop
+                          endif
+                          do ip=1,npt_in_obj(i)
+                            ipt=object(jbase+ip)
+                            ninobj = ninobj + 1
+                            ixfix(ninobj)=p_coord(1,ipt)+1.01
+                            iyfix(ninobj)=p_coord(2,ipt)+1.01
+                            ixfmin = min(ixfmin, ixfix(ip))
+                            ixfmax = max(ixfmax, ixfix(ip))
+                            iyfmin = min(iyfmin, iyfix(ip))
+                            iyfmax = max(iyfmax, iyfix(ip))
+                          enddo
+                          npt_in_obj(i) = 0
+                          ifGrew = 1
+                        endif
+                      endif
+                    enddo
+                  enddo
+c                   
+c                   Zero out this contour or point
+                  if (circleCont) then
+                    sizes(indSize(iobj) + loop - 1) = 0.
+                  else
+                    npt_in_obj(iobj) = 0
+                  endif
+                endif
+c               
+                if (ninobj .gt. 0) call cleanarea(array,nx,ny,nx,ny,ixfix,
+     &              iyfix,ninobj,nborder,iorder,ifincadj,ifVerbose)
+              enddo
             endif
           endif
         enddo
@@ -602,7 +806,7 @@ c
       endif
 
       call exit(0)
-99    call errorexit('READING FILE')
+99    call exitError('READING FILE')
       end
 
 
@@ -1124,7 +1328,7 @@ c
         enddo
       enddo
 c       
-c       do regession
+c       do regression
 c       
       if (ifVerbose.gt.0)write (*,104)ninobj,ixcen,iycen,npnts
 104   format(/,i4,' points to fix at',2i6,',',i4,' points being fit')
@@ -1153,6 +1357,92 @@ c
       end
 
 
+      subroutine convertBoundary(iobj, nx, ny, xbound, ybound)
+      implicit none
+      include 'model.inc'
+      real*4 xmin,xmax,ymin,ymax, xbound(*), ybound(*),xx,yy,zz
+      integer*4 iobj, ip, ipt, ixStart, iyStart, ixEnd, iyEnd, ibase, ninobj
+      integer*4 nx, ny, iy, ix
+      logical inside
+      ibase=ibase_obj(iobj)
+      xmin = 1.e20
+      xmax = -1.e20
+      ymin = xmin
+      ymax = xmax
+c       
+c       Put points in boundary array and get min/max
+      do ip = 1, npt_in_obj(iobj)
+        ipt = object(ibase + ip)
+        xbound(ip) = p_coord(1,ipt)
+        ybound(ip) = p_coord(2,ipt)
+        xmin = min(xmin, xbound(ip))
+        xmax = max(xmax, xbound(ip))
+        ymin = min(ymin, ybound(ip))
+        ymax = max(ymax, ybound(ip))
+      enddo
+      zz = p_coord(3, object(ibase + 1))
+      ibase_obj(iobj) = ibase_free
+      ninobj = 0
+      ixStart = max(1, nint(xmin - 2.))
+      ixEnd = min(nx, nint(xmax + 2.))
+      iyStart = max(1, nint(ymin - 2.))
+      iyEnd = min(ny, nint(ymax + 2.))
+c       
+c       Look at all pixels in range, add to object at new base
+      do iy = iyStart, iyEnd
+        do ix = ixStart, ixEnd
+          xx = ix - 0.5
+          yy = iy - 0.5
+          if (inside(xbound, ybound, npt_in_obj(iobj), xx, yy)) then
+            ninobj = ninobj + 1
+            n_point = n_point + 1
+            if (n_point .gt. max_pt) call exitError(
+     &          'NOT ENOUGH MODEL ARRAY SPACE TO CONVERT BOUNDARY CONTOURS')
+            ibase_free = ibase_free + 1
+            object(ibase_free) = n_point
+            p_coord(1,n_point) = xx
+            p_coord(2,n_point) = yy
+            p_coord(3,n_point) = zz
+          endif
+        enddo
+      enddo
+      npt_in_obj(iobj) = ninobj
+      return
+      end
+
+      subroutine addCircleToPatch(iobj, ipt, size, nx, ny, ixfix, iyfix,
+     &    ninobj, ixfmin, ixfmax, iyfmin, iyfmax)
+      implicit none
+      include 'model.inc'
+      integer*4 ixfmin, ixfmax, iyfmin, iyfmax
+      integer*4 iobj, ipt, ixfix(*), iyfix(*), ninobj, nx, ny
+      real*4 size, xcen, ycen, xx, yy
+      integer*4 ip, ixStart, ixEnd, iyStart, iyEnd, ix, iy
+      ip = object(ibase_obj(iobj) + ipt)
+      xcen = p_coord(1, ip)
+      ycen = p_coord(2, ip)
+      ixStart = max(1, nint(xcen - size - 2.))
+      ixEnd = min(nx, nint(xcen + size + 2.))
+      iyStart = max(1, nint(ycen - size - 2.))
+      iyEnd = min(ny, nint(ycen + size + 2.))
+       do iy = iyStart, iyEnd
+        do ix = ixStart, ixEnd
+          xx = ix - 0.5
+          yy = iy - 0.5
+          if ((xx-xcen)**2 + (yy-ycen)**2 .le. size**2) then
+            ninobj = ninobj + 1
+            ixfix(ninobj) = ix
+            iyfix(ninobj) = iy
+            ixfmin = min(ixfmin, ix)
+            ixfmax = max(ixfmax, ix)
+            iyfmin = min(iyfmin, iy)
+            iyfmax = max(iyfmax, iy)
+          endif
+        enddo
+      enddo
+      return 
+      end
+
       logical function typeonlist(itype,ityplist,ntyplist)
       implicit none
       integer*4 ityplist(*),itype,ntyplist,i
@@ -1165,15 +1455,11 @@ c
       return
       end
       
-      subroutine errorexit(message)
-      character*(*) message
-      print *
-      print *,'ERROR: CCDERASER - ',message
-      call exit(1)
-      end
-
 c       
 c       $Log$
+c       Revision 3.21  2006/03/02 00:26:42  mast
+c       Moved polyterm to library
+c
 c       Revision 3.20  2006/02/01 00:42:56  mast
 c       Made it handle adjacent lines properly
 c
