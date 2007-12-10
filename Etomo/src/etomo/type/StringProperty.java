@@ -18,6 +18,9 @@ import java.util.Properties;
  * @notthreadsafe
  * 
  * <p> $Log$
+ * <p> Revision 1.2  2007/05/16 22:59:31  sueh
+ * <p> bug# 964 Added set(StringProperty).
+ * <p>
  * <p> Revision 1.1  2007/04/09 21:12:14  sueh
  * <p> bug# 964 A class to make storing, loading, and removing strings from Properties
  * <p> easier.
@@ -43,25 +46,21 @@ final class StringProperty {
    * sets this.string to "".
    * @param string
    */
-  void set(final String string) {
-    if (string == null || string.matches("\\s*")) {
+  void set(final String input) {
+    if (input == null || input.matches("\\s*")) {
       reset();
     }
     else {
-      this.string = string;
+      string = input;
     }
   }
-  
+
   void set(final StringProperty input) {
     string = input.string;
   }
 
-  /**
-   * assumes that the string can not be null and can not contain only whitespace
-   * @return
-   */
   boolean isEmpty() {
-    return string.equals("");
+    return string == null || string.matches("\\s*");
   }
 
   boolean equals(final String string) {
@@ -77,7 +76,16 @@ final class StringProperty {
       reset();
     }
     else {
-      string = props.getProperty(createKey(prepend),"");
+      string = props.getProperty(createKey(prepend), "");
+    }
+  }
+
+  void loadFromOtherKey(Properties props, String prepend, String key) {
+    if (props == null) {
+      reset();
+    }
+    else {
+      string = props.getProperty(createKey(prepend, key), "");
     }
   }
 
@@ -90,15 +98,19 @@ final class StringProperty {
       props.remove(currentKey);
     }
     else {
-      props.setProperty(currentKey,string);
+      props.setProperty(currentKey, string);
     }
   }
-  
+
   void reset() {
-    string ="";
+    string = "";
   }
 
   private String createKey(String prepend) {
+    return createKey(prepend, key);
+  }
+
+  private String createKey(String prepend, String key) {
     if (prepend == null || prepend.matches("\\s*")) {
       return key;
     }
