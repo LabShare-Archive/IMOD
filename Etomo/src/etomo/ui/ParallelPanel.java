@@ -38,6 +38,7 @@ public final class ParallelPanel implements Expandable {
   public static final String rcsid = "$Id$";
 
   private static final String TITLE = "Parallel Processing";
+  public static final String RESUME_LABEL = "Resume";
   static final String FIELD_LABEL = "Parallel processing";
   static final String MAX_CPUS_STRING = ":  Maximum number of CPUs recommended is ";
 
@@ -51,7 +52,7 @@ public final class ParallelPanel implements Expandable {
       "CPUs: ");
   private final LabeledTextField ltfChunksFinished = new LabeledTextField(
       "Chunks finished: ");
-  private final MultiLineButton btnResume = new MultiLineButton("Resume");
+  private final MultiLineButton btnResume = new MultiLineButton(RESUME_LABEL);
   private final MultiLineButton btnPause = new MultiLineButton("Pause");
   private final MultiLineButton btnSaveDefaults = new MultiLineButton(
       "Save As Defaults");
@@ -392,6 +393,9 @@ public final class ParallelPanel implements Expandable {
 }
 /**
  * <p> $Log$
+ * <p> Revision 1.58  2007/11/06 20:14:02  sueh
+ * <p> bug# 1047
+ * <p>
  * <p> Revision 1.57  2007/09/27 20:54:34  sueh
  * <p> bug# 1044 Added Queue processor table and the "Use a cluster" checkbox.
  * <p> Moved the implementation of ParallelPRogressDisplay and LoadAverageDisplay
