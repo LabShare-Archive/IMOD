@@ -493,8 +493,7 @@ public final class ApplicationManager extends BaseManager {
       }
       processTrack.setSetupState(ProcessState.COMPLETE);
       metaData.setComScriptCreated(true);
-      EtomoDirector.INSTANCE.renameCurrentManager(
-          metaData.getDatasetName());
+      EtomoDirector.INSTANCE.renameCurrentManager(metaData.getDatasetName());
       closeImods(ImodManager.PREVIEW_KEY, AxisID.FIRST, "Axis A preview stack");
       closeImods(ImodManager.PREVIEW_KEY, AxisID.SECOND, "Axis B preview stack");
     }
@@ -5387,7 +5386,7 @@ public final class ApplicationManager extends BaseManager {
 
   private void processchunksVolcombine(ProcessResultDisplay processResultDisplay) {
     processchunks(AxisID.ONLY, DialogType.TOMOGRAM_COMBINATION,
-        tomogramCombinationDialog, processResultDisplay);
+        tomogramCombinationDialog, processResultDisplay, ProcessName.VOLCOMBINE);
   }
 
   /**
@@ -5395,13 +5394,14 @@ public final class ApplicationManager extends BaseManager {
    * @param axisID
    */
   protected void processchunks(AxisID axisID, DialogType dialogType,
-      AbstractParallelDialog dialog, ProcessResultDisplay processResultDisplay) {
+      AbstractParallelDialog dialog, ProcessResultDisplay processResultDisplay,
+      ProcessName processName) {
     sendMsgProcessStarting(processResultDisplay);
     if (dialog == null) {
       sendMsgProcessFailedToStart(processResultDisplay);
       return;
     }
-    ProcesschunksParam param = new ProcesschunksParam(this, axisID);
+    ProcesschunksParam param = new ProcesschunksParam(this, axisID, processName);
     ParallelPanel parallelPanel = getMainPanel().getParallelPanel(axisID);
     dialog.getParameters(param);
     if (!parallelPanel.getParameters(param)) {
@@ -5476,6 +5476,9 @@ public final class ApplicationManager extends BaseManager {
 }
 /**
  * <p> $Log$
+ * <p> Revision 3.291  2007/11/06 18:56:06  sueh
+ * <p> bug# 1047 Generalize TrimvolParam.
+ * <p>
  * <p> Revision 3.290  2007/09/27 19:18:33  sueh
  * <p> bug# 1044 Made ProcessorTable the ParallelProgress display instead of
  * <p> ParallelPanel.
