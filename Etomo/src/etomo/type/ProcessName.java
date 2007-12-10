@@ -17,6 +17,9 @@ import etomo.util.DatasetFiles;
  * @version $$Revision$$
  *
  * <p> $$Log$
+ * <p> $Revision 1.16  2007/11/06 19:51:22  sueh
+ * <p> $bug# 1047 Added nad_eed_3d and chunksetup.
+ * <p> $
  * <p> $Revision 1.15  2007/08/29 21:45:33  sueh
  * <p> $bug# 1041 Added getInstance(File,String) and getInstance(String,AxisID).
  * <p> $
@@ -168,7 +171,8 @@ public class ProcessName {
   public static final ProcessName XFMODEL = new ProcessName(xfmodel);
   public static final ProcessName REMAPMODEL = new ProcessName(remapmodel);
   public static final ProcessName PEET_PARSER = new ProcessName(peetParser);
-  public static final ProcessName ANISOTROPIC_DIFFUSION = new ProcessName(anisotropicDiffusion);
+  public static final ProcessName ANISOTROPIC_DIFFUSION = new ProcessName(
+      anisotropicDiffusion);
   public static final ProcessName CHUNKSETUP = new ProcessName(chunksetup);
 
   /**
@@ -185,13 +189,74 @@ public class ProcessName {
     return false;
   }
 
-  public static ProcessName getInstance(String nameAndExtension, AxisID axisID) {
-    if (axisID.getExtension().length() > 0
-        && nameAndExtension.endsWith(axisID.getExtension())) {
-      return getInstance(nameAndExtension.substring(0, nameAndExtension
-          .lastIndexOf(axisID.getExtension())));
+  /**
+   * Turn name into an instance of ProcessName.
+   * Possibilities are checked in this order:
+   * 1. Name is a process name.
+   * 2. Name is a process name plus the axis extension.
+   * 3. Name is a file name where everything but the extension (starts with last
+   *    '.') is a process name.
+   * 4. Name is a file name where everything but the extension (starts with last
+   *    '.') is a process name plus the axis extension.
+   * @param name
+   * @param axisID
+   * @return
+   */
+  public static ProcessName getInstance(String name, AxisID axisID) {
+    //check if name equals process name
+    ProcessName processName = getInstance(name);
+    if (processName != null) {
+      return processName;
     }
-    return getInstance(nameAndExtension);
+    //check if name is process name plus axis extension
+    if (!axisID.getExtension().equals("")
+        && name.endsWith(axisID.getExtension())) {
+      processName = getInstance(name.substring(0, name.length()
+          - axisID.getExtension().length()));
+      if (processName != null) {
+        return processName;
+      }
+    }
+    int extIndex = name.lastIndexOf('.');
+    if (extIndex == -1) {
+      return null;
+    }
+    name = name.substring(0, extIndex);
+    //check if file name equals process name plus file extension
+     processName = getInstance(name);
+    if (processName != null) {
+      return processName;
+    }
+    //check if file name is process name plus axis extension plus file extension
+    if (!axisID.getExtension().equals("")
+        && name.endsWith(axisID.getExtension())) {
+      processName = getInstance(name.substring(0, name.length()
+          - axisID.getExtension().length()));
+      if (processName != null) {
+        return processName;
+      }
+    }
+    return null;
+  }
+  
+  /**
+   * If extension matches the end of name, strip off extension at the end of
+   * name before returning a call to getInstance(name, axisID).
+   * @param name
+   * @param axisID
+   * @param extension
+   * @return
+   */
+  public static ProcessName getInstance(String name, AxisID axisID,
+      String extension) {
+    if (extension==null||extension.equals("")) {
+      return getInstance(name,axisID);
+    }
+    int extIndex = name.lastIndexOf(extension);
+    if (extIndex==-1) {
+      return getInstance(name,axisID);
+    }
+    return getInstance(name.substring(0,extIndex),axisID);
   }
 
   /**
@@ -200,7 +265,7 @@ public class ProcessName {
    * static object.  The string is case insensitive.  Null is returned if the
    * string is not one of the known process names.
    */
-  public static ProcessName getInstance(String name) {
+  private static ProcessName getInstance(String name) {
     if (name == null) {
       return null;
     }
@@ -343,15 +408,6 @@ public class ProcessName {
     return null;
   }
 
-  public static ProcessName fromFileName(String fileName, AxisID axisID,
-      String extension) {
-    String base = stripExtension(fileName, extension);
-    if (axisID != AxisID.ONLY) {
-      base = stripExtension(base, axisID.getExtension());
-    }
-    return getInstance(base);
-  }
-
   public static ProcessName getInstance(File file, String excludeString) {
     if (file == null) {
       return null;
@@ -374,14 +430,6 @@ public class ProcessName {
               .getExtension())));
     }
     return null;
-  }
-
-  private static String stripExtension(String fileName, String extension) {
-    int extensionIndex = fileName.lastIndexOf(extension);
-    if (extensionIndex > 0) {
-      return fileName.substring(0, extensionIndex);
-    }
-    return fileName;
   }
 
   public String getComscript(AxisID axisID) {
