@@ -53,6 +53,10 @@ import etomo.util.DatasetFiles;
  * @version $Revision$
  * 
  * <p> $Log$
+ * <p> Revision 1.33  2007/09/27 19:21:23  sueh
+ * <p> bug# 1044 Made ProcessorTable the ParallelProgress display instead of
+ * <p> ParallelPanel.
+ * <p>
  * <p> Revision 1.32  2007/09/07 00:16:41  sueh
  * <p> bug# 989 Using a public INSTANCE for EtomoDirector instead of getInstance
  * <p> and createInstance.
@@ -351,16 +355,17 @@ public final class PeetManager extends BaseManager {
     }
     //load the original param file
     PeetMetaData origMetaData = new PeetMetaData();
-    ParameterStore origParameterStore =  ParameterStore.getInstance(origParamFile);
+    ParameterStore origParameterStore = ParameterStore
+        .getInstance(origParamFile);
     try {
-      if (origParameterStore!=null) {
-      origParameterStore.load(origMetaData);
-      Storable[] storables = getStorables(0);
-      if (storables != null) {
-        for (int i = 0; i < storables.length; i++) {
-          origParameterStore.load(storables[i]);
+      if (origParameterStore != null) {
+        origParameterStore.load(origMetaData);
+        Storable[] storables = getStorables(0);
+        if (storables != null) {
+          for (int i = 0; i < storables.length; i++) {
+            origParameterStore.load(storables[i]);
+          }
         }
-      }
       }
       //If the user didn't specify a name, use the one from the origParamFile
       if (emptyNewName) {
@@ -511,7 +516,7 @@ public final class PeetManager extends BaseManager {
       fileName.append(name).append(lstThresholds.nextString()).append(".mrc");
       fileNameList.add(fileName.toString());
     }
-    imod(ImodManager.AVG_VOL_KEY, fileNameList,menuOptions);
+    imod(ImodManager.AVG_VOL_KEY, fileNameList, menuOptions);
   }
 
   /**
@@ -529,10 +534,11 @@ public final class PeetManager extends BaseManager {
       fileName.append(name).append(i).append(".mrc");
       fileNameList.add(fileName.toString());
     }
-    imod(ImodManager.REF_KEY, fileNameList,menuOptions);
+    imod(ImodManager.REF_KEY, fileNameList, menuOptions);
   }
 
-  private void imod(String key, List fileNameList,Run3dmodMenuOptions menuOptions) {
+  private void imod(String key, List fileNameList,
+      Run3dmodMenuOptions menuOptions) {
     String[] fileNameArray;
     if (fileNameList.size() == 0) {
       fileNameArray = new String[0];
@@ -546,7 +552,7 @@ public final class PeetManager extends BaseManager {
           .size()]);
     }
     try {
-      imodManager.open(key, fileNameArray,menuOptions);
+      imodManager.open(key, fileNameArray, menuOptions);
     }
     catch (IOException e) {
       e.printStackTrace();
@@ -605,7 +611,7 @@ public final class PeetManager extends BaseManager {
   }
 
   public BaseState getBaseState() {
-    return null;
+    return state;
   }
 
   void createProcessTrack() {
@@ -721,11 +727,12 @@ public final class PeetManager extends BaseManager {
    * @param axisID
    */
   private void processchunks() {
-    ProcesschunksParam param = new ProcesschunksParam(this, AxisID.ONLY);
-    ParallelPanel parallelPanel = getMainPanel().getParallelPanel(AxisID.ONLY);
     if (peetDialog == null) {
       return;
     }
+    ProcesschunksParam param = new ProcesschunksParam(this, AxisID.ONLY,
+        peetDialog.getFnOutput());
+    ParallelPanel parallelPanel = getMainPanel().getParallelPanel(AxisID.ONLY);
     peetDialog.getParameters(param);
     if (!parallelPanel.getParameters(param)) {
       getMainPanel().stopProgressBar(AxisID.ONLY, ProcessEndState.FAILED);
