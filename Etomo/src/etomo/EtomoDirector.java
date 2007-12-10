@@ -21,9 +21,9 @@ import etomo.storage.ParallelFileFilter;
 import etomo.storage.ParameterStore;
 import etomo.storage.PeetFileFilter;
 import etomo.type.AxisID;
-import etomo.type.ConstJoinMetaData;
-import etomo.type.ConstMetaData;
 import etomo.type.EtomoNumber;
+import etomo.type.JoinMetaData;
+import etomo.type.MetaData;
 import etomo.type.ParallelMetaData;
 import etomo.type.PeetMetaData;
 import etomo.type.UserConfiguration;
@@ -346,7 +346,7 @@ public class EtomoDirector {
       AxisID axisID) {
     ApplicationManager manager;
     if (etomoDataFileName == null
-        || etomoDataFileName.equals(ConstMetaData.getNewFileTitle())) {
+        || etomoDataFileName.equals(MetaData.getNewFileTitle())) {
       manager = new ApplicationManager("", axisID);
       uiHarness.setEnabledNewTomogramMenuItem(false);
     }
@@ -358,7 +358,7 @@ public class EtomoDirector {
 
   public UniqueKey openJoin(boolean makeCurrent, AxisID axisID) {
     closeDefaultWindow(axisID);
-    return openJoin(ConstJoinMetaData.getNewFileTitle(), makeCurrent, axisID);
+    return openJoin(JoinMetaData.getNewFileTitle(), makeCurrent, axisID);
   }
 
   public UniqueKey openParallel(boolean makeCurrent, AxisID axisID) {
@@ -400,7 +400,7 @@ public class EtomoDirector {
       AxisID axisID) {
     JoinManager manager;
     if (etomoJoinFileName == null
-        || etomoJoinFileName.equals(ConstJoinMetaData.getNewFileTitle())) {
+        || etomoJoinFileName.equals(JoinMetaData.getNewFileTitle())) {
       manager = new JoinManager("", axisID);
       uiHarness.setEnabledNewJoinMenuItem(false);
     }
@@ -450,7 +450,7 @@ public class EtomoDirector {
 
   public UniqueKey openTomogram(boolean makeCurrent, AxisID axisID) {
     closeDefaultWindow(axisID);
-    return openTomogram(ConstMetaData.getNewFileTitle(), makeCurrent, axisID);
+    return openTomogram(MetaData.getNewFileTitle(), makeCurrent, axisID);
   }
 
   /**
@@ -535,10 +535,10 @@ public class EtomoDirector {
   }
 
   private void enableOpenManagerMenuItem() {
-    if (currentManagerKey.getName().equals(ConstMetaData.getNewFileTitle())) {
+    if (currentManagerKey.getName().equals(MetaData.getNewFileTitle())) {
       uiHarness.setEnabledNewTomogramMenuItem(true);
     }
-    if (currentManagerKey.getName().equals(ConstJoinMetaData.getNewFileTitle())) {
+    if (currentManagerKey.getName().equals(JoinMetaData.getNewFileTitle())) {
       uiHarness.setEnabledNewJoinMenuItem(true);
     }
     if (currentManagerKey.getName().equals(ParallelMetaData.NEW_TITLE)) {
@@ -1210,6 +1210,16 @@ public class EtomoDirector {
 }
 /**
  * <p> $Log$
+ * <p> Revision 1.66  2007/09/07 00:14:13  sueh
+ * <p> bug# 989 Making the processing of the argument list independent of the
+ * <p> instanciation of EtomoDirector:  creating Arguments, adding an instance to
+ * <p> EtomoDirector and instanciating it in main().  Getting rid of
+ * <p> EtomoDirector.getInstance and createInstance.  Calling EtomoDirector.initialize
+ * <p> in main().  Main must be called as early as possible.  Return default argument
+ * <p> values when arguments is null, except for test and selftest - JfcUnit cannot call
+ * <p> main early enough so assume that its argument list is in use when arguments is
+ * <p> null.
+ * <p>
  * <p> Revision 1.65  2007/08/06 19:53:30  sueh
  * <p> bug# 916 Warning when making a settings change can effect appearance.
  * <p>
