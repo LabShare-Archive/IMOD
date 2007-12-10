@@ -13,8 +13,6 @@ import etomo.comscript.ConstTiltParam;
 import etomo.comscript.FortranInputSyntaxException;
 import etomo.comscript.MTFFilterParam;
 import etomo.comscript.NewstParam;
-import etomo.comscript.ParallelParam;
-import etomo.comscript.ProcesschunksParam;
 import etomo.comscript.SplittiltParam;
 import etomo.comscript.TiltParam;
 import etomo.process.ImodManager;
@@ -134,7 +132,7 @@ public final class TomogramGenerationExpert extends ReconUIExpert {
     ProcessName nextProcess = getNextProcess();
     resetNextProcess();
     if (nextProcess == ProcessName.PROCESSCHUNKS) {
-      processchunks(manager, dialog, processResultDisplay);
+      processchunks(manager, dialog, processResultDisplay, ProcessName.TILT);
     }
   }
 
@@ -1066,11 +1064,6 @@ public final class TomogramGenerationExpert extends ReconUIExpert {
     enableUseFilter();
   }
 
-  void getParameters(ParallelParam param) {
-    ProcesschunksParam processchunksParam = (ProcesschunksParam) param;
-    processchunksParam.setProcessName(ProcessName.TILT);
-  }
-
   void trialAction(ProcessResultDisplay trial) {
     if (dialog == null) {
       return;
@@ -1111,6 +1104,10 @@ public final class TomogramGenerationExpert extends ReconUIExpert {
 }
 /**
  * <p> $Log$
+ * <p> Revision 1.14  2007/08/16 16:36:37  sueh
+ * <p> bug# 1035 Added ltfSizeToOutputInXandY updating in newst.  Converting to
+ * <p> startingAndEndingX and Y in blend.  Calculating SUBSETSTART in tilt.
+ * <p>
  * <p> Revision 1.13  2007/07/17 21:45:21  sueh
  * <p> bug# 1018 Getting cpu.adoc information from CpuAdoc.
  * <p>

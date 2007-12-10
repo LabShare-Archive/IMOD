@@ -25,7 +25,6 @@ import javax.swing.SpinnerNumberModel;
 import etomo.ApplicationManager;
 import etomo.EtomoDirector;
 import etomo.comscript.NewstParam;
-import etomo.comscript.ParallelParam;
 import etomo.storage.CpuAdoc;
 import etomo.storage.LogFile;
 import etomo.storage.MtfFileFilter;
@@ -61,6 +60,10 @@ import etomo.type.ViewType;
  * 
  * <p>
  * $Log$
+ * Revision 3.110  2007/09/07 00:29:26  sueh
+ * bug# 989 Using a public INSTANCE to refer to the EtomoDirector singleton
+ * instead of getInstance and createInstance.
+ *
  * Revision 3.109  2007/08/16 16:34:43  sueh
  * bug# 1035 Added ltfSizeToOutputInXandY to advanced newstPanel.
  *
@@ -991,10 +994,6 @@ public class TomogramGenerationDialog extends ProcessDialog implements
 
   void getNewstHeaderState(PanelHeaderState state) {
     newstHeader.getState(state);
-  }
-
-  public final void getParameters(ParallelParam param) {
-    expert.getParameters(param);
   }
 
   void setNewstButtonState(ReconScreenState screenState) {

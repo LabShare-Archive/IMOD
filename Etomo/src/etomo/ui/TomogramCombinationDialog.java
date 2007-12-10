@@ -18,8 +18,6 @@ import etomo.comscript.ConstPatchcrawl3DParam;
 import etomo.comscript.ConstSetParam;
 import etomo.comscript.ConstSolvematchParam;
 import etomo.comscript.MatchvolParam;
-import etomo.comscript.ParallelParam;
-import etomo.comscript.ProcesschunksParam;
 import etomo.comscript.SetParam;
 import etomo.comscript.MatchorwarpParam;
 import etomo.comscript.Patchcrawl3DParam;
@@ -50,6 +48,9 @@ import etomo.type.TomogramState;
  * @version $Revision$
  *
  * <p> $Log$
+ * <p> Revision 3.55  2007/08/21 21:55:14  sueh
+ * <p> bug# 771 In show() passing !isChanged() to pnlSetup.show().
+ * <p>
  * <p> Revision 3.54  2007/08/08 15:04:36  sueh
  * <p> bug# 834 Fixed the parallel processing check box label.
  * <p>
@@ -506,11 +507,6 @@ public final class TomogramCombinationDialog extends ProcessDialog implements
 
   public void setParameters(MatchvolParam param) {
     pnlInitial.setParameters(param);
-  }
-
-  public void getParameters(ParallelParam param) {
-    ProcesschunksParam processchunksParam = (ProcesschunksParam) param;
-    pnlFinal.getParameters(processchunksParam);
   }
 
   public void setParameters(ReconScreenState screenState) {
