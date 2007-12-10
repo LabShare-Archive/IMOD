@@ -456,7 +456,7 @@ EOF
                         if ($numerr >= $maxchunkerr) then
                             echo \
         "$comlist[$ind] has given processing error $numerr times - giving up"
-                            echo $errormess
+                            echo "$errormess"
                             set ans = "E"
                             goto command
                         endif
@@ -519,7 +519,7 @@ EOF
             #
             if ($dropout == 1) then
                 echo "$comlist[$ind] failed on $machines[$proc] - need to restart"
-                if ("$errormess" != "") echo $errormess
+                if ("$errormess" != "") echo "$errormess"
                 set flags[$ind] = 0
                 set assigned[$proc] = 0
                 @ failcount = $failed[$name]
@@ -623,7 +623,7 @@ EOF
                 set errormess = `sed '/^ *$/d' $logname | tail -n 1`
                 set errormess = "ERROR: (last line) - $errormess"
             endif
-            echo $errormess
+            echo "$errormess"
             exit 1
         endif
         echo "$comname finished on $hostroot"
@@ -814,6 +814,9 @@ exit 3
 
 #
 #  $Log$
+#  Revision 3.33  2007/10/04 00:34:45  mast
+#  Made it able to run without a finish file
+#
 #  Revision 3.32  2007/09/14 21:54:18  mast
 #  Added cluster support
 #
