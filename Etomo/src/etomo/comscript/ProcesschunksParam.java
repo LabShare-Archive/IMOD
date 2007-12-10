@@ -44,25 +44,44 @@ public final class ProcesschunksParam implements DetachedCommand, ParallelParam 
   private final ArrayList machineNames = new ArrayList();
   private final EtomoNumber cpuNumber = new EtomoNumber();
 
-  private final AxisID axisID;
   private final BaseManager manager;
+  private final AxisID axisID;
+  private final String rootName;
 
   private CommandDetails subcommandDetails = null;
   private String[] commandArray = null;
-  private String rootName = null;
   private StringBuffer machineList = null;
   private boolean valid = true;
-  private ProcessName processName = null;
   private boolean debug = true;
   private String queueCommand = null;
   private String queue = null;
-  private String subdirName = null;
+  private String subdirName = "";
   private boolean test = false;
   private CommandMode subcommandMode = null;
 
-  public ProcesschunksParam(final BaseManager manager, final AxisID axisID) {
-    this.axisID = axisID;
+  public ProcesschunksParam(final BaseManager manager, final AxisID axisID,
+      final String rootName) {
     this.manager = manager;
+    this.axisID = axisID;
+    this.rootName = rootName;
+    init();
+  }
+
+  /**
+   * Sets rootName to ProcessName + AxisID
+   * @param manager
+   * @param axisID
+   * @param processName
+   */
+  public ProcesschunksParam(final BaseManager manager, final AxisID axisID,
+      final ProcessName processName) {
+    this.manager = manager;
+    this.axisID = axisID;
+    this.rootName = processName.toString() + axisID.getExtension();
+    init();
+  }
+
+  private void init() {
     nice.set(manager.getParallelProcessingDefaultNice());
     nice.setFloor(CpuAdoc.getInstance(axisID, manager).getMinNice());
     nice.setCeiling(NICE_CEILING);
@@ -78,10 +97,6 @@ public final class ProcesschunksParam implements DetachedCommand, ParallelParam 
 
   public File getCommandOutputFile() {
     return null;
-  }
-
-  public AxisID getAxisID() {
-    return axisID;
   }
 
   public void setSubcommandMode(CommandMode input) {
@@ -150,21 +165,14 @@ public final class ProcesschunksParam implements DetachedCommand, ParallelParam 
     cpuNumber.set(input);
   }
 
-  public void setProcessName(final ProcessName processName) {
-    this.processName = processName;
-    setRootName(processName.toString());
-  }
-
-  public ProcessName getProcessName() {
-    return processName;
-  }
-
-  public void setRootName(final String rootName) {
-    if (commandArray != null) {
-      throw new IllegalStateException(
-          "can't change parameter values after command is built");
+  public boolean equalsRootName(ProcessName processName, AxisID axisID) {
+    if ((rootName == null || rootName.matches("\\s*")) && processName == null) {
+      return true;
     }
-    this.rootName = rootName + axisID.getExtension();
+    if (axisID == null) {
+      return rootName.equals(processName.toString());
+    }
+    return rootName.equals(processName.toString() + axisID.getExtension());
   }
 
   public String getRootName() {
@@ -173,6 +181,10 @@ public final class ProcesschunksParam implements DetachedCommand, ParallelParam 
 
   public ConstEtomoNumber getResume() {
     return resume;
+  }
+
+  public boolean isSubdirNameEmpty() {
+    return subdirName == null || subdirName.matches("\\s*");
   }
 
   public String getSubdirName() {
@@ -187,6 +199,10 @@ public final class ProcesschunksParam implements DetachedCommand, ParallelParam 
       return machineList.toString();
     }
     return "";
+  }
+
+  public AxisID getAxisID() {
+    return axisID;
   }
 
   /**
@@ -317,7 +333,7 @@ public final class ProcesschunksParam implements DetachedCommand, ParallelParam 
     }
     if (remoteUserDir != null) {
       command.add(WORKING_DIR_OPTION);
-      if (subdirName != null) {
+      if (!isSubdirNameEmpty()) {
         remoteUserDir += File.separator + subdirName;
       }
       command.add(remoteUserDir.toString());
@@ -326,7 +342,7 @@ public final class ProcesschunksParam implements DetachedCommand, ParallelParam 
     command.add(String.valueOf(DROP_VALUE));
     command.add("-c");
     StringBuffer commandsFileName = new StringBuffer();
-    if (subdirName != null) {
+    if (!isSubdirNameEmpty()) {
       commandsFileName.append("../");
     }
     commandsFileName.append(new StringBuffer(DatasetFiles.getCommandsFileName(
@@ -402,6 +418,10 @@ public final class ProcesschunksParam implements DetachedCommand, ParallelParam 
 }
 /**
  * <p> $Log$
+ * <p> Revision 1.29  2007/11/12 22:12:22  sueh
+ * <p> bug# 1047 Fixed a bug in buildCommand(); was adding the -w option when the
+ * <p> remote directory was null.
+ * <p>
  * <p> Revision 1.28  2007/11/12 14:53:59  sueh
  * <p> bug# 1047 Added the sub-directory to the remote path when the sub-directory is
  * <p> set.
