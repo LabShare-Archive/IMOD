@@ -12,9 +12,10 @@ import etomo.BaseManager;
 import etomo.type.AxisID;
 import etomo.type.AxisType;
 import etomo.type.AxisTypeException;
-import etomo.type.ConstJoinMetaData;
+import etomo.type.BaseMetaData;
 import etomo.type.ConstMetaData;
 import etomo.type.ConstPeetMetaData;
+import etomo.type.JoinMetaData;
 import etomo.type.ParallelMetaData;
 import etomo.type.Run3dmodMenuOptions;
 import etomo.util.DatasetFiles;
@@ -35,6 +36,9 @@ import etomo.util.DatasetFiles;
  * @version $Revision$
  *
  * <p> $Log$
+ * <p> Revision 3.57  2007/11/12 14:55:00  sueh
+ * <p> bug# 1047 Added swapYZ to open(String,String[],Run3dmodMenuOptions,String).
+ * <p>
  * <p> Revision 3.56  2007/11/06 19:21:59  sueh
  * <p> bug# 1047 Added keys for anisotropic diffusion.
  * <p>
@@ -557,7 +561,7 @@ public class ImodManager {
   /**
    * for running 3dmod from the SetupDialog
    */
-  public void setPreviewMetaData(ConstMetaData metaData) {
+  public void setPreviewMetaData(BaseMetaData metaData) {
     if (metaDataSet) {
       return;
     }
@@ -585,7 +589,7 @@ public class ImodManager {
     }
   }
 
-  public void setMetaData(ConstJoinMetaData metaData) {
+  public void setMetaData(JoinMetaData metaData) {
     metaDataSet = true;
     axisType = metaData.getAxisType();
     datasetName = metaData.getName();
