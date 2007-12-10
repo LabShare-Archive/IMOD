@@ -1,13 +1,6 @@
 package etomo.type;
 
-import java.io.File;
 import java.util.ArrayList;
-import java.util.Properties;
-
-import etomo.comscript.MakejoincomParam;
-import etomo.ui.JoinDialog;
-import etomo.util.DatasetFiles;
-import etomo.util.Utilities;
 
 /**
  * <p>Description: </p>
@@ -23,6 +16,9 @@ import etomo.util.Utilities;
  * @version $Revision$
  * 
  * <p> $Log$
+ * <p> Revision 1.14  2007/07/30 22:39:30  sueh
+ * <p> bug# 963 Added DatasetFiles.JOIN_DATA_FILE_EXT.
+ * <p>
  * <p> Revision 1.13  2007/03/01 01:24:24  sueh
  * <p> bug# 964 Saving immutable Number elements instead of EtomoNumber elements
  * <p> in IntKeyList.
@@ -151,468 +147,50 @@ import etomo.util.Utilities;
  * <p> get functions.
  * <p> </p>
  */
-public abstract class ConstJoinMetaData extends BaseMetaData {
+public interface  ConstJoinMetaData  {
   public static final String rcsid = "$Id$";
 
-  protected static final EtomoVersion latestRevisionNumber = EtomoVersion
-      .getInstance(revisionNumberString, "1.1");
-  private static final String newJoinTitle = "New Join";
-
-  protected static final String groupString = "Join";
-  protected static final String sectionTableDataSizeString = "SectionTableDataSize";
-  protected static final String rootNameString = "RootName";
-  protected static final String useAlignmentRefSectionString = "UseAlignmentRefSection";
-  protected static final String REFINING_WITH_TRIAL_KEY = "RefiningWithTrial";
-  protected static final String ALIGN_TRANFORM_KEY = "AlignTransform";
-  protected static final String MODEL_TRANFORM_KEY = "ModelTransform";
-  protected static final String BOUNDARIES_TO_ANALYZE_KEY = "BoundariesToAnalyze";
-  protected static final String OBJECTS_TO_INCLUDE_KEY = "ObjectsToInclude";
-  private static final String BOUNDARY_ROW_KEY="BoundaryRow";
-
-  //Version 1.0
-  protected static final String fullLinearTransformationString = "FullLinearTransformation";
-  protected static final String rotationTranslationMagnificationString = "RotationTranslationMagnification";
-  protected static final String rotationTranslationString = "RotationTranslation";
-
-  public static final Transform TRANSFORM_DEFAULT = Transform.FULL_LINEAR_TRANSFORMATION;
-
-  protected ArrayList sectionTableData;
-  protected String rootName;
-  protected String boundariesToAnalyze = null;
-  protected String objectsToInclude = null;
-  protected ScriptParameter densityRefSection = new ScriptParameter(
-      EtomoNumber.Type.INTEGER, "DensityRefSection");
-  protected ScriptParameter sigmaLowFrequency = new ScriptParameter(
-      EtomoNumber.Type.DOUBLE, "SigmaLowFrequency");
-  protected ScriptParameter cutoffHighFrequency = new ScriptParameter(
-      EtomoNumber.Type.DOUBLE, "CutoffHighFrequency");
-  protected ScriptParameter sigmaHighFrequency = new ScriptParameter(
-      EtomoNumber.Type.DOUBLE, "SigmaHighFrequency");
-  protected Transform alignTransform = TRANSFORM_DEFAULT;
-  protected Transform modelTransform = TRANSFORM_DEFAULT;
-  protected boolean useAlignmentRefSection;
-  protected ScriptParameter alignmentRefSection = new ScriptParameter(
-      EtomoNumber.Type.INTEGER, "AlignmentRefSection");
-  protected ScriptParameter sizeInX = new ScriptParameter(
-      EtomoNumber.Type.INTEGER, "SizeInX");
-  protected ScriptParameter sizeInY = new ScriptParameter(
-      EtomoNumber.Type.INTEGER, "SizeInY");
-  protected ScriptParameter shiftInX = new ScriptParameter(
-      EtomoNumber.Type.INTEGER, "ShiftInX");
-  protected ScriptParameter shiftInY = new ScriptParameter(
-      EtomoNumber.Type.INTEGER, "ShiftInY");
-  protected EtomoNumber useEveryNSlices = new EtomoNumber(
-      EtomoNumber.Type.INTEGER, "UseEveryNSlices");
-  protected final ScriptParameter trialBinning = new ScriptParameter(
-      EtomoNumber.Type.INTEGER, "TrialBinning");
-  protected final ScriptParameter rejoinTrialBinning = new ScriptParameter(
-      EtomoNumber.Type.INTEGER, "RejoinTrialBinning");
-  protected final EtomoNumber midasLimit = new EtomoNumber("MidasLimit");
-  protected final EtomoBoolean2 gap = new EtomoBoolean2("Gap");
-  protected final EtomoNumber gapStart = new EtomoNumber("GapStart");
-  protected final EtomoNumber gapEnd = new EtomoNumber("GapEnd");
-  protected final EtomoNumber gapInc= new EtomoNumber("GapInc");
-  protected final EtomoNumber pointsToFitMin=new EtomoNumber("PointsToFitMin");
-  protected final EtomoNumber pointsToFitMax=new EtomoNumber("PointsToFitMax");
-  protected final IntKeyList boundaryRowStartList=IntKeyList.getNumberInstance("BoundaryRow"+'.'+"StartList");
-  protected final IntKeyList boundaryRowEndList=IntKeyList.getNumberInstance("BoundaryRow"+'.'+"EndList");
-  protected EtomoNumber rejoinUseEveryNSlices = new EtomoNumber(
-      EtomoNumber.Type.INTEGER, "RejoinUseEveryNSlices");
-
-  public abstract void load(Properties props);
-
-  public abstract void load(Properties props, String prepend);
-
-  public ConstJoinMetaData() {
-    axisType=AxisType.SINGLE_AXIS;
-    fileExtension = DatasetFiles.JOIN_DATA_FILE_EXT;
-    densityRefSection.setDefault(1).useDefaultAsDisplayValue();
-    alignmentRefSection.setDefault(1).useDefaultAsDisplayValue();
-    trialBinning.setDefault(1).useDefaultAsDisplayValue();
-    rejoinTrialBinning.setDefault(1).useDefaultAsDisplayValue();
-    shiftInX.setDefault(0).useDefaultAsDisplayValue();
-    shiftInY.setDefault(0).useDefaultAsDisplayValue();
-    sigmaLowFrequency.setDefault(0).setDisplayValue(0.0);
-    cutoffHighFrequency.setDefault(0).setDisplayValue(0.25);
-    sigmaHighFrequency.setDefault(0).setDisplayValue(0.05);
-    midasLimit.setDisplayValue(MakejoincomParam.MIDAS_LIMIT_DEFAULT);
-    gapStart.setDisplayValue(-4);
-    gapEnd.setDisplayValue(8);
-    gapInc.setDisplayValue(2);
-    gap.setDisplayValue(true);
-  }
-
-  public String toString() {
-    return getClass().getName() + "[" + paramString() + "]";
-  }
-
-  protected String paramString() {
-    return "sectionTableData=" + sectionTableData + ",rootName=" + rootName
-        + ",\ndensityRefSection=" + densityRefSection + ",sigmaLowFrequency="
-        + sigmaLowFrequency + ",\ncutoffHighFrequency=" + cutoffHighFrequency
-        + ",\nsigmaHighFrequency=" + sigmaHighFrequency
-        + ",\nuseAlignmentRefSection=" + useAlignmentRefSection
-        + ",\nalignmentRefSection=" + alignmentRefSection + ",\nsizeInX="
-        + sizeInX + ",sizeInY=" + sizeInY + ",\nshiftInX=" + shiftInX
-        + ",shiftInY=" + shiftInY + ",\nuseEveryNSlices=" + useEveryNSlices
-        + ",trialBinning=" + trialBinning + ",\nmidasLimit=" + midasLimit
-        + ",\nsuper[" + super.paramString() + "]";
-  }
-
-  public ArrayList getSectionTableData() {
-    return sectionTableData;
-  }
-
-  /**
-   * Remove data not used after version 1.0 of join meta data.
-   * Assumes the that data has been loaded (see loadVersion1_0()).
-   * @param props
-   * @param prepend
-   */
-  private void removeVersion1_0(Properties props, String prepend) {
-    String group = prepend + '.';
-    props.remove(group + fullLinearTransformationString);
-    props.remove(group + rotationTranslationMagnificationString);
-    props.remove(group + rotationTranslationString);
-  }
-
-  public void store(Properties props, String prepend) {
-    removeSectionTableData(props, prepend);
-    prepend = createPrepend(prepend);
-    String group = prepend + ".";
-    //removing data used in old versions of join meta data
-    //change this this when there are more then one old version
-    if (revisionNumber.lt(latestRevisionNumber)) {
-      removeVersion1_0(props, prepend);
-    }
-    latestRevisionNumber.store(props, prepend);
-    props.setProperty(group + rootNameString, rootName);
-    if (boundariesToAnalyze == null) {
-      props.remove(group + BOUNDARIES_TO_ANALYZE_KEY);
-    }
-    else {
-      props.setProperty(group + BOUNDARIES_TO_ANALYZE_KEY, boundariesToAnalyze);
-    }
-    if (objectsToInclude == null) {
-      props.remove(group + OBJECTS_TO_INCLUDE_KEY);
-    }
-    else {
-      props.setProperty(group + OBJECTS_TO_INCLUDE_KEY, objectsToInclude);
-    }
-    gapStart.store(props,prepend);
-    gapEnd.store(props,prepend);
-    gapInc.store(props,prepend);
-    pointsToFitMin.store(props,prepend);
-    pointsToFitMax.store(props,prepend);
-    densityRefSection.store(props, prepend);
-    if (sectionTableData == null) {
-      props.setProperty(group + sectionTableDataSizeString, "0");
-    }
-    else {
-      props.setProperty(group + sectionTableDataSizeString, Integer
-          .toString(sectionTableData.size()));
-    }
-    sigmaLowFrequency.store(props, prepend);
-    cutoffHighFrequency.store(props, prepend);
-    sigmaHighFrequency.store(props, prepend);
-    Transform.store(alignTransform, props, prepend, ALIGN_TRANFORM_KEY);
-    Transform.store(modelTransform, props, prepend, MODEL_TRANFORM_KEY);
-    props.setProperty(group + useAlignmentRefSectionString, Boolean
-        .toString(useAlignmentRefSection));
-    alignmentRefSection.store(props, prepend);
-    sizeInX.store(props, prepend);
-    sizeInY.store(props, prepend);
-    shiftInX.store(props, prepend);
-    shiftInY.store(props, prepend);
-    useEveryNSlices.store(props, prepend);
-    trialBinning.store(props, prepend);
-    rejoinTrialBinning.store(props, prepend);
-    gap.store(props, prepend);
-    midasLimit.store(props, prepend);
-    if (sectionTableData != null) {
-      for (int i = 0; i < sectionTableData.size(); i++) {
-        ((SectionTableRowData) sectionTableData.get(i)).store(props, prepend);
-      }
-    }
-    boundaryRowStartList.store(props,prepend);
-    boundaryRowEndList.store(props,prepend);
-    rejoinUseEveryNSlices.store(props, prepend);
-  }
-
-  public void removeSectionTableData(Properties props, String prepend) {
-    prepend = createPrepend(prepend);
-    String group = prepend + ".";
-    if (sectionTableData != null) {
-      for (int i = 0; i < sectionTableData.size(); i++) {
-        ((SectionTableRowData) sectionTableData.get(i)).remove(props, prepend);
-      }
-    }
-  }
-
-  protected static String createPrepend(String prepend) {
-    if (prepend == "") {
-      return groupString;
-    }
-    return prepend + "." + groupString;
-  }
-
-  public boolean isValid(String workingDirName) {
-    if (workingDirName == null || workingDirName.length() == 0
-        || workingDirName.matches("\\s+")) {
-      invalidReason = "Working directory is not set.";
-      return false;
-    }
-    return isValid(new File(workingDirName));
-  }
-
-  public boolean isValid(File workingDir) {
-    StringBuffer invalidBuffer = new StringBuffer();
-    if (!Utilities.isValidFile(workingDir, JoinDialog.WORKING_DIRECTORY_TEXT,
-        invalidBuffer, true, true, true, true)) {
-      invalidReason = invalidBuffer.toString();
-      return false;
-    }
-    return isValid();
-  }
-
-  public boolean isValid() {
-    if (rootName == null || !rootName.matches("\\S+")) {
-      invalidReason = rootNameString + " is empty.";
-      return false;
-    }
-    return true;
-  }
-
-  public boolean equals(Object object) {
-    if (!super.equals(object)) {
-      return false;
-    }
-
-    if (!(object instanceof ConstJoinMetaData))
-      return false;
-    ConstJoinMetaData that = (ConstJoinMetaData) object;
-
-    if ((sectionTableData == null && that.sectionTableData != null)
-        || (sectionTableData != null && that.sectionTableData == null)) {
-      return false;
-    }
-    if (sectionTableData.size() != that.sectionTableData.size()) {
-      return false;
-    }
-
-    for (int i = 0; i < sectionTableData.size(); i++) {
-      if (!((SectionTableRowData) sectionTableData.get(i))
-          .equals(sectionTableData.get(i))) {
-        return false;
-      }
-    }
-    return true;
-  }
-  
-  public String getBoundariesToAnalyze() {
-    return boundariesToAnalyze;
-  }
-  
-  public String getObjectsToInclude() {
-    return objectsToInclude;
-  }
-  
-  public ConstEtomoNumber getGapStart() {
-    return gapStart;
-  }
-  
-  public ConstEtomoNumber getGapEnd() {
-    return gapEnd;
-  }
-  
-  public ConstEtomoNumber getGapInc() {
-    return gapInc;
-  }
-  
-  public ConstEtomoNumber getPointsToFitMin() {
-    return pointsToFitMin;
-  }
-  
-  public ConstEtomoNumber getPointsToFitMax() {
-    return pointsToFitMax;
-  }
-
-  public boolean isRootNameSet() {
-    return rootName != null && rootName.matches("\\S+");
-  }
-
-  public ConstEtomoNumber getDensityRefSection() {
-    return densityRefSection;
-  }
-
-  public ScriptParameter getDensityRefSectionParameter() {
-    return densityRefSection;
-  }
-  
-  public IntKeyList.Walker getBoundaryRowStartListWalker(){
-    return boundaryRowStartList.getWalker();
-  }
-  
-  public void setBoundaryRowStart(int key, String start) {
-    boundaryRowStartList.put(key,start);
-  }
-  
-  public void resetBoundaryRowStartList() {
-    boundaryRowStartList.reset();
-  }
-  
-  public IntKeyList.Walker getBoundaryRowEndListWalker(){
-    return boundaryRowEndList.getWalker();
-  }
-  
-  public boolean isBoundaryRowEndListEmpty() {
-    return boundaryRowEndList.isEmpty();
-  }
-  
-  public void resetBoundaryRowEndList() {
-    boundaryRowEndList.reset();
-  }
-  
-  public ConstEtomoNumber getBoundaryRowEnd(int key) {
-    return boundaryRowEndList.getEtomoNumber(key);
-  }
-  
-  public void setBoundaryRowEnd(int key, String end) {
-    boundaryRowEndList.put(key,end);
-  }
-
-  public ConstEtomoNumber getUseEveryNSlices() {
-    return useEveryNSlices;
-  }
-  
-  public ConstEtomoNumber getRejoinUseEveryNSlices() {
-    return rejoinUseEveryNSlices;
-  }
-  
-  public ConstEtomoNumber getGap() {
-    return gap;
-  }
-
-  public ConstEtomoNumber getTrialBinning() {
-    return trialBinning;
-  }
-
-  public ScriptParameter getTrialBinningParameter() {
-    return trialBinning;
-  }
-  
-  public ConstEtomoNumber getRejoinTrialBinning() {
-    return rejoinTrialBinning;
-  }
-
-  public ScriptParameter getRejoinTrialBinningParameter() {
-    return rejoinTrialBinning;
-  }
-
-  public String getMetaDataFileName() {
-    if (rootName.equals("")) {
-      return null;
-    }
-    return rootName + fileExtension;
-  }
-
-  public final ConstEtomoNumber getMidasLimit() {
-    return midasLimit;
-  }
-  
-  public String getRootName() {
-    return rootName;
-  }
-
-  public String getName() {
-    if (rootName.equals("")) {
-      return newJoinTitle;
-    }
-    return rootName;
-  }
-
-  public ConstEtomoNumber getSigmaLowFrequency() {
-    return sigmaLowFrequency;
-  }
-
-  public ScriptParameter getSigmaLowFrequencyParameter() {
-    return sigmaLowFrequency;
-  }
-
-  public ConstEtomoNumber getCutoffHighFrequency() {
-    return cutoffHighFrequency;
-  }
-
-  public ScriptParameter getCutoffHighFrequencyParameter() {
-    return cutoffHighFrequency;
-  }
-
-  public ConstEtomoNumber getSigmaHighFrequency() {
-    return sigmaHighFrequency;
-  }
-
-  public ScriptParameter getSigmaHighFrequencyParameter() {
-    return sigmaHighFrequency;
-  }
-
-  public static String getNewFileTitle() {
-    return newJoinTitle;
-  }
-
-  public static int getSize(int min, int max) {
-    return max - min + 1;
-  }
-
-  public int getCoordinate(ConstEtomoNumber coordinate, JoinState state) {
-    return coordinate.getInt() * state.getJoinTrialBinning().getInt();
-  }
-
-  public Transform getAlignTransform() {
-    return alignTransform;
-  }
-
-  public Transform getModelTransform() {
-    return modelTransform;
-  }
-
-  public boolean isUseAlignmentRefSection() {
-    return useAlignmentRefSection;
-  }
-
-  public ConstEtomoNumber getAlignmentRefSection() {
-    return alignmentRefSection;
-  }
-
-  public ConstEtomoNumber getSizeInX() {
-    return sizeInX;
-  }
-
-  public ScriptParameter getSizeInXParameter() {
-    return sizeInX;
-  }
-
-  public ConstEtomoNumber getSizeInY() {
-    return sizeInY;
-  }
-
-  public ScriptParameter getSizeInYParameter() {
-    return sizeInY;
-  }
-
-  public ConstEtomoNumber getShiftInX() {
-    return shiftInX;
-  }
-
-  public ScriptParameter getShiftInXParameter() {
-    return shiftInX;
-  }
-
-  public ConstEtomoNumber getShiftInY() {
-    return shiftInY;
-  }
-
-  public ScriptParameter getShiftInYParameter() {
-    return shiftInY;
-  }
-
+  public ConstEtomoNumber getAlignmentRefSection();
+  public Transform getAlignTransform();
+  public String getBoundariesToAnalyze();
+  public int getCoordinate(ConstEtomoNumber coordinate, JoinState state);
+  public ConstEtomoNumber getSigmaLowFrequency();
+  public String getDatasetName();
+  public ConstEtomoNumber getDensityRefSection();
+  public ConstEtomoNumber getCutoffHighFrequency();
+  public ConstEtomoNumber getSigmaHighFrequency();
+  public boolean isUseAlignmentRefSection();
+  public ConstEtomoNumber getShiftInX();
+  public ConstEtomoNumber getSizeInX();
+  public ConstEtomoNumber getShiftInY();
+  public ConstEtomoNumber getSizeInY();
+  public ConstEtomoNumber getUseEveryNSlices();
+  public ConstEtomoNumber getRejoinUseEveryNSlices();
+  public ConstEtomoNumber getTrialBinning();
+  public Transform getModelTransform();
+  public ConstEtomoNumber getMidasLimit();
+  public String getObjectsToInclude();
+  public ConstEtomoNumber getGap();
+  public ConstEtomoNumber getGapStart();
+  public ConstEtomoNumber getGapEnd();
+  public ConstEtomoNumber getGapInc();
+  public ConstEtomoNumber getPointsToFitMin();
+  public ConstEtomoNumber getPointsToFitMax();
+  public ConstEtomoNumber getRejoinTrialBinning();
+  public ConstEtomoNumber getBoundaryRowEnd(int key);
+  public boolean isBoundaryRowEndListEmpty();
+  public ArrayList getSectionTableData();
+  public IntKeyList.Walker getBoundaryRowEndListWalker();
+  public IntKeyList.Walker getBoundaryRowStartListWalker();
+  public ScriptParameter getSizeInXParameter();
+  public ScriptParameter getSizeInYParameter();
+  public ScriptParameter getShiftInXParameter();
+  public ScriptParameter getShiftInYParameter();
+  public ScriptParameter getRejoinTrialBinningParameter();
+  public ScriptParameter getTrialBinningParameter();
+  public ScriptParameter getCutoffHighFrequencyParameter();
+  public ScriptParameter getSigmaLowFrequencyParameter();
+  public ScriptParameter getSigmaHighFrequencyParameter();
+  public String getName();
+  public ScriptParameter getDensityRefSectionParameter();
 }
