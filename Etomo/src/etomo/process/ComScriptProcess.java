@@ -18,6 +18,12 @@
  * 
  * <p>
  * $Log$
+ * Revision 3.44  2007/06/12 00:26:36  sueh
+ * bug# 1017 Modified parse(String,boolean) to handle multiple log files
+ * again.  Use the member variable parseLogFile choose whether to parse
+ * the main log file or build one from name (takes care of non-standard log
+ * file names).
+ *
  * Revision 3.43  2006/10/11 10:07:49  sueh
  * bug# 931 Added delete functionality to LogFile - changed BackupException to
  * FileException.
@@ -661,7 +667,7 @@ public class ComScriptProcess extends Thread implements SystemProcessInterface {
   }
 
   public ProcessName getProcessName() {
-    return ProcessName.fromFileName(comScriptName, axisID, ".com");
+    return ProcessName.getInstance(comScriptName, axisID/*, ".com"*/);
   }
 
   public AxisID getAxisID() {

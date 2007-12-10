@@ -31,6 +31,10 @@ import etomo.util.Utilities;
  * @version $$Revision$$
  * 
  * <p> $$Log$
+ * <p> $Revision 1.23  2007/09/07 00:18:43  sueh
+ * <p> $bug# 989 Using a public INSTANCE to refer to the EtomoDirector singleton
+ * <p> $instead of getInstance and createInstance.
+ * <p> $
  * <p> $Revision 1.22  2006/10/24 21:18:13  sueh
  * <p> $bug# 947 Passing the ProcessName to AxisProcessPanel.
  * <p> $
@@ -297,7 +301,7 @@ public class CombineProcessMonitor implements DetachedProcessMonitor {
     manager.progressBarDone(axisID, ProcessEndState.DONE);
     String childCommandName = comscriptName.substring(0, comscriptName
         .indexOf(".com"));
-    currentCommand = ProcessName.getInstance(childCommandName);
+    currentCommand = ProcessName.getInstance(childCommandName,axisID);
     if (currentCommand != null) {
       childLog = LogFile.getInstance(manager.getPropertyUserDir(), axisID,
           currentCommand);
