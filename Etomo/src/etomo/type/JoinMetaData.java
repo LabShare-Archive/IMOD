@@ -1,11 +1,15 @@
 package etomo.type;
 
+import java.io.File;
 import java.util.ArrayList;
 import java.util.Properties;
 
 import etomo.BaseManager;
+import etomo.comscript.MakejoincomParam;
+import etomo.ui.JoinDialog;
 import etomo.ui.UIHarness;
 import etomo.util.DatasetFiles;
+import etomo.util.Utilities;
 
 /**
  * <p>Description: </p>
@@ -21,6 +25,9 @@ import etomo.util.DatasetFiles;
  * @version $Revision$
  * 
  * <p> $Log$
+ * <p> Revision 1.10  2007/07/30 22:39:52  sueh
+ * <p> bug# 963 Added DatasetFiles.JOIN_DATA_FILE_EXT.
+ * <p>
  * <p> Revision 1.9  2007/02/08 02:03:01  sueh
  * <p> bug# 962 Added rejoinTrialBinning and rejoinUseEveryNSlices.
  * <p>
@@ -99,21 +106,113 @@ import etomo.util.DatasetFiles;
  * <p> and set functions.
  * <p> </p>
  */
-public class JoinMetaData extends ConstJoinMetaData {
+public final class JoinMetaData extends BaseMetaData implements
+    ConstJoinMetaData {
   public static final String rcsid = "$Id$";
+
+  private static final EtomoVersion latestRevisionNumber = EtomoVersion
+      .getInstance(revisionNumberString, "1.1");
+  private static final String newJoinTitle = "New Join";
+
+  private static final String groupString = "Join";
+  private static final String sectionTableDataSizeString = "SectionTableDataSize";
+  private static final String rootNameString = "RootName";
+  private static final String useAlignmentRefSectionString = "UseAlignmentRefSection";
+  private static final String REFINING_WITH_TRIAL_KEY = "RefiningWithTrial";
+  private static final String ALIGN_TRANFORM_KEY = "AlignTransform";
+  private static final String MODEL_TRANFORM_KEY = "ModelTransform";
+  private static final String BOUNDARIES_TO_ANALYZE_KEY = "BoundariesToAnalyze";
+  private static final String OBJECTS_TO_INCLUDE_KEY = "ObjectsToInclude";
+  private static final String BOUNDARY_ROW_KEY = "BoundaryRow";
+
+  //Version 1.0
+  private static final String fullLinearTransformationString = "FullLinearTransformation";
+  private static final String rotationTranslationMagnificationString = "RotationTranslationMagnification";
+  private static final String rotationTranslationString = "RotationTranslation";
+
+  public static final Transform TRANSFORM_DEFAULT = Transform.FULL_LINEAR_TRANSFORMATION;
+
+  private ArrayList sectionTableData = null;
+  private String rootName = "";
+  private String boundariesToAnalyze = null;
+  private String objectsToInclude = null;
+  private ScriptParameter densityRefSection = new ScriptParameter(
+      EtomoNumber.Type.INTEGER, "DensityRefSection");
+  private ScriptParameter sigmaLowFrequency = new ScriptParameter(
+      EtomoNumber.Type.DOUBLE, "SigmaLowFrequency");
+  private ScriptParameter cutoffHighFrequency = new ScriptParameter(
+      EtomoNumber.Type.DOUBLE, "CutoffHighFrequency");
+  private ScriptParameter sigmaHighFrequency = new ScriptParameter(
+      EtomoNumber.Type.DOUBLE, "SigmaHighFrequency");
+  private Transform alignTransform = TRANSFORM_DEFAULT;
+  private Transform modelTransform = TRANSFORM_DEFAULT;
+  private boolean useAlignmentRefSection = false;
+  private ScriptParameter alignmentRefSection = new ScriptParameter(
+      EtomoNumber.Type.INTEGER, "AlignmentRefSection");
+  private ScriptParameter sizeInX = new ScriptParameter(
+      EtomoNumber.Type.INTEGER, "SizeInX");
+  private ScriptParameter sizeInY = new ScriptParameter(
+      EtomoNumber.Type.INTEGER, "SizeInY");
+  private ScriptParameter shiftInX = new ScriptParameter(
+      EtomoNumber.Type.INTEGER, "ShiftInX");
+  private ScriptParameter shiftInY = new ScriptParameter(
+      EtomoNumber.Type.INTEGER, "ShiftInY");
+  private EtomoNumber useEveryNSlices = new EtomoNumber(
+      EtomoNumber.Type.INTEGER, "UseEveryNSlices");
+  private final ScriptParameter trialBinning = new ScriptParameter(
+      EtomoNumber.Type.INTEGER, "TrialBinning");
+  private final ScriptParameter rejoinTrialBinning = new ScriptParameter(
+      EtomoNumber.Type.INTEGER, "RejoinTrialBinning");
+  private final EtomoNumber midasLimit = new EtomoNumber("MidasLimit");
+  private final EtomoBoolean2 gap = new EtomoBoolean2("Gap");
+  private final EtomoNumber gapStart = new EtomoNumber("GapStart");
+  private final EtomoNumber gapEnd = new EtomoNumber("GapEnd");
+  private final EtomoNumber gapInc = new EtomoNumber("GapInc");
+  private final EtomoNumber pointsToFitMin = new EtomoNumber("PointsToFitMin");
+  private final EtomoNumber pointsToFitMax = new EtomoNumber("PointsToFitMax");
+  private final IntKeyList boundaryRowStartList = IntKeyList
+      .getNumberInstance("BoundaryRow" + '.' + "StartList");
+  private final IntKeyList boundaryRowEndList = IntKeyList
+      .getNumberInstance("BoundaryRow" + '.' + "EndList");
+  private EtomoNumber rejoinUseEveryNSlices = new EtomoNumber(
+      EtomoNumber.Type.INTEGER, "RejoinUseEveryNSlices");
 
   private final BaseManager manager;
 
   public JoinMetaData(BaseManager manager) {
     this.manager = manager;
-    reset();
+    axisType = AxisType.SINGLE_AXIS;
+    fileExtension = DatasetFiles.JOIN_DATA_FILE_EXT;
+    densityRefSection.setDefault(1).useDefaultAsDisplayValue();
+    alignmentRefSection.setDefault(1).useDefaultAsDisplayValue();
+    trialBinning.setDefault(1).useDefaultAsDisplayValue();
+    rejoinTrialBinning.setDefault(1).useDefaultAsDisplayValue();
+    shiftInX.setDefault(0).useDefaultAsDisplayValue();
+    shiftInY.setDefault(0).useDefaultAsDisplayValue();
+    sigmaLowFrequency.setDefault(0).setDisplayValue(0.0);
+    cutoffHighFrequency.setDefault(0).setDisplayValue(0.25);
+    sigmaHighFrequency.setDefault(0).setDisplayValue(0.05);
+    midasLimit.setDisplayValue(MakejoincomParam.MIDAS_LIMIT_DEFAULT);
+    gapStart.setDisplayValue(-4);
+    gapEnd.setDisplayValue(8);
+    gapInc.setDisplayValue(2);
+    gap.setDisplayValue(true);
   }
 
   public String toString() {
     return getClass().getName() + "[" + paramString() + "]";
   }
 
-  private void reset() {
+  /**
+   *  Get the objects attributes from the properties object.
+   */
+  public void load(Properties props) {
+    load(props, "");
+  }
+
+  public void load(Properties props, String prepend) {
+    super.load(props, prepend);
+    //reset
     sectionTableData = null;
     densityRefSection.reset();
     rootName = "";
@@ -140,17 +239,7 @@ public class JoinMetaData extends ConstJoinMetaData {
     gap.reset();
     boundaryRowStartList.reset();
     boundaryRowEndList.reset();
-  }
-
-  /**
-   *  Get the objects attributes from the properties object.
-   */
-  public void load(Properties props) {
-    load(props, "");
-  }
-
-  public void load(Properties props, String prepend) {
-    reset();
+    //load
     prepend = createPrepend(prepend);
     String group = prepend + ".";
     revisionNumber.reset();
@@ -348,5 +437,362 @@ public class JoinMetaData extends ConstJoinMetaData {
 
   public void setShiftInY(String shiftInY) {
     this.shiftInY.set(shiftInY);
+  }
+
+  public ArrayList getSectionTableData() {
+    return sectionTableData;
+  }
+
+  /**
+   * Remove data not used after version 1.0 of join meta data.
+   * Assumes the that data has been loaded (see loadVersion1_0()).
+   * @param props
+   * @param prepend
+   */
+  private void removeVersion1_0(Properties props, String prepend) {
+    String group = prepend + '.';
+    props.remove(group + fullLinearTransformationString);
+    props.remove(group + rotationTranslationMagnificationString);
+    props.remove(group + rotationTranslationString);
+  }
+
+  public void store(Properties props, String prepend) {
+    super.store(props, prepend);
+    removeSectionTableData(props, prepend);
+    prepend = createPrepend(prepend);
+    String group = prepend + ".";
+    //removing data used in old versions of join meta data
+    //change this this when there are more then one old version
+    if (revisionNumber.lt(latestRevisionNumber)) {
+      removeVersion1_0(props, prepend);
+    }
+    latestRevisionNumber.store(props, prepend);
+    props.setProperty(group + rootNameString, rootName);
+    if (boundariesToAnalyze == null) {
+      props.remove(group + BOUNDARIES_TO_ANALYZE_KEY);
+    }
+    else {
+      props.setProperty(group + BOUNDARIES_TO_ANALYZE_KEY, boundariesToAnalyze);
+    }
+    if (objectsToInclude == null) {
+      props.remove(group + OBJECTS_TO_INCLUDE_KEY);
+    }
+    else {
+      props.setProperty(group + OBJECTS_TO_INCLUDE_KEY, objectsToInclude);
+    }
+    gapStart.store(props, prepend);
+    gapEnd.store(props, prepend);
+    gapInc.store(props, prepend);
+    pointsToFitMin.store(props, prepend);
+    pointsToFitMax.store(props, prepend);
+    densityRefSection.store(props, prepend);
+    if (sectionTableData == null) {
+      props.setProperty(group + sectionTableDataSizeString, "0");
+    }
+    else {
+      props.setProperty(group + sectionTableDataSizeString, Integer
+          .toString(sectionTableData.size()));
+    }
+    sigmaLowFrequency.store(props, prepend);
+    cutoffHighFrequency.store(props, prepend);
+    sigmaHighFrequency.store(props, prepend);
+    Transform.store(alignTransform, props, prepend, ALIGN_TRANFORM_KEY);
+    Transform.store(modelTransform, props, prepend, MODEL_TRANFORM_KEY);
+    props.setProperty(group + useAlignmentRefSectionString, Boolean
+        .toString(useAlignmentRefSection));
+    alignmentRefSection.store(props, prepend);
+    sizeInX.store(props, prepend);
+    sizeInY.store(props, prepend);
+    shiftInX.store(props, prepend);
+    shiftInY.store(props, prepend);
+    useEveryNSlices.store(props, prepend);
+    trialBinning.store(props, prepend);
+    rejoinTrialBinning.store(props, prepend);
+    gap.store(props, prepend);
+    midasLimit.store(props, prepend);
+    if (sectionTableData != null) {
+      for (int i = 0; i < sectionTableData.size(); i++) {
+        ((SectionTableRowData) sectionTableData.get(i)).store(props, prepend);
+      }
+    }
+    boundaryRowStartList.store(props, prepend);
+    boundaryRowEndList.store(props, prepend);
+    rejoinUseEveryNSlices.store(props, prepend);
+  }
+
+  public void removeSectionTableData(Properties props, String prepend) {
+    prepend = createPrepend(prepend);
+    String group = prepend + ".";
+    if (sectionTableData != null) {
+      for (int i = 0; i < sectionTableData.size(); i++) {
+        ((SectionTableRowData) sectionTableData.get(i)).remove(props, prepend);
+      }
+    }
+  }
+
+  String createPrepend(String prepend) {
+    if (prepend == "") {
+      return groupString;
+    }
+    return prepend + "." + groupString;
+  }
+
+  public boolean isValid(String workingDirName) {
+    if (workingDirName == null || workingDirName.length() == 0
+        || workingDirName.matches("\\s+")) {
+      invalidReason = "Working directory is not set.";
+      return false;
+    }
+    return isValid(new File(workingDirName));
+  }
+
+  public boolean isValid(File workingDir) {
+    StringBuffer invalidBuffer = new StringBuffer();
+    if (!Utilities.isValidFile(workingDir, JoinDialog.WORKING_DIRECTORY_TEXT,
+        invalidBuffer, true, true, true, true)) {
+      invalidReason = invalidBuffer.toString();
+      return false;
+    }
+    return isValid();
+  }
+
+  public boolean isValid() {
+    if (rootName == null || !rootName.matches("\\S+")) {
+      invalidReason = rootNameString + " is empty.";
+      return false;
+    }
+    return true;
+  }
+
+  public boolean equals(Object object) {
+    if (!super.equals(object)) {
+      return false;
+    }
+
+    if (!(object instanceof JoinMetaData))
+      return false;
+    JoinMetaData that = (JoinMetaData) object;
+
+    if ((sectionTableData == null && that.sectionTableData != null)
+        || (sectionTableData != null && that.sectionTableData == null)) {
+      return false;
+    }
+    if (sectionTableData.size() != that.sectionTableData.size()) {
+      return false;
+    }
+
+    for (int i = 0; i < sectionTableData.size(); i++) {
+      if (!((SectionTableRowData) sectionTableData.get(i))
+          .equals(sectionTableData.get(i))) {
+        return false;
+      }
+    }
+    return true;
+  }
+
+  public String getBoundariesToAnalyze() {
+    return boundariesToAnalyze;
+  }
+
+  public String getObjectsToInclude() {
+    return objectsToInclude;
+  }
+
+  public ConstEtomoNumber getGapStart() {
+    return gapStart;
+  }
+
+  public ConstEtomoNumber getGapEnd() {
+    return gapEnd;
+  }
+
+  public ConstEtomoNumber getGapInc() {
+    return gapInc;
+  }
+
+  public ConstEtomoNumber getPointsToFitMin() {
+    return pointsToFitMin;
+  }
+
+  public ConstEtomoNumber getPointsToFitMax() {
+    return pointsToFitMax;
+  }
+
+  public boolean isRootNameSet() {
+    return rootName != null && rootName.matches("\\S+");
+  }
+
+  public ConstEtomoNumber getDensityRefSection() {
+    return densityRefSection;
+  }
+
+  public ScriptParameter getDensityRefSectionParameter() {
+    return densityRefSection;
+  }
+
+  public IntKeyList.Walker getBoundaryRowStartListWalker() {
+    return boundaryRowStartList.getWalker();
+  }
+
+  public void setBoundaryRowStart(int key, String start) {
+    boundaryRowStartList.put(key, start);
+  }
+
+  public void resetBoundaryRowStartList() {
+    boundaryRowStartList.reset();
+  }
+
+  public IntKeyList.Walker getBoundaryRowEndListWalker() {
+    return boundaryRowEndList.getWalker();
+  }
+
+  public boolean isBoundaryRowEndListEmpty() {
+    return boundaryRowEndList.isEmpty();
+  }
+
+  public void resetBoundaryRowEndList() {
+    boundaryRowEndList.reset();
+  }
+
+  public ConstEtomoNumber getBoundaryRowEnd(int key) {
+    return boundaryRowEndList.getEtomoNumber(key);
+  }
+
+  public void setBoundaryRowEnd(int key, String end) {
+    boundaryRowEndList.put(key, end);
+  }
+
+  public ConstEtomoNumber getUseEveryNSlices() {
+    return useEveryNSlices;
+  }
+
+  public ConstEtomoNumber getRejoinUseEveryNSlices() {
+    return rejoinUseEveryNSlices;
+  }
+
+  public ConstEtomoNumber getGap() {
+    return gap;
+  }
+
+  public ConstEtomoNumber getTrialBinning() {
+    return trialBinning;
+  }
+
+  public ScriptParameter getTrialBinningParameter() {
+    return trialBinning;
+  }
+
+  public ConstEtomoNumber getRejoinTrialBinning() {
+    return rejoinTrialBinning;
+  }
+
+  public ScriptParameter getRejoinTrialBinningParameter() {
+    return rejoinTrialBinning;
+  }
+
+  public String getMetaDataFileName() {
+    if (rootName.equals("")) {
+      return null;
+    }
+    return rootName + fileExtension;
+  }
+
+  public ConstEtomoNumber getMidasLimit() {
+    return midasLimit;
+  }
+
+  public String getName() {
+    if (rootName.equals("")) {
+      return newJoinTitle;
+    }
+    return rootName;
+  }
+
+  public String getDatasetName() {
+    return rootName;
+  }
+
+  public ConstEtomoNumber getSigmaLowFrequency() {
+    return sigmaLowFrequency;
+  }
+
+  public ScriptParameter getSigmaLowFrequencyParameter() {
+    return sigmaLowFrequency;
+  }
+
+  public ConstEtomoNumber getCutoffHighFrequency() {
+    return cutoffHighFrequency;
+  }
+
+  public ScriptParameter getCutoffHighFrequencyParameter() {
+    return cutoffHighFrequency;
+  }
+
+  public ConstEtomoNumber getSigmaHighFrequency() {
+    return sigmaHighFrequency;
+  }
+
+  public ScriptParameter getSigmaHighFrequencyParameter() {
+    return sigmaHighFrequency;
+  }
+
+  public static String getNewFileTitle() {
+    return newJoinTitle;
+  }
+
+  public static int getSize(int min, int max) {
+    return max - min + 1;
+  }
+
+  public int getCoordinate(ConstEtomoNumber coordinate, JoinState state) {
+    return coordinate.getInt() * state.getJoinTrialBinning().getInt();
+  }
+
+  public Transform getAlignTransform() {
+    return alignTransform;
+  }
+
+  public Transform getModelTransform() {
+    return modelTransform;
+  }
+
+  public boolean isUseAlignmentRefSection() {
+    return useAlignmentRefSection;
+  }
+
+  public ConstEtomoNumber getAlignmentRefSection() {
+    return alignmentRefSection;
+  }
+
+  public ConstEtomoNumber getSizeInX() {
+    return sizeInX;
+  }
+
+  public ScriptParameter getSizeInXParameter() {
+    return sizeInX;
+  }
+
+  public ConstEtomoNumber getSizeInY() {
+    return sizeInY;
+  }
+
+  public ScriptParameter getSizeInYParameter() {
+    return sizeInY;
+  }
+
+  public ConstEtomoNumber getShiftInX() {
+    return shiftInX;
+  }
+
+  public ScriptParameter getShiftInXParameter() {
+    return shiftInX;
+  }
+
+  public ConstEtomoNumber getShiftInY() {
+    return shiftInY;
+  }
+
+  public ScriptParameter getShiftInYParameter() {
+    return shiftInY;
   }
 }

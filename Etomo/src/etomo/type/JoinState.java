@@ -20,6 +20,9 @@ import etomo.BaseManager;
  * @version $Revision$
  * 
  * <p> $Log$
+ * <p> Revision 1.10  2007/08/29 21:44:45  sueh
+ * <p> bug# 1041 Made BaseState an abstract class.
+ * <p>
  * <p> Revision 1.9  2007/06/08 23:57:52  sueh
  * <p> bug# 995 Added refineTrialUseEveryNSlices.
  * <p>
@@ -103,7 +106,7 @@ public final class JoinState extends BaseState implements ConstJoinState {
   private final EtomoBoolean2 refineTrial = new EtomoBoolean2(REFINE_KEY + '.'
       + TRIAL_KEY);
 
-  private final EtomoVersion joinVersion = EtomoVersion.getInstance(JOIN_KEY
+  private final EtomoVersion joinVersion = EtomoVersion.getEmptyInstance(JOIN_KEY
       + '.' + EtomoVersion.DEFAULT_KEY);
   private final IntKeyList joinStartList = IntKeyList.getNumberInstance(
       JOIN_KEY + '.' + START_LIST_KEY, EtomoNumber.Type.LONG);
@@ -121,7 +124,7 @@ public final class JoinState extends BaseState implements ConstJoinState {
       + '.' + SIZE_IN_Y_KEY);
 
   private final EtomoVersion joinTrialVersion = EtomoVersion
-      .getInstance(JOIN_KEY + '.' + TRIAL_KEY + '.' + EtomoVersion.DEFAULT_KEY);
+      .getEmptyInstance(JOIN_KEY + '.' + TRIAL_KEY + '.' + EtomoVersion.DEFAULT_KEY);
   private final IntKeyList joinTrialStartList = IntKeyList.getNumberInstance(
       JOIN_KEY + '.' + TRIAL_KEY + '.' + START_LIST_KEY, EtomoNumber.Type.LONG);
   private final IntKeyList joinTrialEndList = IntKeyList.getNumberInstance(

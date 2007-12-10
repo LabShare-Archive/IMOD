@@ -5,10 +5,15 @@ import java.util.Properties;
 
 import etomo.ApplicationManager;
 import etomo.comscript.CombineParams;
+import etomo.comscript.ConstCombineParams;
 import etomo.comscript.ConstTiltParam;
+import etomo.comscript.FortranInputString;
 import etomo.comscript.FortranInputSyntaxException;
+import etomo.comscript.SqueezevolParam;
+import etomo.comscript.TiltParam;
 import etomo.comscript.TiltalignParam;
 import etomo.comscript.TransferfidParam;
+import etomo.comscript.TrimvolParam;
 
 /**
  * <p>Description: </p>
@@ -23,6 +28,9 @@ import etomo.comscript.TransferfidParam;
  * @version $Revision$
  *
  * <p> $Log$
+ * <p> Revision 3.36  2007/08/16 16:33:57  sueh
+ * <p> bug# 1035 Added sizeToOutputInXandYA and B.
+ * <p>
  * <p> Revision 3.35  2007/03/21 19:44:34  sueh
  * <p> bug# 964 Metadata should always use local strings as keys, otherwise
  * <p> backwards compatibility issues might be inadventently created.
@@ -208,46 +216,137 @@ import etomo.comscript.TransferfidParam;
  * <p> </p>
  */
 
-public class MetaData extends ConstMetaData {
+public final class MetaData extends BaseMetaData implements ConstMetaData {
   public static final String rcsid = "$Id$";
 
-  public MetaData(ApplicationManager manager) {
-    super(manager);
-    resetToDefault();
-  }
+  private static final String latestRevisionNumber = "1.7";
+  private static final String newTomogramTitle = "Setup Tomogram";
 
-  protected void resetToDefault() {
-    revisionNumber.reset();
-    distortionFile = "";
-    magGradientFile = "";
-    binning = 1;
-    useLocalAlignmentsA = true;
-    useLocalAlignmentsB = true;
-    useZFactorsA.reset();
-    useZFactorsB.reset();
-    tomoPosBinningA.reset();
-    tomoPosBinningB.reset();
-    tomoGenBinningA.reset();
-    tomoGenBinningB.reset();
-    if (tomoGenTiltParallelA != null) {
-      tomoGenTiltParallelA.reset();
-    }
-    if (tomoGenTiltParallelB != null) {
-      tomoGenTiltParallelB.reset();
-    }
-    if (combineVolcombineParallel != null) {
-      combineVolcombineParallel.reset();
-    }
-    sampleThicknessA.reset();
-    sampleThicknessB.reset();
-    targetPatchSizeXandY = TiltalignParam.TARGET_PATCH_SIZE_X_AND_Y_DEFAULT;//backwards compatibility
-    numberOfLocalPatchesXandY = TiltalignParam.NUMBER_OF_LOCAL_PATCHES_X_AND_Y_DEFAULT;
-    noBeamTiltSelectedA.reset();
-    fixedBeamTiltSelectedA.reset();
-    fixedBeamTiltA.reset();
-    noBeamTiltSelectedB.reset();
-    fixedBeamTiltSelectedB.reset();
-    fixedBeamTiltB.reset();
+  private static final String TOMO_GEN_A_TILT_PARALLEL_GROUP = DialogType.TOMOGRAM_GENERATION
+      .getStorableName()
+      + AxisID.FIRST.getExtension().toUpperCase() + ".Tilt.Parallel";
+  private static final String TOMO_GEN_B_TILT_PARALLEL_GROUP = DialogType.TOMOGRAM_GENERATION
+      .getStorableName()
+      + AxisID.SECOND.getExtension().toUpperCase() + ".Tilt.Parallel";
+  private static final String COMBINE_VOLCOMBINE_PARALLEL_GROUP = DialogType.TOMOGRAM_COMBINATION
+      .getStorableName()
+      + ".Volcombine.Parallel";
+  private static final String B_STACK_PROCESSED_GROUP = "BStackProcessed";
+  private static final int DEFAULT_SAMPLE_THICKNESS = 200;
+
+  private final ApplicationManager manager;
+
+  private String datasetName = "";
+  private String backupDirectory = "";
+  private String distortionFile = "";
+  private String magGradientFile = "";
+
+  private DataSource dataSource = DataSource.CCD;
+  private ViewType viewType = ViewType.SINGLE_VIEW;
+
+  private double pixelSize = Double.NaN;
+  private boolean useLocalAlignmentsA = true;
+  private boolean useLocalAlignmentsB = true;
+  private double fiducialDiameter = Double.NaN;
+  private float imageRotationA = Float.NaN;
+  private float imageRotationB = Float.NaN;
+  private int binning = 1;
+  private boolean fiducialessAlignmentA = false;
+  private boolean fiducialessAlignmentB = false;
+  private boolean wholeTomogramSampleA = false;
+  private boolean wholeTomogramSampleB = false;
+  //binning values - null if missing
+  private EtomoNumber tomoPosBinningA = new EtomoNumber(
+      EtomoNumber.Type.INTEGER, "TomoPosBinningA");
+  private EtomoNumber tomoPosBinningB = new EtomoNumber(
+      EtomoNumber.Type.INTEGER, "TomoPosBinningB");
+  private EtomoNumber tomoGenBinningA = new EtomoNumber(
+      EtomoNumber.Type.INTEGER, "TomoGenBinningA");
+  private EtomoNumber tomoGenBinningB = new EtomoNumber(
+      EtomoNumber.Type.INTEGER, "TomoGenBinningB");
+
+  //  Axis specific data
+  private TiltAngleSpec tiltAngleSpecA = new TiltAngleSpec();
+  private String excludeProjectionsA = "";
+
+  private TiltAngleSpec tiltAngleSpecB = new TiltAngleSpec();
+  private String excludeProjectionsB = "";
+  private EtomoBoolean2 useZFactorsA = new EtomoBoolean2("UseZFactorsA");
+  private EtomoBoolean2 useZFactorsB = new EtomoBoolean2("UseZFactorsB");
+  private EtomoBoolean2 adjustedFocusA = new EtomoBoolean2("AdjustedFocusA");
+  private EtomoBoolean2 adjustedFocusB = new EtomoBoolean2("AdjustedFocusB");
+
+  private boolean comScriptsCreated = false;
+
+  private CombineParams combineParams;
+  private final TrimvolParam trimvolParam;
+  private final SqueezevolParam squeezevolParam;
+  private final TransferfidParam transferfidParamA;
+  private final TransferfidParam transferfidParamB;
+  private final EtomoBoolean2 defaultParallel = new EtomoBoolean2(
+      "DefaultParallel");
+  private EtomoBoolean2 tomoGenTiltParallelA = null;
+  private EtomoBoolean2 tomoGenTiltParallelB = null;
+  private EtomoBoolean2 combineVolcombineParallel = null;
+  private EtomoBoolean2 bStackProcessed = null;
+  private StringBuffer message = new StringBuffer();
+  private final EtomoNumber sampleThicknessA = new EtomoNumber(AxisID.FIRST
+      .toString()
+      + '.' + ProcessName.SAMPLE + '.' + ConstTiltParam.THICKNESS_KEY);
+  private final EtomoNumber sampleThicknessB = new EtomoNumber(AxisID.SECOND
+      .toString()
+      + '.' + ProcessName.SAMPLE + '.' + ConstTiltParam.THICKNESS_KEY);
+  private String firstAxisPrepend = null;
+  private String secondAxisPrepend = null;
+  private final TiltParam.Storables tiltParamA = new TiltParam.Storables();
+  private final TiltParam.Storables tiltParamB = new TiltParam.Storables();
+  private String targetPatchSizeXandY = TiltalignParam.TARGET_PATCH_SIZE_X_AND_Y_DEFAULT;//backwards compatibility
+  private String numberOfLocalPatchesXandY = TiltalignParam.NUMBER_OF_LOCAL_PATCHES_X_AND_Y_DEFAULT;
+  private final EtomoBoolean2 noBeamTiltSelectedA = new EtomoBoolean2(
+      AxisID.FIRST.getExtension() + "."
+          + DialogType.FINE_ALIGNMENT.getStorableName() + ".NoBeamTiltSelected");
+  private final EtomoBoolean2 fixedBeamTiltSelectedA = new EtomoBoolean2(
+      AxisID.FIRST.getExtension() + "."
+          + DialogType.FINE_ALIGNMENT.getStorableName()
+          + ".FixedBeamTiltSelected");
+  private final EtomoNumber fixedBeamTiltA = new EtomoNumber(
+      EtomoNumber.Type.FLOAT, AxisID.FIRST.getExtension() + "."
+          + DialogType.FINE_ALIGNMENT.getStorableName() + ".FixedBeamTilt");
+  private final EtomoBoolean2 noBeamTiltSelectedB = new EtomoBoolean2(
+      AxisID.SECOND.getExtension() + "."
+          + DialogType.FINE_ALIGNMENT.getStorableName() + ".NoBeamTiltSelected");
+  private final EtomoBoolean2 fixedBeamTiltSelectedB = new EtomoBoolean2(
+      AxisID.SECOND.getExtension() + "."
+          + DialogType.FINE_ALIGNMENT.getStorableName()
+          + ".FixedBeamTiltSelected");
+  private final EtomoNumber fixedBeamTiltB = new EtomoNumber(
+      EtomoNumber.Type.FLOAT, AxisID.SECOND.getExtension() + "."
+          + DialogType.FINE_ALIGNMENT.getStorableName() + ".FixedBeamTilt");
+  private final FortranInputString sizeToOutputInXandYA = new FortranInputString(
+      2);
+  private final FortranInputString sizeToOutputInXandYB = new FortranInputString(
+      2);
+
+  public MetaData(ApplicationManager manager) {
+    this.manager = manager;
+    squeezevolParam = new SqueezevolParam(manager);
+    combineParams = new CombineParams(manager);
+    trimvolParam = new TrimvolParam(manager);
+    transferfidParamA = new TransferfidParam(manager, AxisID.FIRST);
+    transferfidParamB = new TransferfidParam(manager, AxisID.SECOND);
+    fileExtension = ".edf";
+    useZFactorsA.setDisplayValue(true);
+    useZFactorsB.setDisplayValue(true);
+    sampleThicknessA.setDisplayValue(DEFAULT_SAMPLE_THICKNESS);
+    sampleThicknessB.setDisplayValue(DEFAULT_SAMPLE_THICKNESS);
+    noBeamTiltSelectedA.setDisplayValue(true);//backwards compatibility
+    noBeamTiltSelectedB.setDisplayValue(true);//backwards compatibility
+    sizeToOutputInXandYA.setIntegerType(new boolean[] { true, true });
+    sizeToOutputInXandYA.setPropertiesKey("A.SizeToOutputInXandY");
+    sizeToOutputInXandYA.setDefault();
+    sizeToOutputInXandYB.setIntegerType(new boolean[] { true, true });
+    sizeToOutputInXandYB.setPropertiesKey("B.SizeToOutputInXandY");
+    sizeToOutputInXandYB.setDefault();
   }
 
   public void initialize() {
@@ -541,15 +640,42 @@ public class MetaData extends ConstMetaData {
   }
 
   public void load(Properties props, String prepend) {
-    resetToDefault();
-    String group;
-    if (prepend == "") {
-      prepend = "Setup";
+    super.load(props, prepend);
+    //reset
+    revisionNumber.reset();
+    distortionFile = "";
+    magGradientFile = "";
+    binning = 1;
+    useLocalAlignmentsA = true;
+    useLocalAlignmentsB = true;
+    useZFactorsA.reset();
+    useZFactorsB.reset();
+    tomoPosBinningA.reset();
+    tomoPosBinningB.reset();
+    tomoGenBinningA.reset();
+    tomoGenBinningB.reset();
+    if (tomoGenTiltParallelA != null) {
+      tomoGenTiltParallelA.reset();
     }
-    else {
-      prepend += ".Setup";
+    if (tomoGenTiltParallelB != null) {
+      tomoGenTiltParallelB.reset();
     }
-    group = prepend + ".";
+    if (combineVolcombineParallel != null) {
+      combineVolcombineParallel.reset();
+    }
+    sampleThicknessA.reset();
+    sampleThicknessB.reset();
+    targetPatchSizeXandY = TiltalignParam.TARGET_PATCH_SIZE_X_AND_Y_DEFAULT;//backwards compatibility
+    numberOfLocalPatchesXandY = TiltalignParam.NUMBER_OF_LOCAL_PATCHES_X_AND_Y_DEFAULT;
+    noBeamTiltSelectedA.reset();
+    fixedBeamTiltSelectedA.reset();
+    fixedBeamTiltA.reset();
+    noBeamTiltSelectedB.reset();
+    fixedBeamTiltSelectedB.reset();
+    fixedBeamTiltB.reset();
+    //load
+    prepend = createPrepend(prepend);
+    String group = prepend + ".";
     axisType = AxisType.fromString(props.getProperty(group + "AxisType",
         "Not Set"));
     setAxisPrepends();
@@ -704,5 +830,651 @@ public class MetaData extends ConstMetaData {
     else {
       tiltParamA.set(tiltParam);
     }
+  }
+
+  public String getFirstAxisPrepend() {
+    return firstAxisPrepend;
+  }
+
+ public  String getSecondAxisPrepend() {
+    return secondAxisPrepend;
+  }
+
+  String createPrepend(String prepend) {
+    if (prepend.equals("")) {
+      return "Setup";
+    }
+    else {
+      return prepend + ".Setup";
+    }
+  }
+
+  /**
+   *  Insert the objects attributes into the properties object.
+   */
+  public void store(Properties props, String prepend) {
+    super.store(props, prepend);
+    prepend = createPrepend(prepend);
+    String group = prepend + ".";
+    props.setProperty(group + "RevisionNumber", latestRevisionNumber);
+    props.setProperty(group + "ComScriptsCreated", String
+        .valueOf(comScriptsCreated));
+    props.setProperty(group + "DatasetName", datasetName);
+    props.setProperty(group + "BackupDirectory", backupDirectory);
+
+    props.setProperty(group + "DataSource", dataSource.toString());
+    props.setProperty(group + "AxisType", axisType.toString());
+    props.setProperty(group + "ViewType", viewType.toString());
+
+    props.setProperty(group + "PixelSize", String.valueOf(pixelSize));
+    props.setProperty(group + "UseLocalAlignmentsA", String
+        .valueOf(useLocalAlignmentsA));
+    props.setProperty(group + "UseLocalAlignmentsB", String
+        .valueOf(useLocalAlignmentsB));
+    props.setProperty(group + "FiducialDiameter", String
+        .valueOf(fiducialDiameter));
+    props.setProperty(group + "ImageRotationA", String.valueOf(imageRotationA));
+    props.setProperty(group + "ImageRotationB", String.valueOf(imageRotationB));
+    tiltAngleSpecA.store(props, group + "AxisA");
+    props.setProperty(group + "AxisA.ExcludeProjections", String
+        .valueOf(excludeProjectionsA));
+
+    tiltAngleSpecB.store(props, group + "AxisB");
+    props.setProperty(group + "AxisB.ExcludeProjections", String
+        .valueOf(excludeProjectionsB));
+
+    combineParams.store(props, group);
+    props.setProperty(group + "DistortionFile", distortionFile);
+    props.setProperty(group + "MagGradientFile", magGradientFile);
+    props.setProperty(group + "Binning", String.valueOf(binning));
+    props.setProperty(group + "FiducialessAlignmentA", String
+        .valueOf(fiducialessAlignmentA));
+    props.setProperty(group + "FiducialessAlignmentB", String
+        .valueOf(fiducialessAlignmentB));
+    props.setProperty(group + "WholeTomogramSampleA", String
+        .valueOf(wholeTomogramSampleA));
+    props.setProperty(group + "WholeTomogramSampleB", String
+        .valueOf(wholeTomogramSampleB));
+    trimvolParam.store(props, group);
+    squeezevolParam.store(props, prepend);
+    useZFactorsA.store(props, prepend);
+    useZFactorsB.store(props, prepend);
+    transferfidParamA.store(props, prepend);
+    transferfidParamB.store(props, prepend);
+    tomoPosBinningA.store(props, prepend);
+    tomoPosBinningB.store(props, prepend);
+    tomoGenBinningA.store(props, prepend);
+    tomoGenBinningB.store(props, prepend);
+    if (tomoGenTiltParallelA != null) {
+      tomoGenTiltParallelA.store(props, prepend);
+    }
+    if (tomoGenTiltParallelB != null) {
+      tomoGenTiltParallelB.store(props, prepend);
+    }
+    if (combineVolcombineParallel != null) {
+      combineVolcombineParallel.store(props, prepend);
+    }
+    if (bStackProcessed != null) {
+      bStackProcessed.store(props, prepend);
+    }
+    defaultParallel.store(props, prepend);
+    sampleThicknessA.store(props, prepend);
+    sampleThicknessB.store(props, prepend);
+    tiltParamA.store(props, group + firstAxisPrepend);
+    tiltParamB.store(props, group + secondAxisPrepend);
+    props.setProperty(group + "tiltalign."
+        + TiltalignParam.TARGET_PATCH_SIZE_X_AND_Y_KEY, targetPatchSizeXandY);
+    props.setProperty(group + "tiltalign."
+        + TiltalignParam.NUMBER_OF_LOCAL_PATCHES_X_AND_Y_KEY,
+        numberOfLocalPatchesXandY);
+    noBeamTiltSelectedA.store(props, prepend);
+    fixedBeamTiltSelectedA.store(props, prepend);
+    fixedBeamTiltA.store(props, prepend);
+    noBeamTiltSelectedB.store(props, prepend);
+    fixedBeamTiltSelectedB.store(props, prepend);
+    fixedBeamTiltB.store(props, prepend);
+    sizeToOutputInXandYA.store(props, prepend);
+    sizeToOutputInXandYB.store(props, prepend);
+  }
+
+  public ConstEtomoNumber getNoBeamTiltSelected(AxisID axisID) {
+    if (axisID == AxisID.SECOND) {
+      return noBeamTiltSelectedB;
+    }
+    return noBeamTiltSelectedA;
+  }
+
+  public ConstEtomoNumber getFixedBeamTiltSelected(AxisID axisID) {
+    if (axisID == AxisID.SECOND) {
+      return fixedBeamTiltSelectedB;
+    }
+    return fixedBeamTiltSelectedA;
+  }
+
+  public ConstEtomoNumber getFixedBeamTilt(AxisID axisID) {
+    if (axisID == AxisID.SECOND) {
+      return fixedBeamTiltB;
+    }
+    return fixedBeamTiltA;
+  }
+
+  public String getTargetPatchSizeXandY() {
+    return targetPatchSizeXandY;
+  }
+
+  public String getNumberOfLocalPatchesXandY() {
+    return numberOfLocalPatchesXandY;
+  }
+
+  public void getTiltParam(TiltParam tiltParam, AxisID axisID) {
+    if (axisID == AxisID.SECOND) {
+      tiltParam.set(tiltParamB);
+    }
+    else {
+      tiltParam.set(tiltParamA);
+    }
+  }
+
+  public TrimvolParam getTrimvolParam() {
+    return trimvolParam;
+  }
+
+  public SqueezevolParam getSqueezevolParam() {
+    return squeezevolParam;
+  }
+
+  public void getTransferfidAFields(TransferfidParam transferfidParam) {
+    this.transferfidParamA.getStorableFields(transferfidParam);
+  }
+
+  public void getTransferfidBFields(TransferfidParam transferfidParam) {
+    this.transferfidParamB.getStorableFields(transferfidParam);
+  }
+
+  public String getDatasetName() {
+    return datasetName;
+  }
+
+  public String getMetaDataFileName() {
+    if (datasetName.equals("")) {
+      return "";
+    }
+    return datasetName + fileExtension;
+  }
+
+  public String getName() {
+    if (datasetName.equals("")) {
+      return newTomogramTitle;
+    }
+    return datasetName;
+  }
+
+  public static String getNewFileTitle() {
+    return newTomogramTitle;
+  }
+
+  public String getBackupDirectory() {
+    return backupDirectory;
+  }
+
+  public String getDistortionFile() {
+    return distortionFile;
+  }
+
+  public FortranInputString getSizeToOutputInXandY(AxisID axisID) {
+    if (axisID == AxisID.SECOND) {
+      return sizeToOutputInXandYB;
+    }
+    return sizeToOutputInXandYA;
+  }
+
+  public String getMagGradientFile() {
+    return magGradientFile;
+  }
+
+  public ConstEtomoNumber getAdjustedFocusA() {
+    return adjustedFocusA;
+  }
+
+  public ConstEtomoNumber getAdjustedFocusB() {
+    return adjustedFocusB;
+  }
+
+  public DataSource getDataSource() {
+    return dataSource;
+  }
+
+  public ViewType getViewType() {
+    return viewType;
+  }
+
+  public double getPixelSize() {
+    return pixelSize;
+  }
+
+  public boolean getUseLocalAlignments(AxisID axisID) {
+    if (axisID == AxisID.SECOND) {
+      return useLocalAlignmentsB;
+    }
+    return useLocalAlignmentsA;
+  }
+
+  public ConstEtomoNumber getTomoPosBinning(AxisID axisID) {
+    if (axisID == AxisID.SECOND) {
+      return tomoPosBinningB;
+    }
+    return tomoPosBinningA;
+  }
+
+  public ConstEtomoNumber getTomoGenBinning(AxisID axisID) {
+    if (axisID == AxisID.SECOND) {
+      return tomoGenBinningB;
+    }
+    return tomoGenBinningA;
+  }
+
+  public ConstEtomoNumber getCombineVolcombineParallel() {
+    return combineVolcombineParallel;
+  }
+
+  public ConstEtomoNumber getTomoGenTiltParallel(AxisID axisID) {
+    if (axisID == AxisID.SECOND) {
+      return tomoGenTiltParallelB;
+    }
+    return tomoGenTiltParallelA;
+  }
+
+  public ConstEtomoNumber getDefaultParallel() {
+    return defaultParallel;
+  }
+
+  public ConstEtomoNumber getUseZFactors(AxisID axisID) {
+    if (axisID == AxisID.SECOND) {
+      return useZFactorsB;
+    }
+    return useZFactorsA;
+  }
+
+  public double getFiducialDiameter() {
+    return fiducialDiameter;
+  }
+
+  public float getImageRotation(AxisID axisID) {
+    if (axisID == AxisID.SECOND) {
+      return imageRotationB;
+    }
+    return imageRotationA;
+  }
+
+  public int getBinning() {
+    return binning;
+  }
+
+  public ConstEtomoNumber getBStackProcessed() {
+    return bStackProcessed;
+  }
+
+  public EtomoNumber getSampleThickness(AxisID axisID) {
+    if (axisID == AxisID.SECOND) {
+      return sampleThicknessB;
+    }
+    return sampleThicknessA;
+  }
+
+  public TiltAngleSpec getTiltAngleSpecA() {
+    return tiltAngleSpecA;
+  }
+
+  public TiltAngleSpec getTiltAngleSpecB() {
+    return tiltAngleSpecB;
+  }
+
+  public String getExcludeProjectionsA() {
+    return excludeProjectionsA;
+  }
+
+  public String getExcludeProjectionsB() {
+    return excludeProjectionsB;
+  }
+
+  public boolean getComScriptCreated() {
+    return comScriptsCreated;
+  }
+
+  public boolean isFiducialessAlignment(AxisID axisID) {
+    if (axisID == AxisID.SECOND) {
+      return fiducialessAlignmentB;
+    }
+    return fiducialessAlignmentA;
+  }
+
+  public boolean isDistortionCorrection() {
+    return !distortionFile.equals("") || !magGradientFile.equals("");
+  }
+
+  public boolean isWholeTomogramSample(AxisID axisID) {
+    if (axisID == AxisID.SECOND) {
+      return wholeTomogramSampleB;
+    }
+    return wholeTomogramSampleA;
+  }
+
+  public ConstCombineParams getConstCombineParams() {
+    return combineParams;
+  }
+
+  public CombineParams getCombineParams() {
+    return combineParams;
+  }
+
+  public boolean isValid() {
+    return isValid(true, null);
+  }
+
+  public boolean isValid(boolean fromScreen) {
+    return isValid(fromScreen, null);
+  }
+
+  public boolean isValid(File paramFile) {
+    return isValid(false, paramFile);
+  }
+
+  public boolean isValid(boolean fromScreen, File paramFile) {
+    invalidReason = "";
+
+    String helpString;
+    if (!fromScreen) {
+      helpString = "  Check the Etomo data file.";
+    }
+    else {
+      helpString = "";
+    }
+
+    if (axisType == null || axisType == AxisType.NOT_SET) {
+      invalidReason = "Axis type should be either Dual Axis or Single Axis."
+          + helpString;
+      return false;
+    }
+
+    if (!isDatasetNameValid(paramFile)) {
+      invalidReason += helpString;
+      return false;
+    }
+
+    // Is the pixel size greater than zero
+    if (fromScreen && pixelSize <= 0.0) {
+      invalidReason = "Pixel size is not greater than zero.";
+      return false;
+    }
+
+    // Is the fiducial diameter greater than zero
+    if (fromScreen && fiducialDiameter <= 0.0) {
+      invalidReason = "Fiducial diameter is not greater than zero.";
+      return false;
+    }
+
+    return true;
+  }
+
+  public boolean isDatasetNameValid() {
+    return isDatasetNameValid(null);
+  }
+
+  public boolean isDatasetNameValid(File paramFile) {
+    invalidReason = "";
+    if (datasetName.equals("")) {
+      invalidReason = "Dataset name has not been set.";
+      return false;
+    }
+    if (paramFile == null) {
+      if (getValidDatasetDirectory(manager.getPropertyUserDir()) != null) {
+        return true;
+      }
+    }
+    else {
+      if (getValidDatasetDirectory(new File(paramFile.getParent())
+          .getAbsolutePath()) != null) {
+        return true;
+      }
+    }
+    return false;
+  }
+
+  public File getValidDatasetDirectory(String workingDirName) {
+    // Does the working directory exist
+    // If is doesn't then use the backup directory.    
+    File workingDir = new File(workingDirName);
+    File backupDir = new File(backupDirectory);
+    File currentDir;
+
+    //find a valid directory and set directory and type
+    if (isValid(workingDir, true)) {
+      currentDir = workingDir;
+    }
+    else if (isValid(backupDir, true)) {
+      currentDir = backupDir;
+    }
+    else {
+      //can't find a valid directory, report error
+
+      //if no directory exists then exit
+      if (!workingDir.exists() && !backupDir.exists()) {
+        invalidReason = "The working directory: "
+            + workingDir.getAbsolutePath() + " and the backup directory: "
+            + backupDir.getAbsolutePath() + " do not exist";
+        return null;
+      }
+
+      //decide which directory to complain about:
+      //complain about the working directory, if it exists
+      if (workingDir.exists()) {
+        currentDir = workingDir;
+      }
+      else {
+        currentDir = backupDir;
+      }
+
+      if (!currentDir.canRead()) {
+        invalidReason = "Can't read " + currentDir.getAbsolutePath()
+            + " directory";
+        return null;
+      }
+
+      if (!currentDir.canWrite()) {
+        invalidReason = "Can't write " + currentDir.getAbsolutePath()
+            + " directory";
+        return null;
+      }
+
+      throw new IllegalStateException("Working directory ="
+          + workingDir.toString() + ",backupDir=" + backupDir.toString());
+    }
+
+    // Does the appropriate image stack exist in the working directory
+    if (axisType == AxisType.DUAL_AXIS) {
+      currentDir = findValidFile(datasetName + "a.st", currentDir, backupDir);
+    }
+    else {
+      currentDir = findValidFile(datasetName + ".st", currentDir, backupDir);
+    }
+    return currentDir;
+  }
+
+  /**
+   * Checks a file's state.  Checks whether a file exists and
+   * is readable.  Optionally checks whether a file is
+   * writable.
+   * 
+   * @param file
+   * @param writeable - If true, the file must be writeable
+   * @return boolean
+   */
+  static boolean isValid(File file, boolean writeable) {
+    if (file == null) {
+      return false;
+    }
+    if (!file.exists()) {
+      return false;
+    }
+
+    return file.canRead() && (!writeable || file.canWrite());
+  }
+
+  private void appendMessage(String string) {
+    message.append(string);
+  }
+
+  /**
+   * Finds a file in either the current directory or an
+   * alternate directory.  The file must be readable.
+   * 
+   * The current directory state variable can point to the 
+   * alternative directory state instance.
+   * In this case, only the alternative directory is checked.
+   * 
+   * Side Effect:
+   * If the function returns null, it places an error message
+   * into ConstMetaData.invalidReason.
+   * 
+   * @param fileName - Name of file to look for
+   * @param curDir - The current directory.  This directory should be valid.
+   * @param altDir - The alternate directory.
+   * @return Success:  directory where file found.  Failure: null.
+   * @throws IllegalArgumentException if any parameter is null
+   */
+  File findValidFile(String fileName, File curDir, File altDir) {
+    if (fileName == null || curDir == null || altDir == null
+        || !isValid(curDir, true)) {
+      throw new IllegalArgumentException(
+          "ConstMetaData.findValidFile(String,File,File)");
+    }
+
+    // Does the appropriate image stack exist in the working or backup directory
+    File file = new File(curDir, fileName);
+    while (!file.exists()) {
+      if (curDir == altDir || !isValid(altDir, true)) {
+        message.append(fileName + " does not exist in  "
+            + curDir.getAbsolutePath());
+        invalidReason = message.toString();
+        message = new StringBuffer();
+        return null;
+      }
+      curDir = altDir;
+      file = new File(curDir, fileName);
+    }
+
+    if (!file.canRead()) {
+      invalidReason = "Can't read " + fileName;
+      return null;
+    }
+
+    return curDir;
+  }
+
+  /**
+   * Finds a file in the current directory.  The file must be readable.
+   * 
+   * Side Effect:
+   * If the function returns null, it places an error message
+   * into ConstMetaData.invalidReason.
+   * 
+   * @param fileName - Name of file to look for
+   * @param curDir - The current directory.  This directory should be valid.
+   * @return Success:  directory where file found.  Failure: null.
+   * @throws IllegalArgumentException if any parameter is null
+   */
+  File findValidFile(String fileName, File curDir) {
+    if (fileName == null || curDir == null || !isValid(curDir, true)) {
+      throw new IllegalArgumentException(
+          "ConstMetaData.findValidFile(String,File)");
+    }
+
+    // Does the appropriate image stack exist in the working or backup directory
+    File file = new File(curDir, fileName);
+
+    if (!file.exists()) {
+      invalidReason = fileName + " does not exist in "
+          + curDir.getAbsolutePath();
+      return null;
+    }
+
+    if (!file.canRead()) {
+      invalidReason = "Can't read " + fileName;
+      return null;
+    }
+
+    return curDir;
+  }
+
+  public boolean equals(Object object) {
+    if (!(object instanceof MetaData))
+      return false;
+
+    MetaData cmd = (MetaData) object;
+    if (!datasetName.equals(cmd.getDatasetName()))
+      return false;
+    if (!backupDirectory.equals(cmd.getBackupDirectory()))
+      return false;
+    if (!distortionFile.equals(cmd.getDistortionFile()))
+      return false;
+    if (!dataSource.equals(cmd.getDataSource()))
+      return false;
+    if (axisType != cmd.getAxisType())
+      return false;
+    if (!viewType.equals(cmd.getViewType()))
+      return false;
+    if (!(pixelSize == cmd.getPixelSize()))
+      return false;
+    if (!(useLocalAlignmentsA == cmd.getUseLocalAlignments(AxisID.FIRST)))
+      return false;
+    if (!(useLocalAlignmentsB == cmd.getUseLocalAlignments(AxisID.SECOND)))
+      return false;
+    if (!(fiducialDiameter == cmd.getFiducialDiameter()))
+      return false;
+    if (!(imageRotationA == cmd.getImageRotation(AxisID.FIRST)))
+      return false;
+    if (!(imageRotationB == cmd.getImageRotation(AxisID.SECOND)))
+      return false;
+    if (!(binning == cmd.getBinning()))
+      return false;
+    if (!(fiducialessAlignmentA == cmd.isFiducialessAlignment(AxisID.FIRST)))
+      return false;
+    if (!(fiducialessAlignmentB == cmd.isFiducialessAlignment(AxisID.SECOND)))
+      return false;
+
+    // TODO tilt angle spec needs to be more complete
+    if (!(tiltAngleSpecA.getType() == cmd.getTiltAngleSpecA().getType()))
+      return false;
+    if (!excludeProjectionsA.equals(cmd.getExcludeProjectionsA()))
+      return false;
+
+    if (!(tiltAngleSpecB.getType() == cmd.getTiltAngleSpecB().getType()))
+      return false;
+    if (!excludeProjectionsB.equals(cmd.getExcludeProjectionsB()))
+      return false;
+    if (!(comScriptsCreated == cmd.getComScriptCreated()))
+      return false;
+    if (!combineParams.equals(cmd.getConstCombineParams())) {
+      return false;
+    }
+    if (!trimvolParam.equals(cmd.getTrimvolParam())) {
+      return false;
+    }
+    if (!squeezevolParam.equals(cmd.getSqueezevolParam())) {
+      return false;
+    }
+    if (!tomoPosBinningA.equals(cmd.tomoPosBinningA)) {
+      return false;
+    }
+    if (!tomoPosBinningB.equals(cmd.tomoPosBinningB)) {
+      return false;
+    }
+    if (!tomoGenBinningA.equals(cmd.tomoGenBinningA)) {
+      return false;
+    }
+    if (!tomoGenBinningB.equals(cmd.tomoGenBinningB)) {
+      return false;
+    }
+    return true;
   }
 }
