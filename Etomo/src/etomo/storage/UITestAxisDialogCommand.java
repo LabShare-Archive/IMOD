@@ -3,6 +3,7 @@ package etomo.storage;
 import java.util.ArrayList;
 
 import etomo.storage.autodoc.ReadOnlyStatement;
+import etomo.type.AxisID;
 import etomo.type.CallbackClassEnum;
 import etomo.type.DialogType;
 import etomo.type.EtomoAutodoc;
@@ -135,7 +136,7 @@ public class UITestAxisDialogCommand implements AdocCommand {
       test = UITestTest.getInstance(statement.getLeftSide(index++));
     }
     else if (action == UITestAction.WAIT_FOR && field == UITestField.PROCESS) {
-      processName = ProcessName.getInstance(statement.getLeftSide(index++));
+      processName = ProcessName.getInstance(statement.getLeftSide(index++),AxisID.ONLY);
     }
     else {
       fieldName = statement.getLeftSide(index++);
@@ -295,6 +296,12 @@ public class UITestAxisDialogCommand implements AdocCommand {
 }
 /**
  * <p> $Log$
+ * <p> Revision 1.2  2007/04/09 20:02:57  sueh
+ * <p> bug# 964 Change NameValuePair to an abstract class called Statement and
+ * <p> child classes representing name/value pair, comment, empty line, and
+ * <p> subsection.  Made delimiter change an attribute of the name/value pair class.
+ * <p> Added ReadOnlyStatement to provide a public interface for Statement classes.
+ * <p>
  * <p> Revision 1.1  2007/03/21 18:12:47  sueh
  * <p> bug# 964 Limiting access to autodoc classes by using ReadOnly interfaces.
  * <p> Creating Autodoc using a factory.  Moved AdocCommand classes out of the

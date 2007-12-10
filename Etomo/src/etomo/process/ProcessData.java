@@ -145,7 +145,7 @@ public final class ProcessData implements Storable {
   public String getPid() {
     return pid;
   }
-  
+
   public ProcessName getProcessName() {
     if (processName == null) {
       return null;
@@ -165,9 +165,9 @@ public final class ProcessData implements Storable {
 
   public String toString() {
     String group = getPrepend("") + ".";
-    return group + PID_KEY + "=" + pid + "\n" + group + GROUP_PID_KEY + "="
-        + groupPid + "\n" + group + START_TIME_KEY + "=" + startTime + "\n"
-        + group + PROCESS_NAME_KEY + "=" + processName;
+    return "[" + group + PID_KEY + "=" + pid + "," + group + GROUP_PID_KEY
+        + "=" + groupPid + "," + group + START_TIME_KEY + "=" + startTime + ","
+        + group + PROCESS_NAME_KEY + "=" + processName + "]";
   }
 
   private void store(Properties props, String prepend) {
@@ -213,13 +213,15 @@ public final class ProcessData implements Storable {
     //load processName
     String sProcessName = props.getProperty(group + PROCESS_NAME_KEY);
     if (sProcessName != null) {
-      processName = ProcessName.getInstance(sProcessName);
+      processName = ProcessName.getInstance(sProcessName, axisID);
     }
-
   }
 }
 /**
  * <p> $Log$
+ * <p> Revision 1.5  2006/10/24 21:39:45  sueh
+ * <p> bug# 947 Changed ProcessName.fromString() to getInstance().
+ * <p>
  * <p> Revision 1.4  2006/10/10 05:11:44  sueh
  * <p> Added comment
  * <p>
