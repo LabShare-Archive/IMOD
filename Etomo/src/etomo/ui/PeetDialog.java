@@ -53,6 +53,9 @@ import etomo.type.Run3dmodMenuOptions;
  * @version $Revision$
  * 
  * <p> $Log$
+ * <p> Revision 1.53  2007/08/02 22:38:55  sueh
+ * <p> bug# 1034 Adding a right click menu to btnAvgVol and btnRef.
+ * <p>
  * <p> Revision 1.52  2007/07/24 04:08:18  sueh
  * <p> bug# 1031 Reverse the value of refFlagAllTom and lstFlagAllTom.
  * <p>
@@ -409,8 +412,6 @@ public final class PeetDialog implements ContextMenu, AbstractParallelDialog,
 
   public void getParameters(final ParallelParam param) {
     ProcesschunksParam processchunksParam = (ProcesschunksParam) param;
-    processchunksParam.setRootName(ltfFnOutput.getText());
-    //processchunksParam.setProcessName(ProcessName.PEET);
   }
 
   public void getParameters(final PeetScreenState screenState) {

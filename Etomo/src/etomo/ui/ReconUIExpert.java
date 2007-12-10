@@ -159,13 +159,15 @@ public abstract class ReconUIExpert implements UIExpert {
    * @param axisID
    */
   protected void processchunks(BaseManager manager,
-      AbstractParallelDialog dialog, ProcessResultDisplay processResultDisplay) {
+      AbstractParallelDialog dialog, ProcessResultDisplay processResultDisplay,
+      ProcessName processName) {
     sendMsgProcessStarting(processResultDisplay);
     if (dialog == null) {
       sendMsg(ProcessResult.FAILED_TO_START, processResultDisplay);
       return;
     }
-    ProcesschunksParam param = new ProcesschunksParam(manager, axisID);
+    ProcesschunksParam param = new ProcesschunksParam(manager, axisID,
+        processName);
     ParallelPanel parallelPanel = manager.getMainPanel().getParallelPanel(
         axisID);
     dialog.getParameters(param);
@@ -200,6 +202,10 @@ public abstract class ReconUIExpert implements UIExpert {
 }
 /**
  * <p> $Log$
+ * <p> Revision 1.5  2007/09/27 21:05:48  sueh
+ * <p> bug# 1044 Moved implementation of ParallelProgressDisplay from ParallelPanel
+ * <p> to ProcessorTable.
+ * <p>
  * <p> Revision 1.4  2007/08/22 14:59:00  sueh
  * <p> bug# 1036 In showDialog, showing a blank process when opening a dialog fails.
  * <p>

@@ -38,6 +38,9 @@ import etomo.type.Run3dmodMenuOptions;
  * @version $Revision$
  * 
  * <p> $Log$
+ * <p> Revision 1.5  2007/11/14 23:47:26  sueh
+ * <p> bug# 1047 Formatted.
+ * <p>
  * <p> Revision 1.4  2007/11/12 22:13:00  sueh
  * <p> bug# 1047 Implementing ContextMenu.
  * <p>
@@ -325,7 +328,6 @@ public final class AnisotropicDiffusionDialog implements ContextMenu,
 
   public void getParameters(ParallelParam param) {
     ProcesschunksParam processchunksParam = (ProcesschunksParam) param;
-    processchunksParam.setProcessName(ProcessName.ANISOTROPIC_DIFFUSION);
     processchunksParam.setSubdirName(subdirName);
   }
 

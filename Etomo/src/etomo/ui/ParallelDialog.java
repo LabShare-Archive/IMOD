@@ -13,7 +13,6 @@ import javax.swing.JButton;
 import etomo.BaseManager;
 import etomo.ParallelManager;
 import etomo.comscript.ParallelParam;
-import etomo.comscript.ProcesschunksParam;
 import etomo.type.AxisID;
 import etomo.type.BaseScreenState;
 import etomo.type.DialogType;
@@ -115,13 +114,11 @@ public final class ParallelDialog implements AbstractParallelDialog {
         .getButtonState());
   }
 
-  public void getParameters(ParallelParam param) {
-    ProcesschunksParam processchunksParam = (ProcesschunksParam) param;
-    processchunksParam.setRootName(ltfProcessName.getText());
-  }
-
   public void getParameters(ParallelMetaData metaData) {
     metaData.setRootName(ltfProcessName.getText());
+  }
+  
+  public void getParameters(ParallelParam param) {
   }
 
   public void updateDisplay(boolean setupMode) {
@@ -136,7 +133,7 @@ public final class ParallelDialog implements AbstractParallelDialog {
   void action(ActionEvent event) {
     String command = event.getActionCommand();
     if (command.equals(btnRunProcess.getText())) {
-      manager.processchunks(btnRunProcess);
+      manager.processchunks(btnRunProcess,ltfProcessName.getText());
     }
   }
 
@@ -190,6 +187,9 @@ public final class ParallelDialog implements AbstractParallelDialog {
 }
 /**
  * <p> $Log$
+ * <p> Revision 1.17  2007/11/06 19:55:14  sueh
+ * <p> bug# 1047 Switched to getInstance with an addListeners call (more thread-safe).
+ * <p>
  * <p> Revision 1.16  2007/08/29 21:49:17  sueh
  * <p> bug# 1041 In chunkComscriptAction, calling BaseManager.chunkComscriptAction.
  * <p>
