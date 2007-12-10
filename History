@@ -1,5 +1,8 @@
 IMOD History
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+12/10/07: Fixed problem with vmstocsh created 11/20/07, that makes scripts fail
+with FC2 package.
+
 12/9/07: Added ability for Ccderaser to erase points inside of boundary
 contours and in circles around scattered points; the latter can be used to
 erase fiducials.
