@@ -41,7 +41,7 @@ c	  logfile=' | cat  > '//logfile(1:lenlog)
       write(6,101)'endif'
       write(6,101)'if ($?IMOD_QTLIBDIR && $?LD_LIBRARY_PATH) then'
       write(6,101)
-     &    '    setenv LD_LIBRARY_PATH "$IMOD_QTLIBDIR:$LD_LIBRARY_PATH"'
+     &    '    setenv LD_LIBRARY_PATH "${IMOD_QTLIBDIR}:$LD_LIBRARY_PATH"'
       write(6,101)'endif'
       write(6,101)'echo2 Shell PID: $$'
 
@@ -128,6 +128,9 @@ c
 
 c       
 c       $Log$
+c       Revision 3.8  2007/11/20 20:31:04  mast
+c       Added IMOD_QTLIBDIR to LD_LIBRARY_PATH if both defined
+c
 c       Revision 3.7  2005/11/30 06:51:45  mast
 c       Needed to initialize lencom to valid value for if test to work
 c	
