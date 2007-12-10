@@ -277,7 +277,7 @@ public final class ParallelManager extends BaseManager {
    * run BaseManager.processchunks
    */
   public final void processchunks(
-      final ProcessResultDisplay processResultDisplay) {
+      final ProcessResultDisplay processResultDisplay, String rootName) {
     if (parallelDialog == null) {
       return;
     }
@@ -292,7 +292,8 @@ public final class ParallelManager extends BaseManager {
       sendMsgProcessFailedToStart(processResultDisplay);
       return;
     }
-    ProcesschunksParam param = new ProcesschunksParam(this, AxisID.ONLY);
+    ProcesschunksParam param = new ProcesschunksParam(this, AxisID.ONLY,
+        rootName);
     ParallelPanel parallelPanel = getMainPanel().getParallelPanel(AxisID.ONLY);
     parallelDialog.getParameters(param);
     if (!parallelPanel.getParameters(param)) {
@@ -478,12 +479,12 @@ public final class ParallelManager extends BaseManager {
       threadName = processMgr.chunksetup(param);
     }
     catch (SystemProcessException e) {
-      e.printStackTrace();
       String[] message = new String[2];
       message[0] = "Can not execute" + ProcessName.CHUNKSETUP + "command";
       message[1] = e.getMessage();
       uiHarness.openMessageDialog(message, "Unable to execute command",
           AxisID.ONLY);
+      processFailed(AxisID.ONLY);
       return;
     }
     setThreadName(threadName, AxisID.ONLY);
@@ -527,7 +528,8 @@ public final class ParallelManager extends BaseManager {
           "Program logic error", AxisID.ONLY);
       return;
     }
-    ProcesschunksParam param = new ProcesschunksParam(this, AxisID.ONLY);
+    ProcesschunksParam param = new ProcesschunksParam(this, AxisID.ONLY,
+        ProcessName.ANISOTROPIC_DIFFUSION);
     ParallelPanel parallelPanel = getMainPanel().getParallelPanel(AxisID.ONLY);
     anisotropicDiffusionDialog.getParameters(param);
     if (!parallelPanel.getParameters(param)) {
@@ -565,7 +567,8 @@ public final class ParallelManager extends BaseManager {
           "Write Comscript Error", AxisID.ONLY);
       return;
     }
-    ProcesschunksParam param = new ProcesschunksParam(this, AxisID.ONLY);
+    ProcesschunksParam param = new ProcesschunksParam(this, AxisID.ONLY,
+        ProcessName.ANISOTROPIC_DIFFUSION);
     param.setSubcommandDetails(anisotropicDiffusionParam);
     ParallelPanel parallelPanel = getMainPanel().getParallelPanel(AxisID.ONLY);
     anisotropicDiffusionDialog.getParameters(param);
@@ -637,6 +640,10 @@ public final class ParallelManager extends BaseManager {
 }
 /**
  * <p> $Log$
+ * <p> Revision 1.21  2007/11/12 14:50:59  sueh
+ * <p> bug# 1047 Adding a swapYZ option to all the imods in the anisotropic diffusion
+ * <p> interface.
+ * <p>
  * <p> Revision 1.20  2007/11/09 17:17:21  sueh
  * <p> bug# 1047 Add the test volume to the imods that display varying k and varying
  * <p> iteration.
