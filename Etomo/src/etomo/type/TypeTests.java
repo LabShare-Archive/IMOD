@@ -5,6 +5,7 @@ import java.io.File;
 import etomo.JUnitTests;
 import junit.framework.Test;
 import junit.framework.TestSuite;
+
 /**
  * <p>Description: </p>
  *
@@ -19,6 +20,9 @@ import junit.framework.TestSuite;
  * @version $Revision$
  *
  * <p> $Log$
+ * <p> Revision 3.10  2007/03/01 01:27:00  sueh
+ * <p> bug# 692 Adding tests
+ * <p>
  * <p> Revision 3.9  2006/11/15 20:50:10  sueh
  * <p> bug# 872 Changed the test order to put the classes with fewer dependencies
  * <p> first.
@@ -50,18 +54,17 @@ import junit.framework.TestSuite;
  * <p> Javadoc fix
  * <p>
  * <p> </p>
-*/
+ */
 public class TypeTests {
-  public static  final String  rcsid =  "$Id$";
-  
+  public static final String rcsid = "$Id$";
+
   private static final String TEST_DIR = "etomo/type";
   static final File TEST_ROOT_DIR = new File(JUnitTests.TEST_ROOT_DIR, TEST_DIR);
-  
+
   public static Test suite() {
     TestSuite suite = new TestSuite("Tests:  " + TEST_DIR);
     //$JUnit-BEGIN$
     suite.addTestSuite(ConstEtomoNumberTest.class);
-    suite.addTestSuite(ConstMetaDataTest.class);
     suite.addTestSuite(ProcessResultDisplayStateTest.class);
     suite.addTestSuite(MetaDataTest.class);
     suite.addTestSuite(AxisIDTest.class);
