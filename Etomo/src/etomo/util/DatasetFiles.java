@@ -301,13 +301,15 @@ public final class DatasetFiles {
 
   //other etomo files
 
-  public static File getCommandsFile(BaseManager manager, String subdirName, String rootName) {
-    return new File(manager.getPropertyUserDir(), getCommandsFileName(subdirName,rootName));
+  public static File getCommandsFile(BaseManager manager, String subdirName,
+      String rootName) {
+    return new File(manager.getPropertyUserDir(), getCommandsFileName(
+        subdirName, rootName));
   }
 
   public static String getCommandsFileName(String subdirName, String rootName) {
     String commandsFileName = rootName + ".cmds";
-    if (subdirName == null) {
+    if (subdirName == null||subdirName.matches("\\s*")) {
       return commandsFileName;
     }
     return new File(subdirName, commandsFileName).getPath();
@@ -427,6 +429,9 @@ public final class DatasetFiles {
 }
 /**
  * <p> $Log$
+ * <p> Revision 1.42  2007/11/06 20:35:25  sueh
+ * <p> bug# 1047 Allowed getCommandsFileName to return a local path of the file in a subdirectory.
+ * <p>
  * <p> Revision 1.41  2007/07/30 22:40:02  sueh
  * <p> bug# 963 Added DatasetFiles.JOIN_DATA_FILE_EXT.
  * <p>
