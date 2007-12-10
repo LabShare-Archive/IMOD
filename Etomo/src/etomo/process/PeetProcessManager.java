@@ -21,6 +21,9 @@ import etomo.type.ProcessName;
  * @version $Revision$
  * 
  * <p> $Log$
+ * <p> Revision 1.5  2007/06/06 20:40:48  sueh
+ * <p> Removed print statement.
+ * <p>
  * <p> Revision 1.4  2007/05/11 15:46:01  sueh
  * <p> bug# 964 Added postProcess(BackgroundProcess) to handle mtbParser.
  * <p> Added postProcess(DetachedProcess) to handle processchunks.  These
@@ -52,25 +55,25 @@ public final class PeetProcessManager extends BaseProcessManager {
     return backgroundProcess.getName();
   }
 
-   void errorProcess(BackgroundProcess process) {
+  void errorProcess(BackgroundProcess process) {
   }
 
-   void errorProcess(ComScriptProcess process) {
+  void errorProcess(ComScriptProcess process) {
   }
 
-   void errorProcess(ReconnectProcess script) {
+  void errorProcess(ReconnectProcess script) {
   }
 
-   void postProcess(ComScriptProcess script) {
+  void postProcess(ComScriptProcess script) {
   }
 
-   void postProcess(InteractiveSystemProgram program) {
+  void postProcess(InteractiveSystemProgram program) {
   }
 
-   void postProcess(ReconnectProcess script) {
+  void postProcess(ReconnectProcess script) {
   }
 
-   void postProcess(BackgroundProcess process) {
+  void postProcess(BackgroundProcess process) {
     super.postProcess(process);
     ProcessName processName = process.getProcessName();
     ProcessDetails processDetails = process.getProcessDetails();
@@ -89,7 +92,8 @@ public final class PeetProcessManager extends BaseProcessManager {
     }
   }
 
-   void postProcess(DetachedProcess process) {
+  void postProcess(DetachedProcess process) {
+    super.postProcess(process);
     PeetState state = manager.getState();
     state.setIterationListSize(state.getParserIterationListSize());
     state.setLstThresholdsArray(state.getParserLstThresholdsArray());
