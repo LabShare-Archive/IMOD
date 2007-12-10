@@ -247,6 +247,32 @@ public abstract class BaseManager {
       initializeUIParameters(new File(paramFileName), axisID, false);
     }
   }
+  
+  /**
+   * Save storable to the data file.
+   * @param axisID
+   * @param processData
+   */
+  public void saveStorable(AxisID axisID,Storable storable) {
+    getParameterStore();
+    if (parameterStore == null) {
+      return;
+    }
+    parameterStore.setAutoStore(true);
+    try {
+        parameterStore.save(storable);
+    }
+    catch (LogFile.FileException e) {
+      e.printStackTrace();
+      uiHarness.openMessageDialog("Unable to save to properties.  "
+          + e.getMessage(), "Etomo Error", axisID);
+    }
+    catch (LogFile.WriteException e) {
+      e.printStackTrace();
+      uiHarness.openMessageDialog("Unable to write to properties.  "
+          + e.getMessage(), "Etomo Error", axisID);
+    }
+  }
 
   /**
    * Save etomo to parametersState by asking the child manager for a list of
@@ -804,17 +830,15 @@ public abstract class BaseManager {
   public void processchunks(AxisID axisID, ProcesschunksParam param,
       ProcessResultDisplay processResultDisplay) {
     ParallelPanel parallelPanel = getMainPanel().getParallelPanel(axisID);
+    BaseMetaData metaData = getBaseMetaData();
+    metaData.setCurrentProcesschunksRootName(axisID, param.getRootName()
+        .toString());
+    metaData.setCurrentProcesschunksSubdirName(axisID, param.getSubdirName());
+    savePreferences(axisID, metaData);
     String threadName;
     try {
-      String subdirName = param.getSubdirName();
-      if (subdirName==null) {
       threadName = getProcessManager().processchunks(axisID, param,
           parallelPanel.getParallelProgressDisplay(), processResultDisplay);
-      }else {
-        threadName = getProcessManager().processchunks(axisID, param,
-            parallelPanel.getParallelProgressDisplay(), processResultDisplay,
-            subdirName,param.getShortCommandName());
-      }
     }
     catch (SystemProcessException e) {
       e.printStackTrace();
@@ -831,6 +855,11 @@ public abstract class BaseManager {
     //set param in parallel panel so it can do a resume
     parallelPanel.setProcessInfo(param, processResultDisplay);
     setThreadName(threadName, axisID);
+  }
+  
+  void processFailed(AxisID axisID){
+    resetNextProcess(axisID);
+    resetLastProcess(axisID);
   }
 
   /**
@@ -1147,38 +1176,43 @@ public abstract class BaseManager {
     return null;
   }
 
+  public final void resetCurrentProcesschunks(AxisID axisID) {
+    BaseMetaData metaData = getBaseMetaData();
+    metaData.resetCurrentProcesschunksRootName(axisID);
+    metaData.resetCurrentProcesschunksSubdirName(axisID);
+  }
+
   public final void resume(AxisID axisID, ProcesschunksParam param,
       ProcessResultDisplay processResultDisplay, Container root,
       CommandDetails subcommandDetails) {
     sendMsgProcessStarting(processResultDisplay);
+    BaseMetaData metaData = getBaseMetaData();
     if (param == null) {
-      ProcessName processName = getBaseState()
-          .getKilledProcesschunksProcessName(axisID);
-      if (processName != null) {
-        param = new ProcesschunksParam(this, axisID);
-        param.setProcessName(processName);
+      String rootName = metaData.getCurrentProcesschunksRootName(axisID);
+      if (rootName != null && !rootName.matches("\\s*")) {
+        param = new ProcesschunksParam(this, axisID, rootName);
         param.setSubcommandDetails(subcommandDetails);
+        if (metaData.isCurrentProcesschunksSubdirNameSet(axisID)) {
+          param.setSubdirName(metaData
+              .getCurrentProcesschunksSubdirName(axisID));
+        }
       }
       else {
-        uiHarness.openMessageDialog("No command to resume", "Resume");
+        uiHarness.openMessageDialog("No command to resume",
+            ParallelPanel.RESUME_LABEL);
         sendMsgProcessFailedToStart(processResultDisplay);
         return;
       }
     }
     ParallelPanel parallelPanel = getMainPanel().getParallelPanel(axisID);
     parallelPanel.getResumeParameters(param);
+    metaData.setCurrentProcesschunksRootName(axisID, param.getRootName());
+    metaData.setCurrentProcesschunksSubdirName(axisID, param.getSubdirName());
+    savePreferences(axisID, metaData);
     String threadName;
     try {
-      String subdirName = param.getSubdirName();
-      if (subdirName == null) {
-        threadName = getProcessManager().processchunks(axisID, param,
-            parallelPanel.getParallelProgressDisplay(), processResultDisplay);
-      }
-      else {
-        threadName = getProcessManager().processchunks(axisID, param,
-            parallelPanel.getParallelProgressDisplay(), processResultDisplay,
-            subdirName,param.getShortCommandName());
-      }
+      threadName = getProcessManager().processchunks(axisID, param,
+          parallelPanel.getParallelProgressDisplay(), processResultDisplay);
     }
     catch (SystemProcessException e) {
       e.printStackTrace();
@@ -1231,6 +1265,9 @@ public abstract class BaseManager {
 }
 /**
  * <p> $Log$
+ * <p> Revision 1.91  2007/11/06 18:57:10  sueh
+ * <p> bug# 1047 Added the ability to run in a subdirectory to ProcesschunksParam.
+ * <p>
  * <p> Revision 1.90  2007/09/27 19:20:56  sueh
  * <p> bug# 1044 Made ProcessorTable the ParallelProgress display instead of
  * <p> ParallelPanel.  Generalized load functionality.
