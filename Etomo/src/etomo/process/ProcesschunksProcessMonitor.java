@@ -45,8 +45,8 @@ public class ProcesschunksProcessMonitor implements OutfileProcessMonitor,
   private final String computerList;
   private final ProcessMessages messages = ProcessMessages
       .getInstanceForParallelProcessing();
-  private final String subdirName;
 
+  private String subdirName = null;
   private boolean setProgressBarTitle = false;//turn on to changed the progress bar title
   private boolean reassembling = false;
   private ProcessEndState endState = null;
@@ -65,25 +65,22 @@ public class ProcesschunksProcessMonitor implements OutfileProcessMonitor,
   private boolean starting = true;
   private boolean finishing = false;
 
-  /**
-   * Default constructor
-   * @param manager
-   * @param axisID
-   * @param process
-   */
   public ProcesschunksProcessMonitor(BaseManager manager, AxisID axisID,
       ParallelProgressDisplay parallelProgressDisplay, String rootName,
-      String computerList,String subdirName) {
+      String computerList) {
     this.manager = manager;
     this.axisID = axisID;
     this.parallelProgressDisplay = parallelProgressDisplay;
     this.rootName = rootName;
     this.computerList = computerList;
-    this.subdirName=subdirName;
     debug = EtomoDirector.INSTANCE.isDebug();
   }
 
   public final void setProcess(SystemProcessInterface process) {
+  }
+
+  final void setSubdirName(String input) {
+    subdirName = input;
   }
 
   public final void run() {
@@ -331,8 +328,6 @@ public class ProcesschunksProcessMonitor implements OutfileProcessMonitor,
           }
         }
       }
-      manager.getBaseState()
-          .setKilledProcesschunksProcessName(axisID, rootName);
     }
     catch (LogFile.WriteException e) {
       e.printStackTrace();
@@ -345,8 +340,6 @@ public class ProcesschunksProcessMonitor implements OutfileProcessMonitor,
       parallelProgressDisplay.msgPausingProcess();
       pausing = true;
       setProgressBarTitle = true;
-      manager.getBaseState()
-          .setKilledProcesschunksProcessName(axisID, rootName);
     }
     catch (LogFile.WriteException e) {
       e.printStackTrace();
@@ -387,7 +380,7 @@ public class ProcesschunksProcessMonitor implements OutfileProcessMonitor,
     //delete the commands pipe even if it was never created (just to be sure)
     if (commandsPipe == null) {
       commandsPipe = LogFile.getInstance(manager.getPropertyUserDir(),
-          DatasetFiles.getCommandsFileName(subdirName,rootName));
+          DatasetFiles.getCommandsFileName(subdirName, rootName));
     }
     if (commandsPipeWriteId != LogFile.NO_ID) {
       commandsPipe.closeWriter(commandsPipeWriteId);
@@ -414,7 +407,7 @@ public class ProcesschunksProcessMonitor implements OutfileProcessMonitor,
     }
     if (commandsPipe == null) {
       commandsPipe = LogFile.getInstance(manager.getPropertyUserDir(),
-          DatasetFiles.getCommandsFileName(subdirName,rootName));
+          DatasetFiles.getCommandsFileName(subdirName, rootName));
       //commandsPipe.createNewFile();
     }
     if (commandsPipeWriteId == LogFile.NO_ID) {
@@ -458,8 +451,8 @@ public class ProcesschunksProcessMonitor implements OutfileProcessMonitor,
   private synchronized void createProcessOutput() throws LogFile.FileException {
     if (processOutput == null) {
       processOutput = LogFile.getInstance(manager.getPropertyUserDir(),
-          DatasetFiles.getOutFileName(manager, subdirName,ProcessName.PROCESSCHUNKS
-              .toString(), axisID));
+          DatasetFiles.getOutFileName(manager, subdirName,
+              ProcessName.PROCESSCHUNKS.toString(), axisID));
       //avoid looking at a file from a previous run
       processOutput.backup();
     }
@@ -472,6 +465,9 @@ public class ProcesschunksProcessMonitor implements OutfileProcessMonitor,
 }
 /**
  * <p> $Log$
+ * <p> Revision 1.32  2007/11/06 19:25:21  sueh
+ * <p> bug# 1-47 Allowed processchunks to be executed in a subdirectory.
+ * <p>
  * <p> Revision 1.31  2007/09/27 20:27:11  sueh
  * <p> bug# 1044 Giving a message that the process is ending at the end of the run()
  * <p> function so that the "Use a cluster" checkbox can be turned back on.  No longer
