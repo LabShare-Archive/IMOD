@@ -64,6 +64,9 @@ import etomo.util.Utilities;
  * @version $Revision$
  * 
  * <p> $Log$
+ * <p> Revision 1.62  2007/10/09 19:17:27  sueh
+ * <p> bug# 1046
+ * <p>
  * <p> Revision 1.61  2007/09/07 00:15:52  sueh
  * <p> bug# 989 Using a public INSTANCE for EtomoDirector instead of getInstance
  * <p> and createInstance.
@@ -527,7 +530,7 @@ public final class JoinManager extends BaseManager {
       }
     }
     if (loadedParamFile) {
-      createEmptyXfFile(metaData.getRootName());
+      createEmptyXfFile(metaData.getDatasetName());
     }
     mainPanel.showProcess(joinDialog.getContainer(), AxisID.ONLY);
   }
@@ -801,7 +804,7 @@ public final class JoinManager extends BaseManager {
     if (!joinDialog.validateMakejoincom()) {
       return;
     }
-    String rootName = metaData.getRootName();
+    String rootName = metaData.getDatasetName();
     EtomoDirector.INSTANCE.renameCurrentManager(rootName);
     createEmptyXfFile(rootName);
     MakejoincomParam makejoincomParam = new MakejoincomParam(metaData, state,
@@ -873,7 +876,7 @@ public final class JoinManager extends BaseManager {
     }
     propertyUserDir = workingDirName;
     imodManager.setMetaData(metaData);
-    paramFile = new File(propertyUserDir, metaData.getRootName()
+    paramFile = new File(propertyUserDir, metaData.getDatasetName()
         + metaData.getFileExtension());
     if (!paramFile.exists()) {
       processMgr.createNewFile(paramFile.getAbsolutePath());
@@ -957,7 +960,7 @@ public final class JoinManager extends BaseManager {
   }
 
   private boolean copyMostRecentXfFile(String commandDescription) {
-    String rootName = metaData.getRootName();
+    String rootName = metaData.getDatasetName();
     String xfFileName = rootName + ".xf";
     File newXfFile = Utilities.mostRecentFile(propertyUserDir, xfFileName,
         rootName + MidasParam.getOutputFileExtension(), rootName
@@ -984,7 +987,7 @@ public final class JoinManager extends BaseManager {
   }
 
   public void copyXfFile(File xfOutputFile) {
-    File xfFile = new File(propertyUserDir, metaData.getRootName() + ".xf");
+    File xfFile = new File(propertyUserDir, metaData.getDatasetName() + ".xf");
     if (xfOutputFile != null && xfOutputFile.exists()) {
       try {
         Utilities.copyFile(xfOutputFile, xfFile);
@@ -1087,7 +1090,7 @@ public final class JoinManager extends BaseManager {
   }
 
   public void revertXfFileToMidas() {
-    File midasOutputFile = new File(propertyUserDir, metaData.getRootName()
+    File midasOutputFile = new File(propertyUserDir, metaData.getDatasetName()
         + MidasParam.getOutputFileExtension());
     touch(midasOutputFile.getAbsolutePath());
     copyXfFile(midasOutputFile);
@@ -1098,7 +1101,7 @@ public final class JoinManager extends BaseManager {
   }
 
   public void revertXfFileToEmpty() {
-    File emptyFile = new File(propertyUserDir, metaData.getRootName()
+    File emptyFile = new File(propertyUserDir, metaData.getDatasetName()
         + "_empty.xf");
     touch(emptyFile.getAbsolutePath());
     copyXfFile(emptyFile);
