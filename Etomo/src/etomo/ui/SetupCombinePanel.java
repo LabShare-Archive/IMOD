@@ -55,6 +55,10 @@ import etomo.util.MRCHeader;
  * 
  * <p>
  * $Log$
+ * Revision 3.50  2007/08/21 21:54:18  sueh
+ * bug# 771 Added JLabel lTomogramSizeWarning.  Added
+ * isTomogramSizeChanged, resetXandY, and updateTomogramSizeWarning.
+ *
  * Revision 3.49  2007/07/17 21:44:24  sueh
  * bug# 1018 Adding cpu.adoc information from CpuAdoc.
  *
@@ -1081,7 +1085,8 @@ public final class SetupCombinePanel implements ContextMenu,
     String command = event.getActionCommand();
 
     if (command.equals(btnCreate.getActionCommand())) {
-      updateTomogramSizeWarning(applicationManager.createCombineScripts(btnCreate));
+      updateTomogramSizeWarning(applicationManager
+          .createCombineScripts(btnCreate));
     }
     else if (command.equals(btnCombine.getActionCommand())) {
       applicationManager.combine(btnCombine);
