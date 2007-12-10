@@ -18,6 +18,9 @@ import etomo.storage.Storable;
  * @version $Revision$
  * 
  * <p> $Log$
+ * <p> Revision 1.6  2007/03/26 23:34:22  sueh
+ * <p> bug# 964 Reduced visibility of inherited fields.
+ * <p>
  * <p> Revision 1.5  2007/02/05 23:09:42  sueh
  * <p> bug# 962 Made revisionNumber a EtomoVersion, so it can be compared.
  * <p>
@@ -49,25 +52,36 @@ import etomo.storage.Storable;
 public abstract class BaseMetaData implements Storable {
   public static final String rcsid = "$Id$";
 
+  private static final String CURRENT_PROCESSCHUNKS_ROOT_NAME = "CurrentProcesschunksRootName";
+  private static final String CURRENT_PROCESSCHUNKS_SUBDIR_NAME = "CurrentProcesschunksSubdirName";
+
   static final String revisionNumberString = "RevisionNumber";
   static String fileExtension;
 
   //revisionNumber should be set only by load()
-  EtomoVersion revisionNumber = EtomoVersion.getInstance(revisionNumberString);
+  EtomoVersion revisionNumber = EtomoVersion
+      .getEmptyInstance(revisionNumberString);
   AxisType axisType = AxisType.NOT_SET;
   String invalidReason = "";
 
-  public abstract void store(Properties props, String prepend);
-
-  public abstract void load(Properties props);
-
-  public abstract void load(Properties props, String prepend);
+  private final StringProperty currentProcesschunksRootNameA = new StringProperty(
+      "A." + CURRENT_PROCESSCHUNKS_ROOT_NAME);
+  private final StringProperty currentProcesschunksRootNameB = new StringProperty(
+      "B." + CURRENT_PROCESSCHUNKS_ROOT_NAME);
+  private final StringProperty currentProcesschunksSubdirNameA = new StringProperty(
+      "A." + CURRENT_PROCESSCHUNKS_SUBDIR_NAME);
+  private final StringProperty currentProcesschunksSubdirNameB = new StringProperty(
+      "B." + CURRENT_PROCESSCHUNKS_SUBDIR_NAME);
 
   public abstract String getMetaDataFileName();
 
   public abstract String getName();
 
+  public abstract String getDatasetName();
+
   public abstract boolean isValid();
+
+  abstract String createPrepend(String prepend);
 
   public String toString() {
     return getClass().getName() + "[" + paramString() + "]";
@@ -81,6 +95,32 @@ public abstract class BaseMetaData implements Storable {
 
   public void store(Properties props) {
     store(props, "");
+  }
+
+  public void load(Properties props) {
+    load(props, "");
+  }
+
+  public void store(Properties props, String prepend) {
+    prepend = createPrepend(prepend);
+    currentProcesschunksRootNameA.store(props, prepend);
+    currentProcesschunksRootNameB.store(props, prepend);
+    currentProcesschunksSubdirNameA.store(props, prepend);
+    currentProcesschunksSubdirNameB.store(props, prepend);
+  }
+
+  public void load(Properties props, String prepend) {
+    //reset
+    currentProcesschunksRootNameA.reset();
+    currentProcesschunksRootNameB.reset();
+    currentProcesschunksSubdirNameA.reset();
+    currentProcesschunksSubdirNameB.reset();
+    //load
+    prepend = createPrepend(prepend);
+    currentProcesschunksRootNameA.load(props, prepend);
+    currentProcesschunksRootNameB.load(props, prepend);
+    currentProcesschunksSubdirNameA.load(props, prepend);
+    currentProcesschunksSubdirNameB.load(props, prepend);
   }
 
   public EtomoVersion getRevisionNumber() {
@@ -99,18 +139,81 @@ public abstract class BaseMetaData implements Storable {
     return fileExtension;
   }
 
+  public boolean equals(BaseMetaData input) {
+    if (!currentProcesschunksRootNameA
+        .equals(input.currentProcesschunksRootNameA)) {
+      return false;
+    }
+    if (!currentProcesschunksRootNameB
+        .equals(input.currentProcesschunksRootNameB)) {
+      return false;
+    }
+    if (axisType != input.axisType) {
+      return false;
+    }
+    return true;
+  }
+
   public boolean equals(Object object) {
     if (!(object instanceof BaseMetaData))
       return false;
-    BaseMetaData that = (BaseMetaData) object;
+    return equals((BaseMetaData) object);
+  }
 
-    // Ignore revision number, we are more concerned about the functional
-    // content of the object
-
-    if (axisType != that.axisType) {
-      return false;
+  public String getCurrentProcesschunksRootName(AxisID axisID) {
+    if (axisID == AxisID.SECOND) {
+      return currentProcesschunksRootNameB.toString();
     }
+    return currentProcesschunksRootNameA.toString();
+  }
 
-    return true;
+  public String getCurrentProcesschunksSubdirName(AxisID axisID) {
+    if (axisID == AxisID.SECOND) {
+      return currentProcesschunksSubdirNameB.toString();
+    }
+    return currentProcesschunksSubdirNameA.toString();
+  }
+
+  public boolean isCurrentProcesschunksSubdirNameSet(AxisID axisID) {
+    if (axisID == AxisID.SECOND) {
+      return !currentProcesschunksSubdirNameB.isEmpty();
+    }
+    return !currentProcesschunksSubdirNameA.isEmpty();
+  }
+
+  public void setCurrentProcesschunksRootName(AxisID axisID, String input) {
+    if (axisID == AxisID.SECOND) {
+      currentProcesschunksRootNameB.set(input);
+    }
+    else {
+      currentProcesschunksRootNameA.set(input);
+    }
+  }
+
+  public void setCurrentProcesschunksSubdirName(AxisID axisID, String input) {
+    if (axisID == AxisID.SECOND) {
+      currentProcesschunksSubdirNameB.set(input);
+    }
+    else {
+      currentProcesschunksSubdirNameA.set(input);
+    }
+  }
+
+  public void resetCurrentProcesschunksRootName(AxisID axisID) {
+    if (axisID == AxisID.SECOND) {
+      currentProcesschunksRootNameB.reset();
+    }
+    else {
+      currentProcesschunksRootNameA.reset();
+    }
+  }
+
+  public void resetCurrentProcesschunksSubdirName(AxisID axisID) {
+    if (axisID == AxisID.SECOND) {
+      currentProcesschunksSubdirNameB.reset();
+    }
+    else {
+      currentProcesschunksSubdirNameA.reset();
+    }
   }
 }
