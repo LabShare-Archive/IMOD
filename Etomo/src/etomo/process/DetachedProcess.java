@@ -58,21 +58,15 @@ final class DetachedProcess extends BackgroundProcess {
     setProcessResultDisplay(processResultDisplay);
   }
 
-  public DetachedProcess(BaseManager manager, DetachedCommand command,
-      BaseProcessManager processManager, AxisID axisID,
-      OutfileProcessMonitor monitor, ProcessResultDisplay processResultDisplay,
-      ProcessName processName, String subdirName, String shortCommandName) {
-    super(manager, command, processManager, axisID, processName);
-    this.axisID = axisID;
-    this.manager = manager;
-    this.monitor = monitor;
-    this.processManager = processManager;
-    this.subdirName = subdirName;
-    this.shortCommandName = shortCommandName;
-    setProcessResultDisplay(processResultDisplay);
+  void setSubdirName(String input) {
+    subdirName = input;
   }
 
-  final boolean newProgram() {
+  void setShortCommandName(String input) {
+    shortCommandName = input;
+  }
+
+  boolean newProgram() {
     String[] runCommand;
     try {
       runCommand = makeRunFile();
@@ -232,12 +226,21 @@ final class DetachedProcess extends BackgroundProcess {
       }
       if (pid != null) {
         processData.setPid(pid);
+        if (!processData.isEmpty()) {
+          //Save the process data for this process so that it will already be saved
+          //if there is a crash.  This is especially important for Processchunks 
+          //because of the resume after exit functionality.
+          manager.saveStorable(axisID, processData);
+        }
       }
     }
   }
 }
 /**
  * <p> $Log$
+ * <p> Revision 1.12  2007/11/06 19:21:12  sueh
+ * <p> bug# 1-47 Allowed processchunks to be executed in a subdirectory.
+ * <p>
  * <p> Revision 1.11  2007/05/11 15:39:59  sueh
  * <p> bug# 964 Overrode processDone(int,boolean) to call ProcessManager.
  * <p> msgProcessDone(DetachedProcess...).
