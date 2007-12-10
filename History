@@ -1,5 +1,9 @@
 IMOD History
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+12/10/07: Processchunks Resume will work after exiting and rerunning eTomo even
+if eTomo exits abnormally.  Resume will not work if processchunks is still
+running.
+
 12/10/07: Fixed problem with vmstocsh created 11/20/07, that makes scripts fail
 with FC2 package.
 
