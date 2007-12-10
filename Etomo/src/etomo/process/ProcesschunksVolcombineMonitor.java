@@ -20,6 +20,9 @@ import etomo.util.DatasetFiles;
  * @version $Revision$
  * 
  * <p> $Log$
+ * <p> Revision 1.2  2007/11/06 19:26:15  sueh
+ * <p> bug# 1047 Change super() call to adapt to parent constructor change.
+ * <p>
  * <p> Revision 1.1  2006/12/02 04:39:05  sueh
  * <p> bug# 944 A Processchunks monitor which does specialized process for
  * <p> volcombine.  Watches volcombine-start.log and volcombine-finish.log
@@ -38,7 +41,7 @@ public final class ProcesschunksVolcombineMonitor extends
   public ProcesschunksVolcombineMonitor(BaseManager manager, AxisID axisID,
       ParallelProgressDisplay parallelProgressDisplay, String rootName,
       String computerList) {
-    super(manager, axisID, parallelProgressDisplay, rootName, computerList,null);
+    super(manager, axisID, parallelProgressDisplay, rootName, computerList);
   }
 
   protected boolean updateState() throws LogFile.ReadException,
