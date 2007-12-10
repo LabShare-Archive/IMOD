@@ -57,6 +57,9 @@ import etomo.util.DatasetFiles;
  * @version $Revision$
  *
  * <p> $Log$
+ * <p> Revision 1.52  2007/07/30 18:54:06  sueh
+ * <p> bug# 1002 ParameterStore.getInstance can return null - handle it.
+ * <p>
  * <p> Revision 1.51  2007/06/08 23:58:28  sueh
  * <p> bug# 995 Opening the rejoin trial without the model unless it was created
  * <p> with all slices.
@@ -1400,7 +1403,7 @@ public final class JoinDialog implements ContextMenu, Run3dmodButtonContainer {
   }
 
   public void setMetaData(ConstJoinMetaData metaData) {
-    ltfRootName.setText(metaData.getRootName());
+    ltfRootName.setText(metaData.getDatasetName());
     spinDensityRefSection.setValue(metaData.getDensityRefSection().getInt());
     ltfSigmaLowFrequency.setText(metaData.getSigmaLowFrequency().toString());
     ltfCutoffHighFrequency
@@ -1484,7 +1487,7 @@ public final class JoinDialog implements ContextMenu, Run3dmodButtonContainer {
    * @return
    */
   public boolean equals(ConstJoinMetaData metaData) {
-    if (!ltfRootName.equals(metaData.getRootName())) {
+    if (!ltfRootName.equals(metaData.getDatasetName())) {
       return false;
     }
     if (!metaData.getDensityRefSection().equals(
@@ -1551,7 +1554,7 @@ public final class JoinDialog implements ContextMenu, Run3dmodButtonContainer {
    * @return
    */
   public boolean equalsSample(ConstJoinMetaData metaData) {
-    if (!ltfRootName.equals(metaData.getRootName())) {
+    if (!ltfRootName.equals(metaData.getDatasetName())) {
       return false;
     }
     if (!metaData.getDensityRefSection().equals(
