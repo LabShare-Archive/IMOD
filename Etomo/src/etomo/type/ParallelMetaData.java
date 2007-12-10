@@ -68,31 +68,14 @@ public final class ParallelMetaData extends BaseMetaData {
     return "revision=" + revision + ",rootName=" + rootName;
   }
 
-  private void reset() {
-    revision = null;
-    rootName = null;
-    loadWithFlipping.reset();
-    volume.reset();
-    xMin.reset();
-    xMax.reset();
-    yMin.reset();
-    yMax.reset();
-    zMin.reset();
-    zMax.reset();
-    testKValueList.reset();
-    testIteration.reset();
-    dialogType = DialogType.getDefault(TabType.PARALLEL);
-    testKValue.reset();
-    testIterationList.reset();
-    kValue.reset();
-    iteration.reset();
-    memoryPerChunk.reset();
-  }
-
   public String getName() {
     if (rootName == null) {
       return NEW_TITLE;
     }
+    return rootName;
+  }
+  
+  public String getDatasetName() {
     return rootName;
   }
 
@@ -259,7 +242,27 @@ public final class ParallelMetaData extends BaseMetaData {
   }
 
   public void load(Properties props, String prepend) {
-    reset();
+    super.load(props, prepend);
+    //reset
+    revision = null;
+    rootName = null;
+    loadWithFlipping.reset();
+    volume.reset();
+    xMin.reset();
+    xMax.reset();
+    yMin.reset();
+    yMax.reset();
+    zMin.reset();
+    zMax.reset();
+    testKValueList.reset();
+    testIteration.reset();
+    dialogType = DialogType.getDefault(TabType.PARALLEL);
+    testKValue.reset();
+    testIterationList.reset();
+    kValue.reset();
+    iteration.reset();
+    memoryPerChunk.reset();
+    //load
     dialogType = DialogType.load(TabType.PARALLEL, props,
         DialogType.PROPERTIES_KEY);
     prepend = createPrepend(prepend);
@@ -285,6 +288,7 @@ public final class ParallelMetaData extends BaseMetaData {
   }
 
   public void store(Properties props, String prepend) {
+    super.store(props, prepend);
     prepend = createPrepend(prepend);
     String group = prepend + ".";
     dialogType.store(props, DialogType.PROPERTIES_KEY);
@@ -307,7 +311,7 @@ public final class ParallelMetaData extends BaseMetaData {
     memoryPerChunk.store(props, prepend);
   }
 
-  private String createPrepend(String prepend) {
+  String createPrepend(String prepend) {
     String groupKey;
     if (dialogType == DialogType.ANISOTROPIC_DIFFUSION) {
       groupKey = ANISOTROPIC_DIFFUSION_GROUP_KEY;
@@ -323,6 +327,9 @@ public final class ParallelMetaData extends BaseMetaData {
 }
 /**
  * <p> $Log$
+ * <p> Revision 1.5  2007/11/09 17:45:56  sueh
+ * <p> bug# 1047 Changed the names of NAD fields for clarity.
+ * <p>
  * <p> Revision 1.4  2007/11/06 19:37:15  sueh
  * <p> bug# 1047 Added meta data for the anisotropic diffusion dialog.
  * <p>

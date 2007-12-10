@@ -21,6 +21,9 @@ import etomo.util.DatasetFiles;
  * @notthreadsafe
  * 
  * <p> $Log$
+ * <p> Revision 1.18  2007/07/25 22:58:56  sueh
+ * <p> bug# 1027 Change start and end tilt range angles to min and max angles.
+ * <p>
  * <p> Revision 1.17  2007/06/08 22:20:59  sueh
  * <p> bug# 1014 Fixed the function copy and added revisionNumber to the
  * <p> reset function.
@@ -120,7 +123,6 @@ public class PeetMetaData extends BaseMetaData implements ConstPeetMetaData {
   public PeetMetaData() {
     fileExtension = DatasetFiles.PEET_DATA_FILE_EXT;
     axisType = AxisType.SINGLE_AXIS;
-    reset();
   }
 
   public void copy(PeetMetaData input) {
@@ -155,6 +157,10 @@ public class PeetMetaData extends BaseMetaData implements ConstPeetMetaData {
     }
     return rootName.toString();
   }
+  
+  public String getDatasetName() {
+    return rootName.toString();
+  }
 
   public void setName(String name) {
     rootName.set(name);
@@ -184,7 +190,19 @@ public class PeetMetaData extends BaseMetaData implements ConstPeetMetaData {
   }
 
   public void load(Properties props, String prepend) {
-    reset();
+    super.load(props,prepend);
+    //reset
+    initMotlFile.reset();
+    tiltRangeMin.reset();
+    tiltRangeMax.reset();
+    referenceVolume.reset();
+    referenceParticle.reset();
+    referenceFile.reset();
+    yaxisContourModelNumber.reset();
+    yaxisContourObjectNumber.reset();
+    yaxisContourContourNumber.reset();
+    revisionNumber.reset();
+    //load
     prepend = createPrepend(prepend);
     String group = prepend + ".";
     rootName.load(props, prepend);
@@ -222,6 +240,8 @@ public class PeetMetaData extends BaseMetaData implements ConstPeetMetaData {
   }
 
   public void store(Properties props, String prepend) {
+    super.store(props,prepend);
+    revisionNumber.set(LATEST_VERSION);
     prepend = createPrepend(prepend);
     String group = prepend + ".";
     rootName.store(props, prepend);
@@ -339,23 +359,10 @@ public class PeetMetaData extends BaseMetaData implements ConstPeetMetaData {
     yaxisContourContourNumber.set(input);
   }
 
-  private static String createPrepend(String prepend) {
+    String createPrepend(String prepend) {
     if (prepend == "") {
       return GROUP_KEY;
     }
     return prepend + "." + GROUP_KEY;
-  }
-
-  private void reset() {
-    initMotlFile.reset();
-    tiltRangeMin.reset();
-    tiltRangeMax.reset();
-    referenceVolume.reset();
-    referenceParticle.reset();
-    referenceFile.reset();
-    yaxisContourModelNumber.reset();
-    yaxisContourObjectNumber.reset();
-    yaxisContourContourNumber.reset();
-    revisionNumber.set(LATEST_VERSION);
   }
 }
