@@ -96,6 +96,7 @@ public final class ParallelProcessManager extends BaseProcessManager {
   }
 
   void postProcess(final DetachedProcess process) {
+    super.postProcess(process);
     Command command = process.getCommand();
     if (command == null) {
       return;
@@ -117,6 +118,9 @@ public final class ParallelProcessManager extends BaseProcessManager {
 }
 /**
  * <p> $Log$
+ * <p> Revision 1.5  2007/11/09 17:44:31  sueh
+ * <p> bug# 1047 Changed the names of NAD fields for understandability.
+ * <p>
  * <p> Revision 1.4  2007/11/06 19:24:21  sueh
  * <p> bug# 1047 Added post processing for anisotropic diffusion processes.
  * <p>
