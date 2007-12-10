@@ -39,6 +39,9 @@ import etomo.util.Utilities;
  * @version $Revision$
  * 
  * <p> $Log$
+ * <p> Revision 1.62  2007/11/06 19:21:01  sueh
+ * <p> bug# 1-47 Allowed processchunks to be executed in a subdirectory.
+ * <p>
  * <p> Revision 1.61  2007/09/27 19:27:28  sueh
  * <p> bug# 1044 Generalized load functionality.
  * <p>
@@ -371,6 +374,7 @@ public abstract class BaseProcessManager {
   private final ProcessData savedProcessDataA;
   private final ProcessData savedProcessDataB;
   private final BaseManager manager;
+  private boolean debug=false;
 
   abstract void postProcess(ComScriptProcess script);
 
@@ -422,48 +426,29 @@ public abstract class BaseProcessManager {
    */
   public final String processchunks(AxisID axisID, ProcesschunksParam param,
       ParallelProgressDisplay parallelProgressDisplay,
-      ProcessResultDisplay processResultDisplay)
-      throws SystemProcessException {
+      ProcessResultDisplay processResultDisplay) throws SystemProcessException {
     //  Instantiate the process monitor
     ProcesschunksProcessMonitor monitor;
-    if (param.getProcessName() == ProcessName.VOLCOMBINE) {
+    if (param.equalsRootName(ProcessName.VOLCOMBINE, axisID)) {
       monitor = new ProcesschunksVolcombineMonitor(manager, axisID,
           parallelProgressDisplay, param.getRootName(), param.getMachineList());
     }
     else {
       monitor = new ProcesschunksProcessMonitor(manager, axisID,
-          parallelProgressDisplay, param.getRootName(), param.getMachineList(),
-          param.getSubdirName());
-    }
-    BackgroundProcess process = startDetachedProcess(param, axisID, monitor,
-        processResultDisplay, ProcessName.PROCESSCHUNKS);
-    return process.getName();
-  }
-  
-  /**
-   * run processchunks, optionally in a subdir
-   * @param axisID
-   * @param param
-   * @return
-   * @throws SystemProcessException
-   */
-  public final String processchunks(AxisID axisID, ProcesschunksParam param,
-      ParallelProgressDisplay parallelProgressDisplay,
-      ProcessResultDisplay processResultDisplay, String subdirName,String shortCommandName)
-      throws SystemProcessException {
-    //  Instantiate the process monitor
-    ProcesschunksProcessMonitor monitor;
-    if (param.getProcessName() == ProcessName.VOLCOMBINE) {
-      monitor = new ProcesschunksVolcombineMonitor(manager, axisID,
           parallelProgressDisplay, param.getRootName(), param.getMachineList());
     }
-    else {
-      monitor = new ProcesschunksProcessMonitor(manager, axisID,
-          parallelProgressDisplay, param.getRootName(), param.getMachineList(),
-          param.getSubdirName());
+    BackgroundProcess process;
+    if (param.isSubdirNameEmpty()) {
+      process = startDetachedProcess(param, axisID, monitor,
+          processResultDisplay, ProcessName.PROCESSCHUNKS);
+
     }
-    BackgroundProcess process = startDetachedProcess(param, axisID, monitor,
-        processResultDisplay, ProcessName.PROCESSCHUNKS, subdirName,shortCommandName);
+    else {
+      monitor.setSubdirName(param.getSubdirName());
+      process = startDetachedProcess(param, axisID, monitor,
+          processResultDisplay, ProcessName.PROCESSCHUNKS, param
+              .getSubdirName(), param.getShortCommandName());
+    }
     return process.getName();
   }
 
@@ -711,6 +696,9 @@ public abstract class BaseProcessManager {
       isAxisBusy(axisID, processResultDisplay);
     }
     catch (SystemProcessException e) {
+      if (debug) {
+        e.printStackTrace();
+      }
       uiHarness.openMessageDialog(
           "A process is already executing in the current axis",
           "Cannot run process", axisID);
@@ -1277,21 +1265,24 @@ public abstract class BaseProcessManager {
 
   BackgroundProcess startDetachedProcess(DetachedCommand detachedCommand,
       AxisID axisID, OutfileProcessMonitor monitor,
-      ProcessResultDisplay processResultDisplay, ProcessName processName) throws SystemProcessException {
+      ProcessResultDisplay processResultDisplay, ProcessName processName)
+      throws SystemProcessException {
     DetachedProcess detachedProcess = new DetachedProcess(manager,
         detachedCommand, this, axisID, monitor, processResultDisplay,
         processName);
     return startBackgroundProcess(detachedProcess, detachedCommand
         .getCommandLine(), axisID, monitor);
   }
-  
+
   BackgroundProcess startDetachedProcess(DetachedCommand detachedCommand,
       AxisID axisID, OutfileProcessMonitor monitor,
       ProcessResultDisplay processResultDisplay, ProcessName processName,
-      String subdirName,String shortCommandName) throws SystemProcessException {
+      String subdirName, String shortCommandName) throws SystemProcessException {
     DetachedProcess detachedProcess = new DetachedProcess(manager,
         detachedCommand, this, axisID, monitor, processResultDisplay,
-        processName, subdirName,shortCommandName);
+        processName);
+    detachedProcess.setSubdirName(subdirName);
+    detachedProcess.setShortCommandName(shortCommandName);
     return startBackgroundProcess(detachedProcess, detachedCommand
         .getCommandLine(), axisID, monitor);
   }
@@ -1537,5 +1528,13 @@ public abstract class BaseProcessManager {
   }
 
   void postProcess(DetachedProcess process) {
+    try {
+      if (process.getCommand().getCommandName().equals(
+          ProcessName.PROCESSCHUNKS.toString())) {
+        manager.resetCurrentProcesschunks(process.getAxisID());
+      }
+    }
+    catch (NullPointerException e) {
+    }
   }
 }
