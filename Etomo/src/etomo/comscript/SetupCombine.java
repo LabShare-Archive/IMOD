@@ -18,6 +18,10 @@
  * 
  * <p>
  * $Log$
+ * Revision 3.16  2007/09/07 00:18:12  sueh
+ * bug# 989 Using a public INSTANCE to refer to the EtomoDirector singleton
+ * instead of getInstance and createInstance.
+ *
  * Revision 3.15  2006/07/19 15:17:00  sueh
  * bug# 903 genOptions:  throw an exception when patchZMin or Max is null.
  *
@@ -210,7 +214,7 @@ public class SetupCombine {
   private MatchMode matchMode = null;
   private boolean transfer = false;
 
-  public SetupCombine(ApplicationManager manager) throws SystemProcessException{
+  public SetupCombine(ApplicationManager manager) throws SystemProcessException {
     this.manager = manager;
     metaData = manager.getConstMetaData();
     debug = EtomoDirector.INSTANCE.isDebug();
@@ -243,7 +247,7 @@ public class SetupCombine {
     return transfer;
   }
 
-  private void genOptions() throws SystemProcessException{
+  private void genOptions() throws SystemProcessException {
     CombineParams combineParams = metaData.getCombineParams();
     matchMode = combineParams.getMatchMode();
     String matchListTo;
@@ -310,12 +314,14 @@ public class SetupCombine {
     }
     ConstEtomoNumber number = combineParams.getPatchZMin();
     if (number.isNull()) {
-      throw new SystemProcessException(ConstCombineParams.PATCH_Z_MIN_LABEL +" is required.");
+      throw new SystemProcessException(ConstCombineParams.PATCH_Z_MIN_LABEL
+          + " is required.");
     }
     min = combineParams.getPatchZMin().getInt();
     number = combineParams.getPatchZMax();
     if (number.isNull()) {
-      throw new SystemProcessException(ConstCombineParams.PATCH_Z_MAX_LABEL +" is required.");
+      throw new SystemProcessException(ConstCombineParams.PATCH_Z_MAX_LABEL
+          + " is required.");
     }
     max = combineParams.getPatchZMax().getInt();
     if (min != 0 || max != 0) {

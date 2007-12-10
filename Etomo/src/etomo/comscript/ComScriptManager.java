@@ -33,6 +33,10 @@ import etomo.util.Utilities;
  * @version $Revision$
  *
  * <p> $Log$
+ * <p> Revision 3.51  2007/09/07 00:17:34  sueh
+ * <p> bug# 989 Using a public INSTANCE to refer to the EtomoDirector singleton
+ * <p> instead of getInstance and createInstance.
+ * <p>
  * <p> Revision 3.50  2007/03/07 20:58:48  sueh
  * <p> bug# 981 Passing manager to TiltalignParam().
  * <p>
@@ -794,8 +798,8 @@ public class ComScriptManager {
     }
 
     // Initialize a BeadtrckParam object from the com script command object
-    TiltalignParam tiltalignParam = new TiltalignParam(appManager,appManager.getMetaData()
-        .getDatasetName(), axisID);
+    TiltalignParam tiltalignParam = new TiltalignParam(appManager, appManager
+        .getMetaData().getDatasetName(), axisID);
     initialize(tiltalignParam, align, "tiltalign", axisID);
     return tiltalignParam;
   }
@@ -1593,7 +1597,7 @@ public class ComScriptManager {
 
   private ComScript loadComScript(String scriptName, AxisID axisID,
       boolean parseComments) {
-    return loadComScript(ProcessName.getInstance(scriptName), axisID,
+    return loadComScript(ProcessName.getInstance(scriptName, axisID), axisID,
         parseComments);
   }
 

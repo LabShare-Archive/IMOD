@@ -18,6 +18,10 @@
  * 
  * <p>
  * $Log$
+ * Revision 3.19  2007/09/07 00:18:04  sueh
+ * bug# 989 Using a public INSTANCE to refer to the EtomoDirector singleton
+ * instead of getInstance and createInstance.
+ *
  * Revision 3.18  2006/06/05 16:11:34  sueh
  * bug# 766 Using multi line messages automatically; don't have to set it.
  *
@@ -204,12 +208,12 @@ import etomo.type.ViewType;
 
 public final class CopyTomoComs {
   public static final String rcsid = "$Id$";
-  
+
   private final ArrayList command = new ArrayList();
-  
+
   private final BaseManager manager;
   private final SystemProgram copytomocoms;
-  
+
   private StringBuffer commandLine = null;
   private int exitValue;
   private ConstMetaData metaData;
@@ -229,7 +233,8 @@ public final class CopyTomoComs {
     command.add("-f");
     command.add(ApplicationManager.getIMODBinPath() + "copytomocoms");
     genOptions();
-    copytomocoms = new SystemProgram(manager.getPropertyUserDir(), command, AxisID.ONLY);
+    copytomocoms = new SystemProgram(manager.getPropertyUserDir(), command,
+        AxisID.ONLY);
     //genStdInputSequence();
   }
 
@@ -275,8 +280,8 @@ public final class CopyTomoComs {
     // A first tilt angle and tilt angle incriment
     if (metaData.getTiltAngleSpecA().getType() == TiltAngleType.RANGE) {
       command.add("-firstinc");
-      command.add(String.valueOf(metaData.getTiltAngleSpecA().getRangeMin()) + ","
-          + String.valueOf(metaData.getTiltAngleSpecA().getRangeStep()));
+      command.add(String.valueOf(metaData.getTiltAngleSpecA().getRangeMin())
+          + "," + String.valueOf(metaData.getTiltAngleSpecA().getRangeStep()));
     }
     // Use an existing rawtilt file (this assumes that one is there and has
     // not been deleted by checkTiltAngleFiles()
@@ -325,8 +330,10 @@ public final class CopyTomoComs {
       // B first tilt angle and tilt angle incriment
       if (metaData.getTiltAngleSpecB().getType() == TiltAngleType.RANGE) {
         command.add("-bfirstinc");
-        command.add(String.valueOf(metaData.getTiltAngleSpecB().getRangeMin()) + ","
-            + String.valueOf(metaData.getTiltAngleSpecB().getRangeStep()));
+        command
+            .add(String.valueOf(metaData.getTiltAngleSpecB().getRangeMin())
+                + ","
+                + String.valueOf(metaData.getTiltAngleSpecB().getRangeStep()));
       }
       //Take tilt angle from a .rawtlt file - B
       else if (metaData.getTiltAngleSpecB().getType() == TiltAngleType.FILE) {
@@ -506,7 +513,7 @@ public final class CopyTomoComs {
     exitValue = copytomocoms.getExitValue();
     return exitValue;
   }
-  
+
   public String getStdErrorString() {
     return copytomocoms.getStdErrorString();
   }
