@@ -20,7 +20,6 @@ import etomo.comscript.ConstPatchcrawl3DParam;
 import etomo.comscript.ConstSetParam;
 import etomo.comscript.MatchorwarpParam;
 import etomo.comscript.Patchcrawl3DParam;
-import etomo.comscript.ProcesschunksParam;
 import etomo.comscript.SetParam;
 import etomo.process.ImodManager;
 import etomo.storage.LogFile;
@@ -60,6 +59,10 @@ import etomo.util.DatasetFiles;
  * 
  * <p>
  * $Log$
+ * Revision 3.62  2007/05/26 00:32:09  sueh
+ * bug# 994 Not automatically setting button size in SpacedPanel anymore.
+ * Setting button size in UI.
+ *
  * Revision 3.61  2007/03/31 03:01:11  sueh
  * bug# 964 Changed PanelHeader.isAdvanceBasicExpanded to isAdvanced.
  *
@@ -1202,10 +1205,6 @@ public class FinalCombinePanel implements ContextMenu, FinalCombineFields,
     else if (command.equals(btnImodCombined.getActionCommand())) {
       applicationManager.imodCombinedTomogram(menuOptions);
     }
-  }
-
-  public final void getParameters(ProcesschunksParam param) {
-    param.setProcessName(ProcessName.VOLCOMBINE);
   }
 
   protected void buttonAction(ActionEvent event) {
