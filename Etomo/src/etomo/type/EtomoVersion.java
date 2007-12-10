@@ -20,6 +20,9 @@ import etomo.storage.Storable;
  * @version $Revision$
  * 
  * <p> $Log$
+ * <p> Revision 1.4  2007/06/11 17:20:54  sueh
+ * <p> bug# 1014 Must pass a String to String.compareTo().
+ * <p>
  * <p> Revision 1.3  2007/06/08 22:16:47  sueh
  * <p> bug# 1014 isNull() was not working when empty section where found,
  * <p> since isNull was testing the size of the array and not looking inside it.
@@ -51,14 +54,14 @@ public final class EtomoVersion implements ConstEtomoVersion, Storable {
     return instance;
   }
 
-  public static EtomoVersion getInstance(String key) {
+  public static EtomoVersion getEmptyInstance(String key) {
     EtomoVersion instance = new EtomoVersion();
     instance.key = key;
     return instance;
   }
 
   public static EtomoVersion getInstance(String key, String version) {
-    EtomoVersion instance = getInstance(key);
+    EtomoVersion instance = getEmptyInstance(key);
     instance.set(version);
     return instance;
   }
