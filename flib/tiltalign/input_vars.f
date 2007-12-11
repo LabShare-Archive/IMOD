@@ -7,11 +7,12 @@ c       Log at end
 c       
       subroutine input_vars(var,varname,inputalf,nvarsrch,nvarang,
      &    nvarscl, imintilt,ncompsrch,iflocal,maptiltstart, mapalfstart,
-     &    ifBTSearch,tiltorig,tiltadd, pipinput, xyzfixed, ninview, ninThresh) 
+     &    mapalfend, ifBTSearch,tiltorig,tiltadd, pipinput, xyzfixed, ninview,
+     &    ninThresh) 
       implicit none
       integer*4 inputalf,nvarsrch,nvarang,nvarscl, imintilt,ncompsrch
       integer*4 iflocal,maptiltstart,mapalfstart, ifBTSearch,ninview(*)
-      integer*4 ninThresh
+      integer*4 ninThresh, mapalfend
       logical pipinput,xyzfixed
       include 'alivar.inc'
       integer maxgrp
@@ -771,6 +772,7 @@ c
       call analyze_maps(alf,mapalf,linalf,frcalf,fixedalf,fixdum,iflin,
      &    maplist,nview, imintilt,0,0.,'Xtlt',var,varname,nvarsrch,
      &    mapviewtofile)
+      mapalfend = nvarsrch
 c       
 c       Add projection stretch variable if desired.
 c       
@@ -814,7 +816,8 @@ c
 109   format(/,'WARNING: ONLY ONE TILT ANGLE IS FIXED -',/,
      &    'WARNING: THERE SHOULD BE TWO FIXED TILT ANGLES WHEN DOING ',
      &    'COMPRESSION')
-      if(ioptalf.ne.0.and.ifrotfix.ne.-1.and.ifrotfix.ne.-2)write(*,110)
+      if(ioptalf.ne.0.and.ifrotfix.ne.-1.and.ifrotfix.ne.-2 .and.
+     &    mapalfend .gt. mapalfstart) write(*,110)
 110   format(/,'WARNING: YOU ARE ATTEMPTING TO SOLVE FOR X-AXIS TILTS AND ',
      &    'ROTATION ANGLE -',/,'WARNING: RESULTS WILL BE VERY UNRELIABLE; TRY',
      &    ' SOLVING FOR JUST ONE ROTATION')
@@ -1122,6 +1125,9 @@ c
 c       2/16/07: removed filetoview function that errored on nonexistent views
 
 c       $Log$
+c       Revision 3.17  2007/11/18 04:57:10  mast
+c       Redeclared concat at 320
+c
 c       Revision 3.16  2007/05/04 00:00:18  mast
 c       Only allocate one variable for projection stretch and store the rotation
 c       angle needed for that in common

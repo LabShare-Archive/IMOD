@@ -185,11 +185,8 @@ c
       call countNumInView(listreal, nrealpt, irealstr, isecview, nview,
      &    ninview)
       call input_vars(var,varname,inputalf,nvarsrch,nvarang,nvarscl,
-     &    imintilt, ncompsrch,0,maptiltstart,mapalfstart,ifBTSearch,tiltorig,
-     &    tiltadd,pipinput,.false.,ninview,ninThresh)
-      mapalfend=nvarsrch
-      if (mapProjStretch .ne. 0) mapalfend = mapalfend - 1
-      if (mapBeamTilt .ne. 0) mapalfend = mapalfend - 1
+     &    imintilt, ncompsrch,0,maptiltstart,mapalfstart,mapalfend,ifBTSearch,
+     &    tiltorig, tiltadd,pipinput,.false.,ninview,ninThresh)
 c       
 c       TODO: is this OK to delete?
 c      do i=1,nview
@@ -550,7 +547,8 @@ c
      &              skew(i), alf(i),viewres(i)
               enddo           
             else
-              write(iunit,'(/,a)')'WARNING: SOLUTIONS FOR BOTH '//
+              if (mapalfend .gt. mapalfstart)
+     &            write(iunit,'(/,a)')'WARNING: SOLUTIONS FOR BOTH '//
      &            'ROTATION AND X-AXIS TILT ARE VERY UNRELIABLE'
               write(iunit,'(/,a)') ' view rotation  tilt  deltilt'
      &            //'    mag     dmag    skew   X-tilt  mean resid'
@@ -1509,6 +1507,9 @@ c
 
 c       
 c       $Log$
+c       Revision 3.35  2007/11/18 04:57:10  mast
+c       Redeclared concat at 320
+c
 c       Revision 3.34  2007/05/03 23:58:50  mast
 c       Switched from projection stretch to projection skew
 c
