@@ -1,5 +1,9 @@
 IMOD History
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+12/10/07: Fixed processchunks failure when it read a long error message from
+nad_eed_3d, improved argument processing in nad_eed_3d to detect missing 
+values after options.
+
 12/10/07: Processchunks Resume will work after exiting and rerunning eTomo even
 if eTomo exits abnormally.  Resume will not work if processchunks is still
 running.
