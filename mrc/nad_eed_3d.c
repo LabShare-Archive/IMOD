@@ -937,6 +937,7 @@ return;
 // IMOD modifications all below here
 
 #include "b3dutil.h"
+#include "parse_params.h"
 #include "mrcfiles.h"
 #include "mrcslice.h"
 #ifndef _WIN32
@@ -961,6 +962,14 @@ void usage(char *progname, float ht, int pmax, float sigma, float lambda)
   exit(1);
 }
 
+void testNumericEntry(char *endptr, char *argv, char *option)
+{
+  if (endptr == argv)
+    exitError("Option %s must be followed by a number, not by %s", option, 
+              argv);
+}
+  
+
 #define STRING_MAX 256
 
 int main (int argc, char **argv)
@@ -980,6 +989,7 @@ int main (int argc, char **argv)
   Islice *sl;
   int sliceMode;
   char *progname = imodProgName(argv[0]);
+  char **endptr;
   int nWrite = 0;
   int doWrite, iarg, nzout, kst, knd, writeArg;
   int* writeList;
@@ -994,6 +1004,7 @@ int main (int argc, char **argv)
   if (argc < 2)
     usage(progname, ht, pmax , sigma, lambda);
 
+  setExitPrefix("ERROR: nad_eed_3d -");
   t = time(NULL);
   local = localtime(&t);
   printf ("\nProgram %s\n", progname);
@@ -1002,6 +1013,7 @@ int main (int argc, char **argv)
   if (argc < 3) {
     printf("ERROR: %s - incorrect number of input arguments\n", progname);
     usage(progname, ht, pmax, sigma, lambda);
+    exit(3);
   }
 
   for (iarg = 1; iarg < argc; iarg++){
@@ -1009,27 +1021,30 @@ int main (int argc, char **argv)
       switch (argv[iarg][1]){
 
       case 'k':
-        lambda = atof(argv[++iarg]);
+        lambda = strtod(argv[++iarg], &endptr);
+        testNumericEntry(endptr, argv[iarg], "-k");
         break;
       case 's':
-        sigma = atof(argv[++iarg]);
+        sigma = strtod(argv[++iarg], &endptr);
+        testNumericEntry(endptr, argv[iarg], "-s");
         break;
       case 'n':
-        pmax = atoi(argv[++iarg]);
+        pmax = strtol(argv[++iarg], &endptr, 10);
+        testNumericEntry(endptr, argv[iarg], "-n");
         break;
       case 'o':
-        oneSlice = atoi(argv[++iarg]);
+        oneSlice = strtol(argv[++iarg], &endptr, 10);
+        testNumericEntry(endptr, argv[iarg], "-o");
         break;
       case 'm':
-        outMode = atoi(argv[++iarg]);
-        if (sliceModeIfReal(outMode) < 0) {
-          printf("ERROR: %s - Output mode %d not allowed\n", progname, 
-                 outMode);
-          exit(3);
-        }
+        outMode = strtol(argv[++iarg], &endptr, 10);
+        testNumericEntry(endptr, argv[iarg], "-m");
+        if (sliceModeIfReal(outMode) < 0)
+          exitError("Output mode %d not allowed\n", outMode);
         break;
       case 't':
-        ht = atof(argv[++iarg]);
+        ht = strtod(argv[++iarg], &endptr);
+        testNumericEntry(endptr, argv[iarg], "-t");
         break;
       case 'i':
         writeList = parselist(argv[++iarg], &nWrite);
@@ -1040,8 +1055,7 @@ int main (int argc, char **argv)
         fflush(stderr);
         break;
       default:
-        printf("ERROR: %s - Invalid option %s\n", progname, argv[iarg]);
-        exit(3);
+        exitError("Invalid option %s", argv[iarg]);
         break;
       }
 
@@ -1057,36 +1071,26 @@ int main (int argc, char **argv)
       pmax = B3DMAX(pmax, writeList[i]);
   }
 
-  if (iarg != argc - 2) {
-    printf("ERROR: %s - Command line should end with input and output files\n",
-            progname);
-    usage(progname, ht, pmax, sigma, lambda);
-  }
+  if (iarg != argc - 2)
+    exitError("Command line should end with input and output files");
 
   printf("input file:          %s\n", argv[iarg]);
   printf("output file:         %s\n", argv[iarg + 1]);
 
 
   /* ---- read input image ---- */
-  if ((fp_infile = fopen (argv[iarg], "rb")) == 0) {
-    printf("ERROR: %s - could not open input file %s\n", progname, argv[iarg]);
-    exit (1);
-  }
+  if ((fp_infile = fopen (argv[iarg], "rb")) == 0)
+    exitError("Could not open input file %s", argv[iarg]);
 
   /* read header */
-  if (mrc_head_read(fp_infile, &header)) {
-    printf("ERROR: %s - reading header of input file %s\n", progname, 
-           argv[iarg]);
-    exit(1);
-  }
+  if (mrc_head_read(fp_infile, &header))
+    exitError("Reading header of input file %s", argv[iarg]);
 
   // Check if it is the correct data type and set slice type
   sliceMode = sliceModeIfReal(header.mode);
-  if (sliceMode < 0) {
-    printf("ERROR: %s - File mode is %d; only byte, short, integer allowed\n", 
-           progname, header.mode);
-    exit(1);
-  }
+  if (sliceMode < 0)
+    exitError("File mode is %d; only byte, short, integer allowed",
+              header.mode);
 
   nx = header.nx;
   ny = header.ny;
@@ -1104,21 +1108,15 @@ int main (int argc, char **argv)
     
     // Create a slice and read into it
     sl = sliceCreate(nx, ny, sliceMode);
-    if (!sl) {
-      printf("ERROR: %s - creating slice for input\n", progname);
-      exit(1);
-    }
-    if (mrc_read_slice(sl->data.b, fp_infile, &header, k - 1, 'Z')) {
-      printf("ERROR: %s - reading slice\n", progname);
-      exit(1);
-    }
+    if (!sl)
+      exitError("Creating slice for input");
+    if (mrc_read_slice(sl->data.b, fp_infile, &header, k - 1, 'Z'))
+      exitError("Reading slice %d", k);
     
     // Convert slice to floats
     if (sliceMode != SLICE_MODE_FLOAT)
-      if (sliceNewMode(sl, SLICE_MODE_FLOAT) < 0) {
-        printf("ERROR: %s - converting slice to float\n", progname);
-        exit(1);
-      }
+      if (sliceNewMode(sl, SLICE_MODE_FLOAT) < 0)
+        exitError("Converting slice to float");
 
     // Copy data into array
     for (j=0; j<ny; j++)
@@ -1197,11 +1195,8 @@ int main (int argc, char **argv)
           fprintf(stderr, "WARNING: error renaming existing %s to %s~", 
                   outFile, outFile);
 
-        if ((fp_outfile = fopen (outFile, "wb")) == 0) {
-          printf("ERROR: %s - could not open output file %s\n", progname, 
-                 outFile);
-          exit (1);
-        }
+        if ((fp_outfile = fopen (outFile, "wb")) == 0)
+          exitError("Could not open output file %s", outFile);
       } 
       
       /* write image data and close file */
@@ -1210,25 +1205,19 @@ int main (int argc, char **argv)
       for (k=kst; k<=knd; k++) {
         // Create a slice and copy into it
         sl = sliceCreate(nx, ny, SLICE_MODE_FLOAT);
-        if (!sl) {
-          printf("ERROR: %s - creating slice for output\n", progname);
-          exit(1);
-        }
+        if (!sl)
+          exitError("Creating slice for output");
         for (j=0; j<ny; j++)
           for (i=0; i<nx; i++)
             sl->data.f[i + j * nx] = u[i+1][j+1][k];
         
         // Convert if necessary and write slice
         if (sliceMode != SLICE_MODE_FLOAT)
-          if (sliceNewMode(sl, sliceMode) < 0) {
-            printf("ERROR: %s - converting slice to short\n", progname);
-            exit(1);
-          }
+          if (sliceNewMode(sl, sliceMode) < 0)
+            exitError("Converting slice to short");
         if (mrc_write_slice(sl->data.b, fp_outfile, &header, 
-                            oneSlice ? nzout : k - 1, 'Z')) {
-          printf("ERROR: %s - writing slice\n", progname);
-          exit(1);
-        }
+                            oneSlice ? nzout : k - 1, 'Z'))
+          exitError("Writing slice %d", k);
 
         // If doing one slice, accumulate mmm
         if (oneSlice) {
@@ -1256,10 +1245,8 @@ int main (int argc, char **argv)
         }
       
         // Write the MRC header.        
-        if (mrc_head_write(fp_outfile, &header)) {
-          printf("ERROR: %s - writing header\n", progname);
-          exit(1);
-        }
+        if (mrc_head_write(fp_outfile, &header))
+          exitError("Writing header");
       
         fclose(fp_outfile);
         printf("output image %s successfully written\n\n", outFile);
@@ -1281,6 +1268,9 @@ int main (int argc, char **argv)
 /*  
     
 $Log$
+Revision 3.9  2007/11/06 23:16:04  mast
+etomo needed Shell PID:
+
 Revision 3.8  2007/11/02 22:37:15  mast
 Added process ID option
 
