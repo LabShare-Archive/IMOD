@@ -4,6 +4,9 @@
 #  $Id$
 #
 #  $Log$
+#  Revision 3.3  2007/12/06 22:40:37  mast
+#  Knock out adjustorigin entry to be conservative
+#
 #  Revision 3.2  2006/09/19 19:13:32  mast
 #  Even the shortest script can have a stupid bug
 #
@@ -27,7 +30,7 @@ set tiltname = $argv[6]
 
 sed -e '/^[$#]/d' -e "/SUBSETSTART.*/s//SUBSETSTART 0 $ystart/" \
  -e "/$setname.*\.rec/s//$recname/" -e '/SLICE/d' -e '/WIDTH/d' \
- -e '/AdjustOrigin/s' -e '/[[:cntrl:]]/s///g' -e '/THICKNESS/a\\
+ -e '/AdjustOrigin/d' -e '/[[:cntrl:]]/s///g' -e '/THICKNESS/a\\
 SLICE'" $slstart $slend"' 1\
 ' $tiltname |tilt
 exit $status
