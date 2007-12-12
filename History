@@ -1,5 +1,8 @@
 IMOD History
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+12/11/07: Removed warning from Tiltalign when solving for a single X tilt
+variable plus rotation.
+
 12/10/07: Fixed processchunks failure when it read a long error message from
 nad_eed_3d, improved argument processing in nad_eed_3d to detect missing 
 values after options.
