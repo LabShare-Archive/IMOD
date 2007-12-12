@@ -37,7 +37,8 @@ c
       integer*4 modObjFid(idim,2), modContFid(idim,2)
       character*80 filename
       character*1 abtext(2)/'A', 'B'/
-      integer*4 nstartmin,itry,nlist,nlista,nlistb,ndat
+      character*1 badaxis1, badaxis2
+      integer*4 nstartmin,itry,nlist,nlista,nlistb,ndat,ifZshifts,ifAngleOfs
       integer*4 ia,nsurf,model,iftransp,nmodpt,ipt,ip,iobj,i,ndata
       integer*4 mod,j,ifadded,ipntmax,ipta,iptb,iptamin,iptbmin
       integer*4 maxdrop,ndrop,idum,iofs,ixyz, ierrFactor
@@ -54,7 +55,8 @@ c
       integer*4 numLocalX, numLocalY, numBig, ixl, iyl, iorigmax, limRaised
       real*4 xmin,xmax,ymin,ymax,size, sizeLast,targetSize, dxLocal, dyLocal
       real*4 sumMean, sumMax, shiftLimit, csdx, csdy, csdz, devavgLoc
-      real*4 devmaxLoc, devallMax,globLocAvgRatio
+      real*4 devmaxLoc, devallMax,globLocAvgRatio, axisCrit, reportDiff
+      real*4 yzScaleDiff,sumsq,xyScaleDiff,xzScaleDiff,axisScale(3)
       logical*4 relativeFids, matchAtoB
 
       logical readw_or_imod, b3dxor
@@ -130,6 +132,7 @@ c
       transTol = 3.
       nTransCoord = 0
       matchAtoB = .false.
+      axisCrit = 10.
 c       
 c       Pip startup: set error, parse options, check help, set flag if used
 c       
@@ -425,11 +428,12 @@ c       and compute scaling factors, overriden by an entry
 c       
       if (pipinput) then
         ierr = PipGetTwoFloats('XAxisTilts', xtilta, xtiltb)
-        ierr = PipGetTwoFloats('ZShiftsToTilt', zShiftA, zShiftB)
-        ierr = PipGetTwoFloats('AngleOffsetsToTilt', angleOffsetA,
+        ifZshifts = 1 - PipGetTwoFloats('ZShiftsToTilt', zShiftA, zShiftB)
+        ifAngleOfs = 1 - PipGetTwoFloats('AngleOffsetsToTilt', angleOffsetA,
      &      angleOffsetB)
         ierr = PipGetInteger('LocalFitting', localNum)
         ierr = PipGetFloat('CenterShiftLimit', shiftLimit)
+        ierr = PipGetFloat('AnisotropicLimit', axisCrit)
         call getDelta('ATomogramOrSizeXYZ', aDelta, nxyz(1,1)) 
         call getDelta('BTomogramOrSizeXYZ', bDelta, nxyz(1,2))
         if (aDelta * aPixelSize .gt. 0.) aScale = aPixelSize / aDelta
@@ -759,6 +763,68 @@ c
       print *,'Transformation matrix for matchvol:'
       write(*,102)((a(i,j),j=1,3),dxyz(i),i=1,3)
 102   format(3f10.6,f10.3)
+c       
+c       Compute scaling of vectors and report it
+c       Then give warnings of unequal scalings
+      do j = 1, 3
+        sumsq = 0.
+        do i = 1,3
+          sumsq = sumsq + a(i,j)**2
+        enddo
+        axisScale(j) = sqrt(sumsq)
+      enddo
+      write(*,118)(axisScale(i),i=1,3)
+118   format(/, 'Scaling along the three axes - X:',f7.3,'  Y:',f7.3,'  Z:',f7.3)
+      xyScaleDiff = 100. * abs((axisScale(1) - axisScale(2)) / axisScale(1))
+      xzScaleDiff = 100. * abs((axisScale(1) - axisScale(3)) / axisScale(1))
+      yzScaleDiff = 100. * abs((axisScale(2) - axisScale(3)) / axisScale(3))
+      badAxis1 = ' '
+      badAxis2 = ' '
+      if (axisCrit .gt. 0) then
+        if (xyScaleDiff .gt. axisCrit .and. xzScaleDiff .gt. axisCrit .and.
+     &      yzScaleDiff .gt. axisCrit) then
+          reportDiff = min(xyScaleDiff, xzScaleDiff, yzScaleDiff)
+          write(*,'(/,a,f3.0,a)')'WARNING: The scalings along all three axes'//
+     &        ' differ from each other by more than', reportDiff, '%'
+          badAxis1 = 'A'
+        elseif (xyScaleDiff .gt. axisCrit .and. xzScaleDiff .gt. axisCrit) then
+          badaxis1 = 'X'
+          reportDiff = 0.5 * (xyScaleDiff + xzScaleDiff)
+        elseif (xyScaleDiff .gt. axisCrit .and. yzScaleDiff .gt. axisCrit) then
+          badaxis1 = 'Y'
+          reportDiff = 0.5 * (xyScaleDiff + yzScaleDiff)
+        elseif (xzScaleDiff .gt. axisCrit .and. yzScaleDiff .gt. axisCrit) then
+          badaxis1 = 'Z'
+          reportDiff = 0.5 * (xzScaleDiff + yzScaleDiff)
+        elseif (xyScaleDiff .gt. axisCrit) then
+          badaxis1 = 'X'
+          badaxis2 = 'Y'
+          reportDiff = xyScaleDiff
+        elseif (xzScaleDiff .gt. axisCrit) then
+          badaxis1 = 'X'
+          badaxis2 = 'Z'
+          reportDiff = xzScaleDiff
+        elseif (yzScaleDiff .gt. axisCrit) then
+          badaxis1 = 'Y'
+          badaxis2 = 'Z'
+          reportDiff = yzScaleDiff
+        endif
+      endif
+      if (badaxis2 .ne. ' ') then
+        write(*,'(/,a,a,a,a,a,f4.0,a)')'WARNING: The scaling along the ',
+     &      badaxis1, ' and ',badaxis2,' axes differ by',reportDiff,'%'
+      elseif (badaxis1 .ne. 'A' .and. badaxis1 .ne. ' ') then
+        write(*,'(/,a,a,a,f4.0,a)')'WARNING: The scaling along the ',badaxis1,
+     &      ' axis differs from the other two axes by', reportDiff, '%'
+      endif
+c       
+c       Issue specific dual-axis warning with advice
+      if (badaxis1 .eq. 'Y' .and. nsurf .eq. 2 .and. (ifAngleOfs .ne. 0 .or.
+     &    ifZshifts .ne. 0)) write(*,119)
+119   format('WARNING: Y scaling is probably wrong because you specified that',
+     &    ' points are on',/,'WARNING:    two surfaces but there are too few ',
+     &    'points on one surface.',/,'WARNING:    Try specifying that points ',
+     &    'are on one surface')
 
       filename = ' '
       if (pipinput) then
@@ -1214,6 +1280,9 @@ c
 
 c
 c       $Log$
+c       Revision 3.18  2007/06/27 19:27:55  mast
+c       Increased point limit, added error check for model points
+c
 c       Revision 3.17  2007/03/19 19:57:15  mast
 c       Swicthed from a center fit to applying global transform to center points
 c       so it won't screw up if center points are on one surface
