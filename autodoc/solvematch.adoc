@@ -226,6 +226,18 @@ pixel size in the fiducial file and the pixel spacing from the tomogram
 header.  The entry can be used as a substitute for providing the image file
 name in the -atomogram and -btomogram options.
 
+[Field = AnisotropicLimit]
+short = aniso
+type = F
+usage = Percentage difference between scaling along axes that gives a warning
+tooltip =
+manpage = The maximum percentage difference between the scaling
+along the three axes; a percentage difference greater than this limit will
+cause a warning to be issued.  If the difference is in the Y direction and
+points were specified as being on two surfaces, the program will also advise
+that it be run with "-surfaces 1" instead.  Enter 0 to disable these warnings.
+The default is 10%.
+
 [Field = ParameterFile]
 short = param
 type = PF

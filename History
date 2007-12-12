@@ -1,5 +1,8 @@
 IMOD History
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+12/12/07: Made Solvematch compute the scaling along each of the three axes and
+issue a warning if the scaling is not isotropic within 10%.
+
 12/11/07: Removed warning from Tiltalign when solving for a single X tilt
 variable plus rotation.
 
