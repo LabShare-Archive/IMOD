@@ -1385,9 +1385,8 @@ c       Now load the coordinate data with these local view numbers
      &    ninview)
 
       call input_vars(var,varname,inputalf,nvarsrch,nvarang,nvarscl,
-     &    imintilt, ncompsrch,iflocal,maptiltstart,mapalfstart,ifBTSearch,
-     &    tiltorig,tiltadd,pipinput,xyzfixed,ninview,ninThresh)
-      mapalfend=nvarsrch
+     &    imintilt, ncompsrch,iflocal,maptiltstart,mapalfstart,mapalfend,
+     &    ifBTSearch, tiltorig,tiltadd,pipinput,xyzfixed,ninview,ninThresh)
 c       
 c       DNM 7/16/04: Add pixel size to local file
 c       2/15/07: Output after first read of variables
@@ -1507,6 +1506,9 @@ c
 
 c       
 c       $Log$
+c       Revision 3.36  2007/12/11 22:23:17  mast
+c       Removed X tilt/rotation warning if solving for only one X-tilt variable
+c
 c       Revision 3.35  2007/11/18 04:57:10  mast
 c       Redeclared concat at 320
 c
