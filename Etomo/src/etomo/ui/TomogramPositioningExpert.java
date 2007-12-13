@@ -92,9 +92,9 @@ public final class TomogramPositioningExpert extends ReconUIExpert {
    */
   public void postProcess(ProcessDetails processDetails, TomogramState state) {
     state.setSampleXAxisTilt(axisID, processDetails
-        .getDoubleValue(TiltParam.Fields.X_AXIS_TILT));
+        .getDoubleValue(TiltParam.Field.X_AXIS_TILT));
     boolean fiducialess = processDetails
-        .getBooleanValue(TiltParam.Fields.FIDUCIALESS);
+        .getBooleanValue(TiltParam.Field.FIDUCIALESS);
     state.setSampleFiducialess(axisID, fiducialess);
     if (!fiducialess) {
       state.setSampleAxisZShift(axisID, state.getAlignAxisZShift(axisID));
@@ -103,9 +103,9 @@ public final class TomogramPositioningExpert extends ReconUIExpert {
     else {
       //no alignment for fidless
       state.setSampleAxisZShift(axisID, processDetails
-          .getDoubleValue(TiltParam.Fields.Z_SHIFT));
+          .getDoubleValue(TiltParam.Field.Z_SHIFT));
       state.setSampleAngleOffset(axisID, processDetails
-          .getDoubleValue(TiltParam.Fields.TILT_ANGLE_OFFSET));
+          .getDoubleValue(TiltParam.Field.TILT_ANGLE_OFFSET));
     }
     updateFiducialessDisplay();
   }
@@ -150,7 +150,7 @@ public final class TomogramPositioningExpert extends ReconUIExpert {
     // Get the tilt{|a|b}.com parameters
     comScriptMgr.loadTilt(axisID);
     TiltParam tiltParam = comScriptMgr.getTiltParam(axisID);
-    metaData.getTiltParam(tiltParam, axisID);
+    tiltParam.setFiducialess(metaData.isFiducialess(axisID));
     setTiltParam(tiltParam);
     //If this is a montage, then binning can only be 1, so no need to upgrade
     if (metaData.getViewType() != ViewType.MONTAGE) {
@@ -428,7 +428,7 @@ public final class TomogramPositioningExpert extends ReconUIExpert {
   private void sampleTilt(ProcessResultDisplay processResultDisplay) {
     comScriptMgr.loadTilt(axisID);
     TiltParam tiltParam = comScriptMgr.getTiltParam(axisID);
-    metaData.getTiltParam(tiltParam, axisID);
+    tiltParam.setFiducialess(metaData.isFiducialess(axisID));
     sendMsg(manager.sampleTilt(axisID, processResultDisplay, tiltParam),
         processResultDisplay);
   }
@@ -476,12 +476,12 @@ public final class TomogramPositioningExpert extends ReconUIExpert {
       return;
     }
     TiltParam tiltParam = comScriptMgr.getTiltParam(axisID);
-    metaData.getTiltParam(tiltParam, axisID);
+    tiltParam.setFiducialess(metaData.isFiducialess(axisID));
     getTiltAngleOffset(tiltParam);
     getZShift(tiltParam);
     tiltParam.resetSubsetStart();
     comScriptMgr.saveTilt(tiltParam, axisID);
-    metaData.setTiltParam(tiltParam, axisID);
+    metaData.setFiducialess(axisID, tiltParam.isFiducialess());
   }
 
   /**
@@ -501,10 +501,14 @@ public final class TomogramPositioningExpert extends ReconUIExpert {
     TiltParam tiltParam = null;
     try {
       tiltParam = comScriptMgr.getTiltParam(axisID);
-      metaData.getTiltParam(tiltParam, axisID);
+      tiltParam.setFiducialess(metaData.isFiducialess(axisID));
       getTiltParams(tiltParam);
       if (sample) {
         getTiltParamsForSample(tiltParam);
+        tiltParam.setCommandMode(TiltParam.Mode.SAMPLE);
+      }
+      else {
+        tiltParam.setCommandMode(TiltParam.Mode.WHOLE);
       }
       getParameters(metaData, tiltParam);
       String outputFileName;
@@ -523,7 +527,7 @@ public final class TomogramPositioningExpert extends ReconUIExpert {
       }
       rollTiltComAngles();
       comScriptMgr.saveTilt(tiltParam, axisID);
-      metaData.setTiltParam(tiltParam, axisID);
+      metaData.setFiducialess(axisID, tiltParam.isFiducialess());
     }
     catch (NumberFormatException except) {
       String[] errorMessage = new String[3];
@@ -917,6 +921,10 @@ public final class TomogramPositioningExpert extends ReconUIExpert {
 }
 /**
  * <p> $Log$
+ * <p> Revision 1.19  2007/08/16 16:37:52  sueh
+ * <p> bug# 1035 Resetting sizeToOutputInXandY in newst.  Resetting
+ * <p> startingAndEndingX and Y in blend.  Resetting SUBSETSTART to 0 0 in tilt.
+ * <p>
  * <p> Revision 1.18  2007/02/09 00:54:22  sueh
  * <p> bug# 962 Made TooltipFormatter a singleton and moved its use to low-level ui
  * <p> classes.
