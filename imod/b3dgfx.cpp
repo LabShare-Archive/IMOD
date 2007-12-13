@@ -348,6 +348,7 @@ void b3dSetImageOffset(int winsize,     /* window size in wpixels.          */
                        int &doff,       /* data offset in ipixels           */
                        int fillEdge)    /* Fill window to edge, maybe beyond*/
 {
+  int newoffs;
   /*imodPrintStderr("winsize %d  imsize %d  zoom %f  offset %d\n", winsize, imsize,
     zoom, offset); */
   /* Fits completely inside of window. (Why test against imsize - 1 ?*/
@@ -392,7 +393,11 @@ void b3dSetImageOffset(int winsize,     /* window size in wpixels.          */
       if (drawsize < minds){
         drawsize = minds;
         doff     = imsize - drawsize;
-        offset   = (int)(imsize * 0.5 - doff - (winsize*0.5f)/zoom - 2.0f);
+
+        // 12/12/07: it was -2, don't even know why it should be -1, but
+        // keep the offset from becoming more negative
+        newoffs = (int)(imsize * 0.5 - doff - (winsize*0.5f)/zoom - 1.0f);
+        offset   = B3DMAX(offset, newoffs);
       }
       //imodPrintStderr("2 ds do offset wo %d %d %d %d\n", drawsize, doff, offset, woff);
       return;
@@ -2020,6 +2025,9 @@ int b3dSnapshot(QString fname)
 
 /*
 $Log$
+Revision 4.36  2007/11/27 04:56:06  mast
+Limit drawing to defined width/height of image array, needed for XYZ subareas
+
 Revision 4.35  2007/11/10 15:21:14  mast
 Snap dir fixes for windows: get short name correctly, start in current dir
 
