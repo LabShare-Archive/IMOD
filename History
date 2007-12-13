@@ -1,5 +1,10 @@
 IMOD History
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+12/12/07: Automatically running newstack, blendmont, and tilt with AdjustOrigin.
+For a single axis tomogram created prior to this change, trimvol will be run the
+option "-k" which prevents the origin adjustment.  ALL MACHINES USED FOR
+PARALLEL PROCESSING MUST BE UPGRADED TOGETHER.
+
 12/12/07: Fixed panning in Xyz window from getting stuck at one end.
 
 12/12/07: Made Solvematch compute the scaling along each of the three axes and
