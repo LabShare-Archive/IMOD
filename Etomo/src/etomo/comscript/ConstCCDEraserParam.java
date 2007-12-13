@@ -14,6 +14,9 @@ package etomo.comscript;
  * @version $Revision$
  *
  * <p> $Log$
+ * <p> Revision 3.2  2005/02/22 20:55:00  sueh
+ * <p> bug# 600 Making parameter name constants into public static final strings.
+ * <p>
  * <p> Revision 3.1  2004/06/25 00:32:00  sueh
  * <p> bug# 467 OuterRadius is out-of-date.
  * <p> New parameter annulusWidth
@@ -58,6 +61,7 @@ public class ConstCCDEraserParam {
   public static final String BORDER_SIZE_KEY = "BorderSize";
   public static final String POLYNOMIAL_ORDER_KEY = "PolynomialOrder";
   public static final String TRIAL_MODE_KEY = "TrialMode";
+  public static final String BOUNDARY_OBJECTS_KEY = "BoundaryObjects";
   
   protected String inputFile = "";
   protected String outputFile = "";
@@ -77,6 +81,7 @@ public class ConstCCDEraserParam {
   protected String modelFile = "";
   protected String globalReplacementList = "";
   protected String localReplacementList = "";
+  protected String boundaryReplacementList = "";
   protected String borderPixels = "";
   protected String polynomialOrder = "";
   protected boolean includeAdjacentPoints = true;
@@ -115,6 +120,9 @@ public class ConstCCDEraserParam {
   }
   public String getlocalReplacementList() {
     return localReplacementList;
+  }
+  public String getBoundaryReplacementList() {
+    return boundaryReplacementList;
   }
   public String getBorderPixels() {
     return borderPixels;

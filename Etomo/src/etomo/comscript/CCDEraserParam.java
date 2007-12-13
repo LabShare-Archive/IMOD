@@ -13,6 +13,9 @@ package etomo.comscript;
  * @version $Revision$
  *
  * <p> $Log$
+ * <p> Revision 3.4  2005/02/22 20:54:33  sueh
+ * <p> bug# 600 Making parameter name constants into public static final strings.
+ * <p>
  * <p> Revision 3.3  2004/06/25 00:30:49  sueh
  * <p> bug# 467 Comscript change!  OuterRadius is an out-of-date parameter that may
  * <p> appear in some PIP-style comscripts.  annulusWidth is a new
@@ -97,6 +100,7 @@ public class CCDEraserParam
       modelFile = scriptCommand.getValue("ModelFile");
       globalReplacementList = scriptCommand.getValue(ALL_SECTION_OBJECTS_KEY);
       localReplacementList = scriptCommand.getValue(LINE_OBJECTS_KEY);
+      boundaryReplacementList = scriptCommand.getValue(BOUNDARY_OBJECTS_KEY);
       borderPixels = scriptCommand.getValue(BORDER_SIZE_KEY);
       polynomialOrder = scriptCommand.getValue(POLYNOMIAL_ORDER_KEY);
       includeAdjacentPoints = !scriptCommand.hasKeyword("ExcludeAdjacent");
@@ -246,6 +250,13 @@ public class CCDEraserParam
     else {
       scriptCommand.deleteKey(LINE_OBJECTS_KEY);
     }
+    
+    if (!boundaryReplacementList.equals("")) {
+      scriptCommand.setValue(BOUNDARY_OBJECTS_KEY, boundaryReplacementList);
+    }
+    else {
+      scriptCommand.deleteKey(BOUNDARY_OBJECTS_KEY);
+    }
 
     if (!borderPixels.equals("")) {
       scriptCommand.setValue(BORDER_SIZE_KEY, borderPixels);
@@ -317,6 +328,10 @@ public class CCDEraserParam
 
   public void setLocalReplacementList(String localReplacementList) {
     this.localReplacementList = localReplacementList;
+  }
+  
+  public void setBoundaryReplacementList(String boundaryReplacementList) {
+    this.boundaryReplacementList = boundaryReplacementList;
   }
 
   public void setBorderPixels(String borderPixels) {

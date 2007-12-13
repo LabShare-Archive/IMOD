@@ -80,6 +80,8 @@ public class CCDEraserPanel implements ContextMenu, Run3dmodButtonContainer {
       "All section replacement list: ");
   private LabeledTextField ltfLocalReplacementList = new LabeledTextField(
       "Line replacement list: ");
+  private LabeledTextField ltfBoundaryReplacementList = new LabeledTextField(
+  "Boundary replacement list: ");
   private Run3dmodButton btnCreateModel = new Run3dmodButton(
       "<html><b>Create Manual Replacement Model</b>", this);
 
@@ -157,6 +159,8 @@ public class CCDEraserPanel implements ContextMenu, Run3dmodButtonContainer {
     UIUtilities.addWithYSpace(pnlManualReplacement, ltfGlobalReplacementList
         .getContainer());
     UIUtilities.addWithYSpace(pnlManualReplacement, ltfLocalReplacementList
+        .getContainer());
+    UIUtilities.addWithYSpace(pnlManualReplacement, ltfBoundaryReplacementList
         .getContainer());
 
     pnlManualButtons
@@ -257,6 +261,7 @@ public class CCDEraserPanel implements ContextMenu, Run3dmodButtonContainer {
     ltfGlobalReplacementList
         .setText(ccdEraserParams.getGlobalReplacementList());
     ltfLocalReplacementList.setText(ccdEraserParams.getlocalReplacementList());
+    ltfBoundaryReplacementList.setText(ccdEraserParams.getBoundaryReplacementList());
     ltfBorderPixels.setText(ccdEraserParams.getBorderPixels());
     ltfPolynomialOrder.setText(ccdEraserParams.getPolynomialOrder());
     cbIncludeAdjacentPoints.setSelected(ccdEraserParams
@@ -296,6 +301,7 @@ public class CCDEraserPanel implements ContextMenu, Run3dmodButtonContainer {
     ccdEraserParams
         .setGlobalReplacementList(ltfGlobalReplacementList.getText());
     ccdEraserParams.setLocalReplacementList(ltfLocalReplacementList.getText());
+    ccdEraserParams.setBoundaryReplacementList(ltfBoundaryReplacementList.getText());
     ccdEraserParams.setBorderPixels(ltfBorderPixels.getText());
     ccdEraserParams.setPolynomialOrder(ltfPolynomialOrder.getText());
     ccdEraserParams.setIncludeAdjacentPoints(cbIncludeAdjacentPoints
@@ -419,6 +425,7 @@ public class CCDEraserPanel implements ContextMenu, Run3dmodButtonContainer {
     boolean state = cbManualReplacement.isSelected();
     ltfGlobalReplacementList.setEnabled(state);
     ltfLocalReplacementList.setEnabled(state);
+    ltfBoundaryReplacementList.setEnabled(state);
     btnCreateModel.setEnabled(state);
   }
 
@@ -464,6 +471,8 @@ public class CCDEraserPanel implements ContextMenu, Run3dmodButtonContainer {
         CCDEraserParam.EDGE_EXCLUSION_WIDTH_KEY));
     ltfLocalReplacementList.setToolTipText(EtomoAutodoc.getTooltip(autodoc,
         CCDEraserParam.LINE_OBJECTS_KEY));
+    ltfBoundaryReplacementList.setToolTipText(EtomoAutodoc.getTooltip(autodoc,
+        CCDEraserParam.BOUNDARY_OBJECTS_KEY));
     cbManualReplacement
         .setToolTipText("Use a manually created model to specify regions and lines to replace.");
     ltfGlobalReplacementList.setToolTipText(EtomoAutodoc.getTooltip(autodoc,
@@ -514,6 +523,11 @@ public class CCDEraserPanel implements ContextMenu, Run3dmodButtonContainer {
 
 /**
  * <p> $Log$
+ * <p> Revision 3.24  2007/09/10 20:42:06  sueh
+ * <p> bug# 925 Should only load button states once.  Changed
+ * <p> ProcessResultDisplayFactory to load button states immediately, so removing
+ * <p> button state load in the dialogs.
+ * <p>
  * <p> Revision 3.23  2007/03/21 19:45:01  sueh
  * <p> bug# 964 Limiting access to autodoc classes by using ReadOnly interfaces.
  * <p> Added AutodocFactory to create Autodoc instances.
