@@ -39,6 +39,9 @@ import etomo.util.Utilities;
  * @version $Revision$
  * 
  * <p> $Log$
+ * <p> Revision 1.63  2007/12/10 22:00:44  sueh
+ * <p> bug# 1041 Combined the two processchunks functions.
+ * <p>
  * <p> Revision 1.62  2007/11/06 19:21:01  sueh
  * <p> bug# 1-47 Allowed processchunks to be executed in a subdirectory.
  * <p>
@@ -374,7 +377,7 @@ public abstract class BaseProcessManager {
   private final ProcessData savedProcessDataA;
   private final ProcessData savedProcessDataB;
   private final BaseManager manager;
-  private boolean debug=false;
+  private boolean debug = false;
 
   abstract void postProcess(ComScriptProcess script);
 
@@ -522,6 +525,15 @@ public abstract class BaseProcessManager {
       throws SystemProcessException {
     return startComScript(new ComScriptProcess(manager, command, this, axisID,
         null, processMonitor, processResultDisplay, processDetails), command,
+        processMonitor, axisID);
+  }
+
+  ComScriptProcess startComScript(String command,
+      ProcessMonitor processMonitor, AxisID axisID,
+      ProcessResultDisplay processResultDisplay, CommandDetails commandDetails)
+      throws SystemProcessException {
+    return startComScript(new ComScriptProcess(manager, command, this, axisID,
+        null, processMonitor, processResultDisplay, commandDetails), command,
         processMonitor, axisID);
   }
 
