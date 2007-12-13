@@ -72,8 +72,8 @@ menu and choose <span style="font-weight: bold;">New Join</span>.</span>
 <div style="text-align: left;"><span style="">This
 will load the <span style="font-weight: bold;">Join Interface</span>
 shown below. The interface is divided into three panels: <span
- style="font-weight: bold;">Setup, Align, </span>and <span
- style="font-weight: bold;">Join</span>. The <span
+ style="font-weight: bold;">Setup, Align, Join, Model, </span> and <span
+ style="font-weight: bold;">Rejoin</span>. The <span
  style="font-weight: bold;">Setup</span> panel allows you to identify
 which serial tomograms you would like to join, define the surfaces at
 which they should be joined, flip or rotate the volumes relative
@@ -96,7 +96,7 @@ information and calculated your sample file.</span><br>
 <div style="text-align: left;"><span style="">To get started, select
 your <span style="font-weight: bold;">Working directory</span> and <span
  style="font-weight: bold;">Root name for output file</span>. In this
-example, we used a directory called <code>join</code> and used <code>basal</code>
+example, we used a directory called <code>join</code> and used <code>unicross</code>
 for the root
 name.</span> You can enter the <span style="font-weight: bold;">Working
 directory</span> by clicking
@@ -141,14 +141,14 @@ datasets, click on
 the arrow in the <span style="font-weight: bold;">Order</span>
 subsection to <span
  style="font-weight: bold; color: rgb(102, 204, 204);">highlight</span><span
- style="color: rgb(102, 204, 204);"> basal-1.rec</span><span style="">.
+ style="color: rgb(102, 204, 204);"> unicross1.rec</span><span style="">.
 Now click on </span><span style="">the <span
- style="font-weight: bold;">Open in/Raise 3dmod</span>
-button. This will open </span><span style="">basal-1.rec
+ style="font-weight: bold;">Open in 3dmod</span>
+button. This will open </span><span style="">unicross1.rec
 using 3dmod. These tutorial datasets are small in size; however, for
 future data, you may need to use the binning option to view all of your
 serial tomograms at once. Now, open the other two serial tomograms with
-the <span style="font-weight: bold;">Open in/Raise 3dmod</span>
+the <span style="font-weight: bold;">Open in 3dmod</span>
 button. Once all three tomograms are loaded, you will typically movie
 through them to
 figure out the order of the serial tomograms and what slices you would
@@ -160,14 +160,14 @@ the tomogram that matches up with the 'bottom' of the next section.
 'Top' and 'bottom' DO NOT refer to the high Z and low Z portions of the
 tomogram. So, the top of a section can be at either high or low Z. The
 join programs will take care of any inversions in Z, both in
-extracting sample slices and in assembling the final volume. To make
-things easier, this tutorial is set up so that the 'bottom' is low Z
-and
-the 'top' is high Z in all three serial tomograms. To determine the <span
+extracting sample slices and in assembling the final volume.
+The 'Bottom' entry in the first row and the 'Top' entry in the last row are not
+necessary because they don't match up to another tomogram.
+To determine the <span
  style="font-weight: bold;">Sample Slices</span> you need, see the
 entries we have used below. The goal here is to find a small subsection
 of the ends of each serial tomogram that you can use to align. Note
-that the <span style="font-weight: bold;">Bottom</span> of basal-2.rec
+that the <span style="font-weight: bold;">Bottom</span> of unicross2.rec
 starts at Z=5. This is because the gold on the surface does not give
 you any information to align with, so you need to go deeper into the
 tomogram. You can also select the <span style="font-weight: bold;">Final</span>
@@ -189,9 +189,9 @@ determine which slices will be placed into the final joined volume.</span><br>
 <div style="text-align: left;"><span style="">Once
 you are satisfied with your decisions, press the <span
  style="font-weight: bold;">Make Samples</span> button. This creates
-basal.sample which will be used in conjunction with <span
+unicross.sample which will be used in conjunction with <span
  style="font-weight: bold;">Midas</span> to visually align the serial
-tomograms together. After basal.sample is created, you can now access
+tomograms together. After unicross.sample is created, you can now access
 the <span style="font-weight: bold;">Align</span> and <span
  style="font-weight: bold;">Join</span> tabs. You will notice that you
 can always come back and use <span style="font-weight: bold;">Change
@@ -217,8 +217,8 @@ serial tomograms before joining them together. It is a good idea to <span
  style="font-weight: bold;">Open Sample Averages in 3dmod</span>. By
 toggling through Z, you can see whether you have chosen the correct <span
  style="font-weight: bold;">Sample Slices</span>. For instance, toggle
-between Z=1 and Z=2. You can see these are a close match by looking at
-the large vacuole in the lower left corner, but they are not aligned to
+between Z=1 and Z=2. You can see these are a close match by looking at the
+cluster of vesicles in the lower right corner, but they are not aligned to
 each other. Now you can choose to try auto alignment or manual
 alignment of the serial tomograms. These tutorial tomograms lend
 themselves well to auto alignment. Click on <span
@@ -241,7 +241,7 @@ alignment worked.<font size="+1"><span style=""></span></font><br>
 first thing you will see in<span style="font-weight: bold;"> </span>Midas
 is an overlay view showing contrasting magenta and green colors that
 help you align images. What is first displayed is the 'top' of
-basal-1.rec aligned with the 'bottom' of basal-2.rec. Midas considers
+unicross1.rec aligned with the 'bottom' of unicross2.rec. Midas considers
 each tomogram as a single 'chunk' of slices, so it is actually showing
 the alignment of the bottom of 'chunk 2' to the top of 'chunk 1'.&nbsp;
 You can use the <span style="font-weight: bold;">Toggle Ref/Cur</span>
@@ -271,8 +271,8 @@ align the next pair of&nbsp; tomograms. </span><br>
 </span></font>
 <div style="text-align: justify;">
 <div style="text-align: left;"><span style="">Now
-you see the 'top' of basal-2.rec aligned with the 'bottom' of
-basal-3.rec. You can also try and manually improve this alignment. If
+you see the 'top' of unicross2.rec aligned with the 'bottom' of
+unicross3.rec. You can also try and manually improve this alignment. If
 you make changes you want to keep, be sure to save them under <span
  style="font-weight: bold;">File-Save Transforms</span>. </span><br>
 </div>
