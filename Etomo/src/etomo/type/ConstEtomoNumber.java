@@ -36,6 +36,10 @@ import etomo.util.Utilities;
  * @version $Revision$
  * 
  * <p> $Log$
+ * <p> Revision 1.55  2007/11/06 19:35:30  sueh
+ * <p> bug# 1047 Added toStringWithLeadingZeros to control that appearance of the
+ * <p> number in string form.
+ * <p>
  * <p> Revision 1.54  2007/08/21 21:51:56  sueh
  * <p> bug# 771 Added equals(long).
  * <p>
@@ -319,6 +323,7 @@ public abstract class ConstEtomoNumber implements Storable {
   //number below validFloor are invalid
   private Number validFloor;//optional, defaults to newNumber()
   Number defaultValue;
+  String[] stringArray = null;
 
   //internal validation result
   StringBuffer invalidReason = null;
@@ -412,7 +417,7 @@ public abstract class ConstEtomoNumber implements Storable {
   public String getName() {
     return name;
   }
-  
+
   boolean isDebug() {
     return debug;
   }
@@ -443,10 +448,6 @@ public abstract class ConstEtomoNumber implements Storable {
     //Catch illegal null values
     if (isNull(currentValue)) {
       if (nullIsValid) {
-        if (debug) {
-          System.err.println(description
-              + ":end setInvalidReason:  null not allowed");
-        }
         return;
       }
       addInvalidReason("This field cannot be empty.");
@@ -1030,6 +1031,26 @@ public abstract class ConstEtomoNumber implements Storable {
   }
 
   /**
+   * Sets an instance with a string array so numbers can be
+   * translated to and from strings.  No effect if the type isn't integer.
+   * Use with setValidValues and setDisplayValue to create a boolean that can be
+   * null.
+   * @param input - used to set stringArray
+   */
+  public void setStrings(String[] input) {
+    if (type != Type.INTEGER) {
+      return;
+    }
+    if (input == null || input.length == 0) {
+      stringArray = null;
+    }
+    stringArray = new String[input.length];
+    for (int i = 0; i < input.length; i++) {
+      stringArray[i] = input[i];
+    }
+  }
+
+  /**
    * Must show the string version of getValue();
    */
   public String toString() {
@@ -1180,6 +1201,10 @@ public abstract class ConstEtomoNumber implements Storable {
     return newNumber(getValue());
   }
 
+  public boolean equalsNameIgnoreCase(String input) {
+    return name.compareToIgnoreCase(input) == 0;
+  }
+
   /**
    * Returns true if getValue() equals that.getValue().
    * @param that
@@ -1306,6 +1331,12 @@ public abstract class ConstEtomoNumber implements Storable {
   String toString(Number value) {
     if (isNull(value)) {
       return "";
+    }
+    if (type == Type.INTEGER && stringArray != null) {
+      int index = value.intValue();
+      if (index > 0 && index < stringArray.length) {
+        return stringArray[index];
+      }
     }
     return value.toString();
   }
