@@ -6,7 +6,6 @@ import java.util.Properties;
 
 import etomo.ApplicationManager;
 import etomo.EtomoDirector;
-import etomo.comscript.ConstTiltParam;
 import etomo.comscript.ConstTiltalignParam;
 import etomo.comscript.TiltalignParam;
 import etomo.comscript.TrimvolParam;
@@ -26,6 +25,10 @@ import etomo.util.MRCHeader;
  * @version $Revision$
  * 
  * <p> $Log$
+ * <p> Revision 1.32  2007/09/07 00:25:31  sueh
+ * <p> bug# 989 Using a public INSTANCE to refer to the EtomoDirector singleton
+ * <p> instead of getInstance and createInstance.
+ * <p>
  * <p> Revision 1.31  2007/08/29 21:45:50  sueh
  * <p> bug# 1041 Made BaseState an abstract class.
  * <p>
@@ -158,19 +161,28 @@ public class TomogramState extends BaseState {
   private static final String SAMPLE_FIDUCIALESS_KEY = DialogType.TOMOGRAM_POSITIONING
       .getStorableName()
       + '.' + ProcessName.TILT + '.' + "Fiducialess";
+  private static final String X_AXIS_TILT_KEY = "XAXISTILT";
+  private static final String ADJUST_ORIGIN_KEY = "AdjustOrigin";
+  private static final String A_AXIS_KEY = "A";
+  private static final String B_AXIS_KEY = "B";
+  private static final String TOMOGRAM_SIZE_KEY = "tomogramSize";
 
   EtomoState trimvolFlipped = new EtomoState("TrimvolFlipped");
   EtomoState squeezevolFlipped = new EtomoState("SqueezevolFlipped");
-  EtomoState madeZFactorsA = new EtomoState("MadeZFactorsA");
+  EtomoState madeZFactorsA = new EtomoState("MadeZFactors" + A_AXIS_KEY);
   EtomoState madeZFactorsB = new EtomoState("MadeZFactorsB");
   EtomoState newstFiducialessAlignmentA = new EtomoState(
       "NewstFiducialessAlignmentA");
   EtomoState newstFiducialessAlignmentB = new EtomoState(
       "NewstFiducialessAlignmentB");
-  EtomoState usedLocalAlignmentsA = new EtomoState("UsedLocalAlignmentsA");
-  EtomoState usedLocalAlignmentsB = new EtomoState("UsedLocalAlignmentsB");
-  EtomoState invalidEdgeFunctionsA = new EtomoState("InvalidEdgeFunctionsA");
-  EtomoState invalidEdgeFunctionsB = new EtomoState("InvalidEdgeFunctionsB");
+  EtomoState usedLocalAlignmentsA = new EtomoState("UsedLocalAlignments"
+      + A_AXIS_KEY);
+  EtomoState usedLocalAlignmentsB = new EtomoState("UsedLocalAlignments"
+      + B_AXIS_KEY);
+  EtomoState invalidEdgeFunctionsA = new EtomoState("InvalidEdgeFunctions"
+      + A_AXIS_KEY);
+  EtomoState invalidEdgeFunctionsB = new EtomoState("InvalidEdgeFunctions"
+      + B_AXIS_KEY);
   private final EtomoNumber angleOffsetA = new EtomoNumber(
       EtomoNumber.Type.DOUBLE, AxisID.FIRST.getExtension() + '.'
           + ProcessName.ALIGN + '.' + ConstTiltalignParam.ANGLE_OFFSET_KEY);
@@ -198,10 +210,10 @@ public class TomogramState extends BaseState {
           + ProcessName.SAMPLE + '.' + ConstTiltalignParam.AXIS_Z_SHIFT_KEY);
   private final EtomoNumber sampleXAxisTiltA = new EtomoNumber(
       EtomoNumber.Type.DOUBLE, AxisID.FIRST.getExtension() + '.'
-          + ProcessName.SAMPLE + '.' + ConstTiltParam.X_AXIS_TILT_KEY);
+          + ProcessName.SAMPLE + '.' + X_AXIS_TILT_KEY);
   private final EtomoNumber sampleXAxisTiltB = new EtomoNumber(
       EtomoNumber.Type.DOUBLE, AxisID.SECOND.getExtension() + '.'
-          + ProcessName.SAMPLE + '.' + ConstTiltParam.X_AXIS_TILT_KEY);
+          + ProcessName.SAMPLE + '.' + X_AXIS_TILT_KEY);
 
   private final EtomoNumber fidFileLastModifiedA = new EtomoNumber(
       EtomoNumber.Type.LONG, AxisID.FIRST.getExtension() + '.'
@@ -237,9 +249,13 @@ public class TomogramState extends BaseState {
   private String firstAxisGroup = null;
   private String secondAxisGroup = null;
   private EtomoNumber tomogramSizeA = new EtomoNumber(EtomoNumber.Type.LONG,
-      "A.TomogramSize");
+      A_AXIS_KEY + "." + TOMOGRAM_SIZE_KEY);
   private EtomoNumber tomogramSizeB = new EtomoNumber(EtomoNumber.Type.LONG,
-      "B.TomogramSize");
+      B_AXIS_KEY + "." + TOMOGRAM_SIZE_KEY);
+  private final EtomoBoolean2 adjustOriginA = new EtomoBoolean2(A_AXIS_KEY
+      + "." + ADJUST_ORIGIN_KEY);
+  private final EtomoBoolean2 adjustOriginB = new EtomoBoolean2(B_AXIS_KEY
+      + "." + ADJUST_ORIGIN_KEY);
 
   public TomogramState(ApplicationManager manager) {
     this.manager = manager;
@@ -279,7 +295,7 @@ public class TomogramState extends BaseState {
   }
 
   public void store(Properties props, String prepend) {
-    super.store(props,prepend);
+    super.store(props, prepend);
     prepend = createPrepend(prepend);
     String group = prepend + ".";
     trimvolFlipped.store(props, prepend);
@@ -312,6 +328,8 @@ public class TomogramState extends BaseState {
     seedingDoneB.store(props, prepend);
     tomogramSizeA.store(props, prepend);
     tomogramSizeB.store(props, prepend);
+    adjustOriginA.store(props, prepend);
+    adjustOriginB.store(props, prepend);
     //backwards compatibility
     props.remove(COMBINE_MATCH_MODE_BACK_KEY);
     if (combineMatchMode == null) {
@@ -417,7 +435,7 @@ public class TomogramState extends BaseState {
     return true;
   }
 
-   String createPrepend(String prepend) {
+  String createPrepend(String prepend) {
     if (prepend == "") {
       return groupString;
     }
@@ -429,7 +447,7 @@ public class TomogramState extends BaseState {
   }
 
   public void load(Properties props, String prepend) {
-    super.load(props,prepend);
+    super.load(props, prepend);
     //reset
     trimvolFlipped.reset();
     squeezevolFlipped.reset();
@@ -495,6 +513,8 @@ public class TomogramState extends BaseState {
     seedingDoneB.load(props, prepend);
     tomogramSizeA.load(props, prepend);
     tomogramSizeB.load(props, prepend);
+    adjustOriginA.load(props, prepend);
+    adjustOriginB.load(props, prepend);
     combineMatchMode = MatchMode.getInstance(props.getProperty(prepend + "."
         + COMBINE_MATCH_MODE_KEY));
     //backwards compatibility
@@ -564,6 +584,22 @@ public class TomogramState extends BaseState {
     }
     else {
       tomogramSizeA.set(input);
+    }
+  }
+
+  public boolean isAdjustOrigin(AxisID axisID) {
+    if (axisID == AxisID.SECOND) {
+      return adjustOriginB.is();
+    }
+    return adjustOriginA.is();
+  }
+
+  public void setAdjustOrigin(AxisID axisID, boolean input) {
+    if (axisID == AxisID.SECOND) {
+      adjustOriginB.set(input);
+    }
+    else {
+      adjustOriginA.set(input);
     }
   }
 
