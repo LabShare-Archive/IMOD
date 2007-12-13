@@ -1288,7 +1288,7 @@ public final class ApplicationManager extends BaseManager {
     }
     comScriptMgr.loadTilt(axisID);
     TiltParam param = comScriptMgr.getTiltParam(axisID);
-    metaData.getTiltParam(param, axisID);
+    param.setFiducialess(metaData.isFiducialess(axisID));
     if (metaData.getViewType() == ViewType.MONTAGE) {
       param.setMontageFullImage();
     }
@@ -1297,7 +1297,7 @@ public final class ApplicationManager extends BaseManager {
     }
     UIExpertUtilities.INSTANCE.rollTiltComAngles(this, axisID);
     comScriptMgr.saveTilt(param, axisID);
-    metaData.setTiltParam(param, axisID);
+    metaData.setFiducialess(axisID, param.isFiducialess());
     metaData.setBStackProcessed(true);
     saveStorables(axisID);
     return true;
@@ -2039,7 +2039,7 @@ public final class ApplicationManager extends BaseManager {
       AxisID currentAxis) {
     comScriptMgr.loadTilt(currentAxis);
     TiltParam tiltParam = comScriptMgr.getTiltParam(currentAxis);
-    metaData.getTiltParam(tiltParam, currentAxis);
+    tiltParam.setFiducialess(metaData.isFiducialess(currentAxis));
     String alignFileExtension = currentAxis.getExtension() + "local.xf";
     if (tiltalignParam.getLocalAlignments().is()) {
       tiltParam.setLocalAlignFile(metaData.getDatasetName()
@@ -2051,7 +2051,7 @@ public final class ApplicationManager extends BaseManager {
     tiltParam.setExcludeList(tiltalignParam.getExcludeList());
     UIExpertUtilities.INSTANCE.rollTiltComAngles(this, currentAxis);
     comScriptMgr.saveTilt(tiltParam, currentAxis);
-    metaData.setTiltParam(tiltParam, currentAxis);
+    metaData.setFiducialess(currentAxis, tiltParam.isFiducialess());
   }
 
   /**
@@ -3004,18 +3004,17 @@ public final class ApplicationManager extends BaseManager {
             + e.getMessage(), "3dmod Error");
       }
     }
-    //Currently, only create whole tomogram sample has a processDetail object.
-    else if ((processName == ProcessName.TILT || processName == ProcessName.SAMPLE)
-        && processDetails != null) {
-      ((TomogramPositioningExpert) getUIExpert(DialogType.TOMOGRAM_POSITIONING,
-          axisID)).postProcess(processDetails, state);
-    }
     else if (processName == ProcessName.PATCHCORR) {
       if (tomogramCombinationDialog != null) {
         //backwards compatibility - patchcorr used to create patch_vector.mod
         tomogramCombinationDialog.updatePatchVectorModelDisplay();
       }
     }
+  }
+  
+  public void tomogramPositioningPostProcess(AxisID axisID,ProcessDetails processDetails) {
+    ((TomogramPositioningExpert) getUIExpert(DialogType.TOMOGRAM_POSITIONING,
+        axisID)).postProcess(processDetails, state);
   }
 
   /**
@@ -3288,10 +3287,10 @@ public final class ApplicationManager extends BaseManager {
    * @param axisID
    */
   public ProcessResult tiltProcess(AxisID axisID,
-      ProcessResultDisplay processResultDisplay) {
+      ProcessResultDisplay processResultDisplay,ConstTiltParam param) {
     String threadName;
     try {
-      threadName = processMgr.tilt(axisID, processResultDisplay);
+      threadName = processMgr.tilt(axisID, processResultDisplay,param);
     }
     catch (SystemProcessException e) {
       e.printStackTrace();
@@ -5020,6 +5019,10 @@ public final class ApplicationManager extends BaseManager {
     trimvolParam.setInputFileName(metaData.getAxisType(), metaData
         .getDatasetName());
     trimvolParam.setOutputFileName(metaData.getDatasetName() + ".rec");
+    if (metaData.getAxisType() == AxisType.SINGLE_AXIS
+        && !state.isAdjustOrigin(AxisID.ONLY)) {
+      trimvolParam.setKeepSameOrigin(true);
+    }
     return trimvolParam;
   }
 
@@ -5476,6 +5479,9 @@ public final class ApplicationManager extends BaseManager {
 }
 /**
  * <p> $Log$
+ * <p> Revision 3.292  2007/12/10 21:46:18  sueh
+ * <p> bug# 1041 Formatted
+ * <p>
  * <p> Revision 3.291  2007/11/06 18:56:06  sueh
  * <p> bug# 1047 Generalize TrimvolParam.
  * <p>
