@@ -8,6 +8,7 @@ import java.util.Vector;
 import etomo.type.AxisID;
 import etomo.type.ConstEtomoNumber;
 import etomo.type.ConstIntKeyList;
+import etomo.type.EtomoBoolean2;
 
 /**
  * <p>Description: </p>
@@ -22,6 +23,9 @@ import etomo.type.ConstIntKeyList;
  * @version $Revision$
  *
  * <p> $Log$
+ * <p> Revision 3.21  2007/11/06 19:06:59  sueh
+ * <p> bug# 1047 Added getSubcommandDetails.
+ * <p>
  * <p> Revision 3.20  2007/09/11 21:16:21  sueh
  * <p> bug# 1035 Added getSizeToOutputInX and Y and isSizeToOutputInXandYSet.
  * <p>
@@ -148,38 +152,44 @@ public class ConstNewstParam implements CommandDetails {
   private static final String commandFileName = "newst";
   private static final String commandFileExtension = ".com";
 
-  protected Vector inputFile;
-  protected Vector outputFile;
-  protected String fileOfInputs;
-  protected String fileOfOutputs;
-  protected Vector sectionsToRead;
-  protected Vector numberToOutput;
-  protected FortranInputString sizeToOutputInXandY;
-  protected int modeToOutput;
-  protected Vector offsetsInXandY;
-  protected boolean applyOffsetsFirst;
-  protected String transformFile;
-  protected String useTransformLines;
-  protected float rotateByAngle;
-  protected float expandByFactor;
-  protected int binByFactor;
-  protected boolean linearInterpolation;
-  protected int floatDensities;
-  protected FortranInputString contrastBlackWhite;
-  protected FortranInputString scaleMinAndMax;
-  protected String distortionField;
-  protected int imagesAreBinned;
-  protected FortranInputString testLimits;
-  protected String parameterFile;
-  protected boolean fiducialessAlignment;
-  protected Mode commandMode;
-  protected String magGradientFile;
+  Vector inputFile;
+  Vector outputFile;
+  String fileOfInputs;
+  String fileOfOutputs;
+  Vector sectionsToRead;
+  Vector numberToOutput;
+  FortranInputString sizeToOutputInXandY;
+  int modeToOutput;
+  Vector offsetsInXandY;
+  boolean applyOffsetsFirst;
+  String transformFile;
+  String useTransformLines;
+  float rotateByAngle;
+  float expandByFactor;
+  int binByFactor;
+  boolean linearInterpolation;
+  int floatDensities;
+  FortranInputString contrastBlackWhite;
+  FortranInputString scaleMinAndMax;
+  String distortionField;
+  int imagesAreBinned;
+  FortranInputString testLimits;
+  String parameterFile;
+  boolean fiducialessAlignment;
+  Mode commandMode;
+  String magGradientFile;
+  /**
+   * @version 3.10
+   * Script is from an earlier version if false.
+   */
+  final EtomoBoolean2 adjustOrigin = new EtomoBoolean2();
 
   private AxisID axisID;
 
   //defaults
   public static final int BIN_BY_FACTOR_DEFAULT = 1;
 
+  //TODO
   public ConstNewstParam(AxisID axisID) {
     this.axisID = axisID;
     initializeEmpty();
@@ -436,6 +446,7 @@ public class ConstNewstParam implements CommandDetails {
     parameterFile = "";
     fiducialessAlignment = false;
     magGradientFile = null;
+    adjustOrigin.reset();
   }
 
   public String getCommand() {
@@ -467,49 +478,49 @@ public class ConstNewstParam implements CommandDetails {
     return null;
   }
 
-  public int getIntValue(etomo.comscript.Fields field) {
+  public int getIntValue(etomo.comscript.Field field) {
     if (field == Fields.BINNING) {
       return getBinByFactor();
     }
     throw new IllegalArgumentException("field=" + field);
   }
 
-  public boolean getBooleanValue(etomo.comscript.Fields field) {
+  public boolean getBooleanValue(etomo.comscript.Field field) {
     if (field == Fields.FIDUCIALESS_ALIGNMENT) {
       return fiducialessAlignment;
     }
     throw new IllegalArgumentException("field=" + field);
   }
 
-  public float getFloatValue(etomo.comscript.Fields field) {
+  public float getFloatValue(etomo.comscript.Field field) {
     throw new IllegalArgumentException("field=" + field);
   }
 
-  public String[] getStringArray(etomo.comscript.Fields field) {
+  public String[] getStringArray(etomo.comscript.Field field) {
     throw new IllegalArgumentException("field=" + field);
   }
 
-  public String getString(etomo.comscript.Fields field) {
+  public String getString(etomo.comscript.Field field) {
     throw new IllegalArgumentException("field=" + field);
   }
 
-  public double getDoubleValue(etomo.comscript.Fields field) {
+  public double getDoubleValue(etomo.comscript.Field field) {
     throw new IllegalArgumentException("field=" + field);
   }
 
-  public ConstEtomoNumber getEtomoNumber(etomo.comscript.Fields field) {
+  public ConstEtomoNumber getEtomoNumber(etomo.comscript.Field field) {
     throw new IllegalArgumentException("field=" + field);
   }
 
-  public ConstIntKeyList getIntKeyList(etomo.comscript.Fields field) {
+  public ConstIntKeyList getIntKeyList(etomo.comscript.Field field) {
     throw new IllegalArgumentException("field=" + field);
   }
 
-  public Hashtable getHashtable(etomo.comscript.Fields field) {
+  public Hashtable getHashtable(etomo.comscript.Field field) {
     throw new IllegalArgumentException("field=" + field);
   }
 
-  public static final class Fields implements etomo.comscript.Fields {
+  public static final class Fields implements etomo.comscript.Field {
     private Fields() {
     }
 

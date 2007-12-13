@@ -11,6 +11,9 @@
  * @version $Revision$
  *
  * <p> $Log$
+ * <p> Revision 3.16  2007/08/16 16:30:13  sueh
+ * <p> bug# 1035 In setSizeToOutputInXandY divided values by binning.
+ * <p>
  * <p> Revision 3.15  2007/02/05 22:39:26  sueh
  * <p> bug# 962 Changed getCommandMode to return CommandMode.
  * <p>
@@ -127,7 +130,7 @@ import etomo.type.AxisID;
 
 public class NewstParam extends ConstNewstParam implements CommandParam {
   public static final String rcsid = "$Id$";
-  
+
   public static final String SIZE_TO_OUTPUT_IN_X_AND_Y = "SizeToOutputInXandY";
 
   public NewstParam(AxisID axisID) {
@@ -238,6 +241,9 @@ public class NewstParam extends ConstNewstParam implements CommandParam {
         else if (cmdLineArgs[i].toLowerCase().startsWith("-grad")) {
           i++;
           magGradientFile = cmdLineArgs[i];
+        }
+        else if (cmdLineArgs[i].toLowerCase().startsWith("-or")) {
+          adjustOrigin.set(true);
         }
         else {
           String message = "Unknown argument: " + cmdLineArgs[i];
@@ -359,6 +365,9 @@ public class NewstParam extends ConstNewstParam implements CommandParam {
     if (magGradientFile != null && !magGradientFile.matches("\\s*+")) {
       cmdLineArgs.add("-grad");
       cmdLineArgs.add(magGradientFile);
+    }
+    if (adjustOrigin.is()) {
+      cmdLineArgs.add("-origin");
     }
     int nArgs = cmdLineArgs.size();
     scriptCommand.setCommandLineArgs((String[]) cmdLineArgs

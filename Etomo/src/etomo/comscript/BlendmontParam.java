@@ -49,6 +49,11 @@ public class BlendmontParam implements CommandParam, CommandDetails {
   private String imageOutputFile;
   private Mode mode = Mode.XCORR;
   private ScriptParameter binByFactor;
+  /**
+   * @version 3.10
+   * Script is from an earlier version if false.
+   */
+  private final EtomoBoolean2 adjustOrigin = new EtomoBoolean2("AdjustOrigin");
 
   private final ApplicationManager manager;
   private final FortranInputString startingAndEndingX = new FortranInputString(
@@ -97,6 +102,7 @@ public class BlendmontParam implements CommandParam, CommandDetails {
     binByFactor.parse(scriptCommand);
     startingAndEndingX.validateAndSet(scriptCommand);
     startingAndEndingY.validateAndSet(scriptCommand);
+    adjustOrigin.parse(scriptCommand);
   }
 
   public void updateComScriptCommand(ComScriptCommand scriptCommand)
@@ -109,6 +115,7 @@ public class BlendmontParam implements CommandParam, CommandDetails {
     binByFactor.updateComScript(scriptCommand);
     startingAndEndingX.updateScriptParameter(scriptCommand);
     startingAndEndingY.updateScriptParameter(scriptCommand);
+    adjustOrigin.updateComScript(scriptCommand);
   }
 
   private void reset() {
@@ -120,6 +127,7 @@ public class BlendmontParam implements CommandParam, CommandDetails {
     binByFactor.reset();
     startingAndEndingX.reset();
     startingAndEndingY.reset();
+    adjustOrigin.reset();
   }
 
   public void initializeDefaults() {
@@ -154,7 +162,7 @@ public class BlendmontParam implements CommandParam, CommandDetails {
     convertToStartingAndEnding(startingAndEndingY, montagesize.getY().getInt(),
         fisSizeToOutputInXandY.getInt(1));
   }
-  
+
   public CommandDetails getSubcommandDetails() {
     return null;
   }
@@ -272,42 +280,42 @@ public class BlendmontParam implements CommandParam, CommandDetails {
     return imageOutputFile;
   }
 
-  public int getIntValue(etomo.comscript.Fields field) {
+  public int getIntValue(etomo.comscript.Field field) {
     throw new IllegalArgumentException("field=" + field);
   }
 
-  public boolean getBooleanValue(etomo.comscript.Fields field) {
+  public boolean getBooleanValue(etomo.comscript.Field field) {
     if (field == Fields.OLD_EDGE_FUNCTIONS) {
       return oldEdgeFunctions.is();
     }
     throw new IllegalArgumentException("field=" + field);
   }
 
-  public String getString(etomo.comscript.Fields field) {
+  public String getString(etomo.comscript.Field field) {
     throw new IllegalArgumentException("field=" + field);
   }
 
-  public String[] getStringArray(etomo.comscript.Fields field) {
+  public String[] getStringArray(etomo.comscript.Field field) {
     throw new IllegalArgumentException("field=" + field);
   }
 
-  public Hashtable getHashtable(etomo.comscript.Fields field) {
+  public Hashtable getHashtable(etomo.comscript.Field field) {
     throw new IllegalArgumentException("field=" + field);
   }
 
-  public double getDoubleValue(etomo.comscript.Fields field) {
-    throw new IllegalArgumentException("field=" + field);
-  }
-  
-  public float getFloatValue(etomo.comscript.Fields field) {
+  public double getDoubleValue(etomo.comscript.Field field) {
     throw new IllegalArgumentException("field=" + field);
   }
 
-  public ConstEtomoNumber getEtomoNumber(etomo.comscript.Fields field) {
+  public float getFloatValue(etomo.comscript.Field field) {
     throw new IllegalArgumentException("field=" + field);
   }
 
-  public ConstIntKeyList getIntKeyList(etomo.comscript.Fields field) {
+  public ConstEtomoNumber getEtomoNumber(etomo.comscript.Field field) {
+    throw new IllegalArgumentException("field=" + field);
+  }
+
+  public ConstIntKeyList getIntKeyList(etomo.comscript.Field field) {
     throw new IllegalArgumentException("field=" + field);
   }
 
@@ -365,7 +373,7 @@ public class BlendmontParam implements CommandParam, CommandDetails {
     return binByFactor;
   }
 
-  public static final class Fields implements etomo.comscript.Fields {
+  public static final class Fields implements etomo.comscript.Field {
     private Fields() {
     }
 
@@ -382,6 +390,9 @@ public class BlendmontParam implements CommandParam, CommandDetails {
 }
 /**
  * <p> $Log$
+ * <p> Revision 1.26  2007/11/06 19:05:26  sueh
+ * <p> bug# 1047 Added getSubcommandDetails.
+ * <p>
  * <p> Revision 1.25  2007/08/24 16:33:56  sueh
  * <p> bug# 1042 Set startingAndEndingX and Y divider to a space.
  * <p>
