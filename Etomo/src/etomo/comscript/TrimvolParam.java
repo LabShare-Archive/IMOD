@@ -11,6 +11,9 @@
  * @version $Revision$
  * 
  * <p> $Log$
+ * <p> Revision 3.26  2007/11/06 19:17:48  sueh
+ * <p> bug# 1047 Added getSubcommandDetails.
+ * <p>
  * <p> Revision 3.25  2007/08/21 21:51:35  sueh
  * <p> Temporarily sending the trimvol command to err.
  * <p>
@@ -207,9 +210,10 @@ public class TrimvolParam implements CommandDetails {
   private String outputFile = "";
   private String[] commandArray;
   private AxisID axisID;
-  private final BaseManager manager;
-
   private boolean oldVersion = false;
+  private boolean keepSameOrigin = false;
+  
+  private final BaseManager manager;
 
   public TrimvolParam(BaseManager manager) {
     this.manager = manager;
@@ -448,6 +452,9 @@ public class TrimvolParam implements CommandDetails {
     if (rotateX) {
       options.add("-rx");
     }
+    if (keepSameOrigin) {
+      options.add("-k");
+    }
     // TODO check to see that filenames are apropriate
     options.add(inputFile);
     options.add(outputFile);
@@ -564,6 +571,10 @@ public class TrimvolParam implements CommandDetails {
    */
   public ConstEtomoNumber setFixedScaleMin(String fixedScaleMin) {
     return this.fixedScaleMin.set(fixedScaleMin);
+  }
+  
+  public void setKeepSameOrigin(boolean input) {
+    keepSameOrigin=input;
   }
 
   /**
@@ -743,7 +754,7 @@ public class TrimvolParam implements CommandDetails {
     outputFile = file;
   }
 
-  public boolean getBooleanValue(etomo.comscript.Fields field) {
+  public boolean getBooleanValue(etomo.comscript.Field field) {
     if (field == Fields.SWAP_YZ) {
       return swapYZ;
     }
@@ -753,31 +764,31 @@ public class TrimvolParam implements CommandDetails {
     throw new IllegalArgumentException("field=" + field);
   }
 
-  public float getFloatValue(etomo.comscript.Fields field) {
+  public float getFloatValue(etomo.comscript.Field field) {
     throw new IllegalArgumentException("field=" + field);
   }
 
-  public String[] getStringArray(etomo.comscript.Fields field) {
+  public String[] getStringArray(etomo.comscript.Field field) {
     throw new IllegalArgumentException("field=" + field);
   }
 
-  public String getString(etomo.comscript.Fields field) {
+  public String getString(etomo.comscript.Field field) {
     throw new IllegalArgumentException("field=" + field);
   }
 
-  public double getDoubleValue(etomo.comscript.Fields field) {
+  public double getDoubleValue(etomo.comscript.Field field) {
     throw new IllegalArgumentException("field=" + field);
   }
 
-  public ConstEtomoNumber getEtomoNumber(etomo.comscript.Fields field) {
+  public ConstEtomoNumber getEtomoNumber(etomo.comscript.Field field) {
     throw new IllegalArgumentException("field=" + field);
   }
 
-  public ConstIntKeyList getIntKeyList(etomo.comscript.Fields field) {
+  public ConstIntKeyList getIntKeyList(etomo.comscript.Field field) {
     throw new IllegalArgumentException("field=" + field);
   }
 
-  public Hashtable getHashtable(etomo.comscript.Fields field) {
+  public Hashtable getHashtable(etomo.comscript.Field field) {
     throw new IllegalArgumentException("field=" + field);
   }
 
@@ -809,7 +820,7 @@ public class TrimvolParam implements CommandDetails {
     return commandName;
   }
 
-  public int getIntValue(etomo.comscript.Fields field) {
+  public int getIntValue(etomo.comscript.Field field) {
     throw new IllegalArgumentException("field=" + field);
   }
 
@@ -888,7 +899,7 @@ public class TrimvolParam implements CommandDetails {
     return true;
   }
 
-  public static final class Fields implements etomo.comscript.Fields {
+  public static final class Fields implements etomo.comscript.Field {
     private Fields() {
     }
 
