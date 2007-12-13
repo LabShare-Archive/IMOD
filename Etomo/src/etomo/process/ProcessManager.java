@@ -20,6 +20,10 @@
  * 
  * <p>
  * $Log$
+ * Revision 3.116  2007/09/07 00:19:24  sueh
+ * bug# 989 Using a public INSTANCE to refer to the EtomoDirector singleton
+ * instead of getInstance and createInstance.
+ *
  * Revision 3.115  2007/02/05 23:02:32  sueh
  * bug# 962 Handling remapmodel, xfmodel, and xftoxg.
  *
@@ -866,6 +870,7 @@ import etomo.comscript.SetupCombine;
 import etomo.comscript.SplitcombineParam;
 import etomo.comscript.SplittiltParam;
 import etomo.comscript.SqueezevolParam;
+import etomo.comscript.TiltParam;
 import etomo.comscript.TiltalignParam;
 import etomo.comscript.TransferfidParam;
 import etomo.comscript.TrimvolParam;
@@ -1423,30 +1428,6 @@ public class ProcessManager extends BaseProcessManager {
 
   /**
    * Run the appropriate tilt com file for the given axis ID
-   * 
-   * @param axisID
-   *          the AxisID to run tilt on.
-   */
-  public String tilt(AxisID axisID, ProcessResultDisplay processResultDisplay)
-      throws SystemProcessException {
-    //
-    //  Create the required tilt command
-    //
-    String command = "tilt" + axisID.getExtension() + ".com";
-
-    //  Instantiate the process monitor
-    TiltProcessMonitor tiltProcessMonitor = new TiltProcessMonitor(appManager,
-        axisID);
-
-    //  Start the com script in the background
-    ComScriptProcess comScriptProcess = startComScript(command,
-        tiltProcessMonitor, axisID, processResultDisplay);
-
-    return comScriptProcess.getName();
-  }
-
-  /**
-   * Run the appropriate tilt com file for the given axis ID
    * Use this for sampling a whole tomogram
    * @param axisID
    *          the AxisID to run tilt on.
@@ -1856,10 +1837,19 @@ public class ProcessManager extends BaseProcessManager {
     else if (processName == ProcessName.PREBLEND) {
       setInvalidEdgeFunctions(script.getCommand(), true);
     }
-    else if (processName == ProcessName.TILT
-        || processName == ProcessName.SAMPLE) {
-      appManager.postProcess(script.getAxisID(), processName, processDetails,
-          null);
+    else if (processName == ProcessName.SAMPLE) {
+      appManager.tomogramPositioningPostProcess(script.getAxisID(),
+          processDetails);
+    }
+    else if (processName == ProcessName.TILT) {
+      if (commandDetails.getCommandMode() == TiltParam.Mode.WHOLE) {
+        appManager.tomogramPositioningPostProcess(script.getAxisID(),
+            processDetails);
+      }
+      if (commandDetails.getCommandMode() != TiltParam.Mode.SAMPLE) {
+        state.setAdjustOrigin(script.getAxisID(), processDetails
+            .getBooleanValue(TiltParam.Field.ADJUST_ORIGIN));
+      }
     }
     else if (processName == ProcessName.TRACK) {
       File fiducialFile = DatasetFiles.getFiducialModelFile(appManager, axisID);
