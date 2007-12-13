@@ -1,5 +1,7 @@
 IMOD History
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+12/12/07: Fixed panning in Xyz window from getting stuck at one end.
+
 12/12/07: Made Solvematch compute the scaling along each of the three axes and
 issue a warning if the scaling is not isotropic within 10%.
 
@@ -27,7 +29,8 @@ erase fiducials.
 
 12/6/07: Made Tilt able to produce origin values that are based on the aligned
 stack origin and account for all size and shift entries so different volumes
-will be congruent.
+will be congruent.  ALL PARALLEL PROCESSING MACHINES MUST BE UPGRADED TOGETHER
+TO THIS VERSION.
 
 12/6/07: Allowed 3dmod to sort contours in open contour objects.
 
