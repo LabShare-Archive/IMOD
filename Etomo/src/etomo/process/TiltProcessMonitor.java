@@ -26,6 +26,10 @@ import etomo.util.MRCHeader;
  * @version $Revision$
  * 
  * <p> $Log$
+ * <p> Revision 3.18  2007/09/11 21:36:55  sueh
+ * <p> bug# 1035 In calcFileSize prevent integer overflow when calculating fileSize by
+ * <p> casting nX * xY to long.
+ * <p>
  * <p> Revision 3.17  2007/09/07 00:19:37  sueh
  * <p> bug# 989 Using a public INSTANCE to refer to the EtomoDirector singleton
  * <p> instead of getInstance and createInstance.
@@ -215,7 +219,7 @@ final class TiltProcessMonitor extends FileSizeProcessMonitor {
           + imageBinned);
     }
     applicationManager.getMainPanel().setProgressBar("Calculating tomogram",
-        nKBytes, axisID,ProcessName.TILT);
+        nKBytes, axisID, ProcessName.TILT);
   }
 
   protected void reloadWatchedFile() {
@@ -233,6 +237,7 @@ final class TiltProcessMonitor extends FileSizeProcessMonitor {
         .getComScriptManager();
     comScriptManager.loadTilt(axisID);
     tiltParam = comScriptManager.getTiltParam(axisID);
-    applicationManager.getMetaData().setTiltParam(tiltParam, axisID);
+    applicationManager.getMetaData().setFiducialess(axisID,
+        tiltParam.isFiducialess());
   }
 }

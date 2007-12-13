@@ -205,7 +205,7 @@ public final class UIExpertUtilities {
     if (tiltParam.upgradeOldVersion(correctionBinning, currentBinning)) {
       rollTiltComAngles(manager, axisID);
       manager.getComScriptManager().saveTilt(tiltParam, axisID);
-      manager.getMetaData().setTiltParam(tiltParam, axisID);
+      manager.getMetaData().setFiducialess(axisID, tiltParam.isFiducialess());
     }
   }
 
@@ -360,6 +360,9 @@ public final class UIExpertUtilities {
 }
 /**
  * <p> $Log$
+ * <p> Revision 1.3  2006/09/19 22:39:13  sueh
+ * <p> bug# 920 Refreshing and saving meta data values in TiltParam.
+ * <p>
  * <p> Revision 1.2  2006/07/28 20:15:07  sueh
  * <p> bug# 868 Changed isFiduciallessAlignment to isFiducialess
  * <p>

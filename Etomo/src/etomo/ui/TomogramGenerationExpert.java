@@ -103,7 +103,7 @@ public final class TomogramGenerationExpert extends ReconUIExpert {
     comScriptMgr.loadTilt(axisID);
     comScriptMgr.loadMTFFilter(axisID);
     TiltParam tiltParam = comScriptMgr.getTiltParam(axisID);
-    metaData.getTiltParam(tiltParam, axisID);
+    tiltParam.setFiducialess(metaData.isFiducialess(axisID));
     // If this is a montage, then binning can only be 1, so no need to upgrade
     if (metaData.getViewType() != ViewType.MONTAGE) {
       // upgrade and save param to comscript
@@ -240,7 +240,7 @@ public final class TomogramGenerationExpert extends ReconUIExpert {
         return false;
       }
     }
-    if (!updateTiltCom(true)) {
+    if (updateTiltCom(true)==null) {
       return false;
     }
     if (!updateMTFFilterCom()) {
@@ -318,19 +318,19 @@ public final class TomogramGenerationExpert extends ReconUIExpert {
    *        filename specified in the TomogramGenerationDialog
    * @return true if successful
    */
-  private boolean updateTiltCom(boolean useDefaultRec) {
+  private ConstTiltParam updateTiltCom(boolean useDefaultRec) {
     // Set a reference to the correct object
     if (dialog == null) {
       UIHarness.INSTANCE
           .openMessageDialog(
               "Can not update tilt?.com without an active tomogram generation dialog",
               "Program logic error", axisID);
-      return false;
+      return null;
     }
     TiltParam tiltParam = null;
     try {
       tiltParam = comScriptMgr.getTiltParam(axisID);
-      metaData.getTiltParam(tiltParam, axisID);
+      tiltParam.setFiducialess(metaData.isFiducialess(axisID));
       getTiltParams(tiltParam);
       if (useDefaultRec) {
         String outputFileName;
@@ -355,7 +355,7 @@ public final class TomogramGenerationExpert extends ReconUIExpert {
       }
       UIExpertUtilities.INSTANCE.rollTiltComAngles(manager, axisID);
       comScriptMgr.saveTilt(tiltParam, axisID);
-      metaData.setTiltParam(tiltParam, axisID);
+      metaData.setFiducialess(axisID, tiltParam.isFiducialess());
     }
     catch (NumberFormatException except) {
       String[] errorMessage = new String[3];
@@ -364,7 +364,7 @@ public final class TomogramGenerationExpert extends ReconUIExpert {
       errorMessage[2] = except.getMessage();
       UIHarness.INSTANCE.openMessageDialog(errorMessage,
           "Tilt Parameter Syntax Error", axisID);
-      return false;
+      return null;
     }
     catch (InvalidParameterException except) {
       String[] errorMessage = new String[3];
@@ -373,7 +373,7 @@ public final class TomogramGenerationExpert extends ReconUIExpert {
       errorMessage[2] = except.getMessage();
       UIHarness.INSTANCE.openMessageDialog(errorMessage,
           "Tilt Parameter Syntax Error", axisID);
-      return false;
+      return null;
     }
     catch (IOException e) {
       String[] errorMessage = new String[3];
@@ -382,9 +382,9 @@ public final class TomogramGenerationExpert extends ReconUIExpert {
       errorMessage[2] = e.getMessage();
       UIHarness.INSTANCE.openMessageDialog(errorMessage, "Tilt Parameter",
           axisID);
-      return false;
+      return null;
     }
-    return true;
+    return tiltParam;
   }
 
   /**
@@ -519,12 +519,13 @@ public final class TomogramGenerationExpert extends ReconUIExpert {
       return;
     }
     sendMsgProcessStarting(processResultDisplay);
-    if (!updateTiltCom(false)) {
+    ConstTiltParam param = updateTiltCom(false);
+    if (param==null) {
       sendMsg(ProcessResult.FAILED_TO_START, processResultDisplay);
       return;
     }
     setDialogState(ProcessState.INPROGRESS);
-    sendMsg(manager.tiltProcess(axisID, processResultDisplay),
+    sendMsg(manager.tiltProcess(axisID, processResultDisplay,param),
         processResultDisplay);
   }
 
@@ -536,12 +537,13 @@ public final class TomogramGenerationExpert extends ReconUIExpert {
       return;
     }
     sendMsgProcessStarting(processResultDisplay);
-    if (!updateTiltCom(true)) {
+    ConstTiltParam param = updateTiltCom(true);
+    if (param ==null) {
       sendMsg(ProcessResult.FAILED_TO_START, processResultDisplay);
       return;
     }
     setDialogState(ProcessState.INPROGRESS);
-    sendMsg(manager.tiltProcess(axisID, processResultDisplay),
+    sendMsg(manager.tiltProcess(axisID, processResultDisplay,param),
         processResultDisplay);
   }
 
@@ -579,7 +581,7 @@ public final class TomogramGenerationExpert extends ReconUIExpert {
       return;
     }
     sendMsgProcessStarting(processResultDisplay);
-    if (!updateTiltCom(!trialMode)) {
+    if (updateTiltCom(!trialMode)==null) {
       sendMsg(ProcessResult.FAILED_TO_START, processResultDisplay);
       return;
     }
@@ -1104,6 +1106,12 @@ public final class TomogramGenerationExpert extends ReconUIExpert {
 }
 /**
  * <p> $Log$
+ * <p> Revision 1.15  2007/12/10 22:49:29  sueh
+ * <p> bug# 1041 Passing the ProcessName to processchunks instead of setting it in
+ * <p> getParameters because it is required and has been added to the
+ * <p> ProcesschunksParam constructor.  Removed getParameters
+ * <p> ProcesschunksParam) because it is empty.
+ * <p>
  * <p> Revision 1.14  2007/08/16 16:36:37  sueh
  * <p> bug# 1035 Added ltfSizeToOutputInXandY updating in newst.  Converting to
  * <p> startingAndEndingX and Y in blend.  Calculating SUBSETSTART in tilt.

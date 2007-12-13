@@ -6,11 +6,9 @@ import java.util.Properties;
 import etomo.ApplicationManager;
 import etomo.comscript.CombineParams;
 import etomo.comscript.ConstCombineParams;
-import etomo.comscript.ConstTiltParam;
 import etomo.comscript.FortranInputString;
 import etomo.comscript.FortranInputSyntaxException;
 import etomo.comscript.SqueezevolParam;
-import etomo.comscript.TiltParam;
 import etomo.comscript.TiltalignParam;
 import etomo.comscript.TransferfidParam;
 import etomo.comscript.TrimvolParam;
@@ -28,6 +26,10 @@ import etomo.comscript.TrimvolParam;
  * @version $Revision$
  *
  * <p> $Log$
+ * <p> Revision 3.37  2007/12/10 22:36:58  sueh
+ * <p> bug# 1041 Made Const class an interface so inheritance can come from
+ * <p> BaseMetaData.
+ * <p>
  * <p> Revision 3.36  2007/08/16 16:33:57  sueh
  * <p> bug# 1035 Added sizeToOutputInXandYA and B.
  * <p>
@@ -219,7 +221,7 @@ import etomo.comscript.TrimvolParam;
 public final class MetaData extends BaseMetaData implements ConstMetaData {
   public static final String rcsid = "$Id$";
 
-  private static final String latestRevisionNumber = "1.7";
+  private static final String latestRevisionNumber = "1.8";
   private static final String newTomogramTitle = "Setup Tomogram";
 
   private static final String TOMO_GEN_A_TILT_PARALLEL_GROUP = DialogType.TOMOGRAM_GENERATION
@@ -233,6 +235,8 @@ public final class MetaData extends BaseMetaData implements ConstMetaData {
       + ".Volcombine.Parallel";
   private static final String B_STACK_PROCESSED_GROUP = "BStackProcessed";
   private static final int DEFAULT_SAMPLE_THICKNESS = 200;
+  private static final String FIDUCIALESS_KEY = "Fiducialess";
+  private static final String THICKNESS_KEY = "THICKNESS";
 
   private final ApplicationManager manager;
 
@@ -292,14 +296,22 @@ public final class MetaData extends BaseMetaData implements ConstMetaData {
   private StringBuffer message = new StringBuffer();
   private final EtomoNumber sampleThicknessA = new EtomoNumber(AxisID.FIRST
       .toString()
-      + '.' + ProcessName.SAMPLE + '.' + ConstTiltParam.THICKNESS_KEY);
+      + '.' + ProcessName.SAMPLE + '.' + THICKNESS_KEY);
   private final EtomoNumber sampleThicknessB = new EtomoNumber(AxisID.SECOND
       .toString()
-      + '.' + ProcessName.SAMPLE + '.' + ConstTiltParam.THICKNESS_KEY);
+      + '.' + ProcessName.SAMPLE + '.' + THICKNESS_KEY);
   private String firstAxisPrepend = null;
   private String secondAxisPrepend = null;
-  private final TiltParam.Storables tiltParamA = new TiltParam.Storables();
-  private final TiltParam.Storables tiltParamB = new TiltParam.Storables();
+  /**
+   * @version 1.8
+   */
+  private final EtomoBoolean2 fiducialessA = new EtomoBoolean2("A."
+      + FIDUCIALESS_KEY);
+  /**
+   * @version 1.8
+   */
+  private final EtomoBoolean2 fiducialessB = new EtomoBoolean2("B."
+      + FIDUCIALESS_KEY);
   private String targetPatchSizeXandY = TiltalignParam.TARGET_PATCH_SIZE_X_AND_Y_DEFAULT;//backwards compatibility
   private String numberOfLocalPatchesXandY = TiltalignParam.NUMBER_OF_LOCAL_PATCHES_X_AND_Y_DEFAULT;
   private final EtomoBoolean2 noBeamTiltSelectedA = new EtomoBoolean2(
@@ -639,6 +651,13 @@ public final class MetaData extends BaseMetaData implements ConstMetaData {
     }
   }
 
+  private void loadVersion1_7(Properties props, String prepend) {
+    fiducialessA.loadWithAlternateKey(props, prepend,
+        ".A.Param.tilt.Fiducialess");
+    fiducialessB.loadWithAlternateKey(props, prepend,
+        ".B.Param.tilt.Fiducialess");
+  }
+
   public void load(Properties props, String prepend) {
     super.load(props, prepend);
     //reset
@@ -680,6 +699,13 @@ public final class MetaData extends BaseMetaData implements ConstMetaData {
         "Not Set"));
     setAxisPrepends();
     revisionNumber.load(props, prepend);
+    if (revisionNumber.le(EtomoVersion.getDefaultInstance("1.7"))) {
+      loadVersion1_7(props, prepend);
+    }
+    else {
+      fiducialessA.load(props, prepend);
+      fiducialessB.load(props, prepend);
+    }
     //= props.getProperty(group + "RevisionNumber", "1.0");
 
     // Make this true for now until the variable is present in all of the
@@ -776,8 +802,7 @@ public final class MetaData extends BaseMetaData implements ConstMetaData {
     defaultParallel.load(props, prepend);
     sampleThicknessA.load(props, prepend);
     sampleThicknessB.load(props, prepend);
-    tiltParamA.load(props, group + firstAxisPrepend);
-    tiltParamB.load(props, group + secondAxisPrepend);
+
     //use default for backward compatibility, since this new parameter may not
     //be in any file yet
     targetPatchSizeXandY = props.getProperty(group + "tiltalign."
@@ -823,12 +848,12 @@ public final class MetaData extends BaseMetaData implements ConstMetaData {
     this.numberOfLocalPatchesXandY = numberOfLocalPatchesXandY;
   }
 
-  public void setTiltParam(ConstTiltParam tiltParam, AxisID axisID) {
+  public void setFiducialess(AxisID axisID, boolean input) {
     if (axisID == AxisID.SECOND) {
-      tiltParamB.set(tiltParam);
+      fiducialessB.set(input);
     }
     else {
-      tiltParamA.set(tiltParam);
+      fiducialessA.set(input);
     }
   }
 
@@ -836,7 +861,7 @@ public final class MetaData extends BaseMetaData implements ConstMetaData {
     return firstAxisPrepend;
   }
 
- public  String getSecondAxisPrepend() {
+  public String getSecondAxisPrepend() {
     return secondAxisPrepend;
   }
 
@@ -920,8 +945,8 @@ public final class MetaData extends BaseMetaData implements ConstMetaData {
     defaultParallel.store(props, prepend);
     sampleThicknessA.store(props, prepend);
     sampleThicknessB.store(props, prepend);
-    tiltParamA.store(props, group + firstAxisPrepend);
-    tiltParamB.store(props, group + secondAxisPrepend);
+    fiducialessA.store(props, prepend);
+    fiducialessB.store(props, prepend);
     props.setProperty(group + "tiltalign."
         + TiltalignParam.TARGET_PATCH_SIZE_X_AND_Y_KEY, targetPatchSizeXandY);
     props.setProperty(group + "tiltalign."
@@ -966,13 +991,11 @@ public final class MetaData extends BaseMetaData implements ConstMetaData {
     return numberOfLocalPatchesXandY;
   }
 
-  public void getTiltParam(TiltParam tiltParam, AxisID axisID) {
+  public boolean isFiducialess(AxisID axisID) {
     if (axisID == AxisID.SECOND) {
-      tiltParam.set(tiltParamB);
+      return fiducialessB.is();
     }
-    else {
-      tiltParam.set(tiltParamA);
-    }
+    return fiducialessA.is();
   }
 
   public TrimvolParam getTrimvolParam() {
