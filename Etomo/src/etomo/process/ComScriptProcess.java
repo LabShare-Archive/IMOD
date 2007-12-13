@@ -18,6 +18,9 @@
  * 
  * <p>
  * $Log$
+ * Revision 3.45  2007/12/10 22:06:53  sueh
+ * bug# 1041 working with the changes in ProcessName.
+ *
  * Revision 3.44  2007/06/12 00:26:36  sueh
  * bug# 1017 Modified parse(String,boolean) to handle multiple log files
  * again.  Use the member variable parseLogFile choose whether to parse
@@ -451,6 +454,27 @@ public class ComScriptProcess extends Thread implements SystemProcessInterface {
     this.processMonitor = processMonitor;
     this.processResultDisplay = processResultDisplay;
     this.processDetails = processDetails;
+    processData = ProcessData.getManagedInstance(axisID, manager,
+        getProcessName());
+    logFile = LogFile.getInstance(manager.getPropertyUserDir(), axisID,
+        getProcessName());
+  }
+  
+  public ComScriptProcess(BaseManager manager, String comScript,
+      BaseProcessManager processManager, AxisID axisID, String watchedFileName,
+      ProcessMonitor processMonitor, ProcessResultDisplay processResultDisplay,
+      CommandDetails commandDetails) {
+    this.manager = manager;
+    this.comScriptName = comScript;
+    this.processManager = processManager;
+    cshProcessID = new StringBuffer("");
+    this.axisID = axisID;
+    this.watchedFileName = watchedFileName;
+    this.processMonitor = processMonitor;
+    this.processResultDisplay = processResultDisplay;
+    processDetails = commandDetails;
+    command = commandDetails;
+    this.commandDetails=commandDetails;
     processData = ProcessData.getManagedInstance(axisID, manager,
         getProcessName());
     logFile = LogFile.getInstance(manager.getPropertyUserDir(), axisID,
