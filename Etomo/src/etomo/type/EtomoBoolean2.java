@@ -20,6 +20,9 @@ import etomo.comscript.InvalidParameterException;
  * @version $Revision$
  * 
  * <p> $Log$
+ * <p> Revision 1.18  2007/02/05 23:25:40  sueh
+ * <p> bug# 962 Added static load().
+ * <p>
  * <p> Revision 1.17  2006/09/19 22:33:41  sueh
  * <p> bug# 920 Fixed getInstance(EtomoBoolean2, String, Properties, String).
  * <p> Props.getProperty was passing the wrong key.
@@ -154,7 +157,7 @@ public class EtomoBoolean2 extends ScriptParameter {
       instance.store(props, prepend);
     }
   }
-  
+
   /**
    * Attempt to get the property specified by prepend and name.  If it doesn't
    * exist, return null.  If it does, set it in instance (create instance
@@ -165,8 +168,8 @@ public class EtomoBoolean2 extends ScriptParameter {
    * @param prepend
    * @return etomoBoolean2
    */
-  public static EtomoBoolean2 load(EtomoBoolean2 instance,
-      String name, Properties props, String prepend) {
+  public static EtomoBoolean2 load(EtomoBoolean2 instance, String name,
+      Properties props, String prepend) {
     String value = props.getProperty(prepend + '.' + name);
     if (value == null) {
       return null;
@@ -187,8 +190,9 @@ public class EtomoBoolean2 extends ScriptParameter {
     }
     return instance1.equals(instance2);
   }
-  
-  public static EtomoBoolean2 set(EtomoBoolean2 instance, ConstEtomoNumber value, String name) {
+
+  public static EtomoBoolean2 set(EtomoBoolean2 instance,
+      ConstEtomoNumber value, String name) {
     if (instance == null && value != null) {
       instance = new EtomoBoolean2(name);
     }
@@ -198,8 +202,9 @@ public class EtomoBoolean2 extends ScriptParameter {
     instance.set(value);
     return instance;
   }
-  
-  public static EtomoBoolean2 set(EtomoBoolean2 instance, boolean value, String name) {
+
+  public static EtomoBoolean2 set(EtomoBoolean2 instance, boolean value,
+      String name) {
     if (instance == null) {
       instance = new EtomoBoolean2(name);
     }
@@ -246,7 +251,7 @@ public class EtomoBoolean2 extends ScriptParameter {
     instance.set(value);
     return instance;
   }
-  
+
   /**
    * Override isNull() to prevent EtomoBoolean2 from being null.  Checks the
    * display value, which is always set, when checking for null.  So it never
