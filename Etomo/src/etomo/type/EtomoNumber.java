@@ -18,6 +18,9 @@ import etomo.comscript.FortranInputString;
  * @version $Revision$
  * 
  * <p> $Log$
+ * <p> Revision 1.17  2007/11/06 19:36:41  sueh
+ * <p> bug# 1047 Added loadIfPresent() and load with a default.
+ * <p>
  * <p> Revision 1.16  2007/05/11 15:58:10  sueh
  * <p> bug# 964 Added plus(ConstEtomoNumber) which adds the parametes to
  * <p> currentValue.
@@ -142,6 +145,25 @@ public class EtomoNumber extends ConstEtomoNumber {
     super(that);
   }
 
+  public void loadWithAlternateKey(Properties props, String prepend, String key) {
+    if (props == null) {
+      reset();
+    }
+    else if ((prepend == null || prepend.matches("\\s*"))
+        && (key == null || key.matches("\\s*"))) {
+      load(props);
+    }
+    else if (prepend == null || prepend.matches("\\s*")) {
+      set(props.getProperty(key));
+    }
+    else if (key == null || key.matches("\\s*")) {
+      load(props, prepend);
+    }
+    else {
+      set(props.getProperty(prepend + "." + key));
+    }
+  }
+
   public void load(Properties props) {
     set(props.getProperty(name));
   }
@@ -154,9 +176,9 @@ public class EtomoNumber extends ConstEtomoNumber {
       set(props.getProperty(prepend + "." + name));
     }
   }
-  
-  public void load(Properties props, String prepend,int defaultValue) {
-    if (loadIfPresent(props,  prepend)) {
+
+  public void load(Properties props, String prepend, int defaultValue) {
+    if (loadIfPresent(props, prepend)) {
       return;
     }
     set(defaultValue);
@@ -228,7 +250,7 @@ public class EtomoNumber extends ConstEtomoNumber {
    */
   public EtomoNumber set(String value) {
     if (isDebug()) {
-      System.out.println("EtomoNumber.set:value="+value);
+      System.out.println("EtomoNumber.set:value=" + value);
     }
     resetInvalidReason();
     if (value == null || value.matches("\\s*")) {
@@ -238,6 +260,14 @@ public class EtomoNumber extends ConstEtomoNumber {
       StringBuffer invalidBuffer = new StringBuffer();
       currentValue = newNumber(value, invalidBuffer);
       if (invalidBuffer.length() > 0) {
+        if (type == Type.INTEGER && stringArray != null) {
+          for (int i = 0; i < stringArray.length; i++) {
+            if (value.compareToIgnoreCase(stringArray[i]) == 0) {
+              currentValue = newNumber(i);
+              resetInvalidReason();
+            }
+          }
+        }
         addInvalidReason(invalidBuffer.toString());
         currentValue = newNumber();
       }
@@ -245,7 +275,7 @@ public class EtomoNumber extends ConstEtomoNumber {
     currentValue = applyCeilingValue(applyFloorValue(currentValue));
     setInvalidReason();
     if (isDebug()) {
-      System.out.println("currentValue="+currentValue);
+      System.out.println("currentValue=" + currentValue);
     }
     return this;
   }
