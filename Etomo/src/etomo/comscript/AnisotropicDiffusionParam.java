@@ -31,6 +31,9 @@ import etomo.util.DatasetFiles;
  * @version $Revision$
  * 
  * <p> $Log$
+ * <p> Revision 1.3  2007/11/09 17:43:25  sueh
+ * <p> bug# 1047 In buildCommand, removed quotes from the iteration string.
+ * <p>
  * <p> Revision 1.2  2007/11/07 14:54:25  sueh
  * <p> bug# 1047 In buildCommand put the iteration list in quotes because the
  * <p> command string doesn't work without quotes when run from the command line.
@@ -260,11 +263,11 @@ public final class AnisotropicDiffusionParam implements CommandDetails {
     return null;
   }
 
-  public boolean getBooleanValue(etomo.comscript.Fields field) {
+  public boolean getBooleanValue(etomo.comscript.Field field) {
     throw new IllegalArgumentException("field=" + field);
   }
 
-  public String getString(etomo.comscript.Fields field) {
+  public String getString(etomo.comscript.Field field) {
     if (field == Fields.K_VALUE_LIST) {
       return kValueList.getRawString();
     }
@@ -274,41 +277,41 @@ public final class AnisotropicDiffusionParam implements CommandDetails {
     throw new IllegalArgumentException("field=" + field);
   }
 
-  public String[] getStringArray(etomo.comscript.Fields field) {
+  public String[] getStringArray(etomo.comscript.Field field) {
     throw new IllegalArgumentException("field=" + field);
   }
 
-  public Hashtable getHashtable(etomo.comscript.Fields field) {
+  public Hashtable getHashtable(etomo.comscript.Field field) {
     throw new IllegalArgumentException("field=" + field);
   }
 
-  public double getDoubleValue(etomo.comscript.Fields field) {
+  public double getDoubleValue(etomo.comscript.Field field) {
     throw new IllegalArgumentException("field=" + field);
   }
 
-  public int getIntValue(etomo.comscript.Fields field) {
+  public int getIntValue(etomo.comscript.Field field) {
     if (field == Fields.ITERATION) {
       return iteration.getInt();
     }
     throw new IllegalArgumentException("field=" + field);
   }
 
-  public float getFloatValue(etomo.comscript.Fields field) {
+  public float getFloatValue(etomo.comscript.Field field) {
     if (field == Fields.K_VALUE) {
       return kValue.getFloat();
     }
     throw new IllegalArgumentException("field=" + field);
   }
 
-  public ConstEtomoNumber getEtomoNumber(etomo.comscript.Fields field) {
+  public ConstEtomoNumber getEtomoNumber(etomo.comscript.Field field) {
     throw new IllegalArgumentException("field=" + field);
   }
 
-  public ConstIntKeyList getIntKeyList(etomo.comscript.Fields field) {
+  public ConstIntKeyList getIntKeyList(etomo.comscript.Field field) {
     throw new IllegalArgumentException("field=" + field);
   }
 
-  public static final class Fields implements etomo.comscript.Fields {
+  public static final class Fields implements etomo.comscript.Field {
     private Fields() {
     }
 

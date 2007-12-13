@@ -21,18 +21,21 @@ import etomo.type.ConstIntKeyList;
 public interface ProcessDetails {
   public static final String rcsid = "$Id$";
 
-  public int getIntValue(etomo.comscript.Fields field);
-  public float getFloatValue(etomo.comscript.Fields field);
-  public boolean getBooleanValue(etomo.comscript.Fields field);
-  public double getDoubleValue(etomo.comscript.Fields field);
-  public Hashtable getHashtable(etomo.comscript.Fields field);
-  public ConstEtomoNumber getEtomoNumber(etomo.comscript.Fields field);
-  public ConstIntKeyList getIntKeyList(etomo.comscript.Fields field);
-  public String getString(etomo.comscript.Fields field);
-  public String[] getStringArray(etomo.comscript.Fields field);
+  public int getIntValue(etomo.comscript.Field field);
+  public float getFloatValue(etomo.comscript.Field field);
+  public boolean getBooleanValue(etomo.comscript.Field field);
+  public double getDoubleValue(etomo.comscript.Field field);
+  public Hashtable getHashtable(etomo.comscript.Field field);
+  public ConstEtomoNumber getEtomoNumber(etomo.comscript.Field field);
+  public ConstIntKeyList getIntKeyList(etomo.comscript.Field field);
+  public String getString(etomo.comscript.Field field);
+  public String[] getStringArray(etomo.comscript.Field field);
 }
 /**
  * <p> $Log$
+ * <p> Revision 1.7  2007/11/06 19:16:02  sueh
+ * <p> bug# 1047 Added getFloatValue.
+ * <p>
  * <p> Revision 1.6  2007/05/11 15:32:58  sueh
  * <p> bug# 964 Added getStringArray().
  * <p>

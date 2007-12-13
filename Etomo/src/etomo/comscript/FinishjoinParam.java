@@ -32,6 +32,9 @@ import etomo.util.DatasetFiles;
  * @version $Revision$
  * 
  * <p> $Log$
+ * <p> Revision 1.29  2007/11/06 19:10:36  sueh
+ * <p> bug# 1047 Added getSubcommandDetails.
+ * <p>
  * <p> Revision 1.28  2007/06/08 23:55:59  sueh
  * <p> bug# 995 Saving the value of useEveryNSlices when is REJOIN_TRIAL mode.
  * <p>
@@ -250,7 +253,7 @@ public final class FinishjoinParam implements CommandDetails {
     return AxisID.ONLY;
   }
 
-  public ConstEtomoNumber getEtomoNumber(etomo.comscript.Fields field) {
+  public ConstEtomoNumber getEtomoNumber(etomo.comscript.Field field) {
     if (field == Fields.ALIGNMENT_REF_SECTION) {
       return alignmentRefSection;
     }
@@ -275,7 +278,7 @@ public final class FinishjoinParam implements CommandDetails {
     throw new IllegalArgumentException("field=" + field);
   }
 
-  public ConstIntKeyList getIntKeyList(etomo.comscript.Fields field) {
+  public ConstIntKeyList getIntKeyList(etomo.comscript.Field field) {
     if (field == Fields.JOIN_START_LIST) {
       return joinStartList;
     }
@@ -291,31 +294,31 @@ public final class FinishjoinParam implements CommandDetails {
     throw new IllegalArgumentException("field=" + field);
   }
 
-  public String getString(etomo.comscript.Fields field) {
+  public String getString(etomo.comscript.Field field) {
     throw new IllegalArgumentException("field=" + field);
   }
 
-  public int getIntValue(etomo.comscript.Fields field) {
+  public int getIntValue(etomo.comscript.Field field) {
     throw new IllegalArgumentException("field=" + field);
   }
 
-  public boolean getBooleanValue(etomo.comscript.Fields field) {
+  public boolean getBooleanValue(etomo.comscript.Field field) {
     throw new IllegalArgumentException("field=" + field);
   }
 
-  public float getFloatValue(etomo.comscript.Fields field) {
+  public float getFloatValue(etomo.comscript.Field field) {
     throw new IllegalArgumentException("field=" + field);
   }
 
-  public String[] getStringArray(etomo.comscript.Fields field) {
+  public String[] getStringArray(etomo.comscript.Field field) {
     throw new IllegalArgumentException("field=" + field);
   }
 
-  public Hashtable getHashtable(etomo.comscript.Fields field) {
+  public Hashtable getHashtable(etomo.comscript.Field field) {
     throw new IllegalArgumentException("field=" + field);
   }
 
-  public double getDoubleValue(etomo.comscript.Fields field) {
+  public double getDoubleValue(etomo.comscript.Field field) {
     throw new IllegalArgumentException("field=" + field);
   }
 
@@ -519,7 +522,7 @@ public final class FinishjoinParam implements CommandDetails {
     return options;
   }
 
-  public static final class Fields implements etomo.comscript.Fields {
+  public static final class Fields implements etomo.comscript.Field {
     public static final Fields ALIGNMENT_REF_SECTION = new Fields();
     public static final Fields SIZE_IN_X = new Fields();
     public static final Fields SIZE_IN_Y = new Fields();
