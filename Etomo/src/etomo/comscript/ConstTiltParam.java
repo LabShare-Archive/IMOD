@@ -11,6 +11,9 @@
  * @version $Revision$
  *
  * <p> $Log$
+ * <p> Revision 3.14  2007/11/06 19:08:14  sueh
+ * <p> bug# 1047 Added getFloatValue.
+ * <p>
  * <p> Revision 3.13  2007/05/11 15:26:31  sueh
  * <p> bug# 964 Added getStringArray().
  * <p>
@@ -94,511 +97,62 @@
  */
 package etomo.comscript;
 
-import java.util.Hashtable;
-import java.util.Properties;
-
-import etomo.ApplicationManager;
-import etomo.type.AxisID;
 import etomo.type.ConstEtomoNumber;
-import etomo.type.ConstIntKeyList;
-import etomo.type.EtomoBoolean2;
-import etomo.type.EtomoNumber;
-import etomo.type.ScriptParameter;
 
-public class ConstTiltParam implements ProcessDetails {
+public interface ConstTiltParam extends CommandDetails {
   public static final String rcsid = "$Id$";
 
-  public static final String COMMAND_NAME = "tilt";
-  public static final String THICKNESS_KEY = "THICKNESS";
-  public static final String X_AXIS_TILT_KEY = "XAXISTILT";
+  public String getExcludeList2();
 
-  String inputFile;
-  String outputFile;
-  String angles;
-  float compressionFraction;
-  String compression;
-  int cosInterpOrder;
-  float cosInterpFactor;
-  String densityWeightParams;
-  String exclude;
-  StringList excludeList;
-  int fastBackProjInterpOrder;
-  int fullImageX;
-  int fullImageY;
-  String include;
-  String localAlignFile;
-  float localScale;
-  float logOffset;
-
-  float mask;
-
-  int mode;
-
-  EtomoNumber tiltAngleOffset = new EtomoNumber(EtomoNumber.Type.FLOAT,
-      "OFFSET");
-
-  float tiltAxisOffset;
-
-  boolean parallel;
-
-  boolean perpendicular;
-
-  float radialBandwidth;
-
-  float radialFalloff;
-
-  int nReplicate;
-
-  int incReplicate;
-
-  float scaleFLevel;
-  float scaleCoeff;
-
-  float xShift;
-
-  EtomoNumber zShift = new EtomoNumber(EtomoNumber.Type.FLOAT, "SHIFT");
-
-  int idxSliceStart;
-
-  int idxSliceStop;
-
-  int incrSlice;
-
-  int idxXSubsetStart;
-
-  int idxYSubsetStart;
-
-  int thickness;
-
-  String tiltFile;
-
-  String title;
-
-  int width;
-
-  double xAxisTilt;
-
-  String xTiltFile;
-  int xTiltInterp;
-
-  boolean useZFactors;
-  String zFactorFileName;
-  StringList excludeList2;
-  ScriptParameter imageBinned;
-
-  boolean loadedFromFile = false;
-  String datasetName;
-  AxisID axisID;
-  Storables storables = new Storables();
-
-  final ApplicationManager manager;
-
-  public ConstTiltParam(final ApplicationManager manager,
-      final String datasetName, final AxisID axisID) {
-    this.manager = manager;
-    this.datasetName = datasetName;
-    this.axisID = axisID;
-    //do not default imageBinned
-    imageBinned = new ScriptParameter(EtomoNumber.Type.LONG, "IMAGEBINNED");
-    imageBinned.setFloor(1);
-    reset();
-    storables.reset();
-  }
-
-  void reset() {
-    loadedFromFile = false;
-    inputFile = "";
-    outputFile = "";
-    angles = "";
-    compressionFraction = Float.NaN;
-    compression = "";
-    cosInterpOrder = Integer.MIN_VALUE;
-    cosInterpFactor = Float.NaN;
-    densityWeightParams = "";
-    exclude = "";
-    excludeList = new StringList(0);
-    fastBackProjInterpOrder = Integer.MIN_VALUE;
-    fullImageX = Integer.MIN_VALUE;
-    fullImageY = Integer.MIN_VALUE;
-    include = "";
-    localAlignFile = "";
-    localScale = Float.NaN;
-    logOffset = Float.NaN;
-    mask = Float.NaN;
-    mode = Integer.MIN_VALUE;
-    tiltAngleOffset.reset();
-    tiltAxisOffset = Float.NaN;
-    parallel = false;
-    perpendicular = false;
-    radialBandwidth = Float.NaN;
-    radialFalloff = Float.NaN;
-    nReplicate = Integer.MIN_VALUE;
-    incReplicate = Integer.MIN_VALUE;
-    scaleFLevel = Float.NaN;
-    scaleCoeff = Float.NaN;
-    xShift = Float.NaN;
-    zShift.reset();
-    idxSliceStart = Integer.MIN_VALUE;
-    idxSliceStop = Integer.MIN_VALUE;
-    incrSlice = Integer.MIN_VALUE;
-    idxXSubsetStart = Integer.MIN_VALUE;
-    idxYSubsetStart = Integer.MIN_VALUE;
-    thickness = Integer.MIN_VALUE;
-    tiltFile = "";
-    title = "";
-    width = Integer.MIN_VALUE;
-    xAxisTilt = Double.NaN;
-    xTiltFile = "";
-    xTiltInterp = Integer.MIN_VALUE;
-    useZFactors = false;
-    excludeList2 = new StringList(0);
-    imageBinned.reset();
-  }
-
-  public ConstEtomoNumber getImageBinned() {
-    return imageBinned;
-  }
-
-  public String getInputFile() {
-    return inputFile;
-  }
-
-  public float getLogShift() {
-    return logOffset;
-  }
-
-  public boolean hasLogOffset() {
-    if (Float.isNaN(logOffset))
-      return false;
-    return true;
-  }
-
-  public int getMode() {
-    return mode;
-  }
-
-  public boolean hasMode() {
-    if (mode == Integer.MIN_VALUE)
-      return false;
-    return true;
-  }
-
-  public String getLocalAlignFile() {
-    return localAlignFile;
-  }
-
-  public boolean hasLocalAlignFile() {
-    if (localAlignFile.equals(""))
-      return false;
-    return true;
-  }
-
-  public String getOutputFile() {
-    return outputFile;
-  }
-
-  public boolean isParallel() {
-    return parallel;
-  }
-
-  public boolean isPerpendicular() {
-    return perpendicular;
-  }
-
-  public float getRadialBandwidth() {
-    return radialBandwidth;
-  }
-
-  public boolean hasRadialWeightingFunction() {
-    if (Float.isNaN(radialBandwidth))
-      return false;
-    return true;
-  }
-
-  public int getThickness() {
-    return thickness;
-  }
-
-  public boolean hasThickness() {
-    if (thickness == Integer.MIN_VALUE)
-      return false;
-    return true;
-  }
-
-  public String getTiltFile() {
-    return tiltFile;
-  }
-
-  public double getXAxisTilt() {
-    return xAxisTilt;
-  }
-
-  public boolean hasXAxisTilt() {
-    if (Double.isNaN(xAxisTilt))
-      return false;
-    return true;
-  }
-
-  /**
-   * Gets the excludeList.
-   * @return Returns a String
-   */
-  public String getExcludeList() {
-    return excludeList.toString();
-  }
-
-  /**
-   * Gets the excludeList2.
-   * @return Returns a String
-   */
-  public String getExcludeList2() {
-    return excludeList2.toString();
-  }
-
-  /**
-   * @return
-   */
-  public float getRadialFalloff() {
-    return radialFalloff;
-  }
-
-  /**
-   * @return
-   */
-  public int getWidth() {
-    return width;
-  }
-
-  public boolean hasWidth() {
-    if (width == Integer.MIN_VALUE)
-      return false;
-    return true;
-  }
-
-  /**
-   * @return
-   */
-  public float getXShift() {
-    return xShift;
-  }
-
-  public boolean hasXShift() {
-    if (Float.isNaN(xShift))
-      return false;
-    return true;
-  }
-
-  /**
-   * @return
-   */
-  public ConstEtomoNumber getZShift() {
-    return zShift;
-  }
-
-  public boolean hasZShift() {
-    return !zShift.isNull();
-  }
-
-  public boolean isUseZFactors() {
-    return useZFactors;
-  }
-
-  /**
-   * @return
-   */
-  public int getIncrSlice() {
-    return incrSlice;
-  }
-
-  public boolean hasSliceIncr() {
-    if (incrSlice == Integer.MIN_VALUE)
-      return false;
-    return true;
-  }
-
-  /**
-   * @return
-   */
-  public int getIdxSliceStart() {
-    return idxSliceStart;
-  }
-
-  /**
-   * @return
-   */
-  public int getIdxSliceStop() {
-    return idxSliceStop;
-  }
-
-  public boolean hasSlice() {
-    if (idxSliceStop == Integer.MIN_VALUE)
-      return false;
-    return true;
-  }
-
-  /**
-   * @return
-   */
-  public ConstEtomoNumber getTiltAngleOffset() {
-    return tiltAngleOffset;
-  }
-
-  public boolean hasTiltAngleOffset() {
-    return !tiltAngleOffset.isNull();
-  }
-
-  /**
-   * @return
-   */
-  public float getTiltAxisOffset() {
-    return tiltAxisOffset;
-  }
-
-  public boolean hasTiltAxisOffset() {
-    if (Float.isNaN(tiltAxisOffset))
-      return false;
-    return true;
-  }
-
-  /**
-   * @return
-   */
-  public float getScaleCoeff() {
-    return scaleCoeff;
-  }
-
-  /**
-   * @return
-   */
-  public float getScaleFLevel() {
-    return scaleFLevel;
-  }
-
-  public boolean hasScale() {
-    if (Float.isNaN(scaleFLevel))
-      return false;
-    return true;
-  }
-
-  /**
-   * @return Returns the fullImageX.
-   */
-  public int getFullImageX() {
-    return fullImageX;
-  }
-
-  /**
-   * @return Returns the fullImageY.
-   */
-  public int getFullImageY() {
-    return fullImageY;
-  }
-
-  /**
-   * identifies an old version
-   * @return
-   */
-  public boolean isOldVersion() {
-    return loadedFromFile && imageBinned.isNull();
-  }
-
-  public boolean getBooleanValue(etomo.comscript.Fields field) {
-    if (field == Fields.FIDUCIALESS) {
-      return storables.getFiducialess().is();
-    }
-    throw new IllegalArgumentException("field=" + field);
-  }
-
-  public float getFloatValue(etomo.comscript.Fields field) {
-    throw new IllegalArgumentException("field=" + field);
-  }
-
-  public String[] getStringArray(etomo.comscript.Fields field) {
-    throw new IllegalArgumentException("field=" + field);
-  }
-
-  public String getString(etomo.comscript.Fields field) {
-    throw new IllegalArgumentException("field=" + field);
-  }
-
-  public double getDoubleValue(etomo.comscript.Fields field) {
-    if (field == Fields.X_AXIS_TILT) {
-      return xAxisTilt;
-    }
-    if (field == Fields.Z_SHIFT) {
-      return zShift.getDouble();
-    }
-    if (field == Fields.TILT_ANGLE_OFFSET) {
-      return tiltAngleOffset.getDouble();
-    }
-    throw new IllegalArgumentException("field=" + field);
-  }
-
-  public ConstEtomoNumber getEtomoNumber(etomo.comscript.Fields field) {
-    throw new IllegalArgumentException("field=" + field);
-  }
-
-  public ConstIntKeyList getIntKeyList(etomo.comscript.Fields field) {
-    throw new IllegalArgumentException("field=" + field);
-  }
-
-  public int getIntValue(etomo.comscript.Fields field) {
-    throw new IllegalArgumentException("field=" + field);
-  }
-
-  public Hashtable getHashtable(etomo.comscript.Fields field) {
-    throw new IllegalArgumentException("field=" + field);
-  }
-
-  public static final class Fields implements etomo.comscript.Fields {
-    private Fields() {
-    }
-
-    public static final Fields X_AXIS_TILT = new Fields();
-    public static final Fields FIDUCIALESS = new Fields();
-    public static final Fields Z_SHIFT = new Fields();
-    public static final Fields TILT_ANGLE_OFFSET = new Fields();
-  }
-
-  public static final class Storables {
-    private final EtomoBoolean2 fiducialess = new EtomoBoolean2("Fiducialess");
-
-    void reset() {
-      fiducialess.reset();
-    }
-
-    public void store(Properties props, String prepend) {
-      prepend = createPrepend(prepend);
-      fiducialess.store(props, prepend);
-    }
-
-    public void load(Properties props, String prepend) {
-      reset();
-      prepend = createPrepend(prepend);
-      fiducialess.load(props, prepend);
-    }
-
-    public void set(ConstTiltParam.Storables storables) {
-      fiducialess.set(storables.fiducialess);
-    }
-
-    public void set(ConstTiltParam tiltParam) {
-      set(tiltParam.storables);
-    }
-
-    private static String createPrepend(String prepend) {
-      if (prepend == "") {
-        return ComScriptManager.PARAM_KEY + '.' + COMMAND_NAME;
-      }
-      return prepend + "." + ComScriptManager.PARAM_KEY + '.' + COMMAND_NAME;
-    }
-
-    protected ConstEtomoNumber getFiducialess() {
-      return fiducialess;
-    }
-
-    protected void setFiducialess(boolean fiducialess) {
-      this.fiducialess.set(fiducialess);
-    }
-  }
+  public int getFullImageX();
+
+  public int getIdxSliceStart();
+
+  public int getIdxSliceStop();
+
+  public int getIncrSlice();
+
+  public float getLogShift();
+
+  public float getRadialBandwidth();
+
+  public float getRadialFalloff();
+
+  public float getScaleCoeff();
+
+  public float getScaleFLevel();
+
+  public int getThickness();
+
+  public ConstEtomoNumber getTiltAngleOffset();
+
+  public int getWidth();
+
+  public double getXAxisTilt();
+
+  public float getXShift();
+
+  public ConstEtomoNumber getZShift();
+
+  public boolean hasLogOffset();
+
+  public boolean hasRadialWeightingFunction();
+
+  public boolean hasScale();
+
+  public boolean hasSlice();
+
+  public boolean hasSliceIncr();
+
+  public boolean hasThickness();
+
+  public boolean hasTiltAngleOffset();
+
+  public boolean hasWidth();
+
+  public boolean hasXAxisTilt();
+
+  public boolean hasXShift();
+
+  public boolean hasZShift();
 }
