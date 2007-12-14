@@ -53,6 +53,11 @@ import etomo.type.Run3dmodMenuOptions;
  * @version $Revision$
  * 
  * <p> $Log$
+ * <p> Revision 1.54  2007/12/10 22:45:08  sueh
+ * <p> bug# 1041 Passing the ProcessName to processchunks instead of setting it in
+ * <p> getParameters because it is required and has been added to the
+ * <p> ProcesschunksParam constructor.
+ * <p>
  * <p> Revision 1.53  2007/08/02 22:38:55  sueh
  * <p> bug# 1034 Adding a right click menu to btnAvgVol and btnRef.
  * <p>
@@ -257,7 +262,7 @@ public final class PeetDialog implements ContextMenu, AbstractParallelDialog,
   private final LabeledTextField ltfSzVolZ = new LabeledTextField("Z: ");
   private final LabeledTextField ltfEdgeShift = new LabeledTextField(
       "Edge shift: ");
-  private final CheckBox cbMeanFill = new CheckBox("Mean fill");
+  private final CheckBox cbFlgMeanFill = new CheckBox("Mean fill");
   private final LabeledTextField ltfAlignedBaseName = new LabeledTextField(
       "Aligned base name: ");
   private final LabeledTextField ltfLowCutoff = new LabeledTextField(
@@ -513,7 +518,7 @@ public final class PeetDialog implements ContextMenu, AbstractParallelDialog,
     else if (ccMode == MatlabParam.CCMode.LOCAL) {
       rbCcModeLocal.setSelected(true);
     }
-    cbMeanFill.setSelected(matlabParam.isMeanFill());
+    cbFlgMeanFill.setSelected(matlabParam.isFlgMeanFill());
     ltfAlignedBaseName.setText(matlabParam.getAlignedBaseName());
     ltfLowCutoff.setText(matlabParam.getLowCutoff());
     lsDebugLevel.setValue(matlabParam.getDebugLevel());
@@ -576,7 +581,7 @@ public final class PeetDialog implements ContextMenu, AbstractParallelDialog,
     matlabParam.setSzVolZ(ltfSzVolZ.getText());
     matlabParam.setCcMode(((RadioButton.RadioButtonModel) bgCcMode
         .getSelection()).getEnumeratedType());
-    matlabParam.setMeanFill(cbMeanFill.isSelected());
+    matlabParam.setFlgMeanFill(cbFlgMeanFill.isSelected());
     matlabParam.setAlignedBaseName(ltfAlignedBaseName.getText());
     matlabParam.setLowCutoff(ltfLowCutoff.getText());
     matlabParam.setDebugLevel(lsDebugLevel.getValue());
@@ -641,7 +646,7 @@ public final class PeetDialog implements ContextMenu, AbstractParallelDialog,
     ltfSzVolY.clear();
     ltfSzVolZ.clear();
     ltfEdgeShift.clear();
-    cbMeanFill.setSelected(false);
+    cbFlgMeanFill.setSelected(false);
     ltfAlignedBaseName.clear();
     ltfLowCutoff.clear();
     cbRefFlagAllTom.setSelected(false);
@@ -718,8 +723,8 @@ public final class PeetDialog implements ContextMenu, AbstractParallelDialog,
           MatlabParam.CC_MODE_KEY);
       rbCcModeNormalized.setToolTipText(section);
       rbCcModeLocal.setToolTipText(section);
-      tooltip = EtomoAutodoc.getTooltip(autodoc, MatlabParam.MEAN_FILL_KEY);
-      cbMeanFill.setToolTipText(tooltip);
+      tooltip = EtomoAutodoc.getTooltip(autodoc, MatlabParam.FLG_MEAN_FILL_KEY);
+      cbFlgMeanFill.setToolTipText(tooltip);
       tooltip = EtomoAutodoc.getTooltip(autodoc, MatlabParam.DEBUG_LEVEL_KEY);
       lsDebugLevel.setToolTipText(tooltip);
       tooltip = EtomoAutodoc.getTooltip(autodoc, MatlabParam.LOW_CUTOFF_KEY);
@@ -787,7 +792,7 @@ public final class PeetDialog implements ContextMenu, AbstractParallelDialog,
 
   private void setDefaults() {
     ltfEdgeShift.setText(MatlabParam.EDGE_SHIFT_DEFAULT);
-    cbMeanFill.setSelected(MatlabParam.MEAN_FILL_DEFAULT);
+    cbFlgMeanFill.setSelected(MatlabParam.FLG_MEAN_FILL_DEFAULT);
     ltfLowCutoff.setText(MatlabParam.LOW_CUTOFF_DEFAULT);
     if (MatlabParam.REFERENCE_FILE_DEFAULT) {
       rbReferenceFile.setSelected(true);
@@ -937,7 +942,7 @@ public final class PeetDialog implements ContextMenu, AbstractParallelDialog,
     JPanel pnlAdvancedRight = new JPanel();
     pnlAdvancedRight
         .setLayout(new BoxLayout(pnlAdvancedRight, BoxLayout.Y_AXIS));
-    pnlAdvancedRight.add(cbMeanFill);
+    pnlAdvancedRight.add(cbFlgMeanFill);
     pnlAdvancedRight.add(ltfAlignedBaseName.getContainer());
     pnlAdvancedRight.add(ltfLowCutoff.getContainer());
     pnlAdvancedRight.add(lsDebugLevel.getContainer());

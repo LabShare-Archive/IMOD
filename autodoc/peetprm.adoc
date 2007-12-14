@@ -140,7 +140,7 @@ comment = The list of thresholds to use for computing the final volumes.
 tooltip = Take equal number of particles from each tomogram instead of 
 selecting by a single cross-correlation threshold
 
-[Field = meanFill]
+[Field = flgMeanFill]
 comment = If any particles are partially out of the volume fill with the
 ^mean of the existant data (default: 0).
 
