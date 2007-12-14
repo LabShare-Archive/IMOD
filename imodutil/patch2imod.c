@@ -6,15 +6,9 @@
  *  Copyright (C) 1995-2004 by Boulder Laboratory for 3-Dimensional Electron
  *  Microscopy of Cells ("BL3DEMC") and the Regents of the University of 
  *  Colorado.  See dist/COPYRIGHT for full copyright notice.
+ *
+ *  Log at end
  */
-/*  $Author$
-
-$Date$
-
-$Revision$
-
-Log at end
-*/
 
 #include <stdio.h>
 #include <string.h>
@@ -48,7 +42,9 @@ int main( int argc, char *argv[])
   int clipSize = 0;
   int noflip = 0;
   char *name = NULL;
-  char *progname = imodProgName(argv[0]);
+
+  /* This name is hard-coded because of the script wrapper needed in Vista */
+  char progname[] = "patch2imod";
 
   if (argc < 2)
     usage(progname);
@@ -284,6 +280,9 @@ Imod *imod_from_patches(FILE *fin, float scale, int clipSize, char *name,
 
 /*
 $Log$
+Revision 3.11  2006/10/03 14:37:30  mast
+Added option to prevent flipping of vector model.
+
 Revision 3.10  2006/08/31 20:57:16  mast
 Added value encoding and name and clipping plane options
 
