@@ -12,6 +12,7 @@ import etomo.storage.autodoc.AutodocTests;
 import etomo.type.TypeTests;
 import etomo.ui.UITests;
 import etomo.util.UtilTests;
+import etomo.util.Utilities;
 
 /**
  * <p>Description: Collection of all test suites</p>
@@ -71,7 +72,7 @@ public class JUnitTests {
         suite.addTest((Test) test);
       }
     }
-
+    if (!Utilities.isWindowsOS()) {
     testSuite = (TestSuite) AutodocTests.suite();
     tests = testSuite.tests();
     while (tests.hasMoreElements()) {
@@ -79,6 +80,7 @@ public class JUnitTests {
       if (test instanceof Test) {
         suite.addTest((Test) test);
       }
+    }
     }
 
     testSuite = (TestSuite) ComScriptTests.suite();
@@ -113,6 +115,9 @@ public class JUnitTests {
 }
 /**
  * <p> $Log$
+ * <p> Revision 1.9  2007/09/07 00:16:16  sueh
+ * <p> bug# 989 Call EtomoDirector.main() as early as possible.
+ * <p>
  * <p> Revision 1.8  2007/03/03 00:32:46  sueh
  * <p> bug# 973 Added UITests.
  * <p>

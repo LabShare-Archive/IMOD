@@ -3,6 +3,7 @@ package etomo.type;
 import java.io.File;
 
 import etomo.JUnitTests;
+import etomo.util.Utilities;
 import junit.framework.Test;
 import junit.framework.TestSuite;
 
@@ -20,6 +21,9 @@ import junit.framework.TestSuite;
  * @version $Revision$
  *
  * <p> $Log$
+ * <p> Revision 3.11  2007/12/10 22:39:42  sueh
+ * <p> bug# 1041 Merged ConstMetaDataTest with MetaDataTest.
+ * <p>
  * <p> Revision 3.10  2007/03/01 01:27:00  sueh
  * <p> bug# 692 Adding tests
  * <p>
@@ -66,8 +70,11 @@ public class TypeTests {
     //$JUnit-BEGIN$
     suite.addTestSuite(ConstEtomoNumberTest.class);
     suite.addTestSuite(ProcessResultDisplayStateTest.class);
-    suite.addTestSuite(MetaDataTest.class);
+    if (!Utilities.isWindowsOS()) {
+      suite.addTestSuite(MetaDataTest.class);
+    }
     suite.addTestSuite(AxisIDTest.class);
+    //suite.addTest(new MetaDataTest("testIsValid"));
     //$JUnit-END$
     return suite;
   }

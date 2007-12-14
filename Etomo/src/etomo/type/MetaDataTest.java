@@ -10,7 +10,6 @@ import etomo.process.SystemProgram;
 import etomo.storage.LogFile;
 import etomo.storage.ParameterStore;
 import etomo.util.TestUtilites;
-import etomo.util.Utilities;
 import junit.framework.TestCase;
 
 /**
@@ -27,6 +26,9 @@ import junit.framework.TestCase;
  * @version $Revision$
  * 
  * <p> $Log$
+ * <p> Revision 3.20  2007/12/10 22:37:18  sueh
+ * <p> bug# 1041 Merged ConstMetaDataTest with MetaDataTest.
+ * <p>
  * <p> Revision 3.19  2007/09/07 00:25:21  sueh
  * <p> bug# 989 Using a public INSTANCE to refer to the EtomoDirector singleton
  * <p> instead of getInstance and createInstance.
@@ -137,15 +139,13 @@ public class MetaDataTest extends TestCase {
   private File testDir;
   private final ApplicationManager manager;
 
-  public MetaDataTest() {
+  public MetaDataTest(String test) {
+	super(test);
     manager = (ApplicationManager) EtomoDirector.INSTANCE.getCurrentManager();
   }
 
   protected void setUp() throws Exception {
     super.setUp();
-    if (Utilities.isWindowsOS()) {
-      return;
-    }
     EtomoDirector etomoDirector = EtomoDirector.INSTANCE;
     testDir = new File(TypeTests.TEST_ROOT_DIR, testDirectory);
     if (!testDir.exists()) {
@@ -207,6 +207,7 @@ public class MetaDataTest extends TestCase {
 
     //create a directory containing valid files
     validFileDir = new File(testDir, validFileDirName);
+    System.out.println("validFileDir="+validFileDir);
     if (!validFileDir.exists()) {
       assertTrue(validFileDir.mkdir());
     }
@@ -215,7 +216,6 @@ public class MetaDataTest extends TestCase {
     //create valid files
     validFile = createValidFile(validFileDir, validFileName);
     validAFile = createValidFile(validFileDir, validAFileName);
-
   }
 
   /*
