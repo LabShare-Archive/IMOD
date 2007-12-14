@@ -49,6 +49,9 @@ public final class AutodocTest extends TestCase {
 
   public void testCpu() throws LogFile.ReadException, IOException,
       SystemProcessException, InvalidParameterException {
+	  if (Utilities.isWindowsOS()){
+		  return;
+	  }
     ReadOnlyAutodoc autodoc = AutodocFactory.getInstance(TestUtilites
         .getVector(manager, AutodocTests.TEST_ROOT_DIR.getAbsolutePath(),
             TEST_DIR_NAME, "cpu.adoc"));
@@ -58,6 +61,9 @@ public final class AutodocTest extends TestCase {
 
   public void testMatlabParamFile() throws LogFile.ReadException, IOException,
       SystemProcessException, InvalidParameterException {
+	  if (Utilities.isWindowsOS()){
+		  return;
+	  }
     ReadOnlyAutodoc autodoc = AutodocFactory.getMatlabInstance(TestUtilites.getVector(manager,
         AutodocTests.TEST_ROOT_DIR.getAbsolutePath(), TEST_DIR_NAME,
         "master.prm"));
@@ -114,6 +120,9 @@ public final class AutodocTest extends TestCase {
 
   public void testSimple() throws LogFile.ReadException, IOException,
       SystemProcessException, InvalidParameterException {
+	  if (Utilities.isWindowsOS()){
+		  return;
+	  }
     ReadOnlyAutodoc autodoc = AutodocFactory.getInstance(TestUtilites.getVector(manager,
         AutodocTests.TEST_ROOT_DIR.getAbsolutePath(), TEST_DIR_NAME,
         "simple.adoc"));
@@ -250,6 +259,10 @@ public final class AutodocTest extends TestCase {
 }
 /**
  * <p> $Log$
+ * <p> Revision 1.17  2007/09/07 00:24:48  sueh
+ * <p> bug# 989 Using a public INSTANCE to refer to the EtomoDirector singleton
+ * <p> instead of getInstance and createInstance.
+ * <p>
  * <p> Revision 1.16  2007/08/01 22:44:50  sueh
  * <p> bug# 985 Removed unnecessary prints.
  * <p>
