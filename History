@@ -1,10 +1,16 @@
 IMOD History
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+12/13/07: Modified PEET interface to handle a change in a flag definition 
+in PEET.
+
+12/13/07: Provided renamed executables and script wrappers for patch2imod
+and imod2patch since Vista decided they were dangerous.
+
 12/12/07: IMOD_3-10-23
-12/12/07: Automatically running newstack, blendmont, and tilt with AdjustOrigin.
-For a single axis tomogram created prior to this change, trimvol will be run the
-option "-k" which prevents the origin adjustment.  ALL MACHINES USED FOR
-PARALLEL PROCESSING MUST BE UPGRADED TOGETHER.
+12/12/07: Automatically running newstack, blendmont, and tilt with
+AdjustOrigin. For a single axis tomogram created prior to this change, trimvol
+will be run the option "-k" which prevents the origin adjustment.
+ALL MACHINES USED FOR PARALLEL PROCESSING MUST BE UPGRADED TOGETHER.
 
 12/12/07: Fixed panning in Xyz window from getting stuck at one end.
 
