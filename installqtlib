@@ -2,11 +2,7 @@
 # Script to add Qt libraries and links to a distribution file, and copy other
 # files as needed for particular system
 #
-#  $Author$
-#
-#  $Date$
-#
-#  $Revision$
+#  $Id$
 #  Log at end of file
 #
 
@@ -32,6 +28,19 @@ while ($#instlist > 1)
     \cp dist/$instlist[1] $instdir/$instlist[2]
     shift instlist
     shift instlist
+end
+
+# Get list that need renaming to be called through wrappers for Vista UAC
+#
+set wraplist = `sed -n '/UAC_WRAPPERS/s/^.*= *//p' configure`
+while ($#wraplist > 1)
+    set fromname = $instdir/bin/$wraplist[1]
+    set toname = $instdir/bin/$wraplist[2]
+    \mv $fromname.exe $toname.exe
+    \mv $toname $fromname
+    if (-e $toname.cmd) \mv $toname.cmd $fromname.cmd
+    shift wraplist
+    shift wraplist
 end
 
 # Get the subdirectory to copy the libraries to
@@ -184,6 +193,9 @@ exit 0
 
 #
 #  $Log$
+#  Revision 3.28  2006/10/19 23:42:56  mast
+#  Copy libraries with wild card after as well as before the extension
+#
 #  Revision 3.27  2006/07/17 18:46:30  mast
 #  Added Qt plugin copying
 #

@@ -465,8 +465,9 @@ endif
 # Add scripts for running from command line to the install.  They are no
 # longer generated because of permission problems and to handle spaces in args
 #
-echo "GENERATED_SCRIPTS = 3dmodbg 3dmodv" >> $configure
+echo "GENERATED_SCRIPTS = 3dmodbg 3dmodv vatch2imod imod2vatch" >> $configure
 echo "CMDWRAPPERS = cmdwrappers" >> $configure
+echo "UAC_WRAPPERS = patch2imod vatch2imod imod2patch imod2vatch" >> $configure
 
 # Make sure critical scripts are in unix mode
 #
