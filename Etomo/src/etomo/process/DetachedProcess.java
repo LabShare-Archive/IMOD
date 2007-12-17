@@ -82,7 +82,7 @@ final class DetachedProcess extends BackgroundProcess {
           + getCommandName());
       return false;
     }
-    if (!((DetachedCommand) getCommand()).isValid()) {
+    if (!getDetachedCommand().isValid()) {
       processDone(1);
       return false;
     }
@@ -135,10 +135,15 @@ final class DetachedProcess extends BackgroundProcess {
       bufferedWriter.write("cd " + subdirName);
       bufferedWriter.newLine();
     }
-    bufferedWriter.write(((DetachedCommand) getCommand()).getCommandString()
+    DetachedCommand detachedCommand = getDetachedCommand();
+    bufferedWriter.write(detachedCommand.getCommandString()
         + " >& ");
     bufferedWriter.write(monitor.getProcessOutputFileName() + "&");
     bufferedWriter.newLine();
+    if (detachedCommand.isSecondCommandLine()) {
+      bufferedWriter.write(detachedCommand.getSecondCommandLine());
+      bufferedWriter.newLine();
+    }
     bufferedWriter.close();
     if (getWorkingDirectory() == null) {
       setWorkingDirectory(new File(manager.getPropertyUserDir()));
@@ -194,6 +199,10 @@ final class DetachedProcess extends BackgroundProcess {
     return monitor.getStatusString();
   }
 
+  private DetachedCommand getDetachedCommand() {
+    return (DetachedCommand) getCommand();
+  }
+
   final class PidThread implements Runnable {
     private final OutfileProcessMonitor monitor;
     private final ProcessData processData;
@@ -238,6 +247,9 @@ final class DetachedProcess extends BackgroundProcess {
 }
 /**
  * <p> $Log$
+ * <p> Revision 1.13  2007/12/10 22:10:20  sueh
+ * <p> bug# 1041 Removed subdirName from the constructor because it is optional.
+ * <p>
  * <p> Revision 1.12  2007/11/06 19:21:12  sueh
  * <p> bug# 1-47 Allowed processchunks to be executed in a subdirectory.
  * <p>
