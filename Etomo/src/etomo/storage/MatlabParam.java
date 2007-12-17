@@ -43,6 +43,10 @@ import etomo.util.DatasetFiles;
  * @version $Revision$
  * 
  * <p> $Log$
+ * <p> Revision 1.12  2007/12/14 21:46:05  sueh
+ * <p> bug# 1060 Changed meanFill to flgMeanFill, keeping meanFill for backwards
+ * <p> compatibility.
+ * <p>
  * <p> Revision 1.11  2007/11/06 19:31:06  sueh
  * <p> bug# 1047 Calling the Parsed arrays where the descriptor is turned into an array
  * <p> "expanded arrays".
@@ -241,6 +245,12 @@ public final class MatlabParam {
   private final ParsedNumber edgeShift = new ParsedNumber();
   private final ParsedArray lstThresholds = ParsedArray.getCompactInstance();
   private final ParsedNumber lstFlagAllTom = new ParsedNumber();
+  /**
+   * @deprecated
+   * Replaced by flgMeanFill.  Keep meanFill synchronized with flgMeanFill to
+   * help with the transition to flgMeanFill.
+   */
+  private final ParsedNumber meanFill = new ParsedNumber();
   private final ParsedNumber flgMeanFill = new ParsedNumber();
   private final ParsedQuotedString alignedBaseName = new ParsedQuotedString();
   private final ParsedNumber debugLevel = new ParsedNumber();
@@ -472,8 +482,13 @@ public final class MatlabParam {
     this.tiltRangeEmpty = tiltRangeEmpty;
   }
 
+  /**
+   * Sets flgMeanFill and meanFill.
+   * @param flgMeanFill
+   */
   public void setFlgMeanFill(final boolean flgMeanFill) {
     this.flgMeanFill.setRawString(flgMeanFill);
+    meanFill.setRawString(flgMeanFill);
   }
 
   public void setRefFlagAllTom(final boolean input) {
@@ -555,6 +570,7 @@ public final class MatlabParam {
     lstThresholds.clear();
     lstFlagAllTom.clear();
     flgMeanFill.clear();
+    meanFill.clear();
     alignedBaseName.clear();
     debugLevel.clear();
     volumeList.clear();
@@ -956,6 +972,7 @@ public final class MatlabParam {
     if (initMotlCode != null) {
       valueMap.put(INIT_MOTL_KEY, initMotlCode.toString());
     }
+    valueMap.put(MEAN_FILL_KEY, meanFill.getParsableString());
     valueMap.put(FLG_MEAN_FILL_KEY, flgMeanFill.getParsableString());
     valueMap.put(ALIGNED_BASE_NAME_KEY, alignedBaseName.getParsableString());
     valueMap.put(DEBUG_LEVEL_KEY, debugLevel.getParsableString());
@@ -1098,6 +1115,8 @@ public final class MatlabParam {
     }
     setNameValuePairValue(autodoc, CC_MODE_KEY, (String) valueMap
         .get(CC_MODE_KEY), commentMap);
+    setNameValuePairValue(autodoc, MEAN_FILL_KEY, (String) valueMap
+        .get(MEAN_FILL_KEY), commentMap);
     setNameValuePairValue(autodoc, FLG_MEAN_FILL_KEY, (String) valueMap
         .get(FLG_MEAN_FILL_KEY), commentMap);
     setNameValuePairValue(autodoc, ALIGNED_BASE_NAME_KEY, (String) valueMap
