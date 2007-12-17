@@ -4,7 +4,7 @@
 </HEAD>
 
 <BODY>
-<CENTER><H1>Program Descriptions and Man Pages for IMOD Version 3.9</H1>
+<CENTER><H1>Program Descriptions and Man Pages for IMOD Version 3.11</H1>
 </CENTER>
 <HR>
 <UL> 
@@ -21,26 +21,26 @@ a projection of a sub-volume and orthogonal views with contour overlays.
 <LI><b><A HREF="man/3dmodv.html">3dmodv</A></b>
 : View a 3dmod model in 3D. Includes the ability to
 view smooth skins over contour data, adjust lighting and color, control
-clipping cut out planes, and adjust viewing orientation.
+clipping planes, and adjust viewing orientation.
 
 <LI><b><A HREF="man/midas.html">midas</A></b>
-: Allows manual alignment of serial section image data by
+: Allows manual alignment of serial section or other image data by
 translation, rotation and stretching, using mouse movements,
-controls or hotkeys.
-Two 
+controls or hotkeys.  Two 
 sections being aligned can be viewed
 alternately in quick succession, or in a two-color overlay mode. 
 Midas also allows one to
 adjust the contrast and brightness of each section independently.
 
 <LI><b><A HREF="UsingEtomo.html">etomo</A></b>
-: Interface for building single- and dual-axis tomograms with IMOD, and 
-joining tomograms from serial sections.
+: Interface for building single- and dual-axis tomograms with IMOD,
+joining tomograms from serial sections, filtering with nonlinear anisotropic
+diffusion, or aligning and averaging subvolumes from tomograms with our
+PEET package.
 
-<LI> <b><A HREF="man/mrcv.html">mrcv</a></b>
-: View image files in the MRC file format.  A simple viewer
-to look at MRC files, available only for the SGI.
-The program includes movie making abilities.
+<LI> <b><A HREF="man/ctfplotter.html">ctfplotter</a></b>
+: Estimate one or more defocus values for CTF correction of tilt series images
+by combining data from multiple images in the tilt series.
 </UL>
 
 <P>
@@ -49,9 +49,6 @@ The program includes movie making abilities.
 <LI> <B><A HREF="man/imodauto.html">imodauto</A></b>
 : Generate a contour based model from a 3D 
 image using a threshold based algorithm.
-
-<LI><b><A HREF="man/imodcmopp.html">imodcmopp</a></b>
-: Generate voxel based renderings from contour data.
 
 <LI><b><A HREF="man/imodinfo.html">imodinfo</a></b>
 : Print information about an IMOD model.
@@ -63,7 +60,8 @@ image using a threshold based algorithm.
 : Fill in missing contours using information in a mesh.
 
 <LI><b><A HREF="man/imodmop.html">imodmop</a></b>
-: Cut out image data inside of model closed contours.
+: Cut out image data inside of model closed contours, circles, spheres or
+along lines; optionally reproject a tilt series of the image data.
 
 <LI><b><A HREF="man/imodtrans.html">imodtrans</A></b>
 : Transform an IMOD model.
@@ -78,7 +76,7 @@ image using a threshold based algorithm.
 : Make an "exploded" model by shifting objects by various amounts.
 
 <LI><b><A HREF="man/imodsortsurf.html">imodsortsurf</A></b>
-: Sort contours not connected by a mesh into different surfaces.
+: Sort contours not connected by a mesh into different surfaces or objects.
 
 <LI><b><A HREF="man/patch2imod.html">patch2imod</A></b>
 : Make an IMOD model of displacement vectors from a patch displacement file.
@@ -118,9 +116,6 @@ image using a threshold based algorithm.
 : Tapers edges of transformed images to avoid sharp transitions.
 <LI> <b><A HREF="man/mrcx.html">mrcx</a></b> 
 : Converts MRC image files for different machines by byte swapping.
-<LI><B><A HREF="man/tomrc.html">tomrc</A></B> and 
-<B><A HREF="man/frommrc.html">frommrc</A></B> are available only on SGI systems.
-They convert images between the SGI image format and the MRC image format.
 <LI> <b><A HREF="man/clip.html">clip</a></b>   
 : Command line image processing tool for 2D or 3D 
 image data.  Includes the following processing abilities.
@@ -132,6 +127,8 @@ image data.  Includes the following processing abilities.
 <LI> <b><A HREF="man/nad_eed_3d.html">nad_eed_3d</a></b> 
 : Nonlinear anisotropic diffusion with edge enhancing diffusion in 3D, by
 A. Frangakis and R. Hegerl.
+<LI> <b><A HREF="man/ctfphaseflip.html">ctfphaseflip</a></b> 
+: Correct tilt series for microscope CTF by phase flipping.
 </UL>
 
 </UL>
@@ -166,12 +163,12 @@ command line interface.
 <LI><b><A HREF="man/boxavg.html">boxavg</a></b>
 : Average images at specified points.
 <LI><b><A HREF="man/binvol.html">binvol</a></b>
-: Bin a volume down isotropically in 3D.
+: Bin a volume down in 3D, with potentially different binning in X, Y and Z.
 <LI><B><A HREF="man/boxstartend.html">boxstartend</A></B>
 : Clip out portions of an image around specified model points.
 <LI><B><A HREF="man/ccderaser.html">ccderaser</A></B>
-: Automatically remove X-rays, and erase spot and line flaws in image from 
-CCD camera.
+: Automatically remove X-rays, erase spot and line flaws in image from 
+CCD camera, and erase fiducials.
 <LI><B><A HREF="man/chunksetup.html">chunksetup</A></B>
 : Set up command files for processing a volume in chunks.
 <LI><B><A HREF="man/edgeeraser.html">edgeeraser</A></B>
@@ -217,8 +214,6 @@ file.
 : Old command line front end to the newstack program (no longer needed).
 <LI><B><A HREF="man/numericdiff.html">numericdiff</A></B>
 : Compare numeric entries between two text files.
-<LI><B><A HREF="man/processchunks.html">processchunks</A></B>
-: Run command files in parallel on multiple processors.
 <LI><b><A HREF="man/recombine.html">recombine</a></b>
 : Recombine an MRC file split apart with <A HREF="man/splitmrc.html">splitmrc</a>.
 <LI><b><A HREF="man/reducemont.html">reducemont</a></b>
@@ -243,9 +238,9 @@ file.
 : Adds densities for pixels above a threshold within contours.
 <LI><B><A HREF="man/vmstocsh.html">vmstocsh</A></B>
 : Converts IMOD command file to C-shell script.
-<LI><B><A HREF="man/vmstopy.html">vmstocsh</A></B>
+<LI><B><A HREF="man/vmstopy.html">vmstopy</A></B>
 : Converts IMOD command file to Python script.
-<LI><b><A HREF="man/xcorr.html">xcorr</a></b>
+<LI><b><A HREF="man/xcorrstack.html">xcorrstack</a></b>
 : Cross-correlate a single image with a whole image stack.
 <LI><b><A HREF="man/xyzproj.html">xyzproj</a></b>
 : Project 3-dimensional data at a series of tilts around the
@@ -342,6 +337,11 @@ from a tilt series obtained from an electron microscope.
 : Search for displacements between two volumes at an array of positions.
 <LI><B><A HREF="man/densmatch.html">densmatch</A></B>
 : Scale densities in one volume to match those in another.
+<LI><B><A HREF="man/densnorm.html">densnorm</A></B>
+: Normalize densities in an image file to represent projected mass density.
+<LI><B><A HREF="man/edgepatches.html">edgepatches</A></B>
+: Set up and do initial steps in stitching together adjacent overlapping
+tomograms.
 <LI><B><A HREF="man/filltomo.html">filltomo</A></B>
 : Replace pixels in combined tomogram with values from one.
 <LI><B><A HREF="man/findsection.html">findsection</A></B>
@@ -372,13 +372,17 @@ sections.
 <LI><B><A HREF="man/repackseed.html">repackseed</A></B>
 : Eliminate empty contours from seed model produced by <b><A HREF="man/transferfid.html">transferfid</a></b>.
 <LI><B>reduceby2</B>
-: Bin image stack down by 2 or more in X and Y with <b><A HREF="man/reducemont.html">reducemont</a></b>.
+: Bin image stack down by 2 or more in X and Y with <b><A
+HREF="man/reducemont.html">reducemont</a></b> (no longer needed, use newstack
+or binvol).
 <LI><B>setupcombine</B>
 : Generate command file for combining two tomograms.
 <LI><B><A HREF="man/solvematch.html">solvematch</A></B>
 : Solve for transformation matching one tomogram to another.
 <LI><B><A HREF="man/squeezevol.html">squeezevol</A></B>
 : Reduce a volume in all dimensions by interpolation using <B><A HREF="man/matchvol.html">matchvol</A></B>.
+<LI><b><A HREF="man/stitchalign.html">stitchalign</a></b>
+: Find tranformations for aligning adjacent tomograms to be stitched together.
 <LI><b><A HREF="man/taperoutvol.html">taperoutvol</a></b>
 : Excise a subset of a volume, with padding and tapered edges outside 
 the actual image.
@@ -395,6 +399,8 @@ image inside the edges.
 : Determine how to chop a tomogram into pieces; called from copytomocoms.
 <LI><b><A HREF="man/tomopitch.html">tomopitch</a></b>
 : Find angles of tomogram from models of section surface in samples.
+<LI><b><A HREF="man/tomostitch.html">tomostitch</a></b>
+: Transform adjacent tomograms into alignment and stitch them together.
 <LI><b><A HREF="man/transferfid.html">transferfid</a></b>
 : Make a seed model for second axis from the fiducial model on first axis.
 <LI><b><A HREF="man/trimvol.html">trimvol</a></b>
@@ -410,10 +416,14 @@ image inside the edges.
 : Set up command files to process a volume in chunks.
 <LI><B><A HREF="man/processchunks.html">processchunks</A></B>
 : Run command files in parallel on multiple processors.
+<LI><B><A HREF="man/queuechunk.html">queuechunk</A></B>
+: Script for processchunks to run jobs on cluster queue.
 <LI><B><A HREF="man/splittilt.html">splittilt</A></B>
 : Produce multiple command files for running Tilt in parallel.
 <LI><B><A HREF="man/splitcombine.html">splitcombine</A></B>
 : Produce command files for running volcombine in parallel.
+<LI><B><A HREF="man/splitcorrection.html"></A>splitcorrection</B>
+: Produce command files for running ctfphaseflip in parallel.
 </UL>
 
 <P>
@@ -467,7 +477,7 @@ properties.
 
 </UL>
 <HR>
-<I>Last updated: October 16, 2006</I>
+<I>Last updated: December 16, 2006</I>
 [<A HREF="http://bio3d.colorado.edu/imod/index.html">IMOD Home Page</A>] 
 [<A HREF="http://bio3d.colorado.edu/index.html">BL3DEMC Home Page</A>]
 </body>
