@@ -2,7 +2,7 @@ IMOD History
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 12/17/07: Nicing processchunks when using a queue.
 
-12/13/07: Modified PEET interface to handle a change in a flag definition 
+12/17/07: Modified PEET interface to handle a change in a flag definition 
 in PEET.
 
 12/13/07: Provided renamed executables and script wrappers for patch2imod
