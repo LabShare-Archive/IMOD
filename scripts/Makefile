@@ -1,10 +1,6 @@
 include ../configure
 
-#  $Author$
-#
-#  $Date$
-#
-#  $Revision$
+#  $Id$
 #  Log at end
 
 SCRIPTS = copytomocoms finishjoin makejoincom matchorwarp matchshifts\
@@ -12,7 +8,7 @@ SCRIPTS = copytomocoms finishjoin makejoincom matchorwarp matchshifts\
  setupcombine setupcoms setuplong splitmrc squeezevol trimvol xf2xg xfalign\
  dm2mrc alignlog transferfid submfg imodpsview settmpdir matchrotpairs\
  chunksetup processchunks splittilt splitcombine tomosnapshot clipflipyz\
- archiveorig imodkillgroup collectmmm sampletilt splitblend runpyscript\
+ archiveorig imodkillgroup collectmmm sampletilt runpyscript\
  sirtsetup managesirt queuechunk splitcorrection $(GENERATED_SCRIPTS)
 
 all:
@@ -27,6 +23,9 @@ clean:
 	$(FIND) . -type f -name "*~"   -exec rm "{}" \;
 
 #  $Log$
+#  Revision 3.25  2007/11/06 23:58:23  mast
+#  Added splitcorrection
+#
 #  Revision 3.24  2007/09/14 21:51:22  mast
 #  *** empty log message ***
 #
