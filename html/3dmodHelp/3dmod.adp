@@ -11,6 +11,13 @@
 
 <DCF ref="./index.html" icon="b3dicon.png" title="3dmod Help Pages">
   <section ref="./startup.html" title="3dmod Startup Window"/>
+  <section ref="./index.html" title="Menu, Hot Key, Mouse Actions">
+    <section ref="./menus.html" title="Info Window Menus"/>
+    <section ref="./keyboard.html" title="3dmod Hot Keys"/>
+    <section ref="./modvMenus.html" title="Model View Menus"/>     
+    <section ref="./modvKeyboard.html" title="Model View Hot Keys"/>
+    <section ref="./modvMouse.html" title="Model View Mouse Actions"/>
+  </section>
   <section ref="./index.html" title="Image Display Windows">
     <section ref="./zap.html" title="Zap Window"/>
     <section ref="./slicer.html" title="Slicer Window"/>
@@ -18,10 +25,8 @@
     <section ref="./locator.html" title="Locator Window"/>
     <section ref="./tumbler.html" title="Tumbler Window"/>
     <section ref="./graph.html" title="Graph Window"/>
-    <section ref="./index.html" title="3dmod Dialog Boxes"/>
-    <section ref="./menus.html" title="Menus"/>
-    <section ref="./keyboard.html" title="Hot Keys"/>
   </section>
+  <section ref="./index.html" title="3dmod Dialog Boxes">
     <section ref="./modelHeader.html" title="Model Header Dialog"/>
     <section ref="./objectEdit.html" title="Object Edit Dialog"/>
     <section ref="./contourJoin.html" title="Contour Joining"/>
@@ -47,9 +52,6 @@
     <section ref="./modvViewEdit.html" title="View edit"/>
     <section ref="./depthcue.html" title="Depth Cueing"/>
     <section ref="./modvStereo.html" title="Stereo"/>
-    <section ref="./modvMenus.html" title="Menus"/>     
-    <section ref="./modvKeyboard.html" title="Hot Keys"/>
-    <section ref="./modvMouse.html" title="Mouse"/>
   </section>
 </DCF>
 

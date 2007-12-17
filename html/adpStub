@@ -16,19 +16,32 @@
   <section ref="./tomoguide.html" title="Tomography Guide"/>
   <section ref="./tomoExtra.html" title="Tomography Extra Topics"/>
   <section ref="./tomojoin.html" title="Joining Serial Tomograms"/>
-  <section ref="ctfHelp/ctfguide.html" title="Guide to CTF Plotter"/>
+  <section ref="./ctfHelp/ctfguide.html" title="Guide to CTF Plotter"/>
   <section ref="./serialalign.txt" title="Aligning Serial Sections"/>
   <section ref="./program_listing.html" title="Program Listing"/>
   <section ref="./binspec.html" title="Binary Model Format"/>
   <section ref="./asciispec.html" title="Ascii Model Format"/>
   <section ref="./mrc_format.txt" title="MRC Format"/>
+  <section ref="./libraries.html" title="Library Documentation"/>
 
   <section ref="./3dmodHelp/index.html" title="3dmod Help Pages">
 INSERT 3DMOD.ADP
   </section>
 
-  <section ref="./program_listing.html" title="Man Pages">
+  <section ref="./program_listing.html" title="Program Man Pages">
 INSERT MAN PAGES
+  </section>
+
+  <section ref="./program_listing.html" title="Other Man Pages">
+  <section ref="./man/pip.html" title="PIP Program Input"/>
+  <section ref="./man/imodenv.html" title="IMOD Environment Variables"/>
+  <section ref="./man/cpuadoc.html" title="Format of cpu.adoc"/>
+  <section ref="./man/uitestadoc.html" title="Etomo Test Scripting"/>
+  <section ref="./man/uitestaxisadoc.html" title="Axis-level Testing"/>
+  </section>
+
+  <section ref="./libraries.html" title="Library Documentation">
+INSERT LIBRARY PAGES
   </section>
 
 </DCF>
