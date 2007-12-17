@@ -1,6 +1,6 @@
 <html><head> <title>IMOD Tomography Guide - Advanced Topics</title> </head>
 <body>
-<H2 ALIGN=center>Tomography Guide for IMOD Version 3.3.4<BR>
+<H2 ALIGN=center>Tomography Guide Advanced Topics for IMOD 3.11<BR>
 </H2>
 <H3 ALIGN=center>Boulder Laboratory for 3-D Electron Microscopy of Cells</H3>
 <HR>
@@ -10,8 +10,9 @@
 <BR><A HREF = "#Command Files">1.0. Command Files</A>
 <BR><A HREF = "#Entries to Programs">2.0. Entries to Programs</A>
 <BR><A HREF = "#Running Copytomocoms">3.0. Running Copytomocoms Manually</A>
-<BR><A HREF = "#Fiducialless Tomogram">4.0. Making a Tomogram with Correlation Alignment.</A>
-<BR><A HREF = "#Fiducialless Combine">5.0. Combining Tomograms with Few or No Fiducials</A>
+<BR><A HREF = "Bidirectional X Tilt">4.0. Correcting for X-axis Tilt in Bidirectional Tilt Series</A>
+<BR><A HREF = "#Fiducialless Tomogram">5.0. Making a Tomogram with Correlation Alignment.</A>
+<BR><A HREF = "#Fiducialless Combine">6.0. Combining Tomograms with Few or No Fiducials</A>
 <HR>
 
 <A NAME = "Command Files"><H4>
@@ -152,12 +153,12 @@ Filename or other text entries do not follow these conventions for
 numeric input, and cannot be followed by comments on the same line in the
 command file.
 <P>
-Some Fortran programs accept lists of numbers for specific entries.
+Some programs accept lists of numbers for specific entries.
 Lists are comma-separated ranges of numbers, such as 1,3,6-9,12-10, which
 would enter the numbers 1,3,6,7,8,9,12,11,10.  Lists follow slightly different
 conventions:
 <OL>
-<LI>A list must be confined to a single line (which can be 1024 characters
+<LI>A list must be confined to a single line (which can be 10240 characters
 long).
 <LI>A slash (/) at the beginning of the entry will accept the default
 values for the list (or leave a previous entry unmodified), but there is no
@@ -181,8 +182,42 @@ data files are already present in the current directory.
      Copytomocoms fetches the command files from $IMOD_DIR/com.  If 
 something goes wrong, you can copy files from there manually.
 
+<A NAME = "Bidirectional X Tilt"><H4>
+4.0. Correcting for X-axis Tilt in Bidirectional Tilt Series
+Some tilt series taken by tilting in two directions from zero tilt appear to
+have a change in X-axis tilt between the two halves of the series.  Although
+Tiltalign cannot reliably solve for a progressive change in X-axis tilt during
+the series along with the in-plane rotation variable that is usually solved
+for, it can solve for a single change in X-axis tilt between the two halves of
+a tilt series.  Be sure that you have identified one half of the tilt series
+as a <B>Separate view group</B>, and then use the following procedure:
+
+<OL>
+<LI> If eTomo is running, press <B>Postpone</B> to close the current panel
+and save any command files.
+<LI> Edit align.com and add the following two lines:
+<CODE><BR>
+     XTiltOption     4
+     XTiltDefaultGrouping    150
+</CODE>
+The 4 in the first entry ensures that all views in one half of the tilt series
+have the same value of X-axis tilt; the 150 is arbitrary and needs to be
+bigger than either half of the tilt series.
+<LI> Open the <B>Fine Alignment</B> panel in eTomo and compute alignment.
+Examine the solution in the log.  You will see that on half of the tilt
+series has nonzero entries in the Xtilt column.
+<LI> You can probably solve for linear distortion as well if the usual
+preconditions are satisfied; i.e., if fiducials are distributed in Z over a
+significant portion of the area.  If you plan to do this, run the alignment
+before adding the X tilt option, look at the Skew column in the solution and
+note the range of skew values.  Then look at the skew after adding the X tilt
+variable.  If its range has become much larger, the solution may be unstable
+and you should probably choose between solving for distortion and X tilt,
+depending on which gives the smaller residual.
+</OL>
+
 <A NAME = "Fiducialless Tomogram"><H4>
-4.0. Making a Tomogram with Correlation Alignment.
+5.0. Making a Tomogram with Correlation Alignment.
 </H4></A>
 This section describes in detail the steps involved if you need to make as
 good a tomogram as possible with the cross-correlation alignment.  
@@ -255,7 +290,7 @@ width, and make the final tomogram.
 </OL>
 </UL>
 <A NAME = "Fiducialless Combine"><H4>
-5.0. Combining Tomograms with Few or No Fiducials
+6.0. Combining Tomograms with Few or No Fiducials
 </H4></A>
 This section describes how to use models of corresponding points to get
 the initial match between two tomograms when there are too few, or no,

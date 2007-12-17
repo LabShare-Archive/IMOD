@@ -28,6 +28,12 @@
 INSERT 3DMOD.ADP
   </section>
 
+  <section ref="./man/midas.html" title="Midas Help Pages">
+    <section ref="./midasHelp/controls.html" title="Controls"/>
+    <section ref="./midasHelp/mouse.html" title="Mouse Actions"/>
+    <section ref="./midasHelp/keyboard.html" title="Hot Keys"/>
+  </section>
+
   <section ref="./program_listing.html" title="Program Man Pages">
 INSERT MAN PAGES
   </section>
