@@ -1,5 +1,7 @@
 IMOD History
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+12/17/07: Nicing processchunks when using a queue.
+
 12/13/07: Modified PEET interface to handle a change in a flag definition 
 in PEET.
 
