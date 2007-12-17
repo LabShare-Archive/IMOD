@@ -304,6 +304,20 @@ public final class ProcesschunksParam implements DetachedCommand, ParallelParam 
     }
     return null;
   }
+  
+  public boolean isSecondCommandLine() {
+    return queueCommand != null;
+  }
+  
+  /**
+   * Use the second command line to  nice processchunks when it runs on a queue.
+   */
+  public String getSecondCommandLine() {
+    if (queueCommand==null) {
+      return "";
+    }
+    return "nice +18";
+  }
 
   private void buildCommand() {
     valid = true;
@@ -418,6 +432,11 @@ public final class ProcesschunksParam implements DetachedCommand, ParallelParam 
 }
 /**
  * <p> $Log$
+ * <p> Revision 1.30  2007/12/10 21:59:33  sueh
+ * <p> bug# 1041 Added setting the root name to the constructor since its required.
+ * <p> Root name can be set either with a root name name string, which is taken
+ * <p> literally; or by a ProcessName, which is used to construct the root name.
+ * <p>
  * <p> Revision 1.29  2007/11/12 22:12:22  sueh
  * <p> bug# 1047 Fixed a bug in buildCommand(); was adding the -w option when the
  * <p> remote directory was null.
