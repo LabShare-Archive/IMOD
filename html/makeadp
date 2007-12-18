@@ -6,6 +6,9 @@
 #  $Id$
 #
 #  $Log$
+#  Revision 3.3  2007/12/17 06:52:24  mast
+#  Excluded non-programs from man page, and added library docs
+#
 #  Revision 3.2  2006/06/19 14:11:27  mast
 #  Fixed to work with install dir, fixed path to 3dmodHelp
 #
@@ -42,7 +45,7 @@ end
 
 awk "/$instext2/, /$instext3/" $adpin | grep -v "INSERT" >> $adpout
 
-foreach i ($instdir/libhelp/*.html)
+foreach i (libhelp/*.html)
     set file = $i:r:t
     set title = `grep -i -A 1 '<title>' $i | tail -n 1`
     if ("$title" == "") set title = $file
