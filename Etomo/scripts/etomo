@@ -1,13 +1,9 @@
 #!/bin/sh
 #
-# Description: startup script for eTomo
+# Startup script for eTomo
 # 
-# Copyright: Copyright (c) 2002, 2003
-# Boulder Laboratory for 3D Fine Structure, University of Colorado
-# 
-# $Author$
-# 
-# $Revision$
+# $Id$
+# Log at end of file
 # 
 
 # To increase the memory limit for Java, increase the number here
@@ -130,13 +126,16 @@ if [ ${help} -eq 0 ] ; then
 
   echo "starting eTomo"
   java -Xmx${JAVA_MEM_LIM} -cp ${IMOD_DIR}/bin/etomo \
-   -jar ${IMOD_DIR}/bin/etomo.jar $@ 2>${errlog} >${outlog} &
+   -jar ${IMOD_DIR}/bin/etomo.jar "$@" 2>${errlog} >${outlog} &
 else
   java -Xmx${JAVA_MEM_LIM} -cp ${IMOD_DIR}/bin/etomo \
-   -jar ${IMOD_DIR}/bin/etomo.jar $@
+   -jar ${IMOD_DIR}/bin/etomo.jar "$@"
 fi
 
 # $Log$
+# Revision 1.23  2006/06/26 18:06:01  mast
+# Export the memory limit so etomo knows what it is
+#
 # Revision 1.22  2006/06/23 19:50:06  mast
 # But needed to eliminate () construct even from inside if block
 #
