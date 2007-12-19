@@ -1,5 +1,5 @@
 <html><head><title>Tomogram Joining</title></head><body>
-<H2 ALIGN=center>Joining Tomograms from Serial Sections for IMOD 3.9<BR>
+<H2 ALIGN=center>Joining Tomograms from Serial Sections for IMOD 3.11<BR>
 </H2>
 <H3 ALIGN=center>Boulder Laboratory for 3-D Electron Microscopy of Cells</H3>
 <HR>
@@ -23,6 +23,9 @@
 <BR><A HREF = "#AutoParameters">3.3. Parameters for Automatic Alignment</A>
 <BR><A HREF = "#Joining">4. Making the Final Joined Volume</A>
 <BR><A HREF = "#Refining">5. Refining the Alignment with a Fiducial Model</A>
+<BR><A HREF = "#RefineModel">5.1. Making a Fiducial Model</A>
+<BR><A HREF = "#FindRefine">5.2. Finding Refining Transforms</A>
+<BR><A HREF = "#Rejoin">5.3. Rejoining with Refining Transforms </A>
 </UL>
 <HR>
 <P>
@@ -36,18 +39,22 @@ instructions</a>.
 
 <P>
 The interface is organized into 
-three panels or tabs
+five panels or tabs
 that will enable you to perform the following sequence of
 steps:
 <OL>
 <LI>Determining which surfaces match with which between adjacent sections.
 <LI>If necessary, flipping or rotating the volume so that slices in Z are
-parallel to the plane of section;
+parallel to the plane of section.
 <LI>Extracting sample slices from the section boundaries so that these
-boundaries can be visualized and aligned;
+boundaries can be visualized and aligned.
 <LI>Getting transformations to align the top of each section to the bottom
-of the next;
+of the next.
 <LI>Assembling the joined volume.
+<LI>Making a model with fiducial points and contours that can be used to
+refine the alignment of the sections.
+<LI>Rebuilding the joined volume or transforming a model using this refined 
+alignment.
 </OL>
 
 The <B>Setup</B> panel manages steps 1 to 3.  It allows you to identify the
@@ -60,6 +67,10 @@ Step 4 in done with the <B>Align</B> panel, where you use
 <A href="man/xfalign.html">Xfalign</A>
 for automated alignment.  Step 5 is done with the <B>Join</B> panel, which 
 runs the program <A href="man/finishjoin.html">Finishjoin</A>.
+Step 6 is done with the <B>Model</B> panel, which runs the program
+<A href="man/xfjointomo.html">Xfjointomo</A>.  Step 7 is done with the
+<B>Rejoin</B> panel, which runs <A href="man/finishjoin.html">Finishjoin</A>
+again.
 
 <P>
 <A NAME = "TopBottom"><H4>
@@ -506,131 +517,158 @@ files should be kept for future reference.
 </H3></A>
 Once you have a joined volume, it is possible to model some of the features in
 the volume and use those features as fiducials for refining the alignment with 
-<A href="man/xfjointomo.html">Xfjointomo</A>.  The model can contain pairs of points
-that should correspond between two sections.  It can also contain
+<A href="man/xfjointomo.html">Xfjointomo</A>.  The model can contain pairs of
+points that should correspond between two sections.  It can also contain
 features such as oblique microtubules that are otherwise hard to use for
 alignment because their position shifts between the top of one section and the
 bottom of the next.  If there are enough data from trajectories, it is even
 possible to determine the proper spacing between sections.  See the 
-<A href="man/xfjointomo.html">Xfjointomo man page</A> for complete details on how to
-prepare the model and run the program.
+<A href="man/xfjointomo.html">Xfjointomo man page</A> for complete details on
+how the program works.  
 <P>
-An interface is being planned for this refinement.  The directions below
-suggest file names based on naming conventions that will be used in this
-interface. 
-<P>
+<A NAME = "RefineModel"><H3>
+5.1. Making a Fiducial Model
+</H3></A>
 The fiducial model can be built on the final joined file, or a binned trial
-join file that includes all of the slices.  Do not use a trial join that skips
-slices. 
+join file that includes all of the slices.  The interface will not allow you
+to use a trial join that skips slices.
 <P>
-Here is the sequence of operations for the simple case where you do not want
-to adjust the spacing between sections:
+To start the refinement process, press the <B>Refine Join</B> button on the 
+<B>Join</B> panel, which causes the program to rename the file that you want
+to model and store the information that it
+will need for the refinement.  Next, go to the <B>Model</B> tab and press
+<B>Make Refining Model</B>.  Note that you can make this model on a binned or
+unbinned volume, just as you can make it on a binned trial join file.  If you
+need to load the volume with binning,
+right-click on the <B>Make Refining Model</B> button to see the options for
+loading the volume binned by 2 and for opening 3dmod via the Startup dialog.
+<P>
+Here are the relevant points from the <A href="man/xfjointomo.html">Xfjointomo
+man page</A> on preparing the model:
+<P>
+<I>Modeling trajectories:</I>  
+Data from trajectories such as microtubules are used to determine a pair of
+positions at a boundary between two sections, each position determined by
+extrapolating the trajectory on each side of the boundary.  When you model
+trajectories such as microtubules, use enough points on each side of a
+boundary so that a line fit will give a reasonable extrapolation of the
+trajectory.  The number of points used for the line fit is controlled by the
+values for the minimum and maximum number of points to fit; by default, fits
+will be done to 5 points if they are available, and to a minimum of 2 points.
+Thus, if a microtubule is curved
+at some distance from a boundary, you should add points densely enough so
+that the points being fit will be in a straight segment near the
+boundary.  Avoid using the "Fill in Z" option, because that will create
+redundant data between actual points within a section, and incorrect data in
+a line segment across the boundary.  If a feature being modeled crosses
+multiple section boundaries, you can model it all in one contour or start a
+new contour for each boundary.
+<P>
+<I>Modeling pairs of points:</I>
+Use contours with only two points in them to
+specify the centers of features that should align across a boundary.  You
+may find that setting a symbol size or spherical point size for each point
+allows you to judge the centering of the point in a feature such as a
+vesicle.  Pairs of points in such contours are included together with the
+pairs of positions extrapolated from trajectories in a single least-squares
+fit to find the transformation at a boundary.  
+<P>
+<A NAME = "FindRefine"><H3>
+5.2. Finding Refining Transforms
+</H3></A>
+After making and saving the model, you are ready to set the parameters for
+finding transformations.  By default, the same parameters will be used for all
+section boundaries.  However, if necessary, you can run 
+<A href="man/xfjointomo.html">Xfjointomo</A> on a subset of the boundaries,
+then change the parameters and run on other boundaries.  For example,
+if you run on all boundaries and get good
+results with some but not with others, you can change parameters and rerun only
+on the boundaries that gave poorer results.  Each time the program runs, eTomo
+updates the Boundary Table only for the boundaries that were included and
+retains previous results for the others.
+<P>
+To set parameters for finding transformations:
 <OL>
-<LI> You should first rename the file that you want to model to
-"rootname_modeled.join", so that it is not inadvertently lost when you rerun 
-<A href="man/finishjoin.html">Finishjoin</A>.
-<LI> Model features to indicate correspondences between sections.  One model
-can contain the fiducials for all of the sections.  Save the model as
-"rootname_refine.mod"
-<LI> Collect information needed to run <A
-href="man/xfjointomo.html">Xfjointomo</A>.  Note the number of slices in each of
-the sections (referred to as {sizes} below).
-The offset entry, referred to as {offset}, is the
-<B>negative</B> of the values in the <B>Shift in X</B> and <B>Y</B> fields on
-the <B>Join</B> panel in eTomo.
 <LI> Decide what kind of transformations to solve for.
 If you have enough data (at least four well-defined positions per boundary,
 preferably at least 6) you can solve for linear transformations that account
-for stretch.  If you have much less data on some boundaries than on others,
-you may have to run <A href="man/xfjointomo.html">Xfjointomo</A> several
+for magnification and stretch.  However, if these positions are concentrated
+in a small fraction of the area, these transformations are liable to misalign
+features that are far from the fiducial positions, and you may have to
+drop back to solving only for rotations.  If you have much less data on some
+boundaries than on others, you may have to run <A
+href="man/xfjointomo.html">Xfjointomo</A> several
 times with different specifications for the different boundaries.
-<LI> Run <A href="man/xfjointomo.html">Xfjointomo</A> with (all on one line):
-<br><code>
-  xfjointomo -ed -si {sizes} -of {offset} rootname_refine.mod
-  rootname_refine.xf rootname_refinejoin.xg
-<br></code>
-If you used a binned trial join, add "-bin" with
-the binning.  Add options such as "-rot" or "-mag" to restrict the
-transformation being solved for.
-Add "-bound" and a list of boundary numbers (numbered from 1) to solve for
-a subset of boundaries in one run.  The "-ed" option lets you run the command
-several times, "editing" the transform file "rootname_refine.xf" by
-accumulating results from different runs for different boundaries.
-<LI> Extract the <A href="man/finishjoin.html">Finishjoin</A> command from
-etomo_err.log with:
-<br><pre>
-  grep finishjoin etomo_err.log
-</pre>
-You should get something like:
-<br><pre>
-  finishjoin -P -s 535,460 -o 54,31 unicross 1,49 3,63 7,60
-</pre>
-Copy and paste this onto the command line, adding "-xf rootname_refinejoin.xg"
-right after the "finishjoin".  
-<LI> Run the "finishjoin" command as modified.
-<LI> To transform the model into the new alignment run
-<br><pre>
-  xftoxg -n 0 rootname_refine.xf
-</pre>
-Or, if you set one section (referred to as {refsec}) as the reference, use
-<br><pre>
-  xftoxg -n 0 -ref {refsec} rootname_refine.xf
-</pre>
-Then run:
-<br><pre>
-  xfmodel -xf rootname_refine.xg -ch {sizes} rootname_refine.mod rootname_refine.alimod
-</pre>
-<LI> If need to refine the model after seeing the transformed images or model,
-go back and edit the original model on the original volume,
-"rootname_modeled.join". 
+<LI> To run on all boundaries, leave <B>Boundaries to analyze</B> empty;
+otherwise insert a list of boundary numbers, which can include comma-separated
+ranges.
+<LI> To include all objects, leave <B>Objects to include</B> empty; otherwise 
+insert a list of the objects that have fiducial data in them.
+<LI>If <B>Try gaps</B> is checked, 
+<A href="man/xfjointomo.html">Xfjointomo</A> will do multiple fits with
+different assumed gaps between the sections, as specified by the starting,
+ending and increment gap size.  The gap size that gives the minimum error
+will be shown in the Boundary Table.  A positive gap means the spacing between
+two tomograms needs to be increased for the best fit.  Do not use this option
+unless you have some model contours passing obliquely through each boundary
+being analyzed.
+<LI> The minimum and maximum <B>Points to fit</B> can be specified if they
+need to be different from the defaults, 2 and 5.
 </OL>
-The fit from this procedure may be adequate, but if you want to eliminate all
-the kinks from lines passing obliquely between sections, you may need to
-adjust the inter-section spacing.  You can use 
-<A href="man/xfjointomo.html">Xfjointomo</A> to find the best
-spacing between sections if your model contains some of these
-oblique lines at a variety of angles.  To do so, modify the steps above as
-follows:
-<UL>
-<LI> In step 5, add an entry such as
-"-gap -4,6,2" when running <A href="man/xfjointomo.html">Xfjointomo</A>, so that it
-will fit the data with a series of assumed gaps between the sections.
-<LI> In the "finishjoin" command, the pairs of numbers after the rootname are
-the slices to use from each section, and they are ordered so the first number
-in each pair corresponds to the slice that will be stacked at low Z, i.e., the
-first slice after a boundary.  The second number in a pair corresponds to 
-the last slice before a boundary.  In step 6, make a note of the slice numbers
-in the original join, since you will need both original and modified numbers.
-<LI> In step 7, if you 
-found that a non-zero gap gave the best solution for a boundary, you need
-to add
-slices to a boundary for a positive gap size and remove them for a negative
-gap size in the "finishjoin" command.  You can do this by adjusting either the
-ending slice before a boundary, the starting slice after a boundary, or both.
-If this is not feasible, first rerun 
-<A href="man/xfjointomo.html">Xfjointomo</A> with no gap entry for the boundary
-in question, and leave the ending and starting slices on the two sides of that
-boundary unchanged.
-<LI> In step 8, the transformed model needs a
-similar adjustment to the boundaries, which is done with:
-<br><pre>
-  remapmodel -from {old_slices} -to {new_slices} rootname_refine.alimod rootname_refine.remapmod
-</pre>
-where {old_slices} is the original list of starting and ending slices (with
-spaces replaced by commas) and {new_slices} is the new list.  
-</UL>
 <P>
-For example,
-suppose the original list on the "finishjoin" command is "3,87 5,92 65,2".
-(The last pair of numbers are out of order because the last slice is inverted.)
-If the best fit is found with a gap of 2 at the 
-first boundary but a gap of -2 at the second boundary, then the modified
-entry for "finishjoin" could be "3,88 4,92 63,2".  This adds two slices to the
-first boundary, one from each section, and removes two slices from the second
-boundary, both from the last section.  In this case, the aligned model would
-be remapped with:
-<br><pre>
-  remapmodel -from 3,87,5,92,65,2 -to 3,88,4,92,63,2 rootname_refine.alimod rootname_refine.remapmod
-</pre>
+Press <B>Find Transformations</B>.  The Boundary Table will show the mean 
+and maximum error of the fit over all points at a particular boundary.  If you
+tried different gaps, the values shown will be at the gap that gave the lowest
+error.  You can open the log file to see how the error varied
+with gap size.  If the lowest error occurred at the first or last gap size, you
+might want to rerun with a larger range of gap sizes to be sure that is
+actually the size with the lowest error.  On the other hand, if the variation
+of error with gap size is very slight, the determination of the best gap might
+be inaccurate and you might be better off constraining the gap to a smaller
+range or fixing it at zero.
+<P>
+Once you have a transformation for all boundaries, you can press 
+<B>Transform and View Model</B> to see the fiducial model transformed into
+alignment.  This can provide a quick check for whether kinks in the
+trajectories have been removed adequately, or whether some trajectories are
+problematic.
+
+<P>
+<A NAME = "Rejoin"><H3>
+5.3. Rejoining with Refining Transforms 
+</H3></A>
+To join the tomograms with the refined alignment, go to the <B>Rejoin</B>
+panel.  This panel allows you to adjust which slices will go into the new
+volume, make a trial or final rejoin, and transform any model file from the
+old alignment to the new one.  On the upper left is a copy of the section
+table showing the starting and ending slices that went into the original final
+join.  You can use the controls here to open one of the volumes and evaluate
+slices that are being added or dropped due to a change in spacing between
+sections.
+<P>
+On the upper right is a Boundary Table; for each boundary it shows the ending
+slice taken from the top of the section below, and the starting slice taken
+from the bottom of the section above.  If a best gap was determined, then
+these slice numbers will be modified to create a gap of the given size.  The
+adjusted numbers are shown in the right two columns.  You can change any of
+these numbers with the spinners; if you do, the program will change the
+adjacent number so as to maintain the same spacing between sections.  If you
+or the program selects a slice number beyond the range of the section (less
+than 1 or greater than the number of slices in the section), then blank slices
+will be inserted corresponding to the number of slices outside the actual
+section.
+<P>
+The remaining sections of the <B>Rejoin</B> panel are straightforward:
+<UL>
+<LI> <B>Trial Rejoin</B> works just like the <B>Trial Join</B> on the
+<B>Join</B> panel, except that you can no longer adjust the size and shift.
+<LI> <B>Final Rejoin</B> works just like <B>Finish Join</B> on the <B>Join</B>
+panel.
+<LI> <B>Transform Model</B> can be used to transform any model, including the
+refine model if you did not transform it on the <B>Model</B> panel.  Select
+the model file and specify a filename for the output model.  Then press
+<B>Transform Model</B>.  You can then view the transformed model on the
+rejoined volume.
+</UL>
 </body></html>
 
