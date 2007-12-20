@@ -10,7 +10,7 @@ InputStack  series4-8um.st
 AngleFile   series4-8um.tlt
 DefocusFile series4-8um.defocus
 #
-# How many the tilt axis deviates from vertical (Y axis) (CCW positive)
+# How many degrees the tilt axis deviates from vertical (Y axis) (CCW positive)
 AxisAngle   -4.8 
 #
 # Image pixel size in nanometers
