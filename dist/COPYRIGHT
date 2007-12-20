@@ -1,4 +1,4 @@
-IMOD Version 3.10.10                     Copyright Notice and Credits
+IMOD Version 3.11.0                     Copyright Notice and Credits
 --------------------------------------------------------------------------
 Except as noted, ALL SOFTWARE LISTED IS Copyright (C) 1994-2007 by
 Boulder Laboratory for 3-Dimensional Electron Microscopy of Cells
@@ -26,11 +26,11 @@ GPL.  Other source code files (ones not listed in this file) may not be
 redistributed without permission.
 
 Programs were written by David Mastronarde, James Kremer, Rick
-Gaudette and Sue Held from the BL3DEMC, some based on work and libraries
-from the MRC.  We thank David Agard and Hans Chen for the original MRC
-source code, Wah Chiu for a Unix version of low-level MRC file routines
-used in the FORTRAN parts, and Chuck Robertson for much work on the port
-to Linux.
+Gaudette, Sue Held, and Quanren Xiong from the BL3DEMC, some based on
+work and libraries from the MRC.  We thank David Agard and Hans Chen for
+the original MRC source code, Wah Chiu for a Unix version of low-level
+MRC file routines used in the FORTRAN parts, and Chuck Robertson for
+much work on the port to Linux.
 
 The program nad_eed_3d by Achilleas Frangakis and Reiner Hegerl is
 excluded from this notice; it is copyright Max-Planck-Institut for
@@ -39,6 +39,13 @@ Biochemistry, Martinsried, Germany.
 The LSQR routine by Michael Saunders is used in some programs.  It is
 covered by the Common Public License.  The source code used here and the
 license can be found at  http://bio3d.colorado.edu/imod/openSource
+
+IMOD uses a subset of the LAPACK routines developed at Univ. of
+Tennessee, Univ. of California Berkeley, NAG Ltd., Courant Institute,
+Argonne National Lab, and Rice University.  It also uses a subset of
+the BLAS routines, developed by: Jack Dongarra, Argonne National Lab;
+Jeremy Du Croz, NAG Ltd.; Iain Duff, AERE Harwell; Richard Hanson,
+Sandia National Labs; and Sven Hammarling, NAG Ltd.
 
 The program imodwincpu was adapted from code obtained from
 www.codeproject.com and written by Dudi Abramov.
