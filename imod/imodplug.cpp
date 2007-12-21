@@ -31,7 +31,7 @@ typedef struct
   int   type;
 }PlugData;
 
-static int imodPlugLoadDir(char *plugdir);
+static int imodPlugLoadDir(const char *plugdir);
 static int imodPlugLoad(QString plugpath);
 static int ipAddInternalModules();
 static void *ipGetFunction(PlugData *pd, int which);
@@ -47,8 +47,9 @@ int imodPlugInit(void)
 
   char *defdir3 = "/usr/freeware/lib/imodplugs/";
   char *defdir2 = "/usr/local/IMOD/plugins";
-  char *defdir1 = "/usr/IMOD/plugins";
+  char *envdir2 = getenv("IMOD_CALIB_DIR");
   char *envdir = getenv("IMOD_PLUGIN_DIR");
+  QString str = QString(envdir2) + QString("/plugins");
 
   int maxPlug = 0;
 
@@ -59,9 +60,9 @@ int imodPlugInit(void)
 
   /* load plugs in environment varialble. */
   imodPlugLoadDir(envdir);
+  imodPlugLoadDir(str.latin1());
 
   /* load system plugins. */
-  imodPlugLoadDir(defdir1);
   imodPlugLoadDir(defdir2);
   imodPlugLoadDir(defdir3);
 
@@ -99,7 +100,7 @@ static int ipAddInternalModules()
 /*
  * Load all the plugins in a given directory 
  */
-static int imodPlugLoadDir(char *plugdir)
+static int imodPlugLoadDir(const char *plugdir)
 {
 #ifdef _WIN32
   char *filter = "*.dll";
@@ -485,6 +486,10 @@ static void *ipGetFunction(PlugData *pd, int which)
 
 /*
 $Log$
+Revision 4.14  2007/12/04 18:53:04  mast
+Added event handling call, removed clean, fixed the treatment of Execute
+versus ExecuteType for the plug opening call.
+
 Revision 4.13  2006/02/13 05:09:57  mast
 Added mouse capability
 
