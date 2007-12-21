@@ -1204,12 +1204,13 @@ IMGDIR path_to_image_directory
 .SH PLUGIN ENVIRONMENT
 3dmod will load special plugin libraries that are in the
 directory pointed to by the IMOD_PLUGIN_DIR environment 
-variable.  The directories /usr/IMOD/plugins, /usr/local/IMOD/plugins,
-and /usr/freeware/lib/imodplugs/ are loaded by default if they
+variable.  In addition, the directory defined by $IMOD_CALIB_DIR/plugins,
+as well as the directories /usr/local/IMOD/plugins
+and /usr/freeware/lib/imodplugs/ are searched for plugins if they
 exist.  Plugins work in all supported operating systems.  
-To write your own plugins, the easiest way would be to get the IMOD source
-code and use the old version of the Bead Fixer plugin as an example.
-See http://bio3d.colorado.edu/imod/source.html.
+To write your own plugins, see the IMOD library documentation and 
+use the old version of the Bead Fixer plugin as an example.  The best place to
+place custom plugins would be /usr/local/ImodCalib/plugins.
 
 .SH AUTHORS
 .nf
