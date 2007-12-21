@@ -187,7 +187,8 @@ processing.
 It is important that the reconstruction include all significant
 material, including gold fiducials on both sides of a section, if any.  Thus,
 in Tomogram Positioning, you need to draw contours that include all of the
-fiducials.
+fiducials.  Also note that you may need to set the X-axis tilt to zero for a
+cryo data set; see BUGS below.
 
 If the number of desired iterations is not known in advance, a subarea can be
 reconstructed with the following steps:
@@ -269,6 +270,10 @@ tilt(1), densnorm(1), newstack(1), subimage(1), processchunks(1),
 splittilt(1), trimvol(1)
 
 .SH BUGS
+With several cryoEM data sets that included an X-axis
+tilt, bad striping artifacts developed and increased through the iterations.
+Setting the X-axis tilt to 0 eliminated this problem.
+
 There is not yet a way to tell when to stop iterating.  Densities get
 progressively farther off at the edges of the reconstruction.  There are low
 frequency artifacts, particularly near edges.
