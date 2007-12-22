@@ -3,8 +3,17 @@
 </title>
 <body>
 <H2  align="center">Making Plugins to 3dmod</H2>
-This document is still under construction.  Below are listings of all the
-functions in 3dmod that are normally accessible from plugins.
+When 3dmod starts, it attempts to load dynamic libraries from $IMOD_PLUGIN_DIR
+(by default, $IMOD_DIR/lib/imodplug), from $IMOD_CALIB_DIR/plugins (by
+default, /usr/local/ImodCalib/plugins) and from two other less useful
+locations.  It then tries to run defined functions to confirm that they are
+plugins.
+<P>
+This document gives some basic information about making a plugin to 3dmod and
+contains the documentation of the functions in 3dmod that are normally
+accessible from plugins.
+
+<H3> <A HREF="#Instructions" /A>Instructions for Making Plugins</H3>
 
 <H3 style="color: rgb(0,128,0);">Functions Defined in Plugins</H3>
 LIST FUNCTIONS FROM imodplug.h
@@ -35,6 +44,131 @@ LIST FUNCTIONS FROM control.h MANAGER
 <H3 style="color: rgb(0,128,0);">Functions for Undo/Redo</H3>
 LIST CODE FROM undoredo.cpp
 LIST FUNCTIONS FROM undoredo.h
+
+<H3 style="color: rgb(0,128,0);"> 
+<A NAME="Instructions" /A>Instructions for Making Plugins</H3>
+Here are the preliminary steps:
+<UL>
+<LI> Get the IMOD source code.  This can be either the full source code
+available to non-profit institutions or the open source subset.
+<LI> You need a development version of Qt 3.
+<LI> Set up the ability to build a plugin, using the old beadfixer plugin as
+an example.  This should be
+easy in Linux, not too hard in Mac OS X, and more difficult in Windows.
+The minimal requirement is that there be a configure file produced by setup,
+and some of the C libraries in buildlib.
+With this, it should be possible to compile a
+plugin.  The minimal sequence of operations you need to get
+through is thus:
+<pre>
+   ./setup
+   (cd libimod ; make)
+   (cd libcfshr ; make)
+   (cd libdiaqt ; make)
+   make plugs
+</pre>
+In Linux, setup will run with no Fortran compiler and libraries
+should build with no problem. On Mac OS X, setup
+will run with no Fortran compiler, although this will require
+"setup -c gnu" at least on the
+Intel Mac.  In
+Windows, setup will run with no Fortran compiler but you will probably need
+the Intel C++ compiler.  If you need to access any other C libraries from your
+plugin, you would need to build them as well.  "make clibs" builds all C
+libraries.  If you need to build libiimod, you will need a tiff library: in
+Mac OS X, this would be installed in the system; on Windows, you would need
+libtiff.lib in buildlib.  See how much easier Linux is?
+
+<LI> You will want access to the library documentation, which is not available
+even in the full source package without running "make man".  It is better to
+access the documentation in a binary installation of IMOD.  Documentation on
+our website is only updated upon major releases.
+</UL>
+<P>
+<B>Beadfixer example.</B> The plugin in IMOD/plugs/beadfix is an old version
+of the Bead Fixer that was retained to test the ability to build and run
+plugins, and now serves as an example of a plugin.  It is not ideal because it
+has much more functionality than is needed to illustrate the various features
+of a plugin.  You can concentrate on the implementation of the generic
+plugin functions in the beginning of the file and ignore most of the class
+implementation.  The functional components do provide examples of how to
+access and manipulate model structures.  There is one major deficiency in this
+example; it has not been updated to show the proper handling of calls to the
+undo/redo module.  If your plugin modifies the model, you should try to make
+these calls, as documented below.  For examples, you can look in corresponding
+places in the current beadfix.cpp in the imod directory and in other places in
+the 3dmod code (grep on "undo").
+<P>
+<B>Public versus Private Structures.</B> The beadfixer example is set up to
+access the model only by passing pointers to functions that operate on the
+underlying structures, rather than by accessing structure members directly.
+This method of defining structures as private was set up by Jim Kremer when he
+first developed the plugin interface; it has been retained but not extended to
+cover some new model structures or other structures in the IMOD libraries.
+It is possible to define a flag to eliminate the private structures and allow
+access to structure members.  The advantages of keeping the structures private
+are 1) it insulates your plugin against changes in the structure members so
+that it does not have to be recompiled after such changes; 2) it is a little
+more object-oriented.  The disadvantages are: 1) it is a little clumsier than
+operating directly on structure members, particularly when looping on contours
+and objects; and 2) you may find that there is no function to perform a needed
+operation on a structure member.  In the latter case, we can easily add such
+functions, but then you will be constrained to running with the latest IMOD.
+It is recommended that you try to keep the structures private when you start
+work on a plugin, and only switch to accessing structure members if that turns
+out to be necessary.
+<P>
+<B>Exported Functions and Include Files.</B> In Linux and Mac OS X, all global
+functions in 3dmod are available to a plugin; whereas in Windows, only
+functions that are
+explicitly exported (using DLL_EX_IM) are available.  For portability, it is
+recommended that you use only the exported functions.  If you find that you
+need other functions, we can in most cases easily add the export macro and
+shift them from private to public header files. 
+If you look at the plugin Makefile, you will see that it
+copies several headers from the imod directory instead of adding that
+directory to the include path.  These are the headers needed
+for all the exported functions in 3dmod.  All of the headers in IMOD/include
+are also available to a plugin since that directory is on the include path.
+All C library functions should be available to a plugin.
+<P>
+<B>ImodView Structure.</B> Many of the functions for interacting with 3dmod
+pass a pointer to an ImodView structure.  This structure has all the
+information about the data loaded into 3dmod.  In principle, there could be
+more than one such structure, allowing a multi-document type interface; but
+this capability has never been implemented, so there is just the one ImodView
+structure in the application.  Nevertheless, we keep passing it around.
+<P>
+<B>Dialog Manager and Drawing Control Functions.</B> Every window, either
+dialog or graphical display, must register with a dialog manager.  There is
+one dialog manager for 3dmod windows and one for model view windows.  Plugins
+would register with imodDialogManager (since plugins to model view are not
+yet allowed).  Follow the example of what beadfixer does to avoid crashes upon
+closing the window or exiting the program.  Image drawing windows have the
+additional need to register themselves as drawing "controls" so that they get
+drawn at appropriate times.  See the code for image drawing windows for
+examples of how this is done; locator.cpp would be the simplest.
+<P>
+<B>Sharing You Plugin.</B> If your plugin is generally useful, you may want
+other people to have access to it.  First note the constraints imposed by
+using Qt.  In general, to distribute software using Qt, you must either hold a
+Qt license or make the source available under an open source license (either
+GPL or the Q Public License, as far as we could tell).  The Qt-related
+components of IMOD are open source under the GPL.  With this in mind, there
+are at least three ways in which a plugin could be distributed:
+<OL>
+<LI> You build your plugin on whatever platforms you want to manage, and make
+it available for users to place in an appropriate directory.
+<LI> You contribute your code for incorporation into the IMOD source, and we
+would include the plugin in IMOD distributions for all platforms.  The plugin
+would also be included in our open source releases.
+<LI> If for some reason you still want to control the distribution, but want
+the benefit of our building infrastructure, you could
+contribute the code to the IMOD source but have us leave the plugin out of the
+install (as the beadfixer example is).  We would provide you with copies of
+the plugin on the various platforms at the time of our major releases.   The
+plugin would still be included in our open source releases.
+</OL>
 
 
 <H3 style="color: rgb(0,128,0);">Functions Defined in Plugins</H3>
