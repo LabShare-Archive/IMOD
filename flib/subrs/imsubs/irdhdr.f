@@ -196,8 +196,8 @@ c
       call move(idat,stuff(11,j),4)
       feichar = 'Fei '
       read(feichar, '(a4)')k
-      if (idat(1) .eq. 128 .and. idat(2) .eq. 32  .and. k .eq. labls(1,1,1))
-     &    then
+      if (idat(1) .eq. 128 .and. idat(2) .eq. 32  .and. (k .eq. labls(1,1,1)
+     &    .or. nbsym(j) .eq. 131072)) then
         idat(1) = 0
         call move(stuff(11,j),idat,4)
         if (print .and. ifBrief .le. 0) write(6,1007)
@@ -1263,6 +1263,9 @@ c
       end
 
 c       $Log$
+c       Revision 3.15  2006/10/04 22:57:08  mast
+c       Fixed qseek accidentally deleted in itrextra
+c
 c       Revision 3.14  2006/09/28 21:23:22  mast
 c       Changes for brief output and new qseek call
 c
