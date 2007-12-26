@@ -12,6 +12,10 @@
  * @version $Revision$
  * 
  * <p> $Log$
+ * <p> Revision 1.19  2007/09/07 00:27:11  sueh
+ * <p> bug# 989 Using a public INSTANCE to refer to the EtomoDirector singleton
+ * <p> instead of getInstance and createInstance.
+ * <p>
  * <p> Revision 1.18  2007/05/01 22:28:09  sueh
  * <p> bug# 964 Added setMax(int).
  * <p>
@@ -120,7 +124,7 @@ public class LabeledSpinner {
     //set name
     String name = Utilities.convertLabelToName(spinLabel);
     spinner.setName(name);
-    if (EtomoDirector.INSTANCE.isPrintNames()) {
+    if (EtomoDirector.INSTANCE.getArguments().isPrintNames()) {
       System.out.println(UITestField.SPINNER.toString()
           + AutodocTokenizer.SEPARATOR_CHAR + name + ' '
           + AutodocTokenizer.DEFAULT_DELIMITER + ' ');

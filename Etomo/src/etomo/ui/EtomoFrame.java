@@ -51,7 +51,7 @@ abstract class EtomoFrame extends JFrame {
   private static final int messageWidth = 60;
   private static final int maxMessageLines = 20;
   private static final boolean printNames = EtomoDirector.INSTANCE
-      .isPrintNames();
+      .getArguments().isPrintNames();
   private static final String ETOMO_QUESTION = "Etomo question";
   private static final String YES = "Yes";
   private static final String NO = "No";
@@ -142,10 +142,7 @@ abstract class EtomoFrame extends JFrame {
       EtomoDirector.INSTANCE.closeCurrentManager(axisID);
     }
     else if (menu.equalsFileExit(event)) {
-      //  Check to see if we need to save any data
-      if (EtomoDirector.INSTANCE.exitProgram(axisID)) {
-        System.exit(0);
-      }
+      UIHarness.INSTANCE.exit(axisID);
     }
     else if (menu.equalsFileTomosnapshot(event)) {
       currentManager.tomosnapshot(axisID);
@@ -856,6 +853,10 @@ abstract class EtomoFrame extends JFrame {
 }
 /**
  * <p> $Log$
+ * <p> Revision 1.34  2007/09/07 00:26:41  sueh
+ * <p> bug# 989 Using a public INSTANCE to refer to the EtomoDirector singleton
+ * <p> instead of getInstance and createInstance.
+ * <p>
  * <p> Revision 1.33  2007/05/02 21:05:48  sueh
  * <p> bug# 964 Removed Import PRM and Duplicate PEET menu items.
  * <p>

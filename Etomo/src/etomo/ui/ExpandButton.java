@@ -36,6 +36,10 @@ import etomo.util.Utilities;
  * @version $Revision$
  * 
  * <p> $Log$
+ * <p> Revision 1.16  2007/09/07 00:26:56  sueh
+ * <p> bug# 989 Using a public INSTANCE to refer to the EtomoDirector singleton
+ * <p> instead of getInstance and createInstance.
+ * <p>
  * <p> Revision 1.15  2007/03/20 00:44:28  sueh
  * <p> bug# 964 Added remove() to remove component from the jpanelContainer which
  * <p> was saved in add().
@@ -178,7 +182,7 @@ final class ExpandButton extends MultiLineButton {
     String name = Utilities.convertLabelToName(label) + "-"
         + type.getExpandedState();
     getButton().setName(name);
-    if (EtomoDirector.INSTANCE.isPrintNames()) {
+    if (EtomoDirector.INSTANCE.getArguments().isPrintNames()) {
       System.out.println(UITestField.MINI_BUTTON.toString()
           + AutodocTokenizer.SEPARATOR_CHAR + name + ' '
           + AutodocTokenizer.DEFAULT_DELIMITER + ' ');

@@ -25,6 +25,10 @@ import etomo.util.Utilities;
  * @version $Revision$
  *
  * <p> $Log$
+ * <p> Revision 3.26  2007/09/07 00:27:19  sueh
+ * <p> bug# 989 Using a public INSTANCE to refer to the EtomoDirector singleton
+ * <p> instead of getInstance and createInstance.
+ * <p>
  * <p> Revision 3.25  2007/06/08 22:21:47  sueh
  * <p> bug# 1014 Added clear().
  * <p>
@@ -182,7 +186,7 @@ final class LabeledTextField {
   private void setName(final String tfLabel) {
     String name = Utilities.convertLabelToName(tfLabel);
     textField.setName(name);
-    if (EtomoDirector.INSTANCE.isPrintNames()) {
+    if (EtomoDirector.INSTANCE.getArguments().isPrintNames()) {
       System.out.println(UITestField.TEXT_FIELD.toString()
           + AutodocTokenizer.SEPARATOR_CHAR + name + ' '
           + AutodocTokenizer.DEFAULT_DELIMITER + ' ');
@@ -234,6 +238,11 @@ final class LabeledTextField {
 
   String getText() {
     return textField.getText();
+  }
+  
+  boolean isEmpty() {
+    String text = textField.getText();
+    return text==null|text.matches("\\s*");
   }
 
   void setText(ConstEtomoNumber text) {

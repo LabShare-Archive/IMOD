@@ -43,6 +43,9 @@ import java.lang.String;
  * @version $Revision$
  *
  * <p> $Log$
+ * <p> Revision 3.30  2007/11/06 19:53:05  sueh
+ * <p> bug# 1047 Simplified toString().
+ * <p>
  * <p> Revision 3.29  2007/09/10 20:43:31  sueh
  * <p> bug# 925 Removed lazy initialization for ProcessResultDisplay so initialized is
  * <p> no longer needed.  In setScreenState, calling button.setSelected() immediately
@@ -311,7 +314,7 @@ import java.lang.String;
   void setName(String label) {
     String name = Utilities.convertLabelToName(label);
     button.setName(name);
-    if (EtomoDirector.INSTANCE.isPrintNames()) {
+    if (EtomoDirector.INSTANCE.getArguments().isPrintNames()) {
       System.out.println(UITestField.BUTTON.toString()
           + AutodocTokenizer.SEPARATOR_CHAR + name + ' '
           + AutodocTokenizer.DEFAULT_DELIMITER + ' ');

@@ -33,6 +33,10 @@ import etomo.util.Utilities;
  * @version $Revision$
  *
  * <p> $Log$
+ * <p> Revision 3.33  2007/09/27 20:31:22  sueh
+ * <p> bug# 1044 Made ProcessorTable the ParallelProgress display instead of
+ * <p> ParallelPanel.
+ * <p>
  * <p> Revision 3.32  2007/09/07 00:25:48  sueh
  * <p> bug# 989 Using a public INSTANCE to refer to the EtomoDirector singleton
  * <p> instead of getInstance and createInstance.
@@ -307,7 +311,7 @@ abstract class AxisProcessPanel implements ContextMenu {
     }
     buttonKillProcess.setName(Utilities.convertLabelToName(KILL_BUTTON_LABEL,
         processName));
-    if (EtomoDirector.INSTANCE.isPrintNames()) {
+    if (EtomoDirector.INSTANCE.getArguments().isPrintNames()) {
       System.out.println(UITestAction.WAIT_FOR.toString()
           + AutodocTokenizer.SEPARATOR_CHAR + UITestField.PROCESS
           + AutodocTokenizer.SEPARATOR_CHAR + processName.toString() + ' '

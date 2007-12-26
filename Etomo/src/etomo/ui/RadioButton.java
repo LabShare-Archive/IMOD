@@ -102,7 +102,7 @@ final class RadioButton implements RadioButtonInterface {
   void setName(final String text) {
     String name = Utilities.convertLabelToName(text);
     radioButton.setName(name);
-    if (EtomoDirector.INSTANCE.isPrintNames()) {
+    if (EtomoDirector.INSTANCE.getArguments().isPrintNames()) {
       System.out.println(UITestField.RADIO_BUTTON.toString()
           + AutodocTokenizer.SEPARATOR_CHAR + name + ' '
           + AutodocTokenizer.DEFAULT_DELIMITER + ' ');
@@ -220,6 +220,9 @@ final class RadioButton implements RadioButtonInterface {
 }
 /**
  * <p> $Log$
+ * <p> Revision 1.16  2007/09/27 21:04:32  sueh
+ * <p> bug# 1044 Expanded RadioButton so it can be used in RadioButtonCell.
+ * <p>
  * <p> Revision 1.15  2007/09/07 00:28:23  sueh
  * <p> bug# 989 Using a public INSTANCE to refer to the EtomoDirector singleton
  * <p> instead of getInstance and createInstance.

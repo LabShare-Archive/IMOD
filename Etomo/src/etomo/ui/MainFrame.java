@@ -31,6 +31,10 @@ import etomo.util.UniqueKey;
  * @version $Revision$
  *
  * <p> $Log$
+ * <p> Revision 3.44  2007/09/07 00:27:30  sueh
+ * <p> bug# 989 Using a public INSTANCE to refer to the EtomoDirector singleton
+ * <p> instead of getInstance and createInstance.
+ * <p>
  * <p> Revision 3.43  2006/06/21 15:54:04  sueh
  * <p> bug# 581 Passing manager and axis to ContextPopup, so that imodqtassist can
  * <p> be run.
@@ -623,7 +627,7 @@ final class MainFrame extends EtomoFrame implements ContextMenu {
   /**Overridden so we can exit when window is closed*/
   protected void processWindowEvent(WindowEvent event) {
     super.processWindowEvent(event);
-    if (event.getID() == WindowEvent.WINDOW_CLOSING && !EtomoDirector.INSTANCE.isTest()) {
+    if (event.getID() == WindowEvent.WINDOW_CLOSING && !EtomoDirector.INSTANCE.getArguments().isTest()) {
       menu.doClickFileExit();
     }
   }

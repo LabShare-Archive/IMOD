@@ -20,6 +20,10 @@ import etomo.util.Utilities;
 * @version $Revision$
 * 
 * <p> $Log$
+* <p> Revision 1.10  2007/09/07 00:26:17  sueh
+* <p> bug# 989 Using a public INSTANCE to refer to the EtomoDirector singleton
+* <p> instead of getInstance and createInstance.
+* <p>
 * <p> Revision 1.9  2007/02/09 00:47:40  sueh
 * <p> bug# 962 Made TooltipFormatter a singleton and moved its use to low-level ui
 * <p> classes.
@@ -69,7 +73,7 @@ final class CheckBox extends JCheckBox {
   public void setName(String text) {
     String name = Utilities.convertLabelToName(text);
     super.setName(name);
-    if (EtomoDirector.INSTANCE.isPrintNames()) {
+    if (EtomoDirector.INSTANCE.getArguments().isPrintNames()) {
       System.out.println(UITestField.CHECK_BOX.toString()
           + AutodocTokenizer.SEPARATOR_CHAR + name
           + ' ' + AutodocTokenizer.DEFAULT_DELIMITER + ' ');
@@ -82,6 +86,10 @@ final class CheckBox extends JCheckBox {
 }
 /**
 * <p> $Log$
+* <p> Revision 1.10  2007/09/07 00:26:17  sueh
+* <p> bug# 989 Using a public INSTANCE to refer to the EtomoDirector singleton
+* <p> instead of getInstance and createInstance.
+* <p>
 * <p> Revision 1.9  2007/02/09 00:47:40  sueh
 * <p> bug# 962 Made TooltipFormatter a singleton and moved its use to low-level ui
 * <p> classes.
