@@ -35,6 +35,10 @@ import etomo.type.Run3dmodMenuOptions;
  * @version $Revision$
  *
  * <p> $Log$
+ * <p> Revision 3.57  2007/05/01 22:30:41  sueh
+ * <p> bug# 964 In LabeledSpinner, saving SpinnerNumberModel so that the
+ * <p> maximum can be changed.
+ * <p>
  * <p> Revision 3.56  2007/02/09 00:54:13  sueh
  * <p> bug# 962 Made TooltipFormatter a singleton and moved its use to low-level ui
  * <p> classes.
@@ -758,13 +762,15 @@ public final class TomogramPositioningDialog extends ProcessDialog implements
     btnSample.setToolTipText(formattedToolTip);
   }
 
-  public void done() {
+  public boolean done() {
     if (expert.doneDialog()) {
       btnSample.removeActionListener(localActionListener);
       btnTomopitch.removeActionListener(localActionListener);
       btnAlign.removeActionListener(localActionListener);
       setDisplayed(false);
+      return true;
     }
+    return false;
   }
 
   public void buttonAdvancedAction(ActionEvent event) {

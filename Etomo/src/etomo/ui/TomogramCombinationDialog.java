@@ -48,6 +48,12 @@ import etomo.type.TomogramState;
  * @version $Revision$
  *
  * <p> $Log$
+ * <p> Revision 3.56  2007/12/10 22:48:37  sueh
+ * <p> bug# 1041 Passing the ProcessName to processchunks instead of setting it in
+ * <p> getParameters because it is required and has been added to the
+ * <p> ProcesschunksParam constructor.  Removed getParameters
+ * <p> ProcesschunksParam) because it is empty.
+ * <p>
  * <p> Revision 3.55  2007/08/21 21:55:14  sueh
  * <p> bug# 771 In show() passing !isChanged() to pnlSetup.show().
  * <p>
@@ -758,13 +764,12 @@ public final class TomogramCombinationDialog extends ProcessDialog implements
     synchronize(tabbedPane.getTitleAt(idxLastTab), true);
   }
 
-  public void done() {
-    //if (getExitState() != DialogExitState.CANCEL) {
-    //  synchronize(tabbedPane.getTitleAt(idxLastTab), true);
-    //}
+  public boolean done() {
     if (applicationManager.doneTomogramCombinationDialog()) {
       setDisplayed(false);
+      return true;
     }
+    return false;
   }
 
   public void buttonAdvancedAction(ActionEvent event) {

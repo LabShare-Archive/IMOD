@@ -60,6 +60,12 @@ import etomo.type.ViewType;
  * 
  * <p>
  * $Log$
+ * Revision 3.111  2007/12/10 22:48:55  sueh
+ * bug# 1041 Passing the ProcessName to processchunks instead of setting it in
+ * getParameters because it is required and has been added to the
+ * ProcesschunksParam constructor.  Removed getParameters
+ * ProcesschunksParam) because it is empty.
+ *
  * Revision 3.110  2007/09/07 00:29:26  sueh
  * bug# 989 Using a public INSTANCE to refer to the EtomoDirector singleton
  * instead of getInstance and createInstance.
@@ -1686,7 +1692,7 @@ public class TomogramGenerationDialog extends ProcessDialog implements
     ltfRotation.setEnabled(cbFiducialess.isSelected());
   }
 
-  protected void done() {
+   boolean done() {
     if (expert.doneDialog()) {
       btnNewst.removeActionListener(tomogramGenerationListener);
       btnTilt.removeActionListener(tomogramGenerationListener);
@@ -1695,7 +1701,9 @@ public class TomogramGenerationDialog extends ProcessDialog implements
       btnUseTrial.removeActionListener(tomogramGenerationListener);
       btnFilter.removeActionListener(tomogramGenerationListener);
       setDisplayed(false);
+      return true;
     }
+    return false;
   }
 
   public void buttonAdvancedAction(ActionEvent event) {
