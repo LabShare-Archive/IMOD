@@ -13,6 +13,7 @@ import etomo.type.ViewType;
 import etomo.ui.TomogramGenerationExpert;
 import etomo.ui.TomogramPositioningExpert;
 import etomo.ui.UIHarness;
+import etomo.util.DatasetFiles;
 import etomo.util.Utilities;
 
 /**
@@ -59,7 +60,7 @@ public class DataFlowTests {
     // existing in the directory the data set copy can be moved into the next
     // copy block below.
     try {
-      copyFromDataSource(datasetName + ".edf");
+      copyFromDataSource(datasetName + DatasetFiles.RECON_DATA_FILE_EXT);
       copyFromDataSource(datasetName + "a.st");
     }
     catch (SystemProcessException except) {
@@ -71,7 +72,7 @@ public class DataFlowTests {
     argsIn[0] = "--debug";
     argsIn[1] = "--selftest";
     argsIn[2] = System.getProperty("user.dir") + File.separator + datasetName
-        + ".edf";
+        + DatasetFiles.RECON_DATA_FILE_EXT;
     /*String[] argsIn = new String[1];
      argsIn[0] = System.getProperty("user.dir") + File.separator + datasetName
      + ".edf";*/
@@ -353,6 +354,10 @@ public class DataFlowTests {
 }
 /**
  * <p> $Log$
+ * <p> Revision 3.21  2007/09/07 00:15:40  sueh
+ * <p> bug# 989 Using a public INSTANCE for EtomoDirector instead of getInstance
+ * <p> and createInstance.  Call EtomoDirector.main() as early as possible.
+ * <p>
  * <p> Revision 3.20  2006/07/26 16:32:21  sueh
  * <p> bug# 868 Moved functions associated with TomogramGenerationDialog from
  * <p> ApplicationManager to TomogramGenerationExpert.
