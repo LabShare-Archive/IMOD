@@ -13,6 +13,9 @@ package etomo.type;
  * @version $Revision$
  *
  * <p> $Log$
+ * <p> Revision 3.0  2003/11/07 23:19:01  rickg
+ * <p> Version 1.0.0
+ * <p>
  * <p> Revision 2.0  2003/01/24 20:30:31  rickg
  * <p> Single window merge to main branch
  * <p>
@@ -42,6 +45,16 @@ public class ViewType {
   public String toString() {
     return name;
   }
+  
+  public String getValue() {
+    if (this==SINGLE_VIEW) {
+      return "single";
+    }
+    if (this==MONTAGE) {
+      return "montage";
+    }
+    return "";
+  }
 
   /**
    * Takes a string representation of an ViewType type and returns the correct
@@ -53,6 +66,12 @@ public class ViewType {
       return SINGLE_VIEW;
     }
     if (name.compareToIgnoreCase(MONTAGE.toString()) == 0) {
+      return MONTAGE;
+    }
+    if (name.compareToIgnoreCase(SINGLE_VIEW.getValue())==0){
+      return SINGLE_VIEW;
+    }
+    if (name.compareToIgnoreCase(MONTAGE.getValue())==0){
       return MONTAGE;
     }
     return null;
