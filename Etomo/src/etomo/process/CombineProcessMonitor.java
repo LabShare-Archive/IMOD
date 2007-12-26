@@ -31,6 +31,9 @@ import etomo.util.Utilities;
  * @version $$Revision$$
  * 
  * <p> $$Log$
+ * <p> $Revision 1.24  2007/12/10 22:06:29  sueh
+ * <p> $bug# 1041 working with the changes in ProcessName.
+ * <p> $
  * <p> $Revision 1.23  2007/09/07 00:18:43  sueh
  * <p> $bug# 989 Using a public INSTANCE to refer to the EtomoDirector singleton
  * <p> $instead of getInstance and createInstance.
@@ -205,7 +208,7 @@ public class CombineProcessMonitor implements DetachedProcessMonitor {
     this.axisID = axisID;
     this.combineComscriptState = combineComscriptState;
     this.processResultDisplay = processResultDisplay;
-    selfTest = EtomoDirector.INSTANCE.isSelfTest();
+    selfTest = EtomoDirector.INSTANCE.getArguments().isSelfTest();
     runSelfTest(CONSTRUCTED_STATE);
     displayFactory = manager.getProcessResultDisplayFactory(axisID);
   }

@@ -18,6 +18,9 @@
  * 
  * <p>
  * $Log$
+ * Revision 3.17  2007/12/10 21:59:49  sueh
+ * bug# 1041 Formatted.
+ *
  * Revision 3.16  2007/09/07 00:18:12  sueh
  * bug# 989 Using a public INSTANCE to refer to the EtomoDirector singleton
  * instead of getInstance and createInstance.
@@ -217,7 +220,7 @@ public class SetupCombine {
   public SetupCombine(ApplicationManager manager) throws SystemProcessException {
     this.manager = manager;
     metaData = manager.getConstMetaData();
-    debug = EtomoDirector.INSTANCE.isDebug();
+    debug = EtomoDirector.INSTANCE.getArguments().isDebug();
 
     //  Create a new SystemProgram object for setupcombine, set the
     //  working directory and stdin array.

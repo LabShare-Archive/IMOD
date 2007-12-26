@@ -1118,7 +1118,7 @@ public final class LogFile {
     private Lock(final LogFile logFile) {
       this.logFile = logFile;
       throwException = Utilities.isWindowsOS()
-          || EtomoDirector.INSTANCE.isTest();
+          || EtomoDirector.INSTANCE.getArguments().isTest();
     }
 
     private static String makeKey(final long id) {
@@ -1426,6 +1426,9 @@ public final class LogFile {
 }
 /**
  * <p> $Log$
+ * <p> Revision 1.16  2007/11/06 19:29:46  sueh
+ * <p> bug# 1047 Added comment.
+ * <p>
  * <p> Revision 1.15  2007/09/07 00:23:12  sueh
  * <p> bug# 989 Only throw LockException when necessary.  Added boolean
  * <p> Lock.throwException, which is true when a windows OS is used or unit tests are

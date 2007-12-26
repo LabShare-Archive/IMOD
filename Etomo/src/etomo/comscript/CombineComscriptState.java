@@ -21,6 +21,10 @@ import etomo.util.DatasetFiles;
 * @version $$Revision$$
 *
 * <p> $Log$
+* <p> Revision 1.9  2007/09/07 00:17:12  sueh
+* <p> bug# 989 Using a public INSTANCE to refer to the EtomoDirector singleton
+* <p> instead of getInstance and createInstance.
+* <p>
 * <p> Revision 1.8  2006/10/10 05:02:05  sueh
 * <p> bug# 931 Getting the patch out file name from DatasetFiles.
 * <p>
@@ -131,7 +135,7 @@ public class CombineComscriptState implements ComscriptState {
     
   public CombineComscriptState() {
     initializeComscriptMatchString();
-    selfTest = EtomoDirector.INSTANCE.isSelfTest();
+    selfTest = EtomoDirector.INSTANCE.getArguments().isSelfTest();
     runSelfTest(CONSTRUCTED_STATE);
   }
   

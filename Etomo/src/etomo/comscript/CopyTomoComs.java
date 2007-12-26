@@ -18,6 +18,9 @@
  * 
  * <p>
  * $Log$
+ * Revision 3.20  2007/12/10 21:55:17  sueh
+ * bug# 1041 Formatted.
+ *
  * Revision 3.19  2007/09/07 00:18:04  sueh
  * bug# 989 Using a public INSTANCE to refer to the EtomoDirector singleton
  * instead of getInstance and createInstance.
@@ -222,7 +225,7 @@ public final class CopyTomoComs {
   public CopyTomoComs(ApplicationManager manager) {
     this.manager = manager;
     metaData = manager.getConstMetaData();
-    debug = EtomoDirector.INSTANCE.isDebug();
+    debug = EtomoDirector.INSTANCE.getArguments().isDebug();
 
     // Create a new SystemProgram object for copytomocom, set the
     // working directory and stdin array.

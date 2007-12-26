@@ -39,6 +39,9 @@ import etomo.util.Utilities;
  * @version $Revision$
  * 
  * <p> $Log$
+ * <p> Revision 1.64  2007/12/13 01:08:21  sueh
+ * <p> bug# 1056 added startComScript(String command,...,CommandDetails)
+ * <p>
  * <p> Revision 1.63  2007/12/10 22:00:44  sueh
  * <p> bug# 1041 Combined the two processchunks functions.
  * <p>
@@ -661,22 +664,22 @@ public abstract class BaseProcessManager {
     // Run the script as a thread in the background
     comScriptProcess
         .setWorkingDirectory(new File(manager.getPropertyUserDir()));
-    comScriptProcess.setDebug(etomoDirector.isDebug());
-    comScriptProcess.setDemoMode(etomoDirector.isDemo());
+    comScriptProcess.setDebug(etomoDirector.getArguments().isDebug());
+    comScriptProcess.setDemoMode(etomoDirector.getArguments().isDemo());
     manager.saveStorables(axisID);
     comScriptProcess.start();
 
     // Map the thread to the correct axis
     mapAxisThread(comScriptProcess, axisID);
 
-    if (etomoDirector.isDebug()) {
+    if (etomoDirector.getArguments().isDebug()) {
       System.err.println("Started " + command);
       System.err.println("  Name: " + comScriptProcess.getName());
     }
 
     Thread processMonitorThread = null;
     // Replace the process monitor with a DemoProcessMonitor if demo mode is on
-    if (etomoDirector.isDemo()) {
+    if (etomoDirector.getArguments().isDemo()) {
       processMonitor = new DemoProcessMonitor(manager, axisID, command,
           comScriptProcess.getDemoTime());
     }
@@ -1338,12 +1341,12 @@ public abstract class BaseProcessManager {
       Runnable processMonitor) throws SystemProcessException {
     backgroundProcess
         .setWorkingDirectory(new File(manager.getPropertyUserDir()));
-    backgroundProcess.setDemoMode(etomoDirector.isDemo());
-    backgroundProcess.setDebug(etomoDirector.isDebug());
+    backgroundProcess.setDemoMode(etomoDirector.getArguments().isDemo());
+    backgroundProcess.setDebug(etomoDirector.getArguments().isDebug());
     manager.saveStorables(axisID);
     isAxisBusy(axisID, backgroundProcess.getProcessResultDisplay());
     backgroundProcess.start();
-    if (etomoDirector.isDebug()) {
+    if (etomoDirector.getArguments().isDebug()) {
       System.err.println("Started " + commandLine);
       System.err.println("  Name: " + backgroundProcess.getName());
     }
@@ -1377,7 +1380,7 @@ public abstract class BaseProcessManager {
     manager.saveStorables(command.getAxisID());
     thread.start();
     program.setName(thread.getName());
-    if (etomoDirector.isDebug()) {
+    if (etomoDirector.getArguments().isDebug()) {
       System.err.println("Started " + program.getCommandLine());
       System.err.println("  Name: " + thread.getName());
     }
@@ -1404,13 +1407,13 @@ public abstract class BaseProcessManager {
 
   private void startSystemProgramThread(SystemProgram sysProgram) {
     sysProgram.setWorkingDirectory(new File(manager.getPropertyUserDir()));
-    sysProgram.setDebug(etomoDirector.isDebug());
+    sysProgram.setDebug(etomoDirector.getArguments().isDebug());
 
     //  Start the system program thread
     Thread sysProgThread = new Thread(sysProgram);
     manager.saveStorables(sysProgram.getAxisID());
     sysProgThread.start();
-    if (etomoDirector.isDebug()) {
+    if (etomoDirector.getArguments().isDebug()) {
       System.err.println("Started " + sysProgram.getCommandLine());
       System.err
           .println("  working directory: " + manager.getPropertyUserDir());

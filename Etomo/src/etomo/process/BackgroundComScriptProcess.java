@@ -32,6 +32,10 @@ import etomo.util.Utilities;
  * @version $$Revision$$
  * 
  * <p> $Log$
+ * <p> Revision 1.27  2007/09/07 00:18:22  sueh
+ * <p> bug# 989 Using a public INSTANCE to refer to the EtomoDirector singleton
+ * <p> instead of getInstance and createInstance.
+ * <p>
  * <p> Revision 1.26  2007/06/12 00:23:41  sueh
  * <p> bug# 1017 In parse() restored functionality which went to each log.  The
  * <p> grep in combine.com will be removed.  It is more portable to place this
@@ -331,7 +335,7 @@ public class BackgroundComScriptProcess extends ComScriptProcess {
         command, getDetachedMonitor(), getAxisID());
     setSystemProgram(program);
     program.setWorkingDirectory(workingDirectory);
-    program.setDebug(EtomoDirector.INSTANCE.isDebug());
+    program.setDebug(EtomoDirector.INSTANCE.getArguments().isDebug());
 
     ParseBackgroundPID parsePID = new ParseBackgroundPID(program, processID,
         outFile, getProcessData());

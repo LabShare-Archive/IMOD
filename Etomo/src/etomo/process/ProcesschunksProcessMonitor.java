@@ -73,7 +73,7 @@ public class ProcesschunksProcessMonitor implements OutfileProcessMonitor,
     this.parallelProgressDisplay = parallelProgressDisplay;
     this.rootName = rootName;
     this.computerList = computerList;
-    debug = EtomoDirector.INSTANCE.isDebug();
+    debug = EtomoDirector.INSTANCE.getArguments().isDebug();
   }
 
   public final void setProcess(SystemProcessInterface process) {
@@ -352,7 +352,7 @@ public class ProcesschunksProcessMonitor implements OutfileProcessMonitor,
 
   public final void drop(String computer) {
     if (computerList.indexOf(computer) != -1) {
-      if (EtomoDirector.INSTANCE.isDebug()) {
+      if (EtomoDirector.INSTANCE.getArguments().isDebug()) {
         System.err.println("try to drop " + computer);
       }
       try {
@@ -465,6 +465,9 @@ public class ProcesschunksProcessMonitor implements OutfileProcessMonitor,
 }
 /**
  * <p> $Log$
+ * <p> Revision 1.33  2007/12/10 22:29:11  sueh
+ * <p> bug# 1041 Removed subdirName from the constructor because it is optional.
+ * <p>
  * <p> Revision 1.32  2007/11/06 19:25:21  sueh
  * <p> bug# 1-47 Allowed processchunks to be executed in a subdirectory.
  * <p>

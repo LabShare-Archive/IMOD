@@ -36,6 +36,9 @@ import etomo.util.Utilities;
  * 
  * <p>
  * $Log$
+ * Revision 3.45  2007/11/06 19:22:28  sueh
+ * bug# 1047 Added flip and subdirName.
+ *
  * Revision 3.44  2007/09/07 00:19:05  sueh
  * bug# 989 Using a public INSTANCE to refer to the EtomoDirector singleton
  * instead of getInstance and createInstance.
@@ -798,14 +801,14 @@ public class ImodProcess {
     String[] commandArray = new String[commandOptions.size()];
     for (int i = 0; i < commandOptions.size(); i++) {
       commandArray[i] = (String) commandOptions.get(i);
-      if (EtomoDirector.INSTANCE.isDebug()) {
+      if (EtomoDirector.INSTANCE.getArguments().isDebug()) {
         System.err.print(commandArray[i] + " ");
       }
       else if (debug) {
         System.out.print(commandArray[i] + " ");
       }
     }
-    if (EtomoDirector.INSTANCE.isDebug()) {
+    if (EtomoDirector.INSTANCE.getArguments().isDebug()) {
       System.err.println();
     }
     else if (debug) {
@@ -1244,7 +1247,7 @@ public class ImodProcess {
     for (int i = 0; i < args.length; i++) {
       command[i + 2] = args[i];
     }
-    if (EtomoDirector.INSTANCE.isDebug()) {
+    if (EtomoDirector.INSTANCE.getArguments().isDebug()) {
       System.err.print(command);
     }
     InteractiveSystemProgram imodSendEvent = new InteractiveSystemProgram(
@@ -1259,7 +1262,7 @@ public class ImodProcess {
     catch (Exception except) {
       except.printStackTrace();
     }
-    if (EtomoDirector.INSTANCE.isDebug()) {
+    if (EtomoDirector.INSTANCE.getArguments().isDebug()) {
       System.err.println("...done");
     }
 
@@ -1569,7 +1572,7 @@ public class ImodProcess {
       }
       if (buffer.length() > 0) {
         try {
-          if (EtomoDirector.INSTANCE.isDebug()) {
+          if (EtomoDirector.INSTANCE.getArguments().isDebug()) {
             System.err.println(buffer.toString());
           }
           // send the string to 3dmod's stdin
@@ -1629,7 +1632,7 @@ public class ImodProcess {
         boolean failure = false;
         while ((response = getStderr()) != null) {
           responseReceived = true;
-          if (EtomoDirector.INSTANCE.isDebug()) {
+          if (EtomoDirector.INSTANCE.getArguments().isDebug()) {
             System.err.println(response);
           }
           response = response.trim();

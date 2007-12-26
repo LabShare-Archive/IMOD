@@ -26,6 +26,9 @@ import etomo.util.MRCHeader;
  * @version $Revision$
  * 
  * <p> $Log$
+ * <p> Revision 3.19  2007/12/13 01:10:53  sueh
+ * <p> bug# 1056 Removed the Storables inner class from TiltParam.
+ * <p>
  * <p> Revision 3.18  2007/09/11 21:36:55  sueh
  * <p> bug# 1035 In calcFileSize prevent integer overflow when calculating fileSize by
  * <p> casting nX * xY to long.
@@ -213,7 +216,7 @@ final class TiltProcessMonitor extends FileSizeProcessMonitor {
     long fileSize = 1024 + ((long) nX * nY) * (nZ / imageBinned) * modeBytes;
     nKBytes = (int) (fileSize / 1024);
 
-    if (EtomoDirector.INSTANCE.isDebug()) {
+    if (EtomoDirector.INSTANCE.getArguments().isDebug()) {
       System.err.println("TiltProcessMonitor.calcFileSize:fileSize=" + fileSize
           + ",nX=" + nX + ",nY=" + nY + ",nZ=" + nZ + ",imageBinned="
           + imageBinned);

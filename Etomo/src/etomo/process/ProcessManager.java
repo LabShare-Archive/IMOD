@@ -20,6 +20,10 @@
  * 
  * <p>
  * $Log$
+ * Revision 3.117  2007/12/13 01:10:10  sueh
+ * bug# 1056 Made tilt() always pass the param.  Doing post processing on Tilt;
+ * setting AdjustOrigin for tilt and whole tomogram.
+ *
  * Revision 3.116  2007/09/07 00:19:24  sueh
  * bug# 989 Using a public INSTANCE to refer to the EtomoDirector singleton
  * instead of getInstance and createInstance.
@@ -913,7 +917,7 @@ public class ProcessManager extends BaseProcessManager {
   public boolean setupComScripts(ConstMetaData metaData, AxisID axisID) {
     CopyTomoComs copyTomoComs = new CopyTomoComs(appManager);
 
-    if (EtomoDirector.INSTANCE.isDebug()) {
+    if (EtomoDirector.INSTANCE.getArguments().isDebug()) {
       System.err.println("copytomocoms command line: "
           + copyTomoComs.getCommandLine());
     }
@@ -1751,7 +1755,7 @@ public class ProcessManager extends BaseProcessManager {
         .getPropertyUserDir(), commandArray, axisID);
     systemProgram
         .setWorkingDirectory(new File(appManager.getPropertyUserDir()));
-    systemProgram.setDebug(EtomoDirector.INSTANCE.isDebug());
+    systemProgram.setDebug(EtomoDirector.INSTANCE.getArguments().isDebug());
     long logWriteId = LogFile.NO_ID;
     if (logFile != null) {
       logWriteId = logFile.openForWriting();
