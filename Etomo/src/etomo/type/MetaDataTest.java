@@ -26,6 +26,9 @@ import junit.framework.TestCase;
  * @version $Revision$
  * 
  * <p> $Log$
+ * <p> Revision 3.21  2007/12/14 18:51:33  sueh
+ * <p> Running system program is not working on windows.
+ * <p>
  * <p> Revision 3.20  2007/12/10 22:37:18  sueh
  * <p> bug# 1041 Merged ConstMetaDataTest with MetaDataTest.
  * <p>
@@ -207,7 +210,6 @@ public class MetaDataTest extends TestCase {
 
     //create a directory containing valid files
     validFileDir = new File(testDir, validFileDirName);
-    System.out.println("validFileDir="+validFileDir);
     if (!validFileDir.exists()) {
       assertTrue(validFileDir.mkdir());
     }
