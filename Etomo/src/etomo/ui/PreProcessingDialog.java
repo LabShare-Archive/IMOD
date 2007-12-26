@@ -27,6 +27,10 @@ import etomo.comscript.CCDEraserParam;
  * @version $Revision$
  *
  * <p> $Log$
+ * <p> Revision 3.11  2006/07/04 20:42:02  sueh
+ * <p> bug# 898 Don't remove action listeners unless the done dialog function
+ * <p> succeeds.
+ * <p>
  * <p> Revision 3.10  2006/06/30 20:02:35  sueh
  * <p> bug# 877 Calling all the done dialog functions from the dialog.done() function,
  * <p> which is called by the button action functions and saveAction() in
@@ -209,10 +213,12 @@ public class PreProcessingDialog extends ProcessDialog {
     pnlDMConvert.setVisible(false);
   }
 
-  protected void done() {
+   boolean done() {
     if (applicationManager.donePreProcDialog(axisID)) {
       panelCCDEraser.done();
       setDisplayed(false);
+      return true;
     }
+    return false;
   }
 }

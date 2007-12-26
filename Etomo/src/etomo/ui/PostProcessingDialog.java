@@ -241,12 +241,14 @@ public final class PostProcessingDialog extends ProcessDialog implements
     }
   }
 
-  protected void done() {
+   boolean done() {
     if (applicationManager.donePostProcessing()) {
       btnSqueezeVolume.removeActionListener(actionListener);
       trimvolPanel.done();
       setDisplayed(false);
+      return true;
     }
+    return false;
   }
 
   class PostProcessingDialogActionListener implements ActionListener {
@@ -275,6 +277,9 @@ public final class PostProcessingDialog extends ProcessDialog implements
 }
 /**
  * <p> $Log$
+ * <p> Revision 3.33  2007/11/06 20:30:25  sueh
+ * <p> bug# 1047 Generalize TripvolPanel.
+ * <p>
  * <p> Revision 3.32  2007/05/26 00:33:06  sueh
  * <p> bug# 994 Not automatically setting button size in SpacedPanel anymore.
  * <p> Setting button size in UI.

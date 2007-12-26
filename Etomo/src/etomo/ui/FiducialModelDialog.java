@@ -30,6 +30,11 @@ import etomo.comscript.FortranInputSyntaxException;
  * @version $Revision$
  *
  * <p> $Log$
+ * <p> Revision 3.37  2007/09/10 20:42:35  sueh
+ * <p> bug# 925 Should only load button states once.  Changed
+ * <p> ProcessResultDisplayFactory to load button states immediately, so removing
+ * <p> button state load in the dialogs.
+ * <p>
  * <p> Revision 3.36  2007/07/27 16:54:50  sueh
  * <p> bug# 979 Moved "Fix Fiducial Model" to BeadtrackPanel.  Using getInstance to
  * <p> construct FiducialModelDialog because it uses action listeners, which shouldn't
@@ -481,7 +486,7 @@ public class FiducialModelDialog extends ProcessDialog implements ContextMenu,
     }
   }
 
-  protected void done() {
+   boolean done() {
     if (applicationManager.doneFiducialModelDialog(axisID)) {
       if (btnTransferFiducials != null) {
         btnTransferFiducials.removeActionListener(actionListener);
@@ -489,7 +494,9 @@ public class FiducialModelDialog extends ProcessDialog implements ContextMenu,
       btnSeed.removeActionListener(actionListener);
       pnlBeadtrack.done();
       setDisplayed(false);
+      return true;
     }
+    return false;
   }
 
   public void buttonAdvancedAction(ActionEvent event) {

@@ -37,6 +37,9 @@ import etomo.type.Run3dmodMenuOptions;
  * @version $Revision$
  *
  * <p> $Log$
+ * <p> Revision 3.29  2007/11/14 23:47:02  sueh
+ * <p> bug# 1048 Added beam tilt tab to the log file display - if taBeamtilt.log is not empty.
+ * <p>
  * <p> Revision 3.28  2007/09/10 20:41:39  sueh
  * <p> bug# 925 Should only load button states once.  Changed
  * <p> ProcessResultDisplayFactory to load button states immediately, so removing
@@ -446,11 +449,13 @@ public final class AlignmentEstimationDialog extends ProcessDialog implements
         logFile, applicationManager, alignCommandName, axisID);
   }
 
-  void done() {
+  boolean done() {
     if (applicationManager.doneAlignmentEstimationDialog(axisID)) {
       btnComputeAlignment.removeActionListener(actionListener);
       setDisplayed(false);
+      return true;
     }
+    return false;
   }
 
   public void buttonAdvancedAction(final ActionEvent event) {

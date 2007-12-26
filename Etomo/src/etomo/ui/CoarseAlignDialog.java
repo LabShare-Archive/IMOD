@@ -11,6 +11,11 @@
  * @version $Revision$
  *
  * <p> $Log$
+ * <p> Revision 3.44  2007/09/10 20:42:16  sueh
+ * <p> bug# 925 Should only load button states once.  Changed
+ * <p> ProcessResultDisplayFactory to load button states immediately, so removing
+ * <p> button state load in the dialogs.
+ * <p>
  * <p> Revision 3.43  2007/05/26 00:31:58  sueh
  * <p> bug# 994 Not automatically setting button size in SpacedPanel anymore.
  * <p> Setting button size in UI.
@@ -555,7 +560,7 @@ public final class CoarseAlignDialog extends ProcessDialog implements
     }
   }
 
-  protected void done() {
+   boolean done() {
     if (applicationManager.doneCoarseAlignDialog(axisID)) {
       pnlCrossCorrelation.done();
       pnlPrenewst.done();
@@ -563,7 +568,9 @@ public final class CoarseAlignDialog extends ProcessDialog implements
       btnFixEdgesMidas.removeActionListener(actionListener);
       btnMidas.removeActionListener(actionListener);
       setDisplayed(false);
+      return true;
     }
+    return false;
   }
 
   class CoarseAlignActionListener implements ActionListener {

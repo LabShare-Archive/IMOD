@@ -14,6 +14,10 @@
  * @version $Revision$
  *
  * <p> $Log$
+ * <p> Revision 3.30  2007/09/07 00:28:01  sueh
+ * <p> bug# 989 Using a public INSTANCE to refer to the EtomoDirector singleton
+ * <p> instead of getInstance and createInstance.
+ * <p>
  * <p> Revision 3.29  2007/03/21 19:46:27  sueh
  * <p> bug# 964 Limiting access to autodoc classes by using ReadOnly interfaces.
  * <p> Added AutodocFactory to create Autodoc instances.
@@ -191,7 +195,11 @@ public abstract class ProcessDialog implements AbstractParallelDialog {
   private DialogExitState exitState = DialogExitState.SAVE;
   private boolean displayed = false;
 
-  abstract void done();
+  /**
+   * set display to false if done functionality succeeds
+   * @return true if done functionality succeeds
+   */
+  abstract boolean done();
 
   /**
    * Create a new process dialog with a set of exit buttons (cancel, postpone
@@ -207,7 +215,7 @@ public abstract class ProcessDialog implements AbstractParallelDialog {
     //set name
     String name = dialogType.getStorableName();
     rootPanel.setName(name);
-    if (EtomoDirector.INSTANCE.isPrintNames()) {
+    if (EtomoDirector.INSTANCE.getArguments().isPrintNames()) {
       System.out.println(AutodocTokenizer.OPEN_CHAR
           + UITestAxisDialogCommand.SECTION_TYPE + ' '
           + AutodocTokenizer.DEFAULT_DELIMITER + ' ' + name
@@ -307,10 +315,10 @@ public abstract class ProcessDialog implements AbstractParallelDialog {
    * Action to take when the execute button is pressed, the default action is
    * to set the exitState attribute to EXECUTE.
    */
-  public void buttonExecuteAction(final ActionEvent event) {
+  public boolean buttonExecuteAction() {
     Utilities.buttonTimestamp("done", dialogType.toString());
     exitState = DialogExitState.EXECUTE;
-    done();
+    return done();
   }
 
   public void saveAction() {
@@ -413,7 +421,7 @@ final class buttonExecuteActionAdapter implements java.awt.event.ActionListener 
   }
 
   public void actionPerformed(ActionEvent e) {
-    adaptee.buttonExecuteAction(e);
+    adaptee.buttonExecuteAction();
   }
 }
 

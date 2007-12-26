@@ -137,9 +137,10 @@ public class CleanUpDialog extends ProcessDialog implements ContextMenu {
     UIHarness.INSTANCE.pack(axisID, applicationManager);
   }
 
-  protected void done() {
+  protected boolean done() {
     applicationManager.doneCleanUp();
     setDisplayed(false);
+    return true;
   }
 
   protected void buttonAction(ActionEvent event) {
@@ -179,6 +180,10 @@ public class CleanUpDialog extends ProcessDialog implements ContextMenu {
 }
 /**
  * <p> $Log$
+ * <p> Revision 1.12  2007/02/09 00:48:07  sueh
+ * <p> bug# 962 Made TooltipFormatter a singleton and moved its use to low-level ui
+ * <p> classes.
+ * <p>
  * <p> Revision 1.11  2006/06/30 20:00:37  sueh
  * <p> bug# 877 Calling all the done dialog functions from the dialog.done() function,
  * <p> which is called by the button action functions and saveAction() in
