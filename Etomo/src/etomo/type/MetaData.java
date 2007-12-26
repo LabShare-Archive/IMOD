@@ -12,6 +12,7 @@ import etomo.comscript.SqueezevolParam;
 import etomo.comscript.TiltalignParam;
 import etomo.comscript.TransferfidParam;
 import etomo.comscript.TrimvolParam;
+import etomo.util.DatasetFiles;
 
 /**
  * <p>Description: </p>
@@ -26,6 +27,9 @@ import etomo.comscript.TrimvolParam;
  * @version $Revision$
  *
  * <p> $Log$
+ * <p> Revision 3.38  2007/12/13 01:13:01  sueh
+ * <p> bug# 1056 Removed the Storables inner class from TiltParam.
+ * <p>
  * <p> Revision 3.37  2007/12/10 22:36:58  sueh
  * <p> bug# 1041 Made Const class an interface so inheritance can come from
  * <p> BaseMetaData.
@@ -346,7 +350,7 @@ public final class MetaData extends BaseMetaData implements ConstMetaData {
     trimvolParam = new TrimvolParam(manager);
     transferfidParamA = new TransferfidParam(manager, AxisID.FIRST);
     transferfidParamB = new TransferfidParam(manager, AxisID.SECOND);
-    fileExtension = ".edf";
+    fileExtension = DatasetFiles.RECON_DATA_FILE_EXT;
     useZFactorsA.setDisplayValue(true);
     useZFactorsB.setDisplayValue(true);
     sampleThicknessA.setDisplayValue(DEFAULT_SAMPLE_THICKNESS);
@@ -454,9 +458,13 @@ public final class MetaData extends BaseMetaData implements ConstMetaData {
   public void setViewType(ViewType vt) {
     viewType = vt;
   }
-
+  
   public void setPixelSize(double pixelSize) {
     this.pixelSize = pixelSize;
+  }
+
+  public void setPixelSize(String pixelSize) {
+    this.pixelSize = Double.parseDouble(pixelSize);
   }
 
   public void setUseLocalAlignments(AxisID axisID, boolean state) {
@@ -568,11 +576,15 @@ public final class MetaData extends BaseMetaData implements ConstMetaData {
       this.useZFactorsA.set(useZFactors);
     }
   }
-
+  
   public void setFiducialDiameter(double fiducialDiameter) {
     this.fiducialDiameter = fiducialDiameter;
   }
 
+  public void setFiducialDiameter(String fiducialDiameter) {
+    this.fiducialDiameter = Double.parseDouble(fiducialDiameter);
+  }
+  
   public void setImageRotation(float rotation, AxisID axisID) {
     if (axisID == AxisID.SECOND) {
       imageRotationB = rotation;
@@ -582,8 +594,17 @@ public final class MetaData extends BaseMetaData implements ConstMetaData {
     }
   }
 
-  public void setBinning(int binning) {
-    this.binning = binning;
+  public void setImageRotation(String rotation, AxisID axisID) {
+    if (axisID == AxisID.SECOND) {
+      imageRotationB = Float.parseFloat(rotation);
+    }
+    else {
+      imageRotationA = Float.parseFloat(rotation);
+    }
+  }
+
+  public void setBinning(Number binning) {
+    this.binning = binning.intValue();
   }
 
   public void setTiltAngleSpecA(TiltAngleSpec tiltAngleSpec) {
