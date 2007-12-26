@@ -13,6 +13,10 @@ package etomo.ui;
  * @version $Revision$
  * 
  * <p> $Log$
+ * <p> Revision 3.6  2007/04/13 20:40:48  sueh
+ * <p> bug# 964 Fixed a bug by adding convertToHtml.  Html string don't display "<"
+ * <p> and ">" reliably, so I replaced them with the html equivalent.
+ * <p>
  * <p> Revision 3.5  2007/02/09 00:54:47  sueh
  * <p> bug# 962 Made TooltipFormatter a singleton.
  * <p>
@@ -78,7 +82,8 @@ public class TooltipFormatter {
           idxStop = N_COLUMNS;
         }
         else {
-          htmlFormat.append(convertToHtml(rawString.substring(idxStart, idxStart + idxStop))
+          htmlFormat.append(convertToHtml(rawString.substring(idxStart,
+              idxStart + idxStop))
               + "<br>");
           idxStart = idxStart + idxStop + 1;
         }
@@ -87,18 +92,26 @@ public class TooltipFormatter {
     return htmlFormat.toString();
   }
 
+  /**
+   * Convert ">" and "<" to the html versions, unless they are part of <b> or
+   * </b>.
+   * @param rawString
+   * @return
+   */
   private String convertToHtml(String rawString) {
     StringBuffer buffer = new StringBuffer(rawString);
     int ltIndex = rawString.length();
     int gtIndex = rawString.length();
+    HtmlMask htmlMask = new HtmlMask();
+    htmlMask.mask(rawString);
     while (ltIndex >= 0 || gtIndex >= 0) {
       ltIndex = buffer.lastIndexOf("<", ltIndex - 1);
-      if (ltIndex != -1) {
+      if (ltIndex != -1 && !htmlMask.isMasked(ltIndex)) {
         buffer.deleteCharAt(ltIndex);
         buffer.insert(ltIndex, "<html>&lt");
       }
       gtIndex = buffer.lastIndexOf(">", gtIndex - 1);
-      if (gtIndex != -1) {
+      if (gtIndex != -1 && !htmlMask.isMasked(gtIndex)) {
         buffer.deleteCharAt(gtIndex);
         buffer.insert(gtIndex, "<html>&gt");
       }
@@ -139,5 +152,59 @@ public class TooltipFormatter {
    }*/
 
   private TooltipFormatter() {
+  }
+  
+  private static final class HtmlMask {
+    /**
+     * Use only lower case in tagArray.
+     */
+    private final String[] tagArray = new String[] { "<b>", "</b>" };
+
+    private boolean[] maskMap = null;
+
+    private HtmlMask() {
+    }
+
+    /**
+     * maskMap is constructed to be the same length as string.  Put a true at
+     * each index which corresponds to a place in string which should be masked.
+     * Not case sensitive.
+     * @param string
+     */
+    private void mask(String string) {
+      if (string == null) {
+        maskMap = null;
+        return;
+      }
+      string = string.toLowerCase();
+      maskMap = new boolean[string.length()];
+      for (int i = 0; i < maskMap.length; i++) {
+        maskMap[i] = false;
+      }
+      if (tagArray == null || tagArray.length == 0) {
+        return;
+      }
+      int iTag = 0;
+      while (iTag < tagArray.length) {
+        int iFind = 0;
+        while (iFind != -1 && iFind < string.length()) {
+          iFind = string.indexOf(tagArray[iTag], iFind);
+          if (iFind != -1) {
+            for (int i = iFind; i < iFind + tagArray[iTag].length(); i++) {
+              maskMap[i] = true;
+            }
+            iFind += tagArray[iTag].length();
+          }
+        }
+        iTag++;
+      }
+    }
+
+    private boolean isMasked(int index) {
+      if (maskMap == null || index < 0 || index >= maskMap.length) {
+        return false;
+      }
+      return maskMap[index];
+    }
   }
 }
