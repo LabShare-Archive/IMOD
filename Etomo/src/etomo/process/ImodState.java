@@ -174,6 +174,9 @@ import etomo.type.Run3dmodMenuOptions;
  * @version $$Revision$$
  * 
  * <p> $$Log$
+ * <p> $Revision 1.43  2007/11/06 19:23:03  sueh
+ * <p> $bug# 1047 Added subdirName.
+ * <p> $
  * <p> $Revision 1.42  2007/05/11 19:29:12  sueh
  * <p> $bug# 964 Save fileNameArray.  Added equalsFileNameArray(String[]).
  * <p> $
@@ -600,6 +603,9 @@ public final class ImodState {
    */
   void open(Run3dmodMenuOptions menuOptions) throws SystemProcessException,
       IOException {
+    if (menuOptions==null) {
+      menuOptions=new Run3dmodMenuOptions();
+    }
     menuOptions.setNoOptions(noMenuOptions);
     menuOptions.getOptions();
     menuOptions.setAllowBinningInZ(allowMenuBinningInZ);
