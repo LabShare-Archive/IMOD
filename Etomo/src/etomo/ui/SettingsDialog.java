@@ -44,7 +44,7 @@ public class SettingsDialog extends JDialog {
   CheckBox cbNoParallelProcessing = new CheckBox("Start with "
       + ParallelPanel.FIELD_LABEL + " off");
   CheckBox cbTiltAnglesRawtltFile = new CheckBox("Angle Source:  "
-      + TiltAngleDialogPanel.EXISTING_RAWTILT_FILE);
+      + TiltAnglePanel.EXISTING_RAWTILT_FILE);
   CheckBox cbSwapYAndZ = new CheckBox(TrimvolPanel.REORIENTATION_GROUP_LABEL
       + "  " + TrimvolPanel.SWAP_YZ_LABEL);
 
