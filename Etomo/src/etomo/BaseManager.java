@@ -150,14 +150,16 @@ public abstract class BaseManager {
   abstract Storable[] getStorables(int offset);
 
   public abstract String getName();
+  
+  public abstract void doAutomation();
 
   public BaseManager() {
     propertyUserDir = System.getProperty("user.dir");
     createProcessTrack();
     createComScriptManager();
     //  Initialize the program settings
-    debug = EtomoDirector.INSTANCE.isDebug();
-    headless = EtomoDirector.INSTANCE.isHeadless();
+    debug = EtomoDirector.INSTANCE.getArguments().isDebug();
+    headless = EtomoDirector.INSTANCE.getArguments().isHeadless();
     if (!headless) {
       createMainPanel();
     }
@@ -247,20 +249,20 @@ public abstract class BaseManager {
       initializeUIParameters(new File(paramFileName), axisID, false);
     }
   }
-  
+
   /**
    * Save storable to the data file.
    * @param axisID
    * @param processData
    */
-  public void saveStorable(AxisID axisID,Storable storable) {
+  public void saveStorable(AxisID axisID, Storable storable) {
     getParameterStore();
     if (parameterStore == null) {
       return;
     }
     parameterStore.setAutoStore(true);
     try {
-        parameterStore.save(storable);
+      parameterStore.save(storable);
     }
     catch (LogFile.FileException e) {
       e.printStackTrace();
@@ -856,8 +858,8 @@ public abstract class BaseManager {
     parallelPanel.setProcessInfo(param, processResultDisplay);
     setThreadName(threadName, axisID);
   }
-  
-  void processFailed(AxisID axisID){
+
+  void processFailed(AxisID axisID) {
     resetNextProcess(axisID);
     resetLastProcess(axisID);
   }
@@ -1265,6 +1267,10 @@ public abstract class BaseManager {
 }
 /**
  * <p> $Log$
+ * <p> Revision 1.92  2007/12/10 21:47:09  sueh
+ * <p> bug# 1041 Added saveStorable() to save a single Storable to the datafile.  Added
+ * <p> processFailed() to reset next process and last process.
+ * <p>
  * <p> Revision 1.91  2007/11/06 18:57:10  sueh
  * <p> bug# 1047 Added the ability to run in a subdirectory to ProcesschunksParam.
  * <p>
