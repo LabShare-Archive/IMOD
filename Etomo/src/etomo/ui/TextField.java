@@ -92,7 +92,7 @@ final class TextField {
   private void setName(String reference) {
     String name = Utilities.convertLabelToName(reference);
     textField.setName(name);
-    if (EtomoDirector.INSTANCE.isPrintNames()) {
+    if (EtomoDirector.INSTANCE.getArguments().isPrintNames()) {
       System.out.println(UITestField.TEXT_FIELD.toString()
           + AutodocTokenizer.SEPARATOR_CHAR + name + ' '
           + AutodocTokenizer.DEFAULT_DELIMITER + ' ');
@@ -101,6 +101,10 @@ final class TextField {
 }
 /**
  * <p> $Log$
+ * <p> Revision 1.4  2007/09/07 00:29:17  sueh
+ * <p> bug# 989 Using a public INSTANCE to refer to the EtomoDirector singleton
+ * <p> instead of getInstance and createInstance.
+ * <p>
  * <p> Revision 1.3  2007/03/30 23:54:19  sueh
  * <p> bug# 964 Wrapping JTextField instead of inheriting it.  Added automatic sizing.
  * <p>

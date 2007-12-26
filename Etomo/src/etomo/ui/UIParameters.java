@@ -12,6 +12,9 @@
  * @version $Revision$
  * 
  * <p> $Log$
+ * <p> Revision 3.17  2007/11/06 20:33:37  sueh
+ * <p> bug# 1047 Added getListWidth.
+ * <p>
  * <p> Revision 3.16  2007/09/07 00:29:51  sueh
  * <p> bug# 989 Using a public INSTANCE to refer to the EtomoDirector singleton
  * <p> instead of getInstance and createInstance.
@@ -191,7 +194,7 @@ public final class UIParameters {
   private void calcSizes() {
     double height;
     //  Create a temporary check box and get its height
-    if (!EtomoDirector.INSTANCE.isHeadless()) {
+    if (!EtomoDirector.INSTANCE.getArguments().isHeadless()) {
       JCheckBox temp = new JCheckBox();
       height = temp.getPreferredSize().getHeight();
     }

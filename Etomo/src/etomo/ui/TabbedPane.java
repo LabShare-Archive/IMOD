@@ -39,7 +39,7 @@ final class TabbedPane extends JTabbedPane {
     else {
       name = getName();
     }
-    if (EtomoDirector.INSTANCE.isPrintNames()) {
+    if (EtomoDirector.INSTANCE.getArguments().isPrintNames()) {
       System.out.println(UITestField.TABBED_PANE.toString()
           + AutodocTokenizer.SEPARATOR_CHAR + name
           + AutodocTokenizer.SEPARATOR_CHAR + (tabCount - 1) + " "
@@ -49,6 +49,10 @@ final class TabbedPane extends JTabbedPane {
 }
 /**
  * <p> $Log$
+ * <p> Revision 1.2  2007/09/07 00:29:08  sueh
+ * <p> bug# 989 Using a public INSTANCE to refer to the EtomoDirector singleton
+ * <p> instead of getInstance and createInstance.
+ * <p>
  * <p> Revision 1.1  2006/04/25 19:23:04  sueh
  * <p> bug# 787 Made a subclass of JTabbedPane so tabbed panes could be
  * <p> named automatically.  The name is the first tab.

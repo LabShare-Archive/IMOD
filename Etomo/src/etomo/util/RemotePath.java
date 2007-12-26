@@ -591,7 +591,7 @@ public final class RemotePath {
    * Resets the instances so that mount rules can be reloaded.
    */
   final void reset() {
-    if (!EtomoDirector.INSTANCE.isTest()) {
+    if (!EtomoDirector.INSTANCE.getArguments().isTest()) {
       throw new IllegalStateException();
     }
     localMountRules = null;
@@ -608,7 +608,7 @@ public final class RemotePath {
    * @return
    */
   final String getHostName_test(BaseManager manager, AxisID axisID) {
-    if (!EtomoDirector.INSTANCE.isTest()) {
+    if (!EtomoDirector.INSTANCE.getArguments().isTest()) {
       throw new IllegalStateException();
     }
     return getHostName(manager, axisID);
@@ -619,7 +619,7 @@ public final class RemotePath {
    * @return mountRulesLoaded
    */
   final boolean isMountRulesLoaded_test() {
-    if (!EtomoDirector.INSTANCE.isTest()) {
+    if (!EtomoDirector.INSTANCE.getArguments().isTest()) {
       throw new IllegalStateException();
     }
     return mountRulesLoaded;
@@ -630,7 +630,7 @@ public final class RemotePath {
    * @return localMountRules == null
    */
   final boolean localMountRulesIsNull_test() {
-    if (!EtomoDirector.INSTANCE.isTest()) {
+    if (!EtomoDirector.INSTANCE.getArguments().isTest()) {
       throw new IllegalStateException();
     }
     return localMountRules == null;
@@ -641,7 +641,7 @@ public final class RemotePath {
    * @return localMountRules.size()
    */
   final int getLocalMountRulesSize_test() {
-    if (!EtomoDirector.INSTANCE.isTest()) {
+    if (!EtomoDirector.INSTANCE.getArguments().isTest()) {
       throw new IllegalStateException();
     }
     return localMountRules.size();
@@ -652,7 +652,7 @@ public final class RemotePath {
    * @return remoteMountRules == null
    */
   final boolean remoteMountRulesIsNull_test() {
-    if (!EtomoDirector.INSTANCE.isTest()) {
+    if (!EtomoDirector.INSTANCE.getArguments().isTest()) {
       throw new IllegalStateException();
     }
     return remoteMountRules == null;
@@ -663,7 +663,7 @@ public final class RemotePath {
    * @return remoteMountRules.size()
    */
   final int getRemoteMountRulesSize_test() {
-    if (!EtomoDirector.INSTANCE.isTest()) {
+    if (!EtomoDirector.INSTANCE.getArguments().isTest()) {
       throw new IllegalStateException();
     }
     return remoteMountRules.size();
@@ -677,6 +677,9 @@ public final class RemotePath {
 }
 /**
  * <p> $Log$
+ * <p> Revision 1.18  2007/11/12 15:04:21  sueh
+ * <p> bug# 1047 Formatted.
+ * <p>
  * <p> Revision 1.17  2007/09/27 21:07:12  sueh
  * <p> bug# 1044 Added Queue sections to CpuAdoc.
  * <p>

@@ -191,7 +191,7 @@ public class Montagesize {
     buildCommand();
     SystemProgram montagesize = new SystemProgram(propertyUserDir,
         commandArray, axisID);
-    montagesize.setDebug(EtomoDirector.INSTANCE.isDebug());
+    montagesize.setDebug(EtomoDirector.INSTANCE.getArguments().isDebug());
     modifiedFlag.setReadingNow();
     montagesize.run();
 
@@ -339,6 +339,10 @@ public class Montagesize {
 }
 /**
  * <p> $Log$
+ * <p> Revision 1.15  2007/09/07 00:30:43  sueh
+ * <p> bug# 989 Using a public INSTANCE to refer to the EtomoDirector singleton
+ * <p> instead of getInstance and createInstance.
+ * <p>
  * <p> Revision 1.14  2007/08/16 16:38:23  sueh
  * <p> bug# 1035 Added getFile().
  * <p>

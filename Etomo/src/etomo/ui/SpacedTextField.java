@@ -41,7 +41,7 @@ final class SpacedTextField {
     //set name
     String name = Utilities.convertLabelToName(label);
     textField.setName(name);
-    if (EtomoDirector.INSTANCE.isPrintNames()) {
+    if (EtomoDirector.INSTANCE.getArguments().isPrintNames()) {
       System.out.println(UITestField.TEXT_FIELD.toString()
           + AutodocTokenizer.SEPARATOR_CHAR + name + ' '
           + AutodocTokenizer.DEFAULT_DELIMITER + ' ');
@@ -134,6 +134,10 @@ final class SpacedTextField {
 }
 /**
 * <p> $Log$
+* <p> Revision 1.5  2007/09/07 00:28:51  sueh
+* <p> bug# 989 Using a public INSTANCE to refer to the EtomoDirector singleton
+* <p> instead of getInstance and createInstance.
+* <p>
 * <p> Revision 1.4  2007/03/01 01:44:01  sueh
 * <p> bug# 964 Formatting tooltip.
 * <p>

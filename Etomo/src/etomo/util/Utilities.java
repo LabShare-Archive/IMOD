@@ -12,6 +12,10 @@
  * @version $$Revision$
  *
  * <p> $$Log$
+ * <p> $Revision 3.53  2007/09/07 00:31:37  sueh
+ * <p> $bug# 989 Using a public INSTANCE to refer to the EtomoDirector singleton
+ * <p> $instead of getInstance and createInstance.
+ * <p> $
  * <p> $Revision 3.52  2007/03/01 01:48:23  sueh
  * <p> $bug# 964 Added LogFile to Autodoc.
  * <p> $
@@ -519,7 +523,7 @@ public class Utilities {
    * @param string
    */
   static public void debugPrint(String string, boolean toOut) {
-    if (EtomoDirector.INSTANCE.isDebug()) {
+    if (EtomoDirector.INSTANCE.getArguments().isDebug()) {
       if (toOut) {
         System.out.println(string);
       }
@@ -722,7 +726,7 @@ public class Utilities {
 
   public static boolean isDebug() {
     if (!retrievedDebug) {
-      debug = EtomoDirector.INSTANCE.isDebug();
+      debug = EtomoDirector.INSTANCE.getArguments().isDebug();
       retrievedDebug = true;
     }
     return debug;
@@ -734,7 +738,7 @@ public class Utilities {
 
   public static boolean isSelfTest() {
     if (!retrievedSelfTest) {
-      selfTest = EtomoDirector.INSTANCE.isSelfTest();
+      selfTest = EtomoDirector.INSTANCE.getArguments().isSelfTest();
       retrievedSelfTest = true;
     }
     return selfTest;

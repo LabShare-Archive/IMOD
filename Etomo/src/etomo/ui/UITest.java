@@ -5,6 +5,7 @@ import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.util.ArrayList;
 
+import etomo.Arguments;
 import etomo.EtomoDirector;
 import etomo.JfcUnitTests;
 import etomo.process.SystemProgram;
@@ -47,7 +48,8 @@ public final class UITest extends JFCTestCase implements AdocCommandFactory {
       AxisID.ONLY);
   private static final File DATA_DIR = Utilities.getExistingDir(
       "IMOD_UITEST_DATA", AxisID.ONLY);
-  private static final String[] ARGS = new String[] { "--selftest", "--test" };
+  private static final String[] ARGS = new String[] { Arguments.SELFTEST_TAG,
+      Arguments.TEST_TAG };
   static final long DEFAULT_SLEEP = 1000;
 
   private static Throwable uncaughtException = null;
@@ -91,7 +93,7 @@ public final class UITest extends JFCTestCase implements AdocCommandFactory {
    * run all the tests in uitest.adoc
    * @throws IOException
    */
-  public void test() throws IOException,LogFile.ReadException {
+  public void test() throws IOException, LogFile.ReadException {
     String testName = EnvironmentVariable.INSTANCE.getValue(null,
         "IMOD_TEST_SECTION", AxisID.ONLY);
     System.err.println("test " + testName + ":");
@@ -223,7 +225,8 @@ public final class UITest extends JFCTestCase implements AdocCommandFactory {
    * @throws FileNotFoundException
    * @throws IOException
    */
-  private void processSection() throws FileNotFoundException, IOException,LogFile.ReadException {
+  private void processSection() throws FileNotFoundException, IOException,
+      LogFile.ReadException {
     UITestTestCommand command = (UITestTestCommand) reader.nextCommand(null,
         this);
     while (!command.isEmpty()) {
@@ -285,7 +288,8 @@ public final class UITest extends JFCTestCase implements AdocCommandFactory {
     //run Etomo
     if (dataFileName == null) {
       EtomoDirector.main(ARGS);
-    }else {
+    }
+    else {
       File dataFile = new File(System.getProperty("user.dir"), dataFileName);
       String[] args = new String[ARGS.length + 1];
       for (int i = 0; i < ARGS.length; i++) {
@@ -396,7 +400,7 @@ public final class UITest extends JFCTestCase implements AdocCommandFactory {
    * @throws IOException
    */
   private void setAutodoc(UITestTestCommand command)
-      throws FileNotFoundException, IOException,LogFile.ReadException {
+      throws FileNotFoundException, IOException, LogFile.ReadException {
     String value = command.getValue();
     assertNotNull(null, "Unknown name/value pair format: " + command, value);
     setVariable(command);
@@ -407,16 +411,14 @@ public final class UITest extends JFCTestCase implements AdocCommandFactory {
         return;
       }
       axisIDB = axisID;
-      autodocB = AutodocFactory.getInstance(SOURCE_DIR, value,
-          AxisID.ONLY);
+      autodocB = AutodocFactory.getInstance(SOURCE_DIR, value, AxisID.ONLY);
       return;
     }
     if (autodocA != null) {
       return;
     }
     axisIDA = axisID;
-    autodocA = AutodocFactory.getInstance(SOURCE_DIR, value,
-        AxisID.ONLY);
+    autodocA = AutodocFactory.getInstance(SOURCE_DIR, value, AxisID.ONLY);
   }
 
   /**
@@ -514,7 +516,8 @@ public final class UITest extends JFCTestCase implements AdocCommandFactory {
    * @param rootDir
    * @return the directory
    */
-  private File getRelativeDir(ReadOnlyStatement pair, File rootDir, boolean makeDirs) {
+  private File getRelativeDir(ReadOnlyStatement pair, File rootDir,
+      boolean makeDirs) {
     //Get the directory name
     String dirName = pair.getRightSide();
     assertNotNull(null, "Unknown name/value pair format: " + pair.getString(),
@@ -625,6 +628,10 @@ public final class UITest extends JFCTestCase implements AdocCommandFactory {
 }
 /**
  * <p> $Log$
+ * <p> Revision 1.26  2007/09/07 00:30:03  sueh
+ * <p> bug# 989 Using a public INSTANCE to refer to the EtomoDirector singleton
+ * <p> instead of getInstance and createInstance.
+ * <p>
  * <p> Revision 1.25  2007/04/09 21:23:53  sueh
  * <p> Bug# 964 Changed NameValuePair to Statement and child classes.
  * <p>

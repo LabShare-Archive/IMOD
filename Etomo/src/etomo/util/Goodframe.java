@@ -50,7 +50,7 @@ public class Goodframe {
     commandArray[2] = Integer.toString(secondInput);
     SystemProgram groupframe = new SystemProgram(propertyUserDir, commandArray,
         axisID);
-    groupframe.setDebug(EtomoDirector.INSTANCE.isDebug());
+    groupframe.setDebug(EtomoDirector.INSTANCE.getArguments().isDebug());
     groupframe.run();
 
     if (groupframe.getExitValue() != 0) {
@@ -122,6 +122,10 @@ public class Goodframe {
 }
 /**
 * <p> $Log$
+* <p> Revision 1.10  2007/09/07 00:30:35  sueh
+* <p> bug# 989 Using a public INSTANCE to refer to the EtomoDirector singleton
+* <p> instead of getInstance and createInstance.
+* <p>
 * <p> Revision 1.9  2007/02/05 23:47:04  sueh
 * <p> bug# 962 Moved EtomoNumber type info to inner class.
 * <p>

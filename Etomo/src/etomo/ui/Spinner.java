@@ -31,6 +31,9 @@ import etomo.util.Utilities;
  * @version $Revision$
  * 
  * <p> $Log$
+ * <p> Revision 1.8  2007/11/06 20:32:46  sueh
+ * <p> bug# 1047 Allowed the step to be set in the constructor.
+ * <p>
  * <p> Revision 1.7  2007/09/07 00:29:00  sueh
  * <p> bug# 989 Using a public INSTANCE to refer to the EtomoDirector singleton
  * <p> instead of getInstance and createInstance.
@@ -70,7 +73,7 @@ final class Spinner {
     this.defaultValue = new Integer(value);
     String name = Utilities.convertLabelToName(label);
     spinner.setName(name);
-    if (EtomoDirector.INSTANCE.isPrintNames()) {
+    if (EtomoDirector.INSTANCE.getArguments().isPrintNames()) {
       System.out.println(UITestField.SPINNER.toString()
           + AutodocTokenizer.SEPARATOR_CHAR + name + ' '
           + AutodocTokenizer.DEFAULT_DELIMITER + ' ');
