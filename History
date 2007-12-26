@@ -1,5 +1,8 @@
 IMOD History
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+12/26/07: Added Etomo arguments to allow the reconstruction Setup dialog to be
+completed automatically.  See etomo -h.
+
 12/21/07: IMOD_3-12-0 and branch to IMOD_3-11-0
 12/17/07: IMOD_3-10-24
 12/17/07: Nicing processchunks when using a queue.
