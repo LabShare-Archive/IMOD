@@ -2,6 +2,8 @@ package etomo.storage;
 
 import java.io.File;
 
+import etomo.util.DatasetFiles;
+
 
 /**
  * <p>Description: </p>
@@ -16,6 +18,9 @@ import java.io.File;
  * @version $Revision$
  *
  * <p> $Log$
+ * <p> Revision 3.2  2005/02/16 22:32:06  sueh
+ * <p> bug# 604 Prevent EtomoFileFilter from accepting directories.
+ * <p>
  * <p> Revision 3.1  2004/11/19 23:28:43  sueh
  * <p> bug# 520 merging Etomo_3-4-6_JOIN branch to head.
  * <p>
@@ -48,7 +53,7 @@ public class EtomoFileFilter extends DataFileFilter {
    */
   public boolean accept(File f) {
     //  If this is a file test its extension, all others should return true
-    if (f.isDirectory() || (f.isFile() && !f.getAbsolutePath().endsWith(".edf"))) {
+    if (f.isDirectory() || (f.isFile() && !f.getAbsolutePath().endsWith(DatasetFiles.RECON_DATA_FILE_EXT))) {
       return false;
     }
     return true;

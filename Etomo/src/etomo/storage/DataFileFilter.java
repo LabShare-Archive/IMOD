@@ -18,6 +18,9 @@ import etomo.util.DatasetFiles;
  * @version $Revision$
  * 
  * <p> $Log$
+ * <p> Revision 1.7  2007/08/07 00:46:46  sueh
+ * <p> bug# 996 Changed getDescription
+ * <p>
  * <p> Revision 1.6  2007/07/30 22:39:04  sueh
  * <p> bug# 963 Added DatasetFiles.JOIN_DATA_FILE_EXT.
  * <p>
@@ -46,7 +49,7 @@ public class DataFileFilter extends javax.swing.filechooser.FileFilter
    */
   public boolean accept(File f) {
     //  If this is a file test its extension, all others should return true
-    if (f.isFile() && !f.getAbsolutePath().endsWith(".edf")
+    if (f.isFile() && !f.getAbsolutePath().endsWith(DatasetFiles.RECON_DATA_FILE_EXT)
         && !f.getAbsolutePath().endsWith(DatasetFiles.JOIN_DATA_FILE_EXT)
         && !f.getAbsolutePath().endsWith(DatasetFiles.PARALLEL_DATA_FILE_EXT)
         && !f.getAbsolutePath().endsWith(DatasetFiles.PEET_DATA_FILE_EXT)) {
