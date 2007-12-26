@@ -27,6 +27,7 @@ public final class DatasetFiles {
 
   public static final String TILT_FILE_EXT = ".tlt";
   public static final String JOIN_DATA_FILE_EXT = ".ejf";
+  public static final String RECON_DATA_FILE_EXT = ".edf";
   public static final String MATLAB_PARAM_FILE_EXT = ".prm";
   public static final String PARALLEL_DATA_FILE_EXT = ".epp";
   public static final String PEET_DATA_FILE_EXT = ".epe";
@@ -309,7 +310,7 @@ public final class DatasetFiles {
 
   public static String getCommandsFileName(String subdirName, String rootName) {
     String commandsFileName = rootName + ".cmds";
-    if (subdirName == null||subdirName.matches("\\s*")) {
+    if (subdirName == null || subdirName.matches("\\s*")) {
       return commandsFileName;
     }
     return new File(subdirName, commandsFileName).getPath();
@@ -429,6 +430,10 @@ public final class DatasetFiles {
 }
 /**
  * <p> $Log$
+ * <p> Revision 1.43  2007/12/10 22:50:26  sueh
+ * <p> bug# 1041 In getCommandsFileName test subdirName more completely before
+ * <p> using it.
+ * <p>
  * <p> Revision 1.42  2007/11/06 20:35:25  sueh
  * <p> bug# 1047 Allowed getCommandsFileName to return a local path of the file in a subdirectory.
  * <p>
