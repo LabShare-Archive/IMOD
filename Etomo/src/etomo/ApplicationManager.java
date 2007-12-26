@@ -56,9 +56,7 @@ import etomo.process.ImodProcess;
 import etomo.process.ProcessManager;
 import etomo.process.ProcessState;
 import etomo.process.SystemProcessException;
-import etomo.storage.EtomoFileFilter;
 import etomo.storage.LogFile;
-import etomo.storage.ParameterStore;
 import etomo.storage.Storable;
 import etomo.storage.XrayStackArchiveFilter;
 import etomo.type.AxisID;
@@ -103,7 +101,7 @@ import etomo.ui.ParallelPanel;
 import etomo.ui.PostProcessingDialog;
 import etomo.ui.PreProcessingDialog;
 import etomo.ui.ProcessDialog;
-import etomo.ui.SetupDialog;
+import etomo.ui.SetupDialogExpert;
 import etomo.ui.TomogramCombinationDialog;
 import etomo.ui.TomogramGenerationExpert;
 import etomo.ui.TomogramPositioningExpert;
@@ -138,7 +136,7 @@ public final class ApplicationManager extends BaseManager {
   public static final String rcsid = "$Id$";
 
   // Process dialog references
-  private SetupDialog setupDialog = null;
+  private SetupDialogExpert setupDialogExpert = null;
   private PreProcessingDialog preProcDialogA = null;
   private PreProcessingDialog preProcDialogB = null;
   private CoarseAlignDialog coarseAlignDialogA = null;
@@ -176,7 +174,7 @@ public final class ApplicationManager extends BaseManager {
     initializeUIParameters(paramFileName, axisID);
     initializeAdvanced();
     // Open the etomo data file if one was found on the command line
-    if (!EtomoDirector.INSTANCE.isHeadless()) {
+    if (!EtomoDirector.INSTANCE.getArguments().isHeadless()) {
       if (!paramFileName.equals("")) {
         imodManager.setMetaData(metaData);
         if (loadedParamFile) {
@@ -192,6 +190,17 @@ public final class ApplicationManager extends BaseManager {
         openSetupDialog();
         return;
       }
+    }
+  }
+
+  public void doAutomation() {
+    if (setupDialogExpert != null) {
+      if (!setupDialogExpert.doAutomation()) {
+        return;
+      }
+    }
+    if (EtomoDirector.INSTANCE.getArguments().isExit()) {
+      uiHarness.exit(AxisID.ONLY);
     }
   }
 
@@ -253,7 +262,7 @@ public final class ApplicationManager extends BaseManager {
    * If setupDialog is not null, then the manager is new.
    */
   public boolean isNewManager() {
-    return setupDialog != null;
+    return setupDialogExpert != null;
   }
 
   /**
@@ -262,11 +271,11 @@ public final class ApplicationManager extends BaseManager {
    * @return
    */
   public boolean isSetupChanged() {
-    if (setupDialog == null) {
+    if (setupDialogExpert == null) {
       return false;
     }
-    if (setupDialog.getDatasetString() == null
-        || setupDialog.getDatasetString().matches("\\s*")) {
+    if (setupDialogExpert.getDataset() == null
+        || setupDialogExpert.getDataset().matches("\\s*")) {
       return false;
     }
     return true;
@@ -279,17 +288,17 @@ public final class ApplicationManager extends BaseManager {
     // Open the dialog in the appropriate mode for the current state of
     // processing
     setCurrentDialogType(DialogType.SETUP_RECON, AxisID.ONLY);
-    if (setupDialog == null) {
+    if (setupDialogExpert == null) {
       Utilities.timestamp("new", "SetupDialog", Utilities.STARTED_STATUS);
       //check for distortion directory
       File distortionDir = DatasetFiles.getDistortionDir(propertyUserDir,
           AxisID.ONLY);
-      setupDialog = new SetupDialog(this, distortionDir != null
-          && distortionDir.exists());
+      setupDialogExpert = SetupDialogExpert.getInstance(this,
+          distortionDir != null && distortionDir.exists());
       Utilities.timestamp("new", "SetupDialog", Utilities.FINISHED_STATUS);
-      setupDialog.initializeFields((ConstMetaData) metaData, userConfig);
+      setupDialogExpert.initializeFields((ConstMetaData) metaData, userConfig);
     }
-    mainPanel.openSetupPanel(setupDialog);
+    mainPanel.openSetupPanel(setupDialogExpert);
     Dimension screenSize = Toolkit.getDefaultToolkit().getScreenSize();
     Dimension frameSize = mainPanel.getSize();
     mainPanel.setLocation((screenSize.width - frameSize.width) / 2,
@@ -297,170 +306,32 @@ public final class ApplicationManager extends BaseManager {
   }
 
   /**
-   * Checks for an existing reconstruction on a different stack in the current
-   * directory. Assumes that the new .edf file for this instance has not been
-   * created yet. Since .com file names are not stack specific, it is necessary
-   * to prevent interference by doing only one reconstruction per directory. A
-   * secondary goal is to have only one tilt series per directory. Multiple .edf
-   * files accessing the same stacks are allowed so that the user can back up
-   * their .edf file or start a fresh .edf file. The user may also have one
-   * single and one dual reconstruction in a directory, as long as they have a
-   * stack in common.
-   * @return True if there is already an .edf file in the propertyUserDir and it
-   *         is referencing a stack other then the one(s) specified in the setup
-   *         dialog. True if the new .edf file and the existing .edf file are
-   *         both single axis, even if one file is accessing the A stack and the
-   *         other is accessing the B stack. False if no existing .edf file is
-   *         found. False if the new .edf file and the existing .edf file are
-   *         single and dual axis, as long as they have a stack in common. False
-   *         if there is a conflict, but the stacks that one of .edf files
-   *         references don't exist.
-   */
-  private boolean checkForSharedDirectory() {
-    if (setupDialog == null) {
-      throw new IllegalStateException(
-          "Function can only be run during setup phase,\nbefore the .edf file has been created.");
-    }
-    File directory = new File(propertyUserDir);
-    // Get all the edf files in propertyUserDir.
-    File[] edfFiles = directory.listFiles(new EtomoFileFilter());
-    if (edfFiles == null) {
-      return false;
-    }
-    String datasetName = metaData.getDatasetName();
-    AxisType axisType = metaData.getAxisType();
-    String extension = metaData.getFileExtension();
-    File firstStack = null;
-    File secondStack = null;
-    String firstStackName = null;
-    String secondStackName = null;
-    // Create File instances based on the stacks specified in the setup dialog
-    if (axisType == AxisType.DUAL_AXIS) {
-      firstStack = new File(propertyUserDir, datasetName
-          + AxisID.FIRST.getExtension() + ".st");
-      firstStackName = firstStack.getName();
-      secondStack = new File(propertyUserDir, datasetName
-          + AxisID.SECOND.getExtension() + ".st");
-      secondStackName = secondStack.getName();
-    }
-    else if (axisType == AxisType.SINGLE_AXIS) {
-      firstStack = new File(propertyUserDir, datasetName
-          + AxisID.ONLY.getExtension() + ".st");
-      firstStackName = firstStack.getName();
-    }
-    // open any .edf files in propertyUserDir - assuming the .edf file for this
-    // instance hasn't been created yet.
-    // If there is at least one .edf file that references existing stacks that
-    // are not the stacks the will be used in this instance, then the directory
-    // is already in use.
-    // Doing a dual and single axis on the same stack is not sharing a
-    // directory.
-    // However doing two single axis reconstructions on the same tilt series,
-    // where one is done on A and the other is done on B, would be considered
-    // sharing a directory.
-    for (int i = 0; i < edfFiles.length; i++) {
-      MetaData savedMetaData = new MetaData(this);
-      ParameterStore paramStore = ParameterStore.getInstance(edfFiles[i]);
-      try {
-        if (paramStore != null) {
-          paramStore.load(savedMetaData);
-        }
-      }
-      catch (LogFile.WriteException e) {
-        e.printStackTrace();
-        uiHarness.openMessageDialog("Unable to read .edf files in "
-            + propertyUserDir, "Etomo Error");
-        continue;
-      }
-      // Create File instances based on the stacks specified in the edf file
-      // found in propertyUserDir.
-      AxisType savedAxisType = savedMetaData.getAxisType();
-      String savedDatasetName = savedMetaData.getDatasetName();
-      File savedFirstStack;
-      File savedSecondStack;
-      String savedFirstStackName;
-      String savedSecondStackName;
-      if (savedAxisType == AxisType.DUAL_AXIS) {
-        savedFirstStack = new File(propertyUserDir, savedDatasetName
-            + AxisID.FIRST.getExtension() + ".st");
-        savedFirstStackName = savedFirstStack.getName();
-        savedSecondStack = new File(propertyUserDir, savedDatasetName
-            + AxisID.SECOND.getExtension() + ".st");
-        savedSecondStackName = savedSecondStack.getName();
-        if (axisType == AxisType.DUAL_AXIS) {
-          // compare dual axis A against saved dual axis A
-          if (savedFirstStack.exists()
-              && !firstStackName.equals(savedFirstStackName)) {
-            return true;
-          }
-          // compare dual axis B against saved dual axis B
-          if (savedSecondStack.exists()
-              && !secondStackName.equals(savedSecondStackName)) {
-            return true;
-          }
-        }
-        else if (axisType == AxisType.SINGLE_AXIS) {
-          // compare single axis against saved dual axis A
-          // compare single axis against saved dual axis B
-          if (savedFirstStack.exists()
-              && !firstStackName.equals(savedFirstStackName)
-              && (!savedSecondStack.exists() || (savedSecondStack.exists() && !firstStackName
-                  .equals(savedSecondStackName)))) {
-            return true;
-          }
-        }
-      }
-      else if (savedAxisType == AxisType.SINGLE_AXIS) {
-        savedFirstStack = new File(propertyUserDir, savedDatasetName
-            + AxisID.ONLY.getExtension() + ".st");
-        savedFirstStackName = savedFirstStack.getName();
-        if (axisType == AxisType.DUAL_AXIS) {
-          // compare dual axis A against saved single axis
-          // compare dual axis B against saved single axis
-          if (savedFirstStack.exists()
-              && !firstStackName.equals(savedFirstStackName)
-              && !secondStackName.equals(savedFirstStackName)) {
-            return true;
-          }
-        }
-        else if (axisType == AxisType.SINGLE_AXIS) {
-          // compare single axis against saved single axis
-          if (savedFirstStack.exists()
-              && !firstStackName.equals(savedFirstStackName)) {
-            return true;
-          }
-        }
-      }
-    }
-    return false;
-  }
-
-  /**
    * Close message from the setup dialog window
    */
-  public void doneSetupDialog() {
+  public boolean doneSetupDialog() {
     // Get the selected exit button
-    DialogExitState exitState = setupDialog.getExitState();
+    DialogExitState exitState = setupDialogExpert.getExitState();
     if (exitState != DialogExitState.CANCEL) {
-      if (!setupDialog.isValid()) {
-        return;
+      if (!setupDialogExpert.isValid()) {
+        return false;
       }
       // Set the current working directory for the application saving the
       // old user.dir property until the meta data is valid
       String oldUserDir = propertyUserDir;
-      propertyUserDir = setupDialog.getWorkingDirectory().getAbsolutePath();
-      metaData = setupDialog.getFields();
+      propertyUserDir = setupDialogExpert.getWorkingDirectory()
+          .getAbsolutePath();
+      metaData = setupDialogExpert.getFields();
       if (metaData == null) {
-        return;
+        return false;
       }
       metaData.initialize();
       if (metaData.isValid()) {
-        if (checkForSharedDirectory()) {
+        if (setupDialogExpert.checkForSharedDirectory()) {
           uiHarness.openMessageDialog("This directory (" + propertyUserDir
               + ") is already being used by an .edf file.  Either open the "
               + "existing .edf file or create a new directory for the new "
               + "reconstruction.", "WARNING:  CANNOT PROCEED", AxisID.ONLY);
-          return;
+          return false;
         }
         processTrack.setSetupState(ProcessState.INPROGRESS);
         // final initialization of IMOD manager
@@ -483,12 +354,12 @@ public final class ApplicationManager extends BaseManager {
         uiHarness.openMessageDialog(errorMessage, "Setup Parameter Error",
             AxisID.ONLY);
         propertyUserDir = oldUserDir;
-        return;
+        return false;
       }
       // This is really the method to use the existing com scripts
       if (exitState == DialogExitState.EXECUTE) {
         if (!processMgr.setupComScripts(metaData, AxisID.ONLY)) {
-          return;
+          return false;
         }
       }
       processTrack.setSetupState(ProcessState.COMPLETE);
@@ -500,8 +371,9 @@ public final class ApplicationManager extends BaseManager {
     // Switch the main window to the procesing panel
     openProcessingPanel();
     // Free the dialog
-    setupDialog = null;
+    setupDialogExpert = null;
     saveStorables(AxisID.ONLY);
+    return true;
   }
 
   public InterfaceType getInterfaceType() {
@@ -1047,14 +919,14 @@ public final class ApplicationManager extends BaseManager {
    * @param axisID
    */
   public void imodPreview(AxisID axisID, Run3dmodMenuOptions menuOptions) {
-    if (setupDialog == null) {
+    if (setupDialogExpert == null) {
       return;
     }
     String key = ImodManager.PREVIEW_KEY;
-    MetaData previewMetaData = setupDialog.getDataset();
+    MetaData previewMetaData = setupDialogExpert.getMetaData();
     imodManager.setPreviewMetaData(previewMetaData);
     File previewWorkingDir = previewMetaData
-        .getValidDatasetDirectory(setupDialog.getWorkingDirectory()
+        .getValidDatasetDirectory(setupDialogExpert.getWorkingDirectory()
             .getAbsolutePath());
     if (previewWorkingDir == null) {
       uiHarness.openMessageDialog(previewMetaData.getInvalidReason(),
@@ -3011,8 +2883,9 @@ public final class ApplicationManager extends BaseManager {
       }
     }
   }
-  
-  public void tomogramPositioningPostProcess(AxisID axisID,ProcessDetails processDetails) {
+
+  public void tomogramPositioningPostProcess(AxisID axisID,
+      ProcessDetails processDetails) {
     ((TomogramPositioningExpert) getUIExpert(DialogType.TOMOGRAM_POSITIONING,
         axisID)).postProcess(processDetails, state);
   }
@@ -3287,10 +3160,10 @@ public final class ApplicationManager extends BaseManager {
    * @param axisID
    */
   public ProcessResult tiltProcess(AxisID axisID,
-      ProcessResultDisplay processResultDisplay,ConstTiltParam param) {
+      ProcessResultDisplay processResultDisplay, ConstTiltParam param) {
     String threadName;
     try {
-      threadName = processMgr.tilt(axisID, processResultDisplay,param);
+      threadName = processMgr.tilt(axisID, processResultDisplay, param);
     }
     catch (SystemProcessException e) {
       e.printStackTrace();
@@ -5474,11 +5347,17 @@ public final class ApplicationManager extends BaseManager {
   }
 
   public String getName() {
+    if (metaData == null) {
+      return MetaData.getNewFileTitle();
+    }
     return metaData.getName();
   }
 }
 /**
  * <p> $Log$
+ * <p> Revision 3.293  2007/12/13 01:01:45  sueh
+ * <p> bug# 1056 Moved post processing decision making back to ProcessManager.
+ * <p>
  * <p> Revision 3.292  2007/12/10 21:46:18  sueh
  * <p> bug# 1041 Formatted
  * <p>
