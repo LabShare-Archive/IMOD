@@ -1,7 +1,6 @@
 package etomo;
 
 import java.awt.Dimension;
-import java.awt.GraphicsEnvironment;
 import java.awt.Point;
 import java.io.File;
 import java.io.IOException;
@@ -69,7 +68,6 @@ public class EtomoDirector {
   private UniqueKey currentManagerKey = null;
   private String homeDirectory;
   private boolean defaultWindow = false;
-  private UIHarness uiHarness = UIHarness.INSTANCE;
   // advanced dialog state for this instance, this gets set upon startup from
   // the user configuration and can be modified for this instance by either
   // the option or advanced menu items
@@ -81,15 +79,24 @@ public class EtomoDirector {
   private boolean testDone = false;
   private ParameterStore parameterStore = null;
   private EtomoNumber javaMemoryLimit = null;
-  private static Arguments arguments = null;
+
+  private final Arguments arguments = new Arguments();
 
   private EtomoDirector() {
   }
 
   public static void main(String[] args) {
     Utilities.setStartTime();
-    EtomoDirector.arguments = Arguments.getInstance(args);
+    EtomoDirector.INSTANCE.arguments.parse(args);
     INSTANCE.initialize();
+    //automation must be done last in main, otherwise initialization may not
+    //complete normally.
+    EtomoDirector.INSTANCE.doAutomation();
+  }
+  
+  public void doAutomation() {
+    BaseManager manager = (BaseManager) managerList.get(currentManagerKey);
+    manager.doAutomation();
   }
 
   private void initialize() {
@@ -100,19 +107,19 @@ public class EtomoDirector {
       String[] message = new String[2];
       message[0] = "Can not find home directory! Unable to load user preferences";
       message[1] = "Set HOME environment variable and restart program to fix this problem";
-      uiHarness.openMessageDialog(message, "Program Initialization Error",
-          AxisID.ONLY);
+      UIHarness.INSTANCE.openMessageDialog(message,
+          "Program Initialization Error", AxisID.ONLY);
       System.exit(1);
     }
     //  Set the user preferences
     createUserConfiguration();
     setUserPreferences();
-    ArrayList paramFileNameList = arguments.paramFileNameList;
+    ArrayList paramFileNameList = arguments.getParamFileNameList();
     if (arguments.isHelp()) {
-      printHelpMessage();
+      printUsageMessage();
       return;
     }
-    uiHarness.createMainFrame();
+    UIHarness.INSTANCE.createMainFrame();
     initIMODDirectory();
     int paramFileNameListSize = paramFileNameList.size();
     String paramFileName = null;
@@ -127,16 +134,16 @@ public class EtomoDirector {
       for (int i = 0; i < paramFileNameListSize; i++) {
         paramFileName = (String) paramFileNameList.get(i);
         UniqueKey managerKey = null;
-        if (paramFileName.endsWith(".edf")) {
+        if (paramFileName.endsWith(DatasetFiles.RECON_DATA_FILE_EXT)) {
           managerKey = openTomogram(paramFileName, false, AxisID.ONLY);
         }
-        else if (paramFileName.endsWith(".ejf")) {
+        else if (paramFileName.endsWith(DatasetFiles.JOIN_DATA_FILE_EXT)) {
           managerKey = openJoin(paramFileName, false, AxisID.ONLY);
         }
-        else if (paramFileName.endsWith(".epp")) {
+        else if (paramFileName.endsWith(DatasetFiles.PARALLEL_DATA_FILE_EXT)) {
           managerKey = openParallel(paramFileName, false, AxisID.ONLY);
         }
-        else if (paramFileName.endsWith(".epe")) {
+        else if (paramFileName.endsWith(DatasetFiles.PEET_DATA_FILE_EXT)) {
           managerKey = openPeet(paramFileName, false, AxisID.ONLY);
         }
         if (i == 0) {
@@ -148,13 +155,13 @@ public class EtomoDirector {
     initProgram();
     BaseManager manager = (BaseManager) managerList.get(currentManagerKey);
     if (manager != null) {
-      uiHarness.setCurrentManager(manager, currentManagerKey, true);
+      UIHarness.INSTANCE.setCurrentManager(manager, currentManagerKey, true);
     }
-    uiHarness.selectWindowMenuItem(currentManagerKey);
+    UIHarness.INSTANCE.selectWindowMenuItem(currentManagerKey);
     setCurrentManager(currentManagerKey, false);
-    uiHarness.setMRUFileLabels(userConfig.getMRUFileList());
-    uiHarness.pack(manager);
-    uiHarness.setVisible(true);
+    UIHarness.INSTANCE.setMRUFileLabels(userConfig.getMRUFileList());
+    UIHarness.INSTANCE.pack(manager);
+    UIHarness.INSTANCE.setVisible(true);
     System.err.println("imod:  " + getIMODDirectory());
   }
 
@@ -250,8 +257,8 @@ public class EtomoDirector {
         String[] message = new String[3];
         message[0] = "Can not find IMOD directory!";
         message[1] = "Set IMOD_DIR environment variable and restart program to fix this problem";
-        uiHarness.openMessageDialog(message, "Program Initialization Error",
-            AxisID.ONLY);
+        UIHarness.INSTANCE.openMessageDialog(message,
+            "Program Initialization Error", AxisID.ONLY);
         System.exit(1);
       }
       else {
@@ -280,20 +287,6 @@ public class EtomoDirector {
       throw new IllegalStateException("No current manager");
     }
     return (BaseManager) managerList.get(currentManagerKey);
-  }
-
-  protected final int getDisplayMemoryInterval() {
-    if (arguments == null) {
-      return 0;
-    }
-    return arguments.getDisplayMemoryInterval();
-  }
-
-  protected final boolean isDisplayMemory() {
-    if (arguments == null) {
-      return false;
-    }
-    return arguments.isDisplayMemory();
   }
 
   /**
@@ -338,8 +331,8 @@ public class EtomoDirector {
       throw new NullPointerException("managerKey=" + managerKey);
     }
     currentManagerKey = managerKey;
-    uiHarness
-        .setCurrentManager(newCurrentManager, currentManagerKey, newWindow);
+    UIHarness.INSTANCE.setCurrentManager(newCurrentManager, currentManagerKey,
+        newWindow);
   }
 
   private UniqueKey openTomogram(String etomoDataFileName, boolean makeCurrent,
@@ -348,7 +341,7 @@ public class EtomoDirector {
     if (etomoDataFileName == null
         || etomoDataFileName.equals(MetaData.getNewFileTitle())) {
       manager = new ApplicationManager("", axisID);
-      uiHarness.setEnabledNewTomogramMenuItem(false);
+      UIHarness.INSTANCE.setEnabledNewTomogramMenuItem(false);
     }
     else {
       manager = new ApplicationManager(etomoDataFileName, axisID);
@@ -402,7 +395,7 @@ public class EtomoDirector {
     if (etomoJoinFileName == null
         || etomoJoinFileName.equals(JoinMetaData.getNewFileTitle())) {
       manager = new JoinManager("", axisID);
-      uiHarness.setEnabledNewJoinMenuItem(false);
+      UIHarness.INSTANCE.setEnabledNewJoinMenuItem(false);
     }
     else {
       manager = new JoinManager(etomoJoinFileName, axisID);
@@ -416,7 +409,7 @@ public class EtomoDirector {
     if (parallelFileName == null
         || parallelFileName.equals(ParallelMetaData.NEW_TITLE)) {
       manager = new ParallelManager();
-      uiHarness.setEnabledNewParallelMenuItem(false);
+      UIHarness.INSTANCE.setEnabledNewParallelMenuItem(false);
     }
     else {
       manager = new ParallelManager(parallelFileName);
@@ -429,7 +422,7 @@ public class EtomoDirector {
     PeetManager manager;
     if (peetFileName == null || peetFileName.equals(PeetMetaData.NEW_TITLE)) {
       manager = new PeetManager();
-      uiHarness.setEnabledNewPeetMenuItem(false);
+      UIHarness.INSTANCE.setEnabledNewPeetMenuItem(false);
     }
     else {
       manager = new PeetManager(peetFileName);
@@ -440,9 +433,9 @@ public class EtomoDirector {
   private UniqueKey setManager(BaseManager manager, boolean makeCurrent) {
     UniqueKey managerKey;
     managerKey = managerList.add(manager.getName(), manager);
-    uiHarness.addWindow(manager, managerKey);
+    UIHarness.INSTANCE.addWindow(manager, managerKey);
     if (makeCurrent) {
-      uiHarness.selectWindowMenuItem(managerKey, true);
+      UIHarness.INSTANCE.selectWindowMenuItem(managerKey, true);
       setCurrentManager(managerKey, true);
     }
     return managerKey;
@@ -496,7 +489,7 @@ public class EtomoDirector {
     }
     String[] message = { "Unknown file type " + dataFile.getName() + ".",
         "Open this file as an " + etomoFileFilter.getDescription() + "?" };
-    if (uiHarness.openYesNoDialog(message, axisID)) {
+    if (UIHarness.INSTANCE.openYesNoDialog(message, axisID)) {
       return openTomogram(dataFile, makeCurrent, axisID);
     }
     else {
@@ -519,33 +512,33 @@ public class EtomoDirector {
     }
     managerList.remove(currentManagerKey);
     enableOpenManagerMenuItem();
-    uiHarness.removeWindow(currentManagerKey);
+    UIHarness.INSTANCE.removeWindow(currentManagerKey);
     currentManagerKey = null;
     if (managerList.size() == 0) {
-      uiHarness.removeWindow(currentManagerKey);
+      UIHarness.INSTANCE.removeWindow(currentManagerKey);
       //mainFrame.setWindowMenuLabels(controllerList);
-      uiHarness.setCurrentManager(null, null);
-      uiHarness.selectWindowMenuItem(null);
+      UIHarness.INSTANCE.setCurrentManager(null, null);
+      UIHarness.INSTANCE.selectWindowMenuItem(null);
       setCurrentManager(null, false);
       return true;
     }
     setCurrentManager(managerList.getKey(0));
-    uiHarness.selectWindowMenuItem(managerList.getKey(0));
+    UIHarness.INSTANCE.selectWindowMenuItem(managerList.getKey(0));
     return true;
   }
 
   private void enableOpenManagerMenuItem() {
     if (currentManagerKey.getName().equals(MetaData.getNewFileTitle())) {
-      uiHarness.setEnabledNewTomogramMenuItem(true);
+      UIHarness.INSTANCE.setEnabledNewTomogramMenuItem(true);
     }
     if (currentManagerKey.getName().equals(JoinMetaData.getNewFileTitle())) {
-      uiHarness.setEnabledNewJoinMenuItem(true);
+      UIHarness.INSTANCE.setEnabledNewJoinMenuItem(true);
     }
     if (currentManagerKey.getName().equals(ParallelMetaData.NEW_TITLE)) {
-      uiHarness.setEnabledNewParallelMenuItem(true);
+      UIHarness.INSTANCE.setEnabledNewParallelMenuItem(true);
     }
     if (currentManagerKey.getName().equals(PeetMetaData.NEW_TITLE)) {
-      uiHarness.setEnabledNewPeetMenuItem(true);
+      UIHarness.INSTANCE.setEnabledNewPeetMenuItem(true);
     }
   }
 
@@ -583,7 +576,7 @@ public class EtomoDirector {
       if (isMemoryAvailable()) {
         //  Should we close the 3dmod windows
         //  Save the current window size to the user config
-        Dimension size = uiHarness.getSize();
+        Dimension size = UIHarness.INSTANCE.getSize();
         userConfig.setMainWindowWidth(size.width);
         userConfig.setMainWindowHeight(size.height);
         //  Write out the user configuration data
@@ -656,7 +649,7 @@ public class EtomoDirector {
     enableOpenManagerMenuItem();
     UniqueKey oldKey = currentManagerKey;
     currentManagerKey = managerList.rekey(currentManagerKey, managerName);
-    uiHarness.renameWindow(oldKey, currentManagerKey);
+    UIHarness.INSTANCE.renameWindow(oldKey, currentManagerKey);
   }
 
   public UserConfiguration getUserConfiguration() {
@@ -677,42 +670,38 @@ public class EtomoDirector {
       parameterStore.load(userConfig);
     }
     catch (LogFile.WriteException except) {
-      uiHarness.openMessageDialog("Can't load user configuration.\n"
+      UIHarness.INSTANCE.openMessageDialog("Can't load user configuration.\n"
           + except.getMessage(), "Etomo Error");
     }
   }
 
-  private final void printHelpMessage() {
-    String helpMessage = "Usage:  etomo [options] [data_file1 data_file2 ...]\n"
-        + "data_file:  A file created by etomo.  Can be either a tomogram data\n"
-        + "            file (.edf), a join data file ("
-        + DatasetFiles.JOIN_DATA_FILE_EXT
-        + "), a parallel processing data file ("
-        + DatasetFiles.PARALLEL_DATA_FILE_EXT
-        + "), or a PEET data file ("
-        + DatasetFiles.PEET_DATA_FILE_EXT
-        + ").\n"
-        + "Options:\n"
-        + "  -h           Send this message to standard out and exit.\n"
-        + "  --debug      Send extra information to standard error.  The debug\n"
-        + "               option includes the following options:\n"
-        + "                 --memory --timestamp\n"
-        + "  --headless   No window is created.\n"
-        + "  --help       Send this message to standard out and exit.\n"
-        + "  --memory [interval]\n"
-        + "               Send memory usage statements to standard error before\n"
-        + "               and after processes are run.  Interval is the interval\n"
-        + "               (in minutes) at which to send additional memory usage\n"
-        + "               statements.\n"
-        + "  --names      Send the names of screen elements to standard out.\n"
-        + "  --newstuff [0|1]\n"
-        + "               May run Etomo with unreleased functionality.\n"
-        + "  --selftest   Cause Etomo to do some internal testing.  Etomo may\n"
-        + "               run more slowly.\n"
-        + "  --timestamp  Send timestamps to standard error before and after\n"
-        + "               processes are run.\n"
-        + "Standard out is usually redirected to etomo_out.log.\n"
-        + "Standard error is usually redirected to etomo_err.log.\n";
+  private final void printUsageMessage() {
+    System.out
+        .println("Usage:\tetomo [options] *"
+            + DatasetFiles.RECON_DATA_FILE_EXT
+            + "|*"
+            + DatasetFiles.JOIN_DATA_FILE_EXT
+            + "|*"
+            + DatasetFiles.PEET_DATA_FILE_EXT
+            + "|*"
+            + DatasetFiles.PARALLEL_DATA_FILE_EXT
+            + " [ *"
+            + DatasetFiles.RECON_DATA_FILE_EXT
+            + "|*"
+            + DatasetFiles.JOIN_DATA_FILE_EXT
+            + "|*"
+            + DatasetFiles.PEET_DATA_FILE_EXT
+            + "|*"
+            + DatasetFiles.PARALLEL_DATA_FILE_EXT
+            + " ...]\n\tetomo "
+            + "[options] [reconstruction_setup_options]\n\nStandard out is usually redirected "
+            + "to etomo_out.log.  Standard error is\nusually redirected to "
+            + "etomo_err.log.\n\n*" + DatasetFiles.RECON_DATA_FILE_EXT
+            + ":\tA reconstruction data file.\n*"
+            + DatasetFiles.JOIN_DATA_FILE_EXT + ":\tA join data file.\n*"
+            + DatasetFiles.PEET_DATA_FILE_EXT + ":\tA PEET data file.\n*"
+            + DatasetFiles.PARALLEL_DATA_FILE_EXT
+            + ":\tA parallel process data file.\n" + Arguments.HELP_MESSAGE);
   }
 
   /**
@@ -803,66 +792,8 @@ public class EtomoDirector {
     }
   }
 
-  public boolean isDebug() {
-    if (arguments == null) {
-      return false;
-    }
-    return arguments.isDebug();
-  }
-
-  /**
-   * If arguments hasn't been initialized yet, then
-   * assume that this is a self test is true because UITest does alot of work
-   * before it can
-   * run EtomoDirector.main.
-   * @return
-   */
-  public boolean isSelfTest() {
-    if (arguments == null) {
-      return true;
-    }
-    return arguments.isSelfTest();
-  }
-
-  public boolean isDemo() {
-    if (arguments == null) {
-      return false;
-    }
-    return arguments.isDemo();
-  }
-
-  /**
-   * Returns arguments.test.  If arguments hasn't been initialized yet, then
-   * assume that this is a test because UITest does alot of work before it can
-   * run EtomoDirector.main.
-   * @return
-   */
-  public boolean isTest() {
-    if (arguments == null) {
-      return true;
-    }
-    return arguments.isTest();
-  }
-
-  public boolean isHeadless() {
-    if (arguments == null) {
-      return Arguments.HEADLESS_DEFAULT;
-    }
-    return arguments.isHeadless();
-  }
-
-  public boolean isNewstuff() {
-    if (arguments == null) {
-      return false;
-    }
-    return arguments.isNewstuff();
-  }
-
-  public boolean isPrintNames() {
-    if (arguments == null) {
-      return false;
-    }
-    return arguments.isPrintNames();
+  public Arguments getArguments() {
+    return arguments;
   }
 
   public int getManagerListSize() {
@@ -898,14 +829,14 @@ public class EtomoDirector {
   public void getSettingsParameters() {
     if (settingsDialog != null) {
       if (settingsDialog.isAppearanceSettingChanged(userConfig)) {
-        uiHarness
+        UIHarness.INSTANCE
             .openInfoMessageDialog(
                 "You must exit from eTomo and re-run it for this change to fully take effect.",
                 "Settings", AxisID.FIRST);
       }
       settingsDialog.getParameters(userConfig);
       setUserPreferences();
-      uiHarness.repaintWindow();
+      UIHarness.INSTANCE.repaintWindow();
     }
   }
 
@@ -918,8 +849,8 @@ public class EtomoDirector {
     if (settingsDialog == null) {
       settingsDialog = new SettingsDialog();
       settingsDialog.setParameters(userConfig);
-      Dimension frmSize = uiHarness.getSize();
-      Point loc = uiHarness.getLocation();
+      Dimension frmSize = UIHarness.INSTANCE.getSize();
+      Point loc = UIHarness.INSTANCE.getLocation();
       settingsDialog.setLocation(loc.x, loc.y + frmSize.height);
       settingsDialog.setModal(false);
     }
@@ -935,12 +866,12 @@ public class EtomoDirector {
       parameterStore.save(userConfig);
     }
     catch (LogFile.FileException e) {
-      uiHarness.openMessageDialog("Unable to save preferences to "
+      UIHarness.INSTANCE.openMessageDialog("Unable to save preferences to "
           + parameterStore.getAbsolutePath() + ".\n" + e.getMessage(),
           "Etomo Error");
     }
     catch (LogFile.WriteException e) {
-      uiHarness.openMessageDialog("Unable to write preferences to "
+      UIHarness.INSTANCE.openMessageDialog("Unable to write preferences to "
           + parameterStore.getAbsolutePath() + ".\n" + e.getMessage(),
           "Etomo Error");
     }
@@ -1041,8 +972,8 @@ public class EtomoDirector {
     private boolean stop = false;
 
     public final void run() {
-      int displayMemoryInterval = getDisplayMemoryInterval();
-      if (!isDisplayMemory() || displayMemoryInterval < 1) {
+      int displayMemoryInterval = arguments.getDisplayMemoryInterval();
+      if (!arguments.isDisplayMemory() || displayMemoryInterval < 1) {
         return;
       }
       try {
@@ -1063,153 +994,14 @@ public class EtomoDirector {
       this.stop = stop;
     }
   }
-
-  private static final class Arguments {
-    private static final boolean HEADLESS_DEFAULT = GraphicsEnvironment
-        .isHeadless();
-
-    private final ArrayList paramFileNameList = new ArrayList();
-
-    private boolean debug = false;
-    private boolean demo = false;
-    private boolean test = false;
-    private boolean headless = HEADLESS_DEFAULT;
-    private boolean selfTest = false;
-    private boolean newstuff = false;
-    private boolean displayMemory = false;
-    private boolean help = false;
-    private boolean printNames = false;
-    private int displayMemoryInterval = 0;
-    private int newstuffNum = 0;
-
-    private Arguments() {
-    }
-
-    private static Arguments getInstance(String[] args) {
-      Arguments instance = new Arguments();
-      instance.parseCommandLine(args);
-      return instance;
-    }
-
-    /**
-     * Parse the command line. This method will return a non-empty string if there
-     * is a etomo data .
-     * 
-     * @param The
-     *          command line arguments
-     * @return A string that will be set to the etomo data filename if one is
-     *         found on the command line otherwise it is "".
-     */
-    private ArrayList parseCommandLine(String[] args) {
-      //  Parse the command line arguments
-      int i = 0;
-      while (i < args.length) {
-        // Filename argument should be the only one not beginning with at least
-        // one dash
-        if (!args[i].startsWith("-")) {
-          paramFileNameList.add(args[i]);
-        }
-        if (args[i].equals("-h") || args[i].equals("--help")) {
-          help = true;
-        }
-        if (args[i].equals("--debug")) {
-          debug = true;
-        }
-        if (args[i].equals("--demo")) {
-          demo = true;
-        }
-        if (args[i].equals("--test")) {
-          test = true;
-        }
-        if (args[i].equals("--headless")) {
-          headless = true;
-        }
-        if (args[i].equals("--selftest")) {
-          selfTest = true;
-        }
-        if (args[i].equals("--names")) {
-          printNames = true;
-        }
-        if (args[i].equals("--memory")) {
-          displayMemory = true;
-          //--memory can be used alone, or followed by an integer
-          //(displayMemoryInterval).  If displayMemoryInterval is set, then the
-          //memory usage will be sent to etomo_err.log every displayMemoryInterval
-          //minutes.
-          if (i + 1 < args.length && !args[i + 1].startsWith("--")) {
-            try {
-              int displayMemoryInterval = Integer.parseInt(args[++i]);
-              this.displayMemoryInterval = displayMemoryInterval;
-            }
-            catch (NumberFormatException e) {
-              i--;
-            }
-          }
-        }
-        if (args[i].equals("--timestamp")) {
-          Utilities.setTimestamp(true);
-        }
-        if (args[i].equals("--newstuff")) {
-          newstuff = true;
-          //--newstuff can be used alone, or followed by a 1 or 0 (default).
-          if (i + 1 < args.length && !args[i + 1].startsWith("--")) {
-            try {
-              newstuffNum = Integer.parseInt(args[++i]);
-            }
-            catch (NumberFormatException e) {
-              newstuffNum = 0;
-              i--;
-            }
-          }
-        }
-        i++;
-      }
-      return paramFileNameList;
-    }
-
-    private boolean isTest() {
-      return test;
-    }
-
-    private boolean isHeadless() {
-      return headless;
-    }
-
-    private boolean isDemo() {
-      return demo;
-    }
-
-    private boolean isSelfTest() {
-      return selfTest;
-    }
-
-    private boolean isHelp() {
-      return help;
-    }
-
-    private boolean isPrintNames() {
-      return printNames;
-    }
-
-    private boolean isNewstuff() {
-      return newstuff;
-    }
-
-    private boolean isDebug() {
-      return debug;
-    }
-
-    private int getDisplayMemoryInterval() {
-      return displayMemoryInterval;
-    }
-
-    private boolean isDisplayMemory() {
-      return displayMemory;
-    }
-  }
 }
 /**
  * <p> $Log$
+ * <p> Revision 1.67  2007/12/10 21:49:06  sueh
+ * <p> bug# 1041 Made the Const meta data objects into interfaces and moved their
+ * <p> functionality to the main meta data objects.  This makes is easier to inherit
+ * <p> functionality from BaseMetaData.
+ * <p>
  * <p> Revision 1.66  2007/09/07 00:14:13  sueh
  * <p> bug# 989 Making the processing of the argument list independent of the
  * <p> instanciation of EtomoDirector:  creating Arguments, adding an instance to
