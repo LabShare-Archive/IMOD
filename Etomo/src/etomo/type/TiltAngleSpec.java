@@ -24,6 +24,9 @@ import etomo.storage.Storable;
  * @version $Revision$
  *
  * <p> $Log$
+ * <p> Revision 3.7  2007/02/05 23:31:33  sueh
+ * <p> bug# 962 Moved EtomoNumber type info to inner class.
+ * <p>
  * <p> Revision 3.6  2005/05/10 03:22:32  sueh
  * <p> bug# 658 Remove the constructor which sets keys, do this with set
  * <p> functions.    Change set(ComScriptCommand) to
@@ -172,6 +175,10 @@ public class TiltAngleSpec implements Storable {
   public void setRangeMin(double rangeMin) {
     this.rangeMin = rangeMin;
   }
+  
+  public void setRangeMin(String rangeMin) {
+    this.rangeMin = Double.parseDouble(rangeMin);
+  }
 
   public double getRangeMin() {
     return rangeMin;
@@ -179,6 +186,10 @@ public class TiltAngleSpec implements Storable {
 
   public void setRangeStep(double rangeStep) {
     this.rangeStep = rangeStep;
+  }
+  
+  public void setRangeStep(String rangeStep) {
+    this.rangeStep = Double.parseDouble(rangeStep);
   }
 
   public double getRangeStep() {
