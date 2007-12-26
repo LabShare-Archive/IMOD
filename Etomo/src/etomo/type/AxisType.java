@@ -18,6 +18,9 @@ package etomo.type;
  * @version $Revision$
  *
  * <p> $Log$
+ * <p> Revision 3.1  2004/05/25 23:07:15  sueh
+ * <p> bug# 355 adding a "not set" value
+ * <p>
  * <p> Revision 3.0  2003/11/07 23:19:01  rickg
  * <p> Version 1.0.0
  * <p>
@@ -67,7 +70,25 @@ public class AxisType {
     if (name.compareToIgnoreCase(NOT_SET.toString()) == 0) {
       return NOT_SET;
     }
+    if (name.compareToIgnoreCase(SINGLE_AXIS.getValue())==0){
+      return SINGLE_AXIS;
+    }
+    if (name.compareToIgnoreCase(DUAL_AXIS.getValue())==0){
+      return DUAL_AXIS;
+    }
+    if (name.compareToIgnoreCase(NOT_SET.getValue())==0){
+      return NOT_SET;
+    }
     return null;
   }
 
+  public String getValue() {
+    if (this==SINGLE_AXIS) {
+      return "single";
+    }
+    if (this==DUAL_AXIS) {
+      return "dual";
+    }
+    return "";
+  }
 }
