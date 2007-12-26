@@ -13,13 +13,11 @@
 package etomo.ui;
 
 import java.awt.Component;
-import java.awt.Container;
 import java.awt.Dimension;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.awt.event.MouseEvent;
 import java.io.File;
-import java.io.IOException;
 
 import javax.swing.Box;
 import javax.swing.BoxLayout;
@@ -29,27 +27,17 @@ import javax.swing.JButton;
 import javax.swing.JFileChooser;
 import javax.swing.JPanel;
 import javax.swing.SpinnerNumberModel;
+import javax.swing.filechooser.FileFilter;
 
 import etomo.ApplicationManager;
-import etomo.EtomoDirector;
-import etomo.storage.CpuAdoc;
 import etomo.storage.MagGradientFileFilter;
 import etomo.storage.StackFileFilter;
 import etomo.storage.DistortionFileFilter;
 import etomo.type.AxisID;
-import etomo.type.AxisType;
-import etomo.type.ConstMetaData;
 import etomo.type.DialogType;
-import etomo.type.MetaData;
 import etomo.type.Run3dmodMenuOptions;
-import etomo.type.UserConfiguration;
-import etomo.type.ViewType;
-import etomo.util.DatasetFiles;
-import etomo.util.InvalidParameterException;
-import etomo.util.MRCHeader;
-import etomo.util.Utilities;
 
-public class SetupDialog extends ProcessDialog implements ContextMenu,
+final class SetupDialog extends ProcessDialog implements ContextMenu,
     Run3dmodButtonContainer {
   public static final String rcsid = "$Id$";
 
@@ -58,95 +46,94 @@ public class SetupDialog extends ProcessDialog implements ContextMenu,
   static final String AXIS_TYPE_LABEL = "Axis Type";
   static final String SINGLE_AXIS_LABEL = "Single axis";
 
-  private JPanel pnlDataParameters = new JPanel();
-  private UIHarness uiHarness = UIHarness.INSTANCE;
-
+  private final JPanel pnlDataParameters = new JPanel();
   //  Dataset GUI objects
-  private JPanel pnlDataset = new JPanel();
-  private ImageIcon iconFolder = new ImageIcon(ClassLoader
+  private final JPanel pnlDataset = new JPanel();
+  private final ImageIcon iconFolder = new ImageIcon(ClassLoader
       .getSystemResource("images/openFile.gif"));
 
-  private LabeledTextField ltfDataset = new LabeledTextField(DATASET_NAME_LABEL);
-  private JButton btnDataset = new JButton(iconFolder);
+  private final LabeledTextField ltfDataset = new LabeledTextField(
+      DATASET_NAME_LABEL);
+  private final JButton btnDataset = new JButton(iconFolder);
 
-  private LabeledTextField ltfBackupDirectory = new LabeledTextField(
+  private final LabeledTextField ltfBackupDirectory = new LabeledTextField(
       "Backup directory: ");
-  private JButton btnBackupDirectory = new JButton(iconFolder);
+  private final JButton btnBackupDirectory = new JButton(iconFolder);
 
   //  Data type GUI objects
-  private JPanel pnlDataType = new JPanel();
-  private JPanel pnlAxisType = new JPanel();
-  private RadioButton rbSingleAxis = new RadioButton(SINGLE_AXIS_LABEL);
-  private RadioButton rbDualAxis = new RadioButton("Dual axis");
-  private ButtonGroup bgAxisType = new ButtonGroup();
+  private final JPanel pnlPerAxisInfo = new JPanel();
+  private final JPanel pnlAxisInfoA = new JPanel();
+  private final JPanel pnlDataType = new JPanel();
+  private final JPanel pnlAxisType = new JPanel();
+  private final RadioButton rbSingleAxis = new RadioButton(SINGLE_AXIS_LABEL);
+  private final RadioButton rbDualAxis = new RadioButton("Dual axis");
 
-  private JPanel pnlViewType = new JPanel();
-  private RadioButton rbSingleView = new RadioButton("Single frame");
-  private RadioButton rbMontage = new RadioButton("Montage");
-  private ButtonGroup bgViewType = new ButtonGroup();
+  private final JPanel pnlViewType = new JPanel();
+  private final RadioButton rbSingleView = new RadioButton("Single frame");
+  private final RadioButton rbMontage = new RadioButton("Montage");
 
-  private Run3dmodButton btnViewRawStackA = new Run3dmodButton(
+  private final Run3dmodButton btnViewRawStackA = new Run3dmodButton(
       "View Raw Image Stack", this);
   private Run3dmodButton btnViewRawStackB = new Run3dmodButton(
       "View Raw Image Stack", this);
 
   //  Image parameter objects
-  private JPanel pnlImageParams = new JPanel();
-  private MultiLineButton btnScanHeader = new MultiLineButton("Scan Header");
-  private JPanel pnlImageRows = new JPanel();
+  private final JPanel pnlImageParams = new JPanel();
+  private final MultiLineButton btnScanHeader = new MultiLineButton(
+      "Scan Header");
+  private final JPanel pnlImageRows = new JPanel();
 
-  private JPanel pnlStackInfo = new JPanel();
-  private LabeledTextField ltfPixelSize = new LabeledTextField(
+  private final JPanel pnlStackInfo = new JPanel();
+  private final LabeledTextField ltfPixelSize = new LabeledTextField(
       "Pixel size (nm): ");
-  private LabeledTextField ltfFiducialDiameter = new LabeledTextField(
+  private final LabeledTextField ltfFiducialDiameter = new LabeledTextField(
       FIDUCIAL_DIAMETER_LABEL);
-  private LabeledTextField ltfImageRotation = new LabeledTextField(
+  private final LabeledTextField ltfImageRotation = new LabeledTextField(
       "Image rotation (degrees): ");
 
-  private JPanel pnlDistortionInfo = new JPanel();
-  private LabeledTextField ltfDistortionFile = new LabeledTextField(
+  private final JPanel pnlDistortionInfo = new JPanel();
+  private final LabeledTextField ltfDistortionFile = new LabeledTextField(
       "Image distortion field file: ");
-  private JButton btnDistortionFile = new JButton(iconFolder);
-  private LabeledSpinner spnBinning = new LabeledSpinner("Binning: ",
+  private final JButton btnDistortionFile = new JButton(iconFolder);
+  private final LabeledSpinner spnBinning = new LabeledSpinner("Binning: ",
       new SpinnerNumberModel(1, 1, 50, 1));
 
-  private JPanel pnlMagGradientInfo = new JPanel();
-  private LabeledTextField ltfMagGradientFile = new LabeledTextField(
+  private final JPanel pnlMagGradientInfo = new JPanel();
+  private final LabeledTextField ltfMagGradientFile = new LabeledTextField(
       "Mag gradients correction: ");
   private final CheckBox cbParallelProcess = new CheckBox("Parallel Processing");
-  private JButton btnMagGradientFile = new JButton(iconFolder);
+  private final JButton btnMagGradientFile = new JButton(iconFolder);
 
   //  Tilt angle GUI objects
-  private JPanel pnlPerAxisInfo = new JPanel();
-  private JPanel pnlAxisInfoA = new JPanel();
-  private BeveledBorder borderAxisInfoA = new BeveledBorder("Axis A: ");
-  private TiltAngleDialogPanel tiltAnglesA = new TiltAngleDialogPanel();
-  private LabeledTextField ltfExcludeListA = new LabeledTextField(
+  //private TiltAnglePanel tiltAnglesA = new TiltAnglePanel();
+  private final LabeledTextField ltfExcludeListA = new LabeledTextField(
       "Exclude views: ");
-  private JPanel pnlAdjustedFocusA = new JPanel();
-  private CheckBox cbAdjustedFocusA = new CheckBox(
+  private final JPanel pnlAdjustedFocusA = new JPanel();
+  private final CheckBox cbAdjustedFocusA = new CheckBox(
       "Focus was adjusted between montage frames");
 
-  private JPanel pnlAxisInfoB = new JPanel();
-  private BeveledBorder borderAxisInfoB = new BeveledBorder("Axis B: ");
-  private TiltAngleDialogPanel tiltAnglesB = new TiltAngleDialogPanel();
-  private LabeledTextField ltfExcludeListB = new LabeledTextField(
+  private final BeveledBorder borderAxisInfoB = new BeveledBorder("Axis B: ");
+  //private TiltAnglePanel tiltAnglesB = new TiltAnglePanel();
+  private final LabeledTextField ltfExcludeListB = new LabeledTextField(
       "Exclude views: ");
-  private JPanel pnlAdjustedFocusB = new JPanel();
-  private CheckBox cbAdjustedFocusB = new CheckBox(
+  private final JPanel pnlAdjustedFocusB = new JPanel();
+  private final CheckBox cbAdjustedFocusB = new CheckBox(
       "Focus was adjusted between montage frames");
+
+  private final SetupDialogExpert expert;
   private final boolean calibrationAvailable;
 
   //  Construct the setup dialog
-  public SetupDialog(ApplicationManager appMgr, boolean calibrationAvailable) {
-    super(appMgr, AxisID.ONLY, DialogType.SETUP_RECON);
+  private SetupDialog(final SetupDialogExpert expert,
+      final ApplicationManager manager, final AxisID axisID,
+      final DialogType dialogType, boolean calibrationAvailable) {
+    super(manager, axisID, dialogType);
+    this.expert = expert;
     this.calibrationAvailable = calibrationAvailable;
     rootPanel.setLayout(new BoxLayout(rootPanel, BoxLayout.Y_AXIS));
 
     createDatasetPanel();
-
     createDataTypePanel();
-
     createPerAxisInfoPanel();
 
     //  Relabel the postpone button
@@ -179,11 +166,412 @@ public class SetupDialog extends ProcessDialog implements ContextMenu,
       setAdvanced(isAdvanced);
     }
     // Calcute the necessary window size
-    uiHarness.pack(axisID, applicationManager);
+    UIHarness.INSTANCE.pack(axisID, applicationManager);
+  }
+
+  static SetupDialog getInstance(final SetupDialogExpert expert,
+      final ApplicationManager manger, final AxisID axisID,
+      final DialogType dialogType, boolean calibrationAvailable) {
+    SetupDialog instance = new SetupDialog(expert, manger, axisID, dialogType,
+        calibrationAvailable);
+    instance.addListeners();
+    return instance;
+  }
+
+  /**
+   * Right mouse button context menu
+   **/
+  public void popUpContextMenu(final MouseEvent mouseEvent) {
+    ContextPopup contextPopup = new ContextPopup(rootPanel, mouseEvent,
+        "INITIAL STEPS", applicationManager, axisID);
+  }
+
+  public boolean done() {
+    if (applicationManager.doneSetupDialog()) {
+      setDisplayed(false);
+      return true;
+    }
+    return false;
+  }
+
+  public void run3dmod(final Run3dmodButton button,
+      final Run3dmodMenuOptions menuOptions) {
+    if (btnViewRawStackA == button) {
+      expert.viewRawStack(AxisID.FIRST, menuOptions);
+    }
+    else if (btnViewRawStackB == button) {
+      expert.viewRawStack(AxisID.SECOND, menuOptions);
+    }
+  }
+
+  void viewRawStackA() {
+    run3dmod(btnViewRawStackA, null);
+  }
+
+  void viewRawStackB() {
+    run3dmod(btnViewRawStackB, null);
+  }
+
+  void setDataset(final String input) {
+    ltfDataset.setText(input);
+  }
+
+  void setParallelProcess(final boolean input) {
+    cbParallelProcess.setSelected(input);
+  }
+
+  void setParallelProcessEnabled(final boolean input) {
+    cbParallelProcess.setEnabled(input);
+  }
+
+  void setBackupDirectory(final String input) {
+    ltfBackupDirectory.setText(input);
+  }
+
+  void setDistortionFile(final String input) {
+    ltfDistortionFile.setText(input);
+  }
+
+  void setMagGradientFile(final String input) {
+    ltfMagGradientFile.setText(input);
+  }
+
+  void setAdjustedFocus(final AxisID axisID, final boolean input) {
+    if (axisID == AxisID.SECOND) {
+      cbAdjustedFocusB.setSelected(input);
+    }
+    else {
+      cbAdjustedFocusA.setSelected(input);
+    }
+  }
+
+  void setAxisTypeTooltip(final String tooltip) {
+    pnlAxisType.setToolTipText(tooltip);
+    rbSingleAxis.setToolTipText(tooltip);
+    rbDualAxis.setToolTipText(tooltip);
+  }
+
+  void setDistortionFileTooltip(final String tooltip) {
+    ltfDistortionFile.setToolTipText(tooltip);
+    btnDistortionFile.setToolTipText(tooltip);
+  }
+
+  void setViewTypeTooltip(final String tooltip) {
+    pnlViewType.setToolTipText(tooltip);
+    rbSingleView.setToolTipText(tooltip);
+    rbMontage.setToolTipText(tooltip);
+  }
+
+  void setPixelSizeTooltip(final String tooltip) {
+    ltfPixelSize.setToolTipText(tooltip);
+  }
+
+  void setFiducialDiameterTooltip(final String tooltip) {
+    ltfFiducialDiameter.setToolTipText(tooltip);
+  }
+
+  void setImageRotationTooltip(final String tooltip) {
+    ltfImageRotation.setToolTipText(tooltip);
+  }
+
+  void setBinningTooltip(final String tooltip) {
+    spnBinning.setToolTipText(tooltip);
+  }
+
+  void setViewRawStackTooltip(final String tooltip) {
+    btnViewRawStackA.setToolTipText(tooltip);
+    btnViewRawStackB.setToolTipText(tooltip);
+  }
+
+  void setAdjustedFocusTooltip(final String tooltip) {
+    cbAdjustedFocusA.setToolTipText(tooltip);
+    cbAdjustedFocusB.setToolTipText(tooltip);
+  }
+
+  void setExcludeListTooltip(final String tooltip) {
+    ltfExcludeListA.setToolTipText(tooltip);
+    ltfExcludeListB.setToolTipText(tooltip);
+  }
+
+  void setPostponeTooltip(final String tooltip) {
+    btnPostpone.setToolTipText(tooltip);
+  }
+
+  void setExecuteTooltip(final String tooltip) {
+    btnExecute.setToolTipText(tooltip);
+  }
+
+  void setParallelProcessTooltip(final String tooltip) {
+    cbParallelProcess.setToolTipText(tooltip);
+  }
+
+  void setMagGradientFileTooltip(final String tooltip) {
+    ltfMagGradientFile.setToolTipText(tooltip);
+    btnMagGradientFile.setToolTipText(tooltip);
+  }
+
+  void setSingleAxis(final boolean input) {
+    rbSingleAxis.setSelected(input);
+  }
+
+  boolean isSingleAxisSelected() {
+    return rbSingleAxis.isSelected();
+  }
+
+  boolean isSingleViewSelected() {
+    return rbSingleView.isSelected();
+  }
+
+  boolean isDualAxisSelected() {
+    return rbDualAxis.isSelected();
+  }
+
+  void setDualAxis(final boolean input) {
+    rbDualAxis.setSelected(input);
+  }
+
+  void setPixelSize(final double input) {
+    ltfPixelSize.setText(input);
+  }
+
+  void setFiducialDiameter(final double input) {
+    ltfFiducialDiameter.setText(input);
+  }
+
+  void setImageRotation(final float input) {
+    ltfImageRotation.setText(input);
+  }
+
+  void setImageRotation(final double input) {
+    ltfImageRotation.setText(input);
+  }
+
+  void setBinning(final int input) {
+    spnBinning.setValue(input);
+  }
+
+  Number getBinning() {
+    return spnBinning.getValue();
+  }
+
+  String getExcludeList(final AxisID axisID) {
+    if (axisID == AxisID.SECOND) {
+      return ltfExcludeListB.getText();
+    }
+    return ltfExcludeListA.getText();
+  }
+
+  void setExcludeList(final AxisID axisID, final String input) {
+    if (axisID == AxisID.SECOND) {
+      ltfExcludeListB.setText(input);
+    }
+    else {
+      ltfExcludeListA.setText(input);
+    }
+  }
+
+  void setExcludeListEnabled(final AxisID axisID, final boolean enable) {
+    if (axisID == AxisID.SECOND) {
+      ltfExcludeListB.setEnabled(enable);
+    }
+    else {
+      ltfExcludeListA.setEnabled(enable);
+    }
+  }
+
+  void setViewRawStackEnabled(final AxisID axisID, final boolean enable) {
+    if (axisID == AxisID.SECOND) {
+      btnViewRawStackB.setEnabled(enable);
+    }
+    else {
+      btnViewRawStackA.setEnabled(enable);
+    }
+  }
+
+  void setSingleView(final boolean input) {
+    rbSingleView.setSelected(input);
+  }
+
+  void setMontage(final boolean input) {
+    rbMontage.setSelected(input);
+  }
+
+  String getDataset() {
+    return ltfDataset.getText();
+  }
+
+  String getBackupDirectory() {
+    return ltfBackupDirectory.getText();
+  }
+
+  String getDistortionFile() {
+    return ltfDistortionFile.getText();
+  }
+
+  String getMagGradientFile() {
+    return ltfMagGradientFile.getText();
+  }
+
+  boolean isParallelProcessSelected() {
+    return cbParallelProcess.isSelected();
+  }
+
+  boolean isAdjustedFocusSelected(final AxisID axisID) {
+    if (axisID == AxisID.SECOND) {
+      return cbAdjustedFocusB.isSelected();
+    }
+    return cbAdjustedFocusA.isSelected();
+  }
+
+  String getPixelSize() {
+    return ltfPixelSize.getText();
+  }
+
+  String getFiducialDiameter() {
+    return ltfFiducialDiameter.getText();
+  }
+
+  String getImageRotation() {
+    return ltfImageRotation.getText();
+  }
+
+  boolean equalsSingleAxisActionCommand(final String actionCommand) {
+    return actionCommand.equals(rbSingleAxis.getActionCommand());
+  }
+
+  boolean equalsDualAxisActionCommand(final String actionCommand) {
+    return actionCommand.equals(rbDualAxis.getActionCommand());
+  }
+
+  boolean equalsSingleViewActionCommand(final String actionCommand) {
+    return actionCommand.equals(rbSingleView.getActionCommand());
+  }
+
+  void setAdjustedFocusEnabled(final AxisID axisID, final boolean enable) {
+    if (axisID == AxisID.SECOND) {
+      cbAdjustedFocusB.setEnabled(enable);
+    }
+    else {
+      cbAdjustedFocusA.setEnabled(enable);
+    }
+  }
+
+  boolean equalsMontageActionCommand(final String actionCommand) {
+    return actionCommand.equals(rbMontage.getActionCommand());
+  }
+
+  boolean equalsScanHeaderActionCommand(final String actionCommand) {
+    return actionCommand.equals(btnScanHeader.getActionCommand());
+  }
+
+  void setAdvanced(final boolean advanced) {
+    super.setAdvanced(advanced);
+    if (calibrationAvailable || pnlDistortionInfo == null) {
+      return;
+    }
+    ltfDistortionFile.setVisible(advanced);
+    btnDistortionFile.setVisible(advanced);
+    spnBinning.setVisible(advanced);
+    pnlMagGradientInfo.setVisible(advanced);
+    UIHarness.INSTANCE.pack(AxisID.ONLY, applicationManager);
+  }
+
+  void setMagGradientInfoVisible(final boolean visible) {
+
+  }
+
+  File getFile(String dir, FileFilter fileFilter, int selectionMode) {
+    JFileChooser chooser = new JFileChooser(new File(dir));
+    if (fileFilter != null) {
+      chooser.setFileFilter(fileFilter);
+    }
+    chooser.setPreferredSize(new Dimension(400, 400));
+    chooser.setFileSelectionMode(selectionMode);
+    int returnVal = chooser.showOpenDialog(rootPanel);
+    if (returnVal == JFileChooser.APPROVE_OPTION) {
+      return chooser.getSelectedFile();
+    }
+    return null;
+  }
+
+  void datasetAction() {
+    try {
+      ltfDataset.setText(getFile(expert.getDatasetDir(), new StackFileFilter(),
+          JFileChooser.FILES_ONLY).getAbsolutePath());
+    }
+    catch (Exception excep) {
+      excep.printStackTrace();
+    }
+  }
+
+  void backupDirectoryAction() {
+    try {
+      ltfBackupDirectory.setText(getFile(expert.getCurrentBackupDirectory(),
+          null, JFileChooser.DIRECTORIES_ONLY).getCanonicalPath());
+    }
+    catch (Exception excep) {
+      excep.printStackTrace();
+    }
+  }
+
+  void distortionFileAction() {
+    try {
+      ltfDistortionFile.setText(getFile(expert.getCurrentDistortionDir(),
+          new DistortionFileFilter(), JFileChooser.FILES_ONLY)
+          .getAbsolutePath());
+    }
+    catch (Exception excep) {
+      excep.printStackTrace();
+    }
+  }
+
+  /**
+   * Lets the user choose the mag gradients correction file.
+   * @param event
+   */
+  void magGradientFileAction() {
+    try {
+      ltfMagGradientFile.setText(getFile(expert.getCurrentMagGradientDir(),
+          new MagGradientFileFilter(), JFileChooser.FILES_ONLY)
+          .getAbsolutePath());
+    }
+    catch (Exception excep) {
+      excep.printStackTrace();
+    }
+  }
+
+  void setDatasetTooltip(String fieldTooltip, String buttonTooltip) {
+    ltfDataset.setToolTipText(fieldTooltip);
+    btnDataset.setToolTipText(buttonTooltip);
+  }
+
+  void setBackupDirectoryTooltip(String fieldTooltip, String buttonTooltip) {
+    ltfBackupDirectory.setToolTipText(fieldTooltip);
+    btnBackupDirectory.setToolTipText(buttonTooltip);
+  }
+
+  void setScanHeaderTooltip(String tooltip) {
+    btnScanHeader.setToolTipText(tooltip);
+  }
+
+  private void addListeners() {
+    btnDataset.addActionListener(new DatasetActionListener(this));
+    btnBackupDirectory
+        .addActionListener(new BackupDirectoryActionListener(this));
+    btnDistortionFile.addActionListener(new DistortionFileActionListener(this));
+    btnMagGradientFile
+        .addActionListener(new MagGradientFileActionListener(this));
+    btnViewRawStackA.addActionListener(new ViewRawStackAActionListener(this));
+    btnViewRawStackB.addActionListener(new ViewRawStackBActionListener(this));
+    SetupDialogActionListener listener = new SetupDialogActionListener(expert);
+    rbSingleAxis.addActionListener(listener);
+    rbDualAxis.addActionListener(listener);
+    rbSingleView.addActionListener(listener);
+    rbMontage.addActionListener(listener);
+    btnScanHeader.addActionListener(listener);
   }
 
   private void createDatasetPanel() {
-
     //  Set the preferred and max sizes for the dataset GUI objects
     //  so that the box layout happens correctly
     btnDataset.setPreferredSize(FixedDim.folderButton);
@@ -198,20 +586,6 @@ public class SetupDialog extends ProcessDialog implements ContextMenu,
     pnlDataset.setLayout(new BoxLayout(pnlDataset, BoxLayout.X_AXIS));
 
     //  Bind the buttons to their adapters
-    btnDataset.addActionListener(new DatasetActionListener(this));
-    btnBackupDirectory
-        .addActionListener(new BackupDirectoryActionListener(this));
-    btnDistortionFile.addActionListener(new DistortionFileActionListener(this));
-    btnMagGradientFile
-        .addActionListener(new MagGradientFileActionListener(this));
-
-    rbSingleAxis.addActionListener(new SingleAxisActionListener(this));
-    rbDualAxis.addActionListener(new DualAxisActionListener(this));
-    rbSingleView.addActionListener(new SingleViewActionListener(this));
-    rbMontage.addActionListener(new MontageActionListener(this));
-    btnScanHeader.addActionListener(new ScanHeaderActionListener(this));
-    btnViewRawStackA.addActionListener(new ViewRawStackAActionListener(this));
-    btnViewRawStackB.addActionListener(new ViewRawStackBActionListener(this));
 
     //  Add the GUI objects to the pnl
     pnlDataset.add(Box.createRigidArea(FixedDim.x5_y0));
@@ -223,18 +597,15 @@ public class SetupDialog extends ProcessDialog implements ContextMenu,
     pnlDataset.add(ltfBackupDirectory.getContainer());
     pnlDataset.add(btnBackupDirectory);
     pnlDataset.add(Box.createRigidArea(FixedDim.x5_y0));
-
-    //  Add the tooltip text
-    setToolTipText();
   }
 
   private void createDataTypePanel() {
-
     //  Datatype subpnls: DataSource AxisType Viewtype
     Dimension dimDataTypePref = new Dimension(
         (int) (150 * UIParameters.INSTANCE.getFontSizeAdjustment()),
         (int) (80 * UIParameters.INSTANCE.getFontSizeAdjustment()));
 
+    ButtonGroup bgAxisType = new ButtonGroup();
     bgAxisType.add(rbSingleAxis.getAbstractButton());
     bgAxisType.add(rbDualAxis.getAbstractButton());
     pnlAxisType.setLayout(new BoxLayout(pnlAxisType, BoxLayout.Y_AXIS));
@@ -242,6 +613,7 @@ public class SetupDialog extends ProcessDialog implements ContextMenu,
     pnlAxisType.setBorder(new EtchedBorder(AXIS_TYPE_LABEL).getBorder());
     pnlAxisType.add(rbSingleAxis.getComponent());
     pnlAxisType.add(rbDualAxis.getComponent());
+    ButtonGroup bgViewType = new ButtonGroup();
     bgViewType.add(rbSingleView.getAbstractButton());
     bgViewType.add(rbMontage.getAbstractButton());
     pnlViewType.setLayout(new BoxLayout(pnlViewType, BoxLayout.Y_AXIS));
@@ -337,12 +709,12 @@ public class SetupDialog extends ProcessDialog implements ContextMenu,
     btnViewRawStackB.setSize();
 
     //  Tilt angle specification panels
-    pnlAxisInfoA.setBorder(borderAxisInfoA.getBorder());
+    pnlAxisInfoA.setBorder(new BeveledBorder("Axis A: ").getBorder());
     pnlAxisInfoA.setLayout(new BoxLayout(pnlAxisInfoA, BoxLayout.Y_AXIS));
-    tiltAnglesA.getPanel().setAlignmentX(Component.CENTER_ALIGNMENT);
     ltfExcludeListA.setAlignmentX(Component.CENTER_ALIGNMENT);
     btnViewRawStackA.setAlignmentX(Component.CENTER_ALIGNMENT);
-    pnlAxisInfoA.add(tiltAnglesA.getPanel());
+    pnlAxisInfoA.add(expert.getTiltAnglesPanelExpert(AxisID.FIRST)
+        .getComponent());
     pnlAxisInfoA.add(Box.createRigidArea(FixedDim.x0_y10));
     pnlAxisInfoA.add(ltfExcludeListA.getContainer());
     pnlAxisInfoA.add(Box.createRigidArea(FixedDim.x0_y10));
@@ -355,12 +727,13 @@ public class SetupDialog extends ProcessDialog implements ContextMenu,
     cbAdjustedFocusA.setEnabled(false);
     pnlAxisInfoA.add(pnlAdjustedFocusA);
 
+    JPanel pnlAxisInfoB = new JPanel();
     pnlAxisInfoB.setBorder(borderAxisInfoB.getBorder());
     pnlAxisInfoB.setLayout(new BoxLayout(pnlAxisInfoB, BoxLayout.Y_AXIS));
-    tiltAnglesB.getPanel().setAlignmentX(Component.CENTER_ALIGNMENT);
     ltfExcludeListB.setAlignmentX(Component.CENTER_ALIGNMENT);
     btnViewRawStackB.setAlignmentX(Component.CENTER_ALIGNMENT);
-    pnlAxisInfoB.add(tiltAnglesB.getPanel());
+    pnlAxisInfoB.add(expert.getTiltAnglesPanelExpert(AxisID.SECOND)
+        .getComponent());
     pnlAxisInfoB.add(Box.createRigidArea(FixedDim.x0_y10));
     pnlAxisInfoB.add(ltfExcludeListB.getContainer());
     pnlAxisInfoB.add(Box.createRigidArea(FixedDim.x0_y10));
@@ -379,696 +752,110 @@ public class SetupDialog extends ProcessDialog implements ContextMenu,
     pnlPerAxisInfo.add(pnlAxisInfoB);
   }
 
-  public Container getContainer() {
-    return rootPanel;
-  }
-
-  public void initializeFields(ConstMetaData metaData,
-      UserConfiguration userConfig) {
-
-    if (!metaData.getDatasetName().equals("")) {
-      String canonicalPath = applicationManager.getPropertyUserDir() + "/"
-          + metaData.getDatasetName();
-      ltfDataset.setText(canonicalPath);
-    }
-    boolean validAutodoc = CpuAdoc.getInstance(AxisID.ONLY, applicationManager)
-        .isValid();
-    if (validAutodoc && !userConfig.getNoParallelProcessing()) {
-      cbParallelProcess.setSelected(true);
-    }
-    else if (!validAutodoc) {
-      cbParallelProcess.setEnabled(false);
-    }
-    ltfBackupDirectory.setText(metaData.getBackupDirectory());
-    ltfDistortionFile.setText(metaData.getDistortionFile());
-    ltfMagGradientFile.setText(metaData.getMagGradientFile());
-    cbAdjustedFocusA.setSelected(metaData.getAdjustedFocusA().is());
-    cbAdjustedFocusB.setSelected(metaData.getAdjustedFocusB().is());
-    if (metaData.getAxisType() == AxisType.SINGLE_AXIS
-        || userConfig.getSingleAxis()) {
-      rbSingleAxis.setSelected(true);
-    }
-    else {
-      rbDualAxis.setSelected(true);
-    }
-    setViewType(metaData.getViewType());
-    if (!Double.isNaN(metaData.getPixelSize())) {
-      ltfPixelSize.setText(metaData.getPixelSize());
-    }
-    if (!Double.isNaN(metaData.getFiducialDiameter())) {
-      ltfFiducialDiameter.setText(metaData.getFiducialDiameter());
-    }
-    if (!Float.isNaN(metaData.getImageRotation(AxisID.ONLY))) {
-      ltfImageRotation.setText(metaData.getImageRotation(AxisID.ONLY));
-    }
-    spnBinning.setValue(new Integer(metaData.getBinning()));
-
-    tiltAnglesA.setFields(metaData.getTiltAngleSpecA(), userConfig);
-    ltfExcludeListA.setText(metaData.getExcludeProjectionsA());
-    tiltAnglesB.setFields(metaData.getTiltAngleSpecB(), userConfig);
-    ltfExcludeListB.setText(metaData.getExcludeProjectionsB());
-    if (metaData.getAxisType() == AxisType.SINGLE_AXIS) {
-      tiltAnglesB.setEnabled(false);
-      ltfExcludeListB.setEnabled(false);
-      btnViewRawStackB.setEnabled(false);
-    }
-  }
-
-  public String getDatasetString() {
-    return ltfDataset.getText();
-  }
-
-  public MetaData getFields() {
-    MetaData metaData = getDataset();
-    AxisType axisType = getAxisType();
-    metaData.setBackupDirectory(ltfBackupDirectory.getText());
-    metaData.setDistortionFile(ltfDistortionFile.getText());
-    metaData.setMagGradientFile(ltfMagGradientFile.getText());
-    metaData.setDefaultParallel(cbParallelProcess.isSelected());
-    metaData.setAdjustedFocusA(cbAdjustedFocusA.isSelected());
-    metaData.setAdjustedFocusB(cbAdjustedFocusB.isSelected());
-    metaData.setViewType(getViewType());
-    String currentField = "";
-    try {
-      currentField = "Pixel Size";
-      metaData.setPixelSize(Double.parseDouble(ltfPixelSize.getText()));
-      currentField = "Fiducial Diameter";
-      metaData.setFiducialDiameter(Double.parseDouble(ltfFiducialDiameter
-          .getText()));
-      currentField = "Image Rotation";
-      metaData.setImageRotation(Float.parseFloat(ltfImageRotation.getText()),
-          AxisID.FIRST);
-      if (axisType == AxisType.DUAL_AXIS) {
-        metaData.setImageRotation(Float.parseFloat(ltfImageRotation.getText()),
-            AxisID.SECOND);
-      }
-      currentField = "Axis A starting and step angles";
-      tiltAnglesA.getFields(metaData.getTiltAngleSpecA());
-      currentField = "Axis B starting and step angles";
-      tiltAnglesB.getFields(metaData.getTiltAngleSpecB());
-    }
-    catch (NumberFormatException e) {
-      uiHarness.openMessageDialog(currentField + " must be numeric.",
-          "Setup Dialog Error", AxisID.ONLY);
-      return null;
-    }
-    metaData.setBinning(((Integer) spnBinning.getValue()).intValue());
-    metaData.setExcludeProjectionsA(ltfExcludeListA.getText());
-    metaData.setExcludeProjectionsB(ltfExcludeListB.getText());
-    if (axisType == AxisType.DUAL_AXIS) {
-      File bStack = DatasetFiles.getStack(applicationManager
-          .getPropertyUserDir(), metaData, AxisID.SECOND);
-      metaData.setBStackProcessed(bStack.exists());
-    }
-    return metaData;
-  }
-
-  public MetaData getDataset() {
-    MetaData metaData = new MetaData(applicationManager);
-    metaData.setAxisType(getAxisType());
-
-    //  The dataset name needs to be set after the axis type so the metadata
-    // object modifies the ending correctly
-    if (ltfDataset.getText().startsWith("/")) {
-      metaData.setDatasetName(ltfDataset.getText());
-    }
-    else {
-      metaData.setDatasetName(applicationManager.getPropertyUserDir() + "/"
-          + ltfDataset.getText());
-    }
-    return metaData;
-  }
-
-  public boolean isValid() {
-    String errorMessageTitle = new String("Setup Dialog Error");
-    String datasetText = ltfDataset.getText();
-    String panelErrorMessage;
-
-    if (datasetText.equals("")) {
-      uiHarness.openMessageDialog("Dataset name has not been entered.",
-          errorMessageTitle, AxisID.ONLY);
-      return false;
-    }
-    File dataset = new File(datasetText);
-    String datasetFileName = dataset.getName();
-    if (datasetFileName.equals("a.st") || datasetFileName.equals("b.st")
-        || datasetFileName.equals(".")) {
-      uiHarness.openMessageDialog("The name " + datasetFileName
-          + " cannot be used as a dataset name.", errorMessageTitle,
-          AxisID.ONLY);
-      return false;
-    }
-    //validate image distortion field file name
-    //optional
-    //file must exist
-    String distortionFileText = ltfDistortionFile.getText();
-    if (!distortionFileText.equals("")) {
-      File distortionFile = new File(distortionFileText);
-      if (!distortionFile.exists()) {
-        String distortionFileName = distortionFile.getName();
-        uiHarness.openMessageDialog("The image distortion field file "
-            + distortionFileName + " does not exist.", errorMessageTitle,
-            AxisID.ONLY);
-        return false;
-      }
-    }
-    //validate mag gradient field file name
-    //optional
-    //file must exist
-    String magGradientFileText = ltfMagGradientFile.getText();
-    if (!magGradientFileText.equals("")) {
-      File magGradientFile = new File(magGradientFileText);
-      if (!magGradientFile.exists()) {
-        String magGradientFileName = magGradientFile.getName();
-        uiHarness.openMessageDialog("The mag gradients correction file "
-            + magGradientFileName + " does not exist.", errorMessageTitle,
-            AxisID.ONLY);
-        return false;
-      }
-    }
-    panelErrorMessage = tiltAnglesA.getErrorMessage();
-    if (panelErrorMessage != null) {
-      uiHarness.openMessageDialog(panelErrorMessage + " in Axis A.",
-          errorMessageTitle, AxisID.ONLY);
-      return false;
-    }
-    panelErrorMessage = tiltAnglesB.getErrorMessage();
-    if (panelErrorMessage != null) {
-      uiHarness.openMessageDialog(panelErrorMessage + " in Axis B.",
-          errorMessageTitle, AxisID.ONLY);
-      return false;
-    }
-
-    return true;
-  }
-
-  // Return the working directory as a File object  
-  public File getWorkingDirectory() {
-    String datasetText = ltfDataset.getText();
-    File dataset = new File(datasetText);
-    if (!dataset.isAbsolute()) {
-
-      dataset = new File(applicationManager.getPropertyUserDir()
-          + File.separator + datasetText);
-    }
-    return dataset.getParentFile();
-  }
-
-  void setAdvanced(boolean advanced) {
-    super.setAdvanced(advanced);
-    if (calibrationAvailable || pnlDistortionInfo == null) {
-      return;
-    }
-    ltfDistortionFile.setVisible(advanced);
-    btnDistortionFile.setVisible(advanced);
-    spnBinning.setVisible(advanced);
-    pnlMagGradientInfo.setVisible(advanced);
-    uiHarness.pack(AxisID.ONLY, applicationManager);
-  }
-
-  AxisType getAxisType() {
-    if (rbSingleAxis.getSelectedObjects() != null) {
-      return AxisType.SINGLE_AXIS;
-    }
-    else {
-      return AxisType.DUAL_AXIS;
-    }
-  }
-
-  //  View type radio button
-  void setViewType(ViewType viewType) {
-    if (viewType == ViewType.SINGLE_VIEW) {
-      rbSingleView.setSelected(true);
-    }
-    else {
-      rbMontage.setSelected(true);
-    }
-  }
-
-  ViewType getViewType() {
-    if (rbSingleView.getSelectedObjects() != null) {
-      return ViewType.SINGLE_VIEW;
-    }
-    else {
-      return ViewType.MONTAGE;
-    }
-  }
-
-  /**
-   * Right mouse button context menu
-   **/
-  public void popUpContextMenu(MouseEvent mouseEvent) {
-    ContextPopup contextPopup = new ContextPopup(rootPanel, mouseEvent,
-        "INITIAL STEPS", applicationManager, axisID);
-  }
-
-  //
-  //  Action functions for buttons
-  //
-  protected void btnDatasetAction(ActionEvent event) {
-    //  Open up the file chooser in the working directory
-    JFileChooser chooser = new JFileChooser(new File(EtomoDirector
-        .INSTANCE.getOriginalUserDir()));
-    StackFileFilter stackFilter = new StackFileFilter();
-    chooser.setFileFilter(stackFilter);
-    chooser.setPreferredSize(new Dimension(400, 400));
-    chooser.setFileSelectionMode(JFileChooser.FILES_ONLY);
-    int returnVal = chooser.showOpenDialog(rootPanel);
-    if (returnVal == JFileChooser.APPROVE_OPTION) {
-      File datasetName = chooser.getSelectedFile();
-      try {
-        ltfDataset.setText(datasetName.getAbsolutePath());
-      }
-      catch (Exception excep) {
-        excep.printStackTrace();
-      }
-    }
-  }
-
-  protected void btnBackupDirectoryAction(ActionEvent event) {
-
-    //  Open up the file chooser in the working directory
-    String currentBackupDirectory = ltfBackupDirectory.getText();
-    if (currentBackupDirectory.equals("")) {
-      currentBackupDirectory = EtomoDirector.INSTANCE.getOriginalUserDir();
-    }
-    JFileChooser chooser = new JFileChooser(new File(currentBackupDirectory));
-    chooser.setPreferredSize(new Dimension(400, 400));
-    chooser.setFileSelectionMode(JFileChooser.DIRECTORIES_ONLY);
-    int returnVal = chooser.showOpenDialog(rootPanel);
-    if (returnVal == JFileChooser.APPROVE_OPTION) {
-      File backupDirectory = chooser.getSelectedFile();
-      try {
-        ltfBackupDirectory.setText(backupDirectory.getCanonicalPath());
-      }
-      catch (Exception excep) {
-        excep.printStackTrace();
-      }
-    }
-  }
-
-  protected void btnDistortionFileAction(ActionEvent event) {
-    //Open up the file chooser in the calibration directory, if available,
-    //otherwise open in the working directory
-    String currentDistortionDirectory = ltfDistortionFile.getText();
-    if (currentDistortionDirectory.equals("")) {
-      File calibrationDir = EtomoDirector.INSTANCE.getIMODCalibDirectory();
-      File distortionDir = new File(calibrationDir.getAbsolutePath(),
-          "Distortion");
-      if (distortionDir.exists()) {
-        currentDistortionDirectory = distortionDir.getAbsolutePath();
-      }
-      else {
-        currentDistortionDirectory = applicationManager.getPropertyUserDir();
-      }
-    }
-    JFileChooser chooser = new JFileChooser(
-        new File(currentDistortionDirectory));
-    DistortionFileFilter distortionFileFilter = new DistortionFileFilter();
-    chooser.setFileFilter(distortionFileFilter);
-    chooser.setPreferredSize(new Dimension(400, 400));
-    chooser.setFileSelectionMode(JFileChooser.FILES_ONLY);
-    int returnVal = chooser.showOpenDialog(rootPanel);
-    if (returnVal == JFileChooser.APPROVE_OPTION) {
-      File distortionFile = chooser.getSelectedFile();
-      try {
-        ltfDistortionFile.setText(distortionFile.getAbsolutePath());
-      }
-      catch (Exception excep) {
-        excep.printStackTrace();
-      }
-    }
-  }
-
-  /**
-   * Lets the user choose the mag gradients correction file.
-   * @param event
-   */
-  protected void btnMagGradientFileAction(ActionEvent event) {
-    //Open up the file chooser in the calibration directory, if available,
-    //otherwise open in the working directory
-    String currentMagGradientDirectory = ltfMagGradientFile.getText();
-    if (currentMagGradientDirectory.equals("")) {
-      File calibrationDir = EtomoDirector.INSTANCE.getIMODCalibDirectory();
-      File magGradientDir = new File(calibrationDir.getAbsolutePath(),
-          "Distortion");
-      if (magGradientDir.exists()) {
-        currentMagGradientDirectory = magGradientDir.getAbsolutePath();
-      }
-      else {
-        currentMagGradientDirectory = applicationManager.getPropertyUserDir();
-      }
-    }
-    JFileChooser chooser = new JFileChooser(new File(
-        currentMagGradientDirectory));
-    MagGradientFileFilter magGradientFileFilter = new MagGradientFileFilter();
-    chooser.setFileFilter(magGradientFileFilter);
-    chooser.setPreferredSize(new Dimension(400, 400));
-    chooser.setFileSelectionMode(JFileChooser.FILES_ONLY);
-    int returnVal = chooser.showOpenDialog(rootPanel);
-    if (returnVal == JFileChooser.APPROVE_OPTION) {
-      File magGradientFile = chooser.getSelectedFile();
-      try {
-        ltfMagGradientFile.setText(magGradientFile.getAbsolutePath());
-      }
-      catch (Exception excep) {
-        excep.printStackTrace();
-      }
-    }
-  }
-
-  protected void rbSingleAxisAction(ActionEvent event) {
-    tiltAnglesB.setEnabled(false);
-    ltfExcludeListB.setEnabled(false);
-    btnViewRawStackB.setEnabled(false);
-  }
-
-  protected void rbDualAxisAction(ActionEvent event) {
-    tiltAnglesB.setEnabled(true);
-    ltfExcludeListB.setEnabled(true);
-    btnViewRawStackB.setEnabled(true);
-  }
-
-  protected void rbSingleViewAction(ActionEvent event) {
-    cbAdjustedFocusA.setEnabled(false);
-    cbAdjustedFocusB.setEnabled(false);
-  }
-
-  protected void rbMontageAction(ActionEvent event) {
-    cbAdjustedFocusA.setEnabled(true);
-    cbAdjustedFocusB.setEnabled(true);
-  }
-
-  protected void btnScanHeaderAction(ActionEvent event) {
-    // Get the dataset name from the UI object
-    String datasetName = ltfDataset.getText();
-    if (datasetName == null || datasetName.equals("")) {
-      uiHarness.openMessageDialog("Dataset name has not been entered",
-          "Missing dataset name", AxisID.ONLY);
-      return;
-    }
-    //  Add the appropriate extension onto the filename if necessary 
-    if (!datasetName.endsWith(".st")) {
-      if (rbDualAxis.isSelected()) {
-        datasetName = datasetName + "a.st";
-      }
-      else {
-        datasetName = datasetName + ".st";
-
-      }
-    }
-
-    // Run header on the dataset to the extract whatever information is
-    // available
-    MRCHeader header = MRCHeader.getInstance(applicationManager
-        .getPropertyUserDir(), datasetName, AxisID.ONLY);
-    try {
-      header.read();
-    }
-    catch (InvalidParameterException except) {
-      uiHarness.openMessageDialog(except.getMessage(),
-          "Invalid Parameter Exception", AxisID.ONLY);
-    }
-    catch (IOException except) {
-      uiHarness.openMessageDialog(except.getMessage(), "IO Exception",
-          AxisID.ONLY);
-    }
-
-    // Set the image rotation if available
-    double imageRotation = header.getImageRotation();
-    if (!Double.isNaN(imageRotation)) {
-      ltfImageRotation.setText(imageRotation);
-    }
-
-    // set the pixel size if available
-    double xPixelSize = header.getXPixelSize().getDouble();
-    double yPixelSize = header.getYPixelSize().getDouble();
-    if (Double.isNaN(xPixelSize) || Double.isNaN(yPixelSize)) {
-      uiHarness.openMessageDialog(
-          "Pixel size is not defined in the image file header",
-          "Pixel size is missing", AxisID.ONLY);
-
-      return;
-    }
-
-    if (xPixelSize != yPixelSize) {
-      uiHarness.openMessageDialog(
-          "X & Y pixels sizes are different, don't know what to do",
-          "Pixel sizes are different", AxisID.ONLY);
-      return;
-    }
-    if (xPixelSize == 1.0) {
-      uiHarness.openMessageDialog(
-          "Pixel size is not defined in the image file header",
-          "Pixel size is missing", AxisID.ONLY);
-      return;
-    }
-    xPixelSize = xPixelSize / 10.0;
-    ltfPixelSize.setText(Utilities.round(xPixelSize, 6));
-    int binning = header.getBinning();
-    if (binning == Integer.MIN_VALUE) {
-      binning = 1;
-    }
-    spnBinning.setValue(new Integer(binning));
-  }
-
-  public void run3dmod(Run3dmodButton button, Run3dmodMenuOptions menuOptions) {
-    if (button.equals(btnViewRawStackA)) {
-      btnViewRawStackAAction(menuOptions);
-    }
-    else if (button.equals(btnViewRawStackB)) {
-      btnViewRawStackBAction(menuOptions);
-    }
-  }
-
-  protected void btnViewRawStackAAction(Run3dmodMenuOptions menuOptions) {
-    if (getAxisType() == AxisType.SINGLE_AXIS) {
-      applicationManager.imodPreview(AxisID.ONLY, menuOptions);
-    }
-    else {
-      applicationManager.imodPreview(AxisID.FIRST, menuOptions);
-    }
-  }
-
-  protected void btnViewRawStackBAction(Run3dmodMenuOptions menuOptions) {
-    applicationManager.imodPreview(AxisID.SECOND, menuOptions);
-  }
-
-  public void done() {
-    applicationManager.doneSetupDialog();
-    setDisplayed(false);
-  }
-
-  private void setToolTipText() {
-    ltfDataset
-        .setToolTipText("Enter the name of view data file(s). You can also select the view data file by pressing the folder button.");
-    btnDataset
-        .setToolTipText("This button will open a file chooser dialog box allowing you to select the view data file.");
-    ltfBackupDirectory
-        .setToolTipText("Enter the name of the directory where you want the small data files .com and .log files to be backed up.  You can use the folder button on the right to create a new directory to store the backups.");
-    btnBackupDirectory
-        .setToolTipText("This button will open a file chooser dialog box allowing you to select and/or create the backup directory.");
-    btnScanHeader
-        .setToolTipText("Attempt to extract pixel size and tilt axis rotation angle from data stack.");
-
-    String text = "This radio button selector will choose whether the data consists of one or two tilt axis.";
-    pnlAxisType.setToolTipText(text);
-    rbSingleAxis.setToolTipText(text);
-    rbDualAxis.setToolTipText(text);
-    btnDistortionFile.setToolTipText(text);
-
-    text = "This radio button selector will choose whether the data consists of a single frame per view or multiple frames per view (montaged).";
-    pnlViewType.setToolTipText(text);
-    rbSingleView.setToolTipText(text);
-    rbMontage.setToolTipText(text);
-
-    ltfPixelSize
-        .setToolTipText("Enter the view image pixel size in nanometers here.");
-    ltfFiducialDiameter
-        .setToolTipText("Enter the fiducial size in nanometers here.");
-    ltfImageRotation
-        .setToolTipText("Enter the view image rotation in degrees. This is the rotation (CCW positive) from the Y-axis (the tilt axis after the views are aligned) to the suspected tilt axis in the unaligned views.");
-
-    text = "OPTIONAL: If you wish to correct for image distortion, enter the name of the appropriate image distortion file in this field and the CCD camera binning in the following spin control.";
-    ltfDistortionFile.setToolTipText(text);
-    btnDistortionFile.setToolTipText(text);
-
-    spnBinning
-        .setToolTipText("Specify the binning in the CCD camera when the raw image stack was acquired.");
-
-    tiltAnglesA.setToolTipText();
-    tiltAnglesB.setToolTipText();
-
-    text = "Enter the view images to <b>exclude</b> from the processing of this axis.  Ranges are allowed, separate ranges by commas.  For example to exclude the first four and last four images of a 60 view stack enter 1-4,57-60.";
-    ltfExcludeListA.setToolTipText(text);
-    ltfExcludeListB.setToolTipText(text);
-
-    btnPostpone
-        .setToolTipText("This button will setup the processing for existing command scripts.  <b>Be sure that parameters entered match the existing command scripts.");
-    btnExecute
-        .setToolTipText("This button will create a new set of command scripts overwriting any of the same name in the specified working directory.  Be sure to save the data file after creating the command script if you wish to keep the results.");
-
-    cbParallelProcess
-        .setToolTipText("Sets the default for parallel processing (distributing processes across multiple computers).");
-    text = "OPTIONAL:  A file with magnification gradients to be applied for each image.";
-    ltfMagGradientFile.setToolTipText(text);
-    btnMagGradientFile.setToolTipText(text);
-
-    spnBinning
-        .setToolTipText("Binning at which images were acquired on CCD camera.");
-    btnViewRawStackA.setToolTipText("View the current raw image stack.");
-    btnViewRawStackB.setToolTipText("View the current raw image stack.");
-    cbAdjustedFocusA
-        .setToolTipText("Set this if \"Change focus with height\" was selected when the montage was acquired in SerialEM.");
-    cbAdjustedFocusB
-        .setToolTipText("Set this if \"Change focus with height\" was selected when the montage was acquired in SerialEM.");
-  }
-
   //  Button action listener classes
-  class DatasetActionListener implements ActionListener {
+  private static final class DatasetActionListener implements ActionListener {
 
-    SetupDialog adaptee;
+    private final SetupDialog adaptee;
 
-    DatasetActionListener(SetupDialog adaptee) {
+    private DatasetActionListener(final SetupDialog adaptee) {
       this.adaptee = adaptee;
     }
 
-    public void actionPerformed(ActionEvent event) {
-      adaptee.btnDatasetAction(event);
+    public void actionPerformed(final ActionEvent event) {
+      adaptee.datasetAction();
     }
   }
 
-  class BackupDirectoryActionListener implements ActionListener {
+  private static final class BackupDirectoryActionListener implements
+      ActionListener {
 
-    SetupDialog adaptee;
+    private final SetupDialog adaptee;
 
-    BackupDirectoryActionListener(SetupDialog adaptee) {
+    private BackupDirectoryActionListener(final SetupDialog adaptee) {
       this.adaptee = adaptee;
     }
 
-    public void actionPerformed(ActionEvent event) {
-      adaptee.btnBackupDirectoryAction(event);
+    public void actionPerformed(final ActionEvent event) {
+      adaptee.backupDirectoryAction();
     }
   }
 
-  class DistortionFileActionListener implements ActionListener {
+  private static final class DistortionFileActionListener implements
+      ActionListener {
 
-    SetupDialog adaptee;
+    private final SetupDialog adaptee;
 
-    DistortionFileActionListener(SetupDialog adaptee) {
+    private DistortionFileActionListener(final SetupDialog adaptee) {
       this.adaptee = adaptee;
     }
 
-    public void actionPerformed(ActionEvent event) {
-      adaptee.btnDistortionFileAction(event);
+    public void actionPerformed(final ActionEvent event) {
+      adaptee.distortionFileAction();
     }
   }
 
-  class MagGradientFileActionListener implements ActionListener {
+  private static final class MagGradientFileActionListener implements
+      ActionListener {
 
-    SetupDialog adaptee;
+    private SetupDialog adaptee;
 
-    MagGradientFileActionListener(SetupDialog adaptee) {
+    private MagGradientFileActionListener(final SetupDialog adaptee) {
       this.adaptee = adaptee;
     }
 
-    public void actionPerformed(ActionEvent event) {
-      adaptee.btnMagGradientFileAction(event);
+    public void actionPerformed(final ActionEvent event) {
+      adaptee.magGradientFileAction();
     }
   }
 
-  class SingleAxisActionListener implements ActionListener {
+  private static final class ViewRawStackAActionListener implements
+      ActionListener {
 
-    SetupDialog adaptee;
+    private SetupDialog adaptee;
 
-    SingleAxisActionListener(SetupDialog adaptee) {
+    private ViewRawStackAActionListener(final SetupDialog adaptee) {
       this.adaptee = adaptee;
     }
 
-    public void actionPerformed(ActionEvent event) {
-      adaptee.rbSingleAxisAction(event);
+    public void actionPerformed(final ActionEvent event) {
+      adaptee.viewRawStackA();
     }
   }
 
-  class DualAxisActionListener implements ActionListener {
+  private static final class ViewRawStackBActionListener implements
+      ActionListener {
 
-    SetupDialog adaptee;
+    private SetupDialog adaptee;
 
-    DualAxisActionListener(SetupDialog adaptee) {
+    private ViewRawStackBActionListener(final SetupDialog adaptee) {
       this.adaptee = adaptee;
     }
 
-    public void actionPerformed(ActionEvent event) {
-      adaptee.rbDualAxisAction(event);
+    public void actionPerformed(final ActionEvent event) {
+      adaptee.viewRawStackB();
     }
   }
 
-  class SingleViewActionListener implements ActionListener {
+  private static final class SetupDialogActionListener implements
+      ActionListener {
 
-    SetupDialog adaptee;
+    private final SetupDialogExpert adaptee;
 
-    SingleViewActionListener(SetupDialog adaptee) {
+    private SetupDialogActionListener(final SetupDialogExpert adaptee) {
       this.adaptee = adaptee;
     }
 
-    public void actionPerformed(ActionEvent event) {
-      adaptee.rbSingleViewAction(event);
+    public void actionPerformed(final ActionEvent event) {
+      adaptee.action(event.getActionCommand());
     }
   }
-
-  class MontageActionListener implements ActionListener {
-
-    SetupDialog adaptee;
-
-    MontageActionListener(SetupDialog adaptee) {
-      this.adaptee = adaptee;
-    }
-
-    public void actionPerformed(ActionEvent event) {
-      adaptee.rbMontageAction(event);
-    }
-  }
-
-  class ScanHeaderActionListener implements ActionListener {
-
-    SetupDialog adaptee;
-
-    ScanHeaderActionListener(SetupDialog adaptee) {
-      this.adaptee = adaptee;
-    }
-
-    public void actionPerformed(ActionEvent event) {
-      adaptee.btnScanHeaderAction(event);
-    }
-  }
-
-  class ViewRawStackAActionListener implements ActionListener {
-    SetupDialog adaptee;
-
-    ViewRawStackAActionListener(SetupDialog adaptee) {
-      this.adaptee = adaptee;
-    }
-
-    public void actionPerformed(ActionEvent event) {
-      adaptee.btnViewRawStackAAction(new Run3dmodMenuOptions());
-    }
-  }
-
-  class ViewRawStackBActionListener implements ActionListener {
-    SetupDialog adaptee;
-
-    ViewRawStackBActionListener(SetupDialog adaptee) {
-      this.adaptee = adaptee;
-    }
-
-    public void actionPerformed(ActionEvent event) {
-      adaptee.btnViewRawStackBAction(new Run3dmodMenuOptions());
-    }
-  }
-
 }
 /**
  * <p> $Log$
+ * <p> Revision 3.59  2007/09/07 00:28:43  sueh
+ * <p> bug# 989 Using a public INSTANCE to refer to the EtomoDirector singleton
+ * <p> instead of getInstance and createInstance.
+ * <p>
  * <p> Revision 3.58  2007/08/08 15:04:14  sueh
  * <p> bug# 834 Using UserConfiguration to initialize fields.
  * <p>
