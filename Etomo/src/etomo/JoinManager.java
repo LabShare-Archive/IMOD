@@ -64,6 +64,9 @@ import etomo.util.Utilities;
  * @version $Revision$
  * 
  * <p> $Log$
+ * <p> Revision 1.63  2007/12/10 21:49:45  sueh
+ * <p> bug# 1041 Standardized JoinMetaData.getRootName to getDatasetName.
+ * <p>
  * <p> Revision 1.62  2007/10/09 19:17:27  sueh
  * <p> bug# 1046
  * <p>
@@ -458,10 +461,13 @@ public final class JoinManager extends BaseManager {
       imodManager.setMetaData(metaData);
       mainPanel.setStatusBarText(paramFile, metaData);
     }
-    if (!EtomoDirector.INSTANCE.isHeadless()) {
+    if (!EtomoDirector.INSTANCE.getArguments().isHeadless()) {
       openJoinDialog();
       setMode();
     }
+  }
+  
+  public void doAutomation() {
   }
 
   public InterfaceType getInterfaceType() {

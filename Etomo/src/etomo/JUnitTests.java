@@ -32,8 +32,8 @@ public class JUnitTests {
 
   public static final File TEST_ROOT_DIR = new File(System
       .getProperty("user.dir"), "JUnitTests");
-  public static final String[] ETOMO_ARGUMENTS = { "--test", "--headless",
-      "--selftest" };
+  public static final String[] ETOMO_ARGUMENTS = { Arguments.TEST_TAG,
+      Arguments.HEADLESS_TAG, Arguments.SELFTEST_TAG };
 
   public static Test suite() {
     EtomoDirector.main(ETOMO_ARGUMENTS);
@@ -73,14 +73,14 @@ public class JUnitTests {
       }
     }
     if (!Utilities.isWindowsOS()) {
-    testSuite = (TestSuite) AutodocTests.suite();
-    tests = testSuite.tests();
-    while (tests.hasMoreElements()) {
-      test = tests.nextElement();
-      if (test instanceof Test) {
-        suite.addTest((Test) test);
+      testSuite = (TestSuite) AutodocTests.suite();
+      tests = testSuite.tests();
+      while (tests.hasMoreElements()) {
+        test = tests.nextElement();
+        if (test instanceof Test) {
+          suite.addTest((Test) test);
+        }
       }
-    }
     }
 
     testSuite = (TestSuite) ComScriptTests.suite();
@@ -115,6 +115,9 @@ public class JUnitTests {
 }
 /**
  * <p> $Log$
+ * <p> Revision 1.10  2007/12/14 18:51:21  sueh
+ * <p> Running system program is not working on windows.
+ * <p>
  * <p> Revision 1.9  2007/09/07 00:16:16  sueh
  * <p> bug# 989 Call EtomoDirector.main() as early as possible.
  * <p>

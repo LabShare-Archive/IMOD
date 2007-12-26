@@ -77,7 +77,7 @@ public final class ParallelManager extends BaseManager {
     createState();
     processMgr = new ParallelProcessManager(this);
     initializeUIParameters(paramFileName, AXIS_ID);
-    if (!EtomoDirector.INSTANCE.isHeadless()) {
+    if (!EtomoDirector.INSTANCE.getArguments().isHeadless()) {
       openProcessingPanel();
       mainPanel.setStatusBarText(paramFile, metaData);
       if (paramFile == null) {
@@ -92,6 +92,9 @@ public final class ParallelManager extends BaseManager {
         }
       }
     }
+  }
+  
+  public void doAutomation() {
   }
 
   public ParallelState getState() {
@@ -640,6 +643,10 @@ public final class ParallelManager extends BaseManager {
 }
 /**
  * <p> $Log$
+ * <p> Revision 1.22  2007/12/10 21:51:10  sueh
+ * <p> bug# 1041 Passing rootName to processchunks because it is now required for
+ * <p> the ProcesschunksParam constructor.
+ * <p>
  * <p> Revision 1.21  2007/11/12 14:50:59  sueh
  * <p> bug# 1047 Adding a swapYZ option to all the imods in the anisotropic diffusion
  * <p> interface.

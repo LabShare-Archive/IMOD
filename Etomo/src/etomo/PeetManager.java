@@ -53,6 +53,9 @@ import etomo.util.DatasetFiles;
  * @version $Revision$
  * 
  * <p> $Log$
+ * <p> Revision 1.34  2007/12/10 21:53:25  sueh
+ * <p> bug# 1041 Changed getBaseState to return state.
+ * <p>
  * <p> Revision 1.33  2007/09/27 19:21:23  sueh
  * <p> bug# 1044 Made ProcessorTable the ParallelProgress display instead of
  * <p> ParallelPanel.
@@ -202,11 +205,14 @@ public final class PeetManager extends BaseManager {
     if (loadedParamFile) {
       setMatlabParam(false);
     }
-    if (!EtomoDirector.INSTANCE.isHeadless()) {
+    if (!EtomoDirector.INSTANCE.getArguments().isHeadless()) {
       openProcessingPanel();
       mainPanel.setStatusBarText(paramFile, metaData);
       openPeetDialog();
     }
+  }
+  
+  public void doAutomation() {
   }
 
   void initializeUIParameters(String paramFileName, AxisID axisID) {
