@@ -57,6 +57,14 @@ tooltip =
 manpage = Extract incident dose on specimen during camera exposure, referred
 to as exposure dose in SerialEM.  The units are electrons per square Angstrom.
 
+[Field = WarnIfTiltsSuspicious]
+short = warn
+type = B
+usage = Warn if extracted tilt angles may not be correct
+tooltip = 
+manpage = When extracting tilt angles, warn if more than half of them are near
+zero or any are bigger than 90 degrees.
+
 [Field = usage]
 short = help
 long = usage
