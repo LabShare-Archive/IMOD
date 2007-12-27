@@ -25,7 +25,7 @@ C
 C       
       integer*4 nz, ierr, iftilt, ifmag, ifstage, npiece, i, nbyte, iflags
       integer*4 maxz, iunout, lenText, mode, itype, ifc2, ntilt, nbsym
-      integer*4 ntiltout, lnblnk, ifdose
+      integer*4 ntiltout, lnblnk, ifdose, ifwarn
       real*4 dmin, dmax, dmean
       EQUIVALENCE (Nz,NXYZ(3))
 c       
@@ -36,12 +36,13 @@ c
 c       fallbacks from ../../manpages/autodoc2man -2 2  extracttilts
 c       
       integer numOptions
-      parameter (numOptions = 8)
+      parameter (numOptions = 9)
       character*(40 * numOptions) options(1)
       options(1) =
      &    'input:InputFile:FN:@output:OutputFile:FN:@tilts:TiltAngles:B:@'//
      &    'stage:StagePositions:B:@mag:Magnifications:B:@'//
-     &    'intensities:Intensities:B:@exp:ExposureDose:B:@help:usage:B:'
+     &    'intensities:Intensities:B:@exp:ExposureDose:B:@'//
+     &    'warn:WarnIfTiltsSuspicious:B:@help:usage:B:'
 C       
       filout = ' '
       ifmag = 0
@@ -49,6 +50,7 @@ C
       ifC2 = 0
       iftilt = 0
       ifdose = 0
+      ifwarn = 0
 c       
 c       Pip startup: set error, parse options, check help, set flag if used
 c       
@@ -68,6 +70,7 @@ c
         ierr = PipGetBoolean('StagePositions', ifstage)
         ierr = PipGetBoolean('Intensities', ifC2)
         ierr = PipGetBoolean('ExposureDose', ifdose)
+        ierr = PipGetBoolean('WarnIfTiltsSuspicious', ifwarn)
         if (iftilt + ifmag + ifstage + ifC2 + ifdose .eq. 0) iftilt = 1
         if (iftilt + ifmag + ifstage + ifC2 + ifdose .ne. 1) call exitError(
      &      'YOU MUST ENTER ONLY ONE OPTION FOR DATA TO EXTRACT')
@@ -151,12 +154,29 @@ c
         print *,ntiltout,' ',typeText(itype)(1:lenText),'s output to file'
       endif
 
+      if (iftilt .gt. 0 .and. ifwarn .gt. 0) then
+        ntilt = 0
+        do i = 1, ntiltout
+          if (abs(tilt(i)) .lt. 0.1) ntilt = ntilt + 1
+          if (abs(tilt(i)) .gt. 95.) ifmag = ifmag + 1
+        enddo
+        if (ntiltout .gt. 2 .and. ntilt .gt. ntiltout / 2)
+     &      write(*,103) ntilt,'near zero'
+103     format('WARNING: extracttilts - ',i4,
+     &      ' of the extracted tilt angles are ',a)
+        if (ifmag .gt. 0)
+     &      write(*,103) ifmag,'greater than 95 degrees'
+      endif
+
       CALL IMCLOSE(1)
 c       
       call exit(0)
       END
 
 c       $Log$
+c       Revision 3.8  2007/07/15 21:21:47  mast
+c       Made usage of maxz consistent between montage and single frame
+c
 c       Revision 3.7  2007/05/19 00:04:12  mast
 c       Added exposure dose
 c
