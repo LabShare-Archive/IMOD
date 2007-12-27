@@ -606,7 +606,7 @@ while ($iaxis < $numax)
             endif
 	    if ($ifextract == "y" || $ifextract == "Y") then
                 if (-e $stackname) then
-                    extracttilts $stackname $tiltspec | tail  -1
+                    extracttilts -warn $stackname $tiltspec | tail  -1
                     if ($status && ($interactive == 0)) exit 1
                 else
                     echo2 " "
@@ -1379,6 +1379,9 @@ exit 0
 
 #
 #  $Log$
+#  Revision 3.55  2007/12/06 22:39:53  mast
+#  Changes to knock the adjustorigin entries out of early blend and newst steps
+#
 #  Revision 3.54  2007/09/24 23:07:17  mast
 #  Set tilt scaling based on lookup table
 #
