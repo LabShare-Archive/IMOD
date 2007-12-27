@@ -1,5 +1,8 @@
 IMOD History
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+12/27/07: Added an option to extracttilts to give a warning if the tilt angles
+are suspicious; made copytomocoms use the option (In 3.11).
+
 12/26/07: Added Etomo arguments to allow the reconstruction Setup dialog to be
 completed automatically.  See etomo -h.
 
