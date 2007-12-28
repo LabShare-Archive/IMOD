@@ -79,3 +79,8 @@ have problems with the AGP support.  Do
 
 10. Note that you need to reinstall the Nvidia drivers whenever either the
 kernel or X is updated to a new version.  Just follow steps 4, 5 and 8.
+Or, with recent packages, after the machine is rebooted and fails to start X,
+you can enter, e.g.,
+sh NVIDIA-Linux-x86-100.14.19-pkg1.run -a -s
+init 3
+init 5

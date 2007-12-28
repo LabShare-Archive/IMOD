@@ -4,7 +4,7 @@
   <title>IMOD User's Guide</title>
 </head>
 <body>
-<h1 align="center">IMOD User's Guide for Version 3.9 </h1>
+<h1 align="center">IMOD User's Guide for Version 3.11 </h1>
 <h3 align="center">Boulder Laboratory for 3-D Electron Microscopy of
 Cells</h3>
 <hr>
@@ -14,17 +14,14 @@ Cells</h3>
   <ul>
     <li><a href="#SettingUpLinux">Setting Up a Linux PC to Run IMOD.</a>
     </li>
-    <li><a href="#InstallingLinuxSGI">Installing IMOD on a Linux PC or
-an SGI</a> </li>
-    <li><a href="#InstallingJavaLinux">Installing Java on Linux PC or
-SGI</a> </li>
+    <li><a href="#InstallingLinuxSGI">Installing IMOD on a Linux PC</a> </li>
+    <li><a href="#InstallingJavaLinux">Installing Java on a Linux PC</a> </li>
     <li><a href="#InstallingMac">Installing IMOD on a Macintosh running
 OS X</a> </li>
     <li><a href="#SettingUpWindows">Setting Up a Windows PC to Run IMOD</a>
     </li>
-    <li><a href="#InstallingWindows">Installing IMOD on a Windows PC</a>
-    </li>
-    <li><a href="#TIFFLibrary"> TIFF Library Support for SGI</a> </li>
+    <li><a href="#InstallingWindows">Installing IMOD on a Windows PC</a></li>
+    <li><a href="#ImodCalib">Using the ImodCalib directory</a></li>
   </ul>
   <li><a href="#Getting%20Started">Getting Started</a> </li>
   <li><a href="#Aligning%20Images">Aligning Images</a> </li>
@@ -58,7 +55,7 @@ install to the default location in the system and set up the IMOD
 environment for all users in the default way, then you can install
 simply by running this
 script, e.g.,<br>
-&nbsp;&nbsp;&nbsp;<code>csh -f imod_3.9.2_FC2.csh</code><br>
+&nbsp;&nbsp;&nbsp;<code>csh -f imod_3.11.2_FC2.csh</code><br>
   <br>
 (In this guide, the specific filenames are used as an example; your
 copy may have higher version numbers.) <span
@@ -66,34 +63,41 @@ copy may have higher version numbers.) <span
 install it.</span>&nbsp; If you have
 followed our recommended installation procedures
 since IMOD 3.0.8, you will be able to upgrade using the same
-command. If you want to install to a location other than the default,
-on all systems except Windows, you can specify the desired location,
+command. If you want to install to a location other than the
+default,&nbsp; you can specify the desired location,
 e.g.,<br>
-&nbsp;&nbsp; <code>csh -f imod_3.9.2_FC2.csh -dir /opt</code><br>
+&nbsp;&nbsp; <code>csh -f imod_3.11.2_FC2.csh -dir /opt</code><br>
   <br>
 Older versions will be renamed, and at the end the installation script
 will offer to remove them for you.&nbsp;If you need to work with
 the tar file instead, you can
 just extract it with:<br>
-&nbsp; <code>csh -f imod_3.9.2_FC2.csh -extract<br>
+&nbsp; <code>csh -f imod_3.11.2_FC2.csh -extract<br>
   </code><br>
-The sections below on individual machine types describe what will be
+There are two other useful options: <code>-script </code>to install
+startup scripts to a different location, and <code>-skip</code> to
+skip installing startup scripts.&nbsp; Use:<br>
+</dl>
+<code>csh -f imod_3.11.2_FC2.csh -help</code>
+<dl>
+to see all available option.&nbsp; The sections below on individual
+machine types describe what will be
 done by the default installation procedure and list the steps for
 doing a manual installation instead of using the self-installing
 package.<br>
 </dl>
 <dl>
   <dd> <a name="SettingUpLinux"> </a>
-    <p> <a name="SettingUpLinux"> </a></p>
-    <h4><a name="SettingUpLinux">Setting Up a Linux PC to Run IMOD.</a></h4>
-    <a name="SettingUpLinux"> </a> The recommended configuration for
+    <h4>Setting Up a Linux PC to Run IMOD.</h4>
+The recommended configuration for
 running the IMOD software is:
-    <p> Processor: Intel Pentium 4 or M or AMD Athlon or Opteron<br>
+    <p> Processor: Almost any Intel or AMD processor from the last 5
+years will run adequately<br>
 Video Card: any relatively modern Nvidia card (GeForce or Quadro, 64 MB
 or higher cards preferred)<br>
 Minimum memory size: 512MB <br>
 Minimum disk size: 15 GB <br>
-Operating System: Red Hat Workstation 3 or Fedora 2 or higher<br>
+Operating System: Red Hat Workstation 4 or Fedora 4 or higher<br>
 Nvidia Linux device drivers and OpenGL libraries from <a
  href="http://www.nvidia.com">Nvidia</a>, at least version 8776 or
 higher due to security concerns<br>
@@ -131,26 +135,27 @@ need compat-libstdc++-33, which you can install with:</p>
     </p>
     <p><b>Window manager settings.</b> To keep 3dmod from
 bogging down when it is displaying complex models, the window manager
-should be set to display only the outline and not the contents of
+can be set to display only the outline and not the contents of
 windows when they are moved or resized.&nbsp; This cannot be done under
 Gnome but it can under KDE, by opening up the
 Control Center and selecting "Look and Feel" or "Desktop" (depending on
 KDE version), then "Window Behavior" then the "Moving" panel. </p>
     <a name="InstallingLinuxSGI">
-    <h4>Installing IMOD on a Linux PC or an SGI</h4>
+    <h4>Installing IMOD on a Linux PC<br>
+    </h4>
     </a>
-    <p> The self-installing package will install to <code>/usr/local/IMOD</code>
-unless given an alternate location with the <code>-dir</code>
-option.&nbsp;
-Under Linux, it will copy <code>IMOD-linux.sh </code>and <code>IMOD-linux.csh
-    </code>to <code>/etc/profile.d</code>.&nbsp; On an SGI, it will
-place an appropriate "source" command into <code>/etc/cshrc</code> if
-it is not there already, but it will not modify <code>/etc/profile</code>
-for bash users (see step 9B below to do this.)&nbsp; To accomplish all
+    <p> The self-installing package will install to a directory named <code>IMOD</code>
+under <code>/usr/local</code>
+unless given an alternate location to <code>/usr/local</code> with the
+    <code>-dir</code>
+option.&nbsp; It will copy <code>IMOD-linux.sh </code>and <code>IMOD-linux.csh
+    </code>to <code>/etc/profile.d</code>. unless given an alternate
+location with the <code>-script</code> option or told to skip this
+step with the <code>-skip</code> option.&nbsp; To accomplish all
 of this, change directory to the place where the package is located and
 enter, for example:<br>
 &nbsp;&nbsp;&nbsp;&nbsp; <code>sudo csh </code><code>-f
-imod_3.9.2_FC2.csh</code><br>
+imod_3.11.2_FC2.csh</code><br>
     <br>
 You will have to open a new window, or possibly even log out and
 log back in, for the installation to take effect.<br>
@@ -163,52 +168,16 @@ previous installation used another method for setting the environment
 variables for users, be sure to remove whatever commands were used
 before. &nbsp;These might have been placed in <code>/etc/cshrc</code>,<code>
 /usr/local/etc/cshrc</code>,
-or users' <code>.cshrc</code>, <code>.bashrc</code>, or <code>.profile</code>
+or users' <code>.cshrc</code>, <code>.bashrc</code>, or <code>.bash_profile</code>
 files. &nbsp;The advantage of the current procedure is that future
 upgrades
 will be easier, especially if the startup files change.</dd>
-  <dd><br>
-  </dd>
 </dl>
 <dl>
-  <dd>
-    <p>To install manually from the tar file, do the following steps:<br>
-    </p>
-    <ol>
-      <li> Log in as root or do all of these commands with sudo </li>
-      <li> cd to the directory where you downloaded IMOD, and <br>
-        <code> mv imod_3.9.2_FC2.tar.gz /usr/local</code> </li>
-      <li><code> cd /usr/local</code> </li>
-      <li><code> gunzip imod_3.9.2_FC2.tar.gz</code> </li>
-      <li><code> tar xvf imod_3.9.2_FC2.tar</code> </li>
-      <li>To see if you already have a /usr/local/IMOD, <br>
-        <code> ls -l</code> </li>
-      <li>If you do have a /usr/local/IMOD and it is a link (e.g., it
-shows up as <code> IMOD -&gt; imod_2.7.6</code>), then enter <br>
-        <code> rm IMOD</code> <br>
-Otherwise, rename the existing directory, e.g.: <br>
-        <code> mv IMOD oldIMOD</code> </li>
-      <li><code> ln -s imod_3.9.2 IMOD</code> </li>
-      <li> (A) Under Linux, enter <br>
-        <code> cp IMOD/IMOD-linux.* /etc/profile.d</code> <br>
-(B) On an SGI, insert the text in <code>IMOD/sgi.cshrc</code> into <code>/etc/cshrc</code>,
-specifically the command <br>
-        <code>if (-e /usr/local/IMOD/IMOD-sgi.csh) source
-/usr/local/IMOD/IMOD-sgi.csh </code><br>
-If there are any bash users, also insert the text in <code>IMOD/sgi.bashrc</code>
-into <code>/etc/profile</code>,
-specifically the command <br>
-        <code>[ -r /usr/local/IMOD/IMOD-sgi.sh ] &amp;&amp; source
-/usr/local/IMOD/IMOD-sgi.sh</code><br>
-      </li>
-    </ol>
-  </dd>
-</dl>
-<dl>
-</dl>
-<dl>
-  <dd>If you do not want a system wide installation, instead of step 9
-above, then under Linux, place the following in the <code>.cshrc</code>
+  <dd>You would skip the installation of the startup scripts if you do
+not want a system wide installation, or if you are installing to a
+server to be accessed by multiple workstations. In this case, you would
+place the following in the <code>.cshrc</code>
 files of individual users of <code>tcsh</code> (where &lt;location of
 IMOD&gt; is the absolute path to the IMOD directory):</dd>
   <dd><code>setenv IMOD_DIR &lt;location of IMOD&gt;</code></dd>
@@ -216,7 +185,7 @@ IMOD&gt; is the absolute path to the IMOD directory):</dd>
 $IMOD_DIR/IMOD-linux.csh </code></dd>
 </dl>
 <dl>
-  <dd>or, place the following in the <code>.bashrc</code> of
+  <dd>or, place the following in the <code>.bash_profile</code> of
 individual
 users under <code>bash</code>:</dd>
   <dd><code>export IMOD_DIR=&lt;location of IMOD&gt;</code></dd>
@@ -224,25 +193,45 @@ users under <code>bash</code>:</dd>
 $IMOD_DIR/IMOD-linux.sh ; fi</code></dd>
 </dl>
 <dl>
-  <dd>or, on an SGI, place the following in the <code>.cshrc</code>
-files of individual users:</dd>
-  <dd><code>setenv IMOD_DIR &lt;location of IMOD&gt;</code></dd>
-  <dd><code>if (-e $IMOD_DIR/IMOD-sgi.csh) source $IMOD_DIR/IMOD-sgi.csh</code></dd>
+  <dd>Alternatively, if there are system-wide startup scripts sourced
+from the users' <code>.cshrc</code> or <code>.bash_profile</code>,
+you would place these commands in the system-wide startup
+scripts.&nbsp; You should always source the startup script that comes
+with an IMOD distribution, not make a copy of the startup script and
+incorporate it into other scripts.<br>
+  </dd>
+  <dd>
+    <p>To install manually from the tar file, do the following steps:<br>
+    </p>
+    <ol>
+      <li> Log in as root or do all of these commands with sudo </li>
+      <li> cd to the directory where you downloaded IMOD, and <br>
+        <code> mv imod_3.11.2_FC2.tar.gz /usr/local</code> </li>
+      <li><code> cd /usr/local</code> </li>
+      <li><code> tar -xzvf imod_3.11.2_FC2.tar</code> </li>
+      <li>To see if you already have a /usr/local/IMOD, <br>
+        <code> ls -l</code> </li>
+      <li>If you do have a /usr/local/IMOD and it is a link (e.g., it
+shows up as <code> IMOD -&gt; imod_2.7.6</code>), then enter <br>
+        <code> rm IMOD</code> <br>
+Otherwise, rename the existing directory, e.g.: <br>
+        <code> mv IMOD oldIMOD</code> </li>
+      <li><code> ln -s imod_3.11.2 IMOD</code> </li>
+      <li> <code>cp IMOD/IMOD-linux.* /etc/profile.d</code> <code></code></li>
+    </ol>
+  </dd>
+</dl>
+<dl>
 </dl>
 <dl>
   <dd>Finally, if you just want to try running the programs in a
-particular copy of IMOD, cd to the top IMOD directory and, on Linux
+particular copy of IMOD, cd to the top IMOD directory and, 
 under <code>tcsh</code>, enter:</dd>
   <dd> <code>setenv IMOD_DIR `pwd`</code></dd>
   <dd><code>source IMOD-linux.csh </code></dd>
 </dl>
 <dl>
-  <dd>and similarly on the SGI, sourcing <code>IMOD-sgi.csh</code>. On
-Linux under <code>bash</code>, enter:</dd>
-  <dd><code>export IMOD_DIR=`pwd`</code></dd>
-  <dd><code>source IMOD-linux.sh<br>
-    <br>
-    </code>Under Linux, <code>3dmod</code> may fail to run if another
+  <dd><code></code><code>3dmod</code> may fail to run if another
 installed package has placed an incompatible Qt or OpenGL library on
 your library load path.&nbsp; The sign of a problem with the Qt library
 is an error message about an undefined symbol, usually a very long
@@ -274,12 +263,14 @@ without deleting <code>IMOD-linux.*sh</code>.<code><br>
 </ul>
 <dl style="margin-left: 40px;">
   <a name="InstallingJavaLinux">
-  <h4>Installing Java on Linux PC or SGI</h4>
+  <h4>Installing Java on a Linux PC<br>
+  </h4>
   </a>Etomo is a Java 2 application and thus requires a Java runtime
 environment (JRE) with a version of 1.4 or better to be
 installed.&nbsp; Etomo will not work with the GNU Java that is
 currently distributed with Fedora Core, so you will need a Sun
-version.&nbsp; We recommend using version 1.5 since it may be required
+version.&nbsp; We highly recommend using version 1.5 or 1.6 since 1.5 or
+better will almost certainly be required
 by the next release of IMOD.&nbsp; Sun's JRE version 1.5.0_6
 is
 available <a
@@ -288,10 +279,11 @@ Linux. <br>
   <br>
   <span style="font-family: monospace;"><code></code></span>To
 install the JRE for Linux first move the <code><span
- style="font-family: monospace;">jre-1_5_0_06-linux-i586.bin</span></code>file
+ style="font-family: monospace;">jre-1_5_0_06-linux-i586.bin</span></code>
+file
 to <code>/usr/local</code>
-  <p class="western"><code><span style="font-family: monospace;">mv </span></code><span
- style="font-family: monospace;"><code><span
+  <p class="western"><code><span style="font-family: monospace;">sudo
+mv </span></code><span style="font-family: monospace;"><code><span
  style="font-family: monospace;">jre-1_5_0_06-linux-i586.bin /usr/local</span></code><br>
   </span></p>
   <p class="western">Next change your working directory to <code>/usr/local</code>
@@ -299,14 +291,16 @@ and&nbsp; execute the bin by entering</p>
   <p class="western"><span style="font-family: monospace;"><code>cd
 /usr/local</code><br>
   </span></p>
-  <p class="western"><span style="font-family: monospace;"><code>sh
+  <p class="western"><span style="font-family: monospace;"><code>sudo
+sh
 jre-1_5_0_06-linux-i586.bin</code><br>
   </span></p>
   <p class="western">on the command line. &nbsp;</p>
   <p class="western">This will install the JRE in <code>/usr/local/jre1.5.0_06</code>.
 &nbsp;The IMOD startup scripts assume that the JRE is in <code>/usr/local/java</code>,
 so next create a link: </p>
-  <p class="western"><span style="font-family: monospace;"><code>ln
+  <p class="western"><span style="font-family: monospace;"><code>sudo
+ln
 -s jre1.5.0_06 java</code><br>
   </span></p>
   <span style="font-family: monospace;"><code></code></span>
@@ -317,18 +311,8 @@ and <code>IMOD-linux.csh</code> scripts in <code>/etc/profile.d</code>
 and define the variable IMOD_JAVADIR to specify the directory where the
 JRE you wish to use is installed.<br>
   </p>
-For an SGI, we recommend using version 1.4.0 of the Java runtime
-environment, available <a
- href="http://bio3d.colorado.edu/imod/java/SGI-Java2v14-EA-eoe.tardist">here</a>.
-&nbsp;If it loses its extension in the download, make sure it ends in
-"tardist". For example, <br>
-  <code><br>
-mv SGI-Java-2v14-EA-eoe.tar SGI-Java-2v14-EA-eoe.tardist</code><br>
+&nbsp;
   <br>
-Then install it with <br>
-  <br>
-  <code>swmgr -f &nbsp;SGI-Java-2v14-EA-eoe.tardi</code>st &nbsp;&nbsp;<br>
-&nbsp;<br>
   <a name="InstallingMac">
   <h4>Installing IMOD on a Macintosh running OS X</h4>
   </a>Be sure to install the right package for the processor type: <code>_osx_ppc</code>
@@ -342,9 +326,10 @@ line.</span>&nbsp; It will
 place appropriate "source" commands for defining the user environment
 in <code>/etc/csh.login<span style="font-family: sans-serif;"> </span></code>and
   <code>/etc/profile</code>.&nbsp;You
-need to be able to use sudo. &nbsp;Open a terminal window, change
+need to be able to use sudo. &nbsp;Open a terminal window (under
+Applications-Utilities), change
 directory to the place where the package is located, and enter, e.g.:<br>
-&nbsp;&nbsp;&nbsp;&nbsp;<code>sudo csh -f imod_3.9.2_osx_ppc.csh</code><br>
+&nbsp;&nbsp;&nbsp;&nbsp;<code>sudo csh -f imod_3.11.2_osx_ppc.csh</code><br>
   <br>
 &nbsp;You will need to exit and restart Terminal for these changes to
 take
@@ -380,9 +365,9 @@ alternatives.&nbsp;To do it from the command line, open a Terminal
 window and:<br>
   <ol>
     <li> cd to the directory where you downloaded IMOD, and <br>
-      <code>sudo mv imod_3.9.2_osx.tar.gz /Applications</code></li>
+      <code>sudo mv imod_3.11.2_osx_ppc.tar.gz /Applications</code></li>
     <li><code>cd /Applications</code></li>
-    <li><code>sudo tar xvzf imod_3.9.2_osx.0.tar</code></li>
+    <li><code>sudo tar xvzf imod_3.11.2_osx_ppc.0.tar</code></li>
     <li>To see if you already have a /Applications/IMOD, <br>
       <code> ls -l</code> </li>
     <li>If you do have a /Applications/IMOD and it is a link (e.g., it
@@ -390,14 +375,14 @@ shows up as <code> IMOD -&gt; imod_3.1.6</code>), then enter <br>
       <code>sudo rm IMOD</code> <br>
 Otherwise, rename the existing directory, e.g.: <br>
       <code>sudo mv IMOD oldIMOD</code> </li>
-    <li><code> sudo mv imod_3.9.2 IMOD</code></li>
+    <li><code> sudo mv imod_3.11.2 IMOD</code></li>
   </ol>
   <br>
 If you are on a single user-machine or have administrative privileges
 from the desktop, you can use the following alternative approach:
   <ol>
     <li>Click on the downloaded file to unpack it with Stuffit Expander
-and create the IMOD folder, e.g. <code>imod_3.9.2</code></li>
+and create the IMOD folder, e.g. <code>imod_3.11.2</code></li>
     <li>Drag this folder into the /Applications folder.</li>
     <li>If you already have an IMOD folder in /Applications, rename it
 or move it elsewhere.</li>
@@ -408,7 +393,9 @@ Whichever approach you use, you need to add some startup commands to
 the system files <code>/etc/csh.login </code>and <code>/etc/profile</code>,
 unless they are already there from a previous installation of
 IMOD.&nbsp;Use sudo to invoke <code>emacs </code>or <code>pico</code>&nbsp;on
-these files.&nbsp;Copy the text in <code>IMOD/mac.cshrc</code>&nbsp;to
+these files, .e.g.:<br>
+  <code>&nbsp;&nbsp; sudo emacs /etc/csh.login</code><br>
+&nbsp;Copy the text in <code>IMOD/mac.cshrc</code>&nbsp;to
 the
 end of <code>/etc/csh.login</code>, specifically the command <br>
   <code>if (-e /Applications/IMOD/IMOD-mac.csh) source
@@ -424,14 +411,29 @@ the name of the top IMOD directory in <code>IMOD-mac.csh<span
  style="font-family: sans-serif;"> </span></code>and <code>IMOD-mac.sh<span
  style="font-family: sans-serif;"> </span></code>and
 in the source commands placed in <code>/etc/csh.login </code>and<code>
-/etc/profile.<br>
-  </code><br>
-See the above instructions for Linux PC and SGI for other variations on
-installation procedures.<br>
+/etc/profile. </code>If you are sure you are not going to install
+somewhere else in the future, you can avoid modifying <code>IMOD-mac.csh</code>
+and <code>IMOD-mac.sh</code> by defining IMOD_DIR before the source
+commands, i.e. with <br>
+  <code>&nbsp;&nbsp; setenv IMOD_DIR &lt;Location_of_IMOD&gt;</code><br>
+before the source command in <code>/etc/csh.login,</code> or with<br>
+  <code>&nbsp;&nbsp; export IMOD_DIR=&lt;Location_of_IMOD&gt;</code><br>
+before the source command in <code>/etc/profile</code>. <br>
+See the above instructions for Linux PC for other variations on
+installation procedures.
+</dl>
+<dl style="margin-left: 40px;">
+  <span style="font-weight: bold;">Using a 3-button Mouse.&nbsp; </span>The
+one-button mouse on the Mac can be used in <code>3dmod</code> with
+some keyboard modifiers, but this is painful.&nbsp; Just get a 3-button
+mouse.&nbsp; It may just work when you plug it in, so try it in <code>3dmod</code>
+before installing drivers.&nbsp; Installing Logitech and some other
+drivers may actually make it stop working, and the solution is to
+uninstall the drivers.<br>
   <br>
   <a name="SettingUpWindows"> </a>
-  <h4><a name="SettingUpWindows">Setting Up a Windows PC to Run IMOD</a></h4>
-  <a name="SettingUpWindows"> </a>For complete IMOD functionality
+  <h4>Setting Up a Windows PC to Run IMOD</h4>
+For complete IMOD functionality
 under Windows, including the ability to run
 shell scripts and to build tomograms, you need to install a Unix-like
 environment called <a href="http://www.cygwin.com">Cygwin</a>.
@@ -480,6 +482,12 @@ and Unix line endings.</li>
 Package Directory</li>
     <li>On the Select Packages page, click on the circular double arrow
 next to "All" to switch from "Default" to "Install"</li>
+    <li>Click on the "+" next to "Shells" to open that package
+category.&nbsp; If <code>rxvt</code> is shown as "Skip", then click on
+the circular double arrow to switch it to installing the package.&nbsp;
+This is necessary because the version there is not the latest
+available, which had problems when this Cygwin package was created.<br>
+    </li>
     <li>Proceed with the installation, and take the defaults to create
 icons on the desktop and start menu.</li>
   </ol>
@@ -498,29 +506,31 @@ home directory is created in&nbsp;<code>/home</code>&nbsp;(<code>C:\cygwin\home<
 and some bash
 startup files are copied there.<br>
   <br>
-  <span style="color: rgb(255, 0, 0);">Vista notes:</span> Some problems will
-  be encountered in Vista.
-<ol>
-<li> The icon
+  <span style="color: rgb(255, 0, 0);">Vista notes:</span> Some
+problems will be encountered in Vista.
+  <ol>
+    <li> The icon
 may not show up right after installation.&nbsp; Either log out and log
 back in, or use Start - Programs - Cygwin - Bash shell to start a
-terminal window.&nbsp; 
-<li> The first time, it will probably fail to
+terminal window.&nbsp; </li>
+    <li> The first time, it will probably fail to
 create a home directory, fail to copy startup files, and give a message
 about running <code>mkpasswd</code> and <code>mkgroup</code>.&nbsp;
 Do what it says, i.e. run<br>
-
-<code>mkpasswd -l &gt; /etc/passwd</code><br>
-<code>mkgroup -l &gt; /etc/group<br>
-</code>
-<li> Then close the window and start a new terminal window; it will
-create the home directory and copy files correctly.&nbsp; 
-<li> To have
+      <code>mkpasswd -l &gt; /etc/passwd</code><br>
+      <code>mkgroup -l &gt; /etc/group<br>
+      </code>
+    </li>
+    <li> Then close the window and start a new terminal window; it will
+create the home directory and copy files correctly.&nbsp; </li>
+    <li> To have
 the regular Cygwin shortcut or the <code>rxvt</code> one appear with
 the traditional Cygwin icon, right-click on the shortcut to edit its
 properties, and press the button to change the icon to select the
 Cygwin icon.
-</ol><br>
+    </li>
+  </ol>
+  <br>
 The primary advantage of the <code>rxvt<span
  style="font-family: sans-serif;"> </span></code>window is that you
 can
@@ -574,11 +584,12 @@ is safer to use the package that we provide if it is adequate.<br>
   </a>The self-installing package will install IMOD in /usr/local and
 copy <code>IMOD-cygwin.sh</code>&nbsp;and <code>IMOD-cygwin.csh</code>&nbsp;to
   <code>/etc/profile.d</code>. <span
- style="font-weight: bold; color: rgb(255, 0, 0);">It will not work by clicking on it, only
+ style="font-weight: bold; color: rgb(255, 0, 0);">It will not work by
+clicking on it, only
 by executing it from the command line.</span>&nbsp; To
 install IMOD, start a Cygwin terminal window, change to the
 directory where the package is located, and enter, e.g.:<br>
-&nbsp;&nbsp;&nbsp;&nbsp;<code>csh imod_3.9.2_win.csh<br>
+&nbsp;&nbsp;&nbsp;&nbsp;<code>csh imod_3.11.2_win.csh<br>
   </code><br>
   <ol>
   </ol>
@@ -654,8 +665,8 @@ mv IMOD oldIMOD</code><br>
     </li>
     <li>&nbsp;Unpack the tar file, rename it to IMOD, and copy startup
 files: <br>
-      <code></code><code>tar -xzf imod_3.9.2.tar.gz </code><br>
-      <code>mv imod_3.9.2 IMOD </code><br>
+      <code></code><code>tar -xzf imod_3.11.2.tar.gz </code><br>
+      <code>mv imod_3.11.2 IMOD </code><br>
       <code>cp IMOD/IMOD-cygwin.* /etc/profile.d</code></li>
   </ol>
   <br>
@@ -665,20 +676,34 @@ IMOD.&nbsp;In this case, get the <code>.tar.gz</code>&nbsp;distribution
 instead of the self-installing distribution and use <a
  href="http://www.winzip.com">Winzip </a>to
 unpack it somewhere, (e.g., <code>C:\Program Files</code>), rename the
-top directory to IMOD, and add the IMOD\bin directory (e.g., C:\Program
-Files\IMOD\bin) to your path in Windows, as described above.&nbsp;<code>&nbsp;</code><a
- name="TIFFLibrary">
-  <h4>TIFF Library Support for SGI<br>
-  </h4>
-  </a>The 3dmod program is able to read TIFF files on an SGI if the
-library <code>libtiff.so</code>&nbsp;is
-available. Versions compiled for IRIX 6.5 assume that the
-library is available.&nbsp; If the library is not on your system, <code>3dmod</code>
-and
-several other programs will not run until you rename a dummy library, <code>nolibtiff.so</code>,
-to <code>libtiff.so</code>. From the top IMOD directory, do the
-following:
-  <pre>cd lib32<br>mv nolibtiff.so libtiff.so<br></pre>
+top directory to IMOD, and add the <code>IMOD\bin</code> directory (e.g., 
+<code>C:\Program Files\IMOD\bin</code>) to your path in Windows, as described
+above.
+
+<a name="ImodCalib"></a>
+<h4>Using the ImodCalib directory</h4>
+Several parts of IMOD look for data and configuration files in a separate
+location, pointed to by the environment variable IMOD_CALIB_DIR.  These files
+include the <code>cpu.adoc</code> file for enabling parallel processing,
+distortion correction files, noise files for microscope CTF correction, and
+local startup files.
+The default
+value for IMOD_CALIB_DIR is <code>/usr/local/ImodCalib</code>  on all
+platforms, and it is set in the IMOD startup scripts if it is not already
+defined.  We have designed this directory as a place for local files that
+should not be replaced when IMOD is upgraded.
+Minimally, then, you may want to create this directory and place 
+a <code>cpu.adoc</code> there defining the number of processors on one or more
+machines.  In addition, the IMOD startup scripts will try to source local
+startup scripts in this directory: <code>IMOD-...csh</code> will source
+<code>$IMOD_CALIB_DIR/IMOD.csh</code> and <code>IMOD-...sh</code> will source
+<code>$IMOD_CALIB_DIR/IMOD.sh</code>.  You can use these startup scripts for
+customizations, such as redefining <code>IMOD_JAVADIR</code>, instead of
+modifying the startup scripts that come with IMOD and get replaced with each
+new version.  However, if you are going to take advantage of this mechanism
+and want to redefine <code>IMOD_CALIB_DIR</code> to point to a different
+location, your startup must set this environment variable before sourcing the
+IMOD startup scripts.
 </dl>
 <dt>
   <hr><a name="Getting Started">
@@ -696,17 +721,19 @@ help. </dt>
     <h4>The Image Data Format and File Conversion</h4>
 All of the IMOD programs use the <a href="mrc_format.txt">MRC image
 file format</a>. We have utility programs available for converting TIFF
-files, SGI rgb files and raw data into the MRC file format.&nbsp; In
+files and raw data into the MRC file format.&nbsp; In
 addition, <code>3dmod</code> can read some common formats like JPEG,
 TIFF, PNG, and BMP; it recognizes several specialized image formats
-(DigitalMicrograph, EM, Hanspeter Winkler's NFF); and it has a dialog
+(DigitalMicrograph, EM, Hanspeter Winkler's NFF, PIF files from Bsoft);
+and it has a dialog
 box and options for specifying how to read raw data.
     <p> Use the program <a href="man/tif2mrc.html">tif2mrc</a> to
 convert a series of TIFF image files into a single MRC image file. The <code>tif2mrc</code>
 program has an option for converting 24-bit color to 8-bit grayscale
 images, and options for dealing with unsigned 16 bit images, which are
 a
-potential problem because the MRC format supports only signed 16-bit
+potential problem because the standard MRC format supports only signed
+16-bit
 images. The following example will create a MRC file from a list of
 TIFF files (cell01.tif, cell02.tif ...). </p>
     <p><code> tif2mrc cell??.tif cell.mrc </code> </p>
@@ -764,15 +791,6 @@ displayed with:</p>
   <dd>
     <p><code>3dmod -r 1024,1024,1 -H 512 -t 1 cell*.em</code><br>
     </p>
-    <p> As of IMOD 2.6.20, our image file format was changed to
-conform
-to the MRC image2000 standard. Programs now read files in either the
-new or the old format and write files in the new format. Older
-versions of IMOD will interpret these new files as having strange
-origin values. If you are running an older version and you have to
-work with one of these files (or any MRC file conforming to the new
-standard), you can fix the origin values with: </p>
-    <pre>alterheader filename<br>org<br>0,0,0<br>done<br></pre>
   </dd>
   <dd>
     <h4>The Model Format</h4>
@@ -795,13 +813,21 @@ convert a binary IMOD file (binary.imod) to an ASCII IMOD file
     <p><code>imodinfo -a binary.imod &gt; ascii.imod</code> <br>
 or <br>
     <code>imodinfo -a -f ascii.imod binary.imod</code> <br>
-will both create an ASCII model file from the binary.imod model. </p>
+will both create an ASCII model file from the binary.imod model.&nbsp;
+The ASCII format preserves many but not all possible features in the
+model.&nbsp; It is moderately complex and may not be the most
+convenient format to use for exporting or importing data.&nbsp; There
+are also two programs,&nbsp;<a href="man/model2point.html">model2point</a>
+and&nbsp;<a href="man/point2model.html">point2model</a>, that can be
+used to convert an IMOD model to or from a simple list of point
+coordinates.<br>
+    </p>
     <p> </p>
   </dd>
 </dl>
 <dt>
   <hr> <a name="Aligning Images">
-  <h3>Aligning Images</h3>
+  <h3>Aligning Serial Images</h3>
   </a> </dt>
 Sometimes images in a data set are not in register with one another.
 When this happens, a series of transforms will need to be found that
@@ -819,7 +845,13 @@ necessary: one must obtain the transforms for each image that will
 produce an aligned stack when actually applied to the images. This list
 is consistently referred to as a list of "g" transforms. In summary,
 "f" transforms align each section to the preceding one; "g" transforms
-align each section to the whole stack.
+align each section to the whole stack.<br>
+<br>
+The procedures described here are appropriate for aligning images of
+successive slices through a structure, but not for aligning tilt series
+images for tomography.&nbsp; The latter operation is done with the <code>eTomo</code>
+program.&nbsp; Conversely, the tilt series alignment procedures there
+cannot be use d<br>
 <p>There are three general methods for obtaining alignment
 transforms:
 manual adjustment of transformation parameters, solving for a transform
@@ -840,9 +872,8 @@ program. <code>xftoxg</code> has options to leave long term trends in
 the data, which are invoked by default when you run the program with
 command-line arguments. </dd>
   <dd> <a name="FiducialAlignment"> </a>
-    <h4><a name="FiducialAlignment">Image Alignment using Fiducial
-Markers.</a></h4>
-    <a name="FiducialAlignment"> </a> The program <a
+    <h4>Image Alignment using Fiducial Markers.</h4>
+The program <a
  href="man/xfmodel.html">xfmodel</a> will create a list of xf
 transforms
 from a model containing fiducial points. See the <a
@@ -865,8 +896,8 @@ long term trends in the data. </li>
     </ul>
   </dd>
   <dd> <a name="AutomaticAlignment"> </a>
-    <h4><a name="AutomaticAlignment">Automatic Image Alignment</a></h4>
-    <a name="AutomaticAlignment"> </a> Several programs are used for
+    <h4>Automatic Image Alignment</h4>
+Several programs are used for
 automated image alignment. The programs used are <a
  href="man/xfalign.html">xfalign</a>, <a href="man/xftoxg.html">xftoxg</a>,<a
  href="man/midas.html"> midas</a> and <a href="man/newstack.html">newstack</a>.
@@ -1002,7 +1033,7 @@ tomograms with eTomo, including a sample data set.</li>
 </dl>
 <br>
 <br>
-<hr><i>Last updated: November 10, 2006</i> [<a
+<hr><i>Last updated: December 28, 2007</i> [<a
  href="http://bio3d.colorado.edu/imod/index.html">IMOD Home Page</a>] [<a
  href="http://bio3d.colorado.edu/index.html">BL3DEMC Home Page</a>] <br>
 <br>
