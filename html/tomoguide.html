@@ -1,13 +1,13 @@
 <html><head> <title>IMOD Tomography Guide</title> </head>
 <body>
-<H2 ALIGN=center>Tomography Guide for IMOD Version 3.9<BR>
+<H2 ALIGN=center>Tomography Guide for IMOD Version 3.11<BR>
 </H2>
 <H3 ALIGN=center>Boulder Laboratory for 3-D Electron Microscopy of Cells</H3>
 <HR>
 <H3>Table of Contents</H3>
 
 <UL>
-<BR><A HREF = "#WHATSNEW">0. WHAT'S NEW IN IMOD 3.9</A>
+<BR><A HREF = "#WHATSNEW">0. WHAT'S NEW IN IMOD 3.11</A>
 <BR><A HREF = "#BACKGROUND">1. BACKGROUND</A>
 <BR><A HREF = "#Program Names">1.1. Program Names</A>
 <BR><A HREF = "#Command Files">1.2. Command Files</A>
@@ -19,6 +19,7 @@
 <BR><A HREF = "#File Naming Conventions">2.1. File Naming Conventions</A>
 <BR><A HREF = "#Film versus CCD Images">2.2. Film versus CCD Images</A>
 <BR><A HREF = "#Image Scaling">2.3. Image Scaling and Contrast Polarity</A>
+<BR><A HREF = "#Bidirectional Series">2.4. Tilt Series Taken in Two Directions from Zero Tilt</A>
 <BR><A HREF = "#INITIAL STEPS">3. SETUP</A>
 <BR><A HREF = "#Montage Coms">3.1. Command Files when Montaging</A>
 <BR><A HREF = "#PRE-PROCESSING">4. PRE-PROCESSING: REMOVING X-RAYS</A>
@@ -34,9 +35,10 @@
 <BR><A HREF = "#Distortion Two">7.3. Solving for Distortion - Fiducials on Both Surfaces</A>
 <BR><A HREF = "#Distortion One">7.4. Solving for Distortion - Fiducials on Only One Surface</A>
 <BR><A HREF = "#Projection Stretch">7.5. Solving for Projection Stretch</A>
-<BR><A HREF = "#Using Local Alignments">7.6. Using Local Alignments</A>
-<BR><A HREF = "#Excluding Views">7.7. Excluding Views</A>
-<BR><A HREF = "#Residual Model Output">7.8. Residual Model Output</A>
+<BR><A HREF = "#Beam Tilt">7.6. Solving for Beam Tilt</A>
+<BR><A HREF = "#Using Local Alignments">7.7. Using Local Alignments</A>
+<BR><A HREF = "#Excluding Views">7.8. Excluding Views</A>
+<BR><A HREF = "#Residual Model Output">7.9. Residual Model Output</A>
 <BR><A HREF = "#TOMOGRAM POSITIONING">8. TOMOGRAM POSITIONING </A>
 <BR><A HREF = "#Doing Tilted Samples">8.1. Redoing Samples to Refine the Positioning</A>
 <BR><A HREF = "#Whole Tomogram Positioning">8.2. Positioning with a Whole Tomogram</A>
@@ -44,9 +46,10 @@
 <BR><A HREF = "#Radial filter">9.1. Tomogram Resolution and the Need for Filtering</A>
 <BR><A HREF = "#Filtering Options">9.2. Filtering Options</A>
 <BR><A HREF = "#Filtering Guidelines">9.3. Filtering Guidelines</A>
-<BR><A HREF = "#Building Tomogram">9.4. Building the Tomogram</A>
-<BR><A HREF = "#Making Trial Tomograms">9.5. Making Trial Tomograms</A>
-<BR><A HREF = "#Z factors">9.6. Using Z Factors in the Backprojection</A>
+<BR><A HREF = "#Making Aligned">9.4. Making and Processing the Aligned Stack</A>
+<BR><A HREF = "#Building Tomogram">9.5. Building the Tomogram</A>
+<BR><A HREF = "#Making Trial Tomograms">9.6. Making Trial Tomograms</A>
+<BR><A HREF = "#Z factors">9.7. Using Z Factors in the Backprojection</A>
 <BR><A HREF = "#TOMOGRAM COMBINATION">10. COMBINING TWO TOMOGRAMS</A>
 <BR><A HREF = "#Setting Up">10.1. Setting Up</A>
 <BR><A HREF = "#Temporary Combining Storage">10.2. Using Temporary Storage for Combining</A>
@@ -63,44 +66,30 @@
 </UL>
 <HR>
 <P><A NAME = "WHATSNEW"><H3>
-0. WHAT'S NEW IN IMOD 3.9
+0. WHAT'S NEW IN IMOD 3.11
 </H3></A>
 This section lists significant changes or additions to this guide from the
-3.7 version.
+3.9 version.
 <UL>
-<LI>Iterating X-ray removal with larger radius and criterion, in 
-<A HREF = "#PRE-PROCESSING">PRE-PROCESSING: REMOVING X-RAYS</A>.
-<LI>New features in Bead Fixer for picking seed points (autocentering, 
-automatic new contour, color overlay), in 
-<A HREF = "#GETTING FIDUCIAL">FIDUCIAL MODEL GENERATION</A>.
-<LI>Corresponding coordinate file produced by Transferfid, and mirroring
-around X-axis, in
-<A HREF = "#Transferring Fiducial">Getting Fiducials for a Second Axis</A>.
-<LI>Using Bead Fixer with local alignments, in 
-<A HREF = "#Using Local Alignments">Using Local Alignments</A>.
-<LI>Control of border thickness, automatic addition of positioning values, and
-iterative positioning, in 
-<A HREF = "#TOMOGRAM POSITIONING">TOMOGRAM POSITIONING </A>.
-<LI>An alternate filtering strategy for dual-axis tomograms, in
-<A HREF = "#Filtering Guidelines">Filtering Guidelines</A>.
-<LI>Clarification on meaning of "inverted" tomogram in Solvematch options, in
-<A HREF = "#Setting Up">Setting Up Combining</A>.
-<LI>Setting up with and without a corresponding fiducial coordinate file, in
-<A HREF = "#Setting Up">Setting Up Combining</A>.
-<LI>Expansion of advice on one layer of patches, in 
-<A HREF = "#Setting Up">Setting Up Combining</A>.
-<LI>Responding to bad fits between fiducial points with and without 
-a corresponding fiducial coordinate file, and to a large center shift, in
-<A HREF = "#Initial Problems in Combining">Initial Registration Problems in Combining</A>
-<LI>New tools for visualizing residuals and editing patch vectors, in 
-<A HREF = "#Patch Problems in Combining">Patch Correlation Problems in Combining</A>
-<LI>A filtering option in patch correlation, in 
-<A HREF = "#Patch Problems in Combining">Patch Correlation Problems in Combining</A>
-<LI>Eliminating <A HREF = "#Block Artifacts">Block Artifacts in the Combined Tomogram</A>.
-<LI>Basing intensity scaling on a subarea, in
-<A HREF = "#Scaling and Trimming">Scaling and Trimming a Tomogram</A>.
-<LI>Rotating versus flipping, and handedness issues, in 
-<A HREF = "#Reorienting">Reorienting the Volume</A>.
+<LI>More explicit instructions on handling bidirectional tilt series, in
+<A HREF = "#Bidirectional Series">Tilt Series Taken in Two Directions from
+Zero Tilt</A>
+<LI>Modified advice on solving for linear distortion with fiducials on only
+one surface (just don't do it) in 
+<A HREF = "#Distortion One">Solving for Distortion - Fiducials on Only One
+Surface</A>
+<LI>Instructions on solving for nonperpendicularity between beam and tilt
+axes, in 
+<BR><A HREF = "#Beam Tilt">Solving for Beam Tilt</A>
+<LI>Using a target patch size instead of number of patches for local
+alignments, in
+<BR><A HREF = "#Using Local Alignments">Using Local Alignments</A>
+<LI>Running CTF correction and fiducial erasure procedures in the aligned
+stack, at the command line, in
+<BR><A HREF = "#Making Aligned">Making and Processing the Aligned Stack</A>
+<LI>Description of a problem with the initial transform collapsing in Z, in
+<BR><A HREF = "#Initial Problems in Combining">Initial Registration Problems
+in Combining</A>
 
 </UL>
 
@@ -336,6 +325,32 @@ programs will try to detect this and set the base to 32768.
 fail to track your fiducials properly with the default settings.
 Simply change the 0 to a 1 in the <B>Fiducial marker size & polarity</B>
 box in the <B>Fiducial Model Generation Panel</B>.
+<P>
+<A NAME = "Bidirectional Series"><H4>
+2.4. Tilt Series Taken in Two Directions from Zero Tilt
+</H4></A>
+A tilt series taken by tilting in two directions from zero tilt often shows a
+discontinuity in the aligned stack at the transition between the two halves of
+the series.  Usually this reflects either an irregular tilt increment due to 
+backlash in the goniometer, or changes in the specimen during the first half
+of the series.  Because of these effects, you should always identify one half
+of such a tilt series as a separate group in the 
+<B>Separate view groups</B> fields on the 
+<B>Fiducial Model Generation</B> and <B>Fine Alignment</B> panels.  These
+entries will prevent the programs from assigning the same or similar values
+for alignment variables to views that are not in the same half of the tilt
+series.  
+For
+example, if the discontinuity occurs between views 71 and 72, enter "1-71" in
+the <B>Separate view groups</B> fields.  
+<P>
+In some cases there appears to be a change in the
+X-axis tilt of the specimen between the two directions of tilting.  It is
+possible to correct for this effect by solving for a single change in X-axis
+tilt in <A HREF = "man/tiltalign.html">Tiltalign</A>; see
+<A HREF = "tomoExtra.html#Bidirectional X Tilt">
+Correcting for X-axis Tilt in Bidirectional Tilt Series</A> in the Extra 
+Topics section.
 
 <P>
 <A NAME = "INITIAL STEPS"><H3>
@@ -838,7 +853,8 @@ views on both sides of this discontinuity assigned the same value
 for such variables.  Taking a tilt
 series in two directions from zero degrees instead of all in one direction
 introduces such a discontinuity; you should always define a separate view
-group for tilt series taken this way.
+group for tilt series taken this way (see the section on
+<A HREF="#Bidirectional Series">bidirectional tilt series</A>).
 In cases of discontinuity, you would list all the views up to
 the discontinuity (or all of the views after it).  Secondly, there
 might be views that don't match the surrounding ones for
@@ -861,13 +877,13 @@ Try a value equal to half the number of views in the series.
 <B>Minimum # of views for tilt alignment</B> (in Advanced).
 </OL>
 <P>
-Press <B>Track Fiducial Seed Model</B>.  Open the track.log file and
+Press <B>Track Seed Model</B>.  Open the track.log file and
 skip to the end to see a summary of which beads
 could not be tracked completely.
 If several beads fail to track past a particular view, you might want to
 add that view to the list of views to be skipped and rerun the tracking.
 <P>
-Next press <B>Fix Fiducial Model Using Bead Fixer</B> to read the new
+Next press <B>Fix Fiducial Model</B> to read the new
 fiducial model into <A HREF = "man/3dmod.html">3dmod</A>.  The Bead Fixer
 dialog box will appear in the gap-filling mode.
 It will allow you to jump from one gap in
@@ -894,15 +910,13 @@ extend some fiducials past a view where they failed to track then try to get
 of the way,
 or you might want to add fiducials when you realize that you
 need to use local alignments.  To use the existing fiducial model as a seed for
-another run, press <B>Use Fiducial Model as Seed</B>.
-Your original seed model will be renamed to 
-setname_orig.seed the first time that you do this.
-Then just press <B>Track Fiducial Seed Model</B> again.  You can
-repeat
-this sequence as many times as needed.
-This procedure will tend to fill in gaps in the model, which is usually
-appropriate.
-However, if you have already left some gaps in the model
+another run, press <B>Track with Fiducial Model as Seed</B>.
+Your original seed model will be renamed to setname_orig.seed the first time
+that you do this.  Then press <B>Fix Fiducial Model</B> to read the retracked
+model into <A HREF = "man/3dmod.html">3dmod</A>.  You can repeat this
+operation as many times as needed. This procedure will tend to fill in gaps in
+the model, which is usually
+appropriate.  However, if you have already left some gaps in the model
 because of ambiguities, you should uncheck <B>Fill seed model gaps</B>.
 
 <P>
@@ -963,7 +977,7 @@ The Advanced mode allows you to indicate that mirroring is needed, so if you
 know that the sample was inverted, you can select just this option and run the
 operation without having to run <A HREF = "man/midas.html">Midas</A>.
 In Advanced, you can also specify the views to search around 
-and to limit or expand the number of views in the search.  As a last
+and limit or expand the number of views in the search.  As a last
 resort, you could set the <B>Number of views in the search</B> to 1
 and set the alignment as well as possible in <A HREF =
 "man/midas.html">Midas</A>, including a magnification change and stretch.
@@ -1173,7 +1187,7 @@ excessively.  This can occur when there are too few fiducials, too great an
 imbalance between the number of fiducials on the two surfaces, substantial
 random errors in the locations of the model points, or a ratio of measurements
 to unknowns that is too low.  The potential remedies are to increase group
-sizes, solve only for skew angle, or give up on solving for distortion.
+sizes or to give up on solving for distortion.
 
 <P>
 <A NAME = "Distortion Two"><H4>
@@ -1256,8 +1270,8 @@ section has distorted but not thinned, then solving for distortion with fixed
 tilt angles is appropriate.  In reality, both phenomena occur, and section sag
 can also make the tilt angles inaccurate, so that fixing them
 completely is likely to be problematic.  The simplest and safest thing to do
-in this situation is not to solve for distortion, but some exploration of 
-the distortion solution is worthwhile first.
+in this situation is not to solve for distortion, but here is a procedure if
+you want to explore including the distortion solution.
 <OL>
 <LI> Select the full distortion solution, and set the grouping for tilt angles
 to a large number (~30).  Compute an alignment and check the behavior of
@@ -1271,20 +1285,13 @@ the following:
 <LI> If skew is not significant (say, less than 0.25 degrees), then don't
 solve for distortion, and set the group size for tilt angles at 5 to
 provide a better solution at low tilt angles.
-
-<LI> If skew is significant, you have two options.  
-One is to select <B>Fixed tilt angles</B>
+<LI> If skew is significant, then
+select <B>Fixed tilt angles</B>
 and continue to solve for distortion, perhaps reducing the group size
 accordingly.  If skew is no longer significant in this solution, abandon
 solving for distortion as in the previous step; i.e., return to solving for
 tilt angles with a group size of 5.
-<LI> The second option with significant skew is to select <B>Skew only</B>
-and return to grouping tilt angles by 5.  This option is not recommended
-because skew and rotation angle have been seen to covary excessively in some
-cases.  If you try, look at the rotation angles to be sure this is not
-happening.
 </OL>
-
 
 <P>
 <A NAME = "Projection Stretch"><H4>
@@ -1293,17 +1300,54 @@ happening.
 In some cases, distortions may occur because of stretching
 along an axis during the projection of the images, instead of from
 changes in the specimen.  To accommodate this situation, 
-<A HREF = "man/tiltalign.html">Tiltalign</A><P> can solve for a single
-image stretch that occurs in all images.  This is much easier than solving
+<A HREF = "man/tiltalign.html">Tiltalign</A><P> can solve for a skew between
+the axes that occurs in all images.  This is much easier than solving
 for a specimen distortion that changes through the tilt series, and does not
 require fiducials distributed in Z.  In Advanced mode, check <B>Solve for
 single stretch during projection</B> on the <B>Global Variables</B> page.
 If you have fiducials on only one surface or only a few fiducials, disable
 the distortion solution since it could be redundant to the projection
 stretch solution.
+
+<P>
+<A NAME = "Beam Tilt"><H4>
+7.6. Solving for Beam Tilt
+</A></H4>
+The ordinary alignment assumes that the tilt axis is perpendicular to the beam
+axis.  A non-perpendicularity between these axes is referred to as beam tilt.
+If beam tilt is more than a few tenths of a degree, it can impair the
+alignment.  However, including linear distortion in an alignment
+solution has been found to adequately correct for the effects of beam tilt on
+the alignment and the reconstruction.  Thus, if you are able to solve for
+distortion, beam tilt is not a concern.  Even when distortion is not included,
+solving for beam tilt will probably not make a significant difference as long
+as you have enough data to solve for rotation for every view, unless the beam
+tilt is large.  If you have very few fiducials and cannot solve for more than
+a single rotation angle, then including beam tilt becomes more important.
+<P>
+To include beam tilt in the solution, open the <B>Beam Tilt</B> box on the
+<B>Global Variables</B> page by pushing the <B>A</B> button.  Select <B>Solve
+for beam tilt</B>.  If the option is grayed out, you need to either solve for
+only one rotation angle or disable the distortion solution.  When you run the
+alignment, the beam tilt is found by a secondary search, in which the standard
+minimization procedure is run with a series of fixed beam tilt values in order
+to find the beam tilt that gives the minimum error.
+After running the alignment, open the log.  The value for beam tilt will
+appear at the top of both the <B>Errors</B> tab and the <B>Solution</B> tab.
+In addition, there is a <B>Beam Tilt</B> tab which shows the progress of the
+search by listing the normalized error measure (F value) for each value of
+beam tilt.  This listing will show you how much the error is reduced by adding
+the beam tilt variable.
+<P>
+There are indications that the beam tilt angle is characteristic of a
+particular microscope.  An alternate strategy, when there are very fiducials,
+is thus to insert the characteristic beam tilt angle instead of trying to
+solve for it.  You would need to have obtained the beam tilt angle from
+alignment of other data sets from that microscope.
+
 <P>
 <A NAME = "Using Local Alignments"><H4>
-7.6. Using Local Alignments
+7.7. Using Local Alignments
 </A></H4>
 
      If you are reconstructing a large area, particularly if you are
@@ -1313,9 +1357,11 @@ area.
 <A HREF = "man/tiltalign.html">Tiltalign</A>
 first finds a global solution with all of the fiducials, then it adjusts the
 solution to fit the fiducials in each of a series of overlapping subareas,
-referred to as local patches.  The default size of the patches is determined
-by the number of patches in each dimension and the amount of overlap
-required between adjacent patches (50%, by default).  However, patches are
+referred to as local patches.  A target size for the patches is specified as
+an entry to the program, and 
+the number of patches in each dimension is determined from this size and from
+the amount of overlap required between adjacent patches (50%, by default).
+However, patches are
 also required to contain a minimum number of fiducials, and each patch will
 be automatically expanded from the default size until it contains that
 number.  In fact,
@@ -1338,26 +1384,23 @@ tilt angles and distortion smaller than usual.  Reduce group sizes accordingly
 but keep the ratio of measurements to unknowns fairly high (~15).
 <LI> Check the <B>Enable local alignments</B> box on the <B>General</B>
 parameters page.
-<LI> The default number of patches, 5 by 5, is appropriate 
-for unbinned data from a CCD camera up to 2000 pixels square.  For smaller
-images, the numbers could be reduced, although this is not essential since
-there is no harm in having more patches than necessary.  For
-larger images, the numbers should definitely be increased.  A default patch
-size of about 750 pixels is desirable for unbinned data from a CCD camera.
-Assuming 50% overlap between patches, the number of patches in a dimension
-should be set to 
-<BR><CODE>
-    2 * (image size) / (desired default patch size) - 1
-<BR></CODE>
+<LI> The default <B>Target patch size</B>, 700x700, is appropriate
+for unbinned data from a CCD camera.  Note that there is an option to enter
+the number of patches instead of a target size; this entry is present for
+compatibility with old command files but the direct entry of patch size is
+preferable.
 <LI> If you have fiducials on only one surface, or if you already know that
 fiducials are not well enough distributed on both surfaces to provide for
 local solutions for distortions, then set the <B>minimum number of 
 fiducials</B> on each surface to 0 (the second of the two numbers in the
-text box.)  In addition, go to the <B>Local Variables</B> page and disable
-local distortions there.
+text box.)  In addition, go to the <B>Local Variables</B> page and make 
+that local distortions is disabled there.
 <LI> Compute the alignment and examine the log file.  Go to the end of the
 <B>Errors</B> page to see the mean residuals; the first value is the global
 mean, and the rest are means for the local areas, with a summary at the end.
+In addition, note the value for <B>Ratio of total measured values to all
+unknowns</B> for each local area; this ratio should be at least 3-4 for a
+robust solution.
 <LI> Examine the <B>Locals</B> page,
 which shows a summary of the size of each
 area, the total number of fiducials, and the number on each surface (unless
@@ -1393,7 +1436,7 @@ can then move all points if desired.
 
 <P>
 <A NAME = "Excluding Views"><H4>
-7.7. Excluding Views
+7.8. Excluding Views
 </A></H4>
 Sometimes there are images in the original data that do not align well or
 that have poor image quality, and that you want to exclude 
@@ -1407,7 +1450,7 @@ reconstruction.
 
 <P>
 <A NAME = "Residual Model Output"><H4>
-7.8. Residual Model Output
+7.9. Residual Model Output
 </A></H4>
 <A HREF = "man/tiltalign.html">Tiltalign</A> produces a text file
 with the residuals for each point, and <A HREF =
@@ -1692,8 +1735,8 @@ These guidelines are just a starting point, and the best approach may be to
 experiment with different filter settings to find the best balance between
 reduced graininess and sharpness of features in the tomogram.
 
-<A NAME = "Building Tomogram"><H4>
-9.4. Building the Tomogram
+<A NAME = "Making Aligned"><H4>
+9.4. Making and Processing the Aligned Stack
 </A></H4>
 The first step when you get to the <B>Tomogram Generation</B> page is to
 generate the aligned stack.
@@ -1701,26 +1744,88 @@ First select linear interpolation if desired for this step.
 Notice that you can also select a binning of the aligned stack at this stage.
 Press <B>Create Full Aligned Stack</B>.
 <P>
-If you decide to use 2D filtering, set the cutoff radius and sigma values
-and press <B>Filter</B>.  You can press <B>View Filtered Stack</B> to see the
-result.  You can change parameters and filter again, or press
-<B>Use Filtered Stack</B> to replace the aligned stack
-with the filtered version.
+Before the optional 2D filtering, there are two other operations that you
+might want to perform, and for which there is not yet an interface in eTomo:
+correction for microscope CTF and erasure of fiducial markers.
+<OL>
+<LI><I>CTF Correction</I>.  You can use
+<A HREF = "man/ctfplotter.html">Ctfplotter</A> to estimate the defocus of the
+tilt series; this program requires a set of noise image files for the camera
+being used.  To run this program, get a copy of a parameter file:
+<pre>
+   cp $IMOD_DIR/com/ctfplotter.param .
+</pre>
+Edit the file to specify your file name and other parameters.  Run the
+program with:
+<pre>
+   ctfplotter -param ctfplotter.param
+</pre>
+This program allows you to estimate a single value of defocus for the whole
+tilt series or several defocus values that apply over different ranges of tilt
+angles.  At the end, you 
+store these defocus estimates in a file "setname.defocus".
+If you do not run <A HREF = "man/ctfplotter.html">Ctfplotter</A> and have a
+defocus to use, you need to make a file "setname.defocus" with a single
+line, "20 20 0. 0. defocus_value", specifying the defocus value.
 <P>
-In the <B>Tilt Parameters</B> section,
-insert the desired
-values for <B>Tomogram thickness</B> and <B>X-axis tilt</B> based on the
-recommendations from 
-<A HREF = "man/tomopitch.html">Tomopitch</A>.  If there was already an
-X-axis tilt when the samples were run, be sure to <B>add</B> to the existing
-value.
+To correct the aligned stack for the CTF, get a copy of the command file:
+<pre>
+   cp $IMOD_DIR/com/ctfcorrection.com .
+</pre>
+Edit the file to specify your file name and other parameters.  Run the
+program with:
+<pre>
+   subm ctfcorrection 
+</pre>
+After the computation is finished, replace the aligned stack.
+<pre>
+   mv setnameCorrected.ali setname.ali
+</pre>
+<LI><I>Erasing Fiducial Markers</I>. 
+<A HREF = "man/ccderaser.html">Ccderaser</A> can now erase a circular region
+around every point in an object.  This allows the fiducial gold markers to be
+removed from images, which will reduce the artifacts cast by these markers in
+the reconstruction but might produce other artifacts.  You can use the
+fiducial model to erase the beads that were used for alignment, or a more
+complete model if you have prepared one.
+The first step below transforms the model into alignment with the
+aligned stack, so if you have a model that already fits the positions in the
+aligned stack, that step should be omitted.  Here are the steps to follow for
+a model "setname.fid":
+<PRE>
+   xfmodel -xf setname.tltxf setname.fid setname.fidali
+   ccderaser -cir 1 -bet radius -mer -exc -mod setname.fidali setname.ali setname_erase.ali
+   3dmod setname_erase.ali
+</PRE>
+In the Ccderaser command, "radius" is the radius around each point to erase,
+in pixels; this value can be floating point rather than integer.  The entry
+"-cir 1" specifies that object 1 contains the points to be erased as circles;
+if your points are in more that one object, enter a list of object numbers
+instead of 1.
+If the erasure appears acceptable, replace the aligned stack:
+<PRE>
+   mv setname_erase.ali setname.ali
+</PRE>
+<LI><I>2D Filtering</I>. If you decide to use 2D filtering, set the cutoff
+radius and sigma values and press <B>Filter</B>.  You can press 
+<B>View Filtered Stack</B> to see the result.  You can change parameters and
+filter again, or press <B>Use Filtered Stack</B> to replace the aligned stack
+with the filtered version.
+</OL>
+<P>
+<A NAME = "Building Tomogram"><H4>
+9.5. Building the Tomogram
+</A></H4>
+In the <B>Tilt Parameters</B> section, the values for 
+<B>Tomogram thickness</B> and <B>X-axis tilt</B> were inserted when you ran  
+<A HREF = "man/tomopitch.html">Tomopitch</A>; correct them if necessary.
 Adjust the radial filter parameters as appropriate.  If you did 2D filtering,
-you should set the cutoff higher (e.g., 0.45) to avoid double-filtering the 
+you can set the cutoff higher (e.g., 0.45) to avoid double-filtering the 
 data.  
 Press <B>Generate Tomogram</B>.
 <P>
 <A NAME = "Making Trial Tomograms"><H4>
-9.5. Making Trial Tomograms
+9.6. Making Trial Tomograms
 </A></H4>
 
 In Advanced mode, the <B>Tomogram Generation</B> panel has a set of
@@ -1758,7 +1863,7 @@ an entry for <B>Z shift</B> that has the same effect as the
 doing an alignment without fiducials.  
 <P>
 <A NAME = "Z factors"><H4>
-9.6. Using Z Factors in the Backprojection
+9.7. Using Z Factors in the Backprojection
 </A></H4>
 When a specimen shrinks along an oblique axis during a tilt series, it is
 actually not possible to transform the 2D images to correct fully for this
@@ -2077,6 +2182,19 @@ Parameters</B> section and transfer the numbers in this message into the
 can either resume the processing with <B>Restart at Matchvol1</B> or you can
 increase the <B>Limit on center shift</B> (again, in Advanced mode on the 
 <B>Initial Match</B> page) and use <B>Restart Combine</B>.
+<P>
+There is another problem that can occur in the initial matching step.  If
+there is significant warping between the two volumes and not a good enough
+distribution of points in Z, then the best fit between the points may occur
+with a transform that collapses the Z dimension.  This can happen if there are
+very few fidicuals on one surface relative to the other.  <A HREF =
+"man/solvematch.html">Solvematch</A> will try to detect this situation and
+issue a warning if the scaling along the Z axis is more than 10% different
+from the scaling along the other two axes.  (In the log file, the smaller
+scaling factor will appear for the Y axis, since the tomogram is still
+oriented with Y as the thickness dimension.)  The program will probably also
+advise that you switch to specifying that fiducials are on only one surface.
+This is indeed the solution to this problem.
 <P>
 If you have a data set where the alignment was run on an older version
 of IMOD (before 3.2.21), solvematch.com will run a script,
@@ -2423,11 +2541,15 @@ The output file has the extension .sqz.
 If you choose anistropic squeezing, you need to
 increase the Z-scale that you use for viewing models built on that
 volume
-by the amount of extra squeezing in that dimension.  For example, if
-you have a Z-scale of 1.6 before squeezing, you would need a Z-scale of 2.07
-(1.6 * 1.62 / 1.25) after squeezing by 1.25 in X/Y and 1.62 in Z.  If you are
+by the amount of extra squeezing in that dimension.  The Edit-Model-Header
+dialog in 3dmod has features to make this easy.
+For example, if
+you have a Z-scale of 1.6 before squeezing, just check <B>Set incremental
+Z-scale</B> and enter 1.6 in the <B>Added Z-scale</B> text box.
+If instead you are
 computing the Z-scale by comparing the thickness of the section in the
 squeezed volume with the original thickness at which the section was cut, then
+you need to make an entry in the <B>Total Z-scale</B> based on:
 <pre>
    Z-scale = O / (S * P)
    where  O = original section thickness, in nm
