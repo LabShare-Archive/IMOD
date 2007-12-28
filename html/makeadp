@@ -4,16 +4,7 @@
 # pages and library doc pages as subsections.
 #
 #  $Id$
-#
-#  $Log$
-#  Revision 3.3  2007/12/17 06:52:24  mast
-#  Excluded non-programs from man page, and added library docs
-#
-#  Revision 3.2  2006/06/19 14:11:27  mast
-#  Fixed to work with install dir, fixed path to 3dmodHelp
-#
-#  Revision 3.1  2006/06/18 23:44:24  mast
-#  Added to package
+#  Log at end
 #
 
 set instext1 = "INSERT 3DMOD.ADP"
@@ -51,8 +42,22 @@ foreach i (libhelp/*.html)
     if ("$title" == "") set title = $file
     
     cat <<EOF >> $adpout
-    <section ref ="./libdoc/$file.html" title="$title"/>
+    <section ref ="./libhelp/$file.html" title="$title"/>
 EOF
 end
 
 awk "/$instext3/, /GobbledyGook/" $adpin | grep -v "INSERT" >> $adpout
+
+#
+#  $Log$
+#  Revision 3.4  2007/12/18 15:48:40  mast
+#  fixed foreach - Library docs are still in libhelp here when this is run
+#
+#  Revision 3.3  2007/12/17 06:52:24  mast
+#  Excluded non-programs from man page, and added library docs
+#
+#  Revision 3.2  2006/06/19 14:11:27  mast
+#  Fixed to work with install dir, fixed path to 3dmodHelp
+#
+#  Revision 3.1  2006/06/18 23:44:24  mast
+#  Added to package
