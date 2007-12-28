@@ -61,7 +61,7 @@ public class CleanUpDialog extends ProcessDialog implements ContextMenu {
     rootPanel.add(archiveInfoA);
     rootPanel.add(archiveInfoB);
 
-    cleanupPanel = new CleanupPanel(applicationManager);
+    cleanupPanel = CleanupPanel.getInstance(applicationManager);
     rootPanel.add(cleanupPanel.getContainer());
     addExitButtons();
     btnAdvanced.setVisible(false);
@@ -180,6 +180,9 @@ public class CleanUpDialog extends ProcessDialog implements ContextMenu {
 }
 /**
  * <p> $Log$
+ * <p> Revision 1.13  2007/12/26 22:23:05  sueh
+ * <p> bug# 1052 Return true when done() completes successfully.
+ * <p>
  * <p> Revision 1.12  2007/02/09 00:48:07  sueh
  * <p> bug# 962 Made TooltipFormatter a singleton and moved its use to low-level ui
  * <p> classes.

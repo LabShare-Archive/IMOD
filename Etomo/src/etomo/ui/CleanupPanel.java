@@ -38,6 +38,10 @@ import etomo.util.Utilities;
  * 
  * <p>
  * $Log$
+ * Revision 3.14  2007/02/09 00:48:16  sueh
+ * bug# 962 Made TooltipFormatter a singleton and moved its use to low-level ui
+ * classes.
+ *
  * Revision 3.13  2006/07/05 23:25:45  sueh
  * Get rid of multiple error messages when files are deleted.
  *
@@ -141,24 +145,26 @@ import etomo.util.Utilities;
  * To change this generated comment go to Window>Preferences>Java>Code
  * Generation>Code Template
  */
-public class CleanupPanel {
+final class CleanupPanel {
   public static final String rcsid = "$Id$";
-  ApplicationManager applicationManager;
 
-  private JPanel pnlCleanup = new JPanel();
-  private JLabel instructions = new JLabel(
+  private final JPanel pnlCleanup = new JPanel();
+  private final JLabel instructions = new JLabel(
       "Select files to be deleted then press the \"Delete Selected\" button. Ctrl-A selects all displayed files.");
+  private final JPanel pnlButton = new JPanel();
+  private final MultiLineButton btnDelete = new MultiLineButton(
+      "Delete Selected");
+  private final MultiLineButton btnRescanDir = new MultiLineButton(
+      "Rescan Directory");
+  private final JFileChooser fileChooser = new JFileChooser();
+  private final BackupFileFilter backupFileFilter = new BackupFileFilter();
+  private final JLabel lDirSize = new JLabel();
 
-  JFileChooser fileChooser;
-  IntermediateFileFilter intermediateFileFilter;
-  BackupFileFilter backupFileFilter;
-  private JPanel pnlButton = new JPanel();
-  MultiLineButton btnDelete = new MultiLineButton("Delete Selected");
-  MultiLineButton btnRescanDir = new MultiLineButton("Rescan Directory");
+  private final IntermediateFileFilter intermediateFileFilter;
+  private final ApplicationManager applicationManager;
 
-  public CleanupPanel(ApplicationManager appMgr) {
+  private CleanupPanel(final ApplicationManager appMgr) {
     applicationManager = appMgr;
-
     //  Set the button sizes
     btnDelete.setSize();
     btnRescanDir.setSize();
@@ -170,9 +176,7 @@ public class CleanupPanel {
         datasetName + ".rec");
     intermediateFileFilter.setAcceptPretrimmedTomograms(trimmedTomogram
         .exists());
-    backupFileFilter = new BackupFileFilter();
 
-    fileChooser = new JFileChooser();
     fileChooser.setDialogType(JFileChooser.CUSTOM_DIALOG);
     fileChooser.setFileFilter(backupFileFilter);
     fileChooser.setFileFilter(intermediateFileFilter);
@@ -186,6 +190,9 @@ public class CleanupPanel {
         .getBorder());
     instructions.setAlignmentX(Component.CENTER_ALIGNMENT);
     pnlCleanup.add(instructions);
+    pnlCleanup.add(Box.createRigidArea(FixedDim.x0_y5));
+    lDirSize.setAlignmentX(Component.CENTER_ALIGNMENT);
+    pnlCleanup.add(lDirSize);
     pnlCleanup.add(Box.createRigidArea(FixedDim.x0_y10));
     pnlCleanup.add(fileChooser);
 
@@ -198,19 +205,39 @@ public class CleanupPanel {
     pnlCleanup.add(Box.createRigidArea(FixedDim.x0_y10));
     pnlCleanup.add(pnlButton);
     pnlCleanup.add(Box.createRigidArea(FixedDim.x0_y10));
-
-    //  Bind the buttons to the action listener
-    ButtonActonListener buttonActionListener = new ButtonActonListener(this);
-    btnDelete.addActionListener(buttonActionListener);
-    btnRescanDir.addActionListener(buttonActionListener);
     setToolTipText();
+  }
+
+  static CleanupPanel getInstance(final ApplicationManager manager) {
+    CleanupPanel instance = new CleanupPanel(manager);
+    instance.setDirSize();
+    instance.addListeners();
+    return instance;
   }
 
   /**
    * @return
    */
-  public Container getContainer() {
+  Container getContainer() {
     return pnlCleanup;
+  }
+
+  private void addListeners() {
+    ButtonActonListener buttonActionListener = new ButtonActonListener(this);
+    btnDelete.addActionListener(buttonActionListener);
+    btnRescanDir.addActionListener(buttonActionListener);
+  }
+
+  private void setDirSize() {
+    File[] fileList = new File(applicationManager.getPropertyUserDir())
+        .listFiles();
+    long dirSize = 0;
+    for (int i = 0; i < fileList.length; i++) {
+      if (fileList[i].isFile()) {
+        dirSize += fileList[i].length();
+      }
+    }
+    lDirSize.setText("Directory size (MB): " + dirSize / 1000000);
   }
 
   /**
@@ -237,32 +264,18 @@ public class CleanupPanel {
       UIHarness.INSTANCE.openMessageDialog(message.toString(),
           "Unable to delete intermediate file", AxisID.ONLY);
     }
+    setDirSize();
   }
 
   /**
    * @param event
    */
-  protected void buttonAction(ActionEvent event) {
+  private void buttonAction(final ActionEvent event) {
     if (event.getActionCommand() == btnDelete.getActionCommand()) {
       deleteSelected();
     }
     if (event.getActionCommand() == btnRescanDir.getActionCommand()) {
       fileChooser.rescanCurrentDirectory();
-    }
-  }
-
-  /*
-   *  
-   */
-  class ButtonActonListener implements ActionListener {
-    CleanupPanel listenee;
-
-    ButtonActonListener(CleanupPanel cleanupPanel) {
-      listenee = cleanupPanel;
-    }
-
-    public void actionPerformed(ActionEvent event) {
-      listenee.buttonAction(event);
     }
   }
 
@@ -276,5 +289,20 @@ public class CleanupPanel {
         .setToolTipText("Delete the files listed in the \"File name\" text box.");
     btnRescanDir
         .setToolTipText("Read the directory again to update the list in the file selection box.");
+  }
+
+  /*
+   *  
+   */
+  private static final class ButtonActonListener implements ActionListener {
+    private final CleanupPanel listenee;
+
+    ButtonActonListener(final CleanupPanel cleanupPanel) {
+      listenee = cleanupPanel;
+    }
+
+    public void actionPerformed(final ActionEvent event) {
+      listenee.buttonAction(event);
+    }
   }
 }
