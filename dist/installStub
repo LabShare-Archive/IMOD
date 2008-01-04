@@ -184,8 +184,7 @@ if ($extract == 1) then
 endif
 
 # It has to be run by tcsh for Irix; there is some bug in csh
-
-if ($test == 0) tcsh -f $installer -d $installdir $scriptopt $skipopt $packname
+if ($test == 0) tcsh -f $installer -d "$installdir" $scriptopt $skipopt $packname
 
 echo " "
 echo "Cleaning up $packname, $installer, and $tempdir"
@@ -220,6 +219,9 @@ exit 0
 #  $Id$
 #
 #  $Log$
+#  Revision 3.14  2007/12/11 02:35:08  mast
+#  Renamed mac.bashrc to mac.profile to reflect preferred destination
+#
 #  Revision 3.13  2007/10/25 02:20:33  mast
 #  Fixed absolute paths, allowed install location on Windows
 #
