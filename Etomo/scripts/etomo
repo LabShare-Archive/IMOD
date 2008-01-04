@@ -57,7 +57,7 @@ if [ -z "$IMOD_DIR" ]; then
   echo "Set it to point to the directory where IMOD is installed"
   exit
 fi
-if [ ! -e $IMOD_DIR ]; then
+if [ ! -e "$IMOD_DIR" ]; then
   echo "IMOD_DIR="${IMOD_DIR} " does not exist"
   echo "Set it to point to the directory where IMOD is installed"
   exit
@@ -69,8 +69,8 @@ fi
 # variable, and allows other directories to be placed on the path too, to
 # prevent clashes with libraries supplied by other packages
 
-if [ -e ${IMOD_DIR}/bin/setlibpath ]; then
-  . ${IMOD_DIR}/bin/setlibpath
+if [ -e "${IMOD_DIR}/bin/setlibpath" ]; then
+  . "${IMOD_DIR}/bin/setlibpath"
 fi
 
 # Check for help option
@@ -125,14 +125,17 @@ if [ ${help} -eq 0 ] ; then
 
 
   echo "starting eTomo"
-  java -Xmx${JAVA_MEM_LIM} -cp ${IMOD_DIR}/bin/etomo \
-   -jar ${IMOD_DIR}/bin/etomo.jar "$@" 2>${errlog} >${outlog} &
+  java -Xmx${JAVA_MEM_LIM} -cp "${IMOD_DIR}/bin/etomo" \
+   -jar "${IMOD_DIR}/bin/etomo.jar" "$@" 2>${errlog} >${outlog} &
 else
-  java -Xmx${JAVA_MEM_LIM} -cp ${IMOD_DIR}/bin/etomo \
-   -jar ${IMOD_DIR}/bin/etomo.jar "$@"
+  java -Xmx${JAVA_MEM_LIM} -cp "${IMOD_DIR}/bin/etomo" \
+   -jar "${IMOD_DIR}/bin/etomo.jar" "$@"
 fi
 
 # $Log$
+# Revision 1.24  2007/12/19 20:59:14  mast
+# Quote the $@ so spaces are preserved in arguments
+#
 # Revision 1.23  2006/06/26 18:06:01  mast
 # Export the memory limit so etomo knows what it is
 #
