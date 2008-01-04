@@ -30,20 +30,20 @@ if ($?IMOD_DIR) then
     #
     set srcdir = "$IMOD_DIR/com"
     set test = `which cygpath`
-    if (! $status) set srcdir = `cygpath $IMOD_DIR`/com
+    if (! $status) set srcdir = `cygpath "$IMOD_DIR"`/com
     setenv PATH "$IMOD_DIR/bin:$PATH"
 else
     echo "Environment variable IMOD_DIR must be set to the top IMOD directory"
     exit 1
 endif
 
-if (! -d $srcdir) then
+if (! -d "$srcdir") then
     echo "Source directory for command files, $srcdir, not found."
     echo "Edit $0 if necessary to set the source directory correctly"
     exit 1
 endif
 
-if ("$PWD" == $srcdir) then
+if ("$PWD" == "$srcdir") then
     echo "You should be in the directory where your data are located, not"
     echo "in the com directory."
     exit 1
@@ -748,7 +748,7 @@ while ($iaxis < $numax)
 	# GET ERASER IF DESIRED
 
 	if ($erase == "1") then
-	    set srcfile = $srcdir/"eraser"$srcext
+	    set srcfile = "$srcdir/eraser"$srcext
 	    set dstfile = "eraser"$dstext
 	    set backuplist = ($backuplist $dstfile $setname.erase)
 	    if (-e $dstfile) \mv -f $dstfile $dstfile~
@@ -780,7 +780,7 @@ EOF
 \$doblend:
 EOF
 	    set preblend = "1"
-	    set srcfile = $srcdir/"blend"$srcext
+	    set srcfile = "$srcdir/blend"$srcext
 	    @ xcxsize = $xsize
 	    @ xcysize = $ysize
 	    if ($xcxsize > $MONTAGE_XCORR_MAX) @ xcxsize = $MONTAGE_XCORR_MAX
@@ -808,7 +808,7 @@ EOF
             echo '$doxcorr:' >> $dstfile
 	endif
 
-        set srcfile = $srcdir/"xcorr"$srcext
+        set srcfile = "$srcdir/xcorr"$srcext
         sed -e s/$srcname/$dstname/g\
 	    -e "/^FirstTiltAngle/s/.*/$tiltTypeText	$tiltStart/"\
 	    -e "/^$tiltIncText/s/[ 	].*/	$tiltInc/"\
@@ -822,7 +822,7 @@ EOF
 
 	    # GET PRENEWST
 
-	    set srcfile = $srcdir/"prenewst"$srcext
+	    set srcfile = "$srcdir/prenewst"$srcext
 	    set dstfile = "prenewst"$dstext
 	    set backuplist = ($backuplist $dstfile)
 	    if (-e $dstfile) \mv -f $dstfile $dstfile~
@@ -833,7 +833,7 @@ EOF
 
 	    # GET NEWST
 
-	    set srcfile = $srcdir/"ccdnewst"$srcext
+	    set srcfile = "$srcdir/ccdnewst"$srcext
 	    set dstfile = "newst"$dstext
 	    set backuplist = ($backuplist $dstfile)
 	    if (-e $dstfile) \mv -f $dstfile $dstfile~
@@ -847,7 +847,7 @@ EOF
 
 	    # OR, GET PREBLEND AND BLEND
 
-	    set srcfile = $srcdir/"ccdpreblend"$srcext
+	    set srcfile = "$srcdir/ccdpreblend"$srcext
 	    set dstfile = "preblend"$dstext
 	    set backuplist = ($backuplist $dstfile)
 	    if (-e $dstfile) \mv -f $dstfile $dstfile~
@@ -861,7 +861,7 @@ EOF
 
 	    @ ymin = $ysize / 2 - $SAMPLESIZE / 2
 	    @ ymax = $ysize / 2 + $SAMPLESIZE / 2
-	    set srcfile = $srcdir/"blend"$srcext
+	    set srcfile = "$srcdir/blend"$srcext
 	    set dstfile = "blend"$dstext
 	    set backuplist = ($backuplist $dstfile)
 	    if (-e $dstfile) \mv -f $dstfile $dstfile~
@@ -895,7 +895,7 @@ EOF
 	    if ($preblend == "1") then
 		set wipepl = $setname.pl
 		set tracksrc = $setname.bl
-		set srcfile = $srcdir/"blend"$srcext
+		set srcfile = "$srcdir/blend"$srcext
 		set dstfile = "preblend"$dstext
 		set backuplist = ($backuplist $dstfile)
 		set buildnew = "1"
@@ -912,7 +912,7 @@ EOF
 
 	    @ ymin = $ysize / 2 - $SAMPLESIZE / 2
 	    @ ymax = $ysize / 2 + $SAMPLESIZE / 2
-	    set srcfile = $srcdir/"blend"$srcext
+	    set srcfile = "$srcdir/blend"$srcext
 	    set dstfile = "blend"$dstext
 	    set backuplist = ($backuplist $dstfile)
 	    if (-e $dstfile) \mv -f $dstfile $dstfile~
@@ -958,7 +958,7 @@ EOF
 		set wipepl = $setname.pl
 	    endif
 
-	    set srcfile = $srcdir/"filmnewst"$srcext
+	    set srcfile = "$srcdir/filmnewst"$srcext
 	    set dstfile = "newst"$dstext
 	    set backuplist = ($backuplist $dstfile)
 	    if (-e $dstfile) \mv -f $dstfile $dstfile~
@@ -974,7 +974,7 @@ EOF
     # GET TRACK: WIPE OUT PL ENTRY WHEN NO MONTAGE FOR FILM
     # SET INPUT TO .PREALI FOR CCD
 
-    set srcfile = $srcdir/"track"$srcext
+    set srcfile = "$srcdir/track"$srcext
     set dstfile = "track"$dstext
     set backuplist = ($backuplist $dstfile $setname.seed $setname.fid)
     if (-e $dstfile) \mv -f $dstfile $dstfile~
@@ -993,7 +993,7 @@ EOF
     echo '$'"if (-e $backupname) $backupname" >> $dstfile
 
     # COPY EMPTY SEED MODELS
-    if (! -e $setname.seed) \cp $srcdir/$seedname $setname.seed
+    if (! -e $setname.seed) \cp "$srcdir/$seedname" $setname.seed
 
     # GET ALIGN; zero FixXYZCoords IF SINGLE AXIS; SET OUTPUT TO .TLTXF FOR CCD
 
@@ -1011,7 +1011,7 @@ EOF
 
     # 5/3/02: change to using image file name, keep dimensions commented out
 
-    set srcfile = $srcdir/"align"$srcext
+    set srcfile = "$srcdir/align"$srcext
     set dstfile = "align"$dstext
     set backuplist = ($backuplist $dstfile)
     if (-e $dstfile) \mv -f $dstfile $dstfile~
@@ -1060,7 +1060,7 @@ EOF
 
     # GET MTFFILTER
 
-    set srcfile = $srcdir/"mtffilter"$srcext
+    set srcfile = "$srcdir/mtffilter"$srcext
     set dstfile = "mtffilter"$dstext
     set backuplist = ($backuplist $dstfile)
     if (-e $dstfile) \mv -f $dstfile $dstfile~
@@ -1109,7 +1109,7 @@ EOF
         @ i--
     end
 
-    set srcfile = $srcdir/"tilt"$srcext
+    set srcfile = "$srcdir/tilt"$srcext
     set dstfile = "tilt"$dstext
     set backuplist = ($backuplist $dstfile)
     if (-e $dstfile) \mv -f $dstfile $dstfile~
@@ -1206,7 +1206,7 @@ EOF
     set npatch = 5
     if ($xsize >= 800) set npatch = 7
     if ($xsize >= 1050) set npatch = 9
-    set srcfile = $srcdir/"findsec"$srcext
+    set srcfile = "$srcdir/findsec"$srcext
     set dstfile = "findsec"$dstext
     set backuplist = ($backuplist $dstfile)
     if (-e $dstfile) \mv -f $dstfile $dstfile~
@@ -1218,7 +1218,7 @@ EOF
     
     # GET TOMOPITCH
 
-    set srcfile = $srcdir/"tomopitch"$srcext
+    set srcfile = "$srcdir/tomopitch"$srcext
     set dstfile = "tomopitch"$dstext
     set backuplist = ($backuplist $dstfile top$modext mid$modext bot$modext tomopitch$modext)
     if (-e $dstfile) \mv -f $dstfile $dstfile~
@@ -1379,6 +1379,9 @@ exit 0
 
 #
 #  $Log$
+#  Revision 3.56  2007/12/27 20:57:39  mast
+#  Called new warning option to extracttilts
+#
 #  Revision 3.55  2007/12/06 22:39:53  mast
 #  Changes to knock the adjustorigin entries out of early blend and newst steps
 #

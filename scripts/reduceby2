@@ -8,6 +8,9 @@
 #  $Revision$
 #
 #  $Log$
+#  Revision 3.7  2006/02/16 06:47:09  mast
+#  Stripped control chars from output of sed/header etc for Windows
+#
 #  Revision 3.6  2005/11/19 04:31:26  mast
 #  Quote path setting to preserve spaces
 #
@@ -56,10 +59,10 @@ end
 set tmpdir = /usr/tmp
 if ($?IMOD_DIR) then
     setenv PATH "$IMOD_DIR/bin:$PATH"
-    if (-e $IMOD_DIR/bin/settmpdir) source $IMOD_DIR/bin/settmpdir
+    if (-e "$IMOD_DIR/bin/settmpdir") source "$IMOD_DIR/bin/settmpdir"
 endif
 
-set tmppl = $tmpdir/reducepl.$$
+set tmppl = "$tmpdir/reducepl.$$"
 
 reducemont <<EOCAT 
 $argv[1]
@@ -74,7 +77,7 @@ $binning
 10000,10000,2,2
 0
 EOCAT
-\rm -f $tmppl
+\rm -f "$tmppl"
 
 if ($preserve == 1) exit 0
 

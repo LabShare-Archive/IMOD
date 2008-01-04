@@ -1,10 +1,7 @@
 #! /bin/csh -f
 # SHELL SCRIPT TO FINISH JOINING SERIAL SECTION TOMOGRAMS
-#  $Author$
 #
-#  $Date$
-#
-#  $Revision$
+#  $Id$
 #  Log at end of file
 #
 
@@ -332,22 +329,22 @@ if ($maxsize) then
     exit $status
 endif
 
-set newstin = $tmpdir/joinnewst.$$
+set newstin = "$tmpdir/joinnewst.$$"
 
-echo -n >! $newstin
+echo -n >! "$newstin"
 @ itomo = 1
 while ($itomo <= $ntomo)
-    echo "InputFile $matlist[$itomo]" >> $newstin
-    echo "SectionsToRead $rangelist[$itomo]" >> $newstin
+    echo "InputFile $matlist[$itomo]" >> "$newstin"
+    echo "SectionsToRead $rangelist[$itomo]" >> "$newstin"
     if ("$scalelist" != "") then
-        echo "MultiplyAndAdd $scalelist[$itomo]" >> $newstin
+        echo "MultiplyAndAdd $scalelist[$itomo]" >> "$newstin"
     endif
     @ itomo++
 end
-if ($newsize != "") echo "SizeToOutputInXandY $newsize" >> $newstin
-if ($newmode != "") echo "ModeToOutput $newmode" >> $newstin
-if ($gaps == 1) echo "BlankOutput" >> $newstin
-cat >> $newstin <<EOF
+if ($newsize != "") echo "SizeToOutputInXandY $newsize" >> "$newstin"
+if ($newmode != "") echo "ModeToOutput $newmode" >> "$newstin"
+if ($gaps == 1) echo "BlankOutput" >> "$newstin"
+cat >> "$newstin" <<EOF
 OneTransformPerFile
 BinByFactor $binning
 OutputFile $joinroot$trial.join
@@ -355,7 +352,7 @@ OffsetsInXandY $offset
 TransformFile $joinroot.tomoxg
 EOF
 
-newstack -StandardInput < $newstin
+newstack -StandardInput < "$newstin"
 if ($status) goto error
 echo "Truncations are a normal result of the scaling for density matching."
 goto clean
@@ -363,7 +360,7 @@ error:
 set retval = 1
 
 clean:
-\rm -f $newstin
+\rm -f "$newstin"
 \find . -name "$joinroot.*tmp*"  -exec rm "{}" \;
 exit $retval
 
@@ -377,6 +374,9 @@ exit 1
 
 #
 #  $Log$
+#  Revision 3.20  2007/02/01 02:30:22  mast
+#  Do not adjust offset for binning, newstack does it already
+#
 #  Revision 3.19  2007/01/24 23:53:42  mast
 #  No longer allow dashes in slice ranges, so negative numbers can be used
 #

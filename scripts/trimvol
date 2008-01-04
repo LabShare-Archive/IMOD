@@ -391,19 +391,19 @@ if ($?slices) then
 	exit 1
     endif
 
-    set tmpfil = $tmpdir/trimvol.$$
+    set tmpfil = "$tmpdir/trimvol.$$"
     onintr clean
     echo "Determining byte scaling of $argv[1] ..."
     echo "findcontrast -slice $slicest,$slicend $fliparg $sxarg $syarg $argv[1]"
     findcontrast -slice $slicest,$slicend $fliparg $sxarg $syarg \
-           "$argv[1]" > $tmpfil
+           "$argv[1]" > "$tmpfil"
     if ($status) then
-        grep 'ERROR:' $tmpfil
+        grep 'ERROR:' "$tmpfil"
         goto clean
     endif
-    cat $tmpfil
-    set bwout = `sed -n -e '/[[:cntrl:]]/s///g' -e '/Implied/s/Imp.*are *//p' $tmpfil`
-    \rm -f $tmpfil
+    cat "$tmpfil"
+    set bwout = `sed -n -e '/[[:cntrl:]]/s///g' -e '/Implied/s/Imp.*are *//p' "$tmpfil"`
+    \rm -f "$tmpfil"
     if ($#bwout != 3) then
 	echo 'ERROR: $pn - findcontrast failed to return scaling values'
 	exit 1
@@ -434,10 +434,13 @@ endif
 exit 0
 
 clean:
-\rm -f $tmpfil
+\rm -f "$tmpfil"
 exit 1
 
 #  $Log$
+#  Revision 3.18  2007/12/06 21:35:55  mast
+#  Added uption to suppress origin adjustment
+#
 #  Revision 3.17  2007/12/05 16:29:26  mast
 #  Added option to newstack command to adjust origin
 #

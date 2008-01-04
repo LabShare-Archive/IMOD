@@ -1,5 +1,7 @@
 #! /bin/csh -f
 # Do self-alignment of microtubule model
+#  $Id$
+#  Log at end of file
 
 set sec = "/"
 set didsec = "0"
@@ -29,7 +31,7 @@ endif
 set tmpdir = /usr/tmp
 if ($?IMOD_DIR) then
     setenv PATH "$IMOD_DIR/bin:$PATH"
-    if (-e $IMOD_DIR/bin/settmpdir) source $IMOD_DIR/bin/settmpdir
+    if (-e "$IMOD_DIR/bin/settmpdir") source "$IMOD_DIR/bin/settmpdir"
 endif
 
 set opts = 1
@@ -92,11 +94,11 @@ onintr clean
 
 set selfxf = $rootname".selfxf"
 set selfxg = $rootname".selfxg"
-set tmpxf = $tmpdir/tmpxf.$$
-set unitxf = $tmpdir/unitxf.$$
-set testxf = $tmpdir/testxf.$$
-set startxf = $tmpdir/startxf.$$
-set endxf = $tmpdir/endxf.$$
+set tmpxf = "$tmpdir/tmpxf.$$"
+set unitxf = "$tmpdir/unitxf.$$"
+set testxf = "$tmpdir/testxf.$$"
+set startxf = "$tmpdir/startxf.$$"
+set endxf = "$tmpdir/endxf.$$"
 
 if ($imfile == "") set imfile = $rootname".ali"
 
@@ -129,15 +131,15 @@ $sec
 EOF
 
 # search for first and last non-unit transforms
-@ numlines = `cat $tmpxf | wc -l`
+@ numlines = `cat "$tmpxf" | wc -l`
 
-head -n 1 $tmpxf > $unitxf
+head -n 1 "$tmpxf" > "$unitxf"
 @ startnum = 2
 set gotstart = "0"
 
 while ($gotstart == "0" && $startnum < $numlines)
-    head -n $startnum $tmpxf | tail -n 1 >! $startxf
-    cmp -s $startxf $unitxf
+    head -n $startnum "$tmpxf" | tail -n 1 >! "$startxf"
+    cmp -s "$startxf" "$unitxf"
     if ($status) then
 	set gotstart = "1"
     else
@@ -149,8 +151,8 @@ end
 set gotend = "0"
 
 while ($gotend == "0" && $endnum < $numlines)
-    tail -n $endnum $tmpxf | head -n 1 >! $endxf
-    cmp -s $endxf $unitxf
+    tail -n $endnum "$tmpxf" | head -n 1 >! "$endxf"
+    cmp -s "$endxf" "$unitxf"
     if ($status) then
 	set gotend = "1"
     else
@@ -164,19 +166,19 @@ end
 @ tailnum = $headnum - $startnum
 
 if (-e $selfxf) \mv $selfxf $selfxf~
-\cp $unitxf $selfxf
+\cp "$unitxf" $selfxf
 while ($startnum > 1)
-    cat $startxf >> $selfxf
+    cat "$startxf" >> $selfxf
     @ startnum--
 end
-head -n $headnum $tmpxf | tail -n $tailnum >> $selfxf
+head -n $headnum "$tmpxf" | tail -n $tailnum >> $selfxf
 while ($endnum > 0)
-    cat $endxf >> $selfxf
+    cat "$endxf" >> $selfxf
     @ endnum--
 end
 
 while ($numsec > $numlines)
-    cat $endxf >>$selfxf
+    cat "$endxf" >>$selfxf
     @ numlines++
 end
 
@@ -191,5 +193,7 @@ if (-e $selfmod) \mv $selfmod $selfmod~
 imodtrans $infile $selfmod -2 $selfxg
 
 clean:
-\rm -f $tmpxf $unitxf $startxf $endxf
+\rm -f "$tmpxf" "$unitxf" "$startxf" "$endxf"
 
+#
+#  $Log$

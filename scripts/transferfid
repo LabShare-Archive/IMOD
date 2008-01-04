@@ -1,13 +1,9 @@
 #! /bin/csh -f
 # transferfid will find best matching pair of views between two tilt series
 # and transfer the fiducial model from one to make a seed model for the other
-
-#  $Author$
 #
-#  $Date$
-#
-#  $Revision$
-#  Log at end
+#  $Id$
+#  Log at end of file
 #
 
 nohup
@@ -32,7 +28,7 @@ setenv LC_NUMERIC C
 set tmpdir = /usr/tmp
 if ($?IMOD_DIR) then
     setenv PATH "$IMOD_DIR/bin:$PATH"
-    if (-e $IMOD_DIR/bin/settmpdir) source $IMOD_DIR/bin/settmpdir
+    if (-e "$IMOD_DIR/bin/settmpdir") source "$IMOD_DIR/bin/settmpdir"
 endif
 
 onintr searchdone
@@ -42,26 +38,26 @@ onintr searchdone
 #
 set pn      = transferfid
 set com        = $pn:t
-set tmpstack   = $tmpdir/$com.stack.$$
-set tmpimga    = $tmpdir/$com.imga.$$
-set tmpxcxf    = $tmpdir/$com.xcxf.$$
-set tmpxfin    = $tmpdir/$com.xfin.$$
-set tmpxf1    = $tmpdir/$com.xf1.$$
-set tmpxf2    = $tmpdir/$com.xf2.$$
-set tmprot90    = $tmpdir/$com.rot90.$$
-set tmpminxf    = $tmpdir/$com.minxf.$$
-set tmptwoxf    = $tmpdir/$com.twoxf.$$
-set tmpxflog    = $tmpdir/$com.xflog.$$
-set tmpbtlog    = $tmpdir/$com.btlog.$$
-set tmprplog    = $tmpdir/$com.rplog.$$
-set tmpclip    = $tmpdir/$com.clip.$$
-set tmpxfmod    = $tmpdir/$com.xfmod.$$
-set tmpseed    = $tmpdir/$com.seed.$$
-set tmpmap1    = $tmpdir/$com.map1.$$
-set tmpmap2    = $tmpdir/$com.map2.$$
-set tmpmap3    = $tmpdir/$com.map3.$$
-set tmpmidxf   = $tmpdir/$com.midxf.$$
-set tmperrlog    = $tmpdir/$com.errlog.$$
+set tmpstack   = "$tmpdir/$com.stack.$$"
+set tmpimga    = "$tmpdir/$com.imga.$$"
+set tmpxcxf    = "$tmpdir/$com.xcxf.$$"
+set tmpxfin    = "$tmpdir/$com.xfin.$$"
+set tmpxf1    = "$tmpdir/$com.xf1.$$"
+set tmpxf2    = "$tmpdir/$com.xf2.$$"
+set tmprot90    = "$tmpdir/$com.rot90.$$"
+set tmpminxf    = "$tmpdir/$com.minxf.$$"
+set tmptwoxf    = "$tmpdir/$com.twoxf.$$"
+set tmpxflog    = "$tmpdir/$com.xflog.$$"
+set tmpbtlog    = "$tmpdir/$com.btlog.$$"
+set tmprplog    = "$tmpdir/$com.rplog.$$"
+set tmpclip    = "$tmpdir/$com.clip.$$"
+set tmpxfmod    = "$tmpdir/$com.xfmod.$$"
+set tmpseed    = "$tmpdir/$com.seed.$$"
+set tmpmap1    = "$tmpdir/$com.map1.$$"
+set tmpmap2    = "$tmpdir/$com.map2.$$"
+set tmpmap3    = "$tmpdir/$com.map3.$$"
+set tmpmidxf   = "$tmpdir/$com.midxf.$$"
+set tmperrlog    = "$tmpdir/$com.errlog.$$"
 
 #
 # set default set name from current directory - NOT ANY MORE
@@ -192,10 +188,10 @@ endif
 if ($src == "b") then
     set tmp = $imagea
     set imagea = $imageb
-    set imageb = $tmp
+    set imageb = "$tmp"
     set tmp = $zeroa
     set zeroa = $zerob
-    set zerob = $tmp
+    set zerob = "$tmp"
 endif
 
 #
@@ -425,34 +421,34 @@ while ($bsecind <= $nviews)
 	while ($plusminus <= $pmend)
 	    if ($plusminus) then
 		if ($mirror) then
-                    \echo "0 -1 -1 0 -1 -1" >! $tmprot90
+                    \echo "0 -1 -1 0 -1 -1" >! "$tmprot90"
                 else
-                    \echo "0 -1 1 0 -1 0" >! $tmprot90
+                    \echo "0 -1 1 0 -1 0" >! "$tmprot90"
                 endif
 		set pmangle = +90
 	    else
 		if ($mirror) then
-                    \echo "0 1 1 0 0 0" >! $tmprot90
+                    \echo "0 1 1 0 0 0" >! "$tmprot90"
                 else
-                    \echo "0 1 -1 0 0 -1" >! $tmprot90
+                    \echo "0 1 -1 0 0 -1" >! "$tmprot90"
                 endif
 		set pmangle = -90
 	    endif
 	    # 
 	    # extract the rotated section from A
 	    #
-            newstack -sec $asec -size $nxb,$nyb -xf $tmprot90 -use 0 $imagea $tmpimga >! $tmperrlog
+            newstack -sec $asec -size $nxb,$nyb -xf "$tmprot90" -use 0 $imagea "$tmpimga" >! "$tmperrlog"
 	    if ($status) then
-		grep ERROR $tmperrlog
+		grep ERROR "$tmperrlog"
 		echo "ERROR: Transferfid - extracting rotated section from $AA"
 		goto clean
 	    endif
 	    #
 	    # Stack this rotated section on top of the sec from b
 	    #
-            newstack -sec $bsec -sec 0 $imageb $tmpimga $tmpstack >! $tmperrlog
+            newstack -sec $bsec -sec 0 $imageb "$tmpimga" "$tmpstack" >! "$tmperrlog"
 	    if ($status) then
-		grep ERROR $tmperrlog
+		grep ERROR "$tmperrlog"
 		echo "ERROR: Transferfid - Stacking rotated $AA on $BB"
 		goto clean
 	    endif
@@ -466,12 +462,12 @@ while ($bsecind <= $nviews)
 		    echo " and save the transform to the already-defined output file"
 		    echo " "
 		    sleep 3
-		    midas -D -b 1 $tmpstack $tmpmidxf
-		    if (! -e $tmpmidxf) then
+		    midas -D -b 1 "$tmpstack" "$tmpmidxf"
+		    if (! -e "$tmpmidxf") then
 			echo "ERROR: Transferfid - Transform file not found - cannot proceed"
 			goto clean
 		    endif
-		    tail -n 1 $tmpmidxf >! $tmpxf1
+		    tail -n 1 "$tmpmidxf" >! "$tmpxf1"
 		    echo "Finding the best matched pair of views in the two series:"
 		    echo "              (Type Ctrl-C to end search)"
 
@@ -480,9 +476,9 @@ while ($bsecind <= $nviews)
 		#
 		# Run tiltxcorr
 		#
-tiltxcorr -angles 0,0 -radius2 $radius2 -sigma1 $sigma1 -sigma2 $sigma2 $tmpstack $tmpxcxf >! $tmperrlog
+tiltxcorr -angles 0,0 -radius2 $radius2 -sigma1 $sigma1 -sigma2 $sigma2 "$tmpstack" "$tmpxcxf" >! "$tmperrlog"
 		if ($status) then
-		    grep ERROR $tmperrlog
+		    grep ERROR "$tmperrlog"
 		    echo "ERROR: Transferfid - Running Tiltxcorr"
 		    goto clean
 		endif
@@ -490,8 +486,8 @@ tiltxcorr -angles 0,0 -radius2 $radius2 -sigma1 $sigma1 -sigma2 $sigma2 $tmpstac
 		# Run xfsimplex looking for rotation only
 		#
 		#	    echo "first simplex"
-		tail -n 1 $tmpxcxf >! $tmpxfin
-xfsimplex <<EOF  >! $tmperrlog
+		tail -n 1 "$tmpxcxf" >! "$tmpxfin"
+xfsimplex <<EOF  >! "$tmperrlog"
 $tmpstack
 $tmpimga
 $tmpxf1
@@ -505,7 +501,7 @@ $reduce
 0
 EOF
 		if ($status) then
-		    grep ERROR $tmperrlog
+		    grep ERROR "$tmperrlog"
 		    echo "ERROR: Transferfid - Running first Xfsimplex"
 		    goto clean
 		endif
@@ -514,7 +510,7 @@ EOF
 	    # Run xfsimplex again from there, looking for full transform
 	    #
 #echo "second simplex"
-xfsimplex  >! $tmpxflog <<EOF
+xfsimplex  >! "$tmpxflog" <<EOF
 $tmpstack
 $tmpimga
 $tmpxf2
@@ -528,7 +524,7 @@ $reduce
 0
 EOF
 	    if ($status) then
-		grep ERROR $tmpxflog
+		grep ERROR "$tmpxflog"
 		echo "ERROR: Transferfid - Running second Xfsimplex"
 		goto clean
 	    endif
@@ -536,7 +532,7 @@ EOF
 	    # 
 	    # extract the difference from the log file
 	    # 
-	    set simplexout = `tail -n 1 $tmpxflog`
+	    set simplexout = `tail -n 1 "$tmpxflog"`
 	    @ diff = `echo $simplexout[2] $diffscale | awk '{print int($1 * $2)}'`
 	    @ aview = $asec + 1
 	    @ bview = $bsec + 1
@@ -548,9 +544,9 @@ EOF
 		@ diffmin = $diff
 		@ asecbest = $asec
 		@ bsecbest = $bsec
-                xfproduct $tmprot90 $tmpxf2 $tmpminxf >! $tmperrlog
+                xfproduct "$tmprot90" "$tmpxf2" "$tmpminxf" >! "$tmperrlog"
 		if ($status) then
-		    grep ERROR $tmperrlog
+		    grep ERROR "$tmperrlog"
 		    echo "ERROR: Transferfid - Running Xfproduct"
 		    goto clean
 		endif
@@ -584,11 +580,11 @@ onintr clean
 #
 # Stack the two best sections
 #
-\echo "1 0 0 1 0 0" >! $tmptwoxf
-cat $tmpminxf >> $tmptwoxf
-newstack -sec $bsecbest -sec $asecbest -xf $tmptwoxf -use 0,1 -float 2 $imageb $imagea $tmpstack >! $tmperrlog
+\echo "1 0 0 1 0 0" >! "$tmptwoxf"
+cat "$tmpminxf" >> "$tmptwoxf"
+newstack -sec $bsecbest -sec $asecbest -xf "$tmptwoxf" -use 0,1 -float 2 $imageb $imagea "$tmpstack" >! "$tmperrlog"
 if ($status) then
-    grep ERROR $tmperrlog
+    grep ERROR "$tmperrlog"
     echo "ERROR: Transferfid - Stacking two best views"
     goto clean
 endif
@@ -599,7 +595,7 @@ endif
 set seclower = `echo $asecbest | awk '{print $1 - 0.5}'`
 set secupper = `echo $asecbest | awk '{print $1 + 0.5}'`
 
-clipmodel >! $tmperrlog <<EOF
+clipmodel >! "$tmperrlog" <<EOF
 $fidfile
 $tmpclip
 0
@@ -610,19 +606,19 @@ $seclower,$secupper
 0
 EOF
 if ($status) then
-    grep ERROR $tmperrlog
+    grep ERROR "$tmperrlog"
     echo "ERROR: Transferfid - Clipping out best view from $AA fiducial model"
     goto clean
 endif
 
-remapmodel >! $tmperrlog <<EOF
+remapmodel >! "$tmperrlog" <<EOF
 $tmpclip
 $tmpmap1
 1
 0,0,0
 EOF
 if ($status) then
-    grep ERROR $tmperrlog
+    grep ERROR "$tmperrlog"
     echo "ERROR: Transferfid - Remapping $AA fiducials to section 1"
     goto clean
 endif
@@ -632,7 +628,7 @@ endif
 #
 @ xadd = ($nxb - $nxa) / 2
 @ yadd = ($nyb - $nya) / 2
-xfmodel >! $tmperrlog <<EOF
+xfmodel >! "$tmperrlog" <<EOF
 $imagea
 
 $tmpmap1
@@ -642,19 +638,19 @@ $tmpxfmod
 $tmptwoxf
 EOF
 if ($status) then
-    grep ERROR $tmperrlog
+    grep ERROR "$tmperrlog"
     echo "ERROR: Transferfid - Transforming $AA fiducials to match $BB image"
     goto clean
 endif
 
-remapmodel >! $tmperrlog <<EOF
+remapmodel >! "$tmperrlog" <<EOF
 $tmpxfmod
 $tmpmap2
 1
 $xadd,$yadd,0
 EOF
 if ($status) then
-    grep ERROR $tmperrlog
+    grep ERROR "$tmperrlog"
     echo "ERROR: Transferfid - Recentering transformed $AA fiducials"
     goto clean
 endif
@@ -714,7 +710,7 @@ endif
 @ bview = $bsecbest + 1
 echo "Transferring fiducials from view $aview in $AA to view $bview in $BB with Beadtrack:"
 echo "              (Type Ctrl-C to interrupt)"
-beadtrack -StandardInput >! $tmpbtlog <<EOF
+beadtrack -StandardInput >! "$tmpbtlog" <<EOF
 ImageFile $tmpstack
 InputSeedModel $tmpmap2
 OutputModel $tmpseed
@@ -744,23 +740,23 @@ DeletionCriterionMinAndSD       0.04,2
 EOF
 
 if ($status) then
-    grep ERROR $tmpbtlog
+    grep ERROR "$tmpbtlog"
     echo "ERROR: Transferfid - Running Beadtrack to get fiducials onto $BB view "
     goto clean
 endif
-set btresult = `tail -n 1 $tmpbtlog`
+set btresult = `tail -n 1 "$tmpbtlog"`
 echo "Number of fiducials that failed to transfer: $btresult[$#btresult]"
     
 #
 # Remap seed model to the section in B
-remapmodel <<EOF  >! $tmperrlog
+remapmodel <<EOF  >! "$tmperrlog"
 $tmpseed
 $tmpmap3
 $bsecbest,-999
 0,0,0
 EOF
 if ($status) then
-    grep ERROR $tmperrlog
+    grep ERROR "$tmperrlog"
     echo "ERROR: Transferfid - Remapping seed model up to view in $BB"
     goto clean
 endif
@@ -778,7 +774,7 @@ else
     set xyzname = ""
 endif
 
-repackseed <<EOF > $tmprplog
+repackseed <<EOF > "$tmprplog"
 $fidfile
 $xyzname
 $tmpmap3
@@ -787,11 +783,11 @@ $correspond
 $asecbest,$bsecbest,$ifbtoa
 EOF
 echo " "
-awk '/follow/, /junk/' $tmprplog
+awk '/follow/, /junk/' "$tmprplog"
 
 clean:
 if ($leavetmp == 0) then
-    \rm -f $tmpdir/$com.*.$$*
+    \rm -f "$tmpdir"/$com.*.$$*
 else
     echo "Temporary files left in $tmpdir"
 endif
@@ -831,6 +827,9 @@ exit 1
 
 #
 #  $Log$
+#  Revision 3.30  2006/08/17 18:36:55  mast
+#  Added locale statement to keep output of awk from having instead of .
+#
 #  Revision 3.29  2006/06/08 18:48:57  mast
 #  Changed to specify binning rather than reductions to xfsimplex and to
 #  use the total pixel count instead of minimum size

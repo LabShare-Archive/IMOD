@@ -33,7 +33,7 @@ endif
 set tmpdir = /usr/tmp
 if ($?IMOD_DIR) then
     setenv PATH "$IMOD_DIR/bin:$PATH"
-    if (-e $IMOD_DIR/bin/settmpdir) source $IMOD_DIR/bin/settmpdir
+    if (-e "$IMOD_DIR/bin/settmpdir") source "$IMOD_DIR/bin/settmpdir"
 endif
 
 set padstring =
@@ -265,6 +265,9 @@ EOF
 
 #
 #  $Log$
+#  Revision 3.10  2007/11/02 22:07:32  mast
+#  Made it work from an upper directory
+#
 #  Revision 3.9  2005/11/19 04:31:26  mast
 #  Quote path setting to preserve spaces
 #

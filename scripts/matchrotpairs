@@ -3,13 +3,8 @@
 # and find the alignment between them
 # It was derived from transferfid
 #
-#  $Author$
-#
-#  $Date$
-#
-#  $Revision$
-#
-#  Log at end
+#  $Id$
+#  Log at end of file
 
 # Filter for tiltxcorr
 set sigma1 = 0.03
@@ -26,7 +21,7 @@ setenv LC_NUMERIC C
 set tmpdir = /usr/tmp
 if ($?IMOD_DIR) then
     setenv PATH "$IMOD_DIR/bin:$PATH"
-    if (-e $IMOD_DIR/bin/settmpdir) source $IMOD_DIR/bin/settmpdir
+    if (-e "$IMOD_DIR/bin/settmpdir") source "$IMOD_DIR/bin/settmpdir"
 endif
 
 onintr searchdone
@@ -36,19 +31,19 @@ onintr searchdone
 #
 set pn      = matchrotpairs
 set com        = $pn:t
-set tmpstack   = $tmpdir/$com.stack.$$
-set tmpimga    = $tmpdir/$com.imga.$$
-set tmpimgb    = $tmpdir/$com.imgb.$$
-set tmpxcxf    = $tmpdir/$com.xcxf.$$
-set tmpxfin    = $tmpdir/$com.xfin.$$
-set tmpxf1    = $tmpdir/$com.xf1.$$
-set tmpxf2    = $tmpdir/$com.xf2.$$
-set tmprot90    = $tmpdir/$com.rot90.$$
-set tmpminxf    = $tmpdir/$com.minxf.$$
-set tmpxflog    = $tmpdir/$com.xflog.$$
-set tmpmidxf   = $tmpdir/$com.midxf.$$
-set tmperrlog    = $tmpdir/$com.errlog.$$
-set tmpmidrot    = $tmpdir/$com.midrot.$$
+set tmpstack   = "$tmpdir/$com.stack.$$"
+set tmpimga    = "$tmpdir/$com.imga.$$"
+set tmpimgb    = "$tmpdir/$com.imgb.$$"
+set tmpxcxf    = "$tmpdir/$com.xcxf.$$"
+set tmpxfin    = "$tmpdir/$com.xfin.$$"
+set tmpxf1    = "$tmpdir/$com.xf1.$$"
+set tmpxf2    = "$tmpdir/$com.xf2.$$"
+set tmprot90    = "$tmpdir/$com.rot90.$$"
+set tmpminxf    = "$tmpdir/$com.minxf.$$"
+set tmpxflog    = "$tmpdir/$com.xflog.$$"
+set tmpmidxf   = "$tmpdir/$com.midxf.$$"
+set tmperrlog    = "$tmpdir/$com.errlog.$$"
+set tmpmidrot    = "$tmpdir/$com.midrot.$$"
 
 #
 # set other defaults or values to indicate no argument was entered
@@ -260,34 +255,34 @@ while ($bsecind <= $#bseclist)
 	set pmdiffs = ()
 	while ($plusminus <= $pmend)
 	    if ($plusminus) then
-		\echo "0 -1 1 0 -1 0" >! $tmprot90
+		\echo "0 -1 1 0 -1 0" >! "$tmprot90"
 		set pmangle = +90
 	    else
-		\echo "0 1 -1 0 0 -1" >! $tmprot90
+		\echo "0 1 -1 0 0 -1" >! "$tmprot90"
 		set pmangle = -90
 	    endif
             #
             # On runs after midas, apply the midas transform to stack A on B
             # instead of the 90 degree transform
             #
-	    if ($midas && ($asecind != 1 || $bsecind != 1)) \cp $tmpmidrot $tmprot90
+	    if ($midas && ($asecind != 1 || $bsecind != 1)) \cp "$tmpmidrot" "$tmprot90"
 
 	    # 
 	    # extract the rotated section from A
 	    #
-            newstack -sec $asec -size $nxb,$nyb -xf $tmprot90 $distort $imbin -use 0 $imagea $tmpimga >! $tmperrlog
+            newstack -sec $asec -size $nxb,$nyb -xf "$tmprot90" $distort $imbin -use 0 $imagea "$tmpimga" >! "$tmperrlog"
 	    if ($status) then
-		awk '/ERROR/,/junk/' $tmperrlog
+		awk '/ERROR/,/junk/' "$tmperrlog"
 		echo "ERROR: Matchrotpairs - extracting rotated section from A"
 		goto clean
 	    endif
-            newstack -sec $bsec $distort $imbin -use 0 $imageb $tmpimgb >! $tmperrlog
+            newstack -sec $bsec $distort $imbin -use 0 $imageb "$tmpimgb" >! "$tmperrlog"
 	    #
 	    # Stack this rotated section on top of the sec from b
 	    #
-            newstack $tmpimgb $tmpimga $tmpstack >! $tmperrlog
+            newstack "$tmpimgb" "$tmpimga" "$tmpstack" >! "$tmperrlog"
 	    if ($status) then
-		awk '/ERROR/,/junk/' $tmperrlog
+		awk '/ERROR/,/junk/' "$tmperrlog"
 		echo "ERROR: Matchrotpairs - Stacking rotated A on B"
 		goto clean
 	    endif
@@ -300,22 +295,22 @@ while ($bsecind <= $#bseclist)
 		echo " and save the transform to the already-defined output file"
 		echo " "
 		sleep 1
-		midas -D -b 0 $tmpstack $tmpmidxf
-		if (! -e $tmpmidxf) then
+		midas -D -b 0 "$tmpstack" "$tmpmidxf"
+		if (! -e "$tmpmidxf") then
 		    echo "ERROR: Matchrotpairs - Transform file not found - cannot proceed"
 		    goto clean
 		endif
                 #
                 # Get the cumulative transform and save to use in place of 90
                 #
-                tail -n 1 $tmpmidxf | awk '{print $1, $2, $3, $4, 0, 0}' >! $tmpxfin
-                xfproduct $tmprot90 $tmpxfin $tmpmidrot >! $tmperrlog
+                tail -n 1 "$tmpmidxf" | awk '{print $1, $2, $3, $4, 0, 0}' >! "$tmpxfin"
+                xfproduct "$tmprot90" "$tmpxfin" "$tmpmidrot" >! "$tmperrlog"
 		if ($status) then
-		    awk '/ERROR/,/junk/' $tmperrlog
+		    awk '/ERROR/,/junk/' "$tmperrlog"
 		    echo "ERROR: Matchrotpairs - Running Xfproduct"
 		    goto clean
 		endif
-		tail -n 1 $tmpmidxf >! $tmpxfin
+		tail -n 1 "$tmpmidxf" >! "$tmpxfin"
 
 		echo "Finding the best matched pair of views in the two series:"
 		echo "              (Type Ctrl-C to end search)"
@@ -325,24 +320,24 @@ while ($bsecind <= $#bseclist)
 		#
 		# Run tiltxcorr if not midas on first round
 		#
-tiltxcorr -angles 0,0 -radius2 $radius2 -sigma1 $sigma1 -sigma2 $sigma2 $tmpstack $tmpxcxf >! $tmperrlog
+tiltxcorr -angles 0,0 -radius2 $radius2 -sigma1 $sigma1 -sigma2 $sigma2 "$tmpstack" "$tmpxcxf" >! "$tmperrlog"
 		if ($status) then
-		    awk '/ERROR/,/junk/' $tmperrlog
+		    awk '/ERROR/,/junk/' "$tmperrlog"
 		    echo "ERROR: Matchrotpairs - Running Tiltxcorr"
 		    goto clean
 		endif
-		tail -n 1 $tmpxcxf >! $tmpxfin
+		tail -n 1 "$tmpxcxf" >! "$tmpxfin"
             endif
 
             if ($midas) then
-                \cp $tmpxfin $tmpxf1
+                \cp "$tmpxfin" "$tmpxf1"
             else
 		#
 		# Run xfsimplex looking for rotation only if not midas
 		#
 		#	    echo "first simplex"
 
-xfsimplex <<EOF  >! $tmperrlog
+xfsimplex <<EOF  >! "$tmperrlog"
 $tmpstack
 $tmpimga
 $tmpxf1
@@ -356,7 +351,7 @@ $reduce
 0
 EOF
 		if ($status) then
-		    awk '/ERROR/,/junk/' $tmperrlog
+		    awk '/ERROR/,/junk/' "$tmperrlog"
 		    echo "ERROR: Matchrotpairs - Running first Xfsimplex"
 		    goto clean
 		endif
@@ -365,7 +360,7 @@ EOF
 	    # Run xfsimplex again from there, looking for full transform
 	    #
 #echo "second simplex"
-xfsimplex  >! $tmpxflog <<EOF
+xfsimplex  >! "$tmpxflog" <<EOF
 $tmpstack
 $tmpimga
 $tmpxf2
@@ -379,7 +374,7 @@ $reduce
 $bilinear
 EOF
 	    if ($status) then
-		awk '/ERROR/,/junk/' $tmpxflog
+		awk '/ERROR/,/junk/' "$tmpxflog"
 		echo "ERROR: Matchrotpairs - Running second Xfsimplex"
 		goto clean
 	    endif
@@ -387,23 +382,23 @@ EOF
 	    # 
 	    # extract the difference from the log file
 	    # 
-	    set simplexout = `tail -n 1 $tmpxflog`
+	    set simplexout = `tail -n 1 "$tmpxflog"`
 	    @ diff = `echo $simplexout[2] $diffscale | awk '{print int($1 * $2)}'`
 	    @ aview = $asec + 1
 	    echo -n "A $aview  B $bview  rotation $pmangle  difference $diff"
 
             if ($allxfout) then
-                xfproduct $tmprot90 $tmpxf2 $tmpxf1 >! $tmperrlog
+                xfproduct "$tmprot90" "$tmpxf2" "$tmpxf1" >! "$tmperrlog"
 		if ($status) then
-		    awk '/ERROR/,/junk/' $tmperrlog
+		    awk '/ERROR/,/junk/' "$tmperrlog"
 		    echo "ERROR: Matchrotpairs - Running Xfproduct"
 		    goto clean
 		endif
                 if ($aview > $astacklast) then
-                    cat $tmpxf1 >> $outxf
+                    cat "$tmpxf1" >> $outxf
                 else
-                    cat $outxf >> $tmpxf1
-                    \mv $tmpxf1 $outxf
+                    cat $outxf >> "$tmpxf1"
+                    \mv "$tmpxf1" $outxf
                 endif
                 @ astacklast = $aview
             endif
@@ -415,9 +410,9 @@ EOF
 		@ diffmin = $diff
 		@ asecbest = $asec
 		@ bsecbest = $bsec
-                xfproduct $tmprot90 $tmpxf2 $tmpminxf >! $tmperrlog
+                xfproduct "$tmprot90" "$tmpxf2" "$tmpminxf" >! "$tmperrlog"
 		if ($status) then
-		    awk '/ERROR/,/junk/' $tmperrlog
+		    awk '/ERROR/,/junk/' "$tmperrlog"
 		    echo "ERROR: Matchrotpairs - Running Xfproduct"
 		    goto clean
 		endif
@@ -457,10 +452,10 @@ echo  "Views in best pair: A $aview  B $bview"
 #
 if (-e $outfile) \mv $outfile $outfile~
 \echo "1 0 0 1 0 0" >! $outfile
-cat $tmpminxf >> $outfile
-newstack -sec $bsecbest -sec $asecbest -float 2 $distort $imbin $imageb $imagea $beststack >! $tmperrlog
+cat "$tmpminxf" >> $outfile
+newstack -sec $bsecbest -sec $asecbest -float 2 $distort $imbin $imageb $imagea $beststack >! "$tmperrlog"
 if ($status) then
-    awk '/ERROR/,/junk/' $tmperrlog
+    awk '/ERROR/,/junk/' "$tmperrlog"
     echo "ERROR: Matchrotpairs - Stacking two best views"
     goto clean
 endif
@@ -468,7 +463,7 @@ endif
 
 clean:
 if ($leavetmp == 0) then
-    \rm -f $tmpdir/$com.*.$$*
+    \rm -f "$tmpdir"/$com.*.$$*
 else
     echo "Temporary files left in $tmpdir"
 endif
@@ -496,6 +491,9 @@ EOF
 exit 1
 
 #  $Log$
+#  Revision 1.13  2006/08/17 18:36:55  mast
+#  Added locale statement to keep output of awk from having instead of .
+#
 #  Revision 1.12  2006/06/08 18:48:48  mast
 #  Changed to specify binning rather than reductions to xfsimplex and to
 #  use the total pixel count instead of minimum size

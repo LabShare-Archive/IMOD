@@ -1,5 +1,7 @@
 #! /bin/csh -f
 # SCRIPT TO COPY AND MODIFY COMBINE.COM AND ASSOCIATED COM FILES
+#  $Id$
+# Log at end of file
 
 set XYBORDERS = (24 36 54 68 80)    # border sizes per increment of minimum
 set BORDERINC = 1000                # dimension
@@ -36,15 +38,6 @@ set warpvol = warpvol.com
 set matchvol2 = matchvol2.com
 set volcombine = volcombine.com
 
-
-#  $Author$
-#
-#  $Date$
-#
-#  $Revision$
-# Log at end of file
-#
-
 setenv LC_NUMERIC C
 
 if ($?IMOD_DIR) then
@@ -54,7 +47,7 @@ if ($?IMOD_DIR) then
     #
     set srcdir = "$IMOD_DIR/com"
     set test = `which cygpath`
-    if (! $status) set srcdir = `cygpath $IMOD_DIR`/com
+    if (! $status) set srcdir = `cygpath "$IMOD_DIR"`/com
     setenv PATH "$IMOD_DIR/bin:$PATH"
 else
     echo "Environment variable IMOD_DIR must be set to the top IMOD directory"
@@ -62,7 +55,7 @@ else
 endif
 
 
-if (! -d $srcdir) then
+if (! -d "$srcdir") then
     echo "Source directory for command file, $srcdir, not found."
     echo "Edit $0 if necessary to set the source directory correctly"
     exit 1
@@ -651,7 +644,7 @@ sed -e s/$from_srcname/$fromname/g\
     -e "/^UsePoints/s/[ 	].*/	$uselist/"\
     -e "/^MatchingAtoB/s/[ 	].*/	$matchatob/"\
     -e "/matchshifts.*64 32 64/s/64 32 64/$msxz $msy $msxz/"\
-	<$srcdir/$matchshift | cat >$matchshift
+	< "$srcdir/$matchshift" | cat >$matchshift
 
 sed -e s/$from_srcname/$fromname/g\
     -e s/$to_srcname/$toname/g\
@@ -661,7 +654,7 @@ sed -e s/$from_srcname/$fromname/g\
     -e "/$sedtempkey/s/\#//"\
     -e "/OutputSizeXYZ/s/\//$size/g"\
     -e "/savework-file/s//$backupsed/g"\
-	<$srcdir/$matchvol1 | cat >$matchvol1
+	< "$srcdir/$matchvol1" | cat >$matchvol1
 
 sed -e s/$from_srcname/$fromname/g\
     -e s/$to_srcname/$toname/g\
@@ -670,7 +663,7 @@ sed -e s/$from_srcname/$fromname/g\
     -e s/$matfile/$sedmatfile/g\
     -e "/$sedtempkey/s/\#//"\
     -e "/OutputSizeXYZ/s/\//$size/g"\
-	<$srcdir/$matchvol2 | cat >$matchvol2
+	< "$srcdir/$matchvol2" | cat >$matchvol2
 
 sed -e s/$from_srcname/$fromname/g\
     -e s/$to_srcname/$toname/g\
@@ -679,7 +672,7 @@ sed -e s/$from_srcname/$fromname/g\
     -e s/$matfile/$sedmatfile/g\
     -e "/$sedtempkey/s/\#//"\
     -e "/OutputSizeXYZ/s/\//$size/g"\
-	<$srcdir/$warpvol | cat >$warpvol
+	< "$srcdir/$warpvol" | cat >$warpvol
 
 sed -e s/$from_srcname/$fromname/g\
     -e s/$to_srcname/$toname/g\
@@ -692,7 +685,7 @@ sed -e s/$from_srcname/$fromname/g\
     -e "/^BSourceBorder/s/[ 	].*/	$xyborder,$xyborder/"\
     -e "/^RegionModel/s/[ 	].*/	$regionmod/"\
     -e "/^$delregion/d"\
-	<$srcdir/$patchcorr | cat >$patchcorr
+	< "$srcdir/$patchcorr" | cat >$patchcorr
 
 sed -e s/$from_srcname/$fromname/g\
     -e s/$to_srcname/$toname/g\
@@ -701,16 +694,16 @@ sed -e s/$from_srcname/$fromname/g\
     -e s/$matfile/$sedmatfile/g\
     -e "/$modeltext/s/$modeltext/matchorwarp -modelfile $regionmod -size/"\
     -e "/$tempdirarg/s///"\
-	<$srcdir/$matchorwarp | cat >$matchorwarp
+	< "$srcdir/$matchorwarp" | cat >$matchorwarp
 
 sed -e s/$from_srcname/$fromname/g\
     -e s/$to_srcname/$toname/g\
     -e "s/$tmp_srcname/$sedtmpdir/g"\
     -e s/$matfile/$sedmatfile/g\
     -e "/savework-file/s//$backupsed/g"\
-    	<$srcdir/$volcombine | cat >$volcombine
+    	< "$srcdir/$volcombine" | cat >$volcombine
 
-\cp $srcdir/combine.com .
+\cp "$srcdir/combine.com" .
 
 @ megamax = $MAXPIXELS
 @ megamax /= 1000
@@ -884,6 +877,9 @@ EOF
 
 #
 #  $Log$
+#  Revision 3.37  2006/09/13 22:32:35  mast
+#  Added LowFromBoth entry for combinefft
+#
 #  Revision 3.36  2006/08/23 04:35:35  mast
 #  Process new patchcorr.com and extract more tilt parameters for solvematch
 #

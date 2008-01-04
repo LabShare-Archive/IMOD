@@ -2,45 +2,14 @@
 # A script to convert Digital Micrograph files of version 2 from Mac, version
 # 2 exported from a PC running version 3, and version 3
 #
-#  $Author$
-#
-#  $Date$
-#
-#  $Revision$
-#
-#  $Log$
-#  Revision 3.9  2005/11/19 04:31:26  mast
-#  Quote path setting to preserve spaces
-#
-#  Revision 3.8  2005/11/11 21:51:08  mast
-#  Changes to use unsigned output mode
-#
-#  Revision 3.7  2005/05/08 03:11:24  mast
-#  Use hexdump instead of od if it exists; it's needed on Mac
-#
-#  Revision 3.6  2004/08/27 05:46:12  mast
-#  Switched to head -n
-#
-#  Revision 3.5  2004/06/06 00:48:12  mast
-#  Added options for dealing with long and unsigned data better
-#
-#  Revision 3.4  2003/10/24 02:14:00  mast
-#  source settmpdir to get tmpdir, better for Windows
-#
-#  Revision 3.3  2003/06/20 20:04:28  mast
-#  Let tmpdir be defined and fall back to /tmp if /usr/tmp does not exist
-#
-#  Revision 3.2  2002/01/07 18:21:58  mast
-#  Change usage output to say dm2mrc, not dm3mrc
-#
-#  Revision 3.1  2001/12/31 19:18:58  mast
-#  Addition to IMOD suite
+#  $Id$
+#  Log at end of file
 #
 
 set tmpdir = /usr/tmp
 if ($?IMOD_DIR) then
     setenv PATH "$IMOD_DIR/bin:$PATH"
-    if (-e $IMOD_DIR/bin/settmpdir) source $IMOD_DIR/bin/settmpdir
+    if (-e "$IMOD_DIR/bin/settmpdir") source "$IMOD_DIR/bin/settmpdir"
 endif
 
 if ($#argv < 2) then
@@ -303,21 +272,21 @@ onintr clean
 
 @ i = 1
 @ num = $#argv - 1;
-set newstfil = $tmpdir/dmnewst.$$
-echo $num >! $newstfil
+set newstfil = "$tmpdir/dmnewst.$$"
+echo $num >! "$newstfil"
 
 while ($i < $#argv)
     set outfil = "$tmpdir/$argv[$i].$$"
     raw2mrc -f -o $offsets[$i] $swap -t $types[$i] -x $xsizes[$i] \
       -y $ysizes[$i] $convert $divide $unsigned "$argv[$i]" "$outfil"
-    echo $outfil >> $newstfil
-    echo 0 >> $newstfil
+    echo "$outfil" >> "$newstfil"
+    echo 0 >> "$newstfil"
     @ i++
 end
 
 
 
-cat <<EOF >> $newstfil
+cat <<EOF >> "$newstfil"
 1
 $argv[$#argv]
 /
@@ -329,8 +298,39 @@ $argv[$#argv]
 EOF
 
 echo Stacking temporary files...
-newstack < $newstfil > /dev/null
+newstack < "$newstfil" > /dev/null
 
 clean:
-\rm -f $tmpdir/*.$$
+\rm -f "$tmpdir"/*.$$
 
+#
+#  $Log$
+#  Revision 3.10  2006/03/23 06:08:41  mast
+#  Several changes to handle spaces in filenames, which Gatan guys love to use
+#
+#  Revision 3.9  2005/11/19 04:31:26  mast
+#  Quote path setting to preserve spaces
+#
+#  Revision 3.8  2005/11/11 21:51:08  mast
+#  Changes to use unsigned output mode
+#
+#  Revision 3.7  2005/05/08 03:11:24  mast
+#  Use hexdump instead of od if it exists; it's needed on Mac
+#
+#  Revision 3.6  2004/08/27 05:46:12  mast
+#  Switched to head -n
+#
+#  Revision 3.5  2004/06/06 00:48:12  mast
+#  Added options for dealing with long and unsigned data better
+#
+#  Revision 3.4  2003/10/24 02:14:00  mast
+#  source settmpdir to get tmpdir, better for Windows
+#
+#  Revision 3.3  2003/06/20 20:04:28  mast
+#  Let tmpdir be defined and fall back to /tmp if /usr/tmp does not exist
+#
+#  Revision 3.2  2002/01/07 18:21:58  mast
+#  Change usage output to say dm2mrc, not dm3mrc
+#
+#  Revision 3.1  2001/12/31 19:18:58  mast
+#  Addition to IMOD suite

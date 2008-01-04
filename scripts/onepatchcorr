@@ -15,7 +15,7 @@ endif
 set tmpdir = /usr/tmp
 if ($?IMOD_DIR) then
     setenv PATH "$IMOD_DIR/bin:$PATH"
-    if (-e $IMOD_DIR/bin/settmpdir) source $IMOD_DIR/bin/settmpdir
+    if (-e "$IMOD_DIR/bin/settmpdir") source "$IMOD_DIR/bin/settmpdir"
 endif
 
 @ nxl = $1; shift
@@ -32,9 +32,9 @@ endif
 @ nypad = ($nyl + 4) / 5
 @ nzpad = ($nzl + 4) / 5
 #
-set pad1 = $tmpdir/pad1.$$
-set pad2 = $tmpdir/pad2.$$
-set cortmp = $tmpdir/corr3d.$$
+set pad1 = "$tmpdir/pad1.$$"
+set pad2 =" $tmpdir/pad2.$$"
+set cortmp = "$tmpdir/corr3d.$$"
 onintr clean
 #
 if (-e $argv[3]) \rm -f $argv[3]
@@ -54,9 +54,8 @@ $xc,$yc,$zc
 $nxpad,$nypad,$nzpad
 $nxtap,$nytap,$nztap
 HERESTRING
-set clipcom = "clip corr -3d -n 0 $pad1 $pad2 $cortmp"
-set displ = `$clipcom | grep '^(' | sed '/.*(\(.*\)).*/s//\1/'`
+set displ = `clip corr -3d -n 0 "$pad1" "$pad2" "$cortmp" | grep '^(' | sed '/.*(\(.*\)).*/s//\1/'`
 echo $displ > $argv[3]
 
 clean:
-\rm -f $cortmp* $pad1* $pad2*
+\rm -f "$cortmp"* "$pad1"* "$pad2"*

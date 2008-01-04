@@ -1,40 +1,8 @@
 #! /bin/csh -f
 # splitcombine: chops up volcombine.com to run on multiple machines
-#  $Author$
 #
-#  $Date$
-#
-#  $Revision$
-#
-#  $Log$
-#  Revision 3.9  2006/10/05 17:46:05  mast
-#  copied BRIEF_HEADER line too
-#
-#  Revision 3.8  2006/09/13 23:51:30  mast
-#  Handle second combinefft line
-#
-#  Revision 3.7  2006/06/06 22:33:39  mast
-#  Needed to strip control chars before /p
-#
-#  Revision 3.6  2006/02/16 06:47:09  mast
-#  Stripped control chars from output of sed/header etc for Windows
-#
-#  Revision 3.5  2005/07/24 17:03:41  mast
-#  Made tmpdir be a variable in the command file and had it work appropriately
-#  for the machine running the file
-#
-#  Revision 3.4  2004/11/30 04:43:43  mast
-#  Changed to fit new combinefft_reduce variable
-#
-#  Revision 3.3  2004/09/29 16:07:40  mast
-#  Added check for ability to write to directory where sum*.rec are placed
-#
-#  Revision 3.2  2004/08/24 18:48:03  mast
-#  Fixed problem with needing to replace local temporary directory
-#  on specifications of rec.*, mat.*
-#
-#  Revision 3.1  2004/07/21 04:19:41  mast
-#  Initial creation
+#  $Id$
+#  Log at end of file
 #
 
 set pn = splitcombine
@@ -130,12 +98,12 @@ EOF
         cat <<EOF >> $thiscom
 \$set tmpdir = /usr/tmp
 \$if (\$?IMOD_DIR) then
-\$if (-e \$IMOD_DIR/bin/settmpdir) source \$IMOD_DIR/bin/settmpdir
+\$if (-e \"\$IMOD_DIR/bin/settmpdir\") source \"\$IMOD_DIR/bin/settmpdir\"
 \$endif
 EOF
     else
         cat <<EOF >> $thiscom
-\$set tmpdir = $tmpdir
+\$set tmpdir = \"$tmpdir\"
 EOF
     endif
     
@@ -178,6 +146,36 @@ EOF
 echo "$nextnum command files created and ready to run with:"
 echo "  processchunks machine_list $rootname"
 
-
-
-     
+#
+#  $Log$
+#  Revision 3.10  2006/10/06 19:24:36  mast
+#  Renamed the variable
+#
+#  Revision 3.9  2006/10/05 17:46:05  mast
+#  copied BRIEF_HEADER line too
+#
+#  Revision 3.8  2006/09/13 23:51:30  mast
+#  Handle second combinefft line
+#
+#  Revision 3.7  2006/06/06 22:33:39  mast
+#  Needed to strip control chars before /p
+#
+#  Revision 3.6  2006/02/16 06:47:09  mast
+#  Stripped control chars from output of sed/header etc for Windows
+#
+#  Revision 3.5  2005/07/24 17:03:41  mast
+#  Made tmpdir be a variable in the command file and had it work appropriately
+#  for the machine running the file
+#
+#  Revision 3.4  2004/11/30 04:43:43  mast
+#  Changed to fit new combinefft_reduce variable
+#
+#  Revision 3.3  2004/09/29 16:07:40  mast
+#  Added check for ability to write to directory where sum*.rec are placed
+#
+#  Revision 3.2  2004/08/24 18:48:03  mast
+#  Fixed problem with needing to replace local temporary directory
+#  on specifications of rec.*, mat.*
+#
+#  Revision 3.1  2004/07/21 04:19:41  mast
+#  Initial creation
