@@ -114,7 +114,7 @@ endsw
 if ("$installdir" == "") set installdir = $defaultdir
 if ("$installdir" != "$defaultdir") set custom = 1
 if ($os == windows && $custom == 1) then
-    \echo "In Window environment variables, set IMOD_DIR to "`cygpath -w "$installdir"`
+    \echo "In Window environment variables, set IMOD_DIR to "`cygpath -w "$installdir/IMOD"`
 endif
 
 switch ($package)
@@ -396,6 +396,9 @@ exit 0
 
 #
 #  $Log$
+#  Revision 3.18  2007/12/11 02:35:08  mast
+#  Renamed mac.bashrc to mac.profile to reflect preferred destination
+#
 #  Revision 3.17  2007/10/25 02:22:08  mast
 #  Expanded writability test on Windows for vista, allowed install dir also
 #
