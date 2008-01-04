@@ -1,4 +1,4 @@
-#! /bin/csh -f
+#!/bin/csh -f
 # SCRIPT TO COPY AND MODIFY COMMAND FILES FOR TOMOGRAPHY
 #  $Id$
 # Log at end of file
@@ -754,7 +754,7 @@ while ($iaxis < $numax)
 	    if (-e $dstfile) \mv -f $dstfile $dstfile~
 	    sed -e s/$srcname/$dstname/g \
                 -e "s/^MaximumRadius.*/MaximumRadius   $eraserad/" \
-                <$srcfile >$dstfile
+                <"$srcfile" >$dstfile
 	endif
 
 
@@ -803,7 +803,7 @@ EOF
 		-e "/^StartingAndEndingX/s/[ 	].*/	$xstart $xend/"\
 		-e "/^StartingAndEndingY/s/[ 	].*/	$ystart $yend/"\
                 -e /mrctaper/d\
-		    <$srcfile >>$dstfile
+		    <"$srcfile" >>$dstfile
 
             echo '$doxcorr:' >> $dstfile
 	endif
@@ -815,7 +815,7 @@ EOF
 	    -e "/^$incDelText/d"\
 	    -e "/^RotationAngle/s/[ 	].*/	$axisangle/"\
 	    -e s/$setname.st/$xcsrc/\
-	    <$srcfile >>$dstfile
+	    <"$srcfile" >>$dstfile
 	echo '$'"if (-e $backupname) $backupname" >> $dstfile
 
 	if ($montage == "0") then
@@ -828,7 +828,7 @@ EOF
 	    if (-e $dstfile) \mv -f $dstfile $dstfile~
 	    sed -e s/$srcname/$dstname/g\
                 -e "/newst/s/-xf/$xftext/"\
-		<$srcfile >$dstfile
+		<"$srcfile" >$dstfile
 	    echo '$'"if (-e $backupname) $backupname" >> $dstfile
 
 	    # GET NEWST
@@ -840,7 +840,7 @@ EOF
 	    sed -e s/$srcname/$dstname/g\
                 -e "/newst/s/-xf/$xftext/"\
 		-e "/newst/s/-size ,,/-size $newstwidth,$SAMPLESIZE/g"\
-		<$srcfile >$dstfile
+		<"$srcfile" >$dstfile
 	    echo '$'"if (-e $backupname) $backupname" >> $dstfile
 
 	else
@@ -856,7 +856,7 @@ EOF
 	        -e "/^ImagesAreBinned/s/1/$binning/"\
 	        -e "/^#*$subgradient/s/^#//"\
                 -e "/^AdjustedFocus/s/0/$focusAdj/"\
-		<$srcfile >$dstfile
+		<"$srcfile" >$dstfile
 	    echo '$'"if (-e $backupname) $backupname" >> $dstfile
 
 	    @ ymin = $ysize / 2 - $SAMPLESIZE / 2
@@ -874,7 +874,7 @@ EOF
 	        -e "/^ShiftPieces/s/0/1/"\
 	        -e "/^ReadInXcorrs/s/0/1/"\
 	        -e "/^OldEdgeFunctions/s/0/1/"\
-		<$srcfile >$dstfile
+		<"$srcfile" >$dstfile
 	    echo '$'"if (-e $backupname) $backupname" >> $dstfile
 	    set backuplist = ($backuplist $setname.ecd)
 	endif
@@ -906,7 +906,7 @@ EOF
                     -e "/^ShiftPieces/s/0/1/"\
                     -e /mrctaper/d\
 		    -e s/$setname.ali/$tracksrc/\
-		    <$srcfile >$dstfile
+		    <"$srcfile" >$dstfile
 		echo '$'"if (-e $backupname) $backupname" >> $dstfile
 	    endif		
 
@@ -919,7 +919,7 @@ EOF
 	    sed -e s/$srcname/$dstname/g\
                 -e "/^ShiftPieces/s/0/$shiftopt/"\
 	        -e "/^OldEdgeFunctions/s/0/$buildnew/"\
-		<$srcfile >$dstfile
+		<"$srcfile" >$dstfile
 	    echo '$'"if (-e $backupname) $backupname" >> $dstfile
 	    set backuplist = ($backuplist $setname.ecd)
 	 
@@ -966,7 +966,7 @@ EOF
 		-e "/size/s/.*	/$newstwidth,$SAMPLESIZE	/"\
 		-e "/list of sections/s/.*	/$imsec	/"\
 		-e "/list of transforms/s/.*	/$xfsec	/"\
-		<$srcfile >$dstfile
+		<"$srcfile" >$dstfile
 	    echo '$'"if (-e $backupname) $backupname" >> $dstfile
 	endif
     endif
@@ -989,7 +989,7 @@ EOF
 	-e "/^BoxSizeXandY/s/[ 	].*/	$boxsize,$boxsize/"\
 	-e "s/$stackname/$tracksrc/"\
 	-e s/$wipepl//\
-	<$srcfile >$dstfile
+	<"$srcfile" >$dstfile
     echo '$'"if (-e $backupname) $backupname" >> $dstfile
 
     # COPY EMPTY SEED MODELS
@@ -1026,7 +1026,7 @@ EOF
 	-e "s/$setname.xf/$tiltxf/"\
         -e "/^FixXYZCoordinates/s/.*/FixXYZCoordinates	$fixxyz/"\
 	-e "/^#*$wipeexclude/d"\
-	<$srcfile >$dstfile
+	<"$srcfile" >$dstfile
 
 
     if ($local == 1) then
@@ -1065,7 +1065,7 @@ EOF
     set backuplist = ($backuplist $dstfile)
     if (-e $dstfile) \mv -f $dstfile $dstfile~
     sed -e s/$srcname/$dstname/g\
-        <$srcfile >$dstfile
+        <"$srcfile" >$dstfile
     echo '$'"if (-e $backupname) $backupname" >> $dstfile
 
 
@@ -1120,7 +1120,7 @@ EOF
 	-e "/FULLIMAGE/s//FULLIMAGE $alxsize $alysize/"\
 	-e "/EXCLUDELIST/s//EXCLUDELIST $excludelist/"\
 	-e "/$delexclude/d"\
-        <$srcfile >$dstfile
+        <"$srcfile" >$dstfile
     echo '$'"if (-e $backupname) $backupname" >> $dstfile
 
     # COMPUTE OFFSET FOR SAMPLING
@@ -1213,7 +1213,7 @@ EOF
     sed -e "/size of patch/s/,.*	/,$npatch	/"\
 	-e "/spacing between sample/s/.*	/-$offset	/"\
 	-e "s/\.rec/$recext/"\
-	<$srcfile >$dstfile
+	<"$srcfile" >$dstfile
     echo '$'"if (-e $backupname) $backupname" >> $dstfile
     
     # GET TOMOPITCH
@@ -1225,7 +1225,7 @@ EOF
     sed -e "/^SpacingInY/s/[ 	].*/	-$offset/"\
 	-e "s/\.mod/$modext/g"\
 	-e "s/\.rec/$recext/g"\
-	<$srcfile >$dstfile
+	<"$srcfile" >$dstfile
     echo '$'"if (-e $backupname) $backupname" >> $dstfile
     
 
@@ -1379,6 +1379,9 @@ exit 0
 
 #
 #  $Log$
+#  Revision 3.57  2008/01/04 07:03:38  mast
+#  Fixed for space in IMOD_DIR, possibly for space in tmpdir
+#
 #  Revision 3.56  2007/12/27 20:57:39  mast
 #  Called new warning option to extracttilts
 #
