@@ -1,4 +1,4 @@
-# IMOD 3.10.23
+# IMOD 3.12.1
 #
 # Startup file for bash users of IMOD under Linux - place it in /etc/profile.d
 #
@@ -22,7 +22,7 @@ export IMOD_JAVADIR=${IMOD_JAVADIR:=/usr/local/java}
 
 # Put the IMOD programs on the path
 #
-if ! echo ${PATH} | /bin/grep -q $IMOD_DIR/bin ; then
+if ! echo ${PATH} | /bin/grep -q "$IMOD_DIR/bin" ; then
     export PATH=$IMOD_DIR/bin:$PATH
 fi
 
@@ -59,7 +59,7 @@ fi
 
 # Set a variable to indicate where our copy of Qt library is
 #
-export IMOD_QTLIBDIR=$IMOD_DIR/qtlib
+export IMOD_QTLIBDIR="$IMOD_DIR/qtlib"
 
 # Set up aliases to run all qt programs through runimodqtapp
 #
