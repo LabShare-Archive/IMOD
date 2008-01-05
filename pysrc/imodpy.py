@@ -3,12 +3,8 @@
 #
 # Authors: Tor Mohling and David Mastronarde
 #
-#  $Author$
-#
-#  $Date$
-#
-#  $Revision$
-#  Log at end
+# $Id$
+# Log at end
 #
  
 """A collection of useful functions for use in IMOD scripts
@@ -23,6 +19,7 @@ This module provides the following functions:
   makeBackupFile(file)   - renames file to file~, deleting old file~
   exitFromImodError(pn, errout) - prints the error strings in errout and
                                   prepends 'ERROR: pn - ' to the last one
+  parselist(line)      -  convert list entry in <line> into list of integers
 """
 
 # other modules needed by imodpy
@@ -176,7 +173,7 @@ def getmrcsize(file):
 
 
 def makeBackupFile(filename):
-  """makeBackupFile(file)   - renames file to file~, deleting old file~"""
+  """makeBackupFile(file)   - rename file to file~, deleting old file~"""
   if os.path.exists(filename):
     backname = filename + '~'
     try:
@@ -184,7 +181,7 @@ def makeBackupFile(filename):
         os.remove(backname)
       os.rename(filename, backname)
     except:
-      print 'WARNING: Failed to rename existing file %s to %s', \
+      print 'WARNING: Failed to rename existing file %s to %s' % \
         (filename, backname)
 
 def exitFromImodError(pn, errout):
@@ -199,7 +196,93 @@ def exitFromImodError(pn, errout):
     sys.exit(1)
 
 
+def parselist (line):
+    """parselist(line)   - convert list entry in <line> into list of integers
+ 
+    Returns the list of integers, or None for an error. An example of a list is
+    1-5,7,9,11,15-20.  Numbers separated by dashes are replaced by
+    all of the numbers in the range.  Numbers need not be in any order,
+    and backward ranges (10-5) are handled.  Only comma and space
+    are valid separators.  A / at the beginning of the string will
+    return an error.  Negative numbers can be entered provided
+    that the minus sign immediately precedes the number.  E.g.: -3 - -1
+    or -3--1 will give -3,-2,-1; -3, -1,1 or -3,-1,1 will give -3,-1,1. """
+
+    list = [];
+    dashlast = False;
+    negnum = False;
+    gotcomma = False;
+    nchars = len(line);
+
+    if not nchars:
+        return list
+    if (line[0] == '/'):
+        return None
+    nlist = 0;
+    ind = 0;
+    lastnum = 0;
+
+    #   find next digit and look for '-', but error out on non -,space
+    while (ind < nchars):
+        next = line[ind];
+        if (next.isdigit()):
+
+            #   got a digit: save ind, find next non-digit
+            numst = ind;
+            while (1):
+                ind += 1
+                next = ''
+                if (ind >= nchars):
+                    break
+                next = line[ind]
+                if (not next.isdigit()):
+                    break
+
+            # Convert the number
+            if (negnum):
+                numst -= 1
+            number = int(line[numst:ind])
+
+            # set up loop to add to list
+            loopst = number;
+            idir = 1;
+            if (dashlast):
+                if (lastnum > number):
+                    idir = -1;
+                loopst = lastnum + idir
+                
+            
+            i = loopst
+            while(idir * i <= idir * number):
+                list.append(i)
+                nlist += 1
+                i += idir
+
+            lastnum = number;
+            negnum = False;
+            dashlast = False;
+            gotcomma = False;
+            continue;
+    
+        if (next != ',' and next != ' ' and next != '-'):
+            return None
+        if (next == ','):
+            gotcomma = True;
+        if (next == '-'):
+            if (dashlast or (ind == 0) or gotcomma):
+                negnum = True;
+            else:
+                dashlast = True;
+    
+        ind += 1
+
+    return list;
+
+
 #  $Log$
+#  Revision 1.3  2006/10/03 14:50:23  mast
+#  Added exit function to print lines from command error
+#
 #  Revision 1.2  2006/10/01 13:36:41  mast
 #  Added backup file function
 #
