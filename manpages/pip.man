@@ -100,9 +100,10 @@ the C functions, although internally they are all lower case with an
 underscore appended.  The function calls from Fortran are case-insensitive but
 they are shown with mixed case here for clarity.
 
-PIP can also be used from Python by importing the pip extension module in the 
-IMOD/pylib directory.  The calling conventions are described in a separate
-section below.
+PIP can also be used from Python by importing the pip module in the IMOD/pylib
+directory.  Up to IMOD 3.11 this was a compiled extension module using the C
+code, but this is now written in Python to avoid compatibility problems.  The
+calling conventions are described in a separate section below.
 
 .SS Option Specifications Supplied by the Calling Program
 Each legal option should be specified with a string having up to 4 
@@ -812,7 +813,8 @@ The Python versions of the functions handle returned values differently:
 the values that would be returned in the function arguments in C or Fortran
 are returned in a single object as the return value of the function.
 For functions with multiple values, this will be a tuple.  When an error
-occurs, this will be None.  The actual return value of the C function is
+occurs, this will be None.  The value corresponding to the return value from a
+C function is
 obtained by calling the function \fBPipGetErrNo\fR.  Functions that in C do
 not return any values except for the error code also set the error code for
 retrieval by \fBPipGetErrNo\fR and
@@ -825,7 +827,12 @@ then you need to process return values in two steps, as in:
         process the error
    (ix, iy, iz) = retval
 
-This is not needed if Pip exits on error.  Here are the conventions for all of
+This is not needed if PIP exits on error.  In that case, if you need to 
+determine whether an option was entered, use:
+   (ix, iy, iz) = PipGetThreeIntegers('option', ix, iy, iz)
+   optionEntered = 1 - PipGetErrNo()
+
+Here are the conventions for all of
 available function calls:
 
 .ft B
@@ -850,8 +857,10 @@ the \fIlocalDir\fR argument is set at 0.
                    \fIprogName\fB, \fIminArgs\fB, \fInumInFiles\fB, \fInumOutFiles\fB)
 .ft R
 .fi
-This calls the C function described above.  \fIoptions\fR should be a list of
-strings as in the call to the C function.
+These are similar to the C functions described above.  \fIoptions\fR should be a list of
+strings as in the call to the C function.  If \fI-help\fR is defined as an
+option and the user adds this option, then \fBPipReadOrParseOptions\fR will 
+print the usage and exit as in Fortran.
 
 .ft B
 .nf
@@ -895,7 +904,7 @@ argument value(s).
 .fi
 These two functions return the arrays as lists of values.  As for the C
 functions, \fInumToGet\fR specifies the number to return, or 0 to return all
-values up to the limits of the internal array (256).
+available values.
 .ft B
 .nf
 
