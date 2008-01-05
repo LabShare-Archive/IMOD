@@ -1,4 +1,4 @@
-# IMOD 3.10.5
+# IMOD 3.12.1
 #
 # Startup file for bash users of IMOD under Cygwin
 #
@@ -12,7 +12,7 @@
 # Set IMOD_DIR if it is not set already; use Windows path format with double \
 #
 if [ -z "$IMOD_DIR" ]; then
-    export IMOD_DIR=`/usr/bin/cygpath -w /usr/local/IMOD`
+    export IMOD_DIR=`/usr/bin/cygpath -w "/usr/local/IMOD"`
 else
     /usr/bin/echo "$IMOD_DIR" | grep ' $' > /dev/null
     if [ $? -eq 0 ] ; then
@@ -35,9 +35,9 @@ export IMOD_CALIB_DIR=${IMOD_CALIB_DIR:=`/usr/bin/cygpath -w /usr/local/ImodCali
 
 # Source local startup file in ImodCalib if it exists
 #
-IMOD_CALIB_CYG=`/usr/bin/cygpath $IMOD_CALIB_DIR`
-if [ -r $IMOD_CALIB_CYG/IMOD.sh ] ; then
-    . $IMOD_CALIB_CYG/IMOD.sh
+IMOD_CALIB_CYG=`/usr/bin/cygpath "$IMOD_CALIB_DIR"`
+if [ -r "$IMOD_CALIB_CYG/IMOD.sh" ] ; then
+    . "$IMOD_CALIB_CYG/IMOD.sh"
 fi
 
 # A subm function to run command files in the background with submfg
