@@ -4,18 +4,12 @@
 # Author: David Mastronarde
 #
 # $Id$
-#
-#  $Log$
-#  Revision 1.2  2006/10/01 13:37:06  mast
-#  Used backup file function
-#
-#  Revision 1.1  2006/09/26 23:02:48  mast
-#  Added to package
-#
+# Log at end
 #
 
 # load System Libraries
 import os, sys, os.path, re
+from imodpy import *
 
 anyset = 0
 
@@ -269,12 +263,13 @@ try:
     if execute:
         if not quiet:
             print "Executing Python script...  "
-        execfile(outfile, {}, {})
+        runcmd("python -u " + outfile)
         if not quiet:
             print "DONE!",
-except:
-    if not quiet:
-        print "DONE!  This always throws an exception; check log for errors!"
+except ImodpyError, errout:
+    for l in errout:
+        if l.find(outfile) < 0:
+            print l,
     retval = 1
 
 try:
@@ -286,3 +281,15 @@ except:
 
 sys.exit(retval)
 
+
+#
+#  $Log$
+#  Revision 1.3  2007/11/20 20:29:35  mast
+#  Added IMOD_QTLIBDIR to LD_LIBRARY_PATH if both defined
+#
+#  Revision 1.2  2006/10/01 13:37:06  mast
+#  Used backup file function
+#
+#  Revision 1.1  2006/09/26 23:02:48  mast
+#  Added to package
+#
