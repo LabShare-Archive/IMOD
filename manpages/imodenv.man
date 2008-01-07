@@ -90,7 +90,8 @@ This is passed to the uitest script when running eTomo tests.  It is used to
 choose one of the tests in uitest.adoc.
 .TP
 .B IMOD_TMPDIR
-Path for temporary directory used by scripts.
+Path for temporary directory used by scripts.  On Windows, this should be in
+Cygwin format, not in Windows format.
 .TP
 .B IMOD_UITEST_DATA
 When running eTomo tests, the root directory for data files.

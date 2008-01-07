@@ -2,14 +2,7 @@
 # The heirarchy is to use IMOD_TMPDIR
 set tmpdir = /usr/tmp
 if ($?IMOD_TMPDIR) then
-    if (-w "$IMOD_TMPDIR") then
-        set checkspace = ($IMOD_TMPDIR)
-        if ($#checkspace > 1) then
-            echo "WARNING: IMOD_TMPDIR ($IMOD_TMPDIR) contains spaces and cannot be used"
-        else
-            set tmpdir = "$IMOD_TMPDIR"
-        endif
-    endif
+    if (-w "$IMOD_TMPDIR") set tmpdir = "$IMOD_TMPDIR"
 endif
 if (! -w "$tmpdir") set tmpdir = /tmp
 if (! -w "$tmpdir") set tmpdir = .

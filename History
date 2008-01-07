@@ -1,5 +1,7 @@
 IMOD History
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+1/4/08: Fixed scripts to handle space in IMOD_DIR and IMOD_TMPDIR.
+
 12/28/07: Added the directory size to the Clean Up dialog.
 
 12/27/07: Added an option to extracttilts to give a warning if the tilt angles
