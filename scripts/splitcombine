@@ -98,7 +98,7 @@ EOF
         cat <<EOF >> $thiscom
 \$set tmpdir = /usr/tmp
 \$if (\$?IMOD_DIR) then
-\$if (-e \"\$IMOD_DIR/bin/settmpdir\") source \"\$IMOD_DIR/bin/settmpdir\"
+\$if (-e "\$IMOD_DIR/bin/settmpdir") source "\$IMOD_DIR/bin/settmpdir"
 \$endif
 EOF
     else
@@ -148,6 +148,9 @@ echo "  processchunks machine_list $rootname"
 
 #
 #  $Log$
+#  Revision 3.11  2008/01/04 07:03:38  mast
+#  Fixed for space in IMOD_DIR, possibly for space in tmpdir
+#
 #  Revision 3.10  2006/10/06 19:24:36  mast
 #  Renamed the variable
 #
