@@ -1605,16 +1605,17 @@ int imodel_contour_sortz(Icont *cont, int bgnpt, int endpt)
 }
 
 /*!
- * Sorts points in contour [cont] by proximity.  Starting from the first point,
+ * Sorts points in contour [cont] by proximity, using the scale factors in 
+ * [scale] to evaluate distances in 3D.  Starting from the first point,
  * it makes the closest point be the next point, then moves on to the next 
  * point and makes the closest among the remaining points be the next point.
- * It preserves sizes but not label indexes. Returns -1 for error.  Used by
- * 3dmod.
+ * It then runs a second pass in the opposite direction.  It preserves sizes
+ * but not label indexes.  Returns -1 for error.  Used by 3dmod.
  */
-int imodel_contour_sort(Icont *cont)
+int imodContourSort3D(Icont *cont, Ipoint *scale)
 {
   Ipoint point;
-  int i, j;
+  int i, j, pass;
   int sindex;
   double distance;
   double sdist;
@@ -1625,33 +1626,49 @@ int imodel_contour_sort(Icont *cont)
 
   imodContourUnique(cont);
 
-  for (i = 0; i < cont->psize - 1; i++){
-    sindex = i + 1;
-    sdist = imodel_point_dist( &( cont->pts[i]), &(cont->pts[i + 1]) );
-    for(j = i + 2; j < cont->psize; j++){
-      distance = imodel_point_dist(&(cont->pts[i]), &(cont->pts[j]) );
-      if (sdist == distance){
-        imodPointDelete(cont, j); 
-      }
-      else
-        if (sdist > distance){
+  for (pass = 0; pass < 2; pass++) {
+    for (i = 0; i < cont->psize - 1; i++){
+
+      /* For each point, find the closest point farther along in the contour */
+      sindex = i + 1;
+      sdist = imodPoint3DScaleDistance(&( cont->pts[i]), &(cont->pts[i + 1]),
+                                       scale);
+      for (j = i + 2; j < cont->psize; j++) {
+        distance = imodPoint3DScaleDistance(&(cont->pts[i]), &(cont->pts[j]), 
+                                            scale );
+        if (sdist > distance) {
           sdist = distance;
           sindex = j;
         }
+      }
+      
+      /* Swap that point in for the next point */
+      point = cont->pts[i + 1];
+      cont->pts[i + 1] = cont->pts[sindex];
+      cont->pts[sindex] = point;
+      if (cont->sizes) {
+        size = cont->sizes[i + 1];
+        cont->sizes[i + 1] = cont->sizes[sindex];
+        cont->sizes[sindex] = size;
+      }
     }
 
-    point = cont->pts[i + 1];
-    cont->pts[i + 1] = cont->pts[sindex];
-    cont->pts[sindex] = point;
-    if (cont->sizes) {
-      size = cont->sizes[i + 1];
-      cont->sizes[i + 1] = cont->sizes[sindex];
-      cont->sizes[sindex] = size;
-    }
+    /* Invert the contour after each pass */
+    imodel_contour_invert(cont);
   }
   return(0);
 }
 
+/*!
+ * Sorts points in contour [cont] by proximity in the X/Y plane, by calling
+ * @imodContourSort3D with a scale of 1,1,0.  Returns -1 for error.  Maintained
+ * for consistency with previous behavior of this sort function.
+ */
+int imodel_contour_sort(Icont *cont)
+{
+  Ipoint scale = {1.,1.,0.};
+  return imodContourSort3D(cont, &scale);
+}
 
 /*!
  * Inverts the order of points in contour [cont]; preserves points sizes and
@@ -3368,6 +3385,9 @@ char *imodContourGetName(Icont *inContour)
 /* END_SECTION */
 /*
   $Log$
+  Revision 3.25  2007/11/27 21:34:01  mast
+  Really should compiile before checking in!
+
   Revision 3.24  2007/11/27 21:28:33  mast
   Added functions for getting and setting bit flags in contour
 
