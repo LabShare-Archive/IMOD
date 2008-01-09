@@ -10,11 +10,13 @@ SSYYNNOOPPSSIISS
 
 DDEESSCCRRIIPPTTIIOONN
   This program allows one to "edit" a list of piece coordinates, or a
-  list of point coordinates, in two ways:
+  list of integer point coordinates, in two ways:
   1) The set of Z values may be mapped, one-to-one, to any arbitrary
   new set of Z values; and
   2) The X, Y or Z coordinates of all pieces or points may be shifted
   by a constant.
+  In addition, one can make up a new piece list for single frame images or
+  montaged images
   
   The program allows one to digitize a set of serial sections in
   inverse order, if that is more convenient that doing it in the proper
@@ -28,9 +30,18 @@ DDEESSCCRRIIPPTTIIOONN
   
   Name of input piece or point list file, or Return if none
   
-  IF you enter "Return", then the program will create a dummy piece
-     list.  Enter the number (N) of piece coordinates to set up.  The
-     piece coordinates will all be (0,0), with Z running from 0 to N-1.
+  IF you enter "Return", then the program will create a new piece
+     list.  Then make the following 3 entries:
+     
+     Number of sections (N) for which to make piece coordinates.  The Z
+       coordinates will initially run from 0 to N-1, and the lower left X and
+       Y coordinates will be 0.
+
+     Number of pieces in X and in Y (enter / for 1,1)
+
+     Spacing between pieces in X and in Y.  This spacing is the frame size 
+       minus the overlap; e.g., for a size of 2048 and an overlap of 10%, one
+       would enter 2048 - 204 = 1844.  Enter / if you just have one piece.
   
   Name of output piece or point list file
   
