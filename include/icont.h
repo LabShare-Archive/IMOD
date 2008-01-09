@@ -153,6 +153,7 @@ int    imodContZDirection(Icont *cont);
 char  *imodContourGetName(Icont *inContour);
 double imodContourMoment(Icont *cont, int a, int b);     
 int    imodContourUnique(Icont *cont);
+int imodContourSort3D(Icont *cont, Ipoint *scale);
 
 /****************************************************************************/
 /* in testing, old, or internal functions */
@@ -204,6 +205,9 @@ void imodContourNestLevels(Nesting *nests, int *nestind, int numnests);
 
 /*
 $Log$
+Revision 3.14  2007/12/04 18:28:05  mast
+Added new draw flags for contours
+
 Revision 3.13  2007/11/27 21:28:47  mast
 Added functions for getting and setting bit flags in contour
 
