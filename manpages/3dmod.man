@@ -663,7 +663,8 @@ Point
                     points.
    Value         Show current voxel value from image file.
    Sort by Z     Sort points in a contour by Z value.
-   Sort by dist  Sort points in a contour by interpoint distance.
+   Sort by dist  Sort points in a contour by interpoint distance so 
+                    that the closest possible points are neighbors
 
 Image
    Flip            Exchange Y and Z dimensions of the image data.
