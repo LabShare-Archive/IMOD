@@ -967,6 +967,7 @@ void InfoWindow::editPointSlot(int item)
   ImodView *vi = App->cvi;
   Imod *imod = vi->imod;
   Icont *cont = imodContourGet(imod);
+  Ipoint scale;
 
   if (ImodForbidLevel)
     return;
@@ -978,8 +979,12 @@ void InfoWindow::editPointSlot(int item)
           
   case EPOINT_MENU_SORTDIST: /* Sort by distance */
     if (cont && imod->mousemode == IMOD_MMODEL){
+      scale.x = imod->xscale * vi->xybin;
+      scale.y = imod->yscale * vi->xybin;
+      scale.z = imod->zscale * vi->zbin;
+
       vi->undo->contourDataChg();
-      imodel_contour_sort(imodContourGet(imod));
+      imodContourSort3D(imodContourGet(imod), &scale);
       vi->undo->finishUnit();
       imodDraw(vi, IMOD_DRAW_MOD);
     }
@@ -1269,6 +1274,9 @@ static int imodContourBreakByZ(ImodView *vi, Iobj *obj, int ob, int co)
 
 /*
   $Log$
+  Revision 4.37  2007/12/06 20:12:47  mast
+  Added error message if trying to sort scattered point object
+
   Revision 4.36  2007/11/10 04:07:10  mast
   Changes for setting snapshot directory
 
