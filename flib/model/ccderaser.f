@@ -24,7 +24,7 @@ c
       integer imsiz,mxd,limpatch,limobj,limptout,limdiff,limpatchout
       parameter (imsiz=8200, limdiff = 512, limpatchout=40000)
       parameter (mxd=50,limpatch=5000,limobj=1000,limptout=25*limpatchout)
-      real*4 array(imsiz*imsiz),title(20),orig(3),delt(3)
+      real*4 array(imsiz*imsiz),title(20)
       real*4 diffArr(limdiff, limdiff), exceedCrit(limpatchout)
       integer*4 nxyz(3),mxyz(3),nx,ny,nz
       equivalence (nx,nxyz(1)),(ny,nxyz(2)),(nz,nxyz(3))
@@ -131,8 +131,6 @@ c
 c       
       if (PipGetInOutFile('InputFile', 1, 'Name of input file', infile)
      &    .ne. 0) call exitError('NO INPUT FILE SPECIFIED')
-c       call irtdel(1,delt)
-c       call irtorg(1,orig(1),orig(2),orig(3))
 c       
       outfile = ' '
       if (pipinput) then
@@ -176,9 +174,9 @@ c
       endif
       if (.not. pipinput .or. ierr .eq. 0) then
         if(.not.readw_or_imod(ptfile)) call exitError('READING MODEL FILE')
-        call scale_model(0)
         if (getImodObjSize() .gt. limobj) call exitError(
      &      'TOO MANY OBJECTS IN MODEL FOR ARRAYS')
+        call scaleModelToImage(1, 0)
       endif
       numObjOrig = max_mod_obj
 c       
@@ -1457,6 +1455,10 @@ c       Look at all pixels in range, add to object at new base
       
 c       
 c       $Log$
+c       Revision 3.22  2007/12/09 21:25:57  mast
+c       Added ability to remove points within boundary and in circles around
+c       points
+c
 c       Revision 3.21  2006/03/02 00:26:42  mast
 c       Moved polyterm to library
 c
