@@ -223,6 +223,7 @@ int main( int argc, char *argv[] )
 
   if (!strncmp( argv[1], "splitrgb", 3)){
     process = IP_SPLITRGB;
+    procout = FALSE;
   }
   if (!strncmp( argv[1], "joinrgb", 3)){
     process = IP_JOINRGB;
@@ -608,6 +609,9 @@ int *clipMakeSecList(char *clst, int *nofsecs)
 
 /*
 $Log$
+Revision 3.19  2007/11/23 01:05:39  mast
+Added usage line for smoothing options
+
 Revision 3.18  2007/06/13 17:04:43  sueh
 bug# 1019 Setting hout.sectionSkip in main.
 
