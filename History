@@ -1,5 +1,8 @@
 IMOD History
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+1/10/08: Fixed Ccderaser to scale the model file to pixel coordinates on the
+current stack even if the model came from a binned stack (In 3.11).
+
 1/9/08: Fixed error from closing file twice with clip splitrgb (In 3.11).
 
 1/8/08: Edpiecepoint can now be used to generate a piece list for a montage.
