@@ -20,6 +20,8 @@
 #endif
 #endif
 
+#include <qrect.h>
+
 /* DOC_SECTION MANAGERDEF */
 /* DOC_CODE Dialog Manager */
 // A dialog manager class for hiding, showing, and closing windows in concert
@@ -56,7 +58,6 @@ typedef struct ViewInfo ImodView;
 class QKeyEvent;
 class QString;
 class QWidget;
-class QRect;
 class QObjectList;
 
 #ifndef CONTROLP_H
@@ -160,6 +161,9 @@ class DLL_EX_IM DialogManager
 
 /*
 $Log$
+Revision 4.13  2007/12/04 22:02:41  mast
+Changes for documentation
+
 Revision 4.12  2006/08/24 21:30:52  mast
 Added identifier for graph windows
 
