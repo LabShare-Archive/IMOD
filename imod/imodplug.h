@@ -14,6 +14,7 @@
 class QKeyEvent;
 class QMouseEvent;
 class QStringList;
+class QEvent;
 #ifndef IMODP_H
 typedef struct ViewInfo ImodView;
 #endif
@@ -126,6 +127,9 @@ int PLUG_EXPORT imodPlugExecuteMessage(ImodView *vw, QStringList *strings,
 
 /*
   $Log$
+  Revision 4.7  2007/12/04 22:05:30  mast
+  Add function for handling event, improve documentation
+
   Revision 4.6  2006/02/13 05:10:44  mast
   Added mouse function
 
