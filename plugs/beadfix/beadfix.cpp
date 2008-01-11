@@ -77,6 +77,8 @@ typedef struct
   AreaData *areaList;                   /* Data about areas */
   int    areaMax;                       /* Size allocated */
   int    extraObjNum;
+  float  rad;
+  float lastImx, lastImy;
 }PlugData;
 
 
@@ -187,6 +189,8 @@ void imodPlugExecute(ImodView *inImodView)
   plug->areaList = NULL;
   plug->areaMax = 0;
   plug->extraObjNum = ivwGetFreeExtraObjectNumber(plug->view);
+  plug->rad = 30.;
+  plug->lastImx = plug->lastImy = 0.;
   /*
    * This creates the plug window.
    */
@@ -221,7 +225,6 @@ int imodPlugMouse(ImodView *vw, QMouseEvent *event, float imx,
   PlugData *plug = &thisPlug;
   Iobj *xobj = ivwGetAnExtraObject(plug->view, plug->extraObjNum);
   Icont *con;
-  float rad = 30.;
   double angle;
   int i, ix, iy,iz;
   Ipoint tpt;
@@ -239,8 +242,8 @@ int imodPlugMouse(ImodView *vw, QMouseEvent *event, float imx,
   ivwGetLocation(plug->view, &ix, &iy, &iz);
   for (i = 0; i < 100; i++) {
     angle = 2 * 3.14159 * i / 100.;
-    tpt.x = imx + rad * cos(angle);
-    tpt.y = imy + rad * sin(angle);
+    tpt.x = imx + plug->rad * cos(angle);
+    tpt.y = imy + plug->rad * sin(angle);
     tpt.z = iz;
     imodPointAppend(con, &tpt);
   }
@@ -250,7 +253,7 @@ int imodPlugMouse(ImodView *vw, QMouseEvent *event, float imx,
 }
 
 /*
- * Process wheel events (doesn't work some places...)
+ * Process wheel events
  */
 int imodPlugEvent(ImodView *vw, QEvent *event, float imx, float imy)
 {
@@ -959,73 +962,14 @@ BeadFixer2::BeadFixer2(QWidget *parent, const char *name)
 
 void BeadFixer2::buttonPressed(int which)
 {
+  QString str;
   if (!which)
     close();
-  else
-    dia_vasmsg
-      ("Bead Fixer Plugin Help\n",
-       "--------------------------\n\n"
-       "This Plugin makes it easier to fix tilt series fiducial "
-       "models in two ways.  It has a function for finding the next "
-       "gap or untracked place in the model and making that be the "
-       "current point.  It also will read the log file from running "
-       "Tiltalign and move to points with high residuals.\n\n"
-       "Hot Key Summary\n"
-       "---------------------\n"
-       "spacebar\tGo to next gap\n"
-       "' (apostrophe)\tGo to next big residual\n"
-       ";\t\tMove point by resiual\n"
-       "U\t\tUndo last moved point\n\n",
-       "Select the Go to Next Gap button or hit the space bar key to "
-       "move to the next gap or incomplete place in the model.  If "
-       "there is a gap, the point BEFORE the gap will be displayed.  "
-       "If a contour does not start on the first section, the first "
-       "point in the contour (which is AFTER the gap) will be "
-       "displayed and a message will be printed.  The program "
-       "searches forward from the current point except the first time "
-       "when the function is selected.  To begin the search at the "
-       "beginning of the model again, detach from the current point "
-       "by clicking the left mouse button far from any model point, "
-       "then select the Next Gap function.\n\n"
-       "Select the Open Tiltalign Log File button to open a log "
-       "file.\n\n"
-       "Select the Go to Next Big Residual button or hit the "
-       "apostrophe key to move to the next point in the log file "
-       "with a big residual.\n\n"
-       "The X and Y displacements implied by the residual are printed "
-       "in the Info window.  Also, the Zap window will draw an arrow "
-       "corresponding to these displacements.  If the arrow ends at the place "
-       "where the point should be located (i.e., the center of the bead), "
-       "then select the Move Point by "
-       "Residual button or push the semicolon key to move the point "
-       "by those amounts in X and Y.\n\n"
-       "After moving a point by its residual, select the Undo Move "
-       "button or push the U key to undo the move.\n\n"
-       "Select the Reread Log File button to reread the file, or a "
-       "new version of it after rerunning Tiltalign.\n\n",
-       "Select the Go to Next Local Set button if you have a log file "
-       "with a series of local alignments and want to skip to the "
-       "residuals from the next local alignment.\n\n",
-       "Select the Back Up to Last Point button if you want to go back to the "
-       "last residual that you examined.  This will not necessarily be the "
-       "previous residual in the file, if you skipped over points by going to "
-       "the next local set.  However, you can then work forward through the "
-       "points that you skipped over.\n\n",
-       "The program keeps a list of each point whose residual has "
-       "been examined.  If the Examine Points Once toggle is "
-       "selected, then any point already on the list is skipped over "
-       "when you Go to Next Big Residual.  A point is added to the "
-       "list regardless of whether Examine Points Once is selected."
-       "\n\n"
-       "Select the Clear Examined List button to empty the list of "
-       "points that have been examined.  The list is not cleared when "
-       "Examine Points Once is switched on or off.  To see some "
-       "points for the second time, turn off Examine Points Once; to "
-       "see all points again, push Clear Examined List.  When you Back Up to "
-       "Last Point, you will see that point a second time, but if you move "
-       "forward again, you will skip over all of the points that you have "
-       "seen before unless you turn off Examine Points Once.\n",
-       NULL);
+  else {
+    str = QString(getenv("IMOD_DIR"));
+    str += QString("/lib/imodplug/beadfix2.html");
+    imodShowHelpPage(str);
+  }
 }
 
 // The window is closing, remove from manager
@@ -1068,6 +1012,9 @@ void BeadFixer2::keyReleaseEvent ( QKeyEvent * e )
 /*
 
 $Log$
+Revision 3.13  2007/12/04 22:22:59  mast
+Added mouse and wheel (?) example, rationalized build
+
 Revision 3.12  2004/11/20 15:45:41  mast
 Had to cast layouts to QBoxLayout (why here an not in 3dmod?)
 

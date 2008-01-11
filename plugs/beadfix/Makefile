@@ -11,7 +11,7 @@ PLUGS = beadfix.$(DLLEXT)
 all : $(PLUGS)
 
 install : $(PLUGS)
-	$(CP) -f $(PLUGS) $(IMOD_PLUGIN_DIR)
+	$(CP) -f $(PLUGS) beadfix2.html $(IMOD_PLUGIN_DIR)
 
 
 $(PLUGS) : beadfix.$(O) moc_beadfix.$(O)
