@@ -379,7 +379,6 @@ void ZapWindow::keyReleaseEvent (QKeyEvent * e )
 }
 void ZapWindow::wheelEvent ( QWheelEvent * e)
 {
-  imodPuts("Zapwin wheelEvent");
   zapGeneralEvent(mZap, e);
 }
 
@@ -455,6 +454,9 @@ void ZapGL::leaveEvent ( QEvent * e)
 
 /*
 $Log$
+Revision 4.25  2008/01/11 18:12:52  mast
+Fixed event handlers for wheel, dropped GL handler as not needed
+
 Revision 4.24  2007/12/04 18:48:01  mast
 Passed on some more events to allow cursor-like drawing and wheel (?)
 
