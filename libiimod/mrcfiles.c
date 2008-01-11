@@ -570,7 +570,7 @@ float mrc_read_point( FILE *fin, MrcHeader *hdata, int x, int y, int z)
   case MRC_MODE_USHORT:
     fread(&usdata, pixsize, 1, fin);
     if (hdata->swapped)
-      mrc_swap_shorts(&usdata, 1);
+      mrc_swap_shorts((b3dInt16 *)&usdata, 1);
     fdata = usdata;
     break;
   case MRC_MODE_FLOAT:
@@ -2137,6 +2137,9 @@ void mrc_swap_floats(fb3dFloat *data, int amt)
 
 /*
 $Log$
+Revision 3.34  2007/09/25 15:21:36  mast
+Made mrc_read_byte retain pixel size when it resets the header to new area
+
 Revision 3.33  2007/06/13 22:52:37  mast
 Modifications for reading with intersection section skip
 

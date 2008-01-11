@@ -6,14 +6,10 @@
  *   Copyright (C) 1995-2006 by Boulder Laboratory for 3-Dimensional Electron
  *   Microscopy of Cells ("BL3DEMC") and the Regents of the University of 
  *   Colorado.
+ *
+ *  $Id$
+ *  Log at end
  */
-/*  $Author$
-
-$Date$
-
-$Revision$
-Log at end
-*/
 
 #include <stdlib.h>
 #include "mrcc.h"
@@ -243,7 +239,7 @@ int iiMRCLoadPCoord(ImodImageFile *inFile, struct LoadInfo *li, int nx, int ny,
 
     /* add swapping 10/2/00 */
     if (hdr->swapped) {
-      mrc_swap_shorts(pcoordxy, 2);
+      mrc_swap_shorts((b3dInt16 *)pcoordxy, 2);
       mrc_swap_shorts(&pcoordz, 1);
     }
     if (ferror(inFile->fp)) {
@@ -266,7 +262,11 @@ int iiMRCLoadPCoord(ImodImageFile *inFile, struct LoadInfo *li, int nx, int ny,
 }
 
 /*
+
 $Log$
+Revision 3.15  2007/06/13 17:11:26  sueh
+bug# 1019 In iiMRCCheck, setting iif->sectionSkip to 0.
+
 Revision 3.14  2006/09/03 22:17:59  mast
 Reorganized and switched to IIERR codes
 

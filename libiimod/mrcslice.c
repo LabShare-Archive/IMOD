@@ -165,11 +165,10 @@ int sliceInit(Islice *s, int xsize, int ysize, int mode, void *data)
 void sliceFree(Islice *s)
 {
   if (!s)
-    return(-1);
+    return;
   if (s->data.b)
     free(s->data.b);
   free(s);
-  return(0);
 }
 
 /*! 
@@ -183,7 +182,6 @@ void sliceClear(Islice *s, Ival val)
   for (j = 0; j < s->ysize; j++)
     for(i = 0; i < s->xsize; i++)
       slicePutVal(s, i, j, val);
-  return;
 }
 
 /*!
@@ -1842,6 +1840,9 @@ int mrc_vol_wrap(struct MRCvolume *v)
 
 /*
 $Log$
+Revision 3.20  2007/11/22 20:47:54  mast
+Added gaussian kernel functions
+
 Revision 3.19  2007/10/03 22:55:02  mast
 Added function to convert from MRC mode to SLICE mode for real data
 

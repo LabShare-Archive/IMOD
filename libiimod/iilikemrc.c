@@ -6,32 +6,10 @@
  *   Copyright (C) 2006 by Boulder Laboratory for 3-Dimensional Electron
  *   Microscopy of Cells ("BL3DEMC") and the Regents of the University of 
  *   Colorado.
+ *
+ *  $Id$
+ *  Log at end
  */
-/*  $Author$
-
-$Date$
-
-$Revision$
-
-$Log$
-Revision 3.5  2007/06/13 17:10:54  sueh
-bug# 1019 Added checkPif to recognize .pif files.  In iiLikeMRCCheck,
-initialing info.sectionSkip.  In iiSetupRawHeaders, copying sectionSkip
-from RawImageInfo to MrcHeader.
-
-Revision 3.4  2006/09/21 22:25:05  mast
-Needed to set the mode in the iifile
-
-Revision 3.3  2006/09/12 19:54:56  mast
-Add proper returns to check functions
-
-Revision 3.2  2006/09/03 22:20:14  mast
-Reorganized, provided generic check function list and added DM3 support
-
-Revision 3.1  2006/09/03 00:00:56  mast
-Initial creation
-
-*/
 
 #include <stdio.h>
 #include <stdlib.h>
@@ -227,7 +205,7 @@ static int checkWinkler(FILE *fp, char *filename, RawImageInfo *info)
 
   info->swapBytes = 0;
   if (svals[0] != 18739 || svals[1] != 20480) {
-    mrc_swap_shorts(svals, 2);
+    mrc_swap_shorts((b3dInt16 *)svals, 2);
     if (svals[0] != 18739 || svals[1] != 20480)
       return IIERR_NOT_FORMAT;
     info->swapBytes = 1;
@@ -238,7 +216,7 @@ static int checkWinkler(FILE *fp, char *filename, RawImageInfo *info)
   if (fread(svals, 2, 4, fp) != 4)
     return IIERR_IO_ERROR;
   if (info->swapBytes)
-    mrc_swap_shorts(svals, 4);
+    mrc_swap_shorts((b3dInt16 *)svals, 4);
   if (svals[0])
     return IIERR_NO_SUPPORT;
   switch (svals[1]) {
@@ -408,7 +386,7 @@ static int checkDM3(FILE *fp, char *filename, RawImageInfo *info)
     return IIERR_IO_ERROR;
 
   bvals[11] = 0x00;
-  if (strcmp(bvals, "Application"))
+  if (strcmp((char *)bvals, "Application"))
     return IIERR_NOT_FORMAT;
 
   if ((err = analyzeDM3(fp, filename, info, &dmtype)))
@@ -628,3 +606,28 @@ static int checkEM(FILE *fp, char *filename, RawImageInfo *info)
   info->amax = 0.;
   return 0;
 }
+
+/*  
+
+$Log$
+Revision 3.6  2007/06/13 19:40:42  sueh
+bug# 1019 Fixed header reading problems in checkPif.  Checking htype.
+
+Revision 3.5  2007/06/13 17:10:54  sueh
+bug# 1019 Added checkPif to recognize .pif files.  In iiLikeMRCCheck,
+initialing info.sectionSkip.  In iiSetupRawHeaders, copying sectionSkip
+from RawImageInfo to MrcHeader.
+
+Revision 3.4  2006/09/21 22:25:05  mast
+Needed to set the mode in the iifile
+
+Revision 3.3  2006/09/12 19:54:56  mast
+Add proper returns to check functions
+
+Revision 3.2  2006/09/03 22:20:14  mast
+Reorganized, provided generic check function list and added DM3 support
+
+Revision 3.1  2006/09/03 00:00:56  mast
+Initial creation
+
+*/
