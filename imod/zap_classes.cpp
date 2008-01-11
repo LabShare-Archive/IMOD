@@ -377,7 +377,7 @@ void ZapWindow::keyReleaseEvent (QKeyEvent * e )
   }
   zapKeyRelease(mZap, e);
 }
-void ZapWindow::wheelEvent ( QEvent * e)
+void ZapWindow::wheelEvent ( QWheelEvent * e)
 {
   imodPuts("Zapwin wheelEvent");
   zapGeneralEvent(mZap, e);
@@ -452,14 +452,12 @@ void ZapGL::leaveEvent ( QEvent * e)
   mMouseInWindow = 0;
   zapGeneralEvent(mZap, e);
 }
-void ZapGL::wheelEvent ( QEvent * e)
-{
-  imodPuts("ZapGL wheel");
-  zapGeneralEvent(mZap, e);
-}
 
 /*
 $Log$
+Revision 4.24  2007/12/04 18:48:01  mast
+Passed on some more events to allow cursor-like drawing and wheel (?)
+
 Revision 4.23  2007/07/08 16:04:50  mast
 Used new hot slider function
 

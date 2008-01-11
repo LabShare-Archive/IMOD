@@ -87,7 +87,7 @@ class ZapWindow : public QMainWindow
     void keyReleaseEvent ( QKeyEvent * e );
     void closeEvent ( QCloseEvent * e );
     void fontChange(const QFont &oldFont) {setFontDependentWidths();};
-  void wheelEvent ( QEvent * e);
+  void wheelEvent ( QWheelEvent * e);
 
  private:
     void setupToggleButton(HotToolBar *toolBar, QSignalMapper *mapper, 
@@ -129,7 +129,6 @@ protected:
   void timerEvent(QTimerEvent *e);
   void leaveEvent ( QEvent * e);
   void enterEvent ( QEvent * e);
-  void wheelEvent ( QEvent * e);
 
  private:
   bool mMousePressed;
@@ -140,6 +139,9 @@ protected:
 
 /*
 $Log$
+Revision 4.11  2007/12/04 18:48:20  mast
+Added event handlers
+
 Revision 4.10  2007/05/31 16:23:10  mast
 Changes for using hot toolbar
 
