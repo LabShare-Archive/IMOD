@@ -102,13 +102,13 @@ int PLUG_EXPORT imodPlugMouse(ImodView *vw, QMouseEvent *event, float imx,
  * General event callback function to be defined by plugins with the
  * IMOD_PLUG_EVENT bit set.  ^
  * This function can be used to receive notification of selected events from a
- * Zap window, currently QEvent::Enter, QEvent::Leave, and QEvent::Wheel.
- * [imx] and [imy] will contain the image position of the mouse at the time 
- * of the event.  The return value should be the sum of 1 and 2 as for 
- * imodPlugMouse, or 0 if the event should be processed as usual.
- * It should not be necessary to process Enter and Leave events
+ * Zap window, currently QEvent::Enter, QEvent::Leave, and QEvent::Wheel (which
+ * can be cast to QWheelEvent). [imx] and [imy] will contain the image position
+ * of the mouse at the time of the event.  The return value should be the sum 
+ * of 1 and 2 as for imodPlugMouse, or 0 if the event should be processed as 
+ * usual.  It should not be necessary to process Enter and Leave events
  * since the Zap window uses them to manage the removal of a cursor-like extra 
- * object created by a plugin.  Wheel events may not work.
+ * object created by a plugin.
  */
 int PLUG_EXPORT imodPlugEvent(ImodView *vw, QEvent *event, float imx,
                               float imy);
@@ -127,6 +127,9 @@ int PLUG_EXPORT imodPlugExecuteMessage(ImodView *vw, QStringList *strings,
 
 /*
   $Log$
+  Revision 4.8  2008/01/11 17:32:54  mast
+  Needed forward declaration of QEvent
+
   Revision 4.7  2007/12/04 22:05:30  mast
   Add function for handling event, improve documentation
 
