@@ -36,6 +36,7 @@ Log at end of file
 #include <qvbuttongroup.h>
 #include "form_cont_edit.h"
 #include "imod.h"
+#include "xzap.h"
 #include "imod_display.h"
 #include "imod_edit.h"
 #include "imod_input.h"
@@ -1524,11 +1525,12 @@ void ContourMove::upDownSelected(int which)
   comv.upOrDown = which;
 }
 
+// Call function directly in top zap instead of sending a P key event
 void ContourMove::shiftContClicked()
 {
-  QKeyEvent *e = new QKeyEvent(QEvent::KeyPress, Qt::Key_P, 'P', 
-                               ShiftButton);
-  ivwControlKey(0, e);
+  ZapStruct *zap = getTopZapWindow(false);
+  if (zap)
+    zapToggleContourShift(zap);
 }
 
 
@@ -1852,6 +1854,9 @@ void ContourFrame::keyReleaseEvent ( QKeyEvent * e )
 /*
 
 $Log$
+Revision 4.29  2007/10/03 19:29:17  sueh
+bug# 1038 Replacing help strings with an .html file.
+
 Revision 4.28  2006/09/12 15:34:53  mast
 Handled contour member renames
 
