@@ -1,0 +1,123 @@
+<head>
+<title>Multi-Z Window</title>
+</head>
+<H2>Multi-Z Window Controls</H2>
+The Multi-Z window is a special form of Zap window that can display the same
+area from successive
+slices in an array of panels.  Z increases from left to right within a row and
+then
+from bottom to top in the window.  The current Z value is shown in the middle
+panel of the array (for an even number of panels, the middle panel number is
+the number of panels divided by two, so it is below or to the left of the
+window center).
+Panels outside the range of available slices are left blank.
+The window first opens with a single row of
+5 panels, but parameters such as the number of rows and columns and
+the window size and location will be remembered between invocations of 3dmod.
+The window retains as much of the Zap window functionality as makes
+sense, but many features do not exist.  For example, there is no rubber band,
+modeling is not allowed, and contrast floating cannot be based on subareas.
+
+<H3>Mouse Button Assignments</H3>
+Descriptions below refer to the first, second, and third mouse 
+buttons.  By default, these correspond to left, middle, and right 
+buttons of a 3-button mouse, but you can change these assignments in 
+the 3dmod Preferences dialog, accessed via the <B>Edit-Options</B> menu entry.
+
+
+<H3>The Regular Zap Tool Bars</H3>
+<UL>
+<LI>The <B>up</B> and <B>down arrows</B> step the zoom factor up or down.
+<LI>The <B>zoom</B> edit box shows the current zoom factor and allows 
+one to type in a custom zoom.
+<LI>The <B>checkerboard</B> button toggles between fast rendering and 
+slower but higher quality interpolated image rendering.
+<LI>The <B>lock</B> button can lock the Multi-Z window at the current Z value.
+When locked, the Z value of a Multi-Z window can be changed with 
+controls or hot keys in the window, but that will not change the current
+Z value of other windows in the program.
+<LI>The <B>centering</B> button toggles between two modes of centering when
+the window is redrawn in response to various actions such as changing the
+current point.  The default is
+to recenter the image only when the current model point comes near an edge.
+In centering mode, the image will be kept centered
+on either the current model point or the current image point.  
+If you want to get the current point centered in the window without staying in
+centering mode, you can just toggle this button on and off.
+<LI>The <B>Z slider</B> allows one to riffle through images or select a 
+particular section to display in the middle panel.
+<LI>The <B>section</B> edit box shows the current section shown in the middle
+panel and allows one 
+to go directly to a section by typing in a number.
+<LI>If multiple image files have been loaded into 3dmod, three 
+additional controls and the image file number and name appear on a separate
+tool bar.  The <B>time lock</B> button will prevent 
+changes in other windows from changing the time (image file) 
+displayed in this Multi-Z window, and vice versa. 
+The <B>left</B> and <B>right arrows</B> will step backward and forward in time.
+</UL>
+
+<H3>The Multi-Z Tool Bar</H3>
+<UL>
+<LI>The <B># X</B> spin box allows you to set the number of columns of panels,
+i.e., the number in the X direction.
+<LI>The <B># Y</B> spin box allows you to set the number of rows of panels,
+i.e., the number in the Y direction.
+<LI>The <B>Z step</B> spin box allows you to set the interval in Z between
+successive panels.
+<LI>The <B>Middle</B> check box controls whether the model is drawn in the
+middle panel.
+<LI>The <B>Others</B> check box controls whether the model is drawn in
+panels other than the middle.
+</UL>
+
+<H3>Hot Keys special to the Multi-Z window</H3>
+<UL>
+<LI><B>Ctrl-S</B>, <B>Shift-S</B> or <B>Ctrl-Shift-S</B> saves the Multi-Z
+window into a TIFF file, a file in the primary
+non-TIFF format, or a file in the second non-TIFF format.  (Use the menu entry 
+<B>Edit-Options</B> and go to the Behavior tab to select the primary non-TIFF
+file format.  The second non-TIFF format will be PNG if the primary one is not
+PNG, or JPEG if the primary one is PNG.)
+<LI><B>ESC</B> will close the Multi-Z window.
+</UL>
+For other keys, see Help - Hot Keys in the 3dmod Info Window.
+
+
+<H3>Mouse button function in movie mode</H3>
+<UL>
+<LI><B>First Button Click</B>: Select the current viewing point, marked by 
+a small cross.  In addition, clicking in a panel other than the middle one
+changes the current Z value and moves that image to the middle window.
+<LI><B>First Button Drag</B>: Pan the image if it is larger than the 
+panel.
+<LI><B>Second Button Click</B>: Start movie in forward direction, or stop movie.
+<LI><B>Third Button Click</B>: Start movie in backward direction, or stop movie.
+</UL>
+
+<H3>Mouse button function in model mode</H3>
+<UL>
+<LI><B>First Button Click</B>: Make the nearest visible model point be the 
+current model point.  If there is no point nearby, this detaches from 
+the current point and contour and selects a current viewing point 
+instead.  Again, clicking in a panel other than the middle one changes the
+current Z value.
+<LI><B>First Button Drag</B>: Pan the image if it is larger than the 
+panel.
+<LI><B>Ctrl - First Button Click</B>: Selects the nearest visible point 
+as the current point but also adds this contour to a list of selected 
+contours.  Selected contours in this list will be 
+displayed with a distinguishable line thickness.  If a contour is 
+already selected, Ctrl-clicking on it will deselect it.  The 
+selection list is cleared by doing an ordinary first button selection 
+of any model point, or by a variety of other operations, mostly ones 
+that select a different contour from the current one.  Contours from more
+than one object can be selected with this button.
+<LI><B>Ctrl - First Button Drag</B>: Adds any contours that the mouse crosses 
+to the list of selected contours.  Contours from more
+than one object can be selected this way.  As soon as a contour is selected in
+a panel other than the middle one, that image is moved to the middle panel.
+This could be either useful or surprising.
+</UL>
+<P>
+<A HREF="index.html">Help Index<A>

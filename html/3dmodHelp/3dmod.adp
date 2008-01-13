@@ -20,6 +20,7 @@
   </section>
   <section ref="./index.html" title="Image Display Windows">
     <section ref="./zap.html" title="Zap Window"/>
+    <section ref="./multizap.html" title="Multi-Z Window"/>
     <section ref="./slicer.html" title="Slicer Window"/>
     <section ref="./xyz.html" title="XYZ Window"/>
     <section ref="./locator.html" title="Locator Window"/>
