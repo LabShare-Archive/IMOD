@@ -36,23 +36,25 @@
 
 char *Dia_title = NULL;
 
-/*! Makes a new push button with the given [text], adds it to [layout], and 
-  sets it for no focus */
+/*! Makes a new push button with the given [text], adds it to [layout] if it
+  is non-NULL, and sets it for no focus */
 QPushButton *diaPushButton(char *text, QWidget *parent, QBoxLayout *layout)
 {
   QPushButton *button = new QPushButton(text, parent);
   button->setFocusPolicy(QWidget::NoFocus);
-  layout->addWidget(button);
+  if (layout)
+    layout->addWidget(button);
   return button;
 }
 
-/*! Makes a new check box with the given [text], adds it to [layout], and sets
-  it for no focus */
+/*! Makes a new check box with the given [text], adds it to [layout] if it is 
+  non-NULL, and sets it for no focus */
 QCheckBox *diaCheckBox(char *text, QWidget *parent, QBoxLayout *layout)
 {
   QCheckBox *button = new QCheckBox(text, parent);
   button->setFocusPolicy(QWidget::NoFocus);
-  layout->addWidget(button);
+  if (layout)
+    layout->addWidget(button);
   return button;
 }
 
@@ -64,21 +66,23 @@ QRadioButton *diaRadioButton(char *text, QWidget *parent)
   return button;
 }
 
-/*! Makes a new label with the given [text] and adds it to [layout] */
+/*! Makes a new label with the given [text] and adds it to [layout] if it
+ is non-NULL. */
 QLabel *diaLabel(char *text, QWidget *parent, QBoxLayout *layout)
 {
   QLabel *label = new QLabel(text, parent);
-  layout->addWidget(label);
+  if (layout)
+    layout->addWidget(label);
   return label;
 }
 
 /*! 
  * Makes a labeled spin box, with the label given by [text] to the left of the
  * box and right aligned to it, provided that [layout] is a horizontal layout 
- * box in which to place them.  [minValue], [maxValue], and [step] are the
- * minimum, maximum, and step sizes for the spin box.  If [nDecimal] is 
- * non-zero, it creates and returns a FloatSpinBox with that number of decimal
- * places.
+ * box in which to place them.  (In a toolbar, [layout] can be NULL.)  
+ * [minValue], [maxValue], and [step] are the  minimum, maximum, and step 
+ * sizes for the spin box.  If [nDecimal] is non-zero, it creates and returns 
+ * a FloatSpinBox with that number of decimal places.
  */
 QSpinBox *diaLabeledSpin(int nDecimal, int minValue, int maxValue, int step,
                          char *text, QWidget *parent, QBoxLayout *layout)
@@ -92,7 +96,8 @@ QSpinBox *diaLabeledSpin(int nDecimal, int minValue, int maxValue, int step,
     spin = (QSpinBox *)fspin;
   } else
     spin = new QSpinBox(minValue, maxValue, step, parent);
-  layout->addWidget(spin);
+  if (layout)
+    layout->addWidget(spin);
   spin->setFocusPolicy(QWidget::ClickFocus);
   return spin;
 }
@@ -545,6 +550,9 @@ void dia_smsg( char **msg)
 
 /*
 $Log$
+Revision 1.10  2007/07/08 16:54:32  mast
+Added dia_ask_forever, documented
+
 Revision 1.9  2006/09/05 14:24:40  mast
 Added labeled spin box creator
 
