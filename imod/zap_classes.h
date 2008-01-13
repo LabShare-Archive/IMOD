@@ -27,7 +27,7 @@ Log at end of file
 #define ZAP_TOGGLE_INSERT 3
 #define ZAP_TOGGLE_RUBBER 4
 #define ZAP_TOGGLE_TIMELOCK 5
-
+#define MULTIZ_MAX_PANELS 20
 
 #include <qmainwindow.h>
 #include <qgl.h>
@@ -40,6 +40,7 @@ class HotToolBar;
 class QSignalMapper;
 class QSlider;
 class QPushButton;
+class QSpinBox;
 
 struct zapwin;
 class ZapGL;
@@ -49,7 +50,7 @@ class ZapWindow : public QMainWindow
   Q_OBJECT
 
  public:
-  ZapWindow(struct zapwin *zap, QString timeLabel, bool rgba, 
+  ZapWindow(struct zapwin *zap, QString timeLabel, bool panels, bool rgba, 
             bool doubleBuffer, bool enableDepth, QWidget * parent = 0,
             const char * name = 0, 
 	    WFlags f = WType_TopLevel | WDestructiveClose) ;
@@ -64,6 +65,7 @@ class ZapWindow : public QMainWindow
   ZapGL *mGLw;
   HotToolBar *mToolBar;
   HotToolBar *mToolBar2;
+  HotToolBar *mPanelBar;
   struct zapwin *mZap;
 
   public slots:
@@ -79,6 +81,11 @@ class ZapWindow : public QMainWindow
     void timeBack();
     void timeForward();
     void toggleClicked(int index);
+    void rowsChanged(int value);
+    void columnsChanged(int value);
+    void zStepChanged(int value);
+    void drawCenterToggled(bool state);
+    void drawOthersToggled(bool state);
     void toolKeyPress(QKeyEvent *e) {keyPressEvent(e);};
     void toolKeyRelease(QKeyEvent *e) {keyReleaseEvent(e);};
 
@@ -87,7 +94,7 @@ class ZapWindow : public QMainWindow
     void keyReleaseEvent ( QKeyEvent * e );
     void closeEvent ( QCloseEvent * e );
     void fontChange(const QFont &oldFont) {setFontDependentWidths();};
-  void wheelEvent ( QWheelEvent * e);
+    void wheelEvent ( QWheelEvent * e);
 
  private:
     void setupToggleButton(HotToolBar *toolBar, QSignalMapper *mapper, 
@@ -106,6 +113,9 @@ class ZapWindow : public QMainWindow
     bool mSecPressed;
     int mDisplayedSection;
     bool mCtrlPressed;
+    QSpinBox *mRowSpin;
+    QSpinBox *mColumnSpin;
+    QSpinBox *mZstepSpin;
 };
 
 class ZapGL : public QGLWidget
@@ -139,6 +149,9 @@ protected:
 
 /*
 $Log$
+Revision 4.12  2008/01/11 18:12:55  mast
+Fixed event handlers for wheel, dropped GL handler as not needed
+
 Revision 4.11  2007/12/04 18:48:20  mast
 Added event handlers
 

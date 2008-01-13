@@ -1234,7 +1234,7 @@ void inputQDefaultKeys(QKeyEvent *event, ImodView *vw)
     if (ctrl)
       inputUndoRedo(vw, false);
     else
-      imod_zap_open(vw);
+      imod_zap_open(vw, 0);
     break;
           
   case Qt::Key_R:
@@ -1391,6 +1391,9 @@ bool inputTestMetaKey(QKeyEvent *event)
 
 /*
 $Log$
+Revision 4.36  2007/12/06 23:43:33  mast
+Try adding Backspace as alternative to Delete for Macbook
+
 Revision 4.35  2007/10/04 02:23:44  mast
 Stopped zap window from syncing to model point on home/end/middle keys
 

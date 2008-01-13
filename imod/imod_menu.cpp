@@ -1136,8 +1136,8 @@ void InfoWindow::imageSlot(int item)
     return;
 
   /* DNM: only model and zap will work with raw (color) data */
-  if (App->cvi->rawImageStore && 
-      !(item == IMAGE_MENU_ZAP || item == IMAGE_MENU_MODV))
+  if (!(item == IMAGE_MENU_ZAP || item == IMAGE_MENU_MULTIZ || 
+        item == IMAGE_MENU_MODV) && App->cvi->rawImageStore)
     return;
      
   switch(item){
@@ -1167,7 +1167,11 @@ void InfoWindow::imageSlot(int item)
     break;
 
   case IMAGE_MENU_ZAP:
-    imod_zap_open(App->cvi);
+    imod_zap_open(App->cvi, 0);
+    break;
+
+  case IMAGE_MENU_MULTIZ:
+    imod_zap_open(App->cvi, 1);
     break;
 
   case IMAGE_MENU_XYZ:
@@ -1274,6 +1278,9 @@ static int imodContourBreakByZ(ImodView *vi, Iobj *obj, int ob, int co)
 
 /*
   $Log$
+  Revision 4.38  2008/01/09 05:59:34  mast
+  Called new 3D version of contour sort
+
   Revision 4.37  2007/12/06 20:12:47  mast
   Added error message if trying to sort scattered point object
 

@@ -1218,16 +1218,7 @@ void XyzWindow::DrawImage()
     win->lx = win->ly = -1;
   }
           
-  glClearIndex(App->background);
-  /* DNM: need to set clear colors for rgb mode */
-  if (App->rgba) {
-    QColor qcol = ImodPrefs->namedColor(App->background);
-    glClearColor(qcol.red()/255., qcol.green()/255. , qcol.blue()/255., 0.);
-  }
-     
-  /* DNM 1/20/02: remove the XYZ_CLEAR_HACK */
-     
-  glClear(GL_COLOR_BUFFER_BIT);
+  utilClearWindow(App->background);
 
   ivwGetLocation(win->vi, &cx, &cy, &cz);
   cyi = cy * nx;
@@ -2362,6 +2353,9 @@ void XyzGL::mouseMoveEvent( QMouseEvent * event )
 
 /*
 $Log$
+Revision 4.46  2007/12/04 18:43:24  mast
+Changes for stippling and using new util functions
+
 Revision 4.45  2007/11/16 23:18:54  mast
 Added ability to adjust balance between the panel sizes, added simple
 centering button, fixed behavior with pixel view open, fixed panning

@@ -436,7 +436,7 @@ bool ImodClipboard::executeMessage()
         inputRaiseWindows();
         if (!imodDialogManager.windowCount(ZAP_WINDOW_TYPE) &&
             imodLoopStarted())
-          imod_zap_open(App->cvi);
+          imod_zap_open(App->cvi, 0);
         break;
 
       case MESSAGE_RUBBERBAND:
@@ -628,6 +628,10 @@ static int readLine(char *line)
 
 /*
 $Log$
+Revision 4.25  2006/07/03 19:55:29  mast
+Replaced destructor with explicit calls to request a disconnect signal
+from the source of standard input and to wait until thread exits
+
 Revision 4.24  2006/06/20 17:26:53  mast
 Changed stdin listening to use select function instead of thread
 except in windows, because of problems killing thread in Linux

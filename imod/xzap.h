@@ -68,6 +68,8 @@ typedef struct zapwin
 
   /* The graphic image buffer. */
   B3dCIImage *image;
+  B3dCIImage **images;
+  int numImages;
 
   int section;
   int sectionStep; /* auto step image after new model point. */
@@ -76,6 +78,7 @@ typedef struct zapwin
   int lock;
   int keepcentered;
   int mousemode;
+  int lastShape;   /* Last shape for cursor */
   int popup;
   int   toolSection;
   int   toolMaxZ;
@@ -87,6 +90,17 @@ typedef struct zapwin
   short insertmode;
   short showslice;   /* Flag that slice should be drawn during paint */
   int showedSlice;   /* Flag that it was drawn last time */
+
+  int numXpanels;    /* Number of panels in X and Y: # in X is flag for */
+  int numYpanels;    /* multi Z window type */
+  int panelZstep;    /* Step in Z between panels */
+  int drawInCenter;  /* Flags to draw model in center or other panels */
+  int drawInOthers;
+  int panelXborder;  /* Border outside panels in X and Y */
+  int panelYborder;  
+  int panelGutter;   /* Gutter between panels */
+  int panelXsize;    /* Size of panels in X and Y */
+  int panelYsize;
 
   /* Pointer to view and control sturctures. */
   ImodView    *vi;
@@ -108,14 +122,18 @@ void zapMousePress(ZapStruct *zap, QMouseEvent *e);
 void zapMouseRelease(ZapStruct *zap, QMouseEvent *e);
 void zapMouseMove(ZapStruct *zap, QMouseEvent *e, bool mousePressed);
 void zapGeneralEvent(ZapStruct *zap, QEvent *e);
-void zapHelp(void);
+void zapHelp(ZapStruct *zap);
 void zapEnteredZoom(ZapStruct *zap, float newZoom);
 void zapEnteredSection(ZapStruct *zap, int section);
 void zapStepZoom(ZapStruct *zap, int step);
 void zapStateToggled(ZapStruct *zap, int index, int state);
 void zapPrintInfo(ZapStruct *zap);
 void zapStepTime(ZapStruct *zap, int step);
-int  imod_zap_open(struct ViewInfo *vi);
+int zapSetupPanels(ZapStruct *zap);
+void zapReportBiggestMultiZ();
+void zapToggleContourShift(ZapStruct *zap);
+ZapStruct *getTopZapWindow(bool withBand);
+int  imod_zap_open(struct ViewInfo *vi, int wintype);
 int zapSubsetLimits(ViewInfo *vi, int &ixStart, int &iyStart, int &nxUse, 
                     int &nyUse);
 void zapReportRubberband();
@@ -126,6 +144,10 @@ void zapSetMouseTracking();
 
 /*
 $Log$
+Revision 3.26  2007/12/04 18:47:27  mast
+Changes for moving functions to utilities module, and for mouse tracking
+and cursor-like drawing
+
 Revision 3.25  2007/08/13 16:04:50  mast
 Changes for locator window
 

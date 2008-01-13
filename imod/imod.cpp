@@ -802,7 +802,7 @@ int main( int argc, char *argv[])
     imodvOpenSelectedWindows(windowKeys);
   }
   if (zapOpen || !(xyzwinopen || sliceropen || modelViewOpen))
-    imod_zap_open(&vi); 
+    imod_zap_open(&vi, 0); 
   if (Imod_debug)  
     imodPuts("initial windows opened");
   if (App->rgba)
@@ -837,6 +837,8 @@ void imod_exit(int retcode)
     ClipHandler->startDisconnect();
   if (ImodPrefs)                     // Tell prefs to get zap sizes
     ImodPrefs->recordZapGeometry();
+  zapReportBiggestMultiZ();
+
   imodv_close();                     // Imodv and associated dialogs
   ivwControlListDelete(App->cvi);    // Image windows
   imodDialogManager.close();         // Remaining imod dialog windows
@@ -908,6 +910,9 @@ bool imodDebug(char key)
 
 /*
 $Log$
+Revision 4.61  2007/12/04 22:03:03  mast
+Chnages for rearrangement of utilities
+
 Revision 4.60  2006/09/21 22:26:26  mast
 Go to raw check first if any raw options are entered
 

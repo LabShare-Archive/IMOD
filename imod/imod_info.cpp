@@ -168,6 +168,7 @@ InfoWindow::InfoWindow(QWidget * parent, const char * name, WFlags f)
 
   mImageMenu->insertItem("&ZaP", IMAGE_MENU_ZAP);
   mImageMenu->setAccel(Key_Z, IMAGE_MENU_ZAP);
+  mImageMenu->insertItem("Multi-&Z", IMAGE_MENU_MULTIZ);
   mImageMenu->insertItem("&XYZ", IMAGE_MENU_XYZ);
   mImageMenu->insertItem("&Slicer", IMAGE_MENU_SLICER);
   mImageMenu->setAccel(Key_Backslash, IMAGE_MENU_SLICER);
@@ -434,6 +435,8 @@ void InfoWindow::openSelectedWindows(char *keys)
     imageSlot(IMAGE_MENU_TUMBLER);
   if (strchr(keys, 'x') && imageOK)
     imageSlot(IMAGE_MENU_PIXEL);
+  if (strchr(keys, 'z'))
+    imageSlot(IMAGE_MENU_MULTIZ);
   if (strchr(keys, 'm') && imageOK)
     imageSlot(IMAGE_MENU_LOCATOR);
   if (strchr(keys, 'T'))
@@ -542,6 +545,9 @@ static char *truncate_name(char *name, int limit)
 
 /*
     $Log$
+    Revision 4.40  2007/11/10 04:07:10  mast
+    Changes for setting snapshot directory
+
     Revision 4.39  2007/08/13 16:04:50  mast
     Changes for locator window
 

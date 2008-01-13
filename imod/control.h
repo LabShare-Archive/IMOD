@@ -37,7 +37,8 @@ extern DLL_EX_IM DialogManager imodDialogManager;
 #define IMOD_IMAGE   2
 
 /* Types of windows for finding geometries and finding top windows */
-enum {ZAP_WINDOW_TYPE, SLICER_WINDOW_TYPE, GRAPH_WINDOW_TYPE, UNKNOWN_TYPE};
+enum {ZAP_WINDOW_TYPE, MULTIZ_WINDOW_TYPE, SLICER_WINDOW_TYPE,
+      GRAPH_WINDOW_TYPE, UNKNOWN_TYPE};
 /* END_CODE */
 /* END_SECTION */
 
@@ -161,6 +162,9 @@ class DLL_EX_IM DialogManager
 
 /*
 $Log$
+Revision 4.14  2008/01/11 17:31:45  mast
+Needed to include qrect.h, not just forward declare class
+
 Revision 4.13  2007/12/04 22:02:41  mast
 Changes for documentation
 

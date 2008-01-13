@@ -98,6 +98,7 @@ ImodPreferences::ImodPreferences(char *cmdLineStyle)
   mCurrentTab = 0;
   mRecordedZapGeom = QRect(0, 0, 0, 0);
   mGenericList = ilistNew(sizeof(GenericSettings), 4);
+  mMultiZgeom =  QRect(0, 0, 0, 0);
 
   // Put plugin dir on the library path so image plugins can be found
   plugdir = getenv("IMOD_PLUGIN_DIR");
@@ -271,6 +272,17 @@ ImodPreferences::ImodPreferences(char *cmdLineStyle)
   if (!readin)
     mClassicWarned = true;
 
+  // Get multi Z window geometry and params
+  str = settings->readEntry(IMOD_NAME"geomMultiZwindow");
+  if (!str.isEmpty()) {
+    sscanf(str.latin1(), "%d,%d,%d,%d", &left, &top, &width, &height);
+    mMultiZgeom.setRect(left, top, width, height);
+    str = settings->readEntry(IMOD_NAME"multiZparams");
+    if (!str.isEmpty())
+      sscanf(str.latin1(), "%d,%d,%d,%d,%d", &mMultiZnumX, &mMultiZnumY, 
+             &mMultiZstep, &mMultiZdrawCen, &mMultiZdrawOthers);
+  }
+
   prefs->autosaveInterval = settings->readNumEntry
     (IMOD_NAME"autosaveInterval", prefs->autosaveIntervalDflt,
      &prefs->autosaveIntervalChgd);
@@ -426,6 +438,15 @@ void ImodPreferences::saveSettings()
         settings->writeEntry(str, str2);
       }
     }
+  }
+
+  if (mMultiZgeom.width()) {
+    str.sprintf("%d,%d,%d,%d", mMultiZgeom.left(), mMultiZgeom.top(),
+                mMultiZgeom.width(), mMultiZgeom.height());
+    settings->writeEntry(IMOD_NAME"geomMultiZwindow", str);
+    str.sprintf("%d,%d,%d,%d,%d", mMultiZnumX, mMultiZnumY, mMultiZstep,
+                mMultiZdrawCen, mMultiZdrawOthers);
+    settings->writeEntry(IMOD_NAME"multiZparams", str);
   }
 
   if (prefs->hotSliderKeyChgd)
@@ -992,6 +1013,32 @@ void ImodPreferences::recordZapGeometry()
   mRecordedZapGeom = imodDialogManager.biggestGeometry(ZAP_WINDOW_TYPE);
 }
 
+// Save parameters from a multi-Z when when it closes, or at program end
+void ImodPreferences::recordMultiZparams(QRect geom, int numx, int numy,
+                                         int zstep, int drawCen, int drawOther)
+{
+  mMultiZgeom = geom;
+  mMultiZnumX = numx;
+  mMultiZnumY = numy;
+  mMultiZstep = zstep;
+  mMultiZdrawCen = drawCen;
+  mMultiZdrawOthers = drawOther;
+}
+
+// Return the current multi Z params
+QRect ImodPreferences::getMultiZparams(int &numx, int &numy, int &zstep, 
+                                       int &drawCen, int &drawOther)
+{
+  if (!mMultiZgeom.width())
+    return mMultiZgeom;
+  numx = mMultiZnumX;
+  numy = mMultiZnumY;
+  zstep = mMultiZstep;
+  drawCen = mMultiZdrawCen;
+  drawOther = mMultiZdrawOthers;
+  return mMultiZgeom;
+}
+
 void ImodPreferences::getAutoContrastTargets(int &mean, int &sd)
 {
   mean = mCurrentPrefs.autoTargetMean;
@@ -1065,6 +1112,9 @@ bool ImodPreferences::classicWarned()
 
 /*
 $Log$
+Revision 1.27  2007/11/13 19:14:08  mast
+Added settings to control slicer speedup
+
 Revision 1.26  2007/07/08 16:03:49  mast
 Added hot slider active function
 

@@ -168,6 +168,10 @@ class ImodPreferences : public QObject
   int getGenericSettings(char *key, double *values, int maxVals);
   QSettings *getSettingsObject();
   void recordZapGeometry();
+  void recordMultiZparams(QRect geom, int numx, int numy, int zstep, 
+                          int drawCen, int drawOther);
+  QRect getMultiZparams(int &numx, int &numy, int &zstep, int &drawCen, 
+                        int &drawOther);
   bool getRoundedStyle();
   QString snapFormat() {return mCurrentPrefs.snapFormat;};
   int snapQuality() {return mCurrentPrefs.snapQuality;};
@@ -201,6 +205,10 @@ class ImodPreferences : public QObject
   QRect mGeomZapWin[MAX_GEOMETRIES];
   QRect mRecordedZapGeom;
   int mGeomLastSaved;
+  QRect mMultiZgeom;
+  int mMultiZnumX, mMultiZnumY;
+  int mMultiZstep;
+  int mMultiZdrawCen, mMultiZdrawOthers;
   bool mClassicWarned;
   QString mSavedSnapFormat;
   Ilist *mGenericList;
@@ -213,6 +221,9 @@ extern ImodPreferences *ImodPrefs;
 
 /*
 $Log$
+Revision 1.14  2007/11/13 19:14:08  mast
+Added settings to control slicer speedup
+
 Revision 1.13  2007/07/08 16:03:49  mast
 Added hot slider active function
 

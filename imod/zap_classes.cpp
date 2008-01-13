@@ -21,6 +21,8 @@
 #include <qpushbutton.h>
 #include <qlayout.h>
 #include <qslider.h>
+#include <qcheckbox.h>
+#include <qspinbox.h>
 
 #include "imod.h"
 #include "zap_classes.h"
@@ -69,18 +71,23 @@ static unsigned char *bitList[NUM_TOOLBUTTONS][2] =
 static QBitmap *bitmaps[NUM_TOOLBUTTONS][2];
 static int firstTime = 1;
 
-ZapWindow::ZapWindow(struct zapwin *zap, QString timeLabel, bool rgba, 
-                     bool doubleBuffer, bool enableDepth, QWidget * parent,
-                     const char * name, WFlags f) 
+ZapWindow::ZapWindow(struct zapwin *zap, QString timeLabel, bool panels,
+                     bool rgba, bool doubleBuffer, bool enableDepth, 
+                     QWidget * parent, const char * name, WFlags f) 
   : QMainWindow(parent, name, f)
 {
   int j;
   ArrowButton *arrow;
+  QSpinBox *spin;
+  QCheckBox *button;
 
   mZap = zap;
   mSecPressed = false;
   mCtrlPressed = false;
   mToolBar2 = NULL;
+  mPanelBar = NULL;
+  mSizeLabel = NULL;
+  mInfoButton = NULL;
 
   // Get the toolbar, add zoom arrows
   mToolBar = new HotToolBar(this, "zap toolbar");
@@ -107,7 +114,8 @@ ZapWindow::ZapWindow(struct zapwin *zap, QString timeLabel, bool rgba,
   connect(mZoomEdit, SIGNAL(focusLost()), this, SLOT(newZoom()));
   QToolTip::add(mZoomEdit, "Enter an arbitrary zoom factor");
 
-  mSizeLabel = new QLabel(mToolBar, " 0000x0000");
+  if (!panels)
+    mSizeLabel = new QLabel(mToolBar, " 0000x0000");
 
 // Make the 4 toggle buttons and their signal mapper
   QSignalMapper *toggleMapper = new QSignalMapper(mToolBar);
@@ -143,10 +151,13 @@ ZapWindow::ZapWindow(struct zapwin *zap, QString timeLabel, bool rgba,
   QToolTip::add(mSectionEdit, "Enter section to display");
   
   // Info and help buttons
-  mInfoButton = new QPushButton("I", mToolBar, "I button");
-  mInfoButton->setFocusPolicy(QWidget::NoFocus);
-  connect(mInfoButton, SIGNAL(clicked()), this, SLOT(info()));
-  QToolTip::add(mInfoButton, "Bring Info Window to top, get Zap window info");
+  if (!panels) {
+    mInfoButton = new QPushButton("I", mToolBar, "I button");
+    mInfoButton->setFocusPolicy(QWidget::NoFocus);
+    connect(mInfoButton, SIGNAL(clicked()), this, SLOT(info()));
+    QToolTip::add(mInfoButton,
+                  "Bring Info Window to top, get Zap window info");
+  }
 
   mHelpButton = new QPushButton("Help", mToolBar, "Help button");
   mHelpButton->setFocusPolicy(QWidget::NoFocus);
@@ -182,6 +193,48 @@ ZapWindow::ZapWindow(struct zapwin *zap, QString timeLabel, bool rgba,
 
     mTimeLabel = new QLabel(timeLabel, mToolBar2, "time label");
   }
+
+  // Optional panel toolbar
+  if (panels) {
+
+    // TODO: THIS NEEDS TO BE PARAMETERIZED OR SAFEGUARDED
+    mToggleButs[3]->hide();
+    mToggleButs[4]->hide();
+    mPanelBar =  new HotToolBar(this, "panel toolbar");
+    mColumnSpin = diaLabeledSpin(0, 1, MULTIZ_MAX_PANELS, 1, "# X", mPanelBar,
+                          NULL);
+    diaSetSpinBox(mColumnSpin, zap->numXpanels);
+    connect(mColumnSpin, SIGNAL(valueChanged(int)), this, 
+            SLOT(columnsChanged(int)));
+    QToolTip::add(mColumnSpin, "Number of columns of panels");
+
+    mRowSpin = diaLabeledSpin(0, 1, MULTIZ_MAX_PANELS, 1, "# Y", mPanelBar,
+                              NULL);
+    diaSetSpinBox(mRowSpin, zap->numYpanels);
+    connect(mRowSpin, SIGNAL(valueChanged(int)), this, SLOT(rowsChanged(int)));
+    QToolTip::add(mRowSpin, "Number of rows of panels");
+
+    mZstepSpin = diaLabeledSpin(0, 1, 100, 1, "Z step", mPanelBar, NULL);
+    diaSetSpinBox(mZstepSpin, zap->panelZstep);
+    connect(mZstepSpin, SIGNAL(valueChanged(int)), this, 
+            SLOT(zStepChanged(int)));
+    QToolTip::add(mZstepSpin, "Interval between panels in Z");
+
+    //label = new QLabel("Show in:", mPanelBar);
+    //label->setAlignment(Qt::AlignRight | Qt::AlignVCenter);
+
+    button = diaCheckBox("Middle", mPanelBar, NULL);
+    diaSetChecked(button, zap->drawInCenter != 0);
+    connect(button, SIGNAL(toggled(bool)), this, 
+            SLOT(drawCenterToggled(bool)));
+    QToolTip::add(button, "Draw model on middle panel in Z");
+
+    button = diaCheckBox("Others", mPanelBar, NULL);
+    diaSetChecked(button, zap->drawInOthers != 0);
+    connect(button, SIGNAL(toggled(bool)), this, 
+            SLOT(drawOthersToggled(bool)));
+    QToolTip::add(button, "Draw model on panels other than middle one in Z");
+    }
   firstTime = 0;
 
   // Need GLwidget next
@@ -200,6 +253,10 @@ ZapWindow::ZapWindow(struct zapwin *zap, QString timeLabel, bool rgba,
     setDockEnabled(mToolBar2, Left, FALSE );
     setDockEnabled(mToolBar2, Right, FALSE );
   }
+  if (mPanelBar) {
+    setDockEnabled(mPanelBar, Left, FALSE );
+    setDockEnabled(mPanelBar, Right, FALSE );
+  }
 
   // This makes the toolbar give a proper size hint before showing window
   setUpLayout();
@@ -213,9 +270,11 @@ ZapWindow::~ZapWindow()
 void ZapWindow::setFontDependentWidths()
 {
   
-  mInfoButton->setFixedWidth
+  if (mInfoButton)
+    mInfoButton->setFixedWidth
     (10 + diaGetButtonWidth(this, ImodPrefs->getRoundedStyle(), 1., "I"));
   diaSetButtonWidth(mHelpButton, ImodPrefs->getRoundedStyle(), 1.2, "Help");
+  // Unable to affect sizes of panel bar spin boxes in Windows...
 }
 
 static char *toggleTips[] = {
@@ -289,7 +348,7 @@ void ZapWindow::secReleased()
 
 void ZapWindow::help()
 {
-  zapHelp();
+  zapHelp(mZap);
 }
 
 void ZapWindow::info()
@@ -334,9 +393,11 @@ void ZapWindow::setZoomText(float zoom)
 
 void ZapWindow::setSizeText(int winx, int winy)
 {
-  QString str;
-  str.sprintf(" %dx%d", winx, winy);
-  mSizeLabel->setText(str);
+  if (mSizeLabel) {
+    QString str;
+    str.sprintf(" %dx%d", winx, winy);
+    mSizeLabel->setText(str);
+  }
 }
 
 void ZapWindow::setSectionText(int section)
@@ -358,6 +419,41 @@ void ZapWindow::setMaxZ(int maxZ)
 void ZapWindow::setTimeLabel(QString label)
 {
   mTimeLabel->setText(label);
+}
+
+void ZapWindow::rowsChanged(int value)
+{
+  setFocus();
+  mZap->numYpanels = value;
+  if (!zapSetupPanels(mZap))
+    mGLw->updateGL();
+}
+
+void ZapWindow::columnsChanged(int value)
+{
+  setFocus();
+  mZap->numXpanels = value;
+  if (!zapSetupPanels(mZap))
+    mGLw->updateGL();
+}
+
+void ZapWindow::zStepChanged(int value)
+{
+  setFocus();
+  mZap->panelZstep = value;
+  mGLw->updateGL();
+}
+
+void ZapWindow::drawCenterToggled(bool state)
+{
+  mZap->drawInCenter = state ? 1 : 0;
+  mGLw->updateGL();
+}
+
+void ZapWindow::drawOthersToggled(bool state)
+{
+  mZap->drawInOthers = state ? 1 : 0;
+  mGLw->updateGL();
 }
 
 void ZapWindow::keyPressEvent ( QKeyEvent * e )
@@ -454,6 +550,9 @@ void ZapGL::leaveEvent ( QEvent * e)
 
 /*
 $Log$
+Revision 4.26  2008/01/11 18:15:04  mast
+Took out message for wheel event
+
 Revision 4.25  2008/01/11 18:12:52  mast
 Fixed event handlers for wheel, dropped GL handler as not needed
 
