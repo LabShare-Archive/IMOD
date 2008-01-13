@@ -40,8 +40,10 @@ void ToolEdit::fontChange(const QFont &oldFont)
   QLineEdit::fontChange(oldFont);
 }
 
-// Set the edit box to fit a given number of characters, or resize it to fit
-// a previously specified number if the argument is zero
+/*!
+ * Set the edit box to fit the number of characters in [columns], or resize
+ * it to fit a previously specified number if [columns] is zero
+ */
 void ToolEdit::setColumnWidth(int columns)
 {
   int i, width;
@@ -59,7 +61,12 @@ void ToolEdit::setColumnWidth(int columns)
   }
 }
 
-/* $Log$
+/*
+
+$Log$
+Revision 1.5  2007/08/26 06:55:59  mast
+Documentation changes
+
 Revision 1.4  2003/03/26 06:23:45  mast
 Adjust to font changes
 
