@@ -293,7 +293,7 @@ void zapDraw_cb(ImodView *vi, void *client, int drawflag)
           limarr[2] = zap->rbMouseX1 - 1 - zap->rbMouseX0;
           limarr[3] = zap->rbMouseY1 - 1 - zap->rbMouseY0;
         }
-        b3dKeySnapshot(zap->numXpanels ? "multiz" : "zap", 
+        b3dKeySnapshot((char *)(zap->numXpanels ? "multiz" : "zap"), 
                        snaptype - 1, snaptype % 2, limits);
       }
       zap->movieSnapCount--;
@@ -815,7 +815,8 @@ int imod_zap_open(struct ViewInfo *vi, int wintype)
     zap->gfx->setColormap(*(App->qColormap));
 
   zap->qtWindow->setCaption
-    (imodCaption(wintype ? "3dmod Multi-Z Window" : "3dmod ZaP Window"));
+    (imodCaption((char *)(wintype ? "3dmod Multi-Z Window" : 
+                          "3dmod ZaP Window")));
 
   zap->qtWindow->mToolBar->setLabel(imodCaption("ZaP Toolbar"));
   if (zap->qtWindow->mToolBar2)
@@ -1314,8 +1315,8 @@ void zapKeyInput(ZapStruct *zap, QKeyEvent *event)
         limarr[2] = zap->rbMouseX1 - 1 - zap->rbMouseX0;
         limarr[3] = zap->rbMouseY1 - 1 - zap->rbMouseY0;
       }
-      b3dKeySnapshot(zap->numXpanels ? "multiz" : "zap", shifted, ctrl, 
-                     limits);
+      b3dKeySnapshot((char *)(zap->numXpanels ? "multiz" : "zap"), shifted, 
+                     ctrl, limits);
     }else
       inputSaveModel(vi);
     handled = 1;
@@ -1930,7 +1931,7 @@ int zapButton2(ZapStruct *zap, int x, int y, int controlDown)
 
   if (vi->imod->mousemode == IMOD_MMODEL) {
     if (zap->numXpanels)
-      return;
+      return 0;
     zap->dragAddCount = 0;
     obj = imodObjectGet(vi->imod);
     if (!obj)
@@ -2089,7 +2090,7 @@ int zapButton3(ZapStruct *zap, int x, int y, int controlDown)
 
   if (vi->imod->mousemode == IMOD_MMODEL) {
     if (zap->numXpanels)
-      return;
+      return 0;
     cont = imodContourGet(vi->imod);
     pt   = vi->imod->cindex.point;
     if (!cont)
@@ -4352,6 +4353,9 @@ static int zapPointVisable(ZapStruct *zap, Ipoint *pnt)
 
 /*
 $Log$
+Revision 4.108  2008/01/13 22:58:35  mast
+Changes for multi-Z window
+
 Revision 4.107  2007/12/04 18:46:13  mast
 Moved functions to util, added cursor-like and other drawing capabilities and
 expanded draw control when plugin uses mouse.
