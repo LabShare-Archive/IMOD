@@ -12,6 +12,7 @@
  */
 
 #include <stdarg.h>
+#include <qcolor.h>
 #include "imod.h"
 #include "imod_utilities.h"
 #include "b3dgfx.h"
@@ -114,12 +115,26 @@ void utilEnableStipple(ImodView *vi, Icont *cont)
   }
 }
 
-/* Rurn off stippling under same conditions */
+/* Turn off stippling under same conditions */
 void utilDisableStipple(ImodView *vi, Icont *cont)
 {
   if (vi->drawStipple && (cont->flags & ICONT_STIPPLED))
     glDisable(GL_LINE_STIPPLE);
 }
+
+/* Clears the current window to the given color index */
+void utilClearWindow(int index)
+{
+  glClearIndex(index);
+  /* DNM: need to set clear colors for rgb mode */
+  if (App->rgba) {
+    QColor qcol = ImodPrefs->namedColor(index);
+    glClearColor(qcol.red()/255., qcol.green()/255. , qcol.blue()/255., 0.);
+  }
+     
+  glClear(GL_COLOR_BUFFER_BIT);
+}
+
 
 /* Appends either the model or file name to the window name, giving
    first priority to the model name if "modelFirst" is set */
@@ -306,5 +321,8 @@ int imodColorValue(int inColor)
 /*
 
 $Log$
+Revision 1.1  2007/12/04 18:41:51  mast
+Added to get common functions out of xzap.cpp and imod.cpp
+
 
 */

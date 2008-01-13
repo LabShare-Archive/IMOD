@@ -3,6 +3,9 @@
  *
  *  $Id$
  *  $Log$
+ *  Revision 1.1  2007/12/04 18:42:02  mast
+ *  Added to get common functions out of xzap.cpp and imod.
+ *
  *
  */                                                                           
 #ifndef UTILITIES_H
@@ -16,6 +19,7 @@ void utilCurrentPointSize(Iobj *obj, int *modPtSize, int *backupSize,
 void utilGetLongestTimeString(ImodView *vi, QString *str);
 void utilEnableStipple(ImodView *vi, Icont *cont);
 void utilDisableStipple(ImodView *vi, Icont *cont);
+void utilClearWindow(int index);
 char *imodwfname(char *intro);
 char *imodwEithername(char *intro, char *filein, int modelFirst);
 char *imodwGivenName(char *intro, char *filein);
