@@ -1,5 +1,8 @@
 IMOD History
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+1/13/08: Added a Multi-Z window to display successive slices in an array of 
+panels.
+
 1/10/08: Fixed Ccderaser to scale the model file to pixel coordinates on the
 current stack even if the model came from a binned stack (In 3.11).
 
