@@ -65,8 +65,8 @@ EXPORTS
 	imodMatMult
 	imodObjectGetValue
 	imodContourFill
-	imodel_contour_swapxy
 	imodContourCenterMoment
+	imodel_contour_swapxy
 	imeshSurfaceArea
 	imodContoursNew
 	imodPointLineDistance
@@ -117,6 +117,7 @@ EXPORTS
 	imodGetZScale
 	imodViewNew
 	imodel_overlap_fractions
+	imodContourClearPoints
 	imodLabelItemMove
 	imodContourUnique
 	imodMeshAddVert
@@ -135,8 +136,8 @@ EXPORTS
 	imodMatTransform
 	imodMeshGetIndex
 	imodMatRot
-	imodContourSplice
 	imodel_contour_scan
+	imodContourSplice
 	imodContourPrincipalAxis
 	imodClipsFixCount
 	imodPointInsideCont
@@ -185,8 +186,8 @@ EXPORTS
 	imodMeshesDelete
 	imodMeshGetVerts
 	imodMeshAddNormal
-	istoreBreakContour
 	istoreCleanEnds
+	istoreBreakContour
 	istoreInvert
 	imeshCopySkipList
 	imodObjectGet
@@ -369,6 +370,7 @@ EXPORTS
 	imod_to_synu
 	imodContourGetBBox
 	imodContourClear
+	imodPointAppendXYZ
 	imodPointDistance
 	imodPlaneInit
 	imodGetBytes
