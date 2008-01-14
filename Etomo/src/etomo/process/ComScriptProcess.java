@@ -18,6 +18,9 @@
  * 
  * <p>
  * $Log$
+ * Revision 3.46  2007/12/13 01:08:45  sueh
+ * bug# 1056 added a constructor with CommandDetails.
+ *
  * Revision 3.45  2007/12/10 22:06:53  sueh
  * bug# 1041 working with the changes in ProcessName.
  *
@@ -437,6 +440,7 @@ public class ComScriptProcess extends Thread implements SystemProcessInterface {
     this.processResultDisplay = processResultDisplay;
     processData = ProcessData.getManagedInstance(axisID, manager,
         getProcessName());
+    processData.setDisplayKey(processResultDisplay);
     logFile = LogFile.getInstance(manager.getPropertyUserDir(), axisID,
         getProcessName());
   }
@@ -456,10 +460,11 @@ public class ComScriptProcess extends Thread implements SystemProcessInterface {
     this.processDetails = processDetails;
     processData = ProcessData.getManagedInstance(axisID, manager,
         getProcessName());
+    processData.setDisplayKey(processResultDisplay);
     logFile = LogFile.getInstance(manager.getPropertyUserDir(), axisID,
         getProcessName());
   }
-  
+
   public ComScriptProcess(BaseManager manager, String comScript,
       BaseProcessManager processManager, AxisID axisID, String watchedFileName,
       ProcessMonitor processMonitor, ProcessResultDisplay processResultDisplay,
@@ -474,9 +479,10 @@ public class ComScriptProcess extends Thread implements SystemProcessInterface {
     this.processResultDisplay = processResultDisplay;
     processDetails = commandDetails;
     command = commandDetails;
-    this.commandDetails=commandDetails;
+    this.commandDetails = commandDetails;
     processData = ProcessData.getManagedInstance(axisID, manager,
         getProcessName());
+    processData.setDisplayKey(processResultDisplay);
     logFile = LogFile.getInstance(manager.getPropertyUserDir(), axisID,
         getProcessName());
   }
@@ -532,6 +538,7 @@ public class ComScriptProcess extends Thread implements SystemProcessInterface {
     this.processResultDisplay = processResultDisplay;
     processData = ProcessData.getManagedInstance(axisID, manager,
         getProcessName());
+    processData.setDisplayKey(processResultDisplay);
     logFile = LogFile.getInstance(manager.getPropertyUserDir(), axisID,
         getProcessName());
   }
@@ -550,6 +557,7 @@ public class ComScriptProcess extends Thread implements SystemProcessInterface {
     this.processResultDisplay = processResultDisplay;
     processData = ProcessData.getManagedInstance(axisID, manager,
         getProcessName());
+    processData.setDisplayKey(processResultDisplay);
     logFile = LogFile.getInstance(manager.getPropertyUserDir(), axisID,
         getProcessName());
   }
