@@ -1,6 +1,4 @@
-/*  IMOD VERSION 2.50
- *
- *  imodP.h -- Main header file for imod - private functions
+/*  imodP.h -- Main header file for imod - private functions
  *
  *  Original author: James Kremer
  *  Revised by: David Mastronarde   email: mast@colorado.edu
@@ -217,7 +215,6 @@ extern int (*ivwFastGetValue)(int x, int y, int z);
 
 #define RADIANS_PER_DEGREE 0.017453293
 #define MOVIE_DEFAULT 52965
-#define IMOD_MM_TOGGLE 0
 
 #define IMOD_GHOST_NEXTSEC (1)
 #define IMOD_GHOST_PREVSEC (2)
@@ -260,6 +257,9 @@ bool imodDebug(char key);
 
 /*
 $Log$
+Revision 3.39  2007/12/04 22:04:22  mast
+Changes for rearrangement of utilities, extra object, mouse tracking
+
 Revision 3.38  2007/11/27 17:53:54  mast
 Add element to enable stipple drawing
 

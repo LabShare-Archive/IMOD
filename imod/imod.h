@@ -56,6 +56,8 @@ class QKeyEvent;
 
 #include "imodview.h"
 
+#define IMOD_MM_TOGGLE 0
+
 extern "C" {
 
 /*!
@@ -159,6 +161,9 @@ int DLL_EX_IM imodShowHelpPage(const char *page);
 
 /*
     $Log$
+    Revision 3.14  2007/12/04 22:02:41  mast
+    Changes for documentation
+
     Revision 3.13  2007/11/30 06:51:50  mast
     Changes for linking slicer to model view
 
