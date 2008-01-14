@@ -54,7 +54,7 @@ public final class EtomoMenu {
 
   private final JMenu menuOptions = new JMenu("Options");
   private final JMenuItem menuAxisA = new JMenuItem("Axis A", KeyEvent.VK_A);
-  private final JMenuItem menuAxisB = new JMenuItem("Axis B", KeyEvent.VK_B);
+  private final JMenuItem menuAxisB = new JMenuItem(TomogramProcessPanel.AXIS_B_LABEL, KeyEvent.VK_B);
   private final JMenuItem menuAxisBoth = new JMenuItem("Both Axes",
       KeyEvent.VK_2);
   private final JMenuItem menuSettings = new JMenuItem("Settings",
@@ -439,6 +439,9 @@ public final class EtomoMenu {
 }
 /**
  * <p> $Log$
+ * <p> Revision 1.11  2007/05/02 21:07:33  sueh
+ * <p> bug# 964 Removed Import PRM and Duplicate PEET menu items.
+ * <p>
  * <p> Revision 1.10  2007/05/02 16:34:46  sueh
  * <p> bug# 964 Moved newstuff into mainstream.
  * <p>

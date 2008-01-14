@@ -31,6 +31,10 @@ import etomo.util.Utilities;
  * @version $Revision$
  * 
  * <p> $Log$
+ * <p> Revision 1.27  2007/09/07 00:29:35  sueh
+ * <p> bug# 989 Using a public INSTANCE to refer to the EtomoDirector singleton
+ * <p> instead of getInstance and createInstance.
+ * <p>
  * <p> Revision 1.26  2007/02/09 00:54:33  sueh
  * <p> bug# 962 Made TooltipFormatter a singleton and moved its use to low-level ui
  * <p> classes.
@@ -143,8 +147,8 @@ public class TomogramProcessPanel extends AxisProcessPanel {
   public static final String rcsid = "$Id$";
 
   public static final String BOTH_AXIS_LABEL = "Both";
+  static final String AXIS_B_LABEL = "Axis B";
   private static final String AXIS_A_LABEL = "Axis A";
-  private static final String AXIS_B_LABEL = "Axis B";
 
   private ProcessControlPanel procCtlPreProc = new ProcessControlPanel(
       DialogType.PRE_PROCESSING);
