@@ -22,6 +22,8 @@ import etomo.process.ImodManager;
 import etomo.process.ImodProcess;
 import etomo.process.JoinProcessManager;
 import etomo.process.ProcessMessages;
+import etomo.process.ProcessResultDisplayFactoryBlank;
+import etomo.process.ProcessResultDisplayFactoryInterface;
 import etomo.process.SystemProcessException;
 import etomo.storage.LogFile;
 import etomo.storage.ParameterStore;
@@ -64,6 +66,9 @@ import etomo.util.Utilities;
  * @version $Revision$
  * 
  * <p> $Log$
+ * <p> Revision 1.64  2007/12/26 21:57:12  sueh
+ * <p> bug# 1052 Moved argument handling from EtomoDirector to a separate class.
+ * <p>
  * <p> Revision 1.63  2007/12/10 21:49:45  sueh
  * <p> bug# 1041 Standardized JoinMetaData.getRootName to getDatasetName.
  * <p>
@@ -450,6 +455,7 @@ public final class JoinManager extends BaseManager {
   private final JoinScreenState screenState = new JoinScreenState(AxisID.ONLY,
       AxisType.SINGLE_AXIS);
   private boolean debug = false;
+  private final ProcessResultDisplayFactoryBlank processResultDisplayFactory=new ProcessResultDisplayFactoryBlank();
 
   JoinManager(String paramFileName, AxisID axisID) {
     super();
@@ -472,6 +478,10 @@ public final class JoinManager extends BaseManager {
 
   public InterfaceType getInterfaceType() {
     return InterfaceType.JOIN;
+  }
+  
+  public ProcessResultDisplayFactoryInterface getProcessResultDisplayFactoryInterface(AxisID axisID) {
+    return processResultDisplayFactory;
   }
 
   public boolean saveParamFile() throws LogFile.FileException,
