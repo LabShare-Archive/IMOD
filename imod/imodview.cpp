@@ -1250,6 +1250,11 @@ void ivwSetLocationPoint(ImodView *vi, Ipoint *pnt)
   return;
 }
 
+void ivwSetMovieModelMode(ImodView *vi, int mode)
+{
+  imod_set_mmode(mode);
+}
+
 
 /* Test whether point is on current section - need to use floor for - values */
 int ivwPointVisible(ImodView *vi, Ipoint *pnt)
@@ -2385,6 +2390,43 @@ void ivwTrackMouseForPlugs(ImodView *inImodView, int enable)
   zapSetMouseTracking();
 }
 
+int ivwGetTopZapZslice(ImodView *inImodView, int *outZ)
+{
+  ZapStruct *zap = getTopZapWindow(false);
+  if (!zap)
+    return 1;
+  *outZ = zap->section;
+  return 0;
+}
+
+int ivwGetTopZapZoom(ImodView *inImodView, float *outZoom)
+{
+  ZapStruct *zap = getTopZapWindow(false);
+  if (!zap)
+    return 1;
+  *outZoom = zap->zoom;
+  return 0;
+}
+
+int ivwSetTopZapZslice(ImodView *inImodView, int inZ)
+{
+  if (inZ < 0 || inZ >= App->cvi->zsize)
+    return 1;
+  ZapStruct *zap = getTopZapWindow(false);
+  if (!zap)
+    return 1;
+  if (zap->lock)
+    zap->section = inZ;
+  else
+    App->cvi->zmouse = inZ;
+  return 0;
+}
+
+int ivwGetTopZapMouse(ImodView *inImodView, Ipoint *imagePt)
+{
+  return getTopZapMouse(imagePt);
+}
+
 int ivwOverlayOK(ImodView *inImodView)
 {
   return (App->rgba == 1 && !App->cvi->rawImageStore);
@@ -2625,6 +2667,9 @@ void ivwBinByN(unsigned char *array, int nxin, int nyin, int nbin,
 
 /*
 $Log$
+Revision 4.60  2007/12/07 19:16:50  mast
+Fixed so that info window reads out the right pixel when going to a model pt
+
 Revision 4.59  2007/12/04 18:50:32  mast
 Added mouse tracking function and unlimited extra object capability
 

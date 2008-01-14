@@ -54,7 +54,15 @@ void DLL_EX_IM ivwGetLocation(ImodView *inImodView, int *outX, int *outY,
 
 /*! Gets the current marker point location into [outPoint] */
 void DLL_EX_IM ivwGetLocationPoint(ImodView *inImodView, Ipoint *outPoint);
+
+/*! Sets the current marker point location as [inX], [inY], [inZ] */
 void DLL_EX_IM ivwSetLocation(ImodView *inImodView, int inX, int inY, int inZ);
+
+/*!
+ * Sets the current marker point location from [inPoint].  Z and Y are
+ * truncated and Z is rounded to integers to be consistent with 
+ * @ivwSetLocation.
+ */
 void DLL_EX_IM ivwSetLocationPoint(ImodView *inImodView, Ipoint *inPoint);
 
 
@@ -186,6 +194,13 @@ Icont DLL_EX_IM *ivwGetOrMakeContour(ImodView *vw, Iobj *obj, int timeLock);
 int DLL_EX_IM ivwGetMovieModelMode(ImodView *vw);
 
 /*!
+ * Sets the program into movie or model mode if [mode] is IMOD_MMOVIE or
+ * IMOD_MMODEL, or toggles the mode if [mode] is [IMOD_MM_TOGGLE].  This will
+ * cause a redraw.
+ */
+void DLL_EX_IM ivwSetMovieModelMode(ImodView *inImodView, int mode);
+
+/*!
  * Return true if it is possible to display images in overlay mode in the Zap
  * window.
  */
@@ -198,7 +213,33 @@ int DLL_EX_IM ivwOverlayOK(ImodView *inImodView);
  */
 void DLL_EX_IM ivwSetOverlayMode(ImodView *inImodView, int sec, int reverse, 
                        int whichGreen);
-}
+
+/*!
+ * Returns the Z slice of the top Zap window in [outZ].  The return value is 1
+ * if there is no Zap window.
+ */
+int DLL_EX_IM ivwGetTopZapZslice(ImodView *inImodView, int *outZ);
+
+/*!
+ * Sets the Z slice of the top Zap window to [inZ].  This will set the Zap
+ * window's section number if it is locked, or the current point location if
+ * not, but in either case it will not cause a redraw.  The return value is 1
+ * if there is no Zap window or [inZ] is out of range.
+ */
+int DLL_EX_IM ivwSetTopZapZslice(ImodView *inImodView, int inZ);
+
+/*!
+ * Returns the zoom of the top Zap window in [outZoom].  The return value is 1
+ * if there is no Zap window.
+ */
+int DLL_EX_IM ivwGetTopZapZoom(ImodView *inImodView, float *outZoom);
+
+/*!
+ * Returns the image coordinates of the mouse in the top Zap window in 
+ * [imagePt].  The X and Y coordinates may be out of range if the mouse is 
+ * outside the graphics area.  The return value is 1 if there is no Zap window.
+ */
+int DLL_EX_IM ivwGetTopZapMouse(ImodView *inImodView, Ipoint *imagePt);
 
 /*
  * Selection list functions in imod_edit.cpp
@@ -239,13 +280,16 @@ void DLL_EX_IM imodSelectionNewCurPoint(ImodView *vi, Imod *imod,
  * selected object number in [minOb] and [maxOb].
  */
 int DLL_EX_IM imodNumSelectedObjects(ImodView *vi, int &minOb, int &maxOb);
-
+}
 
 #endif
 
 /* 
 
 $Log$
+Revision 1.13  2007/12/05 15:30:48  mast
+Added DLL_EX_IM for some new functions
+
 Revision 1.12  2007/12/04 22:03:31  mast
 Changes for documentation and exposing selection functions
 
