@@ -154,13 +154,10 @@ int imodContourClear(Icont *cont)
   if (!cont)
     return(-1);
 
-  if ((cont->pts) && (cont->psize))
-    free (cont->pts);
-  cont->pts = NULL;
+  imodContourClearPoints(cont);
   if (cont->sizes)
     free(cont->sizes);
   cont->sizes = NULL;
-  cont->psize = 0;
   cont->flags = 0;
   cont->time = 0;
   imodLabelDelete(cont->label);
@@ -169,6 +166,22 @@ int imodContourClear(Icont *cont)
   ilistDelete(cont->store);
   cont->store = NULL;
   return(0);
+}
+
+/*!
+ * Frees just the point data in contour [cont] and sets the pointer for point 
+ * data to NULL and the point count to 0.  Returns -1 if error.
+ */
+int imodContourClearPoints(Icont *cont)
+{
+  if (!cont)
+    return(-1);
+
+  if ((cont->pts) && (cont->psize))
+    free (cont->pts);
+  cont->pts = NULL;
+  cont->psize = 0;
+  return 0;
 }
 
 /*!
@@ -3385,6 +3398,9 @@ char *imodContourGetName(Icont *inContour)
 /* END_SECTION */
 /*
   $Log$
+  Revision 3.26  2008/01/09 05:59:04  mast
+  Fixed contour sort and made it work in 3D
+
   Revision 3.25  2007/11/27 21:34:01  mast
   Really should compiile before checking in!
 
