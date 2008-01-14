@@ -39,6 +39,9 @@ import etomo.util.Utilities;
  * @version $Revision$
  * 
  * <p> $Log$
+ * <p> Revision 1.65  2007/12/26 22:12:24  sueh
+ * <p> bug# 1052 Moved argument handling from EtomoDirector to a separate class.
+ * <p>
  * <p> Revision 1.64  2007/12/13 01:08:21  sueh
  * <p> bug# 1056 added startComScript(String command,...,CommandDetails)
  * <p>
@@ -400,6 +403,14 @@ public abstract class BaseProcessManager {
     savedProcessDataB = new ProcessData(AxisID.SECOND, manager);
   }
 
+  public ProcessData getRunningProcessData(AxisID axisID) {
+    ProcessData processData = getSavedProcessData(axisID);
+    if (processData == null || !processData.isRunning()) {
+      return null;
+    }
+    return processData;
+  }
+
   public String toString() {
     return getClass().getName() + "[" + paramString() + "]";
   }
@@ -421,6 +432,22 @@ public abstract class BaseProcessManager {
 
   public final void stopLoad(IntermittentCommand param, LoadMonitor monitor) {
     IntermittentBackgroundProcess.stopInstance(manager, param, monitor);
+  }
+
+  public void reconnectProcesschunks(AxisID axisID, ProcessData processData,
+      ParallelProgressDisplay parallelProgressDisplay,
+      ProcessResultDisplay processResultDisplay) {
+    ProcesschunksProcessMonitor monitor = ProcesschunksProcessMonitor
+        .getReconnectInstance(manager, axisID, parallelProgressDisplay,
+            processData);
+    monitor.setSubdirName(processData.getSubDirName());
+    ReconnectProcess process = ReconnectProcess.getMonitorInstance(manager,
+        this, monitor, getSavedProcessData(axisID), axisID, monitor
+            .getLogFileName(), ProcesschunksProcessMonitor.SUCCESS_TAG,processData.getSubDirName());
+    process.setProcessResultDisplay(processResultDisplay);
+    Thread thread = new Thread(process);
+    thread.start();
+    mapAxisThread(process, axisID);
   }
 
   /**
