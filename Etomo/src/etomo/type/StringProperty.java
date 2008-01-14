@@ -18,6 +18,10 @@ import java.util.Properties;
  * @notthreadsafe
  * 
  * <p> $Log$
+ * <p> Revision 1.3  2007/12/10 22:39:19  sueh
+ * <p> bug# 1041 Added loadFromOtherKey to load value with a key that is different
+ * <p> from the one saved in the instance.  Useful for backwards compatibility.
+ * <p>
  * <p> Revision 1.2  2007/05/16 22:59:31  sueh
  * <p> bug# 964 Added set(StringProperty).
  * <p>
@@ -26,14 +30,14 @@ import java.util.Properties;
  * <p> easier.
  * <p> </p>
  */
-final class StringProperty {
+public final class StringProperty implements ConstStringProperty {
   public static final String rcsid = "$Id$";
 
   private final String key;
 
   private String string = "";
 
-  StringProperty(final String key) {
+  public StringProperty(final String key) {
     this.key = key;
   }
 
@@ -46,7 +50,7 @@ final class StringProperty {
    * sets this.string to "".
    * @param string
    */
-  void set(final String input) {
+  public void set(final String input) {
     if (input == null || input.matches("\\s*")) {
       reset();
     }
@@ -59,7 +63,7 @@ final class StringProperty {
     string = input.string;
   }
 
-  boolean isEmpty() {
+public  boolean isEmpty() {
     return string == null || string.matches("\\s*");
   }
 
@@ -71,7 +75,7 @@ final class StringProperty {
     return string.equals(stringProperty.string);
   }
 
-  void load(Properties props, String prepend) {
+  public void load(Properties props, String prepend) {
     if (props == null) {
       reset();
     }
@@ -89,7 +93,7 @@ final class StringProperty {
     }
   }
 
-  void store(Properties props, String prepend) {
+  public void store(Properties props, String prepend) {
     if (props == null) {
       return;
     }
@@ -100,6 +104,14 @@ final class StringProperty {
     else {
       props.setProperty(currentKey, string);
     }
+  }
+
+  public void remove(Properties props, String prepend) {
+    if (props == null) {
+      return;
+    }
+    String currentKey = createKey(prepend);
+    props.remove(currentKey);
   }
 
   void reset() {
