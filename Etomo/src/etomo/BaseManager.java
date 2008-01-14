@@ -18,6 +18,7 @@ import etomo.process.BaseProcessManager;
 import etomo.process.ImodManager;
 import etomo.process.ImodqtassistProcess;
 import etomo.process.LoadMonitor;
+import etomo.process.ProcessResultDisplayFactoryInterface;
 import etomo.process.SystemProcessException;
 import etomo.process.SystemProcessInterface;
 import etomo.process.ProcessData;
@@ -37,7 +38,6 @@ import etomo.type.InterfaceType;
 import etomo.type.ProcessEndState;
 import etomo.type.ProcessName;
 import etomo.type.ProcessResultDisplay;
-import etomo.type.ProcessResultDisplayFactory;
 import etomo.type.Run3dmodMenuOptions;
 import etomo.type.UserConfiguration;
 import etomo.ui.MainPanel;
@@ -96,13 +96,14 @@ public abstract class BaseManager {
   private boolean debug = false;
   private boolean exiting = false;
   private boolean initialized = false;
-  private ProcessResultDisplayFactory processResultDisplayFactoryA = null;
-  private ProcessResultDisplayFactory processResultDisplayFactoryB = null;
   private DialogType processDialogTypeA = null;
   private DialogType processDialogTypeB = null;
   private DialogType currentDialogTypeA = null;
   private DialogType currentDialogTypeB = null;
   private ParameterStore parameterStore = null;
+  //True if reconnect() has been run for the specified axis.
+  private boolean reconnectRunA = false;
+  private boolean reconnectRunB = false;
 
   abstract public InterfaceType getInterfaceType();
 
@@ -150,8 +151,11 @@ public abstract class BaseManager {
   abstract Storable[] getStorables(int offset);
 
   public abstract String getName();
-  
+
   public abstract void doAutomation();
+
+  public abstract ProcessResultDisplayFactoryInterface getProcessResultDisplayFactoryInterface(
+      AxisID axisID);
 
   public BaseManager() {
     propertyUserDir = System.getProperty("user.dir");
@@ -195,22 +199,6 @@ public abstract class BaseManager {
 
   public String getPropertyUserDir() {
     return propertyUserDir;
-  }
-
-  public ProcessResultDisplayFactory getProcessResultDisplayFactory(
-      AxisID axisID) {
-    if (axisID == AxisID.SECOND) {
-      if (processResultDisplayFactoryB == null) {
-        processResultDisplayFactoryB = ProcessResultDisplayFactory
-            .getInstance(getBaseScreenState(axisID));
-      }
-      return processResultDisplayFactoryB;
-    }
-    if (processResultDisplayFactoryA == null) {
-      processResultDisplayFactoryA = ProcessResultDisplayFactory
-          .getInstance(getBaseScreenState(axisID));
-    }
-    return processResultDisplayFactoryA;
   }
 
   public String setPropertyUserDir(String propertyUserDir) {
@@ -825,6 +813,64 @@ public abstract class BaseManager {
     }
   }
 
+  boolean isReconnectRun(AxisID axisID) {
+    if (axisID == AxisID.SECOND) {
+      return reconnectRunB;
+    }
+    return reconnectRunA;
+  }
+
+  void setReconnectRun(AxisID axisID) {
+    if (axisID == AxisID.SECOND) {
+      reconnectRunB = true;
+    }
+    else {
+      reconnectRunA = true;
+    }
+  }
+
+  /**
+   * Attempts to reconnect to a currently running process.  Only run once per
+   * axis.  Only attempts one reconnect.
+   * @param axisID - axis of the running process.
+   * @return true if a reconnect was attempted.
+   */
+  public boolean reconnect(AxisID axisID) {
+    if (isReconnectRun(axisID)) {
+      return false;
+    }
+    setReconnectRun(axisID);
+    ProcessData processData = getProcessManager().getRunningProcessData(axisID);
+    if (processData == null) {
+      return false;
+    }
+    if (processData.getProcessName() == ProcessName.PROCESSCHUNKS) {
+      reconnectProcesschunks(processData, axisID);
+      return true;
+    }
+    return false;
+  }
+
+  public void reconnectProcesschunks(ProcessData processData, AxisID axisID) {
+    ProcessResultDisplayFactoryInterface factory = getProcessResultDisplayFactoryInterface(axisID);
+    ProcessResultDisplay display = getProcessResultDisplayFactoryInterface(
+        axisID).getProcessResultDisplay(processData.getDisplayKey().getInt());
+    if (display != null) {
+      sendMsgProcessStarting(display);
+    }
+    //Add parallel panel if it doesn't exist.  ReconnectProcesschunks is called
+    //before any dialog is displayed, so it probably doesn't exist.
+    MainPanel mainPanel = getMainPanel();
+    ParallelPanel parallelPanel = mainPanel.getParallelPanel(axisID);
+    if (parallelPanel == null) {
+      mainPanel.setParallelDialog(axisID, true);
+    }
+    getProcessManager().reconnectProcesschunks(axisID, processData,
+        mainPanel.getParallelPanel(axisID).getParallelProgressDisplay(),
+        display);
+    setThreadName(processData.getProcessName().toString(), axisID);
+  }
+
   /**
    * Run processchunks.
    * @param axisID
@@ -1267,6 +1313,11 @@ public abstract class BaseManager {
 }
 /**
  * <p> $Log$
+ * <p> Revision 1.93  2007/12/26 21:55:54  sueh
+ * <p> bug# 1052 Added doAutomation() to EtomoDirector, BaseManager and the
+ * <p> manager classes.  Function should run any user-specified automatic functionality
+ * <p> before giving control to the user.
+ * <p>
  * <p> Revision 1.92  2007/12/10 21:47:09  sueh
  * <p> bug# 1041 Added saveStorable() to save a single Storable to the datafile.  Added
  * <p> processFailed() to reset next process and last process.
