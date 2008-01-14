@@ -1,10 +1,12 @@
 package etomo.process;
 
+import java.io.File;
 import java.util.Vector;
 
 import etomo.BaseManager;
 import etomo.storage.LogFile;
 import etomo.type.AxisID;
+import etomo.type.ConstStringProperty;
 import etomo.type.ProcessEndState;
 import etomo.type.ProcessName;
 import etomo.type.ProcessResultDisplay;
@@ -27,24 +29,54 @@ final class ReconnectProcess implements SystemProcessInterface, Runnable {
 
   private final BaseManager manager;
   private final BaseProcessManager processManager;
-  private final FileSizeProcessMonitor monitor;
+  private final ProcessMonitor monitor;
   private final ProcessData processData;
   private final AxisID axisID;
 
   private ProcessEndState endState = null;
   private ProcessResultDisplay processResultDisplay = null;
   private ProcessMessages messages = null;
-  private final LogFile logFile;
+  private LogFile logFile;
+  private String logSuccessTag = null;
+  private boolean monitorControl = false;
 
-  ReconnectProcess(BaseManager manager, BaseProcessManager processManager,
-      FileSizeProcessMonitor monitor, ProcessData processData, AxisID axisID) {
+  private ReconnectProcess(BaseManager manager,
+      BaseProcessManager processManager, ProcessMonitor monitor,
+      ProcessData processData, AxisID axisID) {
     this.manager = manager;
     this.processManager = processManager;
     this.monitor = monitor;
     this.processData = processData;
     this.axisID = axisID;
-    logFile = LogFile.getInstance(manager.getPropertyUserDir(), axisID,
-        processData.getProcessName());
+  }
+
+  static ReconnectProcess getInstance(BaseManager manager,
+      BaseProcessManager processManager, ProcessMonitor monitor,
+      ProcessData processData, AxisID axisID) {
+    ReconnectProcess instance = new ReconnectProcess(manager, processManager,
+        monitor, processData, axisID);
+    instance.logFile = LogFile.getInstance(manager.getPropertyUserDir(),
+        axisID, processData.getProcessName());
+    return instance;
+  }
+
+  static ReconnectProcess getMonitorInstance(BaseManager manager,
+      BaseProcessManager processManager, ProcessMonitor monitor,
+      ProcessData processData, AxisID axisID, String logFileName,
+      String logSuccessTag,ConstStringProperty subDirName) {
+    ReconnectProcess instance = new ReconnectProcess(manager, processManager,
+        monitor, processData, axisID);
+    if (subDirName.isEmpty()) {
+    instance.logFile = LogFile.getInstance(manager.getPropertyUserDir(),
+        logFileName);
+    }
+    else {
+      instance.logFile = LogFile.getInstance(new File(manager.getPropertyUserDir(),subDirName.toString()),
+          logFileName);
+    }
+    instance.logSuccessTag = logSuccessTag;
+    instance.monitorControl = true;
+    return instance;
   }
 
   public void run() {
@@ -52,28 +84,43 @@ final class ReconnectProcess implements SystemProcessInterface, Runnable {
       return;
     }
     new Thread(monitor).start();
-    //make sure nothing else is writing or backing up the log file
+    try {
+      Thread.sleep(500);
+    }
+    catch (InterruptedException e) {
+    }
     long logWriteId = LogFile.NO_ID;
-    logWriteId = logFile.openForWriting();
-    while (processData.isRunning()) {
+    if (!monitorControl) {
+      //make sure nothing else is writing or backing up the log file
+      logWriteId = logFile.openForWriting();
+    }
+    while ((!monitorControl && processData.isRunning())
+        || (monitorControl && monitor.isRunning())) {
       try {
         Thread.sleep(500);
       }
       catch (InterruptedException e) {
       }
     }
-    //release the log file
-    logFile.closeForWriting(logWriteId);
-    monitor.stop();
-    while (!monitor.isRunning()) {
-      try {
-        Thread.sleep(500);
-      }
-      catch (InterruptedException e) {
+    if (!monitorControl) {
+      //release the log file
+      logFile.closeForWriting(logWriteId);
+      monitor.stop();
+      while (!monitor.isRunning()) {
+        try {
+          Thread.sleep(500);
+        }
+        catch (InterruptedException e) {
+        }
       }
     }
-    messages = ProcessMessages.getInstance("Reconstruction of",
-        "slices complete.");
+    if (logSuccessTag == null) {
+      messages = ProcessMessages.getInstance("Reconstruction of",
+          "slices complete.");
+    }
+    else {
+      messages = ProcessMessages.getInstance(logSuccessTag);
+    }
     ProcessName processName = processData.getProcessName();
     try {
       messages.addProcessOutput(logFile);
@@ -205,6 +252,9 @@ final class ReconnectProcess implements SystemProcessInterface, Runnable {
 }
 /**
  * <p> $Log$
+ * <p> Revision 1.3  2006/10/10 05:13:31  sueh
+ * <p> bug# 931 Managing the log file with LogFile.
+ * <p>
  * <p> Revision 1.2  2006/08/03 21:31:55  sueh
  * <p> bug# 769 Run():  check the end of the log for a line that shows the process
  * <p> completed successfully.
