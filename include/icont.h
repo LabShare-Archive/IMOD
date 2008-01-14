@@ -72,6 +72,7 @@ int    imodContourDelete(Icont *cont);
 int    imodContoursDelete(Icont *cont, int size);
 int imodContoursDeleteToEnd(Iobj *obj, int keep);
 int    imodContourClear(Icont *cont);
+int imodContourClearPoints(Icont *cont);
 
 /*
  * Contour data moving functions.
@@ -205,6 +206,9 @@ void imodContourNestLevels(Nesting *nests, int *nestind, int numnests);
 
 /*
 $Log$
+Revision 3.15  2008/01/09 05:58:41  mast
+Added 3D version of contour sort
+
 Revision 3.14  2007/12/04 18:28:05  mast
 Added new draw flags for contours
 
