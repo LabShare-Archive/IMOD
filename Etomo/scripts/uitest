@@ -35,8 +35,8 @@ if [ -z "$IMOD_DIR" ]; then
   echo "Set it to point to the directory where IMOD is installed"
   exit
 fi
-if [ ! -e $IMOD_DIR ]; then
-  echo "IMOD_DIR="${IMOD_DIR} " does not exist"
+if [ ! -e "$IMOD_DIR" ]; then
+  echo "IMOD_DIR=" ${IMOD_DIR} " does not exist"
   echo "Set it to point to the directory where IMOD is installed"
   exit
 fi
@@ -50,7 +50,7 @@ jakarta_regexp_jar=${IMOD_JAKARTA_REGEXP_JAR:=jakarta-regexp-1.2.jar}
 class_separator=${IMOD_CLASS_SEPARATOR:=:}
 path_separator=${IMOD_PATH_SEPARATOR:=/}
 
-class_path=$IMOD_DIR${path_separator}bin${path_separator}etomoUITest.jar\
+class_path="$IMOD_DIR"${path_separator}bin${path_separator}etomoUITest.jar\
 $class_separator$junit_home${path_separator}junit.jar\
 $class_separator$jfcunit_home${path_separator}jfcunit.jar\
 $class_separator$jakarta_regexp_home${path_separator}$jakarta_regexp_jar\
@@ -96,8 +96,8 @@ fi
 # variable, and allows other directories to be placed on the path too, to
 # prevent clashes with libraries supplied by other packages
 
-if [ -e ${IMOD_DIR}/bin/setlibpath ]; then
-  . ${IMOD_DIR}/bin/setlibpath
+if [ -e "${IMOD_DIR}/bin/setlibpath" ]; then
+  . "${IMOD_DIR}/bin/setlibpath"
 fi
 
 # Copy the previous out log file to backup
