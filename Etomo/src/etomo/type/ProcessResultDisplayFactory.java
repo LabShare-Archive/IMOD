@@ -2,6 +2,7 @@ package etomo.type;
 
 import java.util.Vector;
 
+import etomo.process.ProcessResultDisplayFactoryInterface;
 import etomo.ui.AlignmentEstimationDialog;
 import etomo.ui.CoarseAlignDialog;
 import etomo.ui.FiducialModelDialog;
@@ -24,7 +25,7 @@ import etomo.ui.TomogramPositioningDialog;
  * 
  * @version $Revision$
  */
-public final class ProcessResultDisplayFactory {
+public final class ProcessResultDisplayFactory implements ProcessResultDisplayFactoryInterface{
   public static final String rcsid = "$Id$";
 
   private final BaseScreenState screenState;
@@ -130,7 +131,7 @@ public final class ProcessResultDisplayFactory {
 
   private void initialize() {
     //initialize global dependency list
-
+    //all displays should be added to this list
     //preprocessing
     addDependency(findXRays);
     addDependency(createFixedStack);
@@ -255,7 +256,16 @@ public final class ProcessResultDisplayFactory {
 
   private synchronized void addDependency(ProcessResultDisplay display) {
     dependentDisplayList.add(display);
+    //DependencyIndex should be unique and match the index of the
+    //dependentDisplayList where the display is stored.
     display.setDependencyIndex(dependentDisplayList.size() - 1);
+  }
+  
+  public ProcessResultDisplay getProcessResultDisplay(int dependencyIndex) {
+    if (dependencyIndex<0 || dependencyIndex>=dependentDisplayList.size()) {
+      return null;
+    }
+    return (ProcessResultDisplay)dependentDisplayList.get(dependencyIndex);
   }
 
   private void addDependents(ProcessResultDisplay display) {
@@ -414,6 +424,11 @@ public final class ProcessResultDisplayFactory {
 }
 /**
  * <p> $Log$
+ * <p> Revision 1.4  2007/09/10 20:34:58  sueh
+ * <p> bug# 925 Using getInstance to construct ProcessResultDisplayFactory.  Calling
+ * <p> initialize() from getInstance.  Putting all initialization into initialize().  Simplified
+ * <p> the get functions.
+ * <p>
  * <p> Revision 1.3  2006/03/20 17:59:11  sueh
  * <p> reformatted
  * <p>
