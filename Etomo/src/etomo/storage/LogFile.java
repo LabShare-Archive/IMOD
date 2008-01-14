@@ -104,6 +104,10 @@ public final class LogFile {
   public static LogFile getInstance(String userDir, String fileName) {
     return getInstance(new File(userDir, fileName));
   }
+  
+  public static LogFile getInstance(File dir, String fileName) {
+    return getInstance(new File(dir, fileName));
+  }
 
   public static LogFile getInstance(File file) {
     LogFile logFile;
@@ -1426,6 +1430,9 @@ public final class LogFile {
 }
 /**
  * <p> $Log$
+ * <p> Revision 1.17  2007/12/26 22:15:55  sueh
+ * <p> bug# 1052 Moved argument handling from EtomoDirector to a separate class.
+ * <p>
  * <p> Revision 1.16  2007/11/06 19:29:46  sueh
  * <p> bug# 1047 Added comment.
  * <p>
