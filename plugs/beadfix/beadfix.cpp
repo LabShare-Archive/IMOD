@@ -240,6 +240,12 @@ int imodPlugMouse(ImodView *vw, QMouseEvent *event, float imx,
   if (!con)
     return 0;
   ivwGetLocation(plug->view, &ix, &iy, &iz);
+  ivwGetTopZapZslice(plug->view, &iz);
+  ivwGetTopZapMouse(plug->view, &tpt);
+  if (tpt.x != imx || tpt.y != imy || tpt.z != iz)
+    imodPrintStderr("passed in %.2f %.2f, getTopZ %d, but TopZap returned "
+                    "%.2f %.2f %.1f\n", imx, imy, iz, tpt.x, tpt.y, tpt.z);
+
   for (i = 0; i < 100; i++) {
     angle = 2 * 3.14159 * i / 100.;
     tpt.x = imx + plug->rad * cos(angle);
@@ -960,15 +966,26 @@ BeadFixer2::BeadFixer2(QWidget *parent, const char *name)
 
 }
 
+// This illustrates how to show a help page
 void BeadFixer2::buttonPressed(int which)
 {
   QString str;
   if (!which)
     close();
   else {
-    str = QString(getenv("IMOD_DIR"));
-    str += QString("/lib/imodplug/beadfix2.html");
+    // This location can be used for a plugin incorporated into master IMOD
+    // source and distributed with IMOD binaries
+    str = QString(getenv("IMOD_PLUGIN_DIR"));
+    str += QString("/beadfix2.html");
+    
+    // This location can be used otherwise: users would install the plugin and
+    // the help file at this location
+    //str = QString(getenv("IMOD_CALIB_DIR"));
+    //str += QString("/plugins/beadfix2.html");
     imodShowHelpPage(str);
+
+    // If neither approach is suitable, use dia_vasmsg to pass a string from
+    // within the code (can contain html).
   }
 }
 
@@ -1012,6 +1029,9 @@ void BeadFixer2::keyReleaseEvent ( QKeyEvent * e )
 /*
 
 $Log$
+Revision 3.14  2008/01/11 20:19:52  mast
+Added help example
+
 Revision 3.13  2007/12/04 22:22:59  mast
 Added mouse and wheel (?) example, rationalized build
 
