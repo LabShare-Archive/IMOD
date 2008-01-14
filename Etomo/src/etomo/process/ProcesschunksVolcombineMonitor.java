@@ -20,6 +20,9 @@ import etomo.util.DatasetFiles;
  * @version $Revision$
  * 
  * <p> $Log$
+ * <p> Revision 1.3  2007/12/10 22:29:58  sueh
+ * <p> bug# 1041 Removed subdirName from the super constructor because it is optional and never used in this class.
+ * <p>
  * <p> Revision 1.2  2007/11/06 19:26:15  sueh
  * <p> bug# 1047 Change super() call to adapt to parent constructor change.
  * <p>
@@ -28,7 +31,7 @@ import etomo.util.DatasetFiles;
  * <p> volcombine.  Watches volcombine-start.log and volcombine-finish.log
  * <p> </p>
  */
-public final class ProcesschunksVolcombineMonitor extends
+ final class ProcesschunksVolcombineMonitor extends
     ProcesschunksProcessMonitor {
   public static final String rcsid = "$Id$";
 
@@ -44,7 +47,7 @@ public final class ProcesschunksVolcombineMonitor extends
     super(manager, axisID, parallelProgressDisplay, rootName, computerList);
   }
 
-  protected boolean updateState() throws LogFile.ReadException,
+   boolean updateState() throws LogFile.ReadException,
       LogFile.FileException {
     String line = null;
     if (super.updateState()) {
@@ -95,7 +98,7 @@ public final class ProcesschunksVolcombineMonitor extends
     return false;
   }
 
-  protected void updateProgressBar() {
+   void updateProgressBar() {
     if (subprocess.isFilltomo()) {
       manager.getMainPanel().setProgressBarValue(0, "Filltomo", axisID);
     }
@@ -110,7 +113,7 @@ public final class ProcesschunksVolcombineMonitor extends
     }
   }
 
-  protected void closeProcessOutput() {
+   void closeProcessOutput() {
     super.closeProcessOutput();
     if (startLog != null && readIdStart != LogFile.NO_ID) {
       startLog.closeReader(readIdStart);
