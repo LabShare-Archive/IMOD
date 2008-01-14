@@ -10,6 +10,8 @@ import etomo.comscript.ProcesschunksParam;
 import etomo.comscript.TrimvolParam;
 import etomo.process.BaseProcessManager;
 import etomo.process.ParallelProcessManager;
+import etomo.process.ProcessResultDisplayFactoryBlank;
+import etomo.process.ProcessResultDisplayFactoryInterface;
 import etomo.process.SystemProcessException;
 import etomo.storage.LogFile;
 import etomo.storage.Storable;
@@ -58,6 +60,7 @@ public final class ParallelManager extends BaseManager {
   private final BaseScreenState screenState = new BaseScreenState(AXIS_ID,
       AxisType.SINGLE_AXIS);
   private final ParallelState state = new ParallelState();
+  private final ProcessResultDisplayFactoryBlank processResultDisplayFactory = new ProcessResultDisplayFactoryBlank();
 
   private final ParallelMetaData metaData;
 
@@ -93,7 +96,12 @@ public final class ParallelManager extends BaseManager {
       }
     }
   }
-  
+
+  public ProcessResultDisplayFactoryInterface getProcessResultDisplayFactoryInterface(
+      AxisID axisID) {
+    return processResultDisplayFactory;
+  }
+
   public void doAutomation() {
   }
 
@@ -224,6 +232,7 @@ public final class ParallelManager extends BaseManager {
   private void openProcessingPanel() {
     mainPanel.showProcessingPanel(AxisType.SINGLE_AXIS);
     setPanel();
+    reconnect(AxisID.ONLY);
   }
 
   private void openParallelChooser() {
@@ -643,6 +652,9 @@ public final class ParallelManager extends BaseManager {
 }
 /**
  * <p> $Log$
+ * <p> Revision 1.23  2007/12/26 21:57:34  sueh
+ * <p> bug# 1052 Moved argument handling from EtomoDirector to a separate class.
+ * <p>
  * <p> Revision 1.22  2007/12/10 21:51:10  sueh
  * <p> bug# 1041 Passing rootName to processchunks because it is now required for
  * <p> the ProcesschunksParam constructor.

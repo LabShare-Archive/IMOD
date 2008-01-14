@@ -10,6 +10,8 @@ import etomo.comscript.ProcesschunksParam;
 import etomo.process.BaseProcessManager;
 import etomo.process.ImodManager;
 import etomo.process.PeetProcessManager;
+import etomo.process.ProcessResultDisplayFactoryBlank;
+import etomo.process.ProcessResultDisplayFactoryInterface;
 import etomo.process.SystemProcessException;
 import etomo.storage.ComFileFilter;
 import etomo.storage.LogFile;
@@ -53,6 +55,9 @@ import etomo.util.DatasetFiles;
  * @version $Revision$
  * 
  * <p> $Log$
+ * <p> Revision 1.35  2007/12/26 21:57:45  sueh
+ * <p> bug# 1052 Moved argument handling from EtomoDirector to a separate class.
+ * <p>
  * <p> Revision 1.34  2007/12/10 21:53:25  sueh
  * <p> bug# 1041 Changed getBaseState to return state.
  * <p>
@@ -183,6 +188,8 @@ public final class PeetManager extends BaseManager {
 
   private final PeetScreenState screenState = new PeetScreenState(AXIS_ID,
       AxisType.SINGLE_AXIS);
+  private final ProcessResultDisplayFactoryBlank processResultDisplayFactory = new ProcessResultDisplayFactoryBlank();
+
   private final PeetMetaData metaData;
   private final PeetProcessManager processMgr;
   private final PeetState state;
@@ -211,7 +218,7 @@ public final class PeetManager extends BaseManager {
       openPeetDialog();
     }
   }
-  
+
   public void doAutomation() {
   }
 
@@ -224,6 +231,11 @@ public final class PeetManager extends BaseManager {
 
   public boolean canChangeParamFileName() {
     return !loadedParamFile;
+  }
+
+  public ProcessResultDisplayFactoryInterface getProcessResultDisplayFactoryInterface(
+      AxisID axisID) {
+    return processResultDisplayFactory;
   }
 
   public boolean canSnapshot() {
@@ -678,6 +690,7 @@ public final class PeetManager extends BaseManager {
   private void openProcessingPanel() {
     mainPanel.showProcessingPanel(AxisType.SINGLE_AXIS);
     setPanel();
+    reconnect(AxisID.ONLY);
   }
 
   /**
