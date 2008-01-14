@@ -24,6 +24,8 @@ public class XcorrProcessWatcher implements ProcessMonitor {
   private AxisID axisID = null;
   private boolean blendmont = false;
   private ProcessEndState endState = null;
+  private boolean stop = false;
+  private boolean running = false;
 
   /**
    * Construct a xcorr process watcher
@@ -37,14 +39,23 @@ public class XcorrProcessWatcher implements ProcessMonitor {
     this.blendmont = blendmont;
   }
 
+  public void stop() {
+    stop = true;
+  }
+
+  public boolean isRunning() {
+    return running;
+  }
+
   public void run() {
+    running = true;
     if (blendmont) {
       BlendmontProcessMonitor blendmontMonitor = new BlendmontProcessMonitor(
           applicationManager, axisID, BlendmontParam.Mode.XCORR);
       blendmontMonitor.setLastProcess(false);
       Thread blendmontThread = new Thread(blendmontMonitor);
       blendmontThread.start();
-      while (!blendmontMonitor.isDone()) {
+      while (!blendmontMonitor.isDone() && !stop) {
         try {
           Thread.sleep(100);
         }
@@ -62,7 +73,7 @@ public class XcorrProcessWatcher implements ProcessMonitor {
         applicationManager, axisID, blendmont);
     Thread tiltxcorrThread = new Thread(tiltxcorrMonitor);
     tiltxcorrThread.start();
-    while (!tiltxcorrMonitor.isDone()) {
+    while (!tiltxcorrMonitor.isDone() && !stop) {
       try {
         Thread.sleep(100);
       }
@@ -76,11 +87,12 @@ public class XcorrProcessWatcher implements ProcessMonitor {
       }
     }
     setProcessEndState(ProcessEndState.DONE);
+    running = false;
   }
-  
+
   public void msgLogFileRenamed() {
   }
-  
+
   /**
    * set end state
    * @param endState
@@ -88,30 +100,33 @@ public class XcorrProcessWatcher implements ProcessMonitor {
   public synchronized final void setProcessEndState(ProcessEndState endState) {
     this.endState = ProcessEndState.precedence(this.endState, endState);
   }
-  
+
   public synchronized final ProcessEndState getProcessEndState() {
     return endState;
   }
-  
+
   public void kill(SystemProcessInterface process, AxisID axisID) {
     endState = ProcessEndState.KILLED;
     process.signalKill(axisID);
   }
-  
+
   public ProcessMessages getProcessMessages() {
     return null;
   }
-  
+
   public String getStatusString() {
     return null;
   }
-  
+
   public void pause(SystemProcessInterface process, AxisID axisID) {
     throw new IllegalStateException("pause illegal in this monitor");
   }
 }
 /**
  * <p> $Log$
+ * <p> Revision 3.17  2007/02/05 23:02:59  sueh
+ * <p> bug# 962 Move comscript mode info to inner class.
+ * <p>
  * <p> Revision 3.16  2006/09/25 16:36:37  sueh
  * <p> bug# 931 Added empty function msgLogFileRenamed().
  * <p>
