@@ -60,6 +60,7 @@ final class DetachedProcess extends BackgroundProcess {
 
   void setSubdirName(String input) {
     subdirName = input;
+    getProcessData().setSubDirName(input);
   }
 
   void setShortCommandName(String input) {
@@ -136,8 +137,7 @@ final class DetachedProcess extends BackgroundProcess {
       bufferedWriter.newLine();
     }
     DetachedCommand detachedCommand = getDetachedCommand();
-    bufferedWriter.write(detachedCommand.getCommandString()
-        + " >& ");
+    bufferedWriter.write(detachedCommand.getCommandString() + " >& ");
     bufferedWriter.write(monitor.getProcessOutputFileName() + "&");
     bufferedWriter.newLine();
     if (detachedCommand.isSecondCommandLine()) {
@@ -247,6 +247,9 @@ final class DetachedProcess extends BackgroundProcess {
 }
 /**
  * <p> $Log$
+ * <p> Revision 1.14  2007/12/17 18:36:25  sueh
+ * <p> bug# 1061 Added the option to write a second command line to the run file.
+ * <p>
  * <p> Revision 1.13  2007/12/10 22:10:20  sueh
  * <p> bug# 1041 Removed subdirName from the constructor because it is optional.
  * <p>
