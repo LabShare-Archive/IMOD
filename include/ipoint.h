@@ -25,6 +25,7 @@ extern "C" {
 #endif
 
 int     imodPointAppend(Icont *cont, Ipoint *pnt);
+int     imodPointAppendXYZ(Icont *cont, float x, float y, float z);
 int     imodPointAdd(Icont *cont, Ipoint *pnt, int index);
 int     imodPointDelete(Icont *cont, int index);
 void    imodPointSetSize(Icont *cont, int pt, float size);
