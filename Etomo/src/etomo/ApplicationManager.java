@@ -53,7 +53,9 @@ import etomo.comscript.XfproductParam;
 import etomo.process.BaseProcessManager;
 import etomo.process.ImodManager;
 import etomo.process.ImodProcess;
+import etomo.process.ProcessData;
 import etomo.process.ProcessManager;
+import etomo.process.ProcessResultDisplayFactoryInterface;
 import etomo.process.ProcessState;
 import etomo.process.SystemProcessException;
 import etomo.storage.LogFile;
@@ -82,6 +84,7 @@ import etomo.type.ProcessResult;
 import etomo.type.ProcessEndState;
 import etomo.type.ProcessName;
 import etomo.type.ProcessResultDisplay;
+import etomo.type.ProcessResultDisplayFactory;
 import etomo.type.ProcessTrack;
 import etomo.type.ReconScreenState;
 import etomo.type.Run3dmodMenuOptions;
@@ -161,6 +164,8 @@ public final class ApplicationManager extends BaseManager {
   private boolean[] advancedB = new boolean[DialogType.TOTAL_RECON];
   private ReconScreenState screenStateA = null;
   private ReconScreenState screenStateB = null;
+  private ProcessResultDisplayFactory processResultDisplayFactoryA = null;
+  private ProcessResultDisplayFactory processResultDisplayFactoryB = null;
 
   /**
    * Does initialization and loads the .edf file. Opens the setup dialog if
@@ -220,6 +225,27 @@ public final class ApplicationManager extends BaseManager {
       advancedA[i] = isAdvanced;
       advancedB[i] = isAdvanced;
     }
+  }
+
+  public ProcessResultDisplayFactoryInterface getProcessResultDisplayFactoryInterface(
+      AxisID axisID) {
+    return getProcessResultDisplayFactory(axisID);
+  }
+
+  public ProcessResultDisplayFactory getProcessResultDisplayFactory(
+      AxisID axisID) {
+    if (axisID == AxisID.SECOND) {
+      if (processResultDisplayFactoryB == null) {
+        processResultDisplayFactoryB = ProcessResultDisplayFactory
+            .getInstance(getBaseScreenState(axisID));
+      }
+      return processResultDisplayFactoryB;
+    }
+    if (processResultDisplayFactoryA == null) {
+      processResultDisplayFactoryA = ProcessResultDisplayFactory
+          .getInstance(getBaseScreenState(axisID));
+    }
+    return processResultDisplayFactoryA;
   }
 
   /**
@@ -387,25 +413,42 @@ public final class ApplicationManager extends BaseManager {
     mainPanel.showProcessingPanel(metaData.getAxisType());
     mainPanel.updateAllProcessingStates(processTrack);
     setPanel();
-
     if (metaData.getAxisType() == AxisType.DUAL_AXIS) {
       reconnect(AxisID.FIRST);
-      reconnect(AxisID.SECOND);
     }
     else {
       reconnect(AxisID.ONLY);
     }
   }
 
-  private void reconnect(AxisID axisID) {
-    ProcessName processName = processMgr.getRunningProcessName(axisID);
+  /**
+   * Attempts to reconnect to a currently running process.  Only run once per
+   * axis.  Only attempts one reconnect.
+   * @param axisID - axis of the running process.
+   * @return true if a reconnect was attempted.
+   */
+  public boolean reconnect(AxisID axisID) {
+    if (super.reconnect(axisID)) {
+      return true;
+    }
+    if (isReconnectRun(axisID)) {
+      return false;
+    }
+    setReconnectRun(axisID);
+    ProcessData processData = processMgr.getRunningProcessData(axisID);
+    if (processData == null) {
+      return false;
+    }
+    ProcessName processName = processData.getProcessName();
     if (processName == null) {
-      return;
+      return false;
     }
     if (processName == ProcessName.TILT) {
       ((TomogramGenerationExpert) getUIExpert(DialogType.TOMOGRAM_GENERATION,
           axisID)).reconnectTilt(processName);
+      return true;
     }
+    return false;
   }
 
   public void reconnectTilt(AxisID axisID, ProcessName processName,
@@ -5355,6 +5398,9 @@ public final class ApplicationManager extends BaseManager {
 }
 /**
  * <p> $Log$
+ * <p> Revision 3.294  2007/12/26 21:53:34  sueh
+ * <p> bug# 1052 Created SetupDialogExpert.  Made SetupDialog package protected.
+ * <p>
  * <p> Revision 3.293  2007/12/13 01:01:45  sueh
  * <p> bug# 1056 Moved post processing decision making back to ProcessManager.
  * <p>
