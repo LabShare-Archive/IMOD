@@ -27,6 +27,20 @@ int imodPointAppend(Icont *cont, Ipoint *pnt)
 }
 
 /*!
+ * Adds the point [x], [y], [z] to the end of contour [cont].  Manages point
+ * sizes and labels correctly.  Returns number of points
+ * in contour, or 0 if an error occurs.
+ */
+int imodPointAppendXYZ(Icont *cont, float x, float y, float z)
+{
+  Ipoint pnt;
+  pnt.x = x;
+  pnt.y = y;
+  pnt.z = z;
+  return(imodPointAdd(cont, &pnt, cont->psize));
+}
+
+/*!
  * Adds point [pnt] to contour [cont] at the given [index].  Manages point
  * sizes and labels correctly.  Returns number of 
  * points in contour, or 0 if an error occurs.
@@ -560,6 +574,9 @@ int imodPointInsideCont(Icont *cont, Ipoint *pt)
 }
 
 /*  $Log$
+/*  Revision 3.10  2007/10/09 16:45:22  mast
+/*  Added test for point inside contour
+/*
 
 Revision 3.9  2007/04/26 19:09:46  mast
 Fixed segment distance function
