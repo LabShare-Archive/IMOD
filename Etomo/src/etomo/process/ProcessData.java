@@ -6,7 +6,12 @@ import etomo.BaseManager;
 import etomo.comscript.PsParam;
 import etomo.storage.Storable;
 import etomo.type.AxisID;
+import etomo.type.ConstEtomoNumber;
+import etomo.type.ConstStringProperty;
+import etomo.type.EtomoNumber;
 import etomo.type.ProcessName;
+import etomo.type.ProcessResultDisplay;
+import etomo.type.StringProperty;
 import etomo.type.Time;
 
 /**
@@ -38,6 +43,12 @@ public final class ProcessData implements Storable {
   private static final String START_TIME_KEY = "StartTime";
   private static final String PROCESS_NAME_KEY = "ProcessName";
 
+  private final EtomoNumber displayKey = new EtomoNumber("DisplayKey");
+  private final StringProperty subProcessName = new StringProperty(
+      "SubProcessName");
+  private final StringProperty subDirName = new StringProperty(
+  "SubDirName");
+
   private final AxisID axisID;
   private final String processDataPrepend;
   private final BaseManager manager;
@@ -46,7 +57,7 @@ public final class ProcessData implements Storable {
   private String groupPid = null;
   private Time startTime = null;
   private ProcessName processName = null;
-  private boolean readOnly = false;
+  private boolean doNotLoad = false;
 
   /**
    * Get an instance of ProcessData which is associated with a process managed
@@ -61,7 +72,7 @@ public final class ProcessData implements Storable {
       ProcessName processName) {
     ProcessData processData = new ProcessData(axisID, manager);
     processData.processName = processName;
-    processData.readOnly = true;
+    processData.doNotLoad = true;
     return processData;
   }
 
@@ -78,6 +89,20 @@ public final class ProcessData implements Storable {
     this.axisID = axisID;
     processDataPrepend = "ProcessData" + "." + axisID.getExtension();
     this.manager = manager;
+  }
+
+  public void setDisplayKey(ProcessResultDisplay processResultDisplay) {
+    if (processResultDisplay != null) {
+      displayKey.set(processResultDisplay.getDependencyIndex());
+    }
+  }
+
+  public void setSubProcessName(String input) {
+    subProcessName.set(input);
+  }
+  
+  public void setSubDirName(String input) {
+    subDirName.set(input);
   }
 
   /**
@@ -153,6 +178,18 @@ public final class ProcessData implements Storable {
     return processName;
   }
 
+  public String getSubProcessName() {
+    return subProcessName.toString();
+  }
+  
+  public ConstStringProperty getSubDirName() {
+    return subDirName;
+  }
+
+  public ConstEtomoNumber getDisplayKey() {
+    return displayKey;
+  }
+
   private String getPrepend(String prepend) {
     if (prepend == "") {
       prepend = processDataPrepend;
@@ -171,12 +208,16 @@ public final class ProcessData implements Storable {
   }
 
   private void store(Properties props, String prepend) {
-    String group = getPrepend(prepend) + ".";
+    prepend = getPrepend(prepend);
+    String group = prepend + ".";
     if (isEmpty()) {
       props.remove(group + PID_KEY);
       props.remove(group + GROUP_PID_KEY);
       props.remove(group + START_TIME_KEY);
       props.remove(group + PROCESS_NAME_KEY);
+      displayKey.remove(props, prepend);
+      subProcessName.remove(props, prepend);
+      subDirName.remove(props, prepend);
     }
     else {
       props.setProperty(group + PID_KEY, pid);
@@ -188,6 +229,9 @@ public final class ProcessData implements Storable {
       else {
         props.setProperty(group + PROCESS_NAME_KEY, processName.toString());
       }
+      displayKey.store(props, prepend);
+      subProcessName.store(props, prepend);
+      subDirName.store(props, prepend);
     }
   }
 
@@ -196,13 +240,14 @@ public final class ProcessData implements Storable {
   }
 
   private void load(Properties props, String prepend) {
-    if (readOnly) {
+    if (doNotLoad) {
       throw new IllegalStateException(
           "Trying to load into into thread data that belongs to a managed process.");
     }
     reset();
     processName = null;
-    String group = getPrepend(prepend) + ".";
+    prepend = getPrepend(prepend);
+    String group = prepend + ".";
     pid = props.getProperty(group + PID_KEY);
     groupPid = props.getProperty(group + GROUP_PID_KEY);
     //load startTime
@@ -215,10 +260,16 @@ public final class ProcessData implements Storable {
     if (sProcessName != null) {
       processName = ProcessName.getInstance(sProcessName, axisID);
     }
+    subProcessName.load(props, prepend);
+    subDirName.load(props, prepend);
+    displayKey.load(props, prepend);
   }
 }
 /**
  * <p> $Log$
+ * <p> Revision 1.6  2007/12/10 22:30:48  sueh
+ * <p> bug# 1041 working with the changes in ProcessName.
+ * <p>
  * <p> Revision 1.5  2006/10/24 21:39:45  sueh
  * <p> bug# 947 Changed ProcessName.fromString() to getInstance().
  * <p>
