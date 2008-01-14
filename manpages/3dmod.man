@@ -684,6 +684,7 @@ Options...    Open 3dmod preferences dialog to personalize settings
 
 .I Image Menu
    ZaP         Open a ZaP window.  (Z)
+   Multi-Z     Open a window to show array of successive slices
    XYZ         Open the XYZ window.
    Slicer      Open an image Slicer window.  (\\)
    Model View  Open a 3dmod model view window.  (v)
@@ -1009,6 +1010,18 @@ to the current contour and has no effect elsewhere.
 points to the current contour.
     Clicking with the right mouse button in the XY plane will move the
 current model point to that location.
+
+.SH Multi-Z Window
+A Multi-Z Window is opened by selecting the Multi-Z item
+from the Image menu.  The window contains an array of panels showing
+successive slices at the same location in the XY plane.  Initially, the window
+will show a row of 5 slices, but you can resize it and adjust the number of
+rows and/or columns of slices to display.  You can also select the Z interval
+between slices and control whether the model is displayed on the central slice
+and on the other slices.  The window is a special form of Zap Window so it has
+much of the Zap Window functionality, including the ability to select the
+current image or model point with the first mouse button, but modeling is not
+supported.
 
 .SH Tumbler Window
 The Tumbler Window is opened by selecting the Tumbler item
