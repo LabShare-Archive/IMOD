@@ -6,6 +6,7 @@ import etomo.BaseManager;
 import etomo.EtomoDirector;
 import etomo.storage.LogFile;
 import etomo.type.AxisID;
+import etomo.type.ConstStringProperty;
 import etomo.type.EtomoNumber;
 import etomo.type.ProcessEndState;
 import etomo.type.ProcessName;
@@ -27,19 +28,18 @@ import etomo.util.Utilities;
  * 
  * @version $Revision$
  */
-public class ProcesschunksProcessMonitor implements OutfileProcessMonitor,
+class ProcesschunksProcessMonitor implements OutfileProcessMonitor,
     ParallelProcessMonitor {
   public static final String rcsid = "$Id$";
 
-  private final static String TITLE = "Processchunks";
+  private static final String TITLE = "Processchunks";
+
+  static final String SUCCESS_TAG = "Finished reassembling";
 
   private static boolean debug = false;
 
   private final EtomoNumber nChunks = new EtomoNumber();
   private final EtomoNumber chunksFinished = new EtomoNumber();
-
-  protected final BaseManager manager;
-  protected final AxisID axisID;
   private final ParallelProgressDisplay parallelProgressDisplay;
   private final String rootName;
   private final String computerList;
@@ -64,8 +64,14 @@ public class ProcesschunksProcessMonitor implements OutfileProcessMonitor,
   private String pid = null;
   private boolean starting = true;
   private boolean finishing = false;
+  private boolean stop = false;
+  private boolean running = false;
+  private boolean reconnect = false;
 
-  public ProcesschunksProcessMonitor(BaseManager manager, AxisID axisID,
+  final BaseManager manager;
+  final AxisID axisID;
+
+  ProcesschunksProcessMonitor(BaseManager manager, AxisID axisID,
       ParallelProgressDisplay parallelProgressDisplay, String rootName,
       String computerList) {
     this.manager = manager;
@@ -76,14 +82,29 @@ public class ProcesschunksProcessMonitor implements OutfileProcessMonitor,
     debug = EtomoDirector.INSTANCE.getArguments().isDebug();
   }
 
+  public static ProcesschunksProcessMonitor getReconnectInstance(
+      BaseManager manager, AxisID axisID,
+      ParallelProgressDisplay parallelProgressDisplay, ProcessData processData) {
+    ProcesschunksProcessMonitor instance = new ProcesschunksProcessMonitor(
+        manager, axisID, parallelProgressDisplay, processData
+            .getSubProcessName(), null);
+    instance.reconnect = true;
+    return instance;
+  }
+
   public final void setProcess(SystemProcessInterface process) {
   }
 
-  final void setSubdirName(String input) {
-    subdirName = input;
+  public final boolean isRunning() {
+    return running;
+  }
+
+  public final void stop() {
+    stop = true;
   }
 
   public final void run() {
+    running = true;
     //make sure commmandsPipe is deleted and enable its use
     try {
       deleteCommandsPipe(true);
@@ -97,7 +118,7 @@ public class ProcesschunksProcessMonitor implements OutfileProcessMonitor,
     chunksFinished.set(0);
     initializeProgressBar();
     try {
-      while (processRunning) {
+      while (processRunning && !stop) {
         Thread.sleep(2000);
         if (updateState() || setProgressBarTitle) {
           updateProgressBar();
@@ -125,6 +146,7 @@ public class ProcesschunksProcessMonitor implements OutfileProcessMonitor,
       e.printStackTrace();
     }
     parallelProgressDisplay.msgEndingProcess();
+    running = false;
   }
 
   public final void msgLogFileRenamed() {
@@ -135,14 +157,140 @@ public class ProcesschunksProcessMonitor implements OutfileProcessMonitor,
     processRunning = false;//the only place that this should be changed
   }
 
-  public String getPid() {
+  public final String getPid() {
     return pid;
   }
 
-  protected boolean updateState() throws LogFile.ReadException,
-      LogFile.FileException {
+  public final String getLogFileName() {
+    try {
+      return getProcessOutputFileName();
+    }
+    catch (LogFile.FileException e) {
+      e.printStackTrace();
+      return "";
+    }
+  }
+
+  public final String getProcessOutputFileName() throws LogFile.FileException {
+    createProcessOutput();
+    return processOutput.getName();
+  }
+
+  /**
+   * set end state
+   * @param endState
+   */
+  public synchronized final void setProcessEndState(ProcessEndState endState) {
+    this.endState = ProcessEndState.precedence(this.endState, endState);
+  }
+
+  public final ProcessEndState getProcessEndState() {
+    return endState;
+  }
+
+  public final ProcessMessages getProcessMessages() {
+    return messages;
+  }
+
+  public final void kill(SystemProcessInterface process, AxisID axisID) {
+    try {
+      writeCommand("Q");
+      parallelProgressDisplay.msgKillingProcess();
+      killing = true;
+      setProgressBarTitle = true;
+      if (starting) {
+        //wait to see if processchunks is already starting chunks.
+        try {
+          Thread.sleep(2001);
+        }
+        catch (InterruptedException e) {
+        }
+        if (starting) {
+          //processchunks hasn't started chunks and it won't because the "Q" has
+          //been sent.  So it is save to kill it in the usual way.
+          if (process != null) {
+            process.signalKill(axisID);
+          }
+        }
+      }
+    }
+    catch (LogFile.WriteException e) {
+      e.printStackTrace();
+    }
+  }
+
+  public final void pause(SystemProcessInterface process, AxisID axisID) {
+    try {
+      writeCommand("P");
+      parallelProgressDisplay.msgPausingProcess();
+      pausing = true;
+      setProgressBarTitle = true;
+    }
+    catch (LogFile.WriteException e) {
+      e.printStackTrace();
+    }
+  }
+
+  public final String getStatusString() {
+    return chunksFinished + " of " + nChunks + " completed";
+  }
+
+  public final void drop(String computer) {
+    if (computerList == null || computerList.indexOf(computer) != -1) {
+      if (EtomoDirector.INSTANCE.getArguments().isDebug()) {
+        System.err.println("try to drop " + computer);
+      }
+      try {
+        writeCommand("D " + computer);
+        setProgressBarTitle = true;
+      }
+      catch (LogFile.WriteException e) {
+        e.printStackTrace();
+      }
+    }
+  }
+
+  public final boolean isProcessRunning() {
+    return processRunning;
+  }
+
+  final void setSubdirName(String input) {
+    subdirName = input;
+  }
+
+  final void setSubdirName(ConstStringProperty input) {
+    if (input == null || input.isEmpty()) {
+      subdirName = null;
+    }
+    else {
+      subdirName = input.toString();
+      System.out.println("subdirName="+subdirName);
+    }
+  }
+
+  final AxisID getAxisID() {
+    return axisID;
+  }
+
+  final boolean isStarting() {
+    return starting;
+  }
+
+  final boolean isFinishing() {
+    return finishing;
+  }
+
+  synchronized void closeProcessOutput() {
+    if (processOutput != null && processOutputReadId != LogFile.NO_ID) {
+      processOutput.closeReader(processOutputReadId);
+      processOutput = null;
+    }
+  }
+
+  boolean updateState() throws LogFile.ReadException, LogFile.FileException {
     createProcessOutput();
     if (processOutputReadId == LogFile.NO_ID) {
+      System.out.println("processOutput=" + processOutput.getAbsolutePath());
       processOutputReadId = processOutput.openReader();
     }
     boolean returnValue = false;
@@ -190,7 +338,7 @@ public class ProcesschunksProcessMonitor implements OutfileProcessMonitor,
         throw new IllegalStateException("Bad command sent to processchunks\n"
             + line);
       }
-      else if (line.equals("Finished reassembling")) {
+      else if (line.equals(SUCCESS_TAG)) {
         endMonitor(ProcessEndState.DONE);
       }
       else if (line
@@ -258,29 +406,7 @@ public class ProcesschunksProcessMonitor implements OutfileProcessMonitor,
     return returnValue;
   }
 
-  /**
-   * set end state
-   * @param endState
-   */
-  public synchronized final void setProcessEndState(ProcessEndState endState) {
-    this.endState = ProcessEndState.precedence(this.endState, endState);
-  }
-
-  public final ProcessEndState getProcessEndState() {
-    return endState;
-  }
-
-  public final ProcessMessages getProcessMessages() {
-    return messages;
-  }
-
-  private void initializeProgressBar() {
-    setProgressBarTitle();
-    manager.getMainPanel().setProgressBarValue(chunksFinished.getInt(),
-        "Starting...", axisID);
-  }
-
-  protected void updateProgressBar() {
+  void updateProgressBar() {
     if (setProgressBarTitle) {
       setProgressBarTitle = false;
       setProgressBarTitle();
@@ -289,7 +415,19 @@ public class ProcesschunksProcessMonitor implements OutfileProcessMonitor,
         getStatusString(), axisID);
   }
 
-  private void setProgressBarTitle() {
+  private void initializeProgressBar() {
+    setProgressBarTitle();
+    if (reconnect) {
+      manager.getMainPanel().setProgressBarValue(chunksFinished.getInt(),
+          "Reconnecting...", axisID);
+    }
+    else {
+      manager.getMainPanel().setProgressBarValue(chunksFinished.getInt(),
+          "Starting...", axisID);
+    }
+  }
+
+  private final void setProgressBarTitle() {
     StringBuffer title = new StringBuffer(TITLE);
     if (rootName != null) {
       title.append(" " + rootName);
@@ -307,71 +445,13 @@ public class ProcesschunksProcessMonitor implements OutfileProcessMonitor,
         axisID, !reassembling && !killing, ProcessName.PROCESSCHUNKS);
   }
 
-  public final void kill(SystemProcessInterface process, AxisID axisID) {
-    try {
-      writeCommand("Q");
-      parallelProgressDisplay.msgKillingProcess();
-      killing = true;
-      setProgressBarTitle = true;
-      if (starting) {
-        //wait to see if processchunks is already starting chunks.
-        try {
-          Thread.sleep(2001);
-        }
-        catch (InterruptedException e) {
-        }
-        if (starting) {
-          //processchunks hasn't started chunks and it won't because the "Q" has
-          //been sent.  So it is save to kill it in the usual way.
-          if (process != null) {
-            process.signalKill(axisID);
-          }
-        }
-      }
-    }
-    catch (LogFile.WriteException e) {
-      e.printStackTrace();
-    }
-  }
-
-  public final void pause(SystemProcessInterface process, AxisID axisID) {
-    try {
-      writeCommand("P");
-      parallelProgressDisplay.msgPausingProcess();
-      pausing = true;
-      setProgressBarTitle = true;
-    }
-    catch (LogFile.WriteException e) {
-      e.printStackTrace();
-    }
-  }
-
-  public final String getStatusString() {
-    return chunksFinished + " of " + nChunks + " completed";
-  }
-
-  public final void drop(String computer) {
-    if (computerList.indexOf(computer) != -1) {
-      if (EtomoDirector.INSTANCE.getArguments().isDebug()) {
-        System.err.println("try to drop " + computer);
-      }
-      try {
-        writeCommand("D " + computer);
-        setProgressBarTitle = true;
-      }
-      catch (LogFile.WriteException e) {
-        e.printStackTrace();
-      }
-    }
-  }
-
   /**
    * make sure the commandsPipe file is deleted and enable/disable its use
    * synchronized with createCommandsWriter
    * synchronization is for useCommandsPipe and commmandsPipe
    * @param startup
    */
-  private synchronized void deleteCommandsPipe(boolean enable)
+  private final synchronized void deleteCommandsPipe(boolean enable)
       throws LogFile.FileException {
     if (!enable) {
       //turn off useCommandsPipe to prevent use of commandsPipe
@@ -401,7 +481,7 @@ public class ProcesschunksProcessMonitor implements OutfileProcessMonitor,
    * @param command
    * @throws IOException
    */
-  private void writeCommand(String command) throws LogFile.WriteException {
+  private final void writeCommand(String command) throws LogFile.WriteException {
     if (!useCommandsPipe) {
       return;
     }
@@ -421,50 +501,29 @@ public class ProcesschunksProcessMonitor implements OutfileProcessMonitor,
     commandsPipe.flush(commandsPipeWriteId);
   }
 
-  public final AxisID getAxisID() {
-    return axisID;
-  }
-
-  public final boolean isProcessRunning() {
-    return processRunning;
-  }
-
-  protected final boolean isStarting() {
-    return starting;
-  }
-
-  protected final boolean isFinishing() {
-    return finishing;
-  }
-
-  protected synchronized void closeProcessOutput() {
-    if (processOutput != null && processOutputReadId != LogFile.NO_ID) {
-      processOutput.closeReader(processOutputReadId);
-      processOutput = null;
-    }
-  }
-
   /**
    * make sure process output file is new and set processOutputFile.  This
    * function should be first run before the process starts.
    */
-  private synchronized void createProcessOutput() throws LogFile.FileException {
+  private final synchronized void createProcessOutput()
+      throws LogFile.FileException {
     if (processOutput == null) {
       processOutput = LogFile.getInstance(manager.getPropertyUserDir(),
           DatasetFiles.getOutFileName(manager, subdirName,
               ProcessName.PROCESSCHUNKS.toString(), axisID));
-      //avoid looking at a file from a previous run
-      processOutput.backup();
+      //Don't remove the file if this is a reconnect.
+      if (!reconnect) {
+        //Avoid looking at a file from a previous run.
+        processOutput.backup();
+      }
     }
-  }
-
-  public final String getProcessOutputFileName() throws LogFile.FileException {
-    createProcessOutput();
-    return processOutput.getName();
   }
 }
 /**
  * <p> $Log$
+ * <p> Revision 1.34  2007/12/26 22:14:38  sueh
+ * <p> bug# 1052 Moved argument handling from EtomoDirector to a separate class.
+ * <p>
  * <p> Revision 1.33  2007/12/10 22:29:11  sueh
  * <p> bug# 1041 Removed subdirName from the constructor because it is optional.
  * <p>
