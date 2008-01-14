@@ -20,6 +20,9 @@
  * 
  * <p>
  * $Log$
+ * Revision 3.118  2007/12/26 22:14:52  sueh
+ * bug# 1052 Moved argument handling from EtomoDirector to a separate class.
+ *
  * Revision 3.117  2007/12/13 01:10:10  sueh
  * bug# 1056 Made tilt() always pass the param.  Doing post processing on Tilt;
  * setting AdjustOrigin for tilt and whole tomogram.
@@ -898,14 +901,6 @@ public class ProcessManager extends BaseProcessManager {
     appManager = appMgr;
   }
 
-  public ProcessName getRunningProcessName(AxisID axisID) {
-    ProcessData processData = getSavedProcessData(axisID);
-    if (processData == null || !processData.isRunning()) {
-      return null;
-    }
-    return processData.getProcessName();
-  }
-
   /**
    * Run the copytomocoms script.  Don't need to save meta data because
    * this function is run on exiting Setup dialog
@@ -1421,7 +1416,7 @@ public class ProcessManager extends BaseProcessManager {
 
   public void reconnectTilt(AxisID axisID,
       ProcessResultDisplay processResultDisplay) {
-    ReconnectProcess process = new ReconnectProcess(appManager, this,
+    ReconnectProcess process = ReconnectProcess.getInstance(appManager, this,
         TiltProcessMonitor.getReconnectInstance(appManager, axisID),
         getSavedProcessData(axisID), axisID);
     process.setProcessResultDisplay(processResultDisplay);
