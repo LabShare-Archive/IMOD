@@ -23,6 +23,9 @@ import etomo.util.Utilities;
  * @version $Revision$
  * 
  * <p> $Log$
+ * <p> Revision 3.27  2006/10/24 21:19:34  sueh
+ * <p> bug# 947 Passing the ProcessName to AxisProcessPanel.
+ * <p>
  * <p> Revision 3.26  2006/10/10 05:09:33  sueh
  * <p> bug# 931 Managing the log file with LogFile.
  * <p>
@@ -175,23 +178,25 @@ import etomo.util.Utilities;
 
 public abstract class LogFileProcessMonitor implements ProcessMonitor {
   public static final String rcsid = "$Id$";
-  protected ApplicationManager applicationManager;
-  protected AxisID axisID;
-  protected long processStartTime;
+  ApplicationManager applicationManager;
+  AxisID axisID;
+  long processStartTime;
   //protected BufferedReader logFileReader;
-  protected int nSections = Integer.MIN_VALUE;
-  protected int currentSection;
-  protected int remainingTime;
-  protected int waitingForExit = 0;
+  int nSections = Integer.MIN_VALUE;
+  int currentSection;
+  int remainingTime;
+  int waitingForExit = 0;
   private boolean processRunning = true;
   private boolean done = false;
 
-  protected int updatePeriod = 500;
-  protected int stopWaiting = 10;
-  protected boolean lastProcess = true;
+  int updatePeriod = 500;
+  int stopWaiting = 10;
+  boolean lastProcess = true;
 
   boolean standardLogFileName = true;
   private ProcessEndState endState = null;
+  private boolean stop = false;
+  private boolean running = false;
 
   //  This needs to be set in the concrete class constructor
   protected String logFileBasename;
@@ -209,13 +214,23 @@ public abstract class LogFileProcessMonitor implements ProcessMonitor {
    * @param appMgr  The application manager object
    * @param id  The axis ID to be monitored
    */
-  public LogFileProcessMonitor(ApplicationManager appMgr, AxisID id, ProcessName processName) {
+  public LogFileProcessMonitor(ApplicationManager appMgr, AxisID id,
+      ProcessName processName) {
     applicationManager = appMgr;
     axisID = id;
     this.processName = processName;
   }
 
+  public void stop() {
+    stop = true;
+  }
+
+  public boolean isRunning() {
+    return running;
+  }
+
   public void run() {
+    running = true;
     initializeProgressBar();
     //  Instantiate the logFile object
     //String logFileName;
@@ -238,7 +253,7 @@ public abstract class LogFileProcessMonitor implements ProcessMonitor {
       findNSections();
       initializeProgressBar();
 
-      while (processRunning && waitingForExit < stopWaiting) {
+      while (processRunning && waitingForExit < stopWaiting && !stop) {
         Thread.sleep(updatePeriod);
         getCurrentSection();
         calcRemainingTime();
@@ -279,6 +294,7 @@ public abstract class LogFileProcessMonitor implements ProcessMonitor {
     if (!lastProcess) {
       postProcess();
     }
+    running = false;
   }
 
   public void msgLogFileRenamed() {
@@ -345,7 +361,8 @@ public abstract class LogFileProcessMonitor implements ProcessMonitor {
    * sections
    */
   protected void findNSections() throws InterruptedException,
-      NumberFormatException, LogFile.ReadException,InvalidParameterException,IOException {
+      NumberFormatException, LogFile.ReadException, InvalidParameterException,
+      IOException {
 
     //  Search for the number of sections, we should see a header ouput first
     boolean foundNSections = false;
