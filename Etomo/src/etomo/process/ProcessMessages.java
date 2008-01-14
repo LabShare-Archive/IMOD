@@ -57,6 +57,10 @@ public final class ProcessMessages {
   static ProcessMessages getInstance() {
     return new ProcessMessages(false, false, null, null);
   }
+  
+  static ProcessMessages getInstance(String successTag) {
+    return new ProcessMessages(false, false, successTag, null);
+  }
 
   static ProcessMessages getInstance(String successTag1, String successTag2) {
     return new ProcessMessages(false, false, successTag1, successTag2);
@@ -828,6 +832,9 @@ public final class ProcessMessages {
 }
 /**
  * <p> $Log$
+ * <p> Revision 1.8  2006/10/10 05:13:05  sueh
+ * <p> bug# 931 Added addProcessOutput(LogFile).
+ * <p>
  * <p> Revision 1.7  2006/08/03 21:30:59  sueh
  * <p> bug# 769 Fixed parse():  once a message is found, return.  This means that all
  * <p> line will be checked for all messages.  Added parseSuccessLine().
