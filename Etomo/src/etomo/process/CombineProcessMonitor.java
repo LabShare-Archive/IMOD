@@ -31,6 +31,9 @@ import etomo.util.Utilities;
  * @version $$Revision$$
  * 
  * <p> $$Log$
+ * <p> $Revision 1.25  2007/12/26 22:12:59  sueh
+ * <p> $bug# 1052 Moved argument handling from EtomoDirector to a separate class.
+ * <p> $
  * <p> $Revision 1.24  2007/12/10 22:06:29  sueh
  * <p> $bug# 1041 working with the changes in ProcessName.
  * <p> $
@@ -196,6 +199,8 @@ public class CombineProcessMonitor implements DetachedProcessMonitor {
   private boolean firstChildProcessSet = false;
   private LogFile childLog = null;
   private long childLogWriteId = LogFile.NO_ID;
+  private boolean stop = false;
+  private boolean running = false;
 
   /**
    * @param applicationManager
@@ -255,7 +260,7 @@ public class CombineProcessMonitor implements DetachedProcessMonitor {
   }
 
   private void initializeProgressBar() {
-    manager.startProgressBar(COMBINE_LABEL, axisID,ProcessName.SOLVEMATCH);
+    manager.startProgressBar(COMBINE_LABEL, axisID, ProcessName.SOLVEMATCH);
     return;
   }
 
@@ -304,7 +309,7 @@ public class CombineProcessMonitor implements DetachedProcessMonitor {
     manager.progressBarDone(axisID, ProcessEndState.DONE);
     String childCommandName = comscriptName.substring(0, comscriptName
         .indexOf(".com"));
-    currentCommand = ProcessName.getInstance(childCommandName,axisID);
+    currentCommand = ProcessName.getInstance(childCommandName, axisID);
     if (currentCommand != null) {
       childLog = LogFile.getInstance(manager.getPropertyUserDir(), axisID,
           currentCommand);
@@ -415,7 +420,16 @@ public class CombineProcessMonitor implements DetachedProcessMonitor {
     }
     setNextProcessResultDisplay(null);
     manager.showPane(CombineComscriptState.COMSCRIPT_NAME, combineProcessType);
-    manager.startProgressBar(COMBINE_LABEL + ": " + childCommandName, axisID, processName);
+    manager.startProgressBar(COMBINE_LABEL + ": " + childCommandName, axisID,
+        processName);
+  }
+
+  public void stop() {
+    stop = true;
+  }
+
+  public boolean isRunning() {
+    return running;
   }
 
   /**
@@ -424,6 +438,7 @@ public class CombineProcessMonitor implements DetachedProcessMonitor {
    * After loop, turn off the monitor if that hasn't been done already.
    */
   public void run() {
+    running = true;
     runThread = Thread.currentThread();
     initializeProgressBar();
     //  Instantiate the logFile object
@@ -437,7 +452,7 @@ public class CombineProcessMonitor implements DetachedProcessMonitor {
       waitForLogFile();
       initializeProgressBar();
 
-      while (processRunning) {
+      while (processRunning && !stop) {
         Thread.sleep(SLEEP);
         getCurrentSection();
       }
@@ -464,6 +479,7 @@ public class CombineProcessMonitor implements DetachedProcessMonitor {
       logFileReadId = LogFile.NO_ID;
     }
     runSelfTest(RAN_STATE);
+    running = false;
   }
 
   public void msgLogFileRenamed() {
@@ -473,7 +489,7 @@ public class CombineProcessMonitor implements DetachedProcessMonitor {
    * Wait for the process to start and the appropriate log file to be created 
    * @return a buffered reader of the log file
    */
-  private void waitForLogFile() throws ReadException,InterruptedException{
+  private void waitForLogFile() throws ReadException, InterruptedException {
     if (logFile == null) {
       throw new NullPointerException("logFile");
     }
@@ -569,7 +585,7 @@ public class CombineProcessMonitor implements DetachedProcessMonitor {
     return null;
   }
 
-  public final String getProcessOutputFileName()throws LogFile.FileException {
+  public final String getProcessOutputFileName() throws LogFile.FileException {
     return null;
   }
 }

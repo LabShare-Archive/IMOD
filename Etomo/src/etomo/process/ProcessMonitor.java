@@ -26,9 +26,21 @@ public interface ProcessMonitor extends Runnable {
   public String getStatusString();
   public ProcessMessages getProcessMessages();
   public void msgLogFileRenamed();
+  /**
+   * Stop the monitor.  Doesn't effect the process.
+   */
+  public void stop();
+  /**
+   * 
+   * @return true if monitor is running.
+   */
+  public boolean isRunning();
 }
 /**
 * <p> $Log$
+* <p> Revision 1.8  2006/09/25 16:36:29  sueh
+* <p> bug# 931 Added msgLogFileRenamed().
+* <p>
 * <p> Revision 1.7  2005/11/19 02:26:10  sueh
 * <p> bug# 744 Moving pause, getStatusString, and getProcessMessages to
 * <p> ProcessMonitor because they are potentially valid things to do for any
