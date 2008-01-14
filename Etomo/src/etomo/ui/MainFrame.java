@@ -31,6 +31,9 @@ import etomo.util.UniqueKey;
  * @version $Revision$
  *
  * <p> $Log$
+ * <p> Revision 3.45  2007/12/26 22:24:56  sueh
+ * <p> bug# 1052 Moved argument handling from EtomoDirector to a separate class.
+ * <p>
  * <p> Revision 3.44  2007/09/07 00:27:30  sueh
  * <p> bug# 989 Using a public INSTANCE to refer to the EtomoDirector singleton
  * <p> instead of getInstance and createInstance.
@@ -607,6 +610,7 @@ final class MainFrame extends EtomoFrame implements ContextMenu {
       subFrame.setVisible(false);
     }
     mainPanel.showAxisB();
+    currentManager.reconnect(AxisID.SECOND);
     UIHarness.INSTANCE.pack(AxisID.SECOND, currentManager);
   }
   
@@ -620,6 +624,7 @@ final class MainFrame extends EtomoFrame implements ContextMenu {
     else {
       subFrame.setVisible(true);
     }
+    currentManager.reconnect(AxisID.SECOND);
     UIHarness.INSTANCE.pack(currentManager);
     subFrame.pack();
   }
