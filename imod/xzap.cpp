@@ -3420,6 +3420,22 @@ static void setMouseTracking(ZapStruct *zap)
                              pixelViewOpen || zap->vi->trackMouseForPlugs);
 }
 
+/* 
+ * Return the image coordinates of the mouse in the top Zap
+ */
+int getTopZapMouse(Ipoint *imagePt)
+{
+  int mx, my, iz;
+  ZapStruct *zap = getTopZapWindow(false);
+  if (!zap)
+    return 1;
+  mx = zap->gfx->mapFromGlobal(QCursor::pos()).x();
+  my = zap->gfx->mapFromGlobal(QCursor::pos()).y();
+  zapGetixy(zap, mx, my, &imagePt->x, &imagePt->y, &iz);
+  imagePt->z = (float)iz;
+  return 0;
+}
+
 /*
  * Look through all multiZ windows and report params of biggest one
  */
@@ -4353,6 +4369,9 @@ static int zapPointVisable(ZapStruct *zap, Ipoint *pnt)
 
 /*
 $Log$
+Revision 4.109  2008/01/13 23:19:22  mast
+Fixed some compilation issues
+
 Revision 4.108  2008/01/13 22:58:35  mast
 Changes for multi-Z window
 

@@ -133,6 +133,7 @@ int zapSetupPanels(ZapStruct *zap);
 void zapReportBiggestMultiZ();
 void zapToggleContourShift(ZapStruct *zap);
 ZapStruct *getTopZapWindow(bool withBand);
+int getTopZapMouse(Ipoint *imagePt);
 int  imod_zap_open(struct ViewInfo *vi, int wintype);
 int zapSubsetLimits(ViewInfo *vi, int &ixStart, int &iyStart, int &nxUse, 
                     int &nyUse);
@@ -144,6 +145,9 @@ void zapSetMouseTracking();
 
 /*
 $Log$
+Revision 3.27  2008/01/13 22:58:35  mast
+Changes for multi-Z window
+
 Revision 3.26  2007/12/04 18:47:27  mast
 Changes for moving functions to utilities module, and for mouse tracking
 and cursor-like drawing
