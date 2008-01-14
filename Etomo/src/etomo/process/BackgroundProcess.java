@@ -26,6 +26,9 @@ import etomo.ui.UIHarness;
  * @version $Revision$
  * 
  * <p> $Log$
+ * <p> Revision 3.35  2007/11/06 19:19:48  sueh
+ * <p> bug# 1047 Added getCommandDetails.
+ * <p>
  * <p> Revision 3.34  2007/05/11 15:37:04  sueh
  * <p> bug# 964 Added processDone(int, boolean); an overrideable function
  * <p> which calls processManager.msgProcessDone().  This allows the call to
@@ -281,6 +284,7 @@ public class BackgroundProcess extends Thread implements SystemProcessInterface 
     this.processResultDisplay = processResultDisplay;
     commandProcessID = new StringBuffer("");
     processData = ProcessData.getManagedInstance(axisID, manager, processName);
+    processData.setDisplayKey(processResultDisplay);
   }
 
   public BackgroundProcess(BaseManager manager, CommandDetails commandDetails,
@@ -309,6 +313,7 @@ public class BackgroundProcess extends Thread implements SystemProcessInterface 
     this.processResultDisplay = processResultDisplay;
     commandProcessID = new StringBuffer("");
     processData = ProcessData.getManagedInstance(axisID, manager, processName);
+    processData.setDisplayKey(processResultDisplay);
   }
 
   public BackgroundProcess(BaseManager manager, Command command,
@@ -334,6 +339,7 @@ public class BackgroundProcess extends Thread implements SystemProcessInterface 
     this.processResultDisplay = processResultDisplay;
     commandProcessID = new StringBuffer("");
     processData = ProcessData.getManagedInstance(axisID, manager, processName);
+    processData.setDisplayKey(processResultDisplay);
   }
 
   public BackgroundProcess(BaseManager manager, String[] commandArray,
@@ -369,6 +375,7 @@ public class BackgroundProcess extends Thread implements SystemProcessInterface 
     this.processResultDisplay = processResultDisplay;
     commandProcessID = new StringBuffer("");
     processData = ProcessData.getManagedInstance(axisID, manager, processName);
+    processData.setDisplayKey(processResultDisplay);
   }
 
   public final AxisID getAxisID() {
