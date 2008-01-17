@@ -21,19 +21,12 @@ c       smallest factor needed to make them 1024 or smaller.
 c       
 c       For further details, see the man page.
 C       
-c       
-c       David Mastronarde 10/6/98
-*       
-c       $Author$
-c       
-c       $Date$
-c       
-c       $Revision$
+c       $Id$
 c       Log at end
 c       
       implicit none
       integer idim,idim2,limview
-      parameter (idim=5000*5000,idim2=1200*1200,limview=720)
+      parameter (idim=8200*8200,idim2=1200*1200,limview=720)
       integer*4 NX,NY,NZ,nxs,nys,nzs
       COMMON //NX,NY,NZ,nxs,nys,nzs
 C       
@@ -827,6 +820,9 @@ c	print *,xpeak,ypeak
 
 c       
 c       $Log$
+c       Revision 3.24  2007/10/10 17:22:18  mast
+c       Switched to new parabolic fit routine
+c
 c       Revision 3.23  2006/07/26 23:57:35  mast
 c       Fixed cumulative correlation to avoid inverting stretch with two
 c       equal lowest angles
