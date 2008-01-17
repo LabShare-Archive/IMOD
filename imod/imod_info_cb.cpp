@@ -26,6 +26,7 @@
 #include "imod_input.h"
 #include "imod_cont_edit.h"
 #include "imod_io.h"
+#include "imodplug.h"
 #include "imod_iscale.h"
 #include "imod_info_cb.h"
 #include "preferences.h"
@@ -302,6 +303,7 @@ void imod_info_setocp(void)
   imodContEditSurfShow();
   imodContEditMoveDialogUpdate();
   fineGrainUpdate();
+  imodPlugCall(App->cvi, 0, IMOD_REASON_MODUPDATE);
 }
 
 /*
@@ -787,6 +789,9 @@ void imod_imgcnt(char *string)
 
 /*
 $Log$
+Revision 4.25  2007/07/08 16:04:49  mast
+Used new hot slider function
+
 Revision 4.24  2006/10/02 15:33:13  mast
 Fixed for > 2 Gpixel image
 
