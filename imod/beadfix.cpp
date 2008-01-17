@@ -51,6 +51,7 @@
 #include "unpegged.xpm"
 #include "imod_input.h"
 #include "imod_edit.h"
+#include "imodv_objed.h"
 #include "preferences.h"
 #include "undoredo.h"
 
@@ -59,6 +60,7 @@
 static char *imodPlugInfo(int *type);
 static int imodPlugKeys(ImodView *vw, QKeyEvent *event);
 static void imodPlugExecute(ImodView *inImodView);
+static void imodPlugExecuteType(ImodView *inImodView, int type, int reason);
 static  int imodPlugExecuteMessage(ImodView *vw, QStringList *strings,
                                    int *arg);
 static int imodPlugMouse(ImodView *vw, QMouseEvent *event, float imx,
@@ -69,7 +71,7 @@ enum {SEED_MODE = 0, GAP_MODE, RES_MODE};
 BeadFixerModule::BeadFixerModule()
 {
   mInfo = imodPlugInfo;
-  mExecuteType = NULL;
+  mExecuteType = imodPlugExecuteType;
   mExecute = imodPlugExecute;
   mExecuteMessage = imodPlugExecuteMessage;
   mKeys = imodPlugKeys;
@@ -79,7 +81,7 @@ BeadFixerModule::BeadFixerModule()
 #define MAXLINE 100
 #define MAX_DIAMETER 50
 #define MAX_OVERLAY 20
-#define NUM_SAVED_VALS 10
+#define NUM_SAVED_VALS 11
 
 /*
  *  Define a structure to contain all local plugin data.
@@ -97,11 +99,12 @@ typedef struct
   int    showMode;
   int    reverseOverlay;
   int    autoNewCont;
+  int    delOnAllSec;
   char   *filename;
 }PlugData;
 
 
-static PlugData thisPlug = { NULL, NULL, 0, 0, 0, 0, 10, 0, 4, 0, 0, NULL };
+static PlugData thisPlug = { NULL, NULL, 0, 0, 0, 0, 10, 0, 4, 0, 0, 0, NULL };
 static PlugData *plug = &thisPlug;
 
 #define ERROR_NO_IMOD_DIR -64352
@@ -259,6 +262,7 @@ void imodPlugExecute(ImodView *inImodView)
     loadSaved(plug->showMode, 7);
     loadSaved(plug->reverseOverlay, 8);
     loadSaved(plug->autoNewCont, 9);
+    loadSaved(plug->delOnAllSec, 10);
   }
 
   /*
@@ -284,12 +288,21 @@ void imodPlugExecute(ImodView *inImodView)
   plug->window->show();
 }
 
+/* Execute other specific commands (update for model change) */
+void imodPlugExecuteType(ImodView *inImodView, int type, int reason)
+{
+  if (reason == IMOD_REASON_MODUPDATE && plug->window)
+    plug->window->modelUpdate();
+}
+
 /* Execute the message in the strings.
    Keep the action definitions in imod_client_message.h */
 
 int imodPlugExecuteMessage(ImodView *vw, QStringList *strings, int *arg)
 {
-  return plug->window->executeMessage(strings, arg);
+  if (plug->window)
+    return plug->window->executeMessage(strings, arg);
+  return 0;
 }
 
 int BeadFixer::executeMessage(QStringList *strings, int *arg)
@@ -1502,27 +1515,29 @@ void BeadFixer::setOverlay(int doIt, int state)
 void BeadFixer::threshChanged(int slider, int value, bool dragging)
 {
   Imod *imod = ivwGetModel(plug->view);
-  Iobj *obj;
+  Iobj *obj = imodObjectGet(imod);
   int ob;
   int valblack = B3DNINT((255. * (value - mPeakMin)) / (mPeakMax - mPeakMin));
-  for (ob = 0; ob < imod->objsize; ob++) {
-    obj = &imod->obj[ob];
-    if ((obj->flags & IMOD_OBJFLAG_USE_VALUE) && 
-        (obj->matflags2 & MATFLAGS2_SKIP_LOW))
-      obj->valblack = (unsigned char)valblack;
-  }
+  if (!obj)
+    return;
+  plug->view->undo->objectPropChg();
+  obj->valblack = (unsigned char)valblack;
+  plug->view->undo->finishUnit();
   ivwDraw(plug->view, IMOD_DRAW_MOD | IMOD_DRAW_NOSYNC);
+  imodvObjedNewView();
 }
 
 void BeadFixer::deleteBelow()
 {
   Imod *imod = ivwGetModel(plug->view);
   Iobj *obj;
-  int ob, i;
+  int ob, i, del, ix, iy, iz, pt;
   Istore *store;
   Iindex index;
+  Icont *cont;
   float thresh = threshSlider->getSlider(0)->value() / 1000.;
   index.point = -1;
+  ivwGetLocation(plug->view, &ix, &iy, &iz);
   for (ob = 0; ob < imod->objsize; ob++) {
     obj = &imod->obj[ob];
     index.object = ob;
@@ -1533,12 +1548,48 @@ void BeadFixer::deleteBelow()
         if (store->type == GEN_STORE_VALUE1 && 
             !(store->flags & GEN_STORE_SURFACE) && store->value.f < thresh) {
           index.contour = store->index.i;
-          imodSelectionListAdd(plug->view, index);
+          if (index.contour > 0 && index.contour < obj->contsize) {
+            del = 1;
+            if (!plug->delOnAllSec) {
+              del = 0;
+              cont = &obj->cont[index.contour];
+              for (pt = 0; pt < cont->psize; pt++) {
+                if (B3DNINT(cont->pts[pt].z) == iz) {
+                  del = 1;
+                  break;
+                }
+              }
+            }
+            if (del)    
+              imodSelectionListAdd(plug->view, index);
+          }
         }
       }
     }
   }
   inputDeleteContour(plug->view);
+}
+
+
+void BeadFixer::delAllSecToggled(bool state)
+{
+  plug->delOnAllSec = state ? 1 : 0;
+}
+
+void BeadFixer::turnOffToggled(bool state)
+{
+  Imod *imod = ivwGetModel(plug->view);
+  Iobj *obj = imodObjectGet(imod);
+  if (!obj)
+    return;
+  plug->view->undo->objectPropChg();
+  if (state)
+    obj->matflags2 |= MATFLAGS2_SKIP_LOW;
+  else
+    obj->matflags2 &= ~MATFLAGS2_SKIP_LOW;
+  plug->view->undo->finishUnit();
+  ivwDraw(plug->view, IMOD_DRAW_MOD | IMOD_DRAW_NOSYNC);
+  imodvObjedNewView();
 }
 
 void BeadFixer::modeSelected(int value)
@@ -1547,10 +1598,12 @@ void BeadFixer::modeSelected(int value)
   showWidget(seedModeBox, value == SEED_MODE);
   showWidget(overlayHbox, value == SEED_MODE);
   showWidget(reverseBox, value == SEED_MODE);
-  showWidget(deleteBelowBut, value == SEED_MODE);
-  if (threshSlider)
+  if (threshSlider) {
     showWidget((QWidget *)(threshSlider->getSlider(0)), value == SEED_MODE);
-
+    showWidget(deleteBelowBut, value == SEED_MODE);
+    showWidget(delAllSecBut, value == SEED_MODE);
+    showWidget(turnOffBut, value == SEED_MODE);
+  }
 
   // Manage gap filling items
   showWidget(nextGapBut, value == GAP_MODE);
@@ -1594,6 +1647,32 @@ void BeadFixer::showWidget(QWidget *widget, bool state)
     widget->hide();
 }
 
+// Change the thresholding widgets based on a change in model */
+void BeadFixer::modelUpdate()
+{
+  Imod *imod = ivwGetModel(plug->view);
+  Iobj *obj = imodObjectGet(imod);
+  bool enabled;
+  float min, max;
+  int value;
+
+  if (!threshSlider || !obj)
+    return;
+  enabled = obj->flags & IMOD_OBJFLAG_USE_VALUE;
+  threshSlider->setEnabled(0, enabled);
+  delAllSecBut->setEnabled(enabled);
+  turnOffBut->setEnabled(enabled);
+  deleteBelowBut->setEnabled(enabled);
+  if (!enabled)
+    return;
+  istoreGetMinMax(obj->store, obj->contsize, GEN_STORE_MINMAX1, &min, &max);
+  mPeakMin = B3DNINT(min * 1000.);
+  mPeakMax = B3DNINT(max * 1000.);
+  threshSlider->setRange(0, mPeakMin, mPeakMax);
+  threshSlider->setValue(0, B3DNINT(obj->valblack * (mPeakMax - mPeakMin) /
+                              255. + mPeakMin));
+  diaSetChecked(turnOffBut, (obj->matflags2 & MATFLAGS2_SKIP_LOW) != 0);
+}
  
 // THE WINDOW CLASS CONSTRUCTOR
  
@@ -1735,8 +1814,7 @@ BeadFixer::BeadFixer(QWidget *parent, const char *name)
   // Determine if any object has a value display set
   for (ob = 0; ob < imod->objsize; ob++) {
     obj = &imod->obj[ob];
-    if ((obj->flags & IMOD_OBJFLAG_USE_VALUE) && 
-        (obj->matflags2 & MATFLAGS2_SKIP_LOW)) {
+    if (obj->flags & IMOD_OBJFLAG_USE_VALUE) {
       istoreGetMinMax(obj->store, obj->contsize, GEN_STORE_MINMAX1, &min,
                       &max);
       mPeakMin = B3DNINT(min * 1000.);
@@ -1752,9 +1830,23 @@ BeadFixer::BeadFixer(QWidget *parent, const char *name)
       threshSlider->setValue(0, B3DNINT(obj->valblack * (mPeakMax - mPeakMin) /
                                        255. + mPeakMin));
 
+      turnOffBut = diaCheckBox("Turn off below threshold", this, mLayout);
+      connect(turnOffBut, SIGNAL(toggled(bool)), this,
+              SLOT(turnOffToggled(bool)));
+      QToolTip::add(turnOffBut, "Do not show contours below the threshold");
+      diaSetChecked(turnOffBut, (obj->matflags2 & MATFLAGS2_SKIP_LOW) != 0);
+
       deleteBelowBut = diaPushButton("Delete below", this, mLayout);
       connect(deleteBelowBut, SIGNAL(clicked()), this, SLOT(deleteBelow()));
       QToolTip::add(deleteBelowBut, "Delete all contours below threshold");
+
+      delAllSecBut = diaCheckBox("Delete on all sections", this, mLayout);
+      connect(delAllSecBut, SIGNAL(toggled(bool)), this, 
+              SLOT(delAllSecToggled(bool)));
+      QToolTip::add(delAllSecBut, "Delete contours below threshold regardless"
+                    " of Z value of points");
+      diaSetChecked(delAllSecBut, plug->delOnAllSec != 0);
+
       break;
     }
   }
@@ -1982,6 +2074,7 @@ void BeadFixer::closeEvent ( QCloseEvent * e )
   posValues[7] = plug->showMode;
   posValues[8] = plug->reverseOverlay;
   posValues[9] = plug->autoNewCont;
+  posValues[10] = plug->delOnAllSec;
   
   ImodPrefs->saveGenericSettings("BeadFixer", NUM_SAVED_VALS, posValues);
 
@@ -2064,6 +2157,9 @@ void BeadFixer::keyReleaseEvent ( QKeyEvent * e )
 
 /*
     $Log$
+    Revision 1.41  2007/11/03 05:05:06  mast
+    Added stop-gap slider and button for working with values
+
     Revision 1.40  2006/10/18 21:22:24  mast
     Made it remember auto new center mode across sessions
 
