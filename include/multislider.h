@@ -3,31 +3,10 @@
  *   Copyright (C) 1995-2002 by Boulder Laboratory for 3-Dimensional Electron
  *   Microscopy of Cells ("BL3DEMC") and the Regents of the University of 
  *   Colorado.  See implementation file for full copyright notice.
+ * 
+ *  $Id$
+ *  Log at end of file
  */                                                                           
-
-/*  $Author$
-
-$Date$
-
-$Revision$
-
-$Log$
-Revision 3.2  2004/06/04 02:57:28  mast
-Implement export/import macro for making libdiaqt be a DLL
-
-Revision 3.1  2003/02/10 20:57:02  mast
-Merge Qt source
-
-Revision 1.1.2.1  2003/01/26 20:37:04  mast
-includes for library
-
-Revision 1.1.2.2  2003/01/01 05:39:50  mast
-add decimal point capability for value output
-
-Revision 1.1.2.1  2002/12/27 01:19:47  mast
-Initial creation
-
-*/
 
 #ifndef MULTISLIDER_H
 #define MULTISLIDER_H
@@ -50,6 +29,7 @@ class DLL_IM_EX MultiSlider : public QObject
   void setValue(int slider, int value);
   void setRange(int slider, int minVal, int maxVal);
   QSlider *getSlider(int slider);
+  void setEnabled(int slider, bool enabled);
   QBoxLayout *getLayout() {return mBigLayout;};
   void setDecimals(int slider, int decimals);
 
@@ -74,7 +54,29 @@ class DLL_IM_EX MultiSlider : public QObject
   QBoxLayout *mBigLayout;
   QSlider **mSliders;
   QLabel **mLabels;
+  QLabel **mTitleLabels;
   int *mDecimals;
   bool mHorizontal;
 };
 #endif
+/*  $Log$
+
+Revision 3.3  2007/06/29 21:07:58  sueh
+bug# 1021 Allow horizontal slider lists.
+
+Revision 3.2  2004/06/04 02:57:28  mast
+Implement export/import macro for making libdiaqt be a DLL
+
+Revision 3.1  2003/02/10 20:57:02  mast
+Merge Qt source
+
+Revision 1.1.2.1  2003/01/26 20:37:04  mast
+includes for library
+
+Revision 1.1.2.2  2003/01/01 05:39:50  mast
+add decimal point capability for value output
+
+Revision 1.1.2.1  2002/12/27 01:19:47  mast
+Initial creation
+
+*/

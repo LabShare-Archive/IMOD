@@ -53,6 +53,7 @@ MultiSlider::MultiSlider(QWidget *parent, int numSliders, char *titles[],
   mSliders = new QSlider* [numSliders];
   mPressed = new bool[numSliders];
   mLabels = new QLabel* [numSliders];
+  mTitleLabels = new QLabel* [numSliders];
   mDecimals = new int [numSliders];
   mNumSliders = numSliders;
   QBoxLayout::Direction dir = mHorizontal ? QBoxLayout::LeftToRight :
@@ -75,10 +76,10 @@ MultiSlider::MultiSlider(QWidget *parent, int numSliders, char *titles[],
     // Make outer layout and slider, add slider to layout
     layOuter = new QBoxLayout(0, dir, spacing, -1);
     str = titles[i];
-    titleLabel = new QLabel(str, parent);
-    titleLabel->setAlignment(Qt::AlignTop | Qt::AlignLeft);
+    mTitleLabels[i] = new QLabel(str, parent);
+    mTitleLabels[i]->setAlignment(Qt::AlignTop | Qt::AlignLeft);
     if (horizontal) {
-      layOuter->addWidget(titleLabel);
+      layOuter->addWidget(mTitleLabels[i]);
     }
     mSliders[i] = new QSlider(minVal, maxVal, 1, minVal, Qt::Horizontal,
                               parent);
@@ -88,7 +89,7 @@ MultiSlider::MultiSlider(QWidget *parent, int numSliders, char *titles[],
     if (!horizontal) {
       // Make inner layout, title, and value label
       layInner = new QHBoxLayout(0, 0, 6);
-      layInner->addWidget(titleLabel);
+      layInner->addWidget(mTitleLabels[i]);
       mLabels[i] = new QLabel("0", parent);
       mLabels[i]->setAlignment(Qt::AlignTop | Qt::AlignRight);
       layInner->addWidget(mLabels[i]);
@@ -121,6 +122,7 @@ MultiSlider::~MultiSlider()
   delete [] mPressed;
   delete [] mSliders;
   delete [] mLabels;
+  delete [] mTitleLabels;
   delete [] mDecimals;
 }
 
@@ -178,6 +180,20 @@ QSlider *MultiSlider::getSlider(int slider)
   return NULL;
 }
 
+/*!
+ * Sets the enable state of given slider and its associated text fields to 
+ * [enabled].
+ */
+void MultiSlider::setEnabled(int slider, bool enabled)
+{
+  if (slider >=0 && slider < mNumSliders) {
+    mSliders[slider]->setEnabled(enabled);
+    mLabels[slider]->setEnabled(enabled);
+    mTitleLabels[slider]->setEnabled(enabled);
+  }
+}
+
+
 // Process a changed value if both signals are in
 void MultiSlider::processChange()
 {
@@ -232,6 +248,9 @@ void MultiSlider::sliderReleased(int which)
 }
 /*
 $Log$
+Revision 1.6  2007/08/26 06:55:59  mast
+Documentation changes
+
 Revision 1.5  2007/06/30 00:41:33  sueh
 bug# 1021 Fixed the copyright.
 
