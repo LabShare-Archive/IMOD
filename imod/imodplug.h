@@ -62,11 +62,14 @@ char PLUG_EXPORT *imodPlugInfo(int *type);
   
 /*!
  * Function for notification that 3dmod initialization is complete (with 
- * [inType] equal to 0 and [inReason] equal to IMOD_REASON_STARTUP), and
- * alternate function for opening through the menu.
+ * [inType] equal to 0 and [inReason] equal to IMOD_REASON_STARTUP), and for
+ * need to update for a change in model (with [inType] equal to 0 and
+ * [inReason] equal to IMOD_REASON_MODUPDATE). It is also an alternate 
+ * function for opening through the menu.  
  */
 void PLUG_EXPORT imodPlugExecuteType(ImodView *inView, int inType, 
                                    int inReason);
+
 /*!
  * Key input callback function to be defined by plugins with the
  * IMOD_PLUG_KEYS bit set.  ^
@@ -127,6 +130,9 @@ int PLUG_EXPORT imodPlugExecuteMessage(ImodView *vw, QStringList *strings,
 
 /*
   $Log$
+  Revision 4.9  2008/01/11 18:11:29  mast
+  Wheel events now work when declared correctly
+
   Revision 4.8  2008/01/11 17:32:54  mast
   Needed forward declaration of QEvent
 
