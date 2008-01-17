@@ -77,18 +77,19 @@ void DLL_EX_IM imodDrawModel(ImodView *inImodView, Imod *inModel,
  * the ImodPlugInfo call.  The IMOD_REASON_ values are sent to the plugin in 
  * the imodPlugExecute call 
  */
-#define IMOD_PLUG_MENU     1   /* Add to special plugin menu. */
-#define IMOD_PLUG_TOOL     2   /* Add to toolbar (future)     */
-#define IMOD_PLUG_PROC     4   /* Add to image proc window. (future)  */
-#define IMOD_PLUG_VIEW     8   /* Add to model view window. */
-#define IMOD_PLUG_KEYS    16   /* Handle key events. */
-#define IMOD_PLUG_FILE    32   /* Allow other image files to be loaded. */
-#define IMOD_PLUG_MESSAGE 64   /* Execute messages */
-#define IMOD_PLUG_MOUSE  128   /* Handle mouse events */
-#define IMOD_PLUG_EVENT  256   /* Handle other events (wheel, enter, leave) */
+#define IMOD_PLUG_MENU     1  /* Add to special plugin menu. */
+#define IMOD_PLUG_TOOL     2  /* Add to toolbar (not implemented)     */
+#define IMOD_PLUG_PROC     4  /* Add to image proc window. (not implemented) */
+#define IMOD_PLUG_VIEW     8  /* Add to model view window. (not implemented) */
+#define IMOD_PLUG_KEYS    16  /* Handle key events. */
+#define IMOD_PLUG_FILE    32  /* Allow other image files to be loaded (?). */
+#define IMOD_PLUG_MESSAGE 64  /* Execute messages */
+#define IMOD_PLUG_MOUSE  128  /* Handle mouse events */
+#define IMOD_PLUG_EVENT  256  /* Handle other events (wheel, enter, leave) */
 
-#define IMOD_REASON_EXECUTE 1  /* Execute plugin after selection from menu  */
-#define IMOD_REASON_STARTUP 3  /* 3dmod has started. Initialize plugin. */
+#define IMOD_REASON_EXECUTE 1 /* Execute plugin after selection from menu  */
+#define IMOD_REASON_STARTUP 3 /* 3dmod has started. Initialize plugin. */
+#define IMOD_REASON_MODUPDATE 4 /* Update the plugin for model changes */
 /* END_CODE */
 
 
@@ -161,6 +162,9 @@ int DLL_EX_IM imodShowHelpPage(const char *page);
 
 /*
     $Log$
+    Revision 3.15  2008/01/14 19:46:55  mast
+    moved toggle flag to public file
+
     Revision 3.14  2007/12/04 22:02:41  mast
     Changes for documentation
 
