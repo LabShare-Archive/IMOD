@@ -74,6 +74,7 @@ class BeadFixer : public DialogFrame
   int findCenter(float &imx, float &imy, int curz);
   int executeMessage(QStringList *strings, int *arg);
   void findGap(int idir);
+  void modelUpdate();
   QCheckBox *overlayBox;
 
   public slots:
@@ -105,6 +106,8 @@ class BeadFixer : public DialogFrame
   void keepOnTop(bool state);
   void threshChanged(int slider, int value, bool dragging); 
   void deleteBelow();
+  void delAllSecToggled(bool state);
+  void turnOffToggled(bool state);
   void runAlign();
   void alignExited();
   void setFontDependentWidths();
@@ -174,6 +177,8 @@ class BeadFixer : public DialogFrame
   QHBox *overlayHbox;
   MultiSlider *threshSlider;
   QPushButton *deleteBelowBut;
+  QCheckBox *delAllSecBut;
+  QCheckBox *turnOffBut;
   bool mStayOnTop;
   bool mRunningAlign;
   int mTopTimerID;
@@ -184,6 +189,9 @@ class BeadFixer : public DialogFrame
 #endif
 /*
 $Log$
+Revision 1.20  2007/11/03 05:04:41  mast
+Added threshold slider
+
 Revision 1.19  2006/10/18 21:23:56  mast
 Removed seedmode variable
 
