@@ -13,30 +13,26 @@ c       image intensities down to the average level over some boundary
 c       region.  The latter feature is particularly important for getting
 c       reliable correlation peaks.  The program also has an option to
 c       correlate each image with the sum of already-aligned images at lower
-C       tilts, a method developed by Christian Renkin. The program will
-c       reduce the size of images larger than 1024 pixels in one dimension
-c       by binning them down, i.e. by averaging the values in square sets of
-c       adjacent pixels (2x3, or 3x3, etc).  Images are binned by the
-c       smallest factor needed to make them 1024 or smaller.
-c       
+C       tilts, a method developed by Christian Renkin. 
+c
 c       For further details, see the man page.
 C       
 c       $Id$
 c       Log at end
 c       
       implicit none
-      integer idim,idim2,limview
-      parameter (idim=8200*8200,idim2=1200*1200,limview=720)
+      integer idim,idim2,limview,lenTemp
+      parameter (idim=4300,idim2=idim*idim,limview=720, lenTemp=1000000)
       integer*4 NX,NY,NZ,nxs,nys,nzs
       COMMON //NX,NY,NZ,nxs,nys,nzs
 C       
       integer*4 NXYZ(3),MXYZ(3),nxyzs(3),mxyzs(3) ,label(20,20)
-      real*4 title(20)
+      real*4 title(20),tmprray(lenTemp)
       real*4 ctfa(8193),ctfb(8193),ctfp(8193),sumray(idim2),crray(idim2)
-      complex array(idim/2),brray(idim2/2)
+      complex array(idim2/2),brray(idim2/2)
 C       
-      EQUIVALENCE (NX,NXYZ),(nxs,nxyzs),(crray(1),array(idim/4))
-      common /bigarr/ array,sumray
+      EQUIVALENCE (NX,NXYZ),(nxs,nxyzs)
+      common /bigarr/ array,sumray,brray,crray
 c       
       character*120 filin,plfile,imfilout
       real*4 f(2,3,limview),fs(2,3),fsinv(2,3),funit(2,3)
@@ -62,7 +58,7 @@ c
       integer*4 jx,iv,iview,kti,isout, ierr, ivStart, ivEnd, loopDir
       integer*4 iloop, nloops, minTilt, ifAbsStretch, ivRef, ifLeaveAxis
       integer*4 nbin,maxbinsize,nxusebin,nyusebin, ifcumulate, ifNoStretch
-      integer*4 ixst, ixnd, iyst, iynd, ivCur
+      integer*4 ixst, ixnd, iyst, iynd, ivCur, maxBinning
       integer*4 ixstCen, ixndCen, iystCen, iyndCen
       real*4 xBoxOfs, yBoxOfs, cosphi, sinphi, x0, y0, xshift, yshift
       real*4 usemin, usemax, usemean, cumXshift, cumYshift, cumXrot, xAdjust
@@ -78,7 +74,7 @@ c
 c       fallbacks from ../../manpages/autodoc2man -2 2  tiltxcorr
 c       
       integer numOptions
-      parameter (numOptions = 26)
+      parameter (numOptions = 27)
       character*(40 * numOptions) options(1)
       options(1) =
      &    'input:InputFile:FN:@piece:PieceListFile:FN:@'//
@@ -89,12 +85,12 @@ c
      &    'sigma1:FilterSigma1:F:@sigma2:FilterSigma2:F:@'//
      &    'exclude:ExcludeCentralPeak:B:@border:BordersInXandY:IP:@'//
      &    'xminmax:XMinAndMax:IP:@yminmax:YMinAndMax:IP:@'//
-     &    'leaveaxis:LeaveTiltAxisShifted:B:@pad:PadsInXandY:IP:@'//
-     &    'taper:TapersInXandY:IP:@views:StartingEndingViews:IP:@'//
+     &    'bin:BinningToApply:I:@leaveaxis:LeaveTiltAxisShifted:B:@'//
+     &    'pad:PadsInXandY:IP:@taper:TapersInXandY:IP:@'//
+     &    'views:StartingEndingViews:IP:@'//
      &    'cumulative:CumulativeCorrelation:B:@'//
-     &    'absstretch:AbsoluteCosineStretch:B:@'//
-     &    'nostretch:NoCosineStretch:B:@test:TestOutput:FN:@'//
-     &    'param:ParameterFile:PF:@help:usage:B:'
+     &    'absstretch:AbsoluteCosineStretch:B:@nostretch:NoCosineStretch:B:@'//
+     &    'test:TestOutput:FN:@param:ParameterFile:PF:@help:usage:B:'
 c       
 c       set defaults here where not dependent on image size
 c       
@@ -114,6 +110,8 @@ c
       ifLeaveAxis = 0
 
       maxbinsize=1180
+      maxBinning = 8
+      nbin = 0
       ifpip = 0
 c       
 c       Pip startup: set error, parse options, check help, set flag if used
@@ -215,6 +213,10 @@ c
         iynd = ny - 1 - nytrim
         ierr = PipGetTwoIntegers('XMinAndMax', ixst, ixnd)
         ierr = PipGetTwoIntegers('YMinAndMax', iyst, iynd)
+        if (PipGetInteger('BinningToApply', nbin) .eq. 0) then
+          if (nbin .le. 0 .or. nbin .gt. maxbinning) call exitError
+     &        ('THE ENTERED VALUE FOR BINNING IS OUT OF RANGE')
+        endif
 
         ierr = PipGetBoolean('CumulativeCorrelation', ifcumulate)
         ierr = PipGetBoolean('NoCosineStretch', ifNoStretch)
@@ -254,9 +256,7 @@ c
 
       nxuse = ixnd + 1 - ixst
       nyuse = iynd + 1 - iyst
-      if (nxuse * nyuse .gt. idim) call exitError( 'IMAGE AREA TOO'//
-     &    ' LARGE FOR ARRAYS; INCREASE THE BORDER TO TRIM OFF')
-c       
+c
 c       determine padding
 c       
       nxbord = max(5,min(20,nint(0.05*nxuse)))
@@ -272,17 +272,38 @@ c
 c       get a binning based on the padded size so that large padding is
 c       possible
 c       
-      nbin=(max(nxuse+2*nxbord,nyuse+2*nybord)+maxbinsize-1)/maxbinsize
+      if (nbin .eq. 0) then
+        nbin=(max(nxuse+2*nxbord,nyuse+2*nybord) + maxbinsize-1)/maxbinsize
+c         
+c         If the binning is bigger than 4, find the minimum binning needed 
+c         to keep the used image within bounds
+        if (nbin .gt. 4) then
+          nbin = 0
+          i = 4
+          do while (i .le. maxbinning .and. nbin .eq. 0)
+            if ((niceframe((nxuse+2*nxbord)/i,2,19) + 2) *
+     &          niceframe((nyuse+2*nybord)/i,2,19) .lt. idim2) nbin = i
+            i = i + 1
+          enddo
+          if (nbin .eq. 0) call exitError('IMAGE AREA TOO'//
+     &        ' LARGE FOR ARRAYS; INCREASE THE BORDER TO TRIM OFF')
+        endif
+      else if ((niceframe((nxuse + 40)/nbin,2,19) + 2) *
+     &      niceframe((nyuse + 40)/nbin,2,19) .gt. idim2) then
+        call exitError('IMAGE AREA TOO'//
+     &      ' LARGE; INCREASE THE BINNING OR THE BORDER TO TRIM OFF')
+      endif
+        
       nxusebin=nxuse/nbin
       nyusebin=nyuse/nbin
 
       nxpad=niceframe((nxuse+2*nxbord)/nbin,2,19)
       nypad=niceframe((nyuse+2*nybord)/nbin,2,19)
       if((nxpad+2)*nypad.gt.idim2) call exitError(
-     &    'Padded image too big, try less padding')
+     &    'PADDED IMAGE TOO BIG, TRY LESS PADDING')
 
-      write(*,'(/,a,i5,a,i5)')' Padded, binned size is',nxpad,' by',
-     &    nypad
+      write(*,'(/,a,i3,a,i5,a,i5)')' Binning is',nbin,
+     &    ';  padded, binned size is',nxpad,' by', nypad
 c       
 c       Now that padded size exists, get the filter ctf
 c       
@@ -447,19 +468,10 @@ c           print *,izlast,izcur,stretch
 c           
 c           get "current" into array, stretch into brray, pad it
 C           
-          call imposn(1,izcur,0)
-          if(nxuse.eq.nx.and.nyuse.eq.ny)then
-            call irdsec(1,array,*99)
-          else
-            call irdpas(1, array, nxuse, nyuse, ixstCen+ixBoxOffset(ivCur),
-     &          ixndCen+ixBoxOffset(ivCur), iystCen+iyBoxOffset(ivCur),
-     &          iyndCen+iyBoxOffset(ivCur),*99)
-          endif
-c           
-c           bin in place
-c           
-          if(nbin.gt.1) call reduce_by_binning(array,nxuse,nyuse,nbin,
-     &        array,nxusebin, nyusebin)
+          call irdbinned(1,izcur, array, nxusebin, nyusebin,
+     &        ixstCen+ixBoxOffset(ivCur), iystCen+iyBoxOffset(ivCur), nbin,
+     &        nxusebin, nyusebin, tmprray, lentemp, ierr)
+          if (ierr .ne. 0) goto 99
 c           
 c           7/11/03: We have to feed the interpolation the right mean or
 c           it will create a bad edge mean for padding
@@ -473,18 +485,12 @@ c
 c           
           call meanzero(brray,nxpad+2,nxpad,nypad)
 c           
-c           get "last" into array, just bin and pad it there
+c           get "last" into array, just pad it there
 c           
-          call imposn(1,izlast,0)
-          if(nxuse.eq.nx.and.nyuse.eq.ny)then
-            call irdsec(1,array,*99)
-          else
-            call irdpas(1, array, nxuse, nyuse, ixstCen+ixBoxOffset(ivRef),
-     &          ixndCen+ixBoxOffset(ivRef), iystCen+iyBoxOffset(ivRef),
-     &          iyndCen+iyBoxOffset(ivRef),*99)
-          endif
-          if(nbin.gt.1) call reduce_by_binning(array,nxuse,nyuse,nbin,
-     &        array,nxusebin, nyusebin)
+          call irdbinned(1,izlast, array, nxusebin, nyusebin,
+     &        ixstCen+ixBoxOffset(ivRef), iystCen+iyBoxOffset(ivRef), nbin,
+     &        nxusebin, nyusebin, tmprray, lentemp, ierr)
+          if (ierr .ne. 0) goto 99
           if (ifcumulate .ne. 0) then
 c             
 c             if accumulating, transform image by last shift, add it to
@@ -820,6 +826,9 @@ c	print *,xpeak,ypeak
 
 c       
 c       $Log$
+c       Revision 3.25  2008/01/17 23:48:56  mast
+c       Allowed 8K image
+c
 c       Revision 3.24  2007/10/10 17:22:18  mast
 c       Switched to new parabolic fit routine
 c
@@ -902,3 +911,13 @@ c
 c       Revision 3.1  2002/01/10 01:44:58  mast
 c       Increased limview to 720 and added check on number of views
 c	
+
+      subroutine evaldiff(array, brray, nxy)
+      real*4 array(*), brray(*)
+      diffmax = 0.
+      do i = 1, nxy
+        diffmax=max(diffmax, array(i) - brray(i))
+      enddo
+      print *,'Maximum read/bin difference:', diffmax
+      return
+      end
