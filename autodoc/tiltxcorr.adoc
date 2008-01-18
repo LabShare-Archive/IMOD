@@ -136,6 +136,19 @@ trimming in Y)
 manpage = Starting and ending Y coordinates of a region to correlate.  This
 entry will override a Y border value entered with BordersInXandY.
 
+[Field = BinningToApply]
+short = bin
+type = I
+usage = Binning to apply to the trimmed, padded images
+tooltip = 
+manpage = Binning to apply to the trimmed, padded images.  By default, a
+binning will be selected that makes the maximum dimension of the trimmed,
+padded image be no more than 1200 pixels, up to a binning of 4.  Binning will
+increased above 4 only to the extent needed to make the image fit in the 
+arrays.  This default behavior might result in more binning
+than desired, and the binning might change when the amount of trimming
+is changed.  This option allows direct control of the binning instead.
+
 [Field = LeaveTiltAxisShifted]
 short = leaveaxis
 type = B
