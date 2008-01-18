@@ -24,10 +24,11 @@ DDEESSCCRRIIPPTTIIOONN
   reliable correlation peaks.  The program also has an option to
   correlate each image with the sum of already-aligned images at lower
   tilts, a method developed by Christian Renken. The program will reduce
-  the size of images larger than 1024 pixels in one dimension by binning
+  the size of images larger than 1180 pixels in one dimension by binning
   them down, i.e. by averaging the values in square sets of adjacent
   pixels (2x3, or 3x3, etc).  Images are binned by the smallest factor
-  needed to make them 1024 or smaller.
+  needed to make them 1180 or smaller up to a binning of 4, but there is
+  option to set the binning directly.
 
   Some notes about some of the options:
   
