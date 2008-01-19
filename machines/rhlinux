@@ -150,7 +150,7 @@ if ($compiler == intel) then
     if ($debug == true) set optimization = "-g -O0"
 else
     set optimization = "-O3 -w"
-    if ($debug == true) set optimization = "-ggdb -O0"
+    if ($debug == true) set optimization = "-ggdb -O0 -Wno-unused-parameter"
 endif
 
 # 4/8/04: Use intermediate variables to simplify all the defines that are needed
@@ -217,6 +217,7 @@ LIBS += -lqassistantclient -lm
 DEFINES	+= _FILE_OFFSET_BITS=64
 QMAKE_LFLAGS_DEBUG += -Wl,-E 
 QMAKE_LFLAGS_RELEASE += -Wl,-E
+QMAKE_CXXFLAGS_DEBUG += -Wno-unused-parameter
 EOF
 
 # Set up to massage QT makefiles for intel, and take care of DLL copies
