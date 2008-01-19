@@ -1036,7 +1036,7 @@ void zapKeyInput(ZapStruct *zap, QKeyEvent *event)
   int handled = 0;
   Iindex indadd;
   Iindex *indp;
-  Ipoint pmin, pmax, selmin, selmax;
+  Ipoint selmin, selmax;
   Iobj *obj;
   /* downtime.start(); */
 
@@ -3474,8 +3474,6 @@ static void montageSnapshot(ZapStruct *zap)
   QString fname, sname;
   static int fileno = 0;
   int factor = imcGetMontageFactor();
-  double junk = 1.;
-  int ij;
 
   // Get coordinates and offsets and buffers
   setAreaLimits(zap);
@@ -3803,7 +3801,8 @@ static void zapDrawExtraObject(ZapStruct *zap)
     ifgResetValueSetup();
 
     // If there are contours in the extra object, set color and draw
-    customGhostColor(xobj->red, xobj->green, xobj->blue);
+    customGhostColor((int)(xobj->red/255.), (int)(xobj->green/255.), 
+                     (int)(xobj->blue/255.));
     for (co = 0; co < xobj->contsize; co++)
       zapDrawContour(zap, co, -1 - ob);
   }
@@ -4369,6 +4368,9 @@ static int zapPointVisable(ZapStruct *zap, Ipoint *pnt)
 
 /*
 $Log$
+Revision 4.110  2008/01/14 19:48:22  mast
+Added function to return mouse image coords to plugin
+
 Revision 4.109  2008/01/13 23:19:22  mast
 Fixed some compilation issues
 
