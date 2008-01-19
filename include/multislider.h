@@ -59,7 +59,9 @@ class DLL_IM_EX MultiSlider : public QObject
   bool mHorizontal;
 };
 #endif
-/*  $Log$
+/*  
+
+$Log$
 
 Revision 3.4  2008/01/17 22:31:12  mast
 Added call to enable all components
