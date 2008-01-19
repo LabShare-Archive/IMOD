@@ -61,6 +61,9 @@ class DLL_IM_EX MultiSlider : public QObject
 #endif
 /*  $Log$
 
+Revision 3.4  2008/01/17 22:31:12  mast
+Added call to enable all components
+
 Revision 3.3  2007/06/29 21:07:58  sueh
 bug# 1021 Allow horizontal slider lists.
 
