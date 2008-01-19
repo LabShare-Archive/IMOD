@@ -385,38 +385,39 @@ static void objset(ImodvApp *a)
   // Adjust object number and set structure variables
   if (a->ob >= a->imod->objsize)
     a->ob = 0;
-  a->obj = &(a->imod->obj[a->ob]);
+  a->obj = a->imod->objsize ? &(a->imod->obj[a->ob]) : NULL;
   obj = a->obj;
+  if (obj) {
 
-  flag = obj->flags;
-
-  // Find the object style number
-  if ( iobjFill(flag) ){
-    style = styleFillOutline;
-    if (flag & IMOD_OBJFLAG_LINE)
-      style = styleFill;
-  }else{
-    if (IMOD_OBJFLAG_LINE & flag)
-      style = stylePoints;
-    else
-      style = styleLines;
-  }
-
-  // Find the object type number
-  type = 0;
-  if (!iobjOff(flag)){
-    if (iobjMesh(flag)){
-      type = 2;
+    flag = obj->flags;
+    
+    // Find the object style number
+    if ( iobjFill(flag) ){
+      style = styleFillOutline;
+      if (flag & IMOD_OBJFLAG_LINE)
+        style = styleFill;
     }else{
-      type = 1;
+      if (IMOD_OBJFLAG_LINE & flag)
+        style = stylePoints;
+      else
+        style = styleLines;
     }
+    
+    // Find the object type number
+    type = 0;
+    if (!iobjOff(flag)){
+      if (iobjMesh(flag)){
+        type = 2;
+      }else{
+        type = 1;
+      }
+    }
+
+    objed_dialog->updateObject(a->ob + 1, a->imod->objsize, type, style, 
+                               QColor((int)(255 * obj->red), 
+                                      (int)(255 * obj->green),
+                                      (int)(255 * obj->blue)), obj->name);
   }
-
-  objed_dialog->updateObject(a->ob + 1, a->imod->objsize, type, style, 
-                             QColor((int)(255 * obj->red), 
-                                    (int)(255 * obj->green),
-                                    (int)(255 * obj->blue)), obj->name);
-
   if (objectEditFieldData[CurrentObjectField].setwidget)
     objectEditFieldData[CurrentObjectField].setwidget();
 }
@@ -590,6 +591,8 @@ void ImodvObjed::lineColorSlot(int color, int value, bool dragging)
   float red, green, blue;
   Iobj *obj = Imodv->obj;
   static bool sliding = false;
+  if (!obj)
+    return;
 
   // Compose the entire modified RGB triplet so all objects will change color
   // together if desired
@@ -663,6 +666,8 @@ void ImodvObjed::multipleColorSlot(bool state)
 static void setLineColor_cb(void)
 {
   Iobj *obj = objedObject();
+  if (!obj)
+    return;
   /* Set red, green and blue values. */
   lineSliders->setValue(0, (int)(obj->red * 255));
   lineSliders->setValue(1, (int)(obj->green * 255));
@@ -1312,7 +1317,9 @@ void ImodvObjed::clipGlobalSlot(int value)
 
 void ImodvObjed::clipSkipSlot(bool state)
 {
-  Iobj *obj = objedObject();     
+  Iobj *obj = objedObject();
+  if (!obj)
+    return;
   imodvRegisterObjectChg(Imodv->ob);
   if (state)
     obj->clips.flags |= (1 << 7);
@@ -1329,6 +1336,8 @@ void ImodvObjed::clipPlaneSlot(int value)
     imodvRegisterModelChg();
     Imodv->imod->view->clips.plane = value - 1;
   } else {
+    if (!obj)
+      return;
     imodvRegisterObjectChg(Imodv->ob);
     obj->clips.plane = value - 1;
   }
@@ -1350,6 +1359,8 @@ void ImodvObjed::clipResetSlot(int which)
     clips = &Imodv->imod->view->clips;
     imodGetBoundingBox(Imodv->imod, &min, &max);
   } else {
+    if (!obj)
+      return;
     imodvRegisterObjectChg(Imodv->ob);
     clips = &obj->clips;
     imodObjectGetBBox(obj, &min, &max);
@@ -1373,9 +1384,12 @@ void ImodvObjed::clipResetSlot(int which)
 void ImodvObjed::clipInvertSlot()
 {
   Iobj *obj = objedObject();     
-  IclipPlanes *clips = Imodv->imod->editGlobalClip ? 
-    &Imodv->imod->view->clips : &obj->clips;
+  IclipPlanes *clips;
   int ip, ipst, ipnd;
+  if (!obj && !Imodv->imod->editGlobalClip)
+    return;
+  clips = Imodv->imod->editGlobalClip ? 
+    &Imodv->imod->view->clips : &obj->clips;
 
   if (Imodv->imod->editGlobalClip)
     imodvRegisterModelChg();
@@ -1403,7 +1417,7 @@ void ImodvObjed::clipToggleSlot(bool state)
 {
   Iobj *obj = objedObject();     
   int ip, ipst, ipnd;
-  if (!obj)
+  if (!obj && !Imodv->imod->editGlobalClip)
     return;
   IclipPlanes *clips = Imodv->imod->editGlobalClip ? 
     &Imodv->imod->view->clips : &obj->clips;
@@ -1469,7 +1483,7 @@ static void setClip_cb(void)
   int max = IMOD_CLIPSIZE;
   bool editGlobal = Imodv->imod->editGlobalClip != 0;
   Iobj *obj = objedObject();
-  if (!obj) 
+  if (!obj && !editGlobal) 
     return;
   IclipPlanes *clips = editGlobal ? &Imodv->imod->view->clips : &obj->clips;
   
@@ -2323,7 +2337,7 @@ static Iobj *objedObject(void)
   // Make sure the object number is legal and refresh the object address
   if (Imodv->ob > (Imodv->imod->objsize - 1))
     Imodv->ob = B3DMAX(0, Imodv->imod->objsize - 1);
-  Imodv->obj = &(Imodv->imod->obj[Imodv->ob]);
+  Imodv->obj = Imodv->imod->objsize ? &(Imodv->imod->obj[Imodv->ob]) : NULL;
   return Imodv->obj;
 }
 
@@ -2438,6 +2452,9 @@ static void makeRadioButton(char *label, QWidget *parent, QButtonGroup *group,
 /*
 
 $Log$
+Revision 4.34  2008/01/19 23:49:39  mast
+Added an On drawing option to turn back on
+
 Revision 4.33  2007/11/30 06:51:50  mast
 Changes for linking slicer to model view
 
