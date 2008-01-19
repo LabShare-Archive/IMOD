@@ -3295,7 +3295,7 @@ Ilabel *imodContourGetLabel(Icont *inContour)
   return(inContour->label); 
 }
 
-/* Sets the label of [inContour] to [inLabel] */
+/*! Sets the label of [inContour] to [inLabel] */
 void imodContourSetLabel(Icont *inContour, Ilabel *inLabel)
 {
   if (!inContour) return;
@@ -3328,7 +3328,7 @@ void imodContourSetPointData(Icont *inContour, Ipoint *inPoint, int inMax)
   inContour->psize = inMax;
 }
 
-/* Returns pointer to point [inIndex] of [inContour] or NULL for error */
+/*! Returns pointer to point [inIndex] of [inContour] or NULL for error */
 Ipoint *imodContourGetPoint(Icont *inContour, int inIndex)
 {
   if (!inContour) return(NULL);
@@ -3376,7 +3376,7 @@ void imodContourSetFlag(Icont *inContour, unsigned int inFlag, int inState)
     inContour->flags &= ~inFlag;
 }
 
-/* Returns the value of the bit flags defined by [inFlag] in the {flag} 
+/*! Returns the value of the bit flags defined by [inFlag] in the {flag} 
    element of [inContour] */
 int imodContourGetFlag(Icont *inContour, unsigned int inFlag)
 {
@@ -3398,6 +3398,9 @@ char *imodContourGetName(Icont *inContour)
 /* END_SECTION */
 /*
   $Log$
+  Revision 3.27  2008/01/14 19:44:56  mast
+  Added function to clear points
+
   Revision 3.26  2008/01/09 05:59:04  mast
   Fixed contour sort and made it work in 3D
 
