@@ -129,7 +129,6 @@ static int numOnoffButtons = 0;
 #define MAX_OOLIST_WIDTH 384
 #define MAX_LIST_IN_COL 36
 #define MAX_LIST_NAME 40
-static int oolist_name_limits[10] = {40, 25, 17, 13, 10, 8, 7, 6, 6, 6};
 static QCheckBox **OolistButtons;
 static int numOolistButtons = 0;
 static int olistNcol = 1;
@@ -184,6 +183,11 @@ void imodvObjedDrawData(int option)
   switch(option){
   case 0:
     setObjFlag(IMOD_OBJFLAG_OFF, 1);
+    break;
+
+  case 3:
+    setObjFlag(IMOD_OBJFLAG_OFF, 0);
+    objset(Imodv);
     break;
 
   case 1:
@@ -446,8 +450,6 @@ static void setOnoffButtons(void)
       // Get a truncated name
       // DMN 9/20/04: just truncate all columns a little bit now
       len = strlen(a->imod->obj[ob].name);
-      // if (len > oolist_name_limits[olistNcol - 1])
-      //  len = oolist_name_limits[olistNcol - 1];
       if (len > MAX_LIST_NAME - 1)
         len = MAX_LIST_NAME - 1;
       strncpy(obname, a->imod->obj[ob].name, len);
@@ -2434,7 +2436,11 @@ static void makeRadioButton(char *label, QWidget *parent, QButtonGroup *group,
 }
 
 /*
+
 $Log$
+Revision 4.33  2007/11/30 06:51:50  mast
+Changes for linking slicer to model view
+
 Revision 4.32  2007/09/26 04:35:20  mast
 Redraw when object canges and current clipping plane being drawn
 
