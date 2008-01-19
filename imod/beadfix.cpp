@@ -104,7 +104,8 @@ typedef struct
 }PlugData;
 
 
-static PlugData thisPlug = { NULL, NULL, 0, 0, 0, 0, 10, 0, 4, 0, 0, 0, NULL };
+static PlugData thisPlug = { NULL, NULL, 0, 0, 0, 0, 10, 0, 4, 0, 0, 0, 0,
+                             NULL };
 static PlugData *plug = &thisPlug;
 
 #define ERROR_NO_IMOD_DIR -64352
@@ -205,7 +206,6 @@ int imodPlugKeys(ImodView *vw, QKeyEvent *event)
 static int imodPlugMouse(ImodView *vw, QMouseEvent *event, float imx,
                          float imy, int but1, int but2, int but3)
 {
-  int keysym;
   int handled = 0;
 
   // Reject event if window not open or not in model mode
@@ -562,7 +562,7 @@ void BeadFixer::setCurArea(int area)
 
 void BeadFixer::nextRes()
 {
-  int inobj, incont, inpt, inview, curpt, obj, nobj, cont, ncont, ipt, npnt;
+  int inobj, incont, inview, curpt, obj, nobj, cont, ncont, ipt, npnt;
   int obsav, cosav, ptsav, i;
   int found = 0;
   float  xr, yr, resval, dx, dy;
@@ -1516,7 +1516,6 @@ void BeadFixer::threshChanged(int slider, int value, bool dragging)
 {
   Imod *imod = ivwGetModel(plug->view);
   Iobj *obj = imodObjectGet(imod);
-  int ob;
   int valblack = B3DNINT((255. * (value - mPeakMin)) / (mPeakMax - mPeakMin));
   if (!obj)
     return;
@@ -1654,7 +1653,6 @@ void BeadFixer::modelUpdate()
   Iobj *obj = imodObjectGet(imod);
   bool enabled;
   float min, max;
-  int value;
 
   if (!threshSlider || !obj)
     return;
@@ -1684,7 +1682,6 @@ BeadFixer::BeadFixer(QWidget *parent, const char *name)
   : DialogFrame(parent, 2, 1, buttonLabels, buttonTips, true, 
                 ImodPrefs->getRoundedStyle(), "Bead Fixer", "", name)
 {
-  QPushButton *button;
   QCheckBox *box;
   QString qstr;
   Imod *imod = App->cvi->imod;
@@ -2156,155 +2153,160 @@ void BeadFixer::keyReleaseEvent ( QKeyEvent * e )
 }
 
 /*
-    $Log$
-    Revision 1.41  2007/11/03 05:05:06  mast
-    Added stop-gap slider and button for working with values
 
-    Revision 1.40  2006/10/18 21:22:24  mast
-    Made it remember auto new center mode across sessions
+$Log$
+Revision 1.42  2008/01/17 22:35:51  mast
+Added update function and turn off below threshold checkbox, and made
+thresholding operations object specific to work together with modv_objed
 
-    Revision 1.39  2006/09/06 22:14:45  mast
-    Really make it ignore the reopne message regardless of state
+Revision 1.41  2007/11/03 05:05:06  mast
+Added stop-gap slider and button for working with values
 
-    Revision 1.38  2006/08/24 16:53:34  mast
-    Reopen message should not generate error if align log not open yet
+Revision 1.40  2006/10/18 21:22:24  mast
+Made it remember auto new center mode across sessions
 
-    Revision 1.37  2006/07/18 04:17:30  mast
-    Removed show up down checkbox, made it not sync image position on mouse
-    actions, enabled keys only in correct mode, required points to be
-    within 15 pixels of position in log file
+Revision 1.39  2006/09/06 22:14:45  mast
+Really make it ignore the reopne message regardless of state
 
-    Revision 1.36  2006/07/05 04:18:26  mast
-    Added reverse contrast in overlay and reattach in gap mode
+Revision 1.38  2006/08/24 16:53:34  mast
+Reopen message should not generate error if align log not open yet
 
-    Revision 1.35  2006/07/04 17:24:19  mast
-    Added output of number of residuals to examine
+Revision 1.37  2006/07/18 04:17:30  mast
+Removed show up down checkbox, made it not sync image position on mouse
+actions, enabled keys only in correct mode, required points to be
+within 15 pixels of position in log file
 
-    Revision 1.34  2006/07/04 03:50:56  mast
-    Switched running align from a thread to a QProcess
+Revision 1.36  2006/07/05 04:18:26  mast
+Added reverse contrast in overlay and reattach in gap mode
 
-    Revision 1.33  2006/07/03 23:28:11  mast
-    Converted system call to call tcsh submfg to fix windows hang with -L mode
+Revision 1.35  2006/07/04 17:24:19  mast
+Added output of number of residuals to examine
 
-    Revision 1.32  2006/07/03 21:16:49  mast
-    Fixed saving of show mode and made it move arrow up as well as down
+Revision 1.34  2006/07/04 03:50:56  mast
+Switched running align from a thread to a QProcess
 
-    Revision 1.31  2006/07/03 04:13:53  mast
-    Added seed overlay mode, set up 3 mode radio button and morphing of
-    window depending on modes, made gap finding keep track of position and
-    be able to go backwards
+Revision 1.33  2006/07/03 23:28:11  mast
+Converted system call to call tcsh submfg to fix windows hang with -L mode
 
-    Revision 1.30  2006/07/01 00:42:06  mast
-    Changed message to open a log file only if one not open yet
+Revision 1.32  2006/07/03 21:16:49  mast
+Fixed saving of show mode and made it move arrow up as well as down
 
-    Revision 1.29  2006/03/01 19:13:06  mast
-    Moved window size/position routines from xzap to dia_qtutils
+Revision 1.31  2006/07/03 04:13:53  mast
+Added seed overlay mode, set up 3 mode radio button and morphing of
+window depending on modes, made gap finding keep track of position and
+be able to go backwards
 
-    Revision 1.28  2006/03/01 18:20:51  mast
-    Made fixing all in local area stop displaying image and listing residuals
+Revision 1.30  2006/07/01 00:42:06  mast
+Changed message to open a log file only if one not open yet
 
-    Revision 1.27  2006/02/13 05:16:06  mast
-    Added mouse processing, autocentering and seed mode
+Revision 1.29  2006/03/01 19:13:06  mast
+Moved window size/position routines from xzap to dia_qtutils
 
-    Revision 1.26  2005/06/13 16:39:52  mast
-    Clarified message when points are missing before current point.
+Revision 1.28  2006/03/01 18:20:51  mast
+Made fixing all in local area stop displaying image and listing residuals
 
-    Revision 1.25  2005/06/13 16:24:50  mast
-    Added rounded style argument when constructing window
+Revision 1.27  2006/02/13 05:16:06  mast
+Added mouse processing, autocentering and seed mode
 
-    Revision 1.24  2005/04/13 19:12:26  mast
-    fixed tooltip
+Revision 1.26  2005/06/13 16:39:52  mast
+Clarified message when points are missing before current point.
 
-    Revision 1.23  2005/04/12 18:57:47  mast
-    Added move all in local area, improved some button enabling
+Revision 1.25  2005/06/13 16:24:50  mast
+Added rounded style argument when constructing window
 
-    Revision 1.22  2005/02/19 01:29:50  mast
-    Removed function to clear extra object
+Revision 1.24  2005/04/13 19:12:26  mast
+fixed tooltip
 
-    Revision 1.21  2004/12/22 22:22:05  mast
-    Fixed bug in reading "old" log files
+Revision 1.23  2005/04/12 18:57:47  mast
+Added move all in local area, improved some button enabling
 
-    Revision 1.20  2004/11/20 05:05:27  mast
-    Changes for undo/redo capability
+Revision 1.22  2005/02/19 01:29:50  mast
+Removed function to clear extra object
 
-    Revision 1.19  2004/11/04 23:30:55  mast
-    Changes for rounded button style
+Revision 1.21  2004/12/22 22:22:05  mast
+Fixed bug in reading "old" log files
 
-    Revision 1.18  2004/09/24 17:58:01  mast
-    Added ability to execute messages for opening/rereading file
+Revision 1.20  2004/11/20 05:05:27  mast
+Changes for undo/redo capability
 
-    Revision 1.17  2004/07/09 21:26:55  mast
-    Strip directory path off when running align, to avoid spaces in path
+Revision 1.19  2004/11/04 23:30:55  mast
+Changes for rounded button style
 
-    Revision 1.16  2004/06/25 20:05:40  mast
-    Based the move by residual on residual data instead of current point value,
-    and rewrote to make most plug variables be class members
+Revision 1.18  2004/09/24 17:58:01  mast
+Added ability to execute messages for opening/rereading file
 
-    Revision 1.15  2004/06/24 15:34:15  mast
-    Rewrote to read in all data to internal structures at once, and made it
-    move between areas automatically, improved backup logic
+Revision 1.17  2004/07/09 21:26:55  mast
+Strip directory path off when running align, to avoid spaces in path
 
-    Revision 1.14  2004/06/23 04:12:32  mast
-    Stupid change just before checking in
+Revision 1.16  2004/06/25 20:05:40  mast
+Based the move by residual on residual data instead of current point value,
+and rewrote to make most plug variables be class members
 
-    Revision 1.13  2004/06/23 03:32:19  mast
-    Changed to save and restore window position
+Revision 1.15  2004/06/24 15:34:15  mast
+Rewrote to read in all data to internal structures at once, and made it
+move between areas automatically, improved backup logic
 
-    Revision 1.12  2004/06/20 22:43:15  mast
-    Fixed problem that made no residuals be found.
+Revision 1.14  2004/06/23 04:12:32  mast
+Stupid change just before checking in
 
-    Revision 1.11  2004/06/12 15:13:03  mast
-    Needed some new Qt includes
+Revision 1.13  2004/06/23 03:32:19  mast
+Changed to save and restore window position
 
-    Revision 1.10  2004/06/12 00:58:11  mast
-    Switched to reading in whole file at once
+Revision 1.12  2004/06/20 22:43:15  mast
+Fixed problem that made no residuals be found.
 
-    Revision 1.9  2004/05/11 14:17:53  mast
-    Needed to put an enable of the run align button inside conditional
+Revision 1.11  2004/06/12 15:13:03  mast
+Needed some new Qt includes
 
-    Revision 1.8  2004/05/07 22:14:53  mast
-    Switched to a variable other than QT_THREAD_SUPPORT for the run align button
+Revision 1.10  2004/06/12 00:58:11  mast
+Switched to reading in whole file at once
 
-    Revision 1.7  2004/05/04 17:52:32  mast
-    Forgot to put AlignThread::run inside ifdef.
+Revision 1.9  2004/05/11 14:17:53  mast
+Needed to put an enable of the run align button inside conditional
 
-    Revision 1.6  2004/05/03 19:32:20  mast
-    had to decalre exit code as int
+Revision 1.8  2004/05/07 22:14:53  mast
+Switched to a variable other than QT_THREAD_SUPPORT for the run align button
 
-    Revision 1.5  2004/05/03 19:17:43  mast
-    Added ability to run tiltalign if there is thread support
+Revision 1.7  2004/05/04 17:52:32  mast
+Forgot to put AlignThread::run inside ifdef.
 
-    Revision 1.4  2004/04/29 00:28:40  mast
-    Added button to keep window on top
+Revision 1.6  2004/05/03 19:32:20  mast
+had to decalre exit code as int
 
-    Revision 1.3  2004/03/30 18:56:26  mast
-    Added hot key for next local set
+Revision 1.5  2004/05/03 19:17:43  mast
+Added ability to run tiltalign if there is thread support
 
-    Revision 1.2  2004/01/22 19:12:43  mast
-    changed from pressed() to clicked() or accomodated change to actionClicked
+Revision 1.4  2004/04/29 00:28:40  mast
+Added button to keep window on top
 
-    Revision 1.1  2003/10/01 05:09:36  mast
-    Conversion to internal module in 3dmod
+Revision 1.3  2004/03/30 18:56:26  mast
+Added hot key for next local set
 
-    Revision 3.9  2003/08/01 00:16:51  mast
-    Made "examine once" be default and rearranged buttons
+Revision 1.2  2004/01/22 19:12:43  mast
+changed from pressed() to clicked() or accomodated change to actionClicked
 
-    Revision 3.8  2003/07/07 21:32:49  mast
-    Fix stupid malloc/realloc problem in pointer list
+Revision 1.1  2003/10/01 05:09:36  mast
+Conversion to internal module in 3dmod
 
-    Revision 3.7  2003/06/29 14:34:41  mast
-    Fix problem of multiple vector displays
+Revision 3.9  2003/08/01 00:16:51  mast
+Made "examine once" be default and rearranged buttons
 
-    Revision 3.6  2003/06/29 14:23:20  mast
-    Added ability to back up to previous residual
+Revision 3.8  2003/07/07 21:32:49  mast
+Fix stupid malloc/realloc problem in pointer list
 
-    Revision 3.5  2003/06/27 20:25:11  mast
-    Implemented display of residual vectors in extra object
+Revision 3.7  2003/06/29 14:34:41  mast
+Fix problem of multiple vector displays
 
-    Revision 3.4  2003/05/29 05:03:43  mast
-    Make filter for align*.log only
+Revision 3.6  2003/06/29 14:23:20  mast
+Added ability to back up to previous residual
 
-    Revision 3.3  2003/05/12 19:13:39  mast
-    Add hot key summary and fix spelling
+Revision 3.5  2003/06/27 20:25:11  mast
+Implemented display of residual vectors in extra object
+
+Revision 3.4  2003/05/29 05:03:43  mast
+Make filter for align*.log only
+
+Revision 3.3  2003/05/12 19:13:39  mast
+Add hot key summary and fix spelling
 
 */
