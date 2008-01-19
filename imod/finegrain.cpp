@@ -40,7 +40,7 @@ typedef struct fg_data_struct {
   Istore store;
 } FgData;
 
-static FgData fgd = {NULL, NULL, NULL, NULL, 0, -1, -1, -1, -1, 0};
+static FgData fgd = {NULL, NULL, NULL, NULL, 0, -1, -1, -1, -1, 0, 0};
 
 static int getLoadedObjCont(int addType);
 static int findNextChange(Ilist *list, int index, int surfFlag);
@@ -114,8 +114,12 @@ void fineGrainUpdate()
     fgd.stateFlags = istorePointDrawProps(obj, &fgd.contProps, &props, co, pt);
     nextEnable = (findNextChange(cont->store, pt, 0) >= 0);
   } else {
-
-    istoreDefaultDrawProps(obj, &defProps);
+    if (!obj) {
+      obj = imodObjectNew();
+      istoreDefaultDrawProps(obj, &defProps);
+      imodObjectDelete(obj);
+    } else
+      istoreDefaultDrawProps(obj, &defProps);
     if (cont) {
       istoreContSurfDrawProps(obj->store, &defProps, &props, 
                               fgd.ptContSurf > 1 ? -1 : co, surf, &contState,
@@ -1170,6 +1174,9 @@ static void ifgHandleValue1(DrawProps *defProps, DrawProps *contProps,
 
 /*
   $Log$
+  Revision 1.11  2007/09/22 00:09:11  mast
+  Added fixed color/thresholding only capability to value handling
+
   Revision 1.10  2006/08/31 23:27:44  mast
   Changes for stored value display
 

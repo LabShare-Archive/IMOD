@@ -248,13 +248,10 @@ void ContourBreak::breakCont()
   Iindex *i1p = &cobrk.i1;
   Iindex *i2p = &cobrk.i2;
 
-  Icont *cont1, *cont2, *cont;
+  Icont *cont1, *cont;
   Iobj *obj;
-  Istore *stp;
-  Istore store;
   int ob, co, pt;
-  int i, ni, pt1, pt2, lookup, after;
-  int objProp = 0;
+  int pt1, pt2;
 
   /*
    * Check that at least the first break point is set.
@@ -963,7 +960,7 @@ void imodContEditMove(void)
   ImodView *vi = App->cvi;
   Imod *imod = vi->imod;
   int surf, ob, co, pt;
-  int nsurf, fromReg, toReg, didMove;
+  int nsurf, didMove;
   float firstz, size, delz;
   double weight;
   Ipoint ccent;
@@ -1651,7 +1648,7 @@ void imodContEditSurfShow(void)
   max = surf.vw->imod->tmax;
   if (max < surf.vw->nt)
     max = surf.vw->nt;
-  if (iobjTime(obj->flags)){
+  if (obj && iobjTime(obj->flags)){
     val = -1;
     if (cont)
       val = cont->time;
@@ -1854,6 +1851,9 @@ void ContourFrame::keyReleaseEvent ( QKeyEvent * e )
 /*
 
 $Log$
+Revision 4.30  2008/01/13 22:25:45  mast
+Call top slicer to toggle shifting mode
+
 Revision 4.29  2007/10/03 19:29:17  sueh
 bug# 1038 Replacing help strings with an .html file.
 
