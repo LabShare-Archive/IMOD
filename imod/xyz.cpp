@@ -1,4 +1,3 @@
-
 /*
  *  xyz.c -- Open the XYZ Window; View the X, Y and Z axis.
  *
@@ -1188,10 +1187,6 @@ void XyzWindow::DrawImage()
   int cx, cy, cz;
   int imdataxsize;
   unsigned char **imdata;
-  int extraImSize;
-  int drawsize;
-  int sx = (int)(nx * win->zoom);
-  int sy = (int)(ny * win->zoom);
   int wx1, wx2, wy1, wy2;
   int xoffset1, xoffset2, yoffset1, yoffset2;
   int width1, height1, width2, height2, cacheSum, xslice, yslice;
@@ -1346,7 +1341,7 @@ void XyzWindow::DrawImage()
 }
 
 /*
- * Draw the lines around boxes andthe position gadgets
+ * Draw the lines around boxes and the position gadgets
  */
 void XyzWindow::DrawCurrentLines()
 {
@@ -1471,11 +1466,11 @@ void XyzWindow::DrawContour(Iobj *obj, int ob, int co)
   bool currentCont = (co == vi->imod->cindex.contour) &&
     (ob == vi->imod->cindex.object);
   
-  Ipoint *point, *thisPt, *lastPt;
+  Ipoint *thisPt, *lastPt;
   DrawProps contProps, ptProps;
-  int pt, next, radius;
+  int pt;
   bool thisVis, lastVis;
-  float drawsize, delz, zscale;
+  float zscale;
   int nextChange, stateFlags, changeFlags;
   int handleFlags = HANDLE_LINE_COLOR | HANDLE_2DWIDTH;
   float z = xx->zoom;
@@ -1665,10 +1660,10 @@ void XyzWindow::DrawScatSymAllSpheres(Iobj *obj, int ob,  Icont *cont, int co,
 {
   int pt, testz;
   float *point;
-  int changeFlags;
+  int changeFlags, radius;
   int currentZ = indz == 2 ? B3DNINT(zmouse)  : (int)zmouse;
   float z = mXyz->zoom;
-  float drawsize, delz, radius;
+  float drawsize, delz;
 
   /* scattered contour - symbols in all three planes */
   if (ilistSize(cont->store))
@@ -1806,7 +1801,7 @@ void XyzWindow::DrawCurrentPoint()
   if (!xx->vi->drawcursor)
     return;
 
-  b3dLineWidth(obj->linewidth2);
+  b3dLineWidth(1);
   utilCurrentPointSize(obj, &modPtSize, &backupSize, &imPtSize);
   psize = modPtSize;
   if (cont && cont->psize > 1 && 
@@ -1817,6 +1812,7 @@ void XyzWindow::DrawCurrentPoint()
   if (xx->vi->imod->mousemode == IMOD_MMODEL && cont && cont->psize > 1 &&
       !ivwTimeMismatch(xx->vi, 0, obj, cont)) {
 
+    b3dLineWidth(obj->linewidth2);
     b3dColorIndex(App->bgnpoint);
     point = cont->pts;
 
@@ -1848,6 +1844,7 @@ void XyzWindow::DrawCurrentPoint()
   /* DNM 1/21/02: do it like zap window, draw only if in model mode,
      otherwise draw crosses at current mouse point */
   if (xx->vi->imod->mousemode == IMOD_MMODEL &&  pnt) {
+    b3dLineWidth(obj->linewidth2);
           
     if (B3DNINT(pnt->z) == cz && !ivwTimeMismatch(xx->vi, 0, obj, cont)) {
       b3dColorIndex(App->curpoint);
@@ -1952,7 +1949,6 @@ void XyzWindow::setupToggleButton(HotToolBar *toolBar, QSignalMapper *mapper,
 
 void XyzWindow::stateToggled(int index, int state)
 {
-  int time;
   setControlAndLimits();
   switch (index) {
   case XYZ_TOGGLE_RESOL:
@@ -2353,6 +2349,9 @@ void XyzGL::mouseMoveEvent( QMouseEvent * event )
 
 /*
 $Log$
+Revision 4.47  2008/01/13 22:58:35  mast
+Changes for multi-Z window
+
 Revision 4.46  2007/12/04 18:43:24  mast
 Changes for stippling and using new util functions
 
