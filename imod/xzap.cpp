@@ -3801,8 +3801,8 @@ static void zapDrawExtraObject(ZapStruct *zap)
     ifgResetValueSetup();
 
     // If there are contours in the extra object, set color and draw
-    customGhostColor((int)(xobj->red/255.), (int)(xobj->green/255.), 
-                     (int)(xobj->blue/255.));
+    customGhostColor((int)(255. * xobj->red), (int)(255. * xobj->green), 
+                     (int)(255. * xobj->blue));
     for (co = 0; co < xobj->contsize; co++)
       zapDrawContour(zap, co, -1 - ob);
   }
@@ -4367,7 +4367,12 @@ static int zapPointVisable(ZapStruct *zap, Ipoint *pnt)
 }
 
 /*
+
 $Log$
+Revision 4.111  2008/01/19 22:29:49  mast
+Fixed call to set custom ghost color in extra object draw, although
+not clear why it is there!
+
 Revision 4.110  2008/01/14 19:48:22  mast
 Added function to return mouse image coords to plugin
 
