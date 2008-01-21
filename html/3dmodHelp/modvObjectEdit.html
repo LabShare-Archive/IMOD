@@ -22,12 +22,21 @@ one out of several available panels with more specialized controls.
 <A NAME = "General Controls"><H3>General Controls</H3></A>
 Select the current object with the <B>Object</B> spin box or the slider.
 <P>
-The <B>Edit</B> Each/All/On's option menu allows one to edit just the current
-object, all objects at once, or just the objects that are
-currently turned On.  Features that can be edited in tandem for
+The <B>Edit</B> Each/All/On's/Group option menu allows one to edit just the 
+current
+object, all objects at once, just the objects that are
+currently turned On, or objects belonging to a group selected in the Object
+List window.  Features that can be edited in tandem for
 many objects include: point size, line width, material
 properties, and drawing data type and style.  Line color can also be
-changed in tandem if a separate check box is selected.
+changed in tandem if a separate check box is selected.  When <B>On's</B> is
+selected, and the current object is not On, then it will not be changed, but
+a nearby object that was changed will be made the current one so that the
+dialog can reflect your change.  The behavior occurs when <B>Group</B> is
+selected and the current object is not a member of the group defined in the
+Object List window.  For a feature that
+cannot be editing in multiple objects, this setting has no effect - the
+current object is the only one changed.
 <P>
 The name of each object can be edited using the text edit box.
 <P>
