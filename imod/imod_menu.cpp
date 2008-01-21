@@ -378,6 +378,7 @@ void InfoWindow::editObjectSlot(int item)
     inputNewObject(vi);
     imod_object_edit();
     imod_info_setobjcolor();
+    imodvObjedNewView();
     break;
           
   case EOBJECT_MENU_DELETE: /* Delete */
@@ -415,6 +416,7 @@ void InfoWindow::editObjectSlot(int item)
     imodDraw(vi, IMOD_DRAW_MOD);
     imod_cmap(imod);
     imod_info_setobjcolor();
+    imodvObjedNewView();
     break;
           
   case EOBJECT_MENU_COLOR: /* Color */
@@ -501,6 +503,7 @@ void InfoWindow::editObjectSlot(int item)
     imodDraw(vi, IMOD_DRAW_MOD);
     imod_cmap(imod);
     imod_info_setobjcolor();
+    imodvObjedNewView();
     break;
 
   case EOBJECT_MENU_INFO: /* stats */
@@ -1286,6 +1289,9 @@ static int imodContourBreakByZ(ImodView *vi, Iobj *obj, int ob, int co)
 /*
 
 $Log$
+Revision 4.41  2008/01/21 05:56:25  mast
+Added key for opening plugins
+
 Revision 4.40  2008/01/19 22:12:46  mast
 Added a new object after they delete the last one
 
