@@ -1284,202 +1284,206 @@ static int imodContourBreakByZ(ImodView *vi, Iobj *obj, int ob, int co)
 }
 
 /*
-  $Log$
-  Revision 4.39  2008/01/13 22:58:35  mast
-  Changes for multi-Z window
 
-  Revision 4.38  2008/01/09 05:59:34  mast
-  Called new 3D version of contour sort
+$Log$
+Revision 4.40  2008/01/19 22:12:46  mast
+Added a new object after they delete the last one
 
-  Revision 4.37  2007/12/06 20:12:47  mast
-  Added error message if trying to sort scattered point object
+Revision 4.39  2008/01/13 22:58:35  mast
+Changes for multi-Z window
 
-  Revision 4.36  2007/11/10 04:07:10  mast
-  Changes for setting snapshot directory
+Revision 4.38  2008/01/09 05:59:34  mast
+Called new 3D version of contour sort
 
-  Revision 4.35  2007/10/03 20:46:49  mast
-  Removes includes for menu and hotkey help
+Revision 4.37  2007/12/06 20:12:47  mast
+Added error message if trying to sort scattered point object
 
-  Revision 4.34  2007/10/03 19:29:38  sueh
-  bug# 1038 Replacing help strings with an .html file.
+Revision 4.36  2007/11/10 04:07:10  mast
+Changes for setting snapshot directory
 
-  Revision 4.33  2007/08/13 16:04:50  mast
-  Changes for locator window
+Revision 4.35  2007/10/03 20:46:49  mast
+Removes includes for menu and hotkey help
 
-  Revision 4.32  2007/07/08 16:46:48  mast
-  Added object combine
+Revision 4.34  2007/10/03 19:29:38  sueh
+bug# 1038 Replacing help strings with an .html file.
 
-  Revision 4.31  2007/06/08 04:45:45  mast
-  Allowed break by Z for planar open contours
+Revision 4.33  2007/08/13 16:04:50  mast
+Changes for locator window
 
-  Revision 4.30  2007/05/25 05:28:16  mast
-  Changes for addition of slicer angle storage
+Revision 4.32  2007/07/08 16:46:48  mast
+Added object combine
 
-  Revision 4.29  2006/09/30 02:12:30  mast
-  Use open/closed messages for contour length, treat 2-pt contour as open
+Revision 4.31  2007/06/08 04:45:45  mast
+Allowed break by Z for planar open contours
 
-  Revision 4.28  2006/09/01 20:49:29  mast
-  Added menu item to flatten contours in object
+Revision 4.30  2007/05/25 05:28:16  mast
+Changes for addition of slicer angle storage
 
-  Revision 4.27  2005/11/26 16:49:00  mast
-  Fixed bug in memory snapshot
+Revision 4.29  2006/09/30 02:12:30  mast
+Use open/closed messages for contour length, treat 2-pt contour as open
 
-  Revision 4.26  2005/10/14 22:04:39  mast
-  Changes for Model reload capability
+Revision 4.28  2006/09/01 20:49:29  mast
+Added menu item to flatten contours in object
 
-  Revision 4.25  2005/06/29 05:38:40  mast
-  Changes to manipulate fine grain properties and do undos correctly
+Revision 4.27  2005/11/26 16:49:00  mast
+Fixed bug in memory snapshot
 
-  Revision 4.24  2005/06/26 19:37:24  mast
-  Added fine-grain entries
+Revision 4.26  2005/10/14 22:04:39  mast
+Changes for Model reload capability
 
-  Revision 4.23  2005/03/20 19:55:36  mast
-  Eliminating duplicate functions
+Revision 4.25  2005/06/29 05:38:40  mast
+Changes to manipulate fine grain properties and do undos correctly
 
-  Revision 4.22  2004/12/24 02:18:31  mast
-  Use man page insetad of out-of-date imodhelp
+Revision 4.24  2005/06/26 19:37:24  mast
+Added fine-grain entries
 
-  Revision 4.21  2004/11/20 05:05:27  mast
-  Changes for undo/redo capability
+Revision 4.23  2005/03/20 19:55:36  mast
+Eliminating duplicate functions
 
-  Revision 4.20  2004/11/04 23:30:55  mast
-  Changes for rounded button style
+Revision 4.22  2004/12/24 02:18:31  mast
+Use man page insetad of out-of-date imodhelp
 
-  Revision 4.19  2004/11/01 23:26:17  mast
-  implemented surface deletion
+Revision 4.21  2004/11/20 05:05:27  mast
+Changes for undo/redo capability
 
-  Revision 4.18  2004/10/12 15:23:09  mast
-  Fixed string when writing as NFF
+Revision 4.20  2004/11/04 23:30:55  mast
+Changes for rounded button style
 
-  Revision 4.17  2004/09/21 20:17:10  mast
-  Added menu option to renumber object
+Revision 4.19  2004/11/01 23:26:17  mast
+implemented surface deletion
 
-  Revision 4.16  2004/06/04 03:17:36  mast
-  Added argument to call to open model
+Revision 4.18  2004/10/12 15:23:09  mast
+Fixed string when writing as NFF
 
-  Revision 4.15  2004/01/05 18:38:13  mast
-  Adjusted info outputs by binning as appropriate, and defined vi and imod
-  in some menus for brevity
+Revision 4.17  2004/09/21 20:17:10  mast
+Added menu option to renumber object
 
-  Revision 4.14  2003/11/26 18:17:27  mast
-  Disable image menu entries for raw or no images appropriately
+Revision 4.16  2004/06/04 03:17:36  mast
+Added argument to call to open model
 
-  Revision 4.13  2003/09/16 02:53:15  mast
-  Changed to pass the memory snapshot as an array of line pointers
+Revision 4.15  2004/01/05 18:38:13  mast
+Adjusted info outputs by binning as appropriate, and defined vi and imod
+in some menus for brevity
 
-  Revision 4.12  2003/07/31 22:12:27  mast
-  Autostore views when writing a model as Imod
+Revision 4.14  2003/11/26 18:17:27  mast
+Disable image menu entries for raw or no images appropriately
 
-  Revision 4.11  2003/06/20 19:46:34  mast
-  Allowed break by Z to work for any kind of pbject, with better warning
+Revision 4.13  2003/09/16 02:53:15  mast
+Changed to pass the memory snapshot as an array of line pointers
 
-  Revision 4.10  2003/06/19 05:48:17  mast
-  Added ability to break all contours in object by Z value
+Revision 4.12  2003/07/31 22:12:27  mast
+Autostore views when writing a model as Imod
 
-  Revision 4.9  2003/06/04 23:32:25  mast
-  Output coordinates numbered from one in point value output
+Revision 4.11  2003/06/20 19:46:34  mast
+Allowed break by Z to work for any kind of pbject, with better warning
 
-  Revision 4.8  2003/04/25 03:28:32  mast
-  Changes for name change to 3dmod
+Revision 4.10  2003/06/19 05:48:17  mast
+Added ability to break all contours in object by Z value
 
-  Revision 4.7  2003/04/18 00:46:53  mast
-  Call inputNewContour when making new contour toget times right
+Revision 4.9  2003/06/04 23:32:25  mast
+Output coordinates numbered from one in point value output
 
-  Revision 4.6  2003/04/16 18:46:51  mast
-  hide/show changes
+Revision 4.8  2003/04/25 03:28:32  mast
+Changes for name change to 3dmod
 
-  Revision 4.5  2003/03/28 23:51:11  mast
-  changes for Mac problems
+Revision 4.7  2003/04/18 00:46:53  mast
+Call inputNewContour when making new contour toget times right
 
-  Revision 4.4  2003/03/24 17:58:09  mast
-  Changes for new preferences capability
+Revision 4.6  2003/04/16 18:46:51  mast
+hide/show changes
 
-  Revision 4.3  2003/02/27 19:29:31  mast
-  Use Qt functions to manage filenames
+Revision 4.5  2003/03/28 23:51:11  mast
+changes for Mac problems
 
-  Revision 4.2  2003/02/12 21:39:51  mast
-  Fix problem with getting new object after deleting all objects
+Revision 4.4  2003/03/24 17:58:09  mast
+Changes for new preferences capability
 
-  Revision 4.1  2003/02/10 20:29:00  mast
-  autox.cpp
+Revision 4.3  2003/02/27 19:29:31  mast
+Use Qt functions to manage filenames
 
-  Revision 1.1.2.11  2003/01/29 01:33:15  mast
-  changes for colormap switching
+Revision 4.2  2003/02/12 21:39:51  mast
+Fix problem with getting new object after deleting all objects
 
-  Revision 1.1.2.10  2003/01/27 00:30:07  mast
-  Pure Qt version and general cleanup
+Revision 4.1  2003/02/10 20:29:00  mast
+autox.cpp
 
-  Revision 1.1.2.9  2003/01/23 20:07:02  mast
-  add include for imod_cont_copy
+Revision 1.1.2.11  2003/01/29 01:33:15  mast
+changes for colormap switching
 
-  Revision 1.1.2.8  2003/01/18 01:15:56  mast
-  add include for cache filler
+Revision 1.1.2.10  2003/01/27 00:30:07  mast
+Pure Qt version and general cleanup
 
-  Revision 1.1.2.7  2003/01/14 21:52:38  mast
-  include new movie controller include file
+Revision 1.1.2.9  2003/01/23 20:07:02  mast
+add include for imod_cont_copy
 
-  Revision 1.1.2.6  2003/01/13 01:00:28  mast
-  Qt version
+Revision 1.1.2.8  2003/01/18 01:15:56  mast
+add include for cache filler
 
-  Revision 1.1.2.5  2003/01/10 23:52:17  mast
-  Changes for Qt version of tumbler and elimination of tilt window
+Revision 1.1.2.7  2003/01/14 21:52:38  mast
+include new movie controller include file
 
-  Revision 1.1.2.4  2003/01/06 15:52:39  mast
-  changes for Qt version of slicer and new object color routines
+Revision 1.1.2.6  2003/01/13 01:00:28  mast
+Qt version
 
-  Revision 1.1.2.3  2002/12/19 04:37:13  mast
-  Cleanup of unused global variables and defines
+Revision 1.1.2.5  2003/01/10 23:52:17  mast
+Changes for Qt version of tumbler and elimination of tilt window
 
-  Revision 1.1.2.2  2002/12/17 18:40:24  mast
-  Changes and new includes with Qt version of imodv
+Revision 1.1.2.4  2003/01/06 15:52:39  mast
+changes for Qt version of slicer and new object color routines
 
-  Revision 1.1.2.1  2002/12/13 06:15:49  mast
-  include file changes
+Revision 1.1.2.3  2002/12/19 04:37:13  mast
+Cleanup of unused global variables and defines
 
-  Revision 3.10.2.2  2002/12/11 00:41:00  mast
-  Prevent flipping while loading data
+Revision 1.1.2.2  2002/12/17 18:40:24  mast
+Changes and new includes with Qt version of imodv
 
-  Revision 3.10.2.1  2002/12/05 16:23:52  mast
-  No changes - CVS detected as modified in branch
+Revision 1.1.2.1  2002/12/13 06:15:49  mast
+include file changes
 
-  Revision 3.11  2002/12/03 15:49:07  mast
-  consistently set the forbid-level before any potential file dialog to
-  prevent multiple file dialogs from appearing; switched memory save to
-  using dia_filename so that this would work there as well.
+Revision 3.10.2.2  2002/12/11 00:41:00  mast
+Prevent flipping while loading data
 
-  Revision 3.10  2002/12/01 15:34:41  mast
-  Changes to get clean compilation with g++
+Revision 3.10.2.1  2002/12/05 16:23:52  mast
+No changes - CVS detected as modified in branch
 
-  Revision 3.9  2002/11/05 23:26:39  mast
-  Changed copyright notice to use lab name and years
+Revision 3.11  2002/12/03 15:49:07  mast
+consistently set the forbid-level before any potential file dialog to
+prevent multiple file dialogs from appearing; switched memory save to
+using dia_filename so that this would work there as well.
 
-  Revision 3.8  2002/09/27 20:24:57  rickg
-  Moved IO functionality into imod_io
-  Move client message functionality into imod_client_message since it was no
-  longer dependent upon any code in this model due to the changes to imod_io.
+Revision 3.10  2002/12/01 15:34:41  mast
+Changes to get clean compilation with g++
 
-  Revision 3.7  2002/09/19 22:52:54  rickg
-  Added MESSAGE_QUIT case for receiving of events.
+Revision 3.9  2002/11/05 23:26:39  mast
+Changed copyright notice to use lab name and years
 
-  Revision 3.6  2002/09/17 18:52:44  mast
-  Changed event handler to expect a signature (IMOD), and to give error
-  messages about unexpected packets only in debig mode
+Revision 3.8  2002/09/27 20:24:57  rickg
+Moved IO functionality into imod_io
+Move client message functionality into imod_client_message since it was no
+longer dependent upon any code in this model due to the changes to imod_io.
 
-  Revision 3.5  2002/09/14 18:32:43  mast
-  Eliminate unneeded argument from fprintf
+Revision 3.7  2002/09/19 22:52:54  rickg
+Added MESSAGE_QUIT case for receiving of events.
 
-  Revision 3.4  2002/09/13 23:44:44  mast
-  Changes after testing out most error conditions for messages
+Revision 3.6  2002/09/17 18:52:44  mast
+Changed event handler to expect a signature (IMOD), and to give error
+messages about unexpected packets only in debig mode
 
-  Revision 3.3  2002/09/13 21:09:54  mast
-  Added message handler to process external ClientMessage events for opening
-  and saving model files.
+Revision 3.5  2002/09/14 18:32:43  mast
+Eliminate unneeded argument from fprintf
 
-  Revision 3.2  2002/05/20 15:34:04  mast
-  Made time index modeling be the default for a new object (or new model)
-  if multiple files are open
+Revision 3.4  2002/09/13 23:44:44  mast
+Changes after testing out most error conditions for messages
 
-  Revision 3.1  2001/12/17 18:45:54  mast
-  Added calls for cache filling
+Revision 3.3  2002/09/13 21:09:54  mast
+Added message handler to process external ClientMessage events for opening
+and saving model files.
+
+Revision 3.2  2002/05/20 15:34:04  mast
+Made time index modeling be the default for a new object (or new model)
+if multiple files are open
+
+Revision 3.1  2001/12/17 18:45:54  mast
+Added calls for cache filling
 
 */
