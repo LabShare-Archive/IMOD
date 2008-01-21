@@ -47,6 +47,7 @@ HEADERS	+= autox.h \
 	imodv_views.h \
 	imodv_modeled.h \
 	imodv_objed.h \
+	imodv_listobj.h \
 	imodv_image.h \
 	imodv_movie.h \
 	qcursor.bits \
@@ -104,6 +105,7 @@ SOURCES	+= autox.cpp \
 	imodv_modeled.cpp \
 	imodv_movie.cpp \
 	imodv_objed.cpp \
+	imodv_listobj.cpp \
 	imodv_ogl.cpp \
 	imodv_stereo.cpp \
 	imodv_views.cpp \

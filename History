@@ -1,5 +1,11 @@
 IMOD History
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+1/21/08: Added grouping capability to object list window to allow objects to
+be edited in groups.
+
+1/21/08: Synchronized model view object edit and object list after object
+deletion, renumbering, and combining (In 3.11).
+
 1/19/08: Added an On button to the Draw Data Type in model view object edit
 to turn objects back on without having to select Contour/Mesh (In 3.11).
 

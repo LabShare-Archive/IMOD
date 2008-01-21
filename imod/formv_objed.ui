@@ -134,6 +134,11 @@
                             <string>On's</string>
                         </property>
                     </item>
+                    <item>
+                        <property name="text">
+                            <string>Group</string>
+                        </property>
+                    </item>
                     <property name="name">
                         <cstring>oneAllComboBox</cstring>
                     </property>
@@ -141,7 +146,7 @@
                         <enum>ClickFocus</enum>
                     </property>
                     <property name="toolTip" stdset="0">
-                        <string>Select whether changes will be applied to only one object, all objects, or only the ones that are on</string>
+                        <string>Select whether changes will be applied to only one object, all objects, ones that are on, or ones in group</string>
                     </property>
                 </widget>
             </hbox>
@@ -292,7 +297,7 @@
                                 <enum>NoFocus</enum>
                             </property>
                             <property name="toolTip" stdset="0">
-                                <string>Select whether no data, contour data, or mesh data will be drawn</string>
+                                <string>Select whether contour or mesh data will be drawn or turn drawing off or on</string>
                             </property>
                         </widget>
                         <widget class="QLabel" row="1" column="0">
