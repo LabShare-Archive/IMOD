@@ -9,7 +9,7 @@
 #
 # Global setup
 #
-set imod_copyright    = '1994-2006'
+set imod_copyright    = '1994-2008'
 set lab_name1     = 'Boulder Laboratory for 3-Dimensional'
 set lab_name2     = 'Electron Microscopy of Cells'
 set source_dir    = `pwd`
@@ -929,6 +929,9 @@ exit
 
 #
 #  $Log$
+#  Revision 1.36  2007/12/03 16:26:59  mast
+#  Remove imod.h link in include
+#
 #  Revision 1.35  2007/11/20 22:54:31  mast
 #  Switched Mac to using individual scripts for fortran qt progs
 #
