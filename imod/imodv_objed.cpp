@@ -18,7 +18,6 @@
 #include <qlabel.h>
 #include <qcheckbox.h>
 #include <qspinbox.h>
-#include <qscrollview.h>
 #include <qapplication.h>
 #include <qpushbutton.h>
 #include <qbuttongroup.h>
@@ -43,6 +42,7 @@
 #include "imodv_gfx.h"
 #include "imodv_light.h"
 #include "imodv_objed.h"
+#include "imodv_listobj.h"
 #include "imodv_input.h"
 #include "imodv_menu.h"
 #include "imodv_window.h"
@@ -88,7 +88,6 @@ static MeshParams *makeGetObjectParams(void);
 static void meshObject();
 static void finishMesh();
 static void optionSetFlags (b3dUInt32 *flag);
-static void toggleObj(int ob, bool state);
 static void finishChangeAndDraw(int doObjset, int drawImages);
 static void setStartEndModel(int &mst, int &mnd, bool multipleOK = true);
 static bool changeModelObject(int m, int ob, bool multipleOK = true);
@@ -101,12 +100,12 @@ static void makeRadioButton(char *label, QWidget *parent, QButtonGroup *group,
    box classes when they are created */
 static ImodvObjed imodvObjed;
 static imodvObjedForm *objed_dialog = NULL;
-static ImodvOlist *Oolist_dialog = NULL;
 
 static int Imodv_objed_all = 0;  /* edit all objects if 1 */
 static int ctrlPressed = false;
+static bool switchObjInObjset = false;
 
-#define editAll  1
+enum {editOne = 0, editAll, editOns, editGroup};
 
 #define stylePoints 0
 #define styleLines  1
@@ -124,14 +123,6 @@ static int ctrlPressed = false;
 #define MAX_ONOFF_COLUMNS   6
 static QCheckBox *OnoffButtons[MAX_ONOFF_BUTTONS];
 static int numOnoffButtons = 0;
-
-#define MAX_OOLIST_BUTTONS  5000
-#define MAX_OOLIST_WIDTH 384
-#define MAX_LIST_IN_COL 36
-#define MAX_LIST_NAME 40
-static QCheckBox **OolistButtons;
-static int numOolistButtons = 0;
-static int olistNcol = 1;
 
 static int      CurrentObjectField       = 0;
 ObjectEditField objectEditFieldData[]    = {
@@ -302,15 +293,10 @@ void imodvObjedName(const char *name)
 // Respond to an On-Off button in either the objed or the object list window
 void ImodvObjed::toggleObjSlot(int ob)
 {
-  toggleObj(ob, OnoffButtons[ob]->isOn());
+  objedToggleObj(ob, OnoffButtons[ob]->isOn());
 }
 
-void ImodvObjed::toggleListSlot(int ob)
-{
-  toggleObj(ob, OolistButtons[ob]->isOn());
-}
-
-static void toggleObj(int ob, bool state)
+void objedToggleObj(int ob, bool state)
 {
   int m, mst, mnd;
   setStartEndModel(mst, mnd);
@@ -330,8 +316,7 @@ static void toggleObj(int ob, bool state)
      in each list */
   if (ob < numOnoffButtons && ob < Imodv->imod->objsize)
     diaSetChecked(OnoffButtons[ob], state);
-  if (ob < numOolistButtons && ob < Imodv->imod->objsize)
-    diaSetChecked(OolistButtons[ob], state);
+  imodvOlistSetChecked(Imodv, ob, state);
 
   finishChangeAndDraw(1, 1);
 }
@@ -378,13 +363,34 @@ void imodvObjedHelp()
 /* sets object features in objed window. */
 static void objset(ImodvApp *a)
 {
-  int style, type;
+  int style, type, ob, dir, diff;
   Iobj *obj;
   unsigned int flag;
 
   // Adjust object number and set structure variables
   if (a->ob >= a->imod->objsize)
     a->ob = 0;
+
+  // If editing Ons or a group, adjust object number to the nearest object that
+  // was modified
+  if (switchObjInObjset) {
+    type = 0;
+    for (diff = 0; diff < a->imod->objsize && !type; diff++) {
+      for (dir = -1; dir <= 1; dir += 2) {
+        ob = a->ob + dir * diff;
+        if (ob < 0 || ob >= a->imod->objsize)
+          continue;
+        if (Imodv_objed_all == editOns && !iobjOff(a->imod->obj[ob].flags) ||
+            Imodv_objed_all == editGroup && imodvOlistObjInGroup(a, ob)) {
+          a->ob = ob;
+          type = 1;
+          break;
+        }
+      }
+    }
+    switchObjInObjset = false;
+  }
+
   a->obj = a->imod->objsize ? &(a->imod->obj[a->ob]) : NULL;
   obj = a->obj;
   if (obj) {
@@ -427,15 +433,8 @@ static void setOnoffButtons(void)
 {
   int ob;
   bool state;
-  QString qstr;
-  char obname[MAX_LIST_NAME];
-  int len;
   ImodvApp *a = Imodv;
-  QColor bkgColor;
-  QColor gray;
 
-  if (numOolistButtons)
-    gray = Oolist_dialog->paletteBackgroundColor();
 
   for (ob = 0; ob < numOnoffButtons; ob++) {
     if (ob < a->imod->objsize)
@@ -446,29 +445,7 @@ static void setOnoffButtons(void)
     diaSetChecked(OnoffButtons[ob], state);
   }
 
-  for (ob = 0; ob < numOolistButtons; ob++) {
-    if (ob < a->imod->objsize) {
-      // Get a truncated name
-      // DMN 9/20/04: just truncate all columns a little bit now
-      len = strlen(a->imod->obj[ob].name);
-      if (len > MAX_LIST_NAME - 1)
-        len = MAX_LIST_NAME - 1;
-      strncpy(obname, a->imod->obj[ob].name, len);
-      obname[len] = 0x00;
-      qstr.sprintf("%d: %s",ob + 1, obname);
-      OolistButtons[ob]->setText(qstr);
-      state = !(a->imod->obj[ob].flags & IMOD_OBJFLAG_OFF);
-      bkgColor.setRgb((int)(255. * a->imod->obj[ob].red),
-                      (int)(255. * a->imod->obj[ob].green),
-                      (int)(255. * a->imod->obj[ob].blue));
-    } else {
-      state = false;
-      bkgColor = gray;
-    }
-    OolistButtons[ob]->setEnabled(ob < a->imod->objsize);
-    OolistButtons[ob]->setPaletteBackgroundColor(bkgColor);
-    diaSetChecked(OolistButtons[ob], state);
-  }
+  imodvOlistUpdateOnOffs(a);
 }
 
 
@@ -480,6 +457,7 @@ static void setOnoffButtons(void)
    be safe even if neither list or objed window is open */
 void imodvObjedNewView(void)
 {
+  imodvOlistUpdateGroups(Imodv);
   setOnoffButtons();
   if (!objed_dialog)
     return;
@@ -645,12 +623,11 @@ void ImodvObjed::lineColorSlot(int color, int value, bool dragging)
 
     // Update all buttons if more than one changed, otherwise just the one
     if (color < 3) {
-      if (numChanged > 1)
+      if (numChanged > 1) {
         setOnoffButtons();
-      else if (Imodv->ob < numOolistButtons)
-        OolistButtons[Imodv->ob]->setPaletteBackgroundColor
-          (QColor((int)(255 * obj->red), (int)(255 * obj->green),
-                  (int)(255 * obj->blue)));
+        imodvOlistUpdateOnOffs(Imodv);
+      } else
+        imodvOlistSetColor(Imodv, Imodv->ob);
     }
   } else if (color < 3)
     objed_dialog->updateColorBox(QColor((int)(255 * obj->red),
@@ -2180,153 +2157,8 @@ void MeshThread::run()
 
 
 /*****************************************************************************
- *
- * END OF EDIT FIELDS.  START OF OBJECT LIST DIALOG
- *
- * Create the object list dialog
- * 
+ * END OF EDIT FIELDS.
  *****************************************************************************/
-
-void imodvObjectListDialog(ImodvApp *a, int state)
-{
-  int ob, m;
-  QString qstr;
-  int nPerCol;
-  char *window_name;
-
-  if (!state){
-    if (Oolist_dialog)
-      Oolist_dialog->close();
-    return;
-  }
-  if (Oolist_dialog){
-    Oolist_dialog->raise();
-    return;
-  }
-
-  // Get number of buttons, number of columns and number per column
-  // Make maximum number of buttons needed for all loaded models
-  for (m = 0; m < a->nm; m++)
-    if (numOolistButtons < a->mod[m]->objsize) 
-      numOolistButtons = a->mod[m]->objsize; 
-  if (numOolistButtons > MAX_OOLIST_BUTTONS)
-    numOolistButtons = MAX_OOLIST_BUTTONS;
-
-  OolistButtons = (QCheckBox **)malloc(numOolistButtons * sizeof(QCheckBox *));
-  if (!OolistButtons) {
-    numOolistButtons = 0;
-    wprint("\aMemory error getting array for checkboxes\n");
-    return;
-  }
-       
-  Oolist_dialog = new ImodvOlist(imodvDialogManager.parent(IMODV_DIALOG));
-
-  olistNcol = (numOolistButtons + MAX_LIST_IN_COL - 1) / MAX_LIST_IN_COL;
-  nPerCol = (numOolistButtons + olistNcol - 1) / olistNcol;
-
-  // Get a signal mapper, connect to the slot for these buttons
-  QSignalMapper *mapper = new QSignalMapper(Oolist_dialog);
-  QObject::connect(mapper, SIGNAL(mapped(int)), &imodvObjed, 
-                   SLOT(toggleListSlot(int)));
-  
-  // Make the buttons, set properties and map them
-  for (ob = 0; ob < numOolistButtons; ob++) {
-    qstr.sprintf("%d: ",ob + 1);
-    OolistButtons[ob] = new QCheckBox(qstr, Oolist_dialog->mFrame);
-    OolistButtons[ob]->setFocusPolicy(QWidget::NoFocus);
-    Oolist_dialog->mGrid->addWidget(OolistButtons[ob], ob % nPerCol, 
-                                    ob / nPerCol);
-    mapper->setMapping(OolistButtons[ob], ob);
-    QObject::connect(OolistButtons[ob], SIGNAL(toggled(bool)), mapper, 
-                     SLOT(map()));
-  }
-  setOnoffButtons();
-
-  // Get sizes to adjust window size with
-  QSize svSize = Oolist_dialog->mScroll->sizeHint();
-  QSize frameSize = Oolist_dialog->mFrame->sizeHint();
-  Oolist_dialog->adjustSize();
-
-  // 4 pixels added was enough to prevent scroll bars
-  // If width is constrained, allow more height for horizontal scroll bar
-  int newWidth = Oolist_dialog->width() + frameSize.width() - svSize.width() + 8;
-  int newHeight = Oolist_dialog->height() + frameSize.height() - 
-    svSize.height() + 8;
-  if (newWidth > MAX_OOLIST_WIDTH) {
-    newWidth = MAX_OOLIST_WIDTH;
-    newHeight += 20;
-  }
-  if (newHeight > QApplication::desktop()->height() - 100)
-    newHeight = QApplication::desktop()->height() - 100;
-  Oolist_dialog->resize(newWidth, newHeight);
-
-  window_name = imodwEithername("3dmodv Object List: ", a->imod->fileName, 1);
-  if (window_name) {
-    qstr = window_name;
-    free(window_name);
-  }
-  if (qstr.isEmpty())
-    qstr = "3dmodv Object List";
-  Oolist_dialog->setCaption(qstr);
-  imodvDialogManager.add((QWidget *)Oolist_dialog, IMODV_DIALOG);
-  Oolist_dialog->show();
-}
-
-// Object list class
-ImodvOlist::ImodvOlist(QWidget *parent, const char *name, WFlags fl)
-  : QWidget(parent, name, fl)
-{
-  QVBoxLayout *layout = new QVBoxLayout(this, 11, 6, "list layout");
-
-  mScroll = new QScrollView(this);
-  layout->addWidget(mScroll);
-  mFrame = new QFrame(mScroll->viewport());
-  mScroll->addChild(mFrame);
-  mScroll->viewport()->setPaletteBackgroundColor
-    (mFrame->paletteBackgroundColor());
-  mGrid = new QGridLayout(mFrame, 1, 1, 0, 2, "list grid");
-
-  // Make a line
-  QFrame *line = new QFrame(this);
-  line->setFrameShape( QFrame::HLine );
-  line->setFrameShadow( QFrame::Sunken );
-  layout->addWidget(line);
-
-  QHBox *box = new QHBox(this);
-  QPushButton *button = new QPushButton("Done", box);
-  diaSetButtonWidth(button, ImodPrefs->getRoundedStyle(), 1.4, "Done");
-  button->setFocusPolicy(QWidget::NoFocus);
-  layout->addWidget(box);
-  connect(button, SIGNAL(clicked()), this, SLOT(donePressed()));
-}
-
-void ImodvOlist::donePressed()
-{
-  close();
-}
-
-void ImodvOlist::closeEvent ( QCloseEvent * e )
-{
-  imodvDialogManager.remove((QWidget *)Oolist_dialog);
-  Oolist_dialog  = NULL;
-  numOolistButtons = 0;
-  free(OolistButtons);
-  e->accept();
-}
-
-void ImodvOlist::keyPressEvent ( QKeyEvent * e )
-{
-  if (e->key() == Qt::Key_Escape)
-    close();
-  else
-    imodvKeyPress(e);
-}
-
-void ImodvOlist::keyReleaseEvent ( QKeyEvent * e )
-{
-  imodvKeyRelease(e);
-}
-
 
 /*****************************************************************************/
 /************************* internal utility functions. ***********************/
@@ -2412,7 +2244,8 @@ static void setStartEndModel(int &mst, int &mnd, bool multipleOK)
 
   mst = 0;
   mnd = Imodv->nm - 1;
-  if (!(Imodv->crosset && multipleOK))
+  if (!(Imodv->crosset && multipleOK && 
+        !(Imodv_objed_all == editGroup && imodvOlistGrouping())))
     mst = mnd = Imodv->cm;
 }
 
@@ -2420,9 +2253,20 @@ static void setStartEndModel(int &mst, int &mnd, bool multipleOK)
    flags and possible flag for individual entity */
 static bool changeModelObject(int m, int ob, bool multipleOK)
 {
-  return ((ob == Imodv->ob) || (multipleOK && ((Imodv_objed_all == editAll) || 
-      (Imodv_objed_all && 
-       !(Imodv->mod[m]->obj[ob].flags & IMOD_OBJFLAG_OFF)))));
+  bool grouping = Imodv_objed_all == editGroup && imodvOlistGrouping() &&
+    multipleOK;
+  bool retval = (ob == Imodv->ob && !grouping && (Imodv_objed_all != editOns ||
+                                                  !multipleOK)) ||
+    (grouping && imodvOlistObjInGroup(Imodv, ob)) ||
+    (multipleOK && Imodv_objed_all == editAll) || 
+    (multipleOK && Imodv_objed_all == editOns &&
+     !iobjOff(Imodv->mod[m]->obj[ob].flags));
+
+  // If it is the current object and it is not being edited, then set flag for
+  // objset to switch to a new object
+  if (!retval && ob == Imodv->ob && m == Imodv->cm)
+    switchObjInObjset = true;
+  return retval;
 }
 
 /* Central test for whether to draw after a slider change */
@@ -2452,6 +2296,9 @@ static void makeRadioButton(char *label, QWidget *parent, QButtonGroup *group,
 /*
 
 $Log$
+Revision 4.35  2008/01/19 23:51:36  mast
+Ostensibly handled some problems with no object
+
 Revision 4.34  2008/01/19 23:49:39  mast
 Added an On drawing option to turn back on
 
