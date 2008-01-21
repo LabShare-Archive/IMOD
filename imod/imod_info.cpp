@@ -443,6 +443,8 @@ void InfoWindow::openSelectedWindows(char *keys)
     imodPlugOpenByName("Line Track");
   if (strchr(keys, 'F') && imageOK)
     imodPlugOpenByName("Bead Fixer");
+  if (strchr(keys, 'P'))
+    imodPlugOpenAllExternal();
 }
 
 
@@ -544,152 +546,156 @@ static char *truncate_name(char *name, int limit)
 }
 
 /*
-    $Log$
-    Revision 4.40  2007/11/10 04:07:10  mast
-    Changes for setting snapshot directory
 
-    Revision 4.39  2007/08/13 16:04:50  mast
-    Changes for locator window
+$Log$
+Revision 4.41  2008/01/13 22:58:35  mast
+Changes for multi-Z window
 
-    Revision 4.38  2007/07/08 16:47:42  mast
-    Added object combine
+Revision 4.40  2007/11/10 04:07:10  mast
+Changes for setting snapshot directory
 
-    Revision 4.37  2007/05/25 05:28:16  mast
-    Changes for addition of slicer angle storage
+Revision 4.39  2007/08/13 16:04:50  mast
+Changes for locator window
 
-    Revision 4.36  2006/09/12 15:43:30  mast
-    Disable object delete and renumber if meshing
+Revision 4.38  2007/07/08 16:47:42  mast
+Added object combine
 
-    Revision 4.35  2006/09/01 20:49:29  mast
-    Added menu item to flatten contours in object
+Revision 4.37  2007/05/25 05:28:16  mast
+Changes for addition of slicer angle storage
 
-    Revision 4.34  2006/08/28 05:17:56  mast
-    Manipulate menus more for colormapped images loaded
+Revision 4.36  2006/09/12 15:43:30  mast
+Disable object delete and renumber if meshing
 
-    Revision 4.33  2005/10/14 22:04:39  mast
-    Changes for Model reload capability
+Revision 4.35  2006/09/01 20:49:29  mast
+Added menu item to flatten contours in object
 
-    Revision 4.32  2005/09/15 14:20:22  mast
-    Added image movie window
+Revision 4.34  2006/08/28 05:17:56  mast
+Manipulate menus more for colormapped images loaded
 
-    Revision 4.31  2005/06/26 19:37:06  mast
-    cleanup
+Revision 4.33  2005/10/14 22:04:39  mast
+Changes for Model reload capability
 
-    Revision 4.30  2005/02/12 01:29:33  mast
-    Prevented image processing and reload from being opened from menus when
-    there is no image data; prevented these and other windows from being
-    opened with -E when inappropriate
+Revision 4.32  2005/09/15 14:20:22  mast
+Added image movie window
 
-    Revision 4.29  2004/11/21 05:59:42  mast
-    Rationalized key letters for opening windows
+Revision 4.31  2005/06/26 19:37:06  mast
+cleanup
 
-    Revision 4.28  2004/11/20 05:05:27  mast
-    Changes for undo/redo capability
+Revision 4.30  2005/02/12 01:29:33  mast
+Prevented image processing and reload from being opened from menus when
+there is no image data; prevented these and other windows from being
+opened with -E when inappropriate
 
-    Revision 4.27  2004/11/07 23:04:20  mast
-    Disabled flip and reload when processing
+Revision 4.29  2004/11/21 05:59:42  mast
+Rationalized key letters for opening windows
 
-    Revision 4.26  2004/11/01 23:25:13  mast
-    Added delete surface menu entry
+Revision 4.28  2004/11/20 05:05:27  mast
+Changes for undo/redo capability
 
-    Revision 4.25  2004/09/21 20:17:54  mast
-    Added menu option to renumber object
+Revision 4.27  2004/11/07 23:04:20  mast
+Disabled flip and reload when processing
 
-    Revision 4.24  2004/05/31 23:35:26  mast
-    Switched to new standard error functions for all debug and user output
+Revision 4.26  2004/11/01 23:25:13  mast
+Added delete surface menu entry
 
-    Revision 4.23  2003/11/26 18:17:03  mast
-    Fix test for whether to open zap and model view with raw images
+Revision 4.25  2004/09/21 20:17:54  mast
+Added menu option to renumber object
 
-    Revision 4.22  2003/09/18 05:57:08  mast
-    Disable float button later in process to exclude RGB images
+Revision 4.24  2004/05/31 23:35:26  mast
+Switched to new standard error functions for all debug and user output
 
-    Revision 4.21  2003/08/01 00:13:56  mast
-    Make event reports happen in debug mode
+Revision 4.23  2003/11/26 18:17:03  mast
+Fix test for whether to open zap and model view with raw images
 
-    Revision 4.20  2003/06/19 05:48:35  mast
-    Added object break by Z
+Revision 4.22  2003/09/18 05:57:08  mast
+Disable float button later in process to exclude RGB images
 
-    Revision 4.19  2003/05/18 22:59:28  mast
-    Remove icon include file
+Revision 4.21  2003/08/01 00:13:56  mast
+Make event reports happen in debug mode
 
-    Revision 4.18  2003/05/18 22:08:48  mast
-    Changes to add an application icon
+Revision 4.20  2003/06/19 05:48:35  mast
+Added object break by Z
 
-    Revision 4.17  2003/04/25 03:28:32  mast
-    Changes for name change to 3dmod
+Revision 4.19  2003/05/18 22:59:28  mast
+Remove icon include file
 
-    Revision 4.16  2003/04/23 17:50:44  mast
-    no longer need to watch windowActivate event due to fix on Mac
+Revision 4.18  2003/05/18 22:08:48  mast
+Changes to add an application icon
 
-    Revision 4.15  2003/04/16 18:46:51  mast
-    hide/show changes
+Revision 4.17  2003/04/25 03:28:32  mast
+Changes for name change to 3dmod
 
-    Revision 4.14  2003/04/11 22:30:29  mast
-    return value from new event watcher
+Revision 4.16  2003/04/23 17:50:44  mast
+no longer need to watch windowActivate event due to fix on Mac
 
-    Revision 4.13  2003/04/11 18:56:34  mast
-    switch to watching event types to manage hide/show events
+Revision 4.15  2003/04/16 18:46:51  mast
+hide/show changes
 
-    Revision 4.12  2003/03/28 23:51:10  mast
-    changes for Mac problems
+Revision 4.14  2003/04/11 22:30:29  mast
+return value from new event watcher
 
-    Revision 4.11  2003/03/26 23:23:15  mast
-    switched from hotslider.h to preferences.h
+Revision 4.13  2003/04/11 18:56:34  mast
+switch to watching event types to manage hide/show events
 
-    Revision 4.10  2003/03/26 17:15:30  mast
-    Adjust sizes for font changes
+Revision 4.12  2003/03/28 23:51:10  mast
+changes for Mac problems
 
-    Revision 4.9  2003/03/24 17:58:09  mast
-    Changes for new preferences capability
+Revision 4.11  2003/03/26 23:23:15  mast
+switched from hotslider.h to preferences.h
 
-    Revision 4.8  2003/03/18 19:30:23  mast
-    Add a timer hack to keep window on top
+Revision 4.10  2003/03/26 17:15:30  mast
+Adjust sizes for font changes
 
-    Revision 4.7  2003/03/15 00:29:40  mast
-    disable peg on the SGI
+Revision 4.9  2003/03/24 17:58:09  mast
+Changes for new preferences capability
 
-    Revision 4.6  2003/03/14 21:28:09  mast
-    Making the reparent not move the window in some unix cases
+Revision 4.8  2003/03/18 19:30:23  mast
+Add a timer hack to keep window on top
 
-    Revision 4.5  2003/03/14 17:27:53  mast
-    Getting stays on top to work under Windows
+Revision 4.7  2003/03/15 00:29:40  mast
+disable peg on the SGI
 
-    Revision 4.4  2003/03/14 15:54:00  mast
-    Adding new function to keep window on top
+Revision 4.6  2003/03/14 21:28:09  mast
+Making the reparent not move the window in some unix cases
 
-    Revision 4.3  2003/03/03 22:19:53  mast
-    Added function for enabling menu items after menu creation, reorganized
-    menus
+Revision 4.5  2003/03/14 17:27:53  mast
+Getting stays on top to work under Windows
 
-    Revision 4.2  2003/02/27 19:33:01  mast
-    fixing window size for windows
+Revision 4.4  2003/03/14 15:54:00  mast
+Adding new function to keep window on top
 
-    Revision 4.1  2003/02/10 20:29:00  mast
-    autox.cpp
+Revision 4.3  2003/03/03 22:19:53  mast
+Added function for enabling menu items after menu creation, reorganized
+menus
 
-    Revision 1.1.2.4  2003/01/23 20:02:15  mast
-    rearrange contour menu
+Revision 4.2  2003/02/27 19:33:01  mast
+fixing window size for windows
 
-    Revision 1.1.2.3  2003/01/18 01:15:00  mast
-    fix enabling of cache filler menu items
+Revision 4.1  2003/02/10 20:29:00  mast
+autox.cpp
 
-    Revision 1.1.2.2  2003/01/14 21:49:06  mast
-    Initialize hiding timer properly
+Revision 1.1.2.4  2003/01/23 20:02:15  mast
+rearrange contour menu
 
-    Revision 1.1.2.1  2003/01/13 01:00:08  mast
-    Qt version
+Revision 1.1.2.3  2003/01/18 01:15:00  mast
+fix enabling of cache filler menu items
 
-    Revision 3.2.2.2  2002/12/19 04:37:12  mast
-    Cleanup of unused global variables and defines
+Revision 1.1.2.2  2003/01/14 21:49:06  mast
+Initialize hiding timer properly
 
-    Revision 3.2.2.1  2002/12/07 01:23:44  mast
-    changed calls to get model name string
+Revision 1.1.2.1  2003/01/13 01:00:08  mast
+Qt version
 
-    Revision 3.2  2002/12/01 15:34:41  mast
-    Changes to get clean compilation with g++
+Revision 3.2.2.2  2002/12/19 04:37:12  mast
+Cleanup of unused global variables and defines
 
-    Revision 3.1  2001/12/17 18:45:19  mast
-    Added menu entries for cache filling
+Revision 3.2.2.1  2002/12/07 01:23:44  mast
+changed calls to get model name string
+
+Revision 3.2  2002/12/01 15:34:41  mast
+Changes to get clean compilation with g++
+
+Revision 3.1  2001/12/17 18:45:19  mast
+Added menu entries for cache filling
 
 */
