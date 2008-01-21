@@ -217,7 +217,7 @@ LIBS += -lqassistantclient -lm
 DEFINES	+= _FILE_OFFSET_BITS=64
 QMAKE_LFLAGS_DEBUG += -Wl,-E 
 QMAKE_LFLAGS_RELEASE += -Wl,-E
-QMAKE_CXXFLAGS_DEBUG += -Wno-unused-parameter
+QMAKE_CXXFLAGS_DEBUG += -Wno-unused-parameter -Wno-sign-compare
 EOF
 
 # Set up to massage QT makefiles for intel, and take care of DLL copies
