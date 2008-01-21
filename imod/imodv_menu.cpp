@@ -32,6 +32,7 @@
 #include "imodv_modeled.h"
 #include "imodv_image.h"
 #include "imodv_objed.h"
+#include "imodv_listobj.h"
 #include "imodv_movie.h"
 #include "preferences.h"
 #include "control.h"
@@ -523,7 +524,11 @@ void ImodvBkgColor::keyReleaseSlot ( QKeyEvent * e )
 }
 
 /*
+
 $Log$
+Revision 4.24  2007/11/10 04:07:10  mast
+Changes for setting snapshot directory
+
 Revision 4.23  2007/10/03 19:30:22  sueh
 bug# 1038 Replacing help strings with an .html file.
 

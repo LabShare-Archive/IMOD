@@ -42,6 +42,7 @@
 #include "imodv_modeled.h"
 #include "imodv_image.h"
 #include "imodv_objed.h"
+#include "imodv_listobj.h"
 #include "imodv_movie.h"
 #include "dia_qtutils.h"
 
@@ -1165,150 +1166,154 @@ void imodvMovieTimeout()
 }
 
 /*
-    $Log$
-    Revision 4.30  2007/11/10 04:07:10  mast
-    Changes for setting snapshot directory
 
-    Revision 4.29  2007/09/23 15:16:00  mast
-    Cast args of atn2 to double
+$Log$
+Revision 4.31  2007/11/30 06:51:50  mast
+Changes for linking slicer to model view
 
-    Revision 4.28  2007/09/20 22:06:55  mast
-    Changes for visualizing clipping plane
+Revision 4.30  2007/11/10 04:07:10  mast
+Changes for setting snapshot directory
 
-    Revision 4.27  2007/08/08 03:05:02  mast
-    Fixed setting up of point picking to avoid context-setting errors
+Revision 4.29  2007/09/23 15:16:00  mast
+Cast args of atn2 to double
 
-    Revision 4.26  2007/07/08 16:53:19  mast
-    Added drag selection of contours crossed by mouse
+Revision 4.28  2007/09/20 22:06:55  mast
+Changes for visualizing clipping plane
 
-    Revision 4.25  2007/06/18 16:16:06  mast
-    Fixed stupid bug that ruined rotations
+Revision 4.27  2007/08/08 03:05:02  mast
+Fixed setting up of point picking to avoid context-setting errors
 
-    Revision 4.24  2007/06/13 15:19:21  mast
-    Made function for computing matrix from angle stpes
+Revision 4.26  2007/07/08 16:53:19  mast
+Added drag selection of contours crossed by mouse
 
-    Revision 4.23  2007/04/06 22:21:04  mast
-    Chnaged scaling in call to move light
+Revision 4.25  2007/06/18 16:16:06  mast
+Fixed stupid bug that ruined rotations
 
-    Revision 4.22  2006/10/05 15:41:32  mast
-    Provided for primary and second non-TIFF snapshot format
+Revision 4.24  2007/06/13 15:19:21  mast
+Made function for computing matrix from angle stpes
 
-    Revision 4.21  2006/09/12 15:47:19  mast
-    Handled contour member renames
+Revision 4.23  2007/04/06 22:21:04  mast
+Chnaged scaling in call to move light
 
-    Revision 4.20  2006/09/01 20:49:03  mast
-    Left a debugging statement in
+Revision 4.22  2006/10/05 15:41:32  mast
+Provided for primary and second non-TIFF snapshot format
 
-    Revision 4.19  2006/08/31 23:27:44  mast
-    Changes for stored value display
+Revision 4.21  2006/09/12 15:47:19  mast
+Handled contour member renames
 
-    Revision 4.18  2005/10/21 23:58:41  mast
-    Fixed for gcc 4.0 on Mac
+Revision 4.20  2006/09/01 20:49:03  mast
+Left a debugging statement in
 
-    Revision 4.17  2004/11/21 06:07:49  mast
-    Changes for undo/redo
+Revision 4.19  2006/08/31 23:27:44  mast
+Changes for stored value display
 
-    Revision 4.16  2004/09/21 20:29:10  mast
-    Changes to deal with new clipping plane structures
+Revision 4.18  2005/10/21 23:58:41  mast
+Fixed for gcc 4.0 on Mac
 
-    Revision 4.15  2004/05/31 23:35:26  mast
-    Switched to new standard error functions for all debug and user output
+Revision 4.17  2004/11/21 06:07:49  mast
+Changes for undo/redo
 
-    Revision 4.14  2004/04/28 04:38:16  mast
-    Added ability to delete current contour it it was picked
+Revision 4.16  2004/09/21 20:29:10  mast
+Changes to deal with new clipping plane structures
 
-    Revision 4.13  2003/12/01 20:00:30  mast
-    Fixed problem with movie not changing direction when a different keypad key
-    is pressed
+Revision 4.15  2004/05/31 23:35:26  mast
+Switched to new standard error functions for all debug and user output
 
-    Revision 4.12  2003/11/26 18:15:09  mast
-    Disable image menu entry unless byte images exist
+Revision 4.14  2004/04/28 04:38:16  mast
+Added ability to delete current contour it it was picked
 
-    Revision 4.11  2003/11/12 18:54:52  mast
-    moved quit call out, added raise call
+Revision 4.13  2003/12/01 20:00:30  mast
+Fixed problem with movie not changing direction when a different keypad key
+is pressed
 
-    Revision 4.10  2003/11/04 04:43:49  mast
-    Implement new method for constant rotation speed
+Revision 4.12  2003/11/26 18:15:09  mast
+Disable image menu entry unless byte images exist
 
-    Revision 4.9  2003/11/01 18:12:17  mast
-    changed to put out virtually all error messages to a window
+Revision 4.11  2003/11/12 18:54:52  mast
+moved quit call out, added raise call
 
-    Revision 4.8  2003/06/27 20:01:36  mast
-    Changes to use world flag for quality instead of fastdraw flag
+Revision 4.10  2003/11/04 04:43:49  mast
+Implement new method for constant rotation speed
 
-    Revision 4.7  2003/04/18 20:13:40  mast
-    Reject Ctrl Key (Meta) on Mac
+Revision 4.9  2003/11/01 18:12:17  mast
+changed to put out virtually all error messages to a window
 
-    Revision 4.6  2003/04/17 19:27:13  mast
-    keypad workaround for Mac
+Revision 4.8  2003/06/27 20:01:36  mast
+Changes to use world flag for quality instead of fastdraw flag
 
-    Revision 4.5  2003/03/13 01:20:08  mast
-    Convert numlock keypad keys so num lock can be on
+Revision 4.7  2003/04/18 20:13:40  mast
+Reject Ctrl Key (Meta) on Mac
 
-    Revision 4.4  2003/02/27 23:09:21  mast
-    Change to use Qt time functions for timing values
+Revision 4.6  2003/04/17 19:27:13  mast
+keypad workaround for Mac
 
-    Revision 4.3  2003/02/27 17:27:51  mast
-    Use new b3dX,Y,Z
+Revision 4.5  2003/03/13 01:20:08  mast
+Convert numlock keypad keys so num lock can be on
 
-    Revision 4.2  2003/02/21 22:19:00  mast
-    Use new b3d types
+Revision 4.4  2003/02/27 23:09:21  mast
+Change to use Qt time functions for timing values
 
-    Revision 4.1  2003/02/10 20:29:01  mast
-    autox.cpp
+Revision 4.3  2003/02/27 17:27:51  mast
+Use new b3dX,Y,Z
 
-    Revision 1.1.2.16  2003/01/29 01:28:53  mast
-    replace imodv_exit with direct window close calls
+Revision 4.2  2003/02/21 22:19:00  mast
+Use new b3d types
 
-    Revision 1.1.2.15  2003/01/27 00:30:07  mast
-    Pure Qt version and general cleanup
+Revision 4.1  2003/02/10 20:29:01  mast
+autox.cpp
 
-    Revision 1.1.2.14  2003/01/23 20:10:18  mast
-    Add include of imod_input
+Revision 1.1.2.16  2003/01/29 01:28:53  mast
+replace imodv_exit with direct window close calls
 
-    Revision 1.1.2.13  2003/01/18 01:13:24  mast
-    remove X workproc stuff
+Revision 1.1.2.15  2003/01/27 00:30:07  mast
+Pure Qt version and general cleanup
 
-    Revision 1.1.2.12  2003/01/13 07:21:38  mast
-    Changes to use new dialog manager class
+Revision 1.1.2.14  2003/01/23 20:10:18  mast
+Add include of imod_input
 
-    Revision 1.1.2.11  2003/01/01 19:12:31  mast
-    changes to start Qt application in standalone mode
+Revision 1.1.2.13  2003/01/18 01:13:24  mast
+remove X workproc stuff
 
-    Revision 1.1.2.10  2003/01/01 05:46:29  mast
-    changes for qt version of stereo
+Revision 1.1.2.12  2003/01/13 07:21:38  mast
+Changes to use new dialog manager class
 
-    Revision 1.1.2.9  2002/12/30 06:47:47  mast
-    Implement Z key correctly and call new dialog closing function
+Revision 1.1.2.11  2003/01/01 19:12:31  mast
+changes to start Qt application in standalone mode
 
-    Revision 1.1.2.8  2002/12/27 01:24:54  mast
-    Using new background color dialog
+Revision 1.1.2.10  2003/01/01 05:46:29  mast
+changes for qt version of stereo
 
-    Revision 1.1.2.7  2002/12/23 05:01:54  mast
-    Do not process more events before quitting imodv
+Revision 1.1.2.9  2002/12/30 06:47:47  mast
+Implement Z key correctly and call new dialog closing function
 
-    Revision 1.1.2.6  2002/12/19 04:37:13  mast
-    Cleanup of unused global variables and defines
+Revision 1.1.2.8  2002/12/27 01:24:54  mast
+Using new background color dialog
 
-    Revision 1.1.2.5  2002/12/18 04:15:14  mast
-    new includes for imodv modules
+Revision 1.1.2.7  2002/12/23 05:01:54  mast
+Do not process more events before quitting imodv
 
-    Revision 1.1.2.4  2002/12/17 22:28:21  mast
-    cleanup of unused variables and SGI errors
+Revision 1.1.2.6  2002/12/19 04:37:13  mast
+Cleanup of unused global variables and defines
 
-    Revision 1.1.2.3  2002/12/17 21:38:49  mast
-    include imodconfig so NO_SYS_TIMES can be acted on
+Revision 1.1.2.5  2002/12/18 04:15:14  mast
+new includes for imodv modules
 
-    Revision 1.1.2.2  2002/12/17 17:44:59  mast
-    Changes for Qt version
+Revision 1.1.2.4  2002/12/17 22:28:21  mast
+cleanup of unused variables and SGI errors
 
-    Revision 1.1.2.1  2002/12/15 21:14:02  mast
-    conversion to cpp
+Revision 1.1.2.3  2002/12/17 21:38:49  mast
+include imodconfig so NO_SYS_TIMES can be acted on
 
-    Revision 3.2  2002/12/01 16:51:34  mast
-    Changes to eliminate warnings on SGI
+Revision 1.1.2.2  2002/12/17 17:44:59  mast
+Changes for Qt version
 
-    Revision 3.1  2002/12/01 15:34:41  mast
-    Changes to get clean compilation with g++
+Revision 1.1.2.1  2002/12/15 21:14:02  mast
+conversion to cpp
+
+Revision 3.2  2002/12/01 16:51:34  mast
+Changes to eliminate warnings on SGI
+
+Revision 3.1  2002/12/01 15:34:41  mast
+Changes to get clean compilation with g++
 
 */
