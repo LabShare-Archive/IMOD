@@ -37,13 +37,12 @@ static int ipAddInternalModules();
 static void *ipGetFunction(PlugData *pd, int which);
 
 static Ilist *plugList = NULL;
-
+static int numInternal;
 
 /* Load all plugins that we can use. */
 /* Return the number we have loaded. */
 int imodPlugInit(void)
 {
-  PlugData thePlug;
 
   char *defdir3 = "/usr/freeware/lib/imodplugs/";
   char *defdir2 = "/usr/local/IMOD/plugins";
@@ -57,6 +56,7 @@ int imodPlugInit(void)
 
   /* Add internal modules to list first */
   ipAddInternalModules();
+  numInternal = ilistSize(plugList);
 
   /* load plugs in environment varialble. */
   imodPlugLoadDir(envdir);
@@ -226,6 +226,16 @@ void imodPlugOpenByName(char *name)
     if (!strcmp(pd->name, name))
       imodPlugOpen(i);
   }
+}
+
+/*
+ * Open all true plugins, not special modules (for easy testing)
+ */
+void imodPlugOpenAllExternal(void)
+{
+  int i;
+  for (i = numInternal; i < ilistSize(plugList); i++)
+    imodPlugOpen(i);
 }
 
 /*
@@ -485,7 +495,11 @@ static void *ipGetFunction(PlugData *pd, int which)
 
 
 /*
+
 $Log$
+Revision 4.15  2007/12/21 19:54:49  mast
+Switched /usr/IMOD/plugins to ImodCalib/plugins
+
 Revision 4.14  2007/12/04 18:53:04  mast
 Added event handling call, removed clean, fixed the treatment of Execute
 versus ExecuteType for the plug opening call.
