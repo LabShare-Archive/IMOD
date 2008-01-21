@@ -13,9 +13,7 @@
 
 typedef struct __imodv_struct ImodvApp;
 #include <qwidget.h>
-class QGridLayout;
 class QFrame;
-class QScrollView;
 
 /******************************************************************
  * Object Edit Field allows easier expansion
@@ -42,7 +40,7 @@ int object_edit_kill(void);
 /* Create and init the object edit dialog. */
 void objed(ImodvApp *a);
 void imodvObjedNewView(void);
-void imodvObjectListDialog(ImodvApp *a, int state);
+void objedToggleObj(int ob, bool state);
 void imodvObjedDrawData(int option);
 void imodvObjedFramePicked(int item);
 void imodvObjedStyleData(int option);
@@ -120,7 +118,6 @@ class ImodvObjed : public QObject
   void makeStateSlot(int which);
   void makeDoitSlot();
   void toggleObjSlot(int ob);
-  void toggleListSlot(int ob);
 
  protected:
   void timerEvent(QTimerEvent *e);
@@ -134,33 +131,13 @@ class ImodvObjed : public QObject
 };
 
 
-
-class ImodvOlist : public QWidget
-{
-  Q_OBJECT
-
- public:
-  ImodvOlist(QWidget *parent, const char *name = NULL, 
-                WFlags fl =  Qt::WDestructiveClose | Qt::WType_TopLevel);
-  ~ImodvOlist() {};
-
-  QGridLayout *mGrid;
-  QFrame *mFrame;
-  QScrollView *mScroll;
-
-  public slots:
-    void donePressed();
-
- protected:
-    void closeEvent ( QCloseEvent * e );
-    void keyPressEvent ( QKeyEvent * e );
-    void keyReleaseEvent ( QKeyEvent * e );
-};
-
 #endif
 
 /*
 $Log$
+Revision 4.11  2007/09/22 00:06:20  mast
+Added constant mesh color slot
+
 Revision 4.10  2007/09/20 22:06:55  mast
 Changes for visualizing clipping plane
 
