@@ -530,7 +530,7 @@ EOF
                       set dropmess = "it failed (with time out) $failcount times in a row"
                     if ("$dropmess" == "") set dropmess = \
                       "it failed (with chunk error) $failcount times in a row"
-                    echo "Dropping $machines[$proc] -" $dropmess
+                    echo "Dropping $machines[$proc] - $dropmess"
                 endif
             endif
 
@@ -814,6 +814,9 @@ exit 3
 
 #
 #  $Log$
+#  Revision 3.35  2008/01/11 05:38:51  mast
+#  Stripped control chars from ssh version sed output
+#
 #  Revision 3.34  2007/12/10 22:59:49  mast
 #  Need to quote errormess when echoing it
 #
