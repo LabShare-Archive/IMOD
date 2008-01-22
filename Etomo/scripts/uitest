@@ -41,19 +41,77 @@ if [ ! -e "$IMOD_DIR" ]; then
   exit
 fi
 
+if [ -z "$IMOD_JUNIT_HOME" ]; then
+  echo "The IMOD_JUNIT_HOME environment variable has not been set"
+  echo "Set it to point to the directory containing the JUnit jar"
+  exit
+fi
 
-#export IMOD_JAVADIR=/usr/local/j2re1.4.0_04
-junit_home=${IMOD_JUNIT_HOME:=/usr/local/junit}
-jfcunit_home=${IMOD_JFCUNIT_HOME:=/usr/local/jfcunit}
-jakarta_regexp_home=${IMOD_JAKARTA_REGEXP_HOME:=$jfcunit_home}
-jakarta_regexp_jar=${IMOD_JAKARTA_REGEXP_JAR:=jakarta-regexp-1.2.jar}
-class_separator=${IMOD_CLASS_SEPARATOR:=:}
+if [ ! -e "$IMOD_JUNIT_HOME" ]; then
+  echo "IMOD_JUNIT_HOME=" ${IMOD_JUNIT_HOME} " does not exist"
+  echo "Set it to point to the directory containing the JUnit jar"
+  exit
+fi
+
+if [ -z "$IMOD_JUNIT_JAR" ]; then
+  echo "The IMOD_JUNIT_JAR environment variable has not been set"
+  echo "Set it to the name of the JUnit jar"
+  exit
+fi
+
+if [ -z "$IMOD_JFCUNIT_HOME" ]; then
+  echo "The IMOD_JFCUNIT_HOME environment variable has not been set"
+  echo "Set it to point to the directory containing the JfcUnit jar"
+  exit
+fi
+
+if [ ! -e "$IMOD_JFCUNIT_HOME" ]; then
+  echo "IMOD_JFCUNIT_HOME=" ${IMOD_JFCUNIT_HOME} " does not exist"
+  echo "Set it to point to the directory containing the JfcUnit jar"
+  exit
+fi
+
+if [ -z "$IMOD_JFCUNIT_JAR" ]; then
+  echo "The IMOD_JFCUNIT_JAR environment variable has not been set"
+  echo "Set it to the name of the JfcUnit jar"
+  exit
+fi
+
+if [ -z "$IMOD_JAKARTA_REGEXP_HOME" ]; then
+  echo "The IMOD_JAKARTA_REGEXP_HOME environment variable has not been set"
+  echo "Set it to point to the directory containing the Jakarta-regexp jar"
+  exit
+fi
+
+if [ ! -e "$IMOD_JAKARTA_REGEXP_HOME" ]; then
+  echo "IMOD_JAKARTA_REGEXP_HOME=" ${IMOD_JAKARTA_REGEXP_HOME} " does not exist"
+  echo "Set it to point to the directory containing the Jakarta-regexp jar"
+  exit
+fi
+
+if [ -z "$IMOD_JAKARTA_REGEXP_JAR" ]; then
+  echo "The IMOD_JAKARTA_REGEXP_JAR environment variable has not been set"
+  echo "Set it to the name of the Jakarta-regexp jar"
+  exit
+fi
+
+# In Windows the class path must be in quotes and the separator must be a
+# semicolon.
+
+osname=`uname -s`
+if [[ $osname == CYGWIN* ]] ; then
+	class_separator=${IMOD_CLASS_SEPARATOR:=;}
+else
+	class_separator=${IMOD_CLASS_SEPARATOR:=:}
+fi
+
 path_separator=${IMOD_PATH_SEPARATOR:=/}
 
-class_path="$IMOD_DIR"${path_separator}bin${path_separator}etomoUITest.jar\
-$class_separator$junit_home${path_separator}junit.jar\
-$class_separator$jfcunit_home${path_separator}jfcunit.jar\
-$class_separator$jakarta_regexp_home${path_separator}$jakarta_regexp_jar\
+class_path=$IMOD_JUNIT_HOME${path_separator}$IMOD_JUNIT_JAR\
+$class_separator"$IMOD_DIR"${path_separator}bin${path_separator}etomoUITest.jar\
+$class_separator$IMOD_JFCUNIT_HOME${path_separator}$IMOD_JFCUNIT_JAR\
+$class_separator$IMOD_JAKARTA_REGEXP_HOME${path_separator}\
+$IMOD_JAKARTA_REGEXP_JAR
 
 if [ ! -z "$IMOD_JAVADIR" ]; then
   export PATH=${IMOD_JAVADIR}/bin:${PATH}
@@ -120,4 +178,3 @@ junit.textui.TestRunner etomo.JfcUnitTests 2>${errlog} >${outlog}
 #
 # $Log$
 #
-  
