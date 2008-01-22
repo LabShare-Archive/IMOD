@@ -56,6 +56,11 @@ import etomo.util.Utilities;
  * @version $Revision$
  * 
  * <p> $Log$
+ * <p> Revision 1.12  2007/03/21 19:48:25  sueh
+ * <p> bug# 964 Limiting access to autodoc classes by using ReadOnly interfaces.
+ * <p> Added AutodocFactory to create Autodoc instances.  Moved AdocCommand
+ * <p> classes out of the autodoc package.
+ * <p>
  * <p> Revision 1.11  2006/10/24 23:35:04  sueh
  * <p> bug# 947 Added waitfor.process.process_name =
  * <p>
@@ -903,7 +908,7 @@ final class UITestAxis implements AdocCommandFactory {
       String name, int operation) {
     if (finder == null) {
       finder = new NamedComponentFinder(componentClass, name);
-      finder.setWait(1);
+      finder.setWait(2);
       finder.setOperation(operation);
     }
     else {
@@ -917,7 +922,7 @@ final class UITestAxis implements AdocCommandFactory {
   private AbstractButtonFinder getAbstractButtonFinder(String buttonText) {
     if (popupButtonFinder == null) {
       popupButtonFinder = new AbstractButtonFinder(buttonText);
-      popupButtonFinder.setWait(1);
+      popupButtonFinder.setWait(2);
     }
     else {
       popupButtonFinder.setText(buttonText);
@@ -928,7 +933,7 @@ final class UITestAxis implements AdocCommandFactory {
   private ComponentFinder getComponentFinder(Class componentClass) {
     if (componentFinder == null) {
       componentFinder = new ComponentFinder(componentClass);
-      componentFinder.setWait(1);
+      componentFinder.setWait(2);
     }
     else {
       componentFinder.setComponentClass(componentClass);
@@ -1066,6 +1071,11 @@ final class UITestAxis implements AdocCommandFactory {
 }
 /**
  * <p> $Log$
+ * <p> Revision 1.12  2007/03/21 19:48:25  sueh
+ * <p> bug# 964 Limiting access to autodoc classes by using ReadOnly interfaces.
+ * <p> Added AutodocFactory to create Autodoc instances.  Moved AdocCommand
+ * <p> classes out of the autodoc package.
+ * <p>
  * <p> Revision 1.11  2006/10/24 23:35:04  sueh
  * <p> bug# 947 Added waitfor.process.process_name =
  * <p>
