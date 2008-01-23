@@ -813,14 +813,23 @@ public abstract class BaseManager {
     }
   }
 
-  boolean isReconnectRun(AxisID axisID) {
+  /**
+   * Should remain private.
+   * @param axisID
+   * @return
+   */
+  private boolean isReconnectRun(AxisID axisID) {
     if (axisID == AxisID.SECOND) {
       return reconnectRunB;
     }
     return reconnectRunA;
   }
 
-  void setReconnectRun(AxisID axisID) {
+  /**
+   * Should remail private
+   * @param axisID
+   */
+  private void setReconnectRun(AxisID axisID) {
     if (axisID == AxisID.SECOND) {
       reconnectRunB = true;
     }
@@ -1313,6 +1322,10 @@ public abstract class BaseManager {
 }
 /**
  * <p> $Log$
+ * <p> Revision 1.94  2008/01/14 20:20:46  sueh
+ * <p> bug# 1050 Added reconnect to reconnect to processchunks.  Also added
+ * <p> reconnectRunA and B to prevent multiple reconnect attempts per axis.
+ * <p>
  * <p> Revision 1.93  2007/12/26 21:55:54  sueh
  * <p> bug# 1052 Added doAutomation() to EtomoDirector, BaseManager and the
  * <p> manager classes.  Function should run any user-specified automatic functionality
