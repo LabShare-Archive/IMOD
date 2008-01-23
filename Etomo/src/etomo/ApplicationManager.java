@@ -166,6 +166,9 @@ public final class ApplicationManager extends BaseManager {
   private ReconScreenState screenStateB = null;
   private ProcessResultDisplayFactory processResultDisplayFactoryA = null;
   private ProcessResultDisplayFactory processResultDisplayFactoryB = null;
+  //True if reconnect() has been run for the specified axis.
+  private boolean reconnectRunA = false;
+  private boolean reconnectRunB = false;
 
   /**
    * Does initialization and loads the .edf file. Opens the setup dialog if
@@ -418,6 +421,22 @@ public final class ApplicationManager extends BaseManager {
     }
     else {
       reconnect(AxisID.ONLY);
+    }
+  }
+  
+  private boolean isReconnectRun(AxisID axisID) {
+    if (axisID == AxisID.SECOND) {
+      return reconnectRunB;
+    }
+    return reconnectRunA;
+  }
+
+private  void setReconnectRun(AxisID axisID) {
+    if (axisID == AxisID.SECOND) {
+      reconnectRunB = true;
+    }
+    else {
+      reconnectRunA = true;
     }
   }
 
@@ -5398,6 +5417,9 @@ public final class ApplicationManager extends BaseManager {
 }
 /**
  * <p> $Log$
+ * <p> Revision 3.295  2008/01/14 20:12:44  sueh
+ * <p> bug# 1050 In openProcessingPanel do not call reconnect for Axis B.  Processchunks reconnect must be done while Axis B is displayed.  In reconnect call super.reconnect to do the processchunks reconnect.
+ * <p>
  * <p> Revision 3.294  2007/12/26 21:53:34  sueh
  * <p> bug# 1052 Created SetupDialogExpert.  Made SetupDialog package protected.
  * <p>
