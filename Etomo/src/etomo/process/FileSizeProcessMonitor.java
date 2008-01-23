@@ -27,6 +27,9 @@ import etomo.util.Utilities;
  * @version $Revision$
  * 
  * <p> $Log$
+ * <p> Revision 3.28  2008/01/14 21:30:06  sueh
+ * <p> bug# 1050 Made stop() and isRunning() public to implement ProcessMonitor.
+ * <p>
  * <p> Revision 3.27  2006/10/24 21:19:10  sueh
  * <p> bug# 947 Changed ProcessName.fromString() to getInstance().
  * <p>
@@ -387,8 +390,10 @@ abstract class FileSizeProcessMonitor implements ProcessMonitor {
   }
 
   private void openLogFileReader() throws InterruptedException {
-    while (!logFileRenamed) {
-      Thread.sleep(updatePeriod);
+    if (!reconnect) {
+      while (!logFileRenamed) {
+        Thread.sleep(updatePeriod);
+      }
     }
     //File logFile = null;
     boolean logFileExists = false;
