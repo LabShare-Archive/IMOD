@@ -264,7 +264,6 @@ class ProcesschunksProcessMonitor implements OutfileProcessMonitor,
     }
     else {
       subdirName = input.toString();
-      System.out.println("subdirName="+subdirName);
     }
   }
 
@@ -290,7 +289,6 @@ class ProcesschunksProcessMonitor implements OutfileProcessMonitor,
   boolean updateState() throws LogFile.ReadException, LogFile.FileException {
     createProcessOutput();
     if (processOutputReadId == LogFile.NO_ID) {
-      System.out.println("processOutput=" + processOutput.getAbsolutePath());
       processOutputReadId = processOutput.openReader();
     }
     boolean returnValue = false;
@@ -521,6 +519,11 @@ class ProcesschunksProcessMonitor implements OutfileProcessMonitor,
 }
 /**
  * <p> $Log$
+ * <p> Revision 1.35  2008/01/14 21:31:47  sueh
+ * <p> bug# 1050 Added stop() and isRunning() to allow ProcessMonitor classes to work
+ * <p> with ReconnectProcess.  Added boolean reconnect, which prevents the process
+ * <p> output file from being deleted.
+ * <p>
  * <p> Revision 1.34  2007/12/26 22:14:38  sueh
  * <p> bug# 1052 Moved argument handling from EtomoDirector to a separate class.
  * <p>
