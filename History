@@ -1,5 +1,7 @@
 IMOD History
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+1/22/08: Converted patch2imod, imo2patch wrappers with dos2unix (In 3.11).
+
 1/21/08: Stripped control characters from ssh version test and quoted drop
 message to avoid script failure in Processchunks (In 3.11).
 
