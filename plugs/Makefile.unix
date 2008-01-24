@@ -7,11 +7,14 @@
 
 all : ALWAYS
 	cd beadfix   ;    $(MAKE) $@
+	cd drawingtools   ;    $(MAKE) $@
 
 install : 
+	cd drawingtools   ;    $(MAKE) $@
 
 clean : ALWAYS
 	cd beadfix   ;    $(MAKE) $@
+	cd drawingtools   ;    $(MAKE) $@
 
 ALWAYS:
 
