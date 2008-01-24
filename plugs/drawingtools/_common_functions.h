@@ -115,8 +115,6 @@ template <typename type>	string toString( type value );
 template <typename data>	string toStringPadNumber( data value, int padLength, char padChar='0' );
 template <typename data>	string toStringWithCommas( data value );
 
-inline string toString( float value, int decimal );
-inline string toStringAsPercent( float numerator, float denominator, int decimal=0 );
 inline float string_getFloatFromString( string str );
 
 inline string string_substr (string str, int chars, int offset );
@@ -449,30 +447,6 @@ inline string toStringWithCommas( data value )
 	return returnStr;
 }
 
-
-//-------------
-//-- Takes a float and converts it to a string but limits the decimal places
-
-inline string toString( float value, int decimal )
-{	
-	float	exponent = (float)pow(10,(int)decimal);
-	float	newValue = ((int)(value * exponent))/exponent ;
-	return  toString(newValue);
-}
-
-
-//-------------
-//-- Takes a numerator and demoninator and returns the result
-//-- of division as a percent, including a percentage sign.
-//-- EXAMPLE: (numerator=1,denominator=3,decimal=0) -> return "33%"
-
-inline string toStringAsPercent( float numerator, float denominator, int decimal )
-{
-	if(denominator == 0)
-		return "-%";
-	float percentage = ( numerator / denominator ) * 100;
-	return (toString(percentage, decimal) + "%");
-}
 
 //-------------
 //-- Takes a string an returns a float by calling "atof" - which can

@@ -10,7 +10,6 @@ PLUGS = drawingtools.$(DLLEXT)
 all : $(PLUGS)
 
 install : $(PLUGS)
-	$(CP) -f $(PLUGS) $(IMOD_PLUGIN_DIR)
 	$(CP) -f $(PLUGS) drawingtools.html $(IMOD_PLUGIN_DIR)
 
 
