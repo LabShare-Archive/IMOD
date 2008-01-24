@@ -412,7 +412,7 @@ csrc : ALWAYS
 	html/3dmodHelp html/joinImages html/adpStub html/makeadp \
 	html/ctfHelp html/midasHelp html/libdoc/Makefile html/libdoc/*.html \
 	dist scripts pysrc com manpages autodoc \
-	plugs/*/*.[chf] plugs/*/*.cpp plugs/*/Makefile \
+	plugs/*/*.[chf] plugs/*/*.cpp plugs/*/*.html plugs/*/Makefile \
 	plugs/Makefile.unix plugs/Makefile.dummy \
 	devkit/*.[ch] devkit/*++ devkit/README devkit/Makefile \
 	include/*.h include/*.inc | (cd $(ARCDIR)_src; tar xBf -)
@@ -455,6 +455,9 @@ ALWAYS:
 
 ############################################################################
 #  $Log$
+#  Revision 3.71  2007/10/03 21:45:25  mast
+#  Added midasHelp
+#
 #  Revision 3.70  2007/09/20 16:16:34  mast
 #  Add mrc/*.cpp to src
 #
