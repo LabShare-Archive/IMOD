@@ -1,5 +1,7 @@
 IMOD History
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+1/23/08: Andrew Noske's drawingtools plugin added to IMOD.
+
 1/22/08: Converted patch2imod, imo2patch wrappers with dos2unix (In 3.11).
 
 1/21/08: Stripped control characters from ssh version test and quoted drop
