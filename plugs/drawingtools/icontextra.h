@@ -27,6 +27,7 @@ struct IcontPtr     // used as wrapper to store a pointer to a contour
   void deleteContour();
 };
 
+
 struct PtConnection // used especially for getIntersectingPolygon function
 {  
   Ipoint intercept;    // stores intercept point
@@ -40,6 +41,7 @@ struct PtConnection // used especially for getIntersectingPolygon function
 bool operator< (const PtConnection &a, const PtConnection &b);
 bool operator== (const PtConnection lhs, const PtConnection rhs);
 
+
 struct IdxAndFloat  // used especially for getIntersectingPolygon function
 {
   int idx;            // stores and idx reference to the intercept point (in conn)
@@ -48,6 +50,7 @@ struct IdxAndFloat  // used especially for getIntersectingPolygon function
   IdxAndFloat(int _idx, float _dist);  
 };
 bool operator<(const IdxAndFloat &a, const IdxAndFloat &b);
+
 
 struct IdxToSort     // used especially for getIntersectingPolygon function
 {  
@@ -64,7 +67,7 @@ bool operator<(const IdxToSort &a, const IdxToSort &b);
 
 
 //-------------------------------
-//## INLINE FUNCTION DECLARATIONS:                    (DEFINED AT THE END OF THIS FILE)
+//## INLINE FUNCTION DECLARATIONS:                      (DEFINED AT THE END OF THIS FILE)
 
 inline bool isContValid(Icont *cont);
 inline bool isEmpty(Icont *cont);
@@ -116,7 +119,7 @@ float line_getAngle2D ( Ipoint *linept1, Ipoint *linept2 );
 float line_getAngle2DPos( Ipoint *pt1, Ipoint *pt2 );
 float line_getAngle2DPos ( Ipoint *linept1, Ipoint *linept2 );
 
-Ipoint line_getPtHalfwayBetween(Ipoint *pt1, Ipoint *pt2);            // NEW
+Ipoint line_getPtHalfwayBetween(Ipoint *pt1, Ipoint *pt2);                    // NEW
 Ipoint line_findPtFractBetweenPts2D( const Ipoint *pt1, const Ipoint *pt2, float fractBetweenPts );
 Ipoint line_findPtFractBetweenPts( const Ipoint *pt1, const Ipoint *pt2, const float fractBetweenPts );
 
@@ -162,11 +165,11 @@ bool cont_doesPtTouchContLine( Ipoint *pt, Icont *cont );
 float cont_findClosestPts2D( Icont *cont1, Icont *cont2, int *closestPtIdxInCont1, int *closestPtIdxInCont2 );
 void cont_reversePts( Icont *c );                              
 void cont_concat( Icont *contNew, Icont *cont1, Icont *cont2, bool matchClosestEnds );    
-void cont_addPtsCrude( Icont *cont, float maxDist, bool closed );                     // MODIFIED
+void cont_addPtsCrude( Icont *cont, float maxDist, bool closed );           // MODIFIED
 void cont_addPtsSmoothIteration( Icont *cont, float maxDist, float tensileFract, bool closed );
 void cont_addPtsSmooth( Icont *cont, float maxDist, float tensileFract, bool closed );          
 void cont_reducePtsCrude( Icont *cont, float minDist, bool closed );                    
-int cont_reducePtsMinArea( Icont *cont, float minArea, bool closed );                  // MODIFIED
+int cont_reducePtsMinArea( Icont *cont, float minArea, bool closed );       // MODIFIED
 
 bool cont_isSimple( Icont *cont );                              
 void cont_makeSimple( Icont *cont );                            
@@ -261,7 +264,7 @@ inline bool isEmpty(Icont *cont)
 }
 
 //------------------------
-//-- Shorter function name for "imodContourGetMaxPoint".
+//-- Shorter function name for "imodContourGetMaxPoint()"
 
 inline int  psize(Icont *cont)
 {
@@ -357,7 +360,7 @@ inline void deleteAllPts( Icont *cont )
 }
 
 //------------------------
-//-- Shorter function name for imodContourZValue();
+//-- Shorter function name for "imodContourZValue()"
 
 inline float getZ( Icont *cont )
 {
@@ -406,7 +409,7 @@ inline void eraseContour( vector<IcontPtr> &conts, int idx )
 
 
 //------------------------
-//-- Shorter function name for imodObjectGetContour
+//-- Shorter function name for "imodObjectGetContour()"
 
 inline Icont* getCont( Iobj *obj, int idx )
 {
@@ -417,3 +420,4 @@ inline Icont* getCont( Iobj *obj, int idx )
 //############################################################
 
 #endif
+
