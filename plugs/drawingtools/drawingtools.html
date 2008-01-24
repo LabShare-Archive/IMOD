@@ -1,0 +1,119 @@
+<head>
+<title>Drawing Tools Plugin Help</title>
+</head>
+<body>
+<h3>Drawing Tools Plugin Help</h3><br>
+--------------------------<br><br>
+This plugin provides a set of <b>drawing tools</b> which allows you to 
+rapidly draw, modidy and erase contours. To use these tools make sure 
+3dmod is on <i>"Model"</i> mode, the <i>"Drawing Tools"</i> 
+plugin window is open and you've selected the <i>"Draw Mode"</i> 
+you wish to use.
+Notice in the Zap window that many of the tools use a red
+<b>"deform circle"</b>, the size of which can be changed using mouse
+wheel or the keys [q] and [w].<br>
+<br>
+<b>List of Drawing Modes</b><br>
+--------------------------<br><br>
+<ol>
+<li><b>Normal</b> lets you use normal contour drawing behaviour.</li>
+<li><b>Deform</b> lets you quickly draw contours by holding the point 
+addition mouse button <i>[second_button]</i> and pushing the contour 
+outwards or inwards with the deform circle. Holding down <i>[shift]</i> 
+as well lets you will pinch contours toward the center instead.</li>
+<li><b>Join</b> is similar to Deform, but also allows you to merge 
+two contours by pushing one contour over another or split a contour 
+by pushing a gap through the middle. </li>
+<li><b>Transform</b> allows you to move <i>[second_button]</i>, 
+<i>scale [third_button]</i>, rotate <i>[shift+second_button]</i> or 
+stretch <i>[shift+third_button]</i> the currently selected contour.</li>
+<li><b>Eraser</b> allows you to delete contours <i>[second_button]</i> 
+or points <i>[third_button]</i> touching the deform circle. 
+Holding <i>[shift+third_button]</i> lets you break apart contours.</li>
+</ol>
+<br><br>
+<b>Hot Key Summary</b><br>
+---------------------<br>
+<b>[1]-[5]</b>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
+Select cooresponding draw mode (see above)<br>
+<br>
+<b>[w]</b>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
+Decrease size deform circle (hold shift to go faster)<br>
+<b>[q]</b>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
+Increase size deform circle (hold shift to go faster)<br>
+<br>
+<b>[r]</b>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
+Reduce current contour<br>
+<b>[e]</b>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
+Smooth current contour<br>
+<br>
+<b>[a]</b>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
+Find next contour which overlaps another<br>
+<b>[i]</b>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
+Inverse points in current contour<br>
+<b>[I]</b>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
+Reorder points in current contout to start at selected point<br>
+<br>
+<b>[ctrl+x]</b>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
+Cut current contour<br>
+<b>[ctrl+c]</b>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
+Copy current contour<br>
+<b>[ctrl+v]</b>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
+Paste copied contour into current slice<br>
+<br>
+<b>[shift]</b>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
+Hold Shift down to alter the behaviour of certain draw modes<br>
+<br>
+<br>
+<b>Tips</b><br>
+---------------------<br>
+<br>
+Holding and dragging [shift+first_button] allows you to quickly
+scroll up and down the slices.<br>
+<br>
+Be warned that the deform and join tool were designed for 2D 
+closed contours and so I would not recommend using these tools 
+with open or scattered contours which span multiple slices.<br>
+<br>
+If you select a contour using the "transform" tool, you can
+copy it to nearby slices by simply scrolling to a different
+and mouse clicking [second_button]. In this way transform can
+be useful to quickly mark-up simple shapes.
+<br>
+The deform tool can become sluggish for objects with numerous contours. 
+To improve performance you may consider adding an extra object and 
+then use 'edit > object > move' to merge the contours into the 
+desired object periodically.<br> 
+<br>
+Another way to improve perfomance can be to reduce contours. Use
+<b>'Reduce Contour'</b> to reduce the current contours, by selectively
+removing points,  or <b>'Reduce Object'</b> to reduce ALL contours
+in the current object. Use <b>'Smooth Contour'</b> to smooth the
+current contours, by adding points, or <b>'Smooth Object'</b> to
+smooth ALL contours in the current object. <br>
+Reducing objects can often substantially reduce the number of points in 
+the model, but be very careful you don't lose information in
+the process. <br>
+<br>
+In 3dmod (without the drawing tool plugin) there are several 
+useful drawing tools you might not know about:
+<ol>
+<li>You can select multiple contours by holding
+[shift+apple+first_button].</li>
+<li>You can delete points by holding [shift+second_button].</li>
+<li>You can transform selected contour(s) by toggling
+the imod "contour transform mode" with [P] - this mode is
+similar to the "transform" drawing tool.</li>
+</ol>
+<br>
+<br>
+---------------------<br>
+<br>
+This plugin was created by <b>Andrew Noske</b>
+(<u>a.noske@imb.uq.edu.au</u>).<br>
+<i>If you encounter bugs please e-mail me before e-mailing the
+IMOD group (to reduce traffic). <br>
+In your e-mail please tell me exactly how and when the error/crash
+occured and attach the model file you were using... 
+enough information that I can replicate the error/crash.
+</body>
