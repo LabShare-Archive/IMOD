@@ -18,6 +18,11 @@
  * 
  * <p>
  * $Log$
+ * Revision 3.47  2008/01/14 20:35:12  sueh
+ * bug# 1050 Setting the display key in processData.  The display key is a key
+ * which allows the correct ProcessResultDisplay to be retrieved from
+ * ProcessResultDisplayFactory.
+ *
  * Revision 3.46  2007/12/13 01:08:45  sueh
  * bug# 1056 added a constructor with CommandDetails.
  *
@@ -616,7 +621,13 @@ public class ComScriptProcess extends Thread implements SystemProcessInterface {
         }
       }
       catch (LogFile.FileException except) {
-        processManager.msgComScriptDone(this, vmstocsh.getExitValue());
+        if (processManager != null) {
+          int exitValue = 0;
+          if (vmstocsh != null) {
+            exitValue = vmstocsh.getExitValue();
+          }
+          processManager.msgComScriptDone(this, exitValue);
+        }
         return;
       }
       //  Covert the com script to a sequence of csh commands
