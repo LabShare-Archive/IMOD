@@ -44,6 +44,7 @@ set m64bit          = false
 set m64notIA        = false
 set intel           = false
 set use_etomo       =
+set packg2c         = false
 
 set inst_dir        = default
 set tifflibs        = default
@@ -201,6 +202,10 @@ while($#argv > 0)
     		shift
     		set use_etomo = $argv[1]
     		breaksw
+
+        case -packg2c:
+                set packg2c = true
+                breaksw
 
     	case -h:
     	case -help:
@@ -922,6 +927,7 @@ echo "                          rhlinux, gnu for cygwin)"
 echo "             -static      Link to static Intel libraries"
 echo "             -packqt      Pack Qt library into distribution (Linux only)"
 echo "             -useqt       Use local Qt in startup script in distribution"
+echo "             -packg2c     Pack libg2c into distribution (Linux only)"
 echo "             -flags       Set flags for compilation"
 echo "             -use_etomo   Set directory to get etomo.jar from"
 exit
@@ -929,6 +935,9 @@ exit
 
 #
 #  $Log$
+#  Revision 1.37  2008/01/21 17:44:54  mast
+#  Updated copyright year
+#
 #  Revision 1.36  2007/12/03 16:26:59  mast
 #  Remove imod.h link in include
 #

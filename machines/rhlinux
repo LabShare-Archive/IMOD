@@ -249,6 +249,18 @@ if ($compiler == intel) then
         set qtsub1f = gibberish
         set qtsub1t = t
     endif
+
+# Or set up to pack libg2c
+else if ($packg2c == true) then
+    set g2cdir = /usr/lib
+    if ($m64bit == true) set g2cdir = /usr/lib64
+    if (`\find $g2cdir -maxdepth 1 -name 'libg2c.so*' -print` != "") then
+        echo "DLLDESTDIR = lib" >> $configure
+        echo "DLLSOURCEDIR1 = $g2cdir" >> $configure
+        echo "DLLSTOCOPY1 = libg2c" >> $configure
+    else
+        echo "WARNING: Cannot find libg2c.so in $g2cdir"
+    endif
 endif
 
 if ($packqt == true) then
