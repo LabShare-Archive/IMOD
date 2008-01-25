@@ -13,6 +13,7 @@ set installdir = ""
 set scriptdir = ""
 set custom = 0
 set skipcopy = 0
+set keepg2c = 0
 
 # First peel off any recognized arguments
 #
@@ -33,6 +34,11 @@ while ($#argv > 0)
         
         case -sk*:
             set skipcopy = 1
+            shift
+            breaksw
+
+        case -li*:
+            set keepg2c = 1
             shift
             breaksw
 
@@ -356,6 +362,44 @@ if ($os == linux && -e /usr/sbin/sestatus) then
     endif
 endif
 
+# Manage libg2c if it is present or requested
+#
+if ($os == linux) then
+    set filetype = `file lib/libimod.so`
+    set g2cdir = /usr/lib
+    if ("$filetype" =~ "*64-bit*") set g2cdir = /usr/lib64
+    set syshas = `\find $g2cdir -maxdepth 1 -name 'libg2c.so*' -print`
+    set packhas = `\find lib -maxdepth 1 -name 'libg2c.so*' -print`
+
+    # Delete the package even if it is on the system if no keep option given
+    #
+    if ("$packhas" != "" &&  ! $keepg2c) \rm -f lib/libg2c.so*
+
+    # Issue lots of different warnings
+    #
+    if ("$packhas" != "" && "$syshas" != "" && $keepg2c) then
+        echo "\nWARNING: libg2c is already on the system; if library conflicts occur,"
+        echo "         reinstall IMOD without the -libg2c option or"
+        echo "         remove libg2c from $installdir/IMOD/lib"
+    else if ("$packhas" == "" && "$syshas" != "" && $keepg2c) then
+        echo "\nWARNING: libg2c is already on the system and not in this package"
+        echo "         your -libg2c option was ignored"
+    else if ("$packhas" != "" && "$syshas" == "" && ! $keepg2c) then
+        echo "\nWARNING: there is no libg2c on this system."
+        echo "         You should install a system package for this if at all possible."
+        echo "     Otherwise, reinstall IMOD with the -libg2c option."
+    else if ("$packhas" == "" && "$syshas" == "" && ! $keepg2c) then
+        echo "\nWARNING: there is no libg2c on this system and none in this package."
+        echo "    You should install a system package for this if at all possible."
+        echo "    Otherwise, reinstall IMOD from a package that has it, with -libg2c option."
+    else if ("$packhas" == "" && "$syshas" == "" && $keepg2c) then
+        echo "\nWARNING: there is no libg2c on this system and none in this package."
+        echo "         Your -libg2c option was ignored"
+        echo "         You should install a system package for this if at all possible."
+        echo "         Otherwise, reinstall IMOD from a package that has libg2c."
+    endif
+endif
+
 # List files and offer to clean up
 #
 set vernum = `echo $version | sed '/[^0-9.]/s///g'`
@@ -390,12 +434,16 @@ Usage: installIMOD [options] [package file name]
     -dir dir     Directory in which to install IMOD
     -script dir  Directory in which to place the IMOD startup scripts
     -skip        Skip copying startup scripts or modifying system startup files
+    -libg2c      Use libg2c in this IMOD package if it exists (Linux only)
     -h, --help   Print this help
 EOF
 exit 0
 
 #
 #  $Log$
+#  Revision 3.19  2008/01/04 22:01:32  mast
+#  Fixed statement of custom Windows path
+#
 #  Revision 3.18  2007/12/11 02:35:08  mast
 #  Renamed mac.bashrc to mac.profile to reflect preferred destination
 #
