@@ -66,6 +66,7 @@ public class CpuAdoc {
   private String speedUnits = "";
   private String memoryUnits = "";
   private String[] loadUnits = new String[0];
+  private boolean setByUser = false;
 
   private CpuAdoc() {
     minNice.setDisplayValue(MIN_NICE_DEFAULT);
@@ -196,6 +197,9 @@ public class CpuAdoc {
       if (computerList.size() == 0) {
         loadImodProcessors(axisID, manager);
       }
+      else {
+        setByUser = true;
+      }
     }
   }
 
@@ -204,13 +208,26 @@ public class CpuAdoc {
     imodProcessors.set(EnvironmentVariable.INSTANCE.getValue(manager
         .getPropertyUserDir(), "IMOD_PROCESSORS", axisID));
     if (imodProcessors.isNull()) {
+      //IMOD_PROCESSORS isn't set and cpu.adoc is empty or doesn't exist
       imodProcessors.set(1);
+    }
+    else {
+      setByUser = true;
     }
     loadComputers(imodProcessors);
   }
 
   public boolean isValid() {
     return computerList.size() > 0 || queueList.size() > 0;
+  }
+  
+  /**
+   * True if the user specified computer information with either cpu.adoc or
+   * IMOD_PROCESSORS.
+   * @return
+   */
+  public boolean isSetByUser() {
+    return setByUser;
   }
 
   private ReadOnlyAutodoc getAutodoc(AxisID axisID) {
@@ -497,6 +514,10 @@ public class CpuAdoc {
 }
 /**
  * <p> $Log$
+ * <p> Revision 1.12  2007/11/06 19:28:32  sueh
+ * <p> bug# 1047 Allow parallel processing even when that is no cpu.adoc and
+ * <p> IMOD_PROCESSORS is not set.
+ * <p>
  * <p> Revision 1.11  2007/09/27 20:30:38  sueh
  * <p> bug# 1044 Retrieving Queue sections.
  * <p>
