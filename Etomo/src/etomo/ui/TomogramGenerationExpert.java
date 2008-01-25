@@ -724,7 +724,10 @@ public final class TomogramGenerationExpert extends ReconUIExpert {
       getBinningFromNewst = false;
       dialog.setBinning(binning);
     }
-    boolean validAutodoc = CpuAdoc.getInstance(AxisID.ONLY, manager).isValid();
+    CpuAdoc cpuAdoc = CpuAdoc.getInstance(AxisID.ONLY, manager);
+    //Parallel processing is optional in tomogram reconstruction, so only use it
+    //if the user set it up.
+    boolean validAutodoc = cpuAdoc.isValid() && cpuAdoc.isSetByUser();
     ConstEtomoNumber tomoGenTiltParallel = metaData
         .getTomoGenTiltParallel(axisID);
     dialog.setParallelProcessEnabled(validAutodoc);
@@ -1106,6 +1109,9 @@ public final class TomogramGenerationExpert extends ReconUIExpert {
 }
 /**
  * <p> $Log$
+ * <p> Revision 1.16  2007/12/13 01:14:00  sueh
+ * <p> bug# 1056 Removed the Storables inner class from TiltParam.
+ * <p>
  * <p> Revision 1.15  2007/12/10 22:49:29  sueh
  * <p> bug# 1041 Passing the ProcessName to processchunks instead of setting it in
  * <p> getParameters because it is required and has been added to the

@@ -40,7 +40,13 @@ import etomo.util.Utilities;
  * 
  * @version $Revision$
  * 
- * <p> $Log$ </p>
+ * <p> $Log$
+ * <p> Revision 1.1  2007/12/26 22:31:39  sueh
+ * <p> bug# 1052 Turned SetupDialog into an extremely thin GUI.  Moved decisions and
+ * <p> knowledge to SetupDialogExpert.  Added doAutomation() to handle user
+ * <p> specified automated functionality to be done before control is handed over to the
+ * <p> user.
+ * <p> </p>
  */
 public final class SetupDialogExpert {
   public static final String rcsid = "$Id$";
@@ -98,7 +104,7 @@ public final class SetupDialogExpert {
       dialog.setDualAxis(true);
     }
     ViewType frame = arguments.getFrame();
-    if (frame!=null) {
+    if (frame != null) {
       setViewType(frame);
     }
     //fill in fields
@@ -407,7 +413,10 @@ public final class SetupDialogExpert {
           + metaData.getDatasetName();
       dialog.setDataset(canonicalPath);
     }
-    boolean validAutodoc = CpuAdoc.getInstance(AxisID.ONLY, manager).isValid();
+    CpuAdoc cpuAdoc = CpuAdoc.getInstance(AxisID.ONLY, manager);
+    //Parallel processing is optional in tomogram reconstruction, so only use it
+    //if the user set it up.
+    boolean validAutodoc = cpuAdoc.isValid() && cpuAdoc.isSetByUser();
     if (validAutodoc && !userConfig.getNoParallelProcessing()) {
       dialog.setParallelProcess(true);
     }
