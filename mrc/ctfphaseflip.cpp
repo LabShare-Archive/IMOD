@@ -264,9 +264,21 @@ int main(int argc, char *argv[])
     }
     if( stripPixelNum>nx) stripPixelNum=nx;
     if( interPixelNum>stripPixelNum) interPixelNum=stripPixelNum; 
+    
+    stripPixelNum=niceFrame(stripPixelNum, 2 , 19);
+    if(stripPixelNum>256) stripPixelNum=256;
+    if(stripPixelNum<128) stripPixelNum=128;
+    interPixelNum=iWidth;
+        
+    //stripPixelNum=256;
+    //interPixelNum=36; // must be less than stripPixelNum/2;
+    
+    //interPixel must be less than stripPixelNum/2;
+    if( interPixelNum>=stripPixelNum/2){
+      printf("error: interPixelNum is bigger than stripPixleNum/2 \n");
+      return 1;
+    }
 
-    stripPixelNum=256;
-    interPixelNum=36; // must be less than stripPixelNum/2;
     printf("stripPixelNum=%d interPixelNum=%d \n", stripPixelNum,
         interPixelNum);
     //Allocat 2 strips, even and odd strip;
@@ -360,13 +372,15 @@ int main(int argc, char *argv[])
       }
 
       if(finished){ //last strip
+        //printf("finished: starting column=%d \n", (stripBegin+stripEnd)/2+1 );
+
         for( row=0;row<ny;row++)
             for(column=(stripBegin+stripEnd)/2+1;column<nx;column++)
               *(restoredArray+row*nx+column)  = *(strip+
                       (stripIdx%2)*ny*(stripPixelNum+2)+
                                   row*(stripPixelNum+2)+
         stripPixelNum/2+column-(stripBegin+stripEnd)/2-1);
-        //printf("column=%d ... %d \n", (stripBegin+stripEnd)/2+1+1, nx);
+        printf("column=%d ... %d \n", (stripBegin+stripEnd)/2+1+1, nx);
       }
 
       //printf("stripIdx=%d\n", stripIdx);
