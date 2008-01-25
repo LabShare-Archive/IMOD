@@ -73,7 +73,8 @@ HEADERS	+= autox.h \
 	pegged.xpm \
 	unpegged.xpm \
 	b3dicon.xpm \
-	iirawimage.h
+	iirawimage.h \
+	scalebar.h
 
 SOURCES	+= autox.cpp \
 	b3dfile.c \
@@ -135,7 +136,8 @@ SOURCES	+= autox.cpp \
 	imod_assistant.cpp \
 	iiqimage.cpp \
 	iirawimage.cpp \
-	finegrain.cpp
+	finegrain.cpp \
+	scalebar.cpp
 
 FORMS	= form_object_edit.ui \
 	formv_control.ui \
@@ -154,7 +156,8 @@ FORMS	= form_object_edit.ui \
 	form_startup.ui \
 	form_rawimage.ui \
 	form_finegrain.ui \
-	form_slicerangle.ui
+	form_slicerangle.ui \
+	form_scalebar.ui
 
 IMAGES	= uparrow.png \
 	downarrow.png \

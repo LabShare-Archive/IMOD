@@ -15,9 +15,15 @@
 #ifndef XZAP_H
 #define XZAP_H
 
+#include "control.h"
+
 class ZapWindow;
 class ZapGL;
 class QString;
+class QKeyEvent;
+class QEvent;
+class QMouseEvent;
+
 typedef struct b3d_ci_image B3dCIImage;
 
 typedef struct zapwin
@@ -61,6 +67,7 @@ typedef struct zapwin
   int movieSnapCount; /* Counter if this window is doing movie snapshots */
   int recordSubarea;  /* Record the subarea on the next draw */
   bool   drewExtraCursor;  /* Flag that extra cursor was drawn */
+  float scaleBarSize;  /* Size of scale bar that was last drawn */
 
   float  zoom;
   float  xzoom;    /* Possibly slightly different X zoom */
@@ -132,7 +139,7 @@ void zapStepTime(ZapStruct *zap, int step);
 int zapSetupPanels(ZapStruct *zap);
 void zapReportBiggestMultiZ();
 void zapToggleContourShift(ZapStruct *zap);
-ZapStruct *getTopZapWindow(bool withBand);
+ZapStruct *getTopZapWindow(bool withBand, int type = ZAP_WINDOW_TYPE);
 int getTopZapMouse(Ipoint *imagePt);
 int  imod_zap_open(struct ViewInfo *vi, int wintype);
 int zapSubsetLimits(ViewInfo *vi, int &ixStart, int &iyStart, int &nxUse, 
@@ -145,6 +152,9 @@ void zapSetMouseTracking();
 
 /*
 $Log$
+Revision 3.28  2008/01/14 19:48:23  mast
+Added function to return mouse image coords to plugin
+
 Revision 3.27  2008/01/13 22:58:35  mast
 Changes for multi-Z window
 

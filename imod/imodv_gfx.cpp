@@ -27,6 +27,7 @@
 #include "b3dfile.h"
 #include "imodv.h"
 #include "sslice.h"
+#include "scalebar.h"
 #include "imodv_control.h"
 #include "imodv_gfx.h"
 #include "imodv_ogl.h"
@@ -170,6 +171,8 @@ void imodvPaintGL()
   ImodvApp *a = Imodv;
   static int first = 1;
   static int drawcount = 0;
+  int color;
+  float scale;
 
   //if (Imod_debug)
   //  imodPrintStderr("drawing %d\n", drawcount++);
@@ -232,6 +235,16 @@ void imodvPaintGL()
   }
 
   //  imodv_swapbuffers(a);
+  b3dResizeViewportXY(a->winx, a->winy);
+  color = 0;
+  if (!a->rbgcolor->red() && !a->rbgcolor->blue() && !a->rbgcolor->green())
+    color = -1;
+  if (a->rbgcolor->red() == 255 && a->rbgcolor->blue() == 255 && 
+      a->rbgcolor->green() == 255)
+    color = 1;
+  scale = 0.5 * (a->winx > a->winy ? a->winy : a->winx) /
+    a->imod->view->rad;
+  a->scaleBarSize = scaleBarDraw(a->winx, a->winy, scale, color);
   imodvControlSetView(a);
   imodvControlUpdate(a);
   //  imodvCallDrawCB(IMODV_DRAWCB_UNKNOWN);
@@ -382,6 +395,9 @@ static int imodv_snapshot(ImodvApp *a, QString fname)
 
 /*
 $Log$
+Revision 4.15  2007/11/30 06:51:50  mast
+Changes for linking slicer to model view
+
 Revision 4.14  2007/11/10 04:07:10  mast
 Changes for setting snapshot directory
 

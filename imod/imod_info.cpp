@@ -97,6 +97,7 @@ InfoWindow::InfoWindow(QWidget * parent, const char * name, WFlags f)
   mEditMenu->insertItem("M&ovies...", EDIT_MENU_MOVIES);
   mEditMenu->insertItem("&Fine Grain...", EDIT_MENU_GRAIN);
   mEditMenu->insertItem("&Angles...", EDIT_MENU_ANGLES);
+  mEditMenu->insertItem("Scale &Bar...", EDIT_MENU_SCALEBAR);
   mEditMenu->insertItem("Op&tions...", EDIT_MENU_PREFS);
 
   // Edit model submenu
@@ -397,54 +398,58 @@ void InfoWindow::openSelectedWindows(char *keys)
   bool imageOK = !(App->cvi->fakeImage || App->cvi->rawImageStore);
   if (!keys)
     return;
-  if (strchr(keys, 'G'))
-    editSlot(EDIT_MENU_GRAIN);
-  if (strchr(keys, 'A'))
-    editSlot(EDIT_MENU_ANGLES);
-  if (strchr(keys, 'n'))
-    editSlot(EDIT_MENU_MOVIES);
-  if (strchr(keys, 't'))
-    editObjectSlot(EOBJECT_MENU_TYPE);
-  if (strchr(keys, 'l'))
-    editObjectSlot(EOBJECT_MENU_COLOR);
-  if (strchr(keys, 'h'))
-    editModelSlot(EMODEL_MENU_HEADER);
-  if (strchr(keys, 'o'))
-    editModelSlot(EMODEL_MENU_OFFSETS);
-  if (strchr(keys, 's'))
-    editSurfaceSlot(ESURFACE_MENU_GOTO);
-  if (strchr(keys, 'v'))
-    editContourSlot(ECONTOUR_MENU_MOVE);
+
+  // Model view uses mBCDILMOSV
   if (strchr(keys, 'a'))
     editContourSlot(ECONTOUR_MENU_AUTO);
   if (strchr(keys, 'b'))
     editContourSlot(ECONTOUR_MENU_BREAK);
-  if (strchr(keys, 'j'))
-    editContourSlot(ECONTOUR_MENU_JOIN);
   if (strchr(keys, 'c'))
     editContourSlot(ECONTOUR_MENU_COPY);
-  if (strchr(keys, 'p') && imageOK)
-    editImageSlot(EIMAGE_MENU_PROCESS);
-  if (strchr(keys, 'r') && imageOK)
-    editImageSlot(EIMAGE_MENU_RELOAD);
+  if (strchr(keys, 'e'))
+    editSlot(EDIT_MENU_SCALEBAR);
   if (strchr(keys, 'f') && (App->cvi->vmSize != 0 || App->cvi->nt > 0))
     editImageSlot(EIMAGE_MENU_FILLER);
   if (strchr(keys, 'g') && imageOK)
     imageSlot(IMAGE_MENU_GRAPH);
+  if (strchr(keys, 'h'))
+    editModelSlot(EMODEL_MENU_HEADER);
+  if (strchr(keys, 'j'))
+    editContourSlot(ECONTOUR_MENU_JOIN);
+  if (strchr(keys, 'l'))
+    editObjectSlot(EOBJECT_MENU_COLOR);
+  if (strchr(keys, 'm') && imageOK)
+    imageSlot(IMAGE_MENU_LOCATOR);
+  if (strchr(keys, 'n'))
+    editSlot(EDIT_MENU_MOVIES);
+  if (strchr(keys, 'o'))
+    editModelSlot(EMODEL_MENU_OFFSETS);
+  if (strchr(keys, 'p') && imageOK)
+    editImageSlot(EIMAGE_MENU_PROCESS);
+  if (strchr(keys, 'r') && imageOK)
+    editImageSlot(EIMAGE_MENU_RELOAD);
+  if (strchr(keys, 's'))
+    editSurfaceSlot(ESURFACE_MENU_GOTO);
+  if (strchr(keys, 't'))
+    editObjectSlot(EOBJECT_MENU_TYPE);
   if (strchr(keys, 'u') && imageOK)
     imageSlot(IMAGE_MENU_TUMBLER);
+  if (strchr(keys, 'v'))
+    editContourSlot(ECONTOUR_MENU_MOVE);
   if (strchr(keys, 'x') && imageOK)
     imageSlot(IMAGE_MENU_PIXEL);
   if (strchr(keys, 'z'))
     imageSlot(IMAGE_MENU_MULTIZ);
-  if (strchr(keys, 'm') && imageOK)
-    imageSlot(IMAGE_MENU_LOCATOR);
-  if (strchr(keys, 'T'))
-    imodPlugOpenByName("Line Track");
+  if (strchr(keys, 'A'))
+    editSlot(EDIT_MENU_ANGLES);
   if (strchr(keys, 'F') && imageOK)
     imodPlugOpenByName("Bead Fixer");
+  if (strchr(keys, 'G'))
+    editSlot(EDIT_MENU_GRAIN);
   if (strchr(keys, 'P'))
     imodPlugOpenAllExternal();
+  if (strchr(keys, 'T'))
+    imodPlugOpenByName("Line Track");
 }
 
 
@@ -548,6 +553,9 @@ static char *truncate_name(char *name, int limit)
 /*
 
 $Log$
+Revision 4.42  2008/01/21 05:55:44  mast
+Added key to open plugins
+
 Revision 4.41  2008/01/13 22:58:35  mast
 Changes for multi-Z window
 

@@ -75,6 +75,7 @@ struct xxyzwin
   int winXdim1,winXdim2,winYdim1,winYdim2;
   int xorigin1, xorigin2, yorigin1, yorigin2;
   float xzFraction, yzFraction;
+  float scaleBarSize;     /* Actual size of draw scale bar in model units */
 };
 
 
@@ -191,9 +192,13 @@ class XyzGL : public QGLWidget
 /* Global functions */
 int xxyz_open(struct ViewInfo *vi);
 void xyzPixelViewState(bool state);
+float xyzScaleBarSize();
 
 /*
 $Log$
+Revision 3.17  2007/11/16 23:13:04  mast
+New variables for adjusting balance between windows, center button
+
 Revision 3.16  2007/07/13 17:28:50  sueh
 bug# 1023 Added mFirstDraw and mTimerID to fix a first draw problem.
 

@@ -99,7 +99,10 @@ ImodvWindow::ImodvWindow(bool standAlone, int enableDepthDB,
 
   mViewMenu->insertItem("&Stereo...", VVIEW_MENU_STEREO);
   mViewMenu->insertItem("&Depth Cue...", VVIEW_MENU_DEPTH);
+  if (standAlone)
+    mViewMenu->insertItem("Scale &Bar...", VVIEW_MENU_SCALEBAR);
   connect(mViewMenu, SIGNAL(activated(int)), this, SLOT(viewMenuSlot(int)));
+
 
   // Help menu
   QPopupMenu *helpMenu  = new QPopupMenu;
@@ -293,6 +296,9 @@ void ImodvGL::mouseMoveEvent ( QMouseEvent * e )
 
 /*
 $Log$
+Revision 4.13  2007/11/10 04:07:10  mast
+Changes for setting snapshot directory
+
 Revision 4.12  2006/10/11 23:53:05  mast
 Changed RGB to NonT in menu
 

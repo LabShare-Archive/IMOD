@@ -31,6 +31,7 @@ Log at end of file
 #include "xcramp.h"
 #include "preferences.h"
 #include "dia_qtutils.h"
+#include "scalebar.h"
 
 #ifdef Q_OS_MACX
 #include "qcursor.mac.bits"
@@ -329,6 +330,7 @@ int imodDraw(ImodView *vw, int flag)
       ! (flag & IMOD_DRAW_SKIPMODV))
     imodv_draw();
 
+  scaleBarUpdate();
   return(0);
 }
 
@@ -545,6 +547,9 @@ int imodFindQGLFormat(ImodApp *ap, char **argv)
 
 /*
 $Log$
+Revision 4.20  2007/11/30 06:51:50  mast
+Changes for linking slicer to model view
+
 Revision 4.19  2007/11/16 23:11:52  mast
 Added routines for redefining and restting ghost color
 

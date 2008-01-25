@@ -44,6 +44,7 @@
 #include "form_slicerangle.h"
 #include "imodv_input.h"
 #include "imodv.h"
+#include "scalebar.h"
 
 
 /* internal functions. */
@@ -72,7 +73,6 @@ static void findMovieAxis(SlicerStruct *ss, int *xmovie, int *ymovie,
                           int *zmovie, int dir, int *axis);
 static void setInverseMatrix(SlicerStruct *ss);
 static int translateByRotatedVec(SlicerStruct *ss, Ipoint *vec);
-static SlicerStruct *getTopSlicer();
 static void setClassicMode(SlicerStruct *ss, int state);
 static void notifySlicersOfAngDia(bool open);
 static void setAngleToolbarState(SlicerWindow *ss, bool open);
@@ -546,7 +546,7 @@ void slicerReportAngles()
 }
 
 // Find the slicer window that is nearest to the top of the control list
-static SlicerStruct *getTopSlicer()
+SlicerStruct *getTopSlicer()
 {
   QObjectList objList;
   SlicerStruct *ss;
@@ -1522,7 +1522,7 @@ static int sslice_getxyz(SlicerStruct *ss, int x, int y, float &xm, float &ym,
 static void getWindowCoords(SlicerStruct *ss, float xcur, float ycur, 
                             float zcur, int &xim, int &yim, int &zim)
 {
-  Ipoint pnt, xn, yn, zn, delpt;
+  Ipoint pnt, xn, yn, zn;
   Imat *mat = ss->mat;
   float xoffset, yoffset;
   float zs;
@@ -1718,12 +1718,11 @@ int slicerAnglesFromContour(SlicerStruct *ss)
   Icont *rcont;
   Icont *cont = imodContourGet(ss->vi->imod);
   Ipoint scale = {1., 1., 1.};
-  Ipoint n, a;
+  Ipoint n;
   int pt;
-  float smallVal = 1.e-4;
   float dval;
   double rpd = RADIANS_PER_DEGREE;
-  double beta, alpha, zrot;
+  double beta, alpha;
   double xsum, ysum, zsum;
 
   scale.z = slicerGetZScaleBefore(ss);
@@ -2308,6 +2307,8 @@ void slicerPaint(SlicerStruct *ss)
   sslice_draw_model(ss);
   drawCurrentPoint(ss);
 
+  ss->scaleBarSize = scaleBarDraw(ss->winx, ss->winy, ss->zoom, 0);
+
   // Update toolbar for time
   if (ss->vi->nt) {
     int time = ss->timeLock ? ss->timeLock : ss->vi->ct;
@@ -2587,6 +2588,9 @@ void slicerCubePaint(SlicerStruct *ss)
 
 /*
 $Log$
+Revision 4.54  2007/12/04 18:43:24  mast
+Changes for stippling and using new util functions
+
 Revision 4.53  2007/11/30 06:51:50  mast
 Changes for linking slicer to model view
 

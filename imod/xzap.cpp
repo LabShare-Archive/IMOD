@@ -47,6 +47,7 @@
 #include "preferences.h"
 #include "undoredo.h"
 #include "finegrain.h"
+#include "scalebar.h"
 
 static void zapDraw_cb(ImodView *vi, void *client, int drawflag);
 
@@ -597,6 +598,7 @@ void zapPaint(ZapStruct *zap)
     } 
   }
   zapDrawTools(zap);
+  zap->scaleBarSize = scaleBarDraw(zap->winx, zap->winy, zap->zoom, 0);
 
   // Update graph windows if rubber band changed (this should be done by 
   // control but that is not possible, it doesn't know types)
@@ -1765,7 +1767,6 @@ int zapButton1(ZapStruct *zap, int x, int y, int controlDown)
   Imod     *imod = vi->imod;
   Ipoint pnt, *spnt;
   Iindex index, indSave;
-  Iindex *indp;
   int bandmin = zapBandMinimum(zap);
   int i, iz;
   float temp_distance;
@@ -2231,7 +2232,6 @@ static int dragSelectContsCrossed(struct zapwin *zap, int x, int y)
   ImodView *vi = zap->vi;
   Imod *imod = vi->imod;
   int ob, co, pt, ptStart, lastPt, thisZ, lastZ, iz2, iz1, drew = 0;
-  Iindex index;
   Icont *cont;
   Ipoint pnt1, pnt2;
   Iobj *obj = imodObjectGet(imod);
@@ -3237,7 +3237,7 @@ static void shiftRubberband(ZapStruct *zap, float idx, float idy)
 /*
  * Find the first zap window, with a rubberband if flag is set
  */
-ZapStruct *getTopZapWindow(bool withBand)
+ZapStruct *getTopZapWindow(bool withBand, int type)
 {
   QObjectList objList;
   ZapStruct *zap;
@@ -3245,7 +3245,7 @@ ZapStruct *getTopZapWindow(bool withBand)
   int ixl, ixr, iyb, iyt;
   int i, j, curSave, topOne;
 
-  imodDialogManager.windowList(&objList, -1, ZAP_WINDOW_TYPE);
+  imodDialogManager.windowList(&objList, -1, type);
   if (!objList.count())
     return NULL;
 
@@ -3467,13 +3467,15 @@ void zapReportBiggestMultiZ()
 static void montageSnapshot(ZapStruct *zap)
 {
   int ix, iy, xFullSize, yFullSize, xTransStart, yTransStart, xTransDelta;
-  int yTransDelta, xCopyDelta, yCopyDelta, xTransSave, yTransSave;
+  int yTransDelta, xCopyDelta, yCopyDelta, xTransSave, yTransSave, barpos;
   int limits[4];
   unsigned char *framePix, *fullPix, **linePtrs;
   double zoomSave;
   QString fname, sname;
   static int fileno = 0;
   int factor = imcGetMontageFactor();
+  ScaleBar *barReal = scaleBarGetParams();
+  ScaleBar barSaved;
 
   // Get coordinates and offsets and buffers
   setAreaLimits(zap);
@@ -3504,6 +3506,14 @@ static void montageSnapshot(ZapStruct *zap)
     glReadBuffer(GL_BACK);
   }
 
+  // Save and modify scale bar directives
+  barSaved = *barReal;
+  barReal->minLength = B3DNINT(factor * barReal->minLength);
+  barReal->thickness = B3DNINT(factor * barReal->thickness);
+  barReal->indentX = B3DNINT(factor * barReal->indentX);
+  barReal->indentY = B3DNINT(factor * barReal->indentY);
+  barpos = barReal->position;
+
   // Save translations and loop on frames, getting pixels and copying them
   xTransSave = zap->xtrans;
   yTransSave = zap->ytrans;
@@ -3511,9 +3521,23 @@ static void montageSnapshot(ZapStruct *zap)
   zap->zoom *= factor;
   for (iy = 0; iy < factor; iy++) {
     for (ix = 0; ix < factor; ix++) {
+
+      // Set up for scale bar if it is the right corner
+      barReal->draw = false;
+      if ((((barpos == 0 || barpos == 3) && ix == factor - 1) ||
+           ((barpos == 1 || barpos == 2) && !ix)) &&
+          (((barpos == 2 || barpos == 3) && iy == factor - 1) ||
+           ((barpos == 0 || barpos == 1) && !iy))) 
+        barReal->draw = barSaved.draw;
+      
       zap->xtrans = -(xTransStart + ix * xTransDelta);
       zap->ytrans = -(yTransStart + iy * yTransDelta);
       zapDraw(zap);
+
+      // Print scale bar length if it was drawn
+      if (zap->scaleBarSize > 0)
+        imodPrintStderr("Scale bar for montage is %g %s\n", zap->scaleBarSize,
+                        imodUnits(zap->vi->imod));
 
       glReadPixels(0, 0, zap->winx, zap->winy, GL_RGBA, GL_UNSIGNED_BYTE, 
                    framePix);
@@ -3545,6 +3569,7 @@ static void montageSnapshot(ZapStruct *zap)
   b3dSnapshot_TIF(fname, 4, limits, linePtrs);
   imodPuts("");
 
+  *barReal = barSaved;
   zap->xtrans = xTransSave;
   zap->ytrans = yTransSave;
   zap->zoom = zoomSave;
@@ -4369,6 +4394,9 @@ static int zapPointVisable(ZapStruct *zap, Ipoint *pnt)
 /*
 
 $Log$
+Revision 4.112  2008/01/20 17:40:36  mast
+Oops, needed to multiply not divide by 255 for setting ghost color
+
 Revision 4.111  2008/01/19 22:29:49  mast
 Fixed call to set custom ghost color in extra object draw, although
 not clear why it is there!

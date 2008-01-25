@@ -51,6 +51,7 @@
 #include "finegrain.h"
 #include "preferences.h"
 #include "undoredo.h"
+#include "scalebar.h"
 
 /****help text data include files*****/
 #include "imodhelp.h" 
@@ -260,6 +261,9 @@ void InfoWindow::editSlot(int item)
     break;
   case EDIT_MENU_ANGLES:
     slicerAnglesOpen();
+    break;
+  case EDIT_MENU_SCALEBAR:
+    scaleBarOpen();
     break;
   case EDIT_MENU_PREFS:
     ImodPrefs->editPrefs();
@@ -1289,6 +1293,9 @@ static int imodContourBreakByZ(ImodView *vi, Iobj *obj, int ob, int co)
 /*
 
 $Log$
+Revision 4.42  2008/01/21 17:19:35  mast
+Update model view objects after delete, renumber, and combine
+
 Revision 4.41  2008/01/21 05:56:25  mast
 Added key for opening plugins
 

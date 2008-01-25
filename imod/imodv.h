@@ -90,6 +90,7 @@ typedef struct __imodv_struct
   int snap_fileno;     /* Snapshot file number */
   int drawClip;    /* Draw current clip plane */
   int linkToSlicer;    /* Flag to link to top slicer */
+  float scaleBarSize;  /* Size of scale bar that was last drawn */
 
   /* start-up flags */
   int  moveall;    /* move all models if true.                 */
@@ -130,11 +131,15 @@ void imodvRegisterModelChg();
 void imodvRegisterObjectChg(int object);
 void imodvFinishChgUnit();
 void imodvQuit();
+int imodvStandalone();
 int imodvLinkedToSlicer();
 void imodvNewModelAngles(Ipoint *rot);
 
 /*
 $Log$
+Revision 3.18  2007/11/30 06:51:50  mast
+Changes for linking slicer to model view
+
 Revision 3.17  2007/09/20 22:06:55  mast
 Changes for visualizing clipping plane
 

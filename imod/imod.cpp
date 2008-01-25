@@ -843,7 +843,7 @@ void imod_exit(int retcode)
   ivwControlListDelete(App->cvi);    // Image windows
   imodDialogManager.close();         // Remaining imod dialog windows
   if (ImodPrefs)                     // Now save settings after windows get to 
-    ImodPrefs->saveSettings();       // specify settings
+    ImodPrefs->saveSettings(0);       // specify settings
   if (ImodHelp)
     delete ImodHelp;
   if (ClipHandler)
@@ -910,6 +910,9 @@ bool imodDebug(char key)
 
 /*
 $Log$
+Revision 4.62  2008/01/13 22:58:35  mast
+Changes for multi-Z window
+
 Revision 4.61  2007/12/04 22:03:03  mast
 Chnages for rearrangement of utilities
 

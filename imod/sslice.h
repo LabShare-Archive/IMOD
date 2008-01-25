@@ -90,6 +90,7 @@ typedef struct Super_slicer{
   float drawnYmouse;
   float drawnZmouse;
   int ignoreCurPtChg;     /* Flag to ignore a current point change in draw */
+  float scaleBarSize;     /* Actual size of draw scale bar in model units */
 
   short nslice;       /* Number of slices to draw */
   Imat  *mat;
@@ -106,6 +107,7 @@ void slicerCubicFillin(unsigned short *cidata, int winx, int winy, int izoom,
 		  int ilimshort, int jlimshort, int minval, int maxval);
 int sslice_open(struct ViewInfo *vi);
 void slicerReportAngles();
+SlicerStruct *getTopSlicer();
 void slicerPixelViewState(bool state);
 void slicerHelp();
 void slicerStepZoom(SlicerStruct *win, int dir);
@@ -146,6 +148,9 @@ int setTopSlicerFromModelView(Ipoint *rot);
 
 /*
     $Log$
+    Revision 3.19  2007/11/30 06:51:50  mast
+    Changes for linking slicer to model view
+
     Revision 3.18  2007/09/20 22:05:36  mast
     Defined RADIANS_PER_DEGREE once
 

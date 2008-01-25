@@ -132,7 +132,7 @@ class ImodPreferences : public QObject
  public:
   ImodPreferences(char *cmdLineStyle);
   ~ImodPreferences() {};
-  void saveSettings();
+  void saveSettings(int modvAlone);
   void editPrefs();
   double *getZooms() {return &mCurrentPrefs.zooms[0];};
   int getBwStep() {return mCurrentPrefs.bwStep;};
@@ -221,6 +221,9 @@ extern ImodPreferences *ImodPrefs;
 
 /*
 $Log$
+Revision 1.15  2008/01/13 22:58:35  mast
+Changes for multi-Z window
+
 Revision 1.14  2007/11/13 19:14:08  mast
 Added settings to control slicer speedup
 

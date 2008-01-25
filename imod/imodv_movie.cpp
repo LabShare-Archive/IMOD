@@ -25,6 +25,7 @@
 #include "imodv_window.h"
 #include "preferences.h"
 #include "control.h"
+#include "scalebar.h"
 
 /* The movie control structure  */
 struct imodvMovieDialogStruct
@@ -127,7 +128,6 @@ void imodvMovieQuit()
 // When the dialog actually closes, get button states, clean up and stop movie
 void imodvMovieClosing()
 {
-  int format;
   movie->dia->getButtonStates(movie->longway, movie->reverse, movie->montage,
                               movie->file_format, movie->saved);
   movie->dia->getFrameBoxes(movie->frames, movie->montFrames);
@@ -143,8 +143,6 @@ void imodvMovieStop()
 
 void imodvMovieMake()
 {
-  int format;
-
   movie->dia->getButtonStates(movie->longway, movie->reverse, movie->montage,
                               movie->file_format, movie->saved);
   movie->dia->getFrameBoxes(movie->frames, movie->montFrames);
@@ -423,12 +421,14 @@ static void imodvMakeMontage(int frames, int overlap)
   Imat *mat;
   Ipoint ipt, spt, xunit, yunit;
   float scrnscale, radsave;
-  int ix, iy, xFullSize, yFullSize;
+  int ix, iy, xFullSize, yFullSize, barpos;
   float zoom, yzoom;
   unsigned char *framePix = NULL;
   unsigned char *fullPix = NULL;
   unsigned char **linePtrs = NULL;
   int limits[4];
+  ScaleBar *barReal = scaleBarGetParams();
+  ScaleBar barSaved;
   QString fname, sname;
 
   /* limit the overlap */
@@ -526,9 +526,30 @@ static void imodvMakeMontage(int frames, int overlap)
     a->mainWin->mCurGLw->setBufferSwapAuto(false);
   glReadBuffer(a->db ? GL_BACK : GL_FRONT);
 
+  // Save and modify scale bar directives
+  barSaved = *barReal;
+  barReal->minLength = B3DNINT(zoom * barReal->minLength);
+  barReal->thickness = B3DNINT(zoom * barReal->thickness);
+  barReal->indentX = B3DNINT(zoom * barReal->indentX);
+  barReal->indentY = B3DNINT(zoom * barReal->indentY);
+  barpos = barReal->position;
+
   for (iy = 0; iy < frames; iy++) {
     for (ix = 0; ix < frames; ix++) {
+
+      // Set up for scale bar if it is the right corner
+      barReal->draw = false;
+      if ((((barpos == 0 || barpos == 3) && ix == frames - 1) ||
+           ((barpos == 1 || barpos == 2) && !ix)) &&
+          (((barpos == 2 || barpos == 3) && iy == frames - 1) ||
+           ((barpos == 0 || barpos == 1) && !iy))) 
+        barReal->draw = barSaved.draw;
       imodvDraw(a);
+
+      // Print scale bar length if it was drawn
+      if (a->scaleBarSize > 0)
+        imodPrintStderr("Scale bar for montage is %g %s\n", a->scaleBarSize,
+                        imodUnits(a->imod));
       if (movie->saved) {
         glReadPixels(0, 0, a->winx, a->winy, GL_RGBA, GL_UNSIGNED_BYTE, 
                      framePix);
@@ -583,6 +604,7 @@ static void imodvMakeMontage(int frames, int overlap)
   movie->abort = 1;
   vw->rad = radsave;
   vw->trans = transave;
+  *barReal = barSaved;
   imodvDraw(a);
   imodMatDelete(mat);
   return;
@@ -590,6 +612,9 @@ static void imodvMakeMontage(int frames, int overlap)
 
 /*
     $Log$
+    Revision 4.15  2007/11/10 04:07:10  mast
+    Changes for setting snapshot directory
+
     Revision 4.14  2006/11/22 18:16:45  mast
     Added check for perspective, which does not work
 

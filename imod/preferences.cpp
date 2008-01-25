@@ -38,12 +38,14 @@
 #include "form_behavior.h"
 #include "form_mouse.h"
 #include "imod.h"
+#include "imodv.h"
 #include "imod_info.h"
 #include "imod_display.h"
 #include "imod_moviecon.h"
 #include "imodv_movie.h"
 #include "imod_workprocs.h"
 #include "control.h"
+#include "scalebar.h"
 
 ImodPreferences *ImodPrefs;
 
@@ -92,6 +94,7 @@ ImodPreferences::ImodPreferences(char *cmdLineStyle)
   QString str;
   char *plugdir;
   QStringList strList;
+  ScaleBar *scaleParm;
   ImodPrefStruct *prefs = &mCurrentPrefs;
   QSettings *settings = getSettingsObject();
   mTabDlg = NULL;
@@ -283,6 +286,19 @@ ImodPreferences::ImodPreferences(char *cmdLineStyle)
              &mMultiZstep, &mMultiZdrawCen, &mMultiZdrawOthers);
   }
 
+  // Get scale bar params
+  str = settings->readEntry(IMOD_NAME"scaleBarParams");
+  if (!str.isEmpty()) {
+    scaleParm = scaleBarGetParams();
+    sscanf(str.latin1(), "%d,%d,%d,%d,%d,%d,%d,%d,%d", &left, &top, 
+           &scaleParm->minLength, &scaleParm->thickness, &scaleParm->position,
+           &scaleParm->indentX, &scaleParm->indentY, &width, 
+           &scaleParm->customVal);
+    scaleParm->draw = left != 0;
+    scaleParm->white = top != 0;
+    scaleParm->useCustom = width != 0;
+  }
+
   prefs->autosaveInterval = settings->readNumEntry
     (IMOD_NAME"autosaveInterval", prefs->autosaveIntervalDflt,
      &prefs->autosaveIntervalChgd);
@@ -375,21 +391,22 @@ bool ImodPreferences::styleOK(QString key)
 #endif
 }
 
-void ImodPreferences::saveSettings()
+void ImodPreferences::saveSettings(int modvAlone)
 {
   ImodPrefStruct *prefs = &mCurrentPrefs;
   QString str, str2;
   int i, geomInd, firstEmpty;
   QSettings *settings = getSettingsObject();
+  ScaleBar *scaleParm = scaleBarGetParams();
 
   // Get current geometries of info and zap windows
   // first find where in the table this will go
-  if (prefs->rememberGeom) {
+  if (prefs->rememberGeom && !modvAlone) {
     geomInd = -1;
     firstEmpty = MAX_GEOMETRIES - 1;
     for (i = 0; i < MAX_GEOMETRIES; i++) {
-      /*  imodPrintStderr("i %d  xsize %d  ysize %d\n", i, mGeomImageXsize[i], 
-          mGeomImageYsize[i]); */
+      /* imodPrintStderr("i %d  xsize %d  ysize %d\n", i, mGeomImageXsize[i], 
+         mGeomImageYsize[i]); */
       if (geomInd < 0 && App->cvi->xsize == mGeomImageXsize[i] &&
           App->cvi->ysize == mGeomImageYsize[i])
         geomInd = i;
@@ -502,6 +519,13 @@ void ImodPreferences::saveSettings()
       settings->writeEntry(str, (int)prefs->namedColor[i]);
     }
   }
+
+  str.sprintf("%d,%d,%d,%d,%d,%d,%d,%d,%d", scaleParm->draw ? 1 : 0, 
+              scaleParm->white ? 1 : 0, scaleParm->minLength,
+              scaleParm->thickness, scaleParm->position,
+              scaleParm->indentX, scaleParm->indentY, 
+              scaleParm->useCustom ? 1: 0, scaleParm->customVal);
+  settings->writeEntry(IMOD_NAME"scaleBarParams", str);
 
   if (prefs->autosaveIntervalChgd)
     settings->writeEntry(IMOD_NAME"autosaveInterval", 
@@ -1112,6 +1136,9 @@ bool ImodPreferences::classicWarned()
 
 /*
 $Log$
+Revision 1.28  2008/01/13 22:58:35  mast
+Changes for multi-Z window
+
 Revision 1.27  2007/11/13 19:14:08  mast
 Added settings to control slicer speedup
 

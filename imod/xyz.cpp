@@ -48,6 +48,7 @@
 #include "imod_model_edit.h"
 #include "dia_qtutils.h"
 #include "multislider.h"
+#include "scalebar.h"
 
 #include "lowres.bits"
 #include "highres.bits"
@@ -260,6 +261,13 @@ void xyzPixelViewState(bool state)
   pixelViewOpen = state;
   if (XYZ)
     XYZ->glw->setMouseTracking(state);
+}
+
+float xyzScaleBarSize()
+{
+  if (!XYZ)
+    return -1;
+  return XYZ->scaleBarSize;
 }
 
 // Implementation of the window class
@@ -2208,6 +2216,7 @@ void XyzGL::paintGL()
     b3dResizeViewportXY(xx->winx, xx->winy);  
     xyzShowSlice = 0;
   }
+  xx->scaleBarSize = scaleBarDraw(xx->winx, xx->winy, xx->zoom, 0);
   drawTools();
   glFlush();
 }
@@ -2349,6 +2358,9 @@ void XyzGL::mouseMoveEvent( QMouseEvent * event )
 
 /*
 $Log$
+Revision 4.48  2008/01/19 22:24:28  mast
+Fixed problems when no objects
+
 Revision 4.47  2008/01/13 22:58:35  mast
 Changes for multi-Z window
 

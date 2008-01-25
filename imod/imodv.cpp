@@ -594,6 +594,13 @@ int imodvLinkedToSlicer()
   return Imodv->linkToSlicer;
 }
 
+int imodvStandalone()
+{
+  if (ImodvClosed)
+    return 0;
+  return Imodv->standalone;
+}
+
 void imodvNewModelAngles(Ipoint *rot)
 {
   if (Imodv->linkToSlicer)
@@ -681,6 +688,8 @@ void imodvQuit()
   delete a->rbgcolor;
   if (a->standalone) {
     // imod_info_input();   // This made it crash
+    if (ImodPrefs) 
+      ImodPrefs->saveSettings(1);
     if (ImodHelp)
       delete ImodHelp;
     if (ClipHandler)
@@ -692,6 +701,9 @@ void imodvQuit()
 
 /*
 $Log$
+Revision 4.33  2007/11/30 06:51:50  mast
+Changes for linking slicer to model view
+
 Revision 4.32  2007/09/20 22:06:55  mast
 Changes for visualizing clipping plane
 

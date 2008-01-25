@@ -559,7 +559,7 @@ static void imodv_light_move(ImodvApp *a)
 static void imodv_translate(ImodvApp *a, int x, int y)
 {
   int mx, my;
-  unsigned int maskr = imodv_query_pointer(a,&mx,&my);
+  imodv_query_pointer(a,&mx,&my);
   int dx, dy;
      
   dx = -(mx - a->lmx);
@@ -812,7 +812,7 @@ static void imodv_compute_rotation(ImodvApp *a, float x, float y, float z)
    about a single axis if both are present, and/or rotates about Z */
 void imodvResolveRotation(Imat *mat, float x, float y, float z)
 {
-  double alpha, beta, gamma, gamrad;
+  double alpha, gamma, gamrad;
   gamrad = atan2((double)y, (double)x);
   gamma = gamrad / 0.017453293;
   alpha = x * cos(-gamrad) - y * sin(-gamrad);
@@ -1168,6 +1168,9 @@ void imodvMovieTimeout()
 /*
 
 $Log$
+Revision 4.32  2008/01/21 17:47:40  mast
+Added include for new listobj module
+
 Revision 4.31  2007/11/30 06:51:50  mast
 Changes for linking slicer to model view
 

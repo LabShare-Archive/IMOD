@@ -36,6 +36,7 @@
 #include "imodv_movie.h"
 #include "preferences.h"
 #include "control.h"
+#include "scalebar.h"
 
 static ImodvBkgColor bkgColor;
 
@@ -402,6 +403,10 @@ void imodvViewMenu(int item)
   case VVIEW_MENU_DEPTH:
     imodvDepthCueEditDialog(a, 1);
     break;
+
+  case VVIEW_MENU_SCALEBAR:
+    scaleBarOpen();
+    break;
   }
 }
 
@@ -451,6 +456,8 @@ void imodvOpenSelectedWindows(char *keys)
       imodvStereoEditDialog(Imodv, 1);
     if (strchr(keys, 'D'))
       imodvDepthCueEditDialog(Imodv, 1);
+    if (strchr(keys, 'e') && Imodv->standalone)
+      scaleBarOpen();
 }
 
 
@@ -526,6 +533,9 @@ void ImodvBkgColor::keyReleaseSlot ( QKeyEvent * e )
 /*
 
 $Log$
+Revision 4.25  2008/01/21 17:47:40  mast
+Added include for new listobj module
+
 Revision 4.24  2007/11/10 04:07:10  mast
 Changes for setting snapshot directory
 
