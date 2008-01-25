@@ -176,13 +176,13 @@ public final class UITest extends JFCTestCase implements AdocCommandFactory {
     else {
       duration = 0;
     }
-    if (!durationArray[2].equals("")) {
+    if (durationArray.length >= 3 && !durationArray[2].equals("")) {
       duration += Long.parseLong(durationArray[2]) * 60;
     }
-    if (!durationArray[1].equals("")) {
+    if (durationArray.length >= 2 && !durationArray[1].equals("")) {
       duration += Long.parseLong(durationArray[1]) * 60 * 60;
     }
-    if (!durationArray[0].equals("")) {
+    if (durationArray.length >= 1 && !durationArray[0].equals("")) {
       duration += Long.parseLong(durationArray[0]) * 60 * 60 * 24;
     }
   }
@@ -628,6 +628,9 @@ public final class UITest extends JFCTestCase implements AdocCommandFactory {
 }
 /**
  * <p> $Log$
+ * <p> Revision 1.27  2007/12/26 22:40:03  sueh
+ * <p> bug# 1052 Moved argument handling from EtomoDirector to a separate class.
+ * <p>
  * <p> Revision 1.26  2007/09/07 00:30:03  sueh
  * <p> bug# 989 Using a public INSTANCE to refer to the EtomoDirector singleton
  * <p> instead of getInstance and createInstance.
