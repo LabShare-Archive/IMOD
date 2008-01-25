@@ -78,6 +78,7 @@ int locatorOpen(ImodView *vi)
   winy += LocWin->height() - GLw->height();
   LocWin->resize(winx, winy);
   LocWin->show();
+  return 0;
 }
 
 /*
@@ -295,7 +296,7 @@ void LocatorGL::timerEvent(QTimerEvent * e )
  */
 void LocatorGL::paintGL()
 {
-  int time, xdraw, ydraw, setCurs;
+  int time, xdraw, ydraw;
   unsigned char **imageData;
 
   // Schedule a second draw the first time
@@ -407,6 +408,9 @@ void LocatorGL::mouseMoveEvent ( QMouseEvent * e )
 
 /*
 $Log$
+Revision 1.2  2007/08/13 20:29:51  mast
+Added a few tools at the top
+
 Revision 1.1  2007/08/13 16:05:25  mast
 Added to program
 
