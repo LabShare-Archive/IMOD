@@ -55,6 +55,9 @@ import etomo.util.MRCHeader;
  * 
  * <p>
  * $Log$
+ * Revision 3.51  2007/12/10 22:46:03  sueh
+ * bug# 1041 Formatted.
+ *
  * Revision 3.50  2007/08/21 21:54:18  sueh
  * bug# 771 Added JLabel lTomogramSizeWarning.  Added
  * isTomogramSizeChanged, resetXandY, and updateTomogramSizeWarning.
@@ -723,8 +726,10 @@ public final class SetupCombinePanel implements ContextMenu,
   }
 
   void setParameters(ConstMetaData metaData) {
-    boolean validAutodoc = CpuAdoc.getInstance(AxisID.ONLY, applicationManager)
-        .isValid();
+    CpuAdoc cpuAdoc = CpuAdoc.getInstance(AxisID.ONLY, applicationManager);
+    //Parallel processing is optional in tomogram reconstruction, so only use it
+    //if the user set it up.
+    boolean validAutodoc = cpuAdoc.isValid() && cpuAdoc.isSetByUser();
     ConstEtomoNumber combineVolcombineParallel = metaData
         .getCombineVolcombineParallel();
     cbParallelProcess.setEnabled(validAutodoc);
