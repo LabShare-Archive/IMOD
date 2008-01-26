@@ -14,8 +14,10 @@ Cells</h3>
   <ul>
     <li><a href="#SettingUpLinux">Setting Up a Linux PC to Run IMOD.</a>
     </li>
-    <li><a href="#InstallingLinuxSGI">Installing IMOD on a Linux PC</a> </li>
-    <li><a href="#InstallingJavaLinux">Installing Java on a Linux PC</a> </li>
+    <li><a href="#InstallingLinuxSGI">Installing IMOD on a Linux PC</a>
+    </li>
+    <li><a href="#InstallingJavaLinux">Installing Java on a Linux PC</a>
+    </li>
     <li><a href="#InstallingMac">Installing IMOD on a Macintosh running
 OS X</a> </li>
     <li><a href="#SettingUpWindows">Setting Up a Windows PC to Run IMOD</a>
@@ -126,6 +128,12 @@ rely on yet.&nbsp; To install this, use:</p>
   </dd>
   <dd><code>&nbsp; sudo yum install 'compat-libf2c-*'</code><br>
   </dd>
+  <dd>If a package like this with <code>libg2c.so</code> is not
+available (such as on Suse 10.3), then add the <code>-libg2c</code>
+option to the command line when you install IMOD, and a copy of this
+library inside IMOD will be used if it is available in the package that
+you are installing from.<br>
+  </dd>
   <dd>
     <p>If you are running an IMOD built under FC2, you also
 need compat-libstdc++-33, which you can install with:</p>
@@ -225,8 +233,8 @@ Otherwise, rename the existing directory, e.g.: <br>
 </dl>
 <dl>
   <dd>Finally, if you just want to try running the programs in a
-particular copy of IMOD, cd to the top IMOD directory and, 
-under <code>tcsh</code>, enter:</dd>
+particular copy of IMOD, cd to the top IMOD directory and, under <code>tcsh</code>,
+enter:</dd>
   <dd> <code>setenv IMOD_DIR `pwd`</code></dd>
   <dd><code>source IMOD-linux.csh </code></dd>
 </dl>
@@ -269,7 +277,8 @@ without deleting <code>IMOD-linux.*sh</code>.<code><br>
 environment (JRE) with a version of 1.4 or better to be
 installed.&nbsp; Etomo will not work with the GNU Java that is
 currently distributed with Fedora Core, so you will need a Sun
-version.&nbsp; We highly recommend using version 1.5 or 1.6 since 1.5 or
+version.&nbsp; We highly recommend using version 1.5 or 1.6 since 1.5
+or
 better will almost certainly be required
 by the next release of IMOD.&nbsp; Sun's JRE version 1.5.0_6
 is
@@ -311,8 +320,7 @@ and <code>IMOD-linux.csh</code> scripts in <code>/etc/profile.d</code>
 and define the variable IMOD_JAVADIR to specify the directory where the
 JRE you wish to use is installed.<br>
   </p>
-&nbsp;
-  <br>
+&nbsp; <br>
   <a name="InstallingMac">
   <h4>Installing IMOD on a Macintosh running OS X</h4>
   </a>Be sure to install the right package for the processor type: <code>_osx_ppc</code>
@@ -513,16 +521,14 @@ about running <code>mkpasswd</code> and <code>mkgroup</code>.&nbsp;
 Do what it says, i.e. run<br>
       <code>mkpasswd -l &gt; /etc/passwd</code><br>
       <code>mkgroup -l &gt; /etc/group<br>
-      </code>
-    </li>
+      </code> </li>
     <li> Then close the window and start a new terminal window; it will
 create the home directory and copy files correctly.&nbsp; </li>
     <li> To have
 the regular Cygwin shortcut or the <code>rxvt</code> one appear with
 the traditional Cygwin icon, right-click on the shortcut to edit its
 properties, and press the button to change the icon to select the
-Cygwin icon.
-    </li>
+Cygwin icon. </li>
   </ol>
   <br>
 The primary advantage of the <code>rxvt<span
@@ -670,33 +676,48 @@ IMOD.&nbsp;In this case, get the <code>.tar.gz</code>&nbsp;distribution
 instead of the self-installing distribution and use <a
  href="http://www.winzip.com">Winzip </a>to
 unpack it somewhere, (e.g., <code>C:\Program Files</code>), rename the
-top directory to IMOD, and add the <code>IMOD\bin</code> directory (e.g., 
-<code>C:\Program Files\IMOD\bin</code>) to your path in Windows, as described
+top directory to IMOD, and add the <code>IMOD\bin</code> directory
+(e.g., <code>C:\Program Files\IMOD\bin</code>) to your path in
+Windows, as described
 above.
-
-<a name="ImodCalib"></a>
-<h4>Using the ImodCalib directory</h4>
-Several parts of IMOD look for data and configuration files in a separate
-location, pointed to by the environment variable IMOD_CALIB_DIR.  These files
-include the <code>cpu.adoc</code> file for enabling parallel processing,
-distortion correction files, noise files for microscope CTF correction, and
+  <a name="ImodCalib"></a>
+  <h4>Using the ImodCalib directory</h4>
+Several parts of IMOD look for data and configuration files in a
+separate
+location, pointed to by the environment variable IMOD_CALIB_DIR. These
+files
+include the <code>cpu.adoc</code> file for enabling parallel
+processing,
+distortion correction files, noise files for microscope CTF correction,
+and
 local startup files.
 The default
-value for IMOD_CALIB_DIR is <code>/usr/local/ImodCalib</code>  on all
-platforms, and it is set in the IMOD startup scripts if it is not already
-defined.  We have designed this directory as a place for local files that
+value for IMOD_CALIB_DIR is <code>/usr/local/ImodCalib</code> on all
+platforms, and it is set in the IMOD startup scripts if it is not
+already
+defined. We have designed this directory as a place for local files
+that
 should not be replaced when IMOD is upgraded.
-Minimally, then, you may want to create this directory and place 
-a <code>cpu.adoc</code> there defining the number of processors on one or more
-machines.  In addition, the IMOD startup scripts will try to source local
-startup scripts in this directory: <code>IMOD-...csh</code> will source
-<code>$IMOD_CALIB_DIR/IMOD.csh</code> and <code>IMOD-...sh</code> will source
-<code>$IMOD_CALIB_DIR/IMOD.sh</code>.  You can use these startup scripts for
-customizations, such as redefining <code>IMOD_JAVADIR</code>, instead of
-modifying the startup scripts that come with IMOD and get replaced with each
-new version.  However, if you are going to take advantage of this mechanism
-and want to redefine <code>IMOD_CALIB_DIR</code> to point to a different
-location, your startup must set this environment variable before sourcing the
+Minimally, then, you may want to create this directory and place a <code>cpu.adoc</code>
+there defining the number of processors on one or more
+machines. In addition, the IMOD startup scripts will try to source
+local
+startup scripts in this directory: <code>IMOD-...csh</code> will
+source
+  <code>$IMOD_CALIB_DIR/IMOD.csh</code> and <code>IMOD-...sh</code>
+will source
+  <code>$IMOD_CALIB_DIR/IMOD.sh</code>. You can use these startup
+scripts for
+customizations, such as redefining <code>IMOD_JAVADIR</code>, instead
+of
+modifying the startup scripts that come with IMOD and get replaced with
+each
+new version. However, if you are going to take advantage of this
+mechanism
+and want to redefine <code>IMOD_CALIB_DIR</code> to point to a
+different
+location, your startup must set this environment variable before
+sourcing the
 IMOD startup scripts.
 </dl>
 <dt>
@@ -867,8 +888,8 @@ the data, which are invoked by default when you run the program with
 command-line arguments. </dd>
   <dd> <a name="FiducialAlignment"> </a>
     <h4>Image Alignment using Fiducial Markers.</h4>
-The program <a
- href="man/xfmodel.html">xfmodel</a> will create a list of xf
+The program <a href="man/xfmodel.html">xfmodel</a> will create a list
+of xf
 transforms
 from a model containing fiducial points. See the <a
  href="3dmodguide.html">Introduction to 3dmod</a> to see how to make

@@ -1,5 +1,10 @@
 IMOD History
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+1/25/08: Added install option to use libg2c packed with IMOD if the package
+has it (In 3.11).
+
+1/25/08: Added scale bar dialog to 3dmod (from edit menu).
+
 1/23/08: Andrew Noske's drawingtools plugin added to IMOD.
 
 1/22/08: Converted patch2imod, imo2patch wrappers with dos2unix (In 3.11).
