@@ -91,6 +91,7 @@ if ($dlldestdir == "") exit 0
 #
 set libext = `sed -n '/^LIBEXT.*=/s/^.*= *//p' configure`
 set dllext = `sed -n '/^DLLEXT.*=/s/^.*= *//p' configure | sed "/.*LIBEXT.*/s//$libext/"`
+set dllrenlist = `sed -n "/DLLSTORENAME/s/^.*= *//p" configure`
 
 #
 # Copy DLL's from various places to the install directory
@@ -109,6 +110,16 @@ while ($dllnum < 100)
     endif
     @ dllnum++
 end
+
+if ("$dllrenlist" != "") then
+    pushd $instdir/$dlldestdir
+    foreach i ($dllrenlist)
+        foreach j (${i}*)
+            \mv $j imod-$j
+        end
+    end
+    popd
+endif
 
 # Now done if no Qt library location defined
 #
@@ -193,6 +204,9 @@ exit 0
 
 #
 #  $Log$
+#  Revision 3.29  2007/12/15 00:00:11  mast
+#  Added wrappers for Vista patch executables
+#
 #  Revision 3.28  2006/10/19 23:42:56  mast
 #  Copy libraries with wild card after as well as before the extension
 #
