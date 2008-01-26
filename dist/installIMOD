@@ -369,11 +369,18 @@ if ($os == linux) then
     set g2cdir = /usr/lib
     if ("$filetype" =~ "*64-bit*") set g2cdir = /usr/lib64
     set syshas = `\find $g2cdir -maxdepth 1 -name 'libg2c.so*' -print`
-    set packhas = `\find lib -maxdepth 1 -name 'libg2c.so*' -print`
+    set packhas = `\find lib -maxdepth 1 -name '*libg2c.so*' -print`
 
     # Delete the package even if it is on the system if no keep option given
+    # Otherwise rename to get rid of concealing name
     #
-    if ("$packhas" != "" &&  ! $keepg2c) \rm -f lib/libg2c.so*
+    if ("$packhas" != "" &&  ! $keepg2c) then
+        \rm -f lib/*libg2c.so*
+    else if ("$packhas" != "") then
+        foreach i ($packhas)
+            \mv $i $i:s/imod-//
+        end
+    endif
 
     # Issue lots of different warnings
     #
@@ -441,6 +448,9 @@ exit 0
 
 #
 #  $Log$
+#  Revision 3.20  2008/01/25 23:27:19  mast
+#  Added option for using libg2c in package
+#
 #  Revision 3.19  2008/01/04 22:01:32  mast
 #  Fixed statement of custom Windows path
 #
