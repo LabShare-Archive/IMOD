@@ -258,6 +258,7 @@ else if ($packg2c == true) then
         echo "DLLDESTDIR = lib" >> $configure
         echo "DLLSOURCEDIR1 = $g2cdir" >> $configure
         echo "DLLSTOCOPY1 = libg2c" >> $configure
+        echo "DLLSTORENAME = libg2c" >> $configure
     else
         echo "WARNING: Cannot find libg2c.so in $g2cdir"
     endif
