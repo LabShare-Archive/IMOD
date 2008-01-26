@@ -1,0 +1,59 @@
+<head>
+<title>Scale Bar Dialog</title>
+</head>
+<H2>Scale Bar Dialog</H2>
+This dialog box is used to control the drawing of scale bars in most image
+windows and in the model view window.  The length of a bar is automatically
+set to a
+round number (usually, 1, 2 or 5 times a power of time) in the units of the
+pixel size defined in the model header.  The dialog is opened from the
+<B>Edit</B> menu of the 3dmod Informoation window, or from the 
+<B>View</B> menu of the
+Model View window when the program is started as 3dmodv.
+<P>
+The settings in this windows are stored between invocations of 3dmod along
+with the user preferences, rather than in a model file.  The settings are:
+<UL>
+<LI><B>Draw scale bars</B> can be used to turn the scale bars on and off.  Bars
+are drawn only when the dialog is open and this checkbox is on.
+<LI>
+<B>White bars</B> can be turned on to get white rather than black bars.  It
+is not necessary to turn this on to get a white bar in the Model View window.
+When the Model View window has a black or a white background, the scale bar is
+automatically drawn as white or black, respectively, regardless of this
+setting.
+<LI>
+<B>Minimum length</b> controls the size of the scale bars by specifying their
+minimum length in pixels.
+The smallest round number is found that gives a bar at least this long.
+<LI>
+<B>Thickness</B> sets the thickness of the bars in pixels.
+<LI>
+The <B>Position</B> combo box allows you to place the bars in any one of
+the four corners of a window.
+<LI>
+<B>Indentation in X and Y</B> determine the distance of the bar from the
+edges of the window and can be set to shift the bar farther away from
+the corner in either direction.
+<LI>
+When <B>Make bar multiple of</B> is turned on, the bars will always be set to
+the value in the spin box times a power of ten, rather than to a multiple of
+1, 2, or 5.  This feature can be used to
+get bars of intermediate length; for example, when a 20 nm bar is too short but
+a 50 nm bar seems too long.
+</UL>
+At the bottom of the dialog appears a list of actual scale bar lengths in
+whatever windows are open.  Values are shown for the most recently active
+(top) Zap, Slicer, and Multi-Z windows, as well as for the XYZ and Model View
+windows if they are open.
+<P>
+<B>Montage snapshots:</B> You should not need to adjust the scale bar
+properties if you want to take a high-resolution montage snapshot of the Zap
+or Model
+View windows.  Scale bar size and indentation are automatically scaled up by
+the montaging factor so that the bar will appear proportionally the same in the
+snapshot as in the original window.  In each case, the actual length of the
+scale bar for the montage is printed on the terminal, since it is possible
+that the length would be different from that in the original window.
+<P>
+<A HREF=index.html>Help Index<A>
