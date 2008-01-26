@@ -3,10 +3,14 @@
  *  $Id$
  *
  *  $Log$
+ *  Revision 1.1  2008/01/25 20:22:25  mast
+ *  Added to program
+ *
  *
  */                                                                           
 
 #ifndef SCALEBAR_H
+#define SCALEBAR_H
 
 typedef struct scale_bar {
   bool draw;
