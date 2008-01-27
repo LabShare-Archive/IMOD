@@ -7,6 +7,7 @@ EXPORTS
 	istoreAddMinMax
 	imodContourGetName
 	imodTransform
+	objGroupListBytes
 	OPENIMODDATA
 	imodChecksum
 	imodPlanesNew
@@ -37,6 +38,7 @@ EXPORTS
 	imodMeshDeleteIndex
 	imodel_contour_whole
 	imod_to_nff
+	objGroupLookup
 	imodObjectNew
 	imodContourMoment
 	imodel_maxpt
@@ -108,6 +110,7 @@ EXPORTS
 	imodLabelWrite
 	imodContourCircularity
 	imodFgetline
+	objGroupListDup
 	imodLabelNew
 	imodMeshGetMaxIndex
 	istoreFirstChangeIndex
@@ -133,6 +136,7 @@ EXPORTS
 	istoreCountItems
 	GETIMODFLAGS
 	GETIMODSIZES
+	objGroupListRemove
 	imodMatTransform
 	imodMeshGetIndex
 	imodMatRot
@@ -155,6 +159,7 @@ EXPORTS
 	imodNewObject
 	imodFileWrite
 	istoreFindBreak
+	objGroupDelete
 	imeshParamsDelete
 	imodMatFindVector
 	imodGetInt
@@ -163,6 +168,7 @@ EXPORTS
 	imodel_contour_centroid
 	IMODPARTIALMODE
 	imodLabelItemGet
+	objGroupListWrite
 	imodContourGetNext
 	imodel_contour_length
 	imodDeletePoint
@@ -191,6 +197,7 @@ EXPORTS
 	istoreInvert
 	imeshCopySkipList
 	imodObjectGet
+	objGroupListDelete
 	imod_to_wmod
 	imodContourShave
 	imodContourSetSurface
@@ -206,6 +213,7 @@ EXPORTS
 	imodGetFloat
 	imodPointCross
 	imodContourCenterOfMass
+	objGroupClear
 	imodContourFindPoint
 	imodContourArea
 	imodel_point_dist
@@ -255,6 +263,8 @@ EXPORTS
 	imodPointIntersect
 	imodViewModelWrite
 	imodObjectAddMesh
+	objGroupNew
+	objGroupDup
 	imodPrevObject
 	PUTCONTPOINTSIZES
 	imodReadStore
@@ -265,10 +275,12 @@ EXPORTS
 	imodContourCheckNesting
 	istoreAddOneIndexItem
 	imodDeleteContour
+	objGroupListChecksum
 	imodGetInts
 	imodWrite
 	imodContourNew
 	imodPointDot
+	objGroupListExpand
 	imodContourGetMaxPoint
 	istoreNextObjItem
 	GETIMODOBJNAME
@@ -303,6 +315,7 @@ EXPORTS
 	imodLabelPrint
 	imodObjectGetName
 	imodContourReduce
+	objGroupAppend
 	imodContourSort3D
 	imodel_scans_overlap
 	imodPutBytes
@@ -345,6 +358,7 @@ EXPORTS
 	imodNewContour
 	imodContourLength
 	imodMatId
+	objGroupRead
 	GETIMODMAXES
 	imeshVolume
 	imodPlanesClip

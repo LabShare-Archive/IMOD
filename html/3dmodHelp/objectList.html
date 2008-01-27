@@ -1,0 +1,52 @@
+<head>
+<title>Object List Dialog</title>
+</head>
+<H2>Object List Dialog</H2>
+The Object List dialog conatins a complete set of checkboxes for turning
+objects on and off.  The object names and colors are also shown.  In addition,
+there is a set of controls for defining groups of objects and turning objects
+in a group on or off.  There can be multiple groups of objects, and an object
+can belong to more than one group.
+<P>
+The top row of the <B>Object Group Selection</B> section contains a spin box
+for selecting the current group, an indicator of the number of groups defined
+(initially <B>/0</B> when there are no groups), and an edit box for entering a
+name for the group.  The second row has buttons for operating on the groups
+themselves, and the third row has buttons for operating on objects.
+<P>
+Initially, the spin box will show
+<B>None</B> and all buttons will be disabled except <B>New</B>.  When you
+create a new group with <B>New</B> or select an existing group, the rest of
+the buttons will become available.  In addition, a second checkbox will appear
+for each object, to the left of the On/Off checkbox, to indicate whether the
+object is a member of the group.
+<UL>
+<LI>Use the <B>New</B> button to add a new object group.  If there is a
+current group defined, the new group will initially be a copy of that group.
+<LI>The <B>Delete</B> button will remove the current group from the list of
+groups.
+<LI>The <B>Clear</B> button will remove all objects from the current group.
+<LI>The <B>Add All</B> button will add all objects to the current group.
+<LI>The <B>Swap</B> button will exchange group members and non-members;
+current members will be dropped from the group and the rest of the objects
+will be added to it.
+<LI>The <B>ON</B> button will turn on all members of the current group
+without affecting any other objects.
+<LI>The <B>OFF</B> button will turn off all members of the current group
+without affecting any other objects.
+<LI>The <B>Others Off</B> button will turn off all objects except members of
+the current group.  Thus, to see just the objects in a group, push <B>ON</B>
+and <B>Others Off</B>.
+</UL>
+In addition to these buttons for turning groups On and Off, a number of
+properties can be changed in tandem for members of a group by selecting
+<B>Group</B> in the <B>Edit</B> combo box of the
+<A HREF="modvObjectEdit.html">Object Edit dialog</A>.
+<P>
+The object groups defined here will be saved as part of the model, but the
+number of the current group is not saved between sessions of 3dmod.  When the
+program is started as 3dmod rather than 3dmodv, changes in groups can be
+undone just like other model changes.
+<P>
+<A HREF="index.html">Help Index<A>
+
