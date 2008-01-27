@@ -7,11 +7,18 @@
 #ifndef IMODV_LISTOBJ_H
 #define IMODV_LISTOBJ_H
 
+
+#define OBJLIST_NUMBUTTONS 8
+
 typedef struct __imodv_struct ImodvApp;
 #include <qwidget.h>
 class QGridLayout;
 class QFrame;
 class QScrollView;
+class QPushButton;
+class QSpinBox;
+class QLineEdit;
+class QLabel;
 
 void imodvObjectListDialog(ImodvApp *a, int state);
 void imodvOlistSetChecked(ImodvApp *a, int ob, bool state);
@@ -29,26 +36,42 @@ class ImodvOlist : public QWidget
   ImodvOlist(QWidget *parent, const char *name = NULL, 
                 WFlags fl =  Qt::WDestructiveClose | Qt::WType_TopLevel);
   ~ImodvOlist() {};
-
-  QGridLayout *mGrid;
   QFrame *mFrame;
   QScrollView *mScroll;
+  void updateGroups(ImodvApp *a);
 
  public slots:
   void toggleListSlot(int ob);
   void toggleGroupSlot(int ob);
-  void groupToggled(bool state);
   void donePressed();
+  void helpPressed();
+  void actionButtonClicked(int which);
+  void nameChanged ( const QString & );
+  void curGroupChanged(int value);
+  void returnPressed();
 
  protected:
     void closeEvent ( QCloseEvent * e );
     void keyPressEvent ( QKeyEvent * e );
     void keyReleaseEvent ( QKeyEvent * e );
+    void fontChange(const QFont &oldFont);
+
+ private:
+    void setFontDependentWidths();
+  QGridLayout *mGrid;
+  QSpinBox *mGroupSpin;
+  QLineEdit *mNameEdit;
+  QPushButton *mHelpButton, *mDoneButton;
+  QPushButton *mButtons[OBJLIST_NUMBUTTONS];
+  QLabel *mNumberLabel;
 };
 
 #endif
 /*
 
 $Log$
+Revision 4.1  2008/01/21 17:48:30  mast
+New module
+
 
 */

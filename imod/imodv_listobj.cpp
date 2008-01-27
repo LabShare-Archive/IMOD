@@ -18,11 +18,17 @@
 #include <qsignalmapper.h>
 #include <qpushbutton.h>
 #include <qhbox.h>
+#include <qlabel.h>
 #include <qtooltip.h>
 #include <qlayout.h>
+#include <qspinbox.h>
+#include <qlineedit.h>
+#include <qvgroupbox.h>
 #include "dia_qtutils.h"
+#include "objgroup.h"
 
 #include "imodv.h"
+#include "imodv_gfx.h"
 #include "imod.h"
 #include "control.h"
 #include "preferences.h"
@@ -37,6 +43,9 @@ static ImodvOlist *Oolist_dialog = NULL;
 #define MAX_OOLIST_WIDTH 384
 #define MAX_LIST_IN_COL 36
 #define MAX_LIST_NAME 40
+
+enum {OBJGRP_NEW = 0, OBJGRP_DELETE, OBJGRP_CLEAR, OBJGRP_ADDALL, OBJGRP_SWAP,
+      OBJGRP_TURNON, OBJGRP_TURNOFF, OBJGRP_OTHERSOFF};
 
 // The button arrays, and variable to keep track of grouping
 static QCheckBox **OolistButtons;
@@ -117,8 +126,8 @@ void imodvObjectListDialog(ImodvApp *a, int state)
   Oolist_dialog->setCaption(qstr);
   imodvDialogManager.add((QWidget *)Oolist_dialog, IMODV_DIALOG);
 
-  // After getting size with group buttons present, hide them
-  Oolist_dialog->groupToggled(false);
+  // After getting size with group buttons present, maybe hide them
+  Oolist_dialog->updateGroups(a);
   Oolist_dialog->show();
 }
 
@@ -146,7 +155,7 @@ void imodvOlistSetColor(ImodvApp *a, int ob)
 // Update the group control buttons and buttons for objects
 void imodvOlistUpdateGroups(ImodvApp *a)
 {
-  // Nothing to do yet
+  Oolist_dialog->updateGroups(a);
 }
 
 void imodvOlistUpdateOnOffs(ImodvApp *a)
@@ -210,14 +219,60 @@ bool imodvOlistGrouping(void)
 ImodvOlist::ImodvOlist(QWidget *parent, const char *name, WFlags fl)
   : QWidget(parent, name, fl)
 {
-  int nPerCol, olistNcol, ob;
+  int nPerCol, olistNcol, ob, i;
   QString qstr;
+  char *labels[] = {"New", "Delete", "Clear", "Add All", "Swap", "ON", "OFF",
+                    "Others Off"};
+  char *tips[] = {"Start a new object group, copied from current group",
+                  "Remove the current object group from list of groups",
+                  "Remove all objects from the current group",
+                  "Add all objects to the current group",
+                  "Remove current members and add all non-members",
+                  "Turn ON all objects in the current group",
+                  "Turn OFF all objects in the current group",
+                  "Turn OFF objects not in the current group"};
 
   QVBoxLayout *layout = new QVBoxLayout(this, 11, 6, "list layout");
-  QCheckBox *check = diaCheckBox("Select object group", this, layout);
-  connect(check, SIGNAL(toggled(bool)), this, SLOT(groupToggled(bool)));
-  QToolTip::add(check, "Turn on buttons for selecting objects to edit "
-                "together");
+
+  QVGroupBox *grpbox = new QVGroupBox("Object Group Selection", this);
+  layout->addWidget(grpbox);
+  QHBox *hbox = new QHBox(grpbox);
+  new QLabel("Group", hbox);
+  mGroupSpin = new QSpinBox(0, 0, 1, hbox);
+  mGroupSpin->setSpecialValueText("None");
+  mGroupSpin->setFocusPolicy(QWidget::ClickFocus);
+  connect(mGroupSpin, SIGNAL(valueChanged(int)), this, 
+          SLOT(curGroupChanged(int)));
+  QToolTip::add(mGroupSpin, "Select the current object group or turn off "
+                "selection");
+
+  mNumberLabel = new QLabel("/99", hbox);
+  mNameEdit = new QLineEdit(hbox);
+  mNameEdit->setMaxLength(OBJGRP_STRSIZE - 1);
+  mNameEdit->setFocusPolicy(QWidget::ClickFocus);
+  connect(mNameEdit, SIGNAL(returnPressed()), this,
+          SLOT(returnPressed()));
+  connect(mNameEdit, SIGNAL(textChanged(const QString&)), this,
+          SLOT(nameChanged(const QString&)));
+  QToolTip::add(mNameEdit, "Enter a name for the current group");
+
+  QSignalMapper *clickMapper = new QSignalMapper(this);
+  connect(clickMapper, SIGNAL(mapped(int)), this,
+          SLOT(actionButtonClicked(int)));
+
+  // Make the buttons and put in hbox
+  for (i = 0; i < OBJLIST_NUMBUTTONS; i++) {
+
+    if (i == 0 || i == 5)
+      hbox = new QHBox(grpbox);
+
+    qstr = labels[i];
+    mButtons[i] = new QPushButton(qstr, hbox);
+    mButtons[i]->setFocusPolicy(QWidget::NoFocus);
+    clickMapper->setMapping(mButtons[i], i);
+    connect(mButtons[i], SIGNAL(clicked()), clickMapper, SLOT(map()));
+    QToolTip::add(mButtons[i], tips[i]);
+  }
 
   mScroll = new QScrollView(this);
   layout->addWidget(mScroll);
@@ -250,6 +305,7 @@ ImodvOlist::ImodvOlist(QWidget *parent, const char *name, WFlags fl)
     hLayout->setStretchFactor(OolistButtons[ob], 100);
 
     // Hide the buttons later after window size is set
+    grouping = true;
   }
 
   // Make a line
@@ -259,32 +315,32 @@ ImodvOlist::ImodvOlist(QWidget *parent, const char *name, WFlags fl)
   layout->addWidget(line);
 
   QHBox *box = new QHBox(this);
-  QPushButton *button = new QPushButton("Done", box);
-  diaSetButtonWidth(button, ImodPrefs->getRoundedStyle(), 1.4, "Done");
-  button->setFocusPolicy(QWidget::NoFocus);
   layout->addWidget(box);
-  connect(button, SIGNAL(clicked()), this, SLOT(donePressed()));
+  mDoneButton = new QPushButton("Done", box);
+  mDoneButton->setFocusPolicy(QWidget::NoFocus);
+  connect(mDoneButton, SIGNAL(clicked()), this, SLOT(donePressed()));
+  mHelpButton = new QPushButton("Help", box);
+  mHelpButton->setFocusPolicy(QWidget::NoFocus);
+  connect(mHelpButton, SIGNAL(clicked()), this, SLOT(helpPressed()));
+  setFontDependentWidths();
 }
 
 void ImodvOlist::toggleGroupSlot(int ob)
 {
-  // Nothing happens here yet: buttons are consulted directly
+  int index;
+  bool state;
+  IobjGroup *group = (IobjGroup *)ilistItem(Imodv->imod->groupList, 
+                                            Imodv->imod->curObjGroup);
+  if (!group)
+    return;
+  index = objGroupLookup(group, ob);
+  state = groupButtons[ob]->isOn();
+  if (state && index < 0)
+    objGroupAppend(group, ob);
+  else if (!state && index >= 0)
+    ilistRemove(group->objList, index);
 }
  
-void ImodvOlist::groupToggled(bool state)
-{
-  int ob;
-  grouping = state;
-  for (ob = 0; ob < numOolistButtons; ob++) {
-    if (grouping)
-      groupButtons[ob]->show();
-    else {
-      groupButtons[ob]->hide();
-      diaSetChecked(groupButtons[ob], false);
-    }
-  }
-}
-
 void ImodvOlist::toggleListSlot(int ob)
 {
   objedToggleObj(ob, OolistButtons[ob]->isOn());
@@ -294,6 +350,197 @@ void ImodvOlist::donePressed()
 {
   close();
 }
+
+void ImodvOlist::helpPressed()
+{
+  imodShowHelpPage("objectList.html");
+}
+
+void ImodvOlist::actionButtonClicked(int which)
+{
+  Imod *imod = Imodv->imod;
+  IobjGroup *group, *ogroup;
+  int ob, index, changed = 1;
+
+  if (which != OBJGRP_NEW && which != OBJGRP_DELETE) {
+    group = (IobjGroup *)ilistItem(imod->groupList, imod->curObjGroup);
+    if (!group)
+      return;
+  }
+
+  switch (which) {
+  case OBJGRP_NEW:
+    imodvRegisterModelChg();
+    group = objGroupListExpand(&imod->groupList);
+    if (!group)
+      break;
+    ogroup = (IobjGroup *)ilistItem(imod->groupList, imod->curObjGroup);
+    if (ogroup)
+      group->objList = ilistDup(ogroup->objList);
+    imod->curObjGroup = ilistSize(imod->groupList) - 1;
+    updateGroups(Imodv);
+    break;
+
+  case OBJGRP_DELETE:
+    if (imod->curObjGroup < 0)
+      return;
+    imodvRegisterModelChg();
+    if (objGroupListRemove(imod->groupList, imod->curObjGroup))
+      break;
+    imod->curObjGroup = B3DMIN(B3DMAX(0, imod->curObjGroup - 1),
+                               ilistSize(imod->groupList) - 1);
+    updateGroups(Imodv);
+    break;
+
+  case OBJGRP_CLEAR:
+    imodvRegisterModelChg();
+    ilistTruncate(group->objList, 0);
+    updateGroups(Imodv);
+    break;
+
+  case OBJGRP_ADDALL:
+    imodvRegisterModelChg();
+    if (group->objList)
+      ilistTruncate(group->objList, 0);
+    for (ob = 0; ob < imod->objsize; ob++)
+      if (objGroupAppend(group, ob))
+        return;
+    updateGroups(Imodv);
+    break;
+
+  case OBJGRP_SWAP:
+    imodvRegisterModelChg();
+    for (ob = 0; ob < imod->objsize; ob++) {
+      index = objGroupLookup(group, ob);
+      if (index >= 0)
+        ilistRemove(group->objList, index);
+      else
+        if (ilistAppend(group->objList, &ob))
+          return;
+    }
+    updateGroups(Imodv);
+    break;
+
+  case OBJGRP_TURNON:
+  case OBJGRP_TURNOFF:
+  case OBJGRP_OTHERSOFF:
+    changed = 0;
+    for (ob = 0; ob < imod->objsize; ob++) {
+      index = objGroupLookup(group, ob);
+      if (index >= 0 && which == OBJGRP_TURNON && 
+          iobjOff(imod->obj[ob].flags)) {
+        imodvRegisterObjectChg(ob);
+        imod->obj[ob].flags &= ~IMOD_OBJFLAG_OFF;
+        changed = 1;
+      } else if (((index >= 0 && which == OBJGRP_TURNOFF) ||
+                  (index < 0 && which == OBJGRP_OTHERSOFF)) &&
+                 !iobjOff(imod->obj[ob].flags)) {
+        imodvRegisterObjectChg(ob);
+        imod->obj[ob].flags |= IMOD_OBJFLAG_OFF;
+        changed = 1;
+      }
+    }
+    imodvDraw(Imodv);
+    imodvDrawImodImages();
+    imodvObjedNewView();
+    break;
+
+  }
+  if (changed)
+    imodvFinishChgUnit();
+}
+
+void ImodvOlist::nameChanged(const QString &str)
+{
+  IobjGroup *group = (IobjGroup *)ilistItem(Imodv->imod->groupList, 
+                                            Imodv->imod->curObjGroup);
+  if (!group)
+    return;
+  strncpy(&group->name[0], str.latin1(), OBJGRP_STRSIZE);
+  group->name[OBJGRP_STRSIZE - 1] = 0x00;
+}
+
+void ImodvOlist::curGroupChanged(int value)
+{
+  setFocus();
+  Imodv->imod->curObjGroup = value - 1;
+  updateGroups(Imodv);
+}
+
+void ImodvOlist::returnPressed()
+{
+  setFocus();
+}
+
+void ImodvOlist::updateGroups(ImodvApp *a)
+{
+  IobjGroup *group;
+  int i, ob, numGroups = ilistSize(a->imod->groupList);
+  int curGrp = a->imod->curObjGroup;
+  int *objs;
+  bool *states;
+  QString str;
+  diaSetSpinMMVal(mGroupSpin, 0, numGroups, curGrp + 1);
+  str.sprintf("/%d", numGroups);
+  mNumberLabel->setText(str);
+  mNameEdit->setEnabled(curGrp >= 0);
+  for (i = 1; i < OBJLIST_NUMBUTTONS; i++)
+    mButtons[i]->setEnabled(curGrp >= 0);
+  if (curGrp < 0) {
+    if (grouping)
+      for (ob = 0; ob < numOolistButtons; ob++)
+        groupButtons[ob]->hide();
+    grouping = false;
+    return;
+  }
+  if (!grouping)
+    for (ob = 0; ob < numOolistButtons; ob++)
+      groupButtons[ob]->show();
+  grouping = true;
+
+  group = (IobjGroup *)ilistItem(a->imod->groupList, curGrp);
+  if (!group)
+    return;
+  mNameEdit->setText(group->name);
+  states = (bool *)malloc(sizeof(bool) * numOolistButtons);
+  if (!states)
+    return;
+  for (ob = 0; ob < numOolistButtons; ob++)
+    states[ob] = false;
+  objs = (int *)ilistFirst(group->objList);
+  if (objs) {
+    for (i = 0; i < ilistSize(group->objList); i++)
+      if (objs[i] >= 0 && objs[i] < numOolistButtons)
+        states[objs[i]] = true;
+  }
+  for (ob = 0; ob < numOolistButtons; ob++)
+    diaSetChecked(groupButtons[ob], states[ob]);
+
+  free(states);
+}
+
+
+void ImodvOlist::setFontDependentWidths()
+{
+  int i, width, minWidth;
+  bool rounded = ImodPrefs->getRoundedStyle();
+  minWidth = diaGetButtonWidth(this, rounded, 1.3, mButtons[0]->text());
+  for (i = 0; i < OBJLIST_NUMBUTTONS; i++) {
+    width = diaGetButtonWidth(this, rounded, 1.3, mButtons[i]->text());
+    width = B3DMAX(minWidth, width);
+    mButtons[i]->setFixedWidth(width);
+  }
+  width = diaGetButtonWidth(this, rounded, 1.8, "Help");
+  mHelpButton->setFixedWidth(width);
+  mDoneButton->setFixedWidth(width);
+}
+
+void ImodvOlist::fontChange(const QFont &oldFont)
+{
+  setFontDependentWidths();
+  QWidget::fontChange(oldFont);
+}
+
 
 void ImodvOlist::closeEvent ( QCloseEvent * e )
 {
@@ -322,5 +569,8 @@ void ImodvOlist::keyReleaseEvent ( QKeyEvent * e )
 /*
 
 $Log$
+Revision 4.1  2008/01/21 17:48:54  mast
+Split into new module, added provisional grouping capability
+
 
 */
