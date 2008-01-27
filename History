@@ -1,5 +1,15 @@
 IMOD History
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+1/27/08: Added ability to define and name multiple object groups in ojbect
+list window.
+
+1/25/08: In eTomo, fixed reconnect to non-parallel tilt, problem with combine
+process monitor in Java 1.6, and mistaken enabling of parallel processing for
+tomogram processing (In 3.11)
+
+1/25/08: Fixed problems with Ctfphaseflip: interpolation width no longer fixed
+at 36 and strip width no longer fixed at 256 (In 3.11).
+
 1/25/08: Added install option to use libg2c packed with IMOD if the package
 has it (In 3.11).
 
