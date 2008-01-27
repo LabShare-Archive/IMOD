@@ -51,8 +51,8 @@ An image region
 with defocus difference less than this tolerance 
 is considered to have constant defocus and can be corrected as one strip. The
 strip width is either the width of this region or 256 pixels, whichever is
-smaller.  Each strip is corrected based on the defocus at the center of the
-strip. 
+smaller; but strips will also be constrained to be at least 128 pixels wide.
+Each strip is corrected based on the defocus at the center of the strip. 
 
 [Field = InterpolationWidth]
 short = iWidth
