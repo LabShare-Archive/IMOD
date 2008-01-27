@@ -13,7 +13,7 @@ CFLAGS = $(LIBCFLAGS)
 IMODELOBJS = imodel.$(O) iobj.$(O) icont.$(O) imodel_to.$(O)\
              imodel_from.$(O) ipoint.$(O) imodel_files.$(O) imesh.$(O)\
              imodel_fwrap.$(O) imat.$(O) iplane.$(O) iview.$(O)\
-	     ilabel.$(O) istore.$(O)\
+	     ilabel.$(O) istore.$(O) objgroup.$(O)\
 
 all : $(LIBI)
 
@@ -47,10 +47,14 @@ iplane.$(O) : $(INCDIR)/iplane.h
 iview.$(O)  : $(INCDIR)/iview.h
 imat.$(O)   : $(INCDIR)/imat.h
 istore.$(O)  : $(INCDIR)/istore.h 
-imodel_files.$(O) : $(INCDIR)/b3dutil.h $(INCDIR)/istore.h
+objgroup.$(O)  : $(INCDIR)/objgroup.h 
+imodel_files.$(O) : $(INCDIR)/b3dutil.h $(INCDIR)/istore.h $(INCDIR)/objgroup.h
 imodel_from.$(O) : $(INCDIR)/b3dutil.h
 
 #  $Log$
+#  Revision 3.15  2007/09/19 23:49:29  mast
+#  Changes for library rearrangements
+#
 #  Revision 3.14  2006/10/17 18:15:30  mast
 #  Added autodoc
 #
