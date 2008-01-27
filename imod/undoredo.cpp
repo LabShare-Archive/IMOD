@@ -67,6 +67,7 @@
  */
 /* END_CODE */
 
+#include "objgroup.h"
 #include "undoredo.h"
 #include "imod.h"
 #include "imodv.h"
@@ -376,6 +377,8 @@ void UndoRedo::modelChange(int type, Ipoint *point)
     item.p.mod->refImage = NULL;
     item.p.mod->store = ilistDup(mod->store);
     item.p.mod->slicerAng = ilistDup(mod->slicerAng);
+    item.p.mod->groupList = objGroupListDup(mod->groupList);
+    
 
     // Copy the views
     if (mod->viewsize) {
@@ -1093,6 +1096,7 @@ int UndoRedo::modelBytes(Imod *mod)
     count += sizeof(Iview) + mod->view[i].objvsize * sizeof(Iobjview);
   count += ilistSize(mod->store) * sizeof(Istore);
   count += ilistSize(mod->slicerAng) * sizeof(SlicerAngles);
+  count += objGroupListBytes(mod->groupList);
   return count;
 }
 
@@ -1379,6 +1383,9 @@ void undoFlushUnit(ImodView *vi) {
  
 /*
   $Log$
+  Revision 4.11  2007/12/04 22:05:48  mast
+  Made the essay accessible from sourcedoc
+
   Revision 4.10  2007/11/27 18:00:18  mast
   Added exposed functions usable from plugin
 
