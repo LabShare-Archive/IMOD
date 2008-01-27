@@ -13,8 +13,10 @@
  */
 
 #include <math.h>
+#include <string.h>
 #include "imodel.h"
 #include "b3dutil.h"
+#include "objgroup.h"
 
 static void flipClips(IclipPlanes *clips);
 
@@ -84,6 +86,7 @@ int imodDefault(Imod *model)
   model->viewsize = 0;    /* number of views. */
   imodViewModelNew(model); /* default view */
   model->editGlobalClip = 0;
+  model->curObjGroup = -1;
 
   model->refImage = NULL;
   model->fileName = NULL;
@@ -91,6 +94,7 @@ int imodDefault(Imod *model)
   model->zbin = 1;
   model->store    = NULL;
   model->slicerAng = NULL;
+  model->groupList = NULL;
   return(0);
 }
 
@@ -112,6 +116,7 @@ void imodDelete(Imod *imod)
   if (imod->refImage)
     free(imod->refImage);
   ilistDelete(imod->store);
+  objGroupListDelete(imod->groupList);
   free(imod);
 }
 
@@ -1437,6 +1442,7 @@ int imodChecksum(Imod *imod)
       slanp->angles[0] + slanp->angles[0] + slanp->angles[0] + 
       strlen(slanp->label);
   }
+  sum += objGroupListChecksum(imod->groupList);
 
   /* DNM: add # of contours, # of points, and point sizes */
 
@@ -1526,7 +1532,7 @@ int imodChecksum(Imod *imod)
   /* This will catch fractional values - not perfect but probably good */
   isum = sum / 1000000.;
   isum = (int)(1000. * (sum - 1000000. * isum));
-  /* fprintf(stderr, "checksum = %d\n", isum); */
+  /* fprintf(stderr, "checksum = %d\n", sum, isum); */
   return (isum);
 }
 
@@ -1810,6 +1816,9 @@ int   imodGetFlipped(Imod *imod)
 
 /*
 $Log$
+Revision 3.29  2007/09/25 15:44:47  mast
+Added function to set refimage from MRC header
+
 Revision 3.28  2007/09/22 00:07:01  mast
 Removed model locking code, changed mat3b2 to matflags2
 

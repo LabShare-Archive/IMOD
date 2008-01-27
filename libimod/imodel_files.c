@@ -17,6 +17,7 @@
 #include "imodel.h"
 #include "b3dutil.h"
 #include "istore.h"
+#include "objgroup.h"
 
 #ifdef __vms
 #define IMOD_DATA_SWAP
@@ -291,6 +292,9 @@ static int imodel_write(Imod *mod, FILE *fout)
     imodPutBytes(fout, &slan->label[0], ANGLE_STRSIZE);
   }
                       
+  if ((id = objGroupListWrite(mod->groupList, fout)))
+    return(id);
+
   if ((id = imodWriteStore(mod->store, ID_MOST, fout)))
     return(id);
 
@@ -711,6 +715,11 @@ static int imodel_read(Imod *imod, int version)
 
     case ID_SLAN:
       if ((error = imodel_read_sliceang(imod, fin)))
+        return(error);
+      break;
+
+    case ID_OGRP:
+      if ((error = objGroupRead(&imod->groupList, fin)))
         return(error);
       break;
 
@@ -1831,6 +1840,9 @@ int imodPutByte(FILE *fp, unsigned char *dat)
 
 /*
   $Log$
+  Revision 3.29  2007/11/01 16:47:02  mast
+  Fixed reading of ascii modelwith DOS line endings
+
   Revision 3.28  2007/06/12 05:39:25  mast
   Upgraded ascii format
 
