@@ -99,6 +99,7 @@
 #define SIZE_STOR 12
 #define ID_SLAN MakeID('S', 'L', 'A', 'N')  /* Slicer angles */
 #define SIZE_SLAN 60
+#define ID_OGRP MakeID('O', 'G', 'R', 'P')  /* Object group */
 
 /* future data defines. */
 #define ID_BRCH MakeID('B', 'R', 'C', 'H')  /* Branch data */
@@ -463,15 +464,17 @@ typedef struct Mod_Model
   b3dUInt16  color;      /* color of current object */
   Iview      *view;      /* Array of view data */
   int        editGlobalClip;   /* Flag that global clip is selected */
+  int        curObjGroup;  /* Current object group */
 
   IrefImage  *refImage;
   char       *fileName;
   int        xybin;       /* Binning in X and Y */
   int        zbin;        /* Binning in Z */
 
+  /* Optional data written to file */
   Ilist  *store;          /* General storage data */
   Ilist  *slicerAng;       /* Slicer angles */
-
+  Ilist  *groupList;      /* Object group lists */
 }Imod;
 
 
@@ -697,6 +700,9 @@ extern "C" {
 
 /*    
     $Log$
+    Revision 3.42  2007/12/04 18:27:35  mast
+    Exposed Ipoint definition for plugins
+
     Revision 3.41  2007/11/28 01:30:31  mast
     Added conditional sections so it can be used instead of model.h
 
