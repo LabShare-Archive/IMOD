@@ -155,6 +155,8 @@ void imodvOlistSetColor(ImodvApp *a, int ob)
 // Update the group control buttons and buttons for objects
 void imodvOlistUpdateGroups(ImodvApp *a)
 {
+  if (!Oolist_dialog || !numOolistButtons)
+    return;
   Oolist_dialog->updateGroups(a);
 }
 
@@ -569,6 +571,9 @@ void ImodvOlist::keyReleaseEvent ( QKeyEvent * e )
 /*
 
 $Log$
+Revision 4.2  2008/01/27 06:22:05  mast
+Added multiple object group controls
+
 Revision 4.1  2008/01/21 17:48:54  mast
 Split into new module, added provisional grouping capability
 
