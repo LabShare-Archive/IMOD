@@ -151,7 +151,7 @@ SlicerWindow::SlicerWindow(SlicerStruct *slicer, float maxAngles[],
   button->setAutoRaise(AUTO_RAISE);
   connect(button, SIGNAL(clicked()), this, SLOT(showslicePressed()));
   QToolTip::add(button, "Show slice cutting lines in Xyz and Zap windows (hot"
-                " key s)");
+                " key l)");
   
   button = new QToolButton(mToolBar, "contour flat");
   button->setPixmap(*contBitmap);
@@ -1723,6 +1723,11 @@ static int taper_slice(Islice *sl, int ntaper, int inside)
 
  /*
 $Log$
+Revision 4.25  2007/11/13 19:11:44  mast
+Used the IMOD_PROCESSORS value to increase the max voxels to compute,
+made it reduce quality before number of slices if slices are below 75%
+of requested number, get voxel limit from settings
+
 Revision 4.24  2007/11/10 17:25:45  mast
 Do not sync angles when auto button is turned on
 
