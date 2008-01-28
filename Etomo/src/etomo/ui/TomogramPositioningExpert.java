@@ -79,6 +79,7 @@ public final class TomogramPositioningExpert extends ReconUIExpert {
   public void startNextProcess(ProcessResultDisplay processResultDisplay) {
     ProcessName nextProcess = getNextProcess();
     resetNextProcess();
+    //whole tomogram
     if (nextProcess == ProcessName.TILT) {
       sampleTilt(processResultDisplay);
     }
@@ -339,7 +340,7 @@ public final class TomogramPositioningExpert extends ReconUIExpert {
         return;
       }
     }
-    if (updateTomoPosTiltCom(true) == null) {
+    if (updateTomoPosTiltCom(false) == null) {
       sendMsg(ProcessResult.FAILED_TO_START, processResultDisplay);
       return;
     }
@@ -425,9 +426,14 @@ public final class TomogramPositioningExpert extends ReconUIExpert {
         processResultDisplay);
   }
 
+  /**
+   * Whole tomogram
+   * @param processResultDisplay
+   */
   private void sampleTilt(ProcessResultDisplay processResultDisplay) {
     comScriptMgr.loadTilt(axisID);
     TiltParam tiltParam = comScriptMgr.getTiltParam(axisID);
+    tiltParam.setCommandMode(TiltParam.Mode.WHOLE);
     tiltParam.setFiducialess(metaData.isFiducialess(axisID));
     sendMsg(manager.sampleTilt(axisID, processResultDisplay, tiltParam),
         processResultDisplay);
@@ -921,6 +927,9 @@ public final class TomogramPositioningExpert extends ReconUIExpert {
 }
 /**
  * <p> $Log$
+ * <p> Revision 1.20  2007/12/13 01:14:23  sueh
+ * <p> bug# 1056 Setting the Mode in TiltParam.
+ * <p>
  * <p> Revision 1.19  2007/08/16 16:37:52  sueh
  * <p> bug# 1035 Resetting sizeToOutputInXandY in newst.  Resetting
  * <p> startingAndEndingX and Y in blend.  Resetting SUBSETSTART to 0 0 in tilt.
