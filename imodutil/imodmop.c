@@ -18,9 +18,14 @@
 #include <stdlib.h>
 #include <string.h>
 #include <math.h>
+#ifndef _WIN32
+#include <sys/types.h>
+#include <unistd.h>
+#endif
 #include "imodel.h"
 #include "mrcfiles.h"
 #include "mrcslice.h"
+#include "parse_params.h"
 
 static int paintContours(Iobj *obj, Islice *islice, Islice *pslice[3], 
                          int numChan, int inside, IloadInfo *li, int iz, 
@@ -961,6 +966,10 @@ static int itemOnList(int item, int *list, int num)
 
 /*
 $Log$
+Revision 3.9  2007/11/28 06:13:10  mast
+Added option to extract just around objects, fixed bug in tube painting
+if empty contours
+
 Revision 3.8  2007/05/18 20:19:49  mast
 But don't reverse zero if no fill value entered!
 
