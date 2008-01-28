@@ -165,7 +165,7 @@ int main( int argc, char *argv[])
     numPts++;
   }
 
-  close(infp);
+  fclose(infp);
   if (imodBackupFile(filename)) 
     printf("Warning: %d - Failed to make old version of %d be a backup file\n",
            progname, filename);
@@ -184,5 +184,8 @@ int main( int argc, char *argv[])
 
 /*
   $Log$
+  Revision 3.1  2007/10/18 22:17:10  mast
+  Added to package
+
 
 */
