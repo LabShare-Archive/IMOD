@@ -110,7 +110,7 @@ int main(int argc, char *argv[])
   */
   sliceMode=sliceModeIfReal(header.mode);
   if (sliceMode < 0)
-     printf("ERROR: %s - File mode is %d; only byte, short, integer allowed\n",
+     exitError("%s - File mode is %d; only byte, short, integer allowed\n",
             "ctfphaseflip", header.mode);
 
   //The number of slices this run deals with;
@@ -273,11 +273,9 @@ int main(int argc, char *argv[])
     //stripPixelNum=256;
     //interPixelNum=36; // must be less than stripPixelNum/2;
     
-    //interPixel must be less than stripPixelNum/2;
-    if( interPixelNum>=stripPixelNum/2){
-      printf("error: interPixelNum is bigger than stripPixleNum/2 \n");
-      return 1;
-    }
+    //interPixelNum must be less than stripPixelNum/2;
+    if( interPixelNum>=stripPixelNum/2) 
+      exitError("interPixelNum is bigger than stripPixleNum/2 \n");
 
     printf("stripPixelNum=%d interPixelNum=%d \n", stripPixelNum,
         interPixelNum);
@@ -380,7 +378,7 @@ int main(int argc, char *argv[])
                       (stripIdx%2)*ny*(stripPixelNum+2)+
                                   row*(stripPixelNum+2)+
         stripPixelNum/2+column-(stripBegin+stripEnd)/2-1);
-        printf("column=%d ... %d \n", (stripBegin+stripEnd)/2+1+1, nx);
+        //printf("column=%d ... %d \n", (stripBegin+stripEnd)/2+1+1, nx);
       }
 
       //printf("stripIdx=%d\n", stripIdx);
