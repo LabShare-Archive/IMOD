@@ -11,6 +11,10 @@
  * @version $Revision$
  *
  * <p> $Log$
+ * <p> Revision 3.26  2007/12/13 01:06:36  sueh
+ * <p> bug# 1056 Added adjustOrigin.  Merged ConstTiltParam with TiltParam and made
+ * <p> ConstTiltParam an interface.
+ * <p>
  * <p> Revision 3.25  2007/08/29 20:36:42  sueh
  * <p> bug# 1035 In setSubsetStart handling IOException.
  * <p>
@@ -234,7 +238,7 @@ public final class TiltParam implements ConstTiltParam, CommandParam {
   private boolean useZFactors = false;
   private String zFactorFileName;
   private boolean loadedFromFile = false;
-  private  Mode commandMode=Mode.TILT;
+  private Mode commandMode = Mode.TILT;
 
   private final StringList excludeList2 = new StringList(0);
   private final StringList excludeList = new StringList(0);
@@ -267,34 +271,35 @@ public final class TiltParam implements ConstTiltParam, CommandParam {
   public ConstEtomoNumber getImageBinned() {
     return imageBinned;
   }
-  
+
   public AxisID getAxisID() {
     return axisID;
   }
-  
+
   public String getCommandName() {
     return ProcessName.TILT.toString();
   }
-  
+
   public String getCommand() {
     return ProcessName.TILT.getComscript(axisID);
   }
-  
+
   public String getCommandLine() {
     return getCommand();
   }
+
   public String[] getCommandArray() {
     return ProcessName.TILT.getComscriptArray(axisID);
   }
-  
+
   public CommandMode getCommandMode() {
-    return null;
+    return commandMode;
   }
-  
+
   public CommandDetails getSubcommandDetails() {
     return null;
   }
-  
+
   public File getCommandOutputFile() {
     return new File(manager.getPropertyUserDir(), outputFile);
   }
@@ -306,9 +311,9 @@ public final class TiltParam implements ConstTiltParam, CommandParam {
   public float getLogShift() {
     return logOffset;
   }
-  
+
   public void setCommandMode(Mode input) {
-    commandMode=input;
+    commandMode = input;
   }
 
   public boolean hasLogOffset() {
@@ -1431,5 +1436,18 @@ public final class TiltParam implements ConstTiltParam, CommandParam {
     public static final Mode SAMPLE = new Mode();
     public static final Mode WHOLE = new Mode();
     public static final Mode TILT = new Mode();
+
+    public String toString() {
+      if (this == SAMPLE) {
+        return "SAMPLE";
+      }
+      if (this == WHOLE) {
+        return "WHOLE";
+      }
+      if (this == TILT) {
+        return "TILT";
+      }
+      return "";
+    }
   }
 }
