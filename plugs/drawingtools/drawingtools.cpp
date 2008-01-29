@@ -15,6 +15,9 @@
     $Revision$
 
     $Log$
+    Revision 1.1  2008/01/24 01:25:30  tempuser
+    *** empty log message ***
+
     Revision 0.0  2008/2/25 15:45:41  noske
     Made special module to be used in IMOD
 
@@ -1372,7 +1375,7 @@ bool isObjectValidAndShown(Iobj *obj)
 bool isCurrObjValidAndShown()
 {
   Iobj *obj = getCurrObj();
-  isObjectValidAndShown ( obj );
+  return isObjectValidAndShown(obj);
 }
 
 //---------------------------------
@@ -1784,7 +1787,7 @@ void  edit_executeDeformPush( Ipoint center, float radius )
       }
     }
     
-    changeZValue( cont, (int)center.z );    // changes any points with z set to POINT_SHIFTED    
+    changeZValue( cont, (int)center.z );    
   }
 }
 
@@ -1873,7 +1876,7 @@ void edit_executeJoinEnd()
 //------------------------
 //-- Inverses the order of points or reorders the point in the current contour.
 
-bool edit_inversePointsInContour( bool reorder )
+void edit_inversePointsInContour( bool reorder )
 {
   Imod *imod = ivwGetModel(plug.view);
   Iobj *obj  = imodObjectGet(imod);
@@ -2229,10 +2232,9 @@ void edit_makeCurrContSimple ()
 }
 
 //------------------------
-//-- Returns true and deletes the current contour if it "too small" - 
-//-- that is if its area is less than the fixed amount
+//-- Deletes the current contour if it "too small"
 
-bool edit_deleteCurrContIfTooSmall()
+void edit_deleteCurrContIfTooSmall()
 {
   Imod *imod = ivwGetModel(plug.view);
   Iobj *obj  = imodObjectGet(imod);

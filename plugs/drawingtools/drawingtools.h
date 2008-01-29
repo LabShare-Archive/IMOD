@@ -204,7 +204,7 @@ void edit_executeDeformPinch( Ipoint center, float radius );
 void edit_executeDeformEnd();
 void edit_executeJoinEnd();
 
-bool edit_inversePointsInContour(bool reorder);
+void edit_inversePointsInContour(bool reorder);
 bool edit_reduceCurrContour();
 bool edit_smoothCurrContour();
 
@@ -215,7 +215,7 @@ bool edit_breakPointsInCircle( Ipoint center, float radius );
 
 void edit_breakCurrContIntoSimpleContsAndDeleteSmallest ();    
 void edit_makeCurrContSimple ();                
-bool edit_deleteCurrContIfTooSmall();              
+void edit_deleteCurrContIfTooSmall();              
 void edit_joinCurrContWithAnyTouching();            
 
 bool edit_selectNextOverlappingCont();
