@@ -51,12 +51,12 @@ class DrawingTools : public DialogFrame
   void copy();
   void paste();
   
-  void changeType( int newType );
+  void changeType( int value );
+  void changeTypeSelected( int newType );
   void changeMaxArea( int value );
   void changeSmoothPtsDist( int value );
   void changeSmoothTensileFract( int value );
   void changeReducePts();
-  void changeTypeSelected( int newType );
   
   bool changeSelectedSlice( int change );
   void changeDeformCircleRadius( float value );

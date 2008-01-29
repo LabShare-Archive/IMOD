@@ -15,6 +15,9 @@
     $Revision$
 
     $Log$
+    Revision 1.2  2008/01/29 00:04:01  tempuser
+    *** empty log message ***
+
     Revision 1.1  2008/01/24 01:25:30  tempuser
     *** empty log message ***
 
@@ -1000,6 +1003,15 @@ void DrawingTools::changeType( int value ) {
 }
 
 //------------------------
+//-- Change drawMode and set appropriate radio button
+
+void DrawingTools::changeTypeSelected( int newType) {
+  plug.drawMode = newType;
+  typeButtonGroup->setButton( plug.drawMode);
+  plug.window->drawExtraObject(true);
+}
+
+//------------------------
 //-- Change draw_reducePtsMaxArea
 
 void DrawingTools::changeMaxArea( int value ) { 
@@ -1033,16 +1045,6 @@ void DrawingTools::changeReducePts() {
 void DrawingTools::changeDeformCircleRadius( float value ) {
   changeNumWithinRange( plug.draw_deformRadius, 2.0f, 200.0f, value );
 }
-
-//------------------------
-//-- Change drawMode and set appropriate radio button
-
-void DrawingTools::changeTypeSelected( int newType) {
-  plug.drawMode = newType;
-  typeButtonGroup->setButton( plug.drawMode);
-  plug.window->drawExtraObject(true);
-}
-
 
 
 

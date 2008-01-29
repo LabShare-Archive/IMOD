@@ -327,7 +327,7 @@ inline void setPt(Ipoint *pt, float x, float y, float z)
   pt->x = x;
   pt->y = y;
   pt->z = z;
-};
+}
 
 
 //------------------------
