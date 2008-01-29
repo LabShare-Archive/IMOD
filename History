@@ -1,7 +1,13 @@
 IMOD History
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+1/28/08: IMOD_3-12-2 and IMOD_3-11-2 release
+1/28/08: In eTomo, fixed updating of shift and offset values after running
+tomopitch with whole tomogram positioning.
+
+1/28/08: Fixed bug that made program crash if object list window no open.
+
 1/27/08: IMOD_3-12-1
-1/27/08: Added ability to define and name multiple object groups in ojbect
+1/27/08: Added ability to define and name multiple object groups in object
 list window.
 
 1/25/08: In eTomo, fixed reconnect to non-parallel tilt, problem with combine
