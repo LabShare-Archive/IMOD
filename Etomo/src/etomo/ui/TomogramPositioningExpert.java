@@ -243,7 +243,20 @@ public final class TomogramPositioningExpert extends ReconUIExpert {
     }
     updateFiducialessDisplay(dialog.isFiducialess());
     updateFiducialessDisplay();
-    updateTiltCom();
+    //Save tilt param.
+    TiltParam tiltParam = comScriptMgr.getTiltParam(axisID);
+    tiltParam.setFiducialess(metaData.isFiducialess(axisID));
+    if (dialog.isFiducialess()) {
+      dialog.setTiltAngleOffset(tiltParam.getTiltAngleOffset());
+      dialog.setZShift(tiltParam.getZShift());
+    }
+    else {
+      getTiltAngleOffset(tiltParam);
+      getZShift(tiltParam);
+    }
+    tiltParam.resetSubsetStart();
+    comScriptMgr.saveTilt(tiltParam, axisID);
+    metaData.setFiducialess(axisID, tiltParam.isFiducialess());
     UIHarness.INSTANCE.pack(axisID, manager);
   }
 
@@ -472,22 +485,6 @@ public final class TomogramPositioningExpert extends ReconUIExpert {
       return null;
     }
     return tiltalignParam;
-  }
-
-  /**
-   * updates z shift and tilt angle offset
-   */
-  private void updateTiltCom() {
-    if (dialog == null) {
-      return;
-    }
-    TiltParam tiltParam = comScriptMgr.getTiltParam(axisID);
-    tiltParam.setFiducialess(metaData.isFiducialess(axisID));
-    getTiltAngleOffset(tiltParam);
-    getZShift(tiltParam);
-    tiltParam.resetSubsetStart();
-    comScriptMgr.saveTilt(tiltParam, axisID);
-    metaData.setFiducialess(axisID, tiltParam.isFiducialess());
   }
 
   /**
@@ -927,6 +924,12 @@ public final class TomogramPositioningExpert extends ReconUIExpert {
 }
 /**
  * <p> $Log$
+ * <p> Revision 1.21  2008/01/28 23:45:16  sueh
+ * <p> bug# 1071 Setting commandMode to WHOLE in sampleTilt, which is only used
+ * <p> for whole tomogram samples.  When using wholeTomogram to create a whole
+ * <p> tomogram sample, call updateTomoPosTiltCom with sample == true.  Otherwise
+ * <p> it sets the command mode to SAMPLE.
+ * <p>
  * <p> Revision 1.20  2007/12/13 01:14:23  sueh
  * <p> bug# 1056 Setting the Mode in TiltParam.
  * <p>
