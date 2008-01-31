@@ -4,7 +4,15 @@ import java.io.*;
 import java.util.*;
 
 /*
- * <p>Description: </p>
+ * <p>Description: Keeps a Properties instance that mirrors a properties file.
+ * Loads the properties file once.  Updates the properties instance and saves as
+ * requested.</p>  
+ * <p>
+ * @ThreadSafe Synchronized on the LogFile instance which represents the
+ * properties file.  The LogFile class creates only one instance per physical
+ * file so this allows synchronization of multiple ParameterStore instances that
+ * write to the same file (however there is no reason to have multiple
+ * instances that write to the same file).</p>
  *
  * <p>Copyright: Copyright (c) 2002</p>
  *
@@ -16,6 +24,9 @@ import java.util.*;
  * @version $Revision$
  *
  * <p> $Log$
+ * <p> Revision 3.8  2007/07/30 18:53:24  sueh
+ * <p> bug# 1002 Added ParameterStore.getInstance.
+ * <p>
  * <p> Revision 3.7  2007/02/21 04:17:48  sueh
  * <p> bug# 964 Removing unnecessary print.
  * <p>
@@ -63,56 +74,40 @@ public final class ParameterStore {
 
   private final Properties properties = new Properties();
 
-  private final LogFile dataFile;
+  //initialized in initialize()
+  private LogFile dataFile;
 
-  private boolean propertiesLoaded = false;
   private boolean autoStore = true;
   private boolean debug = false;
 
-  /**
-   * Construct a ParameterStore using the File specified
-   * @param paramFile a File object specifying where the parameters are stored
-   * or to be stored.  <i>What happens when the file does not exist</i>
-   */
   private ParameterStore(File paramFile) {
-    dataFile = LogFile.getInstance(paramFile);
   }
 
   /**
    * If paramFile is null, returns null.
    */
-  public static ParameterStore getInstance(File paramFile) {
-    if (paramFile == null) {
-      return null;
-    }
-    return new ParameterStore(paramFile);
+  public static ParameterStore getInstance(File paramFile)
+      throws LogFile.FileException {
+    ParameterStore instance = new ParameterStore(paramFile);
+    instance.initialize(paramFile);
+    return instance;
   }
 
-  /**
-   * Loads the properties if they haven't been loaded before.
-   * @throws IOException
-   */
-  private void loadProperties() throws LogFile.WriteException {
-    if (propertiesLoaded) {
-      return;
-    }
-    //synchronize to avoid loading the properties more then once
-    //The file should only be modified by this instance of this class, so there
-    //should be no reason to reload.
-    //To modify the data file by hand, exit etomo, edit the data file, and rerun
-    //etomo.
-    synchronized (this) {
-      if (propertiesLoaded) {
-        return;
+  private void initialize(File paramFile) throws LogFile.FileException {
+    dataFile = LogFile.getInstance(paramFile);
+    if (dataFile.exists()) {
+      long writeId = LogFile.NO_ID;
+      try {
+        writeId = dataFile.openInputStream();
+        dataFile.load(properties, writeId);
       }
-      if (!dataFile.exists()) {
-        propertiesLoaded = true;
-        return;
+      catch (LogFile.WriteException e) {
+        System.err.println("Unable to read " + dataFile.getAbsolutePath());
+        e.printStackTrace();
       }
-      long writeId = dataFile.openInputStream();
-      dataFile.load(properties, writeId);
-      propertiesLoaded = true;
-      dataFile.closeInputStream(writeId);
+      if (writeId != LogFile.NO_ID) {
+        dataFile.closeInputStream(writeId);
+      }
     }
   }
 
@@ -122,13 +117,15 @@ public final class ParameterStore {
    */
   public void storeProperties() throws LogFile.FileException,
       LogFile.WriteException {
-    dataFile.backupOnce();
-    if (!dataFile.exists()) {
-      dataFile.create();
+    synchronized (dataFile) {
+      dataFile.backupOnce();
+      if (!dataFile.exists()) {
+        dataFile.create();
+      }
+      long outputStreamId = dataFile.openOutputStream();
+      dataFile.store(properties, outputStreamId);
+      dataFile.closeOutputStream(outputStreamId);
     }
-    long outputStreamId = dataFile.openOutputStream();
-    dataFile.store(properties, outputStreamId);
-    dataFile.closeOutputStream(outputStreamId);
   }
 
   public void setDebug(boolean debug) {
@@ -142,7 +139,9 @@ public final class ParameterStore {
    * @param autoStore
    */
   public void setAutoStore(boolean autoStore) {
-    this.autoStore = autoStore;
+    synchronized (dataFile) {
+      this.autoStore = autoStore;
+    }
   }
 
   /**
@@ -153,15 +152,16 @@ public final class ParameterStore {
    */
   public void save(Storable storable) throws LogFile.WriteException,
       LogFile.FileException {
-    loadProperties();
-    //let the storable overwrite its values
-    storable.store(properties);
-    if (autoStore) {
-      storeProperties();
-    }
-    if (debug) {
-      System.err.println("save:JoinState.Join.Version="
-          + properties.getProperty("JoinState.Join.Version"));
+    synchronized (dataFile) {
+      //let the storable overwrite its values
+      storable.store(properties);
+      if (autoStore) {
+        storeProperties();
+      }
+      if (debug) {
+        System.err.println("save:JoinState.Join.Version="
+            + properties.getProperty("JoinState.Join.Version"));
+      }
     }
   }
 
@@ -172,8 +172,9 @@ public final class ParameterStore {
    * @throws IOException
    */
   public void load(Storable storable) throws LogFile.WriteException {
-    loadProperties();
-    storable.load(properties);
+    synchronized (dataFile) {
+      storable.load(properties);
+    }
   }
 
   public String getAbsolutePath() {
