@@ -1,33 +1,11 @@
-*************HEADER.FOR**********************************************
+*************HEADER.F**********************************************
 *       
-*	A JIFFY TO READ THE HEADER ON AN IMAGE FILE
+*	A SMALL PROGRAM TO READ THE HEADER ON AN IMAGE FILE
 *       
 ************************************************************************
-c       Version for unix can take the file name either on the command line
-c       or as an entry to the program.  If here is no file name on the command
-c       line, the program asks for the file name.
 c       
-c       $Author$
-c       
-c       $Date$
-c       
-c       $Revision$
-c       
-c       $Log$
-c       Revision 3.4  2006/09/28 21:45:25  mast
-c       Added brief output option and turned off brief output by default
-c
-c       Revision 3.3  2006/02/16 04:05:21  mast
-c       Converted to PIP and added simple output options
-c
-c       Revision 3.2  2004/06/10 22:40:50  mast
-c       Made it rotate a reported tilt angle from FEI header by 180 degrees
-c       if bigger than 90 degrees
-c	
-c       Revision 3.1  2003/06/05 00:10:19  mast
-c       Make it output pixel size and tilt axis rotation angle for Agard style
-c       extended header
-c	
+c       $Id$
+c       Log at end of file
 *       
       implicit none
       integer maxextra
@@ -36,7 +14,7 @@ c
       integer*4 NXYZ(3),MXYZ(3), mode, nbsym, nint, nreal, ierr, i, j
       logical nbytes_and_flags
 C       
-      CHARACTER*120 FILIN
+      CHARACTER*320 FILIN
 C       
       integer*4 numInputFiles, nfilein, ifBrief
       logical*4 doSize, doMode, doMin,doMax,doMean, silent, doPixel, doOrigin
@@ -152,4 +130,22 @@ c
       call exit(0)
       END
 
-
+c       
+c       $Log$
+c       Revision 3.5  2006/10/05 19:48:59  mast
+c       Don't rotate FEI angles by 180, it ruins polarity of tilt angles
+c
+c       Revision 3.4  2006/09/28 21:45:25  mast
+c       Added brief output option and turned off brief output by default
+c
+c       Revision 3.3  2006/02/16 04:05:21  mast
+c       Converted to PIP and added simple output options
+c
+c       Revision 3.2  2004/06/10 22:40:50  mast
+c       Made it rotate a reported tilt angle from FEI header by 180 degrees
+c       if bigger than 90 degrees
+c	
+c       Revision 3.1  2003/06/05 00:10:19  mast
+c       Make it output pixel size and tilt axis rotation angle for Agard style
+c       extended header
+c	
