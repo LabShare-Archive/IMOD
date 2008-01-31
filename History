@@ -1,5 +1,7 @@
 IMOD History
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+1/31/08: Increased allowed filename length from 120 to 320 in header (In 3.11).
+
 1/28/08: IMOD_3-12-2 and IMOD_3-11-2 release
 1/28/08: In eTomo, fixed updating of shift and offset values after running
 tomopitch with whole tomogram positioning.
