@@ -60,25 +60,28 @@ public class EtomoDirector {
   private static final String JAVA_MEMORY_LIMIT_ENV_VAR = "JAVA_MEM_LIM";
 
   public static final EtomoDirector INSTANCE = new EtomoDirector();
-  private File IMODDirectory;
-  private File IMODCalibDirectory;
-  //private MainFrame mainFrame = null;
-  private UserConfiguration userConfig = null;
-  private UniqueHashedArray managerList = null;
+  private SettingsDialog settingsDialog = null;
+  private boolean outOfMemoryMessage = false;
+  private String originalUserDir = null;
+  private boolean testDone = false;
+  private EtomoNumber javaMemoryLimit = null;
+
+  //state
   private UniqueKey currentManagerKey = null;
-  private String homeDirectory;
   private boolean defaultWindow = false;
   // advanced dialog state for this instance, this gets set upon startup from
   // the user configuration and can be modified for this instance by either
   // the option or advanced menu items
   private boolean isAdvanced = false;
-  private SettingsDialog settingsDialog = null;
-  private boolean outOfMemoryMessage = false;
-  private String originalUserDir = null;
-  private MemoryThread memoryThread = null;
-  private boolean testDone = false;
-  private ParameterStore parameterStore = null;
-  private EtomoNumber javaMemoryLimit = null;
+
+  //Initialized in initialize() or in function called by initialize().
+  private String homeDirectory;
+  private UserConfiguration userConfig;
+  private ParameterStore parameterStore;
+  private UniqueHashedArray managerList;
+  private File IMODDirectory;
+  private File IMODCalibDirectory;
+  private MemoryThread memoryThread;
 
   private final Arguments arguments = new Arguments();
 
@@ -93,7 +96,7 @@ public class EtomoDirector {
     //complete normally.
     EtomoDirector.INSTANCE.doAutomation();
   }
-  
+
   public void doAutomation() {
     BaseManager manager = (BaseManager) managerList.get(currentManagerKey);
     manager.doAutomation();
@@ -112,7 +115,40 @@ public class EtomoDirector {
       System.exit(1);
     }
     //  Set the user preferences
-    createUserConfiguration();
+    userConfig = new UserConfiguration();
+    //  Create a File object specifying the user configuration file
+    //create the user config file
+    File userConfigFile = null;
+    try {
+      userConfigFile = new File(homeDirectory, ".etomo");
+    }
+    catch (Exception except) {
+      System.err.println("Could not create .etomo:");
+      System.err.println(except.getMessage());
+      System.exit(1);
+    }
+    //create config file it if it doesn't exist
+    try {
+      userConfigFile.createNewFile();
+    }
+    catch (IOException except) {
+      System.err.println("Could not create file:"
+          + userConfigFile.getAbsolutePath());
+      System.err.println(except.getMessage());
+      System.exit(1);
+    }
+    try {
+      parameterStore = ParameterStore.getInstance(userConfigFile);
+      parameterStore.load(userConfig);
+    }
+    catch (LogFile.WriteException except) {
+      UIHarness.INSTANCE.openMessageDialog("Can't load user configuration.\n"
+          + except.getMessage(), "Etomo Error");
+    }
+    catch (LogFile.FileException except) {
+      UIHarness.INSTANCE.openMessageDialog("Can't load user configuration.\n"
+          + except.getMessage(), "Etomo Error");
+    }
     setUserPreferences();
     ArrayList paramFileNameList = arguments.getParamFileNameList();
     if (arguments.isHelp()) {
@@ -580,10 +616,7 @@ public class EtomoDirector {
         userConfig.setMainWindowWidth(size.width);
         userConfig.setMainWindowHeight(size.height);
         //  Write out the user configuration data
-        getParameterStore();
-        if (parameterStore != null) {
-          parameterStore.save(userConfig);
-        }
+        parameterStore.save(userConfig);
         return true;
       }
     }
@@ -595,56 +628,9 @@ public class EtomoDirector {
   }
 
   public ParameterStore getParameterStore() {
-    if (parameterStore != null) {
-      return parameterStore;
-    }
-    //synchronize to prevent more then one parameter store from being created
-    synchronized (this) {
-      if (parameterStore != null) {
-        return parameterStore;
-      }
-      //create the user config file
-      File userConfigFile = new File(homeDirectory, ".etomo");
-      //  Make sure the config file exists, create it if it doesn't
-      try {
-        userConfigFile.createNewFile();
-      }
-      catch (IOException except) {
-        System.err.println("Could not create file:"
-            + userConfigFile.getAbsolutePath());
-        System.err.println(except.getMessage());
-      }
-      parameterStore = ParameterStore.getInstance(userConfigFile);
-      return parameterStore;
-    }
+    return parameterStore;
   }
 
-  /*
-   private synchronized final boolean savePreferences(Storable[] storable,
-   AxisID axisID) {
-   File userConfigFile = getUserConfigFile();
-   ParameterStore userParams = new ParameterStore(userConfigFile);
-   if (!userConfigFile.canWrite()) {
-   uiHarness.openMessageDialog(
-   "Change permissions of $HOME/.etomo to allow writing",
-   "Unable to save user configuration file", axisID);
-   return false;
-   }
-   if (userConfigFile.canWrite()) {
-   try {
-   userParams.save(storable, NUMBER_STORABLES);
-   }
-   catch (IOException excep) {
-   excep.printStackTrace();
-   uiHarness.openMessageDialog(
-   "IOException: unable to save user parameters\n"
-   + excep.getMessage(), "Unable to save user parameters", axisID);
-   return false;
-   }
-   }
-   return true;
-   }
-   */
   public void renameCurrentManager(String managerName) {
     enableOpenManagerMenuItem();
     UniqueKey oldKey = currentManagerKey;
@@ -657,22 +643,6 @@ public class EtomoDirector {
       throw new NullPointerException();
     }
     return userConfig;
-  }
-
-  private void createUserConfiguration() {
-    userConfig = new UserConfiguration();
-    //  Create a File object specifying the user configuration file
-    getParameterStore();
-    if (parameterStore == null) {
-      return;
-    }
-    try {
-      parameterStore.load(userConfig);
-    }
-    catch (LogFile.WriteException except) {
-      UIHarness.INSTANCE.openMessageDialog("Can't load user configuration.\n"
-          + except.getMessage(), "Etomo Error");
-    }
   }
 
   private final void printUsageMessage() {
@@ -859,10 +829,6 @@ public class EtomoDirector {
 
   public void saveSettingsDialog() {
     try {
-      getParameterStore();
-      if (parameterStore == null) {
-        return;
-      }
       parameterStore.save(userConfig);
     }
     catch (LogFile.FileException e) {
@@ -997,6 +963,12 @@ public class EtomoDirector {
 }
 /**
  * <p> $Log$
+ * <p> Revision 1.68  2007/12/26 21:56:56  sueh
+ * <p> bug# 1052 Added doAutomation() to EtomoDirector, BaseManager and the
+ * <p> manager classes.  Function should run any user-specified automatic functionality
+ * <p> before giving control to the user.  Moved argument handling functionality to
+ * <p> Arguments class.
+ * <p>
  * <p> Revision 1.67  2007/12/10 21:49:06  sueh
  * <p> bug# 1041 Made the Const meta data objects into interfaces and moved their
  * <p> functionality to the main meta data objects.  This makes is easier to inherit
