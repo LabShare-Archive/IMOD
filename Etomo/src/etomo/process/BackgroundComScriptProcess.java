@@ -32,6 +32,9 @@ import etomo.util.Utilities;
  * @version $$Revision$$
  * 
  * <p> $Log$
+ * <p> Revision 1.28  2007/12/26 22:12:10  sueh
+ * <p> bug# 1052 Moved argument handling from EtomoDirector to a separate class.
+ * <p>
  * <p> Revision 1.27  2007/09/07 00:18:22  sueh
  * <p> bug# 989 Using a public INSTANCE to refer to the EtomoDirector singleton
  * <p> instead of getInstance and createInstance.
@@ -255,11 +258,15 @@ public class BackgroundComScriptProcess extends ComScriptProcess {
       return false;
     }
     String[] fields;
-    //File comscriptLog = new File(getWorkingDirectory(), comscriptState
-    //    .getComscriptName()
-    //    + ".log");
-    LogFile comscriptLog = LogFile.getInstance(getWorkingDirectory()
-        .getAbsolutePath(), axisID, comscriptState.getComscriptName());
+    LogFile comscriptLog;
+    try {
+      comscriptLog = LogFile.getInstance(getWorkingDirectory()
+          .getAbsolutePath(), axisID, comscriptState.getComscriptName());
+    }
+    catch (LogFile.FileException e) {
+      e.printStackTrace();
+      return false;
+    }
     for (int i = 1; i < stdout.length; i++) {
       //check for missing size entry - assume name is last
       if (stdout[i].substring(nameIndex).trim().equals(
@@ -275,8 +282,7 @@ public class BackgroundComScriptProcess extends ComScriptProcess {
 
   protected boolean renameFiles() {
     try {
-      renameFiles(getComScriptName(), getWatchedFileName(),
-          getWorkingDirectory(), logFile);
+      renameFiles(getWatchedFileName(), getWorkingDirectory(), getLogFile());
     }
     catch (LogFile.FileException e) {
       getProcessMessages().addError(e.getMessage());
@@ -290,9 +296,9 @@ public class BackgroundComScriptProcess extends ComScriptProcess {
     int index = startCommand;
     while (index <= endCommand) {
       try {
-        renameFiles(comscriptState.getCommand(index) + ".com", comscriptState
-            .getWatchedFile(index), getWorkingDirectory(), LogFile.getInstance(
-            manager.getPropertyUserDir(), getAxisID(), comscriptState
+        renameFiles(comscriptState.getWatchedFile(index),
+            getWorkingDirectory(), LogFile.getInstance(manager
+                .getPropertyUserDir(), getAxisID(), comscriptState
                 .getCommand(index)));
       }
       catch (LogFile.FileException e) {
@@ -342,12 +348,12 @@ public class BackgroundComScriptProcess extends ComScriptProcess {
     Thread parsePIDThread = new Thread(parsePID);
     parsePIDThread.start();
     //make sure nothing else is writing or backing up the log files
-    long logWriteId = logFile.openForWriting();
+    long logWriteId = getLogFile().openForWriting();
 
     program.run();
 
     //release the log files
-    logFile.closeForWriting(logWriteId);
+    getLogFile().closeForWriting(logWriteId);
     // Check the exit value, if it is non zero, parse the warnings and errors
     // from the log file.
     if (program.getExitValue() != 0) {
@@ -404,7 +410,7 @@ public class BackgroundComScriptProcess extends ComScriptProcess {
    * Parses errors and warnings from the comscript and all child comscripts found in
    * comscriptState that may have been executed.
    */
-  protected void parse() throws LogFile.ReadException {
+  protected void parse() throws LogFile.ReadException, LogFile.FileException {
     parse(getComScriptName(), true);
     int startCommand = comscriptState.getStartCommand();
     int endCommand = comscriptState.getEndCommand();

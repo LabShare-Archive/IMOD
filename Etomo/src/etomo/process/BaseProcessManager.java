@@ -39,6 +39,10 @@ import etomo.util.Utilities;
  * @version $Revision$
  * 
  * <p> $Log$
+ * <p> Revision 1.66  2008/01/14 20:28:34  sueh
+ * <p> bug# 1050 Moved getRunningProcessData from ProcessManager to
+ * <p> BaseProcessManager.  Added reconnectProcesschunks.
+ * <p>
  * <p> Revision 1.65  2007/12/26 22:12:24  sueh
  * <p> bug# 1052 Moved argument handling from EtomoDirector to a separate class.
  * <p>
@@ -441,13 +445,22 @@ public abstract class BaseProcessManager {
         .getReconnectInstance(manager, axisID, parallelProgressDisplay,
             processData);
     monitor.setSubdirName(processData.getSubDirName());
-    ReconnectProcess process = ReconnectProcess.getMonitorInstance(manager,
-        this, monitor, getSavedProcessData(axisID), axisID, monitor
-            .getLogFileName(), ProcesschunksProcessMonitor.SUCCESS_TAG,processData.getSubDirName());
-    process.setProcessResultDisplay(processResultDisplay);
-    Thread thread = new Thread(process);
-    thread.start();
-    mapAxisThread(process, axisID);
+    try {
+      ReconnectProcess process = ReconnectProcess.getMonitorInstance(manager,
+          this, monitor, getSavedProcessData(axisID), axisID, monitor
+              .getLogFileName(), ProcesschunksProcessMonitor.SUCCESS_TAG,
+          processData.getSubDirName());
+      process.setProcessResultDisplay(processResultDisplay);
+      Thread thread = new Thread(process);
+      thread.start();
+      mapAxisThread(process, axisID);
+    }
+    catch (LogFile.FileException e) {
+      e.printStackTrace();
+      UIHarness.INSTANCE.openMessageDialog(
+          "Unable to reconnect to processchunks.\n" + e.getMessage(),
+          "Reconnect Failure", axisID);
+    }
   }
 
   /**
@@ -807,12 +820,12 @@ public abstract class BaseProcessManager {
   }
 
   private void saveProcessData(ProcessData processData) {
-    ParameterStore paramStore = ParameterStore.getInstance(manager
-        .getParamFile());
-    if (paramStore == null) {
-      return;
-    }
     try {
+      ParameterStore paramStore = ParameterStore.getInstance(manager
+          .getParamFile());
+      if (paramStore == null) {
+        return;
+      }
       paramStore.save(processData);
     }
     catch (LogFile.FileException e) {
@@ -1540,7 +1553,14 @@ public abstract class BaseProcessManager {
     try {
       //  Write the standard output to a the log file
       String[] stdOutput = process.getStdOutput();
-      logFile = LogFile.getInstance(manager.getPropertyUserDir(), fileName);
+      try {
+        logFile = LogFile.getInstance(manager.getPropertyUserDir(), fileName);
+      }
+      catch (LogFile.FileException e) {
+        uiHarness.openMessageDialog(e.getMessage(), "log File Write Error",
+            axisID);
+        return;
+      }
       writeId = logFile.openWriter();
       if (stdOutput != null) {
         for (int i = 0; i < stdOutput.length; i++) {

@@ -31,6 +31,10 @@ import etomo.util.Utilities;
  * @version $$Revision$$
  * 
  * <p> $$Log$
+ * <p> $Revision 1.26  2008/01/14 20:34:54  sueh
+ * <p> $bug# 1050 Added stop() and isRunning() to allow ProcessMonitor classes to work
+ * <p> $with ReconnectProcess.
+ * <p> $
  * <p> $Revision 1.25  2007/12/26 22:12:59  sueh
  * <p> $bug# 1052 Moved argument handling from EtomoDirector to a separate class.
  * <p> $
@@ -269,7 +273,8 @@ public class CombineProcessMonitor implements DetachedProcessMonitor {
    * @throws NumberFormatException
    * @throws IOException
    */
-  private void getCurrentSection() throws LogFile.ReadException {
+  private void getCurrentSection() throws LogFile.ReadException,
+      LogFile.FileException {
     String line;
     String matchString = CombineComscriptState.getComscriptMatchString();
     while ((line = logFile.readLine(logFileReadId)) != null) {
@@ -301,7 +306,8 @@ public class CombineProcessMonitor implements DetachedProcessMonitor {
    * run the monitor associated with the current .com file, if these is one
    * @param comscriptName
    */
-  private void setCurrentChildCommand(String comscriptName) {
+  private void setCurrentChildCommand(String comscriptName)
+      throws LogFile.FileException {
     if (childLog != null && childLogWriteId != LogFile.NO_ID) {
       childLog.closeForWriting(childLogWriteId);
       childLogWriteId = LogFile.NO_ID;
@@ -442,12 +448,10 @@ public class CombineProcessMonitor implements DetachedProcessMonitor {
     runThread = Thread.currentThread();
     initializeProgressBar();
     //  Instantiate the logFile object
-    //String logFileName = CombineComscriptState.COMSCRIPT_NAME + ".log";
-    //logFile = new File(manager.getPropertyUserDir(), logFileName);
-    logFile = LogFile.getInstance(manager.getPropertyUserDir(), axisID,
-        CombineComscriptState.COMSCRIPT_NAME);
-
     try {
+      logFile = LogFile.getInstance(manager.getPropertyUserDir(), axisID,
+          CombineComscriptState.COMSCRIPT_NAME);
+
       //  Wait for the log file to exist
       waitForLogFile();
       initializeProgressBar();
@@ -458,6 +462,12 @@ public class CombineProcessMonitor implements DetachedProcessMonitor {
       }
     }
     catch (LogFile.ReadException e) {
+      endMonitor(ProcessEndState.FAILED);
+      e.printStackTrace();
+      UIHarness.INSTANCE.openMessageDialog(e.getMessage(), "Etomo Error",
+          axisID);
+    }
+    catch (LogFile.FileException e) {
       endMonitor(ProcessEndState.FAILED);
       e.printStackTrace();
       UIHarness.INSTANCE.openMessageDialog(e.getMessage(), "Etomo Error",

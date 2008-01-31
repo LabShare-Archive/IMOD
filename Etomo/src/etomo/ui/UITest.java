@@ -93,7 +93,8 @@ public final class UITest extends JFCTestCase implements AdocCommandFactory {
    * run all the tests in uitest.adoc
    * @throws IOException
    */
-  public void test() throws IOException, LogFile.ReadException {
+  public void test() throws IOException, LogFile.ReadException,
+      LogFile.FileException {
     String testName = EnvironmentVariable.INSTANCE.getValue(null,
         "IMOD_TEST_SECTION", AxisID.ONLY);
     System.err.println("test " + testName + ":");
@@ -226,7 +227,7 @@ public final class UITest extends JFCTestCase implements AdocCommandFactory {
    * @throws IOException
    */
   private void processSection() throws FileNotFoundException, IOException,
-      LogFile.ReadException {
+      LogFile.ReadException, LogFile.FileException {
     UITestTestCommand command = (UITestTestCommand) reader.nextCommand(null,
         this);
     while (!command.isEmpty()) {
@@ -400,7 +401,8 @@ public final class UITest extends JFCTestCase implements AdocCommandFactory {
    * @throws IOException
    */
   private void setAutodoc(UITestTestCommand command)
-      throws FileNotFoundException, IOException, LogFile.ReadException {
+      throws FileNotFoundException, IOException, LogFile.ReadException,
+      LogFile.FileException {
     String value = command.getValue();
     assertNotNull(null, "Unknown name/value pair format: " + command, value);
     setVariable(command);
@@ -628,6 +630,9 @@ public final class UITest extends JFCTestCase implements AdocCommandFactory {
 }
 /**
  * <p> $Log$
+ * <p> Revision 1.28  2008/01/25 18:50:30  sueh
+ * <p> bug# 1069 Changed setDuration to be more flexible about the format it can read.
+ * <p>
  * <p> Revision 1.27  2007/12/26 22:40:03  sueh
  * <p> bug# 1052 Moved argument handling from EtomoDirector to a separate class.
  * <p>

@@ -37,6 +37,11 @@ import etomo.util.DatasetFiles;
  * @version $Revision$
  *
  * <p> $Log$
+ * <p> Revision 1.23  2007/06/08 23:57:11  sueh
+ * <p> bug# 995 In postProcess(BackgroundProcess) save
+ * <p> RefineTrialUseEveryNSlices when running FinishJoinParam in
+ * <p> REJOIN_TRIAL mode.
+ * <p>
  * <p> Revision 1.22  2007/02/05 22:59:21  sueh
  * <p> bug# 962 Handling remapmodel, xfmodel, and xftoxg.
  * <p>
@@ -176,12 +181,13 @@ import etomo.util.DatasetFiles;
  * <p> bug# 520 Process manager for serial sections.
  * <p> </p>
  */
-public class JoinProcessManager extends BaseProcessManager {
+public final class JoinProcessManager extends BaseProcessManager {
   public static final String rcsid = "$Id$";
 
   private static final String startjoinComscriptName = "startjoin.com";
+
   private final JoinState state;
-  JoinManager manager;
+  private final JoinManager manager;
 
   public JoinProcessManager(JoinManager joinMgr, JoinState state) {
     super(joinMgr);
@@ -282,7 +288,7 @@ public class JoinProcessManager extends BaseProcessManager {
     return program.getName();
   }
 
-  protected void postProcess(ComScriptProcess process) {
+  void postProcess(ComScriptProcess process) {
     String commandName = process.getComScriptName();
     if (commandName == null) {
       return;
@@ -303,7 +309,7 @@ public class JoinProcessManager extends BaseProcessManager {
   /**
    * non-generic post processing for a successful BackgroundProcess.
    */
-  protected void postProcess(BackgroundProcess process) {
+  void postProcess(BackgroundProcess process) {
     super.postProcess(process);
     String commandName = process.getCommandName();
     if (commandName == null) {
@@ -397,11 +403,17 @@ public class JoinProcessManager extends BaseProcessManager {
       manager.postProcess(commandName, processDetails);
     }
     else if (commandName.equals(ProcessName.XFJOINTOMO.toString())) {
-      writeLogFile(process, process.getAxisID(),DatasetFiles.getLogName(manager, process.getAxisID(),process.getProcessName()));
+      writeLogFile(process, process.getAxisID(), DatasetFiles.getLogName(
+          manager, process.getAxisID(), process.getProcessName()));
       try {
         state.setGapsExist(XfjointomoLog.getInstance(manager).gapsExist());
       }
       catch (LogFile.ReadException e) {
+        e.printStackTrace();
+        //if not sure whether gaps exist, run remapmodel
+        state.setGapsExist(true);
+      }
+      catch (LogFile.FileException e) {
         e.printStackTrace();
         //if not sure whether gaps exist, run remapmodel
         state.setGapsExist(true);
@@ -415,7 +427,7 @@ public class JoinProcessManager extends BaseProcessManager {
     }
   }
 
-  protected void errorProcess(BackgroundProcess process) {
+  void errorProcess(BackgroundProcess process) {
     String commandName = process.getCommandName();
     if (commandName == null) {
       return;
@@ -440,11 +452,12 @@ public class JoinProcessManager extends BaseProcessManager {
       manager.abortAddSection();
     }
     else if (commandName.equals(ProcessName.XFJOINTOMO.toString())) {
-      writeLogFile(process, process.getAxisID(),DatasetFiles.getLogName(manager, process.getAxisID(),process.getProcessName()));
+      writeLogFile(process, process.getAxisID(), DatasetFiles.getLogName(
+          manager, process.getAxisID(), process.getProcessName()));
     }
   }
 
-  protected void errorProcess(ComScriptProcess process) {
+  void errorProcess(ComScriptProcess process) {
     String commandName = process.getComScriptName();
     if (commandName == null) {
       return;
@@ -455,7 +468,7 @@ public class JoinProcessManager extends BaseProcessManager {
     }
   }
 
-  protected void postProcess(InteractiveSystemProgram program) {
+  void postProcess(InteractiveSystemProgram program) {
     String commandName = program.getCommandName();
     if (commandName == null) {
       return;
@@ -475,13 +488,13 @@ public class JoinProcessManager extends BaseProcessManager {
     }
   }
 
-  protected BaseManager getManager() {
+  BaseManager getManager() {
     return manager;
   }
 
-  protected void errorProcess(ReconnectProcess script) {
+  void errorProcess(ReconnectProcess script) {
   }
 
-  protected void postProcess(ReconnectProcess script) {
+  void postProcess(ReconnectProcess script) {
   }
 }

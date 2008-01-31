@@ -26,18 +26,30 @@ public class JoinInfoFile {
 
   private static final String ERROR_TITLE = "Etomo Error";
   private static final String ERROR_MESSAGE = "WARNING:  Unable to find out if sections will be inverted.";
-  private final LogFile joinInfo;
+
+  //Set by constructor or getInstance.
+  private LogFile joinInfo;
 
   private boolean loaded = false;
   private ArrayList invertedArray = null;
 
-  public JoinInfoFile(BaseManager manager) {
-    joinInfo = LogFile.getInstance(manager.getPropertyUserDir(),
-        DatasetFiles.getJoinInfoName(manager));
+  private JoinInfoFile(BaseManager manager) {
   }
-  
-  JoinInfoFile(LogFile logFile){
+
+  private JoinInfoFile(LogFile logFile) {
     joinInfo = logFile;
+  }
+
+  public static JoinInfoFile getInstance(BaseManager manager)
+      throws LogFile.FileException {
+    JoinInfoFile instance = new JoinInfoFile(manager);
+    instance.joinInfo = LogFile.getInstance(manager.getPropertyUserDir(),
+        DatasetFiles.getJoinInfoName(manager));
+    return instance;
+  }
+
+  static JoinInfoFile getTestInstance(LogFile logFile) {
+    return new JoinInfoFile(logFile);
   }
 
   public ConstEtomoNumber getInverted(int index) {
@@ -100,6 +112,9 @@ public class JoinInfoFile {
 }
 /**
  * <p> $Log$
+ * <p> Revision 1.3  2006/10/16 22:45:03  sueh
+ * <p> bug# 919  GetInverted():  return null on failure.
+ * <p>
  * <p> Revision 1.2  2006/10/13 22:28:56  sueh
  * <p> bug# 919 Using LogFile to read the .info file.  Popping up a message when
  * <p> unable to read.

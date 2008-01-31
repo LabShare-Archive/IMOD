@@ -22,7 +22,10 @@ import etomo.util.DatasetFiles;
  * 
  * @version $Revision$
  * 
- * <p> $Log$ </p>
+ * <p> $Log$
+ * <p> Revision 1.1  2007/02/05 23:08:48  sueh
+ * <p> bug# 962 Class for reading xfjointomo log file.
+ * <p> </p>
  */
 public final class XfjointomoLog {
   public static final String rcsid = "$Id$";
@@ -48,12 +51,14 @@ public final class XfjointomoLog {
     logFile = null;
   }
 
-  public boolean rowExists(String boundary) throws LogFile.ReadException {
+  public boolean rowExists(String boundary) throws LogFile.ReadException,
+      LogFile.FileException {
     load();
     return rowList.containsKey(boundary);
   }
 
-  public String getBestGap(String boundary) throws LogFile.ReadException {
+  public String getBestGap(String boundary) throws LogFile.ReadException,
+      LogFile.FileException {
     load();
     Row row = (Row) rowList.get(boundary);
     if (row == null) {
@@ -62,7 +67,8 @@ public final class XfjointomoLog {
     return row.getBestGap();
   }
 
-  public String getMeanError(String boundary) throws LogFile.ReadException {
+  public String getMeanError(String boundary) throws LogFile.ReadException,
+      LogFile.FileException {
     load();
     Row row = (Row) rowList.get(boundary);
     if (row == null) {
@@ -71,7 +77,8 @@ public final class XfjointomoLog {
     return row.getMeanError();
   }
 
-  public String getMaxError(String boundary) throws LogFile.ReadException {
+  public String getMaxError(String boundary) throws LogFile.ReadException,
+      LogFile.FileException {
     load();
     Row row = (Row) rowList.get(boundary);
     if (row == null) {
@@ -79,12 +86,13 @@ public final class XfjointomoLog {
     }
     return row.getMaxError();
   }
-  
-  public synchronized boolean gapsExist() throws LogFile.ReadException {
+
+  public synchronized boolean gapsExist() throws LogFile.ReadException,
+      LogFile.FileException {
     load();
-    boolean gapsExist =false;
-    for (int i=0;i<rowArray.size();i++) {
-      gapsExist = gapsExist||((Row)rowArray.get(i)).gapExists();
+    boolean gapsExist = false;
+    for (int i = 0; i < rowArray.size(); i++) {
+      gapsExist = gapsExist || ((Row) rowArray.get(i)).gapExists();
     }
     return gapsExist;
   }
@@ -119,7 +127,8 @@ public final class XfjointomoLog {
    * Load data from the log file.  Or reload data, if reset() has been called.
    * @throws LogFile.ReadException
    */
-  private synchronized void load() throws LogFile.ReadException {
+  private synchronized void load() throws LogFile.ReadException,
+      LogFile.FileException {
     if (logFile != null) {
       return;
     }
@@ -176,7 +185,7 @@ public final class XfjointomoLog {
   }
 
   private final class Row {
-    private final EtomoNumber bestGap=new EtomoNumber(EtomoNumber.Type.FLOAT);
+    private final EtomoNumber bestGap = new EtomoNumber(EtomoNumber.Type.FLOAT);
     private final String meanError;
     private final String maxError;
 
@@ -197,9 +206,9 @@ public final class XfjointomoLog {
     String getMaxError() {
       return maxError;
     }
-    
+
     boolean gapExists() {
-      return  !bestGap.equals(0);
+      return !bestGap.equals(0);
     }
   }
 }

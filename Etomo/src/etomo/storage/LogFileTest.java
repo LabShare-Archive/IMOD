@@ -24,6 +24,10 @@ import junit.framework.TestCase;
  * @version $Revision$
  * 
  * <p> $Log$
+ * <p> Revision 1.7  2007/09/07 00:23:32  sueh
+ * <p> bug# 989 Using a public INSTANCE to refer to the EtomoDirector singleton
+ * <p> instead of getInstance and createInstance.
+ * <p>
  * <p> Revision 1.6  2007/02/05 23:04:47  sueh
  * <p> bug# 962  Added testMove.
  * <p>
@@ -60,11 +64,11 @@ public class LogFileTest extends TestCase {
   public LogFileTest() {
     super();
   }
-  
-  public LogFileTest(String test){
+
+  public LogFileTest(String test) {
     super(test);
   }
-  
+
   protected void setUp() throws Exception {
     super.setUp();
     testDir.mkdirs();
@@ -76,7 +80,7 @@ public class LogFileTest extends TestCase {
     LogFile.reset();
   }
 
-  public void testGetInstance() {
+  public void testGetInstance() throws LogFile.FileException {
     LogFile test = getInstance();
     LogFile dupTest = getInstance();
     //only one object is created when getInstance() is called with the same
@@ -85,7 +89,8 @@ public class LogFileTest extends TestCase {
     assertTrue(test.noLocks());
   }
 
-  public void testOpenReader() throws LogFile.ReadException {
+  public void testOpenReader() throws LogFile.ReadException,
+      LogFile.FileException {
     LogFile test = getInstance();
     long readId1 = test.openReader();
     assertFalse("Should be able to open an unopened log file reader.",
@@ -93,18 +98,18 @@ public class LogFileTest extends TestCase {
     assertTrue("Should be able to close an open reader.", test
         .closeReader(readId1));
     long writeId = test.openForWriting();
-    assertEquals("Ids should increment by one",readId1+1,writeId);
+    assertEquals("Ids should increment by one", readId1 + 1, writeId);
     long readId2 = test.openReader();
     assertFalse(
         "Should be able to open a log file reader when it is opened for writing.",
         readId2 == LogFile.NO_ID);
-    assertEquals("Ids should increment by one",writeId+1,readId2);
+    assertEquals("Ids should increment by one", writeId + 1, readId2);
     assertTrue(test.closeForWriting(writeId));
     assertTrue(test.closeReader(readId2));
     long readId3 = test.openReader();
-    assertEquals("Ids should increment by one",readId2+1,readId3);
+    assertEquals("Ids should increment by one", readId2 + 1, readId3);
     long readId4 = test.openReader();
-    assertEquals("Ids should increment by one",readId3+1,readId4);
+    assertEquals("Ids should increment by one", readId3 + 1, readId4);
     assertFalse(
         "Should be able to open a log file reader when a reader is is already opened.",
         readId4 == LogFile.NO_ID);
@@ -138,7 +143,7 @@ public class LogFileTest extends TestCase {
   }
 
   public void testReadLine() throws LogFile.WriteException,
-      LogFile.ReadException {
+      LogFile.ReadException, LogFile.FileException {
     String line1 = "first line";
     LogFile test = getInstance();
     long writeId = test.openWriter();
@@ -267,7 +272,8 @@ public class LogFileTest extends TestCase {
     assertTrue(test.noLocks());
   }
 
-  public void testWrite() throws LogFile.WriteException, LogFile.ReadException {
+  public void testWrite() throws LogFile.WriteException, LogFile.ReadException,
+      LogFile.FileException {
     String line = "succeed";
     LogFile test = getInstance();
     try {
@@ -297,7 +303,7 @@ public class LogFileTest extends TestCase {
   }
 
   public void testNewLine() throws LogFile.WriteException,
-      LogFile.ReadException {
+      LogFile.ReadException, LogFile.FileException {
     LogFile test = getInstance();
     try {
       test.newLine(0);
@@ -430,12 +436,13 @@ public class LogFileTest extends TestCase {
         .delete());
     assertTrue(test.noLocks());
   }
-  
-  public void testMove() throws LogFile.FileException,LogFile.ReadException,LogFile.WriteException{
+
+  public void testMove() throws LogFile.FileException, LogFile.ReadException,
+      LogFile.WriteException {
     LogFile test = getInstance();
     test.delete();
     assertTrue(test.noLocks());
-    LogFile target = LogFile.getInstance(testDir.getAbsolutePath(),"target");
+    LogFile target = LogFile.getInstance(testDir.getAbsolutePath(), "target");
     target.delete();
     long writeId = test.openWriter();
     try {
@@ -448,7 +455,7 @@ public class LogFileTest extends TestCase {
     writeId = target.openWriter();
     try {
       test.move(target);
- //     fail("Should not be able to move when a writer is open on the target.");
+      //     fail("Should not be able to move when a writer is open on the target.");
     }
     catch (LogFile.FileException e) {
     }
@@ -462,15 +469,21 @@ public class LogFileTest extends TestCase {
     }
     catch (LogFile.FileException e) {
     }
-    assertTrue("Should not be able to backup when a reader is open on the target.",target.exists());
+    assertTrue(
+        "Should not be able to backup when a reader is open on the target.",
+        target.exists());
     target.closeReader(readId);
     test.create();
     assertTrue(test.exists());
     assertTrue(target.exists());
     test.move(target);
-    assertFalse("Original file should not exist after backup.",test.exists());
-    assertFalse("Move should return false when attempting to move a file that doesn't exist.", test.move(target));
-    assertTrue("Attempting to move a file that doesn't exist should not cause a backup.", target.exists());
+    assertFalse("Original file should not exist after backup.", test.exists());
+    assertFalse(
+        "Move should return false when attempting to move a file that doesn't exist.",
+        test.move(target));
+    assertTrue(
+        "Attempting to move a file that doesn't exist should not cause a backup.",
+        target.exists());
     assertTrue(test.noLocks());
     assertTrue(target.noLocks());
   }
@@ -497,7 +510,8 @@ public class LogFileTest extends TestCase {
     assertTrue(test.noLocks());
   }
 
-  public void testIsOpen() throws LogFile.ReadException, LogFile.WriteException {
+  public void testIsOpen() throws LogFile.ReadException,
+      LogFile.WriteException, LogFile.FileException {
     LogFile test = getInstance();
     long readId = LogFile.NO_ID;
     long writeId = LogFile.NO_ID;
@@ -637,7 +651,8 @@ public class LogFileTest extends TestCase {
     long readId = test.openReader();
     test.readLine(readId);
     String line = test.readLine(readId);
-    assertTrue("Should be able to store when the output stream is open\nline="+line, line.equals(key + '=' + value));
+    assertTrue("Should be able to store when the output stream is open\nline="
+        + line, line.equals(key + '=' + value));
     test.closeReader(readId);
     try {
       test.write("string", writeId);
@@ -651,36 +666,39 @@ public class LogFileTest extends TestCase {
         .closeOutputStream(writeId));
     assertTrue(test.noLocks());
   }
-  
-  public void testIds() throws LogFile.WriteException,LogFile.ReadException,LogFile.FileException{
+
+  public void testIds() throws LogFile.WriteException, LogFile.ReadException,
+      LogFile.FileException {
     LogFile testa = getInstance();
     LogFile testb = LogFile.getInstance(log.getParent(), AxisID.ONLY,
         ProcessName.ALIGN);
     long id0a = testa.openInputStream();
     long id0b = testb.openForWriting();
-    assertEquals("Ids in different instances do not affect each other",id0a,id0b);
+    assertEquals("Ids in different instances do not affect each other", id0a,
+        id0b);
     testa.closeInputStream(id0a);
     testb.closeForWriting(id0b);
     long id1 = testa.openOutputStream();
-    assertEquals("Ids should increment by one",id0a+1,id1);
+    assertEquals("Ids should increment by one", id0a + 1, id1);
     testa.closeOutputStream(id1);
     long id2 = testa.openForWriting();
-    assertEquals("Ids should increment by one",id1+1,id2);
+    assertEquals("Ids should increment by one", id1 + 1, id2);
     long id3 = testa.openReader();
-    assertEquals("Ids should increment by one",id2+1,id3);
+    assertEquals("Ids should increment by one", id2 + 1, id3);
     testa.closeForWriting(id2);
     long id4 = testa.openWriter();
-    assertEquals("Ids should increment by one",id3+1,id4);
+    assertEquals("Ids should increment by one", id3 + 1, id4);
     testa.closeReader(id3);
     testa.closeWriter(id4);
     testa.backup();
     long id5 = testa.openWriter();
-    assertEquals("backing up should cause the Id to increment",id4+2,id5);
+    assertEquals("backing up should cause the Id to increment", id4 + 2, id5);
     testa.closeWriter(id5);
     testa.delete();
     assertTrue(testa.create());
     long id6 = testa.openReader();
-    assertEquals("deleting and creating should cause the Id to increment",id5+3,id6);
+    assertEquals("deleting and creating should cause the Id to increment",
+        id5 + 3, id6);
     testa.closeReader(id6);
     assertTrue(testa.noLocks());
   }
@@ -744,16 +762,15 @@ public class LogFileTest extends TestCase {
     test.closeReader(readId);
   }
 
-  private LogFile getInstance() {
-    LogFile logFile = LogFile.getInstance(testDir.getAbsolutePath(), AxisID.ONLY,
-        ProcessName.BLEND);
+  private LogFile getInstance() throws LogFile.FileException {
+    LogFile logFile = LogFile.getInstance(testDir.getAbsolutePath(),
+        AxisID.ONLY, ProcessName.BLEND);
     return logFile;
   }
 
   private void createLog() {
     if (!log.exists()) {
-      EtomoDirector.INSTANCE.getCurrentManager().touch(
-          log.getAbsolutePath());
+      EtomoDirector.INSTANCE.getCurrentManager().touch(log.getAbsolutePath());
       try {
         Thread.sleep(500);
       }

@@ -443,7 +443,14 @@ final class Autodoc extends WriteOnlyStatementList implements WritableAutodoc {
           + file.getAbsolutePath() + ".");
       return null;
     }
-    return LogFile.getInstance(file);
+    try {
+      return LogFile.getInstance(file);
+    }
+    catch (LogFile.FileException e) {
+      System.err.println("Warning:  cannot open the autodoc file,"
+          + file.getAbsolutePath() + ".");
+      return null;
+    }
   }
 
   private File getAbsoluteDir() {
@@ -583,7 +590,8 @@ final class Autodoc extends WriteOnlyStatementList implements WritableAutodoc {
    * @throws LogFile.ReadException
    */
   void initialize(File file, boolean storeData, boolean versionRequired)
-      throws FileNotFoundException, IOException, LogFile.ReadException {
+      throws FileNotFoundException, IOException, LogFile.ReadException,
+      LogFile.FileException {
     autodocFile = LogFile.getInstance(file);
     parser = new AutodocParser(this, allowAltComment, versionRequired, debug);
     if (storeData) {
@@ -605,6 +613,9 @@ final class Autodoc extends WriteOnlyStatementList implements WritableAutodoc {
 }
 /**
  *<p> $$Log$
+ *<p> $Revision 1.23  2007/08/01 22:43:05  sueh
+ *<p> $bug# 985 Added runInternalTest to ReadOnlyAutodoc.
+ *<p> $
  *<p> $Revision 1.22  2007/07/17 21:32:52  sueh
  *<p> $bug# 1018 Added toString().
  *<p> $

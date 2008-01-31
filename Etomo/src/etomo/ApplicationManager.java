@@ -423,7 +423,7 @@ public final class ApplicationManager extends BaseManager {
       reconnect(AxisID.ONLY);
     }
   }
-  
+
   private boolean isReconnectRun(AxisID axisID) {
     if (axisID == AxisID.SECOND) {
       return reconnectRunB;
@@ -431,7 +431,7 @@ public final class ApplicationManager extends BaseManager {
     return reconnectRunA;
   }
 
-private  void setReconnectRun(AxisID axisID) {
+  private void setReconnectRun(AxisID axisID) {
     if (axisID == AxisID.SECOND) {
       reconnectRunB = true;
     }
@@ -4785,9 +4785,15 @@ private  void setReconnectRun(AxisID axisID) {
    * @return true if any log files where changed
    */
   public boolean updateLog(String commandName, AxisID axisID) {
-    //String alignLogName = "align" + axisID.getExtension() + ".log";
-    LogFile alignLogFile = LogFile.getInstance(propertyUserDir, axisID,
-        ProcessName.ALIGN);
+    LogFile alignLogFile;
+    try {
+      alignLogFile = LogFile.getInstance(propertyUserDir, axisID,
+          ProcessName.ALIGN);
+    }
+    catch (LogFile.FileException e) {
+      e.printStackTrace();
+      return false;
+    }
     //File alignLog = new File(propertyUserDir, alignLogName);
     String taErrorLogName = "taError" + axisID.getExtension() + ".log";
     File taErrorLog = new File(propertyUserDir, taErrorLogName);
@@ -5417,6 +5423,11 @@ private  void setReconnectRun(AxisID axisID) {
 }
 /**
  * <p> $Log$
+ * <p> Revision 3.296  2008/01/23 21:02:03  sueh
+ * <p> bug# 1064  Added reconnectRunA and B.  Can't use the reconnectRun
+ * <p> functionality in BaseManager because BaseManager.reconnect is run before
+ * <p> ApplicationManager.reconnect.
+ * <p>
  * <p> Revision 3.295  2008/01/14 20:12:44  sueh
  * <p> bug# 1050 In openProcessingPanel do not call reconnect for Axis B.  Processchunks reconnect must be done while Axis B is displayed.  In reconnect call super.reconnect to do the processchunks reconnect.
  * <p>

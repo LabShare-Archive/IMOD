@@ -23,6 +23,10 @@ import etomo.util.Utilities;
  * @version $Revision$
  * 
  * <p> $Log$
+ * <p> Revision 3.28  2008/01/14 21:30:30  sueh
+ * <p> bug# 1050 Added stop() and isRunning() to allow ProcessMonitor classes to work
+ * <p> with ReconnectProcess.
+ * <p>
  * <p> Revision 3.27  2006/10/24 21:19:34  sueh
  * <p> bug# 947 Passing the ProcessName to AxisProcessPanel.
  * <p>
@@ -233,21 +237,18 @@ public abstract class LogFileProcessMonitor implements ProcessMonitor {
     running = true;
     initializeProgressBar();
     //  Instantiate the logFile object
-    //String logFileName;
-    if (standardLogFileName) {
-      //logFileName = logFileBasename + axisID.getExtension() + ".log";
-      logFile = LogFile.getInstance(applicationManager.getPropertyUserDir(),
-          axisID, logFileBasename);
-    }
-    else {
-      //logFileName = logFileBasename;
-      logFile = LogFile.getInstance(applicationManager.getPropertyUserDir(),
-          logFileBasename);
-
-    }
-    //logFile = new File(applicationManager.getPropertyUserDir(), logFileName);
-
     try {
+      if (standardLogFileName) {
+        //logFileName = logFileBasename + axisID.getExtension() + ".log";
+        logFile = LogFile.getInstance(applicationManager.getPropertyUserDir(),
+            axisID, logFileBasename);
+      }
+      else {
+        //logFileName = logFileBasename;
+        logFile = LogFile.getInstance(applicationManager.getPropertyUserDir(),
+            logFileBasename);
+
+      }
       //  Wait for the log file to exist
       waitForLogFile();
       findNSections();
@@ -261,6 +262,9 @@ public abstract class LogFileProcessMonitor implements ProcessMonitor {
       }
     }
     catch (LogFile.ReadException e) {
+      e.printStackTrace();
+    }
+    catch (LogFile.FileException e) {
       e.printStackTrace();
     }
     catch (InterruptedException e) {

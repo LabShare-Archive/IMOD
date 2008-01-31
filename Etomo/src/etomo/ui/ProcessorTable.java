@@ -262,9 +262,7 @@ public final class ProcessorTable implements Storable, ParallelProgressDisplay,
     try {
       ParameterStore parameterStore = EtomoDirector.INSTANCE
           .getParameterStore();
-      if (parameterStore != null) {
-        parameterStore.load(this);
-      }
+      parameterStore.load(this);
     }
     catch (LogFile.WriteException e) {
       UIHarness.INSTANCE.openMessageDialog("Unable to load parameters.\n"
@@ -903,6 +901,10 @@ public final class ProcessorTable implements Storable, ParallelProgressDisplay,
 }
 /**
  * <p> $Log$
+ * <p> Revision 1.48  2007/09/27 21:02:47  sueh
+ * <p> bug# 1044 Added a displayQueues mode.  Implementing
+ * <p> ParallelProgressDisplay and LoadDisplay.
+ * <p>
  * <p> Revision 1.47  2007/09/07 00:28:13  sueh
  * <p> bug# 989 Using a public INSTANCE to refer to the EtomoDirector singleton
  * <p> instead of getInstance and createInstance.

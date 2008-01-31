@@ -20,12 +20,19 @@ import etomo.type.EtomoNumber;
 public final class TiltLog {
   public static final String rcsid = "$Id$";
 
-  private final LogFile file;
+  //created in initialization
+  private LogFile file;
+  
   private final EtomoNumber minAngle = new EtomoNumber(EtomoNumber.Type.FLOAT);
   private final EtomoNumber maxAngle = new EtomoNumber(EtomoNumber.Type.FLOAT);
 
-  public TiltLog(final File file) {
-    this.file = LogFile.getInstance(file);
+  private TiltLog() {
+  }
+  
+  public static TiltLog getInstance(final File file) throws LogFile.FileException{
+    TiltLog instance = new TiltLog();
+    instance.file = LogFile.getInstance(file);
+    return instance;
   }
 
   /**
@@ -101,5 +108,8 @@ public final class TiltLog {
   }
 }
 /**
- * <p> $Log$ </p>
+ * <p> $Log$
+ * <p> Revision 1.1  2007/07/25 22:57:28  sueh
+ * <p> bug# 1027 Class to read the tilt log file.
+ * <p> </p>
  */

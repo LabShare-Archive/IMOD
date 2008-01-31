@@ -25,6 +25,10 @@ import junit.framework.TestCase;
  * @version $Revision$
  * 
  * <p> $Log$
+ * <p> Revision 1.4  2007/09/07 00:24:27  sueh
+ * <p> bug# 989 Do not have to create the EtomoDirector instance because
+ * <p> EtomoDirector.main is being run by JUnitTest.
+ * <p>
  * <p> Revision 1.3  2007/07/30 18:53:33  sueh
  * <p> bug# 1002 ParameterStore.getInstance can return null - handle it.
  * <p>
@@ -90,8 +94,8 @@ public final class ParameterStoreTest extends TestCase {
     assertFalse(backupFile.exists());
   }
 
-  public void testParameterStore() {
-    ParameterStore psTest =  ParameterStore.getInstance(testFile);
+  public void testParameterStore() throws LogFile.FileException {
+    ParameterStore psTest = ParameterStore.getInstance(testFile);
     LogFile.reset();
   }
 
@@ -102,21 +106,21 @@ public final class ParameterStoreTest extends TestCase {
       return;
     }
     //test loading
-    ParameterStore psTest =  ParameterStore.getInstance(testFile);
+    ParameterStore psTest = ParameterStore.getInstance(testFile);
     Data testData = new Data();
     psTest.load(testData);
     assertTrue("Should load the data stored in testFile:\ntestData=" + testData
         + ",setupData=" + setupData, testData.equals(setupData));
     //test not reloading
     Data newData = new Data(6, 7.8, "nine", 10);
-    ParameterStore psControl =  ParameterStore.getInstance(testFile);
+    ParameterStore psControl = ParameterStore.getInstance(testFile);
     psControl.save(newData);
     psTest.load(testData);
     assertFalse(
         "Should only load the data once - ignores changes done by another class:\ntestData="
             + testData + ",newData=" + newData, testData.equals(newData));
     //test hand modification
-    psTest =  ParameterStore.getInstance(testFile);
+    psTest = ParameterStore.getInstance(testFile);
     psTest.load(testData);
     assertTrue(
         "Creating a new instance of ParameterStore should allow reloading (simulates hand modification):\ntestData="
@@ -131,10 +135,10 @@ public final class ParameterStoreTest extends TestCase {
       return;
     }
     //test backup
-    ParameterStore psTest =  ParameterStore.getInstance(testFile);
+    ParameterStore psTest = ParameterStore.getInstance(testFile);
     Data testData = new Data(6, 7.8, "nine", 10);
     psTest.save(testData);
-    ParameterStore psBackup =  ParameterStore.getInstance(backupFile);
+    ParameterStore psBackup = ParameterStore.getInstance(backupFile);
     Data backupData = new Data();
     psBackup.load(backupData);
     assertTrue(
@@ -144,7 +148,7 @@ public final class ParameterStoreTest extends TestCase {
     //test backup only once per instance
     Data newData = new Data(11, 12.13, "fourteen", 15);
     psTest.save(newData);
-    psBackup =  ParameterStore.getInstance(backupFile);
+    psBackup = ParameterStore.getInstance(backupFile);
     backupData = new Data();
     psBackup.load(backupData);
     assertTrue(
@@ -152,7 +156,7 @@ public final class ParameterStoreTest extends TestCase {
             + backupData + ",setupData=" + setupData + "testData=" + testData,
         backupData.equals(setupData));
     //test storing data
-    psTest =  ParameterStore.getInstance(testFile);
+    psTest = ParameterStore.getInstance(testFile);
     testData = new Data();
     psTest.load(testData);
     assertTrue("Data should be stored.\ntestData=" + testData + ",newData="
@@ -165,7 +169,7 @@ public final class ParameterStoreTest extends TestCase {
     if (Utilities.isWindowsOS()) {
       return;
     }
-    ParameterStore psTest =  ParameterStore.getInstance(testFile);
+    ParameterStore psTest = ParameterStore.getInstance(testFile);
     Data testData = new Data();
     psTest.load(testData);
     assertTrue("Should be able to load the file.\ntestData=" + testData
@@ -179,7 +183,7 @@ public final class ParameterStoreTest extends TestCase {
     if (Utilities.isWindowsOS()) {
       return;
     }
-    ParameterStore psTest =  ParameterStore.getInstance(testFile);
+    ParameterStore psTest = ParameterStore.getInstance(testFile);
     Data testData = new Data(6, 7.8, "nine", 10);
     psTest.save(testData);
     Data loadedData = new Data();
@@ -188,11 +192,11 @@ public final class ParameterStoreTest extends TestCase {
         + ",loadedData=" + loadedData, testData.equals(loadedData));
     //test autoStore == false
     initFiles();
-    psTest =  ParameterStore.getInstance(testFile);
+    psTest = ParameterStore.getInstance(testFile);
     psTest.setAutoStore(false);
     testData = new Data(11, 12.13, "fourteen", 15);
     psTest.save(testData);
-    ParameterStore psReload =  ParameterStore.getInstance(testFile);//load from file
+    ParameterStore psReload = ParameterStore.getInstance(testFile);//load from file
     Data reloadData = new Data();
     psReload.load(reloadData);
     assertFalse(
@@ -202,7 +206,7 @@ public final class ParameterStoreTest extends TestCase {
     String moreDataPrepend = "more";
     Data testMoreData = new Data(moreDataPrepend, 16, 17.18, "nineteen", 20);
     psTest.save(testMoreData);
-    psReload =  ParameterStore.getInstance(testFile);//load from file
+    psReload = ParameterStore.getInstance(testFile);//load from file
     Data reloadMoreData = new Data(moreDataPrepend);
     psReload.load(reloadMoreData);
     assertFalse(
@@ -210,7 +214,7 @@ public final class ParameterStoreTest extends TestCase {
             + testMoreData + ",reloadMoreData=" + reloadMoreData, testMoreData
             .equals(reloadMoreData));
     psTest.storeProperties();
-    psReload =  ParameterStore.getInstance(testFile);//load from file
+    psReload = ParameterStore.getInstance(testFile);//load from file
     psReload.load(reloadData);
     assertTrue("StoreProperties should save to the file.\ntestData=" + testData
         + ",reloadData=" + reloadData, testData.equals(reloadData));

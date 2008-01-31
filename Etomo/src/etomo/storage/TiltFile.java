@@ -19,6 +19,9 @@ import etomo.type.EtomoNumber;
  * @version $Revision$
  * 
  * <p> $Log$
+ * <p> Revision 1.2  2007/07/25 22:56:37  sueh
+ * <p> bug# 1027 Change start and end angles to min and max angles.
+ * <p>
  * <p> Revision 1.1  2007/03/26 23:32:47  sueh
  * <p> bug# 964 File to read a tilt file (.tlt).
  * <p> </p>
@@ -33,8 +36,8 @@ public final class TiltFile {
 
   public TiltFile(File file) {
     this.file = file;
-    LogFile fileReader = LogFile.getInstance(file);
     try {
+      LogFile fileReader = LogFile.getInstance(file);
       long readId = fileReader.openReader();
       minAngle.set(fileReader.readLine(readId));
       //read until end of file, preserving last line read
@@ -54,12 +57,15 @@ public final class TiltFile {
     catch (LogFile.ReadException e) {
       e.printStackTrace();
     }
+    catch (LogFile.FileException e) {
+      e.printStackTrace();
+    }
   }
-  
+
   public ConstEtomoNumber getMinAngle() {
     return minAngle;
   }
-  
+
   public ConstEtomoNumber getMaxAngle() {
     return maxAngle;
   }

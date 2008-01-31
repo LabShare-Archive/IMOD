@@ -20,6 +20,10 @@
  * 
  * <p>
  * $Log$
+ * Revision 3.119  2008/01/14 21:51:10  sueh
+ * bug# 1050 Moved getRunningProcessData from ProcessManager to
+ * BaseProcessManager.
+ *
  * Revision 3.118  2007/12/26 22:14:52  sueh
  * bug# 1052 Moved argument handling from EtomoDirector to a separate class.
  *
@@ -1416,13 +1420,21 @@ public class ProcessManager extends BaseProcessManager {
 
   public void reconnectTilt(AxisID axisID,
       ProcessResultDisplay processResultDisplay) {
-    ReconnectProcess process = ReconnectProcess.getInstance(appManager, this,
-        TiltProcessMonitor.getReconnectInstance(appManager, axisID),
-        getSavedProcessData(axisID), axisID);
-    process.setProcessResultDisplay(processResultDisplay);
-    Thread thread = new Thread(process);
-    thread.start();
-    mapAxisThread(process, axisID);
+    try {
+      ReconnectProcess process = ReconnectProcess.getInstance(appManager, this,
+          TiltProcessMonitor.getReconnectInstance(appManager, axisID),
+          getSavedProcessData(axisID), axisID);
+      process.setProcessResultDisplay(processResultDisplay);
+      Thread thread = new Thread(process);
+      thread.start();
+      mapAxisThread(process, axisID);
+    }
+    catch (LogFile.FileException e) {
+      e.printStackTrace();
+      UIHarness.INSTANCE.openMessageDialog(
+          "Unable to reconnect to processchunks.\n" + e.getMessage(),
+          "Reconnect Failure", axisID);
+    }
   }
 
   /**

@@ -49,6 +49,10 @@ import etomo.type.Run3dmodMenuOptions;
  * @version $Revision$
  * 
  * <p> $Log$
+ * <p> Revision 1.26  2007/07/25 23:01:16  sueh
+ * <p> bug# 1027 Change start and end tilt range angles to min and max angles.  Added
+ * <p> A filter for tilt log files to openTiltFile().
+ * <p>
  * <p> Revision 1.25  2007/07/18 22:38:22  sueh
  * <p> bug# 1024
  * <p>
@@ -575,10 +579,18 @@ final class VolumeTable implements Expandable, Highlightable,
       File file = chooser.getSelectedFile();
       lastLocation = file.getParentFile();
       if (tiltLogFileFilter.accept(file)) {
-        TiltLog tiltLog = new TiltLog(file);
-        tiltLog.read();
-        row.setTiltRangeMin(tiltLog.getMinAngle());
-        row.setTiltRangeMax(tiltLog.getMaxAngle());
+        try {
+          TiltLog tiltLog = TiltLog.getInstance(file);
+          tiltLog.read();
+          row.setTiltRangeMin(tiltLog.getMinAngle());
+          row.setTiltRangeMax(tiltLog.getMaxAngle());
+        }
+        catch (LogFile.FileException e) {
+          e.printStackTrace();
+          UIHarness.INSTANCE.openMessageDialog("Unable to open tilt log "
+              + file.getAbsolutePath() + "\n" + e.getMessage(),
+              "File Open Failure");
+        }
       }
       else {
         TiltFile tiltFile = new TiltFile(file);

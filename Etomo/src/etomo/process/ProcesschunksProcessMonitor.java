@@ -217,6 +217,9 @@ class ProcesschunksProcessMonitor implements OutfileProcessMonitor,
     catch (LogFile.WriteException e) {
       e.printStackTrace();
     }
+    catch (LogFile.FileException e) {
+      e.printStackTrace();
+    }
   }
 
   public final void pause(SystemProcessInterface process, AxisID axisID) {
@@ -227,6 +230,9 @@ class ProcesschunksProcessMonitor implements OutfileProcessMonitor,
       setProgressBarTitle = true;
     }
     catch (LogFile.WriteException e) {
+      e.printStackTrace();
+    }
+    catch (LogFile.FileException e) {
       e.printStackTrace();
     }
   }
@@ -245,6 +251,9 @@ class ProcesschunksProcessMonitor implements OutfileProcessMonitor,
         setProgressBarTitle = true;
       }
       catch (LogFile.WriteException e) {
+        e.printStackTrace();
+      }
+      catch (LogFile.FileException e) {
         e.printStackTrace();
       }
     }
@@ -479,14 +488,14 @@ class ProcesschunksProcessMonitor implements OutfileProcessMonitor,
    * @param command
    * @throws IOException
    */
-  private final void writeCommand(String command) throws LogFile.WriteException {
+  private final void writeCommand(String command)
+      throws LogFile.WriteException, LogFile.FileException {
     if (!useCommandsPipe) {
       return;
     }
     if (commandsPipe == null) {
       commandsPipe = LogFile.getInstance(manager.getPropertyUserDir(),
           DatasetFiles.getCommandsFileName(subdirName, rootName));
-      //commandsPipe.createNewFile();
     }
     if (commandsPipeWriteId == LogFile.NO_ID) {
       commandsPipeWriteId = commandsPipe.openWriter();
@@ -519,6 +528,9 @@ class ProcesschunksProcessMonitor implements OutfileProcessMonitor,
 }
 /**
  * <p> $Log$
+ * <p> Revision 1.36  2008/01/23 21:10:50  sueh
+ * <p> Removed print statements.
+ * <p>
  * <p> Revision 1.35  2008/01/14 21:31:47  sueh
  * <p> bug# 1050 Added stop() and isRunning() to allow ProcessMonitor classes to work
  * <p> with ReconnectProcess.  Added boolean reconnect, which prevents the process

@@ -21,6 +21,7 @@ import javax.swing.border.LineBorder;
 
 import etomo.JoinManager;
 import etomo.storage.JoinInfoFile;
+import etomo.storage.LogFile;
 import etomo.storage.TomogramFileFilter;
 import etomo.type.AxisID;
 import etomo.type.ConstEtomoNumber;
@@ -49,6 +50,9 @@ import etomo.util.Utilities;
  * @version $Revision$
  * 
  * <p> $Log$
+ * <p> Revision 1.39  2007/03/27 00:05:45  sueh
+ * <p> bug# 964 Removed print statement.
+ * <p>
  * <p> Revision 1.38  2007/03/01 01:42:49  sueh
  * <p> bug# 964 Implementing Highlighable.
  * <p>
@@ -744,8 +748,8 @@ public class SectionTablePanel implements ContextMenu, Expandable,
     return -1;
   }
 
-  void setInverted() {
-    JoinInfoFile joinInfoFile = new JoinInfoFile(manager);
+  void setInverted() throws LogFile.FileException{
+    JoinInfoFile joinInfoFile =  JoinInfoFile.getInstance(manager);
     int invertedCount = 0;
     int size = rows.size();
     for (int i = 0; i < size; i++) {

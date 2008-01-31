@@ -41,6 +41,10 @@ import etomo.util.Utilities;
  * @version $Revision$
  * 
  * <p> $Log$
+ * <p> Revision 1.2  2008/01/25 22:29:24  sueh
+ * <p> bug# 1070 Don't use parallel processing unless the cpu.adoc or
+ * <p> IMOD_PROCESSORS has been set by the user.
+ * <p>
  * <p> Revision 1.1  2007/12/26 22:31:39  sueh
  * <p> bug# 1052 Turned SetupDialog into an extremely thin GUI.  Moved decisions and
  * <p> knowledge to SetupDialogExpert.  Added doAutomation() to handle user
@@ -191,13 +195,19 @@ public final class SetupDialogExpert {
     // sharing a directory.
     for (int i = 0; i < edfFiles.length; i++) {
       MetaData savedMetaData = new MetaData(manager);
-      ParameterStore paramStore = ParameterStore.getInstance(edfFiles[i]);
       try {
+        ParameterStore paramStore = ParameterStore.getInstance(edfFiles[i]);
         if (paramStore != null) {
           paramStore.load(savedMetaData);
         }
       }
       catch (LogFile.WriteException e) {
+        e.printStackTrace();
+        UIHarness.INSTANCE.openMessageDialog("Unable to read .edf files in "
+            + propertyUserDir, "Etomo Error");
+        continue;
+      }
+      catch (LogFile.FileException e) {
         e.printStackTrace();
         UIHarness.INSTANCE.openMessageDialog("Unable to read .edf files in "
             + propertyUserDir, "Etomo Error");

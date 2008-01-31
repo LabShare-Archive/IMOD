@@ -11,6 +11,7 @@ import etomo.storage.LogFile;
 import etomo.type.AxisID;
 import etomo.type.ProcessEndState;
 import etomo.type.ProcessName;
+import etomo.ui.UIHarness;
 import etomo.util.InvalidParameterException;
 import etomo.util.Utilities;
 
@@ -27,6 +28,10 @@ import etomo.util.Utilities;
  * @version $Revision$
  * 
  * <p> $Log$
+ * <p> Revision 3.29  2008/01/23 21:10:25  sueh
+ * <p> bug# 1064 In openLogFileReader do not wait for the log file to be renamed if this
+ * <p> is a reconnect.
+ * <p>
  * <p> Revision 3.28  2008/01/14 21:30:06  sueh
  * <p> bug# 1050 Made stop() and isRunning() public to implement ProcessMonitor.
  * <p>
@@ -182,7 +187,7 @@ abstract class FileSizeProcessMonitor implements ProcessMonitor {
   //private BufferedReader logFileReader = null;
   //private FileReader fileReader = null;
   private boolean logFileRenamed = false;
-  protected final LogFile logFile;
+  private LogFile logFile;
   private long logReadId = LogFile.NO_ID;
 
   public FileSizeProcessMonitor(ApplicationManager appMgr, AxisID id,
@@ -191,11 +196,19 @@ abstract class FileSizeProcessMonitor implements ProcessMonitor {
     axisID = id;
     scriptStartTime = System.currentTimeMillis();
     this.processName = processName;
-    logFile = LogFile.getInstance(appMgr.getPropertyUserDir(), axisID,
-        processName);
+    try {
+      logFile = LogFile.getInstance(appMgr.getPropertyUserDir(), axisID,
+          processName);
+    }
+    catch (LogFile.FileException e) {
+      e.printStackTrace();
+      UIHarness.INSTANCE.openMessageDialog("Unable to create log file.\n"
+          + e.getMessage(), "File Size Monitor Log File Failure");
+      logFile = null;
+    }
   }
 
-  // The dervied class must implement this function to 
+  // The derived class must implement this function to 
   // - set the expected number of bytes in the output file
   // - initialize the progress bar through the application manager, the maximum
   //   value should be the expected size of the file in k bytes
@@ -255,6 +268,10 @@ abstract class FileSizeProcessMonitor implements ProcessMonitor {
 
   public boolean isRunning() {
     return running;
+  }
+  
+  LogFile getLogFile() {
+    return logFile;
   }
 
   protected void setReconnect(boolean reconnect) {

@@ -11,6 +11,11 @@
  * @version $Revision$
  * 
  * <p> $Log$
+ * <p> Revision 3.16  2007/09/11 21:27:01  sueh
+ * <p> bug# 1035 In calcFileSize prevent integer overflow when calculating fileSize by
+ * <p> casting nX * xY to long.  Getting nX and nY from
+ * <p> NewstParam.sizeToOutputInXandY when set.
+ * <p>
  * <p> Revision 3.15  2006/10/24 21:27:44  sueh
  * <p> bug# 947 Passing the ProcessName to AxisProcessPanel.
  * <p>
@@ -118,19 +123,19 @@ final class NewstProcessMonitor extends FileSizeProcessMonitor {
     String line;
     long logReadId = LogFile.NO_ID;
     try {
-      logReadId = logFile.openReader();
+      logReadId = getLogFile().openReader();
     }
     catch (LogFile.ReadException e) {
       return false;
     }
     try {
-      while ((line = logFile.readLine(logReadId)) != null) {
+      while ((line = getLogFile().readLine(logReadId)) != null) {
         if (line.startsWith("Doing section")) {
           //mrctaper started
           applicationManager.getMainPanel().setProgressBarValue(0, "mrctaper",
               axisID);
           gotStatusFromLog = true;
-          logFile.closeReader(logReadId);
+          getLogFile().closeReader(logReadId);
           logReadId = LogFile.NO_ID;
           return true;
         }
@@ -141,7 +146,7 @@ final class NewstProcessMonitor extends FileSizeProcessMonitor {
       return false;
     }
     if (logReadId != LogFile.NO_ID) {
-      logFile.closeReader(logReadId);
+      getLogFile().closeReader(logReadId);
     }
     //did not find a line shows that mrctaper started
     return false;

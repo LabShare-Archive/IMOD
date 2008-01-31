@@ -30,6 +30,9 @@ import etomo.type.JoinScreenState;
  * @version $Revision$
  * 
  * <p> $Log$
+ * <p> Revision 1.2  2007/02/09 00:47:21  sueh
+ * <p> bug# 962 Added tooltips.
+ * <p>
  * <p> Revision 1.1  2007/02/05 23:34:00  sueh
  * <p> bug# 962 Class representing the boundary table.
  * <p> </p>
@@ -101,7 +104,8 @@ final class BoundaryTable {
     setToolTipText();
   }
 
-  void setXfjointomoResult() throws LogFile.ReadException {
+  void setXfjointomoResult() throws LogFile.ReadException,
+      LogFile.FileException {
     rowList.setXfjointomoResult(manager);
   }
 
@@ -152,7 +156,7 @@ final class BoundaryTable {
     String text = "Boundaries between sections.";
     header1Boundaries.setToolTipText(text);
     header2Boundaries.setToolTipText(text);
-    text="The pairs of sections which define each boundary.";
+    text = "The pairs of sections which define each boundary.";
     header1Sections.setToolTipText(text);
     header2Sections.setToolTipText(text);
     header3Sections.setToolTipText(text);
@@ -165,18 +169,22 @@ final class BoundaryTable {
         .setToolTipText("Deviations between transformed points extrapolated from above and below the corresponding boundary.");
     header2MeanError.setToolTipText("Mean deviations.");
     header2MaxError.setToolTipText("Maximum deviations.");
-    text ="End and start values used to create the original join.";
+    text = "End and start values used to create the original join.";
     header1Original.setToolTipText(text);
     header2OriginalEnd.setToolTipText(text);
     header2OriginalStart.setToolTipText(text);
-    header3OriginalEnd.setToolTipText("End values used to create the original join.");
-    header3OriginalStart.setToolTipText("Start values used to create the original join.");
-    text="End and start values which will be used to create the new join.";
+    header3OriginalEnd
+        .setToolTipText("End values used to create the original join.");
+    header3OriginalStart
+        .setToolTipText("Start values used to create the original join.");
+    text = "End and start values which will be used to create the new join.";
     header1Adjusted.setToolTipText(text);
     header2AdjustedEnd.setToolTipText(text);
     header2AdjustedStart.setToolTipText(text);
-    header3AdjustedEnd.setToolTipText("End values which will be used to create the new join.");
-    header3AdjustedStart.setToolTipText("Start values which will be used to create the new join.");
+    header3AdjustedEnd
+        .setToolTipText("End values which will be used to create the new join.");
+    header3AdjustedStart
+        .setToolTipText("Start values which will be used to create the new join.");
   }
 
   private void addHeader() {
@@ -305,7 +313,8 @@ final class BoundaryTable {
       }
     }
 
-    void setXfjointomoResult(BaseManager manager) throws LogFile.ReadException {
+    void setXfjointomoResult(BaseManager manager) throws LogFile.ReadException,
+        LogFile.FileException {
       for (int i = 0; i < list.size(); i++) {
         get(i).setXfjointomoResult(manager);
       }

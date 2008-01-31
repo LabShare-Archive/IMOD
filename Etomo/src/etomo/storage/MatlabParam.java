@@ -43,6 +43,9 @@ import etomo.util.DatasetFiles;
  * @version $Revision$
  * 
  * <p> $Log$
+ * <p> Revision 1.13  2007/12/17 21:04:58  sueh
+ * <p> bug# 1060 Synchronizing meanFill with flgMeanFill in the .prm file.
+ * <p>
  * <p> Revision 1.12  2007/12/14 21:46:05  sueh
  * <p> bug# 1060 Changed meanFill to flgMeanFill, keeping meanFill for backwards
  * <p> compatibility.
@@ -317,6 +320,12 @@ public final class MatlabParam {
       UIHarness.INSTANCE.openMessageDialog("Unable to read "
           + file.getAbsolutePath() + ".  LogFile.ReadException:  "
           + e.getMessage(), "File Error");
+      return false;
+    }
+    catch (LogFile.FileException e) {
+      UIHarness.INSTANCE.openMessageDialog(
+          "Unable to open file .  LogFile.FileException:  " + e.getMessage(),
+          "File Error");
       return false;
     }
     return true;

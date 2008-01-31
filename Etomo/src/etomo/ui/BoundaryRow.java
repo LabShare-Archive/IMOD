@@ -37,6 +37,11 @@ import etomo.type.SectionTableRowData;
  * @version $Revision$
  * 
  * <p> $Log$
+ * <p> Revision 1.3  2007/04/02 21:43:43  sueh
+ * <p> bug# 964 Added FieldCell.editable to make instances of FieldCell that can't be
+ * <p> edited.  This allows FieldCell.setEditable and setEnabled to be called without
+ * <p> checking whether a field should be editable.
+ * <p>
  * <p> Revision 1.2  2007/03/27 19:30:06  sueh
  * <p> bug# 964 Changed InputCell.setEnabled() to setEditable.
  * <p>
@@ -229,7 +234,8 @@ final class BoundaryRow {
     adjustedStart.remove();
   }
 
-  void setXfjointomoResult(BaseManager manager) throws LogFile.ReadException {
+  void setXfjointomoResult(BaseManager manager) throws LogFile.ReadException,
+      LogFile.FileException {
     XfjointomoLog xfjointomoLog = XfjointomoLog.getInstance(manager);
     String boundary = this.boundary.getText();
     if (!xfjointomoLog.rowExists(boundary)) {

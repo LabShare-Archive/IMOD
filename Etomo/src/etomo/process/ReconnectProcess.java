@@ -52,7 +52,7 @@ final class ReconnectProcess implements SystemProcessInterface, Runnable {
 
   static ReconnectProcess getInstance(BaseManager manager,
       BaseProcessManager processManager, ProcessMonitor monitor,
-      ProcessData processData, AxisID axisID) {
+      ProcessData processData, AxisID axisID) throws LogFile.FileException {
     ReconnectProcess instance = new ReconnectProcess(manager, processManager,
         monitor, processData, axisID);
     instance.logFile = LogFile.getInstance(manager.getPropertyUserDir(),
@@ -63,16 +63,17 @@ final class ReconnectProcess implements SystemProcessInterface, Runnable {
   static ReconnectProcess getMonitorInstance(BaseManager manager,
       BaseProcessManager processManager, ProcessMonitor monitor,
       ProcessData processData, AxisID axisID, String logFileName,
-      String logSuccessTag,ConstStringProperty subDirName) {
+      String logSuccessTag, ConstStringProperty subDirName)
+      throws LogFile.FileException {
     ReconnectProcess instance = new ReconnectProcess(manager, processManager,
         monitor, processData, axisID);
     if (subDirName.isEmpty()) {
-    instance.logFile = LogFile.getInstance(manager.getPropertyUserDir(),
-        logFileName);
+      instance.logFile = LogFile.getInstance(manager.getPropertyUserDir(),
+          logFileName);
     }
     else {
-      instance.logFile = LogFile.getInstance(new File(manager.getPropertyUserDir(),subDirName.toString()),
-          logFileName);
+      instance.logFile = LogFile.getInstance(new File(manager
+          .getPropertyUserDir(), subDirName.toString()), logFileName);
     }
     instance.logSuccessTag = logSuccessTag;
     instance.monitorControl = true;
@@ -252,6 +253,12 @@ final class ReconnectProcess implements SystemProcessInterface, Runnable {
 }
 /**
  * <p> $Log$
+ * <p> Revision 1.4  2008/01/14 20:33:09  sueh
+ * <p> bug# 1050 Made class more generic.  Allowing any ProcessMonitor class
+ * <p> instead of only FileSizeProcessMonitor classes.  Switched to getInstance to get
+ * <p> standard instances.  Added getMonitorInstance to get an instance where the
+ * <p> process is controlled by the monitor (processchunks).
+ * <p>
  * <p> Revision 1.3  2006/10/10 05:13:31  sueh
  * <p> bug# 931 Managing the log file with LogFile.
  * <p>

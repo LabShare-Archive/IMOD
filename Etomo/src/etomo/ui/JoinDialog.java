@@ -57,6 +57,9 @@ import etomo.util.DatasetFiles;
  * @version $Revision$
  *
  * <p> $Log$
+ * <p> Revision 1.53  2007/12/10 22:42:49  sueh
+ * <p> bug# 1041 Standardized JoinMetaData.getRootName to getDatasetName.
+ * <p>
  * <p> Revision 1.52  2007/07/30 18:54:06  sueh
  * <p> bug# 1002 ParameterStore.getInstance can return null - handle it.
  * <p>
@@ -819,7 +822,7 @@ public final class JoinDialog implements ContextMenu, Run3dmodButtonContainer {
     UIHarness.INSTANCE.pack(manager);
   }
 
-  public void setInverted() {
+  public void setInverted() throws LogFile.FileException {
     pnlSectionTable.setInverted();
   }
 
@@ -1357,7 +1360,8 @@ public final class JoinDialog implements ContextMenu, Run3dmodButtonContainer {
     }
   }
 
-  public void setXfjointomoResult() throws LogFile.ReadException {
+  public void setXfjointomoResult() throws LogFile.ReadException,
+      LogFile.FileException {
     boundaryTable.setXfjointomoResult();
   }
 

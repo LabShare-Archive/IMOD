@@ -23,6 +23,9 @@ import etomo.type.AxisID;
  * @version $Revision$
  * 
  * <p> $Log$
+ * <p> Revision 1.7  2007/08/16 16:31:55  sueh
+ * <p> bug# 1035 Added NEWSTACK.
+ * <p>
  * <p> Revision 1.6  2007/06/07 21:31:52  sueh
  * <p> bug# 1012 Added function getMatlabDebugInstance.
  * <p>
@@ -139,7 +142,7 @@ public final class AutodocFactory {
   }
 
   public static WritableAutodoc getMatlabDebugInstance(File file)
-      throws IOException, LogFile.ReadException {
+      throws IOException, LogFile.ReadException, LogFile.FileException {
     if (file == null) {
       throw new IllegalStateException("file is null");
     }
@@ -155,7 +158,7 @@ public final class AutodocFactory {
   }
 
   public static WritableAutodoc getMatlabInstance(File file)
-      throws IOException, LogFile.ReadException {
+      throws IOException, LogFile.ReadException, LogFile.FileException {
     if (file == null) {
       throw new IllegalStateException("file is null");
     }
@@ -170,7 +173,7 @@ public final class AutodocFactory {
   }
 
   public static WritableAutodoc getEmptyMatlabInstance(File file)
-      throws IOException, LogFile.ReadException {
+      throws IOException, LogFile.ReadException, LogFile.FileException {
     if (file == null) {
       throw new IllegalStateException("file is null");
     }
@@ -185,7 +188,7 @@ public final class AutodocFactory {
   }
 
   public static ReadOnlyAutodoc getInstance(File file) throws IOException,
-      LogFile.ReadException {
+      LogFile.ReadException, LogFile.FileException {
     if (file == null) {
       throw new IllegalStateException("file is null");
     }
@@ -209,7 +212,7 @@ public final class AutodocFactory {
    * @throws LogFile.ReadException
    */
   public static ReadOnlyAutodoc getTestInstance(File file) throws IOException,
-      LogFile.ReadException {
+      LogFile.ReadException, LogFile.FileException {
     if (file == null) {
       throw new IllegalStateException("file is null");
     }
@@ -251,7 +254,7 @@ public final class AutodocFactory {
    */
   public static Autodoc getInstance(File directory, String autodocFileName,
       AxisID axisID) throws FileNotFoundException, IOException,
-      LogFile.ReadException {
+      LogFile.ReadException, LogFile.FileException {
     if (autodocFileName == null) {
       return null;
     }

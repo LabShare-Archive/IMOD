@@ -277,6 +277,10 @@ public final class AdocCommandReader {
         e.printStackTrace();
         return;
       }
+      catch (LogFile.FileException e) {
+        e.printStackTrace();
+        return;
+      }
     }
   }
 
@@ -338,6 +342,12 @@ public final class AdocCommandReader {
 }
 /**
  * <p> $Log$
+ * <p> Revision 1.2  2007/04/09 19:36:31  sueh
+ * <p> Change NameValuePair to an abstract class called statement and child classes
+ * <p> representing name/value pair, comment, empty line, and subsection.  Made
+ * <p> delimiter change an attribute of the name/value pair class.  Added
+ * <p> ReadOnlyStatement to provide a public interface for Statement classes.
+ * <p>
  * <p> Revision 1.1  2007/03/21 18:10:21  sueh
  * <p> bug# 964 Moved AdocCommand classes out of the autodoc package because
  * <p> they not part of the autodoc.

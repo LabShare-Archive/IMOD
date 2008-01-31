@@ -55,6 +55,11 @@ import etomo.util.DatasetFiles;
  * @version $Revision$
  * 
  * <p> $Log$
+ * <p> Revision 1.36  2008/01/14 20:22:59  sueh
+ * <p> bug# 1050 Added an empty getProcessResultDisplayFactoryInterface.  Calling
+ * <p> BaseManager.reconnect from openProcessingPanel to reconnect to parallel
+ * <p> processes.
+ * <p>
  * <p> Revision 1.35  2007/12/26 21:57:45  sueh
  * <p> bug# 1052 Moved argument handling from EtomoDirector to a separate class.
  * <p>
@@ -373,9 +378,9 @@ public final class PeetManager extends BaseManager {
     }
     //load the original param file
     PeetMetaData origMetaData = new PeetMetaData();
-    ParameterStore origParameterStore = ParameterStore
-        .getInstance(origParamFile);
     try {
+      ParameterStore origParameterStore = ParameterStore
+          .getInstance(origParamFile);
       if (origParameterStore != null) {
         origParameterStore.load(origMetaData);
         Storable[] storables = getStorables(0);
@@ -422,6 +427,9 @@ public final class PeetManager extends BaseManager {
       }
     }
     catch (LogFile.WriteException e) {
+      e.printStackTrace();
+    }
+    catch (LogFile.FileException e) {
       e.printStackTrace();
     }
   }
@@ -588,8 +596,8 @@ public final class PeetManager extends BaseManager {
     PeetParserParam param = new PeetParserParam(this, matlabParam.getFile());
     param.getParameters(matlabParam);
     try {
-      LogFile log = LogFile.getInstance(param.getLogFile());
       try {
+        LogFile log = LogFile.getInstance(param.getLogFile());
         log.backup();
       }
       catch (LogFile.FileException e) {

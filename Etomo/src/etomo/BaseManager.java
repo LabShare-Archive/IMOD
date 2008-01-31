@@ -244,12 +244,12 @@ public abstract class BaseManager {
    * @param processData
    */
   public void saveStorable(AxisID axisID, Storable storable) {
-    getParameterStore();
-    if (parameterStore == null) {
-      return;
-    }
-    parameterStore.setAutoStore(true);
     try {
+      getParameterStore();
+      if (parameterStore == null) {
+        return;
+      }
+      parameterStore.setAutoStore(true);
       parameterStore.save(storable);
     }
     catch (LogFile.FileException e) {
@@ -272,16 +272,16 @@ public abstract class BaseManager {
    * @throws IOException
    */
   public void saveStorables(AxisID axisID) {
-    getParameterStore();
-    if (parameterStore == null) {
-      return;
-    }
-    parameterStore.setAutoStore(false);
-    Storable[] storables = getStorables();
-    if (storables == null) {
-      return;
-    }
     try {
+      getParameterStore();
+      if (parameterStore == null) {
+        return;
+      }
+      parameterStore.setAutoStore(false);
+      Storable[] storables = getStorables();
+      if (storables == null) {
+        return;
+      }
       for (int i = 0; i < storables.length; i++) {
         parameterStore.save(storables[i]);
       }
@@ -373,7 +373,7 @@ public abstract class BaseManager {
    * null.
    * @return
    */
-  public ParameterStore getParameterStore() {
+  public ParameterStore getParameterStore() throws LogFile.FileException {
     if (paramFile == null) {
       return null;
     }
@@ -697,12 +697,12 @@ public abstract class BaseManager {
     this.paramFile = paramFile;
     if (!loadedFromADifferentFile) {
       // Read in the test parameter data file
-      getParameterStore();
-      if (parameterStore == null) {
-        return false;
-      }
-      //must load meta data before other storables can be constructed
       try {
+        getParameterStore();
+        if (parameterStore == null) {
+          return false;
+        }
+        //must load meta data before other storables can be constructed
         parameterStore.load(getBaseMetaData());
         Storable[] storables = getStorables();
         if (storables != null) {
@@ -710,6 +710,15 @@ public abstract class BaseManager {
             parameterStore.load(storables[i]);
           }
         }
+      }
+      catch (LogFile.FileException except) {
+        except.printStackTrace();
+        String[] errorMessage = new String[3];
+        errorMessage[0] = "Test parameter file read error";
+        errorMessage[1] = "Could not find the test parameter data file:";
+        errorMessage[2] = except.getMessage();
+        uiHarness.openMessageDialog(errorMessage, "Etomo Error", axisID);
+        return false;
       }
       catch (LogFile.WriteException except) {
         except.printStackTrace();
@@ -1177,17 +1186,12 @@ public abstract class BaseManager {
   public final void savePreferences(AxisID axisID, Storable storable) {
     MainPanel mainPanel = getMainPanel();
     try {
-      if (getProcessManager().inUse(axisID, null)) {
-        return;
-      }
-      mainPanel.setProgressBar("Saving defaults", 1, axisID);
       ParameterStore localParameterStore = EtomoDirector.INSTANCE
           .getParameterStore();
-      if (localParameterStore != null) {
-        localParameterStore.save(storable);
-      }
+      localParameterStore.save(storable);
     }
     catch (LogFile.FileException e) {
+      e.printStackTrace();
       uiHarness.openMessageDialog("Unable to save preferences.\n"
           + e.getMessage(), "Etomo Error", axisID);
     }
@@ -1195,7 +1199,6 @@ public abstract class BaseManager {
       uiHarness.openMessageDialog("Unable to write preferences.\n"
           + e.getMessage(), "Etomo Error", axisID);
     }
-    mainPanel.stopProgressBar(axisID);
   }
 
   /**
@@ -1322,6 +1325,11 @@ public abstract class BaseManager {
 }
 /**
  * <p> $Log$
+ * <p> Revision 1.95  2008/01/23 21:06:55  sueh
+ * <p> bug# 1064  Added reconnectRunA and B to ApplicationManager.  Can't use the
+ * <p> reconnectRun functionality in BaseManager because BaseManager.reconnect is
+ * <p> run before ApplicationManager.reconnect.
+ * <p>
  * <p> Revision 1.94  2008/01/14 20:20:46  sueh
  * <p> bug# 1050 Added reconnect to reconnect to processchunks.  Also added
  * <p> reconnectRunA and B to prevent multiple reconnect attempts per axis.

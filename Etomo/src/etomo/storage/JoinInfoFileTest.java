@@ -22,6 +22,10 @@ import junit.framework.TestCase;
  * @version $Revision$
  * 
  * <p> $Log$
+ * <p> Revision 1.3  2007/09/07 00:19:52  sueh
+ * <p> bug# 989 Using a public INSTANCE to refer to the EtomoDirector singleton
+ * <p> instead of getInstance and createInstance.
+ * <p>
  * <p> Revision 1.2  2006/11/18 01:15:53  sueh
  * <p> bug# 956 Temporarily not running problem bugs on Windows.
  * <p>
@@ -46,7 +50,7 @@ public class JoinInfoFileTest extends TestCase {
     LogFile infoFile = LogFile.getInstance(testDir.getAbsolutePath(),
         DatasetFiles.getJoinInfoName(manager));
     infoFile.delete();
-    JoinInfoFile test = new JoinInfoFile(infoFile);
+    JoinInfoFile test =  JoinInfoFile.getTestInstance(infoFile);
     assertNull("Should return null when there is no file", test
         .getInverted(0));
     EtomoDirector.INSTANCE.getCurrentManager().touch(

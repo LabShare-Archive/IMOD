@@ -66,6 +66,9 @@ import etomo.util.Utilities;
  * @version $Revision$
  * 
  * <p> $Log$
+ * <p> Revision 1.65  2008/01/14 20:21:49  sueh
+ * <p> bug# 1050 Added an empty getProcessResultDisplayFactoryInterface.
+ * <p>
  * <p> Revision 1.64  2007/12/26 21:57:12  sueh
  * <p> bug# 1052 Moved argument handling from EtomoDirector to a separate class.
  * <p>
@@ -455,7 +458,7 @@ public final class JoinManager extends BaseManager {
   private final JoinScreenState screenState = new JoinScreenState(AxisID.ONLY,
       AxisType.SINGLE_AXIS);
   private boolean debug = false;
-  private final ProcessResultDisplayFactoryBlank processResultDisplayFactory=new ProcessResultDisplayFactoryBlank();
+  private final ProcessResultDisplayFactoryBlank processResultDisplayFactory = new ProcessResultDisplayFactoryBlank();
 
   JoinManager(String paramFileName, AxisID axisID) {
     super();
@@ -472,15 +475,16 @@ public final class JoinManager extends BaseManager {
       setMode();
     }
   }
-  
+
   public void doAutomation() {
   }
 
   public InterfaceType getInterfaceType() {
     return InterfaceType.JOIN;
   }
-  
-  public ProcessResultDisplayFactoryInterface getProcessResultDisplayFactoryInterface(AxisID axisID) {
+
+  public ProcessResultDisplayFactoryInterface getProcessResultDisplayFactoryInterface(
+      AxisID axisID) {
     return processResultDisplayFactory;
   }
 
@@ -852,29 +856,33 @@ public final class JoinManager extends BaseManager {
    * @param processDetails
    */
   public void postProcess(String commandName, ProcessDetails processDetails) {
-    if (commandName.equals(ProcessName.MAKEJOINCOM.toString())) {
-      if (processDetails != null) {
-        if (processDetails.getBooleanValue(MakejoincomParam.Fields.ROTATE)) {
-          StartJoinParam param = newStartJoinParam();
-          param.setRotate(true);
-          param.setTotalRows(processDetails
-              .getIntValue(MakejoincomParam.Fields.TOTAL_ROWS));
-          param.setRotationAnglesList(processDetails
-              .getHashtable(MakejoincomParam.Fields.ROTATION_ANGLES_LIST));
+    try {
+      if (commandName.equals(ProcessName.MAKEJOINCOM.toString())) {
+        if (processDetails != null) {
+          if (processDetails.getBooleanValue(MakejoincomParam.Fields.ROTATE)) {
+            StartJoinParam param = newStartJoinParam();
+            param.setRotate(true);
+            param.setTotalRows(processDetails
+                .getIntValue(MakejoincomParam.Fields.TOTAL_ROWS));
+            param.setRotationAnglesList(processDetails
+                .getHashtable(MakejoincomParam.Fields.ROTATION_ANGLES_LIST));
+          }
         }
+        joinDialog.setInverted();
       }
-      joinDialog.setInverted();
-    }
-    else if (commandName.equals(ProcessName.XFJOINTOMO.toString())) {
-      try {
+      else if (commandName.equals(ProcessName.XFJOINTOMO.toString())) {
         joinDialog.setXfjointomoResult();
       }
-      catch (LogFile.ReadException e) {
-        e.printStackTrace();
-        uiHarness.openMessageDialog("Unable to read "
-            + DatasetFiles.XFJOINTOMO_LOG + ".\n" + e.getMessage(),
-            "Read Error");
-      }
+    }
+    catch (LogFile.ReadException e) {
+      e.printStackTrace();
+      uiHarness.openMessageDialog("Unable to read "
+          + DatasetFiles.XFJOINTOMO_LOG + ".\n" + e.getMessage(), "Read Error");
+    }
+    catch (LogFile.FileException e) {
+      e.printStackTrace();
+      uiHarness.openMessageDialog("Unable to read "
+          + DatasetFiles.XFJOINTOMO_LOG + ".\n" + e.getMessage(), "Read Error");
     }
   }
 

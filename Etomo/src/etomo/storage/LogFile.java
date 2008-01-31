@@ -56,7 +56,8 @@ public final class LogFile {
 
   public static final long NO_ID = -1;
   public static final long NO_WAIT_LIMIT = -1;
-  private static final String PUBLIC_EXCEPTION_MESSAGE = "\nPlease inform the software developer.";
+  private static final String PUBLIC_EXCEPTION_MESSAGE = "\nPlease make all copy "
+      + "of the current etomo_err.log file and inform the software developer.";
 
   private static final Hashtable logFileHashTable = new Hashtable();
 
@@ -92,28 +93,33 @@ public final class LogFile {
    * @return retrieved instance
    */
   public static LogFile getInstance(String userDir, AxisID axisID,
-      ProcessName processName) {
+      ProcessName processName) throws FileException {
     return getInstance(userDir, axisID, processName.toString());
   }
 
-  public static LogFile getInstance(String userDir, AxisID axisID, String name) {
+  public static LogFile getInstance(String userDir, AxisID axisID, String name)
+      throws FileException {
     return getInstance(userDir, name + axisID.getExtension()
         + DatasetFiles.LOG_EXT);
   }
 
-  public static LogFile getInstance(String userDir, String fileName) {
+  public static LogFile getInstance(String userDir, String fileName)
+      throws FileException {
     return getInstance(new File(userDir, fileName));
   }
-  
-  public static LogFile getInstance(File dir, String fileName) {
+
+  public static LogFile getInstance(File dir, String fileName)
+      throws FileException {
     return getInstance(new File(dir, fileName));
   }
 
-  public static LogFile getInstance(File file) {
+  public static LogFile getInstance(File file) throws FileException {
+    if (file == null) {
+      throw new FileException("Cannot create LogFile, file is null.");
+    }
     LogFile logFile;
-    String key = makeKey(file);
-    if (logFileHashTable == null
-        || (logFile = (LogFile) logFileHashTable.get(key)) == null) {
+    String key = file.getAbsolutePath();
+    if ((logFile = (LogFile) logFileHashTable.get(key)) == null) {
       //the instance doesn't exist - create it
       logFile = createInstance(file, key);
     }
@@ -996,10 +1002,6 @@ public final class LogFile {
     return file.getName();
   }
 
-  private static String makeKey(File file) {
-    return file.getAbsolutePath();
-  }
-
   /**
    * @return true if the open variabled is locked.
    */
@@ -1091,6 +1093,10 @@ public final class LogFile {
     FileException(Exception e) {
       super(e.toString() + PUBLIC_EXCEPTION_MESSAGE);
       e.printStackTrace();
+    }
+
+    FileException(String message) {
+      super(message + PUBLIC_EXCEPTION_MESSAGE);
     }
   }
 
@@ -1430,6 +1436,9 @@ public final class LogFile {
 }
 /**
  * <p> $Log$
+ * <p> Revision 1.18  2008/01/14 22:00:44  sueh
+ * <p> bug# 1050 Added getInstance(File,String).
+ * <p>
  * <p> Revision 1.17  2007/12/26 22:15:55  sueh
  * <p> bug# 1052 Moved argument handling from EtomoDirector to a separate class.
  * <p>
