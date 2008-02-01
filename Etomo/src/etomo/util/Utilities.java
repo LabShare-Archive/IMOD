@@ -12,6 +12,9 @@
  * @version $$Revision$
  *
  * <p> $$Log$
+ * <p> $Revision 3.54  2007/12/26 22:42:14  sueh
+ * <p> $bug# 1052 Moved argument handling from EtomoDirector to a separate class.
+ * <p> $
  * <p> $Revision 3.53  2007/09/07 00:31:37  sueh
  * <p> $bug# 989 Using a public INSTANCE to refer to the EtomoDirector singleton
  * <p> $instead of getInstance and createInstance.
@@ -344,6 +347,10 @@ public class Utilities {
     File file = new File(manager.getPropertyUserDir(), manager.getName()
         + axisID.getExtension() + extension);
     return file;
+  }
+  
+  public static boolean isAprilFools() {
+    return new Date().toString().indexOf("Apr 1") != -1;
   }
 
   public static File getFile(String propertyUserDir, String filename) {

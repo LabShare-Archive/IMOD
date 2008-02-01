@@ -23,6 +23,7 @@ import etomo.type.DialogType;
 import etomo.type.ParallelMetaData;
 import etomo.type.ProcessName;
 import etomo.type.Run3dmodMenuOptions;
+import etomo.util.Utilities;
 
 /**
  * <p>Description: </p>
@@ -38,6 +39,11 @@ import etomo.type.Run3dmodMenuOptions;
  * @version $Revision$
  * 
  * <p> $Log$
+ * <p> Revision 1.6  2007/12/10 22:41:01  sueh
+ * <p> bug# 1041 Passing the ProcessName to processchunks instead of setting it in
+ * <p> getParameters because it is required and has been added to the
+ * <p> ProcesschunksParam constructor.
+ * <p>
  * <p> Revision 1.5  2007/11/14 23:47:26  sueh
  * <p> bug# 1047 Formatted.
  * <p>
@@ -186,7 +192,14 @@ public final class AnisotropicDiffusionDialog implements ContextMenu,
     this.manager = manager;
     //root
     rootPanel.setBoxLayout(BoxLayout.X_AXIS);
-    rootPanel.setBorder(new BeveledBorder("Anisotropic Diffusion").getBorder());
+    if (Utilities.isAprilFools()) {
+      rootPanel
+          .setBorder(new BeveledBorder("Anisotropic Delusion").getBorder());
+    }
+    else {
+      rootPanel.setBorder(new BeveledBorder("Anisotropic Diffusion")
+          .getBorder());
+    }
     rootPanel.setComponentAlignmentX(Component.CENTER_ALIGNMENT);
     //first column
     SpacedPanel pnlFirst = new SpacedPanel();
