@@ -11,6 +11,9 @@
  * @version $Revision$
  *
  * <p> $Log$
+ * <p> Revision 3.27  2008/01/28 22:55:34  sueh
+ * <p> bug# 1071 In getCommandMode returning commandMode instead of null.  Added toString to Mode.
+ * <p>
  * <p> Revision 3.26  2007/12/13 01:06:36  sueh
  * <p> bug# 1056 Added adjustOrigin.  Merged ConstTiltParam with TiltParam and made
  * <p> ConstTiltParam an interface.
@@ -171,6 +174,7 @@ import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Hashtable;
 
+
 import etomo.ApplicationManager;
 import etomo.type.AxisID;
 import etomo.type.ConstEtomoNumber;
@@ -180,11 +184,13 @@ import etomo.type.EtomoNumber;
 import etomo.type.ProcessName;
 import etomo.type.ScriptParameter;
 import etomo.ui.UIExpertUtilities;
+import etomo.ui.UIHarness;
 import etomo.util.DatasetFiles;
 import etomo.util.Goodframe;
 import etomo.util.InvalidParameterException;
 import etomo.util.MRCHeader;
 import etomo.util.Montagesize;
+import etomo.util.Utilities;
 
 public final class TiltParam implements ConstTiltParam, CommandParam {
   public static final String rcsid = "$Id$";
@@ -1073,7 +1079,7 @@ public final class TiltParam implements ConstTiltParam, CommandParam {
     idxYSubsetStart = 0;
   }
 
-  public void setSubsetStart() throws InvalidParameterException {
+  public boolean setSubsetStart() {
     resetSubsetStart();
     MRCHeader stackHeader = MRCHeader.getInstance(manager, axisID, ".st");
     try {
@@ -1088,7 +1094,28 @@ public final class TiltParam implements ConstTiltParam, CommandParam {
           * setImageBinned().getLong()) / 2);
     }
     catch (IOException e) {
+      e.printStackTrace();
+      return true;
     }
+    catch (InvalidParameterException e) {
+      e.printStackTrace();
+      if (Utilities.isAprilFools()) {
+        UIHarness.INSTANCE
+            .openMessageDialog(
+                "A horrible horrible thing happened while I was setting the subset "
+                    + "start in tilt.com.  Your tomogram would have been a disaster.  "
+                    + "But I caught the problem before it ruined your life.\n"
+                    + "Don't bother to thank me.\n" + e.getMessage(),
+                "Just Awful", axisID);
+      }
+      else {
+        UIHarness.INSTANCE.openMessageDialog(
+            "Unable to set subset start in tilt.com.\n" + e.getMessage(),
+            "Setting Tilt.com Failed", axisID);
+      }
+      return false;
+    }
+    return true;
   }
 
   public void setMontageFullImage() {

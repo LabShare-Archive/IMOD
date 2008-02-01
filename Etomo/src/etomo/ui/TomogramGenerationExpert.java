@@ -331,7 +331,9 @@ public final class TomogramGenerationExpert extends ReconUIExpert {
     try {
       tiltParam = comScriptMgr.getTiltParam(axisID);
       tiltParam.setFiducialess(metaData.isFiducialess(axisID));
-      getTiltParams(tiltParam);
+      if (!getTiltParams(tiltParam)) {
+        return null;
+      }
       if (useDefaultRec) {
         String outputFileName;
         if (metaData.getAxisType() == AxisType.SINGLE_AXIS) {
@@ -892,10 +894,10 @@ public final class TomogramGenerationExpert extends ReconUIExpert {
   /**
    * Get the tilt parameters from the requested axis panel
    */
-  private void getTiltParams(TiltParam tiltParam) throws NumberFormatException,
+  private boolean getTiltParams(TiltParam tiltParam) throws NumberFormatException,
       InvalidParameterException, IOException {
     if (dialog == null) {
-      return;
+      return false;
     }
     String badParameter = "";
     try {
@@ -1029,8 +1031,8 @@ public final class TomogramGenerationExpert extends ReconUIExpert {
       if (metaData.getViewType() == ViewType.MONTAGE) {
         tiltParam.setMontageSubsetStart();
       }
-      else {
-        tiltParam.setSubsetStart();
+      else if (!tiltParam.setSubsetStart()) {
+        return false;
       }
     }
     catch (NumberFormatException except) {
@@ -1041,6 +1043,7 @@ public final class TomogramGenerationExpert extends ReconUIExpert {
       e.printStackTrace();
       throw new IOException(badParameter + ":  " + e.getMessage());
     }
+    return true;
   }
 
   private void getMTFFilterParam(MTFFilterParam mtfFilterParam)
@@ -1109,6 +1112,10 @@ public final class TomogramGenerationExpert extends ReconUIExpert {
 }
 /**
  * <p> $Log$
+ * <p> Revision 1.17  2008/01/25 22:29:34  sueh
+ * <p> bug# 1070 Don't use parallel processing unless the cpu.adoc or
+ * <p> IMOD_PROCESSORS has been set by the user.
+ * <p>
  * <p> Revision 1.16  2007/12/13 01:14:00  sueh
  * <p> bug# 1056 Removed the Storables inner class from TiltParam.
  * <p>
