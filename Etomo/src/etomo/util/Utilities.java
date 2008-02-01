@@ -12,6 +12,9 @@
  * @version $$Revision$
  *
  * <p> $$Log$
+ * <p> $Revision 3.55  2008/02/01 01:37:41  sueh
+ * <p> $bug# 1075 Easter egg.
+ * <p> $
  * <p> $Revision 3.54  2007/12/26 22:42:14  sueh
  * <p> $bug# 1052 Moved argument handling from EtomoDirector to a separate class.
  * <p> $
@@ -350,7 +353,7 @@ public class Utilities {
   }
   
   public static boolean isAprilFools() {
-    return new Date().toString().indexOf("Apr 1") != -1;
+    return new Date().toString().indexOf("Apr 1 ") != -1;
   }
 
   public static File getFile(String propertyUserDir, String filename) {
