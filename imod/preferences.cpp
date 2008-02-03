@@ -112,6 +112,7 @@ ImodPreferences::ImodPreferences(char *cmdLineStyle)
   prefs->hotSliderKeyDflt = 0;
   prefs->hotSliderFlagDflt = HOT_SLIDER_KEYUP;
   prefs->mouseMappingDflt = 0;
+  prefs->modvSwapLeftMidDflt = false;
   prefs->silentBeepDflt = false;
   prefs->classicSlicerDflt = false;
   prefs->tooltipsOnDflt = true;
@@ -161,6 +162,9 @@ ImodPreferences::ImodPreferences(char *cmdLineStyle)
   prefs->mouseMapping = settings->readNumEntry(IMOD_NAME"mouseMapping",
                                             prefs->mouseMappingDflt,
                                             &prefs->mouseMappingChgd);
+  prefs->modvSwapLeftMid = settings->readBoolEntry(IMOD_NAME"modvSwapLeftMid",
+                                                 prefs->modvSwapLeftMidDflt,
+                                                 &prefs->modvSwapLeftMidChgd);
   prefs->silentBeep = settings->readBoolEntry(IMOD_NAME"silentBeep",
                                             prefs->silentBeepDflt,
                                             &prefs->silentBeepChgd);
@@ -472,6 +476,8 @@ void ImodPreferences::saveSettings(int modvAlone)
     settings->writeEntry(IMOD_NAME"hotSliderFlag", prefs->hotSliderFlag);
   if (prefs->mouseMappingChgd)
     settings->writeEntry(IMOD_NAME"mouseMapping", prefs->mouseMapping);
+  if (prefs->modvSwapLeftMidChgd)
+    settings->writeEntry(IMOD_NAME"modvSwapLeftMid", prefs->modvSwapLeftMid);
   if (prefs->silentBeepChgd)
     settings->writeEntry(IMOD_NAME"silentBeep", prefs->silentBeep);
   if (prefs->classicSlicerChgd)
@@ -629,6 +635,8 @@ void ImodPreferences::donePressed()
   curp->hotSliderKeyChgd |= newp->hotSliderKey != oldp->hotSliderKey;
   curp->hotSliderFlagChgd |= newp->hotSliderFlag != oldp->hotSliderFlag;
   curp->mouseMappingChgd |= newp->mouseMapping != oldp->mouseMapping;
+  curp->modvSwapLeftMidChgd |= !equiv(newp->modvSwapLeftMid, 
+                                      oldp->modvSwapLeftMid);
   curp->silentBeepChgd |= !equiv(newp->silentBeep, oldp->silentBeep);
   curp->classicSlicerChgd |= !equiv(newp->classicSlicer, oldp->classicSlicer);
   if (!equiv(newp->tooltipsOn, oldp->tooltipsOn)) {
@@ -760,6 +768,7 @@ void ImodPreferences::defaultPressed()
     prefs->hotSliderKey = prefs->hotSliderKeyDflt;    
     prefs->hotSliderFlag = prefs->hotSliderFlagDflt;
     prefs->mouseMapping = prefs->mouseMappingDflt;
+    prefs->modvSwapLeftMid = prefs->modvSwapLeftMidDflt;
     mMouseForm->update();
     break;
   }
@@ -894,6 +903,15 @@ int ImodPreferences::actualButton(int logicalButton)
   mapping = mCurrentPrefs.mouseMapping;
   index = (mapping + (1 - 2 * (mapping / 3)) * (logicalButton - 1)) % 3;
   return qtButtons[index];
+}
+
+// Return code for actual button in model view
+int ImodPreferences::actualModvButton(int logicalButton)
+{
+  int qtButtons[3] = {Qt::LeftButton, Qt::MidButton, Qt::RightButton};
+  if (logicalButton < 3 && mCurrentPrefs.modvSwapLeftMid)
+    logicalButton = 3 - logicalButton;
+  return qtButtons[logicalButton - 1];
 }
 
 QString ImodPreferences::autosaveDir()
@@ -1136,6 +1154,9 @@ bool ImodPreferences::classicWarned()
 
 /*
 $Log$
+Revision 1.29  2008/01/25 20:22:58  mast
+Changes for new scale bar
+
 Revision 1.28  2008/01/13 22:58:35  mast
 Changes for multi-Z window
 

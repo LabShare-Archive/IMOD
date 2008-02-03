@@ -53,6 +53,9 @@ typedef struct imod_pref_struct
   int mouseMapping;          // Code for assignment of mouse keys
   int mouseMappingDflt;
   bool mouseMappingChgd;
+  bool modvSwapLeftMid;    // Swap left and middle in model view
+  bool modvSwapLeftMidDflt;
+  bool modvSwapLeftMidChgd;
   bool silentBeep;         // Silence the alarm in wprint
   bool silentBeepDflt;
   bool silentBeepChgd;
@@ -148,6 +151,7 @@ class ImodPreferences : public QObject
   bool classicSlicer() {return mCurrentPrefs.classicSlicer;};
   bool classicWarned();
   int actualButton(int logicalButton);
+  int actualModvButton(int logicalButton);
   QString autosaveDir();
   int autosaveSec();
   ImodPrefStruct *getDialogPrefs() {return &mDialogPrefs;};
@@ -221,6 +225,9 @@ extern ImodPreferences *ImodPrefs;
 
 /*
 $Log$
+Revision 1.16  2008/01/25 20:22:58  mast
+Changes for new scale bar
+
 Revision 1.15  2008/01/13 22:58:35  mast
 Changes for multi-Z window
 
