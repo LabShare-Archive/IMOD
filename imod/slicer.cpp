@@ -1143,23 +1143,9 @@ void slicerMouseMove(SlicerStruct *ss, QMouseEvent *event)
     } else {
 
       // Button 3 shifted, rotate around Z view axis
-      xcen = ss->winx / 2;
-      ycen = ss->winy / 2;
-      delx = lastmx - xcen;
-      dely = ss->winy - 1 - lastmy - ycen;
-      if (fabs(delx) > delCrit || fabs(dely) > delCrit) {
-        startang = atan2(dely, delx) / RADIANS_PER_DEGREE;
-        delx = event->x() - xcen;
-        dely = ss->winy - 1 - event->y() - ycen;
-        if (fabs(delx) > delCrit || fabs(dely) > delCrit) {
-          endang = atan2(dely, delx) / RADIANS_PER_DEGREE;
-          drot = endang - startang;
-          if (drot < -360.)
-            drot += 360.;
-          if (drot > 360.)
-            drot -= 360.;
-        }
-      }
+      drot = utilMouseZaxisRotation(ss->winx, event->x(), lastmx,
+                                    ss->winy, event->y(), lastmy);
+
     }
     if (dx <= -0.1 || dx >= 0.1 || dy <= -0.1 || dy >= 0.1 || 
         fabs(drot) >= 0.1) {
@@ -2588,6 +2574,9 @@ void slicerCubePaint(SlicerStruct *ss)
 
 /*
 $Log$
+Revision 4.55  2008/01/25 20:22:58  mast
+Changes for new scale bar
+
 Revision 4.54  2007/12/04 18:43:24  mast
 Changes for stippling and using new util functions
 
