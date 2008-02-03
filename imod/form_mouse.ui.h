@@ -22,6 +22,7 @@ void MouseForm::update()
     diaSetGroup(hotKeyGroup, mPrefs->hotSliderKey);
     diaSetGroup(activeGroup, mPrefs->hotSliderFlag);
     diaSetGroup(mouseGroup, mPrefs->mouseMapping);
+    diaSetChecked(swapModvCheckBox, mPrefs->modvSwapLeftMid);
 }
 
 // record changes in the buttons
@@ -38,4 +39,9 @@ void MouseForm::keyChanged( int value )
 void MouseForm::mappingChanged( int value )
 {
     mPrefs->mouseMapping = value;
+}
+
+void MouseForm::swapToggled( bool state )
+{
+  mPrefs->modvSwapLeftMid = state;
 }

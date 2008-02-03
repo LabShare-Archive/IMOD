@@ -1,4 +1,4 @@
-<!DOCTYPE UI><UI version="3.0" stdsetdef="1">
+<!DOCTYPE UI><UI version="3.3" stdsetdef="1">
 <class>MouseForm</class>
 <widget class="QWidget">
     <property name="name">
@@ -8,8 +8,8 @@
         <rect>
             <x>0</x>
             <y>0</y>
-            <width>273</width>
-            <height>424</height>
+            <width>329</width>
+            <height>550</height>
         </rect>
     </property>
     <property name="caption">
@@ -27,17 +27,11 @@
         </property>
         <widget class="QLayoutWidget">
             <property name="name">
-                <cstring>Layout29</cstring>
+                <cstring>layout3</cstring>
             </property>
             <vbox>
                 <property name="name">
                     <cstring>unnamed</cstring>
-                </property>
-                <property name="margin">
-                    <number>0</number>
-                </property>
-                <property name="spacing">
-                    <number>6</number>
                 </property>
                 <widget class="QGroupBox">
                     <property name="name">
@@ -313,6 +307,17 @@ Third = movie down, modify point)</string>
                         </spacer>
                     </hbox>
                 </widget>
+                <widget class="QCheckBox">
+                    <property name="name">
+                        <cstring>swapModvCheckBox</cstring>
+                    </property>
+                    <property name="text">
+                        <string>Swap left and middle in Model View</string>
+                    </property>
+                    <property name="toolTip" stdset="0">
+                        <string>Use left for rotation and middle for shift in model view window</string>
+                    </property>
+                </widget>
             </vbox>
         </widget>
         <spacer>
@@ -328,7 +333,7 @@ Third = movie down, modify point)</string>
             <property name="sizeHint">
                 <size>
                     <width>16</width>
-                    <height>0</height>
+                    <height>16</height>
                 </size>
             </property>
         </spacer>
@@ -353,6 +358,12 @@ Third = movie down, modify point)</string>
         <receiver>MouseForm</receiver>
         <slot>mappingChanged(int)</slot>
     </connection>
+    <connection>
+        <sender>swapModvCheckBox</sender>
+        <signal>toggled(bool)</signal>
+        <receiver>MouseForm</receiver>
+        <slot>swapToggled(bool)</slot>
+    </connection>
 </connections>
 <includes>
     <include location="local" impldecl="in implementation">imodconfig.h</include>
@@ -372,6 +383,7 @@ Third = movie down, modify point)</string>
     <slot>flagChanged( int value )</slot>
     <slot>keyChanged( int value )</slot>
     <slot>mappingChanged( int value )</slot>
+    <slot>swapToggled( bool state )</slot>
 </slots>
 <pixmapinproject/>
 <layoutdefaults spacing="6" margin="11"/>
