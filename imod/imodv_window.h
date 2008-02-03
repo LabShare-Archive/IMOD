@@ -84,6 +84,7 @@ protected:
   void mousePressEvent(QMouseEvent * e );
   void mouseReleaseEvent ( QMouseEvent * e );
   void mouseMoveEvent ( QMouseEvent * e );
+  void wheelEvent ( QWheelEvent * e);
 
  private:
   bool mMousePressed;
@@ -94,6 +95,9 @@ protected:
 /*
 
 $Log$
+Revision 4.5  2008/01/25 20:22:58  mast
+Changes for new scale bar
+
 Revision 4.4  2007/11/10 15:04:51  mast
 Fix screwed up comment
 

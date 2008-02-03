@@ -294,8 +294,20 @@ void ImodvGL::mouseMoveEvent ( QMouseEvent * e )
     imodvMouseMove(e);
 }
 
+void ImodvGL::wheelEvent ( QWheelEvent * e)
+{
+  double power = -e->delta() / 120.;
+  double zoom = pow(1.05, power);
+  imodv_zoomd(Imodv, zoom);
+  imodvDraw(Imodv);
+}
+
 /*
+
 $Log$
+Revision 4.14  2008/01/25 20:22:58  mast
+Changes for new scale bar
+
 Revision 4.13  2007/11/10 04:07:10  mast
 Changes for setting snapshot directory
 
