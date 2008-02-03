@@ -135,6 +135,35 @@ void utilClearWindow(int index)
   glClear(GL_COLOR_BUFFER_BIT);
 }
 
+/*
+ * Compute a Z rotation in plane from mouse movement around center
+ */
+float utilMouseZaxisRotation(int winx, int mx, int lastmx, int winy, int my,
+                             int lastmy)
+{
+  float drot = 0.;
+  float delCrit = 20.;
+  double delx, dely, startang, endang;
+  int xcen, ycen;
+  xcen = winx / 2;
+  ycen = winy / 2;
+  delx = lastmx - xcen;
+  dely = winy - 1 - lastmy - ycen;
+  if (fabs(delx) > delCrit || fabs(dely) > delCrit) {
+    startang = atan2(dely, delx) / RADIANS_PER_DEGREE;
+    delx = mx - xcen;
+    dely = winy - 1 - my - ycen;
+    if (fabs(delx) > delCrit || fabs(dely) > delCrit) {
+      endang = atan2(dely, delx) / RADIANS_PER_DEGREE;
+      drot = endang - startang;
+      if (drot < -360.)
+        drot += 360.;
+      if (drot > 360.)
+        drot -= 360.;
+    }
+  }
+  return drot;
+}
 
 /* Appends either the model or file name to the window name, giving
    first priority to the model name if "modelFirst" is set */
@@ -321,6 +350,9 @@ int imodColorValue(int inColor)
 /*
 
 $Log$
+Revision 1.2  2008/01/13 22:26:13  mast
+Added clearing function
+
 Revision 1.1  2007/12/04 18:41:51  mast
 Added to get common functions out of xzap.cpp and imod.cpp
 
