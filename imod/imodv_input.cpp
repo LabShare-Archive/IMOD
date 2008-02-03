@@ -53,7 +53,7 @@ static void imodv_translated(ImodvApp *a, int x, int y, int z);
 static void imodvSelect(ImodvApp *a, bool moving);
 static void imodv_translated(ImodvApp *a, int x, int y, int z);
 static void imodv_compute_rotation(ImodvApp *a, float x, float y, float z);
-static void imodv_rotate(ImodvApp *a, int throwFlag);
+static void imodv_rotate(ImodvApp *a, int throwFlag, int rightWasDown);
 static int  imodvStepTime(ImodvApp *a, int tstep);
 static void processHits (ImodvApp *a, GLint hits, GLuint buffer[], 
                          bool moving);
@@ -457,62 +457,66 @@ void imodvKeyRelease(QKeyEvent *event)
   }
 }
 
+// Mouse press: start keeping track of movements
 void imodvMousePress(QMouseEvent *event)
 {
   ImodvApp *a = Imodv;
 
   // Use state after in press and release to keep track of mouse state
-  leftDown = event->stateAfter() & Qt::LeftButton;
-  midDown = event->stateAfter() & Qt::MidButton;
-  rightDown = event->stateAfter() & Qt::RightButton;
+  leftDown = event->stateAfter() & ImodPrefs->actualModvButton(1);
+  midDown = event->stateAfter() & ImodPrefs->actualModvButton(2);
+  rightDown = event->stateAfter() & ImodPrefs->actualModvButton(3);
 
   // Set flag for any operation that needs to do something only on first move
   firstMove = 1;
 
-  switch(event->button()){
-  case Qt::LeftButton:
-    leftDown = Qt::LeftButton;
+  if (event->button() == ImodPrefs->actualModvButton(1)) {
+    leftDown = ImodPrefs->actualModvButton(1);
     a->lmx = event->x();
     a->lmy = event->y();
     b2x = -10;
     b2y = -10;
     /* DNM: why draw here? */
     /* imodvDraw(a); */
-    break;
-  case Qt::MidButton:
+
+  } else if (event->button() == ImodPrefs->actualModvButton(2) ||
+             (event->button() == ImodPrefs->actualModvButton(3) && 
+              (event->state() & Qt::ShiftButton))) {
     b2x = a->lmx = event->x();
     b2y = a->lmy = event->y();
     /* DNM: why draw here? */
     /* imodvDraw(a); */
-    break;
 
-  case Qt::RightButton:
+  } else if (event->button() == ImodPrefs->actualModvButton(3)) {
     imodvSelect(a, false);
-    break;
   }
 }
 
+// Mouse release: check for throwing
 void imodvMouseRelease(QMouseEvent *event)
 {
   ImodvApp *a = Imodv;
+  int rightWasDown = event->button() & ImodPrefs->actualModvButton(3);
 
-  leftDown = event->stateAfter() & Qt::LeftButton;
-  midDown = event->stateAfter() & Qt::MidButton;
-  rightDown = event->stateAfter() & Qt::RightButton;
-  if ((event->button() & Qt::MidButton) && 
-      !(event->state() & Qt::ShiftButton))
-    imodv_rotate(a, 1);
+  leftDown = event->stateAfter() & ImodPrefs->actualModvButton(1);
+  midDown = event->stateAfter() & ImodPrefs->actualModvButton(2);
+  rightDown = event->stateAfter() & ImodPrefs->actualModvButton(3);
+  if (((event->button() & ImodPrefs->actualModvButton(2)) && 
+      !(event->state() & Qt::ShiftButton)) || 
+      (rightWasDown && (event->state() & Qt::ShiftButton)))
+    imodv_rotate(a, 1, rightWasDown);
 }
 
-
+// Mouse movement with button down
 void imodvMouseMove(QMouseEvent *event)
 {
   ImodvApp *a = Imodv;
 
   // Use state in mouse move to keep track of button down
-  leftDown = event->state() & Qt::LeftButton;
-  midDown = event->state() & Qt::MidButton;
-  rightDown = event->state() & Qt::RightButton;
+  leftDown = event->state() & ImodPrefs->actualModvButton(1);
+  midDown = event->state() & ImodPrefs->actualModvButton(2);
+  rightDown = event->state() & ImodPrefs->actualModvButton(3);
+
   if (leftDown){
     if (!(event->state() & Qt::ShiftButton))
       /*   DNM: disable this */
@@ -520,13 +524,11 @@ void imodvMouseMove(QMouseEvent *event)
                    else */
       imodv_translate(a, event->x(), event->y());
   }
-  if (midDown){
-    if (event->state() & Qt::ShiftButton)
+  if (midDown && (event->state() & Qt::ShiftButton))
       imodv_light_move(a);
-    else 
-      imodv_rotate(a, 0);
-  }
-  if (rightDown && (event->state() & Qt::ControlButton))
+  else if (midDown || (rightDown && (event->state() & Qt::ShiftButton)))
+    imodv_rotate(a, 0, rightDown);
+  else if (rightDown && (event->state() & Qt::ControlButton))
     imodvSelect(a, true);
   a->lmx = event->x();
   a->lmy = event->y();
@@ -540,7 +542,7 @@ static void imodv_light_move(ImodvApp *a)
   int mx, my; 
   unsigned int maskr = imodv_query_pointer(a,&mx,&my);
 
-  if ((maskr & Qt::MidButton) && (maskr & Qt::ShiftButton)){
+  if ((maskr & ImodPrefs->actualModvButton(2)) && (maskr & Qt::ShiftButton)) {
     if (firstMove) {
       imodvRegisterModelChg();
       imodvFinishChgUnit();
@@ -568,7 +570,7 @@ static void imodv_translate(ImodvApp *a, int x, int y)
   imodv_translated(a, dx, dy, 0);
 }
 
-
+// Change zoom by a factor
 void imodv_zoomd(ImodvApp *a, double zoom)
 {
   int m;
@@ -595,6 +597,9 @@ static void registerClipPlaneChg(ImodvApp *a)
   }
 }
 
+/*
+ * Translate model or clipping plane
+ */
 static void imodv_translated(ImodvApp *a, int x, int y, int z)
 {
   int mx, my, ip, ipst, ipnd;
@@ -830,9 +835,9 @@ void imodvResolveRotation(Imat *mat, float x, float y, float z)
 #define MIN_SQUARE_TO_THROW 17
 #define SAME_SPEED_DISTANCE 100.
 
-static void imodv_rotate(ImodvApp *a, int throwFlag)
+static void imodv_rotate(ImodvApp *a, int throwFlag, int rightWasDown)
 {
-  int mx, my, idx, idy;
+  int mx, my, idx = 0, idy = 0, idz = 0;
   unsigned int maskr = imodv_query_pointer(a,&mx,&my);
   float dx, dy, angleScale;
 
@@ -853,13 +858,19 @@ static void imodv_rotate(ImodvApp *a, int throwFlag)
         return;
       }
 
-      idx = (int)floor((MOUSE_TO_THROW * dy + 0.5));
-      idy = (int)floor((MOUSE_TO_THROW * dx + 0.5));
-      if (!idx && !idy)
+      // Got to figure out which button it was!
+      if (rightWasDown) {
+        idz = B3DNINT( 10. * utilMouseZaxisRotation(a->winx, mx, b2x, 
+                                                    a->winy, my, b2y));
+      } else {
+        idx = B3DNINT(MOUSE_TO_THROW * dy);
+        idy = B3DNINT(MOUSE_TO_THROW * dx);
+      }
+      if (!idx && !idy && !idz)
         a->movie = 0;
       a->md->xrotm = idx;
       a->md->yrotm = idy;
-      a->md->zrotm = 0;
+      a->md->zrotm = idz;
 
       a->throwFactor = (float)(sqrt((double)(dx * dx + dy * dy)) /
                                SAME_SPEED_DISTANCE);
@@ -871,25 +882,32 @@ static void imodv_rotate(ImodvApp *a, int throwFlag)
   }
        
   /* If the mouse button has been released, don't rotate. */
-  if (!(maskr & Qt::MidButton))
+  if (!(maskr & (ImodPrefs->actualModvButton(2) | 
+                 ImodPrefs->actualModvButton(3))))
     return; 
 
   /* Turn off movie for all rotation axis. DNM add movie flag too */
   a->md->xrotm = a->md->yrotm = a->md->zrotm = 0;
   a->movie = 0;
 
-  /* Get the total x and y movement.  The scale factor will roll the surface
-     of a sphere 0.8 times the size of window's smaller dimension at the same 
-     rate as the mouse */
-  angleScale = 1800. / (3.142 * 0.4 * (a->winx > a->winy ? a->winy : a->winx));
-  dx = (mx - a->lmx);
-  dy = (my - a->lmy);
-  idx = (int)floor(angleScale * dy + 0.5);
-  idy = (int)floor(angleScale * dx + 0.5);
-  if ((!idx) && (!idy))
+  if (midDown) {
+
+    /* Get the total x and y movement.  The scale factor will roll the surface
+       of a sphere 0.8 times the size of window's smaller dimension at the 
+       same rate as the mouse */
+    dx = (mx - a->lmx);
+    dy = (my - a->lmy);
+    angleScale = 1800. / (3.142 * 0.4 * B3DMIN(a->winx, a->winy));
+    idx = B3DNINT(angleScale * dy);
+    idy = B3DNINT(angleScale * dx);
+  } else {
+    idz = B3DNINT( 10. * utilMouseZaxisRotation(a->winx, mx, a->lmx, 
+                                                a->winy, my, a->lmy));
+  }
+  if ((!idx) && (!idy) && !idz)
     return;
      
-  imodv_rotate_model(a, idx, idy, 0);
+  imodv_rotate_model(a, idx, idy, idz);
 
   /* This is uneeded, since the rotate_model has a draw */
   /* imodvDraw(a); */
@@ -1168,6 +1186,9 @@ void imodvMovieTimeout()
 /*
 
 $Log$
+Revision 4.33  2008/01/25 20:22:58  mast
+Changes for new scale bar
+
 Revision 4.32  2008/01/21 17:47:40  mast
 Added include for new listobj module
 
