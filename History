@@ -1,5 +1,8 @@
 IMOD History
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+2/4/08: Fixed findhotpixels if filenames entered with -input & -output 
+(In 3.11).
+
 2/3/08: In Model View, added scroll wheel zoom, option to swap left and middle
 buttons, and ability to rotate model or clipping plane with Shift-Right button.
 
