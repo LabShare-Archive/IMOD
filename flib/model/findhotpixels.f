@@ -11,6 +11,9 @@ c
 c       $Id$
 c       
 c       $Log$
+c       Revision 3.2  2006/10/18 14:41:05  mast
+c       Fixed option line for all those other compilers
+c
 c       Revision 3.1  2006/10/17 22:57:31  mast
 c       Added to package
 c
@@ -60,7 +63,7 @@ c
 c       
       if (PipGetInOutFile('InputFile', 1, 'Name of input image file', filin)
      &    .ne. 0) call exitError('NO INPUT FILE SPECIFIED')
-      if (PipGetInOutFile('InputFile', 2, 'Name of output model file', filout)
+      if (PipGetInOutFile('OutputFile', 2, 'Name of output model file', filout)
      &    .ne. 0) call exitError('NO OUTPUT FILE SPECIFIED')
       if (pipinput) then
         if (PipGetString('HotColumns', colstring) .eq. 0)
