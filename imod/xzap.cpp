@@ -3103,8 +3103,6 @@ void zapPrintInfo(ZapStruct *zap)
   wprint("  trimvol -x %d,%d %s %d,%d %s %d,%d\n", ixl + 1, ixr + 1, 
          flipped ? "-z" : "-y", iyb + 1, iyt + 1, flipped ? "-yz -y" : "-z",
          lowSection, highSection);
-         
-  zapReportRubberband();
 }
 
 /*
@@ -4435,6 +4433,12 @@ static int zapPointVisable(ZapStruct *zap, Ipoint *pnt)
 /*
 
 $Log$
+Revision 4.114  2008/02/05 19:57:47  sueh
+bug# 1065 Added getLowHighSection to get the low and high section numbers
+from the ZaP windows.  Added low and high section numbers to the output from
+zapPrintInfo and zapReportRubberband.  In zapToggleRubberband set the low
+and high section toolbar field state in the ZaP window.
+
 Revision 4.113  2008/01/25 20:22:58  mast
 Changes for new scale bar
 
