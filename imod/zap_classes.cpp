@@ -122,6 +122,30 @@ ZapWindow::ZapWindow(struct zapwin *zap, QString timeLabel, bool panels,
   connect(toggleMapper, SIGNAL(mapped(int)), this, SLOT(toggleClicked(int)));
   for (j = 0; j < NUM_TOOLBUTTONS - NUM_TIMEBUTTONS; j++)
     setupToggleButton(mToolBar, toggleMapper, j);
+  
+  // Selecting sections
+  // Low section
+  mLowSectionButton = new QPushButton("Lo", mToolBar, "low section button");
+  mLowSectionButton->setFocusPolicy(QWidget::NoFocus);
+  connect(mLowSectionButton, SIGNAL(clicked()), this, SLOT(setLowSection()));
+  QToolTip::add(mLowSectionButton, "Low section");
+  // Low section edit box
+  mLowSectionEdit = new ToolEdit(mToolBar, 4, "low section edit box");
+  mLowSectionEdit->setFocusPolicy(QWidget::ClickFocus);
+  mLowSectionEdit->setAlignment(Qt::AlignRight);
+  QToolTip::add(mLowSectionEdit, "Enter low section");
+  // High section
+  mHighSectionButton = new QPushButton("Hi", mToolBar, "high section button");
+  mHighSectionButton->setFocusPolicy(QWidget::NoFocus);
+  connect(mHighSectionButton, SIGNAL(clicked()), this, SLOT(setHighSection()));
+  QToolTip::add(mHighSectionButton, "High section");
+  // High section edit box
+  mHighSectionEdit = new ToolEdit(mToolBar, 4, "high section edit box");
+  mHighSectionEdit->setFocusPolicy(QWidget::ClickFocus);
+  mHighSectionEdit->setAlignment(Qt::AlignRight);
+  QToolTip::add(mHighSectionEdit, "Enter high section");
+  // Hide select Z until rubberband is selected
+  setLowHighSectionState(0);
 
   // Section slider
   QLabel *label = new QLabel("Z", mToolBar);
@@ -164,7 +188,7 @@ ZapWindow::ZapWindow(struct zapwin *zap, QString timeLabel, bool panels,
   connect(mHelpButton, SIGNAL(clicked()), this, SLOT(help()));
   QToolTip::add(mHelpButton, "Open help window");
   setFontDependentWidths();
-
+  
   // Optional section if time enabled
   if (!timeLabel.isEmpty()) {
     mToolBar2 = new HotToolBar(this, "time toolbar");
@@ -200,6 +224,7 @@ ZapWindow::ZapWindow(struct zapwin *zap, QString timeLabel, bool panels,
     // TODO: THIS NEEDS TO BE PARAMETERIZED OR SAFEGUARDED
     mToggleButs[3]->hide();
     mToggleButs[4]->hide();
+    setLowHighSectionState(0);
     mPanelBar =  new HotToolBar(this, "panel toolbar");
     mColumnSpin = diaLabeledSpin(0, 1, MULTIZ_MAX_PANELS, 1, "# X", mPanelBar,
                           NULL);
@@ -274,6 +299,12 @@ void ZapWindow::setFontDependentWidths()
     mInfoButton->setFixedWidth
     (10 + diaGetButtonWidth(this, ImodPrefs->getRoundedStyle(), 1., "I"));
   diaSetButtonWidth(mHelpButton, ImodPrefs->getRoundedStyle(), 1.2, "Help");
+  if (mLowSectionButton)
+    mLowSectionButton->setFixedWidth
+    (8 + diaGetButtonWidth(this, ImodPrefs->getRoundedStyle(), 1., "Lo"));
+  if (mHighSectionButton)
+    mHighSectionButton->setFixedWidth
+    (8 + diaGetButtonWidth(this, ImodPrefs->getRoundedStyle(), 1., "Hi"));
   // Unable to affect sizes of panel bar spin boxes in Windows...
 }
 
@@ -375,6 +406,22 @@ void ZapWindow::toggleClicked(int index)
   zapStateToggled(mZap, index, state);
 }
 
+void ZapWindow::setLowHighSectionState(int rubberbandSelected)
+{
+  if (rubberbandSelected == 0 || mToggleButs[4]->isHidden()) {
+    mLowSectionButton->hide();
+    mLowSectionEdit->hide();
+    mHighSectionButton->hide();
+    mHighSectionEdit->hide();
+  }
+  else {
+    mLowSectionButton->show();
+    mLowSectionEdit->show();
+    mHighSectionButton->show();
+    mHighSectionEdit->show();
+  }
+}
+
 // This allows zap to set one of the buttons
 void ZapWindow::setToggleState(int index, int state)
 {
@@ -442,6 +489,30 @@ void ZapWindow::zStepChanged(int value)
   setFocus();
   mZap->panelZstep = value;
   mGLw->updateGL();
+}
+
+QString ZapWindow::lowSection()
+{
+  return mLowSectionEdit->text();
+}
+
+QString ZapWindow::highSection()
+{
+  return mHighSectionEdit->text();
+}
+
+void ZapWindow::setLowSection()
+{
+  QString str;
+  str.sprintf("%d", mZap->section + 1);
+  mLowSectionEdit->setText(str);
+}
+
+void ZapWindow::setHighSection()
+{
+  QString str;
+  str.sprintf("%d", mZap->section + 1);
+  mHighSectionEdit->setText(str);
 }
 
 void ZapWindow::drawCenterToggled(bool state)
@@ -550,6 +621,9 @@ void ZapGL::leaveEvent ( QEvent * e)
 
 /*
 $Log$
+Revision 4.27  2008/01/13 22:58:35  mast
+Changes for multi-Z window
+
 Revision 4.26  2008/01/11 18:15:04  mast
 Took out message for wheel event
 
