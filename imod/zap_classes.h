@@ -61,6 +61,9 @@ class ZapWindow : public QMainWindow
   void setMaxZ(int maxZ);
   void setTimeLabel(QString label);
   void setSizeText(int winx, int winy);
+  void setLowHighSectionState(int state);
+  QString lowSection();
+  QString highSection();
 
   ZapGL *mGLw;
   HotToolBar *mToolBar;
@@ -88,6 +91,8 @@ class ZapWindow : public QMainWindow
     void drawOthersToggled(bool state);
     void toolKeyPress(QKeyEvent *e) {keyPressEvent(e);};
     void toolKeyRelease(QKeyEvent *e) {keyReleaseEvent(e);};
+    void setLowSection();
+    void setHighSection();
 
  protected:
     void keyPressEvent ( QKeyEvent * e );
@@ -116,6 +121,10 @@ class ZapWindow : public QMainWindow
     QSpinBox *mRowSpin;
     QSpinBox *mColumnSpin;
     QSpinBox *mZstepSpin;
+    QPushButton *mLowSectionButton;
+    ToolEdit *mLowSectionEdit;
+    QPushButton *mHighSectionButton;
+    ToolEdit *mHighSectionEdit;
 };
 
 class ZapGL : public QGLWidget
@@ -149,6 +158,9 @@ protected:
 
 /*
 $Log$
+Revision 4.13  2008/01/13 22:58:35  mast
+Changes for multi-Z window
+
 Revision 4.12  2008/01/11 18:12:55  mast
 Fixed event handlers for wheel, dropped GL handler as not needed
 
