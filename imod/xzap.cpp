@@ -3024,6 +3024,34 @@ static void zapBandMouseToImage(ZapStruct *zap, int ifclip)
                   zap->rbImageX0, zap->rbImageY0, zap->rbImageX1, zap->rbImageY1); */
 }
 
+int getLowHighSection(ZapStruct *zap, int &low, int &high)
+{
+  int lowHighSectionSet = 1;
+  QString lowSection;
+  QString highSection;
+  if (zap->rubberband + zap->startingBand == 0) {
+    lowHighSectionSet = 0;
+    lowSection = QString::number(zap->section + 1);
+    highSection = QString::number(zap->section + 1);
+  }
+  else {
+    lowSection = zap->qtWindow->lowSection();
+    highSection = zap->qtWindow->highSection();
+    if (lowSection.isEmpty() && highSection.isEmpty()) {
+      lowHighSectionSet = 0;
+      lowSection.sprintf("%d", zap->section + 1);
+      highSection.sprintf("%d", zap->section + 1);
+    } else if (lowSection.isEmpty()) {
+      lowSection.setLatin1("1",1);
+    } else if (highSection.isEmpty()) {
+        highSection.sprintf("%d", zap->vi->zsize);
+    }
+  }
+  low = lowSection.toInt();
+  high = highSection.toInt();
+  return lowHighSectionSet;
+}
+
 /*
  * Prints window size and image coordinates in Info Window 
  */
@@ -3065,13 +3093,18 @@ void zapPrintInfo(ZapStruct *zap)
   iyb *= bin;
   ixr = ixr * bin + bin - 1;
   iyt = iyt * bin + bin - 1;
+  int lowSection, highSection;
+  getLowHighSection(zap, lowSection, highSection);
+
   wprint("%senter (%d,%d); offset %d,%d\n", bin > 1 ? "Unbinned c" : "C",
          ixcen + 1, iycen + 1, ixofs, iyofs);
   wprint("%smage size: %d x %d;   To excise:\n", ifpad ? "Padded i" : "I",
          imx, imy);
   wprint("  trimvol -x %d,%d %s %d,%d %s %d,%d\n", ixl + 1, ixr + 1, 
          flipped ? "-z" : "-y", iyb + 1, iyt + 1, flipped ? "-yz -y" : "-z",
-         zap->section + 1, zap->section + 1);
+         lowSection, highSection);
+         
+  zapReportRubberband();
 }
 
 /*
@@ -3207,6 +3240,8 @@ void zapToggleRubberband(ZapStruct *zap)
     zap->shiftingCont = 0;
     /* Eliminated old code for making initial band */
   }
+
+  zap->qtWindow->setLowHighSectionState(zap->rubberband + zap->startingBand);
  
   // 3/6/05: synchronize the toolbar button
   zap->qtWindow->setToggleState(ZAP_TOGGLE_RUBBER, 
@@ -3315,9 +3350,15 @@ void zapReportRubberband()
   iyb *= bin;
   ixr = ixr * bin + bin - 1;
   iyt = iyt * bin + bin - 1;
-  
-  imodPrintStderr("Rubberband: %d %d %d %d\n", ixl + 1, iyb + 1, ixr + 1,
-                  iyt + 1);
+  int lowSection, highSection;
+  if (getLowHighSection(zap, lowSection, highSection)) {
+    imodPrintStderr("Rubberband: %d %d %d %d %d %d\n", ixl + 1, iyb + 1,
+                    ixr + 1, iyt + 1, lowSection, highSection);
+  }
+  else {
+    imodPrintStderr("Rubberband: %d %d %d %d\n", ixl + 1, iyb + 1, ixr + 1,
+                    iyt + 1);
+  }
 }
 
 /*
@@ -4394,6 +4435,9 @@ static int zapPointVisable(ZapStruct *zap, Ipoint *pnt)
 /*
 
 $Log$
+Revision 4.113  2008/01/25 20:22:58  mast
+Changes for new scale bar
+
 Revision 4.112  2008/01/20 17:40:36  mast
 Oops, needed to multiply not divide by 255 for setting ghost color
 
