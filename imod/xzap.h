@@ -134,7 +134,7 @@ void zapEnteredZoom(ZapStruct *zap, float newZoom);
 void zapEnteredSection(ZapStruct *zap, int section);
 void zapStepZoom(ZapStruct *zap, int step);
 void zapStateToggled(ZapStruct *zap, int index, int state);
-void zapPrintInfo(ZapStruct *zap);
+QString zapPrintInfo(ZapStruct *zap, bool toInfoWindow = true);
 void zapStepTime(ZapStruct *zap, int step);
 int zapSetupPanels(ZapStruct *zap);
 void zapReportBiggestMultiZ();
@@ -152,6 +152,9 @@ void zapSetMouseTracking();
 
 /*
 $Log$
+Revision 3.29  2008/01/25 20:22:58  mast
+Changes for new scale bar
+
 Revision 3.28  2008/01/14 19:48:23  mast
 Added function to return mouse image coords to plugin
 
