@@ -2,16 +2,9 @@
  * imod_client_message.h
  *
  *  Original Author: David Mastronarde   email: mast@colorado.edu
+ *  $Id$
+ *  Log at end of file
  */
-
-/*  $Author$
-
-$Date$
-
-$Revision$
-
-Log at end of file
-*/
 
 #ifndef IMOD_CLIENT_MESSAGE_H
 #define IMOD_CLIENT_MESSAGE_H
@@ -57,6 +50,7 @@ class ImodClipboard : public QObject
   unsigned int ourWindowID();
   void startDisconnect();
   int waitForDisconnect();
+  bool disconnectedFromStderr() {return mDisconnected;};
 
   QTimer *mClipTimer;
   QTimer *mClipHackTimer;
@@ -72,6 +66,7 @@ class ImodClipboard : public QObject
   bool mHandling;
   bool mExiting;
   bool mUseStdin;
+  bool mDisconnected;
   QString mSavedClipboard;
 };
 
@@ -93,6 +88,9 @@ class StdinThread : public QThread
 #endif /* IMOD_CLIENT_MESSAGE_H */
 /*
 $Log$
+Revision 3.16  2006/07/03 19:52:21  mast
+Add disconnect methods
+
 Revision 3.15  2006/07/03 04:11:21  mast
 New beadfixer mode message
 

@@ -1,19 +1,11 @@
-/*  IMOD VERSION 2.7.2
- *
+/*  
  *  imod_client_message.c   Used to handle X client messages - 
- *                             now QClipboard changes
+ *                             now QClipboard changes or stdin messages
  *
  *  Original author: David Mastronarde   email: mast@colorado.edu
+ *  $Id$
+ *  Log at end of file
  */
-
-
-/*  $Author$
-
-$Date$
-
-$Revision$
-Log at end of file
-*/
 
 #include <stdio.h>
 #include <stdlib.h>
@@ -71,6 +63,7 @@ ImodClipboard::ImodClipboard(bool useStdin)
   cb->setSelectionMode(false);
   mHandling = false;
   mExiting = false;
+  mDisconnected = false;
   mClipTimer = NULL;
   mClipHackTimer = NULL;
   mStdinTimer = NULL;
@@ -239,6 +232,7 @@ void ImodClipboard::stdinTimeout()
     delete mStdinTimer;
     mStdinTimer = NULL;
     sendResponse(1);
+    mDisconnected = true;
     return;
   }
 
@@ -628,6 +622,9 @@ static int readLine(char *line)
 
 /*
 $Log$
+Revision 4.26  2008/01/13 22:58:35  mast
+Changes for multi-Z window
+
 Revision 4.25  2006/07/03 19:55:29  mast
 Replaced destructor with explicit calls to request a disconnect signal
 from the source of standard input and to wait until thread exits
