@@ -1,5 +1,8 @@
 IMOD History
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+2/6/08: Prevented 3dmod started from eTomo from crashing by writing messages
+(e.g., from modv snapshots) to terminal after eTomo has exited (In 3.11).
+
 2/6/08: In the ZaP windows added section selection to the rubberband
 functionality.
 
