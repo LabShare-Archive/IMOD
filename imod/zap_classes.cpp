@@ -406,13 +406,20 @@ void ZapWindow::toggleClicked(int index)
   zapStateToggled(mZap, index, state);
 }
 
+/*
+ * Shows the low and high section fields and buttons when the rubberbandSelected
+ * parameter is not 0.  Hides them when it is 0.  Resets the fields when hiding
+ * them.
+ */
 void ZapWindow::setLowHighSectionState(int rubberbandSelected)
 {
   if (rubberbandSelected == 0 || mToggleButs[4]->isHidden()) {
     mLowSectionButton->hide();
     mLowSectionEdit->hide();
+    mLowSectionEdit->setText("");
     mHighSectionButton->hide();
     mHighSectionEdit->hide();
+    mHighSectionEdit->setText("");
   }
   else {
     mLowSectionButton->show();
@@ -621,6 +628,10 @@ void ZapGL::leaveEvent ( QEvent * e)
 
 /*
 $Log$
+Revision 4.28  2008/02/05 19:59:06  sueh
+bug# 1065 Added a low section button and edit field and a high section button
+and edit field to the tool bar.  Fields are associated with the rubberband button.
+
 Revision 4.27  2008/01/13 22:58:35  mast
 Changes for multi-Z window
 
