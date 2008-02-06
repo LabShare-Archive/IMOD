@@ -1,5 +1,8 @@
 IMOD History
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+2/6/08: In the ZaP windows added section selection to the rubberband
+functionality.
+
 2/4/08: Fixed findhotpixels if filenames entered with -input & -output 
 (In 3.11).
 
