@@ -103,7 +103,7 @@ static void zapSyncImage(ZapStruct *win);
 static void zapResizeToFit(ZapStruct *zap);
 static void setAreaLimits(ZapStruct *zap);
 static void setControlAndLimits(ZapStruct *zap);
-static void zapToggleRubberband(ZapStruct *zap);
+static void zapToggleRubberband(ZapStruct *zap, bool draw = true);
 static void zapBandImageToMouse(ZapStruct *zap, int ifclip); 
 static void zapBandMouseToImage(ZapStruct *zap, int ifclip);
 static void montageSnapshot(ZapStruct *zap);
@@ -116,6 +116,7 @@ static void setMouseTracking(ZapStruct *zap);
 static void zapFlushImage(ZapStruct *zap);
 static void panelIndexAndCoord(int size, int num, int gutter, int border, 
                                int &pos, int &panelInd);
+static bool getLowHighSection(ZapStruct *zap, int &low, int &high);
 
 static int dragRegisterSize = 10;
 
@@ -258,6 +259,10 @@ void zapDraw_cb(ImodView *vi, void *client, int drawflag)
     return;
   }
 
+  // If the rubberband is enabled and a flip is happening, turn off the
+  // rubberband.
+  if ((zap->rubberband || zap->startingBand) && zap->toolMaxZ != zap->vi->zsize)
+    zapToggleRubberband(zap, false);
   // zapDrawTools(zap);
 
   if (drawflag){
@@ -3024,38 +3029,59 @@ static void zapBandMouseToImage(ZapStruct *zap, int ifclip)
                   zap->rbImageX0, zap->rbImageY0, zap->rbImageX1, zap->rbImageY1); */
 }
 
-int getLowHighSection(ZapStruct *zap, int &low, int &high)
+/*
+ * Return the correct low and high section values from the zap parameter.
+ * Returns true if the rubberband is in use and at least of the two values have
+ * been set.
+ */
+static bool getLowHighSection(ZapStruct *zap, int &lowSection, int &highSection)
 {
-  int lowHighSectionSet = 1;
-  QString lowSection;
-  QString highSection;
+  bool lowHighSectionSet = true;
+  // If rubberband is not enabled, set both ints to the current section
+  // (original functionality) and return false.  This is probably not necessary
+  // because the sections values are reset when the rubberband is turned off.
   if (zap->rubberband + zap->startingBand == 0) {
-    lowHighSectionSet = 0;
-    lowSection = QString::number(zap->section + 1);
-    highSection = QString::number(zap->section + 1);
+    lowHighSectionSet = false;
+    lowSection = zap->section + 1;
+    highSection = zap->section + 1;
   }
   else {
-    lowSection = zap->qtWindow->lowSection();
-    highSection = zap->qtWindow->highSection();
-    if (lowSection.isEmpty() && highSection.isEmpty()) {
-      lowHighSectionSet = 0;
-      lowSection.sprintf("%d", zap->section + 1);
-      highSection.sprintf("%d", zap->section + 1);
-    } else if (lowSection.isEmpty()) {
-      lowSection.setLatin1("1",1);
-    } else if (highSection.isEmpty()) {
-        highSection.sprintf("%d", zap->vi->zsize);
+    QString low = zap->qtWindow->lowSection();
+    QString high = zap->qtWindow->highSection();
+    // If neither of the section values have been set, fall back to the original
+    // functionality and return false.
+    if (low.isEmpty() && high.isEmpty()) {
+      lowHighSectionSet = false;
+      lowSection = zap->section + 1;
+      highSection = zap->section + 1;
+    }
+    else {
+      lowSection = low.toInt();
+      highSection = high.toInt();
+      // If only one of the section values have been set, set the other one to
+      // the max/min.
+      if (low.isEmpty()) {
+        lowSection = 1;
+      } else if (high.isEmpty()) {
+          highSection = zap->vi->zsize;
+      }
     }
   }
-  low = lowSection.toInt();
-  high = highSection.toInt();
+  // LowSection cannot be bigger then highSection.
+  if (lowSection > highSection) {
+    int temp = lowSection;
+    lowSection = highSection;
+    highSection = temp;
+  }
   return lowHighSectionSet;
 }
 
 /*
- * Prints window size and image coordinates in Info Window 
+ * Prints window size and image coordinates in Info Window.  Returns the partial
+ * trimvol command.  Actually printing to Info Window is optional.  The allows
+ * this function to be reused for running trimvol.
  */
-void zapPrintInfo(ZapStruct *zap)
+QString zapPrintInfo(ZapStruct *zap, bool toInfoWindow)
 {
   float xl, xr, yb, yt;
   int ixl, ixr, iyb, iyt, iz;
@@ -3095,14 +3121,25 @@ void zapPrintInfo(ZapStruct *zap)
   iyt = iyt * bin + bin - 1;
   int lowSection, highSection;
   getLowHighSection(zap, lowSection, highSection);
+  if (lowSection < 1 || highSection < 1 || highSection > zap->vi->zsize) {
+    wprint("ERROR: %s is out of range.\n", flipped ? "-y" : "-z");
+    if (!toInfoWindow)
+      return "";
+  }
+  
+  QString trimvol;
+  trimvol.sprintf("  trimvol -x %d,%d %s %d,%d %s %d,%d\n", ixl + 1, ixr + 1, 
+           flipped ? "-z" : "-y", iyb + 1, iyt + 1, flipped ? "-yz -y" : "-z",
+           lowSection, highSection);
 
-  wprint("%senter (%d,%d); offset %d,%d\n", bin > 1 ? "Unbinned c" : "C",
-         ixcen + 1, iycen + 1, ixofs, iyofs);
-  wprint("%smage size: %d x %d;   To excise:\n", ifpad ? "Padded i" : "I",
-         imx, imy);
-  wprint("  trimvol -x %d,%d %s %d,%d %s %d,%d\n", ixl + 1, ixr + 1, 
-         flipped ? "-z" : "-y", iyb + 1, iyt + 1, flipped ? "-yz -y" : "-z",
-         lowSection, highSection);
+  if (toInfoWindow) {
+    wprint("%senter (%d,%d); offset %d,%d\n", bin > 1 ? "Unbinned c" : "C",
+           ixcen + 1, iycen + 1, ixofs, iyofs);
+    wprint("%smage size: %d x %d;   To excise:\n", ifpad ? "Padded i" : "I",
+           imx, imy);
+    wprint(trimvol.latin1());
+  }
+  return trimvol;
 }
 
 /*
@@ -3133,7 +3170,7 @@ static void zapResizeToFit(ZapStruct *zap)
     zap->ytrans = (int)(-(yt + yb - zap->vi->ysize) / 2);
 
     // 3/6/05: turn off through common function to keep synchronized
-    zapToggleRubberband(zap);
+    zapToggleRubberband(zap, false);
   } else {
     /* Otherwise, make window the right size for the image */
     neww = (int)(zap->zoom * zap->vi->xsize + width - zap->winx);
@@ -3225,7 +3262,7 @@ int zapSubsetLimits(ViewInfo *vi, int &ixStart, int &iyStart, int &nxUse,
 /*
  * Toggle the rubber band
  */
-void zapToggleRubberband(ZapStruct *zap)
+void zapToggleRubberband(ZapStruct *zap, bool draw)
 {
   if (zap->rubberband || zap->startingBand) {
     zap->rubberband = 0;
@@ -3245,7 +3282,8 @@ void zapToggleRubberband(ZapStruct *zap)
   zap->qtWindow->setToggleState(ZAP_TOGGLE_RUBBER, 
                                 zap->rubberband + zap->startingBand);
   zapSetCursor(zap, zap->mousemode);
-  zapDraw(zap);
+  if (draw)
+    zapDraw(zap);
 }
 
 /*
@@ -4433,6 +4471,9 @@ static int zapPointVisable(ZapStruct *zap, Ipoint *pnt)
 /*
 
 $Log$
+Revision 4.115  2008/02/05 20:30:00  sueh
+bug# 1065 In zapPrintInfo removed test call to zapReportRubberband.
+
 Revision 4.114  2008/02/05 19:57:47  sueh
 bug# 1065 Added getLowHighSection to get the low and high section numbers
 from the ZaP windows.  Added low and high section numbers to the output from
