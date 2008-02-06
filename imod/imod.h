@@ -128,7 +128,7 @@ int DLL_EX_IM imodColorValue(int inColor);
  * The usage of this function is similar to the usage of the
  * stdio function printf.
  */
-void DLL_EX_IM wprint(char *fmt, ...);
+void DLL_EX_IM wprint(const char *fmt, ...);
 
 /*! Prints an error message with printf-type arguments
    This function will output a message box if [out] is NULL or under Windows;
@@ -162,6 +162,9 @@ int DLL_EX_IM imodShowHelpPage(const char *page);
 
 /*
     $Log$
+    Revision 3.16  2008/01/17 22:33:54  mast
+    Added reason define for plugin update call
+
     Revision 3.15  2008/01/14 19:46:55  mast
     moved toggle flag to public file
 

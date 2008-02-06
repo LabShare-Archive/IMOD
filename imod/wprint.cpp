@@ -20,6 +20,9 @@ $Date$
 $Revision$
 
 $Log$
+Revision 4.6  2004/05/31 23:35:26  mast
+Switched to new standard error functions for all debug and user output
+
 Revision 4.5  2003/10/01 05:02:05  mast
 Need to define as extern C for plugins to use
 
@@ -67,7 +70,7 @@ void wprintWidget(QTextEdit *edit)
 }
 
 /*VARARGS*/
-void wprint(char *fmt, ...)
+void wprint(const char *fmt, ...)
 {
   char msgbuf[1000];
   va_list args;
