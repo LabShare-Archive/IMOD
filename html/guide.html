@@ -117,9 +117,9 @@ file from Fedora Core 4, set up to use an old 24-inch Sony monitor.</p>
 </dl>
 <dl>
   <dd>
-    <p><b>Compatibility packages for Fedora Core 4-6.</b> One or two
+    <p><b>Compatibility packages for Fedora Core 4 or higher.</b> One or two
 packages not in the default installation are needed to run IMOD under
-a fresh installation of FC4 to FC6.&nbsp; If you are running a version
+a fresh installation of FC4 on up.&nbsp; If you are running a version
 of IMOD built under FC4, you
 need compat-libf2c.&nbsp; The reason for this is that the Fortran
 compiler g77 has been
@@ -128,6 +128,18 @@ rely on yet.&nbsp; To install this, use:</p>
   </dd>
   <dd><code>&nbsp; sudo yum install 'compat-libf2c-*'</code><br>
   </dd>
+  <dd>If this does not work, here is a <a
+ href="http://bio3d.colorado.edu/imod/FC78/compat-libf2c-34-3.4.6-7.i386.rpm">
+32-bit rpm</a> and 
+<a
+ href="http://bio3d.colorado.edu/imod/FC78/compat-libf2c-34-3.4.6-7.x86_64.rpm">
+64-bit rpm</a> for FC7, and a <a
+ href="http://bio3d.colorado.edu/imod/FC78/compat-libf2c-34-3.4.6-8.i386.rpm">
+32-bit rpm</a> and 
+<a
+ href="http://bio3d.colorado.edu/imod/FC78/compat-libf2c-34-3.4.6-8.x86_64.rpm">
+64-bit rpm</a> for FC8.
+  </dd> 
   <dd>If a package like this with <code>libg2c.so</code> is not
 available (such as on Suse 10.3), then add the <code>-libg2c</code>
 option to the command line when you install IMOD, and a copy of this
