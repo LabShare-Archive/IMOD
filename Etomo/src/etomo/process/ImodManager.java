@@ -36,6 +36,9 @@ import etomo.util.DatasetFiles;
  * @version $Revision$
  *
  * <p> $Log$
+ * <p> Revision 3.58  2007/12/10 22:14:25  sueh
+ * <p> bug# 1041 Making the preview meta data with BaseMetaData instead of ConstMetaData.
+ * <p>
  * <p> Revision 3.57  2007/11/12 14:55:00  sueh
  * <p> bug# 1047 Added swapYZ to open(String,String[],Run3dmodMenuOptions,String).
  * <p>
@@ -1031,20 +1034,30 @@ public class ImodManager {
     }
   }
 
-  public void disconnect() throws AxisTypeException, IOException {
+  public void disconnect() {
     if (imodMap.size() == 0) {
       return;
     }
     Set set = imodMap.keySet();
     Iterator iterator = set.iterator();
     while (iterator.hasNext()) {
-      Vector vector = getVector((String) iterator.next(), true);
-      int size = vector.size();
-      for (int i = 0; i < size; i++) {
-        ImodState imodState = (ImodState) vector.get(i);
-        if (imodState != null && imodState.isOpen()) {
-          imodState.disconnect();
+      try {
+        Vector vector = getVector((String) iterator.next(), true);
+        int size = vector.size();
+        for (int i = 0; i < size; i++) {
+          try {
+            ImodState imodState = (ImodState) vector.get(i);
+            if (imodState != null && imodState.isOpen()) {
+              imodState.disconnect();
+            }
+          }
+          catch (Throwable e) {
+            e.printStackTrace();
+          }
         }
+      }
+      catch (Throwable e) {
+        e.printStackTrace();
       }
     }
   }
