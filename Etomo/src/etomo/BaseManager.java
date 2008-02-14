@@ -480,13 +480,17 @@ public abstract class BaseManager {
             axisID);
       }
       ImodqtassistProcess.INSTANCE.quit();
-      imodManager.disconnect();
-      return true;
     }
     catch (Throwable e) {
       e.printStackTrace();
-      return true;
     }
+    try {
+      imodManager.disconnect();
+    }
+    catch (Throwable e) {
+      e.printStackTrace();
+    }
+    return true;
   }
 
   private boolean checkUnidentifiedProcess(AxisID axisID) {
@@ -1325,6 +1329,9 @@ public abstract class BaseManager {
 }
 /**
  * <p> $Log$
+ * <p> Revision 1.96  2008/01/31 20:13:40  sueh
+ * <p> bug# 1055 throwing a FileException when LogFile.getInstance fails.
+ * <p>
  * <p> Revision 1.95  2008/01/23 21:06:55  sueh
  * <p> bug# 1064  Added reconnectRunA and B to ApplicationManager.  Can't use the
  * <p> reconnectRun functionality in BaseManager because BaseManager.reconnect is
