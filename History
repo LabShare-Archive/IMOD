@@ -16,7 +16,7 @@ buttons, and ability to rotate model or clipping plane with Shift-Right button.
 
 1/28/08: IMOD_3-12-2 and IMOD_3-11-2 release
 1/28/08: In eTomo, fixed updating of shift and offset values after running
-tomopitch with whole tomogram positioning.
+tomopitch with whole tomogram positioning (In 3.11).
 
 1/28/08: Fixed bug that made program crash if object list window no open.
 
