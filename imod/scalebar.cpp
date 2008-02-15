@@ -48,6 +48,7 @@ void scaleBarOpen()
   }
 
   manager->add((QWidget *)sbDia, type);
+  scaleBarRedraw();
   scaleBarUpdate();
   sbDia->adjustSize();
   sbDia->show();
@@ -172,6 +173,9 @@ void scaleBarRedraw()
 /*
 
 $Log$
+Revision 1.1  2008/01/25 20:22:02  mast
+Added to program
+
 
 
 */
