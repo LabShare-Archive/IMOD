@@ -17,6 +17,9 @@
  * @version $Revision$
  *
  * <p> $Log$
+ * <p> Revision 3.34  2007/05/25 00:24:39  sueh
+ * <p> bug# 994 Added function destroy.
+ * <p>
  * <p> Revision 3.33  2006/06/07 17:47:03  sueh
  * <p> bug# 766 Avoiding null pointer exceptions in run() by checking stdout and
  * <p> stderr.
@@ -282,6 +285,7 @@ public class SystemProgram implements Runnable {
   private final ProcessMessages processMessages;
   private StringBuffer commandLine = null;
   private Process process = null;
+  private boolean collectOutput = true;
 
   /**
    * Creates a SystemProgram object to execute the program specified by the
@@ -567,11 +571,21 @@ public class SystemProgram implements Runnable {
   }
 
   OutputBufferManager newOutputBufferManager(BufferedReader cmdBuffer) {
-    return new OutputBufferManager(cmdBuffer);
+    OutputBufferManager bufferManager = new OutputBufferManager(cmdBuffer);
+    bufferManager.setDebug(debug);
+    bufferManager.setCollectOutput(collectOutput);
+    return bufferManager;
   }
 
   OutputBufferManager newErrorBufferManager(BufferedReader cmdBuffer) {
-    return new OutputBufferManager(cmdBuffer);
+    OutputBufferManager bufferManager = new OutputBufferManager(cmdBuffer);
+    bufferManager.setDebug(debug);
+    bufferManager.setCollectOutput(collectOutput);
+    return bufferManager;
+  }
+  
+  void setCollectOutput(boolean input) {
+    collectOutput = input;
   }
 
   /**
