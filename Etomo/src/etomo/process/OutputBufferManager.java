@@ -3,6 +3,8 @@ package etomo.process;
 import java.io.BufferedReader;
 import java.io.IOException;
 import java.util.ArrayList;
+import java.util.List;
+import java.util.Vector;
 
 import etomo.util.HashedArray;
 
@@ -12,6 +14,8 @@ import etomo.util.HashedArray;
  * 4098442, etc.
  * 
  * Was part of SystemProgram.</p>
+ * 
+ * @ThreadSafe
  * 
  * <p>Copyright: Copyright (c) 2005</p>
  *
@@ -26,8 +30,10 @@ import etomo.util.HashedArray;
 final class OutputBufferManager implements Runnable {
   public static final String rcsid = "$Id$";
 
+  private final List outputList = new Vector();
+
   private final BufferedReader outputReader;
-  private final ArrayList outputList = new ArrayList();
+
   private boolean processDone = false;
   private boolean collectOutput = true;
   private String keyPhrase = null;
@@ -75,22 +81,39 @@ final class OutputBufferManager implements Runnable {
     processDone = state;
   }
 
+  /**
+   * <p>Returns the size of the outputList, or the size of the first listener's
+   * output list if there are multiple listeners.  The function does not clear
+   * the output list.</p>
+   * @return
+   */
   int size() {
     return outputList.size();
   }
 
+  /**
+   * <p>Gets a line from outputList, or a line from the first listener's output
+   * list if there are multiple listeners.</p>
+   * @param index
+   * @return
+   */
   String get(int index) {
+    if (debug) {
+      System.out.println((String) outputList.get(index));
+    }
     return (String) outputList.get(index);
   }
 
   void setDebug(boolean debug) {
     this.debug = debug;
   }
-  
+
   /**
-   * Add the line to the output list.  If the keyPhrase is set, only add the
-   * line if it contains the key phrase.  If the listener list is not empty,
-   * also add a copy of the line to each listener output list.
+   * <p>Add the line param to outputList or, if listenerList is in use, add the
+   * line to all the output lists in listenerList.  Since the first listener
+   * uses the outputList instead of creating a new output list, outputList is
+   * always added to.  If the keyPhrase is set, only add the line if it contains
+   * the key phrase.</p>
    * @param line
    */
   private synchronized void add(String line) {
@@ -98,89 +121,108 @@ final class OutputBufferManager implements Runnable {
       System.out.println(line);
     }
     if (keyPhrase == null || line.indexOf(keyPhrase) != -1) {
-      outputList.add(line);
-      if (listenerList != null) {
+      //Add line to outputList and/or to all listeners; if there are listeners,
+      //of them is using outputList.
+      if (listenerList != null && listenerList.size() > 0) {
         for (int i = 0; i < listenerList.size(); i++) {
-          ((ArrayList) listenerList.get(i)).add(new String(line));
+          ((List) listenerList.get(i)).add(line);
         }
+      }
+      else {
+        outputList.add(line);
       }
     }
   }
 
   /**
-   * Get the current output list.  If collectOutput is false, clear the output
-   * list after is it copied to the string array to be returned.
-   * @throws IllegalStateException if this function is called when the listener
-   * list is not empty and collectOutput is false.  This is because
-   * get(Object listenerKey) destroys the output list when collectOutput is
-   * false.
+   * <p>Get the outputList or get and clear the first listener's output list if
+   * there are multiple listeners.  If collectOutput is false clear outputList.</p>
    * @return
    */
-  final synchronized String[] get() {
-    if (listenerList != null && !collectOutput) {
-      throw new IllegalStateException(
-          "the listener list is active and collectOutput is false");
-    }
+  synchronized String[] get() {
     String[] stringArray = (String[]) outputList.toArray(new String[outputList
         .size()]);
-    //if not collecting output, clear outputList after each get.
-    if (!collectOutput && outputList.size() > 0) {
+    if (!collectOutput) {
       outputList.clear();
     }
     return stringArray;
   }
 
   /**
-   * Get the output list for a listener.  If the listener isn't on the list, add
-   * a new listener output list to the listener list.  Then copy the current
-   * output list to the listener output list.  If the listener is already on the
-   * list, return the listener output list.  If collectOutput is false, clear
-   * the output list.
+   * Clear outputList and all the output lists in listenerList.
+   */
+  synchronized void clear() {
+    outputList.clear();
+    if (listenerList != null) {
+      for (int i = 0; i < listenerList.size(); i++) {
+        ((List) listenerList.get(i)).clear();
+      }
+    }
+  }
+
+  /**
+   * <p>Get the output list in the listenerList with the key equal to the
+   * listenerKey param.  If collectOutput is false clear the output list.</p>
+   * If there is no output list pointed to by listenerKey:
+   * <p>If this is the first listenerKey to be added (or the first since all
+   * listeners where dropped) use outputList as this listenerKey's output list.
+   * If it is not the first add an empty output list.</p>
    * @param listenerKey
    * @return
    */
-  final synchronized String[] get(Object listenerKey) {
-    //get the listenerOutputList
-    ArrayList listenerOutputList = null;
+  synchronized String[] get(Object listenerKey) {
+    //Get the listenerKey's output list or add it if it doesn't exist.
     if (listenerList == null) {
       listenerList = new HashedArray();
     }
-    else {
-      listenerOutputList = (ArrayList) listenerList.get(listenerKey);
-    }
+    List listenerOutputList = (List) listenerList.get(listenerKey);
     if (listenerOutputList == null) {
-      listenerOutputList = new ArrayList();
-      for (int i = 0; i < outputList.size(); i++) {
-        listenerOutputList.add(new String((String) outputList.get(i)));
+      //If the listenerList is empty, then lines where being added to outputList
+      //so use outputList as the listenerOutputList for this listenerKey.
+      listenerOutputList = outputList;
+      if (listenerList.size() == 0) {
+        listenerList.add(listenerKey, outputList);
       }
-      listenerList.add(listenerKey, listenerOutputList);
+      else {
+        //This is not the first listenerKey to be added so the outputList is
+        //already in use.
+        listenerOutputList = new ArrayList();
+        listenerList.add(listenerKey, listenerOutputList);
+        return new String[0];
+      }
     }
-    //create string array to return
-    int listenerOutputListSize = listenerOutputList.size();
+    //Return and clear the output list.
     String[] stringArray = (String[]) listenerOutputList
-        .toArray(new String[listenerOutputListSize]);
-    //if not collecting output, clear outputList and the current
-    //listenerOutputList after each get.
+        .toArray(new String[listenerOutputList.size()]);
     if (!collectOutput) {
-      if (outputList.size() > 0) {
-        outputList.clear();
-      }
-      if (listenerOutputListSize > 0) {
-        listenerOutputList.clear();
-      }
+      listenerOutputList.clear();
     }
     return stringArray;
   }
 
-  final synchronized void drop(Object listenerKey) {
+  /**
+   * Drop a listenerKey from the listenerList.  Clean the listener's output
+   * list.
+   * @param listenerKey
+   */
+  synchronized void dropListener(Object listenerKey) {
     if (listenerList == null) {
       return;
+    }
+    //The listener output list may be the outputList, so clear it before
+    //removing it.
+    List listenerOutputList = (List) listenerList.get(listenerKey);
+    if (listenerOutputList != null) {
+      listenerOutputList.clear();
     }
     listenerList.remove(listenerKey);
   }
 }
 /**
  * <p> $Log$
+ * <p> Revision 1.3  2007/05/26 00:29:24  sueh
+ * <p> bug# 994 Added setDebug().
+ * <p>
  * <p> Revision 1.2  2005/09/14 20:25:39  sueh
  * <p> bug# 532 Added drop() to remove a monitor from the listener list.  It is
  * <p> important for the called to prevent any last-minute gets after the drop() is
