@@ -25,15 +25,19 @@ public class IntermittentSystemProgram {
   private final SystemProgram program;
   private final boolean useStartCommand;
 
+  private boolean debug = false;
+
   private IntermittentSystemProgram(String propertyUserDir, String[] cmdArray,
       AxisID axisID, String outputKeyPhrase, boolean useStartCommand) {
     program = new SystemProgram(propertyUserDir, cmdArray, axisID);
+    program.setCollectOutput(false);
     this.outputKeyPhrase = outputKeyPhrase;
     this.useStartCommand = useStartCommand;
   }
 
-  public static IntermittentSystemProgram getStartInstance(String propertyUserDir,
-      String[] startCmdArray, AxisID axisID, String outputKeyPhrase) {
+  public static IntermittentSystemProgram getStartInstance(
+      String propertyUserDir, String[] startCmdArray, AxisID axisID,
+      String outputKeyPhrase) {
     return new IntermittentSystemProgram(propertyUserDir, startCmdArray,
         axisID, outputKeyPhrase, true);
   }
@@ -50,11 +54,11 @@ public class IntermittentSystemProgram {
   public static IntermittentSystemProgram getIntermittentInstance(
       String propertyUserDir, String intermittentCommand, AxisID axisID,
       String outputKeyPhrase) {
-    
-    return new IntermittentSystemProgram(propertyUserDir, intermittentCommand.split("\\s+"),
-        axisID, outputKeyPhrase, false);
+
+    return new IntermittentSystemProgram(propertyUserDir, intermittentCommand
+        .split("\\s+"), axisID, outputKeyPhrase, false);
   }
-  
+
   boolean useStartCommand() {
     return useStartCommand;
   }
@@ -77,37 +81,37 @@ public class IntermittentSystemProgram {
    * by running stderr.get();
    */
   void clearStdError() {
-    program.stderr.get();
+    program.stderr.clear();
   }
-  
+
   public boolean isDone() {
     return program.isDone();
   }
-  
+
   public boolean isStarted() {
     return program.isStarted();
   }
-  
+
   void destroy() {
     program.destroy();
   }
-  
+
   public String[] getStdError() {
     return program.getStdError();
   }
-  
+
   void setAcceptInputWhileRunning(boolean acceptInputWhileRunning) {
     program.setAcceptInputWhileRunning(acceptInputWhileRunning);
   }
-  
+
   public void setCurrentStdInput(String input) throws IOException {
     program.setCurrentStdInput(input);
   }
-  
+
   void start() {
     new Thread(program).start();
   }
-  
+
   public void setDebug(boolean state) {
     program.setDebug(state);
   }
@@ -140,12 +144,18 @@ public class IntermittentSystemProgram {
 
   public void msgDroppedMonitor(IntermittentProcessMonitor monitor) {
     if (program.stdout != null) {
-      program.stdout.drop(monitor);
+      program.stdout.dropListener(monitor);
     }
   }
 }
 /**
  * <p> $Log$
+ * <p> Revision 1.17  2007/09/27 20:19:54  sueh
+ * <p> bug# 1044 Changed IntermittentSystemProgram to have the option of not
+ * <p> running a start command.  It this case, this intermittent command is set that the
+ * <p> instance is run multiple times.  No longer extending SystemProgram as this did
+ * <p> not seem flexible enough.
+ * <p>
  * <p> Revision 1.16  2007/05/26 00:25:58  sueh
  * <p> bug# 964 Removed setDebug call.  It was causing a compile error on
  * <p> ashtray.
