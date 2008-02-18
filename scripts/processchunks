@@ -7,11 +7,16 @@
 #
 
 nohup
+
+# Basic sleep time, and number of machines for each extra second of sleep
+#
+@ sleepsec = 2
+@ numPerExtraSec = 100
+
 set pn = processchunks
 set nice = 18
 @ dropcrit = 5
 @ maxchunkerr = 5
-set sleepsec = 2
 @ timeout = 30
 set queuename = queue
 
@@ -212,6 +217,10 @@ if ($skipprobe == 0 || $justgo == 0) then
     set machines = ($newlist)
 endif
 
+# Set sleep time now that machines are known
+#
+@ sleepsec = $sleepsec + $#machines / $numPerExtraSec
+
 if ($justgo == 0) then
     echo -n "Enter Y to proceed with the current set of machines: "
     set answer = $<
@@ -393,6 +402,7 @@ while ($numdone < $#comlist)
     # Loop on machines, if they have an assignment check if it is done
     #
     @ proc = 0
+    set nochunks = 0
     while ($proc < $#machines)
         @ proc++
         @ ind =$assigned[$proc]
@@ -522,6 +532,7 @@ EOF
                 if ("$errormess" != "") echo "$errormess"
                 set flags[$ind] = 0
                 set assigned[$proc] = 0
+                set nochunks = 0
                 @ failcount = $failed[$name]
                 @ failcount++
                 set failed[$name] = $failcount
@@ -548,18 +559,25 @@ EOF
 
         # If the current machine is unassigned, find next com to do and run it
         # Move current log out of way so non-existence of log can be sign of
-        # nothing having started
+        # nothing having started.  Skip if no chunks are available
         #
         @ num = 0
-        while ($num < $#comlist && $assigned[$proc] == 0 && $dropout == 0)
+        set foundchunks = 0
+        while ($num < $#comlist && $assigned[$proc] == 0 && $dropout == 0 && \
+            $nochunks == 0)
             @ num++
 
             # But if the next com is a sync, record number and break loop
             #
             if ($flags[$num] == -1) then
                 @ nextsync = $num
+                set nochunks = 1
                 break
             endif
+
+            # If any chunks found set that flag
+            #
+            if ($flags[$num] == 0) set foundchunks = 1
 
             # Skip a chunk if it has errored, if this machine has given chunk 
             # error, and not all machines have done so
@@ -596,6 +614,10 @@ EOF
                 endif
             endif
         end 
+
+        # If no chunks were found in that loop set the nochunks flag
+        #
+        if ($foundchunks == 0) set nochunks = 1
     end
 
     if ($numdone > $lastdone) echo $numdone OF $#comlist DONE SO FAR
@@ -630,6 +652,7 @@ EOF
         set flags[$nextsync] = 1
         @ nextsync = $#comlist + 2
         @ numdone++
+        set nochunks = 0
     endif
 
     sleep $sleepsec
@@ -814,6 +837,9 @@ exit 3
 
 #
 #  $Log$
+#  Revision 3.36  2008/01/22 03:49:46  mast
+#  Quoted drop message to step problems from weird messages
+#
 #  Revision 3.35  2008/01/11 05:38:51  mast
 #  Stripped control chars from ssh version sed output
 #
