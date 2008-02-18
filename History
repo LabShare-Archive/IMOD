@@ -23,7 +23,7 @@ buttons, and ability to rotate model or clipping plane with Shift-Right button.
 1/30/08: Fixed Final thickness being used instead of Sample thickness in whole
 tomogram positioning (backtagged into 3.11.2).
 
-1/28/08: IMOD_3-12-2 and IMOD_3-11-2 release
+1/28/08: IMOD_3-12-2 and IMOD_3-11-2 released
 1/28/08: In eTomo, fixed updating of shift and offset values after running
 tomopitch with whole tomogram positioning (In 3.11).
 
