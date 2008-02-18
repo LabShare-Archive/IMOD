@@ -16,6 +16,9 @@ import java.io.File;
 * @version $Revision$
 * 
 * <p> $Log$
+* <p> Revision 1.2  2007/06/05 18:10:04  sueh
+* <p> bug# 1011 Accepting any file that ends in .em.
+* <p>
 * <p> Revision 1.1  2007/03/01 01:14:47  sueh
 * <p> bug# 964 File filter for MOTL files (PEET interface).
 * <p> </p>
@@ -26,13 +29,13 @@ implements java.io.FileFilter {
   
   public boolean accept(File f) {
     //  If this is a file test its extension, all others should return true
-    if (f.isFile() && !f.getAbsolutePath().endsWith(".em")) {
+    if (f.isFile() && !f.getAbsolutePath().endsWith(".em")&& !f.getAbsolutePath().endsWith(".csv")) {
       return false;
     }
     return true;
   }
 
   public String getDescription() {
-    return "MOTL file (.em)";
+    return "MOTL file (.em, .csv)";
   }
 }
