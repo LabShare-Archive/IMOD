@@ -493,7 +493,7 @@ EOF
 
                     # If the ssh file is non empty check for errors there
                     #
-                    set checkcd = `grep 'cd:' $sshname`
+                    set checkcd = `grep 'cd: ' $sshname`
                     set checkdown = `grep 'ssh: connect to host' $sshname`
                     if ("$checkcd" != "" || "$checkdown" != "") then
                         set dropout = 1
@@ -837,6 +837,9 @@ exit 3
 
 #
 #  $Log$
+#  Revision 3.37  2008/02/18 18:53:03  mast
+#  Made it not check for every machine when no more chunks are available
+#
 #  Revision 3.36  2008/01/22 03:49:46  mast
 #  Quoted drop message to step problems from weird messages
 #
