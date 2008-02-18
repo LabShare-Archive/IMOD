@@ -1,5 +1,11 @@
 IMOD History
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+2/18/08: Stopped eTomo from taking up increasing memory and CPU time up to
+100% if the parallel processing screen is left open for hours (In 3.11).
+
+2/18/08: Kept processchunks from using lots of CPU time when there are many
+"machines" and many chunks (In 3.11).
+
 2/6/08: Prevented 3dmod started from eTomo from crashing by writing messages
 (e.g., from modv snapshots) to terminal after eTomo has exited (In 3.11).
 
