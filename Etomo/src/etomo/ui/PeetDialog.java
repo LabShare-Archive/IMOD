@@ -53,6 +53,9 @@ import etomo.type.Run3dmodMenuOptions;
  * @version $Revision$
  * 
  * <p> $Log$
+ * <p> Revision 1.55  2007/12/14 21:46:20  sueh
+ * <p> bug# 1060 Changed meanFill to flgMeanFill.
+ * <p>
  * <p> Revision 1.54  2007/12/10 22:45:08  sueh
  * <p> bug# 1041 Passing the ProcessName to processchunks instead of setting it in
  * <p> getParameters because it is required and has been added to the
@@ -356,6 +359,7 @@ public final class PeetDialog implements ContextMenu, AbstractParallelDialog,
   private PeetDialog(final PeetManager manager, final AxisID axisID) {
     this.manager = manager;
     this.axisID = axisID;
+    ftfReferenceFile.setFieldWidth(UIParameters.INSTANCE.getFileWidth());
     phSetup = PanelHeader.getInstance("Setup", this, DIALOG_TYPE);
     phRun = PanelHeader.getAdvancedBasicInstance("Run", this, DIALOG_TYPE);
     volumeTable = VolumeTable.getInstance(manager, this);
