@@ -23,6 +23,9 @@ import javax.swing.JLabel;
  * @version $Revision$
  * 
  * <p> $Log$
+ * <p> Revision 1.7  2007/11/09 17:46:49  sueh
+ * <p> bug# 1047 Added showPartialPath.
+ * <p>
  * <p> Revision 1.6  2007/11/06 19:52:41  sueh
  * <p> bug# 1047 Giving access to the File in the text field.
  * <p>
@@ -76,6 +79,10 @@ final class FileTextField {
 
   static FileTextField getUnlabeledInstance(final String actionCommand) {
     return new FileTextField(actionCommand, false);
+  }
+  
+  void setFieldWidth(final double width) {
+    field.setTextPreferredWidth(width);
   }
 
   /**
