@@ -71,6 +71,12 @@ final class TextField {
   String getText() {
     return textField.getText();
   }
+  
+  void setTextPreferredWidth(final double minWidth) {
+    Dimension prefSize = textField.getPreferredSize();
+    prefSize.setSize(minWidth, prefSize.getHeight());
+    textField.setPreferredSize(prefSize);
+  }
 
   void setSize(Dimension size) {
     textField.setPreferredSize(size);
@@ -101,6 +107,9 @@ final class TextField {
 }
 /**
  * <p> $Log$
+ * <p> Revision 1.5  2007/12/26 22:35:07  sueh
+ * <p> bug# 1052 Moved argument handling from EtomoDirector to a separate class.
+ * <p>
  * <p> Revision 1.4  2007/09/07 00:29:17  sueh
  * <p> bug# 989 Using a public INSTANCE to refer to the EtomoDirector singleton
  * <p> instead of getInstance and createInstance.
