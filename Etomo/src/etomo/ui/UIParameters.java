@@ -12,6 +12,9 @@
  * @version $Revision$
  * 
  * <p> $Log$
+ * <p> Revision 3.18  2007/12/26 22:39:33  sueh
+ * <p> bug# 1052 Moved argument handling from EtomoDirector to a separate class.
+ * <p>
  * <p> Revision 3.17  2007/11/06 20:33:37  sueh
  * <p> bug# 1047 Added getListWidth.
  * <p>
@@ -109,6 +112,7 @@ public final class UIParameters {
   private int integerWidth;
   private int fourDigitWidth = 40;
   private int listWidth;
+  private int fileWidth;
 
   private UIParameters() {
     calcSizes();
@@ -179,6 +183,11 @@ public final class UIParameters {
   int getListWidth() {
     return listWidth;
   }
+  
+  int getFileWidth() {
+    return fileWidth;
+  }
+  
   /**
    * Get the amount to adjust a fields based on the current font size
    * @return
@@ -221,5 +230,6 @@ public final class UIParameters {
     integerWidth=(int)(30*fontSizeAdjustment);
     fourDigitWidth = (int) (40 * fontSizeAdjustment);
     listWidth = (int) (140 * fontSizeAdjustment);
+    fileWidth = (int) (210 * fontSizeAdjustment);
   }
 }
