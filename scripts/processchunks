@@ -280,6 +280,7 @@ end
 # remove logs if not restarting, and run starting file
 #
 @ numdone = 0
+@ firstundone = -1
 if ($retain == 0) then
     \find . -type f -name  "$rootname-[0-9]*.log" -exec rm -f "{}" \;
     set startroot = $rootname-start
@@ -315,8 +316,11 @@ else
                 @ numdone++
             endif
         endif
+        if ($firstundone == -1 && $flags[$num] != 2) @ firstundone = $num
     end 
 endif
+if ($firstundone == -1) @ firstundone = 1
+
 
 # Clean up .ssh and .pid files to avoid confusion
 #
@@ -561,63 +565,67 @@ EOF
         # Move current log out of way so non-existence of log can be sign of
         # nothing having started.  Skip if no chunks are available
         #
-        @ num = 0
-        set foundchunks = 0
-        while ($num < $#comlist && $assigned[$proc] == 0 && $dropout == 0 && \
-            $nochunks == 0)
-            @ num++
+        if ($assigned[$proc] == 0 && $dropout == 0 && $nochunks == 0) then
+            @ num = $firstundone
+            set foundchunks = 0
+            @ undone = -1
+            while ($num <= $#comlist && $assigned[$proc] == 0)
 
-            # But if the next com is a sync, record number and break loop
-            #
-            if ($flags[$num] == -1) then
-                @ nextsync = $num
-                set nochunks = 1
-                break
-            endif
-
-            # If any chunks found set that flag
-            #
-            if ($flags[$num] == 0) set foundchunks = 1
-
-            # Skip a chunk if it has errored, if this machine has given chunk 
-            # error, and not all machines have done so
-            #
-            set chunkok = 1
-            if ($numchunkerr[$num] > 0 && $chunkerred[$name] == 1 && \
-                $chunkerrtot < $#machines) set chunkok = 0
-
-            if ($flags[$num] == 0 && $chunkok == 1) then
-                set assigned[$proc] = $num
-                set flags[$num] = 1
-                set startcount[$proc] = $count
-                set comname = $comlist[$num]
-                set logname = $comname:r.log
-                set cshname = $comname:r.csh
-                set pidname = $comname:r.$pidext
-                set sshname = $comname:r.$sshext
-                set machname = $machines[$proc]
-                if (-e $logname) \mv $logname $logname~
-                if (-e $pidname) \rm -f $pidname
-                echo "Running $comname on $machname ..."
-                if ($queue) then
-                    \echo -n >! $cshname
-                else
-                    \echo "nice +$nice" >! $cshname
+                # But if the next com is a sync, record number and break loop
+                #
+                if ($flags[$num] == -1) then
+                    @ nextsync = $num
+                    set nochunks = 1
+                    break
                 endif
-                vmstocsh $logname < $comname >> $cshname
-                if ($queue) then
-                    $queuecom -w "$curdir" -a R $comname:r
-                else if ("$machname" == $hostroot || "$machname" == localhost) then
-                    csh -ef < $cshname >& $pidname ; \rm -f $cshname &
-                else
-                    ssh -x $sshopts $machname bash --login -c \'"cd $curdir && (csh -ef < $cshname >& $pidname ; \rm -f $cshname)"\' >&! $sshname &
-                endif
-            endif
-        end 
+                if ($undone == -1 && $flags[$num] != 2) @ undone = $num
 
-        # If no chunks were found in that loop set the nochunks flag
-        #
-        if ($foundchunks == 0) set nochunks = 1
+                # If any chunks found set that flag
+                #
+                if ($flags[$num] == 0) set foundchunks = 1
+
+                # Skip a chunk if it has errored, if this machine has given chunk 
+                # error, and not all machines have done so
+                #
+                set chunkok = 1
+                if ($numchunkerr[$num] > 0 && $chunkerred[$name] == 1 && \
+                    $chunkerrtot < $#machines) set chunkok = 0
+
+                if ($flags[$num] == 0 && $chunkok == 1) then
+                    set assigned[$proc] = $num
+                    set flags[$num] = 1
+                    set startcount[$proc] = $count
+                    set comname = $comlist[$num]
+                    set logname = $comname:r.log
+                    set cshname = $comname:r.csh
+                    set pidname = $comname:r.$pidext
+                    set sshname = $comname:r.$sshext
+                    set machname = $machines[$proc]
+                    if (-e $logname) \mv $logname $logname~
+                    if (-e $pidname) \rm -f $pidname
+                    echo "Running $comname on $machname ..."
+                    if ($queue) then
+                        \echo -n >! $cshname
+                    else
+                        \echo "nice +$nice" >! $cshname
+                    endif
+                    vmstocsh $logname < $comname >> $cshname
+                    if ($queue) then
+                        $queuecom -w "$curdir" -a R $comname:r
+                    else if ("$machname" == $hostroot || "$machname" == localhost) then
+                        csh -ef < $cshname >& $pidname ; \rm -f $cshname &
+                    else
+                        ssh -x $sshopts $machname bash --login -c \'"cd $curdir && (csh -ef < $cshname >& $pidname ; \rm -f $cshname)"\' >&! $sshname &
+                    endif
+                endif
+                @ num++
+            end 
+
+            # If no chunks were found in that loop set the nochunks flag
+            #
+            if ($foundchunks == 0) set nochunks = 1
+            if ($undone > $firstundone) @ firstundone = $undone
+        endif
     end
 
     if ($numdone > $lastdone) echo $numdone OF $#comlist DONE SO FAR
@@ -649,7 +657,7 @@ EOF
             exit 1
         endif
         echo "$comname finished on $hostroot"
-        set flags[$nextsync] = 1
+        set flags[$nextsync] = 2
         @ nextsync = $#comlist + 2
         @ numdone++
         set nochunks = 0
@@ -837,6 +845,9 @@ exit 3
 
 #
 #  $Log$
+#  Revision 3.38  2008/02/18 23:21:11  mast
+#  Grep on a space too to avoid finding cd: in ssh key complaints
+#
 #  Revision 3.37  2008/02/18 18:53:03  mast
 #  Made it not check for every machine when no more chunks are available
 #
