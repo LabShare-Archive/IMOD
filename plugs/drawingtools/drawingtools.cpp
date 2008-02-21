@@ -15,6 +15,9 @@
     $Revision$
 
     $Log$
+    Revision 1.4  2008/02/21 07:33:42  tempuser
+    Changed DBL_MAX
+
     Revision 1.3  2008/01/29 02:32:47  tempuser
     *** empty log message ***
 
@@ -2235,7 +2238,7 @@ void edit_deleteCurrContIfTooSmall()
   Iobj *obj  = imodObjectGet(imod);
   Icont *cont = imodContourGet(imod);
   
-  bool isTooSmall = imodContourArea(cont) < max( plug.draw_reducePtsMaxArea*3.0, 10.0 );
+  bool isTooSmall = imodContourArea(cont) < MAX( plug.draw_reducePtsMaxArea*3.0, 10.0 );
   
   if( isTooSmall )
   {
