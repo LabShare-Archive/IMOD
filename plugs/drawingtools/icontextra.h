@@ -58,6 +58,7 @@ struct IdxToSort     // used especially for getIntersectingPolygon function
   float float1;         // stores distance from a pt on a contour to its interecpt pt
   float float2;         // used as a tie breaker
   
+  IdxToSort();
   IdxToSort( int _idx, float _float1 );
   IdxToSort( int _idx, float _float1, float _float2 );
 };
@@ -81,15 +82,18 @@ inline void setDeleteFlag(Icont *cont, int on);
 
 inline int  psize(Icont *cont);
 inline Ipoint *getPt(Icont *cont, int idx);
+inline int getPtZInt(Icont *cont, int idx);
 inline Ipoint *getPtNoWrap(Icont *cont, int idx);
 inline Ipoint *getLastPt(Icont *cont );
 inline Ipoint *getFirstPt(Icont *cont );
 inline void setPt(Ipoint *pt, float x, float y, float z);
 inline int ptsEqual( Ipoint *pt1, Ipoint *pt2 );
 
+inline void printPt( Ipoint *pt );
 inline void printCont( Icont *cont );
 inline void deleteAllPts( Icont *cont );
 inline float getZ( Icont *cont );
+inline int getZInt( Icont *cont );
 inline void changeZValue( Icont *cont, int newZValue );
 inline void cont_copyPoints( Icont *from, Icont *to, bool clearToCont );
 inline void deleteContours( vector<IcontPtr> &conts );
@@ -286,6 +290,15 @@ inline Ipoint *getPt(Icont *cont, int idx)
 }
 
 //------------------------
+//-- Returns the Z value of the point at the given index in the contour
+//-- rounded to the nearest integer
+
+inline int getPtZInt(Icont *cont, int idx)
+{
+  return int( getPt(cont, idx)->z + 0.5 );
+}
+
+//------------------------
 //-- Returns a pointer to the point at the given index in the contour...
 //-- but does not wrap around.
 
@@ -340,6 +353,18 @@ inline int ptsEqual( Ipoint *pt1, Ipoint *pt2 )
 }
 
 
+
+
+
+//------------------------
+//-- Prints some simple information about point - used in debugging.
+
+inline void printPt( Ipoint *pt )
+{
+  wprint("pt = %f,%f,%f\n", pt->x, pt->y, pt->z ); 
+}
+
+
 //------------------------
 //-- Prints some simple information about the contour - used in debugging.
 
@@ -366,6 +391,15 @@ inline float getZ( Icont *cont )
 {
   return imodContourZValue( cont );
 }
+
+//------------------------
+//-- Returns Z value of contour rounded to nearest integer
+
+inline int getZInt( Icont *cont )
+{
+  return floor(imodContourZValue( cont ) + 0.5);
+}
+
 
 //------------------------
 //-- Changes the z value of all the points tot he given value.

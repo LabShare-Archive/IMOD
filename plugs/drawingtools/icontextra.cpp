@@ -15,6 +15,9 @@
     $Revision$
 
     $Log$
+    Revision 1.1  2008/01/24 01:25:31  tempuser
+    *** empty log message ***
+
     Revision 0.0  2008/2/25 15:45:41  mast
     Made special module to be used in IMOD
 
@@ -118,6 +121,11 @@ using namespace std;
 
 //## IdxToSort     // used especially for getIntersectingPolygon function
   
+  IdxToSort::IdxToSort() {
+    idx  = 0;
+    float1 = 0;
+    float2 = 0;
+  }
   IdxToSort::IdxToSort( int _idx, float _float1 ) {
     idx  = _idx;
     float1 = _float1;
@@ -618,7 +626,7 @@ float cont_getRadius( Icont *c )
 void cont_findClosestPtInContToGivenPt( Ipoint *pt, Icont *cont, float *closestDist,
                                         Ipoint *closestPt, int *closestPtIdx )
 {
-  float closestDist2 = DBL_MAX;
+  float closestDist2 = FLOAT_MAX;
   
   for(int i=0; i<psize( cont ); i++ )
   {
@@ -1401,7 +1409,7 @@ void cont_makeConvex( Icont *cont )
 //## FIND THE LOWEST POINT IN THE CONTOUR:
   
   int idxStartPt = 0;
-  float lowestYVal   = DBL_MAX;
+  float lowestYVal   = FLOAT_MAX;
   for (int i=0; i< psize(cont); i++)  {
     if(getPt(cont,i)->y <= lowestYVal) // if this pt is below previously found lowest pt:
     {
@@ -1556,7 +1564,7 @@ bool cont_breakContourByLine( Icont *cont, Icont *contBreak1, Icont *contBreak2,
     Icont *contB1 = imodContourNew();
     Icont *contB2 = imodContourNew();
     
-    float minDistToExpectedPt = DBL_MAX;
+    float minDistToExpectedPt = FLOAT_MAX;
     float maxAreaOnSmallerSide = 0;
     
     for(int i=0; i<(int)intercepts.size()-1;i++)
@@ -1581,7 +1589,7 @@ bool cont_breakContourByLine( Icont *cont, Icont *contBreak1, Icont *contBreak2,
       {
         cont_breakContourEitherSide(cont,contB1,contB2,
                                     intercepts[i].cont1Idx,intercepts[i+1].cont1Idx,true);
-        float areaOnSmallerSide = min( ABS(imodContourArea(contB1)),
+        float areaOnSmallerSide = MIN( ABS(imodContourArea(contB1)),
                                        ABS(imodContourArea(contB2))  );
         
         if( areaOnSmallerSide > maxAreaOnSmallerSide ) {

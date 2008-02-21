@@ -63,8 +63,8 @@ const long MIN_LONG			= (long)2147483648;       // largest positive value of a l
 const int MAX_INT			= (int)32767; 			// largest negative value of a (singed) int
 const int MIN_INT			= (int)32768;				// largest positive value of a (signed) int
 
-const double DBL_MAX		= (double) 1.7976931348623158e+308;     // largest pos double
-const double DBL_MIN		= (double)-1.7976931348623158e+308;     // largest neg double
+const double DOUBL_MAX	= (double) 1.7976931348623158e+308;     // largest pos double
+const double DOUBL_MIN	= (double)-1.7976931348623158e+308;     // largest neg double
 
 const float FLOAT_MAX		= (float) 3.40282e38;					// largest positive value float
 const float FLOAT_MIN_POS	= (float) 1.17549e-38;			// smallest positive value float
@@ -128,9 +128,9 @@ template <typename type>	bool vector2D_transpose( vector< vector<type> > &v );
 template <typename type>	void vector_eliminateDuplicates( vector<type> &v );
 template <typename type>	bool vector_doesElementExistInVector( vector<type> v, type element );
 template <typename type>	vector<type> vector_concat( vector<type> &v1, vector<type> &v2 );
-template <typename type>	vector<type> vector_sort( vector<type> v, int startIdx );
+template <typename type>	vector<type> vector_sort( vector<type> v, int startIdx, int endIdx=INT_MAX );
 template <typename type>	vector<type> vector_sort( vector<type> v );
-
+template <typename type>  vector<type> vector_reverse( vector<type> v, int startIdx=0, int endIdx=INT_MAX );
 
 
 
@@ -333,7 +333,7 @@ inline void changeNumWithinRange( type &val, type min, type max,
 inline float fDivide( float numerator, float denominator )
 {
 	if (denominator == 0)
-		return DBL_MAX;
+		return FLOAT_MAX;
 	return numerator/denominator;
 }
 
@@ -589,36 +589,41 @@ vector<type> vector_concat( vector<type> &v1, vector<type> &v2 )
 //-- the elment at the index startIdx
 
 template <typename type>
-inline vector<type> vector_sort( vector<type> v, int startIdx )
+inline vector<type> vector_sort( vector<type> v, int startIdx, int endIdx )
 {
+  if( startIdx < 0 )
+    startIdx = 0;
+  if( endIdx > (int)v.size()-1 )
+    endIdx = (int)v.size()-1;
+  
 #if defined (__APPLE__)			
-        // NOTE: For some reason the "sort( )" command doesn't work on OSX,
-        //       so I've had to write my own (which is not as efficient)
+        // NOTE: For some reason the "sort( )" command doesn't work on OSX, so
+        //       I've had to write my own bukket sort(which is far less as efficient)
   
 	vector<type> returnVec = v;
-	for(int i=startIdx; i<(int)v.size(); i++)
+  
+	for(int i=startIdx; i<=endIdx; i++)
 	{
 		int minIdx = i;
 		
 		for(int j=i+1; j<(int)v.size(); j++)
-			if( v[j] < v[minIdx] )
+			if( returnVec[j] < returnVec[minIdx] )
 				minIdx = j;
-				
+    
 		if( minIdx!=i )
-			swapVals( v[i], v[minIdx] );
+			swapVals( returnVec[i], returnVec[minIdx] );
 	}
 	return returnVec;
 	
 #else
 	
 	vector<type> returnVec = v;
-	sort( returnVec.begin()+startIdx, returnVec.end() );
+	sort( returnVec.begin()+startIdx, returnVec.begin()+endIdx );
 	return returnVec;
 	
 #endif
 
 }
-
 
 //-------------
 //-- Sorts given vector in ascending order (from first to last element)
@@ -640,7 +645,33 @@ vector<type> vector_sort( vector<type> v )
 
 }
 
+
+//-------------
+//-- Reverses the order of elements from "startIdx" to "endIdx" inclusive
+
+template <typename type>
+inline vector<type> vector_reverse( vector<type> v, int startIdx, int endIdx )
+{
+  if( startIdx < 0 )
+    startIdx = 0;
+  if( endIdx > (int)v.size()-1 )
+    endIdx = (int)v.size()-1;
+  
+  vector<type> returnVec;
+  
+  for(int i=0; i<startIdx; i++)
+    returnVec.push_back( v[i] );
+  for(int i=startIdx; i<=endIdx; i++)
+    returnVec.push_back( v[endIdx-(i-startIdx)] );
+  for(int i=endIdx+1; i<(int)v.size(); i++)
+    returnVec.push_back( v[i] );
+  
+	return returnVec;  
+}
+
+
 //----------------------------------------------------------------------------
 
 
 #endif
+

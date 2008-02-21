@@ -38,7 +38,7 @@ class DrawingTools : public DialogFrame
   DrawingTools(QWidget *parent, const char *name = NULL);
   ~DrawingTools() {};
   
-  public slots:
+public slots:
   void buttonPressed(int);
   bool drawExtraObject( bool redraw );
   void reduceCurrentContour();
@@ -60,6 +60,7 @@ class DrawingTools : public DialogFrame
   
   bool changeSelectedSlice( int change );
   void changeDeformCircleRadius( float value );
+  void clearExtraObj();
   
  protected:
   void closeEvent ( QCloseEvent * e );
@@ -67,9 +68,6 @@ class DrawingTools : public DialogFrame
   void keyReleaseEvent ( QKeyEvent * e );
   
  private:
-  
-  void clearExtraObj();
-  QSpacerItem *spacer;
   
   QVButtonGroup *typeButtonGroup;
   QRadioButton *typeRadio_Normal;
@@ -79,7 +77,7 @@ class DrawingTools : public DialogFrame
   QRadioButton *typeRadio_Eraser;
   
   QGroupBox   *grpOptions;
-  QGridLayout *gridLayout;
+  QGridLayout *gridLayout1;
   QLabel      *lblMaxArea;
   QSpinBox    *maxAreaSpinner;
   QCheckBox   *reducePtsCheckbox;

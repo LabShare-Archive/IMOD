@@ -15,6 +15,9 @@
     $Revision$
 
     $Log$
+    Revision 1.3  2008/01/29 02:32:47  tempuser
+    *** empty log message ***
+
     Revision 1.2  2008/01/29 00:04:01  tempuser
     *** empty log message ***
 
@@ -277,18 +280,12 @@ int imodPlugMouse(ImodView *vw, QMouseEvent *event, float imx, float imy,
 
   plug.mousePrev = plug.mouse;
   
-  plug.changeX = imx - plug.mouse.x;
-  plug.changeY = imy - plug.mouse.y;
-  
-  //int ix, iy,iz;
-  //ivwGetLocation(plug.view, &ix, &iy, &iz);    // get Z value
-  //plug.mouse.z = iz;
-  //plug.mouse.x = imx;
-  //plug.mouse.y = imy;
-  
   int noZap = ivwGetTopZapMouse(plug.view, &plug.mouse); // returns 1 if no Zap window
   if(noZap == 1)
     return (2);
+  
+  plug.changeX = plug.mouse.x - plug.mousePrev.x;
+  plug.changeY = plug.mouse.y - plug.mousePrev.y;
   
 //## REGENERATE DEFORM CIRCLE:
   
@@ -327,7 +324,9 @@ int imodPlugMouse(ImodView *vw, QMouseEvent *event, float imx, float imy,
   
   if( plug.but1Down && plug.shiftDown )
   {
-    plug.window->changeSelectedSlice( (int)plug.changeY );
+    float zapZoom = 1.0f;
+    ivwGetTopZapZoom(plug.view, &zapZoom);
+    plug.window->changeSelectedSlice( plug.changeY * zapZoom );
     return (1);
   }
   
@@ -403,7 +402,7 @@ int imodPlugMouse(ImodView *vw, QMouseEvent *event, float imx, float imy,
           }
           else if (plug.but2Released || plug.but3Released )
           {
-            undoFinishUnit( plug.view );
+            undoFinishUnit( plug.view );          // FINISH UNDO
           }
         }
         else
@@ -425,7 +424,7 @@ int imodPlugMouse(ImodView *vw, QMouseEvent *event, float imx, float imy,
           }
           else if ( plug.but2Released || plug.but3Released )
           {
-            undoFinishUnit( plug.view );
+            undoFinishUnit( plug.view );          // FINISH UNDO
           }
         }
       }
@@ -476,8 +475,179 @@ int imodPlugMouse(ImodView *vw, QMouseEvent *event, float imx, float imy,
 //----------------------------------------------------------------------------
 
 
-//## SLOTS:
+//## WINDOW CLASS CONSTRUCTOR:
 
+static char *buttonLabels[] = {"Done", "Help"};
+static char *buttonTips[] = {"Close Drawing Tools", "Open help window"};
+
+DrawingTools::DrawingTools(QWidget *parent, const char *name) :
+DialogFrame(parent, 2, buttonLabels, buttonTips, true, "Drawing Tools", "", name)
+{
+  const int LAYOUT_MARGIN   = 4;
+  const int LAYOUT_SPACING  = 4;
+  const int GROUP_MARGIN    = 1;
+  const int SPACER_HEIGHT   = 15;
+  
+  
+  //## Type:
+  
+  typeButtonGroup = new QVButtonGroup("Drawing Mode:", this);
+  typeButtonGroup->setInsideSpacing(0);
+  typeButtonGroup->setInsideMargin(5);
+  typeButtonGroup->setMargin(GROUP_MARGIN);
+  connect(typeButtonGroup, SIGNAL(clicked(int)), this, SLOT(changeType(int)));
+  
+  typeRadio_Normal = new QRadioButton("Normal        [1]", typeButtonGroup);
+  typeRadio_Normal->setFocusPolicy(QWidget::NoFocus);
+  QToolTip::add(typeRadio_Normal, "Contours are drawn normally");
+  
+  typeRadio_Deform = new QRadioButton("Deform        [2]", typeButtonGroup);
+  typeRadio_Deform->setFocusPolicy(QWidget::NoFocus);
+  QToolTip::add(typeRadio_Deform, "Draw and modify closed contours "
+                "quickly using the deform circle to push or pinch lines");
+  
+  typeRadio_Join = new QRadioButton("Join              [3]", typeButtonGroup);
+  typeRadio_Join->setFocusPolicy(QWidget::NoFocus);
+  QToolTip::add(typeRadio_Join, "Join or split contours quickly by making overlaps");
+  
+  typeRadio_Transform = new QRadioButton("Transform    [4]", typeButtonGroup);
+  typeRadio_Transform->setFocusPolicy(QWidget::NoFocus);
+  QToolTip::add(typeRadio_Transform, "Allows you to move, rotate and "
+                "scale the selected contour");
+  
+  typeRadio_Eraser = new QRadioButton("Eraser          [5]", typeButtonGroup);
+  typeRadio_Eraser->setFocusPolicy(QWidget::NoFocus);
+  QToolTip::add(typeRadio_Eraser, "Erase contours instantly by clicking them");
+  
+  changeTypeSelected( plug.drawMode );
+  
+  mLayout->addWidget(typeButtonGroup);
+  
+  
+  //## Interpolation Options:
+  
+  grpOptions = new QGroupBox("Contour Smoothing Options:", this);
+  grpOptions->setFocusPolicy(QWidget::NoFocus);
+  grpOptions->setMargin(GROUP_MARGIN);
+  
+  gridLayout1 = new QGridLayout(grpOptions);
+  gridLayout1->setSpacing(LAYOUT_SPACING);
+  gridLayout1->setMargin(LAYOUT_MARGIN);
+  gridLayout1->addItem( new QSpacerItem(1,SPACER_HEIGHT), 0, 0);
+  
+  reducePtsCheckbox = new QCheckBox("reduce drawn contours", grpOptions);
+  reducePtsCheckbox->setFocusPolicy(QWidget::NoFocus);
+  reducePtsCheckbox->setChecked( plug.draw_reducePts );
+  QObject::connect(reducePtsCheckbox,SIGNAL(clicked()),this,
+                   SLOT(changeReducePts()));
+  QToolTip::add(reducePtsCheckbox, 
+                "Automatically applies smoothing to contours drawn with the "
+                "deform and join tools after the mouse button is released");
+  gridLayout1->addMultiCellWidget(reducePtsCheckbox, 1, 1, 0, 1);
+  
+  lblMaxArea = new QLabel("reduction max area:", grpOptions);
+  lblMaxArea->setFocusPolicy(QWidget::NoFocus);
+  gridLayout1->addWidget(lblMaxArea, 2, 0);
+  
+  maxAreaSpinner = new QSpinBox(grpOptions);
+  maxAreaSpinner->setFocusPolicy(QWidget::NoFocus);
+  maxAreaSpinner->setMinValue(1);
+  maxAreaSpinner->setMaxValue(20);
+  maxAreaSpinner->setValue( (int)plug.draw_reducePtsMaxArea );
+  QObject::connect(maxAreaSpinner,SIGNAL(valueChanged(int)),this,
+                   SLOT(changeMaxArea(int)));
+  QToolTip::add(maxAreaSpinner, "If three consequtive points within a contour "
+                "form a triangular area greater than this the middle point is removed");
+  gridLayout1->addWidget(maxAreaSpinner, 2, 1);
+  
+  lblSmoothPtsDist = new QLabel("smooth point dist:", grpOptions);
+  lblSmoothPtsDist->setFocusPolicy(QWidget::NoFocus);
+  gridLayout1->addWidget(lblSmoothPtsDist, 3, 0);
+  
+  smoothPtsDist = new QSpinBox(grpOptions);
+  smoothPtsDist->setFocusPolicy(QWidget::NoFocus);
+  smoothPtsDist->setMinValue(1);
+  smoothPtsDist->setMaxValue(50);
+  smoothPtsDist->setValue( (int)plug.draw_smoothMinDist );
+  QObject::connect(smoothPtsDist,SIGNAL(valueChanged(int)),this,
+                   SLOT(changeSmoothPtsDist(int)));
+  QToolTip::add(smoothPtsDist,
+                "The minimum distance between points or when a contour is "
+                "smoothed - if two consequtive are greater than this "
+                "distance a point will be added between them");
+  gridLayout1->addWidget(smoothPtsDist, 3, 1);
+  
+  lblSmoothTensileFract = new QLabel("smooth tensile value:", grpOptions);
+  lblSmoothTensileFract->setFocusPolicy(QWidget::NoFocus);
+  gridLayout1->addWidget(lblSmoothTensileFract, 4, 0);
+  
+  smoothTensileFract = new QSpinBox(grpOptions);
+  smoothTensileFract->setFocusPolicy(QWidget::NoFocus);
+  smoothTensileFract->setMinValue(0);
+  smoothTensileFract->setMaxValue(20);
+  smoothTensileFract->setValue( (int)(plug.draw_smoothTensileFract * 10.0f) );
+  QObject::connect(smoothTensileFract,SIGNAL(valueChanged(int)),this,
+                   SLOT(changeSmoothTensileFract(int)));
+  QToolTip::add(smoothTensileFract,
+                "This value dictates how curvy the contour will be when "
+                "points are added during smoothing (5 is recommended). "
+                "Smoothing is done using a cardinal spline algorithm "
+                "using a tensile fraction of this value divide 10.");
+  gridLayout1->addWidget(smoothTensileFract, 4, 1);
+  
+  mLayout->addWidget(grpOptions);
+  
+  
+  //## Object
+  
+  grpObject = new QGroupBox("Smoothing Actions:", this);
+  grpObject->setFocusPolicy(QWidget::NoFocus);
+  grpObject->setMargin(GROUP_MARGIN);
+  
+  vboxLayout1 = new QVBoxLayout(grpObject);
+  vboxLayout1->setSpacing(LAYOUT_SPACING);
+  vboxLayout1->setMargin(LAYOUT_MARGIN);
+  vboxLayout1->addItem( new QSpacerItem(1,SPACER_HEIGHT) );
+  
+  reduceContButton = new QPushButton("Reduce Contour", grpObject);
+  reduceContButton->setFocusPolicy(QWidget::NoFocus);
+  connect(reduceContButton, SIGNAL(clicked()), this, SLOT(reduceCurrentContour()));
+  QToolTip::add(reduceContButton,
+                "Reduces the number of points in the current contour");
+  vboxLayout1->addWidget(reduceContButton);
+  
+  smoothContButton = new QPushButton("Smooth Contour", grpObject);
+  smoothContButton->setFocusPolicy(QWidget::NoFocus);
+  connect(smoothContButton, SIGNAL(clicked()), this, SLOT(smoothCurrentContour()));
+  QToolTip::add(smoothContButton,
+                "Smooths and increases the number ""of points in the current contour");
+  vboxLayout1->addWidget(smoothContButton);
+  
+  reduceObjectButton = new QPushButton("Reduce OBJECT", grpObject);
+  reduceObjectButton->setFocusPolicy(QWidget::NoFocus);
+  connect(reduceObjectButton, SIGNAL(clicked()), this, SLOT(reduceObject()));
+  QToolTip::add(reduceObjectButton,
+                "Reduces ALL contours in the current object");
+  vboxLayout1->addWidget(reduceObjectButton);
+  
+  smoothObjectButton = new QPushButton("Smooth OBJECT", grpObject);
+  smoothObjectButton->setFocusPolicy(QWidget::NoFocus);
+  connect(smoothObjectButton, SIGNAL(clicked()), this, SLOT(smoothObject()));
+  QToolTip::add(smoothObjectButton,
+                "Smooths ALL contours in the current object (use with caution)");
+  vboxLayout1->addWidget(smoothObjectButton);
+  
+  mLayout->addWidget(grpObject);
+  
+  
+  mLayout->addStretch();
+  this->adjustSize();
+  
+  connect(this, SIGNAL(actionPressed(int)), this, SLOT(buttonPressed(int)));
+}
+
+
+//## SLOTS:
 
 
 //------------------------
@@ -713,7 +883,7 @@ void DrawingTools::reduceCurrentContour()
   bool change = edit_reduceCurrContour();
   if(change)
   {
-    undoFinishUnit( plug.view );
+    undoFinishUnit( plug.view );            // FINISH UNDO
     ivwRedraw( plug.view );
   }
   wprint("Current contour has been reduced\n");
@@ -731,7 +901,7 @@ void DrawingTools::smoothCurrentContour()
   bool change = edit_smoothCurrContour();
   if(change)
   {
-    undoFinishUnit( plug.view );
+    undoFinishUnit( plug.view );            // FINISH UNDO
     ivwRedraw( plug.view );
   }
   wprint("Current contour has been smoothed\n");
@@ -1047,183 +1217,7 @@ void DrawingTools::changeDeformCircleRadius( float value ) {
 }
 
 
-
-
-//## THE WINDOW CLASS CONSTRUCTOR
-
-static char *buttonLabels[] = {"Done", "Help"};
-static char *buttonTips[] = {"Close Drawing Tools", "Open help window"};
-
-DrawingTools::DrawingTools(QWidget *parent, const char *name) :
-      DialogFrame(parent, 2, buttonLabels, buttonTips, true, "Drawing Tools", "", name)
-{
-  const int LAYOUT_MARGIN = 4;
-  const int LAYOUT_SPACING = 4;
-  const int GROUP_MARGIN = 1;
-  
-  int width = 250;    //fontMetrics().width("---------------");
-  int height = 500;
-  this->resize( width, height );
-  
-  spacer = new QSpacerItem ( 1, 15 );
-  
-  //## Type:
-  
-  typeButtonGroup = new QVButtonGroup("Drawing Mode:", this);
-  typeButtonGroup->setInsideSpacing(0);
-  typeButtonGroup->setInsideMargin(5);
-  typeButtonGroup->setMaximumHeight(160);
-  typeButtonGroup->setMargin(GROUP_MARGIN);
-  connect(typeButtonGroup, SIGNAL(clicked(int)), this, SLOT(changeType(int)));
-  
-  typeRadio_Normal = new QRadioButton("Normal        [1]", typeButtonGroup);
-  typeRadio_Normal->setFocusPolicy(QWidget::NoFocus);
-  QToolTip::add(typeRadio_Normal, "Contours are drawn normally");
-  
-  typeRadio_Deform = new QRadioButton("Deform        [2]", typeButtonGroup);
-  typeRadio_Deform->setFocusPolicy(QWidget::NoFocus);
-  //typeRadio_Deform->setChecked(true);
-  QToolTip::add(typeRadio_Deform, "Draw and modify closed contours "
-                "quickly using the deform circle to push or pinch lines");
-  
-  typeRadio_Join = new QRadioButton("Join              [3]", typeButtonGroup);
-  typeRadio_Join->setFocusPolicy(QWidget::NoFocus);
-  QToolTip::add(typeRadio_Join, "Join or split contours quickly by making overlaps");
-  
-  typeRadio_Transform = new QRadioButton("Transform    [4]", typeButtonGroup);
-  typeRadio_Transform->setFocusPolicy(QWidget::NoFocus);
-  QToolTip::add(typeRadio_Transform, "Allows you to move, rotate and "
-                "scale the selected contour");
-  
-  typeRadio_Eraser = new QRadioButton("Eraser          [5]", typeButtonGroup);
-  typeRadio_Eraser->setFocusPolicy(QWidget::NoFocus);
-  QToolTip::add(typeRadio_Eraser, "Erase contours instantly by clicking them");
-  
-  changeTypeSelected( plug.drawMode );
-  
-  mLayout->addWidget(typeButtonGroup);
-  
-  
-  //## Interpolation Options:
-  
-  grpOptions = new QGroupBox("Contour Smoothing Options:", this);
-  grpOptions->setFocusPolicy(QWidget::NoFocus);
-  grpOptions->setMinimumHeight(100);
-  grpOptions->setMaximumHeight(200);
-  grpOptions->setMargin(GROUP_MARGIN);
-  
-  gridLayout = new QGridLayout(grpOptions);
-  gridLayout->setSpacing(LAYOUT_SPACING);
-  gridLayout->setMargin(LAYOUT_MARGIN);
-  gridLayout->addItem(spacer, 0, 0);
-  
-  reducePtsCheckbox = new QCheckBox("reduce drawn contours", grpOptions);
-  reducePtsCheckbox->setFocusPolicy(QWidget::NoFocus);
-  reducePtsCheckbox->setChecked( plug.draw_reducePts );
-  QObject::connect(reducePtsCheckbox,SIGNAL(clicked()),this,
-                   SLOT(changeReducePts()));
-  QToolTip::add(reducePtsCheckbox, 
-              "Automatically applies smoothing to contours drawn with the "
-                "deform and join tools after the mouse button is released");
-  gridLayout->addMultiCellWidget(reducePtsCheckbox, 1, 1, 0, 1);
-  
-  lblMaxArea = new QLabel("reduction max area:", grpOptions);
-  lblMaxArea->setFocusPolicy(QWidget::NoFocus);
-  gridLayout->addWidget(lblMaxArea, 2, 0);
-
-  maxAreaSpinner = new QSpinBox(grpOptions);
-  maxAreaSpinner->setFocusPolicy(QWidget::NoFocus);
-  maxAreaSpinner->setMinValue(1);
-  maxAreaSpinner->setMaxValue(20);
-  maxAreaSpinner->setValue( (int)plug.draw_reducePtsMaxArea );
-  QObject::connect(maxAreaSpinner,SIGNAL(valueChanged(int)),this,
-                   SLOT(changeMaxArea(int)));
-  QToolTip::add(maxAreaSpinner, "If three consequtive points within a contour "
-                "form a triangular area greater than this the middle point is removed");
-  gridLayout->addWidget(maxAreaSpinner, 2, 1);
-  
-  lblSmoothPtsDist = new QLabel("smooth point dist:", grpOptions);
-  lblSmoothPtsDist->setFocusPolicy(QWidget::NoFocus);
-  gridLayout->addWidget(lblSmoothPtsDist, 3, 0);
-  
-  smoothPtsDist = new QSpinBox(grpOptions);
-  smoothPtsDist->setFocusPolicy(QWidget::NoFocus);
-  smoothPtsDist->setMinValue(1);
-  smoothPtsDist->setMaxValue(50);
-  smoothPtsDist->setValue( (int)plug.draw_smoothMinDist );
-  QObject::connect(smoothPtsDist,SIGNAL(valueChanged(int)),this,
-                   SLOT(changeSmoothPtsDist(int)));
-  QToolTip::add(smoothPtsDist,
-                "The minimum distance between points or when a contour is "
-                "smoothed - if two consequtive are greater than this "
-                "distance a point will be added between them");
-  gridLayout->addWidget(smoothPtsDist, 3, 1);
-  
-  lblSmoothTensileFract = new QLabel("smooth tensile value:", grpOptions);
-  lblSmoothTensileFract->setFocusPolicy(QWidget::NoFocus);
-  gridLayout->addWidget(lblSmoothTensileFract, 4, 0);
-  
-  smoothTensileFract = new QSpinBox(grpOptions);
-  smoothTensileFract->setFocusPolicy(QWidget::NoFocus);
-  smoothTensileFract->setMinValue(0);
-  smoothTensileFract->setMaxValue(20);
-  smoothTensileFract->setValue( (int)(plug.draw_smoothTensileFract * 10.0f) );
-  QObject::connect(smoothTensileFract,SIGNAL(valueChanged(int)),this,
-                   SLOT(changeSmoothTensileFract(int)));
-  QToolTip::add(smoothTensileFract,
-                "This value dictates how curvy the contour will be when "
-                "points are added during smoothing (5 is recommended). "
-                "Smoothing is done using a cardinal spline algorithm "
-                "using a tensile fraction of this value divide 10.");
-  gridLayout->addWidget(smoothTensileFract, 4, 1);
-  
-  mLayout->addWidget(grpOptions);
-  
-  //## Object
-  
-  grpObject = new QGroupBox("Smoothing Actions:", this);
-  grpObject->setFocusPolicy(QWidget::NoFocus);
-  grpObject->setMaximumHeight(145);
-  grpObject->setMargin(GROUP_MARGIN);
-  
-  vboxLayout1 = new QVBoxLayout(grpObject);
-  vboxLayout1->setSpacing(LAYOUT_SPACING);
-  vboxLayout1->setMargin(LAYOUT_MARGIN);
-  vboxLayout1->addStretch();
-  
-  reduceContButton = new QPushButton("Reduce Contour", grpObject);
-  reduceContButton->setFocusPolicy(QWidget::NoFocus);
-  connect(reduceContButton, SIGNAL(clicked()), this, SLOT(reduceCurrentContour()));
-  QToolTip::add(reduceContButton,
-                "Reduces the number of points in the current contour");
-  vboxLayout1->addWidget(reduceContButton);
-  
-  smoothContButton = new QPushButton("Smooth Contour", grpObject);
-  smoothContButton->setFocusPolicy(QWidget::NoFocus);
-  connect(smoothContButton, SIGNAL(clicked()), this, SLOT(smoothCurrentContour()));
-  QToolTip::add(smoothContButton,
-                "Smooths and increases the number ""of points in the current contour");
-  vboxLayout1->addWidget(smoothContButton);
-  
-  reduceObjectButton = new QPushButton("Reduce OBJECT", grpObject);
-  reduceObjectButton->setFocusPolicy(QWidget::NoFocus);
-  connect(reduceObjectButton, SIGNAL(clicked()), this, SLOT(reduceObject()));
-  QToolTip::add(reduceObjectButton,
-                "Reduces ALL contours in the current object");
-  vboxLayout1->addWidget(reduceObjectButton);
-  
-  smoothObjectButton = new QPushButton("Smooth OBJECT", grpObject);
-  smoothObjectButton->setFocusPolicy(QWidget::NoFocus);
-  connect(smoothObjectButton, SIGNAL(clicked()), this, SLOT(smoothObject()));
-  QToolTip::add(smoothObjectButton,
-                "Smooths ALL contours in the current object (use with caution)");
-  vboxLayout1->addWidget(smoothObjectButton);
-  
-  mLayout->addWidget(grpObject);
-  
-  
-  connect(this, SIGNAL(actionPressed(int)), this, SLOT(buttonPressed(int)));
-}
+//## PROTECTED:
 
 
 //------------------------
@@ -1853,7 +1847,7 @@ void edit_executeDeformEnd()
   if (plug.draw_reducePts)
     edit_reduceCurrContour();
   
-  undoFinishUnit( plug.view );
+  undoFinishUnit( plug.view );        // FINISH UNDO
 }
 
 //------------------------
@@ -1872,7 +1866,7 @@ void edit_executeJoinEnd()
   if (plug.draw_reducePts)
     edit_reduceCurrContour();
   
-  undoFinishUnit( plug.view );
+  undoFinishUnit( plug.view );        // FINISH UNDO
 }
 
 //------------------------
@@ -1901,7 +1895,7 @@ void edit_inversePointsInContour( bool reorder )
       imodel_contour_invert( cont );
       imodSetIndex(imod, objIdx, contIdx, psize(cont)-ptIdx-1 );
     }
-    undoFinishUnit( plug.view );
+    undoFinishUnit( plug.view );            // FINISH UNDO
     ivwRedraw( plug.view );
   }
 }
@@ -2011,7 +2005,7 @@ int edit_eraseContsInCircle( Ipoint center, float radius )
   }
   
   if(numRemoved)
-    undoFinishUnit( plug.view );
+    undoFinishUnit( plug.view );          // FINISH UNDO
   
   //imodSetIndex( imod, selObjIdx, selContIdx, selPtIdx );
   imodSetIndex( imod, selObjIdx, -1, -1 );
@@ -2072,9 +2066,8 @@ int edit_erasePointsInCircle( Ipoint center, float radius )
   }
     
   if(numPtsRemoved)
-    undoFinishUnit( plug.view );
+    undoFinishUnit( plug.view );          // FINISH UNDO
   
-  //imodSetIndex( imod, selObjIdx, selContIdx, selPtIdx );
   imodSetIndex( imod, selObjIdx, -1, -1 );    // ensures Zap doesn't jump to new slice
   
   return numPtsRemoved;
@@ -2148,7 +2141,7 @@ bool edit_breakPointsInCircle( Ipoint center, float radius )
           undoContourPropChgCC(plug.view);                    // REGISTER UNDO
           setOpenFlag( cont, 1 );
           
-          undoFinishUnit( plug.view );
+          undoFinishUnit( plug.view );                        // FINISH UNDO
           imodSetIndex( imod, selObjIdx, -1, -1 );
           deleteContours(contSegments);
           return true;
