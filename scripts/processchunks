@@ -98,7 +98,7 @@ while ($#argv > 2)
       breaksw
 
     case -c:
-      set checkfile = $argv[2]
+      set checkfile = `\echo "$argv[2]" | sed '/\\/s//\//g'`
       shift ; shift
       breaksw
 
@@ -174,7 +174,7 @@ set hostroot = $thishost:r:r:r
 # Get current directory if not entered, escape the spaces
 #
 if ($?curdir) then
-    set curdir = `echo $curdir | sed '/ /s//\\ /g'`
+    set curdir = `echo "$curdir" | sed -e '/ /s//\\ /g'`
 else
     set curdir = `pwd | sed -e "/^\/localscratch/s//\/scratch\/$hostroot/" -e "/ /s//\\ /g"`
 endif
@@ -845,6 +845,10 @@ exit 3
 
 #
 #  $Log$
+#  Revision 3.39  2008/02/20 01:29:04  mast
+#  Fixed bug in last change and made it keep track of first undone chunk to
+#  minimize the looping it has to do to find a chunk to assign
+#
 #  Revision 3.38  2008/02/18 23:21:11  mast
 #  Grep on a space too to avoid finding cd: in ssh key complaints
 #
