@@ -18,6 +18,7 @@ class QTextEdit;
 class QTimer;
 class QPopupMenu;
 class InfoWindow;
+class QProcess;
 
 typedef struct Mod_Model Imod;
 
@@ -26,7 +27,8 @@ extern InfoWindow *ImodInfoWin;
 extern int ImodForbidLevel;
 
 enum {FILE_MENU_NEW, FILE_MENU_OPEN, FILE_MENU_RELOAD, FILE_MENU_SAVE,
-      FILE_MENU_SAVEAS, FILE_MENU_SNAPDIR, FILE_MENU_TIFF, FILE_MENU_QUIT,
+      FILE_MENU_SAVEAS, FILE_MENU_SNAPDIR, FILE_MENU_TIFF, FILE_MENU_EXTRACT,
+      FILE_MENU_QUIT,
       FWRITE_MENU_IMOD, FWRITE_MENU_WIMP, FWRITE_MENU_NFF, FWRITE_MENU_SYNU,
       EDIT_MENU_MOVIES, EDIT_MENU_GRAIN, EDIT_MENU_ANGLES, EDIT_MENU_SCALEBAR,
       EDIT_MENU_PREFS,
@@ -78,6 +80,7 @@ class InfoWindow : public QMainWindow
   void imageSlot(int item);
   void pluginSlot(int item);
   void helpSlot(int item);
+  void trimvolExited();
 
  protected:
     void keyPressEvent ( QKeyEvent * e );
@@ -88,6 +91,7 @@ class InfoWindow : public QMainWindow
     bool event(QEvent *e);
 
  private:
+  void extract();
   QPopupMenu *mFileMenu;
   QPopupMenu *mEditMenu;
   QPopupMenu *mImageMenu;
@@ -104,6 +108,8 @@ class InfoWindow : public QMainWindow
   QTextEdit *mStatusEdit;
   bool mMinimized;
   int mTopTimerID;
+  QProcess *mTrimvolProcess;
+  QString mTrimvolOutput;
 };
 
 /* GLOBAL FUNCTIONS */
@@ -112,6 +118,9 @@ int imod_info_open();
 
 /*
     $Log$
+    Revision 3.23  2008/01/25 20:22:58  mast
+    Changes for new scale bar
+
     Revision 3.22  2008/01/13 22:58:35  mast
     Changes for multi-Z window
 

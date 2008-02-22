@@ -26,6 +26,9 @@
 #include <qtextedit.h>
 #include <qframe.h>
 #include <qtimer.h>
+#include <qfiledialog.h>
+#include <qstringlist.h>
+#include <qprocess.h>
 #include "imod_info.h"
 #include "imod.h"
 #include "imod_info_cb.h"
@@ -34,6 +37,7 @@
 #include "iproc.h"
 #include "preferences.h"
 #include "control.h"
+#include "xzap.h"
 
 #define INFO_MIN_LINES 3.5
 #define INFO_STARTING_LINES 4.75
@@ -71,6 +75,7 @@ InfoWindow::InfoWindow(QWidget * parent, const char * name, WFlags f)
   mFileMenu->insertItem("&Write Model As", mFWriteMenu);
   mFileMenu->insertItem("S&et Snap Dir...", FILE_MENU_SNAPDIR);
   mFileMenu->insertItem("&Memory to TIF...", FILE_MENU_TIFF);
+  mFileMenu->insertItem("E&xtract File...", FILE_MENU_EXTRACT);
   mFileMenu->insertItem("&Quit", FILE_MENU_QUIT);
 
   mFWriteMenu->insertItem("&Imod", FWRITE_MENU_IMOD);
@@ -333,6 +338,9 @@ void InfoWindow::manageMenus()
 {
   bool imageOK = !(App->cvi->fakeImage || App->cvi->rawImageStore);
   mFileMenu->setItemEnabled(FILE_MENU_TIFF, App->cvi->rawImageStore != 0);
+  mFileMenu->setItemEnabled(FILE_MENU_EXTRACT, App->cvi->rawImageStore == 0 &&
+                  App->cvi->fakeImage == 0 && App->cvi->multiFileZ <= 0);
+  /*fprintf(stderr, "App->cvi->multiFileZ=%d\n", App->cvi->multiFileZ);*/
   mEImageMenu->setItemEnabled(EIMAGE_MENU_FILLCACHE, 
 			      App->cvi->vmSize != 0 || App->cvi->nt > 0);
   mEImageMenu->setItemEnabled(EIMAGE_MENU_FILLER, 
@@ -345,7 +353,7 @@ void InfoWindow::manageMenus()
   if (!imageOK || App->cvi->colormapImage) {
     mEImageMenu->setItemEnabled(EIMAGE_MENU_PROCESS, false);
     mImageMenu->setItemEnabled(IMAGE_MENU_TUMBLER, false);
-    mImageMenu->setItemEnabled(IMAGE_MENU_PIXEL, false);
+    mImageMenu->setItemEnabled(IMAGE_MENU_PIXEL, false);    
     ImodInfoWidget->setFloat(-1);
   }
 
@@ -358,6 +366,88 @@ void InfoWindow::manageMenus()
   mFileMenu->setItemEnabled(FILE_MENU_RELOAD, App->cvi->reloadable != 0);
   mEObjectMenu->setItemEnabled(EOBJECT_MENU_DELETE, !meshingBusy());
   mEObjectMenu->setItemEnabled(EOBJECT_MENU_RENUMBER, !meshingBusy());
+}
+
+//Runs trimvol on current time with rubberband and low/high Z coordinates.
+void InfoWindow::extract()
+{
+  MrcHeader *mrchead = (MrcHeader *)App->cvi->image->header;
+  if (App->cvi->rawImageStore != 0 || App->cvi->fakeImage != 0 ||
+      App->cvi->multiFileZ > 0||App->cvi->image->file != IIFILE_MRC ||
+      sliceModeIfReal(mrchead->mode) < 0) {
+	wprint("\aUnable to extract - not a real MRC file.\n");
+	return;
+  }
+  mTrimvolOutput = QFileDialog::getSaveFileName(QString::null, QString::null, 0,
+      0, "MRC File to extract to:");
+  if (mTrimvolOutput.isEmpty())
+    return;
+  ZapStruct *zap = getTopZapWindow(true);
+  if (!zap) {
+    wprint("\aThere is no zap window with a rubberband.\n");
+    return;
+  }
+  QString commandString = zapPrintInfo(zap, false);
+  if (commandString.isEmpty()) {
+    return;
+  }
+  mFileMenu->setItemEnabled(FILE_MENU_EXTRACT, false);
+  QString filePath;
+  if (!Imod_IFDpath.isEmpty()) {
+    QDir dir = QDir(Imod_IFDpath);
+    filePath = dir.filePath(App->cvi->image->filename);
+  }
+  else {
+    filePath = App->cvi->image->filename;
+  }
+  mTrimvolProcess = new QProcess();
+  QStringList command = QStringList::split(" ", commandString);
+  QStringList::Iterator it = command.begin();
+  while(it != command.end()) {
+    mTrimvolProcess->addArgument(*it);
+    ++it;
+  }
+  mTrimvolProcess->addArgument(QDir::convertSeparators(filePath));
+  mTrimvolProcess->addArgument(QDir::convertSeparators(mTrimvolOutput));
+  QStringList list = mTrimvolProcess->arguments();
+  it = list.begin();
+  while(it != list.end()) {
+    wprint("%s ", (*it).latin1());
+    ++it;
+  }
+  wprint("\n");
+  connect(mTrimvolProcess, SIGNAL(processExited()), this, SLOT(trimvolExited()));
+  if (!mTrimvolProcess->start()) {
+    wprint("\aError trying to start trimvol process.\n");
+    mFileMenu->setItemEnabled(FILE_MENU_EXTRACT, true);
+    return;
+  }
+}
+
+void InfoWindow::trimvolExited() {
+  mFileMenu->setItemEnabled(FILE_MENU_EXTRACT, true);
+  if (mTrimvolProcess == 0) {
+    return;
+  }
+  if (mTrimvolProcess->normalExit()) {
+    wprint("%s created.\n", mTrimvolOutput.latin1());
+    /*while (mTrimvolProcess->canReadLineStdout()) {
+      wprint("out:\n%s\n", mTrimvolProcess->readLineStdout().latin1());
+    }*/
+  } else {
+    wprint("\aTrimvol failed.\n");
+    while (mTrimvolProcess->canReadLineStdout()) {
+      QString out = mTrimvolProcess->readLineStdout();
+      if (out.startsWith("ERROR:")) {
+        wprint("%s\n", out);
+      }
+    }
+  }
+  while (mTrimvolProcess->canReadLineStderr()) {
+    wprint("err:\n%s\n", mTrimvolProcess->readLineStderr().latin1());
+  }
+  delete mTrimvolProcess;
+  mTrimvolProcess = 0;
 }
 
 
@@ -553,6 +643,9 @@ static char *truncate_name(char *name, int limit)
 /*
 
 $Log$
+Revision 4.43  2008/01/25 20:22:58  mast
+Changes for new scale bar
+
 Revision 4.42  2008/01/21 05:55:44  mast
 Added key to open plugins
 
