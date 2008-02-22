@@ -1,5 +1,8 @@
 IMOD History
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+2/21/08: In 3dmod added Extract File... option to the File menu.  This option
+runs trimvol based on rubberband coordinates and low and high Z choices.
+
 2/18/08: IMOD_3-12-3
 2/18/08: Stopped Processchunks from misinterpreting 'cd:' in a complaint about
 a key from ssh as a failure to cd (In 3.11).
