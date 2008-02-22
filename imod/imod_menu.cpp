@@ -166,6 +166,14 @@ void InfoWindow::fileSlot(int item)
       b3dSnapshot_TIF(qname, 3, limits, data);
     }
     break;
+    
+  case FILE_MENU_EXTRACT: /* extract */
+    imod_info_forbid();
+    imod_info_input();
+    releaseKeyboard();
+    extract();
+    imod_info_enable();
+    break;
 
 
   case FILE_MENU_QUIT:
@@ -1293,6 +1301,9 @@ static int imodContourBreakByZ(ImodView *vi, Iobj *obj, int ob, int co)
 /*
 
 $Log$
+Revision 4.43  2008/01/25 20:22:58  mast
+Changes for new scale bar
+
 Revision 4.42  2008/01/21 17:19:35  mast
 Update model view objects after delete, renumber, and combine
 
