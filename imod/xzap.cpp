@@ -3128,7 +3128,7 @@ QString zapPrintInfo(ZapStruct *zap, bool toInfoWindow)
   }
   
   QString trimvol;
-  trimvol.sprintf("  trimvol -x %d,%d %s %d,%d %s %d,%d\n", ixl + 1, ixr + 1, 
+  trimvol.sprintf("  trimvol -x %d,%d %s %d,%d %s %d,%d", ixl + 1, ixr + 1, 
            flipped ? "-z" : "-y", iyb + 1, iyt + 1, flipped ? "-yz -y" : "-z",
            lowSection, highSection);
 
@@ -3137,7 +3137,7 @@ QString zapPrintInfo(ZapStruct *zap, bool toInfoWindow)
            ixcen + 1, iycen + 1, ixofs, iyofs);
     wprint("%smage size: %d x %d;   To excise:\n", ifpad ? "Padded i" : "I",
            imx, imy);
-    wprint(trimvol.latin1());
+    wprint("%s\n",trimvol.latin1());
   }
   return trimvol;
 }
@@ -4471,6 +4471,12 @@ static int zapPointVisable(ZapStruct *zap, Ipoint *pnt)
 /*
 
 $Log$
+Revision 4.116  2008/02/06 16:33:06  sueh
+bug# 1065, bug# 1076 Simplified getLowHighSection.  Made drawing optional in
+zapToggleRubberband.  Turn off rubberband when flipping.  Send an error to the
+info windows when the low and high sections are out of range.  Pass the trimvol
+string back from zapPrintInfo.  In zapPrintInfo made printing the info optional.
+
 Revision 4.115  2008/02/05 20:30:00  sueh
 bug# 1065 In zapPrintInfo removed test call to zapReportRubberband.
 
