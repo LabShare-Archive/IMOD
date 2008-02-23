@@ -355,10 +355,13 @@ public final class ProcesschunksParam implements DetachedCommand, ParallelParam 
     command.add("-c");
     StringBuffer commandsFileName = new StringBuffer();
     if (!isSubdirNameEmpty()) {
-      commandsFileName.append("../");
+      commandsFileName.append("\"../");
     }
     commandsFileName.append(new StringBuffer(DatasetFiles.getCommandsFileName(
         subdirName, rootName)));
+    if (!isSubdirNameEmpty()) {
+      commandsFileName.append("\"");
+    }
     command.add(commandsFileName.toString());
     command.add("-P");
     if (queueCommand == null) {
@@ -430,6 +433,10 @@ public final class ProcesschunksParam implements DetachedCommand, ParallelParam 
 }
 /**
  * <p> $Log$
+ * <p> Revision 1.33  2008/01/14 20:25:22  sueh
+ * <p> bug# 1067 Don't backslash the command because its already being quoted
+ * <p> (required in Windows).
+ * <p>
  * <p> Revision 1.31  2007/12/17 18:35:36  sueh
  * <p> bug# 1061 Added isSecondCommandLine and getSecondCommandLine to nice
  * <p> processchunks when its running on a queue.
