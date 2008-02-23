@@ -1,5 +1,8 @@
 IMOD History
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+2/21/08: Fixed ability to run anisotropic diffusion from etomo in Windows:
+changes in Chucksetup, Processchunks, eTomo (In 3.11).
+
 2/21/08: In 3dmod added Extract File... option to the File menu.  This option
 runs trimvol based on rubberband coordinates and low and high Z choices.
 
