@@ -1,30 +1,27 @@
-# Makefile for beadhelper
+# Makefile for drawingtools
 
 include ../../configure
 
 O     = $(OBJEXT)
 CXXFLAGS = $(LIBCFLAGS)
 
-PLUGS = beadhelper.$(DLLEXT)
+PLUGS = drawingtools.$(DLLEXT)
 
 all : $(PLUGS)
 
 install : $(PLUGS)
-	$(CP) -f $(PLUGS) beadhelper.html $(IMOD_PLUGIN_DIR)
+	$(CP) -f $(PLUGS) drawingtools.html $(IMOD_PLUGIN_DIR)
 
 
-$(PLUGS) : icontextra.$(O) qt_dialog_customizable.$(O) beadhelper.$(O) moc_beadhelper.$(O)
-	$(MAKELIBSO)$(PLUGS) icontextra.$(O) qt_dialog_customizable.$(O) beadhelper.$(O) moc_beadhelper.$(O)
+$(PLUGS) : icontextra.$(O) drawingtools.$(O) moc_drawingtools.$(O)
+	$(MAKELIBSO)$(PLUGS) icontextra.$(O) drawingtools.$(O) moc_drawingtools.$(O)
 
-moc_beadhelper.cpp : beadhelper.h
-	$(MOC) beadhelper.h -o moc_beadhelper.cpp
+moc_drawingtools.cpp : drawingtools.h
+	$(MOC) drawingtools.h -o moc_drawingtools.cpp
 
-beadhelper.$(O) : imod.h imodview.h imodplug.h control.h undoredo.h _common_functions.h
+drawingtools.$(O) : imod.h imodview.h imodplug.h control.h undoredo.h
 
-icontextra.$(O) : imod.h imodview.h imodplug.h control.h undoredo.h icontextra.h icontextra.cpp _common_functions.h
-
-qt_dialog_customizable.$(O) : imod.h imodview.h imodplug.h control.h undoredo.h
-
+icontextra.$(O) : imod.h imodview.h imodplug.h control.h undoredo.h
 
 imod.h : ../../imod/imod.h
 	$(CP) -f ../../imod/imod.h .
@@ -37,15 +34,8 @@ control.h : ../../imod/control.h
 undoredo.h : ../../imod/undoredo.h
 	$(CP) -f ../../imod/undoredo.h .
 
-icontextra.h : ../drawingtools/icontextra.h
-	$(CP) -f ../drawingtools/icontextra.h .
-icontextra.cpp : ../drawingtools/icontextra.cpp
-	$(CP) -f ../drawingtools/icontextra.cpp .
-_common_functions.h : ../drawingtools/_common_functions.h
-	$(CP) -f ../drawingtools/_common_functions.h .
-
-qt_dialog_customizable.h : qt_dialog_customizable.h
-	$(CP) -f qt_dialog_customizable.h .
+icontextra.h : icontextra.h
+	$(CP) -f icontextra.h .
 
 clean :
 	$(FIND) . -type f -name "*.o*"  -exec rm "{}" \;
