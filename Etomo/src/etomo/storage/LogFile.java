@@ -307,7 +307,7 @@ public final class LogFile {
       file.createNewFile();
     }
     catch (IOException e) {
-      throw new FileException(e);
+      throw new FileException(e, file);
     }
     boolean success = file.exists();
     try {
@@ -1090,8 +1090,9 @@ public final class LogFile {
           + PUBLIC_EXCEPTION_MESSAGE);
     }
 
-    FileException(Exception e) {
-      super(e.toString() + PUBLIC_EXCEPTION_MESSAGE);
+    FileException(Exception e, File file) {
+      super(file != null ? file.getAbsolutePath() +":  ": "" + e.toString()
+          + PUBLIC_EXCEPTION_MESSAGE);
       e.printStackTrace();
     }
 
@@ -1436,6 +1437,9 @@ public final class LogFile {
 }
 /**
  * <p> $Log$
+ * <p> Revision 1.19  2008/01/31 20:22:14  sueh
+ * <p> bug# 1055 throwing a FileException when LogFile.getInstance fails.
+ * <p>
  * <p> Revision 1.18  2008/01/14 22:00:44  sueh
  * <p> bug# 1050 Added getInstance(File,String).
  * <p>
