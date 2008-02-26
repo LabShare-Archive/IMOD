@@ -34,6 +34,7 @@ control.h : ../../imod/control.h
 undoredo.h : ../../imod/undoredo.h
 	$(CP) -f ../../imod/undoredo.h .
 
+
 icontextra.h : icontextra.h
 	$(CP) -f icontextra.h .
 
@@ -46,7 +47,5 @@ clean :
 	$(FIND) . -type f -name "#*#" -exec rm "{}" \;
 	$(FIND) . -type f -name "moc_*" -exec rm "{}" \;
 	$(FIND) . -type f -name "so_locations" -exec rm "{}" \;
-
-
 
 
