@@ -23,6 +23,9 @@ import javax.swing.JLabel;
  * @version $Revision$
  * 
  * <p> $Log$
+ * <p> Revision 1.8  2008/02/19 00:46:59  sueh
+ * <p> bug# 1078 Added setFieldWidth.
+ * <p>
  * <p> Revision 1.7  2007/11/09 17:46:49  sueh
  * <p> bug# 1047 Added showPartialPath.
  * <p>
@@ -80,7 +83,7 @@ final class FileTextField {
   static FileTextField getUnlabeledInstance(final String actionCommand) {
     return new FileTextField(actionCommand, false);
   }
-  
+
   void setFieldWidth(final double width) {
     field.setTextPreferredWidth(width);
   }
@@ -129,6 +132,10 @@ final class FileTextField {
 
   void setButtonEnabled(final boolean enabled) {
     button.setEnabled(enabled);
+  }
+
+  boolean isEmpty() {
+    return field.getText() == null || field.getText().matches("\\s*");
   }
 
   void setFile(final File file) {
@@ -186,6 +193,7 @@ final class FileTextField {
     text.append(file.getName());
     field.setText(text.toString());
   }
+
   String getText() {
     return field.getText();
   }
