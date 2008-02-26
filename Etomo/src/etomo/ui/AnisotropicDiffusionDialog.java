@@ -39,6 +39,9 @@ import etomo.util.Utilities;
  * @version $Revision$
  * 
  * <p> $Log$
+ * <p> Revision 1.7  2008/02/01 01:37:14  sueh
+ * <p> bug# 1075 Easter egg.
+ * <p>
  * <p> Revision 1.6  2007/12/10 22:41:01  sueh
  * <p> bug# 1041 Passing the ProcessName to processchunks instead of setting it in
  * <p> getParameters because it is required and has been added to the
@@ -462,11 +465,23 @@ public final class AnisotropicDiffusionDialog implements ContextMenu,
     return true;
   }
 
-  private void initSubdir() {
+  /**
+   * Initialized subdirName if is not already initialized
+   * @return false if ftfVolume is empty (subdirName is dependent on ftfVolume)
+   */
+  private boolean initSubdir() {
+    if (ftfVolume.isEmpty()) {
+      UIHarness.INSTANCE
+          .openMessageDialog(
+              "Please choose a volume before running this function.",
+              "Entry Error");
+      return false;
+    }
     if (subdirName == null) {
       subdirName = "naddir." + ftfVolume.getFileName();
       manager.makeSubdir(subdirName);
     }
+    return true;
   }
 
   private void deleteSubdir() {
@@ -482,19 +497,27 @@ public final class AnisotropicDiffusionDialog implements ContextMenu,
   private void action(final ActionEvent event) {
     String command = event.getActionCommand();
     if (command.equals(btnExtractTestVolume.getActionCommand())) {
-      initSubdir();
+      if (!initSubdir()) {
+        return;
+      }
       manager.trimVolume();
     }
     else if (command.equals(btnRunVaryingK.getActionCommand())) {
-      initSubdir();
+      if (!initSubdir()) {
+        return;
+      }
       manager.anisotropicDiffusionVaryingK(subdirName);
     }
     else if (command.equals(btnRunVaryingIteration.getActionCommand())) {
-      initSubdir();
+      if (!initSubdir()) {
+        return;
+      }
       manager.anisotropicDiffusionVaryingIteration(subdirName);
     }
     else if (command.equals(btnRunFilterFullVolume.getActionCommand())) {
-      initSubdir();
+      if (!initSubdir()) {
+        return;
+      }
       if (!manager.setupAnisotropicDiffusion()) {
         return;
       }
