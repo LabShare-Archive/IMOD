@@ -102,7 +102,8 @@ void GuiDialogCustomizable::setDialogElements( CustomDialog *ds_ )
 				QHBoxLayout *hboxLayout = new QHBoxLayout();
 				hboxLayout->setSpacing(0);
 				hboxLayout->setMargin(0);
-				QSpacerItem *spacerItem = new QSpacerItem(40, 20, QSizePolicy::Expanding, QSizePolicy::Minimum);
+				QSpacerItem *spacerItem = new QSpacerItem(40, 20, QSizePolicy::Expanding,
+                                                  QSizePolicy::Minimum);
 				
 				hboxLayout->addWidget( elements[i].label );
 				hboxLayout->addItem( spacerItem );
@@ -122,11 +123,11 @@ void GuiDialogCustomizable::setDialogElements( CustomDialog *ds_ )
           QStringList::split( QString(","), ds->elVal[i].stringValue );				
                             // break apart string values between each ","
         
-        for (int j=0; j<(int)items.size(); j++)									// add each of these items to the combo box
+        for (int j=0; j<(int)items.size(); j++)					// add each items to combo box
           elements[i].cmbBox->insertItem ( items[j] );
         if( (int)ds->elVal[i].value < (int)items.size() )
-          elements[i].cmbBox->setCurrentItem( (int)ds->elVal[i].value );		// set default selection
-        
+          elements[i].cmbBox->setCurrentItem( (int)ds->elVal[i].value );	
+                                                        // set default selection
         if( ds->elVal[i].tooltip != 0 )
           QToolTip::add( elements[i].cmbBox, ds->elVal[i].tooltip );
         
@@ -149,7 +150,7 @@ void GuiDialogCustomizable::setDialogElements( CustomDialog *ds_ )
           QStringList::split( QString(","), ds->elVal[i].stringValue );      
                                   // break apart string values between each ","
         
-				for (int j=0; j<(int)items.size(); j++)									// add each of these items to the combo box
+				for (int j=0; j<(int)items.size(); j++)			// add each of item as radio button
 				{
 					QRadioButton *newRadBtn = new QRadioButton(butGrp);
           newRadBtn->setText( items[j] );
@@ -243,3 +244,4 @@ void GuiDialogCustomizable::reject()
 
 
 //############################################################
+

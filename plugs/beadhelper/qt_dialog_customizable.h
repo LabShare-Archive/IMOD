@@ -27,13 +27,13 @@
 //		{
 //			CustomDialog ds;
 //			ds.addLabel								( "Please enter your details below ..." );
-//			int ID_NAME			= ds.addLineEdit	( "name:  ", "First Last", "NOTE: do not include your middle name" );
+//			int ID_NAME			= ds.addLineEdit	( "name:  ", "First Last", "No middle name!" );
 //			int ID_STUDENT	= ds.addCheckBox	( "current student", true );
-//			int ID_AGE			= ds.addSpinBox		( "your age:             ", 1,  120, 22, 1 );
-//			int ID_SPORT		= ds.addComboBox	( "chosen sport:         ",	"tennis,soccer,cricket", 1 );
+//			int ID_AGE			= ds.addSpinBox		( "your age: ", 1,  120, 22, 1 );
+//			int ID_SPORT		= ds.addComboBox	( "sport: ", "tennis,soccer,cricket", 1 );
 //			
 //			GuiDialogCustomizable dlg(&ds, "Registration", this);
-//			dlg.exec();														// execution of code stops here until the user closes the dialog
+//			dlg.exec();										// execution stops here until user closes dialog
 //			
 //			if( ds.cancelled ) {
 //				cout << "You have cancelled your registration" << endl;
@@ -42,10 +42,10 @@
 //			else {
 //				string  name      = ds.getResultLineEdit		( ID_NAME );
 //				bool    student		= ds.getResultCheckBox		( ID_STUDENT );
-//				int     age       = ds.getResultSpinBox		( ID_AGE );
+//				int     age       = ds.getResultSpinBox		  ( ID_AGE );
 //				int     sportIdx	= ds.getResultComboBox		( ID_SPORT	);
 //				
-//				cout << "Dear " << name << " thank you for registering... you are now being added" << endl;
+//				cout << "Dear " << name << " thank you for registering..." << endl;
 //				
 //				... CODE ..
 //			}
@@ -66,7 +66,7 @@
 //		|                                _____   |
 //		| your age:                     [_22_^]  |
 //		|                       ______________   |
-//		| chosen sport:        |_soccer_____[V]  |
+//		| sport:               |_soccer_____[V]  |
 //		|                                        |
 //		|   +-------------+    +-------------+   |
 //		|   |     Ok      |    |   Cancel    |   |
@@ -196,7 +196,8 @@ struct CustomDialog								// used to set up a new GuiDialogCustomizable
 		return ((int)elVal.size()-1);
 	}
 	
-	int addSpinBox( QString caption, int min, int max, int value, int step, QString tooltip=0 ) {
+	int addSpinBox( QString caption, int min, int max, int value, int step,
+                  QString tooltip=0 ) {
 		DialogElementValue newElement;
 		
 		newElement.type = DLG_SPINBOX;
@@ -216,7 +217,8 @@ struct CustomDialog								// used to set up a new GuiDialogCustomizable
 		return ((int)elVal.size()-1);
 	}
 	
-	int addComboBox( QString caption, QString commaSeperatedList, int selectedIndex, QString tooltip=0 ) {
+	int addComboBox( QString caption, QString commaSeperatedList, int selectedIndex,
+                   QString tooltip=0 ) {
 		DialogElementValue newElement;
 		
 		newElement.type = DLG_COMBOBOX;
@@ -229,7 +231,8 @@ struct CustomDialog								// used to set up a new GuiDialogCustomizable
 		return ((int)elVal.size()-1);
 	}
 	
-	int addRadioGrp( QString caption, QString commaSeperatedList, int selectedIndex, QString tooltip=0 ) {
+	int addRadioGrp( QString caption, QString commaSeperatedList, int selectedIndex,
+                   QString tooltip=0 ) {
 		DialogElementValue newElement;
 		
 		newElement.type = DLG_RADIOGRP;
@@ -274,8 +277,9 @@ struct CustomDialog								// used to set up a new GuiDialogCustomizable
 
 //############################################################
 
-
-struct DialogElement								// used to store gui widgets in the array of widgets displayed in GuiDialogCustomizable
+                                // used to store gui widgets in the array of widgets
+                                // displayed in GuiDialogCustomizable
+struct DialogElement								
 {
 	QLabel			*label;
 	QLineEdit		*lineEdit;
@@ -290,8 +294,9 @@ struct DialogElement								// used to store gui widgets in the array of widgets
 
 //############################################################
 
-
-class GuiDialogCustomizable : public QDialog		// used to present a customizable gui dialog and retrieve user input with minimal code!
+                                // used to present a customizable gui
+                                // dialog and retrieve user input with minimal code!
+class GuiDialogCustomizable : public QDialog	                                            
 {
   //Q_OBJECT
 	
@@ -320,3 +325,4 @@ public slots:
 //############################################################
 
 #endif
+
