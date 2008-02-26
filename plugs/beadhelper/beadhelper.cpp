@@ -1268,8 +1268,10 @@ void BeadHelper::otherSettings()
   //## GET USER INPUT FROM CUSTOM DIALOG:
   
 	CustomDialog ds;
-  int ID_TILTANGLE      = ds.addLineEdit( "tilt angle:", toString( plug.tiltAngle ) );
-  int ID_TILTOFFSET     = ds.addSpinBox ( "tilt x offset:", -200, 200, plug.tiltOffsetX, 1,
+  int ID_TILTANGLE      = ds.addLineEdit( "tilt angle:",
+                                          toString(plug.tiltAngle).c_str() );
+  int ID_TILTOFFSET     = ds.addSpinBox ( "tilt x offset:", -200, 200,
+                                          plug.tiltOffsetX, 1,
                                           "How far the tilt axis is shifted along X "
                                           "from passing through the center" );
   int ID_BIGGESTHOLES   = ds.addSpinBox ( "biggest hole grid size:",
@@ -1325,7 +1327,7 @@ void BeadHelper::smoothPtsInRange()
     + "\nTotal points = " + toString(numPts);
   
 	CustomDialog ds;
-  int ID_DUMMY          = ds.addLabel   ( msg );
+  int ID_DUMMY          = ds.addLabel   ( msg.c_str() );
   int ID_SMOOTHCRITERIA = ds.addRadioGrp( "smooth using:",
                                           "catmull rom on 3 key points,"
                                           "rotation angle", 0 );
