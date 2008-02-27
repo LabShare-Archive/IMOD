@@ -36,6 +36,9 @@ import etomo.type.EtomoAutodoc;
  * @version $Revision$
  * 
  * <p> $Log$
+ * <p> Revision 1.11  2007/07/10 00:43:09  sueh
+ * <p> bug# 1022 Published some header strings.
+ * <p>
  * <p> Revision 1.10  2007/06/14 19:36:33  sueh
  * <p> bug# 1020 WIdening cutoff an sigma.
  * <p>
@@ -108,8 +111,10 @@ final class IterationTable implements Highlightable {
       UIParameters.INSTANCE.getNumericWidth());
   private final HeaderCell header3DPsiIncrement = new HeaderCell(D_PSI_HEADER3,
       UIParameters.INSTANCE.getNumericWidth());
-  private final HeaderCell header1SearchRadius = new HeaderCell(SEARCH_RADIUS_HEADER1);
-  private final HeaderCell header2SearchRadius = new HeaderCell(SEARCH_RADIUS_HEADER2);
+  private final HeaderCell header1SearchRadius = new HeaderCell(
+      SEARCH_RADIUS_HEADER1);
+  private final HeaderCell header2SearchRadius = new HeaderCell(
+      SEARCH_RADIUS_HEADER2);
   private final HeaderCell header3SearchRadius = new HeaderCell(
       UIParameters.INSTANCE.getIntegerTripletWidth());
   private final HeaderCell header1HiCutoff = new HeaderCell("High-Freq.");
@@ -121,6 +126,7 @@ final class IterationTable implements Highlightable {
   private final HeaderCell header1RefThreshold = new HeaderCell("Reference");
   private final HeaderCell header2RefThreshold = new HeaderCell("Threshold");
   private final HeaderCell header3RefThreshold = new HeaderCell();
+  private final MultiLineButton btnAddRow = new MultiLineButton("Add Row");
   private final MultiLineButton btnCopyRow = new MultiLineButton("Copy Row");
   private final MultiLineButton btnDeleteRow = new MultiLineButton("Delete Row");
   private final BaseManager manager;
@@ -189,8 +195,9 @@ final class IterationTable implements Highlightable {
     header1IterationNumber.setToolTipText(tooltip);
     header2IterationNumber.setToolTipText(tooltip);
     header3IterationNumber.setToolTipText(tooltip);
+    btnAddRow.setToolTipText("Add a new row.");
     btnCopyRow
-        .setToolTipText("Add a new copy with values from the highlighted row.");
+        .setToolTipText("Add a new row with values from the highlighted row.");
     btnDeleteRow.setToolTipText("Delete the highlighted row.");
     try {
       ReadOnlyAutodoc autodoc = AutodocFactory
@@ -243,13 +250,18 @@ final class IterationTable implements Highlightable {
 
   private void addListeners() {
     ITActionListener actionListener = new ITActionListener(this);
+    btnAddRow.addActionListener(actionListener);
     btnCopyRow.addActionListener(actionListener);
     btnDeleteRow.addActionListener(actionListener);
   }
 
   private void action(final ActionEvent event) {
     String actionCommand = event.getActionCommand();
-    if (actionCommand.equals(btnCopyRow.getActionCommand())) {
+    if (actionCommand.equals(btnAddRow.getActionCommand())) {
+      addRow();
+      UIHarness.INSTANCE.pack(manager);
+    }
+    else if (actionCommand.equals(btnCopyRow.getActionCommand())) {
       copyRow(rowList.getHighlightedRow());
     }
     else if (actionCommand.equals(btnDeleteRow.getActionCommand())) {
@@ -284,6 +296,8 @@ final class IterationTable implements Highlightable {
     //buttons
     JPanel pnlButtons = new JPanel();
     pnlButtons.setLayout(new BoxLayout(pnlButtons, BoxLayout.X_AXIS));
+    btnAddRow.setSize();
+    pnlButtons.add(btnAddRow.getComponent());
     btnCopyRow.setSize();
     pnlButtons.add(btnCopyRow.getComponent());
     btnDeleteRow.setSize();
