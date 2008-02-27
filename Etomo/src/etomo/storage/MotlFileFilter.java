@@ -16,6 +16,9 @@ import java.io.File;
  * @version $Revision$
  * 
  * <p> $Log$
+ * <p> Revision 1.4  2008/02/18 23:35:30  sueh
+ * <p> bug# 1079 Added .EM and .csv file extensions.
+ * <p>
  * <p> Revision 1.3  2008/02/18 21:36:36  sueh
  * <p> bug# 1079 Accepting .csv files.
  * <p>
@@ -32,9 +35,7 @@ public final class MotlFileFilter extends javax.swing.filechooser.FileFilter
 
   public boolean accept(File f) {
     //  If this is a file test its extension, all others should return true
-    if (f.isFile() && !f.getAbsolutePath().endsWith(".em")
-        && !f.getAbsolutePath().endsWith(".EM")
-        && !f.getAbsolutePath().endsWith(".csv")) {
+    if (f.isFile() && !f.getAbsolutePath().endsWith(".csv")) {
       return false;
     }
     return true;
