@@ -1,5 +1,8 @@
 IMOD History
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+2/27/08: In the PEET interface in Etomo added "Add Row" button to the iteration
+table.
+
 2/21/08: Fixed ability to run anisotropic diffusion from etomo in Windows:
 changes in Chucksetup, Processchunks, eTomo (In 3.11).
 
