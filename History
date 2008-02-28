@@ -1,5 +1,7 @@
 IMOD History
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+2/27/08: Fixed vmstopy, broken 1/5/08.
+
 2/27/08: In the PEET interface in Etomo added "Add Row" button to the iteration
 table.
 
