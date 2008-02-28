@@ -372,14 +372,23 @@ void InfoWindow::manageMenus()
 void InfoWindow::extract()
 {
   MrcHeader *mrchead = (MrcHeader *)App->cvi->image->header;
+  int i;
+  char *imodDir = getenv("IMOD_DIR");
+  char *cshell = getenv("IMOD_CSHELL");
   if (App->cvi->rawImageStore != 0 || App->cvi->fakeImage != 0 ||
       App->cvi->multiFileZ > 0||App->cvi->image->file != IIFILE_MRC ||
       sliceModeIfReal(mrchead->mode) < 0) {
 	wprint("\aUnable to extract - not a real MRC file.\n");
 	return;
   }
-  mTrimvolOutput = QFileDialog::getSaveFileName(QString::null, QString::null, 0,
-      0, "MRC File to extract to:");
+  if (!imodDir) {
+    wprint("\aCannot run trimvol; IMOD_DIR not defined.\n");
+    return;
+  }
+  if (!cshell)
+    cshell = "tcsh";
+  mTrimvolOutput = QFileDialog::getSaveFileName
+    (QString::null, QString::null, 0, 0, "MRC File to extract to:");
   if (mTrimvolOutput.isEmpty())
     return;
   ZapStruct *zap = getTopZapWindow(true);
@@ -401,22 +410,22 @@ void InfoWindow::extract()
     filePath = App->cvi->image->filename;
   }
   mTrimvolProcess = new QProcess();
+  mTrimvolProcess->addArgument(cshell);
+  mTrimvolProcess->addArgument("-f");
   QStringList command = QStringList::split(" ", commandString);
-  QStringList::Iterator it = command.begin();
-  while(it != command.end()) {
-    mTrimvolProcess->addArgument(*it);
-    ++it;
-  }
+  command[0] = QDir::convertSeparators(QString(imodDir) + "/bin/trimvol");
+  for (i = 0; i < command.count(); i++)
+    mTrimvolProcess->addArgument(command[i]);
+    
   mTrimvolProcess->addArgument(QDir::convertSeparators(filePath));
   mTrimvolProcess->addArgument(QDir::convertSeparators(mTrimvolOutput));
   QStringList list = mTrimvolProcess->arguments();
-  it = list.begin();
-  while(it != list.end()) {
-    wprint("%s ", (*it).latin1());
-    ++it;
-  }
+  wprint("trimvol ");
+  for (i = 3; i < list.count(); i++)
+    wprint("%s ", list[i].latin1());
   wprint("\n");
-  connect(mTrimvolProcess, SIGNAL(processExited()), this, SLOT(trimvolExited()));
+  connect(mTrimvolProcess, SIGNAL(processExited()), this,
+          SLOT(trimvolExited()));
   if (!mTrimvolProcess->start()) {
     wprint("\aError trying to start trimvol process.\n");
     mFileMenu->setItemEnabled(FILE_MENU_EXTRACT, true);
@@ -424,6 +433,7 @@ void InfoWindow::extract()
   }
 }
 
+// Reports result when trimvol finishes
 void InfoWindow::trimvolExited() {
   mFileMenu->setItemEnabled(FILE_MENU_EXTRACT, true);
   if (mTrimvolProcess == 0) {
@@ -643,6 +653,9 @@ static char *truncate_name(char *name, int limit)
 /*
 
 $Log$
+Revision 4.44  2008/02/22 00:33:31  sueh
+bug# 1076 Added extract menu option, and extract(), and trimvolExited().
+
 Revision 4.43  2008/01/25 20:22:58  mast
 Changes for new scale bar
 
