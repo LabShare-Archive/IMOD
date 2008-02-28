@@ -9,6 +9,13 @@
 
 # load System Libraries
 import os, sys, os.path, re
+
+if os.getenv('IMOD_DIR') != None:
+    sys.path.append(os.path.join(os.environ['IMOD_DIR'], 'pylib'))
+else:
+    print prefix + " IMOD_DIR is not defined!"
+    sys.exit(1)
+
 from imodpy import *
 
 anyset = 0
@@ -284,6 +291,9 @@ sys.exit(retval)
 
 #
 #  $Log$
+#  Revision 1.4  2008/01/05 17:20:41  mast
+#  Execute script with runcmd(python -u ...) to avoid error on good exit
+#
 #  Revision 1.3  2007/11/20 20:29:35  mast
 #  Added IMOD_QTLIBDIR to LD_LIBRARY_PATH if both defined
 #
