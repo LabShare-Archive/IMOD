@@ -20,7 +20,7 @@ c
       implicit none
       integer idim,limvert,limcont,limpat,limwork
       parameter (idim=100000000)
-      parameter (limvert=100000,limcont=1000,limpat=100000,limwork=400*400)
+      parameter (limvert=100000,limcont=1000,limpat=100000,limwork=1000*1000)
       integer*4 nx,ny,nz,nx2,ny2,nz2
       real*4 dxInitial, dyInitial, dzInitial, dxyzInit(3)
       real*4 dxVolume, dyVolume, dzVolume, dxyzVol(3)
@@ -1810,6 +1810,9 @@ c
 
 
 c       $Log$
+c       Revision 3.18  2007/11/18 04:59:54  mast
+c       Redeclared concat at 320
+c
 c       Revision 3.17  2007/10/10 19:51:55  mast
 c       Handle volume shifts properly when volume sizes differ
 c
