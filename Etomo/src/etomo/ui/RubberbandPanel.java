@@ -54,11 +54,14 @@ public final class RubberbandPanel {
   private final String zMinTooltip;
   private final String zMaxTooltip;
   private final Run3dmodButton btnImod;
+  private final RubberbandContainer container;//optional
 
-  private RubberbandPanel(BaseManager manager, String imodKey,
-      String borderLabel, String buttonLabel, String xMinTooltip,
-      String xMaxTooltip, String yMinTooltip, String yMaxTooltip,
-      String zMinTooltip, String zMaxTooltip, Run3dmodButton btnImod) {
+  private RubberbandPanel(BaseManager manager, RubberbandContainer container,
+      String imodKey, String borderLabel, String buttonLabel,
+      String xMinTooltip, String xMaxTooltip, String yMinTooltip,
+      String yMaxTooltip, String zMinTooltip, String zMaxTooltip,
+      Run3dmodButton btnImod) {
+    this.container = container;
     this.imodKey = imodKey;
     this.borderLabel = borderLabel;
     this.buttonLabel = buttonLabel;
@@ -107,10 +110,11 @@ public final class RubberbandPanel {
     setToolTipText();
   }
 
-  static RubberbandPanel getInstance(BaseManager manager, String imodKey,
-      String borderLabel, String buttonLabel, String xMinTooltip,
-      String xMaxTooltip, String yMinTooltip, String yMaxTooltip) {
-    RubberbandPanel instance = new RubberbandPanel(manager, imodKey,
+  static RubberbandPanel getInstance(BaseManager manager,
+      RubberbandContainer container, String imodKey, String borderLabel,
+      String buttonLabel, String xMinTooltip, String xMaxTooltip,
+      String yMinTooltip, String yMaxTooltip) {
+    RubberbandPanel instance = new RubberbandPanel(manager, container, imodKey,
         borderLabel, buttonLabel, xMinTooltip, xMaxTooltip, yMinTooltip,
         yMaxTooltip, "", "", null);
     instance.addListeners();
@@ -121,7 +125,7 @@ public final class RubberbandPanel {
       String borderLabel, String buttonLabel, String xMinTooltip,
       String xMaxTooltip, String yMinTooltip, String yMaxTooltip,
       String zMinTooltip, String zMaxTooltip, Run3dmodButton btnIdmod) {
-    RubberbandPanel instance = new RubberbandPanel(manager, imodKey,
+    RubberbandPanel instance = new RubberbandPanel(manager, null, imodKey,
         borderLabel, buttonLabel, xMinTooltip, xMaxTooltip, yMinTooltip,
         yMaxTooltip, zMinTooltip, zMaxTooltip, btnIdmod);
     instance.addListeners();
@@ -143,11 +147,13 @@ public final class RubberbandPanel {
   void buttonAction(ActionEvent event) {
     String command = event.getActionCommand();
     if (command == btnRubberband.getActionCommand()) {
-      setXYMinAndMax(manager.imodGetRubberbandCoordinates(imodKey, AxisID.ONLY));
+      Vector coordinates = manager.imodGetRubberbandCoordinates(imodKey,
+          AxisID.ONLY);
+      setMinAndMax(coordinates);
     }
   }
 
-  public void setXYMinAndMax(Vector coordinates) {
+  private void setMinAndMax(Vector coordinates) {
     if (coordinates == null) {
       return;
     }
@@ -172,6 +178,28 @@ public final class RubberbandPanel {
           return;
         }
         ltfYMax.setText((String) coordinates.get(index++));
+        if (index >= size) {
+          return;
+        }
+        if (btnImod == null && container == null) {
+          return;
+        }
+        if (btnImod != null) {
+          ltfZMin.setText((String) coordinates.get(index));
+        }
+        if (container != null) {
+          container.setZMin((String) coordinates.get(index));
+        }
+        index++;
+        if (index >= size) {
+          return;
+        }
+        if (btnImod != null) {
+          ltfZMax.setText((String) coordinates.get(index));
+        }
+        if (container != null) {
+          container.setZMax((String) coordinates.get(index));
+        }
         return;
       }
     }
@@ -240,8 +268,8 @@ public final class RubberbandPanel {
     btnRubberband
         .setToolTipText("After opening the volume in 3dmod, press shift-B in "
             + "the ZaP window.  Create a rubberband around the contrast "
-            + "range.  Then press this button to retrieve the X" + (btnImod == null ? " and Y"
-            : ", Y, and Z") + " coordinates.");
+            + "range.  Then press this button to retrieve the X"
+            + (btnImod == null ? " and Y" : ", Y, and Z") + " coordinates.");
   }
 
   private static final class RubberbandActionListener implements ActionListener {
@@ -258,6 +286,9 @@ public final class RubberbandPanel {
 }
 /**
  * <p> $Log$
+ * <p> Revision 1.6  2007/11/09 17:47:12  sueh
+ * <p> bug# 1047 Fixed problems with tooltips.
+ * <p>
  * <p> Revision 1.5  2007/11/06 20:30:53  sueh
  * <p> bug# 1047 Generalize and make more flexible.
  * <p>
