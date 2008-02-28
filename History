@@ -1,5 +1,7 @@
 IMOD History
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+2/28/08: In Etomo retrieve low and high Z from 3dmod with rubberband command.
+
 2/28/08: Increased size of arrays in Corrsearch3d (In 3.11).
 
 2/27/08: Fixed vmstopy, broken 1/5/08.
