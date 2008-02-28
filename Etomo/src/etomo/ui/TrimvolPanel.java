@@ -35,6 +35,9 @@ import etomo.type.Run3dmodMenuOptions;
  * @version $Revision$
  * 
  * <p> $Log$
+ * <p> Revision 3.25  2007/11/06 20:33:08  sueh
+ * <p> bug# 1047 Generalize TripvolPanel.
+ * <p>
  * <p> Revision 3.24  2007/08/08 15:08:27  sueh
  * <p> bug# 834 Sharing fields labels.
  * <p>
@@ -169,7 +172,8 @@ import etomo.type.Run3dmodMenuOptions;
  * <p> </p>
  */
 
-public final class TrimvolPanel implements Run3dmodButtonContainer {
+public final class TrimvolPanel implements Run3dmodButtonContainer,
+    RubberbandContainer {
   public static final String rcsid = "$Id$";
 
   private static final String SCALING_ERROR_TITLE = "Scaling Panel Error";
@@ -243,6 +247,7 @@ public final class TrimvolPanel implements Run3dmodButtonContainer {
     pnlScaleRubberband = RubberbandPanel
         .getInstance(
             appMgr,
+            this,
             ImodManager.COMBINED_TOMOGRAM_KEY,
             "Scaling from sub-area:",
             "Get XY Sub-Area From 3dmod",
@@ -487,8 +492,30 @@ public final class TrimvolPanel implements Run3dmodButtonContainer {
           return;
         }
         ltfYMax.setText((String) coordinates.get(index++));
-        return;
+        if (index >= size) {
+          return;
+        }
+        ltfZMin.setText((String) coordinates.get(index++));
+        if (index >= size) {
+          return;
+        }
+        ltfZMax.setText((String) coordinates.get(index++));
+        if (index >= size) {
+          return;
+        }
       }
+    }
+  }
+
+  public void setZMin(String zMin) {
+    if (rbScaleSection.isSelected()) {
+      ltfSectionScaleMin.setText(zMin);
+    }
+  }
+
+  public void setZMax(String zMax) {
+    if (rbScaleSection.isSelected()) {
+      ltfSectionScaleMax.setText(zMax);
     }
   }
 
