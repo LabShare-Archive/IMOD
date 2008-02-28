@@ -19,7 +19,7 @@ c       Log at end of file
 c       
       implicit none
       integer idim,limvert,limcont,limpat,limwork
-      parameter (idim=100000000)
+      parameter (idim=140000000)
       parameter (limvert=100000,limcont=1000,limpat=100000,limwork=1000*1000)
       integer*4 nx,ny,nz,nx2,ny2,nz2
       real*4 dxInitial, dyInitial, dzInitial, dxyzInit(3)
@@ -1810,6 +1810,9 @@ c
 
 
 c       $Log$
+c       Revision 3.19  2008/02/28 19:19:02  mast
+c       Increased size of working array for 3D FFT 6-fold
+c
 c       Revision 3.18  2007/11/18 04:59:54  mast
 c       Redeclared concat at 320
 c
