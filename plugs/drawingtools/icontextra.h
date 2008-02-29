@@ -120,8 +120,7 @@ Ipoint getPtCatmullRom( float fracIntoKf, Ipoint p0, Ipoint p1, Ipoint p2,  Ipoi
 
 float line_distBetweenPts2DSq(Ipoint *pnt1, Ipoint *pnt2);
 float line_getAngle2D ( Ipoint *linept1, Ipoint *linept2 );
-float line_getAngle2DPos( Ipoint *pt1, Ipoint *pt2 );
-float line_getAngle2DPos ( Ipoint *linept1, Ipoint *linept2 );
+float line_getAngle2DPos ( Ipoint *pt1, Ipoint *pt2 );
 
 Ipoint line_getPtHalfwayBetween(Ipoint *pt1, Ipoint *pt2);                    // NEW
 Ipoint line_findPtFractBetweenPts2D( const Ipoint *pt1, const Ipoint *pt2, float fractBetweenPts );

@@ -119,7 +119,12 @@ inline float string_getFloatFromString( string str );
 
 inline string string_substr (string str, int chars, int offset );
 inline string string_substrFromEnd (string str, int charsAtEnd);
+inline bool string_startsWith (const string haystack, const string needle);
 
+inline string string_replace ( string str, const string searchStr, const string replaceStr);
+inline string string_eliminateDuplicates( const string haystack, const string needle);
+inline vector<string> string_explode(string str, string explodeStr);
+inline string string_explodeGetArgument( string str, string sepStr, int argNum, bool eliminateDuplicates=true);
 
 
 //## VECTOR FUNCTIONS:
@@ -133,6 +138,10 @@ template <typename type>	vector<type> vector_sort( vector<type> v );
 template <typename type>  vector<type> vector_reverse( vector<type> v, int startIdx=0, int endIdx=INT_MAX );
 
 
+//## FILE FUNCTIONS:
+
+inline bool file_saveStringToFile( string filePath, string text, bool append );
+inline vector<string> file_loadTextFromFile( string filePath );
 
 
 
@@ -482,6 +491,87 @@ inline string string_substrFromEnd (string str, int charsAtEnd)
 	return str.substr( (int)str.length()-charsAtEnd, charsAtEnd );
 }
 
+//-------------
+//-- Returns true if the given haystack string STARTS with needle string.
+//-- EXAMPLE: ("string", "str") -> true
+
+inline bool string_startsWith (const string haystack, const string needle)
+{
+	if( needle.length() > haystack.length() )
+		return false;
+	for(int i=0; i<(int)needle.length(); i++)
+		if( haystack[i]!=needle[i] )
+			return false;
+	return true;
+}
+
+
+//-------------
+//-- Searches the string "str" Replaces ALL occurances of "searchStr" and replaces them with "replaceStr"
+//-- EXAMPLE: ("now or forever", "or", "|") -> "now | f|ever"
+
+inline string string_replace ( string str, const string searchStr, const string replaceStr)
+{
+	if( searchStr == replaceStr || str == "" || searchStr == "" )
+		return str;
+		
+	string::size_type pos = 0;
+  while ( (pos = str.find(searchStr, pos)) != string::npos )
+    str.replace( pos, searchStr.size(), replaceStr );
+	
+	return str;
+}
+
+
+
+//-------------
+//-- Eliminates ALL immediate repeats of the same needle string inside the haystack string.
+//-- 
+//-- EXAMPLE: ("Spaces  are    bad", " "  ) -> "Spaces are bad"
+//-- EXAMPLE: ("I am am am bad",     "am ") -> "I am bad"
+
+inline string string_eliminateDuplicates( const string haystack, const string needle) {
+	return string_replace( haystack, needle+needle, needle);
+}
+
+//-------------
+//-- Takes a string and splits it apart anywhere the explodeStr appears (not inclusive), thus forming a vector of smaller strings.
+//--
+//-- eg: input: ("one|two|three", "|") -> returns: vector("one", "two", "three")
+
+inline vector<string> string_explode(string str, string explodeStr) {
+	vector<string> ret;
+	int iPos = (int)str.find(explodeStr, 0);
+	int iPit = (int)explodeStr.length();
+	while (iPos > -1) {
+		if(iPos!=0)
+			ret.push_back(str.substr(0,iPos));
+		str.erase(0,iPos+iPit);
+		iPos = (int)str.find(explodeStr, 0);
+	}
+	if(str!="")
+		ret.push_back(str);
+	return ret;
+}
+
+//-------------
+//-- Calls string_explode and returns the specified argument (element) in the vector.
+//-- If there are less than argNum elements an empty string is returned.
+//-- NOTE: If eliminateDuplicates is true then any empty "arguments" are removed before chosing.
+//-- 
+//-- EXAMPLE: ("one/two/three", "/", 2, false) -> returns "two"
+
+inline string string_explodeGetArgument( string str, string sepStr, int argNum,
+                                         bool eliminateDuplicates )
+{
+	if(eliminateDuplicates)
+		str = string_eliminateDuplicates( str, sepStr );
+		
+	vector<string> strVec = string_explode( str, sepStr );
+	
+	return (argNum>(int)strVec.size()) ? ("") : (strVec.at(argNum-1));
+}
+
 
 
 
@@ -670,7 +760,75 @@ inline vector<type> vector_reverse( vector<type> v, int startIdx, int endIdx )
 }
 
 
+
+
+
+
 //----------------------------------------------------------------------------
+//##					VECTOR RELATED FUNCTIONS:
+//----------------------------------------------------------------------------
+
+
+//-------------
+//-- Loads all lines of text from the text file into a vector of strings.
+
+inline vector<string> file_loadTextFromFile( string filePath )
+{
+  int MAXLINEFORREADING = 2048;
+  
+	vector<string> text;
+  char line[MAXLINEFORREADING];
+   
+	//## OPEN TEXT FILE FOR INPUT:
+  
+  cout << "Opening file '" << filePath << "'" << endl;
+  
+  FILE *fp = fopen( filePath.c_str(), "r");
+  
+  if( fp == NULL )
+  {
+    cout << "ERROR: Opening of file '" << filePath << "' failed." << endl;
+    return text;
+  }
+  
+  while (  fgets(line, MAXLINEFORREADING, fp) != NULL )
+    text.push_back( line );
+  
+  if( fp != NULL )
+    fclose( fp );
+	
+	return text;
+}
+
+
+//-------------
+//-- Saves a string to the file, and returns true if successful
+
+inline bool file_saveStringToFile( string filePath, string text, bool append=false )
+{
+	//## OPEN TEXT FILE FOR WRITING:
+  
+  FILE *fp = (append) ? fopen( filePath.c_str(), "a") : fopen( filePath.c_str(), "w");
+  
+  if( fp == NULL )
+  {
+    cout << "ERROR: Opening of file '" << filePath << "' failed." << endl;
+    return false;
+  }
+  
+  fputs( text.c_str(), fp );
+  
+  if( fp != NULL )
+    fclose( fp );
+	
+	return true;
+}
+
+
+//----------------------------------------------------------------------------
+
+
+
 
 
 #endif
