@@ -774,7 +774,7 @@ inline vector<type> vector_reverse( vector<type> v, int startIdx, int endIdx )
 
 inline vector<string> file_loadTextFromFile( string filePath )
 {
-  int MAXLINEFORREADING = 2048;
+  const int MAXLINEFORREADING = 2048;
   
 	vector<string> text;
   char line[MAXLINEFORREADING];
