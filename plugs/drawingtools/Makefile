@@ -7,6 +7,8 @@ CXXFLAGS = $(LIBCFLAGS)
 
 PLUGS = drawingtools.$(DLLEXT)
 
+IMODINCLUDES = imod.h imodview.h imodplug.h control.h undoredo.h
+
 all : $(PLUGS)
 
 install : $(PLUGS)
@@ -14,14 +16,16 @@ install : $(PLUGS)
 
 
 $(PLUGS) : icontextra.$(O) drawingtools.$(O) moc_drawingtools.$(O)
-	$(MAKELIBSO)$(PLUGS) icontextra.$(O) drawingtools.$(O) moc_drawingtools.$(O)
+	$(MAKELIBSO)$(PLUGS) icontextra.$(O) drawingtools.$(O) \
+	moc_drawingtools.$(O)
 
 moc_drawingtools.cpp : drawingtools.h
 	$(MOC) drawingtools.h -o moc_drawingtools.cpp
 
-drawingtools.$(O) : imod.h imodview.h imodplug.h control.h undoredo.h
+drawingtools.$(O) : $(IMODINCLUDES) _common_functions.h icontextra.h \
+	drawingtools.h
 
-icontextra.$(O) : imod.h imodview.h imodplug.h control.h undoredo.h
+icontextra.$(O) : $(IMODINCLUDES) _common_functions.h icontextra.h
 
 imod.h : ../../imod/imod.h
 	$(CP) -f ../../imod/imod.h .
@@ -34,10 +38,6 @@ control.h : ../../imod/control.h
 undoredo.h : ../../imod/undoredo.h
 	$(CP) -f ../../imod/undoredo.h .
 
-
-icontextra.h : icontextra.h
-	$(CP) -f icontextra.h .
-
 clean :
 	$(FIND) . -type f -name "*.o*"  -exec rm "{}" \;
 	$(FIND) . -type f -name "*~"   -exec rm "{}" \;
@@ -47,5 +47,6 @@ clean :
 	$(FIND) . -type f -name "#*#" -exec rm "{}" \;
 	$(FIND) . -type f -name "moc_*" -exec rm "{}" \;
 	$(FIND) . -type f -name "so_locations" -exec rm "{}" \;
+	$(RM) $(IMODINCLUDES)
 
 
