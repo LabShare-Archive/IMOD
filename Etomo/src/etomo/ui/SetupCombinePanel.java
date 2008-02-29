@@ -55,6 +55,10 @@ import etomo.util.MRCHeader;
  * 
  * <p>
  * $Log$
+ * Revision 3.52  2008/01/25 22:28:18  sueh
+ * bug# 1070 In setParameters don't use parallel processing unless the cpu.adoc or
+ * IMOD_PROCESSORS has been set by the user.
+ *
  * Revision 3.51  2007/12/10 22:46:03  sueh
  * bug# 1041 Formatted.
  *
@@ -1092,6 +1096,7 @@ public final class SetupCombinePanel implements ContextMenu,
     if (command.equals(btnCreate.getActionCommand())) {
       updateTomogramSizeWarning(applicationManager
           .createCombineScripts(btnCreate));
+      tomogramCombinationDialog.updateDisplay();
     }
     else if (command.equals(btnCombine.getActionCommand())) {
       applicationManager.combine(btnCombine);
@@ -1144,9 +1149,10 @@ public final class SetupCombinePanel implements ContextMenu,
       return true;
     }
     MatchMode scriptMatchMode = state.getCombineMatchMode();
-    return (scriptMatchMode == null || scriptMatchMode == MatchMode.A_TO_B
-        && !rbAtoB.isSelected())
-        || (scriptMatchMode == MatchMode.B_TO_A && !rbBtoA.isSelected() || isTomogramSizeChanged());
+    return scriptMatchMode == null
+        || (scriptMatchMode == MatchMode.A_TO_B && !rbAtoB.isSelected())
+        || (scriptMatchMode == MatchMode.B_TO_A && !rbBtoA.isSelected())
+        || isTomogramSizeChanged();
   }
 
   private void updateMatchTo() {
