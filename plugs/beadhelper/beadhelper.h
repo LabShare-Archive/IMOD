@@ -42,7 +42,10 @@ class BeadHelper : public DialogFrame
   
  public slots:
   void buttonPressed(int);
-  bool drawExtraObject( bool redraw );
+  void loadSettings();
+  void saveSettings();
+  
+  bool drawExtraObject( bool redraw, int drawflag=0, int slice=-1 );
   void deletePtsInRange();
   void deletePtsCurrContInRange();
   void deletePtsCurrContToNearestEnd( bool inclusive );
@@ -67,8 +70,10 @@ class BeadHelper : public DialogFrame
   void changeShowSpheres();
   void changeSphereSize( int value );
   void changeLineDisplayType(int value);
+  void changeTiltDisplayType(int value);
   void changeWheelBehav(int value);
   void changeEstPosMethod(int value);
+  
   void clearExtraObj();
     
  protected:
@@ -105,6 +110,8 @@ class BeadHelper : public DialogFrame
   QSpinBox    *sphereSizeSpinner;
   QLabel      *lblLineDisplay;
   QComboBox   *lineDisplayCombo;
+  QLabel      *lblTiltDisplay;
+  QComboBox   *tiltDisplayCombo;
   
   QGroupBox   *grpOptions;
   QGridLayout *gridLayout3;
@@ -123,8 +130,12 @@ const int NO_POINT = -1;
 
 enum contsortcriteria  { SORT_DEV, SORT_AVG_GREY, SORT_DIST_FROM_MIDDLE,
                           SORT_MISSING_PTS, SORT_RANDOM };
+
 enum contdisplay       { LD_OFF, LD_CURRENT, LD_CURRMISSING,
                           LD_ALL, LD_SLICE_RESID, LD_BEST_FIT, LD_TILTAXIS };
+enum tiltaxisdisplay   { TD_OFF, TD_TILTAXIS, TD_TILTAXISPT };
+
+enum expptdisplay      { ED_CROSS, ED_DIAMOND, ED_ARROW };
 
 enum wheelbehaviour   { WH_NONE, WH_POINTS, WH_SLICES, WH_SMART };
 enum estimationmethod { EM_NEARESTTWO, EM_QUADRATIC, EM_LOCALQUADRATIC, EM_LASTFOUR };
@@ -143,19 +154,24 @@ struct BeadHelperData   // contains all local plugin data
   int sliceMax;               // maximum slice in range
   int contMin;                // minimum contour in range
   int contMax;                // maximum contour in range
-
-  bool showExpectedPos;       // if true: will show estimated position of point on
+  
+  int showExpectedPos;       // if true: will show estimated position of point on
                               //   the current each slice
   bool showSpheres;           // if true: will set the sphere size to "sphereSize"
   int  sphereSize;            // the sphere size of the object, allowing the user
                               //   to see points on adjacent slices
   int  lineDisplayType;       // different modes of displaying the trajectory of
                               //   contours (see: contdisplay)
+  int  tiltDisplayType;       // different modes of displaying tilt axis
   
   int  wheelBehav;            // changes the behaviour of the mouse wheel
                               //   (see: wheelbehaviour)
   int  estPosMethod;          // change the method used to estimate the position of pts
                               //   (see: estimationmethod)
+  int expPtDisplayType;
+  int expPtSize;
+  
+  bool autoSaveSettings;
   
   //## OTHER:
   
@@ -164,7 +180,7 @@ struct BeadHelperData   // contains all local plugin data
   float tiltAngle;              // angle in degrees of the tilt axis relative to vertical
   float tiltOffsetX;            // distance in pixels the tilt axis is offset in X
                                 //  from crossing middlePt (usually set to 0)
-  float biggestHoleSearchBox;   // the approximate distance between grid points used to
+  float biggestHoleGrid;   // the approximate distance between grid points used to
                                 //  find the next biggest hole (bead_goToNextBiggestHole)
   
   bool shiftDown;       // set to true when the SHIFT button is down
@@ -175,8 +191,12 @@ struct BeadHelperData   // contains all local plugin data
   bool initialized;           // is set to true after values have been set
   int xsize, ysize, zsize;    // size of the image / tomogram
   int middleSlice;            // the middle slice of the tomogram (where we expect seed)
-  int extraObjNum;            // stores a reference to the extra object
-  int extraObjNum2;           // stores a reference to the extra object
+  int extraObjExpPos;         // stores reference to the extra object showing expected position
+  int extraObjContDisp;       // stores reference to the extra object
+  int extraObjTiltAxis;       // stores reference to the extra object
+  int extraObjExtra;          // stores reference to the extra object
+  
+  int redrawControlNum;
 };
 
 
@@ -216,6 +236,7 @@ int edit_changeSelectedSliceCrude( int changeZ );
 
 bool bead_isPtOnSlice( Icont *cont, int slice );
 int bead_getPtIdxOnSlice( Icont *cont, int slice );
+int bead_getExpPtIdxForSlice( Icont *cont, int slice );
 Ipoint *bead_getPtOnSlice( Icont *cont, int slice );
 int bead_getClosestPtIdxToSlice( Icont *cont, int slice );
 Ipoint *bead_getClosestPtToSlice( Icont *cont, int slice );

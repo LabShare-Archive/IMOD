@@ -127,24 +127,23 @@ int imodPlugKeys(ImodView *vw, QKeyEvent *event)
       bead_goToNextBiggestHole( !shift );
       break;
       
+    //## LIST OF KEYS THAT REQUIRE A REDRAW OF THE EXTRA OBJECT:
+      
+    /*case Qt::Key_5:
+    case Qt::Key_C:
     case Qt::Key_BracketLeft:
-      plug.window->advanceSelectedPointInCurrCont( -1);
-      plug.window->drawExtraObject(true);
-      break;
-    
     case Qt::Key_BracketRight:
-      plug.window->advanceSelectedPointInCurrCont( 1 );
-      plug.window->drawExtraObject(true);
-      break;
+      plug.window->drawExtraObject(false);
+      return 0;*/
       
-      
+      /*
     case Qt::Key_T:                  // temporary testing purposes - comment out %%%%
       if (shift)
         plug.window->test();
       else
         return 0;
       break;
-      
+      */
       
     default:
       keyhandled = 0;
@@ -153,6 +152,7 @@ int imodPlugKeys(ImodView *vw, QKeyEvent *event)
   
   return keyhandled;
 }
+
 
 //------------------------
 //-- MAPPED FUNCTION: Called when plugin window is started.
@@ -167,21 +167,14 @@ void imodPlugExecute(ImodView *inImodView)
     return;
   }
   
-  if (ivwGetMovieModelMode(plug.view) == 0)    // returns 0 if in movie mode
-  {
-    wprint("Changing to \"Model\" mode\n");
-    QKeyEvent *e = new QKeyEvent(QEvent::KeyPress, Qt::Key_M, 'm', 0);
-    ivwControlKey(0, e);
-  }
+  ivwSetMovieModelMode( plug.view, IMOD_MMODEL );
   
   //## INITIALIZE DATA:
   
   plug.view = inImodView;
   ivwTrackMouseForPlugs(plug.view, 1);
   ivwEnableStipple( plug.view, 1 );
-  plug.extraObjNum  = ivwGetFreeExtraObjectNumber(plug.view);
-  plug.extraObjNum2 = ivwGetFreeExtraObjectNumber(plug.view);
-  
+      
   if( !plug.initialized )
   {
     ivwGetImageSize(inImodView, &plug.xsize, &plug.ysize, &plug.zsize);
@@ -189,6 +182,8 @@ void imodPlugExecute(ImodView *inImodView)
     plug.middlePt.x = plug.xsize / 2;
     plug.middlePt.y = plug.ysize / 2;
     plug.middlePt.z = plug.zsize / 2;
+    
+    //** MAIN SETTINGS:
     
     plug.sliceMin           = 1;
     plug.sliceMax           = plug.zsize;
@@ -199,16 +194,61 @@ void imodPlugExecute(ImodView *inImodView)
     plug.wheelBehav         = WH_SMART;
     plug.estPosMethod       = EM_NEARESTTWO;
     plug.showSpheres        = true;
-    plug.sphereSize         = 7;
+    plug.sphereSize         = 2;
+    
     plug.lineDisplayType    = LD_OFF;
+    plug.tiltDisplayType    = TD_OFF;
+    
+    //** MORE SETTINGS:
     
     plug.tiltAngle             = -11.7;
     plug.tiltOffsetX           = 0;
-    plug.biggestHoleSearchBox  = 20;
-    plug.wheelResistance       = 100.0;
+    plug.biggestHoleGrid       = 20;
+    plug.wheelResistance       = 100;
+    
+    plug.expPtDisplayType      = ED_CROSS;
+    plug.expPtSize             = 6;
+    
+    plug.autoSaveSettings      = true;
+    
+    plug.window->loadSettings();
+    
+    /*bool success =  file_saveStringToFile("beadhelpersettings.txt", "yep\nyep\nyep\n" );
+    
+    vector<string> file = file_loadTextFromFile("beadhelpersettings.txt");
+    for( int i=0; i<file.size(); i++ )
+    {
+      wprint("LINE");
+      cout << file[i] << endl;
+    }*/
     
     plug.initialized        = true;
   }
+  
+  
+  //## SET UP EXTRA OBJECTS:
+  
+  plug.extraObjExtra       = ivwGetFreeExtraObjectNumber(plug.view);
+  plug.extraObjTiltAxis    = ivwGetFreeExtraObjectNumber(plug.view);
+  plug.extraObjContDisp    = ivwGetFreeExtraObjectNumber(plug.view);
+  plug.extraObjExpPos      = ivwGetFreeExtraObjectNumber(plug.view);
+  
+  Iobj *xobjE = ivwGetAnExtraObject(plug.view, plug.extraObjExpPos);
+  imodObjectSetColor(xobjE, 0.8, 0, 0);
+  imodObjectSetValue(xobjE, IobjFlagClosed, 0);
+  
+  Iobj *xobjC = ivwGetAnExtraObject(plug.view, plug.extraObjContDisp);
+  imodObjectSetColor(xobjC, 0, 0.4, 0);
+  imodObjectSetValue(xobjC, IobjFlagClosed, 0);
+  
+  Iobj *xobjT = ivwGetAnExtraObject(plug.view, plug.extraObjTiltAxis);
+  imodObjectSetColor(xobjT, 1, 1, 0);
+  imodObjectSetValue(xobjT, IobjFlagClosed, 0);
+  
+  Iobj *xobjX = ivwGetAnExtraObject(plug.view, plug.extraObjExtra);
+  imodObjectSetColor(xobjX, 1, 0, 1);
+  imodObjectSetValue(xobjX, IobjPointSize, 3);
+  imodObjectSetValue(xobjX, IobjFlagClosed, 0);
   
   
   //## CREATE THE PLUGING WINDOW:
@@ -217,6 +257,27 @@ void imodPlugExecute(ImodView *inImodView)
   
   imodDialogManager.add((QWidget *)plug.window, IMOD_DIALOG);
   plug.window->show();
+  
+  //## REDRAW:
+  
+  plug.window->changeSphereSize( plug.sphereSize );
+  ivwRedraw( plug.view );
+}
+
+
+//------------------------
+//-- MAPPED FUNCTION: Called when initialization is complete
+//-- with inReason = IMOD_REASON_STARTUP, or need to update for change
+//-- in model with inReason = IMOD_REASON_MODUPDATE.
+
+void imodPlugExecuteType(ImodView *inView, int inType, int inReason)
+{
+  if( inReason == IMOD_REASON_MODUPDATE
+     && ivwGetModel(plug.view)
+      && plug.window )
+  {
+      plug.window->drawExtraObject(false,0);
+  }
 }
 
 
@@ -237,14 +298,15 @@ int imodPlugEvent(ImodView *vw, QEvent *event, float imx, float imy)
     if( plug.wheelBehav == WH_POINTS )
     {
       plug.window->advanceSelectedPointInCurrCont( change );
-      plug.window->drawExtraObject(true);
+      plug.window->drawExtraObject(false,0);
+      ivwRedraw( plug.view );
       return 1;
     }
     else if( plug.wheelBehav == WH_SLICES )
     {
       edit_changeSelectedSliceCrude( change );
       plug.window->drawExtraObject(false);
-      return 1;
+      return 0;
     }
     else if( plug.wheelBehav == WH_SMART )
     {
@@ -260,18 +322,17 @@ int imodPlugEvent(ImodView *vw, QEvent *event, float imx, float imy)
           imodGetIndex(imod, &objIdx, &contIdx, &ptIdx);
           int newPtIdx = bead_getPtIdxOnSlice( getCurrCont(), newSlice );
           imodSetIndex(imod, objIdx, contIdx, newPtIdx);
+          //
+          plug.window->drawExtraObject(false,0);
           ivwRedraw( plug.view );
-          plug.window->drawExtraObject(true);
           return 1;
+          //return 2;
         }
       }
-      
       edit_changeSelectedSliceCrude( change );
-      plug.window->drawExtraObject(false);
-      return 0;
+      plug.window->drawExtraObject(true,0);
+      return 1;
     }
-    
-    
   }
   return 0;
 }
@@ -301,20 +362,14 @@ int imodPlugEvent(ImodView *vw, QEvent *event, float imx, float imy)
 int imodPlugMouse(ImodView *vw, QMouseEvent *event, float imx, float imy,
                   int but1, int but2, int but3)
 {
-                      // if plugin is not open or imod isn't in "model mode": do nothing
-  if( !plug.window || !ivwGetMovieModelMode(plug.view) )
-    return (0);
-  
   plug.mouse.x = imx;
   plug.mouse.y = imy;
   
-  if( plug.showExpectedPos )
-  {
-    plug.window->drawExtraObject(false);
-  }
-  
-  return (2);
+  return (0);
 }
+
+
+
 
 
 //############################################################
@@ -500,13 +555,28 @@ BeadHelper::BeadHelper(QWidget *parent, const char *name) :
 	lineDisplayCombo->insertItem("all contours");
   lineDisplayCombo->insertItem("pt residuals");
   lineDisplayCombo->insertItem("line best fit");
-  lineDisplayCombo->insertItem("tilt axis");
   lineDisplayCombo->setCurrentItem( plug.lineDisplayType );
 	connect(lineDisplayCombo, SIGNAL(activated(int)), this,
           SLOT(changeLineDisplayType(int)));
 	QToolTip::add(lineDisplayCombo, 
               "Visual aid to let you see the trajectory of contours");
 	gridLayout2->addWidget(lineDisplayCombo, 3, 1);
+  
+  lblTiltDisplay = new QLabel("tilt display: ", grpDisplay);
+  lblTiltDisplay->setFocusPolicy(QWidget::NoFocus);
+  gridLayout2->addWidget(lblTiltDisplay, 4, 0);
+  
+  tiltDisplayCombo = new QComboBox(grpDisplay);
+	tiltDisplayCombo->setFocusPolicy(QWidget::NoFocus);
+	tiltDisplayCombo->insertItem("off");
+  tiltDisplayCombo->insertItem("tilt axis");
+  tiltDisplayCombo->insertItem("tilt and pt");
+  tiltDisplayCombo->setCurrentItem( plug.tiltDisplayType );
+	connect(tiltDisplayCombo, SIGNAL(activated(int)), this,
+          SLOT(changeTiltDisplayType(int)));
+	QToolTip::add(tiltDisplayCombo, 
+                "Visual aid to let you see the trajectory of contours");
+	gridLayout2->addWidget(tiltDisplayCombo, 4, 1);
   
   mLayout->addWidget(grpDisplay);
   
@@ -615,6 +685,41 @@ void cont_addCross( Icont *cont, Ipoint center, float size, int slice )
 //------------------------
 //-- Adds points in the shape of a cross to contour
 
+void cont_addDiamond( Icont *cont, Ipoint center, float size, int slice )
+{
+  float h = size/2.0;
+  imodPointAppendXYZ( cont, center.x-h,   center.y,      slice );
+  imodPointAppendXYZ( cont, center.x,     center.y-h,    slice );
+  imodPointAppendXYZ( cont, center.x+h,   center.y,      slice );
+  imodPointAppendXYZ( cont, center.x,     center.y+h,    slice );
+  imodPointAppendXYZ( cont, center.x-h,   center.y,      slice );
+}
+
+//------------------------
+//-- Adds points in the shape of a cross to contour
+
+void cont_addArrow( Icont *cont, Ipoint from, Ipoint to, float size, int slice )
+{
+  float h = size/2.0;
+  imodPointAppendXYZ( cont, from.x,   from.y,     slice );
+  imodPointAppendXYZ( cont, to.x,     to.y,         slice );
+  
+  float lineLen = line_distBetweenPts2D( &to, &from );
+  if(lineLen == 0)
+    return;
+  
+  float fractAlong = size / lineLen;
+  Ipoint arrow = line_findPtFractBetweenPts2D( &to, &from, fractAlong );
+  point_rotatePointAroundPoint2D( &arrow, &to, 40*DEGS_TO_RADS );
+  imodPointAppendXYZ( cont, arrow.x,   arrow.y,      slice );
+  imodPointAppendXYZ( cont, to.x,      to.y,         slice );
+  point_rotatePointAroundPoint2D( &arrow, &to, -80*DEGS_TO_RADS );
+  imodPointAppendXYZ( cont, arrow.x,   arrow.y,      slice );
+}
+
+//------------------------
+//-- Adds points in the shape of a cross to contour
+
 void cont_makeContShowingMissingPoints( Icont *to, Icont *from, int slice, float radius )
 {
   for(int p=0; p<psize(from); p++)  // for each point: draw little verticle line
@@ -650,19 +755,20 @@ void cont_makeContShowingMissingPoints( Icont *to, Icont *from, int slice, float
 //-- reference contour at the last recorded position of the mouse. What is
 //-- drawn depends on what drawing mode is selected.
 
-bool BeadHelper::drawExtraObject( bool redraw )
+bool BeadHelper::drawExtraObject( bool redraw, int drawflag, int slice )
 {
-  Iobj *xobj = ivwGetAnExtraObject(plug.view, plug.extraObjNum);
+  Iobj *xobjE = ivwGetAnExtraObject(plug.view, plug.extraObjExpPos);
+  Iobj *xobjC = ivwGetAnExtraObject(plug.view, plug.extraObjContDisp);
+  Iobj *xobjT = ivwGetAnExtraObject(plug.view, plug.extraObjTiltAxis);
   
-  if ( !plug.window || !xobj )
+  if ( !plug.window || !xobjC || !xobjE || !xobjT )
     return 0;
   
-  //## INITIALIZE EXTRA OBJECT:
+  //## CLEAR EXTRA OBJECTS:
   
-  ivwClearAnExtraObject(plug.view, plug.extraObjNum);
-  imodObjectSetColor(xobj, 1, 0, 0);
-  imodObjectSetValue(xobj, IobjFlagClosed, 0);
-  
+  ivwClearAnExtraObject( plug.view, plug.extraObjContDisp );
+  ivwClearAnExtraObject( plug.view, plug.extraObjExpPos );
+  ivwClearAnExtraObject( plug.view, plug.extraObjTiltAxis );
   
   
   //## GET Z VALUE:
@@ -675,7 +781,6 @@ bool BeadHelper::drawExtraObject( bool redraw )
   float y = plug.mouse.y;
   float z = plug.mouse.z;
   
-  int currSlice = edit_getZOfTopZap();
   float zapZoom = 1.0f;
   ivwGetTopZapZoom(plug.view, &zapZoom);
   float sc = fDivide( 1.0f, zapZoom);
@@ -690,40 +795,47 @@ bool BeadHelper::drawExtraObject( bool redraw )
   if( plug.showExpectedPos && isCurrContValid() )
   {
     Ipoint ptEst;
-    bool success = bead_getExpectedPosOfPoint( cont, currSlice, &ptEst );
+    bool success = bead_getExpectedPosOfPoint( cont, z, &ptEst );
     
     if(success)
     {
       Icont *xcont = imodContourNew();
       
-      if( bead_isPtOnSlice(cont, currSlice) )
+      if( bead_isPtOnSlice(cont, z) )
       {
-        Ipoint *pt = bead_getPtOnSlice(cont, currSlice);
-        imodPointAppendXYZ( xcont, pt->x, pt->y, currSlice );
-        imodPointAppendXYZ( xcont, ptEst.x, ptEst.y, currSlice );
-        cont_addCross( xcont, ptEst, 6*sc, currSlice );
+        if( plug.expPtDisplayType == ED_DIAMOND )
+          cont_addDiamond( xcont, ptEst, plug.expPtSize*sc, z );
+        else if( plug.expPtDisplayType == ED_CROSS )
+          cont_addCross( xcont, ptEst, plug.expPtSize*sc, z );
+        else {
+          Ipoint *pt = bead_getPtOnSlice(cont, z);
+          cont_addArrow( xcont, *pt, ptEst, plug.expPtSize*sc, z );
+        }
       }
       else
       {
-        cont_addCross( xcont, ptEst, 16*sc, currSlice );
+        if( plug.expPtDisplayType == ED_DIAMOND )
+          cont_addDiamond( xcont, ptEst, 2*plug.expPtSize*sc, z );
+        else
+          cont_addCross( xcont, ptEst, 2*plug.expPtSize*sc, z );
       }
-      imodContourSetFlag(xcont, ICONT_CURSOR_LIKE, 1);
-      imodObjectAddContour(xobj, xcont);
+      imodContourSetFlag(xcont, ICONT_DRAW_ALLZ, 1);
+      imodObjectAddContour(xobjE, xcont);
     }
   }
   
   //## DRAW APPROPRIATE LINE DISPLAY:
   
-  switch (plug.lineDisplayType)
+  switch ( plug.lineDisplayType )
   {
     case( LD_CURRENT ):
     {
       if( isCurrContValid() )
       {
         Icont *xcont = imodContourDup( getCurrCont() );
-        changeZValue( xcont, currSlice );
-        imodContourSetFlag(xcont, ICONT_CURSOR_LIKE | ICONT_DRAW_ALLZ, 1);
-        imodObjectAddContour(xobj, xcont);
+        changeZValue( xcont, z );
+        imodContourSetFlag(xcont, ICONT_DRAW_ALLZ, 1);
+        imodObjectAddContour(xobjC, xcont);
       }
     }break;
     
@@ -731,26 +843,28 @@ bool BeadHelper::drawExtraObject( bool redraw )
     {
       if( isCurrContValid() )
       {
+        ivwClearAnExtraObject(plug.view, plug.extraObjContDisp);
         Icont *xcont = imodContourNew();
-        cont_makeContShowingMissingPoints( xcont, getCurrCont(), currSlice, sc*2 );
+        cont_makeContShowingMissingPoints( xcont, getCurrCont(), z, sc*2 );
         
-        imodContourSetFlag(xcont, ICONT_CURSOR_LIKE, 1);
-        imodObjectAddContour(xobj, xcont);
+        imodContourSetFlag(xcont, ICONT_DRAW_ALLZ, 1);
+        imodObjectAddContour(xobjC, xcont);
       }
     }break;
       
       
     case( LD_ALL ):
     {
-      for(int c=0; c<imodObjectGetMaxContour(obj);c++)
-      {
-        Icont *xcont = imodContourDup( getCont(obj,c) );
-        changeZValue( xcont, currSlice );
-        imodContourSetFlag(xcont, ICONT_DRAW_ALLZ | ICONT_MMODEL_ONLY, 1);
-        imodObjectAddContour(xobj, xcont);
-      }
+        ivwClearAnExtraObject(plug.view, plug.extraObjContDisp);
+        for(int c=0; c<imodObjectGetMaxContour(obj);c++)
+        {
+          Icont *xcont = imodContourDup( getCont(obj,c) );
+          changeZValue( xcont, z );
+          imodContourSetFlag(xcont, ICONT_DRAW_ALLZ | ICONT_MMODEL_ONLY, 1);
+          imodObjectAddContour(xobjC, xcont);
+        }
     }break;
-      
+    
     case( LD_SLICE_RESID ):
     {
       if( isCurrContValid() )
@@ -763,10 +877,10 @@ bool BeadHelper::drawExtraObject( bool redraw )
           {
             Icont *xcont  = imodContourNew();
             Ipoint resid  = line_findPtFractBetweenPts2D( pt, &ptEst, 1.0 );
-            imodPointAppendXYZ( xcont, pt->x, pt->y, currSlice );
-            imodPointAppendXYZ( xcont, resid.x, resid.y, currSlice );
-            imodContourSetFlag(xcont, ICONT_CURSOR_LIKE | ICONT_MMODEL_ONLY, 1);
-            imodObjectAddContour(xobj, xcont);
+            imodPointAppendXYZ( xcont, pt->x, pt->y, z );
+            imodPointAppendXYZ( xcont, resid.x, resid.y, z );
+            imodContourSetFlag(xcont, ICONT_DRAW_ALLZ, 1);
+            imodObjectAddContour(xobjC, xcont);
           }
         }
       }
@@ -774,7 +888,7 @@ bool BeadHelper::drawExtraObject( bool redraw )
     
     case( LD_BEST_FIT ):
     {
-      imodObjectSetColor(xobj, 1,1,1);
+      imodObjectSetColor(xobjC, 1,1,1);
       
       if( isCurrContValid() )
       {
@@ -783,46 +897,62 @@ bool BeadHelper::drawExtraObject( bool redraw )
         if(success)
         {
           Icont *xcont = imodContourNew();
-          imodPointAppendXYZ( xcont, 0, (offset), currSlice );
-          imodPointAppendXYZ( xcont, plug.xsize, (gradient*plug.xsize + offset), currSlice );
-          imodContourSetFlag( xcont, ICONT_STIPPLED, 1 );
-          imodObjectAddContour( xobj, xcont );
+          imodPointAppendXYZ( xcont, 0, (offset), z );
+          imodPointAppendXYZ( xcont, plug.xsize, (gradient*plug.xsize + offset), z );
+          imodContourSetFlag( xcont, ICONT_STIPPLED | ICONT_DRAW_ALLZ, 1 );
+          imodObjectAddContour( xobjC, xcont );
         }
       }
     } break;
-      
-    case( LD_TILTAXIS ):
+  }
+  
+  //## DRAW TILT AXIS:
+  
+  if ( plug.tiltDisplayType != TD_OFF )
+  {
+    Icont *xcontT = imodContourNew();
+    float gradientP = tan( (plug.tiltAngle)*DEGS_TO_RADS );
+    // calculate gradient perpendicular to the tilt axis
+    
+    float offsetX = plug.middlePt.x + plug.tiltOffsetX;
+    float startX   = offsetX + ((plug.ysize/2.0)*gradientP);
+    float endX     = offsetX - ((plug.ysize/2.0)*gradientP);
+    
+    imodPointAppendXYZ( xcontT, startX, 0, z );
+    imodPointAppendXYZ( xcontT, endX, plug.ysize, z );
+    imodContourSetFlag( xcontT, ICONT_DRAW_ALLZ, 1 );
+    imodObjectAddContour( xobjT, xcontT );
+    
+    if( plug.tiltDisplayType == TD_TILTAXISPT )
     {
-      imodObjectSetColor(xobj, 1,1,0);
-      
-      Icont *xcont = imodContourNew();
-      float gradientP = tan( (plug.tiltAngle)*DEGS_TO_RADS );
-                    // calculate gradient perpendicular to the tilt axis
-      
-      float offsetX = plug.middlePt.x + plug.tiltOffsetX;
-      float startX   = offsetX + ((plug.ysize/2.0)*gradientP);
-      float endX     = offsetX - ((plug.ysize/2.0)*gradientP);
-      
-      imodPointAppendXYZ( xcont, startX, 0, currSlice );
-      imodPointAppendXYZ( xcont, endX, plug.ysize, currSlice );
-      imodObjectAddContour( xobj, xcont );
-      
-      if( isCurrPtValid() )
+      if( cont && bead_isPtOnSlice( cont, plug.middleSlice) )
+      {
+        Icont *xcontP = imodContourNew();
+        Ipoint *pt = bead_getPtOnSlice( cont, plug.middleSlice );
+        float startYP   = pt->y - ((pt->x - 0)*gradientP);
+        float endYP     = pt->y + ((plug.xsize - pt->x)*gradientP);
+        imodPointAppendXYZ( xcontP, 0, startYP, z );
+        imodPointAppendXYZ( xcontP, plug.xsize, endYP, z );
+        imodContourSetFlag( xcontP, ICONT_STIPPLED | ICONT_DRAW_ALLZ, 1 );
+        imodObjectAddContour( xobjT, xcontP );
+      }
+      else if( isCurrPtValid() )
       {
         Icont *xcontP = imodContourNew();
         Ipoint *pt = getCurrPt();
         float startYP   = pt->y - ((pt->x - 0)*gradientP);
         float endYP     = pt->y + ((plug.xsize - pt->x)*gradientP);
-        imodPointAppendXYZ( xcontP, 0, startYP, currSlice );
-        imodPointAppendXYZ( xcontP, plug.xsize, endYP, currSlice );
-        imodContourSetFlag( xcontP, ICONT_STIPPLED, 1 );
-        imodObjectAddContour( xobj, xcontP );
+        imodPointAppendXYZ( xcontP, 0, startYP, z );
+        imodPointAppendXYZ( xcontP, plug.xsize, endYP, z );
+        imodContourSetFlag( xcontP, ICONT_STIPPLED | ICONT_DRAW_ALLZ, 1 );
+        imodObjectAddContour( xobjT, xcontP );
       }
-    } break;
+    }
   }
   
+  
   if( redraw )
-    ivwRedraw( plug.view );
+    ivwDraw( plug.view, 0 );
   return true;
 }
 
@@ -847,6 +977,73 @@ void BeadHelper::clearExtraObj()
 
 
 //------------------------
+//-- Loads most of the settings for BeadHelperData from "beadhelpersettings.txt"
+
+void BeadHelper::loadSettings()
+{
+  
+  vector<string> file = file_loadTextFromFile("beadhelpersettings.txt");
+  for( int i=0; i<file.size(); i++ )
+  {
+    string l = file[i];
+    if( l.length() <= 1 )
+      continue;
+    
+    string value = string_explodeGetArgument( l, " ", 2, true );
+    float valueF = string_getFloatFromString( value );
+    int   valueI = int(valueF);
+    bool  valueB = !(valueI == 0); 
+    
+    if (string_startsWith(l, "showExpectedPos "))   plug.showExpectedPos = valueB;
+    if (string_startsWith(l, "wheelBehav "))        plug.wheelBehav = valueI;
+    if (string_startsWith(l, "estPosMethod "))      plug.estPosMethod = valueI;
+    if (string_startsWith(l, "showSpheres "))       plug.showSpheres = valueB;
+    if (string_startsWith(l, "sphereSize "))        plug.sphereSize = valueI;
+    if (string_startsWith(l, "lineDisplayType "))   plug.lineDisplayType = valueI;
+    if (string_startsWith(l, "tiltDisplayType "))   plug.tiltDisplayType = valueI;
+    if (string_startsWith(l, "tiltAngle "))         plug.tiltAngle = valueF;
+    if (string_startsWith(l, "biggestHoleGrid "))   plug.biggestHoleGrid = valueI;
+    if (string_startsWith(l, "wheelResistance "))   plug.wheelResistance = valueI;
+    if (string_startsWith(l, "expPtDisplayType "))  plug.expPtDisplayType = valueI;
+    if (string_startsWith(l, "expPtSize "))         plug.expPtSize = valueI;
+    if (string_startsWith(l, "autoSaveSettings "))  plug.autoSaveSettings = valueI;
+  }
+}
+
+
+//------------------------
+//-- Saves most of the settings within BeadHelperData to "beadhelpersettings.txt"
+//-- so they will load next time Bead Helper is started
+
+void BeadHelper::saveSettings()
+{
+  wprint("SAVING SETTINGS");
+  
+  string text;
+  
+  text += "showExpectedPos "      + toString( plug.showExpectedPos ) + "\n";
+  text += "wheelBehav "           + toString( plug.wheelBehav )+ "\n";
+  text += "estPosMethod "         + toString( plug.estPosMethod )+ "\n";
+  text += "showSpheres "          + toString( plug.showSpheres )+ "\n";
+  text += "sphereSize "           + toString( plug.sphereSize )+ "\n";
+  text += "lineDisplayType "      + toString( plug.lineDisplayType )+ "\n";
+  text += "tiltDisplayType "      + toString( plug.tiltDisplayType )+ "\n";
+  text += "\n";
+  text += "tiltAngle "            + toString( plug.tiltAngle )+ "\n";
+  text += "tiltOffsetX "          + toString( plug.tiltOffsetX )+ "\n";
+  text += "biggestHoleGrid "      + toString( plug.biggestHoleGrid )+ "\n";
+  text += "wheelResistance "      + toString( plug.wheelResistance )+ "\n";
+  text += "expPtDisplayType "     + toString( plug.expPtDisplayType )+ "\n";
+  text += "expPtSize "            + toString( plug.expPtSize )+ "\n";
+  text += "autoSaveSettings "     + toString( plug.autoSaveSettings )+ "\n";
+  
+  bool success =  file_saveStringToFile("beadhelpersettings.txt", text )+ "\n";
+}
+
+
+
+
+//------------------------
 //-- Deletes all points within the specified range of views from the specified range
 //-- of contours.
 
@@ -854,6 +1051,29 @@ void BeadHelper::deletePtsInRange()
 {
   if( !updateAndVerifyRanges() )
     return;
+  
+  //## DISPLAY YES/NO TEXTBOX GIVING USER OPTION TO CANCEL:
+  
+  int numConts  = (plug.contMax - plug.contMin) + 1;
+  int numSlices = (plug.sliceMax - plug.sliceMin) + 1;
+  int numPts = numConts * numSlices;
+  string incMiddleSlice = isBetweenAsc(plug.sliceMin,plug.middleSlice,plug.sliceMax) ?
+    "\n\nTHIS INCLUDES THE MIDDLE SLICE!\n" : "";
+  if( numPts > 10 )
+  {
+    string msg = "This operation will delete ALL points on "
+    + toString(numConts) + " contours ("
+    + toString(plug.contMin+1) + "-" + toString(plug.contMax+1)
+    + ") on " + toString(numSlices) + " slices ("
+    + toString(plug.sliceMin+1) + "-" + toString(plug.sliceMax+1) + ")."
+    + incMiddleSlice 
+    + "\nAre you sure you want to continue ?";
+    
+    if( !MsgBoxYesNo( this, msg ) )
+      return;
+  }
+  
+  //## DELETE ALL POINTS IN RANGE:
   
   Imod *imod = ivwGetModel(plug.view);
   Iobj *obj = imodObjectGet(imod);
@@ -945,9 +1165,8 @@ void BeadHelper::deletePtsCurrContToNearestEnd( bool inclusive )
     if(!inclusive)
       ptIdx++;
     numPtsDeleted = numPts - ptIdx;
-    for( int p=ptIdx; p<psize(cont); p++ )
+    for( int p=ptIdx; p<psize(cont); )
       imodPointDelete( cont, ptIdx );
-    imodSetIndex( imod, objIdx, contIdx, ptIdx-1 );
   }
   else                        // (else) if closest to start pt: delete pts from start
   {
@@ -1275,7 +1494,7 @@ void BeadHelper::otherSettings()
                                           "How far the tilt axis is shifted along X "
                                           "from passing through the center" );
   int ID_BIGGESTHOLES   = ds.addSpinBox ( "biggest hole grid size:",
-                                          1, 1000, plug.biggestHoleSearchBox, 5,
+                                          1, 1000, plug.biggestHoleGrid, 5,
                                           "The distance between grid points used to "
                                           "search for the point furthest from any "
                                           "seed points and the edge" );
@@ -1284,10 +1503,23 @@ void BeadHelper::otherSettings()
                                           "The view used to seed points - this is "
                                           "usually the middle-most view, but not "
                                           "in all cases" );
-  int ID_WHEELRESISTANCE = ds.addSpinBox ( "wheel resistance:",
+  int ID_WHEELRESIST    = ds.addSpinBox ( "wheel resistance:",
                                           10, 1000, plug.wheelResistance, 10,
                                           "the higher the value, the slower "
-                                           "mouse scrolling works" );
+                                          "mouse scrolling works" );
+  int ID_EXPPTDISPLAY   = ds.addComboBox( "expected pt display:",
+                                          "cross,"
+                                          "diamond,"
+                                          "arrow", plug.expPtDisplayType,
+                                           "Garry is gay  :-)" );
+  int ID_EXPPTSIZE      = ds.addSpinBox ( "expected pt size:",
+                                           1, 200, plug.expPtSize, 1 );
+  int ID_AUTOSAVE       = ds.addCheckBox( "save settings on close", 
+                                          plug.autoSaveSettings,
+                                          "automatically saves your Bead Helper "
+                                          "settings to 'beadhelpersettings.txt' "
+                                          "when you close 3dmod, so they will load "
+                                          "next time you open 3dmod");
   
 	GuiDialogCustomizable dlg(&ds, "Other Settings", this);
 	dlg.exec();
@@ -1295,15 +1527,20 @@ void BeadHelper::otherSettings()
 		return;
 	string tiltAngleStr        = ds.getResultLineEdit	( ID_TILTANGLE );
   plug.tiltOffsetX           = ds.getResultSpinBox  ( ID_TILTOFFSET );
-  plug.biggestHoleSearchBox  = ds.getResultSpinBox  ( ID_BIGGESTHOLES );
+  plug.biggestHoleGrid       = ds.getResultSpinBox  ( ID_BIGGESTHOLES );
   plug.middleSlice           = ds.getResultSpinBox  ( ID_MIDDLESLICE ) - 1;
-  plug.wheelResistance       = ds.getResultSpinBox  ( ID_WHEELRESISTANCE );
+  plug.wheelResistance       = ds.getResultSpinBox  ( ID_WHEELRESIST );
+  plug.expPtDisplayType      = ds.getResultComboBox ( ID_EXPPTDISPLAY );
+  plug.expPtSize             = ds.getResultSpinBox  ( ID_EXPPTSIZE );
+  plug.autoSaveSettings      = ds.getResultCheckBox ( ID_AUTOSAVE );
   
   float newTiltAngle = string_getFloatFromString( tiltAngleStr );
-  if( newTiltAngle < -100 || newTiltAngle >100 )
+  if( newTiltAngle < -200 || newTiltAngle >200 )
     wprint("\aERROR: Invalid tilt angle entered"); 
   else
     plug.tiltAngle = newTiltAngle;
+  
+  ivwRedraw( plug.view );
 }
 
 
@@ -1486,7 +1723,6 @@ bool BeadHelper::advanceSelectedPointInCurrCont( int change )
   keepWithinRange( ptIdx, 0, psize(cont)-1 );
   
   imodSetIndex(imod, objIdx, contIdx, ptIdx);
-  ivwRedraw( plug.view );
 }
 
 
@@ -1615,6 +1851,7 @@ void BeadHelper::test()
 
 void BeadHelper::changeShowExpectedPos() {
   plug.showExpectedPos = showExpectedPosCheckbox->isChecked();
+  drawExtraObject(true);
 }
 
 
@@ -1646,6 +1883,15 @@ void BeadHelper::changeSphereSize( int value ) {
 
 void BeadHelper::changeLineDisplayType(int value) {
   plug.lineDisplayType = value;
+  drawExtraObject(true);
+}
+
+//------------------------
+//-- Change lineDisplayType
+
+void BeadHelper::changeTiltDisplayType(int value) {
+  plug.tiltDisplayType = value;
+  drawExtraObject(true);
 }
 
 //------------------------
@@ -1660,11 +1906,13 @@ void BeadHelper::changeWheelBehav(int value) {
 
 void BeadHelper::changeEstPosMethod(int value) {
   plug.estPosMethod = value;
+  drawExtraObject(true);
 }
 
 
 
 //## PROTECTED:
+
 
 //------------------------
 //-- Called to display help window.
@@ -1689,9 +1937,12 @@ void BeadHelper::closeEvent ( QCloseEvent * e )
 {
   imodDialogManager.remove((QWidget *)plug.window);
   clearExtraObj();
-  ivwFreeExtraObject(plug.view, plug.extraObjNum);
+  ivwFreeExtraObject(plug.view, plug.extraObjContDisp);
   ivwTrackMouseForPlugs(plug.view, 0);
   ivwEnableStipple( plug.view, 0 );
+  
+  if( plug.autoSaveSettings )
+    plug.window->saveSettings();
   
   plug.view = NULL;
   plug.window = NULL;
@@ -1921,6 +2172,34 @@ int edit_changeSelectedSliceCrude( int changeZ )
   
 }
 
+//------------------------
+//-- Sets the top ZAP window to focus on the selected point.
+//-- Note that the method to do this is quite crude, because it
+//-- involves the creationg and then delestion of a point,
+//-- since "ivwSetLocation" alone is not enough to shift the view.
+
+bool bead_focusOnPointCrude( float x, float y, float z )
+{
+  if( !isCurrObjValid() )
+    return false;
+  
+  Imod *imod = ivwGetModel(plug.view);
+  Iobj *obj = imodObjectGet(imod);
+  int objIdx, contIdx, ptIdx;
+  imodGetIndex(imod, &objIdx, &contIdx, &ptIdx);
+  
+  Icont *tempCont = imodContourNew();
+  imodPointAppendXYZ( tempCont, x,y,z );
+  int tempContIdx = imodObjectAddContour( obj,tempCont );
+  imodSetIndex(imod, objIdx, tempContIdx, 0);
+  imodObjectRemoveContour( obj, tempContIdx );
+  ivwSetLocation(plug.view, x, y, z);
+  ivwRedraw( plug.view );
+  imodContourDelete(tempCont);
+}
+
+
+
 
 //------------------------
 //-- Returns true if there is a point in "cont" on the specified slice.
@@ -1930,7 +2209,6 @@ bool bead_isPtOnSlice( Icont *cont, int slice )
   for( int p=0; p<psize(cont); p++ )
     if( getPtZInt(cont,p) == slice )
       return true;
-  
   return false;
 }
 
@@ -1943,7 +2221,6 @@ int bead_getPtIdxOnSlice( Icont *cont, int slice )
   for( int p=0; p<psize(cont); p++ )
     if( getPtZInt(cont,p) == slice )
       return p;
-  
   return (NO_POINT);
 }
 
@@ -1957,8 +2234,21 @@ Ipoint *bead_getPtOnSlice( Icont *cont, int slice )
   for( int p=0; p<psize(cont); p++ )
     if( getPtZInt(cont,p) == slice )
       return getPt(cont,p);
-  
   return NULL;
+}
+
+
+//------------------------
+//-- Returns the index within the contour where you would insert
+//-- a point on the specified slice (i.e. the first index 
+//-- where z >= "slice" ).
+
+int bead_getExpPtIdxForSlice( Icont *cont, int slice )
+{
+  for( int p=0; p<psize(cont); p++ )
+    if( getPtZInt(cont,p) >= slice )
+      return (p);
+  return psize(cont)-1;
 }
 
 //------------------------
@@ -1985,6 +2275,7 @@ int bead_getClosestPtIdxToSlice( Icont *cont, int slice )
   return closestIdx;
 }
 
+
 //------------------------
 //-- Returns the point which is closest to current slice
 //-- or returns NULL if no points
@@ -1992,10 +2283,8 @@ int bead_getClosestPtIdxToSlice( Icont *cont, int slice )
 Ipoint *bead_getClosestPtToSlice( Icont *cont, int slice )
 {
   int closestPtIdx = bead_getClosestPtIdxToSlice( cont, slice );
-  
   if (closestPtIdx == NO_POINT)
     return NULL;
-  
   return getPt(cont, closestPtIdx);
 }
 
@@ -2234,6 +2523,37 @@ bool bead_getExpectedPosOfPoint( Icont *cont, int slice, Ipoint *pt )
       
     case (EM_LASTFOUR):
     {
+      if( psize(cont) < 8 )
+        return (false);
+      
+      int midPtIdx  = psize(cont) / 2;
+      int ptIdx     = bead_getExpPtIdxForSlice( cont, slice );
+      bool searchUp = midPtIdx > ptIdx;
+      bool isOnPt   = getPtZInt( cont, ptIdx ) == slice;
+      
+      int directionAsc = (searchUp) ? 1 : -1;
+      int offset       = (isOnPt) ? 1 : 0;
+      
+      int firstIdx = directionAsc * (4+offset);
+      
+      Ipoint *p1 = getPt( cont, firstIdx );
+      Ipoint *p2 = getPt( cont, firstIdx + 1*directionAsc );
+      Ipoint *p3 = getPt( cont, firstIdx + 2*directionAsc );
+      Ipoint *p4 = getPt( cont, firstIdx + 3*directionAsc );
+      
+      Icont *lastFourPts = imodContourNew();
+      
+      
+      float gradient, offsetY;
+      bool success = bead_calcLineOfBestFit( lastFourPts, &gradient, &offsetY );
+      float angle = atan( gradient ) * RADS_TO_DEGS;
+      
+      
+      //float angleP1P4 = line_getAngle2D( pt, p4 );
+      //float angleP1P4 = line_getAngle2D( pt, p4 );
+      //float angleP1P4 = line_getAngle2D( pt, p4 );
+        
+        
       wprint("last four not implemented\n");
       return false;
     }
@@ -2656,31 +2976,7 @@ bool bead_estimateTurningPointOfCont( Icont *cont, Ipoint *pt,
 }
 
 
-//------------------------
-//-- Sets the top ZAP window to focus on the selected point.
-//-- Note that the method to do this is quite crude, because it
-//-- involves the creationg and then delestion of a point,
-//-- since "ivwSetLocation" alone is not enough to shift the view.
 
-bool bead_focusOnPointCrude( float x, float y, float z )
-{
-  if( !isCurrObjValid() )
-    return false;
-  
-  Imod *imod = ivwGetModel(plug.view);
-  Iobj *obj = imodObjectGet(imod);
-  int objIdx, contIdx, ptIdx;
-  imodGetIndex(imod, &objIdx, &contIdx, &ptIdx);
-  
-  Icont *tempCont = imodContourNew();
-  imodPointAppendXYZ( tempCont, x,y,z );
-  int tempContIdx = imodObjectAddContour( obj,tempCont );
-  imodSetIndex(imod, objIdx, tempContIdx, 0);
-  imodObjectRemoveContour( obj, tempContIdx );
-  ivwSetLocation(plug.view, x, y, z);
-  ivwRedraw( plug.view );
-  imodContourDelete(tempCont);
-}
 
 
 
@@ -2739,8 +3035,8 @@ bool bead_goToNextBiggestHole( bool findNextBiggest )
   //## INITIALIZE A GRID OF POINT TO MEASURE THE DISTANCE TO THE NEAREST
   //## SEED POINT OR EDGE:
   
-  int colsX = int(plug.xsize / plug.biggestHoleSearchBox);
-  int rowsY = int(plug.ysize / plug.biggestHoleSearchBox);
+  int colsX = int(plug.xsize / plug.biggestHoleGrid);
+  int rowsY = int(plug.ysize / plug.biggestHoleGrid);
   
   float sideLenX = fDivide(plug.xsize, colsX);
   float sideLenY = fDivide(plug.ysize, rowsY);
@@ -2844,9 +3140,8 @@ float bead_estimateTiltAngle()
     
     if( success )
     {
-      float angle;
-      angle = atan( gradient ) * RADS_TO_DEGS;
-      wprint("cont %d \tangle=%f\n", c, angle);
+      float angle = atan( gradient ) * RADS_TO_DEGS;
+      //wprint("cont %d \tangle=%f\n", c, angle);     //%%%%
       
       angleSum += angle;
       totalConts++;
@@ -2940,7 +3235,7 @@ bool bead_showBottomContoursStippledUsingDirection()
       //wprint("cont %d - TOP     \tdist= %d\n",c+1,diffMatchingEndPtsInX);
       imodContourSetFlag( cont, ICONT_STIPPLED, 1 );
       //Icont *copyCont = imodContourDup(cont);
-      //imodObjectAddContour( xobj2, cont );
+      //imodObjectAddContour( xobjC, cont );
     }
     else
     {
@@ -2962,8 +3257,8 @@ bool bead_showBottomContoursInPurple()
   Imod *imod = ivwGetModel(plug.view);
   Iobj *obj = imodObjectGet(imod);
   
-  Iobj *xobj2 = ivwGetAnExtraObject(plug.view, plug.extraObjNum2);
-  ivwClearAnExtraObject(plug.view, plug.extraObjNum2);
+  Iobj *xobj2 = ivwGetAnExtraObject(plug.view, plug.extraObjExtra);
+  ivwClearAnExtraObject(plug.view, plug.extraObjExtra);
   imodObjectSetColor(xobj2, 1, 0, 1);
   imodObjectSetValue(xobj2, IobjPointSize, 3);
   imodObjectSetValue(xobj2, IobjFlagClosed, 0);
@@ -3078,8 +3373,8 @@ bool bead_showContourTurningPts()
   Imod *imod = ivwGetModel(plug.view);
   Iobj *obj = imodObjectGet(imod);
   
-  Iobj *xobj2 = ivwGetAnExtraObject(plug.view, plug.extraObjNum2);
-  ivwClearAnExtraObject(plug.view, plug.extraObjNum2);
+  Iobj *xobj2 = ivwGetAnExtraObject(plug.view, plug.extraObjExtra);
+  ivwClearAnExtraObject(plug.view, plug.extraObjExtra);
   imodObjectSetColor(xobj2, 1, 0, 1);
   imodObjectSetValue(xobj2, IobjPointSize, 3);
   imodObjectSetValue(xobj2, IobjFlagClosed, 0);
