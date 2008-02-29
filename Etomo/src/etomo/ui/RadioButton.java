@@ -37,7 +37,7 @@ import etomo.util.Utilities;
 final class RadioButton implements RadioButtonInterface {
   public static final String rcsid = "$Id$";
 
-   final JRadioButton radioButton;
+  final JRadioButton radioButton;
   private final EnumeratedType enumeratedType;
 
   RadioButton(final String text) {
@@ -47,7 +47,7 @@ final class RadioButton implements RadioButtonInterface {
   RadioButton(final String text, ButtonGroup group) {
     this(text, null, group);
   }
-  
+
   RadioButton(ButtonGroup group) {
     this("", null, group);
   }
@@ -70,35 +70,40 @@ final class RadioButton implements RadioButtonInterface {
     }
   }
 
+  public String toString() {
+    return radioButton.getText() + ": "
+        + (radioButton.isSelected() ? "On" : "Off");
+  }
+
   void setText(final String text) {
     radioButton.setText(text);
     setName(text);
   }
-  
-   void setBorderPainted(boolean b) {
+
+  void setBorderPainted(boolean b) {
     radioButton.setBorderPainted(b);
   }
-   
-   public void setBorder(Border border) {
-     radioButton.setBorder( border);
-   }
-   
-   public void setForeground(Color fg) {
-     radioButton.setForeground(fg);
-   }
-   
-   public int getWidth() {
-     return radioButton.getWidth();
-   }
-   
-   public int getHeight() {
-     return radioButton.getHeight();
-   }
-   
-   public Border getBorder() {
-     return radioButton.getBorder();
-   }
-   
+
+  public void setBorder(Border border) {
+    radioButton.setBorder(border);
+  }
+
+  public void setForeground(Color fg) {
+    radioButton.setForeground(fg);
+  }
+
+  public int getWidth() {
+    return radioButton.getWidth();
+  }
+
+  public int getHeight() {
+    return radioButton.getHeight();
+  }
+
+  public Border getBorder() {
+    return radioButton.getBorder();
+  }
+
   void setName(final String text) {
     String name = Utilities.convertLabelToName(text);
     radioButton.setName(name);
@@ -136,8 +141,8 @@ final class RadioButton implements RadioButtonInterface {
   void addActionListener(final ActionListener actionListener) {
     radioButton.addActionListener(actionListener);
   }
-  
-   void addChangeListener(final ChangeListener listener) {
+
+  void addChangeListener(final ChangeListener listener) {
     radioButton.addChangeListener(listener);
   }
 
@@ -220,6 +225,9 @@ final class RadioButton implements RadioButtonInterface {
 }
 /**
  * <p> $Log$
+ * <p> Revision 1.17  2007/12/26 22:26:16  sueh
+ * <p> bug# 1052 Moved argument handling from EtomoDirector to a separate class.
+ * <p>
  * <p> Revision 1.16  2007/09/27 21:04:32  sueh
  * <p> bug# 1044 Expanded RadioButton so it can be used in RadioButtonCell.
  * <p>
