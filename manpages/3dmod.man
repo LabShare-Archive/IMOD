@@ -581,6 +581,9 @@ Memory to TIFF... Write the whole section of a raw color image
                     stored inside 3dmod to a TIFF file, in order
                     to turn a montaged image bigger than the
                     screen into a single large image.
+Extract File...   Extract part of file selected by rubber band in
+                    top slicer window, with flipping if image is
+                    loaded flipped.
 Quit              Quit 3dmod.
 
 .I Edit Menu
