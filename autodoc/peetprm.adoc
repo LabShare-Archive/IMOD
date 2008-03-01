@@ -43,21 +43,21 @@ comment = A code specifying how to construct the initial motive list:
 ^  0: Set all rotational values to zero
 ^
 ^  1: Use the particle model and reference index to
-^     initialize phi (rotation around the z axis), be sure
+^     initialize theta (rotation around the z axis), be sure
 ^     the points are sorted along a direction of interest
 ^
 ^  2: Use the particle model and reference index to initialize
-^     phi and theta (rotation around the z axis and x axis)
+^     theta and psi (rotation around the z axis and x axis)
 ^
 ^     or a string array to specify the filenames to load, must end in 1.em
 tooltip = A code specifying how to construct the initial motive list
 or a string array to specify the filenames to load, must end in 1.em
 enum.0.tooltip = Set all rotational values to zero
-enum.1.tooltip = Use the particle model and reference index to initialize phi
+enum.1.tooltip = Use the particle model and reference index to initialize theta
 (rotation around the z axis), be sure the points are sorted along a direction of
 interest
-enum.2.tooltip = Use the particle model and reference index to initialize phi
-and theta (rotation around the z axis and x axis)
+enum.2.tooltip = Use the particle model and reference index to initialize theta
+and psi (rotation around the z axis and x axis)
 
 [Field = szVol]
 comment = The size of the volume around each particle to average
