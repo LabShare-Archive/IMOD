@@ -2427,6 +2427,16 @@ int ivwGetTopZapMouse(ImodView *inImodView, Ipoint *imagePt)
   return getTopZapMouse(imagePt);
 }
 
+int prefSaveGenericSettings(char *key, int numVals, double *values)
+{
+  return ImodPrefs->saveGenericSettings(key, numVals, values);
+}
+
+int prefGetGenericSettings(char *key, double *values, int maxVals)
+{
+  return ImodPrefs->getGenericSettings(key, values, maxVals);
+}
+
 int ivwOverlayOK(ImodView *inImodView)
 {
   return (App->rgba == 1 && !App->cvi->rawImageStore);
@@ -2667,6 +2677,9 @@ void ivwBinByN(unsigned char *array, int nxin, int nyin, int nbin,
 
 /*
 $Log$
+Revision 4.61  2008/01/14 19:47:59  mast
+Added new functions for Andrew
+
 Revision 4.60  2007/12/07 19:16:50  mast
 Fixed so that info window reads out the right pixel when going to a model pt
 

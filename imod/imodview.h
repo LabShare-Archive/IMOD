@@ -282,11 +282,31 @@ void DLL_EX_IM imodSelectionNewCurPoint(ImodView *vi, Imod *imod,
 int DLL_EX_IM imodNumSelectedObjects(ImodView *vi, int &minOb, int &maxOb);
 }
 
+/*
+ * Preference wrapper calls
+ */
+/*! 
+ * Saves settings in the user preferences under a key given by [key], which 
+ * should be the name of a  module.  It saves [numVals] values from the 
+ * array [values].  Returns 1 for memory allocation errors.
+ */
+int DLL_EX_IM prefSaveGenericSettings(char *key, int numVals, double *values);
+
+/*! 
+ * Returns settings from the user preferences under the key given by [key].
+ * Up to [maxVals] values are returned into the array [values].  The return
+ * value is the number of values returned.
+ */
+int DLL_EX_IM prefGetGenericSettings(char *key, double *values, int maxVals);
+
 #endif
 
 /* 
 
 $Log$
+Revision 1.14  2008/01/14 19:47:59  mast
+Added new functions for Andrew
+
 Revision 1.13  2007/12/05 15:30:48  mast
 Added DLL_EX_IM for some new functions
 
