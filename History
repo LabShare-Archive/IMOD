@@ -1,5 +1,9 @@
 IMOD History
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+3/3/08: Fixed ability to run graphical Fortran programs on Mac (broken 3.10.22)
+and provided individual script to run each so it would run from command file
+(In 3.11).
+
 3/3/08: IMOD_3-12-4
 3/3/08: In Blendmont, fixed bad scaling of mode 1 data, fixed double-scaling 
 of one line with binned output, and restored old behavior of floating to
