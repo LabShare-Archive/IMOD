@@ -15,6 +15,9 @@
     $Revision$
 
     $Log$
+    Revision 1.5  2008/02/21 07:37:46  tempuser
+    *** empty log message ***
+
     Revision 1.4  2008/02/21 07:33:42  tempuser
     Changed DBL_MAX
 
@@ -183,12 +186,7 @@ void imodPlugExecute(ImodView *inImodView)
     return;
   }
   
-  if (ivwGetMovieModelMode(plug.view) == 0)    // returns 0 if in movie mode
-  {
-    wprint("Changing to \"Model\" mode\n");
-    QKeyEvent *e = new QKeyEvent(QEvent::KeyPress, Qt::Key_M, 'm', 0);
-    ivwControlKey(0, e);
-  }
+  ivwSetMovieModelMode( plug.view, IMOD_MMODEL );
   
   //## INITIALIZE DATA:
   
@@ -329,7 +327,7 @@ int imodPlugMouse(ImodView *vw, QMouseEvent *event, float imx, float imy,
   {
     float zapZoom = 1.0f;
     ivwGetTopZapZoom(plug.view, &zapZoom);
-    plug.window->changeSelectedSlice( plug.changeY * zapZoom );
+    edit_changeSelectedSlice( plug.changeY * zapZoom, true );
     return (1);
   }
   
@@ -445,7 +443,6 @@ int imodPlugMouse(ImodView *vw, QMouseEvent *event, float imx, float imy,
         else if (plug.but3Down )          // delete points within deform circle
         {  
           edit_erasePointsInCircle(plug.mouse, plug.draw_deformRadius);
-          edit_setZInTopZap( (int)plug.mouse.z, false );
         }
       }
       else
@@ -464,7 +461,10 @@ int imodPlugMouse(ImodView *vw, QMouseEvent *event, float imx, float imy,
     }
   }
   
-  ivwRedraw( plug.view );     //|- if we get to here we have dealt with the action
+  
+  ivwDraw( plug.view, IMOD_DRAW_XYZ | IMOD_DRAW_NOSYNC );
+  
+  //ivwRedraw( plug.view );     //|- if we get to here we have dealt with the action
   return (1);                 //|  so we redraw and return 1
 }
 
@@ -1049,20 +1049,6 @@ void DrawingTools::selectNextOverlappingContour()
 
 
 //------------------------
-//-- Changes the currently selected slice for the top ZAP window if it is locked mode.
-//-- Returns false if unsuccessful ().
-
-bool DrawingTools::changeSelectedSlice( int change )
-{
-  int currSlice = edit_getZOfTopZap();
-  if (currSlice == -1)
-    return false;
-  
-  return edit_setZInTopZap( currSlice + change, true );
-}
-
-
-//------------------------
 //-- Method used for testing new routines.
 
 void DrawingTools::test()
@@ -1361,38 +1347,10 @@ Icont *getCurrCont()
 //---------------------------------
 //-- Returns true if the object is valid and has it's draw flag on.
 
-bool isObjectValidAndShown(Iobj *obj)
-{
-            // // imodObjectGetValue returns 1 when object is hidden
-  int objHidden = (imodObjectGetValue(obj, IobjFlagDraw) );
-  return ( obj != NULL && !objHidden );    
-}
-
-//---------------------------------
-//-- Returns true if the object is valid and has it's draw flag on.
-
 bool isCurrObjValidAndShown()
 {
   Iobj *obj = getCurrObj();
   return isObjectValidAndShown(obj);
-}
-
-//---------------------------------
-//-- Returns true if the object is closed.
-
-bool isObjClosed(Iobj *obj)
-{
-  return (imodObjectGetValue(obj, IobjFlagClosed) == 1);
-}
-
-//---------------------------------
-//-- Returns true if the object is valid and has it's draw flag on.
-
-bool isContClosed(Iobj *obj, Icont *cont)
-{
-  bool objClosed = isObjClosed( obj );
-  bool contClosed = !isOpenFlag( cont );
-  return ( objClosed && contClosed );
 }
 
 
@@ -1420,67 +1378,55 @@ bool isCurrContValid()
 
 
 
-
 //------------------------
 //-- Gets the slice value of the top Zap window or returns -1 if no Zap
 
 int edit_getZOfTopZap()
 {
   int currSlice = -1;
-  int noZap = ivwGetTopZapZslice(plug.view, &currSlice); 
-                                  // gets the current slice
-                                  // or returns 1 if there is no top Zap window.
-  if (noZap == 1)
+  int noZap = ivwGetTopZapZslice(plug.view, &currSlice);   // gets current slice
+  if (noZap == 1)   // if no top ZAP window:
     return (-1);
   return (currSlice);
 }
 
-//------------------------
-//-- Sets the slice of the top Zap window and returns true if successful
 
-bool edit_setZInTopZap( int newZ, bool redraw )
+//------------------------
+//-- Sets the top ZAP window to focus on the selected point and slice.
+
+int edit_setZapLocation( float x, int y, int z, bool redraw )
 {
-  int oldZ = edit_getZOfTopZap();
-  
-  if (oldZ == -1)
-    return false;
-  
-  keepWithinRange( newZ, 0, plug.zsize );
-  
-  if(newZ == oldZ)
-    return true;
-  
-  int noZap = ivwSetTopZapZslice(plug.view, newZ);
-                                  // attempts to set new slice to display
-                                  // or returns 1 if there is no top Zap window
-  
-  int finalZ = edit_getZOfTopZap();
-  
-  if(finalZ == newZ)
-  {
-    if( redraw )
-      ivwRedraw( plug.view );
-    return true;
-  }
-  
-  ivwSetLocation(plug.view, 0, 0, newZ);
-  finalZ = edit_getZOfTopZap();
-  
-  return false;
+  ivwSetLocation( plug.view, x, y, z );
+  if( redraw )
+    ivwDraw( plug.view, IMOD_DRAW_XYZ | IMOD_DRAW_NOSYNC );
 }
+
+
+//------------------------
+//-- Changes the Z slice by calling page up or page down
+
+int edit_changeSelectedSlice( int changeZ, bool redraw )
+{
+  int ix, iy, iz;
+  ivwGetLocation( plug.view, &ix, &iy, &iz );
+  edit_setZapLocation( ix, iy, iz+changeZ, redraw );
+}
+
+
 
 //------------------------
 //-- Adds a new contour to the specified object
 
 int edit_addContourToObj( Iobj *obj, Icont *cont, bool enableUndo )
 {
-  Icont *newCont = imodContourDup( cont );   // malloc new contour and don't delele it
+  Icont *newCont = imodContourDup( cont );    // malloc new contour and don't delele it
   int numConts = imodObjectGetMaxContour(obj);
   if(enableUndo)
     undoContourAdditionCO( plug.view, numConts );    // REGISTER UNDO
   int newContPos = imodObjectAddContour( obj, newCont );
   return newContPos;
 }
+
 
 //------------------------
 //-- Removes all contours in the object which have their delete flag set to 1

@@ -58,7 +58,6 @@ public slots:
   void changeSmoothTensileFract( int value );
   void changeReducePts();
   
-  bool changeSelectedSlice( int change );
   void changeDeformCircleRadius( float value );
   void clearExtraObj();
   
@@ -98,7 +97,8 @@ public slots:
 //-------------------------------
 //## CONSTANTS:
 
-enum drawmodes      { DM_NORMAL, DM_DEFORM, DM_JOIN, DM_TRANSFORM, DM_ERASER };
+enum drawmodes      { DM_NORMAL, DM_DEFORM, DM_JOIN, DM_TRANSFORM, DM_ERASER,
+                      DM_RESIZEPT };
 
 //-------------------------------
 //## DRAWINGTOOLS DATA STRUCTURE:
@@ -171,15 +171,13 @@ void MsgBox( string str );
 bool MsgBoxYesNo( QWidget *parent, string str );
 string InputBoxString( QWidget *parent, string title, string label, string defaultStr );
 
+
 //-------------------------------
 //## SMALL FUNCTIONS:
 
 Iobj *getCurrObj();
 Icont *getCurrCont();
-bool isObjectValidAndShown(Iobj *obj);
 bool isCurrObjValidAndShown();
-bool isObjClosed(Iobj *obj);
-bool isContClosed(Iobj *obj, Icont *cont);
 bool isCurrContValid();
 
 
@@ -187,7 +185,8 @@ bool isCurrContValid();
 //## EDITING FUNCTIONS:
 
 int edit_getZOfTopZap();
-bool edit_setZInTopZap( int newZ, bool redraw );
+int edit_setZapLocation( float x, int y, int z, bool redraw );
+int edit_changeSelectedSlice( int changeZ, bool redraw );
 
 int edit_addContourToObj( Iobj *obj, Icont *cont, bool enableUndo );
 int edit_removeAllFlaggedContoursFromObj( Iobj *obj );

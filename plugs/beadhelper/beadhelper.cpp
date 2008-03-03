@@ -304,7 +304,7 @@ int imodPlugEvent(ImodView *vw, QEvent *event, float imx, float imy)
     }
     else if( plug.wheelBehav == WH_SLICES )
     {
-      edit_changeSelectedSliceCrude( change );
+      edit_changeSelectedSlice( change, true );
       plug.window->drawExtraObject(false);
       return 0;
     }
@@ -329,7 +329,7 @@ int imodPlugEvent(ImodView *vw, QEvent *event, float imx, float imy)
           //return 2;
         }
       }
-      edit_changeSelectedSliceCrude( change );
+      edit_changeSelectedSlice( change, true );
       plug.window->drawExtraObject(true,0);
       return 1;
     }
@@ -1693,20 +1693,6 @@ bool BeadHelper::updateAndVerifyRanges()
 
 
 //------------------------
-//-- Changes the currently selected slice for the top ZAP window if it is locked mode.
-//-- Returns false if unsuccessful.
-
-bool BeadHelper::changeSelectedSlice( int change, bool redraw )
-{
-  int currSlice = edit_getZOfTopZap();
-  if (currSlice == -1)
-    return false;
-  
-  return edit_setZInTopZap( currSlice + change, redraw );
-}
-
-
-//------------------------
 //-- Advances the currently selected point within the contour by the specified amount.
 
 bool BeadHelper::advanceSelectedPointInCurrCont( int change )
@@ -2109,68 +2095,35 @@ bool isCurrPtValid()
 int edit_getZOfTopZap()
 {
   int currSlice = -1;
-  int noZap = ivwGetTopZapZslice(plug.view, &currSlice); 
-                                  // gets the current slice
-                                  // or returns 1 if there is no top Zap window.
-  if (noZap == 1)
+  int noZap = ivwGetTopZapZslice(plug.view, &currSlice);   // gets current slice
+  if (noZap == 1)   // if no top ZAP window:
     return (-1);
   return (currSlice);
 }
 
-//------------------------
-//-- Sets the slice of the top Zap window and returns true if successful
 
-bool edit_setZInTopZap( int newZ, bool redraw )
+//------------------------
+//-- Sets the top ZAP window to focus on the selected point and slice.
+
+int edit_setZapLocation( float x, int y, int z, bool redraw )
 {
-  int oldZ = edit_getZOfTopZap();
-  
-  if (oldZ == -1)
-    return false;
-  
-  keepWithinRange( newZ, 0, plug.zsize );
-  
-  if(newZ == oldZ)
-    return true;
-  
-  int noZap = ivwSetTopZapZslice(plug.view, newZ);
-                                  // attempts to set new slice to display
-                                  // or returns 1 if there is no top Zap window
-  
-  int finalZ = edit_getZOfTopZap();
-  
-  if(finalZ == newZ)
-  {
-    if( redraw )
-      ivwRedraw( plug.view );
-    return true;
-  }
-  
-  ivwSetLocation(plug.view, 0, 0, newZ);
-  finalZ = edit_getZOfTopZap();
-  
-  return false;
+  ivwSetLocation( plug.view, x, y, z );
+  if( redraw )
+    ivwDraw( plug.view, IMOD_DRAW_XYZ | IMOD_DRAW_NOSYNC );
 }
+
 
 //------------------------
 //-- Changes the Z slice by calling page up or page down
 
-int edit_changeSelectedSliceCrude( int changeZ )
+int edit_changeSelectedSlice( int changeZ, bool redraw )
 {
-  while( changeZ > 0 )
-  {
-    QKeyEvent *e = new QKeyEvent(QEvent::KeyPress, Qt::Key_PageUp, 'k', 0 );
-    ivwControlKey(0, e);
-    changeZ--;
-  }
-  while( changeZ < 0 )
-  {
-    QKeyEvent *e = new QKeyEvent(QEvent::KeyPress, Qt::Key_PageDown, 'k', 0 );
-    ivwControlKey(0, e);
-    changeZ++;
-  }
-  
-  
+  int ix, iy, iz;
+  ivwGetLocation( plug.view, &ix, &iy, &iz );
+  edit_setZapLocation( ix, iy, iz+changeZ, redraw );
 }
+
+
 
 //------------------------
 //-- Sets the top ZAP window to focus on the selected point.

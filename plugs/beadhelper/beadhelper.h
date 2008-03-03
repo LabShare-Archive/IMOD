@@ -63,7 +63,6 @@ class BeadHelper : public DialogFrame
   void test();
   
   bool updateAndVerifyRanges();
-  bool changeSelectedSlice( int change, bool redraw );
   bool advanceSelectedPointInCurrCont( int change );
   
   void changeShowExpectedPos();
@@ -229,10 +228,10 @@ bool isCurrPtValid();
 //## EDITING FUNCTIONS:
 
 
-
 int edit_getZOfTopZap();
-bool edit_setZInTopZap( int newZ, bool redraw );
-int edit_changeSelectedSliceCrude( int changeZ );
+int edit_setZapLocation( float x, int y, int z, bool redraw );
+int edit_changeSelectedSlice( int changeZ, bool redraw );
+bool bead_focusOnPointCrude( float x, float y, float z );
 
 bool bead_isPtOnSlice( Icont *cont, int slice );
 int bead_getPtIdxOnSlice( Icont *cont, int slice );

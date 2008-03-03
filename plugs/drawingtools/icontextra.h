@@ -100,6 +100,10 @@ inline void deleteContours( vector<IcontPtr> &conts );
 inline void eraseContour( vector<IcontPtr> &conts, int idx );
 
 inline Icont* getCont( Iobj *obj, int idx );
+inline bool isObjClosed(Iobj *obj);
+inline bool isContClosed(Iobj *obj, Icont *cont);
+inline bool isObjectValidAndShown(Iobj *obj);
+
 
 //-------------------------------
 //## POINT RELATED FUNCTIONS:
@@ -441,6 +445,7 @@ inline void eraseContour( vector<IcontPtr> &conts, int idx )
 }
 
 
+
 //------------------------
 //-- Shorter function name for "imodObjectGetContour()"
 
@@ -448,6 +453,37 @@ inline Icont* getCont( Iobj *obj, int idx )
 {
   return imodObjectGetContour(obj, idx);
 }
+
+//---------------------------------
+//-- Returns true if the object is closed.
+
+inline bool isObjClosed(Iobj *obj)
+{
+  return (imodObjectGetValue(obj, IobjFlagClosed) == 1);
+}
+
+//---------------------------------
+//-- Returns true if the object is valid and has it's draw flag on.
+
+inline bool isContClosed(Iobj *obj, Icont *cont)
+{
+  bool objClosed = isObjClosed( obj );
+  bool contClosed = !isOpenFlag( cont );
+  return ( objClosed && contClosed );
+}
+
+
+//---------------------------------
+//-- Returns true if the object is valid and has it's draw flag on.
+
+inline bool isObjectValidAndShown(Iobj *obj)
+{
+        // imodObjectGetValue returns 1 when object is hidden
+  int objHidden = (imodObjectGetValue(obj, IobjFlagDraw) );
+  return ( obj != NULL && !objHidden );    
+}
+
+
 
 
 //############################################################

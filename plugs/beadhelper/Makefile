@@ -7,6 +7,8 @@ CXXFLAGS = $(LIBCFLAGS)
 
 PLUGS = beadhelper.$(DLLEXT)
 
+IMODINCLUDES = imod.h imodview.h imodplug.h control.h undoredo.h
+
 all : $(PLUGS)
 
 install : $(PLUGS)
@@ -14,16 +16,18 @@ install : $(PLUGS)
 
 
 $(PLUGS) : icontextra.$(O) qt_dialog_customizable.$(O) beadhelper.$(O) moc_beadhelper.$(O)
-	$(MAKELIBSO)$(PLUGS) icontextra.$(O) qt_dialog_customizable.$(O) beadhelper.$(O) moc_beadhelper.$(O)
+	$(MAKELIBSO)$(PLUGS) icontextra.$(O) qt_dialog_customizable.$(O) \
+	beadhelper.$(O) moc_beadhelper.$(O)
 
 moc_beadhelper.cpp : beadhelper.h
 	$(MOC) beadhelper.h -o moc_beadhelper.cpp
 
-beadhelper.$(O) : imod.h imodview.h imodplug.h control.h undoredo.h _common_functions.h
+beadhelper.$(O) : $(IMODINCLUDES) _common_functions.h icontextra.h \
+	beadhelper.h
 
-icontextra.$(O) : imod.h imodview.h imodplug.h control.h undoredo.h icontextra.h icontextra.cpp _common_functions.h
+icontextra.$(O) : $(IMODINCLUDES) _common_functions.h icontextra.h
 
-qt_dialog_customizable.$(O) : imod.h imodview.h imodplug.h control.h undoredo.h
+qt_dialog_customizable.$(O) : $(IMODINCLUDES) qt_dialog_customizable.h
 
 
 imod.h : ../../imod/imod.h
@@ -44,9 +48,6 @@ icontextra.cpp : ../drawingtools/icontextra.cpp
 _common_functions.h : ../drawingtools/_common_functions.h
 	$(CP) -f ../drawingtools/_common_functions.h .
 
-qt_dialog_customizable.h : qt_dialog_customizable.h
-	$(CP) -f qt_dialog_customizable.h .
-
 clean :
 	$(FIND) . -type f -name "*.o*"  -exec rm "{}" \;
 	$(FIND) . -type f -name "*~"   -exec rm "{}" \;
@@ -56,6 +57,10 @@ clean :
 	$(FIND) . -type f -name "#*#" -exec rm "{}" \;
 	$(FIND) . -type f -name "moc_*" -exec rm "{}" \;
 	$(FIND) . -type f -name "so_locations" -exec rm "{}" \;
+	$(RM) $(IMODINCLUDES);
+	$(RM) _common_functions.h;
+	$(RM) icontextra.h;
+	$(RM) icontextra.cpp;
 
 
 
