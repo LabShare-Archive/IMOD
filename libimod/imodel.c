@@ -16,11 +16,7 @@
 #include <string.h>
 #include "imodel.h"
 #include "b3dutil.h"
-<<<<<<< imodel.c
-#include "string.h"
-=======
 #include "objgroup.h"
->>>>>>> 3.30
 
 static void flipClips(IclipPlanes *clips);
 
