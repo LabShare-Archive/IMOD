@@ -209,7 +209,7 @@ int objGroupListWrite(Ilist *grplist, FILE *fout)
     num = ilistSize(group->objList);
     size = OBJGRP_STRSIZE + 4 * num;
     imodPutInt(fout, &size);
-    imodPutBytes(fout, &group->name[0], OBJGRP_STRSIZE);
+    imodPutBytes(fout, (unsigned char *)&(group->name[0]), OBJGRP_STRSIZE);
     if (num) {
       objs = (b3dInt32 *)ilistFirst(group->objList);
       if (!objs)
@@ -232,7 +232,7 @@ int objGroupRead(Ilist **grplistp, FILE *fin)
   group = objGroupListExpand(grplistp);
   if (!group)
     return IMOD_ERROR_MEMORY;
-  imodGetBytes(fin,  &group->name[0], OBJGRP_STRSIZE);
+  imodGetBytes(fin,  (unsigned char *)(&group->name[0]), OBJGRP_STRSIZE);
   group->objList = ilistNew(sizeof(b3dInt32), B3DMAX(num, 16));
   if (!group->objList)
     return IMOD_ERROR_MEMORY;
@@ -254,5 +254,8 @@ int objGroupRead(Ilist **grplistp, FILE *fin)
 /*
 
 $Log$
+Revision 1.1  2008/01/27 06:19:26  mast
+Added to library
+
 
 */
