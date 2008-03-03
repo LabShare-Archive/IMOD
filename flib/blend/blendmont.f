@@ -262,6 +262,7 @@ c       range for the input mode.  This will preserve data values if no float
 c       
       outmin=0.
       outmax=2**modepow(modeout)-1.
+      if (modeout.eq.1) outmin = -outmax
       if(modein.eq.2)then
         definmax=dmax
         definmin=dmin
@@ -289,6 +290,13 @@ c
      &      'File of g transforms to apply (Return if none): '
         read(5,'(a)')filnam
       endif
+c       
+c       Preserve legacy behavior of floating to positive range for mode 1
+      if (iffloat .ne. 0 .and. modein .eq. 1 .and. modeout .eq. 1) then
+        outmin = 0.
+        definmin = 0.
+      endif
+
       dogxforms=.false.
       if(filnam.ne.' ' .and. .not.undistortOnly)then
         call dopen(3,filnam,'ro','f')
@@ -2652,7 +2660,7 @@ c
               if (modeParallel .ne. -2) numOut = nzbin
               if(anypixels)then
                 do i=1,nxout*nlinesout
-                  brray(i)=pixscale*brray(i)+pixadd
+                  brray(i+iBufferBase)=pixscale*brray(i+iBufferBase)+pixadd
                 enddo
 c                 
 c                 Set line position based on binned pixels output
@@ -2769,6 +2777,9 @@ c
 
 c       
 c       $Log$
+c       Revision 3.35  2007/12/06 21:31:25  mast
+c       Added option to adjust origin for starting coords in X, Y, Z
+c
 c       Revision 3.34  2007/11/18 04:57:27  mast
 c       Redeclared concat at 320
 c
