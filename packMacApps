@@ -33,6 +33,7 @@ foreach prog ($fprogs)
         \cp $imsecont/PkgInfo $contents
         sed "/imodsendevent/s//$prog/" < $imsecont/Info.plist > $contents/Info.plist
         \mv $instdir/bin/$prog $contents/MacOS
+        if (-e $instdir/bin/run$prog) \mv $instdir/bin/run$prog $instdir/bin/$prog
     endif
 end
 
@@ -49,6 +50,9 @@ end
 
 #
 #  $Log$
+#  Revision 1.8  2007/10/03 22:36:17  mast
+#  Added Ctrl conversion for midas help files
+#
 #  Revision 1.7  2006/06/22 01:10:35  mast
 #  Removed libary copying; make installqtlib do it
 #

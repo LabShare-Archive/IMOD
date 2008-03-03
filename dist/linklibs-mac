@@ -59,7 +59,11 @@ if (! -d $IMOD_DIR/qtlib) then
 endif
 
 set exist = 0
-set imodlibs = (libdiaqt.dylib libimod.dylib libiimod.dylib libdtrigs.dylib libtrack.dylib libifft.dylib libb3dcmpt.dylib libmesh.dylib libcfshr.dylib)
+set imodlibs = (libdiaqt.dylib libimod.dylib libiimod.dylib libdtrigs.dylib \
+libtrack.dylib libifft.dylib libb3dcmpt.dylib libimesh.dylib libcfshr.dylib)
+set intellibs = (libsvml.dylib libifport.dylib libifcore.dylib libimf.dylib \
+libirc.dylib)
+if (-e $IMOD_DIR/lib/$intellibs[1]) set imodlibs = ($imodlibs $intellibs)
 
 # Look for imod libs in /usr/lib
 #
@@ -148,6 +152,9 @@ exit 0
 
 #
 #  $Log$
+#  Revision 1.5  2007/11/13 23:57:46  mast
+#  Fied to add libcfshr, work on OS X 10.5, and do more error checks
+#
 #  Revision 1.4  2006/02/03 23:16:49  mast
 #  Added b3dcmpt, changed to make links only for existing libs
 #

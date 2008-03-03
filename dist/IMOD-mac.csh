@@ -50,13 +50,3 @@ alias subm 'submfg \!* &'
 #
 setenv IMOD_QTLIBDIR $IMOD_DIR/qtlib
 
-# Set up aliases so that the Qt library is put on the path just for running
-# each program, to avoid conflicts with other installed programs
-#
-alias genhstplt 'runimodqtapp genhstplt'
-alias mtpairing 'runimodqtapp mtpairing'
-alias avgstatplot 'runimodqtapp avgstatplot'
-alias mtoverlap 'runimodqtapp mtoverlap'
-alias nda 'runimodqtapp nda'
-alias sda 'runimodqtapp sda'
-alias mtk 'runimodqtapp mtk'

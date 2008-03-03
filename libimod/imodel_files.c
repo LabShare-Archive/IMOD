@@ -289,7 +289,7 @@ static int imodel_write(Imod *mod, FILE *fout)
       return IMOD_ERROR_FORMAT;
     imodPutInt(fout, &slan->time);
     imodPutFloats(fout, &slan->angles[0], 6);
-    imodPutBytes(fout, &slan->label[0], ANGLE_STRSIZE);
+    imodPutBytes(fout, (unsigned char *)(&slan->label[0]), ANGLE_STRSIZE);
   }
                       
   if ((id = objGroupListWrite(mod->groupList, fout)))
@@ -1082,7 +1082,7 @@ static int imodel_read_sliceang(Imod *imod, FILE *fin)
     return IMOD_ERROR_MEMORY;
   slan.time = imodGetInt(fin);
   imodGetFloats(fin, &slan.angles[0], 6);
-  imodGetBytes(fin, &slan.label[0], sizeof(slan.label));
+  imodGetBytes(fin, (unsigned char *)(&slan.label[0]), sizeof(slan.label));
   if ((error = ferror(fin)))
     return(error);
   if (ilistAppend(imod->slicerAng, &slan))
@@ -1840,6 +1840,9 @@ int imodPutByte(FILE *fp, unsigned char *dat)
 
 /*
   $Log$
+  Revision 3.30  2008/01/27 06:20:15  mast
+  Changes for object groups
+
   Revision 3.29  2007/11/01 16:47:02  mast
   Fixed reading of ascii modelwith DOS line endings
 

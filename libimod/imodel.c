@@ -16,7 +16,11 @@
 #include <string.h>
 #include "imodel.h"
 #include "b3dutil.h"
+<<<<<<< imodel.c
+#include "string.h"
+=======
 #include "objgroup.h"
+>>>>>>> 3.30
 
 static void flipClips(IclipPlanes *clips);
 
@@ -1816,6 +1820,9 @@ int   imodGetFlipped(Imod *imod)
 
 /*
 $Log$
+Revision 3.30  2008/01/27 06:19:51  mast
+Changes for object groups
+
 Revision 3.29  2007/09/25 15:44:47  mast
 Added function to set refimage from MRC header
 
