@@ -1,4 +1,4 @@
-# IMOD 3.8.26
+# IMOD 3.11.5/3.12.5
 #
 # Startup file for users of IMOD on a Macintosh (if they are running tcsh)
 #
