@@ -299,6 +299,15 @@ tooltip =
 manpage = Minimum number of beads in a local area; areas will be expanded from
 the target size to contain this minimum (default 8)
 
+[Field = MaxBeadsInArea]
+short = 
+long = MaxBeadsInArea
+type = I
+usage = Maximum number of beads in a local area (default 500)
+tooltip =
+manpage = Maximum number of beads in a local area; the target size will be
+shrunk if possible until no local areas exceed this limit (default 500)
+
 [Field = MinOverlapBeads]
 short = 
 long = MinOverlapBeads
