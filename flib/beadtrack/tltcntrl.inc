@@ -1,16 +1,15 @@
-c	  $Author$
-c
-c	  $Date$
-c
-c	  $Revision$
+c         $Id$
 c
 c	  $Log$
+c	  Revision 1.1  2005/04/07 04:01:22  mast
+c	  Created when new mapping implemented
+c	
 c
-        integer maxgrp
-        parameter (maxgrp=20)
+        integer maxgrp,maxAllReal
+        parameter (maxgrp=20,maxAllReal=50000)
 	real*4 tiltorig(maxview),gmagorig(maxview),rotorig(maxview)
-	integer*4 iobjali(maxreal),iobjseq(maxreal)
-	real*4 dxysav(2,maxview),xyzsav(3,maxreal),tltall(maxview)
+	integer*4 iobjali(maxreal),iobjseq(maxAllReal)
+	real*4 dxysav(2,maxview),xyzsav(3,maxAllReal),tltall(maxview)
 	integer*4 nmapSpecMag(maxgrp),ivSpecStrMag(maxgrp),ivSpecEndMag(maxgrp)
 	integer*4 nmapSpecRot(maxgrp),ivSpecStrRot(maxgrp),ivSpecEndRot(maxgrp)
 	integer*4 nmapSpecTilt(maxgrp),ivSpecStrTilt(maxgrp)
