@@ -959,7 +959,6 @@ void clipCenterAndAngles(ImodvApp *a, Ipoint *clipPoint, Ipoint *clipNormal,
 /*****************************************************************************/
 #define SELECT_BUFSIZE 4096
 #define OBJCONTNAME(a,b) = ((a<<16)|(b))
-//#define HIT_DEBUG
 
 static void processHits (ImodvApp *a, GLint hits, GLuint buffer[], bool moving)
 {
@@ -979,9 +978,9 @@ static void processHits (ImodvApp *a, GLint hits, GLuint buffer[], bool moving)
 
   imodGetIndex(a->imod, &ob, &co, &pt);
 
-#ifdef HIT_DEBUG
-  imodPrintStderr ("hits = %d\n", hits);
-#endif
+  if (imodDebug('p'))
+      imodPrintStderr ("hits = %d\n", hits);
+
   ptr = (GLuint *) buffer;
   ptrstr = ptr;
   pt = -1;
@@ -997,12 +996,12 @@ static void processHits (ImodvApp *a, GLint hits, GLuint buffer[], bool moving)
     z2 = *ptr; ptr++;
     zav = z1/2 + z2/2;
 
-#ifdef HIT_DEBUG
-    imodPrintStderr (" # names = %d", names);
-    imodPrintStderr (";  z1 = %u;", z1);
-    imodPrintStderr (" z2 = %u; ", z2);
-    imodPrintStderr ("   names are ");
-#endif
+    if (imodDebug('p')) {
+      imodPrintStderr (" # names = %d", names);
+      imodPrintStderr (";  z1 = %u;", z1);
+      imodPrintStderr (" z2 = %u; ", z2);
+      imodPrintStderr ("   names are ");
+    }
                 
     for (j = 0; j < names; j++) {   /*  for each name */
       switch(j){
@@ -1022,9 +1021,8 @@ static void processHits (ImodvApp *a, GLint hits, GLuint buffer[], bool moving)
 
 
 
-#ifdef HIT_DEBUG
-      imodPrintStderr ("%d ", *ptr);
-#endif
+      if (imodDebug('p'))
+        imodPrintStderr ("%d ", *ptr);
       ptr++;          
     }
 
@@ -1032,14 +1030,13 @@ static void processHits (ImodvApp *a, GLint hits, GLuint buffer[], bool moving)
     if ((names > 3 ) && ((i == 0) || (zav <= zmin))) { 
       zmin = zav;
       mo = tmo; ob = tob; co = tco; pt = tpt;
-#ifdef HIT_DEBUG
+      if (imodDebug('p'))
       imodPrintStderr (" *");
-#endif
     }
-#ifdef HIT_DEBUG
-    imodPrintStderr ("\n");
-    imodPrintStderr ("   zav = %u; zmin = %u\n",zav, zmin);
-#endif
+    if (imodDebug('p')) {
+      imodPrintStderr ("\n");
+      imodPrintStderr ("   zav = %u; zmin = %u\n",zav, zmin);
+    }
 
   }
 
@@ -1186,6 +1183,9 @@ void imodvMovieTimeout()
 /*
 
 $Log$
+Revision 4.34  2008/02/03 18:42:46  mast
+Added parameterized mouse buttons and shift-right rotation
+
 Revision 4.33  2008/01/25 20:22:58  mast
 Changes for new scale bar
 
