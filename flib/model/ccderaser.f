@@ -23,7 +23,9 @@ c
       include 'model.inc'
       integer imsiz,mxd,limpatch,limobj,limptout,limdiff,limpatchout
       parameter (imsiz=8200, limdiff = 512, limpatchout=40000)
-      parameter (mxd=50,limpatch=5000,limobj=1000,limptout=25*limpatchout)
+c
+c       Keep isdim synchronized to limpatch, mxd sync'd to cleanarea mxd
+      parameter (mxd=200,limpatch=5000,limobj=1000,limptout=25*limpatchout)
       real*4 array(imsiz*imsiz),title(20)
       real*4 diffArr(limdiff, limdiff), exceedCrit(limpatchout)
       integer*4 nxyz(3),mxyz(3),nx,ny,nz
@@ -621,6 +623,7 @@ c                               Merge if touch and size not too big
      &                              ixfix, iyfix, ninobj, ixfmin, ixfmax,
      &                              iyfmin, iyfmax)
                                 sizes(indSize(i) + ip1 - 1) = 0.
+                                ifGrew = 1
                               endif
                             endif
                           endif
@@ -1250,14 +1253,16 @@ c
 c       
       implicit none
       integer mxd,isdim
-      parameter (mxd=50)
+c       
+c       Keep isdim synchronized to limpatch, mxd syn'd to main
+      parameter (mxd=200)
+      parameter (isdim=5000)
       integer*4 ixdim,iydim,nx,ny,ifVerbose
       real*4 array(ixdim,iydim)
       integer*4 ixfix(*), iyfix(*)
       integer*4 ninobj,nborder,iorder,ifincadj
       logical*1 inlist(-mxd:mxd,-mxd:mxd),adjacent(-mxd:mxd,-mxd:mxd)
       logical nearedge
-      parameter (isdim=1000)
       include 'statsize.inc'
       real*4 xr(msiz,isdim), sx(msiz), xm(msiz), sd(msiz)
      &    , ss(msiz,msiz), ssd(msiz,msiz), d(msiz,msiz), r(msiz,msiz)
@@ -1270,18 +1275,26 @@ c
 c       
 c       initialize list
 c       
-      ixcen=ixfix(1)
-      iycen=iyfix(1)
+      minxlist=ixfix(1)
+      minylist=iyfix(1)
+      maxxlist=ixfix(1)
+      maxylist=iyfix(1)
+      do k=2,ninobj
+        minxlist=min(minxlist,ixfix(k))
+        minylist=min(minylist,iyfix(k))
+        maxxlist=max(maxxlist,ixfix(k))
+        maxylist=max(maxylist,iyfix(k))
+      enddo
+      ixcen=(maxxlist + minxlist) / 2
+      iycen=(maxylist + minylist) / 2
+c
       do j=-mxd,mxd
         do i=-mxd,mxd
           inlist(i,j)=.false.
           adjacent(i,j)=.false.
         enddo
       enddo
-      minxlist=ixcen
-      minylist=iycen
-      maxxlist=ixcen
-      maxylist=iycen
+
       do k=1,ninobj
         ixl=ixfix(k)-ixcen
         iyl=iyfix(k)-iycen
@@ -1291,10 +1304,6 @@ c
             adjacent(ixl+i,iyl+j)=.true.
           enddo
         enddo
-        minxlist=min(minxlist,ixfix(k))
-        minylist=min(minylist,iyfix(k))
-        maxxlist=max(maxxlist,ixfix(k))
-        maxylist=max(maxylist,iyfix(k))
       enddo
       nbordm1=nborder-1
       ixbordlo=max(1,minxlist-nborder)
@@ -1455,6 +1464,9 @@ c       Look at all pixels in range, add to object at new base
       
 c       
 c       $Log$
+c       Revision 3.23  2008/01/10 15:32:47  mast
+c       Scale incoming model to current image file, not file it was built on
+c
 c       Revision 3.22  2007/12/09 21:25:57  mast
 c       Added ability to remove points within boundary and in circles around
 c       points
