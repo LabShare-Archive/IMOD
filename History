@@ -1,5 +1,13 @@
 IMOD History
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+3/4/08: Changed Beadtrack to be able to track huge numbers of fiducials as long
+as they are done in local areas; handled image boxes better to relieve memory
+restrictions on them.
+
+3/4/08: In Ccderaser, fixed bug when patch had more than 1000 pixels, fixed
+merging of multiple circles, and increased linear maximum extent of patches to 
+200 (In 3.11).
+
 3/3/08: Fixed ability to run graphical Fortran programs on Mac (broken 3.10.22)
 and provided individual script to run each so it would run from command file
 (In 3.11).
