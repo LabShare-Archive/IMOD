@@ -18,11 +18,11 @@ c
       include 'tltcntrl.inc'
 c       
       integer maxbox,maxstor,npad,maxarr,limpcl,maxnbox,maxarea,limgaps
-      integer liminside,limedge
-      parameter (maxbox=100,maxstor=10,npad=8)
+      integer liminside,limedge,maxolist,limresid
+      parameter (maxbox=100,maxstor=10,npad=8,maxolist=4*maxAllReal)
       parameter (maxarr=(maxbox+2*npad)*(maxbox+2*npad+2))
       parameter (limpcl=50000,maxnbox=1000,maxarea=1000,limgaps=20000)
-      parameter (liminside=10000,limedge=3000)
+      parameter (liminside=10000,limedge=3000,limresid=maxAllReal*20)
 c       
 c       7/7/00 CER: remove the encode's; titlech is the temp space
 c       
@@ -31,10 +31,13 @@ c
       integer*4 nx,ny,nz,NXYZ(3),MXYZ(3)
       COMMON //NX,NY,NZ
 C       
-      real*4 TITLE(20)
+      real*4 TITLE(20),seqdist(maxAllReal)
       real*4 cursum(maxbox*maxbox),boxes(maxbox*maxbox*maxnbox)
-      real*4 boxtmp(maxarr)
+      real*4 boxtmp(maxarr),xxtmp(maxAllReal),yytmp(maxAllReal)
       complex ARRAY(maxarr/2),BRRAY(maxarr/2)
+      equivalence (boxes, seqdist),(boxes(maxAllreal+1), xxtmp)
+      equivalence (boxes(2*maxAllreal+1), yytmp)
+      common /bigarr/ boxes
 C       
       integer*4 ixpclist(limpcl),iypclist(limpcl),izpclist(limpcl)
       CHARACTER*160 FILIN,FILOUT,plfile,modelfile
@@ -56,17 +59,19 @@ c
       integer*4 ipnearest(maxreal),ipclose(maxview),izclose(maxview)
       integer*4 incore(maxstor,maxreal),ipnearsav(maxreal)
       integer*4 iobjdel(maxreal),idrop(maxreal)
-      real*4 wsave(maxprojpt),xr(msiz,maxreal),seqdist(maxreal)
-      real*4 resmean(maxprojpt),prevres(maxview)
+      real*4 wsave(maxprojpt),xr(msiz,maxreal)
+      real*4 resmean(limresid),prevres(maxview)
       logical missing(0:maxview)
       integer*4 iareaseq(maxarea),ninobjlist(maxarea),indobjlist(maxarea)
       real*4 areadist(maxarea)
-      integer*4 iobjlists(3*maxreal),ivlist(maxview),ivSnapList(maxview)
+      integer*4 iobjlists(maxolist),ivlist(maxview),ivSnapList(maxview)
       integer*4 ivseqst(4*maxarea),ivseqnd(4*maxarea),listseq(4*maxarea)
       integer*2 indgap(max_obj_num+1),ivgap(limgaps)
       logical*1 inAnArea(max_obj_num)
-      real*4 delta(3), ctf(8193)
+      real*4 ctf(8193)
       character*1024 listString
+      character*60 addfmt,delfmt1,delfmt2
+      character*14 objfmt
 C       
       real*4 xf(2,3)
 c       
@@ -96,15 +101,17 @@ c
       real*4 peak,dist,tmin,tmax,tmean,cvbxcen, cvbycen,area,density
       integer*4 nvert,minInArea,minBeadOverlap,ifLocalArea, localTarget
       integer*4 nvLocalIn, localViewPass, ibaseRes,nSnapList,iobjSave
-      logical keepGoing,saveAllPoints,ignoreObjs
+      logical keepGoing,saveAllPoints,ignoreObjs, done
       integer*4 numNew,nOverlap,iseqPass,ipassSave,iAreaSave,maxObjOrig
       real*4 outlieElimMin, outlieCrit, outlieCritAbs, curResMin
-      real*4 sigma1,sigma2,radius2,radius1,deltactf
-      integer*4 maxDrop, nDrop, ndatFit, nareaTot
+      real*4 sigma1,sigma2,radius2,radius1,deltactf, ranFrac
+      integer*4 maxDrop, nDrop, ndatFit, nareaTot, maxInArea, limInArea
+      integer*4 minViewDo, maxViewDo, numViewDo, numBound, iseed, limcxBound
       real*4 cosd,sind
       character*320 concat
       integer*4 getImodObjsize, niceframe
       logical itemOnList
+      real*4 ran
 c       
       logical pipinput
       integer*4 numOptArg, numNonOptArg,PipGetLogical
@@ -195,6 +202,8 @@ c
       radius2 = 0.
       radius1 = 0.
       areaObjStr = 'object'
+      limInArea = maxreal
+      limcxBound = 2500
 c       
 c       
 c       Pip startup: set error, parse options, check help, set flag if used
@@ -238,13 +247,10 @@ c
       endif
       call fill_listz(izpclist,npclist,listz,nvuall)
 c       print *,nvuall,maxview
-      if(nvuall.gt.maxview)call errorexit(
-     &    'TOO MANY VIEWS FOR ARRAYS',0)
-      call checklist(ixpclist,npclist,1,nx,minxpiece
-     &    ,nxpieces,nxoverlap)
+      if(nvuall.gt.maxview)call errorexit( 'TOO MANY VIEWS FOR ARRAYS',0)
+      call checklist(ixpclist,npclist,1,nx,minxpiece ,nxpieces,nxoverlap)
       nxtotpix=nx+(nxpieces-1)*(nx-nxoverlap)
-      call checklist(iypclist,npclist,1,ny,minypiece
-     &    ,nypieces,nyoverlap)
+      call checklist(iypclist,npclist,1,ny,minypiece ,nypieces,nyoverlap)
       nytotpix=ny+(nypieces-1)*(ny-nyoverlap)
       xcen=nxtotpix/2.
       ycen=nytotpix/2.
@@ -260,22 +266,13 @@ c
      &    call errorexit('INPUT SEED MODEL IS EMPTY', 0)
 c       
 c       convert to image index coordinates and change the origin and delta
-c       for X to reflect this
+c       for X/Y to reflect this
 c       
-      call irtorg(1,xorig,yorig,zorig)
-      call irtdel(1,delta)
-      do i=1,n_point
-        p_coord(1,i)=(p_coord(1,i)+xorig)/delta(1)
-        p_coord(2,i)=(p_coord(2,i)+yorig)/delta(2)
-        p_coord(3,i)=(p_coord(3,i)+zorig)/delta(3)
-      enddo
+      call scaleModelToImage(1, 0)
       xorig=0.
       yorig=0.
-      delta(1)=1.
-      delta(2)=1.
-c       
-      xdelt=delta(1)
-      ydelt=delta(2)
+      xdelt=1.
+      ydelt=1.
 c       
       if (PipGetInOutFile('OutputModel', 2, 'Output model file', modelfile)
      &    .ne. 0) call errorexit('NO OUTPUT MODEL FILE SPECIFIED', 0)
@@ -372,6 +369,8 @@ c
         ierr = PipGetInteger('LocalAreaTargetSize', localTarget)
         ierr = PipGetInteger('LocalAreaTracking', ifLocalArea)
         ierr = PipGetInteger('MinBeadsInArea', minInArea)
+        if (ifLocalArea .ne. 0)
+     &      ierr = PipGetInteger('MaxBeadsInArea', limInArea)
         ierr = PipGetInteger('MinOverlapBeads', minBeadOverlap)
         ierr = PipGetInteger('RoundsOfTracking', nround)
         ierr = PipGetInteger('MaxBeadsToAverage', maxsum)
@@ -449,8 +448,7 @@ c
 c         
       endif
       call PipDone()
-c       
-
+c
       ipolar=-1
       if(ifwhite.ne.0)ipolar=1
 c       
@@ -462,7 +460,7 @@ c
      &    call errorexit('BOX SIZE TOO LARGE FOR ARRAYS', 0)
       if (sigma1 .ne. 0 .or. radius2 .ne. 0) call setctfwsr
      &    (sigma1,sigma2,radius1,radius2,ctf,nxpad,nypad,deltactf)
-c       
+c
       iftrace=0
       if(distcrit.lt.0.)then
         iftrace=1
@@ -556,12 +554,36 @@ c
         endif
       enddo
 c       
+c       Get minimim and maximum views to do: including imintilt even if
+c       it is excluded
+      minViewDo = 0
+      iv = 1
+      do while(iv .le. nvuall .and. minViewDo .eq. 0)
+        minViewDo = iv
+        if (iv .ne. imintilt .and. itemOnList(iv, izexclude, nexclude))
+     &      minViewDo = 0
+        iv = iv + 1
+      enddo
+      maxViewDo = 0
+      iv = nvuall
+      do while(iv .ge. 1 .and. maxViewDo .eq. 0)
+        maxViewDo = iv
+        if (iv .ne. imintilt .and. itemOnList(iv, izexclude, nexclude))
+     &      maxViewDo = 0
+        iv = iv - 1
+      enddo
+      numViewDo = maxViewDo + 1 - minViewDo
+c      print *,imintilt,minViewDo,maxViewDo
+c
+c       
 c       figure out an order for the points: from the center outwards
 c       i.e., first find position from center at minimum tilt, save that in
 c       xyzsav, and store the square of distance in seqdist
 c       iobjseq is just a list of objects to do in original order
 c       
       nobjdo=0
+      if (max_mod_obj .gt. maxAllReal) call errorexit(
+     &    'TOO MANY CONTOURS IN MODEL FOR ARRAYS', 0)
       do iobj=1,max_mod_obj
         ninobj=npt_in_obj(iobj)
         if(ninobj.gt.0)then
@@ -576,13 +598,41 @@ c
               xyzsav(1,iobj)=p_coord(1,object(ipt+ibase))-xcen
               xyzsav(2,iobj)=p_coord(2,object(ipt+ibase))-ycen
               seqdist(nobjdo)=xyzsav(1,iobj)**2+xyzsav(2,iobj)**2
-              xx(nobjdo) = xyzsav(1,iobj)
-              yy(nobjdo) = xyzsav(2,iobj)
+              xxtmp(nobjdo) = xyzsav(1,iobj)
+              yytmp(nobjdo) = xyzsav(2,iobj)
             endif
           enddo
           xyzsav(3,iobj)=0.
         endif
       enddo
+      if (ifLocalArea .ne. 0 .and. minBeadOverlap .gt. 0) then
+c           
+c         determine an average density from the area of the convex bound
+c         First get a random subset not to exceed the limiting number
+        numBound = nobjdo
+        if (nobjdo .gt. limcxBound) then
+          numBound = 0
+          iseed = 1234567
+          ranFrac = float(limcxBound) / nobjdo
+          do i = 1, nobjdo
+            if (ran(iseed) .lt. ranFrac) then
+              numBound = numBound + 1
+              xxtmp(numBound) = xxtmp(i)
+              yytmp(numBound) = yytmp(i)
+           endif
+          enddo
+        endif
+c          
+        call convexbound(xxtmp,yytmp,numBound,0., 2. * cgrad, xresid,yresid,
+     &      nvert, cvbxcen, cvbycen, maxprojpt)
+        area = 0.
+        do i = 1, nvert
+          j = mod(i, nvert) + 1
+          area = area + 0.5 * (yresid(j)+yresid(i)) * (xresid(j)-xresid(i))
+        enddo
+        density = nobjdo / abs(area)
+c        print *,area,density,nobjdo
+      endif        
 c       
 c       set up for one area in X and Y, then compute number of areas and
 c       overlaps if locals
@@ -591,202 +641,215 @@ c
       nAreaY = 1
       nxOverlap = 0
       nyOverlap = 0
-      if (ifLocalArea .ne. 0) then
-        areaObjStr = 'area'
-        noverlap = 0
-        if (minBeadOverlap .gt. 0) then
+      done = .false.
+      do while (.not.done)
+        done = .true.
+        if (ifLocalArea .ne. 0) then
+          areaObjStr = 'area'
+          noverlap = 0
 c           
-c           determine an average density from the area of the convex bound
 c           set target overlap so that 1.5 overlap areas at this density
 c           will give minimum number of overlap beads
-c           
-          call convexbound(xx,yy,nobjdo,0., 2. * cgrad, xresid,yresid, nvert,
-     &        cvbxcen, cvbycen, maxprojpt)
-          area = 0.
-          do i = 1, nvert
-            j = mod(i, nvert) + 1
-            area = area + 0.5 * (yresid(j)+yresid(i)) * (xresid(j)-xresid(i))
-          enddo
-          density = nobjdo / abs(area)
-          noverlap = minBeadOverlap / (density * localTarget)
-c           print *,area,density,noverlap
-        endif
-c         
-c         get number of areas, round up so areas will start below target
-c         Then compute or set overlaps so local sizes can be computed
-c         
-        nareax = (nxtotpix + localTarget - 2 * noverlap - 2) /
-     &      (localTarget - noverlap)
-        nareay = (nytotpix + localTarget - 2 * noverlap - 2) /
-     &      (localTarget - noverlap)
-        if (nareax .eq. 1) then
-          if (nAreaY .gt. 1) nyoverlap = noverlap
-        else if (nAreaY .eq. 1) then
-          nxoverlap = noverlap
-        else
-          
-          nxLocal = max(nxtotpix / nAreaX, nytotpix / nAreaY) + 1
-          do while ((nxLocal * nAreaX - nxtotpix) / (nAreaX - 1) +
-     &        (nxLocal * nAreaY - nytotpix) / (nAreaY - 1) .lt.
-     &        2 * noverlap)
-            nxLocal = nxLocal + 1
-          enddo
-          nyLocal = nxLocal
-          nxOverlap = (nxLocal * nAreaX - nxtotpix) / (nAreaX - 1)
-          nyOverlap = (nyLocal * nAreaY - nytotpix) / (nAreaY - 1)
-        endif
-      endif
-c       
-c       Get area sizes regardless; compute area distances from center
-c       
-      nxLocal = (nxtotpix + nxoverlap * (nareax - 1)) / nAreaX + 1
-      nyLocal = (nytotpix + nyoverlap * (nareay - 1)) / nAreaY + 1
-      nareaTot = nareax*nareay
-      if (ifLocalArea .ne. 0) print *,
-     &    'Local area number, size, overlap - X:', nAreaX, nxLocal,
-     &    nxOverlap,',  Y:', nAreaY, nyLocal, nyOverlap
-      if(nareaTot.gt.maxarea) call errorexit(
-     &    'TOO MANY LOCAL AREAS FOR ARRAYS', 0)
-      do i=1,nareaTot
-        ix=mod(i-1,nareax)
-        iy=(i-1)/nareax
-        iareaseq(i)=i
-        areadist(i)=(ix*(nxlocal-nxoverlap)+nxlocal/2-xcen)**2+
-     &      (iy*(nylocal-nyoverlap)+nylocal/2-ycen)**2
-      enddo
-c       
-c       If there are no local areas but there are multiple objects, set up
-c       one area per object.  No point getting distance, they are independent
-c       
-      if (ifLocalArea .eq. 0 .and. getImodObjsize() .gt. 0 .and.
-     &    .not. ignoreObjs) then
-        nareaTot = getImodObjsize()
-        do k = 1, nareaTot
-          iareaseq(k) = k
-          areadist(k) = 0.
-        enddo
-      endif
-c       
-c       order areas by distance: iareaseq has sequence of area numbers
-c       
-      do i=1,nareaTot-1
-        do j=i+1,nareaTot
-          if(areadist(iareaseq(i)).gt.areadist(iareaseq(j)))then
-            itmp=iareaseq(i)
-            iareaseq(i)=iareaseq(j)
-            iareaseq(j)=itmp
+          if (minBeadOverlap .gt. 0) then
+            noverlap = minBeadOverlap / (density * localTarget)
+c             print *,area,density,noverlap
           endif
+c           
+c           get number of areas, round up so areas will start below target
+c           Then compute or set overlaps so local sizes can be computed
+c           
+          nareax = (nxtotpix + localTarget - 2 * noverlap - 2) /
+     &        (localTarget - noverlap)
+          nareay = (nytotpix + localTarget - 2 * noverlap - 2) /
+     &        (localTarget - noverlap)
+          if (nareax .eq. 1) then
+            if (nAreaY .gt. 1) nyoverlap = noverlap
+          else if (nAreaY .eq. 1) then
+            nxoverlap = noverlap
+          else
+            
+            nxLocal = max(nxtotpix / nAreaX, nytotpix / nAreaY) + 1
+            do while ((nxLocal * nAreaX - nxtotpix) / (nAreaX - 1) +
+     &          (nxLocal * nAreaY - nytotpix) / (nAreaY - 1) .lt.
+     &          2 * noverlap)
+              nxLocal = nxLocal + 1
+            enddo
+            nyLocal = nxLocal
+            nxOverlap = (nxLocal * nAreaX - nxtotpix) / (nAreaX - 1)
+            nyOverlap = (nyLocal * nAreaY - nytotpix) / (nAreaY - 1)
+          endif
+        endif
+c         
+c         Get area sizes regardless; compute area distances from center
+c         
+        nxLocal = (nxtotpix + nxoverlap * (nareax - 1)) / nAreaX + 1
+        nyLocal = (nytotpix + nyoverlap * (nareay - 1)) / nAreaY + 1
+        nareaTot = nareax*nareay
+        if(nareaTot.gt.maxarea) call errorexit(
+     &      'TOO MANY LOCAL AREAS FOR ARRAYS', 0)
+        do i=1,nareaTot
+          ix=mod(i-1,nareax)
+          iy=(i-1)/nareax
+          iareaseq(i)=i
+          areadist(i)=(ix*(nxlocal-nxoverlap)+nxlocal/2-xcen)**2+
+     &        (iy*(nylocal-nyoverlap)+nylocal/2-ycen)**2
         enddo
-      enddo
-c       
-c       go through each area finding points within it
-c       iobjlists is the list of objects to do for each area
-c       indobjlist is the starting index in that list for each area
-c       ninobjlist is the number of objects in the list for each area
-c       
-      nobjlists=0
-      indfree=1
-      do j = 1, max_mod_obj
-        inAnArea(j) = .false.
-      enddo
-      do k=1,nareaTot
-        if (ifLocalArea .ne. 0 .or. nareaTot .eq. 1) then
-c           
-c           get starting coordinates and set up to loop until conditions met
-c           
-          ix=mod(iareaseq(k)-1,nareax)
-          iy=(iareaseq(k)-1)/nareax
-          xst=ix*(nxlocal-nxoverlap)-xcen
-          xnd=xst+nxlocal
-          yst=iy*(nylocal-nyoverlap)-ycen
-          ynd=yst+nylocal
-          indstart=indfree
-          keepGoing = .true.
-          do while(keepGoing)
-            indfree = indstart
+c         
+c         If there are no local areas but there are multiple objects, set up
+c         one area per object.  No point getting distance, they are independent
+c         
+        if (ifLocalArea .eq. 0 .and. getImodObjsize() .gt. 0 .and.
+     &      .not. ignoreObjs) then
+          nareaTot = getImodObjsize()
+          do k = 1, nareaTot
+            iareaseq(k) = k
+            areadist(k) = 0.
+          enddo
+        endif
+c         
+c         order areas by distance: iareaseq has sequence of area numbers
+c         
+        do i=1,nareaTot-1
+          do j=i+1,nareaTot
+            if(areadist(iareaseq(i)).gt.areadist(iareaseq(j)))then
+              itmp=iareaseq(i)
+              iareaseq(i)=iareaseq(j)
+              iareaseq(j)=itmp
+            endif
+          enddo
+        enddo
+c         
+c         go through each area finding points within it
+c         iobjlists is the list of objects to do for each area
+c         indobjlist is the starting index in that list for each area
+c         ninobjlist is the number of objects in the list for each area
+c         
+        nobjlists=0
+        indfree=1
+        maxInArea = 0
+        do j = 1, max_mod_obj
+          inAnArea(j) = .false.
+        enddo
+        do k=1,nareaTot
+          if (ifLocalArea .ne. 0 .or. nareaTot .eq. 1) then
+c             
+c             get starting coordinates and set up to loop until conditions met
+c             
+            ix=mod(iareaseq(k)-1,nareax)
+            iy=(iareaseq(k)-1)/nareax
+            xst=ix*(nxlocal-nxoverlap)-xcen
+            xnd=xst+nxlocal
+            yst=iy*(nylocal-nyoverlap)-ycen
+            ynd=yst+nylocal
+            indstart=indfree
+            keepGoing = .true.
+            do while(keepGoing)
+              indfree = indstart
+              numNew = 0
+c               
+c               Look for objects in the area, count up the new ones
+c               
+              do j=1,nobjdo
+                iobj=iobjseq(j)
+                if(xyzsav(1,iobj).ge.xst.and.xyzsav(1,iobj).le.xnd.and.
+     &              xyzsav(2,iobj).ge.yst.and.xyzsav(2,iobj).le.ynd)then
+                  iobjlists(indfree)=iobj
+                  indfree=indfree+1
+                  if(indfree.gt.maxolist)call errorexit(
+     &                'TOO MANY AREAS FOR OBJECT LISTS', 0)
+                  if (.not. inAnArea(iobj)) numNew = numNew + 1
+                endif
+              enddo
+c               
+c               make area bigger if there are any new points at all in it and
+c               it does not already have all the points, and
+c               either the total in it is too low or this is an area after the
+c               first and the old ones are too low for overlap
+c               
+              keepGoing = numNew .gt. 0 .and. indfree - indstart .lt. nobjdo
+     &            .and. (indfree - indstart .lt. minInArea .or. (k .gt. 1 .and.
+     &            indfree - indstart - numNew .lt. minBeadOverlap))
+              if (keepGoing) then
+                j = max(1, localTarget / 200)
+                xst = xst - j
+                xnd = xnd + j
+                yst = yst -j
+                ynd = ynd + j
+              endif
+            enddo
+          else
+c             
+c             areas from objects: make list of objects in it
+c             
             numNew = 0
-c             
-c             Look for objects in the area, count up the new ones
-c             
+            indstart = indfree
             do j=1,nobjdo
               iobj=iobjseq(j)
-              if(xyzsav(1,iobj).ge.xst.and.xyzsav(1,iobj).le.xnd.and.
-     &            xyzsav(2,iobj).ge.yst.and.xyzsav(2,iobj).le.ynd)then
+              call objtocont(iobj, obj_color, ix, iy)
+              if (ix .eq. k) then
+                numNew = numNew + 1
                 iobjlists(indfree)=iobj
                 indfree=indfree+1
-                if(indfree.gt.maxreal*3)call errorexit(
-     &              'TOO MANY AREAS FOR OBJECT LISTS', 0)
-                if (.not. inAnArea(iobj)) numNew = numNew + 1
               endif
             enddo
+          endif
+c           
+          if (numNew .gt. 0) then
 c             
-c             make area bigger if there are any new points at all in it and
-c             it does not already have all the points, and
-c             either the total in it is too low or this is an area after the
-c             first and the old ones are too low for overlap
+c             if the area has new points, order the list by distance from
+c             center
+c             (Should that be center of area?  It is center of whole field)
 c             
-            keepGoing = numNew .gt. 0 .and. indfree - indstart .lt. nobjdo
-     &          .and. (indfree - indstart .lt. minInArea .or. (k .gt. 1 .and.
-     &          indfree - indstart - numNew .lt. minBeadOverlap))
-            if (keepGoing) then
-              j = max(1, localTarget / 200)
-              xst = xst - j
-              xnd = xnd + j
-              yst = yst -j
-              ynd = ynd + j
-            endif
-          enddo
-        else
-c           
-c           areas from objects: make list of objects in it
-c           
-          numNew = 0
-          indstart = indfree
-          do j=1,nobjdo
-            iobj=iobjseq(j)
-            call objtocont(iobj, obj_color, ix, iy)
-            if (ix .eq. k) then
-              numNew = numNew + 1
-              iobjlists(indfree)=iobj
-              indfree=indfree+1
-            endif
-          enddo
-        endif
-c         
-        if (numNew .gt. 0) then
-c           
-c           if the area has new points, order the list by distance from
-c           center
-c           (Should that be center of area?  It is center of whole field)
-c           
-          nobjlists=nobjlists+1
-          indobjlist(nobjlists)=indstart
-          ninobjlist(nobjlists)=indfree-indstart
-          do i = indstart,indfree-1
-            inAnArea(iobjlists(i)) = .true.
-          enddo
-          do i=indstart,indfree-2
-            do j=i+1,indfree-1
-              if(seqdist(iobjlists(i)).gt.seqdist(iobjlists(j)))then
-                itmp=iobjlists(i)
-                iobjlists(i)=iobjlists(j)
-                iobjlists(j)=itmp
-              endif
+            nobjlists=nobjlists+1
+            indobjlist(nobjlists)=indstart
+            ninobjlist(nobjlists)=indfree-indstart
+            do i = indstart,indfree-1
+              inAnArea(iobjlists(i)) = .true.
             enddo
-          enddo
-          if (ifLocalArea .ne. 0) write(*,119)nobjlists, nint(xst+xcen),
-     &        nint(xnd+xcen),
-     &        nint(yst+ycen), nint(ynd+ycen), ninobjlist(nobjlists), numNew
-119       format('Area',i3,', X:',i6,' to',i6,', Y:',i6,' to',i6,',',
-     &        i4,' points,',i4,' new')
+            maxInArea = max(maxInArea, ninobjlist(nobjlists))
+            do i=indstart,indfree-2
+              do j=i+1,indfree-1
+                if(seqdist(iobjlists(i)).gt.seqdist(iobjlists(j)))then
+                  itmp=iobjlists(i)
+                  iobjlists(i)=iobjlists(j)
+                  iobjlists(j)=itmp
+                endif
+              enddo
+            enddo
+            xxtmp(2*nobjlists-1) = xst+xcen
+            xxtmp(2*nobjlists) = xnd+xcen
+            yytmp(3*nobjlists-1) = yst+ycen
+            yytmp(3*nobjlists) = ynd+ycen
+            yytmp(3*nobjlists-2) = numNew
+          else
+            indfree = indstart
+          endif
+        enddo
+        if (ifLocalArea .ne. 0 .and. maxInArea .gt. limInArea .and.
+     &      localTarget .gt. 100) then
+          localTarget = 0.98 * localTarget
+          done = .false.
         endif
       enddo
+      if (numViewDo * max_mod_obj .gt. limresid) call errorexit(
+     &    'TOO MANY OVERALL POINTS AND VIEWS TO DO FOR ARRAYS', 0)
+      if (ifLocalArea .ne. 0) then
+        if (maxInArea .gt. limInArea) call errorexit(
+     &      'THE NUMBER OF POINTS IN SOME LOCAL AREAS IS ABOVE THE LIMIT', 0)
+        print *, 'Local area number, size, overlap - X:', nAreaX, nxLocal,
+     &      nxOverlap,',  Y:', nAreaY, nyLocal, nyOverlap
+        do i = 1, nobjlists
+          write(*,119)i, nint(xxtmp(2*i-1)), nint(xxtmp(2*i)),
+     &        nint(yytmp(3*i-1)),
+     &        nint(yytmp(3*i)), ninobjlist(i), nint(yytmp(3*i-2))
+119       format('Area',i3,', X:',i6,' to',i6,', Y:',i6,' to',i6,',',
+     &        i4,' points,',i4,' new')
+        enddo
+      elseif (maxInArea.gt.maxreal) then
+        call errorexit( 'TOO MANY POINTS FOR ARRAYS - TRY LOCAL TRACKING',0)
+      endif
 c       
-      if(nobjdo.gt.maxreal.or.nvuall*max_mod_obj.gt.maxprojpt)
-     &    call errorexit(
-     &    'TOO MANY OBJECTS OR VIEWS AND OBJECTS FOR ARRAYS',0)
-c       
-      if(nobjdo*maxsum*npixbox.gt.maxnbox*maxbox**2) call errorexit(
+      if(maxInArea*maxsum*npixbox.gt.maxnbox*maxbox**2) call errorexit(
      &    'TOO MUCH SUMMING IN BOXES TOO LARGE FOR TOO MANY POINTS',0)
 c       
 c       set up sequencing for object lists and views - odd passes from
@@ -800,35 +863,25 @@ c
           do i=1,nobjlists
             nseqs=nseqs+1
             ivseqst(nseqs)=imintilt-1
-            ivseqnd(nseqs)=1
+            ivseqnd(nseqs)=minViewDo
             listseq(nseqs)=i
             nseqs=nseqs+1
             ivseqst(nseqs)=imintilt
-            ivseqnd(nseqs)=nvuall
+            ivseqnd(nseqs)=maxViewDo
             listseq(nseqs)=i
           enddo
         else
           do i=1,nobjlists
             nseqs=nseqs+1
             ivseqnd(nseqs)=imintilt-1
-            ivseqst(nseqs)=1
+            ivseqst(nseqs)=minViewDo
             listseq(nseqs)=i
             nseqs=nseqs+1
             ivseqnd(nseqs)=imintilt
-            ivseqst(nseqs)=nvuall
+            ivseqst(nseqs)=maxViewDo
             listseq(nseqs)=i
           enddo
         endif
-      enddo
-c       
-      do i=1,nobjdo
-        do j=1,maxsum
-          incore(j,i)=-1
-        enddo
-      enddo
-      do i=1,max_mod_obj*nvuall
-        resmean(i)=-1.
-        wsave(i)=-1.
       enddo
 c       
 c       get list of inside and edge pixels for centroid
@@ -883,6 +936,19 @@ C
         CALL DOPEN(3,concat(filout,'.cpl'),'NEW','F')
       endif
 c       
+c       Set up formats
+      if (nobjtot .lt. 1000) then
+        addfmt = '(i4,'' pts added on pass 2, conts:'',(11i4))'
+        delfmt1 = '(i4,'' pts deleted for pass 2, conts:'' ,(11i4))'
+        delfmt2 = '(i4,'' pts deleted, big mean residual, conts:'',(9i4))'
+        objfmt = '(i3,19i4)'
+      else
+        addfmt = '(i4,'' pts added on pass 2, conts:'',(9i5))'
+        delfmt1 = '(i4,'' pts deleted for pass 2, conts:'' ,(8i5))'
+        delfmt2 = '(i4,'' pts deleted, big mean residual, conts:'',(7i5))'
+        objfmt = '(i4,15i5)'
+      endif
+c       
 c       Start looping on the sequences of views
 c       
       lastlist=-1
@@ -907,12 +973,22 @@ c
           do i=1,nobjdo
             iobjseq(i)=iobjlists(i+indobjlist(lastseq)-1)
           enddo
-          do i=1,maxObjOrig*nvuall
+c           
+c           Initialize arrays for boxes and residuals
+          do i=1,nobjdo
+            do j=1,maxsum
+              incore(j,i)=-1
+            enddo
+          enddo
+          do i=1,nvuall*nobjdo
+            wsave(j)=-1.
+          enddo
+          do i=1,maxObjOrig*numViewDo
             resmean(i)=-1.
           enddo
           write(*,123)areaObjStr,listseq(iseq),iseqPass,nobjdo
 123       format('Starting ',a,i4,', round',i3,',',i4,' contours')
-          if (nobjlists .gt. 1) write(*,'(19i4)') (iobjseq(i),i=1,nobjdo)
+          if (nobjlists .gt. 1) write(*,objfmt) (iobjseq(i),i=1,nobjdo)
         endif
         if (saveAllPoints .and. mod(iseq,2) .eq. 1) then
           do j = 1, 10
@@ -1091,7 +1167,6 @@ c             now try to do tiltalign if possible
 c             
             if(nadded.ne.0)call tiltali(ifdidalign,
      &          resmean(1+ibaseRes),iview)
-
 c             
 c             get tentative tilt, rotation, mag for current view
 c             
@@ -1421,8 +1496,7 @@ c
 c             get a final fit and a new tiltalign, then find a maximum
 c             error for each pt
 c             
-            if(ipass.eq.2)write(*,114)nadded,(iobjdel(i),i=1,nadded)
-114         format(i4,' pts added on pass 2, conts:',(11i4))
+            if(ipass.eq.2)write(*,addfmt)nadded,(iobjdel(i),i=1,nadded)
             if(ndat.ge.limpshft)then
               ifrotrans=0
               iftrans=1
@@ -1551,11 +1625,9 @@ c                     &                   resmean(iobj+ibaseRes), curdif,resavg,
               nadded=ndel
               if(ndel.ne.0)then
                 if(ipass.eq.1)then
-                  write(*,115)ndel,(iobjdel(i),i=1,ndel)
-115               format(i4,' pts deleted for pass 2, conts:' ,(11i4))
+                  write(*,delfmt1)ndel,(iobjdel(i),i=1,ndel)
                 else
-                  write(*,116)ndel,(iobjdel(i),i=1,ndel)
-116               format(i4,' pts deleted, big mean residual, conts:',(9i4))
+                  write(*,delfmt2)ndel,(iobjdel(i),i=1,ndel)
                   nadded=0
                   call tiltali(ifdidalign, resmean(1+ibaseRes),iview)
                 endif
@@ -1605,13 +1677,7 @@ c
 c       
 c       convert index coordinates back to model coordinates
 c       
-      call irtorg(1,xorig,yorig,zorig)
-      call irtdel(1,delta)
-      do i=1,n_point
-        p_coord(1,i)=delta(1)*p_coord(1,i)-xorig
-        p_coord(2,i)=delta(2)*p_coord(2,i)-yorig
-        p_coord(3,i)=delta(3)*p_coord(3,i)-zorig
-      enddo
+      call scaleModelToImage(1, 1)
       call write_wmod(modelfile)
       if(filout.ne.' ')then
         call setsiz_sam_cel(2,nxbox,nybox,nzout)
@@ -1641,6 +1707,9 @@ c
 c       
 c       
 c       $Log$
+c       Revision 3.25  2007/11/18 04:57:17  mast
+c       Redeclared concat at 320
+c
 c       Revision 3.24  2006/10/05 19:38:28  mast
 c       Exit with error if seed model is empty
 c
