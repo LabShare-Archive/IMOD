@@ -57,9 +57,10 @@ class BeadHelper : public DialogFrame
   void fillMissingPtsCurrCont();
   void otherActions();
   void otherSettings();
-  void smoothPtsInRange();
   void reorderContours();
   void moveContour();
+  void moveMultipleContours();
+  void correctCurrentObject();
   void test();
   
   bool updateAndVerifyRanges();
@@ -127,17 +128,17 @@ class BeadHelper : public DialogFrame
 
 const int NO_POINT = -1;
 
-enum contsortcriteria  { SORT_DEV, SORT_AVG_GREY, SORT_DIST_FROM_MIDDLE,
+enum contsortcriteria  { SORT_YJUMPS, SORT_DEV, SORT_AVG_GREY, SORT_DIST_FROM_MIDDLE,
                           SORT_MISSING_PTS, SORT_RANDOM };
 
 enum contdisplay       { LD_OFF, LD_CURRENT, LD_CURRMISSING,
                           LD_ALL, LD_SLICE_RESID, LD_BEST_FIT, LD_TILTAXIS };
-enum tiltaxisdisplay   { TD_OFF, TD_TILTAXIS, TD_TILTAXISPT };
+enum tiltaxisdisplay   { TD_OFF, TD_TILTAXIS, TD_TILTAXISSEED, TD_TILTAXISPT };
 
 enum expptdisplay      { ED_CROSS, ED_DIAMOND, ED_ARROW };
 
 enum wheelbehaviour   { WH_NONE, WH_POINTS, WH_SLICES, WH_SMART };
-enum estimationmethod { EM_NEARESTTWO, EM_QUADRATIC, EM_LOCALQUADRATIC, EM_LASTFOUR };
+enum estimationmethod { EM_NEARESTTWO, EM_QUADRATIC, EM_LOCALQUADRATIC, EM_LASTSIX };
 
 //-------------------------------
 //## DRAWINGTOOLS DATA STRUCTURE:
@@ -167,8 +168,11 @@ struct BeadHelperData   // contains all local plugin data
                               //   (see: wheelbehaviour)
   int  estPosMethod;          // change the method used to estimate the position of pts
                               //   (see: estimationmethod)
-  int expPtDisplayType;
-  int expPtSize;
+  
+  int expPtDisplayType;       // symbol used for expected points (see: expptdisplay)
+  int expPtSize;              // the size (in screen pixels) of expected points
+  int selectedAction;         // the last selected action under "More Actions"
+  int sortCriteria;           // the last selected sort critria "Reorder Contours"
   
   bool autoSaveSettings;
   
@@ -176,24 +180,24 @@ struct BeadHelperData   // contains all local plugin data
   
   Ipoint middlePt;      // the point at the middle of the tomogram
   
-  float tiltAngle;              // angle in degrees of the tilt axis relative to vertical
-  float tiltOffsetX;            // distance in pixels the tilt axis is offset in X
-                                //  from crossing middlePt (usually set to 0)
-  float biggestHoleGrid;   // the approximate distance between grid points used to
-                                //  find the next biggest hole (bead_goToNextBiggestHole)
+  float tiltAngle;            // angle in degrees of the tilt axis relative to vertical
+  float tiltOffsetX;          // distance in pixels the tilt axis is offset in X
+                              //  from crossing middlePt (usually set to 0)
+  float biggestHoleGrid;      // the approximate distance between grid points used to
+                              //  find the next biggest hole (bead_goToNextBiggestHole)
   
-  bool shiftDown;       // set to true when the SHIFT button is down
-  Ipoint mouse;         // the current tomogram coordinates of the mouse
+  Ipoint mouse;               // the current tomogram coordinates of the mouse
   
   float wheelResistance;      // the higher the value, the slower mouse scrolling works
   
   bool initialized;           // is set to true after values have been set
   int xsize, ysize, zsize;    // size of the image / tomogram
   int middleSlice;            // the middle slice of the tomogram (where we expect seed)
-  int extraObjExpPos;         // stores reference to the extra object showing expected position
-  int extraObjContDisp;       // stores reference to the extra object
-  int extraObjTiltAxis;       // stores reference to the extra object
-  int extraObjExtra;          // stores reference to the extra object
+  
+  int extraObjExpPos;         //|
+  int extraObjContDisp;       //|-- stores reference to extra objects
+  int extraObjTiltAxis;       //|
+  int extraObjExtra;          //|
   
   int redrawControlNum;
 };
@@ -233,6 +237,9 @@ int edit_setZapLocation( float x, int y, int z, bool redraw );
 int edit_changeSelectedSlice( int changeZ, bool redraw );
 bool bead_focusOnPointCrude( float x, float y, float z );
 
+bool bead_areDuplicatePtsSameView( Icont *cont );
+int bead_removeDuplicatePtsSameView( Icont *cont, bool remove, bool print );
+
 bool bead_isPtOnSlice( Icont *cont, int slice );
 int bead_getPtIdxOnSlice( Icont *cont, int slice );
 int bead_getExpPtIdxForSlice( Icont *cont, int slice );
@@ -248,6 +255,10 @@ bool bead_getExpectedPosOfPoint( Icont *cont, int slice, Ipoint *pt );
 int bead_insertOrOverwritePoint( Icont *cont, Ipoint *pt );
 bool bead_insertPtAtEstimatedPos( Icont *cont, int slice, bool overwrite );
 
+bool bead_movePtsTowardsEstimatedPos ( Icont *cont, int minZ, int maxZ,
+                                       float moveFract, float minResid, int iterations,
+                                       bool fillGaps, bool moveYOnly, bool leaveSeed,
+                                       int &ptsMoved, int &ptsAdded );
 int bead_fillMissingPtsOnCont( Icont *cont, int minZ, int maxZ );
 
 float bead_getGreyValue( Ipoint *pt );
@@ -258,8 +269,6 @@ float bead_distFromMiddle( Icont *cont );
 void bead_reorderConts( int sortCriteria, int minCont,
                         bool reverse, bool printVals );
 
-void bead_smoothConts( int smoothCriteria, bool yAxisOnly, int iterations,
-                       bool currContOnly );
 
 bool bead_calcLineOfBestFit( Icont *cont, float *gradient, float *offset );
 bool bead_calcQuadraticCurve( float x1, float x2, float x3,
@@ -272,7 +281,7 @@ bool bead_estimateTurningPointOfCont( Icont *cont, Ipoint *pt,
 bool bead_goToNextBiggestHole( bool findNextBiggest );
 float bead_estimateTiltAngle();
 bool bead_showBottomContoursStippledUsingDirection();
-bool bead_showBottomContoursInPurple();
+bool bead_showBottomContoursInPurple( int minZ, int maxZ );
 bool bead_showContourTurningPts();
 
 //############################################################

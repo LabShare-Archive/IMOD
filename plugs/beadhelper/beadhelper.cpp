@@ -129,12 +129,12 @@ int imodPlugKeys(ImodView *vw, QKeyEvent *event)
       
     //## LIST OF KEYS THAT REQUIRE A REDRAW OF THE EXTRA OBJECT:
       
-    /*case Qt::Key_5:
-    case Qt::Key_C:
-    case Qt::Key_BracketLeft:
-    case Qt::Key_BracketRight:
-      plug.window->drawExtraObject(false);
-      return 0;*/
+    case Qt::Key_PageUp:
+      edit_changeSelectedSlice(1,true);
+      break;
+    case Qt::Key_PageDown:
+      edit_changeSelectedSlice(-1,true);
+      break;
       
       /*
     case Qt::Key_T:                  // temporary testing purposes - comment out %%%%
@@ -208,19 +208,12 @@ void imodPlugExecute(ImodView *inImodView)
     
     plug.expPtDisplayType      = ED_CROSS;
     plug.expPtSize             = 6;
-    
+    plug.selectedAction        = 0;
+    plug.sortCriteria          = 0;
+      
     plug.autoSaveSettings      = true;
     
     plug.window->loadSettings();
-    
-    /*bool success =  file_saveStringToFile("beadhelpersettings.txt", "yep\nyep\nyep\n" );
-    
-    vector<string> file = file_loadTextFromFile("beadhelpersettings.txt");
-    for( int i=0; i<file.size(); i++ )
-    {
-      wprint("LINE");
-      cout << file[i] << endl;
-    }*/
     
     plug.initialized        = true;
   }
@@ -247,7 +240,7 @@ void imodPlugExecute(ImodView *inImodView)
   
   Iobj *xobjX = ivwGetAnExtraObject(plug.view, plug.extraObjExtra);
   imodObjectSetColor(xobjX, 1, 0, 1);
-  imodObjectSetValue(xobjX, IobjPointSize, 3);
+  imodObjectSetValue(xobjX, IobjPointSize, 6);
   imodObjectSetValue(xobjX, IobjFlagClosed, 0);
   
   
@@ -570,6 +563,7 @@ BeadHelper::BeadHelper(QWidget *parent, const char *name) :
 	tiltDisplayCombo->setFocusPolicy(QWidget::NoFocus);
 	tiltDisplayCombo->insertItem("off");
   tiltDisplayCombo->insertItem("tilt axis");
+  tiltDisplayCombo->insertItem("tilt and seed");
   tiltDisplayCombo->insertItem("tilt and pt");
   tiltDisplayCombo->setCurrentItem( plug.tiltDisplayType );
 	connect(tiltDisplayCombo, SIGNAL(activated(int)), this,
@@ -616,7 +610,7 @@ BeadHelper::BeadHelper(QWidget *parent, const char *name) :
 	estPosMethodCombo->insertItem("nearest 2 pts");
 	estPosMethodCombo->insertItem("curve");
 	estPosMethodCombo->insertItem("local curve");
-  estPosMethodCombo->insertItem("...");
+  estPosMethodCombo->insertItem("prev 6 pts");
   estPosMethodCombo->setCurrentItem( plug.estPosMethod );
 	connect(estPosMethodCombo, SIGNAL(activated(int)), this,
           SLOT(changeEstPosMethod(int)));
@@ -843,7 +837,6 @@ bool BeadHelper::drawExtraObject( bool redraw, int drawflag, int slice )
     {
       if( isCurrContValid() )
       {
-        ivwClearAnExtraObject(plug.view, plug.extraObjContDisp);
         Icont *xcont = imodContourNew();
         cont_makeContShowingMissingPoints( xcont, getCurrCont(), z, sc*2 );
         
@@ -855,7 +848,6 @@ bool BeadHelper::drawExtraObject( bool redraw, int drawflag, int slice )
       
     case( LD_ALL ):
     {
-        ivwClearAnExtraObject(plug.view, plug.extraObjContDisp);
         for(int c=0; c<imodObjectGetMaxContour(obj);c++)
         {
           Icont *xcont = imodContourDup( getCont(obj,c) );
@@ -888,8 +880,6 @@ bool BeadHelper::drawExtraObject( bool redraw, int drawflag, int slice )
     
     case( LD_BEST_FIT ):
     {
-      imodObjectSetColor(xobjC, 1,1,1);
-      
       if( isCurrContValid() )
       {
         float gradient, offset;
@@ -923,29 +913,39 @@ bool BeadHelper::drawExtraObject( bool redraw, int drawflag, int slice )
     imodContourSetFlag( xcontT, ICONT_DRAW_ALLZ, 1 );
     imodObjectAddContour( xobjT, xcontT );
     
-    if( plug.tiltDisplayType == TD_TILTAXISPT )
+    if( plug.tiltDisplayType == TD_TILTAXISSEED
+        || plug.tiltDisplayType == TD_TILTAXISPT )
     {
       if( cont && bead_isPtOnSlice( cont, plug.middleSlice) )
       {
         Icont *xcontP = imodContourNew();
-        Ipoint *pt = bead_getPtOnSlice( cont, plug.middleSlice );
-        float startYP   = pt->y - ((pt->x - 0)*gradientP);
-        float endYP     = pt->y + ((plug.xsize - pt->x)*gradientP);
-        imodPointAppendXYZ( xcontP, 0, startYP, z );
-        imodPointAppendXYZ( xcontP, plug.xsize, endYP, z );
+        Ipoint *ptS = bead_getPtOnSlice( cont, plug.middleSlice );
+        float startSYP   = ptS->y - ((ptS->x - 0)*gradientP);
+        float endSYP     = ptS->y + ((plug.xsize - ptS->x)*gradientP);
+        imodPointAppendXYZ( xcontP, 0, startSYP, z );
+        imodPointAppendXYZ( xcontP, plug.xsize, endSYP, z );
         imodContourSetFlag( xcontP, ICONT_STIPPLED | ICONT_DRAW_ALLZ, 1 );
         imodObjectAddContour( xobjT, xcontP );
-      }
-      else if( isCurrPtValid() )
-      {
-        Icont *xcontP = imodContourNew();
-        Ipoint *pt = getCurrPt();
-        float startYP   = pt->y - ((pt->x - 0)*gradientP);
-        float endYP     = pt->y + ((plug.xsize - pt->x)*gradientP);
-        imodPointAppendXYZ( xcontP, 0, startYP, z );
-        imodPointAppendXYZ( xcontP, plug.xsize, endYP, z );
-        imodContourSetFlag( xcontP, ICONT_STIPPLED | ICONT_DRAW_ALLZ, 1 );
-        imodObjectAddContour( xobjT, xcontP );
+        
+        if( plug.tiltDisplayType == TD_TILTAXISPT && isCurrPtValid() )
+        {
+          Ipoint *pt = getCurrPt();
+          Ipoint intercept;
+          line_doLinesCrossAndWhere( getPt(xcontP,0), getPt(xcontP,1),
+                                     getPt(xcontT,0), getPt(xcontT,1), &intercept );
+          
+          float lineDist = line_distBetweenPts2D( &intercept, pt );
+          
+          if(lineDist > 1)
+          {
+            Icont *xcontPt = imodContourNew();
+            Ipoint end = line_findPtFractBetweenPts2D( &intercept, pt, 2.0 );
+            imodPointAppendXYZ( xcontPt, intercept.x, intercept.y, z );
+            imodPointAppendXYZ( xcontPt, end.x, end.y, z );
+            imodContourSetFlag( xcontPt, ICONT_DRAW_ALLZ, 1 );
+            imodObjectAddContour( xobjT, xcontPt );
+          }
+        }
       }
     }
   }
@@ -1006,6 +1006,8 @@ void BeadHelper::loadSettings()
     if (string_startsWith(l, "wheelResistance "))   plug.wheelResistance = valueI;
     if (string_startsWith(l, "expPtDisplayType "))  plug.expPtDisplayType = valueI;
     if (string_startsWith(l, "expPtSize "))         plug.expPtSize = valueI;
+    if (string_startsWith(l, "selectedAction "))    plug.selectedAction = valueI;
+    if (string_startsWith(l, "sortCriteria "))      plug.sortCriteria = valueI;
     if (string_startsWith(l, "autoSaveSettings "))  plug.autoSaveSettings = valueI;
   }
 }
@@ -1035,7 +1037,9 @@ void BeadHelper::saveSettings()
   text += "wheelResistance "      + toString( plug.wheelResistance )+ "\n";
   text += "expPtDisplayType "     + toString( plug.expPtDisplayType )+ "\n";
   text += "expPtSize "            + toString( plug.expPtSize )+ "\n";
-  text += "autoSaveSettings "     + toString( plug.autoSaveSettings )+ "\n";
+  text += "selectedAction "       + toString( plug.selectedAction )+ "\n";
+  text += "selectedAction "       + toString( plug.selectedAction )+ "\n";
+  text += "sortCriteria "         + toString( plug.sortCriteria )+ "\n";
   
   bool success =  file_saveStringToFile("beadhelpersettings.txt", text )+ "\n";
 }
@@ -1270,26 +1274,58 @@ void BeadHelper::movePtsToExstimatedPos()
     return;
   
   
-  //## DISPLAY YES/NO TEXTBOX GIVING USER OPTION TO CANCEL:
+  //## DISPLAY OPTIONS FOR MOVING POINTS:
   
   int numConts  = (plug.contMax - plug.contMin) + 1;
   int numSlices = (plug.sliceMax - plug.sliceMin) + 1;
   int numPts = numConts * numSlices;
-  if( numPts > 10 )
-  {
-    string msg = "This operation will move ALL points on "
-                 + toString(numConts) + " contours ("
-                 + toString(plug.contMin+1) + "-" + toString(plug.contMax+1)
-                 + ") on " + toString(numSlices) + " slices ("
-                 + toString(plug.sliceMin+1) + "-" + toString(plug.sliceMax+1) + ")."
-                 + "\nTotal points = " + toString(numPts)
-                 + "\nAre you sure you want to continue ?";
-    if( !MsgBoxYesNo( this, msg ) )
-      return;
-  }
   
-  //## ITERATE THROUGH SPECIFIED RANGE OF CONTOURS AND MOVE ALL POINTS WITHIN
-  //## SPECIFIED VIEWS TO THEIR EXPECTED POSITION: 
+  string msg = "This operation will move ALL points \n on"
+               + toString(numConts) + "  contours ("
+               + toString(plug.contMin+1) + "-" + toString(plug.contMax+1)
+               + ")\n  on " + toString(numSlices) + " slices ("
+               + toString(plug.sliceMin+1) + "-" + toString(plug.sliceMax+1) + ")."
+               + "\n  Total points = " + toString(numPts)
+               + "\nAre you sure you want to continue ?";
+  
+  static bool  currContOnly = false;
+  static bool  fillGaps  = true;
+  static bool  moveYOnly = false;
+  static bool  leaveSeed = true;
+  static float moveFract = 1.0;
+  static int   minResid = 0;
+  static int   iterations = 1;
+  
+  CustomDialog ds;
+  int ID_DUMMY         = ds.addLabel   ( msg.c_str() );
+  int ID_CURRCONTONLY  = ds.addCheckBox( "apply to current contour only", currContOnly );
+  int ID_FILLGAPS      = ds.addCheckBox( "fill gaps", fillGaps );
+  int ID_YAXISONLY     = ds.addCheckBox( "change y value only", moveYOnly );
+  int ID_LEAVESEED     = ds.addCheckBox( "leave seed", leaveSeed );
+  int ID_MOVEFRACT     = ds.addSpinBox ( "move franction /10:", 1, 10, moveFract*10, 1,
+                                          "If 10, points will be moved entire way to "
+                                          "expected positions" );
+  int ID_MINRESID      = ds.addSpinBox ( "min residual to move:", 0, 10, minResid, 1,
+                                         "Only points further than this from their "
+                                         "expected point will be moved" );
+  int ID_ITERATIONS    = ds.addSpinBox ( "iterations:", 1, 10, iterations, 1,
+                                          "The more iterations, the further points "
+                                          "will be moved" );
+  
+	GuiDialogCustomizable dlg(&ds, "Smoothing Options", this);
+	dlg.exec();
+	if( ds.cancelled )
+		return;
+	currContOnly       = ds.getResultCheckBox  ( ID_CURRCONTONLY );
+  fillGaps           = ds.getResultCheckBox  ( ID_FILLGAPS );
+  moveYOnly          = ds.getResultCheckBox  ( ID_YAXISONLY );
+  leaveSeed          = ds.getResultCheckBox  ( ID_LEAVESEED );
+  moveFract          = float( ds.getResultSpinBox( ID_MOVEFRACT ) ) / 10;
+  minResid           = ds.getResultSpinBox   ( ID_MINRESID );
+  iterations         = ds.getResultSpinBox   ( ID_ITERATIONS );
+    
+  
+  //## INTIALIZE VARIABLES: 
   
   int currSlice = edit_getZOfTopZap();
   Imod *imod = ivwGetModel(plug.view);
@@ -1297,25 +1333,44 @@ void BeadHelper::movePtsToExstimatedPos()
   int objIdx, contIdx, ptIdx;
   imodGetIndex(imod, &objIdx, &contIdx, &ptIdx);
   
+  int minCont = plug.contMin;
+  int maxCont = plug.contMax;
+  
+  if(currContOnly)
+  {
+    if( !isCurrContValid() || isEmpty(getCurrCont()) )
+    {
+      MsgBox("ERROR: Have not selected a valid contour");
+      return;
+    }
+    minCont = contIdx;
+    maxCont = contIdx;
+  }
+  
   int numPtsMoved = 0;
   int numPtsAdded = 0;
   
-  for( int c=MAX(plug.contMin,0); c<MIN(plug.contMax,imodObjectGetMaxContour(obj)); c++)
+  
+  //## ITERATE THROUGH SPECIFIED RANGE OF CONTOURS AND MOVE ALL POINTS WITHIN
+  //## SPECIFIED VIEWS TO THEIR EXPECTED POSITION: 
+  
+  for( int c=MAX(minCont,0); c<=MIN(maxCont,imodObjectGetMaxContour(obj)); c++)
   {
     imodSetIndex(imod, objIdx, c, 0);
     Icont *cont = getCont( obj, c );
-    int numPtsBefore = psize(cont);
     
-    for( int z=plug.sliceMin; z<=plug.sliceMax; z++)
-    {
-      undoContourDataChg( plug.view, objIdx, c );       // REGISTER UNDO
-      
-      if( bead_insertPtAtEstimatedPos( cont, z, true ) )
-        numPtsMoved++;
-    }
-    int numPtsAddedCont = psize(cont) - numPtsBefore;
-    numPtsMoved -= numPtsAddedCont;
-    numPtsAdded += numPtsAddedCont;
+    int ptsMoved = 0;
+    int ptsAdded = 0;
+    
+    undoContourDataChg( plug.view, objIdx, c );       // REGISTER UNDO
+    
+    bead_movePtsTowardsEstimatedPos ( cont, plug.sliceMin, plug.sliceMax,
+                                      moveFract, minResid, iterations,
+                                      fillGaps, moveYOnly, leaveSeed,
+                                      ptsMoved, ptsAdded );
+    
+    numPtsMoved += ptsMoved;
+    numPtsAdded += ptsAdded;
   }
   
   if( numPtsMoved || numPtsAdded )                      // FINISH UNDO
@@ -1423,24 +1478,24 @@ void BeadHelper::otherActions()
 {
   updateAndVerifyRanges();
   
-  static int action = 0;
-  
   //## GET USER INPUT FROM CUSTOM DIALOG:
   
 	CustomDialog ds;
   int ID_ACTION = ds.addRadioGrp( "action:",
                                   "calculate tilt angle,"
-                                  "smooth points,"
                                   "show fiducials on bottom as purple,"
                                   "show contour turning points,"
-                                  "copy points to memory", action );
+                                  "clear purple object,"
+                                  "move points between objects,"
+                                  "remove duplicate pts from object",
+                                  plug.selectedAction );
 	GuiDialogCustomizable dlg(&ds, "Perform Action", this);
 	dlg.exec();
 	if( ds.cancelled )
 		return;
-	action            = ds.getResultRadioGrp	( ID_ACTION );
+	plug.selectedAction = ds.getResultRadioGrp	( ID_ACTION );
   
-  switch(action)
+  switch(plug.selectedAction)
   {
     case(0):      // calculate tilt angle
     {
@@ -1458,25 +1513,58 @@ void BeadHelper::otherActions()
           plug.tiltAngle = tiltAngleEst;
       }
     } break;
-      
-    case(1):      // smooth points
+    
+    case(1):      // show fiducials on bottom as purple
     {
-      smoothPtsInRange();
+      CustomDialog dsB;
+      
+      int static minViewR = plug.middleSlice;
+      int static maxViewR = plug.middleSlice + 5;
+      
+      int ID_DUMMY = dsB.addLabel   ( "... select range of views where top \n"
+                                     "and bottom fiducials appear to move in \n"
+                                     "opposite directions (suggest a range of ~5):" );
+      int ID_MIN   = dsB.addSpinBox ( "min view:", 1, plug.xsize, minViewR, 1 );
+      int ID_MAX   = dsB.addSpinBox ( "max view:", 1, plug.xsize, maxViewR, 1 );
+      
+      GuiDialogCustomizable dlgB(&dsB, "Show Bottom Contours", this);
+      dlgB.exec();
+      if( dsB.cancelled )
+        return;
+      minViewR      = dsB.getResultSpinBox	( ID_MIN );
+      maxViewR      = dsB.getResultSpinBox	( ID_MAX );
+      
+      if( minViewR >= maxViewR )
+      {
+        MsgBox( "Bad range given !" );
+        return;
+      }
+      
+      bead_showBottomContoursInPurple( minViewR, maxViewR );
     } break;
     
-    case(2):      // show fiducials on top as stippled
-    {
-      //bead_showBottomContoursInPurple();
-      bead_showBottomContoursStippledUsingDirection();
-    } break;
-    
-      
-    
-    case(3):      // show contour turning points
+    case(2):      // show contour turning points
     {
       bead_showContourTurningPts();
     } break;
+      
+    case(3):      // clear purple object
+    {
+      ivwClearAnExtraObject(plug.view, plug.extraObjExtra);
+    } break;
+    
+    case(4):      // move points between objects
+    {
+      moveMultipleContours();
+    } break;
+      
+    case(5):      // move points between objects
+    {
+      correctCurrentObject();
+    } break;
   }
+  
+  ivwRedraw( plug.view );
 }
 
 //------------------------
@@ -1545,47 +1633,6 @@ void BeadHelper::otherSettings()
 
 
 //------------------------
-//-- Smooths points on the specified views for the specified contours.
-
-void BeadHelper::smoothPtsInRange()
-{
-  updateAndVerifyRanges();
-  
-  //## GET USER INPUT FROM CUSTOM DIALOG:
-  
-  int numConts  = (plug.contMax - plug.contMin) + 1;
-  int numSlices = (plug.sliceMax - plug.sliceMin) + 1;
-  int numPts = numConts * numSlices;
-  string msg = "Range: "
-    + toString(numConts) + " contours ("
-    + toString(plug.contMin+1) + "-" + toString(plug.contMax+1)
-    + ") on " + toString(numSlices) + " slices ("
-    + toString(plug.sliceMin+1) + "-" + toString(plug.sliceMax+1) + ")."
-    + "\nTotal points = " + toString(numPts);
-  
-	CustomDialog ds;
-  int ID_DUMMY          = ds.addLabel   ( msg.c_str() );
-  int ID_SMOOTHCRITERIA = ds.addRadioGrp( "smooth using:",
-                                          "catmull rom on 3 key points,"
-                                          "rotation angle", 0 );
-  int ID_YAXISONLY      = ds.addCheckBox( "change y value only", true );
-  int ID_ITERATIONS     = ds.addSpinBox ( "iterations:", 1, 10, plug.contMin, 1,
-                                          "The more iterations, the further points "
-                                          "will be moved" );
-	GuiDialogCustomizable dlg(&ds, "Smoothing Options", this);
-	dlg.exec();
-	if( ds.cancelled )
-		return;
-	int smoothCriteria  = ds.getResultRadioGrp	( ID_SMOOTHCRITERIA );
-  bool yAxisOnly      = ds.getResultCheckBox  ( ID_YAXISONLY );
-  int iterations      = ds.getResultSpinBox   ( ID_ITERATIONS );
-  
-  bead_smoothConts( smoothCriteria, yAxisOnly, iterations, true );
-  
-  ivwRedraw( plug.view );
-}
-
-//------------------------
 //-- Prompts for a criteria for reordering, and reorderes specified range of contours
 //-- using this criteria.
 
@@ -1595,27 +1642,31 @@ void BeadHelper::reorderContours()
   
   //## GET USER INPUT FROM CUSTOM DIALOG:
   
+  static bool reverseOrder = false;
+  static bool printVals    = true;
+  
 	CustomDialog ds;
   int ID_CONTMIN       = ds.addSpinBox ( "starting at:", 1, 10, plug.contMin, 1,
                           "only contours AFTER this contour will be reordered" );
 	int ID_SORTCRITERIA  = ds.addRadioGrp( "sort by:",
+                          "y jumps (asc),"
                           "deviation (asc),"
                           "avg grey value (desc),"
                           "dist from middle (asc),"
                           "num missing pts (asc),"
-                          "random,", 0 );
-	int ID_REVERSE       = ds.addCheckBox( "reverse order", false );
-  int ID_PRINTVALS     = ds.addCheckBox( "print values", true );
+                          "random,", plug.sortCriteria );
+	int ID_REVERSE       = ds.addCheckBox( "reverse order", reverseOrder );
+  int ID_PRINTVALS     = ds.addCheckBox( "print values", printVals );
 	GuiDialogCustomizable dlg(&ds, "Sorting Options", this);
 	dlg.exec();
 	if( ds.cancelled )
 		return;
   int contMin         = ds.getResultSpinBox   ( ID_CONTMIN );
-  int reverseOrder    = ds.getResultCheckBox  ( ID_REVERSE );
-  int printVals       = ds.getResultCheckBox  ( ID_PRINTVALS );
-	int sortCriteria		= ds.getResultRadioGrp	( ID_SORTCRITERIA );
+  reverseOrder        = ds.getResultCheckBox  ( ID_REVERSE );
+  printVals           = ds.getResultCheckBox  ( ID_PRINTVALS );
+	plug.sortCriteria		= ds.getResultRadioGrp	( ID_SORTCRITERIA );
   
-  bead_reorderConts( sortCriteria, contMin-1, reverseOrder, printVals );
+  bead_reorderConts( plug.sortCriteria, contMin-1, reverseOrder, printVals );
   
   ivwRedraw( plug.view );
 }
@@ -1652,6 +1703,232 @@ void BeadHelper::moveContour()
     ivwRedraw( plug.view );
   }
 }
+
+
+
+//------------------------
+//-- Moves the current contour to a different index within the current object.
+//-- Prompts the user what position to move the contour.
+
+void BeadHelper::moveMultipleContours()
+{
+  if ( !updateAndVerifyRanges() || !isCurrObjValid() )
+    return;
+  
+  Imod *imod = ivwGetModel(plug.view);
+  Iobj *obj = imodObjectGet(imod);
+  int objIdx, contIdx, ptIdx;
+  imodGetIndex(imod, &objIdx, &contIdx, &ptIdx);
+  
+  int numObjs = imodGetMaxObject(imod);
+  int maxContIdx = imodObjectGetMaxContour( obj )-1;
+  
+  if( numObjs == 1 )
+  {
+    if ( !MsgBoxYesNo(this, "There is only one object, add another?") )
+      return;
+    imodNewObject(imod);
+    numObjs = imodGetMaxObject(imod);
+    imodSetIndex( imod, numObjs-1, 0, 0 );
+    Iobj *objNew = imodObjectGet(imod);
+    imodObjectSetValue(objNew, IobjFlagClosed, 0);
+    imodObjectSetValue(objNew, IobjPointSize, 3);
+  }
+  
+  
+  //## GET USER INPUT FROM CUSTOM DIALOG:
+  
+	CustomDialog ds;
+  int ID_CONTMIN       = ds.addSpinBox ( "min cont:", 1, maxContIdx+1, plug.contMin+1, 1 );
+  int ID_CONTMAX       = ds.addSpinBox ( "max cont:", 1, maxContIdx+1, plug.contMax+1, 1 );  
+	int ID_OBJ           = ds.addSpinBox ( "move to object:", 1, numObjs, numObjs, 1 );
+	int ID_SEEDONLY      = ds.addCheckBox( "seed pt only", true );
+  int ID_DELETEMATCH   = ds.addCheckBox( "delete matching seeds", true );
+  int ID_COPY          = ds.addCheckBox( "copy", false );
+	GuiDialogCustomizable dlg(&ds, "Move Options", this);
+	dlg.exec();
+	if( ds.cancelled )
+		return;
+  int contMin         = MAX( ds.getResultSpinBox( ID_CONTMIN ) - 1, 0);
+  int contMax         = MIN( ds.getResultSpinBox( ID_CONTMAX ) - 1, maxContIdx);
+  int objToIdx        = ds.getResultSpinBox   ( ID_OBJ ) - 1;
+  bool seedOnly       = ds.getResultCheckBox  ( ID_SEEDONLY );
+  bool deleteMatch    = ds.getResultCheckBox  ( ID_DELETEMATCH );
+	bool copy       		= ds.getResultCheckBox	( ID_COPY );
+  
+  
+  if ( objToIdx == objIdx &&
+       !MsgBoxYesNo(this, "You are copying to the same object.... are you SURE?!") )
+    return;
+  
+  //## FOR EACH CONTOUR IN RANGE: ADD CONTOUR OR SEED TO THE END OF THE DESIGNATED
+  //## OBJECT UNLESS IT MATCHES A SEED CURRENTLY IN THAT OBJECT
+  
+  int numMatchingSeeds = 0;
+  int numContsCopied = 0;
+  imodSetIndex( imod, objToIdx, 0, 0 );
+  Iobj *objTo = imodObjectGet(imod);
+  
+  for(int c=contMin; c<=contMax; c++)
+  {
+    Icont  *cont   = getCont(obj, c);
+    setDeleteFlag( cont, 0 );     // clear delete flag
+    
+    if( isEmpty(cont) )
+    {
+      setDeleteFlag( getCont(obj, c), 1 );
+      continue;
+    }
+    
+    bool isSeedPt  = bead_isPtOnSlice( cont, plug.middleSlice );
+    Ipoint *seedPt = bead_getClosestPtToSlice( cont, plug.middleSlice );
+    
+    if( seedOnly && !isSeedPt )     // if we want to copy seed pt only, but is none:
+      continue;                       // don't copy and don't flag for delete
+        
+    Icont *contCopy = imodContourDup( cont );   // create copy of contour (don't delete)
+    if( seedOnly )                              // if we only want the seed point:
+    {
+      deleteAllPts( contCopy );
+      imodPointAppendXYZ( contCopy, seedPt->x, seedPt->y, seedPt->z );
+    }
+    
+    undoContourAddition( plug.view, objToIdx, c );              // REGISTER UNDO
+    imodObjectAddContour( objTo, imodContourDup(contCopy) );    // copy contour
+    numContsCopied++;
+    
+    if( !copy )
+      setDeleteFlag( getCont(obj, c), 1 );
+    
+  }
+  
+  
+  //## REMOVE ANY CONTOURS FLAGGED FOR DELETE:
+  
+  int numContsDeleted = 0;
+  for(int c=contMax; c>=contMin; c--)   // for all contours in range:
+  {
+    if ( isDeleteFlag( getCont(obj,c) ) )   // if delete flag is set:
+    {
+      undoContourRemoval(plug.view, objIdx, c);   // REGISTER UNDO
+      imodObjectRemoveContour( obj, c );          // delete contour
+      numContsDeleted++;
+    }
+  }
+  
+  if( numContsDeleted || numContsCopied )
+    undoFinishUnit( plug.view );                                // FINISH UNDO
+  
+  
+  //## PRINT SUMMARY OF ANALYSIS:
+  
+  wprint( "SUMMARY OF MOVE: \n" );
+  wprint( " %d seeds were moved to obj %d \n",    numContsCopied, objToIdx+1 );
+  wprint( " %d seeds were removed from obj %d \n", numContsDeleted, objIdx+1  );
+  wprint ( "  WARNING: there were %d matching seeds\n", numMatchingSeeds );
+  
+  ivwRedraw( plug.view );
+}
+
+
+//------------------------
+//-- Corrects and contours with duplicate points on same slice or
+//-- contours marking the same fiducial.
+
+void BeadHelper::correctCurrentObject()
+{
+  if( !isCurrObjValid() )
+  {
+    MsgBox( "Select a valid object first" );
+    return;
+  }
+  
+	CustomDialog ds;
+	int ID_EXTRAPTS    = ds.addCheckBox( "delete duplicate pts on same view", true,
+                                        "if two (or more) points lie on the same view "
+                                        "of the same contour delete the second" );
+  int ID_MATCHSEED   = ds.addCheckBox( "delete duplicate seeds", true,
+                                        "if two (or more) contours are on the same "
+                                        "fiducial on the middle slice delete the "
+                                        "second one" );
+  //int ID_REORDERCONT = ds.addCheckBox( "reorder any badly ordered conts", true );
+	GuiDialogCustomizable dlg(&ds, "Correction Options", this);
+	dlg.exec();
+	if( ds.cancelled )
+		return;
+  bool deleteExtraPts   = ds.getResultCheckBox  ( ID_EXTRAPTS );
+  bool deleteMatchSeeds = ds.getResultCheckBox  ( ID_MATCHSEED );
+	//bool reorderConts 	  = ds.getResultCheckBox	( ID_REORDERCONT );
+  
+  Imod *imod = ivwGetModel(plug.view);
+  Iobj *obj = imodObjectGet(imod);
+  int objIdx, contIdx, ptIdx;
+  imodGetIndex(imod, &objIdx, &contIdx, &ptIdx);
+  
+  
+  //## CHECK FOR MATCHING SEED POINTS:
+  
+  Icont *seedPts = imodContourNew();
+  for( int c=0; c<=imodObjectGetMaxContour(obj); c++)
+  {
+    Icont *cont = getCont( obj, c );
+    bool isSeedPt  = bead_isPtOnSlice( cont, plug.middleSlice );
+    Ipoint *seedPt = bead_getClosestPtToSlice( cont, plug.middleSlice );
+    
+    if( isSeedPt )
+    {
+      bool matchFound = false;
+      
+      for(int p=0; p<psize(seedPts); p++)
+      {
+        float dist = line_distBetweenPts2D( seedPt, getPt(seedPts,p) );
+        if( dist < 3 )
+          matchFound = true;
+      }
+      if( matchFound )
+      {
+        if( deleteMatchSeeds )
+        {
+          undoContourRemoval(plug.view, objIdx, c);   // REGISTER UNDO
+          imodObjectRemoveContour( obj, c );          // delete contour
+          wprint("\aDeleted duplicate seed at: cont %d\n", c+1 );
+          c--;
+        }
+        else
+        {
+          wprint("\aDuplicate seed: cont %d\n", c+1 );
+        }
+        continue;
+      }
+
+      imodPointAppendXYZ( seedPts, seedPt->x, seedPt->x, seedPt->z );
+    }
+  }
+  imodContourDelete(seedPts);
+  
+  
+  //## FOR EACH CONTOUR: DELETE DUPLICATE POINTS ON SAME SLICE
+  
+  for( int c=0; c<imodObjectGetMaxContour(obj); c++)
+  {
+    Icont *cont = getCont( obj, c );
+    
+    if( bead_areDuplicatePtsSameView(cont) )
+    {
+      if( deleteExtraPts )
+      {
+        undoContourDataChg(plug.view, objIdx, c);   // REGISTER UNDO
+        bead_removeDuplicatePtsSameView( cont, true, false );
+        wprint("\aDeleted duplicate points on contour %d\n", c+1 );
+      }
+      else
+      {
+        wprint("\aDuplicate point on contour %d\n", c+1 );
+      }
+    }
+  }
+}
+
 
 
 //------------------------
@@ -1725,10 +2002,6 @@ void BeadHelper::test()
     return;
   }
   
-  
-  //float a, b, c;
-  //bead_calcQuadraticCurve( *getPt(cont,0), *getPt(cont,1), *getPt(cont,2), &a, &b, &c );
-  
   int topSlice = edit_getZOfTopZap();
   Imod *imod = ivwGetModel(plug.view);
   Iobj *obj = imodObjectGet(imod);
@@ -1736,99 +2009,16 @@ void BeadHelper::test()
   imodGetIndex(imod, &objIdx, &contIdx, &ptIdx);
   float z = (getPt(cont,ptIdx)->z);
   
-  
-  
   Icont *ptsByDist = imodContourNew();
   bead_getSpacedOutPoints( cont, z, ptsByDist, 5 );
   imodObjectAddContour( obj, ptsByDist );
   
-  /*
-  Ipoint *p1 = getPt( cont, 0 );
-  Ipoint *p2 = getPt( cont, psize(cont) / 2 );
-  Ipoint *p3 = getPt( cont, psize(cont)-1 );
-  
-  
-  float aX,bX,cX;
-  
-  bead_calcQuadraticCurve( p1->z, p2->z, p3->z,
-                           p1->x, p2->x, p3->x,
-                           &aX, &bX, &cX );
-  
-  float aY,bY,cY;
-  
-  bead_calcQuadraticCurve( p1->z, p2->z, p3->z,
-                           p1->y, p2->y, p3->y,
-                           &aY, &bY, &cY );
-  
-  
-  Icont *newCont = imodContourNew();
-  for( float z=0; z<plug.zsize; z++)
-  {
-    float y = aY*SQ(z) + bY*z + cY;
-    float x = aX*SQ(z) + bX*z + cX;
-    imodPointAppendXYZ( newCont, x, y, z );
-  }
-  imodObjectAddContour( obj, newCont );
-  
-  
-  
-  
-
-  
-  
-  /*
-  float z = (getPt(getCurrCont(),ptIdx)->z);
-  int zInt = (int)(getPt(getCurrCont(),ptIdx)->z);
-  int zRounded = floor( getPt(getCurrCont(),ptIdx)->z + 0.5 );
-  
-  wprint ("current slice = %d \n", topSlice);
-  wprint ("current point.z = %f  %d   %d\n", z, zInt, zRounded );
-  
-  //## TEST GET TURNING POINT:
-  
-  QKeyEvent *e = new QKeyEvent(QEvent::KeyPress, Qt::Key_M, 'O', 0);
-  ivwControlKey(0, e);
-  
-  imodSetIndex(imod, 0, 0, 0);
-  
-  bead_showBottomContoursInPurple();
-  
-  //## DRAW LINE OF BEST FIT FOR CURRENT CONTOUR:
-  
-  float gradient, offset;
-  //Icont *cont = getCurrCont();
-  
-  bool success = bead_calcLineOfBestFit( cont, &gradient, &offset );
-  
-  if(success)
-    wprint("y = %f * x + %f\n", gradient, offset);
-  else
-    wprint("fail");
-  
-  Icont *newCont = imodContourNew();
-  
-  Ipoint pt;
-  pt.z = topSlice;
-  pt.x = 0;
-  pt.y = gradient*pt.x + offset;
-  
-  imodPointAppend( newCont, &pt );
-  
-  pt.x = plug.xsize;
-  pt.y = gradient*pt.x + offset;
-  
-  imodPointAppend( newCont, &pt );
-  
-  imodObjectAddContour( obj,newCont );
-  
-  */
   ivwRedraw( plug.view );
 }
 
 
 
 //## BASIC METHODS TO CHANGE PLUG DATA:
-
 
 
 
@@ -1923,12 +2113,17 @@ void BeadHelper::closeEvent ( QCloseEvent * e )
 {
   imodDialogManager.remove((QWidget *)plug.window);
   clearExtraObj();
+  ivwFreeExtraObject(plug.view, plug.extraObjExpPos);
   ivwFreeExtraObject(plug.view, plug.extraObjContDisp);
+  ivwFreeExtraObject(plug.view, plug.extraObjTiltAxis);
+  ivwFreeExtraObject(plug.view, plug.extraObjExtra);
   ivwTrackMouseForPlugs(plug.view, 0);
   ivwEnableStipple( plug.view, 0 );
   
   if( plug.autoSaveSettings )
     plug.window->saveSettings();
+  
+  ivwDraw( plug.view, IMOD_DRAW_XYZ | IMOD_DRAW_NOSYNC );
   
   plug.view = NULL;
   plug.window = NULL;
@@ -2152,6 +2347,48 @@ bool bead_focusOnPointCrude( float x, float y, float z )
 }
 
 
+//------------------------
+//-- Returns true if there two or more consecutive points in the contour are
+//-- on the same slice.
+
+bool bead_areDuplicatePtsSameView( Icont *cont )
+{
+  for(int p=1; p<psize(cont); p++)
+    if( getPtZInt(cont,p) == getPtZInt(cont,p-1)  )
+      return true;
+  return false;
+}
+
+
+//------------------------
+//-- Removes any duplicate points on the same slice within the contour
+//-- and returns the number of points deleted.
+//-- WARNING: does not provide undo option.
+
+int bead_removeDuplicatePtsSameView( Icont *cont, bool remove, bool print )
+{
+  int pointsRemoved = 0;
+  
+  for(int p=1; p<psize(cont); p++)
+  {
+    if( getPtZInt(cont,p) == getPtZInt(cont,p-1)  )
+    {
+      if( remove )
+      {
+        imodPointDelete( cont, p );         // delete point
+        p--;
+        pointsRemoved++;
+        
+        if(print)
+          wprint("Removed duplicate point\n");
+      }
+      else if(print)
+      {
+          wprint("Duplicate point found on slice: %d\n", getPtZInt(cont,p) );
+      }
+    }
+  }
+}
 
 
 //------------------------
@@ -2474,41 +2711,82 @@ bool bead_getExpectedPosOfPoint( Icont *cont, int slice, Ipoint *pt )
       break;
     }
       
-    case (EM_LASTFOUR):
+    case (EM_LASTSIX):
     {
-      if( psize(cont) < 8 )
+      int numPtsToAvg = 6;
+      
+      if( psize(cont) < (2*numPtsToAvg) )
         return (false);
+      
+      //## DETERMINE IF POINT IS ON SLICE AND WHICH DIRECTION (UP OR DOWN)
+      //## IS TOWARDS MIDDLE OF CONTOUR
       
       int midPtIdx  = psize(cont) / 2;
       int ptIdx     = bead_getExpPtIdxForSlice( cont, slice );
       bool searchUp = midPtIdx > ptIdx;
       bool isOnPt   = getPtZInt( cont, ptIdx ) == slice;
       
-      int directionAsc = (searchUp) ? 1 : -1;
+      int directionAsc = (searchUp) ? 1 : -1;   // direction from pt1 to p4
       int offset       = (isOnPt) ? 1 : 0;
       
-      int firstIdx = directionAsc * (4+offset);
+      int firstIdx = ptIdx + offset*directionAsc;
       
-      Ipoint *p1 = getPt( cont, firstIdx );
-      Ipoint *p2 = getPt( cont, firstIdx + 1*directionAsc );
-      Ipoint *p3 = getPt( cont, firstIdx + 2*directionAsc );
-      Ipoint *p4 = getPt( cont, firstIdx + 3*directionAsc );
       
-      Icont *lastFourPts = imodContourNew();
+      //## SET UP NEW CONTOUR TO CONTAIN "NUMPTS" BEFORE THE CURRENT SLICE
       
+      Icont *prevPts = imodContourNew();
+      for( int i=0; i<numPtsToAvg; i++ )
+      {
+        Ipoint *pt = getPt( cont, firstIdx+i*directionAsc );
+        imodPointAppendXYZ( prevPts, pt->x, pt->y, pt->z);
+      }
+      
+      //## CACULATE THE GRADIENT BASED ON THESE POINTS:
       
       float gradient, offsetY;
-      bool success = bead_calcLineOfBestFit( lastFourPts, &gradient, &offsetY );
-      float angle = atan( gradient ) * RADS_TO_DEGS;
+      bool success = bead_calcLineOfBestFit( prevPts, &gradient, &offsetY );
+      if(!success)
+        return (false);
       
       
-      //float angleP1P4 = line_getAngle2D( pt, p4 );
-      //float angleP1P4 = line_getAngle2D( pt, p4 );
-      //float angleP1P4 = line_getAngle2D( pt, p4 );
-        
-        
-      wprint("last four not implemented\n");
-      return false;
+      //## DETERMINE THE DISTANCE BETWEEN EACH PAIR OF POINTS:
+      
+      vector<float> distXNorm;          // stores the distances between each point and
+                                        // the next point divided by their z difference
+      
+      for( int i=0; i<psize(prevPts)-1; i++ )
+      {
+        Ipoint *pt = getPt( prevPts, i );
+        Ipoint *ptNext = getPt( prevPts, i+1 );
+        distXNorm.push_back( fDivide((pt->x - ptNext->x), ( pt->z - ptNext->z )) );
+      }
+      
+      
+      //## DETERMINE THE AVERAGE RATE AT WHICH THE DISTANCE IS INCREASING/DECREASING:
+      
+      float totalIncreaseXNorm = 0;
+      for( int i=0; i<distXNorm.size()-1; i++ )
+      {
+        float increaseXFromLastNorm = ( distXNorm[i] - distXNorm[i+1] );
+        totalIncreaseXNorm += increaseXFromLastNorm;
+      }
+      float avgIncreaseXNorm = fDivide( totalIncreaseXNorm, distXNorm.size()-1 );
+      
+      if( 2*avgIncreaseXNorm > distXNorm[0] )   // if increase is > first x dist
+        avgIncreaseXNorm = 0;                   // don't use increase
+                                                // (we are probably at turning point)
+      
+      //## USE THE AVERAGE GRADIENT AND RATE OF DISTANCE INCREASE TO
+      //## CALCULATE THE EXPECTED POINT'S POSITION:
+      
+      float distZ = (slice - getPt(prevPts,0)->z);
+      expectedPt.x = -directionAsc*avgIncreaseXNorm*(distZ*distZ) +
+                      distXNorm[0]*(distZ) + getPt(prevPts,0)->x;
+      expectedPt.y = (expectedPt.x*gradient) + offsetY;
+      
+      imodContourDelete( prevPts );
+      
+      break;
     }
   }
   
@@ -2565,9 +2843,54 @@ bool bead_insertPtAtEstimatedPos( Icont *cont, int slice, bool overwrite )
 }
 
 
+//------------------------
+//-- Moves all points in the contour within the z range "minZ" to "maxZ"
+//-- that are more than "minResid" away from their expected position "moveFract"
+//-- of the way towards their expected postion. Returns true if successful,
+//-- as well as the number of points added and moved. Also has the addition options
+//-- to "fillGaps" or "moveYOnly"
 
-
-
+bool bead_movePtsTowardsEstimatedPos ( Icont *cont, int minZ, int maxZ,
+                                       float moveFract, float minResid, int iterations,
+                                       bool fillGaps, bool moveYOnly, bool leaveSeed,
+                                       int &ptsMoved, int &ptsAdded )
+{  
+  ptsMoved = 0;
+  ptsAdded = 0;
+  
+  if( minZ > maxZ || isEmpty(cont) ||  psize(cont) < 2 )
+    return false;
+  
+  Ipoint expPt;
+  
+  vector<int> zLevels;
+  int zmiddle = (minZ + maxZ) / 2;
+  
+  for( int i=0; i<iterations; i++ )
+    for( int z=minZ; z<=maxZ; z++)
+    {
+      if( leaveSeed && z == plug.middleSlice )
+        continue;
+      
+      Ipoint *currPt = bead_getPtOnSlice( cont, z );
+      
+      if( currPt != NULL
+          && bead_getExpectedPosOfPoint( cont, z, &expPt )
+          && line_distBetweenPts2D( currPt, &expPt ) >= minResid )
+      {
+        expPt = line_findPtFractBetweenPts2D( currPt, &expPt, moveFract );
+        if( !moveYOnly )
+          currPt->x = expPt.x;
+        currPt->y = expPt.y;
+        ptsMoved++;
+      }
+    }
+  
+  if( fillGaps )
+    ptsAdded = bead_fillMissingPtsOnCont( cont, minZ, maxZ );
+  
+  return true;
+}
 
 
 //------------------------
@@ -2597,6 +2920,37 @@ int bead_fillMissingPtsOnCont( Icont *cont, int minZ, int maxZ )
   return pointsAdded;
 }
 
+
+
+//------------------------
+//-- Calculates the a weighted value representing the jumps in y value between
+//-- each set of three consecutive points. This works on the principle that,
+//-- if the contour is smooth, then expect the y distance between two points
+//-- to be only slightly different from the y distance between the next
+//-- two points.
+
+float bead_calcWeightedYJumps( Icont *cont )
+{
+  if( !cont || psize(cont) < 5 )
+    return 0;
+  
+  float totalYJump = 0;
+  
+  for (int p=1; p<psize(cont)-1; p++)
+  {
+    Ipoint *pt1 = getPt(cont,p-1);
+    Ipoint *pt2 = getPt(cont,p);
+    Ipoint *pt3 = getPt(cont,p+1);
+    
+    float yJump = ABS( (pt3->y - pt2->y) - (pt2->y - pt1->y) );
+    totalYJump += yJump;
+  }
+  
+  float avgYJump = totalYJump / (float)psize(cont);
+  //float totalYChange = ABS( getFirstPt(cont)->y - getLastPt(cont)->y );
+  
+  return ( avgYJump );
+}
 
 
 //------------------------
@@ -2634,7 +2988,7 @@ float bead_calcWeightedDevFromExpected( Icont *cont )
     
     float distFromExpected = line_distBetweenPts2D( pt2, &expectedPosPt2 );
     float distPt1AndPt3    = line_distBetweenPts2D( pt1, pt3 );
-    float crudeWeigthedDev = distFromExpected / (distPt1AndPt3 + 3);
+    float crudeWeigthedDev = distFromExpected / (distPt1AndPt3 + 5.0);
     
     totalWeightedDev += crudeWeigthedDev;
   }
@@ -2725,6 +3079,9 @@ void bead_reorderConts( int sortCriteria, int minCont,
     
     switch(sortCriteria)
     {
+      case(SORT_YJUMPS):
+        sortVals[c].float1 = bead_calcWeightedYJumps(cont);
+        break;
       case(SORT_DEV):
         sortVals[c].float1 = bead_calcWeightedDevFromExpected(cont);
         break;
@@ -2795,22 +3152,6 @@ void bead_reorderConts( int sortCriteria, int minCont,
 
 
 
-
-//------------------------
-//-- Smooths all the points within the given range of contours, over the
-//-- given range of points.
-//-- This is similar in some ways to "movePtsToExstimatedPos()" except
-//-- that it only moves point towards the estimated position.
-
-void bead_smoothConts( int smoothCriteria, bool yAxisOnly, int iterations,
-                       bool currContOnly )
-{
-  ;
-}
-
-
-
-
 //------------------------
 //-- Uses the "least fitting squares" equation to generate the line of best fit
 //-- which represents a linear path (y=a+bx) through the set of scattered
@@ -2823,7 +3164,7 @@ void bead_smoothConts( int smoothCriteria, bool yAxisOnly, int iterations,
 
 bool bead_calcLineOfBestFit( Icont *cont, float *gradient, float *offset )
 {
-  if ( isEmpty(cont) || psize(cont) < 5 )
+  if ( isEmpty(cont) || psize(cont) < 4 )
     return false;
   
   float n = (float) psize(cont);
@@ -2853,9 +3194,9 @@ bool bead_calcLineOfBestFit( Icont *cont, float *gradient, float *offset )
   float a = ( sumXY - (n*avgX*avgY) ) / ( sumXSq - (n*SQ(avgX)) );
   float b   = ( (avgY*sumXSq) - (avgX*sumXY) ) / ( sumXSq - (n*SQ(avgX)) );
   
-  wprint("avgX = %f, avgY = %f\n", avgX, avgY);
-  wprint("y = %f * x + %f\n", a, b);
-  wprint("y = %f * x + %f\n", *gradient, *offset);
+  //wprint("avgX = %f, avgY = %f\n", avgX, avgY);
+  //wprint("y = %f * x + %f\n", a, b);
+  //wprint("y = %f * x + %f\n", *gradient, *offset);      //%%%%%%%%%%
   
   return true;
 }
@@ -2970,10 +3311,10 @@ bool bead_goToNextBiggestHole( bool findNextBiggest )
   float maxDistAllowed = FLOAT_MAX;
   if ( findNextBiggest && numSeedPts == numSeedPtsLastIteration ) {
     maxDistAllowed = maxDistLastIteration;
-    wprint("Finding biggest hole\n");
+    wprint("Finding NEXT biggest hole\n");
   }
   else {
-    wprint("Finding NEXT biggest hole\n");
+    wprint("Finding biggest hole\n");
   }
   
   if( numSeedPts == 0 )
@@ -2994,10 +3335,10 @@ bool bead_goToNextBiggestHole( bool findNextBiggest )
   float sideLenX = fDivide(plug.xsize, colsX);
   float sideLenY = fDivide(plug.ysize, rowsY);
   
-  vector< vector<float> >minDistGrid( colsX, rowsY );
+  vector< vector<float> > minDistGrid( colsX );
   
   
-  //## UPDATE GRID POINTS TO CONTAIN DISTANCE TO NEAREST EDGE:
+  //## INITIALIZE GRID POINTS TO CONTAIN DISTANCE TO NEAREST EDGE:
   
   for(int x=0; x<colsX; x++)
   {
@@ -3005,7 +3346,9 @@ bool bead_goToNextBiggestHole( bool findNextBiggest )
     for(int y=0; y<rowsY; y++)
     {
       float nearestSideY = MIN(y,rowsY-y) * sideLenY;
-      minDistGrid[x][y] = MIN( nearestSideX, nearestSideY);
+      float nearestSide  = MIN( nearestSideX, nearestSideY);
+      //minDistGrid[x][y] = nearestSide;
+      minDistGrid[x].push_back( nearestSide );
     }
   }
   
@@ -3197,124 +3540,103 @@ bool bead_showBottomContoursStippledUsingDirection()
   }
 }
 
+
 //------------------------
 //-- Goes through all contours, estimates which contours are on the bottom,
 //-- and show them in purple on an extra object.
 //-- It does this by trying to account for the possible slant of the
 //-- section in x and y directions relative to the tilt axis.
 
-  // UNFINISHED
+// UNFINISHED
 
-bool bead_showBottomContoursInPurple()
+bool bead_showBottomContoursInPurple( int zMin, int zMax )
 {
   Imod *imod = ivwGetModel(plug.view);
   Iobj *obj = imodObjectGet(imod);
   
-  Iobj *xobj2 = ivwGetAnExtraObject(plug.view, plug.extraObjExtra);
-  ivwClearAnExtraObject(plug.view, plug.extraObjExtra);
-  imodObjectSetColor(xobj2, 1, 0, 1);
-  imodObjectSetValue(xobj2, IobjPointSize, 3);
-  imodObjectSetValue(xobj2, IobjFlagClosed, 0);
+  Iobj *objTemp = imodObjectDup( obj );
   
+  //## NORMALIZE CONTOURS BY ROTATING THEN MOVING EACH
+  //## RELATIVE TO THE TILT AXIS
   
-  //## TRY TO DETERMINE TURNING POINT FOR EACH CONTOUR:
+  for (int c=0; c<imodObjectGetMaxContour(objTemp); c++)
+    cont_rotateAroundPoint2D( getCont(objTemp,c), &plug.middlePt, -plug.tiltAngle );
   
-  Icont *turningPts = imodContourNew();       // stores a turning point corresponding
-                                              // to each contout in the object
+  //## FOR EACH FIDUCIAL: IF IT TRAVELS LEFT BETWEEN THE TWO VIEW MARK IT
+  //## AS A BOTTOM CONTOUR
   
-  int turningZMin = plug.zsize * 0.2;
-  int turningZMax = plug.zsize * 0.8;
+  int numTopFids     = 0;
+  int numBottomFids  = 0;
+  int numUnknown     = 0;
+  
+  //## FOR EACH CONTOUR DETERMINE THE DIFFERENCE IN X
+  //## BETWEEN THE POINTS AT THE HIGHEST MATCHING TILT ANGLE:
   
   for (int c=0; c<imodObjectGetMaxContour(obj); c++)
   {
-    Ipoint turningPt;
-    int idx;
     Icont *cont = getCont(obj,c); 
-    bool success = bead_estimateTurningPointOfCont( cont, &turningPt, 3.0, &idx );
-    if( !success || turningPt.z < turningZMin || turningPt.z > turningZMax )
-      turningPt.z = -1;
-    imodPointAppend( turningPts, &turningPt );
-  }
-  
-  
-  //## SHOW TURNING POINTS IN NEW OBJECT:
-  
-  for (int p=0; p<psize(turningPts); p++)
-  {
-    Icont *newCont = imodContourNew();
-    imodPointAppend( newCont, getPt(turningPts,p) );
-    imodPointSetSize( newCont, 0, 6  );
-    imodObjectAddContour( xobj2, newCont );
-  }
-  
-  
-  //## CREATE A LIST OF GOOD TURNING POINTS ONLY: 
-  
-  Icont *goodTurningPts = imodContourDup( turningPts );
-  for (int p=0; p<psize(goodTurningPts); p++)
-  {
-    if( getPt(goodTurningPts,p)->z == -1 )
+    imodContourSetFlag( cont, ICONT_STIPPLED, 0 );
+    
+    Ipoint *minPt  = bead_getClosestPtToSlice(cont, zMin );
+    Ipoint *maxPt  = bead_getClosestPtToSlice(cont, zMax );
+    
+    if( psize(cont) < 4 || minPt->z == maxPt->z )
     {
-      imodPointDelete(goodTurningPts, p);
-      p--;
+      wprint("cont %d - too few points\n",c+1);
+      numUnknown++;
+      continue;
+    }
+    
+    //Ipoint minPtNorm;   setPt( &minPtNorm, minPt->x,minPt->y,minPt->y);
+    //Ipoint maxPtNorm;   setPt( &minPtNorm, maxPt->x,maxPt->y,maxPt->y);
+    //point_rotatePointAroundPoint2D(&minPtNorm, &plug.middlePt, -plug.tiltAngle*DEGS_TO_RADS );
+    //point_rotatePointAroundPoint2D(&maxPtNorm, &plug.middlePt, -plug.tiltAngle*DEGS_TO_RADS );
+    
+    bool fidTravelsRight  = maxPt->x  > minPt->x;
+    
+    if( fidTravelsRight )
+    {
+      numTopFids++;
+      imodContourSetFlag( cont, ICONT_STIPPLED, 0 );
+    }
+    else
+    {
+      numBottomFids++;
+      imodContourSetFlag( cont, ICONT_STIPPLED, 1 );
     }
   }
   
   
-  //## NORMALIZE TURNING POINTS BY ROTATING THEN MOVING EACH
-  //## RELATIVE TO THE TILT AXIS
   
-  Icont *turningPtsNormalized = imodContourDup( goodTurningPts );
+  //## PRINT SUMMARY OF ANALYSIS:
   
-  float theta = -plug.tiltAngle * DEGS_TO_RADS;
-  for (int p=0; p<psize(turningPtsNormalized); p++)
+  wprint( "ANALYSIS OF FIDUCIALS: \n" );
+  wprint( " Unknown:   %d\n", numUnknown );
+  wprint( " On top:    %d\n", numTopFids );
+  wprint( " On bottom: %d\n", numBottomFids );
+  
+  
+  //## PREPARE TO SHOW BOTTOM FIDUCIALS AS PURPLE SPHERES:
+  
+  Iobj *xobjX = ivwGetAnExtraObject(plug.view, plug.extraObjExtra);
+  ivwClearAnExtraObject(plug.view, plug.extraObjExtra);
+  
+  for (int c=0; c<imodObjectGetMaxContour(obj); c++)
   {
-    Ipoint *pt = getPt(turningPtsNormalized,p);
-    if( pt->z != -1 )
+    if( imodContourGetFlag( getCont(obj,c), ICONT_STIPPLED ) != 0 )
     {
-      point_rotatePointAroundPoint2D( pt, &plug.middlePt, theta );
-      pt->x -= plug.middlePt.x;
-      pt->y -= plug.middlePt.y;
+      Icont *contX = imodContourDup( getCont(obj,c) );
+      imodObjectAddContour( xobjX, contX );
+      imodContourSetFlag( getCont(obj,c), ICONT_STIPPLED, 1 );
+    }
+    else
+    {
+      imodContourSetFlag( getCont(obj,c), ICONT_STIPPLED, 0 );
     }
   }
   
-  
-  //## DETERMINE A LINE OF BEST FIT THROUGH THE MIDDLE
-  //## ALONG X-Z AND Y-Z:
-  
-  Icont *goodTurningPtsXZ = imodContourDup( goodTurningPts );
-  for (int p=0; p<psize(goodTurningPtsXZ); p++)
-  {
-    Ipoint *pt = getPt(goodTurningPtsXZ,p);
-    pt->y = pt->z;
-  }
-  
-  float gradientXZ, offsetXZ;
-  bool successXZ = bead_calcLineOfBestFit( goodTurningPtsXZ, &gradientXZ, &offsetXZ );
-  
-  
-  /*
-  
-  Icont *goodTurningPtsYZ = imodContourDup( goodTurningPts );
-  for (int p=0; p<psize(goodTurningPtsYZ); p++)
-  {
-    Ipoint *pt = getPt(goodTurningPtsYZ,p);
-    pt->x = pt->y;
-    pt->y = pt->z;
-  }
-  
-  float gradientYZ, offsetYZ;
-  bool successYZ = bead_calcLineOfBestFit( goodTurningPtsYZ, &gradientYZ, &offsetYZ );
-  
-  */
-  
-  //## ORDER TURNING 
-  
-  //imodObjectAddContour( obj, turningPtsNormalized );  //%%%%%
-  //imodObjectAddContour( obj, turningPts );  //%%%%%
-  
+  imodObjectDelete( objTemp );
 }
-
 
 
 //------------------------
@@ -3326,11 +3648,8 @@ bool bead_showContourTurningPts()
   Imod *imod = ivwGetModel(plug.view);
   Iobj *obj = imodObjectGet(imod);
   
-  Iobj *xobj2 = ivwGetAnExtraObject(plug.view, plug.extraObjExtra);
+  Iobj *xobjX = ivwGetAnExtraObject(plug.view, plug.extraObjExtra);
   ivwClearAnExtraObject(plug.view, plug.extraObjExtra);
-  imodObjectSetColor(xobj2, 1, 0, 1);
-  imodObjectSetValue(xobj2, IobjPointSize, 3);
-  imodObjectSetValue(xobj2, IobjFlagClosed, 0);
   
   //## TRY TO DETERMINE TURNING POINT FOR EACH CONTOUR:
   
@@ -3357,12 +3676,6 @@ bool bead_showContourTurningPts()
   {
     Icont *newCont = imodContourNew();
     imodPointAppend( newCont, getPt(turningPts,p) );
-    imodPointSetSize( newCont, 0, 6  );
-    imodObjectAddContour( xobj2, newCont );
+    imodObjectAddContour( xobjX, newCont );
   }  
 }
-
-
-
-
-
