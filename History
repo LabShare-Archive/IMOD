@@ -1,5 +1,8 @@
 IMOD History
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+3/4/08: Increased allowed points in Tiltalign to 1000 in 3D, 140000 in 
+projections.
+
 3/4/08: Changed Beadtrack to be able to track huge numbers of fiducials as long
 as they are done in local areas; handled image boxes better to relieve memory
 restrictions on them.
