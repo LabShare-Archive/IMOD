@@ -1,6 +1,6 @@
       integer maxview,maxprojpt,maxreal
       parameter (maxview=720)
-      parameter (maxprojpt=60000,maxreal=500)
+      parameter (maxprojpt=140000,maxreal=1000)
 c       
       real*4 xx(maxprojpt),yy(maxprojpt),xyz(3,maxreal),dxy(2,maxview)
       real*4 xresid(maxprojpt),yresid(maxprojpt)
