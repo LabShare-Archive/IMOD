@@ -41,6 +41,7 @@
 #define IMOD_OBJFLAG_TIME    (1l << 18) /* Contours contain time data.       */
 #define IMOD_OBJFLAG_TWO_SIDE   (1l << 19) /* Light both sides of surface    */
 #define IMOD_OBJFLAG_THICK_CONT (1l << 20) /* Draw current contour thicker   */
+#define IMOD_OBJFLAG_EXTRA_MODV (1l << 21) /* Draw extra object in model view*/
 #define IMOD_OBJFLAG_TEMPUSE    (1l << 31) /* For temporary use              */
 
 /* macros for testing above flags. */
@@ -96,6 +97,7 @@
 #define IobjFlagMesh      10
 #define IobjFlagLine      11
 #define IobjFlagTime      12
+#define IobjFlagExtraInModv 21
 
 /*****************************************************************************/
 /* iobj.c functions                                                          */
@@ -149,6 +151,9 @@ extern "C" {
 
 /*
     $Log$
+    Revision 3.13  2007/09/22 00:05:55  mast
+    Added matflags2 defines
+
     Revision 3.12  2007/06/08 04:44:29  mast
     Added planar flag and macro to test for planar contours
 
