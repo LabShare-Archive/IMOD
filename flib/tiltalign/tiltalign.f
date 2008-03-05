@@ -12,12 +12,34 @@ c       David Mastronarde  March 1989
 c       
 c       $Id$
 c       Log and history at end of file
+c
+c       MEMORY ANALYSIS:
+c       
+c       Variables in alivar.inc:
+c       5 * 4 * maxprojpt
+c       33 * 4 * maxview
+c       4 * 4 * maxreal
+c       
+c       Variables here:
+c       6 * 4 * maxprojpt
+c       3 * 4 * maxvar = 21 * 4 * maxview
+c       22 * 4 * maxview
+c       13 * 4 * maxreal
+c       4 * maxmetro*(maxmetro+4)
+c       
+c       44 * maxprojpt  = 6.2 M
+c       304 * maxview   = 0.2 M
+c       68 * maxreal    = 0.07 M
+c       55 M for maxmetro
+c       
+c       Note: IF MAXVAR IS NOT BIGGER THAN MAXMETRO, NEED TO DIMENSION
+c       var to maxmetro
 c       
       implicit none
       include 'alivar.inc'
       integer maxvar,maxmetro
       parameter (maxvar=7*maxview)
-      parameter (maxmetro=2100)
+      parameter (maxmetro=3700)
 c       
       integer*4 ninreal(maxreal),igroup(maxreal)
       integer*4 imodobj(maxreal),imodcont(maxreal)
@@ -1506,6 +1528,9 @@ c
 
 c       
 c       $Log$
+c       Revision 3.37  2007/12/12 17:20:08  mast
+c       Had to add mapalfend to two calls to input_vars
+c
 c       Revision 3.36  2007/12/11 22:23:17  mast
 c       Removed X tilt/rotation warning if solving for only one X-tilt variable
 c
