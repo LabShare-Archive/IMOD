@@ -122,7 +122,6 @@ Ipoint getPtCatmullRom( float fracIntoKf, Ipoint p0, Ipoint p1, Ipoint p2,  Ipoi
 //-------------------------------
 //## LINE RELATED FUNCTIONS:  
 
-float line_distBetweenPts2DSq(Ipoint *pnt1, Ipoint *pnt2);
 float line_getAngle2D ( Ipoint *linept1, Ipoint *linept2 );
 float line_getAngle2DPos ( Ipoint *pt1, Ipoint *pt2 );
 

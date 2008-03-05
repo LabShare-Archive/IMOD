@@ -15,6 +15,9 @@
     $Revision$
 
     $Log$
+    Revision 1.2  2008/02/21 07:33:42  tempuser
+    Changed DBL_MAX
+
     Revision 1.1  2008/01/24 01:25:31  tempuser
     *** empty log message ***
 
@@ -329,17 +332,6 @@ Ipoint getPtCatmullRom( float fracIntoKf, Ipoint p0, Ipoint p1, Ipoint p2,
 //----------------------------------------------------------------------------
 
 
-
-//------------------------
-//-- Returns the distance squared between the two points - unlike
-//-- imodPointDistance function it does not require an expensive sqrt operation.
-
-float line_distBetweenPts2DSq(Ipoint *pnt1, Ipoint *pnt2)
-{
-  float xDiff = pnt2->x - pnt1->x;
-  float yDiff = pnt2->y - pnt1->y;
-  return ((xDiff*xDiff) + (yDiff*yDiff));
-}
 
 
 //------------------------

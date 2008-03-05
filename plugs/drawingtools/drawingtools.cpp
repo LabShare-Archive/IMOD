@@ -15,6 +15,9 @@
     $Revision$
 
     $Log$
+    Revision 1.6  2008/03/03 06:48:01  tempuser
+    Modified makefile and slice changing
+
     Revision 1.5  2008/02/21 07:37:46  tempuser
     *** empty log message ***
 
@@ -1658,7 +1661,7 @@ void  edit_executeDeformPush( Ipoint center, float radius )
     
     for (int i=0; i<psize(cont); i++)
     {
-      float distFromCenterSq = line_distBetweenPts2DSq( &center, getPt(cont,i) );
+      float distFromCenterSq = line_sqDistBetweenPts2D( &center, getPt(cont,i) );
       if ( distFromCenterSq < radiusSq )    // if current pt is within deform circle:
       {
         float distFromCenter = sqrt(distFromCenterSq);
@@ -1764,7 +1767,7 @@ void edit_executeDeformPinch( Ipoint center, float radius )
     
     for (int i=0; i<psize(cont); i++)
     {
-      float distFromCenterSq = line_distBetweenPts2DSq( &center, getPt(cont,i) );
+      float distFromCenterSq = line_sqDistBetweenPts2D( &center, getPt(cont,i) );
       if ( distFromCenterSq < radiusSq )    // if current pt is within deform circle:
       {
         if( distFromCenterSq==0 )
@@ -1938,7 +1941,7 @@ int edit_eraseContsInCircle( Ipoint center, float radius )
       {
         for(int p=0; p<psize(cont); p++)    // for each point in that contour:
         {
-          float distSq = line_distBetweenPts2DSq( &center, getPt(cont,p) );
+          float distSq = line_sqDistBetweenPts2D( &center, getPt(cont,p) );
           if ( distSq <= radiusSq )           // if point is inside the circle:
           {
             undoContourRemoval( plug.view, o, c );    // REGISTER UNDO
