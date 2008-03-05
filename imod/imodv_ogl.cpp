@@ -409,11 +409,18 @@ void imodvDraw_models(ImodvApp *a)
   return;
 }
 
+// Sets the values for current contour and surface and object being drawing,
+// and object and contour number if contour is to be drawn thick
 static void set_curcontsurf(int ob, Imod* imod)
 {
+  Iobj  *obj;
   curcont = -1;
   cursurf = -1;
   objBeingDrawn = ob;
+  if (ob >= 0)
+    obj  = &(imod->obj[ob]);
+  else
+    obj = ivwGetAnExtraObject(Imodv->vi, -ob - 1);
   if (Imodv->current_subset && imod->cindex.object == ob) {
     curcont = imod->cindex.contour;
     if (curcont >= 0)
@@ -424,7 +431,7 @@ static void set_curcontsurf(int ob, Imod* imod)
   // or there is a non-empty selection list
   thickCont = -1;
   thickObj = -1;
-  if (imod->obj[ob].flags & IMOD_OBJFLAG_THICK_CONT) {
+  if (obj->flags & IMOD_OBJFLAG_THICK_CONT) {
     if (imod->cindex.object == ob || 
         (!Imodv->standalone && ilistSize(Imodv->vi->selectionList)))
       thickCont = imod->cindex.contour;
@@ -447,7 +454,7 @@ void imodvDraw_model(ImodvApp *a, Imod *imod)
 {
   int ob = -1;
   Iobj *obj;
-  int obstart, obend, drawTrans;
+  int obstart, obend, drawTrans, loop, nloop;
 
   if (imod == NULL)
     return;
@@ -471,11 +478,12 @@ void imodvDraw_model(ImodvApp *a, Imod *imod)
   /* If displaying a current subset, set up object limits */
   obstart = 0;
   obend = imod->objsize;
-  if ((Imodv->current_subset == 1 || Imodv->current_subset == 2 || 
-       Imodv->current_subset == 4 )&& imod->cindex.object >= 0) {
+  if ((a->current_subset == 1 || a->current_subset == 2 || 
+       a->current_subset == 4 )&& imod->cindex.object >= 0) {
     obstart = imod->cindex.object;
     obend = obstart + 1;
   }
+  nloop = (!a->standalone && a->vi->numExtraObj > 0) ? 2 : 1;
 
   /* DNM: draw objects without transparency first; then make the depth
      buffer read-only and draw objects with transparency. Anti-aliased
@@ -484,19 +492,32 @@ void imodvDraw_model(ImodvApp *a, Imod *imod)
      In the first round, the drawing routines will set the temp flag if there
      is something to draw in the second round. */
   for (drawTrans = 0; drawTrans < 2; drawTrans++) {
-    for (ob = obstart; ob < obend; ob++) {
-      obj = &(imod->obj[ob]);
-      if (!drawTrans)
-        obj->flags &= ~IMOD_OBJFLAG_TEMPUSE;
-      if (!iobjOff(obj->flags) && 
-          (!drawTrans || (obj->flags & IMOD_OBJFLAG_TEMPUSE))) {
-        set_curcontsurf(ob, imod);
-        glLoadName(ob);
-        curTessObj = ob;
-        clip_obj(imod, obj, 1);
-        imodvDraw_object( obj , imod, drawTrans);
-        clip_obj(imod, obj, 0);
-        glFinish();
+    for (loop = 0; loop < nloop; loop++) {
+      for (ob = obstart; ob < obend; ob++) {
+        if (ob >= 0)
+          obj = &(imod->obj[ob]);
+        else {
+          obj = ivwGetAnExtraObject(a->vi, -1 - ob);
+          if (!obj || !obj->contsize || 
+              !(obj->flags & IMOD_OBJFLAG_EXTRA_MODV))
+            continue;
+        }
+        if (!drawTrans)
+          obj->flags &= ~IMOD_OBJFLAG_TEMPUSE;
+        if (!iobjOff(obj->flags) && 
+            (!drawTrans || (obj->flags & IMOD_OBJFLAG_TEMPUSE))) {
+          set_curcontsurf(ob, imod);
+          glLoadName(ob);
+          curTessObj = ob;
+          clip_obj(imod, obj, 1);
+          imodvDraw_object( obj , imod, drawTrans);
+          clip_obj(imod, obj, 0);
+          glFinish();
+        }
+      }
+      if (nloop == 2) {
+        obstart = -a->vi->numExtraObj;
+        obend = 0;
       }
     }
     glDepthMask(GL_FALSE); 
@@ -1081,9 +1102,13 @@ static void imodvDraw_contours(Iobj *obj, int mode, int drawTrans)
         }
         glVertex3fv((GLfloat *)&(cont->pts[pt]));
       }
+      glEnd();
+
     } else {
 
       // Set up to do lines
+      if (!Imodv->standalone)
+        utilEnableStipple(Imodv->vi, cont);
       glLineWidth(ptProps.linewidth + thickAdd);
       glBegin(GL_LINE_STRIP);
 
@@ -1149,9 +1174,10 @@ static void imodvDraw_contours(Iobj *obj, int mode, int drawTrans)
       if ((mode == GL_LINE_LOOP) && !(cont->flags & ICONT_OPEN) && 
           !ptProps.gap)
         glVertex3fv((GLfloat *)cont->pts);
+      glEnd();
+      if (!Imodv->standalone)
+        utilDisableStipple(Imodv->vi, cont);
     }
-    glEnd();
-
   }
   return;
 }  
@@ -2411,6 +2437,9 @@ static void drawCurrentClipPlane(ImodvApp *a)
 
 /*
 $Log$
+Revision 4.35  2007/11/30 06:51:50  mast
+Changes for linking slicer to model view
+
 Revision 4.34  2007/09/20 22:06:55  mast
 Changes for visualizing clipping plane
 
