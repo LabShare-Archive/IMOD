@@ -666,7 +666,8 @@ int imodObjectSetName(Iobj *obj, char *inName)
  * Returns one value for [inObject]; possible values for [inValueType] are
  * {IobjMaxContour}, {IobjLineWidth}, {IobjPointSize}, {IobjMaxMesh}, 
  * {IobjMaxSurface}, {IobjFlagClosed}, {IobjFlagConnected}, {IobjFlagFilled},
- * {IobjFlagDraw}, {IobjFlagMesh}, {IobjFlagLine}, and {IobjFlagTime}.
+ * {IobjFlagDraw}, {IobjFlagMesh}, {IobjFlagLine}, {IobjFlagTime}, and
+ * {IobjFlagExtraInModv}.
  */
 int   imodObjectGetValue(Iobj *inObject, int inValueType)
 {
@@ -705,6 +706,9 @@ int   imodObjectGetValue(Iobj *inObject, int inValueType)
   case IobjFlagTime:
     return(iobjFlagTime(inObject));
 
+  case IobjFlagExtraInModv:
+    return(inObject->flags & IMOD_OBJFLAG_EXTRA_MODV);
+
   default:
     return(0);
   }
@@ -724,7 +728,8 @@ static void setObjFlag(Iobj *inObject, b3dUInt32 flag, int state)
  * Sets one value for [inObject] to [inValue]; possible values for
  * [inValueType] are {IobjLineWidth}, {IobjPointSize}, {IobjFlagClosed},
  * {IobjFlagConnected}, {IobjFlagFilled}, {IobjFlagDraw}, {IobjFlagMesh},
- * and {IobjFlagLine}.
+ * {IobjFlagLine}, and {IobjFlagExtraInModv} (for drawing an extra object in
+ * model view window).
  */
 void  imodObjectSetValue(Iobj *inObject, int inValueType, int inValue)
 {
@@ -761,11 +766,17 @@ void  imodObjectSetValue(Iobj *inObject, int inValueType, int inValue)
     setObjFlag(inObject, IMOD_OBJFLAG_LINE, !inValue);
     return;
 
+  case IobjFlagExtraInModv:
+    setObjFlag(inObject, IMOD_OBJFLAG_EXTRA_MODV, inValue);
+
   }
 }
 
 /*
 $Log$
+Revision 3.16  2007/12/06 20:13:21  mast
+Allowed sort of open contour objects
+
 Revision 3.15  2007/09/22 00:09:37  mast
 rename mat3b2
 
