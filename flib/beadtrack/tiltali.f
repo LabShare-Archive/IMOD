@@ -1,24 +1,5 @@
 c       $Id$
-c       
-c       $Log$
-c       Revision 3.7  2006/06/29 04:53:31  mast
-c       Set up to use small model
-c
-c       Revision 3.6  2006/01/26 05:50:04  mast
-c       Made it restart on too many cycle error also
-c
-c       Revision 3.5  2005/04/10 18:06:21  mast
-c       Actually changed metro factor on repeats
-c	
-c       Revision 3.4  2005/04/07 03:56:31  mast
-c       New version with local tracking, new mapping, outliers, etc.
-c	
-c       Revision 3.2  2003/04/11 17:29:33  mast
-c       Added declarations for implicit none, added cgx, cgy to tltcntrl
-c	
-c       Revision 3.1  2002/07/28 22:56:54  mast
-c       Stadardize error output
-c	
+c       Log at end
 c       
       subroutine tiltali(ifdidalign,resmean,iview)
       implicit none
@@ -30,7 +11,7 @@ c       IF MAXVAR IS NOT BIGGER THAN MAXMETRO, NEED TO DIMENSION
 c       var to maxmetro
 c       
       integer maxvar,maxmetro,maxMetroTrials
-      parameter (maxvar=5*maxview,maxmetro=2100,maxMetroTrials=5)
+      parameter (maxvar=5*maxview,maxmetro=3600,maxMetroTrials=5)
 
       integer*4 ifdidalign, iview
       real*4 resmean(*)
@@ -41,6 +22,7 @@ c
       logical firsttime
       double precision error
       common /functfirst/ firsttime
+      common /bigharr/ h
       real*4 dtor
       data dtor/0.0174532/
       integer*4 imintiltsolv,itry,isolmininit,i,isolmin,nprojpt,iv
@@ -49,7 +31,7 @@ c
       real*4 f,ffinal,rsum
       integer*4 ior,ipt,ivor,j,metroLoop
       real*4 trialScale(maxMetroTrials) /1.0, 0.9, 1.1, 0.75, 0.5/
-      real*4 restmp(10000)
+      real*4 restmp(25000)
       logical itemOnList
 
       ifanyalf=0
@@ -278,3 +260,27 @@ c$$$	  enddo
       endif
 95    return
       end
+
+c       
+c       $Log$
+c       Revision 3.8  2007/02/19 20:50:23  mast
+c       Changes for beam tilt and grouping improvements in tiltalign
+c
+c       Revision 3.7  2006/06/29 04:53:31  mast
+c       Set up to use small model
+c
+c       Revision 3.6  2006/01/26 05:50:04  mast
+c       Made it restart on too many cycle error also
+c
+c       Revision 3.5  2005/04/10 18:06:21  mast
+c       Actually changed metro factor on repeats
+c	
+c       Revision 3.4  2005/04/07 03:56:31  mast
+c       New version with local tracking, new mapping, outliers, etc.
+c	
+c       Revision 3.2  2003/04/11 17:29:33  mast
+c       Added declarations for implicit none, added cgx, cgy to tltcntrl
+c	
+c       Revision 3.1  2002/07/28 22:56:54  mast
+c       Stadardize error output
+c	
