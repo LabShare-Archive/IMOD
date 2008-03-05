@@ -372,7 +372,8 @@ If the
 .B -V
 option is given, then model view dialog boxes can also be opened with key
 letters the same as their hot keys (m, O, C, L, B, M, V, I), or with D for
-depth cue and S for stereo.
+depth cue and S for stereo.  Key numbers are for other operations: 1 to start
+in model mode, 2 to suppress query to save model when exiting.
 .TP
 .B -W
 Output the window ID of the 3dmod Information Window and do not put 3dmod
@@ -528,7 +529,7 @@ below.)
 When this box is checked, 3dmod will attempt to maintain comparable image
 contrast when going from one section to the next.  It automatically adjusts
 the sliders when one changes sections, based on the mean and
-standard deviation of image intensity in the sections.
+standard deviation of image intensity in the sections.  
 .TP
 .I The Auto Button
 This button is for setting contrast automatically.  When you press it,
@@ -547,7 +548,8 @@ active Zap window.
 If there is a rubber band in the active Zap window, the area inside the 
 rubber band is used instead.
 When this box is not checked, these operations are based on the entire 
-section.
+section. The settings of this
+box and the Float checkbox are saved between sessions of 3dmod.
 
 .TP
 .I The Mode Toggle Buttons.
