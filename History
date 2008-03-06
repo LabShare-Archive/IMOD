@@ -1,5 +1,12 @@
 IMOD History
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+3/5/08: Added option to make scale bars vertical.
+
+3/5/08: Made 3dmod save and restore settings of float and subarea checkboxes.
+
+3/5/08: Made rubber band moving work when bead fixer or other plugin is taking
+mouse events.
+
 3/4/08: Increased allowed points in Tiltalign to 1000 in 3D, 140000 in 
 projections.
 
