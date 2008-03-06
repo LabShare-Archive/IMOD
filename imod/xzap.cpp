@@ -1455,10 +1455,43 @@ void zapMousePress(ZapStruct *zap, QMouseEvent *event)
 {
   int button1, button2, button3, ifdraw = 0, drew = 0;
   int ctrlDown = event->state() & Qt::ControlButton;
+  int dxll, dxur,dyll, dyur, x, y;
+  int rcrit = 10;   /* Criterion for moving the whole band */
 
   button1 = event->stateAfter() & ImodPrefs->actualButton(1) ? 1 : 0;
   button2 = event->stateAfter() & ImodPrefs->actualButton(2) ? 1 : 0;
   button3 = event->stateAfter() & ImodPrefs->actualButton(3) ? 1 : 0;
+  x = event->x();
+  y = event->y();
+
+  /* imodPrintStderr("click at %d %d\n", event->x(), event->y()); */
+
+  // Check for starting a band move before offering to plugin
+  if (event->button() == ImodPrefs->actualButton(2) && !button1 && !button3) {
+    moveband = 0;
+    
+    /* If rubber band is on and within criterion distance of any edge, set
+       flag to move whole band and return */
+    if (zap->rubberband) {
+      zapBandImageToMouse(zap, 0);
+      dxll = x - zap->rbMouseX0;
+      dxur = x - zap->rbMouseX1;
+      dyll = y - zap->rbMouseY0;
+      dyur = y - zap->rbMouseY1;
+      if ((dyll > 0 && dyur < 0 && (dxll < rcrit && dxll > -rcrit ||
+                                    dxur < rcrit && dxur > -rcrit)) ||
+          (dxll > 0 && dxur < 0 && (dyll < rcrit && dyll > -rcrit ||
+                                    dyur < rcrit && dyur > -rcrit))) {
+        moveband = 1;
+        zapSetCursor(zap, zap->mousemode);
+        zap->lmx = x;
+        zap->lmy = y;
+        return;
+      }
+    }   
+  }  
+
+  // Now give the plugins a crack at it
   ifdraw = checkPlugUseMouse(zap, event, button1, button2, button3);
   if (ifdraw & 1) {
     if (ifdraw & 2)
@@ -1466,13 +1499,11 @@ void zapMousePress(ZapStruct *zap, QMouseEvent *event)
     return;
   }
 
-
-  /* imodPrintStderr("click at %d %d\n", event->x(), event->y()); */
-
+  // Check for regular actions
   if (event->button() == ImodPrefs->actualButton(1)) {
     but1downt.start();
-    firstmx = event->x();
-    firstmy = event->y();
+    firstmx = x;
+    firstmy = y;
     if (zap->shiftingCont)
       drew = startShiftingContour(zap, firstmx, firstmy, 1, ctrlDown);
     else if (zap->startingBand)
@@ -1483,19 +1514,19 @@ void zapMousePress(ZapStruct *zap, QMouseEvent *event)
   } else if (event->button() == ImodPrefs->actualButton(2) &&
 	     !button1 && !button3) {
     if (zap->shiftingCont)
-      drew = startShiftingContour(zap, event->x(), event->y(), 2, ctrlDown);
+      drew = startShiftingContour(zap, x, y, 2, ctrlDown);
     else
-      drew = zapButton2(zap, event->x(), event->y(), ctrlDown);
+      drew = zapButton2(zap, x, y, ctrlDown);
 
   } else if (event->button() == ImodPrefs->actualButton(3) &&
 	     !button1 && !button2) {
     if (zap->shiftingCont)
-      drew = startShiftingContour(zap, event->x(), event->y(), 3, ctrlDown);
+      drew = startShiftingContour(zap, x, y, 3, ctrlDown);
     else
-      drew = zapButton3(zap, event->x(), event->y(), ctrlDown);
+      drew = zapButton3(zap, x, y, ctrlDown);
   }
-  zap->lmx = event->x();
-  zap->lmy = event->y();
+  zap->lmx = x;
+  zap->lmy = y;
   if (ifdraw && !drew)
     zapDraw(zap);
 }
@@ -1522,10 +1553,12 @@ void zapMouseRelease(ZapStruct *zap, QMouseEvent *event)
   if (ifdraw & 1) {
     if ((ifdraw & 2) || needDraw)
       zapDraw(zap);
-    return;
+
+    // Defer the return so the band moving can be turned off, but then only 
+    // check other things below if this flag is off
   }
 
-  if (button1){
+  if (button1 && !(ifdraw & 1)) {
     if (dragband) {
       dragband = 0;
       zapSetCursor(zap, zap->mousemode);
@@ -1542,7 +1575,7 @@ void zapMouseRelease(ZapStruct *zap, QMouseEvent *event)
                event->state() & Qt::ControlButton);
   }
  
-  // Button 2 and band moving, release te band
+  // Button 2 and band moving, release the band
   if (button2 && zap->rubberband && moveband) {
     moveband = 0;
     zapSetCursor(zap, zap->mousemode);
@@ -1553,7 +1586,7 @@ void zapMouseRelease(ZapStruct *zap, QMouseEvent *event)
     zap->hqgfxsave  = 0;
 
     // Button 2 and doing a drag draw - draw for real.
-  } else if (button2 && !zap->numXpanels) {
+  } else if (button2 && !zap->numXpanels && !(ifdraw & 1)) {
     registerDragAdditions(zap);
 
     // Fix the mouse position and update the info window finally
@@ -1567,6 +1600,11 @@ void zapMouseRelease(ZapStruct *zap, QMouseEvent *event)
       drew = 1;
     }
   }
+
+  // Now return if plugin said to
+  if (ifdraw & 1)
+    return;
+
   if (zap->centerMarked && !zap->centerDefined) {
     ivwClearAnExtraObject(zap->vi, zap->shiftObjNum);
     imodDraw(zap->vi, IMOD_DRAW_MOD);
@@ -1598,7 +1636,8 @@ void zapMouseMove(ZapStruct *zap, QMouseEvent *event, bool mousePressed)
   button1 = event->state() & ImodPrefs->actualButton(1) ? 1 : 0;
   button2 = event->state() & ImodPrefs->actualButton(2) ? 1 : 0; 
   button3 = event->state() & ImodPrefs->actualButton(3) ? 1 : 0;
-  if (mousePressed || insertDown || zap->vi->trackMouseForPlugs) {
+  if (!(zap->rubberband && moveband)  && 
+      (mousePressed || insertDown || zap->vi->trackMouseForPlugs)) {
     ifdraw = checkPlugUseMouse(zap, event, button1, button2, button3);
     if (ifdraw & 1) {
       if (ifdraw & 2)
@@ -1902,8 +1941,6 @@ int zapButton2(ZapStruct *zap, int x, int y, int controlDown)
   int   pt;
   float ix, iy;
   float lastz;
-  int rcrit = 10;   /* Criterion for moving the whole band */
-  int dxll, dxur,dyll, dyur;
   int cz, pz, iz;
 
   zapGetixy(zap, x, y, &ix, &iy, &iz);
@@ -1916,24 +1953,8 @@ int zapButton2(ZapStruct *zap, int x, int y, int controlDown)
     }
   }
      
-  moveband = 0;
-  /* If rubber band is on and within criterion distance of any edge, set
-     flag to move whole band and return */
-  if (zap->rubberband) {
-    zapBandImageToMouse(zap, 0);
-    dxll = x - zap->rbMouseX0;
-    dxur = x - zap->rbMouseX1;
-    dyll = y - zap->rbMouseY0;
-    dyur = y - zap->rbMouseY1;
-    if ((dyll > 0 && dyur < 0 && (dxll < rcrit && dxll > -rcrit ||
-                                  dxur < rcrit && dxur > -rcrit)) ||
-        (dxll > 0 && dxur < 0 && (dyll < rcrit && dyll > -rcrit ||
-                                  dyur < rcrit && dyur > -rcrit))) {
-      moveband = 1;
-      zapSetCursor(zap, zap->mousemode);
-      return 0;
-    }
-  }     
+  // 3/5/08: Moved band moving to mouse press routine so it would happen before
+  // plugin action
 
   if (vi->imod->mousemode == IMOD_MMODEL) {
     if (zap->numXpanels)
@@ -4471,6 +4492,10 @@ static int zapPointVisable(ZapStruct *zap, Ipoint *pnt)
 /*
 
 $Log$
+Revision 4.117  2008/02/22 00:35:43  sueh
+bug# 1076 In zapPrintInfo removed \n from the return string because it
+messes up the trimvol process.
+
 Revision 4.116  2008/02/06 16:33:06  sueh
 bug# 1065, bug# 1076 Simplified getLowHighSection.  Made drawing optional in
 zapToggleRubberband.  Turn off rubberband when flipping.  Send an error to the
