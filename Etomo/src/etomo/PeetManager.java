@@ -55,6 +55,9 @@ import etomo.util.DatasetFiles;
  * @version $Revision$
  * 
  * <p> $Log$
+ * <p> Revision 1.37  2008/01/31 20:16:55  sueh
+ * <p> bug# 1055 throwing a FileException when LogFile.getInstance fails.
+ * <p>
  * <p> Revision 1.36  2008/01/14 20:22:59  sueh
  * <p> bug# 1050 Added an empty getProcessResultDisplayFactoryInterface.  Calling
  * <p> BaseManager.reconnect from openProcessingPanel to reconnect to parallel
@@ -593,6 +596,11 @@ public final class PeetManager extends BaseManager {
 
   public void peetParser() {
     savePeetDialog();
+    if (matlabParam == null) {
+      uiHarness.openMessageDialog("Must set " + PeetDialog.DIRECTORY_LABEL
+          + " and " + PeetDialog.FN_OUTPUT_LABEL, "Entry Error");
+      return;
+    }
     PeetParserParam param = new PeetParserParam(this, matlabParam.getFile());
     param.getParameters(matlabParam);
     try {
