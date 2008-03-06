@@ -36,6 +36,9 @@ import etomo.type.EtomoAutodoc;
  * @version $Revision$
  * 
  * <p> $Log$
+ * <p> Revision 1.12  2008/02/27 23:01:19  sueh
+ * <p> bug# 1090 Added "Add Row" button to iteration table.
+ * <p>
  * <p> Revision 1.11  2007/07/10 00:43:09  sueh
  * <p> bug# 1022 Published some header strings.
  * <p>
@@ -167,6 +170,18 @@ final class IterationTable implements Highlightable {
 
   void getParameters(final MatlabParam matlabParamFile) {
     rowList.getParameters(matlabParamFile);
+  }
+  
+  /**
+   * SampleSphere effects the first row only.
+   * @param sampleSphere
+   */
+  void updateDisplay(final boolean sampleSphere) {
+    IterationRow row = rowList.getRow(0);
+    if (row == null) {
+      return;
+    }
+    row.updateDisplay(sampleSphere);
   }
 
   void setParameters(final MatlabParam matlabParamFile) {
@@ -438,6 +453,9 @@ final class IterationTable implements Highlightable {
     }
 
     private IterationRow getRow(int index) {
+      if (index < 0 || index >= list.size()) {
+        return null;
+      }
       return (IterationRow) list.get(index);
     }
 

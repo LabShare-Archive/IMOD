@@ -22,6 +22,9 @@ import etomo.type.EtomoNumber;
  * @version $Revision$
  * 
  * <p> $Log$
+ * <p> Revision 1.9  2007/07/31 20:45:03  sueh
+ * <p> bug# 1028 In validateRun() checking all the values in searchRadius.
+ * <p>
  * <p> Revision 1.8  2007/07/18 23:22:05  sueh
  * <p> bug# 1022 In validateRun using getting the numbers with etomo number
  * <p> so that lists can be handled as nulls.
@@ -115,6 +118,17 @@ final class IterationRow implements Highlightable {
     hiCutoffCutoff.setHighlight(highlight);
     hiCutoffSigma.setHighlight(highlight);
     refThreshold.setHighlight(highlight);
+  }
+  
+  /**
+   * Turn off theta and psi when sampleSphere is on.
+   * @param sampleSphere
+   */
+  void updateDisplay(boolean sampleSphere) {
+    dThetaMax.setEnabled(!sampleSphere);
+    dThetaIncrement.setEnabled(!sampleSphere);
+    dPsiMax.setEnabled(!sampleSphere);
+    dPsiIncrement.setEnabled(!sampleSphere);
   }
 
   void getParameters(final MatlabParam matlabParamFile) {
