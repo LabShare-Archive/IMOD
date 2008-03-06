@@ -12,6 +12,9 @@
  * @version $$Revision$
  *
  * <p> $$Log$
+ * <p> $Revision 3.56  2008/02/01 01:40:55  sueh
+ * <p> $bug# 1075 Fixed Easter egg.
+ * <p> $
  * <p> $Revision 3.55  2008/02/01 01:37:41  sueh
  * <p> $bug# 1075 Easter egg.
  * <p> $
@@ -353,7 +356,8 @@ public class Utilities {
   }
   
   public static boolean isAprilFools() {
-    return new Date().toString().indexOf("Apr 1 ") != -1;
+    System.out.println("new Date().toString()="+new Date().toString());
+    return new Date().toString().indexOf("Apr 01 ") != -1;
   }
 
   public static File getFile(String propertyUserDir, String filename) {
