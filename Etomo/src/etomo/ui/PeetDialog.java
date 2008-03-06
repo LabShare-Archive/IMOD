@@ -53,6 +53,9 @@ import etomo.type.Run3dmodMenuOptions;
  * @version $Revision$
  * 
  * <p> $Log$
+ * <p> Revision 1.56  2008/02/19 00:47:25  sueh
+ * <p> bug# 1078 Setting field width in ftfReferenceFile.
+ * <p>
  * <p> Revision 1.55  2007/12/14 21:46:20  sueh
  * <p> bug# 1060 Changed meanFill to flgMeanFill.
  * <p>
@@ -236,7 +239,7 @@ public final class PeetDialog implements ContextMenu, AbstractParallelDialog,
   public static final String rcsid = "$Id$";
 
   public static final String FN_OUTPUT_LABEL = "Root name for output";
-  static final String DIRECTORY_LABEL = "Directory";
+  public static final String DIRECTORY_LABEL = "Directory";
 
   private static final String REFERENCE_PARTICLE_LABEL = "Particle #: ";
   private static final String REFERENCE_VOLUME_LABEL = "Volume #: ";
@@ -311,6 +314,16 @@ public final class PeetDialog implements ContextMenu, AbstractParallelDialog,
       bgYaxisType);
   private final RadioButton rbYaxisTypeContour = new RadioButton(
       "End points of contour:  ", MatlabParam.YaxisType.CONTOUR, bgYaxisType);
+
+  private final ButtonGroup bgSampleSphere = new ButtonGroup();
+  private final RadioButton rbSampleSphereNone = new RadioButton("None",
+      MatlabParam.SampleSphere.NONE, bgSampleSphere);
+  private final RadioButton rbSampleSphereFull = new RadioButton("Full sphere",
+      MatlabParam.SampleSphere.FULL, bgSampleSphere);
+  private final RadioButton rbSampleSphereHalf = new RadioButton("Half sphere",
+      MatlabParam.SampleSphere.HALF, bgSampleSphere);
+  private final LabeledTextField ltfSampleInterval = new LabeledTextField("Sample interval: ");
+
   private final ButtonGroup bgInitMotl = new ButtonGroup();
   private final RadioButton rbInitMotlZero = new RadioButton(
       "Set all rotational values to zero", MatlabParam.InitMotlCode.ZERO,
@@ -556,6 +569,17 @@ public final class PeetDialog implements ContextMenu, AbstractParallelDialog,
       volumeTable.setParameters(matlabParam, rbInitMotlFiles.isSelected(),
           cbTiltRange.isSelected(), importDir);
     }
+    MatlabParam.SampleSphere sampleSphere = matlabParam.getSampleSphere();
+    if (sampleSphere == MatlabParam.SampleSphere.NONE) {
+      rbSampleSphereNone.setSelected(true);
+    }
+    else if (sampleSphere == MatlabParam.SampleSphere.FULL) {
+      rbSampleSphereFull.setSelected(true);
+    }
+    else if (sampleSphere == MatlabParam.SampleSphere.HALF) {
+      rbSampleSphereHalf.setSelected(true);
+    }
+    ltfSampleInterval.setText(matlabParam.getSampleInterval());
     updateDisplay();
   }
 
@@ -607,6 +631,9 @@ public final class PeetDialog implements ContextMenu, AbstractParallelDialog,
       matlabParam.setYaxisContourContourNumber(ltfYaxisContourContourNumber
           .getText());
     }
+    matlabParam.setSampleSphere(((RadioButton.RadioButtonModel) bgSampleSphere
+        .getSelection()).getEnumeratedType());
+    matlabParam.setSampleInterval(ltfSampleInterval.getText());
   }
 
   public String getFnOutput() {
@@ -642,6 +669,9 @@ public final class PeetDialog implements ContextMenu, AbstractParallelDialog,
     ltfFnOutput.setText(output);
   }
 
+  /**
+   * Reset values and set defaults.
+   */
   public void reset() {
     cbTiltRange.setSelected(false);
     ltfReferenceParticle.clear();
@@ -665,7 +695,6 @@ public final class PeetDialog implements ContextMenu, AbstractParallelDialog,
     sReferenceVolume.reset();
     sYaxisContourModelNumber.reset();
     rbReferenceFile.setSelected(false);
-    lsParticlePerCPU.setValue(MatlabParam.PARTICLE_PER_CPU_DEFAULT);
     rbYaxisTypeYAxis.setSelected(false);
     rbYaxisTypeParticleModel.setSelected(false);
     rbYaxisTypeContour.setSelected(false);
@@ -675,10 +704,12 @@ public final class PeetDialog implements ContextMenu, AbstractParallelDialog,
     rbInitMotlFiles.setSelected(false);
     rbCcModeNormalized.setSelected(false);
     rbCcModeLocal.setSelected(false);
-    lsDebugLevel.setValue(MatlabParam.DEBUG_LEVEL_DEFAULT);
     cbFlgWedgeWeight.setSelected(false);
     volumeTable.reset();
     iterationTable.reset();
+    rbSampleSphereFull.setSelected(false);
+    rbSampleSphereHalf.setSelected(false);
+    ltfSampleInterval.clear();
     setDefaults();
     updateDisplay();
   }
@@ -778,6 +809,13 @@ public final class PeetDialog implements ContextMenu, AbstractParallelDialog,
           .setToolTipText("Create a new PEET project and copy the parameters (everything but the volume table) from .epe and/or .prm file(s) in another directory.");
       cbFlgWedgeWeight.setToolTipText(EtomoAutodoc.getTooltip(autodoc,
           MatlabParam.FLG_WEDGE_WEIGHT_KEY));
+      section = autodoc.getSection(EtomoAutodoc.FIELD_SECTION_NAME,
+          MatlabParam.SAMPLE_SPHERE_KEY);
+      rbSampleSphereNone.setToolTipText(section);
+      rbSampleSphereFull.setToolTipText(section);
+      rbSampleSphereHalf.setToolTipText(section);
+      ltfSampleInterval.setToolTipText(EtomoAutodoc.getTooltip(autodoc,
+          MatlabParam.SAMPLE_INTERVAL_KEY));
     }
     catch (FileNotFoundException e) {
       e.printStackTrace();
@@ -795,6 +833,7 @@ public final class PeetDialog implements ContextMenu, AbstractParallelDialog,
   }
 
   private void setDefaults() {
+    lsDebugLevel.setValue(MatlabParam.DEBUG_LEVEL_DEFAULT);
     ltfEdgeShift.setText(MatlabParam.EDGE_SHIFT_DEFAULT);
     cbFlgMeanFill.setSelected(MatlabParam.FLG_MEAN_FILL_DEFAULT);
     ltfLowCutoff.setText(MatlabParam.LOW_CUTOFF_DEFAULT);
@@ -804,6 +843,8 @@ public final class PeetDialog implements ContextMenu, AbstractParallelDialog,
     else {
       rbReferenceVolume.setSelected(true);
     }
+    rbSampleSphereNone.setSelected(true);
+    lsParticlePerCPU.setValue(MatlabParam.PARTICLE_PER_CPU_DEFAULT);
   }
 
   private void createSetupPanel() {
@@ -913,7 +954,20 @@ public final class PeetDialog implements ContextMenu, AbstractParallelDialog,
     pnlSetup.add(phSetup.getContainer());
   }
 
-  private void createRunPanel() {
+  private void createRunPanel() { 
+    //Spherical Sampling
+    JPanel pnlSphericalSampling = new JPanel();
+    pnlSphericalSampling.setLayout(new BoxLayout(pnlSphericalSampling, BoxLayout.X_AXIS));
+    pnlSphericalSampling.setBorder(new EtchedBorder(
+    "Spherical Sampling for Theta and Psi").getBorder());
+    pnlSphericalSampling.add(rbSampleSphereNone.getComponent());
+    pnlSphericalSampling.add(Box.createRigidArea(FixedDim.x5_y0));
+    pnlSphericalSampling.add(rbSampleSphereFull.getComponent());
+    pnlSphericalSampling.add(Box.createRigidArea(FixedDim.x5_y0));
+    pnlSphericalSampling.add(rbSampleSphereHalf.getComponent());
+    pnlSphericalSampling.add(Box.createRigidArea(FixedDim.x5_y0));
+    pnlSphericalSampling.add(ltfSampleInterval.getContainer());
+    pnlSphericalSampling.add(Box.createHorizontalGlue());
     //szVol
     SpacedPanel pnlSzVol = new SpacedPanel();
     pnlSzVol.setBoxLayout(BoxLayout.X_AXIS);
@@ -968,6 +1022,7 @@ public final class PeetDialog implements ContextMenu, AbstractParallelDialog,
     pnlRunBody.setBoxLayout(BoxLayout.Y_AXIS);
     pnlRunBody.setComponentAlignmentX(Component.CENTER_ALIGNMENT);
     pnlRunBody.add(iterationTable.getContainer());
+    pnlRunBody.add(pnlSphericalSampling);
     pnlRunBody.add(pnlSzVol);
     pnlRunBody.add(cbRefFlagAllTom);
     pnlRunBody.add(pnlLstThresholds);
@@ -1044,6 +1099,15 @@ public final class PeetDialog implements ContextMenu, AbstractParallelDialog,
       copyParameters();
     }
     else if (actionCommand.equals(cbFlgWedgeWeight.getActionCommand())) {
+      updateDisplay();
+    }
+    else if (actionCommand.equals(rbSampleSphereNone.getActionCommand())) {
+      updateDisplay();
+    }
+    else if (actionCommand.equals(rbSampleSphereFull.getActionCommand())) {
+      updateDisplay();
+    }
+    else if (actionCommand.equals(rbSampleSphereHalf.getActionCommand())) {
       updateDisplay();
     }
     else {
@@ -1191,6 +1255,9 @@ public final class PeetDialog implements ContextMenu, AbstractParallelDialog,
         && rbYaxisTypeContour.isSelected());
     ltfYaxisContourContourNumber.setEnabled(volumeRows
         && rbYaxisTypeContour.isSelected());
+    //spherical sampling
+    ltfSampleInterval.setEnabled(!rbSampleSphereNone.isSelected());
+    iterationTable.updateDisplay(!rbSampleSphereNone.isSelected());
     //volume table
     volumeTable.updateDisplay(rbInitMotlFiles.isSelected(), cbTiltRange
         .isSelected());
@@ -1240,6 +1307,9 @@ public final class PeetDialog implements ContextMenu, AbstractParallelDialog,
     btnDuplicateProject.addActionListener(actionListener);
     btnCopyParameters.addActionListener(actionListener);
     cbFlgWedgeWeight.addActionListener(actionListener);
+    rbSampleSphereNone.addActionListener(actionListener);
+    rbSampleSphereFull.addActionListener(actionListener);
+    rbSampleSphereHalf.addActionListener(actionListener);
   }
 
   private static final class PDActionListener implements ActionListener {
