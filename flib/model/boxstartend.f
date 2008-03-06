@@ -227,9 +227,9 @@ c
       if (.not.getModelObjectList(loadObjs, numLoadObj))
      &    call exitError('LOADING MODEL DATA')
 c             
-c             convert to index coords
+c             convert to index coords in the current volume
 c             
-      call scale_model(0)
+      call scaleModelToImage(1, 0)
 c       
       if (pipinput) then
         ierr = PipGetInteger('WhichPointsToExtract', ifstrtend)
@@ -578,6 +578,9 @@ c
 
 c       
 c       $Log$
+c       Revision 3.7  2007/12/05 20:40:40  mast
+c       Rewrote to avoid memory constraints and converted to PIP
+c
 c       Revision 3.6  2007/11/18 04:59:48  mast
 c       Redeclared concat at 320, increased filename lengths
 c
