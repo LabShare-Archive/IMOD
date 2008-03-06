@@ -78,6 +78,7 @@ ImodClipboard *ClipHandler = NULL;
 
 static int loopStarted = 0;
 static char *debugKeys = NULL;
+static char *windowKeys = NULL;
 
 void imod_usage(char *name)
 {
@@ -168,7 +169,6 @@ int main( int argc, char *argv[])
   int nChars;
   QRect infoGeom;
   StartupForm *startup;
-  char *windowKeys = NULL;
 
   /* Initialize data. */
   App = &app;
@@ -860,7 +860,8 @@ void imod_quit(void)
 {
   int done, err;
 
-  if (imodDebug('T') || !imod_model_changed(Model)){
+  if (imodDebug('T') || (windowKeys && strchr(windowKeys, '2')) ||
+      !imod_model_changed(Model)) {
     imod_cleanup_autosave();
     imod_exit(0);
     return;
@@ -910,6 +911,9 @@ bool imodDebug(char key)
 
 /*
 $Log$
+Revision 4.63  2008/01/25 20:22:58  mast
+Changes for new scale bar
+
 Revision 4.62  2008/01/13 22:58:35  mast
 Changes for multi-Z window
 
