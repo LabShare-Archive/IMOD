@@ -550,6 +550,8 @@ void InfoWindow::openSelectedWindows(char *keys)
     imodPlugOpenAllExternal();
   if (strchr(keys, 'T'))
     imodPlugOpenByName("Line Track");
+  if (strchr(keys, '1'))
+    imod_set_mmode(IMOD_MMODEL);
 }
 
 
@@ -653,6 +655,9 @@ static char *truncate_name(char *name, int limit)
 /*
 
 $Log$
+Revision 4.45  2008/02/28 00:06:57  mast
+Changed to run trimvol with tcsh -f ..., needed for Windows
+
 Revision 4.44  2008/02/22 00:33:31  sueh
 bug# 1076 Added extract menu option, and extract(), and trimvolExited().
 
