@@ -43,6 +43,9 @@ import etomo.util.DatasetFiles;
  * @version $Revision$
  * 
  * <p> $Log$
+ * <p> Revision 1.14  2008/01/31 20:22:34  sueh
+ * <p> bug# 1055 throwing a FileException when LogFile.getInstance fails.
+ * <p>
  * <p> Revision 1.13  2007/12/17 21:04:58  sueh
  * <p> bug# 1060 Synchronizing meanFill with flgMeanFill in the .prm file.
  * <p>
@@ -225,6 +228,8 @@ public final class MatlabParam {
   public static final boolean REFERENCE_FILE_DEFAULT = false;
   public static final String FLG_WEDGE_WEIGHT_KEY = "flgWedgeWeight";
   public static final boolean FLG_WEDGE_WEIGHT_DEFAULT = false;
+  public static final String SAMPLE_SPHERE_KEY = "sampleSphere";
+  public static final String SAMPLE_INTERVAL_KEY = "sampleInterval";
 
   private static final int REFERENCE_VOLUME_INDEX = 0;
   private static final int REFERENCE_PARTICLE_INDEX = 1;
@@ -263,6 +268,8 @@ public final class MatlabParam {
   private final ParsedArray reference = ParsedArray.getInstance();
   private final ParsedArray yaxisContour = ParsedArray.getInstance();
   private final ParsedNumber flgWedgeWeight = new ParsedNumber();
+  private final ParsedQuotedString sampleSphere = new ParsedQuotedString();
+  private final ParsedNumber sampleInterval = new ParsedNumber();
 
   private String lowCutoff = LOW_CUTOFF_DEFAULT;
   private InitMotlCode initMotlCode = InitMotlCode.DEFAULT;
@@ -384,6 +391,8 @@ public final class MatlabParam {
           //Build a new .prm autodoc.  Use the Field sections from the
           //peetprm.adoc to dictate the order of the name/value pairs.
           //Also use the comments from the peetprm.adoc Field sections.
+          //This makes MatlabParam dependent on peetprm.adoc so peetprm.adoc
+          //must be the responsibility of the Etomo developer.
           ReadOnlySection section = null;
           while ((section = commentAutodoc.nextSection(secLoc)) != null) {
             setNameValuePair(autodoc, section.getName(), (String) valueMap
@@ -473,6 +482,10 @@ public final class MatlabParam {
   public void setYaxisType(EnumeratedType enumeratedType) {
     yaxisType = (YaxisType) enumeratedType;
     useYaxisContour = yaxisType == YaxisType.CONTOUR;
+  }
+
+  public void setSampleSphere(EnumeratedType enumeratedType) {
+    this.sampleSphere.setRawString(((SampleSphere) enumeratedType).toString());
   }
 
   public void setFnOutput(final String fnOutput) {
@@ -566,7 +579,11 @@ public final class MatlabParam {
     return yaxisContour.getRawString(YAXIS_CONTOUR_CONTOUR_NUMBER_INDEX);
   }
 
-  public void setEdgeShift(String edgeShift) {
+  public SampleSphere getSampleSphere() {
+    return SampleSphere.getInstance(sampleSphere.getRawString());
+  }
+
+  public void setEdgeShift(final String edgeShift) {
     this.edgeShift.setRawString(edgeShift);
   }
 
@@ -595,6 +612,8 @@ public final class MatlabParam {
     useYaxisContour = false;
     yaxisContour.clear();
     flgWedgeWeight.setRawString(FLG_WEDGE_WEIGHT_DEFAULT);
+    sampleInterval.clear();
+    sampleSphere.clear();
   }
 
   public void clearEdgeShift() {
@@ -605,19 +624,27 @@ public final class MatlabParam {
     return edgeShift.getRawString();
   }
 
+  public String getSampleInterval() {
+    return sampleInterval.getRawString();
+  }
+
   public File getFile() {
     return file;
   }
 
-  public void setSzVolX(String szVolX) {
+  public void setSampleInterval(final String input) {
+    sampleInterval.setRawString(input);
+  }
+
+  public void setSzVolX(final String szVolX) {
     szVol.setRawString(SZ_VOL_X_INDEX, szVolX);
   }
 
-  public void setSzVolY(String szVolY) {
+  public void setSzVolY(final String szVolY) {
     szVol.setRawString(SZ_VOL_Y_INDEX, szVolY);
   }
 
-  public void setSzVolZ(String szVolZ) {
+  public void setSzVolZ(final String szVolZ) {
     szVol.setRawString(SZ_VOL_Z_INDEX, szVolZ);
   }
 
@@ -639,18 +666,18 @@ public final class MatlabParam {
    * from lowCutoff when they are.
    * @param input
    */
-  public void setLowCutoff(String input) {
+  public void setLowCutoff(final String input) {
     lowCutoff = input;
     for (int i = 0; i < iterationList.size(); i++) {
       ((Iteration) iterationList.get(i)).setLowCutoff(lowCutoff);
     }
   }
 
-  public void setDebugLevel(Number input) {
+  public void setDebugLevel(final Number input) {
     debugLevel.setRawString(input.toString());
   }
 
-  public void setParticlePerCPU(Number input) {
+  public void setParticlePerCPU(final Number input) {
     particlePerCpu.setRawString(input.toString());
   }
 
@@ -839,6 +866,11 @@ public final class MatlabParam {
     yaxisContour.parse(autodoc.getAttribute(YAXIS_CONTOUR_KEY));
     //flgWedgeWeight
     flgWedgeWeight.parse(autodoc.getAttribute(FLG_WEDGE_WEIGHT_KEY));
+    //sampleSphere
+    sampleSphere.setRawString(SampleSphere.getInstance(
+        autodoc.getAttribute(SAMPLE_SPHERE_KEY)).toString());
+    //sampleInterval
+    sampleInterval.parse(autodoc.getAttribute(SAMPLE_INTERVAL_KEY));
   }
 
   /**
@@ -994,6 +1026,8 @@ public final class MatlabParam {
       valueMap.put(YAXIS_CONTOUR_KEY, yaxisContour.getParsableString());
     }
     valueMap.put(FLG_WEDGE_WEIGHT_KEY, flgWedgeWeight.getParsableString());
+    valueMap.put(SAMPLE_SPHERE_KEY, sampleSphere.getParsableString());
+    valueMap.put(SAMPLE_INTERVAL_KEY, sampleInterval.getParsableString());
   }
 
   /**
@@ -1333,6 +1367,56 @@ public final class MatlabParam {
       }
       if (X_AND_Z_AXIS_VALUE.equals(value)) {
         return X_AND_Z_AXIS;
+      }
+      return DEFAULT;
+    }
+  }
+
+  public static final class SampleSphere implements EnumeratedType {
+    private static final String FULL_VALUE = "full";
+    private static final String HALF_VALUE = "half";
+    private static final String NONE_VALUE = "none";
+    public static final SampleSphere FULL = new SampleSphere(FULL_VALUE);
+    public static final SampleSphere HALF = new SampleSphere(HALF_VALUE);
+    public static final SampleSphere NONE = new SampleSphere(NONE_VALUE);
+    private static final SampleSphere DEFAULT = NONE;
+
+    private final String value;
+
+    private SampleSphere(final String value) {
+      this.value = value;
+    }
+
+    public String toString() {
+      return value.toString();
+    }
+
+    public boolean isDefault() {
+      if (this == DEFAULT) {
+        return true;
+      }
+      return false;
+    }
+
+    private static SampleSphere getInstance(final ReadOnlyAttribute attribute) {
+      if (attribute == null) {
+        return DEFAULT;
+      }
+      return getInstance(attribute.getValue());
+    }
+
+    private static SampleSphere getInstance(final String value) {
+      if (value == null) {
+        return DEFAULT;
+      }
+      if (FULL_VALUE.equals(value)) {
+        return FULL;
+      }
+      if (HALF_VALUE.equals(value)) {
+        return HALF;
+      }
+      if (NONE_VALUE.equals(value)) {
+        return NONE;
       }
       return DEFAULT;
     }
