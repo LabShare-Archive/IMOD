@@ -13,6 +13,9 @@
     $Revision$
 
     $Log$
+    Revision 4.5  2004/11/07 23:02:29  mast
+    Added routine to indicate saving next clear
+
     Revision 4.4  2004/10/22 22:15:33  mast
     Added function to start dumping of cache after each section load
 
@@ -52,6 +55,8 @@ void imod_info_setocp(void);
 void imod_info_setxyz(void);
 void imod_info_setbw(int black, int white);
 int imod_info_bwfloat(ImodView *vw, int section, int time);
+void imodInfoSetFloatFlags(int inFloat, int inSubset);
+void imodInfoGetFloatFlags(int &outFloat, int &outSubset);
 void imodInfoAutoContrast(int targetMean, int targetSD);
 int imodInfoCurrentMeanSD(float &mean, float &sd);
 void imodInfoSaveNextClear();

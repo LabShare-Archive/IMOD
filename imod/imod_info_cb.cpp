@@ -204,7 +204,6 @@ void imodInfoQuit()
   return;
 }
 
-
 /****************************************************************************/
 /* support functions for setting controls                                   */
 /****************************************************************************/
@@ -671,6 +670,19 @@ int imodInfoCurrentMeanSD(float &mean, float &sd)
   return 0;
 }
 
+// External calls to get and set the float flags from preferences and info init
+void imodInfoSetFloatFlags(int inFloat, int inSubset)
+{
+  float_on = inFloat;
+  float_subsets = inSubset;
+}
+
+void imodInfoGetFloatFlags(int &outFloat, int &outSubset)
+{
+  outFloat = float_on;
+  outSubset = float_subsets;
+}
+
 /****************************************************************************/
 /*  Imod link functions */
 
@@ -789,6 +801,9 @@ void imod_imgcnt(char *string)
 
 /*
 $Log$
+Revision 4.26  2008/01/17 22:34:17  mast
+Call plugins to update on model change
+
 Revision 4.25  2007/07/08 16:04:49  mast
 Used new hot slider function
 

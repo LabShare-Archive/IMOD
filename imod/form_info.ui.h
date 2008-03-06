@@ -21,11 +21,14 @@
 
 void InfoControls::init()
 {
-    int i;
-    mCtrlPressed = false;
+  int i, floatOn, subarea;
+  mCtrlPressed = false;
     mBlackPressed = false;
     mWhitePressed = false;
     setShowPoint(true);
+    imodInfoGetFloatFlags(floatOn, subarea);
+    diaSetChecked(floatCheckBox, floatOn != 0);
+    diaSetChecked(subareaCheckBox, subarea != 0);
     
     // Set arrays of spin boxes
     mOCPBox[0] = objectSpinBox;
