@@ -25,6 +25,10 @@ DDEESSCCRRIIPPTTIIOONN
   square array in 3dmod(1).  If there is insufficient memory, the average will
   not be computed.
 
+  The coordinates in the model are scaled to fit the current volume.  This
+  means that you can model points in a binned-down volume and use that model
+  directly to extract boxes from the full-sized volume.
+
   Boxstartend uses the PIP package for input (see the manual page for pip(1))
   and can also still take input interactively.  The following options can be
   specified either as command line arguments (with the -) or one per line in a
