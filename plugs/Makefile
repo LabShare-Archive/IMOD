@@ -8,19 +8,19 @@
 
 all : ALWAYS
 	cd beadfix        ;    $(MAKE) $@
-	cd noskecommon    ;    $(MAKE) $@
+#	cd noskecommon    ;    $(MAKE) $@
 	cd beadhelper     ;    $(MAKE) $@
 	cd drawingtools   ;    $(MAKE) $@
-	cd interpolator   ;    $(MAKE) $@
+#	cd interpolator   ;    $(MAKE) $@
 
 install : 
 
 clean : ALWAYS
 	cd beadfix        ;    $(MAKE) $@
-	cd noskecommon    ;    $(MAKE) $@
+#	cd noskecommon    ;    $(MAKE) $@
 	cd beadhelper     ;    $(MAKE) $@
 	cd drawingtools   ;    $(MAKE) $@
-	cd interpolator   ;    $(MAKE) $@
+#	cd interpolator   ;    $(MAKE) $@
 
 ALWAYS:
 
