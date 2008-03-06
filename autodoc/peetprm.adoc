@@ -68,6 +68,16 @@ comment = The size of the volume around each particle to average
 comment = The base name of the output files for the average volumes, the
 ^reference volumes, and the transformation parameters
 
+[Field = sampleSphere]
+comment = If sampleSphere is set to 'full' or 'half' then in the first iteration
+^dTheta and dPsi will be ignored, and dPhi and sampleInterval will be used.  If
+^sampleSphere does not exist or is set to 'none' then the range specified by
+^dPhi, dTheta, and dPsi will be searched.
+
+[Field = sampleInterval]
+comment = The interval in degrees at which the spherical surface will be
+^sampled.
+
 [Field = dPhi]
 comment = Phi is the rotation around the  Y-axis specified above by the parameter "yaxis".
 ^From this Y-axis, the corresponding X-axis and Z-axis are deduced.
