@@ -27,6 +27,7 @@ drawingtools.$(O) : $(IMODINCLUDES) _common_functions.h icontextra.h \
 
 icontextra.$(O) : $(IMODINCLUDES) _common_functions.h icontextra.h
 
+
 imod.h : ../../imod/imod.h
 	$(CP) -f ../../imod/imod.h .
 imodview.h : ../../imod/imodview.h
@@ -38,6 +39,14 @@ control.h : ../../imod/control.h
 undoredo.h : ../../imod/undoredo.h
 	$(CP) -f ../../imod/undoredo.h .
 
+
+_common_functions.h : ../noskecommon/_common_functions.h
+	$(CP) -f ../noskecommon/_common_functions.h .
+icontextra.h : ../noskecommon/icontextra.h
+	$(CP) -f ../noskecommon/icontextra.h .
+icontextra.cpp : ../noskecommon/icontextra.cpp
+	$(CP) -f ../noskecommon/icontextra.cpp .
+
 clean :
 	$(FIND) . -type f -name "*.o*"  -exec rm "{}" \;
 	$(FIND) . -type f -name "*~"   -exec rm "{}" \;
@@ -48,5 +57,8 @@ clean :
 	$(FIND) . -type f -name "moc_*" -exec rm "{}" \;
 	$(FIND) . -type f -name "so_locations" -exec rm "{}" \;
 	$(RM) $(IMODINCLUDES)
+	$(RM) _common_functions.h;
+	$(RM) icontextra.h;
+	$(RM) icontextra.cpp;
 
 

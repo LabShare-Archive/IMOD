@@ -41,12 +41,17 @@ control.h : ../../imod/control.h
 undoredo.h : ../../imod/undoredo.h
 	$(CP) -f ../../imod/undoredo.h .
 
-icontextra.h : ../drawingtools/icontextra.h
-	$(CP) -f ../drawingtools/icontextra.h .
-icontextra.cpp : ../drawingtools/icontextra.cpp
-	$(CP) -f ../drawingtools/icontextra.cpp .
-_common_functions.h : ../drawingtools/_common_functions.h
-	$(CP) -f ../drawingtools/_common_functions.h .
+
+_common_functions.h : ../noskecommon/_common_functions.h
+	$(CP) -f ../noskecommon/_common_functions.h .
+icontextra.h : ../noskecommon/icontextra.h
+	$(CP) -f ../noskecommon/icontextra.h .
+icontextra.cpp : ../noskecommon/icontextra.cpp
+	$(CP) -f ../noskecommon/icontextra.cpp .
+qt_dialog_customizable.h : ../noskecommon/qt_dialog_customizable.h
+	$(CP) -f ../noskecommon/qt_dialog_customizable.h .
+qt_dialog_customizable.cpp : ../noskecommon/qt_dialog_customizable.cpp
+	$(CP) -f ../noskecommon/qt_dialog_customizable.cpp .
 
 clean :
 	$(FIND) . -type f -name "*.o*"  -exec rm "{}" \;
@@ -61,6 +66,8 @@ clean :
 	$(RM) _common_functions.h;
 	$(RM) icontextra.h;
 	$(RM) icontextra.cpp;
+	$(RM) qt_dialog_customizable.h;
+	$(RM) qt_dialog_customizable.cpp;
 
 
 
