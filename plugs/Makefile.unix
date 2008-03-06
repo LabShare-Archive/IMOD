@@ -6,15 +6,21 @@
 # New actual plugins would be added to the install line
 
 all : ALWAYS
-	cd beadfix   ;    $(MAKE) $@
+	cd beadfix        ;    $(MAKE) $@
+#	cd noskecommon    ;    $(MAKE) $@
+	cd beadhelper     ;    $(MAKE) $@
 	cd drawingtools   ;    $(MAKE) $@
+#	cd interpolator   ;    $(MAKE) $@
 
 install : 
 	cd drawingtools   ;    $(MAKE) $@
 
 clean : ALWAYS
-	cd beadfix   ;    $(MAKE) $@
+	cd beadfix        ;    $(MAKE) $@
+#	cd noskecommon    ;    $(MAKE) $@
+	cd beadhelper     ;    $(MAKE) $@
 	cd drawingtools   ;    $(MAKE) $@
+#	cd interpolator   ;    $(MAKE) $@
 
 ALWAYS:
 
