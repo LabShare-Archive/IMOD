@@ -3,6 +3,9 @@
  *  $Id$
  *
  *  $Log$
+ *  Revision 1.2  2008/01/26 05:51:59  mast
+ *  Forgot the define
+ *
  *  Revision 1.1  2008/01/25 20:22:25  mast
  *  Added to program
  *
@@ -17,6 +20,7 @@ typedef struct scale_bar {
   bool white;
   int minLength;
   int thickness;
+  bool vertical;
   int position;
   int indentX;
   int indentY;

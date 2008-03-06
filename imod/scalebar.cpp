@@ -22,7 +22,7 @@
 #include "imod_display.h"
 
 // The resident parameters, accessible by other modules
-static ScaleBar params = {true, false, 50, 8, 0, 20, 20, false, 25};
+static ScaleBar params = {true, false, 50, 8, false, 0, 20, 20, false, 25};
 
 // The instance of the dialog
 static ScaleBarForm *sbDia = NULL;
@@ -72,7 +72,7 @@ float scaleBarDraw(int winx, int winy, float zoom, int background)
   Imod *imod;
   double expon, minlen, loglen, normlen, custlen;
   float truelen;
-  int xst, yst, color, pixlen;
+  int xst, yst, color, pixlen, xsize, ysize;
   if (!params.draw || !sbDia)
     return -1.;
 
@@ -106,19 +106,21 @@ float scaleBarDraw(int winx, int winy, float zoom, int background)
   // Get real length then pixel length, starting points
   truelen = (float)normlen * pow(10., expon);
   pixlen = B3DNINT(truelen * zoom / imod->pixsize);
+  xsize = params.vertical ? params.thickness : pixlen;
+  ysize = params.vertical ? pixlen : params.thickness;
   xst = params.indentX;
   if (params.position == 0 || params.position == 3)
-    xst = winx - params.indentX - pixlen;
+    xst = winx - params.indentX - xsize;
   yst = params.indentY;
   if (params.position == 2 || params.position == 3)
-    yst = winy - params.indentY - params.thickness;
+    yst = winy - params.indentY - ysize;
 
   // If a background color is set, take the opposite; othewise follow option
   color = params.white ? 255 : 0;
   if (background)
     color = background > 0 ? 0 : 255;
   customGhostColor(color, color, color);
-  b3dDrawFilledRectangle(xst, yst, pixlen, params.thickness);
+  b3dDrawFilledRectangle(xst, yst, xsize, ysize);
   resetGhostColor();
 
   // Start timer every time this routine draws a bar so updates occur
@@ -173,6 +175,9 @@ void scaleBarRedraw()
 /*
 
 $Log$
+Revision 1.2  2008/02/15 00:16:30  mast
+Make it draw bars when window opens
+
 Revision 1.1  2008/01/25 20:22:02  mast
 Added to program
 

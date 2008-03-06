@@ -8,8 +8,8 @@
         <rect>
             <x>0</x>
             <y>0</y>
-            <width>265</width>
-            <height>493</height>
+            <width>245</width>
+            <height>432</height>
         </rect>
     </property>
     <property name="caption">
@@ -33,19 +33,43 @@
                 <string>Turn on scale bar drawing in all windows</string>
             </property>
         </widget>
-        <widget class="QCheckBox">
+        <widget class="QLayoutWidget">
             <property name="name">
-                <cstring>whiteCheckBox</cstring>
+                <cstring>layout9</cstring>
             </property>
-            <property name="focusPolicy">
-                <enum>NoFocus</enum>
-            </property>
-            <property name="text">
-                <string>White bars</string>
-            </property>
-            <property name="toolTip" stdset="0">
-                <string>Draw white instead of black bars</string>
-            </property>
+            <hbox>
+                <property name="name">
+                    <cstring>unnamed</cstring>
+                </property>
+                <widget class="QCheckBox">
+                    <property name="name">
+                        <cstring>whiteCheckBox</cstring>
+                    </property>
+                    <property name="focusPolicy">
+                        <enum>NoFocus</enum>
+                    </property>
+                    <property name="text">
+                        <string>White bars</string>
+                    </property>
+                    <property name="toolTip" stdset="0">
+                        <string>Draw white instead of black bars</string>
+                    </property>
+                </widget>
+                <widget class="QCheckBox">
+                    <property name="name">
+                        <cstring>verticalCheckBox</cstring>
+                    </property>
+                    <property name="focusPolicy">
+                        <enum>NoFocus</enum>
+                    </property>
+                    <property name="text">
+                        <string>Vertical bars</string>
+                    </property>
+                    <property name="toolTip" stdset="0">
+                        <string>Draw bars vertically instead of horizontally</string>
+                    </property>
+                </widget>
+            </hbox>
         </widget>
         <widget class="QLayoutWidget">
             <property name="name">
@@ -170,7 +194,7 @@
         </widget>
         <widget class="QLayoutWidget">
             <property name="name">
-                <cstring>layout8</cstring>
+                <cstring>layout10</cstring>
             </property>
             <hbox>
                 <property name="name">
@@ -208,6 +232,9 @@
                     <property name="name">
                         <cstring>positionComboBox</cstring>
                     </property>
+                    <property name="toolTip" stdset="0">
+                        <string>Set corner bars will be located in</string>
+                    </property>
                 </widget>
                 <spacer>
                     <property name="name">
@@ -221,7 +248,7 @@
                     </property>
                     <property name="sizeHint">
                         <size>
-                            <width>0</width>
+                            <width>16</width>
                             <height>20</height>
                         </size>
                     </property>
@@ -629,6 +656,12 @@
         <receiver>ScaleBarForm</receiver>
         <slot>customValChanged(int)</slot>
     </connection>
+    <connection>
+        <sender>verticalCheckBox</sender>
+        <signal>toggled(bool)</signal>
+        <receiver>ScaleBarForm</receiver>
+        <slot>verticalToggled(bool)</slot>
+    </connection>
 </connections>
 <includes>
     <include location="local" impldecl="in implementation">scalebar.h</include>
@@ -648,6 +681,7 @@
 <slots>
     <slot>drawToggled( bool state )</slot>
     <slot>whiteToggled( bool state )</slot>
+    <slot>verticalToggled( bool state )</slot>
     <slot>lengthChanged( int value )</slot>
     <slot>thicknessChanged( int value )</slot>
     <slot>positionChanged( int value )</slot>
