@@ -40,6 +40,7 @@
 #include "imod.h"
 #include "imodv.h"
 #include "imod_info.h"
+#include "imod_info_cb.h"
 #include "imod_display.h"
 #include "imod_moviecon.h"
 #include "imodv_movie.h"
@@ -89,7 +90,7 @@ ImodPreferences::ImodPreferences(char *cmdLineStyle)
   double szoomvals[MAXZOOMS] =
     { 0.1, 0.1667, 0.25, 0.3333, 0.5, 0.75, 1.0, 1.5, 2.0, 3.0, 4.0, 5.0, 6.0,
       8.0, 10.0, 12.0, 16.0, 20.0};
-  int i, left, top, width, height;
+  int i, left, top, width, height, position, floatOn, subarea;
   bool readin;
   QString str;
   char *plugdir;
@@ -295,13 +296,19 @@ ImodPreferences::ImodPreferences(char *cmdLineStyle)
   if (!str.isEmpty()) {
     scaleParm = scaleBarGetParams();
     sscanf(str.latin1(), "%d,%d,%d,%d,%d,%d,%d,%d,%d", &left, &top, 
-           &scaleParm->minLength, &scaleParm->thickness, &scaleParm->position,
+           &scaleParm->minLength, &scaleParm->thickness, &position,
            &scaleParm->indentX, &scaleParm->indentY, &width, 
            &scaleParm->customVal);
     scaleParm->draw = left != 0;
     scaleParm->white = top != 0;
     scaleParm->useCustom = width != 0;
+    scaleParm->position = position % 4;
+    scaleParm->vertical = position > 3;
   }
+
+  floatOn = settings->readNumEntry(IMOD_NAME"floatButton");
+  subarea = settings->readNumEntry(IMOD_NAME"subareaButton");
+  imodInfoSetFloatFlags(floatOn, subarea);
 
   prefs->autosaveInterval = settings->readNumEntry
     (IMOD_NAME"autosaveInterval", prefs->autosaveIntervalDflt,
@@ -399,7 +406,7 @@ void ImodPreferences::saveSettings(int modvAlone)
 {
   ImodPrefStruct *prefs = &mCurrentPrefs;
   QString str, str2;
-  int i, geomInd, firstEmpty;
+  int i, geomInd, firstEmpty, floatOn, subarea;
   QSettings *settings = getSettingsObject();
   ScaleBar *scaleParm = scaleBarGetParams();
 
@@ -528,10 +535,15 @@ void ImodPreferences::saveSettings(int modvAlone)
 
   str.sprintf("%d,%d,%d,%d,%d,%d,%d,%d,%d", scaleParm->draw ? 1 : 0, 
               scaleParm->white ? 1 : 0, scaleParm->minLength,
-              scaleParm->thickness, scaleParm->position,
+              scaleParm->thickness, 
+              scaleParm->position + (scaleParm->vertical ? 4 : 0),
               scaleParm->indentX, scaleParm->indentY, 
               scaleParm->useCustom ? 1: 0, scaleParm->customVal);
   settings->writeEntry(IMOD_NAME"scaleBarParams", str);
+
+  imodInfoGetFloatFlags(floatOn, subarea);
+  settings->writeEntry(IMOD_NAME"floatButton", floatOn);
+  settings->writeEntry(IMOD_NAME"subareaButton", subarea);
 
   if (prefs->autosaveIntervalChgd)
     settings->writeEntry(IMOD_NAME"autosaveInterval", 
@@ -1154,6 +1166,9 @@ bool ImodPreferences::classicWarned()
 
 /*
 $Log$
+Revision 1.30  2008/02/03 18:38:25  mast
+Added option to swap left/middle in model view
+
 Revision 1.29  2008/01/25 20:22:58  mast
 Changes for new scale bar
 
