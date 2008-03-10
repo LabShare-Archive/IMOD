@@ -154,15 +154,20 @@ void ScaleBarForm::timerEvent( QTimerEvent *e )
 
 void ScaleBarForm::keyPressEvent( QKeyEvent * e )
 {
-    if (e->key() == Qt::Key_Escape)
+  if (e->key() == Qt::Key_Escape)
 	close();
-    else
- 	ivwControlKey(0, e);
+  else if (imodvStandalone())
+    imodvKeyPress(e);
+  else
+    ivwControlKey(0, e);
 }
 
 void ScaleBarForm::keyReleaseEvent( QKeyEvent * e )
 {
-  ivwControlKey(1, e);
+  if (imodvStandalone())
+    imodvKeyRelease(e);
+  else
+    ivwControlKey(1, e);
 }
 
 void ScaleBarForm::helpPressed()
