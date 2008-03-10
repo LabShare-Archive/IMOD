@@ -1,5 +1,7 @@
 IMOD History
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+3/10/08: Fixed crash from key handling by scale bar dialog in 3dmodv mode.
+
 3/5/08: Fixed artifact on right edge of image in HQ highly zoomed slicer.
 
 3/5/08: Added option to make scale bars vertical.
