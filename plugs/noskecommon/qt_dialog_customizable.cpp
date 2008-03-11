@@ -23,7 +23,7 @@ GuiDialogCustomizable::GuiDialogCustomizable(
 {
 	setDialogElements(ds);
   setCaption(title);
-  setModal(false);
+  //setModal(false);
 }
 
 //------------------------

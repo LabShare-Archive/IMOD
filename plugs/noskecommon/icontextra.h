@@ -100,6 +100,10 @@ inline void deleteContours( vector<IcontPtr> &conts );
 inline void eraseContour( vector<IcontPtr> &conts, int idx );
 
 inline Icont* getCont( Iobj *obj, int idx );
+inline int csize( Iobj *obj );
+inline int osize( Imod *imod );
+
+inline Iobj* getObj( Imod *imod, int idx );
 inline bool isObjClosed(Iobj *obj);
 inline bool isContClosed(Iobj *obj, Icont *cont);
 inline bool isObjectValidAndShown(Iobj *obj);
@@ -177,7 +181,7 @@ void cont_addPtsSmooth( Icont *cont, float maxDist, float tensileFract, bool clo
 void cont_reducePtsCrude( Icont *cont, float minDist, bool closed );                    
 int cont_reducePtsMinArea( Icont *cont, float minArea, bool closed );       // MODIFIED
 
-bool cont_isSimple( Icont *cont );                              
+bool cont_isSimple( Icont *cont, bool closed=true );                              
 void cont_makeSimple( Icont *cont );                            
 int cont_breakIntoSimple( vector<IcontPtr> &conts, Icont *cont );                    
 bool cont_isConvex( Icont *cont );                              
@@ -452,6 +456,39 @@ inline Icont* getCont( Iobj *obj, int idx )
 {
   return imodObjectGetContour(obj, idx);
 }
+
+//------------------------
+//-- Shorter function name for "imodObjectGetMaxContour()"
+
+inline int csize( Iobj *obj )
+{
+  return imodObjectGetMaxContour(obj);
+}
+
+//------------------------
+//-- Shorter function name for "imodGetMaxObject()"
+
+inline int osize( Imod *imod )
+{
+  return imodGetMaxObject(imod);
+}
+
+
+//---------------------------------
+//-- Returns the object at the specified index (or NULL if there is none).
+
+inline Iobj* getObj( Imod *imod, int idx )
+{
+  int objIdx, contIdx, ptIdx;
+  imodGetIndex(imod, &objIdx, &contIdx, &ptIdx);
+  
+  imodSetIndex( imod, idx, 0, 0);
+  Iobj *obj  = imodObjectGet(imod);
+  imodSetIndex( imod, objIdx, contIdx, ptIdx );
+  
+  return obj;
+}
+
 
 //---------------------------------
 //-- Returns true if the object is closed.

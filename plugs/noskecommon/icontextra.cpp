@@ -15,6 +15,9 @@
     $Revision$
 
     $Log$
+    Revision 1.1  2008/03/06 00:33:07  tempuser
+    Added common dir
+
     Revision 1.3  2008/03/05 10:29:00  tempuser
     Cleaned code
 
@@ -1191,10 +1194,12 @@ int cont_reducePtsMinArea( Icont *cont, float minArea, bool closed )
 //-- (none of it's lines overlap) or false if it is complex
 //-- (i.e. two or more lines intersect)
 
-bool cont_isSimple( Icont *cont )
+bool cont_isSimple( Icont *cont, bool closed )
 {
-  for(int i=0; i<psize(cont); i++ )
-    for(int j=i+2; j<psize(cont); j++ )
+  int ptsToCheck = (closed) ? psize(cont) : psize(cont)-1;
+  
+  for(int i=0; i<ptsToCheck; i++ )
+    for(int j=i+2; j<ptsToCheck; j++ )
       if(imodPointIntersect(getPt(cont,i),getPt(cont,i+1),getPt(cont,j),getPt(cont,j+1))
          && !( i == 0 && j == psize(cont)-1 ) )
         return false;
@@ -1204,7 +1209,7 @@ bool cont_isSimple( Icont *cont )
 
 
 //------------------------
-//-- Takes a contour and (if not already) makes it simple.
+//-- Takes a closed contour and (if not already) makes it simple.
 //-- It does this by determine points where the contour intersects itself,
 //-- and deleting the SMALLER enclosed area (as computed by the fewest
 //-- number of points) until no more self-intersections are found.
