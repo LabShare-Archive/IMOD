@@ -15,6 +15,9 @@
     $Revision$
 
     $Log$
+    Revision 1.7  2008/03/05 10:29:00  tempuser
+    Cleaned code
+
     Revision 1.6  2008/03/03 06:48:01  tempuser
     Modified makefile and slice changing
 
@@ -64,6 +67,7 @@
 #include <qinputdialog.h>
 
 #include "_common_functions.h"
+#include "qt_dialog_customizable.h"
 #include "imodplugin.h"
 #include "dia_qtutils.h"
 #include "drawingtools.h"
@@ -110,6 +114,9 @@ int imodPlugKeys(ImodView *vw, QKeyEvent *event)
   int ctrl    = event->state() & Qt::ControlButton;   // ctrl modifier
   int shift   = event->state() & Qt::ShiftButton;     // shift modifier
   
+  if( !plug.useNumKeys && keysym >= Qt::Key_1 && keysym <= Qt::Key_5  )
+    return 0;
+  
   switch(keysym)
   {
     case Qt::Key_Q:
@@ -130,7 +137,8 @@ int imodPlugKeys(ImodView *vw, QKeyEvent *event)
       break;
       
     case Qt::Key_A:
-      plug.window->selectNextOverlappingContour();
+      if(!shift)
+        plug.window->selectNextOverlappingContour();
       break;
     case Qt::Key_I:
       edit_inversePointsInContour(shift);
@@ -142,14 +150,20 @@ int imodPlugKeys(ImodView *vw, QKeyEvent *event)
     case Qt::Key_X:
       if(ctrl)
         plug.window->cut();
+      else
+        return 0;
       break;
     case Qt::Key_C:
       if(ctrl)
         plug.window->copy();
+      else
+        return 0;
       break;
     case Qt::Key_V:
       if(ctrl)
-        plug.window->paste();
+        plug.window->paste(!shift);
+      else
+        return 0;
       break;
       
     case Qt::Key_1:
@@ -202,11 +216,18 @@ void imodPlugExecute(ImodView *inImodView)
     plug.draw_smoothTensileFract  = 0.5;
     plug.draw_deformRadius        = 30.0;
     
+    plug.wheelBehav               = WH_DEFORMCIRCLE;
+    plug.useNumKeys               = true;
+    plug.wheelResistance          = 100;
+    plug.selectedAction           = 0;
+    
     Ipoint origin;
     setPt( &origin, 0,0,0);
     plug.copiedCont = imodContourNew();
     cont_generateCircle( plug.copiedCont, 30.0f, 20, origin, false );
         // puts a circle in copiedCont until the user copies his own contour
+    
+    plug.window->loadSettings();
     
     plug.initialized = true;
   }
@@ -234,13 +255,59 @@ int imodPlugEvent(ImodView *vw, QEvent *event, float imx, float imy)
   
   if (event->type() == QEvent::Wheel)
   {
-    if( plug.drawMode == DM_DEFORM
-        || plug.drawMode == DM_JOIN
-        || plug.drawMode == DM_ERASER )
+    QWheelEvent *wheelEvent = static_cast<QWheelEvent*>(event);
+    float scrollAmount    = fDivide( wheelEvent->delta(), float(plug.wheelResistance) );
+    int   scrollAmountInt = floor(scrollAmount);
+    
+    switch( plug.wheelBehav )
     {
-      QWheelEvent *wheelEvent = static_cast<QWheelEvent*>(event);
-      plug.window->changeDeformCircleRadius( (float)wheelEvent->delta() / 100.0 );
-      plug.window->drawExtraObject(true);
+      case(WH_DEFORMCIRCLE):
+      {
+        if( plug.drawMode == DM_DEFORM
+            || plug.drawMode == DM_JOIN
+            || plug.drawMode == DM_ERASER )
+        {
+          plug.window->changeDeformCircleRadius( scrollAmount );
+          plug.window->drawExtraObject(true);
+        }
+        break;
+      }
+      
+      case(WH_SLICES):
+      {
+        edit_changeSelectedSlice( scrollAmountInt, true );
+        break;
+      }
+      
+      case(WH_CONTS):
+      {
+        if( !isCurrObjValidAndShown() )
+          return 0;
+        Imod *imod  = ivwGetModel(plug.view);
+        Iobj *obj   = getCurrObj();
+        int objIdx, contIdx, ptIdx;
+        imodGetIndex(imod, &objIdx, &contIdx, &ptIdx);
+        cycleIntWithinRange( contIdx, 0, csize(obj)-1, scrollAmountInt );
+        imodSetIndex(imod, objIdx, contIdx, 0);
+        plug.window->drawExtraObject(true);
+        break;
+      }
+      
+      case(WH_PTSIZE):
+      {
+        Imod *imod  = ivwGetModel(plug.view);
+        if( !isCurrObjValidAndShown() || imodPointGet(imod)==NULL )
+          return 0;
+        Iobj *obj   = getCurrObj();
+        Iobj *cont  = getCurrCont();
+        int objIdx, contIdx, ptIdx;
+        imodGetIndex(imod, &objIdx, &contIdx, &ptIdx);
+        float ptSize = imodPointGetSize(obj,cont,ptIdx);
+        ptSize = MAX(0.0f, ptSize+scrollAmount);
+        imodPointSetSize(cont,ptIdx,ptSize);
+        plug.window->drawExtraObject(true);
+        break;
+      }
     }
   }
   return 0;
@@ -606,44 +673,56 @@ DialogFrame(parent, 2, buttonLabels, buttonTips, true, "Drawing Tools", "", name
   
   //## Object
   
-  grpObject = new QGroupBox("Smoothing Actions:", this);
-  grpObject->setFocusPolicy(QWidget::NoFocus);
-  grpObject->setMargin(GROUP_MARGIN);
+  grpActions = new QGroupBox("Smoothing Actions:", this);
+  grpActions->setFocusPolicy(QWidget::NoFocus);
+  grpActions->setMargin(GROUP_MARGIN);
   
-  vboxLayout1 = new QVBoxLayout(grpObject);
+
+  vboxLayout1 = new QVBoxLayout(grpActions);
   vboxLayout1->setSpacing(LAYOUT_SPACING);
   vboxLayout1->setMargin(LAYOUT_MARGIN);
   vboxLayout1->addItem( new QSpacerItem(1,SPACER_HEIGHT) );
   
-  reduceContButton = new QPushButton("Reduce Contour", grpObject);
-  reduceContButton->setFocusPolicy(QWidget::NoFocus);
-  connect(reduceContButton, SIGNAL(clicked()), this, SLOT(reduceCurrentContour()));
-  QToolTip::add(reduceContButton,
-                "Reduces the number of points in the current contour");
-  vboxLayout1->addWidget(reduceContButton);
-  
-  smoothContButton = new QPushButton("Smooth Contour", grpObject);
-  smoothContButton->setFocusPolicy(QWidget::NoFocus);
-  connect(smoothContButton, SIGNAL(clicked()), this, SLOT(smoothCurrentContour()));
-  QToolTip::add(smoothContButton,
-                "Smooths and increases the number ""of points in the current contour");
-  vboxLayout1->addWidget(smoothContButton);
-  
-  reduceObjectButton = new QPushButton("Reduce OBJECT", grpObject);
-  reduceObjectButton->setFocusPolicy(QWidget::NoFocus);
-  connect(reduceObjectButton, SIGNAL(clicked()), this, SLOT(reduceObject()));
-  QToolTip::add(reduceObjectButton,
+  reduceContsButton = new QPushButton("Reduce Contours [r]", grpActions);
+  reduceContsButton->setFocusPolicy(QWidget::NoFocus);
+  connect(reduceContsButton, SIGNAL(clicked()), this, SLOT(reduceConts()));
+  QToolTip::add(reduceContsButton,
                 "Reduces ALL contours in the current object");
-  vboxLayout1->addWidget(reduceObjectButton);
+  vboxLayout1->addWidget(reduceContsButton);
   
-  smoothObjectButton = new QPushButton("Smooth OBJECT", grpObject);
-  smoothObjectButton->setFocusPolicy(QWidget::NoFocus);
-  connect(smoothObjectButton, SIGNAL(clicked()), this, SLOT(smoothObject()));
-  QToolTip::add(smoothObjectButton,
+  smoothContsButton = new QPushButton("Smooth Contours [e]", grpActions);
+  smoothContsButton->setFocusPolicy(QWidget::NoFocus);
+  connect(smoothContsButton, SIGNAL(clicked()), this, SLOT(smoothConts()));
+  QToolTip::add(smoothContsButton,
                 "Smooths ALL contours in the current object (use with caution)");
-  vboxLayout1->addWidget(smoothObjectButton);
+  vboxLayout1->addWidget(smoothContsButton);
   
-  mLayout->addWidget(grpObject);
+  mLayout->addWidget(grpActions);
+  
+  
+  //## Extra Buttons
+  
+  widget1 = new QWidget(this);
+  
+  gridLayout2 = new QGridLayout(widget1);
+  gridLayout2->setSpacing(LAYOUT_SPACING);
+  gridLayout2->setMargin(LAYOUT_MARGIN);
+  
+  moreActionsButton = new QPushButton("More Actions", widget1);
+  connect(moreActionsButton, SIGNAL(clicked()), this, SLOT(moreActions()));
+  QToolTip::add(moreActionsButton,
+                "Contains several other actions I didn't want to sqeeze "
+                "into this window");
+  gridLayout2->addWidget(moreActionsButton, 0, 0);
+  
+  moreSettingsButton = new QPushButton("More Settings", widget1);
+  connect(moreSettingsButton, SIGNAL(clicked()), this, SLOT(moreSettings()));
+  QToolTip::add(moreSettingsButton,
+                "Contains several other settings I didn't want to sqeeze "
+                "into this window");
+  gridLayout2->addWidget(moreSettingsButton, 0, 1); 
+  
+  mLayout->addWidget(widget1);
   
   
   mLayout->addStretch();
@@ -864,7 +943,7 @@ bool DrawingTools::drawExtraObject( bool redraw )
 void DrawingTools::clearExtraObj()
 {
   Iobj *obj = ivwGetExtraObject(plug.view);
-  int ncont = imodObjectGetMaxContour(obj);
+  int ncont = csize(obj);
   if (!ncont)
     return;
   
@@ -875,6 +954,59 @@ void DrawingTools::clearExtraObj()
     imodObjectRemoveContour(obj, co);
   imodContoursDelete(cont, ncont);
 }
+
+
+//------------------------
+//-- Loads most of the settings for DrawingTools from user preferences
+
+void DrawingTools::loadSettings()
+{
+  
+  double savedValues[NUM_SAVED_VALS];
+  
+  int nvals = prefGetGenericSettings("DrawingTools", savedValues, NUM_SAVED_VALS);
+  
+  if(nvals!=NUM_SAVED_VALS)
+  {
+    wprint("DrawingTools: Error loading saved values");
+    return;
+  }
+  
+  //plug.drawMode                   = savedValues[0];
+  plug.draw_reducePts             = savedValues[0];
+  plug.draw_reducePtsMaxArea      = savedValues[1];
+  plug.draw_smoothMinDist         = savedValues[2];
+  plug.draw_smoothTensileFract    = savedValues[3];
+  plug.draw_deformRadius          = savedValues[4];
+  plug.wheelBehav                 = savedValues[5];
+  plug.useNumKeys                 = savedValues[6];
+  plug.wheelResistance            = savedValues[7];
+  plug.selectedAction             = savedValues[8];
+}
+
+
+//------------------------
+//-- Saves most of the settings within DrawingToolsData in user preferences
+//-- so they will load next time Bead Helper is started
+
+void DrawingTools::saveSettings()
+{
+  double saveValues[NUM_SAVED_VALS];
+  
+  //saveValues[0]  = plug.drawMode;
+  saveValues[0]  = plug.draw_reducePts;
+  saveValues[1]  = plug.draw_reducePtsMaxArea;
+  saveValues[2]  = plug.draw_smoothMinDist;
+  saveValues[3]  = plug.draw_smoothTensileFract;
+  saveValues[4]  = plug.draw_deformRadius;
+  saveValues[5]  = plug.wheelBehav;
+  saveValues[6]  = plug.useNumKeys;
+  saveValues[7]  = plug.wheelResistance;
+  saveValues[8]  = plug.selectedAction;
+  
+  prefSaveGenericSettings("DrawingTools",NUM_SAVED_VALS,saveValues);
+}
+
 
 
 //------------------------
@@ -917,7 +1049,7 @@ void DrawingTools::smoothCurrentContour()
 //------------------------
 //-- Reduces ALL contours in the current object.
 
-void DrawingTools::reduceObject()
+void DrawingTools::reduceConts()
 {
   if( !isCurrObjValidAndShown() )
   {
@@ -925,8 +1057,8 @@ void DrawingTools::reduceObject()
     return;
   }
   if( !MsgBoxYesNo( plug.window,
-                    "Are you sure you want to reduce this object?\n"
-                    "You CANNOT undo this operation and you will"
+                    "Are you sure you want to reduce all the contours in this object?\n"
+                    "You CANNOT undo this operation and you will "
                     "lose points/data." ) )
   {
     return;
@@ -942,7 +1074,7 @@ void DrawingTools::reduceObject()
   int totalPointsBefore = 0;
   int totalPointsAfter = 0;
   
-  for(int c=0; c<imodObjectGetMaxContour(obj); c++)
+  for(int c=0; c<csize(obj); c++)
   {
     cont = getCont( obj, c );
     
@@ -950,8 +1082,8 @@ void DrawingTools::reduceObject()
       continue;
     
     int nPointsBefore = psize( cont );        
-    //imodSetIndex(imod, objIdx, c, 0);    // |-- DOESN'T WORK FOR SOME REASON
-    //undoContourDataChgCC( imod );        // |
+    //imodSetIndex(imod, objIdx, c, 0);         // |-- DOESN'T WORK FOR SOME REASON
+    //undoContourDataChg( imod, objIdx, c );    // |
     cont_reducePtsMinArea( cont, plug.draw_reducePtsMaxArea, isContClosed(obj,cont) );
     int nPointsAfter = psize( cont );
     
@@ -979,7 +1111,7 @@ void DrawingTools::reduceObject()
 //------------------------
 //-- Smooths ALL contours in the current object.
 
-void DrawingTools::smoothObject()
+void DrawingTools::smoothConts()
 {
   if( !isCurrObjValidAndShown() )
   {
@@ -987,7 +1119,7 @@ void DrawingTools::smoothObject()
     return;
   }
   if( !MsgBoxYesNo( plug.window,
-                    "Are you sure you want to smooth this object?\n"
+                    "Are you sure you want to smooth all the contours in this object?\n"
                     "You CANNOT undo this operation so you should test the \n"
                     "result of your smoothing input on a few contours first." ) )
   {
@@ -1004,7 +1136,7 @@ void DrawingTools::smoothObject()
   int totalPointsBefore = 0;
   int totalPointsAfter = 0;
   
-  for(int c=0; c<imodObjectGetMaxContour(obj); c++)
+  for(int c=0; c<csize(obj); c++)
   {
     cont = getCont( obj, c );
     
@@ -1052,6 +1184,151 @@ void DrawingTools::selectNextOverlappingContour()
 
 
 //------------------------
+//-- Selects the next contour after the currently selected one which overlaps
+//-- another contour.
+
+void DrawingTools::printModelPointInfo()
+{
+  Imod *imod  = ivwGetModel(plug.view);
+  
+  
+  wprint("\nPOINT SUMMARY\n");
+  
+  int     totPts    = 0;
+  float   totLen    = 0;
+  int     totConts  = 0;
+  int     totEmpty  = 0;
+  
+  for( int o=0; o<osize(imod); o++ )
+  {
+    Iobj *obj = getObj(imod,o);
+    
+    wprint("\nOBJECT %d\n", o+1);
+    
+    if( csize(obj)==0 )
+    {
+      wprint(" ... empty\n");
+      continue;
+    }
+    
+    int    totObjPts = 0;
+    float  totObjLen  = 0;
+    int    emptyConts = 0;
+    
+    for( int c=0; c<csize(obj); c++ )
+    {
+      Icont *cont   = getCont(obj,c);
+      int    closed = isContClosed( obj, cont ) ? 1 : 0;
+      
+      totObjPts += psize( cont );
+      totObjLen += imodContourLength( cont, closed );
+      
+      if(psize==0)
+        emptyConts++;
+    }
+    
+    totPts   += totObjPts;
+    totLen   += totObjLen;
+    totConts += csize(obj);
+    totEmpty += emptyConts;
+    
+    float ptsPerCont = fDivide( totObjPts, csize(obj) );
+    float avgDistPts = fDivide( totObjLen, totObjPts  );
+    
+    if(emptyConts)
+      wprint(" # EMPTY CONTS = %d\n", emptyConts );
+    wprint(" # conts  = %d\n", totConts );
+    wprint(" # pts    = %d\n", totObjPts );
+    wprint(" pts/cont = %f\n", ptsPerCont );
+    wprint(" avg dist between pts = %f\n", avgDistPts );
+  }
+  
+  float ptsPerContAll = fDivide( totPts, totConts );
+  float avgDistPtsAll = fDivide( totLen, totPts );
+  
+  wprint("\n------------\n");
+  wprint("OVERALL:\n");
+  wprint(" # empty contours = %d\n", totEmpty );
+  wprint(" # conts  = %d\n", totConts );
+  wprint(" # pts    = %d\n", totPts );
+  wprint(" pts/cont = %f\n", ptsPerContAll );
+  wprint(" avg dist between pts = %f\n", avgDistPtsAll );
+}
+
+
+
+//------------------------
+//-- Gives a choice of several other options for the user.
+
+void DrawingTools::moreActions()
+{
+  //## GET USER INPUT FROM CUSTOM DIALOG:
+  
+	CustomDialog ds;
+  int ID_ACTION = ds.addRadioGrp( "action:",
+                                  "find next overlapping contour [a],"
+                                  "print model point info",
+                                  plug.selectedAction );
+	GuiDialogCustomizable dlg(&ds, "Perform Action", this);
+	dlg.exec();
+	if( ds.cancelled )
+		return;
+	plug.selectedAction = ds.getResultRadioGrp	( ID_ACTION );
+  
+  switch(plug.selectedAction)
+  {
+    case(0):      // find next overlapping contour [a]
+    {
+      selectNextOverlappingContour();
+    } break;
+    
+    case(1):      // print point info for current object
+    {
+      printModelPointInfo();
+    } break;
+  }
+  
+  ivwRedraw( plug.view );
+}
+
+//------------------------
+//-- Allows user to change other plugin values/settings.
+
+void DrawingTools::moreSettings()
+{
+  //## GET USER INPUT FROM CUSTOM DIALOG:
+  
+	CustomDialog ds;
+  int ID_WHEELRESIST    = ds.addSpinBox ( "wheel resistance:",
+                                          10, 1000, plug.wheelResistance, 10,
+                                          "the higher the value, the slower "
+                                          "mouse scrolling works" );
+  int ID_USENUMKEYS     = ds.addCheckBox( "use number keys to change mode", 
+                                          plug.useNumKeys,
+                                          "if on: will intercept the number keys "
+                                          "[1]-[5] to change the drawing mode, "
+                                          "if off: can use number keys to move points "
+                                          "as per normal");
+  int ID_WHEELBEHAV     = ds.addComboBox( "wheel behavior:",
+                                          "none,"
+                                          "resize deform circle,"
+                                          "scroll slices,"
+                                          "scroll contours,"
+                                          "resize curr point", plug.wheelBehav,
+                                          "The action performed by the mouse wheel" );
+	GuiDialogCustomizable dlg(&ds, "More Settings", this);
+	dlg.exec();
+	if( ds.cancelled )
+		return;
+  plug.wheelResistance       = ds.getResultSpinBox  ( ID_WHEELRESIST );
+  plug.useNumKeys            = ds.getResultCheckBox ( ID_USENUMKEYS );
+  plug.wheelBehav            = ds.getResultComboBox ( ID_WHEELBEHAV );
+  
+  ivwRedraw( plug.view );
+}
+
+
+//------------------------
 //-- Method used for testing new routines.
 
 void DrawingTools::test()
@@ -1081,12 +1358,15 @@ void DrawingTools::cut()
   //## COPY CURRENT CONTOUR TO plug.copiedCont AND TRANSLATE TO ORIGIN:
   imodContourDelete( plug.copiedCont );
   plug.copiedCont = imodContourDup(cont);
+  
+  
+  imodContourCenterOfMass( plug.copiedCont, &plug.copiedCenterPt );
   Ipoint centroidPt;
-  imodContourCenterOfMass( plug.copiedCont, &centroidPt );
-  centroidPt.x = -centroidPt.x;
-  centroidPt.y = -centroidPt.y;
-  centroidPt.z = -centroidPt.z;
+  centroidPt.x = -plug.copiedCenterPt.x;
+  centroidPt.y = -plug.copiedCenterPt.y;
+  centroidPt.z = -plug.copiedCenterPt.z;
   cont_translate( plug.copiedCont, &centroidPt );
+  
   
   //## DELETE CURRENT CONTOUR:
   Imod *imod  = ivwGetModel(plug.view);
@@ -1114,12 +1394,14 @@ void DrawingTools::copy()
   
   imodContourDelete( plug.copiedCont );
   plug.copiedCont = imodContourDup(cont);
+  
+  imodContourCenterOfMass( plug.copiedCont, &plug.copiedCenterPt );
   Ipoint centroidPt;
-  imodContourCenterOfMass( plug.copiedCont, &centroidPt );
-  centroidPt.x = -centroidPt.x;
-  centroidPt.y = -centroidPt.y;
-  centroidPt.z = -centroidPt.z;
+  centroidPt.x = -plug.copiedCenterPt.x;
+  centroidPt.y = -plug.copiedCenterPt.y;
+  centroidPt.z = -plug.copiedCenterPt.z;
   cont_translate( plug.copiedCont, &centroidPt );
+  
   
   wprint("Contour has been copied\n");
   
@@ -1129,9 +1411,9 @@ void DrawingTools::copy()
 //------------------------
 //-- Method used for testing new routines.
 
-void DrawingTools::paste()
+void DrawingTools::paste(bool centerOnMouse)
 {  
-  if( !isContValid( plug.copiedCont ) )  {
+  if( !isContValid(plug.copiedCont) || isEmpty(plug.copiedCont) )  {
     wprint("No contour has been copied yet\n");
     return;
   }
@@ -1145,7 +1427,18 @@ void DrawingTools::paste()
   imodGetIndex(imod, &objIdx, &contIdx, &ptIdx);
   
   Icont *contNew = imodContourDup(plug.copiedCont);
-  cont_translate( contNew, &plug.mouse );
+  if( centerOnMouse )
+  {
+    cont_translate( contNew, &plug.mouse );
+  }
+  else
+  {
+    Ipoint centroidPt;
+    centroidPt.x = plug.copiedCenterPt.x;
+    centroidPt.y = plug.copiedCenterPt.y;
+    centroidPt.z = -plug.copiedCenterPt.z + plug.mouse.z;
+    cont_translate( contNew, &centroidPt );    
+  }
   int newContPos = edit_addContourToObj( getCurrObj(), contNew, true );
   imodSetIndex(imod, objIdx, newContPos, 0);
   imodContourDelete(contNew);
@@ -1239,6 +1532,8 @@ void DrawingTools::closeEvent ( QCloseEvent * e )
   ivwTrackMouseForPlugs(plug.view, 0);
   
   imodContourDelete( plug.copiedCont );
+  plug.window->saveSettings();
+  
   plug.view = NULL;
   plug.window = NULL;
   e->accept();
@@ -1423,7 +1718,7 @@ int edit_changeSelectedSlice( int changeZ, bool redraw )
 int edit_addContourToObj( Iobj *obj, Icont *cont, bool enableUndo )
 {
   Icont *newCont = imodContourDup( cont );    // malloc new contour and don't delele it
-  int numConts = imodObjectGetMaxContour(obj);
+  int numConts = csize(obj);
   if(enableUndo)
     undoContourAdditionCO( plug.view, numConts );    // REGISTER UNDO
   int newContPos = imodObjectAddContour( obj, newCont );
@@ -1438,7 +1733,7 @@ int edit_removeAllFlaggedContoursFromObj( Iobj *obj )
 {
   Icont *cont;
   int numRemoved = 0;
-  for( int c=imodObjectGetMaxContour(obj)-1; c>=0; c-- )
+  for( int c=csize(obj)-1; c>=0; c-- )
   {
     cont = getCont(obj, c);
     if( isDeleteFlag( cont ) )
@@ -1466,7 +1761,7 @@ bool edit_selectContourPtNearCoords(float x, float y, int z, float distTolerance
   Imod *imod = ivwGetModel(plug.view);
   Iobj *obj  = imodObjectGet(imod);
   
-  int nConts = imodObjectGetMaxContour(obj);
+  int nConts = csize(obj);
   
   for(int c=0; c<nConts; c++)    // for each contour:
   {
@@ -1925,7 +2220,7 @@ int edit_eraseContsInCircle( Ipoint center, float radius )
   imodGetIndex( imod, &selObjIdx, &selContIdx, &selPtIdx );
   int numRemoved = 0;
   
-  for (int o=0; o<imodGetMaxObject(imod); o++ )
+  for (int o=0; o<osize(imod); o++ )
   {
     imodSetIndex( imod, o, 1, 1);
     Iobj *obj  = imodObjectGet(imod);
@@ -1933,7 +2228,7 @@ int edit_eraseContsInCircle( Ipoint center, float radius )
     if (!isObjectValidAndShown(obj))
       continue;
     
-    for(int c=0; c<imodObjectGetMaxContour(obj); c++)    // for each contour:
+    for(int c=0; c<csize(obj); c++)    // for each contour:
     {
       Icont *cont = getCont(obj, c);
       
@@ -1980,12 +2275,12 @@ int edit_erasePointsInCircle( Ipoint center, float radius )
   
   int numPtsRemoved = 0;
   
-  for (int o=0; o<imodGetMaxObject(imod); o++ )
+  for (int o=0; o<osize(imod); o++ )
   {
     imodSetIndex( imod, o, 1, 1);
     Iobj *obj  = imodObjectGet(imod);
     
-    for(int c=0; c<imodObjectGetMaxContour(obj); c++)    // for each contour:
+    for(int c=0; c<csize(obj); c++)    // for each contour:
     {
       Icont *cont = getCont(obj, c);
       
@@ -2043,12 +2338,12 @@ bool edit_breakPointsInCircle( Ipoint center, float radius )
   int selObjIdx, selContIdx, selPtIdx;
   imodGetIndex( imod, &selObjIdx, &selContIdx, &selPtIdx );
   
-  for (int o=0; o<imodGetMaxObject(imod); o++ )
+  for (int o=0; o<osize(imod); o++ )
   {
     imodSetIndex( imod, o, 1, 1);
     Iobj *obj  = imodObjectGet(imod);
     
-    for(int c=0; c<imodObjectGetMaxContour(obj); c++)    // for each contour:
+    for(int c=0; c<csize(obj); c++)    // for each contour:
     {
       Icont *cont = getCont(obj, c);
       
@@ -2155,7 +2450,7 @@ void edit_breakCurrContIntoSimpleContsAndDeleteSmallest ()
       {
         edit_addContourToObj( obj, conts[i].cont, true );
       }
-      int contToSelect = imodObjectGetMaxContour(obj) - conts.size();
+      int contToSelect = csize(obj) - conts.size();
       imodSetIndex(imod, objIdx, contToSelect, ptIdx);
     }
     
@@ -2215,7 +2510,7 @@ void edit_joinCurrContWithAnyTouching()
   int objIdx, contIdx, ptIdx;
   imodGetIndex(imod, &objIdx, &contIdx, &ptIdx);
   
-  for(int i=0; i<imodObjectGetMaxContour( obj ); i++)
+  for(int i=0; i<csize( obj ); i++)
   {
     Icont *contCompare = getCont(obj, i);
     
@@ -2248,30 +2543,49 @@ bool edit_selectNextOverlappingCont()
   
   int objIdx, contIdx, ptIdx;
   imodGetIndex(imod, &objIdx, &contIdx, &ptIdx);
+  int nObjs = osize(imod);
   
   //## FIND PROBLEM CONTOURS:
   
-  for (int o=objIdx; o<imodGetMaxObject(imod); o++)         // for each object:
+  for (int o=objIdx; o<(nObjs+objIdx+1); o++)         // for each object:
   {
-    imodSetIndex( imod, o, 1, 1);
-    Iobj *objO  = imodObjectGet(imod);
+    if( o == nObjs )
+      wprint("Starting from beginning...\n");
+    int oNum = (o%nObjs);
     
-    for (int i=(contIdx+1); i<imodObjectGetMaxContour(objO); i++)   // for each contour:
+    Iobj *objO  = getObj(imod,oNum);
+    if( !isObjClosed(objO) )
+      continue;
+    
+    
+    int i = (o==objIdx) ? (contIdx+1) : 0;            // starting contour
+    for (; i<csize(objO); i++)      // for each contour:
     {
       Icont *contI = getCont( objO, i );
       if( isEmpty( contI ) )
         continue;
-      for (int p=o; p<imodGetMaxObject(imod); p++)     // for each object ahead of that:
+      
+      bool isSimple = cont_isSimple( contI, isContClosed(objO,contI) );
+      if( !isSimple )
       {
-        imodSetIndex( imod, p, 1, 1);
-        Iobj *objP  = imodObjectGet(imod);
+        imodSetIndex( imod, o%nObjs, i, 0 );
+        wprint("\aNon-simple polygon found!");
+        return (true);
+      }
+      
+      
+      for (int p=(oNum); p<osize(imod); p++)          // for each object ahead of that:
+      {
+        Iobj *objP  = getObj(imod,p);
+        if( !isObjClosed(objP) )
+          continue;
         
-        int j = (o==p) ? i+1 : 0;                       // starting contour.
-        for(; j<imodObjectGetMaxContour(objP); j++)     // for each contour ahead:
+        int j = ((o%nObjs)==p) ? i+1 : 0;               // starting contour
+        for(; j<csize(objP); j++)     // for each contour ahead:
         {
           Icont *contJ = getCont( objP, j );
           
-          if( ( getZ(contJ) == getZ(contI) )  )             // if on same slice:
+          if( ( getZInt(contJ) == getZInt(contI) )  )     // if on same slice:
           {
             int pt1Cross, pt2Cross;
             if( cont_doContsTouch( contI, contJ ) &&
@@ -2283,9 +2597,9 @@ bool edit_selectNextOverlappingCont()
               imodSetIndex( imod, o, i, ((pt1Cross+1)%psize(contI)) );
               
               if( cont_isEqual(contJ,contI) )
-                wprint("\nWARNING: Two identical contours found!");
+                wprint("\aWARNING: Two identical contours found!");
               else
-                wprint("\nOverlapping contour found!\n");
+                wprint("Overlapping contour found.\n");
               return (true);
             }
           }
@@ -2294,14 +2608,8 @@ bool edit_selectNextOverlappingCont()
     }
   }
   
-  imodSetIndex( imod, objIdx, contIdx, ptIdx );
+  wprint("No overlapping contours found.\n");
   
-  if( objIdx == 0 && contIdx == 0)
-    wprint("\nNo overlapping contours in model !\n");
-  else {
-    wprint("\nNo overlapping contours found past the selected contour ... ");
-    wprint("(select the contour 1 of object 1 to check all contours)\n");
-  }
   return (false);
 }
 

@@ -15,17 +15,22 @@ install : $(PLUGS)
 	$(CP) -f $(PLUGS) drawingtools.html $(IMOD_PLUGIN_DIR)
 
 
-$(PLUGS) : icontextra.$(O) drawingtools.$(O) moc_drawingtools.$(O)
-	$(MAKELIBSO)$(PLUGS) icontextra.$(O) drawingtools.$(O) \
-	moc_drawingtools.$(O)
+$(PLUGS) : icontextra.$(O) qt_dialog_customizable.$(O) \
+	drawingtools.$(O) moc_drawingtools.$(O)
+	$(MAKELIBSO)$(PLUGS) icontextra.$(O) qt_dialog_customizable.$(O) \
+	drawingtools.$(O) moc_drawingtools.$(O)
+
 
 moc_drawingtools.cpp : drawingtools.h
 	$(MOC) drawingtools.h -o moc_drawingtools.cpp
 
 drawingtools.$(O) : $(IMODINCLUDES) _common_functions.h icontextra.h \
-	drawingtools.h
+	qt_dialog_customizable.h drawingtools.h
 
 icontextra.$(O) : $(IMODINCLUDES) _common_functions.h icontextra.h
+
+qt_dialog_customizable.$(O) : $(IMODINCLUDES) qt_dialog_customizable.h
+
 
 
 imod.h : ../../imod/imod.h
@@ -46,6 +51,11 @@ icontextra.h : ../noskecommon/icontextra.h
 	$(CP) -f ../noskecommon/icontextra.h .
 icontextra.cpp : ../noskecommon/icontextra.cpp
 	$(CP) -f ../noskecommon/icontextra.cpp .
+qt_dialog_customizable.h : ../noskecommon/qt_dialog_customizable.h
+	$(CP) -f ../noskecommon/qt_dialog_customizable.h .
+qt_dialog_customizable.cpp : ../noskecommon/qt_dialog_customizable.cpp
+	$(CP) -f ../noskecommon/qt_dialog_customizable.cpp .
+
 
 clean :
 	$(FIND) . -type f -name "*.o*"  -exec rm "{}" \;
@@ -56,9 +66,12 @@ clean :
 	$(FIND) . -type f -name "#*#" -exec rm "{}" \;
 	$(FIND) . -type f -name "moc_*" -exec rm "{}" \;
 	$(FIND) . -type f -name "so_locations" -exec rm "{}" \;
-	$(RM) $(IMODINCLUDES)
+	$(RM) $(IMODINCLUDES);
 	$(RM) _common_functions.h;
 	$(RM) icontextra.h;
 	$(RM) icontextra.cpp;
+	$(RM) qt_dialog_customizable.h;
+	$(RM) qt_dialog_customizable.cpp;
+
 
 

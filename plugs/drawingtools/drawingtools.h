@@ -40,16 +40,22 @@ class DrawingTools : public DialogFrame
   
 public slots:
   void buttonPressed(int);
+  void loadSettings();
+  void saveSettings();
+
   bool drawExtraObject( bool redraw );
   void reduceCurrentContour();
   void smoothCurrentContour();
-  void reduceObject();
-  void smoothObject();
+  void reduceConts();
+  void smoothConts();
   void selectNextOverlappingContour();
+  void printModelPointInfo();
+  void moreActions();
+  void moreSettings();
   void test();
   void cut();
   void copy();
-  void paste();
+  void paste(bool centerOnMouse);
   
   void changeType( int value );
   void changeTypeSelected( int newType );
@@ -85,12 +91,15 @@ public slots:
   QLabel      *lblSmoothTensileFract;
   QSpinBox    *smoothTensileFract;
   
-  QGroupBox   *grpObject;
+  QGroupBox   *grpActions;
   QVBoxLayout *vboxLayout1;
-  QPushButton *reduceContButton;
-  QPushButton *smoothContButton;
-  QPushButton *reduceObjectButton;
-  QPushButton *smoothObjectButton;
+  QPushButton *reduceContsButton;
+  QPushButton *smoothContsButton;
+  
+  QWidget     *widget1;
+  QGridLayout *gridLayout2;
+  QPushButton *moreActionsButton;
+  QPushButton *moreSettingsButton;
 };
 
 
@@ -99,6 +108,9 @@ public slots:
 
 enum drawmodes      { DM_NORMAL, DM_DEFORM, DM_JOIN, DM_TRANSFORM, DM_ERASER,
                       DM_RESIZEPT };
+enum wheelbehaviour { WH_NONE, WH_DEFORMCIRCLE, WH_SLICES, WH_CONTS, WH_PTSIZE };
+
+const int NUM_SAVED_VALS = 9;
 
 //-------------------------------
 //## DRAWINGTOOLS DATA STRUCTURE:
@@ -122,6 +134,15 @@ struct DrawingToolsData   // contains all local plugin data
                                     //  algorithm in the "cont_addPtsSmooth" function
                                     //  NOTE: 0=straight, 1.5=smooth, 2.0>=very bendy
   float  draw_deformRadius;         //  the radius, in pixels, of the deformation circle
+  
+  //## SETTINGS:
+  
+  int  wheelBehav;            // changes the behaviour of the mouse wheel
+                              //   (see: wheelbehaviour)
+  
+  bool   useNumKeys;          // intercepts number keys [1]-[5] to change draw mode
+  int    wheelResistance;     // the higher the value, the slower mouse scrolling works
+  int    selectedAction;      // the last selected action under "More Actions"
   
   //## MOUSE:
   
@@ -149,6 +170,7 @@ struct DrawingToolsData   // contains all local plugin data
   Ipoint centerPt;      // the center of the currently selected contour
   
   Icont *copiedCont;      // used to cut/copy and paste contours
+  Ipoint copiedCenterPt;  // the center of area of the last contour cut/copied
   
   bool initialized;           // is set to true after values have been set
   int xsize, ysize, zsize;    // size of the image / tomogram

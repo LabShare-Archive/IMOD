@@ -15,9 +15,11 @@ install : $(PLUGS)
 	$(CP) -f $(PLUGS) beadhelper.html $(IMOD_PLUGIN_DIR)
 
 
-$(PLUGS) : icontextra.$(O) qt_dialog_customizable.$(O) beadhelper.$(O) moc_beadhelper.$(O)
+$(PLUGS) : icontextra.$(O) qt_dialog_customizable.$(O) \
+	beadhelper.$(O) moc_beadhelper.$(O)
 	$(MAKELIBSO)$(PLUGS) icontextra.$(O) qt_dialog_customizable.$(O) \
 	beadhelper.$(O) moc_beadhelper.$(O)
+
 
 moc_beadhelper.cpp : beadhelper.h
 	$(MOC) beadhelper.h -o moc_beadhelper.cpp
@@ -52,6 +54,7 @@ qt_dialog_customizable.h : ../noskecommon/qt_dialog_customizable.h
 	$(CP) -f ../noskecommon/qt_dialog_customizable.h .
 qt_dialog_customizable.cpp : ../noskecommon/qt_dialog_customizable.cpp
 	$(CP) -f ../noskecommon/qt_dialog_customizable.cpp .
+
 
 clean :
 	$(FIND) . -type f -name "*.o*"  -exec rm "{}" \;

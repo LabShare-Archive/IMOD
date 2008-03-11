@@ -19,7 +19,6 @@ class QEvent;
 #include "imodplugin.h"
 #include "dia_qtutils.h"
 #include "icontextra.h"
-#include "qt_dialog_customizable.h"
 
 #include <qstring.h>
 #include <vector>
@@ -45,7 +44,7 @@ class BeadHelper : public DialogFrame
   void loadSettings();
   void saveSettings();
   
-  bool drawExtraObject( bool redraw, int drawflag=0, int slice=-1 );
+  bool drawExtraObject( bool redraw );
   void deletePtsInRange();
   void deletePtsCurrContInRange();
   void deletePtsCurrContToNearestEnd( bool inclusive );
@@ -55,8 +54,8 @@ class BeadHelper : public DialogFrame
   void movePtToExstimatedPosCurrCont();
   void fillMissingPts();
   void fillMissingPtsCurrCont();
-  void otherActions();
-  void otherSettings();
+  void moreActions();
+  void moreSettings();
   void reorderContours();
   void moveContour();
   void moveMultipleContours();
@@ -100,7 +99,6 @@ class BeadHelper : public DialogFrame
   QPushButton *reduceContsToSeedButton;
   QPushButton *movePtsToEstButton;
   QPushButton *fillMissingPtsButton;
-  QPushButton *otherActionsButton;
   QPushButton *reorderContsButton;
   
   QGroupBox   *grpDisplay;
@@ -119,7 +117,8 @@ class BeadHelper : public DialogFrame
   QComboBox   *wheelBehavCombo;
   QLabel      *lblEstMethod;
   QComboBox   *estPosMethodCombo;
-  QPushButton *otherSettingsButton;
+  QPushButton *moreActionsButton;
+  QPushButton *moreSettingsButton;
 };
 
 
@@ -139,6 +138,9 @@ enum expptdisplay      { ED_CROSS, ED_DIAMOND, ED_ARROW };
 
 enum wheelbehaviour   { WH_NONE, WH_POINTS, WH_SLICES, WH_SMART };
 enum estimationmethod { EM_NEARESTTWO, EM_QUADRATIC, EM_LOCALQUADRATIC, EM_LASTSIX };
+
+const int NUM_SAVED_VALS = 15;
+
 
 //-------------------------------
 //## DRAWINGTOOLS DATA STRUCTURE:
@@ -266,7 +268,7 @@ float bead_avgGreyValueOfPts( Icont *cont );
 float bead_calcWeightedDevFromExpected( Icont *cont );
 float bead_distFromMiddle( Icont *cont );
 
-void bead_reorderConts( int sortCriteria, int minCont,
+void bead_reorderConts( int sortCriteria, int minCont, int maxCont, 
                         bool reverse, bool printVals );
 
 

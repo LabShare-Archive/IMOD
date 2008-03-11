@@ -45,6 +45,7 @@
 #include <qinputdialog.h>
 
 #include "_common_functions.h"
+#include "qt_dialog_customizable.h"
 #include "imodplugin.h"
 #include "dia_qtutils.h"
 #include "beadhelper.h"
@@ -269,7 +270,7 @@ void imodPlugExecuteType(ImodView *inView, int inType, int inReason)
      && ivwGetModel(plug.view)
       && plug.window )
   {
-      plug.window->drawExtraObject(false,0);
+      plug.window->drawExtraObject(false);
   }
 }
 
@@ -286,12 +287,12 @@ int imodPlugEvent(ImodView *vw, QEvent *event, float imx, float imy)
   {
     QWheelEvent *wheelEvent = static_cast<QWheelEvent*>(event);
     
-    int change = floor( wheelEvent->delta() / plug.wheelResistance );
+    int change = floor( (wheelEvent->delta() / plug.wheelResistance) + 0.5 );
     
     if( plug.wheelBehav == WH_POINTS )
     {
       plug.window->advanceSelectedPointInCurrCont( change );
-      plug.window->drawExtraObject(false,0);
+      plug.window->drawExtraObject(false);
       ivwRedraw( plug.view );
       return 1;
     }
@@ -315,15 +316,14 @@ int imodPlugEvent(ImodView *vw, QEvent *event, float imx, float imy)
           imodGetIndex(imod, &objIdx, &contIdx, &ptIdx);
           int newPtIdx = bead_getPtIdxOnSlice( getCurrCont(), newSlice );
           imodSetIndex(imod, objIdx, contIdx, newPtIdx);
-          //
-          plug.window->drawExtraObject(false,0);
+          
+          plug.window->drawExtraObject(false);
           ivwRedraw( plug.view );
           return 1;
-          //return 2;
         }
       }
       edit_changeSelectedSlice( change, true );
-      plug.window->drawExtraObject(true,0);
+      plug.window->drawExtraObject(true);
       return 1;
     }
   }
@@ -621,19 +621,19 @@ BeadHelper::BeadHelper(QWidget *parent, const char *name) :
   
   mLayout->addWidget(grpOptions);
   
-  otherActionsButton = new QPushButton("More Actions", grpOptions);
-  connect(otherActionsButton, SIGNAL(clicked()), this, SLOT(otherActions()));
-  QToolTip::add(otherActionsButton,
+  moreActionsButton = new QPushButton("More Actions", grpOptions);
+  connect(moreActionsButton, SIGNAL(clicked()), this, SLOT(moreActions()));
+  QToolTip::add(moreActionsButton,
                 "Contains several other actions I didn't want to sqeeze "
                 "into this window");
-  gridLayout3->addWidget(otherActionsButton, 3, 0);
+  gridLayout3->addWidget(moreActionsButton, 3, 0);
   
-  otherSettingsButton = new QPushButton("More Settings", grpOptions);
-  connect(otherSettingsButton, SIGNAL(clicked()), this, SLOT(otherSettings()));
-  QToolTip::add(otherSettingsButton,
-                "Contains several other actions I didn't want to sqeeze "
+  moreSettingsButton = new QPushButton("More Settings", grpOptions);
+  connect(moreSettingsButton, SIGNAL(clicked()), this, SLOT(moreSettings()));
+  QToolTip::add(moreSettingsButton,
+                "Contains several other settings I didn't want to sqeeze "
                 "into this window");
-  gridLayout3->addWidget(otherSettingsButton, 3, 1);
+  gridLayout3->addWidget(moreSettingsButton, 3, 1);
   
   mLayout->addStretch();
   this->adjustSize();
@@ -749,7 +749,7 @@ void cont_makeContShowingMissingPoints( Icont *to, Icont *from, int slice, float
 //-- reference contour at the last recorded position of the mouse. What is
 //-- drawn depends on what drawing mode is selected.
 
-bool BeadHelper::drawExtraObject( bool redraw, int drawflag, int slice )
+bool BeadHelper::drawExtraObject( bool redraw )
 {
   Iobj *xobjE = ivwGetAnExtraObject(plug.view, plug.extraObjExpPos);
   Iobj *xobjC = ivwGetAnExtraObject(plug.view, plug.extraObjContDisp);
@@ -848,7 +848,7 @@ bool BeadHelper::drawExtraObject( bool redraw, int drawflag, int slice )
       
     case( LD_ALL ):
     {
-        for(int c=0; c<imodObjectGetMaxContour(obj);c++)
+        for(int c=0; c<csize(obj);c++)
         {
           Icont *xcont = imodContourDup( getCont(obj,c) );
           changeZValue( xcont, z );
@@ -965,7 +965,7 @@ bool BeadHelper::drawExtraObject( bool redraw, int drawflag, int slice )
 void BeadHelper::clearExtraObj()
 {
   Iobj *obj = ivwGetExtraObject(plug.view);
-  int ncont = imodObjectGetMaxContour(obj);
+  int ncont = csize(obj);
   if (!ncont)
     return;
   
@@ -976,72 +976,66 @@ void BeadHelper::clearExtraObj()
 }
 
 
+
 //------------------------
-//-- Loads most of the settings for BeadHelperData from "beadhelpersettings.txt"
+//-- Loads most of the settings for BeadHelperData from user preferences
 
 void BeadHelper::loadSettings()
 {
+
+  double savedValues[NUM_SAVED_VALS];
   
-  vector<string> file = file_loadTextFromFile("beadhelpersettings.txt");
-  for( int i=0; i<file.size(); i++ )
+  int nvals = prefGetGenericSettings("BeadHelper", savedValues, NUM_SAVED_VALS);
+  
+  if(nvals!=NUM_SAVED_VALS)
   {
-    string l = file[i];
-    if( l.length() <= 1 )
-      continue;
-    
-    string value = string_explodeGetArgument( l, " ", 2, true );
-    float valueF = string_getFloatFromString( value );
-    int   valueI = int(valueF);
-    bool  valueB = !(valueI == 0); 
-    
-    if (string_startsWith(l, "showExpectedPos "))   plug.showExpectedPos = valueB;
-    if (string_startsWith(l, "wheelBehav "))        plug.wheelBehav = valueI;
-    if (string_startsWith(l, "estPosMethod "))      plug.estPosMethod = valueI;
-    if (string_startsWith(l, "showSpheres "))       plug.showSpheres = valueB;
-    if (string_startsWith(l, "sphereSize "))        plug.sphereSize = valueI;
-    if (string_startsWith(l, "lineDisplayType "))   plug.lineDisplayType = valueI;
-    if (string_startsWith(l, "tiltDisplayType "))   plug.tiltDisplayType = valueI;
-    if (string_startsWith(l, "tiltAngle "))         plug.tiltAngle = valueF;
-    if (string_startsWith(l, "biggestHoleGrid "))   plug.biggestHoleGrid = valueI;
-    if (string_startsWith(l, "wheelResistance "))   plug.wheelResistance = valueI;
-    if (string_startsWith(l, "expPtDisplayType "))  plug.expPtDisplayType = valueI;
-    if (string_startsWith(l, "expPtSize "))         plug.expPtSize = valueI;
-    if (string_startsWith(l, "selectedAction "))    plug.selectedAction = valueI;
-    if (string_startsWith(l, "sortCriteria "))      plug.sortCriteria = valueI;
-    if (string_startsWith(l, "autoSaveSettings "))  plug.autoSaveSettings = valueI;
+    wprint("BeadHelper: Error loading saved values");
+    return;
   }
+  
+  plug.showExpectedPos      = savedValues[0];
+  plug.wheelBehav           = savedValues[1];
+  plug.estPosMethod         = savedValues[2];
+  plug.showSpheres          = savedValues[3];
+  plug.sphereSize           = savedValues[4];
+  plug.lineDisplayType      = savedValues[5];
+  plug.tiltDisplayType      = savedValues[6];
+  plug.tiltAngle            = savedValues[7];
+  plug.biggestHoleGrid      = savedValues[8];
+  plug.wheelResistance      = savedValues[9];
+  plug.expPtDisplayType     = savedValues[10];
+  plug.expPtSize            = savedValues[11];
+  plug.selectedAction       = savedValues[12];
+  plug.sortCriteria         = savedValues[13];
+  plug.autoSaveSettings     = savedValues[14];
 }
 
 
 //------------------------
-//-- Saves most of the settings within BeadHelperData to "beadhelpersettings.txt"
+//-- Saves most of the settings within BeadHelperData in user preferences
 //-- so they will load next time Bead Helper is started
 
 void BeadHelper::saveSettings()
 {
-  wprint("SAVING SETTINGS");
+  double saveValues[NUM_SAVED_VALS];
   
-  string text;
+  saveValues[0]  = plug.showExpectedPos;
+  saveValues[1]  = plug.wheelBehav;
+  saveValues[2]  = plug.estPosMethod;
+  saveValues[3]  = plug.showSpheres;
+  saveValues[4]  = plug.sphereSize;
+  saveValues[5]  = plug.lineDisplayType;
+  saveValues[6]  = plug.tiltDisplayType;
+  saveValues[7]  = plug.tiltAngle;
+  saveValues[8]  = plug.biggestHoleGrid;
+  saveValues[9]  = plug.wheelResistance;
+  saveValues[10] = plug.expPtDisplayType;
+  saveValues[11] = plug.expPtSize;
+  saveValues[12] = plug.selectedAction;
+  saveValues[13] = plug.sortCriteria;
+  saveValues[14] = plug.autoSaveSettings;
   
-  text += "showExpectedPos "      + toString( plug.showExpectedPos ) + "\n";
-  text += "wheelBehav "           + toString( plug.wheelBehav )+ "\n";
-  text += "estPosMethod "         + toString( plug.estPosMethod )+ "\n";
-  text += "showSpheres "          + toString( plug.showSpheres )+ "\n";
-  text += "sphereSize "           + toString( plug.sphereSize )+ "\n";
-  text += "lineDisplayType "      + toString( plug.lineDisplayType )+ "\n";
-  text += "tiltDisplayType "      + toString( plug.tiltDisplayType )+ "\n";
-  text += "\n";
-  text += "tiltAngle "            + toString( plug.tiltAngle )+ "\n";
-  text += "tiltOffsetX "          + toString( plug.tiltOffsetX )+ "\n";
-  text += "biggestHoleGrid "      + toString( plug.biggestHoleGrid )+ "\n";
-  text += "wheelResistance "      + toString( plug.wheelResistance )+ "\n";
-  text += "expPtDisplayType "     + toString( plug.expPtDisplayType )+ "\n";
-  text += "expPtSize "            + toString( plug.expPtSize )+ "\n";
-  text += "selectedAction "       + toString( plug.selectedAction )+ "\n";
-  text += "selectedAction "       + toString( plug.selectedAction )+ "\n";
-  text += "sortCriteria "         + toString( plug.sortCriteria )+ "\n";
-  
-  bool success =  file_saveStringToFile("beadhelpersettings.txt", text )+ "\n";
+  prefSaveGenericSettings("BeadHelper",NUM_SAVED_VALS,saveValues);
 }
 
 
@@ -1086,7 +1080,7 @@ void BeadHelper::deletePtsInRange()
   
   int numPtsDeleted = 0;
   
-  for( int c=MAX(plug.contMin,0); c<MIN(plug.contMax,imodObjectGetMaxContour(obj)); c++)
+  for( int c=MAX(plug.contMin,0); c<MIN(plug.contMax,csize(obj)); c++)
   {
     imodSetIndex(imod, objIdx, c, 0);
     undoContourDataChgCC( plug.view );      // REGISTER UNDO
@@ -1205,7 +1199,7 @@ void BeadHelper::reduceContsToSeed()
   imodGetIndex(imod, &objIdx, &contIdx, &ptIdx);
   int numContsReduced = 0;
   
-  for( int c=MAX(plug.contMin,0); c<MIN(plug.contMax,imodObjectGetMaxContour(obj)); c++)
+  for( int c=MAX(plug.contMin,0); c<MIN(plug.contMax,csize(obj)); c++)
   {
     imodSetIndex(imod, objIdx, c, 0);
     Icont *cont = getCont( obj, c );
@@ -1354,7 +1348,7 @@ void BeadHelper::movePtsToExstimatedPos()
   //## ITERATE THROUGH SPECIFIED RANGE OF CONTOURS AND MOVE ALL POINTS WITHIN
   //## SPECIFIED VIEWS TO THEIR EXPECTED POSITION: 
   
-  for( int c=MAX(minCont,0); c<=MIN(maxCont,imodObjectGetMaxContour(obj)); c++)
+  for( int c=MAX(minCont,0); c<=MIN(maxCont,csize(obj)); c++)
   {
     imodSetIndex(imod, objIdx, c, 0);
     Icont *cont = getCont( obj, c );
@@ -1428,7 +1422,7 @@ void BeadHelper::fillMissingPts()
   int numContsChanged = 0;
   int numPtsAddedTotal = 0;
   
-  for( int c=MAX(plug.contMin,0); c<MIN(plug.contMax,imodObjectGetMaxContour(obj)); c++)
+  for( int c=MAX(plug.contMin,0); c<MIN(plug.contMax,csize(obj)); c++)
   {
     imodSetIndex(imod, objIdx, c, 0);
     Icont *cont = getCont( obj, c );
@@ -1474,7 +1468,7 @@ void BeadHelper::fillMissingPtsCurrCont()
 //------------------------
 //-- Gives a choice of several other options for the user.
 
-void BeadHelper::otherActions()
+void BeadHelper::moreActions()
 {
   updateAndVerifyRanges();
   
@@ -1570,7 +1564,7 @@ void BeadHelper::otherActions()
 //------------------------
 //-- Allows user to change other plugin values/settings.
 
-void BeadHelper::otherSettings()
+void BeadHelper::moreSettings()
 {
   //## GET USER INPUT FROM CUSTOM DIALOG:
   
@@ -1599,9 +1593,11 @@ void BeadHelper::otherSettings()
                                           "cross,"
                                           "diamond,"
                                           "arrow", plug.expPtDisplayType,
-                                           "Garry is gay  :-)" );
+                                          "Symbol used to display the expected point" );
   int ID_EXPPTSIZE      = ds.addSpinBox ( "expected pt size:",
-                                           1, 200, plug.expPtSize, 1 );
+                                           1, 200, plug.expPtSize, 1,
+                                          "The size of the expected point symbol in "
+                                          "screen pixels" );
   int ID_AUTOSAVE       = ds.addCheckBox( "save settings on close", 
                                           plug.autoSaveSettings,
                                           "automatically saves your Bead Helper "
@@ -1609,7 +1605,7 @@ void BeadHelper::otherSettings()
                                           "when you close 3dmod, so they will load "
                                           "next time you open 3dmod");
   
-	GuiDialogCustomizable dlg(&ds, "Other Settings", this);
+	GuiDialogCustomizable dlg(&ds, "More Settings", this);
 	dlg.exec();
 	if( ds.cancelled )
 		return;
@@ -1638,7 +1634,10 @@ void BeadHelper::otherSettings()
 
 void BeadHelper::reorderContours()
 {
-  updateAndVerifyRanges();
+  if( !updateAndVerifyRanges() )
+    return;
+  
+  int nConts = csize(getCurrObj());
   
   //## GET USER INPUT FROM CUSTOM DIALOG:
   
@@ -1646,8 +1645,13 @@ void BeadHelper::reorderContours()
   static bool printVals    = true;
   
 	CustomDialog ds;
-  int ID_CONTMIN       = ds.addSpinBox ( "starting at:", 1, 10, plug.contMin, 1,
-                          "only contours AFTER this contour will be reordered" );
+  int ID_DUMMY         = ds.addLabel   ( "contours to sort (inclusive):" );
+  int ID_CONTMIN       = ds.addSpinBox ( "min:", 1, nConts, plug.contMin, 1,
+                                         "only contours after this contour "
+                                         "(inclusive) will be reordered" );
+  int ID_CONTMAX       = ds.addSpinBox ( "max:", 1, nConts, nConts, 1,
+                                         "only contours BEFORE this contour "
+                                         "(inclusive) will be reordered" );
 	int ID_SORTCRITERIA  = ds.addRadioGrp( "sort by:",
                           "y jumps (asc),"
                           "deviation (asc),"
@@ -1661,12 +1665,13 @@ void BeadHelper::reorderContours()
 	dlg.exec();
 	if( ds.cancelled )
 		return;
-  int contMin         = ds.getResultSpinBox   ( ID_CONTMIN );
+  int contMin         = ds.getResultSpinBox   ( ID_CONTMIN ) - 1;
+  int contMax         = ds.getResultSpinBox   ( ID_CONTMAX ) - 1;
   reverseOrder        = ds.getResultCheckBox  ( ID_REVERSE );
   printVals           = ds.getResultCheckBox  ( ID_PRINTVALS );
 	plug.sortCriteria		= ds.getResultRadioGrp	( ID_SORTCRITERIA );
   
-  bead_reorderConts( plug.sortCriteria, contMin-1, reverseOrder, printVals );
+  bead_reorderConts( plug.sortCriteria, contMin, contMax, reverseOrder, printVals );
   
   ivwRedraw( plug.view );
 }
@@ -1687,7 +1692,7 @@ void BeadHelper::moveContour()
   int objIdx, contIdx, ptIdx;
   imodGetIndex(imod, &objIdx, &contIdx, &ptIdx);
   
-  int lastCont = imodObjectGetMaxContour( obj );
+  int lastCont = csize( obj );
   bool ok;
   int newContIdx = QInputDialog::getInteger( "Move contour", "Move to:",
                                              lastCont, 1, lastCont, 1, &ok, this ) - 1;
@@ -1720,15 +1725,15 @@ void BeadHelper::moveMultipleContours()
   int objIdx, contIdx, ptIdx;
   imodGetIndex(imod, &objIdx, &contIdx, &ptIdx);
   
-  int numObjs = imodGetMaxObject(imod);
-  int maxContIdx = imodObjectGetMaxContour( obj )-1;
+  int numObjs = osize(imod);
+  int maxContIdx = csize( obj )-1;
   
   if( numObjs == 1 )
   {
     if ( !MsgBoxYesNo(this, "There is only one object, add another?") )
       return;
     imodNewObject(imod);
-    numObjs = imodGetMaxObject(imod);
+    numObjs = osize(imod);
     imodSetIndex( imod, numObjs-1, 0, 0 );
     Iobj *objNew = imodObjectGet(imod);
     imodObjectSetValue(objNew, IobjFlagClosed, 0);
@@ -1869,7 +1874,7 @@ void BeadHelper::correctCurrentObject()
   //## CHECK FOR MATCHING SEED POINTS:
   
   Icont *seedPts = imodContourNew();
-  for( int c=0; c<=imodObjectGetMaxContour(obj); c++)
+  for( int c=0; c<=csize(obj); c++)
   {
     Icont *cont = getCont( obj, c );
     bool isSeedPt  = bead_isPtOnSlice( cont, plug.middleSlice );
@@ -1909,7 +1914,7 @@ void BeadHelper::correctCurrentObject()
   
   //## FOR EACH CONTOUR: DELETE DUPLICATE POINTS ON SAME SLICE
   
-  for( int c=0; c<imodObjectGetMaxContour(obj); c++)
+  for( int c=0; c<csize(obj); c++)
   {
     Icont *cont = getCont( obj, c );
     
@@ -1949,7 +1954,7 @@ bool BeadHelper::updateAndVerifyRanges()
   plug.contMin = contMinSpinner->value() - 1;
   plug.contMax = contMaxSpinner->value() - 1;
   
-  int maxContIdx = imodObjectGetMaxContour( getCurrObj() )-1;
+  int maxContIdx = csize( getCurrObj() )-1;
   plug.contMax = MIN( plug.contMax, maxContIdx );
   
   if ( plug.contMin > plug.contMax  )
@@ -3053,7 +3058,7 @@ float bead_distFromMiddle( Icont *cont )
 //-- Setting "reverse" will sort the value in descending instead of descending.
 //-- Setting "printVals" will output the sort values for each contour.
 
-void bead_reorderConts( int sortCriteria, int minCont,          
+void bead_reorderConts( int sortCriteria, int minCont, int maxCont,        
                         bool reverse, bool printVals )
 {
   Imod *imod = ivwGetModel(plug.view);
@@ -3061,9 +3066,9 @@ void bead_reorderConts( int sortCriteria, int minCont,
   int objIdx, contIdx, ptIdx;
   imodGetIndex(imod, &objIdx, &contIdx, &ptIdx);
   
-  int nConts = imodObjectGetMaxContour(obj);
+  int nConts = csize(obj);
   int minC = MAX( minCont,0 );
-  int maxC = imodObjectGetMaxContour(obj);
+  int maxC = MIN( maxCont, csize(obj)-1 );
   
   //## CREATE VECTOR OF FLOATS TO SORT CONTOURS BY AND CALCULATE SORT VALUES
   //## USING CHOSEN SORT CRITERIA:
@@ -3102,7 +3107,7 @@ void bead_reorderConts( int sortCriteria, int minCont,
   
   //## SORT THE CHOSEN RANGE OF VALUES WITHIN THE SORT VECTOR:
 
-  sortVals = vector_sort( sortVals, minC );
+  sortVals = vector_sort( sortVals, minC, maxC );
   
   if( sortCriteria==SORT_AVG_GREY )
     reverse = !reverse;
@@ -3116,7 +3121,7 @@ void bead_reorderConts( int sortCriteria, int minCont,
   Iobj *objCopy = imodObjectDup( obj );
   
   int numContsChanged = 0;
-  for( int c=minC; c<maxC; c++)
+  for( int c=minC; c<=maxC; c++)
   {
     if( sortVals[c].idx != c )
     {
@@ -3139,9 +3144,11 @@ void bead_reorderConts( int sortCriteria, int minCont,
   
   if( printVals )
   {
-    if      (sortCriteria==SORT_DEV)              wprint("\nWEIGHTED DEVIATIONS:\n");
-    else if (sortCriteria==SORT_AVG_GREY)         wprint("\nAVERAGE GREY VALUES:\n");
+    if      (sortCriteria==SORT_YJUMPS)             wprint("\Y JUMP MEASURE:\n");
+    if      (sortCriteria==SORT_DEV)                wprint("\nWEIGHTED DEVIATIONS:\n");
+    else if (sortCriteria==SORT_AVG_GREY)           wprint("\nAVERAGE GREY VALUES:\n");
     else if (sortCriteria==SORT_DIST_FROM_MIDDLE)   wprint("\nDIST FROM MIDDLE:\n");
+    else if (sortCriteria==SORT_RANDOM)             wprint("\RANDOM VAL:\n");
     for( int c=0; c<nConts; c++)
       wprint( "cont %d = %f\n", c+1, sortVals[c].float1 );
   }
@@ -3296,7 +3303,7 @@ bool bead_goToNextBiggestHole( bool findNextBiggest )
   Icont *allSeedPts = imodContourNew();
   Imod *imod = ivwGetModel(plug.view);
   Iobj *obj = imodObjectGet(imod);
-  for (int c=0; c<imodObjectGetMaxContour(obj); c++)
+  for (int c=0; c<csize(obj); c++)
   {
     Icont *cont = getCont(obj,c);
     Ipoint *pt = bead_getPtOnSlice(cont,plug.middleSlice);
@@ -3427,7 +3434,7 @@ float bead_estimateTiltAngle()
   int   totalConts = 0;
   
   wprint( "\nCONTOUR ANGLES: \n" );
-  for (int c=0; c<imodObjectGetMaxContour(obj); c++)
+  for (int c=0; c<csize(obj); c++)
   {
     Icont *cont = getCont(obj,c); 
     
@@ -3472,7 +3479,7 @@ bool bead_showBottomContoursStippledUsingDirection()
   //## FOR EACH CONTOUR DETERMINE THE DIFFERENCE IN X
   //## BETWEEN THE POINTS AT THE HIGHEST MATCHING TILT ANGLE:
   
-  for (int c=0; c<imodObjectGetMaxContour(obj); c++)
+  for (int c=0; c<csize(obj); c++)
   {
     Icont *cont = getCont(obj,c); 
     
@@ -3559,7 +3566,7 @@ bool bead_showBottomContoursInPurple( int zMin, int zMax )
   //## NORMALIZE CONTOURS BY ROTATING THEN MOVING EACH
   //## RELATIVE TO THE TILT AXIS
   
-  for (int c=0; c<imodObjectGetMaxContour(objTemp); c++)
+  for (int c=0; c<csize(objTemp); c++)
     cont_rotateAroundPoint2D( getCont(objTemp,c), &plug.middlePt, -plug.tiltAngle );
   
   //## FOR EACH FIDUCIAL: IF IT TRAVELS LEFT BETWEEN THE TWO VIEW MARK IT
@@ -3572,7 +3579,7 @@ bool bead_showBottomContoursInPurple( int zMin, int zMax )
   //## FOR EACH CONTOUR DETERMINE THE DIFFERENCE IN X
   //## BETWEEN THE POINTS AT THE HIGHEST MATCHING TILT ANGLE:
   
-  for (int c=0; c<imodObjectGetMaxContour(obj); c++)
+  for (int c=0; c<csize(obj); c++)
   {
     Icont *cont = getCont(obj,c); 
     imodContourSetFlag( cont, ICONT_STIPPLED, 0 );
@@ -3621,7 +3628,7 @@ bool bead_showBottomContoursInPurple( int zMin, int zMax )
   Iobj *xobjX = ivwGetAnExtraObject(plug.view, plug.extraObjExtra);
   ivwClearAnExtraObject(plug.view, plug.extraObjExtra);
   
-  for (int c=0; c<imodObjectGetMaxContour(obj); c++)
+  for (int c=0; c<csize(obj); c++)
   {
     if( imodContourGetFlag( getCont(obj,c), ICONT_STIPPLED ) != 0 )
     {
@@ -3659,7 +3666,7 @@ bool bead_showContourTurningPts()
   int turningZMin = plug.zsize * 0.1;
   int turningZMax = plug.zsize * 0.9;
   
-  for (int c=0; c<imodObjectGetMaxContour(obj); c++)
+  for (int c=0; c<csize(obj); c++)
   {
     Ipoint turningPt;
     int idx;
