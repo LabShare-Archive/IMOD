@@ -15,6 +15,9 @@
     $Revision$
 
     $Log$
+    Revision 1.8  2008/03/11 09:35:47  tempuser
+    Added save vals
+
     Revision 1.7  2008/03/05 10:29:00  tempuser
     Cleaned code
 
@@ -130,6 +133,8 @@ int imodPlugKeys(ImodView *vw, QKeyEvent *event)
       plug.window->drawExtraObject(true);
       break;
     case Qt::Key_R:
+      if(shift)
+        return 0;
       plug.window->reduceCurrentContour();
       break;
     case Qt::Key_E:
@@ -137,8 +142,9 @@ int imodPlugKeys(ImodView *vw, QKeyEvent *event)
       break;
       
     case Qt::Key_A:
-      if(!shift)
-        plug.window->selectNextOverlappingContour();
+      if(shift)
+        return 0;
+      plug.window->selectNextOverlappingContour();
       break;
     case Qt::Key_I:
       edit_inversePointsInContour(shift);
@@ -219,6 +225,7 @@ void imodPlugExecute(ImodView *inImodView)
     plug.wheelBehav               = WH_DEFORMCIRCLE;
     plug.useNumKeys               = true;
     plug.wheelResistance          = 100;
+    plug.showMouseInModelView     = false;
     plug.selectedAction           = 0;
     
     Ipoint origin;
@@ -234,7 +241,14 @@ void imodPlugExecute(ImodView *inImodView)
   plug.view = inImodView;
   ivwTrackMouseForPlugs(plug.view, 1);
   ivwGetImageSize(inImodView, &plug.xsize, &plug.ysize, &plug.zsize);
+  
+  //## INITIALIZE EXTRA OBJECT:
+  
   plug.extraObjNum = ivwGetFreeExtraObjectNumber(plug.view);
+  Iobj *xobj = ivwGetAnExtraObject(plug.view, plug.extraObjNum);
+  imodObjectSetColor(xobj, 1.0, 0.0, 0.0);
+  imodObjectSetValue(xobj, IobjFlagClosed, 1);
+  ivwClearAnExtraObject(plug.view, plug.extraObjNum);  
   
   //## CREATE THE PLUGING WINDOW:
   
@@ -361,6 +375,8 @@ int imodPlugMouse(ImodView *vw, QMouseEvent *event, float imx, float imy,
 //## REGENERATE DEFORM CIRCLE:
   
   plug.window->drawExtraObject(false);
+  if( plug.showMouseInModelView )
+    ivwDraw( plug.view, IMOD_DRAW_ALL );
   
 //## UPDATE BUTTON PRESSED VALUES:
   
@@ -531,11 +547,10 @@ int imodPlugMouse(ImodView *vw, QMouseEvent *event, float imx, float imy,
     }
   }
   
+      // NOTE if we get to here we have dealt with the action, so re redraw and return 1
   
-  ivwDraw( plug.view, IMOD_DRAW_XYZ | IMOD_DRAW_NOSYNC );
-  
-  //ivwRedraw( plug.view );     //|- if we get to here we have dealt with the action
-  return (1);                 //|  so we redraw and return 1
+  ivwDraw( plug.view, IMOD_DRAW_XYZ | IMOD_DRAW_NOSYNC );    
+  return (1);
 }
 
 
@@ -620,6 +635,7 @@ DialogFrame(parent, 2, buttonLabels, buttonTips, true, "Drawing Tools", "", name
   
   lblMaxArea = new QLabel("reduction max area:", grpOptions);
   lblMaxArea->setFocusPolicy(QWidget::NoFocus);
+  QToolTip::add(lblMaxArea, "RECOMMENDED VALUE: 3");
   gridLayout1->addWidget(lblMaxArea, 2, 0);
   
   maxAreaSpinner = new QSpinBox(grpOptions);
@@ -630,11 +646,13 @@ DialogFrame(parent, 2, buttonLabels, buttonTips, true, "Drawing Tools", "", name
   QObject::connect(maxAreaSpinner,SIGNAL(valueChanged(int)),this,
                    SLOT(changeMaxArea(int)));
   QToolTip::add(maxAreaSpinner, "If three consequtive points within a contour "
-                "form a triangular area greater than this the middle point is removed");
+                "form a triangular area greater than this the middle point "
+                "is removed (recommended value: 3)");
   gridLayout1->addWidget(maxAreaSpinner, 2, 1);
   
   lblSmoothPtsDist = new QLabel("smooth point dist:", grpOptions);
   lblSmoothPtsDist->setFocusPolicy(QWidget::NoFocus);
+  QToolTip::add(lblSmoothPtsDist, "RECOMMENDED VALUE: 5");
   gridLayout1->addWidget(lblSmoothPtsDist, 3, 0);
   
   smoothPtsDist = new QSpinBox(grpOptions);
@@ -647,11 +665,13 @@ DialogFrame(parent, 2, buttonLabels, buttonTips, true, "Drawing Tools", "", name
   QToolTip::add(smoothPtsDist,
                 "The minimum distance between points or when a contour is "
                 "smoothed - if two consequtive are greater than this "
-                "distance a point will be added between them");
+                "distance a point will be added between them "
+                "(recommended value: 5)");
   gridLayout1->addWidget(smoothPtsDist, 3, 1);
   
   lblSmoothTensileFract = new QLabel("smooth tensile value:", grpOptions);
   lblSmoothTensileFract->setFocusPolicy(QWidget::NoFocus);
+  QToolTip::add(lblSmoothTensileFract, "RECOMMENDED VALUE: 5");
   gridLayout1->addWidget(lblSmoothTensileFract, 4, 0);
   
   smoothTensileFract = new QSpinBox(grpOptions);
@@ -663,7 +683,7 @@ DialogFrame(parent, 2, buttonLabels, buttonTips, true, "Drawing Tools", "", name
                    SLOT(changeSmoothTensileFract(int)));
   QToolTip::add(smoothTensileFract,
                 "This value dictates how curvy the contour will be when "
-                "points are added during smoothing (5 is recommended). "
+                "points are added during smoothing (recommended value: 5). "
                 "Smoothing is done using a cardinal spline algorithm "
                 "using a tensile fraction of this value divide 10.");
   gridLayout1->addWidget(smoothTensileFract, 4, 1);
@@ -742,20 +762,18 @@ DialogFrame(parent, 2, buttonLabels, buttonTips, true, "Drawing Tools", "", name
 
 bool DrawingTools::drawExtraObject( bool redraw )
 {
-  Iobj *xobj = ivwGetAnExtraObject(plug.view, plug.extraObjNum);
-  Icont *con;
-  
-  if ( !plug.window || !xobj )
-    return 0;
-  
-  //## INITIALIZE EXTRA OBJECT:
-  
-  ivwClearAnExtraObject(plug.view, plug.extraObjNum);
-  imodObjectSetColor(xobj, 1.0, 0.0, 0.0);
-  imodObjectSetValue(xobj, IobjFlagClosed, 1);
-  con = imodContourNew();
-  if (!con)
+  if ( !plug.window )
     return false;
+  
+  //## CLEAR EXTRA OBJECT:
+  
+  Iobj *xobj = ivwGetAnExtraObject(plug.view, plug.extraObjNum);
+  imodObjectSetValue(xobj, IobjFlagExtraInModv, (plug.showMouseInModelView)?1:0);
+  ivwClearAnExtraObject(plug.view, plug.extraObjNum);
+  Icont *xcont = imodContourNew();
+  if ( !xobj || !xcont )
+    return false;
+  
   
   //## GET Z VALUE:
   
@@ -786,17 +804,17 @@ bool DrawingTools::drawExtraObject( bool redraw )
     float ymin = y - (currSlice-2)*sc;
     float ymax = ymin + plug.zsize*sc;
     
-    imodPointAppendXYZ( con, xmin, ymin, currSlice );
-    imodPointAppendXYZ( con, xmax, ymin, currSlice );
-    imodPointAppendXYZ( con, xmax, ymax, currSlice );
-    imodPointAppendXYZ( con, xmin, ymax, currSlice );
+    imodPointAppendXYZ( xcont, xmin, ymin, currSlice );
+    imodPointAppendXYZ( xcont, xmax, ymin, currSlice );
+    imodPointAppendXYZ( xcont, xmax, ymax, currSlice );
+    imodPointAppendXYZ( xcont, xmin, ymax, currSlice );
     
-    imodPointAppendXYZ( con, xmin,     y, currSlice );
-    imodPointAppendXYZ( con, xmax,     y, currSlice );
-    imodPointAppendXYZ( con, xmin,     y, currSlice );
+    imodPointAppendXYZ( xcont, xmin,     y, currSlice );
+    imodPointAppendXYZ( xcont, xmax,     y, currSlice );
+    imodPointAppendXYZ( xcont, xmin,     y, currSlice );
 		
-    imodContourSetFlag(con, ICONT_CURSOR_LIKE | ICONT_MMODEL_ONLY, 1);
-    imodObjectAddContour(xobj, con);
+    imodContourSetFlag(xcont, ICONT_CURSOR_LIKE | ICONT_MMODEL_ONLY, 1);
+    imodObjectAddContour(xobj, xcont);
     
 		if( redraw )
 			ivwRedraw( plug.view );
@@ -809,45 +827,45 @@ bool DrawingTools::drawExtraObject( bool redraw )
   {
   case (DM_NORMAL ):            // draw a tiny verticle line
     {
-      imodPointAppendXYZ( con, x, y, z );
-      imodPointAppendXYZ( con, x, y+1, z );
+      imodPointAppendXYZ( xcont, x, y, z );
+      imodPointAppendXYZ( xcont, x, y+1, z );
       break;
     }
   case(DM_DEFORM):            // draw deform circle
     {
-      cont_generateCircle( con, radius, 100, plug.mouse, true );
+      cont_generateCircle( xcont, radius, 100, plug.mouse, true );
       if( plug.shiftDown )
       {
-        imodPointAppendXYZ( con, x+radius, y, z-1);
-        imodPointAppendXYZ( con, x+hRadius, y+qRadius, z-1 );
-        imodPointAppendXYZ( con, x+hRadius, y+qRadius, z );
-        imodPointAppendXYZ( con, x+qRadius, y, z );
-        imodPointAppendXYZ( con, x+hRadius, y-qRadius, z );
-        imodPointAppendXYZ( con, x+hRadius, y-qRadius, z-1 );
+        imodPointAppendXYZ( xcont, x+radius, y, z-1);
+        imodPointAppendXYZ( xcont, x+hRadius, y+qRadius, z-1 );
+        imodPointAppendXYZ( xcont, x+hRadius, y+qRadius, z );
+        imodPointAppendXYZ( xcont, x+qRadius, y, z );
+        imodPointAppendXYZ( xcont, x+hRadius, y-qRadius, z );
+        imodPointAppendXYZ( xcont, x+hRadius, y-qRadius, z-1 );
         
-        imodPointAppendXYZ( con, x-hRadius, y-qRadius, z-1 );
-        imodPointAppendXYZ( con, x-hRadius, y-qRadius, z );
-        imodPointAppendXYZ( con, x-qRadius, y, z );
-        imodPointAppendXYZ( con, x-hRadius, y+qRadius, z );
-        imodPointAppendXYZ( con, x-hRadius, y+qRadius, z-1 );
-        imodPointAppendXYZ( con, x-radius, y, z-1);
+        imodPointAppendXYZ( xcont, x-hRadius, y-qRadius, z-1 );
+        imodPointAppendXYZ( xcont, x-hRadius, y-qRadius, z );
+        imodPointAppendXYZ( xcont, x-qRadius, y, z );
+        imodPointAppendXYZ( xcont, x-hRadius, y+qRadius, z );
+        imodPointAppendXYZ( xcont, x-hRadius, y+qRadius, z-1 );
+        imodPointAppendXYZ( xcont, x-radius,  y, z-1);
       }
       break;
     }
   case(DM_JOIN):              // draw deform circle with plus sign in middle
     {
-      cont_generateCircle( con, radius, 100, plug.mouse, true );
+      cont_generateCircle( xcont, radius, 100, plug.mouse, true );
       
-      imodPointAppendXYZ( con, x+radius,  y,      z-1  );
-      imodPointAppendXYZ( con, x+hRadius,  y,      z-1 );
-      imodPointAppendXYZ( con, x+hRadius,  y,      z );
-      imodPointAppendXYZ( con, x-hRadius,  y,      z );
-      imodPointAppendXYZ( con, x,      y,      z );
-      imodPointAppendXYZ( con, x,      y+hRadius,  z );
-      imodPointAppendXYZ( con, x,      y-hRadius,  z );;
-      imodPointAppendXYZ( con, x,      y,      z );  
-      imodPointAppendXYZ( con, x,      y,      z-1 );
-      imodPointAppendXYZ( con,  x+radius,  y,      z-1);  
+      imodPointAppendXYZ( xcont, x+radius,    y,      z-1  );
+      imodPointAppendXYZ( xcont, x+hRadius,   y,      z-1 );
+      imodPointAppendXYZ( xcont, x+hRadius,   y,      z );
+      imodPointAppendXYZ( xcont, x-hRadius,   y,      z );
+      imodPointAppendXYZ( xcont, x,           y,      z );
+      imodPointAppendXYZ( xcont, x,           y+hRadius,  z );
+      imodPointAppendXYZ( xcont, x,           y-hRadius,  z );;
+      imodPointAppendXYZ( xcont, x,           y,      z );  
+      imodPointAppendXYZ( xcont, x,           y,      z-1 );
+      imodPointAppendXYZ( xcont, x+radius,    y,      z-1);  
       break;
     }
   case(DM_TRANSFORM):         // draw rectangle around current contour or next to mouse 
@@ -857,28 +875,28 @@ bool DrawingTools::drawExtraObject( bool redraw )
       if( isContValid(cont) )
       {
         Ipoint ll, ur;
-        imodContourGetBBox(cont, &ll, &ur);
-        imodPointAppendXYZ( con, ll.x, ll.y, z-1 );
-        imodPointAppendXYZ( con, ll.x, ll.y, z );
-        imodPointAppendXYZ( con, ur.x, ll.y, z );
-        imodPointAppendXYZ( con, ur.x, ur.y, z );
-        imodPointAppendXYZ( con, ll.x, ur.y, z );
-        imodPointAppendXYZ( con, ll.x, ll.y, z );
-        imodPointAppendXYZ( con, ll.x, ll.y, z-1 );
+        imodContourGetBBox( cont, &ll, &ur);
+        imodPointAppendXYZ( xcont, ll.x, ll.y, z-1 );
+        imodPointAppendXYZ( xcont, ll.x, ll.y, z );
+        imodPointAppendXYZ( xcont, ur.x, ll.y, z );
+        imodPointAppendXYZ( xcont, ur.x, ur.y, z );
+        imodPointAppendXYZ( xcont, ll.x, ur.y, z );
+        imodPointAppendXYZ( xcont, ll.x, ll.y, z );
+        imodPointAppendXYZ( xcont, ll.x, ll.y, z-1 );
         
         if(plug.but2Down)      // draw line from point clicked to mouse
         {
-          imodPointAppendXYZ( con, plug.mouseDownPt.x, plug.mouseDownPt.y, z-1 );
-          imodPointAppendXYZ( con, plug.mouseDownPt.x, plug.mouseDownPt.y, z );  
-          imodPointAppendXYZ( con, x, y, z );
-          imodPointAppendXYZ( con, x, y, z-1 );    
+          imodPointAppendXYZ( xcont, plug.mouseDownPt.x, plug.mouseDownPt.y, z-1 );
+          imodPointAppendXYZ( xcont, plug.mouseDownPt.x, plug.mouseDownPt.y, z );  
+          imodPointAppendXYZ( xcont, x, y, z );
+          imodPointAppendXYZ( xcont, x, y, z-1 );    
         }
         else if(plug.but3Down)    // draw line from center of contour to mouse
         {
-          imodPointAppendXYZ( con, plug.centerPt.x, plug.centerPt.y, z-1 );
-          imodPointAppendXYZ( con, plug.centerPt.x, plug.centerPt.y, z );  
-          imodPointAppendXYZ( con, x, y, z );      
-          imodPointAppendXYZ( con, x, y, z-1 );      
+          imodPointAppendXYZ( xcont, plug.centerPt.x, plug.centerPt.y, z-1 );
+          imodPointAppendXYZ( xcont, plug.centerPt.x, plug.centerPt.y, z );  
+          imodPointAppendXYZ( xcont, x, y, z );      
+          imodPointAppendXYZ( xcont, x, y, z-1 );      
         }
       }
       else
@@ -888,12 +906,12 @@ bool DrawingTools::drawExtraObject( bool redraw )
         int noZap = ivwGetTopZapZoom(plug.view, &zapZoom);
         if( noZap != 1 )   // if there is a top window: determine pixel length
           rectLen = fDivide( 10.0f, zapZoom);
-        imodPointAppendXYZ( con, x+1.0f*rectLen, y+1.0f*rectLen, z );
-        imodPointAppendXYZ( con, x+2.0f*rectLen, y+1.0f*rectLen, z );
-        imodPointAppendXYZ( con, x+2.0f*rectLen, y+1.5f*rectLen, z );
-        imodPointAppendXYZ( con, x+1.0f*rectLen, y+1.5f*rectLen, z );
-        imodPointAppendXYZ( con, x+1.0f*rectLen, y+1.0f*rectLen, z );
-        imodPointAppendXYZ( con, x+1.0f*rectLen, y+1.0f*rectLen, z-1 );
+        imodPointAppendXYZ( xcont, x+1.0f*rectLen, y+1.0f*rectLen, z );
+        imodPointAppendXYZ( xcont, x+2.0f*rectLen, y+1.0f*rectLen, z );
+        imodPointAppendXYZ( xcont, x+2.0f*rectLen, y+1.5f*rectLen, z );
+        imodPointAppendXYZ( xcont, x+1.0f*rectLen, y+1.5f*rectLen, z );
+        imodPointAppendXYZ( xcont, x+1.0f*rectLen, y+1.0f*rectLen, z );
+        imodPointAppendXYZ( xcont, x+1.0f*rectLen, y+1.0f*rectLen, z-1 );
       }
       
       break;
@@ -901,34 +919,34 @@ bool DrawingTools::drawExtraObject( bool redraw )
   case(DM_ERASER):            // draw deform circle with a diagonal line through it
     {
       if( plug.but2Down || plug.but3Down )  {
-        cont_generateCircle( con, radius*0.99f, 100, plug.mouse, true );
-        cont_generateCircle( con, radius*0.98f, 100, plug.mouse, true );
+        cont_generateCircle( xcont, radius*0.99f, 100, plug.mouse, true );
+        cont_generateCircle( xcont, radius*0.98f, 100, plug.mouse, true );
       }
-      cont_generateCircle( con, radius, 100, plug.mouse, true );
+      cont_generateCircle( xcont, radius, 100, plug.mouse, true );
       
-      imodPointAppendXYZ( con, x+hRadius, y, z-1);    
-      imodPointAppendXYZ( con, x+hRadius, y+hRadius, z-1 );
-      imodPointAppendXYZ( con, x+hRadius, y+hRadius, z );
-      imodPointAppendXYZ( con, x-hRadius, y-hRadius, z );
-      imodPointAppendXYZ( con, x-hRadius, y-hRadius, z-1 );
-      imodPointAppendXYZ( con, x+hRadius, y, z-1);    
+      imodPointAppendXYZ( xcont, x+hRadius, y, z-1);    
+      imodPointAppendXYZ( xcont, x+hRadius, y+hRadius, z-1 );
+      imodPointAppendXYZ( xcont, x+hRadius, y+hRadius, z );
+      imodPointAppendXYZ( xcont, x-hRadius, y-hRadius, z );
+      imodPointAppendXYZ( xcont, x-hRadius, y-hRadius, z-1 );
+      imodPointAppendXYZ( xcont, x+hRadius, y, z-1);    
       if( plug.shiftDown )              // draw extra arrows on diagonal line
       {
-        imodPointAppendXYZ( con, x+hRadius, y, z-1);    
-        imodPointAppendXYZ( con, x+hRadius, y+qRadius, z-1 );
-        imodPointAppendXYZ( con, x+hRadius, y+qRadius, z );
-        imodPointAppendXYZ( con, x+hRadius, y+hRadius, z );
-        imodPointAppendXYZ( con, x-hRadius, y-hRadius, z );
-        imodPointAppendXYZ( con, x-hRadius, y-qRadius, z );
-        imodPointAppendXYZ( con, x-hRadius, y-qRadius, z-1 );
-        imodPointAppendXYZ( con, x+hRadius, y, z-1);
+        imodPointAppendXYZ( xcont, x+hRadius, y, z-1);    
+        imodPointAppendXYZ( xcont, x+hRadius, y+qRadius, z-1 );
+        imodPointAppendXYZ( xcont, x+hRadius, y+qRadius, z );
+        imodPointAppendXYZ( xcont, x+hRadius, y+hRadius, z );
+        imodPointAppendXYZ( xcont, x-hRadius, y-hRadius, z );
+        imodPointAppendXYZ( xcont, x-hRadius, y-qRadius, z );
+        imodPointAppendXYZ( xcont, x-hRadius, y-qRadius, z-1 );
+        imodPointAppendXYZ( xcont, x+hRadius, y, z-1);
       }
       break;
     }
   }
   
-  imodContourSetFlag(con, ICONT_CURSOR_LIKE | ICONT_MMODEL_ONLY, 1);
-  imodObjectAddContour(xobj, con);
+  imodContourSetFlag(xcont, ICONT_CURSOR_LIKE | ICONT_MMODEL_ONLY, 1);
+  imodObjectAddContour(xobj, xcont);
   
   if( redraw )
     ivwRedraw( plug.view );
@@ -1065,8 +1083,7 @@ void DrawingTools::reduceConts()
   }
   
   Imod *imod  = ivwGetModel(plug.view);
-  Iobj *obj  = getCurrObj();
-  Icont *cont;
+  Iobj *obj   = getCurrObj();
   int objIdx, contIdx, ptIdx;
   imodGetIndex(imod, &objIdx, &contIdx, &ptIdx);
   
@@ -1076,7 +1093,7 @@ void DrawingTools::reduceConts()
   
   for(int c=0; c<csize(obj); c++)
   {
-    cont = getCont( obj, c );
+    Icont *cont = getCont( obj, c );
     
     if( !isContValid(cont) )
       continue;
@@ -1127,8 +1144,7 @@ void DrawingTools::smoothConts()
   }
   
   Imod *imod  = ivwGetModel(plug.view);
-  Iobj *obj  = getCurrObj();
-  Icont *cont;
+  Iobj *obj   = getCurrObj();
   int objIdx, contIdx, ptIdx;
   imodGetIndex(imod, &objIdx, &contIdx, &ptIdx);
   
@@ -1138,14 +1154,14 @@ void DrawingTools::smoothConts()
   
   for(int c=0; c<csize(obj); c++)
   {
-    cont = getCont( obj, c );
+    Icont *cont = getCont( obj, c );
     
-    if( !isContValid(cont) )
+    if( !isContValid(cont) || isEmpty(cont) )
       continue;
     
     int nPointsBefore = psize( cont );        
-    //imodSetIndex(imod, objIdx, c, 0);    // |-- DOESN'T WORK FOR SOME REASON
-    //undoContourDataChgCC( imod );        // |
+    //imodSetIndex(imod, objIdx, c, 0);         // |-- DOESN'T WORK FOR SOME REASON
+    //undoContourDataChg( imod, objIdx, c );    // |
     cont_addPtsSmooth( cont, plug.draw_smoothMinDist, plug.draw_smoothTensileFract,
                        isContClosed(obj,cont) );
     int nPointsAfter = psize( cont );
@@ -1156,8 +1172,8 @@ void DrawingTools::smoothConts()
     if( nPointsBefore != nPointsAfter )
       totalContoursChanged++;
   }
-  //if(totalContoursChanged)
-  //  undoFinishUnit( plug.view );
+  if(totalContoursChanged)
+    undoFinishUnit( plug.view );
   
   imodSetIndex(imod, objIdx, contIdx, 0);
   
@@ -1239,7 +1255,7 @@ void DrawingTools::printModelPointInfo()
       wprint(" # EMPTY CONTS = %d\n", emptyConts );
     wprint(" # conts  = %d\n", totConts );
     wprint(" # pts    = %d\n", totObjPts );
-    wprint(" pts/cont = %f\n", ptsPerCont );
+    wprint(" avg pts/cont = %f\n", ptsPerCont );
     wprint(" avg dist between pts = %f\n", avgDistPts );
   }
   
@@ -1251,7 +1267,7 @@ void DrawingTools::printModelPointInfo()
   wprint(" # empty contours = %d\n", totEmpty );
   wprint(" # conts  = %d\n", totConts );
   wprint(" # pts    = %d\n", totPts );
-  wprint(" pts/cont = %f\n", ptsPerContAll );
+  wprint(" avg pts/cont = %f\n", ptsPerContAll );
   wprint(" avg dist between pts = %f\n", avgDistPtsAll );
 }
 
@@ -1301,11 +1317,11 @@ void DrawingTools::moreSettings()
 	CustomDialog ds;
   int ID_WHEELRESIST    = ds.addSpinBox ( "wheel resistance:",
                                           10, 1000, plug.wheelResistance, 10,
-                                          "the higher the value, the slower "
+                                          "The higher the value, the slower "
                                           "mouse scrolling works" );
   int ID_USENUMKEYS     = ds.addCheckBox( "use number keys to change mode", 
                                           plug.useNumKeys,
-                                          "if on: will intercept the number keys "
+                                          "If on: will intercept the number keys "
                                           "[1]-[5] to change the drawing mode, "
                                           "if off: can use number keys to move points "
                                           "as per normal");
@@ -1316,6 +1332,12 @@ void DrawingTools::moreSettings()
                                           "scroll contours,"
                                           "resize curr point", plug.wheelBehav,
                                           "The action performed by the mouse wheel" );
+  int ID_SHOWMOUSEINMV   = ds.addCheckBox( "show mouse in model view", 
+                                          plug.showMouseInModelView,
+                                          "Will show the mouse in any Model View"
+                                          "windows as you move it in the ZAP window. "
+                                          "WARNING: This will reduce performance!");
+  
 	GuiDialogCustomizable dlg(&ds, "More Settings", this);
 	dlg.exec();
 	if( ds.cancelled )
@@ -1323,6 +1345,7 @@ void DrawingTools::moreSettings()
   plug.wheelResistance       = ds.getResultSpinBox  ( ID_WHEELRESIST );
   plug.useNumKeys            = ds.getResultCheckBox ( ID_USENUMKEYS );
   plug.wheelBehav            = ds.getResultComboBox ( ID_WHEELBEHAV );
+  plug.showMouseInModelView  = ds.getResultCheckBox ( ID_SHOWMOUSEINMV );
   
   ivwRedraw( plug.view );
 }

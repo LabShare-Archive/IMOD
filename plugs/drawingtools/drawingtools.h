@@ -135,14 +135,16 @@ struct DrawingToolsData   // contains all local plugin data
                                     //  NOTE: 0=straight, 1.5=smooth, 2.0>=very bendy
   float  draw_deformRadius;         //  the radius, in pixels, of the deformation circle
   
+  
   //## SETTINGS:
   
-  int  wheelBehav;            // changes the behaviour of the mouse wheel
-                              //   (see: wheelbehaviour)
+  int  wheelBehav;              // changes the behaviour of the mouse wheel
+                                //   (see: wheelbehaviour)
   
-  bool   useNumKeys;          // intercepts number keys [1]-[5] to change draw mode
-  int    wheelResistance;     // the higher the value, the slower mouse scrolling works
-  int    selectedAction;      // the last selected action under "More Actions"
+  bool   useNumKeys;            // intercepts number keys [1]-[5] to change draw mode
+  int    wheelResistance;       // the higher the value, the slower mouse scrolling works
+  bool   showMouseInModelView;  // shows the extra object in the model view
+  int    selectedAction;        // the last selected action under "More Actions"
   
   //## MOUSE:
   

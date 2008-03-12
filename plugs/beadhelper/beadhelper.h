@@ -139,7 +139,7 @@ enum expptdisplay      { ED_CROSS, ED_DIAMOND, ED_ARROW };
 enum wheelbehaviour   { WH_NONE, WH_POINTS, WH_SLICES, WH_SMART };
 enum estimationmethod { EM_NEARESTTWO, EM_QUADRATIC, EM_LOCALQUADRATIC, EM_LASTSIX };
 
-const int NUM_SAVED_VALS = 15;
+const int NUM_SAVED_VALS = 16;
 
 
 //-------------------------------
@@ -187,6 +187,7 @@ struct BeadHelperData   // contains all local plugin data
                               //  from crossing middlePt (usually set to 0)
   float biggestHoleGrid;      // the approximate distance between grid points used to
                               //  find the next biggest hole (bead_goToNextBiggestHole)
+  float biggestHoleOffset;    // the distance to represent the very edge of the grid
   
   Ipoint mouse;               // the current tomogram coordinates of the mouse
   

@@ -175,7 +175,7 @@ void imodPlugExecute(ImodView *inImodView)
   plug.view = inImodView;
   ivwTrackMouseForPlugs(plug.view, 1);
   ivwEnableStipple( plug.view, 1 );
-      
+  
   if( !plug.initialized )
   {
     ivwGetImageSize(inImodView, &plug.xsize, &plug.ysize, &plug.zsize);
@@ -205,6 +205,7 @@ void imodPlugExecute(ImodView *inImodView)
     plug.tiltAngle             = -11.7;
     plug.tiltOffsetX           = 0;
     plug.biggestHoleGrid       = 20;
+    plug.biggestHoleOffset     = 100;
     plug.wheelResistance       = 100;
     
     plug.expPtDisplayType      = ED_CROSS;
@@ -230,7 +231,8 @@ void imodPlugExecute(ImodView *inImodView)
   Iobj *xobjE = ivwGetAnExtraObject(plug.view, plug.extraObjExpPos);
   imodObjectSetColor(xobjE, 0.8, 0, 0);
   imodObjectSetValue(xobjE, IobjFlagClosed, 0);
-  
+  imodObjectSetValue(xobjE, IobjFlagExtraInModv, 1);
+    
   Iobj *xobjC = ivwGetAnExtraObject(plug.view, plug.extraObjContDisp);
   imodObjectSetColor(xobjC, 0, 0.4, 0);
   imodObjectSetValue(xobjC, IobjFlagClosed, 0);
@@ -238,6 +240,7 @@ void imodPlugExecute(ImodView *inImodView)
   Iobj *xobjT = ivwGetAnExtraObject(plug.view, plug.extraObjTiltAxis);
   imodObjectSetColor(xobjT, 1, 1, 0);
   imodObjectSetValue(xobjT, IobjFlagClosed, 0);
+  imodObjectSetValue(xobjT, IobjFlagExtraInModv, 1);
   
   Iobj *xobjX = ivwGetAnExtraObject(plug.view, plug.extraObjExtra);
   imodObjectSetColor(xobjX, 1, 0, 1);
@@ -902,7 +905,7 @@ bool BeadHelper::drawExtraObject( bool redraw )
   {
     Icont *xcontT = imodContourNew();
     float gradientP = tan( (plug.tiltAngle)*DEGS_TO_RADS );
-    // calculate gradient perpendicular to the tilt axis
+                  // calculate gradient perpendicular to the tilt axis
     
     float offsetX = plug.middlePt.x + plug.tiltOffsetX;
     float startX   = offsetX + ((plug.ysize/2.0)*gradientP);
@@ -1002,12 +1005,13 @@ void BeadHelper::loadSettings()
   plug.tiltDisplayType      = savedValues[6];
   plug.tiltAngle            = savedValues[7];
   plug.biggestHoleGrid      = savedValues[8];
-  plug.wheelResistance      = savedValues[9];
-  plug.expPtDisplayType     = savedValues[10];
-  plug.expPtSize            = savedValues[11];
-  plug.selectedAction       = savedValues[12];
-  plug.sortCriteria         = savedValues[13];
-  plug.autoSaveSettings     = savedValues[14];
+  plug.biggestHoleOffset    = savedValues[9];
+  plug.wheelResistance      = savedValues[10];
+  plug.expPtDisplayType     = savedValues[11];
+  plug.expPtSize            = savedValues[12];
+  plug.selectedAction       = savedValues[13];
+  plug.sortCriteria         = savedValues[14];
+  plug.autoSaveSettings     = savedValues[15];
 }
 
 
@@ -1028,12 +1032,13 @@ void BeadHelper::saveSettings()
   saveValues[6]  = plug.tiltDisplayType;
   saveValues[7]  = plug.tiltAngle;
   saveValues[8]  = plug.biggestHoleGrid;
-  saveValues[9]  = plug.wheelResistance;
-  saveValues[10] = plug.expPtDisplayType;
-  saveValues[11] = plug.expPtSize;
-  saveValues[12] = plug.selectedAction;
-  saveValues[13] = plug.sortCriteria;
-  saveValues[14] = plug.autoSaveSettings;
+  saveValues[9]  = plug.biggestHoleOffset;
+  saveValues[10] = plug.wheelResistance;
+  saveValues[11] = plug.expPtDisplayType;
+  saveValues[12] = plug.expPtSize;
+  saveValues[13] = plug.selectedAction;
+  saveValues[14] = plug.sortCriteria;
+  saveValues[15] = plug.autoSaveSettings;
   
   prefSaveGenericSettings("BeadHelper",NUM_SAVED_VALS,saveValues);
 }
@@ -1194,7 +1199,7 @@ void BeadHelper::reduceContsToSeed()
     return;
   
   Imod *imod = ivwGetModel(plug.view);
-  Iobj *obj  = getCurrObj();
+  Iobj *obj  = imodObjectGet(imod);
   int objIdx, contIdx, ptIdx;
   imodGetIndex(imod, &objIdx, &contIdx, &ptIdx);
   int numContsReduced = 0;
@@ -1323,7 +1328,7 @@ void BeadHelper::movePtsToExstimatedPos()
   
   int currSlice = edit_getZOfTopZap();
   Imod *imod = ivwGetModel(plug.view);
-  Iobj *obj  = getCurrObj();
+  Iobj *obj  = imodObjectGet(imod);
   int objIdx, contIdx, ptIdx;
   imodGetIndex(imod, &objIdx, &contIdx, &ptIdx);
   
@@ -1415,7 +1420,7 @@ void BeadHelper::fillMissingPts()
     return;
   
   Imod *imod = ivwGetModel(plug.view);
-  Iobj *obj  = getCurrObj();
+  Iobj *obj  = imodObjectGet(imod);
   int objIdx, contIdx, ptIdx;
   imodGetIndex(imod, &objIdx, &contIdx, &ptIdx);
   
@@ -1569,26 +1574,30 @@ void BeadHelper::moreSettings()
   //## GET USER INPUT FROM CUSTOM DIALOG:
   
 	CustomDialog ds;
-  int ID_TILTANGLE      = ds.addLineEdit( "tilt angle:",
-                                          toString(plug.tiltAngle).c_str() );
-  int ID_TILTOFFSET     = ds.addSpinBox ( "tilt x offset:", -200, 200,
-                                          plug.tiltOffsetX, 1,
-                                          "How far the tilt axis is shifted along X "
-                                          "from passing through the center" );
-  int ID_BIGGESTHOLES   = ds.addSpinBox ( "biggest hole grid size:",
-                                          1, 1000, plug.biggestHoleGrid, 5,
-                                          "The distance between grid points used to "
-                                          "search for the point furthest from any "
-                                          "seed points and the edge" );
   int ID_MIDDLESLICE    = ds.addSpinBox ( "middle (seed) view:",
                                           1, plug.zsize+1, plug.middleSlice+1, 1,
                                           "The view used to seed points - this is "
                                           "usually the middle-most view, but not "
                                           "in all cases" );
-  int ID_WHEELRESIST    = ds.addSpinBox ( "wheel resistance:",
-                                          10, 1000, plug.wheelResistance, 10,
-                                          "the higher the value, the slower "
-                                          "mouse scrolling works" );
+  int ID_TILTANGLE      = ds.addLineEdit( "tilt angle:         ",
+                                          toString(plug.tiltAngle).c_str() );
+  int ID_TILTOFFSET     = ds.addSpinBox ( "tilt x offset:", -200, 200,
+                                          plug.tiltOffsetX, 1,
+                                          "How far the tilt axis is shifted along X "
+                                          "from passing through the center" );
+  int ID_BIGHOLEGRID   = ds.addSpinBox ( "biggest hole grid size:",
+                                          1, 1000, plug.biggestHoleGrid, 5,
+                                          "The distance between grid points used to "
+                                          "search for the point furthest from any "
+                                          "seed points and the edge" );
+  int ID_BIGHOLEOFFSET  = ds.addSpinBox ( "biggest hole edge offset:",
+                                          -(plug.xsize/2)+24, 10000,
+                                          plug.biggestHoleOffset, 10,
+                                          "The pixel distance to represent the edge of "
+                                          "the tomogram such that a large value will "
+                                          "encourage points closer to the edge "
+                                          "while a negative value will concentrate "
+                                          "points in the middle as you press 'h'.");
   int ID_EXPPTDISPLAY   = ds.addComboBox( "expected pt display:",
                                           "cross,"
                                           "diamond,"
@@ -1598,9 +1607,14 @@ void BeadHelper::moreSettings()
                                            1, 200, plug.expPtSize, 1,
                                           "The size of the expected point symbol in "
                                           "screen pixels" );
+  int ID_WHEELRESIST    = ds.addSpinBox ( "wheel resistance:",
+                                          10, 1000, plug.wheelResistance, 10,
+                                          "The higher the value, the slower "
+                                          "mouse scrolling works (useful if you have "
+                                          "a touchy mouse wheel)" );
   int ID_AUTOSAVE       = ds.addCheckBox( "save settings on close", 
                                           plug.autoSaveSettings,
-                                          "automatically saves your Bead Helper "
+                                          "Automatically saves your Bead Helper "
                                           "settings to 'beadhelpersettings.txt' "
                                           "when you close 3dmod, so they will load "
                                           "next time you open 3dmod");
@@ -1611,7 +1625,8 @@ void BeadHelper::moreSettings()
 		return;
 	string tiltAngleStr        = ds.getResultLineEdit	( ID_TILTANGLE );
   plug.tiltOffsetX           = ds.getResultSpinBox  ( ID_TILTOFFSET );
-  plug.biggestHoleGrid       = ds.getResultSpinBox  ( ID_BIGGESTHOLES );
+  plug.biggestHoleGrid       = ds.getResultSpinBox  ( ID_BIGHOLEGRID );
+  plug.biggestHoleOffset     = ds.getResultSpinBox  ( ID_BIGHOLEOFFSET );
   plug.middleSlice           = ds.getResultSpinBox  ( ID_MIDDLESLICE ) - 1;
   plug.wheelResistance       = ds.getResultSpinBox  ( ID_WHEELRESIST );
   plug.expPtDisplayType      = ds.getResultComboBox ( ID_EXPPTDISPLAY );
@@ -1687,7 +1702,7 @@ void BeadHelper::moveContour()
     return;
   
   Imod *imod  = ivwGetModel(plug.view);
-  Iobj *obj   = getCurrObj();
+  Iobj *obj   = imodObjectGet(imod);
   Icont *cont = getCurrCont();
   int objIdx, contIdx, ptIdx;
   imodGetIndex(imod, &objIdx, &contIdx, &ptIdx);
@@ -1734,10 +1749,10 @@ void BeadHelper::moveMultipleContours()
       return;
     imodNewObject(imod);
     numObjs = osize(imod);
-    imodSetIndex( imod, numObjs-1, 0, 0 );
-    Iobj *objNew = imodObjectGet(imod);
+    Iobj *objNew = getObj(imod, numObjs-1);
     imodObjectSetValue(objNew, IobjFlagClosed, 0);
     imodObjectSetValue(objNew, IobjPointSize, 3);
+    imodSetIndex( imod, objIdx, contIdx, ptIdx );
   }
   
   
@@ -1771,8 +1786,7 @@ void BeadHelper::moveMultipleContours()
   
   int numMatchingSeeds = 0;
   int numContsCopied = 0;
-  imodSetIndex( imod, objToIdx, 0, 0 );
-  Iobj *objTo = imodObjectGet(imod);
+  Iobj *objTo = getObj(imod,objToIdx);
   
   for(int c=contMin; c<=contMax; c++)
   {
@@ -1824,6 +1838,7 @@ void BeadHelper::moveMultipleContours()
   if( numContsDeleted || numContsCopied )
     undoFinishUnit( plug.view );                                // FINISH UNDO
   
+  imodSetIndex( imod, objToIdx, 0, 0 );
   
   //## PRINT SUMMARY OF ANALYSIS:
   
@@ -1856,14 +1871,12 @@ void BeadHelper::correctCurrentObject()
                                         "if two (or more) contours are on the same "
                                         "fiducial on the middle slice delete the "
                                         "second one" );
-  //int ID_REORDERCONT = ds.addCheckBox( "reorder any badly ordered conts", true );
 	GuiDialogCustomizable dlg(&ds, "Correction Options", this);
 	dlg.exec();
 	if( ds.cancelled )
 		return;
   bool deleteExtraPts   = ds.getResultCheckBox  ( ID_EXTRAPTS );
   bool deleteMatchSeeds = ds.getResultCheckBox  ( ID_MATCHSEED );
-	//bool reorderConts 	  = ds.getResultCheckBox	( ID_REORDERCONT );
   
   Imod *imod = ivwGetModel(plug.view);
   Iobj *obj = imodObjectGet(imod);
@@ -3144,11 +3157,11 @@ void bead_reorderConts( int sortCriteria, int minCont, int maxCont,
   
   if( printVals )
   {
-    if      (sortCriteria==SORT_YJUMPS)             wprint("\Y JUMP MEASURE:\n");
+    if      (sortCriteria==SORT_YJUMPS)             wprint("\nY JUMP MEASURE:\n");
     if      (sortCriteria==SORT_DEV)                wprint("\nWEIGHTED DEVIATIONS:\n");
     else if (sortCriteria==SORT_AVG_GREY)           wprint("\nAVERAGE GREY VALUES:\n");
     else if (sortCriteria==SORT_DIST_FROM_MIDDLE)   wprint("\nDIST FROM MIDDLE:\n");
-    else if (sortCriteria==SORT_RANDOM)             wprint("\RANDOM VAL:\n");
+    else if (sortCriteria==SORT_RANDOM)             wprint("\nRANDOM VAL:\n");
     for( int c=0; c<nConts; c++)
       wprint( "cont %d = %f\n", c+1, sortVals[c].float1 );
   }
@@ -3353,7 +3366,7 @@ bool bead_goToNextBiggestHole( bool findNextBiggest )
     for(int y=0; y<rowsY; y++)
     {
       float nearestSideY = MIN(y,rowsY-y) * sideLenY;
-      float nearestSide  = MIN( nearestSideX, nearestSideY);
+      float nearestSide  = MIN( nearestSideX, nearestSideY) + plug.biggestHoleOffset;
       //minDistGrid[x][y] = nearestSide;
       minDistGrid[x].push_back( nearestSide );
     }
