@@ -15,6 +15,9 @@
     $Revision$
 
     $Log$
+    Revision 1.2  2008/03/11 09:36:18  tempuser
+    Minor modifications
+
     Revision 1.1  2008/03/06 00:33:07  tempuser
     Added common dir
 
@@ -447,7 +450,26 @@ bool line_isPointOnLine( Ipoint *pt, Ipoint *lineStart, Ipoint *lineEnd )
 }
 
 
+//------------------------
+//-- Calculates the equation of a line through the two points provided and returns
+//-- true if successful or false if points have same x value (or line is vertical)
+//--  y = gradient*x + offset
 
+bool line_getLineEquation( Ipoint *pt1, Ipoint *pt2, float *gradient, float *offset )
+{
+	float diffY = pt2->y - pt1->y;
+	float diffX = pt2->x - pt1->x;
+	
+	if(diffX == 0)
+  {
+    *gradient = FLOAT_MAX;
+    *offset = pt1->y;
+    return false;
+  }
+  *gradient = diffY/diffX;
+  *offset = pt1->x*(*gradient) + pt1->y;
+  return true;
+}
 
 
 //------------------------

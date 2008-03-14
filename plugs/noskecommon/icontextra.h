@@ -137,6 +137,7 @@ float line_sqDistBetweenPts2D( Ipoint *pt1, Ipoint *pt2 );
 float line_distBetweenPts2D( Ipoint *pt1, Ipoint *pt2 );
 bool line_isPointOnLine( Ipoint *pt, Ipoint *lineStart, Ipoint *lineEnd );
 
+bool line_getLineEquation( Ipoint *pt1, Ipoint *pt2, float *gradient, float *offset );
 float line_crossProduct3Points( Ipoint *pt1, Ipoint *pt2, Ipoint *pt3);
 float line_angleFormed3Pts( Ipoint *pt1, Ipoint *pt2, Ipoint *pt3  );
 bool line_doLinesCrossAndWhere( Ipoint *line1pt1, Ipoint *line1pt2, Ipoint *line2pt1, Ipoint *line2pt2, Ipoint *intercept );
