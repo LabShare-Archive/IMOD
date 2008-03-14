@@ -137,9 +137,10 @@ enum tiltaxisdisplay   { TD_OFF, TD_TILTAXIS, TD_TILTAXISSEED, TD_TILTAXISPT };
 enum expptdisplay      { ED_CROSS, ED_DIAMOND, ED_ARROW };
 
 enum wheelbehaviour   { WH_NONE, WH_POINTS, WH_SLICES, WH_SMART };
-enum estimationmethod { EM_NEARESTTWO, EM_QUADRATIC, EM_LOCALQUADRATIC, EM_LASTSIX };
+enum estimationmethod { EM_BESTTWO, EM_NEARESTTWO,
+                        EM_QUADRATIC, EM_LOCALQUADRATIC, EM_LASTTHREE, EM_LASTSIX };
 
-const int NUM_SAVED_VALS = 16;
+const int NUM_SAVED_VALS = 17;
 
 
 //-------------------------------
@@ -173,6 +174,8 @@ struct BeadHelperData   // contains all local plugin data
   
   int expPtDisplayType;       // symbol used for expected points (see: expptdisplay)
   int expPtSize;              // the size (in screen pixels) of expected points
+  int sizePurpleSpheres;      // the size (in screen pixels) of purple spheres
+  
   int selectedAction;         // the last selected action under "More Actions"
   int sortCriteria;           // the last selected sort critria "Reorder Contours"
   
@@ -188,6 +191,10 @@ struct BeadHelperData   // contains all local plugin data
   float biggestHoleGrid;      // the approximate distance between grid points used to
                               //  find the next biggest hole (bead_goToNextBiggestHole)
   float biggestHoleOffset;    // the distance to represent the very edge of the grid
+  
+  
+  vector<IdxToSort> sortVals;   // stores a idx and float for each contour after
+                                // "reorder contours" is run
   
   Ipoint mouse;               // the current tomogram coordinates of the mouse
   
@@ -251,10 +258,15 @@ int bead_getClosestPtIdxToSlice( Icont *cont, int slice );
 Ipoint *bead_getClosestPtToSlice( Icont *cont, int slice );
 
 bool bead_getClosestTwoPointsToSlice( Icont *cont, int slice, Ipoint *pt1, Ipoint *pt2 );
+bool bead_getPointsEitherSideSlice( Icont *cont, int slice, Ipoint *pt1, Ipoint *pt2 );
 bool bead_getSpacedOutPoints( Icont *cont, int slice,
                               Icont *ptsByDist, int minZBetweenPts );
 
+Ipoint bead_getPtOnLineWithZ( Ipoint *pt1, Ipoint *pt2, int z );
 bool bead_getExpectedPosOfPoint( Icont *cont, int slice, Ipoint *pt );
+bool bead_getExpectedPosOfPointUsingPtsBefore( Icont *cont, int slice, Ipoint *pt,
+                                               int numPtsToAvg );
+
 int bead_insertOrOverwritePoint( Icont *cont, Ipoint *pt );
 bool bead_insertPtAtEstimatedPos( Icont *cont, int slice, bool overwrite );
 
@@ -264,16 +276,19 @@ bool bead_movePtsTowardsEstimatedPos ( Icont *cont, int minZ, int maxZ,
                                        int &ptsMoved, int &ptsAdded );
 int bead_fillMissingPtsOnCont( Icont *cont, int minZ, int maxZ );
 
+float bead_calcYJump( Icont *cont, int idx );
+float bead_calcAvgYJump( Icont *cont );
+float bead_calcDistanceFromExpected( Icont *cont, int idx );
+float bead_calcCrudeWeightedDevFromMiddle( Icont *cont );
 float bead_getGreyValue( Ipoint *pt );
 float bead_avgGreyValueOfPts( Icont *cont );
-float bead_calcWeightedDevFromExpected( Icont *cont );
 float bead_distFromMiddle( Icont *cont );
 
 void bead_reorderConts( int sortCriteria, int minCont, int maxCont, 
-                        bool reverse, bool printVals );
+                        bool calcValsOnly, bool reverse, bool printVals );
 
 
-bool bead_calcLineOfBestFit( Icont *cont, float *gradient, float *offset );
+bool bead_calcLineOfBestFit( Icont *cont, float *gradient, float *offset, int minPts );
 bool bead_calcQuadraticCurve( float x1, float x2, float x3,
                               float y1, float y2, float y3,
                               float *a, float *b, float *c );
@@ -281,9 +296,12 @@ bool bead_calcQuadraticCurve( float x1, float x2, float x3,
 bool bead_estimateTurningPointOfCont( Icont *cont, Ipoint *pt,
                                       float minDistRequired, int *idx );
 
+bool bead_goToNextBiggestYJump( bool findNextBiggest );
+bool bead_goToNextBiggestWeightedDev( bool findNextBiggest, bool weighted );
 bool bead_goToNextBiggestHole( bool findNextBiggest );
+bool bead_goToContNextBiggestSortVal( bool findNextBiggest );
+
 float bead_estimateTiltAngle();
-bool bead_showBottomContoursStippledUsingDirection();
 bool bead_showBottomContoursInPurple( int minZ, int maxZ );
 bool bead_showContourTurningPts();
 

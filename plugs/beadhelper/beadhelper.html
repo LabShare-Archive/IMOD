@@ -20,14 +20,26 @@ Add or moves point in the current view to its <u>e</u>xpected position<br>
 <b>[f]</b>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
 <u>F</u>ill all missing points in the current contour using expected positions<br>
 <b>[d]</b>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
-<u>D</u>elete all points above or below the current point - whichever end is closer<br><br>
+<u>D</u>elete all points above or below the current point - whichever end
+is closer<br><br>
 <b>[r]</b>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
 <u>R</u>educe the current contour to its original seed point<br>
 <br>
 <b>[h]</b>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
-Move to the the next biggest "<u>h</u>ole" between seed points<br>
+Go to the next biggest "<u>h</u>ole" between seed points<br>
+<b>[y]</b>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
+Select point with the next biggest "<u>y</u> jump"<br>
+<b>[b]</b>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
+Select point with the next <u>b</b>iggest distance from it's
+expected position<br>
+<b>[w]</b>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
+Select point with the next biggest <u>w<u>eighted distance from it's
+expected position<br>
+<b>[o]</b>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
+Select next biggest contour using "Re-<u>o<u>rder Contour" criteria<br>
 <br>
-<b>[ctrl+x]</b>&nbsp;&nbsp;&nbsp;
+<br>
+<b>[M]</b>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
 Move current contour to elsewhere.<br>
 <br>
 <b>[mouse wheel]</b>&nbsp;&nbsp;&nbsp;&nbsp;
@@ -48,7 +60,7 @@ allowing you to see the position of points on adjacent views.</li>
 <li><b>line display</b> - Used to show the trajectory of contours.
 Use this to help identify which points to fix.</li>
 <li><b>tilt display</b> - Show the tilt axis as a reference for
-contour rotation. You can set the tilt angle in "More Settings"
+contour rotation. You can change the tilt angle in "More Settings"
 or "More Actions".</li>
 </ul>
 <br>
@@ -173,6 +185,12 @@ For the best reconstruction it's a good idea to manually check all
 contours using this method, unfortunately that can be very slow, and so
 it's useful to instead use the visual aids to identify bad points/contours
 before moving to the "Fine alignment" step.<br>
+<br>
+A fast way to correct bad points before fine alignment is to use
+[y], [b] or [w] to jump the the "next worst point" and use [e] to
+move it to it's expcted point. To identify bad contours you can
+chose a sort criteria under "Reorder contours" and use [o] to
+move through the values in descending order.<br>
 <br>
 Be very careful using the provided methods to fill in gaps and/or
 smooth contours by moving points. Cross-correlation never does a perfect
