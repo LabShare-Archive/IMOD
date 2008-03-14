@@ -3876,7 +3876,7 @@ bool bead_goToContNextBiggestSortVal( bool findNextBiggest )
   
   
   float maxValAllowed = FLOAT_MAX;
-  if ( findNextBiggest && plug.sortVals.size() != csize(obj) )
+  if ( findNextBiggest && plug.sortVals.size() == csize(obj) )
   {
     if( csize(obj) == 0 ) {
       wprint("\aThere are no contours to sort\n");
