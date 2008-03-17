@@ -6,9 +6,10 @@
 # Log at end of file
 # 
 
-# To increase the memory limit for Java, increase the number here
+# To increase the memory limit for Java, define this environment variable
+# to a higher number
 #
-export JAVA_MEM_LIM=128m
+export ETOMO_MEM_LIM=${ETOMO_MEM_LIM:=128m}
 
 # If you wish to use a different java runtime than the default uncomment the
 # following line and define the path to the desired runtime directory
@@ -125,14 +126,17 @@ if [ ${help} -eq 0 ] ; then
 
 
   echo "starting eTomo"
-  java -Xmx${JAVA_MEM_LIM} -cp "${IMOD_DIR}/bin/etomo" \
+  java -Xmx${ETOMO_MEM_LIM} -cp "${IMOD_DIR}/bin/etomo" \
    -jar "${IMOD_DIR}/bin/etomo.jar" "$@" 2>${errlog} >${outlog} &
 else
-  java -Xmx${JAVA_MEM_LIM} -cp "${IMOD_DIR}/bin/etomo" \
+  java -Xmx${ETOMO_MEM_LIM} -cp "${IMOD_DIR}/bin/etomo" \
    -jar "${IMOD_DIR}/bin/etomo.jar" "$@"
 fi
 
 # $Log$
+# Revision 1.25  2008/01/04 22:03:56  mast
+# Fixes for spaces in IMOD_DIR
+#
 # Revision 1.24  2007/12/19 20:59:14  mast
 # Quote the $@ so spaces are preserved in arguments
 #
