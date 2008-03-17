@@ -15,6 +15,9 @@
     $Revision$
 
     $Log$
+    Revision 1.3  2008/03/14 04:37:20  tempuser
+    Added function to caculate line equation
+
     Revision 1.2  2008/03/11 09:36:18  tempuser
     Minor modifications
 
@@ -244,16 +247,34 @@ bool point_distToBBox2D(Ipoint *pt, Ipoint *ll, Ipoint *ur)
   return sqrt( distX*distX + distY*distY );
 }
 
-
 //------------------------
 //-- Checks if point is inside the given bounding box
 
 bool point_isInsideBBox(Ipoint *pt, Ipoint *ll, Ipoint *ur, bool ignoreZ)
 {
   return ( ( ignoreZ || isBetween(ll->z,pt->z,ur->z) )
-        && isBetween(ll->x,pt->x,ur->x)
+           && isBetween(ll->x,pt->x,ur->x)
            && isBetween(ll->y,pt->y,ur->y));
 }
+
+//------------------------
+//-- Used to calculate MINDIST between two edges.
+
+bool mbr_doEdgesOverlap(double min1, double max1, double min2, double max2)
+{
+	return !( (max1 < min2) || (min1 > max2) );		// says: if edge1 to the LEFT or RIGHT of edge2: it does not overlap  (otherwise it does)
+}
+
+
+//------------------------
+//-- Returns true if two bounding boxes overlap in 2D
+
+bool mbr_doBBoxesOverlap2D(Ipoint *p1ll, Ipoint *p1ur, Ipoint *p2ll, Ipoint *p2ur)
+{
+	return (  mbr_doEdgesOverlap( p1ll->x, p1ur->x,  p2ll->x, p2ur->x )
+         && mbr_doEdgesOverlap( p1ll->y, p1ur->y,  p2ll->y, p2ur->y )  );
+}
+
 
 
 
@@ -681,10 +702,13 @@ bool cont_doContsTouch( Icont *cont1, Icont *cont2 )
   
   imodContourGetBBox( cont1, &cont1ll, &cont1ur );
   imodContourGetBBox( cont2, &cont2ll, &cont2ur );
-  return ( imodel_scans_overlap( cs1,cont1ll,cont1ur, cs2,cont2ll,cont2ur) );
+  
+  bool result = imodel_scans_overlap( cs1,cont1ll,cont1ur, cs2,cont2ll,cont2ur);
   
   imodContourDelete( cs1 );
   imodContourDelete( cs2 );
+  
+  return result;
 }
 
 
@@ -1165,7 +1189,7 @@ int cont_reducePtsMinArea( Icont *cont, float minArea, bool closed )
     Ipoint *p1 = getPt(cont,i-1);    //|-- construct a triangle with the current pt
     Ipoint *p2 = getPt(cont,i);      //|   plus the pt before and after it.
     Ipoint *p3 = getPt(cont,i+1);    //|
-        
+    
     if ( imodPointArea( p1, p2, p3 ) < minArea ) {  
       imodPointDelete( cont, i );
       numPointsDeleted++;

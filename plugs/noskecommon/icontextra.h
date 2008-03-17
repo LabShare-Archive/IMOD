@@ -119,6 +119,8 @@ void point_scalePtAboutPt2D( Ipoint *pt, Ipoint *center, float scaleX, float sca
 float point_distToNearestEdge(float val, float min, float max);
 bool point_distToBBox2D(Ipoint *pt, Ipoint *ll, Ipoint *ur);                  // NEW
 bool point_isInsideBBox(Ipoint *pt, Ipoint *ll, Ipoint *ur, bool ignoreZ);    // NEW
+bool mbr_doEdgesOverlap(double min1, double max1, double min2, double max2);
+bool mbr_doBBoxesOverlap2D(Ipoint *p1ll, Ipoint *p1ur, Ipoint *p2ll, Ipoint *p2ur);
 
 float getValCatmullRom( float fracIntoKf, float p0, float p1, float p2,  float p3, float tensileFract );
 Ipoint getPtCatmullRom( float fracIntoKf, Ipoint p0, Ipoint p1, Ipoint p2,  Ipoint p3, float tensileFract ); 
