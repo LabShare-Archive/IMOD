@@ -15,6 +15,9 @@
     $Revision$
 
     $Log$
+    Revision 1.9  2008/03/12 02:24:34  tempuser
+    Minor modifications
+
     Revision 1.8  2008/03/11 09:35:47  tempuser
     Added save vals
 
@@ -1071,21 +1074,40 @@ void DrawingTools::reduceConts()
 {
   if( !isCurrObjValidAndShown() )
   {
-    MsgBox("You have not selected a valid displayed object");
-    return;
-  }
-  if( !MsgBoxYesNo( plug.window,
-                    "Are you sure you want to reduce all the contours in this object?\n"
-                    "You CANNOT undo this operation and you will "
-                    "lose points/data." ) )
-  {
+    MsgBox("Current object is not valid or not displayed");
     return;
   }
   
+  //## GET USER INPUT FROM CUSTOM DIALOG:
+  
   Imod *imod  = ivwGetModel(plug.view);
-  Iobj *obj   = getCurrObj();
+  Iobj *obj  = getCurrObj();
   int objIdx, contIdx, ptIdx;
   imodGetIndex(imod, &objIdx, &contIdx, &ptIdx);
+  int nConts = csize(obj);
+  
+  static bool interpolated = false;
+  
+	CustomDialog ds;
+  int ID_DUMMY         = ds.addLabel   ( "contour range:" );
+  int ID_CONTMIN       = ds.addSpinBox ( "min:", 1, nConts, 1, 1,
+                                         "Only contours AFTER this contour "
+                                         "(inclusive) will be changed" );
+  int ID_CONTMAX       = ds.addSpinBox ( "max:", 1, nConts, nConts, 1,
+                                         "Only contours BEFORE this contour "
+                                         "(inclusive) will be changed" );
+	int ID_INTERPOLATED  = ds.addCheckBox( "only reduce stippled contours", interpolated );
+  int ID_DUMMY2        = ds.addLabel   ( "... are you sure?" );
+	GuiDialogCustomizable dlg(&ds, "Reduce Contours",false);
+	dlg.exec();
+	if( ds.cancelled )
+		return;
+  int contMin         = ds.getResultSpinBox   ( ID_CONTMIN ) - 1;
+  int contMax         = ds.getResultSpinBox   ( ID_CONTMAX ) - 1;
+  interpolated        = ds.getResultCheckBox  ( ID_INTERPOLATED );
+  
+  
+  //## REDUCE ALL CONTOURS WITHING RANGE:
   
   int totalContoursChanged = 0;
   int totalPointsBefore = 0;
@@ -1094,14 +1116,15 @@ void DrawingTools::reduceConts()
   for(int c=0; c<csize(obj); c++)
   {
     Icont *cont = getCont( obj, c );
-    
     if( !isContValid(cont) )
       continue;
     
-    int nPointsBefore = psize( cont );        
-    //imodSetIndex(imod, objIdx, c, 0);         // |-- DOESN'T WORK FOR SOME REASON
-    //undoContourDataChg( imod, objIdx, c );    // |
-    cont_reducePtsMinArea( cont, plug.draw_reducePtsMaxArea, isContClosed(obj,cont) );
+    int nPointsBefore = psize( cont );
+    if( !interpolated || isInterpolated(cont) )
+    {
+      undoContourDataChg( plug.view, objIdx, c );           // REGISTER UNDO
+      cont_reducePtsMinArea( cont, plug.draw_reducePtsMaxArea, isContClosed(obj,cont) );
+    }
     int nPointsAfter = psize( cont );
     
     totalPointsBefore += nPointsBefore;
@@ -1110,13 +1133,14 @@ void DrawingTools::reduceConts()
     if( nPointsBefore != nPointsAfter )
       totalContoursChanged++;
   }
-  //if(totalContoursChanged)
-  //  undoFinishUnit( plug.view );
+  if(totalContoursChanged)
+    undoFinishUnit( plug.view );                        // FINISH UNDO
+  
+  
+  //## PRINT RESULT:
   
   imodSetIndex(imod, objIdx, contIdx, 0);
-  
   int percentReduction = 100 - (fDivide( totalPointsAfter, totalPointsBefore ) * 100);
-  
   wprint("All contours have been reduced\n");
   wprint(" # contours changed = %d\n", totalContoursChanged );
   wprint(" total # points = %d -> %d (%d%% reduction)\n",
@@ -1132,27 +1156,46 @@ void DrawingTools::smoothConts()
 {
   if( !isCurrObjValidAndShown() )
   {
-    MsgBox("You have not selected a valid displayed object");
-    return;
-  }
-  if( !MsgBoxYesNo( plug.window,
-                    "Are you sure you want to smooth all the contours in this object?\n"
-                    "You CANNOT undo this operation so you should test the \n"
-                    "result of your smoothing input on a few contours first." ) )
-  {
+    MsgBox("Current object is not valid or not displayed");
     return;
   }
   
+  //## GET USER INPUT FROM CUSTOM DIALOG:
+  
   Imod *imod  = ivwGetModel(plug.view);
-  Iobj *obj   = getCurrObj();
+  Iobj *obj  = getCurrObj();
   int objIdx, contIdx, ptIdx;
   imodGetIndex(imod, &objIdx, &contIdx, &ptIdx);
+  int nConts = csize(obj);
+  
+  static bool interpolated = false;
+  
+	CustomDialog ds;
+  int ID_DUMMY         = ds.addLabel   ( "contour range:" );
+  int ID_CONTMIN       = ds.addSpinBox ( "min:", 1, nConts, 1, 1,
+                                         "Only contours AFTER this contour "
+                                         "(inclusive) will be changed" );
+  int ID_CONTMAX       = ds.addSpinBox ( "max:", 1, nConts, nConts, 1,
+                                         "Only contours BEFORE this contour "
+                                         "(inclusive) will be changed" );
+	int ID_INTERPOLATED  = ds.addCheckBox( "only smooth stippled contours", interpolated );
+  int ID_DUMMY2        = ds.addLabel   ( "... are you sure?" );
+	GuiDialogCustomizable dlg(&ds, "Smooth Contours",false);
+	dlg.exec();
+	if( ds.cancelled )
+		return;
+  int contMin         = ds.getResultSpinBox   ( ID_CONTMIN ) - 1;
+  int contMax         = ds.getResultSpinBox   ( ID_CONTMAX ) - 1;
+  interpolated        = ds.getResultCheckBox  ( ID_INTERPOLATED );
+  
+  
+  //## SMOOTH ALL CONTOURS WITHING RANGE:
   
   int totalContoursChanged = 0;
   int totalPointsBefore = 0;
   int totalPointsAfter = 0;
   
-  for(int c=0; c<csize(obj); c++)
+  for(int c=contMin; c<=contMax && c<csize(obj); c++)
   {
     Icont *cont = getCont( obj, c );
     
@@ -1160,10 +1203,12 @@ void DrawingTools::smoothConts()
       continue;
     
     int nPointsBefore = psize( cont );        
-    //imodSetIndex(imod, objIdx, c, 0);         // |-- DOESN'T WORK FOR SOME REASON
-    //undoContourDataChg( imod, objIdx, c );    // |
-    cont_addPtsSmooth( cont, plug.draw_smoothMinDist, plug.draw_smoothTensileFract,
-                       isContClosed(obj,cont) );
+    if( !interpolated || isInterpolated(cont) )
+    {
+      undoContourDataChg( plug.view, objIdx, c );           // REGISTER UNDO
+      cont_addPtsSmooth( cont, plug.draw_smoothMinDist, plug.draw_smoothTensileFract,
+                         isContClosed(obj,cont) );
+    }
     int nPointsAfter = psize( cont );
     
     totalPointsBefore += nPointsBefore;
@@ -1175,10 +1220,10 @@ void DrawingTools::smoothConts()
   if(totalContoursChanged)
     undoFinishUnit( plug.view );
   
-  imodSetIndex(imod, objIdx, contIdx, 0);
   
-  int percentIncrease = (fDivide( totalPointsAfter, totalPointsBefore ) * 100);
+  //## PRINT RESULT:
   
+  int percentIncrease = (fDivide( totalPointsAfter, totalPointsBefore ) * 100) - 100;
   wprint("All contours have been reduced\n");
   wprint(" # contours changed = %d\n", totalContoursChanged );
   wprint(" total # points = %d -> %d (%d%% increase)\n",
@@ -2585,7 +2630,7 @@ bool edit_selectNextOverlappingCont()
     for (; i<csize(objO); i++)      // for each contour:
     {
       Icont *contI = getCont( objO, i );
-      if( isEmpty( contI ) )
+      if( isEmpty(contI) )
         continue;
       
       bool isSimple = cont_isSimple( contI, isContClosed(objO,contI) );
@@ -2596,6 +2641,8 @@ bool edit_selectNextOverlappingCont()
         return (true);
       }
       
+      Ipoint contIll, contIur;                // get bounding box for contI
+      imodContourGetBBox( contI, &contIll, &contIur );
       
       for (int p=(oNum); p<osize(imod); p++)          // for each object ahead of that:
       {
@@ -2607,12 +2654,17 @@ bool edit_selectNextOverlappingCont()
         for(; j<csize(objP); j++)     // for each contour ahead:
         {
           Icont *contJ = getCont( objP, j );
+          if( isEmpty(contJ) )
+            continue;
           
           if( ( getZInt(contJ) == getZInt(contI) )  )     // if on same slice:
           {
+            Ipoint contJll, contJur;                // get bounding box for contJ
+            imodContourGetBBox( contJ, &contJll, &contJur );
+            
             int pt1Cross, pt2Cross;
-            if( cont_doContsTouch( contI, contJ ) &&
-                cont_doCountoursCrossAndWhere( contI, contJ,
+            if( mbr_doBBoxesOverlap2D( &contIll, &contIur, &contJll, &contJur )
+                && cont_doCountoursCrossAndWhere( contI, contJ,
                                                isContClosed(objO,contI),
                                                isContClosed(objP,contJ),
                                                &pt1Cross, &pt2Cross ) )
