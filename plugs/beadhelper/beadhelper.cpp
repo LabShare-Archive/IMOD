@@ -148,10 +148,18 @@ int imodPlugKeys(ImodView *vw, QKeyEvent *event)
       bead_goToNextBiggestWeightedDev( !shift, false );
       break;
       
+    case Qt::Key_U:                  // go to contour with next biggest sort value
+      plug.window->toggleStippled();
+      break;
+      
     case Qt::Key_O:                  // go to contour with next biggest sort value
       bead_goToContNextBiggestSortVal( !shift );
       break;
       
+    case Qt::Key_Enter:
+    case Qt::Key_Return:
+      plug.window->iterateStippled(1,false);
+      break;
       
     //## LIST OF KEYS THAT REQUIRE A REDRAW OF THE EXTRA OBJECT:
       
@@ -1115,7 +1123,7 @@ void BeadHelper::deletePtsInRange()
   
   int numPtsDeleted = 0;
   
-  for( int c=MAX(plug.contMin,0); c<MIN(plug.contMax,csize(obj)); c++)
+  for( int c=MAX(plug.contMin,0); c<=plug.contMax && c<csize(obj); c++)
   {
     imodSetIndex(imod, objIdx, c, 0);
     undoContourDataChgCC( plug.view );      // REGISTER UNDO
@@ -1234,7 +1242,7 @@ void BeadHelper::reduceContsToSeed()
   imodGetIndex(imod, &objIdx, &contIdx, &ptIdx);
   int numContsReduced = 0;
   
-  for( int c=MAX(plug.contMin,0); c<MIN(plug.contMax,csize(obj)); c++)
+  for( int c=MAX(plug.contMin,0); c<=plug.contMax && c<csize(obj); c++)
   {
     imodSetIndex(imod, objIdx, c, 0);
     Icont *cont = getCont( obj, c );
@@ -1383,7 +1391,7 @@ void BeadHelper::movePtsToExstimatedPos()
   //## ITERATE THROUGH SPECIFIED RANGE OF CONTOURS AND MOVE ALL POINTS WITHIN
   //## SPECIFIED VIEWS TO THEIR EXPECTED POSITION: 
   
-  for( int c=MAX(minCont,0); c<=MIN(maxCont,csize(obj)); c++)
+  for( int c=MAX(minCont,0); c<=maxCont && c<csize(obj); c++)
   {
     imodSetIndex(imod, objIdx, c, 0);
     Icont *cont = getCont( obj, c );
@@ -1457,7 +1465,7 @@ void BeadHelper::fillMissingPts()
   int numContsChanged = 0;
   int numPtsAddedTotal = 0;
   
-  for( int c=MAX(plug.contMin,0); c<MIN(plug.contMax,csize(obj)); c++)
+  for( int c=MAX(plug.contMin,0); c<=plug.contMax && c<csize(obj); c++)
   {
     imodSetIndex(imod, objIdx, c, 0);
     Icont *cont = getCont( obj, c );
@@ -1499,7 +1507,6 @@ void BeadHelper::fillMissingPtsCurrCont()
 }
 
 
-
 //------------------------
 //-- Gives a choice of several other options for the user.
 
@@ -1516,7 +1523,8 @@ void BeadHelper::moreActions()
                                   "show contour turning points,"
                                   "clear purple object,"
                                   "move points between objects,"
-                                  "remove duplicate pts from object",
+                                  "remove duplicate pts from object,"
+                                  "mark contours as checked/unchecked",
                                   plug.selectedAction );
 	GuiDialogCustomizable dlg(&ds, "Perform Action", this);
 	dlg.exec();
@@ -1590,6 +1598,11 @@ void BeadHelper::moreActions()
     case(5):      // move points between objects
     {
       correctCurrentObject();
+    } break;
+      
+    case(6):      // mark all contours as stippled/unchecked
+    {
+      markRangeAsStippled();
     } break;
   }
   
@@ -1994,6 +2007,119 @@ void BeadHelper::correctCurrentObject()
   }
 }
 
+
+
+//------------------------
+//-- Toggles the current contour's stippled flag
+
+void BeadHelper::toggleStippled()
+{
+  if( !isCurrContValid() )
+    return;
+  
+  Icont *cont = getCurrCont();
+  undoContourPropChgCC( plug.view );        // REGISTER UNDO
+  setInterpolated( cont, isInterpolated(cont) ? 0 : 1 );
+  undoFinishUnit( plug.view );              // FINISH UNDO
+	plug.window->drawExtraObject(true);
+}
+
+//------------------------
+//-- Selects the next stippled contour in the current object
+
+bool BeadHelper::iterateStippled(int change, bool stippled)
+{
+  if( !isCurrObjValid() )
+    return false;
+  
+  Imod *imod  = ivwGetModel(plug.view);
+  Iobj *obj   = imodObjectGet(imod);
+  int objIdx, contIdx, ptIdx;
+  imodGetIndex(imod, &objIdx, &contIdx, &ptIdx);
+  
+  for( int i=0; i<csize(obj); i++ )
+  {
+    int c = intMod( (i+1)*change+contIdx , csize(obj) );
+    
+    Icont *cont = getCont(obj,c);
+    if( isInterpolated(cont) == stippled )
+    {
+      imodSetIndex( imod, objIdx, c, MIN(ptIdx, psize(cont)-1) );
+      plug.window->drawExtraObject(true);
+      ivwRedraw( plug.view );
+      return true;
+    }
+  }
+  wprint("\aNo more unchecked (unstippled) contours found\n");
+  return false;
+}
+
+//------------------------
+//-- Toggles the current contour's stippled flag
+
+void BeadHelper::markRangeAsStippled()
+{
+  if( !isCurrObjValid() )
+  {
+    MsgBox( "Select a valid object first" );
+    return;
+  }
+  
+  int nConts = csize(getCurrObj());
+  
+  //## GET USER INPUT FROM CUSTOM DIALOG:
+  
+  static int stippled = 1;
+  
+	CustomDialog ds;
+  int ID_DUMMY         = ds.addLabel   ( "contours to change:" );
+  int ID_CONTMIN       = ds.addSpinBox ( "min:", 1, nConts, plug.contMin, 1,
+                                         "Only contours after this contour "
+                                         "(inclusive) will be reordered" );
+  int ID_CONTMAX       = ds.addSpinBox ( "max:", 1, nConts, nConts, 1,
+                                         "Only contours BEFORE this contour "
+                                         "(inclusive) will be reordered" );
+  int ID_STIPPLED      = ds.addRadioGrp( "mark as:",
+                                         "unstippled (unchecked),"
+                                         "stippled (checked)", stippled );
+  int ID_DUMMY2        = ds.addLabel   ( "NOTE: Use [Enter] to iterate through\n"
+                                         "unchecked (unstippled) contours and\n"
+                                         "[u] to toggle current contour between\n"
+                                         "checked and unchecked" );
+	GuiDialogCustomizable dlg(&ds, "Mark Contours as Checked", this);
+	dlg.exec();
+	if( ds.cancelled )
+		return;
+  int contMin         = ds.getResultSpinBox   ( ID_CONTMIN ) - 1;
+  int contMax         = ds.getResultSpinBox   ( ID_CONTMAX ) - 1;
+  stippled            = ds.getResultRadioGrp  ( ID_STIPPLED );
+  
+  
+  //## CHANGE CONTOURS IN RANGE TO STIPPLED / UNSTIPPLED
+  
+  Imod *imod  = ivwGetModel(plug.view);
+  Iobj *obj   = imodObjectGet(imod);
+  int objIdx, contIdx, ptIdx;
+  imodGetIndex(imod, &objIdx, &contIdx, &ptIdx);
+  
+  int numChanged = 0;
+  
+  for( int c=contMin; c<=contMax && c<csize(obj); c++ )
+  {
+    Icont *cont = getCont(obj,c);
+    if( isInterpolated(cont) != stippled )
+    {
+      undoContourPropChgCC( plug.view );        // REGISTER UNDO
+      setInterpolated( cont, stippled );
+      numChanged++;
+    }
+  }
+  if( numChanged )
+    undoFinishUnit( plug.view );              // FINISH UNDO
+  
+  wprint("%d contours changed\n", numChanged);
+	plug.window->drawExtraObject(true);
+}
 
 
 //------------------------

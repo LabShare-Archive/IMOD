@@ -60,11 +60,14 @@ class BeadHelper : public DialogFrame
   void moveContour();
   void moveMultipleContours();
   void correctCurrentObject();
-  void test();
+  void toggleStippled();
+  bool iterateStippled(int change, bool stippled);
+  void markRangeAsStippled();
   
   bool updateAndVerifyRanges();
   bool advanceSelectedPointInCurrCont( int change );
-  
+  void test();
+    
   void changeShowExpectedPos();
   void changeShowSpheres();
   void changeSphereSize( int value );
