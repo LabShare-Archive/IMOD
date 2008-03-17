@@ -18,6 +18,11 @@ for input.
 Directory into which eTomo will place log files, instead of into the directory
 from which eTomo was started.
 .TP
+.B ETOMO_MEM_LIM
+Memory limit for running etomo.  Define this as a number of megabytes followed
+by the letter "m".  The default of 128m is set in the etomo startup script.
+Larger values will allow larger final alignment logs to be displayed.
+.TP
 .B IMOD_ALL_MACHINES
 Comma-separated line of machine names that will be used by processchunks
 when it is given ALL instead of a machine list.

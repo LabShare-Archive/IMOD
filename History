@@ -1,6 +1,12 @@
 IMOD History
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+3/17/08: Added an environment variable ETOMO_MEM_LIM to set the java memory
+limit in etomo.
+
 3/10/08: Fixed crash from key handling by scale bar dialog in 3dmodv mode.
+
+3/6/08: Made Boxstartend scale model coordinates to the volume being
+extracted, so the model can be made on a binned-down volume.
 
 3/5/08: Fixed artifact on right edge of image in HQ highly zoomed slicer.
 
