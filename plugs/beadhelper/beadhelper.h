@@ -50,8 +50,10 @@ class BeadHelper : public DialogFrame
   void deletePtsCurrContToNearestEnd( bool inclusive );
   void reduceContsToSeed();
   void reduceCurrContToSeed();
-  void movePtsToExstimatedPos();
-  void movePtToExstimatedPosCurrCont();
+  void movePtsToEstimatedPosOptions();
+  void movePtsToEstimatedPosRange();
+  void movePtsToEstimatedPosCurrCont();
+  void moveCurrPtToEstimatedPos();
   void fillMissingPts();
   void fillMissingPtsCurrCont();
   void moreActions();
@@ -106,7 +108,7 @@ class BeadHelper : public DialogFrame
   
   QGroupBox   *grpDisplay;
   QGridLayout *gridLayout2;
-  QCheckBox   *showExpectedPosCheckbox;
+  QCheckBox   *showEstimatedPosCheckbox;
   QCheckBox   *showSpheresCheckbox;
   QSpinBox    *sphereSizeSpinner;
   QLabel      *lblLineDisplay;
@@ -143,7 +145,7 @@ enum wheelbehaviour   { WH_NONE, WH_POINTS, WH_SLICES, WH_SMART };
 enum estimationmethod { EM_BESTTWO, EM_NEARESTTWO,
                         EM_QUADRATIC, EM_LOCALQUADRATIC, EM_LASTTHREE, EM_LASTSIX };
 
-const int NUM_SAVED_VALS = 17;
+const int NUM_SAVED_VALS = 27;
 
 
 //-------------------------------
@@ -161,7 +163,7 @@ struct BeadHelperData   // contains all local plugin data
   int contMin;                // minimum contour in range
   int contMax;                // maximum contour in range
   
-  int showExpectedPos;       // if true: will show estimated position of point on
+  int showExpectedPos;       // if true: will show estimated position (est pos) of point on
                               //   the current each slice
   bool showSpheres;           // if true: will set the sphere size to "sphereSize"
   int  sphereSize;            // the sphere size of the object, allowing the user
@@ -183,6 +185,21 @@ struct BeadHelperData   // contains all local plugin data
   int sortCriteria;           // the last selected sort critria "Reorder Contours"
   
   bool autoSaveSettings;
+  
+  
+  //## SMOOTHING OPTIONS:
+  
+  int   smoothCurrContOnly;   // if 0: smooths range, if 1: smooths current contour only
+  bool  smoothFillGaps;       // fill in missing points (on views with no points)
+  bool  smoothMoveYOnly;      // only shifts point along y axis
+  bool  smoothLeaveSeed;      // will not move the seed point during moving process
+  bool  smoothLeaveEnds;      // will not move the start and end point of contours
+  float smoothMoveFract;      // move points by this fraction towards their exp pos
+  int   smoothMinResid;       // only move points more that this distance from exp pos
+  int   smoothIterations;     // how many iterations to run smoothing
+  bool  smoothAdjacentV;      // will only smooth views above and below the current view
+  int   smoothNumViews;       // how many views above and below the current z to smooth
+  
   
   //## OTHER:
   
@@ -273,9 +290,13 @@ bool bead_getExpectedPosOfPointUsingPtsBefore( Icont *cont, int slice, Ipoint *p
 int bead_insertOrOverwritePoint( Icont *cont, Ipoint *pt );
 bool bead_insertPtAtEstimatedPos( Icont *cont, int slice, bool overwrite );
 
+int bead_movePtTowardsEstimatedPos ( Icont *cont, int z,
+                                     float moveFract, float minResid, bool moveYOnly,
+                                     bool leaveSeed, bool leaveEnds );
 bool bead_movePtsTowardsEstimatedPos ( Icont *cont, int minZ, int maxZ,
                                        float moveFract, float minResid, int iterations,
-                                       bool fillGaps, bool moveYOnly, bool leaveSeed,
+                                       bool fillGaps, bool moveYOnly,
+                                       bool leaveSeed, bool leaveEnds,
                                        int &ptsMoved, int &ptsAdded );
 int bead_fillMissingPtsOnCont( Icont *cont, int minZ, int maxZ );
 

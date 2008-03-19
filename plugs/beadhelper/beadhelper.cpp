@@ -93,8 +93,16 @@ int imodPlugKeys(ImodView *vw, QKeyEvent *event)
   switch(keysym)
   {
     case Qt::Key_E:
-      plug.window->movePtToExstimatedPosCurrCont();
-      plug.window->drawExtraObject(true);
+      if (!shift)
+      {
+        plug.window->moveCurrPtToEstimatedPos();
+        plug.window->drawExtraObject(true);
+      }
+      else
+      {
+        plug.window->movePtsToEstimatedPosCurrCont();
+        plug.window->drawExtraObject(true);
+      }
       break;
       
     case Qt::Key_F:                  // fill points in current contour
@@ -142,7 +150,7 @@ int imodPlugKeys(ImodView *vw, QKeyEvent *event)
       bead_goToNextBiggestWeightedDev( !shift, true );
       break;
       
-    case Qt::Key_B:                  // go to next biggest deviation from expected
+    case Qt::Key_B:                  // go to next biggest deviation from estimated
       if(ctrl)
         return 0;
       bead_goToNextBiggestWeightedDev( !shift, false );
@@ -247,6 +255,18 @@ void imodPlugExecute(ImodView *inImodView)
     plug.sortCriteria          = 0;
     
     plug.autoSaveSettings      = true;
+    
+    
+    plug.smoothCurrContOnly    = 1;
+    plug.smoothFillGaps        = true;
+    plug.smoothMoveYOnly       = false;
+    plug.smoothLeaveSeed       = true;
+    plug.smoothLeaveEnds       = false;
+    plug.smoothMoveFract       = 1.0;
+    plug.smoothMinResid        = 0;
+    plug.smoothIterations      = 1;
+    plug.smoothAdjacentV       = false;
+    plug.smoothNumViews        = 5;
     
     plug.window->loadSettings();
     
@@ -511,12 +531,12 @@ BeadHelper::BeadHelper(QWidget *parent, const char *name) :
                 "Deletes all points in the current contour except on the middle slice");
   vboxLayout1->addWidget(reduceContsToSeedButton);
   
-  movePtsToEstButton = new QPushButton("Move Point to Estimated Pos [e]", grpActions);
+  movePtsToEstButton = new QPushButton("Move Points to Estimated Pos [e]", grpActions);
   QObject::connect(movePtsToEstButton, SIGNAL(clicked()), this,
-                   SLOT(movePtsToExstimatedPos()));
+                   SLOT(movePtsToEstimatedPosOptions()));
   QToolTip::add(movePtsToEstButton,
-                "Move or creates a point on the current slice based on the position of "
-                "the closest points either side");
+                "Smooths contour(s) by moving points towards their estimated position "
+                "(provides several different methods to achieve this)");
   vboxLayout1->addWidget(movePtsToEstButton);
   
   fillMissingPtsButton = new QPushButton("Fill Missing Points   [f]", grpActions);
@@ -546,14 +566,14 @@ BeadHelper::BeadHelper(QWidget *parent, const char *name) :
   gridLayout2->setMargin(LAYOUT_MARGIN);
   gridLayout2->addItem( new QSpacerItem(1,SPACER_HEIGHT), 0, 0);
   
-  showExpectedPosCheckbox = new QCheckBox("show expected position", grpDisplay);
-  showExpectedPosCheckbox->setChecked( plug.showExpectedPos );
-  QObject::connect(showExpectedPosCheckbox,SIGNAL(clicked()),this,
+  showEstimatedPosCheckbox = new QCheckBox("show estimated position", grpDisplay);
+  showEstimatedPosCheckbox->setChecked( plug.showExpectedPos );
+  QObject::connect(showEstimatedPosCheckbox,SIGNAL(clicked()),this,
                    SLOT(changeShowExpectedPos()));
-  QToolTip::add(showExpectedPosCheckbox, 
-                "Shows the expected position of the current point based on "
+  QToolTip::add(showEstimatedPosCheckbox, 
+                "Shows the estimated position of the current point based on "
                 "position of points either side");
-  gridLayout2->addMultiCellWidget(showExpectedPosCheckbox, 1, 1, 0, 1);
+  gridLayout2->addMultiCellWidget(showEstimatedPosCheckbox, 1, 1, 0, 1);
   
   showSpheresCheckbox = new QCheckBox("sphere size:", grpDisplay);
   showSpheresCheckbox->setChecked( plug.showSpheres );
@@ -770,12 +790,12 @@ void cont_makeContShowingMissingPoints( Icont *to, Icont *from, int slice, float
   for( int z=0; z<plug.zsize; z++)    // for each slice:
   {
     if( !bead_isPtOnSlice(from,z) )     // if missin point:
-    {                                     // draw a cross at it's expected poistion
-      Ipoint expectedPt;
-      if ( bead_getExpectedPosOfPoint( from, z, &expectedPt ) )
+    {                                     // draw a cross at it's estimated poistion
+      Ipoint estPt;
+      if ( bead_getExpectedPosOfPoint( from, z, &estPt ) )
       {
-        cont_addCross( to, expectedPt, radius*3.0, slice );
-        imodPointAppendXYZ( to, expectedPt.x, expectedPt.y, -1 );
+        cont_addCross( to, estPt, radius*3.0, slice );
+        imodPointAppendXYZ( to, estPt.x, estPt.y, -1 );
       }
     }
   }
@@ -1049,6 +1069,17 @@ void BeadHelper::loadSettings()
   plug.selectedAction       = savedValues[14];
   plug.sortCriteria         = savedValues[15];
   plug.autoSaveSettings     = savedValues[16];
+  
+  plug.smoothCurrContOnly   = savedValues[17];
+  plug.smoothFillGaps       = savedValues[18];
+  plug.smoothMoveYOnly      = savedValues[19];
+  plug.smoothLeaveSeed      = savedValues[20];
+  plug.smoothLeaveEnds      = savedValues[21];
+  plug.smoothMoveFract      = savedValues[22];
+  plug.smoothMinResid       = savedValues[23];
+  plug.smoothIterations     = savedValues[24];
+  plug.smoothAdjacentV      = savedValues[25];
+  plug.smoothNumViews       = savedValues[26];
 }
 
 
@@ -1077,6 +1108,17 @@ void BeadHelper::saveSettings()
   saveValues[14] = plug.selectedAction;
   saveValues[15] = plug.sortCriteria;
   saveValues[16] = plug.autoSaveSettings;
+  
+  saveValues[17] = plug.smoothCurrContOnly;
+  saveValues[18] = plug.smoothFillGaps;
+  saveValues[19] = plug.smoothMoveYOnly;
+  saveValues[20] = plug.smoothLeaveSeed;
+  saveValues[21] = plug.smoothLeaveEnds;
+  saveValues[22] = plug.smoothMoveFract;
+  saveValues[23] = plug.smoothMinResid;
+  saveValues[24] = plug.smoothIterations;
+  saveValues[25] = plug.smoothAdjacentV;
+  saveValues[26] = plug.smoothNumViews;
   
   prefSaveGenericSettings("BeadHelper",NUM_SAVED_VALS,saveValues);
 }
@@ -1240,7 +1282,9 @@ void BeadHelper::reduceContsToSeed()
   Iobj *obj  = imodObjectGet(imod);
   int objIdx, contIdx, ptIdx;
   imodGetIndex(imod, &objIdx, &contIdx, &ptIdx);
+  
   int numContsReduced = 0;
+  int numPtsDeleted = 0;
   
   for( int c=MAX(plug.contMin,0); c<=plug.contMax && c<csize(obj); c++)
   {
@@ -1251,16 +1295,20 @@ void BeadHelper::reduceContsToSeed()
     {
       Ipoint *pt = bead_getPtOnSlice(cont,plug.middleSlice);
       Ipoint seedPt = *pt;
-      int numPtsToDel = psize(cont) - 1;
+      numPtsDeleted += psize(cont) - 1;
       undoContourDataChgCC( plug.view );      // REGISTER UNDO
       deleteAllPts(cont);
       imodPointAppend( cont, &seedPt );
       numContsReduced++;
     }
   }
-  
-  imodSetIndex(imod, objIdx, contIdx, 0);
   undoFinishUnit( plug.view );                // FINISH UNDO
+  
+  //## OUTPUT RESULTS:
+  
+  wprint( "Reduced %d contours to seed - %d points deleted\n",
+          numContsReduced, numPtsDeleted );
+  imodSetIndex(imod, objIdx, contIdx, 0);
   ivwRedraw( plug.view );
 }
 
@@ -1282,6 +1330,9 @@ void BeadHelper::reduceCurrContToSeed()
   }
   if ( bead_isPtOnSlice(cont,plug.middleSlice) )
   {
+    int objIdx, contIdx, ptIdx;
+    imodGetIndex( ivwGetModel(plug.view) , &objIdx, &contIdx, &ptIdx);
+    
     Ipoint *pt = bead_getPtOnSlice(cont,plug.middleSlice);
     Ipoint seedPt = *pt;
     int numPtsToDel = psize(cont) - 1;
@@ -1291,6 +1342,9 @@ void BeadHelper::reduceCurrContToSeed()
     imodPointAppend( cont, &seedPt );
     undoFinishUnit( plug.view );            // FINISH UNDO
     
+    //## OUTPUT RESULT:
+    wprint( "Reduced contour %d to seed - %d points deleted\n",
+            contIdx+1, numPtsToDel );
     ivwRedraw( plug.view );
   }
   else
@@ -1301,68 +1355,94 @@ void BeadHelper::reduceCurrContToSeed()
 
 
 //------------------------
-//-- Moves the point in the current contour on the current slice to it's 
-//-- expected position, based on the position of the points before and/or after it.
-//-- Note that if there is no point on the current view a new point is added.
+//-- Allows user to select options for smoothing contours by moving points
+//-- towards thier estimated position.
 
-void BeadHelper::movePtsToExstimatedPos()
+void BeadHelper::movePtsToEstimatedPosOptions()
 {
   if( !updateAndVerifyRanges() )
     return;
   
-  
-  //## DISPLAY OPTIONS FOR MOVING POINTS:
-  
-  int numConts  = (plug.contMax - plug.contMin) + 1;
-  int numSlices = (plug.sliceMax - plug.sliceMin) + 1;
-  int numPts = numConts * numSlices;
-  
-  string msg = "This operation will move ALL points \n on"
-               + toString(numConts) + "  contours ("
-               + toString(plug.contMin+1) + "-" + toString(plug.contMax+1)
-               + ")\n  on " + toString(numSlices) + " slices ("
-               + toString(plug.sliceMin+1) + "-" + toString(plug.sliceMax+1) + ")."
-               + "\n  Total points = " + toString(numPts)
-               + "\nAre you sure you want to continue ?";
-  
-  static bool  currContOnly = false;
-  static bool  fillGaps  = true;
-  static bool  moveYOnly = false;
-  static bool  leaveSeed = true;
-  static float moveFract = 1.0;
-  static int   minResid = 0;
-  static int   iterations = 1;
+  //## DISPLAY OPTIONS FOR SMOOTHING / MOVING POINTS:
   
   CustomDialog ds;
-  int ID_DUMMY         = ds.addLabel   ( msg.c_str() );
-  int ID_CURRCONTONLY  = ds.addCheckBox( "apply to current contour only", currContOnly );
-  int ID_FILLGAPS      = ds.addCheckBox( "fill gaps", fillGaps );
-  int ID_YAXISONLY     = ds.addCheckBox( "change y value only", moveYOnly );
-  int ID_LEAVESEED     = ds.addCheckBox( "leave seed", leaveSeed );
-  int ID_MOVEFRACT     = ds.addSpinBox ( "move franction /10:", 1, 10, moveFract*10, 1,
-                                          "If 10, points will be moved entire way to "
-                                          "expected positions" );
-  int ID_MINRESID      = ds.addSpinBox ( "min residual to move:", 0, 10, minResid, 1,
+  int ID_CURRCONTONLY  = ds.addRadioGrp( "apply smoothing to:",
+                                         "specified range of contours,"
+                                         "current contour only [E],"
+                                         "update values only (no action)",
+                                         plug.smoothCurrContOnly );
+  int ID_FILLGAPS      = ds.addCheckBox( "fill gaps", plug.smoothFillGaps );
+  int ID_YAXISONLY     = ds.addCheckBox( "change y value only", plug.smoothMoveYOnly );
+  int ID_LEAVESEED     = ds.addCheckBox( "leave seed", plug.smoothLeaveSeed );
+  int ID_LEAVEENDS     = ds.addCheckBox( "leave end points", plug.smoothLeaveEnds );
+  int ID_MOVEFRACT     = ds.addSpinBox ( "move franction /10:", 1, 10,
+                                         plug.smoothMoveFract*10, 1,
+                                         "If 10, points will be moved entire way to "
+                                         "estimated positions" );
+  int ID_MINRESID      = ds.addSpinBox ( "min residual to move:", 0, 10, 
+                                         plug.smoothMinResid, 1,
                                          "Only points further than this from their "
-                                         "expected point will be moved" );
-  int ID_ITERATIONS    = ds.addSpinBox ( "iterations:", 1, 10, iterations, 1,
-                                          "The more iterations, the further points "
-                                          "will be moved" );
+                                         "estimated point will be moved" );
+  int ID_ITERATIONS    = ds.addSpinBox ( "iterations:", 1, 10, plug.smoothIterations, 1,
+                                         "The more iterations, the further points "
+                                         "will be moved" );
+  
+                         ds.addLabel("--------");
+  int ID_ADJACENTV     = ds.addCheckBox( "only smooth adjacent views",
+                                         plug.smoothAdjacentV,
+                                         "Only the specified number of view above and "
+                                         "below the current view will be smoothed" );
+  int ID_NUMVEITHERS   = ds.addSpinBox ( "num views either side:", 1, 20,
+                                         plug.smoothNumViews, 1,
+                                         "How many views above and below the current "
+                                         "view will be moved" );
   
 	GuiDialogCustomizable dlg(&ds, "Smoothing Options", this);
 	dlg.exec();
 	if( ds.cancelled )
 		return;
-	currContOnly       = ds.getResultCheckBox  ( ID_CURRCONTONLY );
-  fillGaps           = ds.getResultCheckBox  ( ID_FILLGAPS );
-  moveYOnly          = ds.getResultCheckBox  ( ID_YAXISONLY );
-  leaveSeed          = ds.getResultCheckBox  ( ID_LEAVESEED );
-  moveFract          = float( ds.getResultSpinBox( ID_MOVEFRACT ) ) / 10;
-  minResid           = ds.getResultSpinBox   ( ID_MINRESID );
-  iterations         = ds.getResultSpinBox   ( ID_ITERATIONS );
-    
+	plug.smoothCurrContOnly       = ds.getResultRadioGrp ( ID_CURRCONTONLY );
+  plug.smoothFillGaps           = ds.getResultCheckBox  ( ID_FILLGAPS );
+  plug.smoothMoveYOnly          = ds.getResultCheckBox  ( ID_YAXISONLY );
+  plug.smoothLeaveSeed          = ds.getResultCheckBox  ( ID_LEAVESEED );
+  plug.smoothLeaveEnds          = ds.getResultCheckBox  ( ID_LEAVEENDS );
+  plug.smoothMoveFract          = float( ds.getResultSpinBox( ID_MOVEFRACT ) ) / 10;
+  plug.smoothMinResid           = ds.getResultSpinBox   ( ID_MINRESID );
+  plug.smoothIterations         = ds.getResultSpinBox   ( ID_ITERATIONS );
+  plug.smoothAdjacentV           = ds.getResultCheckBox ( ID_ADJACENTV );
+  plug.smoothNumViews           = ds.getResultSpinBox   ( ID_NUMVEITHERS );
   
+  
+  //## APPLY SMOOTHING:
+  
+  if ( plug.smoothCurrContOnly==0 )
+    movePtsToEstimatedPosRange();
+  else if ( plug.smoothCurrContOnly==1 )
+    movePtsToEstimatedPosCurrCont();
+}
+
+
+//------------------------
+//-- Applies smoothing options to a range of contours
+
+void BeadHelper::movePtsToEstimatedPosRange()
+{
   //## INTIALIZE VARIABLES: 
+  
+  int numConts  = (plug.contMax - plug.contMin) + 1;
+  int numSlices = (plug.sliceMax - plug.sliceMin) + 1;
+  int numPts = numConts * numSlices;
+  
+  string msg = "This operation will move ALL points "
+    "\n  on " + toString(numConts) + "  contours ("
+    + toString(plug.contMin+1) + "-" + toString(plug.contMax+1)
+    + ")\n  on " + toString(numSlices) + " slices ("
+    + toString(plug.sliceMin+1) + "-" + toString(plug.sliceMax+1) + ")."
+    + "\n  Total points = " + toString(numPts)
+    + "\nAre you sure you want to continue ?";
+  
+  if( !MsgBoxYesNo(this, msg) )
+    return;
   
   int currSlice = edit_getZOfTopZap();
   Imod *imod = ivwGetModel(plug.view);
@@ -1373,20 +1453,17 @@ void BeadHelper::movePtsToExstimatedPos()
   int minCont = plug.contMin;
   int maxCont = plug.contMax;
   
-  if(currContOnly)
+  int minZ = plug.sliceMin;
+  int maxZ = plug.sliceMax;
+  
+  if( plug.smoothAdjacentV && edit_getZOfTopZap()>0 )
   {
-    if( !isCurrContValid() || isEmpty(getCurrCont()) )
-    {
-      MsgBox("ERROR: Have not selected a valid contour");
-      return;
-    }
-    minCont = contIdx;
-    maxCont = contIdx;
+    minZ = edit_getZOfTopZap() - plug.smoothNumViews;
+    maxZ = edit_getZOfTopZap() + plug.smoothNumViews;
   }
   
   int numPtsMoved = 0;
   int numPtsAdded = 0;
-  
   
   //## ITERATE THROUGH SPECIFIED RANGE OF CONTOURS AND MOVE ALL POINTS WITHIN
   //## SPECIFIED VIEWS TO THEIR EXPECTED POSITION: 
@@ -1401,9 +1478,11 @@ void BeadHelper::movePtsToExstimatedPos()
     
     undoContourDataChg( plug.view, objIdx, c );       // REGISTER UNDO
     
-    bead_movePtsTowardsEstimatedPos ( cont, plug.sliceMin, plug.sliceMax,
-                                      moveFract, minResid, iterations,
-                                      fillGaps, moveYOnly, leaveSeed,
+    bead_movePtsTowardsEstimatedPos ( cont, minZ, maxZ,
+                                      plug.smoothMoveFract,
+                                      plug.smoothMinResid, plug.smoothIterations,
+                                      plug.smoothFillGaps, plug.smoothMoveYOnly,
+                                      plug.smoothLeaveSeed, plug.smoothLeaveEnds,
                                       ptsMoved, ptsAdded );
     
     numPtsMoved += ptsMoved;
@@ -1420,27 +1499,73 @@ void BeadHelper::movePtsToExstimatedPos()
   ivwRedraw( plug.view );
 }
 
+
+//------------------------
+//-- Applies smoothing options to a current contour only
+
+void BeadHelper::movePtsToEstimatedPosCurrCont()
+{
+  if( !isCurrContValid() || isEmpty(getCurrCont()) )
+  {
+    MsgBox("ERROR: Have not selected a valid contour");
+    return;
+  }
+  
+  int minZ = plug.sliceMin;
+  int maxZ = plug.sliceMax;
+  
+  if( plug.smoothAdjacentV && edit_getZOfTopZap()>0 )
+  {
+    minZ = edit_getZOfTopZap() - plug.smoothNumViews;
+    maxZ = edit_getZOfTopZap() + plug.smoothNumViews;
+  }
+  
+  //## SMOOTH CURRENT CONTOUR USING SMOOTHING SETTING:
+  
+  int ptsMoved = 0;
+  int ptsAdded = 0;
+  
+  Icont *cont = getCurrCont();
+  undoContourDataChgCC( plug.view );       // REGISTER UNDO
+  bead_movePtsTowardsEstimatedPos ( cont, minZ, maxZ,
+                                    plug.smoothMoveFract,
+                                    plug.smoothMinResid, plug.smoothIterations,
+                                    plug.smoothFillGaps, plug.smoothMoveYOnly,
+                                    plug.smoothLeaveSeed, plug.smoothLeaveEnds,
+                                    ptsMoved, ptsAdded );
+  
+  if( ptsMoved || ptsAdded )                      // FINISH UNDO
+    undoFinishUnit( plug.view );
+  
+  //## OUTPUT RESULTS:
+  
+  wprint( "Moved %d points and added %d points to contour\n",
+          ptsMoved, ptsAdded );
+  ivwRedraw( plug.view );
+}
+
+
 //------------------------
 //-- Moves the point in the current contour on the current slice to it's 
-//-- expected position, based on the position of the points before and/or after it.
+//-- estimated position, based on the position of the points before and/or after it.
 //-- Note that if there is no point on the current view a new point is added.
 
-void BeadHelper::movePtToExstimatedPosCurrCont()
+void BeadHelper::moveCurrPtToEstimatedPos()
 {
   if( !isCurrObjValid() )
     return;
   
-  Ipoint expectedPt;
+  Ipoint estPt;
   int currSlice = edit_getZOfTopZap();
   Imod *imod = ivwGetModel(plug.view);
   Icont *cont = getCurrCont();
   int objIdx, contIdx, ptIdx;
   imodGetIndex(imod, &objIdx, &contIdx, &ptIdx);
   
-  if( bead_getExpectedPosOfPoint( cont, currSlice, &expectedPt ) )
+  if( bead_getExpectedPosOfPoint( cont, currSlice, &estPt ) )
   {
     undoContourDataChgCC( plug.view );      // REGISTER UNDO
-    ptIdx = bead_insertOrOverwritePoint( cont, &expectedPt );
+    ptIdx = bead_insertOrOverwritePoint( cont, &estPt );
     undoFinishUnit( plug.view );            // FINISH UNDO
   }
   
@@ -1641,14 +1766,14 @@ void BeadHelper::moreSettings()
                                           "encourage points closer to the edge "
                                           "while a negative value will concentrate "
                                           "points in the middle as you press 'h'.");
-  int ID_EXPPTDISPLAY   = ds.addComboBox( "expected pt display:",
+  int ID_EXPPTDISPLAY   = ds.addComboBox( "estimated pt display:",
                                           "cross,"
                                           "diamond,"
                                           "arrow", plug.expPtDisplayType,
-                                          "Symbol used to display the expected point" );
-  int ID_EXPPTSIZE      = ds.addSpinBox ( "expected pt size:",
+                                          "Symbol used to display the estimated point" );
+  int ID_EXPPTSIZE      = ds.addSpinBox ( "estimated pt size:",
                                            1, 200, plug.expPtSize, 1,
-                                          "The size of the expected point symbol in "
+                                          "The size of the estimated point symbol in "
                                           "screen pixels" );
   int ID_PURPLESPHERE   = ds.addSpinBox ( "size purple spheres:",
                                           1, 200, plug.sizePurpleSpheres, 1,
@@ -2217,7 +2342,7 @@ void BeadHelper::test()
 //-- Change changeShowExpectedPos
 
 void BeadHelper::changeShowExpectedPos() {
-  plug.showExpectedPos = showExpectedPosCheckbox->isChecked();
+  plug.showExpectedPos = showEstimatedPosCheckbox->isChecked();
   drawExtraObject(true);
 }
 
@@ -2901,7 +3026,7 @@ bool bead_getSpacedOutPoints( Icont *cont, int slice,
 
 
 //------------------------
-//-- Takes two points as input and calculates the expected position of a point on
+//-- Takes two points as input and calculates the estimated position of a point on
 //-- slice "z" if a straight line was drawn through them or returns the the first
 //-- point if both points are on the same slice.
 
@@ -2910,16 +3035,16 @@ Ipoint bead_getPtOnLineWithZ( Ipoint *pt1, Ipoint *pt2, int z )
   if( (int)pt1->z == (int)pt2->z )
     return *pt1;
   
-  Ipoint expectedPt;
-  expectedPt.z = z;
+  Ipoint estPt;
+  estPt.z = z;
   float fractToExpectedPos = fDivide( (z - pt1->z) , ( pt2->z - pt1->z) ); 
-  expectedPt = line_findPtFractBetweenPts( pt1, pt2, fractToExpectedPos );
-  return (expectedPt);
+  estPt = line_findPtFractBetweenPts( pt1, pt2, fractToExpectedPos );
+  return (estPt);
 }
 
 
 //------------------------
-//-- Outputs the expected position of the point within "cont" on the specified
+//-- Outputs the estimated position of the point within "cont" on the specified
 //-- slice based on the position of the points before and after this slice.
 //-- Returns true if successful or false if contour is invalid or there are not
 //-- enough points to make a reliable prediction
@@ -2930,9 +3055,9 @@ bool bead_getExpectedPosOfPoint( Icont *cont, int slice, Ipoint *pt )
     return false;
   
   
-  Ipoint expectedPt;
+  Ipoint estPt;
   float z = slice;
-  expectedPt.z = z;
+  estPt.z = z;
   
   
   switch( plug.estPosMethod )
@@ -2942,7 +3067,7 @@ bool bead_getExpectedPosOfPoint( Icont *cont, int slice, Ipoint *pt )
       Ipoint pt1, pt2;
       if ( !bead_getPointsEitherSideSlice( cont, slice, &pt1, &pt2 ) )
         return false;
-      expectedPt = bead_getPtOnLineWithZ( &pt1, &pt2, slice );
+      estPt = bead_getPtOnLineWithZ( &pt1, &pt2, slice );
       break;
     }
     
@@ -2951,7 +3076,7 @@ bool bead_getExpectedPosOfPoint( Icont *cont, int slice, Ipoint *pt )
       Ipoint pt1, pt2;
       if ( !bead_getClosestTwoPointsToSlice( cont, slice, &pt1, &pt2 ) )
         return false;
-      expectedPt = bead_getPtOnLineWithZ( &pt1, &pt2, slice );
+      estPt = bead_getPtOnLineWithZ( &pt1, &pt2, slice );
       break;
     }
     
@@ -2973,7 +3098,7 @@ bool bead_getExpectedPosOfPoint( Icont *cont, int slice, Ipoint *pt )
       
       float aX,bX,cX;
       bead_calcQuadraticCurve( p1->z, p2->z, p3->z, p1->x, p2->x, p3->x, &aX, &bX, &cX );         //     |_____ z
-      expectedPt.x = aX*(z*z) + bX*z + cX;
+      estPt.x = aX*(z*z) + bX*z + cX;
       
           // calculate the quadratic function representing the bend along y
           // relative to z - this is usually small because usually the
@@ -2981,7 +3106,7 @@ bool bead_getExpectedPosOfPoint( Icont *cont, int slice, Ipoint *pt )
       
       float aY,bY,cY;
       bead_calcQuadraticCurve( p1->z, p2->z, p3->z, p1->y, p2->y, p3->y, &aY, &bY, &cY );         //     |_____ z
-      expectedPt.y = aY*(z*z) + bY*z + cY;
+      estPt.y = aY*(z*z) + bY*z + cY;
       
       break;
     }
@@ -3006,7 +3131,7 @@ bool bead_getExpectedPosOfPoint( Icont *cont, int slice, Ipoint *pt )
       
       float aX,bX,cX;
       bead_calcQuadraticCurve( p1->z, p2->z, p3->z, p1->x, p2->x, p3->x, &aX, &bX, &cX );         //     |_____ z
-      expectedPt.x = aX*(z*z) + bX*z + cX;
+      estPt.x = aX*(z*z) + bX*z + cX;
       
           // calculate the quadratic function representing the bend along y
           // relative to z - this is usually small because usually the
@@ -3014,34 +3139,34 @@ bool bead_getExpectedPosOfPoint( Icont *cont, int slice, Ipoint *pt )
       
       float aY,bY,cY;
       bead_calcQuadraticCurve( p1->z, p2->z, p3->z, p1->y, p2->y, p3->y, &aY, &bY, &cY );         //     |_____ z
-      expectedPt.y = aY*(z*z) + bY*z + cY;
+      estPt.y = aY*(z*z) + bY*z + cY;
       
       break;
     }
     
     case (EM_LASTTHREE):
     {
-      if ( !bead_getExpectedPosOfPointUsingPtsBefore( cont, slice, &expectedPt, 3 ) )
+      if ( !bead_getExpectedPosOfPointUsingPtsBefore( cont, slice, &estPt, 3 ) )
         return false;
       break;
     }
     
     case (EM_LASTSIX):
     {
-      if ( !bead_getExpectedPosOfPointUsingPtsBefore( cont, slice, &expectedPt, 6 ) )
+      if ( !bead_getExpectedPosOfPointUsingPtsBefore( cont, slice, &estPt, 6 ) )
         return false;
       break;
     }
   }
   
-  *pt = expectedPt;
+  *pt = estPt;
   return true;
 }
 
 
 
 //------------------------
-//-- Calculates the expected position fo the point wihin on on the specified
+//-- Calculates the estimated position fo the point wihin on on the specified
 //-- slice based on the gradient of the last "numPtsToAvg" points before
 //-- it in the direction of the middle of the contour.
 
@@ -3163,7 +3288,7 @@ int bead_insertOrOverwritePoint( Icont *cont, Ipoint *pt )
 
 
 //------------------------
-//-- Inserts a point on the given view into the expected position
+//-- Inserts a point on the given view into the estimated position
 //-- within the given contour. If a point already exists at that view
 //-- it is overwritten is "overwrite" is true.
 //-- Returns true if a point was inserted or overwritten.
@@ -3176,10 +3301,10 @@ bool bead_insertPtAtEstimatedPos( Icont *cont, int slice, bool overwrite )
   if( !overwrite && bead_isPtOnSlice(cont,slice) )
     return false;
   
-  Ipoint expectedPt;
-  if( bead_getExpectedPosOfPoint( cont, slice, &expectedPt ) )
+  Ipoint estPt;
+  if( bead_getExpectedPosOfPoint( cont, slice, &estPt ) )
   {
-    bead_insertOrOverwritePoint( cont, &expectedPt );
+    bead_insertOrOverwritePoint( cont, &estPt );
     return true;
   }
   
@@ -3187,48 +3312,79 @@ bool bead_insertPtAtEstimatedPos( Icont *cont, int slice, bool overwrite )
 }
 
 
+
+//------------------------
+//-- If there is a point on the given "z" of "cont" which is greater than 
+//-- "minResid" away from it's estimated position the point will be moved "moveFract"
+//-- of the way towards their estimated postion. Returns 1 if the point was moved or,
+//-- 0 if the point was not moved or there is no point on this view.
+//-- Also has the addition options to "fillGaps" or "moveYOnly"... and to leave
+//-- alone the point if it is on the seed view ("leaveSeed") or is on one of the ends
+//-- ("leaveEnds")
+
+int bead_movePtTowardsEstimatedPos ( Icont *cont, int z,
+                                     float moveFract, float minResid, bool moveYOnly,
+                                     bool leaveSeed, bool leaveEnds )
+{
+  if( psize(cont) < 3 )
+    return false;
+  
+  if( leaveEnds && ( z <= getFirstPt(cont)->z || z >= getLastPt(cont)->z ) )
+      return 0;
+  
+  if( leaveSeed && z == plug.middleSlice )
+    return 0;
+  
+  Ipoint expPt;
+  Ipoint *currPt = bead_getPtOnSlice( cont, z );
+  
+  if( currPt != NULL
+      && bead_getExpectedPosOfPoint( cont, z, &expPt )
+      && line_distBetweenPts2D( currPt, &expPt ) >= minResid )
+  {
+    expPt = line_findPtFractBetweenPts2D( currPt, &expPt, moveFract );
+    if( !moveYOnly )
+      currPt->x = expPt.x;
+    currPt->y = expPt.y;
+    return 1;
+  }
+  return 0;
+}
+
+
 //------------------------
 //-- Moves all points in the contour within the z range "minZ" to "maxZ"
-//-- that are more than "minResid" away from their expected position "moveFract"
-//-- of the way towards their expected postion. Returns true if successful,
-//-- as well as the number of points added and moved. Also has the addition options
-//-- to "fillGaps" or "moveYOnly"
+//-- that are more than "minResid" away from their estimated position "moveFract"
+//-- of the way towards their estimated postion. Returns true if successful,
+//-- as well as the number of points added and moved.
 
 bool bead_movePtsTowardsEstimatedPos ( Icont *cont, int minZ, int maxZ,
                                        float moveFract, float minResid, int iterations,
-                                       bool fillGaps, bool moveYOnly, bool leaveSeed,
+                                       bool fillGaps, bool moveYOnly,
+                                       bool leaveSeed, bool leaveEnds,
                                        int &ptsMoved, int &ptsAdded )
 {  
   ptsMoved = 0;
   ptsAdded = 0;
   
-  if( minZ > maxZ || isEmpty(cont) ||  psize(cont) < 2 )
+  if( minZ > maxZ || isEmpty(cont) ||  psize(cont) < 3 )
     return false;
   
-  Ipoint expPt;
+  //## MOVE POINTS TOWARDS THEIR ESTIMATED POSITION FROM THE MIDDLE Z
+  //## GOING DOWN, THEN FROM THE MIDDLE Z GOING UP:
   
-  vector<int> zLevels;
   int zmiddle = (minZ + maxZ) / 2;
   
   for( int i=0; i<iterations; i++ )
-    for( int z=minZ; z<=maxZ; z++)
-    {
-      if( leaveSeed && z == plug.middleSlice )
-        continue;
-      
-      Ipoint *currPt = bead_getPtOnSlice( cont, z );
-      
-      if( currPt != NULL
-          && bead_getExpectedPosOfPoint( cont, z, &expPt )
-          && line_distBetweenPts2D( currPt, &expPt ) >= minResid )
-      {
-        expPt = line_findPtFractBetweenPts2D( currPt, &expPt, moveFract );
-        if( !moveYOnly )
-          currPt->x = expPt.x;
-        currPt->y = expPt.y;
-        ptsMoved++;
-      }
-    }
+  {
+    for( int z=zmiddle; z>=minZ; z--)     // from middle to minZ:
+      ptsMoved += bead_movePtTowardsEstimatedPos( cont, z, moveFract, minResid,
+                                                  moveYOnly, leaveSeed, leaveEnds );
+    
+    for( int z=zmiddle+1; z<=maxZ; z++)   // from 1 above middle to maxZ:
+      ptsMoved += bead_movePtTowardsEstimatedPos( cont, z, moveFract, minResid,
+                                                  moveYOnly, leaveSeed, leaveEnds );
+  }
   
   if( fillGaps )
     ptsAdded = bead_fillMissingPtsOnCont( cont, minZ, maxZ );
@@ -3240,7 +3396,7 @@ bool bead_movePtsTowardsEstimatedPos ( Icont *cont, int minZ, int maxZ,
 //------------------------
 //-- Fills in all missing points in current contour within slices between
 //-- "minZ" and "maxZ" inclusive, by starting at the middle point and
-//-- using the expected middle position. Returns the number of points added.
+//-- using the estimated middle position. Returns the number of points added.
 
 int bead_fillMissingPtsOnCont( Icont *cont, int minZ, int maxZ )
 {
@@ -3268,7 +3424,7 @@ int bead_fillMissingPtsOnCont( Icont *cont, int minZ, int maxZ )
 
 //------------------------
 //-- Calculates how far in Y the point at index "idx" in the given contour
-//-- is from it's expected location mid-way between the next and previous points.
+//-- is from it's estimated location mid-way between the next and previous points.
 
 float bead_calcYJump( Icont *cont, int idx )
 {
@@ -3276,7 +3432,7 @@ float bead_calcYJump( Icont *cont, int idx )
     return 0;
   
   int z = getPtZInt(cont,idx);
-  Ipoint expPos;                      // expected position of our point at "z"
+  Ipoint expPos;                      // estimated position of our point at "z"
   
   if(idx == 0)                        // if first point: compare to two points after
   {
@@ -3320,8 +3476,8 @@ float bead_calcAvgYJump( Icont *cont )
 
 
 //------------------------
-//-- Calculates distance of the point "idx" in the contour from it's expected
-//-- position based on the current expected point criteria. If "weighted"
+//-- Calculates distance of the point "idx" in the contour from it's estimated
+//-- position based on the current estimated point criteria. If "weighted"
 //-- is set then the distance is divided by the distance of points either side.
 //-- This is done so a deviation of say, 3 pixels, for a point at high tilt
 //-- (where the points move rapidly) will be given a much smaller weighting than
@@ -3336,11 +3492,11 @@ float bead_calcDistanceFromExpected( Icont *cont, int idx, bool weighted )
   
   int z = getPtZInt(cont,idx);
   
-  Ipoint expectedPosPt;
-  if( !bead_getExpectedPosOfPoint( cont, z, &expectedPosPt ) )
+  Ipoint estimatedPosPt;
+  if( !bead_getExpectedPosOfPoint( cont, z, &estimatedPosPt ) )
       return false;
   
-  float distFromExpected = line_distBetweenPts2D( getPt(cont,idx), &expectedPosPt );
+  float distFromExpected = line_distBetweenPts2D( getPt(cont,idx), &estimatedPosPt );
   
   if(weighted)
   {
@@ -3360,7 +3516,7 @@ float bead_calcDistanceFromExpected( Icont *cont, int idx, bool weighted )
 }
 
 //------------------------
-//-- Calculates the crude devition of each point in the contour from it's expected
+//-- Calculates the crude devition of each point in the contour from it's estimated
 //-- position based on the position of the two "reference" points either side of it,
 //-- which is then divided by the distance between the two "reference" points.
 //-- This is done so a deviation of say, 3 pixels, for a point at high tilt
@@ -3385,9 +3541,9 @@ float bead_calcCrudeWeightedDevFromMiddle( Icont *cont )
     Ipoint *pt2 = (p==psize(cont)-1) ? getPt( cont,p+1 ) : getPt(cont,p-2);
     
     float fractToExpectedPt = fDivide( (pt->z - pt1->z) , ( pt2->z - pt1->z) ); 
-    Ipoint expectedPosPt = line_findPtFractBetweenPts( pt1, pt2, fractToExpectedPt );
+    Ipoint estimatedPosPt = line_findPtFractBetweenPts( pt1, pt2, fractToExpectedPt );
     
-    float distFromExpected = line_distBetweenPts2D( pt, &expectedPosPt );
+    float distFromExpected = line_distBetweenPts2D( pt, &estimatedPosPt );
     float distPt1AndPt2    = line_distBetweenPts2D( pt1, pt2 );
     float crudeWeightDev = distFromExpected / (distPt1AndPt2 + WEIGHTED_DEV_DIVISOR);
     
@@ -3687,7 +3843,7 @@ bool bead_estimateTurningPointOfCont( Icont *cont, Ipoint *pt,
 
 //------------------------
 //-- Jumps to the contour point in the current object with the biggest or
-//-- "next biggest" distance in  Y from where it is expected to be based
+//-- "next biggest" distance in  Y from where it is estimated to be based
 //-- on the linear trajectory between the points either side of it.
 
 float maxYJumpLastIteration = FLOAT_MAX;
@@ -3763,8 +3919,8 @@ bool bead_goToNextBiggestYJump( bool findNextBiggest )
 
 //------------------------
 //-- Jumps to the contour point in the current object with the biggest or
-//-- "next biggest" deviation from where it is expected to be based
-//-- on the current "expected position" criteria
+//-- "next biggest" deviation from where it is estimated to be based
+//-- on the current "estimated position" criteria
 
 float maxDevLastIteration = FLOAT_MAX;
 
@@ -3785,11 +3941,11 @@ bool bead_goToNextBiggestWeightedDev( bool findNextBiggest, bool weighted )
   if ( findNextBiggest && contIdx == lastContSelected )
   {
     maxDevAllowed = maxDevLastIteration;
-    wprint("Finding NEXT biggest deviation from expected point\n");
+    wprint("Finding NEXT biggest deviation from estimated point\n");
   }
   else {
     maxDevLastIteration = FLOAT_MAX;
-    wprint("Finding biggest deviation from expected point\n");
+    wprint("Finding biggest deviation from estimated point\n");
   }
   
   //## FIND THE POINT WITH THE NEXT BIGGEST Y JUMP:

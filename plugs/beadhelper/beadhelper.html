@@ -10,15 +10,21 @@ bad points. "<b>Bead Helper</b>" is designed to compliment the
 functionality of <b>"Bead Fixer"</b> by providing useful visual
 aids and tools which can be used to rapidly rectify or delete 
 <b>bad contours</b> - i.e. contours where the fiducial marker has
-tracked poorly.
+tracked poorly. If tracking goes well you probably won't need
+Bead Helper, but in situations where tracking proves problematic
+Bead Helper has many tools which may be able to help.
 <br>
 <br><br>
 <b>Hot Key Summary</b><br>
 ---------------------<br>
 <b>[e]</b>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
-Add or moves point in the current view to its <u>e</u>xpected position<br>
+Moves (or adds) point in the current view to its <u>e</u>xpected position<br>
+<br>
+<b>[E]</b>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
+Smooth current contour using the current settings under
+"Move points to <u>e</u>xpected position"<br>
 <b>[f]</b>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
-<u>F</u>ill all missing points in the current contour using expected positions<br>
+<u>F</u>ill all missing points in the current contour using estimated positions<br>
 <b>[d]</b>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
 <u>D</u>elete all points above or below the current point - whichever end
 is closer<br><br>
@@ -30,25 +36,26 @@ Go to the next biggest "<u>h</u>ole" between seed points<br>
 <b>[y]</b>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
 Select point with the next biggest "<u>y</u> jump"<br>
 <b>[b]</b>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
-Select point with the next <u>b</b>iggest distance from it's
-expected position<br>
+Select point with the next <u>b</u>iggest distance from it's
+estimated position<br>
 <b>[w]</b>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
-Select point with the next biggest <u>w<u>eighted distance from it's
-expected position<br>
+Select point with the next biggest <u>w</u>eighted distance from it's
+estimated position<br>
 <b>[o]</b>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
-Select next biggest contour using "Re-<u>o<u>rder Contour" criteria<br>
+Select next biggest contour using "Re-<u>o</u>rder Contour" criteria<br>
 <br>
 <b>[u]</b>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
-Toggle current contour between checked/unchecked (checked contours
+Toggle current contour between checked/<u>u</u>nchecked (checked contours
 are shown as stippled)<br>
-<b>[Enter]</b>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
+<b>[Enter]</b>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
 Go to next unchecked (unstippled) contour.<br>
 <br>
 <b>[M]</b>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
-Move current contour to elsewhere.<br>
+<u>M</u>ove current contour to elsewhere.<br>
 <br>
 <b>[mouse wheel]</b>&nbsp;&nbsp;&nbsp;&nbsp;
-Use the mouse wheel to scroll through points<br>
+Scroll through points and/or views<br>
+<br>
 <br>
 <br>
 <b>Visual Aids</b><br>
@@ -79,6 +86,7 @@ contours and/or views.. notice however that the listed
 shortcut keys apply the action to the current contour only.
 <br>
 <br>
+<br>
 <b>Actions</b><br>
 ---------------------<br>
 <ul>
@@ -94,14 +102,13 @@ use this to revert back to the seed points. After this it is a good idea
 to reorder them or chose different fiducials.
 <i>Press [r] to apply for current contour only.</i></li>
 <li><b>Move Points to Estimated Pos</b> - Moves all points within the
-range of views to their expected position for all specified contours.
-If the point does not yet exist it will also add it, and so it's a
-good way to fill missing points as well as smooth contours by
-moving bad points closer to position. Be warned however that it may
-also move correct points AWAY from their position. After doing this
-you should check over this set of points, and if it has done a
-poor you might want to undo it.
-<i>Press [e] to apply to current contour and view only.</i></li>
+range of views towards their estimated position for all specified contours.
+This feature can be used to smooth bad contours and several smoothing
+options are presented. Use this option carefully, because it may often
+move correct points AWAY from the fiducial. After doing this
+you should check over the moved points, and if it has done a
+poor job you might want to undo it!
+<i>Press [E] to apply to these settings to the current contour only.</i></li>
 <li><b>Fill Missing Points</b> - Similar to above, except that it only adds
 points within the range, it does not move any existing points. After doing
 this you should ALWAYS manually correct the added points.
@@ -154,10 +161,10 @@ to the crosshair.<br>
 <br>
 If particles are on both sides it's best to have a roughly even
 distribution, but if I'm adding >100 fiducials I find I usually get
-a pretty good spread by chosing randomly. The more careful approach
+a pretty good spread by choosing randomly. The more careful approach
 is to use [pagedown] and [insert] to see if a fiducial is on the
 top/bottom and if looks easy to track. You can also click "More Actions"
-then <b>"show fidicials on bottom as purple"</b> to help see which 
+then <b>"show fiducials on bottom as purple"</b> to help see which 
 contour are on which side.<br>
 <br>
 For many tilt series beadtracker does an excellent job the first time,
@@ -193,7 +200,7 @@ before moving to the "Fine alignment" step.<br>
 <br>
 A fast way to correct bad points before fine alignment is to use
 [y], [b] or [w] to jump the the "next worst point" and use [e] to
-move it to it's expcted point. To identify bad contours you can
+move it to it's expected point. To identify bad contours you can
 chose a sort criteria under "Reorder contours" and use [o] to
 move through the values in descending order.<br>
 <br>
