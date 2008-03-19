@@ -32,6 +32,10 @@ import etomo.type.AxisID;
  * @version $Revision$
  *
  * <p> $Log$
+ * <p> Revision 3.13  2007/11/12 22:13:53  sueh
+ * <p> bug# 1047 Added an ContextPopup constructor with a subdir name string to
+ * <p> popup a .log file in a subdirectory.
+ * <p>
  * <p> Revision 3.12  2007/09/07 00:26:32  sueh
  * <p> bug# 989 Using a public INSTANCE to refer to the EtomoDirector singleton
  * <p> instead of getInstance and createInstance.
@@ -594,11 +598,15 @@ public class ContextPopup {
               logFileFullPath[j] = path + logFileList[j];
             }
             TabbedTextWindow logFileWindow = new TabbedTextWindow(
-                logWindowLabel[i]);
-
+                logWindowLabel[i], axisID);
             try {
-              logFileWindow.openFiles(logFileFullPath, (String[]) logFileLabel
-                  .get(i), axisID);
+              if (logFileWindow.openFiles(logFileFullPath,
+                  (String[]) logFileLabel.get(i), axisID)) {
+                logFileWindow.setVisible(true);
+              }
+              else {
+                logFileWindow.dispose();
+              }
             }
             catch (FileNotFoundException e) {
               e.printStackTrace();
@@ -607,9 +615,6 @@ public class ContextPopup {
             catch (IOException e) {
               e.printStackTrace();
               System.err.println("IO exception: " + logFileFullPath);
-            }
-            try {
-              logFileWindow.setVisible(true);
             }
             catch (OutOfMemoryError e) {
               e.printStackTrace();
