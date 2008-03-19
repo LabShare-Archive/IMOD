@@ -57,14 +57,15 @@ public class EtomoDirector {
   public static final double MIN_AVAILABLE_MEMORY_REQUIRED = 0.75 * TO_BYTES
       * TO_BYTES;
   public static final int NUMBER_STORABLES = 2;
-  private static final String JAVA_MEMORY_LIMIT_ENV_VAR = "JAVA_MEM_LIM";
+  private static final String JAVA_MEMORY_LIMIT_ENV_VAR = "ETOMO_MEM_LIM";
 
   public static final EtomoDirector INSTANCE = new EtomoDirector();
   private SettingsDialog settingsDialog = null;
   private boolean outOfMemoryMessage = false;
   private String originalUserDir = null;
   private boolean testDone = false;
-  private EtomoNumber javaMemoryLimit = null;
+  private final EtomoNumber javaMemoryLimit = new EtomoNumber(
+      EtomoNumber.Type.LONG);
 
   //state
   private UniqueKey currentManagerKey = null;
@@ -263,6 +264,30 @@ public class EtomoDirector {
     IMODCalibDirectory = new File(imodCalibDirectoryName);
     memoryThread = new MemoryThread();
     new Thread(memoryThread).start();
+    //get the java memory limit
+    //check it before complaining about having too little memory available
+    //SGI seems to go very low on the available memory, but its fine as long
+    //as long as it does't get near the java memory limit.
+    String sJavaMemoryLimit = EnvironmentVariable.INSTANCE.getValue(
+        originalUserDir, JAVA_MEMORY_LIMIT_ENV_VAR, AxisID.ONLY);
+    if (sJavaMemoryLimit != null) {
+      long conversionNumber = 1;
+      if (sJavaMemoryLimit.endsWith("k") || sJavaMemoryLimit.endsWith("K")) {
+        conversionNumber = TO_BYTES;
+        sJavaMemoryLimit = sJavaMemoryLimit.substring(0, sJavaMemoryLimit
+            .length() - 1);
+      }
+      else if (sJavaMemoryLimit.endsWith("m") || sJavaMemoryLimit.endsWith("M")) {
+        conversionNumber = TO_BYTES * TO_BYTES;
+        sJavaMemoryLimit = sJavaMemoryLimit.substring(0, sJavaMemoryLimit
+            .length() - 1);
+      }
+      javaMemoryLimit.set(sJavaMemoryLimit);
+      javaMemoryLimit.set(javaMemoryLimit.getLong() * conversionNumber);
+      System.err.println(JAVA_MEMORY_LIMIT_ENV_VAR + "=" + javaMemoryLimit);
+      System.err.println("MIN_AVAILABLE_MEMORY_REQUIRED="
+          + MIN_AVAILABLE_MEMORY_REQUIRED);
+    }
   }
 
   private void printProperties(String type) {
@@ -852,38 +877,14 @@ public class EtomoDirector {
     }
   }
 
-  public boolean isMemoryAvailable() {
-    if (javaMemoryLimit == null) {
-      //get the java memory limit
-      //check it before complaining about having too little memory available
-      //SGI seems to go very low on the available memory, but its fine as long
-      //as long as it does't get near the java memory limit.
-      javaMemoryLimit = new EtomoNumber(EtomoNumber.Type.LONG);
-      String sJavaMemoryLimit = EnvironmentVariable.INSTANCE.getValue(
-          originalUserDir, JAVA_MEMORY_LIMIT_ENV_VAR, AxisID.ONLY);
-      if (sJavaMemoryLimit != null) {
-        long conversionNumber = 1;
-        if (sJavaMemoryLimit.endsWith("k") || sJavaMemoryLimit.endsWith("K")) {
-          conversionNumber = TO_BYTES;
-          sJavaMemoryLimit = sJavaMemoryLimit.substring(0, sJavaMemoryLimit
-              .length() - 1);
-        }
-        else if (sJavaMemoryLimit.endsWith("m")
-            || sJavaMemoryLimit.endsWith("M")) {
-          conversionNumber = TO_BYTES * TO_BYTES;
-          sJavaMemoryLimit = sJavaMemoryLimit.substring(0, sJavaMemoryLimit
-              .length() - 1);
-        }
-        javaMemoryLimit.set(sJavaMemoryLimit);
-        javaMemoryLimit.set(javaMemoryLimit.getLong() * conversionNumber);
-        System.err.println(JAVA_MEMORY_LIMIT_ENV_VAR + "=" + javaMemoryLimit);
-        System.err.println("MIN_AVAILABLE_MEMORY_REQUIRED="
-            + MIN_AVAILABLE_MEMORY_REQUIRED);
-      }
-    }
-    long availableMemory = Runtime.getRuntime().maxMemory()
+  public long getAvailableMemory() {
+    return Runtime.getRuntime().maxMemory()
         - Runtime.getRuntime().totalMemory()
         + Runtime.getRuntime().freeMemory();
+  }
+
+  public boolean isMemoryAvailable() {
+    long availableMemory = getAvailableMemory();
     long usedMemory = Runtime.getRuntime().totalMemory()
         - Runtime.getRuntime().freeMemory();
     //System.out.println();
@@ -963,6 +964,9 @@ public class EtomoDirector {
 }
 /**
  * <p> $Log$
+ * <p> Revision 1.69  2008/01/31 20:16:16  sueh
+ * <p> bug# 1055 Stop using lazy instanciation to create parameterStore.
+ * <p>
  * <p> Revision 1.68  2007/12/26 21:56:56  sueh
  * <p> bug# 1052 Added doAutomation() to EtomoDirector, BaseManager and the
  * <p> manager classes.  Function should run any user-specified automatic functionality
