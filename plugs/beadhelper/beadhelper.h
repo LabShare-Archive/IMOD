@@ -55,7 +55,7 @@ class BeadHelper : public DialogFrame
   void movePtsToEstimatedPosCurrCont();
   void moveCurrPtToEstimatedPos();
   void fillMissingPts();
-  void fillMissingPtsCurrCont();
+  void fillMissingPtsCurrCont( bool fillPastEnds );
   void moreActions();
   void moreSettings();
   void reorderContours();
@@ -63,7 +63,7 @@ class BeadHelper : public DialogFrame
   void moveMultipleContours();
   void correctCurrentObject();
   void toggleStippled();
-  bool iterateStippled(int change, bool stippled);
+  bool enterActionIterateConts( bool reverse );
   void markRangeAsStippled();
   
   bool updateAndVerifyRanges();
@@ -132,20 +132,23 @@ class BeadHelper : public DialogFrame
 
 const int NO_POINT = -1;
 
-enum contsortcriteria  { SORT_YJUMPS, SORT_DEV, SORT_AVG_GREY, SORT_DIST_FROM_MIDDLE,
-                          SORT_MISSING_PTS, SORT_RANDOM };
-
-enum contdisplay       { LD_OFF, LD_CURRENT, LD_CURRMISSING,
-                          LD_ALL, LD_SLICE_RESID, LD_BEST_FIT, LD_TILTAXIS };
-enum tiltaxisdisplay   { TD_OFF, TD_TILTAXIS, TD_TILTAXISSEED, TD_TILTAXISPT };
-
-enum expptdisplay      { ED_CROSS, ED_DIAMOND, ED_ARROW };
-
-enum wheelbehaviour   { WH_NONE, WH_POINTS, WH_SLICES, WH_SMART };
 enum estimationmethod { EM_BESTTWO, EM_NEARESTTWO,
                         EM_QUADRATIC, EM_LOCALQUADRATIC, EM_LASTTHREE, EM_LASTSIX };
 
-const int NUM_SAVED_VALS = 27;
+enum contsortcriteria { SORT_YJUMPS, SORT_DEV, SORT_AVG_GREY, SORT_DIST_FROM_MIDDLE,
+                        SORT_MISSING_PTS, SORT_RANDOM };
+
+
+enum contdisplay      { LD_OFF, LD_CURRENT, LD_CURRMISSING,
+                        LD_ALL, LD_SLICE_RESID, LD_BEST_FIT, LD_TILTAXIS };
+enum tiltaxisdisplay  { TD_OFF, TD_TILTAXIS, TD_TILTAXISSEED, TD_TILTAXISPT };
+enum expptdisplay     { ED_CROSS, ED_DIAMOND, ED_ARROW };
+
+enum wheelbehavior    { WH_NONE, WH_POINTS, WH_SLICES, WH_SMART };
+enum enterbehavior    { EN_NONE, EN_NEXTUNCHECKED, EN_PREVUNCHECKED, EN_NEXTCHECKED,
+                        EN_NEXTCONT };
+
+const int NUM_SAVED_VALS = 31;
 
 
 //-------------------------------
@@ -173,13 +176,20 @@ struct BeadHelperData   // contains all local plugin data
   int  tiltDisplayType;       // different modes of displaying tilt axis
   
   int  wheelBehav;            // changes the behaviour of the mouse wheel
-                              //   (see: wheelbehaviour)
+                              //   (see: wheelbehavior)
   int  estPosMethod;          // change the method used to estimate the position of pts
                               //   (see: estimationmethod)
   
   int expPtDisplayType;       // symbol used for expected points (see: expptdisplay)
   int expPtSize;              // the size (in screen pixels) of expected points
   int sizePurpleSpheres;      // the size (in screen pixels) of purple spheres
+  
+  bool disableHotKeys;        // disables all hotkeys for this plugin window
+  bool includeEndsResid;      // include end points when searching for residuals
+                              // with [y], [b] and [w]
+  int enterAction;            // the action performed when enter is pressed
+  int minPtsEnter;            // the min number of points a contour must have to be
+                              // jumped to when enter is pressed
   
   int selectedAction;         // the last selected action under "More Actions"
   int sortCriteria;           // the last selected sort critria "Reorder Contours"
@@ -194,6 +204,7 @@ struct BeadHelperData   // contains all local plugin data
   bool  smoothMoveYOnly;      // only shifts point along y axis
   bool  smoothLeaveSeed;      // will not move the seed point during moving process
   bool  smoothLeaveEnds;      // will not move the start and end point of contours
+  bool  smoothLeaveCurrV;     // will not move any point on the current view
   float smoothMoveFract;      // move points by this fraction towards their exp pos
   int   smoothMinResid;       // only move points more that this distance from exp pos
   int   smoothIterations;     // how many iterations to run smoothing
@@ -222,7 +233,7 @@ struct BeadHelperData   // contains all local plugin data
   
   bool initialized;           // is set to true after values have been set
   int xsize, ysize, zsize;    // size of the image / tomogram
-  int middleSlice;            // the middle slice of the tomogram (where we expect seed)
+  int middleSlice;            // the middle slice of the tomogram (where we expect seeds)
   
   int extraObjExpPos;         //|
   int extraObjContDisp;       //|-- stores reference to extra objects
@@ -292,13 +303,13 @@ bool bead_insertPtAtEstimatedPos( Icont *cont, int slice, bool overwrite );
 
 int bead_movePtTowardsEstimatedPos ( Icont *cont, int z,
                                      float moveFract, float minResid, bool moveYOnly,
-                                     bool leaveSeed, bool leaveEnds );
+                                     bool leaveEnds );
 bool bead_movePtsTowardsEstimatedPos ( Icont *cont, int minZ, int maxZ,
                                        float moveFract, float minResid, int iterations,
                                        bool fillGaps, bool moveYOnly,
-                                       bool leaveSeed, bool leaveEnds,
+                                       bool leaveSeed, bool leaveEnds, bool leaveCurrV,
                                        int &ptsMoved, int &ptsAdded );
-int bead_fillMissingPtsOnCont( Icont *cont, int minZ, int maxZ );
+int bead_fillMissingPtsOnCont( Icont *cont, int minZ, int maxZ, bool fillPastEnds );
 
 float bead_calcYJump( Icont *cont, int idx );
 float bead_calcAvgYJump( Icont *cont );

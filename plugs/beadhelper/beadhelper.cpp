@@ -86,6 +86,9 @@ int imodPlugKeys(ImodView *vw, QKeyEvent *event)
   if (!plug.view)          // if plugin window isn't open: don't grab keys
     return 0;
   
+  if( plug.disableHotKeys )
+    return 0;
+  
   int keysym = event->key();            // key value (Key_A, Key_Space... etc)
   int ctrl    = event->state() & Qt::ControlButton;   // ctrl modifier
   int shift   = event->state() & Qt::ShiftButton;     // shift modifier
@@ -106,9 +109,7 @@ int imodPlugKeys(ImodView *vw, QKeyEvent *event)
       break;
       
     case Qt::Key_F:                  // fill points in current contour
-      if (shift)
-        return 0;
-      plug.window->fillMissingPtsCurrCont();
+      plug.window->fillMissingPtsCurrCont( shift );
       break;
       
     case Qt::Key_D:                  // delete points current contour to nearest end
@@ -166,7 +167,10 @@ int imodPlugKeys(ImodView *vw, QKeyEvent *event)
       
     case Qt::Key_Enter:
     case Qt::Key_Return:
-      plug.window->iterateStippled(1,false);
+      plug.window->enterActionIterateConts( shift );
+      
+      //if ( !plug.window->enterActionIterateConts( shift ) );
+      //  return 0;
       break;
       
     //## LIST OF KEYS THAT REQUIRE A REDRAW OF THE EXTRA OBJECT:
@@ -246,13 +250,18 @@ void imodPlugExecute(ImodView *inImodView)
     plug.tiltOffsetX           = 0;
     plug.biggestHoleGrid       = 20;
     plug.biggestHoleOffset     = 100;
-    plug.wheelResistance       = 100;
     
     plug.expPtDisplayType      = ED_CROSS;
     plug.expPtSize             = 6;
     plug.sizePurpleSpheres     = 10;
     plug.selectedAction        = 0;
     plug.sortCriteria          = 0;
+    
+    plug.wheelResistance       = 100;
+    plug.disableHotKeys        = false;
+    plug.includeEndsResid      = true;
+    plug.enterAction           = EN_NEXTUNCHECKED;
+    plug.minPtsEnter           = 2;
     
     plug.autoSaveSettings      = true;
     
@@ -262,6 +271,7 @@ void imodPlugExecute(ImodView *inImodView)
     plug.smoothMoveYOnly       = false;
     plug.smoothLeaveSeed       = true;
     plug.smoothLeaveEnds       = false;
+    plug.smoothLeaveCurrV      = false;
     plug.smoothMoveFract       = 1.0;
     plug.smoothMinResid        = 0;
     plug.smoothIterations      = 1;
@@ -546,7 +556,7 @@ BeadHelper::BeadHelper(QWidget *parent, const char *name) :
                 "Fills in missing points");
   vboxLayout1->addWidget(fillMissingPtsButton);
   
-  reorderContsButton = new QPushButton("Reorder Contours", grpActions);
+  reorderContsButton = new QPushButton("Reorder Contours   [o]", grpActions);
   connect(reorderContsButton, SIGNAL(clicked()), this, SLOT(reorderContours()));
   QToolTip::add(reorderContsButton,
                 "Reorders the specified range of contours by one of several crititeria");
@@ -1062,24 +1072,29 @@ void BeadHelper::loadSettings()
   plug.tiltAngle            = savedValues[7];
   plug.biggestHoleGrid      = savedValues[8];
   plug.biggestHoleOffset    = savedValues[9];
-  plug.wheelResistance      = savedValues[10];
-  plug.expPtDisplayType     = savedValues[11];
-  plug.expPtSize            = savedValues[12];
-  plug.sizePurpleSpheres    = savedValues[13];
-  plug.selectedAction       = savedValues[14];
-  plug.sortCriteria         = savedValues[15];
-  plug.autoSaveSettings     = savedValues[16];
+  plug.expPtDisplayType     = savedValues[10];
+  plug.expPtSize            = savedValues[11];
+  plug.sizePurpleSpheres    = savedValues[12];
+  plug.selectedAction       = savedValues[13];
+  plug.sortCriteria         = savedValues[14];
+  plug.autoSaveSettings     = savedValues[15];
   
-  plug.smoothCurrContOnly   = savedValues[17];
-  plug.smoothFillGaps       = savedValues[18];
-  plug.smoothMoveYOnly      = savedValues[19];
-  plug.smoothLeaveSeed      = savedValues[20];
-  plug.smoothLeaveEnds      = savedValues[21];
-  plug.smoothMoveFract      = savedValues[22];
-  plug.smoothMinResid       = savedValues[23];
-  plug.smoothIterations     = savedValues[24];
-  plug.smoothAdjacentV      = savedValues[25];
-  plug.smoothNumViews       = savedValues[26];
+  plug.wheelResistance      = savedValues[16];
+  plug.includeEndsResid     = savedValues[17];
+  plug.enterAction          = savedValues[18];
+  plug.minPtsEnter          = savedValues[19];
+  
+  plug.smoothCurrContOnly   = savedValues[20];
+  plug.smoothFillGaps       = savedValues[21];
+  plug.smoothMoveYOnly      = savedValues[22];
+  plug.smoothLeaveSeed      = savedValues[23];
+  plug.smoothLeaveEnds      = savedValues[24];
+  plug.smoothLeaveCurrV     = savedValues[25];
+  plug.smoothMoveFract      = savedValues[26];
+  plug.smoothMinResid       = savedValues[27];
+  plug.smoothIterations     = savedValues[28];
+  plug.smoothAdjacentV      = savedValues[29];
+  plug.smoothNumViews       = savedValues[30];
 }
 
 
@@ -1101,24 +1116,29 @@ void BeadHelper::saveSettings()
   saveValues[7]  = plug.tiltAngle;
   saveValues[8]  = plug.biggestHoleGrid;
   saveValues[9]  = plug.biggestHoleOffset;
-  saveValues[10] = plug.wheelResistance;
-  saveValues[11] = plug.expPtDisplayType;
-  saveValues[12] = plug.expPtSize;
-  saveValues[13] = plug.sizePurpleSpheres;
-  saveValues[14] = plug.selectedAction;
-  saveValues[15] = plug.sortCriteria;
-  saveValues[16] = plug.autoSaveSettings;
+  saveValues[10] = plug.expPtDisplayType;
+  saveValues[11] = plug.expPtSize;
+  saveValues[12] = plug.sizePurpleSpheres;
+  saveValues[13] = plug.selectedAction;
+  saveValues[14] = plug.sortCriteria;
+  saveValues[15] = plug.autoSaveSettings;
   
-  saveValues[17] = plug.smoothCurrContOnly;
-  saveValues[18] = plug.smoothFillGaps;
-  saveValues[19] = plug.smoothMoveYOnly;
-  saveValues[20] = plug.smoothLeaveSeed;
-  saveValues[21] = plug.smoothLeaveEnds;
-  saveValues[22] = plug.smoothMoveFract;
-  saveValues[23] = plug.smoothMinResid;
-  saveValues[24] = plug.smoothIterations;
-  saveValues[25] = plug.smoothAdjacentV;
-  saveValues[26] = plug.smoothNumViews;
+  saveValues[16] = plug.wheelResistance;
+  saveValues[17] = plug.includeEndsResid;
+  saveValues[18] = plug.enterAction;
+  saveValues[19] = plug.minPtsEnter;
+  
+  saveValues[20] = plug.smoothCurrContOnly;
+  saveValues[21] = plug.smoothFillGaps;
+  saveValues[22] = plug.smoothMoveYOnly;
+  saveValues[23] = plug.smoothLeaveSeed;
+  saveValues[24] = plug.smoothLeaveEnds;
+  saveValues[25] = plug.smoothLeaveCurrV;
+  saveValues[26] = plug.smoothMoveFract;
+  saveValues[27] = plug.smoothMinResid;
+  saveValues[28] = plug.smoothIterations;
+  saveValues[29] = plug.smoothAdjacentV;
+  saveValues[30] = plug.smoothNumViews;
   
   prefSaveGenericSettings("BeadHelper",NUM_SAVED_VALS,saveValues);
 }
@@ -1135,26 +1155,41 @@ void BeadHelper::deletePtsInRange()
   if( !updateAndVerifyRanges() )
     return;
   
-  //## DISPLAY YES/NO TEXTBOX GIVING USER OPTION TO CANCEL:
+  //## GET USER INPUT FROM CUSTOM DIALOG:
   
   int numConts  = (plug.contMax - plug.contMin) + 1;
   int numSlices = (plug.sliceMax - plug.sliceMin) + 1;
   int numPts = numConts * numSlices;
   string incMiddleSlice = isBetweenAsc(plug.sliceMin,plug.middleSlice,plug.sliceMax) ?
-    "\n\nTHIS INCLUDES THE MIDDLE SLICE!\n" : "";
-  if( numPts > 10 )
-  {
-    string msg = "This operation will delete ALL points on "
+    "\nTHIS INCLUDES THE MIDDLE SLICE!\n" : "";
+  string msg = "This operation will delete ALL points \n  on "
     + toString(numConts) + " contours ("
     + toString(plug.contMin+1) + "-" + toString(plug.contMax+1)
-    + ") on " + toString(numSlices) + " slices ("
-    + toString(plug.sliceMin+1) + "-" + toString(plug.sliceMax+1) + ")."
-    + incMiddleSlice 
-    + "\nAre you sure you want to continue ?";
-    
-    if( !MsgBoxYesNo( this, msg ) )
-      return;
-  }
+    + ") \n  on " + toString(numSlices) + " slices ("
+    + toString(plug.sliceMin+1) + "-" + toString(plug.sliceMax+1) + ")"
+    + "\n  Potential # points = " + toString(numPts)
+    + incMiddleSlice;
+  
+  static bool skipCheckedConts = true;
+  static bool skipSeedView     = true;
+  
+  CustomDialog ds;
+  int ID_DUMMY         = ds.addLabel   ( msg );
+  int ID_SKIPCHECKEDC  = ds.addCheckBox( "skip checked contours",
+                                         skipCheckedConts,
+                                         "Will not delete any points from checked "
+                                         "(stippled) contours " );
+  int ID_SKIPSEEDVIEW  = ds.addCheckBox( "skip middle (seed) view",
+                                         skipSeedView,
+                                         "Will not delete any seed points (points on "
+                                         "middle view)" );
+  GuiDialogCustomizable dlg(&ds, "Delete Points", this);
+  dlg.exec();
+  if( ds.cancelled )
+    return;
+  skipCheckedConts     = ds.getResultCheckBox  ( ID_SKIPCHECKEDC );
+  skipSeedView         = ds.getResultCheckBox  ( ID_SKIPSEEDVIEW );
+  
   
   //## DELETE ALL POINTS IN RANGE:
   
@@ -1172,9 +1207,14 @@ void BeadHelper::deletePtsInRange()
     
     Icont *cont = getCont( obj, c );
     
+    if( skipCheckedConts && isInterpolated(cont) )
+      continue;
+    
     for( int p=0; p<psize(cont); p++ )
     {
-      if( isBetweenAsc( plug.sliceMin, getPtZInt(cont,p), plug.sliceMax ) )
+      int z = getPtZInt(cont,p);
+      if( isBetweenAsc( plug.sliceMin, z, plug.sliceMax ) 
+          && ( !skipSeedView || z != plug.middleSlice ) )
       {
         imodPointDelete( cont, p );
         p--;
@@ -1278,6 +1318,31 @@ void BeadHelper::reduceContsToSeed()
   if( !updateAndVerifyRanges() )
     return;
   
+
+  //## GET USER INPUT FROM CUSTOM DIALOG:
+  
+  int numConts  = (plug.contMax - plug.contMin) + 1;
+  string msg = "This operation will delete all but the seed point from \n  "
+    + toString(numConts) + " contours ("
+    + toString(plug.contMin+1) + "-" + toString(plug.contMax+1)
+    + ")";
+  
+  static bool skipCheckedConts = true;
+  CustomDialog ds;
+  int ID_DUMMY         = ds.addLabel   ( msg );
+  int ID_SKIPCHECKEDC  = ds.addCheckBox( "skip checked contours",
+                                         skipCheckedConts,
+                                         "Will not delete any points from checked "
+                                         "(stippled) contours " );
+  GuiDialogCustomizable dlg(&ds, "Reduce Contours to Seed Point", this);
+  dlg.exec();
+  if( ds.cancelled )
+    return;
+  skipCheckedConts     = ds.getResultCheckBox  ( ID_SKIPCHECKEDC );
+  
+  
+  //## REDUCE RANGE OF CONTOURS TO SEED:
+  
   Imod *imod = ivwGetModel(plug.view);
   Iobj *obj  = imodObjectGet(imod);
   int objIdx, contIdx, ptIdx;
@@ -1291,6 +1356,9 @@ void BeadHelper::reduceContsToSeed()
     imodSetIndex(imod, objIdx, c, 0);
     Icont *cont = getCont( obj, c );
     
+    if( skipCheckedConts && isInterpolated(cont) )
+      continue;
+    
     if( psize(cont) > 1 && bead_isPtOnSlice(cont,plug.middleSlice) )
     {
       Ipoint *pt = bead_getPtOnSlice(cont,plug.middleSlice);
@@ -1302,7 +1370,8 @@ void BeadHelper::reduceContsToSeed()
       numContsReduced++;
     }
   }
-  undoFinishUnit( plug.view );                // FINISH UNDO
+  if(numContsReduced)
+    undoFinishUnit( plug.view );                // FINISH UNDO
   
   //## OUTPUT RESULTS:
   
@@ -1396,6 +1465,10 @@ void BeadHelper::movePtsToEstimatedPosOptions()
                                          plug.smoothNumViews, 1,
                                          "How many views above and below the current "
                                          "view will be moved" );
+  int ID_LEAVECURRZ    = ds.addCheckBox( "leave point on current view",
+                                         plug.smoothLeaveCurrV, 
+                                         "will not shift any points in the current view "
+                                         "in the top most ZAP window" );
   
 	GuiDialogCustomizable dlg(&ds, "Smoothing Options", this);
 	dlg.exec();
@@ -1409,9 +1482,9 @@ void BeadHelper::movePtsToEstimatedPosOptions()
   plug.smoothMoveFract          = float( ds.getResultSpinBox( ID_MOVEFRACT ) ) / 10;
   plug.smoothMinResid           = ds.getResultSpinBox   ( ID_MINRESID );
   plug.smoothIterations         = ds.getResultSpinBox   ( ID_ITERATIONS );
-  plug.smoothAdjacentV           = ds.getResultCheckBox ( ID_ADJACENTV );
+  plug.smoothAdjacentV          = ds.getResultCheckBox ( ID_ADJACENTV );
   plug.smoothNumViews           = ds.getResultSpinBox   ( ID_NUMVEITHERS );
-  
+  plug.smoothLeaveCurrV         = ds.getResultCheckBox  ( ID_LEAVECURRZ );
   
   //## APPLY SMOOTHING:
   
@@ -1483,6 +1556,7 @@ void BeadHelper::movePtsToEstimatedPosRange()
                                       plug.smoothMinResid, plug.smoothIterations,
                                       plug.smoothFillGaps, plug.smoothMoveYOnly,
                                       plug.smoothLeaveSeed, plug.smoothLeaveEnds,
+                                      plug.smoothLeaveCurrV,
                                       ptsMoved, ptsAdded );
     
     numPtsMoved += ptsMoved;
@@ -1532,6 +1606,7 @@ void BeadHelper::movePtsToEstimatedPosCurrCont()
                                     plug.smoothMinResid, plug.smoothIterations,
                                     plug.smoothFillGaps, plug.smoothMoveYOnly,
                                     plug.smoothLeaveSeed, plug.smoothLeaveEnds,
+                                    plug.smoothLeaveCurrV,
                                     ptsMoved, ptsAdded );
   
   if( ptsMoved || ptsAdded )                      // FINISH UNDO
@@ -1587,6 +1662,35 @@ void BeadHelper::fillMissingPts()
   int objIdx, contIdx, ptIdx;
   imodGetIndex(imod, &objIdx, &contIdx, &ptIdx);
   
+  
+  //## GET USER INPUT FROM CUSTOM DIALOG:
+  
+  int numConts  = (plug.contMax - plug.contMin) + 1;
+  int numSlices = (plug.sliceMax - plug.sliceMin) + 1;
+  string msg = "This operation will fill missing points on "
+    + toString(numConts) + " contours ("
+    + toString(plug.contMin+1) + "-" + toString(plug.contMax+1)
+    + ") on " + toString(numSlices) + " slices ("
+    + toString(plug.sliceMin+1) + "-" + toString(plug.sliceMax+1) + ")";
+  
+  static bool fillPastEnds = false;
+  
+	CustomDialog ds;
+  int ID_DUMMY         = ds.addLabel   ( msg );
+  int ID_FILLPASTENDS  = ds.addCheckBox( "fill past ends",
+                                         fillPastEnds,
+                                         "Will add points past the start and end "
+                                         "point of each contour based on their "
+                                         "estimated postions" );
+	GuiDialogCustomizable dlg(&ds, "Fill Missing Points", this);
+	dlg.exec();
+	if( ds.cancelled )
+		return;
+  fillPastEnds        = ds.getResultCheckBox  ( ID_FILLPASTENDS );
+  
+  
+  //## FILL MISSING POINTS:
+  
   int numContsChanged = 0;
   int numPtsAddedTotal = 0;
   
@@ -1597,7 +1701,8 @@ void BeadHelper::fillMissingPts()
     
     undoContourDataChgCC( plug.view );      // REGISTER UNDO
     int numPtsAdded = bead_fillMissingPtsOnCont( getCurrCont(),
-                                                 plug.sliceMin, plug.sliceMax );
+                                                 plug.sliceMin, plug.sliceMax,
+                                                 fillPastEnds );
     
     numPtsAddedTotal += numPtsAdded;
     if( numPtsAdded )
@@ -1607,9 +1712,10 @@ void BeadHelper::fillMissingPts()
   if( numPtsAddedTotal )
     undoFinishUnit( plug.view );            // FINISHED UNDO
   
+  //## OUTPUT RESULTS:
+  
   imodSetIndex(imod, objIdx, contIdx, ptIdx);
-  wprint("Changed %d contours\n", numContsChanged);
-  wprint("Added %d points\n", numPtsAddedTotal);
+  wprint("Added %d points to %d contours\n", numPtsAddedTotal, numContsChanged);
   ivwRedraw( plug.view );
 }
 
@@ -1617,13 +1723,14 @@ void BeadHelper::fillMissingPts()
 //------------------------
 //-- Fills any missing points in the current contour over all views.
 
-void BeadHelper::fillMissingPtsCurrCont()
+void BeadHelper::fillMissingPtsCurrCont( bool fillPastEnds )
 {
   if( !isCurrContValid() )
     return;
   
   undoContourDataChgCC( plug.view );      // REGISTER UNDO
-  int numPtsAdded = bead_fillMissingPtsOnCont( getCurrCont(), 0, plug.zsize-1 );
+  int numPtsAdded = bead_fillMissingPtsOnCont( getCurrCont(), 0, plug.zsize-1,
+                                               fillPastEnds );
   if( numPtsAdded )
     undoFinishUnit( plug.view );          // FINISHED UNDO
   
@@ -1742,13 +1849,24 @@ void BeadHelper::moreSettings()
   //## GET USER INPUT FROM CUSTOM DIALOG:
   
 	CustomDialog ds;
-  int ID_MIDDLESLICE    = ds.addSpinBox ( "middle (seed) view:",
+  
+  
+  ds.addLabel   ("----- TILT STACK: -----");
+  
+  int ID_MIDDLESLICE    = ds.addSpinBox ( "seed view:",
                                           1, plug.zsize+1, plug.middleSlice+1, 1,
                                           "The view used to seed points - this is "
                                           "usually the middle-most view, but not "
-                                          "in all cases" );
-  int ID_TILTANGLE      = ds.addLineEdit( "tilt angle:         ",
-                                          toString(plug.tiltAngle).c_str() );
+                                          "in all cases (NOTE: This settings is not "
+                                          "saved on exit)"
+                                          "\n\nNOTE: You'll often have to reduce "
+                                          "this value by 1 on b axis stacks" );
+  int ID_TILTANGLE      = ds.addLineEdit( "tilt angle:                 ",
+                                          toString(plug.tiltAngle).c_str(),
+                                          "The angle (in degrees) clockwise from "
+                                          "vertical about which the views rotate"
+                                          "\nNOTE: This can be calculated in "
+                                          "'More Actions' > 'calculate tilt angle'" );
   int ID_TILTOFFSET     = ds.addSpinBox ( "tilt x offset:", -200, 200,
                                           plug.tiltOffsetX, 1,
                                           "How far the tilt axis is shifted along X "
@@ -1766,6 +1884,9 @@ void BeadHelper::moreSettings()
                                           "encourage points closer to the edge "
                                           "while a negative value will concentrate "
                                           "points in the middle as you press 'h'.");
+  
+  ds.addLabel   ("----- DISPLAY: -----");
+  
   int ID_EXPPTDISPLAY   = ds.addComboBox( "estimated pt display:",
                                           "cross,"
                                           "diamond,"
@@ -1779,17 +1900,49 @@ void BeadHelper::moreSettings()
                                           1, 200, plug.sizePurpleSpheres, 1,
                                           "The size of points in the extra purple object "
                                           "(used to show bottom fiducials etc)" );
+  
+  ds.addLabel   ("----- KEYBOARD: -----");
+  
   int ID_WHEELRESIST    = ds.addSpinBox ( "wheel resistance:",
                                           10, 1000, plug.wheelResistance, 10,
                                           "The higher the value, the slower "
                                           "mouse scrolling works (useful if you have "
                                           "a touchy mouse wheel)" );
+  int ID_DISABLEHOTKEYS = ds.addCheckBox( "disable all hot keys", 
+                                          plug.disableHotKeys,
+                                          "Disables all BeadHelper hot keys in case "
+                                          "they conflict with another key you "
+                                          "need to press (NOTE: this setting defaults "
+                                          "to off and is not saved on exit)");
+  int ID_CHECKENDS      = ds.addCheckBox( "include end pts on [h], [b] & [w]", 
+                                          plug.includeEndsResid,
+                                          "Includes end points when searching for the "
+                                          "point with the next biggest y jump "
+                                          "or deviation from expected when "
+                                          "[y], [b] or [w] is pressed");
+  int ID_ENTERACTION    = ds.addComboBox( "on [Enter] go to:",
+                                          "do nothing,"
+                                          "next unchecked,"
+                                          "prev uncheced,"
+                                          "next checked,"
+                                          "next contour", plug.enterAction,
+                                          "Action performed when [Enter] is pressed "
+                                          "\n\nNOTE: If you don't use enter you may, "
+                                          "wish to leave this on 'do nothing' because "
+                                          "you may use enter in other windows/plugins.");
+  int ID_MINPTSENETER   = ds.addSpinBox ( "min points for [Enter]:",
+                                          0, 100, plug.minPtsEnter, 1,
+                                          "The minimum number of points a contour "
+                                          "must have to be jumped to when [Enter] "
+                                          "is pressed" );
+  
   int ID_AUTOSAVE       = ds.addCheckBox( "save settings on close", 
                                           plug.autoSaveSettings,
                                           "Automatically saves your Bead Helper "
                                           "settings to 'beadhelpersettings.txt' "
                                           "when you close 3dmod, so they will load "
                                           "next time you open 3dmod");
+  
   
 	GuiDialogCustomizable dlg(&ds, "More Settings", this);
 	dlg.exec();
@@ -1800,10 +1953,16 @@ void BeadHelper::moreSettings()
   plug.biggestHoleGrid       = ds.getResultSpinBox  ( ID_BIGHOLEGRID );
   plug.biggestHoleOffset     = ds.getResultSpinBox  ( ID_BIGHOLEOFFSET );
   plug.middleSlice           = ds.getResultSpinBox  ( ID_MIDDLESLICE ) - 1;
-  plug.wheelResistance       = ds.getResultSpinBox  ( ID_WHEELRESIST );
   plug.expPtDisplayType      = ds.getResultComboBox ( ID_EXPPTDISPLAY );
   plug.expPtSize             = ds.getResultSpinBox  ( ID_EXPPTSIZE );
   plug.sizePurpleSpheres     = ds.getResultSpinBox  ( ID_PURPLESPHERE );
+  
+  plug.wheelResistance       = ds.getResultSpinBox  ( ID_WHEELRESIST );
+  plug.disableHotKeys        = ds.getResultCheckBox ( ID_DISABLEHOTKEYS );
+  plug.includeEndsResid      = ds.getResultCheckBox ( ID_CHECKENDS );
+  plug.enterAction           = ds.getResultComboBox ( ID_ENTERACTION );
+  plug.minPtsEnter           = ds.getResultSpinBox  ( ID_MINPTSENETER );
+  
   plug.autoSaveSettings      = ds.getResultCheckBox ( ID_AUTOSAVE );
   
   float newTiltAngle = string_getFloatFromString( tiltAngleStr );
@@ -1838,19 +1997,30 @@ void BeadHelper::reorderContours()
   
 	CustomDialog ds;
   int ID_DUMMY         = ds.addLabel   ( "contours to sort (inclusive):" );
-  int ID_CONTMIN       = ds.addSpinBox ( "min:", 1, nConts, plug.contMin, 1,
+  int ID_CONTMIN       = ds.addSpinBox ( "min:", 1, nConts, plug.contMin+1, 1,
                                          "Only contours after this contour "
                                          "(inclusive) will be reordered" );
   int ID_CONTMAX       = ds.addSpinBox ( "max:", 1, nConts, nConts, 1,
                                          "Only contours BEFORE this contour "
                                          "(inclusive) will be reordered" );
 	int ID_SORTCRITERIA  = ds.addRadioGrp( "sort by:         (sort criteria)",
-                          "y jumps (asc),"
-                          "deviation (asc),"
-                          "avg grey value (desc),"
-                          "dist from middle (asc),"
-                          "num missing pts (asc),"
-                          "random,", plug.sortCriteria );
+                                         "y jumps (asc),"
+                                         "deviation (asc),"
+                                         "avg grey value (desc),"
+                                         "dist from middle (asc),"
+                                         "num missing pts (asc),"
+                                         "random,",
+                                         plug.sortCriteria,
+                                         "",
+                                         "Sorts based on how far points jump in Y,"
+                                         "Uses a weighted score of how far points are "
+                                           "from their estimated positions,"
+                                         "Average the grey value closest to each point,"
+                                         "The distance of the seed point from the "
+                                            "dead center of the tomogram in X an Y,"
+                                         "Contours with the least points will be moved "
+                                            "to the end,"
+                                         "Uses a random number for each contour" );
   int ID_CALVALS       = ds.addCheckBox( "calc values only (don't reorder)",
                                          calcValsOnly,
                                          "No contours will be reordered, but "
@@ -2150,12 +2320,22 @@ void BeadHelper::toggleStippled()
 }
 
 //------------------------
-//-- Selects the next stippled contour in the current object
+//-- Selects the next/previous stippled/unstippled contour in the current object
+//-- depending on the settings of: "plug.enterAction" and "plug.minPtsEnter".
+//-- Returns false if no valid object is selected or no action is selected.
 
-bool BeadHelper::iterateStippled(int change, bool stippled)
+bool BeadHelper::enterActionIterateConts( bool reverse )
 {
-  if( !isCurrObjValid() )
+  if( !isCurrObjValid() || plug.enterAction == EN_NONE )
     return false;
+  
+  bool anyCont      = (plug.enterAction == EN_NEXTCONT)    ? true  : false;
+  bool stippledCont = (plug.enterAction == EN_NEXTCHECKED) ? true  : false;
+  int  change       = (plug.enterAction == EN_PREVUNCHECKED) ? -1 : 1;
+  
+  if(reverse)
+    change = -1*change;
+  
   
   Imod *imod  = ivwGetModel(plug.view);
   Iobj *obj   = imodObjectGet(imod);
@@ -2167,16 +2347,25 @@ bool BeadHelper::iterateStippled(int change, bool stippled)
     int c = intMod( (i+1)*change+contIdx , csize(obj) );
     
     Icont *cont = getCont(obj,c);
-    if( isInterpolated(cont) == stippled )
+    
+    if(    ( psize(cont) >= plug.minPtsEnter )
+        && ( anyCont || isInterpolated(cont) == stippledCont ) )
     {
-      imodSetIndex( imod, objIdx, c, MIN(ptIdx, psize(cont)-1) );
+      ptIdx = MIN( ptIdx, psize(cont)-1 );
+      ptIdx = MAX( ptIdx, 0 );
+      imodSetIndex( imod, objIdx, c, ptIdx );
       plug.window->drawExtraObject(true);
       ivwRedraw( plug.view );
       return true;
     }
   }
-  wprint("\aNo more unchecked (unstippled) contours found\n");
-  return false;
+  
+  if( plug.enterAction == EN_NEXTUNCHECKED || plug.enterAction == EN_PREVUNCHECKED )
+    wprint("\aNo more checked (stippled) contours found\n");
+  if( plug.enterAction == EN_NEXTCHECKED )
+    wprint("\aNo more checked (stippled) contours found\n");
+  
+  return true;
 }
 
 //------------------------
@@ -3324,16 +3513,13 @@ bool bead_insertPtAtEstimatedPos( Icont *cont, int slice, bool overwrite )
 
 int bead_movePtTowardsEstimatedPos ( Icont *cont, int z,
                                      float moveFract, float minResid, bool moveYOnly,
-                                     bool leaveSeed, bool leaveEnds )
+                                     bool leaveEnds )
 {
   if( psize(cont) < 3 )
     return false;
   
   if( leaveEnds && ( z <= getFirstPt(cont)->z || z >= getLastPt(cont)->z ) )
       return 0;
-  
-  if( leaveSeed && z == plug.middleSlice )
-    return 0;
   
   Ipoint expPt;
   Ipoint *currPt = bead_getPtOnSlice( cont, z );
@@ -3361,7 +3547,7 @@ int bead_movePtTowardsEstimatedPos ( Icont *cont, int z,
 bool bead_movePtsTowardsEstimatedPos ( Icont *cont, int minZ, int maxZ,
                                        float moveFract, float minResid, int iterations,
                                        bool fillGaps, bool moveYOnly,
-                                       bool leaveSeed, bool leaveEnds,
+                                       bool leaveSeed, bool leaveEnds, bool leaveCurrV,
                                        int &ptsMoved, int &ptsAdded )
 {  
   ptsMoved = 0;
@@ -3369,6 +3555,9 @@ bool bead_movePtsTowardsEstimatedPos ( Icont *cont, int minZ, int maxZ,
   
   if( minZ > maxZ || isEmpty(cont) ||  psize(cont) < 3 )
     return false;
+  
+  int zLeave1 = (leaveSeed)  ? plug.middleSlice    : -1;
+  int zLeave2 = (leaveCurrV) ? edit_getZOfTopZap() : -1;
   
   //## MOVE POINTS TOWARDS THEIR ESTIMATED POSITION FROM THE MIDDLE Z
   //## GOING DOWN, THEN FROM THE MIDDLE Z GOING UP:
@@ -3378,16 +3567,18 @@ bool bead_movePtsTowardsEstimatedPos ( Icont *cont, int minZ, int maxZ,
   for( int i=0; i<iterations; i++ )
   {
     for( int z=zmiddle; z>=minZ; z--)     // from middle to minZ:
-      ptsMoved += bead_movePtTowardsEstimatedPos( cont, z, moveFract, minResid,
-                                                  moveYOnly, leaveSeed, leaveEnds );
+      if( z != zLeave1 && z != zLeave2 )
+        ptsMoved += bead_movePtTowardsEstimatedPos( cont, z, moveFract, minResid,
+                                                    moveYOnly, leaveEnds );
     
     for( int z=zmiddle+1; z<=maxZ; z++)   // from 1 above middle to maxZ:
-      ptsMoved += bead_movePtTowardsEstimatedPos( cont, z, moveFract, minResid,
-                                                  moveYOnly, leaveSeed, leaveEnds );
+      if( z != zLeave1 && z != zLeave2 )
+        ptsMoved += bead_movePtTowardsEstimatedPos( cont, z, moveFract, minResid,
+                                                    moveYOnly, leaveEnds );
   }
   
   if( fillGaps )
-    ptsAdded = bead_fillMissingPtsOnCont( cont, minZ, maxZ );
+    ptsAdded = bead_fillMissingPtsOnCont( cont, minZ, maxZ, false );
   
   return true;
 }
@@ -3398,10 +3589,16 @@ bool bead_movePtsTowardsEstimatedPos ( Icont *cont, int minZ, int maxZ,
 //-- "minZ" and "maxZ" inclusive, by starting at the middle point and
 //-- using the estimated middle position. Returns the number of points added.
 
-int bead_fillMissingPtsOnCont( Icont *cont, int minZ, int maxZ )
+int bead_fillMissingPtsOnCont( Icont *cont, int minZ, int maxZ, bool fillPastEnds )
 {
   if( !cont || psize(cont) < 3 || minZ > maxZ )
     return 0;
+  
+  if( !fillPastEnds )
+  {
+    minZ = MAX( minZ, int(getFirstPt(cont)->z + 1) );
+    maxZ = MIN( maxZ, int(getLastPt (cont)->z - 1) );
+  }
   
   int middleZ = avg(maxZ,minZ);
   int pointsAdded = 0;
@@ -3884,6 +4081,9 @@ bool bead_goToNextBiggestYJump( bool findNextBiggest )
     Icont *cont = getCont(obj,c);
     for (int p=0; p<psize(cont);p++)
     {
+      if( !plug.includeEndsResid && (p==0 || p==psize(cont)-1 ) )
+          continue;
+      
       float yJump = bead_calcYJump(cont,p);
       if ( (yJump > maxYJump) && (yJump < maxYJumpAllowed) )
       {
@@ -3959,6 +4159,9 @@ bool bead_goToNextBiggestWeightedDev( bool findNextBiggest, bool weighted )
     Icont *cont = getCont(obj,c);
     for (int p=0; p<psize(cont);p++)
     {
+      if( !plug.includeEndsResid && (p==0 || p==psize(cont)-1 ) )
+          continue;
+      
       float deviaton = bead_calcDistanceFromExpected(cont,p,weighted);
       if ( (deviaton > maxDev) && (deviaton < maxDevAllowed) )
       {
