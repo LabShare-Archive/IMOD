@@ -13,6 +13,7 @@ all : ALWAYS
 #	cd interpolator   ;    $(MAKE) $@
 
 install : 
+	cd beadhelper     ;    $(MAKE) $@
 	cd drawingtools   ;    $(MAKE) $@
 
 clean : ALWAYS
