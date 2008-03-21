@@ -54,7 +54,7 @@ public class EtomoDirector {
   public static final String rcsid = "$Id$";
 
   private static final long TO_BYTES = 1024;
-  public static final double MIN_AVAILABLE_MEMORY_REQUIRED = 0.75 * TO_BYTES
+  public static final double MIN_AVAILABLE_MEMORY_REQUIRED = 2 * TO_BYTES
       * TO_BYTES;
   public static final int NUMBER_STORABLES = 2;
   private static final String JAVA_MEMORY_LIMIT_ENV_VAR = "ETOMO_MEM_LIM";
@@ -90,12 +90,21 @@ public class EtomoDirector {
   }
 
   public static void main(String[] args) {
-    Utilities.setStartTime();
-    EtomoDirector.INSTANCE.arguments.parse(args);
-    INSTANCE.initialize();
-    //automation must be done last in main, otherwise initialization may not
-    //complete normally.
-    EtomoDirector.INSTANCE.doAutomation();
+    try {
+      Utilities.setStartTime();
+      EtomoDirector.INSTANCE.arguments.parse(args);
+      INSTANCE.initialize();
+      //automation must be done last in main, otherwise initialization may not
+      //complete normally.
+      EtomoDirector.INSTANCE.doAutomation();
+    }
+    catch (OutOfMemoryError e) {
+      e.printStackTrace();
+      UIHarness.INSTANCE.openMessageDialog("WARNING:  Ran out of memory."
+          + "\nPlease close open log file windows or exit Etomo.",
+          "Out of Memory");
+      throw e;
+    }
   }
 
   public void doAutomation() {
@@ -878,6 +887,9 @@ public class EtomoDirector {
   }
 
   public long getAvailableMemory() {
+    //System.err.println("max=  " + Runtime.getRuntime().maxMemory());
+    //System.err.println("total=" + Runtime.getRuntime().totalMemory());
+    //System.err.println("free= " + Runtime.getRuntime().freeMemory());
     return Runtime.getRuntime().maxMemory()
         - Runtime.getRuntime().totalMemory()
         + Runtime.getRuntime().freeMemory();
@@ -900,22 +912,35 @@ public class EtomoDirector {
     //needs to.
     //Memory limit is adjusted down because availableMemory never matches
     //javaMemoryLimit.
-    if (javaMemoryLimit.isNull()
-        || availableMemory + usedMemory >= javaMemoryLimit.getLong()
-            - (MIN_AVAILABLE_MEMORY_REQUIRED * 3)) {
-      //Check available memory
-      if (availableMemory < MIN_AVAILABLE_MEMORY_REQUIRED) {
-        //send message once per memory problem
-        if (!outOfMemoryMessage) {
-          UIHarness.INSTANCE.openMessageDialog(
-              "WARNING:  Ran out of memory.  Changes to the .edf file and/or"
-                  + " comscript files may not be saved."
-                  + "\nPlease close open windows or exit Etomo.",
-              "Out of Memory");
-        }
+    //Old code for SGI
+    /* if (javaMemoryLimit.isNull()
+     || availableMemory + usedMemory >= javaMemoryLimit.getLong()
+     - (MIN_AVAILABLE_MEMORY_REQUIRED * 3)) {
+     //Check available memory
+     if (availableMemory < MIN_AVAILABLE_MEMORY_REQUIRED) {
+     //send message once per memory problem
+     if (!outOfMemoryMessage) {
+     UIHarness.INSTANCE.openMessageDialog(
+     "WARNING:  Ran out of memory.  Changes to the .edf file and/or"
+     + " comscript files may not be saved."
+     + "\nPlease close open windows or exit Etomo.",
+     "Out of Memory");
+     }
+     outOfMemoryMessage = true;
+     return false;
+     }
+     }*/
+    if (availableMemory <= MIN_AVAILABLE_MEMORY_REQUIRED) {
+      if (!outOfMemoryMessage) {
+        UIHarness.INSTANCE
+            .openMessageDialog(
+                "WARNING:  Ran out of memory.  Changes to the .edf file and/or"
+                    + " comscript files may not be saved."
+                    + "\nPlease close open windows or exit Etomo.",
+                "Out of Memory");
         outOfMemoryMessage = true;
-        return false;
       }
+      return false;
     }
     //memory problem is gone - reset message
     outOfMemoryMessage = false;
@@ -964,6 +989,9 @@ public class EtomoDirector {
 }
 /**
  * <p> $Log$
+ * <p> Revision 1.70  2008/03/19 01:00:29  sueh
+ * <p> bug# 1099 Added getAvailableMemory
+ * <p>
  * <p> Revision 1.69  2008/01/31 20:16:16  sueh
  * <p> bug# 1055 Stop using lazy instanciation to create parameterStore.
  * <p>
