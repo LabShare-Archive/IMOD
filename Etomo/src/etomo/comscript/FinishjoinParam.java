@@ -32,6 +32,9 @@ import etomo.util.DatasetFiles;
  * @version $Revision$
  * 
  * <p> $Log$
+ * <p> Revision 1.30  2007/12/13 01:05:03  sueh
+ * <p> bug# 1056 Changed etomo.comscript.Fields to etomo.comscript.Field.
+ * <p>
  * <p> Revision 1.29  2007/11/06 19:10:36  sueh
  * <p> bug# 1047 Added getSubcommandDetails.
  * <p>
@@ -228,10 +231,12 @@ public final class FinishjoinParam implements CommandDetails {
         System.err.print("SUPPRESS_EXECUTION:");
       }
     }
-    commandArray = new String[options.size() + 1];
-    commandArray[0] = BaseManager.getIMODBinPath() + COMMAND_NAME;
+    commandArray = new String[options.size() + 3];
+    commandArray[0] = "tcsh";
+    commandArray[1] = "-f";
+    commandArray[2] = BaseManager.getIMODBinPath() + COMMAND_NAME;
     for (int i = 0; i < options.size(); i++) {
-      commandArray[i + 1] = (String) options.get(i);
+      commandArray[i + 3] = (String) options.get(i);
     }
     if (debug >= 1) {
       StringBuffer buffer = new StringBuffer();
