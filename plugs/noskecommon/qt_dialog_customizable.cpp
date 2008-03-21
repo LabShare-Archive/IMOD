@@ -23,7 +23,6 @@ GuiDialogCustomizable::GuiDialogCustomizable(
 {
 	setDialogElements(ds);
   setCaption(title);
-  //setModal(false);
 }
 
 //------------------------
@@ -79,7 +78,10 @@ void GuiDialogCustomizable::setDialogElements( CustomDialog *ds_ )
 				elements[i].lineEdit = new QLineEdit(this);
 				elements[i].lineEdit->setText		( ds->elVal[i].stringValue );
 				if( ds->elVal[i].tooltip != 0 )
+        {
+          QToolTip::add( elements[i].label,    ds->elVal[i].tooltip );
           QToolTip::add( elements[i].lineEdit, ds->elVal[i].tooltip );
+        }
         
 				QHBoxLayout *hboxLayout = new QHBoxLayout();
 				hboxLayout->addWidget( elements[i].label );
@@ -97,7 +99,10 @@ void GuiDialogCustomizable::setDialogElements( CustomDialog *ds_ )
 				elements[i].spnBox->setValue		( (int)ds->elVal[i].value );
 				elements[i].spnBox->setLineStep	( (int)ds->elVal[i].step );
 				if( ds->elVal[i].tooltip != 0 )
+        {
+          QToolTip::add( elements[i].label,  ds->elVal[i].tooltip );
 					QToolTip::add( elements[i].spnBox, ds->elVal[i].tooltip );
+        }
         
 				QHBoxLayout *hboxLayout = new QHBoxLayout();
 				hboxLayout->setSpacing(0);
@@ -129,7 +134,10 @@ void GuiDialogCustomizable::setDialogElements( CustomDialog *ds_ )
           elements[i].cmbBox->setCurrentItem( (int)ds->elVal[i].value );	
                                                         // set default selection
         if( ds->elVal[i].tooltip != 0 )
+        {
+          QToolTip::add( elements[i].label,  ds->elVal[i].tooltip );
           QToolTip::add( elements[i].cmbBox, ds->elVal[i].tooltip );
+        }
         
 				QHBoxLayout *hboxLayout = new QHBoxLayout();
 				hboxLayout->setSpacing(0);
@@ -150,18 +158,25 @@ void GuiDialogCustomizable::setDialogElements( CustomDialog *ds_ )
           QStringList::split( QString(","), ds->elVal[i].stringValue );      
                                   // break apart string values between each ","
         
+        
+        QStringList tooltips;
+        if( ds->elVal[i].tooltipArr != 0 )
+          tooltips = QStringList::split( QString(","), ds->elVal[i].tooltipArr );
+        
 				for (int j=0; j<(int)items.size(); j++)			// add each of item as radio button
 				{
 					QRadioButton *newRadBtn = new QRadioButton(butGrp);
           newRadBtn->setText( items[j] );
 					if( j == (int)ds->elVal[i].value )
 						newRadBtn->setChecked(true);				// set default selection
+          if( j<(int)tooltips.size() )
+            QToolTip::add( newRadBtn,  tooltips[j] );
           elements[i].radBtn.push_back( newRadBtn );
 				}
         
-				if( ds->elVal[i].tooltip != 0 )
+				if( ds->elVal[i].tooltip != 0 && ds->elVal[i].tooltip != ""  )
 					QToolTip::add( butGrp, ds->elVal[i].tooltip );
-				
+        
 				vboxLayout->addWidget( butGrp );
 			}
         break;

@@ -121,6 +121,7 @@ struct DialogElementValue						// stores information to set up each dialog eleme
 	DlgType type;
 	QString caption;
 	QString tooltip;
+  QString tooltipArr;
 	double min, max, value, step, decimals;
 	bool boolValue;
 	QString stringValue;
@@ -134,6 +135,7 @@ struct DialogElementValue						// stores information to set up each dialog eleme
 		caption = "";
 		type = DLG_LABEL;
 		tooltip = "";
+    tooltipArr = "";
 		min = 0;	max = 99;	value = 1;	step = 1;	decimals = 1;
 		
 		boolValue = false;
@@ -226,13 +228,13 @@ struct CustomDialog								// used to set up a new GuiDialogCustomizable
 		newElement.stringValue = commaSeperatedList;
 		newElement.value = selectedIndex;
 		newElement.tooltip = tooltip;
-		
+    
 		elVal.push_back( newElement );
 		return ((int)elVal.size()-1);
 	}
 	
 	int addRadioGrp( QString caption, QString commaSeperatedList, int selectedIndex,
-                   QString tooltip=0 ) {
+                   QString tooltip=0, QString tooltipArr=0 ) {
 		DialogElementValue newElement;
 		
 		newElement.type = DLG_RADIOGRP;
@@ -240,7 +242,8 @@ struct CustomDialog								// used to set up a new GuiDialogCustomizable
 		newElement.stringValue = commaSeperatedList;
 		newElement.value = selectedIndex;
 		newElement.tooltip = tooltip;
-		
+    newElement.tooltipArr = tooltipArr;
+        
 		elVal.push_back( newElement );
 		return ((int)elVal.size()-1);
 	}
