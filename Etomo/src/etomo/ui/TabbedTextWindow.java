@@ -1,6 +1,7 @@
 package etomo.ui;
 
 import java.awt.Container;
+import java.awt.Font;
 
 import java.io.File;
 import java.io.FileNotFoundException;
@@ -12,7 +13,6 @@ import javax.swing.JFrame;
 import javax.swing.JScrollPane;
 import javax.swing.JTabbedPane;
 import javax.swing.WindowConstants;
-import javax.swing.text.StyledEditorKit;
 
 import etomo.EtomoDirector;
 import etomo.type.AxisID;
@@ -30,6 +30,9 @@ import etomo.type.AxisID;
  * @version $Revision$
  *
  * <p> $Log$
+ * <p> Revision 3.6  2008/03/19 01:01:44  sueh
+ * <p> bug# 1099 Added checkSize and display.
+ * <p>
  * <p> Revision 3.5  2005/05/20 21:20:43  sueh
  * <p> bug# 664 Attempting to recover from OutOfMemoryError, version 2:
  * <p> call logFileWindow.dispose() when an OutOfMemoryError is caught.
@@ -91,7 +94,7 @@ final class TabbedTextWindow extends JFrame {
       throws IOException, FileNotFoundException {
     checkSize(files);
     StringBuffer error = null;
-    JTabbedPane tabPane=null;
+    JTabbedPane tabPane = null;
     //DisplayEverythingElse is the last boolean to be turned off if there is a
     //memory limitation, so use to decide if a tabbed pane should be displayed.
     if (displayEverythingElse) {
@@ -111,7 +114,7 @@ final class TabbedTextWindow extends JFrame {
       String fileName = file.getName();
       if (displayEverythingElse) {
         JEditorPane editorPane = new JEditorPane();
-        editorPane.setEditorKit(new StyledEditorKit());
+        editorPane.setFont(new Font("monospaced", Font.PLAIN, 12));
         JScrollPane scrollPane = new JScrollPane(editorPane);
         try {
           tabPane.add(labels[i], scrollPane);
@@ -135,7 +138,7 @@ final class TabbedTextWindow extends JFrame {
           }
           UIHarness.INSTANCE.openMessageDialog(
               "WARNING:  Ran out of memory.  Will not display log file."
-                  + "\nPlease close open windows or exit Etomo.",
+                  + "\nPlease close open log file windows or exit Etomo.",
               "Out of Memory");
           throw e;
         }
@@ -158,7 +161,7 @@ final class TabbedTextWindow extends JFrame {
 
   /**
    * Decide which files to display.  Do not display the whole log if it is
-   * over 100K.  Do not display the residual log if it is over .5MB.  Do not
+   * over 200K.  Do not display the residual log if it is over 1MB.  Do not
    * display the solutions log if it is too big to fit into the available
    * memory.  Do not display all the other logs if they are too big to fit into
    * the available memory.
@@ -173,7 +176,7 @@ final class TabbedTextWindow extends JFrame {
       String fileName = file.getName();
       if (fileName.startsWith("align")) {
         wholeLogSize = file.length();
-        if (wholeLogSize <= 100 * 1024) {
+        if (wholeLogSize <= 200 * 1024) {
           return;
         }
       }
@@ -187,41 +190,46 @@ final class TabbedTextWindow extends JFrame {
         break;
       }
     }
-    //Whole log is bigger then 100k
+    //Whole log is bigger then 200k
     displayWholeLog = false;
     long everythingElseSize = wholeLogSize - residualsSize - solutionsSize;
-    if (residualsSize > .5 * 1024.0 * 1024.0) {
-      //Residuals log is bigger then .5MB
+    if (residualsSize > 1 * 1024.0 * 1024.0) {
+      //Residuals log is bigger then 1MB
       displayResiduals = false;
       residualsSize = 0;
     }
     long memory = EtomoDirector.INSTANCE.getAvailableMemory();
     //Available is available memory - padding.
-    long available = memory - Math.max(2 * 1024 * 1024, everythingElseSize * 3);
-    //30 is approximately how many times bigger the displayed window is then the
-    //original file size.
-    if (available >= 30 * (residualsSize + solutionsSize + everythingElseSize)) {
+    //In linux java begins to get unreliable when it has between 14MB -17MB
+    //memory available.
+    long dangerArea = 15 * 1024 * 1024;
+    long available = memory - Math.max(dangerArea, everythingElseSize * 3);
+    //AverageFactor was calculated for bug# 1099 by opening log files and taking
+    //the average.
+    int overhead = 8;
+    if (available >= overhead
+        * (residualsSize + solutionsSize + everythingElseSize)) {
       return;
     }
     //Not enough space.  Turn off residuals if they are still being displayed.
     if (displayResiduals) {
       displayResiduals = false;
-      if (available >= 30 * (solutionsSize + everythingElseSize)) {
+      if (available >= overhead * (solutionsSize + everythingElseSize)) {
         return;
       }
     }
     //Still not enough space.  Turn off solutions.
     displaySolutions = false;
     //Reduce the padding for minimal log file display.
-    available = memory - 2 * 1024 * 1024;
-    if (available >= 30 * everythingElseSize) {
+    available = memory - dangerArea;
+    if (available >= overhead * everythingElseSize) {
       return;
     }
     //Not enough space.  Turn off everything.
     displayEverythingElse = false;
   }
 
-  /**
+  /**forum.java.sun.com/thread.jspa?threadID=5269840&messageID=10133229
    * Read a file into the editor pane.  If displayFile is false, place an error
    * message in the editor pane instead.
    * @param displayFile
