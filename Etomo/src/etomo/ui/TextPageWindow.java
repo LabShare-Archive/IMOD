@@ -2,6 +2,7 @@ package etomo.ui;
 
 import java.awt.BorderLayout;
 import java.awt.Container;
+import java.awt.Font;
 import java.io.FileNotFoundException;
 import java.io.FileReader;
 import java.io.IOException;
@@ -11,7 +12,6 @@ import javax.swing.JFrame;
 import javax.swing.JOptionPane;
 import javax.swing.JScrollPane;
 import javax.swing.WindowConstants;
-import javax.swing.text.StyledEditorKit;
 
 /**
  * <p>Description: </p>
@@ -26,6 +26,9 @@ import javax.swing.text.StyledEditorKit;
  * @version $Revision$
  *
  * <p> $Log$
+ * <p> Revision 3.3  2004/04/08 19:07:53  rickg
+ * <p> Bug #422 added setDefaultCloseOperation call to constructor
+ * <p>
  * <p> Revision 3.2  2003/11/27 00:04:53  rickg
  * <p> Bug# 366 Close file reader when done
  * <p>
@@ -62,7 +65,8 @@ public class TextPageWindow extends JFrame {
   FileReader reader;
 
   public TextPageWindow() {
-    editorPane.setEditorKit(new StyledEditorKit());
+    editorPane.setFont(new Font("monospaced", Font.PLAIN, 12));
+    //editorPane.setEditorKit(new StyledEditorKit());
     mainPanel = getContentPane();
     mainPanel.add(scrollPane, BorderLayout.CENTER);
     setSize(625, 800);
