@@ -1174,7 +1174,7 @@ void BeadHelper::deletePtsInRange()
   static bool skipSeedView     = true;
   
   CustomDialog ds;
-  int ID_DUMMY         = ds.addLabel   ( msg );
+  int ID_DUMMY         = ds.addLabel   ( msg.c_str() );
   int ID_SKIPCHECKEDC  = ds.addCheckBox( "skip checked contours",
                                          skipCheckedConts,
                                          "Will not delete any points from checked "
@@ -1329,7 +1329,7 @@ void BeadHelper::reduceContsToSeed()
   
   static bool skipCheckedConts = true;
   CustomDialog ds;
-  int ID_DUMMY         = ds.addLabel   ( msg );
+  int ID_DUMMY         = ds.addLabel   ( msg.c_str() );
   int ID_SKIPCHECKEDC  = ds.addCheckBox( "skip checked contours",
                                          skipCheckedConts,
                                          "Will not delete any points from checked "
@@ -1676,7 +1676,7 @@ void BeadHelper::fillMissingPts()
   static bool fillPastEnds = false;
   
 	CustomDialog ds;
-  int ID_DUMMY         = ds.addLabel   ( msg );
+  int ID_DUMMY         = ds.addLabel   ( msg.c_str() );
   int ID_FILLPASTENDS  = ds.addCheckBox( "fill past ends",
                                          fillPastEnds,
                                          "Will add points past the start and end "
