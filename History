@@ -18,6 +18,8 @@ limit in etomo.
 3/6/08: Made Boxstartend scale model coordinates to the volume being
 extracted, so the model can be made on a binned-down volume.
 
+3/5/08: In the Etomo PEET interface add fields for sample sphere.
+
 3/5/08: Fixed artifact on right edge of image in HQ highly zoomed slicer.
 
 3/5/08: Added option to make scale bars vertical.
