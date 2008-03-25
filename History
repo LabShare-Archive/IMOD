@@ -1,5 +1,10 @@
 IMOD History
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+3/21/08: Changed to a less memory intensive method of popping up the log files.
+
+3/21/08: Made the opening of fine alignment logs files more flexible, so that
+the solutions logs is more likely to be opened in low memory conditions.  
+
 3/21/08: Fixed running of Finishjoin from eTomo (In 3.11).
 
 3/20/08: Modified Windows .cmd wrappers so scripts can be run by their full
