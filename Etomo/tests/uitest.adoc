@@ -90,4 +90,4 @@ set.image-rotation = 0
 set.sample-tomogram-thickness = 200
 set.z-axis-min = 5
 set.z-axis-max = 70
-duration = :1
+duration = :1:30
