@@ -38,7 +38,7 @@ awk "/$instext2/, /$instext3/" $adpin | grep -v "INSERT" >> $adpout
 
 foreach i (libhelp/*.html)
     set file = $i:r:t
-    set title = `grep -i -A 1 '<title>' $i | tail -n 1`
+    set title = `sed -n '/.*<title>\(.*\)<\/title>.*/s//\1/p' $i`
     if ("$title" == "") set title = $file
     
     cat <<EOF >> $adpout
@@ -50,6 +50,9 @@ awk "/$instext3/, /GobbledyGook/" $adpin | grep -v "INSERT" >> $adpout
 
 #
 #  $Log$
+#  Revision 3.5  2007/12/28 06:16:44  mast
+#  Fixed source for libhelp files
+#
 #  Revision 3.4  2007/12/18 15:48:40  mast
 #  fixed foreach - Library docs are still in libhelp here when this is run
 #
