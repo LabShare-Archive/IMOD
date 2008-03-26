@@ -59,6 +59,12 @@ import etomo.util.DatasetFiles;
  * 
  * <p>
  * $Log$
+ * Revision 3.63  2007/12/10 22:42:04  sueh
+ * bug# 1041 Passing the ProcessName to processchunks instead of setting it in
+ * getParameters because it is required and has been added to the
+ * ProcesschunksParam constructor.  Removed getParameters
+ * ProcesschunksParam) because it is empty.
+ *
  * Revision 3.62  2007/05/26 00:32:09  sueh
  * bug# 994 Not automatically setting button size in SpacedPanel anymore.
  * Setting button size in UI.
@@ -1301,15 +1307,16 @@ public class FinalCombinePanel implements ContextMenu, FinalCombineFields,
   /**
    * Initialize the tooltip text
    */
-private void setToolTipText() {
+  private void setToolTipText() {
     String text;
     ReadOnlyAutodoc adocCombineFft = null;
     ReadOnlyAutodoc adocCorrsearch3d = null;
 
     try {
-      adocCombineFft = AutodocFactory.getInstance(AutodocFactory.COMBINE_FFT, AxisID.ONLY);
-      adocCorrsearch3d = AutodocFactory.getInstance(AutodocFactory.CORR_SEARCH_3D,
+      adocCombineFft = AutodocFactory.getInstance(AutodocFactory.COMBINE_FFT,
           AxisID.ONLY);
+      adocCorrsearch3d = AutodocFactory.getInstance(
+          AutodocFactory.CORR_SEARCH_3D, AxisID.ONLY);
     }
     catch (FileNotFoundException except) {
       except.printStackTrace();
@@ -1349,53 +1356,69 @@ private void setToolTipText() {
     btnPatchVectorCCCModel
         .setToolTipText("Open a patch vector model containing cross-correlation coefficients.  "
             + "In 3dmodv Objects, click on Values, and select on Show stored values.");
-    btnPatchcorrRestart.setToolTipText("Compute new displacements between patches by cross-correlation.");
-    cbUsePatchRegionModel.setToolTipText("Use a model with contours around the areas where patches should be "
-        + "correlated to prevent bad patches outside those areas.");
-    btnPatchRegionModel.setToolTipText("Open the volume being matched to and create the patch region model.");
-    ltfRefineLimit.setToolTipText("Enter a comma-separate series of mean residual limits to try in "
-        + "succession when fitting warping transformations to the patch "
-        + "displacements.");
-    ltfWarpLimit.setToolTipText("The mean residual limit for fit all patch displacements to a single "
-        + "linear transformation.");
-    ltfXLowerExclude.setToolTipText("Exclude columns of patches on the left from the fits. Number of columns "
-        + "of patches on the left to exclude from the fits.");
-    ltfXUpperExclude.setToolTipText("Exclude columns of patches on the right from the fits. Number of columns"
-        + " of patches on the right to exclude from the fits.");
-    ltfZLowerExclude.setToolTipText("Exclude rows of patches on the bottom from the fits. Number of rows of "
-        + "patches on the bottom in Y to exclude from the fits.");
-    ltfZUpperExclude.setToolTipText("Exclude rows of patches on the top from the fits. Number of rows of "
-        + "patches on the top in Y to exclude from the fits.");
+    btnPatchcorrRestart
+        .setToolTipText("Compute new displacements between patches by cross-correlation.");
+    cbUsePatchRegionModel
+        .setToolTipText("Use a model with contours around the areas where patches should be "
+            + "correlated to prevent bad patches outside those areas.");
+    btnPatchRegionModel
+        .setToolTipText("Open the volume being matched to and create the patch region model.");
+    ltfRefineLimit
+        .setToolTipText("Enter a comma-separate series of mean residual limits to try in "
+            + "succession when fitting warping transformations to the patch "
+            + "displacements.");
+    ltfWarpLimit
+        .setToolTipText("The mean residual limit for fit all patch displacements to a single "
+            + "linear transformation.");
+    ltfXLowerExclude
+        .setToolTipText("Exclude columns of patches on the left from the fits. Number of columns "
+            + "of patches on the left to exclude from the fits.");
+    ltfXUpperExclude
+        .setToolTipText("Exclude columns of patches on the right from the fits. Number of columns"
+            + " of patches on the right to exclude from the fits.");
+    ltfZLowerExclude
+        .setToolTipText("Exclude rows of patches on the bottom from the fits. Number of rows of "
+            + "patches on the bottom in Y to exclude from the fits.");
+    ltfZUpperExclude
+        .setToolTipText("Exclude rows of patches on the top from the fits. Number of rows of "
+            + "patches on the top in Y to exclude from the fits.");
 
-    cbUseLinearInterpolation.setToolTipText("Uses linear instead of quadratic interpolation for transforming"
-        + "the volume with Matchvol or Warpvol.");
-    btnMatchorwarpRestart.setToolTipText("Restart the combine operation at Matchorwarp, which tries to fit "
-        + "transformations to the patch displacements.");
+    cbUseLinearInterpolation
+        .setToolTipText("Uses linear instead of quadratic interpolation for transforming"
+            + "the volume with Matchvol or Warpvol.");
+    btnMatchorwarpRestart
+        .setToolTipText("Restart the combine operation at Matchorwarp, which tries to fit "
+            + "transformations to the patch displacements.");
     btnVolcombineRestart
         .setToolTipText("Restart the combine operation at Volcombine, which combines volumes.");
-    btnMatchorwarpTrial.setToolTipText("Run Matchorwarp in trial mode; find transformations then stop.");
-    btnPatchVectorModel.setToolTipText("View the patch displacement vectors in and possibly delete bad vectors.");
-    btnReplacePatchOut.setToolTipText("Replace the patch displacements with the vectors from the edited model.");
-    btnImodMatchedTo.setToolTipText("View the volume being matched to in 3dmod.");
+    btnMatchorwarpTrial
+        .setToolTipText("Run Matchorwarp in trial mode; find transformations then stop.");
+    btnPatchVectorModel
+        .setToolTipText("View the patch displacement vectors in and possibly delete bad vectors.");
+    btnReplacePatchOut
+        .setToolTipText("Replace the patch displacements with the vectors from the edited model.");
+    btnImodMatchedTo
+        .setToolTipText("View the volume being matched to in 3dmod.");
     text = "View the final combined volume.";
     btnImodCombined.setToolTipText("View the final combined volume.");
     cbNoVolcombine
-        .setToolTipText(
-                "Stop after running Matchorwarp.  Use the \"Restart at Volcombine\" button to continue."
-          );
+        .setToolTipText("Stop after running Matchorwarp.  Use the \"Restart at Volcombine\" button to continue.");
 
-    text = "Filter by convolving in real space with a Gaussian kernel.  The amount of "
-        + "filtering is controlled by the sigma of the Gaussian, in pixels.  Higher "
-        + "sigma filters more.  Kernel filtering increases execution time ~30% for "
-        + "sigma under 1.5 and ~2-fold for sigma 1.5 or higher.";
+    text = "Filter by convolving in real space with a Gaussian kernel.  The "
+        + "amount of filtering is controlled by the sigma of the Gaussian, in "
+        + "pixels.  Higher sigma filters more.  Kernel filtering increases "
+        + "execution time ~30% for sigma under 1.5 and ~2-fold for sigma 1.5 or "
+        + "higher.";
     cbKernelSigma.setToolTipText(text);
     tfKernelSigma.setToolTipText(text);
 
     cbParallelProcess.setToolTipText(VOLCOMBINE_PARALLEL_PROCESSING_TOOL_TIP);
 
     if (adocCombineFft != null) {
-      ltfReductionFactor.setToolTipText(EtomoAutodoc.getTooltip(adocCombineFft, "ReductionFraction"));
-      ltfLowFromBothRadius.setToolTipText(EtomoAutodoc.getTooltip(adocCombineFft, "LowFromBothRadius"));
+      ltfReductionFactor.setToolTipText(EtomoAutodoc.getTooltip(adocCombineFft,
+          "ReductionFraction"));
+      ltfLowFromBothRadius.setToolTipText(EtomoAutodoc.getTooltip(
+          adocCombineFft, "LowFromBothRadius"));
     }
 
     text = EtomoAutodoc.getTooltip(adocCorrsearch3d,
@@ -1403,4 +1426,5 @@ private void setToolTipText() {
     ltfInitialShiftX.setToolTipText(text);
     ltfInitialShiftY.setToolTipText(text);
     ltfInitialShiftZ.setToolTipText(text);
-  }}
+  }
+}
