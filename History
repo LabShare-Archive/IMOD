@@ -1,6 +1,7 @@
 IMOD History
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-3/21/08: Changed to a less memory intensive method of popping up the log files.
+3/21/08: Changed to a less memory intensive method of popping up the log files
+in eTomo.
 
 3/21/08: Made the opening of fine alignment logs files more flexible, so that
 the solutions logs is more likely to be opened in low memory conditions.  
@@ -18,7 +19,8 @@ limit in etomo.
 3/6/08: Made Boxstartend scale model coordinates to the volume being
 extracted, so the model can be made on a binned-down volume.
 
-3/5/08: In the Etomo PEET interface add fields for sample sphere.
+3/5/08: PEET interface in eTomo has new controls to select efficient
+full range searching.
 
 3/5/08: Fixed artifact on right edge of image in HQ highly zoomed slicer.
 
