@@ -1299,7 +1299,6 @@ int mrc_write_idata(FILE *fout, MrcHeader *hdata, void *data[])
     case MRC_MODE_BYTE:
       bdata = (unsigned char **)data;
       nwrote = fwrite(data[k], hdata->nx, hdata->ny, fout);
-      printf("wrote %d lines from %x\n", nwrote, data[k]);
       break;
       
     case MRC_MODE_SHORT:
@@ -2137,6 +2136,9 @@ void mrc_swap_floats(fb3dFloat *data, int amt)
 
 /*
 $Log$
+Revision 3.35  2008/01/11 17:18:22  mast
+Mac warning cleanup
+
 Revision 3.34  2007/09/25 15:21:36  mast
 Made mrc_read_byte retain pixel size when it resets the header to new area
 
