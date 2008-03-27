@@ -1,5 +1,8 @@
 IMOD History
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+3/26/08: Fixed IMOD.adp, fixed package to include bash.profile for Mac (In 
+3.11.5).
+
 3/24/08: IMOD_3-12-5
 3/21/08: Changed to a less memory intensive method of popping up the log files
 in eTomo.
