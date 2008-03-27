@@ -316,7 +316,7 @@ echo 'QTINSTLIBDIR = qtlib' >> $configure
 set ld_lib_var      = DYLD_LIBRARY_PATH
 echo "MACAPPS = $fortqtprogs" >> $configure
 set qtapp_path  = '$1.app/Contents/MacOS/'
-echo 'INSTALL_FILES = IMOD-mac.csh mac.cshrc IMOD-mac.sh mac.bashrc linklibs-mac' >> $configure
+echo 'INSTALL_FILES = IMOD-mac.csh mac.cshrc IMOD-mac.sh mac.profile linklibs-mac' >> $configure
 if ($distname == "") then
     set distname = _osx_ppc
     if ($intel == true) set distname = _osx_intel 
