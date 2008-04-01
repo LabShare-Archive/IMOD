@@ -148,6 +148,7 @@ static int imodv_init(ImodvApp *a, struct Mod_Draw *md)
   a->drawall    = 0;
   a->moveall    = 1;
   a->alpha      = 0;
+  a->drawExtraOnly = 0;
   imodViewDefault(&a->view);
   a->view.cnear = 0.0f;
   a->view.cfar  = 1.0f;
@@ -701,6 +702,9 @@ void imodvQuit()
 
 /*
 $Log$
+Revision 4.34  2008/01/25 20:22:58  mast
+Changes for new scale bar
+
 Revision 4.33  2007/11/30 06:51:50  mast
 Changes for linking slicer to model view
 
