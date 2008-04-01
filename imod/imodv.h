@@ -81,6 +81,7 @@ typedef struct __imodv_struct
   int alpha;       /* number of alpha planes.                 */
   int current_subset;  /* display subset of model (current element) */
                        /* 0 = all, 1 = obj, 2 = surf, 3 = cont */
+  int drawExtraOnly;   /* Draw only extra objects, skip rest of model */
   int movieFrames;     /* Number of movie frames displayed     */
   int movieStart;      /* Starting time of movie           */
   int movieCurrent;    /* Current time of movie          */
@@ -137,6 +138,9 @@ void imodvNewModelAngles(Ipoint *rot);
 
 /*
 $Log$
+Revision 3.19  2008/01/25 20:22:58  mast
+Changes for new scale bar
+
 Revision 3.18  2007/11/30 06:51:50  mast
 Changes for linking slicer to model view
 
