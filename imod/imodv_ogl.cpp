@@ -475,14 +475,6 @@ void imodvDraw_model(ImodvApp *a, Imod *imod)
   CTime = imod->ctime;
   glPushName(ob);
 
-  /* If displaying a current subset, set up object limits */
-  obstart = 0;
-  obend = imod->objsize;
-  if ((a->current_subset == 1 || a->current_subset == 2 || 
-       a->current_subset == 4 )&& imod->cindex.object >= 0) {
-    obstart = imod->cindex.object;
-    obend = obstart + 1;
-  }
   nloop = (!a->standalone && a->vi->numExtraObj > 0) ? 2 : 1;
 
   /* DNM: draw objects without transparency first; then make the depth
@@ -492,13 +484,28 @@ void imodvDraw_model(ImodvApp *a, Imod *imod)
      In the first round, the drawing routines will set the temp flag if there
      is something to draw in the second round. */
   for (drawTrans = 0; drawTrans < 2; drawTrans++) {
+
+    /* If displaying a current subset, set up object limits */
+    obstart = 0;
+    obend = imod->objsize;
+    if ((a->current_subset == 1 || a->current_subset == 2 || 
+         a->current_subset == 4 )&& imod->cindex.object >= 0) {
+      obstart = imod->cindex.object;
+      obend = obstart + 1;
+    }
+
+    // If drawing only extra objects, set up to skip all regular ones
+    if (a->drawExtraOnly)
+      obend = obstart - 1;
+
+    // Loop on regular objects then on extra objects
     for (loop = 0; loop < nloop; loop++) {
       for (ob = obstart; ob < obend; ob++) {
         if (ob >= 0)
           obj = &(imod->obj[ob]);
         else {
           obj = ivwGetAnExtraObject(a->vi, -1 - ob);
-          if (!obj || !obj->contsize || 
+          if (!obj || (!obj->contsize && !obj->meshsize) || 
               !(obj->flags & IMOD_OBJFLAG_EXTRA_MODV))
             continue;
         }
@@ -713,7 +720,7 @@ static void imodvDraw_object(Iobj *obj, Imod *imod, int drawTrans)
   if (iobjOff(obj->flags))
     return;
 
-  if (!obj->contsize)
+  if (!obj->contsize && !obj->meshsize)
     return;
 
   zscale = imod->zscale;
@@ -2437,6 +2444,9 @@ static void drawCurrentClipPlane(ImodvApp *a)
 
 /*
 $Log$
+Revision 4.36  2008/03/05 20:06:45  mast
+Added ability to draw stippled contours and extra objects
+
 Revision 4.35  2007/11/30 06:51:50  mast
 Changes for linking slicer to model view
 
