@@ -9,7 +9,15 @@ import etomo.ui.Token;
 import etomo.util.PrimativeTokenizer;
 
 /**
- * <p>Description: </p>
+ * <p>Description: Matlab string.  Allows whitespace.</p>
+ * 
+ * @see ParsedList
+ * 
+ * <H4>Matlab Variable Syntax</H4>
+ * 
+ * <H5>String</H5><UL>
+ * <LI>Delimiters: ''  (required)
+ * <LI>Empty string: ''</UL>
  * 
  * <p>Copyright: Copyright 2006</p>
  *
@@ -22,6 +30,9 @@ import etomo.util.PrimativeTokenizer;
  * @version $Revision$
  * 
  * <p> $Log$
+ * <p> Revision 1.10  2007/11/06 19:50:50  sueh
+ * <p> bug# 1047 added validate.
+ * <p>
  * <p> Revision 1.9  2007/07/31 20:41:23  sueh
  * <p> bug# 1028 added ge(int).
  * <p>
@@ -57,8 +68,8 @@ import etomo.util.PrimativeTokenizer;
 public final class ParsedQuotedString extends ParsedElement {
   public static final String rcsid = "$Id$";
 
-  private static final Character OPEN_SYMBOL = new Character('\'');
-  private static final Character CLOSE_SYMBOL = OPEN_SYMBOL;
+  static final Character DELIMITER_SYMBOL = new Character('\'');
+  private static final ParsedElementType type = ParsedElementType.STRING;
 
   private String rawString = "";
 
@@ -78,7 +89,7 @@ public final class ParsedQuotedString extends ParsedElement {
     if (value == null) {
       return false;
     }
-    if (value.trim().charAt(0) == OPEN_SYMBOL.charValue()) {
+    if (value.trim().charAt(0) == DELIMITER_SYMBOL.charValue()) {
       return true;
     }
     return false;
@@ -115,7 +126,7 @@ public final class ParsedQuotedString extends ParsedElement {
     if (index == 0) {
       return rawString;
     }
-    return ParsedElementList.EmptyParsedElement.INSTANCE.getRawString();
+    return ParsedEmptyElement.getInstance(type).getRawString();
   }
 
   void setRawString(int index, String string) {
@@ -132,9 +143,9 @@ public final class ParsedQuotedString extends ParsedElement {
   }
 
   public String getParsableString() {
-    StringBuffer buffer = new StringBuffer(OPEN_SYMBOL.toString());
+    StringBuffer buffer = new StringBuffer(DELIMITER_SYMBOL.toString());
     buffer.append(getRawString());
-    buffer.append(CLOSE_SYMBOL.toString());
+    buffer.append(DELIMITER_SYMBOL.toString());
     return buffer.toString();
   }
 
@@ -165,7 +176,7 @@ public final class ParsedQuotedString extends ParsedElement {
     if (index == 0) {
       return this;
     }
-    return ParsedElementList.EmptyParsedElement.INSTANCE;
+    return ParsedEmptyElement.getInstance(type);
   }
 
   void setRawString(int index, float number) {
@@ -188,20 +199,19 @@ public final class ParsedQuotedString extends ParsedElement {
         token = tokenizer.next();
       }
       if (token == null
-          || !token.equals(Token.Type.SYMBOL, OPEN_SYMBOL.charValue())) {
-        fail(OPEN_SYMBOL + " not found.");
+          || !token.equals(Token.Type.SYMBOL, DELIMITER_SYMBOL.charValue())) {
+        fail(DELIMITER_SYMBOL + " not found.");
         return token;
       }
       token = tokenizer.next();
-      //everything within OPEN and CLose symbols ("'" and "'") is part of the
-      //rawString.
+      //everything within DELIMITER symbols is part of the rawString.
       token = parseElement(token, tokenizer);
       if (isFailed()) {
         return token;
       }
       if (token == null
-          || !token.equals(Token.Type.SYMBOL, CLOSE_SYMBOL.charValue())) {
-        fail(CLOSE_SYMBOL + " not found.");
+          || !token.equals(Token.Type.SYMBOL, DELIMITER_SYMBOL.charValue())) {
+        fail(DELIMITER_SYMBOL + " not found.");
         return token;
       }
       token = tokenizer.next();
@@ -211,10 +221,6 @@ public final class ParsedQuotedString extends ParsedElement {
       fail(e.getMessage());
     }
     return token;
-  }
-
-  boolean hasParsedNumberSyntax() {
-    return false;
   }
 
   /**
@@ -257,14 +263,13 @@ public final class ParsedQuotedString extends ParsedElement {
     if (token == null) {
       return null;
     }
-    boolean dividerFound = true;
-    //Loop until CLOSE_SYMBOL, EOL, EOF is found; that
+    //Loop until DELIMITER_SYMBOL, EOL, EOF is found; that
     //should be the end of the string.
     StringBuffer buffer = new StringBuffer();
     while (!isFailed() && token != null
-        && !token.equals(Token.Type.SYMBOL, CLOSE_SYMBOL.charValue())
+        && !token.equals(Token.Type.SYMBOL, DELIMITER_SYMBOL.charValue())
         && !token.is(Token.Type.EOL) && !token.is(Token.Type.EOF)) {
-      //build the number
+      //build the string
       buffer.append(token.getValue());
       try {
         token = tokenizer.next();
