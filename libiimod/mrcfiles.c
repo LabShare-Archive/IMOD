@@ -55,13 +55,12 @@ int mrc_head_read(FILE *fin, MrcHeader *hdata)
 
   if (!fin)
     return(-1);
-  rewind(fin);
+  b3dRewind(fin);
      
   if (fread(hdata, 4, 56, fin) != 56){
     b3dError(stderr, "ERROR: mrc_head_read - reading header data.\n");
     return(-1);
   }
-
   hdata->swapped = 0;
 
   /* Test for byte-swapped data with image size and the map numbers and 
@@ -145,7 +144,7 @@ int mrc_head_read(FILE *fin, MrcHeader *hdata)
 
   /* fseek(fin, 0, 2);
      filesize = ftell(fin); */
-  rewind(fin);
+  b3dRewind(fin);
 
   /* if ((filesize - datasize) < 0)
      return(0);
@@ -962,8 +961,8 @@ unsigned char **mrc_read_byte(FILE *fin,
   /* Set up the data size, get scaling map if needed. */
 
   k = 0;
-  rewind(fin);
-  fseek(fin, hdata->headerSize, SEEK_CUR);
+  b3dRewind(fin);
+  b3dFseek(fin, hdata->headerSize, SEEK_CUR);
   switch(hdata->mode){
   case MRC_MODE_BYTE:
     dsize = 1;
@@ -1055,7 +1054,7 @@ unsigned char **mrc_read_byte(FILE *fin,
     /* loop on lines */
     for(j = yoff; j < yoff + ysize; j++){
       if (seek_line)
-        fseek(fin, seek_line, SEEK_CUR);
+        b3dFseek(fin, seek_line, SEEK_CUR);
       
       /* get a line of data, make sure it is right size */
       if (fread(bdata, dsize, xsize, fin) != xsize) {
@@ -1171,7 +1170,7 @@ unsigned char **mrc_read_byte(FILE *fin,
 
       /* Finish line, section, free memory */
       if (seek_endline)
-        fseek(fin, seek_endline, SEEK_CUR);
+        b3dFseek(fin, seek_endline, SEEK_CUR);
     }
     if (seek_endrow || hdata->sectionSkip)
       mrcHugeSeek(fin, hdata->sectionSkip, 0, seek_endrow, 0, hdata->nx,
@@ -2136,6 +2135,9 @@ void mrc_swap_floats(fb3dFloat *data, int amt)
 
 /*
 $Log$
+Revision 3.36  2008/03/26 20:57:16  mast
+Removed debugging statement
+
 Revision 3.35  2008/01/11 17:18:22  mast
 Mac warning cleanup
 
