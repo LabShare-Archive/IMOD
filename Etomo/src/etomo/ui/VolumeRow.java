@@ -27,6 +27,9 @@ import etomo.type.Run3dmodMenuOptions;
  * @version $Revision$
  * 
  * <p> $Log$
+ * <p> Revision 1.19  2007/07/25 22:59:15  sueh
+ * <p> bug# 1027 Change start and end tilt range angles to min and max angles.
+ * <p>
  * <p> Revision 1.18  2007/07/10 00:44:12  sueh
  * <p> bug# 1022 In validateRun, added the row # to the error message.
  * <p>
@@ -98,11 +101,11 @@ final class VolumeRow implements Highlightable {
   private final FieldCell fnModParticle = FieldCell.getExpandableInstance();
   private final FieldCell fnVolume = FieldCell.getExpandableInstance();
   private final FieldCell initMotlFile = FieldCell.getExpandableInstance();
-  private final FieldCell tiltRangeMin = FieldCell.getEditableInstance();
-  private final FieldCell tiltRangeMax = FieldCell.getEditableInstance();
-  private final FieldCell relativeOrientX = FieldCell.getEditableInstance();
-  private final FieldCell relativeOrientY = FieldCell.getEditableInstance();
-  private final FieldCell relativeOrientZ = FieldCell.getEditableInstance();
+  private final FieldCell tiltRangeMin = FieldCell.getEditableMatlabInstance();
+  private final FieldCell tiltRangeMax = FieldCell.getEditableMatlabInstance();
+  private final FieldCell relativeOrientX = FieldCell.getEditableMatlabInstance();
+  private final FieldCell relativeOrientY = FieldCell.getEditableMatlabInstance();
+  private final FieldCell relativeOrientZ = FieldCell.getEditableMatlabInstance();
   private final HighlighterButton btnHighlighter;
 
   private final VolumeTable table;

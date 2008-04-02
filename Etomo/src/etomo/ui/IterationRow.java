@@ -22,6 +22,9 @@ import etomo.type.EtomoNumber;
  * @version $Revision$
  * 
  * <p> $Log$
+ * <p> Revision 1.10  2008/03/06 00:27:40  sueh
+ * <p> bug# 1088 Added updateDisplay.
+ * <p>
  * <p> Revision 1.9  2007/07/31 20:45:03  sueh
  * <p> bug# 1028 In validateRun() checking all the values in searchRadius.
  * <p>
@@ -57,16 +60,16 @@ final class IterationRow implements Highlightable {
   public static final String rcsid = "$Id$";
 
   private final HeaderCell number = new HeaderCell();
-  private final FieldCell dPhiMax = FieldCell.getEditableInstance();
-  private final FieldCell dPhiIncrement = FieldCell.getEditableInstance();
-  private final FieldCell dThetaMax = FieldCell.getEditableInstance();
-  private final FieldCell dThetaIncrement = FieldCell.getEditableInstance();
-  private final FieldCell dPsiMax = FieldCell.getEditableInstance();
-  private final FieldCell dPsiIncrement = FieldCell.getEditableInstance();
-  private final FieldCell searchRadius = FieldCell.getEditableInstance();
-  private final FieldCell hiCutoffCutoff = FieldCell.getEditableInstance();
-  private final FieldCell hiCutoffSigma = FieldCell.getEditableInstance();
-  private final FieldCell refThreshold = FieldCell.getEditableInstance();
+  private final FieldCell dPhiMax = FieldCell.getEditableMatlabInstance();
+  private final FieldCell dPhiIncrement = FieldCell.getEditableMatlabInstance();
+  private final FieldCell dThetaMax = FieldCell.getEditableMatlabInstance();
+  private final FieldCell dThetaIncrement = FieldCell.getEditableMatlabInstance();
+  private final FieldCell dPsiMax = FieldCell.getEditableMatlabInstance();
+  private final FieldCell dPsiIncrement = FieldCell.getEditableMatlabInstance();
+  private final FieldCell searchRadius = FieldCell.getEditableMatlabInstance();
+  private final FieldCell hiCutoffCutoff = FieldCell.getEditableMatlabInstance();
+  private final FieldCell hiCutoffSigma = FieldCell.getEditableMatlabInstance();
+  private final FieldCell refThreshold = FieldCell.getEditableMatlabInstance();
 
   private final JPanel panel;
   private final GridBagLayout layout;
