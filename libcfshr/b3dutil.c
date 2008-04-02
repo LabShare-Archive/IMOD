@@ -244,6 +244,8 @@ char *b3dGetError()
 /*! A substitute for fseek that works for large files on all systems. */
 int b3dFseek(FILE *fp, int offset, int flag)
 {
+  if (fp == stdin)
+    return 0;
 #if defined(WIN32_BIGFILE) || defined(MAC103_BIGFILE)
   int handle = fileno(fp);
   off_t err;
@@ -468,6 +470,9 @@ int b3dIMax(int narg, ...)
 
 /*
 $Log$
+Revision 1.1  2007/09/20 02:43:08  mast
+Moved to new library
+
 Revision 1.17  2007/05/19 00:00:55  mast
 Added note about header bytes
 
