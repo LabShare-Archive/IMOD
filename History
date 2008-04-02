@@ -1,5 +1,7 @@
 IMOD History
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+4/2/08: In the PEET interface fixed the handling of a missing model file entry.
+
 4/1/08: IMOD_3-12-6
 4/1/08: Added option to pass image data into 3dmod from standard input.
 
