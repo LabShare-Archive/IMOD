@@ -244,14 +244,17 @@ char *b3dGetError()
 /*! A substitute for fseek that works for large files on all systems. */
 int b3dFseek(FILE *fp, int offset, int flag)
 {
+#if defined(WIN32_BIGFILE) || defined(MAC103_BIGFILE)
+  int handle;
+  off_t err;
   if (fp == stdin)
     return 0;
-#if defined(WIN32_BIGFILE) || defined(MAC103_BIGFILE)
-  int handle = fileno(fp);
-  off_t err;
+  handle = fileno(fp);
   err = lseek(handle, (off_t)offset, flag);
   return (err == -1 ? -1 : 0);
 #else
+  if (fp == stdin)
+    return 0;
   return fseek(fp, offset, flag);
 #endif
 }
@@ -470,6 +473,9 @@ int b3dIMax(int narg, ...)
 
 /*
 $Log$
+Revision 1.2  2008/04/02 02:52:05  mast
+Made the seek routine a no-op if file is stdin
+
 Revision 1.1  2007/09/20 02:43:08  mast
 Moved to new library
 
