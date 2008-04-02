@@ -8,13 +8,57 @@ import etomo.ui.Token;
 import etomo.util.PrimativeTokenizer;
 
 /**
- * <p>Description: For Matlab.  An expandable array of elements that implement ParsedData.
+ * <p>Description: A cell array in Matlab.  An expandable array of elements.
  * The array does not have to be fully populated.
  * Use parse and toString functions to load and retrieve parsable data.
  * The add, set, and get functions refer to raw data.
  * ListParser has two types.  When the STRING type is set, ListParser only parses
- * quoted strings.  When the NUMERIC type is set, ListParser only parses numbers and arrays.
- * </p>
+ * quoted strings.  When the NUMERIC type is set, ListParser only parses numbers and arrays.</P>
+ * 
+ * <H4>Matlab Variable Syntax</H4>
+ * 
+ * <H5>Cell array</H5><UL>
+ * <LI>Delimiters: {} (required)
+ * <LI>Dividers: "," or " "
+ * <LI>Empty cell array: {}
+ * <LI>Cells:  cell arrays, regular arrays, array descriptors, numbers, strings
+ * <LI>Empty cell:<UL>
+ *   <LI>{} (cell array)
+ *   <LI>[] (regular array or number)
+ *   <LI>'' (string or number)
+ *   <LI>NaN (number)</UL></UL>
+ * 
+ * <H5>Regular array</H5><UL>
+ * <LI>Delimiters: [] (required)
+ * <LI>Divider: "," or " "
+ * <LI>Empty array: []
+ * <LI>Elements:  array descriptors, numbers
+ * <LI>Empty element: NaN (number)</UL>
+ * 
+ * <H5>Array descriptor</H5><UL>
+ * <LI>Delimiters: none
+ * <LI>Divider: ":"
+ * <LI>Empty descriptor:<UL>
+ *   <LI>With 0 elements: illegal
+ *   <LI>With 2 elements (j:k): empty if j > k
+ *   <LI>With 3 elements (j:i:k): empty if<UL>
+ *     <LI>i == 0 or 
+ *     <LI>(i > 0 and j > k) or 
+ *     <LI>(i < 0 and j < k)</UL></UL>
+ * <LI>Elements: numbers
+ * <LI>Number of elements: 2, or 3<UL>
+ *   <LI>2 elements (j:k): [j,j+1,...,k]
+ *   <LI>3 elements (j:i:k): [j,j+i,j+2i,...,k]</UL>
+ * <LI>Empty element: With 2 elements, i is assumed to be 1.</UL>
+ * 
+ * <H5>Number</H5><UL>
+ * <LI>Delimiters: [] or '' (optional - cannot be used inside a regular array)
+ * <LI>Empty number: [], '', or NaN</UL>
+ * 
+ * <H5>String</H5><UL>
+ * <LI>Delimiters: ''  (required)
+ * <LI>Empty string: ''</UL>
+ * 
  * 
  * <p>Copyright: Copyright 2006</p>
  *
@@ -27,6 +71,9 @@ import etomo.util.PrimativeTokenizer;
  * @version $Revision$
  * 
  * <p> $Log$
+ * <p> Revision 1.9  2007/11/06 19:50:28  sueh
+ * <p> bug# 1047 Made class compatible with ParsedArray.
+ * <p>
  * <p> Revision 1.8  2007/07/10 00:31:52  sueh
  * <p> bug# 1022 Added a comment.
  * <p>
@@ -63,20 +110,9 @@ public final class ParsedList {
   static final Character CLOSE_SYMBOL = new Character('}');
   static final Character DIVIDER_SYMBOL = new Character(',');
 
-  private final Type type;
-  private final ParsedElementList list = new ParsedElementList();
+  private final ParsedElementType type;
+  private final ParsedElementList list;
   private final EtomoNumber.Type etomoNumberType;
-  /**
-   * FlexibleSyntax allows a ParsedArray to look like a ParsedNumber when it is
-   * empty or contains one element that is not a collection.
-   */
-  private final boolean flexibleSyntax;
-
-  /**
-   * No effect on ParsedList.  Used to create ParsedArray.
-   */
-  private final boolean compactDescriptor;
-  private final boolean compactArray;
 
   /**
    * Place the entire array into parsed arrays and the individual elements into
@@ -87,43 +123,22 @@ public final class ParsedList {
   private boolean failed = false;
   private boolean debug = false;
 
-  private ParsedList(Type type, EtomoNumber.Type etomoNumberType,
-      boolean flexibleSyntax, boolean compactDescriptor, boolean compactArray) {
+  private ParsedList(ParsedElementType type, EtomoNumber.Type etomoNumberType) {
     this.type = type;
+    list = new ParsedElementList(type);
     this.etomoNumberType = etomoNumberType;
-    this.flexibleSyntax = flexibleSyntax;
-    this.compactDescriptor = compactDescriptor;
-    this.compactArray = compactArray;
   }
 
-  public static ParsedList getNumericInstance() {
-    return new ParsedList(Type.NUMERIC, null, false, false, false);
+  public static ParsedList getMatlabInstance() {
+    return new ParsedList(ParsedElementType.MATLAB, null);
   }
 
-  public static ParsedList getNumericInstance(EtomoNumber.Type etomoNumberType) {
-    return new ParsedList(Type.NUMERIC, etomoNumberType, false, false, false);
-  }
-
-  public static ParsedList getFlexibleInstance() {
-    return new ParsedList(Type.NUMERIC, null, true, false, false);
-  }
-
-  public static ParsedList getFlexibleInstance(EtomoNumber.Type etomoNumberType) {
-    return new ParsedList(Type.NUMERIC, etomoNumberType, true, false, false);
-  }
-
-  public static ParsedList getFlexibleCompactArrayInstance(
-      EtomoNumber.Type etomoNumberType) {
-    return new ParsedList(Type.NUMERIC, etomoNumberType, true, false, true);
-  }
-
-  public static ParsedList getFlexibleCompactDescriptorInstance(
-      EtomoNumber.Type etomoNumberType) {
-    return new ParsedList(Type.NUMERIC, etomoNumberType, true, true, false);
+  public static ParsedList getMatlabInstance(EtomoNumber.Type etomoNumberType) {
+    return new ParsedList(ParsedElementType.MATLAB, etomoNumberType);
   }
 
   public static ParsedList getStringInstance() {
-    return new ParsedList(Type.STRING, null, false, false, false);
+    return new ParsedList(ParsedElementType.STRING, null);
   }
 
   /**
@@ -299,51 +314,70 @@ public final class ParsedList {
   private Token parseElement(Token token, PrimativeTokenizer tokenizer) {
     //end of list
     if (token.equals(Token.Type.SYMBOL, CLOSE_SYMBOL.charValue())) {
-      //This probably doesn't matter because its only necessary to keep track of
-      //location of existing elements in a lightly populated list.  Its not really
-      //necessary to track the size of the list.  But this does preserve the
-      //the original string:
+      //Empty element at end of list.  This preserves the the original string.
       //{} means no elements, {,} means two elements.  {'tomo',,} means three elements
+      //This is not parsable by matlab and would be added to a .prm file as:
+      //{}, {NaN,NaN}, and {1,NaN,NaN}.
       if (list.size() > 0) {
-        list.addEmptyElement();
+        list.add(ParsedEmptyElement.getInstance(type));
       }
       return token;
     }
-    //found empty element
     if (token.equals(Token.Type.SYMBOL, DIVIDER_SYMBOL.charValue())) {
-      list.addEmptyElement();
+      //Found an empty element.
+      list.add(ParsedEmptyElement.getInstance(type));
       return token;
     }
-    //may have found an element
+    //May have found an element.
     ParsedElement element;
-    if (type == Type.STRING) {
+    if (type == ParsedElementType.STRING) {
       element = new ParsedQuotedString();
+      element.setDebug(isDebug());
+      token = element.parse(token, tokenizer);
     }
-    else if (flexibleSyntax || ParsedArray.isArray(token)) {
-      //when flexibleSyntax is true, numeric elements are always ParsedArrays
-      //because they can be parsed and written to look like ParsedNumbers when
-      //they are empty or contain only one number
-      element = new ParsedArray(etomoNumberType, flexibleSyntax, compactArray,
-          compactDescriptor, null, false);
+    else if (ParsedArray.isArray(token)) {
+      element = ParsedArray.getInstance(type, etomoNumberType);
+      element.setDebug(isDebug());
+      token = element.parse(token, tokenizer);
     }
     else {
-      element = new ParsedNumber(etomoNumberType);
+      //Array descriptors don't have their own open and close symbols, so they
+      //look like numbers until to you get to the first divider (":"or "-").
+      ParsedDescriptor descriptor = ParsedDescriptor.getInstance(type,
+          etomoNumberType);
+      descriptor.setDebug(isDebug());
+      token = descriptor.parse(token, tokenizer);
+      //create the correct type of element
+      if (descriptor.isEmpty()) {
+        //There's nothing there, so its an empty element
+        list.addEmptyElement();
+        return token;
+      }
+      else if (descriptor.wasDividerParsed()) {
+        element = descriptor;
+      }
+      else {
+        //If the divider was not found then it is not a descriptor.
+        element = descriptor.getElement(0);
+      }
     }
     element.setDefaultValue(list.size(), defaultValueArray);
-    //parse the token
-    token = element.parse(token, tokenizer);
     list.add(element);
     return token;
   }
-  
+
+  private boolean isDebug() {
+    return debug;
+  }
+
   final boolean isFailed() {
     return failed;
   }
-  
+
   final void resetFailed() {
     failed = false;
   }
-  
+
   final void fail() {
     failed = true;
   }
