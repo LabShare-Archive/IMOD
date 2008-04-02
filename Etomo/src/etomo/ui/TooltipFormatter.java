@@ -13,6 +13,10 @@ package etomo.ui;
  * @version $Revision$
  * 
  * <p> $Log$
+ * <p> Revision 3.7  2007/12/26 22:38:12  sueh
+ * <p> bug# 1063 Added HtmlMask to prevent <b> and </b> from being converted into
+ * <p> html.
+ * <p>
  * <p> Revision 3.6  2007/04/13 20:40:48  sueh
  * <p> bug# 964 Fixed a bug by adding convertToHtml.  Html string don't display "<"
  * <p> and ">" reliably, so I replaced them with the html equivalent.
@@ -94,33 +98,46 @@ public class TooltipFormatter {
 
   /**
    * Convert ">" and "<" to the html versions, unless they are part of <b> or
-   * </b>.
+   * </b>.  Go backwards through the string so that htmlMask is not invalidated.
    * @param rawString
    * @return
    */
   private String convertToHtml(String rawString) {
+    if (debug) {
+      System.out.println("TooltipFormatter.convertToHtml:rawString="
+          + rawString);
+    }
     StringBuffer buffer = new StringBuffer(rawString);
-    int ltIndex = rawString.length();
-    int gtIndex = rawString.length();
+    int index = rawString.length();
     HtmlMask htmlMask = new HtmlMask();
     htmlMask.mask(rawString);
-    while (ltIndex >= 0 || gtIndex >= 0) {
-      ltIndex = buffer.lastIndexOf("<", ltIndex - 1);
-      if (ltIndex != -1 && !htmlMask.isMasked(ltIndex)) {
-        buffer.deleteCharAt(ltIndex);
-        buffer.insert(ltIndex, "<html>&lt");
+    while (index >= 0) {
+      index = Math.max(buffer.lastIndexOf("<", index - 1), buffer.lastIndexOf(
+          ">", index - 1));
+      if (index != -1 && !htmlMask.isMasked(index)) {
+        char c = buffer.charAt(index);
+        buffer.deleteCharAt(index);
+        if (c == '<') {
+          buffer.insert(index, "<html>&lt");
+        }
+        else if (c == '>') {
+          buffer.insert(index, "<html>&gt");
+        }
       }
-      gtIndex = buffer.lastIndexOf(">", gtIndex - 1);
-      if (gtIndex != -1 && !htmlMask.isMasked(gtIndex)) {
-        buffer.deleteCharAt(gtIndex);
-        buffer.insert(gtIndex, "<html>&gt");
-      }
+    }
+    if (debug) {
+      System.out.println("TooltipFormatter.convertToHtml:buffer.toString()="
+          + buffer.toString());
     }
     return buffer.toString();
   }
 
   public void setDebug(boolean debug) {
     this.debug = debug;
+  }
+
+  boolean isDebug() {
+    return debug;
   }
 
   /**
@@ -153,7 +170,7 @@ public class TooltipFormatter {
 
   private TooltipFormatter() {
   }
-  
+
   private static final class HtmlMask {
     /**
      * Use only lower case in tagArray.
