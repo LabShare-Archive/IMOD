@@ -31,6 +31,9 @@ import etomo.util.DatasetFiles;
  * @version $Revision$
  * 
  * <p> $Log$
+ * <p> Revision 1.4  2007/12/13 01:02:30  sueh
+ * <p> bug# 1056 Changed etomo.comscript.Fields to etomo.comscript.Field.
+ * <p>
  * <p> Revision 1.3  2007/11/09 17:43:25  sueh
  * <p> bug# 1047 In buildCommand, removed quotes from the iteration string.
  * <p>
@@ -57,7 +60,7 @@ public final class AnisotropicDiffusionParam implements CommandDetails {
    * IterationList may contain array descriptors in the form start-end.
    * Example: "2,4 - 9,10".
    */
-  private final ParsedArray iterationList = ParsedArray.getIteratorInstance();
+  private final ParsedArray iterationList = ParsedArray.getInstance();
   private final List command = new ArrayList();
 
   private final BaseManager manager;
