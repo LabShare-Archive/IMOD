@@ -25,6 +25,9 @@ import etomo.util.Utilities;
  * @version $Revision$
  *
  * <p> $Log$
+ * <p> Revision 3.27  2007/12/26 22:24:38  sueh
+ * <p> bug# 1052 Moved argument handling from EtomoDirector to a separate class.
+ * <p>
  * <p> Revision 3.26  2007/09/07 00:27:19  sueh
  * <p> bug# 989 Using a public INSTANCE to refer to the EtomoDirector singleton
  * <p> instead of getInstance and createInstance.
@@ -239,10 +242,10 @@ final class LabeledTextField {
   String getText() {
     return textField.getText();
   }
-  
+
   boolean isEmpty() {
     String text = textField.getText();
-    return text==null|text.matches("\\s*");
+    return text == null | text.matches("\\s*");
   }
 
   void setText(ConstEtomoNumber text) {
@@ -340,7 +343,14 @@ final class LabeledTextField {
   }
 
   void setToolTipText(final String text) {
+    boolean setDebug = debug && !TooltipFormatter.INSTANCE.isDebug();
+    if (setDebug) {
+      TooltipFormatter.INSTANCE.setDebug(debug);
+    }
     String tooltip = TooltipFormatter.INSTANCE.format(text);
+    if (setDebug) {
+      TooltipFormatter.INSTANCE.setDebug(false);
+    }
     panel.setToolTipText(tooltip);
     textField.setToolTipText(tooltip);
   }
