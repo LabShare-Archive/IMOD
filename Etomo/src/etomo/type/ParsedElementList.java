@@ -1,12 +1,7 @@
 package etomo.type;
 
-import java.util.ArrayList;
 import java.util.HashMap;
-import java.util.List;
 import java.util.Map;
-
-import etomo.ui.Token;
-import etomo.util.PrimativeTokenizer;
 
 /**
  * <p>Description: </p>
@@ -22,6 +17,9 @@ import etomo.util.PrimativeTokenizer;
  * @version $Revision$
  * 
  * <p> $Log$
+ * <p> Revision 1.10  2007/11/06 19:48:33  sueh
+ * <p> bug# 1047 added validate.
+ * <p>
  * <p> Revision 1.9  2007/07/31 20:40:26  sueh
  * <p> bug# 1028 added ge(int).
  * <p>
@@ -58,8 +56,14 @@ import etomo.util.PrimativeTokenizer;
 final class ParsedElementList {
   public static final String rcsid = "$Id$";
 
+  private final ParsedElementType type;
+
   private Map map = new HashMap();
   private int size = 0;
+
+  ParsedElementList(ParsedElementType type) {
+    this.type = type;
+  }
 
   public String toString() {
     return "[map:" + map + "]";
@@ -80,7 +84,7 @@ final class ParsedElementList {
   ParsedElement get(int index) {
     ParsedElement element = (ParsedElement) map.get(getKey(index));
     if (element == null) {
-      return EmptyParsedElement.INSTANCE;
+      return ParsedEmptyElement.getInstance(type);
     }
     return element;
   }
@@ -114,114 +118,11 @@ final class ParsedElementList {
     size++;
   }
 
-  synchronized void move(int fromIndex, int toIndex) {
-    ParsedElement element = remove(fromIndex);
-    set(toIndex, element);
-  }
-
   public ParsedElement remove(int index) {
     return (ParsedElement) map.remove(getKey(index));
   }
 
   private Integer getKey(int key) {
     return new Integer(key);
-  }
-
-  /**
-   * Class that allows ParsedElementList to return null when getting an element.
-   * EmptyParsedElement isn't available outside of ParsedElementList, but it
-   * extends ParsedElement and behaves like an empty ParsedElement that is not a
-   * collection.
-   * @singleton
-   * @immutable
-   */
-  static final class EmptyParsedElement extends ParsedElement {
-    public static final String rcsid = "$Id$";
-
-    static final EmptyParsedElement INSTANCE = new EmptyParsedElement();
-
-    private EmptyParsedElement() {
-    }
-
-    public String toString() {
-      return "[empty]";
-    }
-
-    public String getRawString() {
-      return "";
-    }
-
-    public String getRawString(int index) {
-      return "";
-    }
-
-    public Number getRawNumber() {
-      return new EtomoNumber().getNumber();
-    }
-
-    String validate() {
-      return null;
-    }
-
-    void setRawString(int index, String string) {
-    }
-
-    void moveElement(int fromIndex, int toIndex) {
-    }
-
-    ParsedElement getElement(int index) {
-      return this;
-    }
-
-    void setRawString(int index, float number) {
-    }
-
-    boolean ge(int number) {
-      return false;
-    }
-
-    void setRawString(String input) {
-    }
-
-    List getParsedNumberExpandedArray(List parsedNumberExpandedArray) {
-      if (parsedNumberExpandedArray == null) {
-        parsedNumberExpandedArray = new ArrayList();
-      }
-      return parsedNumberExpandedArray;
-    }
-
-    void setDefaultValue(int numberIndex, Integer[] defaultValueArray) {
-    }
-
-    Token parse(Token token, PrimativeTokenizer tokenizer) {
-      return null;
-    }
-
-    void removeElement(int index) {
-    }
-
-    int size() {
-      return 0;
-    }
-
-    public boolean isEmpty() {
-      return true;
-    }
-
-    boolean isDefaultedEmpty() {
-      return true;
-    }
-
-    String getParsableString() {
-      return "";
-    }
-
-    boolean hasParsedNumberSyntax() {
-      return true;
-    }
-
-    boolean isCollection() {
-      return false;
-    }
   }
 }
