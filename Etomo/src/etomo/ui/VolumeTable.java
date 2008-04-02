@@ -49,6 +49,9 @@ import etomo.type.Run3dmodMenuOptions;
  * @version $Revision$
  * 
  * <p> $Log$
+ * <p> Revision 1.27  2008/01/31 20:31:41  sueh
+ * <p> bug# 1055 throwing a FileException when LogFile.getInstance fails.
+ * <p>
  * <p> Revision 1.26  2007/07/25 23:01:16  sueh
  * <p> bug# 1027 Change start and end tilt range angles to min and max angles.  Added
  * <p> A filter for tilt log files to openTiltFile().
@@ -145,6 +148,7 @@ final class VolumeTable implements Expandable, Highlightable,
   public static final String rcsid = "$Id$";
 
   static final String FN_MOD_PARTICLE_HEADER1 = "Model";
+  static final String TABLE_HEADER = "Volume Table";
 
   private final RowList rowList = new RowList();
   private final JPanel rootPanel = new JPanel();
@@ -264,8 +268,13 @@ final class VolumeTable implements Expandable, Highlightable,
       userDir = System.setProperty("user.dir", importDir.getAbsolutePath());
     }
     for (int i = 0; i < matlabParamFile.getVolumeListSize(); i++) {
+      File fnModParticleFile = null;
+      String fnModParticle = matlabParamFile.getFnModParticle(i);
+      if (!fnModParticle.matches("\\s*")) {
+        fnModParticleFile = new File(fnModParticle);
+      }
       VolumeRow row = addRow(new File(matlabParamFile.getFnVolume(i)),
-          new File(matlabParamFile.getFnModParticle(i)));
+          fnModParticleFile);
       row.setParameters(matlabParamFile, useInitMotlFile, useTiltRange);
       row.expandInitMotlFile(initMotlFileIsExpanded);
     }
@@ -310,7 +319,7 @@ final class VolumeTable implements Expandable, Highlightable,
     //border
     SpacedPanel pnlBorder = new SpacedPanel();
     pnlBorder.setBoxLayout(BoxLayout.Y_AXIS);
-    pnlBorder.setBorder(new EtchedBorder("Volume Table").getBorder());
+    pnlBorder.setBorder(new EtchedBorder(TABLE_HEADER).getBorder());
     pnlBorder.add(pnlTable);
     //buttons 1
     JPanel pnlButtons1 = new JPanel();
