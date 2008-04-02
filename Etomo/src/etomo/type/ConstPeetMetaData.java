@@ -13,6 +13,9 @@ package etomo.type;
 * @version $Revision$
 * 
 * <p> $Log$
+* <p> Revision 1.8  2007/07/25 22:58:30  sueh
+* <p> bug# 1027 Change start and end angles to min and max angles.
+* <p>
 * <p> Revision 1.7  2007/06/05 21:28:23  sueh
 * <p> bug# 1010 Added flgWedgeWeight.
 * <p>
@@ -51,4 +54,8 @@ public interface ConstPeetMetaData {
   public String getYaxisContourObjectNumber();
   public String getYaxisContourContourNumber();
   public boolean isFlgWedgeWeight();
+  public boolean isMaskUseReferenceParticle();
+  public ConstEtomoNumber getMaskModelPtsModelNumber();
+  public String getMaskModelPtsParticle();
+  public String getMaskTypeVolume();
 }
