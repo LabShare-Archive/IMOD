@@ -125,8 +125,9 @@ int iiInit(ImodImageFile *i, int xsize, int ysize, int zsize,
 /*!
  * Tries to open an image file with name [filename] and with the fopen mode 
  * [mode] (e.g. "rb"), using the file format check functions on the list.
- * Returns NULL for error; it and all checking routines should call b3dError
- * with their error strings.
+ * If [filename] is NULL or an empty string, then it assigns stdin to the file
+ * pointer.  Returns NULL for error; it and all checking routines should call 
+ * b3dError with their error strings.
  */
 ImodImageFile *iiOpen(char *filename, char *mode)
 {
@@ -136,7 +137,10 @@ ImodImageFile *iiOpen(char *filename, char *mode)
 
   if ((ofile = iiNew()) == NULL) 
     return NULL;
-  ofile->fp = fopen(filename, mode);
+  if (filename && filename[0])
+    ofile->fp = fopen(filename, mode);
+  else
+    ofile->fp = stdin;
 
   if (ofile->fp == NULL || initCheckList()) {
     b3dError(stderr, "ERROR: iiOpen - Opening file %s\n", filename);
@@ -352,6 +356,9 @@ int iiLoadPCoord(ImodImageFile *inFile, struct LoadInfo *li, int nx, int ny,
 
 /*
 $Log$
+Revision 3.13  2007/06/22 04:59:24  mast
+Fixed a comment
+
 Revision 3.12  2006/09/21 22:25:32  mast
 Adedd function to insert check function earlier in list
 
