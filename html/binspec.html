@@ -172,21 +172,21 @@ The mesh ID is (MESH = 0x4d455348) and the basic structure is
 <pre>
 Length    Type         Name    Description
 ------------------------------------------------------------------------------
-4         int          vsize   Size of vertex array (# of triple floats).
-4         int          lsize   Size of index array.
+4         int          vsize   # of elements in vert array (# of triple floats)
+4         int          lsize   # of elements in list array (indexes).
 4         uint         flag    Bit 16 on  : normals have magnitudes.
                 	       Bits 20-23 are resolution : 0 for high, 
                                   1 for lower resolution, etc.
 2         short        time    Contains a time index or 0
 2         short        surf    Contains a surface number or 0
 12*vsize  float * 3    vert    Array of points.
-4*lsize   int          index   Array of ints.
+4*lsize   int          list    Array of ints.
 </pre>
 <p>
 A point can be either a vertex position or a normal vector at a vertex.
 In current model files, <code>vert</code> consists of a sequence of 
 vertex/normal pairs; i.e. vertex, normal, vertex, normal...  The 
-<code>index</code> array has a list of indices into the <code>vert</code>
+<code>list</code> array has a list of indices into the <code>vert</code>
 array plus negative index values with following meanings:
 <pre>
 	-1   end of list array                
