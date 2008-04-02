@@ -12,6 +12,9 @@
  * @version $$Revision$
  *
  * <p> $$Log$
+ * <p> $Revision 3.57  2008/03/06 00:28:40  sueh
+ * <p> $Fixed Easter Egg.
+ * <p> $
  * <p> $Revision 3.56  2008/02/01 01:40:55  sueh
  * <p> $bug# 1075 Fixed Easter egg.
  * <p> $
@@ -984,12 +987,12 @@ public class Utilities {
   }
 
   public static final File getExistingDir(String envVariable, AxisID axisID) {
-    if (envVariable == null || envVariable.matches("\\s*+")) {
+    if (envVariable == null || envVariable.matches("\\s*")) {
       return null;
     }
     String dirName = EnvironmentVariable.INSTANCE.getValue(null, envVariable,
         axisID);
-    if (dirName == null || dirName.matches("\\s*+")) {
+    if (dirName == null || dirName.matches("\\s*")) {
       return null;
     }
     File dir = new File(dirName);
