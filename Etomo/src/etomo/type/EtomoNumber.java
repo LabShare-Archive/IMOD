@@ -18,6 +18,9 @@ import etomo.comscript.FortranInputString;
  * @version $Revision$
  * 
  * <p> $Log$
+ * <p> Revision 1.18  2007/12/13 01:12:42  sueh
+ * <p> bug# 1056 Added startArray, to convert integers to/from strings.  Added loadWithAlternateKey.
+ * <p>
  * <p> Revision 1.17  2007/11/06 19:36:41  sueh
  * <p> bug# 1047 Added loadIfPresent() and load with a default.
  * <p>
@@ -249,9 +252,6 @@ public class EtomoNumber extends ConstEtomoNumber {
    * @return
    */
   public EtomoNumber set(String value) {
-    if (isDebug()) {
-      System.out.println("EtomoNumber.set:value=" + value);
-    }
     resetInvalidReason();
     if (value == null || value.matches("\\s*")) {
       currentValue = newNumber();
@@ -274,9 +274,6 @@ public class EtomoNumber extends ConstEtomoNumber {
     }
     currentValue = applyCeilingValue(applyFloorValue(currentValue));
     setInvalidReason();
-    if (isDebug()) {
-      System.out.println("currentValue=" + currentValue);
-    }
     return this;
   }
 
@@ -307,13 +304,17 @@ public class EtomoNumber extends ConstEtomoNumber {
     return this;
   }
 
-  public void plus(ConstEtomoNumber number) {
+  public void add(ConstEtomoNumber number) {
     if (number == null) {
       return;
     }
     else {
-      set(plus(getValue(), number.getValue()));
+      set(add(getValue(), number.getValue()));
     }
+  }
+  
+  public void add(int i) {
+      set(add(getValue(), newNumber(i)));
   }
 
   public EtomoNumber set(int value) {
