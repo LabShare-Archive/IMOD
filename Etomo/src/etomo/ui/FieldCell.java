@@ -8,6 +8,7 @@ import javax.swing.JTextField;
 import etomo.type.ConstEtomoNumber;
 import etomo.type.EtomoNumber;
 import etomo.type.ParsedArray;
+import etomo.type.ParsedElementType;
 
 /**
  * <p>Description: </p>
@@ -23,6 +24,10 @@ import etomo.type.ParsedArray;
  * @version $Revision$
  * 
  * <p> $Log$
+ * <p> Revision 1.22  2007/09/27 20:50:20  sueh
+ * <p> bug# 1044 Added getIneditableInstance(String value) to create an instance with
+ * <p> a value set.  Useful for debugging.
+ * <p>
  * <p> Revision 1.21  2007/07/31 20:42:20  sueh
  * <p> bug# 1028 Added getParsedArray().
  * <p>
@@ -118,6 +123,8 @@ final class FieldCell extends InputCell {
 
   private final JTextField textField;
   private final boolean editable;
+  private final ParsedElementType parsedElementType;
+
   private String hiddenValue = null;
   private boolean hideValue = false;
   private boolean range = false;
@@ -127,8 +134,9 @@ final class FieldCell extends InputCell {
   private boolean fixedValues = false;
   private boolean inUse = true;
 
-  private FieldCell(boolean editable) {
-    this.editable=editable;
+  private FieldCell(boolean editable, ParsedElementType parsedElementType) {
+    this.editable = editable;
+    this.parsedElementType = parsedElementType;
     //construction
     textField = new JTextField();
     //field
@@ -138,26 +146,30 @@ final class FieldCell extends InputCell {
     setForeground();
     setFont();
   }
-  
+
   static FieldCell getEditableInstance() {
-    return new FieldCell(true);
+    return new FieldCell(true, ParsedElementType.NON_MATLAB);
   }
-  
+
+  static FieldCell getEditableMatlabInstance() {
+    return new FieldCell(true, ParsedElementType.MATLAB);
+  }
+
   static FieldCell getIneditableInstance() {
-    FieldCell instance =  new FieldCell(false);
+    FieldCell instance = new FieldCell(false, ParsedElementType.NON_MATLAB);
     instance.setEditable(false);
     return instance;
   }
-  
+
   static FieldCell getIneditableInstance(String value) {
-    FieldCell instance =  new FieldCell(false);
+    FieldCell instance = new FieldCell(false, ParsedElementType.NON_MATLAB);
     instance.setEditable(false);
     instance.setValue(value);
     return instance;
   }
 
   static FieldCell getExpandableInstance() {
-    FieldCell instance = new FieldCell(false);
+    FieldCell instance = new FieldCell(false, ParsedElementType.NON_MATLAB);
     instance.setEditable(false);
     instance.fixedValues = true;
     return instance;
@@ -176,7 +188,7 @@ final class FieldCell extends InputCell {
 
   void setEditable(boolean editable) {
     //if this is not an editable instance, it can't be made editable
-    if (!this.editable &&editable) {
+    if (!this.editable && editable) {
       return;
     }
     if (fixedValues && editable) {
@@ -189,7 +201,7 @@ final class FieldCell extends InputCell {
     this.inUse = inUse;
     setForeground();
   }
-  
+
   void clearExpandableValues() {
     contractedValue = null;
     expandedValue = null;
@@ -201,7 +213,8 @@ final class FieldCell extends InputCell {
    * @param contractedValue
    * @param expandedValue
    */
-  void setExpandableValues(final String contractedValue, final String expandedValue) {
+  void setExpandableValues(final String contractedValue,
+      final String expandedValue) {
     this.contractedValue = contractedValue;
     this.expandedValue = expandedValue;
   }
@@ -298,25 +311,25 @@ final class FieldCell extends InputCell {
       return EtomoNumber.FLOAT_NULL_VALUE;
     }
   }
-  
+
   ConstEtomoNumber getEtomoNumber() {
     EtomoNumber number = new EtomoNumber();
     number.set(textField.getText());
     return number;
   }
-  
+
   ParsedArray getParsedArray() {
-    ParsedArray array = ParsedArray.getInstance();
+    ParsedArray array = ParsedArray.getInstance(parsedElementType);
     array.setRawString(textField.getText());
     return array;
   }
-  
+
   ConstEtomoNumber getEtomoNumber(EtomoNumber.Type type) {
     EtomoNumber number = new EtomoNumber(type);
     number.set(textField.getText());
     return number;
   }
-  
+
   long getLongValue() {
 
     try {
@@ -358,9 +371,9 @@ final class FieldCell extends InputCell {
       setValue(contractedValue);
     }
   }
-  
+
   boolean equals(String comp) {
-   return getValue().equals(comp);
+    return getValue().equals(comp);
   }
 
   String getContractedValue() {
