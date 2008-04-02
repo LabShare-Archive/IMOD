@@ -185,6 +185,7 @@ typedef struct ViewInfo
   int     multiFileZ;     /* Flag that multiple single-image files are sections
                              in Z (if > 0) or to be treated as times (< 0) */
   int     reloadable;     /* Model file exists and can be reloaded */
+  int     noReadableImage; /* Flag that image file is not readable (stdin) */
 
   FILE   *fp;                /* current image file pointer.    */
 
@@ -257,6 +258,9 @@ bool imodDebug(char key);
 
 /*
 $Log$
+Revision 3.40  2008/01/14 19:46:55  mast
+moved toggle flag to public file
+
 Revision 3.39  2007/12/04 22:04:22  mast
 Changes for rearrangement of utilities, extra object, mouse tracking
 
