@@ -7,15 +7,10 @@
  *  Copyright (C) 1995-2004 by Boulder Laboratory for 3-Dimensional Electron
  *  Microscopy of Cells ("BL3DEMC") and the Regents of the University of 
  *  Colorado.  See dist/COPYRIGHT for full copyright notice.
+ *
+ *  $Id$
+ *  Log at end of file
  */
-
-/*  $Author$
-
-$Date$
-
-$Revision$
-Log at the end of file
-*/
 
 #include <limits.h>
 #include <stdlib.h>
@@ -113,6 +108,8 @@ void imod_usage(char *name)
     "4=complex, 16=RGB.\n";
   qstr += "         -H #  Header size in bytes in raw image files.\n";
   qstr += "         -w    Swap bytes from raw image files.\n";
+  qstr += "         -R    Read image data from standard input, not from file."
+    "\n";
   qstr += "         -m    Load model with model coords (override scaling).\n";
   qstr += "         -2    Treat model as 2D only.\n";
   qstr += "         -T    Display multiple single-image files as times not "
@@ -165,6 +162,7 @@ int main( int argc, char *argv[])
   int rawSet = 0;
   int overEntered = 0;
   bool useStdin = false;
+  bool dataFromStdin = false;
   int argScan;
   int nChars;
   QRect infoGeom;
@@ -188,14 +186,14 @@ int main( int argc, char *argv[])
   App->ghost        = IMOD_GHOST;
 
   /*DNM: prescan for debug, ci and style flags before the display_init */
-  /* Cancel forking on debug or -W output */
+  /* Cancel forking on debug or -W output, or -L or -R */
   for (i = 1; i < argc; i++){
     if (!strncmp("-D", argv[i], 2)) {
       Imod_debug = TRUE;
       debugKeys = strdup(argv[i] + 2);
       doFork = 0;
     }
-    if (!strcmp("-W", argv[i]))
+    if (!strcmp("-W", argv[i]) || !strcmp("-R", argv[i]))
       doFork = 0;
 
     if (!strcmp("-L", argv[i])) {
@@ -484,6 +482,10 @@ int main( int argc, char *argv[])
           rawSet = 1;
           break;
         
+        case 'R':
+          dataFromStdin = true;
+          break;
+
         case 'L':
           useStdin = true;
           break;
@@ -528,7 +530,9 @@ int main( int argc, char *argv[])
 
   /* Add check function for raw and QImage formats after plugins so plugins
      can add them first.  But if any raw options were entered, put raw check 
-     first */
+     first.  But if reading from stdin, put MRC check first! */
+  if (dataFromStdin) 
+    iiInsertCheckFunction(iiMRCCheck, 0);
   iiAddCheckFunction(iiQImageCheck);
   if (rawSet)
     iiInsertCheckFunction(iiRawCheck,0);
@@ -575,9 +579,34 @@ int main( int argc, char *argv[])
     }
   }
   
-  /* If we have a model and no image files before that, then it's a fake
-     image */
-  if (lastimage < firstfile && Model){
+  if (dataFromStdin) {
+
+    // Data from stdin: check for contradictory options
+    if (li.xmin != -1 || li.xmax != -1 || li.ymin != -1 || li.ymax != -1 ||
+        li.zmin != -1 || li.zmax != -1) {
+      imodError(NULL, "You cannot set subareas when reading data from stdin"
+                "\n");
+      exit(3);
+    }
+    if (plistfname || useStdin || rawSet || vi.vmSize) {
+      imodError(NULL, "You cannot use -C, -L, -p, or raw options when "
+                "reading data from stdin\n");
+      exit(3);
+    }
+    if (lastimage >= firstfile) {
+      imodError(NULL, "You cannot enter any image files when "
+                "reading data from stdin\n");
+      exit(3);
+    }
+
+    Imod_imagefile = "";
+    vi.noReadableImage = 1;
+    ivwMultipleFiles(&vi, &Imod_imagefile, 0, 0);
+
+  } else if (lastimage < firstfile && Model) {
+
+    /* If we have a model and no image files before that, then it's a fake
+       image */
     vi.fakeImage = 1;
     Imod_imagefile = NULL;
     vi.nt = Model->tmax = imodGetMaxTime(Model);
@@ -591,7 +620,7 @@ int main( int argc, char *argv[])
       imodVersion(NULL);
       imodCopyright();    
       qname = QFileDialog::getOpenFileName(QString::null, QString::null, 0, 0, 
-                                           "3dmod: Select Image file to load:");
+                                          "3dmod: Select Image file to load:");
       if (qname.isEmpty()) {
         imodError(NULL, "3DMOD: file not selected\n");
         exit(3);
@@ -671,7 +700,7 @@ int main( int argc, char *argv[])
   }
 
   /* Now look for piece coordinates - moved up from below 1/2/04 */
-  if (!vi.fakeImage && vi.nt <= 1 && !vi.li->plist) {
+  if (!vi.fakeImage && vi.nt <= 1 && !vi.li->plist && !dataFromStdin) {
     /* Check for piece list file and read it */
     iiPlistLoad(plistfname, vi.li, vi.hdr->nx, vi.hdr->ny, vi.hdr->nz);
 
@@ -910,7 +939,11 @@ bool imodDebug(char key)
 }
 
 /*
+
 $Log$
+Revision 4.64  2008/03/06 00:01:18  mast
+Made windowKeys static and used a key to suppress model save query
+
 Revision 4.63  2008/01/25 20:22:58  mast
 Changes for new scale bar
 
