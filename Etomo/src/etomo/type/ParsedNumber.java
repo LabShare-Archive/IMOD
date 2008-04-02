@@ -9,7 +9,16 @@ import etomo.ui.Token;
 import etomo.util.PrimativeTokenizer;
 
 /**
- * <p>Description: </p>
+ * <p>Description: Parsable number used with other Parsed... objects.  Can
+ * read and write Matlab syntax.</p>
+ * 
+ * @see ParsedList
+ * 
+ * <H4>Matlab Variable Syntax</H4>
+ * 
+ * <H5>Number</H5><UL>
+ * <LI>Delimiters: [] or '' (optional - cannot be used inside a regular array)
+ * <LI>Empty number: [], '', or NaN</UL>
  * 
  * <p>Copyright: Copyright 2006</p>
  *
@@ -22,6 +31,9 @@ import etomo.util.PrimativeTokenizer;
  * @version $Revision$
  * 
  * <p> $Log$
+ * <p> Revision 1.13  2007/11/06 19:50:38  sueh
+ * <p> bug# 1047 Made class compatible with ParsedIteratorDescriptor.
+ * <p>
  * <p> Revision 1.12  2007/07/31 20:41:12  sueh
  * <p> bug# 1028 added ge(int).
  * <p>
@@ -65,34 +77,49 @@ import etomo.util.PrimativeTokenizer;
  * <p> bug# 964 Parses a Matlab number.
  * <p> </p>
  */
-public final class ParsedNumber extends ParsedElement implements
-    ConstParsedNumber {
+public final class ParsedNumber extends ParsedElement {
   public static final String rcsid = "$Id$";
 
   private final EtomoNumber rawNumber;
   private final EtomoNumber.Type etomoNumberType;
 
-  private final StringBuffer SYMBOL_STRING;
+  private final StringBuffer NON_ELEMENT_SYMBOLS;
+  private final ParsedElementType type;
 
-  public ParsedNumber() {
-    this(null, false);
-  }
+  private final boolean inArray;
 
-  public ParsedNumber(EtomoNumber.Type etomoNumberType) {
-    this(etomoNumberType, false);
-  }
-
-  public ParsedNumber(EtomoNumber.Type etomoNumberType,
-      boolean usingIteratorDescriptor) {
+  private ParsedNumber(ParsedElementType type,
+      EtomoNumber.Type etomoNumberType, boolean inArray) {
     this.etomoNumberType = etomoNumberType;
+    this.type = type;
+    this.inArray = inArray;
     rawNumber = new EtomoNumber(etomoNumberType);
-    SYMBOL_STRING = new StringBuffer(ParsedList.OPEN_SYMBOL.toString()
+    NON_ELEMENT_SYMBOLS = new StringBuffer(ParsedList.OPEN_SYMBOL.toString()
         + ParsedList.CLOSE_SYMBOL.toString()
-        + ParsedList.DIVIDER_SYMBOL.toString()
         + ParsedArray.OPEN_SYMBOL.toString()
         + ParsedArray.CLOSE_SYMBOL.toString()
+        + ParsedQuotedString.DELIMITER_SYMBOL
+        + ParsedList.DIVIDER_SYMBOL.toString()
         + ParsedArray.DIVIDER_SYMBOL.toString()
-        + ParsedDescriptor.getDividerSymbol(usingIteratorDescriptor).toString());
+        + ParsedDescriptor.getDividerSymbol(type).toString());
+  }
+
+  public static ParsedNumber getInstance(ParsedElementType type,
+      EtomoNumber.Type etomoNumberType) {
+    return new ParsedNumber(type, etomoNumberType, false);
+  }
+
+  public static ParsedNumber getArrayInstance(ParsedElementType type,
+      EtomoNumber.Type etomoNumberType) {
+    return new ParsedNumber(type, etomoNumberType, true);
+  }
+
+  public static ParsedNumber getMatlabInstance() {
+    return new ParsedNumber(ParsedElementType.MATLAB, null, false);
+  }
+
+  public static ParsedNumber getMatlabInstance(EtomoNumber.Type etomoNumberType) {
+    return new ParsedNumber(ParsedElementType.MATLAB, etomoNumberType, false);
   }
 
   public void parse(ReadOnlyAttribute attribute) {
@@ -102,11 +129,8 @@ public final class ParsedNumber extends ParsedElement implements
       return;
     }
     PrimativeTokenizer tokenizer = createTokenizer(attribute.getValue());
-    StringBuffer buffer = new StringBuffer();
-    Token token = null;
     try {
-      token = tokenizer.next();
-      parse(token, tokenizer);
+      parse(tokenizer.next(), tokenizer);
     }
     catch (IOException e) {
       e.printStackTrace();
@@ -129,7 +153,7 @@ public final class ParsedNumber extends ParsedElement implements
     if (index == 0) {
       return this;
     }
-    return ParsedElementList.EmptyParsedElement.INSTANCE;
+    return ParsedEmptyElement.getInstance(type);
   }
 
   /**
@@ -139,11 +163,15 @@ public final class ParsedNumber extends ParsedElement implements
     if (index == 0) {
       return getRawString();
     }
-    return ParsedElementList.EmptyParsedElement.INSTANCE.getRawString();
+    return ParsedEmptyElement.getInstance(type).getRawString();
   }
 
   public Number getRawNumber() {
     return rawNumber.getDefaultedNumber();
+  }
+
+  public Number getNegatedRawNumber() {
+    return rawNumber.getNegatedDefaultedNumber();
   }
 
   public String getRawString() {
@@ -160,9 +188,17 @@ public final class ParsedNumber extends ParsedElement implements
    */
   public String getParsableString() {
     if (rawNumber.isDefaultedNull()) {
-      return "";
+      if (type == ParsedElementType.MATLAB) {
+        //Empty strings cannot be parsed by MatLab.  If this instance is a
+        //Matlab syntax instance, return NaN.
+        return "NaN";
+      }
+      else {
+        return "";
+      }
     }
     Number number = rawNumber.getDefaultedNumber();
+    //Remove unnecessary decimal points.
     if (etomoNumberType == EtomoNumber.Type.FLOAT) {
       float floatNumber = number.floatValue();
       if (Math.round(floatNumber) == floatNumber) {
@@ -273,7 +309,7 @@ public final class ParsedNumber extends ParsedElement implements
   }
 
   void plus(ConstEtomoNumber number) {
-    rawNumber.plus(number);
+    rawNumber.add(number);
   }
 
   /**
@@ -295,10 +331,6 @@ public final class ParsedNumber extends ParsedElement implements
     }
   }
 
-  boolean hasParsedNumberSyntax() {
-    return true;
-  }
-
   /**
    * If rawNumber is not null append this to parsedNumberExpandedArray.  Create
    * parsedNumberExpandedArray if parsedNumberExpandedArray == null.
@@ -316,17 +348,81 @@ public final class ParsedNumber extends ParsedElement implements
     return parsedNumberExpandedArray;
   }
 
+  /**
+   * parse the number including delimiters
+   * @return the token that is current when the array is parsed
+   */
   Token parse(Token token, PrimativeTokenizer tokenizer) {
-    if (isDebug()) {
-      System.out.println("ParsedNumber.parse:token=" + token);
-      System.out.println("SYMBOL_STRING=" + SYMBOL_STRING);
-    }
     rawNumber.reset();
     resetFailed();
     if (token == null) {
+      return token;
+    }
+    try {
+      Character closeSymbol = null;
+      if (!inArray) {
+        if (token.is(Token.Type.WHITESPACE)) {
+          token = tokenizer.next();
+        }
+        if (token == null) {
+          return token;
+        }
+        //If the number is not in an array, it may have delimiters
+        //(either [] or '').  Find opening delimiter
+        if (token
+            .equals(Token.Type.SYMBOL, ParsedArray.OPEN_SYMBOL.charValue())) {
+          closeSymbol = ParsedArray.CLOSE_SYMBOL;
+          token = tokenizer.next();
+        }
+        else if (token.equals(Token.Type.SYMBOL,
+            ParsedQuotedString.DELIMITER_SYMBOL.charValue())) {
+          closeSymbol = ParsedQuotedString.DELIMITER_SYMBOL;
+          token = tokenizer.next();
+        }
+      }
+      //Remove any whitespace before the element.
+      if (token != null && token.is(Token.Type.WHITESPACE)) {
+        token = tokenizer.next();
+      }
+      token = parseElement(token, tokenizer);
+      if (isFailed()) {
+        return token;
+      }
+      //Find closing delimiter
+      if (closeSymbol != null) {
+        if (token.is(Token.Type.WHITESPACE)) {
+          token = tokenizer.next();
+        }
+        if (token == null) {
+          fail("End of value.  Closing delimiter, " + closeSymbol
+              + ", was not found.");
+          return token;
+        }
+        //If the number is not in an array, it may have delimiters
+        //(either [] or '').
+        if (token.equals(Token.Type.SYMBOL, closeSymbol)) {
+          token = tokenizer.next();
+        }
+        else {
+          fail("Closing delimiter, " + closeSymbol + ", was not found.");
+          return token;
+        }
+      }
+      if (token != null && token.is(Token.Type.WHITESPACE)) {
+        token = tokenizer.next();
+      }
+    }
+    catch (IOException e) {
+      e.printStackTrace();
+      fail(e.getMessage());
+    }
+    return token;
+  }
+
+  private Token parseElement(Token token, PrimativeTokenizer tokenizer) {
+    if (token == null) {
       return null;
     }
-    boolean dividerFound = true;
     //Loop until whitespace, EOL, EOF, or a recognized symbol is found; that
     //should be the end of the number.
     StringBuffer buffer = new StringBuffer();
@@ -335,13 +431,10 @@ public final class ParsedNumber extends ParsedElement implements
         && !token.is(Token.Type.WHITESPACE)
         && !token.is(Token.Type.EOL)
         && !token.is(Token.Type.EOF)
-        && !(token.is(Token.Type.SYMBOL) && SYMBOL_STRING.toString().indexOf(
-            token.getChar()) != -1)) {
+        && (!token.is(Token.Type.SYMBOL) || NON_ELEMENT_SYMBOLS.toString()
+            .indexOf(token.getChar()) == -1)) {
       //build the number
       buffer.append(token.getValue());
-      if (isDebug()) {
-        System.out.println("buffer=" + buffer);
-      }
       try {
         token = tokenizer.next();
       }
@@ -350,14 +443,8 @@ public final class ParsedNumber extends ParsedElement implements
         fail(e.getMessage());
       }
     }
-    if (isDebug()) {
-      System.out.println("buffer=" + buffer);
-    }
     rawNumber.setDebug(isDebug());
     rawNumber.set(buffer.toString());
-    if (isDebug()) {
-      System.out.println("rawNumber=" + rawNumber);
-    }
     return token;
   }
 
