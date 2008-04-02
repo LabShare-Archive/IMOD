@@ -55,6 +55,9 @@ import etomo.util.DatasetFiles;
  * @version $Revision$
  * 
  * <p> $Log$
+ * <p> Revision 1.38  2008/03/06 00:24:13  sueh
+ * <p> bug# 1088 In peetParser added error message when matlabParam is null.
+ * <p>
  * <p> Revision 1.37  2008/01/31 20:16:55  sueh
  * <p> bug# 1055 throwing a FileException when LogFile.getInstance fails.
  * <p>
@@ -729,6 +732,9 @@ public final class PeetManager extends BaseManager {
         peetDialog.setParameters(metaData, parametersOnly);
         peetDialog.setParameters(screenState);
       }
+      //Always load from matlabParam after loading the data file because some
+      //values are in both places (maskModelPts) and the .prm values take
+      //precedence over the .epe values.
       if (matlabParam != null) {
         peetDialog.setParameters(matlabParam, importDir, parametersOnly);
       }
