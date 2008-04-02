@@ -336,21 +336,23 @@ bool InfoWindow::event(QEvent *e)
 // Enable menu items based on new information
 void InfoWindow::manageMenus()
 {
-  bool imageOK = !(App->cvi->fakeImage || App->cvi->rawImageStore);
-  mFileMenu->setItemEnabled(FILE_MENU_TIFF, App->cvi->rawImageStore != 0);
-  mFileMenu->setItemEnabled(FILE_MENU_EXTRACT, App->cvi->rawImageStore == 0 &&
-                  App->cvi->fakeImage == 0 && App->cvi->multiFileZ <= 0);
-  /*fprintf(stderr, "App->cvi->multiFileZ=%d\n", App->cvi->multiFileZ);*/
+  ImodView *vi = App->cvi;
+  bool imageOK = !(vi->fakeImage || vi->rawImageStore);
+  mFileMenu->setItemEnabled(FILE_MENU_TIFF, vi->rawImageStore != 0);
+  mFileMenu->setItemEnabled(FILE_MENU_EXTRACT, vi->rawImageStore == 0 &&
+                            vi->fakeImage == 0 && vi->multiFileZ <= 0 &&
+                            vi->noReadableImage == 0);
+  /*fprintf(stderr, "vi->multiFileZ=%d\n", vi->multiFileZ);*/
   mEImageMenu->setItemEnabled(EIMAGE_MENU_FILLCACHE, 
-			      App->cvi->vmSize != 0 || App->cvi->nt > 0);
+			      vi->vmSize != 0 || vi->nt > 0);
   mEImageMenu->setItemEnabled(EIMAGE_MENU_FILLER, 
-			      App->cvi->vmSize != 0 || App->cvi->nt > 0);
-  mImageMenu->setItemEnabled(IMAGE_MENU_SLICER, App->cvi->rawImageStore == 0);
-  mImageMenu->setItemEnabled(IMAGE_MENU_XYZ, App->cvi->rawImageStore == 0);
+			      vi->vmSize != 0 || vi->nt > 0);
+  mImageMenu->setItemEnabled(IMAGE_MENU_SLICER, vi->rawImageStore == 0);
+  mImageMenu->setItemEnabled(IMAGE_MENU_XYZ, vi->rawImageStore == 0);
   if (!imageOK) {
     mImageMenu->setItemEnabled(IMAGE_MENU_GRAPH, false);
   }
-  if (!imageOK || App->cvi->colormapImage) {
+  if (!imageOK || vi->colormapImage) {
     mEImageMenu->setItemEnabled(EIMAGE_MENU_PROCESS, false);
     mImageMenu->setItemEnabled(IMAGE_MENU_TUMBLER, false);
     mImageMenu->setItemEnabled(IMAGE_MENU_PIXEL, false);    
@@ -360,10 +362,10 @@ void InfoWindow::manageMenus()
   // These are run-time items.  If more instances appear this should be
   // split into initial and runtime calls
   mEImageMenu->setItemEnabled(EIMAGE_MENU_FLIP, !iprocBusy() && 
-                              !App->cvi->colormapImage);
+                              !vi->colormapImage);
   mEImageMenu->setItemEnabled(EIMAGE_MENU_RELOAD, !iprocBusy() && imageOK &&
-                              !App->cvi->colormapImage);
-  mFileMenu->setItemEnabled(FILE_MENU_RELOAD, App->cvi->reloadable != 0);
+                              !vi->colormapImage && !vi->noReadableImage);
+  mFileMenu->setItemEnabled(FILE_MENU_RELOAD, vi->reloadable != 0);
   mEObjectMenu->setItemEnabled(EOBJECT_MENU_DELETE, !meshingBusy());
   mEObjectMenu->setItemEnabled(EOBJECT_MENU_RENUMBER, !meshingBusy());
 }
@@ -655,6 +657,9 @@ static char *truncate_name(char *name, int limit)
 /*
 
 $Log$
+Revision 4.46  2008/03/06 00:13:27  mast
+Added key to start in model mode
+
 Revision 4.45  2008/02/28 00:06:57  mast
 Changed to run trimvol with tcsh -f ..., needed for Windows
 
