@@ -7,15 +7,10 @@
  *  Copyright (C) 1995-2005 by Boulder Laboratory for 3-Dimensional Electron
  *  Microscopy of Cells ("BL3DEMC") and the Regents of the University of 
  *  Colorado.  See dist/COPYRIGHT for full copyright notice.
+ *
+ *  $Id$
+ *  Log at end of file
  */
-
-/*  $Author$
-
-$Date$
-
-$Revision$
-Log at end of file
-*/
 
 #include <stdlib.h>
 #include <qpushbutton.h>
@@ -143,6 +138,7 @@ PixelView::PixelView(QWidget *parent, const char *name, WFlags fl)
   connect(cbox, SIGNAL(toggled(bool)), this, SLOT(fromFileToggled(bool)));
   QToolTip::add(cbox, "Show value from file, not byte value from memory, "
                 "at mouse position");
+  cbox->setEnabled(App->cvi->noReadableImage == 0);
 
   QCheckBox *gbox = diaCheckBox("Grid", this, hBox);
   diaSetChecked(gbox, showButs);
@@ -248,10 +244,10 @@ void PixelView::update()
       if ((x < 0) || (y < 0) || (x >= vi->xsize) || (y >= vi->ysize))
 	str = "     x";
       else{
-	pixel = ivwGetFileValue(vi, x, y, (int)(vi->zmouse + 0.5));
+        pixel = ivwGetFileValue(vi, x, y, (int)(vi->zmouse + 0.5));
 
         /* First time after getting a pixel, see if floats are needed */
-        if (floats < 0) {
+        if (floats < 0 && !vi->noReadableImage) {
           if (vi->image->mode == MRC_MODE_BYTE || 
               vi->image->mode == MRC_MODE_SHORT ||
               vi->image->mode == MRC_MODE_USHORT)
@@ -390,7 +386,11 @@ void PixelView::keyReleaseEvent ( QKeyEvent * e )
 
 
 /*
+
 $Log$
+Revision 4.12  2006/12/29 22:51:21  mast
+Fixed pixel view continuous display for non-file value
+
 Revision 4.11  2006/09/18 15:46:34  mast
 Moved mouse line to top and added show/hide for the grid
 
