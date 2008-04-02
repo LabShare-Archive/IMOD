@@ -1,5 +1,14 @@
 IMOD History
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+4/1/08: IMOD_3-12-6
+4/1/08: Added option to pass image data into 3dmod from standard input.
+
+4/1/08: Fixed transparency when running model view from 3dmod, broken 3/5/08.
+
+4/1/08: Fixed PEET prm file put out by eTomo, broken in last version.
+
+4/1/08: In PEET interface, added controls for masking.
+
 3/26/08: Fixed IMOD.adp, fixed package to include bash.profile for Mac (In 
 3.11.5).
 
