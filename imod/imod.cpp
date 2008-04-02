@@ -593,7 +593,7 @@ int main( int argc, char *argv[])
                 "reading data from stdin\n");
       exit(3);
     }
-    if (lastimage >= firstfile) {
+    if (firstfile && lastimage >= firstfile) {
       imodError(NULL, "You cannot enter any image files when "
                 "reading data from stdin\n");
       exit(3);
@@ -941,6 +941,9 @@ bool imodDebug(char key)
 /*
 
 $Log$
+Revision 4.65  2008/04/02 04:23:36  mast
+Changes for reading from standard input
+
 Revision 4.64  2008/03/06 00:01:18  mast
 Made windowKeys static and used a key to suppress model save query
 
