@@ -100,6 +100,7 @@ void ivwInit(ImodView *vi)
   vi->fakeImage     = 0;
   vi->rawImageStore = 0;
   vi->multiFileZ = 0;
+  vi->noReadableImage = 0;
   vi->extraObj = NULL;
   startExtraObjectIfNone(vi);
   vi->linePtrs = NULL;
@@ -1314,8 +1315,13 @@ float ivwGetFileValue(ImodView *vi, int cx, int cy, int cz)
 
   if (!vi->image)
     return 0.0f;
-  if (vi->image->file != IIFILE_MRC && vi->image->file != IIFILE_RAW)
+  if ((vi->image->file != IIFILE_MRC && vi->image->file != IIFILE_RAW) ||
+      vi->noReadableImage) {
+    if (!vi->rawImageStore)
+      return ivwGetValue(vi, cx, cy, cz);
     return 0.0f;
+  }
+
   fp = vi->image->fp;
   mrcheader = (struct MRCheader *)vi->image->header;
 
@@ -1839,9 +1845,12 @@ void ivwMultipleFiles(ImodView *vi, char *argv[], int firstfile, int lastimage)
   QString str;
 
   for (i = firstfile; i <= lastimage; i++) {
-    convarg = strdup((curdir->cleanDirPath(QString(argv[i]))).latin1());
-    image = iiOpen((char *)
-      (QDir::convertSeparators(QString(convarg))).latin1(), "rb");
+    if (argv[i][0]) {
+      convarg = strdup((curdir->cleanDirPath(QString(argv[i]))).latin1());
+      image = iiOpen
+        ((char *)(QDir::convertSeparators(QString(convarg))).latin1(), "rb");
+    } else
+      image = iiOpen(argv[i], "rb");
     if (!image){
       str.sprintf("3DMOD Error: couldn't open image file %s.\n", argv[i]);
       str = QString(b3dGetError()) + str;
@@ -1854,23 +1863,26 @@ void ivwMultipleFiles(ImodView *vi, char *argv[], int firstfile, int lastimage)
       iiRawScan(image);
     iiSetMM(image, vi->li->smin, vi->li->smax);
 
-    /* Setting the fp keeps it from closing the file, so there is no need to
-      save the filename too */
-    /* 1/4/04: that made no sense!  Anyway, leave last file in vi->hdr/image */
+    /* Anyway, leave last file in vi->hdr/image */
     vi->fp = image->fp;
     vi->hdr = vi->image = image;
-    iiClose(image);
-
+    
     image->time = vi->nt;
     vi->nt++;
 
     /* Copy filename with directory stripped to the descriptor */
-    pathlen = strlen(convarg);
-    while (( pathlen > 0) && (convarg[pathlen-1] != '/'))
-      pathlen--;
-    image->description = strdup(&convarg[pathlen]);
+    /* There was strange comment about "Setting the fp keeps it from closing 
+       the file", but the file does get closed unless it is stdin */
+    if (argv[i][0]) {
+      iiClose(image);
+      pathlen = strlen(convarg);
+      while (( pathlen > 0) && (convarg[pathlen-1] != '/'))
+        pathlen--;
+      image->description = strdup(&convarg[pathlen]);
+      free(convarg);
+    } else
+      image->description = strdup(argv[i]);
     ilistAppend(ilist, image);
-    free(convarg);
   }
   delete curdir;
 
@@ -2677,6 +2689,9 @@ void ivwBinByN(unsigned char *array, int nxin, int nyin, int nbin,
 
 /*
 $Log$
+Revision 4.62  2008/03/01 01:23:59  mast
+Added wrappers for getting and saving generic settings
+
 Revision 4.61  2008/01/14 19:47:59  mast
 Added new functions for Andrew
 
