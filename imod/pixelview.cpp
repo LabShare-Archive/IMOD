@@ -143,7 +143,8 @@ PixelView::PixelView(QWidget *parent, const char *name, WFlags fl)
   QCheckBox *gbox = diaCheckBox("Grid", this, hBox);
   diaSetChecked(gbox, showButs);
   connect(gbox, SIGNAL(toggled(bool)), this, SLOT(showButsToggled(bool)));
-  QToolTip::add(cbox, "Show grid of buttons with values from file");
+  QToolTip::add(gbox, "Show buttons with values from file (or memory,"
+                " if not available from file");
 
   // Make the grid
   QGridLayout *layout = new QGridLayout(PV_ROWS + 1, PV_COLS + 1, 
@@ -388,6 +389,9 @@ void PixelView::keyReleaseEvent ( QKeyEvent * e )
 /*
 
 $Log$
+Revision 4.13  2008/04/02 04:11:42  mast
+Disable file button if no readable image
+
 Revision 4.12  2006/12/29 22:51:21  mast
 Fixed pixel view continuous display for non-file value
 
