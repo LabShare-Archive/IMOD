@@ -21,6 +21,9 @@ import etomo.util.DatasetFiles;
  * @notthreadsafe
  * 
  * <p> $Log$
+ * <p> Revision 1.19  2007/12/10 22:38:01  sueh
+ * <p> bug# 1041 Moved resets to load since they are only done once.
+ * <p>
  * <p> Revision 1.18  2007/07/25 22:58:56  sueh
  * <p> bug# 1027 Change start and end tilt range angles to min and max angles.
  * <p>
@@ -92,6 +95,10 @@ public class PeetMetaData extends BaseMetaData implements ConstPeetMetaData {
       .getDefaultInstance("1.1");
   private static final String START_KEY = "Start";
   private static final String END_KEY = "End";
+  private static final String MASK_MODEL_PTS_KEY = "MaskModelPts";
+  private static final String MODEL_NUMBER_KEY = "ModelNumber";
+  private static final String PARTICLE_KEY = "Particle";
+  private static final String VOLUME_KEY = "Volume";
 
   //latest version should change when new backwards compatibility issue come up
   private static final EtomoVersion LATEST_VERSION = VERSION_1_1;
@@ -105,20 +112,28 @@ public class PeetMetaData extends BaseMetaData implements ConstPeetMetaData {
   private final IntKeyList tiltRangeMax = IntKeyList
       .getStringInstance(TILT_RANGE_KEY + "." + END_KEY);
   private final EtomoNumber referenceVolume = new EtomoNumber(REFERENCE_KEY
-      + ".Volume");
+      + "." + VOLUME_KEY);
   private final EtomoNumber referenceParticle = new EtomoNumber(REFERENCE_KEY
-      + ".Particle");
+      + "." + PARTICLE_KEY);
   private final StringProperty referenceFile = new StringProperty(REFERENCE_KEY
       + ".File");
   private final EtomoNumber edgeShift = new EtomoNumber("EdgeShift");
   private final EtomoNumber yaxisContourModelNumber = new EtomoNumber(
-      YAXIS_CONTOUR_KEY + ".ModelNumber");
+      YAXIS_CONTOUR_KEY + "." + MODEL_NUMBER_KEY);
   private final EtomoNumber yaxisContourObjectNumber = new EtomoNumber(
       YAXIS_CONTOUR_KEY + ".ObjectNumber");
   private final EtomoNumber yaxisContourContourNumber = new EtomoNumber(
       YAXIS_CONTOUR_KEY + ".ContourNumber");
   private final EtomoBoolean2 flgWedgeWeight = new EtomoBoolean2(
       "FlgWedgeWeight");
+  private final EtomoBoolean2 maskUseReferenceParticle = new EtomoBoolean2(
+      "Mask.UseReferenceParticle");
+  private final EtomoNumber maskModelPtsModelNumber = new EtomoNumber(
+      MASK_MODEL_PTS_KEY + "." + MODEL_NUMBER_KEY);
+  private final EtomoNumber maskModelPtsParticle = new EtomoNumber(
+      MASK_MODEL_PTS_KEY + "." + PARTICLE_KEY);
+  private final StringProperty maskTypeVolume = new StringProperty("MastType."
+      + VOLUME_KEY);
 
   public PeetMetaData() {
     fileExtension = DatasetFiles.PEET_DATA_FILE_EXT;
@@ -141,6 +156,10 @@ public class PeetMetaData extends BaseMetaData implements ConstPeetMetaData {
     yaxisContourObjectNumber.set(input.yaxisContourObjectNumber);
     yaxisContourContourNumber.set(input.yaxisContourContourNumber);
     flgWedgeWeight.set(input.flgWedgeWeight);
+    maskUseReferenceParticle.set(input.maskUseReferenceParticle);
+    maskModelPtsModelNumber.set(input.maskModelPtsModelNumber);
+    maskModelPtsParticle.set(input.maskModelPtsParticle);
+    maskTypeVolume.set(input.maskTypeVolume);
     revisionNumber.set(input.revisionNumber);
   }
 
@@ -157,7 +176,7 @@ public class PeetMetaData extends BaseMetaData implements ConstPeetMetaData {
     }
     return rootName.toString();
   }
-  
+
   public String getDatasetName() {
     return rootName.toString();
   }
@@ -190,7 +209,7 @@ public class PeetMetaData extends BaseMetaData implements ConstPeetMetaData {
   }
 
   public void load(Properties props, String prepend) {
-    super.load(props,prepend);
+    super.load(props, prepend);
     //reset
     initMotlFile.reset();
     tiltRangeMin.reset();
@@ -202,6 +221,7 @@ public class PeetMetaData extends BaseMetaData implements ConstPeetMetaData {
     yaxisContourObjectNumber.reset();
     yaxisContourContourNumber.reset();
     revisionNumber.reset();
+    maskUseReferenceParticle.reset();
     //load
     prepend = createPrepend(prepend);
     String group = prepend + ".";
@@ -217,6 +237,11 @@ public class PeetMetaData extends BaseMetaData implements ConstPeetMetaData {
     yaxisContourObjectNumber.load(props, prepend);
     yaxisContourContourNumber.load(props, prepend);
     flgWedgeWeight.load(props, prepend);
+    maskUseReferenceParticle.load(props, prepend);
+    maskModelPtsModelNumber.load(props, prepend);
+    maskModelPtsParticle.load(props, prepend);
+    maskTypeVolume.load(props, prepend);
+
     revisionNumber.load(props, prepend);
     if (revisionNumber.isNull() || revisionNumber.lt(LATEST_VERSION)) {
       //backwards compatibility
@@ -240,7 +265,7 @@ public class PeetMetaData extends BaseMetaData implements ConstPeetMetaData {
   }
 
   public void store(Properties props, String prepend) {
-    super.store(props,prepend);
+    super.store(props, prepend);
     revisionNumber.set(LATEST_VERSION);
     prepend = createPrepend(prepend);
     String group = prepend + ".";
@@ -256,7 +281,43 @@ public class PeetMetaData extends BaseMetaData implements ConstPeetMetaData {
     yaxisContourObjectNumber.store(props, prepend);
     yaxisContourContourNumber.store(props, prepend);
     flgWedgeWeight.store(props, prepend);
+    maskUseReferenceParticle.store(props, prepend);
+    maskModelPtsModelNumber.store(props, prepend);
+    maskModelPtsParticle.store(props, prepend);
+    maskTypeVolume.store(props, prepend);
     revisionNumber.store(props, prepend);
+  }
+
+  public void setMaskUseReferenceParticle(boolean input) {
+    maskUseReferenceParticle.set(input);
+  }
+
+  public void setMaskModelPtsModelNumber(Number input) {
+    maskModelPtsModelNumber.set(input);
+  }
+
+  public void setMaskModelPtsParticle(String input) {
+    maskModelPtsParticle.set(input);
+  }
+
+  public void setMaskTypeVolume(String input) {
+    maskTypeVolume.set(input);
+  }
+
+  public boolean isMaskUseReferenceParticle() {
+    return maskUseReferenceParticle.is();
+  }
+
+  public ConstEtomoNumber getMaskModelPtsModelNumber() {
+    return maskModelPtsModelNumber;
+  }
+
+  public String getMaskModelPtsParticle() {
+    return maskModelPtsParticle.toString();
+  }
+
+  public String getMaskTypeVolume() {
+    return maskTypeVolume.toString();
   }
 
   public String getEdgeShift() {
@@ -359,7 +420,7 @@ public class PeetMetaData extends BaseMetaData implements ConstPeetMetaData {
     yaxisContourContourNumber.set(input);
   }
 
-    String createPrepend(String prepend) {
+  String createPrepend(String prepend) {
     if (prepend == "") {
       return GROUP_KEY;
     }
