@@ -21,6 +21,9 @@ import etomo.util.PrimativeTokenizer;
  * @version $Revision$
  * 
  * <p> $Log$
+ * <p> Revision 1.10  2007/11/06 19:48:05  sueh
+ * <p> bug# 1047 Made class compatible with ParsedIteratorDescriptor.
+ * <p>
  * <p> Revision 1.9  2007/07/31 20:40:10  sueh
  * <p> bug# 1028 added ge(int).
  * <p>
@@ -57,11 +60,11 @@ import etomo.util.PrimativeTokenizer;
  */
 public abstract class ParsedElement {
   public static final String rcsid = "$Id$";
-
+  
   private boolean failed = false;
   private String failedMessage = null;
   private boolean debug = false;
-
+  
   public abstract String getRawString();
 
   public abstract Number getRawNumber();
@@ -69,12 +72,10 @@ public abstract class ParsedElement {
   public abstract boolean isEmpty();
 
   public abstract String getRawString(int index);
-
+  
   abstract void setRawString(String number);
 
   abstract ParsedElement getElement(int index);
-
-  abstract void moveElement(int fromIndex, int toIndex);
 
   abstract void setRawString(int index, float number);
 
@@ -90,8 +91,6 @@ public abstract class ParsedElement {
 
   abstract boolean isCollection();
 
-  abstract boolean hasParsedNumberSyntax();
-
   abstract void setDefaultValue(int numberIndex, Integer[] defaultValueArray);
 
   abstract void removeElement(int index);
@@ -99,6 +98,8 @@ public abstract class ParsedElement {
   abstract boolean isDefaultedEmpty();
 
   abstract boolean ge(int number);
+  
+  abstract void clear();
 
   /**
    * Append non-null ParsedNumbers to parsedNumberExpandedArray.  Create
@@ -107,7 +108,7 @@ public abstract class ParsedElement {
    * @return parsedNumberExpandedArray
    */
   abstract List getParsedNumberExpandedArray(List parsedNumberExpandedArray);
-
+  
   final PrimativeTokenizer createTokenizer(final String value) {
     PrimativeTokenizer tokenizer = new PrimativeTokenizer(value);
     try {
@@ -169,4 +170,6 @@ public abstract class ParsedElement {
   void setDebug(boolean debug) {
     this.debug=debug;
   }
+
+
 }
