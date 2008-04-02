@@ -53,6 +53,9 @@ import etomo.type.Run3dmodMenuOptions;
  * @version $Revision$
  * 
  * <p> $Log$
+ * <p> Revision 1.57  2008/03/06 00:28:20  sueh
+ * <p> bug# 1088 Added sampleSphere radio buttons and sampleInterval.
+ * <p>
  * <p> Revision 1.56  2008/02/19 00:47:25  sueh
  * <p> bug# 1078 Setting field width in ftfReferenceFile.
  * <p>
@@ -241,9 +244,11 @@ public final class PeetDialog implements ContextMenu, AbstractParallelDialog,
   public static final String FN_OUTPUT_LABEL = "Root name for output";
   public static final String DIRECTORY_LABEL = "Directory";
 
-  private static final String REFERENCE_PARTICLE_LABEL = "Particle #: ";
+  private static final String PARTICLE_LABEL = "Particle #: ";
   private static final String REFERENCE_VOLUME_LABEL = "Volume #: ";
   private static final String REFERENCE_FILE_LABEL = "Reference file: ";
+  private static final String MODEL_LABEL = "Model #: ";
+  private static final String MASK_TYPE_VOLUME_LABEL = "Volume";
   private static final DialogType DIALOG_TYPE = DialogType.PEET;
   private static final String LST_THRESHOLD_START_TITLE = "Start";
   private static final String LST_THRESHOLD_INCREMENT_TITLE = "Incr.";
@@ -259,7 +264,7 @@ public final class PeetDialog implements ContextMenu, AbstractParallelDialog,
   private final CheckBox cbTiltRange = new CheckBox(
       "Use tilt range in averaging");
   private final LabeledTextField ltfReferenceParticle = new LabeledTextField(
-      REFERENCE_PARTICLE_LABEL);
+      PARTICLE_LABEL);
   private final FileTextField ftfReferenceFile = FileTextField
       .getUnlabeledInstance(REFERENCE_FILE_LABEL);
   private final LabeledTextField ltfSzVolX = new LabeledTextField(
@@ -293,12 +298,12 @@ public final class PeetDialog implements ContextMenu, AbstractParallelDialog,
   private final MultiLineButton btnRun = new MultiLineButton("Run");
   private final JPanel pnlAdvanced = new JPanel();
   private final ButtonGroup bgReference = new ButtonGroup();
-  private final RadioButton rbReferenceVolume = new RadioButton(
+  private final RadioButton rbReferenceParticle = new RadioButton(
       REFERENCE_VOLUME_LABEL, bgReference);
   private final Spinner sReferenceVolume = Spinner
       .getInstance(REFERENCE_VOLUME_LABEL + ": ");
   private final Spinner sYaxisContourModelNumber = Spinner
-      .getLabeledInstance("Model #: ");
+      .getLabeledInstance(MODEL_LABEL);
   private final RadioButton rbReferenceFile = new RadioButton(
       REFERENCE_FILE_LABEL, bgReference);
   private final LabeledSpinner lsParticlePerCPU = new LabeledSpinner(
@@ -322,7 +327,30 @@ public final class PeetDialog implements ContextMenu, AbstractParallelDialog,
       MatlabParam.SampleSphere.FULL, bgSampleSphere);
   private final RadioButton rbSampleSphereHalf = new RadioButton("Half sphere",
       MatlabParam.SampleSphere.HALF, bgSampleSphere);
-  private final LabeledTextField ltfSampleInterval = new LabeledTextField("Sample interval: ");
+  private final LabeledTextField ltfSampleInterval = new LabeledTextField(
+      "Sample interval: ");
+
+  private final ButtonGroup bgMaskType = new ButtonGroup();
+  private final RadioButton rbMaskTypeNone = new RadioButton("None",
+      MatlabParam.MaskType.NONE, bgMaskType);
+  private final RadioButton rbMaskTypeVolume = new RadioButton(
+      MASK_TYPE_VOLUME_LABEL, MatlabParam.MaskType.VOLUME, bgMaskType);
+  private final RadioButton rbMaskTypeSphere = new RadioButton("Sphere",
+      MatlabParam.MaskType.SPHERE, bgMaskType);
+  private final RadioButton rbMaskTypeCylinder = new RadioButton("Cylinder",
+      MatlabParam.MaskType.CYLINDER, bgMaskType);
+  private final FileTextField ftfMaskTypeVolume = new FileTextField(
+      MASK_TYPE_VOLUME_LABEL + ": ");
+  private final Spinner sMaskModelPtsVolumeModelNumber = Spinner
+      .getLabeledInstance(MODEL_LABEL);
+  private final LabeledTextField ltfMaskModelPtsVolumeParticle = new LabeledTextField(
+      PARTICLE_LABEL);
+  private final LabeledTextField ltfInsideMaskRadius = new LabeledTextField(
+      "Inner: ");
+  private final LabeledTextField ltfOutsideMaskRadius = new LabeledTextField(
+      "Outer: ");
+  private final CheckBox cbMaskUseReferenceParticle = new CheckBox(
+      "Set cylinder orientation from reference particle");
 
   private final ButtonGroup bgInitMotl = new ButtonGroup();
   private final RadioButton rbInitMotlZero = new RadioButton(
@@ -373,6 +401,7 @@ public final class PeetDialog implements ContextMenu, AbstractParallelDialog,
     this.manager = manager;
     this.axisID = axisID;
     ftfReferenceFile.setFieldWidth(UIParameters.INSTANCE.getFileWidth());
+    ftfMaskTypeVolume.setFieldWidth(UIParameters.INSTANCE.getFileWidth());
     phSetup = PanelHeader.getInstance("Setup", this, DIALOG_TYPE);
     phRun = PanelHeader.getAdvancedBasicInstance("Run", this, DIALOG_TYPE);
     volumeTable = VolumeTable.getInstance(manager, this);
@@ -457,6 +486,13 @@ public final class PeetDialog implements ContextMenu, AbstractParallelDialog,
     metaData.setYaxisContourContourNumber(ltfYaxisContourContourNumber
         .getText());
     metaData.setFlgWedgeWeight(cbFlgWedgeWeight.isSelected());
+    metaData.setMaskUseReferenceParticle(cbMaskUseReferenceParticle
+        .isSelected());
+    metaData.setMaskModelPtsModelNumber(sMaskModelPtsVolumeModelNumber
+        .getValue());
+    metaData.setMaskModelPtsParticle(ltfMaskModelPtsVolumeParticle
+        .getText());
+    metaData.setMaskTypeVolume(ftfMaskTypeVolume.getText());
   }
 
   /**
@@ -483,6 +519,13 @@ public final class PeetDialog implements ContextMenu, AbstractParallelDialog,
       cbFlgWedgeWeight.setSelected(metaData.isFlgWedgeWeight());
     }
     ltfEdgeShift.setText(metaData.getEdgeShift());
+    cbMaskUseReferenceParticle.setSelected(metaData
+        .isMaskUseReferenceParticle());
+    sMaskModelPtsVolumeModelNumber.setValue(metaData
+        .getMaskModelPtsModelNumber());
+    ltfMaskModelPtsVolumeParticle.setText(metaData
+        .getMaskModelPtsParticle());
+    ftfMaskTypeVolume.setText(metaData.getMaskTypeVolume());
   }
 
   /**
@@ -502,7 +545,7 @@ public final class PeetDialog implements ContextMenu, AbstractParallelDialog,
         ftfReferenceFile.setText(matlabParam.getReferenceFile());
       }
       else {
-        rbReferenceVolume.setSelected(true);
+        rbReferenceParticle.setSelected(true);
         sReferenceVolume.setValue(matlabParam.getReferenceVolume());
         ltfReferenceParticle.setText(matlabParam.getReferenceParticle());
       }
@@ -580,6 +623,31 @@ public final class PeetDialog implements ContextMenu, AbstractParallelDialog,
       rbSampleSphereHalf.setSelected(true);
     }
     ltfSampleInterval.setText(matlabParam.getSampleInterval());
+
+    String maskTypeValue = matlabParam.getMaskType();
+    MatlabParam.MaskType maskType = MatlabParam.MaskType
+        .getInstance(maskTypeValue);
+    if (maskType == MatlabParam.MaskType.NONE) {
+      rbMaskTypeNone.setSelected(true);
+    }
+    else if (maskType == MatlabParam.MaskType.VOLUME) {
+      rbMaskTypeVolume.setSelected(true);
+      ftfMaskTypeVolume.setText(maskTypeValue);
+    }
+    else if (maskType == MatlabParam.MaskType.SPHERE) {
+      rbMaskTypeSphere.setSelected(true);
+    }
+    else if (maskType == MatlabParam.MaskType.CYLINDER) {
+      rbMaskTypeCylinder.setSelected(true);
+    }
+    if (!matlabParam.isMaskModelPtsEmpty()) {
+      sMaskModelPtsVolumeModelNumber.setValue(matlabParam
+          .getMaskModelPtsVolume());
+      ltfMaskModelPtsVolumeParticle.setText(matlabParam
+          .getMaskModelPtsParticle());
+    }
+    ltfInsideMaskRadius.setText(matlabParam.getInsideMaskRadius());
+    ltfOutsideMaskRadius.setText(matlabParam.getOutsideMaskRadius());
     updateDisplay();
   }
 
@@ -588,7 +656,7 @@ public final class PeetDialog implements ContextMenu, AbstractParallelDialog,
     volumeTable.getParameters(matlabParam);
     iterationTable.getParameters(matlabParam);
     matlabParam.setFnOutput(ltfFnOutput.getText());
-    if (rbReferenceVolume.isSelected()) {
+    if (rbReferenceParticle.isSelected()) {
       matlabParam.setReferenceVolume(sReferenceVolume.getValue());
       matlabParam.setReferenceParticle(ltfReferenceParticle.getText());
     }
@@ -634,6 +702,27 @@ public final class PeetDialog implements ContextMenu, AbstractParallelDialog,
     matlabParam.setSampleSphere(((RadioButton.RadioButtonModel) bgSampleSphere
         .getSelection()).getEnumeratedType());
     matlabParam.setSampleInterval(ltfSampleInterval.getText());
+
+    if (rbMaskTypeVolume.isSelected()) {
+      matlabParam.setMaskType(ftfMaskTypeVolume.getText());
+    }
+    else {
+      matlabParam.setMaskType(((RadioButton.RadioButtonModel) bgMaskType
+          .getSelection()).getEnumeratedType());
+    }
+    if (rbMaskTypeCylinder.isSelected()
+        && (rbReferenceFile.isSelected() || !cbMaskUseReferenceParticle
+            .isSelected())) {
+      matlabParam.setMaskModelPtsVolume(sMaskModelPtsVolumeModelNumber
+          .getValue());
+      matlabParam.setMaskModelPtsParticle(ltfMaskModelPtsVolumeParticle
+          .getText());
+    }
+    else {
+      matlabParam.clearMaskModelPts();
+    }
+    matlabParam.setInsideMaskRadius(ltfInsideMaskRadius.getText());
+    matlabParam.setOutsideMaskRadius(ltfOutsideMaskRadius.getText());
   }
 
   public String getFnOutput() {
@@ -691,7 +780,7 @@ public final class PeetDialog implements ContextMenu, AbstractParallelDialog,
     ltfYaxisContourObjectNumber.clear();
     ltfYaxisContourContourNumber.clear();
     cbLstFlagAllTom.setSelected(false);
-    rbReferenceVolume.setSelected(false);
+    rbReferenceParticle.setSelected(false);
     sReferenceVolume.reset();
     sYaxisContourModelNumber.reset();
     rbReferenceFile.setSelected(false);
@@ -707,9 +796,8 @@ public final class PeetDialog implements ContextMenu, AbstractParallelDialog,
     cbFlgWedgeWeight.setSelected(false);
     volumeTable.reset();
     iterationTable.reset();
-    rbSampleSphereFull.setSelected(false);
-    rbSampleSphereHalf.setSelected(false);
     ltfSampleInterval.clear();
+    cbMaskUseReferenceParticle.setSelected(false);
     setDefaults();
     updateDisplay();
   }
@@ -741,7 +829,7 @@ public final class PeetDialog implements ContextMenu, AbstractParallelDialog,
           MatlabParam.TILT_RANGE_KEY);
       cbTiltRange.setToolTipText(tooltip);
       tooltip = EtomoAutodoc.getTooltip(autodoc, MatlabParam.REFERENCE_KEY);
-      rbReferenceVolume.setToolTipText(tooltip);
+      rbReferenceParticle.setToolTipText(tooltip);
       rbReferenceFile.setToolTipText(tooltip);
       sReferenceVolume.setToolTipText(tooltip);
       ltfReferenceParticle.setToolTipText(tooltip);
@@ -809,13 +897,27 @@ public final class PeetDialog implements ContextMenu, AbstractParallelDialog,
           .setToolTipText("Create a new PEET project and copy the parameters (everything but the volume table) from .epe and/or .prm file(s) in another directory.");
       cbFlgWedgeWeight.setToolTipText(EtomoAutodoc.getTooltip(autodoc,
           MatlabParam.FLG_WEDGE_WEIGHT_KEY));
-      section = autodoc.getSection(EtomoAutodoc.FIELD_SECTION_NAME,
-          MatlabParam.SAMPLE_SPHERE_KEY);
-      rbSampleSphereNone.setToolTipText(section);
-      rbSampleSphereFull.setToolTipText(section);
-      rbSampleSphereHalf.setToolTipText(section);
+      tooltip = EtomoAutodoc.getTooltip(autodoc, MatlabParam.SAMPLE_SPHERE_KEY);
+      rbSampleSphereNone.setToolTipText(tooltip);
+      rbSampleSphereFull.setToolTipText(tooltip);
+      rbSampleSphereHalf.setToolTipText(tooltip);
       ltfSampleInterval.setToolTipText(EtomoAutodoc.getTooltip(autodoc,
           MatlabParam.SAMPLE_INTERVAL_KEY));
+      tooltip = EtomoAutodoc.getTooltip(autodoc, MatlabParam.MASK_TYPE_KEY);
+      rbMaskTypeNone.setToolTipText(tooltip);
+      rbMaskTypeVolume.setToolTipText(tooltip);
+      rbMaskTypeSphere.setToolTipText(tooltip);
+      rbMaskTypeCylinder.setToolTipText(tooltip);
+      ftfMaskTypeVolume.setToolTipText(tooltip);
+      tooltip = EtomoAutodoc
+          .getTooltip(autodoc, MatlabParam.MASK_MODEL_PTS_KEY);
+      sMaskModelPtsVolumeModelNumber.setToolTipText(tooltip);
+      ltfMaskModelPtsVolumeParticle.setToolTipText(tooltip);
+      cbMaskUseReferenceParticle.setToolTipText(tooltip);
+      ltfInsideMaskRadius.setToolTipText(EtomoAutodoc.getTooltip(autodoc,
+          MatlabParam.INSIDE_MASK_RADIUS_KEY));
+      ltfOutsideMaskRadius.setToolTipText(EtomoAutodoc.getTooltip(autodoc,
+          MatlabParam.OUTSIDE_MASK_RADIUS_KEY));
     }
     catch (FileNotFoundException e) {
       e.printStackTrace();
@@ -841,10 +943,11 @@ public final class PeetDialog implements ContextMenu, AbstractParallelDialog,
       rbReferenceFile.setSelected(true);
     }
     else {
-      rbReferenceVolume.setSelected(true);
+      rbReferenceParticle.setSelected(true);
     }
     rbSampleSphereNone.setSelected(true);
     lsParticlePerCPU.setValue(MatlabParam.PARTICLE_PER_CPU_DEFAULT);
+    rbMaskTypeNone.setSelected(true);
   }
 
   private void createSetupPanel() {
@@ -869,7 +972,7 @@ public final class PeetDialog implements ContextMenu, AbstractParallelDialog,
     JPanel pnlVolumeReference = new JPanel();
     pnlVolumeReference.setLayout(new BoxLayout(pnlVolumeReference,
         BoxLayout.X_AXIS));
-    pnlVolumeReference.add(rbReferenceVolume.getComponent());
+    pnlVolumeReference.add(rbReferenceParticle.getComponent());
     pnlVolumeReference.add(sReferenceVolume.getContainer());
     pnlVolumeReference.add(ltfReferenceParticle.getContainer());
     //volume file
@@ -908,6 +1011,51 @@ public final class PeetDialog implements ContextMenu, AbstractParallelDialog,
         .createRigidArea(FixedDim.x20_y0));
     pnlReferenceAndMissingWedgeCompensation.add(pnlMissingWedgeCompensation
         .getContainer());
+    //mask type
+    JPanel pnlMaskType = new JPanel();
+    pnlMaskType.setLayout(new BoxLayout(pnlMaskType, BoxLayout.Y_AXIS));
+    pnlMaskType.add(rbMaskTypeNone.getComponent());
+    pnlMaskType.add(rbMaskTypeVolume.getComponent());
+    pnlMaskType.add(rbMaskTypeSphere.getComponent());
+    pnlMaskType.add(rbMaskTypeCylinder.getComponent());
+    JPanel pnlMaskRadii = new JPanel();
+    pnlMaskRadii.setLayout(new BoxLayout(pnlMaskRadii, BoxLayout.X_AXIS));
+    pnlMaskRadii.setBorder(new EtchedBorder("Radii of Sphere or Cylinder")
+        .getBorder());
+    pnlMaskRadii.add(ltfInsideMaskRadius.getContainer());
+    pnlMaskRadii.add(ltfOutsideMaskRadius.getContainer());
+    //mask type volume and sphere details
+    JPanel pnlMaskVolumeRadii = new JPanel();
+    pnlMaskVolumeRadii.setLayout(new BoxLayout(pnlMaskVolumeRadii,
+        BoxLayout.Y_AXIS));
+    pnlMaskVolumeRadii.add(ftfMaskTypeVolume.getContainer());
+    pnlMaskVolumeRadii.add(pnlMaskRadii);
+    //use maskModelPts
+    JPanel pnlUseMaskModelPts = new JPanel();
+    pnlUseMaskModelPts.setLayout(new BoxLayout(pnlUseMaskModelPts,
+        BoxLayout.X_AXIS));
+    pnlUseMaskModelPts.add(cbMaskUseReferenceParticle);
+    //maskModelPts
+    JPanel pnlMaskModelPts = new JPanel();
+    pnlMaskModelPts.setLayout(new BoxLayout(pnlMaskModelPts, BoxLayout.X_AXIS));
+    pnlMaskModelPts.add(sMaskModelPtsVolumeModelNumber.getContainer());
+    pnlMaskModelPts.add(ltfMaskModelPtsVolumeParticle.getContainer());
+    //mask cylinder details
+    JPanel pnlMaskCylinder = new JPanel();
+    pnlMaskCylinder.setLayout(new BoxLayout(pnlMaskCylinder, BoxLayout.Y_AXIS));
+    pnlMaskCylinder.setBorder(new EtchedBorder("Cylinder Orientation")
+        .getBorder());
+    pnlMaskCylinder.add(pnlUseMaskModelPts);
+    pnlMaskCylinder.add(pnlMaskModelPts);
+    //mask
+    JPanel pnlMask = new JPanel();
+    pnlMask.setLayout(new BoxLayout(pnlMask, BoxLayout.X_AXIS));
+    pnlMask.setBorder(new EtchedBorder("Masking").getBorder());
+    pnlMask.add(pnlMaskType);
+    pnlMask.add(Box.createRigidArea(FixedDim.x10_y0));
+    pnlMask.add(pnlMaskVolumeRadii);
+    pnlMask.add(Box.createRigidArea(FixedDim.x10_y0));
+    pnlMask.add(pnlMaskCylinder);
     //init MOTL
     pnlInitMotl.setLayout(new BoxLayout(pnlInitMotl, BoxLayout.Y_AXIS));
     pnlInitMotl.setBorder(new EtchedBorder("Initial Motive List").getBorder());
@@ -947,6 +1095,7 @@ public final class PeetDialog implements ContextMenu, AbstractParallelDialog,
     pnlSetupBody.add(pnlUseExistingProject);
     pnlSetupBody.add(volumeTable.getContainer());
     pnlSetupBody.add(pnlReferenceAndMissingWedgeCompensation);
+    pnlSetupBody.add(pnlMask);
     pnlSetupBody.add(pnlInitMotlAndYAxisType);
     //main panel
     pnlSetup.setBoxLayout(BoxLayout.Y_AXIS);
@@ -954,12 +1103,13 @@ public final class PeetDialog implements ContextMenu, AbstractParallelDialog,
     pnlSetup.add(phSetup.getContainer());
   }
 
-  private void createRunPanel() { 
+  private void createRunPanel() {
     //Spherical Sampling
     JPanel pnlSphericalSampling = new JPanel();
-    pnlSphericalSampling.setLayout(new BoxLayout(pnlSphericalSampling, BoxLayout.X_AXIS));
+    pnlSphericalSampling.setLayout(new BoxLayout(pnlSphericalSampling,
+        BoxLayout.X_AXIS));
     pnlSphericalSampling.setBorder(new EtchedBorder(
-    "Spherical Sampling for Theta and Psi").getBorder());
+        "Spherical Sampling for Theta and Psi").getBorder());
     pnlSphericalSampling.add(rbSampleSphereNone.getComponent());
     pnlSphericalSampling.add(Box.createRigidArea(FixedDim.x5_y0));
     pnlSphericalSampling.add(rbSampleSphereFull.getComponent());
@@ -1054,40 +1204,10 @@ public final class PeetDialog implements ContextMenu, AbstractParallelDialog,
     if (actionCommand.equals(ftfDirectory.getActionCommand())) {
       chooseDirectory();
     }
-    else if (actionCommand.equals(rbInitMotlZero.getActionCommand())) {
-      updateDisplay();
-    }
-    else if (actionCommand.equals(rbInitMotlZAxis.getActionCommand())) {
-      updateDisplay();
-    }
-    else if (actionCommand.equals(rbInitMotlXAndZAxis.getActionCommand())) {
-      updateDisplay();
-    }
-    else if (actionCommand.equals(rbInitMotlFiles.getActionCommand())) {
-      updateDisplay();
-    }
-    else if (actionCommand.equals(rbReferenceVolume.getActionCommand())) {
-      updateDisplay();
-    }
-    else if (actionCommand.equals(rbReferenceFile.getActionCommand())) {
-      updateDisplay();
-    }
-    else if (actionCommand.equals(cbTiltRange.getActionCommand())) {
-      updateDisplay();
-    }
     else if (actionCommand.equals(btnRun.getActionCommand())) {
       if (validateRun()) {
         manager.peetParser();
       }
-    }
-    else if (actionCommand.equals(rbYaxisTypeYAxis.getActionCommand())) {
-      updateDisplay();
-    }
-    else if (actionCommand.equals(rbYaxisTypeParticleModel.getActionCommand())) {
-      updateDisplay();
-    }
-    else if (actionCommand.equals(rbYaxisTypeContour.getActionCommand())) {
-      updateDisplay();
     }
     else if (actionCommand.equals(btnImportMatlabParamFile.getActionCommand())) {
       importMatlabParam();
@@ -1098,16 +1218,25 @@ public final class PeetDialog implements ContextMenu, AbstractParallelDialog,
     else if (actionCommand.equals(btnCopyParameters.getActionCommand())) {
       copyParameters();
     }
-    else if (actionCommand.equals(cbFlgWedgeWeight.getActionCommand())) {
-      updateDisplay();
-    }
-    else if (actionCommand.equals(rbSampleSphereNone.getActionCommand())) {
-      updateDisplay();
-    }
-    else if (actionCommand.equals(rbSampleSphereFull.getActionCommand())) {
-      updateDisplay();
-    }
-    else if (actionCommand.equals(rbSampleSphereHalf.getActionCommand())) {
+    else if (actionCommand.equals(rbInitMotlZero.getActionCommand())
+        || actionCommand.equals(rbInitMotlZAxis.getActionCommand())
+        || actionCommand.equals(rbInitMotlXAndZAxis.getActionCommand())
+        || actionCommand.equals(rbInitMotlFiles.getActionCommand())
+        || actionCommand.equals(rbReferenceParticle.getActionCommand())
+        || actionCommand.equals(rbReferenceFile.getActionCommand())
+        || actionCommand.equals(cbTiltRange.getActionCommand())
+        || actionCommand.equals(rbYaxisTypeYAxis.getActionCommand())
+        || actionCommand.equals(rbYaxisTypeParticleModel.getActionCommand())
+        || actionCommand.equals(rbYaxisTypeContour.getActionCommand())
+        || actionCommand.equals(cbFlgWedgeWeight.getActionCommand())
+        || actionCommand.equals(rbSampleSphereNone.getActionCommand())
+        || actionCommand.equals(rbSampleSphereFull.getActionCommand())
+        || actionCommand.equals(rbSampleSphereHalf.getActionCommand())
+        || actionCommand.equals(rbMaskTypeNone.getActionCommand())
+        || actionCommand.equals(rbMaskTypeVolume.getActionCommand())
+        || actionCommand.equals(rbMaskTypeSphere.getActionCommand())
+        || actionCommand.equals(rbMaskTypeCylinder.getActionCommand())
+        || actionCommand.equals(cbMaskUseReferenceParticle.getActionCommand())) {
       updateDisplay();
     }
     else {
@@ -1225,8 +1354,14 @@ public final class PeetDialog implements ContextMenu, AbstractParallelDialog,
     UIHarness.INSTANCE.pack(axisID, manager);
   }
 
-  private void referenceFileAction() {
-    chooseReferenceFile();
+  private void referenceFileAction(ActionEvent action) {
+    String actionCommand = action.getActionCommand();
+    if (actionCommand.equals(ftfReferenceFile.getActionCommand())) {
+      chooseReferenceFile(ftfReferenceFile);
+    }
+    else if (actionCommand.equals(ftfMaskTypeVolume.getActionCommand())) {
+      chooseReferenceFile(ftfMaskTypeVolume);
+    }
   }
 
   private void updateDisplay() {
@@ -1240,11 +1375,11 @@ public final class PeetDialog implements ContextMenu, AbstractParallelDialog,
     int size = volumeTable.size();
     //reference
     boolean volumeRows = size > 0;
-    rbReferenceVolume.setEnabled(volumeRows);
-    sReferenceVolume.setEnabled(volumeRows && rbReferenceVolume.isSelected());
+    rbReferenceParticle.setEnabled(volumeRows);
+    sReferenceVolume.setEnabled(volumeRows && rbReferenceParticle.isSelected());
     sReferenceVolume.setMax(size);
     ltfReferenceParticle.setEnabled(volumeRows
-        && rbReferenceVolume.isSelected());
+        && rbReferenceParticle.isSelected());
     ftfReferenceFile.setEnabled(volumeRows && rbReferenceFile.isSelected());
     //yaxisType and yaxisContour
     rbYaxisTypeContour.setEnabled(volumeRows);
@@ -1261,6 +1396,20 @@ public final class PeetDialog implements ContextMenu, AbstractParallelDialog,
     //volume table
     volumeTable.updateDisplay(rbInitMotlFiles.isSelected(), cbTiltRange
         .isSelected());
+    //mask
+    ftfMaskTypeVolume.setEnabled(rbMaskTypeVolume.isSelected());
+    boolean sphere = rbMaskTypeSphere.isSelected();
+    boolean cylinder = rbMaskTypeCylinder.isSelected();
+    ltfInsideMaskRadius.setEnabled(sphere || cylinder);
+    ltfOutsideMaskRadius.setEnabled(sphere || cylinder);
+    cbMaskUseReferenceParticle.setEnabled(cylinder
+        && rbReferenceParticle.isSelected());
+    boolean useReferenceParticle = cbMaskUseReferenceParticle.isSelected()
+        && cbMaskUseReferenceParticle.isEnabled();
+    sMaskModelPtsVolumeModelNumber
+        .setEnabled(cylinder && !useReferenceParticle);
+    sMaskModelPtsVolumeModelNumber.setMax(size);
+    ltfMaskModelPtsVolumeParticle.setEnabled(cylinder && !useReferenceParticle);
   }
 
   private void chooseDirectory() {
@@ -1274,27 +1423,30 @@ public final class PeetDialog implements ContextMenu, AbstractParallelDialog,
     }
   }
 
-  private void chooseReferenceFile() {
+  private void chooseReferenceFile(FileTextField fileTextField) {
     JFileChooser chooser = new JFileChooser(new File(manager
         .getPropertyUserDir()));
     chooser.setPreferredSize(UIParameters.INSTANCE.getFileChooserDimension());
     chooser.setFileSelectionMode(JFileChooser.FILES_ONLY);
     int returnVal = chooser.showOpenDialog(rootPanel);
     if (returnVal == JFileChooser.APPROVE_OPTION) {
-      ftfReferenceFile.setText(chooser.getSelectedFile().getAbsolutePath());
+      fileTextField.setText(chooser.getSelectedFile().getAbsolutePath());
     }
   }
 
   private void addListeners() {
+    ReferenceFileActionListener rfActionListener = new ReferenceFileActionListener(
+        this);
+    ftfReferenceFile.addActionListener(rfActionListener);
+    ftfMaskTypeVolume.addActionListener(rfActionListener);
     PDActionListener actionListener = new PDActionListener(this);
     ftfDirectory.addActionListener(actionListener);
     rbInitMotlZero.addActionListener(actionListener);
     rbInitMotlZAxis.addActionListener(actionListener);
     rbInitMotlXAndZAxis.addActionListener(actionListener);
     rbInitMotlFiles.addActionListener(actionListener);
-    rbReferenceVolume.addActionListener(actionListener);
+    rbReferenceParticle.addActionListener(actionListener);
     rbReferenceFile.addActionListener(actionListener);
-    ftfReferenceFile.addActionListener(new ReferenceFileActionListener(this));
     cbTiltRange.addActionListener(actionListener);
     btnRun.addActionListener(actionListener);
     tabPane.addChangeListener(new TabChangeListener(this));
@@ -1310,6 +1462,11 @@ public final class PeetDialog implements ContextMenu, AbstractParallelDialog,
     rbSampleSphereNone.addActionListener(actionListener);
     rbSampleSphereFull.addActionListener(actionListener);
     rbSampleSphereHalf.addActionListener(actionListener);
+    rbMaskTypeNone.addActionListener(actionListener);
+    rbMaskTypeVolume.addActionListener(actionListener);
+    rbMaskTypeSphere.addActionListener(actionListener);
+    rbMaskTypeCylinder.addActionListener(actionListener);
+    cbMaskUseReferenceParticle.addActionListener(actionListener);
   }
 
   private static final class PDActionListener implements ActionListener {
@@ -1333,7 +1490,7 @@ public final class PeetDialog implements ContextMenu, AbstractParallelDialog,
     }
 
     public void actionPerformed(final ActionEvent event) {
-      peetDialog.referenceFileAction();
+      peetDialog.referenceFileAction(event);
     }
   }
 
