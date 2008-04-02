@@ -16,6 +16,9 @@ import java.util.Properties;
  * @version $Revision$
  * 
  * <p> $Log$
+ * <p> Revision 1.2  2007/11/09 17:46:04  sueh
+ * <p> bug# 1047 Changed the names of NAD fields for clarity.
+ * <p>
  * <p> Revision 1.1  2007/11/06 19:38:00  sueh
  * <p> bug# 1047 Added process state for anisotropic diffusion.
  * <p> </p>
@@ -33,7 +36,7 @@ public final class ParallelState extends BaseState {
    * Example: "2,4 - 9,10".
    */
   private final ParsedArray testIterationList = ParsedArray
-      .getIteratorInstance("TestIterationList");
+      .getInstance("TestIterationList");
   private final EtomoNumber testKValue = new EtomoNumber(
       EtomoNumber.Type.FLOAT, "TestKValue");
 
