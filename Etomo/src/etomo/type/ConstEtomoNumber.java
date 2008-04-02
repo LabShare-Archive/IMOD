@@ -36,6 +36,10 @@ import etomo.util.Utilities;
  * @version $Revision$
  * 
  * <p> $Log$
+ * <p> Revision 1.56  2007/12/13 01:11:54  sueh
+ * <p> bug# 1056 Added startArray, to convert integers to/from strings.  Added
+ * <p> equalsNameIgnoreCase, to compare to the name.
+ * <p>
  * <p> Revision 1.55  2007/11/06 19:35:30  sueh
  * <p> bug# 1047 Added toStringWithLeadingZeros to control that appearance of the
  * <p> number in string form.
@@ -433,16 +437,8 @@ public abstract class ConstEtomoNumber implements Storable {
    * Set invalidReason if currentValue is null and nullIsValid is false.
    */
   void setInvalidReason() {
-    if (debug) {
-      System.err.println(description + ":start setInvalidReason: currentValue="
-          + currentValue);
-    }
     //Pass when there are no validation settings
     if (nullIsValid && validValues == null && isNull(validFloor)) {
-      if (debug) {
-        System.err.println(description
-            + ":end setInvalidReason: no validation values set");
-      }
       return;
     }
     //Catch illegal null values
@@ -454,46 +450,23 @@ public abstract class ConstEtomoNumber implements Storable {
     }
     //Validate against validValues, overrides validFloor
     else if (validValues != null) {
-      if (debug) {
-        System.err.println(description + ":setInvalidReason:  validValues="
-            + validValues);
-      }
       for (int i = 0; i < validValues.size(); i++) {
         if (equals(currentValue, (Number) validValues.get(i))) {
-          if (debug) {
-            System.err.println(description
-                + ":end setInvalidReason:  valid value=" + validValues.get(i));
-          }
           return;
         }
       }
       addInvalidReason(toString(currentValue) + " is not a valid value.");
       addInvalidReason("Valid values are " + toString(validValues) + ".");
-      if (debug) {
-        System.err.println(description
-            + ":end setInvalidReason:  current value not in valid value list");
-      }
       return;
     }
     //If validValues is not set, validate against validFloor
     else if (!isNull(validFloor)) {
       if (ge(currentValue, validFloor)) {
-        if (debug) {
-          System.err.println(description
-              + ":end setInvalidReason:  valid floor=" + validFloor);
-        }
         return;
       }
       addInvalidReason(toString(currentValue) + " is not a valid value.");
       addInvalidReason("Valid values are greater or equal to "
           + toString(validFloor) + ".");
-      if (debug) {
-        System.err
-            .println("setInvalidReason:  current value less then valid floor");
-      }
-    }
-    if (debug) {
-      System.err.println(description + ":end setInvalidReason:  valid");
     }
   }
 
@@ -1225,6 +1198,11 @@ public abstract class ConstEtomoNumber implements Storable {
     return lt(getValue(), newNumber(value));
   }
 
+  public boolean le(int value) {
+    Number v = newNumber(value);
+    return lt(getValue(), v) || equals(getValue(), v);
+  }
+
   public boolean gt(ConstEtomoNumber etomoNumber) {
     if (etomoNumber == null) {
       return false;
@@ -1318,6 +1296,10 @@ public abstract class ConstEtomoNumber implements Storable {
 
   public Number getDefaultedNumber() {
     return newNumber(getDefaultedValue());
+  }
+
+  public Number getNegatedDefaultedNumber() {
+    return newNumberNegate(getDefaultedValue());
   }
 
   public boolean getDefaultedBoolean() {
@@ -1641,7 +1623,7 @@ public abstract class ConstEtomoNumber implements Storable {
     throw new IllegalStateException("type=" + type);
   }
 
-  Number plus(Number number1, Number number2) {
+  Number add(Number number1, Number number2) {
     if (isNull(number1) && isNull(number2)) {
       return number1;
     }
@@ -1664,6 +1646,26 @@ public abstract class ConstEtomoNumber implements Storable {
     }
     if (type == Type.LONG) {
       return newNumber(number1.longValue() + number2.longValue());
+    }
+    throw new IllegalStateException("type=" + type);
+  }
+
+  Number newNumberNegate(Number number) {
+    if (isNull(number)) {
+      return number;
+    }
+    validateInputType(number);
+    if (type == Type.DOUBLE) {
+      return newNumber(number.doubleValue() * -1);
+    }
+    if (type == Type.FLOAT) {
+      return newNumber(number.floatValue() * -1);
+    }
+    if (type == Type.INTEGER) {
+      return newNumber(number.intValue() * -1);
+    }
+    if (type == Type.LONG) {
+      return newNumber(number.longValue() * -1);
     }
     throw new IllegalStateException("type=" + type);
   }
