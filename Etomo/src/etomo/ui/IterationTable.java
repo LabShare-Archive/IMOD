@@ -36,6 +36,9 @@ import etomo.type.EtomoAutodoc;
  * @version $Revision$
  * 
  * <p> $Log$
+ * <p> Revision 1.14  2008/04/02 02:27:23  sueh
+ * <p> bug# 1097 Fixed a null pointer error in action and deleteRow.
+ * <p>
  * <p> Revision 1.13  2008/03/06 00:27:53  sueh
  * <p> bug# 1088 Added updateDisplay.
  * <p>
@@ -91,6 +94,7 @@ final class IterationTable implements Highlightable {
   static final String D_PSI_HEADER3 = "Incr.";
   static final String SEARCH_RADIUS_HEADER1 = "Search";
   static final String SEARCH_RADIUS_HEADER2 = "Radius";
+  static final String TABLE_HEADER = "Iteration Table";
 
   private final JPanel rootPanel = new JPanel();
   private final JPanel pnlTable = new JPanel();
@@ -332,7 +336,7 @@ final class IterationTable implements Highlightable {
     //border
     SpacedPanel pnlBorder = new SpacedPanel();
     pnlBorder.setBoxLayout(BoxLayout.Y_AXIS);
-    pnlBorder.setBorder(new EtchedBorder("Iteration Table").getBorder());
+    pnlBorder.setBorder(new EtchedBorder(TABLE_HEADER).getBorder());
     pnlBorder.add(pnlTable);
     //root
     rootPanel.setLayout(new BoxLayout(rootPanel, BoxLayout.Y_AXIS));

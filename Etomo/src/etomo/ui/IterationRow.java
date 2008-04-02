@@ -22,6 +22,9 @@ import etomo.type.EtomoNumber;
  * @version $Revision$
  * 
  * <p> $Log$
+ * <p> Revision 1.11  2008/04/02 02:26:46  sueh
+ * <p> bug# 1097 FieldCell can now return a matlab syntax instance.
+ * <p>
  * <p> Revision 1.10  2008/03/06 00:27:40  sueh
  * <p> bug# 1088 Added updateDisplay.
  * <p>
@@ -63,11 +66,13 @@ final class IterationRow implements Highlightable {
   private final FieldCell dPhiMax = FieldCell.getEditableMatlabInstance();
   private final FieldCell dPhiIncrement = FieldCell.getEditableMatlabInstance();
   private final FieldCell dThetaMax = FieldCell.getEditableMatlabInstance();
-  private final FieldCell dThetaIncrement = FieldCell.getEditableMatlabInstance();
+  private final FieldCell dThetaIncrement = FieldCell
+      .getEditableMatlabInstance();
   private final FieldCell dPsiMax = FieldCell.getEditableMatlabInstance();
   private final FieldCell dPsiIncrement = FieldCell.getEditableMatlabInstance();
   private final FieldCell searchRadius = FieldCell.getEditableMatlabInstance();
-  private final FieldCell hiCutoffCutoff = FieldCell.getEditableMatlabInstance();
+  private final FieldCell hiCutoffCutoff = FieldCell
+      .getEditableMatlabInstance();
   private final FieldCell hiCutoffSigma = FieldCell.getEditableMatlabInstance();
   private final FieldCell refThreshold = FieldCell.getEditableMatlabInstance();
 
@@ -122,7 +127,7 @@ final class IterationRow implements Highlightable {
     hiCutoffSigma.setHighlight(highlight);
     refThreshold.setHighlight(highlight);
   }
-  
+
   /**
    * Turn off theta and psi when sampleSphere is on.
    * @param sampleSphere
@@ -220,8 +225,9 @@ final class IterationRow implements Highlightable {
       }
       else {
         //In a non-empty descriptor, the increment may not be zero.
-        UIHarness.INSTANCE.openMessageDialog("In row " + number.getText()
-            + ", " + IterationTable.D_PHI_D_THETA_D_PSI_HEADER1 + " "
+        UIHarness.INSTANCE.openMessageDialog(IterationTable.TABLE_HEADER
+            + ":  In row " + number.getText() + ", "
+            + IterationTable.D_PHI_D_THETA_D_PSI_HEADER1 + " "
             + IterationTable.D_PHI_HEADER2 + " " + IterationTable.D_PHI_HEADER3
             + " must not be 0.", "Entry Error");
         return false;
@@ -237,7 +243,8 @@ final class IterationRow implements Highlightable {
       else {
         //In a non-empty descriptor, the increment may not be zero.
         UIHarness.INSTANCE
-            .openMessageDialog("In row " + number.getText() + ", "
+            .openMessageDialog(IterationTable.TABLE_HEADER + ":  In row "
+                + number.getText() + ", "
                 + IterationTable.D_PHI_D_THETA_D_PSI_HEADER1 + " "
                 + IterationTable.D_THETA_HEADER2 + " "
                 + IterationTable.D_THETA_HEADER3 + " must not be 0.",
@@ -255,15 +262,17 @@ final class IterationRow implements Highlightable {
       }
       else {
         //In a non-empty descriptor, the increment may not be zero.
-        UIHarness.INSTANCE.openMessageDialog("In row " + number.getText()
-            + ", " + IterationTable.D_PHI_D_THETA_D_PSI_HEADER1 + " "
+        UIHarness.INSTANCE.openMessageDialog(IterationTable.TABLE_HEADER
+            + ":  In row " + number.getText() + ", "
+            + IterationTable.D_PHI_D_THETA_D_PSI_HEADER1 + " "
             + IterationTable.D_PSI_HEADER2 + " " + IterationTable.D_PSI_HEADER3
             + " must not be 0.", "Entry Error");
         return false;
       }
     }
     if (!searchRadius.getParsedArray().ge(1)) {
-      UIHarness.INSTANCE.openMessageDialog("In row " + number.getText() + ", "
+      UIHarness.INSTANCE.openMessageDialog(IterationTable.TABLE_HEADER
+          + ":  In row " + number.getText() + ", "
           + IterationTable.SEARCH_RADIUS_HEADER1 + " "
           + IterationTable.SEARCH_RADIUS_HEADER2 + " must not be less then 1.",
           "Entry Error");

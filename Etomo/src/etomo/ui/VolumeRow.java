@@ -27,6 +27,9 @@ import etomo.type.Run3dmodMenuOptions;
  * @version $Revision$
  * 
  * <p> $Log$
+ * <p> Revision 1.20  2008/04/02 02:28:20  sueh
+ * <p> bug# 1097 FieldCell can now return a matlab syntax instance.
+ * <p>
  * <p> Revision 1.19  2007/07/25 22:59:15  sueh
  * <p> bug# 1027 Change start and end tilt range angles to min and max angles.
  * <p>
@@ -103,9 +106,12 @@ final class VolumeRow implements Highlightable {
   private final FieldCell initMotlFile = FieldCell.getExpandableInstance();
   private final FieldCell tiltRangeMin = FieldCell.getEditableMatlabInstance();
   private final FieldCell tiltRangeMax = FieldCell.getEditableMatlabInstance();
-  private final FieldCell relativeOrientX = FieldCell.getEditableMatlabInstance();
-  private final FieldCell relativeOrientY = FieldCell.getEditableMatlabInstance();
-  private final FieldCell relativeOrientZ = FieldCell.getEditableMatlabInstance();
+  private final FieldCell relativeOrientX = FieldCell
+      .getEditableMatlabInstance();
+  private final FieldCell relativeOrientY = FieldCell
+      .getEditableMatlabInstance();
+  private final FieldCell relativeOrientZ = FieldCell
+      .getEditableMatlabInstance();
   private final HighlighterButton btnHighlighter;
 
   private final VolumeTable table;
@@ -268,7 +274,8 @@ final class VolumeRow implements Highlightable {
 
   boolean validateRun() {
     if (fnModParticle.isEmpty()) {
-      UIHarness.INSTANCE.openMessageDialog("In row " + number.getText() + ", "
+      UIHarness.INSTANCE.openMessageDialog(VolumeTable.TABLE_HEADER
+          + ":  In row " + number.getText() + ", "
           + VolumeTable.FN_MOD_PARTICLE_HEADER1 + " must not be empty.",
           "Entry Error");
       return false;
