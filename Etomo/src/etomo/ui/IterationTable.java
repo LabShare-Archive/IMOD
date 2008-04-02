@@ -36,6 +36,9 @@ import etomo.type.EtomoAutodoc;
  * @version $Revision$
  * 
  * <p> $Log$
+ * <p> Revision 1.13  2008/03/06 00:27:53  sueh
+ * <p> bug# 1088 Added updateDisplay.
+ * <p>
  * <p> Revision 1.12  2008/02/27 23:01:19  sueh
  * <p> bug# 1090 Added "Add Row" button to iteration table.
  * <p>
@@ -277,10 +280,18 @@ final class IterationTable implements Highlightable {
       UIHarness.INSTANCE.pack(manager);
     }
     else if (actionCommand.equals(btnCopyRow.getActionCommand())) {
-      copyRow(rowList.getHighlightedRow());
+      IterationRow row = rowList.getHighlightedRow();
+      if (row == null) {
+        return;
+      }
+      copyRow(row);
     }
     else if (actionCommand.equals(btnDeleteRow.getActionCommand())) {
-      deleteRow(rowList.getHighlightedRow());
+      IterationRow row = rowList.getHighlightedRow();
+      if (row == null) {
+        return;
+      }
+      deleteRow(row);
     }
   }
 
@@ -293,6 +304,7 @@ final class IterationTable implements Highlightable {
     rowList.remove();
     rowList.delete(row, this, pnlTable, layout, constraints);
     rowList.display();
+    updateDisplay();
     UIHarness.INSTANCE.pack(manager);
   }
 
@@ -466,6 +478,7 @@ final class IterationTable implements Highlightable {
           return row;
         }
       }
+      UIHarness.INSTANCE.openMessageDialog("Please highlight a row.","Entry Error");
       return null;
     }
 
