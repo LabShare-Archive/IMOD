@@ -9,7 +9,18 @@ import etomo.ui.Token;
 import etomo.util.PrimativeTokenizer;
 
 /**
- * <p>Description: </p>
+ * <p>Description: A regular array in Matlab when compact is true.</p>
+ * 
+ * <H4>Matlab Variable Syntax</H4>
+ * 
+ * <H5>Regular array</H5><UL>
+ * <LI>Delimiters: [] (required)
+ * <LI>Divider: "," or " "
+ * <LI>Empty array: []
+ * <LI>Elements:  array descriptors, numbers
+ * <LI>Empty element: NaN (number)</UL>
+ * 
+ * @see ParsedList
  * 
  * <p>Copyright: Copyright 2006</p>
  *
@@ -22,6 +33,9 @@ import etomo.util.PrimativeTokenizer;
  * @version $Revision$
  * 
  * <p> $Log$
+ * <p> Revision 1.14  2007/11/06 19:38:53  sueh
+ * <p> bug# 1047 Made class compatible with ParsedIteratorDescriptor.
+ * <p>
  * <p> Revision 1.13  2007/07/31 20:39:52  sueh
  * <p> bug# 1028 added ge(int).
  * <p>
@@ -84,88 +98,60 @@ public final class ParsedArray extends ParsedElement {
 
   static final Character OPEN_SYMBOL = new Character('[');
   static final Character CLOSE_SYMBOL = new Character(']');
-  static final Character DIVIDER_SYMBOL = new Character(',');
+  static final Character DIVIDER_SYMBOL = ParsedList.DIVIDER_SYMBOL;
 
-  private final ParsedElementList array = new ParsedElementList();
+  private final ParsedElementList array;
+  private final ParsedElementType type;
 
   private final EtomoNumber.Type etomoNumberType;
+  private final String key;
 
   /**
-   * Place the entire array in collections and the individual elements into
-   * numbers
+   * Defaults.  Place the entire array in collections and the individual
+   * elements into numbers.
    */
   private Integer[] defaultValueArray = null;
 
-  /**
-   * FlexibleSyntax allows a ParsedArray to look like a ParsedNumber when it is
-   * empty or contains one element that is not a collection.
-   */
-  private final boolean flexibleSyntax;
-
-  /**
-   * No effect on ParsedArray.  Used to set ParsedArrayDescriptor.compact.
-   */
-  private final boolean compactDescriptor;
-  /**
-   * When compact is true, only place non-empty elements in the parsable string.
-   */
-  private final boolean compact;
-  private final String key;
-
-  private boolean useIteratorDescriptors = false;
-
-  ParsedArray(EtomoNumber.Type etomoNumberType, boolean flexibleSyntax,
-      boolean compact, boolean compactDescriptor, String key,
-      boolean useIteratorDescriptors) {
+  private ParsedArray(ParsedElementType type, EtomoNumber.Type etomoNumberType,
+      String key) {
     this.etomoNumberType = etomoNumberType;
-    this.flexibleSyntax = flexibleSyntax;
-    this.compact = compact;
-    this.compactDescriptor = compactDescriptor;
+    this.type = type;
     this.key = key;
-    this.useIteratorDescriptors = useIteratorDescriptors;
+    array = new ParsedElementList(type);
+  }
+
+  public static ParsedArray getInstance(ParsedElementType type) {
+    return new ParsedArray(type, null, null);
+  }
+
+  public static ParsedArray getInstance(ParsedElementType type,
+      EtomoNumber.Type etomoNumberType) {
+    return new ParsedArray(type, etomoNumberType, null);
+  }
+
+  public static ParsedArray getMatlabInstance() {
+    return new ParsedArray(ParsedElementType.MATLAB, null, null);
+  }
+
+  public static ParsedArray getMatlabInstance(EtomoNumber.Type etomoNumberType) {
+    return new ParsedArray(ParsedElementType.MATLAB, etomoNumberType, null);
   }
 
   public static ParsedArray getInstance() {
-    return new ParsedArray(null, false, false, false, null, false);
+    return new ParsedArray(ParsedElementType.NON_MATLAB, null, null);
   }
 
-  public static ParsedArray getIteratorInstance() {
-    return new ParsedArray(null, false, false, false, null, true);
+  public static ParsedArray getInstance(EtomoNumber.Type etomoNumberType) {
+    return new ParsedArray(ParsedElementType.NON_MATLAB, etomoNumberType, null);
   }
 
-  public static ParsedArray getIteratorInstance(String key) {
-    return new ParsedArray(null, false, false, false, key, true);
+  public static ParsedArray getInstance(String key) {
+    return new ParsedArray(ParsedElementType.NON_MATLAB, null, key);
   }
 
   public static ParsedArray getInstance(EtomoNumber.Type etomoNumberType,
       String key) {
-    return new ParsedArray(etomoNumberType, false, false, false, key, false);
-  }
-
-  public static ParsedArray getInstance(EtomoNumber.Type etomoNumberType) {
-    return new ParsedArray(etomoNumberType, false, false, false, null, false);
-  }
-
-  public static ParsedArray getFlexibleInstance() {
-    return new ParsedArray(null, true, false, false, null, false);
-  }
-
-  public static ParsedArray getFlexibleInstance(EtomoNumber.Type etomoNumberType) {
-    return new ParsedArray(etomoNumberType, true, false, false, null, false);
-  }
-
-  public static ParsedArray getCompactInstance() {
-    return new ParsedArray(null, false, true, false, null, false);
-  }
-
-  public static ParsedArray getFlexibleCompactInstance(
-      EtomoNumber.Type etomoNumberType) {
-    return new ParsedArray(etomoNumberType, true, true, false, null, false);
-  }
-
-  public static ParsedArray getFlexibleCompactDescriptorInstance(
-      EtomoNumber.Type etomoNumberType) {
-    return new ParsedArray(etomoNumberType, true, false, true, null, false);
+    return new ParsedArray(ParsedElementType.NON_MATLAB, etomoNumberType, key);
   }
 
   /**
@@ -258,7 +244,7 @@ public final class ParsedArray extends ParsedElement {
         return element;
       }
     }
-    return ParsedElementList.EmptyParsedElement.INSTANCE;
+    return ParsedEmptyElement.getInstance(type);
   }
 
   public int getDescriptorIndex() {
@@ -277,9 +263,6 @@ public final class ParsedArray extends ParsedElement {
    * raw string (it may have commas)
    */
   public void setRawString(String input) {
-    if (isDebug()) {
-      System.out.println("setRawString:input=" + input);
-    }
     array.clear();
     resetFailed();
     if (input == null) {
@@ -333,11 +316,6 @@ public final class ParsedArray extends ParsedElement {
     array.clear();
   }
 
-  public void setRawString(int arrayIndex, int descriptorIndex, float number) {
-    insureDescriptorExists(arrayIndex);
-    array.get(arrayIndex).setRawString(descriptorIndex, number);
-  }
-
   public ParsedElement getElement(int arrayIndex, int descriptorIndex) {
     return array.get(arrayIndex).getElement(descriptorIndex);
   }
@@ -351,12 +329,6 @@ public final class ParsedArray extends ParsedElement {
 
   public String getRawStrings(int startIndex) {
     return getRawString(null, startIndex);
-  }
-
-  public void moveElement(int indexOfDescriptor, int fromIndexOfElement,
-      int toIndexOfElement) {
-    array.get(indexOfDescriptor).moveElement(fromIndexOfElement,
-        toIndexOfElement);
   }
 
   public String getRawString(int arrayIndex, int descriptorIndex) {
@@ -391,24 +363,12 @@ public final class ParsedArray extends ParsedElement {
 
   /**
    * Parsable strings are saved to the .prm file.
-   * Returns [] if the list is empty.  Returns a list surrounded by brackets if
-   * there are multiple elements.
-   * If flexibleSyntax is true and hasParsedNumberSyntax() returns true,
-   * return string without brackets, so that the parsableString
-   * looks like a ParsedNumber.
+   * Returns [] if the list is empty.  Returns a list surrounded by brackets.
    */
   public String getParsableString() {
-    if (isDebug()) {
-      System.out.println("getParsableString:flexibleSyntax=" + flexibleSyntax);
-    }
-    String string = getString(true, -1);
     StringBuffer buffer = new StringBuffer();
-    if (flexibleSyntax && hasParsedNumberSyntax()) {
-      //return a parsable number
-      return string;
-    }
     buffer = new StringBuffer(OPEN_SYMBOL.toString());
-    buffer.append(string);
+    buffer.append(getString(true, -1));
     buffer.append(CLOSE_SYMBOL.toString());
     return buffer.toString();
   }
@@ -447,7 +407,7 @@ public final class ParsedArray extends ParsedElement {
   }
 
   /**
-   * This is a array only if starts with "[" (ignoring whitespace).
+   * This is a array only if starts with "[" (strip whitespace before calling).
    * @param attribute
    * @return
    */
@@ -462,7 +422,8 @@ public final class ParsedArray extends ParsedElement {
   }
 
   void setRawString(int index, float number) {
-    ParsedNumber element = new ParsedNumber(etomoNumberType,useIteratorDescriptors);
+    ParsedNumber element;
+    element = ParsedNumber.getArrayInstance(type, etomoNumberType);
     element.setDebug(isDebug());
     element.setDefaultValue(index, defaultValueArray);
     element.setRawString(number);
@@ -500,11 +461,6 @@ public final class ParsedArray extends ParsedElement {
     return parsedNumberExpandedArray;
   }
 
-  void moveElement(int fromIndex, int toIndex) {
-    array.move(fromIndex, toIndex);
-    array.get(toIndex).setDefaultValue(toIndex, defaultValueArray);
-  }
-
   boolean isCollection() {
     return true;
   }
@@ -535,37 +491,6 @@ public final class ParsedArray extends ParsedElement {
   }
 
   /**
-   * Return true when the array is empty or the array has 1 element and that
-   * element has parsed number syntax.
-   */
-  boolean hasParsedNumberSyntax() {
-    int size = array.size();
-    if (isDebug()) {
-      System.out.println("hasParsedNumberSyntax:size=" + size);
-    }
-    if (size == 0) {
-      return true;
-    }
-    if (size == 1 && array.get(0).hasParsedNumberSyntax()) {
-      return true;
-    }
-    if (!compact) {
-      return false;
-    }
-    //compact descriptor show only non-empty numbers
-    int elementCount = 0;
-    for (int i = 0; i < size; i++) {
-      if (!array.get(i).isDefaultedEmpty()) {
-        elementCount++;
-        if (elementCount > 1) {
-          return false;
-        }
-      }
-    }
-    return true;
-  }
-
-  /**
    * parse the entire array
    * @return the token that is current when the array is parsed
    */
@@ -583,16 +508,7 @@ public final class ParsedArray extends ParsedElement {
         return token;
       }
       if (!token.equals(Token.Type.SYMBOL, OPEN_SYMBOL.charValue())) {
-        if (!flexibleSyntax) {
-          fail(OPEN_SYMBOL + " never found.");
-          return token;
-        }
-        //Parse this as a number because it is a number and flexibleSyntax is on.
-        ParsedNumber number = new ParsedNumber(etomoNumberType,useIteratorDescriptors);
-        number.setDebug(isDebug());
-        number.setDefaultValue(0, defaultValueArray);
-        token = number.parse(token, tokenizer);
-        setElement(0, number);
+        fail(OPEN_SYMBOL + " never found.");
         return token;
       }
       token = tokenizer.next();
@@ -631,7 +547,8 @@ public final class ParsedArray extends ParsedElement {
     ParsedElement element = array.get(index);
     if (!element.isCollection()) {
       //this position must contain a descriptor
-      ParsedDescriptor descriptor = newDescriptor();
+      ParsedDescriptor descriptor = ParsedDescriptor.getInstance(type,
+          etomoNumberType);
       descriptor.setDebug(isDebug());
       descriptor.setDefaultValue(index, defaultValueArray);
       array.set(index, descriptor);
@@ -649,10 +566,10 @@ public final class ParsedArray extends ParsedElement {
 
   /**
    * Returns a raw string or a parsable string.  A raw string and a parsable
-   * string from a collection returns basically the same thing.  The
-   * elements are separated by a divider but the "[" and "]" are not added.
-   * If parsable is true, the divider may be a space.  If compact is
-   * true and a parsable string is being created, exclude empty elements.
+   * string from a collection returns basically the same thing but the elements'
+   * parsable strings may be different.  Will return the whole string when
+   * startIndex is equal to -1 or 0.  Otherwise returns a partial string
+   * starting at startIndex.
    * @param parsable - true when getting parsable string, false when getting a raw string
    * @param startIndex - start index
    */
@@ -661,47 +578,19 @@ public final class ParsedArray extends ParsedElement {
       startIndex = 0;
     }
     StringBuffer buffer = new StringBuffer();
-    //only use spaces as dividers when there are no empty elements and no array
-    //descriptors
-    boolean firstElementIsCollection = false;
-    boolean empty = true;//set to false when a non-empty element is found
-    boolean useSpaceAsDivider = parsable;
     boolean emptyString = true;//for adding the divider symbols
     for (int i = startIndex; i < array.size(); i++) {
       ParsedElement element = array.get(i);
-      if (!(compact && parsable) || !element.isDefaultedEmpty()) {
-        if (!emptyString) {
-          buffer.append(DIVIDER_SYMBOL + " ");
-        }
-        emptyString = false;
-        //Found out if the array contains only empty elements
-        if (empty && !element.isDefaultedEmpty()) {
-          empty = false;
-        }
-        //Use the divider symbol when creating a raw strings or a parsable string
-        //that contains empty elements or collections.
-        if (useSpaceAsDivider
-            && (element.isDefaultedEmpty() || element.isCollection())) {
-          useSpaceAsDivider = false;
-        }
-        //remove DIVIDER_SYMBOLs if useSpaceAsDivider is true
-        if (useSpaceAsDivider) {
-          int dividerIndex = buffer.indexOf(DIVIDER_SYMBOL.toString());
-          while (dividerIndex != -1) {
-            buffer.deleteCharAt(dividerIndex);
-            dividerIndex = buffer.indexOf(DIVIDER_SYMBOL.toString());
-          }
-        }
-        if (parsable) {
-          buffer.append(element.getParsableString());
-        }
-        else {
-          buffer.append(element.getRawString());
-        }
+      if (!emptyString) {
+        buffer.append(DIVIDER_SYMBOL + " ");
       }
-    }
-    if (empty) {
-      return "";
+      emptyString = false;
+      if (parsable) {
+        buffer.append(element.getParsableString());
+      }
+      else {
+        buffer.append(element.getRawString());
+      }
     }
     return buffer.toString();
   }
@@ -750,20 +639,6 @@ public final class ParsedArray extends ParsedElement {
     return token;
   }
 
-  private Character getDescriptorDivider() {
-    if (useIteratorDescriptors) {
-      return ParsedIteratorDescriptor.DIVIDER_SYMBOL;
-    }
-    return ParsedArrayDescriptor.DIVIDER_SYMBOL;
-  }
-
-  private ParsedDescriptor newDescriptor() {
-    if (useIteratorDescriptors) {
-      return new ParsedIteratorDescriptor();
-    }
-    return new ParsedArrayDescriptor(etomoNumberType, compactDescriptor);
-  }
-
   /**
    * Adds or sets either a ParsedArrayDescriptor or a ParsedNumber.
    * @param token
@@ -775,12 +650,14 @@ public final class ParsedArray extends ParsedElement {
       int index) {
     //end of list
     if (token.equals(Token.Type.SYMBOL, CLOSE_SYMBOL.charValue())) {
-      //This probably doesn't matter because its only necessary to keep track of
-      //location of existing elements in a lightly populated array.  Its not really
-      //necessary to track the size of the array.  But this does preserve the
-      //the original string:
-      //[] means no elements, [,] means two elements.  [1,,] means three elements
+      //Went into parseElement because a comma was found so there is an empty
+      //element:
+      //[] means no elements, [,] means two elements, [1,,]
+      //means three elements.
+      //This is not parsable by matlab and would be added to a .prm file as:
+      //[], [NaN,NaN], and [1,NaN,Nan].
       if (array.size() > 0) {
+        //Add empty instance.
         array.addEmptyElement();
       }
       return token;
@@ -788,27 +665,31 @@ public final class ParsedArray extends ParsedElement {
     //found empty element
     if (token.is(Token.Type.WHITESPACE)
         || token.equals(Token.Type.SYMBOL, DIVIDER_SYMBOL.charValue())) {
+      //Add empty instance
+      //Not parsable by matlab; written as NaN.
       array.addEmptyElement();
       return token;
     }
     //parse element
     //Array descriptors don't have their own open and close symbols, so they
-    //look like numbers until to you get to the first divider (":").
-    ParsedDescriptor descriptor = newDescriptor();
+    //look like numbers until to you get to the first divider (":"or "-").
+    ParsedDescriptor descriptor = ParsedDescriptor.getInstance(type,
+        etomoNumberType);
     descriptor.setDebug(isDebug());
     token = descriptor.parse(token, tokenizer);
     //create the correct type of element
     ParsedElement element;
-    if (descriptor.size() == 0) {
+    if (descriptor.isEmpty()) {
       //There's nothing there, so its an empty element
-      element = ParsedElementList.EmptyParsedElement.INSTANCE;
+      array.addEmptyElement();
+      return token;
     }
-    else if (descriptor.size() == 1) {
-      //If there is only one number, then there should be no ":" and its really a ParsedNumber.
-      element = descriptor.getElement(0);
+    else if (descriptor.wasDividerParsed()) {
+      element = descriptor;
     }
     else {
-      element = descriptor;
+      //If the divider was not found then it is not a descriptor.
+      element = descriptor.getElement(0);
     }
     if (index == -1) {
       element.setDefaultValue(array.size(), defaultValueArray);
