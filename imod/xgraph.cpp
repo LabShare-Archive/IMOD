@@ -211,6 +211,7 @@ GraphWindow::GraphWindow(GraphStruct *graph, bool rgba,
 
   QToolTip::add(mToggleButs[0], "Display file values instead of scaled bytes");
   QToolTip::add(mToggleButs[1], "Lock X/Y/Z position being displayed");
+  mToggleButs[0]->setEnabled(App->cvi->noReadableImage == 0);
 
   // The axis combo box
   QComboBox *axisCombo = new QComboBox(topBox, "axis combo");
@@ -1004,6 +1005,9 @@ static void makeBoundaryPoint(Ipoint pt1, Ipoint pt2, int ix1, int ix2,
 
 /*
     $Log$
+    Revision 4.11  2007/06/26 21:54:40  sueh
+    bug# 1021 Removed win_support.
+
     Revision 4.10  2007/06/26 17:05:07  sueh
     bug# 1021 Moved BM_HEIGHT and _WIDTH to win_support.
 
