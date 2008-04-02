@@ -53,6 +53,9 @@ import etomo.type.Run3dmodMenuOptions;
  * @version $Revision$
  * 
  * <p> $Log$
+ * <p> Revision 1.58  2008/04/02 02:28:06  sueh
+ * <p> bug# 1097 Added mask fields.
+ * <p>
  * <p> Revision 1.57  2008/03/06 00:28:20  sueh
  * <p> bug# 1088 Added sampleSphere radio buttons and sampleInterval.
  * <p>
@@ -490,8 +493,7 @@ public final class PeetDialog implements ContextMenu, AbstractParallelDialog,
         .isSelected());
     metaData.setMaskModelPtsModelNumber(sMaskModelPtsVolumeModelNumber
         .getValue());
-    metaData.setMaskModelPtsParticle(ltfMaskModelPtsVolumeParticle
-        .getText());
+    metaData.setMaskModelPtsParticle(ltfMaskModelPtsVolumeParticle.getText());
     metaData.setMaskTypeVolume(ftfMaskTypeVolume.getText());
   }
 
@@ -523,8 +525,7 @@ public final class PeetDialog implements ContextMenu, AbstractParallelDialog,
         .isMaskUseReferenceParticle());
     sMaskModelPtsVolumeModelNumber.setValue(metaData
         .getMaskModelPtsModelNumber());
-    ltfMaskModelPtsVolumeParticle.setText(metaData
-        .getMaskModelPtsParticle());
+    ltfMaskModelPtsVolumeParticle.setText(metaData.getMaskModelPtsParticle());
     ftfMaskTypeVolume.setText(metaData.getMaskTypeVolume());
   }
 
@@ -850,8 +851,8 @@ public final class PeetDialog implements ContextMenu, AbstractParallelDialog,
       cbFlgMeanFill.setToolTipText(tooltip);
       tooltip = EtomoAutodoc.getTooltip(autodoc, MatlabParam.DEBUG_LEVEL_KEY);
       lsDebugLevel.setToolTipText(tooltip);
-      tooltip = EtomoAutodoc.getTooltip(autodoc, MatlabParam.LOW_CUTOFF_KEY);
-      ltfLowCutoff.setToolTipText(tooltip);
+      ltfLowCutoff.setToolTipText(EtomoAutodoc.getTooltip(autodoc,
+          MatlabParam.LOW_CUTOFF_KEY));
       tooltip = EtomoAutodoc.getTooltip(autodoc,
           MatlabParam.REF_FLAG_ALL_TOM_KEY);
       cbRefFlagAllTom.setToolTipText(tooltip);
