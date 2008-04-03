@@ -157,7 +157,8 @@ int DLL_EX_IM ivwFreeExtraObject(ImodView *vi, int objNum);
 Iobj DLL_EX_IM *ivwGetAnExtraObject(ImodView *inImodView, int objNum);
 
 /*!
- * Deletes all contours in the extra object specified by [objNum].
+ * Deletes all contours, meshes, and general storage data in the extra object 
+ * specified by [objNum].
  */
 void DLL_EX_IM ivwClearAnExtraObject(ImodView *inImodView, int objNum);
 
@@ -304,6 +305,9 @@ int DLL_EX_IM prefGetGenericSettings(char *key, double *values, int maxVals);
 /* 
 
 $Log$
+Revision 1.15  2008/03/01 01:24:09  mast
+Added wrappers for getting and saving generic settings
+
 Revision 1.14  2008/01/14 19:47:59  mast
 Added new functions for Andrew
 
