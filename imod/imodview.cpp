@@ -7,15 +7,11 @@
  *  Copyright (C) 1995-2004 by Boulder Laboratory for 3-Dimensional Electron
  *  Microscopy of Cells ("BL3DEMC") and the Regents of the University of 
  *  Colorado.  See dist/COPYRIGHT for full copyright notice.
- */
+ *
+ *  $Id$
+ *  Log at end of file
+ */                                                                           
 
-/*  $Author$
-
-$Date$
-
-$Revision$
-Log at end of file
-*/
 #include <stdlib.h>
 #include <errno.h>
 #include <limits.h>
@@ -2380,11 +2376,16 @@ void ivwClearExtraObject(ImodView *inImodView)
 void ivwClearAnExtraObject(ImodView *inImodView, int objNum)
 {
   Iobj *obj = ivwGetAnExtraObject(inImodView, objNum);
-  if (!obj || !obj->contsize)
+  if (!obj)
     return;
-  imodContoursDelete(obj->cont, obj->contsize);
+  if (obj->contsize)
+    imodContoursDelete(obj->cont, obj->contsize);
   obj->contsize = 0;
   obj->cont = NULL;
+  if (obj->meshsize)
+    imodMeshesDelete(obj->mesh, obj->meshsize);
+  obj->meshsize = 0;
+  obj->mesh = NULL;
   if (obj->store)
     ilistDelete(obj->store);
   obj->store = NULL;
@@ -2688,7 +2689,11 @@ void ivwBinByN(unsigned char *array, int nxin, int nyin, int nbin,
 }
 
 /*
+
 $Log$
+Revision 4.63  2008/04/02 04:14:21  mast
+Changes for reading from stdin
+
 Revision 4.62  2008/03/01 01:23:59  mast
 Added wrappers for getting and saving generic settings
 
