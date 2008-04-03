@@ -259,12 +259,28 @@ int b3dFseek(FILE *fp, int offset, int flag)
 #endif
 }
 
-/*! A substitute for fread that works for large files on all systems. */
+/*! A substitute for fread that works for large files on all systems.  On 
+ * Windows and Mac OSX, if the file is stdin, it will call again up to 5 times
+ * to try to satisfy the full request.  */
 size_t b3dFread(void *buf, size_t size, size_t count, FILE *fp)
 {
 #if defined(WIN32_BIGFILE) || defined(MAC103_BIGFILE)
+  size_t totread = 0, ntoread, nread;
+  int loop, nloop = 1;
+  unsigned char *cbuf = (unsigned char *)buf;
   int handle = fileno(fp);
-  return (size_t)(read(handle, buf, size * count) / size);
+  ntoread = size * count;
+  if (fp == stdin)
+    nloop = 5;
+  for (loop = 0; loop < nloop; loop++) {
+    nread = (size_t)read(handle, (void *)cbuf, ntoread);
+    totread += nread;
+    if (nread >= ntoread)
+      break;
+    ntoread -= nread;
+    cbuf += nread;
+  }
+  return totread / size;
 #else
   return fread(buf, size, count, fp);
 #endif
@@ -473,6 +489,9 @@ int b3dIMax(int narg, ...)
 
 /*
 $Log$
+Revision 1.3  2008/04/02 14:47:16  mast
+Rearrange statements for windows
+
 Revision 1.2  2008/04/02 02:52:05  mast
 Made the seek routine a no-op if file is stdin
 
