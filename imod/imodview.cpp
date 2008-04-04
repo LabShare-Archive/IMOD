@@ -2332,8 +2332,9 @@ int ivwGetFreeExtraObjectNumber(ImodView *vi)
 {
   int i, found = 0;
   for (i = 1; i < vi->numExtraObj; i++) {
-    if (vi->extraObj[i].flags & IMOD_OBJFLAG_TEMPUSE) {
+    if (!(vi->extraObj[i].flags & IMOD_OBJFLAG_TEMPUSE)) {
       vi->extraObj[i].flags |= IMOD_OBJFLAG_TEMPUSE;
+      //imodPrintStderr("Allocating free existing object # %d\n", i);
       return i;
     }
   }
@@ -2347,16 +2348,20 @@ int ivwGetFreeExtraObjectNumber(ImodView *vi)
     return -1;
   }
   imodObjectDefault(&vi->extraObj[vi->numExtraObj - 1]);
+  vi->extraObj[i].flags |= IMOD_OBJFLAG_TEMPUSE;
+  //imodPrintStderr("Allocating new extra object # %d\n", vi->numExtraObj - 1);
   return (vi->numExtraObj - 1);
 }
 
 int ivwFreeExtraObject(ImodView *vi, int objNum)
 {
   if (objNum < 1 || objNum >= vi->numExtraObj || 
-      (!vi->extraObj[objNum].flags & IMOD_OBJFLAG_TEMPUSE))
+      !(vi->extraObj[objNum].flags & IMOD_OBJFLAG_TEMPUSE))
     return 1;
   vi->extraObj[objNum].flags &= ~IMOD_OBJFLAG_TEMPUSE;
   ivwClearAnExtraObject(vi, objNum);
+  //imodPrintStderr("Freed extra object # %d\n", objNum);
+  return 0;
 }
 
 Iobj *ivwGetAnExtraObject(ImodView *inImodView, int objNum)
@@ -2691,6 +2696,9 @@ void ivwBinByN(unsigned char *array, int nxin, int nyin, int nbin,
 /*
 
 $Log$
+Revision 4.64  2008/04/03 18:24:21  mast
+Made extra object clearing remove mesh too
+
 Revision 4.63  2008/04/02 04:14:21  mast
 Changes for reading from stdin
 
