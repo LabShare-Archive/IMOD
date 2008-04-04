@@ -255,6 +255,7 @@ int imodPlugMouse(ImodView *vw, QMouseEvent *event, float imx,
   }
   imodContourSetFlag(con, ICONT_CURSOR_LIKE | ICONT_MMODEL_ONLY, 1);
   imodObjectAddContour(xobj, con);
+  free(con);
   return 2;
 }
 
@@ -564,6 +565,7 @@ void BeadFixer2::nextRes()
         tpt.y -= 0.707 * (-xr + yr) * headLen / resval;
         imodPointAppend(con, &tpt);
         imodObjectAddContour(ob, con);
+        free(con);
       }
       ivwRedraw(plug->view);
 
@@ -1029,6 +1031,9 @@ void BeadFixer2::keyReleaseEvent ( QKeyEvent * e )
 /*
 
 $Log$
+Revision 3.15  2008/01/14 19:43:58  mast
+Check out some new functions, expand on help page example
+
 Revision 3.14  2008/01/11 20:19:52  mast
 Added help example
 
