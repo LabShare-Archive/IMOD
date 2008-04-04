@@ -15,6 +15,9 @@
     $Revision$
 
     $Log$
+    Revision 1.4  2008/03/17 07:23:27  tempuser
+    Fixed memory leak in 'cont_doContoursTouch'
+
     Revision 1.3  2008/03/14 04:37:20  tempuser
     Added function to caculate line equation
 
@@ -766,14 +769,13 @@ void cont_reorderPtsToStartAtIdx( Icont *c, int idxNewFirstPt )
   if( idxNewFirstPt < 0 || idxNewFirstPt > nPts ) {    //%%%%%% SHOULD NEVER HAPPEN
     wprint( "ERROR: cont_reorderPtsToStartAtIdx() - bad index" );
   }
-  Icont copyC;
-  Icont *copy = &copyC;
-  copy = imodContourDup( c );
-  
+  Icont *copy = imodContourDup( c );
   deleteAllPts( c );
-  //imodContourDefault( c );
+  
   for (int i=idxNewFirstPt; i<(nPts + idxNewFirstPt); i++)
     imodPointAppend( c, getPt( copy, i % nPts ) );
+  
+  imodContourDelete( copy );
 }
 
 //------------------------
@@ -1859,25 +1861,25 @@ void cont_getIntersectingConvexPolygon( Icont *newCont,
   {
     if      (imodPointInsideCont(cont2, getPt(cont1,0)))  //(CASE 1) cont1 inside cont2
     {
+      cont_copyPoints(cont1, newCont, true);
       imodContourDelete(cont1);
       imodContourDelete(cont2);
       imodContourDelete(contInters);
-      cont_copyPoints(cont1, newCont, true);
       return;
     }
     else if (imodPointInsideCont(cont1, getPt(cont2,0)))  //(CASE 2) cont2 inside cont1
     {
+      cont_copyPoints(cont2, newCont, true);
       imodContourDelete(cont1);
       imodContourDelete(cont2);
       imodContourDelete(contInters);
-      cont_copyPoints(cont2, newCont, true);
       return;
     }
     else {               // (CASE 3) don't touch/overlap at all: return empty set
+      cont_copyPoints(contInters, newCont, true);
       imodContourDelete(cont1);
       imodContourDelete(cont2);
       imodContourDelete(contInters);
-      cont_copyPoints(contInters, newCont, true);
       return;
     }
   }
@@ -1971,12 +1973,12 @@ void cont_getIntersectingConvexPolygon( Icont *newCont,
     }
   }
   
+  cont_copyPoints(contInters, newCont, true);
   imodContourDelete(cont1);
   imodContourDelete(cont2);
   imodContourDelete(contInters);
   imodContourDelete(cont1P);
   imodContourDelete(cont2P);
-  cont_copyPoints(contInters, newCont, true);
   return;
 }
 
@@ -2012,13 +2014,14 @@ int cont_breakContByZValue( Icont *contOrig, vector<IcontPtr> &contSegs, int zVa
       break;
     }
   
-      contSegs.push_back( IcontPtr());
+  contSegs.push_back( IcontPtr() );
+  
   for (int i=0; i<psize(cont)+1;i++)
   {
            // if this is an intersection point: add it, then start a new contour
     if( getPt(cont,i)->z != (float)zValue ) {    
       imodPointAppend( contSegs.back().cont, getPt(cont,i));
-      contSegs.push_back( IcontPtr());
+      contSegs.push_back( IcontPtr() );
     }
     imodPointAppend( contSegs.back().cont, getPt(cont,i));
   }

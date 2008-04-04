@@ -327,5 +327,15 @@ public slots:
 
 //############################################################
 
+//-------------------------------
+//## SMALL GUI FUNCTIONS:
+
+string qStringToString( QString qstr );
+void MsgBox( string str );
+bool MsgBoxYesNo( QWidget *parent, string str );
+string InputBoxString( QWidget *parent, string title, string label, string defaultStr );
+
+//############################################################
+
 #endif
 
