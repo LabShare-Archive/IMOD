@@ -3367,7 +3367,7 @@ void    imodContourSetSurface(Icont *inContour, int inSurface)
 }
 
 /*! Sets bit flags defined by [inFlag] in the {flag} element of [inContour]
- to the off if [inState is 0 or on if [inState] is nonzero. */
+ to the off if [inState] is 0 or on if [inState] is nonzero. */
 void imodContourSetFlag(Icont *inContour, unsigned int inFlag, int inState)
 {
   if (inState)
@@ -3398,6 +3398,9 @@ char *imodContourGetName(Icont *inContour)
 /* END_SECTION */
 /*
   $Log$
+  Revision 3.28  2008/01/19 18:03:20  mast
+  Added missing ! for 3 function doc strings
+
   Revision 3.27  2008/01/14 19:44:56  mast
   Added function to clear points
 
