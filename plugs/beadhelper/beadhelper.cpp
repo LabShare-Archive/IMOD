@@ -2599,7 +2599,7 @@ void BeadHelper::printContourCheckedInfo()
   float avgMissingPtsPerCont = fDivide( totMissingPts, csize(obj) );
   int   percentChecked       = int( fDivide( totCheckedC,   csize(obj)  ) * 100.0f );
   
-  wprint("\CONTOUR INFO:\n");
+  wprint("\aCONTOUR INFO:\n");
   wprint(" # total contours  = %d\n", csize(obj) );
   if(totEmptyC)
     wprint(" # EMPTY   = %d\n", totEmptyC );
