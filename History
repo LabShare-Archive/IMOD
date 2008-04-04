@@ -1,5 +1,8 @@
 IMOD History
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+4/4/08: Fixed some problems with allocation and freeing of extra objects and
+fixed some memory leaks in 3dmod.
+
 4/2/08: Fix problem displaying "<" in tooltips.
 
 4/2/08: In the PEET interface fixed the handling of a missing model file entry.
