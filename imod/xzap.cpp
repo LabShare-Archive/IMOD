@@ -946,6 +946,7 @@ int imod_zap_open(struct ViewInfo *vi, int wintype)
   // of the setting again on the first real draw
   zap->qtWindow->resize(newWidth, newHeight);
   zap->qtWindow->move(xleft, ytop);
+  zap->xzoom = zap->zoom;
   zap->qtWindow->show();
   zap->popup = 1;
   setMouseTracking(zap);
@@ -2585,10 +2586,9 @@ static void endContourShift(ZapStruct *zap)
   if (!zap->shiftingCont)
     return;
   zap->shiftingCont = 0;
-  if (zap->centerMarked) {
-    ivwFreeExtraObject(zap->vi, zap->shiftObjNum);
+  ivwFreeExtraObject(zap->vi, zap->shiftObjNum);
+  if (zap->centerMarked)
     imodDraw(zap->vi, IMOD_DRAW_MOD);
-  }
   zapSetCursor(zap, zap->mousemode);
 }
 
@@ -2927,6 +2927,7 @@ static void markXformCenter(ZapStruct *zap, float ix, float iy)
     tpt.y = iy - starEnd[i * 2 + 1];
     imodPointAppend(cont, &tpt);
     imodObjectAddContour(obj, cont);
+    free(cont);
   }
   zap->centerMarked = 1;
   imodDraw(zap->vi, IMOD_DRAW_MOD);
@@ -4492,6 +4493,9 @@ static int zapPointVisable(ZapStruct *zap, Ipoint *pnt)
 /*
 
 $Log$
+Revision 4.118  2008/03/06 00:08:38  mast
+Made rubber band moving happen before letting a plugin take a mouse event
+
 Revision 4.117  2008/02/22 00:35:43  sueh
 bug# 1076 In zapPrintInfo removed \n from the return string because it
 messes up the trimvol process.
