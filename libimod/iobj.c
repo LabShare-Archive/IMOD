@@ -253,7 +253,9 @@ Imesh *imodObjectGetMesh(Iobj *inObject, int inIndex)
 /*!
  * Adds the mesh pointed to by [inMesh] to the mesh array of object [inObject].
  * All pointers are transferred to the new mesh array element and no data are
- * duplicated.  Returns index of new array element or -1 if error.
+ * duplicated.  If [inMesh] was allocated, such as with 
+ * @imesh.html#imodMeshNew , it should be freed with free.
+ * Returns index of new array element or -1 if error.
  */
 int imodObjectAddMesh(Iobj *inObject, Imesh *inMesh)
 {
@@ -397,8 +399,9 @@ int imodel_object_centroid(Iobj *obj, Ipoint *rcp)
 
 /*!
  * Adds contour [ncont] to the end of the contour array of object [obj].  
- * Pointers are copied so no data are duplicated.  Returns index of new
- * contour or -1 if error.
+ * Pointers are copied so no data are duplicated.  If [ncont] was allocated, 
+ * such as with @icont.html#imodContourNew , it should be freed with free.
+ * Returns index of new contour or -1 if error.
  */
 int imodObjectAddContour(Iobj *obj, Icont *ncont)
 {
@@ -409,8 +412,9 @@ int imodObjectAddContour(Iobj *obj, Icont *ncont)
 
 /*!
  * Inserts contour [ncont] at position [index] into the contour array of object
- * [obj].  Pointers are copied so no data are duplicated.  Returns index of new
- * contour or -1 if error.
+ * [obj].  Pointers are copied so no data are duplicated.  If [ncont] was 
+ * allocated, such as with @icont.html#imodContourNew , it should be freed 
+ * with free.  Returns index of new contour or -1 if error.
  */
 int imodObjectInsertContour(Iobj *obj, Icont *ncont, int index)
 {
@@ -447,7 +451,8 @@ int imodObjectInsertContour(Iobj *obj, Icont *ncont, int index)
 
 /*!
  * Removes the contour at [index] from object [obj] without deleting the 
- * contour data.  Returns 1 if error.
+ * contour data; this is thus appropriate after adding the contour to another
+ * object with @imodObjectAddContour.  Returns 1 if error.
  */
 int imodObjectRemoveContour(Iobj *obj, int index)
 {
@@ -539,6 +544,7 @@ Iobj *imodObjectClip(Iobj *obj, Iplane *plane, int planes)
         if (laststate == 2){
           if (cc->psize){
             imodObjectAddContour(robj, cc);
+            free(cc);
             cc = imodContourNew();
           }
           imodPointPlaneEdge
@@ -558,6 +564,7 @@ Iobj *imodObjectClip(Iobj *obj, Iplane *plane, int planes)
       laststate = 2;
     }
     imodObjectAddContour(robj, cc);
+    free(cc);
   }
   robj->flags |= IMOD_OBJFLAG_OPEN;
   return(robj);
@@ -774,6 +781,9 @@ void  imodObjectSetValue(Iobj *inObject, int inValueType, int inValue)
 
 /*
 $Log$
+Revision 3.17  2008/03/05 20:08:00  mast
+Added ability to set flag for drawing extra object in model view
+
 Revision 3.16  2007/12/06 20:13:21  mast
 Allowed sort of open contour objects
 
