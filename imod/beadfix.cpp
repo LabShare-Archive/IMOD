@@ -754,6 +754,7 @@ void BeadFixer::nextRes()
         tpt.y -= 0.707 * (-xr + yr) * headLen / resval;
         imodPointAppend(con, &tpt);
         imodObjectAddContour(ob, con);
+        free(con);
       }
       if (!mMovingAll)
         ivwRedraw(plug->view);
@@ -1024,6 +1025,7 @@ void BeadFixer::makeUpDownArrow(int before)
     pt.y -= idir * size / 3;
     imodPointAppend(con, &pt);
     imodObjectAddContour(xobj, con);
+    free(con);
   }
 }
 
@@ -2155,6 +2157,9 @@ void BeadFixer::keyReleaseEvent ( QKeyEvent * e )
 /*
 
 $Log$
+Revision 1.43  2008/01/19 23:19:42  mast
+Warning cleanup
+
 Revision 1.42  2008/01/17 22:35:51  mast
 Added update function and turn off below threshold checkbox, and made
 thresholding operations object specific to work together with modv_objed

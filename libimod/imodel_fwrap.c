@@ -1000,6 +1000,7 @@ int putimod(int ibase[], int npt[], float coord[][3], int cindex[],
       }
          
       imodObjectAddContour(obj, cont);
+      free(cont);
     }
     nsaved[ob]++;
   }
@@ -1697,6 +1698,9 @@ int getimodnesting(int *ob, int *inOnly, int *level, int *inIndex,
 
 /*
 $Log$
+Revision 3.32  2007/09/20 02:44:11  mast
+Needed string include for memcpy
+
 Revision 3.31  2007/01/06 23:54:03  mast
 Added functions for getting and putting back contour point sizes
 

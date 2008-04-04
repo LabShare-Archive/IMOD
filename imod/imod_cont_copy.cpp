@@ -7,16 +7,10 @@
  *  Copyright (C) 1995-2005 by Boulder Laboratory for 3-Dimensional Electron
  *  Microscopy of Cells ("BL3DEMC") and the Regents of the University of 
  *  Colorado.  See dist/COPYRIGHT for full copyright notice.
+ *
+ *  $Id$
+ *  Log at end of file
  */
-
-/*  $Author$
-
-$Date$
-
-$Revision$
-Log at end of file
-*/
-
 
 /* 9/10/02: This include is not known to be unneeded on sun but is generally
    unavailable and unneeded on SGI - so leave it just for sun */
@@ -482,6 +476,7 @@ void ContourCopy::apply()
     ThisDialog.currentObject = imod->cindex.object;
     ncont = imodContourDup(cont);
     copyContour(ncont, imod->cindex.contour);
+    free(ncont);
   }else{
 
     /* Loop on all objects, skip if not doing all or it is not current one */
@@ -520,6 +515,7 @@ void ContourCopy::apply()
         if (cont->psize){
           ncont  = imodContourDup(cont);
           errcode = copyContour(ncont, co);
+          free(ncont);
           if (errcode)
             wprint("\a%sFailed to duplicate contour correctly.\n", badCopy);
         }
@@ -581,7 +577,11 @@ void ContourCopy::keyReleaseEvent ( QKeyEvent * e )
 }
 
 /*
+
 $Log$
+Revision 4.15  2007/09/14 21:56:38  sueh
+bug# 1038 Switching from calling dia_vasmsg() to opening an .html file for help.
+
 Revision 4.14  2006/09/12 15:34:54  mast
 Handled contour member renames
 

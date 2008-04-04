@@ -13,15 +13,10 @@
  *  Copyright (C) 1995-2004 by Boulder Laboratory for 3-Dimensional Electron
  *  Microscopy of Cells ("BL3DEMC") and the Regents of the University of 
  *  Colorado.  See dist/COPYRIGHT for full copyright notice.
+ *
+ *  $Id$
+ *  Log at end of file
  */
-
-/*  $Author$
-
-$Date$
-
-$Revision$
-Log at end of file
-*/
 
 #include <qspinbox.h>
 #include <qcheckbox.h>
@@ -351,6 +346,7 @@ void ContourBreak::breakCont()
   imodel_contour_check_wild(cont1);
 
   imodObjectAddContour(obj, cont);
+  free(cont);
 
   // Copy any contour-specific properties to new contour - ignoring error here
   // This has to be after the contourAddition call so it might as well be after
@@ -1027,6 +1023,7 @@ void imodContEditMove(void)
       vi->undo->contourAddition(vi->obj_moveto - 1, tobj->contsize);
       cont = imodContourNew();
       imodObjectAddContour(tobj, cont);
+      free(cont);
     }
 
     // Get contour, register changes and add point
@@ -1103,6 +1100,7 @@ void imodContEditMove(void)
 
       vi->undo->contourAddition(vi->obj_moveto - 1, tobj->contsize);
       imodObjectAddContour(tobj, newCont);
+      free(newCont);
       if (iz == izCen)
         conew = tobj->contsize - 1;
     }
@@ -1851,6 +1849,9 @@ void ContourFrame::keyReleaseEvent ( QKeyEvent * e )
 /*
 
 $Log$
+Revision 4.31  2008/01/19 22:19:11  mast
+Fixed problems when no objects
+
 Revision 4.30  2008/01/13 22:25:45  mast
 Call top slicer to toggle shifting mode
 

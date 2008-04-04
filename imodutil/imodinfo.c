@@ -7,16 +7,10 @@
  *  Copyright (C) 1995-2005 by Boulder Laboratory for 3-Dimensional Electron
  *  Microscopy of Cells ("BL3DEMC") and the Regents of the University of 
  *  Colorado.  See dist/COPYRIGHT for full copyright notice.
+ *
+ *  $Id$
+ *  Log at end of file
  */
-
-/*  $Author$
-
-$Date$
-
-$Revision$
-
-Log at end of file
-*/
 
 #include <stdio.h>
 #include <stdlib.h>
@@ -1747,9 +1741,10 @@ static Iobj *imodinfo_ObjectClip(Iobj *obj, Iplane *plane, int planes)
 #endif
     }
     /*        fprintf(fout, "co %d: %d %d\n", co, cont->psize, cc->psize); */
-    if (cc->psize > 0)
+    if (cc->psize > 0) {
       imodObjectAddContour(robj, cc);
-    else
+      free(cc);
+    } else
       imodContourDelete(cc);
   }
   robj->flags |= IMOD_OBJFLAG_OPEN;
@@ -2214,7 +2209,11 @@ static void trim_scan_contour(Icont *cont, Ipoint min, Ipoint max, int doclip,
 }
 
 /*
+
 $Log$
+Revision 3.17  2006/09/13 02:37:25  mast
+Switch to allocating and freeing model
+
 Revision 3.16  2006/06/26 14:48:49  mast
 Added b3dutil include for parselist
 

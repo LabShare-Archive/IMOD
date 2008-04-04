@@ -346,7 +346,7 @@ static Iobj *imodaObjectCreateThresholdData
  double shave, double tol, int delete_edge, int smoothflags)
 {
   Iobj *obj, *nobj;
-  Icont *cont, *newconts;
+  Icont *cont, *newconts, *tmpcont;
   Ipoint pt, *tmpt;
   int nco, co, cpt, cz, ncont;
   int *tdata;
@@ -560,7 +560,9 @@ static Iobj *imodaObjectCreateThresholdData
           imodContourReduce(&(newconts[i]), tol);
         if (shave != 0.0)
           imodContourShave(&(newconts[i]), shave);
-        imodObjectAddContour(nobj, imodContourNew());
+        tmpcont = imodContourNew();
+        imodObjectAddContour(nobj, tmpcont);
+        free(tmpcont);
         imodContourCopy(&newconts[i], 
                         &(nobj->cont[nobj->contsize - 1]));
       }
@@ -876,7 +878,12 @@ static void auto_expand(unsigned char *data, int imax, int jmax)
 
 }
 
-/*  $Log$
+/*
+
+$Log$
+Revision 3.10  2007/09/25 15:44:10  mast
+Set up image reference information in model
+
 Revision 3.9  2005/04/04 22:41:32  mast
 Fixed problem with argument order to imdContourGetBBox
 

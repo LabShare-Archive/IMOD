@@ -1283,6 +1283,7 @@ static int imodContourBreakByZ(ImodView *vi, Iobj *obj, int ob, int co)
       }
       imodel_contour_check_wild(cont2);
       imodObjectAddContour(obj, cont2);
+      free(cont2);
       cont = &obj->cont[co];
 
       // Copy any contour-specific properties to new contour
@@ -1301,6 +1302,9 @@ static int imodContourBreakByZ(ImodView *vi, Iobj *obj, int ob, int co)
 /*
 
 $Log$
+Revision 4.44  2008/02/22 00:34:50  sueh
+bug# 1076 Added extract menu option.
+
 Revision 4.43  2008/01/25 20:22:58  mast
 Changes for new scale bar
 
