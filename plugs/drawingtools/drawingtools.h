@@ -186,16 +186,6 @@ struct DrawingToolsData   // contains all local plugin data
 
 
 
-
-//-------------------------------
-//## GUI FUNCTIONS:
-
-string qStringToString( QString qstr );
-void MsgBox( string str );
-bool MsgBoxYesNo( QWidget *parent, string str );
-string InputBoxString( QWidget *parent, string title, string label, string defaultStr );
-
-
 //-------------------------------
 //## SMALL FUNCTIONS:
 

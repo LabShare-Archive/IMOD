@@ -15,6 +15,9 @@
     $Revision$
 
     $Log$
+    Revision 1.10  2008/03/17 07:22:37  tempuser
+    Improved reduce and smooth contour options
+
     Revision 1.9  2008/03/12 02:24:34  tempuser
     Minor modifications
 
@@ -1635,51 +1638,6 @@ void DrawingTools::keyReleaseEvent ( QKeyEvent * e )
 //############################################################
 
 
-
-//----------------------------------------------------------------------------
-//
-//          GUI FUNCTIONS:
-//
-//----------------------------------------------------------------------------
-
-
-//---------
-//-- Converts a QString to a standard string
-
-string qStringToString( QString qstr )
-{
-  string str = "";
-  for( int i=0; i<qstr.length(); i++ )
-    str +=  qstr.at(i).latin1();
-  return str;
-}
-
-//---------
-//-- Display a simple message box
-
-void MsgBox( string str )
-{
-  QMessageBox::information(0, "...", str.c_str() );
-}
-
-//---------
-//-- Display a tyes/no dialog box and return "true" if use clicks yes.
-
-bool MsgBoxYesNo( QWidget *parent, string str )
-{
-  int result = QMessageBox::information( parent, "...", str.c_str(),
-                                         QMessageBox::Yes, QMessageBox::No );
-  return ( result == QMessageBox::Yes );
-}
-
-//---------
-//-- Display an input dialog and return the string entered by the user.
-
-string InputBoxString( QWidget *parent, string title, string label, string defaultStr )
-{
-  return qStringToString( QInputDialog::getText(title.c_str(), label.c_str(),
-                                                QLineEdit::Normal, defaultStr.c_str()));
-}
 
 
 //----------------------------------------------------------------------------
