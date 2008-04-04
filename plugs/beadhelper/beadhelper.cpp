@@ -1,6 +1,6 @@
 /*
- *  beadhelper.c -- Special plugin for contour drawing tools
- *
+ *  beadhelper.c -- Special plugin for fiducial tracking helper tools
+ *                  to compliment those in BeadFixer
  */
 
 /*****************************************************************************
@@ -115,7 +115,7 @@ int imodPlugKeys(ImodView *vw, QKeyEvent *event)
     case Qt::Key_D:                  // delete points current contour to nearest end
       if (shift)
         return 0;
-      plug.window->deletePtsCurrContToNearestEnd( false );
+      plug.window->deletePtsUsingDAction();
       break;
       
     case Qt::Key_R:                  // reduce current point to seed
@@ -126,13 +126,10 @@ int imodPlugKeys(ImodView *vw, QKeyEvent *event)
       break;
       
     case Qt::Key_M:                  // move contour
-      if (shift) {
+      if (shift)
         plug.window->moveContour();
-        return 1;
-      }
-      else {
-        return 0;
-      }
+      else
+        plug.window->goToMiddleSlice();
       break;
       
     case Qt::Key_H:                  // go to next largest hole
@@ -157,20 +154,20 @@ int imodPlugKeys(ImodView *vw, QKeyEvent *event)
       bead_goToNextBiggestWeightedDev( !shift, false );
       break;
       
-    case Qt::Key_U:                  // go to contour with next biggest sort value
-      plug.window->toggleStippled();
-      break;
-      
     case Qt::Key_O:                  // go to contour with next biggest sort value
       bead_goToContNextBiggestSortVal( !shift );
+      break;
+      
+    case Qt::Key_U:                  // toggle contour as checked/unchecked
+      if(shift)
+        plug.window->printContourCheckedInfo();
+      else
+        plug.window->toggleStippled();
       break;
       
     case Qt::Key_Enter:
     case Qt::Key_Return:
       plug.window->enterActionIterateConts( shift );
-      
-      //if ( !plug.window->enterActionIterateConts( shift ) );
-      //  return 0;
       break;
       
     //## LIST OF KEYS THAT REQUIRE A REDRAW OF THE EXTRA OBJECT:
@@ -180,6 +177,10 @@ int imodPlugKeys(ImodView *vw, QKeyEvent *event)
       break;
     case Qt::Key_PageDown:
       edit_changeSelectedSlice(-1,true);
+      break;
+      
+    case Qt::Key_Insert:               // doesn't work
+      plug.window->goToMiddleSlice();
       break;
       
       /*
@@ -241,7 +242,7 @@ void imodPlugExecute(ImodView *inImodView)
     plug.showSpheres        = true;
     plug.sphereSize         = 2;
     
-    plug.lineDisplayType    = LD_OFF;
+    plug.lineDisplayType    = LD_ALL;
     plug.tiltDisplayType    = TD_OFF;
     
     //** MORE SETTINGS:
@@ -254,6 +255,7 @@ void imodPlugExecute(ImodView *inImodView)
     plug.expPtDisplayType      = ED_CROSS;
     plug.expPtSize             = 6;
     plug.sizePurpleSpheres     = 10;
+    plug.sizeLineSpheres       = 0;
     plug.selectedAction        = 0;
     plug.sortCriteria          = 0;
     
@@ -262,6 +264,7 @@ void imodPlugExecute(ImodView *inImodView)
     plug.includeEndsResid      = true;
     plug.enterAction           = EN_NEXTUNCHECKED;
     plug.minPtsEnter           = 2;
+    plug.dKeyBehav             = DK_OPPOSITEMIDDLE;
     
     plug.autoSaveSettings      = true;
     
@@ -298,6 +301,7 @@ void imodPlugExecute(ImodView *inImodView)
     
   Iobj *xobjC = ivwGetAnExtraObject(plug.view, plug.extraObjContDisp);
   imodObjectSetColor(xobjC, 0, 0.4, 0);
+  imodObjectSetValue(xobjC, IobjPointSize, plug.sizeLineSpheres);
   imodObjectSetValue(xobjC, IobjFlagClosed, 0);
   
   Iobj *xobjT = ivwGetAnExtraObject(plug.view, plug.extraObjTiltAxis);
@@ -355,42 +359,45 @@ int imodPlugEvent(ImodView *vw, QEvent *event, float imx, float imy)
     
     int change = floor( (wheelEvent->delta() / plug.wheelResistance) + 0.5 );
     
-    if( plug.wheelBehav == WH_POINTS )
+    switch( plug.wheelBehav )
     {
-      plug.window->advanceSelectedPointInCurrCont( change );
-      plug.window->drawExtraObject(false);
-      ivwRedraw( plug.view );
-      return 1;
-    }
-    else if( plug.wheelBehav == WH_SLICES )
-    {
-      edit_changeSelectedSlice( change, true );
-      plug.window->drawExtraObject(false);
-      return 0;
-    }
-    else if( plug.wheelBehav == WH_SMART )
-    {
-      if( isCurrContValid() )
+      case( WH_POINTS ):
       {
-        int newSlice = edit_getZOfTopZap() + change;
-        keepWithinRange( newSlice, 0, plug.zsize-1 );
-        
-        if( bead_isPtOnSlice( getCurrCont(), newSlice ) )
-        {
-          Imod *imod = ivwGetModel(plug.view);
-          int objIdx, contIdx, ptIdx;
-          imodGetIndex(imod, &objIdx, &contIdx, &ptIdx);
-          int newPtIdx = bead_getPtIdxOnSlice( getCurrCont(), newSlice );
-          imodSetIndex(imod, objIdx, contIdx, newPtIdx);
-          
-          plug.window->drawExtraObject(false);
-          ivwRedraw( plug.view );
-          return 1;
-        }
+        plug.window->advanceSelectedPointInCurrCont( change );
+        plug.window->drawExtraObject(false);
+        ivwRedraw( plug.view );
+        return 1;
       }
-      edit_changeSelectedSlice( change, true );
-      plug.window->drawExtraObject(true);
-      return 1;
+      case( WH_SLICES ):
+      {
+        edit_changeSelectedSlice( change, true );
+        plug.window->drawExtraObject(false);
+        return 0;
+      }
+      case( WH_SMART ):
+      {
+        if( isCurrContValid() )
+        {
+          int newSlice = edit_getZOfTopZap() + change;
+          keepWithinRange( newSlice, 0, plug.zsize-1 );
+          
+          if( bead_isPtOnSlice( getCurrCont(), newSlice ) )
+          {
+            Imod *imod = ivwGetModel(plug.view);
+            int objIdx, contIdx, ptIdx;
+            imodGetIndex(imod, &objIdx, &contIdx, &ptIdx);
+            int newPtIdx = bead_getPtIdxOnSlice( getCurrCont(), newSlice );
+            imodSetIndex(imod, objIdx, contIdx, newPtIdx);
+            
+            plug.window->drawExtraObject(false);
+            ivwRedraw( plug.view );
+            return 1;
+          }
+        }
+        edit_changeSelectedSlice( change, true );
+        plug.window->drawExtraObject(true);
+        return 1;
+      }
     }
   }
   return 0;
@@ -609,9 +616,10 @@ BeadHelper::BeadHelper(QWidget *parent, const char *name) :
   lineDisplayCombo = new QComboBox(grpDisplay);
 	lineDisplayCombo->setFocusPolicy(QWidget::NoFocus);
 	lineDisplayCombo->insertItem("off");
+	lineDisplayCombo->insertItem("all contours");
 	lineDisplayCombo->insertItem("curr contour");
   lineDisplayCombo->insertItem("missing pts");
-	lineDisplayCombo->insertItem("all contours");
+  lineDisplayCombo->insertItem("result smooth");
   lineDisplayCombo->insertItem("pt residuals");
   lineDisplayCombo->insertItem("line best fit");
   lineDisplayCombo->setCurrentItem( plug.lineDisplayType );
@@ -675,6 +683,7 @@ BeadHelper::BeadHelper(QWidget *parent, const char *name) :
   estPosMethodCombo->setFocusPolicy(QWidget::NoFocus);
   estPosMethodCombo->insertItem("best 2 pts");
 	estPosMethodCombo->insertItem("nearest 2 pts");
+  estPosMethodCombo->insertItem("prev 2 pts");
 	estPosMethodCombo->insertItem("curve");
 	estPosMethodCombo->insertItem("local curve");
   estPosMethodCombo->insertItem("prev 6 pts");
@@ -891,6 +900,17 @@ bool BeadHelper::drawExtraObject( bool redraw )
   
   switch ( plug.lineDisplayType )
   {
+    case( LD_ALL ):
+    {
+      for(int c=0; c<csize(obj);c++)
+      {
+        Icont *xcont = imodContourDup( getCont(obj,c) );
+        changeZValue( xcont, z );
+        imodContourSetFlag(xcont, ICONT_DRAW_ALLZ | ICONT_MMODEL_ONLY, 1);
+        imodObjectAddContour(xobjC, xcont);
+      }
+    }break;
+    
     case( LD_CURRENT ):
     {
       if( isCurrContValid() )
@@ -913,17 +933,24 @@ bool BeadHelper::drawExtraObject( bool redraw )
         imodObjectAddContour(xobjC, xcont);
       }
     }break;
-      
-      
-    case( LD_ALL ):
+    
+    case( LD_RESULTSMOOTH ):
     {
-        for(int c=0; c<csize(obj);c++)
-        {
-          Icont *xcont = imodContourDup( getCont(obj,c) );
-          changeZValue( xcont, z );
-          imodContourSetFlag(xcont, ICONT_DRAW_ALLZ | ICONT_MMODEL_ONLY, 1);
-          imodObjectAddContour(xobjC, xcont);
-        }
+      if( isCurrContValid() )
+      {
+        Icont *xcont  = imodContourNew();
+        cont_makeContShowingMissingPoints( xcont, getCurrCont(), z, sc*2 );
+        imodContourSetFlag(xcont, ICONT_DRAW_ALLZ | ICONT_STIPPLED, 1);
+        imodObjectAddContour(xobjC, xcont);
+        
+        Icont *xcontS = imodContourDup( getCurrCont() );
+        int ptsMoved, ptsAdded;
+        ivwDraw( plug.view, 0 );          // redraw to ensure correct z is selected
+        bead_smoothPtsUsingPlugSettings( xcontS, ptsMoved, ptsAdded );
+        changeZValue( xcontS, z );
+        imodContourSetFlag(xcontS, ICONT_DRAW_ALLZ, 1);
+        imodObjectAddContour(xobjC, xcontS);
+      }
     }break;
     
     case( LD_SLICE_RESID ):
@@ -1074,27 +1101,29 @@ void BeadHelper::loadSettings()
   plug.biggestHoleOffset    = savedValues[9];
   plug.expPtDisplayType     = savedValues[10];
   plug.expPtSize            = savedValues[11];
-  plug.sizePurpleSpheres    = savedValues[12];
-  plug.selectedAction       = savedValues[13];
-  plug.sortCriteria         = savedValues[14];
-  plug.autoSaveSettings     = savedValues[15];
+  plug.sizeLineSpheres      = savedValues[12];
+  plug.sizePurpleSpheres    = savedValues[13];
+  plug.selectedAction       = savedValues[14];
+  plug.sortCriteria         = savedValues[15];
+  plug.autoSaveSettings     = savedValues[16];
   
-  plug.wheelResistance      = savedValues[16];
-  plug.includeEndsResid     = savedValues[17];
-  plug.enterAction          = savedValues[18];
-  plug.minPtsEnter          = savedValues[19];
+  plug.wheelResistance      = savedValues[17];
+  plug.includeEndsResid     = savedValues[18];
+  plug.enterAction          = savedValues[19];
+  plug.minPtsEnter          = savedValues[20];
+  plug.dKeyBehav            = savedValues[21];
   
-  plug.smoothCurrContOnly   = savedValues[20];
-  plug.smoothFillGaps       = savedValues[21];
-  plug.smoothMoveYOnly      = savedValues[22];
-  plug.smoothLeaveSeed      = savedValues[23];
-  plug.smoothLeaveEnds      = savedValues[24];
-  plug.smoothLeaveCurrV     = savedValues[25];
-  plug.smoothMoveFract      = savedValues[26];
-  plug.smoothMinResid       = savedValues[27];
-  plug.smoothIterations     = savedValues[28];
-  plug.smoothAdjacentV      = savedValues[29];
-  plug.smoothNumViews       = savedValues[30];
+  plug.smoothCurrContOnly   = savedValues[22];
+  plug.smoothFillGaps       = savedValues[23];
+  plug.smoothMoveYOnly      = savedValues[24];
+  plug.smoothLeaveSeed      = savedValues[25];
+  plug.smoothLeaveEnds      = savedValues[26];
+  plug.smoothLeaveCurrV     = savedValues[27];
+  plug.smoothMoveFract      = savedValues[28];
+  plug.smoothMinResid       = savedValues[29];
+  plug.smoothIterations     = savedValues[30];
+  plug.smoothAdjacentV      = savedValues[31];
+  plug.smoothNumViews       = savedValues[32];
 }
 
 
@@ -1118,27 +1147,29 @@ void BeadHelper::saveSettings()
   saveValues[9]  = plug.biggestHoleOffset;
   saveValues[10] = plug.expPtDisplayType;
   saveValues[11] = plug.expPtSize;
-  saveValues[12] = plug.sizePurpleSpheres;
-  saveValues[13] = plug.selectedAction;
-  saveValues[14] = plug.sortCriteria;
-  saveValues[15] = plug.autoSaveSettings;
+  saveValues[12] = plug.sizeLineSpheres;
+  saveValues[13] = plug.sizePurpleSpheres;
+  saveValues[14] = plug.selectedAction;
+  saveValues[15] = plug.sortCriteria;
+  saveValues[16] = plug.autoSaveSettings;
   
-  saveValues[16] = plug.wheelResistance;
-  saveValues[17] = plug.includeEndsResid;
-  saveValues[18] = plug.enterAction;
-  saveValues[19] = plug.minPtsEnter;
+  saveValues[17] = plug.wheelResistance;
+  saveValues[18] = plug.includeEndsResid;
+  saveValues[19] = plug.enterAction;
+  saveValues[20] = plug.minPtsEnter;
+  saveValues[21] = plug.dKeyBehav;
   
-  saveValues[20] = plug.smoothCurrContOnly;
-  saveValues[21] = plug.smoothFillGaps;
-  saveValues[22] = plug.smoothMoveYOnly;
-  saveValues[23] = plug.smoothLeaveSeed;
-  saveValues[24] = plug.smoothLeaveEnds;
-  saveValues[25] = plug.smoothLeaveCurrV;
-  saveValues[26] = plug.smoothMoveFract;
-  saveValues[27] = plug.smoothMinResid;
-  saveValues[28] = plug.smoothIterations;
-  saveValues[29] = plug.smoothAdjacentV;
-  saveValues[30] = plug.smoothNumViews;
+  saveValues[22] = plug.smoothCurrContOnly;
+  saveValues[23] = plug.smoothFillGaps;
+  saveValues[24] = plug.smoothMoveYOnly;
+  saveValues[25] = plug.smoothLeaveSeed;
+  saveValues[26] = plug.smoothLeaveEnds;
+  saveValues[27] = plug.smoothLeaveCurrV;
+  saveValues[28] = plug.smoothMoveFract;
+  saveValues[29] = plug.smoothMinResid;
+  saveValues[30] = plug.smoothIterations;
+  saveValues[31] = plug.smoothAdjacentV;
+  saveValues[32] = plug.smoothNumViews;
   
   prefSaveGenericSettings("BeadHelper",NUM_SAVED_VALS,saveValues);
 }
@@ -1267,45 +1298,62 @@ void BeadHelper::deletePtsCurrContInRange()
 //-- Deletes all points within the current contour from the current point to the
 //-- nearest end inclusive
 
-void BeadHelper::deletePtsCurrContToNearestEnd( bool inclusive )
+bool BeadHelper::deletePtsUsingDAction()
 {
-  if( !updateAndVerifyRanges() || !isCurrPtValid() )
-    return;
+  if( !updateAndVerifyRanges() || !isCurrPtValid() || plug.dKeyBehav == DK_NONE )
+    return false;
   
-  undoContourDataChgCC( plug.view );      // REGISTER UNDO
-  Icont *cont = getCurrCont();
+  //## GET INFORMATION:
   
   Imod *imod = ivwGetModel(plug.view);
   int objIdx, contIdx, ptIdx;
   imodGetIndex(imod, &objIdx, &contIdx, &ptIdx);
   
-  int numPts = psize( cont );
-  int middlePt = numPts / 2.0f;
-  int numPtsDeleted;
+  Icont *cont = getCurrCont();
+  int currPtZ = floor(getCurrPt()->z + 0.5);
+  undoContourDataChgCC( plug.view );            // REGISTER UNDO
   
-  if ( ptIdx >= middlePt )    // if closest to end pt: delete pts to end
+  //## DETERMINE WHAT Z RANGE TO DELETE ACCORDING TO "dKeyBehav" VALUE:
+  
+  int minZ = plug.sliceMin;
+  int maxZ = plug.sliceMax;
+  
+  switch( plug.dKeyBehav )
   {
-    if(!inclusive)
-      ptIdx++;
-    numPtsDeleted = numPts - ptIdx;
-    for( int p=ptIdx; p<psize(cont); )
-      imodPointDelete( cont, ptIdx );
+    case( DK_OPPOSITEMIDDLE ):
+    {
+      bool deleteUp = currPtZ >= plug.middleSlice;      // point is after seed slice
+      minZ = ( deleteUp ) ? currPtZ+1  : 0;
+      maxZ = ( deleteUp ) ? plug.zsize : currPtZ-1;
+      break;
+    }
+    case( DK_NEARESTEND ):
+    {
+      int numPts = psize( cont );
+      int middlePt = numPts / 2.0f;
+      bool deleteUp = ptIdx >= middlePt;    // point is closest to end pt
+      
+      minZ = ( deleteUp ) ? currPtZ+1  : 0;
+      maxZ = ( deleteUp ) ? plug.zsize : currPtZ-1;
+      break;
+    }
   }
-  else                        // (else) if closest to start pt: delete pts from start
-  {
-    if(!inclusive)
-      ptIdx--;
-    numPtsDeleted = ptIdx+1;
-    for( int p=0; p<numPtsDeleted; p++ )
-      imodPointDelete( cont, 0 );
-    imodSetIndex( imod, objIdx, contIdx, 0 );
-  }
+  
+  //## DELETE POINTS FROM GIVEN RANGE:
+  
+  int numPtsDeleted = bead_deletePtsInZRange( cont, minZ, maxZ, true );
   
   if(numPtsDeleted)
+  {
     undoFinishUnit( plug.view );        // FINISH UNDO
+    
+    ptIdx = bead_getClosestPtIdxToSlice( cont, currPtZ );
+    imodSetIndex( imod, objIdx, contIdx, ptIdx );
+  }
   
   wprint("Deleted %d points\n", numPtsDeleted);
   ivwRedraw( plug.view );
+  return true;
 }
 
 
@@ -1522,26 +1570,14 @@ void BeadHelper::movePtsToEstimatedPosRange()
   Iobj *obj  = imodObjectGet(imod);
   int objIdx, contIdx, ptIdx;
   imodGetIndex(imod, &objIdx, &contIdx, &ptIdx);
-  
-  int minCont = plug.contMin;
-  int maxCont = plug.contMax;
-  
-  int minZ = plug.sliceMin;
-  int maxZ = plug.sliceMax;
-  
-  if( plug.smoothAdjacentV && edit_getZOfTopZap()>0 )
-  {
-    minZ = edit_getZOfTopZap() - plug.smoothNumViews;
-    maxZ = edit_getZOfTopZap() + plug.smoothNumViews;
-  }
-  
+    
   int numPtsMoved = 0;
   int numPtsAdded = 0;
   
   //## ITERATE THROUGH SPECIFIED RANGE OF CONTOURS AND MOVE ALL POINTS WITHIN
   //## SPECIFIED VIEWS TO THEIR EXPECTED POSITION: 
   
-  for( int c=MAX(minCont,0); c<=maxCont && c<csize(obj); c++)
+  for( int c=MAX(plug.contMin,0); c<=plug.contMax && c<csize(obj); c++)
   {
     imodSetIndex(imod, objIdx, c, 0);
     Icont *cont = getCont( obj, c );
@@ -1551,13 +1587,7 @@ void BeadHelper::movePtsToEstimatedPosRange()
     
     undoContourDataChg( plug.view, objIdx, c );       // REGISTER UNDO
     
-    bead_movePtsTowardsEstimatedPos ( cont, minZ, maxZ,
-                                      plug.smoothMoveFract,
-                                      plug.smoothMinResid, plug.smoothIterations,
-                                      plug.smoothFillGaps, plug.smoothMoveYOnly,
-                                      plug.smoothLeaveSeed, plug.smoothLeaveEnds,
-                                      plug.smoothLeaveCurrV,
-                                      ptsMoved, ptsAdded );
+    bead_smoothPtsUsingPlugSettings( cont, ptsMoved, ptsAdded );
     
     numPtsMoved += ptsMoved;
     numPtsAdded += ptsAdded;
@@ -1585,15 +1615,6 @@ void BeadHelper::movePtsToEstimatedPosCurrCont()
     return;
   }
   
-  int minZ = plug.sliceMin;
-  int maxZ = plug.sliceMax;
-  
-  if( plug.smoothAdjacentV && edit_getZOfTopZap()>0 )
-  {
-    minZ = edit_getZOfTopZap() - plug.smoothNumViews;
-    maxZ = edit_getZOfTopZap() + plug.smoothNumViews;
-  }
-  
   //## SMOOTH CURRENT CONTOUR USING SMOOTHING SETTING:
   
   int ptsMoved = 0;
@@ -1601,13 +1622,8 @@ void BeadHelper::movePtsToEstimatedPosCurrCont()
   
   Icont *cont = getCurrCont();
   undoContourDataChgCC( plug.view );       // REGISTER UNDO
-  bead_movePtsTowardsEstimatedPos ( cont, minZ, maxZ,
-                                    plug.smoothMoveFract,
-                                    plug.smoothMinResid, plug.smoothIterations,
-                                    plug.smoothFillGaps, plug.smoothMoveYOnly,
-                                    plug.smoothLeaveSeed, plug.smoothLeaveEnds,
-                                    plug.smoothLeaveCurrV,
-                                    ptsMoved, ptsAdded );
+  
+  bead_smoothPtsUsingPlugSettings( cont, ptsMoved, ptsAdded );
   
   if( ptsMoved || ptsAdded )                      // FINISH UNDO
     undoFinishUnit( plug.view );
@@ -1756,7 +1772,8 @@ void BeadHelper::moreActions()
                                   "clear purple object,"
                                   "move points between objects,"
                                   "remove duplicate pts from object,"
-                                  "mark contours as checked/unchecked",
+                                  "mark contours as checked/unchecked,"
+                                  "print contour info",
                                   plug.selectedAction );
 	GuiDialogCustomizable dlg(&ds, "Perform Action", this);
 	dlg.exec();
@@ -1836,6 +1853,11 @@ void BeadHelper::moreActions()
     {
       markRangeAsStippled();
     } break;
+    
+    case(7):      // print contour info
+    {
+      printContourCheckedInfo();
+    } break;
   }
   
   ivwRedraw( plug.view );
@@ -1896,6 +1918,10 @@ void BeadHelper::moreSettings()
                                            1, 200, plug.expPtSize, 1,
                                           "The size of the estimated point symbol in "
                                           "screen pixels" );
+  int ID_LINESPHERE     = ds.addSpinBox ( "line display spheres:",
+                                          0, 50, plug.sizeLineSpheres, 1,
+                                          "The size of points used to display contours "
+                                          "as lines" );
   int ID_PURPLESPHERE   = ds.addSpinBox ( "size purple spheres:",
                                           1, 200, plug.sizePurpleSpheres, 1,
                                           "The size of points in the extra purple object "
@@ -1914,7 +1940,7 @@ void BeadHelper::moreSettings()
                                           "they conflict with another key you "
                                           "need to press (NOTE: this setting defaults "
                                           "to off and is not saved on exit)");
-  int ID_CHECKENDS      = ds.addCheckBox( "include end pts on [h], [b] & [w]", 
+  int ID_CHECKENDS      = ds.addCheckBox( "include seed && end pts on [h], [b] && [w]", 
                                           plug.includeEndsResid,
                                           "Includes end points when searching for the "
                                           "point with the next biggest y jump "
@@ -1936,6 +1962,13 @@ void BeadHelper::moreSettings()
                                           "must have to be jumped to when [Enter] "
                                           "is pressed" );
   
+  int ID_DKEYACTION     = ds.addComboBox( "on [d] delete pts:",
+                                          "do nothing,"
+                                          "opposite seed,"
+                                          "to nearest end,"
+                                          "specified range", plug.dKeyBehav,
+                                          "Action performed when [d] is pressed.");
+  
   int ID_AUTOSAVE       = ds.addCheckBox( "save settings on close", 
                                           plug.autoSaveSettings,
                                           "Automatically saves your Bead Helper "
@@ -1955,6 +1988,7 @@ void BeadHelper::moreSettings()
   plug.middleSlice           = ds.getResultSpinBox  ( ID_MIDDLESLICE ) - 1;
   plug.expPtDisplayType      = ds.getResultComboBox ( ID_EXPPTDISPLAY );
   plug.expPtSize             = ds.getResultSpinBox  ( ID_EXPPTSIZE );
+  plug.sizeLineSpheres       = ds.getResultSpinBox  ( ID_LINESPHERE );
   plug.sizePurpleSpheres     = ds.getResultSpinBox  ( ID_PURPLESPHERE );
   
   plug.wheelResistance       = ds.getResultSpinBox  ( ID_WHEELRESIST );
@@ -1962,7 +1996,7 @@ void BeadHelper::moreSettings()
   plug.includeEndsResid      = ds.getResultCheckBox ( ID_CHECKENDS );
   plug.enterAction           = ds.getResultComboBox ( ID_ENTERACTION );
   plug.minPtsEnter           = ds.getResultSpinBox  ( ID_MINPTSENETER );
-  
+  plug.dKeyBehav             = ds.getResultComboBox ( ID_DKEYACTION );
   plug.autoSaveSettings      = ds.getResultCheckBox ( ID_AUTOSAVE );
   
   float newTiltAngle = string_getFloatFromString( tiltAngleStr );
@@ -1970,6 +2004,9 @@ void BeadHelper::moreSettings()
     wprint("\aERROR: Invalid tilt angle entered"); 
   else
     plug.tiltAngle = newTiltAngle;
+  
+  Iobj *xobjC = ivwGetAnExtraObject(plug.view, plug.extraObjContDisp);
+  imodObjectSetValue(xobjC, IobjPointSize, plug.sizeLineSpheres);
   
   Iobj *xobjX = ivwGetAnExtraObject(plug.view, plug.extraObjExtra);
   imodObjectSetValue(xobjX, IobjPointSize, plug.sizePurpleSpheres);
@@ -2495,6 +2532,87 @@ bool BeadHelper::advanceSelectedPointInCurrCont( int change )
 
 
 //------------------------
+//-- Jumps to the middle slice and (if a contour is selected) selects
+//-- the point in the middle.
+
+void BeadHelper::goToMiddleSlice()
+{
+  if( isCurrContValid() )
+  {
+    if( bead_isPtOnSlice( getCurrCont(), plug.middleSlice ) )
+    {
+      Imod *imod = ivwGetModel(plug.view);
+      int objIdx, contIdx, ptIdx;
+      imodGetIndex(imod, &objIdx, &contIdx, &ptIdx);
+      int newPtIdx = bead_getPtIdxOnSlice( getCurrCont(), plug.middleSlice );
+      imodSetIndex(imod, objIdx, contIdx, newPtIdx);
+      
+      plug.window->drawExtraObject(false);
+      ivwRedraw( plug.view );
+      return;
+    }
+  }
+  int ix, iy, iz;
+  ivwGetLocation( plug.view, &ix, &iy, &iz );
+  edit_setZapLocation( ix, iy, plug.middleSlice, true );
+  plug.window->drawExtraObject(true);
+}
+
+//------------------------
+//-- Prints contour stats for the current object including: 
+//-- the number of checked, non-checked and single-point contours.
+
+void BeadHelper::printContourCheckedInfo()
+{
+  if( !isCurrObjValid() )
+  {
+    MsgBox( "Select a valid object first" );
+    return;
+  }
+  
+  Iobj *obj = getCurrObj();
+  
+  int totMissingPts = 0;
+  int totEmptyC     = 0;
+  int totSinglePtC  = 0;
+  int totCheckedC   = 0;
+  int totUncheckedC = 0;
+  
+  for( int c=0; c<csize(obj); c++ )
+  {
+    Icont *cont   = getCont(obj,c);
+    
+    int numPts = psize(cont);
+    
+    if     ( numPts == 0 )
+      totEmptyC += 1;
+    else if( numPts == 1 )
+      totSinglePtC += 1;
+    else if( isInterpolated(cont) )
+      totCheckedC += 1;
+    else
+      totUncheckedC += 1;
+    
+    totMissingPts += plug.zsize - numPts;
+  }
+  
+  float avgMissingPtsPerCont = fDivide( totMissingPts, csize(obj) );
+  int   percentChecked       = int( fDivide( totCheckedC,   csize(obj)  ) * 100.0f );
+  
+  wprint("\CONTOUR INFO:\n");
+  wprint(" # total contours  = %d\n", csize(obj) );
+  if(totEmptyC)
+    wprint(" # EMPTY   = %d\n", totEmptyC );
+  wprint(" # single pt = %d\n", totSinglePtC );
+  wprint(" # checked   = %d (%d%%)\n", totCheckedC, percentChecked );
+  wprint(" # unchecked = %d\n", totUncheckedC );
+  wprint(" # total missing pts   = %d\n", totMissingPts );
+  wprint(" avg missing pts/cont  = %f\n", avgMissingPtsPerCont );
+}
+
+
+
+//------------------------
 //-- Method used for testing new routines.
 
 void BeadHelper::test()
@@ -2663,51 +2781,6 @@ void BeadHelper::keyReleaseEvent ( QKeyEvent * e )
 //############################################################
 
 
-
-//----------------------------------------------------------------------------
-//
-//          GUI FUNCTIONS:
-//
-//----------------------------------------------------------------------------
-
-
-//---------
-//-- Converts a QString to a standard string
-
-string qStringToString( QString qstr )
-{
-  string str = "";
-  for( int i=0; i<qstr.length(); i++ )
-    str +=  qstr.at(i).latin1();
-  return str;
-}
-
-//---------
-//-- Display a simple message box
-
-void MsgBox( string str )
-{
-  QMessageBox::information(0, "...", str.c_str() );
-}
-
-//---------
-//-- Display a tyes/no dialog box and return "true" if use clicks yes.
-
-bool MsgBoxYesNo( QWidget *parent, string str )
-{
-  int result = QMessageBox::information( parent, "...", str.c_str(),
-                                         QMessageBox::Yes, QMessageBox::No );
-  return ( result == QMessageBox::Yes );
-}
-
-//---------
-//-- Display an input dialog and return the string entered by the user.
-
-string InputBoxString( QWidget *parent, string title, string label, string defaultStr )
-{
-  return qStringToString( QInputDialog::getText(title.c_str(), label.c_str(),
-                                                QLineEdit::Normal, defaultStr.c_str()));
-}
 
 
 //----------------------------------------------------------------------------
@@ -3059,7 +3132,7 @@ bool bead_getPointsEitherSideSlice( Icont *cont, int slice, Ipoint *pt1, Ipoint 
 }
 
 //------------------------
-//-- Returns contour "ptsByDist" containing the points above (if "above) or below
+//-- Returns contour "ptsByDist" containing the points above (if "above") or below
 //-- the current slice in ascending order of distance from the selected point.
 //-- If "minZBetweenPts" is greater than 1
 //-- Returns false if there are not enough points.
@@ -3266,6 +3339,22 @@ bool bead_getExpectedPosOfPoint( Icont *cont, int slice, Ipoint *pt )
       if ( !bead_getClosestTwoPointsToSlice( cont, slice, &pt1, &pt2 ) )
         return false;
       estPt = bead_getPtOnLineWithZ( &pt1, &pt2, slice );
+      break;
+    }
+    
+    case (EM_PREVTWO):
+    {
+      bool aboveMiddle = ( slice > plug.middleSlice );
+      Icont *ptsByDist = imodContourNew();
+      bool success = bead_getPointsOneSideOfSlice( cont, slice, ptsByDist,
+                                              !aboveMiddle, false, 1 );
+      if( !success || psize(ptsByDist) < 2 ) 
+      {
+        imodContourDelete(ptsByDist);
+        return false;
+      }
+      estPt = bead_getPtOnLineWithZ( getPt(ptsByDist,1), getPt(ptsByDist,0), slice );
+      imodContourDelete(ptsByDist);
       break;
     }
     
@@ -3585,6 +3674,34 @@ bool bead_movePtsTowardsEstimatedPos ( Icont *cont, int minZ, int maxZ,
 
 
 //------------------------
+//-- Moves points in "cont" within the z range "minZ" to "maxZ"
+//-- using the smoothing settings in "plug". Returns true if successful,
+//-- as well as the number of points added and moved.
+
+bool bead_smoothPtsUsingPlugSettings( Icont *cont, int &ptsMoved, int &ptsAdded )
+{
+  int minZ = plug.sliceMin;
+  int maxZ = plug.sliceMax;
+  
+  if( plug.smoothAdjacentV && edit_getZOfTopZap()>0 )
+  {
+    minZ = edit_getZOfTopZap() - plug.smoothNumViews;
+    maxZ = edit_getZOfTopZap() + plug.smoothNumViews;
+  }
+  
+  
+  return bead_movePtsTowardsEstimatedPos ( cont, minZ, maxZ,
+                                           plug.smoothMoveFract,
+                                           plug.smoothMinResid, plug.smoothIterations,
+                                           plug.smoothFillGaps, plug.smoothMoveYOnly,
+                                           plug.smoothLeaveSeed, plug.smoothLeaveEnds,
+                                           plug.smoothLeaveCurrV,
+                                           ptsMoved, ptsAdded );
+}
+
+
+
+//------------------------
 //-- Fills in all missing points in current contour within slices between
 //-- "minZ" and "maxZ" inclusive, by starting at the middle point and
 //-- using the estimated middle position. Returns the number of points added.
@@ -3617,6 +3734,39 @@ int bead_fillMissingPtsOnCont( Icont *cont, int minZ, int maxZ, bool fillPastEnd
   return pointsAdded;
 }
 
+
+
+//------------------------
+//-- Deletes all points within the specified range of z values and returns
+//-- the number of points deleted.
+
+int bead_deletePtsInZRange( Icont *cont, int minZ, int maxZ, bool inclusive )
+{
+  //## CHECK RANGE IS GOOD:
+  
+  if(!inclusive)
+  {
+    minZ++;
+    maxZ--;
+  }
+  if( isEmpty(cont) || minZ >= maxZ )
+    return 0;
+  
+  //## DELETE POINTS IN RANGE:
+  
+  int numPtsDeleted = 0;
+  for( int p=psize(cont)-1; p>=0; p-- )
+  {
+    int z = getPtZInt(cont,p);
+    if( z >= minZ && z <= maxZ )
+    {
+      imodPointDelete( cont, p );
+      numPtsDeleted++;
+    }
+  }
+  
+  return numPtsDeleted;
+}
 
 
 //------------------------
@@ -4081,7 +4231,8 @@ bool bead_goToNextBiggestYJump( bool findNextBiggest )
     Icont *cont = getCont(obj,c);
     for (int p=0; p<psize(cont);p++)
     {
-      if( !plug.includeEndsResid && (p==0 || p==psize(cont)-1 ) )
+      if( !plug.includeEndsResid && ( p==0 || p==psize(cont)-1 ||
+                                      getPtZInt(cont,p)==plug.middleSlice) )
           continue;
       
       float yJump = bead_calcYJump(cont,p);
@@ -4157,9 +4308,10 @@ bool bead_goToNextBiggestWeightedDev( bool findNextBiggest, bool weighted )
   for (int c=0; c<csize(obj); c++)
   {
     Icont *cont = getCont(obj,c);
-    for (int p=0; p<psize(cont);p++)
+    for (int p=0; p<psize(cont); p++)
     {
-      if( !plug.includeEndsResid && (p==0 || p==psize(cont)-1 ) )
+      if( !plug.includeEndsResid && ( p==0 || p==psize(cont)-1 ||
+                                      getPtZInt(cont,p)==plug.middleSlice) )
           continue;
       
       float deviaton = bead_calcDistanceFromExpected(cont,p,weighted);

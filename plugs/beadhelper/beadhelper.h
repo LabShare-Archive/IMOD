@@ -47,7 +47,7 @@ class BeadHelper : public DialogFrame
   bool drawExtraObject( bool redraw );
   void deletePtsInRange();
   void deletePtsCurrContInRange();
-  void deletePtsCurrContToNearestEnd( bool inclusive );
+  bool deletePtsUsingDAction();
   void reduceContsToSeed();
   void reduceCurrContToSeed();
   void movePtsToEstimatedPosOptions();
@@ -68,6 +68,8 @@ class BeadHelper : public DialogFrame
   
   bool updateAndVerifyRanges();
   bool advanceSelectedPointInCurrCont( int change );
+  void goToMiddleSlice();
+  void printContourCheckedInfo();
   void test();
     
   void changeShowExpectedPos();
@@ -132,23 +134,24 @@ class BeadHelper : public DialogFrame
 
 const int NO_POINT = -1;
 
-enum estimationmethod { EM_BESTTWO, EM_NEARESTTWO,
+enum estimationmethod { EM_BESTTWO, EM_NEARESTTWO, EM_PREVTWO,
                         EM_QUADRATIC, EM_LOCALQUADRATIC, EM_LASTTHREE, EM_LASTSIX };
 
 enum contsortcriteria { SORT_YJUMPS, SORT_DEV, SORT_AVG_GREY, SORT_DIST_FROM_MIDDLE,
                         SORT_MISSING_PTS, SORT_RANDOM };
 
 
-enum contdisplay      { LD_OFF, LD_CURRENT, LD_CURRMISSING,
-                        LD_ALL, LD_SLICE_RESID, LD_BEST_FIT, LD_TILTAXIS };
+enum contdisplay      { LD_OFF, LD_ALL, LD_CURRENT, LD_CURRMISSING,
+                        LD_RESULTSMOOTH, LD_SLICE_RESID, LD_BEST_FIT };
 enum tiltaxisdisplay  { TD_OFF, TD_TILTAXIS, TD_TILTAXISSEED, TD_TILTAXISPT };
 enum expptdisplay     { ED_CROSS, ED_DIAMOND, ED_ARROW };
 
+enum dkeybehavior     { DK_NONE, DK_OPPOSITEMIDDLE, DK_NEARESTEND, DK_SELECTEDRANGE };
 enum wheelbehavior    { WH_NONE, WH_POINTS, WH_SLICES, WH_SMART };
 enum enterbehavior    { EN_NONE, EN_NEXTUNCHECKED, EN_PREVUNCHECKED, EN_NEXTCHECKED,
                         EN_NEXTCONT };
 
-const int NUM_SAVED_VALS = 31;
+const int NUM_SAVED_VALS = 33;
 
 
 //-------------------------------
@@ -182,14 +185,17 @@ struct BeadHelperData   // contains all local plugin data
   
   int expPtDisplayType;       // symbol used for expected points (see: expptdisplay)
   int expPtSize;              // the size (in screen pixels) of expected points
+  int sizeLineSpheres;        // the size (in screen pixels) of contour line display
   int sizePurpleSpheres;      // the size (in screen pixels) of purple spheres
   
   bool disableHotKeys;        // disables all hotkeys for this plugin window
-  bool includeEndsResid;      // include end points when searching for residuals
-                              // with [y], [b] and [w]
+  bool includeEndsResid;      // include end points and seed when searching for 
+                              // residuals with [y], [b] and [w]
   int enterAction;            // the action performed when enter is pressed
   int minPtsEnter;            // the min number of points a contour must have to be
                               // jumped to when enter is pressed
+  
+  int dKeyBehav;              // the action when "d" is pressed (see: dkeybehavior)
   
   int selectedAction;         // the last selected action under "More Actions"
   int sortCriteria;           // the last selected sort critria "Reorder Contours"
@@ -250,15 +256,6 @@ struct BeadHelperData   // contains all local plugin data
 
 
 
-
-//-------------------------------
-//## GUI FUNCTIONS:
-
-string qStringToString( QString qstr );
-void MsgBox( string str );
-bool MsgBoxYesNo( QWidget *parent, string str );
-string InputBoxString( QWidget *parent, string title, string label, string defaultStr );
-
 //-------------------------------
 //## SMALL FUNCTIONS:
 
@@ -309,7 +306,10 @@ bool bead_movePtsTowardsEstimatedPos ( Icont *cont, int minZ, int maxZ,
                                        bool fillGaps, bool moveYOnly,
                                        bool leaveSeed, bool leaveEnds, bool leaveCurrV,
                                        int &ptsMoved, int &ptsAdded );
+bool bead_smoothPtsUsingPlugSettings ( Icont *cont, int &ptsMoved, int &ptsAdded );
+
 int bead_fillMissingPtsOnCont( Icont *cont, int minZ, int maxZ, bool fillPastEnds );
+int bead_deletePtsInZRange( Icont *cont, int minZ, int maxZ, bool inclusive );
 
 float bead_calcYJump( Icont *cont, int idx );
 float bead_calcAvgYJump( Icont *cont );
