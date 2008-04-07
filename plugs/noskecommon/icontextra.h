@@ -107,7 +107,7 @@ inline Iobj* getObj( Imod *imod, int idx );
 inline bool isObjClosed(Iobj *obj);
 inline bool isContClosed(Iobj *obj, Icont *cont);
 inline bool isObjectValidAndShown(Iobj *obj);
-
+ 
 
 //-------------------------------
 //## POINT RELATED FUNCTIONS:
