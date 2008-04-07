@@ -15,6 +15,9 @@
     $Revision$
 
     $Log$
+    Revision 1.11  2008/04/04 01:15:36  tempuser
+    moved gui functions elsewhere
+
     Revision 1.10  2008/03/17 07:22:37  tempuser
     Improved reduce and smooth contour options
 
@@ -821,6 +824,7 @@ bool DrawingTools::drawExtraObject( bool redraw )
 		
     imodContourSetFlag(xcont, ICONT_CURSOR_LIKE | ICONT_MMODEL_ONLY, 1);
     imodObjectAddContour(xobj, xcont);
+    free(xcont);
     
 		if( redraw )
 			ivwRedraw( plug.view );
@@ -953,6 +957,7 @@ bool DrawingTools::drawExtraObject( bool redraw )
   
   imodContourSetFlag(xcont, ICONT_CURSOR_LIKE | ICONT_MMODEL_ONLY, 1);
   imodObjectAddContour(xobj, xcont);
+  free(xcont);
   
   if( redraw )
     ivwRedraw( plug.view );
@@ -1748,6 +1753,7 @@ int edit_addContourToObj( Iobj *obj, Icont *cont, bool enableUndo )
   if(enableUndo)
     undoContourAdditionCO( plug.view, numConts );    // REGISTER UNDO
   int newContPos = imodObjectAddContour( obj, newCont );
+  free(newCont);
   return newContPos;
 }
 
@@ -1937,7 +1943,7 @@ void edit_executeDeform()
             // and current mouse position to deform smoothly.
     
     if( numIntermediates > 10 ) {
-      wprint("You are moving the mouse to fast!\n");
+      wprint("\aYou are moving the mouse to fast!\n");
       return;
     }
     for( int i=1; i<=numIntermediates; i++ )

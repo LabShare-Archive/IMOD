@@ -212,7 +212,7 @@ struct BeadHelperData   // contains all local plugin data
   bool  smoothLeaveEnds;      // will not move the start and end point of contours
   bool  smoothLeaveCurrV;     // will not move any point on the current view
   float smoothMoveFract;      // move points by this fraction towards their exp pos
-  int   smoothMinResid;       // only move points more that this distance from exp pos
+  float smoothMinResid;       // only move points more that this distance from exp pos
   int   smoothIterations;     // how many iterations to run smoothing
   bool  smoothAdjacentV;      // will only smooth views above and below the current view
   int   smoothNumViews;       // how many views above and below the current z to smooth

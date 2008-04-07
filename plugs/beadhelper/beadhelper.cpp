@@ -893,6 +893,7 @@ bool BeadHelper::drawExtraObject( bool redraw )
       }
       imodContourSetFlag(xcont, ICONT_DRAW_ALLZ, 1);
       imodObjectAddContour(xobjE, xcont);
+      free(xcont);
     }
   }
   
@@ -908,6 +909,7 @@ bool BeadHelper::drawExtraObject( bool redraw )
         changeZValue( xcont, z );
         imodContourSetFlag(xcont, ICONT_DRAW_ALLZ | ICONT_MMODEL_ONLY, 1);
         imodObjectAddContour(xobjC, xcont);
+        free(xcont);
       }
     }break;
     
@@ -919,6 +921,7 @@ bool BeadHelper::drawExtraObject( bool redraw )
         changeZValue( xcont, z );
         imodContourSetFlag(xcont, ICONT_DRAW_ALLZ, 1);
         imodObjectAddContour(xobjC, xcont);
+        free(xcont);
       }
     }break;
     
@@ -931,6 +934,7 @@ bool BeadHelper::drawExtraObject( bool redraw )
         
         imodContourSetFlag(xcont, ICONT_DRAW_ALLZ, 1);
         imodObjectAddContour(xobjC, xcont);
+        free(xcont);
       }
     }break;
     
@@ -942,6 +946,7 @@ bool BeadHelper::drawExtraObject( bool redraw )
         cont_makeContShowingMissingPoints( xcont, getCurrCont(), z, sc*2 );
         imodContourSetFlag(xcont, ICONT_DRAW_ALLZ | ICONT_STIPPLED, 1);
         imodObjectAddContour(xobjC, xcont);
+        free(xcont);
         
         Icont *xcontS = imodContourDup( getCurrCont() );
         int ptsMoved, ptsAdded;
@@ -950,6 +955,7 @@ bool BeadHelper::drawExtraObject( bool redraw )
         changeZValue( xcontS, z );
         imodContourSetFlag(xcontS, ICONT_DRAW_ALLZ, 1);
         imodObjectAddContour(xobjC, xcontS);
+        free(xcontS);
       }
     }break;
     
@@ -969,6 +975,7 @@ bool BeadHelper::drawExtraObject( bool redraw )
             imodPointAppendXYZ( xcont, resid.x, resid.y, z );
             imodContourSetFlag(xcont, ICONT_DRAW_ALLZ, 1);
             imodObjectAddContour(xobjC, xcont);
+            free(xcont);
           }
         }
       }
@@ -987,6 +994,7 @@ bool BeadHelper::drawExtraObject( bool redraw )
           imodPointAppendXYZ( xcont, plug.xsize, (gradient*plug.xsize + offset), z );
           imodContourSetFlag( xcont, ICONT_STIPPLED | ICONT_DRAW_ALLZ, 1 );
           imodObjectAddContour( xobjC, xcont );
+          free(xcont);
         }
       }
     } break;
@@ -1008,6 +1016,7 @@ bool BeadHelper::drawExtraObject( bool redraw )
     imodPointAppendXYZ( xcontT, endX, plug.ysize, z );
     imodContourSetFlag( xcontT, ICONT_DRAW_ALLZ, 1 );
     imodObjectAddContour( xobjT, xcontT );
+    free(xcontT);
     
     if( plug.tiltDisplayType == TD_TILTAXISSEED
         || plug.tiltDisplayType == TD_TILTAXISPT )
@@ -1022,6 +1031,7 @@ bool BeadHelper::drawExtraObject( bool redraw )
         imodPointAppendXYZ( xcontP, plug.xsize, endSYP, z );
         imodContourSetFlag( xcontP, ICONT_STIPPLED | ICONT_DRAW_ALLZ, 1 );
         imodObjectAddContour( xobjT, xcontP );
+        free(xcontP);
         
         if( plug.tiltDisplayType == TD_TILTAXISPT && isCurrPtValid() )
         {
@@ -1040,6 +1050,7 @@ bool BeadHelper::drawExtraObject( bool redraw )
             imodPointAppendXYZ( xcontPt, end.x, end.y, z );
             imodContourSetFlag( xcontPt, ICONT_DRAW_ALLZ, 1 );
             imodObjectAddContour( xobjT, xcontPt );
+            free(xcontPt);
           }
         }
       }
@@ -1492,14 +1503,15 @@ void BeadHelper::movePtsToEstimatedPosOptions()
   int ID_YAXISONLY     = ds.addCheckBox( "change y value only", plug.smoothMoveYOnly );
   int ID_LEAVESEED     = ds.addCheckBox( "leave seed", plug.smoothLeaveSeed );
   int ID_LEAVEENDS     = ds.addCheckBox( "leave end points", plug.smoothLeaveEnds );
-  int ID_MOVEFRACT     = ds.addSpinBox ( "move franction /10:", 1, 10,
-                                         plug.smoothMoveFract*10, 1,
-                                         "If 10, points will be moved entire way to "
+  int ID_MOVEFRACT     = ds.addSpinBox ( "move fraction (X/10):", 1, 10,
+                                         plug.smoothMoveFract*10.0f, 1,
+                                         "If 10: points will be moved entire way to "
                                          "estimated positions" );
-  int ID_MINRESID      = ds.addSpinBox ( "min residual to move:", 0, 10, 
-                                         plug.smoothMinResid, 1,
+  int ID_MINRESID      = ds.addSpinBox ( "min residual to move (X/10):", 0, 1000, 
+                                         plug.smoothMinResid*10.0f, 1,
                                          "Only points further than this from their "
-                                         "estimated point will be moved" );
+                                         "estimated point will be moved (measured in "
+                                         "tenths of a pixel)" );
   int ID_ITERATIONS    = ds.addSpinBox ( "iterations:", 1, 10, plug.smoothIterations, 1,
                                          "The more iterations, the further points "
                                          "will be moved" );
@@ -1527,8 +1539,8 @@ void BeadHelper::movePtsToEstimatedPosOptions()
   plug.smoothMoveYOnly          = ds.getResultCheckBox  ( ID_YAXISONLY );
   plug.smoothLeaveSeed          = ds.getResultCheckBox  ( ID_LEAVESEED );
   plug.smoothLeaveEnds          = ds.getResultCheckBox  ( ID_LEAVEENDS );
-  plug.smoothMoveFract          = float( ds.getResultSpinBox( ID_MOVEFRACT ) ) / 10;
-  plug.smoothMinResid           = ds.getResultSpinBox   ( ID_MINRESID );
+  plug.smoothMoveFract          = float( ds.getResultSpinBox( ID_MOVEFRACT ) ) * 0.1;
+  plug.smoothMinResid           = float( ds.getResultSpinBox( ID_MINRESID  ) ) * 0.1;
   plug.smoothIterations         = ds.getResultSpinBox   ( ID_ITERATIONS );
   plug.smoothAdjacentV          = ds.getResultCheckBox ( ID_ADJACENTV );
   plug.smoothNumViews           = ds.getResultSpinBox   ( ID_NUMVEITHERS );
@@ -2205,11 +2217,12 @@ void BeadHelper::moveMultipleContours()
     }
     
     undoContourAddition( plug.view, objToIdx, c );              // REGISTER UNDO
-    imodObjectAddContour( objTo, imodContourDup(contCopy) );    // copy contour
+    imodObjectAddContour( objTo, contCopy );                    // copy contour
+    free(contCopy);
     numContsCopied++;
     
     if( !copy )
-      setDeleteFlag( getCont(obj, c), 1 );
+      setDeleteFlag( cont, 1 );
     
   }
   
@@ -2635,6 +2648,7 @@ void BeadHelper::test()
   Icont *ptsByDist = imodContourNew();
   bead_getSpacedOutPoints( cont, z, ptsByDist, 5 );
   imodObjectAddContour( obj, ptsByDist );
+  free(ptsByDist);
   
   ivwRedraw( plug.view );
 }
@@ -2917,6 +2931,7 @@ bool bead_focusOnPointCrude( float x, float y, float z )
   Icont *tempCont = imodContourNew();
   imodPointAppendXYZ( tempCont, x,y,z );
   int tempContIdx = imodObjectAddContour( obj,tempCont );
+  free(tempCont);
   imodSetIndex(imod, objIdx, tempContIdx, 0);
   imodObjectRemoveContour( obj, tempContIdx );
   ivwSetLocation(plug.view, x, y, z);
@@ -4663,6 +4678,7 @@ bool bead_showBottomContoursInPurple( int zMin, int zMax )
       numBottomFids++;
       Icont *contX = imodContourDup( getCont(obj,c) );
       imodObjectAddContour( xobjX, contX );
+      free(contX);
     }
   }
   
@@ -4718,5 +4734,6 @@ bool bead_showContourTurningPts()
     Icont *newCont = imodContourNew();
     imodPointAppend( newCont, getPt(turningPts,p) );
     imodObjectAddContour( xobjX, newCont );
+    free(newCont);
   }  
 }
