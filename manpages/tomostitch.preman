@@ -98,12 +98,4 @@ David Mastronarde
 findwarp(1), warpvol(1), newstack(1), densmatch(1), blendmont(1), 
 stitchalign(1)
 .SH BUGS
-In Windows, if you wish to run the program from a command file and do not have
-Cygwin Python installed, you need either to invoke the program with
-.br
-   runpyscript tomostitch
-.br
-or run the command file with a Python interpreter by either giving the
-extension ".pcm" or using the "-p" option to subm.
-.P
 Email bug reports to mast@colorado.edu.
