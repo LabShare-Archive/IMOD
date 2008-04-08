@@ -1,8 +1,6 @@
 package etomo.type;
 
 import java.io.IOException;
-import java.util.ArrayList;
-import java.util.List;
 
 import etomo.ui.Token;
 import etomo.util.PrimativeTokenizer;
@@ -54,6 +52,13 @@ import etomo.util.PrimativeTokenizer;
  * @version $Revision$
  * 
  * <p> $Log$
+ * <p> Revision 1.14  2008/04/02 02:04:25  sueh
+ * <p> bug# 1097 Matching Mallab's syntax.  Making non-Matlab syntax the
+ * <p> default in the ParsedElements classes.  This is because matlab uses
+ * <p> "NaN", which is unhealthy for Etomo and IMOD.  Made
+ * <p> ParsedArrayDescriptor to know more about being an array descriptor.
+ * <p> Moved functionality out of super class.
+ * <p>
  * <p> Revision 1.13  2007/11/06 19:39:34  sueh
  * <p> bug# 1047 Moved most of the code to parent class ParsedDescriptor so that
  * <p> ParsedIteratorDescriptor.
@@ -158,12 +163,27 @@ public final class ParsedArrayDescriptor extends ParsedDescriptor {
   }
 
   /**
+   * <PRE>
    * Set each of the three elements in the descriptor with the string in the
    * first three elements in input.
+   * if there is only one element:
+   *   * If it is a collection, then call this set function with the first
+   *     element.
+   *   * If it is not a collection, then set it as the first element.
+   * This takes care of the case where an array descriptor was enclosed in
+   * brackets.  [-4:2:4] is parsed as an array descriptor inside an array.
+   * </PRE>
+   * 
    * @param input
    */
   public void set(final ParsedElement input) {
     clear();
+    if (input.size()==1) {
+      if (input.isCollection()) {
+        set(input.getElement(0));
+        return;
+      }
+    }
     int max = Math.min(size(), input.size());
     for (int i = 0; i < max; i++) {
       setRawString(i, input.getRawString(i));
@@ -285,9 +305,9 @@ public final class ParsedArrayDescriptor extends ParsedDescriptor {
    * @param parsedNumberExpandedArray the array to be added to and returned
    * @return parsedNumberExpandedArray
    */
-  List getParsedNumberExpandedArray(List parsedNumberExpandedArray) {
+  ParsedElementList getParsedNumberExpandedArray(ParsedElementList parsedNumberExpandedArray) {
     if (parsedNumberExpandedArray == null) {
-      parsedNumberExpandedArray = new ArrayList();
+      parsedNumberExpandedArray = new ParsedElementList(type);
     }
     ParsedNumber start = (ParsedNumber) deriveLimit((ParsedNumber) descriptor
         .get(END_INDEX), true, descriptor.get(START_INDEX));
@@ -325,7 +345,10 @@ public final class ParsedArrayDescriptor extends ParsedDescriptor {
     boolean increasing = !increment.isNegative();
     while ((increasing && current.lt(last))
         || (!increasing && current.gt(last))) {
-      parsedNumberExpandedArray.add(current);
+      ParsedNumber parsedCurrent = ParsedNumber.getArrayInstance(type,
+          etomoNumberType);
+      parsedCurrent.setRawString(current.getNumber());
+      parsedNumberExpandedArray.add(parsedCurrent);
       current = new EtomoNumber(current);
       current.add(increment);
     }
