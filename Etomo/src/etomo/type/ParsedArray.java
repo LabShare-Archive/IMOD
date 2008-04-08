@@ -1,7 +1,6 @@
 package etomo.type;
 
 import java.io.IOException;
-import java.util.List;
 import java.util.Properties;
 
 import etomo.storage.autodoc.ReadOnlyAttribute;
@@ -33,6 +32,11 @@ import etomo.util.PrimativeTokenizer;
  * @version $Revision$
  * 
  * <p> $Log$
+ * <p> Revision 1.15  2008/04/02 02:02:16  sueh
+ * <p> bug# 1097 Matching Mallab's syntax.  Making non-Matlab syntax the
+ * <p> default in the ParsedElements classes.  This is because matlab uses
+ * <p> "NaN", which is unhealthy for Etomo and IMOD.
+ * <p>
  * <p> Revision 1.14  2007/11/06 19:38:53  sueh
  * <p> bug# 1047 Made class compatible with ParsedIteratorDescriptor.
  * <p>
@@ -160,7 +164,7 @@ public final class ParsedArray extends ParsedElement {
    * @return parsable string version of array
    */
   public String[] getPaddedStringExpandedArray() {
-    List expandedArray = getParsedNumberExpandedArray(null);
+    ParsedElementList expandedArray = getParsedNumberExpandedArray(null);
     if (expandedArray.size() == 0) {
       return new String[0];
     }
@@ -453,7 +457,7 @@ public final class ParsedArray extends ParsedElement {
    * array descriptors to create the entire array.
    * @return list of ParsedNumbers
    */
-  public List getParsedNumberExpandedArray(List parsedNumberExpandedArray) {
+  public ParsedElementList getParsedNumberExpandedArray(ParsedElementList parsedNumberExpandedArray) {
     for (int i = 0; i < array.size(); i++) {
       parsedNumberExpandedArray = array.get(i).getParsedNumberExpandedArray(
           parsedNumberExpandedArray);
@@ -612,24 +616,25 @@ public final class ParsedArray extends ParsedElement {
         if (index != -1) {
           index++;
         }
-        //whitespace may be used as a divider, but it may not always be the divider -
-        //it could just be whitespace at the end of the array or whitespace
-        //before the divider
+        //Find the divider.
+        //Whitespace may be used as a divider or the divider may be preceded by
+        //whitespace.
         dividerFound = false;
-        if (token != null && token.is(Token.Type.WHITESPACE)) {
+        if (token != null
+            && (token.is(Token.Type.WHITESPACE) || token.equals(
+                Token.Type.SYMBOL, DIVIDER_SYMBOL.charValue()))) {
           dividerFound = true;
           token = tokenizer.next();
         }
-        if (token != null
-            && token.equals(Token.Type.SYMBOL, DIVIDER_SYMBOL.charValue())) {
-          dividerFound = true;
-          token = tokenizer.next();
-          //A "," is being used as a divider character so remove whitespace
-          //after divider
-          if (token != null && token.is(Token.Type.WHITESPACE)) {
+        if (dividerFound) {
+          //If whitespace was found, it may precede the divider.
+          if (token != null
+              && token.equals(Token.Type.SYMBOL, DIVIDER_SYMBOL.charValue())) {
             token = tokenizer.next();
           }
         }
+        //Don't worry about whitespace after the divider.  It should be handled
+        //by the element.
       }
       catch (IOException e) {
         e.printStackTrace();
@@ -648,28 +653,6 @@ public final class ParsedArray extends ParsedElement {
    */
   private Token parseElement(Token token, PrimativeTokenizer tokenizer,
       int index) {
-    //end of list
-    if (token.equals(Token.Type.SYMBOL, CLOSE_SYMBOL.charValue())) {
-      //Went into parseElement because a comma was found so there is an empty
-      //element:
-      //[] means no elements, [,] means two elements, [1,,]
-      //means three elements.
-      //This is not parsable by matlab and would be added to a .prm file as:
-      //[], [NaN,NaN], and [1,NaN,Nan].
-      if (array.size() > 0) {
-        //Add empty instance.
-        array.addEmptyElement();
-      }
-      return token;
-    }
-    //found empty element
-    if (token.is(Token.Type.WHITESPACE)
-        || token.equals(Token.Type.SYMBOL, DIVIDER_SYMBOL.charValue())) {
-      //Add empty instance
-      //Not parsable by matlab; written as NaN.
-      array.addEmptyElement();
-      return token;
-    }
     //parse element
     //Array descriptors don't have their own open and close symbols, so they
     //look like numbers until to you get to the first divider (":"or "-").
