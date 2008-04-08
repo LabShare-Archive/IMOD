@@ -1,5 +1,8 @@
 IMOD History
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+4/8/08: In Edgepatches, fixed creation of Section entry with Z values, and
+added options for specifying range in X and Y of pieces to add.
+
 4/4/08: Fixed some problems with allocation and freeing of extra objects and
 fixed some memory leaks in 3dmod.
 
