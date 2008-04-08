@@ -17,6 +17,10 @@ import java.util.Map;
  * @version $Revision$
  * 
  * <p> $Log$
+ * <p> Revision 1.11  2008/04/02 02:19:05  sueh
+ * <p> bug# 1097 Moved EmptyParsedElement into its own file.  Added a type
+ * <p> because the type changes how an empty element displays itself.
+ * <p>
  * <p> Revision 1.10  2007/11/06 19:48:33  sueh
  * <p> bug# 1047 added validate.
  * <p>
@@ -53,7 +57,7 @@ import java.util.Map;
  * <p> bug# 964 Expandable array that allows sparse population.
  * <p> </p>
  */
-final class ParsedElementList {
+public final class ParsedElementList {
   public static final String rcsid = "$Id$";
 
   private final ParsedElementType type;
@@ -69,7 +73,7 @@ final class ParsedElementList {
     return "[map:" + map + "]";
   }
 
-  int size() {
+  public int size() {
     return size;
   }
 
@@ -81,7 +85,7 @@ final class ParsedElementList {
     map.put(getKey(size++), element);
   }
 
-  ParsedElement get(int index) {
+  public ParsedElement get(int index) {
     ParsedElement element = (ParsedElement) map.get(getKey(index));
     if (element == null) {
       return ParsedEmptyElement.getInstance(type);
