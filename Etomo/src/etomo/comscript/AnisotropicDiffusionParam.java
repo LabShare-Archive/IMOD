@@ -13,6 +13,7 @@ import etomo.type.ConstEtomoNumber;
 import etomo.type.ConstIntKeyList;
 import etomo.type.EtomoNumber;
 import etomo.type.ParsedArray;
+import etomo.type.ParsedElementList;
 import etomo.type.ParsedNumber;
 import etomo.type.ProcessName;
 import etomo.util.DatasetFiles;
@@ -31,6 +32,11 @@ import etomo.util.DatasetFiles;
  * @version $Revision$
  * 
  * <p> $Log$
+ * <p> Revision 1.5  2008/04/02 01:49:59  sueh
+ * <p> bug# 1097 Made non-matlab syntax the default in the ParsedElements
+ * <p> classes.  This is because matlab uses "NaN", which is unhealthy for
+ * <p> Etomo and IMOD.
+ * <p>
  * <p> Revision 1.4  2007/12/13 01:02:30  sueh
  * <p> bug# 1056 Changed etomo.comscript.Fields to etomo.comscript.Field.
  * <p>
@@ -200,7 +206,7 @@ public final class AnisotropicDiffusionParam implements CommandDetails {
     EtomoNumber iteration = new EtomoNumber();
     List list = new ArrayList();
     list.add(testVolumeName);
-    List expandedArray = iterationList.getParsedNumberExpandedArray(null);
+    ParsedElementList expandedArray = iterationList.getParsedNumberExpandedArray(null);
     for (int i = 0; i < expandedArray.size(); i++) {
       iteration.set(((ParsedNumber) expandedArray.get(i)).getRawString());
       list.add(getTestFileName(kValue, iteration));
