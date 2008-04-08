@@ -62,7 +62,26 @@ type = IP
 usage = Add a supermontage with the given number of frames in X and Y
 tooltip =
 manpage = Add a supermontage with the given number of frames in X and Y.  The
-program will search for pieces by rootname and frame number in X and Y.
+program will search for pieces by rootname and frame number in X and Y, with 
+numbers starting from 1.
+
+[Field = AddMontageXRange]
+short = xadd
+type = IP
+usage = Add a supermontage with given starting and ending frame numbers in X 
+tooltip =
+manpage = Starting and ending X values to search for when adding a
+supermontage.  Use this option and -yadd if the starting frame number is not 1
+in X or in Y.  If one of the two options -xadd and -yadd is entered, then the
+other must be entered as well, and -xyadd must not be entered.
+
+[Field = AddMontageYRange]
+short = yadd
+type = IP
+usage = Add a supermontage with given starting and ending frame numbers in Y 
+tooltip =
+manpage = Starting and ending Y values to search for when adding a
+supermontage.
 
 [Field = AddMontageZRange]
 short = zadd
@@ -70,7 +89,8 @@ type = IP
 usage = Starting and ending Z values to search for when adding a supermontage
 tooltip =
 manpage = Starting and ending Z values to search for when adding a
-supermontage.  If this 
+supermontage.  If this option is entered, then either -xyadd, or -xadd and
+-yadd, must be entered.
 
 [Field = DefaultRegionModel]
 short = model
