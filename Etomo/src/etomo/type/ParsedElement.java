@@ -1,7 +1,6 @@
 package etomo.type;
 
 import java.io.IOException;
-import java.util.List;
 
 import etomo.storage.LogFile;
 import etomo.ui.Token;
@@ -21,6 +20,12 @@ import etomo.util.PrimativeTokenizer;
  * @version $Revision$
  * 
  * <p> $Log$
+ * <p> Revision 1.11  2008/04/02 02:17:49  sueh
+ * <p> bug# 1097 Matching Matlab's syntax.  This simplifies many of the
+ * <p> ParsedElement classes because there where too many special cases.
+ * <p> Now it just follows Matlab's syntax instead of trying to immitate exactly
+ * <p> how a field happened to be entered by hand in the .prm file.
+ * <p>
  * <p> Revision 1.10  2007/11/06 19:48:05  sueh
  * <p> bug# 1047 Made class compatible with ParsedIteratorDescriptor.
  * <p>
@@ -60,11 +65,11 @@ import etomo.util.PrimativeTokenizer;
  */
 public abstract class ParsedElement {
   public static final String rcsid = "$Id$";
-  
+
   private boolean failed = false;
   private String failedMessage = null;
   private boolean debug = false;
-  
+
   public abstract String getRawString();
 
   public abstract Number getRawNumber();
@@ -72,7 +77,7 @@ public abstract class ParsedElement {
   public abstract boolean isEmpty();
 
   public abstract String getRawString(int index);
-  
+
   abstract void setRawString(String number);
 
   abstract ParsedElement getElement(int index);
@@ -98,7 +103,7 @@ public abstract class ParsedElement {
   abstract boolean isDefaultedEmpty();
 
   abstract boolean ge(int number);
-  
+
   abstract void clear();
 
   /**
@@ -107,8 +112,9 @@ public abstract class ParsedElement {
    * @param parsedNumberExpandedArray
    * @return parsedNumberExpandedArray
    */
-  abstract List getParsedNumberExpandedArray(List parsedNumberExpandedArray);
-  
+  abstract ParsedElementList getParsedNumberExpandedArray(
+      ParsedElementList parsedNumberExpandedArray);
+
   final PrimativeTokenizer createTokenizer(final String value) {
     PrimativeTokenizer tokenizer = new PrimativeTokenizer(value);
     try {
@@ -162,14 +168,13 @@ public abstract class ParsedElement {
     }
     return failedMessage;
   }
-  
+
   final boolean isDebug() {
     return debug;
   }
-  
-  void setDebug(boolean debug) {
-    this.debug=debug;
-  }
 
+  void setDebug(boolean debug) {
+    this.debug = debug;
+  }
 
 }

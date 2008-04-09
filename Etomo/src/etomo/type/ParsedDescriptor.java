@@ -1,7 +1,6 @@
 package etomo.type;
 
 import java.io.IOException;
-import java.util.List;
 
 import etomo.ui.Token;
 import etomo.util.PrimativeTokenizer;
@@ -20,6 +19,10 @@ import etomo.util.PrimativeTokenizer;
  * @version $Revision$
  * 
  * <p> $Log$
+ * <p> Revision 1.2  2008/04/02 02:05:13  sueh
+ * <p> Moved functionality out of ParsedDescriptor and into child classes.  This
+ * <p> is because the child class are now less similar to each other.
+ * <p>
  * <p> Revision 1.1  2007/11/06 19:44:20  sueh
  * <p> bug# 1047 Moved most of the code in ParsedArrayDescriptor to parent class
  * <p> ParsedDescriptor so that ParsedIteratorDescriptor.
@@ -51,7 +54,7 @@ abstract class ParsedDescriptor extends ParsedElement {
     }
     return new ParsedIteratorDescriptor();
   }
-  
+
   public void setDebug(final boolean input) {
     super.setDebug(input);
     for (int i = 0; i < size(); i++) {
@@ -123,10 +126,10 @@ abstract class ParsedDescriptor extends ParsedElement {
    * they represent.
    */
   boolean ge(final int number) {
-    List expandedArray = getParsedNumberExpandedArray(null);
+    ParsedElementList expandedArray = getParsedNumberExpandedArray(null);
     boolean greaterOrEqual = true;
     for (int i = 0; i < expandedArray.size(); i++) {
-      if (!((ParsedElement) expandedArray.get(i)).ge(number)) {
+      if (!expandedArray.get(i).ge(number)) {
         greaterOrEqual = false;
         break;
       }

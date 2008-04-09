@@ -1,8 +1,6 @@
 package etomo.type;
 
 import java.io.IOException;
-import java.util.ArrayList;
-import java.util.List;
 
 import etomo.ui.Token;
 import etomo.util.PrimativeTokenizer;
@@ -21,6 +19,11 @@ import etomo.util.PrimativeTokenizer;
  * @version $Revision$
  * 
  * <p> $Log$
+ * <p> Revision 1.2  2008/04/02 02:20:10  sueh
+ * <p> bug# 1097 Moved functionality out of ParsedDescriptor and into child
+ * <p> classes.  This is because the child class are now less similar to each
+ * <p> other.
+ * <p>
  * <p> Revision 1.1  2007/11/06 19:49:43  sueh
  * <p> bug# 1047 Class to parsed iterator descriptors such as 4-9 and 5-2.
  * <p> </p>
@@ -182,9 +185,9 @@ final class ParsedIteratorDescriptor extends ParsedDescriptor {
    * @param parsedNumberExpandedArray the array to be added to and returned
    * @return parsedNumberExpandedArray
    */
-  List getParsedNumberExpandedArray(List parsedNumberExpandedArray) {
+  ParsedElementList getParsedNumberExpandedArray(ParsedElementList parsedNumberExpandedArray) {
     if (parsedNumberExpandedArray == null) {
-      parsedNumberExpandedArray = new ArrayList();
+      parsedNumberExpandedArray = new ParsedElementList(type);
     }
     if (descriptor.size() == 0) {
       return parsedNumberExpandedArray;

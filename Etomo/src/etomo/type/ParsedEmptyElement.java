@@ -1,8 +1,5 @@
 package etomo.type;
 
-import java.util.ArrayList;
-import java.util.List;
-
 import etomo.ui.Token;
 import etomo.util.PrimativeTokenizer;
 
@@ -86,9 +83,9 @@ final class ParsedEmptyElement extends ParsedElement {
   void setRawString(String input) {
   }
 
-  List getParsedNumberExpandedArray(List parsedNumberExpandedArray) {
+  ParsedElementList getParsedNumberExpandedArray(ParsedElementList parsedNumberExpandedArray) {
     if (parsedNumberExpandedArray == null) {
-      parsedNumberExpandedArray = new ArrayList();
+      parsedNumberExpandedArray = new ParsedElementList(type);
     }
     return parsedNumberExpandedArray;
   }

@@ -1,8 +1,6 @@
 package etomo.type;
 
 import java.io.IOException;
-import java.util.ArrayList;
-import java.util.List;
 
 import etomo.storage.autodoc.ReadOnlyAttribute;
 import etomo.ui.Token;
@@ -30,6 +28,10 @@ import etomo.util.PrimativeTokenizer;
  * @version $Revision$
  * 
  * <p> $Log$
+ * <p> Revision 1.11  2008/04/02 02:24:19  sueh
+ * <p> bug# 1097 Added ParsedElementType.  Got rid of OPEN and
+ * <p> CLOSE_SYMBOL (just using DELIMITER_SYMBOL).
+ * <p>
  * <p> Revision 1.10  2007/11/06 19:50:50  sueh
  * <p> bug# 1047 added validate.
  * <p>
@@ -229,9 +231,9 @@ public final class ParsedQuotedString extends ParsedElement {
    * @param parsedNumberExpandedArray
    * @return parsedNumberExpandedArray
    */
-  List getParsedNumberExpandedArray(List parsedNumberExpandedArray) {
+  ParsedElementList getParsedNumberExpandedArray(ParsedElementList parsedNumberExpandedArray) {
     if (parsedNumberExpandedArray == null) {
-      parsedNumberExpandedArray = new ArrayList();
+      parsedNumberExpandedArray = new ParsedElementList(type);
     }
     return parsedNumberExpandedArray;
   }
