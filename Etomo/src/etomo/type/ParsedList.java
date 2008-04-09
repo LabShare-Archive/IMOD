@@ -71,6 +71,12 @@ import etomo.util.PrimativeTokenizer;
  * @version $Revision$
  * 
  * <p> $Log$
+ * <p> Revision 1.10  2008/04/02 02:21:22  sueh
+ * <p> bug# 1097 Matching Matlab's syntax.  This simplifies many of the
+ * <p> ParsedElement classes because there where too many special cases
+ * <p> before.  Now it just follows Matlab's syntax instead of trying to imitate
+ * <p> exactly how a field happened to be entered by hand in the .prm file.
+ * <p>
  * <p> Revision 1.9  2007/11/06 19:50:28  sueh
  * <p> bug# 1047 Made class compatible with ParsedArray.
  * <p>
@@ -281,47 +287,52 @@ public final class ParsedList {
       return null;
     }
     boolean dividerFound = true;
-    //loop until a divider isn't found, this should be the end of the list
-    while (dividerFound && !isFailed()) {
+    //loop until the end of the array
+    //can't just check dividerFound, because whitespace can act as a divider,
+    //but isn't always the divider
+    while (dividerFound && !isFailed() && token != null
+        && !token.is(Token.Type.EOL) && !token.is(Token.Type.EOF)
+        && !token.equals(Token.Type.SYMBOL, CLOSE_SYMBOL.charValue())) {
       try {
-        //parse an element.
+        //parse an element
         token = parseElement(token, tokenizer);
-        //remove any whitespace
-        if (token != null && token.is(Token.Type.WHITESPACE)) {
-          token = tokenizer.next();
-        }
+        //Find the divider.
+        //Whitespace may be used as a divider or the divider may be preceded by
+        //whitespace.
         dividerFound = false;
-        //if the divider symbol is found, continue parsing elements
         if (token != null
-            && token.equals(Token.Type.SYMBOL, DIVIDER_SYMBOL.charValue())) {
+            && (token.is(Token.Type.WHITESPACE) || token.equals(
+                Token.Type.SYMBOL, DIVIDER_SYMBOL.charValue()))) {
           dividerFound = true;
           token = tokenizer.next();
-          //remove whitespace after divider
-          if (token != null && token.is(Token.Type.WHITESPACE)) {
+        }
+        if (dividerFound) {
+          //If whitespace was found, it may precede the divider.
+          if (token != null
+              && token.equals(Token.Type.SYMBOL, DIVIDER_SYMBOL.charValue())) {
             token = tokenizer.next();
           }
         }
+        //Don't worry about whitespace after the divider.  It should be handled
+        //by the element.
       }
       catch (IOException e) {
         e.printStackTrace();
         fail();
-        return token;
       }
     }
     return token;
   }
 
   private Token parseElement(Token token, PrimativeTokenizer tokenizer) {
-    //end of list
-    if (token.equals(Token.Type.SYMBOL, CLOSE_SYMBOL.charValue())) {
-      //Empty element at end of list.  This preserves the the original string.
-      //{} means no elements, {,} means two elements.  {'tomo',,} means three elements
-      //This is not parsable by matlab and would be added to a .prm file as:
-      //{}, {NaN,NaN}, and {1,NaN,NaN}.
-      if (list.size() > 0) {
-        list.add(ParsedEmptyElement.getInstance(type));
+    try {
+      if (token.is(Token.Type.WHITESPACE)) {
+        token = tokenizer.next();
       }
-      return token;
+    }
+    catch (IOException e) {
+      e.printStackTrace();
+      fail();
     }
     if (token.equals(Token.Type.SYMBOL, DIVIDER_SYMBOL.charValue())) {
       //Found an empty element.

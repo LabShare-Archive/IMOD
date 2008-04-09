@@ -1,8 +1,6 @@
 package etomo.type;
 
 import java.io.IOException;
-import java.util.ArrayList;
-import java.util.List;
 
 import etomo.storage.autodoc.ReadOnlyAttribute;
 import etomo.ui.Token;
@@ -31,6 +29,14 @@ import etomo.util.PrimativeTokenizer;
  * @version $Revision$
  * 
  * <p> $Log$
+ * <p> Revision 1.14  2008/04/02 02:22:31  sueh
+ * <p> bug# 1097 Matching Matlab's syntax.  This simplifies many of the
+ * <p> ParsedElement classes because there where too many special cases
+ * <p> before.  Now it just follows Matlab's syntax instead of trying to imitate
+ * <p> exactly how a field happened to be entered by hand in the .prm file.
+ * <p> ParsedNumber will use "NaN" for its parsable string when it is using Matlab
+ * <p> syntax.
+ * <p>
  * <p> Revision 1.13  2007/11/06 19:50:38  sueh
  * <p> bug# 1047 Made class compatible with ParsedIteratorDescriptor.
  * <p>
@@ -337,9 +343,9 @@ public final class ParsedNumber extends ParsedElement {
    * @param parsedNumberExpandedArray
    * @return parsedNumberExpandedArray
    */
-  List getParsedNumberExpandedArray(List parsedNumberExpandedArray) {
+  ParsedElementList getParsedNumberExpandedArray(ParsedElementList parsedNumberExpandedArray) {
     if (parsedNumberExpandedArray == null) {
-      parsedNumberExpandedArray = new ArrayList();
+      parsedNumberExpandedArray = new ParsedElementList(type);
     }
     if (rawNumber.isNull()) {
       return parsedNumberExpandedArray;
@@ -367,8 +373,8 @@ public final class ParsedNumber extends ParsedElement {
         if (token == null) {
           return token;
         }
-        //If the number is not in an array, it may have delimiters
-        //(either [] or '').  Find opening delimiter
+        //If the number is not in an array, it may still have delimiters
+        //(either [] or '').  Find opening delimiter.
         if (token
             .equals(Token.Type.SYMBOL, ParsedArray.OPEN_SYMBOL.charValue())) {
           closeSymbol = ParsedArray.CLOSE_SYMBOL;
@@ -407,9 +413,6 @@ public final class ParsedNumber extends ParsedElement {
           fail("Closing delimiter, " + closeSymbol + ", was not found.");
           return token;
         }
-      }
-      if (token != null && token.is(Token.Type.WHITESPACE)) {
-        token = tokenizer.next();
       }
     }
     catch (IOException e) {
