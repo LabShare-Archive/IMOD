@@ -1,5 +1,7 @@
 IMOD History
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+4/10/08: Fixed tomosticth when using temporary directory.
+
 4/8/08: In Edgepatches, fixed creation of Section entry with Z values, and
 added options for specifying range in X and Y of pieces to add.
 
