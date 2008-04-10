@@ -1,4 +1,4 @@
-IMOD Version 3.11.0                     Copyright Notice and Credits
+IMOD Version 3.12.0                     Copyright Notice and Credits
 --------------------------------------------------------------------------
 Except as noted, ALL SOFTWARE LISTED IS Copyright (C) 1994-2007 by
 Boulder Laboratory for 3-Dimensional Electron Microscopy of Cells
@@ -49,6 +49,14 @@ Sandia National Labs; and Sven Hammarling, NAG Ltd.
 
 The program imodwincpu was adapted from code obtained from
 www.codeproject.com and written by Dudi Abramov.
+
+Andrew Noske at the University of Queensland, Australia contributed the
+beadhelper and drawingtools plugins.
+
+The isosurface display in 3dmod uses contouring and surface smoothing
+modules from Chimera, developed at the Resource for Biocomputing,
+Visualization, and Informatics at the University of California, San
+Francisco, supported by NIH/NCRR grant P41-RR01081.
 
 This work is supported by NIH/NCRR grant RR00592 to Andreas Hoenger and
 NIBIB grant EB005027 to David Mastronarde for the Boulder Laboratory for
