@@ -277,7 +277,7 @@ if dowarp:
                          'OutputFile ' + aliname,
                          'TransformFile ' + warpname]
                 if tempdir != ' ':
-                    input.append('TemporaryDirectory' + tempdir)
+                    input.append('TemporaryDirectory ' + tempdir)
                 try:
                     print '\nRunning warpvol on frame %d %d\n' % (x, y)
                     runcmd('warpvol -StandardInput', input)
@@ -466,6 +466,9 @@ sys.exit(0)
 
 #
 # $Log$
+# Revision 1.3  2008/04/08 21:41:14  mast
+# Made it produce a resmod whenever residual file exists
+#
 # Revision 1.2  2007/04/10 21:46:29  mast
 # Fixed initial bugs and added exclude fill to blend command
 #
