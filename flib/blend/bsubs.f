@@ -1335,7 +1335,7 @@ c       should be thrown away
           iflo = 1
 c           
 c           if the piece is lower, get the limits on upper side
-          if (inPiece(i) .eq. inedlower(1, ixy)) iflo = 2
+          if (i .eq. inedlower(1, ixy)) iflo = 2
           call getDataLimits(inpiece(i), 3-ixy, iflo, limitLo, limitHi)
           inLimit(i) = (ixy .eq. 1 .and. yinPiece(i) .ge. limitLo .and.
      &        yinPiece(i) .le. limitHi) .or. (ixy .eq. 2 .and.
@@ -2139,7 +2139,6 @@ c
         iPixStr = iPixEnd + 1 - numPix
       endif
       maxSame = numPix / 4
-c      print *,ipc,ixy,lohi, iPixStr, iPixEnd, LineStart,incPix, incLine
       do idir = -1,1,2
 c         
 c         First find out if first line has a common value
@@ -2381,6 +2380,9 @@ c
 
 c       
 c       $Log$
+c       Revision 3.24  2007/10/04 16:22:43  mast
+c       Switched to new peak find function
+c
 c       Revision 3.23  2007/04/10 15:41:11  mast
 c       Add ability to exclude gray areas from edges and not take actual data
 c       instead of gray data all the way across an edge
