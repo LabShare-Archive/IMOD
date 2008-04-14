@@ -29,7 +29,7 @@ c
       logical solved(limpatch),exists(limpatch)
       integer*4 nxyz(3),idrop(idim), numRes(limpatch)
       integer*4 inddrop(idim),ntimes(idim)
-      real*4 dropsum(idim)
+      real*4 dropsum(idim),debugxyz(3)
       logical inside
       real*4 xvert(limvert),yvert(limvert),zcont(idim)
       integer*4 indvert(idim),nvert(idim)
@@ -47,7 +47,7 @@ c
      &    (nfitzin,nfitxyzin(3))
       integer*4 ndat,nFileDat,npatx,npaty,npatz,i,j,ipos,inlist,k,itmp,ind
       integer*4 ncont,ierr,indy,indz,iobj,ip,indcur,ipt,numTarget,indTarget
-      integer*4 nofsx,nofsy,nofsz,ifsubset,ifdoSlab
+      integer*4 nofsx,nofsy,nofsz,ifsubset,ifdoSlab, ifdebug
       real*4 xofs,yofs,zofs,ximscale,yimscale,zimscale
       real*4 ratmin,ratmax,fracdrop,crit,critabs,elimmin
       integer*4 ifauto,nauto,niny,ix,iy,iz,iauto
@@ -56,19 +56,20 @@ c
       integer*4 induse,nlistd,ndroptot,locx,locy,locz,lx,ly,lz,ifuse
       real*4 ratio,devavmin,dist,distmin,devavsum,devmaxsum,devmaxmax
       real*4 dzmin,dz,devmax,devavg,devsd,zscal,xyscal, discount
-      real*4 devavavg,devmaxavg,devavmax
-      integer*4 icmin,icont,indv,indlc,ipntmax,maxdrop
+      real*4 devavavg,devmaxavg,devavmax, determ, detmean
+      integer*4 icmin,icont,indv,indlc,ipntmax,maxdrop, numLowDet
       integer*4 ifon,ndrop,ifflip,indpat,indloc,icolfix
       character*5 rowslab(2) /'rows ', 'slabs'/
       character*5 rowslabcap(2) /'ROWS ', 'SLABS'/
       character*1 yztext(2) /'Y', 'Z'/
+      logical*4 debugHere
       common /bigarr/xr,cx,dx,asave,censave,dxyzsave,xvert,yvert
 c       
       logical pipinput
       integer*4 numOptArg, numNonOptArg
       integer*4 PipGetInteger,PipGetTwoIntegers,PipGetThreeIntegers
       integer*4 PipGetString,PipGetFloat,PipGetFloatArray,PipgetTwoFloats
-      integer*4 PipGetInOutFile,PipGetLogical
+      integer*4 PipGetInOutFile,PipGetLogical,PipGetThreeFloats
 c      
 c       fallbacks from ../../manpages/autodoc2man -2 2  findwarp
 c       
@@ -98,6 +99,7 @@ c
       nexclyhi = 0
       nexclzhi = 0
       ifsubset=0
+      ifdebug = 0
       ratmin=4.0
       ratmax=20.0
       fracdrop=0.1
@@ -285,6 +287,8 @@ c
         ierr = PipGetTwoFloats('CriterionProbabilities', crit, critabs)
         ierr = PipGetString('ResidualPatchOutput', resFile)
         ierr = PipGetFloat('DiscountIfZeroVectors', discount)
+        ifdebug = 1 - PipGetThreeFloats('DebugAtXYZ', debugxyz(1), debugxyz(2),
+     &      debugxyz(3))
       else
         write(*,'(1x,a,$)')'0 to include all positions, or 1 to '//
      &      'exclude rows or columns of patches: '
@@ -530,7 +534,29 @@ c
 c         Or save data and terminate on a duplicate entry
 c
         if(nlocx.gt.1.or.nlocy.gt.1.or.nlocz.gt.1)then
-          if(ifauto.ne.0)write(*,*)
+c           
+c           Eliminate locations with low determinants.  This is very
+c           conservative measure before observed failures were diagonal
+c           degeneracies in 2x2 fits
+          numLowDet = 0
+          do locz=1,nlocz
+            do locy=1,nlocy
+              do locx=1,nlocx
+                ind=indloc(locx,locy,locz)
+                if (solved(ind)) then
+                  if (abs(determ(asave(1,1,ind)) .lt. 0.01 * detmean)) then
+                    solved(ind) = .false.
+                    numLowDet = numLowDet + 1
+                  endif
+                endif
+              enddo
+            enddo
+          enddo
+c           
+          if (numLowDet .gt. 0) write(*,'(/,i4,a)')numLowDet,
+     &        ' fits were eliminated due to low matrix determinant'
+c
+         if(ifauto.ne.0)write(*,*)
           if (pipinput) then
             ierr = PipGetString('InitialTransformFile', filename)
           else
@@ -562,6 +588,7 @@ c
           else
             write(1,'(3i4)')nlocx,nlocy,nlocz
           endif
+c
           do locz=1,nlocz
             do locy=1,nlocy
               do locx=1,nlocx
@@ -583,8 +610,11 @@ c
                       endif
                     endif
                   enddo
-c                   write(*,'(5i4,6f8.1,3f8.1)')locx,locy,locz,ind,induse,
-c                   &                   (censave(j,ind),censave(j,induse),j=1,3)
+                  if (ifdebug .ne. 0 .and. (censave(1,ind) - debugxyz(1))**2 +
+     &                (censave(2,ind) - debugxyz(2))**2 +
+     &                (censave(3,ind) - debugxyz(3))**2 .le. 3)
+     &                write(*,'(5i4,6f8.1,3f8.1)')locx,locy,locz,ind,induse,
+     &                (censave(j,ind),censave(j,induse),j=1,3)
                 endif
                 call xfmult3d(firstm,firstd,asave(1,1,induse),
      &              dxyzsave(1,induse),atmp,dtmp)
@@ -624,6 +654,7 @@ c
       ndroptot=0
       nlocdone=0
       numDevSum = 0.
+      detmean = 0.
       do ind = 1, npatx * npaty * npatz
         numRes(ind) = 0
         resSum(ind) = 0
@@ -706,8 +737,11 @@ c
 c             Need regular array of positions, so use the xyzsum to get
 c             censave, not the cenloc values from the regression
 c             
+            debugHere = ifdebug .ne. 0
             do i=1,3
               censave(i,indlc)=xyzsum(i)/(nfitx*nfity*nfitz)
+              if (debugHere)
+     &            debugHere = abs(censave(i,indlc) - debugxyz(i)) .lt. 1.
             enddo
 c             
 c             solve for this location if there are at least half of the
@@ -722,6 +756,8 @@ c
             maxdrop=nint(fracdrop*ndat)
             icolfix = 0
             do i=1,max(nfitx,nfity,nfitz)
+              if (debugHere) print *,i, ' in row',inrowx(i),inrowy(i),inrowz(i)
+              
               if (ifflip .eq. 1) then
                 if(inrowx(i).gt.ndat-3-maxdrop.or.
      &              inrowz(i).gt.ndat-3-maxdrop)solved(indlc)=.false.
@@ -737,13 +773,14 @@ c
      &            critabs, elimmin,idrop, ndrop, a,dxyz, cenloc,
      &            devavg,devsd, devmax, ipntmax,devxyzmax)
 c               
-c$$$            if (dxyz(1).gt.20.)then
-c$$$            do i=1,ndat
-c$$$            write(*,'(8f9.2)')(xr(j,i),j=1,7)
-c$$$            enddo
-c$$$            print *,(cenloc(i),i=1,3)
-c$$$            write(*,'(9f8.3)')((a(i,j),i=1,3),j=1,3)
-c$$$            endif
+            if (debugHere)then
+              do i=1,ndat
+                write(*,'(8f9.2)')(xr(j,i),j=1,7)
+              enddo
+              print *,'cenloc',(cenloc(i),i=1,3)
+              print *,'censave',(censave(i,indlc),i=1,3)
+              write(*,'(9f8.3)')((a(i,j),i=1,3),j=1,3)
+            endif
 c               
 c               Accumulate information about dropped points
 c
@@ -786,18 +823,24 @@ c
 c               
 c               mark this location as solved and save the solution. 
 c               
-c               write(*,'(6i4,3f8.1)')indlc,locx,locy,locz,ndat,ndrop,(dxyz(i),i=1,3)
+              if (debugHere) write(*,'(6i4,3f8.1)')indlc,locx,locy,locz,ndat,
+     &            ndrop,(dxyz(i),i=1,3)
               do i=1,3
                 dxyzsave(i,indlc)=dxyz(i)
                 do j=1,3
                   asave(i,j,indlc)=a(i,j)
                 enddo
+                if (debugHere) write(*,102)(a(i,j),j=1,3),dxyz(i)
               enddo
               nlocdone=nlocdone+1
+              detmean = detmean + abs(determ(a))
+            elseif (debugHere) then
+              print *,'Not solved',ndat
             endif
           enddo
         enddo
       enddo
+      detmean = detmean / max(1, nlocdone)
 c       
 c       check for auto control
 c       
@@ -939,8 +982,19 @@ c
       return
       end
 
+      real*4 function determ(a)
+      implicit none
+      real *4 a(3,3)
+      determ = a(1,1)*a(2,2)*a(3,3)+a(2,1)*a(3,2)*a(1,3)+a(1,2)*a(2,3)*a(3,1)-
+     &    a(1,3)*a(2,2)*a(3,1)-a(2,1)*a(1,2)*a(3,3)-a(1,1)*a(3,2)*a(2,3)
+      return
+      end
+
 c       
 c       $Log$
+c       Revision 3.14  2007/04/07 21:32:30  mast
+c       Increased dimensions, fixed possible initialization problem
+c
 c       Revision 3.13  2007/01/17 16:49:33  mast
 c       Fixed failure to initialize # of patches to exclude
 c
