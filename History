@@ -1,5 +1,8 @@
 IMOD History
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+4/14/08: Fixed Sirtsetup/Splittilt for Windows: switched Sirtsetup to unix line
+endings, used \echo to output \rm to workaround tcsh problems (In 3.11).
+
 4/14/08: Fixed Blendmont bug when using ExcludeFillFromEdges, which tomostitch
 uses.
 
