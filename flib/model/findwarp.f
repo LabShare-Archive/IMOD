@@ -544,7 +544,7 @@ c           degeneracies in 2x2 fits
               do locx=1,nlocx
                 ind=indloc(locx,locy,locz)
                 if (solved(ind)) then
-                  if (abs(determ(asave(1,1,ind)) .lt. 0.01 * detmean)) then
+                  if (abs(determ(asave(1,1,ind))) .lt. 0.01 * detmean) then
                     solved(ind) = .false.
                     numLowDet = numLowDet + 1
                   endif
@@ -992,6 +992,9 @@ c
 
 c       
 c       $Log$
+c       Revision 3.15  2008/04/14 16:49:37  mast
+c       Used determinant to detect and eliminate degenerate solutions
+c
 c       Revision 3.14  2007/04/07 21:32:30  mast
 c       Increased dimensions, fixed possible initialization problem
 c
