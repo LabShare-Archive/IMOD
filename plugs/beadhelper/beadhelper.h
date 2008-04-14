@@ -58,6 +58,7 @@ class BeadHelper : public DialogFrame
   void fillMissingPtsCurrCont( bool fillPastEnds );
   void moreActions();
   void moreSettings();
+  void keyboardSettings();
   void reorderContours();
   void moveContour();
   void moveMultipleContours();
@@ -70,6 +71,7 @@ class BeadHelper : public DialogFrame
   bool advanceSelectedPointInCurrCont( int change );
   void goToMiddleSlice();
   void printContourCheckedInfo();
+  bool verifyMiddleSliceIsSeeded();
   void test();
     
   void changeShowExpectedPos();
@@ -121,11 +123,11 @@ class BeadHelper : public DialogFrame
   QGroupBox   *grpOptions;
   QGridLayout *gridLayout3;
   QLabel      *lblWheelBehav;
-  QComboBox   *wheelBehavCombo;
   QLabel      *lblEstMethod;
   QComboBox   *estPosMethodCombo;
   QPushButton *moreActionsButton;
   QPushButton *moreSettingsButton;
+  QPushButton *keyboardSettingsButton;
 };
 
 
@@ -138,7 +140,7 @@ enum estimationmethod { EM_BESTTWO, EM_NEARESTTWO, EM_PREVTWO,
                         EM_QUADRATIC, EM_LOCALQUADRATIC, EM_LASTTHREE, EM_LASTSIX };
 
 enum contsortcriteria { SORT_YJUMPS, SORT_DEV, SORT_AVG_GREY, SORT_DIST_FROM_MIDDLE,
-                        SORT_MISSING_PTS, SORT_RANDOM };
+                        SORT_MISSING_PTS, SORT_UNCHECKED, SORT_RANDOM };
 
 
 enum contdisplay      { LD_OFF, LD_ALL, LD_CURRENT, LD_CURRMISSING,
@@ -151,7 +153,7 @@ enum wheelbehavior    { WH_NONE, WH_POINTS, WH_SLICES, WH_SMART };
 enum enterbehavior    { EN_NONE, EN_NEXTUNCHECKED, EN_PREVUNCHECKED, EN_NEXTCHECKED,
                         EN_NEXTCONT };
 
-const int NUM_SAVED_VALS = 33;
+const int NUM_SAVED_VALS = 38;
 
 
 //-------------------------------
@@ -187,26 +189,35 @@ struct BeadHelperData   // contains all local plugin data
   int expPtSize;              // the size (in screen pixels) of expected points
   int sizeLineSpheres;        // the size (in screen pixels) of contour line display
   int sizePurpleSpheres;      // the size (in screen pixels) of purple spheres
+  int lineDisplayWidth;       // the thickness of the line used to show contours
   
   bool disableHotKeys;        // disables all hotkeys for this plugin window
   bool includeEndsResid;      // include end points and seed when searching for 
                               // residuals with [y], [b] and [w]
   int enterAction;            // the action performed when enter is pressed
-  int minPtsEnter;            // the min number of points a contour must have to be
-                              // jumped to when enter is pressed
+  int minPtsEnter;            // the minimum number of points a contour must have to be
+                              //   jumped to when enter is pressed
+  int maxPtsEnter;            // the maximum number of points a contour must have to be
+                              //   jumped to when enter is pressed
+  bool enterPrint;            // if true: prints the number of matching contour each time
+                              //   enter is pressed
   
   int dKeyBehav;              // the action when "d" is pressed (see: dkeybehavior)
+  bool wCurrContOnly;         // if true: pressiong "w" searches current contour only
+  int  wWeightedDiv;          // weighted_dev = distance_to_expected_pt / 
+                              //                (distance_nearest_pts + wWeightedDiv)
   
   int selectedAction;         // the last selected action under "More Actions"
   int sortCriteria;           // the last selected sort critria "Reorder Contours"
   
-  bool autoSaveSettings;
+  bool autoSaveSettings;      // if true: saves all BeadHelperData settings on exit
   
   
   //## SMOOTHING OPTIONS:
   
   int   smoothCurrContOnly;   // if 0: smooths range, if 1: smooths current contour only
   bool  smoothFillGaps;       // fill in missing points (on views with no points)
+  bool  smoothBigResidFirst;  // smooths points with greatest residual first
   bool  smoothMoveYOnly;      // only shifts point along y axis
   bool  smoothLeaveSeed;      // will not move the seed point during moving process
   bool  smoothLeaveEnds;      // will not move the start and end point of contours
@@ -217,10 +228,9 @@ struct BeadHelperData   // contains all local plugin data
   bool  smoothAdjacentV;      // will only smooth views above and below the current view
   int   smoothNumViews;       // how many views above and below the current z to smooth
   
-  
   //## OTHER:
   
-  Ipoint middlePt;      // the point at the middle of the tomogram
+  Ipoint middlePt;            // the point at the middle of the tomogram
   
   float tiltAngle;            // angle in degrees of the tilt axis relative to vertical
   float tiltOffsetX;          // distance in pixels the tilt axis is offset in X
@@ -278,6 +288,9 @@ bool bead_focusOnPointCrude( float x, float y, float z );
 bool bead_areDuplicatePtsSameView( Icont *cont );
 int bead_removeDuplicatePtsSameView( Icont *cont, bool remove, bool print );
 
+bool bead_ptsAreNotInOrder( Icont *cont );
+int bead_orderPtsByAscendingZ( Icont *cont );
+
 bool bead_isPtOnSlice( Icont *cont, int slice );
 int bead_getPtIdxOnSlice( Icont *cont, int slice );
 int bead_getExpPtIdxForSlice( Icont *cont, int slice );
@@ -303,7 +316,7 @@ int bead_movePtTowardsEstimatedPos ( Icont *cont, int z,
                                      bool leaveEnds );
 bool bead_movePtsTowardsEstimatedPos ( Icont *cont, int minZ, int maxZ,
                                        float moveFract, float minResid, int iterations,
-                                       bool fillGaps, bool moveYOnly,
+                                       bool fillGaps, bool moveBigFirst, bool moveYOnly,
                                        bool leaveSeed, bool leaveEnds, bool leaveCurrV,
                                        int &ptsMoved, int &ptsAdded );
 bool bead_smoothPtsUsingPlugSettings ( Icont *cont, int &ptsMoved, int &ptsAdded );
@@ -313,7 +326,7 @@ int bead_deletePtsInZRange( Icont *cont, int minZ, int maxZ, bool inclusive );
 
 float bead_calcYJump( Icont *cont, int idx );
 float bead_calcAvgYJump( Icont *cont );
-float bead_calcDistanceFromExpected( Icont *cont, int idx );
+float bead_calcDistanceFromExpected( Icont *cont, int idx, bool weighted );
 float bead_calcCrudeWeightedDevFromMiddle( Icont *cont );
 float bead_getGreyValue( Ipoint *pt );
 float bead_avgGreyValueOfPts( Icont *cont );
@@ -332,7 +345,8 @@ bool bead_estimateTurningPointOfCont( Icont *cont, Ipoint *pt,
                                       float minDistRequired, int *idx );
 
 bool bead_goToNextBiggestYJump( bool findNextBiggest );
-bool bead_goToNextBiggestWeightedDev( bool findNextBiggest, bool weighted );
+bool bead_goToNextBiggestDev( bool findNextBiggest );
+bool bead_goToNextBiggestWeightedDev( bool findNextBiggest );
 bool bead_goToNextBiggestHole( bool findNextBiggest );
 bool bead_goToContNextBiggestSortVal( bool findNextBiggest );
 
