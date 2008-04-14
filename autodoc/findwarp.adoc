@@ -159,6 +159,13 @@ align adjacent volumes for stitching.  Fits with the number of zero vectors
 bigger than the given fraction of the total vectors will be excluded from the
 averages.
 
+[Field = DebugAtXYZ]
+short = debug
+type = FT
+usage = Center location at which to print debug output about fits
+tooltip = 
+manpage = 
+
 [Field = ParameterFile]
 short = param
 type = PF

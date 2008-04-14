@@ -40,6 +40,38 @@ manpage = Report scaling factors without writing scaled data to file.  The
 program will report two numbers, a factor to multiply by then a constant to
 add; these numbers can be supplied to the -multadd option of Newstack.
 
+[Field = XMinAndMax]
+short = xminmax
+type = IP
+usage = Starting and ending X coordinates of region to analyze in reference
+tooltip = 
+manpage = Starting and ending X coordinates of region to analyze for mean and
+SD in reference volume.  X, Y, and Z coordinates are numbered from 0.
+
+[Field = YMinAndMax]
+short = yminmax
+type = IP
+usage = Starting and ending Y coordinates of region to analyze in reference
+tooltip = 
+manpage = 
+
+[Field = ZMinAndMax]
+short = zminmax
+type = IP
+usage = Starting and ending Y coordinates of region to analyze in reference
+tooltip = 
+manpage = 
+
+[Field = OffsetRefToScaledXYZ]
+short = offset
+type = FT
+usage = Displacement of scaled volume relative to reference in X, Y, and Z
+tooltip = 
+manpage = Displacement of the volume being scaled relative to the
+reference volume in X, Y, and Z;
+namely, the amount to add to a pixel coordinate in the reference volume to
+obtain the coordinate of the corresponding pixel in the file being scaled.
+
 [Field = usage]
 short=help
 long=usage
