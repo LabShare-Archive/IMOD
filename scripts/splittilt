@@ -382,7 +382,7 @@ EOF
         @ num++
         echo "InputFile $templist[$num]" >> $finish
     end
-    echo "$cleanup $recroot-[0-9]*.$recext" >> $finish
+    \echo "$cleanup $recroot-[0-9]*.$recext" >> $finish
 else if (! $direct) then
     cat <<EOF >! $finish
 \$assemblevol
@@ -401,7 +401,7 @@ EOF
         @ num++
         echo "$templist[$num]" >> $finish
     end
-    echo "$cleanup $recroot-[0-9]*.$recext" >> $finish
+    \echo "$cleanup $recroot-[0-9]*.$recext" >> $finish
 else
     cat <<EOF >! $finish
 \$collectmmm pixels= $rootname $numslabs $recfile $startnum
@@ -414,6 +414,10 @@ echo "Command files for $numslabs chunks created and ready to run with:"
 echo "  processchunks machine_list $rootname"
 
 #  $Log$
+#  Revision 3.11  2007/07/16 23:44:49  mast
+#  Made it work for reprojecting from tomogram, added options to start at
+#  a command file number and end with a -sync instead of -finish
+#
 #  Revision 3.10  2006/08/17 18:36:55  mast
 #  Added locale statement to keep output of awk from having , instead of .
 #

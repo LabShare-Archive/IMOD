@@ -385,7 +385,7 @@ RecFileToReproj     $lastname\
 \$\\rm -f $setname.diff $projname~ $drecname~ $drecname
 \$subimage $projsubzero $projname $aliuse $setname.diff
 EOF
-    if (! $testmode) echo '$\rm -f'" $projname" >> $outfile
+    if (! $testmode) \echo '$\rm -f'" $projname" >> $outfile
     echo '$echo CHUNK DONE' >> $outfile
 
     # Make the error reconstruction file
@@ -436,7 +436,7 @@ FlatFilterFraction   2\
 \$clip stat $ixtext $iytext -iz 10 $drecname
 \$subimage $recsubthresh $lastname $drecname $srecname
 EOF
-    if (! $testmode) echo '$\rm -f'" $drecname" >> $outfile
+    if (! $testmode) \echo '$\rm -f'" $drecname" >> $outfile
     if ("$trimarg" != "") then
         cat <<EOF >> $outfile
 \$managesirt -it $recnum -le $lastleave -tr "$trimarg" $setname
@@ -447,7 +447,7 @@ EOF
 EOF
 endif
     if ($iter == $iterations) echo '$'"sed -n '/@ z/p' $sirtname-[0-9]*sync.log" >> $outfile
-    if ($iter == $iterations && $testmode < 2) echo '$\rm -f '"$sirtname-[0-9]*.*" >> $outfile
+    if ($iter == $iterations && $testmode < 2) \echo '$\rm -f '"$sirtname-[0-9]*.*" >> $outfile
     if ($iter < $iterations) @ comnum++
     echo '$echo CHUNK DONE' >> $outfile
 end
@@ -459,6 +459,10 @@ echo "  processchunks machine_list $sirtname"
 exit 0
 
 #  $Log$
+#  Revision 3.5  2007/09/11 21:37:32  mast
+#  Added scaling options, always option, enhanced test option, changed com
+#  files to call managesirt
+#
 #  Revision 3.4  2007/08/18 03:21:22  mast
 #  Fixed to work with binning and to add chunk done to densnorm file
 #
