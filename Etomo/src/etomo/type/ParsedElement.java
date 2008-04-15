@@ -20,6 +20,10 @@ import etomo.util.PrimativeTokenizer;
  * @version $Revision$
  * 
  * <p> $Log$
+ * <p> Revision 1.12  2008/04/08 23:58:03  sueh
+ * <p> bug# 1105 Changed the array used in getParsedNumberExpandedArray
+ * <p> to a ParsedElementList because it always holds ParsedNumbers.
+ * <p>
  * <p> Revision 1.11  2008/04/02 02:17:49  sueh
  * <p> bug# 1097 Matching Matlab's syntax.  This simplifies many of the
  * <p> ParsedElement classes because there where too many special cases.
@@ -68,15 +72,16 @@ public abstract class ParsedElement {
 
   private boolean failed = false;
   private String failedMessage = null;
-  private boolean debug = false;
 
   public abstract String getRawString();
 
-  public abstract Number getRawNumber();
-
-  public abstract boolean isEmpty();
-
   public abstract String getRawString(int index);
+
+  public abstract void setMinArraySize(int input);
+
+  public abstract void setDefault(int input);
+  
+  public abstract void setDebug(boolean input);
 
   abstract void setRawString(String number);
 
@@ -96,11 +101,9 @@ public abstract class ParsedElement {
 
   abstract boolean isCollection();
 
-  abstract void setDefaultValue(int numberIndex, Integer[] defaultValueArray);
+  abstract void setDefault(EtomoNumber input);
 
   abstract void removeElement(int index);
-
-  abstract boolean isDefaultedEmpty();
 
   abstract boolean ge(int number);
 
@@ -114,6 +117,34 @@ public abstract class ParsedElement {
    */
   abstract ParsedElementList getParsedNumberExpandedArray(
       ParsedElementList parsedNumberExpandedArray);
+
+  public boolean isEmpty() {
+    if (size() == 0) {
+      return true;
+    }
+    for (int i = 0; i < size(); i++) {
+      if (!getElement(i).isEmpty()) {
+        return false;
+      }
+    }
+    return true;
+  }
+  
+  public Number getRawNumber() {
+    return getElement(0).getRawNumber();
+  }
+
+  boolean isDefaultedEmpty() {
+    if (size() == 0) {
+      return true;
+    }
+    for (int i = 0; i < size(); i++) {
+      if (!getElement(i).isDefaultedEmpty()) {
+        return false;
+      }
+    }
+    return true;
+  }
 
   final PrimativeTokenizer createTokenizer(final String value) {
     PrimativeTokenizer tokenizer = new PrimativeTokenizer(value);
@@ -168,13 +199,4 @@ public abstract class ParsedElement {
     }
     return failedMessage;
   }
-
-  final boolean isDebug() {
-    return debug;
-  }
-
-  void setDebug(boolean debug) {
-    this.debug = debug;
-  }
-
 }
