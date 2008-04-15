@@ -28,6 +28,10 @@ import etomo.util.PrimativeTokenizer;
  * @version $Revision$
  * 
  * <p> $Log$
+ * <p> Revision 1.12  2008/04/09 00:01:33  sueh
+ * <p> bug# 1105 Changed the array used in getParsedNumberExpandedArray
+ * <p> to a ParsedElementList because it always holds ParsedNumbers.
+ * <p>
  * <p> Revision 1.11  2008/04/02 02:24:19  sueh
  * <p> bug# 1097 Added ParsedElementType.  Got rid of OPEN and
  * <p> CLOSE_SYMBOL (just using DELIMITER_SYMBOL).
@@ -74,8 +78,22 @@ public final class ParsedQuotedString extends ParsedElement {
   private static final ParsedElementType type = ParsedElementType.STRING;
 
   private String rawString = "";
+  private boolean debug = false;
 
-  public ParsedQuotedString() {
+  private ParsedQuotedString(boolean debug) {
+    setDebug(debug);
+  }
+
+  public static ParsedQuotedString getInstance() {
+    return new ParsedQuotedString(false);
+  }
+
+  static ParsedQuotedString getInstance(boolean debug) {
+    return new ParsedQuotedString(debug);
+  }
+
+  public void setDebug(final boolean input) {
+    debug = input;
   }
 
   /**
@@ -128,7 +146,7 @@ public final class ParsedQuotedString extends ParsedElement {
     if (index == 0) {
       return rawString;
     }
-    return ParsedEmptyElement.getInstance(type).getRawString();
+    return new ParsedQuotedString(debug).getRawString();
   }
 
   void setRawString(int index, String string) {
@@ -178,7 +196,7 @@ public final class ParsedQuotedString extends ParsedElement {
     if (index == 0) {
       return this;
     }
-    return ParsedEmptyElement.getInstance(type);
+    return new ParsedQuotedString(debug);
   }
 
   void setRawString(int index, float number) {
@@ -231,9 +249,10 @@ public final class ParsedQuotedString extends ParsedElement {
    * @param parsedNumberExpandedArray
    * @return parsedNumberExpandedArray
    */
-  ParsedElementList getParsedNumberExpandedArray(ParsedElementList parsedNumberExpandedArray) {
+  ParsedElementList getParsedNumberExpandedArray(
+      ParsedElementList parsedNumberExpandedArray) {
     if (parsedNumberExpandedArray == null) {
-      parsedNumberExpandedArray = new ParsedElementList(type);
+      parsedNumberExpandedArray = new ParsedElementList(type, null, debug, null);
     }
     return parsedNumberExpandedArray;
   }
@@ -246,7 +265,13 @@ public final class ParsedQuotedString extends ParsedElement {
     return isEmpty();
   }
 
-  void setDefaultValue(int numberIndex, Integer[] defaultValueArray) {
+  public void setDefault(int input) {
+  }
+
+  void setDefault(EtomoNumber input) {
+  }
+
+  public void setMinArraySize(int input) {
   }
 
   void removeElement(int index) {
