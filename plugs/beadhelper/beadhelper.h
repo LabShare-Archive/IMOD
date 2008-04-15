@@ -74,6 +74,7 @@ class BeadHelper : public DialogFrame
   void printContourCheckedInfo();
   bool verifyMiddleSliceIsSeeded();
   bool verifyTiltIncrement( bool printResult, bool showErrorMsgBoxIfBad );
+  bool openTiltAngleFile();
   void test();
     
   void changeShowExpectedPos();
@@ -253,6 +254,8 @@ struct BeadHelperData   // contains all local plugin data
   vector<IdxToSort> sortVals;   // stores a idx and float for each contour after
                                 // "reorder contours" is run
   
+  vector<float> tiltAngles;   // stores tilt angles loaded from a .tlt file
+  
   Ipoint mouse;               // the current tomogram coordinates of the mouse
   
   float wheelResistance;      // the higher the value, the slower mouse scrolling works
@@ -294,6 +297,7 @@ int edit_getZOfTopZap();
 int edit_setZapLocation( float x, int y, int z, bool redraw );
 int edit_changeSelectedSlice( int changeZ, bool redraw );
 bool bead_focusOnPointCrude( float x, float y, float z );
+float bead_getTiltAngleAtZ( int z );
 
 bool bead_areDuplicatePtsSameView( Icont *cont );
 int bead_removeDuplicatePtsSameView( Icont *cont, bool remove, bool print );

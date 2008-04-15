@@ -183,14 +183,14 @@ int imodPlugKeys(ImodView *vw, QKeyEvent *event)
       plug.window->goToMiddleSlice();
       break;
       
-      /*
+    
     case Qt::Key_T:                  // temporary testing purposes - comment out %%%%
       if (shift)
         plug.window->test();
       else
         return 0;
       break;
-      */
+    
       
     default:
       return 0;       // let imod deal with action
@@ -1110,7 +1110,7 @@ bool BeadHelper::drawExtraObject( bool redraw )
     }
     else if( plug.tiltDisplayType == TD_TILTSEGS )
     {
-      float tiltAngle = (z - (plug.zsize/2)) * plug.tiltIncrement;
+      float tiltAngle = bead_getTiltAngleAtZ( z );
       float segWidth  = (plug.xsize / 5.0f) * cosf( DEGS_TO_RADS * tiltAngle );
       float ym = plug.ysize;
       
@@ -1882,7 +1882,8 @@ void BeadHelper::moreActions()
                                   "verify contours"
                                      "\n(reorders pts and removes duplicates),"
                                   "mark contours as checked/unchecked,"
-                                  "print contour info",
+                                  "print contour info,"
+                                  "load tilt angles",
                                   plug.selectedAction,
                                   "",
                                   "Estimates the angle of the tilt axis by averaging the "
@@ -1911,7 +1912,9 @@ void BeadHelper::moreActions()
                                   "Prints some basic numbers including the number of "
                                     "\ncomplete contours; incomplete contours; "
                                     "\nchecked contours and also number of "
-                                    "\nmissing points " );
+                                    "\nmissing points,"
+                                  "Loads the calculated tilt angle of all views from "
+                                    "\nthe appropriate a .tlt file");
 	GuiDialogCustomizable dlg(&ds, "Perform Action", this);
 	dlg.exec();
 	if( ds.cancelled )
@@ -1990,7 +1993,7 @@ void BeadHelper::moreActions()
     {
       correctCurrentObject();
     } break;
-      
+    
     case(7):      // mark all contours as stippled/unchecked
     {
       markRangeAsStippled();
@@ -1999,6 +2002,11 @@ void BeadHelper::moreActions()
     case(8):      // print contour info
     {
       printContourCheckedInfo();
+    } break;
+    
+    case(9):      // load tilt angles
+    {
+      openTiltAngleFile();
     } break;
   }
   
@@ -2029,9 +2037,9 @@ void BeadHelper::moreSettings()
                                           toString(plug.tiltIncrement).c_str(),
                                           "The angle (in degrees) the specimen "
                                           "was tilted between subsequent views"
-                                          "\nNOTE: Don't worry if this is not correct "
-                                          "or not accurate - it is rarely used in "
-                                          "estimation methods" );
+                                          "\nNOTE: This value becomes irrelevant after "
+                                          "loading the calculated tilt angles via "
+                                          "'More Actions' > 'load tilt angles'" );
   int ID_TILTANGLE      = ds.addLineEdit( "tilt axis angle:             ",
                                           toString(plug.tiltAxisAngle).c_str(),
                                           "The angle (in degrees) clockwise from "
@@ -3120,13 +3128,89 @@ bool BeadHelper::verifyTiltIncrement( bool printResult, bool showErrorMsgBoxIfBa
     string str = "WARNING: Tilt increment of " + toString(plug.tiltIncrement,2) 
                + DEGREE_SIGN + " (" + toString(minTilt,1) + " to " + toString(maxTilt,1)
                + DEGREE_SIGN + ") appears to be incorrect... \n"
-               + "\n\nChange this under 'More Settings' > 'tilt increment'";
+               + "\n\nChange this under 'More Settings' > 'tilt increment'"
+               + "\nor load the tilt angles using 'More Actions' > 'load tilt angles'";
     MsgBox( str.c_str() );
   }
   
   return (tiltAppearsGood);
 }
 
+
+//------------------------
+//-- Opens a .tlt "tilt angle file" and populates these entries into
+//-- the 'plug.tiltAngles' vector. Returns true if successful.
+
+bool BeadHelper::openTiltAngleFile()
+{
+  //## GET FILENAME USING OPEN DIALOG:
+  
+  QString qname;
+  char *filter[] = {"Tilt align files (*.tlt)", "All files (*.*)"};
+  qname  = diaOpenFileName(this, "Select Tiltalign log file", 2, filter);
+  if (qname.isEmpty())
+    return false;
+  string fileName = qStringToString(qname);
+  
+  //## READ VALUES INTO A VECTOR OF STRINGS THEN PUT INTO 'plug.tiltAngles'
+  
+  vector<string> fileStr;  
+  fileStr = file_loadTextFromFile( fileName, false );
+  
+  if( fileStr.empty() )
+  {
+    wprint( "\aERROR: Could not open file '%s'\n", fileName.c_str() );
+    return false;
+  }
+  
+  plug.tiltAngles.clear();
+  for (int i=0; i<(int)fileStr.size(); i++ )
+  {
+    string line = string_replace( fileStr[i], " ", "");
+    if( line.length() > 0 )
+    {
+      float tiltAngle = string_getFloatFromString(line);
+      plug.tiltAngles.push_back( tiltAngle );
+    }
+  }
+  plug.tiltAngles = vector_reverse( plug.tiltAngles );  // order of angles needs to
+                                                        // to be reversed!
+  
+  //## PRINT RESULTS:
+  
+  int numTilts = (int)plug.tiltAngles.size();
+  if( numTilts != plug.zsize || numTilts < 2 )
+  {
+    plug.tiltAngles.clear();
+    wprint( "\aERROR: Number of entries did not match number of views\n");
+    return false;
+  }
+  
+  string tiltValuesStr;
+  for (int i=0; i<(int)plug.tiltAngles.size(); i++ )
+    tiltValuesStr += toString( plug.tiltAngles[i] );
+  
+  float minAngle = plug.tiltAngles[0];
+  float maxAngle = plug.tiltAngles.back();
+  float tiltIncrementApprox = (maxAngle - minAngle) / numTilts;
+  
+  wprint("TILT ANGLE FILE: \n\n");
+  wprint(" view \t angle\n");
+  for (int i=0; i<(int)plug.tiltAngles.size(); i++ )
+  {
+    wprint( " %d \t %F", i+1, plug.tiltAngles[i] );
+    if( i>0 )
+    {
+      float tiltIncrease = plug.tiltAngles[i] - plug.tiltAngles[i-1];
+      if( tiltIncrease < tiltIncrementApprox/2.0f )
+        wprint("  <-- PROBLEM?");
+    }
+    wprint("\n");
+  }
+  
+  wprint("\n > average tilt increment = %F%c\n", tiltIncrementApprox, DEGREE_SIGN);
+  wprint(" > %d calculated tilt angles have been loaded\n", numTilts );
+}
 
 //------------------------
 //-- Method used for testing new routines.
@@ -3442,6 +3526,20 @@ bool bead_focusOnPointCrude( float x, float y, float z )
   ivwSetLocation(plug.view, x, y, z);
   ivwRedraw( plug.view );
   imodContourDelete(tempCont);
+}
+
+
+//------------------------
+//-- Gets the tilt angle of a view from 'plug.tiltAngles' or, if this is empty,
+//-- calculates it using 'plug.tiltIncrement' and 'plug.middleSlice'
+
+float bead_getTiltAngleAtZ( int z )
+{
+  if( z < (int)plug.tiltAngles.size() )
+    return plug.tiltAngles[z];
+  
+  else
+    return ( z - plug.middleSlice ) * plug.tiltIncrement;
 }
 
 
@@ -3878,8 +3976,6 @@ Ipoint bead_getPtOnLineWithZ( Ipoint *pt1, Ipoint *pt2, int z )
 //-- Takes two points as input and calculates the estimated position of a point on
 //-- slice "z" based on tilt angles and a straight line thorugh the points
 
-const float MIN_X_DIST_TO_USE_ANGLES = 3.0;
-
 Ipoint bead_getPtOnLineWithZUsingTiltAngles( Ipoint *pt1, Ipoint *pt2, int z )
 {
   if( (int)pt1->z == (int)pt2->z )
@@ -3888,30 +3984,21 @@ Ipoint bead_getPtOnLineWithZUsingTiltAngles( Ipoint *pt1, Ipoint *pt2, int z )
   Ipoint estPt;
   estPt.z = z;
   
-  float xDistBetweenPtsNorm = ABS( fDivide( (pt2->x - pt1->x) , ( pt2->z - pt1->z) ) ); 
+  //float xDistBetweenPtsNorm = ABS(fDivide( (pt2->x - pt1->x) , ( pt2->z - pt1->z) )); 
   
-  if( xDistBetweenPtsNorm < MIN_X_DIST_TO_USE_ANGLES )
-  {
-    float fractToExpectedPos = fDivide( (z - pt1->z) , ( pt2->z - pt1->z) ); 
-    estPt = line_findPtFractBetweenPts( pt1, pt2, fractToExpectedPos );
-  }
-  else
-  {
-    float middleSlice = plug.zsize / 2.0f;
-    
-    float angle1 = (pt1->z - middleSlice)*plug.tiltIncrement;
-    float angle2 = (pt2->z - middleSlice)*plug.tiltIncrement;
-    float angleZ = (     z - middleSlice)*plug.tiltIncrement;
-    
-    float adjSide1  = cosf( DEGS_TO_RADS * angle1 );
-    float adjSide2  = cosf( DEGS_TO_RADS * angle2 );
-    float adjSideZ  = cosf( DEGS_TO_RADS * angleZ );
-      // calculate the relative length of an adjacent side for each point
-      // implied by the tilt angle at that Z value
-    
-    float fractToExpectedPos = fDivide( (adjSideZ - adjSide1) , ( adjSide2 - adjSide1) ); 
-    estPt = line_findPtFractBetweenPts( pt1, pt2, fractToExpectedPos );
-  }
+  float angle1 = bead_getTiltAngleAtZ( pt1->z+0.5 );
+  float angle2 = bead_getTiltAngleAtZ( pt2->z+0.5 );
+  float angleZ = bead_getTiltAngleAtZ( z );
+  
+  float adjSide1  = cosf( DEGS_TO_RADS * angle1 );
+  float adjSide2  = cosf( DEGS_TO_RADS * angle2 );
+  float adjSideZ  = cosf( DEGS_TO_RADS * angleZ );
+  // calculate the relative length of an adjacent side for each point
+  // implied by the tilt angle at that Z value
+  
+  float fractToExpectedPos = fDivide((adjSideZ - adjSide1), ( adjSide2 - adjSide1)); 
+  estPt = line_findPtFractBetweenPts( pt1, pt2, fractToExpectedPos );
+  
   return (estPt);
 }
 
