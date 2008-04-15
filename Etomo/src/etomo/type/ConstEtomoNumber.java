@@ -36,6 +36,9 @@ import etomo.util.Utilities;
  * @version $Revision$
  * 
  * <p> $Log$
+ * <p> Revision 1.57  2008/04/02 01:59:51  sueh
+ * <p> bug# 1097 Added le(int) and newNumberNegate.
+ * <p>
  * <p> Revision 1.56  2007/12/13 01:11:54  sueh
  * <p> bug# 1056 Added startArray, to convert integers to/from strings.  Added
  * <p> equalsNameIgnoreCase, to compare to the name.
@@ -1118,22 +1121,19 @@ public abstract class ConstEtomoNumber implements Storable {
     return getDefaultedValue().doubleValue();
   }
 
-  public ConstEtomoNumber setDefault(int defaultValue) {
-    this.defaultValue = newNumber(defaultValue);
+  public ConstEtomoNumber setDefault(int input) {
+    defaultValue = newNumber(input);
     return this;
   }
 
-  public void setDefault(Integer defaultValue) {
-    if (defaultValue == null) {
-      this.defaultValue = newNumber();
+  public void setDefault(ConstEtomoNumber input) {
+    if (debug)System.out.println("ConstEtomoNumber.setDefault:input="+input);
+    if (input == null) {
+      defaultValue = newNumber();
     }
     else {
-      this.defaultValue = defaultValue;
+      defaultValue = input.getNumber();
     }
-  }
-
-  public void resetDefault() {
-    defaultValue = newNumber();
   }
 
   public ConstEtomoNumber setDefault(boolean defaultValue) {
@@ -1838,6 +1838,22 @@ public abstract class ConstEtomoNumber implements Storable {
 
     public static Type getDefault() {
       return INTEGER;
+    }
+    
+    public String toString() {
+      if (this==DOUBLE) {
+        return "Double";
+      }
+      if (this==FLOAT) {
+        return "Float";
+      }
+      if (this==INTEGER) {
+        return "Integer";
+      }
+      if (this==LONG) {
+        return "Long";
+      }
+      return "Unknown Type";
     }
   }
 }
