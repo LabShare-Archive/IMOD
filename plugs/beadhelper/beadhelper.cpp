@@ -129,7 +129,7 @@ int imodPlugKeys(ImodView *vw, QKeyEvent *event)
       if (shift)
         plug.window->moveContour();
       else
-        plug.window->goToMiddleSlice();
+        return plug.window->applyMAction();
       break;
       
     case Qt::Key_H:                  // go to next largest hole
@@ -240,7 +240,7 @@ void imodPlugExecute(ImodView *inImodView)
     plug.wheelBehav         = WH_SMART;
     plug.estPosMethod       = EM_NEARESTTWO;
     plug.showSpheres        = true;
-    plug.sphereSize         = 2;
+    plug.sphereSize         = 3;
     plug.lineDisplayWidth   = 1;
     
     plug.lineDisplayType    = LD_ALL;
@@ -248,7 +248,8 @@ void imodPlugExecute(ImodView *inImodView)
     
     //** MORE SETTINGS:
     
-    plug.tiltAngle             = -11.7;
+    plug.tiltIncrement         = 1.0;
+    plug.tiltAxisAngle         = -11.7;
     plug.tiltOffsetX           = 0;
     plug.biggestHoleGrid       = 20;
     plug.biggestHoleOffset     = 100;
@@ -268,6 +269,7 @@ void imodPlugExecute(ImodView *inImodView)
     plug.maxPtsEnter           = plug.zsize;
     plug.enterPrint            = false;
     plug.dKeyBehav             = DK_OPPOSITEMIDDLE;
+    plug.mKeyBehav             = MK_GOTOMIDDLE;
     plug.wCurrContOnly         = true;
     plug.wWeightedDiv          = 15;
     
@@ -333,6 +335,7 @@ void imodPlugExecute(ImodView *inImodView)
   //## REDRAW:
   
   plug.window->changeSphereSize( plug.sphereSize );
+  plug.window->verifyTiltIncrement(true, true);
   plug.window->verifyMiddleSliceIsSeeded();
   ivwRedraw( plug.view );
 }
@@ -470,6 +473,8 @@ BeadHelper::BeadHelper(QWidget *parent, const char *name) :
   const int GROUP_MARGIN    = 1;
   const int SPACER_HEIGHT   = 15;
   
+  QString toolStr;
+  
   
   //## Range:
   
@@ -605,6 +610,8 @@ BeadHelper::BeadHelper(QWidget *parent, const char *name) :
   showSpheresCheckbox->setChecked( plug.showSpheres );
   QObject::connect(showSpheresCheckbox,SIGNAL(clicked()),this,
                    SLOT(changeShowSpheres()));
+  QToolTip::add(showSpheresCheckbox,
+                "Show/hide spheres on the current object");
   gridLayout2->addWidget(showSpheresCheckbox, 2, 0);
   
   sphereSizeSpinner = new QSpinBox(grpDisplay);
@@ -620,6 +627,8 @@ BeadHelper::BeadHelper(QWidget *parent, const char *name) :
   
   lblLineDisplay = new QLabel("line display: ", grpDisplay);
   lblLineDisplay->setFocusPolicy(QWidget::NoFocus);
+	QToolTip::add(lblLineDisplay, 
+                "Visual aid to let you see the trajectory of contours");
   gridLayout2->addWidget(lblLineDisplay, 3, 0);
   
   lineDisplayCombo = new QComboBox(grpDisplay);
@@ -634,8 +643,7 @@ BeadHelper::BeadHelper(QWidget *parent, const char *name) :
   lineDisplayCombo->setCurrentItem( plug.lineDisplayType );
 	connect(lineDisplayCombo, SIGNAL(activated(int)), this,
           SLOT(changeLineDisplayType(int)));
-	QToolTip::add(lineDisplayCombo, 
-              "Visual aid to let you see the trajectory of contours");
+	QToolTip::add(lineDisplayCombo, "Visual aid to let you see the trajectory of contours");
 	gridLayout2->addWidget(lineDisplayCombo, 3, 1);
   
   lblTiltDisplay = new QLabel("tilt display: ", grpDisplay);
@@ -648,9 +656,21 @@ BeadHelper::BeadHelper(QWidget *parent, const char *name) :
   tiltDisplayCombo->insertItem("tilt axis");
   tiltDisplayCombo->insertItem("tilt and seed");
   tiltDisplayCombo->insertItem("tilt and pt");
+  tiltDisplayCombo->insertItem("tilt segments");
   tiltDisplayCombo->setCurrentItem( plug.tiltDisplayType );
 	connect(tiltDisplayCombo, SIGNAL(activated(int)), this,
           SLOT(changeTiltDisplayType(int)));
+  toolStr = "Visual aid to let you see the trajectory of contours. "
+    "\n"
+    "\n > off             - don't display tilt axis "
+    "\n > tilt axis        - shows tilt axis only - you can change this by clicking: "
+      "'More Settings' > 'tilt axis angle'"
+    "\n > tilt and seed - shows tilt axis plus a perpendicular dotted line through the "
+      "seed point... useful for highlighting changes in the angle of contour lines "
+    "\n > tilt and pt   - shows tilt axis, seed line and also a line from the "
+      "intersection of these lines through the currently selected point"
+    "\n > tilt segments - shows tilt axis and four parallel dotted lines which move "
+      "according to the tilt increment (under 'More Settings')";
 	QToolTip::add(tiltDisplayCombo, 
                 "Visual aid to let you see the trajectory of contours");
 	gridLayout2->addWidget(tiltDisplayCombo, 4, 1);
@@ -670,24 +690,41 @@ BeadHelper::BeadHelper(QWidget *parent, const char *name) :
   gridLayout3->addItem( new QSpacerItem(1,SPACER_HEIGHT), 0, 0);
   
   lblEstMethod = new QLabel("estimation meth:", grpOptions);
+	QToolTip::add(lblEstMethod, 
+                "The method used to determine the estimated position of points");
   gridLayout3->addWidget(lblEstMethod, 1, 0);
   
   estPosMethodCombo = new QComboBox(grpOptions);
   estPosMethodCombo->setFocusPolicy(QWidget::NoFocus);
   estPosMethodCombo->insertItem("best 2 pts");
+  estPosMethodCombo->insertItem("smart 2 pts");
 	estPosMethodCombo->insertItem("nearest 2 pts");
   estPosMethodCombo->insertItem("prev 2 pts");
 	estPosMethodCombo->insertItem("curve");
 	estPosMethodCombo->insertItem("local curve");
   estPosMethodCombo->insertItem("prev 6 pts");
   estPosMethodCombo->insertItem("prev 3 pts");
-  
   estPosMethodCombo->setCurrentItem( plug.estPosMethod );
 	connect(estPosMethodCombo, SIGNAL(activated(int)), this,
           SLOT(changeEstPosMethod(int)));
-  QToolTip::add(estPosMethodCombo, 
-                "The method used to estimate the position of points "
-                "on a given slice of the contour" );
+  toolStr = "The method used to determine the estimated position of points. "
+    "\n... personally I recommend the 'best 2 pts' method - especially for smoothing"
+    "\n"
+    "\n > best 2 pts      - uses closest pt above and below and calculates a simple "
+    "linear path between them... great for filling small gaps"
+    "\n > smart 2 pts     - same as above, but uses the 'tilt increment' value "
+    "set within 'More Settings' to estimate the position"
+    "\n > nearest 2 pts - uses closest 2 pts to given view and linear trajectory"
+    "\n > prev 2 pts      - uses prev 2 points towards the seed pt and linear trajectory"
+    "\n > curve              - calculates a quadratic curve using the first, last and "
+    "seed pt in the contour... useful for filling points at high tilt, but bad at "
+    "filling small gaps"
+    "\n > local curve    - calculates a quadratic using the closest 3 pts spaced "
+    "at least 10 views apart... better at dealing with local shifts"
+    "\n > prev 6 pts     - uses the line of best fit, plus increasing distance along "
+    "X over the previous 3 points towards the seed"
+    "\n > prev 3 pts     - as above using previous 3 points";
+  QToolTip::add(estPosMethodCombo, toolStr );
   gridLayout3->addWidget(estPosMethodCombo, 1, 1);
   
   mLayout->addWidget(grpOptions);
@@ -821,6 +858,40 @@ void cont_makeContShowingMissingPoints( Icont *to, Icont *from, int slice, float
   }
 }
 
+
+//------------------------
+//-- Adds a contour with two points to the given object
+
+void cont_addLineToObj( Iobj *obj,
+                        float x1, float y1, float z1,
+                        float x2, float y2, float z2,
+                        bool drawAllZ, bool interploated )
+{
+  Icont *cont = imodContourNew();
+  imodPointAppendXYZ( cont, x1, y1, z1 );
+  imodPointAppendXYZ( cont, x2, y2, z2 );
+  if(drawAllZ)
+    imodContourSetFlag( cont, ICONT_DRAW_ALLZ, 1 );
+  if(interploated)
+    imodContourSetFlag( cont, ICONT_STIPPLED, 1 );
+  imodObjectAddContour( obj, cont );
+  free(cont);
+}
+
+//------------------------
+//-- Adds a contour with one points to the given object
+
+void cont_addPtToObj( Iobj *obj,
+                        float x, float y, float z,
+                        bool drawAllZ )
+{
+  Icont *cont = imodContourNew();
+  imodPointAppendXYZ( cont, x, y, z );
+  if(drawAllZ)
+    imodContourSetFlag( cont, ICONT_DRAW_ALLZ, 1 );
+  imodObjectAddContour( obj, cont );
+  free(cont);
+}
 
 
 //------------------------
@@ -970,13 +1041,8 @@ bool BeadHelper::drawExtraObject( bool redraw )
           Ipoint ptEst;
           if( bead_getExpectedPosOfPoint(cont, getPtZInt(cont,p), &ptEst) )
           {
-            Icont *xcont  = imodContourNew();
             Ipoint resid  = line_findPtFractBetweenPts2D( pt, &ptEst, 1.0 );
-            imodPointAppendXYZ( xcont, pt->x, pt->y, z );
-            imodPointAppendXYZ( xcont, resid.x, resid.y, z );
-            imodContourSetFlag(xcont, ICONT_DRAW_ALLZ, 1);
-            imodObjectAddContour(xobjC, xcont);
-            free(xcont);
+            cont_addLineToObj( xobjC, pt->x,pt->y,z, resid.x,resid.y,z, true, false);
           }
         }
       }
@@ -990,12 +1056,8 @@ bool BeadHelper::drawExtraObject( bool redraw )
         bool success = bead_calcLineOfBestFit( cont, &gradient, &offset, 4 );
         if(success)
         {
-          Icont *xcont = imodContourNew();
-          imodPointAppendXYZ( xcont, 0, (offset), z );
-          imodPointAppendXYZ( xcont, plug.xsize, (gradient*plug.xsize + offset), z );
-          imodContourSetFlag( xcont, ICONT_STIPPLED | ICONT_DRAW_ALLZ, 1 );
-          imodObjectAddContour( xobjC, xcont );
-          free(xcont);
+          cont_addLineToObj( xobjC, 0,(offset),z,
+                             plug.xsize,(gradient*plug.xsize+offset),z, true, true);
         }
       }
     } break;
@@ -1005,59 +1067,59 @@ bool BeadHelper::drawExtraObject( bool redraw )
   
   if ( plug.tiltDisplayType != TD_OFF )
   {
-    Icont *xcontT = imodContourNew();
-    float gradientP = tan( (plug.tiltAngle)*DEGS_TO_RADS );
+    float gradientP = tan( (plug.tiltAxisAngle)*DEGS_TO_RADS );
                   // calculate gradient perpendicular to the tilt axis
-    
     float offsetX = plug.middlePt.x + plug.tiltOffsetX;
     float startX   = offsetX + ((plug.ysize/2.0)*gradientP);
     float endX     = offsetX - ((plug.ysize/2.0)*gradientP);
     
-    imodPointAppendXYZ( xcontT, startX, 0, z );
-    imodPointAppendXYZ( xcontT, endX, plug.ysize, z );
-    imodContourSetFlag( xcontT, ICONT_DRAW_ALLZ, 1 );
-    imodObjectAddContour( xobjT, xcontT );
-    free(xcontT);
+    cont_addLineToObj( xobjT, startX,0,z, endX,plug.ysize,z, true, false);
     
     if( plug.tiltDisplayType == TD_TILTAXISSEED
         || plug.tiltDisplayType == TD_TILTAXISPT )
     {
       if( cont && bead_isPtOnSlice( cont, plug.middleSlice) )
       {
-        Icont *xcontP = imodContourNew();
         Ipoint *ptS = bead_getPtOnSlice( cont, plug.middleSlice );
         float startSYP   = ptS->y - ((ptS->x - 0)*gradientP);
         float endSYP     = ptS->y + ((plug.xsize - ptS->x)*gradientP);
-        imodPointAppendXYZ( xcontP, 0, startSYP, z );
-        imodPointAppendXYZ( xcontP, plug.xsize, endSYP, z );
-        imodContourSetFlag( xcontP, ICONT_STIPPLED | ICONT_DRAW_ALLZ, 1 );
-        imodObjectAddContour( xobjT, xcontP );
-        free(xcontP);
+        
+        cont_addLineToObj( xobjT, 0,startSYP,z, plug.xsize,endSYP,z, true, true);
         
         if( plug.tiltDisplayType == TD_TILTAXISPT && isCurrPtValid() )
         {
           Ipoint *pt = getCurrPt();
-          Ipoint intercept;
-          line_doLinesCrossAndWhere( getPt(xcontP,0), getPt(xcontP,1),
-                                     getPt(xcontT,0), getPt(xcontT,1), &intercept );
+          Ipoint tiltTop, tiltBottom, perpTop, perpBottom, intercept;
+          setPt( &tiltBottom, startX, 0, z );
+          setPt( &tiltTop,    endX,  plug.ysize, z );
+          setPt( &perpBottom, 0, startSYP, z );
+          setPt( &perpTop,    plug.xsize, endSYP, z );
+          line_doLinesCrossAndWhere( &perpBottom, &perpTop,
+                                     &tiltBottom, &tiltTop, &intercept );
           
           float lineDist = line_distBetweenPts2D( &intercept, pt );
           
           if(lineDist > 1)
           {
-            Icont *xcontPt = imodContourNew();
             Ipoint end = line_findPtFractBetweenPts2D( &intercept, pt, 2.0 );
-            imodPointAppendXYZ( xcontPt, intercept.x, intercept.y, z );
-            imodPointAppendXYZ( xcontPt, end.x, end.y, z );
-            imodContourSetFlag( xcontPt, ICONT_DRAW_ALLZ, 1 );
-            imodObjectAddContour( xobjT, xcontPt );
-            free(xcontPt);
+            cont_addLineToObj( xobjT, intercept.x,intercept.y,z,
+                               end.x,end.y,z, true, true);
           }
         }
       }
     }
+    else if( plug.tiltDisplayType == TD_TILTSEGS )
+    {
+      float tiltAngle = (z - (plug.zsize/2)) * plug.tiltIncrement;
+      float segWidth  = (plug.xsize / 5.0f) * cosf( DEGS_TO_RADS * tiltAngle );
+      float ym = plug.ysize;
+      
+      cont_addLineToObj( xobjT, startX+1*segWidth,0,z, endX+1*segWidth,ym,z, true, true);
+      cont_addLineToObj( xobjT, startX+2*segWidth,0,z, endX+2*segWidth,ym,z, true, true);
+      cont_addLineToObj( xobjT, startX-1*segWidth,0,z, endX-1*segWidth,ym,z, true, true);
+      cont_addLineToObj( xobjT, startX-2*segWidth,0,z, endX-2*segWidth,ym,z, true, true);
+    }
   }
-  
   
   if( redraw )
     ivwDraw( plug.view, 0 );
@@ -1097,7 +1159,7 @@ void BeadHelper::loadSettings()
   
   if(nvals!=NUM_SAVED_VALS)
   {
-    wprint("BeadHelper: Error loading saved values");
+    wprint("\aBeadHelper: Error loading saved values\n");
     return;
   }
   
@@ -1107,40 +1169,43 @@ void BeadHelper::loadSettings()
   plug.lineDisplayType      = savedValues[3];
   plug.tiltDisplayType      = savedValues[4];
   plug.estPosMethod         = savedValues[5];
-  plug.tiltAngle            = savedValues[6];
-  plug.biggestHoleGrid      = savedValues[7];
-  plug.biggestHoleOffset    = savedValues[8];
-  plug.expPtDisplayType     = savedValues[9];
-  plug.expPtSize            = savedValues[10];
-  plug.sizeLineSpheres      = savedValues[11];
-  plug.lineDisplayWidth     = savedValues[12];
-  plug.sizePurpleSpheres    = savedValues[13];
-  plug.selectedAction       = savedValues[14];
-  plug.sortCriteria         = savedValues[15];
-  plug.autoSaveSettings     = savedValues[16];
   
-  plug.wheelBehav           = savedValues[17];
-  plug.wheelResistance      = savedValues[18];
-  plug.includeEndsResid     = savedValues[19];
-  plug.enterAction          = savedValues[20];
-  plug.minPtsEnter          = savedValues[21];
-  plug.enterPrint           = savedValues[22];
-  plug.dKeyBehav            = savedValues[23];
-  plug.wCurrContOnly        = savedValues[24];
-  plug.wWeightedDiv         = savedValues[25];
+  plug.tiltIncrement        = savedValues[6];
+  plug.tiltAxisAngle        = savedValues[7];
+  plug.biggestHoleGrid      = savedValues[8];
+  plug.biggestHoleOffset    = savedValues[9];
+  plug.expPtDisplayType     = savedValues[10];
+  plug.expPtSize            = savedValues[11];
+  plug.sizeLineSpheres      = savedValues[12];
+  plug.lineDisplayWidth     = savedValues[13];
+  plug.sizePurpleSpheres    = savedValues[14];
+  plug.selectedAction       = savedValues[15];
+  plug.sortCriteria         = savedValues[16];
+  plug.autoSaveSettings     = savedValues[17];
   
-  plug.smoothCurrContOnly   = savedValues[26];
-  plug.smoothFillGaps       = savedValues[27];
-  plug.smoothBigResidFirst  = savedValues[28];
-  plug.smoothMoveYOnly      = savedValues[29];
-  plug.smoothLeaveSeed      = savedValues[30];
-  plug.smoothLeaveEnds      = savedValues[31];
-  plug.smoothLeaveCurrV     = savedValues[32];
-  plug.smoothMoveFract      = savedValues[33];
-  plug.smoothMinResid       = savedValues[34];
-  plug.smoothIterations     = savedValues[35];
-  plug.smoothAdjacentV      = savedValues[36];
-  plug.smoothNumViews       = savedValues[37];
+  plug.wheelBehav           = savedValues[18];
+  plug.wheelResistance      = savedValues[19];
+  plug.includeEndsResid     = savedValues[20];
+  plug.enterAction          = savedValues[21];
+  plug.minPtsEnter          = savedValues[22];
+  plug.enterPrint           = savedValues[23];
+  plug.dKeyBehav            = savedValues[24];
+  plug.mKeyBehav            = savedValues[25];
+  plug.wCurrContOnly        = savedValues[26];
+  plug.wWeightedDiv         = savedValues[27];
+  
+  plug.smoothCurrContOnly   = savedValues[28];
+  plug.smoothFillGaps       = savedValues[29];
+  plug.smoothBigResidFirst  = savedValues[30];
+  plug.smoothMoveYOnly      = savedValues[31];
+  plug.smoothLeaveSeed      = savedValues[32];
+  plug.smoothLeaveEnds      = savedValues[33];
+  plug.smoothLeaveCurrV     = savedValues[34];
+  plug.smoothMoveFract      = savedValues[35];
+  plug.smoothMinResid       = savedValues[36];
+  plug.smoothIterations     = savedValues[37];
+  plug.smoothAdjacentV      = savedValues[38];
+  plug.smoothNumViews       = savedValues[39];
 }
 
 
@@ -1153,45 +1218,48 @@ void BeadHelper::saveSettings()
   double saveValues[NUM_SAVED_VALS];
   
   saveValues[0]  = plug.showExpectedPos;
-  saveValues[1]  = plug.estPosMethod;
-  saveValues[2]  = plug.showSpheres;
-  saveValues[3]  = plug.sphereSize;
-  saveValues[4]  = plug.lineDisplayType;
-  saveValues[5]  = plug.tiltDisplayType;
-  saveValues[6]  = plug.tiltAngle;
-  saveValues[7]  = plug.biggestHoleGrid;
-  saveValues[8]  = plug.biggestHoleOffset;
-  saveValues[9]  = plug.expPtDisplayType;
-  saveValues[10] = plug.expPtSize;
-  saveValues[11] = plug.sizeLineSpheres;
-  saveValues[12] = plug.lineDisplayWidth;
-  saveValues[13] = plug.sizePurpleSpheres;
-  saveValues[14] = plug.selectedAction;
-  saveValues[15] = plug.sortCriteria;
-  saveValues[16] = plug.autoSaveSettings;
+  saveValues[1]  = plug.showSpheres;
+  saveValues[2]  = plug.sphereSize;
+  saveValues[3]  = plug.lineDisplayType;
+  saveValues[4]  = plug.tiltDisplayType;
+  saveValues[5]  = plug.estPosMethod;
   
-  saveValues[17] = plug.wheelBehav;
-  saveValues[18] = plug.wheelResistance;
-  saveValues[19] = plug.includeEndsResid;
-  saveValues[20] = plug.enterAction;
-  saveValues[21] = plug.minPtsEnter;
-  saveValues[22] = plug.enterPrint;
-  saveValues[23] = plug.dKeyBehav;
-  saveValues[24] = plug.wCurrContOnly;
-  saveValues[25] = plug.wWeightedDiv;
+  saveValues[6]  = plug.tiltIncrement;
+  saveValues[7]  = plug.tiltAxisAngle;
+  saveValues[8]  = plug.biggestHoleGrid;
+  saveValues[9]  = plug.biggestHoleOffset;
+  saveValues[10]  = plug.expPtDisplayType;
+  saveValues[11] = plug.expPtSize;
+  saveValues[12] = plug.sizeLineSpheres;
+  saveValues[13] = plug.lineDisplayWidth;
+  saveValues[14] = plug.sizePurpleSpheres;
+  saveValues[15] = plug.selectedAction;
+  saveValues[16] = plug.sortCriteria;
+  saveValues[17] = plug.autoSaveSettings;
   
-  saveValues[26] = plug.smoothCurrContOnly;
-  saveValues[27] = plug.smoothFillGaps;
-  saveValues[28] = plug.smoothBigResidFirst;
-  saveValues[29] = plug.smoothMoveYOnly;
-  saveValues[30] = plug.smoothLeaveSeed;
-  saveValues[31] = plug.smoothLeaveEnds;
-  saveValues[32] = plug.smoothLeaveCurrV;
-  saveValues[33] = plug.smoothMoveFract;
-  saveValues[34] = plug.smoothMinResid;
-  saveValues[35] = plug.smoothIterations;
-  saveValues[36] = plug.smoothAdjacentV;
-  saveValues[37] = plug.smoothNumViews;
+  saveValues[18] = plug.wheelBehav;
+  saveValues[19] = plug.wheelResistance;
+  saveValues[20] = plug.includeEndsResid;
+  saveValues[21] = plug.enterAction;
+  saveValues[22] = plug.minPtsEnter;
+  saveValues[23] = plug.enterPrint;
+  saveValues[24] = plug.dKeyBehav;
+  saveValues[25] = plug.mKeyBehav;
+  saveValues[26] = plug.wCurrContOnly;
+  saveValues[27] = plug.wWeightedDiv;
+  
+  saveValues[28] = plug.smoothCurrContOnly;
+  saveValues[29] = plug.smoothFillGaps;
+  saveValues[30] = plug.smoothBigResidFirst;
+  saveValues[31] = plug.smoothMoveYOnly;
+  saveValues[32] = plug.smoothLeaveSeed;
+  saveValues[33] = plug.smoothLeaveEnds;
+  saveValues[34] = plug.smoothLeaveCurrV;
+  saveValues[35] = plug.smoothMoveFract;
+  saveValues[36] = plug.smoothMinResid;
+  saveValues[37] = plug.smoothIterations;
+  saveValues[38] = plug.smoothAdjacentV;
+  saveValues[39] = plug.smoothNumViews;
   
   prefSaveGenericSettings("BeadHelper",NUM_SAVED_VALS,saveValues);
 }
@@ -1670,8 +1738,7 @@ void BeadHelper::movePtsToEstimatedPosCurrCont()
   
   //## OUTPUT RESULTS:
   
-  wprint( "Moved %d points and added %d points to contour\n",
-          ptsMoved, ptsAdded );
+  wprint( "Moved %d points and added %d points to contour\n", ptsMoved, ptsAdded );
   ivwRedraw( plug.view );
 }
 
@@ -1806,9 +1873,10 @@ void BeadHelper::moreActions()
   
 	CustomDialog ds;
   int ID_ACTION = ds.addRadioGrp( "action (for current object):",
-                                  "calculate tilt angle,"
+                                  "calculate tilt axis angle,"
                                   "show fiducials on bottom as purple,"
                                   "show contour turning points,"
+                                  "show grid,"
                                   "clear purple object,"
                                   "move contours between objects,"
                                   "verify contours"
@@ -1817,16 +1885,18 @@ void BeadHelper::moreActions()
                                   "print contour info",
                                   plug.selectedAction,
                                   "",
-                                  "Estimates the tilt angle by averaging the "
-                                    "\nangle for the 'line of best' for each contour,"
+                                  "Estimates the angle of the tilt axis by averaging the "
+                                    "\nangles for the 'line of best' for each contour,"
                                   "Uses the direction of movement of fiducials to "
                                     "\nguess which fidicials are on the bottom and "
                                     "\nshows these in purple using the 'purple object',"
                                   "Uses the 'purple object' to show the point in each "
                                     "\ncontour where the line changes direction.... "
                                     "\nwhich turns out to a fairly useless feature,"
+                                  "Uses the 'purple object' to display a grid "
+                                    "\nwith your desired number of rows and columns,"
                                   "Clears the infamous 'purple object' after you've "
-                                    "\napplied one of the two actions above,"
+                                    "\napplied one of three actions above,"
                                   "Use this to move/copy a range of contours/seeds in "
                                     "\nthe current object to another object. "
                                     "\nThis is useful because each object is tracked "
@@ -1850,20 +1920,20 @@ void BeadHelper::moreActions()
   
   switch(plug.selectedAction)
   {
-    case(0):      // calculate tilt angle
+    case(0):      // calculate tilt axis angle
     {
-      float tiltAngleEst = bead_estimateTiltAngle();
-      if(tiltAngleEst == 0)
+      float tiltAxisAngleEst = bead_estimateTiltAngle();
+      if(tiltAxisAngleEst == 0)
       {
         MsgBox( "Was unable to measure any angles based on contours provided" );
       }
       else
       {
-        string msg = "Current tilt angle = " + toString( plug.tiltAngle)
-        + "\nEstimated tilt angle = " + toString(tiltAngleEst)
-        + "\n... Change tilt angle to this value?";
+        string msg = "Current tilt axis angle = " + toString( plug.tiltAxisAngle, 4) 
+        + DEGREE_SIGN + "\nEstimated tilt axis angle = " + toString(tiltAxisAngleEst, 4)
+        + DEGREE_SIGN + "\n... Change tilt axis angle to this value?";
         if( MsgBoxYesNo( this, msg ) )
-          plug.tiltAngle = tiltAngleEst;
+          plug.tiltAxisAngle = tiltAxisAngleEst;
       }
     } break;
     
@@ -1900,28 +1970,33 @@ void BeadHelper::moreActions()
     {
       bead_showContourTurningPts();
     } break;
+    
+    case(3):      // show grid
+    {
+      bead_showGrid();
+    } break;
       
-    case(3):      // clear purple object
+    case(4):      // clear purple object
     {
       ivwClearAnExtraObject(plug.view, plug.extraObjExtra);
     } break;
     
-    case(4):      // move points between objects
+    case(5):      // move points between objects
     {
       moveMultipleContours();
     } break;
       
-    case(5):      // remove duplicate pts from object
+    case(6):      // remove duplicate pts from object
     {
       correctCurrentObject();
     } break;
       
-    case(6):      // mark all contours as stippled/unchecked
+    case(7):      // mark all contours as stippled/unchecked
     {
       markRangeAsStippled();
     } break;
     
-    case(7):      // print contour info
+    case(8):      // print contour info
     {
       printContourCheckedInfo();
     } break;
@@ -1950,12 +2025,19 @@ void BeadHelper::moreSettings()
                                           "saved on exit)"
                                           "\n\nNOTE: You'll often have to reduce "
                                           "this value by 1 on b axis stacks" );
-  int ID_TILTANGLE      = ds.addLineEdit( "tilt angle:                 ",
-                                          toString(plug.tiltAngle).c_str(),
+  int ID_TILTINCREMENT  = ds.addLineEdit( "tilt increment:           ",
+                                          toString(plug.tiltIncrement).c_str(),
+                                          "The angle (in degrees) the specimen "
+                                          "was tilted between subsequent views"
+                                          "\nNOTE: Don't worry if this is not correct "
+                                          "or not accurate - it is rarely used in "
+                                          "estimation methods" );
+  int ID_TILTANGLE      = ds.addLineEdit( "tilt axis angle:             ",
+                                          toString(plug.tiltAxisAngle).c_str(),
                                           "The angle (in degrees) clockwise from "
                                           "vertical about which the views rotate"
                                           "\nNOTE: This can be calculated in "
-                                          "'More Actions' > 'calculate tilt angle'" );
+                                          "'More Actions' > 'calculate tilt axis angle'");
   int ID_TILTOFFSET     = ds.addSpinBox ( "tilt x offset:", -200, 200,
                                           plug.tiltOffsetX, 1,
                                           "How far the tilt axis is shifted along X "
@@ -2014,7 +2096,8 @@ void BeadHelper::moreSettings()
   
   
   plug.middleSlice           = ds.getResultSpinBox  ( ID_MIDDLESLICE ) - 1;
-	string tiltAngleStr        = ds.getResultLineEdit	( ID_TILTANGLE );
+  string tiltIncrAngleStr    = ds.getResultLineEdit	( ID_TILTINCREMENT );
+	string tiltAxisAngleStr    = ds.getResultLineEdit	( ID_TILTANGLE );
   plug.tiltOffsetX           = ds.getResultSpinBox  ( ID_TILTOFFSET );
   plug.biggestHoleGrid       = ds.getResultSpinBox  ( ID_BIGHOLEGRID );
   plug.biggestHoleOffset     = ds.getResultSpinBox  ( ID_BIGHOLEOFFSET );
@@ -2028,11 +2111,23 @@ void BeadHelper::moreSettings()
   plug.autoSaveSettings      = ds.getResultCheckBox ( ID_AUTOSAVE );
   
   
-  float newTiltAngle = string_getFloatFromString( tiltAngleStr );
-  if( newTiltAngle < -200 || newTiltAngle >200 )
-    wprint("\aERROR: Invalid tilt angle entered"); 
+  float newTiltAxisAngle = string_getFloatFromString( tiltAxisAngleStr );
+  if( newTiltAxisAngle < -200 || newTiltAxisAngle >200 )
+    wprint("\aERROR: Invalid tilt axis angle entered"); 
   else
-    plug.tiltAngle = newTiltAngle;
+    plug.tiltAxisAngle = newTiltAxisAngle;
+  
+  float newTiltIncrAngle = string_getFloatFromString( tiltIncrAngleStr );
+  if( newTiltIncrAngle <= 0 || newTiltIncrAngle >20 )
+    wprint("\aERROR: Invalid tilt increment entered"); 
+  else
+  {
+    if(  plug.tiltIncrement != newTiltIncrAngle);
+    {
+      plug.tiltIncrement = newTiltIncrAngle;
+      verifyTiltIncrement(true, true);
+    }
+  }
   
   Iobj *xobjC = ivwGetAnExtraObject(plug.view, plug.extraObjContDisp);
   imodObjectSetValue(xobjC, IobjPointSize, plug.sizeLineSpheres);
@@ -2086,6 +2181,57 @@ void BeadHelper::keyboardSettings()
                                           "or deviation from expected when "
                                           "[y], [b] or [w] is pressed");
   
+  int ID_WCURRCONT      = ds.addCheckBox( "[w] checks current contour only",
+                                          plug.wCurrContOnly,
+                                          "If true: finds biggest weighted value "
+                                          "in current contour. If false: searches "
+                                          "all contours in current object.");
+  int ID_WDIVISOR       = ds.addSpinBox ( "[w] divisor number:",
+                                          1, 500, plug.wWeightedDiv, 5,
+                                          "The lower this number, the more likely "
+                                          "to select small shifts \namoungs closely "
+                                          "placed points.... \nuses the formula: "
+                                          "weighted_dev = distance_to_expected_pt / "
+                                          "(distance_nearest_pts + wWeightedDiv)"
+                                          "\n\nRECOMMEDED VALUE: 15" );
+  
+  int ID_DKEYACTION     = ds.addComboBox( "on [d] delete pts:",
+                                          "do nothing,"
+                                          "opposite seed,"
+                                          "to nearest end,"
+                                          "specified range", plug.dKeyBehav,
+                                          "Action performed when [d] is pressed."
+                                          "\n"
+                                          "\n > do nothing - as it sounds"
+                                          "\n > opposite seed - if selected point is "
+                                            "above the seed point will delete all "
+                                            "above it; else deletes all points below"
+                                          "\n > to nearest end - deletes all points in "
+                                            "the current contour from the selected "
+                                            "point to the closest end"
+                                          "\n > specified range - deletes the range of "
+                                            "slices speified in the 'Range' group box "
+                                            "above from the current contour");
+  
+  int ID_MKEYACTION     = ds.addComboBox( "on [m]:",
+                                          "normal,"
+                                          "go to middle pt,"
+                                          "smooth local,"
+                                          "smooth y local",
+                                          plug.mKeyBehav,
+                                          "Action performed when [m] is pressed."
+                                          "\n"
+                                          "\n > normal    - toggles movie/model mode"
+                                          "\n > go to middle pt - goes to seed point "
+                                          "and/or middle slice"
+                                          "\n > smooth local  - applies smoothing "
+                                          "to the pts in the current contour within "
+                                          "8 views of the current view"
+                                          "\n > smooth y local    - as above but "
+                                          "moves points in Y only" );
+  
+  ds.addLabel   ("");
+  
   int ID_ENTERACTION    = ds.addComboBox( "on [Enter] go to:",
                                           "do nothing,"
                                           "next unchecked,"
@@ -2095,7 +2241,8 @@ void BeadHelper::keyboardSettings()
                                           "Action performed when [Enter] is pressed "
                                           "\n\nNOTE: If you don't use enter you may, "
                                           "wish to leave this on 'do nothing' because "
-                                          "you may use enter in other windows/plugins");
+                                          "it can interfer when you press enter in "
+                                          "other windows/plugins");
   int ID_MINPTSENTER   = ds.addSpinBox  ( "min points for [Enter]:", 
                                           0, plug.zsize+10, plug.minPtsEnter, 1,
                                           "The minimum number of points a contour "
@@ -2113,26 +2260,9 @@ void BeadHelper::keyboardSettings()
                                           "Prints the number of contours matching the "
                                           "above criteria each time enter is pressed" );
   
-  int ID_DKEYACTION     = ds.addComboBox( "on [d] delete pts:",
-                                          "do nothing,"
-                                          "opposite seed,"
-                                          "to nearest end,"
-                                          "specified range", plug.dKeyBehav,
-                                          "Action performed when [d] is pressed.");
+
   
-  int ID_WCURRCONT      = ds.addCheckBox( "[w] checks current contour only",
-                                          plug.wCurrContOnly,
-                                          "If true: finds biggest weighted value "
-                                          "in current contour. If false: searches "
-                                          "all contours in current object.");
-  int ID_WDIVISOR       = ds.addSpinBox ( "[w] divisor number:",
-                                          1, 500, plug.wWeightedDiv, 5,
-                                          "The lower this number, the more likely "
-                                          "to select small shifts \namoungs closely "
-                                          "placed points.... \nuses the formula: "
-                                          "weighted_dev = distance_to_expected_pt / "
-                                          "(distance_nearest_pts + wWeightedDiv)"
-                                          "\n\nRECOMMEDED VALUE: 15" );
+
   
   
 	GuiDialogCustomizable dlg(&ds, "Mouse and Keyboard Settings", this);
@@ -2150,6 +2280,7 @@ void BeadHelper::keyboardSettings()
   plug.maxPtsEnter           = ds.getResultSpinBox  ( ID_MAXPTSENTER );
   plug.enterPrint            = ds.getResultCheckBox ( ID_ENTERPRINT );
   plug.dKeyBehav             = ds.getResultComboBox ( ID_DKEYACTION );
+  plug.mKeyBehav             = ds.getResultComboBox ( ID_MKEYACTION );
   plug.wCurrContOnly         = ds.getResultCheckBox ( ID_WCURRCONT );
   plug.wWeightedDiv          = ds.getResultSpinBox  ( ID_WDIVISOR );
   
@@ -2746,6 +2877,65 @@ bool BeadHelper::advanceSelectedPointInCurrCont( int change )
 
 
 //------------------------
+//-- Applies selected 'm' action... returns 1 if the action was dealt with or
+//-- 0 if it wasn't.
+
+int BeadHelper::applyMAction()
+{
+  if      ( plug.mKeyBehav == MK_NORMAL )
+  {
+    return 0;
+  }
+  else if( plug.mKeyBehav == MK_GOTOMIDDLE )
+  {
+    goToMiddleSlice();
+  }
+  else
+  {
+    if( !isCurrObjValid() || isEmpty(getCurrCont()) )
+    {
+      wprint("\aSelect contour to apply smoothing\n");
+    }
+    else
+    {
+      int minZ = edit_getZOfTopZap() - 8;
+      int maxZ = edit_getZOfTopZap() + 8;
+      int ptsMoved, ptsAdded;
+      
+      Icont *cont = getCurrCont();
+      undoContourDataChgCC( plug.view );       // REGISTER UNDO
+      
+      if( plug.mKeyBehav == MK_SMOOTHLOCAL )
+      {
+        bead_movePtsTowardsEstimatedPos ( cont, minZ, maxZ, 1.0, 0.2, 1,
+                                          false, true,(false),  true, true, true,
+                                          ptsMoved, ptsAdded );
+      }
+      else if( plug.mKeyBehav == MK_SMOOTHLOCALY )
+      {
+        bead_movePtsTowardsEstimatedPos ( cont, minZ, maxZ, 1.0, 0.2, 1,
+                                          false, true,(true),  true, true, true,
+                                          ptsMoved, ptsAdded );
+      }
+      
+      if( ptsMoved || ptsAdded )                      // FINISH UNDO
+        undoFinishUnit( plug.view );
+      
+      //## OUTPUT RESULTS:
+      
+      if( plug.mKeyBehav == MK_SMOOTHLOCALY )
+        wprint( "Moved %d points (in Y only)\n", ptsMoved );
+      else if( plug.mKeyBehav == MK_SMOOTHLOCAL )
+        wprint( "Moved %d points\n", ptsMoved );
+      plug.window->drawExtraObject(true);
+    }
+  }
+  
+  return 1;
+}
+
+
+//------------------------
 //-- Jumps to the middle slice and (if a contour is selected) selects
 //-- the point in the middle.
 
@@ -2904,6 +3094,39 @@ bool BeadHelper::verifyMiddleSliceIsSeeded()
   
   return true;
 }
+
+//------------------------
+//-- Checks that the 'tilt increment' value is plausible based on the number
+//-- of views and the fact tilt series usually never go beyond + or - 70 degrees.
+
+bool BeadHelper::verifyTiltIncrement( bool printResult, bool showErrorMsgBoxIfBad )
+{
+  float minTilt = -plug.middleSlice * plug.tiltIncrement;
+  float maxTilt = (plug.zsize - plug.middleSlice) * plug.tiltIncrement;
+  
+  bool tiltAppearsGood =   ( minTilt >= -80  &&  minTilt <= -10 )
+                        && ( maxTilt >=  10  &&  maxTilt <=  80 );
+  
+  if( printResult )
+  {
+    string str = "Tilt increment = " + toString(plug.tiltIncrement,2) + DEGREE_SIGN + 
+             + "   (" + toString(minTilt,1) + DEGREE_SIGN + " to +"
+             + toString(maxTilt,1) + DEGREE_SIGN + ")\n";
+    wprint( str.c_str() );
+  }
+  
+  if( showErrorMsgBoxIfBad && !tiltAppearsGood )
+  {
+    string str = "WARNING: Tilt increment of " + toString(plug.tiltIncrement,2) 
+               + DEGREE_SIGN + " (" + toString(minTilt,1) + " to " + toString(maxTilt,1)
+               + DEGREE_SIGN + ") appears to be incorrect... \n"
+               + "\n\nChange this under 'More Settings' > 'tilt increment'";
+    MsgBox( str.c_str() );
+  }
+  
+  return (tiltAppearsGood);
+}
+
 
 //------------------------
 //-- Method used for testing new routines.
@@ -3651,6 +3874,48 @@ Ipoint bead_getPtOnLineWithZ( Ipoint *pt1, Ipoint *pt2, int z )
   return (estPt);
 }
 
+//------------------------
+//-- Takes two points as input and calculates the estimated position of a point on
+//-- slice "z" based on tilt angles and a straight line thorugh the points
+
+const float MIN_X_DIST_TO_USE_ANGLES = 3.0;
+
+Ipoint bead_getPtOnLineWithZUsingTiltAngles( Ipoint *pt1, Ipoint *pt2, int z )
+{
+  if( (int)pt1->z == (int)pt2->z )
+    return *pt1;
+  
+  Ipoint estPt;
+  estPt.z = z;
+  
+  float xDistBetweenPtsNorm = ABS( fDivide( (pt2->x - pt1->x) , ( pt2->z - pt1->z) ) ); 
+  
+  if( xDistBetweenPtsNorm < MIN_X_DIST_TO_USE_ANGLES )
+  {
+    float fractToExpectedPos = fDivide( (z - pt1->z) , ( pt2->z - pt1->z) ); 
+    estPt = line_findPtFractBetweenPts( pt1, pt2, fractToExpectedPos );
+  }
+  else
+  {
+    float middleSlice = plug.zsize / 2.0f;
+    
+    float angle1 = (pt1->z - middleSlice)*plug.tiltIncrement;
+    float angle2 = (pt2->z - middleSlice)*plug.tiltIncrement;
+    float angleZ = (     z - middleSlice)*plug.tiltIncrement;
+    
+    float adjSide1  = cosf( DEGS_TO_RADS * angle1 );
+    float adjSide2  = cosf( DEGS_TO_RADS * angle2 );
+    float adjSideZ  = cosf( DEGS_TO_RADS * angleZ );
+      // calculate the relative length of an adjacent side for each point
+      // implied by the tilt angle at that Z value
+    
+    float fractToExpectedPos = fDivide( (adjSideZ - adjSide1) , ( adjSide2 - adjSide1) ); 
+    estPt = line_findPtFractBetweenPts( pt1, pt2, fractToExpectedPos );
+  }
+  return (estPt);
+}
+
+
 
 //------------------------
 //-- Outputs the estimated position of the point within "cont" on the specified
@@ -3677,6 +3942,15 @@ bool bead_getExpectedPosOfPoint( Icont *cont, int slice, Ipoint *pt )
       if ( !bead_getPointsEitherSideSlice( cont, slice, &pt1, &pt2 ) )
         return false;
       estPt = bead_getPtOnLineWithZ( &pt1, &pt2, slice );
+      break;
+    }
+    
+    case (EM_SMARTTWO):
+    {
+      Ipoint pt1, pt2;
+      if ( !bead_getPointsEitherSideSlice( cont, slice, &pt1, &pt2 ) )
+        return false;
+      estPt = bead_getPtOnLineWithZUsingTiltAngles( &pt1, &pt2, slice );
       break;
     }
     
@@ -5007,7 +5281,7 @@ bool bead_goToContNextBiggestSortVal( bool findNextBiggest )
 
 
 //------------------------
-//-- Estimates the tilt angle by averaging the gradient for the "line of best fit"
+//-- Estimates the tilt axis angle by averaging the gradient for the "line of best fit"
 //-- over all contours.
 
 float bead_estimateTiltAngle()
@@ -5041,7 +5315,7 @@ float bead_estimateTiltAngle()
   }
   
   float avgAngle = angleSum / (float)totalConts;
-  wprint("\nAverage angle over %d contours = %f", totalConts, avgAngle);
+  wprint("\nAverage angle over %d contours = %f%c", totalConts, avgAngle, DEGREE_SIGN);
   return (avgAngle);
 }
 
@@ -5066,7 +5340,7 @@ bool bead_showBottomContoursInPurple( int zMin, int zMax )
   //## RELATIVE TO THE TILT AXIS
   
   for (int c=0; c<csize(objTemp); c++)
-    cont_rotateAroundPoint2D( getCont(objTemp,c), &plug.middlePt, -plug.tiltAngle );
+    cont_rotateAroundPoint2D( getCont(objTemp,c), &plug.middlePt, -plug.tiltAxisAngle );
   
   //## FOR EACH FIDUCIAL: IF IT TRAVELS LEFT BETWEEN THE TWO VIEW MARK IT
   //## AS A BOTTOM CONTOUR
@@ -5159,9 +5433,89 @@ bool bead_showContourTurningPts()
   
   for (int p=0; p<psize(turningPts); p++)
   {
-    Icont *newCont = imodContourNew();
+    Ipoint *pt = getPt(turningPts,p);
+    cont_addPtToObj( xobjX, pt->x, pt->y, pt->z, false );
+    /*Icont *newCont = imodContourNew();
     imodPointAppend( newCont, getPt(turningPts,p) );
     imodObjectAddContour( xobjX, newCont );
     free(newCont);
+    */
   }  
+}
+
+
+//------------------------
+//-- Displays a grid using the 'purple object'
+
+void bead_showGrid()
+{
+  //## GET USER INPUT FROM CUSTOM DIALOG:
+  
+  static int colsX = 5;
+  static int rowsY = 5;
+  static int showStyle = 0;
+  static bool rotateByAngle = false;
+  static bool dottedLines   = false;
+  
+	CustomDialog ds;
+  int ID_COLS         = ds.addSpinBox ( "columns (x):", 1, 500, colsX, 1,
+                                        "Number of columns to display" );
+  int ID_ROWS         = ds.addSpinBox ( "rows    (y):", 1, 500, rowsY, 1,
+                                        "Number of rows to display" );
+	int ID_SHOWSTYLE    = ds.addRadioGrp( "show grid as:",
+                                         "lines,"
+                                         "spheres only",
+                                         showStyle );
+  int ID_ROTATE       = ds.addCheckBox( "rotate by tilt axis angle",
+                                         rotateByAngle,
+                                         "Tilt the grid by the tilt axis angle" );
+  int ID_DOTTEDLINES  = ds.addCheckBox( "use dotted lines", dottedLines );
+	GuiDialogCustomizable dlg(&ds, "Grid Options");
+	dlg.exec();
+	if( ds.cancelled )
+		return;
+  colsX           = ds.getResultSpinBox   ( ID_COLS );
+  rowsY           = ds.getResultSpinBox   ( ID_ROWS );
+	showStyle       = ds.getResultRadioGrp	( ID_SHOWSTYLE );
+  rotateByAngle   = ds.getResultCheckBox  ( ID_ROTATE );
+  dottedLines     = ds.getResultCheckBox  ( ID_DOTTEDLINES );
+  
+  
+  //## SETUP GRID:
+  
+  Imod *imod = ivwGetModel(plug.view);
+  Iobj *obj = imodObjectGet(imod);
+  
+  Iobj *xobjX = ivwGetAnExtraObject(plug.view, plug.extraObjExtra);
+  ivwClearAnExtraObject(plug.view, plug.extraObjExtra);
+  
+  float colXSide = fDivide( plug.xsize, colsX );
+  float rowYSide = fDivide( plug.ysize, rowsY );
+  float z = plug.middleSlice;
+  
+  if( showStyle == 0)
+  {
+    for (int x=0; x<=colsX; x++)
+      cont_addLineToObj( xobjX, x*colXSide,0,z,
+                                x*colXSide,plug.ysize,z, true,dottedLines );
+    for (int y=0; y<=rowsY; y++)
+      cont_addLineToObj( xobjX, 0,y*rowYSide,z,
+                                plug.xsize, y*rowYSide,z, true,dottedLines );
+  }
+  else
+  {
+    for (int x=0; x<=colsX; x++)
+      for (int y=0; y<=rowsY; y++)
+        cont_addPtToObj( xobjX, x*colXSide, y*rowYSide,z, true );
+  }
+  
+  //## ROTATE GIRD (IF SPECIFIED)
+  
+  if( rotateByAngle )
+  {
+    for (int c=0; c<csize(xobjX); c++)
+      cont_rotateAroundPoint2D(getCont(xobjX,c), &plug.middlePt, plug.tiltAxisAngle);
+  }
+  
+  plug.window->goToMiddleSlice();
 }

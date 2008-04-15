@@ -69,9 +69,11 @@ class BeadHelper : public DialogFrame
   
   bool updateAndVerifyRanges();
   bool advanceSelectedPointInCurrCont( int change );
+  int  applyMAction();
   void goToMiddleSlice();
   void printContourCheckedInfo();
   bool verifyMiddleSliceIsSeeded();
+  bool verifyTiltIncrement( bool printResult, bool showErrorMsgBoxIfBad );
   void test();
     
   void changeShowExpectedPos();
@@ -136,7 +138,7 @@ class BeadHelper : public DialogFrame
 
 const int NO_POINT = -1;
 
-enum estimationmethod { EM_BESTTWO, EM_NEARESTTWO, EM_PREVTWO,
+enum estimationmethod { EM_BESTTWO, EM_SMARTTWO, EM_NEARESTTWO, EM_PREVTWO,
                         EM_QUADRATIC, EM_LOCALQUADRATIC, EM_LASTTHREE, EM_LASTSIX };
 
 enum contsortcriteria { SORT_YJUMPS, SORT_DEV, SORT_AVG_GREY, SORT_DIST_FROM_MIDDLE,
@@ -145,15 +147,19 @@ enum contsortcriteria { SORT_YJUMPS, SORT_DEV, SORT_AVG_GREY, SORT_DIST_FROM_MID
 
 enum contdisplay      { LD_OFF, LD_ALL, LD_CURRENT, LD_CURRMISSING,
                         LD_RESULTSMOOTH, LD_SLICE_RESID, LD_BEST_FIT };
-enum tiltaxisdisplay  { TD_OFF, TD_TILTAXIS, TD_TILTAXISSEED, TD_TILTAXISPT };
+enum tiltaxisdisplay  { TD_OFF, TD_TILTAXIS, TD_TILTAXISSEED, TD_TILTAXISPT,
+                        TD_TILTSEGS };
 enum expptdisplay     { ED_CROSS, ED_DIAMOND, ED_ARROW };
 
 enum dkeybehavior     { DK_NONE, DK_OPPOSITEMIDDLE, DK_NEARESTEND, DK_SELECTEDRANGE };
+enum mkeybehavior     { MK_NORMAL, MK_GOTOMIDDLE, MK_SMOOTHLOCAL, MK_SMOOTHLOCALY };
+
 enum wheelbehavior    { WH_NONE, WH_POINTS, WH_SLICES, WH_SMART };
 enum enterbehavior    { EN_NONE, EN_NEXTUNCHECKED, EN_PREVUNCHECKED, EN_NEXTCHECKED,
                         EN_NEXTCONT };
 
-const int NUM_SAVED_VALS = 38;
+const char DEGREE_SIGN = 0x00B0;      // degree sign
+const int NUM_SAVED_VALS = 40;
 
 
 //-------------------------------
@@ -203,6 +209,8 @@ struct BeadHelperData   // contains all local plugin data
                               //   enter is pressed
   
   int dKeyBehav;              // the action when "d" is pressed (see: dkeybehavior)
+  int mKeyBehav;              // the action when "m" is pressed (see: mkeybehavior)
+  
   bool wCurrContOnly;         // if true: pressiong "w" searches current contour only
   int  wWeightedDiv;          // weighted_dev = distance_to_expected_pt / 
                               //                (distance_nearest_pts + wWeightedDiv)
@@ -232,7 +240,9 @@ struct BeadHelperData   // contains all local plugin data
   
   Ipoint middlePt;            // the point at the middle of the tomogram
   
-  float tiltAngle;            // angle in degrees of the tilt axis relative to vertical
+  float tiltIncrement;        // approximate tilt increment - the angle which the
+                              //  specimen is tilted between subsequent views
+  float tiltAxisAngle;        // angle in degrees of the tilt axis relative to vertical
   float tiltOffsetX;          // distance in pixels the tilt axis is offset in X
                               //  from crossing middlePt (usually set to 0)
   float biggestHoleGrid;      // the approximate distance between grid points used to
@@ -353,6 +363,7 @@ bool bead_goToContNextBiggestSortVal( bool findNextBiggest );
 float bead_estimateTiltAngle();
 bool bead_showBottomContoursInPurple( int minZ, int maxZ );
 bool bead_showContourTurningPts();
+void bead_showGrid();
 
 //############################################################
 

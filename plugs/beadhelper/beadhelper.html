@@ -125,32 +125,32 @@ the selected range of points.</li>
 different ways. When clicked you can chose to reorder a range of contours
 by residual, average grey scale or several other options - typically
 placing the worst fiducials at the end. After doing this it is a good idea to
-iterate backwards from the last contour and delete any which look bad.</li>
+iterate backwards from the last contour and delete any which look bad.
+<i>Press [o] to go to the "next worst" contour without any physical 
+reordering</i></li>
 </ul>
 <br>
 <br>
 <b>Options</b><br>
 ---------------------<br>
 <ul>
-<li><b>wheel behavior</b> - Allows you to use the mouse wheel to scroll
+<li><b>estimation method</b> - Allows you to change the method used to
+calculate the "estimated position" of points on given views. You can hold
+your mouse over the drop down to see what each does, but personally I
+recommend that the simple <i>"best 2 points"</i> is the best to use
+between the two closest points on the contour to the chosen view (but
+not including that view).</li>
+<li><b>Mouse and Keyboard Options</b> - Contains a number of options to 
+customize the behavior of the mouse wheel and keyboard keys. For example
+"wheel behavior" allows you to use the mouse wheel to scroll
 through <i>points</i>, <i>slices</i> or both (if <i>smart scroll</i> is
 selected).</li>
-<li><b>estimation method</b> - Allows you to change the method used to
-calculate the "estimated position" of points on given views.
-The <i>nearest 2 points</i> option calculates a simple linear trajectory
-between the two closest points on the contour to the chosen view (but
-not including that view). This is the most simple option, but
-quite effective for filling small gaps.
-The <i>curve</i> option calculates a quadratic curve using the first,
-last and middle-most point (in most cases the seed point) in the contour.
-This provides a "quadric of best fit" and therefore is useful for filling
-missing points at high-tilt, but less useful at filling small small gaps.
-The <i>local curve</i> option also uses a quadratic, but choses the closest
-set of 3 points spaced at least 10 view apart such that the curve adapts well
-to local shifts and rotation.</li>
-The <i>prev 6 points</i> option uses the line of best fit, plus increasing
-distance in x over the last 6 points, and is useful for filling ends, but
-terrible at filling small gaps.</li>
+<li><b>More Actions</b> - Contains several useful actions which you 
+should experiment with... hold your mouse over each to see what it does.</li>
+<li><b>More Settings</b> - Contains a number of additional options related  
+to the tilt stack and display settings. The most important value here is
+"middle slice" - you will often have to reduce this value by 1 for a B stack
+after you transfer fiducials from A</li>
 </ul>
 <br>
 <br>
