@@ -1,5 +1,7 @@
 IMOD History
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+4/15/08: Fixed the reading of .prm files by Etomo - PEET.
+
 4/14/08: Fixed Sirtsetup/Splittilt for Windows: switched Sirtsetup to unix line
 endings, used \echo to output \rm to workaround tcsh problems (In 3.11).
 
