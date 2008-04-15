@@ -71,6 +71,12 @@ import etomo.util.PrimativeTokenizer;
  * @version $Revision$
  * 
  * <p> $Log$
+ * <p> Revision 1.11  2008/04/09 00:00:53  sueh
+ * <p> bug# 1105 Changed the array used in getParsedNumberExpandedArray
+ * <p> to a ParsedElementList because it always holds ParsedNumbers.  Fixed
+ * <p> parsing; it was eating up the delimiter whitespace before it could be
+ * <p> recognized.
+ * <p>
  * <p> Revision 1.10  2008/04/02 02:21:22  sueh
  * <p> bug# 1097 Matching Matlab's syntax.  This simplifies many of the
  * <p> ParsedElement classes because there where too many special cases
@@ -124,14 +130,14 @@ public final class ParsedList {
    * Place the entire array into parsed arrays and the individual elements into
    * parsed numbers
    */
-  private Integer[] defaultValueArray = null;
+  private EtomoNumber defaultValue = null;
 
   private boolean failed = false;
   private boolean debug = false;
 
   private ParsedList(ParsedElementType type, EtomoNumber.Type etomoNumberType) {
     this.type = type;
-    list = new ParsedElementList(type);
+    list = new ParsedElementList(type, etomoNumberType, debug, defaultValue);
     this.etomoNumberType = etomoNumberType;
   }
 
@@ -166,10 +172,14 @@ public final class ParsedList {
     return false;
   }
 
-  public void setDefaultValue(Integer[] defaultValueArray) {
-    this.defaultValueArray = defaultValueArray;
+  public void setDefault(int input) {
+    if (defaultValue == null) {
+      defaultValue = new EtomoNumber(etomoNumberType);
+    }
+    defaultValue.set(input);
+    list.setDefault(defaultValue);
     for (int i = 0; i < list.size(); i++) {
-      list.get(i).setDefaultValue(i, defaultValueArray);
+      list.get(i).setDefault(defaultValue);
     }
   }
 
@@ -191,14 +201,25 @@ public final class ParsedList {
 
   public void addElement(ParsedElement element) {
     element.setDebug(debug);
-    element.setDefaultValue(list.size(), defaultValueArray);
+    element.setDefault(defaultValue);
     list.add(element);
   }
 
-  public void setDebug(boolean debug) {
-    this.debug = debug;
+  public void setDebug(boolean input) {
+    debug = input;
+    list.setDebug(input);
     for (int i = 0; i < list.size(); i++) {
       list.get(i).setDebug(debug);
+    }
+  }
+
+  /**
+   * Only effects elements of the list, not list size.
+   * @param input
+   */
+  public void setMinArraySize(int input) {
+    for (int i = 0; i < list.size(); i++) {
+      list.get(i).setMinArraySize(input);
     }
   }
 
@@ -336,27 +357,26 @@ public final class ParsedList {
     }
     if (token.equals(Token.Type.SYMBOL, DIVIDER_SYMBOL.charValue())) {
       //Found an empty element.
-      list.add(ParsedEmptyElement.getInstance(type));
+      list.add(ParsedNumber.getInstance(type, etomoNumberType, isDebug(),
+          defaultValue));
       return token;
     }
     //May have found an element.
     ParsedElement element;
     if (type == ParsedElementType.STRING) {
-      element = new ParsedQuotedString();
-      element.setDebug(isDebug());
+      element = ParsedQuotedString.getInstance(isDebug());
       token = element.parse(token, tokenizer);
     }
     else if (ParsedArray.isArray(token)) {
-      element = ParsedArray.getInstance(type, etomoNumberType);
-      element.setDebug(isDebug());
+      element = ParsedArray.getInstance(type, etomoNumberType, isDebug(),
+          defaultValue);
       token = element.parse(token, tokenizer);
     }
     else {
       //Array descriptors don't have their own open and close symbols, so they
       //look like numbers until to you get to the first divider (":"or "-").
       ParsedDescriptor descriptor = ParsedDescriptor.getInstance(type,
-          etomoNumberType);
-      descriptor.setDebug(isDebug());
+          etomoNumberType, isDebug(), defaultValue);
       token = descriptor.parse(token, tokenizer);
       //create the correct type of element
       if (descriptor.isEmpty()) {
@@ -372,7 +392,6 @@ public final class ParsedList {
         element = descriptor.getElement(0);
       }
     }
-    element.setDefaultValue(list.size(), defaultValueArray);
     list.add(element);
     return token;
   }
