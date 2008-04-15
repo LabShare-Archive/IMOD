@@ -29,6 +29,12 @@ import etomo.util.PrimativeTokenizer;
  * @version $Revision$
  * 
  * <p> $Log$
+ * <p> Revision 1.15  2008/04/09 00:01:21  sueh
+ * <p> bug# 1105 Changed the array used in getParsedNumberExpandedArray
+ * <p> to a ParsedElementList because it always holds ParsedNumbers.  Fixed
+ * <p> parsing; it was eating up the delimiter whitespace before it could be
+ * <p> recognized.
+ * <p>
  * <p> Revision 1.14  2008/04/02 02:22:31  sueh
  * <p> bug# 1097 Matching Matlab's syntax.  This simplifies many of the
  * <p> ParsedElement classes because there where too many special cases
@@ -92,14 +98,15 @@ public final class ParsedNumber extends ParsedElement {
   private final StringBuffer NON_ELEMENT_SYMBOLS;
   private final ParsedElementType type;
 
-  private final boolean inArray;
+  private EtomoNumber defaultValue = null;
+  private boolean debug = false;
 
   private ParsedNumber(ParsedElementType type,
-      EtomoNumber.Type etomoNumberType, boolean inArray) {
+      EtomoNumber.Type etomoNumberType, boolean debug, EtomoNumber defaultValue) {
     this.etomoNumberType = etomoNumberType;
     this.type = type;
-    this.inArray = inArray;
     rawNumber = new EtomoNumber(etomoNumberType);
+    rawNumber.setDefault(defaultValue);
     NON_ELEMENT_SYMBOLS = new StringBuffer(ParsedList.OPEN_SYMBOL.toString()
         + ParsedList.CLOSE_SYMBOL.toString()
         + ParsedArray.OPEN_SYMBOL.toString()
@@ -108,26 +115,22 @@ public final class ParsedNumber extends ParsedElement {
         + ParsedList.DIVIDER_SYMBOL.toString()
         + ParsedArray.DIVIDER_SYMBOL.toString()
         + ParsedDescriptor.getDividerSymbol(type).toString());
-  }
-
-  public static ParsedNumber getInstance(ParsedElementType type,
-      EtomoNumber.Type etomoNumberType) {
-    return new ParsedNumber(type, etomoNumberType, false);
-  }
-
-  public static ParsedNumber getArrayInstance(ParsedElementType type,
-      EtomoNumber.Type etomoNumberType) {
-    return new ParsedNumber(type, etomoNumberType, true);
+    setDebug(debug);
   }
 
   public static ParsedNumber getMatlabInstance() {
-    return new ParsedNumber(ParsedElementType.MATLAB, null, false);
+    return new ParsedNumber(ParsedElementType.MATLAB, null, false, null);
   }
 
   public static ParsedNumber getMatlabInstance(EtomoNumber.Type etomoNumberType) {
-    return new ParsedNumber(ParsedElementType.MATLAB, etomoNumberType, false);
+    return new ParsedNumber(ParsedElementType.MATLAB, etomoNumberType, false,
+        null);
   }
 
+  static ParsedNumber getInstance(ParsedElementType type,
+      EtomoNumber.Type etomoNumberType, boolean debug, EtomoNumber defaultValue) {
+    return new ParsedNumber(type, etomoNumberType, debug, defaultValue);
+  }
   public void parse(ReadOnlyAttribute attribute) {
     rawNumber.reset();
     resetFailed();
@@ -148,18 +151,25 @@ public final class ParsedNumber extends ParsedElement {
     return "[rawNumber:" + rawNumber + "]";
   }
 
+  /**
+   * No effect because this is not a collection.
+   */
+  public void setMinArraySize(int input) {
+  }
+
   public boolean getRawBoolean() {
     return rawNumber.getDefaultedBoolean();
   }
 
   /**
-   * When an index is passed, treat ParsedNumber as an array of 1
+   * When an index is passed, treat ParsedNumber as an array of 1.  Return an
+   * empty ParsedNumber for any other index.
    */
   public ParsedElement getElement(int index) {
     if (index == 0) {
       return this;
     }
-    return ParsedEmptyElement.getInstance(type);
+    return new ParsedNumber(type, etomoNumberType, debug, defaultValue);
   }
 
   /**
@@ -169,7 +179,8 @@ public final class ParsedNumber extends ParsedElement {
     if (index == 0) {
       return getRawString();
     }
-    return ParsedEmptyElement.getInstance(type).getRawString();
+    return new ParsedNumber(type, etomoNumberType, debug, defaultValue)
+        .getRawString();
   }
 
   public Number getRawNumber() {
@@ -178,6 +189,11 @@ public final class ParsedNumber extends ParsedElement {
 
   public Number getNegatedRawNumber() {
     return rawNumber.getNegatedDefaultedNumber();
+  }
+
+  public void setDebug(final boolean input) {
+    debug = input;
+    rawNumber.setDebug(input);
   }
 
   public String getRawString() {
@@ -194,7 +210,7 @@ public final class ParsedNumber extends ParsedElement {
    */
   public String getParsableString() {
     if (rawNumber.isDefaultedNull()) {
-      if (type == ParsedElementType.MATLAB) {
+      if (type.isMatlab()) {
         //Empty strings cannot be parsed by MatLab.  If this instance is a
         //Matlab syntax instance, return NaN.
         return "NaN";
@@ -318,17 +334,12 @@ public final class ParsedNumber extends ParsedElement {
     rawNumber.add(number);
   }
 
-  /**
-   * Set defaultValue using defaultValueArray[numberIndex].
-   */
-  void setDefaultValue(int numberIndex, Integer[] defaultValueArray) {
-    if (defaultValueArray == null || numberIndex < 0
-        || defaultValueArray.length <= numberIndex) {
-      rawNumber.resetDefault();
-    }
-    else {
-      rawNumber.setDefault(defaultValueArray[numberIndex]);
-    }
+  public void setDefault(int input) {
+    rawNumber.setDefault(input);
+  }
+
+  void setDefault(EtomoNumber input) {
+    rawNumber.setDefault(input);
   }
 
   void removeElement(int index) {
@@ -343,9 +354,11 @@ public final class ParsedNumber extends ParsedElement {
    * @param parsedNumberExpandedArray
    * @return parsedNumberExpandedArray
    */
-  ParsedElementList getParsedNumberExpandedArray(ParsedElementList parsedNumberExpandedArray) {
+  ParsedElementList getParsedNumberExpandedArray(
+      ParsedElementList parsedNumberExpandedArray) {
     if (parsedNumberExpandedArray == null) {
-      parsedNumberExpandedArray = new ParsedElementList(type);
+      parsedNumberExpandedArray = new ParsedElementList(type, etomoNumberType,
+          debug, defaultValue);
     }
     if (rawNumber.isNull()) {
       return parsedNumberExpandedArray;
@@ -366,7 +379,7 @@ public final class ParsedNumber extends ParsedElement {
     }
     try {
       Character closeSymbol = null;
-      if (!inArray) {
+      if (!type.isArray()) {
         if (token.is(Token.Type.WHITESPACE)) {
           token = tokenizer.next();
         }
@@ -446,7 +459,6 @@ public final class ParsedNumber extends ParsedElement {
         fail(e.getMessage());
       }
     }
-    rawNumber.setDebug(isDebug());
     rawNumber.set(buffer.toString());
     return token;
   }
