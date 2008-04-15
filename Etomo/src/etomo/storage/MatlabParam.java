@@ -44,6 +44,10 @@ import etomo.util.DatasetFiles;
  * @version $Revision$
  * 
  * <p> $Log$
+ * <p> Revision 1.16  2008/04/02 01:54:12  sueh
+ * <p> bug# 1095 Added mask fields.  Bug# 1097 In ParsedElement classes,
+ * <p> matching Matlab's syntax.
+ * <p>
  * <p> Revision 1.15  2008/03/06 00:25:08  sueh
  * <p> bug# 1088 Added sampleSphere and sampleInterval.
  * <p>
@@ -249,12 +253,12 @@ public final class MatlabParam {
   private static final int YAXIS_CONTOUR_MODEL_NUMBER_INDEX = 0;
   private static final int YAXIS_CONTOUR_OBJECT_NUMBER_INDEX = 1;
   private static final int YAXIS_CONTOUR_CONTOUR_NUMBER_INDEX = 2;
-  private static final Integer[] RELATIVE_ORIENT_DEFAULT_VALUE_ARRAY = new Integer[] {
-      new Integer(0), new Integer(0), new Integer(0) };
+  private static final int RELATIVE_ORIENT_DEFAULT = 0;
+  private static final int RELATIVE_ORIENT_MIN_ARRAY_SIZE = 3;
 
   private final ParsedNumber particlePerCpu = ParsedNumber.getMatlabInstance();
   private final ParsedArray szVol = ParsedArray.getMatlabInstance();
-  private final ParsedQuotedString fnOutput = new ParsedQuotedString();
+  private final ParsedQuotedString fnOutput =  ParsedQuotedString.getInstance();
   private final ParsedNumber refFlagAllTom = ParsedNumber.getMatlabInstance();
   private final ParsedNumber edgeShift = ParsedNumber.getMatlabInstance();
   private final ParsedArray lstThresholds = ParsedArray.getMatlabInstance();
@@ -266,17 +270,17 @@ public final class MatlabParam {
    */
   private final ParsedNumber meanFill = ParsedNumber.getMatlabInstance();
   private final ParsedNumber flgMeanFill = ParsedNumber.getMatlabInstance();
-  private final ParsedQuotedString alignedBaseName = new ParsedQuotedString();
+  private final ParsedQuotedString alignedBaseName =  ParsedQuotedString.getInstance();
   private final ParsedNumber debugLevel = ParsedNumber.getMatlabInstance();
   private final List volumeList = new ArrayList();
   private final List iterationList = new ArrayList();
-  private final ParsedQuotedString referenceFile = new ParsedQuotedString();
+  private final ParsedQuotedString referenceFile =  ParsedQuotedString.getInstance();
   private final ParsedArray reference = ParsedArray.getMatlabInstance();
   private final ParsedArray yaxisContour = ParsedArray.getMatlabInstance();
   private final ParsedNumber flgWedgeWeight = ParsedNumber.getMatlabInstance();
-  private final ParsedQuotedString sampleSphere = new ParsedQuotedString();
+  private final ParsedQuotedString sampleSphere =  ParsedQuotedString.getInstance();
   private final ParsedNumber sampleInterval = ParsedNumber.getMatlabInstance();
-  private final ParsedQuotedString maskType = new ParsedQuotedString();
+  private final ParsedQuotedString maskType =  ParsedQuotedString.getInstance();
   private final ParsedArray maskModelPts = ParsedArray.getMatlabInstance();
   private final ParsedNumber insideMaskRadius = ParsedNumber
       .getMatlabInstance();
@@ -958,6 +962,8 @@ public final class MatlabParam {
     //relativeOrient
     ParsedList relativeOrient = ParsedList
         .getMatlabInstance(EtomoNumber.Type.FLOAT);
+    relativeOrient.setDefault(RELATIVE_ORIENT_DEFAULT);
+    relativeOrient.setMinArraySize(RELATIVE_ORIENT_MIN_ARRAY_SIZE);
     relativeOrient.parse(autodoc.getAttribute(RELATIVE_ORIENT_KEY));
     size = Math.max(size, relativeOrient.size());
     //fnVolume
@@ -1122,7 +1128,8 @@ public final class MatlabParam {
     ParsedList tiltRange = ParsedList.getMatlabInstance(EtomoNumber.Type.FLOAT);
     ParsedList relativeOrient = ParsedList
         .getMatlabInstance(EtomoNumber.Type.FLOAT);
-    relativeOrient.setDefaultValue(RELATIVE_ORIENT_DEFAULT_VALUE_ARRAY);
+    relativeOrient.setDefault(RELATIVE_ORIENT_DEFAULT);
+    relativeOrient.setMinArraySize(RELATIVE_ORIENT_MIN_ARRAY_SIZE);
     //build the lists
     for (int i = 0; i < volumeList.size(); i++) {
       Volume volume = (Volume) volumeList.get(i);
@@ -1637,9 +1644,14 @@ public final class MatlabParam {
         .getMatlabInstance(EtomoNumber.Type.FLOAT);
     private final ParsedArray relativeOrient = ParsedArray
         .getMatlabInstance(EtomoNumber.Type.FLOAT);
-    private final ParsedQuotedString fnVolume = new ParsedQuotedString();
-    private final ParsedQuotedString fnModParticle = new ParsedQuotedString();
-    private final ParsedQuotedString initMotl = new ParsedQuotedString();
+    private final ParsedQuotedString fnVolume =  ParsedQuotedString.getInstance();
+    private final ParsedQuotedString fnModParticle =  ParsedQuotedString.getInstance();
+    private final ParsedQuotedString initMotl =  ParsedQuotedString.getInstance();
+
+    private Volume() {
+      relativeOrient.setDefault(RELATIVE_ORIENT_DEFAULT);
+      relativeOrient.setMinArraySize(RELATIVE_ORIENT_MIN_ARRAY_SIZE);
+    }
 
     public void setFnVolume(final ParsedElement fnVolume) {
       this.fnVolume.setElement(fnVolume);
@@ -1759,12 +1771,12 @@ public final class MatlabParam {
         .getMatlabInstance(EtomoNumber.Type.FLOAT);
 
     //search spaces
-    private final ParsedArrayDescriptor dPhi = new ParsedArrayDescriptor(
-        EtomoNumber.Type.FLOAT);
-    private final ParsedArrayDescriptor dTheta = new ParsedArrayDescriptor(
-        EtomoNumber.Type.FLOAT);
-    private final ParsedArrayDescriptor dPsi = new ParsedArrayDescriptor(
-        EtomoNumber.Type.FLOAT);
+    private final ParsedArrayDescriptor dPhi = ParsedArrayDescriptor
+        .getInstance(EtomoNumber.Type.FLOAT);
+    private final ParsedArrayDescriptor dTheta = ParsedArrayDescriptor
+        .getInstance(EtomoNumber.Type.FLOAT);
+    private final ParsedArrayDescriptor dPsi = ParsedArrayDescriptor
+        .getInstance(EtomoNumber.Type.FLOAT);
 
     private Iteration() {
     }
