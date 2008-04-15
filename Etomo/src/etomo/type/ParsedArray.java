@@ -32,6 +32,12 @@ import etomo.util.PrimativeTokenizer;
  * @version $Revision$
  * 
  * <p> $Log$
+ * <p> Revision 1.16  2008/04/08 23:55:37  sueh
+ * <p> bug# 1105 Changed the array used in ParsedElement to a
+ * <p> ParsedElementList because it always holds ParsedNumbers.  Fixed
+ * <p> parsing; it was eating up the delimiter whitespace before it could be
+ * <p> recognized.
+ * <p>
  * <p> Revision 1.15  2008/04/02 02:02:16  sueh
  * <p> bug# 1097 Matching Mallab's syntax.  Making non-Matlab syntax the
  * <p> default in the ParsedElements classes.  This is because matlab uses
@@ -106,56 +112,62 @@ public final class ParsedArray extends ParsedElement {
 
   private final ParsedElementList array;
   private final ParsedElementType type;
-
   private final EtomoNumber.Type etomoNumberType;
   private final String key;
 
-  /**
-   * Defaults.  Place the entire array in collections and the individual
-   * elements into numbers.
-   */
-  private Integer[] defaultValueArray = null;
+  private EtomoNumber defaultValue = null;
+  private boolean debug = false;
 
   private ParsedArray(ParsedElementType type, EtomoNumber.Type etomoNumberType,
-      String key) {
+      String key, boolean debug, EtomoNumber defaultValue) {
     this.etomoNumberType = etomoNumberType;
-    this.type = type;
+    this.type = type.toArrayInstance();
     this.key = key;
-    array = new ParsedElementList(type);
+    this.defaultValue = defaultValue;
+    this.debug = debug;
+    array = new ParsedElementList(type, etomoNumberType, debug,
+        defaultValue);
+    setDebug(debug);
   }
 
   public static ParsedArray getInstance(ParsedElementType type) {
-    return new ParsedArray(type, null, null);
-  }
-
-  public static ParsedArray getInstance(ParsedElementType type,
-      EtomoNumber.Type etomoNumberType) {
-    return new ParsedArray(type, etomoNumberType, null);
+    return new ParsedArray(type, null, null, false, null);
   }
 
   public static ParsedArray getMatlabInstance() {
-    return new ParsedArray(ParsedElementType.MATLAB, null, null);
+    return new ParsedArray(ParsedElementType.MATLAB_ARRAY, null, null, false,
+        null);
   }
 
   public static ParsedArray getMatlabInstance(EtomoNumber.Type etomoNumberType) {
-    return new ParsedArray(ParsedElementType.MATLAB, etomoNumberType, null);
+    return new ParsedArray(ParsedElementType.MATLAB_ARRAY, etomoNumberType,
+        null, false, null);
   }
 
   public static ParsedArray getInstance() {
-    return new ParsedArray(ParsedElementType.NON_MATLAB, null, null);
+    return new ParsedArray(ParsedElementType.NON_MATLAB_ARRAY, null, null,
+        false, null);
   }
 
   public static ParsedArray getInstance(EtomoNumber.Type etomoNumberType) {
-    return new ParsedArray(ParsedElementType.NON_MATLAB, etomoNumberType, null);
+    return new ParsedArray(ParsedElementType.NON_MATLAB_ARRAY, etomoNumberType,
+        null, false, null);
   }
 
   public static ParsedArray getInstance(String key) {
-    return new ParsedArray(ParsedElementType.NON_MATLAB, null, key);
+    return new ParsedArray(ParsedElementType.NON_MATLAB_ARRAY, null, key,
+        false, null);
   }
 
   public static ParsedArray getInstance(EtomoNumber.Type etomoNumberType,
       String key) {
-    return new ParsedArray(ParsedElementType.NON_MATLAB, etomoNumberType, key);
+    return new ParsedArray(ParsedElementType.NON_MATLAB_ARRAY, etomoNumberType,
+        key, false, null);
+  }
+  
+  static ParsedArray getInstance(ParsedElementType type,
+      EtomoNumber.Type etomoNumberType, boolean debug, EtomoNumber defaultValue) {
+    return new ParsedArray(type, etomoNumberType, null, debug, defaultValue);
   }
 
   /**
@@ -185,6 +197,14 @@ public final class ParsedArray extends ParsedElement {
       returnArray[i] = bufferArray[i].toString();
     }
     return returnArray;
+  }
+  
+  public void setDebug(boolean input) {
+    debug = input;
+    array.setDebug(input);
+    for (int i = 0; i < size(); i++) {
+      getElement(i).setDebug(input);
+    }
   }
 
   public void parse(ReadOnlyAttribute attribute) {
@@ -221,10 +241,6 @@ public final class ParsedArray extends ParsedElement {
     return array.get(index).getRawString();
   }
 
-  public Number getRawNumber() {
-    return array.get(0).getRawNumber();
-  }
-
   public boolean isEmpty(int index) {
     return array.get(index).isEmpty();
   }
@@ -248,7 +264,8 @@ public final class ParsedArray extends ParsedElement {
         return element;
       }
     }
-    return ParsedEmptyElement.getInstance(type);
+    return ParsedNumber.getInstance(type, etomoNumberType, debug,
+        defaultValue);
   }
 
   public int getDescriptorIndex() {
@@ -308,12 +325,8 @@ public final class ParsedArray extends ParsedElement {
     }
   }
 
-  /**
-   * @return true if the size of the list is null.  Empty elements in the list
-   * do not affect this result
-   */
-  public boolean isEmpty() {
-    return size() == 0;
+  public void setMinArraySize(int input) {
+      array.setMinSize(input);
   }
 
   public void clear() {
@@ -381,24 +394,17 @@ public final class ParsedArray extends ParsedElement {
     return "[array:" + array + "]";
   }
 
-  public void setDebug(boolean debug) {
-    super.setDebug(debug);
-    for (int i = 0; i < array.size(); i++) {
-      array.get(i).setDebug(debug);
-    }
-  }
-
   /**
-   * Clear the array member variable, and add each element of the parsedArray
+   * Clear the array member variable, and add each element of the ParsedElement
    * to the array.
    * @param parsedArray
    */
-  public void set(ParsedElement parsedArray) {
-    parsedArray.setDebug(isDebug());
-    parsedArray.setDefaultValue(0, defaultValueArray);
+  public void set(ParsedElement input) {
+    input.setDebug(debug);
+    input.setDefault(defaultValue);
     array.clear();
-    for (int i = 0; i < parsedArray.size(); i++) {
-      array.add(parsedArray.getElement(i));
+    for (int i = 0; i < input.size(); i++) {
+      array.add(input.getElement(i));
     }
   }
 
@@ -427,16 +433,15 @@ public final class ParsedArray extends ParsedElement {
 
   void setRawString(int index, float number) {
     ParsedNumber element;
-    element = ParsedNumber.getArrayInstance(type, etomoNumberType);
-    element.setDebug(isDebug());
-    element.setDefaultValue(index, defaultValueArray);
+    element = ParsedNumber.getInstance(type, etomoNumberType, debug,
+        defaultValue);
     element.setRawString(number);
     array.set(index, element);
   }
 
   void setElement(int index, ParsedElement element) {
-    element.setDebug(isDebug());
-    element.setDefaultValue(index, defaultValueArray);
+    element.setDebug(debug);
+    element.setDefault(defaultValue);
     array.set(index, element);
   }
 
@@ -457,7 +462,8 @@ public final class ParsedArray extends ParsedElement {
    * array descriptors to create the entire array.
    * @return list of ParsedNumbers
    */
-  public ParsedElementList getParsedNumberExpandedArray(ParsedElementList parsedNumberExpandedArray) {
+  public ParsedElementList getParsedNumberExpandedArray(
+      ParsedElementList parsedNumberExpandedArray) {
     for (int i = 0; i < array.size(); i++) {
       parsedNumberExpandedArray = array.get(i).getParsedNumberExpandedArray(
           parsedNumberExpandedArray);
@@ -469,28 +475,30 @@ public final class ParsedArray extends ParsedElement {
     return true;
   }
 
-  boolean isDefaultedEmpty() {
-    for (int i = 0; i < array.size(); i++) {
-      if (!array.get(i).isDefaultedEmpty()) {
-        return false;
-      }
-    }
-    return true;
-  }
-
   void removeElement(int index) {
     array.remove(index);
   }
 
   /**
-   * Sets defaultValueArray and calls setDefaultValue() for each element in the
+   * Sets defaultValue and calls setDefaultValue() for each element in the
    * array.
-   * @param numberIndex - not used by a collection
    */
-  void setDefaultValue(int numberIndex, Integer[] defaultValueArray) {
-    this.defaultValueArray = defaultValueArray;
+  void setDefault(EtomoNumber input) {
+    defaultValue = input;
+    array.setDefault(input);
     for (int i = 0; i < array.size(); i++) {
-      array.get(i).setDefaultValue(i, defaultValueArray);
+      array.get(i).setDefault(defaultValue);
+    }
+  }
+
+  public void setDefault(int input) {
+    if (defaultValue == null) {
+      defaultValue = new EtomoNumber(etomoNumberType);
+    }
+    defaultValue.set(input);
+    array.setDefault(defaultValue);
+    for (int i = 0; i < array.size(); i++) {
+      array.get(i).setDefault(defaultValue);
     }
   }
 
@@ -552,9 +560,7 @@ public final class ParsedArray extends ParsedElement {
     if (!element.isCollection()) {
       //this position must contain a descriptor
       ParsedDescriptor descriptor = ParsedDescriptor.getInstance(type,
-          etomoNumberType);
-      descriptor.setDebug(isDebug());
-      descriptor.setDefaultValue(index, defaultValueArray);
+          etomoNumberType, debug, defaultValue);
       array.set(index, descriptor);
     }
   }
@@ -577,7 +583,7 @@ public final class ParsedArray extends ParsedElement {
    * @param parsable - true when getting parsable string, false when getting a raw string
    * @param startIndex - start index
    */
-  private String getString(boolean parsable, int startIndex) {
+  private String getString(final boolean parsable, int startIndex) {
     if (startIndex == -1) {
       startIndex = 0;
     }
@@ -657,8 +663,7 @@ public final class ParsedArray extends ParsedElement {
     //Array descriptors don't have their own open and close symbols, so they
     //look like numbers until to you get to the first divider (":"or "-").
     ParsedDescriptor descriptor = ParsedDescriptor.getInstance(type,
-        etomoNumberType);
-    descriptor.setDebug(isDebug());
+        etomoNumberType, debug, defaultValue);
     token = descriptor.parse(token, tokenizer);
     //create the correct type of element
     ParsedElement element;
@@ -675,11 +680,9 @@ public final class ParsedArray extends ParsedElement {
       element = descriptor.getElement(0);
     }
     if (index == -1) {
-      element.setDefaultValue(array.size(), defaultValueArray);
       array.add(element);
     }
     else {
-      element.setDefaultValue(index, defaultValueArray);
       array.set(index, element);
     }
     return token;
