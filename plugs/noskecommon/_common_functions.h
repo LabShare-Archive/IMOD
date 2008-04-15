@@ -115,6 +115,7 @@ template <typename type>	string toString( type value );
 template <typename data>	string toStringPadNumber( data value, int padLength, char padChar='0' );
 template <typename data>	string toStringWithCommas( data value );
 
+inline string toString( float value, int decimal );
 inline float string_getFloatFromString( string str );
 
 inline string string_substr (string str, int chars, int offset );
@@ -458,13 +459,23 @@ inline string toStringWithCommas( data value )
 
 
 //-------------
+//-- Takes a float and converts it to a string but limits the decimal places
+
+inline string toString( float value, int decimal )
+{	
+	double	exponent = (double)pow(10,decimal);
+	double	newValue = ((int)(value * exponent))/exponent ;
+	return  toString(newValue);
+}
+
+//-------------
 //-- Takes a string an returns a float by calling "atof" - which can
 //-- handle the chars: '-', '.' and 'e' - eg: "-5.3e4" -> 53000 ).
 //-- If there are bad characters 0 will be returned (maybe an error
 //-- message should appear instead).
 
 inline float string_getFloatFromString( string str ) {
-	return ( (float)atof( str.c_str() ) );
+	return ( atof( str.c_str() ) );
 }
 
 //-------------
