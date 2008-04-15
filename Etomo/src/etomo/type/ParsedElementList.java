@@ -17,6 +17,11 @@ import java.util.Map;
  * @version $Revision$
  * 
  * <p> $Log$
+ * <p> Revision 1.12  2008/04/08 23:58:34  sueh
+ * <p> bug# 1105 Changed the array used in getParsedNumberExpandedArray
+ * <p> to a ParsedElementList because it always holds ParsedNumbers.  Made
+ * <p> get(int) and size() public.
+ * <p>
  * <p> Revision 1.11  2008/04/02 02:19:05  sueh
  * <p> bug# 1097 Moved EmptyParsedElement into its own file.  Added a type
  * <p> because the type changes how an empty element displays itself.
@@ -62,19 +67,41 @@ public final class ParsedElementList {
 
   private final ParsedElementType type;
 
-  private Map map = new HashMap();
-  private int size = 0;
+  private final Map map = new HashMap();
 
-  ParsedElementList(ParsedElementType type) {
+  private EtomoNumber.Type etomoNumberType;
+
+  private int size = 0;
+  private boolean debug = false;
+  private EtomoNumber defaultValue = null;
+  private int minSize = -1;
+
+  ParsedElementList(ParsedElementType type, EtomoNumber.Type etomoNumberType,
+      boolean debug, EtomoNumber defaultValue) {
     this.type = type;
+    this.etomoNumberType = etomoNumberType;
+    this.debug = debug;
+    this.defaultValue = defaultValue;
   }
 
   public String toString() {
     return "[map:" + map + "]";
   }
 
+  /*
+   * Don't call this function with the class since it uses minSize instead of
+   * giving the real size and would cause new elements to be added after minSize
+   * in an empty list.
+   */
   public int size() {
+    if (size < minSize) {
+      return minSize;
+    }
     return size;
+  }
+  
+  void setMinSize(int input) {
+    minSize = input;
   }
 
   /**
@@ -85,12 +112,26 @@ public final class ParsedElementList {
     map.put(getKey(size++), element);
   }
 
-  public ParsedElement get(int index) {
+  /**
+   * Get element at index.  If index does not refer to an element, create an
+   * empty element, add it at index, and return empty element. 
+   * @param index
+   * @return
+   */
+  public synchronized ParsedElement get(int index) {
     ParsedElement element = (ParsedElement) map.get(getKey(index));
     if (element == null) {
-      return ParsedEmptyElement.getInstance(type);
+      element = setEmptyElement(index);
     }
     return element;
+  }
+
+  void setDebug(boolean input) {
+    debug = input;
+  }
+
+  void setDefault(EtomoNumber input) {
+    defaultValue = input;
   }
 
   /**
@@ -119,7 +160,20 @@ public final class ParsedElementList {
   }
 
   synchronized void addEmptyElement() {
-    size++;
+    setEmptyElement(size);
+  }
+
+  private ParsedElement setEmptyElement(int index) {
+    ParsedElement element;
+    if (type == ParsedElementType.STRING) {
+      element = ParsedQuotedString.getInstance(debug);
+    }
+    else {
+      element = ParsedNumber.getInstance(type, etomoNumberType, debug,
+          defaultValue);
+    }
+    set(index, element);
+    return element;
   }
 
   public ParsedElement remove(int index) {
