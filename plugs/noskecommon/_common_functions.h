@@ -142,7 +142,7 @@ template <typename type>  vector<type> vector_reverse( vector<type> v, int start
 //## FILE FUNCTIONS:
 
 inline bool file_saveStringToFile( string filePath, string text, bool append );
-inline vector<string> file_loadTextFromFile( string filePath );
+inline vector<string> file_loadTextFromFile( string filePath, bool printStatus=true );
 
 
 
@@ -783,7 +783,7 @@ inline vector<type> vector_reverse( vector<type> v, int startIdx, int endIdx )
 //-------------
 //-- Loads all lines of text from the text file into a vector of strings.
 
-inline vector<string> file_loadTextFromFile( string filePath )
+inline vector<string> file_loadTextFromFile( string filePath, bool printStatus )
 {
   const int MAXLINEFORREADING = 2048;
   
@@ -792,13 +792,15 @@ inline vector<string> file_loadTextFromFile( string filePath )
    
 	//## OPEN TEXT FILE FOR INPUT:
   
-  cout << "Opening file '" << filePath << "'" << endl;
+  if(printStatus)
+    cout << "Opening file '" << filePath << "'" << endl;
   
   FILE *fp = fopen( filePath.c_str(), "r");
   
   if( fp == NULL )
   {
-    cout << "ERROR: Opening of file '" << filePath << "' failed." << endl;
+    if(printStatus)
+      cout << "ERROR: Opening of file '" << filePath << "' failed." << endl;
     return text;
   }
   
