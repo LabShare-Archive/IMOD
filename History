@@ -1,5 +1,7 @@
 IMOD History
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+4/17/08: Fixed an error when running etomo with --help.
+
 4/15/08: Fixed the reading of .prm files by Etomo - PEET.
 
 4/14/08: Fixed Sirtsetup/Splittilt for Windows: switched Sirtsetup to unix line
