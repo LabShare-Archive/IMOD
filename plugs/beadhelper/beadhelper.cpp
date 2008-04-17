@@ -173,14 +173,14 @@ int imodPlugKeys(ImodView *vw, QKeyEvent *event)
     //## LIST OF KEYS THAT REQUIRE A REDRAW OF THE EXTRA OBJECT:
       
     case Qt::Key_PageUp:
-      edit_changeSelectedSlice(1,true);
+      edit_changeSelectedView(1,true);
       break;
     case Qt::Key_PageDown:
-      edit_changeSelectedSlice(-1,true);
+      edit_changeSelectedView(-1,true);
       break;
       
     case Qt::Key_Insert:               // doesn't work
-      plug.window->goToMiddleSlice();
+      plug.window->goToSeedView();
       break;
       
     
@@ -224,58 +224,61 @@ void imodPlugExecute(ImodView *inImodView)
   if( !plug.initialized )
   {
     ivwGetImageSize(inImodView, &plug.xsize, &plug.ysize, &plug.zsize);
-    plug.middleSlice = int(plug.zsize / 2);
     plug.middlePt.x = plug.xsize / 2;
     plug.middlePt.y = plug.ysize / 2;
     plug.middlePt.z = plug.zsize / 2;
     
-    //** MAIN SETTINGS:
+    //** MAIN OPTIONS:
     
-    plug.sliceMin           = 1;
-    plug.sliceMax           = plug.zsize;
+    plug.viewMin           = 1;
+    plug.viewMax           = plug.zsize;
     plug.contMin            = 5;
     plug.contMax            = 9999;
     
     plug.showExpectedPos    = 1;
-    plug.wheelBehav         = WH_SMART;
-    plug.estPosMethod       = EM_NEARESTTWO;
     plug.showSpheres        = true;
     plug.sphereSize         = 3;
-    plug.lineDisplayWidth   = 1;
-    
     plug.lineDisplayType    = LD_ALL;
     plug.tiltDisplayType    = TD_OFF;
-    
+    plug.estPosMethod       = EM_NEARESTTWO;
+        
     //** MORE SETTINGS:
     
+    plug.seedView              = int(plug.zsize / 2);
     plug.tiltIncrement         = 1.0;
     plug.tiltAxisAngle         = -11.7;
     plug.tiltOffsetX           = 0;
     plug.biggestHoleGrid       = 20;
-    plug.biggestHoleOffset     = 100;
+    plug.biggestHoleInset      = -100;
     
     plug.expPtDisplayType      = ED_CROSS;
     plug.expPtSize             = 6;
-    plug.sizePurpleSpheres     = 10;
     plug.sizeLineSpheres       = 0;
+    plug.lineDisplayWidth      = 1;
+    plug.sizePurpleSpheres     = 10;
+    
     plug.selectedAction        = 0;
     plug.sortCriteria          = 0;
+    plug.autoSaveSettings      = true;
     
+    //** KEYBOARD AND MOUSE OPTIONS:
+    
+    plug.wheelBehav            = WH_SMART;
     plug.wheelResistance       = 100;
     plug.disableHotKeys        = false;
     plug.includeEndsResid      = false;
-    plug.enterAction           = EN_PREVUNCHECKED;
-    plug.minPtsEnter           = 2;
-    plug.maxPtsEnter           = plug.zsize;
-    plug.enterPrint            = false;
+    plug.searchRangeOnly       = false;
+    plug.contsToSearch         = SC_ALL;
     plug.dKeyBehav             = DK_OPPOSITEMIDDLE;
     plug.mKeyBehav             = MK_GOTOMIDDLE;
     plug.wCurrContOnly         = true;
     plug.wWeightedDiv          = 15;
+    plug.enterAction           = EN_PREVUNCHECKED;
+    plug.minPtsEnter           = 5;
+    plug.maxPtsEnter           = plug.zsize;
+    plug.enterPrint            = false;
     
-    
-    plug.autoSaveSettings      = true;
-    
+    //** SMOOTHING OPTIONS:
     
     plug.smoothCurrContOnly    = 1;
     plug.smoothFillGaps        = true;
@@ -290,8 +293,9 @@ void imodPlugExecute(ImodView *inImodView)
     plug.smoothAdjacentV       = false;
     plug.smoothNumViews        = 5;
     
-    plug.window->loadSettings();
+    //** OTHER:
     
+    plug.window->loadSettings();
     plug.initialized        = true;
   }
   
@@ -336,7 +340,7 @@ void imodPlugExecute(ImodView *inImodView)
   
   plug.window->changeSphereSize( plug.sphereSize );
   plug.window->verifyTiltIncrement(true, true);
-  plug.window->verifyMiddleSliceIsSeeded();
+  plug.window->verifySeedViewIsSeeded();
   ivwRedraw( plug.view );
 }
 
@@ -382,7 +386,7 @@ int imodPlugEvent(ImodView *vw, QEvent *event, float imx, float imy)
       }
       case( WH_SLICES ):
       {
-        edit_changeSelectedSlice( change, true );
+        edit_changeSelectedView( change, true );
         plug.window->drawExtraObject(false);
         return 0;
       }
@@ -390,15 +394,15 @@ int imodPlugEvent(ImodView *vw, QEvent *event, float imx, float imy)
       {
         if( isCurrContValid() )
         {
-          int newSlice = edit_getZOfTopZap() + change;
-          keepWithinRange( newSlice, 0, plug.zsize-1 );
+          int newView = edit_getZOfTopZap() + change;
+          keepWithinRange( newView, 0, plug.zsize-1 );
           
-          if( bead_isPtOnSlice( getCurrCont(), newSlice ) )
+          if( bead_isPtOnView( getCurrCont(), newView ) )
           {
             Imod *imod = ivwGetModel(plug.view);
             int objIdx, contIdx, ptIdx;
             imodGetIndex(imod, &objIdx, &contIdx, &ptIdx);
-            int newPtIdx = bead_getPtIdxOnSlice( getCurrCont(), newSlice );
+            int newPtIdx = bead_getPtIdxOnView( getCurrCont(), newView );
             imodSetIndex(imod, objIdx, contIdx, newPtIdx);
             
             plug.window->drawExtraObject(false);
@@ -406,7 +410,7 @@ int imodPlugEvent(ImodView *vw, QEvent *event, float imx, float imy)
             return 1;
           }
         }
-        edit_changeSelectedSlice( change, true );
+        edit_changeSelectedView( change, true );
         plug.window->drawExtraObject(true);
         return 1;
       }
@@ -422,7 +426,7 @@ int imodPlugEvent(ImodView *vw, QEvent *event, float imx, float imy)
 
 /*
      Mouse event callback function to be defined by plugins with the
-     IMOD_PLUG_MOUSE bit set.  ^
+     IMOD_PLUG_MOUSE bit set.
      This function can be used to override 3dmod mouse actions in the Zap 
      window.  [imx] and [imy] will contain the image position, and [but1], 
      [but2], and [but3] will indicate the state of the 3 buttons as mapped by 
@@ -487,29 +491,29 @@ BeadHelper::BeadHelper(QWidget *parent, const char *name) :
   gridLayout1->setMargin(LAYOUT_MARGIN);
   gridLayout1->addItem( new QSpacerItem(1,SPACER_HEIGHT), 0, 0);
   
-  lblSlices = new QLabel("slices: ", grpRange);
-  lblSlices->setFocusPolicy(QWidget::NoFocus);
-  gridLayout1->addWidget(lblSlices, 1, 0);
+  lblViews = new QLabel("views: ", grpRange);
+  lblViews->setFocusPolicy(QWidget::NoFocus);
+  gridLayout1->addWidget(lblViews, 1, 0);
   
-  sliceMinSpinner = new QSpinBox(grpRange);
-  sliceMinSpinner->setFocusPolicy(QWidget::ClickFocus);
-  sliceMinSpinner->setMinValue(1);
-  sliceMinSpinner->setMaxValue(plug.zsize);
-  sliceMinSpinner->setValue( plug.sliceMin );
-  QToolTip::add(sliceMinSpinner, "Minimum slice value (inclusive)");
-  gridLayout1->addWidget(sliceMinSpinner, 1, 1);
+  viewMinSpinner = new QSpinBox(grpRange);
+  viewMinSpinner->setFocusPolicy(QWidget::ClickFocus);
+  viewMinSpinner->setMinValue(1);
+  viewMinSpinner->setMaxValue(plug.zsize);
+  viewMinSpinner->setValue( plug.viewMin );
+  QToolTip::add(viewMinSpinner, "Minimum view value (inclusive)");
+  gridLayout1->addWidget(viewMinSpinner, 1, 1);
   
-  lblSlicesTo = new QLabel(" to ", grpRange);
-  lblSlicesTo->setFocusPolicy(QWidget::NoFocus);
-  gridLayout1->addWidget(lblSlicesTo, 1, 2);
+  lblViewsTo = new QLabel(" to ", grpRange);
+  lblViewsTo->setFocusPolicy(QWidget::NoFocus);
+  gridLayout1->addWidget(lblViewsTo, 1, 2);
   
-  sliceMaxSpinner = new QSpinBox(grpRange);
-  sliceMaxSpinner->setFocusPolicy(QWidget::ClickFocus);
-  sliceMaxSpinner->setMinValue(1);
-  sliceMaxSpinner->setMaxValue(plug.zsize);
-  sliceMaxSpinner->setValue( plug.sliceMax );
-  QToolTip::add(sliceMaxSpinner, "Maximum slice value (inclusive)");
-  gridLayout1->addWidget(sliceMaxSpinner, 1, 3);
+  viewMaxSpinner = new QSpinBox(grpRange);
+  viewMaxSpinner->setFocusPolicy(QWidget::ClickFocus);
+  viewMaxSpinner->setMinValue(1);
+  viewMaxSpinner->setMaxValue(plug.zsize);
+  viewMaxSpinner->setValue( plug.viewMax );
+  QToolTip::add(viewMaxSpinner, "Maximum view value (inclusive)");
+  gridLayout1->addWidget(viewMaxSpinner, 1, 3);
   
   lblContours = new QLabel("contours: ", grpRange);
   lblContours->setFocusPolicy(QWidget::NoFocus);
@@ -532,7 +536,10 @@ BeadHelper::BeadHelper(QWidget *parent, const char *name) :
   contMaxSpinner->setMinValue(1);
   contMaxSpinner->setMaxValue(9999);
   contMaxSpinner->setValue( plug.contMax );
-  QToolTip::add(contMaxSpinner, "Maximum contour value (inclusive)");
+  QToolTip::add(contMaxSpinner, "Maximum contour value (inclusive)"
+                "\n\nNOTE: This value defaults to 9999 - which means all contours "
+                "\n     from the min value to the last contour in the "
+                "\n     object are included in the range");
   gridLayout1->addWidget(contMaxSpinner, 2, 3);
   
   mLayout->addWidget(grpRange);
@@ -559,7 +566,7 @@ BeadHelper::BeadHelper(QWidget *parent, const char *name) :
   QObject::connect(reduceContsToSeedButton, SIGNAL(clicked()), this,
                    SLOT(reduceContsToSeed()));
   QToolTip::add(reduceContsToSeedButton,
-                "Deletes all points in the current contour except on the middle slice");
+                "Deletes all points in the current contour except on the seed view");
   vboxLayout1->addWidget(reduceContsToSeedButton);
   
   movePtsToEstButton = new QPushButton("Move Pts to Estimated Pos [e]", grpActions);
@@ -657,6 +664,7 @@ BeadHelper::BeadHelper(QWidget *parent, const char *name) :
   tiltDisplayCombo->insertItem("tilt and seed");
   tiltDisplayCombo->insertItem("tilt and pt");
   tiltDisplayCombo->insertItem("tilt segments");
+  tiltDisplayCombo->insertItem("[h] grid");
   tiltDisplayCombo->setCurrentItem( plug.tiltDisplayType );
 	connect(tiltDisplayCombo, SIGNAL(activated(int)), this,
           SLOT(changeTiltDisplayType(int)));
@@ -670,7 +678,9 @@ BeadHelper::BeadHelper(QWidget *parent, const char *name) :
     "\n > tilt and pt   - shows tilt axis, seed line and also a line from the "
       "intersection of these lines through the currently selected point"
     "\n > tilt segments - shows tilt axis and four parallel dotted lines which move "
-      "according to the tilt increment (under 'More Settings')";
+      "according to the tilt increment (under 'More Settings')"
+    "\n > [h] grid    - shows the grid used to find the 'next biggest hole' when [h] "
+      "is pressed (see 'More Settings')";
 	QToolTip::add(tiltDisplayCombo, 
                 "Visual aid to let you see the trajectory of contours");
 	gridLayout2->addWidget(tiltDisplayCombo, 4, 1);
@@ -765,54 +775,54 @@ BeadHelper::BeadHelper(QWidget *parent, const char *name) :
 //------------------------
 //-- Adds points in the shape of a crosshair to contour
 
-void cont_addCrosshair( Icont *cont, Ipoint center, float size, int slice )
+void cont_addCrosshair( Icont *cont, Ipoint center, float size, int view )
 {
   float h = size/2.0;
-  imodPointAppendXYZ( cont, center.x,     center.y,      slice );
-  imodPointAppendXYZ( cont, center.x,     center.y+h,    slice );
-  imodPointAppendXYZ( cont, center.x,     center.y-h,    slice );
-  imodPointAppendXYZ( cont, center.x,     center.y,      slice );
-  imodPointAppendXYZ( cont, center.x+h,   center.y,      slice );
-  imodPointAppendXYZ( cont, center.x-h,   center.y,      slice );
-  imodPointAppendXYZ( cont, center.x,     center.y,      slice );
+  imodPointAppendXYZ( cont, center.x,     center.y,      view );
+  imodPointAppendXYZ( cont, center.x,     center.y+h,    view );
+  imodPointAppendXYZ( cont, center.x,     center.y-h,    view );
+  imodPointAppendXYZ( cont, center.x,     center.y,      view );
+  imodPointAppendXYZ( cont, center.x+h,   center.y,      view );
+  imodPointAppendXYZ( cont, center.x-h,   center.y,      view );
+  imodPointAppendXYZ( cont, center.x,     center.y,      view );
 }
 
 //------------------------
 //-- Adds points in the shape of a cross to contour
 
-void cont_addCross( Icont *cont, Ipoint center, float size, int slice )
+void cont_addCross( Icont *cont, Ipoint center, float size, int view )
 {
   float h = size/2.0;
-  imodPointAppendXYZ( cont, center.x,     center.y,      slice );
-  imodPointAppendXYZ( cont, center.x+h,   center.y+h,    slice );
-  imodPointAppendXYZ( cont, center.x-h,   center.y-h,    slice );
-  imodPointAppendXYZ( cont, center.x,     center.y,      slice );
-  imodPointAppendXYZ( cont, center.x+h,   center.y-h,    slice );
-  imodPointAppendXYZ( cont, center.x-h,   center.y+h,    slice );
-  imodPointAppendXYZ( cont, center.x,     center.y,      slice );
+  imodPointAppendXYZ( cont, center.x,     center.y,      view );
+  imodPointAppendXYZ( cont, center.x+h,   center.y+h,    view );
+  imodPointAppendXYZ( cont, center.x-h,   center.y-h,    view );
+  imodPointAppendXYZ( cont, center.x,     center.y,      view );
+  imodPointAppendXYZ( cont, center.x+h,   center.y-h,    view );
+  imodPointAppendXYZ( cont, center.x-h,   center.y+h,    view );
+  imodPointAppendXYZ( cont, center.x,     center.y,      view );
 }
 
 //------------------------
 //-- Adds points in the shape of a cross to contour
 
-void cont_addDiamond( Icont *cont, Ipoint center, float size, int slice )
+void cont_addDiamond( Icont *cont, Ipoint center, float size, int view )
 {
   float h = size/2.0;
-  imodPointAppendXYZ( cont, center.x-h,   center.y,      slice );
-  imodPointAppendXYZ( cont, center.x,     center.y-h,    slice );
-  imodPointAppendXYZ( cont, center.x+h,   center.y,      slice );
-  imodPointAppendXYZ( cont, center.x,     center.y+h,    slice );
-  imodPointAppendXYZ( cont, center.x-h,   center.y,      slice );
+  imodPointAppendXYZ( cont, center.x-h,   center.y,      view );
+  imodPointAppendXYZ( cont, center.x,     center.y-h,    view );
+  imodPointAppendXYZ( cont, center.x+h,   center.y,      view );
+  imodPointAppendXYZ( cont, center.x,     center.y+h,    view );
+  imodPointAppendXYZ( cont, center.x-h,   center.y,      view );
 }
 
 //------------------------
 //-- Adds points in the shape of a cross to contour
 
-void cont_addArrow( Icont *cont, Ipoint from, Ipoint to, float size, int slice )
+void cont_addArrow( Icont *cont, Ipoint from, Ipoint to, float size, int view )
 {
   float h = size/2.0;
-  imodPointAppendXYZ( cont, from.x,   from.y,     slice );
-  imodPointAppendXYZ( cont, to.x,     to.y,         slice );
+  imodPointAppendXYZ( cont, from.x,   from.y,     view );
+  imodPointAppendXYZ( cont, to.x,     to.y,         view );
   
   float lineLen = line_distBetweenPts2D( &to, &from );
   if(lineLen == 0)
@@ -821,37 +831,37 @@ void cont_addArrow( Icont *cont, Ipoint from, Ipoint to, float size, int slice )
   float fractAlong = size / lineLen;
   Ipoint arrow = line_findPtFractBetweenPts2D( &to, &from, fractAlong );
   point_rotatePointAroundPoint2D( &arrow, &to, 40*DEGS_TO_RADS );
-  imodPointAppendXYZ( cont, arrow.x,   arrow.y,      slice );
-  imodPointAppendXYZ( cont, to.x,      to.y,         slice );
+  imodPointAppendXYZ( cont, arrow.x,   arrow.y,      view );
+  imodPointAppendXYZ( cont, to.x,      to.y,         view );
   point_rotatePointAroundPoint2D( &arrow, &to, -80*DEGS_TO_RADS );
-  imodPointAppendXYZ( cont, arrow.x,   arrow.y,      slice );
+  imodPointAppendXYZ( cont, arrow.x,   arrow.y,      view );
 }
 
 //------------------------
 //-- Adds points in the shape of a cross to contour
 
-void cont_makeContShowingMissingPoints( Icont *to, Icont *from, int slice, float radius )
+void cont_makeContShowingMissingPoints( Icont *to, Icont *from, int view, float radius )
 {
   for(int p=0; p<psize(from); p++)  // for each point: draw little verticle line
   {
-    imodPointAppendXYZ( to, getPt(from,p)->x, getPt(from,p)->y, slice );
-    imodPointAppendXYZ( to, getPt(from,p)->x, getPt(from,p)->y+radius, slice );
-    imodPointAppendXYZ( to, getPt(from,p)->x, getPt(from,p)->y-radius, slice );
-    imodPointAppendXYZ( to, getPt(from,p)->x, getPt(from,p)->y, slice );
+    imodPointAppendXYZ( to, getPt(from,p)->x, getPt(from,p)->y, view );
+    imodPointAppendXYZ( to, getPt(from,p)->x, getPt(from,p)->y+radius, view );
+    imodPointAppendXYZ( to, getPt(from,p)->x, getPt(from,p)->y-radius, view );
+    imodPointAppendXYZ( to, getPt(from,p)->x, getPt(from,p)->y, view );
     
     if( getPtZInt(from,p+1) != getPtZInt(from,p) + 1  )
       imodPointAppendXYZ( to, getPt(from,p)->x, getPt(from,p)->y, -1 );
   }
   imodPointAppendXYZ( to, 0, 0, -1 );
   
-  for( int z=0; z<plug.zsize; z++)    // for each slice:
+  for( int z=0; z<plug.zsize; z++)    // for each view:
   {
-    if( !bead_isPtOnSlice(from,z) )     // if missin point:
+    if( !bead_isPtOnView(from,z) )     // if missin point:
     {                                     // draw a cross at it's estimated poistion
       Ipoint estPt;
       if ( bead_getExpectedPosOfPoint( from, z, &estPt ) )
       {
-        cont_addCross( to, estPt, radius*3.0, slice );
+        cont_addCross( to, estPt, radius*3.0, view );
         imodPointAppendXYZ( to, estPt.x, estPt.y, -1 );
       }
     }
@@ -945,14 +955,14 @@ bool BeadHelper::drawExtraObject( bool redraw )
     {
       Icont *xcont = imodContourNew();
       
-      if( bead_isPtOnSlice(cont, z) )
+      if( bead_isPtOnView(cont, z) )
       {
         if( plug.expPtDisplayType == ED_DIAMOND )
           cont_addDiamond( xcont, ptEst, plug.expPtSize*sc, z );
         else if( plug.expPtDisplayType == ED_CROSS )
           cont_addCross( xcont, ptEst, plug.expPtSize*sc, z );
         else {
-          Ipoint *pt = bead_getPtOnSlice(cont, z);
+          Ipoint *pt = bead_getPtOnView(cont, z);
           cont_addArrow( xcont, *pt, ptEst, plug.expPtSize*sc, z );
         }
       }
@@ -1078,9 +1088,9 @@ bool BeadHelper::drawExtraObject( bool redraw )
     if( plug.tiltDisplayType == TD_TILTAXISSEED
         || plug.tiltDisplayType == TD_TILTAXISPT )
     {
-      if( cont && bead_isPtOnSlice( cont, plug.middleSlice) )
+      if( cont && bead_isPtOnView( cont, plug.seedView) )
       {
-        Ipoint *ptS = bead_getPtOnSlice( cont, plug.middleSlice );
+        Ipoint *ptS = bead_getPtOnView( cont, plug.seedView );
         float startSYP   = ptS->y - ((ptS->x - 0)*gradientP);
         float endSYP     = ptS->y + ((plug.xsize - ptS->x)*gradientP);
         
@@ -1118,6 +1128,30 @@ bool BeadHelper::drawExtraObject( bool redraw )
       cont_addLineToObj( xobjT, startX+2*segWidth,0,z, endX+2*segWidth,ym,z, true, true);
       cont_addLineToObj( xobjT, startX-1*segWidth,0,z, endX-1*segWidth,ym,z, true, true);
       cont_addLineToObj( xobjT, startX-2*segWidth,0,z, endX-2*segWidth,ym,z, true, true);
+    }
+    else if( plug.tiltDisplayType == TD_HGRID )
+    {
+      int colsX = int(plug.xsize / plug.biggestHoleGrid);
+      int rowsY = int(plug.ysize / plug.biggestHoleGrid);
+      float sideLenX = fDivide(plug.xsize, colsX);
+      float sideLenY = fDivide(plug.ysize, rowsY);
+      
+      float inset = plug.biggestHoleInset;
+      float maxX  = plug.xsize-inset;
+      float maxY  = plug.ysize-inset;
+      
+      for ( float x=sideLenX/2.0f; x<=plug.xsize; x+=sideLenX )
+        if( x>inset && x<plug.xsize-inset )
+          cont_addLineToObj( xobjT, x,0,z, x,plug.ysize,z, true,true );
+      
+      for ( float y=sideLenY/2.0f; y<=plug.ysize; y+=sideLenY )
+        if( y>inset && y<plug.ysize-inset )
+          cont_addLineToObj( xobjT, 0,y,z, plug.xsize,y,z, true,true );
+      
+      cont_addLineToObj( xobjT, inset, inset,z,  inset, maxY,z, true, false);
+      cont_addLineToObj( xobjT, inset, maxY,z,   maxX,  maxY,z, true, false);
+      cont_addLineToObj( xobjT, maxX,  maxY,z,   maxX,  inset,z, true, false);
+      cont_addLineToObj( xobjT, maxX,  inset,z,  inset, inset,z, true, false);
     }
   }
   
@@ -1159,7 +1193,10 @@ void BeadHelper::loadSettings()
   
   if(nvals!=NUM_SAVED_VALS)
   {
-    wprint("\aBeadHelper: Error loading saved values\n");
+    wprint("\aBeadHelper: Could not load saved values\n\n");
+    wprint("\a  If this is your first time using BeadHelper");
+    wprint("\a  it is HIGHLY recommended you click 'Help'");
+    wprint("\a  to learn about how it works!");
     return;
   }
   
@@ -1173,7 +1210,7 @@ void BeadHelper::loadSettings()
   plug.tiltIncrement        = savedValues[6];
   plug.tiltAxisAngle        = savedValues[7];
   plug.biggestHoleGrid      = savedValues[8];
-  plug.biggestHoleOffset    = savedValues[9];
+  plug.biggestHoleInset     = savedValues[9];
   plug.expPtDisplayType     = savedValues[10];
   plug.expPtSize            = savedValues[11];
   plug.sizeLineSpheres      = savedValues[12];
@@ -1186,26 +1223,27 @@ void BeadHelper::loadSettings()
   plug.wheelBehav           = savedValues[18];
   plug.wheelResistance      = savedValues[19];
   plug.includeEndsResid     = savedValues[20];
-  plug.enterAction          = savedValues[21];
-  plug.minPtsEnter          = savedValues[22];
-  plug.enterPrint           = savedValues[23];
-  plug.dKeyBehav            = savedValues[24];
-  plug.mKeyBehav            = savedValues[25];
-  plug.wCurrContOnly        = savedValues[26];
-  plug.wWeightedDiv         = savedValues[27];
+  plug.contsToSearch        = savedValues[21];
+  plug.dKeyBehav            = savedValues[22];
+  plug.mKeyBehav            = savedValues[23];
+  plug.wCurrContOnly        = savedValues[24];
+  plug.wWeightedDiv         = savedValues[25];
+  plug.enterAction          = savedValues[26];
+  plug.minPtsEnter          = savedValues[27];
+  plug.enterPrint           = savedValues[28];
   
-  plug.smoothCurrContOnly   = savedValues[28];
-  plug.smoothFillGaps       = savedValues[29];
-  plug.smoothBigResidFirst  = savedValues[30];
-  plug.smoothMoveYOnly      = savedValues[31];
-  plug.smoothLeaveSeed      = savedValues[32];
-  plug.smoothLeaveEnds      = savedValues[33];
-  plug.smoothLeaveCurrV     = savedValues[34];
-  plug.smoothMoveFract      = savedValues[35];
-  plug.smoothMinResid       = savedValues[36];
-  plug.smoothIterations     = savedValues[37];
-  plug.smoothAdjacentV      = savedValues[38];
-  plug.smoothNumViews       = savedValues[39];
+  plug.smoothCurrContOnly   = savedValues[29];
+  plug.smoothFillGaps       = savedValues[30];
+  plug.smoothBigResidFirst  = savedValues[31];
+  plug.smoothMoveYOnly      = savedValues[32];
+  plug.smoothLeaveSeed      = savedValues[33];
+  plug.smoothLeaveEnds      = savedValues[34];
+  plug.smoothLeaveCurrV     = savedValues[35];
+  plug.smoothMoveFract      = savedValues[36];
+  plug.smoothMinResid       = savedValues[37];
+  plug.smoothIterations     = savedValues[38];
+  plug.smoothAdjacentV      = savedValues[39];
+  plug.smoothNumViews       = savedValues[40];
 }
 
 
@@ -1227,8 +1265,8 @@ void BeadHelper::saveSettings()
   saveValues[6]  = plug.tiltIncrement;
   saveValues[7]  = plug.tiltAxisAngle;
   saveValues[8]  = plug.biggestHoleGrid;
-  saveValues[9]  = plug.biggestHoleOffset;
-  saveValues[10]  = plug.expPtDisplayType;
+  saveValues[9]  = plug.biggestHoleInset;
+  saveValues[10] = plug.expPtDisplayType;
   saveValues[11] = plug.expPtSize;
   saveValues[12] = plug.sizeLineSpheres;
   saveValues[13] = plug.lineDisplayWidth;
@@ -1240,26 +1278,27 @@ void BeadHelper::saveSettings()
   saveValues[18] = plug.wheelBehav;
   saveValues[19] = plug.wheelResistance;
   saveValues[20] = plug.includeEndsResid;
-  saveValues[21] = plug.enterAction;
-  saveValues[22] = plug.minPtsEnter;
-  saveValues[23] = plug.enterPrint;
-  saveValues[24] = plug.dKeyBehav;
-  saveValues[25] = plug.mKeyBehav;
-  saveValues[26] = plug.wCurrContOnly;
-  saveValues[27] = plug.wWeightedDiv;
+  saveValues[21] = plug.contsToSearch;
+  saveValues[22] = plug.dKeyBehav;
+  saveValues[23] = plug.mKeyBehav;
+  saveValues[24] = plug.wCurrContOnly;
+  saveValues[25] = plug.wWeightedDiv;
+  saveValues[26] = plug.enterAction;
+  saveValues[27] = plug.minPtsEnter;
+  saveValues[28] = plug.enterPrint;
   
-  saveValues[28] = plug.smoothCurrContOnly;
-  saveValues[29] = plug.smoothFillGaps;
-  saveValues[30] = plug.smoothBigResidFirst;
-  saveValues[31] = plug.smoothMoveYOnly;
-  saveValues[32] = plug.smoothLeaveSeed;
-  saveValues[33] = plug.smoothLeaveEnds;
-  saveValues[34] = plug.smoothLeaveCurrV;
-  saveValues[35] = plug.smoothMoveFract;
-  saveValues[36] = plug.smoothMinResid;
-  saveValues[37] = plug.smoothIterations;
-  saveValues[38] = plug.smoothAdjacentV;
-  saveValues[39] = plug.smoothNumViews;
+  saveValues[29] = plug.smoothCurrContOnly;
+  saveValues[30] = plug.smoothFillGaps;
+  saveValues[31] = plug.smoothBigResidFirst;
+  saveValues[32] = plug.smoothMoveYOnly;
+  saveValues[33] = plug.smoothLeaveSeed;
+  saveValues[34] = plug.smoothLeaveEnds;
+  saveValues[35] = plug.smoothLeaveCurrV;
+  saveValues[36] = plug.smoothMoveFract;
+  saveValues[37] = plug.smoothMinResid;
+  saveValues[38] = plug.smoothIterations;
+  saveValues[39] = plug.smoothAdjacentV;
+  saveValues[40] = plug.smoothNumViews;
   
   prefSaveGenericSettings("BeadHelper",NUM_SAVED_VALS,saveValues);
 }
@@ -1279,17 +1318,17 @@ void BeadHelper::deletePtsInRange()
   //## GET USER INPUT FROM CUSTOM DIALOG:
   
   int numConts  = (plug.contMax - plug.contMin) + 1;
-  int numSlices = (plug.sliceMax - plug.sliceMin) + 1;
-  int numPts = numConts * numSlices;
-  string incMiddleSlice = isBetweenAsc(plug.sliceMin,plug.middleSlice,plug.sliceMax) ?
+  int numViews = (plug.viewMax - plug.viewMin) + 1;
+  int numPts = numConts * numViews;
+  string incSeedView = isBetweenAsc(plug.viewMin,plug.seedView,plug.viewMax) ?
     "\nTHIS INCLUDES THE MIDDLE SLICE!\n" : "";
   string msg = "This operation will delete ALL points \n  on "
     + toString(numConts) + " contours ("
     + toString(plug.contMin+1) + "-" + toString(plug.contMax+1)
-    + ") \n  on " + toString(numSlices) + " slices ("
-    + toString(plug.sliceMin+1) + "-" + toString(plug.sliceMax+1) + ")"
+    + ") \n  on " + toString(numViews) + " views ("
+    + toString(plug.viewMin+1) + "-" + toString(plug.viewMax+1) + ")"
     + "\n  Potential # points = " + toString(numPts)
-    + incMiddleSlice;
+    + incSeedView;
   
   static bool skipCheckedConts = true;
   static bool skipSeedView     = true;
@@ -1303,7 +1342,7 @@ void BeadHelper::deletePtsInRange()
   int ID_SKIPSEEDVIEW  = ds.addCheckBox( "skip middle (seed) view",
                                          skipSeedView,
                                          "Will not delete any seed points (points on "
-                                         "middle view)" );
+                                         "the seed view)" );
   GuiDialogCustomizable dlg(&ds, "Delete Points", this);
   dlg.exec();
   if( ds.cancelled )
@@ -1334,8 +1373,8 @@ void BeadHelper::deletePtsInRange()
     for( int p=0; p<psize(cont); p++ )
     {
       int z = getPtZInt(cont,p);
-      if( isBetweenAsc( plug.sliceMin, z, plug.sliceMax ) 
-          && ( !skipSeedView || z != plug.middleSlice ) )
+      if( isBetweenAsc( plug.viewMin, z, plug.viewMax ) 
+          && ( !skipSeedView || z != plug.seedView ) )
       {
         imodPointDelete( cont, p );
         p--;
@@ -1369,7 +1408,7 @@ void BeadHelper::deletePtsCurrContInRange()
   
   for( int p=0; p<psize(cont); p++ )
   {
-    if( isBetweenAsc( plug.sliceMin, getPtZInt(cont,p), plug.sliceMax ) )
+    if( isBetweenAsc( plug.viewMin, getPtZInt(cont,p), plug.viewMax ) )
     {
       imodPointDelete( cont, p );
       p--;
@@ -1405,14 +1444,14 @@ bool BeadHelper::deletePtsUsingDAction()
   
   //## DETERMINE WHAT Z RANGE TO DELETE ACCORDING TO "dKeyBehav" VALUE:
   
-  int minZ = plug.sliceMin;
-  int maxZ = plug.sliceMax;
+  int minZ = plug.viewMin;
+  int maxZ = plug.viewMax;
   
   switch( plug.dKeyBehav )
   {
     case( DK_OPPOSITEMIDDLE ):
     {
-      bool deleteUp = currPtZ >= plug.middleSlice;      // point is after seed slice
+      bool deleteUp = currPtZ >= plug.seedView;      // point is after seed view
       minZ = ( deleteUp ) ? currPtZ+1  : 0;
       maxZ = ( deleteUp ) ? plug.zsize : currPtZ-1;
       break;
@@ -1437,7 +1476,7 @@ bool BeadHelper::deletePtsUsingDAction()
   {
     undoFinishUnit( plug.view );        // FINISH UNDO
     
-    ptIdx = bead_getClosestPtIdxToSlice( cont, currPtZ );
+    ptIdx = bead_getClosestPtIdxToView( cont, currPtZ );
     imodSetIndex( imod, objIdx, contIdx, ptIdx );
   }
   
@@ -1449,7 +1488,7 @@ bool BeadHelper::deletePtsUsingDAction()
 
 //------------------------
 //-- Deletes all points from each contour in range except the point in
-//-- the middle slice - effectively reducing each contour to its "seed"
+//-- the seed view - effectively reducing each contour to its "seed"
 
 void BeadHelper::reduceContsToSeed()
 {
@@ -1497,9 +1536,9 @@ void BeadHelper::reduceContsToSeed()
     if( skipCheckedConts && isInterpolated(cont) )
       continue;
     
-    if( psize(cont) > 1 && bead_isPtOnSlice(cont,plug.middleSlice) )
+    if( psize(cont) > 1 && bead_isPtOnView(cont,plug.seedView) )
     {
-      Ipoint *pt = bead_getPtOnSlice(cont,plug.middleSlice);
+      Ipoint *pt = bead_getPtOnView(cont,plug.seedView);
       Ipoint seedPt = *pt;
       numPtsDeleted += psize(cont) - 1;
       undoContourDataChgCC( plug.view );      // REGISTER UNDO
@@ -1521,7 +1560,7 @@ void BeadHelper::reduceContsToSeed()
 
 
 //------------------------
-//-- Deletes all points from the current contour except the point in the middle slice - 
+//-- Deletes all points from the current contour except the point in the seed view - 
 //-- effectively reducing it to its "seed" - and returns the number of points removed
 
 void BeadHelper::reduceCurrContToSeed()
@@ -1535,12 +1574,12 @@ void BeadHelper::reduceCurrContToSeed()
   {
     wprint("ERROR: Contour only has one point\n");
   }
-  if ( bead_isPtOnSlice(cont,plug.middleSlice) )
+  if ( bead_isPtOnView(cont,plug.seedView) )
   {
     int objIdx, contIdx, ptIdx;
     imodGetIndex( ivwGetModel(plug.view) , &objIdx, &contIdx, &ptIdx);
     
-    Ipoint *pt = bead_getPtOnSlice(cont,plug.middleSlice);
+    Ipoint *pt = bead_getPtOnView(cont,plug.seedView);
     Ipoint seedPt = *pt;
     int numPtsToDel = psize(cont) - 1;
     
@@ -1593,7 +1632,7 @@ void BeadHelper::movePtsToEstimatedPosOptions()
                                          "All points will only be moved up/down along "
                                          "the Y (not left/right along the X)" );
   int ID_LEAVESEED     = ds.addCheckBox( "leave seed", plug.smoothLeaveSeed,
-                                         "No points in the middle view will "
+                                         "No points on the seed view will "
                                          "be moved" );
   int ID_LEAVEENDS     = ds.addCheckBox( "leave end points", plug.smoothLeaveEnds,
                                          "The first and last point in each contour will "
@@ -1659,21 +1698,21 @@ void BeadHelper::movePtsToEstimatedPosRange()
   //## INTIALIZE VARIABLES: 
   
   int numConts  = (plug.contMax - plug.contMin) + 1;
-  int numSlices = (plug.sliceMax - plug.sliceMin) + 1;
-  int numPts = numConts * numSlices;
+  int numViews = (plug.viewMax - plug.viewMin) + 1;
+  int numPts = numConts * numViews;
   
   string msg = "This operation will move ALL points "
     "\n  on " + toString(numConts) + "  contours ("
     + toString(plug.contMin+1) + "-" + toString(plug.contMax+1)
-    + ")\n  on " + toString(numSlices) + " slices ("
-    + toString(plug.sliceMin+1) + "-" + toString(plug.sliceMax+1) + ")."
+    + ")\n  on " + toString(numViews) + " views ("
+    + toString(plug.viewMin+1) + "-" + toString(plug.viewMax+1) + ")."
     + "\n  Total points = " + toString(numPts)
     + "\nAre you sure you want to continue ?";
   
   if( !MsgBoxYesNo(this, msg) )
     return;
   
-  int currSlice = edit_getZOfTopZap();
+  int currView = edit_getZOfTopZap();
   Imod *imod = ivwGetModel(plug.view);
   Iobj *obj  = imodObjectGet(imod);
   int objIdx, contIdx, ptIdx;
@@ -1744,7 +1783,7 @@ void BeadHelper::movePtsToEstimatedPosCurrCont()
 
 
 //------------------------
-//-- Moves the point in the current contour on the current slice to it's 
+//-- Moves the point in the current contour on the current view to it's 
 //-- estimated position, based on the position of the points before and/or after it.
 //-- Note that if there is no point on the current view a new point is added.
 
@@ -1754,13 +1793,13 @@ void BeadHelper::moveCurrPtToEstimatedPos()
     return;
   
   Ipoint estPt;
-  int currSlice = edit_getZOfTopZap();
+  int currView = edit_getZOfTopZap();
   Imod *imod = ivwGetModel(plug.view);
   Icont *cont = getCurrCont();
   int objIdx, contIdx, ptIdx;
   imodGetIndex(imod, &objIdx, &contIdx, &ptIdx);
   
-  if( bead_getExpectedPosOfPoint( cont, currSlice, &estPt ) )
+  if( bead_getExpectedPosOfPoint( cont, currView, &estPt ) )
   {
     undoContourDataChgCC( plug.view );      // REGISTER UNDO
     ptIdx = bead_insertOrOverwritePoint( cont, &estPt );
@@ -1789,12 +1828,12 @@ void BeadHelper::fillMissingPts()
   //## GET USER INPUT FROM CUSTOM DIALOG:
   
   int numConts  = (plug.contMax - plug.contMin) + 1;
-  int numSlices = (plug.sliceMax - plug.sliceMin) + 1;
+  int numViews = (plug.viewMax - plug.viewMin) + 1;
   string msg = "This operation will fill missing points on "
     + toString(numConts) + " contours ("
     + toString(plug.contMin+1) + "-" + toString(plug.contMax+1)
-    + ") on " + toString(numSlices) + " slices ("
-    + toString(plug.sliceMin+1) + "-" + toString(plug.sliceMax+1) + ")";
+    + ") on " + toString(numViews) + " views ("
+    + toString(plug.viewMin+1) + "-" + toString(plug.viewMax+1) + ")";
   
   static bool fillPastEnds = false;
   
@@ -1824,7 +1863,7 @@ void BeadHelper::fillMissingPts()
     
     undoContourDataChgCC( plug.view );      // REGISTER UNDO
     int numPtsAdded = bead_fillMissingPtsOnCont( getCurrCont(),
-                                                 plug.sliceMin, plug.sliceMax,
+                                                 plug.viewMin, plug.viewMax,
                                                  fillPastEnds );
     
     numPtsAddedTotal += numPtsAdded;
@@ -1944,8 +1983,8 @@ void BeadHelper::moreActions()
     {
       CustomDialog dsB;
       
-      int static minViewR = plug.middleSlice;
-      int static maxViewR = plug.middleSlice + 5;
+      int static minViewR = plug.seedView;
+      int static maxViewR = plug.seedView + 5;
       
       int ID_DUMMY = dsB.addLabel   ( "... select range of views where top \n"
                                      "and bottom fiducials appear to move in \n"
@@ -2026,7 +2065,7 @@ void BeadHelper::moreSettings()
   ds.addLabel   ("----- TILT STACK: -----");
   
   int ID_MIDDLESLICE    = ds.addSpinBox ( "seed view:",
-                                          1, plug.zsize+1, plug.middleSlice+1, 1,
+                                          1, plug.zsize+1, plug.seedView+1, 1,
                                           "The view used to seed points - this is "
                                           "usually the middle-most view, but not "
                                           "in all cases (NOTE: This settings is not "
@@ -2050,19 +2089,25 @@ void BeadHelper::moreSettings()
                                           plug.tiltOffsetX, 1,
                                           "How far the tilt axis is shifted along X "
                                           "from passing through the center" );
-  int ID_BIGHOLEGRID   = ds.addSpinBox ( "biggest hole grid size:",
+  int ID_BIGHOLEGRID   = ds.addSpinBox (  "biggest hole grid size:",
                                           1, 1000, plug.biggestHoleGrid, 5,
                                           "The distance between grid points used to "
                                           "search for the point furthest from any "
-                                          "seed points and the edge" );
-  int ID_BIGHOLEOFFSET  = ds.addSpinBox ( "biggest hole edge offset:",
-                                          -(plug.xsize/2)+24, 10000,
-                                          plug.biggestHoleOffset, 10,
-                                          "The pixel distance to represent the edge of "
-                                          "the tomogram such that a large value will "
-                                          "encourage points closer to the edge "
-                                          "while a negative value will concentrate "
-                                          "points in the middle as you press 'h'.");
+                                          "seed points and the edge of the biggest "
+                                          "hold grid"
+                                          "\n\nSet 'tilt display' to '[h] grid' to "
+                                          "see the effect");
+  int ID_BIGHOLEOFFSET  = ds.addSpinBox ( "biggest hole grid inset:",
+                                          -10000, (plug.xsize/2)+24,
+                                          plug.biggestHoleInset, 10,
+                                          "The distance (in pixels) to inset the "
+                                          "biggest hole grid [h] such that: "
+                                          "\n  a large value will concentrate "
+                                          "points in the middle and "
+                                          "\n  a negative value encourages points "
+                                          "towards the edge as you press 'h'."
+                                          "\n\nSet 'tilt display' to '[h] grid' to "
+                                          "see the effect");
   
   ds.addLabel   ("----- DISPLAY: -----");
   
@@ -2103,12 +2148,12 @@ void BeadHelper::moreSettings()
 		return;
   
   
-  plug.middleSlice           = ds.getResultSpinBox  ( ID_MIDDLESLICE ) - 1;
+  plug.seedView              = ds.getResultSpinBox  ( ID_MIDDLESLICE ) - 1;
   string tiltIncrAngleStr    = ds.getResultLineEdit	( ID_TILTINCREMENT );
 	string tiltAxisAngleStr    = ds.getResultLineEdit	( ID_TILTANGLE );
   plug.tiltOffsetX           = ds.getResultSpinBox  ( ID_TILTOFFSET );
   plug.biggestHoleGrid       = ds.getResultSpinBox  ( ID_BIGHOLEGRID );
-  plug.biggestHoleOffset     = ds.getResultSpinBox  ( ID_BIGHOLEOFFSET );
+  plug.biggestHoleInset      = ds.getResultSpinBox  ( ID_BIGHOLEOFFSET );
   
   plug.expPtDisplayType      = ds.getResultComboBox ( ID_EXPPTDISPLAY );
   plug.expPtSize             = ds.getResultSpinBox  ( ID_EXPPTSIZE );
@@ -2182,12 +2227,30 @@ void BeadHelper::keyboardSettings()
                                           "they conflict with another key you "
                                           "need to press \n\nNOTE: this setting "
                                           "defaults to off and is not saved on exit");
-  int ID_CHECKENDS      = ds.addCheckBox( "include seed && end pts on [h], [b] && [w]", 
+  int ID_CHECKENDS      = ds.addCheckBox( "include seed && end pts on [y],[b]&&[w]", 
                                           plug.includeEndsResid,
                                           "Includes end points when searching for the "
                                           "point with the next biggest y jump "
                                           "or deviation from expected when "
-                                          "[y], [b] or [w] is pressed");
+                                          "[y], [b] or [w] is pressed"
+                                          "\n\nRECOMMENDED VALUE: off");
+  int ID_SEARCHRANGE    = ds.addCheckBox( "on [y]&&[b] search view range only", 
+                                          plug.searchRangeOnly,
+                                          "Only searches points within the specified "
+                                          "range of views (in the 'Range' box above) "
+                                          "when searching for the "
+                                          "point with the next biggest y jump [y] "
+                                          "or deviation from expected [b] "
+                                          "\n\nNOTE: this value is not saved on exit "
+                                          "and defaults to off");
+  int ID_CONTSTOSEARCH  = ds.addComboBox( "[y],[b]&[o] searches: ",
+                                          "all contours,"
+                                          "unchecked only,"
+                                          "checked only", plug.contsToSearch,
+                                          "Which contours are searched when [y] "
+                                          "(biggest y jump), [b] (biggest deviation "
+                                          "from expected) or [o] (worst contour) "
+                                          "keys are pressed");
   
   int ID_WCURRCONT      = ds.addCheckBox( "[w] checks current contour only",
                                           plug.wCurrContOnly,
@@ -2218,7 +2281,7 @@ void BeadHelper::keyboardSettings()
                                             "the current contour from the selected "
                                             "point to the closest end"
                                           "\n > specified range - deletes the range of "
-                                            "slices speified in the 'Range' group box "
+                                            "views speified in the 'Range' group box "
                                             "above from the current contour");
   
   int ID_MKEYACTION     = ds.addComboBox( "on [m]:",
@@ -2231,7 +2294,7 @@ void BeadHelper::keyboardSettings()
                                           "\n"
                                           "\n > normal    - toggles movie/model mode"
                                           "\n > go to middle pt - goes to seed point "
-                                          "and/or middle slice"
+                                          "and/or middle (seed) view"
                                           "\n > smooth local  - applies smoothing "
                                           "to the pts in the current contour within "
                                           "8 views of the current view"
@@ -2268,10 +2331,6 @@ void BeadHelper::keyboardSettings()
                                           "Prints the number of contours matching the "
                                           "above criteria each time enter is pressed" );
   
-
-  
-
-  
   
 	GuiDialogCustomizable dlg(&ds, "Mouse and Keyboard Settings", this);
 	dlg.exec();
@@ -2283,15 +2342,16 @@ void BeadHelper::keyboardSettings()
   
   plug.disableHotKeys        = ds.getResultCheckBox ( ID_DISABLEHOTKEYS );
   plug.includeEndsResid      = ds.getResultCheckBox ( ID_CHECKENDS );
-  plug.enterAction           = ds.getResultComboBox ( ID_ENTERACTION );
-  plug.minPtsEnter           = ds.getResultSpinBox  ( ID_MINPTSENTER );
-  plug.maxPtsEnter           = ds.getResultSpinBox  ( ID_MAXPTSENTER );
-  plug.enterPrint            = ds.getResultCheckBox ( ID_ENTERPRINT );
+  plug.searchRangeOnly       = ds.getResultCheckBox ( ID_SEARCHRANGE );
+  plug.contsToSearch         = ds.getResultComboBox ( ID_CONTSTOSEARCH );
   plug.dKeyBehav             = ds.getResultComboBox ( ID_DKEYACTION );
   plug.mKeyBehav             = ds.getResultComboBox ( ID_MKEYACTION );
   plug.wCurrContOnly         = ds.getResultCheckBox ( ID_WCURRCONT );
   plug.wWeightedDiv          = ds.getResultSpinBox  ( ID_WDIVISOR );
-  
+  plug.enterAction           = ds.getResultComboBox ( ID_ENTERACTION );
+  plug.minPtsEnter           = ds.getResultSpinBox  ( ID_MINPTSENTER );
+  plug.maxPtsEnter           = ds.getResultSpinBox  ( ID_MAXPTSENTER );
+  plug.enterPrint            = ds.getResultCheckBox ( ID_ENTERPRINT );
   
   if( plug.minPtsEnter > plug.maxPtsEnter )
   {
@@ -2483,8 +2543,8 @@ void BeadHelper::moveMultipleContours()
       continue;
     }
     
-    bool isSeedPt  = bead_isPtOnSlice( cont, plug.middleSlice );
-    Ipoint *seedPt = bead_getClosestPtToSlice( cont, plug.middleSlice );
+    bool isSeedPt  = bead_isPtOnView( cont, plug.seedView );
+    Ipoint *seedPt = bead_getClosestPtToView( cont, plug.seedView );
     
     if( seedOnly && !isSeedPt )     // if we want to copy seed pt only, but is none:
       continue;                       // don't copy and don't flag for delete
@@ -2503,7 +2563,6 @@ void BeadHelper::moveMultipleContours()
     
     if( !copy )
       setDeleteFlag( cont, 1 );
-    
   }
   
   
@@ -2537,7 +2596,7 @@ void BeadHelper::moveMultipleContours()
 
 
 //------------------------
-//-- Corrects and contours with duplicate points on same slice or
+//-- Corrects and contours with duplicate points on same view or
 //-- contours marking the same fiducial.
 
 void BeadHelper::correctCurrentObject()
@@ -2554,7 +2613,7 @@ void BeadHelper::correctCurrentObject()
                                         "of the same contour delete the second" );
   int ID_MATCHSEED   = ds.addCheckBox( "delete duplicate seeds", true,
                                         "If two (or more) contours are on the same "
-                                        "fiducial on the middle slice delete the "
+                                        "fiducial on the seed view delete the "
                                         "second one" );
   int ID_POINTORDER  = ds.addCheckBox( "correct bad point order", true,
                                        "If you somehow managed to put contour "
@@ -2604,8 +2663,8 @@ void BeadHelper::correctCurrentObject()
   for( int c=0; c<=csize(obj); c++)
   {
     Icont *cont = getCont( obj, c );
-    bool isSeedPt  = bead_isPtOnSlice( cont, plug.middleSlice );
-    Ipoint *seedPt = bead_getClosestPtToSlice( cont, plug.middleSlice );
+    bool isSeedPt  = bead_isPtOnView( cont, plug.seedView );
+    Ipoint *seedPt = bead_getClosestPtToView( cont, plug.seedView );
     
     if( isSeedPt )
     {
@@ -2773,7 +2832,7 @@ void BeadHelper::markRangeAsStippled()
   
   //## GET USER INPUT FROM CUSTOM DIALOG:
   
-  static int stippled = 1;
+  static int checked = 1;
   
 	CustomDialog ds;
   int ID_DUMMY         = ds.addLabel   ( "contours to change:" );
@@ -2784,8 +2843,8 @@ void BeadHelper::markRangeAsStippled()
                                          "Only contours BEFORE this contour "
                                          "(inclusive) will be reordered" );
   int ID_STIPPLED      = ds.addRadioGrp( "mark as:",
-                                         "unstippled (unchecked),"
-                                         "stippled (checked)", stippled );
+                                         "unchecked (unstippled),"
+                                         "checked (stippled)", checked );
   int ID_DUMMY2        = ds.addLabel   ( "NOTE: Use [Enter] to iterate through\n"
                                          "unchecked (unstippled) contours and\n"
                                          "[u] to toggle current contour between\n"
@@ -2796,7 +2855,7 @@ void BeadHelper::markRangeAsStippled()
 		return;
   int contMin         = ds.getResultSpinBox   ( ID_CONTMIN ) - 1;
   int contMax         = ds.getResultSpinBox   ( ID_CONTMAX ) - 1;
-  stippled            = ds.getResultRadioGrp  ( ID_STIPPLED );
+  checked            = ds.getResultRadioGrp  ( ID_STIPPLED );
   
   
   //## CHANGE CONTOURS IN RANGE TO STIPPLED / UNSTIPPLED
@@ -2811,10 +2870,10 @@ void BeadHelper::markRangeAsStippled()
   for( int c=contMin; c<=contMax && c<csize(obj); c++ )
   {
     Icont *cont = getCont(obj,c);
-    if( isInterpolated(cont) != stippled )
+    if( isInterpolated(cont) != checked )
     {
       undoContourPropChgCC( plug.view );        // REGISTER UNDO
-      setInterpolated( cont, stippled );
+      setInterpolated( cont, checked );
       numChanged++;
     }
   }
@@ -2828,7 +2887,7 @@ void BeadHelper::markRangeAsStippled()
 
 //------------------------
 //-- Updates the range values and corrects any returns true if a 
-//-- valid contour and slice range has been provided.
+//-- valid contour and view range has been provided.
 //-- Otherwise displays error message and returns false.
 
 bool BeadHelper::updateAndVerifyRanges()
@@ -2839,8 +2898,8 @@ bool BeadHelper::updateAndVerifyRanges()
     return false;
   }
   
-  plug.sliceMin = sliceMinSpinner->value() - 1;
-  plug.sliceMax = sliceMaxSpinner->value() - 1;
+  plug.viewMin = viewMinSpinner->value() - 1;
+  plug.viewMax = viewMaxSpinner->value() - 1;
   plug.contMin = contMinSpinner->value() - 1;
   plug.contMax = contMaxSpinner->value() - 1;
   
@@ -2853,10 +2912,10 @@ bool BeadHelper::updateAndVerifyRanges()
     contMinSpinner->setValue( plug.contMax+1 );
     return false;
   }
-  if ( plug.sliceMin > plug.sliceMax )
+  if ( plug.viewMin > plug.viewMax )
   {
-    MsgBox("\aBad slice range");
-    sliceMinSpinner->setValue( plug.sliceMax+1 );
+    MsgBox("\aBad view range");
+    viewMinSpinner->setValue( plug.viewMax+1 );
     return false;
   }
   
@@ -2896,7 +2955,7 @@ int BeadHelper::applyMAction()
   }
   else if( plug.mKeyBehav == MK_GOTOMIDDLE )
   {
-    goToMiddleSlice();
+    goToSeedView();
   }
   else
   {
@@ -2944,19 +3003,19 @@ int BeadHelper::applyMAction()
 
 
 //------------------------
-//-- Jumps to the middle slice and (if a contour is selected) selects
+//-- Jumps to the seed view and (if a contour is selected) selects
 //-- the point in the middle.
 
-void BeadHelper::goToMiddleSlice()
+void BeadHelper::goToSeedView()
 {
   if( isCurrContValid() )
   {
-    if( bead_isPtOnSlice( getCurrCont(), plug.middleSlice ) )
+    if( bead_isPtOnView( getCurrCont(), plug.seedView ) )
     {
       Imod *imod = ivwGetModel(plug.view);
       int objIdx, contIdx, ptIdx;
       imodGetIndex(imod, &objIdx, &contIdx, &ptIdx);
-      int newPtIdx = bead_getPtIdxOnSlice( getCurrCont(), plug.middleSlice );
+      int newPtIdx = bead_getPtIdxOnView( getCurrCont(), plug.seedView );
       imodSetIndex(imod, objIdx, contIdx, newPtIdx);
       
       plug.window->drawExtraObject(false);
@@ -2966,7 +3025,7 @@ void BeadHelper::goToMiddleSlice()
   }
   int ix, iy, iz;
   ivwGetLocation( plug.view, &ix, &iy, &iz );
-  edit_setZapLocation( ix, iy, plug.middleSlice, true );
+  edit_setZapLocation( ix, iy, plug.seedView, true );
   plug.window->drawExtraObject(true);
 }
 
@@ -3033,11 +3092,11 @@ void BeadHelper::printContourCheckedInfo()
 
 //------------------------
 //-- Checks over all non-empty contours in the first object and  if any of these are
-//-- missing a point on the middle slice a warning message box appears suggesting 
-//-- that the middle slice might be the slice below the currently set value.
-//-- Returns true if the middle slice appears correct.
+//-- missing a point on the seed view a warning message box appears suggesting 
+//-- that the seed view might be the view below the currently set value.
+//-- Returns true if the seed view appears correct.
 
-bool BeadHelper::verifyMiddleSliceIsSeeded()
+bool BeadHelper::verifySeedViewIsSeeded()
 {
   if( !isCurrObjValid() )
     return false;
@@ -3052,8 +3111,8 @@ bool BeadHelper::verifyMiddleSliceIsSeeded()
   //## MIDDLE SLICE FOR ALL NON-EMPTY CONTOURS:
   
   int numNonEmptyConts = 0;
-  int numMissingPtsOnMiddleSlice = 0;
-  int numMissingPtsOneBelowMiddleSlice = 0;
+  int numMissingPtsOnSeedView = 0;
+  int numMissingPtsOneBelowSeedView = 0;
   
   for( int c=0; c<csize(obj); c++ )
   {
@@ -3062,43 +3121,46 @@ bool BeadHelper::verifyMiddleSliceIsSeeded()
     if( psize(cont) >= 1 )
     {
       numNonEmptyConts++;
-      if( !bead_isPtOnSlice(cont,plug.middleSlice) )
-        numMissingPtsOnMiddleSlice++;
-      if( !bead_isPtOnSlice(cont,plug.middleSlice-1) )
-        numMissingPtsOneBelowMiddleSlice++;
+      if( !bead_isPtOnView(cont,plug.seedView) )
+        numMissingPtsOnSeedView++;
+      if( !bead_isPtOnView(cont,plug.seedView-1) )
+        numMissingPtsOneBelowSeedView++;
     }
   }
   
   //## IF THERE ARE MISSING POINTS ON THE MIDDLE SLICE: PRINT ERROR MESSAGE BOX 
   
-  if( numMissingPtsOnMiddleSlice > 1 )
+  if( numMissingPtsOnSeedView > 1 )
   {    
-    if( numMissingPtsOneBelowMiddleSlice < numMissingPtsOnMiddleSlice )
+    if( numMissingPtsOneBelowSeedView < numMissingPtsOnSeedView )
     {
-      string msg = "WARNING: \n  There are " + toString(numMissingPtsOnMiddleSlice)
-                 + " points missing from the middle slice - view "
-                 + toString(plug.middleSlice+1) + "."
-                 + "\n  It appears the middle slice should instead be view "
-                 + toString(plug.middleSlice) + "."
+      string msg = "WARNING: \n  There are " + toString(numMissingPtsOnSeedView)
+                 + " points missing from the seed view - view "
+                 + toString(plug.seedView+1) + "."
+                 + "\n  It appears the seed view should instead be view "
+                 + toString(plug.seedView) + "."
                  + "\n  Change this value now?"
                  + "\n\n(NOTE: To manually change this click: "
-                 + "'More Settings' > 'middle slice')";
+                 + "'More Settings' > 'seed view')";
       
       if( MsgBoxYesNo( this, msg ) )
-        plug.middleSlice = plug.middleSlice - 1;
+        plug.seedView = plug.seedView - 1;
     }
     else
     {
-      string msg = "WARNING: \n  There are " + toString(numMissingPtsOnMiddleSlice)
-                 + " points missing from the middle slice - view "
-                 + toString(plug.middleSlice+1) + "."
-                 + "\n\nTo manually change the middle view click: "
+      string msg = "WARNING: \n  There are " + toString(numMissingPtsOnSeedView)
+                 + " points missing from the seed view - view "
+                 + toString(plug.seedView+1) + "."
+                 + "\n\nTo manually change the seed view click: "
                  + "'More Settings'";
       
       MsgBox( msg );
     }
   }
-  wprint("Middle slice = view %d\n", plug.middleSlice+1);
+  wprint("Middle view = view %d\n", plug.seedView+1);
+  
+  if( csize(obj)==0 )
+    wprint("Use [h] to help you create seed points quickly");
   
   return true;
 }
@@ -3109,8 +3171,8 @@ bool BeadHelper::verifyMiddleSliceIsSeeded()
 
 bool BeadHelper::verifyTiltIncrement( bool printResult, bool showErrorMsgBoxIfBad )
 {
-  float minTilt = -plug.middleSlice * plug.tiltIncrement;
-  float maxTilt = (plug.zsize - plug.middleSlice) * plug.tiltIncrement;
+  float minTilt = -plug.seedView * plug.tiltIncrement;
+  float maxTilt = (plug.zsize - plug.seedView) * plug.tiltIncrement;
   
   bool tiltAppearsGood =   ( minTilt >= -80  &&  minTilt <= -10 )
                         && ( maxTilt >=  10  &&  maxTilt <=  80 );
@@ -3138,7 +3200,7 @@ bool BeadHelper::verifyTiltIncrement( bool printResult, bool showErrorMsgBoxIfBa
 
 
 //------------------------
-//-- Opens a .tlt "tilt angle file" and populates these entries into
+//-- Opens a .tlt or .rawtlt "tilt angle file" and populates these entries into
 //-- the 'plug.tiltAngles' vector. Returns true if successful.
 
 bool BeadHelper::openTiltAngleFile()
@@ -3146,8 +3208,8 @@ bool BeadHelper::openTiltAngleFile()
   //## GET FILENAME USING OPEN DIALOG:
   
   QString qname;
-  char *filter[] = {"Tilt align files (*.tlt)", "All files (*.*)"};
-  qname  = diaOpenFileName(this, "Select Tiltalign log file", 2, filter);
+  char *filter[] = {"Tilt angle files (*.rawtlt;*.tlt)",""};
+  qname  = diaOpenFileName(this, "Select Tilt or Raw Tilt File", 2, filter);
   if (qname.isEmpty())
     return false;
   string fileName = qStringToString(qname);
@@ -3226,7 +3288,7 @@ void BeadHelper::test()
     return;
   }
   
-  int topSlice = edit_getZOfTopZap();
+  int topView = edit_getZOfTopZap();
   Imod *imod = ivwGetModel(plug.view);
   Iobj *obj = imodObjectGet(imod);
   int objIdx, contIdx, ptIdx;
@@ -3466,20 +3528,20 @@ bool isCurrPtValid()
 
 
 //------------------------
-//-- Gets the slice value of the top Zap window or returns -1 if no Zap
+//-- Gets the view value of the top Zap window or returns -1 if no Zap
 
 int edit_getZOfTopZap()
 {
-  int currSlice = -1;
-  int noZap = ivwGetTopZapZslice(plug.view, &currSlice);   // gets current slice
+  int currView = -1;
+  int noZap = ivwGetTopZapZslice(plug.view, &currView);   // gets current slice
   if (noZap == 1)   // if no top ZAP window:
     return (-1);
-  return (currSlice);
+  return (currView);
 }
 
 
 //------------------------
-//-- Sets the top ZAP window to focus on the selected point and slice.
+//-- Sets the top ZAP window to focus on the selected point and view.
 
 int edit_setZapLocation( float x, int y, int z, bool redraw )
 {
@@ -3490,9 +3552,9 @@ int edit_setZapLocation( float x, int y, int z, bool redraw )
 
 
 //------------------------
-//-- Changes the Z slice by calling page up or page down
+//-- Changes the Z view by calling page up or page down
 
-int edit_changeSelectedSlice( int changeZ, bool redraw )
+int edit_changeSelectedView( int changeZ, bool redraw )
 {
   int ix, iy, iz;
   ivwGetLocation( plug.view, &ix, &iy, &iz );
@@ -3520,18 +3582,18 @@ bool bead_focusOnPointCrude( float x, float y, float z )
   Icont *tempCont = imodContourNew();
   imodPointAppendXYZ( tempCont, x,y,z );
   int tempContIdx = imodObjectAddContour( obj,tempCont );
-  free(tempCont);
   imodSetIndex(imod, objIdx, tempContIdx, 0);
   imodObjectRemoveContour( obj, tempContIdx );
   ivwSetLocation(plug.view, x, y, z);
   ivwRedraw( plug.view );
   imodContourDelete(tempCont);
+  //free(tempCont);             // already freed by 'imodObjectRemoveContour'
 }
 
 
 //------------------------
 //-- Gets the tilt angle of a view from 'plug.tiltAngles' or, if this is empty,
-//-- calculates it using 'plug.tiltIncrement' and 'plug.middleSlice'
+//-- calculates it using 'plug.tiltIncrement' and 'plug.seedView'
 
 float bead_getTiltAngleAtZ( int z )
 {
@@ -3539,13 +3601,13 @@ float bead_getTiltAngleAtZ( int z )
     return plug.tiltAngles[z];
   
   else
-    return ( z - plug.middleSlice ) * plug.tiltIncrement;
+    return ( z - plug.seedView ) * plug.tiltIncrement;
 }
 
 
 //------------------------
 //-- Returns true if there two or more consecutive points in the contour are
-//-- on the same slice.
+//-- on the same view.
 
 bool bead_areDuplicatePtsSameView( Icont *cont )
 {
@@ -3557,7 +3619,7 @@ bool bead_areDuplicatePtsSameView( Icont *cont )
 
 
 //------------------------
-//-- Removes any duplicate points on the same slice within the contour
+//-- Removes any duplicate points on the same view within the contour
 //-- and returns the number of points deleted.
 //-- WARNING: does not provide undo option.
 
@@ -3580,7 +3642,7 @@ int bead_removeDuplicatePtsSameView( Icont *cont, bool remove, bool print )
       }
       else if(print)
       {
-          wprint("Duplicate point found on slice: %d\n", getPtZInt(cont,p) );
+          wprint("Duplicate point found on view: %d\n", getPtZInt(cont,p) );
       }
     }
   }
@@ -3641,36 +3703,36 @@ int bead_orderPtsByAscendingZ( Icont *cont )
 
 
 //------------------------
-//-- Returns true if there is a point in "cont" on the specified slice.
+//-- Returns true if there is a point in "cont" on the specified view.
 
-bool bead_isPtOnSlice( Icont *cont, int slice )
+bool bead_isPtOnView( Icont *cont, int view )
 {
   for( int p=0; p<psize(cont); p++ )
-    if( getPtZInt(cont,p) == slice )
+    if( getPtZInt(cont,p) == view )
       return true;
   return false;
 }
 
 //------------------------
-//-- Returns the index of the first point in "cont" on the specified slice or
+//-- Returns the index of the first point in "cont" on the specified view or
 //-- returns -1 if there is no point on that contour.
 
-int bead_getPtIdxOnSlice( Icont *cont, int slice )
+int bead_getPtIdxOnView( Icont *cont, int view )
 {
   for( int p=0; p<psize(cont); p++ )
-    if( getPtZInt(cont,p) == slice )
+    if( getPtZInt(cont,p) == view )
       return p;
   return (NO_POINT);
 }
 
 //------------------------
-//-- Returns pointer to the first point in "cont" on the specified slice
+//-- Returns pointer to the first point in "cont" on the specified view
 //-- or returns NULL if there is no point on that contour.
 
-Ipoint *bead_getPtOnSlice( Icont *cont, int slice )
+Ipoint *bead_getPtOnView( Icont *cont, int view )
 {
   for( int p=0; p<psize(cont); p++ )
-    if( getPtZInt(cont,p) == slice )
+    if( getPtZInt(cont,p) == view )
       return getPt(cont,p);
   return NULL;
 }
@@ -3678,22 +3740,22 @@ Ipoint *bead_getPtOnSlice( Icont *cont, int slice )
 
 //------------------------
 //-- Returns the index within the contour where you would insert
-//-- a point on the specified slice (i.e. the first index 
-//-- where z >= "slice" ).
+//-- a point on the specified view (i.e. the first index 
+//-- where z >= "view" ).
 
-int bead_getExpPtIdxForSlice( Icont *cont, int slice )
+int bead_getExpPtIdxForView( Icont *cont, int view )
 {
   for( int p=0; p<psize(cont); p++ )
-    if( getPtZInt(cont,p) >= slice )
+    if( getPtZInt(cont,p) >= view )
       return (p);
   return psize(cont)-1;
 }
 
 //------------------------
-//-- Returns the index to the point which is closest to current slice
+//-- Returns the index to the point which is closest to current view
 //-- or returns -1 if no points
 
-int bead_getClosestPtIdxToSlice( Icont *cont, int slice )
+int bead_getClosestPtIdxToView( Icont *cont, int view )
 {
   if( isEmpty(cont) )
     return (NO_POINT);
@@ -3703,7 +3765,7 @@ int bead_getClosestPtIdxToSlice( Icont *cont, int slice )
   
   for( int p=0; p<psize(cont); p++ )
   { 
-    int distInZ = ABS( getPtZInt(cont,p) - slice );
+    int distInZ = ABS( getPtZInt(cont,p) - view );
     if (distInZ < closestDistInZ)
     {
       closestDistInZ = distInZ;
@@ -3715,12 +3777,12 @@ int bead_getClosestPtIdxToSlice( Icont *cont, int slice )
 
 
 //------------------------
-//-- Returns the point which is closest to current slice
+//-- Returns the point which is closest to current view
 //-- or returns NULL if no points
 
-Ipoint *bead_getClosestPtToSlice( Icont *cont, int slice )
+Ipoint *bead_getClosestPtToView( Icont *cont, int view )
 {
-  int closestPtIdx = bead_getClosestPtIdxToSlice( cont, slice );
+  int closestPtIdx = bead_getClosestPtIdxToView( cont, view );
   if (closestPtIdx == NO_POINT)
     return NULL;
   return getPt(cont, closestPtIdx);
@@ -3728,10 +3790,10 @@ Ipoint *bead_getClosestPtToSlice( Icont *cont, int slice )
 
 
 //------------------------
-//-- Returns the two points closest to the given slice, but not actually on the slice.
+//-- Returns the two points closest to the given view, but not actually on the view.
 //-- Returns false if there are not enough points.
 
-bool bead_getClosestTwoPointsToSlice( Icont *cont, int slice, Ipoint *pt1, Ipoint *pt2 )
+bool bead_getClosestTwoPointsToView( Icont *cont, int view, Ipoint *pt1, Ipoint *pt2 )
 {
   if( !cont || psize(cont) < 3 )
     return false;
@@ -3741,7 +3803,7 @@ bool bead_getClosestTwoPointsToSlice( Icont *cont, int slice, Ipoint *pt1, Ipoin
   
   for( int p=0; p<psize(cont); p++ )
   {
-    int distInZ = ABS( getPtZInt(cont,p) - slice );
+    int distInZ = ABS( getPtZInt(cont,p) - view );
     
     if (distInZ == 0)
     {
@@ -3764,11 +3826,11 @@ bool bead_getClosestTwoPointsToSlice( Icont *cont, int slice, Ipoint *pt1, Ipoin
 }
 
 //------------------------
-//-- Returns the two closest points above and below the given slice,
-//-- (but not actually on the slice), or returns the two closest points
+//-- Returns the two closest points above and below the given view,
+//-- (but not actually on the view), or returns the two closest points
 //-- if there are not points either side.
 
-bool bead_getPointsEitherSideSlice( Icont *cont, int slice, Ipoint *pt1, Ipoint *pt2 )
+bool bead_getPointsEitherSideView( Icont *cont, int view, Ipoint *pt1, Ipoint *pt2 )
 {
   if( !cont || psize(cont) < 3 )
     return false;
@@ -3780,12 +3842,12 @@ bool bead_getPointsEitherSideSlice( Icont *cont, int slice, Ipoint *pt1, Ipoint 
   {
     int z = getPtZInt(cont,p);
     
-    if ( z < slice )
+    if ( z < view )
     {
       *pt1 = *getPt(cont,p);
       pointBelowFound = true;
     }
-    else if( z > slice )
+    else if( z > view )
     {
       *pt2 = *getPt(cont,p);
       pointAboveFound = true;
@@ -3796,17 +3858,17 @@ bool bead_getPointsEitherSideSlice( Icont *cont, int slice, Ipoint *pt1, Ipoint 
   if( pointBelowFound && pointAboveFound )
     return true;
   
-  return bead_getClosestTwoPointsToSlice(cont,slice,pt1,pt2);
+  return bead_getClosestTwoPointsToView(cont,view,pt1,pt2);
 }
 
 //------------------------
 //-- Returns contour "ptsByDist" containing the points above (if "above") or below
-//-- the current slice in ascending order of distance from the selected point.
+//-- the current view in ascending order of distance from the selected point.
 //-- If "minZBetweenPts" is greater than 1
 //-- Returns false if there are not enough points.
 
-bool bead_getPointsOneSideOfSlice( Icont *cont, int slice, Icont *ptsByDist,
-                                   bool above, bool includeSlice, int minZBetweenPts )
+bool bead_getPointsOneSideOfView( Icont *cont, int view, Icont *ptsByDist,
+                                   bool above, bool includeView, int minZBetweenPts )
 {
   imodContourDefault( ptsByDist );
   
@@ -3815,7 +3877,7 @@ bool bead_getPointsOneSideOfSlice( Icont *cont, int slice, Icont *ptsByDist,
   
   //## POPULATE POINTS ABOVE OR BELOW THE SLICE:
   
-  bool addedPtOnSlice = false;
+  bool addedPtOnView = false;
   
   for( int p=0; p<psize(cont); p++ )
   {
@@ -3824,21 +3886,21 @@ bool bead_getPointsOneSideOfSlice( Icont *cont, int slice, Icont *ptsByDist,
     float y = pt->y;
     float z = int(pt->z + 0.5);
     
-    if( includeSlice && z==slice)
+    if( includeView && z==view)
     {
       imodPointAppendXYZ( ptsByDist, x,y,z );
-      addedPtOnSlice = true;
+      addedPtOnView = true;
       continue;
     }
     
     if(above)
     {
-      if( z > slice )
+      if( z > view )
         imodPointAppendXYZ( ptsByDist, x,y,z );
     }
     else
     {
-      if( z < slice )
+      if( z < view )
         imodPointAppendXYZ( ptsByDist, x,y,z );
     }
   }
@@ -3846,7 +3908,7 @@ bool bead_getPointsOneSideOfSlice( Icont *cont, int slice, Icont *ptsByDist,
   //## ORDERED POINTS BY DISTANCE FROM SLICE 
   if( !above )
     imodel_contour_invert( ptsByDist );    // inverts order of points in the points below
-                                          // so they are in order of distance from slice
+                                          // so they are in order of distance from view
   
   
   if( minZBetweenPts<=1 )
@@ -3856,11 +3918,11 @@ bool bead_getPointsOneSideOfSlice( Icont *cont, int slice, Icont *ptsByDist,
   //## DELETE POINTS WITHIN THE LIST SUCH THAT REMAINING POINTS ARE SPACED AT
   //## LEAST "minZBetweenPts" APART
   
-  int i = (addedPtOnSlice) ? 1 : 0;
+  int i = (addedPtOnView) ? 1 : 0;
   
   if (above)
   {
-    int nextZA = slice + minZBetweenPts;
+    int nextZA = view + minZBetweenPts;
     for(; i<psize(ptsByDist); i++)
     {
       if( getPtZInt(ptsByDist,i) < nextZA )
@@ -3874,7 +3936,7 @@ bool bead_getPointsOneSideOfSlice( Icont *cont, int slice, Icont *ptsByDist,
   }
   else
   {
-    int nextZB = slice - minZBetweenPts;
+    int nextZB = view - minZBetweenPts;
     for(; i<psize(ptsByDist); i++)
     {
       if( getPtZInt(ptsByDist,i) > nextZB )
@@ -3894,12 +3956,12 @@ bool bead_getPointsOneSideOfSlice( Icont *cont, int slice, Icont *ptsByDist,
 
 //------------------------
 //-- Returns a contour "ptsByDist" containing points within "cont"
-//-- in ascending distance from the given slice, where points are spaced
+//-- in ascending distance from the given view, where points are spaced
 //-- at least "minZBetweenPts" of each other but do not actually include
-//-- any points on "slice".
+//-- any points on "view".
 //-- Returns false if "cont" is invalid.
 
-bool bead_getSpacedOutPoints( Icont *cont, int slice,
+bool bead_getSpacedOutPoints( Icont *cont, int view,
                               Icont *ptsByDist, int minZBetweenPts )
 {
   imodContourDefault( ptsByDist );
@@ -3912,12 +3974,12 @@ bool bead_getSpacedOutPoints( Icont *cont, int slice,
   Icont *ptsAbove = imodContourNew();
   Icont *ptsBelow = imodContourNew();
   
-  bead_getPointsOneSideOfSlice( cont, slice, ptsAbove, true,  false, minZBetweenPts );
-  bead_getPointsOneSideOfSlice( cont, slice, ptsBelow, false, false, minZBetweenPts );
+  bead_getPointsOneSideOfView( cont, view, ptsAbove, true,  false, minZBetweenPts );
+  bead_getPointsOneSideOfView( cont, view, ptsBelow, false, false, minZBetweenPts );
   
   //## COMBINE LISTS SUCH THAT POINTS ARE IN ORDER OF DISTANCE FROM THE SLICE:
   
-  float mid = plug.middleSlice;       // used as tie breaker
+  float mid = plug.seedView;       // used as tie breaker
   
   int a=0;
   int b=0;
@@ -3926,8 +3988,8 @@ bool bead_getSpacedOutPoints( Icont *cont, int slice,
     Ipoint *ptA = getPt(ptsAbove, a);
     Ipoint *ptB = getPt(ptsBelow, b);
     
-    float ptADist = ptA->z - slice;
-    float ptBDist = ptB->z - slice;
+    float ptADist = ptA->z - view;
+    float ptBDist = ptB->z - view;
     
     bool ptAIsAbove = ptADist < ptBDist
                       || (ptADist == ptBDist && ABS(ptA->z-mid) < (ptB->z-mid) );
@@ -3957,8 +4019,8 @@ bool bead_getSpacedOutPoints( Icont *cont, int slice,
 
 //------------------------
 //-- Takes two points as input and calculates the estimated position of a point on
-//-- slice "z" if a straight line was drawn through them or returns the the first
-//-- point if both points are on the same slice.
+//-- view "z" if a straight line was drawn through them or returns the the first
+//-- point if both points are on the same view.
 
 Ipoint bead_getPtOnLineWithZ( Ipoint *pt1, Ipoint *pt2, int z )
 {
@@ -3974,7 +4036,7 @@ Ipoint bead_getPtOnLineWithZ( Ipoint *pt1, Ipoint *pt2, int z )
 
 //------------------------
 //-- Takes two points as input and calculates the estimated position of a point on
-//-- slice "z" based on tilt angles and a straight line thorugh the points
+//-- view "z" based on tilt angles and a straight line thorugh the points
 
 Ipoint bead_getPtOnLineWithZUsingTiltAngles( Ipoint *pt1, Ipoint *pt2, int z )
 {
@@ -4006,18 +4068,18 @@ Ipoint bead_getPtOnLineWithZUsingTiltAngles( Ipoint *pt1, Ipoint *pt2, int z )
 
 //------------------------
 //-- Outputs the estimated position of the point within "cont" on the specified
-//-- slice based on the position of the points before and after this slice.
+//-- view based on the position of the points before and after this view.
 //-- Returns true if successful or false if contour is invalid or there are not
 //-- enough points to make a reliable prediction
 
-bool bead_getExpectedPosOfPoint( Icont *cont, int slice, Ipoint *pt )
+bool bead_getExpectedPosOfPoint( Icont *cont, int view, Ipoint *pt )
 {
   if( !cont || psize(cont) < 3 )
     return false;
   
   
   Ipoint estPt;
-  float z = slice;
+  float z = view;
   estPt.z = z;
   
   
@@ -4026,42 +4088,42 @@ bool bead_getExpectedPosOfPoint( Icont *cont, int slice, Ipoint *pt )
     case (EM_BESTTWO):
     {
       Ipoint pt1, pt2;
-      if ( !bead_getPointsEitherSideSlice( cont, slice, &pt1, &pt2 ) )
+      if ( !bead_getPointsEitherSideView( cont, view, &pt1, &pt2 ) )
         return false;
-      estPt = bead_getPtOnLineWithZ( &pt1, &pt2, slice );
+      estPt = bead_getPtOnLineWithZ( &pt1, &pt2, view );
       break;
     }
     
     case (EM_SMARTTWO):
     {
       Ipoint pt1, pt2;
-      if ( !bead_getPointsEitherSideSlice( cont, slice, &pt1, &pt2 ) )
+      if ( !bead_getPointsEitherSideView( cont, view, &pt1, &pt2 ) )
         return false;
-      estPt = bead_getPtOnLineWithZUsingTiltAngles( &pt1, &pt2, slice );
+      estPt = bead_getPtOnLineWithZUsingTiltAngles( &pt1, &pt2, view );
       break;
     }
     
     case (EM_NEARESTTWO):
     {
       Ipoint pt1, pt2;
-      if ( !bead_getClosestTwoPointsToSlice( cont, slice, &pt1, &pt2 ) )
+      if ( !bead_getClosestTwoPointsToView( cont, view, &pt1, &pt2 ) )
         return false;
-      estPt = bead_getPtOnLineWithZ( &pt1, &pt2, slice );
+      estPt = bead_getPtOnLineWithZ( &pt1, &pt2, view );
       break;
     }
     
     case (EM_PREVTWO):
     {
-      bool aboveMiddle = ( slice > plug.middleSlice );
+      bool aboveMiddle = ( view > plug.seedView );
       Icont *ptsByDist = imodContourNew();
-      bool success = bead_getPointsOneSideOfSlice( cont, slice, ptsByDist,
+      bool success = bead_getPointsOneSideOfView( cont, view, ptsByDist,
                                               !aboveMiddle, false, 1 );
       if( !success || psize(ptsByDist) < 2 ) 
       {
         imodContourDelete(ptsByDist);
         return false;
       }
-      estPt = bead_getPtOnLineWithZ( getPt(ptsByDist,1), getPt(ptsByDist,0), slice );
+      estPt = bead_getPtOnLineWithZ( getPt(ptsByDist,1), getPt(ptsByDist,0), view );
       imodContourDelete(ptsByDist);
       break;
     }
@@ -4072,8 +4134,8 @@ bool bead_getExpectedPosOfPoint( Icont *cont, int slice, Ipoint *pt )
       Ipoint *p2 = getPt( cont, psize(cont) / 2 );
       Ipoint *p3 = getPt( cont, psize(cont)-1 );
       
-      Ipoint *seedPt = bead_getClosestPtToSlice( cont, plug.middleSlice );
-      if ( (seedPt->z == plug.middleSlice) && (psize(cont) > 20)
+      Ipoint *seedPt = bead_getClosestPtToView( cont, plug.seedView );
+      if ( (seedPt->z == plug.seedView) && (psize(cont) > 20)
           && (seedPt->z > p1->z+10) && (seedPt->z < p3->z-10) )
       {
         p2 = seedPt;
@@ -4105,7 +4167,7 @@ bool bead_getExpectedPosOfPoint( Icont *cont, int slice, Ipoint *pt )
       if( psize(ptsByDist) < 3 )
         return (false);
       
-      Ipoint *p1 = bead_getClosestPtToSlice( cont, slice );
+      Ipoint *p1 = bead_getClosestPtToView( cont, view );
       Ipoint *p2 = getPt( ptsByDist, 0 );
       Ipoint *p3 = getPt( ptsByDist, 1 );
       
@@ -4132,14 +4194,14 @@ bool bead_getExpectedPosOfPoint( Icont *cont, int slice, Ipoint *pt )
     
     case (EM_LASTTHREE):
     {
-      if ( !bead_getExpectedPosOfPointUsingPtsBefore( cont, slice, &estPt, 3 ) )
+      if ( !bead_getExpectedPosOfPointUsingPtsBefore( cont, view, &estPt, 3 ) )
         return false;
       break;
     }
     
     case (EM_LASTSIX):
     {
-      if ( !bead_getExpectedPosOfPointUsingPtsBefore( cont, slice, &estPt, 6 ) )
+      if ( !bead_getExpectedPosOfPointUsingPtsBefore( cont, view, &estPt, 6 ) )
         return false;
       break;
     }
@@ -4153,14 +4215,14 @@ bool bead_getExpectedPosOfPoint( Icont *cont, int slice, Ipoint *pt )
 
 //------------------------
 //-- Calculates the estimated position fo the point wihin on on the specified
-//-- slice based on the gradient of the last "numPtsToAvg" points before
+//-- view based on the gradient of the last "numPtsToAvg" points before
 //-- it in the direction of the middle of the contour.
 
 
-bool bead_getExpectedPosOfPointUsingPtsBefore( Icont *cont, int slice, Ipoint *pt,
+bool bead_getExpectedPosOfPointUsingPtsBefore( Icont *cont, int view, Ipoint *pt,
                                           int numPtsToAvg )
 {
-  float z = slice;
+  float z = view;
   
   if( psize(cont) < (2*numPtsToAvg) )
     return (false);
@@ -4169,9 +4231,9 @@ bool bead_getExpectedPosOfPointUsingPtsBefore( Icont *cont, int slice, Ipoint *p
   //## IS TOWARDS MIDDLE OF CONTOUR
   
   int midPtIdx  = psize(cont) / 2;
-  int ptIdx     = bead_getExpPtIdxForSlice( cont, slice );
+  int ptIdx     = bead_getExpPtIdxForView( cont, view );
   bool searchUp = ptIdx < midPtIdx;
-  bool isOnPt   = getPtZInt(cont,ptIdx) == slice;
+  bool isOnPt   = getPtZInt(cont,ptIdx) == view;
   
   int directionAsc = (searchUp) ? 1 : -1;   // direction from pt1 to p4
   int offset       = (isOnPt)   ? 1 : 0;
@@ -4192,7 +4254,7 @@ bool bead_getExpectedPosOfPointUsingPtsBefore( Icont *cont, int slice, Ipoint *p
   
   if( psize(prevPts) == 2 )
   {
-    *pt = bead_getPtOnLineWithZ( getPt(prevPts,0), getPt(prevPts,1), slice );
+    *pt = bead_getPtOnLineWithZ( getPt(prevPts,0), getPt(prevPts,1), view );
     imodContourDelete( prevPts );
     return true;
   }
@@ -4238,11 +4300,11 @@ bool bead_getExpectedPosOfPointUsingPtsBefore( Icont *cont, int slice, Ipoint *p
   //## USE THE AVERAGE GRADIENT AND RATE OF DISTANCE INCREASE TO
   //## CALCULATE THE EXPECTED POINT'S POSITION:
   
-  float distZ = (slice - getPt(prevPts,0)->z);
+  float distZ = (view - getPt(prevPts,0)->z);
   pt->x = -directionAsc*avgIncreaseXNorm*(distZ*distZ) +
     distXNorm[0]*(distZ) + getPt(prevPts,0)->x;
   pt->y = (pt->x*gradient) + offsetY;
-  pt->z = slice;
+  pt->z = view;
   
   imodContourDelete( prevPts );
 }
@@ -4279,16 +4341,16 @@ int bead_insertOrOverwritePoint( Icont *cont, Ipoint *pt )
 //-- it is overwritten is "overwrite" is true.
 //-- Returns true if a point was inserted or overwritten.
 
-bool bead_insertPtAtEstimatedPos( Icont *cont, int slice, bool overwrite )
+bool bead_insertPtAtEstimatedPos( Icont *cont, int view, bool overwrite )
 {
   if( !cont || psize(cont) < 3 )
     return false;
   
-  if( !overwrite && bead_isPtOnSlice(cont,slice) )
+  if( !overwrite && bead_isPtOnView(cont,view) )
     return false;
   
   Ipoint estPt;
-  if( bead_getExpectedPosOfPoint( cont, slice, &estPt ) )
+  if( bead_getExpectedPosOfPoint( cont, view, &estPt ) )
   {
     bead_insertOrOverwritePoint( cont, &estPt );
     return true;
@@ -4319,7 +4381,7 @@ int bead_movePtTowardsEstimatedPos ( Icont *cont, int z,
       return 0;
   
   Ipoint expPt;
-  Ipoint *currPt = bead_getPtOnSlice( cont, z );
+  Ipoint *currPt = bead_getPtOnView( cont, z );
   
   if( currPt != NULL
       && bead_getExpectedPosOfPoint( cont, z, &expPt )
@@ -4356,7 +4418,7 @@ bool bead_movePtsTowardsEstimatedPos ( Icont *cont, int minZ, int maxZ,
   //## SETUP VECTOR OF Z VALUES FOR POINTS TO MOVE:
 
   int zmiddle = (minZ + maxZ) / 2;
-  int zLeave1 = (leaveSeed)  ? plug.middleSlice    : -1;
+  int zLeave1 = (leaveSeed)  ? plug.seedView    : -1;
   int zLeave2 = (leaveCurrV) ? edit_getZOfTopZap() : -1;
   
   vector<IdxToSort> zVals;
@@ -4394,8 +4456,8 @@ bool bead_movePtsTowardsEstimatedPos ( Icont *cont, int minZ, int maxZ,
 
 bool bead_smoothPtsUsingPlugSettings( Icont *cont, int &ptsMoved, int &ptsAdded )
 {
-  int minZ = plug.sliceMin;
-  int maxZ = plug.sliceMax;
+  int minZ = plug.viewMin;
+  int maxZ = plug.viewMax;
   
   if( plug.smoothAdjacentV && edit_getZOfTopZap()>0 )
   {
@@ -4416,7 +4478,7 @@ bool bead_smoothPtsUsingPlugSettings( Icont *cont, int &ptsMoved, int &ptsAdded 
 
 
 //------------------------
-//-- Fills in all missing points in current contour within slices between
+//-- Fills in all missing points in current contour within views between
 //-- "minZ" and "maxZ" inclusive, by starting at the middle point and
 //-- using the estimated middle position. Returns the number of points added.
 
@@ -4563,7 +4625,7 @@ float bead_calcDistanceFromExpected( Icont *cont, int idx, bool weighted )
     Ipoint *pt2 = (idx==psize(cont)-1) ? getPt( cont,idx+1 ) : getPt(cont,idx-2);
     
     float distPt1AndPt2 = line_distBetweenPts2D( pt1, pt2 );
-    float distPerSlice  = fDivide( distPt1AndPt2, pt2->z - pt1->z );
+    float distPerView  = fDivide( distPt1AndPt2, pt2->z - pt1->z );
     
     float crudeWeightDev = distFromExpected / (distPt1AndPt2 + plug.wWeightedDiv);
     return (crudeWeightDev);
@@ -4657,7 +4719,7 @@ float bead_distFromMiddle( Icont *cont )
   if( isEmpty(cont) )
     return FLOAT_MAX;
   
-  Ipoint *closestPtToMiddle = bead_getClosestPtToSlice( cont, plug.middleSlice );
+  Ipoint *closestPtToMiddle = bead_getClosestPtToView( cont, plug.seedView );
   
   return ( line_distBetweenPts2D( closestPtToMiddle, &plug.middlePt ) );
 }
@@ -4949,11 +5011,18 @@ bool bead_goToNextBiggestYJump( bool findNextBiggest )
   for (int c=0; c<csize(obj); c++)
   {
     Icont *cont = getCont(obj,c);
+    if(    ( plug.contsToSearch==SC_CHECKED   && !isInterpolated(cont) )
+        || ( plug.contsToSearch==SC_UNCHECKED && isInterpolated(cont) )  )
+      continue;
+    
     for (int p=0; p<psize(cont);p++)
     {
-      if( !plug.includeEndsResid && ( p==0 || p==psize(cont)-1 ||
-                                      getPtZInt(cont,p)==plug.middleSlice) )
-          continue;
+      int z = getPtZInt(cont,p);
+      if( !plug.includeEndsResid && ( p==0 || p==psize(cont)-1 || z==plug.seedView) )
+        continue;
+      if( plug.searchRangeOnly && plug.window->updateAndVerifyRanges() &&
+          ( z<plug.viewMin || z>plug.viewMax ) )
+        continue;
       
       float yJump = bead_calcYJump(cont,p);
       if ( (yJump > maxYJump) && (yJump < maxYJumpAllowed) )
@@ -5028,10 +5097,17 @@ bool bead_goToNextBiggestDev( bool findNextBiggest )
   for (int c=0; c<csize(obj); c++)
   {
     Icont *cont = getCont(obj,c);
+    if(    ( plug.contsToSearch==SC_CHECKED   && !isInterpolated(cont) )
+        || ( plug.contsToSearch==SC_UNCHECKED && isInterpolated(cont) )  )
+      continue;
+    
     for (int p=0; p<psize(cont); p++)
     {
-      if( !plug.includeEndsResid && ( p==0 || p==psize(cont)-1 ||
-                                      getPtZInt(cont,p)==plug.middleSlice) )
+      int z = getPtZInt(cont,p);
+      if( !plug.includeEndsResid && ( p==0 || p==psize(cont)-1 || z==plug.seedView) )
+        continue;
+      if( plug.searchRangeOnly && plug.window->updateAndVerifyRanges()
+          && ( z<plug.viewMin || z>plug.viewMax ) )
         continue;
       
       float deviaton = bead_calcDistanceFromExpected(cont,p,false);
@@ -5117,9 +5193,9 @@ bool bead_goToNextBiggestWeightedDev( bool findNextBiggest )
     Icont *cont = getCont(obj,c);
     for (int p=0; p<psize(cont); p++)
     {
-      if( !plug.includeEndsResid && ( p==0 || p==psize(cont)-1 ||
-                                      getPtZInt(cont,p)==plug.middleSlice) )
-          continue;
+      int z = getPtZInt(cont,p);
+      if( !plug.includeEndsResid && ( p==0 || p==psize(cont)-1 || z==plug.seedView) )
+        continue;
       
       float deviaton = bead_calcDistanceFromExpected(cont,p,true);
       if ( (deviaton > maxDev) && (deviaton < maxDevAllowed) )
@@ -5156,13 +5232,13 @@ bool bead_goToNextBiggestWeightedDev( bool findNextBiggest )
 
 //------------------------
 //-- Uses a grid of points to determine the "biggest hole" between
-//-- seed points on the middle slice. If "findNextBiggest" is true
+//-- seed points on the seed view. If "findNextBiggest" is true
 //-- and the user has not added any points since the last iteration
 //-- it will instead find the "next biggest hole". Returns true if a hole
 //-- was found.
 
 
-float maxDistLastIteration = FLOAT_MAX;
+float maxDistLastIteration    = FLOAT_MAX;
 int   numSeedPtsLastIteration = 0;
 
 
@@ -5170,6 +5246,7 @@ bool bead_goToNextBiggestHole( bool findNextBiggest )
 {
   if( !isCurrObjValid() )
     return false;
+  
   
   //## CREATE A NEW CONTOUR CONTAINING ALL SEED POINTS:
   
@@ -5179,7 +5256,7 @@ bool bead_goToNextBiggestHole( bool findNextBiggest )
   for (int c=0; c<csize(obj); c++)
   {
     Icont *cont = getCont(obj,c);
-    Ipoint *pt = bead_getPtOnSlice(cont,plug.middleSlice);
+    Ipoint *pt = bead_getPtOnView(cont,plug.seedView);
     if( pt != NULL )
       imodPointAppendXYZ( allSeedPts, pt->x, pt->y, pt->z );
   }
@@ -5218,16 +5295,13 @@ bool bead_goToNextBiggestHole( bool findNextBiggest )
   
   vector< vector<float> > minDistGrid( colsX );
   
-  
-  //## INITIALIZE GRID POINTS TO CONTAIN DISTANCE TO NEAREST EDGE:
-  
   for(int x=0; x<colsX; x++)
   {
     float nearestSideX = MIN(x,colsX-x) * sideLenX;
     for(int y=0; y<rowsY; y++)
     {
       float nearestSideY = MIN(y,rowsY-y) * sideLenY;
-      float nearestSide  = MIN( nearestSideX, nearestSideY) + plug.biggestHoleOffset;
+      float nearestSide  = MIN( nearestSideX, nearestSideY) - plug.biggestHoleInset;
       minDistGrid[x].push_back( nearestSide );
     }
   }
@@ -5236,6 +5310,7 @@ bool bead_goToNextBiggestHole( bool findNextBiggest )
   //## FOR EACH GRID POINTS, UPDATE TO CONTAIN DISTANCE TO CLOSEST POINT:
   
   Ipoint pt;
+  pt.z = plug.seedView;
   
   for(int x=0; x<colsX; x++)
   {
@@ -5252,7 +5327,7 @@ bool bead_goToNextBiggestHole( bool findNextBiggest )
   }
   
   //## FIND THE POINT WITH THE MINIMUM DISTANCE:
-    
+  
   float maxDist = 0;
   Ipoint maxPt;
   
@@ -5260,16 +5335,17 @@ bool bead_goToNextBiggestHole( bool findNextBiggest )
   { 
     for(int y=0; y<rowsY; y++)
     { 
-    if( minDistGrid[x][y] > maxDist && minDistGrid[x][y] < maxDistAllowed )
+      if( minDistGrid[x][y] > maxDist && minDistGrid[x][y] < maxDistAllowed )
       {
         maxDist = minDistGrid[x][y];
         maxPt.x = x * sideLenX;
         maxPt.y = y * sideLenY;
-        maxPt.z = plug.middleSlice;
+        maxPt.z = plug.seedView;
       }
     }
   }
   
+  //## PRINT RESULT:
   
   if( maxDist == 0 )
   {
@@ -5284,12 +5360,14 @@ bool bead_goToNextBiggestHole( bool findNextBiggest )
   
   //## SET FOCUS ON NEW LOCATION:
   
-  bead_focusOnPointCrude( maxPt.x, maxPt.y, maxPt.z );
+  bead_focusOnPointCrude( maxPt.x, maxPt.y, maxPt.z );  
   imodContourDelete(allSeedPts);  
   
   maxDistLastIteration = maxDist;
   numSeedPtsLastIteration = numSeedPts;
   
+  
+   
   return true;
 }
 
@@ -5300,6 +5378,7 @@ bool bead_goToNextBiggestHole( bool findNextBiggest )
 //-- within "plugs.sortVals", and will recalculate these values
 //-- if "findNextBiggest" is false, or the number of contours
 //-- doesn't match the number of sort values.
+//-- Returns true if a contour is found and selected.
 
 float maxValLastIteration = FLOAT_MAX;
 
@@ -5336,11 +5415,17 @@ bool bead_goToContNextBiggestSortVal( bool findNextBiggest )
   
   //## FIND THE POINT WITH THE NEXT BIGGEST Y JUMP:
   
-  float maxVal     = 0;
-  int   maxContIdx = 0;
+  float maxVal     = -9999;
+  int   maxContIdx = -1;
   
   for (int v=0; v<plug.sortVals.size(); v++)
   {
+    Icont *cont = getCont(obj,v);
+    
+    if(    ( plug.contsToSearch==SC_CHECKED   && !isInterpolated(cont) )
+        || ( plug.contsToSearch==SC_UNCHECKED && isInterpolated(cont) )  )
+      continue;
+    
     float val = plug.sortVals[v].float1;
     if ( (val > maxVal) && (val < maxValAllowed) )
     {
@@ -5350,7 +5435,12 @@ bool bead_goToContNextBiggestSortVal( bool findNextBiggest )
   }
   
   //## PRINT RESULT:
-
+  
+  if( maxContIdx==-1 )
+  {
+    wprint("\aNo more 'next worst' values found - try pressing 'O' to reset.\n");
+    return false;
+  }
   wprint(" --> value: %f\n",   maxVal );
   
   //## SELECT CONTOUR:
@@ -5446,8 +5536,8 @@ bool bead_showBottomContoursInPurple( int zMin, int zMax )
   {
     Icont *cont = getCont(objTemp,c);
     
-    Ipoint *minPt  = bead_getClosestPtToSlice(cont, zMin );
-    Ipoint *maxPt  = bead_getClosestPtToSlice(cont, zMax );
+    Ipoint *minPt  = bead_getClosestPtToView(cont, zMin );
+    Ipoint *maxPt  = bead_getClosestPtToView(cont, zMax );
     
     if( psize(cont) < 4 || minPt->z == maxPt->z )
     {
@@ -5522,11 +5612,6 @@ bool bead_showContourTurningPts()
   {
     Ipoint *pt = getPt(turningPts,p);
     cont_addPtToObj( xobjX, pt->x, pt->y, pt->z, false );
-    /*Icont *newCont = imodContourNew();
-    imodPointAppend( newCont, getPt(turningPts,p) );
-    imodObjectAddContour( xobjX, newCont );
-    free(newCont);
-    */
   }  
 }
 
@@ -5578,7 +5663,7 @@ void bead_showGrid()
   
   float colXSide = fDivide( plug.xsize, colsX );
   float rowYSide = fDivide( plug.ysize, rowsY );
-  float z = plug.middleSlice;
+  float z = plug.seedView;
   
   if( showStyle == 0)
   {
@@ -5604,5 +5689,5 @@ void bead_showGrid()
       cont_rotateAroundPoint2D(getCont(xobjX,c), &plug.middlePt, plug.tiltAxisAngle);
   }
   
-  plug.window->goToMiddleSlice();
+  plug.window->goToSeedView();
 }

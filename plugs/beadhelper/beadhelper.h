@@ -70,9 +70,9 @@ class BeadHelper : public DialogFrame
   bool updateAndVerifyRanges();
   bool advanceSelectedPointInCurrCont( int change );
   int  applyMAction();
-  void goToMiddleSlice();
+  void goToSeedView();
   void printContourCheckedInfo();
-  bool verifyMiddleSliceIsSeeded();
+  bool verifySeedViewIsSeeded();
   bool verifyTiltIncrement( bool printResult, bool showErrorMsgBoxIfBad );
   bool openTiltAngleFile();
   void test();
@@ -96,10 +96,10 @@ class BeadHelper : public DialogFrame
   
   QGroupBox   *grpRange;
   QGridLayout *gridLayout1;
-  QLabel      *lblSlices;
-  QSpinBox    *sliceMinSpinner;
-  QLabel      *lblSlicesTo;
-  QSpinBox    *sliceMaxSpinner;
+  QLabel      *lblViews;
+  QSpinBox    *viewMinSpinner;
+  QLabel      *lblViewsTo;
+  QSpinBox    *viewMaxSpinner;
   QLabel      *lblContours;
   QSpinBox    *contMinSpinner;
   QLabel      *lblContoursTo;
@@ -145,13 +145,13 @@ enum estimationmethod { EM_BESTTWO, EM_SMARTTWO, EM_NEARESTTWO, EM_PREVTWO,
 enum contsortcriteria { SORT_YJUMPS, SORT_DEV, SORT_AVG_GREY, SORT_DIST_FROM_MIDDLE,
                         SORT_MISSING_PTS, SORT_UNCHECKED, SORT_RANDOM };
 
-
 enum contdisplay      { LD_OFF, LD_ALL, LD_CURRENT, LD_CURRMISSING,
                         LD_RESULTSMOOTH, LD_SLICE_RESID, LD_BEST_FIT };
 enum tiltaxisdisplay  { TD_OFF, TD_TILTAXIS, TD_TILTAXISSEED, TD_TILTAXISPT,
-                        TD_TILTSEGS };
+                        TD_TILTSEGS, TD_HGRID };
 enum expptdisplay     { ED_CROSS, ED_DIAMOND, ED_ARROW };
 
+enum searchcont       { SC_ALL, SC_UNCHECKED, SC_CHECKED };
 enum dkeybehavior     { DK_NONE, DK_OPPOSITEMIDDLE, DK_NEARESTEND, DK_SELECTEDRANGE };
 enum mkeybehavior     { MK_NORMAL, MK_GOTOMIDDLE, MK_SMOOTHLOCAL, MK_SMOOTHLOCALY };
 
@@ -160,7 +160,7 @@ enum enterbehavior    { EN_NONE, EN_NEXTUNCHECKED, EN_PREVUNCHECKED, EN_NEXTCHEC
                         EN_NEXTCONT };
 
 const char DEGREE_SIGN = 0x00B0;      // degree sign
-const int NUM_SAVED_VALS = 40;
+const int NUM_SAVED_VALS = 41;
 
 
 //-------------------------------
@@ -168,39 +168,69 @@ const int NUM_SAVED_VALS = 40;
 
 struct BeadHelperData   // contains all local plugin data
 {
-  ImodView    *view;
+  ImodView   *view;
   BeadHelper *window;
   
-  //## DRAWING OPTIONS:
+  //** MAIN OPTIONS:
     
-  int sliceMin;               // minimum slice in range
-  int sliceMax;               // maximum slice in range
+  int viewMin;                // minimum view in range
+  int viewMax;                // maximum view in range
   int contMin;                // minimum contour in range
   int contMax;                // maximum contour in range
   
   int showExpectedPos;       // if true: will show estimated position (est pos) of point on
-                              //   the current each slice
+                              //   the current each view
   bool showSpheres;           // if true: will set the sphere size to "sphereSize"
   int  sphereSize;            // the sphere size of the object, allowing the user
-                              //   to see points on adjacent slices
+                              //   to see points on adjacent views
   int  lineDisplayType;       // different modes of displaying the trajectory of
                               //   contours (see: contdisplay)
   int  tiltDisplayType;       // different modes of displaying tilt axis
-  
-  int  wheelBehav;            // changes the behaviour of the mouse wheel
-                              //   (see: wheelbehavior)
   int  estPosMethod;          // change the method used to estimate the position of pts
                               //   (see: estimationmethod)
+  
+  //** MORE SETTINGS:
+  
+  int seedView;               // the view in the stack where seeds are placed
+                              //  (usually the middle view in the stack)
+  float tiltIncrement;        // approximate tilt increment - the angle which the
+                              //   specimen is tilted between subsequent views
+  float tiltAxisAngle;        // angle in degrees of the tilt axis relative to vertical
+  float tiltOffsetX;          // distance in pixels the tilt axis is offset in X
+                              //   from crossing middlePt (usually set to 0)
+  float biggestHoleGrid;      // the approximate distance between grid points used to
+                              //   find the next biggest hole (bead_goToNextBiggestHole)
+  float biggestHoleInset;     // the distance to represent the very edge of the grid
   
   int expPtDisplayType;       // symbol used for expected points (see: expptdisplay)
   int expPtSize;              // the size (in screen pixels) of expected points
   int sizeLineSpheres;        // the size (in screen pixels) of contour line display
-  int sizePurpleSpheres;      // the size (in screen pixels) of purple spheres
   int lineDisplayWidth;       // the thickness of the line used to show contours
+  int sizePurpleSpheres;      // the size (in screen pixels) of purple spheres
   
+  int selectedAction;         // the last selected action under "More Actions"
+  int sortCriteria;           // the last selected sort critria "Reorder Contours"
+  bool autoSaveSettings;      // if true: saves all BeadHelperData settings on exit
+  
+  //** KEYBOARD AND MOUSE OPTIONS:
+  
+  int  wheelBehav;            // changes the behaviour of the mouse wheel
+                              //   (see: wheelbehavior)
+  float wheelResistance;      // the higher the value, the slower mouse scrolling works
+    
   bool disableHotKeys;        // disables all hotkeys for this plugin window
   bool includeEndsResid;      // include end points and seed when searching for 
                               // residuals with [y], [b] and [w]
+  
+  bool searchRangeOnly;       // if true: [y] and [b] only search viewMin to viewMax
+  int contsToSearch;          // wether [y], [b] and [o] search all contours, checked
+                              //   contours or unchecked contours (see: searchcont)
+  int dKeyBehav;              // the action when "d" is pressed (see: dkeybehavior)
+  int mKeyBehav;              // the action when "m" is pressed (see: mkeybehavior)
+  bool wCurrContOnly;         // if true: pressiong "w" searches current contour only
+  int  wWeightedDiv;          // weighted_dev = distance_to_expected_pt / 
+                              //                (distance_nearest_pts + wWeightedDiv)
+  
   int enterAction;            // the action performed when enter is pressed
   int minPtsEnter;            // the minimum number of points a contour must have to be
                               //   jumped to when enter is pressed
@@ -209,20 +239,7 @@ struct BeadHelperData   // contains all local plugin data
   bool enterPrint;            // if true: prints the number of matching contour each time
                               //   enter is pressed
   
-  int dKeyBehav;              // the action when "d" is pressed (see: dkeybehavior)
-  int mKeyBehav;              // the action when "m" is pressed (see: mkeybehavior)
-  
-  bool wCurrContOnly;         // if true: pressiong "w" searches current contour only
-  int  wWeightedDiv;          // weighted_dev = distance_to_expected_pt / 
-                              //                (distance_nearest_pts + wWeightedDiv)
-  
-  int selectedAction;         // the last selected action under "More Actions"
-  int sortCriteria;           // the last selected sort critria "Reorder Contours"
-  
-  bool autoSaveSettings;      // if true: saves all BeadHelperData settings on exit
-  
-  
-  //## SMOOTHING OPTIONS:
+  //** SMOOTHING OPTIONS:
   
   int   smoothCurrContOnly;   // if 0: smooths range, if 1: smooths current contour only
   bool  smoothFillGaps;       // fill in missing points (on views with no points)
@@ -237,39 +254,24 @@ struct BeadHelperData   // contains all local plugin data
   bool  smoothAdjacentV;      // will only smooth views above and below the current view
   int   smoothNumViews;       // how many views above and below the current z to smooth
   
-  //## OTHER:
   
-  Ipoint middlePt;            // the point at the middle of the tomogram
-  
-  float tiltIncrement;        // approximate tilt increment - the angle which the
-                              //  specimen is tilted between subsequent views
-  float tiltAxisAngle;        // angle in degrees of the tilt axis relative to vertical
-  float tiltOffsetX;          // distance in pixels the tilt axis is offset in X
-                              //  from crossing middlePt (usually set to 0)
-  float biggestHoleGrid;      // the approximate distance between grid points used to
-                              //  find the next biggest hole (bead_goToNextBiggestHole)
-  float biggestHoleOffset;    // the distance to represent the very edge of the grid
-  
-  
-  vector<IdxToSort> sortVals;   // stores a idx and float for each contour after
-                                // "reorder contours" is run
-  
-  vector<float> tiltAngles;   // stores tilt angles loaded from a .tlt file
-  
-  Ipoint mouse;               // the current tomogram coordinates of the mouse
-  
-  float wheelResistance;      // the higher the value, the slower mouse scrolling works
+  //** OTHER:
   
   bool initialized;           // is set to true after values have been set
   int xsize, ysize, zsize;    // size of the image / tomogram
-  int middleSlice;            // the middle slice of the tomogram (where we expect seeds)
+  
+  Ipoint middlePt;            // the point at the middle of the tomogram
+  Ipoint mouse;               // the current tomogram coordinates of the mouse
+  
+  vector<IdxToSort> sortVals; // stores a idx and float for each contour after
+                              // "reorder contours" is run
+  vector<float> tiltAngles;   // stores tilt angles loaded from a .tlt file
   
   int extraObjExpPos;         //|
   int extraObjContDisp;       //|-- stores reference to extra objects
   int extraObjTiltAxis;       //|
   int extraObjExtra;          //|
   
-  int redrawControlNum;
 };
 
 
@@ -295,7 +297,7 @@ bool isCurrPtValid();
 
 int edit_getZOfTopZap();
 int edit_setZapLocation( float x, int y, int z, bool redraw );
-int edit_changeSelectedSlice( int changeZ, bool redraw );
+int edit_changeSelectedView( int changeZ, bool redraw );
 bool bead_focusOnPointCrude( float x, float y, float z );
 float bead_getTiltAngleAtZ( int z );
 
@@ -305,25 +307,25 @@ int bead_removeDuplicatePtsSameView( Icont *cont, bool remove, bool print );
 bool bead_ptsAreNotInOrder( Icont *cont );
 int bead_orderPtsByAscendingZ( Icont *cont );
 
-bool bead_isPtOnSlice( Icont *cont, int slice );
-int bead_getPtIdxOnSlice( Icont *cont, int slice );
-int bead_getExpPtIdxForSlice( Icont *cont, int slice );
-Ipoint *bead_getPtOnSlice( Icont *cont, int slice );
-int bead_getClosestPtIdxToSlice( Icont *cont, int slice );
-Ipoint *bead_getClosestPtToSlice( Icont *cont, int slice );
+bool bead_isPtOnView( Icont *cont, int view );
+int bead_getPtIdxOnView( Icont *cont, int view );
+int bead_getExpPtIdxForView( Icont *cont, int view );
+Ipoint *bead_getPtOnView( Icont *cont, int view );
+int bead_getClosestPtIdxToView( Icont *cont, int view );
+Ipoint *bead_getClosestPtToView( Icont *cont, int view );
 
-bool bead_getClosestTwoPointsToSlice( Icont *cont, int slice, Ipoint *pt1, Ipoint *pt2 );
-bool bead_getPointsEitherSideSlice( Icont *cont, int slice, Ipoint *pt1, Ipoint *pt2 );
-bool bead_getSpacedOutPoints( Icont *cont, int slice,
+bool bead_getClosestTwoPointsToView( Icont *cont, int view, Ipoint *pt1, Ipoint *pt2 );
+bool bead_getPointsEitherSideView( Icont *cont, int view, Ipoint *pt1, Ipoint *pt2 );
+bool bead_getSpacedOutPoints( Icont *cont, int view,
                               Icont *ptsByDist, int minZBetweenPts );
 
 Ipoint bead_getPtOnLineWithZ( Ipoint *pt1, Ipoint *pt2, int z );
-bool bead_getExpectedPosOfPoint( Icont *cont, int slice, Ipoint *pt );
-bool bead_getExpectedPosOfPointUsingPtsBefore( Icont *cont, int slice, Ipoint *pt,
+bool bead_getExpectedPosOfPoint( Icont *cont, int view, Ipoint *pt );
+bool bead_getExpectedPosOfPointUsingPtsBefore( Icont *cont, int view, Ipoint *pt,
                                                int numPtsToAvg );
 
 int bead_insertOrOverwritePoint( Icont *cont, Ipoint *pt );
-bool bead_insertPtAtEstimatedPos( Icont *cont, int slice, bool overwrite );
+bool bead_insertPtAtEstimatedPos( Icont *cont, int view, bool overwrite );
 
 int bead_movePtTowardsEstimatedPos ( Icont *cont, int z,
                                      float moveFract, float minResid, bool moveYOnly,
