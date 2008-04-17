@@ -108,6 +108,9 @@ public class EtomoDirector {
   }
 
   public void doAutomation() {
+    if (managerList==null) {
+      return;
+    }
     BaseManager manager = (BaseManager) managerList.get(currentManagerKey);
     manager.doAutomation();
   }
@@ -989,6 +992,12 @@ public class EtomoDirector {
 }
 /**
  * <p> $Log$
+ * <p> Revision 1.71  2008/03/21 23:59:49  sueh
+ * <p> bug# 1099 Fixed isMemoryAvailable.  Removed the SGI tests since it is
+ * <p> not supported in this version.  Testing against availableMemory, which
+ * <p> seems to be accurate in Mac, Windows, and Linux.  Also increased
+ * <p> MIN_AVAILABLE_MEMORY_REQUIRED.
+ * <p>
  * <p> Revision 1.70  2008/03/19 01:00:29  sueh
  * <p> bug# 1099 Added getAvailableMemory
  * <p>
