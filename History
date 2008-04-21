@@ -1,5 +1,8 @@
 IMOD History
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+4/21/08: In Etomo - Join remember the location of the previously added section
+(while Etomo is running).
+
 4/17/08: Fixed an error when running etomo with --help.
 
 4/15/08: Fixed the reading of .prm files by Etomo - PEET.
