@@ -50,6 +50,9 @@ import etomo.util.Utilities;
  * @version $Revision$
  * 
  * <p> $Log$
+ * <p> Revision 1.40  2008/01/31 20:30:50  sueh
+ * <p> bug# 1055 throwing a FileException when LogFile.getInstance fails.
+ * <p>
  * <p> Revision 1.39  2007/03/27 00:05:45  sueh
  * <p> bug# 964 Removed print statement.
  * <p>
@@ -348,7 +351,7 @@ import etomo.util.Utilities;
  * <p> </p>
  */
 public class SectionTablePanel implements ContextMenu, Expandable,
-    Run3dmodButtonContainer,Highlightable {
+    Run3dmodButtonContainer, Highlightable {
   public static final String rcsid = "$Id$";
 
   private static final Dimension buttonDimension = UIParameters.INSTANCE
@@ -446,6 +449,7 @@ public class SectionTablePanel implements ContextMenu, Expandable,
   private int mode = JoinDialog.SETUP_MODE;
   private boolean flipping = false;
   private final JoinState state;
+  private File lastLocation = null;
 
   /**
    * Creates the panel and table.
@@ -748,8 +752,8 @@ public class SectionTablePanel implements ContextMenu, Expandable,
     return -1;
   }
 
-  void setInverted() throws LogFile.FileException{
-    JoinInfoFile joinInfoFile =  JoinInfoFile.getInstance(manager);
+  void setInverted() throws LogFile.FileException {
+    JoinInfoFile joinInfoFile = JoinInfoFile.getInstance(manager);
     int invertedCount = 0;
     int size = rows.size();
     for (int i = 0; i < size; i++) {
@@ -773,7 +777,7 @@ public class SectionTablePanel implements ContextMenu, Expandable,
               "Join Warning");
     }
   }
-  
+
   /**
    * Respond to highlight request
    */
@@ -997,8 +1001,8 @@ public class SectionTablePanel implements ContextMenu, Expandable,
       return;
     }
     //  Open up the file chooser in the working directory
-    JFileChooser chooser = new JFileChooser(new File(manager
-        .getPropertyUserDir()));
+    JFileChooser chooser = new JFileChooser(lastLocation == null ? new File(
+        manager.getPropertyUserDir()) : lastLocation);
     TomogramFileFilter tomogramFilter = new TomogramFileFilter();
     chooser.setFileFilter(tomogramFilter);
     chooser.setPreferredSize(new Dimension(400, 400));
@@ -1006,6 +1010,7 @@ public class SectionTablePanel implements ContextMenu, Expandable,
     int returnVal = chooser.showOpenDialog(pnlBorder.getContainer());
     if (returnVal == JFileChooser.APPROVE_OPTION) {
       File tomogram = chooser.getSelectedFile();
+      lastLocation = tomogram.getParentFile();
       if (isDuplicate(tomogram)) {
         return;
       }
