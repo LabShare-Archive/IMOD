@@ -89,6 +89,7 @@
 #define IobjPointSize     35
 #define IobjMaxMesh       36
 #define IobjMaxSurface    37
+#define IobjLineWidth2    38
 
 #define IobjFlagClosed    3
 #define IobjFlagConnected 9
@@ -150,44 +151,48 @@ extern "C" {
 #endif /* iobj.h */
 
 /*
-    $Log$
-    Revision 3.13  2007/09/22 00:05:55  mast
-    Added matflags2 defines
 
-    Revision 3.12  2007/06/08 04:44:29  mast
-    Added planar flag and macro to test for planar contours
+$Log$
+Revision 3.14  2008/03/05 20:07:38  mast
+Added flag for drawing extra object in model view
 
-    Revision 3.11  2006/08/31 21:02:45  mast
-    Flag definitions
+Revision 3.13  2007/09/22 00:05:55  mast
+Added matflags2 defines
 
-    Revision 3.10  2006/06/09 20:30:17  mast
-    Added flag for osphere display on-section only
+Revision 3.12  2007/06/08 04:44:29  mast
+Added planar flag and macro to test for planar contours
 
-    Revision 3.9  2005/09/11 19:19:15  mast
-    Added temporary flag
+Revision 3.11  2006/08/31 21:02:45  mast
+Flag definitions
 
-    Revision 3.8  2005/06/06 17:27:23  mast
-    Dropped 2DPOINT and 3DPOINT flags and added FCOLOR_PNT flag
+Revision 3.10  2006/06/09 20:30:17  mast
+Added flag for osphere display on-section only
 
-    Revision 3.7  2005/04/23 23:36:23  mast
-    Moved some functions into imodel.c
+Revision 3.9  2005/09/11 19:19:15  mast
+Added temporary flag
 
-    Revision 3.6  2005/03/20 19:55:48  mast
-    Eliminating duplicate functions
+Revision 3.8  2005/06/06 17:27:23  mast
+Dropped 2DPOINT and 3DPOINT flags and added FCOLOR_PNT flag
 
-    Revision 3.5  2004/11/20 04:04:16  mast
-    cleaned up, removed virtual, added dup and insert contour functions
+Revision 3.7  2005/04/23 23:36:23  mast
+Moved some functions into imodel.c
 
-    Revision 3.4  2004/11/05 19:15:51  mast
-    Include local files with quotes, not brackets
+Revision 3.6  2005/03/20 19:55:48  mast
+Eliminating duplicate functions
 
-    Revision 3.3  2004/09/21 20:09:30  mast
-    Added clean surface call
+Revision 3.5  2004/11/20 04:04:16  mast
+cleaned up, removed virtual, added dup and insert contour functions
 
-    Revision 3.2  2004/04/28 05:30:24  mast
-    Added flag for drawing current contour thicker
+Revision 3.4  2004/11/05 19:15:51  mast
+Include local files with quotes, not brackets
 
-    Revision 3.1  2003/06/27 20:10:28  mast
-    Add functions to set object color and get specific contour from object
+Revision 3.3  2004/09/21 20:09:30  mast
+Added clean surface call
+
+Revision 3.2  2004/04/28 05:30:24  mast
+Added flag for drawing current contour thicker
+
+Revision 3.1  2003/06/27 20:10:28  mast
+Add functions to set object color and get specific contour from object
 
 */
