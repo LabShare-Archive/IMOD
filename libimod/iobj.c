@@ -671,10 +671,10 @@ int imodObjectSetName(Iobj *obj, char *inName)
 
 /*!
  * Returns one value for [inObject]; possible values for [inValueType] are
- * {IobjMaxContour}, {IobjLineWidth}, {IobjPointSize}, {IobjMaxMesh}, 
- * {IobjMaxSurface}, {IobjFlagClosed}, {IobjFlagConnected}, {IobjFlagFilled},
- * {IobjFlagDraw}, {IobjFlagMesh}, {IobjFlagLine}, {IobjFlagTime}, and
- * {IobjFlagExtraInModv}.
+ * {IobjMaxContour}, {IobjLineWidth}, {IobjLineWidth2}, {IobjPointSize},
+ * {IobjMaxMesh}, {IobjMaxSurface}, {IobjFlagClosed}, {IobjFlagConnected}, 
+ * {IobjFlagFilled}, {IobjFlagDraw}, {IobjFlagMesh}, {IobjFlagLine},
+ * {IobjFlagTime}, and {IobjFlagExtraInModv}.
  */
 int   imodObjectGetValue(Iobj *inObject, int inValueType)
 {
@@ -684,6 +684,8 @@ int   imodObjectGetValue(Iobj *inObject, int inValueType)
     return(inObject->contsize);
   case IobjLineWidth:
     return(inObject->linewidth);
+  case IobjLineWidth2:
+    return(inObject->linewidth2);
   case IobjPointSize:
     return(inObject->pdrawsize);
   case IobjMaxMesh:
@@ -733,16 +735,20 @@ static void setObjFlag(Iobj *inObject, b3dUInt32 flag, int state)
 
 /*!
  * Sets one value for [inObject] to [inValue]; possible values for
- * [inValueType] are {IobjLineWidth}, {IobjPointSize}, {IobjFlagClosed},
- * {IobjFlagConnected}, {IobjFlagFilled}, {IobjFlagDraw}, {IobjFlagMesh},
- * {IobjFlagLine}, and {IobjFlagExtraInModv} (for drawing an extra object in
- * model view window).
+ * [inValueType] are {IobjLineWidth}, {IobjLineWidth2}, {IobjPointSize}, 
+ * {IobjFlagClosed}, {IobjFlagConnected}, {IobjFlagFilled}, {IobjFlagDraw}, 
+ * {IobjFlagMesh}, {IobjFlagLine}, and {IobjFlagExtraInModv} (for drawing an 
+ * extra object in model view window).
  */
 void  imodObjectSetValue(Iobj *inObject, int inValueType, int inValue)
 {
   switch(inValueType){
   case IobjLineWidth:
     inObject->linewidth = inValue;
+    return;
+
+  case IobjLineWidth2:
+    inObject->linewidth2 = inValue;
     return;
 
   case IobjPointSize:
@@ -780,7 +786,11 @@ void  imodObjectSetValue(Iobj *inObject, int inValueType, int inValue)
 }
 
 /*
+
 $Log$
+Revision 3.18  2008/04/04 21:21:04  mast
+Free contour after adding to object, clarify documentation
+
 Revision 3.17  2008/03/05 20:08:00  mast
 Added ability to set flag for drawing extra object in model view
 
