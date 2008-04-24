@@ -463,8 +463,8 @@ inline string toStringWithCommas( data value )
 
 inline string toString( float value, int decimal )
 {	
-	double	exponent = (double)pow(10,decimal);
-	double	newValue = ((int)(value * exponent))/exponent ;
+	float	exponent = (float)pow( (float)10, (float)decimal );
+	float	newValue = ((int)(value * exponent))/exponent ;
 	return  toString(newValue);
 }
 
