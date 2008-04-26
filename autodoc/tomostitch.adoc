@@ -42,14 +42,6 @@ tooltip =
 manpage = Thickness to make output volume.  All frames will be transformed to
 this thickness.  The default is the largest thickness of any input volume.
 
-[Field = DensityReferenceFrame]
-short = density
-type = IPM
-usage = Frame number in X and Y of reference volume for density matching
-tooltip =
-manpage = Frame number in X and Y (numbered from one) of the volume to serve as
-reference for density matching.  The default is to use the first one.
-
 [Field = FindWarping]
 short = find
 type = B
@@ -81,7 +73,14 @@ usage =  Run Blendmont on warped and stacked pieces
 tooltip =
 manpage =
 
-[SectionHeader = BLOptions]
+[Field = VerboseOutput]
+short = verbose
+type = B
+usage =  Output command lines being issued and other debugging output
+tooltip =
+manpage =
+
+[SectionHeader = WarpOptions]
 usage = OPTIONS FOR RUNNING FINDWARP OR WARPVOL
 manpage = OPTIONS FOR RUNNING FINDWARP OR WARPVOL
 [Field = TargetMeanResidual]
@@ -123,6 +122,44 @@ usage = Directory to use for temporary files in Warpvol
 tooltip = 
 manpage = Directory to use for temporary files when runnning Warpvol(1).  The
 default is that the temporary files will be placed in the current directory.
+
+[SectionHeader = StackOptions]
+usage = OPTIONS FOR DENSITY MATCHING WHEN STACKING
+manpage = OPTIONS FOR DENSITY MATCHING WHEN STACKING
+[Field = DensityReferenceFrame]
+short = density
+type = IPM
+usage = Frame number in X and Y of reference volume for density matching
+tooltip =
+manpage = Frame number in X and Y (numbered from one) of the volume to serve as
+reference for density matching.  The default is to use the first one.
+
+[Field = MatchingWidthXandY]
+short = match
+type = IP
+usage = Width of overlap zone in X and Y to use for density matching
+tooltip = 
+manpage = Width of overlap zone in X and Y to use to determine the scaling for
+density matching.  The program will run Densmatch(1) on the overlap zones
+to find a relative scaling between each
+pair of overlapping volumes, then resolve these scalings into a single scaling
+for each volume.  The default is to use the central half of the width of the
+overlap zone; this may be too large if the overlap zones are very large and
+contain much area without material.  Enter a width of 0,0 to use the original
+kind of density matching, which is a scaling based on matching the density in
+the interior of each volume to that of the reference volume.
+
+[Field = MatchingLengthXandY]
+short = length
+type = IP
+usage = Length of overlap zone in X and Y to use for density matching
+tooltip = 
+manpage = Length of overlap zone in X and Y to use to determine the scaling for
+density matching.  The default is to use the central half of the length of an
+overlap zone; smaller values might be needed if pieces are severely skewed and
+have gray area along a large fraction of the length of the overlap zones.  The
+X and Y lengths are used for the overlaps between pieces in Y and X,
+respectively.  Enter 0 for one of the values to use the default.
 
 [SectionHeader = BLOptions]
 usage = OPTIONS FOR RUNNING BLENDMONT
