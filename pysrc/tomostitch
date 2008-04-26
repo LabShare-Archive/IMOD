@@ -10,11 +10,45 @@
 
 # FUNCTIONS
 
+# Remove an extension and add a new one
 def changeExtension(name, newext):
     ind = name.rfind('.')
     if ind < 0:
         ind = len(name)
     return name[0:ind] + newext
+
+# Run densmatch 
+def runDensmatch(args):
+    denscom = 'densmatch -report ' + args
+    if verbose:
+        print denscom
+    try:
+        densout = runcmd(denscom, None)
+    except ImodpyError, errout:
+        exitFromImodError(progname, errout)
+                
+    for l in densout:
+        if l.find('SD =') >= 0:
+            print l
+        indcolon = l.find(':')
+        if indcolon >= 0 and l.startswith('Scale factor'):
+            scaling = l[indcolon + 1:].split()
+            if len(scaling) != 2:
+                print prefix + \
+                      " Could not find two numbers on Scale factor line"
+                sys.exit(1)
+            return scaling
+
+    print prefix + " No Scale factor line found in output"
+    sys.exit(1)
+
+# Take product of scaling between volumes and scaling of reference volume
+def scalingProduct(scale1, scale2):
+    return (scale1[0] * scale2[0], scale1[0] * scale2[1] + scale1[1])
+
+# Take inverse of a scaling
+def scalingInverse(scale):
+    return (1. / scale[0], -scale[1] / scale[0])
 
 
 #### MAIN PROGRAM  ####
@@ -54,14 +88,16 @@ discount = 0.5
 
 # Fallbacks from ../manpages/autodoc2man 3 1 tomostitch
 options = ["info:InfoFile:FN:", "xrun:XRunStartEnd:IP:",
-           "yrun:YRunStartEnd:IP:", "zrun:ZRunStartEnd:IP:",
-           "thickness:ThicknessToOutput:I:",
-           "density:DensityReferenceFrame:IPM:", "find:FindWarping:B:",
+           "yrun:YRunStartEnd:IP:", "zrun:ZRun:IP:",
+           "thickness:ThicknessToOutput:I:", "find:FindWarping:B:",
            "warp:WarpVolumes:B:", "stack:StackVolumes:B:",
-           "blend:BlendVolumes:B:", "target:TargetMeanResidual:FA:",
+           "blend:BlendVolumes:B:", "verbose:VerboseOutput:B:",
+           "target:TargetMeanResidual:FA:",
            "measured:MeasuredRatioMinAndMax:FP:",
            "discount:DiscountIfZeroVectors:F:",
            "tempdir:TemporaryDirectory:CH:",
+           "density:DensityReferenceFrame:IPM:",
+           "match:MatchingWidthXandY:IP:", "length:MatchingLengthXandY:IP:",
            "xminmax:StartingAndEndingX:IP:",
            "yminmax:StartingAndEndingY:IP:", "bin:BinByFactor:I:",
            "oldedge:OldEdgeFunctions:B:", "goodedge:GoodEdgeLowAndHighZ:IP:",
@@ -150,6 +186,9 @@ blendWidthX, blendWidthY = PipGetTwoIntegers('BlendingWidthXandY', -1, -1)
 boxShort, boxLong = PipGetTwoIntegers('BoxSizeShortAndLong', -1, -1)
 binFactor = PipGetInteger('BinByFactor', 1)
 oldedges = PipGetBoolean('OldEdgeFunctions', 0)
+matchWidthX, matchWidthY = PipGetTwoIntegers('MatchingWidthXandY', -1, -1)
+matchLengthX, matchLengthY = PipGetTwoIntegers('MatchingLengthXandY', -1, -1)
+verbose = PipGetBoolean('VerboseOutput', 0)
 
 # X/Y start and end converted here to a string
 xblst, xblnd = PipGetTwoIntegers('StartingAndEndingX', 0, 0)
@@ -291,6 +330,7 @@ if dostack:
     refNum = -1
     aliList = []
     plist = []
+    listMap = { }
     for y in range(yrunStart, yrunEnd + 1):
         for x in range(xrunStart, xrunEnd + 1):
             ind = pieceMap[x - xmin + xdim * (y - ymin)]
@@ -323,6 +363,7 @@ if dostack:
                     print prefix + 'All aligned volumes are not the same size'
                     sys.exit(1)
 
+                listMap[ind] = len(aliList)
                 aliList.append(aliname)
                 if refFrameX == x and refFrameY == y:
                     refNum = numStack
@@ -344,26 +385,191 @@ if dostack:
               'need to stack and blend'
         sys.exit(1)
 
-    # Run densmatch and compose the newstack command
-    newstcom = 'newstack'
-    try:
+    # Run densmatch; first do old global matching if either width is 0
+    sclList = []
+    if matchWidthX == 0 or matchWidthY == 0:
         for i in range(numStack):
-            newstcom += ' ' + aliList[i]
             if i != refNum:
                 print 'Running densmatch on ' + aliList[i]
-                denscom = 'densmatch ' + aliList[refNum] + ' ' + aliList[i]
-                densout = runcmd(denscom, None)
-                for l in densout:
-                    if l.find('SD =') >= 0:
-                        print l
+                scaling = runDensmatch(aliList[refNum] + ' ' + aliList[i])
+                sclList.append(scaling[0] + ',' + scaling[1])
+            else:
+                sclList.append('1,0')
 
-        # Run newstack
-        newstcom += ' ' + slicename + '.st'
-        print '\nStacking the volumes into ' + slicename + '.st'
+    else:
+
+        # Analyze all the overlaps in the range being run
+        # First build arrays to get to lower and upper pieces
+        lowerPcX = []
+        lowerPcY = []
+        upperPcX = []
+        upperPcY = []
+        lowerSclX = []
+        lowerSclY = []
+        pcScalings = []
+        for y in range(yrunStart, yrunEnd + 1):
+            for x in range(xrunStart, xrunEnd + 1):
+                ind = pieceMap[x - xmin + xdim * (y - ymin)]
+                if ind >= 0:
+                    pcInd = listMap[ind]
+                    pcScalings.append(None)
+
+                    # Look up lower piece in X and run densmatch on overlap
+                    loInd = -1
+                    loScl = (1., 0.)
+                    if x > xrunStart:
+                        ind = pieceMap[x - 1 - xmin + xdim * (y - ymin)]
+                        if ind >= 0:
+                            loInd = listMap[ind]
+                            overlap = xsize - xSpacing
+                            width = matchWidthX
+                            if width < 0:
+                                width = overlap / 2
+                            xmin = int(xSpacing + overlap / 2 - width / 2)
+                            xmax = int(xmin + width - 1)
+                            args = '-xminmax %d,%d -offset %d,0,0 %s %s' % \
+                                   (xmin, xmax, -xSpacing, aliList[loInd], \
+                                    aliList[pcInd])
+                            if matchLengthY > 0:
+                                ymin = int(ysize / 2 - matchLengthY / 2)
+                                ymax = int(ymin + matchLengthY - 1)
+                                args = '-yminmax %d,%d ' % (ymin, ymax) + args
+                            print 'Running densmatch in overlap between piece'\
+                                  + ' %d %d and piece %d %d' % (x-1, y, x, y)
+                            scaling = runDensmatch(args)
+                            loScl = (float(scaling[0]), float(scaling[1]))
+                            
+                    lowerPcX.append(loInd)
+                    lowerSclX.append(loScl)
+
+                    # Look up upper piece in X
+                    upInd = -1
+                    if x < xrunEnd:
+                        ind = pieceMap[x + 1 - xmin + xdim * (y - ymin)]
+                        if ind >= 0:
+                            upInd = listMap[ind]
+                    upperPcX.append(upInd)
+
+                    # Look up lower piece in Y and run densmatch
+                    loInd = -1
+                    loScl = (1., 0.)
+                    if y > yrunStart:
+                        ind = pieceMap[x - xmin + xdim * (y - 1 - ymin)]
+                        if ind >= 0:
+                            loInd = listMap[ind]
+                            overlap = ysize - ySpacing
+                            width = matchWidthY
+                            if width < 0:
+                                width = overlap / 2
+                            ymin = int(ySpacing + overlap / 2 - width / 2)
+                            ymax = int(ymin + width - 1)
+                            args = '-yminmax %d,%d -offset %d,0,0 %s %s' % \
+                                   (ymin, ymax, -ySpacing, aliList[loInd], \
+                                    aliList[pcInd])
+                            if matchLengthX > 0:
+                                xmin = int(xsize / 2 - matchLengthX / 2)
+                                xmax = int(xmin + matchLengthX - 1)
+                                args = '-xminmax %d,%d ' % (xmin, xmax) + args
+                            print 'Running densmatch in overlap between piece'\
+                                  + ' %d %d and piece %d %d' % (x, y-1, x, y)
+                            scaling = runDensmatch(args)
+                            loScl = (float(scaling[0]), float(scaling[1]))
+
+                    lowerPcY.append(loInd)
+                    lowerSclY.append(loScl)
+
+                    # Look up upper piece in Y
+                    upInd = -1
+                    if y < yrunEnd:
+                        ind = pieceMap[x - xmin + xdim * (y + 1 - ymin)]
+                        if ind >= 0:
+                            upInd = listMap[ind]
+                    upperPcY.append(upInd)
+
+        # Start with the reference piece defined and then analyze pieces
+        # adjacent to ones with scaling defined
+        pcScalings[refNum] = (1., 0.)
+        addedScale = True
+        while addedScale:
+            addedScale = False
+            newScalings = { }
+            for i in range(numStack):
+                if pcScalings[i] != None:
+                    continue
+                numScales = 0
+                multsum = 0.
+                addsum = 0.
+                loInd = lowerPcX[i]
+                if loInd >= 0 and pcScalings[loInd] != None:
+                    netscl = scalingProduct(pcScalings[loInd], lowerSclX[i])
+                    multsum += netscl[0]
+                    addsum += netscl[1]
+                    numScales += 1
+                    if verbose:
+                        print 'Piece %d from lower X, net scale %.5f  %.2f' % \
+                              (i, netscl[0], netscl[1])
+
+                loInd = lowerPcY[i]
+                if loInd >= 0 and pcScalings[loInd] != None:
+                    netscl = scalingProduct(pcScalings[loInd], lowerSclY[i])
+                    multsum += netscl[0]
+                    addsum += netscl[1]
+                    numScales += 1
+                    if verbose:
+                        print 'Piece %d from lower Y, net scale %.5f  %.2f' % \
+                              (i, netscl[0], netscl[1])
+
+                upInd = upperPcX[i]
+                if upInd >= 0 and pcScalings[upInd] != None:
+                    invscl = scalingInverse(lowerSclX[upInd])
+                    netscl =  scalingProduct(pcScalings[upInd], invscl)
+                    multsum += netscl[0]
+                    addsum += netscl[1]
+                    numScales += 1
+                    if verbose:
+                        print 'Piece %d from upper X, net scale %.5f  %.2f' % \
+                              (i, netscl[0], netscl[1])
+
+                upInd = upperPcY[i]
+                if upInd >= 0 and pcScalings[upInd] != None:
+                    invscl = scalingInverse(lowerSclY[upInd])
+                    netscl =  scalingProduct(pcScalings[upInd], invscl)
+                    multsum += netscl[0]
+                    addsum += netscl[1]
+                    numScales += 1
+                    if verbose:
+                        print 'Piece %d from upper Y, net scale %.5f  %.2f' % \
+                              (i, netscl[0], netscl[1])
+
+                if numScales:
+                    newScalings[i] = (multsum / numScales, addsum / numScales) 
+                    addedScale = True
+                    if numScales > 1 and verbose:
+                        print 'Piece %d mean scale %.5f  %.2f' % \
+                              (newScalings[i][0], newScalings[i][1])
+
+            # Now if any were added, set them into the array of scales
+            if addedScale:
+                for i in newScalings.keys():
+                    pcScalings[i] = newScalings[i]
+
+        # Now just convert the scalings into strings
+        for i in range(numStack):
+            sclList.append('%f,%f' % (pcScalings[i][0], pcScalings[i][1]))
+
+
+    # Compose the newstack command and run newstack
+    newstcom = 'newstack'
+    for i in range(numStack):
+        newstcom += ' -multadd ' + sclList[i] + ' ' + aliList[i] 
+    newstcom += ' ' + slicename + '.st'
+    print '\nStacking the volumes into ' + slicename + '.st'
+    if verbose:
+        print newstcom
+    try:
         runcmd(newstcom, None)
-
     except ImodpyError, errout:
-                exitFromImodError(progname, errout)
+        exitFromImodError(progname, errout)
 
     # Make the piece list file
     try:
@@ -466,6 +672,9 @@ sys.exit(0)
 
 #
 # $Log$
+# Revision 1.4  2008/04/10 19:28:12  mast
+# Needed space after tempdir entry in command
+#
 # Revision 1.3  2008/04/08 21:41:14  mast
 # Made it produce a resmod whenever residual file exists
 #
