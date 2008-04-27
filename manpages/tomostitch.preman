@@ -28,6 +28,26 @@ collected in a log.
 The size of the warped volumes in X and Y was set when Stitchalign(1) was run
 and cannot be adjusted in this program.  The thickness can be specified.
 .P
+The density scaling is a point where problems may occur with byte data.
+The program will use Densmatch(1) to find the scaling that will match up the
+densities within a strip in the overlap zone between each pair of adjacent
+volumes.  These relative scalings are then resolved into scalings to apply to
+each of the volumes to minimize the density disparities in all of the overlap
+zones.  One of the volumes is always set as a refernce that will not be scaled
+(piece 1, 1 by default).  The final scalings are printed out before the
+program starts to stack the volumes while applying these scalings.  If some
+volumes are multiplied by a factor much more than 1, then there is a danger
+that image data of interest
+will be truncated at 0 or 255.  If a factor is much less than 1, then there is
+a danger of that piece having its intensities compressed into too little
+dynamic range, although this might be a more difficult problem to notice.
+In some cases, you might want to select a new reference volume to reduce the
+amount that volumes are scaled overall.  For example, if most scale factors
+are between 0.8 and 1.0, select one with a factor of 0.9 as the reference to
+makes the scalings overall be closer to 1.0.  To do this, kill the stacking
+operation (use Ctrl C at the command line) and rerun it with the new
+reference.
+.P
 Artifacts in the blended volume can be minimized by setting a limit for the
 slices from which edge functions will be computed.  Edge functions computed
 from areas outside the section are prone to errors which differ radically from
