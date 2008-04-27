@@ -1521,7 +1521,7 @@ C
 C       
       if(iftempopen.ne.0)call imclose(3)
       if(ntrunclo+ntrunchi.gt.0)write(*,103)ntrunclo,ntrunchi
-103   format(' TRUNCATIONS OCCURRED:',i7,' at low end and',i7,
+103   format(' TRUNCATIONS OCCURRED:',i11,' at low end,',i11,
      &    ' at high end of range')
       call exit(0)
 99    call exitError(' END OF IMAGE WHILE READING')
@@ -1897,6 +1897,9 @@ c
 ************************************************************************
 *       
 c       $Log$
+c       Revision 3.48  2007/12/06 20:38:59  mast
+c       Fixed min/max output to header when not rescaling
+c
 c       Revision 3.47  2007/12/04 18:24:03  mast
 c       Added option to adjust origin
 c
