@@ -1,5 +1,13 @@
 IMOD History
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+4/27/08: IMOD_3-12-7
+4/27/08: Changed Tomostitch to match densities across overlap zones instead
+of between centers of whole volumes and added verbose output option.
+
+4/25/08: Added options to Densmatch to specify the region to be matched and
+to allow for an offset between volumes; also made it do at least 10 samples 
+along each axis, so large area tomograms will still be sampled on 10 planes.
+
 4/21/08: In Etomo - Join remember the location of the previously added section
 (while Etomo is running).
 

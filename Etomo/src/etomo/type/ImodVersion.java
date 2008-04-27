@@ -17,5 +17,5 @@ package etomo.type;
 public class ImodVersion {
   public static  final String  rcsid =  "$Id$";
   
-  public static final String CURRENT_VERSION = "3.12.6.";
+  public static final String CURRENT_VERSION = "3.12.7.";
 }
