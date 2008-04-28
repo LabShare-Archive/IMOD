@@ -315,7 +315,7 @@ void imodPlugExecute(ImodView *inImodView)
   Iobj *xobjC = ivwGetAnExtraObject(plug.view, plug.extraObjContDisp);
   imodObjectSetColor(xobjC, 0, 0.4, 0);
   imodObjectSetValue(xobjC, IobjPointSize, plug.sizeLineSpheres);
-  imodObjectSetValue(xobjC, IobjLineWidth, plug.lineDisplayWidth);
+  imodObjectSetValue(xobjC, IobjLineWidth2, plug.lineDisplayWidth);
   imodObjectSetValue(xobjC, IobjFlagClosed, 0);
   
   Iobj *xobjT = ivwGetAnExtraObject(plug.view, plug.extraObjTiltAxis);
@@ -635,7 +635,7 @@ BeadHelper::BeadHelper(QWidget *parent, const char *name) :
   lblLineDisplay = new QLabel("line display: ", grpDisplay);
   lblLineDisplay->setFocusPolicy(QWidget::NoFocus);
 	QToolTip::add(lblLineDisplay, 
-                "Visual aid to let you see the trajectory of contours");
+              "Visual aid to let you see the trajectory of contours in the ZAP window");
   gridLayout2->addWidget(lblLineDisplay, 3, 0);
   
   lineDisplayCombo = new QComboBox(grpDisplay);
@@ -650,11 +650,28 @@ BeadHelper::BeadHelper(QWidget *parent, const char *name) :
   lineDisplayCombo->setCurrentItem( plug.lineDisplayType );
 	connect(lineDisplayCombo, SIGNAL(activated(int)), this,
           SLOT(changeLineDisplayType(int)));
-	QToolTip::add(lineDisplayCombo, "Visual aid to let you see the trajectory of contours");
+  toolStr = "Visual aid to let you see the trajectory of contours. "
+    "\n"
+    "\n > off             - don't display any lines/contours "
+    "\n > all contours        - shows ALL contours on current object "
+      "with any checked contours as stippled "
+    "\n > curr contour   - shows only the current (selected) contour "
+    "\n > missing pts    - shows the selected contour as solid, with the expected "
+      " position of any missing points as crosshairs "
+    "\n > result smooth - shows the selected contour as solid and what will happen "
+      " if the current contour is smoothed by pressing [E] as stippled "
+    "\n > pt residuals    - shows the displacement of each point in the current "
+      " contour with solid arrows "
+    "\n > line best fit  - shows a 'line of best fit'; a straight line which "
+      "best approximates all the points in the slected contour";
+  QToolTip::add(lineDisplayCombo, toolStr );
+	//QToolTip::add(lineDisplayCombo, "Visual aid to let you see the trajectory of contours");
 	gridLayout2->addWidget(lineDisplayCombo, 3, 1);
   
   lblTiltDisplay = new QLabel("tilt display: ", grpDisplay);
   lblTiltDisplay->setFocusPolicy(QWidget::NoFocus);
+	QToolTip::add(lblTiltDisplay, 
+                "Visual aid to show the axis about which subsequent views are tilted");
   gridLayout2->addWidget(lblTiltDisplay, 4, 0);
   
   tiltDisplayCombo = new QComboBox(grpDisplay);
@@ -668,7 +685,7 @@ BeadHelper::BeadHelper(QWidget *parent, const char *name) :
   tiltDisplayCombo->setCurrentItem( plug.tiltDisplayType );
 	connect(tiltDisplayCombo, SIGNAL(activated(int)), this,
           SLOT(changeTiltDisplayType(int)));
-  toolStr = "Visual aid to let you see the trajectory of contours. "
+  toolStr = "Visual aid to show the tilt axis. "
     "\n"
     "\n > off             - don't display tilt axis "
     "\n > tilt axis        - shows tilt axis only - you can change this by clicking: "
@@ -681,8 +698,7 @@ BeadHelper::BeadHelper(QWidget *parent, const char *name) :
       "according to the tilt increment (under 'More Settings')"
     "\n > [h] grid    - shows the grid used to find the 'next biggest hole' when [h] "
       "is pressed (see 'More Settings')";
-	QToolTip::add(tiltDisplayCombo, 
-                "Visual aid to let you see the trajectory of contours");
+	QToolTip::add(tiltDisplayCombo, toolStr);
 	gridLayout2->addWidget(tiltDisplayCombo, 4, 1);
   
   mLayout->addWidget(grpDisplay);
@@ -2184,7 +2200,7 @@ void BeadHelper::moreSettings()
   
   Iobj *xobjC = ivwGetAnExtraObject(plug.view, plug.extraObjContDisp);
   imodObjectSetValue(xobjC, IobjPointSize, plug.sizeLineSpheres);
-  imodObjectSetValue(xobjC, IobjLineWidth, plug.lineDisplayWidth);
+  imodObjectSetValue(xobjC, IobjLineWidth2, plug.lineDisplayWidth);
   
   Iobj *xobjX = ivwGetAnExtraObject(plug.view, plug.extraObjExtra);
   imodObjectSetValue(xobjX, IobjPointSize, plug.sizePurpleSpheres);
@@ -3260,7 +3276,7 @@ bool BeadHelper::openTiltAngleFile()
   wprint(" view \t angle\n");
   for (int i=0; i<(int)plug.tiltAngles.size(); i++ )
   {
-    wprint( " %d \t %F", i+1, plug.tiltAngles[i] );
+    wprint( " %d \t %f", i+1, plug.tiltAngles[i] );
     if( i>0 )
     {
       float tiltIncrease = plug.tiltAngles[i] - plug.tiltAngles[i-1];
@@ -3270,7 +3286,7 @@ bool BeadHelper::openTiltAngleFile()
     wprint("\n");
   }
   
-  wprint("\n > average tilt increment = %F%c\n", tiltIncrementApprox, DEGREE_SIGN);
+  wprint("\n > average tilt increment = %f%c\n", tiltIncrementApprox, DEGREE_SIGN);
   wprint(" > %d calculated tilt angles have been loaded\n", numTilts );
 }
 
@@ -4059,6 +4075,11 @@ Ipoint bead_getPtOnLineWithZUsingTiltAngles( Ipoint *pt1, Ipoint *pt2, int z )
   // implied by the tilt angle at that Z value
   
   float fractToExpectedPos = fDivide((adjSideZ - adjSide1), ( adjSide2 - adjSide1)); 
+  if( (adjSide2 == adjSide1) ||     // if length of both adjacent sides is equal
+      (angle1<0 && angle2>0) ||     //  or one angle is positive and
+      (angle1>0 && angle2<0) )      //  the other is negeative:
+    fractToExpectedPos = fDivide( (z - pt1->z) , ( pt2->z - pt1->z) );
+  
   estPt = line_findPtFractBetweenPts( pt1, pt2, fractToExpectedPos );
   
   return (estPt);
