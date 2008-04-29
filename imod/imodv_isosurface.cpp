@@ -140,21 +140,21 @@ static void findDimLimits(int which, int *xdim, int *ydim, int *zdim, int
   if(sizes[0]<=sizes[1] && sizes[0]<=sizes[2])
   { 
     *xdim=B3DMIN(specMinDim, sizes[0]);
-    tempMin=(int)sqrt( voxelMax/(*xdim) );
+    tempMin=(int)sqrt((double)( voxelMax/(*xdim)) );
     *ydim=B3DMIN(tempMin, sizes[1]);
     *zdim=B3DMIN(tempMin, sizes[2]);
   }
   else if(sizes[1]<=sizes[0] && sizes[1]<=sizes[2])
   {
     *ydim=B3DMIN(specMinDim, sizes[1]);
-    tempMin=(int)sqrt(voxelMax/(*ydim) );
+    tempMin=(int)sqrt((double)(voxelMax/(*ydim)) );
     *xdim=B3DMIN(tempMin, sizes[0]);
     *zdim=B3DMIN(tempMin, sizes[2]);
   }
   else if(sizes[2]<=sizes[0] && sizes[2]<=sizes[1])
   {
     *zdim=B3DMIN(specMinDim, sizes[2]);
-    tempMin=(int)sqrt(voxelMax/(*zdim));
+    tempMin=(int)sqrt((double)(voxelMax/(*zdim)));
     *xdim=B3DMIN(tempMin, sizes[0]);
     *ydim=B3DMIN(tempMin, sizes[1]);
   }
