@@ -143,6 +143,7 @@ typedef struct ViewInfo
   Imod  *imod;
   Iobj  *extraObj;        /* The general extra object array */
   int   numExtraObj;      /* Number of extra objects allocated */
+  int   *extraObjInUse;   /* Flags for whether objects are in use */
   Ilist *selectionList;
 
   /* storage for list of line pointers and a blank line */
@@ -258,6 +259,9 @@ bool imodDebug(char key);
 
 /*
 $Log$
+Revision 3.41  2008/04/02 04:12:41  mast
+Add flag for reading from stdin
+
 Revision 3.40  2008/01/14 19:46:55  mast
 moved toggle flag to public file
 
