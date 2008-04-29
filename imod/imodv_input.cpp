@@ -41,6 +41,7 @@
 #include "imodv_views.h"
 #include "imodv_modeled.h"
 #include "imodv_image.h"
+#include "imodv_isosurface.h"
 #include "imodv_objed.h"
 #include "imodv_listobj.h"
 #include "imodv_movie.h"
@@ -254,6 +255,11 @@ void imodvKeyPress(QKeyEvent *event)
   case Qt::Key_I:
     if (shifted && imodvByteImagesExist())
       imodvImageEditDialog(Imodv, 1);
+    break;
+
+  case Qt::Key_U:
+    if (shifted && imodvByteImagesExist())
+      imodvIsosurfaceEditDialog(Imodv, 1);
     break;
 
   case Qt::Key_V:
@@ -1183,6 +1189,9 @@ void imodvMovieTimeout()
 /*
 
 $Log$
+Revision 4.35  2008/03/04 23:55:47  mast
+Made point pick debug available on a key letter
+
 Revision 4.34  2008/02/03 18:42:46  mast
 Added parameterized mouse buttons and shift-right rotation
 

@@ -75,7 +75,10 @@ ImodvWindow::ImodvWindow(bool standAlone, int enableDepthDB,
   mEditMenu->setAccel(SHIFT + Key_V, VEDIT_MENU_VIEWS);
   mEditMenu->insertItem("&Image...", VEDIT_MENU_IMAGE);
   mEditMenu->setAccel(SHIFT + Key_I, VEDIT_MENU_IMAGE);
+  mEditMenu->insertItem("isos&urface...", VEDIT_MENU_ISOSURFACE);
+  mEditMenu->setAccel(SHIFT + Key_U, VEDIT_MENU_ISOSURFACE);
   mEditMenu->setItemEnabled(VEDIT_MENU_IMAGE, imodvByteImagesExist() != 0);
+  mEditMenu->setItemEnabled(VEDIT_MENU_ISOSURFACE, imodvByteImagesExist() != 0);
   connect(mEditMenu, SIGNAL(activated(int)), this, SLOT(editMenuSlot(int)));
 
   // View menu
@@ -305,6 +308,9 @@ void ImodvGL::wheelEvent ( QWheelEvent * e)
 /*
 
 $Log$
+Revision 4.15  2008/02/03 18:38:00  mast
+Added scroll wheel zoom
+
 Revision 4.14  2008/01/25 20:22:58  mast
 Changes for new scale bar
 

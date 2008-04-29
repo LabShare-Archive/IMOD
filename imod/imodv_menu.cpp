@@ -31,6 +31,7 @@
 #include "imodv_views.h"
 #include "imodv_modeled.h"
 #include "imodv_image.h"
+#include "imodv_isosurface.h"
 #include "imodv_objed.h"
 #include "imodv_listobj.h"
 #include "imodv_movie.h"
@@ -83,6 +84,9 @@ void imodvEditMenu(int item)
     break;
   case VEDIT_MENU_IMAGE: /* image */
     imodvImageEditDialog(Imodv, 1);
+    break;
+  case VEDIT_MENU_ISOSURFACE: /*isosurface*/
+    imodvIsosurfaceEditDialog(Imodv, 1);
     break;
     
   }
@@ -452,6 +456,8 @@ void imodvOpenSelectedWindows(char *keys)
       imodvMovieDialog(Imodv, 1);
     if (strchr(keys, 'I') && !Imodv->standalone)
       imodvImageEditDialog(Imodv, 1);
+    if (strchr(keys, 'U') && !Imodv->standalone)
+      imodvIsosurfaceEditDialog(Imodv, 1);
     if (strchr(keys, 'S'))
       imodvStereoEditDialog(Imodv, 1);
     if (strchr(keys, 'D'))
@@ -533,6 +539,9 @@ void ImodvBkgColor::keyReleaseSlot ( QKeyEvent * e )
 /*
 
 $Log$
+Revision 4.26  2008/01/25 20:22:58  mast
+Changes for new scale bar
+
 Revision 4.25  2008/01/21 17:47:40  mast
 Added include for new listobj module
 
