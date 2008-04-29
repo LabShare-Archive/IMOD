@@ -1,5 +1,10 @@
 IMOD History
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+4/29/08: Isosurface display of image data added to model view based on mesh
+from Chimera code.
+
+4/28/08: Fixed bug in 3dmod floating that let black slicer go above 255.
+
 4/27/08: IMOD_3-12-7
 4/27/08: Changed Tomostitch to match densities across overlap zones instead
 of between centers of whole volumes and added verbose output option.
