@@ -98,6 +98,7 @@ void ivwInit(ImodView *vi)
   vi->multiFileZ = 0;
   vi->noReadableImage = 0;
   vi->extraObj = NULL;
+  vi->extraObjInUse = NULL;
   startExtraObjectIfNone(vi);
   vi->linePtrs = NULL;
   vi->linePtrMax = 0;
@@ -2319,7 +2320,16 @@ static void startExtraObjectIfNone(ImodView *vi)
 {
   if (!vi->extraObj) {
     vi->extraObj = imodObjectNew();
-    vi->numExtraObj = vi->extraObj ? 1 : 0;
+    vi->extraObjInUse = (int *)malloc(sizeof(int));
+    vi->numExtraObj = (vi->extraObj && vi->extraObjInUse) ? 1 : 0;
+    if (!vi->numExtraObj) {
+      if (vi->extraObj)
+        free(vi->extraObj);
+      if (vi->extraObjInUse)
+        free(vi->extraObjInUse);
+      vi->extraObj = NULL;
+      vi->extraObjInUse = NULL;
+    }
   }
 }
 
@@ -2332,9 +2342,12 @@ int ivwGetFreeExtraObjectNumber(ImodView *vi)
 {
   int i, found = 0;
   for (i = 1; i < vi->numExtraObj; i++) {
-    if (!(vi->extraObj[i].flags & IMOD_OBJFLAG_TEMPUSE)) {
-      vi->extraObj[i].flags |= IMOD_OBJFLAG_TEMPUSE;
-      //imodPrintStderr("Allocating free existing object # %d\n", i);
+    if (!vi->extraObjInUse[i]) {
+      vi->extraObjInUse[i] = 1;
+
+      // Return object to default when reassigning it
+      imodObjectDefault(&vi->extraObj[i]);
+      // imodPrintStderr("Allocating free existing object # %d\n", i);
       return i;
     }
   }
@@ -2343,22 +2356,25 @@ int ivwGetFreeExtraObjectNumber(ImodView *vi)
     return -1;
   vi->numExtraObj++;
   vi->extraObj = (Iobj *)realloc(vi->extraObj, vi->numExtraObj * sizeof(Iobj));
-  if (!vi->extraObj) {
+  vi->extraObjInUse = (int *)realloc(vi->extraObjInUse, vi->numExtraObj * 
+                                     sizeof(int));
+  if (!vi->extraObj || !vi->extraObjInUse) {
     vi->numExtraObj = 0;
+    vi->extraObj = NULL;
+    vi->extraObjInUse = NULL;
     return -1;
   }
   imodObjectDefault(&vi->extraObj[vi->numExtraObj - 1]);
-  vi->extraObj[i].flags |= IMOD_OBJFLAG_TEMPUSE;
+  vi->extraObjInUse[i] = 1;
   //imodPrintStderr("Allocating new extra object # %d\n", vi->numExtraObj - 1);
   return (vi->numExtraObj - 1);
 }
 
 int ivwFreeExtraObject(ImodView *vi, int objNum)
 {
-  if (objNum < 1 || objNum >= vi->numExtraObj || 
-      !(vi->extraObj[objNum].flags & IMOD_OBJFLAG_TEMPUSE))
+  if (objNum < 1 || objNum >= vi->numExtraObj || !vi->extraObjInUse[objNum])
     return 1;
-  vi->extraObj[objNum].flags &= ~IMOD_OBJFLAG_TEMPUSE;
+  vi->extraObjInUse[objNum] = 0;
   ivwClearAnExtraObject(vi, objNum);
   //imodPrintStderr("Freed extra object # %d\n", objNum);
   return 0;
@@ -2696,6 +2712,9 @@ void ivwBinByN(unsigned char *array, int nxin, int nyin, int nbin,
 /*
 
 $Log$
+Revision 4.65  2008/04/04 21:22:49  mast
+Fix allocating and freeing of extra objects
+
 Revision 4.64  2008/04/03 18:24:21  mast
 Made extra object clearing remove mesh too
 
