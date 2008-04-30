@@ -105,7 +105,13 @@ static void setCoordLimits(int cur, int maxSize, int drawSize,
 
 static bool isBoxChanged(const int *start, const int *end)
 {
-  int newStart, newEnd;
+  int newStart, newEnd, currTime;
+
+  ivwGetTime(Imodv->vi, &currTime);
+  if(imodvIsosurfaceData.dia->mCurrTime!=currTime) {
+    imodvIsosurfaceData.dia->mCurrTime=currTime;
+    return true;
+  }
   setCoordLimits(Imodv->vi->xmouse, Imodv->vi->xsize, xDrawSize, &newStart, &newEnd);
   if( *start!=newStart || *end!=newEnd) return true;
   setCoordLimits(Imodv->vi->ymouse, Imodv->vi->ysize, yDrawSize, &newStart, &newEnd);
@@ -176,6 +182,7 @@ ImodvIsosurface::ImodvIsosurface(struct ViewInfo *vi, QWidget *parent, const cha
   //reserve a number;
   mExtraObjNum=ivwGetFreeExtraObjectNumber(vi);
   mBoxObjNum=ivwGetFreeExtraObjectNumber(vi);
+  ivwGetTime(vi, &mCurrTime);
   //temporarily store input stack size, will be reset at the end;
   mBoxSize[0]=vi->xsize;
   mBoxSize[1]=vi->ysize;

@@ -44,6 +44,7 @@ class ImodvIsosurface : public DialogFrame
   MultiSlider *mHistSlider;
 
   int mBoxObjNum;
+  int mCurrTime;
   int mBoxOrigin[3];
   int mBoxEnds[3];
 
