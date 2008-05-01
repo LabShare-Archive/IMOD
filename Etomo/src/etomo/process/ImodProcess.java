@@ -36,6 +36,9 @@ import etomo.util.Utilities;
  * 
  * <p>
  * $Log$
+ * Revision 3.46  2007/12/26 22:13:09  sueh
+ * bug# 1052 Moved argument handling from EtomoDirector to a separate class.
+ *
  * Revision 3.45  2007/11/06 19:22:28  sueh
  * bug# 1047 Added flip and subdirName.
  *
@@ -566,6 +569,8 @@ public class ImodProcess {
   private ArrayList windowOpenOptionList = null;
   private boolean debug = false;
   private String subdirName = null;
+  //Zap opens by default.  OpenZap is only necessary when model view is in use.
+  private boolean openZap = false;
 
   /**
    * Constructor for using imodv
@@ -744,6 +749,10 @@ public class ImodProcess {
 
     if (modelView) {
       commandOptions.add("-V");
+    }
+    
+    if (openZap) {
+      commandOptions.add("-Z");
     }
 
     if (useModv) {
@@ -1459,6 +1468,10 @@ public class ImodProcess {
   public void setModelView(boolean modelView) {
     this.modelView = modelView;
   }
+  
+  public void setOpenZap() {
+    openZap = true;
+  }
 
   /**
    * @return
@@ -1718,6 +1731,8 @@ public class ImodProcess {
   static class WindowOpenOption {
     static final String OPTION = "-E";
     static final WindowOpenOption IMODV_OBJECTS = new WindowOpenOption("O",
+        true);
+    static final WindowOpenOption ISOSURFACE = new WindowOpenOption("U",
         true);
 
     private final String windowKey;
