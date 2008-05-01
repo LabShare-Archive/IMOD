@@ -55,6 +55,9 @@ import etomo.util.DatasetFiles;
  * @version $Revision$
  * 
  * <p> $Log$
+ * <p> Revision 1.39  2008/04/02 01:37:23  sueh
+ * <p> bug# 1095 Added comment to setPeetDialogParameters.
+ * <p>
  * <p> Revision 1.38  2008/03/06 00:24:13  sueh
  * <p> bug# 1088 In peetParser added error message when matlabParam is null.
  * <p>
@@ -548,7 +551,18 @@ public final class PeetManager extends BaseManager {
       fileName.append(name).append(lstThresholds.nextString()).append(".mrc");
       fileNameList.add(fileName.toString());
     }
-    imod(ImodManager.AVG_VOL_KEY, fileNameList, menuOptions);
+    try {
+      imodManager.open(ImodManager.AVG_VOL_KEY, buildFileNameArray(fileNameList), menuOptions);
+    }
+    catch (IOException e) {
+      e.printStackTrace();
+    }
+    catch (SystemProcessException e) {
+      e.printStackTrace();
+    }
+    catch (AxisTypeException e) {
+      e.printStackTrace();
+    }
   }
 
   /**
@@ -566,11 +580,21 @@ public final class PeetManager extends BaseManager {
       fileName.append(name).append(i).append(".mrc");
       fileNameList.add(fileName.toString());
     }
-    imod(ImodManager.REF_KEY, fileNameList, menuOptions);
+    try {
+      imodManager.open(ImodManager.REF_KEY, buildFileNameArray(fileNameList), menuOptions);
+    }
+    catch (IOException e) {
+      e.printStackTrace();
+    }
+    catch (SystemProcessException e) {
+      e.printStackTrace();
+    }
+    catch (AxisTypeException e) {
+      e.printStackTrace();
+    }
   }
 
-  private void imod(String key, List fileNameList,
-      Run3dmodMenuOptions menuOptions) {
+  private String[] buildFileNameArray(List fileNameList) {
     String[] fileNameArray;
     if (fileNameList.size() == 0) {
       fileNameArray = new String[0];
@@ -583,18 +607,7 @@ public final class PeetManager extends BaseManager {
       fileNameArray = (String[]) fileNameList.toArray(new String[fileNameList
           .size()]);
     }
-    try {
-      imodManager.open(key, fileNameArray, menuOptions);
-    }
-    catch (IOException e) {
-      e.printStackTrace();
-    }
-    catch (SystemProcessException e) {
-      e.printStackTrace();
-    }
-    catch (AxisTypeException e) {
-      e.printStackTrace();
-    }
+    return fileNameArray;
   }
 
   public void peetParser() {
