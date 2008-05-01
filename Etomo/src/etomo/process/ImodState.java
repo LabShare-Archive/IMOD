@@ -174,6 +174,10 @@ import etomo.type.Run3dmodMenuOptions;
  * @version $$Revision$$
  * 
  * <p> $$Log$
+ * <p> $Revision 1.44  2007/12/26 22:14:26  sueh
+ * <p> $bug# 1052 In open(Run3dmodMenuOptions) make it possible to pass a null in
+ * <p> $instead of having to create an empty Run3dmodMenuOptions instance.
+ * <p> $
  * <p> $Revision 1.43  2007/11/06 19:23:03  sueh
  * <p> $bug# 1047 Added subdirName.
  * <p> $
@@ -603,8 +607,8 @@ public final class ImodState {
    */
   void open(Run3dmodMenuOptions menuOptions) throws SystemProcessException,
       IOException {
-    if (menuOptions==null) {
-      menuOptions=new Run3dmodMenuOptions();
+    if (menuOptions == null) {
+      menuOptions = new Run3dmodMenuOptions();
     }
     menuOptions.setNoOptions(noMenuOptions);
     menuOptions.getOptions();
@@ -737,7 +741,7 @@ public final class ImodState {
   /**
    * @param modelViewType either MODEL_VIEW or MODV
    */
-  protected void setModelViewType(int modelViewType) {
+  void setModelViewType(int modelViewType) {
     if (modelViewType == MODEL_VIEW) {
       modelView = true;
     }
@@ -752,7 +756,18 @@ public final class ImodState {
     process.setUseModv(useModv);
   }
 
-  protected void reset() {
+  /**
+   * Zap opens by default.  OpenZap is only necessary when model view is used.
+   */
+  void setOpenZap() {
+    process.setOpenZap();
+  }
+  
+  void addWindowOpenOption(ImodProcess.WindowOpenOption option) {
+    process.addWindowOpenOption(option);
+  }
+
+  void reset() {
     //reset to initial state
     setModelName(initialModelName);
     mode = initialMode;
@@ -779,12 +794,12 @@ public final class ImodState {
       return "ERROR:" + Integer.toString(mode);
     }
   }
-  
+
   void setDebug(boolean input) {
     debug = input;
     process.setDebug(debug);
   }
-  
+
   boolean equalsSubdirName(String input) {
     return process.getSubdirName().equals(input);
   }
@@ -1113,9 +1128,9 @@ public final class ImodState {
   /**
    * @return string
    
-  public String toString() {
-    return getClass().getName() + "[" + paramString() + "]";
-  }*/
+   public String toString() {
+   return getClass().getName() + "[" + paramString() + "]";
+   }*/
 
   /**
    * @return string
