@@ -36,6 +36,10 @@ import etomo.util.DatasetFiles;
  * @version $Revision$
  *
  * <p> $Log$
+ * <p> Revision 3.59  2008/02/14 21:29:02  sueh
+ * <p> bug# 1077 Make sure that disconnect attempts to disconnect each
+ * <p> ImodState, even if there is an exception.
+ * <p>
  * <p> Revision 3.58  2007/12/10 22:14:25  sueh
  * <p> bug# 1041 Making the preview meta data with BaseMetaData instead of ConstMetaData.
  * <p>
@@ -1661,6 +1665,9 @@ public class ImodManager {
 
   private ImodState newAvgVol(String[] fileNameArray) {
     ImodState imodState = new ImodState(manager, fileNameArray, AxisID.ONLY);
+    imodState.setModelViewType(ImodState.MODEL_VIEW);
+    imodState.setOpenZap();
+    imodState.addWindowOpenOption(ImodProcess.WindowOpenOption.ISOSURFACE);
     return imodState;
   }
 
