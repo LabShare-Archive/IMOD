@@ -1,5 +1,8 @@
 IMOD History
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+5/1/08: In Etomo - PEET, automatically bringing up isosurface display for
+averaged volumes.
+
 4/29/08: Isosurface display of image data added to model view based on mesh
 from Chimera code.
 
