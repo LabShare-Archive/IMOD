@@ -1,5 +1,8 @@
 IMOD History
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+5/2/08: Fixed imodmop painting of tubular lines when points are spaced farther
+apart in Z than the diameter.
+
 5/1/08: In Etomo - PEET, automatically bringing up isosurface display for
 averaged volumes.
 
