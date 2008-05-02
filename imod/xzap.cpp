@@ -3921,6 +3921,8 @@ static void zapDrawExtraObject(ZapStruct *zap)
     xobj = ivwGetAnExtraObject(vi, ob);
     if (!xobj || !xobj->contsize)
       continue;
+    if (iobjOff(xobj->flags))
+      continue;
 
     ifgResetValueSetup();
 
@@ -4493,6 +4495,9 @@ static int zapPointVisable(ZapStruct *zap, Ipoint *pnt)
 /*
 
 $Log$
+Revision 4.119  2008/04/04 21:22:19  mast
+Free contour after adding to object, fix freeing of extra obj
+
 Revision 4.118  2008/03/06 00:08:38  mast
 Made rubber band moving happen before letting a plugin take a mouse event
 
