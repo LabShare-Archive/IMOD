@@ -24,8 +24,6 @@ Log at end of file
 #include "mkmesh.h"
 
 static int ptcompare(const void *v1, const void *v2);
-static void imesh_normal(Ipoint *n, Ipoint *p1, Ipoint *p2, Ipoint *p3,
-                         Ipoint *sp);
 
 
 static int newPolyNorm = 1;
@@ -393,7 +391,7 @@ Imesh *imeshReMeshNormal(Imesh *meshes, int *size, Ipoint *scale, int resol)
         if (imodMeshPolyNormFactors(mesh->list[l], &linc, &vBase, &nAdd)) {
           l++;
           while (mesh->list[l] != IMOD_MESH_ENDPOLY) {
-            imesh_normal(&npt, 
+            imeshNormal(&npt, 
                          &(mesh->vert[mesh->list[l + vBase + 2 * linc]]),
                          &(mesh->vert[mesh->list[l + vBase]]), 
                          &(mesh->vert[mesh->list[l + vBase + linc]]), 
@@ -436,7 +434,11 @@ Imesh *imeshReMeshNormal(Imesh *meshes, int *size, Ipoint *scale, int resol)
   return(remesh);
 }
 
-static void imesh_normal(Ipoint *n, Ipoint *p1, Ipoint *p2, Ipoint *p3,
+/*!
+ * Computes a normalized normal in [n] from the three points [pi], [p2], and
+ * [p3].  Scales the points by the scaling in [sp] first if [sp] is not NULL.
+ */
+void imeshNormal(Ipoint *n, Ipoint *p1, Ipoint *p2, Ipoint *p3,
                          Ipoint *sp)
 {
   double dist, sdist;
@@ -500,6 +502,9 @@ static int ptcompare(const void *v1, const void *v2)
 /* 
 mkmesh.c got the big log from before the split
 $Log$
+Revision 1.2  2006/11/02 07:16:44  mast
+Add documentation
+
 Revision 1.1  2006/09/12 14:58:19  mast
 Split up and made into new library
 
