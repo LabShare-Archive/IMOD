@@ -518,6 +518,9 @@ Contour_Surface *surface(const Data_Type *grid, const Index size[3],
   return cs;
 }
 
+
+#include "imodel.h"
+#include "mkmesh.h"
 // ----------------------------------------------------------------------------
 // Move surface vertices towards the average of neighboring vertices
 // give the surface a smoother appearance.
@@ -528,51 +531,76 @@ void smooth_vertex_positions(float *varray, Index nv,
 			     const Index *tarray, Index nt,
 			     float smoothing_factor, int smoothing_iterations)
 {
+  float normal[3];
   Index *c = new Index[nv];
   for (Index v = 0 ; v < nv ; ++v)
     c[v] = 0;
 
   Index nt3 = 3*nt;
   for (Index t = 0 ; t < nt3 ; ++t)
-    c[tarray[t]] += 2;
+    c[tarray[t]/2] += 2;
+    //c[tarray[t]] += 2;
 
   Index nv3 = 3*nv;
   float *an = new float[nv3];
 
   float fv = 1 - smoothing_factor, fa = smoothing_factor;
   for (int iter = 0 ; iter < smoothing_iterations ; ++iter)
+  {
+    for (Index v = 0 ; v < nv3 ; ++v)
+      an[v] = 0;
+
+    for (Index t = 0 ; t < nt3 ; t += 3)
     {
-      for (Index v = 0 ; v < nv3 ; ++v)
-	an[v] = 0;
-
-      for (Index t = 0 ; t < nt3 ; t += 3)
-	{
-	  Index i0 = tarray[t], i1 = tarray[t+1], i2 = tarray[t+2];
-	  Index v0 = 3*i0, v1 = 3*i1, v2 = 3*i2;
-	  for (Index a = 0 ; a < 3 ; ++a)
-	    {
-	      float va0 = varray[v0+a], va1 = varray[v1+a], va2 = varray[v2+a];
-	      an[v0+a] += va1 + va2;
-	      an[v1+a] += va0 + va2;
-	      an[v2+a] += va0 + va1;
-	    }
-	}
-
-      for (Index v = 0 ; v < nv ; ++v)
-	{
-	  Index count = c[v];
-	  if (count)
-	    {
-	      Index v3 = 3*v;
-	      for (Index a = 0 ; a < 3 ; ++a)
-		{
-		  Index va = v3 + a;
-		  varray[va] = fv * varray[va] + fa * an[va] / count;
-		}
-	    }
-	}
+      Index i0 = tarray[t], i1 = tarray[t+1], i2 = tarray[t+2];
+      Index v0 = 3*i0, v1 = 3*i1, v2 = 3*i2;
+      for (Index a = 0 ; a < 3 ; ++a)
+      {
+        float va0 = varray[v0+a], va1 = varray[v1+a], va2 = varray[v2+a];
+        /*an[v0+a] += va1 + va2;
+        an[v1+a] += va0 + va2;
+        an[v2+a] += va0 + va1;*/
+        an[v0/2+a] += va1 + va2;
+        an[v1/2+a] += va0 + va2;
+        an[v2/2+a] += va0 + va1;
+      }
     }
 
+    for (Index v = 0 ; v < nv ; ++v)
+    {
+      Index count = c[v];
+      if (count)
+      {
+        Index v6 = 6*v; //added
+        Index v3 = 3*v;
+        for (Index a = 0 ; a < 3 ; ++a)
+        {
+          Index va = v3 + a;
+          Index vb = v6 + a; //added
+          //varray[va] = fv * varray[va] + fa * an[va] / count;
+          varray[vb] = fv * varray[vb] + fa * an[va] / count;
+        }
+      }
+    }
+  }
+
+  // Recompute normal after last iteration
+  for (Index v = 0 ; v < nv ; ++v) {
+    varray[6*v + 3] = 0.;
+    varray[6*v + 4] = 0.;
+    varray[6*v + 5] = 0.;
+  }
+  for (Index t = 0 ; t < nt3 ; t += 3) {
+    Index i0 = tarray[t], i1 = tarray[t+1], i2 = tarray[t+2];
+    Index v0 = 3*i0, v1 = 3*i1, v2 = 3*i2;
+    imeshNormal((Ipoint *)&normal, (Ipoint *)&varray[v0], 
+                (Ipoint *)&varray[v1], (Ipoint *)&varray[v2], NULL);
+    for (Index a = 0 ; a < 3 ; ++a) {
+      varray[v0 + 3 + a] += normal[a];
+      varray[v1 + 3 + a] += normal[a];
+      varray[v2 + 3 + a] += normal[a];
+    }
+  }
   delete an;
   delete c;
 }

@@ -7,8 +7,11 @@ class HistWidget: public QWidget
     float hist[256];
     float maxHist;
     float minHist;
+    int min;
+    int max;
     HistWidget(QWidget*);
-    void setMinMax();
+    void setHistMinMax();
+    void setMinMax(int minIn, int maxIn){ min=minIn; max=maxIn;}; 
     float *getHist(){return hist;};
     float computePercentile(float percentile);
   protected:

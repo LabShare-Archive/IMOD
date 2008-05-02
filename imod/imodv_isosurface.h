@@ -18,11 +18,11 @@ class QCheckBox;
 class QLabel;
 class QSlider;
 class QLineEdit;
+class QSpinBox;
 class HistWidget;
 struct ViewInfo;
 struct Mod_Point;
-
-
+struct Mod_Mesh;
 
 class ImodvIsosurface : public DialogFrame
 {
@@ -37,11 +37,13 @@ class ImodvIsosurface : public DialogFrame
   void setViewCenter();
   float fillVolumeArray();
   void setIsoObj();
+  void smoothMesh(struct Mod_Mesh *, int);
 
   QCheckBox *mViewIso, *mViewModel, *mViewBoxing, *mCenterVolume;
   MultiSlider *mSliders;
   HistWidget *mHistPanel;
   MultiSlider *mHistSlider;
+  QSpinBox *mSmoothBox;
 
   int mBoxObjNum;
   int mCurrTime;
@@ -54,6 +56,7 @@ class ImodvIsosurface : public DialogFrame
     void viewBoxingToggled(bool state);
     void centerVolumeToggled(bool state);
     void histChanged(int, int, bool );
+    void iterNumChanged(int);
     void sliderMoved(int which, int value, bool dragging);
     void buttonPressed(int which);
 
@@ -71,6 +74,7 @@ class ImodvIsosurface : public DialogFrame
   double mCurrMax;
   unsigned char *mVolume;
   float mThreshold;
+  struct Mod_Mesh *mOrigMesh;
 };
 
 #endif

@@ -9,7 +9,7 @@ HistWidget::HistWidget(QWidget *parent): QWidget(parent)
 {
 }
 
-void HistWidget::setMinMax()
+void HistWidget::setHistMinMax()
 {
   minHist=hist[0];
   maxHist=hist[0];
@@ -44,10 +44,10 @@ void HistWidget::paintEvent(QPaintEvent *)
    float xCoord;
    int i;
 
-   mypen.setWidth(xRange/255);
-   for(i=0;i<256;i++)
+   mypen.setWidth(xRange/(max-min+1));
+   for(i=min;i<=max;i++)
    { 
-     xCoord=xRange*i/256.0;
+     xCoord=xRange*(i-min)/(max-min);
      painter.drawLine((int)xCoord,
          (int)(yRange*(maxHist-hist[i])/(maxHist-minHist) ), (int)xCoord, yRange);
    }

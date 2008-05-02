@@ -5,6 +5,7 @@
 #include <qgl.h>
 #include <qslider.h>
 #include <qtooltip.h>
+#include <qspinbox.h>
 #include "preferences.h"
 #include "multislider.h"
 #include "dia_qtutils.h"
@@ -35,10 +36,12 @@ static int lastYsize = -1;
 #define MAXIMAL_VOXELS 128*512*512  //the number of voxles the bounding box is limited to;
 #define DEFAULT_VOXELS 96*96*96 //the number of voxles the initial bounding box;
 #define PERCENTILE 0.07
+#define MAXIMAL_ITERATION 20
 
 struct{
   ImodvIsosurface *dia;
   ImodvApp  *a;
+  int itNum;
 
   int    flags;
 
@@ -46,7 +49,7 @@ struct{
   /* int    xsize, ysize, zsize;
      int    *xd, *yd, *zd; */
 
-}imodvIsosurfaceData = {0, 0, ~0};
+}imodvIsosurfaceData = {0, 0, 0, ~0};
 
 static bool isBoxChanged(const int *start, const int *end);
 
@@ -188,6 +191,7 @@ ImodvIsosurface::ImodvIsosurface(struct ViewInfo *vi, QWidget *parent, const cha
   mBoxSize[1]=vi->ysize;
   mBoxSize[2]=vi->zsize;
   mVolume=NULL;
+  mOrigMesh=NULL;
 
   // Make view checkboxes
   mViewIso = diaCheckBox("View isosurfaces", this, mLayout);
@@ -199,19 +203,26 @@ ImodvIsosurface::ImodvIsosurface(struct ViewInfo *vi, QWidget *parent, const cha
   mViewBoxing = diaCheckBox("View bounding box", this, mLayout);
   mViewBoxing->setChecked(imodvIsosurfaceData.flags & IMODV_VIEW_BOX);
   connect(mViewBoxing, SIGNAL(toggled(bool)), this, SLOT(viewBoxingToggled(bool)));
-  mCenterVolume=diaCheckBox("Keep isosurfaces centered", this, mLayout);
+  mCenterVolume=diaCheckBox("Keep box centered", this, mLayout);
   mCenterVolume->setChecked(imodvIsosurfaceData.flags & IMODV_CENTER_VOLUME);
   connect(mCenterVolume,
       SIGNAL(toggled(bool)),this,SLOT(centerVolumeToggled(bool)));
   QToolTip::add(mViewIso, "Display isosurfaces");
   QToolTip::add(mViewModel, "Display user models");
   QToolTip::add(mViewBoxing, "Display the bounding box");
-  QToolTip::add(mCenterVolume, "Keep isosurfaces centered in the model view window"); 
+  QToolTip::add(mCenterVolume, "Keep isosurfaces centered in the model view window");
+
+  QHBoxLayout *smoothLayout=new QHBoxLayout;
+  mSmoothBox=diaLabeledSpin(0, 0, MAXIMAL_ITERATION, 1, "Smoothing:",
+      this, smoothLayout);
+  mSmoothBox->setValue(imodvIsosurfaceData.itNum);
+ mLayout->addLayout(smoothLayout);
+ connect(mSmoothBox, SIGNAL(valueChanged(int)), this, SLOT(iterNumChanged(int)));
+ QToolTip::add(mSmoothBox, "Set the iteration number for smoothing");
 
   mHistPanel=new HistWidget(this);
   mHistPanel->setMinimumSize(size().width(), 80);
   mHistSlider=new MultiSlider(this, 1, histLabels);
-  mHistSlider->setRange(0, 0, 255);
   connect(mHistSlider, SIGNAL(sliderChanged(int, int, bool)), this, 
       SLOT(histChanged(int, int, bool)));
   
@@ -288,11 +299,12 @@ ImodvIsosurface::ImodvIsosurface(struct ViewInfo *vi, QWidget *parent, const cha
   }
 
   Iobj *boxObj=ivwGetAnExtraObject(mIsoView, mBoxObjNum);
+  boxObj->flags= boxObj->flags | IMOD_OBJFLAG_EXTRA_MODV; 
   if( mViewBoxing->isChecked())
   { 
-    boxObj->flags= boxObj->flags | IMOD_OBJFLAG_EXTRA_MODV; 
+    boxObj->flags &= ~IMOD_OBJFLAG_OFF;
   }else{
-    boxObj->flags = boxObj->flags & ~IMOD_OBJFLAG_EXTRA_MODV;
+    boxObj->flags |= IMOD_OBJFLAG_OFF;
   }
   
   if(mViewModel->isChecked() ){
@@ -307,6 +319,7 @@ ImodvIsosurface::ImodvIsosurface(struct ViewInfo *vi, QWidget *parent, const cha
 ImodvIsosurface::~ImodvIsosurface()
 {
   free(mVolume);
+  free(mOrigMesh);
 }
 
 float ImodvIsosurface::fillVolumeArray()
@@ -337,6 +350,8 @@ float ImodvIsosurface::fillVolumeArray()
 
   //mVolume is a 3d array of Fortune type, i.e., column-major;
   //stride should be set to {1, mBoxSize[0], mBoxSize[0]*mBoxSize[1]};
+  int min=255;
+  int max=0;
   float *hist=mHistPanel->getHist();
   for(int i=0;i<256;i++) hist[i]=0.0;
   for( int zi =mBoxOrigin[2];zi<mBoxEnds[2];zi++)
@@ -349,10 +364,19 @@ float ImodvIsosurface::fillVolumeArray()
             + (yi-mBoxOrigin[1])*mBoxSize[0]
             + xi-mBoxOrigin[0] ) = value;
         hist[value]+=1.0;
+        if(value<min) min=value;
+        if(value>max) max=value;
       }
 
+  if( (max-min)<10 ){
+    min=B3DMIN(0, min-5);
+    max=B3DMAX(255, max+5);
+  }
+  mHistSlider->setRange(0, min, max);
+  mHistPanel->setMinMax(min, max);
+
   for( i=0;i<256;i++) hist[i]=hist[i]/(mBoxSize[0]*mBoxSize[1]*mBoxSize[2]);
-  mHistPanel->setMinMax();
+  mHistPanel->setHistMinMax();
 
   mHistPanel->update();
   return mHistPanel->computePercentile(PERCENTILE);
@@ -382,18 +406,24 @@ void ImodvIsosurface::setIsoObj()
   triangles[3*nTriangle+2]=-1;
 
   //create a Imesh structure; 
-  Imesh *mcubeMesh=imodMeshNew();
+  struct Mod_Mesh *mcubeMesh=imodMeshNew();
   mcubeMesh->vert=vertex_xyz;
   mcubeMesh->list=triangles;
   mcubeMesh->vsize= 2*nVertex;
   mcubeMesh->lsize= 3*nTriangle+3;
+  if(mOrigMesh) free(mOrigMesh);
+  mOrigMesh=mcubeMesh;
 
   //free all memory used by the old mesh; 
   ivwClearAnExtraObject(mIsoView, mExtraObjNum);
   Iobj *extraObj=ivwGetAnExtraObject(mIsoView, mExtraObjNum);
+
+  struct Mod_Mesh *dup=imodMeshDup(mOrigMesh);
+  int itrNum=mSmoothBox->text().toInt();
+  if(itrNum) smoothMesh(dup, itrNum);
   //attch the new mesh to the extra obj;
-  imodObjectAddMesh(extraObj, mcubeMesh);
-  free(mcubeMesh);
+  imodObjectAddMesh(extraObj, dup);
+  free(dup);
   delete cs;
 }
 
@@ -442,8 +472,10 @@ void ImodvIsosurface::setBoundingObj()
   imodPointAdd(&contours[3], &corners[6], 2);
   imodPointAdd(&contours[3], &corners[7], 3);
 
+  contours[0].flags |=ICONT_DRAW_ALLZ;
   ivwClearAnExtraObject(Imodv->vi, mBoxObjNum);
   Iobj *bObj=ivwGetAnExtraObject(Imodv->vi, mBoxObjNum);
+  imodObjectSetColor(bObj, 1.0, 0.0, 0.0);
   for(i=0;i<4;i++) {
     imodObjectAddContour(bObj, &contours[i]);
   }
@@ -518,13 +550,36 @@ void ImodvIsosurface::viewBoxingToggled(bool state)
   Iobj *boxObj=ivwGetAnExtraObject(mIsoView, mBoxObjNum);
   if(state)
   { 
-    boxObj->flags= boxObj->flags | IMOD_OBJFLAG_EXTRA_MODV; 
+    //boxObj->flags= boxObj->flags | IMOD_OBJFLAG_EXTRA_MODV; 
+    boxObj->flags = boxObj->flags & ~IMOD_OBJFLAG_OFF;
   }else{
-    boxObj->flags = boxObj->flags & ~IMOD_OBJFLAG_EXTRA_MODV;
+    //boxObj->flags = boxObj->flags & ~IMOD_OBJFLAG_EXTRA_MODV;
+    boxObj->flags= boxObj->flags | IMOD_OBJFLAG_OFF; 
   }
-  imodvDraw(Imodv);
+  //imodvDraw(Imodv);
+  imodDraw(Imodv->vi, IMOD_DRAW_XYZ);
 }
 
+void ImodvIsosurface::smoothMesh(struct Mod_Mesh *mcubeMesh, int iterNum)
+{
+   Ipoint *vertex_xyz=mcubeMesh->vert;
+    b3dInt32 *triangles=mcubeMesh->list +1; //skip the -25 code; 
+    int nVertex=mcubeMesh->vsize/2;
+    int nTriangle= (mcubeMesh->lsize-3)/3;
+    smooth_vertex_positions((float *)vertex_xyz, nVertex, (Index *)triangles, nTriangle, 0.3, iterNum);
+}
+
+void ImodvIsosurface::iterNumChanged(int iterNum)
+{
+  ivwClearAnExtraObject(mIsoView, mExtraObjNum);
+  Iobj *extraObj=ivwGetAnExtraObject(mIsoView, mExtraObjNum);
+  struct Mod_Mesh *dup=imodMeshDup(mOrigMesh);
+  if(iterNum) smoothMesh(dup, iterNum);
+  imodObjectAddMesh(extraObj, dup);
+   free(dup);
+   setFocus();
+   imodvDraw(Imodv);
+}
 
 void  ImodvIsosurface::histChanged(int which, int value, bool dragging)
 { 
@@ -627,7 +682,8 @@ void ImodvIsosurface::buttonPressed(int which)
     Iobj *boxObj=ivwGetAnExtraObject(mIsoView, mBoxObjNum);
     Iobj *dupBox=imodObjectDup(boxObj);
     imodObjectCopy(dupBox, userBoxObj);
-
+    Icont *firstCont=imodObjectGetContour(userBoxObj, 0);
+    firstCont->flags &=~ICONT_DRAW_ALLZ;    
     imodDraw(Imodv->vi, IMOD_DRAW_MOD);
     free(dup);
     free(dupBox);
@@ -662,6 +718,7 @@ void ImodvIsosurface::closeEvent ( QCloseEvent * e )
 
   if(!mCenterVolume->isChecked())imodvIsosurfaceData.flags &=~IMODV_CENTER_VOLUME;
   else  imodvIsosurfaceData.flags |=IMODV_CENTER_VOLUME;
+  imodvIsosurfaceData.itNum=mSmoothBox->text().toInt();
 }
 
 // Close on escape; watch for the hot slider key; pass on keypress

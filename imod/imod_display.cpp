@@ -321,10 +321,11 @@ int imodDraw(ImodView *vw, int flag)
   /* DNM 11/24/02: deleted conditional on using controls, stopped drawing
      xyz window separately (it now has a control) */
 
-  ivwControlListDraw(vw, flag);
 
   if (flag & IMOD_DRAW_XYZ)
     imod_info_setxyz();
+
+  ivwControlListDraw(vw, flag);
 
   if (((flag & IMOD_DRAW_MOD) || ((flag & IMOD_DRAW_XYZ) && Imodv->texMap)) &&
       ! (flag & IMOD_DRAW_SKIPMODV))
@@ -547,6 +548,9 @@ int imodFindQGLFormat(ImodApp *ap, char **argv)
 
 /*
 $Log$
+Revision 4.21  2008/01/25 20:22:58  mast
+Changes for new scale bar
+
 Revision 4.20  2007/11/30 06:51:50  mast
 Changes for linking slicer to model view
 
