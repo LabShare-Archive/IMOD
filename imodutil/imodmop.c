@@ -885,7 +885,8 @@ static void paintTubularLines(Iobj *obj, Islice *islice, Islice *pslice[3],
     for (pt = 1; pt < cont->psize; pt++) {
       ptcur = &cont->pts[pt];
       dz = fabs((double)ptcur->z - iz);
-      if (dz <= rad || dzlas <= rad) {
+      if (dz <= rad || dzlas <= rad || (ptcur->z > iz && ptlas->z < iz) ||
+          (ptcur->z < iz && ptlas->z > iz)) {
 
         /* If either endpoint is within radius in Z, make a box around the
            segment */
@@ -966,6 +967,9 @@ static int itemOnList(int item, int *list, int num)
 
 /*
 $Log$
+Revision 3.10  2008/01/28 19:42:42  mast
+Added includes for pip and getenv
+
 Revision 3.9  2007/11/28 06:13:10  mast
 Added option to extract just around objects, fixed bug in tube painting
 if empty contours
