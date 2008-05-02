@@ -2,28 +2,10 @@
  *
  *  Original author: James Kremer
  *  Revised by: David Mastronarde   email: mast@colorado.edu
+ * 
+ * $Id$
+ * Log at end
  */
-
-/*  $Author$
-
-$Date$
-
-$Revision$
-
-$Log$
-Revision 3.4  2006/05/08 16:49:32  mast
-Removed "FLAT" cap definitions, unused
-
-Revision 3.3  2005/09/11 19:21:07  mast
-Added mina dn max arguments
-
-Revision 3.2  2004/11/05 19:05:29  mast
-Include local files with quotes, not brackets
-
-Revision 3.1  2003/08/26 03:49:00  mast
-Added flag definition for capping ends of tubes
-
-*/
 
 #ifndef MKMESH_H
 #define MKMESH_H
@@ -92,9 +74,31 @@ extern "C" {
   /* Functions in remesh.c */
   Imesh *imeshReMeshNormal(Imesh *meshes, int *size, Ipoint *scale, int resol);
   void imeshSetNewPolyNorm(int value);
+  void imeshNormal(Ipoint *n, Ipoint *p1, Ipoint *p2, Ipoint *p3,
+                   Ipoint *sp);
 
 #ifdef __cplusplus
 }
 #endif
 
 #endif
+
+/*
+
+$Log$
+Revision 1.1  2006/09/12 15:12:13  mast
+Converted to library, split up functions
+
+Revision 3.4  2006/05/08 16:49:32  mast
+Removed "FLAT" cap definitions, unused
+
+Revision 3.3  2005/09/11 19:21:07  mast
+Added mina dn max arguments
+
+Revision 3.2  2004/11/05 19:05:29  mast
+Include local files with quotes, not brackets
+
+Revision 3.1  2003/08/26 03:49:00  mast
+Added flag definition for capping ends of tubes
+
+*/
