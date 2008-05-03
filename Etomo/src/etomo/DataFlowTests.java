@@ -204,9 +204,9 @@ public class DataFlowTests {
   private static void preProcessing(AxisID axisID) {
     applicationManager.openPreProcDialog(axisID);
     uiHarness.pack(applicationManager);
-    applicationManager.findXrays(axisID, null);
+    applicationManager.findXrays(axisID, null, null, null, null);
     waitForThread(axisID);
-    applicationManager.preEraser(axisID, null);
+    applicationManager.preEraser(axisID, null, null, null, null);
     waitForThread(axisID);
     applicationManager.replaceRawStack(axisID, null);
     applicationManager.donePreProcDialog(axisID);
@@ -215,10 +215,10 @@ public class DataFlowTests {
   private static void coarseAlignment(AxisID axisID) {
     applicationManager.openCoarseAlignDialog(axisID);
     uiHarness.pack(applicationManager);
-    applicationManager.preCrossCorrelate(axisID, null);
+    applicationManager.preCrossCorrelate(axisID, null, null);
     waitForThread(axisID);
     if (!applicationManager.getMetaData().isFiducialessAlignment(axisID)) {
-      applicationManager.coarseAlign(axisID, null);
+      applicationManager.coarseAlign(axisID, null, null);
       waitForThread(axisID);
     }
     applicationManager.doneCoarseAlignDialog(axisID);
@@ -227,7 +227,7 @@ public class DataFlowTests {
   private static void transferfid(AxisID destAxisID) {
     applicationManager.openFiducialModelDialog(destAxisID);
     uiHarness.pack(applicationManager);
-    applicationManager.transferfid(destAxisID, null);
+    applicationManager.transferfid(destAxisID, null, null);
     waitForThread(destAxisID);
 
   }
@@ -243,7 +243,7 @@ public class DataFlowTests {
     }
     applicationManager.openFiducialModelDialog(axisID);
     uiHarness.pack(applicationManager);
-    applicationManager.fiducialModelTrack(axisID, null);
+    applicationManager.fiducialModelTrack(axisID, null, null);
     waitForThread(axisID);
     applicationManager.doneFiducialModelDialog(axisID);
   }
@@ -258,7 +258,7 @@ public class DataFlowTests {
     }
     applicationManager.openFineAlignmentDialog(axisID);
     uiHarness.pack(applicationManager);
-    applicationManager.fineAlignment(axisID, null);
+    applicationManager.fineAlignment(axisID, null, null);
     waitForThread(axisID);
     applicationManager.doneAlignmentEstimationDialog(axisID);
   }
@@ -268,7 +268,7 @@ public class DataFlowTests {
         .getUIExpert(DialogType.TOMOGRAM_POSITIONING, axisID);
     expert.openDialog();
     uiHarness.pack(applicationManager);
-    expert.createSample(null);
+    expert.createSample(null, null);
     waitForThread(axisID);
     try {
       copyFromDataSource("tomopitch" + axisID.getExtension() + ".mod");
@@ -278,15 +278,15 @@ public class DataFlowTests {
       return;
     }
     if (applicationManager.getMetaData().isWholeTomogramSample(axisID)) {
-      expert.wholeTomogram(null);
+      expert.wholeTomogram(null, null);
     }
     else {
-      expert.tomopitch(null);
+      expert.tomopitch(null, null);
     }
     waitForThread(axisID);
 
     if (!applicationManager.getMetaData().isFiducialessAlignment(axisID)) {
-      expert.finalAlign(null);
+      expert.finalAlign(null, null);
       waitForThread(axisID);
     }
     expert.doneDialog(DialogExitState.SAVE);
@@ -294,14 +294,14 @@ public class DataFlowTests {
 
   private static void tomogramGeneration(AxisID axisID) {
     TomogramGenerationExpert expert = (TomogramGenerationExpert) applicationManager
-    .getUIExpert(DialogType.TOMOGRAM_GENERATION, axisID);
+        .getUIExpert(DialogType.TOMOGRAM_GENERATION, axisID);
     expert.openDialog();
     uiHarness.pack(applicationManager);
-    expert.newst(null);
+    expert.newst(null, null);
     waitForThread(axisID);
     //applicationManager.mtffilter(axisID);
     //waitForThread(axisID);
-    expert.tilt(null);
+    expert.tilt(null, null);
     waitForThread(axisID);
     applicationManager.deleteAlignedStacks(axisID, null);
   }
@@ -311,7 +311,7 @@ public class DataFlowTests {
     uiHarness.pack(applicationManager);
     applicationManager.createCombineScripts(null);
     waitForThread(AxisID.ONLY);
-    applicationManager.combine(null);
+    applicationManager.combine(null, null);
     waitForThread(AxisID.ONLY);
   }
 
@@ -354,6 +354,9 @@ public class DataFlowTests {
 }
 /**
  * <p> $Log$
+ * <p> Revision 3.22  2007/12/26 21:56:25  sueh
+ * <p> bug# 1052 Moved ".edf" to DatasetFiles.
+ * <p>
  * <p> Revision 3.21  2007/09/07 00:15:40  sueh
  * <p> bug# 989 Using a public INSTANCE for EtomoDirector instead of getInstance
  * <p> and createInstance.  Call EtomoDirector.main() as early as possible.
