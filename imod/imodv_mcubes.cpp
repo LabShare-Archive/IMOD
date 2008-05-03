@@ -2,11 +2,23 @@
 // Calculate constant intensity surfaces for volumes.
 // Uses the marching cubes algorithm.
 //
+/*
+ * Module originally from Chimera, developed at the Resource for Biocomputing,
+ * Visualization, and Informatics, UCSF
+ * Modified for use in IMOD by Quanren Xiong and David Mastronarde
+ *
+ *  $Id$
+ *  Log at end of file
+ */
+
 //#include <iostream>		// use std::cerr for debugging
 
 #include <math.h>		// use sqrt()
 
 #include "imodv_mappingtable.h"	// use cube_edges, triangle_table
+
+#include "imodel.h"             // Added: for Ipoint definition
+#include "mkmesh.h"             // Added: for imeshNormal
 
 #define CONTOUR_ARRAY_BLOCK_SIZE 1048576
 
@@ -518,9 +530,6 @@ Contour_Surface *surface(const Data_Type *grid, const Index size[3],
   return cs;
 }
 
-
-#include "imodel.h"
-#include "mkmesh.h"
 // ----------------------------------------------------------------------------
 // Move surface vertices towards the average of neighboring vertices
 // give the surface a smoother appearance.
@@ -533,6 +542,8 @@ void smooth_vertex_positions(float *varray, Index nv,
 {
   float normal[3];
   Index *c = new Index[nv];
+  if (!c)    // Added
+    return;
   for (Index v = 0 ; v < nv ; ++v)
     c[v] = 0;
 
@@ -542,13 +553,21 @@ void smooth_vertex_positions(float *varray, Index nv,
     //c[tarray[t]] += 2;
 
   Index nv3 = 3*nv;
-  float *an = new float[nv3];
+
+  // Just reuse the normal space as long as they are going to be recomputed
+  //float *an = new float[nv3];
 
   float fv = 1 - smoothing_factor, fa = smoothing_factor;
   for (int iter = 0 ; iter < smoothing_iterations ; ++iter)
   {
-    for (Index v = 0 ; v < nv3 ; ++v)
-      an[v] = 0;
+    /*for (Index v = 0 ; v < nv3 ; ++v)
+      an[v] = 0; */
+    // Added: Initialize normal space to 0
+    for (Index v = 0 ; v < nv ; ++v) {
+      varray[6 * v + 3] = 0;
+      varray[6 * v + 4] = 0;
+      varray[6 * v + 5] = 0;
+    }
 
     for (Index t = 0 ; t < nt3 ; t += 3)
     {
@@ -560,9 +579,12 @@ void smooth_vertex_positions(float *varray, Index nv,
         /*an[v0+a] += va1 + va2;
         an[v1+a] += va0 + va2;
         an[v2+a] += va0 + va1;*/
-        an[v0/2+a] += va1 + va2;
+        /*an[v0/2+a] += va1 + va2;
         an[v1/2+a] += va0 + va2;
-        an[v2/2+a] += va0 + va1;
+        an[v2/2+a] += va0 + va1; */
+        varray[v0+a+3] += va1 + va2;
+        varray[v1+a+3] += va0 + va2;
+        varray[v2+a+3] += va0 + va1;
       }
     }
 
@@ -572,19 +594,20 @@ void smooth_vertex_positions(float *varray, Index nv,
       if (count)
       {
         Index v6 = 6*v; //added
-        Index v3 = 3*v;
+        //Index v3 = 3*v;
         for (Index a = 0 ; a < 3 ; ++a)
         {
-          Index va = v3 + a;
+          //Index va = v3 + a;
           Index vb = v6 + a; //added
           //varray[va] = fv * varray[va] + fa * an[va] / count;
-          varray[vb] = fv * varray[vb] + fa * an[va] / count;
+          //varray[vb] = fv * varray[vb] + fa * an[va] / count;
+          varray[vb] = fv * varray[vb] + fa * varray[vb+3] / count;
         }
       }
     }
   }
 
-  // Recompute normal after last iteration
+  // Added: Recompute normal after last iteration
   for (Index v = 0 ; v < nv ; ++v) {
     varray[6*v + 3] = 0.;
     varray[6*v + 4] = 0.;
@@ -601,6 +624,14 @@ void smooth_vertex_positions(float *varray, Index nv,
       varray[v2 + 3 + a] += normal[a];
     }
   }
-  delete an;
+
+  //  delete an;
   delete c;
 }
+
+/*
+
+$Log$
+Revision 4.5  2008/05/03 00:47:31  mast
+
+*/
