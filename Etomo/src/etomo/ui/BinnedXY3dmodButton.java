@@ -25,6 +25,10 @@ import javax.swing.SpinnerNumberModel;
  * @version $Revision$
  * 
  * <p> $Log$
+ * <p> Revision 1.2  2007/02/09 00:44:22  sueh
+ * <p> bug# 962 Made TooltipFormatter a singleton and moved its use to low-level ui
+ * <p> classes.
+ * <p>
  * <p> Revision 1.1  2007/02/05 23:33:17  sueh
  * <p> bug# 962 Composite display class containing a spinner and a button.
  * <p> </p>
@@ -40,7 +44,7 @@ final class BinnedXY3dmodButton {
     spinner = new LabeledSpinner("Open binned by ", new SpinnerNumberModel(1,
         1, 50, 1));
     this.label = new JLabel(" in X and Y");
-    button = new Run3dmodButton(label, container);
+    button = Run3dmodButton.get3dmodInstance(label, container);
   }
 
   Container getContainer() {
