@@ -1,6 +1,7 @@
 package etomo.process;
 
 import etomo.type.AxisID;
+import etomo.type.ConstProcessSeries;
 import etomo.type.ProcessEndState;
 import etomo.type.ProcessResultDisplay;
 
@@ -33,9 +34,13 @@ public interface SystemProcessInterface {
   public void setProcessResultDisplay(ProcessResultDisplay processResultDisplay);
   public ProcessData getProcessData();
   public boolean isNohup();
+  public ConstProcessSeries getProcessSeries();
 }
 /**
 * <p> $Log$
+* <p> Revision 3.10  2006/06/15 16:17:06  sueh
+* <p> bug# 871 Added isNohup().
+* <p>
 * <p> Revision 3.9  2006/06/05 18:03:44  sueh
 * <p> bug# Added getPRocessData().
 * <p>
