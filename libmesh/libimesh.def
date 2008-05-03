@@ -3,18 +3,19 @@
 LIBRARY      "libimesh"
 
 EXPORTS
-	imodMeshesDeleteRes
+	imeshPrepContours
+	imeshContoursCost
+	imeshNormal
 	imeshSetNewPolyNorm
-	chunkMeshAddIndex
-	joinTubeCont
 	makeTubeCont
+	analyzePrepSkinObj
+	joinTubeCont
+	imeshSetSkinFlags
+	skin_report_time
 	imeshReMeshNormal
 	imeshSkinObject
-	analyzePrepSkinObj
-	skin_report_time
-	imeshContoursCost
-	imeshSetMinMax
+	chunkMeshAddIndex
 	imeshDupMarkedConts
+	imodMeshesDeleteRes
 	makeCapMesh
-	imeshSetSkinFlags
-	imeshPrepContours
+	imeshSetMinMax
