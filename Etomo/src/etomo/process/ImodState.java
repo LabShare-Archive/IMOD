@@ -174,6 +174,9 @@ import etomo.type.Run3dmodMenuOptions;
  * @version $$Revision$$
  * 
  * <p> $$Log$
+ * <p> $Revision 1.45  2008/05/01 22:56:03  sueh
+ * <p> $bug# 1107 Added setOpenZap (-Z) and addWindowOpenOption (-E).
+ * <p> $
  * <p> $Revision 1.44  2007/12/26 22:14:26  sueh
  * <p> $bug# 1052 In open(Run3dmodMenuOptions) make it possible to pass a null in
  * <p> $instead of having to create an empty Run3dmodMenuOptions instance.
@@ -607,11 +610,11 @@ public final class ImodState {
    */
   void open(Run3dmodMenuOptions menuOptions) throws SystemProcessException,
       IOException {
-    if (menuOptions == null) {
-      menuOptions = new Run3dmodMenuOptions();
+    if (menuOptions==null) {
+      menuOptions=new Run3dmodMenuOptions();
     }
     menuOptions.setNoOptions(noMenuOptions);
-    menuOptions.getOptions();
+    menuOptions.orGlobalOptions();
     menuOptions.setAllowBinningInZ(allowMenuBinningInZ);
     //process is not running
     if (!process.isRunning()) {
@@ -741,7 +744,7 @@ public final class ImodState {
   /**
    * @param modelViewType either MODEL_VIEW or MODV
    */
-  void setModelViewType(int modelViewType) {
+  protected void setModelViewType(int modelViewType) {
     if (modelViewType == MODEL_VIEW) {
       modelView = true;
     }
@@ -794,12 +797,12 @@ public final class ImodState {
       return "ERROR:" + Integer.toString(mode);
     }
   }
-
+  
   void setDebug(boolean input) {
     debug = input;
     process.setDebug(debug);
   }
-
+  
   boolean equalsSubdirName(String input) {
     return process.getSubdirName().equals(input);
   }
@@ -1128,9 +1131,9 @@ public final class ImodState {
   /**
    * @return string
    
-   public String toString() {
-   return getClass().getName() + "[" + paramString() + "]";
-   }*/
+  public String toString() {
+    return getClass().getName() + "[" + paramString() + "]";
+  }*/
 
   /**
    * @return string
