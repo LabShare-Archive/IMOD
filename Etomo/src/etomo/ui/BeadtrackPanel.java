@@ -40,6 +40,11 @@ import etomo.type.Run3dmodMenuOptions;
  * @version $Revision$
  *
  * <p> $Log$
+ * <p> Revision 3.20  2007/09/10 20:41:57  sueh
+ * <p> bug# 925 Should only load button states once.  Changed
+ * <p> ProcessResultDisplayFactory to load button states immediately, so removing
+ * <p> button state load in the dialogs.
+ * <p>
  * <p> Revision 3.19  2007/07/27 16:53:57  sueh
  * <p> bug# 979 Rearranged "Track Seed Model", "Fix Fiducial Model", and "Use fid as seed".  Changed "Use fid as seed" to "Track with Fiducial Model as Seed", which copies the fid to the seed and then tracks.
  * <p>
@@ -311,7 +316,7 @@ public final class BeadtrackPanel implements Expandable,
     btnTrack.setAlignmentX(Component.CENTER_ALIGNMENT);
     btnTrack.setSize();
     panelBeadtrackBody.add(btnTrack.getComponent());
-    
+
     JPanel pnlTrack = new JPanel();
     pnlTrack.setLayout(new BoxLayout(pnlTrack, BoxLayout.X_AXIS));
     pnlTrack.setAlignmentX(Component.CENTER_ALIGNMENT);
@@ -377,7 +382,7 @@ public final class BeadtrackPanel implements Expandable,
     //btnFixModel.setButtonState(screenState.getButtonState(btnFixModel
     //    .getButtonStateKey()));
     //btnTrack.setButtonState(screenState.getButtonState(btnTrack
-     //   .getButtonStateKey()));
+    //   .getButtonStateKey()));
   }
 
   public void getParameters(BaseScreenState screenState) {
@@ -584,33 +589,28 @@ public final class BeadtrackPanel implements Expandable,
     return panelBeadtrack;
   }
 
-  protected void buttonAction(ActionEvent event) {
-    String command = event.getActionCommand();
+  protected void buttonAction(String command,
+      Run3dmodMenuOptions run3dmodMenuOptions) {
     if (command.equals(btnTrack.getActionCommand())) {
-      manager.fiducialModelTrack(axisID, btnTrack);
+      manager.fiducialModelTrack(axisID, btnTrack, null);
     }
     else if (command.equals(btnUseModel.getActionCommand())) {
       if (manager.makeFiducialModelSeedModel(axisID)) {
-        manager.fiducialModelTrack(axisID, btnUseModel);
+        manager.fiducialModelTrack(axisID, btnUseModel, null);
       }
     }
     else if (command.equals(cbLocalAreaTracking.getText())) {
       setEnabled();
     }
-    else {
-      run3dmod(command, new Run3dmodMenuOptions());
-    }
-  }
-
-  public void run3dmod(Run3dmodButton button, Run3dmodMenuOptions menuOptions) {
-    run3dmod(button.getActionCommand(), menuOptions);
-  }
-
-  private void run3dmod(String command, Run3dmodMenuOptions menuOptions) {
-    if (command.equals(btnFixModel.getActionCommand())) {
-      manager.imodFixFiducials(axisID, menuOptions, btnFixModel,
+    else if (command.equals(btnFixModel.getActionCommand())) {
+      manager.imodFixFiducials(axisID, run3dmodMenuOptions, btnFixModel,
           ImodProcess.GAP_MODE);
     }
+  }
+
+  public void action(Run3dmodButton button,
+      Run3dmodMenuOptions run3dmodMenuOptions) {
+    buttonAction(button.getActionCommand(), run3dmodMenuOptions);
   }
 
   private void setEnabled() {
@@ -742,7 +742,7 @@ public final class BeadtrackPanel implements Expandable,
     }
 
     public void actionPerformed(ActionEvent event) {
-      adaptee.buttonAction(event);
+      adaptee.buttonAction(event.getActionCommand(), null);
     }
   }
 

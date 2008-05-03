@@ -49,6 +49,9 @@ import etomo.type.Run3dmodMenuOptions;
  * @version $Revision$
  * 
  * <p> $Log$
+ * <p> Revision 1.28  2008/04/02 17:35:59  sueh
+ * <p> bug# 1098 Improved user error messages.  Handled empty fnModParticle.
+ * <p>
  * <p> Revision 1.27  2008/01/31 20:31:41  sueh
  * <p> bug# 1055 throwing a FileException when LogFile.getInstance fails.
  * <p>
@@ -208,7 +211,7 @@ final class VolumeTable implements Expandable, Highlightable,
         ExpandButton.Type.MORE);
     btnExpandInitMotlFile = ExpandButton.getInstance(this,
         ExpandButton.Type.MORE);
-    r3bVolume = new Run3dmodButton("Open in 3dmod", this);
+    r3bVolume = Run3dmodButton.get3dmodInstance("Open in 3dmod", this);
     createTable();
     updateDisplay();
     setToolTipText();
@@ -238,8 +241,9 @@ final class VolumeTable implements Expandable, Highlightable,
     updateDisplay();
   }
 
-  public void run3dmod(Run3dmodButton button, Run3dmodMenuOptions menuOptions) {
-    run3dmod(button.getActionCommand(), menuOptions);
+  public void action(final Run3dmodButton button,
+      final Run3dmodMenuOptions run3dmodMenuOptions) {
+    action(button.getActionCommand(), run3dmodMenuOptions);
   }
 
   Container getContainer() {
@@ -347,12 +351,6 @@ final class VolumeTable implements Expandable, Highlightable,
     rootPanel.add(pnlButtons2);
   }
 
-  private void run3dmod(String command, Run3dmodMenuOptions menuOptions) {
-    if (command.equals(r3bVolume.getActionCommand())) {
-      imodVolume(menuOptions);
-    }
-  }
-
   private void imodVolume(Run3dmodMenuOptions menuOptions) {
     VolumeRow row = rowList.getHighlightedRow();
     if (row == null) {
@@ -405,25 +403,25 @@ final class VolumeTable implements Expandable, Highlightable,
     rowList.display();
   }
 
-  private void action(final ActionEvent event) {
-    String actionCommand = event.getActionCommand();
-    if (actionCommand.equals(btnAddFnVolume.getActionCommand())) {
+  private void action(final String command,
+      final Run3dmodMenuOptions run3dmodMenuOptions) {
+    if (command.equals(btnAddFnVolume.getActionCommand())) {
       addVolumeRow();
     }
-    else if (actionCommand.equals(btnSetInitMotlFile.getActionCommand())) {
+    else if (command.equals(btnSetInitMotlFile.getActionCommand())) {
       setInitMotlFile();
     }
-    else if (actionCommand.equals(btnReadTiltFile.getActionCommand())) {
+    else if (command.equals(btnReadTiltFile.getActionCommand())) {
       openTiltFile();
     }
-    else if (actionCommand.equals(btnDeleteRow.getActionCommand())) {
+    else if (command.equals(btnDeleteRow.getActionCommand())) {
       deleteRow(rowList.getHighlightedRow());
     }
-    else if (actionCommand.equals(btnChangeFnModParticle.getActionCommand())) {
+    else if (command.equals(btnChangeFnModParticle.getActionCommand())) {
       setFnModParticle();
     }
-    else {
-      run3dmod(actionCommand, new Run3dmodMenuOptions());
+    else if (command.equals(r3bVolume.getActionCommand())) {
+      imodVolume(run3dmodMenuOptions);
     }
   }
 
@@ -767,14 +765,14 @@ final class VolumeTable implements Expandable, Highlightable,
   }
 
   private static final class VTActionListener implements ActionListener {
-    VolumeTable volumeTable;
+    private final VolumeTable volumeTable;
 
-    VTActionListener(final VolumeTable volumeTable) {
+    private VTActionListener(final VolumeTable volumeTable) {
       this.volumeTable = volumeTable;
     }
 
     public void actionPerformed(final ActionEvent event) {
-      volumeTable.action(event);
+      volumeTable.action(event.getActionCommand(), null);
     }
   }
 }

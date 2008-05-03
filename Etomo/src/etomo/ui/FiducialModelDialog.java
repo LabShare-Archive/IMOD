@@ -30,6 +30,9 @@ import etomo.comscript.FortranInputSyntaxException;
  * @version $Revision$
  *
  * <p> $Log$
+ * <p> Revision 3.38  2007/12/26 22:23:54  sueh
+ * <p> bug# 1052 Return true when done() completes successfully.
+ * <p>
  * <p> Revision 3.37  2007/09/10 20:42:35  sueh
  * <p> bug# 925 Should only load button states once.  Changed
  * <p> ProcessResultDisplayFactory to load button states immediately, so removing
@@ -356,7 +359,7 @@ public class FiducialModelDialog extends ProcessDialog implements ContextMenu,
   }
 
   public static ProcessResultDisplay getSeedFiducialModelDisplay() {
-    return Run3dmodButton.getToggle3dmodButtonInstance(SEEDING_NOT_DONE_LABEL,
+    return Run3dmodButton.getToggle3dmodInstance(SEEDING_NOT_DONE_LABEL,
         DialogType.FIDUCIAL_MODEL);
   }
 
@@ -365,7 +368,7 @@ public class FiducialModelDialog extends ProcessDialog implements ContextMenu,
   }
 
   public static ProcessResultDisplay getFixFiducialModelDisplay() {
-    return Run3dmodButton.getToggle3dmodButtonInstance("Fix Fiducial Model",
+    return Run3dmodButton.getToggle3dmodInstance("Fix Fiducial Model",
         DialogType.FIDUCIAL_MODEL);
   }
 
@@ -419,7 +422,7 @@ public class FiducialModelDialog extends ProcessDialog implements ContextMenu,
       pnlTransferfid.setParameters(screenState);
     }
     //btnSeed.setButtonState(screenState.getButtonState(btnSeed
-     //   .getButtonStateKey()));
+    //   .getButtonStateKey()));
     pnlBeadtrack.setParameters(screenState);
   }
 
@@ -464,29 +467,25 @@ public class FiducialModelDialog extends ProcessDialog implements ContextMenu,
     btnSeed.setToolTipText("Open new or existing seed model in 3dmod.");
   }
 
-  public void run3dmod(Run3dmodButton button, Run3dmodMenuOptions menuOptions) {
-    run3dmod(button.getActionCommand(), menuOptions);
-  }
-
-  private void run3dmod(String command, Run3dmodMenuOptions menuOptions) {
-    if (command.equals(btnSeed.getActionCommand())) {
-      applicationManager.imodSeedFiducials(axisID, menuOptions, btnSeed);
-    }
+  public void action(final Run3dmodButton button,
+      final Run3dmodMenuOptions run3dmodMenuOptions) {
+    buttonAction(button.getActionCommand(), run3dmodMenuOptions);
   }
 
   //  Action function for buttons
-  protected void buttonAction(ActionEvent event) {
-    String command = event.getActionCommand();
+  private void buttonAction(final String command,
+      final Run3dmodMenuOptions run3dmodMenuOptions) {
     if (btnTransferFiducials != null
         && command.equals(btnTransferFiducials.getActionCommand())) {
-      applicationManager.transferfid(axisID, btnTransferFiducials);
+      applicationManager.transferfid(axisID, btnTransferFiducials, null);
     }
-    else {
-      run3dmod(command, new Run3dmodMenuOptions());
+    else if (command.equals(btnSeed.getActionCommand())) {
+      applicationManager
+          .imodSeedFiducials(axisID, run3dmodMenuOptions, btnSeed);
     }
   }
 
-   boolean done() {
+  boolean done() {
     if (applicationManager.doneFiducialModelDialog(axisID)) {
       if (btnTransferFiducials != null) {
         btnTransferFiducials.removeActionListener(actionListener);
@@ -507,16 +506,16 @@ public class FiducialModelDialog extends ProcessDialog implements ContextMenu,
   //
   //	Action listener adapters
   //
-  class FiducialModelActionListener implements ActionListener {
+  private final class FiducialModelActionListener implements ActionListener {
 
-    FiducialModelDialog adaptee;
+    private final FiducialModelDialog adaptee;
 
-    FiducialModelActionListener(FiducialModelDialog adaptee) {
+    private FiducialModelActionListener(final FiducialModelDialog adaptee) {
       this.adaptee = adaptee;
     }
 
-    public void actionPerformed(ActionEvent event) {
-      adaptee.buttonAction(event);
+    public void actionPerformed(final ActionEvent event) {
+      adaptee.buttonAction(event.getActionCommand(), null);
     }
   }
 }

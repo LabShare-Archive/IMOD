@@ -72,9 +72,9 @@ final class SetupDialog extends ProcessDialog implements ContextMenu,
   private final RadioButton rbSingleView = new RadioButton("Single frame");
   private final RadioButton rbMontage = new RadioButton("Montage");
 
-  private final Run3dmodButton btnViewRawStackA = new Run3dmodButton(
-      "View Raw Image Stack", this);
-  private Run3dmodButton btnViewRawStackB = new Run3dmodButton(
+  private final Run3dmodButton btnViewRawStackA = Run3dmodButton
+      .get3dmodInstance("View Raw Image Stack", this);
+  private Run3dmodButton btnViewRawStackB = Run3dmodButton.get3dmodInstance(
       "View Raw Image Stack", this);
 
   //  Image parameter objects
@@ -194,22 +194,22 @@ final class SetupDialog extends ProcessDialog implements ContextMenu,
     return false;
   }
 
-  public void run3dmod(final Run3dmodButton button,
-      final Run3dmodMenuOptions menuOptions) {
+  public void action(final Run3dmodButton button,
+      final Run3dmodMenuOptions run3dmodMenuOptions) {
     if (btnViewRawStackA == button) {
-      expert.viewRawStack(AxisID.FIRST, menuOptions);
+      expert.viewRawStack(AxisID.FIRST, run3dmodMenuOptions);
     }
     else if (btnViewRawStackB == button) {
-      expert.viewRawStack(AxisID.SECOND, menuOptions);
+      expert.viewRawStack(AxisID.SECOND, run3dmodMenuOptions);
     }
   }
 
-  void viewRawStackA() {
-    run3dmod(btnViewRawStackA, null);
+  private void viewRawStackA() {
+    action(btnViewRawStackA, null);
   }
 
-  void viewRawStackB() {
-    run3dmod(btnViewRawStackB, null);
+  private void viewRawStackB() {
+    action(btnViewRawStackB, null);
   }
 
   void setDataset(final String input) {
@@ -852,6 +852,10 @@ final class SetupDialog extends ProcessDialog implements ContextMenu,
 }
 /**
  * <p> $Log$
+ * <p> Revision 3.60  2007/12/26 22:28:06  sueh
+ * <p> bug# 1052 Turned SetupDialog into an extremely thin GUI.  Moved decisions and
+ * <p> knowledge to SetupDialogExpert.
+ * <p>
  * <p> Revision 3.59  2007/09/07 00:28:43  sueh
  * <p> bug# 989 Using a public INSTANCE to refer to the EtomoDirector singleton
  * <p> instead of getInstance and createInstance.

@@ -50,6 +50,9 @@ import etomo.util.Utilities;
  * @version $Revision$
  * 
  * <p> $Log$
+ * <p> Revision 1.41  2008/04/21 22:54:43  sueh
+ * <p> bug# 983 In addSection remember last location.
+ * <p>
  * <p> Revision 1.40  2008/01/31 20:30:50  sueh
  * <p> bug# 1055 throwing a FileException when LogFile.getInstance fails.
  * <p>
@@ -1031,7 +1034,7 @@ public class SectionTablePanel implements ContextMenu, Expandable,
             flipWarning[0], flipWarning[1],
             "Shall I use the clip flipyz command to flip Y and Z?" };
         if (uiHarness.openYesNoDialog(msgFlipped, AxisID.ONLY)) {
-          manager.flip(tomogram, joinDialog.getWorkingDir());
+          manager.flip(tomogram, joinDialog.getWorkingDir(), null);
           return;
         }
       }
@@ -1375,23 +1378,17 @@ public class SectionTablePanel implements ContextMenu, Expandable,
     return rootPanel;
   }
 
-  public final void run3dmod(Run3dmodButton button,
-      Run3dmodMenuOptions menuOptions) {
-    run3dmod(button.getActionCommand(), menuOptions);
-  }
-
-  private final void run3dmod(String command, Run3dmodMenuOptions menuOptions) {
-    if (command.equals(b3bOpen3dmod.getActionCommand())) {
-      imodSection(menuOptions);
-    }
+  public final void action(final Run3dmodButton button,
+      final Run3dmodMenuOptions run3dmodMenuOptions) {
+    action(button.getActionCommand(), run3dmodMenuOptions);
   }
 
   /**
    * Handle actions
    * @param event
    */
-  protected final void action(ActionEvent event) {
-    String command = event.getActionCommand();
+  private final void action(final String command,
+      final Run3dmodMenuOptions run3dmodMenuOptions) {
     if (command.equals(btnMoveSectionUp.getActionCommand())) {
       moveSectionUp();
     }
@@ -1411,7 +1408,9 @@ public class SectionTablePanel implements ContextMenu, Expandable,
       invertTable();
     }
     else {
-      run3dmod(command, new Run3dmodMenuOptions());
+      if (command.equals(b3bOpen3dmod.getActionCommand())) {
+        imodSection(run3dmodMenuOptions);
+      }
     }
   }
 
@@ -1527,16 +1526,16 @@ public class SectionTablePanel implements ContextMenu, Expandable,
         .setToolTipText("Reverse the order of the sections in the table.");
   } //  //  Action listener adapters  //
 
-  final class SectionTableActionListener implements ActionListener {
+  private final class SectionTableActionListener implements ActionListener {
 
-    SectionTablePanel adaptee;
+    private final SectionTablePanel adaptee;
 
-    SectionTableActionListener(SectionTablePanel adaptee) {
+    private SectionTableActionListener(final SectionTablePanel adaptee) {
       this.adaptee = adaptee;
     }
 
-    public void actionPerformed(ActionEvent event) {
-      action(event);
+    public void actionPerformed(final ActionEvent event) {
+      adaptee.action(event.getActionCommand(), null);
     }
   }
 }

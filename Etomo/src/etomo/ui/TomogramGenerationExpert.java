@@ -5,6 +5,7 @@ import java.io.IOException;
 import java.util.Vector;
 
 import etomo.ApplicationManager;
+import etomo.ProcessSeries;
 import etomo.comscript.BlendmontParam;
 import etomo.comscript.ComScriptManager;
 import etomo.comscript.ConstMTFFilterParam;
@@ -22,6 +23,7 @@ import etomo.type.AxisID;
 import etomo.type.AxisType;
 import etomo.type.ConstEtomoNumber;
 import etomo.type.ConstMetaData;
+import etomo.type.ConstProcessSeries;
 import etomo.type.DialogExitState;
 import etomo.type.DialogType;
 import etomo.type.MetaData;
@@ -128,11 +130,13 @@ public final class TomogramGenerationExpert extends ReconUIExpert {
   /**
    * Start the next process specified by the nextProcess string
    */
-  public void startNextProcess(ProcessResultDisplay processResultDisplay) {
+  public void startNextProcess(ProcessResultDisplay processResultDisplay,
+      ConstProcessSeries processSeries) {
     ProcessName nextProcess = getNextProcess();
     resetNextProcess();
     if (nextProcess == ProcessName.PROCESSCHUNKS) {
-      processchunks(manager, dialog, processResultDisplay, ProcessName.TILT);
+      processchunks(manager, dialog, processResultDisplay, processSeries,
+          ProcessName.TILT);
     }
   }
 
@@ -240,7 +244,7 @@ public final class TomogramGenerationExpert extends ReconUIExpert {
         return false;
       }
     }
-    if (updateTiltCom(true)==null) {
+    if (updateTiltCom(true) == null) {
       return false;
     }
     if (!updateMTFFilterCom()) {
@@ -453,7 +457,8 @@ public final class TomogramGenerationExpert extends ReconUIExpert {
   /**
    * 
    */
-  public void newst(ProcessResultDisplay processResultDisplay) {
+  public void newst(ProcessResultDisplay processResultDisplay,
+      ConstProcessSeries processSeries) {
     if (dialog == null) {
       return;
     }
@@ -491,13 +496,14 @@ public final class TomogramGenerationExpert extends ReconUIExpert {
       }
     }
     setDialogState(ProcessState.INPROGRESS);
-    sendMsg(manager.newst(axisID, processResultDisplay, newstParam,
-        blendmontParam), processResultDisplay);
+    sendMsg(manager.newst(axisID, processResultDisplay, processSeries,
+        newstParam, blendmontParam), processResultDisplay);
   }
 
   /**
    */
-  void mtffilter(ProcessResultDisplay processResultDisplay) {
+  void mtffilter(ProcessResultDisplay processResultDisplay,
+      ConstProcessSeries processSeries) {
     if (dialog == null) {
       return;
     }
@@ -507,7 +513,7 @@ public final class TomogramGenerationExpert extends ReconUIExpert {
       return;
     }
     setDialogState(ProcessState.INPROGRESS);
-    sendMsg(manager.mtffilter(axisID, processResultDisplay),
+    sendMsg(manager.mtffilter(axisID, processResultDisplay, processSeries),
         processResultDisplay);
   }
 
@@ -516,37 +522,39 @@ public final class TomogramGenerationExpert extends ReconUIExpert {
    * 
    * @param axisID
    */
-  void trialTilt(ProcessResultDisplay processResultDisplay) {
+  void trialTilt(ProcessResultDisplay processResultDisplay,
+      ConstProcessSeries processSeries) {
     if (dialog == null) {
       return;
     }
     sendMsgProcessStarting(processResultDisplay);
     ConstTiltParam param = updateTiltCom(false);
-    if (param==null) {
+    if (param == null) {
       sendMsg(ProcessResult.FAILED_TO_START, processResultDisplay);
       return;
     }
     setDialogState(ProcessState.INPROGRESS);
-    sendMsg(manager.tiltProcess(axisID, processResultDisplay,param),
-        processResultDisplay);
+    sendMsg(manager.tiltProcess(axisID, processResultDisplay, processSeries,
+        param), processResultDisplay);
   }
 
   /**
    * Run the tilt command script for the specified axis
    */
-  public void tilt(ProcessResultDisplay processResultDisplay) {
+  public void tilt(ProcessResultDisplay processResultDisplay,
+      ConstProcessSeries processSeries) {
     if (dialog == null) {
       return;
     }
     sendMsgProcessStarting(processResultDisplay);
     ConstTiltParam param = updateTiltCom(true);
-    if (param ==null) {
+    if (param == null) {
       sendMsg(ProcessResult.FAILED_TO_START, processResultDisplay);
       return;
     }
     setDialogState(ProcessState.INPROGRESS);
-    sendMsg(manager.tiltProcess(axisID, processResultDisplay,param),
-        processResultDisplay);
+    sendMsg(manager.tiltProcess(axisID, processResultDisplay, processSeries,
+        param), processResultDisplay);
   }
 
   /**
@@ -570,20 +578,22 @@ public final class TomogramGenerationExpert extends ReconUIExpert {
         .getTrialTomogramName()), processResultDisplay);
   }
 
-  void splittilt(ProcessResultDisplay processResultDisplay) {
+  void splittilt(ProcessResultDisplay processResultDisplay,
+      ProcessSeries processSeries) {
     if (dialog == null) {
       return;
     }
     sendMsgProcessStarting(processResultDisplay);
-    splittilt(false, processResultDisplay);
+    splittilt(false, processResultDisplay, processSeries);
   }
 
-  void splittilt(boolean trialMode, ProcessResultDisplay processResultDisplay) {
+  void splittilt(boolean trialMode, ProcessResultDisplay processResultDisplay,
+      ProcessSeries processSeries) {
     if (dialog == null) {
       return;
     }
     sendMsgProcessStarting(processResultDisplay);
-    if (updateTiltCom(!trialMode)==null) {
+    if (updateTiltCom(!trialMode) == null) {
       sendMsg(ProcessResult.FAILED_TO_START, processResultDisplay);
       return;
     }
@@ -594,7 +604,7 @@ public final class TomogramGenerationExpert extends ReconUIExpert {
     }
     setDialogState(ProcessState.INPROGRESS);
     ProcessResult processResult = manager.splittilt(axisID, trialMode,
-        processResultDisplay, param);
+        processResultDisplay, processSeries, param);
     if (processResult == null) {
       setNextProcess(ProcessName.PROCESSCHUNKS);
     }
@@ -894,8 +904,8 @@ public final class TomogramGenerationExpert extends ReconUIExpert {
   /**
    * Get the tilt parameters from the requested axis panel
    */
-  private boolean getTiltParams(TiltParam tiltParam) throws NumberFormatException,
-      InvalidParameterException, IOException {
+  private boolean getTiltParams(TiltParam tiltParam)
+      throws NumberFormatException, InvalidParameterException, IOException {
     if (dialog == null) {
       return false;
     }
@@ -1072,7 +1082,7 @@ public final class TomogramGenerationExpert extends ReconUIExpert {
     enableUseFilter();
   }
 
-  void trialAction(ProcessResultDisplay trial) {
+  void trialAction(ProcessResultDisplay trial, ProcessSeries processSeries) {
     if (dialog == null) {
       return;
     }
@@ -1091,27 +1101,30 @@ public final class TomogramGenerationExpert extends ReconUIExpert {
       dialog.addToTrialTomogramName(trialTomogramName);
     }
     if (dialog.isParallelProcess()) {
-      splittilt(true, trial);
+      splittilt(true, trial, processSeries);
     }
     else {
-      trialTilt(trial);
+      trialTilt(trial, processSeries);
     }
   }
 
-  void tiltAction(ProcessResultDisplay tilt) {
+  void tiltAction(ProcessResultDisplay tilt, ProcessSeries processSeries) {
     if (dialog == null) {
       return;
     }
     if (dialog.isParallelProcess()) {
-      splittilt(tilt);
+      splittilt(tilt, processSeries);
     }
     else {
-      tilt(tilt);
+      tilt(tilt, processSeries);
     }
   }
 }
 /**
  * <p> $Log$
+ * <p> Revision 1.18  2008/02/01 01:37:31  sueh
+ * <p> bug# 1075 Handling header failure in setSubsetStart.
+ * <p>
  * <p> Revision 1.17  2008/01/25 22:29:34  sueh
  * <p> bug# 1070 Don't use parallel processing unless the cpu.adoc or
  * <p> IMOD_PROCESSORS has been set by the user.

@@ -11,6 +11,11 @@
  * @version $Revision$
  *
  * <p> $Log$
+ * <p> Revision 3.26  2007/09/10 20:42:24  sueh
+ * <p> bug# 925 Should only load button states once.  Changed
+ * <p> ProcessResultDisplayFactory to load button states immediately, so removing
+ * <p> button state load in the dialogs.
+ * <p>
  * <p> Revision 3.25  2007/03/21 19:45:28  sueh
  * <p> bug# 964 Limiting access to autodoc classes by using ReadOnly interfaces.
  * <p> Added AutodocFactory to create Autodoc instances.
@@ -410,7 +415,7 @@ final class CrossCorrelationPanel implements ContextMenu, Expandable {
   //  Action functions for setup panel buttons
   protected void buttonAction(ActionEvent event) {
     if (event.getActionCommand().equals(btnCrossCorrelate.getActionCommand())) {
-      applicationManager.preCrossCorrelate(axisID, btnCrossCorrelate);
+      applicationManager.preCrossCorrelate(axisID, btnCrossCorrelate, null);
     }
     else {
       updateCrossCorrelationPanel();

@@ -35,6 +35,9 @@ import etomo.type.Run3dmodMenuOptions;
  * @version $Revision$
  *
  * <p> $Log$
+ * <p> Revision 3.58  2007/12/26 22:37:09  sueh
+ * <p> bug# 1052 Return true when done() completes successfully.
+ * <p>
  * <p> Revision 3.57  2007/05/01 22:30:41  sueh
  * <p> bug# 964 In LabeledSpinner, saving SpinnerNumberModel so that the
  * <p> maximum can be changed.
@@ -350,8 +353,8 @@ public final class TomogramPositioningDialog extends ProcessDialog implements
 
   private final MultiLineButton btnSample;
 
-  private Run3dmodButton btnCreateBoundary = new Run3dmodButton(
-      "<html><b>Create Boundary Model</b>", this);
+  private Run3dmodButton btnCreateBoundary = Run3dmodButton.get3dmodInstance(
+      "Create Boundary Model", this);
 
   private final MultiLineButton btnTomopitch;
   private JPanel pnlFinalAlign = new JPanel();
@@ -680,27 +683,22 @@ public final class TomogramPositioningDialog extends ProcessDialog implements
         logFileLabel, logFile, applicationManager, axisID);
   }
 
-  public void run3dmod(Run3dmodButton button, Run3dmodMenuOptions menuOptions) {
-    run3dmod(button.getActionCommand(), menuOptions);
-  }
-
-  private void run3dmod(String command, Run3dmodMenuOptions menuOptions) {
-    if (command.equals(btnCreateBoundary.getActionCommand())) {
-      expert.createBoundary(menuOptions);
-    }
+  public void action(final Run3dmodButton button,
+      final Run3dmodMenuOptions run3dmodMenuOptions) {
+    buttonAction(button.getActionCommand(), run3dmodMenuOptions);
   }
 
   //  Button action handler methods
-  protected void buttonAction(ActionEvent event) {
-    String command = event.getActionCommand();
+  private void buttonAction(final String command,
+      final Run3dmodMenuOptions run3dmodMenuOptions) {
     if (command.equals(btnSample.getActionCommand())) {
-      expert.sampleAction(btnSample);
+      expert.sampleAction(btnSample, null);
     }
     else if (command.equals(btnTomopitch.getActionCommand())) {
-      expert.tomopitch(btnTomopitch);
+      expert.tomopitch(btnTomopitch, null);
     }
     else if (command.equals(btnAlign.getActionCommand())) {
-      expert.finalAlign(btnAlign);
+      expert.finalAlign(btnAlign, null);
     }
     else if (command.equals(cbFiducialess.getActionCommand())) {
       expert.fiducialessAction();
@@ -708,8 +706,8 @@ public final class TomogramPositioningDialog extends ProcessDialog implements
     else if (command.equals(cbWholeTomogram.getActionCommand())) {
       expert.updateFiducialessDisplay(cbFiducialess.isSelected());
     }
-    else {
-      run3dmod(command, new Run3dmodMenuOptions());
+    else if (command.equals(btnCreateBoundary.getActionCommand())) {
+      expert.createBoundary(run3dmodMenuOptions);
     }
   }
 
@@ -785,15 +783,15 @@ public final class TomogramPositioningDialog extends ProcessDialog implements
   //
   //	Action listener adapters
   //
-  class LocalActionListener implements ActionListener {
-    TomogramPositioningDialog adaptee;
+  private final class LocalActionListener implements ActionListener {
+    private final TomogramPositioningDialog adaptee;
 
-    LocalActionListener(TomogramPositioningDialog adaptee) {
+    private LocalActionListener(final TomogramPositioningDialog adaptee) {
       this.adaptee = adaptee;
     }
 
-    public void actionPerformed(ActionEvent event) {
-      adaptee.buttonAction(event);
+    public void actionPerformed(final ActionEvent event) {
+      adaptee.buttonAction(event.getActionCommand(), null);
     }
   }
 

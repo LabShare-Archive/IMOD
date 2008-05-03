@@ -27,6 +27,9 @@ import etomo.comscript.CCDEraserParam;
  * @version $Revision$
  *
  * <p> $Log$
+ * <p> Revision 3.12  2007/12/26 22:25:55  sueh
+ * <p> bug# 1052 Return true when done() completes successfully.
+ * <p>
  * <p> Revision 3.11  2006/07/04 20:42:02  sueh
  * <p> bug# 898 Don't remove action listeners unless the done dialog function
  * <p> succeeds.
@@ -132,7 +135,7 @@ public class PreProcessingDialog extends ProcessDialog {
 
   public PreProcessingDialog(ApplicationManager appManager, AxisID axisID) {
     super(appManager, axisID, DialogType.PRE_PROCESSING);
-    panelCCDEraser = new CCDEraserPanel(appManager, axisID, dialogType);
+    panelCCDEraser = CCDEraserPanel.getInstance(appManager, axisID, dialogType);
 
     fixRootPanel(rootSize);
 
@@ -213,7 +216,7 @@ public class PreProcessingDialog extends ProcessDialog {
     pnlDMConvert.setVisible(false);
   }
 
-   boolean done() {
+  boolean done() {
     if (applicationManager.donePreProcDialog(axisID)) {
       panelCCDEraser.done();
       setDisplayed(false);

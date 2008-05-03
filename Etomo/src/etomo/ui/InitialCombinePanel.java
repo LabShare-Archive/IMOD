@@ -40,6 +40,10 @@ import etomo.util.MRCHeader;
  * @version $Revision$
  *
  * <p> $Log$
+ * <p> Revision 3.34  2007/05/26 00:32:20  sueh
+ * <p> bug# 994 Not automatically setting button size in SpacedPanel anymore.
+ * <p> Setting button size in UI.
+ * <p>
  * <p> Revision 3.33  2007/02/09 00:49:42  sueh
  * <p> bug# 962 Made TooltipFormatter a singleton and moved its use to low-level ui
  * <p> classes.
@@ -469,16 +473,9 @@ public class InitialCombinePanel implements ContextMenu, InitialCombineFields,
         manPage, logFileLabel, logFile, applicationManager, AxisID.ONLY);
   }
 
-  public void run3dmod(Run3dmodButton button, Run3dmodMenuOptions menuOptions) {
-    //run3dmod(button.getActionCommand(), menuOptions);
+  public void action(Run3dmodButton button,
+      Run3dmodMenuOptions run3dmodMenuOptions) {
   }
-
-  /*
-   private void run3dmod(String command, Run3dmodMenuOptions menuOptions) {
-   if (command.equals(btnMatchcheck.getActionCommand())) {
-   applicationManager.imodMatchCheck(menuOptions);
-   }
-   }*/
 
   /**
    * Respond to button actions
@@ -490,7 +487,7 @@ public class InitialCombinePanel implements ContextMenu, InitialCombineFields,
         true);
     String command = event.getActionCommand();
     if (command.equals(btnMatchvolRestart.getActionCommand())) {
-      applicationManager.matchvol1Combine(btnMatchvolRestart);
+      applicationManager.matchvol1Combine(btnMatchvolRestart, null);
     }
   }
 

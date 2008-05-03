@@ -53,6 +53,9 @@ import etomo.type.Run3dmodMenuOptions;
  * @version $Revision$
  * 
  * <p> $Log$
+ * <p> Revision 1.59  2008/04/02 19:06:55  sueh
+ * <p> bug# 1104 Reformat.
+ * <p>
  * <p> Revision 1.58  2008/04/02 02:28:06  sueh
  * <p> bug# 1097 Added mask fields.
  * <p>
@@ -377,7 +380,7 @@ public final class PeetDialog implements ContextMenu, AbstractParallelDialog,
           MatlabParam.DEBUG_LEVEL_MIN, MatlabParam.DEBUG_LEVEL_MAX, 1));
   private final MultiLineButton btnImportMatlabParamFile = new MultiLineButton(
       "Import a .prm File");
-  private final Run3dmodButton btnAvgVol = new Run3dmodButton(
+  private final Run3dmodButton btnAvgVol = Run3dmodButton.get3dmodInstance(
       "Open Averaged Volumes in 3dmod", this);
   private final JPanel pnlInitMotl = new JPanel();
   private final TabbedPane tabPane = new TabbedPane();
@@ -385,7 +388,7 @@ public final class PeetDialog implements ContextMenu, AbstractParallelDialog,
   private final JPanel pnlRun = new JPanel();
   private final SpacedPanel pnlYaxisType = new SpacedPanel();
   private final JPanel pnlCcMode = new JPanel();
-  private final Run3dmodButton btnRef = new Run3dmodButton(
+  private final Run3dmodButton btnRef = Run3dmodButton.get3dmodInstance(
       "Open Reference Files in 3dmod", this);
   private final MultiLineButton btnDuplicateProject = new MultiLineButton(
       "Duplicate an Existing Project");
@@ -1187,27 +1190,19 @@ public final class PeetDialog implements ContextMenu, AbstractParallelDialog,
     pnlRun.add(phRun.getContainer());
   }
 
-  public void run3dmod(Run3dmodButton button, Run3dmodMenuOptions menuOptions) {
-    run3dmod(button.getActionCommand(), menuOptions);
+  public void action(final Run3dmodButton button,
+      final Run3dmodMenuOptions run3dmodMenuOptions) {
+    action(button.getActionCommand(), run3dmodMenuOptions);
   }
 
-  private void run3dmod(String actionCommand, Run3dmodMenuOptions menuOptions) {
-    if (actionCommand.equals(btnAvgVol.getActionCommand())) {
-      manager.imodAvgVol(menuOptions);
-    }
-    else if (actionCommand.equals(btnRef.getActionCommand())) {
-      manager.imodRef(menuOptions);
-    }
-  }
-
-  private void action(ActionEvent action) {
-    String actionCommand = action.getActionCommand();
+  private void action(final String actionCommand,
+      final Run3dmodMenuOptions run3dmodMenuOptions) {
     if (actionCommand.equals(ftfDirectory.getActionCommand())) {
       chooseDirectory();
     }
     else if (actionCommand.equals(btnRun.getActionCommand())) {
       if (validateRun()) {
-        manager.peetParser();
+        manager.peetParser(null);
       }
     }
     else if (actionCommand.equals(btnImportMatlabParamFile.getActionCommand())) {
@@ -1240,8 +1235,11 @@ public final class PeetDialog implements ContextMenu, AbstractParallelDialog,
         || actionCommand.equals(cbMaskUseReferenceParticle.getActionCommand())) {
       updateDisplay();
     }
-    else {
-      run3dmod(actionCommand, new Run3dmodMenuOptions());
+    else if (actionCommand.equals(btnAvgVol.getActionCommand())) {
+      manager.imodAvgVol(run3dmodMenuOptions);
+    }
+    else if (actionCommand.equals(btnRef.getActionCommand())) {
+      manager.imodRef(run3dmodMenuOptions);
     }
   }
 
@@ -1478,7 +1476,7 @@ public final class PeetDialog implements ContextMenu, AbstractParallelDialog,
     }
 
     public void actionPerformed(final ActionEvent event) {
-      peetDialog.action(event);
+      peetDialog.action(event.getActionCommand(), null);
     }
   }
 

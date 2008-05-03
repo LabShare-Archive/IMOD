@@ -59,6 +59,10 @@ import etomo.util.DatasetFiles;
  * 
  * <p>
  * $Log$
+ * Revision 3.64  2008/03/26 17:15:23  sueh
+ * bug# 1003 Deleted characters which a compiler didn't like.  These
+ * characters appeared to be spaces.  Don't know what the problem is.
+ *
  * Revision 3.63  2007/12/10 22:42:04  sueh
  * bug# 1041 Passing the ProcessName to processchunks instead of setting it in
  * getParameters because it is required and has been added to the
@@ -419,8 +423,8 @@ public class FinalCombinePanel implements ContextMenu, FinalCombineFields,
   private SpacedPanel pnlPatchRegionModelBody = new SpacedPanel(true);
   private CheckBox cbUsePatchRegionModel = new CheckBox(
       "Use patch region model");
-  private Run3dmodButton btnPatchRegionModel = new Run3dmodButton(
-      "<html><b>Create/Edit Patch Region Model</b>", this);
+  private Run3dmodButton btnPatchRegionModel = Run3dmodButton.get3dmodInstance(
+      "Create/Edit Patch Region Model", this);
   private LabeledTextField ltfWarpLimit = new LabeledTextField(
       "Warping residual limits: ");
   private LabeledTextField ltfRefineLimit = new LabeledTextField(
@@ -448,10 +452,10 @@ public class FinalCombinePanel implements ContextMenu, FinalCombineFields,
       "<html><b>Examine Patch Vector Model</b>");
   private MultiLineButton btnReplacePatchOut = new MultiLineButton(
       "<html><b>Replace Patch Vectors</b>");
-  private Run3dmodButton btnImodMatchedTo = new Run3dmodButton(
-      "<html><b>Open Volume Being Matched To</b>", this);
-  private Run3dmodButton btnImodCombined = new Run3dmodButton(
-      "<html><b>Open Combined Volume</b>", this);
+  private Run3dmodButton btnImodMatchedTo = Run3dmodButton.get3dmodInstance(
+      "Open Volume Being Matched To", this);
+  private Run3dmodButton btnImodCombined = Run3dmodButton.get3dmodInstance(
+      "Open Combined Volume", this);
   private CheckBox cbNoVolcombine = new CheckBox(NO_VOLCOMBINE_TITLE);
   private LabeledTextField ltfReductionFactor = new LabeledTextField(
       "Reduction factor for matching amplitudes in combined FFT: ");
@@ -1197,28 +1201,16 @@ public class FinalCombinePanel implements ContextMenu, FinalCombineFields,
         manPage, logFileLabel, logFile, applicationManager, AxisID.ONLY);
   }
 
-  public void run3dmod(Run3dmodButton button, Run3dmodMenuOptions menuOptions) {
-    run3dmod(button.getActionCommand(), menuOptions);
+  public void action(final Run3dmodButton button,
+      final Run3dmodMenuOptions run3dmodMenuOptions) {
+    buttonAction(button.getActionCommand(), run3dmodMenuOptions);
   }
 
-  private void run3dmod(String command, Run3dmodMenuOptions menuOptions) {
-    if (command.equals(btnPatchRegionModel.getActionCommand())) {
-      applicationManager.imodPatchRegionModel(menuOptions);
-    }
-    else if (command.equals(btnImodMatchedTo.getActionCommand())) {
-      applicationManager.imodMatchedToTomogram(menuOptions);
-    }
-    else if (command.equals(btnImodCombined.getActionCommand())) {
-      applicationManager.imodCombinedTomogram(menuOptions);
-    }
-  }
-
-  protected void buttonAction(ActionEvent event) {
+  private void buttonAction(final String command,
+      final Run3dmodMenuOptions run3dmodMenuOptions) {
     // Synchronize this panel with the others
     tomogramCombinationDialog.synchronize(TomogramCombinationDialog.lblFinal,
         true);
-
-    String command = event.getActionCommand();
     // Decrease patch sizes by 20%
     // and then round to ints
     // since they are in
@@ -1243,20 +1235,20 @@ public class FinalCombinePanel implements ContextMenu, FinalCombineFields,
           .parseInt(ltfZPatchSize.getText()) * 1.2f));
     }
     else if (command.equals(btnPatchcorrRestart.getActionCommand())) {
-      applicationManager.patchcorrCombine(btnPatchcorrRestart);
+      applicationManager.patchcorrCombine(btnPatchcorrRestart, null);
     }
     else if (command.equals(btnMatchorwarpRestart.getActionCommand())) {
-      applicationManager.matchorwarpCombine(btnMatchorwarpRestart);
+      applicationManager.matchorwarpCombine(btnMatchorwarpRestart, null);
     }
     else if (command.equals(btnMatchorwarpTrial.getActionCommand())) {
-      applicationManager.matchorwarpTrial();
+      applicationManager.matchorwarpTrial(null);
     }
     else if (command.equals(btnVolcombineRestart.getActionCommand())) {
       if (cbParallelProcess.isSelected()) {
-        applicationManager.splitcombine();
+        applicationManager.splitcombine(null);
       }
       else {
-        applicationManager.volcombine(btnVolcombineRestart);
+        applicationManager.volcombine(btnVolcombineRestart, null);
       }
     }
     else if (command.equals(btnPatchVectorModel.getActionCommand())) {
@@ -1276,8 +1268,14 @@ public class FinalCombinePanel implements ContextMenu, FinalCombineFields,
     else if (command.equals(cbKernelSigma.getActionCommand())) {
       updateKernelSigma();
     }
-    else {
-      run3dmod(command, new Run3dmodMenuOptions());
+    else if (command.equals(btnPatchRegionModel.getActionCommand())) {
+      applicationManager.imodPatchRegionModel(run3dmodMenuOptions);
+    }
+    else if (command.equals(btnImodMatchedTo.getActionCommand())) {
+      applicationManager.imodMatchedToTomogram(run3dmodMenuOptions);
+    }
+    else if (command.equals(btnImodCombined.getActionCommand())) {
+      applicationManager.imodCombinedTomogram(run3dmodMenuOptions);
     }
   }
 
@@ -1292,15 +1290,15 @@ public class FinalCombinePanel implements ContextMenu, FinalCombineFields,
     btnReplacePatchOut.setEnabled(enable);
   }
 
-  class ButtonActionListener implements ActionListener {
-    FinalCombinePanel listenee;
+  private final class ButtonActionListener implements ActionListener {
+    private final FinalCombinePanel listenee;
 
-    ButtonActionListener(FinalCombinePanel finalCombinePanel) {
+    private ButtonActionListener(final FinalCombinePanel finalCombinePanel) {
       listenee = finalCombinePanel;
     }
 
-    public void actionPerformed(ActionEvent event) {
-      listenee.buttonAction(event);
+    public void actionPerformed(final ActionEvent event) {
+      listenee.buttonAction(event.getActionCommand(), null);
     }
   }
 

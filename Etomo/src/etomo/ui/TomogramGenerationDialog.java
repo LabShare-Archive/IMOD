@@ -60,6 +60,9 @@ import etomo.type.ViewType;
  * 
  * <p>
  * $Log$
+ * Revision 3.112  2007/12/26 22:36:58  sueh
+ * bug# 1052 Return true when done() completes successfully.
+ *
  * Revision 3.111  2007/12/10 22:48:55  sueh
  * bug# 1041 Passing the ProcessName to processchunks instead of setting it in
  * getParameters because it is required and has been added to the
@@ -650,8 +653,8 @@ public class TomogramGenerationDialog extends ProcessDialog implements
 
   //  Aligned stack buttons
   private final MultiLineButton btnNewst;
-  private Run3dmodButton btn3dmodFull = new Run3dmodButton(
-      "<html><b>View Full<br>Aligned Stack</b>", this);
+  private Run3dmodButton btn3dmodFull = Run3dmodButton.get3dmodInstance(
+      "View Full Aligned Stack", this);
 
   //  Tilt objects
   private SpacedTextField ltfXShift = new SpacedTextField("X shift:");
@@ -683,8 +686,8 @@ public class TomogramGenerationDialog extends ProcessDialog implements
   private JComboBox cmboTrialTomogramName = new JComboBox();
   private MultiLineButton btnTrial = new MultiLineButton(
       "Generate Trial Tomogram");
-  private Run3dmodButton btn3dmodTrial = new Run3dmodButton(
-      "<html><b>View Trial in 3dmod</b>", this);
+  private Run3dmodButton btn3dmodTrial = Run3dmodButton.get3dmodInstance(
+      "View Trial in 3dmod", this);
   private final MultiLineButton btnUseTrial;
 
   // MTF Filter objects
@@ -699,7 +702,7 @@ public class TomogramGenerationDialog extends ProcessDialog implements
   private LabeledTextField ltfInverseRolloffRadiusSigma = new LabeledTextField(
       "Rolloff (radius,sigma): ");
   private final MultiLineButton btnFilter;
-  private Run3dmodButton btnViewFilter = new Run3dmodButton(
+  private Run3dmodButton btnViewFilter = Run3dmodButton.get3dmodInstance(
       "View Filtered Stack", this);
   private final MultiLineButton btnUseFilter;
   private SpacedTextField ltfStartingAndEndingZ = new SpacedTextField(
@@ -707,8 +710,8 @@ public class TomogramGenerationDialog extends ProcessDialog implements
 
   //  Tomogram generation buttons
   private final MultiLineButton btnTilt;
-  private Run3dmodButton btn3dmodTomogram = new Run3dmodButton(
-      "<html><b>View Tomogram In 3dmod</b>", this);
+  private Run3dmodButton btn3dmodTomogram = Run3dmodButton.get3dmodInstance(
+      "View Tomogram In 3dmod", this);
   private final MultiLineButton btnDeleteStack;
   private CheckBox cbUseZFactors = new CheckBox("Use Z factors");
   private SpacedTextField ltfExtraExcludeList = new SpacedTextField(
@@ -1692,7 +1695,7 @@ public class TomogramGenerationDialog extends ProcessDialog implements
     ltfRotation.setEnabled(cbFiducialess.isSelected());
   }
 
-   boolean done() {
+  boolean done() {
     if (expert.doneDialog()) {
       btnNewst.removeActionListener(tomogramGenerationListener);
       btnTilt.removeActionListener(tomogramGenerationListener);
@@ -1711,45 +1714,31 @@ public class TomogramGenerationDialog extends ProcessDialog implements
     updateAdvanced();
   }
 
-  public void run3dmod(Run3dmodButton button, Run3dmodMenuOptions menuOptions) {
-    run3dmod(button.getActionCommand(), menuOptions);
-  }
-
-  private void run3dmod(String command, Run3dmodMenuOptions menuOptions) {
-    if (command.equals(btn3dmodFull.getActionCommand())) {
-      applicationManager.imodFineAlign(axisID, menuOptions);
-    }
-    else if (command.equals(btn3dmodTrial.getActionCommand())) {
-      expert.imodTestVolume(menuOptions);
-    }
-    else if (command.equals(btn3dmodTomogram.getActionCommand())) {
-      applicationManager.imodFullVolume(axisID, menuOptions);
-    }
-    else if (command.equals(btnViewFilter.getActionCommand())) {
-      applicationManager.imodMTFFilter(axisID, menuOptions);
-    }
+  public void action(final Run3dmodButton button,
+      final Run3dmodMenuOptions run3dmodMenuOptions) {
+    buttonAction(button.getActionCommand(), run3dmodMenuOptions);
   }
 
   //  Button handler function
-  void buttonAction(ActionEvent event) {
-    String command = event.getActionCommand();
+  void buttonAction(final String command,
+      final Run3dmodMenuOptions run3dmodMenuOptions) {
     if (command.equals(btnNewst.getActionCommand())) {
-      expert.newst(btnNewst);
+      expert.newst(btnNewst, null);
     }
     else if (command.equals(btnFilter.getActionCommand())) {
-      expert.mtffilter(btnFilter);
+      expert.mtffilter(btnFilter, null);
     }
     else if (command.equals(btnUseFilter.getActionCommand())) {
       expert.useMtfFilter(btnUseFilter);
     }
     else if (command.equals(btnTrial.getActionCommand())) {
-      expert.trialAction(btnTrial);
+      expert.trialAction(btnTrial, null);
     }
     else if (command.equals(btnUseTrial.getActionCommand())) {
       expert.commitTestVolume(btnUseTrial);
     }
     else if (command.equals(btnTilt.getActionCommand())) {
-      expert.tiltAction(btnTilt);
+      expert.tiltAction(btnTilt, null);
     }
     else if (command.equals(btnDeleteStack.getActionCommand())) {
       applicationManager.deleteAlignedStacks(axisID, btnDeleteStack);
@@ -1760,20 +1749,29 @@ public class TomogramGenerationDialog extends ProcessDialog implements
     else if (command.equals(cbParallelProcess.getActionCommand())) {
       expert.updateParallelProcess();
     }
-    else {
-      run3dmod(command, new Run3dmodMenuOptions());
+    else if (command.equals(btn3dmodFull.getActionCommand())) {
+      applicationManager.imodFineAlign(axisID, run3dmodMenuOptions);
+    }
+    else if (command.equals(btn3dmodTrial.getActionCommand())) {
+      expert.imodTestVolume(run3dmodMenuOptions);
+    }
+    else if (command.equals(btn3dmodTomogram.getActionCommand())) {
+      applicationManager.imodFullVolume(axisID, run3dmodMenuOptions);
+    }
+    else if (command.equals(btnViewFilter.getActionCommand())) {
+      applicationManager.imodMTFFilter(axisID, run3dmodMenuOptions);
     }
   }
 
   private class ButtonListener implements ActionListener {
-    TomogramGenerationDialog adaptee;
+    private final TomogramGenerationDialog adaptee;
 
-    ButtonListener(TomogramGenerationDialog adaptee) {
+    private ButtonListener(final TomogramGenerationDialog adaptee) {
       this.adaptee = adaptee;
     }
 
-    public void actionPerformed(ActionEvent event) {
-      adaptee.buttonAction(event);
+    public void actionPerformed(final ActionEvent event) {
+      adaptee.buttonAction(event.getActionCommand(), null);
     }
   }
 

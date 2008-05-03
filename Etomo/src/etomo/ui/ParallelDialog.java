@@ -117,7 +117,7 @@ public final class ParallelDialog implements AbstractParallelDialog {
   public void getParameters(ParallelMetaData metaData) {
     metaData.setRootName(ltfProcessName.getText());
   }
-  
+
   public void getParameters(ParallelParam param) {
   }
 
@@ -133,7 +133,7 @@ public final class ParallelDialog implements AbstractParallelDialog {
   void action(ActionEvent event) {
     String command = event.getActionCommand();
     if (command.equals(btnRunProcess.getText())) {
-      manager.processchunks(btnRunProcess,ltfProcessName.getText());
+      manager.processchunks(btnRunProcess, null, ltfProcessName.getText());
     }
   }
 
@@ -187,6 +187,11 @@ public final class ParallelDialog implements AbstractParallelDialog {
 }
 /**
  * <p> $Log$
+ * <p> Revision 1.18  2007/12/10 22:43:19  sueh
+ * <p> bug# 1041 Passing the ProcessName to processchunks instead of setting it in
+ * <p> getParameters because it is required and has been added to the
+ * <p> ProcesschunksParam constructor.
+ * <p>
  * <p> Revision 1.17  2007/11/06 19:55:14  sueh
  * <p> bug# 1047 Switched to getInstance with an addListeners call (more thread-safe).
  * <p>

@@ -55,6 +55,9 @@ import etomo.util.MRCHeader;
  * 
  * <p>
  * $Log$
+ * Revision 3.53  2008/02/29 20:52:58  sueh
+ * bug# 1092 Running updateDisplay after create is done to pick up all changes.  In isChanged fixed return value calculation (parenthesis where in the the wrong places).
+ *
  * Revision 3.52  2008/01/25 22:28:18  sueh
  * bug# 1070 In setParameters don't use parallel processing unless the cpu.adoc or
  * IMOD_PROCESSORS has been set by the user.
@@ -430,8 +433,8 @@ public final class SetupCombinePanel implements ContextMenu,
   private ButtonGroup bgPatchSize = new ButtonGroup();
   private JPanel pnlPatchRegionModel = new JPanel();
   private CheckBox cbPatchRegionModel = new CheckBox("Use patch region model");
-  private Run3dmodButton btnPatchRegionModel = new Run3dmodButton(
-      "<html><b>Create/Edit Patch Region Model</b>", this);
+  private Run3dmodButton btnPatchRegionModel = Run3dmodButton.get3dmodInstance(
+      "Create/Edit Patch Region Model", this);
 
   private JPanel pnlPatchRegion = new JPanel();
   private final JPanel pnlVolcombineControls = new JPanel();
@@ -453,10 +456,10 @@ public final class SetupCombinePanel implements ContextMenu,
   private CheckBox cbManualCleanup = new CheckBox("Manual cleanup");
 
   private JPanel pnlButton = new JPanel();
-  private Run3dmodButton btnImodVolumeA = new Run3dmodButton(
-      "<html><b>3dmod Volume A</b>", this);
-  private Run3dmodButton btnImodVolumeB = new Run3dmodButton(
-      "<html><b>3dmod Volume B</b>", this);
+  private Run3dmodButton btnImodVolumeA = Run3dmodButton.get3dmodInstance(
+      "3dmod Volume A", this);
+  private Run3dmodButton btnImodVolumeB = Run3dmodButton.get3dmodInstance(
+      "3dmod Volume B", this);
   private final MultiLineButton btnCreate;
   private final MultiLineButton btnCombine;
   private JLabel binningWarning = new JLabel();
@@ -1069,37 +1072,24 @@ public final class SetupCombinePanel implements ContextMenu,
     return pnlSolvematch.getFiducialMatchListB();
   }
 
-  public void run3dmod(Run3dmodButton button, Run3dmodMenuOptions menuOptions) {
-    run3dmod(button.getActionCommand(), menuOptions);
-  }
-
-  private void run3dmod(String command, Run3dmodMenuOptions menuOptions) {
-    if (command.equals(btnPatchRegionModel.getActionCommand())) {
-      applicationManager.imodPatchRegionModel(menuOptions);
-    }
-    else if (command.equals(btnImodVolumeA.getActionCommand())) {
-      applicationManager.imodFullVolume(AxisID.FIRST, menuOptions);
-    }
-    else if (command.equals(btnImodVolumeB.getActionCommand())) {
-      applicationManager.imodFullVolume(AxisID.SECOND, menuOptions);
-    }
+  public void action(final Run3dmodButton button,
+      final Run3dmodMenuOptions run3dmodMenuOptions) {
+    buttonAction(button.getActionCommand(), run3dmodMenuOptions);
   }
 
   //  Action functions for setup panel buttons
-  protected void buttonAction(ActionEvent event) {
+  private void buttonAction(final String command,
+      final Run3dmodMenuOptions run3dmodMenuOptions) {
     //  Synchronize this panel with the others
     tomogramCombinationDialog.synchronize(TomogramCombinationDialog.lblSetup,
         true);
-
-    String command = event.getActionCommand();
-
     if (command.equals(btnCreate.getActionCommand())) {
       updateTomogramSizeWarning(applicationManager
           .createCombineScripts(btnCreate));
       tomogramCombinationDialog.updateDisplay();
     }
     else if (command.equals(btnCombine.getActionCommand())) {
-      applicationManager.combine(btnCombine);
+      applicationManager.combine(btnCombine, null);
     }
     else if (command.equals(cbParallelProcess.getActionCommand())) {
       tomogramCombinationDialog.updateParallelProcess();
@@ -1107,11 +1097,15 @@ public final class SetupCombinePanel implements ContextMenu,
     else if (command.equals(btnDefaults.getActionCommand())) {
       resetXandY();
     }
-    else {
-      run3dmod(command, new Run3dmodMenuOptions());
+    else if (command.equals(btnPatchRegionModel.getActionCommand())) {
+      applicationManager.imodPatchRegionModel(run3dmodMenuOptions);
     }
-    //  Check the combine scripts state and set the start button accordingly
-    //updateStartCombine();
+    else if (command.equals(btnImodVolumeA.getActionCommand())) {
+      applicationManager.imodFullVolume(AxisID.FIRST, run3dmodMenuOptions);
+    }
+    else if (command.equals(btnImodVolumeB.getActionCommand())) {
+      applicationManager.imodFullVolume(AxisID.SECOND, run3dmodMenuOptions);
+    }
   }
 
   private void resetXandY() {
@@ -1217,16 +1211,15 @@ public final class SetupCombinePanel implements ContextMenu,
   }
 
   //	Button action listener
-  class SetupCombineActionListener implements ActionListener {
+  private final class SetupCombineActionListener implements ActionListener {
+    private final SetupCombinePanel adaptee;
 
-    SetupCombinePanel adaptee;
-
-    public SetupCombineActionListener(SetupCombinePanel adaptee) {
+    private SetupCombineActionListener(final SetupCombinePanel adaptee) {
       this.adaptee = adaptee;
     }
 
-    public void actionPerformed(ActionEvent event) {
-      adaptee.buttonAction(event);
+    public void actionPerformed(final ActionEvent event) {
+      adaptee.buttonAction(event.getActionCommand(), null);
     }
   }
 

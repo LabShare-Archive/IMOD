@@ -139,13 +139,13 @@ abstract class EtomoFrame extends JFrame {
       saveAs(axisID);
     }
     else if (menu.equalsFileClose(event)) {
-      EtomoDirector.INSTANCE.closeCurrentManager(axisID);
+      EtomoDirector.INSTANCE.closeCurrentManager(axisID, false);
     }
     else if (menu.equalsFileExit(event)) {
       UIHarness.INSTANCE.exit(axisID);
     }
     else if (menu.equalsFileTomosnapshot(event)) {
-      currentManager.tomosnapshot(axisID);
+      currentManager.tomosnapshot(axisID, null);
     }
   }
 
@@ -210,15 +210,13 @@ abstract class EtomoFrame extends JFrame {
     // Get the URL to the IMOD html directory
     String imodURL = "";
     try {
-      imodURL = EtomoDirector.INSTANCE.getIMODDirectory().toURL()
-          .toString()
+      imodURL = EtomoDirector.INSTANCE.getIMODDirectory().toURL().toString()
           + "/html/";
     }
     catch (MalformedURLException except) {
       except.printStackTrace();
       System.err.println("Malformed URL:");
-      System.err.println(EtomoDirector.INSTANCE.getIMODDirectory()
-          .toString());
+      System.err.println(EtomoDirector.INSTANCE.getIMODDirectory().toString());
       return;
     }
 
@@ -763,8 +761,7 @@ abstract class EtomoFrame extends JFrame {
   }
 
   void pack(boolean force) {
-    if (!force
-        && !EtomoDirector.INSTANCE.getUserConfiguration().isAutoFit()) {
+    if (!force && !EtomoDirector.INSTANCE.getUserConfiguration().isAutoFit()) {
       setVisible(true);
     }
     else {
@@ -853,6 +850,9 @@ abstract class EtomoFrame extends JFrame {
 }
 /**
  * <p> $Log$
+ * <p> Revision 1.35  2007/12/26 22:23:28  sueh
+ * <p> bug# 1052 Moved argument handling from EtomoDirector to a separate class.
+ * <p>
  * <p> Revision 1.34  2007/09/07 00:26:41  sueh
  * <p> bug# 989 Using a public INSTANCE to refer to the EtomoDirector singleton
  * <p> instead of getInstance and createInstance.

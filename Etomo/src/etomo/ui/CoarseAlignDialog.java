@@ -11,6 +11,9 @@
  * @version $Revision$
  *
  * <p> $Log$
+ * <p> Revision 3.45  2007/12/26 22:23:16  sueh
+ * <p> bug# 1052 Return true when done() completes successfully.
+ * <p>
  * <p> Revision 3.44  2007/09/10 20:42:16  sueh
  * <p> bug# 925 Should only load button states once.  Changed
  * <p> ProcessResultDisplayFactory to load button states immediately, so removing
@@ -262,7 +265,7 @@ public final class CoarseAlignDialog extends ProcessDialog implements
 
   private final PrenewstPanel pnlPrenewst;
 
-  private final Run3dmodButton btnImod = new Run3dmodButton(
+  private final Run3dmodButton btnImod = Run3dmodButton.get3dmodInstance(
       "View Aligned Stack In 3dmod", this);
 
   private final JPanel pnlFiducialess = new JPanel();
@@ -529,22 +532,16 @@ public final class CoarseAlignDialog extends ProcessDialog implements
         .setToolTipText("Use Midas to adjust the alignment of the montage frames.");
   }
 
-  public void run3dmod(Run3dmodButton button, Run3dmodMenuOptions menuOptions) {
-    run3dmod(button.getActionCommand(), menuOptions);
-  }
-
-  private void run3dmod(String command, Run3dmodMenuOptions menuOptions) {
-    if (command.equals(btnImod.getActionCommand())) {
-      applicationManager.imodCoarseAlign(axisID, menuOptions);
-    }
+  public void action(Run3dmodButton button,
+      Run3dmodMenuOptions run3dmodMenuOptions) {
+    buttonAction(button.getActionCommand(), run3dmodMenuOptions);
   }
 
   /**
    * Action function for process buttons
    * @param event
    */
-  void buttonAction(ActionEvent event) {
-    String command = event.getActionCommand();
+  void buttonAction(String command, Run3dmodMenuOptions menuOptions) {
     if (command.equals(btnMidas.getActionCommand())) {
       applicationManager.midasRawStack(axisID, btnMidas);
     }
@@ -553,14 +550,14 @@ public final class CoarseAlignDialog extends ProcessDialog implements
     }
     else if (command.equals(btnDistortionCorrectedStack.getActionCommand())) {
       applicationManager.makeDistortionCorrectedStack(axisID,
-          btnDistortionCorrectedStack);
+          btnDistortionCorrectedStack, null);
     }
-    else {
-      run3dmod(command, new Run3dmodMenuOptions());
+    else if (command.equals(btnImod.getActionCommand())) {
+      applicationManager.imodCoarseAlign(axisID, menuOptions);
     }
   }
 
-   boolean done() {
+  boolean done() {
     if (applicationManager.doneCoarseAlignDialog(axisID)) {
       pnlCrossCorrelation.done();
       pnlPrenewst.done();
@@ -581,7 +578,7 @@ public final class CoarseAlignDialog extends ProcessDialog implements
     }
 
     public void actionPerformed(ActionEvent event) {
-      adaptee.buttonAction(event);
+      adaptee.buttonAction(event.getActionCommand(), null);
     }
   }
 }

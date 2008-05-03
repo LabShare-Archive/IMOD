@@ -93,8 +93,8 @@ public final class PostProcessingDialog extends ProcessDialog implements
     btnSqueezeVolume.setSize();
     squeezeVolPanel2.add(btnSqueezeVolume);
     squeezeVolPanel2.addHorizontalGlue();
-    btnImodSqueezedVolume = new Run3dmodButton("Open Squeezed Volume in 3dmod",
-        this);
+    btnImodSqueezedVolume = Run3dmodButton.get3dmodInstance(
+        "Open Squeezed Volume in 3dmod", this);
     btnImodSqueezedVolume.addActionListener(actionListener);
     btnImodSqueezedVolume.setSize();
     squeezeVolPanel2.add(btnImodSqueezedVolume);
@@ -219,29 +219,25 @@ public final class PostProcessingDialog extends ProcessDialog implements
     UIHarness.INSTANCE.pack(axisID, applicationManager);
   }
 
-  public void run3dmod(Run3dmodButton button, Run3dmodMenuOptions menuOptions) {
-    run3dmod(button.getActionCommand(), menuOptions);
+  public void action(final Run3dmodButton button,
+      final Run3dmodMenuOptions run3dmodMenuOptions) {
+    action(button.getActionCommand(), run3dmodMenuOptions);
   }
 
-  private boolean run3dmod(String command, Run3dmodMenuOptions menuOptions) {
-    if (command.equals(btnImodSqueezedVolume.getActionCommand())) {
-      applicationManager.imodSqueezedVolume(menuOptions);
-      return true;
-    }
-    return false;
-  }
-
-  protected void action(ActionEvent event) {
-    String command = event.getActionCommand();
+  private void action(final String command,
+      final Run3dmodMenuOptions run3dmodMenuOptions) {
     if (command.equals(btnSqueezeVolume.getActionCommand())) {
-      applicationManager.squeezevol(btnSqueezeVolume);
+      applicationManager.squeezevol(btnSqueezeVolume, null);
     }
-    else if (!run3dmod(command, new Run3dmodMenuOptions())) {
+    else if (command.equals(btnImodSqueezedVolume.getActionCommand())) {
+      applicationManager.imodSqueezedVolume(run3dmodMenuOptions);
+    }
+    else {
       throw new IllegalStateException("Unknown command " + command);
     }
   }
 
-   boolean done() {
+  boolean done() {
     if (applicationManager.donePostProcessing()) {
       btnSqueezeVolume.removeActionListener(actionListener);
       trimvolPanel.done();
@@ -251,15 +247,17 @@ public final class PostProcessingDialog extends ProcessDialog implements
     return false;
   }
 
-  class PostProcessingDialogActionListener implements ActionListener {
-    PostProcessingDialog adaptee;
+  private final class PostProcessingDialogActionListener implements
+      ActionListener {
+    private final PostProcessingDialog adaptee;
 
-    PostProcessingDialogActionListener(PostProcessingDialog adaptee) {
+    private PostProcessingDialogActionListener(
+        final PostProcessingDialog adaptee) {
       this.adaptee = adaptee;
     }
 
-    public void actionPerformed(ActionEvent event) {
-      adaptee.action(event);
+    public void actionPerformed(final ActionEvent event) {
+      adaptee.action(event.getActionCommand(), null);
     }
   }
 
@@ -277,6 +275,9 @@ public final class PostProcessingDialog extends ProcessDialog implements
 }
 /**
  * <p> $Log$
+ * <p> Revision 3.34  2007/12/26 22:25:45  sueh
+ * <p> bug# 1052 Return true when done() completes successfully.
+ * <p>
  * <p> Revision 3.33  2007/11/06 20:30:25  sueh
  * <p> bug# 1047 Generalize TripvolPanel.
  * <p>

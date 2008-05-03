@@ -208,8 +208,8 @@ public final class ParallelPanel implements Expandable {
   private void action(final ActionEvent event) {
     String command = event.getActionCommand();
     if (command == btnResume.getActionCommand()) {
-      manager.resume(axisID, processchunksParam, processResultDisplay,
-          rootPanel,null);
+      manager.resume(axisID, processchunksParam, processResultDisplay, null,
+          rootPanel, null);
     }
     else if (command == btnPause.getActionCommand()) {
       manager.pause(axisID);
@@ -393,6 +393,10 @@ public final class ParallelPanel implements Expandable {
 }
 /**
  * <p> $Log$
+ * <p> Revision 1.59  2007/12/10 22:44:26  sueh
+ * <p> bug# 1041 Put the label for the Resume button into a constant and made is
+ * <p> public because it is being used in another package.
+ * <p>
  * <p> Revision 1.58  2007/11/06 20:14:02  sueh
  * <p> bug# 1047
  * <p>

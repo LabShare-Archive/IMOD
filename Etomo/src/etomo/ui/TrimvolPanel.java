@@ -35,6 +35,10 @@ import etomo.type.Run3dmodMenuOptions;
  * @version $Revision$
  * 
  * <p> $Log$
+ * <p> Revision 3.26  2008/02/28 21:19:46  sueh
+ * <p> bug# 1085 Added setting Z to setXYMinAndMax.  Implemented
+ * <p> RubberbandContainer.
+ * <p>
  * <p> Revision 3.25  2007/11/06 20:33:08  sueh
  * <p> bug# 1047 Generalize TripvolPanel.
  * <p>
@@ -226,11 +230,11 @@ public final class TrimvolPanel implements Run3dmodButtonContainer,
   private final JLabel lWarning5 = new JLabel("section.");
 
   private JPanel pnlButton = new JPanel();
-  private Run3dmodButton btnImodFull = new Run3dmodButton(
-      "<html><b>3dmod Full Volume</b>", this);
+  private Run3dmodButton btnImodFull = Run3dmodButton.get3dmodInstance(
+      "3dmod Full Volume", this);
   private final MultiLineButton btnTrimvol;
-  private Run3dmodButton btnImodTrim = new Run3dmodButton(
-      "<html><b>3dmod Trimmed Volume</b>", this);
+  private Run3dmodButton btnImodTrim = Run3dmodButton.get3dmodInstance(
+      "3dmod Trimmed Volume", this);
   private MultiLineButton btnGetCoordinates = new MultiLineButton(
       "Get XY Volume Range From 3dmod");
   private JPanel pnlImodFull = new JPanel();
@@ -545,30 +549,25 @@ public final class TrimvolPanel implements Run3dmodButtonContainer,
     setScaleState();
   }
 
-  public void run3dmod(Run3dmodButton button, Run3dmodMenuOptions menuOptions) {
-    run3dmod(button.getActionCommand(), menuOptions);
+  public void action(final Run3dmodButton button,
+      final Run3dmodMenuOptions run3dmodMenuOptions) {
+    buttonAction(button.getActionCommand(), run3dmodMenuOptions);
   }
 
-  private void run3dmod(String command, Run3dmodMenuOptions menuOptions) {
-    if (command == btnImodFull.getActionCommand()) {
-      applicationManager.imodCombinedTomogram(menuOptions);
-    }
-    if (command == btnImodTrim.getActionCommand()) {
-      applicationManager.imodTrimmedVolume(menuOptions);
-    }
-  }
-
-  protected void buttonAction(ActionEvent event) {
-    String command = event.getActionCommand();
+  private void buttonAction(final String command,
+      final Run3dmodMenuOptions run3dmodMenuOptions) {
     if (command == btnTrimvol.getActionCommand()) {
-      applicationManager.trimVolume(btnTrimvol);
+      applicationManager.trimVolume(btnTrimvol, null);
     }
     if (command == btnGetCoordinates.getActionCommand()) {
       setXYMinAndMax(applicationManager.imodGetRubberbandCoordinates(
           ImodManager.COMBINED_TOMOGRAM_KEY, AxisID.ONLY));
     }
-    else {
-      run3dmod(command, new Run3dmodMenuOptions());
+    else if (command == btnImodFull.getActionCommand()) {
+      applicationManager.imodCombinedTomogram(run3dmodMenuOptions);
+    }
+    if (command == btnImodTrim.getActionCommand()) {
+      applicationManager.imodTrimmedVolume(run3dmodMenuOptions);
     }
   }
 
@@ -602,15 +601,15 @@ public final class TrimvolPanel implements Run3dmodButtonContainer,
     }
   }
 
-  class ButtonListener implements ActionListener {
-    TrimvolPanel listenee;
+  private final class ButtonListener implements ActionListener {
+    private final TrimvolPanel listenee;
 
-    ButtonListener(TrimvolPanel trimvolPanel) {
+    private ButtonListener(final TrimvolPanel trimvolPanel) {
       listenee = trimvolPanel;
     }
 
-    public void actionPerformed(ActionEvent event) {
-      listenee.buttonAction(event);
+    public void actionPerformed(final ActionEvent event) {
+      listenee.buttonAction(event.getActionCommand(), null);
     }
   }
 

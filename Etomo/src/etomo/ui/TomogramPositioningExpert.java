@@ -23,6 +23,7 @@ import etomo.type.AxisID;
 import etomo.type.AxisType;
 import etomo.type.ConstEtomoNumber;
 import etomo.type.ConstMetaData;
+import etomo.type.ConstProcessSeries;
 import etomo.type.DialogType;
 import etomo.type.EtomoBoolean2;
 import etomo.type.MetaData;
@@ -76,12 +77,13 @@ public final class TomogramPositioningExpert extends ReconUIExpert {
   /**
    * Start the next process specified by the nextProcess string
    */
-  public void startNextProcess(ProcessResultDisplay processResultDisplay) {
+  public void startNextProcess(ProcessResultDisplay processResultDisplay,
+      ConstProcessSeries processSeries) {
     ProcessName nextProcess = getNextProcess();
     resetNextProcess();
     //whole tomogram
     if (nextProcess == ProcessName.TILT) {
-      sampleTilt(processResultDisplay);
+      sampleTilt(processResultDisplay, processSeries);
     }
   }
 
@@ -183,15 +185,16 @@ public final class TomogramPositioningExpert extends ReconUIExpert {
     dialog.setAlignButtonState(screenState);
   }
 
-  void sampleAction(ProcessResultDisplay sample) {
+  void sampleAction(ProcessResultDisplay sample,
+      ConstProcessSeries processSeries) {
     if (dialog == null) {
       return;
     }
     if (dialog.isWholeTomogram()) {
-      wholeTomogram(sample);
+      wholeTomogram(sample, processSeries);
     }
     else {
-      createSample(sample);
+      createSample(sample, processSeries);
     }
   }
 
@@ -289,7 +292,8 @@ public final class TomogramPositioningExpert extends ReconUIExpert {
   /**
    * Run the sample com script
    */
-  public void createSample(ProcessResultDisplay processResultDisplay) {
+  public void createSample(ProcessResultDisplay processResultDisplay,
+      ConstProcessSeries processSeries) {
     sendMsgProcessStarting(processResultDisplay);
     // Make sure that we have an active positioning dialog
     if (dialog == null) {
@@ -312,8 +316,8 @@ public final class TomogramPositioningExpert extends ReconUIExpert {
     }
     comScriptMgr.loadTilt(axisID);
     setDialogState(ProcessState.INPROGRESS);
-    sendMsg(manager.createSample(axisID, processResultDisplay, tiltParam),
-        processResultDisplay);
+    sendMsg(manager.createSample(axisID, processResultDisplay, processSeries,
+        tiltParam), processResultDisplay);
   }
 
   /**
@@ -321,7 +325,8 @@ public final class TomogramPositioningExpert extends ReconUIExpert {
    * 
    * @param axisID
    */
-  public void wholeTomogram(ProcessResultDisplay processResultDisplay) {
+  public void wholeTomogram(ProcessResultDisplay processResultDisplay,
+      ConstProcessSeries processSeries) {
     sendMsgProcessStarting(processResultDisplay);
     // Make sure that we have an active positioning dialog
     if (dialog == null) {
@@ -361,11 +366,11 @@ public final class TomogramPositioningExpert extends ReconUIExpert {
     ProcessResult processResult;
     if (metaData.getViewType() != ViewType.MONTAGE) {
       processResult = manager.wholeTomogram(axisID, processResultDisplay,
-          newstParam);
+          processSeries, newstParam);
     }
     else {
       processResult = manager.wholeTomogram(axisID, processResultDisplay,
-          blendmontParam);
+          processSeries, blendmontParam);
     }
     if (processResult != null) {
       sendMsg(processResult, processResultDisplay);
@@ -374,7 +379,8 @@ public final class TomogramPositioningExpert extends ReconUIExpert {
     setNextProcess(ProcessName.TILT);
   }
 
-  public void tomopitch(ProcessResultDisplay processResultDisplay) {
+  public void tomopitch(ProcessResultDisplay processResultDisplay,
+      ConstProcessSeries processSeries) {
     sendMsgProcessStarting(processResultDisplay);
     if (dialog == null) {
       UIHarness.INSTANCE.openMessageDialog(
@@ -388,7 +394,7 @@ public final class TomogramPositioningExpert extends ReconUIExpert {
       return;
     }
     setDialogState(ProcessState.INPROGRESS);
-    sendMsg(manager.tomopitch(axisID, processResultDisplay),
+    sendMsg(manager.tomopitch(axisID, processResultDisplay, processSeries),
         processResultDisplay);
   }
 
@@ -420,7 +426,8 @@ public final class TomogramPositioningExpert extends ReconUIExpert {
     }
   }
 
-  public void finalAlign(ProcessResultDisplay processResultDisplay) {
+  public void finalAlign(ProcessResultDisplay processResultDisplay,
+      ConstProcessSeries processSeries) {
     sendMsgProcessStarting(processResultDisplay);
     if (dialog == null) {
       UIHarness.INSTANCE.openMessageDialog(
@@ -435,21 +442,22 @@ public final class TomogramPositioningExpert extends ReconUIExpert {
       return;
     }
     setDialogState(ProcessState.INPROGRESS);
-    sendMsg(manager.finalAlign(axisID, processResultDisplay, tiltalignParam),
-        processResultDisplay);
+    sendMsg(manager.finalAlign(axisID, processResultDisplay, processSeries,
+        tiltalignParam), processResultDisplay);
   }
 
   /**
    * Whole tomogram
    * @param processResultDisplay
    */
-  private void sampleTilt(ProcessResultDisplay processResultDisplay) {
+  private void sampleTilt(ProcessResultDisplay processResultDisplay,
+      ConstProcessSeries processSeries) {
     comScriptMgr.loadTilt(axisID);
     TiltParam tiltParam = comScriptMgr.getTiltParam(axisID);
     tiltParam.setCommandMode(TiltParam.Mode.WHOLE);
     tiltParam.setFiducialess(metaData.isFiducialess(axisID));
-    sendMsg(manager.sampleTilt(axisID, processResultDisplay, tiltParam),
-        processResultDisplay);
+    sendMsg(manager.sampleTilt(axisID, processResultDisplay, processSeries,
+        tiltParam), processResultDisplay);
   }
 
   private ConstTiltalignParam updateAlignCom() {
@@ -929,6 +937,10 @@ public final class TomogramPositioningExpert extends ReconUIExpert {
 }
 /**
  * <p> $Log$
+ * <p> Revision 1.23  2008/01/30 21:35:12  sueh
+ * <p> bug# 1074 In updateTomPosTiltCom changed the parameter name to positioning
+ * <p> to distinguish between saving tilt.com when saving the dialog, which uses the final thickness; and saving tilt.com to do positioning, which uses the sample thickness.
+ * <p>
  * <p> Revision 1.22  2008/01/29 01:40:24  sueh
  * <p> bug# 1073 Removed updateTiltCom, which was only being called by fiducialessAction, and put the functionality into the caller.  In fiducialesssAction, if the user checked Fiducialess, set the dialog values tiltAngleOffset and ZShift from tilt.com (not the other way around).  Keep the functionality as is for an unchecked Fiducialess.  The values in tilt.com are valid for creating a fiducialess sample.  If the tiltAngleOffset and ZShift values on the screen came from creating a sample with fiducials then they are not valid values to save in tilt.com
  * <p>

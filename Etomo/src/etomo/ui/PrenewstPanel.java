@@ -12,6 +12,11 @@
  * @version $Revision$
  * 
  * <p> $Log$
+ * <p> Revision 1.24  2007/09/10 20:43:45  sueh
+ * <p> bug# 925 Should only load button states once.  Changed
+ * <p> ProcessResultDisplayFactory to load button states immediately, so removing
+ * <p> button state load in the dialogs.
+ * <p>
  * <p> Revision 1.23  2007/05/01 22:29:54  sueh
  * <p> bug# 964 In LabeledSpinner, saving SpinnerNumberModel so that the
  * <p> maximum can be changed.
@@ -237,7 +242,7 @@ public final class PrenewstPanel implements ContextMenu, Expandable {
 
   public void setParameters(BaseScreenState screenState) {
     //btnCoarseAlign.setButtonState(screenState.getButtonState(btnCoarseAlign
-     //   .getButtonStateKey()));
+    //   .getButtonStateKey()));
     header.setButtonStates(screenState);
   }
 
@@ -318,7 +323,7 @@ public final class PrenewstPanel implements ContextMenu, Expandable {
 
   void buttonAction(ActionEvent event) {
     if (event.getActionCommand().equals(btnCoarseAlign.getActionCommand())) {
-      applicationManager.coarseAlign(axisID, btnCoarseAlign);
+      applicationManager.coarseAlign(axisID, btnCoarseAlign, null);
     }
   }
 

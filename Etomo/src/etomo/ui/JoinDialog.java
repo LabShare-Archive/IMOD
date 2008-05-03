@@ -57,6 +57,9 @@ import etomo.util.DatasetFiles;
  * @version $Revision$
  *
  * <p> $Log$
+ * <p> Revision 1.54  2008/01/31 20:26:10  sueh
+ * <p> bug# 1055 throwing a FileException when LogFile.getInstance fails.
+ * <p>
  * <p> Revision 1.53  2007/12/10 22:42:49  sueh
  * <p> bug# 1041 Standardized JoinMetaData.getRootName to getDatasetName.
  * <p>
@@ -506,8 +509,8 @@ public final class JoinDialog implements ContextMenu, Run3dmodButtonContainer {
   private final CheckBox cbRefineWithTrial = new CheckBox("Refine with trial");
   private final MultiLineButton btnRefineJoin = new MultiLineButton(
       REFINE_JOIN_TEXT);
-  private final Run3dmodButton btnMakeRefiningModel = new Run3dmodButton(
-      "Make Refining Model", this);
+  private final Run3dmodButton btnMakeRefiningModel = Run3dmodButton
+      .get3dmodInstance("Make Refining Model", this);
   private final MultiLineButton btnXfjointomo = new MultiLineButton(
       "Find Transformations");
 
@@ -936,10 +939,11 @@ public final class JoinDialog implements ContextMenu, Run3dmodButtonContainer {
     //second component
     alignPanel1 = new SpacedPanel();
     alignPanel1.setBoxLayout(BoxLayout.X_AXIS);
-    btnOpenSample = new Run3dmodButton("Open Sample in 3dmod", this);
-    //btnOpenSample.addActionListener(joinActionListener);
-    btnOpenSampleAverages = new Run3dmodButton("Open Sample Averages in 3dmod",
+    btnOpenSample = Run3dmodButton.get3dmodInstance("Open Sample in 3dmod",
         this);
+    //btnOpenSample.addActionListener(joinActionListener);
+    btnOpenSampleAverages = Run3dmodButton.get3dmodInstance(
+        "Open Sample Averages in 3dmod", this);
     //btnOpenSampleAverages.addActionListener(joinActionListener);
     btnOpenSample.setSize();
     alignPanel1.add(btnOpenSample);
@@ -1621,21 +1625,21 @@ public final class JoinDialog implements ContextMenu, Run3dmodButtonContainer {
    * Handle actions
    * @param event
    */
-  protected void action(ActionEvent event) {
-    String command = event.getActionCommand();
+  private void action(final String command,
+      final Run3dmodMenuOptions run3dmodMenuOptions) {
     if (command.equals(btnMakeSamples.getActionCommand())) {
-      manager.makejoincom();
+      manager.makejoincom(null);
     }
     else if (command.equals(btnInitialAutoAlignment.getActionCommand())) {
       btnMidas.setEnabled(false);
-      manager.xfalignInitial();
+      manager.xfalignInitial(null);
     }
     else if (command.equals(btnMidas.getActionCommand())) {
       manager.midasSample();
     }
     else if (command.equals(btnRefineAutoAlignment.getActionCommand())) {
       btnMidas.setEnabled(false);
-      manager.xfalignRefine();
+      manager.xfalignRefine(null);
     }
     else if (command.equals(btnRevertToMidas.getActionCommand())) {
       manager.revertXfFileToMidas();
@@ -1644,13 +1648,15 @@ public final class JoinDialog implements ContextMenu, Run3dmodButtonContainer {
       manager.revertXfFileToEmpty();
     }
     else if (command.equals(btnFinishJoin.getActionCommand())) {
-      manager.finishjoin(FinishjoinParam.Mode.FINISH_JOIN, FINISH_JOIN_TEXT);
+      manager.finishjoin(FinishjoinParam.Mode.FINISH_JOIN, FINISH_JOIN_TEXT,
+          null);
     }
     else if (command.equals(btnGetMaxSize.getActionCommand())) {
-      manager.finishjoin(FinishjoinParam.Mode.MAX_SIZE, GET_MAX_SIZE_TEXT);
+      manager
+          .finishjoin(FinishjoinParam.Mode.MAX_SIZE, GET_MAX_SIZE_TEXT, null);
     }
     else if (command.equals(btnTrialJoin.getActionCommand())) {
-      manager.finishjoin(FinishjoinParam.Mode.TRIAL, TRIAL_JOIN_TEXT);
+      manager.finishjoin(FinishjoinParam.Mode.TRIAL, TRIAL_JOIN_TEXT, null);
     }
     else if (command.equals(btnGetSubarea.getActionCommand())) {
       setSizeAndShift(manager.imodGetRubberbandCoordinates(
@@ -1691,24 +1697,70 @@ public final class JoinDialog implements ContextMenu, Run3dmodButtonContainer {
       startRefine();
     }
     else if (command.equals(btnXfjointomo.getActionCommand())) {
-      manager.xfjointomo();
+      manager.xfjointomo(null);
     }
     else if (command.equals(btnRejoin.getActionCommand())) {
-      manager.finishjoin(FinishjoinParam.Mode.REJOIN, REJOIN_TEXT);
+      manager.finishjoin(FinishjoinParam.Mode.REJOIN, REJOIN_TEXT, null);
     }
     else if (command.equals(btnTrialRejoin.getActionCommand())) {
-      manager.finishjoin(FinishjoinParam.Mode.TRIAL_REJOIN, TRIAL_REJOIN_TEXT);
+      manager.finishjoin(FinishjoinParam.Mode.TRIAL_REJOIN, TRIAL_REJOIN_TEXT,
+          null);
     }
     else if (command.equals(cbGap.getActionCommand())) {
       updateDisplay();
     }
     else if (command.equals(btnTransformModel.getActionCommand())) {
-      manager.xfmodel(ftfModelFile.getText(), ltfTransformedModel.getText());
+      manager.xfmodel(ftfModelFile.getText(), ltfTransformedModel.getText(),
+          null);
     }
     else if (command.equals(btnTransformAndViewModel.getActionCommand())) {
-      manager.finishjoin(FinishjoinParam.Mode.SUPPRESS_EXECUTION, REJOIN_TEXT);
+      manager.finishjoin(FinishjoinParam.Mode.SUPPRESS_EXECUTION, REJOIN_TEXT,
+          null);
     }
-    else if (!run3dmod(command, new Run3dmodMenuOptions())) {
+    else if (command.equals(btnOpenSample.getActionCommand())) {
+      manager.imodOpen(ImodManager.JOIN_SAMPLES_KEY, run3dmodMenuOptions);
+    }
+    else if (command.equals(btnOpenSampleAverages.getActionCommand())) {
+      manager.imodOpen(ImodManager.JOIN_SAMPLE_AVERAGES_KEY,
+          run3dmodMenuOptions);
+    }
+    else if (command.equals(b3bOpenIn3dmod.getActionCommand())) {
+      manager.imodOpen(ImodManager.JOIN_KEY, b3bOpenIn3dmod.getInt(),
+          run3dmodMenuOptions);
+    }
+    else if (command.equals(b3bOpenTrialIn3dmod.getActionCommand())) {
+      manager.imodOpen(ImodManager.TRIAL_JOIN_KEY,
+          b3bOpenTrialIn3dmod.getInt(), run3dmodMenuOptions);
+    }
+    else if (command.equals(btnMakeRefiningModel.getActionCommand())) {
+      manager.imodOpen(ImodManager.MODELED_JOIN_KEY, DatasetFiles
+          .getRefineModelFileName(manager), run3dmodMenuOptions);
+    }
+    else if (command.equals(b3bOpenRejoin.getActionCommand())) {
+      manager.imodOpen(ImodManager.JOIN_KEY, b3bOpenRejoin.getInt(),
+          DatasetFiles.getRefineAlignedModelFileName(manager),
+          run3dmodMenuOptions);
+    }
+    else if (command.equals(b3bOpenTrialRejoin.getActionCommand())) {
+      ConstEtomoNumber useEveryNSlices = state.getRefineTrialUseEveryNSlices();
+      if (useEveryNSlices.isNull() || useEveryNSlices.gt(1)) {
+        //don't open the model if all the slices have not been included
+        manager.imodOpen(ImodManager.TRIAL_JOIN_KEY, b3bOpenTrialRejoin
+            .getInt(), run3dmodMenuOptions);
+      }
+      else {
+        manager.imodOpen(ImodManager.TRIAL_JOIN_KEY, b3bOpenTrialRejoin
+            .getInt(), DatasetFiles.getRefineAlignedModelFileName(manager),
+            run3dmodMenuOptions);
+      }
+    }
+    else if (command.equals(b3bOpenRejoinWithModel.getActionCommand())) {
+      manager.setDebug(true);
+      manager.imodOpen(ImodManager.JOIN_KEY, b3bOpenRejoinWithModel.getInt(),
+          ltfTransformedModel.getText(), run3dmodMenuOptions);
+      manager.setDebug(false);
+    }
+    else {
       throw new IllegalStateException("Unknown command " + command);
     }
   }
@@ -1821,61 +1873,9 @@ public final class JoinDialog implements ContextMenu, Run3dmodButtonContainer {
     refiningJoin = DatasetFiles.getModeledJoinFile(manager).exists();
   }
 
-  public void run3dmod(Run3dmodButton button, Run3dmodMenuOptions menuOptions) {
-    run3dmod(button.getActionCommand(), menuOptions);
-  }
-
-  private boolean run3dmod(String command, Run3dmodMenuOptions menuOptions) {
-    if (command.equals(btnOpenSample.getActionCommand())) {
-      manager.imodOpen(ImodManager.JOIN_SAMPLES_KEY, menuOptions);
-      return true;
-    }
-    if (command.equals(btnOpenSampleAverages.getActionCommand())) {
-      manager.imodOpen(ImodManager.JOIN_SAMPLE_AVERAGES_KEY, menuOptions);
-      return true;
-    }
-    if (command.equals(b3bOpenIn3dmod.getActionCommand())) {
-      manager.imodOpen(ImodManager.JOIN_KEY, b3bOpenIn3dmod.getInt(),
-          menuOptions);
-      return true;
-    }
-    if (command.equals(b3bOpenTrialIn3dmod.getActionCommand())) {
-      manager.imodOpen(ImodManager.TRIAL_JOIN_KEY,
-          b3bOpenTrialIn3dmod.getInt(), menuOptions);
-      return true;
-    }
-    if (command.equals(btnMakeRefiningModel.getActionCommand())) {
-      manager.imodOpen(ImodManager.MODELED_JOIN_KEY, DatasetFiles
-          .getRefineModelFileName(manager), menuOptions);
-      return true;
-    }
-    if (command.equals(b3bOpenRejoin.getActionCommand())) {
-      manager.imodOpen(ImodManager.JOIN_KEY, b3bOpenRejoin.getInt(),
-          DatasetFiles.getRefineAlignedModelFileName(manager), menuOptions);
-      return true;
-    }
-    if (command.equals(b3bOpenTrialRejoin.getActionCommand())) {
-      ConstEtomoNumber useEveryNSlices = state.getRefineTrialUseEveryNSlices();
-      if (useEveryNSlices.isNull() || useEveryNSlices.gt(1)) {
-        //don't open the model if all the slices have not been included
-        manager.imodOpen(ImodManager.TRIAL_JOIN_KEY, b3bOpenTrialRejoin
-            .getInt(), menuOptions);
-      }
-      else {
-        manager.imodOpen(ImodManager.TRIAL_JOIN_KEY, b3bOpenTrialRejoin
-            .getInt(), DatasetFiles.getRefineAlignedModelFileName(manager),
-            menuOptions);
-      }
-      return true;
-    }
-    if (command.equals(b3bOpenRejoinWithModel.getActionCommand())) {
-      manager.setDebug(true);
-      manager.imodOpen(ImodManager.JOIN_KEY, b3bOpenRejoinWithModel.getInt(),
-          ltfTransformedModel.getText(), menuOptions);
-      manager.setDebug(false);
-      return true;
-    }
-    return false;
+  public void action(final Run3dmodButton button,
+      final Run3dmodMenuOptions run3dmodMenuOptions) {
+    action(button.getActionCommand(), run3dmodMenuOptions);
   }
 
   protected void workingDirAction() {
@@ -2055,16 +2055,16 @@ public final class JoinDialog implements ContextMenu, Run3dmodButtonContainer {
   //
   //  Action listener adapters
   //
-  class JoinActionListener implements ActionListener {
+  private final class JoinActionListener implements ActionListener {
 
-    JoinDialog adaptee;
+    private final JoinDialog adaptee;
 
-    JoinActionListener(JoinDialog adaptee) {
+    private JoinActionListener(final JoinDialog adaptee) {
       this.adaptee = adaptee;
     }
 
-    public void actionPerformed(ActionEvent event) {
-      adaptee.action(event);
+    public void actionPerformed(final ActionEvent event) {
+      adaptee.action(event.getActionCommand(), null);
     }
   }
 

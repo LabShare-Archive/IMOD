@@ -44,6 +44,10 @@ import etomo.type.Run3dmodMenuOptions;
  * @version $Revision$
  * 
  * <p> $Log$
+ * <p> Revision 3.32  2007/07/27 21:39:25  sueh
+ * <p> bug# 980 In getParameters(CombineParams) setting useList to "" if the user
+ * <p> enters "/".
+ * <p>
  * <p> Revision 3.31  2007/03/21 19:46:50  sueh
  * <p> bug# 964 Limiting access to autodoc classes by using ReadOnly interfaces.
  * <p> Added AutodocFactory to create Autodoc instances.
@@ -189,8 +193,8 @@ public final class SolvematchPanel implements Run3dmodButtonContainer,
 
   private JPanel pnlImodMatchModels = new JPanel();
   private CheckBox cbBinBy2 = new CheckBox("Load binned by 2");
-  private Run3dmodButton btnImodMatchModels = new Run3dmodButton(
-      "<html><b>Create Matching Models in 3dmod</b>", this);
+  private Run3dmodButton btnImodMatchModels = Run3dmodButton.get3dmodInstance(
+      "Create Matching Models in 3dmod", this);
   private LabeledTextField ltfFiducialMatchListA = new LabeledTextField(
       "Corresponding fiducial list A: ");
   private LabeledTextField ltfFiducialMatchListB = new LabeledTextField(
@@ -549,35 +553,33 @@ public final class SolvematchPanel implements Run3dmodButtonContainer,
     return ltfFiducialMatchListB.getText();
   }
 
-  public void run3dmod(Run3dmodButton button, Run3dmodMenuOptions menuOptions) {
-    run3dmod(button.getActionCommand(), menuOptions);
-  }
-
-  public void run3dmod(String command, Run3dmodMenuOptions menuOptions) {
-    if (command.equals(btnImodMatchModels.getActionCommand())) {
-      applicationManager.imodMatchingModel(cbBinBy2.isSelected(), menuOptions);
-    }
+  public void action(final Run3dmodButton button,
+      final Run3dmodMenuOptions run3dmodMenuOptions) {
+    buttonAction(button.getActionCommand(), run3dmodMenuOptions);
   }
 
   //  Action functions for setup panel buttons
-  protected void buttonAction(ActionEvent event) {
-    String command = event.getActionCommand();
+  private void buttonAction(final String command,
+      final Run3dmodMenuOptions run3dmodMenuOptions) {
     if (command.equals(cbUseCorrespondingPoints.getActionCommand())) {
       updateUseCorrespondingPoints();
     }
-    //  Synchronize this panel with the others
-    tomogramCombinationDialog.synchronize(parentTitle, true);
-    if (command.equals(cbBinBy2.getActionCommand())) {
-      if (!binningWarning && cbBinBy2.isSelected()) {
-        tomogramCombinationDialog.setBinningWarning(true);
-        binningWarning = true;
-      }
-    }
-    if (initialPanel && command.equals(btnRestart.getActionCommand())) {
-      applicationManager.combine(btnRestart);
-    }
     else {
-      run3dmod(command, new Run3dmodMenuOptions());
+      //  Synchronize this panel with the others
+      tomogramCombinationDialog.synchronize(parentTitle, true);
+      if (command.equals(cbBinBy2.getActionCommand())) {
+        if (!binningWarning && cbBinBy2.isSelected()) {
+          tomogramCombinationDialog.setBinningWarning(true);
+          binningWarning = true;
+        }
+      }
+      else if (initialPanel && command.equals(btnRestart.getActionCommand())) {
+        applicationManager.combine(btnRestart, null);
+      }
+      else if (command.equals(btnImodMatchModels.getActionCommand())) {
+        applicationManager.imodMatchingModel(cbBinBy2.isSelected(),
+            run3dmodMenuOptions);
+      }
     }
   }
 
@@ -625,16 +627,15 @@ public final class SolvematchPanel implements Run3dmodButtonContainer,
   /**
    * Manage the matching models button
    */
-  class SolvematchPanelActionListener implements ActionListener {
+  private final class SolvematchPanelActionListener implements ActionListener {
+    private final SolvematchPanel adaptee;
 
-    SolvematchPanel adaptee;
-
-    public SolvematchPanelActionListener(SolvematchPanel adaptee) {
+    private SolvematchPanelActionListener(final SolvematchPanel adaptee) {
       this.adaptee = adaptee;
     }
 
-    public void actionPerformed(ActionEvent event) {
-      adaptee.buttonAction(event);
+    public void actionPerformed(final ActionEvent event) {
+      adaptee.buttonAction(event.getActionCommand(), null);
     }
   }
 

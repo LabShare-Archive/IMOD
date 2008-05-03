@@ -39,6 +39,9 @@ import etomo.util.Utilities;
  * @version $Revision$
  * 
  * <p> $Log$
+ * <p> Revision 1.8  2008/02/26 01:39:17  sueh
+ * <p> bug# 1087 Modified initSubdir to fail if ftfVolume is empty.
+ * <p>
  * <p> Revision 1.7  2008/02/01 01:37:14  sueh
  * <p> bug# 1075 Easter egg.
  * <p>
@@ -80,13 +83,13 @@ public final class AnisotropicDiffusionDialog implements ContextMenu,
   static final String TEST_VOLUME_NAME = "test.input";
 
   private final SpacedPanel rootPanel = new SpacedPanel();
-  private final Run3dmodButton btnViewFullVolume = new Run3dmodButton(
-      "View Full Volume", this);
+  private final Run3dmodButton btnViewFullVolume = Run3dmodButton
+      .get3dmodInstance("View Full Volume", this);
   private final FileTextField ftfVolume = new FileTextField("Pick a volume");
   private final MultiLineButton btnExtractTestVolume = new MultiLineButton(
       "Extract Test Volume");
-  private final Run3dmodButton btnViewTestVolume = new Run3dmodButton(
-      "View Test Volume", this);
+  private final Run3dmodButton btnViewTestVolume = Run3dmodButton
+      .get3dmodInstance("View Test Volume", this);
   private final CheckBox cbLoadWithFlipping = new CheckBox("Load with flipping");
   private final LabeledTextField ltfTestKValueList = new LabeledTextField(
       K_VALUE_LIST_LABEL);
@@ -94,23 +97,23 @@ public final class AnisotropicDiffusionDialog implements ContextMenu,
       ITERATION_LABEL, 10, 1, 200);
   private final MultiLineButton btnRunVaryingK = new MultiLineButton(
       "Run with Different K Values");
-  private final Run3dmodButton btnViewVaryingK = new Run3dmodButton(
-      "View Different K Values Test Results", this);
+  private final Run3dmodButton btnViewVaryingK = Run3dmodButton
+      .get3dmodInstance("View Different K Values Test Results", this);
   private final LabeledTextField ltfTestKValue = new LabeledTextField(
       K_VALUE_LABEL);
   private final LabeledTextField ltfTestIterationList = new LabeledTextField(
       ITERATION_LIST_LABEL);
   private MultiLineButton btnRunVaryingIteration = new MultiLineButton(
       "Run with Different Iterations");
-  private Run3dmodButton btnViewVaryingIteration = new Run3dmodButton(
-      "View Different Iteration Test Results", this);
+  private Run3dmodButton btnViewVaryingIteration = Run3dmodButton
+      .get3dmodInstance("View Different Iteration Test Results", this);
   private final LabeledTextField ltfKValue = new LabeledTextField(K_VALUE_LABEL);
   private final Spinner spIteration = Spinner.getLabeledInstance(
       ITERATION_LABEL, 10, 1, 200);
   private MultiLineButton btnRunFilterFullVolume = new MultiLineButton(
       "Filter Full Volume");
-  private Run3dmodButton btnViewFilteredVolume = new Run3dmodButton(
-      "View Filtered Volume", this);
+  private Run3dmodButton btnViewFilteredVolume = Run3dmodButton
+      .get3dmodInstance("View Filtered Volume", this);
   private final Spinner spMemoryPerChunk = Spinner.getLabeledInstance(
       "Memory per chunk (MB): ", MEMORY_PER_CHUNK_DEFAULT,
       ChunksetupParam.MEMORY_TO_VOXEL, 30 * ChunksetupParam.MEMORY_TO_VOXEL,
@@ -359,9 +362,9 @@ public final class AnisotropicDiffusionDialog implements ContextMenu,
     return rootPanel.getContainer();
   }
 
-  public void run3dmod(final Run3dmodButton button,
-      final Run3dmodMenuOptions menuOptions) {
-    run3dmod(button.getActionCommand(), menuOptions);
+  public void action(final Run3dmodButton button,
+      final Run3dmodMenuOptions run3dmodMenuOptions) {
+    action(button.getActionCommand(), run3dmodMenuOptions);
   }
 
   public void getInitialParameters(final ParallelMetaData metaData) {
@@ -494,25 +497,25 @@ public final class AnisotropicDiffusionDialog implements ContextMenu,
     subdirName = null;
   }
 
-  private void action(final ActionEvent event) {
-    String command = event.getActionCommand();
+  private void action(final String command,
+      final Run3dmodMenuOptions run3dmodMenuOptions) {
     if (command.equals(btnExtractTestVolume.getActionCommand())) {
       if (!initSubdir()) {
         return;
       }
-      manager.trimVolume();
+      manager.trimVolume(null);
     }
     else if (command.equals(btnRunVaryingK.getActionCommand())) {
       if (!initSubdir()) {
         return;
       }
-      manager.anisotropicDiffusionVaryingK(subdirName);
+      manager.anisotropicDiffusionVaryingK(subdirName, null);
     }
     else if (command.equals(btnRunVaryingIteration.getActionCommand())) {
       if (!initSubdir()) {
         return;
       }
-      manager.anisotropicDiffusionVaryingIteration(subdirName);
+      manager.anisotropicDiffusionVaryingIteration(subdirName, null);
     }
     else if (command.equals(btnRunFilterFullVolume.getActionCommand())) {
       if (!initSubdir()) {
@@ -521,15 +524,35 @@ public final class AnisotropicDiffusionDialog implements ContextMenu,
       if (!manager.setupAnisotropicDiffusion()) {
         return;
       }
-      manager.chunksetup();
+      manager.chunksetup(null);
     }
     else if (command.equals(btnCleanup.getActionCommand())) {
       if (subdirName != null) {
         deleteSubdir();
       }
     }
-    else {
-      run3dmod(command, new Run3dmodMenuOptions());
+    else if (command.equals(btnViewFullVolume.getActionCommand())) {
+      manager.imod(ImodManager.VOLUME_KEY, ftfVolume.getFile(),
+          run3dmodMenuOptions, cbLoadWithFlipping.isSelected());
+    }
+    else if (command.equals(btnViewTestVolume.getActionCommand())) {
+      manager.imod(ImodManager.TEST_VOLUME_KEY, new File(subdirName,
+          "test.input"), run3dmodMenuOptions, cbLoadWithFlipping.isSelected());
+    }
+    else if (command.equals(btnViewVaryingK.getActionCommand())) {
+      manager.imodVaryingKValue(ImodManager.VARYING_K_TEST_KEY,
+          run3dmodMenuOptions, subdirName, TEST_VOLUME_NAME, cbLoadWithFlipping
+              .isSelected());
+    }
+    else if (command.equals(btnViewVaryingIteration.getActionCommand())) {
+      manager.imodVaryingIteration(ImodManager.VARYING_ITERATION_TEST_KEY,
+          run3dmodMenuOptions, subdirName, TEST_VOLUME_NAME, cbLoadWithFlipping
+              .isSelected());
+    }
+    else if (command.equals(btnViewFilteredVolume.getActionCommand())) {
+      manager.imod(ImodManager.ANISOTROPIC_DIFFUSION_VOLUME_KEY, new File(
+          getOutputFileName(ftfVolume.getFileAbsolutePath())),
+          run3dmodMenuOptions, cbLoadWithFlipping.isSelected());
     }
   }
 
@@ -556,32 +579,6 @@ public final class AnisotropicDiffusionDialog implements ContextMenu,
     initSubdir();
   }
 
-  private void run3dmod(final String command,
-      final Run3dmodMenuOptions menuOptions) {
-    if (command.equals(btnViewFullVolume.getActionCommand())) {
-      manager.imod(ImodManager.VOLUME_KEY, ftfVolume.getFile(), menuOptions,
-          cbLoadWithFlipping.isSelected());
-    }
-    else if (command.equals(btnViewTestVolume.getActionCommand())) {
-      manager.imod(ImodManager.TEST_VOLUME_KEY, new File(subdirName,
-          "test.input"), menuOptions, cbLoadWithFlipping.isSelected());
-    }
-    else if (command.equals(btnViewVaryingK.getActionCommand())) {
-      manager.imodVaryingKValue(ImodManager.VARYING_K_TEST_KEY, menuOptions,
-          subdirName, TEST_VOLUME_NAME, cbLoadWithFlipping.isSelected());
-    }
-    else if (command.equals(btnViewVaryingIteration.getActionCommand())) {
-      manager.imodVaryingIteration(ImodManager.VARYING_ITERATION_TEST_KEY,
-          menuOptions, subdirName, TEST_VOLUME_NAME, cbLoadWithFlipping
-              .isSelected());
-    }
-    else if (command.equals(btnViewFilteredVolume.getActionCommand())) {
-      manager.imod(ImodManager.ANISOTROPIC_DIFFUSION_VOLUME_KEY, new File(
-          getOutputFileName(ftfVolume.getFileAbsolutePath())), menuOptions,
-          cbLoadWithFlipping.isSelected());
-    }
-  }
-
   private static String getOutputFileName(String fileName) {
     return fileName + ".nad";
   }
@@ -594,7 +591,7 @@ public final class AnisotropicDiffusionDialog implements ContextMenu,
     }
 
     public void actionPerformed(final ActionEvent event) {
-      adaptee.action(event);
+      adaptee.action(event.getActionCommand(), null);
     }
   }
 
