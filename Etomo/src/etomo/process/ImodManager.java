@@ -36,6 +36,9 @@ import etomo.util.DatasetFiles;
  * @version $Revision$
  *
  * <p> $Log$
+ * <p> Revision 3.60  2008/05/01 22:53:56  sueh
+ * <p> bug# 1107 In newAvgVol() added -V -Z -E U to 3dmod command.
+ * <p>
  * <p> Revision 3.59  2008/02/14 21:29:02  sueh
  * <p> bug# 1077 Make sure that disconnect attempts to disconnect each
  * <p> ImodState, even if there is an exception.
@@ -710,7 +713,7 @@ public class ImodManager {
 
   public void open(String key) throws AxisTypeException,
       SystemProcessException, IOException {
-    open(key, null, null, new Run3dmodMenuOptions());
+    open(key, null, null, null);
   }
 
   public void open(String key, Run3dmodMenuOptions menuOptions)
@@ -730,10 +733,6 @@ public class ImodManager {
   public void open(String key, AxisID axisID, Run3dmodMenuOptions menuOptions)
       throws AxisTypeException, SystemProcessException, IOException {
     open(key, axisID, null, menuOptions);
-    //used for:
-    //openCoarseAligned
-    //openErasedStack
-    //openFineAligned
   }
 
   public void open(String key, AxisID axisID, String model)
