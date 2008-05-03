@@ -6,6 +6,7 @@ import java.util.Vector;
 import etomo.BaseManager;
 import etomo.storage.LogFile;
 import etomo.type.AxisID;
+import etomo.type.ConstProcessSeries;
 import etomo.type.ConstStringProperty;
 import etomo.type.ProcessEndState;
 import etomo.type.ProcessName;
@@ -78,6 +79,10 @@ final class ReconnectProcess implements SystemProcessInterface, Runnable {
     instance.logSuccessTag = logSuccessTag;
     instance.monitorControl = true;
     return instance;
+  }
+  
+  public ConstProcessSeries getProcessSeries() {
+    return null;
   }
 
   public void run() {
@@ -253,6 +258,9 @@ final class ReconnectProcess implements SystemProcessInterface, Runnable {
 }
 /**
  * <p> $Log$
+ * <p> Revision 1.5  2008/01/31 20:20:28  sueh
+ * <p> bug# 1055 throwing a FileException when LogFile.getInstance fails.
+ * <p>
  * <p> Revision 1.4  2008/01/14 20:33:09  sueh
  * <p> bug# 1050 Made class more generic.  Allowing any ProcessMonitor class
  * <p> instead of only FileSizeProcessMonitor classes.  Switched to getInstance to get

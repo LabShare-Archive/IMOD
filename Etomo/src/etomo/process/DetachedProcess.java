@@ -9,6 +9,7 @@ import etomo.BaseManager;
 import etomo.comscript.DetachedCommand;
 import etomo.storage.LogFile;
 import etomo.type.AxisID;
+import etomo.type.ConstProcessSeries;
 import etomo.type.ProcessEndState;
 import etomo.type.ProcessName;
 import etomo.type.ProcessResultDisplay;
@@ -49,8 +50,8 @@ final class DetachedProcess extends BackgroundProcess {
   public DetachedProcess(BaseManager manager, DetachedCommand command,
       BaseProcessManager processManager, AxisID axisID,
       OutfileProcessMonitor monitor, ProcessResultDisplay processResultDisplay,
-      ProcessName processName) {
-    super(manager, command, processManager, axisID, processName);
+      ProcessName processName, ConstProcessSeries processSeries) {
+    super(manager, command, processManager, axisID, processName, processSeries);
     this.axisID = axisID;
     this.manager = manager;
     this.monitor = monitor;
@@ -247,6 +248,9 @@ final class DetachedProcess extends BackgroundProcess {
 }
 /**
  * <p> $Log$
+ * <p> Revision 1.15  2008/01/14 21:29:22  sueh
+ * <p> bug# 1050 In setSubdirName setting processData.subDirName.
+ * <p>
  * <p> Revision 1.14  2007/12/17 18:36:25  sueh
  * <p> bug# 1061 Added the option to write a second command line to the run file.
  * <p>

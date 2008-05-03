@@ -8,6 +8,7 @@ import etomo.comscript.Command;
 import etomo.comscript.CommandDetails;
 import etomo.comscript.ProcessDetails;
 import etomo.type.AxisID;
+import etomo.type.ConstProcessSeries;
 import etomo.type.ProcessEndState;
 import etomo.type.ProcessName;
 import etomo.type.ProcessResultDisplay;
@@ -26,6 +27,11 @@ import etomo.ui.UIHarness;
  * @version $Revision$
  * 
  * <p> $Log$
+ * <p> Revision 3.36  2008/01/14 20:27:06  sueh
+ * <p> bug# 1050 Setting the display key in processData.  The display key is a key
+ * <p> which allows the correct ProcessResultDisplay to be retrieved from
+ * <p> ProcessResultDisplayFactory.
+ * <p>
  * <p> Revision 3.35  2007/11/06 19:19:48  sueh
  * <p> bug# 1047 Added getCommandDetails.
  * <p>
@@ -263,6 +269,7 @@ public class BackgroundProcess extends Thread implements SystemProcessInterface 
   private AxisID axisID;
   private boolean forceNextProcess = false;
   private final ProcessData processData;
+  private final ConstProcessSeries processSeries;
 
   //private String stdoutLogFile = "";
   //private String stderrLogFile = "";
@@ -276,7 +283,8 @@ public class BackgroundProcess extends Thread implements SystemProcessInterface 
 
   public BackgroundProcess(BaseManager manager, ArrayList commandArrayList,
       BaseProcessManager processManager, AxisID axisID,
-      ProcessResultDisplay processResultDisplay, ProcessName processName) {
+      ProcessResultDisplay processResultDisplay, ProcessName processName,
+      ConstProcessSeries processSeries) {
     this.manager = manager;
     this.axisID = axisID;
     this.commandArrayList = commandArrayList;
@@ -285,10 +293,11 @@ public class BackgroundProcess extends Thread implements SystemProcessInterface 
     commandProcessID = new StringBuffer("");
     processData = ProcessData.getManagedInstance(axisID, manager, processName);
     processData.setDisplayKey(processResultDisplay);
+    this.processSeries = processSeries;
   }
 
   public BackgroundProcess(BaseManager manager, CommandDetails commandDetails,
-      BaseProcessManager processManager, AxisID axisID, ProcessName processName) {
+      BaseProcessManager processManager, AxisID axisID, ProcessName processName,ConstProcessSeries processSeries) {
     this.manager = manager;
     this.axisID = axisID;
     this.commandDetails = commandDetails;
@@ -298,11 +307,13 @@ public class BackgroundProcess extends Thread implements SystemProcessInterface 
     this.processManager = processManager;
     commandProcessID = new StringBuffer("");
     processData = ProcessData.getManagedInstance(axisID, manager, processName);
+    this.processSeries = processSeries;
   }
 
   public BackgroundProcess(BaseManager manager, CommandDetails commandDetails,
       BaseProcessManager processManager, AxisID axisID,
-      ProcessResultDisplay processResultDisplay, ProcessName processName) {
+      ProcessResultDisplay processResultDisplay, ProcessName processName,
+      ConstProcessSeries processSeries) {
     this.manager = manager;
     this.axisID = axisID;
     command = commandDetails;
@@ -314,11 +325,13 @@ public class BackgroundProcess extends Thread implements SystemProcessInterface 
     commandProcessID = new StringBuffer("");
     processData = ProcessData.getManagedInstance(axisID, manager, processName);
     processData.setDisplayKey(processResultDisplay);
+    this.processSeries = processSeries;
   }
 
   public BackgroundProcess(BaseManager manager, Command command,
       BaseProcessManager processManager, AxisID axisID,
-      boolean forceNextProcess, ProcessName processName) {
+      boolean forceNextProcess, ProcessName processName,
+      ConstProcessSeries processSeries) {
     this.manager = manager;
     this.axisID = axisID;
     this.command = command;
@@ -327,11 +340,13 @@ public class BackgroundProcess extends Thread implements SystemProcessInterface 
     this.forceNextProcess = forceNextProcess;
     commandProcessID = new StringBuffer("");
     processData = ProcessData.getManagedInstance(axisID, manager, processName);
+    this.processSeries = processSeries;
   }
 
   public BackgroundProcess(BaseManager manager, String[] commandArray,
       BaseProcessManager processManager, AxisID axisID,
-      ProcessResultDisplay processResultDisplay, ProcessName processName) {
+      ProcessResultDisplay processResultDisplay, ProcessName processName,
+      ConstProcessSeries processSeries) {
     this.manager = manager;
     this.axisID = axisID;
     this.commandArray = commandArray;
@@ -340,20 +355,23 @@ public class BackgroundProcess extends Thread implements SystemProcessInterface 
     commandProcessID = new StringBuffer("");
     processData = ProcessData.getManagedInstance(axisID, manager, processName);
     processData.setDisplayKey(processResultDisplay);
+    this.processSeries = processSeries;
   }
 
   public BackgroundProcess(BaseManager manager, String[] commandArray,
-      BaseProcessManager processManager, AxisID axisID, ProcessName processName) {
+      BaseProcessManager processManager, AxisID axisID, ProcessName processName,ConstProcessSeries processSeries) {
     this.manager = manager;
     this.axisID = axisID;
     this.commandArray = commandArray;
     this.processManager = processManager;
     commandProcessID = new StringBuffer("");
     processData = ProcessData.getManagedInstance(axisID, manager, processName);
+    this.processSeries = processSeries;
   }
 
   public BackgroundProcess(BaseManager manager, Command command,
-      BaseProcessManager processManager, AxisID axisID, ProcessName processName) {
+      BaseProcessManager processManager, AxisID axisID,
+      ProcessName processName, ConstProcessSeries processSeries) {
     this.manager = manager;
     this.axisID = axisID;
     this.command = command;
@@ -361,12 +379,13 @@ public class BackgroundProcess extends Thread implements SystemProcessInterface 
     this.processManager = processManager;
     commandProcessID = new StringBuffer("");
     processData = ProcessData.getManagedInstance(axisID, manager, processName);
+    this.processSeries = processSeries;
   }
 
   public BackgroundProcess(BaseManager manager, String[] commandArray,
       BaseProcessManager processManager, AxisID axisID,
       boolean forceNextProcess, ProcessResultDisplay processResultDisplay,
-      ProcessName processName) {
+      ConstProcessSeries processSeries, ProcessName processName) {
     this.manager = manager;
     this.axisID = axisID;
     this.commandArray = commandArray;
@@ -376,6 +395,11 @@ public class BackgroundProcess extends Thread implements SystemProcessInterface 
     commandProcessID = new StringBuffer("");
     processData = ProcessData.getManagedInstance(axisID, manager, processName);
     processData.setDisplayKey(processResultDisplay);
+    this.processSeries = processSeries;
+  }
+
+  public final ConstProcessSeries getProcessSeries() {
+    return processSeries;
   }
 
   public final AxisID getAxisID() {

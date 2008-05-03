@@ -13,6 +13,7 @@ import etomo.EtomoDirector;
 import etomo.comscript.ComscriptState;
 import etomo.storage.LogFile;
 import etomo.type.AxisID;
+import etomo.type.ConstProcessSeries;
 import etomo.util.Utilities;
 
 /**
@@ -32,6 +33,9 @@ import etomo.util.Utilities;
  * @version $$Revision$$
  * 
  * <p> $Log$
+ * <p> Revision 1.29  2008/01/31 20:17:32  sueh
+ * <p> bug# 1055 throwing a FileException when LogFile.getInstance fails.
+ * <p>
  * <p> Revision 1.28  2007/12/26 22:12:10  sueh
  * <p> bug# 1052 Moved argument handling from EtomoDirector to a separate class.
  * <p>
@@ -207,8 +211,10 @@ public class BackgroundComScriptProcess extends ComScriptProcess {
    */
   public BackgroundComScriptProcess(BaseManager manager, String comScript,
       BaseProcessManager processManager, AxisID axisID, String watchedFileName,
-      DetachedProcessMonitor monitor, ComscriptState comscriptState) {
-    super(manager, comScript, processManager, axisID, watchedFileName, monitor);
+      DetachedProcessMonitor monitor, ComscriptState comscriptState,
+      ConstProcessSeries processSeries) {
+    super(manager, comScript, processManager, axisID, watchedFileName, monitor,
+        processSeries);
     this.comscriptState = comscriptState;
     this.axisID = axisID;
     this.manager = manager;
