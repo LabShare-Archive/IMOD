@@ -37,6 +37,9 @@ import etomo.type.Run3dmodMenuOptions;
  * @version $Revision$
  *
  * <p> $Log$
+ * <p> Revision 3.30  2007/12/26 22:22:00  sueh
+ * <p> bug# 1052 Return true when done() completes successfully.
+ * <p>
  * <p> Revision 3.29  2007/11/14 23:47:02  sueh
  * <p> bug# 1048 Added beam tilt tab to the log file display - if taBeamtilt.log is not empty.
  * <p>
@@ -287,14 +290,14 @@ public final class AlignmentEstimationDialog extends ProcessDialog implements
 
   private final MultiLineButton btnComputeAlignment;
 
-  private Run3dmodButton btnImod = new Run3dmodButton(
-      "<html><b>View/Edit Fiducial Model</b>", this);
+  private Run3dmodButton btnImod = Run3dmodButton.get3dmodInstance(
+      "View/Edit Fiducial Model", this);
 
   private MultiLineButton btnView3DModel = new MultiLineButton(
       "<html><b>View 3D Model</b>");
 
-  private Run3dmodButton btnViewResiduals = new Run3dmodButton(
-      "<html><b>View Residual Vectors</b>", this);
+  private Run3dmodButton btnViewResiduals = Run3dmodButton.get3dmodInstance(
+      "View Residual Vectors", this);
 
   private final AlignmentEstimationActionListner actionListener;
 
@@ -424,7 +427,7 @@ public final class AlignmentEstimationDialog extends ProcessDialog implements
     File beamtiltLog = new File(applicationManager.getPropertyUserDir(),
         beamtiltLogName);
     String[] logFileList;
-    if (beamtiltLog.length()>0) {
+    if (beamtiltLog.length() > 0) {
       logFileList = new String[9];
     }
     else {
@@ -438,7 +441,7 @@ public final class AlignmentEstimationDialog extends ProcessDialog implements
     logFileList[5] = "taResiduals" + axisID.getExtension() + ".log";
     logFileList[6] = "taMappings" + axisID.getExtension() + ".log";
     logFileList[7] = "taCoordinates" + axisID.getExtension() + ".log";
-    if (beamtiltLog.length()>0) {
+    if (beamtiltLog.length() > 0) {
       logFileList[8] = beamtiltLogName;
     }
 
@@ -470,33 +473,26 @@ public final class AlignmentEstimationDialog extends ProcessDialog implements
     UIHarness.INSTANCE.pack(axisID, applicationManager);
   }
 
-  public void run3dmod(final Run3dmodButton button,
-      final Run3dmodMenuOptions menuOptions) {
-    run3dmod(button.getActionCommand(), menuOptions);
-  }
-
-  private void run3dmod(final String command,
-      final Run3dmodMenuOptions menuOptions) {
-    if (command.equals(btnImod.getActionCommand())) {
-      applicationManager.imodFixFiducials(axisID, menuOptions, null,
-          ImodProcess.RESIDUAL_MODE);
-    }
-    else if (command.equals(btnViewResiduals.getActionCommand())) {
-      applicationManager.imodViewResiduals(axisID, menuOptions);
-    }
+  public void action(final Run3dmodButton button,
+      final Run3dmodMenuOptions run3dmodMenuOptions) {
+    buttonAction(button.getActionCommand(), run3dmodMenuOptions);
   }
 
   //  Event handler for panel buttons
-  void buttonAction(ActionEvent event) {
-    String command = event.getActionCommand();
+  void buttonAction(String command,
+      final Run3dmodMenuOptions run3dmodMenuOptions) {
     if (command.equals(btnComputeAlignment.getActionCommand())) {
-      applicationManager.fineAlignment(axisID, btnComputeAlignment);
+      applicationManager.fineAlignment(axisID, btnComputeAlignment, null);
     }
     else if (command.equals(btnView3DModel.getActionCommand())) {
       applicationManager.imodView3DModel(axisID);
     }
-    else {
-      run3dmod(command, new Run3dmodMenuOptions());
+    else if (command.equals(btnImod.getActionCommand())) {
+      applicationManager.imodFixFiducials(axisID, run3dmodMenuOptions, null,
+          ImodProcess.RESIDUAL_MODE);
+    }
+    else if (command.equals(btnViewResiduals.getActionCommand())) {
+      applicationManager.imodViewResiduals(axisID, run3dmodMenuOptions);
     }
   }
 
@@ -510,7 +506,7 @@ public final class AlignmentEstimationDialog extends ProcessDialog implements
     }
 
     public void actionPerformed(ActionEvent event) {
-      adaptee.buttonAction(event);
+      adaptee.buttonAction(event.getActionCommand(), null);
     }
   }
 
