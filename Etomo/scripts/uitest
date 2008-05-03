@@ -24,7 +24,11 @@ elif [[ $1 == '--help' || $1 == '-h' ]] ; then
 fi
 
 
-javaMemLim=128m
+# To increase the memory limit for Java, define this environment variable
+# to a higher number
+#
+export ETOMO_MEM_LIM=${ETOMO_MEM_LIM:=128m}
+
 
 # If you wish to use a different java runtime than the default uncomment the
 # following line and define the path to the desired runtime directory
@@ -135,7 +139,16 @@ if java -version 2>&1 | grep GNU > /dev/null ; then
 fi
 
 #  Workaround for java 1.4.0 / new threading library clash
-export LD_ASSUME_KERNEL=2.4.1
+#  Really needed to be gone for Fedora Core 5, so make it 2.4 specific
+osname=`uname -s`
+if [ $osname == 'Linux' ] ; then
+  kvers=`uname -r | sed '/\./s// /g'`
+  kvers1=`echo $kvers | awk '{print $1}'`
+  kvers2=`echo $kvers | awk '{print $2}'`
+  if [[ ${kvers1} -eq 2 && ${kvers2} -eq 4 ]] ; then
+    export LD_ASSUME_KERNEL=2.4.1
+  fi
+fi
 
 # Test for existance of IMOD_UITEST_SOURCE
 if [ -z "$IMOD_UITEST_SOURCE" ]; then
@@ -173,7 +186,7 @@ fi
 export IMOD_TEST_SECTION=$1
 echo "starting eTomo UI test:  Test section $IMOD_TEST_SECTION"
 echo "class_path:  $class_path"
-java -Xmx${javaMemLim} -cp "$class_path" \
+java -Xmx${ETOMO_MEM_LIM} -cp "$class_path" \
 junit.textui.TestRunner etomo.JfcUnitTests 2>${errlog} >${outlog}
 #
 # $Log$
