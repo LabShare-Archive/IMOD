@@ -25,6 +25,10 @@ import etomo.type.DialogType;
  * @version $Revision$
  * 
  * <p> $Log$
+ * <p> Revision 1.2  2007/09/13 18:38:08  sueh
+ * <p> bug# 847 Added action().  Using ActionElement instead of strings to identify the
+ * <p> menu item selected.
+ * <p>
  * <p> Revision 1.1  2007/08/10 17:32:53  sueh
  * <p> bug# 847 Class to create a MultiLineButton with a custom right-click menu.
  * <p> </p>
@@ -47,6 +51,11 @@ final class MenuButton extends MultiLineButton implements ContextMenu {
    */
   MenuButton(String label, boolean toggleButton, DialogType dialogType) {
     super(label, toggleButton, dialogType);
+  }
+  
+  static final MenuButton getToggleMenuButtonInstance(String label,
+      DialogType dialogType) {
+    return new MenuButton(label, true, dialogType);
   }
 
   void addMenu(MenuButtonContainer menuButtonContainer,
