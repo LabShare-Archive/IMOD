@@ -33,6 +33,7 @@ import etomo.type.BaseMetaData;
 import etomo.type.BaseProcessTrack;
 import etomo.type.BaseScreenState;
 import etomo.type.BaseState;
+import etomo.type.ConstProcessSeries;
 import etomo.type.DialogType;
 import etomo.type.InterfaceType;
 import etomo.type.ProcessEndState;
@@ -43,6 +44,7 @@ import etomo.type.UserConfiguration;
 import etomo.ui.MainPanel;
 import etomo.ui.AbstractParallelDialog;
 import etomo.ui.ParallelPanel;
+import etomo.ui.Run3dmodProcess;
 import etomo.ui.UIHarness;
 import etomo.util.Utilities;
 
@@ -79,11 +81,6 @@ public abstract class BaseManager {
   File paramFile = null;
   //FIXME homeDirectory may not have to be visible
   String homeDirectory;
-  // Control variable for process execution
-  private String nextProcessA = "";
-  private String nextProcessB = "";
-  private String lastProcessA = "";
-  private String lastProcessB = "";
   String threadNameA = "none";
 
   String threadNameB = "none";
@@ -146,7 +143,10 @@ public abstract class BaseManager {
   abstract void processSucceeded(AxisID axisID, ProcessName processName);
 
   abstract void startNextProcess(AxisID axisID, String nextProcess,
-      ProcessResultDisplay processResultDisplay);
+      ProcessResultDisplay processResultDisplay, ProcessSeries processSeries);
+
+  abstract void startNextProcess(AxisID axisID,
+      Run3dmodProcess run3dmodProcess, Run3dmodMenuOptions run3dmodMenuOptions);
 
   abstract Storable[] getStorables(int offset);
 
@@ -163,6 +163,7 @@ public abstract class BaseManager {
     createComScriptManager();
     //  Initialize the program settings
     debug = EtomoDirector.INSTANCE.getArguments().isDebug();
+    debug = true;
     headless = EtomoDirector.INSTANCE.getArguments().isHeadless();
     if (!headless) {
       createMainPanel();
@@ -184,8 +185,6 @@ public abstract class BaseManager {
         + userConfig + ",\nloadedParamFile=" + loadedParamFile
         + ",imodManager=" + imodManager + ",\ncomScriptMgr=" + comScriptMgr
         + ",paramFile=" + paramFile + ",\nhomeDirectory=" + homeDirectory
-        + ",nextProcessA=" + nextProcessA + ",\nnextProcessB=" + nextProcessB
-        + ",lastProcessA=" + lastProcessA + ",\nlastProcessB=" + lastProcessB
         + ",threadNameA=" + threadNameA + ",\nthreadNameB=" + threadNameB
         + ",backgroundProcessA=" + backgroundProcessA
         + ",\nbackgroundProcessNameA=" + backgroundProcessNameA
@@ -422,25 +421,22 @@ public abstract class BaseManager {
       }
       //  Check to see if next processes have to be done
       ArrayList messageArray = new ArrayList();
+      ConstProcessSeries processSeriesA = null;
+      ConstProcessSeries processSeriesB = null;
       String nextProcessA = null;
       String nextProcessB = null;
-      if (isNextProcessSet(AxisID.FIRST)) {
-        nextProcessA = getNextProcess(AxisID.FIRST);
+      if (processA != null
+          && (processSeriesA = processA.getProcessSeries()) != null) {
+        nextProcessA = processSeriesA.peekNextProcess();
       }
-      if (isNextProcessSet(AxisID.SECOND)) {
-        nextProcessB = getNextProcess(AxisID.SECOND);
+      if (processB != null
+          && (processSeriesB = processB.getProcessSeries()) != null) {
+        nextProcessB = processSeriesB.peekNextProcess();
       }
       if (nextProcessA != null || nextProcessB != null) {
         boolean twoProcesses = nextProcessA != null && nextProcessB != null;
         StringBuffer message = new StringBuffer(
-            "WARNING!!!\nIf you exit now then the current process");
-        if (twoProcesses) {
-          message.append("es");
-        }
-        message.append(" will not finish.  The subprocess");
-        if (twoProcesses) {
-          message.append("es");
-        }
+            "WARNING!!!\nIf you exit now then the current process(es) will not finish.  The subprocess(es)");
         if (nextProcessA != null) {
           message.append(" " + nextProcessA + " on Axis A");
         }
@@ -763,17 +759,19 @@ public abstract class BaseManager {
    */
   public final void processDone(String threadName, int exitValue,
       ProcessName processName, AxisID axisID, ProcessEndState endState,
-      boolean failed, ProcessResultDisplay processResultDisplay) {
+      boolean failed, ProcessResultDisplay processResultDisplay,
+      ConstProcessSeries processSeries) {
     processDone(threadName, exitValue, processName, axisID, false, endState,
-        null, failed, processResultDisplay);
+        null, failed, processResultDisplay, processSeries);
   }
 
   public final void processDone(String threadName, int exitValue,
       ProcessName processName, AxisID axisID, boolean forceNextProcess,
       ProcessEndState endState, boolean failed,
-      ProcessResultDisplay processResultDisplay) {
+      ProcessResultDisplay processResultDisplay,
+      ConstProcessSeries processSeries) {
     processDone(threadName, exitValue, processName, axisID, forceNextProcess,
-        endState, null, failed, processResultDisplay);
+        endState, null, failed, processResultDisplay, processSeries);
   }
 
   /**
@@ -785,7 +783,8 @@ public abstract class BaseManager {
   public final void processDone(String threadName, int exitValue,
       ProcessName processName, AxisID axisID, boolean forceNextProcess,
       ProcessEndState endState, String statusString, boolean failed,
-      ProcessResultDisplay processResultDisplay) {
+      ProcessResultDisplay processResultDisplay,
+      ConstProcessSeries processSeries) {
     if (threadName.equals(threadNameA)) {
       getMainPanel().stopProgressBar(AxisID.FIRST, endState, statusString);
       threadNameA = "none";
@@ -810,16 +809,16 @@ public abstract class BaseManager {
     //nextProcess execute even when the current process failed).
     if (endState != ProcessEndState.KILLED
         && (exitValue == 0 || forceNextProcess)) {
-      if (!startNextProcess(axisID, processResultDisplay)) {
+      if (processSeries == null
+          || !processSeries.startNextProcess(axisID, processResultDisplay)) {
         sendMsgProcessSucceeded(processResultDisplay);
         processSucceeded(axisID, processName);
       }
     }
     else {
-      //If the process failed or was killed, get rid of the nextProcess and the
-      //lastProcess, so they can't be executed by mistake.
-      resetNextProcess(axisID);
-      resetLastProcess(axisID);
+      //ProcessSeries gets thrown away after it fails or the processes are used
+      //up, so the processes don't have to be cleared as they did when next
+      //processes where managed by BaseManager.
       if (failed) {
         sendMsgProcessFailed(processResultDisplay);
       }
@@ -898,7 +897,8 @@ public abstract class BaseManager {
    * @param axisID
    */
   public void processchunks(AxisID axisID, ProcesschunksParam param,
-      ProcessResultDisplay processResultDisplay) {
+      ProcessResultDisplay processResultDisplay,
+      ConstProcessSeries processSeries) {
     ParallelPanel parallelPanel = getMainPanel().getParallelPanel(axisID);
     BaseMetaData metaData = getBaseMetaData();
     metaData.setCurrentProcesschunksRootName(axisID, param.getRootName()
@@ -908,7 +908,8 @@ public abstract class BaseManager {
     String threadName;
     try {
       threadName = getProcessManager().processchunks(axisID, param,
-          parallelPanel.getParallelProgressDisplay(), processResultDisplay);
+          parallelPanel.getParallelProgressDisplay(), processResultDisplay,
+          processSeries);
     }
     catch (SystemProcessException e) {
       e.printStackTrace();
@@ -927,11 +928,6 @@ public abstract class BaseManager {
     setThreadName(threadName, axisID);
   }
 
-  void processFailed(AxisID axisID) {
-    resetNextProcess(axisID);
-    resetLastProcess(axisID);
-  }
-
   /**
    * This is a process done function for processes which are completed while the
    * original manager function waits and do not use the process manager.
@@ -948,8 +944,10 @@ public abstract class BaseManager {
    * @param processResultDisplay
    */
   final void processDone(AxisID axisID,
-      ProcessResultDisplay processResultDisplay) {
-    if (!startNextProcess(axisID, processResultDisplay)) {
+      ProcessResultDisplay processResultDisplay,
+      ConstProcessSeries processSeries) {
+    if (processSeries == null
+        || !processSeries.startNextProcess(axisID, processResultDisplay)) {
       sendMsgProcessSucceeded(processResultDisplay);
     }
   }
@@ -982,13 +980,6 @@ public abstract class BaseManager {
     processResultDisplay.msgProcessFailed();
   }
 
-  void sendMsgSecondaryProcess(ProcessResultDisplay processResultDisplay) {
-    if (processResultDisplay == null) {
-      return;
-    }
-    processResultDisplay.msgSecondaryProcess();
-  }
-
   /**
    * Set the current dialog type. This function is called from open functions
    * and from showBlankPRocess(). It allows Etomo to call the done function when
@@ -1017,84 +1008,8 @@ public abstract class BaseManager {
     return currentDialogTypeA;
   }
 
-  /**
-   * Keep final.  If nextProcess is not set, but lastProcess is set, then it
-   * sets nextProcess to lastProcess and resets lastProcess.  Then, if
-   * nextProcess is set, it sends a message to processResultDisplay and starts
-   * the next process.  This function resets nextProcess.
-   * @param axisID
-   * @param processResultDisplay
-   * @return true if a next process is run.
-   */
-  final boolean startNextProcess(AxisID axisID,
-      ProcessResultDisplay processResultDisplay) {
-    if (debug) {
-      System.err.println("startNextProcess:nextProcess="
-          + getNextProcess(axisID) + ",lastProcess=" + getLastProcess(axisID));
-    }
-    if (!isNextProcessSet(axisID) && isLastProcessSet(axisID)) {
-      setNextProcess(axisID, getLastProcess(axisID));
-      resetLastProcess(axisID);
-    }
-    if (isNextProcessSet(axisID)) {
-      sendMsgSecondaryProcess(processResultDisplay);
-      String nextProcess = getNextProcess(axisID);
-      resetNextProcess(axisID);
-      startNextProcess(axisID, nextProcess, processResultDisplay);
-      return true;
-    }
-    return false;
-  }
-
-  /**
-   * Keep final.
-   * @param axisID
-   * @param nextProcess
-   */
-  final void setNextProcess(AxisID axisID, String nextProcess) {
-    if (axisID == AxisID.SECOND) {
-      nextProcessB = nextProcess;
-
-    }
-    else {
-      nextProcessA = nextProcess;
-    }
-  }
-
-  /**
-   * Keep private final.
-   * @param axisID
-   */
-  private final void resetNextProcess(AxisID axisID) {
-    if (axisID == AxisID.SECOND) {
-      nextProcessB = "";
-    }
-    else {
-      nextProcessA = "";
-    }
-  }
-
-  private final String getNextProcess(AxisID axisID) {
-    if (axisID == AxisID.SECOND) {
-      return nextProcessB;
-    }
-    return nextProcessA;
-  }
-
   public void setDebug(boolean debug) {
     this.debug = debug;
-  }
-
-  private final boolean isNextProcessSet(AxisID axisID) {
-    if (axisID == AxisID.SECOND) {
-      if (!nextProcessB.equals("") || processDialogTypeB != null) {
-        return true;
-      }
-    }
-    else if (!nextProcessA.equals("") || processDialogTypeA != null) {
-      return true;
-    }
-    return false;
   }
 
   public void setProcessDialogType(AxisID axisID, DialogType dialogType) {
@@ -1120,50 +1035,6 @@ public abstract class BaseManager {
       return processDialogTypeB;
     }
     return processDialogTypeA;
-  }
-
-  /**
-   * Keep final.
-   * @param axisID
-   * @param lastProcess
-   */
-  final void setLastProcess(AxisID axisID, String lastProcess) {
-    if (debug) {
-      System.err.println("setLastProcess:lastProcess=" + lastProcess);
-    }
-    if (axisID == AxisID.SECOND) {
-      lastProcessB = lastProcess;
-    }
-    else {
-      lastProcessA = lastProcess;
-    }
-  }
-
-  /**
-   * Keep final.
-   * @param axisID
-   */
-  private final void resetLastProcess(AxisID axisID) {
-    if (axisID == AxisID.SECOND) {
-      lastProcessB = "";
-    }
-    else {
-      lastProcessA = "";
-    }
-  }
-
-  private final String getLastProcess(AxisID axisID) {
-    if (axisID == AxisID.SECOND) {
-      return lastProcessB;
-    }
-    return lastProcessA;
-  }
-
-  private final boolean isLastProcessSet(AxisID axisID) {
-    if (axisID == AxisID.SECOND) {
-      return !lastProcessB.equals("");
-    }
-    return !lastProcessA.equals("");
   }
 
   public final void startLoad(IntermittentCommand param, LoadMonitor monitor) {
@@ -1247,7 +1118,8 @@ public abstract class BaseManager {
   }
 
   public final void resume(AxisID axisID, ProcesschunksParam param,
-      ProcessResultDisplay processResultDisplay, Container root,
+      ProcessResultDisplay processResultDisplay,
+      ConstProcessSeries processSeries, Container root,
       CommandDetails subcommandDetails) {
     sendMsgProcessStarting(processResultDisplay);
     BaseMetaData metaData = getBaseMetaData();
@@ -1276,7 +1148,8 @@ public abstract class BaseManager {
     String threadName;
     try {
       threadName = getProcessManager().processchunks(axisID, param,
-          parallelPanel.getParallelProgressDisplay(), processResultDisplay);
+          parallelPanel.getParallelProgressDisplay(), processResultDisplay,
+          processSeries);
     }
     catch (SystemProcessException e) {
       e.printStackTrace();
@@ -1308,10 +1181,10 @@ public abstract class BaseManager {
     packPanel(AxisID.SECOND);
   }
 
-  public final void tomosnapshot(AxisID axisID) {
+  public final void tomosnapshot(AxisID axisID, ConstProcessSeries processSeries) {
     String threadName;
     try {
-      threadName = getProcessManager().tomosnapshot(axisID);
+      threadName = getProcessManager().tomosnapshot(axisID, processSeries);
     }
     catch (SystemProcessException e) {
       e.printStackTrace();
@@ -1329,6 +1202,10 @@ public abstract class BaseManager {
 }
 /**
  * <p> $Log$
+ * <p> Revision 1.97  2008/02/14 21:27:15  sueh
+ * <p> bug# 1077 Make sure that ImodManager.disconnect is called, even if
+ * <p> there is an exception.
+ * <p>
  * <p> Revision 1.96  2008/01/31 20:13:40  sueh
  * <p> bug# 1055 throwing a FileException when LogFile.getInstance fails.
  * <p>
