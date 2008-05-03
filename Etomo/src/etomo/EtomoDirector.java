@@ -108,7 +108,7 @@ public class EtomoDirector {
   }
 
   public void doAutomation() {
-    if (managerList==null) {
+    if (managerList == null) {
       return;
     }
     BaseManager manager = (BaseManager) managerList.get(currentManagerKey);
@@ -532,7 +532,7 @@ public class EtomoDirector {
         ApplicationManager appManager = (ApplicationManager) manager;
         if (appManager.isNewManager() && !appManager.isSetupChanged()) {
           defaultWindow = false;
-          closeCurrentManager(axisID);
+          closeCurrentManager(axisID, false);
         }
       }
     }
@@ -578,9 +578,9 @@ public class EtomoDirector {
     return openTomogram(etomoDataFile.getAbsolutePath(), makeCurrent, axisID);
   }
 
-  public boolean closeCurrentManager(AxisID axisID) {
+  public boolean closeCurrentManager(AxisID axisID, boolean exiting) {
     BaseManager currentManager = getCurrentManager();
-    if (!currentManager.exitProgram(axisID)) {
+    if (exiting && !currentManager.exitProgram(axisID)) {
       return false;
     }
     managerList.remove(currentManagerKey);
@@ -640,7 +640,7 @@ public class EtomoDirector {
     memoryThread.setStop(true);
     try {
       while (managerList.size() != 0) {
-        if (!closeCurrentManager(axisID)) {
+        if (!closeCurrentManager(axisID, true)) {
           return false;
         }
       }
@@ -992,6 +992,9 @@ public class EtomoDirector {
 }
 /**
  * <p> $Log$
+ * <p> Revision 1.72  2008/04/17 20:40:36  sueh
+ * <p> bug# 1106 Fixed null pointer exception in doAutomation.
+ * <p>
  * <p> Revision 1.71  2008/03/21 23:59:49  sueh
  * <p> bug# 1099 Fixed isMemoryAvailable.  Removed the SGI tests since it is
  * <p> not supported in this version.  Testing against availableMemory, which
