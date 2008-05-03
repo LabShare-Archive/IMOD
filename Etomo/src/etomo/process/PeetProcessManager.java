@@ -4,6 +4,7 @@ import etomo.PeetManager;
 import etomo.comscript.PeetParserParam;
 import etomo.comscript.ProcessDetails;
 import etomo.type.AxisID;
+import etomo.type.ConstProcessSeries;
 import etomo.type.PeetState;
 import etomo.type.ProcessName;
 
@@ -21,6 +22,10 @@ import etomo.type.ProcessName;
  * @version $Revision$
  * 
  * <p> $Log$
+ * <p> Revision 1.6  2007/12/10 22:28:52  sueh
+ * <p> bug# 1041 Call the base postProcess function for detached processes to handle
+ * <p> saving data for resume processchunks.
+ * <p>
  * <p> Revision 1.5  2007/06/06 20:40:48  sueh
  * <p> Removed print statement.
  * <p>
@@ -49,9 +54,10 @@ public final class PeetProcessManager extends BaseProcessManager {
     this.manager = manager;
   }
 
-  public String peetParser(PeetParserParam param) throws SystemProcessException {
+  public String peetParser(PeetParserParam param,
+      ConstProcessSeries processSeries) throws SystemProcessException {
     BackgroundProcess backgroundProcess = startBackgroundProcess(param,
-        AxisID.ONLY, ProcessName.PEET_PARSER);
+        AxisID.ONLY, ProcessName.PEET_PARSER, processSeries);
     return backgroundProcess.getName();
   }
 

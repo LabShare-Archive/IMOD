@@ -20,6 +20,9 @@
  * 
  * <p>
  * $Log$
+ * Revision 3.120  2008/01/31 20:19:24  sueh
+ * bug# 1055 throwing a FileException when LogFile.getInstance fails.
+ *
  * Revision 3.119  2008/01/14 21:51:10  sueh
  * bug# 1050 Moved getRunningProcessData from ProcessManager to
  * BaseProcessManager.
@@ -848,6 +851,7 @@ package etomo.process;
 
 import etomo.storage.LogFile;
 import etomo.type.AxisID;
+import etomo.type.ConstProcessSeries;
 import etomo.type.ProcessName;
 import etomo.type.ProcessResultDisplay;
 import etomo.type.TomogramState;
@@ -950,8 +954,9 @@ public class ProcessManager extends BaseProcessManager {
    * @param axisID
    *          the AxisID to erase.
    */
-  public String eraser(AxisID axisID, ProcessResultDisplay processResultDisplay)
-      throws SystemProcessException {
+  public String eraser(AxisID axisID,
+      ProcessResultDisplay processResultDisplay,
+      ConstProcessSeries processSeries) throws SystemProcessException {
     // Create the process monitor
     CCDEraserProcessMonitor ccdEraserProcessMonitor = new CCDEraserProcessMonitor(
         appManager, axisID);
@@ -961,7 +966,7 @@ public class ProcessManager extends BaseProcessManager {
 
     //  Start the com script in the background
     ComScriptProcess comScriptProcess = startComScript(command,
-        ccdEraserProcessMonitor, axisID, processResultDisplay);
+        ccdEraserProcessMonitor, axisID, processResultDisplay, processSeries);
 
     return comScriptProcess.getName();
   }
@@ -977,30 +982,33 @@ public class ProcessManager extends BaseProcessManager {
    *          the AxisID to cross-correlate.
    */
   public String crossCorrelate(BlendmontParam param, AxisID axisID,
-      ProcessResultDisplay processResultDisplay) throws SystemProcessException {
+      ProcessResultDisplay processResultDisplay,
+      ConstProcessSeries processSeries) throws SystemProcessException {
     //  Create the process monitor
     XcorrProcessWatcher xcorrProcessWatcher = new XcorrProcessWatcher(
         appManager, axisID, true);
     //  Start the com script in the background
     ComScriptProcess comScriptProcess = startComScript(param,
-        xcorrProcessWatcher, axisID, processResultDisplay);
+        xcorrProcessWatcher, axisID, processResultDisplay, processSeries);
     return comScriptProcess.getName();
   }
 
   public String crossCorrelate(ConstTiltxcorrParam param, AxisID axisID,
-      ProcessResultDisplay processResultDisplay) throws SystemProcessException {
+      ProcessResultDisplay processResultDisplay,
+      ConstProcessSeries processSeries) throws SystemProcessException {
     //  Create the required command string
     //  Create the process monitor
     TiltxcorrProcessWatcher tiltxcorrProcessWatcher = new TiltxcorrProcessWatcher(
         appManager, axisID);
     //  Start the com script in the background
     ComScriptProcess comScriptProcess = startComScript(param,
-        tiltxcorrProcessWatcher, axisID, processResultDisplay);
+        tiltxcorrProcessWatcher, axisID, processResultDisplay, processSeries);
     return comScriptProcess.getName();
   }
 
   public String makeDistortionCorrectedStack(AxisID axisID,
-      ProcessResultDisplay processResultDisplay) throws SystemProcessException {
+      ProcessResultDisplay processResultDisplay,
+      ConstProcessSeries processSeries) throws SystemProcessException {
     //  Create the required tiltalign command
     String command = BlendmontParam.getProcessName(
         BlendmontParam.Mode.UNDISTORT).getComscript(axisID);
@@ -1010,7 +1018,7 @@ public class ProcessManager extends BaseProcessManager {
 
     //  Start the com script in the background
     ComScriptProcess comScriptProcess = startComScript(command,
-        blendmontProcessMonitor, axisID, processResultDisplay);
+        blendmontProcessMonitor, axisID, processResultDisplay, processSeries);
     return comScriptProcess.getName();
   }
 
@@ -1021,7 +1029,8 @@ public class ProcessManager extends BaseProcessManager {
    *          the identifyer of the axis to coarse align.
    */
   public String coarseAlign(AxisID axisID,
-      ProcessResultDisplay processResultDisplay) throws SystemProcessException {
+      ProcessResultDisplay processResultDisplay,
+      ConstProcessSeries processSeries) throws SystemProcessException {
 
     //  Create the required tiltalign command
     String command = "prenewst" + axisID.getExtension() + ".com";
@@ -1031,7 +1040,7 @@ public class ProcessManager extends BaseProcessManager {
 
     //  Start the com script in the background
     ComScriptProcess comScriptProcess = startComScript(command,
-        prenewstProcessMonitor, axisID, processResultDisplay);
+        prenewstProcessMonitor, axisID, processResultDisplay, processSeries);
     return comScriptProcess.getName();
   }
 
@@ -1042,14 +1051,15 @@ public class ProcessManager extends BaseProcessManager {
    * @throws SystemProcessException
    */
   public String preblend(BlendmontParam param, AxisID axisID,
-      ProcessResultDisplay processResultDisplay) throws SystemProcessException {
+      ProcessResultDisplay processResultDisplay,
+      ConstProcessSeries processSeries) throws SystemProcessException {
     //  Start the com script in the background
     BlendmontProcessMonitor blendmontProcessMonitor = new BlendmontProcessMonitor(
         appManager, axisID, BlendmontParam.Mode.PREBLEND);
 
     //  Start the com script in the background
     ComScriptProcess comScriptProcess = startComScript(param,
-        blendmontProcessMonitor, axisID, processResultDisplay);
+        blendmontProcessMonitor, axisID, processResultDisplay, processSeries);
     return comScriptProcess.getName();
   }
 
@@ -1060,7 +1070,8 @@ public class ProcessManager extends BaseProcessManager {
    * @throws SystemProcessException
    */
   public String blend(BlendmontParam blendmontParam, AxisID axisID,
-      ProcessResultDisplay processResultDisplay) throws SystemProcessException {
+      ProcessResultDisplay processResultDisplay,
+      ConstProcessSeries processSeries) throws SystemProcessException {
     //  Create the required tiltalign command
     String command = blendmontParam.getProcessName().getComscript(axisID);
     //  Start the com script in the background
@@ -1069,7 +1080,7 @@ public class ProcessManager extends BaseProcessManager {
 
     //  Start the com script in the background
     ComScriptProcess comScriptProcess = startComScript(command,
-        blendmontProcessMonitor, axisID, processResultDisplay);
+        blendmontProcessMonitor, axisID, processResultDisplay, processSeries);
     return comScriptProcess.getName();
   }
 
@@ -1245,7 +1256,8 @@ public class ProcessManager extends BaseProcessManager {
    *          the AxisID to run track.com on.
    */
   public String fiducialModelTrack(AxisID axisID,
-      ProcessResultDisplay processResultDisplay) throws SystemProcessException {
+      ProcessResultDisplay processResultDisplay,
+      ConstProcessSeries processSeries) throws SystemProcessException {
     //
     //  Create the required beadtrack command
     //
@@ -1253,7 +1265,7 @@ public class ProcessManager extends BaseProcessManager {
 
     //  Start the com script in the background
     ComScriptProcess comScriptProcess = startComScript(command, null, axisID,
-        processResultDisplay);
+        processResultDisplay, processSeries);
     return comScriptProcess.getName();
   }
 
@@ -1264,7 +1276,8 @@ public class ProcessManager extends BaseProcessManager {
    *          the AxisID to run align.com on.
    */
   public String fineAlignment(ConstTiltalignParam param, AxisID axisID,
-      ProcessResultDisplay processResultDisplay) throws SystemProcessException {
+      ProcessResultDisplay processResultDisplay,
+      ConstProcessSeries processSeries) throws SystemProcessException {
     //
     //  Create the required tiltalign command
     //
@@ -1272,7 +1285,7 @@ public class ProcessManager extends BaseProcessManager {
 
     //  Start the com script in the background
     ComScriptProcess comScriptProcess = startComScript(param, null, axisID,
-        processResultDisplay);
+        processResultDisplay, processSeries);
     return comScriptProcess.getName();
 
   }
@@ -1329,7 +1342,8 @@ public class ProcessManager extends BaseProcessManager {
    * Run the transferfid script
    */
   public String transferFiducials(TransferfidParam transferfidParam,
-      ProcessResultDisplay processResultDisplay) throws SystemProcessException {
+      ProcessResultDisplay processResultDisplay,
+      ConstProcessSeries processSeries) throws SystemProcessException {
     AxisID axisID = AxisID.SECOND;
     //Run transferfid on the destination axis.
     if (transferfidParam.getBToA().is()) {
@@ -1337,7 +1351,7 @@ public class ProcessManager extends BaseProcessManager {
     }
     BackgroundProcess backgroundProcess = startBackgroundProcess(
         transferfidParam.getCommand(), axisID, processResultDisplay,
-        ProcessName.TRANSFERFID);
+        ProcessName.TRANSFERFID, processSeries);
     transferfidCommandLine = backgroundProcess.getCommandLine();
     return backgroundProcess.getName();
   }
@@ -1349,7 +1363,8 @@ public class ProcessManager extends BaseProcessManager {
    *          the AxisID to run sample.com on.
    */
   public String createSample(AxisID axisID,
-      ProcessResultDisplay processResultDisplay, ConstTiltParam param)
+      ProcessResultDisplay processResultDisplay,
+      ConstProcessSeries processSeries, ConstTiltParam param)
       throws SystemProcessException {
     //
     //  Create the required sample command
@@ -1358,7 +1373,7 @@ public class ProcessManager extends BaseProcessManager {
 
     //  Start the com script in the background
     ComScriptProcess comScriptProcess = startComScript(command, null, axisID,
-        processResultDisplay, param);
+        processResultDisplay, param, processSeries);
     return comScriptProcess.getName();
 
   }
@@ -1370,7 +1385,8 @@ public class ProcessManager extends BaseProcessManager {
    *          the AxisID to run tomoptich on.
    */
   public String tomopitch(AxisID axisID,
-      ProcessResultDisplay processResultDisplay) throws SystemProcessException {
+      ProcessResultDisplay processResultDisplay,
+      ConstProcessSeries processSeries) throws SystemProcessException {
     //
     //  Create the required tiltalign command
     //
@@ -1378,7 +1394,7 @@ public class ProcessManager extends BaseProcessManager {
 
     //  Start the com script in the background
     ComScriptProcess comScriptProcess = startComScript(command, null, axisID,
-        processResultDisplay);
+        processResultDisplay, processSeries);
     return comScriptProcess.getName();
 
   }
@@ -1390,13 +1406,14 @@ public class ProcessManager extends BaseProcessManager {
    *          the AxisID to run newst on.
    */
   public String newst(ConstNewstParam newstParam, AxisID axisID,
-      ProcessResultDisplay processResultDisplay) throws SystemProcessException {
+      ProcessResultDisplay processResultDisplay,
+      ConstProcessSeries processSeries) throws SystemProcessException {
     //  Start the com script in the background
     NewstProcessMonitor newstProcessMonitor = new NewstProcessMonitor(
         appManager, axisID);
     //  Start the com script in the background
     ComScriptProcess comScriptProcess = startComScript(newstParam,
-        newstProcessMonitor, axisID, processResultDisplay);
+        newstProcessMonitor, axisID, processResultDisplay, processSeries);
     return comScriptProcess.getName();
 
   }
@@ -1408,13 +1425,14 @@ public class ProcessManager extends BaseProcessManager {
    *          the AxisID to run newst on.
    */
   public String mtffilter(AxisID axisID,
-      ProcessResultDisplay processResultDisplay) throws SystemProcessException {
+      ProcessResultDisplay processResultDisplay,
+      ConstProcessSeries processSeries) throws SystemProcessException {
     String command = "mtffilter" + axisID.getExtension() + ".com";
     MtffilterProcessMonitor mtffilterProcessMonitor = new MtffilterProcessMonitor(
         appManager, axisID);
     //  Start the com script in the background
     ComScriptProcess comScriptProcess = startComScript(command,
-        mtffilterProcessMonitor, axisID, processResultDisplay);
+        mtffilterProcessMonitor, axisID, processResultDisplay, processSeries);
     return comScriptProcess.getName();
   }
 
@@ -1444,7 +1462,8 @@ public class ProcessManager extends BaseProcessManager {
    *          the AxisID to run tilt on.
    */
   public String tilt(AxisID axisID, ProcessResultDisplay processResultDisplay,
-      ConstTiltParam param) throws SystemProcessException {
+      ConstProcessSeries processSeries, ConstTiltParam param)
+      throws SystemProcessException {
     //
     //  Create the required tilt command
     //
@@ -1456,7 +1475,7 @@ public class ProcessManager extends BaseProcessManager {
 
     //  Start the com script in the background
     ComScriptProcess comScriptProcess = startComScript(command,
-        tiltProcessMonitor, axisID, processResultDisplay, param);
+        tiltProcessMonitor, axisID, processResultDisplay, param, processSeries);
 
     return comScriptProcess.getName();
   }
@@ -1465,9 +1484,11 @@ public class ProcessManager extends BaseProcessManager {
    * Run splittilt
    */
   public String splittilt(SplittiltParam param, AxisID axisID,
-      ProcessResultDisplay processResultDisplay) throws SystemProcessException {
+      ProcessResultDisplay processResultDisplay,
+      ConstProcessSeries processSeries) throws SystemProcessException {
     BackgroundProcess backgroundProcess = startBackgroundProcess(param
-        .getCommand(), axisID, processResultDisplay, ProcessName.SPLITTILT);
+        .getCommand(), axisID, processResultDisplay, ProcessName.SPLITTILT,
+        processSeries);
     return backgroundProcess.getName();
   }
 
@@ -1475,10 +1496,11 @@ public class ProcessManager extends BaseProcessManager {
    * Run extracttilts
    */
   public String extracttilts(AxisID axisID,
-      ProcessResultDisplay processResultDisplay) throws SystemProcessException {
+      ProcessResultDisplay processResultDisplay,
+      ConstProcessSeries processSeries) throws SystemProcessException {
     BackgroundProcess backgroundProcess = startBackgroundProcess(
         new ExtracttiltsParam(appManager, axisID).getCommand(), axisID, true,
-        processResultDisplay, ProcessName.EXTRACTTILTS);
+        processResultDisplay, processSeries, ProcessName.EXTRACTTILTS);
     return backgroundProcess.getName();
   }
 
@@ -1486,10 +1508,11 @@ public class ProcessManager extends BaseProcessManager {
    * Run extractpieces
    */
   public String extractpieces(AxisID axisID,
-      ProcessResultDisplay processResultDisplay) throws SystemProcessException {
+      ProcessResultDisplay processResultDisplay,
+      ConstProcessSeries processSeries) throws SystemProcessException {
     BackgroundProcess backgroundProcess = startBackgroundProcess(
         new ExtractpiecesParam(appManager, axisID).getCommand(), axisID, true,
-        processResultDisplay, ProcessName.EXTRACTPIECES);
+        processResultDisplay, processSeries, ProcessName.EXTRACTPIECES);
     return backgroundProcess.getName();
   }
 
@@ -1497,9 +1520,10 @@ public class ProcessManager extends BaseProcessManager {
    * Run extractmagrad
    */
   public String extractmagrad(ExtractmagradParam param, AxisID axisID,
-      ProcessResultDisplay processResultDisplay) throws SystemProcessException {
+      ProcessResultDisplay processResultDisplay,
+      ConstProcessSeries processSeries) throws SystemProcessException {
     BackgroundProcess backgroundProcess = startBackgroundProcess(param
-        .getCommand(), axisID, true, processResultDisplay,
+        .getCommand(), axisID, true, processResultDisplay, processSeries,
         ProcessName.EXTRACTMAGRAD);
     return backgroundProcess.getName();
   }
@@ -1507,11 +1531,11 @@ public class ProcessManager extends BaseProcessManager {
   /**
    * Run splitcombine
    */
-  public String splitcombine(ProcessResultDisplay processResultDisplay)
-      throws SystemProcessException {
+  public String splitcombine(ProcessResultDisplay processResultDisplay,
+      ConstProcessSeries processSeries) throws SystemProcessException {
     BackgroundProcess backgroundProcess = startBackgroundProcess(
         new SplitcombineParam().getCommand(), AxisID.ONLY,
-        processResultDisplay, ProcessName.SPLITCOMBINE);
+        processResultDisplay, ProcessName.SPLITCOMBINE, processSeries);
     return backgroundProcess.getName();
   }
 
@@ -1592,7 +1616,8 @@ public class ProcessManager extends BaseProcessManager {
    *          the AxisID to run tilt on.
    */
   public String combine(CombineComscriptState combineComscriptState,
-      ProcessResultDisplay processResultDisplay) throws SystemProcessException {
+      ProcessResultDisplay processResultDisplay,
+      ConstProcessSeries processSeries) throws SystemProcessException {
     //  Create the required combine command
     String comscript = CombineComscriptState.COMSCRIPT_NAME + ".com";
 
@@ -1602,7 +1627,7 @@ public class ProcessManager extends BaseProcessManager {
     //  Start the com script in the background
     ComScriptProcess comScriptProcess = startBackgroundComScript(comscript,
         combineProcessMonitor, AxisID.ONLY, combineComscriptState,
-        CombineComscriptState.COMSCRIPT_WATCHED_FILE);
+        CombineComscriptState.COMSCRIPT_WATCHED_FILE, processSeries);
     return comScriptProcess.getName();
   }
 
@@ -1611,13 +1636,14 @@ public class ProcessManager extends BaseProcessManager {
    * 
    * @return String
    */
-  public String solvematch() throws SystemProcessException {
+  public String solvematch(ConstProcessSeries processSeries)
+      throws SystemProcessException {
     //  Create the required solvematch command
     String command = "solvematch.com";
 
     //  Start the com script in the background
     ComScriptProcess comScriptProcess = startComScript(command, null,
-        AxisID.ONLY);
+        AxisID.ONLY, processSeries);
     return comScriptProcess.getName();
 
   }
@@ -1627,13 +1653,14 @@ public class ProcessManager extends BaseProcessManager {
    * 
    * @return String
    */
-  public String matchvol1() throws SystemProcessException {
+  public String matchvol1(ConstProcessSeries processSeries)
+      throws SystemProcessException {
     //  Create the required matchvol1 command
     String command = "matchvol1.com";
 
     //  Start the com script in the background
     ComScriptProcess comScriptProcess = startComScript(command, null,
-        AxisID.ONLY);
+        AxisID.ONLY, processSeries);
     return comScriptProcess.getName();
 
   }
@@ -1643,7 +1670,8 @@ public class ProcessManager extends BaseProcessManager {
    * 
    * @return String
    */
-  public String patchcorr() throws SystemProcessException {
+  public String patchcorr(ConstProcessSeries processSeries)
+      throws SystemProcessException {
     //  Create the required patchcorr command
     String command = "patchcorr.com";
     //  Create the process monitor
@@ -1652,7 +1680,7 @@ public class ProcessManager extends BaseProcessManager {
 
     //  Start the com script in the background
     ComScriptProcess comScriptProcess = startComScript(command,
-        patchcorrProcessWatcher, AxisID.ONLY, "patch.out");
+        patchcorrProcessWatcher, AxisID.ONLY, "patch.out", processSeries);
     return comScriptProcess.getName();
 
   }
@@ -1662,13 +1690,14 @@ public class ProcessManager extends BaseProcessManager {
    * 
    * @return String
    */
-  public String matchorwarp() throws SystemProcessException {
+  public String matchorwarp(ConstProcessSeries processSeries)
+      throws SystemProcessException {
     //  Create the required matchorwarp command
     String command = "matchorwarp.com";
 
     //  Start the com script in the background
     ComScriptProcess comScriptProcess = startComScript(command, null,
-        AxisID.ONLY);
+        AxisID.ONLY, processSeries);
     return comScriptProcess.getName();
 
   }
@@ -1678,7 +1707,8 @@ public class ProcessManager extends BaseProcessManager {
    * 
    * @return String
    */
-  public String volcombine() throws SystemProcessException {
+  public String volcombine(ConstProcessSeries processSeries)
+      throws SystemProcessException {
     VolcombineProcessMonitor volcombineProcessMonitor = new VolcombineProcessMonitor(
         appManager, AxisID.ONLY);
     //  Create the required volcombine command
@@ -1686,7 +1716,7 @@ public class ProcessManager extends BaseProcessManager {
 
     //  Start the com script in the background
     ComScriptProcess comScriptProcess = startComScript(command,
-        volcombineProcessMonitor, AxisID.ONLY);
+        volcombineProcessMonitor, AxisID.ONLY, processSeries);
     return comScriptProcess.getName();
 
   }
@@ -1695,19 +1725,20 @@ public class ProcessManager extends BaseProcessManager {
    * Run trimvol
    */
   public String trimVolume(TrimvolParam trimvolParam,
-      ProcessResultDisplay processResultDisplay) throws SystemProcessException {
+      ProcessResultDisplay processResultDisplay,
+      ConstProcessSeries processSeries) throws SystemProcessException {
     BackgroundProcess backgroundProcess = startBackgroundProcess(trimvolParam,
-        AxisID.ONLY, processResultDisplay, ProcessName.TRIMVOL);
+        AxisID.ONLY, processResultDisplay, ProcessName.TRIMVOL, processSeries);
     return backgroundProcess.getName();
   }
 
   /**
    * Run archiveorig
    */
-  public String archiveOrig(ArchiveorigParam param)
-      throws SystemProcessException {
+  public String archiveOrig(ArchiveorigParam param,
+      ConstProcessSeries processSeries) throws SystemProcessException {
     BackgroundProcess backgroundProcess = startBackgroundProcess(param,
-        AxisID.ONLY, true, ProcessName.ARCHIVEORIG);
+        AxisID.ONLY, true, ProcessName.ARCHIVEORIG, processSeries);
     return backgroundProcess.getName();
   }
 
@@ -1715,10 +1746,11 @@ public class ProcessManager extends BaseProcessManager {
    * Run squeezevol
    */
   public String squeezeVolume(ConstSqueezevolParam squeezevolParam,
-      ProcessResultDisplay processResultDisplay) throws SystemProcessException {
+      ProcessResultDisplay processResultDisplay,
+      ConstProcessSeries processSeries) throws SystemProcessException {
     BackgroundProcess backgroundProcess = startBackgroundProcess(
         squeezevolParam, AxisID.ONLY, processResultDisplay,
-        ProcessName.SQUEEZEVOL);
+        ProcessName.SQUEEZEVOL, processSeries);
     return backgroundProcess.getName();
   }
 

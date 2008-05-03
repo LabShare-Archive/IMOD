@@ -8,6 +8,7 @@ import etomo.comscript.Command;
 import etomo.comscript.CommandDetails;
 import etomo.comscript.TrimvolParam;
 import etomo.type.AxisID;
+import etomo.type.ConstProcessSeries;
 import etomo.type.ParallelState;
 import etomo.type.ProcessName;
 
@@ -38,23 +39,24 @@ public final class ParallelProcessManager extends BaseProcessManager {
   /**
    * Run trimvol
    */
-  public String trimVolume(TrimvolParam trimvolParam)
-      throws SystemProcessException {
+  public String trimVolume(TrimvolParam trimvolParam,
+      ConstProcessSeries processSeries) throws SystemProcessException {
     BackgroundProcess backgroundProcess = startBackgroundProcess(trimvolParam,
-        AxisID.ONLY, ProcessName.TRIMVOL);
+        AxisID.ONLY, ProcessName.TRIMVOL, processSeries);
     return backgroundProcess.getName();
   }
 
-  public String anisotropicDiffusion(AnisotropicDiffusionParam param)
-      throws SystemProcessException {
+  public String anisotropicDiffusion(AnisotropicDiffusionParam param,
+      ConstProcessSeries processSeries) throws SystemProcessException {
     BackgroundProcess backgroundProcess = startBackgroundProcess(param,
-        AxisID.ONLY, ProcessName.ANISOTROPIC_DIFFUSION);
+        AxisID.ONLY, ProcessName.ANISOTROPIC_DIFFUSION, processSeries);
     return backgroundProcess.getName();
   }
 
-  public String chunksetup(ChunksetupParam param) throws SystemProcessException {
+  public String chunksetup(ChunksetupParam param,
+      ConstProcessSeries processSeries) throws SystemProcessException {
     BackgroundProcess backgroundProcess = startBackgroundProcess(param
-        .getCommandArray(), AxisID.ONLY, ProcessName.CHUNKSETUP);
+        .getCommandArray(), AxisID.ONLY, ProcessName.CHUNKSETUP, processSeries);
     return backgroundProcess.getName();
   }
 
@@ -118,6 +120,10 @@ public final class ParallelProcessManager extends BaseProcessManager {
 }
 /**
  * <p> $Log$
+ * <p> Revision 1.6  2007/12/10 22:20:28  sueh
+ * <p> bug# 1041 Call the base postProcess function for detached processes to handle
+ * <p> saving data for resume processchunks.
+ * <p>
  * <p> Revision 1.5  2007/11/09 17:44:31  sueh
  * <p> bug# 1047 Changed the names of NAD fields for understandability.
  * <p>

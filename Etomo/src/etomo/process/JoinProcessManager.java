@@ -19,6 +19,7 @@ import etomo.comscript.XftoxgParam;
 import etomo.storage.LogFile;
 import etomo.storage.XfjointomoLog;
 import etomo.type.AxisID;
+import etomo.type.ConstProcessSeries;
 import etomo.type.JoinState;
 import etomo.type.ProcessName;
 import etomo.util.DatasetFiles;
@@ -37,6 +38,9 @@ import etomo.util.DatasetFiles;
  * @version $Revision$
  *
  * <p> $Log$
+ * <p> Revision 1.24  2008/01/31 20:18:33  sueh
+ * <p> bug# 1055 throwing a FileException when LogFile.getInstance fails.
+ * <p>
  * <p> Revision 1.23  2007/06/08 23:57:11  sueh
  * <p> bug# 995 In postProcess(BackgroundProcess) save
  * <p> RefineTrialUseEveryNSlices when running FinishJoinParam in
@@ -198,28 +202,31 @@ public final class JoinProcessManager extends BaseProcessManager {
   /**
    * Run makejoincom
    */
-  public String makejoincom(MakejoincomParam makejoincomParam)
-      throws SystemProcessException {
+  public String makejoincom(MakejoincomParam makejoincomParam,
+      ConstProcessSeries processSeries) throws SystemProcessException {
     BackgroundProcess backgroundProcess = startBackgroundProcess(
-        makejoincomParam, AxisID.ONLY, ProcessName.MAKEJOINCOM);
+        makejoincomParam, AxisID.ONLY, ProcessName.MAKEJOINCOM, processSeries);
     return backgroundProcess.getName();
   }
 
-  public String remapmodel(RemapmodelParam param) throws SystemProcessException {
+  public String remapmodel(RemapmodelParam param,
+      ConstProcessSeries processSeries) throws SystemProcessException {
     BackgroundProcess backgroundProcess = startBackgroundProcess(param,
-        AxisID.ONLY, ProcessName.REMAPMODEL);
+        AxisID.ONLY, ProcessName.REMAPMODEL, processSeries);
     return backgroundProcess.getName();
   }
 
-  public String xfmodel(XfmodelParam param) throws SystemProcessException {
+  public String xfmodel(XfmodelParam param, ConstProcessSeries processSeries)
+      throws SystemProcessException {
     BackgroundProcess backgroundProcess = startBackgroundProcess(param,
-        AxisID.ONLY, ProcessName.XFMODEL);
+        AxisID.ONLY, ProcessName.XFMODEL, processSeries);
     return backgroundProcess.getName();
   }
 
-  public String xftoxg(XftoxgParam param) throws SystemProcessException {
+  public String xftoxg(XftoxgParam param, ConstProcessSeries processSeries)
+      throws SystemProcessException {
     BackgroundProcess backgroundProcess = startBackgroundProcess(param,
-        AxisID.ONLY, ProcessName.XFTOXG);
+        AxisID.ONLY, ProcessName.XFTOXG, processSeries);
     return backgroundProcess.getName();
   }
 
@@ -228,54 +235,58 @@ public final class JoinProcessManager extends BaseProcessManager {
    * process.
    * @param finishjoinParam
    */
-  public void saveFinishjoinState(FinishjoinParam finishjoinParam) {
+  public void saveFinishjoinState(FinishjoinParam finishjoinParam,
+      ConstProcessSeries processSeries) {
     postProcess(new BackgroundProcess(manager, finishjoinParam, this,
-        AxisID.ONLY, ProcessName.FINISHJOIN));
+        AxisID.ONLY, ProcessName.FINISHJOIN, processSeries));
   }
 
   /**
    * Run finishjoin
    */
-  public String finishjoin(FinishjoinParam finishjoinParam)
-      throws SystemProcessException {
+  public String finishjoin(FinishjoinParam finishjoinParam,
+      ConstProcessSeries processSeries) throws SystemProcessException {
     BackgroundProcess backgroundProcess = startBackgroundProcess(
-        finishjoinParam, AxisID.ONLY, ProcessName.FINISHJOIN);
+        finishjoinParam, AxisID.ONLY, ProcessName.FINISHJOIN, processSeries);
     return backgroundProcess.getName();
   }
 
-  public String xfjointomo(XfjointomoParam xfjointomoParam)
-      throws SystemProcessException {
+  public String xfjointomo(XfjointomoParam xfjointomoParam,
+      ConstProcessSeries processSeries) throws SystemProcessException {
     XfjointomoLog.getInstance(manager).reset();
     BackgroundProcess backgroundProcess = startBackgroundProcess(
         xfjointomoParam.getCommandArray(), AxisID.ONLY, null,
-        ProcessName.XFJOINTOMO);
+        ProcessName.XFJOINTOMO, processSeries);
     return backgroundProcess.getName();
   }
 
   /**
    * Run xfalign
    */
-  public String xfalign(XfalignParam xfalignParam)
-      throws SystemProcessException {
+  public String xfalign(XfalignParam xfalignParam,
+      ConstProcessSeries processSeries) throws SystemProcessException {
     BackgroundProcess backgroundProcess = startBackgroundProcess(xfalignParam,
-        AxisID.ONLY, ProcessName.XFALIGN);
+        AxisID.ONLY, ProcessName.XFALIGN, processSeries);
     return backgroundProcess.getName();
   }
 
   /**
    * Run flip
    */
-  public String flipyz(FlipyzParam flipyzParam) throws SystemProcessException {
+  public String flipyz(FlipyzParam flipyzParam, ConstProcessSeries processSeries)
+      throws SystemProcessException {
     BackgroundProcess backgroundProcess = startBackgroundProcess(flipyzParam,
-        AxisID.ONLY, ProcessName.CLIPFLIPYZ);
+        AxisID.ONLY, ProcessName.CLIPFLIPYZ, processSeries);
     return backgroundProcess.getName();
   }
 
   /**
    * Run the startjoin com file
    */
-  public String startjoin(StartJoinParam param) throws SystemProcessException {
-    ComScriptProcess comScriptProcess = startComScript(param, null, AxisID.ONLY);
+  public String startjoin(StartJoinParam param, ConstProcessSeries processSeries)
+      throws SystemProcessException {
+    ComScriptProcess comScriptProcess = startComScript(param, null,
+        AxisID.ONLY, processSeries);
     return comScriptProcess.getName();
   }
 
