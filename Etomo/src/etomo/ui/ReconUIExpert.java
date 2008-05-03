@@ -5,6 +5,7 @@ import etomo.BaseManager;
 import etomo.comscript.ProcesschunksParam;
 import etomo.process.ProcessState;
 import etomo.type.AxisID;
+import etomo.type.ConstProcessSeries;
 import etomo.type.DialogExitState;
 import etomo.type.DialogType;
 import etomo.type.MetaData;
@@ -160,7 +161,7 @@ public abstract class ReconUIExpert implements UIExpert {
    */
   protected void processchunks(BaseManager manager,
       AbstractParallelDialog dialog, ProcessResultDisplay processResultDisplay,
-      ProcessName processName) {
+      ConstProcessSeries processSeries, ProcessName processName) {
     sendMsgProcessStarting(processResultDisplay);
     if (dialog == null) {
       sendMsg(ProcessResult.FAILED_TO_START, processResultDisplay);
@@ -180,7 +181,7 @@ public abstract class ReconUIExpert implements UIExpert {
     setDialogState(ProcessState.INPROGRESS);
     //param should never be set to resume
     parallelPanel.getParallelProgressDisplay().resetResults();
-    manager.processchunks(axisID, param, processResultDisplay);
+    manager.processchunks(axisID, param, processResultDisplay, processSeries);
   }
 
   protected ParallelPanel getParallelPanel() {
@@ -202,6 +203,11 @@ public abstract class ReconUIExpert implements UIExpert {
 }
 /**
  * <p> $Log$
+ * <p> Revision 1.6  2007/12/10 22:45:38  sueh
+ * <p> bug# 1041 Passing the ProcessName to processchunks instead of setting it in
+ * <p> getParameters because it is required and has been added to the
+ * <p> ProcesschunksParam constructor.
+ * <p>
  * <p> Revision 1.5  2007/09/27 21:05:48  sueh
  * <p> bug# 1044 Moved implementation of ParallelProgressDisplay from ParallelPanel
  * <p> to ProcessorTable.
