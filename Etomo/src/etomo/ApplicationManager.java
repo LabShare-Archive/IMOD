@@ -71,6 +71,7 @@ import etomo.type.BaseState;
 import etomo.type.CombineProcessType;
 import etomo.type.ConstEtomoNumber;
 import etomo.type.ConstMetaData;
+import etomo.type.ConstProcessSeries;
 import etomo.type.DialogExitState;
 import etomo.type.DialogType;
 import etomo.type.EtomoNumber;
@@ -104,6 +105,7 @@ import etomo.ui.ParallelPanel;
 import etomo.ui.PostProcessingDialog;
 import etomo.ui.PreProcessingDialog;
 import etomo.ui.ProcessDialog;
+import etomo.ui.Run3dmodProcess;
 import etomo.ui.SetupDialogExpert;
 import etomo.ui.TomogramCombinationDialog;
 import etomo.ui.TomogramGenerationExpert;
@@ -637,13 +639,15 @@ public final class ApplicationManager extends BaseManager {
    * Run the eraser script for the specified axis
    * @param axisID
    */
-  private void eraser(AxisID axisID, ProcessResultDisplay processResultDisplay) {
+  private void eraser(AxisID axisID, ProcessResultDisplay processResultDisplay,
+      ConstProcessSeries processSeries) {
     updateEraserCom(axisID, false);
     processTrack.setPreProcessingState(ProcessState.INPROGRESS, axisID);
     mainPanel.setPreProcessingState(ProcessState.INPROGRESS, axisID);
     String threadName;
     try {
-      threadName = processMgr.eraser(axisID, processResultDisplay);
+      threadName = processMgr.eraser(axisID, processResultDisplay,
+          processSeries);
     }
     catch (SystemProcessException e) {
       e.printStackTrace();
@@ -661,14 +665,22 @@ public final class ApplicationManager extends BaseManager {
    * Run CCDeraser in trial mode
    * @param axisID
    */
-  public void findXrays(AxisID axisID, ProcessResultDisplay processResultDisplay) {
+  public void findXrays(AxisID axisID,
+      ProcessResultDisplay processResultDisplay,
+      ProcessSeries processSeries, final Run3dmodProcess run3dmodProcess,
+      final Run3dmodMenuOptions run3dmodMenuOptions) {
+    if (processSeries==null) {
+      processSeries=new ProcessSeries(this);
+    }
     sendMsgProcessStarting(processResultDisplay);
     updateEraserCom(axisID, true);
     processTrack.setPreProcessingState(ProcessState.INPROGRESS, axisID);
     mainPanel.setPreProcessingState(ProcessState.INPROGRESS, axisID);
+    processSeries.setRun3dmodProcess(run3dmodProcess,run3dmodMenuOptions);
     String threadName;
     try {
-      threadName = processMgr.eraser(axisID, processResultDisplay);
+      threadName = processMgr.eraser(axisID, processResultDisplay,
+          processSeries);
     }
     catch (SystemProcessException e) {
       e.printStackTrace();
@@ -715,7 +727,8 @@ public final class ApplicationManager extends BaseManager {
   /**
    * Open 3dmod to view the erased stack
    */
-  public void imodErasedStack(AxisID axisID, Run3dmodMenuOptions menuOptions) {
+  public void imodErasedStack(AxisID axisID,
+      Run3dmodMenuOptions run3dmodMenuOptions) {
     if (Utilities.getFile(this, true, axisID, "_fixed.st", "erased stack") == null) {
       return;
     }
@@ -724,7 +737,8 @@ public final class ApplicationManager extends BaseManager {
         imodManager.setPieceListFileName(ImodManager.ERASED_STACK_KEY, axisID,
             metaData.getDatasetName() + axisID.getExtension() + ".pl");
       }
-      imodManager.open(ImodManager.ERASED_STACK_KEY, axisID, menuOptions);
+      imodManager.open(ImodManager.ERASED_STACK_KEY, axisID,
+          run3dmodMenuOptions);
     }
     catch (AxisTypeException except) {
       except.printStackTrace();
@@ -742,18 +756,22 @@ public final class ApplicationManager extends BaseManager {
     }
   }
 
-  public void archiveOriginalStack() {
+  public void archiveOriginalStack(ProcessSeries processSeries) {
     if (processMgr.inUse(AxisID.ONLY, null)) {
       return;
     }
-    archiveOriginalStack(null);
+    archiveOriginalStack(null, processSeries);
   }
 
   /**
    * Archive the orginal stacks during clean up.
    * @param axisID
    */
-  private void archiveOriginalStack(AxisID currentAxisID) {
+  private void archiveOriginalStack(AxisID currentAxisID,
+      ProcessSeries processSeries) {
+    if (processSeries == null) {
+      processSeries = new ProcessSeries(this);
+    }
     // figure out which original stack to archive
     AxisID stackAxisID = currentAxisID;
     if (stackAxisID == null) {
@@ -766,7 +784,7 @@ public final class ApplicationManager extends BaseManager {
     }
     // set next process to archiveorig so that the second axis can be done
     if (stackAxisID == AxisID.FIRST) {
-      setNextProcess(AxisID.ONLY, ArchiveorigParam.COMMAND_NAME);
+      processSeries.setNextProcess(ArchiveorigParam.COMMAND_NAME);
     }
     // else {
     // resetNextProcess(AxisID.ONLY);
@@ -777,7 +795,7 @@ public final class ApplicationManager extends BaseManager {
     if (!originalStack.exists()) {
       if (stackAxisID == AxisID.FIRST) {
         // Nothing to do on the first axis, so move on to the second axis
-        startNextProcess(AxisID.ONLY, null);
+        processSeries.startNextProcess(AxisID.ONLY, null);
         return;
       }
       else {
@@ -793,7 +811,7 @@ public final class ApplicationManager extends BaseManager {
     ArchiveorigParam param = new ArchiveorigParam(this, stackAxisID);
     // run process
     try {
-      setThreadName(processMgr.archiveOrig(param), AxisID.ONLY);
+      setThreadName(processMgr.archiveOrig(param, processSeries), AxisID.ONLY);
     }
     catch (SystemProcessException e) {
       // resetNextProcess(AxisID.ONLY);
@@ -1145,7 +1163,8 @@ public final class ApplicationManager extends BaseManager {
    * Get the parameters from dialog box and run the cross correlation script
    */
   private void crossCorrelate(AxisID axisID,
-      ProcessResultDisplay processResultDisplay) {
+      ProcessResultDisplay processResultDisplay,
+      ConstProcessSeries processSeries) {
     // Get the parameters from the dialog box
     ConstTiltxcorrParam tiltxcorrParam = updateXcorrCom(axisID);
     if (tiltxcorrParam == null) {
@@ -1159,11 +1178,11 @@ public final class ApplicationManager extends BaseManager {
       BlendmontParam blendmontParam = updateBlendmontInXcorrCom(axisID);
       if (blendmontParam == null) {
         threadName = processMgr.crossCorrelate(tiltxcorrParam, axisID,
-            processResultDisplay);
+            processResultDisplay, processSeries);
       }
       else {
         threadName = processMgr.crossCorrelate(blendmontParam, axisID,
-            processResultDisplay);
+            processResultDisplay, processSeries);
       }
     }
     catch (SystemProcessException e) {
@@ -1184,15 +1203,18 @@ public final class ApplicationManager extends BaseManager {
    * @param axisID
    */
   public void preCrossCorrelate(AxisID axisID,
-      ProcessResultDisplay processResultDisplay) {
+      ProcessResultDisplay processResultDisplay, ProcessSeries processSeries) {
+    if (processSeries == null) {
+      processSeries = new ProcessSeries(this);
+    }
     sendMsgProcessStarting(processResultDisplay);
     sendMsgProcessStarting(processResultDisplay);
     if (axisID == AxisID.SECOND && processBStack()) {
-      setLastProcess(axisID, ProcessName.XCORR.toString());
-      extracttilts(axisID, processResultDisplay);
+      processSeries.setLastProcess(ProcessName.XCORR.toString());
+      extracttilts(axisID, processResultDisplay, processSeries);
       return;
     }
-    crossCorrelate(axisID, processResultDisplay);
+    crossCorrelate(axisID, processResultDisplay, processSeries);
   }
 
   /**
@@ -1200,14 +1222,21 @@ public final class ApplicationManager extends BaseManager {
    * eraser().
    * @param axisID
    */
-  public void preEraser(AxisID axisID, ProcessResultDisplay processResultDisplay) {
+  public void preEraser(final AxisID axisID,
+      final ProcessResultDisplay processResultDisplay,
+      ProcessSeries processSeries, final Run3dmodProcess run3dmodProcess,
+      final Run3dmodMenuOptions run3dmodMenuOptions) {
     sendMsgProcessStarting(processResultDisplay);
+    if (processSeries == null) {
+      processSeries = new ProcessSeries(this);
+    }
+    processSeries.setRun3dmodProcess(run3dmodProcess, run3dmodMenuOptions);
     if (axisID == AxisID.SECOND && processBStack()) {
-      setLastProcess(axisID, ProcessName.ERASER.toString());
-      extracttilts(axisID, processResultDisplay);
+      processSeries.setLastProcess(ProcessName.ERASER.toString());
+      extracttilts(axisID, processResultDisplay, processSeries);
       return;
     }
-    eraser(axisID, processResultDisplay);
+    eraser(axisID, processResultDisplay, processSeries);
   }
 
   private final boolean processBStack() {
@@ -1238,20 +1267,22 @@ public final class ApplicationManager extends BaseManager {
   }
 
   private final void extracttilts(AxisID axisID,
-      ProcessResultDisplay processResultDisplay) {
-    setNextProcess(axisID, ExtractpiecesParam.COMMAND_NAME);
-    if (metaData.getTiltAngleSpecA().getType() != TiltAngleType.EXTRACT) {
-      startNextProcess(axisID, processResultDisplay);
+      ProcessResultDisplay processResultDisplay, ProcessSeries processSeries) {
+    processSeries.setNextProcess(ExtractpiecesParam.COMMAND_NAME);
+    if (metaData.getTiltAngleSpecA().getType() != TiltAngleType.EXTRACT
+        && processSeries != null) {
+      processSeries.startNextProcess(axisID, processResultDisplay);
       return;
     }
     File rawTiltFile = DatasetFiles.getRawTilt(this, axisID);
-    if (rawTiltFile.exists()) {
-      startNextProcess(axisID, processResultDisplay);
+    if (rawTiltFile.exists() && processSeries != null) {
+      processSeries.startNextProcess(axisID, processResultDisplay);
       return;
     }
     String threadName;
     try {
-      threadName = processMgr.extracttilts(axisID, processResultDisplay);
+      threadName = processMgr.extracttilts(axisID, processResultDisplay,
+          processSeries);
     }
     catch (SystemProcessException e) {
       e.printStackTrace();
@@ -1259,7 +1290,9 @@ public final class ApplicationManager extends BaseManager {
       message[0] = "Can not execute " + ExtracttiltsParam.COMMAND_NAME;
       message[1] = e.getMessage();
       uiHarness.openMessageDialog(message, "Unable to execute command", axisID);
-      startNextProcess(axisID, processResultDisplay);
+      if (processSeries != null) {
+        processSeries.startNextProcess(axisID, processResultDisplay);
+      }
       return;
     }
     setThreadName(threadName, axisID);
@@ -1268,20 +1301,24 @@ public final class ApplicationManager extends BaseManager {
   }
 
   private final void extractpieces(AxisID axisID,
-      ProcessResultDisplay processResultDisplay) {
-    setNextProcess(axisID, ExtractmagradParam.COMMAND_NAME);
-    if (metaData.getViewType() != ViewType.MONTAGE) {
-      startNextProcess(axisID, processResultDisplay);
+      ProcessResultDisplay processResultDisplay, ProcessSeries processSeries) {
+    if (processSeries == null) {
+      processSeries = new ProcessSeries(this);
+    }
+    processSeries.setNextProcess(ExtractmagradParam.COMMAND_NAME);
+    if (metaData.getViewType() != ViewType.MONTAGE && processSeries != null) {
+      processSeries.startNextProcess(axisID, processResultDisplay);
       return;
     }
     File pieceListFile = DatasetFiles.getPieceListFile(this, axisID);
-    if (pieceListFile.exists()) {
-      startNextProcess(axisID, processResultDisplay);
+    if (pieceListFile.exists() && processSeries != null) {
+      processSeries.startNextProcess(axisID, processResultDisplay);
       return;
     }
     String threadName;
     try {
-      threadName = processMgr.extractpieces(axisID, processResultDisplay);
+      threadName = processMgr.extractpieces(axisID, processResultDisplay,
+          processSeries);
     }
     catch (SystemProcessException e) {
       e.printStackTrace();
@@ -1289,7 +1326,9 @@ public final class ApplicationManager extends BaseManager {
       message[0] = "Can not execute " + ExtractpiecesParam.COMMAND_NAME;
       message[1] = e.getMessage();
       uiHarness.openMessageDialog(message, "Unable to execute command", axisID);
-      startNextProcess(axisID, processResultDisplay);
+      if (processSeries != null) {
+        processSeries.startNextProcess(axisID, processResultDisplay);
+      }
       return;
     }
     setThreadName(threadName, axisID);
@@ -1298,15 +1337,17 @@ public final class ApplicationManager extends BaseManager {
   }
 
   private final void extractmagrad(AxisID axisID,
-      ProcessResultDisplay processResultDisplay) {
+      ProcessResultDisplay processResultDisplay,
+      ConstProcessSeries processSeries) {
     String magGradientFileName = metaData.getMagGradientFile();
-    if (magGradientFileName == null || magGradientFileName.matches("\\s*+")) {
-      startNextProcess(axisID, processResultDisplay);
+    if (magGradientFileName == null || magGradientFileName.matches("\\s*+")
+        && processSeries != null) {
+      processSeries.startNextProcess(axisID, processResultDisplay);
       return;
     }
     File magGradientFile = DatasetFiles.getMagGradient(this, axisID);
-    if (magGradientFile.exists()) {
-      startNextProcess(axisID, processResultDisplay);
+    if (magGradientFile.exists() && processSeries != null) {
+      processSeries.startNextProcess(axisID, processResultDisplay);
       return;
     }
     ExtractmagradParam param = new ExtractmagradParam(this, axisID);
@@ -1314,8 +1355,8 @@ public final class ApplicationManager extends BaseManager {
     param.setGradientTable(metaData.getMagGradientFile());
     String threadName;
     try {
-      threadName = processMgr
-          .extractmagrad(param, axisID, processResultDisplay);
+      threadName = processMgr.extractmagrad(param, axisID,
+          processResultDisplay, processSeries);
     }
     catch (SystemProcessException e) {
       e.printStackTrace();
@@ -1323,7 +1364,9 @@ public final class ApplicationManager extends BaseManager {
       message[0] = "Can not execute " + ExtractmagradParam.COMMAND_NAME;
       message[1] = e.getMessage();
       uiHarness.openMessageDialog(message, "Unable to execute command", axisID);
-      startNextProcess(axisID, processResultDisplay);
+      if (processSeries != null) {
+        processSeries.startNextProcess(axisID, processResultDisplay);
+      }
       return;
     }
     setThreadName(threadName, axisID);
@@ -1336,14 +1379,15 @@ public final class ApplicationManager extends BaseManager {
    * @param axisID
    */
   public void makeDistortionCorrectedStack(AxisID axisID,
-      ProcessResultDisplay processResultDisplay) {
+      ProcessResultDisplay processResultDisplay,
+      ConstProcessSeries processSeries) {
     updateUndistortCom(axisID);
     processTrack.setCoarseAlignmentState(ProcessState.INPROGRESS, axisID);
     mainPanel.setCoarseAlignState(ProcessState.INPROGRESS, axisID);
     String threadName;
     try {
       threadName = processMgr.makeDistortionCorrectedStack(axisID,
-          processResultDisplay);
+          processResultDisplay, processSeries);
     }
     catch (SystemProcessException e) {
       e.printStackTrace();
@@ -1361,7 +1405,10 @@ public final class ApplicationManager extends BaseManager {
    * Run the coarse alignment script
    */
   public void coarseAlign(AxisID axisID,
-      ProcessResultDisplay processResultDisplay) {
+      ProcessResultDisplay processResultDisplay, ProcessSeries processSeries) {
+    if (processSeries == null) {
+      processSeries = new ProcessSeries(this);
+    }
     sendMsgProcessStarting(processResultDisplay);
     ProcessName processName;
     BlendmontParam blendmontParam = null;
@@ -1382,10 +1429,11 @@ public final class ApplicationManager extends BaseManager {
     try {
       if (metaData.getViewType() == ViewType.MONTAGE) {
         threadName = processMgr.preblend(blendmontParam, axisID,
-            processResultDisplay);
+            processResultDisplay, processSeries);
       }
       else {
-        threadName = processMgr.coarseAlign(axisID, processResultDisplay);
+        threadName = processMgr.coarseAlign(axisID, processResultDisplay,
+            processSeries);
       }
     }
     catch (SystemProcessException e) {
@@ -1398,7 +1446,7 @@ public final class ApplicationManager extends BaseManager {
           axisID);
       return;
     }
-    setNextProcess(axisID, "checkUpdateFiducialModel");
+    processSeries.setNextProcess("checkUpdateFiducialModel");
     setThreadName(threadName, axisID);
   }
 
@@ -1781,7 +1829,8 @@ public final class ApplicationManager extends BaseManager {
    * track com script
    */
   public void fiducialModelTrack(AxisID axisID,
-      ProcessResultDisplay processResultDisplay) {
+      ProcessResultDisplay processResultDisplay,
+      ConstProcessSeries processSeries) {
     sendMsgProcessStarting(processResultDisplay);
     if (!updateTrackCom(axisID)) {
       sendMsgProcessFailedToStart(processResultDisplay);
@@ -1794,7 +1843,8 @@ public final class ApplicationManager extends BaseManager {
     mainPanel.setFiducialModelState(ProcessState.INPROGRESS, axisID);
     String threadName;
     try {
-      threadName = processMgr.fiducialModelTrack(axisID, processResultDisplay);
+      threadName = processMgr.fiducialModelTrack(axisID, processResultDisplay,
+          processSeries);
     }
     catch (SystemProcessException e) {
       e.printStackTrace();
@@ -2390,7 +2440,8 @@ public final class ApplicationManager extends BaseManager {
    * @param the AxisID identifying the axis to align.
    */
   public void fineAlignment(AxisID axisID,
-      ProcessResultDisplay processResultDisplay) {
+      ProcessResultDisplay processResultDisplay,
+      ConstProcessSeries processSeries) {
     sendMsgProcessStarting(processResultDisplay);
     // Set a reference to the correct object
     AlignmentEstimationDialog fineAlignmentDialog = (AlignmentEstimationDialog) getDialog(
@@ -2408,7 +2459,7 @@ public final class ApplicationManager extends BaseManager {
     String threadName;
     try {
       threadName = processMgr.fineAlignment(tiltalignParam, axisID,
-          processResultDisplay);
+          processResultDisplay, processSeries);
     }
     catch (SystemProcessException e) {
       e.printStackTrace();
@@ -2558,7 +2609,8 @@ public final class ApplicationManager extends BaseManager {
    * @param destAxisID
    */
   public void transferfid(AxisID destAxisID,
-      ProcessResultDisplay processResultDisplay) {
+      ProcessResultDisplay processResultDisplay,
+      ConstProcessSeries processSeries) {
     sendMsgProcessStarting(processResultDisplay);
     // Set a reference to the correct object
     FiducialModelDialog fiducialModelDialog;
@@ -2596,7 +2648,7 @@ public final class ApplicationManager extends BaseManager {
     String threadName;
     try {
       threadName = processMgr.transferFiducials(transferfidParam,
-          processResultDisplay);
+          processResultDisplay, processSeries);
     }
     catch (SystemProcessException e) {
       e.printStackTrace();
@@ -2702,7 +2754,8 @@ public final class ApplicationManager extends BaseManager {
    * Run the sample com script
    */
   public ProcessResult createSample(AxisID axisID,
-      ProcessResultDisplay processResultDisplay, ConstTiltParam tiltParam) {
+      ProcessResultDisplay processResultDisplay,
+      ConstProcessSeries processSeries, ConstTiltParam tiltParam) {
     // Make sure we have a current prexg and _nonfid.xf if fiducialess is
     // selected
     if (metaData.isFiducialessAlignment(axisID)) {
@@ -2725,7 +2778,7 @@ public final class ApplicationManager extends BaseManager {
     String threadName;
     try {
       threadName = processMgr.createSample(axisID, processResultDisplay,
-          tiltParam);
+          processSeries, tiltParam);
     }
     catch (SystemProcessException e) {
       e.printStackTrace();
@@ -2748,7 +2801,8 @@ public final class ApplicationManager extends BaseManager {
    * @param axisID
    */
   public ProcessResult wholeTomogram(AxisID axisID,
-      ProcessResultDisplay processResultDisplay, ConstNewstParam param) {
+      ProcessResultDisplay processResultDisplay,
+      ConstProcessSeries processSeries, ConstNewstParam param) {
     // Make sure we have a current prexg and _nonfid.xf if fiducialess is
     // selected
     if (metaData.isFiducialessAlignment(axisID)) {
@@ -2769,7 +2823,8 @@ public final class ApplicationManager extends BaseManager {
     }
     String threadName;
     try {
-      threadName = processMgr.newst(param, axisID, processResultDisplay);
+      threadName = processMgr.newst(param, axisID, processResultDisplay,
+          processSeries);
     }
     catch (SystemProcessException e) {
       e.printStackTrace();
@@ -2790,7 +2845,8 @@ public final class ApplicationManager extends BaseManager {
    * @param axisID
    */
   public ProcessResult wholeTomogram(AxisID axisID,
-      ProcessResultDisplay processResultDisplay, BlendmontParam param) {
+      ProcessResultDisplay processResultDisplay,
+      ConstProcessSeries processSeries, BlendmontParam param) {
     // Make sure we have a current prexg and _nonfid.xf if fiducialess is
     // selected
     if (metaData.isFiducialessAlignment(axisID)) {
@@ -2811,7 +2867,8 @@ public final class ApplicationManager extends BaseManager {
     }
     String threadName;
     try {
-      threadName = processMgr.blend(param, axisID, processResultDisplay);
+      threadName = processMgr.blend(param, axisID, processResultDisplay,
+          processSeries);
     }
     catch (SystemProcessException e) {
       e.printStackTrace();
@@ -2890,11 +2947,13 @@ public final class ApplicationManager extends BaseManager {
    * 
    */
   public ProcessResult tomopitch(AxisID axisID,
-      ProcessResultDisplay processResultDisplay) {
+      ProcessResultDisplay processResultDisplay,
+      ConstProcessSeries processSeries) {
     sendMsgProcessStarting(processResultDisplay);
     String threadName;
     try {
-      threadName = processMgr.tomopitch(axisID, processResultDisplay);
+      threadName = processMgr.tomopitch(axisID, processResultDisplay,
+          processSeries);
     }
     catch (SystemProcessException e) {
       e.printStackTrace();
@@ -2991,11 +3050,11 @@ public final class ApplicationManager extends BaseManager {
    */
   public ProcessResult finalAlign(AxisID axisID,
       ProcessResultDisplay processResultDisplay,
-      ConstTiltalignParam tiltalignParam) {
+      ConstProcessSeries processSeries, ConstTiltalignParam tiltalignParam) {
     String threadName;
     try {
       threadName = processMgr.fineAlignment(tiltalignParam, axisID,
-          processResultDisplay);
+          processResultDisplay, processSeries);
       metaData.setFiducialessAlignment(axisID, false);
     }
     catch (SystemProcessException e) {
@@ -3126,7 +3185,8 @@ public final class ApplicationManager extends BaseManager {
    * 
    */
   public ProcessResult newst(AxisID axisID,
-      ProcessResultDisplay processResultDisplay, ConstNewstParam newstParam,
+      ProcessResultDisplay processResultDisplay,
+      ConstProcessSeries processSeries, ConstNewstParam newstParam,
       BlendmontParam blendmontParam) {
     // Make sure we have a current prexg and _nonfid.xf if fiducialess is
     // selected
@@ -3150,10 +3210,11 @@ public final class ApplicationManager extends BaseManager {
     try {
       if (metaData.getViewType() == ViewType.MONTAGE) {
         threadName = processMgr.blend(blendmontParam, axisID,
-            processResultDisplay);
+            processResultDisplay, processSeries);
       }
       else {
-        threadName = processMgr.newst(newstParam, axisID, processResultDisplay);
+        threadName = processMgr.newst(newstParam, axisID, processResultDisplay,
+            processSeries);
       }
     }
     catch (SystemProcessException e) {
@@ -3177,10 +3238,12 @@ public final class ApplicationManager extends BaseManager {
   /**
    */
   public ProcessResult mtffilter(AxisID axisID,
-      ProcessResultDisplay processResultDisplay) {
+      ProcessResultDisplay processResultDisplay,
+      ConstProcessSeries processSeries) {
     String threadName;
     try {
-      threadName = processMgr.mtffilter(axisID, processResultDisplay);
+      threadName = processMgr.mtffilter(axisID, processResultDisplay,
+          processSeries);
     }
     catch (SystemProcessException e) {
       e.printStackTrace();
@@ -3196,10 +3259,12 @@ public final class ApplicationManager extends BaseManager {
   }
 
   public ProcessResult sampleTilt(AxisID axisID,
-      ProcessResultDisplay processResultDisplay, TiltParam tiltParam) {
+      ProcessResultDisplay processResultDisplay,
+      ConstProcessSeries processSeries, TiltParam tiltParam) {
     String threadName;
     try {
-      threadName = processMgr.tilt(axisID, processResultDisplay, tiltParam);
+      threadName = processMgr.tilt(axisID, processResultDisplay, processSeries,
+          tiltParam);
     }
     catch (SystemProcessException e) {
       e.printStackTrace();
@@ -3222,10 +3287,12 @@ public final class ApplicationManager extends BaseManager {
    * @param axisID
    */
   public ProcessResult tiltProcess(AxisID axisID,
-      ProcessResultDisplay processResultDisplay, ConstTiltParam param) {
+      ProcessResultDisplay processResultDisplay,
+      ConstProcessSeries processSeries, ConstTiltParam param) {
     String threadName;
     try {
-      threadName = processMgr.tilt(axisID, processResultDisplay, param);
+      threadName = processMgr.tilt(axisID, processResultDisplay, processSeries,
+          param);
     }
     catch (SystemProcessException e) {
       e.printStackTrace();
@@ -4247,8 +4314,12 @@ public final class ApplicationManager extends BaseManager {
   /**
    * Initiate the combine process from the beginning
    */
-  public void combine(ProcessResultDisplay processResultDisplay) {
+  public void combine(ProcessResultDisplay processResultDisplay,
+      ProcessSeries processSeries) {
     sendMsgProcessStarting(processResultDisplay);
+    if (processSeries == null) {
+      processSeries = new ProcessSeries(this);
+    }
     // FIXME: what are the necessary updates
     // Update the scripts from the dialog panel
     updateCombineParams();
@@ -4284,7 +4355,7 @@ public final class ApplicationManager extends BaseManager {
     String threadName;
     try {
       threadName = processMgr.combine(combineComscriptState,
-          processResultDisplay);
+          processResultDisplay, processSeries);
     }
     catch (SystemProcessException e) {
       e.printStackTrace();
@@ -4298,7 +4369,7 @@ public final class ApplicationManager extends BaseManager {
     // Set the next process to execute when this is finished
     if (tomogramCombinationDialog.usingParallelProcessing()
         && tomogramCombinationDialog.isRunVolcombine()) {
-      setNextProcess(AxisID.ONLY, SplitcombineParam.COMMAND_NAME);
+      processSeries.setNextProcess(SplitcombineParam.COMMAND_NAME);
     }
     setBackgroundThreadName(threadName, AxisID.FIRST,
         CombineComscriptState.COMSCRIPT_NAME);
@@ -4313,7 +4384,11 @@ public final class ApplicationManager extends BaseManager {
   /**
    * Execute the matchvol1 com script and put patchcorr in the execution queue
    */
-  public void matchvol1Combine(ProcessResultDisplay processResultDisplay) {
+  public void matchvol1Combine(ProcessResultDisplay processResultDisplay,
+      ProcessSeries processSeries) {
+    if (processSeries == null) {
+      processSeries = new ProcessSeries(this);
+    }
     sendMsgProcessStarting(processResultDisplay);
     // FIXME: what are the necessary updates
     // Update the scripts from the dialog panel
@@ -4358,7 +4433,7 @@ public final class ApplicationManager extends BaseManager {
     String threadName;
     try {
       threadName = processMgr.combine(combineComscriptState,
-          processResultDisplay);
+          processResultDisplay, processSeries);
     }
     catch (SystemProcessException e) {
       e.printStackTrace();
@@ -4372,7 +4447,7 @@ public final class ApplicationManager extends BaseManager {
     // Set the next process to execute when this is finished
     if (tomogramCombinationDialog.usingParallelProcessing()
         && tomogramCombinationDialog.isRunVolcombine()) {
-      setNextProcess(AxisID.ONLY, SplitcombineParam.COMMAND_NAME);
+      processSeries.setNextProcess(SplitcombineParam.COMMAND_NAME);
     }
     setBackgroundThreadName(threadName, AxisID.FIRST,
         CombineComscriptState.COMSCRIPT_NAME);
@@ -4381,7 +4456,11 @@ public final class ApplicationManager extends BaseManager {
   /**
    * Initiate the combine process from patchcorr step
    */
-  public void patchcorrCombine(ProcessResultDisplay processResultDisplay) {
+  public void patchcorrCombine(ProcessResultDisplay processResultDisplay,
+      ProcessSeries processSeries) {
+    if (processSeries == null) {
+      processSeries = new ProcessSeries(this);
+    }
     sendMsgProcessStarting(processResultDisplay);
     updateCombineParams();
     CombineComscriptState combineComscriptState = updateCombineComscriptState(CombineProcessType.PATCHCORR);
@@ -4409,7 +4488,7 @@ public final class ApplicationManager extends BaseManager {
     String threadName;
     try {
       threadName = processMgr.combine(combineComscriptState,
-          processResultDisplay);
+          processResultDisplay, processSeries);
     }
     catch (SystemProcessException e) {
       e.printStackTrace();
@@ -4423,7 +4502,7 @@ public final class ApplicationManager extends BaseManager {
     // Set the next process to execute when this is finished
     if (tomogramCombinationDialog.usingParallelProcessing()
         && tomogramCombinationDialog.isRunVolcombine()) {
-      setNextProcess(AxisID.ONLY, SplitcombineParam.COMMAND_NAME);
+      processSeries.setNextProcess(SplitcombineParam.COMMAND_NAME);
     }
     setBackgroundThreadName(threadName, AxisID.FIRST,
         CombineComscriptState.COMSCRIPT_NAME);
@@ -4474,7 +4553,11 @@ public final class ApplicationManager extends BaseManager {
   /**
    * Initiate the combine process from matchorwarp step
    */
-  public void matchorwarpCombine(ProcessResultDisplay processResultDisplay) {
+  public void matchorwarpCombine(ProcessResultDisplay processResultDisplay,
+      ProcessSeries processSeries) {
+    if (processSeries == null) {
+      processSeries = new ProcessSeries(this);
+    }
     sendMsgProcessStarting(processResultDisplay);
     CombineComscriptState combineComscriptState = updateCombineComscriptState(CombineProcessType.MATCHORWARP);
     if (combineComscriptState == null) {
@@ -4494,7 +4577,7 @@ public final class ApplicationManager extends BaseManager {
     String threadName;
     try {
       threadName = processMgr.combine(combineComscriptState,
-          processResultDisplay);
+          processResultDisplay, processSeries);
     }
     catch (SystemProcessException e) {
       e.printStackTrace();
@@ -4508,7 +4591,7 @@ public final class ApplicationManager extends BaseManager {
     // Set the next process to execute when this is finished
     if (tomogramCombinationDialog.usingParallelProcessing()
         && tomogramCombinationDialog.isRunVolcombine()) {
-      setNextProcess(AxisID.ONLY, SplitcombineParam.COMMAND_NAME);
+      processSeries.setNextProcess(SplitcombineParam.COMMAND_NAME);
     }
     setBackgroundThreadName(threadName, AxisID.FIRST,
         CombineComscriptState.COMSCRIPT_NAME);
@@ -4517,7 +4600,7 @@ public final class ApplicationManager extends BaseManager {
   /**
    * Initiate the combine process from matchorwarp step
    */
-  public void matchorwarpTrial() {
+  public void matchorwarpTrial(ConstProcessSeries processSeries) {
     if (updateMatchorwarpCom(true)) {
       processTrack.setTomogramCombinationState(ProcessState.INPROGRESS);
       mainPanel.setTomogramCombinationState(ProcessState.INPROGRESS);
@@ -4525,7 +4608,7 @@ public final class ApplicationManager extends BaseManager {
       // nextProcess = next;
       String threadName = null;
       try {
-        threadName = processMgr.matchorwarp();
+        threadName = processMgr.matchorwarp(processSeries);
       }
       catch (SystemProcessException e) {
         e.printStackTrace();
@@ -4548,7 +4631,8 @@ public final class ApplicationManager extends BaseManager {
   /**
    * Execute the combine script starting at volcombine
    */
-  public void volcombine(ProcessResultDisplay processResultDisplay) {
+  public void volcombine(ProcessResultDisplay processResultDisplay,
+      ConstProcessSeries processSeries) {
     sendMsgProcessStarting(processResultDisplay);
     CombineComscriptState combineComscriptState = updateCombineComscriptState(CombineProcessType.VOLCOMBINE);
     updateCombineParams();
@@ -4563,7 +4647,7 @@ public final class ApplicationManager extends BaseManager {
     String threadName = null;
     try {
       threadName = processMgr.combine(combineComscriptState,
-          processResultDisplay);
+          processResultDisplay, processSeries);
     }
     catch (SystemProcessException e) {
       e.printStackTrace();
@@ -4872,7 +4956,8 @@ public final class ApplicationManager extends BaseManager {
   /**
    * Execute trimvol
    */
-  public void trimVolume(ProcessResultDisplay processResultDisplay) {
+  public void trimVolume(ProcessResultDisplay processResultDisplay,
+      ConstProcessSeries processSeries) {
     sendMsgProcessStarting(processResultDisplay);
     // Make sure that the post processing panel is open
     if (postProcessingDialog == null) {
@@ -4890,7 +4975,8 @@ public final class ApplicationManager extends BaseManager {
     mainPanel.setPostProcessingState(ProcessState.INPROGRESS);
     String threadName;
     try {
-      threadName = processMgr.trimVolume(trimvolParam, processResultDisplay);
+      threadName = processMgr.trimVolume(trimvolParam, processResultDisplay,
+          processSeries);
     }
     catch (SystemProcessException e) {
       e.printStackTrace();
@@ -4909,7 +4995,8 @@ public final class ApplicationManager extends BaseManager {
   /**
    * Execute squeezevol
    */
-  public void squeezevol(ProcessResultDisplay processResultDisplay) {
+  public void squeezevol(ProcessResultDisplay processResultDisplay,
+      ConstProcessSeries processSeries) {
     sendMsgProcessStarting(processResultDisplay);
     // Make sure that the post processing panel is open
     if (postProcessingDialog == null) {
@@ -4925,7 +5012,7 @@ public final class ApplicationManager extends BaseManager {
     String threadName;
     try {
       threadName = processMgr.squeezeVolume(squeezevolParam,
-          processResultDisplay);
+          processResultDisplay, processSeries);
     }
     catch (SystemProcessException e) {
       e.printStackTrace();
@@ -5032,45 +5119,55 @@ public final class ApplicationManager extends BaseManager {
     mainPanel.stopProgressBar(axisID, processEndState);
   }
 
-  /**
-   * Start the next process specified by the nextProcess string
-   */
-  protected void startNextProcess(AxisID axisID, String nextProcess,
-      ProcessResultDisplay processResultDisplay) {
-    DialogType processDialogType = getProcessDialogType(axisID);
-    if (processDialogType != null) {
-      getUIExpert(processDialogType, axisID).startNextProcess(
-          processResultDisplay);
+  void startNextProcess(final AxisID axisID,
+      final Run3dmodProcess run3dmodProcess,
+      final Run3dmodMenuOptions run3dmodMenuOptions) {
+    if (run3dmodProcess.equals(ImodManager.ERASED_STACK_KEY)) {
+      imodErasedStack(axisID, run3dmodMenuOptions);
     }
-    else if (nextProcess.equals("checkUpdateFiducialModel")) {
-      checkUpdateFiducialModel(axisID, processResultDisplay);
-      return;
-    }
-    else if (nextProcess.equals(ArchiveorigParam.COMMAND_NAME)) {
-      archiveOriginalStack(AxisID.SECOND);
-    }
-    else if (nextProcess
-        .equals(getNextProcessProcesschunksString(ProcessName.VOLCOMBINE))) {
-      processchunksVolcombine(processResultDisplay);
-    }
-    else if (nextProcess.equals(SplitcombineParam.COMMAND_NAME)) {
-      splitcombine();
-    }
-    else if (nextProcess.equals(ExtractpiecesParam.COMMAND_NAME)) {
-      extractpieces(axisID, processResultDisplay);
-    }
-    else if (nextProcess.equals(ExtractmagradParam.COMMAND_NAME)) {
-      extractmagrad(axisID, processResultDisplay);
-    }
-    else if (nextProcess.equals(ProcessName.XCORR.toString())) {
-      crossCorrelate(axisID, processResultDisplay);
-    }
-    else if (nextProcess.equals(ProcessName.ERASER.toString())) {
-      eraser(axisID, processResultDisplay);
+    else if (run3dmodProcess.equals(ImodManager.RAW_STACK_KEY)) {
+      imodXrayModel(axisID,run3dmodMenuOptions);
     }
   }
 
-  protected void updateDialog(ProcessName processName, AxisID axisID) {
+  /**
+   * Start the next process specified by the nextProcess string
+   */
+  void startNextProcess(AxisID axisID, String nextProcess,
+      ProcessResultDisplay processResultDisplay, ProcessSeries processSeries) {
+    DialogType processDialogType = getProcessDialogType(axisID);
+    if (processDialogType != null) {
+      getUIExpert(processDialogType, axisID).startNextProcess(
+          processResultDisplay, processSeries);
+    }
+    else if (nextProcess.equals("checkUpdateFiducialModel")) {
+      checkUpdateFiducialModel(axisID, processResultDisplay, processSeries);
+    }
+    else if (nextProcess.equals(ArchiveorigParam.COMMAND_NAME)) {
+      archiveOriginalStack(AxisID.SECOND, processSeries);
+    }
+    else if (nextProcess
+        .equals(getNextProcessProcesschunksString(ProcessName.VOLCOMBINE))) {
+      processchunksVolcombine(processResultDisplay, processSeries);
+    }
+    else if (nextProcess.equals(SplitcombineParam.COMMAND_NAME)) {
+      splitcombine(processSeries);
+    }
+    else if (nextProcess.equals(ExtractpiecesParam.COMMAND_NAME)) {
+      extractpieces(axisID, processResultDisplay, processSeries);
+    }
+    else if (nextProcess.equals(ExtractmagradParam.COMMAND_NAME)) {
+      extractmagrad(axisID, processResultDisplay, processSeries);
+    }
+    else if (nextProcess.equals(ProcessName.XCORR.toString())) {
+      crossCorrelate(axisID, processResultDisplay, processSeries);
+    }
+    else if (nextProcess.equals(ProcessName.ERASER.toString())) {
+      eraser(axisID, processResultDisplay, processSeries);
+    }
+  }
+
+  void updateDialog(ProcessName processName, AxisID axisID) {
     if (axisID != AxisID.ONLY
         && (processName == ProcessName.PRENEWST || processName == ProcessName.TRACK)) {
       updateDialog(fiducialModelDialogB, AxisID.SECOND);
@@ -5124,8 +5221,9 @@ public final class ApplicationManager extends BaseManager {
     return threadNameA;
   }
 
-  protected void checkUpdateFiducialModel(AxisID axisID,
-      ProcessResultDisplay processResultDisplay) {
+  void checkUpdateFiducialModel(AxisID axisID,
+      ProcessResultDisplay processResultDisplay,
+      ConstProcessSeries processSeries) {
     FidXyz fidXyz = UIExpertUtilities.INSTANCE.getFidXyz(this, axisID);
     MRCHeader prealiHeader = MRCHeader.getInstance(this, axisID, ".preali");
     MRCHeader rawstackHeader = MRCHeader.getInstance(this, axisID, ".st");
@@ -5135,16 +5233,16 @@ public final class ApplicationManager extends BaseManager {
       rawstackHeader.read();
     }
     catch (IOException except) {
-      processDone(axisID, processResultDisplay);
+      processDone(axisID, processResultDisplay, processSeries);
       return;
     }
     catch (InvalidParameterException except) {
       except.printStackTrace();
-      processDone(axisID, processResultDisplay);
+      processDone(axisID, processResultDisplay, processSeries);
       return;
     }
     if (!fidXyz.exists()) {
-      processDone(axisID, processResultDisplay);
+      processDone(axisID, processResultDisplay, processSeries);
       return;
     }
     // if fidXyz.getPixelSize() is 1, then the binning used in align.com must
@@ -5155,7 +5253,7 @@ public final class ApplicationManager extends BaseManager {
     if (!fidXyzPixelSizeSet) {
       if (Math.round(prealiHeader.getXPixelSpacing()
           / rawstackHeader.getXPixelSpacing()) == 1) {
-        processDone(axisID, processResultDisplay);
+        processDone(axisID, processResultDisplay, null);
         return;
       }
     }
@@ -5172,10 +5270,10 @@ public final class ApplicationManager extends BaseManager {
                   + " rerun align" + axisID.getExtension() + ".com.",
               "Prealigned image stack binning has changed", axisID);
     }
-    processDone(axisID, processResultDisplay);
+    processDone(axisID, processResultDisplay, processSeries);
   }
 
-  protected void createComScriptManager() {
+  void createComScriptManager() {
     comScriptMgr = new ComScriptManager(this);
   }
 
@@ -5274,10 +5372,15 @@ public final class ApplicationManager extends BaseManager {
   }
 
   public ProcessResult splittilt(AxisID axisID, boolean trialMode,
-      ProcessResultDisplay processResultDisplay, SplittiltParam param) {
+      ProcessResultDisplay processResultDisplay, ProcessSeries processSeries,
+      SplittiltParam param) {
+    if (processSeries == null) {
+      processSeries = new ProcessSeries(this);
+    }
     String threadName;
     try {
-      threadName = processMgr.splittilt(param, axisID, processResultDisplay);
+      threadName = processMgr.splittilt(param, axisID, processResultDisplay,
+          processSeries);
     }
     catch (SystemProcessException e) {
       e.printStackTrace();
@@ -5287,14 +5390,18 @@ public final class ApplicationManager extends BaseManager {
       uiHarness.openMessageDialog(message, "Unable to execute command", axisID);
       return ProcessResult.FAILED_TO_START;
     }
-    setNextProcess(axisID, getNextProcessProcesschunksString(ProcessName.TILT));
+    processSeries
+        .setNextProcess(getNextProcessProcesschunksString(ProcessName.TILT));
     setThreadName(threadName, axisID);
     mainPanel.startProgressBar("Running " + SplittiltParam.COMMAND_NAME,
         axisID, ProcessName.SPLITTILT);
     return null;
   }
 
-  public void splitcombine() {
+  public void splitcombine(ProcessSeries processSeries) {
+    if (processSeries == null) {
+      processSeries = new ProcessSeries(this);
+    }
     ProcessResultDisplay processResultDisplay = getProcessResultDisplayFactory(
         AxisID.ONLY).getRestartVolcombine();
     sendMsgProcessStarting(processResultDisplay);
@@ -5306,7 +5413,7 @@ public final class ApplicationManager extends BaseManager {
     mainPanel.setTomogramCombinationState(ProcessState.INPROGRESS);
     String threadName;
     try {
-      threadName = processMgr.splitcombine(processResultDisplay);
+      threadName = processMgr.splitcombine(processResultDisplay, processSeries);
     }
     catch (SystemProcessException e) {
       e.printStackTrace();
@@ -5317,8 +5424,8 @@ public final class ApplicationManager extends BaseManager {
           AxisID.ONLY);
       return;
     }
-    setNextProcess(AxisID.ONLY,
-        getNextProcessProcesschunksString(ProcessName.VOLCOMBINE));
+    processSeries
+        .setNextProcess(getNextProcessProcesschunksString(ProcessName.VOLCOMBINE));
     setThreadName(threadName, AxisID.ONLY);
     mainPanel.startProgressBar("Running " + SplitcombineParam.COMMAND_NAME,
         AxisID.ONLY, ProcessName.SPLITCOMBINE);
@@ -5328,9 +5435,12 @@ public final class ApplicationManager extends BaseManager {
     return ProcessName.PROCESSCHUNKS + " " + processName;
   }
 
-  private void processchunksVolcombine(ProcessResultDisplay processResultDisplay) {
+  private void processchunksVolcombine(
+      ProcessResultDisplay processResultDisplay,
+      ConstProcessSeries processSeries) {
     processchunks(AxisID.ONLY, DialogType.TOMOGRAM_COMBINATION,
-        tomogramCombinationDialog, processResultDisplay, ProcessName.VOLCOMBINE);
+        tomogramCombinationDialog, processResultDisplay, processSeries,
+        ProcessName.VOLCOMBINE);
   }
 
   /**
@@ -5339,7 +5449,7 @@ public final class ApplicationManager extends BaseManager {
    */
   protected void processchunks(AxisID axisID, DialogType dialogType,
       AbstractParallelDialog dialog, ProcessResultDisplay processResultDisplay,
-      ProcessName processName) {
+      ConstProcessSeries processSeries, ProcessName processName) {
     sendMsgProcessStarting(processResultDisplay);
     if (dialog == null) {
       sendMsgProcessFailedToStart(processResultDisplay);
@@ -5359,7 +5469,7 @@ public final class ApplicationManager extends BaseManager {
     mainPanel.setState(ProcessState.INPROGRESS, axisID, dialogType);
     //param should never be set to resume
     parallelPanel.getParallelProgressDisplay().resetResults();
-    processchunks(axisID, param, processResultDisplay);
+    processchunks(axisID, param, processResultDisplay, processSeries);
   }
 
   protected BaseProcessManager getProcessManager() {
@@ -5423,6 +5533,9 @@ public final class ApplicationManager extends BaseManager {
 }
 /**
  * <p> $Log$
+ * <p> Revision 3.297  2008/01/31 20:13:29  sueh
+ * <p> bug# 1055 throwing a FileException when LogFile.getInstance fails.
+ * <p>
  * <p> Revision 3.296  2008/01/23 21:02:03  sueh
  * <p> bug# 1064  Added reconnectRunA and B.  Can't use the reconnectRun
  * <p> functionality in BaseManager because BaseManager.reconnect is run before
