@@ -29,44 +29,94 @@ final class Run3dmodButton extends MultiLineButton implements ContextMenu {
   public static final String rcsid = "$Id$";
 
   private final JPopupMenu contextMenu = new JPopupMenu("3dmod Options");
-  private final JMenuItem startupWindow = new JMenuItem(
-      "Open with startup window");
-  private final JMenuItem binBy2 = new JMenuItem("Open binned by 2");
+  private final JMenuItem startupWindow;
+  private final JMenuItem binBy2;
+  //When the button is not a 3dmod button, then it may run 3dmod deferred; first
+  //running the process associated with the button and then running 3dmod as
+  //directed by the right-click menu.  The right click menu contains a plain
+  //3dmod option (noMenuOption) when deferred is true.
+  private final boolean deferred;
+
+  //If deferred is true then the information needed by the manager to choose
+  //which 3dmod process to run and any information needed to run it must be
+  //included in run3dmodOptions.  If deferred is false then run3dmodOptions is
+  //optional, but it can be used to share information between the real 3dmod
+  //button and the deferred button.  This should allow the manager to use the
+  //same function to run 3dmod for both buttons.
+  private Run3dmodProcess run3dmodProcess = null;
   private Run3dmodButtonContainer container = null;
+  private JMenuItem noMenuOption = null;
 
-  Run3dmodButton(String label, Run3dmodButtonContainer container) {
-    this(label, container, false);
-  }
-
-  protected Run3dmodButton(String label, boolean toggleButton,
-      DialogType dialogType) {
+  private Run3dmodButton(final String label,
+      final Run3dmodButtonContainer container, final boolean toggleButton,
+      final DialogType dialogType, boolean deferred) {
     super(label, toggleButton, dialogType);
-    init(null);
-  }
-
-  private Run3dmodButton(String label, Run3dmodButtonContainer container,
-      boolean toggleButton) {
-    super(label, toggleButton);
-    init(container);
-  }
-
-  private void init(Run3dmodButtonContainer container) {
     this.container = container;
-    GenericMouseAdapter mouseAdapter = new GenericMouseAdapter(this);
-    addMouseListener(mouseAdapter);
-    MenuActionListener menuActionListener = new MenuActionListener(this);
+    this.deferred = deferred;
+    String openString;
+    if (deferred) {
+      openString = "And open 3dmod";
+      noMenuOption = new JMenuItem(openString);
+    }
+    else {
+      openString = "Open";
+    }
+    startupWindow = new JMenuItem(openString + " with startup window");
+    binBy2 = new JMenuItem(openString + " binned by 2");
+  }
+
+  static Run3dmodButton get3dmodInstance(final String label,
+      final Run3dmodButtonContainer container) {
+    Run3dmodButton instance = new Run3dmodButton(label, container, false, null,
+        false);
+    instance.init();
+    return instance;
+  }
+
+  static Run3dmodButton getToggle3dmodInstance(final String label,
+      final DialogType dialogType) {
+    Run3dmodButton instance = new Run3dmodButton(label, null, true, dialogType,
+        false);
+    instance.init();
+    return instance;
+  }
+
+  static Run3dmodButton getDeferredToggle3dmodInstance(final String label,
+      final DialogType dialogType) {
+    Run3dmodButton instance = new Run3dmodButton(label, null, true, dialogType,
+        true);
+    instance.init();
+    return instance;
+  }
+
+  private void init() {
+    if (noMenuOption != null) {
+      contextMenu.add(noMenuOption);
+    }
     contextMenu.add(startupWindow);
     contextMenu.add(binBy2);
-    startupWindow.addActionListener(menuActionListener);
-    binBy2.addActionListener(menuActionListener);
-  }
-  
-  static final Run3dmodButton getToggle3dmodButtonInstance(String label,
-      DialogType dialogType) {
-    return new Run3dmodButton(label, true, dialogType);
+    addListeners();
   }
 
-  public final void popUpContextMenu(MouseEvent mouseEvent) {
+  private void addListeners() {
+    addMouseListener(new GenericMouseAdapter(this));
+    MenuActionListener listener = new MenuActionListener(this);
+    if (noMenuOption != null) {
+      noMenuOption.addActionListener(listener);
+    }
+    startupWindow.addActionListener(listener);
+    binBy2.addActionListener(listener);
+  }
+
+   void setRun3dmodProcess(Run3dmodProcess input) {
+    run3dmodProcess = input;
+  }
+   
+   Run3dmodProcess getRun3dmodOptions() {
+     return run3dmodProcess;
+   }
+
+  public void popUpContextMenu(MouseEvent mouseEvent) {
     if (!isEnabled()) {
       return;
     }
@@ -74,46 +124,45 @@ final class Run3dmodButton extends MultiLineButton implements ContextMenu {
     contextMenu.setVisible(true);
   }
 
-  final void setRun3dmodButtonContainer(Run3dmodButtonContainer container) {
+  void setRun3dmodButtonContainer(final Run3dmodButtonContainer container) {
     this.container = container;
   }
 
-  protected final void performMenuAction(ActionEvent event) {
+  private void performMenuAction(final ActionEvent event) {
+    //MenuOptions holds the current menu choice.
     Run3dmodMenuOptions menuOptions = new Run3dmodMenuOptions();
     if (event.getActionCommand().equals(startupWindow.getText())) {
       menuOptions.setStartupWindow(true);
-      if (container != null) {
-        container.run3dmod(this, menuOptions);
-      }
-      if (isToggleButton()) {
-        setSelected(true);
-      }
     }
     else if (event.getActionCommand().equals(binBy2.getText())) {
       menuOptions.setBinBy2(true);
-      if (container != null) {
-        container.run3dmod(this, menuOptions);
-      }
-      if (isToggleButton()) {
-        setSelected(true);
-      }
+    }
+    if (container != null) {
+      container.action(this, menuOptions);
+    }
+    if (isToggleButton()) {
+      setSelected(true);
     }
   }
 
   private final class MenuActionListener implements ActionListener {
     private final Run3dmodButton adaptee;
 
-    private MenuActionListener(Run3dmodButton adaptee) {
+    private MenuActionListener(final Run3dmodButton adaptee) {
       this.adaptee = adaptee;
     }
 
-    public final void actionPerformed(ActionEvent event) {
+    public void actionPerformed(final ActionEvent event) {
       adaptee.performMenuAction(event);
     }
   }
 }
 /**
  * <p> $Log$
+ * <p> Revision 1.9  2007/08/10 17:36:35  sueh
+ * <p> bug# 847 Removed implements clause for ProcessResultDisplay because
+ * <p> MultiLineButton already implements it.
+ * <p>
  * <p> Revision 1.8  2006/02/06 21:21:45  sueh
  * <p> bug# 521 Getting toggle buttons through ProcessResultDisplayFactory.
  * <p>
