@@ -1,3 +1,16 @@
+/*
+ *  imodv_isosurface.c - Makes an isosurface of selected volume in extra object
+ *
+ *  Author: Quanren Xiong
+ *
+ *  Copyright (C) 2008 by Boulder Laboratory for 3-Dimensional Electron
+ *  Microscopy of Cells ("BL3DEMC") and the Regents of the University of 
+ *  Colorado.  See dist/COPYRIGHT for full copyright notice.
+ *
+ *  $Id$
+ *  Log at end of file
+ */
+
 #include <qcheckbox.h>
 #include <qlabel.h>
 #include <qlineedit.h>
@@ -12,15 +25,12 @@
 #include "imodv.h"
 #include "imod.h"
 #include "imodv_gfx.h"
-#include "mkmesh.h"
 #include "imodv_mcubes.h"
 #include "imodv_isosurface.h"
 #include "histwidget.h"
 #include "imodv_input.h"
 #include "imod_display.h"
 #include "control.h"
-#include "preferences.h"
-#include "xcramp.h"
 
 
 enum {IIS_X_COORD = 0, IIS_Y_COORD, IIS_Z_COORD, IIS_X_SIZE, IIS_Y_SIZE,
@@ -319,7 +329,8 @@ ImodvIsosurface::ImodvIsosurface(struct ViewInfo *vi, QWidget *parent, const cha
 ImodvIsosurface::~ImodvIsosurface()
 {
   free(mVolume);
-  free(mOrigMesh);
+  if(mOrigMesh) 
+    imodMeshDelete(mOrigMesh);
 }
 
 float ImodvIsosurface::fillVolumeArray()
@@ -411,7 +422,8 @@ void ImodvIsosurface::setIsoObj()
   mcubeMesh->list=triangles;
   mcubeMesh->vsize= 2*nVertex;
   mcubeMesh->lsize= 3*nTriangle+3;
-  if(mOrigMesh) free(mOrigMesh);
+  if(mOrigMesh) 
+    imodMeshDelete(mOrigMesh);
   mOrigMesh=mcubeMesh;
 
   //free all memory used by the old mesh; 
@@ -744,3 +756,9 @@ void ImodvIsosurface::keyReleaseEvent ( QKeyEvent * e )
   }
   imodvKeyRelease(e);
 }
+
+/*
+
+$Log$
+
+*/
