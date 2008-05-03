@@ -1,5 +1,6 @@
 package etomo.ui;
 
+import etomo.type.ConstProcessSeries;
 import etomo.type.DialogExitState;
 import etomo.type.ProcessResultDisplay;
 
@@ -21,7 +22,8 @@ public interface UIExpert {
 
   public void openDialog();
 
-  public void startNextProcess(ProcessResultDisplay processResultDisplay);
+  public void startNextProcess(ProcessResultDisplay processResultDisplay,
+      ConstProcessSeries processSeries);
 
   public void saveAction();
 
@@ -29,6 +31,9 @@ public interface UIExpert {
 }
 /**
  * <p> $Log$
+ * <p> Revision 1.4  2006/07/26 16:44:28  sueh
+ * <p> bug# 868 formatted
+ * <p>
  * <p> Revision 1.3  2006/06/30 20:04:58  sueh
  * <p> bug# 877 Added saveAction().
  * <p>
