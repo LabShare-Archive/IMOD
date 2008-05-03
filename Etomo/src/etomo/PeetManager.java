@@ -26,6 +26,7 @@ import etomo.type.BaseMetaData;
 import etomo.type.BaseProcessTrack;
 import etomo.type.BaseScreenState;
 import etomo.type.BaseState;
+import etomo.type.ConstProcessSeries;
 import etomo.type.IntKeyList;
 import etomo.type.InterfaceType;
 import etomo.type.PeetMetaData;
@@ -39,6 +40,7 @@ import etomo.ui.MainPanel;
 import etomo.ui.MainPeetPanel;
 import etomo.ui.ParallelPanel;
 import etomo.ui.PeetDialog;
+import etomo.ui.Run3dmodProcess;
 import etomo.util.DatasetFiles;
 
 /**
@@ -55,6 +57,11 @@ import etomo.util.DatasetFiles;
  * @version $Revision$
  * 
  * <p> $Log$
+ * <p> Revision 1.40  2008/05/01 22:53:12  sueh
+ * <p> bug# 1107 Removed imod(String, List, Run3dmodMenuOptions) and add
+ * <p> buildFileNameArray(List) to make it easier to customize imodAvgVol() and
+ * <p> imodRef().  Didn't need to customize them after all.
+ * <p>
  * <p> Revision 1.39  2008/04/02 01:37:23  sueh
  * <p> bug# 1095 Added comment to setPeetDialogParameters.
  * <p>
@@ -553,7 +560,7 @@ public final class PeetManager extends BaseManager {
     }
     try {
       imodManager.open(ImodManager.AVG_VOL_KEY, buildFileNameArray(fileNameList), menuOptions);
-    }
+  }
     catch (IOException e) {
       e.printStackTrace();
     }
@@ -582,7 +589,7 @@ public final class PeetManager extends BaseManager {
     }
     try {
       imodManager.open(ImodManager.REF_KEY, buildFileNameArray(fileNameList), menuOptions);
-    }
+  }
     catch (IOException e) {
       e.printStackTrace();
     }
@@ -608,9 +615,12 @@ public final class PeetManager extends BaseManager {
           .size()]);
     }
     return fileNameArray;
-  }
+    }
 
-  public void peetParser() {
+  public void peetParser(ProcessSeries processSeries) {
+    if(processSeries==null) {
+      processSeries=new ProcessSeries(this);
+    }
     savePeetDialog();
     if (matlabParam == null) {
       uiHarness.openMessageDialog("Must set " + PeetDialog.DIRECTORY_LABEL
@@ -628,8 +638,8 @@ public final class PeetManager extends BaseManager {
         e.printStackTrace();
       }
       removeComFiles();
-      String threadName = processMgr.peetParser(param);
-      setNextProcess(AxisID.ONLY, ProcessName.PROCESSCHUNKS.toString());
+      String threadName = processMgr.peetParser(param,processSeries);
+      processSeries.setNextProcess(ProcessName.PROCESSCHUNKS.toString());
       setThreadName(threadName, AxisID.ONLY);
       mainPanel.startProgressBar("Running " + ProcessName.PEET_PARSER,
           AxisID.ONLY, ProcessName.PEET_PARSER);
@@ -693,14 +703,19 @@ public final class PeetManager extends BaseManager {
     storables[index++] = state;
     return storables;
   }
+  
+  void startNextProcess(final AxisID axisID,
+      final Run3dmodProcess run3dmodProcess,
+      final Run3dmodMenuOptions run3dmodMenuOptions) {
+  }
 
   /**
    * Start the next process specified by the nextProcess string
    */
-  void startNextProcess(AxisID axisID, String nextProcess,
-      ProcessResultDisplay processResultDisplay) {
+  void startNextProcess(final AxisID axisID, final String nextProcess,
+      final ProcessResultDisplay processResultDisplay,ProcessSeries processSeries) {
     if (nextProcess.equals(ProcessName.PROCESSCHUNKS.toString())) {
-      processchunks();
+      processchunks(processSeries);
     }
   }
 
@@ -780,7 +795,7 @@ public final class PeetManager extends BaseManager {
    * Run processchunks.
    * @param axisID
    */
-  private void processchunks() {
+  private void processchunks(ConstProcessSeries processSeries) {
     if (peetDialog == null) {
       return;
     }
@@ -794,6 +809,6 @@ public final class PeetManager extends BaseManager {
     }
     //param should never be set to resume
     parallelPanel.getParallelProgressDisplay().resetResults();
-    processchunks(AxisID.ONLY, param, null);
+    processchunks(AxisID.ONLY, param, null,processSeries);
   }
 }

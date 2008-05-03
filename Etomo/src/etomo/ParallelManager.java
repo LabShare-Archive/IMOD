@@ -22,6 +22,7 @@ import etomo.type.BaseMetaData;
 import etomo.type.BaseProcessTrack;
 import etomo.type.BaseScreenState;
 import etomo.type.BaseState;
+import etomo.type.ConstProcessSeries;
 import etomo.type.DialogType;
 import etomo.type.InterfaceType;
 import etomo.type.ParallelMetaData;
@@ -36,6 +37,7 @@ import etomo.ui.MainParallelPanel;
 import etomo.ui.ParallelChooser;
 import etomo.ui.ParallelDialog;
 import etomo.ui.ParallelPanel;
+import etomo.ui.Run3dmodProcess;
 import etomo.ui.UIHarness;
 
 /**
@@ -211,10 +213,16 @@ public final class ParallelManager extends BaseManager {
     this.paramFile = paramFile;
   }
 
-  protected void startNextProcess(final AxisID axisID,
-      final String nextProcess, ProcessResultDisplay processResultDisplay) {
+  void startNextProcess(final AxisID axisID,
+      final Run3dmodProcess run3dmodProcess,
+      final Run3dmodMenuOptions run3dmodMenuOptions) {
+  }
+
+  void startNextProcess(final AxisID axisID, final String nextProcess,
+      final ProcessResultDisplay processResultDisplay,
+      ProcessSeries processSeries) {
     if (nextProcess.equals(ProcessName.ANISOTROPIC_DIFFUSION.toString())) {
-      anisotropicDiffusion();
+      anisotropicDiffusion(processSeries);
     }
   }
 
@@ -226,7 +234,7 @@ public final class ParallelManager extends BaseManager {
     return metaData.getName();
   }
 
-  protected void updateDialog(final ProcessName processName, final AxisID axisID) {
+  void updateDialog(final ProcessName processName, final AxisID axisID) {
   }
 
   private void openProcessingPanel() {
@@ -289,7 +297,8 @@ public final class ParallelManager extends BaseManager {
    * run BaseManager.processchunks
    */
   public final void processchunks(
-      final ProcessResultDisplay processResultDisplay, String rootName) {
+      final ProcessResultDisplay processResultDisplay,
+      ConstProcessSeries processSeries, String rootName) {
     if (parallelDialog == null) {
       return;
     }
@@ -314,7 +323,7 @@ public final class ParallelManager extends BaseManager {
       return;
     }
     parallelPanel.getParallelProgressDisplay().resetResults();
-    processchunks(AxisID.ONLY, param, processResultDisplay);
+    processchunks(AxisID.ONLY, param, processResultDisplay, processSeries);
   }
 
   public boolean setNewParamFile(final File file) {
@@ -475,7 +484,10 @@ public final class ParallelManager extends BaseManager {
     return param;
   }
 
-  public void chunksetup() {
+  public void chunksetup(ProcessSeries processSeries) {
+    if (processSeries == null) {
+      processSeries = new ProcessSeries(this);
+    }
     if (anisotropicDiffusionDialog == null) {
       uiHarness.openMessageDialog("Anisotropic diffusion dialog not open",
           "Program logic error", AxisID.ONLY);
@@ -485,10 +497,10 @@ public final class ParallelManager extends BaseManager {
     if (param == null) {
       return;
     }
-    setNextProcess(AxisID.ONLY, ProcessName.ANISOTROPIC_DIFFUSION.toString());
+    processSeries.setNextProcess(ProcessName.ANISOTROPIC_DIFFUSION.toString());
     String threadName;
     try {
-      threadName = processMgr.chunksetup(param);
+      threadName = processMgr.chunksetup(param, processSeries);
     }
     catch (SystemProcessException e) {
       String[] message = new String[2];
@@ -496,7 +508,6 @@ public final class ParallelManager extends BaseManager {
       message[1] = e.getMessage();
       uiHarness.openMessageDialog(message, "Unable to execute command",
           AxisID.ONLY);
-      processFailed(AxisID.ONLY);
       return;
     }
     setThreadName(threadName, AxisID.ONLY);
@@ -504,7 +515,8 @@ public final class ParallelManager extends BaseManager {
         ProcessName.CHUNKSETUP);
   }
 
-  public void anisotropicDiffusionVaryingIteration(final String subdirName) {
+  public void anisotropicDiffusionVaryingIteration(final String subdirName,
+      ConstProcessSeries processSeries) {
     if (anisotropicDiffusionDialog == null) {
       uiHarness.openMessageDialog("Anisotropic diffusion dialog not open",
           "Program logic error", AxisID.ONLY);
@@ -517,7 +529,7 @@ public final class ParallelManager extends BaseManager {
     // Start the trimvol process
     String threadName;
     try {
-      threadName = processMgr.anisotropicDiffusion(param);
+      threadName = processMgr.anisotropicDiffusion(param, processSeries);
     }
     catch (SystemProcessException e) {
       e.printStackTrace();
@@ -534,7 +546,7 @@ public final class ParallelManager extends BaseManager {
         AxisID.ONLY, ProcessName.ANISOTROPIC_DIFFUSION);
   }
 
-  public void anisotropicDiffusion() {
+  public void anisotropicDiffusion(ConstProcessSeries processSeries) {
     if (anisotropicDiffusionDialog == null) {
       uiHarness.openMessageDialog("Anisotropic diffusion dialog not open",
           "Program logic error", AxisID.ONLY);
@@ -549,10 +561,11 @@ public final class ParallelManager extends BaseManager {
       return;
     }
     parallelPanel.getParallelProgressDisplay().resetResults();
-    processchunks(AxisID.ONLY, param, null);
+    processchunks(AxisID.ONLY, param, null, processSeries);
   }
 
-  public void anisotropicDiffusionVaryingK(final String subdirName) {
+  public void anisotropicDiffusionVaryingK(final String subdirName,
+      ConstProcessSeries processSeries) {
     if (anisotropicDiffusionDialog == null) {
       uiHarness.openMessageDialog("Anisotropic diffusion dialog not open",
           "Program logic error", AxisID.ONLY);
@@ -589,13 +602,13 @@ public final class ParallelManager extends BaseManager {
       return;
     }
     parallelPanel.getParallelProgressDisplay().resetResults();
-    processchunks(AxisID.ONLY, param, null);
+    processchunks(AxisID.ONLY, param, null, processSeries);
   }
 
   /**
    * Execute trimvol
    */
-  public void trimVolume() {
+  public void trimVolume(ConstProcessSeries processSeries) {
     if (anisotropicDiffusionDialog == null) {
       uiHarness.openMessageDialog("Anisotropic diffusion dialog not open",
           "Program logic error", AxisID.ONLY);
@@ -608,7 +621,7 @@ public final class ParallelManager extends BaseManager {
     // Start the trimvol process
     String threadName;
     try {
-      threadName = processMgr.trimVolume(param);
+      threadName = processMgr.trimVolume(param, processSeries);
     }
     catch (SystemProcessException e) {
       e.printStackTrace();
@@ -652,6 +665,11 @@ public final class ParallelManager extends BaseManager {
 }
 /**
  * <p> $Log$
+ * <p> Revision 1.24  2008/01/14 20:22:48  sueh
+ * <p> bug# 1050 Added an empty getProcessResultDisplayFactoryInterface.  Calling
+ * <p> BaseManager.reconnect from openProcessingPanel to reconnect to parallel
+ * <p> processes.
+ * <p>
  * <p> Revision 1.23  2007/12/26 21:57:34  sueh
  * <p> bug# 1052 Moved argument handling from EtomoDirector to a separate class.
  * <p>

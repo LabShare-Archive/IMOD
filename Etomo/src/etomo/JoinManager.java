@@ -37,6 +37,7 @@ import etomo.type.BaseScreenState;
 import etomo.type.BaseState;
 import etomo.type.ConstJoinMetaData;
 import etomo.type.ConstJoinState;
+import etomo.type.ConstProcessSeries;
 import etomo.type.EtomoNumber;
 import etomo.type.InterfaceType;
 import etomo.type.JoinMetaData;
@@ -49,6 +50,7 @@ import etomo.type.SlicerAngles;
 import etomo.ui.JoinDialog;
 import etomo.ui.MainJoinPanel;
 import etomo.ui.MainPanel;
+import etomo.ui.Run3dmodProcess;
 import etomo.util.DatasetFiles;
 import etomo.util.Utilities;
 
@@ -66,6 +68,9 @@ import etomo.util.Utilities;
  * @version $Revision$
  * 
  * <p> $Log$
+ * <p> Revision 1.66  2008/01/31 20:16:34  sueh
+ * <p> bug# 1055 throwing a FileException when LogFile.getInstance fails.
+ * <p>
  * <p> Revision 1.65  2008/01/14 20:21:49  sueh
  * <p> bug# 1050 Added an empty getProcessResultDisplayFactoryInterface.
  * <p>
@@ -812,7 +817,10 @@ public final class JoinManager extends BaseManager {
     return slicerAngles;
   }
 
-  public void makejoincom() {
+  public void makejoincom(ProcessSeries processSeries) {
+    if (processSeries == null) {
+      processSeries = new ProcessSeries(this);
+    }
     if (!joinDialog.getMetaData(metaData)) {
       return;
     }
@@ -836,7 +844,7 @@ public final class JoinManager extends BaseManager {
       return;
     }
     try {
-      threadNameA = processMgr.makejoincom(makejoincomParam);
+      threadNameA = processMgr.makejoincom(makejoincomParam, processSeries);
     }
     catch (SystemProcessException except) {
       except.printStackTrace();
@@ -844,7 +852,7 @@ public final class JoinManager extends BaseManager {
           + except.getMessage(), "SystemProcessException", AxisID.ONLY);
       return;
     }
-    setNextProcess(AxisID.ONLY, "startjoin");
+    processSeries.setNextProcess("startjoin");
     mainPanel.startProgressBar("Makejoincom", AxisID.ONLY,
         ProcessName.MAKEJOINCOM);
   }
@@ -940,14 +948,14 @@ public final class JoinManager extends BaseManager {
     }
   }
 
-  public void xfalignInitial() {
+  public void xfalignInitial(ConstProcessSeries processSeries) {
     if (!updateMetaDataFromJoinDialog(AxisID.ONLY)) {
       return;
     }
     XfalignParam xfalignParam = new XfalignParam(this,
         XfalignParam.Mode.INITIAL);
     try {
-      threadNameA = processMgr.xfalign(xfalignParam);
+      threadNameA = processMgr.xfalign(xfalignParam, processSeries);
     }
     catch (SystemProcessException except) {
       except.printStackTrace();
@@ -960,7 +968,7 @@ public final class JoinManager extends BaseManager {
         ProcessName.XFALIGN);
   }
 
-  public void xfalignRefine() {
+  public void xfalignRefine(ConstProcessSeries processSeries) {
     if (!updateMetaDataFromJoinDialog(AxisID.ONLY)) {
       return;
     }
@@ -969,7 +977,7 @@ public final class JoinManager extends BaseManager {
       return;
     }
     try {
-      threadNameA = processMgr.xfalign(xfalignParam);
+      threadNameA = processMgr.xfalign(xfalignParam, processSeries);
     }
     catch (SystemProcessException except) {
       except.printStackTrace();
@@ -1091,7 +1099,7 @@ public final class JoinManager extends BaseManager {
     return setMode(propertyUserDir);
   }
 
-  public void startjoin() {
+  public void startjoin(ConstProcessSeries processSeries) {
     if (!metaData.isValid(joinDialog.getWorkingDir())) {
       uiHarness.openMessageDialog(metaData.getInvalidReason(), "Invalid Data",
           AxisID.ONLY);
@@ -1101,7 +1109,7 @@ public final class JoinManager extends BaseManager {
       if (startJoinParam == null) {
         startJoinParam = new StartJoinParam(AxisID.ONLY);
       }
-      threadNameA = processMgr.startjoin(startJoinParam);
+      threadNameA = processMgr.startjoin(startJoinParam, processSeries);
       startJoinParam = null;
     }
     catch (SystemProcessException except) {
@@ -1135,12 +1143,12 @@ public final class JoinManager extends BaseManager {
     joinDialog.enableMidas();
   }
 
-  public void xfjointomo() {
+  public void xfjointomo(ConstProcessSeries processSeries) {
     XfjointomoParam xfjointomoParam = new XfjointomoParam(this, state
         .getRefineTrial().is());
     joinDialog.getParameters(xfjointomoParam);
     try {
-      threadNameA = processMgr.xfjointomo(xfjointomoParam);
+      threadNameA = processMgr.xfjointomo(xfjointomoParam, processSeries);
     }
     catch (SystemProcessException except) {
       except.printStackTrace();
@@ -1153,10 +1161,10 @@ public final class JoinManager extends BaseManager {
         ProcessName.XFJOINTOMO);
   }
 
-  private void remapmodel() {
+  private void remapmodel(ConstProcessSeries processSeries) {
     RemapmodelParam param = new RemapmodelParam(this);
     try {
-      threadNameA = processMgr.remapmodel(param);
+      threadNameA = processMgr.remapmodel(param, processSeries);
     }
     catch (SystemProcessException except) {
       except.printStackTrace();
@@ -1168,28 +1176,32 @@ public final class JoinManager extends BaseManager {
         ProcessName.REMAPMODEL);
   }
 
-  public void xfmodel(String inputFile, String outputFile) {
+  public void xfmodel(String inputFile, String outputFile,
+      ProcessSeries processSeries) {
     XfmodelParam param = new XfmodelParam(this);
     param.setInputFile(inputFile);
     param.setOutputFile(outputFile);
     if (param.isValid()) {
-      xfmodel(param);
+      xfmodel(param, processSeries);
     }
   }
 
-  private void xfmodel() {
-    xfmodel(new XfmodelParam(this));
+  private void xfmodel(ProcessSeries processSeries) {
+    xfmodel(new XfmodelParam(this), processSeries);
   }
 
-  private void xfmodel(XfmodelParam param) {
+  private void xfmodel(XfmodelParam param, ProcessSeries processSeries) {
+    if (processSeries == null) {
+      processSeries = new ProcessSeries(this);
+    }
     if (debug) {
       System.err.println("xfmodel:gapExist=" + state.isGapsExist());
     }
     if (state.isGapsExist()) {
-      setNextProcess(AxisID.ONLY, ProcessName.REMAPMODEL.toString());
+      processSeries.setNextProcess(ProcessName.REMAPMODEL.toString());
     }
     try {
-      threadNameA = processMgr.xfmodel(param);
+      threadNameA = processMgr.xfmodel(param, processSeries);
     }
     catch (SystemProcessException except) {
       except.printStackTrace();
@@ -1201,11 +1213,14 @@ public final class JoinManager extends BaseManager {
         ProcessName.XFMODEL);
   }
 
-  private void xftoxg() {
-    setNextProcess(AxisID.ONLY, ProcessName.XFMODEL.toString());
+  private void xftoxg(ProcessSeries processSeries) {
+    if (processSeries == null) {
+      processSeries = new ProcessSeries(this);
+    }
+    processSeries.setNextProcess(ProcessName.XFMODEL.toString());
     XftoxgParam param = new XftoxgParam(this);
     try {
-      threadNameA = processMgr.xftoxg(param);
+      threadNameA = processMgr.xftoxg(param, processSeries);
     }
     catch (SystemProcessException except) {
       except.printStackTrace();
@@ -1228,7 +1243,11 @@ public final class JoinManager extends BaseManager {
    * @param mode
    * @param buttonText
    */
-  public void finishjoin(FinishjoinParam.Mode mode, String buttonText) {
+  public void finishjoin(FinishjoinParam.Mode mode, String buttonText,
+      ProcessSeries processSeries) {
+    if (processSeries == null) {
+      processSeries = new ProcessSeries(this);
+    }
     try {
       if (mode == FinishjoinParam.Mode.SUPPRESS_EXECUTION
           && imodManager.isOpen(ImodManager.TRANSFORMED_MODEL_KEY)) {
@@ -1254,16 +1273,16 @@ public final class JoinManager extends BaseManager {
     }
     if (mode == FinishjoinParam.Mode.REJOIN
         || mode == FinishjoinParam.Mode.SUPPRESS_EXECUTION) {
-      setNextProcess(AxisID.ONLY, ProcessName.XFTOXG.toString());
+      processSeries.setNextProcess(ProcessName.XFTOXG.toString());
     }
     if (mode == FinishjoinParam.Mode.SUPPRESS_EXECUTION) {
-      setLastProcess(AxisID.ONLY, ImodManager.TRANSFORMED_MODEL_KEY);
-      processMgr.saveFinishjoinState(param);
-      startNextProcess(AxisID.ONLY, null);
+      processSeries.setLastProcess(ImodManager.TRANSFORMED_MODEL_KEY);
+      processMgr.saveFinishjoinState(param, processSeries);
+      processSeries.startNextProcess(AxisID.ONLY, null);
     }
     else {
       try {
-        threadNameA = processMgr.finishjoin(param);
+        threadNameA = processMgr.finishjoin(param, processSeries);
       }
       catch (SystemProcessException except) {
         except.printStackTrace();
@@ -1317,10 +1336,11 @@ public final class JoinManager extends BaseManager {
     joinDialog.setShiftInY(shiftInY);
   }
 
-  public void flip(File tomogram, File workingDir) {
+  public void flip(File tomogram, File workingDir,
+      ConstProcessSeries processSeries) {
     FlipyzParam flipyzParam = new FlipyzParam(tomogram, workingDir);
     try {
-      threadNameA = processMgr.flipyz(flipyzParam);
+      threadNameA = processMgr.flipyz(flipyzParam, processSeries);
     }
     catch (SystemProcessException except) {
       joinDialog.abortAddSection();
@@ -1370,26 +1390,32 @@ public final class JoinManager extends BaseManager {
     return metaData;
   }
 
+  void startNextProcess(final AxisID axisID,
+      final Run3dmodProcess run3dmodProcess,
+      final Run3dmodMenuOptions run3dmodMenuOptions) {
+  }
+
   /**
    * Start the next process specified by the nextProcess string
    */
-  protected void startNextProcess(AxisID axisID, String nextProcess,
-      ProcessResultDisplay processResultDisplay) {
+  void startNextProcess(final AxisID axisID, final String nextProcess,
+      final ProcessResultDisplay processResultDisplay,
+      ProcessSeries processSeries) {
     if (debug) {
       System.err.println("startNextProcess:axisID=" + axisID + ",nextProcess="
           + nextProcess);
     }
     if (nextProcess.equals("startjoin")) {
-      startjoin();
+      startjoin(processSeries);
     }
     else if (nextProcess.equals(ProcessName.XFTOXG.toString())) {
-      xftoxg();
+      xftoxg(processSeries);
     }
     else if (nextProcess.equals(ProcessName.XFMODEL.toString())) {
-      xfmodel();
+      xfmodel(processSeries);
     }
     else if (nextProcess.equals(ProcessName.REMAPMODEL.toString())) {
-      remapmodel();
+      remapmodel(processSeries);
     }
     else if (nextProcess.equals(ImodManager.TRANSFORMED_MODEL_KEY)) {
       imodOpen(ImodManager.TRANSFORMED_MODEL_KEY);
