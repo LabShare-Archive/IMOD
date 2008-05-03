@@ -43,6 +43,9 @@ import java.lang.String;
  * @version $Revision$
  *
  * <p> $Log$
+ * <p> Revision 3.31  2007/12/26 22:25:32  sueh
+ * <p> bug# 1052 Moved argument handling from EtomoDirector to a separate class.
+ * <p>
  * <p> Revision 3.30  2007/11/06 19:53:05  sueh
  * <p> bug# 1047 Simplified toString().
  * <p>
@@ -169,7 +172,7 @@ import java.lang.String;
  * <p> Bug325 New class, behaves like JButton, except that it automatically makes button text multi-line.
  * <p> </p>
  */
- class MultiLineButton implements ProcessResultDisplay {
+class MultiLineButton implements ProcessResultDisplay {
   public static final String rcsid = "$$Id$$";
 
   public static final String ENABLED_TEXT_COLOR_PROPERTY = "Button.foreground";
@@ -193,7 +196,7 @@ import java.lang.String;
   MultiLineButton(String label) {
     this(label, false, null);
   }
-  
+
   int getWidth() {
     return button.getWidth();
   }
@@ -209,8 +212,7 @@ import java.lang.String;
    * @param toggleButton
    * @param dialogType
    */
-  MultiLineButton(String label, boolean toggleButton,
-      DialogType dialogType) {
+  MultiLineButton(String label, boolean toggleButton, DialogType dialogType) {
     this.toggleButton = toggleButton;
     this.dialogType = dialogType;
     if (toggleButton) {
@@ -388,15 +390,15 @@ import java.lang.String;
   final void setBorder(Border border) {
     button.setBorder(border);
   }
-  
+
   final void setBorderPainted(boolean borderPainted) {
     button.setBorderPainted(borderPainted);
   }
-  
+
   final int getHeight() {
     return button.getHeight();
   }
-  
+
   final Border getBorder() {
     return button.getBorder();
   }
@@ -451,7 +453,7 @@ import java.lang.String;
     button.setPreferredSize(size);
     button.setMaximumSize(size);
   }
-  
+
   final void setBackground(ColorUIResource background) {
     button.setBackground(background);
   }
