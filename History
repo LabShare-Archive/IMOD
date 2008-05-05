@@ -7,9 +7,9 @@ apart in Z than the diameter.
 averaged volumes.
 
 4/29/08: Isosurface display of image data added to model view based on mesh
-from Chimera code.
+code from Chimera.
 
-4/28/08: Fixed bug in 3dmod floating that let black slicer go above 255.
+4/28/08: Fixed bug in 3dmod floating that let black slider go above 255.
 
 4/27/08: IMOD_3-12-7
 4/27/08: Changed Tomostitch to match densities across overlap zones instead
