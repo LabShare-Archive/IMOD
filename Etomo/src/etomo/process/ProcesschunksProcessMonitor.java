@@ -119,19 +119,21 @@ class ProcesschunksProcessMonitor implements OutfileProcessMonitor,
     initializeProgressBar();
     try {
       while (processRunning && !stop) {
-        Thread.sleep(2000);
-        if (updateState() || setProgressBarTitle) {
-          updateProgressBar();
+        try {
+          Thread.sleep(2000);
+          if (updateState() || setProgressBarTitle) {
+            updateProgressBar();
+          }
+        }
+        catch (LogFile.ReadException e) {
+          //File creation may be slow, so give this more tries.
+          e.printStackTrace();
         }
       }
       closeProcessOutput();
     }
     catch (InterruptedException e) {
       endMonitor(ProcessEndState.DONE);
-    }
-    catch (LogFile.ReadException e) {
-      endMonitor(ProcessEndState.FAILED);
-      e.printStackTrace();
     }
     catch (LogFile.FileException e) {
       endMonitor(ProcessEndState.FAILED);
@@ -528,6 +530,9 @@ class ProcesschunksProcessMonitor implements OutfileProcessMonitor,
 }
 /**
  * <p> $Log$
+ * <p> Revision 1.37  2008/01/31 20:19:06  sueh
+ * <p> bug# 1055 throwing a FileException when LogFile.getInstance fails.
+ * <p>
  * <p> Revision 1.36  2008/01/23 21:10:50  sueh
  * <p> Removed print statements.
  * <p>
