@@ -44,7 +44,6 @@ import etomo.type.UserConfiguration;
 import etomo.ui.MainPanel;
 import etomo.ui.AbstractParallelDialog;
 import etomo.ui.ParallelPanel;
-import etomo.ui.Run3dmodProcess;
 import etomo.ui.UIHarness;
 import etomo.util.Utilities;
 
@@ -144,9 +143,6 @@ public abstract class BaseManager {
 
   abstract void startNextProcess(AxisID axisID, String nextProcess,
       ProcessResultDisplay processResultDisplay, ProcessSeries processSeries);
-
-  abstract void startNextProcess(AxisID axisID,
-      Run3dmodProcess run3dmodProcess, Run3dmodMenuOptions run3dmodMenuOptions);
 
   abstract Storable[] getStorables(int offset);
 
@@ -1202,6 +1198,9 @@ public abstract class BaseManager {
 }
 /**
  * <p> $Log$
+ * <p> Revision 1.98  2008/05/03 00:30:02  sueh
+ * <p> bug# 847 Removed lastProcess and nextProcess member variables and associated functions.  Placed all of next process functionality in ProcessSeries.
+ * <p>
  * <p> Revision 1.97  2008/02/14 21:27:15  sueh
  * <p> bug# 1077 Make sure that ImodManager.disconnect is called, even if
  * <p> there is an exception.

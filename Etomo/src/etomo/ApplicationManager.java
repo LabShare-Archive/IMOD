@@ -105,7 +105,7 @@ import etomo.ui.ParallelPanel;
 import etomo.ui.PostProcessingDialog;
 import etomo.ui.PreProcessingDialog;
 import etomo.ui.ProcessDialog;
-import etomo.ui.Run3dmodProcess;
+import etomo.ui.Run3dmodDeferredCommand;
 import etomo.ui.SetupDialogExpert;
 import etomo.ui.TomogramCombinationDialog;
 import etomo.ui.TomogramGenerationExpert;
@@ -666,17 +666,19 @@ public final class ApplicationManager extends BaseManager {
    * @param axisID
    */
   public void findXrays(AxisID axisID,
-      ProcessResultDisplay processResultDisplay,
-      ProcessSeries processSeries, final Run3dmodProcess run3dmodProcess,
+      final ProcessResultDisplay processResultDisplay,
+      ProcessSeries processSeries,
+      final Run3dmodDeferredCommand run3dmodDeferredCommand,
       final Run3dmodMenuOptions run3dmodMenuOptions) {
-    if (processSeries==null) {
-      processSeries=new ProcessSeries(this);
+    if (processSeries == null) {
+      processSeries = new ProcessSeries(this);
     }
     sendMsgProcessStarting(processResultDisplay);
     updateEraserCom(axisID, true);
     processTrack.setPreProcessingState(ProcessState.INPROGRESS, axisID);
     mainPanel.setPreProcessingState(ProcessState.INPROGRESS, axisID);
-    processSeries.setRun3dmodProcess(run3dmodProcess,run3dmodMenuOptions);
+    processSeries.setRun3dmodDeferred(run3dmodDeferredCommand,
+        run3dmodMenuOptions);
     String threadName;
     try {
       threadName = processMgr.eraser(axisID, processResultDisplay,
@@ -1224,13 +1226,15 @@ public final class ApplicationManager extends BaseManager {
    */
   public void preEraser(final AxisID axisID,
       final ProcessResultDisplay processResultDisplay,
-      ProcessSeries processSeries, final Run3dmodProcess run3dmodProcess,
+      ProcessSeries processSeries,
+      final Run3dmodDeferredCommand run3dmodDeferredCommand,
       final Run3dmodMenuOptions run3dmodMenuOptions) {
     sendMsgProcessStarting(processResultDisplay);
     if (processSeries == null) {
       processSeries = new ProcessSeries(this);
     }
-    processSeries.setRun3dmodProcess(run3dmodProcess, run3dmodMenuOptions);
+    processSeries.setRun3dmodDeferred(run3dmodDeferredCommand,
+        run3dmodMenuOptions);
     if (axisID == AxisID.SECOND && processBStack()) {
       processSeries.setLastProcess(ProcessName.ERASER.toString());
       extracttilts(axisID, processResultDisplay, processSeries);
@@ -1405,7 +1409,10 @@ public final class ApplicationManager extends BaseManager {
    * Run the coarse alignment script
    */
   public void coarseAlign(AxisID axisID,
-      ProcessResultDisplay processResultDisplay, ProcessSeries processSeries) {
+      final ProcessResultDisplay processResultDisplay,
+      ProcessSeries processSeries,
+      final Run3dmodDeferredCommand run3dmodDeferredCommand,
+      final Run3dmodMenuOptions run3dmodMenuOptions) {
     if (processSeries == null) {
       processSeries = new ProcessSeries(this);
     }
@@ -1447,6 +1454,8 @@ public final class ApplicationManager extends BaseManager {
       return;
     }
     processSeries.setNextProcess("checkUpdateFiducialModel");
+    processSeries.setRun3dmodDeferred(run3dmodDeferredCommand,
+        run3dmodMenuOptions);
     setThreadName(threadName, axisID);
   }
 
@@ -2608,9 +2617,14 @@ public final class ApplicationManager extends BaseManager {
    * 
    * @param destAxisID
    */
-  public void transferfid(AxisID destAxisID,
-      ProcessResultDisplay processResultDisplay,
-      ConstProcessSeries processSeries) {
+  public void transferfid(final AxisID destAxisID,
+      final ProcessResultDisplay processResultDisplay,
+      ProcessSeries processSeries,
+      final Run3dmodDeferredCommand run3dmodDeferredCommand,
+      final Run3dmodMenuOptions run3dmodMenuOptions) {
+    if (processSeries == null) {
+      processSeries = new ProcessSeries(this);
+    }
     sendMsgProcessStarting(processResultDisplay);
     // Set a reference to the correct object
     FiducialModelDialog fiducialModelDialog;
@@ -2645,6 +2659,8 @@ public final class ApplicationManager extends BaseManager {
     }
     // Get any user specified changes
     fiducialModelDialog.getTransferFidParams(transferfidParam);
+    processSeries.setRun3dmodDeferred(run3dmodDeferredCommand,
+        run3dmodMenuOptions);
     String threadName;
     try {
       threadName = processMgr.transferFiducials(transferfidParam,
@@ -5119,17 +5135,6 @@ public final class ApplicationManager extends BaseManager {
     mainPanel.stopProgressBar(axisID, processEndState);
   }
 
-  void startNextProcess(final AxisID axisID,
-      final Run3dmodProcess run3dmodProcess,
-      final Run3dmodMenuOptions run3dmodMenuOptions) {
-    if (run3dmodProcess.equals(ImodManager.ERASED_STACK_KEY)) {
-      imodErasedStack(axisID, run3dmodMenuOptions);
-    }
-    else if (run3dmodProcess.equals(ImodManager.RAW_STACK_KEY)) {
-      imodXrayModel(axisID,run3dmodMenuOptions);
-    }
-  }
-
   /**
    * Start the next process specified by the nextProcess string
    */
@@ -5533,6 +5538,9 @@ public final class ApplicationManager extends BaseManager {
 }
 /**
  * <p> $Log$
+ * <p> Revision 3.298  2008/05/03 00:28:29  sueh
+ * <p> bug# 847 Passing ProcessSeries to the process manager, startNextProcess, and to all process functions.  To avoid having to decide which processes are next processes, pass it everywhere, even to processes that don't use ProcessResultDisplay.  The UI should not create any ProcessSeries and should pass them as null (since they don't know about processes).  Before adding to a process series, create it if it doesn't exist.  Before checking a process series, make sure it exists.  Since a series is only created when it doesn't exist and is needed, I don't have to keep track of which process comes first in a series.
+ * <p>
  * <p> Revision 3.297  2008/01/31 20:13:29  sueh
  * <p> bug# 1055 throwing a FileException when LogFile.getInstance fails.
  * <p>
