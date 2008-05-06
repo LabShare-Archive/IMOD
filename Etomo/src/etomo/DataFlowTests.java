@@ -218,7 +218,7 @@ public class DataFlowTests {
     applicationManager.preCrossCorrelate(axisID, null, null);
     waitForThread(axisID);
     if (!applicationManager.getMetaData().isFiducialessAlignment(axisID)) {
-      applicationManager.coarseAlign(axisID, null, null);
+      applicationManager.coarseAlign(axisID, null, null, null, null);
       waitForThread(axisID);
     }
     applicationManager.doneCoarseAlignDialog(axisID);
@@ -227,7 +227,7 @@ public class DataFlowTests {
   private static void transferfid(AxisID destAxisID) {
     applicationManager.openFiducialModelDialog(destAxisID);
     uiHarness.pack(applicationManager);
-    applicationManager.transferfid(destAxisID, null, null);
+    applicationManager.transferfid(destAxisID, null, null,null,null);
     waitForThread(destAxisID);
 
   }
@@ -354,6 +354,17 @@ public class DataFlowTests {
 }
 /**
  * <p> $Log$
+ * <p> Revision 3.23  2008/05/03 00:31:02  sueh
+ * <p> bug# 847 In manager classes passing ProcessSeries to the process
+ * <p> manager, startNextProcess, and to all process functions.  To avoid having
+ * <p> to decide which processes are next processes, pass it everywhere, even
+ * <p> to processes that don't use ProcessResultDisplay.  The UI should not
+ * <p> create any ProcessSeries and should pass them as null (since they don't
+ * <p> know about processes).  Before adding to a process series, create it if it
+ * <p> doesn't exist.  Before checking a process series, make sure it exists.
+ * <p>  Since a series is only created when it doesn't exist and is needed, I don't
+ * <p> have to keep track of which process comes first in a series.
+ * <p>
  * <p> Revision 3.22  2007/12/26 21:56:25  sueh
  * <p> bug# 1052 Moved ".edf" to DatasetFiles.
  * <p>

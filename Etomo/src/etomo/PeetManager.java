@@ -40,7 +40,6 @@ import etomo.ui.MainPanel;
 import etomo.ui.MainPeetPanel;
 import etomo.ui.ParallelPanel;
 import etomo.ui.PeetDialog;
-import etomo.ui.Run3dmodProcess;
 import etomo.util.DatasetFiles;
 
 /**
@@ -57,6 +56,17 @@ import etomo.util.DatasetFiles;
  * @version $Revision$
  * 
  * <p> $Log$
+ * <p> Revision 1.41  2008/05/03 00:34:03  sueh
+ * <p> bug# 847 Passing ProcessSeries to the process manager,
+ * <p> startNextProcess, and to all process functions.  To avoid having to decide
+ * <p> which processes are next processes, pass it everywhere, even to
+ * <p> processes that don't use ProcessResultDisplay.  The UI should not create
+ * <p> any ProcessSeries and should pass them as null (since they don't know
+ * <p> about processes).  Before adding to a process series, create it if it doesn't
+ * <p> exist.  Before checking a process series, make sure it exists.  Since a
+ * <p> series is only created when it doesn't exist and is needed, I don't have to
+ * <p> keep track of which process comes first in a series.
+ * <p>
  * <p> Revision 1.40  2008/05/01 22:53:12  sueh
  * <p> bug# 1107 Removed imod(String, List, Run3dmodMenuOptions) and add
  * <p> buildFileNameArray(List) to make it easier to customize imodAvgVol() and
@@ -702,11 +712,6 @@ public final class PeetManager extends BaseManager {
     storables[index++] = screenState;
     storables[index++] = state;
     return storables;
-  }
-  
-  void startNextProcess(final AxisID axisID,
-      final Run3dmodProcess run3dmodProcess,
-      final Run3dmodMenuOptions run3dmodMenuOptions) {
   }
 
   /**

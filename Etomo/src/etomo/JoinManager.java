@@ -50,7 +50,6 @@ import etomo.type.SlicerAngles;
 import etomo.ui.JoinDialog;
 import etomo.ui.MainJoinPanel;
 import etomo.ui.MainPanel;
-import etomo.ui.Run3dmodProcess;
 import etomo.util.DatasetFiles;
 import etomo.util.Utilities;
 
@@ -68,6 +67,17 @@ import etomo.util.Utilities;
  * @version $Revision$
  * 
  * <p> $Log$
+ * <p> Revision 1.67  2008/05/03 00:33:32  sueh
+ * <p> bug# 847 Passing ProcessSeries to the process manager,
+ * <p> startNextProcess, and to all process functions.  To avoid having to decide
+ * <p> which processes are next processes, pass it everywhere, even to
+ * <p> processes that don't use ProcessResultDisplay.  The UI should not create
+ * <p> any ProcessSeries and should pass them as null (since they don't know
+ * <p> about processes).  Before adding to a process series, create it if it doesn't
+ * <p> exist.  Before checking a process series, make sure it exists.  Since a
+ * <p> series is only created when it doesn't exist and is needed, I don't have to
+ * <p> keep track of which process comes first in a series.
+ * <p>
  * <p> Revision 1.66  2008/01/31 20:16:34  sueh
  * <p> bug# 1055 throwing a FileException when LogFile.getInstance fails.
  * <p>
@@ -1388,11 +1398,6 @@ public final class JoinManager extends BaseManager {
 
   public JoinMetaData getJoinMetaData() {
     return metaData;
-  }
-
-  void startNextProcess(final AxisID axisID,
-      final Run3dmodProcess run3dmodProcess,
-      final Run3dmodMenuOptions run3dmodMenuOptions) {
   }
 
   /**

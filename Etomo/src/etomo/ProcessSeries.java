@@ -4,7 +4,7 @@ import etomo.type.AxisID;
 import etomo.type.ConstProcessSeries;
 import etomo.type.ProcessResultDisplay;
 import etomo.type.Run3dmodMenuOptions;
-import etomo.ui.Run3dmodProcess;
+import etomo.ui.Run3dmodDeferredCommand;
 
 /**
  * <p>Description: Represents a series of processes to be executed.</p>
@@ -34,7 +34,18 @@ import etomo.ui.Run3dmodProcess;
  * 
  * @version $Revision$
  * 
- * <p> $Log$ </p>
+ * <p> $Log$
+ * <p> Revision 1.1  2008/05/03 00:34:21  sueh
+ * <p> bug# 847 Passing ProcessSeries to the process manager,
+ * <p> startNextProcess, and to all process functions.  To avoid having to decide
+ * <p> which processes are next processes, pass it everywhere, even to
+ * <p> processes that don't use ProcessResultDisplay.  The UI should not create
+ * <p> any ProcessSeries and should pass them as null (since they don't know
+ * <p> about processes).  Before adding to a process series, create it if it doesn't
+ * <p> exist.  Before checking a process series, make sure it exists.  Since a
+ * <p> series is only created when it doesn't exist and is needed, I don't have to
+ * <p> keep track of which process comes first in a series.
+ * <p> </p>
  */
 public final class ProcessSeries implements ConstProcessSeries {
   public static final String rcsid = "$Id$";
@@ -44,7 +55,7 @@ public final class ProcessSeries implements ConstProcessSeries {
   private String nextProcess = null;
   private String lastProcess = null;
   //3dmod is opened after the last process.
-  private Run3dmodProcess run3dmodProcess = null;
+  private Run3dmodDeferredCommand run3dmodDeferredCommand = null;
   private Run3dmodMenuOptions run3dmodMenuOptions = null;
   private boolean debug = false;
 
@@ -76,8 +87,8 @@ public final class ProcessSeries implements ConstProcessSeries {
       process = lastProcess;
       lastProcess = null;
     }
-    else if (run3dmodProcess != null) {
-      start3dmodProcess(axisID);
+    else if (run3dmodMenuOptions != null) {
+      start3dmodProcess();
       return true;
     }
     sendMsgSecondaryProcess(processResultDisplay);
@@ -96,13 +107,13 @@ public final class ProcessSeries implements ConstProcessSeries {
 
   boolean isProcessQueueEmpty() {
     return nextProcess == null && lastProcess == null
-        && run3dmodProcess == null;
+        && run3dmodMenuOptions == null;
   }
 
   void clearProcesses() {
     nextProcess = null;
     lastProcess = null;
-    run3dmodProcess = null;
+    run3dmodDeferredCommand = null;
     run3dmodMenuOptions = null;
   }
 
@@ -113,7 +124,7 @@ public final class ProcessSeries implements ConstProcessSeries {
     if (lastProcess != null) {
       return lastProcess;
     }
-    if (run3dmodProcess != null) {
+    if (run3dmodDeferredCommand != null) {
       return "3dmod";
     }
     return null;
@@ -135,10 +146,11 @@ public final class ProcessSeries implements ConstProcessSeries {
    * @param run3dmodProcess
    * @param run3dmodMenuOptions
    */
-  void setRun3dmodProcess(final Run3dmodProcess process,
-      final Run3dmodMenuOptions menuOptions) {
-    run3dmodProcess = process;
-    run3dmodMenuOptions = menuOptions;
+  void setRun3dmodDeferred(
+      final Run3dmodDeferredCommand run3dmodDeferredCommand,
+      final Run3dmodMenuOptions run3dmodMenuOptions) {
+    this.run3dmodDeferredCommand = run3dmodDeferredCommand;
+    this.run3dmodMenuOptions = run3dmodMenuOptions;
   }
 
   private void sendMsgSecondaryProcess(ProcessResultDisplay processResultDisplay) {
@@ -148,15 +160,16 @@ public final class ProcessSeries implements ConstProcessSeries {
     processResultDisplay.msgSecondaryProcess();
   }
 
-  private void start3dmodProcess(final AxisID axisID) {
-    Run3dmodProcess process;
-    Run3dmodMenuOptions menuOptions;
-    process = run3dmodProcess;
-    run3dmodProcess = null;
-    menuOptions = run3dmodMenuOptions;
+  /**
+   * Calls the action(Run3dmodMenuOptions) function in Run3dmodDeferredCommand
+   * (Run3dmodButton).  Blanks out run3dmodDeferredCommand so it can't be run
+   * more then once.
+   */
+  private void start3dmodProcess() {
+    Run3dmodDeferredCommand tempRun3dmodDeferredCommand = run3dmodDeferredCommand;
+    Run3dmodMenuOptions tempRun3dmodMenuOptions = run3dmodMenuOptions;
+    run3dmodDeferredCommand = null;
     run3dmodMenuOptions = null;
-    //A next process which is a run 3dmod process is optional so it don't
-    //involve processResultDisplay.
-    manager.startNextProcess(axisID, process, menuOptions);
+    tempRun3dmodDeferredCommand.action(tempRun3dmodMenuOptions);
   }
 }

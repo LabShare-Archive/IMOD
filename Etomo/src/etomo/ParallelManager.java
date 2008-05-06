@@ -37,7 +37,6 @@ import etomo.ui.MainParallelPanel;
 import etomo.ui.ParallelChooser;
 import etomo.ui.ParallelDialog;
 import etomo.ui.ParallelPanel;
-import etomo.ui.Run3dmodProcess;
 import etomo.ui.UIHarness;
 
 /**
@@ -211,11 +210,6 @@ public final class ParallelManager extends BaseManager {
 
   public void setParamFile(final File paramFile) {
     this.paramFile = paramFile;
-  }
-
-  void startNextProcess(final AxisID axisID,
-      final Run3dmodProcess run3dmodProcess,
-      final Run3dmodMenuOptions run3dmodMenuOptions) {
   }
 
   void startNextProcess(final AxisID axisID, final String nextProcess,
@@ -665,6 +659,17 @@ public final class ParallelManager extends BaseManager {
 }
 /**
  * <p> $Log$
+ * <p> Revision 1.25  2008/05/03 00:33:48  sueh
+ * <p> bug# 847 Passing ProcessSeries to the process manager,
+ * <p> startNextProcess, and to all process functions.  To avoid having to decide
+ * <p> which processes are next processes, pass it everywhere, even to
+ * <p> processes that don't use ProcessResultDisplay.  The UI should not create
+ * <p> any ProcessSeries and should pass them as null (since they don't know
+ * <p> about processes).  Before adding to a process series, create it if it doesn't
+ * <p> exist.  Before checking a process series, make sure it exists.  Since a
+ * <p> series is only created when it doesn't exist and is needed, I don't have to
+ * <p> keep track of which process comes first in a series.
+ * <p>
  * <p> Revision 1.24  2008/01/14 20:22:48  sueh
  * <p> bug# 1050 Added an empty getProcessResultDisplayFactoryInterface.  Calling
  * <p> BaseManager.reconnect from openProcessingPanel to reconnect to parallel

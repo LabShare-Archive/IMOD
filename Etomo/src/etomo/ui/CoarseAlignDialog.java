@@ -11,6 +11,9 @@
  * @version $Revision$
  *
  * <p> $Log$
+ * <p> Revision 3.46  2008/05/03 00:49:19  sueh
+ * <p> bug# 847 Passing null for ProcessSeries to process funtions.
+ * <p>
  * <p> Revision 3.45  2007/12/26 22:23:16  sueh
  * <p> bug# 1052 Return true when done() completes successfully.
  * <p>
@@ -265,7 +268,7 @@ public final class CoarseAlignDialog extends ProcessDialog implements
 
   private final PrenewstPanel pnlPrenewst;
 
-  private final Run3dmodButton btnImod = Run3dmodButton.get3dmodInstance(
+   final Run3dmodButton btnImod = Run3dmodButton.get3dmodInstance(
       "View Aligned Stack In 3dmod", this);
 
   private final JPanel pnlFiducialess = new JPanel();
@@ -293,7 +296,7 @@ public final class CoarseAlignDialog extends ProcessDialog implements
     fixRootPanel(rootSize);
     pnlCrossCorrelation = new CrossCorrelationPanel(applicationManager, axisID,
         dialogType);
-    pnlPrenewst = new PrenewstPanel(applicationManager, axisID, dialogType);
+    pnlPrenewst = new PrenewstPanel(applicationManager, axisID, dialogType,this);
     btnExecute.setText("Done");
 
     pnlFiducialess.setLayout(new BoxLayout(pnlFiducialess, BoxLayout.Y_AXIS));

@@ -29,7 +29,6 @@ import javax.swing.JPanel;
 import etomo.ApplicationManager;
 import etomo.comscript.CCDEraserParam;
 import etomo.comscript.ConstCCDEraserParam;
-import etomo.process.ImodManager;
 import etomo.storage.LogFile;
 import etomo.storage.autodoc.AutodocFactory;
 import etomo.storage.autodoc.ReadOnlyAutodoc;
@@ -104,25 +103,10 @@ final class CCDEraserPanel implements ContextMenu, Run3dmodButtonContainer {
     this.dialogType = dialogType;
     ProcessResultDisplayFactory displayFactory = appMgr
         .getProcessResultDisplayFactory(axisID);
-
-    //Share a Run3dmodProcess instance between btnViewErased and
-    //btnErase.
-    Run3dmodProcess run3dmodProcess = new Run3dmodProcess();
-    run3dmodProcess.setKey(ImodManager.ERASED_STACK_KEY);
-    btnViewErased.setRun3dmodProcess(run3dmodProcess);
     btnErase = (Run3dmodButton) displayFactory.getCreateFixedStack();
     btnErase.setRun3dmodButtonContainer(this);
-    btnErase.setRun3dmodProcess(run3dmodProcess);
-    
-    //Share a Run3dmodProcess instance between btnViewXRayModel and
-    //btnFindXRays.
-    run3dmodProcess = new Run3dmodProcess();
-    run3dmodProcess.setKey(ImodManager.RAW_STACK_KEY);
-    btnViewXRayModel.setRun3dmodProcess(run3dmodProcess);
     btnFindXRays = (Run3dmodButton) displayFactory.getFindXRays();
     btnFindXRays.setRun3dmodButtonContainer(this);
-    btnFindXRays.setRun3dmodProcess(run3dmodProcess);
-
     btnReplaceRawStack = (MultiLineButton) displayFactory.getUseFixedStack();
     setToolTipText();
 
@@ -231,8 +215,8 @@ final class CCDEraserPanel implements ContextMenu, Run3dmodButtonContainer {
   }
 
   static ProcessResultDisplay getFindXRaysDisplay(final DialogType dialogType) {
-    return Run3dmodButton.getDeferredToggle3dmodInstance("Find X-rays (Trial Mode)",
-        dialogType);
+    return Run3dmodButton.getDeferredToggle3dmodInstance(
+        "Find X-rays (Trial Mode)", dialogType);
   }
 
   static ProcessResultDisplay getCreateFixedStackDisplay(
@@ -370,21 +354,18 @@ final class CCDEraserPanel implements ContextMenu, Run3dmodButtonContainer {
 
   public void action(final Run3dmodButton button,
       final Run3dmodMenuOptions run3dmodMenuOptions) {
-    buttonAction(button.getActionCommand(), run3dmodMenuOptions, button
-        .getRun3dmodOptions());
+    buttonAction(button.getActionCommand(), run3dmodMenuOptions);
   }
 
   //  Button action method
   private void buttonAction(String command,
-      final Run3dmodMenuOptions run3dmodMenuOptions,
-      final Run3dmodProcess run3dmodOptions) {
+      final Run3dmodMenuOptions run3dmodMenuOptions) {
     if (command.equals(btnFindXRays.getActionCommand())) {
-      applicationManager.findXrays(axisID, btnFindXRays, null, run3dmodOptions,
+      applicationManager.findXrays(axisID, btnFindXRays, null,btnViewXRayModel,
           run3dmodMenuOptions);
     }
     else if (command.equals(btnErase.getActionCommand())) {
-      applicationManager.preEraser(axisID, btnErase, null, run3dmodOptions,
-          run3dmodMenuOptions);
+      applicationManager.preEraser(axisID, btnErase, null, btnViewErased,run3dmodMenuOptions);
     }
     else if (command.equals(btnReplaceRawStack.getActionCommand())) {
       applicationManager.replaceRawStack(axisID, btnReplaceRawStack);
@@ -531,13 +512,16 @@ final class CCDEraserPanel implements ContextMenu, Run3dmodButtonContainer {
     }
 
     public void actionPerformed(final ActionEvent event) {
-      adaptee.buttonAction(event.getActionCommand(), null, null);
+      adaptee.buttonAction(event.getActionCommand(), null);
     }
   }
 }
 
 /**
  * <p> $Log$
+ * <p> Revision 3.26  2008/05/03 00:48:40  sueh
+ * <p> bug# 847 Gave process buttons right-click menu functionality.
+ * <p>
  * <p> Revision 3.25  2007/12/13 21:54:25  sueh
  * <p> bug# 1057 Added boundaryReplacementList.
  * <p>
