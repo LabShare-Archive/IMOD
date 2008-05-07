@@ -35,6 +35,9 @@ import etomo.type.Run3dmodMenuOptions;
  * @version $Revision$
  *
  * <p> $Log$
+ * <p> Revision 3.59  2008/05/03 00:57:39  sueh
+ * <p> bug# 847 Passing null for ProcessSeries to process funtions.
+ * <p>
  * <p> Revision 3.58  2007/12/26 22:37:09  sueh
  * <p> bug# 1052 Return true when done() completes successfully.
  * <p>
@@ -461,7 +464,7 @@ public final class TomogramPositioningDialog extends ProcessDialog implements
   }
 
   public static ProcessResultDisplay getSampleTomogramDisplay() {
-    return MultiLineButton.getToggleButtonInstance("Create Sample Tomograms",
+    return Run3dmodButton.getDeferredToggle3dmodInstance(TomogramPositioningExpert.SAMPLE_TOMOGRAMS_LABEL,
         DialogType.TOMOGRAM_POSITIONING);
   }
 

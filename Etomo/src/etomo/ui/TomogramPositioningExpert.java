@@ -54,6 +54,8 @@ import etomo.util.Utilities;
  */
 public final class TomogramPositioningExpert extends ReconUIExpert {
   public static final String rcsid = "$Id$";
+  
+  static final String SAMPLE_TOMOGRAMS_LABEL = "Create Sample Tomograms";
 
   private final ComScriptManager comScriptMgr;
   private final TomogramState state;
@@ -925,7 +927,7 @@ public final class TomogramPositioningExpert extends ReconUIExpert {
     }
     else {
       dialog.setBinningEnabled(false);
-      dialog.setSampleButton("Create Sample Tomograms");
+      dialog.setSampleButton(SAMPLE_TOMOGRAMS_LABEL);
       dialog
           .setSampleButtonToolTip(TomogramPositioningDialog.SAMPLE_TOMOGRAMS_TOOLTIP);
     }
@@ -937,6 +939,9 @@ public final class TomogramPositioningExpert extends ReconUIExpert {
 }
 /**
  * <p> $Log$
+ * <p> Revision 1.24  2008/05/03 00:57:48  sueh
+ * <p> bug# 847 Passing null for ProcessSeries to process funtions.
+ * <p>
  * <p> Revision 1.23  2008/01/30 21:35:12  sueh
  * <p> bug# 1074 In updateTomPosTiltCom changed the parameter name to positioning
  * <p> to distinguish between saving tilt.com when saving the dialog, which uses the final thickness; and saving tilt.com to do positioning, which uses the sample thickness.
