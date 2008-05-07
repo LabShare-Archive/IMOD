@@ -2,6 +2,8 @@ package etomo.ui;
 
 import java.awt.Component;
 import java.awt.Container;
+import java.awt.event.ActionEvent;
+import java.awt.event.ActionListener;
 
 import javax.swing.BorderFactory;
 import javax.swing.Box;
@@ -14,9 +16,9 @@ import etomo.comscript.TransferfidParam;
 import etomo.type.AxisID;
 import etomo.type.BaseScreenState;
 import etomo.type.DialogType;
-import etomo.type.MetaData;
 import etomo.type.ProcessResultDisplay;
 import etomo.type.ReconScreenState;
+import etomo.type.Run3dmodMenuOptions;
 
 /**
  * <p>Description: </p>
@@ -30,15 +32,11 @@ import etomo.type.ReconScreenState;
  *
  * @version $Revision$
  */
-public final class TransferfidPanel implements Expandable {
+final class TransferfidPanel implements Expandable, Run3dmodButtonContainer {
   public static final String rcsid = "$Id$";
 
   private final JPanel panelTransferfid = new JPanel();
   private final JPanel panelTransferfidBody = new JPanel();
-  private MultiLineButton buttonTransferfid = null;
-  private boolean includeButton = false;
-  private final PanelHeader header;
-
   private final CheckBox cbRunMidas = new CheckBox("Run midas");
   private final LabeledTextField ltfCenterViewA = new LabeledTextField(
       "Center view A: ");
@@ -48,53 +46,27 @@ public final class TransferfidPanel implements Expandable {
       "Number of views in the search: ");
   private final CheckBox cbMirrorInX = new CheckBox(
       "Mirror one image around the X axis");
-
   private final JPanel panelSearchDirection = new JPanel();
   private final ButtonGroup bgSearchDirection = new ButtonGroup();
   private final RadioButton rbSearchBoth = new RadioButton("Both directions");
   private final RadioButton rbSearchPlus90 = new RadioButton("+90 (CCW) only");
   private final RadioButton rbSearchMinus90 = new RadioButton("-90 (CW) only");
-  private final MetaData metaData;
+  private final TransferfidPanelActionListener actionListener = new TransferfidPanelActionListener(
+      this);
+
+  private final PanelHeader header;
+  private final Run3dmodButton buttonTransferfid;
   private final AxisID axisID;
   private final ApplicationManager manager;
-  private final DialogType dialogType;
+  private final FiducialModelDialog parent;
 
-  public TransferfidPanel(ApplicationManager manager, AxisID axisID,
-      boolean inclButton, DialogType dialogType) {
+  private TransferfidPanel(ApplicationManager manager, AxisID axisID,
+      DialogType dialogType, FiducialModelDialog parent) {
     this.manager = manager;
     this.axisID = axisID;
-    this.dialogType = dialogType;
-    metaData = manager.getMetaData();
-    includeButton = inclButton;
+    this.parent = parent;
     header = PanelHeader.getAdvancedBasicInstance("Transfer Fiducials", this,
         dialogType);
-    setup();
-  }
-
-  /**
-   * Update the header with the current advanced state
-   */
-  void updateAdvanced(boolean isAdvanced) {
-    header.setAdvanced(isAdvanced);
-  }
-
-  public void expand(ExpandButton button) {
-    if (header.equalsOpenClose(button)) {
-      panelTransferfidBody.setVisible(button.isExpanded());
-    }
-    else if (header.equalsAdvancedBasic(button)) {
-      setAdvanced(button.isExpanded());
-    }
-    UIHarness.INSTANCE.pack(axisID, manager);
-  }
-
-  public static ProcessResultDisplay getTransferFiducialsDisplay(
-      DialogType dialogType) {
-    return MultiLineButton.getToggleButtonInstance(
-        "Transfer Fiducials From Other Axis", dialogType);
-  }
-
-  private void setup() {
     panelTransferfidBody.setLayout(new BoxLayout(panelTransferfidBody,
         BoxLayout.Y_AXIS));
     cbRunMidas.setAlignmentX(Component.RIGHT_ALIGNMENT);
@@ -122,14 +94,13 @@ public final class TransferfidPanel implements Expandable {
     panelTransferfidBody.add(cbMirrorInX);
     panelTransferfidBody.add(Box.createRigidArea(FixedDim.x0_y5));
 
-    if (includeButton) {
-      buttonTransferfid = (MultiLineButton) manager
-          .getProcessResultDisplayFactory(axisID).getTransferFiducials();
-      buttonTransferfid.setAlignmentX(Component.CENTER_ALIGNMENT);
-      buttonTransferfid.setSize();
-      panelTransferfidBody.add(buttonTransferfid.getComponent());
-      panelTransferfidBody.add(Box.createRigidArea(FixedDim.x0_y5));
-    }
+    buttonTransferfid = (Run3dmodButton) manager
+        .getProcessResultDisplayFactory(axisID).getTransferFiducials();
+    buttonTransferfid.setRun3dmodButtonContainer(this);
+    buttonTransferfid.setAlignmentX(Component.CENTER_ALIGNMENT);
+    buttonTransferfid.setSize();
+    panelTransferfidBody.add(buttonTransferfid.getComponent());
+    panelTransferfidBody.add(Box.createRigidArea(FixedDim.x0_y5));
     panelTransferfid
         .setLayout(new BoxLayout(panelTransferfid, BoxLayout.Y_AXIS));
     panelTransferfid.setBorder(BorderFactory.createEtchedBorder());
@@ -139,18 +110,67 @@ public final class TransferfidPanel implements Expandable {
     setToolTipText();
   }
 
+  static TransferfidPanel getInstance(ApplicationManager manager,
+      AxisID axisID, DialogType dialogType, FiducialModelDialog parent) {
+    TransferfidPanel instance = new TransferfidPanel(manager, axisID,
+        dialogType, parent);
+    instance.addListeners();
+    return instance;
+  }
+
+  public void action(Run3dmodButton button, Run3dmodMenuOptions menuOptions) {
+    action(button.getActionCommand(), menuOptions);
+  }
+
+  private void action(final String command,
+      final Run3dmodMenuOptions run3dmodMenuOptions) {
+    if (command.equals(buttonTransferfid.getActionCommand())) {
+      manager.transferfid(axisID, buttonTransferfid, null, parent.btnSeed,
+          run3dmodMenuOptions);
+    }
+  }
+
+  Container getContainer() {
+    return panelTransferfid;
+  }
+
+  /**
+   * Update the header with the current advanced state
+   */
+  void updateAdvanced(boolean isAdvanced) {
+    header.setAdvanced(isAdvanced);
+  }
+
+  public void expand(ExpandButton button) {
+    if (header.equalsOpenClose(button)) {
+      panelTransferfidBody.setVisible(button.isExpanded());
+    }
+    else if (header.equalsAdvancedBasic(button)) {
+      setAdvanced(button.isExpanded());
+    }
+    UIHarness.INSTANCE.pack(axisID, manager);
+  }
+
+  static ProcessResultDisplay getTransferFiducialsDisplay(DialogType dialogType) {
+    return Run3dmodButton.getDeferredToggle3dmodInstance(
+        "Transfer Fiducials From Other Axis", dialogType);
+  }
+
+  private void setup() {
+  }
+
   /**
    * Set the values of the panel using a TransferfidParam parameter
    * object
    */
-  public void setParameters() {
+  void setParameters() {
     TransferfidParam params = new TransferfidParam(manager, axisID);
     params.initialize();
     if (axisID == AxisID.SECOND) {
-      metaData.getTransferfidBFields(params);
+      manager.getMetaData().getTransferfidBFields(params);
     }
     else {
-      metaData.getTransferfidAFields(params);
+      manager.getMetaData().getTransferfidAFields(params);
     }
     cbRunMidas.setSelected(params.getRunMidas().is());
     ltfCenterViewA.setText(params.getCenterViewA().toString());
@@ -169,26 +189,22 @@ public final class TransferfidPanel implements Expandable {
     cbMirrorInX.setSelected(params.getMirrorInX().is());
   }
 
-  public void setParameters(ReconScreenState screenState) {
-    //if (buttonTransferfid != null) {
-      //buttonTransferfid.setButtonState(screenState
-      //    .getButtonState(buttonTransferfid.getButtonStateKey()));
-    //}
+  void setParameters(ReconScreenState screenState) {
     header.setButtonStates(screenState);
   }
 
-  public void getParameters(BaseScreenState screenState) {
+  void getParameters(BaseScreenState screenState) {
     header.getButtonStates(screenState);
   }
 
-  public void getParameters() {
+  void getParameters() {
     getParameters(new TransferfidParam(manager, axisID));
   }
 
   /**
    * Get the values from the panel filling in the TransferfidParam object
    */
-  public void getParameters(TransferfidParam params) {
+  void getParameters(TransferfidParam params) {
     params.setRunMidas(cbRunMidas.isSelected());
     params.setCenterViewA(ltfCenterViewA.getText());
     params.setCenterViewB(ltfCenterViewB.getText());
@@ -204,18 +220,22 @@ public final class TransferfidPanel implements Expandable {
     params.setNumberViews(ltfNumberViews.getText());
     params.setMirrorInX(cbMirrorInX.isSelected());
     if (axisID == AxisID.SECOND) {
-      metaData.setTransferfidBFields(params);
+      manager.getMetaData().setTransferfidBFields(params);
     }
     else {
-      metaData.setTransferfidAFields(params);
+      manager.getMetaData().setTransferfidAFields(params);
     }
   }
 
-  public Container getContainer() {
-    return panelTransferfid;
+  private void addListeners() {
+    buttonTransferfid.addActionListener(actionListener);
   }
 
-  public void setAdvanced(boolean isAdvanced) {
+  void done() {
+    buttonTransferfid.removeActionListener(actionListener);
+  }
+
+  private void setAdvanced(boolean isAdvanced) {
     ltfCenterViewA.setVisible(isAdvanced);
     ltfCenterViewB.setVisible(isAdvanced);
     ltfNumberViews.setVisible(isAdvanced);
@@ -223,7 +243,7 @@ public final class TransferfidPanel implements Expandable {
     cbMirrorInX.setVisible(isAdvanced);
   }
 
-  public void setEnabled(boolean isEnabled) {
+  void setEnabled(boolean isEnabled) {
     buttonTransferfid.setEnabled(isEnabled);
     cbRunMidas.setEnabled(isEnabled);
     ltfCenterViewA.setEnabled(isEnabled);
@@ -233,14 +253,6 @@ public final class TransferfidPanel implements Expandable {
     rbSearchPlus90.setEnabled(isEnabled);
     rbSearchMinus90.setEnabled(isEnabled);
     cbMirrorInX.setEnabled(isEnabled);
-  }
-
-  public MultiLineButton getButton() {
-    if (includeButton) {
-      return buttonTransferfid;
-    }
-
-    return null;
   }
 
   //  ToolTip string setup
@@ -266,10 +278,27 @@ public final class TransferfidPanel implements Expandable {
     cbMirrorInX
         .setToolTipText("Mirror one image around the X axis before rotating by 90 degrees.");
   }
+
+  private final class TransferfidPanelActionListener implements ActionListener {
+    private final TransferfidPanel adaptee;
+
+    private TransferfidPanelActionListener(final TransferfidPanel adaptee) {
+      this.adaptee = adaptee;
+    }
+
+    public void actionPerformed(final ActionEvent event) {
+      adaptee.action(event.getActionCommand(), null);
+    }
+  }
 }
 
 /**
  * <p> $Log$
+ * <p> Revision 3.15  2007/09/10 20:43:59  sueh
+ * <p> bug# 925 Should only load button states once.  Changed
+ * <p> ProcessResultDisplayFactory to load button states immediately, so removing
+ * <p> button state load in the dialogs.
+ * <p>
  * <p> Revision 3.14  2007/03/07 21:16:45  sueh
  * <p> bug# 981 Turned RadioButton into a wrapper rather then a child of JRadioButton,
  * <p> because it is getting more complicated.
