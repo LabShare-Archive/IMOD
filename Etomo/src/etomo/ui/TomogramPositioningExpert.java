@@ -54,7 +54,7 @@ import etomo.util.Utilities;
  */
 public final class TomogramPositioningExpert extends ReconUIExpert {
   public static final String rcsid = "$Id$";
-  
+
   static final String SAMPLE_TOMOGRAMS_LABEL = "Create Sample Tomograms";
 
   private final ComScriptManager comScriptMgr;
@@ -126,7 +126,7 @@ public final class TomogramPositioningExpert extends ReconUIExpert {
     // Create a new dialog panel and map it the generic reference
     Utilities.timestamp("new", "TomogramPositioningDialog",
         Utilities.STARTED_STATUS);
-    dialog = new TomogramPositioningDialog(manager, this, axisID);
+    dialog = TomogramPositioningDialog.getInstance(manager, this, axisID);
     Utilities.timestamp("new", "TomogramPositioningDialog",
         Utilities.FINISHED_STATUS);
     // Read in the meta data parameters. WARNING this needs to be done
@@ -178,6 +178,18 @@ public final class TomogramPositioningExpert extends ReconUIExpert {
     openDialog(dialog);
   }
 
+  public static ProcessResultDisplay getSampleTomogramDisplay() {
+    return TomogramPositioningDialog.getSampleTomogramDisplay();
+  }
+
+  public static ProcessResultDisplay getComputePitchDisplay() {
+    return TomogramPositioningDialog.getComputePitchDisplay();
+  }
+
+  public static ProcessResultDisplay getFinalAlignmentDisplay() {
+    return TomogramPositioningDialog.getFinalAlignmentDisplay();
+  }
+
   private void setButtonState(ReconScreenState screenState) {
     if (dialog == null) {
       return;
@@ -188,7 +200,7 @@ public final class TomogramPositioningExpert extends ReconUIExpert {
   }
 
   void sampleAction(ProcessResultDisplay sample,
-      ConstProcessSeries processSeries) {
+       ConstProcessSeries processSeries) {
     if (dialog == null) {
       return;
     }
@@ -939,6 +951,9 @@ public final class TomogramPositioningExpert extends ReconUIExpert {
 }
 /**
  * <p> $Log$
+ * <p> Revision 1.25  2008/05/07 00:27:55  sueh
+ * <p> bug# 847 Putting a shared label into the same string.
+ * <p>
  * <p> Revision 1.24  2008/05/03 00:57:48  sueh
  * <p> bug# 847 Passing null for ProcessSeries to process funtions.
  * <p>

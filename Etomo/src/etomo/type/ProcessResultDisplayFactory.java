@@ -10,7 +10,7 @@ import etomo.ui.PostProcessingDialog;
 import etomo.ui.PreProcessingDialog;
 import etomo.ui.TomogramCombinationDialog;
 import etomo.ui.TomogramGenerationDialog;
-import etomo.ui.TomogramPositioningDialog;
+import etomo.ui.TomogramPositioningExpert;
 
 /**
  * <p>Description: </p>
@@ -73,11 +73,11 @@ public final class ProcessResultDisplayFactory implements
 
   //positioning
 
-  private final ProcessResultDisplay sampleTomogram = TomogramPositioningDialog
+  private final ProcessResultDisplay sampleTomogram = TomogramPositioningExpert
       .getSampleTomogramDisplay();
-  private final ProcessResultDisplay computePitch = TomogramPositioningDialog
+  private final ProcessResultDisplay computePitch = TomogramPositioningExpert
       .getComputePitchDisplay();
-  private final ProcessResultDisplay finalAlignment = TomogramPositioningDialog
+  private final ProcessResultDisplay finalAlignment = TomogramPositioningExpert
       .getFinalAlignmentDisplay();
 
   //generation
@@ -425,6 +425,9 @@ public final class ProcessResultDisplayFactory implements
 }
 /**
  * <p> $Log$
+ * <p> Revision 1.6  2008/05/03 00:45:32  sueh
+ * <p> bug# 847 Reformatted.
+ * <p>
  * <p> Revision 1.5  2008/01/14 22:02:44  sueh
  * <p> bug# 1050 Added getProcessResultDisplay(int dependencyIndex) which retrieves
  * <p> a display based on the unique dependency index.

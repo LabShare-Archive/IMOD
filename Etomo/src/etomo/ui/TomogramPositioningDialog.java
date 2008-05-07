@@ -35,6 +35,9 @@ import etomo.type.Run3dmodMenuOptions;
  * @version $Revision$
  *
  * <p> $Log$
+ * <p> Revision 3.60  2008/05/07 00:27:46  sueh
+ * <p> bug# 847 Putting a shared label into the same string.
+ * <p>
  * <p> Revision 3.59  2008/05/03 00:57:39  sueh
  * <p> bug# 847 Passing null for ProcessSeries to process funtions.
  * <p>
@@ -327,13 +330,11 @@ import etomo.type.Run3dmodMenuOptions;
  * <p> Initial CVS entry, basic functionality not including combining
  * <p> </p>
  */
-public final class TomogramPositioningDialog extends ProcessDialog implements
+ final class TomogramPositioningDialog extends ProcessDialog implements
     ContextMenu, FiducialessParams, Run3dmodButtonContainer {
   public static final String rcsid = "$Id$";
 
-  private JPanel pnlPosition = new JPanel();
-
-  private JPanel pnlTomoParams = new JPanel();
+  static final String SAMPLE_TOMOGRAMS_TOOLTIP = "Build 3 sample tomograms for finding location and angles of section.";
 
   private final LabeledTextField ltfSampleThickness = new LabeledTextField(
       "Sample tomogram thickness: ");
@@ -341,37 +342,27 @@ public final class TomogramPositioningDialog extends ProcessDialog implements
       "Added border thickness (unbinned): ");
   private final LabeledTextField ltfThickness = new LabeledTextField(
       "Final Tomogram Thickness: ");
-
-  private CheckBox cbFiducialess = new CheckBox("Fiducialless alignment");
-  private LabeledTextField ltfRotation = new LabeledTextField(
+  private final CheckBox cbFiducialess = new CheckBox("Fiducialless alignment");
+  private final LabeledTextField ltfRotation = new LabeledTextField(
       "Tilt axis rotation:");
-
-  private JPanel pnlWholeTomogram = new JPanel();
-
-  private LabeledSpinner spinBinning;
-
-  private CheckBox cbWholeTomogram = new CheckBox("Use whole tomogram");
-
-  private JPanel pnlPositionButtons = new JPanel();
-
-  private final MultiLineButton btnSample;
-
-  private Run3dmodButton btnCreateBoundary = Run3dmodButton.get3dmodInstance(
+  private final LabeledSpinner spinBinning= new LabeledSpinner("   Binning ", new SpinnerNumberModel(1, 1, 8, 1));
+  private final CheckBox cbWholeTomogram = new CheckBox("Use whole tomogram");
+  private final Run3dmodButton btnCreateBoundary = Run3dmodButton.get3dmodInstance(
       "Create Boundary Model", this);
-
-  private final MultiLineButton btnTomopitch;
-  private JPanel pnlFinalAlign = new JPanel();
+  private final JPanel pnlFinalAlign = new JPanel();
   private final CalcPanel cpAngleOffset = new CalcPanel("Angle offset");
   private CalcPanel cpTiltAxisZShift = new CalcPanel("Z shift");
   private final CalcPanel cpXAxisTilt = new CalcPanel("X axis tilt");
-  private final MultiLineButton btnAlign;
-  private final TomogramPositioningExpert expert;
-  static final String SAMPLE_TOMOGRAMS_TOOLTIP = "Build 3 sample tomograms for finding location and angles of section.";
-  private final LocalActionListener localActionListener;
+  private final LocalActionListener localActionListener= new LocalActionListener(this);
   private final CalcPanel cpTiltAngleOffset = new CalcPanel("Tilt angle offset");
   private final CalcPanel cpZShift = new CalcPanel("Z shift");
 
-  public TomogramPositioningDialog(ApplicationManager appMgr,
+  private final MultiLineButton btnSample;
+  private final MultiLineButton btnTomopitch;
+  private final MultiLineButton btnAlign;
+  private final TomogramPositioningExpert expert;
+
+  private TomogramPositioningDialog(ApplicationManager appMgr,
       TomogramPositioningExpert expert, AxisID axisID) {
     super(appMgr, axisID, DialogType.TOMOGRAM_POSITIONING);
     this.expert = expert;
@@ -384,12 +375,11 @@ public final class TomogramPositioningDialog extends ProcessDialog implements
     rootPanel.setLayout(new BoxLayout(rootPanel, BoxLayout.Y_AXIS));
     btnExecute.setText("Done");
     //  Construct the binning spinner
-    SpinnerNumberModel integerModel = new SpinnerNumberModel(1, 1, 8, 1);
-    spinBinning = new LabeledSpinner("   Binning ", integerModel);
     spinBinning
         .setTextMaxmimumSize(UIParameters.INSTANCE.getSpinnerDimension());
 
     //  Create the primary panels
+    JPanel pnlWholeTomogram = new JPanel();
     pnlWholeTomogram
         .setLayout(new BoxLayout(pnlWholeTomogram, BoxLayout.X_AXIS));
     //if (appMgr.getMetaData().getViewType() == ViewType.MONTAGE) {
@@ -398,6 +388,7 @@ public final class TomogramPositioningDialog extends ProcessDialog implements
     pnlWholeTomogram.add(cbWholeTomogram);
     pnlWholeTomogram.add(spinBinning.getContainer());
 
+    JPanel pnlTomoParams = new JPanel();
     pnlTomoParams.setLayout(new BoxLayout(pnlTomoParams, BoxLayout.Y_AXIS));
     UIUtilities.addWithYSpace(pnlTomoParams, ltfSampleThickness.getContainer());
     UIUtilities.addWithYSpace(pnlTomoParams, cbFiducialess);
@@ -414,6 +405,7 @@ public final class TomogramPositioningDialog extends ProcessDialog implements
         FixedDim.x0_y10);
     UIUtilities.alignComponentsX(pnlFinalAlign, Component.CENTER_ALIGNMENT);
 
+    JPanel pnlPosition = new JPanel();
     pnlPosition
         .setBorder(new BeveledBorder("Tomogram Positioning").getBorder());
     pnlPosition.setLayout(new BoxLayout(pnlPosition, BoxLayout.Y_AXIS));
@@ -447,8 +439,19 @@ public final class TomogramPositioningDialog extends ProcessDialog implements
     rootPanel.add(pnlPosition);
     addExitButtons();
 
-    // Bind the buttons to the action listener
-    localActionListener = new LocalActionListener(this);
+    // Set the default advanced dialog state
+    setToolTipText();
+    UIHarness.INSTANCE.pack(axisID, applicationManager);
+  }
+  
+  static TomogramPositioningDialog getInstance(ApplicationManager manager,
+      TomogramPositioningExpert expert, AxisID axisID) {
+    TomogramPositioningDialog instance = new TomogramPositioningDialog(manager,expert,axisID);
+    instance.addListeners();
+    return instance;
+  }
+  
+  private void addListeners() {
     cbFiducialess.addActionListener(localActionListener);
     cbWholeTomogram.addActionListener(localActionListener);
     btnSample.addActionListener(localActionListener);
@@ -456,24 +459,20 @@ public final class TomogramPositioningDialog extends ProcessDialog implements
     btnTomopitch.addActionListener(localActionListener);
     btnAlign.addActionListener(localActionListener);
     //  Mouse adapter for context menu
-    GenericMouseAdapter mouseAdapter = new GenericMouseAdapter(this);
-    rootPanel.addMouseListener(mouseAdapter);
-    // Set the default advanced dialog state
-    updateAdvanced();
-    setToolTipText();
+    rootPanel.addMouseListener(new GenericMouseAdapter(this));
   }
 
-  public static ProcessResultDisplay getSampleTomogramDisplay() {
-    return Run3dmodButton.getDeferredToggle3dmodInstance(TomogramPositioningExpert.SAMPLE_TOMOGRAMS_LABEL,
+   static ProcessResultDisplay getSampleTomogramDisplay() {
+    return MultiLineButton.getToggleButtonInstance(TomogramPositioningExpert.SAMPLE_TOMOGRAMS_LABEL,
         DialogType.TOMOGRAM_POSITIONING);
   }
 
-  public static ProcessResultDisplay getComputePitchDisplay() {
+   static ProcessResultDisplay getComputePitchDisplay() {
     return MultiLineButton.getToggleButtonInstance(
         "Compute Z Shift & Pitch Angles", DialogType.TOMOGRAM_POSITIONING);
   }
 
-  public static ProcessResultDisplay getFinalAlignmentDisplay() {
+   static ProcessResultDisplay getFinalAlignmentDisplay() {
     return MultiLineButton.getToggleButtonInstance("Create Final Alignment",
         DialogType.TOMOGRAM_POSITIONING);
   }
@@ -483,7 +482,7 @@ public final class TomogramPositioningDialog extends ProcessDialog implements
     expert.updateFiducialessDisplay(fiducialess);
   }
 
-  public void setFinalAlignmentPanelVisible(boolean visible) {
+   void setFinalAlignmentPanelVisible(boolean visible) {
     pnlFinalAlign.setVisible(visible);
   }
 
@@ -776,10 +775,6 @@ public final class TomogramPositioningDialog extends ProcessDialog implements
 
   public void buttonAdvancedAction(ActionEvent event) {
     super.buttonAdvancedAction(event);
-    updateAdvanced();
-  }
-
-  private void updateAdvanced() {
     UIHarness.INSTANCE.pack(axisID, applicationManager);
   }
 
