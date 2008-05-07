@@ -1,25 +1,9 @@
 /*
  *  imesh.h -- Image model mesh header.
  *
- *  Author: James Kremer
- *  Copyright (C) 1995-2005 by Boulder Laboratory for 3-Dimensional Electron
- *  Microscopy of Cells ("BL3DEMC") and the Regents of the University of 
- *  Colorado.  See dist/COPYRIGHT for full copyright notice.
+ *  $Id$
+ *  Log at end of file
  */
-/*  $Author$
-
-$Date$
-
-$Revision$
-
-$Log$
-Revision 3.6  2006/09/12 15:18:49  mast
-Changes for meshing parameters and new library
-
-Revision 3.5  2006/02/25 22:08:49  mast
-Cleaned up duplicate functions
-
-*/
 
 #ifndef IMESH_H
 #define IMESH_H
@@ -116,7 +100,7 @@ extern "C" {
   /* get info from meshes. */
   float imeshSurfaceArea(Imesh *mesh, Ipoint *mscale);
   float imeshVolume(Imesh *mesh, Ipoint *mscale);
-
+  int imodMeshGetBBox(Imesh *mesh, Ipoint *ll, Ipoint *ur);
 
 #ifdef __cplusplus
 }
@@ -124,3 +108,16 @@ extern "C" {
 #endif /* imesh.h */
 
 
+/*
+
+$Log$
+Revision 3.7  2006/09/13 23:52:08  mast
+Make DEFAULT_FLOAT really be a float
+
+Revision 3.6  2006/09/12 15:18:49  mast
+Changes for meshing parameters and new library
+
+Revision 3.5  2006/02/25 22:08:49  mast
+Cleaned up duplicate functions
+
+*/

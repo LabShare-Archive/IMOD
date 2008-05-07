@@ -7,31 +7,10 @@
  *  Copyright (C) 1995-2006 by Boulder Laboratory for 3-Dimensional Electron
  *  Microscopy of Cells ("BL3DEMC") and the Regents of the University of 
  *  Colorado.  See dist/COPYRIGHT for full copyright notice.
+ *
+ *  $Id$
+ *  Log at end of file
  */
-
-/*  $Author$
-    
-$Date$
-
-$Revision$
-
-$Log$
-Revision 3.5  2006/09/12 19:00:54  mast
-Fixed variable declaration after statement
-
-Revision 3.4  2006/09/12 15:25:13  mast
-Added mesh parameter functions and handled member renames
-
-Revision 3.3  2006/02/25 22:09:04  mast
-Documented
-
-Revision 3.2  2005/09/11 19:16:03  mast
-Added routine to test for mesh start code and return appropriate factors
-
-Revision 3.1  2004/11/20 04:15:14  mast
-Added duplicate function
-
-*/
 
 #include <limits.h>
 #include <math.h>
@@ -476,6 +455,61 @@ float imeshSurfaceArea(Imesh *mesh, Ipoint *scale)
   return(tsa);
 }
 
+/*!
+ * Calculates the full 3D bounding box of vertices in [mesh] and returns the 
+ * lower left, bottom coordinates in [ll] and the upper right, top coordinates
+ * in [ur].  Returns -1 if error.
+ */
+int imodMeshGetBBox(Imesh *mesh, Ipoint *ll, Ipoint *ur)
+{
+  Ipoint* pt;
+  int listInc, vertBase, normAdd, i, j;
+
+  if (!mesh || !mesh->lsize || !mesh->vsize)
+    return -1;
+  ll->x = ll->y = ll->z = 1.e30;
+  ur->x = ur->y = ur->z = -1.e30;
+
+  for(i = 0; i < mesh->lsize; i++){
+    switch(mesh->list[i]) {
+    case IMOD_MESH_BGNBIGPOLY:
+    case IMOD_MESH_BGNPOLY:
+      i++;
+      while (mesh->list[i] != IMOD_MESH_ENDPOLY) {
+        pt = &(mesh->vert[mesh->list[i]]);
+        ll->x = B3DMIN(ll->x, pt->x);
+        ll->y = B3DMIN(ll->y, pt->y);
+        ll->z = B3DMIN(ll->z, pt->z);
+        ur->x = B3DMAX(ur->x, pt->x);
+        ur->y = B3DMAX(ur->y, pt->y);
+        ur->z = B3DMAX(ur->z, pt->z);
+      }
+      break;
+
+    case IMOD_MESH_BGNPOLYNORM2:
+    case IMOD_MESH_BGNPOLYNORM:
+      imodMeshPolyNormFactors(mesh->list[i++], &listInc, &vertBase, &normAdd);
+      while(mesh->list[i] != IMOD_MESH_ENDPOLY) {
+        for (j = 0; j < 3; j++) {
+          pt = &(mesh->vert[mesh->list[i + vertBase]]);
+          i += listInc;
+          ll->x = B3DMIN(ll->x, pt->x);
+          ll->y = B3DMIN(ll->y, pt->y);
+          ll->z = B3DMIN(ll->z, pt->z);
+          ur->x = B3DMAX(ur->x, pt->x);
+          ur->y = B3DMAX(ur->y, pt->y);
+          ur->z = B3DMAX(ur->z, pt->z);
+        }
+      }
+      break;
+    }
+  }
+  if (ll->x > 1.e29)
+    return -1;
+  return 0;
+}
+
+
 /*******************
  * Meshing parameter functions 
  ******************/
@@ -583,3 +617,25 @@ int imeshCopySkipList(int *lfrom, int nfrom, int **lto, int *nto)
   return 0;
 }
 
+/*
+
+$Log$
+Revision 3.6  2006/09/13 23:53:17  mast
+Fixed skip list copy
+
+Revision 3.5  2006/09/12 19:00:54  mast
+Fixed variable declaration after statement
+
+Revision 3.4  2006/09/12 15:25:13  mast
+Added mesh parameter functions and handled member renames
+
+Revision 3.3  2006/02/25 22:09:04  mast
+Documented
+
+Revision 3.2  2005/09/11 19:16:03  mast
+Added routine to test for mesh start code and return appropriate factors
+
+Revision 3.1  2004/11/20 04:15:14  mast
+Added duplicate function
+
+*/
