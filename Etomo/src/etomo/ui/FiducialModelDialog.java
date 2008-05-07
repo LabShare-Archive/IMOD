@@ -30,6 +30,9 @@ import etomo.comscript.FortranInputSyntaxException;
  * @version $Revision$
  *
  * <p> $Log$
+ * <p> Revision 3.39  2008/05/03 00:49:48  sueh
+ * <p> bug# 847 Passing null for ProcessSeries to process funtions.
+ * <p>
  * <p> Revision 3.38  2007/12/26 22:23:54  sueh
  * <p> bug# 1052 Return true when done() completes successfully.
  * <p>
@@ -258,24 +261,22 @@ import etomo.comscript.FortranInputSyntaxException;
  * <p> Initial CVS entry, basic functionality not including combining
  * <p> </p>
  */
-public class FiducialModelDialog extends ProcessDialog implements ContextMenu,
-    Run3dmodButtonContainer {
+public final class FiducialModelDialog extends ProcessDialog implements
+    ContextMenu, Run3dmodButtonContainer {
   public static final String rcsid = "$Id$";
 
   private static final String SEEDING_NOT_DONE_LABEL = "Seed Fiducial Model";
   private static final String SEEDING_DONE_LABEL = "View Seed Model";
 
-  private JPanel pnlFiducialModel = new JPanel();
+  private final JPanel pnlFiducialModel = new JPanel();
+  private final FiducialModelActionListener actionListener = new FiducialModelActionListener(
+      this);
 
-  private BeveledBorder border = new BeveledBorder("Fiducial Model Generation");
-  private MultiLineButton btnTransferFiducials = null;
-  private final Run3dmodButton btnSeed;
-
-  private TransferfidPanel pnlTransferfid = null;
-  private BeadtrackPanel pnlBeadtrack;
+  final Run3dmodButton btnSeed;
+  private final BeadtrackPanel pnlBeadtrack;
+  private final TransferfidPanel pnlTransferfid;
 
   private boolean transferfidEnabled = false;
-  private final FiducialModelActionListener actionListener;
 
   private FiducialModelDialog(ApplicationManager appMgr, AxisID axisID) {
     super(appMgr, axisID, DialogType.FIDUCIAL_MODEL);
@@ -295,13 +296,17 @@ public class FiducialModelDialog extends ProcessDialog implements ContextMenu,
     pnlFiducialModel
         .setLayout(new BoxLayout(pnlFiducialModel, BoxLayout.Y_AXIS));
 
+    BeveledBorder border = new BeveledBorder("Fiducial Model Generation");
     pnlFiducialModel.setBorder(border.getBorder());
 
     if (applicationManager.isDualAxis()) {
-      pnlTransferfid = new TransferfidPanel(applicationManager, axisID, true,
-          dialogType);
+      pnlTransferfid = TransferfidPanel.getInstance(applicationManager, axisID,
+          dialogType, this);
       pnlFiducialModel.add(pnlTransferfid.getContainer());
       pnlFiducialModel.add(Box.createRigidArea(FixedDim.x0_y5));
+    }
+    else {
+      pnlTransferfid = null;
     }
     pnlFiducialModel.add(btnSeed.getComponent());
     pnlFiducialModel.add(Box.createRigidArea(FixedDim.x0_y5));
@@ -316,7 +321,6 @@ public class FiducialModelDialog extends ProcessDialog implements ContextMenu,
     updateAdvanced(isAdvanced);
     updateEnabled();
     updateDisplay();
-    actionListener = new FiducialModelActionListener(this);
   }
 
   public static FiducialModelDialog getInstance(ApplicationManager appMgr,
@@ -327,21 +331,8 @@ public class FiducialModelDialog extends ProcessDialog implements ContextMenu,
   }
 
   private void addListeners() {
-    //
-    //  Action listener assignments for the buttons
-    //
     btnSeed.addActionListener(actionListener);
-
-    if (applicationManager.isDualAxis()) {
-      btnTransferFiducials = pnlTransferfid.getButton();
-      if (btnTransferFiducials != null) {
-        btnTransferFiducials.addActionListener(actionListener);
-      }
-    }
-
-    //  Mouse adapter for context menu
-    GenericMouseAdapter mouseAdapter = new GenericMouseAdapter(this);
-    pnlFiducialModel.addMouseListener(mouseAdapter);
+    pnlFiducialModel.addMouseListener(new GenericMouseAdapter(this));
   }
 
   public void updateDisplay() {
@@ -375,16 +366,16 @@ public class FiducialModelDialog extends ProcessDialog implements ContextMenu,
   /**
    * Set the advanced state for the dialog box
    */
-  public void updateAdvanced(boolean state) {
+  private void updateAdvanced(boolean state) {
     pnlBeadtrack.updateAdvanced(state);
-    if (applicationManager.isDualAxis()) {
+    if (pnlTransferfid != null) {
       pnlTransferfid.updateAdvanced(state);
     }
     UIHarness.INSTANCE.pack(axisID, applicationManager);
   }
 
   public void updateEnabled() {
-    if (applicationManager.isDualAxis()) {
+    if (pnlTransferfid != null) {
       pnlTransferfid.setEnabled(transferfidEnabled);
     }
   }
@@ -397,7 +388,7 @@ public class FiducialModelDialog extends ProcessDialog implements ContextMenu,
   }
 
   public void setTransferFidParams() {
-    if (applicationManager.isDualAxis()) {
+    if (pnlTransferfid != null) {
       pnlTransferfid.setParameters();
     }
   }
@@ -418,7 +409,7 @@ public class FiducialModelDialog extends ProcessDialog implements ContextMenu,
   }
 
   public final void setParameters(ReconScreenState screenState) {
-    if (applicationManager.isDualAxis()) {
+    if (pnlTransferfid != null) {
       pnlTransferfid.setParameters(screenState);
     }
     //btnSeed.setButtonState(screenState.getButtonState(btnSeed
@@ -427,13 +418,13 @@ public class FiducialModelDialog extends ProcessDialog implements ContextMenu,
   }
 
   public void getTransferFidParams() {
-    if (applicationManager.isDualAxis()) {
+    if (pnlTransferfid != null) {
       pnlTransferfid.getParameters();
     }
   }
 
   public void getTransferFidParams(TransferfidParam transferFidParam) {
-    if (applicationManager.isDualAxis()) {
+    if (pnlTransferfid != null) {
       pnlTransferfid.getParameters(transferFidParam);
     }
   }
@@ -475,27 +466,23 @@ public class FiducialModelDialog extends ProcessDialog implements ContextMenu,
   //  Action function for buttons
   private void buttonAction(final String command,
       final Run3dmodMenuOptions run3dmodMenuOptions) {
-    if (btnTransferFiducials != null
-        && command.equals(btnTransferFiducials.getActionCommand())) {
-      applicationManager.transferfid(axisID, btnTransferFiducials, null);
-    }
-    else if (command.equals(btnSeed.getActionCommand())) {
+    if (command.equals(btnSeed.getActionCommand())) {
       applicationManager
           .imodSeedFiducials(axisID, run3dmodMenuOptions, btnSeed);
     }
   }
 
   boolean done() {
-    if (applicationManager.doneFiducialModelDialog(axisID)) {
-      if (btnTransferFiducials != null) {
-        btnTransferFiducials.removeActionListener(actionListener);
-      }
-      btnSeed.removeActionListener(actionListener);
-      pnlBeadtrack.done();
-      setDisplayed(false);
-      return true;
+    if (!applicationManager.doneFiducialModelDialog(axisID)) {
+      return false;
     }
-    return false;
+    if (pnlTransferfid != null) {
+      pnlTransferfid.done();
+    }
+    btnSeed.removeActionListener(actionListener);
+    pnlBeadtrack.done();
+    setDisplayed(false);
+    return true;
   }
 
   public void buttonAdvancedAction(ActionEvent event) {
