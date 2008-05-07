@@ -12,6 +12,9 @@
  * @version $Revision$
  * 
  * <p> $Log$
+ * <p> Revision 1.25  2008/05/03 00:52:17  sueh
+ * <p> bug# 847 Passing null for ProcessSeries to process funtions.
+ * <p>
  * <p> Revision 1.24  2007/09/10 20:43:45  sueh
  * <p> bug# 925 Should only load button states once.  Changed
  * <p> ProcessResultDisplayFactory to load button states immediately, so removing
@@ -120,9 +123,11 @@ import etomo.type.BaseScreenState;
 import etomo.type.ConstEtomoNumber;
 import etomo.type.DialogType;
 import etomo.type.ProcessResultDisplay;
+import etomo.type.Run3dmodMenuOptions;
 import etomo.type.ViewType;
 
-public final class PrenewstPanel implements ContextMenu, Expandable {
+final class PrenewstPanel implements ContextMenu, Expandable,
+    Run3dmodButtonContainer {
   public static final String rcsid = "$Id$";
 
   private final JPanel pnlPrenewst = new JPanel();
@@ -136,16 +141,20 @@ public final class PrenewstPanel implements ContextMenu, Expandable {
       "Float intensities to mean");
 
   private final AxisID axisID;
-  private final MultiLineButton btnCoarseAlign;
+  private final Run3dmodButton btnCoarseAlign;
   private final ActionListener actionListener;
   private final PanelHeader header;
+  private final CoarseAlignDialog parent;
 
-  public PrenewstPanel(ApplicationManager applicationManager, AxisID id,
-      DialogType dialogType) {
+  PrenewstPanel(ApplicationManager applicationManager, AxisID id,
+      DialogType dialogType,CoarseAlignDialog parent) {
+    this.parent=parent;
     axisID = id;
     this.applicationManager = applicationManager;
-    btnCoarseAlign = (MultiLineButton) applicationManager
+    btnCoarseAlign = (Run3dmodButton) applicationManager
         .getProcessResultDisplayFactory(axisID).getCoarseAlign();
+    btnCoarseAlign.setRun3dmodButtonContainer(this);
+
     pnlPrenewst.setLayout(new BoxLayout(pnlPrenewst, BoxLayout.Y_AXIS));
     pnlBody.setLayout(new BoxLayout(pnlBody, BoxLayout.Y_AXIS));
     pnlCheckBoxes.setLayout(new BoxLayout(pnlCheckBoxes, BoxLayout.Y_AXIS));
@@ -213,7 +222,7 @@ public final class PrenewstPanel implements ContextMenu, Expandable {
   }
 
   public static ProcessResultDisplay getCoarseAlignDisplay(DialogType dialogType) {
-    return MultiLineButton.getToggleButtonInstance(
+    return Run3dmodButton.getDeferredToggle3dmodInstance(
         "Generate Coarse Aligned Stack", dialogType);
   }
 
@@ -321,9 +330,13 @@ public final class PrenewstPanel implements ContextMenu, Expandable {
         .setToolTipText("Use transformations to produce stack of aligned images.");
   }
 
-  void buttonAction(ActionEvent event) {
-    if (event.getActionCommand().equals(btnCoarseAlign.getActionCommand())) {
-      applicationManager.coarseAlign(axisID, btnCoarseAlign, null);
+  public void action(Run3dmodButton button, Run3dmodMenuOptions menuOptions) {
+    buttonAction(button.getActionCommand(), menuOptions);
+  }
+
+  void buttonAction(String command, Run3dmodMenuOptions menuOptions) {
+    if (command.equals(btnCoarseAlign.getActionCommand())) {
+      applicationManager.coarseAlign(axisID, btnCoarseAlign, null,parent.btnImod,menuOptions);
     }
   }
 
@@ -335,7 +348,7 @@ public final class PrenewstPanel implements ContextMenu, Expandable {
     }
 
     public void actionPerformed(ActionEvent event) {
-      adaptee.buttonAction(event);
+      adaptee.buttonAction(event.getActionCommand(), null);
     }
   }
 }
