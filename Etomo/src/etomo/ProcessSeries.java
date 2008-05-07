@@ -35,6 +35,12 @@ import etomo.ui.Run3dmodDeferredCommand;
  * @version $Revision$
  * 
  * <p> $Log$
+ * <p> Revision 1.2  2008/05/06 23:55:34  sueh
+ * <p> bug#847 Running deferred 3dmods by using the button that usually calls
+ * <p> them.  This avoids having to duplicate the calls and having a
+ * <p> startNextProcess function just for 3dmods.  This requires that the 3dmod
+ * <p> button be passed to the function that starts the process.
+ * <p>
  * <p> Revision 1.1  2008/05/03 00:34:21  sueh
  * <p> bug# 847 Passing ProcessSeries to the process manager,
  * <p> startNextProcess, and to all process functions.  To avoid having to decide
@@ -59,7 +65,7 @@ public final class ProcessSeries implements ConstProcessSeries {
   private Run3dmodMenuOptions run3dmodMenuOptions = null;
   private boolean debug = false;
 
-  ProcessSeries(final BaseManager manager) {
+  public ProcessSeries(final BaseManager manager) {
     this.manager = manager;
   }
 
@@ -146,7 +152,7 @@ public final class ProcessSeries implements ConstProcessSeries {
    * @param run3dmodProcess
    * @param run3dmodMenuOptions
    */
-  void setRun3dmodDeferred(
+public  void setRun3dmodDeferred(
       final Run3dmodDeferredCommand run3dmodDeferredCommand,
       final Run3dmodMenuOptions run3dmodMenuOptions) {
     this.run3dmodDeferredCommand = run3dmodDeferredCommand;
