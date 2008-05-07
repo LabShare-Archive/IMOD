@@ -50,6 +50,7 @@
     <section ref="./modvControl.html" title="Model View Controls"/>
     <section ref="./objectList.html" title="Object List Dialog"/>
     <section ref="./modvImage.html" title="Image View Dialog"/>
+    <section ref="./modvIsosurface.html" title="Isosurface View Dialog"/>
     <section ref="./modelMovie.html" title="Model Movie &amp; Montage Control"/>
     <section ref="./modvModelEdit.html" title="Model edit"/>
     <section ref="./modvViewEdit.html" title="View edit"/>

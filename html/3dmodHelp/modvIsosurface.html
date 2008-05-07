@@ -2,7 +2,7 @@
 <HTML>
 <HEAD>
 	<META HTTP-EQUIV="CONTENT-TYPE" CONTENT="text/html; charset=utf-8">
-	<TITLE>Image on Model View</TITLE>
+	<TITLE>Isosurface View</TITLE>
 	<META NAME="GENERATOR" CONTENT="OpenOffice.org 2.0  (Unix)">
 	<META NAME="CREATED" CONTENT="20080425;13470700">
 	<META NAME="CHANGEDBY" CONTENT="Xiong Quanren">
@@ -10,25 +10,79 @@
 </HEAD>
 <BODY LANG="en-US" DIR="LTR">
 <H3>Isosurface View Dialog</H3>
-<P>This dialog allows you to display isosurfaces of the input stack
-or a subvolume of it.  An isosurface is a surface assuming a constant
-intensity value set by the user.  The subvolume is specified by a
-bounding box.  
+<P>
+This dialog allows you to display isosurfaces of the input volume
+or a subvolume of it.  An isosurface is a surface generated at places where
+the intensity values cross a threshold value set by the user.
+The subvolume is specified by a bounding box whose position and size
+are set by sliders.  Isosurfaces are displayed when this dialog is
+opened but will be removed when you close the dialog. 
+<P>
+The isosurface display is based on contouring and surface smoothing
+modules from Chimera, developed at the Resource for Biocomputing,
+Visualization, and Informatics at UCSF.
+<P>
+The controls in
+this window are as follows:
 </P>
-<P>The first three check boxes (<B>View isosurfaces</B>, etc.) turn
-on the display of the indicated objects. 
-</P>
-<P>Below the three check box is the histogram of voxels inside the
-bounding box. The <B>Threshold</B> slider sets the constant intensity
-value the isosurfaces will assume.</P>
-<P>The <B>X</B>, <B>Y</B>, and <B>Z</B> sliders will track the
+<P>
+<B>View isosurfaces</B> selects whether the isosurfaces will be
+computed and displayed.
+<P>
+<B>View user model</B> selects whether the regular model is displayed
+as well.
+<P>
+<B>View bounding box</B> selects whether a bounding box around the
+data will be displayed.  When it is being displayed, it will also show
+up in the Zap window regardless of what section is being displayed.
+<P>
+<B>Keep box centered</B> controls whether the dialog will center the
+subvolume being rendered in the model view window whenever its size or
+position changes.  The subvolume is also centered when this box is turned
+on, so you can use it to center the volume even if you do not want to
+leave it on.
+<P>
+<B>Smoothing</B> selects the number of iterations of a smoothing
+routine that moves each vertex of the isosurface toward the average of
+neighboring vertices.  Some of the change in appearance when you turn
+on smoothing may reflect a change in the way the normals to the
+surface are computed.  These normals control how light reflects from
+the surface.  With no smoothing, they are computed from the image data
+by the Chimera code, but with smoothing, they are recomputed from the triangles
+in the usual way for IMOD meshes.  Note that another way to get a
+smoother display is to restart 3dmod with the image loaded binned.
+<P>
+Below these controls is the <B>histogram</B> of voxel values inside the
+bounding box.  The histogram is based on the byte values stored in
+program memory, not the values in the image file.
+<P>
+<B>Threshold</B> sets the constant intensity
+value at which the isosurfaces will be rendered.</P>
+<P>
+The <B>X</B>, <B>Y</B>, and <B>Z</B> sliders will track the
 current point coordinate in 3dmod image display windows and can be
-used to adjust the center position of the bounding box.</P>
-<P>The <B>X size</B>, <B>Y size</B>, and <B>Z size</B> sliders can be
-used to set the X, Y, and Z size of the bounding box. The bounding
+used to adjust the center position of the bounding box.  The bounding
 box will center on the coordinate unless that would result in the box
 size being smaller than the slider value. 
 </P>
+<P>
+The <B>X size</B>, <B>Y size</B>, and <B>Z size</B> sliders can be
+used to set the X, Y, and Z size of the bounding box.  The maximum
+values of these sliders are set so as to prevent you from trying to
+render too large a total volume, which is especially time-consuming when
+the threshold is near the middle of the intensity distribution.
+</P>
+<P>
+<B>Save</B> is used to create two new objects containing copies of the
+isosurfaces and the bounding box.  Until you do this, these items are
+kept in "extra objects" whose properties cannot (yet) be edited in the
+Edit-Objects window.  For now, saving the objects is the only way to
+adjust their color and other display properties.  Also, this is the
+only way to save the isosurfaces in a model file and reload them.
+When the bounding box is saved, it will stop being displayed on all
+sections in the Zap window.  After you save the objects, the model
+view window will show both the isosurfaces in the extra object and the
+saved objects, unless you turn one or the other off.
 <P><A HREF="index.html">Help Index</A></P>
 </BODY>
 </HTML>

@@ -7,7 +7,7 @@
 3dmodv [options] <model files...>
 .SH DESCRIPTION
 3dmodv is used to view models drawn with 3dmod.  The main 3dmodv window is
-similar to the "Model View" window available in the program 3dmod.  When
+the same as the "Model View" window available in the program 3dmod.  When
 run from the command line, 3dmodv can read and save models through the File 
 menu.  Multiple models can be loaded and manipulated independently, either by 
 putting their names on the command line or by loading them one after another
@@ -30,7 +30,7 @@ you want to take snapshots at a specific size.
 .TP
 .B -E <keys>
 Open the windows specified by the key letters, which are the same as the
-hot keys for opening windows (m, O, C, L, B, M, V, I), plus D for
+hot keys for opening windows (m, O, C, L, B, M, V, I, U), plus D for
 depth cue and S for stereo.
 .TP
 .B -L
@@ -82,7 +82,12 @@ Open dialog to set background color.
 Open the Control editing dialog.
 .TP
 .B I
-Open the Image overlay control dialog.
+Open the Image overlay control dialog (only available when program is run as
+3dmod).
+.TP
+.B U
+Open the Isosurface view dialog (only available when program is run as
+3dmod).
 .TP
 .B L
 Open Object List dialog.
@@ -159,6 +164,7 @@ Use the online help for more information on using 3dmodv.
 .nf
 Jim Kremer
 David Mastronarde
+Quanren Xiong
 .fi
 .SH SEE ALSO
 3dmod(1), imodinfo(1)
