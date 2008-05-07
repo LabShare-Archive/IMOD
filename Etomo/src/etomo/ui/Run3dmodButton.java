@@ -25,7 +25,7 @@ import etomo.type.Run3dmodMenuOptions;
  * 
  * @version $Revision$
  */
-final class Run3dmodButton extends MultiLineButton implements ContextMenu {
+final class Run3dmodButton extends MultiLineButton implements ContextMenu,Run3dmodDeferredCommand {
   public static final String rcsid = "$Id$";
 
   private final JPopupMenu contextMenu = new JPopupMenu("3dmod Options");
@@ -37,13 +37,6 @@ final class Run3dmodButton extends MultiLineButton implements ContextMenu {
   //3dmod option (noMenuOption) when deferred is true.
   private final boolean deferred;
 
-  //If deferred is true then the information needed by the manager to choose
-  //which 3dmod process to run and any information needed to run it must be
-  //included in run3dmodOptions.  If deferred is false then run3dmodOptions is
-  //optional, but it can be used to share information between the real 3dmod
-  //button and the deferred button.  This should allow the manager to use the
-  //same function to run 3dmod for both buttons.
-  private Run3dmodProcess run3dmodProcess = null;
   private Run3dmodButtonContainer container = null;
   private JMenuItem noMenuOption = null;
 
@@ -108,14 +101,6 @@ final class Run3dmodButton extends MultiLineButton implements ContextMenu {
     binBy2.addActionListener(listener);
   }
 
-   void setRun3dmodProcess(Run3dmodProcess input) {
-    run3dmodProcess = input;
-  }
-   
-   Run3dmodProcess getRun3dmodOptions() {
-     return run3dmodProcess;
-   }
-
   public void popUpContextMenu(MouseEvent mouseEvent) {
     if (!isEnabled()) {
       return;
@@ -128,7 +113,7 @@ final class Run3dmodButton extends MultiLineButton implements ContextMenu {
     this.container = container;
   }
 
-  private void performMenuAction(final ActionEvent event) {
+  private void action(final ActionEvent event) {
     //MenuOptions holds the current menu choice.
     Run3dmodMenuOptions menuOptions = new Run3dmodMenuOptions();
     if (event.getActionCommand().equals(startupWindow.getText())) {
@@ -137,11 +122,15 @@ final class Run3dmodButton extends MultiLineButton implements ContextMenu {
     else if (event.getActionCommand().equals(binBy2.getText())) {
       menuOptions.setBinBy2(true);
     }
-    if (container != null) {
-      container.action(this, menuOptions);
-    }
+    action(menuOptions);
     if (isToggleButton()) {
       setSelected(true);
+    }
+  }
+
+  public void action(Run3dmodMenuOptions menuOptions) {
+    if (container != null) {
+      container.action(this, menuOptions);
     }
   }
 
@@ -153,12 +142,17 @@ final class Run3dmodButton extends MultiLineButton implements ContextMenu {
     }
 
     public void actionPerformed(final ActionEvent event) {
-      adaptee.performMenuAction(event);
+      adaptee.action(event);
     }
   }
 }
 /**
  * <p> $Log$
+ * <p> Revision 1.10  2008/05/03 00:55:20  sueh
+ * <p> bug# 847 Added deferred to run 3dmod after another process is done.
+ * <p> Added noMenuOption to run a plain 3dmod.  Added run3dmodProcess to
+ * <p> collect information about the 3dmod so it can be run by the manager.
+ * <p>
  * <p> Revision 1.9  2007/08/10 17:36:35  sueh
  * <p> bug# 847 Removed implements clause for ProcessResultDisplay because
  * <p> MultiLineButton already implements it.
