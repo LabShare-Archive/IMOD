@@ -1,5 +1,9 @@
 IMOD History
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+5/6/08: IMOD_3-12-8
+5/6/08: Made object bounding box routine get bounding box from meshes if there are
+no contours, so that centering on a saved isosurface object works.
+
 5/2/08: Fixed imodmop painting of tubular lines when points are spaced farther
 apart in Z than the diameter.
 
