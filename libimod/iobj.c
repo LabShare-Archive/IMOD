@@ -572,7 +572,10 @@ Iobj *imodObjectClip(Iobj *obj, Iplane *plane, int planes)
 
 /*!
  * Finds the minimum and maximum coordinates of all contours in object [obj]
- * and returns them in points [ll] and [ur], respectively.
+ * and returns them in points [ll] and [ur], respectively.  If there are no
+ * contours but there are meshes, it finds the bounding box from all meshes
+ * instead.  Returns -1 for an error (including no contours or meshes), 0 for
+ * values from contours, or 1 for values from meshes.
  */
 int imodObjectGetBBox(Iobj *obj, Ipoint *ll, Ipoint *ur)
 {
@@ -586,8 +589,8 @@ int imodObjectGetBBox(Iobj *obj, Ipoint *ll, Ipoint *ur)
 
   if ((!obj) || (!ll) || (!ur))
     return(-1);
-  if (!obj->contsize)
-    return(1);
+  if (!obj->contsize && !obj->meshsize)
+    return(-1);
 
   *ll = min;
   *ur = max;
@@ -605,7 +608,23 @@ int imodObjectGetBBox(Iobj *obj, Ipoint *ll, Ipoint *ur)
       
   }
 
-  return(0);
+  if (obj->contsize)
+    return(0);
+
+  for(co = 0; co < obj->meshsize; co++){
+    if (imodMeshGetBBox(&obj->mesh[co], &min, &max))
+      continue;
+
+    if (min.x < ll->x) ll->x = min.x;
+    if (min.y < ll->y) ll->y = min.y;
+    if (min.z < ll->z) ll->z = min.z;
+
+    if (max.x > ur->x) ur->x = max.x;
+    if (max.y > ur->y) ur->y = max.y;
+    if (max.z > ur->z) ur->z = max.z;
+      
+  }
+  return(1);
 }
 
 /*!
@@ -788,6 +807,9 @@ void  imodObjectSetValue(Iobj *inObject, int inValueType, int inValue)
 /*
 
 $Log$
+Revision 3.19  2008/04/24 18:50:22  mast
+Added support for plugin to change 2D line width
+
 Revision 3.18  2008/04/04 21:21:04  mast
 Free contour after adding to object, clarify documentation
 
