@@ -11,7 +11,7 @@ c       Log at end
 c       
       logical reading
       integer*4 iffirst,lenin,lencom,indarrow
-      character*1024 linein,linecom
+      character*10240 linein,linecom
       character*80 logfile
       character*10 herestring/'HERESTRING'/
 c       
@@ -59,9 +59,11 @@ c
 c         For Cygwin/windows, if the line is not properly stripped of
 c         Return, replace it now
 c         
-        if (lenin.gt.0 .and. linein(lenin:lenin).eq.char(13)) then
-          linein(lenin:lenin) = ' '
-          lenin = lenin - 1
+        if (lenin.gt.0) then
+          if (linein(lenin:lenin).eq.char(13)) then
+            linein(lenin:lenin) = ' '
+            lenin = lenin - 1
+          endif
         endif
         if(linein(1:1).ne.'#' .and. linein(1:2).ne.'$!')then
           if(iffirst.eq.0.and.linecom(lencom:lencom).eq.'\\')then
@@ -128,6 +130,9 @@ c
 
 c       
 c       $Log$
+c       Revision 3.9  2007/12/10 15:57:02  mast
+c       Had to add braces around IMOD_QTLIBDIR
+c
 c       Revision 3.8  2007/11/20 20:31:04  mast
 c       Added IMOD_QTLIBDIR to LD_LIBRARY_PATH if both defined
 c
