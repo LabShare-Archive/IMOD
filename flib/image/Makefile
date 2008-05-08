@@ -164,9 +164,6 @@ tiltxcorr$(E): tiltxcorr.$(O)
 tomopieces$(E): tomopieces.$(O)
 	$(FC) -o tomopieces tomopieces.$(O) $(LDFLG) $(IMLIBS) $(LIBS)
 
-vmstocsh.$(O): vmstocsh.f
-	$(FC) -c $(NOOPFFLAGS) vmstocsh.f
-
 vmstocsh$(E): vmstocsh.$(O)
 	$(FC) -o vmstocsh vmstocsh.$(O) $(LDFLG) $(IMLIBS) $(LIBS)
 
@@ -208,6 +205,9 @@ enhance.$(O): $(INCDIR)/ftbuf.inc
 fftrans.$(O): $(INCDIR)/ftbuf.inc
 
 #  $Log$
+#  Revision 3.16  2007/10/30 14:25:06  mast
+#  Renamed xcorr to xcorrstack
+#
 #  Revision 3.15  2007/10/21 17:38:37  mast
 #  Really remove boxavg
 #
