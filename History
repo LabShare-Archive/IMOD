@@ -1,5 +1,11 @@
 IMOD History
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+5/7/08: IMOD_3-12-9
+5/7/08: Fixed xfalign when run with filtering, broken 1/4/08.
+
+5/7/08: Increased line length in vmstocsh so that startjoin.com will work when
+combining lots of files into sample average.
+
 5/6/08: IMOD_3-12-8
 5/6/08: Made object bounding box routine get bounding box from meshes if there are
 no contours, so that centering on a saved isosurface object works.
