@@ -419,11 +419,11 @@ if ($prexffile != "") set tmpxfin = "$tmpdir/$com.xfin.$$"
 # 
 if ( ($FILTERPARAM  == "0.,0.,0.,0.")  ||  ($FILTERPARAM == "NONE") ) then
    cat >! "$runenhance" <<EOCAT
-mv -f \"$tmppic\" \"$tmpprp\"
+mv -f "$tmppic" "$tmpprp"
 EOCAT
 else
    cat >! "$runenhance" <<EOCAT
-enhance \"$tmppic\" \"$tmpprp\" >! \"$tmplog\" <<EOF
+enhance "$tmppic" "$tmpprp" >! "$tmplog" <<EOF
 $FILTERPARAM
 1
 EOF
@@ -560,6 +560,7 @@ while ($#filesect != 0 )
 	csh -f "$runenhance"
         if ($status) then
             echo "ERROR: $com - running the enhance routine"
+            exit
             goto clean
         endif
 
@@ -625,6 +626,9 @@ unset noglob
 exit $exitstat
 
 #  $Log$
+#  Revision 3.20  2008/01/04 07:03:38  mast
+#  Fixed for space in IMOD_DIR, possibly for space in tmpdir
+#
 #  Revision 3.19  2006/08/17 18:36:55  mast
 #  Added locale statement to keep output of awk from having instead of .
 #
