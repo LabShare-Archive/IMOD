@@ -392,6 +392,106 @@ public abstract class BaseManager {
     }
   }
 
+  private boolean checkNextProcess(AxisID axisID) {
+    SystemProcessInterface processA = getProcessManager().getThread(
+        AxisID.FIRST);
+    SystemProcessInterface processB = getProcessManager().getThread(
+        AxisID.SECOND);
+    //  Check to see if next processes have to be done
+    ArrayList messageArray = new ArrayList();
+    ConstProcessSeries processSeriesA = null;
+    ConstProcessSeries processSeriesB = null;
+    String nextProcessA = null;
+    String nextProcessB = null;
+    if (processA != null
+        && (processSeriesA = processA.getProcessSeries()) != null) {
+      nextProcessA = processSeriesA.peekNextProcess();
+    }
+    if (processB != null
+        && (processSeriesB = processB.getProcessSeries()) != null) {
+      nextProcessB = processSeriesB.peekNextProcess();
+    }
+    if (nextProcessA != null || nextProcessB != null) {
+      boolean twoProcesses = nextProcessA != null && nextProcessB != null;
+      StringBuffer message = new StringBuffer(
+          "WARNING!!!\nIf you exit now then the current process(es) will not finish.  The subprocess(es)");
+      if (nextProcessA != null) {
+        message.append(" " + nextProcessA + " on Axis A");
+      }
+      if (twoProcesses) {
+        message.append(" and");
+      }
+      if (nextProcessB != null) {
+        message.append(" " + nextProcessB + " on Axis B");
+      }
+      message.append(" should run next.\n");
+      if (exiting) {
+        message.append("Do you still wish to exit the program?");
+      }
+      else {
+        message.append("Do you still wish to close this interface?");
+      }
+      if (!uiHarness.openYesNoWarningDialog(message.toString(), axisID)) {
+        exiting = false;
+        return false;
+      }
+    }
+    if (!checkUnidentifiedProcess(AxisID.FIRST)
+        || !checkUnidentifiedProcess(AxisID.SECOND)) {
+      exiting = false;
+      return false;
+    }
+    return true;
+  }
+
+  private void close3dmods(AxisID axisID) {
+    //  Should we close the 3dmod windows
+    try {
+      if (imodManager.isOpen()) {
+        String[] message = new String[3];
+        message[0] = "There are still 3dmod programs running.";
+        message[1] = "Do you wish to end these programs?";
+        if (uiHarness.openYesNoDialog(message, axisID)) {
+          imodManager.quit();
+        }
+      }
+    }
+    catch (AxisTypeException except) {
+      except.printStackTrace();
+      uiHarness.openMessageDialog(except.getMessage(), "AxisType problem",
+          axisID);
+    }
+    catch (IOException e) {
+      e.printStackTrace();
+    }
+    catch (SystemProcessException e) {
+      e.printStackTrace();
+    }
+  }
+
+  private void disconnect3dmods() {
+    try {
+      imodManager.disconnect();
+    }
+    catch (Throwable e) {
+      e.printStackTrace();
+    }
+  }
+
+  /**
+   * 
+   * @param axisID
+   * @return
+   */
+  boolean close(AxisID axisID) {
+    if (!checkNextProcess(axisID)) {
+      return false;
+    }
+    close3dmods(axisID);
+    disconnect3dmods();
+    return true;
+  }
+
   /**
    * Exit the program.  To guarantee that etomo can always exit, catch all
    * unrecognized Exceptions and Errors and return true.
@@ -415,73 +515,17 @@ public abstract class BaseManager {
           return false;
         }
       }
-      //  Check to see if next processes have to be done
-      ArrayList messageArray = new ArrayList();
-      ConstProcessSeries processSeriesA = null;
-      ConstProcessSeries processSeriesB = null;
-      String nextProcessA = null;
-      String nextProcessB = null;
-      if (processA != null
-          && (processSeriesA = processA.getProcessSeries()) != null) {
-        nextProcessA = processSeriesA.peekNextProcess();
-      }
-      if (processB != null
-          && (processSeriesB = processB.getProcessSeries()) != null) {
-        nextProcessB = processSeriesB.peekNextProcess();
-      }
-      if (nextProcessA != null || nextProcessB != null) {
-        boolean twoProcesses = nextProcessA != null && nextProcessB != null;
-        StringBuffer message = new StringBuffer(
-            "WARNING!!!\nIf you exit now then the current process(es) will not finish.  The subprocess(es)");
-        if (nextProcessA != null) {
-          message.append(" " + nextProcessA + " on Axis A");
-        }
-        if (twoProcesses) {
-          message.append(" and");
-        }
-        if (nextProcessB != null) {
-          message.append(" " + nextProcessB + " on Axis B");
-        }
-        message
-            .append(" should run next.\nDo you still wish to exit the program?");
-
-        if (!uiHarness.openYesNoWarningDialog(message.toString(), axisID)) {
-          exiting = false;
-          return false;
-        }
-      }
-      if (!checkUnidentifiedProcess(AxisID.FIRST)
-          || !checkUnidentifiedProcess(AxisID.SECOND)) {
-        exiting = false;
+      if (!checkNextProcess(axisID)) {
         return false;
       }
-      //  Should we close the 3dmod windows
-      try {
-        if (imodManager.isOpen()) {
-          String[] message = new String[3];
-          message[0] = "There are still 3dmod programs running.";
-          message[1] = "Do you wish to end these programs?";
-          if (uiHarness.openYesNoDialog(message, axisID)) {
-            imodManager.quit();
-          }
-        }
-      }
-      catch (AxisTypeException except) {
-        except.printStackTrace();
-        uiHarness.openMessageDialog(except.getMessage(), "AxisType problem",
-            axisID);
-      }
+      close3dmods(axisID);
       ImodqtassistProcess.INSTANCE.quit();
     }
     catch (Throwable e) {
       e.printStackTrace();
     }
-    try {
-      imodManager.disconnect();
-    }
-    catch (Throwable e) {
-      e.printStackTrace();
-    }
+    //Do this even if everything else fails
+    disconnect3dmods();
     return true;
   }
 
@@ -1198,6 +1242,11 @@ public abstract class BaseManager {
 }
 /**
  * <p> $Log$
+ * <p> Revision 1.99  2008/05/06 23:53:49  sueh
+ * <p> bug#847 Running deferred 3dmods by using the button that usually calls
+ * <p> them.  This avoids having to duplicate the calls and having a
+ * <p> startNextProcess function just for 3dmods.
+ * <p>
  * <p> Revision 1.98  2008/05/03 00:30:02  sueh
  * <p> bug# 847 Removed lastProcess and nextProcess member variables and associated functions.  Placed all of next process functionality in ProcessSeries.
  * <p>
