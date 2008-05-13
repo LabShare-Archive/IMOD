@@ -105,7 +105,7 @@ import etomo.ui.ParallelPanel;
 import etomo.ui.PostProcessingDialog;
 import etomo.ui.PreProcessingDialog;
 import etomo.ui.ProcessDialog;
-import etomo.ui.Run3dmodDeferredCommand;
+import etomo.ui.Deferred3dmodButton;
 import etomo.ui.SetupDialogExpert;
 import etomo.ui.TomogramCombinationDialog;
 import etomo.ui.TomogramGenerationExpert;
@@ -668,7 +668,7 @@ public final class ApplicationManager extends BaseManager {
   public void findXrays(AxisID axisID,
       final ProcessResultDisplay processResultDisplay,
       ProcessSeries processSeries,
-      final Run3dmodDeferredCommand run3dmodDeferredCommand,
+      final Deferred3dmodButton deferred3dmodButton,
       final Run3dmodMenuOptions run3dmodMenuOptions) {
     if (processSeries == null) {
       processSeries = new ProcessSeries(this);
@@ -677,8 +677,7 @@ public final class ApplicationManager extends BaseManager {
     updateEraserCom(axisID, true);
     processTrack.setPreProcessingState(ProcessState.INPROGRESS, axisID);
     mainPanel.setPreProcessingState(ProcessState.INPROGRESS, axisID);
-    processSeries.setRun3dmodDeferred(run3dmodDeferredCommand,
-        run3dmodMenuOptions);
+    processSeries.setRun3dmodDeferred(deferred3dmodButton, run3dmodMenuOptions);
     String threadName;
     try {
       threadName = processMgr.eraser(axisID, processResultDisplay,
@@ -1053,7 +1052,8 @@ public final class ApplicationManager extends BaseManager {
       return;
     }
     Utilities.timestamp("new", "CoarseAlignDialog", Utilities.STARTED_STATUS);
-    CoarseAlignDialog coarseAlignDialog = new CoarseAlignDialog(this, axisID);
+    CoarseAlignDialog coarseAlignDialog = CoarseAlignDialog.getInstance(this,
+        axisID);
     Utilities.timestamp("new", "CoarseAlignDialog", Utilities.FINISHED_STATUS);
     if (axisID == AxisID.SECOND) {
       coarseAlignDialogB = coarseAlignDialog;
@@ -1227,14 +1227,13 @@ public final class ApplicationManager extends BaseManager {
   public void preEraser(final AxisID axisID,
       final ProcessResultDisplay processResultDisplay,
       ProcessSeries processSeries,
-      final Run3dmodDeferredCommand run3dmodDeferredCommand,
+      final Deferred3dmodButton deferred3dmodButton,
       final Run3dmodMenuOptions run3dmodMenuOptions) {
     sendMsgProcessStarting(processResultDisplay);
     if (processSeries == null) {
       processSeries = new ProcessSeries(this);
     }
-    processSeries.setRun3dmodDeferred(run3dmodDeferredCommand,
-        run3dmodMenuOptions);
+    processSeries.setRun3dmodDeferred(deferred3dmodButton, run3dmodMenuOptions);
     if (axisID == AxisID.SECOND && processBStack()) {
       processSeries.setLastProcess(ProcessName.ERASER.toString());
       extracttilts(axisID, processResultDisplay, processSeries);
@@ -1411,7 +1410,7 @@ public final class ApplicationManager extends BaseManager {
   public void coarseAlign(AxisID axisID,
       final ProcessResultDisplay processResultDisplay,
       ProcessSeries processSeries,
-      final Run3dmodDeferredCommand run3dmodDeferredCommand,
+      final Deferred3dmodButton deferred3dmodButton,
       final Run3dmodMenuOptions run3dmodMenuOptions) {
     if (processSeries == null) {
       processSeries = new ProcessSeries(this);
@@ -1454,8 +1453,7 @@ public final class ApplicationManager extends BaseManager {
       return;
     }
     processSeries.setNextProcess("checkUpdateFiducialModel");
-    processSeries.setRun3dmodDeferred(run3dmodDeferredCommand,
-        run3dmodMenuOptions);
+    processSeries.setRun3dmodDeferred(deferred3dmodButton, run3dmodMenuOptions);
     setThreadName(threadName, axisID);
   }
 
@@ -2620,7 +2618,7 @@ public final class ApplicationManager extends BaseManager {
   public void transferfid(final AxisID destAxisID,
       final ProcessResultDisplay processResultDisplay,
       ProcessSeries processSeries,
-      final Run3dmodDeferredCommand run3dmodDeferredCommand,
+      final Deferred3dmodButton deferred3dmodButton,
       final Run3dmodMenuOptions run3dmodMenuOptions) {
     if (processSeries == null) {
       processSeries = new ProcessSeries(this);
@@ -2659,8 +2657,7 @@ public final class ApplicationManager extends BaseManager {
     }
     // Get any user specified changes
     fiducialModelDialog.getTransferFidParams(transferfidParam);
-    processSeries.setRun3dmodDeferred(run3dmodDeferredCommand,
-        run3dmodMenuOptions);
+    processSeries.setRun3dmodDeferred(deferred3dmodButton, run3dmodMenuOptions);
     String threadName;
     try {
       threadName = processMgr.transferFiducials(transferfidParam,
@@ -4331,7 +4328,8 @@ public final class ApplicationManager extends BaseManager {
    * Initiate the combine process from the beginning
    */
   public void combine(ProcessResultDisplay processResultDisplay,
-      ProcessSeries processSeries) {
+      ProcessSeries processSeries, Deferred3dmodButton deferred3dmodButton,
+      Run3dmodMenuOptions run3dmodMenuOptions) {
     sendMsgProcessStarting(processResultDisplay);
     if (processSeries == null) {
       processSeries = new ProcessSeries(this);
@@ -4368,6 +4366,7 @@ public final class ApplicationManager extends BaseManager {
     processTrack.setTomogramCombinationState(ProcessState.INPROGRESS);
     mainPanel.setTomogramCombinationState(ProcessState.INPROGRESS);
     warnStaleFile(ImodManager.PATCH_VECTOR_MODEL_KEY, true);
+    processSeries.setRun3dmodDeferred(deferred3dmodButton, run3dmodMenuOptions);
     String threadName;
     try {
       threadName = processMgr.combine(combineComscriptState,
@@ -4401,7 +4400,8 @@ public final class ApplicationManager extends BaseManager {
    * Execute the matchvol1 com script and put patchcorr in the execution queue
    */
   public void matchvol1Combine(ProcessResultDisplay processResultDisplay,
-      ProcessSeries processSeries) {
+      ProcessSeries processSeries, Deferred3dmodButton deferred3dmodButton,
+      Run3dmodMenuOptions run3dmodMenuOptions) {
     if (processSeries == null) {
       processSeries = new ProcessSeries(this);
     }
@@ -4446,6 +4446,7 @@ public final class ApplicationManager extends BaseManager {
       sendMsgProcessFailedToStart(processResultDisplay);
       return;
     }
+    processSeries.setRun3dmodDeferred(deferred3dmodButton, run3dmodMenuOptions);
     String threadName;
     try {
       threadName = processMgr.combine(combineComscriptState,
@@ -4473,7 +4474,8 @@ public final class ApplicationManager extends BaseManager {
    * Initiate the combine process from patchcorr step
    */
   public void patchcorrCombine(ProcessResultDisplay processResultDisplay,
-      ProcessSeries processSeries) {
+      ProcessSeries processSeries, Deferred3dmodButton deferred3dmodButton,
+      Run3dmodMenuOptions run3dmodMenuOptions) {
     if (processSeries == null) {
       processSeries = new ProcessSeries(this);
     }
@@ -4501,6 +4503,7 @@ public final class ApplicationManager extends BaseManager {
     mainPanel.setTomogramCombinationState(ProcessState.INPROGRESS);
     warnStaleFile(ImodManager.PATCH_VECTOR_MODEL_KEY, true);
 
+    processSeries.setRun3dmodDeferred(deferred3dmodButton, run3dmodMenuOptions);
     String threadName;
     try {
       threadName = processMgr.combine(combineComscriptState,
@@ -4570,7 +4573,8 @@ public final class ApplicationManager extends BaseManager {
    * Initiate the combine process from matchorwarp step
    */
   public void matchorwarpCombine(ProcessResultDisplay processResultDisplay,
-      ProcessSeries processSeries) {
+      ProcessSeries processSeries, Deferred3dmodButton deferred3dmodButton,
+      Run3dmodMenuOptions run3dmodMenuOptions) {
     if (processSeries == null) {
       processSeries = new ProcessSeries(this);
     }
@@ -4590,6 +4594,7 @@ public final class ApplicationManager extends BaseManager {
     }
     processTrack.setTomogramCombinationState(ProcessState.INPROGRESS);
     mainPanel.setTomogramCombinationState(ProcessState.INPROGRESS);
+    processSeries.setRun3dmodDeferred(deferred3dmodButton, run3dmodMenuOptions);
     String threadName;
     try {
       threadName = processMgr.combine(combineComscriptState,
@@ -4648,7 +4653,11 @@ public final class ApplicationManager extends BaseManager {
    * Execute the combine script starting at volcombine
    */
   public void volcombine(ProcessResultDisplay processResultDisplay,
-      ConstProcessSeries processSeries) {
+      ProcessSeries processSeries, Deferred3dmodButton deferred3dmodButton,
+      Run3dmodMenuOptions run3dmodMenuOptions) {
+    if (processSeries == null) {
+      processSeries = new ProcessSeries(this);
+    }
     sendMsgProcessStarting(processResultDisplay);
     CombineComscriptState combineComscriptState = updateCombineComscriptState(CombineProcessType.VOLCOMBINE);
     updateCombineParams();
@@ -4658,8 +4667,7 @@ public final class ApplicationManager extends BaseManager {
     }
     processTrack.setTomogramCombinationState(ProcessState.INPROGRESS);
     mainPanel.setTomogramCombinationState(ProcessState.INPROGRESS);
-    // Set the next process to execute when this is finished
-    // nextProcess = "";
+    processSeries.setRun3dmodDeferred(deferred3dmodButton, run3dmodMenuOptions);
     String threadName = null;
     try {
       threadName = processMgr.combine(combineComscriptState,
@@ -4973,7 +4981,11 @@ public final class ApplicationManager extends BaseManager {
    * Execute trimvol
    */
   public void trimVolume(ProcessResultDisplay processResultDisplay,
-      ConstProcessSeries processSeries) {
+      ProcessSeries processSeries, Deferred3dmodButton deferred3dmodButton,
+      Run3dmodMenuOptions run3dmodMenuOptions) {
+    if (processSeries == null) {
+      processSeries = new ProcessSeries(this);
+    }
     sendMsgProcessStarting(processResultDisplay);
     // Make sure that the post processing panel is open
     if (postProcessingDialog == null) {
@@ -4989,6 +5001,7 @@ public final class ApplicationManager extends BaseManager {
     // Start the trimvol process
     processTrack.setPostProcessingState(ProcessState.INPROGRESS);
     mainPanel.setPostProcessingState(ProcessState.INPROGRESS);
+    processSeries.setRun3dmodDeferred(deferred3dmodButton, run3dmodMenuOptions);
     String threadName;
     try {
       threadName = processMgr.trimVolume(trimvolParam, processResultDisplay,
@@ -5012,7 +5025,11 @@ public final class ApplicationManager extends BaseManager {
    * Execute squeezevol
    */
   public void squeezevol(ProcessResultDisplay processResultDisplay,
-      ConstProcessSeries processSeries) {
+      ProcessSeries processSeries, Deferred3dmodButton deferred3dmodButton,
+      Run3dmodMenuOptions run3dmodMenuOptions) {
+    if (processSeries == null) {
+      processSeries = new ProcessSeries(this);
+    }
     sendMsgProcessStarting(processResultDisplay);
     // Make sure that the post processing panel is open
     if (postProcessingDialog == null) {
@@ -5025,6 +5042,7 @@ public final class ApplicationManager extends BaseManager {
     // Start the trimvol process
     processTrack.setPostProcessingState(ProcessState.INPROGRESS);
     mainPanel.setPostProcessingState(ProcessState.INPROGRESS);
+    processSeries.setRun3dmodDeferred(deferred3dmodButton, run3dmodMenuOptions);
     String threadName;
     try {
       threadName = processMgr.squeezeVolume(squeezevolParam,
@@ -5156,7 +5174,7 @@ public final class ApplicationManager extends BaseManager {
       processchunksVolcombine(processResultDisplay, processSeries);
     }
     else if (nextProcess.equals(SplitcombineParam.COMMAND_NAME)) {
-      splitcombine(processSeries);
+      splitcombine(processSeries, null, null);
     }
     else if (nextProcess.equals(ExtractpiecesParam.COMMAND_NAME)) {
       extractpieces(axisID, processResultDisplay, processSeries);
@@ -5403,7 +5421,9 @@ public final class ApplicationManager extends BaseManager {
     return null;
   }
 
-  public void splitcombine(ProcessSeries processSeries) {
+  public void splitcombine(ProcessSeries processSeries,
+      Deferred3dmodButton deferred3dmodButton,
+      Run3dmodMenuOptions run3dmodMenuOptions) {
     if (processSeries == null) {
       processSeries = new ProcessSeries(this);
     }
@@ -5416,6 +5436,7 @@ public final class ApplicationManager extends BaseManager {
     }
     processTrack.setTomogramCombinationState(ProcessState.INPROGRESS);
     mainPanel.setTomogramCombinationState(ProcessState.INPROGRESS);
+    processSeries.setRun3dmodDeferred(deferred3dmodButton, run3dmodMenuOptions);
     String threadName;
     try {
       threadName = processMgr.splitcombine(processResultDisplay, processSeries);
@@ -5538,6 +5559,11 @@ public final class ApplicationManager extends BaseManager {
 }
 /**
  * <p> $Log$
+ * <p> Revision 3.299  2008/05/06 23:53:31  sueh
+ * <p> bug#847 Running deferred 3dmods by using the button that usually calls
+ * <p> them.  This avoids having to duplicate the calls and having a
+ * <p> startNextProcess function just for 3dmods.
+ * <p>
  * <p> Revision 3.298  2008/05/03 00:28:29  sueh
  * <p> bug# 847 Passing ProcessSeries to the process manager, startNextProcess, and to all process functions.  To avoid having to decide which processes are next processes, pass it everywhere, even to processes that don't use ProcessResultDisplay.  The UI should not create any ProcessSeries and should pass them as null (since they don't know about processes).  Before adding to a process series, create it if it doesn't exist.  Before checking a process series, make sure it exists.  Since a series is only created when it doesn't exist and is needed, I don't have to keep track of which process comes first in a series.
  * <p>
