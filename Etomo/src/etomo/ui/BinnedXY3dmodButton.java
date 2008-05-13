@@ -25,6 +25,9 @@ import javax.swing.SpinnerNumberModel;
  * @version $Revision$
  * 
  * <p> $Log$
+ * <p> Revision 1.3  2008/05/03 00:47:54  sueh
+ * <p> bug# 847 Made Run3dmodButton constructor private.
+ * <p>
  * <p> Revision 1.2  2007/02/09 00:44:22  sueh
  * <p> bug# 962 Made TooltipFormatter a singleton and moved its use to low-level ui
  * <p> classes.
@@ -72,6 +75,10 @@ final class BinnedXY3dmodButton {
     }
     return panel;
   }
+  
+   Deferred3dmodButton getButton() {
+     return button;
+   }
 
   void setSpinnerToolTipText(String text) {
     spinner.setToolTipText(text);
