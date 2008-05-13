@@ -25,7 +25,8 @@ import etomo.type.Run3dmodMenuOptions;
  * 
  * @version $Revision$
  */
-final class Run3dmodButton extends MultiLineButton implements ContextMenu,Run3dmodDeferredCommand {
+final class Run3dmodButton extends MultiLineButton implements ContextMenu,
+    Deferred3dmodButton {
   public static final String rcsid = "$Id$";
 
   private final JPopupMenu contextMenu = new JPopupMenu("3dmod Options");
@@ -39,20 +40,32 @@ final class Run3dmodButton extends MultiLineButton implements ContextMenu,Run3dm
 
   private Run3dmodButtonContainer container = null;
   private JMenuItem noMenuOption = null;
+  //When deferred is true, need a button that knows how to run the 3dmod command.
+  private Deferred3dmodButton deferred3dmodButton = null;
 
   private Run3dmodButton(final String label,
       final Run3dmodButtonContainer container, final boolean toggleButton,
-      final DialogType dialogType, boolean deferred) {
+      final DialogType dialogType, boolean deferred, String description) {
     super(label, toggleButton, dialogType);
     this.container = container;
     this.deferred = deferred;
     String openString;
     if (deferred) {
-      openString = "And open 3dmod";
+      if (description == null) {
+        openString = "And open 3dmod";
+      }
+      else {
+        openString = "And open " + description;
+      }
       noMenuOption = new JMenuItem(openString);
     }
     else {
-      openString = "Open";
+      if (description == null) {
+        openString = "Open";
+      }
+      else {
+        openString = "Open " + description;
+      }
     }
     startupWindow = new JMenuItem(openString + " with startup window");
     binBy2 = new JMenuItem(openString + " binned by 2");
@@ -61,7 +74,7 @@ final class Run3dmodButton extends MultiLineButton implements ContextMenu,Run3dm
   static Run3dmodButton get3dmodInstance(final String label,
       final Run3dmodButtonContainer container) {
     Run3dmodButton instance = new Run3dmodButton(label, container, false, null,
-        false);
+        false, null);
     instance.init();
     return instance;
   }
@@ -69,7 +82,23 @@ final class Run3dmodButton extends MultiLineButton implements ContextMenu,Run3dm
   static Run3dmodButton getToggle3dmodInstance(final String label,
       final DialogType dialogType) {
     Run3dmodButton instance = new Run3dmodButton(label, null, true, dialogType,
-        false);
+        false, null);
+    instance.init();
+    return instance;
+  }
+  
+  static Run3dmodButton getDeferred3dmodInstance(final String label,
+      final Run3dmodButtonContainer container) {
+    Run3dmodButton instance = new Run3dmodButton(label, container, false, null,
+        true, null);
+    instance.init();
+    return instance;
+  }
+
+  static Run3dmodButton getDeferred3dmodInstance(final String label,
+      final Run3dmodButtonContainer container, String description) {
+    Run3dmodButton instance = new Run3dmodButton(label, container, false, null,
+        true, description);
     instance.init();
     return instance;
   }
@@ -77,9 +106,29 @@ final class Run3dmodButton extends MultiLineButton implements ContextMenu,Run3dm
   static Run3dmodButton getDeferredToggle3dmodInstance(final String label,
       final DialogType dialogType) {
     Run3dmodButton instance = new Run3dmodButton(label, null, true, dialogType,
-        true);
+        true, null);
     instance.init();
     return instance;
+  }
+
+  void setDeferred3dmodButton(Deferred3dmodButton input) {
+    if (input == null && deferred) {
+      throw new NullPointerException(
+          "A deferred instance needs to have a deferred3dmodButton.");
+    }
+    deferred3dmodButton = input;
+  }
+  
+  void setDeferred3dmodButton(BinnedXY3dmodButton input) {
+    if (input == null && deferred) {
+      throw new NullPointerException(
+          "A deferred instance needs to have a deferred3dmodButton.");
+    }
+    deferred3dmodButton = input.getButton();
+  }
+
+  Deferred3dmodButton getDeferred3dmodButton() {
+    return deferred3dmodButton;
   }
 
   private void init() {
@@ -109,7 +158,7 @@ final class Run3dmodButton extends MultiLineButton implements ContextMenu,Run3dm
     contextMenu.setVisible(true);
   }
 
-  void setRun3dmodButtonContainer(final Run3dmodButtonContainer container) {
+  void setContainer(final Run3dmodButtonContainer container) {
     this.container = container;
   }
 
@@ -148,6 +197,13 @@ final class Run3dmodButton extends MultiLineButton implements ContextMenu,Run3dm
 }
 /**
  * <p> $Log$
+ * <p> Revision 1.11  2008/05/07 00:24:08  sueh
+ * <p> bug#847 Running deferred 3dmods by using the button that usually calls
+ * <p> them.  This avoids having to duplicate the calls and having a
+ * <p> startNextProcess function just for 3dmods.  This requires that the 3dmod
+ * <p> button be passed to the function that starts the process.  Factor out the container.action call in the action function into a public action function
+ * <p> with the menu option as a parameter.
+ * <p>
  * <p> Revision 1.10  2008/05/03 00:55:20  sueh
  * <p> bug# 847 Added deferred to run 3dmod after another process is done.
  * <p> Added noMenuOption to run a plain 3dmod.  Added run3dmodProcess to
