@@ -31,21 +31,22 @@ import etomo.type.ProcessTrack;
 public abstract class ReconUIExpert implements UIExpert {
   public static final String rcsid = "$Id$";
 
-  protected final ApplicationManager manager;
-  protected final MetaData metaData;
-  protected final AxisID axisID;
-  protected final DialogType dialogType;
+  final ApplicationManager manager;
+  final MetaData metaData;
+  final AxisID axisID;
+  final DialogType dialogType;
 
   private final MainTomogramPanel mainPanel;
   private final ProcessTrack processTrack;
 
   private ProcessName nextProcess = null;
+  private boolean dialogOutOfDate = false;
 
   abstract boolean doneDialog();
 
-  protected abstract boolean saveDialog();
+  abstract boolean saveDialog();
 
-  protected abstract ProcessDialog getDialog();
+  abstract ProcessDialog getDialog();
 
   public ReconUIExpert(ApplicationManager manager, MainTomogramPanel mainPanel,
       ProcessTrack processTrack, AxisID axisID, DialogType dialogType) {
@@ -57,50 +58,68 @@ public abstract class ReconUIExpert implements UIExpert {
     this.dialogType = dialogType;
   }
 
-  protected boolean showDialog(ProcessDialog dialog) {
+  /**
+   * @return false if the com scripts where never created in Tomogram Setup.
+   */
+  final boolean canShowDialog() {
     //  Check to see if the com files are present otherwise pop up a dialog
     //  box informing the user to run the setup process
     if (!UIExpertUtilities.INSTANCE.areScriptsCreated(metaData, axisID)) {
       mainPanel.showBlankProcess(axisID);
       return false;
     }
-    manager.setCurrentDialogType(dialogType, axisID);
-    mainPanel.selectButton(axisID, dialogType.toString());
-    if (dialog != null) {
-      mainPanel.showProcess(dialog.getContainer(), axisID);
-      return true;
-    }
     return true;
   }
 
-  protected void openDialog(ProcessDialog dialog) {
+  /**
+   * Turn on the button associated with dialog and set the current dialog type.
+   * Display dialog if it already exists and is up to date.
+   * @param dialog
+   * @return true an existing, up to date dialog is shown.
+   */
+  final boolean showDialog(ProcessDialog dialog) {
+    manager.setCurrentDialogType(dialogType, axisID);
+    mainPanel.selectButton(axisID, dialogType.toString());
+    if (dialogOutOfDate || dialog == null) {
+      return false;
+    }
+    mainPanel.showProcess(dialog.getContainer(), axisID);
+    return true;
+  }
+
+  /**
+   * Display dialog and set parallel dialog if necessary.  This function is used
+   * when a dialog has just been created.
+   * @param dialog
+   */
+  final void openDialog(ProcessDialog dialog) {
+    dialogOutOfDate = false;
     mainPanel.showProcess(dialog.getContainer(), axisID);
     mainPanel.setParallelDialog(axisID, dialog.usingParallelProcessing());
   }
 
-  protected void setNextProcess(ProcessName nextProcess) {
+  final void setNextProcess(ProcessName nextProcess) {
     this.nextProcess = nextProcess;
     manager.setProcessDialogType(axisID, dialogType);
   }
 
-  protected void resetNextProcess() {
+  final void resetNextProcess() {
     nextProcess = null;
     manager.resetProcessDialogType(axisID);
   }
 
-  protected ProcessName getNextProcess() {
+  final ProcessName getNextProcess() {
     return nextProcess;
   }
 
-  protected void sendMsgProcessStarting(
-      ProcessResultDisplay processResultDisplay) {
+  final void sendMsgProcessStarting(ProcessResultDisplay processResultDisplay) {
     if (processResultDisplay == null) {
       return;
     }
     processResultDisplay.msgProcessStarting();
   }
 
-  protected void sendMsg(ProcessResult displayState,
+  final void sendMsg(ProcessResult displayState,
       ProcessResultDisplay processResultDisplay) {
     if (displayState == null || processResultDisplay == null) {
       return;
@@ -108,7 +127,7 @@ public abstract class ReconUIExpert implements UIExpert {
     processResultDisplay.msg(displayState);
   }
 
-  protected void leaveDialog(DialogExitState exitState) {
+  final void leaveDialog(DialogExitState exitState) {
     if (exitState == DialogExitState.CANCEL) {
       mainPanel.showBlankProcess(axisID);
     }
@@ -120,16 +139,17 @@ public abstract class ReconUIExpert implements UIExpert {
       setDialogState(ProcessState.COMPLETE);
       manager.openNextDialog(axisID, dialogType);
     }
+    dialogOutOfDate = true;
   }
 
-  protected void setDialogState(ProcessState processState) {
+  final void setDialogState(ProcessState processState) {
     if (processTrack != null) {
       processTrack.setState(processState, axisID, dialogType);
     }
     mainPanel.setState(processState, axisID, dialogType);
   }
 
-  public void doneDialog(DialogExitState exitState) {
+   public final void doneDialog(DialogExitState exitState) {
     ProcessDialog dialog = getDialog();
     if (dialog == null) {
       return;
@@ -138,7 +158,7 @@ public abstract class ReconUIExpert implements UIExpert {
     doneDialog();
   }
 
-  public void saveAction() {
+   public final void saveAction() {
     ProcessDialog dialog = getDialog();
     if (dialog == null) {
       return;
@@ -146,7 +166,7 @@ public abstract class ReconUIExpert implements UIExpert {
     dialog.saveAction();
   }
 
-  public void saveDialog(DialogExitState exitState) {
+   public final  void saveDialog(DialogExitState exitState) {
     ProcessDialog dialog = getDialog();
     if (dialog == null) {
       return;
@@ -159,8 +179,8 @@ public abstract class ReconUIExpert implements UIExpert {
    * Run processchunks.
    * @param axisID
    */
-  protected void processchunks(BaseManager manager,
-      AbstractParallelDialog dialog, ProcessResultDisplay processResultDisplay,
+  final void processchunks(BaseManager manager, AbstractParallelDialog dialog,
+      ProcessResultDisplay processResultDisplay,
       ConstProcessSeries processSeries, ProcessName processName) {
     sendMsgProcessStarting(processResultDisplay);
     if (dialog == null) {
@@ -184,25 +204,29 @@ public abstract class ReconUIExpert implements UIExpert {
     manager.processchunks(axisID, param, processResultDisplay, processSeries);
   }
 
-  protected ParallelPanel getParallelPanel() {
+  final ParallelPanel getParallelPanel() {
     return mainPanel.getParallelPanel(axisID);
   }
 
-  public void setProgressBar(String label, int nSteps, AxisID axisID) {
+  final public void setProgressBar(String label, int nSteps, AxisID axisID) {
     setProgressBar(label, nSteps, axisID, null);
   }
 
-  public void setProgressBar(String label, int nSteps, AxisID axisID,
+  final public void setProgressBar(String label, int nSteps, AxisID axisID,
       ProcessName processName) {
     mainPanel.setProgressBar(label, nSteps, axisID, processName);
   }
 
-  public void stopProgressBar(AxisID axisID) {
+  final public void stopProgressBar(AxisID axisID) {
     mainPanel.stopProgressBar(axisID);
   }
 }
 /**
  * <p> $Log$
+ * <p> Revision 1.7  2008/05/03 00:53:51  sueh
+ * <p> bug# 847 Passing ProcessSeries to all process functions so they can be
+ * <p> checked in the done process functions.
+ * <p>
  * <p> Revision 1.6  2007/12/10 22:45:38  sueh
  * <p> bug# 1041 Passing the ProcessName to processchunks instead of setting it in
  * <p> getParameters because it is required and has been added to the
