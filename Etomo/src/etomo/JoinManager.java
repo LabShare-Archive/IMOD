@@ -47,6 +47,7 @@ import etomo.type.ProcessName;
 import etomo.type.ProcessResultDisplay;
 import etomo.type.Run3dmodMenuOptions;
 import etomo.type.SlicerAngles;
+import etomo.ui.Deferred3dmodButton;
 import etomo.ui.JoinDialog;
 import etomo.ui.MainJoinPanel;
 import etomo.ui.MainPanel;
@@ -67,6 +68,12 @@ import etomo.util.Utilities;
  * @version $Revision$
  * 
  * <p> $Log$
+ * <p> Revision 1.68  2008/05/06 23:54:55  sueh
+ * <p> bug#847 Running deferred 3dmods by using the button that usually calls
+ * <p> them.  This avoids having to duplicate the calls and having a
+ * <p> startNextProcess function just for 3dmods.  This requires that the 3dmod
+ * <p> button be passed to the function that starts the process.
+ * <p>
  * <p> Revision 1.67  2008/05/03 00:33:32  sueh
  * <p> bug# 847 Passing ProcessSeries to the process manager,
  * <p> startNextProcess, and to all process functions.  To avoid having to decide
@@ -827,7 +834,9 @@ public final class JoinManager extends BaseManager {
     return slicerAngles;
   }
 
-  public void makejoincom(ProcessSeries processSeries) {
+  public void makejoincom(ProcessSeries processSeries,
+      Deferred3dmodButton deferred3dmodButton,
+      Run3dmodMenuOptions run3dmodMenuOptions) {
     if (processSeries == null) {
       processSeries = new ProcessSeries(this);
     }
@@ -853,6 +862,7 @@ public final class JoinManager extends BaseManager {
     if (!joinDialog.getMetaData(metaData)) {
       return;
     }
+    processSeries.setRun3dmodDeferred(deferred3dmodButton, run3dmodMenuOptions);
     try {
       threadNameA = processMgr.makejoincom(makejoincomParam, processSeries);
     }
@@ -1187,11 +1197,17 @@ public final class JoinManager extends BaseManager {
   }
 
   public void xfmodel(String inputFile, String outputFile,
-      ProcessSeries processSeries) {
+      ProcessSeries processSeries, Deferred3dmodButton deferred3dmodButton,
+      Run3dmodMenuOptions run3dmodMenuOptions) {
+    if (processSeries == null) {
+      processSeries = new ProcessSeries(this);
+    }
     XfmodelParam param = new XfmodelParam(this);
     param.setInputFile(inputFile);
     param.setOutputFile(outputFile);
     if (param.isValid()) {
+      processSeries.setRun3dmodDeferred(deferred3dmodButton,
+          run3dmodMenuOptions);
       xfmodel(param, processSeries);
     }
   }
@@ -1254,7 +1270,8 @@ public final class JoinManager extends BaseManager {
    * @param buttonText
    */
   public void finishjoin(FinishjoinParam.Mode mode, String buttonText,
-      ProcessSeries processSeries) {
+      ProcessSeries processSeries, Deferred3dmodButton deferred3dmodButton,
+      Run3dmodMenuOptions run3dmodMenuOptions) {
     if (processSeries == null) {
       processSeries = new ProcessSeries(this);
     }
@@ -1281,6 +1298,7 @@ public final class JoinManager extends BaseManager {
     if (!joinDialog.validateFinishjoin()) {
       return;
     }
+    processSeries.setRun3dmodDeferred(deferred3dmodButton, run3dmodMenuOptions);
     if (mode == FinishjoinParam.Mode.REJOIN
         || mode == FinishjoinParam.Mode.SUPPRESS_EXECUTION) {
       processSeries.setNextProcess(ProcessName.XFTOXG.toString());

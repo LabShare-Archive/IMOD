@@ -32,6 +32,7 @@ import etomo.type.ProcessName;
 import etomo.type.ProcessResultDisplay;
 import etomo.type.Run3dmodMenuOptions;
 import etomo.ui.AnisotropicDiffusionDialog;
+import etomo.ui.Deferred3dmodButton;
 import etomo.ui.MainPanel;
 import etomo.ui.MainParallelPanel;
 import etomo.ui.ParallelChooser;
@@ -478,7 +479,9 @@ public final class ParallelManager extends BaseManager {
     return param;
   }
 
-  public void chunksetup(ProcessSeries processSeries) {
+  public void chunksetup(ProcessSeries processSeries,
+      Deferred3dmodButton deferred3dmodButton,
+      Run3dmodMenuOptions run3dmodMenuOptions) {
     if (processSeries == null) {
       processSeries = new ProcessSeries(this);
     }
@@ -492,6 +495,7 @@ public final class ParallelManager extends BaseManager {
       return;
     }
     processSeries.setNextProcess(ProcessName.ANISOTROPIC_DIFFUSION.toString());
+    processSeries.setRun3dmodDeferred(deferred3dmodButton, run3dmodMenuOptions);
     String threadName;
     try {
       threadName = processMgr.chunksetup(param, processSeries);
@@ -510,7 +514,11 @@ public final class ParallelManager extends BaseManager {
   }
 
   public void anisotropicDiffusionVaryingIteration(final String subdirName,
-      ConstProcessSeries processSeries) {
+      ProcessSeries processSeries, Deferred3dmodButton deferred3dmodButton,
+      Run3dmodMenuOptions run3dmodMenuOptions) {
+    if (processSeries == null) {
+      processSeries = new ProcessSeries(this);
+    }
     if (anisotropicDiffusionDialog == null) {
       uiHarness.openMessageDialog("Anisotropic diffusion dialog not open",
           "Program logic error", AxisID.ONLY);
@@ -520,6 +528,7 @@ public final class ParallelManager extends BaseManager {
     if (param == null) {
       return;
     }
+    processSeries.setRun3dmodDeferred(deferred3dmodButton, run3dmodMenuOptions);
     // Start the trimvol process
     String threadName;
     try {
@@ -559,7 +568,11 @@ public final class ParallelManager extends BaseManager {
   }
 
   public void anisotropicDiffusionVaryingK(final String subdirName,
-      ConstProcessSeries processSeries) {
+      ProcessSeries processSeries, Deferred3dmodButton deferred3dmodButton,
+      Run3dmodMenuOptions run3dmodMenuOptions) {
+    if (processSeries == null) {
+      processSeries = new ProcessSeries(this);
+    }
     if (anisotropicDiffusionDialog == null) {
       uiHarness.openMessageDialog("Anisotropic diffusion dialog not open",
           "Program logic error", AxisID.ONLY);
@@ -595,6 +608,7 @@ public final class ParallelManager extends BaseManager {
       getMainPanel().stopProgressBar(AxisID.ONLY, ProcessEndState.FAILED);
       return;
     }
+    processSeries.setRun3dmodDeferred(deferred3dmodButton, run3dmodMenuOptions);
     parallelPanel.getParallelProgressDisplay().resetResults();
     processchunks(AxisID.ONLY, param, null, processSeries);
   }
@@ -659,6 +673,12 @@ public final class ParallelManager extends BaseManager {
 }
 /**
  * <p> $Log$
+ * <p> Revision 1.26  2008/05/06 23:55:04  sueh
+ * <p> bug#847 Running deferred 3dmods by using the button that usually calls
+ * <p> them.  This avoids having to duplicate the calls and having a
+ * <p> startNextProcess function just for 3dmods.  This requires that the 3dmod
+ * <p> button be passed to the function that starts the process.
+ * <p>
  * <p> Revision 1.25  2008/05/03 00:33:48  sueh
  * <p> bug# 847 Passing ProcessSeries to the process manager,
  * <p> startNextProcess, and to all process functions.  To avoid having to decide
