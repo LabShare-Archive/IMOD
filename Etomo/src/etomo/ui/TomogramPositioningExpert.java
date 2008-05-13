@@ -3,6 +3,7 @@ package etomo.ui;
 import java.io.File;
 
 import etomo.ApplicationManager;
+import etomo.ProcessSeries;
 import etomo.comscript.BlendmontParam;
 import etomo.comscript.ComScriptManager;
 import etomo.comscript.ConstNewstParam;
@@ -120,9 +121,13 @@ public final class TomogramPositioningExpert extends ReconUIExpert {
    * @param axisID
    */
   public void openDialog() {
-    if (!showDialog(dialog) || dialog != null) {
+    if (!canShowDialog()) {
       return;
     }
+    if (showDialog(dialog)) {
+      return;
+    }
+    //Create the dialog and show it.
     // Create a new dialog panel and map it the generic reference
     Utilities.timestamp("new", "TomogramPositioningDialog",
         Utilities.STARTED_STATUS);
@@ -199,11 +204,17 @@ public final class TomogramPositioningExpert extends ReconUIExpert {
     dialog.setAlignButtonState(screenState);
   }
 
-  void sampleAction(ProcessResultDisplay sample,
-       ConstProcessSeries processSeries) {
+  void sampleAction(ProcessResultDisplay sample, ProcessSeries processSeries,
+      Deferred3dmodButton deferred3dmodButton,
+      Run3dmodMenuOptions run3dmodMenuOptions) {
+    if (processSeries == null) {
+      processSeries = new ProcessSeries(manager);
+    }
     if (dialog == null) {
       return;
     }
+    processSeries.setRun3dmodDeferred(deferred3dmodButton,
+        run3dmodMenuOptions);
     if (dialog.isWholeTomogram()) {
       wholeTomogram(sample, processSeries);
     }
@@ -250,7 +261,8 @@ public final class TomogramPositioningExpert extends ReconUIExpert {
       }
     }
     leaveDialog(exitState);
-    dialog = null;
+    //Hold onto the finished dialog in case anything is running that needs it or
+    //there are next processes that need it.
     return true;
   }
 
@@ -945,12 +957,15 @@ public final class TomogramPositioningExpert extends ReconUIExpert {
     }
   }
 
-  protected ProcessDialog getDialog() {
+  ProcessDialog getDialog() {
     return dialog;
   }
 }
 /**
  * <p> $Log$
+ * <p> Revision 1.26  2008/05/07 02:45:46  sueh
+ * <p> bug# 847 Getting the the postioning buttons from the expert.
+ * <p>
  * <p> Revision 1.25  2008/05/07 00:27:55  sueh
  * <p> bug# 847 Putting a shared label into the same string.
  * <p>
