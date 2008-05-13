@@ -580,8 +580,15 @@ public class EtomoDirector {
 
   public boolean closeCurrentManager(AxisID axisID, boolean exiting) {
     BaseManager currentManager = getCurrentManager();
-    if (exiting && !currentManager.exitProgram(axisID)) {
-      return false;
+    if (exiting) {
+      if (!currentManager.exitProgram(axisID)) {
+        return false;
+      }
+    }
+    else {
+      if (!currentManager.close(axisID)) {
+        return false;
+      }
     }
     managerList.remove(currentManagerKey);
     enableOpenManagerMenuItem();
@@ -992,6 +999,11 @@ public class EtomoDirector {
 }
 /**
  * <p> $Log$
+ * <p> Revision 1.73  2008/05/03 00:32:47  sueh
+ * <p> bug# 847 Found an apparent bug where change managers is causing
+ * <p> exitProgram to be called.  Added a boolean exiting parameter to
+ * <p> closeCurrentManager to only call exitProgram when actually exiting.
+ * <p>
  * <p> Revision 1.72  2008/04/17 20:40:36  sueh
  * <p> bug# 1106 Fixed null pointer exception in doAutomation.
  * <p>
