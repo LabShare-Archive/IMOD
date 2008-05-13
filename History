@@ -1,5 +1,9 @@
 IMOD History
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+5/13/08: In Etomo added a right click menu to most of the process buttons.  This
+menu allows the associated 3dmod process to be run after the process started by
+the button is done.
+
 5/7/08: IMOD_3-12-9
 5/7/08: Fixed xfalign when run with filtering, broken 1/4/08.
 
