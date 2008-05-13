@@ -12,6 +12,12 @@
  * @version $Revision$
  * 
  * <p> $Log$
+ * <p> Revision 1.26  2008/05/07 00:01:44  sueh
+ * <p> bug#847 Running deferred 3dmods by using the button that usually calls
+ * <p> them.  This avoids having to duplicate the calls and having a
+ * <p> startNextProcess function just for 3dmods.  This requires that the 3dmod
+ * <p> button be passed to the function that starts the process.
+ * <p>
  * <p> Revision 1.25  2008/05/03 00:52:17  sueh
  * <p> bug# 847 Passing null for ProcessSeries to process funtions.
  * <p>
@@ -147,13 +153,13 @@ final class PrenewstPanel implements ContextMenu, Expandable,
   private final CoarseAlignDialog parent;
 
   PrenewstPanel(ApplicationManager applicationManager, AxisID id,
-      DialogType dialogType,CoarseAlignDialog parent) {
-    this.parent=parent;
+      DialogType dialogType, CoarseAlignDialog parent) {
+    this.parent = parent;
     axisID = id;
     this.applicationManager = applicationManager;
     btnCoarseAlign = (Run3dmodButton) applicationManager
         .getProcessResultDisplayFactory(axisID).getCoarseAlign();
-    btnCoarseAlign.setRun3dmodButtonContainer(this);
+    btnCoarseAlign.setContainer(this);
 
     pnlPrenewst.setLayout(new BoxLayout(pnlPrenewst, BoxLayout.Y_AXIS));
     pnlBody.setLayout(new BoxLayout(pnlBody, BoxLayout.Y_AXIS));
@@ -196,6 +202,14 @@ final class PrenewstPanel implements ContextMenu, Expandable,
     GenericMouseAdapter mouseAdapter = new GenericMouseAdapter(this);
     pnlPrenewst.addMouseListener(mouseAdapter);
     setToolTipText();
+  }
+  
+  /**
+   * Set deferred 3dmod buttons that are members of another class.  Caller must
+   * make sure that buttons exist.
+   */
+  void setDeferred3dmodButtons() {
+    btnCoarseAlign.setDeferred3dmodButton(parent.btnImod);
   }
 
   public void expand(ExpandButton button) {
@@ -331,12 +345,24 @@ final class PrenewstPanel implements ContextMenu, Expandable,
   }
 
   public void action(Run3dmodButton button, Run3dmodMenuOptions menuOptions) {
-    buttonAction(button.getActionCommand(), menuOptions);
+    buttonAction(button.getActionCommand(), button.getDeferred3dmodButton(),
+        menuOptions);
   }
 
-  void buttonAction(String command, Run3dmodMenuOptions menuOptions) {
+  /**
+   * Executes the action associated with command.  Deferred3dmodButton is null
+   * if it comes from the dialog's ActionListener.  Otherwise is comes from a
+   * Run3dmodButton which called action(Run3dmodButton, Run3dmoMenuOptions).  In
+   * that case it will be null unless it was set in the Run3dmodButton.
+   * @param command
+   * @param deferred3dmodButton
+   * @param run3dmodMenuOptions
+   */
+  void buttonAction(String command, Deferred3dmodButton deferred3dmodButton,
+      Run3dmodMenuOptions menuOptions) {
     if (command.equals(btnCoarseAlign.getActionCommand())) {
-      applicationManager.coarseAlign(axisID, btnCoarseAlign, null,parent.btnImod,menuOptions);
+      applicationManager.coarseAlign(axisID, btnCoarseAlign, null,
+          deferred3dmodButton, menuOptions);
     }
   }
 
@@ -348,7 +374,7 @@ final class PrenewstPanel implements ContextMenu, Expandable,
     }
 
     public void actionPerformed(ActionEvent event) {
-      adaptee.buttonAction(event.getActionCommand(), null);
+      adaptee.buttonAction(event.getActionCommand(), null, null);
     }
   }
 }

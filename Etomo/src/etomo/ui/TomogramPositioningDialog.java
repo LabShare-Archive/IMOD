@@ -35,6 +35,9 @@ import etomo.type.Run3dmodMenuOptions;
  * @version $Revision$
  *
  * <p> $Log$
+ * <p> Revision 3.61  2008/05/07 02:45:38  sueh
+ * <p> bug# 847 Getting the the postioning buttons from the expert.
+ * <p>
  * <p> Revision 3.60  2008/05/07 00:27:46  sueh
  * <p> bug# 847 Putting a shared label into the same string.
  * <p>
@@ -357,7 +360,7 @@ import etomo.type.Run3dmodMenuOptions;
   private final CalcPanel cpTiltAngleOffset = new CalcPanel("Tilt angle offset");
   private final CalcPanel cpZShift = new CalcPanel("Z shift");
 
-  private final MultiLineButton btnSample;
+  private final Run3dmodButton btnSample;
   private final MultiLineButton btnTomopitch;
   private final MultiLineButton btnAlign;
   private final TomogramPositioningExpert expert;
@@ -369,7 +372,9 @@ import etomo.type.Run3dmodMenuOptions;
     fixRootPanel(rootSize);
     ProcessResultDisplayFactory displayFactory = appMgr
         .getProcessResultDisplayFactory(axisID);
-    btnSample = (MultiLineButton) displayFactory.getSampleTomogram();
+    btnSample = (Run3dmodButton) displayFactory.getSampleTomogram();
+    btnSample.setContainer(this);
+    btnSample.setDeferred3dmodButton(btnCreateBoundary);
     btnTomopitch = (MultiLineButton) displayFactory.getComputePitch();
     btnAlign = (MultiLineButton) displayFactory.getFinalAlignment();
     rootPanel.setLayout(new BoxLayout(rootPanel, BoxLayout.Y_AXIS));
@@ -463,7 +468,7 @@ import etomo.type.Run3dmodMenuOptions;
   }
 
    static ProcessResultDisplay getSampleTomogramDisplay() {
-    return MultiLineButton.getToggleButtonInstance(TomogramPositioningExpert.SAMPLE_TOMOGRAMS_LABEL,
+    return Run3dmodButton.getDeferredToggle3dmodInstance(TomogramPositioningExpert.SAMPLE_TOMOGRAMS_LABEL,
         DialogType.TOMOGRAM_POSITIONING);
   }
 
@@ -687,14 +692,22 @@ import etomo.type.Run3dmodMenuOptions;
 
   public void action(final Run3dmodButton button,
       final Run3dmodMenuOptions run3dmodMenuOptions) {
-    buttonAction(button.getActionCommand(), run3dmodMenuOptions);
+    buttonAction(button.getActionCommand(),button.getDeferred3dmodButton() ,run3dmodMenuOptions);
   }
 
-  //  Button action handler methods
-  private void buttonAction(final String command,
+  /**
+   * Executes the action associated with command.  Deferred3dmodButton is null
+   * if it comes from the dialog's ActionListener.  Otherwise is comes from a
+   * Run3dmodButton which called action(Run3dmodButton, Run3dmoMenuOptions).  In
+   * that case it will be null unless it was set in the Run3dmodButton.
+   * @param command
+   * @param deferred3dmodButton
+   * @param run3dmodMenuOptions
+   */
+  private void buttonAction(final String command,final Deferred3dmodButton deferred3dmodButton,
       final Run3dmodMenuOptions run3dmodMenuOptions) {
     if (command.equals(btnSample.getActionCommand())) {
-      expert.sampleAction(btnSample, null);
+      expert.sampleAction(btnSample, null,deferred3dmodButton,run3dmodMenuOptions);
     }
     else if (command.equals(btnTomopitch.getActionCommand())) {
       expert.tomopitch(btnTomopitch, null);
@@ -789,7 +802,7 @@ import etomo.type.Run3dmodMenuOptions;
     }
 
     public void actionPerformed(final ActionEvent event) {
-      adaptee.buttonAction(event.getActionCommand(), null);
+      adaptee.buttonAction(event.getActionCommand(),null, null);
     }
   }
 

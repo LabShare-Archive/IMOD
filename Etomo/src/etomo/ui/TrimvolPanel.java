@@ -35,6 +35,9 @@ import etomo.type.Run3dmodMenuOptions;
  * @version $Revision$
  * 
  * <p> $Log$
+ * <p> Revision 3.27  2008/05/03 00:57:57  sueh
+ * <p> bug# 847 Passing null for ProcessSeries to process funtions.
+ * <p>
  * <p> Revision 3.26  2008/02/28 21:19:46  sueh
  * <p> bug# 1085 Added setting Z to setXYMinAndMax.  Implemented
  * <p> RubberbandContainer.
@@ -232,7 +235,7 @@ public final class TrimvolPanel implements Run3dmodButtonContainer,
   private JPanel pnlButton = new JPanel();
   private Run3dmodButton btnImodFull = Run3dmodButton.get3dmodInstance(
       "3dmod Full Volume", this);
-  private final MultiLineButton btnTrimvol;
+  private final Run3dmodButton btnTrimvol;
   private Run3dmodButton btnImodTrim = Run3dmodButton.get3dmodInstance(
       "3dmod Trimmed Volume", this);
   private MultiLineButton btnGetCoordinates = new MultiLineButton(
@@ -259,8 +262,10 @@ public final class TrimvolPanel implements Run3dmodButtonContainer,
             "Maximum X coordinate on the right side to analyze for contrast range.",
             "The lower Y coordinate to analyze for contrast range.",
             "The upper Y coordinate to analyze for contrast range.");
-    btnTrimvol = (MultiLineButton) appMgr.getProcessResultDisplayFactory(
+    btnTrimvol = (Run3dmodButton) appMgr.getProcessResultDisplayFactory(
         AxisID.ONLY).getTrimVolume();
+    btnTrimvol.setContainer(this);
+    btnTrimvol.setDeferred3dmodButton(btnImodTrim);
 
     //  Set the button sizes
     btnImodFull.setSize();
@@ -551,13 +556,16 @@ public final class TrimvolPanel implements Run3dmodButtonContainer,
 
   public void action(final Run3dmodButton button,
       final Run3dmodMenuOptions run3dmodMenuOptions) {
-    buttonAction(button.getActionCommand(), run3dmodMenuOptions);
+    buttonAction(button.getActionCommand(), button.getDeferred3dmodButton(),
+        run3dmodMenuOptions);
   }
 
   private void buttonAction(final String command,
+      Deferred3dmodButton deferred3dmodButton,
       final Run3dmodMenuOptions run3dmodMenuOptions) {
     if (command == btnTrimvol.getActionCommand()) {
-      applicationManager.trimVolume(btnTrimvol, null);
+      applicationManager.trimVolume(btnTrimvol, null, deferred3dmodButton,
+          run3dmodMenuOptions);
     }
     if (command == btnGetCoordinates.getActionCommand()) {
       setXYMinAndMax(applicationManager.imodGetRubberbandCoordinates(
@@ -609,7 +617,7 @@ public final class TrimvolPanel implements Run3dmodButtonContainer,
     }
 
     public void actionPerformed(final ActionEvent event) {
-      listenee.buttonAction(event.getActionCommand(), null);
+      listenee.buttonAction(event.getActionCommand(), null,null);
     }
   }
 

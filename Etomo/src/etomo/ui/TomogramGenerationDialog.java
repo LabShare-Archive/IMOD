@@ -60,6 +60,9 @@ import etomo.type.ViewType;
  * 
  * <p>
  * $Log$
+ * Revision 3.113  2008/05/03 00:57:22  sueh
+ * bug# 847 Passing null for ProcessSeries to process funtions.
+ *
  * Revision 3.112  2007/12/26 22:36:58  sueh
  * bug# 1052 Return true when done() completes successfully.
  *
@@ -652,7 +655,7 @@ public class TomogramGenerationDialog extends ProcessDialog implements
   private LabeledSpinner spinBinning;
 
   //  Aligned stack buttons
-  private final MultiLineButton btnNewst;
+  private final Run3dmodButton btnNewst;
   private Run3dmodButton btn3dmodFull = Run3dmodButton.get3dmodInstance(
       "View Full Aligned Stack", this);
 
@@ -701,7 +704,7 @@ public class TomogramGenerationDialog extends ProcessDialog implements
       "Maximum Inverse: ");
   private LabeledTextField ltfInverseRolloffRadiusSigma = new LabeledTextField(
       "Rolloff (radius,sigma): ");
-  private final MultiLineButton btnFilter;
+  private final Run3dmodButton btnFilter;
   private Run3dmodButton btnViewFilter = Run3dmodButton.get3dmodInstance(
       "View Filtered Stack", this);
   private final MultiLineButton btnUseFilter;
@@ -709,7 +712,7 @@ public class TomogramGenerationDialog extends ProcessDialog implements
       "Starting and ending views: ");
 
   //  Tomogram generation buttons
-  private final MultiLineButton btnTilt;
+  private final Run3dmodButton btnTilt;
   private Run3dmodButton btn3dmodTomogram = Run3dmodButton.get3dmodInstance(
       "View Tomogram In 3dmod", this);
   private final MultiLineButton btnDeleteStack;
@@ -746,11 +749,17 @@ public class TomogramGenerationDialog extends ProcessDialog implements
     screenState = appMgr.getScreenState(axisID);
     ProcessResultDisplayFactory displayFactory = appMgr
         .getProcessResultDisplayFactory(axisID);
-    btnNewst = (MultiLineButton) displayFactory.getFullAlignedStack();
-    btnFilter = (MultiLineButton) displayFactory.getFilter();
+    btnNewst = (Run3dmodButton) displayFactory.getFullAlignedStack();
+    btnNewst.setContainer(this);
+    btnNewst.setDeferred3dmodButton(btn3dmodFull);
+    btnFilter = (Run3dmodButton) displayFactory.getFilter();
+    btnFilter.setContainer(this);
+    btnFilter.setDeferred3dmodButton(btnViewFilter);
     btnUseFilter = (MultiLineButton) displayFactory.getUseFilteredStack();
     btnUseTrial = (MultiLineButton) displayFactory.getUseTrialTomogram();
-    btnTilt = (MultiLineButton) displayFactory.getGenerateTomogram();
+    btnTilt = (Run3dmodButton) displayFactory.getGenerateTomogram();
+    btnTilt.setContainer(this);
+    btnTilt.setDeferred3dmodButton(btn3dmodTomogram);
     btnDeleteStack = (MultiLineButton) displayFactory.getDeleteAlignedStack();
     fixRootPanel(rootSize);
     rootPanel.setLayout(new BoxLayout(rootPanel, BoxLayout.Y_AXIS));
@@ -796,12 +805,12 @@ public class TomogramGenerationDialog extends ProcessDialog implements
   }
 
   public static ProcessResultDisplay getFullAlignedStackDisplay() {
-    return MultiLineButton.getToggleButtonInstance("Create Full Aligned Stack",
-        DialogType.TOMOGRAM_GENERATION);
+    return Run3dmodButton.getDeferredToggle3dmodInstance(
+        "Create Full Aligned Stack", DialogType.TOMOGRAM_GENERATION);
   }
 
   public static ProcessResultDisplay getFilterDisplay() {
-    return MultiLineButton.getToggleButtonInstance("Filter",
+    return Run3dmodButton.getDeferredToggle3dmodInstance("Filter",
         DialogType.TOMOGRAM_GENERATION);
   }
 
@@ -816,7 +825,7 @@ public class TomogramGenerationDialog extends ProcessDialog implements
   }
 
   public static ProcessResultDisplay getGenerateTomogramDisplay() {
-    return MultiLineButton.getToggleButtonInstance("Generate Tomogram",
+    return Run3dmodButton.getDeferredToggle3dmodInstance("Generate Tomogram",
         DialogType.TOMOGRAM_GENERATION);
   }
 
@@ -1716,17 +1725,28 @@ public class TomogramGenerationDialog extends ProcessDialog implements
 
   public void action(final Run3dmodButton button,
       final Run3dmodMenuOptions run3dmodMenuOptions) {
-    buttonAction(button.getActionCommand(), run3dmodMenuOptions);
+    buttonAction(button.getActionCommand(), button.getDeferred3dmodButton(),
+        run3dmodMenuOptions);
   }
 
-  //  Button handler function
+  /**
+   * Executes the action associated with command.  Deferred3dmodButton is null
+   * if it comes from the dialog's ActionListener.  Otherwise is comes from a
+   * Run3dmodButton which called action(Run3dmodButton, Run3dmoMenuOptions).  In
+   * that case it will be null unless it was set in the Run3dmodButton.
+   * @param command
+   * @param deferred3dmodButton
+   * @param run3dmodMenuOptions
+   */
   void buttonAction(final String command,
+      final Deferred3dmodButton deferred3dmodButton,
       final Run3dmodMenuOptions run3dmodMenuOptions) {
     if (command.equals(btnNewst.getActionCommand())) {
-      expert.newst(btnNewst, null);
+      expert.newst(btnNewst, null, deferred3dmodButton, run3dmodMenuOptions);
     }
     else if (command.equals(btnFilter.getActionCommand())) {
-      expert.mtffilter(btnFilter, null);
+      expert.mtffilter(btnFilter, null, deferred3dmodButton,
+          run3dmodMenuOptions);
     }
     else if (command.equals(btnUseFilter.getActionCommand())) {
       expert.useMtfFilter(btnUseFilter);
@@ -1738,7 +1758,8 @@ public class TomogramGenerationDialog extends ProcessDialog implements
       expert.commitTestVolume(btnUseTrial);
     }
     else if (command.equals(btnTilt.getActionCommand())) {
-      expert.tiltAction(btnTilt, null);
+      expert
+          .tiltAction(btnTilt, null, deferred3dmodButton, run3dmodMenuOptions);
     }
     else if (command.equals(btnDeleteStack.getActionCommand())) {
       applicationManager.deleteAlignedStacks(axisID, btnDeleteStack);
@@ -1771,7 +1792,7 @@ public class TomogramGenerationDialog extends ProcessDialog implements
     }
 
     public void actionPerformed(final ActionEvent event) {
-      adaptee.buttonAction(event.getActionCommand(), null);
+      adaptee.buttonAction(event.getActionCommand(),null, null);
     }
   }
 

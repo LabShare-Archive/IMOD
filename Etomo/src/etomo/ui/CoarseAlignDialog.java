@@ -11,6 +11,12 @@
  * @version $Revision$
  *
  * <p> $Log$
+ * <p> Revision 3.47  2008/05/06 23:56:42  sueh
+ * <p> bug#847 Running deferred 3dmods by using the button that usually calls
+ * <p> them.  This avoids having to duplicate the calls and having a
+ * <p> startNextProcess function just for 3dmods.  This requires that the 3dmod
+ * <p> button be passed to the function that starts the process.
+ * <p>
  * <p> Revision 3.46  2008/05/03 00:49:19  sueh
  * <p> bug# 847 Passing null for ProcessSeries to process funtions.
  * <p>
@@ -283,7 +289,7 @@ public final class CoarseAlignDialog extends ProcessDialog implements
   private final MultiLineButton btnFixEdgesMidas;
   private final MultiLineButton btnDistortionCorrectedStack;
 
-  public CoarseAlignDialog(ApplicationManager appMgr, AxisID axisID) {
+  private CoarseAlignDialog(ApplicationManager appMgr, AxisID axisID) {
     super(appMgr, axisID, DialogType.COARSE_ALIGNMENT);
     ConstMetaData metaData = appMgr.getMetaData();
     ProcessResultDisplayFactory displayFactory = appMgr
@@ -338,9 +344,21 @@ public final class CoarseAlignDialog extends ProcessDialog implements
     rootPanel.setLayout(new BoxLayout(rootPanel, BoxLayout.Y_AXIS));
     UIUtilities.addWithSpace(rootPanel, pnlCoarseAlign, FixedDim.x0_y10);
     addExitButtons();
-
-    //  Action listener assignment for the buttons
     actionListener = new CoarseAlignActionListener(this);
+
+    // Set the default advanced state for the window
+    pnlPrenewst.setDeferred3dmodButtons();
+    updateAdvanced();
+  }
+  
+  public static CoarseAlignDialog getInstance(ApplicationManager appMgr, AxisID axisID) {
+    CoarseAlignDialog instance = new CoarseAlignDialog(appMgr,  axisID);
+    instance.addListeners();
+    return instance;
+  }
+  
+  private void addListeners() {
+    //  Action listener assignment for the buttons
     btnImod.addActionListener(actionListener);
     btnMidas.addActionListener(actionListener);
     btnFixEdgesMidas.addActionListener(actionListener);
@@ -349,9 +367,6 @@ public final class CoarseAlignDialog extends ProcessDialog implements
     //  Mouse adapter for context menu
     GenericMouseAdapter mouseAdapter = new GenericMouseAdapter(this);
     pnlCoarseAlign.addMouseListener(mouseAdapter);
-
-    // Set the default advanced state for the window
-    updateAdvanced();
   }
 
   public static ProcessResultDisplay getCoarseAlignDisplay() {

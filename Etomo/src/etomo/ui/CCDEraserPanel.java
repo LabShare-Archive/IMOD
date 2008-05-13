@@ -104,9 +104,11 @@ final class CCDEraserPanel implements ContextMenu, Run3dmodButtonContainer {
     ProcessResultDisplayFactory displayFactory = appMgr
         .getProcessResultDisplayFactory(axisID);
     btnErase = (Run3dmodButton) displayFactory.getCreateFixedStack();
-    btnErase.setRun3dmodButtonContainer(this);
+    btnErase.setContainer(this);
+    btnErase.setDeferred3dmodButton(btnViewErased);
     btnFindXRays = (Run3dmodButton) displayFactory.getFindXRays();
-    btnFindXRays.setRun3dmodButtonContainer(this);
+    btnFindXRays.setContainer(this);
+    btnFindXRays.setDeferred3dmodButton(btnViewXRayModel);
     btnReplaceRawStack = (MultiLineButton) displayFactory.getUseFixedStack();
     setToolTipText();
 
@@ -354,18 +356,28 @@ final class CCDEraserPanel implements ContextMenu, Run3dmodButtonContainer {
 
   public void action(final Run3dmodButton button,
       final Run3dmodMenuOptions run3dmodMenuOptions) {
-    buttonAction(button.getActionCommand(), run3dmodMenuOptions);
+    buttonAction(button.getActionCommand(), button.getDeferred3dmodButton(),run3dmodMenuOptions);
   }
 
-  //  Button action method
+  /**
+   * Executes the action associated with command.  Deferred3dmodButton is null
+   * if it comes from CCDEraserActionListener.  Otherwise is comes from a
+   * Run3dmodButton which called action(Run3dmodButton, Run3dmoMenuOptions).  In
+   * that case it will be null unless it was set in the Run3dmodButton.
+   * @param command
+   * @param deferred3dmodButton
+   * @param run3dmodMenuOptions
+   */
   private void buttonAction(String command,
+      final Deferred3dmodButton deferred3dmodButton,
       final Run3dmodMenuOptions run3dmodMenuOptions) {
     if (command.equals(btnFindXRays.getActionCommand())) {
-      applicationManager.findXrays(axisID, btnFindXRays, null,btnViewXRayModel,
-          run3dmodMenuOptions);
+      applicationManager.findXrays(axisID, btnFindXRays, null,
+          deferred3dmodButton, run3dmodMenuOptions);
     }
     else if (command.equals(btnErase.getActionCommand())) {
-      applicationManager.preEraser(axisID, btnErase, null, btnViewErased,run3dmodMenuOptions);
+      applicationManager.preEraser(axisID, btnErase, null,
+          deferred3dmodButton, run3dmodMenuOptions);
     }
     else if (command.equals(btnReplaceRawStack.getActionCommand())) {
       applicationManager.replaceRawStack(axisID, btnReplaceRawStack);
@@ -512,13 +524,19 @@ final class CCDEraserPanel implements ContextMenu, Run3dmodButtonContainer {
     }
 
     public void actionPerformed(final ActionEvent event) {
-      adaptee.buttonAction(event.getActionCommand(), null);
+      adaptee.buttonAction(event.getActionCommand(), null,null);
     }
   }
 }
 
 /**
  * <p> $Log$
+ * <p> Revision 3.27  2008/05/06 23:56:33  sueh
+ * <p> bug#847 Running deferred 3dmods by using the button that usually calls
+ * <p> them.  This avoids having to duplicate the calls and having a
+ * <p> startNextProcess function just for 3dmods.  This requires that the 3dmod
+ * <p> button be passed to the function that starts the process.
+ * <p>
  * <p> Revision 3.26  2008/05/03 00:48:40  sueh
  * <p> bug# 847 Gave process buttons right-click menu functionality.
  * <p>

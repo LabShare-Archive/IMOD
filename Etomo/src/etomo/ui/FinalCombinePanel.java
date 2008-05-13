@@ -59,6 +59,9 @@ import etomo.util.DatasetFiles;
  * 
  * <p>
  * $Log$
+ * Revision 3.65  2008/05/03 00:49:56  sueh
+ * bug# 847 Passing null for ProcessSeries to process funtions.
+ *
  * Revision 3.64  2008/03/26 17:15:23  sueh
  * bug# 1003 Deleted characters which a compiler didn't like.  These
  * characters appeared to be spaces.  Don't know what the problem is.
@@ -415,7 +418,7 @@ public class FinalCombinePanel implements ContextMenu, FinalCombineFields,
   private LabeledTextField ltfZLow = new LabeledTextField("Y Low :");
   private LabeledTextField ltfZHigh = new LabeledTextField("Y high :");
 
-  private final MultiLineButton btnPatchcorrRestart;
+  private final Run3dmodButton btnPatchcorrRestart;
 
   private JPanel pnlMatchorwarp = new JPanel();
   private JPanel pnlMatchorwarpBody = new JPanel();
@@ -441,12 +444,12 @@ public class FinalCombinePanel implements ContextMenu, FinalCombineFields,
   private CheckBox cbUseLinearInterpolation = new CheckBox(
       "Use linear interpolation");
   private JPanel pnlMatchorwarpButtons = new JPanel();
-  private final MultiLineButton btnMatchorwarpRestart;
+  private final Run3dmodButton btnMatchorwarpRestart;
   private MultiLineButton btnMatchorwarpTrial = new MultiLineButton(
       "<html><b>Matchorwarp Trial Run</b>");
   private JPanel pnlVolcombine = new JPanel();
   private JPanel pnlVolcombineBody = new JPanel();
-  private final MultiLineButton btnVolcombineRestart;
+  private final Run3dmodButton btnVolcombineRestart;
   private JPanel pnlButton = new JPanel();
   private MultiLineButton btnPatchVectorModel = new MultiLineButton(
       "<html><b>Examine Patch Vector Model</b>");
@@ -454,8 +457,8 @@ public class FinalCombinePanel implements ContextMenu, FinalCombineFields,
       "<html><b>Replace Patch Vectors</b>");
   private Run3dmodButton btnImodMatchedTo = Run3dmodButton.get3dmodInstance(
       "Open Volume Being Matched To", this);
-  private Run3dmodButton btnImodCombined = Run3dmodButton.get3dmodInstance(
-      "Open Combined Volume", this);
+  private final Run3dmodButton btnImodCombined = Run3dmodButton
+      .get3dmodInstance("Open Combined Volume", this);
   private CheckBox cbNoVolcombine = new CheckBox(NO_VOLCOMBINE_TITLE);
   private LabeledTextField ltfReductionFactor = new LabeledTextField(
       "Reduction factor for matching amplitudes in combined FFT: ");
@@ -504,12 +507,18 @@ public class FinalCombinePanel implements ContextMenu, FinalCombineFields,
   public FinalCombinePanel(TomogramCombinationDialog parent,
       ApplicationManager appMgr, DialogType dialogType) {
     tomogramCombinationDialog = parent;
-    btnPatchcorrRestart = (MultiLineButton) appMgr
+    btnPatchcorrRestart = (Run3dmodButton) appMgr
         .getProcessResultDisplayFactory(AxisID.ONLY).getRestartPatchcorr();
-    btnMatchorwarpRestart = (MultiLineButton) appMgr
+    btnPatchcorrRestart.setContainer(this);
+    btnPatchcorrRestart.setDeferred3dmodButton(btnImodCombined);
+    btnMatchorwarpRestart = (Run3dmodButton) appMgr
         .getProcessResultDisplayFactory(AxisID.ONLY).getRestartMatchorwarp();
-    btnVolcombineRestart = (MultiLineButton) appMgr
+    btnMatchorwarpRestart.setContainer(this);
+    btnMatchorwarpRestart.setDeferred3dmodButton(btnImodCombined);
+    btnVolcombineRestart = (Run3dmodButton) appMgr
         .getProcessResultDisplayFactory(AxisID.ONLY).getRestartVolcombine();
+    btnVolcombineRestart.setContainer(this);
+    btnVolcombineRestart.setDeferred3dmodButton(btnImodCombined);
     applicationManager = appMgr;
     pnlRoot.setLayout(new BoxLayout(pnlRoot, BoxLayout.Y_AXIS));
 
@@ -716,19 +725,19 @@ public class FinalCombinePanel implements ContextMenu, FinalCombineFields,
 
   public static ProcessResultDisplay getRestartPatchcorrDisplay(
       DialogType dialogType) {
-    return MultiLineButton.getToggleButtonInstance("Restart at Patchcorr",
-        dialogType);
+    return Run3dmodButton.getDeferredToggle3dmodInstance(
+        "Restart at Patchcorr", dialogType);
   }
 
   public static ProcessResultDisplay getRestartMatchorwarpDisplay(
       DialogType dialogType) {
-    return MultiLineButton.getToggleButtonInstance("Restart at Matchorwarp",
-        dialogType);
+    return Run3dmodButton.getDeferredToggle3dmodInstance(
+        "Restart at Matchorwarp", dialogType);
   }
 
   public static ProcessResultDisplay getRestartVolcombineDisplay(
       DialogType dialogType) {
-    return MultiLineButton.getToggleButtonInstance("Restart at Volcombine",
+    return Run3dmodButton.getDeferredToggle3dmodInstance("Restart at Volcombine",
         dialogType);
   }
 
@@ -765,6 +774,10 @@ public class FinalCombinePanel implements ContextMenu, FinalCombineFields,
 
   ProcessResultDisplay getPatchcorrProcessResultDisplay() {
     return btnPatchcorrRestart;
+  }
+
+  Run3dmodButton getImodCombinedButton() {
+    return btnImodCombined;
   }
 
   ProcessResultDisplay getMatchorwarpProcessResultDisplay() {
@@ -1203,10 +1216,12 @@ public class FinalCombinePanel implements ContextMenu, FinalCombineFields,
 
   public void action(final Run3dmodButton button,
       final Run3dmodMenuOptions run3dmodMenuOptions) {
-    buttonAction(button.getActionCommand(), run3dmodMenuOptions);
+    buttonAction(button.getActionCommand(), button.getDeferred3dmodButton(),
+        run3dmodMenuOptions);
   }
 
   private void buttonAction(final String command,
+      Deferred3dmodButton deferred3dmodButton,
       final Run3dmodMenuOptions run3dmodMenuOptions) {
     // Synchronize this panel with the others
     tomogramCombinationDialog.synchronize(TomogramCombinationDialog.lblFinal,
@@ -1235,20 +1250,24 @@ public class FinalCombinePanel implements ContextMenu, FinalCombineFields,
           .parseInt(ltfZPatchSize.getText()) * 1.2f));
     }
     else if (command.equals(btnPatchcorrRestart.getActionCommand())) {
-      applicationManager.patchcorrCombine(btnPatchcorrRestart, null);
+      applicationManager.patchcorrCombine(btnPatchcorrRestart, null,
+          deferred3dmodButton, run3dmodMenuOptions);
     }
     else if (command.equals(btnMatchorwarpRestart.getActionCommand())) {
-      applicationManager.matchorwarpCombine(btnMatchorwarpRestart, null);
+      applicationManager.matchorwarpCombine(btnMatchorwarpRestart, null,
+          deferred3dmodButton, run3dmodMenuOptions);
     }
     else if (command.equals(btnMatchorwarpTrial.getActionCommand())) {
       applicationManager.matchorwarpTrial(null);
     }
     else if (command.equals(btnVolcombineRestart.getActionCommand())) {
       if (cbParallelProcess.isSelected()) {
-        applicationManager.splitcombine(null);
+        applicationManager.splitcombine(null,
+            deferred3dmodButton, run3dmodMenuOptions);
       }
       else {
-        applicationManager.volcombine(btnVolcombineRestart, null);
+        applicationManager.volcombine(btnVolcombineRestart, null,
+            deferred3dmodButton, run3dmodMenuOptions);
       }
     }
     else if (command.equals(btnPatchVectorModel.getActionCommand())) {
@@ -1298,7 +1317,7 @@ public class FinalCombinePanel implements ContextMenu, FinalCombineFields,
     }
 
     public void actionPerformed(final ActionEvent event) {
-      listenee.buttonAction(event.getActionCommand(), null);
+      listenee.buttonAction(event.getActionCommand(), null, null);
     }
   }
 

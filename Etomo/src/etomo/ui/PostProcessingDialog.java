@@ -40,8 +40,9 @@ public final class PostProcessingDialog extends ProcessDialog implements
   private LabeledTextField ltfReductionFactorZ;
   private CheckBox cbLinearInterpolation;
 
-  private final MultiLineButton btnSqueezeVolume;
-  private Run3dmodButton btnImodSqueezedVolume;
+  private final Run3dmodButton btnSqueezeVolume;
+  private final Run3dmodButton btnImodSqueezedVolume = Run3dmodButton
+      .get3dmodInstance("Open Squeezed Volume in 3dmod", this);
 
   private PostProcessingDialogActionListener actionListener = new PostProcessingDialogActionListener(
       this);
@@ -49,8 +50,10 @@ public final class PostProcessingDialog extends ProcessDialog implements
   public PostProcessingDialog(ApplicationManager appMgr) {
     super(appMgr, AxisID.ONLY, DialogType.POST_PROCESSING);
     fixRootPanel(rootSize);
-    btnSqueezeVolume = (MultiLineButton) appMgr.getProcessResultDisplayFactory(
+    btnSqueezeVolume = (Run3dmodButton) appMgr.getProcessResultDisplayFactory(
         axisID).getSqueezeVolume();
+    btnSqueezeVolume.setContainer(this);
+    btnSqueezeVolume.setDeferred3dmodButton(btnImodSqueezedVolume);
     rootPanel.setLayout(new BoxLayout(rootPanel, BoxLayout.Y_AXIS));
     rootPanel.setBorder(new BeveledBorder("Post Processing").getBorder());
     trimvolPanel = new TrimvolPanel(applicationManager, axisID);
@@ -61,7 +64,7 @@ public final class PostProcessingDialog extends ProcessDialog implements
     btnAdvanced.setVisible(false);
     btnExecute.setText("Done");
 
-    //  Mouse adapter for context menu
+    // Mouse adapter for context menu
     GenericMouseAdapter mouseAdapter = new GenericMouseAdapter(this);
     rootPanel.addMouseListener(mouseAdapter);
 
@@ -93,8 +96,6 @@ public final class PostProcessingDialog extends ProcessDialog implements
     btnSqueezeVolume.setSize();
     squeezeVolPanel2.add(btnSqueezeVolume);
     squeezeVolPanel2.addHorizontalGlue();
-    btnImodSqueezedVolume = Run3dmodButton.get3dmodInstance(
-        "Open Squeezed Volume in 3dmod", this);
     btnImodSqueezedVolume.addActionListener(actionListener);
     btnImodSqueezedVolume.setSize();
     squeezeVolPanel2.add(btnImodSqueezedVolume);
@@ -103,12 +104,12 @@ public final class PostProcessingDialog extends ProcessDialog implements
   }
 
   public static ProcessResultDisplay getSqueezeVolumeDisplay() {
-    return MultiLineButton.getToggleButtonInstance("Squeeze Volume",
+    return Run3dmodButton.getDeferredToggle3dmodInstance("Squeeze Volume",
         DialogType.POST_PROCESSING);
   }
 
   public static ProcessResultDisplay getTrimVolumeDisplay() {
-    return MultiLineButton.getToggleButtonInstance("Trim Volume",
+    return Run3dmodButton.getDeferredToggle3dmodInstance("Trim Volume",
         DialogType.POST_PROCESSING);
   }
 
@@ -221,13 +222,16 @@ public final class PostProcessingDialog extends ProcessDialog implements
 
   public void action(final Run3dmodButton button,
       final Run3dmodMenuOptions run3dmodMenuOptions) {
-    action(button.getActionCommand(), run3dmodMenuOptions);
+    action(button.getActionCommand(), button.getDeferred3dmodButton(),
+        run3dmodMenuOptions);
   }
 
   private void action(final String command,
+      Deferred3dmodButton deferred3dmodButton,
       final Run3dmodMenuOptions run3dmodMenuOptions) {
     if (command.equals(btnSqueezeVolume.getActionCommand())) {
-      applicationManager.squeezevol(btnSqueezeVolume, null);
+      applicationManager.squeezevol(btnSqueezeVolume, null,
+          deferred3dmodButton, run3dmodMenuOptions);
     }
     else if (command.equals(btnImodSqueezedVolume.getActionCommand())) {
       applicationManager.imodSqueezedVolume(run3dmodMenuOptions);
@@ -257,7 +261,7 @@ public final class PostProcessingDialog extends ProcessDialog implements
     }
 
     public void actionPerformed(final ActionEvent event) {
-      adaptee.action(event.getActionCommand(), null);
+      adaptee.action(event.getActionCommand(), null,null);
     }
   }
 
@@ -275,6 +279,9 @@ public final class PostProcessingDialog extends ProcessDialog implements
 }
 /**
  * <p> $Log$
+ * <p> Revision 3.35  2008/05/03 00:52:10  sueh
+ * <p> bug# 847 Passing null for ProcessSeries to process funtions.
+ * <p>
  * <p> Revision 3.34  2007/12/26 22:25:45  sueh
  * <p> bug# 1052 Return true when done() completes successfully.
  * <p>

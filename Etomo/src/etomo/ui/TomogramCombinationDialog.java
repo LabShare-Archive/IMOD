@@ -48,6 +48,9 @@ import etomo.type.TomogramState;
  * @version $Revision$
  *
  * <p> $Log$
+ * <p> Revision 3.57  2007/12/26 22:36:50  sueh
+ * <p> bug# 1052 Return true when done() completes successfully.
+ * <p>
  * <p> Revision 3.56  2007/12/10 22:48:37  sueh
  * <p> bug# 1041 Passing the ProcessName to processchunks instead of setting it in
  * <p> getParameters because it is required and has been added to the
@@ -436,6 +439,8 @@ public final class TomogramCombinationDialog extends ProcessDialog implements
     idxLastTab = tabbedPane.getSelectedIndex();
     setVisible(lblSetup);
     constructed = true;
+    pnlSetup.setDeferred3dmodButtons();
+    pnlInitial.setDeferred3dmodButtons();
     updateDisplay();
   }
 
@@ -500,6 +505,10 @@ public final class TomogramCombinationDialog extends ProcessDialog implements
   public void getCombineParams(CombineParams combineParams)
       throws NumberFormatException {
     pnlSetup.getParameters(combineParams);
+  }
+  
+  Run3dmodButton getImodCombinedButton() {
+    return pnlFinal.getImodCombinedButton();
   }
 
   /**

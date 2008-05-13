@@ -44,6 +44,9 @@ import etomo.type.Run3dmodMenuOptions;
  * @version $Revision$
  * 
  * <p> $Log$
+ * <p> Revision 3.33  2008/05/03 00:57:13  sueh
+ * <p> bug# 847 Passing null for ProcessSeries to process funtions.
+ * <p>
  * <p> Revision 3.32  2007/07/27 21:39:25  sueh
  * <p> bug# 980 In getParameters(CombineParams) setting useList to "" if the user
  * <p> enters "/".
@@ -168,56 +171,53 @@ import etomo.type.Run3dmodMenuOptions;
  * <p> Solvematch mid change
  * <p> </p>
  */
-public final class SolvematchPanel implements Run3dmodButtonContainer,
-    Expandable {
+final class SolvematchPanel implements Run3dmodButtonContainer, Expandable {
 
-  //private static final String POINT_LIST_A = "Corresponding fiducial list A: ";
   private static final String HEADER_LABEL = "Solvematch Parameters";
 
-  private ApplicationManager applicationManager;
-
-  private JPanel pnlRoot = new JPanel();
-  private JPanel pnlBody = new JPanel();
-  private JPanel pnlFiducialRadio = new JPanel();
-  private JPanel pnlFiducialSelect = new JPanel();
-  private ButtonGroup bgFiducialParams = new ButtonGroup();
-  private RadioButton rbBothSides = new RadioButton("Fiducials on both sides");
-  private RadioButton rbOneSide = new RadioButton(
+  private final JPanel pnlRoot = new JPanel();
+  private final JPanel pnlBody = new JPanel();
+  private final JPanel pnlFiducialRadio = new JPanel();
+  private final JPanel pnlFiducialSelect = new JPanel();
+  private final ButtonGroup bgFiducialParams = new ButtonGroup();
+  private final RadioButton rbBothSides = new RadioButton(
+      "Fiducials on both sides");
+  private final RadioButton rbOneSide = new RadioButton(
       "Fiducials on one side, NOT inverted");
-  private RadioButton rbOneSideInverted = new RadioButton(
+  private final RadioButton rbOneSideInverted = new RadioButton(
       "Fiducials on one side, inverted");
-  private RadioButton rbUseModel = new RadioButton(
+  private final RadioButton rbUseModel = new RadioButton(
       "Use matching models and fiducials");
-  private RadioButton rbUseModelOnly = new RadioButton(
+  private final RadioButton rbUseModelOnly = new RadioButton(
       "Use matching models only");
-
-  private JPanel pnlImodMatchModels = new JPanel();
-  private CheckBox cbBinBy2 = new CheckBox("Load binned by 2");
-  private Run3dmodButton btnImodMatchModels = Run3dmodButton.get3dmodInstance(
-      "Create Matching Models in 3dmod", this);
-  private LabeledTextField ltfFiducialMatchListA = new LabeledTextField(
+  private final JPanel pnlImodMatchModels = new JPanel();
+  private final CheckBox cbBinBy2 = new CheckBox("Load binned by 2");
+  private final Run3dmodButton btnImodMatchModels = Run3dmodButton
+      .get3dmodInstance("Create Matching Models in 3dmod", this);
+  private final LabeledTextField ltfFiducialMatchListA = new LabeledTextField(
       "Corresponding fiducial list A: ");
-  private LabeledTextField ltfFiducialMatchListB = new LabeledTextField(
+  private final LabeledTextField ltfFiducialMatchListB = new LabeledTextField(
       "Corresponding fiducial list B: ");
-  private LabeledTextField ltfUseList = new LabeledTextField(
+  private final LabeledTextField ltfUseList = new LabeledTextField(
       "Starting points to use from A: ");
-
-  private CheckBox cbUseCorrespondingPoints = new CheckBox(
+  private final CheckBox cbUseCorrespondingPoints = new CheckBox(
       "Specify corresponding points instead of using coordinate file");
 
-  private TomogramCombinationDialog tomogramCombinationDialog;
-  private String parentTitle;
-  private boolean binningWarning = false;
+  private final ApplicationManager applicationManager;
   private final PanelHeader header;
   private final String headerGroup;
+  private final TomogramCombinationDialog tomogramCombinationDialog;
+
+  private String parentTitle;
+  private boolean binningWarning = false;
   private boolean initialPanel = true;
 
   //initial tab only
-  private MultiLineButton btnRestart = null;
+  private Run3dmodButton btnRestart = null;
   private LabeledTextField ltfResidulThreshold = null;
   private LabeledTextField ltfCenterShiftLimit = null;
 
-  public SolvematchPanel(TomogramCombinationDialog parent, String title,
+  private SolvematchPanel(TomogramCombinationDialog parent, String title,
       ApplicationManager appMgr, String headerGroup) {
     tomogramCombinationDialog = parent;
     parentTitle = title;
@@ -228,8 +228,9 @@ public final class SolvematchPanel implements Run3dmodButtonContainer,
         .setLayout(new BoxLayout(pnlFiducialRadio, BoxLayout.Y_AXIS));
     //create inital button and fields
     if (title.equals(TomogramCombinationDialog.lblInitial)) {
-      btnRestart = (MultiLineButton) appMgr.getProcessResultDisplayFactory(
+      btnRestart = (Run3dmodButton) appMgr.getProcessResultDisplayFactory(
           AxisID.ONLY).getRestartCombine();
+      btnRestart.setContainer(this);
       ltfResidulThreshold = new LabeledTextField("Limit on maximum residual: ");
       ltfCenterShiftLimit = new LabeledTextField("Limit on center shift: ");
     }
@@ -295,26 +296,19 @@ public final class SolvematchPanel implements Run3dmodButtonContainer,
     pnlRoot.add(pnlBody);
     setToolTipText();
     show();
-    //  Bind the ui elements to their listeners
-    SolvematchPanelActionListener actionListener = new SolvematchPanelActionListener(
-        this);
-    if (initialPanel) {
-      btnRestart.addActionListener(actionListener);
-    }
-    btnImodMatchModels.addActionListener(actionListener);
-    cbBinBy2.addActionListener(actionListener);
-    cbUseCorrespondingPoints.addActionListener(actionListener);
-    RBFiducialListener rbFiducialListener = new RBFiducialListener(this);
-    rbBothSides.addActionListener(rbFiducialListener);
-    rbOneSide.addActionListener(rbFiducialListener);
-    rbOneSideInverted.addActionListener(rbFiducialListener);
-    rbUseModel.addActionListener(rbFiducialListener);
-    rbUseModelOnly.addActionListener(rbFiducialListener);
+  }
+
+  static SolvematchPanel getInstance(TomogramCombinationDialog parent,
+      String title, ApplicationManager appMgr, String headerGroup) {
+    SolvematchPanel instance = new SolvematchPanel(parent, title, appMgr,
+        headerGroup);
+    instance.addListeners();
+    return instance;
   }
 
   public static ProcessResultDisplay getRestartCombineDisplay(
       DialogType dialogType) {
-    return MultiLineButton.getToggleButtonInstance("Restart Combine",
+    return Run3dmodButton.getDeferredToggle3dmodInstance("Restart Combine",
         dialogType);
   }
 
@@ -330,6 +324,31 @@ public final class SolvematchPanel implements Run3dmodButtonContainer,
       ltfUseList.setVisible(false);
     }
     updateUseCorrespondingPoints();
+  }
+
+  void setDeferred3dmodButtons() {
+    if (btnRestart != null) {
+      btnRestart.setDeferred3dmodButton(tomogramCombinationDialog
+          .getImodCombinedButton());
+    }
+  }
+
+  private void addListeners() {
+    //  Bind the ui elements to their listeners
+    SolvematchPanelActionListener actionListener = new SolvematchPanelActionListener(
+        this);
+    if (initialPanel) {
+      btnRestart.addActionListener(actionListener);
+    }
+    btnImodMatchModels.addActionListener(actionListener);
+    cbBinBy2.addActionListener(actionListener);
+    cbUseCorrespondingPoints.addActionListener(actionListener);
+    RBFiducialListener rbFiducialListener = new RBFiducialListener(this);
+    rbBothSides.addActionListener(rbFiducialListener);
+    rbOneSide.addActionListener(rbFiducialListener);
+    rbOneSideInverted.addActionListener(rbFiducialListener);
+    rbUseModel.addActionListener(rbFiducialListener);
+    rbUseModelOnly.addActionListener(rbFiducialListener);
   }
 
   public Container getContainer() {
@@ -555,11 +574,13 @@ public final class SolvematchPanel implements Run3dmodButtonContainer,
 
   public void action(final Run3dmodButton button,
       final Run3dmodMenuOptions run3dmodMenuOptions) {
-    buttonAction(button.getActionCommand(), run3dmodMenuOptions);
+    buttonAction(button.getActionCommand(), button.getDeferred3dmodButton(),
+        run3dmodMenuOptions);
   }
 
   //  Action functions for setup panel buttons
   private void buttonAction(final String command,
+      Deferred3dmodButton deferred3dmodButton,
       final Run3dmodMenuOptions run3dmodMenuOptions) {
     if (command.equals(cbUseCorrespondingPoints.getActionCommand())) {
       updateUseCorrespondingPoints();
@@ -574,7 +595,8 @@ public final class SolvematchPanel implements Run3dmodButtonContainer,
         }
       }
       else if (initialPanel && command.equals(btnRestart.getActionCommand())) {
-        applicationManager.combine(btnRestart, null);
+        applicationManager.combine(btnRestart, null, deferred3dmodButton,
+            run3dmodMenuOptions);
       }
       else if (command.equals(btnImodMatchModels.getActionCommand())) {
         applicationManager.imodMatchingModel(cbBinBy2.isSelected(),
@@ -635,7 +657,7 @@ public final class SolvematchPanel implements Run3dmodButtonContainer,
     }
 
     public void actionPerformed(final ActionEvent event) {
-      adaptee.buttonAction(event.getActionCommand(), null);
+      adaptee.buttonAction(event.getActionCommand(), null, null);
     }
   }
 

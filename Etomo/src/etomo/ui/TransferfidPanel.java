@@ -96,7 +96,7 @@ final class TransferfidPanel implements Expandable, Run3dmodButtonContainer {
 
     buttonTransferfid = (Run3dmodButton) manager
         .getProcessResultDisplayFactory(axisID).getTransferFiducials();
-    buttonTransferfid.setRun3dmodButtonContainer(this);
+    buttonTransferfid.setContainer(this);
     buttonTransferfid.setAlignmentX(Component.CENTER_ALIGNMENT);
     buttonTransferfid.setSize();
     panelTransferfidBody.add(buttonTransferfid.getComponent());
@@ -117,15 +117,28 @@ final class TransferfidPanel implements Expandable, Run3dmodButtonContainer {
     instance.addListeners();
     return instance;
   }
-
-  public void action(Run3dmodButton button, Run3dmodMenuOptions menuOptions) {
-    action(button.getActionCommand(), menuOptions);
+  
+  void setDeferred3dmodButtons() {
+    buttonTransferfid.setDeferred3dmodButton(parent.btnSeed);
   }
 
-  private void action(final String command,
+  public void action(Run3dmodButton button, Run3dmodMenuOptions menuOptions) {
+    action(button.getActionCommand(), button.getDeferred3dmodButton(),menuOptions);
+  }
+
+  /**
+   * Executes the action associated with command.  Deferred3dmodButton is null
+   * if it comes from the dialog's ActionListener.  Otherwise is comes from a
+   * Run3dmodButton which called action(Run3dmodButton, Run3dmoMenuOptions).  In
+   * that case it will be null unless it was set in the Run3dmodButton.
+   * @param command
+   * @param deferred3dmodButton
+   * @param run3dmodMenuOptions
+   */
+  private void action(final String command,Deferred3dmodButton deferred3dmodButton,
       final Run3dmodMenuOptions run3dmodMenuOptions) {
     if (command.equals(buttonTransferfid.getActionCommand())) {
-      manager.transferfid(axisID, buttonTransferfid, null, parent.btnSeed,
+      manager.transferfid(axisID, buttonTransferfid, null, deferred3dmodButton,
           run3dmodMenuOptions);
     }
   }
@@ -287,13 +300,20 @@ final class TransferfidPanel implements Expandable, Run3dmodButtonContainer {
     }
 
     public void actionPerformed(final ActionEvent event) {
-      adaptee.action(event.getActionCommand(), null);
+      adaptee.action(event.getActionCommand(), null,null);
     }
   }
 }
 
 /**
  * <p> $Log$
+ * <p> Revision 3.16  2008/05/07 00:28:15  sueh
+ * <p> bug#847 Running deferred 3dmods by using the button that usually calls
+ * <p> them.  This avoids having to duplicate the calls and having a
+ * <p> startNextProcess function just for 3dmods.  This requires that the 3dmod
+ * <p> button be passed to the function that starts the process.  Make transfer
+ * <p> fid panel responsible for its own actions.
+ * <p>
  * <p> Revision 3.15  2007/09/10 20:43:59  sueh
  * <p> bug# 925 Should only load button states once.  Changed
  * <p> ProcessResultDisplayFactory to load button states immediately, so removing

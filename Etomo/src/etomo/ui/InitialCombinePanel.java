@@ -40,6 +40,9 @@ import etomo.util.MRCHeader;
  * @version $Revision$
  *
  * <p> $Log$
+ * <p> Revision 3.35  2008/05/03 00:50:05  sueh
+ * <p> bug# 847 Passing null for ProcessSeries to process funtions.
+ * <p>
  * <p> Revision 3.34  2007/05/26 00:32:20  sueh
  * <p> bug# 994 Not automatically setting button size in SpacedPanel anymore.
  * <p> Setting button size in UI.
@@ -231,7 +234,7 @@ public class InitialCombinePanel implements ContextMenu, InitialCombineFields,
 
   //private Run3dmodButton btnMatchcheck = new Run3dmodButton(
   //   "<html><b>View Match Check Volume</b>", this);
-  private final MultiLineButton btnMatchvolRestart;
+  private final Run3dmodButton btnMatchvolRestart;
   private final JPanel pnlMatchvol1 = new JPanel();
   private final SpacedPanel pnlMatchvol1Body = new SpacedPanel(true);
   private final PanelHeader matchvol1Header;
@@ -251,12 +254,13 @@ public class InitialCombinePanel implements ContextMenu, InitialCombineFields,
     applicationManager = appMgr;
     matchvol1Header = PanelHeader.getAdvancedBasicInstance("Matchvol1", this,
         DialogType.TOMOGRAM_COMBINATION);
-    btnMatchvolRestart = (MultiLineButton) appMgr
+    btnMatchvolRestart = (Run3dmodButton) appMgr
         .getProcessResultDisplayFactory(AxisID.ONLY).getRestartMatchvol1();
+    btnMatchvolRestart.setContainer(this);
     pnlRoot.setLayout(new BoxLayout(pnlRoot, BoxLayout.Y_AXIS));
 
     //  Create the solvematch panel
-    pnlSolvematch = new SolvematchPanel(tomogramCombinationDialog,
+    pnlSolvematch = SolvematchPanel.getInstance(tomogramCombinationDialog,
         TomogramCombinationDialog.lblInitial, appMgr,
         ReconScreenState.COMBINE_INITIAL_SOLVEMATCH_HEADER_GROUP);
     pnlRoot.add(pnlSolvematch.getContainer());
@@ -286,6 +290,12 @@ public class InitialCombinePanel implements ContextMenu, InitialCombineFields,
     GenericMouseAdapter mouseAdapter = new GenericMouseAdapter(this);
     pnlRoot.addMouseListener(mouseAdapter);
     setToolTipText();
+  }
+
+  void setDeferred3dmodButtons() {
+    btnMatchvolRestart.setDeferred3dmodButton(tomogramCombinationDialog
+        .getImodCombinedButton());
+    pnlSolvematch.setDeferred3dmodButtons();
   }
 
   public void setMatchMode(MatchMode matchMode) {
@@ -353,8 +363,8 @@ public class InitialCombinePanel implements ContextMenu, InitialCombineFields,
 
   public static ProcessResultDisplay getRestartMatchvol1Display(
       DialogType dialogType) {
-    return MultiLineButton.getToggleButtonInstance("Restart at Matchvol1",
-        dialogType);
+    return Run3dmodButton.getDeferredToggle3dmodInstance(
+        "Restart at Matchvol1", dialogType);
   }
 
   public Container getContainer() {
@@ -475,19 +485,23 @@ public class InitialCombinePanel implements ContextMenu, InitialCombineFields,
 
   public void action(Run3dmodButton button,
       Run3dmodMenuOptions run3dmodMenuOptions) {
+    buttonAction(button.getActionCommand(), button.getDeferred3dmodButton(),
+        run3dmodMenuOptions);
   }
 
   /**
    * Respond to button actions
    * @param event
    */
-  protected void buttonAction(ActionEvent event) {
+  protected void buttonAction(String command,
+      Deferred3dmodButton deferred3dmodButton,
+      Run3dmodMenuOptions run3dmodMenuOptions) {
     //  Synchronize this panel with the others
     tomogramCombinationDialog.synchronize(TomogramCombinationDialog.lblInitial,
         true);
-    String command = event.getActionCommand();
     if (command.equals(btnMatchvolRestart.getActionCommand())) {
-      applicationManager.matchvol1Combine(btnMatchvolRestart, null);
+      applicationManager.matchvol1Combine(btnMatchvolRestart, null,
+          deferred3dmodButton, run3dmodMenuOptions);
     }
   }
 
@@ -502,7 +516,7 @@ public class InitialCombinePanel implements ContextMenu, InitialCombineFields,
     }
 
     public void actionPerformed(ActionEvent event) {
-      listenee.buttonAction(event);
+      listenee.buttonAction(event.getActionCommand(), null, null);
     }
   }
 

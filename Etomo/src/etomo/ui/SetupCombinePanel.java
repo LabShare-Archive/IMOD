@@ -55,6 +55,9 @@ import etomo.util.MRCHeader;
  * 
  * <p>
  * $Log$
+ * Revision 3.54  2008/05/03 00:56:57  sueh
+ * bug# 847 Passing null for ProcessSeries to process funtions.
+ *
  * Revision 3.53  2008/02/29 20:52:58  sueh
  * bug# 1092 Running updateDisplay after create is done to pick up all changes.  In isChanged fixed return value calculation (parenthesis where in the the wrong places).
  *
@@ -458,10 +461,10 @@ public final class SetupCombinePanel implements ContextMenu,
   private JPanel pnlButton = new JPanel();
   private Run3dmodButton btnImodVolumeA = Run3dmodButton.get3dmodInstance(
       "3dmod Volume A", this);
-  private Run3dmodButton btnImodVolumeB = Run3dmodButton.get3dmodInstance(
-      "3dmod Volume B", this);
+  private Run3dmodButton btnImodVolumeB = Run3dmodButton
+      .get3dmodInstance("3dmod Volume B", this);
   private final MultiLineButton btnCreate;
-  private final MultiLineButton btnCombine;
+  private final Run3dmodButton btnCombine;
   private JLabel binningWarning = new JLabel();
   private final PanelHeader toSelectorHeader;
   private final PanelHeader patchParamsHeader;
@@ -483,8 +486,9 @@ public final class SetupCombinePanel implements ContextMenu,
     applicationManager = appMgr;
     btnCreate = (MultiLineButton) appMgr.getProcessResultDisplayFactory(
         AxisID.ONLY).getCreateCombine();
-    btnCombine = (MultiLineButton) appMgr.getProcessResultDisplayFactory(
+    btnCombine = (Run3dmodButton) appMgr.getProcessResultDisplayFactory(
         AxisID.ONLY).getCombine();
+    btnCombine.setContainer(this);
     //  Create the matching direction selector panel
     lblEffectWarning.setAlignmentX(Component.CENTER_ALIGNMENT);
     rbAtoB.setAlignmentX(Component.LEFT_ALIGNMENT);
@@ -503,7 +507,7 @@ public final class SetupCombinePanel implements ContextMenu,
     pnlToSelector.add(Box.createHorizontalGlue());
 
     // Create the solvematch panel
-    pnlSolvematch = new SolvematchPanel(tomogramCombinationDialog,
+    pnlSolvematch =  SolvematchPanel.getInstance(tomogramCombinationDialog,
         TomogramCombinationDialog.lblSetup, appMgr,
         ReconScreenState.COMBINE_SETUP_SOLVEMATCH_HEADER_GROUP);
     // pnlSolvematch.visibleResidual(false);
@@ -655,7 +659,8 @@ public final class SetupCombinePanel implements ContextMenu,
   }
 
   static ProcessResultDisplay getCombineDisplay(DialogType dialogType) {
-    return MultiLineButton.getToggleButtonInstance("Start Combine", dialogType);
+    return Run3dmodButton.getDeferredToggle3dmodInstance("Start Combine",
+        dialogType);
   }
 
   public Container getContainer() {
@@ -665,6 +670,12 @@ public final class SetupCombinePanel implements ContextMenu,
   void show(boolean enableCombine) {
     pnlSolvematch.show();
     updateTomogramSizeWarning(enableCombine);
+  }
+
+  void setDeferred3dmodButtons() {
+    btnCombine.setDeferred3dmodButton(tomogramCombinationDialog
+        .getImodCombinedButton());
+    pnlSolvematch.setDeferred3dmodButtons();
   }
 
   private boolean isTomogramSizeChanged() {
@@ -1074,11 +1085,21 @@ public final class SetupCombinePanel implements ContextMenu,
 
   public void action(final Run3dmodButton button,
       final Run3dmodMenuOptions run3dmodMenuOptions) {
-    buttonAction(button.getActionCommand(), run3dmodMenuOptions);
+    buttonAction(button.getActionCommand(), button.getDeferred3dmodButton(),
+        run3dmodMenuOptions);
   }
 
-  //  Action functions for setup panel buttons
+  /**
+   * Executes the action associated with command.  Deferred3dmodButton is null
+   * if it comes from dialog's ActionListener.  Otherwise is comes from a
+   * Run3dmodButton which called action(Run3dmodButton, Run3dmoMenuOptions).  In
+   * that case it will be null unless it was set in the Run3dmodButton.
+   * @param command
+   * @param deferred3dmodButton
+   * @param run3dmodMenuOptions
+   */
   private void buttonAction(final String command,
+      Deferred3dmodButton deferred3dmodButton,
       final Run3dmodMenuOptions run3dmodMenuOptions) {
     //  Synchronize this panel with the others
     tomogramCombinationDialog.synchronize(TomogramCombinationDialog.lblSetup,
@@ -1089,7 +1110,8 @@ public final class SetupCombinePanel implements ContextMenu,
       tomogramCombinationDialog.updateDisplay();
     }
     else if (command.equals(btnCombine.getActionCommand())) {
-      applicationManager.combine(btnCombine, null);
+      applicationManager.combine(btnCombine, null, deferred3dmodButton,
+          run3dmodMenuOptions);
     }
     else if (command.equals(cbParallelProcess.getActionCommand())) {
       tomogramCombinationDialog.updateParallelProcess();
@@ -1219,7 +1241,7 @@ public final class SetupCombinePanel implements ContextMenu,
     }
 
     public void actionPerformed(final ActionEvent event) {
-      adaptee.buttonAction(event.getActionCommand(), null);
+      adaptee.buttonAction(event.getActionCommand(), null, null);
     }
   }
 

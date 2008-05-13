@@ -77,9 +77,13 @@ public final class TomogramGenerationExpert extends ReconUIExpert {
    * Open the tomogram generation dialog
    */
   public void openDialog() {
-    if (!showDialog(dialog) || dialog != null) {
+    if (!canShowDialog()) {
       return;
     }
+    if (showDialog(dialog)) {
+      return;
+    }
+    //Create the dialog and show it.
     Utilities.timestamp("new", "TomogramGenerationDialog",
         Utilities.STARTED_STATUS);
     dialog = new TomogramGenerationDialog(manager, this, axisID);
@@ -200,12 +204,13 @@ public final class TomogramGenerationExpert extends ReconUIExpert {
     }
     // Clean up the existing dialog
     leaveDialog(exitState);
-    dialog = null;
+    //Hold onto the finished dialog in case anything is running that needs it or
+    //there are next processes that need it.
     trialTomogramList = null;
     return true;
   }
 
-  protected boolean saveDialog() {
+  boolean saveDialog() {
     if (dialog == null) {
       return false;
     }
@@ -458,9 +463,14 @@ public final class TomogramGenerationExpert extends ReconUIExpert {
    * 
    */
   public void newst(ProcessResultDisplay processResultDisplay,
-      ConstProcessSeries processSeries) {
+      ProcessSeries processSeries,
+      Deferred3dmodButton deferred3dmodButton,
+      Run3dmodMenuOptions run3dmodMenuOptions) {
     if (dialog == null) {
       return;
+    }
+    if (processSeries == null) {
+      processSeries = new ProcessSeries(manager);
     }
     sendMsgProcessStarting(processResultDisplay);
     // Get the user input from the dialog
@@ -495,6 +505,8 @@ public final class TomogramGenerationExpert extends ReconUIExpert {
         return;
       }
     }
+    processSeries.setRun3dmodDeferred(deferred3dmodButton,
+        run3dmodMenuOptions);
     setDialogState(ProcessState.INPROGRESS);
     sendMsg(manager.newst(axisID, processResultDisplay, processSeries,
         newstParam, blendmontParam), processResultDisplay);
@@ -503,7 +515,12 @@ public final class TomogramGenerationExpert extends ReconUIExpert {
   /**
    */
   void mtffilter(ProcessResultDisplay processResultDisplay,
-      ConstProcessSeries processSeries) {
+      ProcessSeries processSeries,
+      Deferred3dmodButton deferred3dmodButton,
+      Run3dmodMenuOptions run3dmodMenuOptions) {
+    if (processSeries == null) {
+      processSeries = new ProcessSeries(manager);
+    }
     if (dialog == null) {
       return;
     }
@@ -512,6 +529,8 @@ public final class TomogramGenerationExpert extends ReconUIExpert {
       sendMsg(ProcessResult.FAILED_TO_START, processResultDisplay);
       return;
     }
+    processSeries.setRun3dmodDeferred(deferred3dmodButton,
+        run3dmodMenuOptions);
     setDialogState(ProcessState.INPROGRESS);
     sendMsg(manager.mtffilter(axisID, processResultDisplay, processSeries),
         processResultDisplay);
@@ -1108,10 +1127,17 @@ public final class TomogramGenerationExpert extends ReconUIExpert {
     }
   }
 
-  void tiltAction(ProcessResultDisplay tilt, ProcessSeries processSeries) {
+  void tiltAction(ProcessResultDisplay tilt, ProcessSeries processSeries,
+      Deferred3dmodButton deferred3dmodButton,
+      Run3dmodMenuOptions run3dmodMenuOptions) {
     if (dialog == null) {
       return;
     }
+    if (processSeries == null) {
+      processSeries = new ProcessSeries(manager);
+    }
+    processSeries.setRun3dmodDeferred(deferred3dmodButton,
+        run3dmodMenuOptions);
     if (dialog.isParallelProcess()) {
       splittilt(tilt, processSeries);
     }
@@ -1122,6 +1148,9 @@ public final class TomogramGenerationExpert extends ReconUIExpert {
 }
 /**
  * <p> $Log$
+ * <p> Revision 1.19  2008/05/03 00:57:31  sueh
+ * <p> bug# 847 Passing null for ProcessSeries to process funtions.
+ * <p>
  * <p> Revision 1.18  2008/02/01 01:37:31  sueh
  * <p> bug# 1075 Handling header failure in setSubsetStart.
  * <p>

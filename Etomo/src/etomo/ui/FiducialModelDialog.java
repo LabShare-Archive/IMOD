@@ -30,6 +30,13 @@ import etomo.comscript.FortranInputSyntaxException;
  * @version $Revision$
  *
  * <p> $Log$
+ * <p> Revision 3.40  2008/05/07 00:01:32  sueh
+ * <p> bug#847 Running deferred 3dmods by using the button that usually calls
+ * <p> them.  This avoids having to duplicate the calls and having a
+ * <p> startNextProcess function just for 3dmods.  This requires that the 3dmod
+ * <p> button be passed to the function that starts the process.  Make transfer
+ * <p> fid panel responsible for its own actions.
+ * <p>
  * <p> Revision 3.39  2008/05/03 00:49:48  sueh
  * <p> bug# 847 Passing null for ProcessSeries to process funtions.
  * <p>
@@ -283,7 +290,7 @@ public final class FiducialModelDialog extends ProcessDialog implements
     ProcessResultDisplayFactory displayFactory = appMgr
         .getProcessResultDisplayFactory(axisID);
     btnSeed = (Run3dmodButton) displayFactory.getSeedFiducialModel();
-    btnSeed.setRun3dmodButtonContainer(this);
+    btnSeed.setContainer(this);
     setToolTipText();
     fixRootPanel(rootSize);
     pnlBeadtrack = BeadtrackPanel.getInstance(appMgr, axisID, dialogType);
@@ -316,7 +323,9 @@ public final class FiducialModelDialog extends ProcessDialog implements
     rootPanel.setLayout(new BoxLayout(rootPanel, BoxLayout.Y_AXIS));
     rootPanel.add(pnlFiducialModel);
     addExitButtons();
-
+    if (pnlTransferfid != null) {
+      pnlTransferfid.setDeferred3dmodButtons();
+    }
     //  Set the advanced state to the default
     updateAdvanced(isAdvanced);
     updateEnabled();

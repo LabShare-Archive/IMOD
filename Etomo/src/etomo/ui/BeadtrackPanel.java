@@ -40,6 +40,9 @@ import etomo.type.Run3dmodMenuOptions;
  * @version $Revision$
  *
  * <p> $Log$
+ * <p> Revision 3.21  2008/05/03 00:47:08  sueh
+ * <p> bug# 847 Passing null for ProcessSeries to process funtions.
+ * <p>
  * <p> Revision 3.20  2007/09/10 20:41:57  sueh
  * <p> bug# 925 Should only load button states once.  Changed
  * <p> ProcessResultDisplayFactory to load button states immediately, so removing
@@ -245,7 +248,7 @@ public final class BeadtrackPanel implements Expandable,
         .getTrackFiducials();
     btnFixModel = (Run3dmodButton) manager.getProcessResultDisplayFactory(
         axisID).getFixFiducialModel();
-    btnFixModel.setRun3dmodButtonContainer(this);
+    btnFixModel.setContainer(this);
     expertParametersHeader = PanelHeader.getInstance("Expert Parameters", this,
         dialogType);
     header = PanelHeader.getAdvancedBasicInstance("Beadtracker", this,
