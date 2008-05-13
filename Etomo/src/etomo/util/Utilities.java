@@ -12,6 +12,9 @@
  * @version $$Revision$
  *
  * <p> $$Log$
+ * <p> $Revision 3.58  2008/04/02 02:29:07  sueh
+ * <p> $bug# 1095 In getExistingDir simplified matches calls.
+ * <p> $
  * <p> $Revision 3.57  2008/03/06 00:28:40  sueh
  * <p> $Fixed Easter Egg.
  * <p> $
@@ -359,7 +362,6 @@ public class Utilities {
   }
   
   public static boolean isAprilFools() {
-    System.out.println("new Date().toString()="+new Date().toString());
     return new Date().toString().indexOf("Apr 01 ") != -1;
   }
 
