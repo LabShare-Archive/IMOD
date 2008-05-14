@@ -4825,8 +4825,8 @@ public final class ApplicationManager extends BaseManager {
       else if (exitState != DialogExitState.SAVE) {
         processTrack.setPostProcessingState(ProcessState.COMPLETE);
         mainPanel.setPostProcessingState(ProcessState.COMPLETE);
-        closeImod(ImodManager.COMBINED_TOMOGRAM_KEY, "combined tomogram");
-        closeImod(ImodManager.TRIMMED_VOLUME_KEY, "trimmedl volume");
+        closeImod(ImodManager.COMBINED_TOMOGRAM_KEY, "full tomogram");
+        closeImod(ImodManager.TRIMMED_VOLUME_KEY, "trimmed volume");
         closeImod(ImodManager.SQUEEZED_VOLUME_KEY, "squeezed volume");
         openCleanUpDialog();
       }
@@ -5559,6 +5559,10 @@ public final class ApplicationManager extends BaseManager {
 }
 /**
  * <p> $Log$
+ * <p> Revision 3.300  2008/05/13 20:40:55  sueh
+ * <p> bug# 847 Added Deferred3dmodButton and Run3dmodMenuOptions to
+ * <p> functions where 3dmod may run after the process.
+ * <p>
  * <p> Revision 3.299  2008/05/06 23:53:31  sueh
  * <p> bug#847 Running deferred 3dmods by using the button that usually calls
  * <p> them.  This avoids having to duplicate the calls and having a
