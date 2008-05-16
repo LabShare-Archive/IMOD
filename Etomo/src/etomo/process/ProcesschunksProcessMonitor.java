@@ -194,6 +194,10 @@ class ProcesschunksProcessMonitor implements OutfileProcessMonitor,
     return messages;
   }
 
+  public final String getSubProcessName() {
+    return rootName;
+  }
+
   public final void kill(SystemProcessInterface process, AxisID axisID) {
     try {
       writeCommand("Q");
@@ -209,7 +213,7 @@ class ProcesschunksProcessMonitor implements OutfileProcessMonitor,
         }
         if (starting) {
           //processchunks hasn't started chunks and it won't because the "Q" has
-          //been sent.  So it is save to kill it in the usual way.
+          //been sent.  So it is safe to kill it in the usual way.
           if (process != null) {
             process.signalKill(axisID);
           }
@@ -530,6 +534,10 @@ class ProcesschunksProcessMonitor implements OutfileProcessMonitor,
 }
 /**
  * <p> $Log$
+ * <p> Revision 1.38  2008/05/05 19:57:58  sueh
+ * <p> bug# 1108 In run, when catching a read exception do not leave the while
+ * <p> loop.
+ * <p>
  * <p> Revision 1.37  2008/01/31 20:19:06  sueh
  * <p> bug# 1055 throwing a FileException when LogFile.getInstance fails.
  * <p>
