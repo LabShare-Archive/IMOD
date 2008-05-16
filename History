@@ -1,5 +1,8 @@
 IMOD History
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+5/16/08: In Etomo making kill and pause work for a reconnected processchunks
+process.
+
 5/13/08: In Etomo added a right click menu to most of the process buttons.  This
 menu allows the associated 3dmod process to be run after the process started by
 the button is done.
