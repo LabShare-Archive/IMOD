@@ -47,7 +47,7 @@ final class DetachedProcess extends BackgroundProcess {
   private String subdirName = null;
   private String shortCommandName = "";
 
-  public DetachedProcess(BaseManager manager, DetachedCommand command,
+   DetachedProcess(BaseManager manager, DetachedCommand command,
       BaseProcessManager processManager, AxisID axisID,
       OutfileProcessMonitor monitor, ProcessResultDisplay processResultDisplay,
       ProcessName processName, ConstProcessSeries processSeries) {
@@ -57,6 +57,9 @@ final class DetachedProcess extends BackgroundProcess {
     this.monitor = monitor;
     this.processManager = processManager;
     setProcessResultDisplay(processResultDisplay);
+    if (monitor != null) {
+      getProcessData().setSubProcessName(monitor.getSubProcessName());
+    }
   }
 
   void setSubdirName(String input) {
@@ -95,7 +98,7 @@ final class DetachedProcess extends BackgroundProcess {
     return true;
   }
 
-  protected void waitForPid() {
+   void waitForPid() {
     if (monitor == null) {
       super.waitForPid();
       return;
@@ -104,7 +107,9 @@ final class DetachedProcess extends BackgroundProcess {
   }
 
   /**
-   * Always returns true because the process is detached.
+   * Returns false if the process will stop if Etomo exits.  Returns true if the
+   * process can continue when Etomo exits.  Always returns true because the
+   * process is detached.
    */
   public boolean isNohup() {
     return true;
@@ -204,11 +209,11 @@ final class DetachedProcess extends BackgroundProcess {
     return (DetachedCommand) getCommand();
   }
 
-  final class PidThread implements Runnable {
+ private final class PidThread implements Runnable {
     private final OutfileProcessMonitor monitor;
     private final ProcessData processData;
 
-    PidThread(OutfileProcessMonitor monitor, ProcessData processData) {
+   private PidThread(OutfileProcessMonitor monitor, ProcessData processData) {
       this.monitor = monitor;
       this.processData = processData;
     }
@@ -248,6 +253,10 @@ final class DetachedProcess extends BackgroundProcess {
 }
 /**
  * <p> $Log$
+ * <p> Revision 1.16  2008/05/03 00:37:52  sueh
+ * <p> bug# 847 Passing ProcessSeries to process object constructors so it can
+ * <p> be passed to process done functions.
+ * <p>
  * <p> Revision 1.15  2008/01/14 21:29:22  sueh
  * <p> bug# 1050 In setSubdirName setting processData.subDirName.
  * <p>
