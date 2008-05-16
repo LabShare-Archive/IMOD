@@ -15,7 +15,7 @@ import etomo.type.ProcessResultDisplay;
 import etomo.ui.UIHarness;
 
 /**
- * <p>Description: </p>
+ * <p>Description: Process for running non-comscript processes.</p>
  * 
  * <p>Copyright: Copyright (c) 2002 - 2006</p>
  * 
@@ -27,6 +27,10 @@ import etomo.ui.UIHarness;
  * @version $Revision$
  * 
  * <p> $Log$
+ * <p> Revision 3.37  2008/05/03 00:36:17  sueh
+ * <p> bug# 847 Passing ProcessSeries to process object constructors so it can
+ * <p> be passed to process done functions.
+ * <p>
  * <p> Revision 3.36  2008/01/14 20:27:06  sueh
  * <p> bug# 1050 Setting the display key in processData.  The display key is a key
  * <p> which allows the correct ProcessResultDisplay to be retrieved from
@@ -250,38 +254,35 @@ import etomo.ui.UIHarness;
  * <p>
  * <p> </p>
  */
-public class BackgroundProcess extends Thread implements SystemProcessInterface {
+class BackgroundProcess extends Thread implements SystemProcessInterface {
 
   public static final String rcsid = "$Id$";
+
+  private final ArrayList commandArrayList;
+  private final ProcessData processData;
+  private final ConstProcessSeries processSeries;
+  private final BaseProcessManager processManager;
+  private final AxisID axisID;
+  private final BaseManager manager;
+  private final Command command;
+  private final ProcessDetails processDetails;
+  private final StringBuffer commandProcessID;
+  private final CommandDetails commandDetails;
+  private final boolean forceNextProcess;
+
   private String commandLine = null;
   private String[] commandArray = null;
   private File workingDirectory = null;
-  private final BaseProcessManager processManager;
   private boolean demoMode = false;
   private boolean debug = false;
   private String[] stdOutput;
   private String[] stdError;
-  private StringBuffer commandProcessID;
-  private File outputFile = null;
-  private ProcessDetails processDetails = null;
-  private Command command = null;
-  private CommandDetails commandDetails = null;
-  private AxisID axisID;
-  private boolean forceNextProcess = false;
-  private final ProcessData processData;
-  private final ConstProcessSeries processSeries;
-
-  //private String stdoutLogFile = "";
-  //private String stderrLogFile = "";
-
   private boolean started = false;
   private ProcessEndState endState = null;
-  private final BaseManager manager;
   private SystemProgram program = null;
   private ProcessResultDisplay processResultDisplay = null;
-  private ArrayList commandArrayList = null;
 
-  public BackgroundProcess(BaseManager manager, ArrayList commandArrayList,
+  BackgroundProcess(BaseManager manager, ArrayList commandArrayList,
       BaseProcessManager processManager, AxisID axisID,
       ProcessResultDisplay processResultDisplay, ProcessName processName,
       ConstProcessSeries processSeries) {
@@ -294,10 +295,15 @@ public class BackgroundProcess extends Thread implements SystemProcessInterface 
     processData = ProcessData.getManagedInstance(axisID, manager, processName);
     processData.setDisplayKey(processResultDisplay);
     this.processSeries = processSeries;
+    processDetails = null;
+    command = null;
+    commandDetails = null;
+    forceNextProcess = false;
   }
 
-  public BackgroundProcess(BaseManager manager, CommandDetails commandDetails,
-      BaseProcessManager processManager, AxisID axisID, ProcessName processName,ConstProcessSeries processSeries) {
+  BackgroundProcess(BaseManager manager, CommandDetails commandDetails,
+      BaseProcessManager processManager, AxisID axisID,
+      ProcessName processName, ConstProcessSeries processSeries) {
     this.manager = manager;
     this.axisID = axisID;
     this.commandDetails = commandDetails;
@@ -308,9 +314,11 @@ public class BackgroundProcess extends Thread implements SystemProcessInterface 
     commandProcessID = new StringBuffer("");
     processData = ProcessData.getManagedInstance(axisID, manager, processName);
     this.processSeries = processSeries;
+    commandArrayList = null;
+    forceNextProcess = false;
   }
 
-  public BackgroundProcess(BaseManager manager, CommandDetails commandDetails,
+  BackgroundProcess(BaseManager manager, CommandDetails commandDetails,
       BaseProcessManager processManager, AxisID axisID,
       ProcessResultDisplay processResultDisplay, ProcessName processName,
       ConstProcessSeries processSeries) {
@@ -326,9 +334,11 @@ public class BackgroundProcess extends Thread implements SystemProcessInterface 
     processData = ProcessData.getManagedInstance(axisID, manager, processName);
     processData.setDisplayKey(processResultDisplay);
     this.processSeries = processSeries;
+    commandArrayList = null;
+    forceNextProcess = false;
   }
 
-  public BackgroundProcess(BaseManager manager, Command command,
+  BackgroundProcess(BaseManager manager, Command command,
       BaseProcessManager processManager, AxisID axisID,
       boolean forceNextProcess, ProcessName processName,
       ConstProcessSeries processSeries) {
@@ -341,9 +351,12 @@ public class BackgroundProcess extends Thread implements SystemProcessInterface 
     commandProcessID = new StringBuffer("");
     processData = ProcessData.getManagedInstance(axisID, manager, processName);
     this.processSeries = processSeries;
+    commandArrayList = null;
+    processDetails = null;
+    commandDetails = null;
   }
 
-  public BackgroundProcess(BaseManager manager, String[] commandArray,
+  BackgroundProcess(BaseManager manager, String[] commandArray,
       BaseProcessManager processManager, AxisID axisID,
       ProcessResultDisplay processResultDisplay, ProcessName processName,
       ConstProcessSeries processSeries) {
@@ -356,10 +369,16 @@ public class BackgroundProcess extends Thread implements SystemProcessInterface 
     processData = ProcessData.getManagedInstance(axisID, manager, processName);
     processData.setDisplayKey(processResultDisplay);
     this.processSeries = processSeries;
+    commandArrayList = null;
+    processDetails = null;
+    command = null;
+    commandDetails = null;
+    forceNextProcess = false;
   }
 
-  public BackgroundProcess(BaseManager manager, String[] commandArray,
-      BaseProcessManager processManager, AxisID axisID, ProcessName processName,ConstProcessSeries processSeries) {
+  BackgroundProcess(BaseManager manager, String[] commandArray,
+      BaseProcessManager processManager, AxisID axisID,
+      ProcessName processName, ConstProcessSeries processSeries) {
     this.manager = manager;
     this.axisID = axisID;
     this.commandArray = commandArray;
@@ -367,9 +386,14 @@ public class BackgroundProcess extends Thread implements SystemProcessInterface 
     commandProcessID = new StringBuffer("");
     processData = ProcessData.getManagedInstance(axisID, manager, processName);
     this.processSeries = processSeries;
+    commandArrayList = null;
+    processDetails = null;
+    command = null;
+    commandDetails = null;
+    forceNextProcess = false;
   }
 
-  public BackgroundProcess(BaseManager manager, Command command,
+  BackgroundProcess(BaseManager manager, Command command,
       BaseProcessManager processManager, AxisID axisID,
       ProcessName processName, ConstProcessSeries processSeries) {
     this.manager = manager;
@@ -380,9 +404,13 @@ public class BackgroundProcess extends Thread implements SystemProcessInterface 
     commandProcessID = new StringBuffer("");
     processData = ProcessData.getManagedInstance(axisID, manager, processName);
     this.processSeries = processSeries;
+    commandArrayList = null;
+    processDetails = null;
+    commandDetails = null;
+    forceNextProcess = false;
   }
 
-  public BackgroundProcess(BaseManager manager, String[] commandArray,
+  BackgroundProcess(BaseManager manager, String[] commandArray,
       BaseProcessManager processManager, AxisID axisID,
       boolean forceNextProcess, ProcessResultDisplay processResultDisplay,
       ConstProcessSeries processSeries, ProcessName processName) {
@@ -396,17 +424,21 @@ public class BackgroundProcess extends Thread implements SystemProcessInterface 
     processData = ProcessData.getManagedInstance(axisID, manager, processName);
     processData.setDisplayKey(processResultDisplay);
     this.processSeries = processSeries;
+    commandArrayList = null;
+    processDetails = null;
+    command = null;
+    commandDetails = null;
   }
 
   public final ConstProcessSeries getProcessSeries() {
     return processSeries;
   }
 
-  public final AxisID getAxisID() {
+  final AxisID getAxisID() {
     return axisID;
   }
 
-  public ProcessName getProcessName() {
+  final ProcessName getProcessName() {
     return processData.getProcessName();
   }
 
@@ -415,7 +447,7 @@ public class BackgroundProcess extends Thread implements SystemProcessInterface 
   }
 
   public final void setProcessResultDisplay(
-      ProcessResultDisplay processResultDisplay) {
+      final ProcessResultDisplay processResultDisplay) {
     this.processResultDisplay = processResultDisplay;
   }
 
@@ -435,7 +467,7 @@ public class BackgroundProcess extends Thread implements SystemProcessInterface 
    * Returns the enableDebug.
    * @return boolean
    */
-  public final boolean isDebug() {
+  final boolean isDebug() {
     return debug;
   }
 
@@ -444,6 +476,8 @@ public class BackgroundProcess extends Thread implements SystemProcessInterface 
   }
 
   /**
+   * <P>Returns false if the process will stop if Etomo exits.  Returns true if the
+   * process can continue when Etomo exits.</P>
    * Always returns false because this object mostly runs scripts, which stop
    * when etomo exits.  It also runs extractmagrad, extracttilts, and
    * extractpieces, which are not scripts.  I don't know if they hang up or not
@@ -459,15 +493,15 @@ public class BackgroundProcess extends Thread implements SystemProcessInterface 
    * Returns the workingDirectory.
    * @return File
    */
-  public final File getWorkingDirectory() {
+  final File getWorkingDirectory() {
     return workingDirectory;
   }
 
-  Command getCommand() {
+  final Command getCommand() {
     return command;
   }
 
-  CommandDetails getCommandDetails() {
+  final CommandDetails getCommandDetails() {
     return commandDetails;
   }
 
@@ -475,7 +509,7 @@ public class BackgroundProcess extends Thread implements SystemProcessInterface 
    * Returns the full command line.
    * @return File
    */
-  public final String getCommandLine() {
+  final String getCommandLine() {
     StringBuffer buffer;
     if (commandLine == null) {
       buffer = new StringBuffer();
@@ -505,7 +539,7 @@ public class BackgroundProcess extends Thread implements SystemProcessInterface 
     return commandLine.toString();
   }
 
-  public ProcessDetails getProcessDetails() {
+  final ProcessDetails getProcessDetails() {
     return processDetails;
   }
 
@@ -513,7 +547,7 @@ public class BackgroundProcess extends Thread implements SystemProcessInterface 
    * Returns command name of the process
    * @return File
    */
-  public final String getCommandName() {
+  final String getCommandName() {
     if (command != null) {
       return command.getCommandName();
     }
@@ -527,7 +561,7 @@ public class BackgroundProcess extends Thread implements SystemProcessInterface 
   /**
    * Set the working directory in which the com script is to be run.
    */
-  public final void setWorkingDirectory(File workingDirectory) {
+  final void setWorkingDirectory(File workingDirectory) {
     this.workingDirectory = workingDirectory;
   }
 
@@ -535,14 +569,14 @@ public class BackgroundProcess extends Thread implements SystemProcessInterface 
    * Sets the demoMode.
    * @param demoMode The demoMode to set
    */
-  public final void setDemoMode(boolean demoMode) {
+  final void setDemoMode(boolean demoMode) {
     this.demoMode = demoMode;
   }
 
   /**
    * @param debug
    */
-  public final void setDebug(boolean debug) {
+  final void setDebug(boolean debug) {
     this.debug = debug;
   }
 
@@ -611,7 +645,7 @@ public class BackgroundProcess extends Thread implements SystemProcessInterface 
     processDone(getProgram().getExitValue());
   }
 
-  final void processDone(int exitValue) {
+  final void processDone(final int exitValue) {
     ProcessMessages processMessages = getProcessMessages();
     ProcessMessages monitorMessages = getMonitorMessages();
     //  Check to see if the exit value is non-zero
@@ -675,7 +709,7 @@ public class BackgroundProcess extends Thread implements SystemProcessInterface 
     processManager.msgProcessDone(this, exitValue, errorFound);
   }
 
-  private final ProcessMessages getProcessMessages() {
+  private ProcessMessages getProcessMessages() {
     if (program == null) {
       return null;
     }
@@ -686,7 +720,7 @@ public class BackgroundProcess extends Thread implements SystemProcessInterface 
     return null;
   }
 
-  protected final SystemProgram getProgram() {
+  final SystemProgram getProgram() {
     return program;
   }
 
@@ -737,19 +771,19 @@ public class BackgroundProcess extends Thread implements SystemProcessInterface 
     return endState;
   }
 
-  public void kill(AxisID axisID) {
+  public void kill(final AxisID axisID) {
     processManager.signalKill(this, axisID);
   }
 
-  public void pause(AxisID axisID) {
+  public void pause(final AxisID axisID) {
     throw new IllegalStateException("pause is not valid in BackgroundProcess");
   }
 
-  public void signalKill(AxisID axisID) {
+  public void signalKill(final AxisID axisID) {
     processManager.signalKill(this, axisID);
   }
 
-  final void setProgram(SystemProgram program) {
+  final void setProgram(final SystemProgram program) {
     this.program = program;
   }
 }
