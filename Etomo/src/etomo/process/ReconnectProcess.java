@@ -11,6 +11,7 @@ import etomo.type.ConstStringProperty;
 import etomo.type.ProcessEndState;
 import etomo.type.ProcessName;
 import etomo.type.ProcessResultDisplay;
+import etomo.ui.UIHarness;
 
 /**
  * <p>Description: </p>
@@ -80,7 +81,7 @@ final class ReconnectProcess implements SystemProcessInterface, Runnable {
     instance.monitorControl = true;
     return instance;
   }
-  
+
   public ConstProcessSeries getProcessSeries() {
     return null;
   }
@@ -212,7 +213,10 @@ final class ReconnectProcess implements SystemProcessInterface, Runnable {
   }
 
   public final void kill(AxisID axisID) {
-    processManager.signalKill(this, axisID);
+    if (monitor!=null) {
+      monitor.kill(this,axisID);
+    }
+   // processManager.signalKill(this, axisID);
   }
 
   public void notifyKilled() {
@@ -223,8 +227,14 @@ final class ReconnectProcess implements SystemProcessInterface, Runnable {
     processManager.signalKill(this, axisID);
   }
 
-  public void pause(AxisID axisID) {
-    throw new IllegalStateException("pause is not used by any ReconnectProcess");
+  public final void pause(AxisID axisID) {
+    if (monitor == null) {
+      UIHarness.INSTANCE.openMessageDialog("Unable to pause.",
+          "Function Not Available");
+    }
+    else {
+      monitor.pause(this, axisID);
+    }
   }
 
   public void setProcessEndState(ProcessEndState endState) {
@@ -258,6 +268,10 @@ final class ReconnectProcess implements SystemProcessInterface, Runnable {
 }
 /**
  * <p> $Log$
+ * <p> Revision 1.6  2008/05/03 00:42:49  sueh
+ * <p> bug# 847 Passing ProcessSeries to process object constructors so it can
+ * <p> be passed to process done functions.
+ * <p>
  * <p> Revision 1.5  2008/01/31 20:20:28  sueh
  * <p> bug# 1055 throwing a FileException when LogFile.getInstance fails.
  * <p>
