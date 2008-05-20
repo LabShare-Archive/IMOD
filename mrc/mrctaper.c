@@ -23,12 +23,12 @@
 
 void mrctaper_help(char *name)
 {
-  fprintf(stderr,"Usage: %s [-i] [-t #] [-z min,max] input_file [output_file]\n",
-          name);
+  fprintf(stderr,"Usage: %s [-i] [-t #] [-z min,max] input_file [output_file]"
+          "\n", name);
   puts("Options:");
   puts("\t-i\tTaper inside (default is outside).");
-  printf("\t-t #\tTaper over the given # of pixels (default %d).\n", 
-         DEFAULT_TAPER);
+  printf("\t-t #\tTaper over the given # of pixels (default %d or 1%% of size)"
+         ".\n", DEFAULT_TAPER);
   puts("\t-z min,max\tDo only sections between min and max.");
   puts("\tWith no output file, images are written back to input file.");
 }
@@ -44,6 +44,7 @@ int main( int argc, char *argv[] )
   int bsize, csize, dsize;
   int inside = 0;
   int ntaper = DEFAULT_TAPER;
+  int taperEntered = 0;
   Islice slice;
   int zmin = -1, zmax = -1;
   int secofs;
@@ -66,6 +67,7 @@ int main( int argc, char *argv[] )
         break;
 
       case 't':
+        taperEntered = 1;
         if (argv[i][2] != 0x00)
           sscanf(argv[i], "-t%d", &ntaper);
         else
@@ -80,7 +82,7 @@ int main( int argc, char *argv[] )
         break;
 
       default:
-        fprintf(stderr, "ERROR: %s - illegal option\n", progname);
+        printf("ERROR: %s - illegal option\n", progname);
         mrctaper_help(progname);
         exit(1);
         break;
@@ -95,7 +97,7 @@ int main( int argc, char *argv[] )
   }
 
   if (ntaper < 1 || ntaper > 127) {
-    fprintf(stderr, "ERROR: %s - Taper must be between 1 and 127.\n",
+    printf("ERROR: %s - Taper must be between 1 and 127.\n",
             progname);
     exit(3);
   }
@@ -106,19 +108,24 @@ int main( int argc, char *argv[] )
     fin = fopen(argv[i++], "rb+");
 
   if (fin == NULL){
-    fprintf(stderr, "ERROR: %s - Opening %s.\n", progname, argv[i - 1]);
+    printf("ERROR: %s - Opening %s.\n", progname, argv[i - 1]);
     exit(3);
   }
   if (mrc_head_read(fin, &hdata)) {
-    fprintf(stderr, "ERROR: %s - Can't Read Input File Header.\n", progname);
+    printf("ERROR: %s - Can't Read Input File Header.\n", progname);
     exit(3);
   }
 
-  if (hdata.mode != MRC_MODE_BYTE && hdata.mode != MRC_MODE_SHORT &&
-      hdata.mode != MRC_MODE_USHORT && hdata.mode != MRC_MODE_FLOAT) {
-    fprintf(stderr, "ERROR: %s - Can operate only on byte, integer and "
+  if (sliceModeIfReal(hdata.mode) < 0) {
+    printf("ERROR: %s - Can operate only on byte, integer and "
             "real data.\n", progname);
     exit(3);
+  }
+
+  if (!taperEntered) {
+    ntaper = (hdata.nx + hdata.ny) / 200;
+    ntaper = B3DMIN(127, B3DMAX(DEFAULT_TAPER, ntaper));
+    printf("Tapering over %d pixels\n", ntaper);
   }
      
   if (zmin == -1 && zmax == -1) {
@@ -134,7 +141,7 @@ int main( int argc, char *argv[] )
   if (i < argc){
     fout = fopen(argv[i], "wb");
     if (fout == NULL) {
-      fprintf(stderr, "ERROR: %s - Opening %s.\n", progname, argv[i]);
+      printf("ERROR: %s - Opening %s.\n", progname, argv[i]);
       exit(3);
     }
     hout = hdata;
@@ -169,7 +176,7 @@ int main( int argc, char *argv[] )
   buf = (unsigned char *)malloc(dsize * csize * bsize);
      
   if (!buf){
-    fprintf(stderr, "ERROR: %s - Couldn't get memory for slice.\n", progname);
+    printf("ERROR: %s - Couldn't get memory for slice.\n", progname);
     exit(3);
   }
   sliceInit(&slice, hdata.nx, hdata.ny, hdata.mode, buf);
@@ -178,18 +185,18 @@ int main( int argc, char *argv[] )
     printf("\rDoing section #%4d", i);
     fflush(stdout);
     if (mrc_read_slice(buf, fin, &hdata, i, 'Z')) {
-      fprintf(stderr, "\nERROR: %s - Reading section %d.\n", progname, i);
+      printf("\nERROR: %s - Reading section %d.\n", progname, i);
       exit(3);
     }
       
     if (sliceTaperAtFill(&slice, ntaper, inside)) {
-      fprintf(stderr, "\nERROR: %s - Can't get memory for taper operation.\n",
+      printf("\nERROR: %s - Can't get memory for taper operation.\n",
               progname);
       exit(3);
     }
           
     if (mrc_write_slice(buf, fout, hptr, i - secofs, 'Z')) {
-      fprintf(stderr, "\nERROR: %s - Writing section %d.\n", progname, i);
+      printf("\nERROR: %s - Writing section %d.\n", progname, i);
       exit(3);
     }
   }
@@ -206,6 +213,9 @@ int main( int argc, char *argv[] )
 
 /*
 $Log$
+Revision 3.9  2007/06/13 17:13:42  sueh
+bug# 1019 In main, setting hout.sectionSkip to 0.
+
 Revision 3.8  2007/05/27 20:22:36  mast
 Added taper routine to library
 
