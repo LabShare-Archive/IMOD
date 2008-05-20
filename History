@@ -1,5 +1,8 @@
 IMOD History
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+5/20/08: Added option to Finishjoin to do local fits instead of global
+alignment when running Xftoxg.
+
 5/20/08: Changed mrctaper to taper over 1% of the image size (mean of X and Y
 dimensions) when size is above 1600 pixels.
 

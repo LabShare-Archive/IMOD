@@ -59,6 +59,12 @@ option has no effect if the
 .B -trial
 option is not entered.
 .TP
+.B -local
+When running Xftoxg(1) on the primary alignment transforms, run the program in
+its default mode, which does local fits to 7 adjacent sections.  This option
+may eliminate unwanted trends in data sets with many sections.  When it is not
+entered, Xftoxg(1) is run with "-nfit 0", which computes a global alignment.  
+.TP
 .B -xform <file>
 Use the refinement transforms contained in the given file to compute the
 transforms to apply to the tomograms.  The file should contain global
