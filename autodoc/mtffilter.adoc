@@ -24,6 +24,17 @@ tooltip =
 manpage = First and last Z values in the file to filter.  Values are
 numbered from 1 and the default is to do all sections.
 
+[Field = FilterIn3D]
+short = 3dfilter
+type = B
+usage = Filter data in 3D instead of in 2D
+tooltip = 
+manpage = Filter data in 3D instead of in 2D.  The entire volume will be
+filtered, so it must fit into memory and -zrange cannot be entered.  If the
+volume will not fit in memory, use "clip fft -3d" to get an FFT, run Mtffilter
+on the 3D FFT, then inverse transform with "clip fft -3d -m mode", where
+mode is the desired output mode, typically the same as the input.
+
 [Field = LowPassRadiusSigma]
 short = lowpass
 type = FP

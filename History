@@ -1,5 +1,8 @@
 IMOD History
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+5/20/08: Added ability to do 3D filtering directly on an image file and not
+just on an FFT with mtffilter.
+
 5/16/08: In Etomo making kill and pause work for a reconnected processchunks
 process.
 
