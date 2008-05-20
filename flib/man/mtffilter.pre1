@@ -85,3 +85,6 @@ INSERT OPTION TEXT HERE
 
 
 HHIISSTTOORRYY
+  Added to package, 3/30/04
+  Added ability to operate on 3D FFT, 6/19/04
+  Added ability to take filter real volume in 3D, 5/20/08
