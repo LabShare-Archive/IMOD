@@ -36,6 +36,7 @@ cat <<EOF
                       pixels.
         -m[axsize]    Just compute the maximum size and offsets needed to
                       contain all of the transformed data, then exit
+        -l[ocal]      Use local fits to 7 sections when running xftoxg
         -x[form] file Refine alignment with g transforms in the given file
         -g[aps]       Fill gaps with blank slices if a slice range goes beyond
                       the bounds of the input
@@ -64,6 +65,7 @@ set trial = ""
 set newmode = ""
 set xffile = ""
 set gaps = 0
+set fitopt = "-nfit 0"
 
 while ($#argv > 2 && $joinroot == "")
   switch ($argv[1])
@@ -95,6 +97,10 @@ while ($#argv > 2 && $joinroot == "")
       breaksw
     case -m*:
       set maxsize = 1
+      shift
+      breaksw
+    case -l*:
+      set fitopt = ""
       shift
       breaksw
     case -g*:
@@ -299,7 +305,7 @@ endif
 # 10/11/05: stop checking for big transformation if no reference, since
 # we now have range option to ignore them
 #
-xftoxg -range $anglerange $refarg -nfit 0 $joinroot.tomoxf $joinroot.tomoxg
+xftoxg -range $anglerange $refarg $fitopt $joinroot.tomoxf $joinroot.tomoxg
 if ($status) goto error
 
 if ($ifsquoze == "1") then
@@ -374,6 +380,9 @@ exit 1
 
 #
 #  $Log$
+#  Revision 3.21  2008/01/04 07:03:38  mast
+#  Fixed for space in IMOD_DIR, possibly for space in tmpdir
+#
 #  Revision 3.20  2007/02/01 02:30:22  mast
 #  Do not adjust offset for binning, newstack does it already
 #
