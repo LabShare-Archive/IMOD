@@ -1,5 +1,8 @@
 IMOD History
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+5/20/08: Changed Makejoincom to put out sequential lines for stacking sample
+averages to avoid having one very long line.
+
 5/20/08: Fixed Densmatch to work on a single section.
 
 5/20/08: Added ability to do 3D filtering directly on an image file and not
