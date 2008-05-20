@@ -113,7 +113,7 @@ c
         call irdhdr(iun,nxyz,mxyz,mode,dmin,dmax,dmean)
         if(nx.ge.idim)call exitError('IMAGE TOO LARGE IN X FOR ARRAY')
         do i = 1, 3
-          nxyzuse(i) = nxyz(i) / 2
+          nxyzuse(i) = max(1, nxyz(i) / 2)
           ixyzs(i) = nxyz(i) / 4
           if (ifMM(i) .ne. 0) then
             ixyzs(i) = iStart(i)
@@ -138,7 +138,7 @@ c         Make sure there are at least 10 samples in each direction
           nsxyz(i)=max((nxyzuse(i) - 1)/idsamp + 1, min(nxyzuse(i), 10))
           if (nsxyz(i) .eq. 1) then
             dxyzsamp(i) = 1
-            ixyzs(i) = (iEnd(i) + 1 + iStart(i)) / 2
+            if (ifMM(i) .ne. 0) ixyzs(i) = (iEnd(i) + 1 + iStart(i)) / 2
           else
             dxyzsamp(i) = (nxyzuse(i) - 1.) / (nsxyz(i) - 1.)
           endif
@@ -234,6 +234,9 @@ c       read(titlech,'(20a4)')(title(kti),kti=1,20)
 
 c       
 c       $Log$
+c       Revision 3.4  2008/04/26 19:45:12  mast
+c       Added options for setting match area and offset; minimum sampling
+c
 c       Revision 3.3  2006/09/28 21:25:22  mast
 c       changed call to avgsd8
 c
