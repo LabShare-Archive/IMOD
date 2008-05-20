@@ -27,8 +27,8 @@ artifacts in Fourier transforms.
 Taper inside rather than outside.
 .TP
 .B -t #
-Taper over the given number of pixels.  Enter "mrctaper" to determine the
-default value for tapering.
+Taper over the given number of pixels.  The default value is 1% of the mean
+of the X and Y sizes of the image, but at least 16 pixels and no more than 127.
 .TP
 .B -z <min,max>
 Operate only on sections from
