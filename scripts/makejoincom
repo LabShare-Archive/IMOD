@@ -2,11 +2,7 @@
 # INTERACTIVE OR COMMAND-LINE SHELL SCRIPT TO MAKE INITIAL COMMAND FILE FOR 
 # JOINING TOMOGRAMS
 #
-#  $Author$
-#
-#  $Date$
-#
-#  $Revision$
+#  $Id$
 #  Log at end of file
 #
 
@@ -739,8 +735,13 @@ EOF
     set tmplist = ($tmplist $joinroot.tmpavg.$ind)
 end
 
+echo '$newstack -StandardInput' >> $joincom
+echo "OutputFile $joinroot.sampavg" >> $joincom
+foreach i ($tmplist)
+    echo "InputFile $i" >> $joincom
+end
+
 cat >> $joincom <<EOF
-\$newstack $tmplist $joinroot.sampavg
 \$\\rm -f $joinroot.tmpavg.*
 EOF
 
@@ -793,6 +794,9 @@ EOF
 
 #
 #  $Log$
+#  Revision 3.17  2006/08/17 18:36:54  mast
+#  Added locale statement to keep output of awk from having instead of .
+#
 #  Revision 3.16  2006/06/06 23:04:49  mast
 #  Moved control stripping before /p
 #
