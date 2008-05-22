@@ -7,15 +7,10 @@
  *  Copyright (C) 1995-2006 by Boulder Laboratory for 3-Dimensional Electron
  *  Microscopy of Cells ("BL3DEMC") and the Regents of the University of 
  *  Colorado.  See dist/COPYRIGHT for full copyright notice.
+ *
+ *  $Id$
+ * Log at end of file
  */
-
-/*  $Author$
-
-$Date$
-
-$Revision$
-Log at end of file
-*/
 
 #include <qgl.h>
 #include <qcursor.h>
@@ -239,6 +234,8 @@ static void mapOneNamedColor(int index)
   mapcolor(index, qcol.red(), qcol.green(), qcol.blue());
 }
 
+// Returns the IMOD_DRAW_MOD falg always, adds the IMOD_DRAW_XYZ flag and syncs
+// xyzmouse to current model point if one is defined
 static int rethink(ImodView *vw)
 {
   Iobj   *obj;
@@ -278,13 +275,15 @@ int imodDraw(ImodView *vw, int flag)
   int time, cx, cy, cz;
   static int lastz = -1, lastTime = -1;
 
-  /* 
+  /*   SEE imod.h FOR DEFINITIVE LIST AND FULL DESCRIPTION:
    * IMOD_DRAW_IMAGE: image data or color map has changed; draw all images, 
    *                  clear caches
    * IMOD_DRAW_XYZ:   x,y,z position changed.
    * IMOD_DRAW_MOD:   model has changed.
    * IMOD_DRAW_SLICE: slice has changed in slicer
    * IMOD_DRAW_SKIPMODV: Skip drawing model view even though _MOD is set
+   * IMOD_DRAW_RETHINK: Set current point from current model point if defined
+   * IMOD_DRAW_NOSYNC:  Do not sync Zap window to current model point
    * IMOD_DRAW_COLORMAP: color index map has changed, do not combine with
    *                     other flags
    */
@@ -547,7 +546,11 @@ int imodFindQGLFormat(ImodApp *ap, char **argv)
 }
 
 /*
+
 $Log$
+Revision 4.22  2008/05/02 22:17:18  xiongq
+add smoothing capability and adjust histgram acoording to intensity range of the input stack
+
 Revision 4.21  2008/01/25 20:22:58  mast
 Changes for new scale bar
 
