@@ -659,7 +659,7 @@ void imodvRegisterModelChg()
 
 void imodvRegisterObjectChg(int object)
 {
-  if (Imodv->standalone)
+  if (Imodv->standalone || object >= Imodv->imod->objsize)
     return;
   Imodv->vi->undo->objectPropChg(object);
 }
@@ -702,6 +702,9 @@ void imodvQuit()
 
 /*
 $Log$
+Revision 4.35  2008/04/01 23:44:09  mast
+initialized new flag
+
 Revision 4.34  2008/01/25 20:22:58  mast
 Changes for new scale bar
 

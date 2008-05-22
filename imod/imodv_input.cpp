@@ -129,6 +129,7 @@ void imodvKeyPress(QKeyEvent *event)
     if (shifted){
       imodv_control(a, 1);
     }else{
+      objedObject();
       if (a->obj){
         clips = a->imod->editGlobalClip ? 
           &a->imod->view->clips : &a->obj->clips;
@@ -596,8 +597,10 @@ static void registerClipPlaneChg(ImodvApp *a)
   if (firstMove) {
     if (a->imod->editGlobalClip)
       imodvRegisterModelChg();
-    else
+    else {
+      objedObject();
       imodvRegisterObjectChg(a->ob);
+    }
     imodvFinishChgUnit();
     firstMove = 0;
   }
@@ -655,6 +658,7 @@ static void imodv_translated(ImodvApp *a, int x, int y, int z)
     opt.z *= (1.0/ imod->view->scale.z);
     
     if (maskr & Qt::ControlButton){
+      objedObject();
       if (a->obj){
         registerClipPlaneChg(a);
         clips = a->imod->editGlobalClip ? 
@@ -714,8 +718,7 @@ static void imodv_compute_rotation(ImodvApp *a, float x, float y, float z)
   Ipoint normal;
   Ipoint scalePoint;
   Imod *imod = a->imod;
-  IclipPlanes *clips = imod->editGlobalClip ? 
-    &imod->view->clips : &a->obj->clips;
+  IclipPlanes *clips;
 
   /* IF movieing, start the movie if necessary */
   if (a->movie && !a->wpid) {
@@ -760,56 +763,63 @@ static void imodv_compute_rotation(ImodvApp *a, float x, float y, float z)
     imodvNewModelAngles(&imod->view->rot);
           
   } else {
-    ipst = ipnd = clips->plane;
-    if (imod->view->world & WORLD_MOVE_ALL_CLIP) {
-      ipst = 0;
-      ipnd = clips->count - 1;
-    }
-    for (ip = ipst; ip <= ipnd; ip++) {
-      if (clips->flags & (1 << ip)) {
-        
-        /* Clipping plane rotation: apply to current model only */
-
-        registerClipPlaneChg(a);
-
-        /* Find the normal in scaled model coordinates by scaling
-           each of the components appropriately */
-        scalePoint.x = clips->normal[ip].x / imod->view->scale.x;
-        scalePoint.y = clips->normal[ip].y / imod->view->scale.y;
-        scalePoint.z = clips->normal[ip].z / 
-          (imod->view->scale.z * imod->zscale);
-
-        /* get current rotation transform into viewing space */
-        imodMatId(mato);
-        imodMatRot(mato, (double)imod->view->rot.z, b3dZ);
-        imodMatRot(mato, (double)imod->view->rot.y, b3dY);
-        imodMatRot(mato, (double)imod->view->rot.x, b3dX);
-
-        /* Get product of that with screen-oriented rotation */
-        imodMatMult(mato, mat, matp);
-        imodMatTransform(matp, &scalePoint, &normal);
-
-        /* Back-transform normal by inverse of current transform */
-
-        imodMatId(mato);
-        imodMatRot(mato, -(double)imod->view->rot.x, b3dX);
-        imodMatRot(mato, -(double)imod->view->rot.y, b3dY);
-        imodMatRot(mato, -(double)imod->view->rot.z, b3dZ);
-        imodMatTransform(mato, &normal, &scalePoint);
-
-        /* Rescale components to get back to unscaled model normal */
-        clips->normal[ip].x = scalePoint.x * imod->view->scale.x;
-        clips->normal[ip].y = scalePoint.y * imod->view->scale.y;
-        clips->normal[ip].z = scalePoint.z * 
-          (imod->view->scale.z * imod->zscale);
-        imodPointNormalize(&(clips->normal[ip]));
-
-        // Reset the fixed point to point nearest center of field
-        clipCenterAndAngles(a, &clips->point[ip], &clips->normal[ip], 
-                            &normal, alpha, beta);
-        clips->point[ip].x = -normal.x;
-        clips->point[ip].y = -normal.y;
-        clips->point[ip].z = -normal.z;
+    objedObject();
+    if (imod->editGlobalClip || a->obj) {
+      if (imod->editGlobalClip)
+        clips = &imod->view->clips;
+      else
+        clips = &a->obj->clips;
+      ipst = ipnd = clips->plane;
+      if (imod->view->world & WORLD_MOVE_ALL_CLIP) {
+        ipst = 0;
+        ipnd = clips->count - 1;
+      }
+      for (ip = ipst; ip <= ipnd; ip++) {
+        if (clips->flags & (1 << ip)) {
+          
+          /* Clipping plane rotation: apply to current model only */
+          
+          registerClipPlaneChg(a);
+          
+          /* Find the normal in scaled model coordinates by scaling
+             each of the components appropriately */
+          scalePoint.x = clips->normal[ip].x / imod->view->scale.x;
+          scalePoint.y = clips->normal[ip].y / imod->view->scale.y;
+          scalePoint.z = clips->normal[ip].z / 
+            (imod->view->scale.z * imod->zscale);
+          
+          /* get current rotation transform into viewing space */
+          imodMatId(mato);
+          imodMatRot(mato, (double)imod->view->rot.z, b3dZ);
+          imodMatRot(mato, (double)imod->view->rot.y, b3dY);
+          imodMatRot(mato, (double)imod->view->rot.x, b3dX);
+          
+          /* Get product of that with screen-oriented rotation */
+          imodMatMult(mato, mat, matp);
+          imodMatTransform(matp, &scalePoint, &normal);
+          
+          /* Back-transform normal by inverse of current transform */
+          
+          imodMatId(mato);
+          imodMatRot(mato, -(double)imod->view->rot.x, b3dX);
+          imodMatRot(mato, -(double)imod->view->rot.y, b3dY);
+          imodMatRot(mato, -(double)imod->view->rot.z, b3dZ);
+          imodMatTransform(mato, &normal, &scalePoint);
+          
+          /* Rescale components to get back to unscaled model normal */
+          clips->normal[ip].x = scalePoint.x * imod->view->scale.x;
+          clips->normal[ip].y = scalePoint.y * imod->view->scale.y;
+          clips->normal[ip].z = scalePoint.z * 
+            (imod->view->scale.z * imod->zscale);
+          imodPointNormalize(&(clips->normal[ip]));
+          
+          // Reset the fixed point to point nearest center of field
+          clipCenterAndAngles(a, &clips->point[ip], &clips->normal[ip], 
+                              &normal, alpha, beta);
+          clips->point[ip].x = -normal.x;
+          clips->point[ip].y = -normal.y;
+          clips->point[ip].z = -normal.z;
+        }
       }
     }
   }
@@ -1189,6 +1199,9 @@ void imodvMovieTimeout()
 /*
 
 $Log$
+Revision 4.36  2008/04/29 18:11:51  xiongq
+add isosurface dialog
+
 Revision 4.35  2008/03/04 23:55:47  mast
 Made point pick debug available on a key letter
 
