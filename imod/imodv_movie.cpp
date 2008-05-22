@@ -559,6 +559,8 @@ static void imodvMakeMontage(int frames, int overlap)
         
       }
       xinput(); 
+      if (ImodvClosed)
+        return;
 
       if (movie->abort)
         break;
@@ -612,6 +614,9 @@ static void imodvMakeMontage(int frames, int overlap)
 
 /*
     $Log$
+    Revision 4.16  2008/01/25 20:22:58  mast
+    Changes for new scale bar
+
     Revision 4.15  2007/11/10 04:07:10  mast
     Changes for setting snapshot directory
 
