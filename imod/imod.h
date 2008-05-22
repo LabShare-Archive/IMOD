@@ -37,16 +37,41 @@ class QKeyEvent;
  * are flags added by the control module when calling the active or top window
  * and would not be included in calls to the draw routines.
  */
-#define IMOD_DRAW_IMAGE       (1) /* image data has been changed.         */
-#define IMOD_DRAW_XYZ      (1<<1) /* current point has been changed.      */
-#define IMOD_DRAW_MOD      (1<<2) /* model data has been changed.         */
-#define IMOD_DRAW_SLICE    (1<<3) /* A slicer location has changed.        */
-#define IMOD_DRAW_CMAP     (1<<4) /* Colormap has changed.                */
-#define IMOD_DRAW_MODVIEW  (1<<5) /* model view changed (unused)          */
-#define IMOD_DRAW_SKIPMODV (1<<5) /* skip drawing model view              */
-#define IMOD_DRAW_COLORMAP (1<<11)  /* Colormap has changed (index mode)  */
-#define IMOD_DRAW_NOSYNC  (1<<12) /* do not resync image to model point.  */
-#define IMOD_DRAW_RETHINK (1<<13) /* recalc cursor position               */
+
+/* image data or color map has changed; windows need to clear caches and draw
+   all images */
+#define IMOD_DRAW_IMAGE       (1) 
+
+/* The current point x, y, z position has been changed.  This causes an update
+   of the info window x/y/z, image scale dialog if multifile Z loaded, and
+   the isosurface window.  Model view will be drawn if the image display is
+   on, unless the IMOD_DRAW_SKIPMODV flag is also set. */
+#define IMOD_DRAW_XYZ      (1<<1) 
+
+/* Model data or current model object/contour/point has been changed. 
+   Prior to XYZ update, this causes update to info window obj/cont/pt, and
+   to object edit, cont/surf/pt, contour move and fine grain dialogs and
+   update of plugins with IMOD_REASON_MODUPDATE.  Model view will be drawn
+   unless the IMOD_DRAW_SKIPMODV flag is also set. */
+#define IMOD_DRAW_MOD      (1<<2)
+
+/* A slicer location has changed; Zap and XYZ windows will draw slicer lines */
+#define IMOD_DRAW_SLICE    (1<<3) 
+
+/* Skip drawing model view.  Use this to cause a draw of image windows when
+ a model view draw is already inevitable */
+#define IMOD_DRAW_SKIPMODV (1<<5) 
+
+/* Color index mode color map has changed.  Do not combine with other flags. */
+#define IMOD_DRAW_COLORMAP (1<<11)
+
+/* Do not resync image to model point.  This keeps Zap from recentering. */
+#define IMOD_DRAW_NOSYNC  (1<<12)
+
+/* Recalculate cursor position: adds the IMOD_DRAW_MOD flag, and if there is
+   a current model point defined, sets current point x,y,z to it and adds the 
+   IMOD_DRAW_XYZ flag */
+#define IMOD_DRAW_RETHINK (1<<13)
 #define IMOD_DRAW_ACTIVE  (1<<14) /* current window is active.            */
 #define IMOD_DRAW_TOP     (1<<15) /* current window has highest priority. */
 
@@ -162,6 +187,9 @@ int DLL_EX_IM imodShowHelpPage(const char *page);
 
 /*
     $Log$
+    Revision 3.17  2008/02/06 16:14:09  sueh
+    bug# 1065 Changed wprint(char *) to wprint(const char*).
+
     Revision 3.16  2008/01/17 22:33:54  mast
     Added reason define for plugin update call
 
