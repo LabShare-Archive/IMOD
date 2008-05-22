@@ -8,7 +8,7 @@
 #define IMODV_LISTOBJ_H
 
 
-#define OBJLIST_NUMBUTTONS 8
+#define OBJLIST_NUMBUTTONS 9
 
 typedef struct __imodv_struct ImodvApp;
 #include <qwidget.h>
@@ -70,6 +70,9 @@ class ImodvOlist : public QWidget
 /*
 
 $Log$
+Revision 4.2  2008/01/27 06:22:28  mast
+Added multiple object group controls
+
 Revision 4.1  2008/01/21 17:48:30  mast
 New module
 
