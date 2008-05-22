@@ -12,7 +12,7 @@ import java.util.Properties;
  * implemented with a hash, not an array.  This should allow it to be lightly
  * populated (key values don't have to be numerically contiguous).</p>
  * 
- * </p>Before the list is loaded from a dialog using the put() function, the
+ * </p>Before the list is loaded from a dialog using the set() function, the
  * reset() function should be called to clear out the list and reset the start
  * and end keys.  The list can be changed completely between loading and
  * storing without keeping track of anything because the store() function
@@ -32,6 +32,11 @@ import java.util.Properties;
  * @version $Revision$
  * 
  * <p> $Log$
+ * <p> Revision 1.6  2007/06/06 20:42:37  sueh
+ * <p> bug# 1016 Added getPrepend(String, String tempKey), load(Properties,
+ * <p> String, String tempKey), and remove(Properties, String, String tempKey) to
+ * <p> allow an IntKeyList property to be tranferred to another key.
+ * <p>
  * <p> Revision 1.5  2007/05/16 01:46:16  sueh
  * <p> bug# 964 Added RowKey.toString().
  * <p>
@@ -125,6 +130,12 @@ public final class IntKeyList implements ConstIntKeyList {
     }
   }
 
+  /**
+   * Added intKeyList to the instance.  This function does not replace the
+   * existing list, though it may replace individual elements.  If you want to
+   * replace the existing list, call reset before calling this function.
+   * @param intKeyList
+   */
   public void set(final ConstIntKeyList intKeyList) {
     if (intKeyList == null) {
       return;
@@ -140,18 +151,27 @@ public final class IntKeyList implements ConstIntKeyList {
   public synchronized void put(final int key, final String value) {
     rowKey.adjustFirstLastKeys(key);
     list.put(buildKey(key), new Pair(key, value, etomoNumberType));
+    if (debug) {
+      System.out.println("list.size()="+list.size());
+    }
   }
 
   public synchronized void put(int key, ConstEtomoNumber value) {
     rowKey.adjustFirstLastKeys(key);
     list.put(buildKey(key), new Pair(key, value, etomoNumberType));
+    if (debug) {
+      System.out.println("list.size()="+list.size());
+    }
   }
 
   public synchronized void put(int key, int value) {
     rowKey.adjustFirstLastKeys(key);
     list.put(buildKey(key), new Pair(key, value, etomoNumberType));
+    if (debug) {
+      System.out.println("list.size()="+list.size());
+    }
   }
-
+  
   /**
    * puts the value, generates its own key (lastKey+1)
    * @param value
@@ -159,6 +179,9 @@ public final class IntKeyList implements ConstIntKeyList {
   public synchronized void put(ConstEtomoNumber value) {
     int key = rowKey.genKey();
     list.put(buildKey(key), new Pair(key, value, etomoNumberType));
+    if (debug) {
+      System.out.println("list.size()="+list.size());
+    }
   }
 
   public int getFirstKey() {
@@ -225,6 +248,9 @@ public final class IntKeyList implements ConstIntKeyList {
       String value = props.getProperty(group + String.valueOf(i));
       if (value != null) {
         list.put(String.valueOf(i), new Pair(i, value, etomoNumberType));
+        if (debug) {
+          System.out.println("list.size()="+list.size());
+        }
       }
     }
   }
@@ -240,6 +266,9 @@ public final class IntKeyList implements ConstIntKeyList {
       String value = props.getProperty(group + String.valueOf(i));
       if (value != null) {
         list.put(String.valueOf(i), new Pair(i, value, etomoNumberType));
+        if (debug) {
+          System.out.println("list.size()="+list.size());
+        }
       }
     }
   }
@@ -371,6 +400,9 @@ public final class IntKeyList implements ConstIntKeyList {
     }
 
     public int size() {
+      if (debug) {
+        System.out.println("list.size()="+list.size());
+      }
       return list.size();
     }
 
