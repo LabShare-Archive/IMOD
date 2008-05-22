@@ -20,6 +20,10 @@ import etomo.BaseManager;
  * @version $Revision$
  * 
  * <p> $Log$
+ * <p> Revision 1.11  2007/12/10 22:36:45  sueh
+ * <p> bug# 1041 Made Const class an interface so inheritance can come from
+ * <p> BaseMetaData.
+ * <p>
  * <p> Revision 1.10  2007/08/29 21:44:45  sueh
  * <p> bug# 1041 Made BaseState an abstract class.
  * <p>
@@ -489,10 +493,11 @@ public final class JoinState extends BaseState implements ConstJoinState {
 
   public void setJoinStartList(boolean trial, ConstIntKeyList startList) {
     if (trial) {
-
+      joinTrialStartList.reset();
       joinTrialStartList.set(startList);
     }
     else {
+      joinStartList.reset();
       joinStartList.set(startList);
     }
   }
@@ -514,18 +519,22 @@ public final class JoinState extends BaseState implements ConstJoinState {
   }
 
   public void setRefineStartList(ConstIntKeyList startList) {
+    refineStartList.reset();
     refineStartList.set(startList);
   }
 
   public void setRefineEndList(ConstIntKeyList endList) {
+    refineEndList.reset();
     refineEndList.set(endList);
   }
 
   public void setJoinEndList(boolean trial, ConstIntKeyList endList) {
     if (trial) {
+      joinTrialEndList.reset();
       joinTrialEndList.set(endList);
     }
     else {
+      joinEndList.reset();
       joinEndList.set(endList);
     }
   }
