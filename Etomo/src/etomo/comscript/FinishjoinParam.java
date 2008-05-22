@@ -16,6 +16,7 @@ import etomo.type.EtomoNumber;
 import etomo.type.IntKeyList;
 import etomo.type.ScriptParameter;
 import etomo.type.SectionTableRowData;
+import etomo.ui.UIHarness;
 import etomo.util.DatasetFiles;
 
 /**
@@ -32,6 +33,9 @@ import etomo.util.DatasetFiles;
  * @version $Revision$
  * 
  * <p> $Log$
+ * <p> Revision 1.31  2008/03/21 17:08:34  sueh
+ * <p> bug# 1101 Put "tcsh -f" back.
+ * <p>
  * <p> Revision 1.30  2007/12/13 01:05:03  sueh
  * <p> bug# 1056 Changed etomo.comscript.Fields to etomo.comscript.Field.
  * <p>
@@ -523,6 +527,14 @@ public final class FinishjoinParam implements CommandDetails {
       options.add(start + "," + end);
       refineStartList.put(start);
       refineEndList.put(end);
+    }
+    else if (numRows >= 2 && numRows == endListWalker.size()
+        && numRows > gapStartListWalker.size() + 1
+        && numRows > gapEndListWalker.size() + 1) {
+      UIHarness.INSTANCE.openMessageDialog(
+          "The dataset file may be corrupted.  If this process fails, exit "
+              + "and rerun Etomo, then go to the Join tab and run Finish "
+              + "Join to fix the problem.", "Etomo Warning");
     }
     return options;
   }
