@@ -23,6 +23,7 @@
 #include "imod_edit.h"
 #include "imodv_gfx.h"
 #include "imodv_ogl.h"
+#include "imodv_objed.h"
 #include "imodv_input.h"
 #include "imodv_light.h"
 #include "imodv_stereo.h"
@@ -598,7 +599,6 @@ static void imodvSetObject(Iobj *obj, int style, int drawTrans)
   unsigned char *ub;
      
   trans = 1.0f - (obj->trans * 0.01f);
-
   switch(style){
   case 0:
     imodvUnsetObject(obj);
@@ -710,7 +710,8 @@ static void imodvDraw_object(Iobj *obj, Imod *imod, int drawTrans)
   double zscale;
   Imesh *mesh;
   int checkTime = (int)iobjTime(obj->flags);
-  bool hasSpheres = iobjScat(obj->flags) || obj->pdrawsize > 0;
+  bool hasSpheres = (iobjScat(obj->flags) || obj->pdrawsize > 0) && 
+    obj->contsize > 0;
   if (!CTime)
     checkTime = 0;
 
@@ -1390,15 +1391,15 @@ static int sphereRes[MAX_LOOKUP][MAX_QUALITY];
 static float measuredSize[MAX_MEASURES] = 
   { 1.5, 2.5, 3.75, 7.5, 30., 40., 60., 80., 120.};
 static int measuredRes[MAX_MEASURES][MAX_QUALITY] = {
-  0, 1, 2, 2, 2,
-  0, 1, 2, 3, 4,
-  0, 1, 2, 4, 6,
-  0, 2, 4, 6, 8,
-  0, 2, 5, 8, 10,
-  0, 2, 6, 8, 10,
-  0, 2, 8, 10, 12,
-  0, 2, 10, 12, 14,
-  0, 2, 12, 14, 16
+  {0, 1, 2, 2, 2},
+  {0, 1, 2, 3, 4},
+  {0, 1, 2, 4, 6},
+  {0, 2, 4, 6, 8},
+  {0, 2, 5, 8, 10},
+  {0, 2, 6, 8, 10},
+  {0, 2, 8, 10, 12},
+  {0, 2, 10, 12, 14},
+  {0, 2, 12, 14, 16}
 };
 static int firstSphere = 1;
 
@@ -1597,6 +1598,7 @@ static void imodvDraw_spheres(Iobj *obj, double zscale, int style,
     if (checkThickerContour(co))
       glLineWidth(obj->linewidth);
   }
+
   glDeleteLists(listIndex, 1);
   glPopMatrix();
   glPopName();
@@ -2398,7 +2400,8 @@ static void drawCurrentClipPlane(ImodvApp *a)
   int ind, ip;
   float vx[4], vy[4], vz[4];
   float zscale = a->imod->zscale ? a->imod->zscale : 1.;
-
+  
+  objedObject();
   if (!mat || !a->obj)
     return;
   clips = a->imod->editGlobalClip ? &a->imod->view->clips : &a->obj->clips;
@@ -2444,6 +2447,10 @@ static void drawCurrentClipPlane(ImodvApp *a)
 
 /*
 $Log$
+Revision 4.37  2008/04/01 23:43:16  mast
+Fixed transparency when run from 3dmod, made it draw mesh if no contours,
+and added flag for drawing extra objects only.
+
 Revision 4.36  2008/03/05 20:06:45  mast
 Added ability to draw stippled contours and extra objects
 
