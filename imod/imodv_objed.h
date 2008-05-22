@@ -12,6 +12,7 @@
 #define IMODV_OBJED_H
 
 typedef struct __imodv_struct ImodvApp;
+typedef struct Mod_Object Iobj;
 #include <qwidget.h>
 class QFrame;
 
@@ -39,6 +40,7 @@ int object_edit_kill(void);
 
 /* Create and init the object edit dialog. */
 void objed(ImodvApp *a);
+Iobj *objedObject(void);
 void imodvObjedNewView(void);
 void objedToggleObj(int ob, bool state);
 void imodvObjedDrawData(int option);
@@ -135,6 +137,9 @@ class ImodvObjed : public QObject
 
 /*
 $Log$
+Revision 4.12  2008/01/21 17:48:12  mast
+Split object list off
+
 Revision 4.11  2007/09/22 00:06:20  mast
 Added constant mesh color slot
 

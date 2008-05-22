@@ -50,11 +50,8 @@
 #include "control.h"
 
 /*
- *  internal prototypes (first two were public but unused)
+ *  internal prototypes (first one was public but unused)
  */
-
-/*  returns the current object being edited by objed. */
-static Iobj *objedObject(void);
 
 /* returns the current model being used for object editing. */
 static Imod *objedModel(void) { return(Imodv->imod); }
@@ -62,6 +59,7 @@ static Imod *objedModel(void) { return(Imodv->imod); }
 static void objset(ImodvApp *a);
 static void setObjFlag(int flag, int state, int types = 0);
 static void setOnoffButtons(void);
+static void addOnoffButton(void);
 static void finalSpacer(QWidget *parent, QVBoxLayout *layout);     
 static void setLineColor_cb(void);
 static void mkLineColor_cb(int index);
@@ -88,6 +86,8 @@ static MeshParams *makeGetObjectParams(void);
 static void meshObject();
 static void finishMesh();
 static void optionSetFlags (b3dUInt32 *flag);
+static int numEditableObjects(int model);
+static Iobj *editableObject(int model, int ob);
 static void finishChangeAndDraw(int doObjset, int drawImages);
 static void setStartEndModel(int &mst, int &mnd, bool multipleOK = true);
 static bool changeModelObject(int m, int ob, bool multipleOK = true);
@@ -96,7 +96,7 @@ static bool drawOnSliderChange(bool dragging);
 static void makeRadioButton(char *label, QWidget *parent, QButtonGroup *group,
                             QVBoxLayout *layout1, char *tooltip);
 
-/* resident instance of the IModvObjed class, and pointers to the dialog
+/* resident instance of the ImodvObjed class, and pointers to the dialog
    box classes when they are created */
 static ImodvObjed imodvObjed;
 static imodvObjedForm *objed_dialog = NULL;
@@ -123,6 +123,9 @@ enum {editOne = 0, editAll, editOns, editGroup};
 #define MAX_ONOFF_COLUMNS   6
 static QCheckBox *OnoffButtons[MAX_ONOFF_BUTTONS];
 static int numOnoffButtons = 0;
+static QGridLayout *OnoffGrid;
+static QSignalMapper *OnoffMapper;
+static QFrame *OnoffFrame;
 
 static int      CurrentObjectField       = 0;
 ObjectEditField objectEditFieldData[]    = {
@@ -170,6 +173,7 @@ static void optionSetFlags (b3dUInt32 *flag)
 void imodvObjedDrawData(int option)
 {
   int m, mst, mnd, ob;
+  Iobj *obj;
 
   switch(option){
   case 0:
@@ -213,10 +217,11 @@ void imodvObjedDrawData(int option)
     setStartEndModel(mst, mnd);
     
     for (m = mst; m <= mnd; m++) {
-      for (ob = 0; ob < Imodv->mod[m]->objsize; ob++)
+      for (ob = 0; ob < numEditableObjects(m); ob++)
         if (changeModelObject(m, ob)) {
+          obj = editableObject(m, ob);
           imodvRegisterObjectChg(ob);
-          optionSetFlags(&Imodv->mod[m]->obj[ob].flags);
+          optionSetFlags(&obj->flags);
         }
     }
     objset(Imodv);
@@ -366,9 +371,12 @@ static void objset(ImodvApp *a)
   int style, type, ob, dir, diff;
   Iobj *obj;
   unsigned int flag;
+  char *namep;
+  char tmpname[IOBJ_STRSIZE];
+  int numEditable = numEditableObjects(a->cm);
 
   // Adjust object number and set structure variables
-  if (a->ob >= a->imod->objsize)
+  if (a->ob >= numEditable)
     a->ob = 0;
 
   // If editing Ons or a group, adjust object number to the nearest object that
@@ -391,8 +399,7 @@ static void objset(ImodvApp *a)
     switchObjInObjset = false;
   }
 
-  a->obj = a->imod->objsize ? &(a->imod->obj[a->ob]) : NULL;
-  obj = a->obj;
+  obj = objedObject();
   if (obj) {
 
     flag = obj->flags;
@@ -419,10 +426,16 @@ static void objset(ImodvApp *a)
       }
     }
 
-    objed_dialog->updateObject(a->ob + 1, a->imod->objsize, type, style, 
+    namep = obj->name;
+    if (!namep[0] && a->ob >= a->imod->objsize) {
+      namep = &tmpname[0];
+      sprintf(tmpname, "Extra object #%d", a->ob + 1 - a->imod->objsize);
+    }
+
+    objed_dialog->updateObject(a->ob + 1, numEditable, type, style, 
                                QColor((int)(255 * obj->red), 
                                       (int)(255 * obj->green),
-                                      (int)(255 * obj->blue)), obj->name);
+                                      (int)(255 * obj->blue)), namep);
   }
   if (objectEditFieldData[CurrentObjectField].setwidget)
     objectEditFieldData[CurrentObjectField].setwidget();
@@ -431,19 +444,30 @@ static void objset(ImodvApp *a)
 // Update the state of all On-Off buttons
 static void setOnoffButtons(void)
 {
-  int ob;
+  int ob, num;
   bool state;
   ImodvApp *a = Imodv;
+  static int numShown = 0;
 
-
-  for (ob = 0; ob < numOnoffButtons; ob++) {
-    if (ob < a->imod->objsize)
+  if (!objed_dialog)
+    return;
+  num = B3DMAX(numOnoffButtons, B3DMIN(MAX_ONOFF_BUTTONS, a->imod->objsize));
+  
+  for (ob = 0; ob < num; ob++) {
+    while (ob >= numOnoffButtons)
+      addOnoffButton();
+    if (ob < a->imod->objsize) {
       state = !(a->imod->obj[ob].flags & IMOD_OBJFLAG_OFF);
-    else
+      OnoffButtons[ob]->show();
+    } else {
       state = false;
-    OnoffButtons[ob]->setEnabled(ob < a->imod->objsize);
+      OnoffButtons[ob]->hide();
+    }
     diaSetChecked(OnoffButtons[ob], state);
   }
+  if (numShown != a->imod->objsize)
+    objed_dialog->adjustSize();
+  numShown = a->imod->objsize;
 
   imodvOlistUpdateOnOffs(a);
 }
@@ -496,6 +520,7 @@ void objed(ImodvApp *a)
                                     Qt::WDestructiveClose | Qt::WType_TopLevel);
 
   Imodv_objed_all = 0;  // May want to retain this setting
+  setOnoffButtons();
 
   window_name = imodwEithername("3dmodv Objects: ", a->imod->fileName, 1);
   if (window_name) {
@@ -512,39 +537,40 @@ void objed(ImodvApp *a)
   objed_dialog->show();
 }
 
+// Make an on-off button, add it to the grid, and connect it to the mapper
+static void addOnoffButton(void)
+{
+  QString str;
+  int ob = numOnoffButtons++;
+  str.sprintf("%d",ob + 1);
+  OnoffButtons[ob] = new QCheckBox(str, OnoffFrame);
+  OnoffButtons[ob]->setFocusPolicy(QWidget::NoFocus);
+  OnoffGrid->addWidget(OnoffButtons[ob], ob / MAX_ONOFF_COLUMNS, 
+                       ob % MAX_ONOFF_COLUMNS);
+  OnoffMapper->setMapping(OnoffButtons[ob], ob);
+  QObject::connect(OnoffButtons[ob], SIGNAL(toggled(bool)), OnoffMapper,
+                   SLOT(map()));
+}
+    
 // This is called by the form class to put On/Off buttons in a frame
 void imodvObjedMakeOnOffs(QFrame *frame)
 {
   ImodvApp *a = Imodv;
-  int ob, m;
-  QString str;
+  int ob, m, num = 0;
 
-  QGridLayout *grid = new QGridLayout(frame, 1, MAX_ONOFF_COLUMNS, 2, 0,
-                                      "onoff grid");
-  QSignalMapper *mapper = new QSignalMapper(frame);
-  QObject::connect(mapper, SIGNAL(mapped(int)), &imodvObjed, 
+  OnoffGrid = new QGridLayout(frame, 1, MAX_ONOFF_COLUMNS, 2, 0,
+                              "onoff grid");
+  OnoffMapper = new QSignalMapper(frame);
+  OnoffFrame = frame;
+  QObject::connect(OnoffMapper, SIGNAL(mapped(int)), &imodvObjed, 
                    SLOT(toggleObjSlot(int)));
 
   // Make maximum number of buttons needed for all loaded models
   for (m = 0; m < a->nm; m++)
-    if (numOnoffButtons < a->mod[m]->objsize) 
-      numOnoffButtons = a->mod[m]->objsize; 
-
-  if (numOnoffButtons > MAX_ONOFF_BUTTONS)
-    numOnoffButtons = MAX_ONOFF_BUTTONS;
+    num = B3DMAX(num, B3DMIN(MAX_ONOFF_BUTTONS, a->mod[m]->objsize));
   
-  // Make the buttons, add them to the grid, and connect them to the mapper
-  for (ob = 0; ob < numOnoffButtons; ob++) {
-    str.sprintf("%d",ob + 1);
-    OnoffButtons[ob] = new QCheckBox(str, frame);
-    OnoffButtons[ob]->setFocusPolicy(QWidget::NoFocus);
-    grid->addWidget(OnoffButtons[ob], ob / MAX_ONOFF_COLUMNS, 
-                    ob % MAX_ONOFF_COLUMNS);
-    mapper->setMapping(OnoffButtons[ob], ob);
-    QObject::connect(OnoffButtons[ob], SIGNAL(toggled(bool)), mapper,
-                     SLOT(map()));
-  }
-  setOnoffButtons();
+  for (ob = 0; ob < num; ob++)
+    addOnoffButton();
 }
 
 
@@ -567,7 +593,7 @@ void ImodvObjed::lineColorSlot(int color, int value, bool dragging)
 {
   int m, mst, mnd, ob, numChanged = 0;
   float red, green, blue;
-  Iobj *obj = Imodv->obj;
+  Iobj *obj = objedObject();
   static bool sliding = false;
   if (!obj)
     return;
@@ -594,11 +620,11 @@ void ImodvObjed::lineColorSlot(int color, int value, bool dragging)
   setStartEndModel(mst, mnd, multipleColorOK);
     
   for (m = mst; m <= mnd; m++) {
-    for (ob = 0; ob < Imodv->mod[m]->objsize; ob++)
+    for (ob = 0; ob < numEditableObjects(m); ob++)
       if (changeModelObject(m, ob, multipleColorOK)) {
         if (!sliding)
           imodvRegisterObjectChg(ob);
-        obj = &(Imodv->mod[m]->obj[ob]);
+        obj = editableObject(m, ob);
         numChanged++;
         if (color < 3) {
           obj->red = red;
@@ -799,17 +825,19 @@ void ImodvObjed::materialSlot(int which, int value, bool dragging)
 {
   int m, mst, mnd, ob;
   static bool sliding = false;
+  Iobj *obj;
 
   if (!Imodv->imod) return;
      
   setStartEndModel(mst, mnd);
     
   for (m = mst; m <= mnd; m++) {
-    for (ob = 0; ob < Imodv->mod[m]->objsize; ob++)
+    for (ob = 0; ob < numEditableObjects(m); ob++)
       if (changeModelObject(m, ob)) {
+        obj = editableObject(m, ob);
         if (!sliding)
           imodvRegisterObjectChg(ob);
-        setMaterial(&(Imodv->mod[m]->obj[ob]), which, value);
+        setMaterial(obj, which, value);
       }
   }
   /*     imodPrintStderr("set mat %d, offset %d, value%d\n", *item, offset, cbs->value); */
@@ -878,6 +906,7 @@ static QSpinBox *wGlobalQualityBox;
 void ImodvObjed::pointSizeSlot(int i)
 {
   int m, mst, mnd, ob;
+  Iobj *obj;
 
   if (!Imodv->imod) return;
 
@@ -886,10 +915,11 @@ void ImodvObjed::pointSizeSlot(int i)
   setStartEndModel(mst, mnd);
     
   for (m = mst; m <= mnd; m++) {
-    for (ob = 0; ob < Imodv->mod[m]->objsize; ob++)
+    for (ob = 0; ob < numEditableObjects(m); ob++)
       if (changeModelObject(m, ob)) {
+        obj = editableObject(m, ob);
         imodvRegisterObjectChg(ob);
-        Imodv->mod[m]->obj[ob].pdrawsize = i;
+        obj->pdrawsize = i;
       }
   }
   finishChangeAndDraw(0, 1);
@@ -898,6 +928,7 @@ void ImodvObjed::pointSizeSlot(int i)
 void ImodvObjed::pointQualitySlot(int value)
 {
   int m, mst, mnd, ob;
+  Iobj *obj;
   value--;
   if (!Imodv->imod) return;
 
@@ -906,10 +937,11 @@ void ImodvObjed::pointQualitySlot(int value)
   setStartEndModel(mst, mnd);
      
   for (m = mst; m <= mnd; m++) {
-    for (ob = 0; ob < Imodv->mod[m]->objsize; ob++)
+    for (ob = 0; ob < numEditableObjects(m); ob++)
       if (changeModelObject(m, ob)) {
+        obj = editableObject(m, ob);
         imodvRegisterObjectChg(ob);
-        Imodv->mod[m]->obj[ob].quality = value;
+        obj->quality = value;
       }
   }
   finishChangeAndDraw(0, 0);
@@ -1000,6 +1032,7 @@ void ImodvObjed::lineWidthSlot(int which, int value, bool dragging)
 {
   int m, mst, mnd, ob;
   static bool sliding = false;
+  Iobj *obj;
      
   if (!Imodv->imod)
     return;
@@ -1007,14 +1040,15 @@ void ImodvObjed::lineWidthSlot(int which, int value, bool dragging)
   setStartEndModel(mst, mnd);
      
   for (m = mst; m <= mnd; m++) {
-    for (ob = 0; ob < Imodv->mod[m]->objsize; ob++)
+    for (ob = 0; ob < numEditableObjects(m); ob++)
       if (changeModelObject(m, ob)) {
         if (!sliding)
           imodvRegisterObjectChg(ob);
+        obj = editableObject(m, ob);
         if (which)
-          Imodv->mod[m]->obj[ob].linewidth = value;
+          obj->linewidth = value;
         else
-          Imodv->mod[m]->obj[ob].linewidth2 = value;
+          obj->linewidth2 = value;
       }
   }
 
@@ -1599,11 +1633,13 @@ void ImodvObjed::moveCenterSlot()
 {
   Ipoint min, max;
   Imod *imod = Imodv->imod;
+  objedObject();
 
   if ((!Imodv->obj) || (!imod))
     return;
 
-  imodObjectGetBBox(Imodv->obj, &min, &max);
+  if (imodObjectGetBBox(Imodv->obj, &min, &max) < 0)
+    return;
   Imodv->imod->view->trans.x = -((max.x + min.x) * 0.5f);
   Imodv->imod->view->trans.y = -((max.y + min.y) * 0.5f);
   Imodv->imod->view->trans.z = -((max.z + min.z) * 0.5f);
@@ -1886,7 +1922,7 @@ static void setMakeMesh_cb(void)
   else
     cap = makeParams->cap != IMESH_CAP_OFF;
   diaSetChecked(wMakeChecks[MAKE_MESH_CAP], cap); 
-  wMakeDoButton->setEnabled(!scat);
+  wMakeDoButton->setEnabled(!scat && Imodv->ob < Imodv->imod->objsize);
   wMakeChecks[MAKE_MESH_SKIP]->setEnabled(!tube && !scat);
   wMakeChecks[MAKE_MESH_TUBE]->setEnabled(iobjOpen(obj->flags) && !scat);
   wMakeChecks[MAKE_MESH_LOW]->setEnabled(!scat);
@@ -2164,19 +2200,59 @@ void MeshThread::run()
 /************************* internal utility functions. ***********************/
 /*****************************************************************************/
 
-static Iobj *objedObject(void) 
+Iobj *objedObject(void) 
 {
   // Make sure the object number is legal and refresh the object address
-  if (Imodv->ob > (Imodv->imod->objsize - 1))
-    Imodv->ob = B3DMAX(0, Imodv->imod->objsize - 1);
-  Imodv->obj = Imodv->imod->objsize ? &(Imodv->imod->obj[Imodv->ob]) : NULL;
+  int num = numEditableObjects(Imodv->cm);
+  if (Imodv->ob > (num - 1))
+    Imodv->ob = B3DMAX(0, num - 1);
+  Imodv->obj = editableObject(Imodv->cm, Imodv->ob);
   return Imodv->obj;
+}
+
+// Return the number of editable objects for a model, including editable extra 
+// objects for the current model
+static int numEditableObjects(int model)
+{
+  Iobj *obj;
+  int i, num = Imodv->imod->objsize;
+  if (model != Imodv->cm || Imodv->standalone)
+    return (Imodv->mod[model]->objsize);
+  for (i = 0; i < Imodv->vi->numExtraObj; i++) {
+    obj = ivwGetAnExtraObject(Imodv->vi, i);
+    if (obj && (obj->flags & IMOD_OBJFLAG_EXTRA_EDIT))
+      num++;
+  }
+  return num;
+}
+
+// Return "editable" object ob for a model; editable extra objects count for
+// current model
+static Iobj *editableObject(int model, int ob)
+{
+  Iobj *obj;
+  int i, num = Imodv->imod->objsize;
+  if (model != Imodv->cm || Imodv->standalone || ob < num) {
+    if (ob < 0 || ob >= Imodv->mod[model]->objsize)
+      return NULL;
+    return &Imodv->mod[model]->obj[ob];
+  }
+  for (i = 0; i < Imodv->vi->numExtraObj; i++) {
+    obj = ivwGetAnExtraObject(Imodv->vi, i);
+    if (obj && (obj->flags & IMOD_OBJFLAG_EXTRA_EDIT)) {
+      if (num == ob)
+        return obj;
+      num++;
+    }
+  }
+  return NULL;
 }
 
 static void setObjFlag(int flag, int state, int types)
 {
   int m, mst, mnd, ob;
   b3dUInt32 obflags;
+  Iobj *obj;
 
   if (!Imodv->imod || !objedObject())
     return;
@@ -2184,17 +2260,18 @@ static void setObjFlag(int flag, int state, int types)
   setStartEndModel(mst, mnd);
     
   for (m = mst; m <= mnd; m++) {
-    for (ob = 0; ob < Imodv->mod[m]->objsize; ob++) {
-      obflags = Imodv->mod[m]->obj[ob].flags;
+    for (ob = 0; ob < numEditableObjects(m); ob++) {
+      obj = editableObject(m, ob);
+      obflags = obj->flags;
       if (changeModelObject(m, ob) && 
           (!types || ((types & OBJTYPE_CLOSED) && iobjClose(obflags)) ||
            ((types & OBJTYPE_OPEN) && iobjOpen(obflags)) ||
            ((types & OBJTYPE_SCAT) && iobjScat(obflags)))) {
         imodvRegisterObjectChg(ob);
         if (state)
-          Imodv->mod[m]->obj[ob].flags |= flag;
+          obj->flags |= flag;
         else
-          Imodv->mod[m]->obj[ob].flags &= ~flag;
+          obj->flags &= ~flag;
       }
     }
   }
@@ -2205,6 +2282,7 @@ static void setMat3Flag(int flag, int index, int state)
 {
   unsigned char *ub;
   int m, mst, mnd, ob;
+  Iobj *obj;
 
   if (!Imodv->imod || !objedObject())
     return;
@@ -2212,10 +2290,11 @@ static void setMat3Flag(int flag, int index, int state)
   setStartEndModel(mst, mnd);
     
   for (m = mst; m <= mnd; m++) {
-    for (ob = 0; ob < Imodv->mod[m]->objsize; ob++)
+    for (ob = 0; ob < numEditableObjects(m); ob++)
       if (changeModelObject(m, ob)) {
+        obj = editableObject(m, ob);
         imodvRegisterObjectChg(ob);
-        ub = (unsigned char *)&(Imodv->mod[m]->obj[ob].matflags2);
+        ub = (unsigned char *)&(obj->matflags2);
         if (state)
           ub[index] |= (unsigned char)flag;
         else
@@ -2239,8 +2318,9 @@ static void finishChangeAndDraw(int doObjset, int drawImages)
    on global flags and possible flag for individual entity*/
 static void setStartEndModel(int &mst, int &mnd, bool multipleOK)
 {
-  if (Imodv->ob > (Imodv->imod->objsize - 1))
-    Imodv->ob = Imodv->imod->objsize - 1;
+  int num = numEditableObjects(Imodv->cm);
+  if (Imodv->ob > (num - 1))
+    Imodv->ob = num - 1;
 
   mst = 0;
   mnd = Imodv->nm - 1;
@@ -2296,6 +2376,10 @@ static void makeRadioButton(char *label, QWidget *parent, QButtonGroup *group,
 /*
 
 $Log$
+Revision 4.36  2008/01/21 17:50:41  mast
+Split off object list dialog, added grouping capability, and rationalized
+editing Ons as well as Group to switch objects if not editing current object
+
 Revision 4.35  2008/01/19 23:51:36  mast
 Ostensibly handled some problems with no object
 
