@@ -31,6 +31,7 @@
 #include "imod_info_cb.h"
 #include "imod_cont_edit.h"
 #include "imodv.h"
+#include "imodv_objed.h"
 #include "imodv_window.h"
 #include "imod_input.h"
 #include "control.h"
@@ -1130,6 +1131,8 @@ void inputQDefaultKeys(QKeyEvent *event, ImodView *vw)
 
   case Qt::Key_0:
     inputNewObject(vw);
+    imod_info_setobjcolor();
+    imodvObjedNewView();
     break;
 
   case Qt::Key_Exclam:
@@ -1391,6 +1394,9 @@ bool inputTestMetaKey(QKeyEvent *event)
 
 /*
 $Log$
+Revision 4.37  2008/01/13 22:58:35  mast
+Changes for multi-Z window
+
 Revision 4.36  2007/12/06 23:43:33  mast
 Try adding Backspace as alternative to Delete for Macbook
 
