@@ -45,7 +45,7 @@ static ImodvOlist *Oolist_dialog = NULL;
 #define MAX_LIST_NAME 40
 
 enum {OBJGRP_NEW = 0, OBJGRP_DELETE, OBJGRP_CLEAR, OBJGRP_ADDALL, OBJGRP_SWAP,
-      OBJGRP_TURNON, OBJGRP_TURNOFF, OBJGRP_OTHERSOFF};
+      OBJGRP_TURNON, OBJGRP_TURNOFF, OBJGRP_OTHERSON, OBJGRP_OTHERSOFF};
 
 // The button arrays, and variable to keep track of grouping
 static QCheckBox **OolistButtons;
@@ -144,10 +144,10 @@ void imodvOlistSetChecked(ImodvApp *a, int ob, bool state)
 void imodvOlistSetColor(ImodvApp *a, int ob)
 {
   Iobj *obj;
-  if (!Oolist_dialog || a->ob >= numOolistButtons)
+  if (!Oolist_dialog || ob >= numOolistButtons || ob >= a->imod->objsize)
     return;
   obj = &a->imod->obj[ob];
-  OolistButtons[a->ob]->setPaletteBackgroundColor
+  OolistButtons[ob]->setPaletteBackgroundColor
     (QColor((int)(255 * obj->red), (int)(255 * obj->green),
             (int)(255 * obj->blue)));
 }
@@ -223,8 +223,9 @@ ImodvOlist::ImodvOlist(QWidget *parent, const char *name, WFlags fl)
 {
   int nPerCol, olistNcol, ob, i;
   QString qstr;
+  QLabel *label;
   char *labels[] = {"New", "Delete", "Clear", "Add All", "Swap", "ON", "OFF",
-                    "Others Off"};
+                    "On", "Off"};
   char *tips[] = {"Start a new object group, copied from current group",
                   "Remove the current object group from list of groups",
                   "Remove all objects from the current group",
@@ -232,7 +233,8 @@ ImodvOlist::ImodvOlist(QWidget *parent, const char *name, WFlags fl)
                   "Remove current members and add all non-members",
                   "Turn ON all objects in the current group",
                   "Turn OFF all objects in the current group",
-                  "Turn OFF objects not in the current group"};
+                  "Turn ON objects NOT in the current group",
+                  "Turn OFF objects NOT in the current group"};
 
   QVBoxLayout *layout = new QVBoxLayout(this, 11, 6, "list layout");
 
@@ -267,6 +269,10 @@ ImodvOlist::ImodvOlist(QWidget *parent, const char *name, WFlags fl)
 
     if (i == 0 || i == 5)
       hbox = new QHBox(grpbox);
+    if (i == 7) {
+      label = new QLabel("Others:", hbox);
+      label->setAlignment(Qt::AlignRight | Qt::AlignVCenter);
+    }
 
     qstr = labels[i];
     mButtons[i] = new QPushButton(qstr, hbox);
@@ -425,11 +431,13 @@ void ImodvOlist::actionButtonClicked(int which)
 
   case OBJGRP_TURNON:
   case OBJGRP_TURNOFF:
+  case OBJGRP_OTHERSON:
   case OBJGRP_OTHERSOFF:
     changed = 0;
     for (ob = 0; ob < imod->objsize; ob++) {
       index = objGroupLookup(group, ob);
-      if (index >= 0 && which == OBJGRP_TURNON && 
+      if (((index >= 0 && which == OBJGRP_TURNON) || 
+           (index < 0 && which == OBJGRP_OTHERSON)) && 
           iobjOff(imod->obj[ob].flags)) {
         imodvRegisterObjectChg(ob);
         imod->obj[ob].flags &= ~IMOD_OBJFLAG_OFF;
@@ -571,6 +579,9 @@ void ImodvOlist::keyReleaseEvent ( QKeyEvent * e )
 /*
 
 $Log$
+Revision 4.3  2008/01/28 19:25:03  mast
+Fixed crash on calling imodvOlistUpdateGroups with no window open
+
 Revision 4.2  2008/01/27 06:22:05  mast
 Added multiple object group controls
 
