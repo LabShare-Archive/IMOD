@@ -326,10 +326,10 @@ static int mrcReadSectionAny(MrcHeader *hdata, IloadInfo *li,
       case MRC_MODE_RGB:
         inptr = bdata;
         for (i = 0; i < xsize; i++) {
-          pixel = *inptr++;
-          pixel += *inptr++;
-          pixel += *inptr++;
-          bufp[i] = pixel / 3;
+          fpixel = 0.3 * *inptr++;
+          fpixel += 0.59 * *inptr++;
+          fpixel += 0.11 * *inptr++;
+          bufp[i] = (int)(fpixel + 0.5f);
         }
         bufp += xsize;
         break;
@@ -474,6 +474,9 @@ static int mrcReadSectionAny(MrcHeader *hdata, IloadInfo *li,
 
 /*
 $Log$
+Revision 3.13  2007/06/13 22:52:16  mast
+Modifications for reading with intersection section skip
+
 Revision 3.12  2006/09/28 21:15:02  mast
 Changes to work with > 2Gpix and > 4 Gpix images as much as possible
 

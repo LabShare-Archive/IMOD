@@ -1079,11 +1079,10 @@ unsigned char **mrc_read_byte(FILE *fin,
 
       case MRC_MODE_RGB:
         for(i = 0; i < xsize; i++){
-          fpixel = bdata[i * 3];
-          fpixel += bdata[(i * 3) + 1];
-          fpixel += bdata[(i * 3) + 2];
-          fpixel /= 3;
-          pixel = fpixel + 0.5;
+          fpixel = 0.3 * bdata[i * 3];
+          fpixel += 0.59 * bdata[(i * 3) + 1];
+          fpixel += 0.11 * bdata[(i * 3) + 2];
+          pixel = (int)(fpixel + 0.5f);
           idatap[i] = pixel;
         }
         break;
@@ -2135,6 +2134,10 @@ void mrc_swap_floats(fb3dFloat *data, int amt)
 
 /*
 $Log$
+Revision 3.37  2008/04/02 02:56:06  mast
+Made mrc_head_read and mrc_read_byte use b3d routines to avoid seeking and
+rewinding on stdin
+
 Revision 3.36  2008/03/26 20:57:16  mast
 Removed debugging statement
 
