@@ -587,10 +587,18 @@ static void imodvMakeMontage(int frames, int overlap)
       limits[0] = limits[1] = 0;
       limits[2] = xFullSize;
       limits[3] = yFullSize;
-      fname = b3dGetSnapshotName("modv", SnapShot_TIF, 4, a->snap_fileno);
+      if (movie->file_format == 2)
+        ImodPrefs->set2ndSnapFormat();
+      fname = b3dGetSnapshotName("modv", movie->file_format ? SnapShot_RGB : 
+                                 SnapShot_TIF, 4, a->snap_fileno);
       sname = b3dShortSnapName(fname);
       imodPrintStderr("3dmodv: Saving montage to %s", sname.latin1());
-      b3dSnapshot_TIF(fname, 4, limits, linePtrs);
+      if (movie->file_format)
+        b3dSnapshot_NonTIF(fname, 4, limits, linePtrs);
+      else
+        b3dSnapshot_TIF(fname, 4, limits, linePtrs);
+      if (movie->file_format == 2)
+        ImodPrefs->restoreSnapFormat();
       imodPuts("");
     }
 
@@ -614,6 +622,9 @@ static void imodvMakeMontage(int frames, int overlap)
 
 /*
     $Log$
+    Revision 4.17  2008/05/22 15:40:51  mast
+    Prevented crash if window closed during montage
+
     Revision 4.16  2008/01/25 20:22:58  mast
     Changes for new scale bar
 

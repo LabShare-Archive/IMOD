@@ -106,7 +106,7 @@ static void setControlAndLimits(ZapStruct *zap);
 static void zapToggleRubberband(ZapStruct *zap, bool draw = true);
 static void zapBandImageToMouse(ZapStruct *zap, int ifclip); 
 static void zapBandMouseToImage(ZapStruct *zap, int ifclip);
-static void montageSnapshot(ZapStruct *zap);
+static void montageSnapshot(ZapStruct *zap, int snaptype);
 static void shiftRubberband(ZapStruct *zap, float idx, float idy);
 static void getMontageShifts(ZapStruct *zap, int factor, int imStart, 
                              int border, int imSize, int winSize,
@@ -288,7 +288,7 @@ void zapDraw_cb(ImodView *vi, void *client, int drawflag)
     if (snaptype && zap->vi->zmovie && 
         zap->movieSnapCount && imcGetStarterID() == zap->ctrl) {
       if (imcGetMontageFactor() > 1) {
-        montageSnapshot(zap);
+        montageSnapshot(zap, snaptype);
       } else {
         limits = NULL;
         if (zap->rubberband) {
@@ -1306,9 +1306,8 @@ void zapKeyInput(ZapStruct *zap, QKeyEvent *event)
     if (shifted || ctrl){
 
       // Take a montage snapshot if selected and no rubberband is on
-      if (!shifted && !zap->rubberband && imcGetMontageFactor() > 1 && 
-          !zap->numXpanels) {
-        montageSnapshot(zap);
+      if (!zap->rubberband && imcGetMontageFactor() > 1 && !zap->numXpanels) {
+        montageSnapshot(zap, (ctrl ? 1 : 0) + (shifted ? 2 : 0));
         handled = 1;
         break;
       }
@@ -1590,16 +1589,17 @@ void zapMouseRelease(ZapStruct *zap, QMouseEvent *event)
   } else if (button2 && !zap->numXpanels && !(ifdraw & 1)) {
     registerDragAdditions(zap);
 
-    // Fix the mouse position and update the info window finally
+    // Fix the mouse position and update the other windows finally
+    // Why call imod_info_setxyz again on release of single point add?
     zapGetixy(zap, event->x(), event->y(), &imx, &imy, &imz);
     zap->vi->xmouse = imx;
     zap->vi->ymouse = imy;
-    imod_info_setxyz();
     if (zap->drawCurrentOnly) {
       zap->drawCurrentOnly = 0;
-      zapDraw(zap);
+      imodDraw(zap->vi, IMOD_DRAW_MOD | IMOD_DRAW_XYZ);
       drew = 1;
-    }
+    } else
+      imod_info_setxyz();
   }
 
   // Now return if plugin said to
@@ -2453,8 +2453,10 @@ int zapB2Drag(ZapStruct *zap, int x, int y, int controlDown)
     zap->dragAddEnd = pt;
     zap->dragAddCount++;
 
+    // Since we are not changing xyzmouse yet, drag draws can be done without
+    // IMOD_DRAW_XYZ; this prevents some time-consuming things in other windows
     imodInsertPoint(vi->imod, &cpt, pt);
-    imodDraw(vi, IMOD_DRAW_MOD | IMOD_DRAW_XYZ | IMOD_DRAW_NOSYNC);
+    imodDraw(vi, IMOD_DRAW_MOD | IMOD_DRAW_NOSYNC);
     return 1;
   }
   return 0;
@@ -3563,7 +3565,7 @@ void zapReportBiggestMultiZ()
 /*
  * Take a snapshot by montaging at higher zoom
  */
-static void montageSnapshot(ZapStruct *zap)
+static void montageSnapshot(ZapStruct *zap, int snaptype)
 {
   int ix, iy, xFullSize, yFullSize, xTransStart, yTransStart, xTransDelta;
   int yTransDelta, xCopyDelta, yCopyDelta, xTransSave, yTransSave, barpos;
@@ -3662,10 +3664,18 @@ static void montageSnapshot(ZapStruct *zap)
   // Reset the file number to zero unless doing movie, then get name and save
   if (!zap->movieSnapCount)
     fileno = 0;
-  fname = b3dGetSnapshotName("zap", SnapShot_TIF, 3, fileno);
+  if (snaptype > 2)
+    ImodPrefs->set2ndSnapFormat();
+  fname = b3dGetSnapshotName("zap", snaptype > 1 ? SnapShot_RGB : SnapShot_TIF,
+                             3, fileno);
   sname = b3dShortSnapName(fname);
   imodPrintStderr("3dmod: Saving zap montage to %s", sname.latin1());
-  b3dSnapshot_TIF(fname, 4, limits, linePtrs);
+  if (snaptype == 1)
+    b3dSnapshot_TIF(fname, 4, limits, linePtrs);
+  else
+    b3dSnapshot_NonTIF(fname, 4, limits, linePtrs);
+  if (snaptype > 2)
+    ImodPrefs->restoreSnapFormat();
   imodPuts("");
 
   *barReal = barSaved;
@@ -4495,6 +4505,9 @@ static int zapPointVisable(ZapStruct *zap, Ipoint *pnt)
 /*
 
 $Log$
+Revision 4.120  2008/05/02 20:40:50  mast
+Do not draw extra object if its OFF flag is set
+
 Revision 4.119  2008/04/04 21:22:19  mast
 Free contour after adding to object, fix freeing of extra obj
 
