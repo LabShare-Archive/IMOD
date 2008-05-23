@@ -7,31 +7,10 @@
  *  Copyright (C) 1995-2005 by Boulder Laboratory for 3-Dimensional Electron
  *  Microscopy of Cells ("BL3DEMC") and the Regents of the University of 
  *  Colorado.  See dist/COPYRIGHT for full copyright notice.
+ *
+ *  $Id$
+ *  Log at end
  */
-
-/*  $Author$
-
-    $Date$
-
-    $Revision$
-
-    $Log$
-    Revision 3.5  2006/06/19 19:29:16  mast
-    Added ability to write unsigned ints from mode 6
-
-    Revision 3.4  2005/02/11 01:42:34  mast
-    Warning cleanup: implicit declarations, main return type, parentheses, etc.
-
-    Revision 3.3  2004/09/10 21:33:31  mast
-    Eliminated long variables
-
-    Revision 3.2  2003/10/24 02:28:42  mast
-    strip directory from program name and/or use routine to make backup file
-
-    Revision 3.1  2003/02/27 20:14:38  mast
-    set default upper right values to -1
-
-*/
 
 #include <stdio.h>
 #include <stdlib.h>
@@ -96,7 +75,7 @@ int isit_tiff(FILE *fp)
 
 
 void tiff_write_entry(short tag, short type,
-                      b3dInt32 length, b3dInt32 offset, FILE *fout)
+                      b3dInt32 length, b3dUInt32 offset, FILE *fout)
 {
   fwrite(&tag, sizeof(short), 1, fout);
   fwrite(&type, sizeof(short), 1, fout);
@@ -165,23 +144,16 @@ unsigned char *tiff_read_section(FILE *fp, Tf_info *tiff, int section)
     }
   }
      
-  data_size = tiff->directory[WIDTHINDEX].value * 
-    tiff->directory[LENGTHINDEX].value;
-
   xsize = tiff->directory[WIDTHINDEX].value;
   ysize = tiff->directory[LENGTHINDEX].value;
+  data_size = xsize * ysize;
 
-  /*     printf("x,y = %d, %d\n",
-         tiff->directory[WIDTHINDEX].value,
-         tiff->directory[LENGTHINDEX].value );
-  */
-     
-
-  if (tiff->BitsPerSample == 16)
-    pixSize = 2;
+  pixSize = tiff->BitsPerSample / 8;
 
   if (tiff->PhotometricInterpretation == 2)
     pixSize = 3;
+  /* printf("xsize %d ysize %d datasize %d pixsize %d bits %d\n", xsize,ysize,
+     data_size, pixSize, tiff->BitsPerSample); */
 
   /* add padding to data. */
   tiff->data = (unsigned char *)malloc((data_size + xsize + ysize) 
@@ -238,8 +210,11 @@ unsigned char *tiff_read_section(FILE *fp, Tf_info *tiff, int section)
       fread(&(tiff->data[dpos]), 1, realsize, fp);
       /* DNM: swap the bytes if necessary */
       if (tiff->header.byteorder != M_BYTEORDER && pixSize == 2)
-        mrc_swap_shorts((short int *)&(tiff->data[dpos]),
+        mrc_swap_shorts((b3dInt16 *)&(tiff->data[dpos]),
                         realsize / 2);
+      if (tiff->header.byteorder != M_BYTEORDER && pixSize == 4)
+        mrc_swap_floats((b3dFloat *)&(tiff->data[dpos]),
+                        realsize / 4);
       dpos += realsize;
       nleft -= realsize;
     }
@@ -316,8 +291,12 @@ int tiff_open_file(char *filename, char *mode, Tf_info *tiff)
     } else {
 
       /* Now set up some data about the file in the tiff structure */
-      tiff->BitsPerSample = 
-        (tiff->iifile->mode == MRC_MODE_SHORT) ? 16 : 8;
+      tiff->BitsPerSample = 8;
+      if (tiff->iifile->mode == MRC_MODE_SHORT || 
+          tiff->iifile->mode == MRC_MODE_USHORT)
+        tiff->BitsPerSample = 16;
+      if (tiff->iifile->mode == MRC_MODE_FLOAT)
+        tiff->BitsPerSample = 32;
       tiff->PhotometricInterpretation = 
         (tiff->iifile->mode == MRC_MODE_RGB) ? 2 : 1;
       if (tiff->iifile->format == IIFORMAT_COLORMAP) 
@@ -797,20 +776,27 @@ int read_barf_tiff(FILE *tif_fp, unsigned char *pixels)
 
 
 int tiff_write_image(FILE *fout, int xsize, int ysize, int mode,
-                     unsigned char *pixels)
+                     unsigned char *pixels, b3dUInt32 *ifdOffset, 
+                     b3dUInt32 *dataOffset, float dmin, float dmax)
 {
   int pad;
   short tenum;
   b3dUInt32 pixel, ifd;
   b3dUInt32 dataSize, pixSize;
+  b3dUInt32 *dminp = (b3dUInt32 *)(&dmin);
+  b3dUInt32 *dmaxp = (b3dUInt32 *)(&dmax);
   int xysize = xsize * ysize;
-  int y;
+  int y, sampleFormat;
 
-  if ( M_BYTEORDER ==  BIGENDIAN)
-    pixel = 0x4D4D002A;
-  else
-    pixel = 0x002A4949;
-  fwrite(&pixel, 4, 1, fout);
+  if (!*ifdOffset) {
+    if ( M_BYTEORDER ==  BIGENDIAN)
+      pixel = 0x4D4D002A;
+    else
+      pixel = 0x002A4949;
+    fwrite(&pixel, 4, 1, fout);
+    *ifdOffset = 4;
+    *dataOffset = 8;
+  }
 
   if (ferror(fout)) return(-1);
 
@@ -819,20 +805,31 @@ int tiff_write_image(FILE *fout, int xsize, int ysize, int mode,
   case MRC_MODE_BYTE:
     pixSize = 1; break;
   case MRC_MODE_SHORT:
-    pixSize = 2; break;
+    pixSize = 2; 
+    sampleFormat = 2;
+    break;
   case MRC_MODE_USHORT:
-    pixSize = 2; break;
+    pixSize = 2; 
+    sampleFormat = 1;
+    break;
   case MRC_MODE_RGB:
     pixSize = 3; break;
+  case MRC_MODE_FLOAT:
+    pixSize = 4;
+    sampleFormat = 3;
+    break;
   default:
     return(-50);
   }
 
+  /* IFD must be on a word boundary */
   ifd = dataSize * pixSize;
   pad = -(ifd % 4) + 4;
-  ifd += pad + 12;
+  ifd += pad + 4 + *dataOffset;
+  fseek(fout, *ifdOffset, SEEK_SET);
   if (!fwrite(&ifd, 4, 1, fout))
     return(-2);
+  fseek(fout, *dataOffset, SEEK_SET);
      
 
   /* write image data. */
@@ -849,8 +846,9 @@ int tiff_write_image(FILE *fout, int xsize, int ysize, int mode,
   /* Write IFD */
   fseek(fout, ifd, SEEK_SET);
 
+  /* Tags must be in ascending order! */
   if (mode != 16){
-    tenum = mode ? 12 : 11; /* set to number of tiff entries. */
+    tenum = mode ? 14 : 11; /* set to number of tiff entries. */
     fwrite(&tenum, 2, 1, fout);
     tiff_write_entry(254, 4, 1, 0, fout);
     tiff_write_entry(256, 3, 1, xsize, fout);
@@ -859,15 +857,21 @@ int tiff_write_image(FILE *fout, int xsize, int ysize, int mode,
     tiff_write_entry(259, 3, 1, 1, fout);  /* compression , none*/
 
     tiff_write_entry(262, 3, 1, 1, fout ); /* 0 is Black */
-    tiff_write_entry(273, 4, 1, 8, fout);  /* image data start */
+    tiff_write_entry(273, 4, 1, *dataOffset, fout);  /* image data start */
     tiff_write_entry(277, 3, 1, 1, fout);  /* samples / pixel */
     tiff_write_entry(278, 4, 1, ysize, fout);
     tiff_write_entry(279, 4, 1, xysize*pixSize, fout);
     tiff_write_entry(296, 3, 1, 1, fout);
     
-    if (mode)   /* unsigned or signed integer */
-      tiff_write_entry(339, 3, 1, mode == MRC_MODE_USHORT ? 1 : 2, fout);   
+    /* for everything but bytes, put out format and min/max */
+    if (mode) {
+      tiff_write_entry(339, 3, 1, sampleFormat, fout);   
+      tiff_write_entry(340, 11, 1, *dminp, fout);
+      tiff_write_entry(341, 11, 1, *dmaxp, fout);
+    }
     fwrite(&pixel, 4, 1, fout);
+    *ifdOffset = ifd + 2 + (tenum * 12);
+    *dataOffset = ifd + 6 + (tenum * 12);
   }else{
     short bps = 8;
     tenum = 12; /* set to number of tiff entries. */
@@ -880,7 +884,7 @@ int tiff_write_image(FILE *fout, int xsize, int ysize, int mode,
     tiff_write_entry(259, 3, 1, 1, fout);  /* compression , none*/
           
     tiff_write_entry(262, 3, 1, 2, fout ); /* 0 is Black */
-    tiff_write_entry(273, 4, 1, 8, fout);  /* image data start */
+    tiff_write_entry(273, 4, 1, *dataOffset, fout);  /* image data start */
     tiff_write_entry(277, 3, 1, 3, fout);  /* samples / pixel */
     tiff_write_entry(278, 4, 1, ysize, fout);
     tiff_write_entry(279, 4, 1, xysize*3, fout);
@@ -891,8 +895,33 @@ int tiff_write_image(FILE *fout, int xsize, int ysize, int mode,
     fwrite(&bps, 2, 1, fout);
     fwrite(&bps, 2, 1, fout);
     fwrite(&bps, 2, 1, fout);
+    *ifdOffset = ifd + 2 + (tenum * 12);
+    *dataOffset = ifd + 12 + (tenum * 12);
   }
      
   if (ferror(fout)) return(-10);
   return(0);
 }
+
+/*
+
+$Log$
+Revision 3.6  2006/08/28 05:26:27  mast
+Add ability to handle colormapped images
+
+Revision 3.5  2006/06/19 19:29:16  mast
+Added ability to write unsigned ints from mode 6
+
+Revision 3.4  2005/02/11 01:42:34  mast
+Warning cleanup: implicit declarations, main return type, parentheses, etc.
+
+Revision 3.3  2004/09/10 21:33:31  mast
+Eliminated long variables
+
+Revision 3.2  2003/10/24 02:28:42  mast
+strip directory from program name and/or use routine to make backup file
+
+Revision 3.1  2003/02/27 20:14:38  mast
+set default upper right values to -1
+
+*/
