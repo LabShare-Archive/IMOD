@@ -1620,7 +1620,8 @@ static void puttiffentry(short tag, short type,
  * rgbmode non-zero indicates rgb rather than color index
  * if limits is non-NULL, it contains lower left X, Y and size X,Y for a subset
  */
-int b3dSnapshot_NonTIF(QString fname, int rgbmode, int *limits)
+int b3dSnapshot_NonTIF(QString fname, int rgbmode, int *limits, 
+                       unsigned char **data)
 {
   FILE *fout = NULL;
   int i;
@@ -1670,14 +1671,14 @@ int b3dSnapshot_NonTIF(QString fname, int rgbmode, int *limits)
   }
   glPixelZoom(1.0,1.0);
   xysize = rpWidth * rpHeight;
+  pixout = (unsigned char *)pixels;
 
   /* DNM: add rgb mode support */
-  if (rgbmode) {
+  if (rgbmode && !data) {
     glReadPixels(rpx, rpy, rpWidth, rpHeight,
                  GL_RGBA, GL_UNSIGNED_BYTE, pixels);
     glFlush();
 
-    pixout = (unsigned char *)pixels;
     /* have to swap bytes and fill in 0 for A, because RGB routine wants
        ABGR*/
     for (i = 0; i < xysize; i++) {
@@ -1690,7 +1691,7 @@ int b3dSnapshot_NonTIF(QString fname, int rgbmode, int *limits)
       pixout+=3;
     }
 
-  } else {
+  } else if (!data) {
 
     // Color index mode: get tables and read image as indices
     mapsize = 1 << App->depth;
@@ -1721,7 +1722,6 @@ int b3dSnapshot_NonTIF(QString fname, int rgbmode, int *limits)
                  GL_COLOR_INDEX, GL_UNSIGNED_INT, pixels);
     glFlush();
     cindex = (b3dUInt32 *)pixels;
-    pixout = (unsigned char *)pixels;
     for (i = 0; i < xysize; i++, cindex++){
       ci = *cindex;
       if (ci > mapsize) ci = 0;
@@ -1736,6 +1736,17 @@ int b3dSnapshot_NonTIF(QString fname, int rgbmode, int *limits)
     free(fcmapg);
     free(fcmapb);
 
+  } else {
+
+    // For passed-in line pointers, repack RGB or RGBA as 0BGR
+    for (j = 0; j < rpHeight; j++) {
+      for (i = 0; i < rpWidth; i++) {
+        *pixout++ = 0;
+        *pixout++ = data[j][rgbmode*i+2];
+        *pixout++ = data[j][rgbmode*i+1];
+        *pixout++ = data[j][rgbmode*i];
+      }
+    }
   }
 
   // Ordinary RGB, call routine
@@ -2025,6 +2036,9 @@ int b3dSnapshot(QString fname)
 
 /*
 $Log$
+Revision 4.37  2007/12/13 03:20:17  mast
+Fixed panning offset getting stuck at negative end
+
 Revision 4.36  2007/11/27 04:56:06  mast
 Limit drawing to defined width/height of image array, needed for XYZ subareas
 

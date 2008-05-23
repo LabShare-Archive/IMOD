@@ -152,7 +152,8 @@ QString b3dGetSnapshotName(char *name, int format_type, int digits,
                            int &fileno);
 int b3dAutoSnapshot(char *name, int format_type, int *limits);
 int b3dKeySnapshot(char *name, int shifted, int ctrl, int *limits);
-int b3dSnapshot_NonTIF(QString fname, int rgbmode, int *limits);
+int b3dSnapshot_NonTIF(QString fname, int rgbmode, int *limits,
+                       unsigned char **data = NULL);
 int b3dSnapshot_TIF(QString fname, int rgbmode, int *limits, 
                     unsigned char **data);
 
@@ -162,6 +163,9 @@ int b3dSnapshot_TIF(QString fname, int rgbmode, int *limits,
 
 /*
     $Log$
+    Revision 3.14  2007/11/10 04:07:10  mast
+    Changes for setting snapshot directory
+
     Revision 3.13  2007/07/12 17:31:47  mast
     Added subarea viewport function and added fill flag to offset routine
 
