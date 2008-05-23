@@ -79,7 +79,7 @@ HEADERS	+= autox.h \
 	scalebar.h \
    isothread.h \
    imodv_mcubes.h \
-   imodv_mcubes.cpp \
+   imodv_mcubescpp.h \
    imodv_mappingtable.h 
 
 SOURCES	+= autox.cpp \

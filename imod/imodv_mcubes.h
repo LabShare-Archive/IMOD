@@ -37,6 +37,6 @@ void smooth_vertex_positions(float *varray, Index nv,
 			     const Index *tarray, Index nt,
 			     float smoothing_factor, int smoothing_iterations);
 
-#include "imodv_mcubes.cpp"	// template implementation
+#include "imodv_mcubescpp.h"	// template implementation
 
 #endif
