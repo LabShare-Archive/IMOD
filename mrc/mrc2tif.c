@@ -14,6 +14,7 @@
 
 #include <stdio.h>
 #include <stdlib.h>
+#include <string.h>
 #include "mrcfiles.h"
 #include "b3dtiff.h"
 #include "b3dutil.h"
@@ -172,6 +173,9 @@ int main(int argc, char *argv[])
 /*
 
 $Log$
+Revision 3.8  2008/05/23 22:57:17  mast
+Added float support, option for single stack, and standardized errors
+
 Revision 3.7  2006/06/19 19:29:23  mast
 Added ability to write unsigned ints from mode 6
 
