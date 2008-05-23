@@ -365,13 +365,13 @@ Open the windows specified by the key letters: t for Object Type, l for Object
 Color, h for Model Header, o for Model Offset, s for Surf/Cont/Point, v for
 Contour Move, c for Contour Copy, a for Auto Contour, b for Contour Break, j
 for contour Join, p for Image Process, r for Image Reload, f for Image Cache
-Filler, u for Tumbler, x for Pixel View, A for Slicer Angles, G for Fine
-Grain, m for Multi-Z, e for Scale Bar, T for Line Tracker, F for Bead Fixer,
-and P for all externally loaded plugins.
+Filler, n for Movies, u for Tumbler, x for Pixel View, A for Slicer Angles, G
+for Fine Grain, m for Multi-Z, e for Scale Bar, T for Line Tracker, F for Bead
+Fixer, and P for all externally loaded plugins.
 If the 
 .B -V
 option is given, then model view dialog boxes can also be opened with key
-letters the same as their hot keys (m, O, C, L, B, M, V, I), or with D for
+letters the same as their hot keys (m, O, C, L, B, M, V, I, U), or with D for
 depth cue and S for stereo.  Key numbers are for other operations: 1 to start
 in model mode, 2 to suppress query to save model when exiting.
 .TP
