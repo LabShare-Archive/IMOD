@@ -34,7 +34,6 @@
 #include "xzap.h"
 #include "control.h"
 #include "finegrain.h"
-#include "imodv_isosurface.h"
 
 static void getSampleLimits(ViewInfo *vw, int &ixStart, int &iyStart, 
                             int &nxUse, int &nyUse, float &sample);
@@ -327,7 +326,6 @@ void imod_info_setxyz(void)
   /* 12/28/03: with multifile stack in Z, need to notify image scale window */
   if (App->cvi->multiFileZ)
     imodImageScaleUpdate(App->cvi);
-  imodvIsosurfaceUpdate();
 }
 
 // A structure to store means and SD's of areas
@@ -803,6 +801,9 @@ void imod_imgcnt(char *string)
 
 /*
 $Log$
+Revision 4.28  2008/04/29 18:10:40  xiongq
+add isosurface dialog
+
 Revision 4.27  2008/03/06 00:12:46  mast
 Changes to allow settings of float and subarea checkboxes to be saved
 

@@ -27,6 +27,7 @@
 #include "preferences.h"
 #include "dia_qtutils.h"
 #include "scalebar.h"
+#include "imodv_isosurface.h"
 
 #ifdef Q_OS_MACX
 #include "qcursor.mac.bits"
@@ -274,6 +275,7 @@ int imodDraw(ImodView *vw, int flag)
 {
   int time, cx, cy, cz;
   static int lastz = -1, lastTime = -1;
+  bool needModv = false;
 
   /*   SEE imod.h FOR DEFINITIVE LIST AND FULL DESCRIPTION:
    * IMOD_DRAW_IMAGE: image data or color map has changed; draw all images, 
@@ -321,13 +323,15 @@ int imodDraw(ImodView *vw, int flag)
      xyz window separately (it now has a control) */
 
 
-  if (flag & IMOD_DRAW_XYZ)
+  if (flag & IMOD_DRAW_XYZ) {
     imod_info_setxyz();
+    needModv = imodvIsosurfaceUpdate();
+  }
 
   ivwControlListDraw(vw, flag);
 
-  if (((flag & IMOD_DRAW_MOD) || ((flag & IMOD_DRAW_XYZ) && Imodv->texMap)) &&
-      ! (flag & IMOD_DRAW_SKIPMODV))
+  if (((flag & IMOD_DRAW_MOD) || ((flag & IMOD_DRAW_XYZ) && Imodv->texMap) ||
+       needModv) && ! (flag & IMOD_DRAW_SKIPMODV))
     imodv_draw();
 
   scaleBarUpdate();
@@ -548,6 +552,9 @@ int imodFindQGLFormat(ImodApp *ap, char **argv)
 /*
 
 $Log$
+Revision 4.23  2008/05/22 20:59:35  mast
+Updated documentation of flags, referred to imod.h
+
 Revision 4.22  2008/05/02 22:17:18  xiongq
 add smoothing capability and adjust histgram acoording to intensity range of the input stack
 

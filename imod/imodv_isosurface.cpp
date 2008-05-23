@@ -1,15 +1,15 @@
 /*
- *  imodv_isosurface.c - Makes an isosurface of selected volume in extra object
- *
- *  Author: Quanren Xiong
- *
- *  Copyright (C) 2008 by Boulder Laboratory for 3-Dimensional Electron
- *  Microscopy of Cells ("BL3DEMC") and the Regents of the University of 
- *  Colorado.  See dist/COPYRIGHT for full copyright notice.
- *
- *  $Id$
- *  Log at end of file
- */
+*  imodv_isosurface.c - Makes an isosurface of selected volume in extra object
+*
+*  Author: Quanren Xiong
+*
+*  Copyright (C) 2008 by Boulder Laboratory for 3-Dimensional Electron
+*  Microscopy of Cells ("BL3DEMC") and the Regents of the University of 
+*  Colorado.  See dist/COPYRIGHT for full copyright notice.
+*
+*  $Id$
+*  Log at end of file
+*/
 
 #include <qcheckbox.h>
 #include <qlabel.h>
@@ -19,17 +19,19 @@
 #include <qslider.h>
 #include <qtooltip.h>
 #include <qspinbox.h>
+#include <qdatetime.h>
 #include "preferences.h"
 #include "multislider.h"
 #include "dia_qtutils.h"
 #include "imodv.h"
 #include "imod.h"
 #include "imodv_gfx.h"
-#include "imodv_mcubes.h"
 #include "imodv_isosurface.h"
 #include "histwidget.h"
+#include "isothread.h"
 #include "imodv_input.h"
 #include "imod_display.h"
+#include "imodv_objed.h"
 #include "control.h"
 
 
@@ -43,11 +45,19 @@ static int yDrawSize = -1;
 static int zDrawSize = -1;
 static int lastYsize = -1;
 
+static QTime isoTime;
+
 #define MAXIMAL_VOXELS 128*512*512  //the number of voxles the bounding box is limited to;
 #define DEFAULT_VOXELS 96*96*96 //the number of voxles the initial bounding box;
 #define PERCENTILE 0.07
 #define MAXIMAL_ITERATION 20
+#define TOL 0.0001
+#define NUM_THREADS 1
 
+typedef unsigned int Index;
+extern void smooth_vertex_positions(float *varray, Index nv,
+    const Index *tarray, Index nt,
+    float smoothing_factor, int smoothing_iterations);
 struct{
   ImodvIsosurface *dia;
   ImodvApp  *a;
@@ -83,7 +93,7 @@ void imodvIsosurfaceEditDialog(ImodvApp *a, int state)
   imodvIsosurfaceData.dia->show();
 }
 
-void imodvIsosurfaceUpdate(void)
+bool imodvIsosurfaceUpdate(void)
 {
   if(imodvIsosurfaceData.dia)
   {
@@ -92,13 +102,20 @@ void imodvIsosurfaceUpdate(void)
     {
       imodvIsosurfaceData.dia->setBoundingBox();
       if(imodvIsosurfaceData.dia->mCenterVolume->isChecked() )
-          imodvIsosurfaceData.dia->setViewCenter();
+        imodvIsosurfaceData.dia->setViewCenter();
       imodvIsosurfaceData.dia->setBoundingObj();
       imodvIsosurfaceData.dia->fillVolumeArray();
       imodvIsosurfaceData.dia->setIsoObj();
+      //imodvDraw(Imodv);
+      return true;
     }    
-    imodvDraw(Imodv);
-  }else return;
+    return false;
+
+    if(imodDebug('U') ){
+      imodPrintStderr("In imodvIsosurfaceUpdate: rendering time=%d \n", isoTime.elapsed());
+      isoTime.start();
+    }
+  }else return false;
 }
 
 // Compute starting and ending draw coordinates from center coordinate, desired
@@ -141,6 +158,11 @@ static void findDimLimits(int which, int *xdim, int *ydim, int *zdim, int
   int tempMin;
   int voxelMax;
 
+  /* *xdim=512;
+  *ydim=85;
+  *zdim=512;
+  return;*/ 
+
   if(which==FIND_DEFAULT_DIM){
     specMinDim=powf(DEFAULT_VOXELS, 1.0/3.0);
     voxelMax=DEFAULT_VOXELS;
@@ -152,7 +174,7 @@ static void findDimLimits(int which, int *xdim, int *ydim, int *zdim, int
   }
   else
   {
-    fprintf(stderr, "imodv_isosurface: illegal usage\n");
+    imodPrintStderr("imodv_isosurface: illegal usage\n");
     return;
   }
 
@@ -196,10 +218,6 @@ ImodvIsosurface::ImodvIsosurface(struct ViewInfo *vi, QWidget *parent, const cha
   mExtraObjNum=ivwGetFreeExtraObjectNumber(vi);
   mBoxObjNum=ivwGetFreeExtraObjectNumber(vi);
   ivwGetTime(vi, &mCurrTime);
-  //temporarily store input stack size, will be reset at the end;
-  mBoxSize[0]=vi->xsize;
-  mBoxSize[1]=vi->ysize;
-  mBoxSize[2]=vi->zsize;
   mVolume=NULL;
   mOrigMesh=NULL;
 
@@ -226,29 +244,29 @@ ImodvIsosurface::ImodvIsosurface(struct ViewInfo *vi, QWidget *parent, const cha
   mSmoothBox=diaLabeledSpin(0, 0, MAXIMAL_ITERATION, 1, "Smoothing:",
       this, smoothLayout);
   mSmoothBox->setValue(imodvIsosurfaceData.itNum);
- mLayout->addLayout(smoothLayout);
- connect(mSmoothBox, SIGNAL(valueChanged(int)), this, SLOT(iterNumChanged(int)));
- QToolTip::add(mSmoothBox, "Set the iteration number for smoothing");
+  mLayout->addLayout(smoothLayout);
+  connect(mSmoothBox, SIGNAL(valueChanged(int)), this, SLOT(iterNumChanged(int)));
+  QToolTip::add(mSmoothBox, "Set the iteration number for smoothing");
 
   mHistPanel=new HistWidget(this);
   mHistPanel->setMinimumSize(size().width(), 80);
   mHistSlider=new MultiSlider(this, 1, histLabels);
   connect(mHistSlider, SIGNAL(sliderChanged(int, int, bool)), this, 
       SLOT(histChanged(int, int, bool)));
-  
+
   mLayout->addWidget(mHistPanel);
   mLayout->setStretchFactor(mHistPanel, 100);
   mLayout->addLayout(mHistSlider->getLayout());
 
   // Make multisliders
   mSliders = new MultiSlider(this, 6, sliderLabels);
+  //temporarily store input stack size in mBoxSize for calling findDimLimits();
+  mBoxSize[0]=vi->xsize;
+  mBoxSize[1]=vi->ysize;
+  mBoxSize[2]=vi->zsize;
   findDimLimits(FIND_DEFAULT_DIM, &xDrawSize, &yDrawSize, &zDrawSize, mBoxSize);
   int xMax, yMax, zMax;
   findDimLimits(FIND_MAXIMAL_DIM, &xMax, &yMax, &zMax, mBoxSize);
-
-  mBoxSize[0]=xDrawSize;
-  mBoxSize[1]=yDrawSize;
-  mBoxSize[2]=zDrawSize;
 
   mSliders->setRange(IIS_X_COORD, 1, vi->xsize);
   mSliders->setRange(IIS_X_SIZE, 1, xMax );
@@ -258,11 +276,12 @@ ImodvIsosurface::ImodvIsosurface(struct ViewInfo *vi, QWidget *parent, const cha
     lastYsize = Imodv->vi->ysize;
   }
 
+  bool flagDrawXYZ=false;
   if( Imodv->vi->xmouse==0.0 &&  Imodv->vi->ymouse==0.0)
   { 
     Imodv->vi->xmouse=Imodv->vi->xsize/2.0;
     Imodv->vi->ymouse=Imodv->vi->ysize/2.0;
-    imodDraw(Imodv->vi, IMOD_DRAW_XYZ|IMOD_DRAW_SKIPMODV);
+    flagDrawXYZ=true;
   }
 
   updateCoords();
@@ -288,19 +307,30 @@ ImodvIsosurface::ImodvIsosurface(struct ViewInfo *vi, QWidget *parent, const cha
 
   connect(this, SIGNAL(actionClicked(int)), this, SLOT(buttonPressed(int)));
 
+  mInitNThreads=NUM_THREADS;
+  char *procChar = getenv("IMOD_PROCESSORS");
+  if (procChar) {
+    mInitNThreads = atoi(procChar);
+    mInitNThreads = B3DMIN(MAX_THREADS, B3DMAX(1, mInitNThreads));
+  }
+
+  for(int i=0;i<mInitNThreads;i++) threads[i]=new IsoThread(i, this);
+
   setBoundingBox();
   if(mCenterVolume->isChecked() ) setViewCenter();
   setBoundingObj();
 
-  mVolume=(unsigned char*)
-    (malloc( mBoxSize[0]*mBoxSize[1]*mBoxSize[2]*sizeof(unsigned char) ));
-  mCurrMax=(double)(mBoxSize[0]*mBoxSize[1]*mBoxSize[2]);
-  
+  mCurrMax=mBoxSize[0]*mBoxSize[1]*mBoxSize[2];
+  mVolume=(unsigned char*) (malloc( mCurrMax*sizeof(unsigned char) ));
+
   mThreshold=fillVolumeArray();
+
+  //mThreshold=198.0;
 
   mHistSlider->setValue(0,(int)mThreshold);
 
   Iobj *xobj = ivwGetAnExtraObject(mIsoView, mExtraObjNum);
+  xobj->flags |= IMOD_OBJFLAG_EXTRA_EDIT;
   if (mViewIso->isChecked() ) {
     xobj->flags= xobj->flags | IMOD_OBJFLAG_EXTRA_MODV | IMOD_OBJFLAG_FILL |
       IMOD_OBJFLAG_MESH | IMOD_OBJFLAG_LINE |IMOD_OBJFLAG_TWO_SIDE;
@@ -309,28 +339,39 @@ ImodvIsosurface::ImodvIsosurface(struct ViewInfo *vi, QWidget *parent, const cha
   }
 
   Iobj *boxObj=ivwGetAnExtraObject(mIsoView, mBoxObjNum);
-  boxObj->flags= boxObj->flags | IMOD_OBJFLAG_EXTRA_MODV; 
+  boxObj->flags |= IMOD_OBJFLAG_EXTRA_MODV | IMOD_OBJFLAG_EXTRA_EDIT; 
   if( mViewBoxing->isChecked())
   { 
     boxObj->flags &= ~IMOD_OBJFLAG_OFF;
   }else{
     boxObj->flags |= IMOD_OBJFLAG_OFF;
   }
-  
+
+  imodvObjedNewView();
+
   if(mViewModel->isChecked() ){
     imodvIsosurfaceData.a->drawExtraOnly=0;
   }else{
     imodvIsosurfaceData.a->drawExtraOnly=1;
   }
-  
-  histChanged(0, (int)mThreshold, false);
+
+  setIsoObj();
+  mHistSlider->setValue(0,mThreshold);
+
+  if(flagDrawXYZ || mViewBoxing->isChecked() )
+    imodDraw(Imodv->vi, IMOD_DRAW_XYZ|IMOD_DRAW_MOD);
+  else imodvDraw(Imodv);
+
+  if(imodDebug('U') ){
+    imodPrintStderr("In constructor: rendering time=%d \n", isoTime.elapsed() );
+    isoTime.start();
+  }
 }
 
 ImodvIsosurface::~ImodvIsosurface()
 {
   free(mVolume);
-  if(mOrigMesh) 
-    imodMeshDelete(mOrigMesh);
+  if(mOrigMesh) imodMeshDelete(mOrigMesh);
 }
 
 float ImodvIsosurface::fillVolumeArray()
@@ -365,6 +406,7 @@ float ImodvIsosurface::fillVolumeArray()
   int max=0;
   float *hist=mHistPanel->getHist();
   for(int i=0;i<256;i++) hist[i]=0.0;
+
   for( int zi =mBoxOrigin[2];zi<mBoxEnds[2];zi++)
     for( int yi=mBoxOrigin[1];yi<mBoxEnds[1];yi++)
       for( int xi=mBoxOrigin[0];xi<mBoxEnds[0];xi++)
@@ -395,48 +437,273 @@ float ImodvIsosurface::fillVolumeArray()
 
 void ImodvIsosurface::setIsoObj()
 {
-  //int stride[3]={mBoxSize[1]*mBoxSize[2], mBoxSize[2], 1};
-  int stride[3]={1, mBoxSize[0], mBoxSize[0]*mBoxSize[1]};
-  //call marching cubes routine;
-  Contour_Surface *cs=surface(mVolume, (Index *)mBoxSize, (Index *)stride, mThreshold, false);
+  int i, ii, j, jj, k;
+  b3dInt32 *triangle[MAX_THREADS];
+  b3dInt32 *finalTriangle;
+  int nTriangle[MAX_THREADS];
+  Ipoint *vertex_xyz[MAX_THREADS];
+  Ipoint *finalVertex_xyz;
+  int nVertex[MAX_THREADS];
+  Imesh *mcubeMesh;
+  int validNTriangle[MAX_THREADS];
+  int skipNTriangle[MAX_THREADS];
+  int validNVertex[MAX_THREADS];
+  int skipNVertex[MAX_THREADS];
+  int offset[MAX_THREADS];
+  int validVertexSum=0;
+  bool flagFind;
 
-  int nVertex=cs->vertex_count();
-  int nTriangle=cs->triangle_count();
-  //twice as big to store normals;
-  Ipoint *vertex_xyz=(Ipoint *)malloc(2*nVertex*sizeof(Ipoint));
 
-  b3dInt32 *triangles=(b3dInt32*)malloc( (3*nTriangle+3)*sizeof(b3dInt32) );
-
-  cs->geometry((float *)vertex_xyz, (Index *)triangles+1, mBoxOrigin);
-  cs->normals( (float *)vertex_xyz );
-
-  triangles[0]=-25;
-  //change the index since vertex_xyz includes normals;
-  for(int i=1;i<3*nTriangle+1;i++) triangles[i]=2*triangles[i];
-  triangles[3*nTriangle+1]=-22;
-  triangles[3*nTriangle+2]=-1;
-
-  //create a Imesh structure; 
-  struct Mod_Mesh *mcubeMesh=imodMeshNew();
-  mcubeMesh->vert=vertex_xyz;
-  mcubeMesh->list=triangles;
-  mcubeMesh->vsize= 2*nVertex;
-  mcubeMesh->lsize= 3*nTriangle+3;
-  if(mOrigMesh) 
-    imodMeshDelete(mOrigMesh);
-  mOrigMesh=mcubeMesh;
+  offset[0]=0; //will always be 0; so are skipNVertex[0] and skipNTriangle[0];
 
   //free all memory used by the old mesh; 
   ivwClearAnExtraObject(mIsoView, mExtraObjNum);
   Iobj *extraObj=ivwGetAnExtraObject(mIsoView, mExtraObjNum);
 
+  if(imodDebug('U') ){
+    imodPrintStderr("Using %d threads\n", mNThreads);
+    isoTime.start();
+  }
+  for(i=0;i<mNThreads;i++){
+    threads[i]->start();
+  }
+  for(i=0;i<mNThreads;i++){
+    threads[i]->wait();
+  }
+
+  if(imodDebug('U') ){
+    imodPrintStderr("mcube time=%d \n", isoTime.elapsed() );
+    isoTime.start();
+  } 
+  for(i=0;i<mNThreads;i++){
+
+    nVertex[i]=threads[i]->getNVertex();
+    nTriangle[i]=threads[i]->getNTriangle();
+    vertex_xyz[i]=threads[i]->getVertex_xyz();
+    triangle[i]=threads[i]->getTriangle();
+
+    skipNVertex[i]=0;
+    validNVertex[i]=nVertex[i];
+    skipNTriangle[i]=0;
+    validNTriangle[i]=nTriangle[i];
+    if (i>0){// starting from the second subslice
+      if(imodDebug('U') ) imodPrintStderr("\n *************loop=%d\n", i);
+
+      flagFind=false;
+
+      for(ii=0;ii<2*nVertex[i];ii+=2){
+        if( vertex_xyz[i][ii].z>mSubZEnds[i]+1.0-TOL ) 
+          break;
+      }
+      skipNVertex[i]=ii/2;
+
+      /* Remove redundant vetices in the vertex list of previous subslices.
+         Searching for the vertex that has the same coordinates as the last 
+         skipped vertex of the current subslices.
+         */
+      jj=0;
+      if(skipNVertex[i]){
+        for(j=2*validNVertex[i-1]-2;j>=0;j-=2)
+          if ( fabs(vertex_xyz[i-1][j].x - vertex_xyz[i][ii-2].x)>TOL ||
+              fabs(vertex_xyz[i-1][j].y - vertex_xyz[i][ii-2].y)>TOL ||
+              fabs(vertex_xyz[i-1][j].z - vertex_xyz[i][ii-2].z)>TOL )
+            jj++;
+          else break;
+      }
+      validNVertex[i-1]-=jj+skipNVertex[i-1];
+
+      if(imodDebug('U') )
+        imodPrintStderr("skipNVertex[%d]=%d remove %d redundant vertices\n", i-1,
+            skipNVertex[i-1], jj);
+
+      validVertexSum+=validNVertex[i-1];
+      offset[i]=validVertexSum-skipNVertex[i];
+
+      k=-1;
+      for(ii=0;ii<nTriangle[i];ii++)
+        if( vertex_xyz[i][ 2*triangle[i][3*ii]].z<mSubZEnds[i]-TOL ||
+            vertex_xyz[i][ 2*triangle[i][3*ii+1]].z<mSubZEnds[i]-TOL ||
+            vertex_xyz[i][ 2*triangle[i][3*ii+2]].z<mSubZEnds[i]-TOL )
+        {
+          k=ii; //skipNTriangle[i]++;
+        };
+      if(k>-1) skipNTriangle[i]=k+1;
+
+      /* Remove redundant triangles in the triangle list of previous subslices.
+         Searching for the triangle that indexes into the same vertices as the
+         last skipped triangle of the current subslice.
+         */
+      jj=0;
+      if(skipNTriangle[i]){
+        if(i==1){//when i-1=0, shift the triangle index by 1 ;
+          for(j=nTriangle[i-1]-1;j>=0;j--)
+            if( fabs(vertex_xyz[i-1][2*triangle[i-1][3*j+1]].x - vertex_xyz[i][ 2*triangle[i][3*(skipNTriangle[i]-1)]].x ) < TOL  &&
+                fabs(vertex_xyz[i-1][2*triangle[i-1][3*j+1]].y - vertex_xyz[i][ 2*triangle[i][3*(skipNTriangle[i]-1)]].y ) < TOL  &&
+                fabs(vertex_xyz[i-1][2*triangle[i-1][3*j+1]].z - vertex_xyz[i][ 2*triangle[i][3*(skipNTriangle[i]-1)]].z ) < TOL  &&
+                fabs(vertex_xyz[i-1][2*triangle[i-1][3*j+2]].x - vertex_xyz[i][ 2*triangle[i][3*(skipNTriangle[i]-1)+1]].x ) < TOL  &&
+                fabs(vertex_xyz[i-1][2*triangle[i-1][3*j+2]].y - vertex_xyz[i][ 2*triangle[i][3*(skipNTriangle[i]-1)+1]].y ) < TOL  &&
+                fabs(vertex_xyz[i-1][2*triangle[i-1][3*j+2]].z - vertex_xyz[i][ 2*triangle[i][3*(skipNTriangle[i]-1)+1]].z ) < TOL  &&
+                fabs(vertex_xyz[i-1][2*triangle[i-1][3*j+3]].x - vertex_xyz[i][ 2*triangle[i][3*(skipNTriangle[i]-1)+2]].x ) < TOL  &&
+                fabs(vertex_xyz[i-1][2*triangle[i-1][3*j+3]].y - vertex_xyz[i][ 2*triangle[i][3*(skipNTriangle[i]-1)+2]].y ) < TOL  &&
+                fabs(vertex_xyz[i-1][2*triangle[i-1][3*j+3]].z - vertex_xyz[i][ 2*triangle[i][3*(skipNTriangle[i]-1)+2]].z ) < TOL )  
+            {flagFind=true; break;}
+            else jj++;
+        }else{
+          for(j=nTriangle[i-1]-1;j>=0;j--)
+            if( fabs(vertex_xyz[i-1][2*triangle[i-1][3*j]].x - vertex_xyz[i][ 2*triangle[i][3*(skipNTriangle[i]-1)]].x ) < TOL  &&
+                fabs(vertex_xyz[i-1][2*triangle[i-1][3*j]].y - vertex_xyz[i][ 2*triangle[i][3*(skipNTriangle[i]-1)]].y ) < TOL  &&
+                fabs(vertex_xyz[i-1][2*triangle[i-1][3*j]].z - vertex_xyz[i][ 2*triangle[i][3*(skipNTriangle[i]-1)]].z ) < TOL  &&
+                fabs(vertex_xyz[i-1][2*triangle[i-1][3*j+1]].x - vertex_xyz[i][ 2*triangle[i][3*(skipNTriangle[i]-1)+1]].x ) < TOL  &&
+                fabs(vertex_xyz[i-1][2*triangle[i-1][3*j+1]].y - vertex_xyz[i][ 2*triangle[i][3*(skipNTriangle[i]-1)+1]].y ) < TOL  &&
+                fabs(vertex_xyz[i-1][2*triangle[i-1][3*j+1]].z - vertex_xyz[i][ 2*triangle[i][3*(skipNTriangle[i]-1)+1]].z ) < TOL  &&
+                fabs(vertex_xyz[i-1][2*triangle[i-1][3*j+2]].x - vertex_xyz[i][ 2*triangle[i][3*(skipNTriangle[i]-1)+2]].x ) < TOL  &&
+                fabs(vertex_xyz[i-1][2*triangle[i-1][3*j+2]].y - vertex_xyz[i][ 2*triangle[i][3*(skipNTriangle[i]-1)+2]].y ) < TOL  &&
+                fabs(vertex_xyz[i-1][2*triangle[i-1][3*j+2]].z - vertex_xyz[i][ 2*triangle[i][3*(skipNTriangle[i]-1)+2]].z ) < TOL )  
+            {flagFind=true; break;}
+            else jj++;
+
+        }
+      }
+      if(!flagFind) jj=0;
+      validNTriangle[i-1]-=jj+skipNTriangle[i-1];
+
+      if(imodDebug('U') )
+        imodPrintStderr("skipNTriangle[%d]=%d remove %d redundant triangles\n", i-1, skipNTriangle[i-1], jj );
+
+    }
+
+  }//for mNThreads 
+
+
+  //imodPrintStderr("skipNTriangle[%d]=%d skipNVertex[%d]=%d \n", mNThreads-1,
+  //    skipNTriangle[mNThreads-1], mNThreads-1, skipNVertex[mNThreads-1]);
+
+  /*char fnVertex[50];
+    char fnTriangle[50];
+    FILE *fpV;
+    FILE *fpT;
+    for(i=0;i<mNThreads;i++){
+    imodPrintStderr("mSubZEnds[%d]=%d\n", i, mSubZEnds[i]);
+    imodPrintStderr("nVertex[%d]=%d skipNVertex[%d]=%d, validNVertex[%d]=%d \n",
+    i, nVertex[i], i, skipNVertex[i], i, validNVertex[i] );
+    imodPrintStderr("nTriangle[%d]=%d, skipNTriangle[%d]=%d, validNTriangle[%d]=%d\n",
+    i, nTriangle[i], i, skipNTriangle[i], i, validNTriangle[i]);
+
+    sprintf(fnVertex, "%d%s", i, "_vertex.txt");
+    fpV=fopen(fnVertex,"w");
+    for(ii=0;ii<2*nVertex[i];ii+=2){
+    fprintf(fpV, "vertex[%d] x y z= %f \t %f \t %f \n", ii/2, vertex_xyz[i][ii].x,
+    vertex_xyz[i][ii].y,  vertex_xyz[i][ii].z);
+    }
+    fclose(fpV);
+
+    sprintf(fnTriangle, "%d%s", i, "_triangle.txt");
+    fpT=fopen(fnTriangle,"w");
+    for(ii=0;ii<nTriangle[i];ii++){
+    fprintf(fpT, "triange[%d] vertex 1 2 3= %d \t %d \t %d \n", 
+    ii,triangle[i][3*ii] ,triangle[i][3*ii+1], triangle[i][3*ii+2] );
+    }
+    fclose(fpT);
+    }*/
+
+  //merge vertex and triangle lists
+  validNVertex[mNThreads-1]=nVertex[mNThreads-1]-skipNVertex[mNThreads-1]; //for the last subslices
+  validNTriangle[mNThreads-1]=nTriangle[mNThreads-1]-skipNTriangle[mNThreads-1]; //for the last subslices
+  int totalVertex=0;
+  int totalTriangle=0;
+  for(i=0;i<mNThreads;i++){
+    totalTriangle+=validNTriangle[i];
+    totalVertex+=validNVertex[i];
+  }
+
+  if( imodDebug('U') )
+    imodPrintStderr("***totalVertex=%d totalTriangle=%d \n", totalVertex, totalTriangle);
+
+  if(mNThreads>1){
+    finalVertex_xyz=(Ipoint *)malloc(2*totalVertex*sizeof(Ipoint));
+    finalTriangle=(b3dInt32*)malloc( (3*totalTriangle+3)*sizeof(b3dInt32) );
+
+    int ptrOut;
+    ptrOut=0;
+    for(i=0;i<mNThreads;i++){
+      for(ii=0;ii<2*validNVertex[i];ii++){
+        finalVertex_xyz[ptrOut]=vertex_xyz[i][ii+2*skipNVertex[i]];
+        ptrOut++;
+      }
+    }      
+    ptrOut=0;
+    for(i=0;i<mNThreads;i++){
+      for(ii=0;ii<3*validNTriangle[i];ii++){
+        if(i==0)finalTriangle[1+ptrOut]=2*(triangle[i][ii+1+3*skipNTriangle[i]]+offset[i]);
+        else finalTriangle[1+ptrOut]=2*(triangle[i][ii+3*skipNTriangle[i]]+offset[i]);
+        ptrOut++;
+      }
+    } 
+
+    for(i=0;i<mNThreads;i++){
+      free(vertex_xyz[i]);
+      free(triangle[i]);
+    }
+  }else{
+    for(ii=0;ii<3*validNTriangle[0];ii++) triangle[0][1+ii]*=2;
+    finalVertex_xyz=vertex_xyz[0];
+    finalTriangle=triangle[0];
+  }
+
+  finalTriangle[0]=-25;
+  finalTriangle[3*totalTriangle+1]=-22;
+  finalTriangle[3*totalTriangle+2]=-1;
+
+  if(imodDebug('U') ){
+    imodPrintStderr("merge time=%d \n", isoTime.elapsed());
+    isoTime.start();
+  }
+
+  //create a Imesh structure; 
+  mcubeMesh=imodMeshNew();
+  mcubeMesh->vert=finalVertex_xyz;
+  mcubeMesh->list=finalTriangle;
+  mcubeMesh->vsize= 2*totalVertex;
+  mcubeMesh->lsize= 3*totalTriangle+3;
+
+  if(mOrigMesh) imodMeshDelete(mOrigMesh);
+  mOrigMesh=mcubeMesh;
+
+  //need to create a dup and put in the extraObject;
   struct Mod_Mesh *dup=imodMeshDup(mOrigMesh);
   int itrNum=mSmoothBox->text().toInt();
   if(itrNum) smoothMesh(dup, itrNum);
   //attch the new mesh to the extra obj;
   imodObjectAddMesh(extraObj, dup);
   free(dup);
-  delete cs;
+
+  /*for(i=0;i<mNThreads;i++){
+    imodPrintStderr("mSubZEnds[%d]=%d\n", i, mSubZEnds[i]);
+    imodPrintStderr("nVertex[%d]=%d skipNVertex[%d]=%d, validNVertex[%d]=%d \n",
+    i, nVertex[i], i, skipNVertex[i], i, validNVertex[i] );
+    imodPrintStderr("nTriangle[%d]=%d, skipNTriangle[%d]=%d, validNTriangle[%d]=%d\n",
+    i, nTriangle[i], i, skipNTriangle[i], i, validNTriangle[i]);
+    }
+    imodPrintStderr("Threshold=%4.1f, x=%4.1f, y=%4.1f, z=%4.1f xSize=%d ySize=%d zSize=%d\n",
+    mThreshold, Imodv->vi->xmouse, Imodv->vi->ymouse, Imodv->vi->zmouse,
+    mBoxSize[0], mBoxSize[1], mBoxSize[2]);
+    imodPrintStderr("\n");*/
+
+  /*FILE *fp=fopen("combinedVertex.txt","w");
+    for(ii=0;ii<2*totalVertex;ii+=2){
+    fprintf(fp, "vertex[%d] x y z= %f \t %f \t %f \n", ii/2, finalVertex_xyz[ii].x,
+    finalVertex_xyz[ii].y,  finalVertex_xyz[ii].z);
+    }
+    fclose(fp);
+
+    fp=fopen("combinedTriangle.txt","w");
+    for(ii=0;ii<totalTriangle;ii++){
+    fprintf(fp, "triange[%d] vertex 1 2 3= %d \t %d \t %d \n", 
+    ii,finalTriangle[3*ii+1]/2 ,finalTriangle[3*ii+2]/2,
+    finalTriangle[3*ii+3]/2 );
+    }
+    fclose(fp);
+    */
 }
 
 //Using current mouse position and drawSize to deduce the origin and ends 
@@ -446,6 +713,26 @@ void ImodvIsosurface::setBoundingBox()
   setCoordLimits(Imodv->vi->xmouse, Imodv->vi->xsize, xDrawSize, mBoxOrigin, mBoxEnds);
   setCoordLimits(Imodv->vi->ymouse, Imodv->vi->ysize, yDrawSize, mBoxOrigin+1, mBoxEnds+1);
   setCoordLimits(Imodv->vi->zmouse, Imodv->vi->zsize, zDrawSize, mBoxOrigin+2, mBoxEnds+2);
+  mBoxSize[0]=xDrawSize;
+  mBoxSize[1]=yDrawSize;
+  mBoxSize[2]=zDrawSize;
+  int i;
+  int fairShare=mBoxSize[2]/mInitNThreads;
+
+  if(fairShare<8)
+  { 
+    mNThreads=1;
+    fairShare=mBoxSize[2];
+  }else mNThreads=mInitNThreads;
+
+  mSubZEnds[0]=mBoxOrigin[2];
+  for(i=1;i<mNThreads;i++)
+    mSubZEnds[i]=mSubZEnds[i-1]+fairShare;
+  mSubZEnds[mNThreads]=mBoxEnds[2]-1;
+
+  if( imodDebug('U') ) 
+    for(i=0;i<mNThreads+1;i++)
+      imodPrintStderr("mSubZEnds[%d]=%d\n", i, mSubZEnds[i]);
 }
 
 void ImodvIsosurface::setViewCenter()
@@ -569,16 +856,16 @@ void ImodvIsosurface::viewBoxingToggled(bool state)
     boxObj->flags= boxObj->flags | IMOD_OBJFLAG_OFF; 
   }
   //imodvDraw(Imodv);
-  imodDraw(Imodv->vi, IMOD_DRAW_XYZ);
+  imodDraw(Imodv->vi, IMOD_DRAW_MOD);
 }
 
 void ImodvIsosurface::smoothMesh(struct Mod_Mesh *mcubeMesh, int iterNum)
 {
-   Ipoint *vertex_xyz=mcubeMesh->vert;
-    b3dInt32 *triangles=mcubeMesh->list +1; //skip the -25 code; 
-    int nVertex=mcubeMesh->vsize/2;
-    int nTriangle= (mcubeMesh->lsize-3)/3;
-    smooth_vertex_positions((float *)vertex_xyz, nVertex, (Index *)triangles, nTriangle, 0.3, iterNum);
+  Ipoint *vertex_xyz=mcubeMesh->vert;
+  b3dInt32 *triangles=mcubeMesh->list +1; //skip the -25 code; 
+  int nVertex=mcubeMesh->vsize/2;
+  int nTriangle= (mcubeMesh->lsize-3)/3;
+  smooth_vertex_positions((float *)vertex_xyz, nVertex, (Index *)triangles, nTriangle, 0.3, iterNum);
 }
 
 void ImodvIsosurface::iterNumChanged(int iterNum)
@@ -588,18 +875,23 @@ void ImodvIsosurface::iterNumChanged(int iterNum)
   struct Mod_Mesh *dup=imodMeshDup(mOrigMesh);
   if(iterNum) smoothMesh(dup, iterNum);
   imodObjectAddMesh(extraObj, dup);
-   free(dup);
-   setFocus();
-   imodvDraw(Imodv);
+  free(dup);
+  setFocus();
+  imodvDraw(Imodv);
 }
 
 void  ImodvIsosurface::histChanged(int which, int value, bool dragging)
 { 
   if (!dragging || ImodPrefs->hotSliderActive(mCtrlPressed)){ 
-    mThreshold=value;
+    mThreshold=value+0.5;
     setIsoObj();
     mHistSlider->setValue(0,mThreshold);
     imodvDraw(Imodv);
+
+    if(imodDebug('U') ){
+      imodPrintStderr("In histChanged: rendering time=%d \n", isoTime.elapsed());
+      isoTime.start();
+    } 
   }
 }
 
@@ -607,6 +899,7 @@ void  ImodvIsosurface::histChanged(int which, int value, bool dragging)
 // respond to a change of transparency or contrast
 void ImodvIsosurface::sliderMoved(int which, int value, bool dragging)
 {
+
   switch (which) {
     case IIS_X_COORD:
       Imodv->vi->xmouse = value - 1;
@@ -640,6 +933,7 @@ void ImodvIsosurface::sliderMoved(int which, int value, bool dragging)
       setBoundingBox();
       if(mCenterVolume->isChecked() ) setViewCenter();
       setBoundingObj();
+
       int newSize=xDrawSize*yDrawSize*zDrawSize;
       if( newSize>mCurrMax)
       {
@@ -647,27 +941,27 @@ void ImodvIsosurface::sliderMoved(int which, int value, bool dragging)
         mCurrMax=(double)newSize;
         mVolume=(unsigned char*)(malloc( newSize*sizeof(unsigned char) ));
         if(!mVolume){
-          fprintf(stderr, "fail to allocate mem for %d voxles\n", newSize);
+          imodPrintStderr("fail to allocate mem for %d voxles\n", newSize);
           return;
-        }//else printf("allocate mem for %d voxels\n", newSize);
+        }//else imodPrintStderr("allocate mem for %d voxels\n", newSize);
       }
-      mBoxSize[0]=xDrawSize;
-      mBoxSize[1]=yDrawSize;
-      mBoxSize[2]=zDrawSize;
 
       fillVolumeArray();
       setIsoObj();
 
-      if (which > IIS_Z_COORD)
-      {
-        imodvDraw(Imodv); 
-      }else{
-        imodDraw(Imodv->vi, IMOD_DRAW_XYZ);
-      }
+      imodvDraw(Imodv); 
+      if (which <= IIS_Z_COORD || mViewBoxing->isChecked() )
+        imodDraw(Imodv->vi, IMOD_DRAW_XYZ |IMOD_DRAW_SKIPMODV );
 
+      if(imodDebug('U') ){
+        imodPrintStderr("In sliderMoved: rendering time=%d \n", isoTime.elapsed());
+        isoTime.start();
+      }
     }else if(which<=IIS_Z_COORD)
       imodDraw(Imodv->vi, IMOD_DRAW_XYZ);
   }
+
+
 }
 
 // Action buttons
@@ -687,7 +981,7 @@ void ImodvIsosurface::buttonPressed(int which)
     Iobj *dup=imodObjectDup(isoObj);
     imodObjectSetColor(dup, red, green, blue);
     imodObjectCopy(dup, userObj);
-    
+
     imodNewObject(userModel);
     Iobj *userBoxObj=imodObjectGet(userModel);
 
@@ -697,6 +991,7 @@ void ImodvIsosurface::buttonPressed(int which)
     Icont *firstCont=imodObjectGetContour(userBoxObj, 0);
     firstCont->flags &=~ICONT_DRAW_ALLZ;    
     imodDraw(Imodv->vi, IMOD_DRAW_MOD);
+    imodvObjedNewView();
     free(dup);
     free(dupBox);
   } 
@@ -714,11 +1009,12 @@ void ImodvIsosurface::closeEvent ( QCloseEvent * e )
   imodvDialogManager.remove((QWidget *)imodvIsosurfaceData.dia);
   imodvIsosurfaceData.dia = NULL;
   e->accept();
-  
+
   ivwFreeExtraObject(mIsoView, mBoxObjNum);
   ivwFreeExtraObject(mIsoView, mExtraObjNum);
+  imodvObjedNewView();
   imodvDraw(Imodv);
-  
+
   if(!mViewIso->isChecked() ) imodvIsosurfaceData.flags &=~IMODV_VIEW_ISOSURFACE;
   else  imodvIsosurfaceData.flags |=IMODV_VIEW_ISOSURFACE;
 
@@ -759,6 +1055,9 @@ void ImodvIsosurface::keyReleaseEvent ( QKeyEvent * e )
 
 /*
 
-$Log$
+   $Log$
+   Revision 4.5  2008/05/03 00:47:31  mast
+   Fixed mOrigMesh memory leak
+
 
 */

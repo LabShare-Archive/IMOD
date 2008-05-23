@@ -7,10 +7,11 @@ typedef struct __imodv_struct ImodvApp;
 #define IMODV_VIEW_BOX (1 << 1)
 #define IMODV_VIEW_USER_MODEL (1 << 2)
 #define IMODV_VIEW_ISOSURFACE (1 << 3)
+#define MAX_THREADS 16 
 
 /* Image Control functions. */
 void imodvIsosurfaceEditDialog(ImodvApp *a, int state);
-void imodvIsosurfaceUpdate(void);
+bool imodvIsosurfaceUpdate(void);
 
 #include "dialog_frame.h"
 class MultiSlider;
@@ -23,6 +24,7 @@ class HistWidget;
 struct ViewInfo;
 struct Mod_Point;
 struct Mod_Mesh;
+class IsoThread;
 
 class ImodvIsosurface : public DialogFrame
 {
@@ -49,6 +51,12 @@ class ImodvIsosurface : public DialogFrame
   int mCurrTime;
   int mBoxOrigin[3];
   int mBoxEnds[3];
+  int mBoxSize[3];
+  int mSubZEnds[MAX_THREADS+1];
+  unsigned char *mVolume;
+  float mThreshold;
+  int mNThreads;
+  int mInitNThreads;
 
   public slots:
     void viewIsoToggled(bool state) ;
@@ -70,10 +78,9 @@ class ImodvIsosurface : public DialogFrame
   bool mCtrlPressed;
   struct ViewInfo *mIsoView;
   int mExtraObjNum;
-  int mBoxSize[3];
   double mCurrMax;
-  unsigned char *mVolume;
-  float mThreshold;
+  IsoThread *threads[MAX_THREADS];
+
   struct Mod_Mesh *mOrigMesh;
 };
 

@@ -77,6 +77,7 @@ HEADERS	+= autox.h \
 	b3dicon.xpm \
 	iirawimage.h \
 	scalebar.h \
+   isothread.h \
    imodv_mcubes.h \
    imodv_mcubes.cpp \
    imodv_mappingtable.h 
@@ -106,6 +107,7 @@ SOURCES	+= autox.cpp \
 	imodview.cpp \
 	imodv_image.cpp \
    histwidget.cpp\
+   isothread.cpp \
    imodv_isosurface.cpp\
 	imodv_input.cpp \
 	imodv_light.cpp \
