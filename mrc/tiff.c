@@ -470,22 +470,22 @@ int read_tiffentries(FILE *fp, Tf_info *tiff)
     tag = type = len = value = 0;
 
     if (fread(&tag, SHORTSZ, 1, fp) < 1) {
-      fprintf(stderr, "read_tiffentries(): error reading tag");
+      printf("ERROR: read_tiffentries() - reading tag");
       return(0);
     }
 
     if (fread(&type, SHORTSZ, 1, fp) < 1) {
-      fprintf(stderr, "read_tiffentries(): error reading type");
+      printf("ERROR: read_tiffentries() - reading type");
       return(0);
     }
 
     if (fread(&len, LONGSZ, 1, fp) < 1) {
-      fprintf(stderr, "read_tiffentries(): error reading length");
+      printf("ERROR: read_tiffentries() - reading length");
       return(0);
     }
 
     if (fread(&value, LONGSZ, 1, fp) < 1) {
-      fprintf(stderr, "read_tiffentries(): error reading value");
+      printf("ERROR: read_tiffentries() - reading value");
       return(0);
     }
           
@@ -585,9 +585,8 @@ int read_tiffentries(FILE *fp, Tf_info *tiff)
           compType = "Unknown";
           break;
         }
-        fprintf(stderr, "Sorry, %s compressed tiff data "
-                "not supported without tifflib.so. (%d)\n", 
-                compType, value);
+        printf("ERROR: read_tiffentries - %s compressed tiff data "
+                "not supported without tifflib.so. (%d)\n", compType, value);
         return(0);
       }
       break;
@@ -601,7 +600,7 @@ int read_tiffentries(FILE *fp, Tf_info *tiff)
        */
       tiff->PhotometricInterpretation = value;
       if (value == 3) {
-        fprintf(stderr, "Sorry, color index data "
+        printf("ERROR: read_tiffentries -  color index data "
                 "not supported without tifflib.so.\n");
         return(0);
       }
@@ -694,7 +693,7 @@ int read_tiffentries(FILE *fp, Tf_info *tiff)
 
     case 324: /* Tile offsets */
     case 325: /* Tile byte counts */
-      fprintf(stderr, "Sorry, tiled data are not supported without"
+      printf("ERROR: read_tiffentries - tiled data are not supported without"
               " libtiff.so;\n"
               " copy data to a file with strips (e.g., tiffcp -s)\n");
       return(0);
@@ -731,50 +730,8 @@ int read_tiffentries(FILE *fp, Tf_info *tiff)
   return(1);
 }
 
-
-
-
-/* only reads ibox tiff files and thats it */
-int read_barf_tiff(FILE *tif_fp, unsigned char *pixels)
-{
-  int i,j,c,len;
-  int iboxtif;
-  char fullpath[1024];
-  int bdata;
-  int error;
-  
-  if (tif_fp == NULL){
-    fprintf(stderr, "Error reading file\n");
-    return(-1);
-  }
-  
-
-  fseek(tif_fp, 4, SEEK_CUR);
-
-  fread(&iboxtif, sizeof(int), 1, tif_fp);
-  
-
-  if (iboxtif == 8){
-    fseek(tif_fp, 402, SEEK_CUR);
-    
-  }
-  else {
-    fprintf(stderr, "I can only read tiff files from ibox, SORRY!\n");
-    return(-1);
-  }
-
-  for (i = 0; i < XVIEW*YVIEW; i++){
-
-    bdata = fgetc(tif_fp);
-    pixels[i] = (unsigned char)bdata;
-
-  }
-
-  return(0);          
-
-}
-
-
+/* Writes a single image to a file and maintains idfOffset and dataOffset so
+   additional images can be added */
 int tiff_write_image(FILE *fout, int xsize, int ysize, int mode,
                      unsigned char *pixels, b3dUInt32 *ifdOffset, 
                      b3dUInt32 *dataOffset, float dmin, float dmax)
@@ -906,6 +863,9 @@ int tiff_write_image(FILE *fout, int xsize, int ysize, int mode,
 /*
 
 $Log$
+Revision 3.7  2008/05/23 22:17:43  mast
+Added ability to write stacks and support of floats
+
 Revision 3.6  2006/08/28 05:26:27  mast
 Add ability to handle colormapped images
 
