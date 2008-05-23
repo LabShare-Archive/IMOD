@@ -4,14 +4,14 @@
 .SH NAME
 tif2mrc \- Make a MRC file from tiff image files.
 .SH SYNOPSIS
-tif2mrc [-g | -u | -d] [-b file] <tiff files...> <MRC file>
+tif2mrc [-g | -G | -u | -d] [-b file] <tiff files...> <MRC file>
 .SH DESCRIPTION
 tif2mrc takes a series of tiff files and converts them
 into an MRC stack.  
 tif2mrc can also convert a single multi-page tiff file to an MRC stack.
 .P
 Only grayscale and color image files are supported.
-Grayscale images must be 8 or 16 bit grayscale.
+Grayscale images must be 8 or 16 bit integers or 32 bit floats.
 Color images must be either 24 bit with pixels stored as 
 red-green-blue triplets, or 8-bit with an embedded colormap.  Colormapped 8-bit
 images will be converted to 24 bit RGB images, since this is the kind of 
@@ -52,7 +52,17 @@ option.
 .TP
 .B -g
 This
-option will convert 24-bit color images to 8-bit grayscale in the MRC stack.
+option will convert 24-bit color images to 8-bit grayscale in the MRC stack by
+equal weighting of the three color components.  This weighting has always been
+used with this option to Tif2mrc, and is also the way that 3dmod read in color
+data with its -G option prior to IMOD 3.12.10.
+.TP
+.B -G
+This
+option will convert 24-bit color images to 8-bit grayscale in the MRC stack by
+the NTSC weighting of the three color components, which is used when reading
+color data as grayscale into 3dmod (as of IMOD 3.12.10), and when changing
+the mode of images from color to grayscale with Clip(1).
 .TP
 .B -u
 With this option, the program will convert 16-bit numbers from unsigned to
