@@ -34,14 +34,14 @@ image format; in the TIFF format, if the appropriate TIFF library is
 available; in any of the formats supported by the Qt image-reading
 function, which include JPEG, PNG, PPM, and BMP; or in a raw format where
 data are packed sequentially as in MRC files.  Some kinds of raw-type files
-will be recognized automatically and and treated like MRC files.  These
+will be recognized automatically and treated like MRC files.  These
 include Hegerl's EM format, Winkler's FFF format, PIF files produced by Bsoft,
 and DigitalMicrograph
 version 3 files.  MRC files of almost any
 mode can be read in: byte, 16-bit integer,
 real, complex real, complex integer, or color (RGB).  TIFF files may be byte,
-16-bit integer, or color, where the color can be either 24-bit (RGB) or 8-bit
-using an embedded color map.
+16-bit integer, real, or color, where the color can be either 24-bit (RGB) or 
+8-bit using an embedded color map.
 TIFF files may be organized in strips or in tiles, and files
 with various kinds of compression can be read, depending on the
 capabilities of the libraries on the system.  
