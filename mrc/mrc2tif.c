@@ -7,15 +7,174 @@
  *  Copyright (C) 1995-2005 by Boulder Laboratory for 3-Dimensional Electron
  *  Microscopy of Cells ("BL3DEMC") and the Regents of the University of 
  *  Colorado.  See dist/COPYRIGHT for full copyright notice.
+ *
+ *  $Id$
+ *  Log at end
  */
 
-/*  $Author$
+#include <stdio.h>
+#include <stdlib.h>
+#include "mrcfiles.h"
+#include "b3dtiff.h"
+#include "b3dutil.h"
 
-$Date$
+int main(int argc, char *argv[])
+{
+  FILE *fin;
+  MrcHeader hdata;
+  FILE *fpTiff;
+  Islice slice;
+  int xsize, ysize, zsize, psize, xysize;
+  int i, slmode, z, iarg = 1, stack = 0;
+  b3dUInt32 ifdOffset = 0, dataOffset = 0;
+  float dmin, dmax;
 
-$Revision$
+  char *iname;
+  unsigned char *buf;
+  char *progname = imodProgName(argv[0]);
+
+  if (argc > 1 && !strcmp(argv[1], "-s")) {
+    iarg++;
+    stack = 1;
+  }
+  if (argc - iarg != 2){
+    printf("%s version %s \n", progname, VERSION_NAME);
+    imodCopyright();
+    printf("%s [-s] <mrc file> <tiff name/root>\n\n", progname);
+    printf(" Without -s, a series of tiff files will be created "
+            "with the\n prefix [tiff root name] and with the suffix nnn.tif, "
+            "where nnn is the z number.\n With -s, all images in the mrc "
+            "file will be stacked into a single tiff file.\n");
+    exit(1);
+  }
+
+  if (NULL == (fin = fopen(argv[iarg], "rb"))){
+    printf("ERROR: %s - Couldn't open %s\n", progname, argv[iarg]);
+    exit(3);
+  }
+
+  if (mrc_head_read(fin, &hdata)){
+    printf("ERROR: %s - Can't Read Input Header from %s.\n",
+            progname,argv[iarg]);
+    exit(3);
+  }
+  iarg++;
+
+  switch(hdata.mode){
+      
+  case MRC_MODE_BYTE:
+    psize = 1;
+    break;
+  case MRC_MODE_SHORT:
+    psize = 2;
+    break;
+  case MRC_MODE_USHORT:
+    psize = 2;
+    break;
+  case MRC_MODE_RGB:
+    psize = 3;
+    break;
+  case MRC_MODE_FLOAT:
+    psize = 4;
+    break;
+  default:
+    printf("ERROR: %s - Datatype not supported.\n", progname);
+    exit(3);
+    break;
+  }
+  xsize = hdata.nx;
+  ysize = hdata.ny;
+  zsize = hdata.nz;
+  xysize = xsize * ysize;
+  dmin = hdata.amin;
+  dmax = hdata.amax;
+     
+  buf = (unsigned char *)malloc(xsize * ysize * psize);
+  iname = (char *)malloc(strlen(argv[iarg] + 20));
+
+  if (!buf || !iname) {
+    printf("ERROR: %s - Failed to allocate memory for slice\n",
+            progname);
+    exit(3);
+  }
+
+  if (stack) {
+    sprintf(iname, "%s", argv[iarg]);
+    fpTiff = fopen(iname, "wb");
+    if (!fpTiff){
+      printf("ERROR: %s - Opening %s\n", progname, iname);
+      perror("mrc2tif system message");
+    }
+  }    
+
+  printf("Writing TIFF images. ");
+  for (z = 0; z < zsize; z++){
+    int tiferr;
+
+    printf(".");
+    fflush(stdout);
+
+    if (!stack) {
+      sprintf(iname, "%s.%3.3d.tif", argv[iarg], z);
+      if (zsize == 1)
+        sprintf(iname, "%s", argv[iarg]);
+
+      fpTiff = fopen(iname, "wb");
+      if (!fpTiff){
+        printf("\nERROR: %s - Opening %s\n", progname, iname);
+        perror("mrc2tif system message");
+        exit(1);
+      }
+      ifdOffset = 0;
+      dataOffset = 0;
+    }
+
+    /* DNM: switch to calling a routine that takes care of swapping and
+       big seeks */
+    if (mrc_read_slice(buf, fin, &hdata, z, 'Z')) {
+      printf("\nERROR: %s - reading section %d\n", progname, z);
+      perror("mrc2tif ");
+      exit(1);
+    }
+
+    /* Get min/max for int/float images, those are the only ones the write
+       routine will put out min/max for */
+    slmode = sliceModeIfReal(hdata.mode);
+    if (!stack && slmode > 0) {
+      sliceInit(&slice, xsize, ysize, slmode, buf);
+      sliceMMM(&slice);
+      dmin = slice.min;
+      dmax = slice.max;
+    }
+
+    tiferr = tiff_write_image(fpTiff, xsize, ysize, hdata.mode, buf, 
+                              &ifdOffset, &dataOffset, dmin, dmax);
+    if (tiferr){
+      printf("\nERROR: %s - error (%d) writing section %d to %s\n",
+              progname, tiferr, z, iname);
+      perror("mrc2tif ");
+      exit(1);
+    }
+    
+    if (!stack)
+      fclose(fpTiff);
+  }
+
+  printf("\r\n");
+  if (stack)
+    fclose(fpTiff);
+  
+  fclose(fin);
+  free(buf);
+  exit(0);
+}
+
+/*
 
 $Log$
+Revision 3.7  2006/06/19 19:29:23  mast
+Added ability to write unsigned ints from mode 6
+
 Revision 3.6  2006/02/19 17:53:53  mast
 Allocate an array only big enough for the data type, test on array 
 allocation, and issue standard error messages (but still to stderr)
@@ -37,114 +196,3 @@ Changed to call imodCopyright
 
 */
 
-#include <stdio.h>
-#include <stdlib.h>
-#include "mrcfiles.h"
-#include "b3dtiff.h"
-#include "b3dutil.h"
-
-int main(int argc, char *argv[])
-{
-  FILE *fin;
-  struct MRCheader hdata;
-
-  int xsize, ysize, zsize, psize, xysize;
-  int i, x, y, z;
-
-  char iname[255];
-  unsigned char *buf;
-  char *progname = imodProgName(argv[0]);
-
-  if (argc != 3){
-    fprintf(stderr, "%s version %s \n", progname, VERSION_NAME);
-    imodCopyright();
-    fprintf(stderr, "%s [mrc file] [tiff name/root]\n\n", progname);
-    fprintf(stderr, "A series of tiff files will be created "
-            "with the prefix [tiff root name]\n"
-            "and with the suffex nnn.tif, "
-            "where nnn is the z number.\n");
-    exit(1);
-  }
-
-  if (NULL == (fin = fopen(argv[1], "rb"))){
-    fprintf(stderr, "ERROR: %s - Couldn't open %s\n", progname, argv[1]);
-    exit(3);
-  }
-
-  if (mrc_head_read(fin, &hdata)){
-    fprintf(stderr, "ERROR: %s - Can't Read Input Header from %s.\n",
-            progname,argv[1]);
-    exit(3);
-  }
-
-
-  switch(hdata.mode){
-      
-  case MRC_MODE_BYTE:
-    psize = 1;
-    break;
-  case MRC_MODE_SHORT:
-    psize = 2;
-    break;
-  case MRC_MODE_USHORT:
-    psize = 2;
-    break;
-  case MRC_MODE_RGB:
-    psize = 3;
-    break;
-  default:
-    fprintf(stderr, "ERROR: %s - Datatype not supported.\n", progname);
-    exit(3);
-    break;
-  }
-  xsize = hdata.nx;
-  ysize = hdata.ny;
-  zsize = hdata.nz;
-  xysize = xsize * ysize;
-     
-  buf = (unsigned char *)malloc(xsize * ysize * psize);
-
-  if (!buf) {
-    fprintf(stderr, "ERROR: %s - Failed to allocate memory for slice\n",
-            progname);
-    exit(3);
-  }
-
-  printf("Writing TIFF images. ");
-  for (z = 0; z < zsize; z++){
-    FILE *fpTiff;
-    int tiferr;
-
-    printf(".");
-    fflush(stdout);
-
-    sprintf(iname, "%s.%3.3d.tif", argv[2], z);
-    if (zsize == 1)
-      sprintf(iname, "%s", argv[2]);
-
-    fpTiff = fopen(iname, "wb");
-    if (!fpTiff){
-      fprintf(stderr, "ERROR: %s - Opening %s\n", progname, iname);
-      perror("mrc2tif system message");
-      continue;
-    }
-
-    /* DNM: switch to calling a routine that takes care of swapping and
-       big seeks */
-    mrc_read_slice(buf, fin, &hdata, z, 'Z');
-
-    tiferr = tiff_write_image(fpTiff, xsize, ysize, hdata.mode, buf);
-    if (tiferr){
-      fprintf(stderr, "\nERROR: %s - error (%d) writing to %s\n",
-              progname, tiferr, iname);
-      perror("mrc2tif ");
-      exit(1);
-    }
-      
-    fclose(fpTiff);
-  }
-  printf("\r\n");
-  fclose(fin);
-  free(buf);
-  exit(0);
-}
