@@ -151,14 +151,9 @@ int read_tiffentries(FILE *fp, Tf_info *tiff);
 int read_barf_tiff(FILE *tif_fp, unsigned char *pixels);
 
 int tiff_write_image(FILE *fout, int xsize, int ysize, int mode,
-		     unsigned char *pixels);
+                     unsigned char *pixels, b3dUInt32 *ifdOffset, 
+                     b3dUInt32 *dataOffset, float dmin, float dmax);
 void tiff_write_entry(short tag, short type,
-		      b3dInt32 length, b3dInt32 offset, FILE *fout);
+		      b3dInt32 length, b3dUInt32 offset, FILE *fout);
 
 #endif /* !__TIFF_H__ */
-
-
-
-
-
-
