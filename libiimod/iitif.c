@@ -122,7 +122,8 @@ int iiTIFFCheck(ImodImageFile *inFile)
 
   /* Don't know how to get the multiple bit entries from libtiff, so can't test
      if they are all 8 */
-  if (!((samples == 1 && (bits == 8 || bits ==16) && photometric < 2) ||
+  if (!((samples == 1 && (bits == 8 || bits ==16 || bits == 32) && 
+         photometric < 2) ||
         (samples == 3 && photometric == 2 && bits == 8) || 
         (photometric == 3 && bits == 8))) {
     TIFFClose(tif);
@@ -181,20 +182,27 @@ int iiTIFFCheck(ImodImageFile *inFile)
       inFile->amean  = 0;
       inFile->amin   = -32767;
       inFile->amax   = 32767;
+      inFile->mode   = MRC_MODE_SHORT;
+    } else if ((defined && sampleformat == SAMPLEFORMAT_IEEEFP) || bits == 32){
+      inFile->type   = IITYPE_FLOAT;
+      inFile->amean  = 128.;
+      inFile->amin   = 0;
+      inFile->amax   = 255.;
+      inFile->mode   = MRC_MODE_FLOAT;
     } else {
       inFile->type   = IITYPE_USHORT;
       inFile->amean  = 32767;
       inFile->amin   = 0;
       inFile->amax   = 65535;
+      inFile->mode   = MRC_MODE_USHORT;   /* Why was this SHORT for both? */
     }
-    inFile->mode   = MRC_MODE_SHORT;
   }
   
-  /* Use min and max from file if defined */
+  /* Use min and max from file if defined (better be there for float) */
   if (TIFFGetField(tif, TIFFTAG_SMINSAMPLEVALUE, &minmax))
-    inFile->smin = minmax;
+    inFile->amin = minmax;
   if (TIFFGetField(tif, TIFFTAG_SMAXSAMPLEVALUE, &minmax))
-    inFile->smax = minmax;
+    inFile->amax = minmax;
 
   inFile->smin   = inFile->amin;
   inFile->smax   = inFile->amax;
@@ -263,6 +271,7 @@ static int ReadSection(ImodImageFile *inFile, char *buf, int inSection,
   unsigned char *tmp = NULL;
   unsigned char *bdata;
   b3dUInt16 *usdata;
+  b3dFloat *fdata;
   unsigned char *map = NULL;
   int freeMap = 0;
   uint32 rowsperstrip;
@@ -307,14 +316,17 @@ static int ReadSection(ImodImageFile *inFile, char *buf, int inSection,
       pixsize = 2;
       map = get_short_map(slope, offset, outmin, outmax, MRC_RAMP_LIN, 0, 0);
       freeMap = 1;
+    } else if (inFile->type == IITYPE_FLOAT) {
+      pixsize = 4;
     } else if (doscale)
       map = get_byte_map(slope, offset, outmin, outmax);
   } else {
     if (inFile->format == IIFORMAT_RGB)
       pixsize = 3;
-    else if (inFile->type == IITYPE_SHORT || 
-             inFile->type == IITYPE_USHORT)
+    else if (inFile->type == IITYPE_SHORT || inFile->type == IITYPE_USHORT)
       pixsize = 2;
+    else if (inFile->type == IITYPE_FLOAT)
+      pixsize = 4;
     movesize = pixsize;
   }
 
@@ -369,12 +381,18 @@ static int ReadSection(ImodImageFile *inFile, char *buf, int inSection,
                 *obuf++ = map[*bdata++];
             else
               memcpy(obuf, bdata, xout);
-          } else {
+          } else if (pixsize == 2) {
                               
             /* Integers */
             usdata = (b3dUInt16 *)tmp + ofsin;
             for (i = 0; i < xout; i++)
               *obuf++ = map[*usdata++];
+          } else {
+
+            /* Floats */
+            fdata = (b3dFloat *)tmp + ofsin;
+            for (i = 0; i < xout; i++)
+              *obuf++ = slope * (*fdata++) + offset;
           }
         } else {
           memcpy(obuf, bdata, xout * pixsize);
@@ -448,12 +466,18 @@ static int ReadSection(ImodImageFile *inFile, char *buf, int inSection,
                   *obuf++ = map[*bdata++];
               else
                 memcpy(obuf, bdata, xcopy);
-            } else {
+            } else if (pixsize == 2) {
                                    
               /* Integers */
               usdata = (b3dUInt16 *)tmp + ofsin;
               for (i = 0; i < xcopy; i++)
                 *obuf++ = map[*usdata++];
+            } else {
+              
+              /* Floats */
+              fdata = (b3dFloat *)tmp + ofsin;
+              for (i = 0; i < xcopy; i++)
+                *obuf++ = slope * (*fdata++) + offset;
             }
           } else {
             memcpy(obuf, bdata, xcopy * pixsize);
@@ -483,6 +507,9 @@ int tiffReadSection(ImodImageFile *inFile, char *buf, int inSection)
 
 /*
   $Log$
+  Revision 3.10  2007/06/13 17:12:07  sueh
+  bug# 1019 In iiTIFFCheck and tiffReopen, setting inFile->sectionSkip to 0.
+
   Revision 3.9  2006/09/12 15:49:58  mast
   Added include
 
