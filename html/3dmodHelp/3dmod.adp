@@ -26,6 +26,7 @@
     <section ref="./locator.html" title="Locator Window"/>
     <section ref="./tumbler.html" title="Tumbler Window"/>
     <section ref="./graph.html" title="Graph Window"/>
+    <section ref="./pixelview.html" title="Pixel View Window"/>
   </section>
   <section ref="./index.html" title="3dmod Dialog Boxes">
     <section ref="./modelHeader.html" title="Model Header Dialog"/>

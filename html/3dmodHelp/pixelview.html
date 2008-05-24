@@ -1,0 +1,41 @@
+<head>
+<title>Pixel View Window</title>
+</head>
+<H2>Pixel View Window</H2>
+The pixel view window presents a grid of 7 by 7 buttons showing the
+image value at each pixel around the current point.  In addition, at
+the top of window is a continuous display of the pixel value
+at the current mouse position in whichever window it is located.  The
+pixel values can be the actual values in the image file, or the byte values
+in program memory, which may have been scaled from the values in the file.
+<P>
+If you press a button in the grid, that pixel becomes the current
+point, which is then moved to the middle of the grid.  The buttons
+colored red and blue contain the highest and lowest values out of those
+displayed.
+<P>
+The controls at the top are as follows:
+<P>
+<B>File value</B>: Turn this box on to have the 
+continuous readout of pixel value at the mouse position come from the
+image file instead of from program memory.  Taking data rapidly from
+random positions in the file could be problematic with a large file or
+slow access.  If it is not possible to read single-pixel values from
+the current image file, this box will be grayed out and data will be
+taken from memory.
+<P>
+<B>Grid</B>: Turn this box off to have a small window with just the
+continuous readout.
+<P>
+<B>Grid value from file</B>: Turn this box off to have the grid values
+taken from memory instead of from the image file.  If it is not
+possible to read single-pixel values from the current
+image file, this box will be grayed out and data will be taken from
+memory.
+<P>
+<B>Convert RGB to gray scale</B>: When color images are loaded, the grid
+will show the red, green, and blue components.  Turn this box on to
+see a single gray scale value, converted with the standard NTSC RGB to
+luminance conversion used elsewhere in IMOD.
+<P>
+<A HREF=index.html>Help Index<A>
