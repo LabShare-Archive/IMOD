@@ -91,7 +91,7 @@ int main(int argc, char *argv[])
   dmax = hdata.amax;
      
   buf = (unsigned char *)malloc(xsize * ysize * psize);
-  iname = (char *)malloc(strlen(argv[iarg] + 20));
+  iname = (char *)malloc(strlen(argv[iarg]) + 20);
 
   if (!buf || !iname) {
     printf("ERROR: %s - Failed to allocate memory for slice\n",
@@ -173,6 +173,9 @@ int main(int argc, char *argv[])
 /*
 
 $Log$
+Revision 3.9  2008/05/23 23:03:31  mast
+Added string include
+
 Revision 3.8  2008/05/23 22:57:17  mast
 Added float support, option for single stack, and standardized errors
 
