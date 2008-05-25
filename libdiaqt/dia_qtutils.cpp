@@ -153,6 +153,15 @@ void diaSetEditText(QLineEdit *edit, const QString &text)
   edit->blockSignals(false);
 }
 
+/*! Shows or hides [widget] depending on value of [state]. */
+void diaShowWidget(QWidget *widget, bool state)
+{
+  if (state)
+    widget->show();
+  else
+    widget->hide();
+}
+
 /*!
  * Determines a button width appropriate for the given [text], multiplying by
  * [factor] and adding height if [rounded] is true.
@@ -550,6 +559,9 @@ void dia_smsg( char **msg)
 
 /*
 $Log$
+Revision 1.11  2008/01/13 22:22:25  mast
+Made layout optional in diaWidget functions so they can be used in toolbars
+
 Revision 1.10  2007/07/08 16:54:32  mast
 Added dia_ask_forever, documented
 
