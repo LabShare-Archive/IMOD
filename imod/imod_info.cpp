@@ -355,9 +355,9 @@ void InfoWindow::manageMenus()
   if (!imageOK || vi->colormapImage) {
     mEImageMenu->setItemEnabled(EIMAGE_MENU_PROCESS, false);
     mImageMenu->setItemEnabled(IMAGE_MENU_TUMBLER, false);
-    mImageMenu->setItemEnabled(IMAGE_MENU_PIXEL, false);    
     ImodInfoWidget->setFloat(-1);
   }
+  mImageMenu->setItemEnabled(IMAGE_MENU_PIXEL, vi->fakeImage == 0);    
 
   // These are run-time items.  If more instances appear this should be
   // split into initial and runtime calls
@@ -451,7 +451,7 @@ void InfoWindow::trimvolExited() {
     while (mTrimvolProcess->canReadLineStdout()) {
       QString out = mTrimvolProcess->readLineStdout();
       if (out.startsWith("ERROR:")) {
-        wprint("%s\n", out);
+        wprint("%s\n", out.latin1());
       }
     }
   }
@@ -538,7 +538,7 @@ void InfoWindow::openSelectedWindows(char *keys)
     imageSlot(IMAGE_MENU_TUMBLER);
   if (strchr(keys, 'v'))
     editContourSlot(ECONTOUR_MENU_MOVE);
-  if (strchr(keys, 'x') && imageOK)
+  if (strchr(keys, 'x') && !App->cvi->fakeImage)
     imageSlot(IMAGE_MENU_PIXEL);
   if (strchr(keys, 'z'))
     imageSlot(IMAGE_MENU_MULTIZ);
@@ -657,6 +657,9 @@ static char *truncate_name(char *name, int limit)
 /*
 
 $Log$
+Revision 4.47  2008/04/02 04:13:02  mast
+Manage menu for no readable image
+
 Revision 4.46  2008/03/06 00:13:27  mast
 Added key to start in model mode
 
