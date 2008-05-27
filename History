@@ -1,6 +1,5 @@
 IMOD History
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-
 5/25/08: Added settable options for starting at middle section (default on)
 and for doing autocontrast on first section seen (default is to do this when
 starting without loading a model).
@@ -9,55 +8,60 @@ starting without loading a model).
 in model view, fixed orientations for rotations around Z in object
 edit move panel, remapped low-resolution toggle to hot key R.
 
-5/25/08: Fixed changing of current point on mouse up when starting movie.
-
-5/25/08: Fixed drawing of multiple X or Y image planes in model view (it was
-drawing the same plane at different positions).
+5/25/08: Bug fixes: Fixed drawing of multiple X or Y image planes in model
+view (it was drawing the same plane at different positions).  Fixed changing
+of current point on mouse release when starting movie.  Fixed crash if model
+view or object edit closed while meshing.  Prevented autocontour and line
+tracker windows from opening when color data is loaded.
 
 5/25/08: Added options to make a scale bar be a false color ramp.
 
-Added Ctrl T hot key for toggling the current object on/off.
+5/25/08: Added hot key and menu item for opening model view and isosurface
+Bfrom 3dmod.
 
-Added ability to mesh all objects in model view object edit.  Fixed crash if
-object edit or model view closed while meshing.
+5/25/08: Added Ctrl T hot key for toggling the current object on/off.
 
-Added option to rotate slicer around model view center of rotation when their
-rotations are linked.
+5/24/08: Added ability to mesh all objects in model view object edit.  
 
-Prevented autocontour and line tracker windows from opening when color data is
-loaded. 
+5/24/08: Added option to rotate slicer around model view center of rotation
+when their rotations are linked.
 
-Added option for reading in a tilt angle file; angles are displayed the zap
-window toolbar instead of the window size.
+5/25/08: Added option for reading in a tilt angle file; angles are displayed
+the zap window toolbar instead of the window size.
 
-Fixed crash if model view closed while doing montage snapshot.
+5/24/08: Added option to apply image processing filter automatically when
+changing sections.  Added option to smoothing filter to not rescale the data,
+so that thresholds are comparable between slices.
 
-Added option to apply image processing filter automatically when changing
-sections.
+5/24/08: Implemented interpolation in the conversion from pixels above
+threshold to boundary contours in auto-contouring and in imodauto.  Add an
+option for kernel smoothing to imodauto to match what is done in 3dmod.
 
-Added option to smoothing filter to not rescale the data, so that thresholds
-are comparable between slices.
+5/23/08: Added checkable option in File menu to save TIFF snapshots of image 
+windows as 8-bit grayscale.
 
-Implemented interpolation in the conversion from pixels above threshold to 
-boundary contours in auto-contouring and in imodauto.  Add an option for
-kernel smoothing to imodauto to match what is done in 3dmod.
+5/23/08: TIFF changes: Added an option to mrc2tif to make a single TIFF stack.
+Added support for floating point data in mrc2tif and tif2mrc, and 3dmod will
+read such data.  Mrc2tif also puts out the minimum and maximum when data are
+16-bit integer or floating point.
 
-Added an option to mrc2tif to make a single TIFF stack.  Added support for
-floating point data in mrc2tif and tif2mrc, and 3dmod will read such data.
-Mrc2tif also puts out the minimum and maximum when data are 16-bit integer or
-floating point.
+5/23/08: RGB changes: Added option to tif2mrc to convert RGB to gray-scale by
+NTSC weighting, but kept old option for equal weighting.  Made 3dmod use this
+conversion when reading in RGB as gray-scale and when snapshotting to
+grayscale.
 
-Added option to tif2mrc to convert RGB to gray-scale by NTSC weighting, but
-kept old option for equal weighting.  Made 3dmod use this conversion when
-reading in RGB as gray-scale and when snapshotting to grayscale.
+5/23/08: Pixel view window can now show value of any loaded data from memory,
+including RGB triplets for color data, and can show RGB as gray scale.
 
-Zap and model view montage snapshots can now be any snapshot format, not just
-TIFF.
+5/22/08: Zap and model view montage snapshots can now be either TIFF or 
+non-TIFF types.
 
-Added hot key and menu item for opening model view and isosurface from 3dmod.
+5/22/08: Made it possible to edit extra objects like the isosurface object in
+the model view object edit dialog.
 
-Pixel view window can now show value of any loaded data from memory, including
-RGB triplets for color data, and can show RGB as gray scale.
+5/22/08: Added Others On button to object lost dialog.
+
+5/21/08: Fixed crash when closing model view window during montage snapshot.
 
 5/20/08: Added option to Finishjoin to do local fits instead of global
 alignment when running Xftoxg.
