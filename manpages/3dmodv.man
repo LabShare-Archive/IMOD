@@ -12,7 +12,10 @@ run from the command line, 3dmodv can read and save models through the File
 menu.  Multiple models can be loaded and manipulated independently, either by 
 putting their names on the command line or by loading them one after another
 through the File menu.
-The command line options are given below.
+The command line options and hot keys are given below.  See the Help menu of
+the Model View window for information on mouse actions and menu entries; see
+the help pages for individual dialogs for full details on the controls in each
+dialog.
 .SS Options
 3dmodv can accept standard Qt options in addition to
 the options described below.
@@ -59,14 +62,18 @@ Step to previous/next model.
 Toggle displaying all models or one model.
 .TP
 .B Arrow Keys, Page Up, Page Down
-Translate model in X, Y, and Z.
+Translate model, or current clipping plane if Ctrl is held down, in X, Y, and
+Z.
 .TP
 .B Numeric Keypad
-Model rotation controls:
-   The 4 and 6 keys rotate about the Y Axis. 
-   The 8 and 2 keys rotate about the X Axis.
-   The 9 and 3 keys rotate about the Z Axis.  
+Rotate model, or current clipping plane if Ctrl key is held down:
+   The 4 and 6 keys rotate about the Y view axis. 
+   The 8 and 2 keys rotate about the X view axis.
+   The 9 and 3 keys rotate about the Z view axis.  
    The Enter Key toggles between movie and incremental motion.
+.TP
+.B t b l r f b
+Show top, bottom, left, right, front, or back face of model.
 .TP
 .B , .
 Decrease or increase the rotation increment and movie speed.
@@ -105,7 +112,7 @@ Open the Object editing dialog.
 Open the View editing dialog.
 .TP
 .B Ctrl-S
-Snapshot image to TIFF file
+Snapshot image to TIFF file.
 .TP
 .B Shift-S
 Snapshot image to file with primary non-TIFF format (selected by setting
@@ -115,19 +122,23 @@ preferences in 3dmod; default is JPEG or PNG).
 Snapshot image to file with second non-TIFF format.  This will be PNG if the
 primary format is not PNG, or JPEG if the primary one is PNG.
 .TP
+.B z
+Toggle the display of Z image planes in the model view (only available when
+program is run as 3dmod).
+.TP
 .B s
 Toggle Stereo On/Off.
 .TP
 .B [ ]
 Adjust parallax for stereo viewing.
 .TP
-.B l
+.B a
 Invert the parallax angle.
 .TP
-.B b
+.B d
 Toggle single/double buffering.
 .TP
-.B r
+.B R
 Toggle low resolution drawing of mesh and spheres.
 .TP
 .B g G
