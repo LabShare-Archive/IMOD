@@ -34,6 +34,7 @@ void DLL_IM_EX diaSetGroup(QButtonGroup *group, int value);
 void DLL_IM_EX diaSetSlider(QSlider *slider, int value);
 void DLL_IM_EX diaSetChecked(QCheckBox *button, bool state);
 void DLL_IM_EX diaSetEditText(QLineEdit *edit, const QString &text);
+void DLL_IM_EX diaShowWidget(QWidget *widget, bool state);
 QLabel DLL_IM_EX *diaLabel(char *text, QWidget *parent, QBoxLayout *layout);
 QRadioButton DLL_IM_EX *diaRadioButton(char *text, QWidget *parent);
 QPushButton DLL_IM_EX *diaPushButton(char *text, QWidget *parent, 
@@ -70,6 +71,9 @@ void DLL_IM_EX dia_smsg(char **msg);
 
 /*
 $Log$
+Revision 3.8  2007/07/08 16:53:51  mast
+Added dia_ask_forever
+
 Revision 3.7  2006/09/05 14:24:23  mast
 Added labeled spin box creator
 
