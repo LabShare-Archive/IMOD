@@ -12,14 +12,15 @@
  * Log at end of file
  */
 
+#include <stdlib.h>
+#include <string.h>
+#include <errno.h>
 #include <math.h>
 #include <limits.h>
 #include <stdio.h>
 #include "mrcc.h"
 #include "imodel.h"
-#include <stdlib.h>
-#include <string.h>
-#include <errno.h>
+#include "sliceproc.h"
 
 #define AUTO_BLANK 0
 #define AUTO_FLOOD 1
@@ -29,7 +30,7 @@
 
 
 static Iobj *imodaObjectCreateThresholdData
-(unsigned char **idata, int nx, int ny, int nz,  
+(unsigned char **idata, int nx, int ny, int nz,  float ksigma,
  double highthresh, double lowthresh, int dim,
  int minsize, int maxsize, int followdiag, int inside,
  double shave, double tol, int delete_edge, int smoothflags);
@@ -65,6 +66,7 @@ static void usage(void)
   fprintf(stderr, "\t-X min,max\tLoad subset in X from min to max (numbered from 0).\n");
   fprintf(stderr, "\t-Y min,max\tLoad subset in Y from min to max (numbered from 0).\n");
   fprintf(stderr, "\t-Z min,max\tLoad subset in Z from min to max (numbered from 0).\n");
+  fprintf(stderr, "\t-k #\tSmooth with kernel filter of given sigma.\n");
   fprintf(stderr, "\t-z #\tSet model z scale.\n");
   fprintf(stderr, "\t-x \tExpand areas before enclosing in contours.\n");
   fprintf(stderr, "\t-i \tShrink areas before enclosing in contours.\n");
@@ -95,6 +97,7 @@ int main(int argc, char *argv[])
   int i, co, pt;
   float zscale = 1.0f;
   float finalarea;
+  float ksigma = -1;
   int smoothflags = 0;
   int followdiag = 0;
   int inside = 0;
@@ -129,6 +132,9 @@ int main(int argc, char *argv[])
       case 'h':
         ht = atof(argv[++i]);
         hentered = 1;
+        break;
+      case 'k':
+        ksigma = atof(argv[++i]);
         break;
       case 'l':
         lt = atof(argv[++i]);
@@ -291,7 +297,7 @@ int main(int argc, char *argv[])
      
   obj = imodaObjectCreateThresholdData
     (idata, li.xmax + 1 - li.xmin, li.ymax + 1 - li.ymin,
-     li.zmax + 1 - li.zmin, ht, lt, dim,
+     li.zmax + 1 - li.zmin, ksigma, ht, lt, dim,
      minsize, maxsize, followdiag, inside,
      shave, tol, delete_edge, smoothflags);
      
@@ -333,6 +339,7 @@ int main(int argc, char *argv[])
   exit(0);
 }
 
+#define KERNEL_MAXSIZE 7
 
 static int listsize;
 static int *xlist, *ylist;
@@ -340,7 +347,7 @@ static int *xlist, *ylist;
 /* creates an object from a 3-D image array */
 
 static Iobj *imodaObjectCreateThresholdData
-(unsigned char **idata, int nx, int ny, int nz,  
+(unsigned char **idata, int nx, int ny, int nz, float ksigma,   
  double highthresh, double lowthresh, int dim,
  int minsize, int maxsize, int followdiag, int inside,
  double shave, double tol, int delete_edge, int smoothflags)
@@ -351,6 +358,7 @@ static Iobj *imodaObjectCreateThresholdData
   int nco, co, cpt, cz, ncont;
   int *tdata;
   unsigned char *fdata;
+  unsigned char **linePtrs;
   int i,j,k;
   int col = 1;
   float mean;
@@ -358,22 +366,30 @@ static Iobj *imodaObjectCreateThresholdData
   int thresh, t1, t2;
   int nxy = nx * ny;
   int dx, dy;
-  float dist, area;
+  float dist, area, threshUsed;
   int nobjsize = 0;
   int onobjsize = 0;
   Ipoint pmin, pmax;
+  Islice slice;
   int nedge, critedge;
-  int diagonal;
+  int diagonal, reverse;
+  float kernel[KERNEL_MAXSIZE*KERNEL_MAXSIZE];
+  int kerdim;
+  Islice *sout;
 
   tdata = (int *)malloc(sizeof(int) * nx * ny);
-  fdata = (unsigned char *)malloc(sizeof(unsigned char *) * nxy);
+  fdata = (unsigned char *)malloc(nxy);
   listsize = 4 * (nx + ny);
   xlist = (int *)malloc(listsize * sizeof(int));
   ylist = (int *)malloc(listsize * sizeof(int));
+  linePtrs = (unsigned char **)malloc(sizeof(unsigned char *) * ny);
   nobj = imodObjectNew();
   nobj->red = 0.;
   nobj->green = 1.;
   nobj->blue = 0.;
+
+  if (!tdata || !fdata || !xlist || !ylist || !linePtrs)
+    return NULL;
 
   /* Get whole-file mean for dim = 2 */
   if (dim == 2) {
@@ -387,6 +403,19 @@ static Iobj *imodaObjectCreateThresholdData
   }     
 
   for(k = 0; k < nz; k++){
+
+    /* Filter first if sigma entered */
+    if (ksigma >= 0.) {
+      sliceInit(&slice, nx, ny, SLICE_MODE_BYTE, idata[k]);
+      slice.min = slice.max = 0.;
+      if (ksigma > 0.) {
+        scaledGaussianKernel(kernel, &kerdim, KERNEL_MAXSIZE, ksigma);
+        sout = slice_mat_filter(&slice, kernel, kerdim);
+        sliceScaleAndFree(sout, &slice);
+      } else {
+        sliceByteSmooth(&slice);
+      }
+    }
 
     /* Get per-section mean for dim = 3 */
     if (dim == 3) {
@@ -537,17 +566,32 @@ static Iobj *imodaObjectCreateThresholdData
              
       auto_patch(fdata, nx, ny);
 
-      /* If we do an expand, shrink, or smooth, run the patch again */
+      /* Set the reverse flag and set threshold based on which one is passed */
+      reverse = idata[k][i + (j * nx)] <= t1 ? 1 : 0;
+      threshUsed = -1.;
+      if (idata[k][i + (j * nx)] <= t1)
+        threshUsed = t1 + 0.5;
+      if (idata[k][i + (j * nx)] >= t2)
+        threshUsed = t2 - 0.5;
+
+      /* If we do an expand, shrink, or smooth, run the patch again and set 
+         the threshold to be found by the routine */
       if (smoothflags > 1)
         auto_expand(fdata, nx, ny);
       if (smoothflags % 2)
         auto_shrink(fdata, nx, ny);
-      if (smoothflags)
+      if (smoothflags) {
         auto_patch(fdata, nx, ny);
+        threshUsed = -1.;
+      }
+
+      /* Make line pointers for image array */
+      for (j = 0; j < ny; j++)
+        linePtrs[j] = &idata[k][j * nx];
              
-      newconts = imodContoursFromImagePoints(fdata, nx, ny, cz, 
-                                             AUTO_FLOOD, diagonal, 
-                                             &ncont);
+      newconts = imodContoursFromImagePoints(fdata, linePtrs, nx, ny, cz, 
+                                             AUTO_FLOOD, diagonal, threshUsed,
+                                             reverse, &ncont);
       for (i = 0; i < ncont; i++) {
                   
         /* Just check the area and eliminate again */
@@ -881,6 +925,9 @@ static void auto_expand(unsigned char *data, int imax, int jmax)
 /*
 
 $Log$
+Revision 3.11  2008/04/04 21:21:28  mast
+Free contour after adding to object
+
 Revision 3.10  2007/09/25 15:44:10  mast
 Set up image reference information in model
 
