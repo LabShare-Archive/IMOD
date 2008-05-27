@@ -75,7 +75,7 @@ ImodvWindow::ImodvWindow(bool standAlone, int enableDepthDB,
   mEditMenu->setAccel(SHIFT + Key_V, VEDIT_MENU_VIEWS);
   mEditMenu->insertItem("&Image...", VEDIT_MENU_IMAGE);
   mEditMenu->setAccel(SHIFT + Key_I, VEDIT_MENU_IMAGE);
-  mEditMenu->insertItem("isos&urface...", VEDIT_MENU_ISOSURFACE);
+  mEditMenu->insertItem("Isos&urface...", VEDIT_MENU_ISOSURFACE);
   mEditMenu->setAccel(SHIFT + Key_U, VEDIT_MENU_ISOSURFACE);
   mEditMenu->setItemEnabled(VEDIT_MENU_IMAGE, imodvByteImagesExist() != 0);
   mEditMenu->setItemEnabled(VEDIT_MENU_ISOSURFACE, imodvByteImagesExist() != 0);
@@ -308,6 +308,9 @@ void ImodvGL::wheelEvent ( QWheelEvent * e)
 /*
 
 $Log$
+Revision 4.16  2008/04/29 18:13:31  xiongq
+add isosurface dialog
+
 Revision 4.15  2008/02/03 18:38:00  mast
 Added scroll wheel zoom
 
