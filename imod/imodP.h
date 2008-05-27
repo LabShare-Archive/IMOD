@@ -39,6 +39,8 @@ typedef struct imod_application
   int         qtEnableDepth;
   QCursor *modelCursor;
   QPixmap *iconPixmap;
+  int      convertSnap;        // Convert RGB to gray scale
+
   
   /* Global color pixel values */
   int base;
@@ -145,6 +147,10 @@ typedef struct ViewInfo
   int   numExtraObj;      /* Number of extra objects allocated */
   int   *extraObjInUse;   /* Flags for whether objects are in use */
   Ilist *selectionList;
+
+  /* Tilt angles number and array */
+  int numTiltAngles;
+  float *tiltAngles;
 
   /* storage for list of line pointers and a blank line */
   unsigned char **linePtrs;
@@ -259,6 +265,9 @@ bool imodDebug(char key);
 
 /*
 $Log$
+Revision 3.42  2008/04/29 22:30:56  mast
+Added array for keeping track of extra objects
+
 Revision 3.41  2008/04/02 04:12:41  mast
 Add flag for reading from stdin
 
