@@ -745,19 +745,22 @@ int sliceMinMax(Islice *s)
 }
 
 /*!
-  Determines min and max of slice [sout], determines scaling to match them to the 
-  min and max values provided in the byte slice [sin], scales data into [sin] and
-  free [sout].
-*/ 
+ * Determines min and max of slice [sout], determines scaling to match them to
+ * the min and max values provided in the byte slice [sin], scales data into
+ * [sin] and frees [sout].  To prevent rescaling, set the min and max of [sin]
+ * to zero.
+ */ 
 void sliceScaleAndFree(Islice *sout, Islice *sin)
 {
-  float aval, mval;
+  float aval = 0., mval = 1.;
   int imax, i;
 
-  sliceMinMax(sout);
+  if (sin->min || sin->max) {
+    sliceMinMax(sout);
+    mval = (sin->max - sin->min) / (sout->max - sout->min);
+    aval = sin->min - mval * sout->min;
+  }
   imax = sin->xsize * sin->ysize;
-  mval = (sin->max - sin->min) / (sout->max - sout->min);
-  aval = sin->min - mval * sout->min;
   switch (sout->mode) {
   case SLICE_MODE_FLOAT:
     for(i = 0; i < imax; i++)
@@ -1135,6 +1138,9 @@ int niceFrame(int num, int idnum, int limit)
 
 /*
     $Log$
+    Revision 3.11  2007/11/22 20:47:10  mast
+    Make the scaling function global
+
     Revision 3.10  2007/10/01 15:28:34  mast
     Moved slice taper function to libcfshr
 
