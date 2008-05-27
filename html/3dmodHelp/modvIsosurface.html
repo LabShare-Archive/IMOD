@@ -18,6 +18,20 @@ The subvolume is specified by a bounding box whose position and size
 are set by sliders.  Isosurfaces are displayed when this dialog is
 opened but will be removed when you close the dialog. 
 <P>
+The isosurface mesh and the bounding box are store in two "extra objects".
+Their display properties can be edited in the Model View Object Edit dialog.
+The extra objects that can be edited are listed after the last regular object
+in the model; just use the slider or spin box there to get to them.
+<P>
+The computations can be done with multiple threads running in parallel.  Doing
+so incurs some extra overhead and the computation time also does reduce
+proportional to the number of processors used and may even increase with more
+than 4 threads on an 8-core system.  Thus, the multiple threads are
+used only if the environment variable IMOD_PROCESSORS is set to a number, and
+the maximum number of threads used is 4.  You can experiment with your system
+by setting IMOD_PROCESSORS to various values and starting 3dmod with the
+-DU option.
+<P>
 The isosurface display is based on contouring and surface smoothing
 modules from Chimera, developed at the Resource for Biocomputing,
 Visualization, and Informatics at UCSF.
@@ -73,11 +87,15 @@ render too large a total volume, which is especially time-consuming when
 the threshold is near the middle of the intensity distribution.
 </P>
 <P>
+The <B>Use Rubber Band</B> button can be used to set the size and
+center of the bounding box in X and Y from the position of the rubber band in
+the top Zap window.  The size will be limited to the maximum size
+allowed for this display but the center position will be the same as that of
+the rubber band.
+<P>
 <B>Save</B> is used to create two new objects containing copies of the
 isosurfaces and the bounding box.  Until you do this, these items are
-kept in "extra objects" whose properties cannot (yet) be edited in the
-Edit-Objects window.  For now, saving the objects is the only way to
-adjust their color and other display properties.  Also, this is the
+kept in "extra objects" that are not saved with the model.  This button is the
 only way to save the isosurfaces in a model file and reload them.
 When the bounding box is saved, it will stop being displayed on all
 sections in the Zap window.  After you save the objects, the model
