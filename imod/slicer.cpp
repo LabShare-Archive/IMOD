@@ -80,6 +80,7 @@ static void getNormalToPlane(SlicerStruct *ss, Ipoint *norm);
 static void getWindowCoords(SlicerStruct *ss, float xcur, float ycur, 
                             float zcur, int &xim, int &yim, int &zim);
 static void setViewAxisRotation(SlicerStruct *ss, float x, float y, float z);
+static void changeCenterIfLinked(SlicerStruct *ss);
 
 /* DNM: maximum angles for sliders */
 static float maxAngle[3] = {90.0, 180.0, 180.0};
@@ -242,9 +243,11 @@ void slicerAngleChanged(SlicerStruct *ss, int axis, int value,
 			int dragging)
 {
   ivwControlPriority(ss->vi, ss->ctrl);
+  slicerSetForwardMatrix(ss);
   ss->tang[axis] = value * 0.1f;
   ss->lastangle = axis;
   sliderDragging = dragging;
+  changeCenterIfLinked(ss);
 
   // Do complete redraw if not dragging or hot slider enabled
   if (!dragging || ImodPrefs->hotSliderActive(ctrlPressed)) {
@@ -615,9 +618,11 @@ int setTopSlicerFromModelView(Ipoint *rot)
   SlicerStruct *ss = getTopSlicer();
   if (!ss)
     return 1;
+  slicerSetForwardMatrix(ss);
   ss->tang[b3dX] = rot->x;
   ss->tang[b3dY] = rot->y;
   ss->tang[b3dZ] = rot->z;
+  changeCenterIfLinked(ss);
   ss->qtWindow->setAngles(ss->tang);
   sslice_draw(ss);
   ss->alreadyDrew = true;
@@ -697,7 +702,46 @@ static void setViewAxisRotation(SlicerStruct *ss, float x, float y, float z)
   ss->tang[b3dX] = alpha;
   ss->tang[b3dY] = beta;
   ss->tang[b3dZ] = gamma;
+  changeCenterIfLinked(ss);
   free(rmat);
+  free(pmat);
+}
+
+/*
+ * Change center of rotation if linked to model view
+ */
+static void changeCenterIfLinked(SlicerStruct *ss)
+{
+  Imod *imod = ss->vi->imod;
+  float zscale = imod->zscale ? imod->zscale : 1.f;
+  Imat *omat, *pmat;
+  Ipoint pnt, pnew;
+  if (!imodvRotCenterLinked() || ss->locked || ss->classic)
+    return;
+  omat = imodMatNew(3);
+  pmat = imodMatNew(3);
+  if (!omat || !pmat)
+    return;
+  imodMatCopy(ss->mat, omat);
+  setInverseMatrix(ss);
+  imodMatMult(omat, ss->mat, pmat);
+
+  // Add center coordinates here because trans is negative of coordinate
+  pnt.x = ss->cx + imod->view->trans.x;
+  pnt.y = ss->cy + imod->view->trans.y;
+  pnt.z = zscale * (ss->cz + imod->view->trans.z);
+  //imodPrintStderr("Old %.1f %.1f %.1f   ", ss->cx, ss->cy, ss->cz);
+  imodMatTransform3D(pmat, &pnt, &pnew);
+  ss->cx = pnew.x - imod->view->trans.x;
+  ss->cy = pnew.y - imod->view->trans.y;
+  ss->cz = pnew.z / zscale - imod->view->trans.z;
+  ss->cx = B3DMAX(0., B3DMIN(ss->cx, ss->vi->xsize - 1));
+  ss->cy = B3DMAX(0., B3DMIN(ss->cy, ss->vi->ysize - 1));
+  ss->cz = B3DMAX(0., B3DMIN(ss->cz, ss->vi->zsize - 1));
+  ss->vi->zmouse = ss->cz;
+  //imodPrintStderr("New %.1f %.1f %.1f\n", ss->cx, ss->cy, ss->cz);
+
+  free(omat);
   free(pmat);
 }
 
@@ -971,6 +1015,7 @@ void slicerKeyInput(SlicerStruct *ss, QKeyEvent *event)
       if (keysym == Qt::Key_Next)
         setViewAxisRotation(ss, 0., 0., -unit);
     } else {
+      slicerSetForwardMatrix(ss);
       if (keysym == Qt::Key_Down) 
         ss->tang[lang] -= 0.5;
       if (keysym == Qt::Key_Left)
@@ -990,6 +1035,7 @@ void slicerKeyInput(SlicerStruct *ss, QKeyEvent *event)
         ss->tang[lang] = maxAngle[lang];
       if (ss->tang[lang] < -maxAngle[lang])
         ss->tang[lang] = -maxAngle[lang];
+      changeCenterIfLinked(ss);
     }
 
     ss->qtWindow->setAngles(ss->tang);
@@ -1082,15 +1128,13 @@ void slicerMouseMove(SlicerStruct *ss, QMouseEvent *event)
   Icont *cont;
   Imod *imod = ss->vi->imod;
   Ipoint scale = {1., 1., 1.};
-  int cumdx, cumdy, xcen, ycen;
+  int cumdx, cumdy;
   int cumthresh = 6 * 6;
-  float delCrit = 20.;
   double transFac = ss->zoom < 4. ? 1. / ss->zoom : 0.25;
   int shift = (event->state() & Qt::ShiftButton) + ss->shiftLock;
   int button2 = event->state() & ImodPrefs->actualButton(2);
   int button3 = event->state() & ImodPrefs->actualButton(3);
   Ipoint vec;
-  double delx, dely, startang, endang;
  
   ivwControlPriority(ss->vi, ss->ctrl);
   if (pixelViewOpen) {
@@ -2574,6 +2618,9 @@ void slicerCubePaint(SlicerStruct *ss)
 
 /*
 $Log$
+Revision 4.56  2008/02/03 18:38:47  mast
+Switched to calling function for mouse rotation
+
 Revision 4.55  2008/01/25 20:22:58  mast
 Changes for new scale bar
 
