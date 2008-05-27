@@ -78,7 +78,6 @@ ZapWindow::ZapWindow(struct zapwin *zap, QString timeLabel, bool panels,
 {
   int j;
   ArrowButton *arrow;
-  QSpinBox *spin;
   QCheckBox *button;
 
   mZap = zap;
@@ -114,8 +113,11 @@ ZapWindow::ZapWindow(struct zapwin *zap, QString timeLabel, bool panels,
   connect(mZoomEdit, SIGNAL(focusLost()), this, SLOT(newZoom()));
   QToolTip::add(mZoomEdit, "Enter an arbitrary zoom factor");
 
-  if (!panels)
+  if (!panels) {
     mSizeLabel = new QLabel(mToolBar, " 0000x0000");
+    if (ivwGetTiltAngles(zap->vi, j))
+      mSizeLabel->setTextFormat(Qt::RichText);
+  }
 
 // Make the 4 toggle buttons and their signal mapper
   QSignalMapper *toggleMapper = new QSignalMapper(mToolBar);
@@ -447,7 +449,8 @@ void ZapWindow::setZoomText(float zoom)
 
 void ZapWindow::setSizeText(int winx, int winy)
 {
-  if (mSizeLabel) {
+  int num;
+  if (mSizeLabel && !ivwGetTiltAngles(mZap->vi, num)) {
     QString str;
     str.sprintf(" %dx%d", winx, winy);
     mSizeLabel->setText(str);
@@ -456,11 +459,17 @@ void ZapWindow::setSizeText(int winx, int winy)
 
 void ZapWindow::setSectionText(int section)
 {
+  int num;
+  float *angles = ivwGetTiltAngles(mZap->vi, num);
   QString str;
   str.sprintf("%d", section);
   mSectionEdit->setText(str);
   diaSetSlider(mSecSlider, section);
   mDisplayedSection = section;
+  if (angles && mSizeLabel) {
+    str.sprintf("&nbsp;%.1f&deg;", section > num ? 0. : angles[section - 1]);
+    mSizeLabel->setText(str);
+  }
 }
 
 void ZapWindow::setMaxZ(int maxZ)
@@ -628,6 +637,9 @@ void ZapGL::leaveEvent ( QEvent * e)
 
 /*
 $Log$
+Revision 4.29  2008/02/06 16:34:41  sueh
+bug# 1065 In setLowHighSectionState reset section fields when hiding.
+
 Revision 4.28  2008/02/05 19:59:06  sueh
 bug# 1065 Added a low section button and edit field and a high section button
 and edit field to the tool bar.  Fields are associated with the rubberband button.
