@@ -359,6 +359,7 @@ void InfoWindow::editModelSlot(int item)
       imod_cmap(vi->imod);
       imod_info_setobjcolor();
       imodDraw(vi, IMOD_DRAW_RETHINK);
+      imodvObjedNewView();
     }
     break;
   }
@@ -1316,6 +1317,10 @@ static int imodContourBreakByZ(ImodView *vi, Iobj *obj, int ob, int co)
 /*
 
 $Log$
+Revision 4.46  2008/05/27 05:53:41  mast
+Added checkbox for snapping as gray, isosurface entry, allow pixelview
+to open on any data
+
 Revision 4.45  2008/04/04 21:22:03  mast
 Free contour after adding to object
 
