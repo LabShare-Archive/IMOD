@@ -18,6 +18,7 @@
 #include <qfiledialog.h>
 #include <qdir.h>
 #include <qtimer.h>
+#include <qpopupmenu.h>
 #include "xxyz.h"
 #include "imod_object_edit.h"
 #include "pixelview.h"
@@ -28,6 +29,7 @@
 #include "imodv.h"
 #include "imodv_views.h"
 #include "imodv_objed.h"
+#include "imodv_isosurface.h"
 #include "imod_display.h"
 #include "xcramp.h"
 #include "xzap.h"
@@ -143,6 +145,11 @@ void InfoWindow::fileSlot(int item)
       imod_info_enable();
       break;
 
+  case FILE_MENU_SNAPGRAY:
+    App->convertSnap = 1 - App->convertSnap;
+    mFileMenu->setItemChecked(FILE_MENU_SNAPGRAY, App->convertSnap != 0);
+    break;
+
   case FILE_MENU_TIFF:  /* Save raw image to tiff file */
     if (!App->cvi->rawImageStore)
       wprint("This option works only with color images.\n");
@@ -163,7 +170,7 @@ void InfoWindow::fileSlot(int item)
       limits[0] = limits[1] = 0;
       limits[2] = App->cvi->xsize;
       limits[3] = App->cvi->ysize;
-      b3dSnapshot_TIF(qname, 3, limits, data);
+      b3dSnapshot_TIF(qname, 3, limits, data, false);
     }
     break;
     
@@ -1152,14 +1159,15 @@ void InfoWindow::editImageSlot(int item)
  */
 void InfoWindow::imageSlot(int item)
 {
-  // fprintf(stderr,"Edit image item %d\n", item);
+  //fprintf(stderr,"Edit image item %d\n", item);
 
   if (ImodForbidLevel)
     return;
 
-  /* DNM: only model and zap will work with raw (color) data */
+  /* DNM: only model and zap and pixelview will work with raw (color) data */
   if (!(item == IMAGE_MENU_ZAP || item == IMAGE_MENU_MULTIZ || 
-        item == IMAGE_MENU_MODV) && App->cvi->rawImageStore)
+        item == IMAGE_MENU_MODV || item == IMAGE_MENU_PIXEL) &&
+      App->cvi->rawImageStore)
     return;
      
   switch(item){
@@ -1204,6 +1212,12 @@ void InfoWindow::imageSlot(int item)
     if (!App->cvi->fakeImage)
       open_pixelview(App->cvi);
     break;
+
+  case IMAGE_MENU_ISOSURFACE:
+    if (!App->cvi->fakeImage && !App->cvi->rawImageStore) {
+      imodv_open();
+      imodvIsosurfaceEditDialog(Imodv, 1);
+    }
 
     /* DNM 12/18/02 removed unused zoom command */
           
@@ -1302,6 +1316,9 @@ static int imodContourBreakByZ(ImodView *vi, Iobj *obj, int ob, int co)
 /*
 
 $Log$
+Revision 4.45  2008/04/04 21:22:03  mast
+Free contour after adding to object
+
 Revision 4.44  2008/02/22 00:34:50  sueh
 bug# 1076 Added extract menu option.
 
