@@ -18,6 +18,8 @@ void ScaleBarForm::init()
   diaSetChecked(drawCheckBox, mParams->draw);
   diaSetChecked(whiteCheckBox, mParams->white); 
   diaSetChecked(verticalCheckBox, mParams->vertical); 
+  diaSetChecked(colorCheckBox, mParams->colorRamp);
+  diaSetChecked(invertCheckBox, mParams->invertRamp);
   diaSetSpinBox(lengthSpinBox, mParams->minLength);
   diaSetSpinBox(thicknessSpinBox, mParams->thickness);
   diaSetSpinBox(indentXspinBox, mParams->indentX);
@@ -54,6 +56,18 @@ void ScaleBarForm::whiteToggled( bool state )
 void ScaleBarForm::verticalToggled( bool state )
 {
   mParams->vertical = state;
+  scaleBarRedraw();
+}
+
+void ScaleBarForm::colorToggled( bool state )
+{
+  mParams->colorRamp = state;
+  scaleBarRedraw();
+}
+
+void ScaleBarForm::invertToggled( bool state )
+{
+  mParams->invertRamp = state;
   scaleBarRedraw();
 }
 

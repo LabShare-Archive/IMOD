@@ -8,8 +8,8 @@
         <rect>
             <x>0</x>
             <y>0</y>
-            <width>245</width>
-            <height>432</height>
+            <width>256</width>
+            <height>423</height>
         </rect>
     </property>
     <property name="caption">
@@ -35,13 +35,24 @@
         </widget>
         <widget class="QLayoutWidget">
             <property name="name">
-                <cstring>layout9</cstring>
+                <cstring>layout43</cstring>
             </property>
-            <hbox>
+            <grid>
                 <property name="name">
                     <cstring>unnamed</cstring>
                 </property>
-                <widget class="QCheckBox">
+                <widget class="QCheckBox" row="1" column="0">
+                    <property name="name">
+                        <cstring>colorCheckBox</cstring>
+                    </property>
+                    <property name="text">
+                        <string>Color ramp</string>
+                    </property>
+                    <property name="toolTip" stdset="0">
+                        <string>Draw a false color ramp instead of black/white bars</string>
+                    </property>
+                </widget>
+                <widget class="QCheckBox" row="0" column="0">
                     <property name="name">
                         <cstring>whiteCheckBox</cstring>
                     </property>
@@ -55,7 +66,18 @@
                         <string>Draw white instead of black bars</string>
                     </property>
                 </widget>
-                <widget class="QCheckBox">
+                <widget class="QCheckBox" row="1" column="1">
+                    <property name="name">
+                        <cstring>invertCheckBox</cstring>
+                    </property>
+                    <property name="text">
+                        <string>Invert ramp</string>
+                    </property>
+                    <property name="toolTip" stdset="0">
+                        <string>Reverse the direction of the color ramp</string>
+                    </property>
+                </widget>
+                <widget class="QCheckBox" row="0" column="1">
                     <property name="name">
                         <cstring>verticalCheckBox</cstring>
                     </property>
@@ -69,7 +91,7 @@
                         <string>Draw bars vertically instead of horizontally</string>
                     </property>
                 </widget>
-            </hbox>
+            </grid>
         </widget>
         <widget class="QLayoutWidget">
             <property name="name">
@@ -662,6 +684,18 @@
         <receiver>ScaleBarForm</receiver>
         <slot>verticalToggled(bool)</slot>
     </connection>
+    <connection>
+        <sender>colorCheckBox</sender>
+        <signal>toggled(bool)</signal>
+        <receiver>ScaleBarForm</receiver>
+        <slot>colorToggled(bool)</slot>
+    </connection>
+    <connection>
+        <sender>invertCheckBox</sender>
+        <signal>toggled(bool)</signal>
+        <receiver>ScaleBarForm</receiver>
+        <slot>invertToggled(bool)</slot>
+    </connection>
 </connections>
 <includes>
     <include location="local" impldecl="in implementation">scalebar.h</include>
@@ -683,6 +717,8 @@
     <slot>drawToggled( bool state )</slot>
     <slot>whiteToggled( bool state )</slot>
     <slot>verticalToggled( bool state )</slot>
+    <slot>colorToggled( bool state )</slot>
+    <slot>invertToggled( bool state )</slot>
     <slot>lengthChanged( int value )</slot>
     <slot>thicknessChanged( int value )</slot>
     <slot>positionChanged( int value )</slot>
