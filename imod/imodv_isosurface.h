@@ -1,3 +1,11 @@
+/*  imodv_isosurface.h  -  declarations for imodv_isosurface.cpp
+ *
+ *  $Id$
+ *
+ * $Log$
+ *
+ */
+
 #ifndef IMODV_ISOSURFACE_H
 #define IMODV_ISOSURFACE_H
 
@@ -7,7 +15,9 @@ typedef struct __imodv_struct ImodvApp;
 #define IMODV_VIEW_BOX (1 << 1)
 #define IMODV_VIEW_USER_MODEL (1 << 2)
 #define IMODV_VIEW_ISOSURFACE (1 << 3)
-#define MAX_THREADS 16 
+
+// Based on timing tests in May 2008
+#define MAX_THREADS 4
 
 /* Image Control functions. */
 void imodvIsosurfaceEditDialog(ImodvApp *a, int state);
