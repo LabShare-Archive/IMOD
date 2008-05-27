@@ -3,15 +3,73 @@
  *   Copyright (C) 1995-2002 by Boulder Laboratory for 3-Dimensional Electron
  *   Microscopy of Cells ("BL3DEMC") and the Regents of the University of 
  *   Colorado.  See implementation file for full copyright notice.
- */                                                                           
+ *
+ *  $Id$
+ *  Log at end of file
+ */
 
-/*  $Author$
+#ifndef PIXELVIEW_H
+#define PIXELVIEW_H
 
-$Date$
+int  open_pixelview(struct ViewInfo *vi);
+void pvNewMousePosition(struct ViewInfo *vi, float x, float y, int iz);
 
-$Revision$
+#define PV_ROWS 7
+#define PV_COLS 7
+
+#include <qwidget.h>
+class QLabel;
+class QPushButton;
+class QCheckBox;
+
+class PixelView: public QWidget
+{
+  Q_OBJECT
+
+ public:
+  PixelView(QWidget *parent, const char *name = 0, 
+	      WFlags fl = Qt::WDestructiveClose | Qt::WType_TopLevel);
+  ~PixelView() {};
+  void update();
+  void setButtonWidths();
+  QLabel *mMouseLabel;
+  QCheckBox *mFileValBox;
+
+  public slots:
+    void buttonPressed(int pos);
+  void fromFileToggled(bool state);
+  void showButsToggled(bool state);
+  void gridFileToggled(bool state);
+  void convertToggled(bool state);
+  void helpClicked(void);
+  void adjustDialogSize();
+
+ protected:
+    void closeEvent ( QCloseEvent * e );
+    void keyPressEvent ( QKeyEvent * e );
+    void keyReleaseEvent ( QKeyEvent * e );
+    void fontChange(const QFont &oldFont) {setButtonWidths();};
+
+ private:
+    QLabel *mBotLabels[PV_COLS];
+    QLabel *mLeftLabels[PV_ROWS];
+    QLabel *mLabXY;
+    QPushButton *mButtons[PV_ROWS][PV_COLS];
+    QColor mGrayColor;       // Original color
+    int mMinRow, mMinCol, mMaxRow, mMaxCol;   // Row, column of last min/max
+    QCheckBox *mGridValBox;
+    QCheckBox *mConvertBox;
+    QPushButton *mHelpButton;
+};
+
+#endif
+
+/*
 
 $Log$
+Revision 4.4  2006/09/18 15:46:46  mast
+Moved mouse line to top
+
 Revision 4.3  2006/09/17 18:15:34  mast
 Added mouse position/value report line
 
@@ -29,49 +87,3 @@ Initial creation
 
 */
 
-#ifndef PIXELVIEW_H
-#define PIXELVIEW_H
-
-int  open_pixelview(struct ViewInfo *vi);
-void pvNewMousePosition(struct ViewInfo *vi, float x, float y, int iz);
-
-#define PV_ROWS 7
-#define PV_COLS 7
-
-#include <qwidget.h>
-class QLabel;
-class QPushButton;
-
-class PixelView: public QWidget
-{
-  Q_OBJECT
-
- public:
-  PixelView(QWidget *parent, const char *name = 0, 
-	      WFlags fl = Qt::WDestructiveClose | Qt::WType_TopLevel);
-  ~PixelView() {};
-  void update();
-  void setButtonWidths();
-  QLabel *mMouseLabel;
-
-  public slots:
-    void buttonPressed(int pos);
-  void fromFileToggled(bool state);
-  void showButsToggled(bool state);
-
- protected:
-    void closeEvent ( QCloseEvent * e );
-    void keyPressEvent ( QKeyEvent * e );
-    void keyReleaseEvent ( QKeyEvent * e );
-    void fontChange(const QFont &oldFont) {setButtonWidths();};
-
- private:
-    QLabel *mBotLabels[PV_COLS];
-    QLabel *mLeftLabels[PV_ROWS];
-    QLabel *mLabXY;
-    QPushButton *mButtons[PV_ROWS][PV_COLS];
-    QColor mGrayColor;       // Original color
-    int mMinRow, mMinCol, mMaxRow, mMaxCol;   // Row, column of last min/max
-};
-
-#endif
