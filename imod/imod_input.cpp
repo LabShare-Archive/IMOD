@@ -32,6 +32,7 @@
 #include "imod_cont_edit.h"
 #include "imodv.h"
 #include "imodv_objed.h"
+#include "imodv_isosurface.h"
 #include "imodv_window.h"
 #include "imod_input.h"
 #include "control.h"
@@ -703,8 +704,6 @@ void inputDeleteContour(ImodView *vw)
   int conew = imod->cindex.contour -1;
   int obnew = imod->cindex.object;
   int numDel, i, ob;
-  b3dUInt32 delFlag = 2876351;
-  Iindex *index;
   QString qstr;
   static int lastDel = 0;
 
@@ -970,6 +969,7 @@ void inputQDefaultKeys(QKeyEvent *event, ImodView *vw)
   int ctrl = event->state() & Qt::ControlButton;
   int bwStep = ImodPrefs->getBwStep();
   int mean, sd;
+  Iobj *obj;
 
   if (inputTestMetaKey(event))
     return;
@@ -1215,13 +1215,28 @@ void inputQDefaultKeys(QKeyEvent *event, ImodView *vw)
         vw->drawcursor = FALSE;
       else
         vw->drawcursor = TRUE;
-    }else{
+    } else if (ctrl) {
+      obj = imodObjectGet(vw->imod);
+      if (!obj)
+        break;
+      mean = (obj->flags & IMOD_OBJFLAG_OFF) ? 1 : 0;
+      ioew_draw(mean);
+      break;
+    } else {
       vw->imod->drawmode -= (2 * vw->imod->drawmode);
       imodModelEditUpdate();
     }
     imodDraw(vw, IMOD_DRAW_MOD);
     break;
           
+  case Qt::Key_U:
+    if (shifted && !vw->fakeImage && !vw->rawImageStore) {
+      imodv_open();
+      imodvIsosurfaceEditDialog(Imodv, 1);
+    } else
+      handled = 0;
+    break;
+
   case Qt::Key_V:
     imodv_open();
     break;
@@ -1394,6 +1409,9 @@ bool inputTestMetaKey(QKeyEvent *event)
 
 /*
 $Log$
+Revision 4.38  2008/05/22 15:41:30  mast
+Synced model view objects when added object
+
 Revision 4.37  2008/01/13 22:58:35  mast
 Changes for multi-Z window
 
