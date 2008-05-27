@@ -872,10 +872,8 @@ static void b3dDrawGreyScalePixels15
   unsigned int *cindex = App->cvi->cramp->ramp;
   int sw, sh; /* scaled width and height. */
   int maxj;
-  unsigned int fillval;
   int drawwidth;
   int wxdraw;
-  unsigned char *fillpt = (unsigned char *)(&fillval);
   unsigned int val;
   unsigned char *valptr = (unsigned char *)(&val);
 
@@ -1071,11 +1069,10 @@ void b3dDrawGreyScalePixelsHQ(unsigned char **dataPtrs,  /* input data lines */
   float a,b,c,d;
   int dwidth = (int)(width * zoom);
   int dheight= (int)(height * zoom);
-  int xi, pxi, nxi, yi, pyi, nyi, x1, x2, y1, y2;
+  int xi, yi, pyi, nyi;
   int i, j, izs, xistop;
      
   float cx, cy;                            /* current x,y values          */
-  float dx, dy;                            /* pixel  offset.              */
   float zs    = 1.0f/(float)zoom;          /* zoom step for x,y           */
   float trans = -(0.5 - (0.5 * zs));       /* translate offset. */
   float xstop = xoffset + width + trans; /* stop at this x coord.   */
@@ -1085,8 +1082,6 @@ void b3dDrawGreyScalePixelsHQ(unsigned char **dataPtrs,  /* input data lines */
   GLenum type, format;
   GLint unpack = b3dGetImageType(&type, &format);
   unsigned int *cindex = App->cvi->cramp->ramp;
-  unsigned int fillval;
-  unsigned char *fillpt = (unsigned char *)(&fillval);
   int ibase;
   int drawwidth;
   int wxdraw, nyi2;
@@ -1540,8 +1535,10 @@ QString b3dShortSnapName(QString fname)
   return sname;
 }
 
-/* Take a snapshot of the current window with prefix in name */
-int b3dAutoSnapshot(char *name, int format_type, int *limits)
+/* Take a snapshot of the current window with prefix in name.  There is
+   no default for checking for RGB conversion. */
+int b3dAutoSnapshot(char *name, int format_type, int *limits, 
+                    bool checkConvert)
 {
   QString fname, sname;
   static int fileno = 0;
@@ -1558,10 +1555,10 @@ int b3dAutoSnapshot(char *name, int format_type, int *limits)
 
   switch (format_type){
   case SnapShot_RGB:
-    retval = b3dSnapshot_NonTIF(fname, App->rgba, limits);
+    retval = b3dSnapshot_NonTIF(fname, App->rgba, limits, NULL);
     break;
   case SnapShot_TIF:
-    retval = b3dSnapshot_TIF(fname, App->rgba, limits, NULL);
+    retval = b3dSnapshot_TIF(fname, App->rgba, limits, NULL, checkConvert);
     break;
   default:
     retval = b3dSnapshot(fname);
@@ -1574,18 +1571,20 @@ int b3dAutoSnapshot(char *name, int format_type, int *limits)
 }
 
 /* Take a snapshot of the current window with prefix in name and type selected
-   by shift and ctrl key states */
-int b3dKeySnapshot(char *name, int shifted, int ctrl, int *limits)
+   by shift and ctrl key states.  Checking for RGB conversion to gray scale
+   is defaulted to TRUE. */
+int b3dKeySnapshot(char *name, int shifted, int ctrl, int *limits,
+                   bool checkConvert)
 {
   int retval;
   if (shifted) {
     if (ctrl)
       ImodPrefs->set2ndSnapFormat();
-    retval = b3dAutoSnapshot(name, SnapShot_RGB, limits);
+    retval = b3dAutoSnapshot(name, SnapShot_RGB, limits, checkConvert);
     if (ctrl)
       ImodPrefs->restoreSnapFormat();
   } else
-    retval = b3dAutoSnapshot(name, SnapShot_TIF, limits);
+    retval = b3dAutoSnapshot(name, SnapShot_TIF, limits, checkConvert);
   return retval;
 }
 
@@ -1619,6 +1618,8 @@ static void puttiffentry(short tag, short type,
  * Output file is given by fname
  * rgbmode non-zero indicates rgb rather than color index
  * if limits is non-NULL, it contains lower left X, Y and size X,Y for a subset
+ * If data is non-NULL, it supplies the data already as line pointers, and
+ * rgbmode should be 3 for RGB and 4 for RGBA data.
  */
 int b3dSnapshot_NonTIF(QString fname, int rgbmode, int *limits, 
                        unsigned char **data)
@@ -1789,16 +1790,16 @@ int b3dSnapshot_NonTIF(QString fname, int rgbmode, int *limits,
  * rgbmode non-zero indicates rgb rather than color index
  * if limits is non-NULL, it contains lower left X, Y and size X,Y for a subset
  * If data is non-NULL, it supplies the data already as line pointers, and
- * rgbmode should be 3 for RGB and 4 for RGBA data 
+ * rgbmode should be 3 for RGB and 4 for RGBA data.
  */
 int b3dSnapshot_TIF(QString fname, int rgbmode, int *limits, 
-                     unsigned char **data)
+                     unsigned char **data, bool checkConvert)
 {
   FILE *fout;
   int i, j;
   unsigned char *pixels = NULL;
   int *lpixels;
-  int xysize, xsize, ysize;
+  int xysize, xsize, ysize, step, samples;
   unsigned int pixel;
   unsigned int ifd;
   unsigned int colortable;
@@ -1806,6 +1807,7 @@ int b3dSnapshot_TIF(QString fname, int rgbmode, int *limits,
   unsigned short tenum;
   unsigned short color[3];
   int depth;
+  bool convertRGB = false;
 
   int mapsize;
   unsigned int *fcmapr, *fcmapg, *fcmapb;
@@ -1826,6 +1828,9 @@ int b3dSnapshot_TIF(QString fname, int rgbmode, int *limits,
     imodPrintStderr(qerr.latin1());
     return 1;
   }
+
+  if (checkConvert && rgbmode)
+    convertRGB = App->convertSnap;
 
   if (limits) {
     rpx = limits[0];
@@ -1898,7 +1903,7 @@ int b3dSnapshot_TIF(QString fname, int rgbmode, int *limits,
 
   // 11/1/04: fix to allow 3 more words (2 front of the image, 1 after)
   ifd = xysize;
-  if (depth > 8 || rgbmode)
+  if ((depth > 8 || rgbmode) && !convertRGB)
     ifd *= 3;
   ifd = 4 * ((ifd + 3) / 4 + 3);
 
@@ -1916,17 +1921,34 @@ int b3dSnapshot_TIF(QString fname, int rgbmode, int *limits,
 
   if (data) {
     /* Use the line pointers to write each line */
+    step = rgbmode == 3 ? 3 : 4;
     for(j = ysize - 1; j >= 0; j--)
-      if (rgbmode == 3) 
+      if (convertRGB) {
+        for(i = 0; i < xsize; i++) {
+          bpix = (int)(0.3 * data[j][step*i] + 0.59 * data[j][step*i+1] + 
+                       0.11 * data[j][step*i + 2] + 0.5);
+          fwrite(&bpix, 1, 1, fout);
+        }
+      } else if (rgbmode == 3) {
         fwrite(data[j], 1, 3 * xsize, fout);
-      else
+      } else {
         for(i = 0; i < xsize; i++)
           fwrite(&data[j][4*i], 1, 3, fout);
+      }
 
   } else if (rgbmode) {
     for(j = ysize - 1; j >= 0; j--)
-      for(i = 0; i < xsize; i++)
-        fwrite(&lpixels[i + (j * xsize)], 1, 3, fout);
+      if (convertRGB) {
+        for(i = 0; i < xsize; i++) {
+          bpix = (int)(0.3 * pixels[4*(i+(j*xsize))] + 
+                       0.59 * pixels[4*(i+(j*xsize)) + 1] + 
+                       0.11 * pixels[4*(i+(j*xsize)) + 2] + 0.5);
+          fwrite(&bpix, 1, 1, fout);
+        }
+      } else {
+        for(i = 0; i < xsize; i++)
+          fwrite(&lpixels[i + (j * xsize)], 1, 3, fout);
+      }
 
   } else if (depth > 8){
     for(j = ysize - 1; j >= 0; j--)
@@ -1935,8 +1957,12 @@ int b3dSnapshot_TIF(QString fname, int rgbmode, int *limits,
         rpix = (unsigned char)fcmapr[ci];
         gpix = (unsigned char)fcmapg[ci];
         bpix = (unsigned char)fcmapb[ci];
-        fwrite(&rpix, 1, 1, fout);
-        fwrite(&gpix, 1, 1, fout);
+        if (convertRGB) {
+          bpix = (int)(0.3 * rpix + 0.59 * gpix + 0.11 * bpix);
+        } else {
+          fwrite(&rpix, 1, 1, fout);
+          fwrite(&gpix, 1, 1, fout);
+        }
         fwrite(&bpix, 1, 1, fout);
       }
          
@@ -1953,28 +1979,31 @@ int b3dSnapshot_TIF(QString fname, int rgbmode, int *limits,
   fseek(fout, (int)ifd, SEEK_SET);
   if (depth > 8 || rgbmode){
     tenum = 11;
-    colortable = ifd + 2 + (tenum * 12) + 7;
+    samples = convertRGB ? 1 : 3;
+    colortable = convertRGB ? 8 : ifd + 2 + (tenum * 12) + 7;
     fwrite(&tenum, 2, 1, fout);
     puttiffentry(256, 3, 1, xsize, fout);
     puttiffentry(257, 3, 1, ysize, fout);
-    puttiffentry(258, 3, 3, colortable, fout);
+    puttiffentry(258, 3, samples, colortable, fout);
     puttiffentry(259, 3, 1, 1, fout);
-    puttiffentry(262, 3, 1, 2, fout);
+    puttiffentry(262, 3, 1, convertRGB ? 1 : 2, fout);
     puttiffentry(273, 4, 1, 8, fout);
     puttiffentry(274, 3, 1, 1, fout);
-    puttiffentry(277, 3, 1, 3, fout);
-    puttiffentry(278, 4, 1, ysize*3, fout);
-    puttiffentry(279, 4, 1, xysize * 3, fout);
+    puttiffentry(277, 3, 1, samples, fout);
+    puttiffentry(278, 4, 1, ysize, fout);
+    puttiffentry(279, 4, 1, xysize * samples, fout);
     puttiffentry(284, 3, 1, 1, fout);  /* plane config */
 
     ifd = 0;
     fwrite(&ifd, 4, 1, fout);
 
-    fseek(fout, (int)colortable, SEEK_SET);
-    color[0] = 8;
-    fwrite(color, 2, 1, fout);
-    fwrite(color, 2, 1, fout);
-    fwrite(color, 2, 1, fout);
+    if (!convertRGB) {
+      fseek(fout, (int)colortable, SEEK_SET);
+      color[0] = 8;
+      fwrite(color, 2, 1, fout);
+      fwrite(color, 2, 1, fout);
+      fwrite(color, 2, 1, fout);
+    }
   }else{
     tenum = 12;
     fwrite(&tenum, 2, 1, fout);
@@ -2028,14 +2057,17 @@ int b3dSnapshot_TIF(QString fname, int rgbmode, int *limits,
 int b3dSnapshot(QString fname)
 {
   if (SnapShotFormat == SnapShot_RGB)
-    return(b3dSnapshot_NonTIF(fname, App->rgba, NULL));
+    return(b3dSnapshot_NonTIF(fname, App->rgba, NULL, NULL));
   else
-    return(b3dSnapshot_TIF(fname, App->rgba, NULL, NULL));
+    return(b3dSnapshot_TIF(fname, App->rgba, NULL, NULL, false));
 }
 
 
 /*
 $Log$
+Revision 4.38  2008/05/23 04:31:21  mast
+Changed to allow nontiff montage snapshots
+
 Revision 4.37  2007/12/13 03:20:17  mast
 Fixed panning offset getting stuck at negative end
 
