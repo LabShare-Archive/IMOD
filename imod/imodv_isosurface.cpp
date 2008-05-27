@@ -18,6 +18,7 @@
 #include <qgl.h>
 #include <qslider.h>
 #include <qtooltip.h>
+#include <qtoolbutton.h>
 #include <qspinbox.h>
 #include <qdatetime.h>
 #include "preferences.h"
@@ -29,6 +30,7 @@
 #include "imodv_isosurface.h"
 #include "histwidget.h"
 #include "isothread.h"
+#include "xzap.h"
 #include "imodv_input.h"
 #include "imod_display.h"
 #include "imodv_objed.h"
@@ -236,7 +238,7 @@ ImodvIsosurface::ImodvIsosurface(struct ViewInfo *vi, QWidget *parent, const cha
   connect(mCenterVolume,
       SIGNAL(toggled(bool)),this,SLOT(centerVolumeToggled(bool)));
   QToolTip::add(mViewIso, "Display isosurfaces");
-  QToolTip::add(mViewModel, "Display user models");
+  QToolTip::add(mViewModel, "Display user model");
   QToolTip::add(mViewBoxing, "Display the bounding box");
   QToolTip::add(mCenterVolume, "Keep isosurfaces centered in the model view window");
 
@@ -305,6 +307,11 @@ ImodvIsosurface::ImodvIsosurface(struct ViewInfo *vi, QWidget *parent, const cha
   QToolTip::add((QWidget *)mSliders->getSlider(IIS_Z_SIZE),
       "Set bounding box size in Z");
 
+  mUseRubber=new QToolButton(this);
+  mUseRubber->setText(tr("Use Rubber Band"));
+  QToolTip::add(mUseRubber, "Show isosurfaces of area enclosed by the rubber band");
+  mLayout->addWidget(mUseRubber);
+  connect(mUseRubber, SIGNAL(clicked()), this, SLOT(showRubberBandArea()));
   connect(this, SIGNAL(actionClicked(int)), this, SLOT(buttonPressed(int)));
 
   mInitNThreads=NUM_THREADS;
@@ -774,7 +781,7 @@ void ImodvIsosurface::setBoundingObj()
   contours[0].flags |=ICONT_DRAW_ALLZ;
   ivwClearAnExtraObject(Imodv->vi, mBoxObjNum);
   Iobj *bObj=ivwGetAnExtraObject(Imodv->vi, mBoxObjNum);
-  imodObjectSetColor(bObj, 1.0, 0.0, 0.0);
+  imodObjectSetColor(bObj, 1.0, 1.0, 0.0);
   for(i=0;i<4;i++) {
     imodObjectAddContour(bObj, &contours[i]);
   }
@@ -964,6 +971,64 @@ void ImodvIsosurface::sliderMoved(int which, int value, bool dragging)
 
 }
 
+void ImodvIsosurface::showRubberBandArea()
+{
+  float x0, x1, y0, y1;
+  if( zapRubberbandCoords(x0, x1, y0, y1) )
+  {
+    int tempSize[3];
+    tempSize[0]=mIsoView->xsize;
+    tempSize[1]=mIsoView->ysize;
+    tempSize[2]=mIsoView->zsize;
+    int xMax, yMax, zMax;
+    findDimLimits(FIND_MAXIMAL_DIM, &xMax, &yMax, &zMax, tempSize);
+
+    if( xMax>x1-x0 ) xDrawSize=x1-x0;
+    else xDrawSize=xMax;
+
+    if( yMax>y1-y0 ) yDrawSize=y1-y0;
+    else yDrawSize=yMax;
+
+    int xCenter= (x0+x1)/2.0;
+    int yCenter=(y0+y1)/2.0;
+
+    setCoordLimits( xCenter, Imodv->vi->xsize, xDrawSize, mBoxOrigin, mBoxEnds);
+    setCoordLimits( yCenter, Imodv->vi->ysize, yDrawSize, mBoxOrigin+1, mBoxEnds+1);
+    mBoxSize[0]=xDrawSize;
+    mBoxSize[1]=yDrawSize;
+
+    if(mCenterVolume->isChecked() ) setViewCenter();
+
+    int newSize=xDrawSize*yDrawSize*zDrawSize;
+    if( newSize>mCurrMax)
+    {
+      free(mVolume);
+      mCurrMax=(double)newSize;
+      mVolume=(unsigned char*)(malloc( newSize*sizeof(unsigned char) ));
+      if(!mVolume){
+        imodPrintStderr("fail to allocate mem for %d voxles\n", newSize);
+        return;
+      }//else imodPrintStderr("allocate mem for %d voxels\n", newSize);
+    }
+
+    Imodv->vi->xmouse = xCenter;
+    Imodv->vi->ymouse = yCenter;
+
+    mSliders->setValue(IIS_X_COORD, xCenter + 1);
+    mSliders->setValue(IIS_Y_COORD, yCenter + 1);
+    mSliders->setValue(IIS_X_SIZE, xDrawSize);
+    mSliders->setValue(IIS_Y_SIZE, yDrawSize);
+
+    setBoundingObj();
+    fillVolumeArray();
+    setIsoObj();
+
+    imodvDraw(Imodv);
+    if ( mViewBoxing->isChecked() )
+      imodDraw(Imodv->vi, IMOD_DRAW_XYZ |IMOD_DRAW_SKIPMODV );
+  }
+
+}
 // Action buttons
 void ImodvIsosurface::buttonPressed(int which)
 {
@@ -1013,7 +1078,9 @@ void ImodvIsosurface::closeEvent ( QCloseEvent * e )
   ivwFreeExtraObject(mIsoView, mBoxObjNum);
   ivwFreeExtraObject(mIsoView, mExtraObjNum);
   imodvObjedNewView();
-  imodvDraw(Imodv);
+  imodvIsosurfaceData.a->drawExtraOnly=0; //enable user model drawing;
+
+  imodDraw(Imodv->vi, IMOD_DRAW_MOD);
 
   if(!mViewIso->isChecked() ) imodvIsosurfaceData.flags &=~IMODV_VIEW_ISOSURFACE;
   else  imodvIsosurfaceData.flags |=IMODV_VIEW_ISOSURFACE;
@@ -1026,6 +1093,7 @@ void ImodvIsosurface::closeEvent ( QCloseEvent * e )
 
   if(!mCenterVolume->isChecked())imodvIsosurfaceData.flags &=~IMODV_CENTER_VOLUME;
   else  imodvIsosurfaceData.flags |=IMODV_CENTER_VOLUME;
+
   imodvIsosurfaceData.itNum=mSmoothBox->text().toInt();
 }
 
@@ -1056,6 +1124,9 @@ void ImodvIsosurface::keyReleaseEvent ( QKeyEvent * e )
 /*
 
    $Log$
+   Revision 4.6  2008/05/23 19:23:32  xiongq
+   Use multithreads to compute isosurface. Move the calling of imodvIsosurfaceUpdate() from imod_info_cb.cpp to imod_display.cpp.
+
    Revision 4.5  2008/05/03 00:47:31  mast
    Fixed mOrigMesh memory leak
 

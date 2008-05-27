@@ -20,6 +20,7 @@ class QLabel;
 class QSlider;
 class QLineEdit;
 class QSpinBox;
+class QToolButton;
 class HistWidget;
 struct ViewInfo;
 struct Mod_Point;
@@ -45,6 +46,7 @@ class ImodvIsosurface : public DialogFrame
   MultiSlider *mSliders;
   HistWidget *mHistPanel;
   MultiSlider *mHistSlider;
+  QToolButton *mUseRubber;
   QSpinBox *mSmoothBox;
 
   int mBoxObjNum;
@@ -67,6 +69,7 @@ class ImodvIsosurface : public DialogFrame
     void iterNumChanged(int);
     void sliderMoved(int which, int value, bool dragging);
     void buttonPressed(int which);
+    void showRubberBandArea();
 
  protected:
   void closeEvent ( QCloseEvent * e );
