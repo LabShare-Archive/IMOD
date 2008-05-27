@@ -75,6 +75,10 @@ static char *styleList[] = {"Windows", "compact",
 #endif
 static int styleStatus[MAX_STYLES];
 
+#define READBOOL(a) prefs->a = settings->readBoolEntry(IMOD_NAME#a, prefs->a##Dflt, &prefs->a##Chgd)
+#define READNUM(a) prefs->a = settings->readNumEntry(IMOD_NAME#a, prefs->a##Dflt, &prefs->a##Chgd)
+#define WRITE_IF_CHANGED(a) if (prefs->a##Chgd) settings->writeEntry(IMOD_NAME#a, prefs->a)
+
 typedef struct generic_settings
 {
   char *key;
@@ -117,6 +121,8 @@ ImodPreferences::ImodPreferences(char *cmdLineStyle)
   prefs->silentBeepDflt = false;
   prefs->classicSlicerDflt = false;
   prefs->tooltipsOnDflt = true;
+  prefs->startAtMidZDflt = true;
+  prefs->autoConAtStartDflt = 1;
   prefs->bwStepDflt = 3;
   prefs->iconifyImodvDlgDflt = 1;
   prefs->iconifyImodDlgDflt = 1;
@@ -154,72 +160,36 @@ ImodPreferences::ImodPreferences(char *cmdLineStyle)
   prefs->slicerPanKbDflt = 3000;
   prefs->speedupSliderDflt = false;
 
-  prefs->hotSliderKey = settings->readNumEntry(IMOD_NAME"hotSliderKey", 
-                                              prefs->hotSliderKeyDflt,
-                                              &prefs->hotSliderKeyChgd);
-  prefs->hotSliderFlag = settings->readNumEntry(IMOD_NAME"hotSliderFlag",
-                                               prefs->hotSliderFlagDflt,
-                                               &prefs->hotSliderFlagChgd);
-  prefs->mouseMapping = settings->readNumEntry(IMOD_NAME"mouseMapping",
-                                            prefs->mouseMappingDflt,
-                                            &prefs->mouseMappingChgd);
-  prefs->modvSwapLeftMid = settings->readBoolEntry(IMOD_NAME"modvSwapLeftMid",
-                                                 prefs->modvSwapLeftMidDflt,
-                                                 &prefs->modvSwapLeftMidChgd);
-  prefs->silentBeep = settings->readBoolEntry(IMOD_NAME"silentBeep",
-                                            prefs->silentBeepDflt,
-                                            &prefs->silentBeepChgd);
-  prefs->classicSlicer = settings->readBoolEntry(IMOD_NAME"classicSlicer",
-                                                 prefs->classicSlicerDflt,
-                                                 &prefs->classicSlicerChgd);
+  READNUM(hotSliderKey);
+  READNUM(hotSliderFlag);
+  READNUM(mouseMapping);
+  READBOOL(modvSwapLeftMid);
+  READBOOL(silentBeep);
+  READBOOL(classicSlicer);
   mClassicWarned = settings->readBoolEntry(IMOD_NAME"classicWarned");
   if (prefs->classicSlicer)
     mClassicWarned = true;
-  prefs->tooltipsOn = settings->readBoolEntry(IMOD_NAME"tooltipsOn",
-                                            prefs->tooltipsOnDflt,
-                                            &prefs->tooltipsOnChgd);
+  READBOOL(tooltipsOn);
   QToolTip::setGloballyEnabled(prefs->tooltipsOn);
+  READNUM(autoConAtStart);
+  READBOOL(startAtMidZ);
 
-  prefs->bwStep = settings->readNumEntry(IMOD_NAME"bwStep",
-                                        prefs->bwStepDflt,
-                                        &prefs->bwStepChgd);
-  prefs->iconifyImodvDlg = settings->readBoolEntry(IMOD_NAME"iconifyImodvDlg",
-                                                 prefs->iconifyImodvDlgDflt,
-                                                 &prefs->iconifyImodvDlgChgd);
-  prefs->iconifyImodDlg = settings->readBoolEntry(IMOD_NAME"iconifyImodDlg",
-                                                prefs->iconifyImodDlgDflt,
-                                                &prefs->iconifyImodDlgChgd);
-  prefs->iconifyImageWin = settings->readBoolEntry(IMOD_NAME"iconifyImageWin",
-                                                 prefs->iconifyImageWinDflt,
-                                                 &prefs->iconifyImageWinChgd);
-  prefs->minModPtSize = settings->readNumEntry(IMOD_NAME"minModPtSize",
-                                        prefs->minModPtSizeDflt,
-                                        &prefs->minModPtSizeChgd);
-  prefs->minImPtSize = settings->readNumEntry(IMOD_NAME"minImPtSize",
-                                        prefs->minImPtSizeDflt,
-                                        &prefs->minImPtSizeChgd);
-  prefs->rememberGeom = settings->readBoolEntry(IMOD_NAME"rememberGeom",
-                                                 prefs->rememberGeomDflt,
-                                                 &prefs->rememberGeomChgd);
+  READNUM(bwStep);
+  READBOOL(iconifyImodvDlg);
+  READBOOL(iconifyImodDlg);
+  READBOOL(iconifyImageWin);
+  READNUM(minModPtSize);
+  READNUM(minImPtSize);
+  READBOOL(rememberGeom);
   mGeomLastSaved = settings->readNumEntry(IMOD_NAME"lastGeometrySaved", -1);
-  prefs->autoTargetMean = settings->readNumEntry(IMOD_NAME"autoTargetMean",
-                                        prefs->autoTargetMeanDflt,
-                                        &prefs->autoTargetMeanChgd);
-  prefs->autoTargetSD = settings->readNumEntry(IMOD_NAME"autoTargetSD",
-                                        prefs->autoTargetSDDflt,
-                                        &prefs->autoTargetSDChgd);
+  READNUM(autoTargetMean);
+  READNUM(autoTargetSD);
   prefs->snapFormat = settings->readEntry(IMOD_NAME"snapFormat",
                                           prefs->snapFormatDflt,
                                           &prefs->snapFormatChgd);
-  prefs->snapQuality = settings->readNumEntry(IMOD_NAME"snapQuality",
-                                        prefs->snapQualityDflt,
-                                        &prefs->snapQualityChgd);
-  prefs->slicerPanKb = settings->readNumEntry(IMOD_NAME"slicerPanKb",
-                                        prefs->slicerPanKbDflt,
-                                        &prefs->slicerPanKbChgd);
-  prefs->speedupSlider = settings->readBoolEntry(IMOD_NAME"speedupSlider",
-                                                 prefs->speedupSliderDflt,
-                                                 &prefs->speedupSliderChgd);
+  READNUM(snapQuality);
+  READNUM(slicerPanKb);
+  READBOOL(speedupSlider);
 
   // Make sure an output format is on the list; if not drop to PNG then RGB
   strList = (snapFormatList()).grep(prefs->snapFormat);
@@ -303,22 +273,20 @@ ImodPreferences::ImodPreferences(char *cmdLineStyle)
     scaleParm->white = top != 0;
     scaleParm->useCustom = width != 0;
     scaleParm->position = position % 4;
-    scaleParm->vertical = position > 3;
+    scaleParm->vertical = (position & 4) != 0;
+    scaleParm->colorRamp = (position & 8) != 0;
+    scaleParm->invertRamp = (position & 16) != 0;
   }
 
   floatOn = settings->readNumEntry(IMOD_NAME"floatButton");
   subarea = settings->readNumEntry(IMOD_NAME"subareaButton");
   imodInfoSetFloatFlags(floatOn, subarea);
 
-  prefs->autosaveInterval = settings->readNumEntry
-    (IMOD_NAME"autosaveInterval", prefs->autosaveIntervalDflt,
-     &prefs->autosaveIntervalChgd);
+  READNUM(autosaveInterval);
   prefs->autosaveDir = settings->readEntry(IMOD_NAME"autosaveDir",
                                           prefs->autosaveDirDflt,
                                           &prefs->autosaveDirChgd);
-  prefs->autosaveOn = settings->readBoolEntry(IMOD_NAME"autosaveOn",
-                                            prefs->autosaveOnDflt,
-                                            &prefs->autosaveOnChgd);
+  READBOOL(autosaveOn);
 
   // If no autosave interval or state read in, look for environment entry
   if (!prefs->autosaveOnChgd && !prefs->autosaveIntervalChgd) {
@@ -477,47 +445,29 @@ void ImodPreferences::saveSettings(int modvAlone)
     settings->writeEntry(IMOD_NAME"multiZparams", str);
   }
 
-  if (prefs->hotSliderKeyChgd)
-    settings->writeEntry(IMOD_NAME"hotSliderKey", prefs->hotSliderKey);
-  if (prefs->hotSliderFlagChgd)
-    settings->writeEntry(IMOD_NAME"hotSliderFlag", prefs->hotSliderFlag);
-  if (prefs->mouseMappingChgd)
-    settings->writeEntry(IMOD_NAME"mouseMapping", prefs->mouseMapping);
-  if (prefs->modvSwapLeftMidChgd)
-    settings->writeEntry(IMOD_NAME"modvSwapLeftMid", prefs->modvSwapLeftMid);
-  if (prefs->silentBeepChgd)
-    settings->writeEntry(IMOD_NAME"silentBeep", prefs->silentBeep);
-  if (prefs->classicSlicerChgd)
-    settings->writeEntry(IMOD_NAME"classicSlicer", prefs->classicSlicer);
+  WRITE_IF_CHANGED(hotSliderKey);
+  WRITE_IF_CHANGED(hotSliderFlag);
+  WRITE_IF_CHANGED(mouseMapping);
+  WRITE_IF_CHANGED(modvSwapLeftMid);
+  WRITE_IF_CHANGED(silentBeep);
+  WRITE_IF_CHANGED(classicSlicer);
   settings->writeEntry(IMOD_NAME"classicWarned", mClassicWarned);
-  if (prefs->tooltipsOnChgd)
-    settings->writeEntry(IMOD_NAME"tooltipsOn", prefs->tooltipsOn);
-  if (prefs->bwStepChgd)
-    settings->writeEntry(IMOD_NAME"bwStep", prefs->bwStep);
-  if (prefs->iconifyImodvDlgChgd)
-    settings->writeEntry(IMOD_NAME"iconifyImodvDlg", prefs->iconifyImodvDlg);
-  if (prefs->iconifyImodDlgChgd)
-    settings->writeEntry(IMOD_NAME"iconifyImodDlg", prefs->iconifyImodDlg);
-  if (prefs->iconifyImageWinChgd)
-    settings->writeEntry(IMOD_NAME"iconifyImageWin", prefs->iconifyImageWin);
-  if (prefs->minModPtSizeChgd)
-    settings->writeEntry(IMOD_NAME"minModPtSize", prefs->minModPtSize);
-  if (prefs->minImPtSizeChgd)
-    settings->writeEntry(IMOD_NAME"minImPtSize", prefs->minImPtSize);
-  if (prefs->rememberGeomChgd)
-    settings->writeEntry(IMOD_NAME"rememberGeom", prefs->rememberGeom);
-  if (prefs->autoTargetMeanChgd)
-    settings->writeEntry(IMOD_NAME"autoTargetMean", prefs->autoTargetMean);
-  if (prefs->autoTargetSDChgd)
-    settings->writeEntry(IMOD_NAME"autoTargetSD", prefs->autoTargetSD);
-  if (prefs->snapFormatChgd)
-    settings->writeEntry(IMOD_NAME"snapFormat", prefs->snapFormat);
-  if (prefs->snapQualityChgd)
-    settings->writeEntry(IMOD_NAME"snapQuality", prefs->snapQuality);
-  if (prefs->slicerPanKbChgd)
-    settings->writeEntry(IMOD_NAME"slicerPanKb", prefs->slicerPanKb);
-  if (prefs->speedupSliderChgd)
-    settings->writeEntry(IMOD_NAME"speedupSlider", prefs->speedupSlider);
+  WRITE_IF_CHANGED(tooltipsOn);
+  WRITE_IF_CHANGED(autoConAtStart);
+  WRITE_IF_CHANGED(startAtMidZ);
+  WRITE_IF_CHANGED(bwStep);
+  WRITE_IF_CHANGED(iconifyImodvDlg);
+  WRITE_IF_CHANGED(iconifyImodDlg);
+  WRITE_IF_CHANGED(iconifyImageWin);
+  WRITE_IF_CHANGED(minModPtSize);
+  WRITE_IF_CHANGED(minImPtSize);
+  WRITE_IF_CHANGED(rememberGeom);
+  WRITE_IF_CHANGED(autoTargetMean);
+  WRITE_IF_CHANGED(autoTargetSD);
+  WRITE_IF_CHANGED(snapFormat);
+  WRITE_IF_CHANGED(snapQuality);
+  WRITE_IF_CHANGED(slicerPanKb);
+  WRITE_IF_CHANGED(speedupSlider);
 
   if (prefs->zoomsChgd) {
     for (i = 0; i < MAXZOOMS; i++) {
@@ -536,8 +486,9 @@ void ImodPreferences::saveSettings(int modvAlone)
   str.sprintf("%d,%d,%d,%d,%d,%d,%d,%d,%d", scaleParm->draw ? 1 : 0, 
               scaleParm->white ? 1 : 0, scaleParm->minLength,
               scaleParm->thickness, 
-              scaleParm->position + (scaleParm->vertical ? 4 : 0),
-              scaleParm->indentX, scaleParm->indentY, 
+              scaleParm->position + (scaleParm->vertical ? 4 : 0) +
+              (scaleParm->colorRamp ? 8 : 0) + (scaleParm->invertRamp ? 16 : 0)
+              ,scaleParm->indentX, scaleParm->indentY, 
               scaleParm->useCustom ? 1: 0, scaleParm->customVal);
   settings->writeEntry(IMOD_NAME"scaleBarParams", str);
 
@@ -545,13 +496,9 @@ void ImodPreferences::saveSettings(int modvAlone)
   settings->writeEntry(IMOD_NAME"floatButton", floatOn);
   settings->writeEntry(IMOD_NAME"subareaButton", subarea);
 
-  if (prefs->autosaveIntervalChgd)
-    settings->writeEntry(IMOD_NAME"autosaveInterval", 
-                            prefs->autosaveInterval);
-  if (prefs->autosaveDirChgd)
-    settings->writeEntry(IMOD_NAME"autosaveDir", prefs->autosaveDir);
-  if (prefs->autosaveOnChgd)
-    settings->writeEntry(IMOD_NAME"autosaveOn", prefs->autosaveOn);
+  WRITE_IF_CHANGED(autosaveInterval);
+  WRITE_IF_CHANGED(autosaveDir);
+  WRITE_IF_CHANGED(autosaveOn);
   if (prefs->fontChgd) {
     str = prefs->font.toString();
     settings->writeEntry(IMOD_NAME"fontString", str);
@@ -650,6 +597,8 @@ void ImodPreferences::donePressed()
   curp->modvSwapLeftMidChgd |= !equiv(newp->modvSwapLeftMid, 
                                       oldp->modvSwapLeftMid);
   curp->silentBeepChgd |= !equiv(newp->silentBeep, oldp->silentBeep);
+  curp->autoConAtStartChgd |= newp->autoConAtStart != oldp->autoConAtStart;
+  curp->startAtMidZChgd |= !equiv(newp->startAtMidZ, oldp->startAtMidZ);
   curp->classicSlicerChgd |= !equiv(newp->classicSlicer, oldp->classicSlicer);
   if (!equiv(newp->tooltipsOn, oldp->tooltipsOn)) {
     curp->tooltipsOnChgd = true;
@@ -762,6 +711,8 @@ void ImodPreferences::defaultPressed()
   case 1: 
     prefs->silentBeep = prefs->silentBeepDflt;
     prefs->tooltipsOn = prefs->tooltipsOnDflt;
+    prefs->autoConAtStart = prefs->autoConAtStartDflt;
+    prefs->startAtMidZ = prefs->startAtMidZDflt;
     prefs->bwStep = prefs->bwStepDflt;
     prefs->iconifyImodvDlg = prefs->iconifyImodvDlgDflt;
     prefs->iconifyImodDlg = prefs->iconifyImodDlgDflt;
@@ -1166,6 +1117,9 @@ bool ImodPreferences::classicWarned()
 
 /*
 $Log$
+Revision 1.31  2008/03/06 00:13:10  mast
+Changes for vertical scale bar, saving of float flags
+
 Revision 1.30  2008/02/03 18:38:25  mast
 Added option to swap left/middle in model view
 
