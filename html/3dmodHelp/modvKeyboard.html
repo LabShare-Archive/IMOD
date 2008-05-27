@@ -10,13 +10,29 @@
 <TR><TH>Keys<TH>Command
 </THEAD>
 <TBODY>
-<TR><TD>Arrows<TD>Translate model in x and y
-<TR><TD>Page<TD>Up and Down keys translate model in z.
-<TR><TD>Keypad<TD>Rotates model in x, y and z.  The [5] key toggles movie mode on/off.
-<TR><TD>Esc/q<TD>Quit this program
+<TR><TD>Arrows<TD>Translate model in X and Y, or translate clipping plane with
+Ctrl held down
+<TR><TD>Page Up/Down<TD>Translate model in Z, or translate clipping plane with
+Ctrl held down
+<TR><TD>Keypad<TD>Rotates model in X, Y and Z, or rotates clipping plane with
+Ctrl held down
+<TR><TD>Keypad 2/8<TD>Rotate around X viewing axis
+<TR><TD>Keypad 4/6<TD>Rotate around Y viewing axis
+<TR><TD>Keypad 3/9<TD>Rotate around Z viewing axis
+<TR><TD>Keypad-Enter<TD>Toggle continuous rotation on and off (Keypad-5 may
+also do this)
+<TR><TD>t<TD>Show top of model
+<TR><TD>b<TD>Show bottom of model
+<TR><TD>l<TD>Show left side of model
+<TR><TD>r<TD>Show right side of model
+<TR><TD>f<TD>Show front of model
+<TR><TD>k<TD>Show back of model
 <TR><TD>s<TD>Toggle stereo mode
 <TR><TD>S<TD>Snapshot image as a non-TIFF file to modvnnnn.xxx
 <TR><TD>Ctrl+S<TD>Snapshot image as a TIFF file to modvnnnn.tif
+<TR><TD>Ctrl+Shift+S<TD>Snapshot image in second non-TIFF format to
+modvnnnn.xxx
+<TR><TD>Ctrl+O<TD>Open a model (when run as 3dmodv)
 <TR><TD>o<TD>Output transformation information and movie frames/sec
 <TR><TD>c<TD>Output clipping plane information
 <TR><TD>-/=<TD>Decrease/Increase zoom
@@ -28,18 +44,25 @@
 <TR><TD>L<TD>Open Object List window
 <TR><TD>M<TD>Open model selection window
 <TR><TD>V<TD>Open view editing window
-<TR><TD>I<TD>Open image overlay control window
-<TR><TD>b<TD>Toggle double buffering
-<TR><TD>r<TD>Toggle low resolution drawing of mesh and spheres
+<TR><TD>I<TD>Open image overlay control window (only when run from 3dmod)
+<TR><TD>U<TD>Open isosurface display control window (only when run from 3dmod)
+<TR><TD>z<TD>Toggle display of Z image planes (only when run from 3dmod)
+<TR><TD>d<TD>Toggle double buffering
+<TR><TD>R<TD>Toggle low resolution drawing of mesh and spheres
 <TR><TD>g/G<TD>Increase/Decrease the quality of sphere drawing
-<TR><TD>/<TD>Adjust parallax for stereo viewing
-<TR><TD>l<TD>Invert the parallax angle
+<TR><TD>[/]<TD>Adjust parallax for stereo viewing
+<TR><TD>a<TD>Invert the parallax angle
 <TR><TD>,/.<TD>Decrease/Increase rotation increment and speed
 <TR><TD>1/2<TD>Decrease/Increase time for 4D models
 <TR><TD>8<TD>Toggle displaying all models or one model
 <TR><TD>9/0<TD>Previous/Next model
-<TR><TD>Ctrl+A<TD>Select all visible contours in current object
+<TR><TD>Ctrl+A<TD>Select all visible contours in current object (when run from
+3dmod)
 <TR><TD>D<TD>Delete selected contour(s) if picked in model view
+<TR><TD>Ctrl+Z<TD>Undo the last change to model (only when run from 3dmod)
+<TR><TD>Ctrl+Y<TD>Redo the last undone change to model (only when run from
+3dmod)
+<TR><TD>Esc/q<TD>Close Model View or Quit 3dmodv
 </TBODY>
 </TABLE>
 <P>
