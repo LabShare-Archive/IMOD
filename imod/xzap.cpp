@@ -1277,7 +1277,7 @@ void zapKeyInput(ZapStruct *zap, QKeyEvent *event)
     break;
 
   case Qt::Key_U:
-    if (zap->numXpanels)
+    if (shifted || zap->numXpanels)
       break;
     autox_smooth(vi->ax);
     handled = 1;
@@ -1586,7 +1586,8 @@ void zapMouseRelease(ZapStruct *zap, QMouseEvent *event)
     zap->hqgfxsave  = 0;
 
     // Button 2 and doing a drag draw - draw for real.
-  } else if (button2 && !zap->numXpanels && !(ifdraw & 1)) {
+  } else if (button2 && !zap->numXpanels && !(ifdraw & 1) &&
+             zap->vi->imod->mousemode == IMOD_MMODEL) {
     registerDragAdditions(zap);
 
     // Fix the mouse position and update the other windows finally
@@ -3671,7 +3672,7 @@ static void montageSnapshot(ZapStruct *zap, int snaptype)
   sname = b3dShortSnapName(fname);
   imodPrintStderr("3dmod: Saving zap montage to %s", sname.latin1());
   if (snaptype == 1)
-    b3dSnapshot_TIF(fname, 4, limits, linePtrs);
+    b3dSnapshot_TIF(fname, 4, limits, linePtrs, true);
   else
     b3dSnapshot_NonTIF(fname, 4, limits, linePtrs);
   if (snaptype > 2)
@@ -4505,6 +4506,9 @@ static int zapPointVisable(ZapStruct *zap, Ipoint *pnt)
 /*
 
 $Log$
+Revision 4.121  2008/05/23 04:31:44  mast
+Changed to do nontiff montage snapshots
+
 Revision 4.120  2008/05/02 20:40:50  mast
 Do not draw extra object if its OFF flag is set
 
