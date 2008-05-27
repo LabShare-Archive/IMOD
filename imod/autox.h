@@ -1,48 +1,12 @@
-/*  IMOD VERSION 2.42
- *
- *  autox.h
+/*
+ *  autox.h - header for autox.cpp
  *
  *  Original author: James Kremer
  *  Revised by: David Mastronarde   email: mast@colorado.edu
+ *
+ *  $Id$
+ *  Log at end of file
  */
-
-/*****************************************************************************
- *   Copyright (C) 1995-2001 by Boulder Laboratory for 3-Dimensional Fine    *
- *   Structure ("BL3DFS") and the Regents of the University of Colorado.     *
- *                                                                           *
- *   BL3DFS reserves the exclusive rights of preparing derivative works,     *
- *   distributing copies for sale, lease or lending and displaying this      *
- *   software and documentation.                                             *
- *   Users may reproduce the software and documentation as long as the       *
- *   copyright notice and other notices are preserved.                       *
- *   Neither the software nor the documentation may be distributed for       *
- *   profit, either in original form or in derivative works.                 *
- *                                                                           *
- *   THIS SOFTWARE AND/OR DOCUMENTATION IS PROVIDED WITH NO WARRANTY,        *
- *   EXPRESS OR IMPLIED, INCLUDING, WITHOUT LIMITATION, WARRANTY OF          *
- *   MERCHANTABILITY AND WARRANTY OF FITNESS FOR A PARTICULAR PURPOSE.       *
- *                                                                           *
- *   This work is supported by NIH biotechnology grant #RR00592,             *
- *   for the Boulder Laboratory for 3-Dimensional Fine Structure.            *
- *   University of Colorado, MCDB Box 347, Boulder, CO 80309                 *
- *****************************************************************************/
-/*  $Author$
-
-    $Date$
-
-    $Revision$
-
-    $Log$
-    Revision 3.2.2.2  2003/01/27 00:30:07  mast
-    Pure Qt version and general cleanup
-
-    Revision 3.2.2.1  2003/01/14 21:42:44  mast
-    Qt version
-
-    Revision 3.2  2002/12/01 15:34:41  mast
-    Changes to get clean compilation with g++
-
-*/
 
 #ifndef AUTOX_H
 #define AUTOX_H
@@ -73,20 +37,21 @@
 
 typedef struct imod_autox_struct
 {
-     struct ViewInfo  *vw;     /* image data to model                       */
-     unsigned char *data;      /* storage for classification                */
-     double        shave;      /* min dis. between points.                  */
-     int           threshold;  /* segmentation threshold.                   */
-     int           reverse;    /* segment low areas if true.                */
-     int           contrast;   /* view in high/low contrast .               */
-     int           filled;     /* draw segments if true.                    */
-     int           cz;         /* current z value for filled data.          */
-     int           altmouse;   /* Let mouse change values if true.          */
-     int           xysize;     /* size at which data array was obtained     */
-     int           *xlist;     /* list of x coords of pixels to check       */
-     int           *ylist;     /* list of y coords of pixels to check       */
-     int           listsize;   /* size of this list                         */
-     int           diagonal;   /* flag to follow diagonals when filling     */
+  struct ViewInfo  *vw;     /* image data to model                       */
+  unsigned char *data;      /* storage for classification                */
+  double        shave;      /* min dis. between points.                  */
+  int           threshold;  /* segmentation threshold.                   */
+  float         threshUsed; /* Threshold to pass to contour generator    */
+  int           reverse;    /* segment low areas if true.                */
+  int           contrast;   /* view in high/low contrast .               */
+  int           filled;     /* draw segments if true.                    */
+  int           cz;         /* current z value for filled data.          */
+  int           altmouse;   /* Let mouse change values if true.          */
+  int           xysize;     /* size at which data array was obtained     */
+  int           *xlist;     /* list of x coords of pixels to check       */
+  int           *ylist;     /* list of y coords of pixels to check       */
+  int           listsize;   /* size of this list                         */
+  int           diagonal;   /* flag to follow diagonals when filling     */
 } Autox;
 
   /* Functions called from elsewhere in the program */
@@ -115,3 +80,21 @@ typedef struct imod_autox_struct
   void autoxNext();
 
 #endif /* AUTOX_H */
+
+
+/*
+
+  $Log$
+  Revision 3.3  2003/02/10 20:41:54  mast
+  Merge Qt source
+  
+  Revision 3.2.2.2  2003/01/27 00:30:07  mast
+  Pure Qt version and general cleanup
+  
+  Revision 3.2.2.1  2003/01/14 21:42:44  mast
+  Qt version
+  
+  Revision 3.2  2002/12/01 15:34:41  mast
+  Changes to get clean compilation with g++
+
+*/
