@@ -596,7 +596,7 @@ static void imodvMakeMontage(int frames, int overlap)
       if (movie->file_format)
         b3dSnapshot_NonTIF(fname, 4, limits, linePtrs);
       else
-        b3dSnapshot_TIF(fname, 4, limits, linePtrs);
+        b3dSnapshot_TIF(fname, 4, limits, linePtrs, false);
       if (movie->file_format == 2)
         ImodPrefs->restoreSnapFormat();
       imodPuts("");
@@ -622,6 +622,9 @@ static void imodvMakeMontage(int frames, int overlap)
 
 /*
     $Log$
+    Revision 4.18  2008/05/23 04:31:44  mast
+    Changed to do nontiff montage snapshots
+
     Revision 4.17  2008/05/22 15:40:51  mast
     Prevented crash if window closed during montage
 

@@ -287,9 +287,9 @@ int imodv_auto_snapshot(QString fname, int format_type)
     imodvDraw(Imodv);
     b3dSetCurSize(Imodv->winx, Imodv->winy);
     if (format_type == SnapShot_TIF)
-      b3dSnapshot_TIF(fname, 1, NULL, NULL);
+      b3dSnapshot_TIF(fname, 1, NULL, NULL, false);
     else
-      b3dSnapshot_NonTIF(fname, 1, NULL);
+      b3dSnapshot_NonTIF(fname, 1, NULL, NULL);
     imodPrintStderr(".\n");
   } else {
     if (imodv_snapshot(Imodv, fname))
@@ -395,6 +395,9 @@ static int imodv_snapshot(ImodvApp *a, QString fname)
 
 /*
 $Log$
+Revision 4.16  2008/01/25 20:22:58  mast
+Changes for new scale bar
+
 Revision 4.15  2007/11/30 06:51:50  mast
 Changes for linking slicer to model view
 
