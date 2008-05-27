@@ -1,7 +1,5 @@
 /*  b3dgfx.h - declarations for b3dgfx.cpp 
  *
- *  $Id$
- *
  *  Original author: James Kremer
  *  Revised by: David Mastronarde   email: mast@colorado.edu
  *
@@ -150,12 +148,14 @@ int b3dSnapshot(QString fname);
 
 QString b3dGetSnapshotName(char *name, int format_type, int digits,
                            int &fileno);
-int b3dAutoSnapshot(char *name, int format_type, int *limits);
-int b3dKeySnapshot(char *name, int shifted, int ctrl, int *limits);
+int b3dAutoSnapshot(char *name, int format_type, int *limits, 
+                    bool checkConvert);
+int b3dKeySnapshot(char *name, int shifted, int ctrl, int *limits, 
+                   bool checkConvert = true);
 int b3dSnapshot_NonTIF(QString fname, int rgbmode, int *limits,
-                       unsigned char **data = NULL);
+                       unsigned char **data);
 int b3dSnapshot_TIF(QString fname, int rgbmode, int *limits, 
-                    unsigned char **data);
+                    unsigned char **data, bool checkConvert);
 
 
 
@@ -163,6 +163,9 @@ int b3dSnapshot_TIF(QString fname, int rgbmode, int *limits,
 
 /*
     $Log$
+    Revision 3.15  2008/05/23 04:31:21  mast
+    Changed to allow nontiff montage snapshots
+
     Revision 3.14  2007/11/10 04:07:10  mast
     Changes for setting snapshot directory
 
