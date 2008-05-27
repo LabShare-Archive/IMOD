@@ -1,8 +1,14 @@
 IMOD History
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-5/25/08: Added settable options for starting at middle section (default on)
-and for doing autocontrast on first section seen (default is to do this when
-starting without loading a model).
+5/26/08: Synchronized contrast radio button in autocontour window with F9/F10.
+
+5/26/08: The isosurface display position can now be set from the rubber band.
+The computation is now multithreaded but this is not used by default and 
+requires IMOD_PROCESSORS to be set to activate it.
+
+5/25/08: Added options settable in Preferences for starting at middle section
+(default on) and for doing autocontrast on the first section seen (default is
+to do this when starting without loading a model). 
 
 5/25/08: Added hot keys t, b, l, r, f, k for looking at all 6 faces of model
 in model view, fixed orientations for rotations around Z in object
@@ -17,7 +23,7 @@ tracker windows from opening when color data is loaded.
 5/25/08: Added options to make a scale bar be a false color ramp.
 
 5/25/08: Added hot key and menu item for opening model view and isosurface
-Bfrom 3dmod.
+from 3dmod.
 
 5/25/08: Added Ctrl T hot key for toggling the current object on/off.
 
@@ -27,7 +33,7 @@ Bfrom 3dmod.
 when their rotations are linked.
 
 5/25/08: Added option for reading in a tilt angle file; angles are displayed
-the zap window toolbar instead of the window size.
+in the zap window toolbar instead of the window size.
 
 5/24/08: Added option to apply image processing filter automatically when
 changing sections.  Added option to smoothing filter to not rescale the data,
@@ -57,9 +63,10 @@ including RGB triplets for color data, and can show RGB as gray scale.
 non-TIFF types.
 
 5/22/08: Made it possible to edit extra objects like the isosurface object in
-the model view object edit dialog.
+the model view object edit dialog.  Made the on-off buttons in that dialog
+appear and disappear as needed when the real object count changes.
 
-5/22/08: Added Others On button to object lost dialog.
+5/22/08: Added Others On button to object list dialog.
 
 5/21/08: Fixed crash when closing model view window during montage snapshot.
 
