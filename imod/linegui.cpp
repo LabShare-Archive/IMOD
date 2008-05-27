@@ -4,16 +4,10 @@
  *  Copyright (C) 1995-2004 by Boulder Laboratory for 3-Dimensional Electron
  *  Microscopy of Cells ("BL3DEMC") and the Regents of the University of 
  *  Colorado.  See dist/COPYRIGHT for full copyright notice.
+ *
+ *  $Id$
+ *  Log at end of file
  */
-
-/*  $Author$
-
-$Date$
-
-$Revision$
-
-Log at end of file
-*/
 
 
 /* include needed Qt headers.
@@ -234,6 +228,11 @@ void imodPlugExecute(ImodView *inImodView)
   int numVals;
   plug = &thisPlug;
   double values[MAX_SETTINGS];
+
+  if (inImodView->rawImageStore || inImodView->fakeImage) {
+    wprint("\aLine tracker will not work on RGB or blank data\n");
+    return;
+  }
 
   if (plug->window){
     plug->window->raise();
@@ -744,7 +743,11 @@ void LineTrack::keyReleaseEvent ( QKeyEvent * e )
 }
 
 /*
+
 $Log$
+Revision 1.15  2007/10/03 19:31:28  sueh
+bug# 1038 Replacing help strings with an .html file.
+
 Revision 1.14  2006/07/18 00:09:18  mast
 Made completion be shift as well as ctrl space due to conflict on Mac
 
