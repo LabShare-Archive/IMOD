@@ -36,6 +36,10 @@ int hotSliderKey();
 #define MAX_GEOMETRIES 10
 #define MAX_NAMED_COLORS 8
 
+#define TRIPLET(a,b) a b; \
+  a b##Dflt; \
+  bool b##Chgd;
+
 // Define this to use a list of styles to exclude rather than ones to include
 //#define EXCLUDE_STYLES
 
@@ -44,86 +48,42 @@ int hotSliderKey();
 // the parameter has changed (Chgd)
 typedef struct imod_pref_struct
 {
-  int hotSliderKey;        // Hot slider key (ctrl, Alt, Shift)
-  int hotSliderKeyDflt;    
-  bool hotSliderKeyChgd;
-  int hotSliderFlag;       // Flag for whether active up or down
-  int hotSliderFlagDflt;
-  bool hotSliderFlagChgd;
-  int mouseMapping;          // Code for assignment of mouse keys
-  int mouseMappingDflt;
-  bool mouseMappingChgd;
-  bool modvSwapLeftMid;    // Swap left and middle in model view
-  bool modvSwapLeftMidDflt;
-  bool modvSwapLeftMidChgd;
-  bool silentBeep;         // Silence the alarm in wprint
-  bool silentBeepDflt;
-  bool silentBeepChgd;
-  bool tooltipsOn;         // Enable tool tips
-  bool tooltipsOnDflt;
-  bool tooltipsOnChgd;
-  bool classicSlicer;       // Use classic slicer
-  bool classicSlicerDflt;
-  bool classicSlicerChgd;
+  TRIPLET(int, hotSliderKey);        // Hot slider key (ctrl, Alt, Shift)
+  TRIPLET(int, hotSliderFlag);       // Flag for whether active up or down
+  TRIPLET(int, mouseMapping);          // Code for assignment of mouse keys
+  TRIPLET(bool, modvSwapLeftMid);    // Swap left and middle in model view
+  TRIPLET(bool, silentBeep);         // Silence the alarm in wprint
+  TRIPLET(bool, tooltipsOn);         // Enable tool tips
+  TRIPLET(bool, classicSlicer);       // Use classic slicer
+  TRIPLET(bool, startAtMidZ);         // Go to middle Z at start
+  TRIPLET(int, autoConAtStart);      // Do autocontrast at start
   QFont font;              // Font
   bool fontChgd;
   QString styleKey;        // Style
   bool styleChgd;
-  int bwStep;              // Step size for F1-F8 keys
-  int bwStepDflt;
-  bool bwStepChgd;
-  bool iconifyImodvDlg;    // Iconify imodv dialogs with imodv window
-  bool iconifyImodvDlgDflt;
-  bool iconifyImodvDlgChgd;
-  bool iconifyImodDlg;    // Iconify imod dialogs with info window
-  bool iconifyImodDlgDflt;
-  bool iconifyImodDlgChgd;
-  bool iconifyImageWin;   // Iconify image windows with info window
-  bool iconifyImageWinDflt;
-  bool iconifyImageWinChgd;
-  int minModPtSize;       // Minimum size of current model point
-  int minModPtSizeDflt;
-  bool minModPtSizeChgd;
-  int minImPtSize;        // Minimum size of current image point
-  int minImPtSizeDflt;
-  bool minImPtSizeChgd;
+  TRIPLET(int, bwStep);              // Step size for F1-F8 keys
+  TRIPLET(bool, iconifyImodvDlg);    // Iconify imodv dialogs with imodv window
+  TRIPLET(bool, iconifyImodDlg);    // Iconify imod dialogs with info window
+  TRIPLET(bool, iconifyImageWin);   // Iconify image windows with info window
+  TRIPLET(int, minModPtSize);       // Minimum size of current model point
+  TRIPLET(int, minImPtSize);        // Minimum size of current image point
   double zooms[MAXZOOMS];    // Zooms
   double zoomsDflt[MAXZOOMS];
   bool zoomsChgd;
-  int autosaveInterval;   // Interval to autosave at in minutes
-  int autosaveIntervalDflt;
-  bool autosaveIntervalChgd;
-  bool autosaveOn;        // Flag for doing autosaves
-  bool autosaveOnDflt;
-  bool autosaveOnChgd;
-  QString autosaveDir;    // Location to save autosave file
-  QString autosaveDirDflt;
-  bool autosaveDirChgd;
-  bool rememberGeom;     // Remember window size and locations
-  bool rememberGeomDflt;
-  bool rememberGeomChgd;
-  int autoTargetMean;      // Target mean for autocontrast
-  int autoTargetMeanDflt;
-  bool autoTargetMeanChgd;
-  int autoTargetSD;        // Target SD
-  int autoTargetSDDflt;
-  bool autoTargetSDChgd;
+  TRIPLET(int, autosaveInterval);   // Interval to autosave at in minutes
+  TRIPLET(bool, autosaveOn);        // Flag for doing autosaves
+  TRIPLET(QString, autosaveDir);    // Location to save autosave file
+  TRIPLET(bool, rememberGeom);     // Remember window size and locations
+  TRIPLET(int, autoTargetMean);      // Target mean for autocontrast
+  TRIPLET(int, autoTargetSD);        // Target SD
   int namedIndex[MAX_NAMED_COLORS];
   QRgb namedColor[MAX_NAMED_COLORS];
   QRgb namedColorDflt[MAX_NAMED_COLORS];
   bool namedColorChgd[MAX_NAMED_COLORS];
-  QString snapFormat;     // Format for non-tif snapshot
-  QString snapFormatDflt;
-  bool snapFormatChgd;
-  int snapQuality;        // Quality factor, controls compression
-  int snapQualityDflt;
-  bool snapQualityChgd;
-  int slicerPanKb;        // Maximum KB for slicer panning
-  int slicerPanKbDflt;
-  bool slicerPanKbChgd;
-  bool speedupSlider;     // Apply limit when using sliders too
-  bool speedupSliderDflt;
-  bool speedupSliderChgd;
+  TRIPLET(QString, snapFormat);     // Format for non-tif snapshot
+  TRIPLET(int, snapQuality);        // Quality factor, controls compression
+  TRIPLET(int, slicerPanKb);        // Maximum KB for slicer panning
+  TRIPLET(bool, speedupSlider);     // Apply limit when using sliders too
 
 } ImodPrefStruct;
 
@@ -144,6 +104,8 @@ class ImodPreferences : public QObject
   int iconifyImageWin() {return mCurrentPrefs.iconifyImageWin;};
   int hotSliderKey() {return mCurrentPrefs.hotSliderKey;};
   int hotSliderFlag() {return mCurrentPrefs.hotSliderFlag;};
+  int autoConAtStart() {return mCurrentPrefs.autoConAtStart;};
+  bool startAtMidZ() {return mCurrentPrefs.startAtMidZ;};
   bool hotSliderActive(int ctrlPressed);
   int minCurrentImPtSize();
   int minCurrentModPtSize();
@@ -225,6 +187,9 @@ extern ImodPreferences *ImodPrefs;
 
 /*
 $Log$
+Revision 1.17  2008/02/03 18:38:25  mast
+Added option to swap left/middle in model view
+
 Revision 1.16  2008/01/25 20:22:58  mast
 Changes for new scale bar
 
