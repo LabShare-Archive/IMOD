@@ -82,11 +82,12 @@ ImodIProcData proc_data[] = {
   {"edge", edge_cb, mkedge_cb, NULL},
   {"sharpen", sharpen_cb, NULL, "Sharpen Edges."},
   {"threshold", thresh_cb, mkthresh_cb, NULL},
-  NULL,
+  {NULL, NULL, NULL, NULL}
 };
 
 /* Static variables for proc structure and a slice */
-static ImodIProc proc = {0, 0};
+static ImodIProc proc = {0,0,0,0,0,0,{0,0},0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,
+                         0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0};
 static Islice s;
 
 /*
@@ -175,13 +176,15 @@ static void smooth_cb()
   float kernel[KERNEL_MAXSIZE*KERNEL_MAXSIZE];
   int dim;
   Islice *sout;
+  s.min = s.max = 0.;
+  if (proc.rescaleSmooth)
+    setSliceMinMax(true);
   if (proc.kernelSigma > NO_KERNEL_SIGMA + 0.001) {
-    sliceMMM(&s);
+    // Why was this one using:     sliceMMM(&s);
     scaledGaussianKernel(kernel, &dim, KERNEL_MAXSIZE, proc.kernelSigma);
     sout = slice_mat_filter(&s, kernel, dim);
     sliceScaleAndFree(sout, &s);
   } else {
-    setSliceMinMax(true);
     sliceByteSmooth(&s);
   }
 }
@@ -334,17 +337,33 @@ int iprocRethink(struct ViewInfo *vi)
   return 0;
 }
 
+/* Update for changes in the system (i.e., autoapply if section changed */
+void iprocUpdate(void)
+{
+  if (!proc.dia || !proc.autoApply)
+    return;
+  if (proc.vi->loadingImage || proc.dia->mRunningProc)
+    return;
+
+  /* If time or section has changed, do an apply */
+  if (B3DNINT(proc.vi->zmouse) != proc.idatasec || 
+      proc.vi->ct != proc.idatatime) 
+    proc.dia->apply();
+}
+
 /* Open the processing dialog box */
 int inputIProcOpen(struct ViewInfo *vi)
 {
   if (!proc.dia){
     if (!proc.vi) {
       proc.procnum = 0;
+      proc.autoApply = false;
       proc.threshold = 128;
       proc.threshGrow = false;
       proc.threshShrink = false;
       proc.edge = 0;
       proc.kernelSigma = NO_KERNEL_SIGMA;
+      proc.rescaleSmooth = true;
       proc.sigma1 = 0.;
       proc.sigma2 = 0.05f;
       proc.radius1 = 0.;
@@ -540,6 +559,13 @@ static void mkSmooth_cb(IProcWindow *win, QWidget *parent, QVBoxLayout *layout)
   proc.kernelSpin->setValue(B3DNINT(proc.kernelSigma * 100.));
   QObject::connect(proc.kernelSpin, SIGNAL(valueChanged(int)), win, 
                    SLOT(kernelChanged(int)));
+
+  QCheckBox *check = diaCheckBox("Rescale to match min/max", parent, layout);
+  diaSetChecked(check, proc.rescaleSmooth);
+  QObject::connect(check, SIGNAL(toggled(bool)), win,
+                   SLOT(scaleSmthToggled(bool)));
+  QToolTip::add(check, "Rescale smoothed slice so its min/max matches original"
+                " slice");
 
 }
 
@@ -750,9 +776,17 @@ IProcWindow::IProcWindow(QWidget *parent, const char *name)
   // Put an H layout inside the main layout, then fill that with the
   // List box and the widget stack
   QHBoxLayout *hLayout = new QHBoxLayout(mLayout);
+  vLayout = new QVBoxLayout(hLayout);
   mListBox = new QListBox(this);
-  hLayout->addWidget(mListBox);
+  vLayout->addWidget(mListBox);
   mListBox->setFocusPolicy(QListBox::NoFocus);
+
+  QCheckBox *check = diaCheckBox("Autoapply", this, vLayout);
+  diaSetChecked(check, proc.autoApply);
+  QObject::connect(check, SIGNAL(toggled(bool)), this,
+                   SLOT(autoApplyToggled(bool)));
+  QToolTip::add(check, "Apply current process automatically when changing" 
+                " section");
 
   mStack = new QWidgetStack(this);
   hLayout->addWidget(mStack);
@@ -811,6 +845,13 @@ IProcWindow::IProcWindow(QWidget *parent, const char *name)
 }
 
 /* Action functions */
+
+void IProcWindow::autoApplyToggled(bool state)
+{
+  setFocus();
+  proc.autoApply = state;
+}
+
 void IProcWindow::threshChanged(int which, int value, bool dragging)
 {
   proc.threshold = value;
@@ -831,6 +872,13 @@ void IProcWindow::kernelChanged(int val)
   setFocus();
   proc.kernelSigma = val / 100.;
 }
+
+void IProcWindow::scaleSmthToggled(bool state)
+{
+  setFocus();
+  proc.rescaleSmooth = state;
+}
+
 void IProcWindow::binningChanged(int val)
 {
   setFocus();
@@ -1197,6 +1245,9 @@ void IProcThread::run()
 /*
 
     $Log$
+    Revision 4.23  2007/11/23 01:13:32  mast
+    Added pixels label to kernel sigma
+
     Revision 4.22  2007/11/22 20:49:44  mast
     Added gaussian kernel smoothing
 
