@@ -56,6 +56,7 @@ void imodvObjedCtrlKey(bool pressed);
 void imodvObjedName(const char *name);
 void imodvObjedSelect(int which);
 void imodvObjedMakeOnOffs(QFrame *frame);
+void imodvObjedMoveToAxis(int which);
 
 #ifdef QT_THREAD_SUPPORT
 #include <qthread.h>
@@ -78,6 +79,8 @@ class ImodvObjed : public QObject
  public:
   ImodvObjed(QObject *parent = NULL, const char *name = NULL);
   ~ImodvObjed() {};
+  int meshOneObject(Iobj *obj);
+  int startMeshingNext();
 
   public slots:
     void lineColorSlot(int color, int value, bool dragging);
@@ -119,6 +122,7 @@ class ImodvObjed : public QObject
   void makeFlatSlot(int value);
   void makeStateSlot(int which);
   void makeDoitSlot();
+  void makeDoAllSlot();
   void toggleObjSlot(int ob);
 
  protected:
@@ -137,6 +141,9 @@ class ImodvObjed : public QObject
 
 /*
 $Log$
+Revision 4.13  2008/05/22 15:43:21  mast
+Changes for extra object editability
+
 Revision 4.12  2008/01/21 17:48:12  mast
 Split object list off
 
