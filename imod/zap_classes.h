@@ -6,15 +6,11 @@
  *  Copyright (C) 1995-2005 by Boulder Laboratory for 3-Dimensional Electron
  *  Microscopy of Cells ("BL3DEMC") and the Regents of the University of 
  *  Colorado.  See dist/COPYRIGHT for full copyright notice.
+ *
+ *  $Id$
+ *  Log at end of file
  */
 
-/*  $Author$
-
-$Date$
-
-$Revision$
-Log at end of file
-*/
 #ifndef ZAP_CLASSES_H
 #define ZAP_CLASSES_H
 
@@ -62,6 +58,7 @@ class ZapWindow : public QMainWindow
   void setTimeLabel(QString label);
   void setSizeText(int winx, int winy);
   void setLowHighSectionState(int state);
+  void setSizeAngleState();
   QString lowSection();
   QString highSection();
 
@@ -115,6 +112,8 @@ class ZapWindow : public QMainWindow
     QPushButton *mInfoButton;
     QPushButton *mHelpButton;
     QLabel *mSizeLabel;
+    QLabel *mAngleLabel;
+    int mSizeAngleState;
     bool mSecPressed;
     int mDisplayedSection;
     bool mCtrlPressed;
@@ -158,6 +157,10 @@ protected:
 
 /*
 $Log$
+Revision 4.14  2008/02/05 19:59:23  sueh
+bug# 1065 Added a low section button and edit field and a high section button
+and edit field.
+
 Revision 4.13  2008/01/13 22:58:35  mast
 Changes for multi-Z window
 

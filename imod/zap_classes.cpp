@@ -86,7 +86,9 @@ ZapWindow::ZapWindow(struct zapwin *zap, QString timeLabel, bool panels,
   mToolBar2 = NULL;
   mPanelBar = NULL;
   mSizeLabel = NULL;
+  mAngleLabel = NULL;
   mInfoButton = NULL;
+  mSizeAngleState = -1;
 
   // Get the toolbar, add zoom arrows
   mToolBar = new HotToolBar(this, "zap toolbar");
@@ -113,11 +115,8 @@ ZapWindow::ZapWindow(struct zapwin *zap, QString timeLabel, bool panels,
   connect(mZoomEdit, SIGNAL(focusLost()), this, SLOT(newZoom()));
   QToolTip::add(mZoomEdit, "Enter an arbitrary zoom factor");
 
-  if (!panels) {
+  if (!panels)
     mSizeLabel = new QLabel(mToolBar, " 0000x0000");
-    if (ivwGetTiltAngles(zap->vi, j))
-      mSizeLabel->setTextFormat(Qt::RichText);
-  }
 
 // Make the 4 toggle buttons and their signal mapper
   QSignalMapper *toggleMapper = new QSignalMapper(mToolBar);
@@ -167,6 +166,13 @@ ZapWindow::ZapWindow(struct zapwin *zap, QString timeLabel, bool panels,
   connect(mSecSlider, SIGNAL(sliderPressed()), this, SLOT(secPressed()));
   connect(mSecSlider, SIGNAL(sliderReleased()), this, SLOT(secReleased()));
   QToolTip::add(mSecSlider, "Select or riffle through sections");
+
+  // Angle label - and show one, hide one of size and angle lables
+  if (!panels) {
+    mAngleLabel = new QLabel(mToolBar, " 99.0o");
+    mAngleLabel->setTextFormat(Qt::RichText);
+    setSizeAngleState();
+  }
 
   // Section edit box
   mSectionEdit = new ToolEdit(mToolBar, 4, "section edit box");
@@ -452,6 +458,7 @@ void ZapWindow::setSizeText(int winx, int winy)
   int num;
   if (mSizeLabel && !ivwGetTiltAngles(mZap->vi, num)) {
     QString str;
+    setSizeAngleState();
     str.sprintf(" %dx%d", winx, winy);
     mSizeLabel->setText(str);
   }
@@ -466,9 +473,21 @@ void ZapWindow::setSectionText(int section)
   mSectionEdit->setText(str);
   diaSetSlider(mSecSlider, section);
   mDisplayedSection = section;
-  if (angles && mSizeLabel) {
+  if (angles && mAngleLabel) {
+    setSizeAngleState();
     str.sprintf("&nbsp;%.1f&deg;", section > num ? 0. : angles[section - 1]);
-    mSizeLabel->setText(str);
+    mAngleLabel->setText(str);
+  }
+}
+
+void ZapWindow::setSizeAngleState()
+{
+  int num;
+  int state = ivwGetTiltAngles(mZap->vi, num) ? 1 : 0;
+  if (state != mSizeAngleState) {
+    diaShowWidget(mSizeLabel, state == 0);
+    diaShowWidget(mAngleLabel, state != 0);
+    mSizeAngleState = state;
   }
 }
 
@@ -637,6 +656,9 @@ void ZapGL::leaveEvent ( QEvent * e)
 
 /*
 $Log$
+Revision 4.30  2008/05/27 05:41:56  mast
+Changes for tilt angle display
+
 Revision 4.29  2008/02/06 16:34:41  sueh
 bug# 1065 In setLowHighSectionState reset section fields when hiding.
 
