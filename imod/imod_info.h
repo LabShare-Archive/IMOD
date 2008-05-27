@@ -27,8 +27,8 @@ extern InfoWindow *ImodInfoWin;
 extern int ImodForbidLevel;
 
 enum {FILE_MENU_NEW, FILE_MENU_OPEN, FILE_MENU_RELOAD, FILE_MENU_SAVE,
-      FILE_MENU_SAVEAS, FILE_MENU_SNAPDIR, FILE_MENU_TIFF, FILE_MENU_EXTRACT,
-      FILE_MENU_QUIT,
+      FILE_MENU_SAVEAS, FILE_MENU_SNAPDIR, FILE_MENU_SNAPGRAY, FILE_MENU_TIFF,
+      FILE_MENU_EXTRACT, FILE_MENU_QUIT,
       FWRITE_MENU_IMOD, FWRITE_MENU_WIMP, FWRITE_MENU_NFF, FWRITE_MENU_SYNU,
       EDIT_MENU_MOVIES, EDIT_MENU_GRAIN, EDIT_MENU_ANGLES, EDIT_MENU_SCALEBAR,
       EDIT_MENU_PREFS,
@@ -50,7 +50,7 @@ enum {FILE_MENU_NEW, FILE_MENU_OPEN, FILE_MENU_RELOAD, FILE_MENU_SAVE,
       EIMAGE_MENU_FLIP, EIMAGE_MENU_FILLCACHE, EIMAGE_MENU_FILLER, 
       IMAGE_MENU_GRAPH, IMAGE_MENU_SLICER, IMAGE_MENU_TUMBLER, 
       IMAGE_MENU_MODV, IMAGE_MENU_ZAP, IMAGE_MENU_XYZ, IMAGE_MENU_PIXEL,
-      IMAGE_MENU_LOCATOR, IMAGE_MENU_MULTIZ,
+      IMAGE_MENU_LOCATOR, IMAGE_MENU_MULTIZ, IMAGE_MENU_ISOSURFACE,
       HELP_MENU_MAN, HELP_MENU_MENUS, HELP_MENU_HOTKEY, HELP_MENU_ABOUT};
 
 
@@ -66,6 +66,7 @@ class InfoWindow : public QMainWindow
   void keepOnTop(bool state);
   void setFontDependentWidths();
   void openSelectedWindows(char *keys);
+  void setupAutoContrast();
 
   public slots:
   void fileSlot(int item);
@@ -108,6 +109,7 @@ class InfoWindow : public QMainWindow
   QTextEdit *mStatusEdit;
   bool mMinimized;
   int mTopTimerID;
+  int mAutoTimerID;
   QProcess *mTrimvolProcess;
   QString mTrimvolOutput;
 };
@@ -118,6 +120,9 @@ int imod_info_open();
 
 /*
     $Log$
+    Revision 3.24  2008/02/22 00:33:44  sueh
+    bug# 1076 Added extract menu option, and extract(), and trimvolExited().
+
     Revision 3.23  2008/01/25 20:22:58  mast
     Changes for new scale bar
 
