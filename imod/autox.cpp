@@ -403,7 +403,18 @@ int autox_open(ImodView *vw)
   return(0);
 }
 
-int autox_setlow(struct ViewInfo *vw, int x, int y)
+// If the user changed color ramps with F9/F10, make radio button reflect it
+void autoxCrampSelected(ImodView *vw)
+{
+  if (!vw->ax)
+    return;
+  vw->ax->contrast = vw->cramp->clevel == 1 ? 1 : 0;
+  autoWindow->setStates(vw->ax->contrast, vw->ax->threshold, 
+                        (int)(100. * vw->ax->shave),
+			vw->ax->altmouse, vw->ax->diagonal);
+}
+
+int autox_setlow(ImodView *vw, int x, int y)
 {
   /* DNM 2/1/01: test for within bounds */
   if (x < 0 || y < 0 || x >= vw->xsize || y >= vw->ysize)
@@ -415,7 +426,7 @@ int autox_setlow(struct ViewInfo *vw, int x, int y)
   return(0);
 }
 
-int autox_sethigh(struct ViewInfo *vw, int x, int y)
+int autox_sethigh(ImodView *vw, int x, int y)
 {
   /* DNM 2/1/01: test for within bounds */
   if (x < 0 || y < 0 || x >= vw->xsize || y >= vw->ysize)
@@ -427,7 +438,7 @@ int autox_sethigh(struct ViewInfo *vw, int x, int y)
   return(0);
 }
 
-int autox_fillmouse(struct ViewInfo *vw, int xm, int ym)
+int autox_fillmouse(ImodView *vw, int xm, int ym)
 {
   vw->xmouse = xm;
   vw->ymouse = ym;
@@ -815,6 +826,9 @@ static void autox_clear(Autox *ax, unsigned char bit)
 /*
 
 $Log$
+Revision 4.10  2008/05/27 05:32:28  mast
+Changed to call routine that uses interpolation
+
 Revision 4.9  2007/09/14 21:56:07  sueh
 bug# 1038 Switching from calling dia_vasmsg() to opening an .html file for help.
 

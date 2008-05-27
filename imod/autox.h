@@ -37,7 +37,7 @@
 
 typedef struct imod_autox_struct
 {
-  struct ViewInfo  *vw;     /* image data to model                       */
+  ImodView  *vw;            /* image data to model                       */
   unsigned char *data;      /* storage for classification                */
   double        shave;      /* min dis. between points.                  */
   int           threshold;  /* segmentation threshold.                   */
@@ -54,15 +54,16 @@ typedef struct imod_autox_struct
   int           diagonal;   /* flag to follow diagonals when filling     */
 } Autox;
 
-  /* Functions called from elsewhere in the program */
-  int autox_open(struct ViewInfo *vw);
-  int autox_setlow(struct ViewInfo *vw, int x, int y);
-  int autox_sethigh(struct ViewInfo *vw, int x, int y);
-  int autox_fillmouse(struct ViewInfo *vw, int xm, int ym);
-  int autox_build(Autox *ax);
-  void autox_newsize(struct ViewInfo *vw);
-  int autox_next(Autox *ax);
-  int autox_smooth(Autox *ax);
+/* Functions called from elsewhere in the program */
+int autox_open(ImodView *vw);
+int autox_setlow(ImodView *vw, int x, int y);
+int autox_sethigh(ImodView *vw, int x, int y);
+int autox_fillmouse(ImodView *vw, int xm, int ym);
+int autox_build(Autox *ax);
+void autox_newsize(ImodView *vw);
+int autox_next(Autox *ax);
+int autox_smooth(Autox *ax);
+void autoxCrampSelected(ImodView *vw);
 
   /* Functions called from the form class */
   void autoxHelp();
@@ -85,6 +86,9 @@ typedef struct imod_autox_struct
 /*
 
   $Log$
+  Revision 3.4  2008/05/27 05:31:33  mast
+  Added member for threshold to sent to contour routine
+
   Revision 3.3  2003/02/10 20:41:54  mast
   Merge Qt source
   
