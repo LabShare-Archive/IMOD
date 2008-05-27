@@ -60,12 +60,15 @@ InfoWindow::InfoWindow(QWidget * parent, const char * name, WFlags f)
   : QMainWindow(parent, name, f)
 {
   mMinimized = false;
+  mAutoTimerID = 0;
+  mTopTimerID = 0;
 
   QMenuBar *menuBar = new QMenuBar(this);
   mFileMenu = new QPopupMenu();
   menuBar->insertItem("&File", mFileMenu);
   mFWriteMenu = new QPopupMenu();
 
+  mFileMenu->setCheckable(true);
   mFileMenu->insertItem("&New Model", FILE_MENU_NEW);
   mFileMenu->insertItem("&Open Model", FILE_MENU_OPEN);
   mFileMenu->insertItem("&Reload Model", FILE_MENU_RELOAD);
@@ -74,6 +77,8 @@ InfoWindow::InfoWindow(QWidget * parent, const char * name, WFlags f)
   mFileMenu->insertItem("S&ave Model As...", FILE_MENU_SAVEAS);
   mFileMenu->insertItem("&Write Model As", mFWriteMenu);
   mFileMenu->insertItem("S&et Snap Dir...", FILE_MENU_SNAPDIR);
+  mFileMenu->insertItem("&Gray TIF snaps", FILE_MENU_SNAPGRAY);
+  mFileMenu->setItemChecked(FILE_MENU_SNAPGRAY, false);
   mFileMenu->insertItem("&Memory to TIF...", FILE_MENU_TIFF);
   mFileMenu->insertItem("E&xtract File...", FILE_MENU_EXTRACT);
   mFileMenu->insertItem("&Quit", FILE_MENU_QUIT);
@@ -184,6 +189,8 @@ InfoWindow::InfoWindow(QWidget * parent, const char * name, WFlags f)
   mImageMenu->insertItem("&Graph", IMAGE_MENU_GRAPH);
   mImageMenu->setAccel(SHIFT + Key_G, IMAGE_MENU_GRAPH);
   mImageMenu->insertItem("&Locator", IMAGE_MENU_LOCATOR);
+  mImageMenu->insertItem("&Isosurface", IMAGE_MENU_ISOSURFACE);
+  mImageMenu->setAccel(SHIFT + Key_U, IMAGE_MENU_ISOSURFACE);
   mImageMenu->insertItem("&Tumbler", IMAGE_MENU_TUMBLER);
 
 
@@ -349,6 +356,8 @@ void InfoWindow::manageMenus()
 			      vi->vmSize != 0 || vi->nt > 0);
   mImageMenu->setItemEnabled(IMAGE_MENU_SLICER, vi->rawImageStore == 0);
   mImageMenu->setItemEnabled(IMAGE_MENU_XYZ, vi->rawImageStore == 0);
+  mImageMenu->setItemEnabled(IMAGE_MENU_ISOSURFACE, imageOK);
+  mEContourMenu->setItemEnabled(ECONTOUR_MENU_AUTO, imageOK);
   if (!imageOK) {
     mImageMenu->setItemEnabled(IMAGE_MENU_GRAPH, false);
   }
@@ -462,6 +471,11 @@ void InfoWindow::trimvolExited() {
   mTrimvolProcess = 0;
 }
 
+// Start a timer for initial autocontrast
+void InfoWindow::setupAutoContrast()
+{
+  mAutoTimerID = startTimer(10);
+}
 
 // Change the keep on top flag - have to reparent the widget for it to work
 void InfoWindow::keepOnTop(bool state)
@@ -490,9 +504,17 @@ void InfoWindow::keepOnTop(bool state)
 #endif
 }
 
+// Timer: initially it is for doing autocontrast; then for raising
 void InfoWindow::timerEvent(QTimerEvent *e)
 {
-  raise();
+  int mean, sd;
+  if (mAutoTimerID) {
+    killTimer(mAutoTimerID);
+    ImodPrefs->getAutoContrastTargets(mean, sd);
+    imodInfoAutoContrast(mean, sd);
+
+  } else
+    raise();
 }
 
 void InfoWindow::openSelectedWindows(char *keys)
@@ -657,6 +679,9 @@ static char *truncate_name(char *name, int limit)
 /*
 
 $Log$
+Revision 4.48  2008/05/25 21:23:36  mast
+fix trying to wprint with a Qstring
+
 Revision 4.47  2008/04/02 04:13:02  mast
 Manage menu for no readable image
 
