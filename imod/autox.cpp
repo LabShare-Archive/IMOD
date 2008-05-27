@@ -7,15 +7,11 @@
  *  Copyright (C) 1995-2004 by Boulder Laboratory for 3-Dimensional Electron
  *  Microscopy of Cells ("BL3DEMC") and the Regents of the University of 
  *  Colorado.  See dist/COPYRIGHT for full copyright notice.
+ *
+ *  $Id$
+ *  Log at end of file
  */
 
-/*  $Author$
-
-$Date$
-
-$Revision$
-Log at end of file 
-*/
 #include "form_autox.h"
 #include "imod.h"
 #include "imod_display.h"
@@ -161,10 +157,10 @@ void autoxBuild()
       vw->ax->data[i] &= ~AUTOX_FLOOD;
 
   /*  get contours from the edges */
-  newconts = imodContoursFromImagePoints(vw->ax->data, vw->xsize, vw->ysize,
-					 vw->ax->cz, 
-					 AUTOX_FLOOD | AUTOX_WHITE, 
-					 vw->ax->diagonal, &ncont);
+  newconts = imodContoursFromImagePoints
+    (vw->ax->data, autoImage, vw->xsize, vw->ysize, vw->ax->cz, 
+     AUTOX_FLOOD | AUTOX_WHITE, vw->ax->diagonal, 
+     vw->ax->threshUsed, vw->ax->reverse, &ncont);
 
   /* DNM: return if no points found */
   if (!newconts)
@@ -226,6 +222,7 @@ void autoxShrink()
 {
   ImodView *vw = App->cvi;
   autox_shrink(vw->ax);
+  vw->ax->threshUsed = -1;
   imodDraw(vw, IMOD_DRAW_IMAGE);
 }
 
@@ -234,6 +231,7 @@ void autoxExpand()
   ImodView *vw = App->cvi;
   autox_expand(vw->ax);
   auto_patch(vw->ax, vw->xsize, vw->ysize);
+  vw->ax->threshUsed = -1;
   imodDraw(vw, IMOD_DRAW_IMAGE);
 }
 
@@ -243,6 +241,7 @@ void autoxSmooth()
   autox_expand(vw->ax);
   autox_shrink(vw->ax);
   auto_patch(vw->ax, vw->xsize, vw->ysize);
+  vw->ax->threshUsed = -1;
   imodDraw(vw, IMOD_DRAW_IMAGE);
 }
 
@@ -502,6 +501,7 @@ static int autox_flood(Autox *ax)
     threshold = (int)((((float)ax->vw->rampsize/256.0f)
 		       * threshold) + ax->vw->rampbase);
   }
+  ax->threshUsed = threshold - 0.5;
 
   if (autoImage[y][x] < threshold)
     ax->reverse = 1;
@@ -813,7 +813,11 @@ static void autox_clear(Autox *ax, unsigned char bit)
 }
 
 /*
+
 $Log$
+Revision 4.9  2007/09/14 21:56:07  sueh
+bug# 1038 Switching from calling dia_vasmsg() to opening an .html file for help.
+
 Revision 4.8  2005/03/20 19:55:36  mast
 Eliminating duplicate functions
 
