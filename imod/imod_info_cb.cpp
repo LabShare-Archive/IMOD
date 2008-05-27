@@ -32,6 +32,7 @@
 #include "preferences.h"
 #include "xcramp.h"
 #include "xzap.h"
+#include "iproc.h"
 #include "control.h"
 #include "finegrain.h"
 
@@ -326,6 +327,7 @@ void imod_info_setxyz(void)
   /* 12/28/03: with multifile stack in Z, need to notify image scale window */
   if (App->cvi->multiFileZ)
     imodImageScaleUpdate(App->cvi);
+  iprocUpdate();
 }
 
 // A structure to store means and SD's of areas
@@ -801,6 +803,9 @@ void imod_imgcnt(char *string)
 
 /*
 $Log$
+Revision 4.29  2008/05/23 19:23:32  xiongq
+Use multithreads to compute isosurface. Move the calling of imodvIsosurfaceUpdate() from imod_info_cb.cpp to imod_display.cpp.
+
 Revision 4.28  2008/04/29 18:10:40  xiongq
 add isosurface dialog
 
