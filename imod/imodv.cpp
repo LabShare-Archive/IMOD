@@ -161,8 +161,9 @@ static int imodv_init(ImodvApp *a, struct Mod_Draw *md)
   a->lowres = 0;
   a->drawClip = 0;
   a->linkToSlicer = 0;
+  a->linkSlicerCenter = 1;
 
-  // DNM 6/6/04: Gte rid of stereo command initialization
+  // DNM 6/6/04: Get rid of stereo command initialization
 
   return(0);
 }
@@ -595,6 +596,13 @@ int imodvLinkedToSlicer()
   return Imodv->linkToSlicer;
 }
 
+int imodvRotCenterLinked()
+{
+  if (ImodvClosed)
+    return 0;
+  return Imodv->linkSlicerCenter && Imodv->linkToSlicer ? 1 : 0;
+}
+
 int imodvStandalone()
 {
   if (ImodvClosed)
@@ -702,6 +710,9 @@ void imodvQuit()
 
 /*
 $Log$
+Revision 4.36  2008/05/22 15:42:57  mast
+Changed for extra object editability
+
 Revision 4.35  2008/04/01 23:44:09  mast
 initialized new flag
 

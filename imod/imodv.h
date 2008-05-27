@@ -88,10 +88,11 @@ typedef struct __imodv_struct
   float movieSpeed;    /* Speed in degrees per second */
   float throwFactor;   /* Speed multiplier if throw occurs */
   int movieTimes[MAX_MOVIE_TIMES];  /* Ring buffer of times */
-  int snap_fileno;     /* Snapshot file number */
-  int drawClip;    /* Draw current clip plane */
-  int linkToSlicer;    /* Flag to link to top slicer */
-  float scaleBarSize;  /* Size of scale bar that was last drawn */
+  int snap_fileno;      /* Snapshot file number */
+  int drawClip;         /* Draw current clip plane */
+  int linkToSlicer;     /* Flag to link to top slicer */
+  int linkSlicerCenter; /* Flag to link center of rotation too */
+  float scaleBarSize;   /* Size of scale bar that was last drawn */
 
   /* start-up flags */
   int  moveall;    /* move all models if true.                 */
@@ -134,10 +135,14 @@ void imodvFinishChgUnit();
 void imodvQuit();
 int imodvStandalone();
 int imodvLinkedToSlicer();
+int imodvRotCenterLinked();
 void imodvNewModelAngles(Ipoint *rot);
 
 /*
 $Log$
+Revision 3.20  2008/04/01 23:43:38  mast
+Added flag for drawing only extra objects
+
 Revision 3.19  2008/01/25 20:22:58  mast
 Changes for new scale bar
 
