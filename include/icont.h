@@ -112,9 +112,10 @@ int    imodContourShave(Icont *cont, double dist);
 int    imodContourFindPoint(Icont *cont, Ipoint *point, int flag);
 void   imodContourReduce(Icont *cont, float tol);
 
-Icont *imodContoursFromImagePoints(unsigned char *data, int xsize, int ysize,
-				   int z, unsigned char testmask, 
-				   int diagonal, int *ncont);
+Icont *imodContoursFromImagePoints(unsigned char *data, unsigned char **imdata,
+                                   int xsize, int ysize, int z, 
+                                   unsigned char testmask, int diagonal,
+                                   float threshold, int polarity, int *ncont);
 int    imodContourAutoSort(Icont *cont);
 int    imodContourStrip(Icont *cont);
 
@@ -206,6 +207,9 @@ void imodContourNestLevels(Nesting *nests, int *nestind, int numnests);
 
 /*
 $Log$
+Revision 3.16  2008/01/14 19:44:15  mast
+Added a function for Andrew
+
 Revision 3.15  2008/01/09 05:58:41  mast
 Added 3D version of contour sort
 
