@@ -2668,23 +2668,36 @@ int imodel_overlap_fractions(Icont **cs1p, Ipoint pmin1, Ipoint pmax1,
 
 /*!
  * Forms contours around marked points in an array. ^
- * [data] is an array of image points ^
- * [xsize] and [ysize] specify the X and Y dimensions of the array ^
- * [z] is the Z value to assign to the contours ^
- * [testmask] is the value to AND with the image points to select them ^
+ * [data] is an array of flags marking the image points. ^
+ * [imdata] is the corresponding actual image array, which is used to compute
+ * interpolated positions for the edges between marked and unmarked points.
+ * If is NULL, no interpolation is done and contours will follow horizontal,
+ * vertical, and 45 degree diagonal lines. ^
+ * [xsize] and [ysize] specify the X and Y dimensions of the array. ^
+ * [z] is the Z value to assign to the contours. ^
+ * [testmask] is the value to AND with the image flag points to select them.
+ * The mask should use the first four bits only. ^
  * If [diagonal] is non-zero, then pixels that touch only at corners will be
- * contained within the same contour ^
- * The number of contours created is returned in [ncont] ^
- * The function returns a pointer to an array of contours, or NULL for error
+ * contained within the same contour. ^
+ * [threshold] is the threshold to use for interpolating the edge position
+ * between pixels.  If it is less than 0 and [imdata] is defined, then an 
+ * effective threshold will be computed from the mean value of pixels on
+ * both sides of the edges. ^
+ * [reverse] should be set non-zero if marked pixels have lower values than
+ * unmarked ones. ^
+ * The number of contours created is returned in [ncont]. ^
+ * The function returns a pointer to an array of contours, or NULL for error.
  */
 /* DNM 1/17/01: changed to handle edges of image better, added testmask
    argument so imod/autox can use it 
    DNM 1/25/01: implemented new algorithm to walk around edges and build
    contours in order, instead of just putting edge points into a contour and
-   trying to sort them out afterwards */
-Icont *imodContoursFromImagePoints(unsigned char *data, int xsize, int ysize,
-                                   int z, unsigned char testmask, 
-                                   int diagonal, int *ncont)
+   trying to sort them out afterwards 
+   DNM 5/25/08: implemented interpolation and threhsold computation. */
+Icont *imodContoursFromImagePoints(unsigned char *data, unsigned char **imdata,
+                                   int xsize, int ysize, int z, 
+                                   unsigned char testmask, int diagonal,
+                                   float threshold, int reverse, int *ncont)
 {
   Ipoint point;
   Icont *contarr = NULL;
@@ -2697,46 +2710,80 @@ Icont *imodContoursFromImagePoints(unsigned char *data, int xsize, int ysize,
   int nexty[4] = {1, 0, -1, 0};
   int cornerx[4] = {1, -1, -1, 1};
   int cornery[4] = {1, 1, -1, -1};
-  float delx[4] = {0.95, 0.5, 0.05, 0.5};
-  float dely[4] = {0.5, 0.95, 0.5, 0.05};
-  int found, iedge, ixst, iyst, iedgest;
+  /* float delx[4] = {0.95, 0.5, 0.05, 0.5};
+     float dely[4] = {0.5, 0.95, 0.5, 0.05}; */
+  int otherx[4] = {1, 0, -1, 0};
+  int othery[4] = {0, 1, 0, -1};
+  float frac;
+  int found, iedge, ixst, iyst, iedgest, nsum, nayx, nayy, polarity, diff;
+  double edgeSum;
 
   xs = xsize - 1;
   ys = ysize - 1;
   point.z = z;
   *ncont = 0;
+  nsum = 0;
+  edgeSum = 0.;
+  polarity = reverse ? -1 : 1;
+  if (!imdata)
+    threshold = -1.;
 
   /* Go through all points including the edges of the image area, and 
-     mark all the edges of defined area */
+     mark all the edges of defined area.  Compute a  */
 
   for (j = 0; j < ysize; j++)
-    for(i = 0; i < xsize; i++){
-      if (data[i + (j * xsize)] & testmask){
+    for(i = 0; i < xsize; i++) {
+      if (data[i + (j * xsize)] & testmask) {
 
         /* Mark a side if on edge of image, or if next pixel over
            is not in the set */
         side = 0;
         if (i == xs)
           side |= RIGHT_EDGE;
-        else if (!(data[(i + 1) + (j * xsize)] & testmask))
+        else if (!(data[(i + 1) + (j * xsize)] & testmask)) {
           side |= RIGHT_EDGE;
+          if (threshold < 0 && imdata) {
+            edgeSum += imdata[j][i] + imdata[j][i + 1];
+            nsum++;
+          }
+        }
         if (j == ys)
           side |= TOP_EDGE;
-        else if (!(data[i + ((j + 1) * xsize)] & testmask))
+        else if (!(data[i + ((j + 1) * xsize)] & testmask)) {
           side |= TOP_EDGE;
+          if (threshold < 0 && imdata) {
+            edgeSum += imdata[j][i] + imdata[j + 1][i];
+            nsum++;
+          }
+        }
         if (!i)
           side |= LEFT_EDGE;
-        else if (!(data[(i - 1) + (j * xsize)] & testmask))
+        else if (!(data[(i - 1) + (j * xsize)] & testmask)) {
           side |= LEFT_EDGE;
+          if (threshold < 0 && imdata) {
+            edgeSum += imdata[j][i] + imdata[j][i - 1];
+            nsum++;
+          }
+        }
         if (!j)
           side |= BOTTOM_EDGE;
-        else if (!(data[i + ((j - 1) * xsize)] & testmask))
+        else if (!(data[i + ((j - 1) * xsize)] & testmask)) {
           side |= BOTTOM_EDGE;
+          if (threshold < 0 && imdata) {
+            edgeSum += imdata[j][i] + imdata[j - 1][i];
+            nsum++;
+          }
+        }
         data[i +(j * xsize)] |= side;
         /* if (side) printf("i %d  j %d  side %d  data %d\n",
            i, j, side, data[i +(j * xsize)]); */
       }
     }
+
+  if (nsum) {
+    threshold = 0.5 * edgeSum / nsum;
+    /* printf("Derived threshold %.2f\n", threshold); */
+  }
 
   found = 1;
   while (found) {
@@ -2828,14 +2875,29 @@ Icont *imodContoursFromImagePoints(unsigned char *data, int xsize, int ysize,
                        i, j, iedge);
             }
           }
+          
+          frac = 0.45;
+          nayx = i + otherx[iedge];
+          nayy = j + othery[iedge];
+          if (threshold > 0 && nayx >= 0 && nayx < xsize && nayy >= 0 &&
+              nayy < ysize) {
+            diff = imdata[nayy][nayx] - imdata[j][i];
+            if (polarity * diff < 0) {
+              frac = (threshold - imdata[j][i]) / diff;
+              frac = B3DMIN(0.99, frac);
+              frac = B3DMAX(0.01, frac);
+            }
+          }
+          point.x = i + 0.5 + frac * otherx[iedge];
+          point.y = j + 0.5 + frac * othery[iedge];
 
           /* add the point and clear the edge */
-          point.x = i + delx[iedge];
-          point.y = j + dely[iedge];
+          /* point.x = i + delx[iedge];
+             point.y = j + dely[iedge]; */
           imodPointAdd(cont, &point, cont->psize);
           data[i + j * xsize] &= ~edgemask[iedge];
-          /* printf ("at %d %d %d, adding %f %f\n", 
-             i, j, iedge, point.x, point.y); */
+          /*printf ("at %d %d %d, adding %f %f   diff %d  frac %.2f\n", 
+            i, j, iedge, point.x, point.y, diff, frac); */
 
         }
         found = 1;
@@ -3398,6 +3460,9 @@ char *imodContourGetName(Icont *inContour)
 /* END_SECTION */
 /*
   $Log$
+  Revision 3.29  2008/04/04 21:20:26  mast
+  Documentation fix
+
   Revision 3.28  2008/01/19 18:03:20  mast
   Added missing ! for 3 function doc strings
 
