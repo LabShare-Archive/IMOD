@@ -32,13 +32,37 @@
 #include "xxyz.h"
 #include "sslice.h"
 
+static int getAndConvertRGB(unsigned char **data, int x, int y, int &red,
+                           int &green, int &blue);
+static bool fileReadable(ImodView *vi, int iz);
 
 static PixelView *PixelViewDialog = NULL;
 static int ctrl;
 static bool fromFile = false;
+static bool lastReadable, lastGridReadable;
+static bool gridFromFile = true;
 static float lastMouseX = 0.;
 static float lastMouseY = 0.;
 static bool showButs = true;
+static bool convertRGB = false;
+
+static int getAndConvertRGB(unsigned char **data, int x, int y, int &red,
+                           int &green, int &blue)
+{
+  red = data[y][3 * x];
+  green = data[y][3 * x + 1];
+  blue = data[y][3 * x + 2];
+  return B3DNINT(0.3 * red + 0.59 * green + 0.11 * blue);
+}
+
+static bool fileReadable(ImodView *vi, int iz)
+{
+  ImodImageFile *image = vi->image;
+  if (vi->multiFileZ && iz >= 0 && iz < vi->multiFileZ)
+    image = &vi->imageList[iz];
+  return ((image->file == IIFILE_MRC || image->file == IIFILE_RAW) &&
+          !vi->rawImageStore && !vi->noReadableImage);
+}
 
 static void pviewClose_cb(ImodView *vi, void *client, int drawflag)
 {
@@ -57,7 +81,6 @@ static void pviewDraw_cb(ImodView *vi, void *client, int drawflag)
  */
 int open_pixelview(struct ViewInfo *vi)
 {
-
   if (PixelViewDialog){
     PixelViewDialog->raise();
     return(-1);
@@ -74,7 +97,7 @@ int open_pixelview(struct ViewInfo *vi)
   // This takes care of showing/hiding. resizing, and updating
   PixelViewDialog->showButsToggled(showButs);
   PixelViewDialog->show();
-  pvNewMousePosition(vi, vi->xmouse, vi->ymouse, (int)floor(vi->zmouse + 0.5));
+  pvNewMousePosition(vi, vi->xmouse, vi->ymouse, B3DNINT(vi->zmouse));
   zapPixelViewState(true);
   xyzPixelViewState(true);
   slicerPixelViewState(true);
@@ -90,6 +113,9 @@ void pvNewMousePosition(ImodView *vi, float x, float y, int iz)
   int iy = (int)y;
   int isFloat = 0;
   float value;
+  int red, green, blue;
+  bool readable;
+  unsigned char **data;
   QString str;
 
   lastMouseX = x;
@@ -99,12 +125,21 @@ void pvNewMousePosition(ImodView *vi, float x, float y, int iz)
   if (ix < 0 || iy < 0 || ix >= vi->xsize || iy >= vi->ysize || iz < 0 || 
       iz >= vi->zsize)
     return;
-  if (fromFile) {
+  readable = fileReadable(vi, iz);
+  if (readable != lastReadable) {
+    PixelViewDialog->mFileValBox->setEnabled(readable);
+    lastReadable = readable;
+  }
+  if (fromFile && readable) {
     value = ivwGetFileValue(vi, ix, iy, iz);
     if (!(vi->image->mode == MRC_MODE_BYTE || 
           vi->image->mode == MRC_MODE_SHORT ||
           vi->image->mode == MRC_MODE_USHORT))
         isFloat = 1;
+  } else if (vi->rawImageStore) {
+    ivwGetTime(vi, &red);
+    data = ivwGetZSectionTime(vi, iz, red);
+    value = getAndConvertRGB(data, ix, iy, red, green, blue);
   } else
     value = ivwGetValue(vi, ix, iy, iz);
   if (isFloat)
@@ -122,29 +157,51 @@ void pvNewMousePosition(ImodView *vi, float x, float y, int iz)
 PixelView::PixelView(QWidget *parent, const char *name, WFlags fl)
   : QWidget(parent, name, fl)
 {
-  int i, j;
+  int i, j, iz = B3DNINT(App->cvi->zmouse);
   QVBoxLayout *vBox = new QVBoxLayout(this);
 
   // Make the mouse report box
   QHBoxLayout *hBox = new QHBoxLayout(vBox);
   mMouseLabel = diaLabel(" ", this, hBox);
-  QHBox *spacer = new QHBox(this);
-  hBox->addWidget(spacer);
-  hBox->setStretchFactor(spacer, 100);
+  hBox->addStretch();
   hBox->setSpacing(5);
 
-  QCheckBox *cbox = diaCheckBox("File value", this, hBox);
-  diaSetChecked(cbox, fromFile);
-  connect(cbox, SIGNAL(toggled(bool)), this, SLOT(fromFileToggled(bool)));
-  QToolTip::add(cbox, "Show value from file, not byte value from memory, "
-                "at mouse position");
-  cbox->setEnabled(App->cvi->noReadableImage == 0);
+  mFileValBox = diaCheckBox("File value", this, hBox);
+  diaSetChecked(mFileValBox, fromFile);
+  connect(mFileValBox, SIGNAL(toggled(bool)), this, 
+          SLOT(fromFileToggled(bool)));
+  QToolTip::add(mFileValBox, "Show value from file, not byte value from memory"
+                ", at mouse position");
+  mFileValBox->setEnabled(fileReadable(App->cvi, iz));
 
   QCheckBox *gbox = diaCheckBox("Grid", this, hBox);
   diaSetChecked(gbox, showButs);
   connect(gbox, SIGNAL(toggled(bool)), this, SLOT(showButsToggled(bool)));
-  QToolTip::add(gbox, "Show buttons with values from file (or memory,"
-                " if not available from file");
+  QToolTip::add(gbox, "Show buttons with values from file or memory)");
+
+  hBox = new QHBoxLayout(vBox);
+  mGridValBox = diaCheckBox("Grid value from file", this, hBox);
+  diaSetChecked(mGridValBox, gridFromFile);
+  connect(mGridValBox, SIGNAL(toggled(bool)), this, 
+          SLOT(gridFileToggled(bool)));
+  QToolTip::add(mGridValBox, "Show value from file, not byte value from memory"
+                ", in each button");
+  mGridValBox->setEnabled(fileReadable(App->cvi, iz));
+
+  mConvertBox = NULL;
+  if (App->cvi->rawImageStore) {
+    mConvertBox = diaCheckBox("Convert RGB to gray scale", this, hBox);
+    diaSetChecked(mConvertBox, convertRGB);
+    connect(mConvertBox, SIGNAL(toggled(bool)), this, 
+            SLOT(convertToggled(bool)));
+    QToolTip::add(mConvertBox, "Show luminance values instead of RGB triplets"
+                  );
+  }
+
+  hBox->addStretch();
+  hBox->setSpacing(5);
+  mHelpButton = diaPushButton("Help", this, hBox);
+  connect(mHelpButton, SIGNAL(clicked()), this, SLOT(helpClicked()));
 
   // Make the grid
   QGridLayout *layout = new QGridLayout(PV_ROWS + 1, PV_COLS + 1, 
@@ -200,6 +257,7 @@ void PixelView::setButtonWidths()
   for (int i = 0; i < PV_ROWS; i++)
     for (int j = 0; j < PV_COLS; j++)
       mButtons[i][j]->setMinimumWidth(width);
+  diaSetButtonWidth(mHelpButton, ImodPrefs->getRoundedStyle(), 1.2, "Help");
 }
 
 /*
@@ -209,8 +267,11 @@ void PixelView::update()
 {
   ImodView *vi = App->cvi;
   QString str;
-  int i, j, x, y;
+  int i, j, x, y, iz;
   float pixel;
+  int red, green, blue;
+  bool readable;
+  unsigned char **data;
   float minVal = 1.e38;
   float maxVal = -1.e38;
   int floats = -1;
@@ -228,6 +289,15 @@ void PixelView::update()
   mMinRow = -1;
   mMaxRow = -1;
 
+  iz = B3DNINT(vi->zmouse);
+  readable = fileReadable(vi, iz);
+  if (readable != lastGridReadable) {
+    mGridValBox->setEnabled(readable);
+    lastGridReadable = readable;
+  }
+  if (vi->rawImageStore)
+    data = ivwGetCurrentSection(vi);
+
   for (i = 0; i < PV_COLS; i++) {
     /* DNM: take floor to avoid duplicating 1 at 0 */
     x = (int)floor((double)vi->xmouse) + i - (PV_COLS/2);
@@ -244,11 +314,16 @@ void PixelView::update()
       y = (int)floor((double)vi->ymouse) + j - (PV_ROWS/2);
       if ((x < 0) || (y < 0) || (x >= vi->xsize) || (y >= vi->ysize))
 	str = "     x";
-      else{
-        pixel = ivwGetFileValue(vi, x, y, (int)(vi->zmouse + 0.5));
+      else {
+        if (readable && gridFromFile)
+          pixel = ivwGetFileValue(vi, x, y, iz);
+        else if (vi->rawImageStore)
+          pixel = getAndConvertRGB(data, x, y, red, green, blue);
+        else
+          pixel = ivwGetValue(vi, x, y, iz);
 
         /* First time after getting a pixel, see if floats are needed */
-        if (floats < 0 && !vi->noReadableImage) {
+        if (floats < 0 && readable) {
           if (vi->image->mode == MRC_MODE_BYTE || 
               vi->image->mode == MRC_MODE_SHORT ||
               vi->image->mode == MRC_MODE_USHORT)
@@ -257,8 +332,10 @@ void PixelView::update()
             floats = 1;
         }
 
-	if (floats)
+	if (floats > 0)
 	  str.sprintf("%9g", pixel);
+        else if (vi->rawImageStore && !convertRGB)
+          str.sprintf("%3d,%3d,%3d", red, green, blue);
 	else
 	  str.sprintf("%6d", (int)pixel);
 	if (pixel < minVal) {
@@ -309,46 +386,60 @@ void PixelView::fromFileToggled(bool state)
   fromFile = state;
 }
 
+void PixelView::gridFileToggled(bool state)
+{
+  gridFromFile = state;
+  update();
+}
+
+void PixelView::convertToggled(bool state)
+{
+  convertRGB = state;
+  update();
+  adjustDialogSize();
+}
+
+void PixelView::helpClicked(void)
+{
+  imodShowHelpPage("pixelview.html");
+}
+
 // Show or hide the grid of buttons
 void PixelView::showButsToggled(bool state)
 {
   int i, j;
-  int mode = App->cvi->image->mode;
   showButs = state;
   for (i = 0; i < PV_ROWS; i++) {
-    for (j = 0; j < PV_COLS; j++) {
-      if (state)
-        mButtons[i][j]->show();
-      else
-        mButtons[i][j]->hide();
-    }
-    if (state)
-      mLeftLabels[i]->show();
-    else
-      mLeftLabels[i]->hide();
+    for (j = 0; j < PV_COLS; j++)
+      diaShowWidget(mButtons[i][j], state);
+    diaShowWidget(mLeftLabels[i], state);
   }
+  for (j = 0; j < PV_COLS; j++)
+    diaShowWidget(mBotLabels[j], state);
+  diaShowWidget(mLabXY, state);
+  diaShowWidget(mGridValBox, state);
+  if (mConvertBox)
+    diaShowWidget(mConvertBox, state);
+  diaShowWidget(mHelpButton, state);
 
-  for (j = 0; j < PV_COLS; j++) {
-    if (state)
-      mBotLabels[j]->show();
-    else
-      mBotLabels[j]->hide();
-  }
-  if (state)
-    mLabXY->show();
-  else
-    mLabXY->hide();
+  adjustDialogSize();
+  update();
+}
 
-  // Adjust for the buttons that are too large if the current file is ints
-  // The minimum size setting of the buttons will keep this from getting
-  // too small
+// Adjust for the buttons that are too large if the current file is ints
+// The minimum size setting of the buttons will keep this from getting
+// too small
+void PixelView::adjustDialogSize()
+{
+  int mode = App->cvi->image->mode;
   if (showButs && (mode == MRC_MODE_BYTE || mode == MRC_MODE_SHORT ||
-                   mode == MRC_MODE_USHORT)) {
-    QSize hint = PixelViewDialog->sizeHint();
-    PixelViewDialog->resize((int)(0.7 * hint.width()), hint.height());
+                   mode == MRC_MODE_USHORT || 
+                   (App->cvi->rawImageStore && convertRGB))) {
+    QSize hint = sizeHint();
+    resize((int)(0.7 * hint.width()), hint.height());
   } else
     adjustSize();
-  update();
+
 }
 
 // Close event: just remove control from list and null pointer
@@ -389,6 +480,9 @@ void PixelView::keyReleaseEvent ( QKeyEvent * e )
 /*
 
 $Log$
+Revision 4.14  2008/04/02 04:38:42  mast
+Fixed tooltips on buttons
+
 Revision 4.13  2008/04/02 04:11:42  mast
 Disable file button if no readable image
 
