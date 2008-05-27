@@ -98,6 +98,7 @@ void imod_usage(char *name)
   qstr += "         -B #  Bin images by # in X, Y, and Z.\n";
   qstr += "         -b nxy,nz  Bin images by nxy in X and Y, by nz in Z (nz "
     "default=1).\n";
+  qstr += "         -a <file name>  Load tilt angles from file.\n";
   qstr += "         -p <file name>  Load piece list file.\n";
   qstr += "         -P nx,ny  Display images as montage in nx by ny array.\n";
   qstr += "         -o nx,ny  Set X and X overlaps for montage display.\n";
@@ -133,6 +134,7 @@ int main( int argc, char *argv[])
   FILE *fin        = NULL;
   FILE *mfin       = NULL;
   char *plistfname = NULL;
+  char *anglefname = NULL;
   int xyzwinopen   = FALSE;
   int sliceropen   = FALSE;
   int zapOpen      = FALSE;
@@ -174,6 +176,7 @@ int main( int argc, char *argv[])
   App->exiting = 0;
   App->cvi = &vi;
   App->base = Rampbase;
+  App->convertSnap = 0;
 
   /* Set up fixed indexes */
   App->background   = IMOD_BACKGROUND;
@@ -255,8 +258,8 @@ int main( int argc, char *argv[])
     startup->setIcon(*(App->iconPixmap));
     if (doImodv) 
       startup->setValues(&vi, argv, firstfile, argc, doImodv, plistfname, 
-                         xyzwinopen, sliceropen, zapOpen, modelViewOpen, 
-                         fillCache, ImodTrans, 0, frames,
+                         anglefname, xyzwinopen, sliceropen, zapOpen,
+                         modelViewOpen, fillCache, ImodTrans, 0, frames,
                          nframex, nframey, overx, overy, overEntered);
     if (startup->exec() == QDialog::Rejected) {
       imod_usage(argv[0]);
@@ -418,6 +421,10 @@ int main( int argc, char *argv[])
           plistfname = argv[++i];
           break;
         
+        case 'a':
+          anglefname = argv[++i];
+          break;
+        
         case 'f':
           frames = 1;
           break;
@@ -503,10 +510,10 @@ int main( int argc, char *argv[])
     if (!argScan && doStartup) {
       startup = new StartupForm(NULL, "startup dialog", true);
       startup->setIcon(*(App->iconPixmap));
-      startup->setValues(&vi, argv, firstfile, argc, doImodv, plistfname, 
-                         xyzwinopen, sliceropen, zapOpen, modelViewOpen, 
-                         fillCache, ImodTrans, vi.li->mirrorFFT, frames,
-                         nframex, nframey, overx, overy, overEntered);
+      startup->setValues(&vi, argv, firstfile, argc, doImodv, plistfname,
+                         anglefname, xyzwinopen, sliceropen, zapOpen,
+                         modelViewOpen, fillCache, ImodTrans, vi.li->mirrorFFT,
+                         frames, nframex, nframey, overx, overy, overEntered);
       if (startup->exec() == QDialog::Rejected) {
         imod_usage(argv[0]);
         exit(1);
@@ -742,6 +749,10 @@ int main( int argc, char *argv[])
   /* DNM: set this now in case image load is interrupted */
   Model->csum = imodChecksum(Model);
 
+  // Read tilt angles if any
+  if (anglefname)
+    ivwReadAngleFile(&vi, anglefname);
+
   /*********************/
   /* Open Main Window. */
   imod_info_open(); 
@@ -788,6 +799,11 @@ int main( int argc, char *argv[])
     imodError(NULL, qname.latin1());
     exit(3);
   }
+
+  // Now we can set to middle Z
+  if (ImodPrefs->startAtMidZ())
+    vi.zmouse = (int)(vi.zsize / 2);
+
   if (Imod_debug)
     imodPrintStderr("Loading time %.3f\n", loadTime.elapsed() / 1000.);
 
@@ -844,6 +860,11 @@ int main( int argc, char *argv[])
   if (Imod_debug)
     imodPuts("mainloop");
   imodPlugCall(&vi, 0, IMOD_REASON_STARTUP);
+
+  nx = ImodPrefs->autoConAtStart();
+  if (!vi.fakeImage && !vi.rawImageStore && 
+      (nx > 1 || (nx && new_model_created)))
+    ImodInfoWin->setupAutoContrast();
 
   loopStarted = 1;
 
@@ -941,6 +962,9 @@ bool imodDebug(char key)
 /*
 
 $Log$
+Revision 4.66  2008/04/02 04:39:40  mast
+Fixed test for image files entered with -R
+
 Revision 4.65  2008/04/02 04:23:36  mast
 Changes for reading from standard input
 
