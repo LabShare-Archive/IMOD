@@ -119,8 +119,7 @@ void imodvKeyPress(QKeyEvent *event)
       /* DNM 12/1/02: call this so it can keep track of open/closed state */
       imodvMenuBgcolor(1);
     }else{
-      imodv_setbuffer(a);
-      imodvDraw(Imodv);
+      imodvObjedMoveToAxis(2);
     }
     break;
                
@@ -220,11 +219,8 @@ void imodvKeyPress(QKeyEvent *event)
   case Qt::Key_L:
     if (shifted)
       imodvObjectListDialog(a, 1);
-    else {
-      a->plax *= -1.0f;
-      imodvStereoUpdate();
-      imodvDraw(a);
-    }
+    else
+      imodvObjedMoveToAxis(9);
     break;
 
   case Qt::Key_Comma:
@@ -397,8 +393,23 @@ void imodvKeyPress(QKeyEvent *event)
     break;
 
   case Qt::Key_R:
-    imodvViewMenu(VVIEW_MENU_LOWRES);
-    imodvMenuLowres(a->lowres);
+    if (shifted) {
+      imodvViewMenu(VVIEW_MENU_LOWRES);
+      imodvMenuLowres(a->lowres);
+    } else
+      imodvObjedMoveToAxis(11);
+    break;
+
+  case Qt::Key_T:
+    imodvObjedMoveToAxis(0);
+    break;
+
+  case Qt::Key_F:
+    imodvObjedMoveToAxis(1);
+    break;
+
+  case Qt::Key_K:
+    imodvObjedMoveToAxis(10);
     break;
 
   case Qt::Key_A:
@@ -412,6 +423,10 @@ void imodvKeyPress(QKeyEvent *event)
                       a->imod->cindex.object, 
                       a->imod->cindex.contour, pickedObject,
                       pickedContour); */
+    } else if (!shifted && !ctrl) {
+      a->plax *= -1.0f;
+      imodvStereoUpdate();
+      imodvDraw(a);
     }
     break;
 
@@ -422,6 +437,9 @@ void imodvKeyPress(QKeyEvent *event)
          imodSelectionListQuery(a->vi, pickedObject, pickedContour) > -2)) {
       inputDeleteContour(a->vi);
       pickedContour = -1;
+    } else if (!shifted) {
+      imodv_setbuffer(a);
+      imodvDraw(Imodv);
     }
     break;
 
@@ -1199,6 +1217,9 @@ void imodvMovieTimeout()
 /*
 
 $Log$
+Revision 4.37  2008/05/22 15:42:57  mast
+Changed for extra object editability
+
 Revision 4.36  2008/04/29 18:11:51  xiongq
 add isosurface dialog
 
