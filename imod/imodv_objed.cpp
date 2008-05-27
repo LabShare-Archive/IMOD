@@ -81,10 +81,11 @@ static void mkMove_cb(int index);
 static void fixMove_cb(void);
 static void mkSubsets_cb(int index);
 static void mkMakeMesh_cb(int index);
+static void fixMakeMesh_cb();
 static void setMakeMesh_cb(void);
 static MeshParams *makeGetObjectParams(void);
 static void meshObject();
-static void finishMesh();
+static int finishMesh();
 static void optionSetFlags (b3dUInt32 *flag);
 static int numEditableObjects(int model);
 static Iobj *editableObject(int model, int ob);
@@ -138,7 +139,7 @@ ObjectEditField objectEditFieldData[]    = {
   {"Clip",       mkClip_cb,      setClip_cb,      fixClip_cb, NULL},
   {"Move",       mkMove_cb,      NULL,            fixMove_cb, NULL},
   {"Subsets",    mkSubsets_cb,   NULL,            NULL,       NULL},
-  {"Meshing",    mkMakeMesh_cb,  setMakeMesh_cb,  NULL,       NULL},
+  {"Meshing",    mkMakeMesh_cb,  setMakeMesh_cb,  fixMakeMesh_cb, NULL},
 
   {NULL, NULL, NULL, NULL, NULL},
 };
@@ -1625,7 +1626,7 @@ static void fixClip_cb()
 static char *moveLabels[] = {"Top", "Front", "Bottom", "Back",
                              "Top", "Left", "Bottom", "Right",
                              "Front", "Left", "Back", "Right"};
-static int moveQuarters[] = {0, -1, 2, 1, 0, 1, 2, -1, 0, 1, 2, -1};
+static int moveQuarters[] = {0, -1, 2, 1, 0, 1, 2, -1, 2, -1, 0, 1};
 static char *axisLabels[] = {"X", "Y", "Z"};
 static QPushButton *moveButtons[12];
 
@@ -1649,6 +1650,11 @@ void ImodvObjed::moveCenterSlot()
 /* DNM: add control of all models */
 void ImodvObjed::moveAxisSlot(int which)
 {
+  imodvObjedMoveToAxis(which);
+}
+
+void imodvObjedMoveToAxis(int which)
+{
   int quarter = moveQuarters[which];
   int m;
   Ipoint rot;
@@ -1667,7 +1673,9 @@ void ImodvObjed::moveAxisSlot(int which)
   case 1:   // Y axis
     rot.y = quarter * 90.0f;
     break;
-  case 2:   // Y axis
+  case 2:   // Z axis
+    rot.x = 90.0f;
+    rot.y = 180.0f;
     rot.z = quarter * 90.0f;
     break;
   }
@@ -1676,7 +1684,7 @@ void ImodvObjed::moveAxisSlot(int which)
 
   if (Imodv->moveall)
     for (m = 0; m < Imodv->nm; m++)
-      Imodv->mod[m]->view->rot = rot;
+      Imodv->mod[m]->view->rot = imod->view->rot;
 
   imodvDraw(Imodv);
 }
@@ -1784,9 +1792,11 @@ static FloatSpinBox *wMakeTolSpin;
 static QSpinBox *wMakeZincSpin;
 static QSpinBox *wMakeFlatSpin;
 static QPushButton *wMakeDoButton;
+static QPushButton *wMakeAllButton;
 static int makeLowRes = 0;
 static MeshParams *makeParams;
 static MeshParams makeDefParams;
+static bool meshAllObjects;
 
 void ImodvObjed::makePassSlot(int value)
 {
@@ -1942,6 +1952,8 @@ char *makeCheckTips[] = {"Connect contours across sections with no contours",
                          "Cap all unconnected ends of object"};
 static void mkMakeMesh_cb(int index)
 {
+  char notAvailable[] = "Mesh object(s) - not available when data "
+    "are loaded binned";
   ObjectEditField *oef = &objectEditFieldData[index];
 
   QVBoxLayout *layout1 = new QVBoxLayout(oef->control, FIELD_MARGIN, 
@@ -2002,19 +2014,45 @@ static void mkMakeMesh_cb(int index)
 
   diaSetChecked(wMakeChecks[MAKE_MESH_LOW], makeLowRes != 0);
 
-  wMakeDoButton = diaPushButton("Make Mesh", oef->control, layout1);
+  //QGridLayout *grid = new QGridLayout(layout1, 1, 2, 0);
+  hLayout = new QHBoxLayout(layout1);
+  hLayout->setSpacing(3);
+  hLayout->setMargin(0);
+
+  wMakeDoButton = diaPushButton("Mesh One", oef->control, hLayout);
+  //wMakeDoButton =  new QPushButton("Mesh One", oef->control);
+  //grid->addWidget(wMakeDoButton, 0, 0);
   QObject::connect(wMakeDoButton, SIGNAL(clicked()), &imodvObjed, 
                    SLOT(makeDoitSlot()));
+  wMakeAllButton = diaPushButton("Mesh All", oef->control, hLayout);
+  //wMakeAllButton = new QPushButton("Mesh All", oef->control);
+  //grid->addWidget(wMakeAllButton, 0, 1);
+  QObject::connect(wMakeAllButton, SIGNAL(clicked()), &imodvObjed, 
+                   SLOT(makeDoAllSlot()));
   if (!Imodv->standalone && (Imodv->vi->xybin * Imodv->vi->zbin > 1)) {
     wMakeDoButton->setEnabled(false);    
-    QToolTip::add(wMakeDoButton, "Mesh the object (not available when data "
-                  "are loaded binned");
-  } else
+    wMakeAllButton->setEnabled(false);    
+    QToolTip::add(wMakeDoButton, notAvailable);
+    QToolTip::add(wMakeAllButton, notAvailable);
+  } else {
     QToolTip::add(wMakeDoButton, "Mesh the object with these parameters");
+    QToolTip::add(wMakeAllButton, "Mesh all objects with their respective"
+                  " meshing parameters");
+  }
 
   finalSpacer(oef->control, layout1);
+  fixMakeMesh_cb();
   setMakeMesh_cb();
 }
+
+static void fixMakeMesh_cb() 
+{
+  diaSetButtonWidth(wMakeDoButton, ImodPrefs->getRoundedStyle(), 1.3,
+                    "Mesh One");
+  diaSetButtonWidth(wMakeAllButton, ImodPrefs->getRoundedStyle(), 1.3,
+                    "Mesh One");
+}
+
 
 /* Variables for running the thread */
 static int meshedObjNum;
@@ -2023,6 +2061,32 @@ static Iobj *meshDupObj;
 static bool makeMeshBusy = false;
 static bool meshThreadErr;
 
+// The button to do all objects
+void ImodvObjed::makeDoAllSlot()
+{
+  meshAllObjects = true;
+  meshedObjNum = -1;
+  meshedModNum = Imodv->cm;
+
+  // This should keep going unless there is an error or thread used to run mesh
+  while (!startMeshingNext()) {};
+}
+
+// Find next non-scattered object with contours and start meshing it
+// Return -1 for error, -2 no more objs, 1 if started thread, or 0 if finished
+// an object synchronously
+int ImodvObjed::startMeshingNext()
+{
+  Iobj *obj;
+  while (++meshedObjNum < Imodv->mod[meshedModNum]->objsize) {
+    obj = &Imodv->mod[meshedModNum]->obj[meshedObjNum];
+    if (obj->contsize && !iobjScat(obj->flags))
+      return meshOneObject(obj);
+  }
+  return -2;
+}
+
+// The button to do the current object
 void ImodvObjed::makeDoitSlot()
 {
   Iobj *obj = objedObject();
@@ -2030,7 +2094,15 @@ void ImodvObjed::makeDoitSlot()
     return;
   if (!obj->contsize)
     return;
+  meshAllObjects = false;
+  meshedObjNum = Imodv->ob;
+  meshedModNum = Imodv->cm;
+  meshOneObject(obj);
+}
 
+// Common function to start meshing an object
+int ImodvObjed::meshOneObject(Iobj *obj)
+{
   // Copy all the contours, save the object and model number
   meshDupObj = imeshDupMarkedConts(obj, 0);
   if (meshDupObj) {
@@ -2044,10 +2116,8 @@ void ImodvObjed::makeDoitSlot()
     if (meshDupObj)
       imodObjectDelete(meshDupObj);
     meshDupObj = NULL;
-    return;
+    return -1;
   }
-  meshedObjNum = Imodv->ob;
-  meshedModNum = Imodv->cm;
 
 #ifdef QT_THREAD_SUPPORT
 
@@ -2055,6 +2125,7 @@ void ImodvObjed::makeDoitSlot()
   // start timer and start thread
   makeMeshBusy = true;
   wMakeDoButton->setEnabled(false);
+  wMakeAllButton->setEnabled(false);
   if (!Imodv->standalone)
     ImodInfoWin->manageMenus();
   mTimerID = startTimer(50);
@@ -2066,12 +2137,12 @@ void ImodvObjed::makeDoitSlot()
 #else
   mMeshThread->start();
 #endif
-
+  return 1;
 #else
 
   // Otherwise just start the process directly and do finishing tasks
   meshObject();
-  finishMesh();
+  return(finishMesh());
 #endif
 }
 
@@ -2081,7 +2152,10 @@ void ImodvObjed::timerEvent(QTimerEvent *e)
   if (mMeshThread->running())
     return;
   killTimer(mTimerID);
-  wMakeDoButton->setEnabled(true);
+  if (objed_dialog) {
+    wMakeDoButton->setEnabled(true);
+    wMakeAllButton->setEnabled(true);
+  }
   delete mMeshThread;
   makeMeshBusy = false;
   finishMesh();
@@ -2114,10 +2188,12 @@ static void meshObject()
   meshThreadErr = 0;
 }
 
-static void finishMesh()
+// Finish up after a mesh is computed
+static int finishMesh()
 {
   Iobj *obj;
   QString str;
+  int retval = 0;
   int resol = makeLowRes ? 1 : 0;
 
   // If error, just clean up dup object
@@ -2125,11 +2201,12 @@ static void finishMesh()
     str = QString("An error occurred meshing the object:\n") + 
       QString(b3dGetError());
     dia_err((char *)str.latin1());
+    retval = -1;
   } else if (meshedModNum >= Imodv->nm || 
       meshedObjNum >= Imodv->mod[meshedModNum]->objsize) {
     dia_err("The model changed in a way that prevents the mesh from being "
             "used - try again.");
-      
+    retval = -1;
   } else {
 
     // Clear out this resolution in the existing mesh and transfer new one
@@ -2144,6 +2221,7 @@ static void finishMesh()
       if (!obj->mesh) {
         dia_err("An error occurred transferring new mesh to object.");
         obj->meshsize = 0;
+        retval = -1;
         break;
       }
     }
@@ -2151,7 +2229,7 @@ static void finishMesh()
     // Switch between low and high res mode if it is still current model
     meshDupObj->meshsize = 0;
     meshDupObj->mesh = NULL;
-    if (meshedModNum == Imodv->cm && Imodv->lowres != resol)
+    if (meshedModNum == Imodv->cm && Imodv->lowres != resol && !ImodvClosed)
       imodvViewMenu(VVIEW_MENU_LOWRES);
  
     // Turn on mesh view same way as it is done from draw data selection
@@ -2164,14 +2242,20 @@ static void finishMesh()
     failSetFlags = IMOD_OBJFLAG_MESH;
     failClearFlags = IMOD_OBJFLAG_OFF;
     optionSetFlags(&obj->flags);
-    if (meshedModNum == Imodv->cm && meshedObjNum == Imodv->ob)
+    if (meshedModNum == Imodv->cm && meshedObjNum == Imodv->ob && objed_dialog)
       objset(Imodv);
 
-    imodvDraw(Imodv);
+    if (!ImodvClosed)
+      imodvDraw(Imodv);
   }
 
   // Clean up the duplicated object
   imodObjectDelete(meshDupObj);
+#ifdef QT_THREAD_SUPPORT
+  if (!retval && meshAllObjects && objed_dialog)
+    imodvObjed.startMeshingNext();
+#endif
+  return retval;
 }
 
 
@@ -2376,6 +2460,9 @@ static void makeRadioButton(char *label, QWidget *parent, QButtonGroup *group,
 /*
 
 $Log$
+Revision 4.37  2008/05/22 15:44:34  mast
+Changes for extra object editability
+
 Revision 4.36  2008/01/21 17:50:41  mast
 Split off object list dialog, added grouping capability, and rationalized
 editing Ons as well as Group to switch objects if not editing current object
