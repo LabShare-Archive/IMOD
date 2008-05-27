@@ -480,7 +480,7 @@ void imodvDrawImage(ImodvApp *a, int drawTrans)
               if (imdata[i]) {
                 for (j = iz; j < mj; j++) {
                   v = (j - iz);
-                  pix = imdata[i][cix + (j * mix)];
+                  pix = imdata[i][ix + (j * mix)];
                   tdata[u][v][0] = Cmap[0][pix];
                   tdata[u][v][1] = Cmap[1][pix];
                   tdata[u][v][2] = Cmap[2][pix];
@@ -500,7 +500,7 @@ void imodvDrawImage(ImodvApp *a, int drawTrans)
               if (imdata[j]) {
                 for (i = iy; i < mi; i++) {
                   u = i - iy;
-                  pix = imdata[j][cix + (i * mix)];
+                  pix = imdata[j][ix + (i * mix)];
                   tdata[u][v][0] = Cmap[0][pix];
                   tdata[u][v][1] = Cmap[1][pix];
                   tdata[u][v][2] = Cmap[2][pix];
@@ -558,10 +558,10 @@ void imodvDrawImage(ImodvApp *a, int drawTrans)
           // no data cases for inner loop
           for (j = iz; j < mj; j++) {
             v = (j - iz);
-            if (flipped && imdata[ciy]) {
+            if (flipped && imdata[iy]) {
               for (i = ix; i < mi; i++) {
                 u = i - ix;
-                pix = imdata[ciy][i + (j * mix)];
+                pix = imdata[iy][i + (j * mix)];
                 tdata[u][v][0] = Cmap[0][pix];
                 tdata[u][v][1] = Cmap[1][pix];
                 tdata[u][v][2] = Cmap[2][pix];
@@ -569,7 +569,7 @@ void imodvDrawImage(ImodvApp *a, int drawTrans)
             } else if (!flipped && imdata[j]) {
               for (i = ix; i < mi; i++) {
                 u = i - ix;
-                pix = imdata[j][i + (ciy * mix)];
+                pix = imdata[j][i + (iy * mix)];
                 tdata[u][v][0] = Cmap[0][pix];
                 tdata[u][v][1] = Cmap[1][pix];
                 tdata[u][v][2] = Cmap[2][pix];
@@ -840,6 +840,9 @@ void ImodvImage::keyReleaseEvent ( QKeyEvent * e )
 
 /*
 $Log$
+Revision 4.17  2007/07/08 16:04:49  mast
+Used new hot slider function
+
 Revision 4.16  2007/06/22 00:54:21  mast
 Converted help to html
 
