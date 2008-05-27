@@ -11,7 +11,8 @@
 <LI><B>Reload Model</B>:&emsp;Reload the current model from file.
 <LI><B>Save Model</B>:&emsp;Save model file to current file name.
 <LI><B>Save Model as...</B>:&emsp;Save model file, and prompts for a name.
-<LI><B>Write Model as --></B>:&emsp;Write model to one of the following formats.
+<LI><B>Write Model as --></B>:&emsp;Write model to one of the following 
+formats.
 <UL>
 <LI>Imod &ndash; native model format.
 <LI>Wimp &ndash; Used on BL3DEMC VAX machine.
@@ -20,13 +21,17 @@
 </UL>
 <LI><B>Set Snap Dir...</B>:&emsp;Set a directory to put snapshots into.  The
 same directory will be used for model snapshots.
-<LI><B>Memory to TIF</B>:&emsp;Save entire color image from memory to TIFF file.
+<LI><B>Gray TIF Snaps</B>:&emsp;This entry is a checkable option; when it is
+checked, TIFF snapshots of all image windows will be saved as 8-bit gray scale.
+<LI><B>Memory to TIF</B>:&emsp;Save entire color image from memory to TIFF
+file.
 <LI><B>Extract File...</B>:&emsp;Extract portion of current image file
 selected by the rubber band in the top Zap window, using the trimvol command
 that would be produced with the <B>I</B> button in that window.  Flipping is
 included if the image is loaded flipped.  A single 
 slice is extracted if the <B>Lo</B> and <B>Hi</B> fields are empty; otherwise
 those fields specify the range in Z.
+
 <LI><B>Quit</B>:&emsp;Exit program.
 </UL>
 <LI><B>Edit</B> Menu
@@ -53,8 +58,10 @@ those fields specify the range in Z.
 <LI><B>Combine</B>:&emsp;Combine all selected objects into one object.
 <LI><B>Info</B>:&emsp;Print total volume and surface area of object.
 <LI><B>Clean</B>:&emsp;Delete empty contours from object.
-<LI><B>Break by Z</B>:&emsp;Break all contours in object into separate ones by Z.
-<LI><B>Flatten</B>:&emsp;Flatten all contours in object to lie in single Z plane.
+<LI><B>Break by Z</B>:&emsp;Break all contours in object into separate ones by 
+Z.
+<LI><B>Flatten</B>:&emsp;Flatten all contours in object to lie in single Z 
+plane.
 <LI><B>Renumber...</B>:&emsp;Move the current object to a new object number.
 </UL>
 <LI><B>Surface --></B>
@@ -62,7 +69,8 @@ those fields specify the range in Z.
 <LI><B>New</B>:&emsp;Create a new contour on a new surface.&emsp;[N]
 <LI><B>Go To...</B>:&emsp;Go to a different surface.
 <LI><B>Move...</B>:&emsp;Move contours to new surfaces within object.
-<LI><B>Delete</B>:&emsp;Delete all contours in the current surface.
+<LI><B>Delete</B>:&emsp;Delete all contours in the current surface.&emsp;
+[Ctrl-Shift-D]
 </UL>
 <LI><B>Contour --></B>
 <UL>
@@ -119,8 +127,20 @@ slices in an array of small panels.
 <LI><B>Pixel View</B>:&emsp;View pixel values in a grid.
 <LI><B>Graph</B>:&emsp;Open the Image Graph window.&emsp;[G]
 <LI><B>Locator</B>:&emsp;Open window showing subarea of active zap window.
+<LI><B>Isosurface</B>:&emsp;Open model view window with isosurface display of
+image data.
 <LI><B>Tumbler</B>:&emsp;Open 3-D projection window.
 </UL>
+<LI><B>Special</B> Menu
+<UL>
+<LI><B>Bead Fixer</B>:&emsp;Open a window for doing basic operations on a
+fiducial model.
+<LI><B>Line Track</B>:&emsp;Open window to allow automated tracking along a
+line (e.g., membrane) between marked points, and from one slice to the next.
+<LI><B>Bead Helper</B>:&emsp;Open Andrew Noske's plugin with tools to help fix
+large fiducial models.
+<LI><B>Drawing Tools</B>:&emsp;Open Andrew Noske's plugin with some modeling 
+tools, including a tool to draw or modify a contour with a circular cursor.
 </UL>
 <P>
 <A HREF=index.html>Help Index<A>
