@@ -78,6 +78,8 @@ void ivwInit(ImodView *vi)
 
   vi->imageList  = NULL;
   vi->selectionList = NULL;
+  vi->numTiltAngles = 0;
+  vi->tiltAngles = NULL;
 
   vi->movieInterval = 17L;
   vi->timers = new ImodWorkproc(vi);
@@ -2293,6 +2295,42 @@ static int ivwCheckBinning(ImodView *vi, int nx, int ny, int nz)
   return 0;
 }
 
+/* Tilt angle functions */
+int ivwReadAngleFile(ImodView *vi, const char *fname)
+{
+  FILE *fin;
+  Ilist *list;
+  float angle;
+  int scanret;
+  fin = fopen(fname, "r");
+  if (!fin) {
+    imodError(NULL, "3dmod warning: could not open angle file %s", fname);
+    return 1;
+  }
+  list = ilistNew(sizeof(float), 10);
+  while (1) {
+    scanret = fscanf(fin, "%f", &angle);
+    if (scanret != 1)
+      break;
+    if (!list || ilistAppend(list, &angle)) {
+      imodError(NULL, "3dmod warning: could not allocate memory for angles",
+                fname);
+      return 2;
+    }
+  }
+  if (vi->tiltAngles)
+    free(vi->tiltAngles);
+  vi->tiltAngles = (float *)list->data;
+  vi->numTiltAngles = ilistSize(list);
+  free(list);
+  return 0;
+}
+
+float *ivwGetTiltAngles(ImodView *vi, int &numAngles)
+{
+  numAngles = vi->numTiltAngles;
+  return (numAngles ? vi->tiltAngles : NULL);
+}
 
 /* plugin utility functions.*/
 void ivwGetImageSize(ImodView *inImodView, int *outX, int *outY, int *outZ)
@@ -2712,6 +2750,9 @@ void ivwBinByN(unsigned char *array, int nxin, int nyin, int nbin,
 /*
 
 $Log$
+Revision 4.66  2008/04/29 22:30:37  mast
+Used an array for keeping track of extra objects instead of TEMPUSE flag
+
 Revision 4.65  2008/04/04 21:22:49  mast
 Fix allocating and freeing of extra objects
 

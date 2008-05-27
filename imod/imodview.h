@@ -110,7 +110,7 @@ unsigned char DLL_EX_IM **ivwGetCurrentZSection(ImodView *inImodView);
  * Returns line pointers to loaded image data for the Z slice [section] and
  * time index [time].
  */
-unsigned char DLL_EX_IM **ivwGetZSectionTime(ImodView *iv, int section, 
+unsigned char DLL_EX_IM **ivwGetZSectionTime(ImodView *vi, int section, 
                                              int time);
 
 /*!
@@ -123,6 +123,18 @@ int DLL_EX_IM ivwGetValue(ImodView *inImodView, int inX, int inY, int inZ);
 float DLL_EX_IM ivwGetFileValue(ImodView *inImodView, int inX, int inY, 
                                 int inZ);
 
+/*!
+ * Reads tilt angles, or any set of floating point values from the text file 
+ * [fname].  The file should have one value per line.  Returns 1 for error 
+ * opening the file, or 2 for memory error.
+ */
+int DLL_EX_IM ivwReadAngleFile(ImodView *vi, const char *fname);
+
+/*!
+ * Returns a pointer to angles read from a file, or NULL if there are none,
+ * and returns the number of angles in [numAngles].
+ */ 
+  float DLL_EX_IM *ivwGetTiltAngles(ImodView *vi, int &numAngles);
 
 /**************************** Model data functions. ***************************
  *
@@ -305,6 +317,9 @@ int DLL_EX_IM prefGetGenericSettings(char *key, double *values, int maxVals);
 /* 
 
 $Log$
+Revision 1.16  2008/04/03 16:14:58  mast
+Documentation change for clearing extra object
+
 Revision 1.15  2008/03/01 01:24:09  mast
 Added wrappers for getting and saving generic settings
 
