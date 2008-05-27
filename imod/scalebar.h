@@ -3,6 +3,9 @@
  *  $Id$
  *
  *  $Log$
+ *  Revision 1.3  2008/03/06 00:11:55  mast
+ *  Added option to make scale bars vertical
+ *
  *  Revision 1.2  2008/01/26 05:51:59  mast
  *  Forgot the define
  *
@@ -26,6 +29,8 @@ typedef struct scale_bar {
   int indentY;
   bool useCustom;
   int customVal;
+  bool colorRamp;
+  bool invertRamp;
 } ScaleBar;
 
 float scaleBarDraw(int winx, int winy, float zoom, int background);

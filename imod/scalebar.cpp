@@ -19,10 +19,12 @@
 #include "xzap.h"
 #include "xxyz.h"
 #include "sslice.h"
+#include "xcramp.h"
 #include "imod_display.h"
 
 // The resident parameters, accessible by other modules
-static ScaleBar params = {true, false, 50, 8, false, 0, 20, 20, false, 25};
+static ScaleBar params = {true, false, 50, 8, false, 0, 20, 20, false, 25, 
+                          false, false};
 
 // The instance of the dialog
 static ScaleBarForm *sbDia = NULL;
@@ -72,7 +74,7 @@ float scaleBarDraw(int winx, int winy, float zoom, int background)
   Imod *imod;
   double expon, minlen, loglen, normlen, custlen;
   float truelen;
-  int xst, yst, color, pixlen, xsize, ysize;
+  int xst, yst, color, pixlen, xsize, ysize, i, j, red, green, blue, index;
   if (!params.draw || !sbDia)
     return -1.;
 
@@ -115,12 +117,29 @@ float scaleBarDraw(int winx, int winy, float zoom, int background)
   if (params.position == 2 || params.position == 3)
     yst = winy - params.indentY - ysize;
 
-  // If a background color is set, take the opposite; othewise follow option
-  color = params.white ? 255 : 0;
-  if (background)
-    color = background > 0 ? 0 : 255;
-  customGhostColor(color, color, color);
-  b3dDrawFilledRectangle(xst, yst, xsize, ysize);
+  if (!params.colorRamp) {
+
+    // If a background color is set, take the opposite; otherwise follow option
+    color = params.white ? 255 : 0;
+    if (background)
+      color = background > 0 ? 0 : 255;
+    customGhostColor(color, color, color);
+    b3dDrawFilledRectangle(xst, yst, xsize, ysize);
+  } else {
+    
+    // Drawing a color ramp
+    pixlen = B3DMAX(1, pixlen);
+    for (i = 0; i <= pixlen; i++) {
+      j = params.invertRamp ? pixlen - i : i;
+      index = B3DNINT((255. * j) / pixlen);
+      xcramp_mapfalsecolor(index, &red, &green, &blue);
+      customGhostColor(red, green, blue);
+      if (params.vertical)
+        b3dDrawLine(xst, yst + i, xst + xsize, yst + i);
+      else
+        b3dDrawLine(xst + i, yst, xst + i, yst + ysize);
+    }
+  }
   resetGhostColor();
 
   // Start timer every time this routine draws a bar so updates occur
@@ -175,6 +194,9 @@ void scaleBarRedraw()
 /*
 
 $Log$
+Revision 1.3  2008/03/06 00:11:55  mast
+Added option to make scale bars vertical
+
 Revision 1.2  2008/02/15 00:16:30  mast
 Make it draw bars when window opens
 
