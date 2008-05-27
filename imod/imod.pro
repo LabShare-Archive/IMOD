@@ -49,7 +49,7 @@ HEADERS	+= autox.h \
 	imodv_objed.h \
 	imodv_listobj.h \
 	imodv_image.h \
-   histwidget.h \
+	histwidget.h \
 	imodv_isosurface.h \
 	imodv_movie.h \
 	qcursor.bits \
@@ -77,10 +77,10 @@ HEADERS	+= autox.h \
 	b3dicon.xpm \
 	iirawimage.h \
 	scalebar.h \
-   isothread.h \
-   imodv_mcubes.h \
-   imodv_mcubescpp.h \
-   imodv_mappingtable.h 
+	isothread.h \
+	imodv_mcubes.h \
+	imodv_mcubescpp.h \
+	imodv_mappingtable.h
 
 SOURCES	+= autox.cpp \
 	b3dfile.c \
@@ -106,9 +106,9 @@ SOURCES	+= autox.cpp \
 	imodv_gfx.cpp \
 	imodview.cpp \
 	imodv_image.cpp \
-   histwidget.cpp\
-   isothread.cpp \
-   imodv_isosurface.cpp\
+	histwidget.cpp \
+	isothread.cpp \
+	imodv_isosurface.cpp \
 	imodv_input.cpp \
 	imodv_light.cpp \
 	imodv_menu.cpp \
@@ -147,7 +147,7 @@ SOURCES	+= autox.cpp \
 	iirawimage.cpp \
 	finegrain.cpp \
 	scalebar.cpp \
-   imodv_mappingtable.cpp \
+	imodv_mappingtable.cpp
 
 FORMS	= form_object_edit.ui \
 	formv_control.ui \

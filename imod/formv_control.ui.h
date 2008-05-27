@@ -17,6 +17,8 @@ void imodvControlForm::init()
     linkSlicerCheckBox->setEnabled(false);
   else
     diaSetChecked(linkSlicerCheckBox, Imodv->linkToSlicer != 0);
+  diaSetChecked(linkCentersCheckBox, Imodv->linkSlicerCenter != 0);
+  linkCentersCheckBox->setEnabled(!Imodv->standalone && Imodv->linkToSlicer);
   setFontDependentWidths();
 }
 
@@ -196,6 +198,13 @@ void imodvControlForm::startStop()
 void imodvControlForm::linkBoxToggled(bool state)
 {
   Imodv->linkToSlicer = state ? 1 : 0;
+  linkCentersCheckBox->setEnabled(state);
+}
+
+// Link centers of rotation
+void imodvControlForm::linkCenterToggled( bool state )
+{
+  Imodv->linkSlicerCenter = state ? 1 : 0;
 }
 
 // Rate slider

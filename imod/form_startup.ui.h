@@ -27,6 +27,7 @@ void StartupForm::init()
   mArgv = NULL;
   mArgc = 0;
   mJoinedWithSpace = false;
+  adjustSize();
 }
 
 void StartupForm::manageForModView()
@@ -38,6 +39,9 @@ void StartupForm::manageForModView()
   pieceFileLabel->setEnabled(!mModvMode);
   pieceFileEdit->setEnabled(!mModvMode);
   pieceSelectButton->setEnabled(!mModvMode);
+  angleFileLabel->setEnabled(!mModvMode);
+  angleFileEdit->setEnabled(!mModvMode);
+  angleSelectButton->setEnabled(!mModvMode);
   subsetsBox->setEnabled(!mModvMode);
   xMinLabel->setEnabled(!mModvMode);
   xFromEdit->setEnabled(!mModvMode);
@@ -150,6 +154,11 @@ void StartupForm::pfileChanged( const QString & pfile )
   mPieceFile = pfile;
 }
 
+void StartupForm::angleFileChanged( const QString &afile )
+{
+  mAngleFile = afile;
+}
+
 // Get name(s) from file dialog when Select button pressed
 void StartupForm::imageSelectClicked()
 {
@@ -225,6 +234,15 @@ void StartupForm::pieceSelectClicked()
   mPieceFile = diaOpenFileName(this, "Select piece list file to load", 1, filter);
   enableButtons(true);
   pieceFileEdit->setText(mPieceFile);
+}
+
+void StartupForm::angleSelectClicked()
+{
+  char *filter[] = {"Tilt angle files (*tlt)"};
+  enableButtons(false);
+  mAngleFile = diaOpenFileName(this, "Select angle file to load", 1, filter);
+  enableButtons(true);
+  angleFileEdit->setText(mAngleFile);
 }
 
 // A workaround to problem in Windows of file dialogs not being modal
@@ -372,6 +390,12 @@ char ** StartupForm::getArguments( int & argc )
     addArg(pieceFileEdit->text().latin1());
   }
   
+  // Angle file
+  if (!angleFileEdit->text().isEmpty()) {
+    addArg("-a");
+    addArg(angleFileEdit->text().latin1());
+  }
+  
   // Image files and model file
   addImageFiles();
   if (!modelFileEdit->text().isEmpty())
@@ -428,7 +452,8 @@ void StartupForm::addImageFiles()
 
 
 void StartupForm::setValues( ImodView *vi, char * *argv, int firstfile, int argc, 
-                             int doImodv, char *plistfname, int xyzwinopen, int sliceropen, 
+                             int doImodv, char *plistfname, char *anglefname, int xyzwinopen,
+                             int sliceropen, 
                              int zapOpen, int modelViewOpen, int fillCache, int ImodTrans, 
                              int mirror, int frames, int nframex, int nframey, 
                              int overx, int overy, int overEntered )
@@ -457,6 +482,8 @@ void StartupForm::setValues( ImodView *vi, char * *argv, int firstfile, int argc
   }
   if (plistfname)
     pieceFileEdit->setText(QString(plistfname));
+  if (anglefname)
+    angleFileEdit->setText(QString(anglefname));
   
   // X, Y, Z subset
   if (vi->li->xmin != -1 || vi->li->xmax != -1) {

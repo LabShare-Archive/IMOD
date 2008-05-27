@@ -8,8 +8,8 @@
         <rect>
             <x>0</x>
             <y>0</y>
-            <width>788</width>
-            <height>487</height>
+            <width>837</width>
+            <height>507</height>
         </rect>
     </property>
     <property name="caption">
@@ -27,7 +27,7 @@
         </property>
         <widget class="QLayoutWidget">
             <property name="name">
-                <cstring>layout25</cstring>
+                <cstring>layout22</cstring>
             </property>
             <hbox>
                 <property name="name">
@@ -35,7 +35,7 @@
                 </property>
                 <widget class="QLayoutWidget">
                     <property name="name">
-                        <cstring>layout24</cstring>
+                        <cstring>layout20</cstring>
                     </property>
                     <vbox>
                         <property name="name">
@@ -134,21 +134,93 @@
                         </widget>
                         <widget class="QLayoutWidget">
                             <property name="name">
-                                <cstring>Layout5</cstring>
+                                <cstring>layout19</cstring>
                             </property>
                             <grid>
                                 <property name="name">
                                     <cstring>unnamed</cstring>
                                 </property>
-                                <property name="margin">
-                                    <number>0</number>
-                                </property>
-                                <property name="spacing">
-                                    <number>6</number>
-                                </property>
+                                <widget class="QLineEdit" row="1" column="1">
+                                    <property name="name">
+                                        <cstring>modelFileEdit</cstring>
+                                    </property>
+                                </widget>
+                                <widget class="QLineEdit" row="0" column="1">
+                                    <property name="name">
+                                        <cstring>imageFilesEdit</cstring>
+                                    </property>
+                                </widget>
+                                <widget class="QPushButton" row="1" column="2">
+                                    <property name="name">
+                                        <cstring>modelSelectButton</cstring>
+                                    </property>
+                                    <property name="focusPolicy">
+                                        <enum>NoFocus</enum>
+                                    </property>
+                                    <property name="text">
+                                        <string>Select...</string>
+                                    </property>
+                                </widget>
+                                <widget class="QLineEdit" row="2" column="1">
+                                    <property name="name">
+                                        <cstring>pieceFileEdit</cstring>
+                                    </property>
+                                    <property name="frameShape">
+                                        <enum>LineEditPanel</enum>
+                                    </property>
+                                    <property name="frameShadow">
+                                        <enum>Sunken</enum>
+                                    </property>
+                                </widget>
                                 <widget class="QPushButton" row="0" column="2">
                                     <property name="name">
                                         <cstring>imageSelectButton</cstring>
+                                    </property>
+                                    <property name="focusPolicy">
+                                        <enum>NoFocus</enum>
+                                    </property>
+                                    <property name="text">
+                                        <string>Select...</string>
+                                    </property>
+                                </widget>
+                                <widget class="QPushButton" row="2" column="2">
+                                    <property name="name">
+                                        <cstring>pieceSelectButton</cstring>
+                                    </property>
+                                    <property name="focusPolicy">
+                                        <enum>NoFocus</enum>
+                                    </property>
+                                    <property name="text">
+                                        <string>Select...</string>
+                                    </property>
+                                </widget>
+                                <widget class="QLabel" row="0" column="0">
+                                    <property name="name">
+                                        <cstring>imageFilesLabel</cstring>
+                                    </property>
+                                    <property name="text">
+                                        <string>Image file(s):</string>
+                                    </property>
+                                </widget>
+                                <widget class="QLabel" row="2" column="0">
+                                    <property name="name">
+                                        <cstring>pieceFileLabel</cstring>
+                                    </property>
+                                    <property name="text">
+                                        <string>Piece file:</string>
+                                    </property>
+                                </widget>
+                                <widget class="QLabel" row="3" column="0">
+                                    <property name="name">
+                                        <cstring>angleFileLabel</cstring>
+                                    </property>
+                                    <property name="text">
+                                        <string>Angle file:</string>
+                                    </property>
+                                </widget>
+                                <widget class="QPushButton" row="3" column="2">
+                                    <property name="name">
+                                        <cstring>angleSelectButton</cstring>
                                     </property>
                                     <property name="focusPolicy">
                                         <enum>NoFocus</enum>
@@ -165,63 +237,15 @@
                                         <string>Model file:</string>
                                     </property>
                                 </widget>
-                                <widget class="QLineEdit" row="2" column="1">
+                                <widget class="QLineEdit" row="3" column="1">
                                     <property name="name">
-                                        <cstring>pieceFileEdit</cstring>
+                                        <cstring>angleFileEdit</cstring>
                                     </property>
                                     <property name="frameShape">
                                         <enum>LineEditPanel</enum>
                                     </property>
                                     <property name="frameShadow">
                                         <enum>Sunken</enum>
-                                    </property>
-                                </widget>
-                                <widget class="QPushButton" row="2" column="2">
-                                    <property name="name">
-                                        <cstring>pieceSelectButton</cstring>
-                                    </property>
-                                    <property name="focusPolicy">
-                                        <enum>NoFocus</enum>
-                                    </property>
-                                    <property name="text">
-                                        <string>Select...</string>
-                                    </property>
-                                </widget>
-                                <widget class="QPushButton" row="1" column="2">
-                                    <property name="name">
-                                        <cstring>modelSelectButton</cstring>
-                                    </property>
-                                    <property name="focusPolicy">
-                                        <enum>NoFocus</enum>
-                                    </property>
-                                    <property name="text">
-                                        <string>Select...</string>
-                                    </property>
-                                </widget>
-                                <widget class="QLabel" row="2" column="0">
-                                    <property name="name">
-                                        <cstring>pieceFileLabel</cstring>
-                                    </property>
-                                    <property name="text">
-                                        <string>Piece file:</string>
-                                    </property>
-                                </widget>
-                                <widget class="QLineEdit" row="0" column="1">
-                                    <property name="name">
-                                        <cstring>imageFilesEdit</cstring>
-                                    </property>
-                                </widget>
-                                <widget class="QLabel" row="0" column="0">
-                                    <property name="name">
-                                        <cstring>imageFilesLabel</cstring>
-                                    </property>
-                                    <property name="text">
-                                        <string>Image file(s):</string>
-                                    </property>
-                                </widget>
-                                <widget class="QLineEdit" row="1" column="1">
-                                    <property name="name">
-                                        <cstring>modelFileEdit</cstring>
                                     </property>
                                 </widget>
                             </grid>
@@ -700,23 +724,6 @@
                                 </spacer>
                             </hbox>
                         </widget>
-                        <spacer>
-                            <property name="name">
-                                <cstring>spacer11</cstring>
-                            </property>
-                            <property name="orientation">
-                                <enum>Vertical</enum>
-                            </property>
-                            <property name="sizeType">
-                                <enum>Preferred</enum>
-                            </property>
-                            <property name="sizeHint">
-                                <size>
-                                    <width>20</width>
-                                    <height>16</height>
-                                </size>
-                            </property>
-                        </spacer>
                     </vbox>
                 </widget>
                 <widget class="Line">
@@ -1382,6 +1389,18 @@
         <receiver>StartupForm</receiver>
         <slot>helpClicked()</slot>
     </connection>
+    <connection>
+        <sender>angleSelectButton</sender>
+        <signal>clicked()</signal>
+        <receiver>StartupForm</receiver>
+        <slot>angleSelectClicked()</slot>
+    </connection>
+    <connection>
+        <sender>angleFileEdit</sender>
+        <signal>textChanged(const QString&amp;)</signal>
+        <receiver>StartupForm</receiver>
+        <slot>angleFileChanged(const QString&amp;)</slot>
+    </connection>
 </connections>
 <tabstops>
     <tabstop>RadioButton1</tabstop>
@@ -1453,6 +1472,7 @@
     <variable>char **mArgv;</variable>
     <variable>int mArgc;</variable>
     <variable>QString mStr;</variable>
+    <variable>QString mAngleFile;</variable>
 </variables>
 <slots>
     <slot>init()</slot>
@@ -1466,14 +1486,16 @@
     <slot>imageChanged( const QString &amp; images )</slot>
     <slot>modelChanged( const QString &amp; model )</slot>
     <slot>pfileChanged( const QString &amp; pfile )</slot>
+    <slot>angleFileChanged( const QString &amp; afile )</slot>
     <slot>imageSelectClicked()</slot>
     <slot>modelSelectClicked()</slot>
     <slot>pieceSelectClicked()</slot>
+    <slot>angleSelectClicked()</slot>
     <slot>enableButtons( bool enable )</slot>
     <slot>addArg( const char * arg )</slot>
     <slot returnType="char **">getArguments( int &amp; argc )</slot>
     <slot>addImageFiles()</slot>
-    <slot>setValues( ImodView * vi, char * * argv, int firstfile, int argc, int doImodv, char * plistfname, int xyzwinopen, int sliceropen, int zapOpen, int modelViewOpen, int fillCache, int ImodTrans, int mirror, int frames, int nframex, int nframey, int overx, int overy, int overEntered )</slot>
+    <slot>setValues( ImodView * vi, char * * argv, int firstfile, int argc, int doImodv, char * plistfname, char * anglefname, int xyzwinopen, int sliceropen, int zapOpen, int modelViewOpen, int fillCache, int ImodTrans, int mirror, int frames, int nframex, int nframey, int overx, int overy, int overEntered )</slot>
     <slot>helpClicked()</slot>
 </slots>
 <pixmapinproject/>

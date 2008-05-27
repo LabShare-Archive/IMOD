@@ -9,7 +9,7 @@
             <x>0</x>
             <y>0</y>
             <width>257</width>
-            <height>590</height>
+            <height>592</height>
         </rect>
     </property>
     <property name="caption">
@@ -917,8 +917,25 @@
                     <property name="name">
                         <cstring>linkSlicerCheckBox</cstring>
                     </property>
+                    <property name="focusPolicy">
+                        <enum>NoFocus</enum>
+                    </property>
                     <property name="text">
                         <string>Link to top Slicer angles</string>
+                    </property>
+                </widget>
+                <widget class="QCheckBox">
+                    <property name="name">
+                        <cstring>linkCentersCheckBox</cstring>
+                    </property>
+                    <property name="focusPolicy">
+                        <enum>NoFocus</enum>
+                    </property>
+                    <property name="text">
+                        <string>Link centers of rotation</string>
+                    </property>
+                    <property name="toolTip" stdset="0">
+                        <string>Rotate slicer plane around model view center of rotation</string>
                     </property>
                 </widget>
                 <widget class="QLayoutWidget">
@@ -1470,6 +1487,12 @@
         <receiver>imodvControlForm</receiver>
         <slot>linkBoxToggled(bool)</slot>
     </connection>
+    <connection>
+        <sender>linkCentersCheckBox</sender>
+        <signal>toggled(bool)</signal>
+        <receiver>imodvControlForm</receiver>
+        <slot>linkCenterToggled(bool)</slot>
+    </connection>
 </connections>
 <includes>
     <include location="local" impldecl="in implementation">dia_qtutils.h</include>
@@ -1520,6 +1543,7 @@
     <slot>newZrotation()</slot>
     <slot>startStop()</slot>
     <slot>linkBoxToggled( bool state )</slot>
+    <slot>linkCenterToggled( bool state )</slot>
     <slot>rateChanged( int value )</slot>
     <slot>newSpeed()</slot>
     <slot>increaseSpeed()</slot>

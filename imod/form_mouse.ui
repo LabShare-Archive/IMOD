@@ -8,8 +8,8 @@
         <rect>
             <x>0</x>
             <y>0</y>
-            <width>329</width>
-            <height>550</height>
+            <width>314</width>
+            <height>486</height>
         </rect>
     </property>
     <property name="caption">
@@ -27,7 +27,7 @@
         </property>
         <widget class="QLayoutWidget">
             <property name="name">
-                <cstring>layout3</cstring>
+                <cstring>layout32</cstring>
             </property>
             <vbox>
                 <property name="name">
@@ -318,6 +318,23 @@ Third = movie down, modify point)</string>
                         <string>Use left for rotation and middle for shift in model view window</string>
                     </property>
                 </widget>
+                <spacer>
+                    <property name="name">
+                        <cstring>spacer22</cstring>
+                    </property>
+                    <property name="orientation">
+                        <enum>Vertical</enum>
+                    </property>
+                    <property name="sizeType">
+                        <enum>Expanding</enum>
+                    </property>
+                    <property name="sizeHint">
+                        <size>
+                            <width>20</width>
+                            <height>40</height>
+                        </size>
+                    </property>
+                </spacer>
             </vbox>
         </widget>
         <spacer>
