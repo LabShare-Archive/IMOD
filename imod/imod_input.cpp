@@ -20,6 +20,7 @@
 #include "dia_qtutils.h"
 #include "xgraph.h"
 #include "imod.h"
+#include "autox.h"
 #include "imod_display.h"
 #include "imod_workprocs.h"
 #include "xcramp.h"
@@ -1330,6 +1331,7 @@ void inputQDefaultKeys(QKeyEvent *event, ImodView *vw)
     xcrampSelectIndex(vw->cramp, 0);
     xcramp_ramp(vw->cramp);
     xcramp_getlevels(vw->cramp, &(vw->black), &(vw->white));
+    autoxCrampSelected(vw);
     imod_info_setbw(vw->black, vw->white);
 
     break;
@@ -1338,6 +1340,7 @@ void inputQDefaultKeys(QKeyEvent *event, ImodView *vw)
                       (vw->cramp->clevel + 1) % vw->cramp->noflevels);
     xcramp_ramp(vw->cramp);
     xcramp_getlevels(vw->cramp, &(vw->black), &(vw->white));
+    autoxCrampSelected(vw);
     imod_info_setbw(vw->black, vw->white);
     break;
   case Qt::Key_F11:
@@ -1409,6 +1412,9 @@ bool inputTestMetaKey(QKeyEvent *event)
 
 /*
 $Log$
+Revision 4.39  2008/05/27 05:55:18  mast
+Added isosurface and object toggling items
+
 Revision 4.38  2008/05/22 15:41:30  mast
 Synced model view objects when added object
 
