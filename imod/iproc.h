@@ -1,5 +1,5 @@
 /*
- *  $Id$
+ *  iproc.h - declarations for IProcWindow class and processing window
  *
  *  Original author: James Kremer
  *  Revised by: David Mastronarde   email: mast@colorado.edu
@@ -54,10 +54,12 @@ class IProcWindow : public DialogFrame
   ~IProcWindow() {};
   bool mRunningProc;
   void limitFFTbinning();
+  void apply();
 
   public slots:
   void buttonClicked(int which);
   void buttonPressed(int which);
+  void autoApplyToggled(bool state);
   void edgeSelected(int which);
   void filterSelected(int which);
   void filterHighlighted(int which);
@@ -65,6 +67,7 @@ class IProcWindow : public DialogFrame
   void fourFiltChanged(int which, int value, bool dragging);
   void binningChanged(int val);
   void kernelChanged(int val);
+  void scaleSmthToggled(bool state);
   void subsetChanged(bool state);
   void growChanged(bool state);
   void shrinkChanged(bool state);
@@ -85,7 +88,6 @@ class IProcWindow : public DialogFrame
  private:
   QWidgetStack *mStack;
   QListBox *mListBox;
-  void apply();
   void startProcess();
   void finishProcess();
   int mTimerID;
@@ -102,11 +104,13 @@ typedef struct
   unsigned char *isaved;     /* buffer for saving original data.         */
   float         **andfImage; /* Double buffers for aniso diff */
   float         **andfImage2;
+  Istack         medianVol;
 
   int           idatasec;   /* data section. */
   int           idatatime;  /* time value of section */
   int           procnum;
   int           modified;   /* flag that section data are modified */
+  bool          autoApply;  /* Apply automatically when changing ssection */
 
   int           threshold;  /* Parameters for individual filters */
   bool          threshGrow;
@@ -114,6 +118,7 @@ typedef struct
   int           edge;
   float         kernelSigma;
   FloatSpinBox  *kernelSpin;
+  bool          rescaleSmooth;
   float         radius1;
   float         radius2;
   float         sigma1;
@@ -132,7 +137,6 @@ typedef struct
   int           fftYcen;
   bool          median3D;
   int           medianSize;
-  struct MRCvolume medianVol;
   int           andfIterations;
   int           andfIterDone;
   double        andfK;
@@ -158,10 +162,14 @@ typedef struct
 int inputIProcOpen(ImodView *vw);
 int iprocRethink(ImodView *vw);
 bool iprocBusy(void);
+void iprocUpdate(void);
 
 #endif /* BD_IPROC_H_ */
 /*
     $Log$
+    Revision 3.15  2007/11/22 20:49:17  mast
+    Added gaussian kernel smoothing
+
     Revision 3.14  2006/06/24 16:04:23  mast
     Added button to report frequency
 
