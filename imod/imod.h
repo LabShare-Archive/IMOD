@@ -43,9 +43,10 @@ class QKeyEvent;
 #define IMOD_DRAW_IMAGE       (1) 
 
 /* The current point x, y, z position has been changed.  This causes an update
-   of the info window x/y/z, image scale dialog if multifile Z loaded, and
-   the isosurface window.  Model view will be drawn if the image display is
-   on, unless the IMOD_DRAW_SKIPMODV flag is also set. */
+   of the info window x/y/z, image scale dialog if multifile Z loaded, the 
+   image processing window, and the isosurface window.  Model view will be 
+   drawn if the image display is on, unless the IMOD_DRAW_SKIPMODV flag is 
+   also set. */
 #define IMOD_DRAW_XYZ      (1<<1) 
 
 /* Model data or current model object/contour/point has been changed. 
@@ -86,14 +87,15 @@ class QKeyEvent;
 extern "C" {
 
 /*!
- *  Draw the model using a 2D line renderer implemented with OpenGL functions.
- *  This is the function used to draw the slicer window.  You will need to set
- *  up the view matrix yourself, including Z limits in the projection to avoid
- *  getting the whole model drawn on a slice.  Set drawCurrent nonzero to have
- *  current image or model point and current contour end symbols drawn too.
+ * Draw [model] using a 2D line renderer implemented with OpenGL functions.
+ * This is the function used to draw the slicer window.  You will need to set
+ * up the view matrix yourself, including Z limits in the projection to avoid
+ * getting the whole model drawn on a slice.  Set [drawCurrent] nonzero to
+ * have current image or model point and current contour end symbols drawn too.
+ * Provide the z-scaling used to render the image in [zscale].
  */
 void DLL_EX_IM imodDrawModel(ImodView *inImodView, Imod *inModel, 
-                               int drawCurrent);
+                             int drawCurrent, float zscale);
 /* 3dmod plugin */
 /************************************* defines *******************************/
 /* DOC_SECTION DEFINES */
@@ -187,6 +189,9 @@ int DLL_EX_IM imodShowHelpPage(const char *page);
 
 /*
     $Log$
+    Revision 3.18  2008/05/22 20:58:33  mast
+    Documentation of IMOD_DRAW flags
+
     Revision 3.17  2008/02/06 16:14:09  sueh
     bug# 1065 Changed wprint(char *) to wprint(const char*).
 
