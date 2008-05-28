@@ -53,6 +53,9 @@ import etomo.type.Run3dmodMenuOptions;
  * @version $Revision$
  * 
  * <p> $Log$
+ * <p> Revision 1.60  2008/05/03 00:52:01  sueh
+ * <p> bug# 847 Passing null for ProcessSeries to process funtions.
+ * <p>
  * <p> Revision 1.59  2008/04/02 19:06:55  sueh
  * <p> bug# 1104 Reformat.
  * <p>
@@ -1202,7 +1205,7 @@ public final class PeetDialog implements ContextMenu, AbstractParallelDialog,
     }
     else if (actionCommand.equals(btnRun.getActionCommand())) {
       if (validateRun()) {
-        manager.peetParser(null);
+        manager.peetParser(null, DIALOG_TYPE);
       }
     }
     else if (actionCommand.equals(btnImportMatlabParamFile.getActionCommand())) {

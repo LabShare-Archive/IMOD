@@ -11,6 +11,9 @@
  * @version $Revision$
  *
  * <p> $Log$
+ * <p> Revision 3.27  2008/05/03 00:49:27  sueh
+ * <p> bug# 847 Passing null for ProcessSeries to process funtions.
+ * <p>
  * <p> Revision 3.26  2007/09/10 20:42:24  sueh
  * <p> bug# 925 Should only load button states once.  Changed
  * <p> ProcessResultDisplayFactory to load button states immediately, so removing
@@ -213,6 +216,7 @@ final class CrossCorrelationPanel implements ContextMenu, Expandable {
       "View range (start,end): ");
 
   private final AxisID axisID;
+  private final DialogType dialogType;
 
   private final MultiLineButton btnCrossCorrelate;
   private final CrossCorrelationActionListener actionListener;
@@ -220,6 +224,7 @@ final class CrossCorrelationPanel implements ContextMenu, Expandable {
 
   public CrossCorrelationPanel(ApplicationManager applicationManager,
       AxisID id, DialogType dialogType) {
+    this.dialogType = dialogType;
     axisID = id;
     this.applicationManager = applicationManager;
     header = PanelHeader
@@ -415,7 +420,8 @@ final class CrossCorrelationPanel implements ContextMenu, Expandable {
   //  Action functions for setup panel buttons
   protected void buttonAction(ActionEvent event) {
     if (event.getActionCommand().equals(btnCrossCorrelate.getActionCommand())) {
-      applicationManager.preCrossCorrelate(axisID, btnCrossCorrelate, null);
+      applicationManager.preCrossCorrelate(axisID, btnCrossCorrelate, null,
+          dialogType);
     }
     else {
       updateCrossCorrelationPanel();

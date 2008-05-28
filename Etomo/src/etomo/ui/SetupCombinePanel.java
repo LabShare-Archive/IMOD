@@ -55,6 +55,10 @@ import etomo.util.MRCHeader;
  * 
  * <p>
  * $Log$
+ * Revision 3.55  2008/05/13 23:07:20  sueh
+ * bug# 847 Adding a right click menu for deferred 3dmods to some
+ * process buttons.
+ *
  * Revision 3.54  2008/05/03 00:56:57  sueh
  * bug# 847 Passing null for ProcessSeries to process funtions.
  *
@@ -461,8 +465,8 @@ public final class SetupCombinePanel implements ContextMenu,
   private JPanel pnlButton = new JPanel();
   private Run3dmodButton btnImodVolumeA = Run3dmodButton.get3dmodInstance(
       "3dmod Volume A", this);
-  private Run3dmodButton btnImodVolumeB = Run3dmodButton
-      .get3dmodInstance("3dmod Volume B", this);
+  private Run3dmodButton btnImodVolumeB = Run3dmodButton.get3dmodInstance(
+      "3dmod Volume B", this);
   private final MultiLineButton btnCreate;
   private final Run3dmodButton btnCombine;
   private JLabel binningWarning = new JLabel();
@@ -476,6 +480,7 @@ public final class SetupCombinePanel implements ContextMenu,
   private final SetupCombineActionListener actionListener;
   private final JLabel lTomogramSizeWarning = new JLabel();
   private final MultiLineButton btnDefaults = new MultiLineButton("Defaults");
+  private final DialogType dialogType;
 
   /**
    * Default constructor
@@ -484,6 +489,7 @@ public final class SetupCombinePanel implements ContextMenu,
       ApplicationManager appMgr, DialogType dialogType) {
     tomogramCombinationDialog = parent;
     applicationManager = appMgr;
+    this.dialogType = dialogType;
     btnCreate = (MultiLineButton) appMgr.getProcessResultDisplayFactory(
         AxisID.ONLY).getCreateCombine();
     btnCombine = (Run3dmodButton) appMgr.getProcessResultDisplayFactory(
@@ -507,9 +513,9 @@ public final class SetupCombinePanel implements ContextMenu,
     pnlToSelector.add(Box.createHorizontalGlue());
 
     // Create the solvematch panel
-    pnlSolvematch =  SolvematchPanel.getInstance(tomogramCombinationDialog,
+    pnlSolvematch = SolvematchPanel.getInstance(tomogramCombinationDialog,
         TomogramCombinationDialog.lblSetup, appMgr,
-        ReconScreenState.COMBINE_SETUP_SOLVEMATCH_HEADER_GROUP);
+        ReconScreenState.COMBINE_SETUP_SOLVEMATCH_HEADER_GROUP, dialogType);
     // pnlSolvematch.visibleResidual(false);
 
     //  Create the patch parmeters panel
@@ -1111,7 +1117,7 @@ public final class SetupCombinePanel implements ContextMenu,
     }
     else if (command.equals(btnCombine.getActionCommand())) {
       applicationManager.combine(btnCombine, null, deferred3dmodButton,
-          run3dmodMenuOptions);
+          run3dmodMenuOptions, dialogType);
     }
     else if (command.equals(cbParallelProcess.getActionCommand())) {
       tomogramCombinationDialog.updateParallelProcess();

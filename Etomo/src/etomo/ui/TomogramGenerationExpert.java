@@ -134,11 +134,10 @@ public final class TomogramGenerationExpert extends ReconUIExpert {
   /**
    * Start the next process specified by the nextProcess string
    */
-  public void startNextProcess(ProcessResultDisplay processResultDisplay,
-      ConstProcessSeries processSeries) {
-    ProcessName nextProcess = getNextProcess();
-    resetNextProcess();
-    if (nextProcess == ProcessName.PROCESSCHUNKS) {
+  public void startNextProcess(String nextProcess,
+      ProcessResultDisplay processResultDisplay,
+      ConstProcessSeries processSeries, DialogType dialogType) {
+    if (nextProcess.equals(ProcessName.PROCESSCHUNKS.toString())) {
       processchunks(manager, dialog, processResultDisplay, processSeries,
           ProcessName.TILT);
     }
@@ -463,14 +462,13 @@ public final class TomogramGenerationExpert extends ReconUIExpert {
    * 
    */
   public void newst(ProcessResultDisplay processResultDisplay,
-      ProcessSeries processSeries,
-      Deferred3dmodButton deferred3dmodButton,
+      ProcessSeries processSeries, Deferred3dmodButton deferred3dmodButton,
       Run3dmodMenuOptions run3dmodMenuOptions) {
     if (dialog == null) {
       return;
     }
     if (processSeries == null) {
-      processSeries = new ProcessSeries(manager);
+      processSeries = new ProcessSeries(manager, dialogType);
     }
     sendMsgProcessStarting(processResultDisplay);
     // Get the user input from the dialog
@@ -505,8 +503,7 @@ public final class TomogramGenerationExpert extends ReconUIExpert {
         return;
       }
     }
-    processSeries.setRun3dmodDeferred(deferred3dmodButton,
-        run3dmodMenuOptions);
+    processSeries.setRun3dmodDeferred(deferred3dmodButton, run3dmodMenuOptions);
     setDialogState(ProcessState.INPROGRESS);
     sendMsg(manager.newst(axisID, processResultDisplay, processSeries,
         newstParam, blendmontParam), processResultDisplay);
@@ -515,11 +512,10 @@ public final class TomogramGenerationExpert extends ReconUIExpert {
   /**
    */
   void mtffilter(ProcessResultDisplay processResultDisplay,
-      ProcessSeries processSeries,
-      Deferred3dmodButton deferred3dmodButton,
+      ProcessSeries processSeries, Deferred3dmodButton deferred3dmodButton,
       Run3dmodMenuOptions run3dmodMenuOptions) {
     if (processSeries == null) {
-      processSeries = new ProcessSeries(manager);
+      processSeries = new ProcessSeries(manager, dialogType);
     }
     if (dialog == null) {
       return;
@@ -529,8 +525,7 @@ public final class TomogramGenerationExpert extends ReconUIExpert {
       sendMsg(ProcessResult.FAILED_TO_START, processResultDisplay);
       return;
     }
-    processSeries.setRun3dmodDeferred(deferred3dmodButton,
-        run3dmodMenuOptions);
+    processSeries.setRun3dmodDeferred(deferred3dmodButton, run3dmodMenuOptions);
     setDialogState(ProcessState.INPROGRESS);
     sendMsg(manager.mtffilter(axisID, processResultDisplay, processSeries),
         processResultDisplay);
@@ -623,9 +618,9 @@ public final class TomogramGenerationExpert extends ReconUIExpert {
     }
     setDialogState(ProcessState.INPROGRESS);
     ProcessResult processResult = manager.splittilt(axisID, trialMode,
-        processResultDisplay, processSeries, param);
+        processResultDisplay, processSeries, param, dialogType);
     if (processResult == null) {
-      setNextProcess(ProcessName.PROCESSCHUNKS);
+      processSeries.setNextProcess(ProcessName.PROCESSCHUNKS.toString());
     }
     sendMsg(processResult, processResultDisplay);
   }
@@ -1134,10 +1129,9 @@ public final class TomogramGenerationExpert extends ReconUIExpert {
       return;
     }
     if (processSeries == null) {
-      processSeries = new ProcessSeries(manager);
+      processSeries = new ProcessSeries(manager, dialogType);
     }
-    processSeries.setRun3dmodDeferred(deferred3dmodButton,
-        run3dmodMenuOptions);
+    processSeries.setRun3dmodDeferred(deferred3dmodButton, run3dmodMenuOptions);
     if (dialog.isParallelProcess()) {
       splittilt(tilt, processSeries);
     }
@@ -1148,6 +1142,10 @@ public final class TomogramGenerationExpert extends ReconUIExpert {
 }
 /**
  * <p> $Log$
+ * <p> Revision 1.20  2008/05/13 23:07:58  sueh
+ * <p> bug# 847 Adding a right click menu for deferred 3dmods to some
+ * <p> process buttons.
+ * <p>
  * <p> Revision 1.19  2008/05/03 00:57:31  sueh
  * <p> bug# 847 Passing null for ProcessSeries to process funtions.
  * <p>

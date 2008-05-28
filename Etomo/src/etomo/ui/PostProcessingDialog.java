@@ -56,7 +56,7 @@ public final class PostProcessingDialog extends ProcessDialog implements
     btnSqueezeVolume.setDeferred3dmodButton(btnImodSqueezedVolume);
     rootPanel.setLayout(new BoxLayout(rootPanel, BoxLayout.Y_AXIS));
     rootPanel.setBorder(new BeveledBorder("Post Processing").getBorder());
-    trimvolPanel = new TrimvolPanel(applicationManager, axisID);
+    trimvolPanel = new TrimvolPanel(applicationManager, axisID, dialogType);
     rootPanel.add(trimvolPanel.getContainer());
     rootPanel.add(createSqueezeVolPanel());
     addExitButtons();
@@ -231,7 +231,7 @@ public final class PostProcessingDialog extends ProcessDialog implements
       final Run3dmodMenuOptions run3dmodMenuOptions) {
     if (command.equals(btnSqueezeVolume.getActionCommand())) {
       applicationManager.squeezevol(btnSqueezeVolume, null,
-          deferred3dmodButton, run3dmodMenuOptions);
+          deferred3dmodButton, run3dmodMenuOptions, dialogType);
     }
     else if (command.equals(btnImodSqueezedVolume.getActionCommand())) {
       applicationManager.imodSqueezedVolume(run3dmodMenuOptions);
@@ -261,7 +261,7 @@ public final class PostProcessingDialog extends ProcessDialog implements
     }
 
     public void actionPerformed(final ActionEvent event) {
-      adaptee.action(event.getActionCommand(), null,null);
+      adaptee.action(event.getActionCommand(), null, null);
     }
   }
 
@@ -279,6 +279,10 @@ public final class PostProcessingDialog extends ProcessDialog implements
 }
 /**
  * <p> $Log$
+ * <p> Revision 3.36  2008/05/13 23:02:33  sueh
+ * <p> bug# 847 Adding a right click menu for deferred 3dmods to some
+ * <p> process buttons.
+ * <p>
  * <p> Revision 3.35  2008/05/03 00:52:10  sueh
  * <p> bug# 847 Passing null for ProcessSeries to process funtions.
  * <p>

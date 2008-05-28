@@ -44,6 +44,10 @@ import etomo.type.Run3dmodMenuOptions;
  * @version $Revision$
  * 
  * <p> $Log$
+ * <p> Revision 3.34  2008/05/13 23:07:29  sueh
+ * <p> bug# 847 Adding a right click menu for deferred 3dmods to some
+ * <p> process buttons.
+ * <p>
  * <p> Revision 3.33  2008/05/03 00:57:13  sueh
  * <p> bug# 847 Passing null for ProcessSeries to process funtions.
  * <p>
@@ -216,9 +220,11 @@ final class SolvematchPanel implements Run3dmodButtonContainer, Expandable {
   private Run3dmodButton btnRestart = null;
   private LabeledTextField ltfResidulThreshold = null;
   private LabeledTextField ltfCenterShiftLimit = null;
+  private final DialogType dialogType;
 
   private SolvematchPanel(TomogramCombinationDialog parent, String title,
-      ApplicationManager appMgr, String headerGroup) {
+      ApplicationManager appMgr, String headerGroup, DialogType dialogType) {
+    this.dialogType = dialogType;
     tomogramCombinationDialog = parent;
     parentTitle = title;
     applicationManager = appMgr;
@@ -299,9 +305,10 @@ final class SolvematchPanel implements Run3dmodButtonContainer, Expandable {
   }
 
   static SolvematchPanel getInstance(TomogramCombinationDialog parent,
-      String title, ApplicationManager appMgr, String headerGroup) {
+      String title, ApplicationManager appMgr, String headerGroup,
+      DialogType dialogType) {
     SolvematchPanel instance = new SolvematchPanel(parent, title, appMgr,
-        headerGroup);
+        headerGroup, dialogType);
     instance.addListeners();
     return instance;
   }
@@ -596,7 +603,7 @@ final class SolvematchPanel implements Run3dmodButtonContainer, Expandable {
       }
       else if (initialPanel && command.equals(btnRestart.getActionCommand())) {
         applicationManager.combine(btnRestart, null, deferred3dmodButton,
-            run3dmodMenuOptions);
+            run3dmodMenuOptions, dialogType);
       }
       else if (command.equals(btnImodMatchModels.getActionCommand())) {
         applicationManager.imodMatchingModel(cbBinBy2.isSelected(),

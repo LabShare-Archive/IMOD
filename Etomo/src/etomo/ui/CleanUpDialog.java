@@ -146,7 +146,7 @@ public class CleanUpDialog extends ProcessDialog implements ContextMenu {
   protected void buttonAction(ActionEvent event) {
     String command = event.getActionCommand();
     if (command.equals(btnArchiveStack.getText())) {
-      applicationManager.archiveOriginalStack(null);
+      applicationManager.archiveOriginalStack(null, dialogType);
     }
   }
 
@@ -180,6 +180,9 @@ public class CleanUpDialog extends ProcessDialog implements ContextMenu {
 }
 /**
  * <p> $Log$
+ * <p> Revision 1.15  2008/05/03 00:48:59  sueh
+ * <p> bug# 847 Passing null for ProcessSeries to process funtions.
+ * <p>
  * <p> Revision 1.14  2007/12/28 21:15:13  sueh
  * <p> bug# 726 Added directory size to clean up panel.
  * <p>

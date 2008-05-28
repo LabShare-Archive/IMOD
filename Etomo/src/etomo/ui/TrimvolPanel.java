@@ -18,6 +18,7 @@ import etomo.comscript.TrimvolParam;
 import etomo.process.ImodManager;
 import etomo.process.ImodProcess;
 import etomo.type.AxisID;
+import etomo.type.DialogType;
 import etomo.type.InvalidEtomoNumberException;
 import etomo.type.ReconScreenState;
 import etomo.type.Run3dmodMenuOptions;
@@ -35,6 +36,10 @@ import etomo.type.Run3dmodMenuOptions;
  * @version $Revision$
  * 
  * <p> $Log$
+ * <p> Revision 3.28  2008/05/13 23:09:14  sueh
+ * <p> bug# 847 Adding a right click menu for deferred 3dmods to some
+ * <p> process buttons.
+ * <p>
  * <p> Revision 3.27  2008/05/03 00:57:57  sueh
  * <p> bug# 847 Passing null for ProcessSeries to process funtions.
  * <p>
@@ -244,11 +249,14 @@ public final class TrimvolPanel implements Run3dmodButtonContainer,
   private final ButtonListener buttonActonListener;
   private final RubberbandPanel pnlScaleRubberband;
   private final AxisID axisID;
+  private final DialogType dialogType;
 
   /**
    * Default constructor
    */
-  public TrimvolPanel(ApplicationManager appMgr, AxisID axisID) {
+  public TrimvolPanel(ApplicationManager appMgr, AxisID axisID,
+      DialogType dialogType) {
+    this.dialogType = dialogType;
     this.axisID = axisID;
     applicationManager = appMgr;
     pnlScaleRubberband = RubberbandPanel
@@ -565,7 +573,7 @@ public final class TrimvolPanel implements Run3dmodButtonContainer,
       final Run3dmodMenuOptions run3dmodMenuOptions) {
     if (command == btnTrimvol.getActionCommand()) {
       applicationManager.trimVolume(btnTrimvol, null, deferred3dmodButton,
-          run3dmodMenuOptions);
+          run3dmodMenuOptions, dialogType);
     }
     if (command == btnGetCoordinates.getActionCommand()) {
       setXYMinAndMax(applicationManager.imodGetRubberbandCoordinates(
@@ -617,7 +625,7 @@ public final class TrimvolPanel implements Run3dmodButtonContainer,
     }
 
     public void actionPerformed(final ActionEvent event) {
-      listenee.buttonAction(event.getActionCommand(), null,null);
+      listenee.buttonAction(event.getActionCommand(), null, null);
     }
   }
 

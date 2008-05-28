@@ -80,12 +80,11 @@ public final class TomogramPositioningExpert extends ReconUIExpert {
   /**
    * Start the next process specified by the nextProcess string
    */
-  public void startNextProcess(ProcessResultDisplay processResultDisplay,
-      ConstProcessSeries processSeries) {
-    ProcessName nextProcess = getNextProcess();
-    resetNextProcess();
+  public void startNextProcess(String nextProcess,
+      ProcessResultDisplay processResultDisplay,
+      ConstProcessSeries processSeries, DialogType dialogType) {
     //whole tomogram
-    if (nextProcess == ProcessName.TILT) {
+    if (nextProcess.equals(ProcessName.TILT.toString())) {
       sampleTilt(processResultDisplay, processSeries);
     }
   }
@@ -208,13 +207,12 @@ public final class TomogramPositioningExpert extends ReconUIExpert {
       Deferred3dmodButton deferred3dmodButton,
       Run3dmodMenuOptions run3dmodMenuOptions) {
     if (processSeries == null) {
-      processSeries = new ProcessSeries(manager);
+      processSeries = new ProcessSeries(manager, dialogType);
     }
     if (dialog == null) {
       return;
     }
-    processSeries.setRun3dmodDeferred(deferred3dmodButton,
-        run3dmodMenuOptions);
+    processSeries.setRun3dmodDeferred(deferred3dmodButton, run3dmodMenuOptions);
     if (dialog.isWholeTomogram()) {
       wholeTomogram(sample, processSeries);
     }
@@ -352,7 +350,10 @@ public final class TomogramPositioningExpert extends ReconUIExpert {
    * @param axisID
    */
   public void wholeTomogram(ProcessResultDisplay processResultDisplay,
-      ConstProcessSeries processSeries) {
+      ProcessSeries processSeries) {
+    if (processSeries == null) {
+      processSeries = new ProcessSeries(manager, dialogType);
+    }
     sendMsgProcessStarting(processResultDisplay);
     // Make sure that we have an active positioning dialog
     if (dialog == null) {
@@ -402,7 +403,7 @@ public final class TomogramPositioningExpert extends ReconUIExpert {
       sendMsg(processResult, processResultDisplay);
       return;
     }
-    setNextProcess(ProcessName.TILT);
+    processSeries.setNextProcess(ProcessName.TILT.toString());
   }
 
   public void tomopitch(ProcessResultDisplay processResultDisplay,
@@ -963,6 +964,11 @@ public final class TomogramPositioningExpert extends ReconUIExpert {
 }
 /**
  * <p> $Log$
+ * <p> Revision 1.27  2008/05/13 23:08:54  sueh
+ * <p> bug# 847 Adding a right click menu for deferred 3dmods to some
+ * <p> process buttons.  Handling doneDialog without setting dialog = null, since
+ * <p> a later process may want to use it.
+ * <p>
  * <p> Revision 1.26  2008/05/07 02:45:46  sueh
  * <p> bug# 847 Getting the the postioning buttons from the expert.
  * <p>

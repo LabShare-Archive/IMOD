@@ -12,6 +12,10 @@
  * @version $Revision$
  * 
  * <p> $Log$
+ * <p> Revision 1.27  2008/05/13 23:02:42  sueh
+ * <p> bug# 847 Adding a right click menu for deferred 3dmods to some
+ * <p> process buttons.
+ * <p>
  * <p> Revision 1.26  2008/05/07 00:01:44  sueh
  * <p> bug#847 Running deferred 3dmods by using the button that usually calls
  * <p> them.  This avoids having to duplicate the calls and having a
@@ -151,12 +155,14 @@ final class PrenewstPanel implements ContextMenu, Expandable,
   private final ActionListener actionListener;
   private final PanelHeader header;
   private final CoarseAlignDialog parent;
+  private final DialogType dialogType;
 
   PrenewstPanel(ApplicationManager applicationManager, AxisID id,
       DialogType dialogType, CoarseAlignDialog parent) {
     this.parent = parent;
     axisID = id;
     this.applicationManager = applicationManager;
+    this.dialogType = dialogType;
     btnCoarseAlign = (Run3dmodButton) applicationManager
         .getProcessResultDisplayFactory(axisID).getCoarseAlign();
     btnCoarseAlign.setContainer(this);
@@ -203,7 +209,7 @@ final class PrenewstPanel implements ContextMenu, Expandable,
     pnlPrenewst.addMouseListener(mouseAdapter);
     setToolTipText();
   }
-  
+
   /**
    * Set deferred 3dmod buttons that are members of another class.  Caller must
    * make sure that buttons exist.
@@ -362,7 +368,7 @@ final class PrenewstPanel implements ContextMenu, Expandable,
       Run3dmodMenuOptions menuOptions) {
     if (command.equals(btnCoarseAlign.getActionCommand())) {
       applicationManager.coarseAlign(axisID, btnCoarseAlign, null,
-          deferred3dmodButton, menuOptions);
+          deferred3dmodButton, menuOptions, dialogType);
     }
   }
 

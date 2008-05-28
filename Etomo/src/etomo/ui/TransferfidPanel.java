@@ -59,9 +59,11 @@ final class TransferfidPanel implements Expandable, Run3dmodButtonContainer {
   private final AxisID axisID;
   private final ApplicationManager manager;
   private final FiducialModelDialog parent;
+  private final DialogType dialogType;
 
   private TransferfidPanel(ApplicationManager manager, AxisID axisID,
       DialogType dialogType, FiducialModelDialog parent) {
+    this.dialogType = dialogType;
     this.manager = manager;
     this.axisID = axisID;
     this.parent = parent;
@@ -117,13 +119,14 @@ final class TransferfidPanel implements Expandable, Run3dmodButtonContainer {
     instance.addListeners();
     return instance;
   }
-  
+
   void setDeferred3dmodButtons() {
     buttonTransferfid.setDeferred3dmodButton(parent.btnSeed);
   }
 
   public void action(Run3dmodButton button, Run3dmodMenuOptions menuOptions) {
-    action(button.getActionCommand(), button.getDeferred3dmodButton(),menuOptions);
+    action(button.getActionCommand(), button.getDeferred3dmodButton(),
+        menuOptions);
   }
 
   /**
@@ -135,11 +138,12 @@ final class TransferfidPanel implements Expandable, Run3dmodButtonContainer {
    * @param deferred3dmodButton
    * @param run3dmodMenuOptions
    */
-  private void action(final String command,Deferred3dmodButton deferred3dmodButton,
+  private void action(final String command,
+      Deferred3dmodButton deferred3dmodButton,
       final Run3dmodMenuOptions run3dmodMenuOptions) {
     if (command.equals(buttonTransferfid.getActionCommand())) {
       manager.transferfid(axisID, buttonTransferfid, null, deferred3dmodButton,
-          run3dmodMenuOptions);
+          run3dmodMenuOptions, dialogType);
     }
   }
 
@@ -300,13 +304,17 @@ final class TransferfidPanel implements Expandable, Run3dmodButtonContainer {
     }
 
     public void actionPerformed(final ActionEvent event) {
-      adaptee.action(event.getActionCommand(), null,null);
+      adaptee.action(event.getActionCommand(), null, null);
     }
   }
 }
 
 /**
  * <p> $Log$
+ * <p> Revision 3.17  2008/05/13 23:09:03  sueh
+ * <p> bug# 847 Adding a right click menu for deferred 3dmods to some
+ * <p> process buttons.
+ * <p>
  * <p> Revision 3.16  2008/05/07 00:28:15  sueh
  * <p> bug#847 Running deferred 3dmods by using the button that usually calls
  * <p> them.  This avoids having to duplicate the calls and having a

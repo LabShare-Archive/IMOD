@@ -35,6 +35,7 @@ import etomo.storage.autodoc.ReadOnlyAutodoc;
 import etomo.type.AxisID;
 import etomo.type.ConstEtomoNumber;
 import etomo.type.ConstJoinMetaData;
+import etomo.type.DialogType;
 import etomo.type.EtomoAutodoc;
 import etomo.type.EtomoNumber;
 import etomo.type.JoinMetaData;
@@ -57,6 +58,10 @@ import etomo.util.DatasetFiles;
  * @version $Revision$
  *
  * <p> $Log$
+ * <p> Revision 1.56  2008/05/13 23:02:23  sueh
+ * <p> bug# 847 Adding a right click menu for deferred 3dmods to some
+ * <p> process buttons.
+ * <p>
  * <p> Revision 1.55  2008/05/03 00:50:14  sueh
  * <p> bug# 847 Passing null for ProcessSeries to process funtions.
  * <p>
@@ -427,6 +432,7 @@ public final class JoinDialog implements ContextMenu, Run3dmodButtonContainer {
   public static final int SAMPLE_NOT_PRODUCED_MODE = -2;
   public static final int SAMPLE_PRODUCED_MODE = -3;
   public static final int CHANGING_SAMPLE_MODE = -4;
+  public static final DialogType DIALOG_TYPE = DialogType.JOIN;
 
   public static final String REFINE_AUTO_ALIGNMENT_TEXT = "Refine Auto Alignment";
   public static final String MIDAS_TEXT = "Midas";
@@ -1634,7 +1640,8 @@ public final class JoinDialog implements ContextMenu, Run3dmodButtonContainer {
       Deferred3dmodButton deferred3dmodButton,
       final Run3dmodMenuOptions run3dmodMenuOptions) {
     if (command.equals(btnMakeSamples.getActionCommand())) {
-      manager.makejoincom(null, deferred3dmodButton, run3dmodMenuOptions);
+      manager.makejoincom(null, deferred3dmodButton, run3dmodMenuOptions,
+          DIALOG_TYPE);
     }
     else if (command.equals(btnInitialAutoAlignment.getActionCommand())) {
       btnMidas.setEnabled(false);
@@ -1655,15 +1662,15 @@ public final class JoinDialog implements ContextMenu, Run3dmodButtonContainer {
     }
     else if (command.equals(btnFinishJoin.getActionCommand())) {
       manager.finishjoin(FinishjoinParam.Mode.FINISH_JOIN, FINISH_JOIN_TEXT,
-          null, deferred3dmodButton, run3dmodMenuOptions);
+          null, deferred3dmodButton, run3dmodMenuOptions, DIALOG_TYPE);
     }
     else if (command.equals(btnGetMaxSize.getActionCommand())) {
       manager.finishjoin(FinishjoinParam.Mode.MAX_SIZE, GET_MAX_SIZE_TEXT,
-          null, null, null);
+          null, null, null, DIALOG_TYPE);
     }
     else if (command.equals(btnTrialJoin.getActionCommand())) {
       manager.finishjoin(FinishjoinParam.Mode.TRIAL, TRIAL_JOIN_TEXT, null,
-          deferred3dmodButton, run3dmodMenuOptions);
+          deferred3dmodButton, run3dmodMenuOptions, DIALOG_TYPE);
     }
     else if (command.equals(btnGetSubarea.getActionCommand())) {
       setSizeAndShift(manager.imodGetRubberbandCoordinates(
@@ -1708,22 +1715,22 @@ public final class JoinDialog implements ContextMenu, Run3dmodButtonContainer {
     }
     else if (command.equals(btnRejoin.getActionCommand())) {
       manager.finishjoin(FinishjoinParam.Mode.REJOIN, REJOIN_TEXT, null,
-          deferred3dmodButton, run3dmodMenuOptions);
+          deferred3dmodButton, run3dmodMenuOptions, DIALOG_TYPE);
     }
     else if (command.equals(btnTrialRejoin.getActionCommand())) {
       manager.finishjoin(FinishjoinParam.Mode.TRIAL_REJOIN, TRIAL_REJOIN_TEXT,
-          null, deferred3dmodButton, run3dmodMenuOptions);
+          null, deferred3dmodButton, run3dmodMenuOptions, DIALOG_TYPE);
     }
     else if (command.equals(cbGap.getActionCommand())) {
       updateDisplay();
     }
     else if (command.equals(btnTransformModel.getActionCommand())) {
       manager.xfmodel(ftfModelFile.getText(), ltfTransformedModel.getText(),
-          null, deferred3dmodButton, run3dmodMenuOptions);
+          null, deferred3dmodButton, run3dmodMenuOptions, DIALOG_TYPE);
     }
     else if (command.equals(btnTransformAndViewModel.getActionCommand())) {
       manager.finishjoin(FinishjoinParam.Mode.SUPPRESS_EXECUTION, REJOIN_TEXT,
-          null, null, null);
+          null, null, null, DIALOG_TYPE);
     }
     else if (command.equals(btnOpenSample.getActionCommand())) {
       manager.imodOpen(ImodManager.JOIN_SAMPLES_KEY, run3dmodMenuOptions);

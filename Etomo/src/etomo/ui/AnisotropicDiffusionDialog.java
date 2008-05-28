@@ -39,6 +39,10 @@ import etomo.util.Utilities;
  * @version $Revision$
  * 
  * <p> $Log$
+ * <p> Revision 1.10  2008/05/13 22:59:23  sueh
+ * <p> bug# 847 Adding a right click menu for deferred 3dmods to some
+ * <p> process buttons.
+ * <p>
  * <p> Revision 1.9  2008/05/03 00:46:59  sueh
  * <p> bug# 847 Passing null for ProcessSeries to process funtions.
  * <p>
@@ -82,6 +86,7 @@ public final class AnisotropicDiffusionDialog implements ContextMenu,
   private static final String ITERATION_LIST_LABEL = "List of iterations: ";
   private static final String K_VALUE_LABEL = "K value: ";
   private static final String ITERATION_LABEL = "Iterations: ";
+  private static final DialogType DIALOG_TYPE = DialogType.ANISOTROPIC_DIFFUSION;
 
   static final String TEST_VOLUME_NAME = "test.input";
 
@@ -98,23 +103,23 @@ public final class AnisotropicDiffusionDialog implements ContextMenu,
       K_VALUE_LIST_LABEL);
   private final Spinner spTestIteration = Spinner.getLabeledInstance(
       ITERATION_LABEL, 10, 1, 200);
-  private final Run3dmodButton btnRunVaryingK =  Run3dmodButton.getDeferred3dmodInstance(
-      "Run with Different K Values",this);
+  private final Run3dmodButton btnRunVaryingK = Run3dmodButton
+      .getDeferred3dmodInstance("Run with Different K Values", this);
   private final Run3dmodButton btnViewVaryingK = Run3dmodButton
       .get3dmodInstance("View Different K Values Test Results", this);
   private final LabeledTextField ltfTestKValue = new LabeledTextField(
       K_VALUE_LABEL);
   private final LabeledTextField ltfTestIterationList = new LabeledTextField(
       ITERATION_LIST_LABEL);
-  private final Run3dmodButton btnRunVaryingIteration =  Run3dmodButton.getDeferred3dmodInstance(
-      "Run with Different Iterations",this);
+  private final Run3dmodButton btnRunVaryingIteration = Run3dmodButton
+      .getDeferred3dmodInstance("Run with Different Iterations", this);
   private final Run3dmodButton btnViewVaryingIteration = Run3dmodButton
       .get3dmodInstance("View Different Iteration Test Results", this);
   private final LabeledTextField ltfKValue = new LabeledTextField(K_VALUE_LABEL);
   private final Spinner spIteration = Spinner.getLabeledInstance(
       ITERATION_LABEL, 10, 1, 200);
-  private Run3dmodButton btnRunFilterFullVolume =  Run3dmodButton.getDeferred3dmodInstance(
-      "Filter Full Volume",this);
+  private Run3dmodButton btnRunFilterFullVolume = Run3dmodButton
+      .getDeferred3dmodInstance("Filter Full Volume", this);
   private Run3dmodButton btnViewFilteredVolume = Run3dmodButton
       .get3dmodInstance("View Filtered Volume", this);
   private final Spinner spMemoryPerChunk = Spinner.getLabeledInstance(
@@ -370,7 +375,8 @@ public final class AnisotropicDiffusionDialog implements ContextMenu,
 
   public void action(final Run3dmodButton button,
       final Run3dmodMenuOptions run3dmodMenuOptions) {
-    action(button.getActionCommand(),button.getDeferred3dmodButton(), run3dmodMenuOptions);
+    action(button.getActionCommand(), button.getDeferred3dmodButton(),
+        run3dmodMenuOptions);
   }
 
   public void getInitialParameters(final ParallelMetaData metaData) {
@@ -503,7 +509,8 @@ public final class AnisotropicDiffusionDialog implements ContextMenu,
     subdirName = null;
   }
 
-  private void action(final String command,Deferred3dmodButton deferred3dmodButton,
+  private void action(final String command,
+      Deferred3dmodButton deferred3dmodButton,
       final Run3dmodMenuOptions run3dmodMenuOptions) {
     if (command.equals(btnExtractTestVolume.getActionCommand())) {
       if (!initSubdir()) {
@@ -515,13 +522,15 @@ public final class AnisotropicDiffusionDialog implements ContextMenu,
       if (!initSubdir()) {
         return;
       }
-      manager.anisotropicDiffusionVaryingK(subdirName, null,deferred3dmodButton,run3dmodMenuOptions);
+      manager.anisotropicDiffusionVaryingK(subdirName, null,
+          deferred3dmodButton, run3dmodMenuOptions, DIALOG_TYPE);
     }
     else if (command.equals(btnRunVaryingIteration.getActionCommand())) {
       if (!initSubdir()) {
         return;
       }
-      manager.anisotropicDiffusionVaryingIteration(subdirName, null,deferred3dmodButton,run3dmodMenuOptions);
+      manager.anisotropicDiffusionVaryingIteration(subdirName, null,
+          deferred3dmodButton, run3dmodMenuOptions, DIALOG_TYPE);
     }
     else if (command.equals(btnRunFilterFullVolume.getActionCommand())) {
       if (!initSubdir()) {
@@ -530,7 +539,8 @@ public final class AnisotropicDiffusionDialog implements ContextMenu,
       if (!manager.setupAnisotropicDiffusion()) {
         return;
       }
-      manager.chunksetup(null,deferred3dmodButton,run3dmodMenuOptions);
+      manager.chunksetup(null, deferred3dmodButton, run3dmodMenuOptions,
+          DIALOG_TYPE);
     }
     else if (command.equals(btnCleanup.getActionCommand())) {
       if (subdirName != null) {
@@ -597,7 +607,7 @@ public final class AnisotropicDiffusionDialog implements ContextMenu,
     }
 
     public void actionPerformed(final ActionEvent event) {
-      adaptee.action(event.getActionCommand(), null,null);
+      adaptee.action(event.getActionCommand(), null, null);
     }
   }
 

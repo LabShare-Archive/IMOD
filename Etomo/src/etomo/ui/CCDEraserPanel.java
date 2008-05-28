@@ -356,7 +356,8 @@ final class CCDEraserPanel implements ContextMenu, Run3dmodButtonContainer {
 
   public void action(final Run3dmodButton button,
       final Run3dmodMenuOptions run3dmodMenuOptions) {
-    buttonAction(button.getActionCommand(), button.getDeferred3dmodButton(),run3dmodMenuOptions);
+    buttonAction(button.getActionCommand(), button.getDeferred3dmodButton(),
+        run3dmodMenuOptions);
   }
 
   /**
@@ -373,11 +374,11 @@ final class CCDEraserPanel implements ContextMenu, Run3dmodButtonContainer {
       final Run3dmodMenuOptions run3dmodMenuOptions) {
     if (command.equals(btnFindXRays.getActionCommand())) {
       applicationManager.findXrays(axisID, btnFindXRays, null,
-          deferred3dmodButton, run3dmodMenuOptions);
+          deferred3dmodButton, run3dmodMenuOptions, dialogType);
     }
     else if (command.equals(btnErase.getActionCommand())) {
-      applicationManager.preEraser(axisID, btnErase, null,
-          deferred3dmodButton, run3dmodMenuOptions);
+      applicationManager.preEraser(axisID, btnErase, null, deferred3dmodButton,
+          run3dmodMenuOptions, dialogType);
     }
     else if (command.equals(btnReplaceRawStack.getActionCommand())) {
       applicationManager.replaceRawStack(axisID, btnReplaceRawStack);
@@ -524,13 +525,17 @@ final class CCDEraserPanel implements ContextMenu, Run3dmodButtonContainer {
     }
 
     public void actionPerformed(final ActionEvent event) {
-      adaptee.buttonAction(event.getActionCommand(), null,null);
+      adaptee.buttonAction(event.getActionCommand(), null, null);
     }
   }
 }
 
 /**
  * <p> $Log$
+ * <p> Revision 3.28  2008/05/13 23:00:05  sueh
+ * <p> bug# 847 Adding a right click menu for deferred 3dmods to some
+ * <p> process buttons.
+ * <p>
  * <p> Revision 3.27  2008/05/06 23:56:33  sueh
  * <p> bug#847 Running deferred 3dmods by using the button that usually calls
  * <p> them.  This avoids having to duplicate the calls and having a

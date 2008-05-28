@@ -59,6 +59,10 @@ import etomo.util.DatasetFiles;
  * 
  * <p>
  * $Log$
+ * Revision 3.66  2008/05/13 23:02:02  sueh
+ * bug# 847 Adding a right click menu for deferred 3dmods to some
+ * process buttons.
+ *
  * Revision 3.65  2008/05/03 00:49:56  sueh
  * bug# 847 Passing null for ProcessSeries to process funtions.
  *
@@ -477,6 +481,7 @@ public class FinalCombinePanel implements ContextMenu, FinalCombineFields,
   private final SpacedPanel pnlInitialShiftXYZ = new SpacedPanel();
   private MultiLineButton btnPatchVectorCCCModel = new MultiLineButton(
       "Open Vector Model with Correlations");
+  private final DialogType dialogType;
 
   public String toString() {
     return getClass().getName() + "[" + paramString() + "]\n";
@@ -506,6 +511,7 @@ public class FinalCombinePanel implements ContextMenu, FinalCombineFields,
    */
   public FinalCombinePanel(TomogramCombinationDialog parent,
       ApplicationManager appMgr, DialogType dialogType) {
+    this.dialogType = dialogType;
     tomogramCombinationDialog = parent;
     btnPatchcorrRestart = (Run3dmodButton) appMgr
         .getProcessResultDisplayFactory(AxisID.ONLY).getRestartPatchcorr();
@@ -737,8 +743,8 @@ public class FinalCombinePanel implements ContextMenu, FinalCombineFields,
 
   public static ProcessResultDisplay getRestartVolcombineDisplay(
       DialogType dialogType) {
-    return Run3dmodButton.getDeferredToggle3dmodInstance("Restart at Volcombine",
-        dialogType);
+    return Run3dmodButton.getDeferredToggle3dmodInstance(
+        "Restart at Volcombine", dialogType);
   }
 
   private final void setAdvanced() {
@@ -1251,23 +1257,23 @@ public class FinalCombinePanel implements ContextMenu, FinalCombineFields,
     }
     else if (command.equals(btnPatchcorrRestart.getActionCommand())) {
       applicationManager.patchcorrCombine(btnPatchcorrRestart, null,
-          deferred3dmodButton, run3dmodMenuOptions);
+          deferred3dmodButton, run3dmodMenuOptions, dialogType);
     }
     else if (command.equals(btnMatchorwarpRestart.getActionCommand())) {
       applicationManager.matchorwarpCombine(btnMatchorwarpRestart, null,
-          deferred3dmodButton, run3dmodMenuOptions);
+          deferred3dmodButton, run3dmodMenuOptions, dialogType);
     }
     else if (command.equals(btnMatchorwarpTrial.getActionCommand())) {
       applicationManager.matchorwarpTrial(null);
     }
     else if (command.equals(btnVolcombineRestart.getActionCommand())) {
       if (cbParallelProcess.isSelected()) {
-        applicationManager.splitcombine(null,
-            deferred3dmodButton, run3dmodMenuOptions);
+        applicationManager.splitcombine(null, deferred3dmodButton,
+            run3dmodMenuOptions, dialogType);
       }
       else {
         applicationManager.volcombine(btnVolcombineRestart, null,
-            deferred3dmodButton, run3dmodMenuOptions);
+            deferred3dmodButton, run3dmodMenuOptions, dialogType);
       }
     }
     else if (command.equals(btnPatchVectorModel.getActionCommand())) {

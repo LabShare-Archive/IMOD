@@ -40,6 +40,10 @@ import etomo.util.MRCHeader;
  * @version $Revision$
  *
  * <p> $Log$
+ * <p> Revision 3.36  2008/05/13 23:02:12  sueh
+ * <p> bug# 847 Adding a right click menu for deferred 3dmods to some
+ * <p> process buttons.
+ * <p>
  * <p> Revision 3.35  2008/05/03 00:50:05  sueh
  * <p> bug# 847 Passing null for ProcessSeries to process funtions.
  * <p>
@@ -243,6 +247,7 @@ public class InitialCombinePanel implements ContextMenu, InitialCombineFields,
   private final JLabel lOutputSizeYInfo = new JLabel();
 
   private MatchMode matchMode = null;
+  private final DialogType dialogType;
 
   /**
    * Default constructor
@@ -250,6 +255,7 @@ public class InitialCombinePanel implements ContextMenu, InitialCombineFields,
    */
   public InitialCombinePanel(TomogramCombinationDialog parent,
       ApplicationManager appMgr, DialogType dialogType) {
+    this.dialogType = dialogType;
     tomogramCombinationDialog = parent;
     applicationManager = appMgr;
     matchvol1Header = PanelHeader.getAdvancedBasicInstance("Matchvol1", this,
@@ -262,7 +268,7 @@ public class InitialCombinePanel implements ContextMenu, InitialCombineFields,
     //  Create the solvematch panel
     pnlSolvematch = SolvematchPanel.getInstance(tomogramCombinationDialog,
         TomogramCombinationDialog.lblInitial, appMgr,
-        ReconScreenState.COMBINE_INITIAL_SOLVEMATCH_HEADER_GROUP);
+        ReconScreenState.COMBINE_INITIAL_SOLVEMATCH_HEADER_GROUP, dialogType);
     pnlRoot.add(pnlSolvematch.getContainer());
     //pnlRoot.add(Box.createRigidArea(FixedDim.x0_y10));
     //pnlRoot.add(Box.createVerticalGlue());
@@ -501,7 +507,7 @@ public class InitialCombinePanel implements ContextMenu, InitialCombineFields,
         true);
     if (command.equals(btnMatchvolRestart.getActionCommand())) {
       applicationManager.matchvol1Combine(btnMatchvolRestart, null,
-          deferred3dmodButton, run3dmodMenuOptions);
+          deferred3dmodButton, run3dmodMenuOptions, dialogType);
     }
   }
 
