@@ -92,8 +92,6 @@ public abstract class BaseManager {
   private boolean debug = false;
   private boolean exiting = false;
   private boolean initialized = false;
-  private DialogType processDialogTypeA = null;
-  private DialogType processDialogTypeB = null;
   private DialogType currentDialogTypeA = null;
   private DialogType currentDialogTypeB = null;
   private ParameterStore parameterStore = null;
@@ -142,7 +140,8 @@ public abstract class BaseManager {
   abstract void processSucceeded(AxisID axisID, ProcessName processName);
 
   abstract void startNextProcess(AxisID axisID, String nextProcess,
-      ProcessResultDisplay processResultDisplay, ProcessSeries processSeries);
+      ProcessResultDisplay processResultDisplay, ProcessSeries processSeries,
+      DialogType dialogType);
 
   abstract Storable[] getStorables(int offset);
 
@@ -1052,31 +1051,6 @@ public abstract class BaseManager {
     this.debug = debug;
   }
 
-  public void setProcessDialogType(AxisID axisID, DialogType dialogType) {
-    if (axisID == AxisID.SECOND) {
-      processDialogTypeB = dialogType;
-    }
-    else {
-      processDialogTypeA = dialogType;
-    }
-  }
-
-  public void resetProcessDialogType(AxisID axisID) {
-    if (axisID == AxisID.SECOND) {
-      processDialogTypeB = null;
-    }
-    else {
-      processDialogTypeA = null;
-    }
-  }
-
-  public DialogType getProcessDialogType(AxisID axisID) {
-    if (axisID == AxisID.SECOND) {
-      return processDialogTypeB;
-    }
-    return processDialogTypeA;
-  }
-
   public final void startLoad(IntermittentCommand param, LoadMonitor monitor) {
     getProcessManager().startLoad(param, monitor);
   }
@@ -1242,6 +1216,10 @@ public abstract class BaseManager {
 }
 /**
  * <p> $Log$
+ * <p> Revision 1.100  2008/05/13 20:53:36  sueh
+ * <p> bug# 847 In exitProgram, factored out functionality which also needs to
+ * <p> be done when just closing a manager.
+ * <p>
  * <p> Revision 1.99  2008/05/06 23:53:49  sueh
  * <p> bug#847 Running deferred 3dmods by using the button that usually calls
  * <p> them.  This avoids having to duplicate the calls and having a
