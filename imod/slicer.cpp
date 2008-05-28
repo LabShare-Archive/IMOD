@@ -2469,7 +2469,7 @@ static void sslice_draw_model(SlicerStruct *ss)
 
   glTranslatef(-ss->cx, -ss->cy, -ss->cz);
 
-  imodDrawModel(ss->vi, ss->vi->imod, 0);
+  imodDrawModel(ss->vi, ss->vi->imod, 0, slicerGetZScaleBefore(ss));
   glPopMatrix();
   return;
 }
@@ -2618,6 +2618,9 @@ void slicerCubePaint(SlicerStruct *ss)
 
 /*
 $Log$
+Revision 4.57  2008/05/27 05:43:29  mast
+Added rotation around model view center of rotation
+
 Revision 4.56  2008/02/03 18:38:47  mast
 Switched to calling function for mouse rotation
 
