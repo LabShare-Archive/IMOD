@@ -215,7 +215,7 @@ public final class ParallelManager extends BaseManager {
 
   void startNextProcess(final AxisID axisID, final String nextProcess,
       final ProcessResultDisplay processResultDisplay,
-      ProcessSeries processSeries) {
+      ProcessSeries processSeries, DialogType dialogType) {
     if (nextProcess.equals(ProcessName.ANISOTROPIC_DIFFUSION.toString())) {
       anisotropicDiffusion(processSeries);
     }
@@ -481,9 +481,9 @@ public final class ParallelManager extends BaseManager {
 
   public void chunksetup(ProcessSeries processSeries,
       Deferred3dmodButton deferred3dmodButton,
-      Run3dmodMenuOptions run3dmodMenuOptions) {
+      Run3dmodMenuOptions run3dmodMenuOptions, final DialogType dialogType) {
     if (processSeries == null) {
-      processSeries = new ProcessSeries(this);
+      processSeries = new ProcessSeries(this, dialogType);
     }
     if (anisotropicDiffusionDialog == null) {
       uiHarness.openMessageDialog("Anisotropic diffusion dialog not open",
@@ -515,9 +515,9 @@ public final class ParallelManager extends BaseManager {
 
   public void anisotropicDiffusionVaryingIteration(final String subdirName,
       ProcessSeries processSeries, Deferred3dmodButton deferred3dmodButton,
-      Run3dmodMenuOptions run3dmodMenuOptions) {
+      Run3dmodMenuOptions run3dmodMenuOptions, final DialogType dialogType) {
     if (processSeries == null) {
-      processSeries = new ProcessSeries(this);
+      processSeries = new ProcessSeries(this, dialogType);
     }
     if (anisotropicDiffusionDialog == null) {
       uiHarness.openMessageDialog("Anisotropic diffusion dialog not open",
@@ -569,9 +569,9 @@ public final class ParallelManager extends BaseManager {
 
   public void anisotropicDiffusionVaryingK(final String subdirName,
       ProcessSeries processSeries, Deferred3dmodButton deferred3dmodButton,
-      Run3dmodMenuOptions run3dmodMenuOptions) {
+      Run3dmodMenuOptions run3dmodMenuOptions, final DialogType dialogType) {
     if (processSeries == null) {
-      processSeries = new ProcessSeries(this);
+      processSeries = new ProcessSeries(this, dialogType);
     }
     if (anisotropicDiffusionDialog == null) {
       uiHarness.openMessageDialog("Anisotropic diffusion dialog not open",
@@ -673,6 +673,10 @@ public final class ParallelManager extends BaseManager {
 }
 /**
  * <p> $Log$
+ * <p> Revision 1.27  2008/05/13 20:59:03  sueh
+ * <p> bug# 847 Adding a right click menu for deferred 3dmods to some
+ * <p> process buttons.
+ * <p>
  * <p> Revision 1.26  2008/05/06 23:55:04  sueh
  * <p> bug#847 Running deferred 3dmods by using the button that usually calls
  * <p> them.  This avoids having to duplicate the calls and having a

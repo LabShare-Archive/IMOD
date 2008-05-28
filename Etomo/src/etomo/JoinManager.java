@@ -38,6 +38,7 @@ import etomo.type.BaseState;
 import etomo.type.ConstJoinMetaData;
 import etomo.type.ConstJoinState;
 import etomo.type.ConstProcessSeries;
+import etomo.type.DialogType;
 import etomo.type.EtomoNumber;
 import etomo.type.InterfaceType;
 import etomo.type.JoinMetaData;
@@ -68,6 +69,10 @@ import etomo.util.Utilities;
  * @version $Revision$
  * 
  * <p> $Log$
+ * <p> Revision 1.69  2008/05/13 20:58:53  sueh
+ * <p> bug# 847 Adding a right click menu for deferred 3dmods to some
+ * <p> process buttons.
+ * <p>
  * <p> Revision 1.68  2008/05/06 23:54:55  sueh
  * <p> bug#847 Running deferred 3dmods by using the button that usually calls
  * <p> them.  This avoids having to duplicate the calls and having a
@@ -836,9 +841,9 @@ public final class JoinManager extends BaseManager {
 
   public void makejoincom(ProcessSeries processSeries,
       Deferred3dmodButton deferred3dmodButton,
-      Run3dmodMenuOptions run3dmodMenuOptions) {
+      Run3dmodMenuOptions run3dmodMenuOptions, DialogType dialogType) {
     if (processSeries == null) {
-      processSeries = new ProcessSeries(this);
+      processSeries = new ProcessSeries(this, dialogType);
     }
     if (!joinDialog.getMetaData(metaData)) {
       return;
@@ -1198,9 +1203,9 @@ public final class JoinManager extends BaseManager {
 
   public void xfmodel(String inputFile, String outputFile,
       ProcessSeries processSeries, Deferred3dmodButton deferred3dmodButton,
-      Run3dmodMenuOptions run3dmodMenuOptions) {
+      Run3dmodMenuOptions run3dmodMenuOptions, final DialogType dialogType) {
     if (processSeries == null) {
-      processSeries = new ProcessSeries(this);
+      processSeries = new ProcessSeries(this, dialogType);
     }
     XfmodelParam param = new XfmodelParam(this);
     param.setInputFile(inputFile);
@@ -1208,17 +1213,18 @@ public final class JoinManager extends BaseManager {
     if (param.isValid()) {
       processSeries.setRun3dmodDeferred(deferred3dmodButton,
           run3dmodMenuOptions);
-      xfmodel(param, processSeries);
+      xfmodel(param, processSeries, dialogType);
     }
   }
 
-  private void xfmodel(ProcessSeries processSeries) {
-    xfmodel(new XfmodelParam(this), processSeries);
+  private void xfmodel(ProcessSeries processSeries, DialogType dialogType) {
+    xfmodel(new XfmodelParam(this), processSeries, dialogType);
   }
 
-  private void xfmodel(XfmodelParam param, ProcessSeries processSeries) {
+  private void xfmodel(XfmodelParam param, ProcessSeries processSeries,
+      final DialogType dialogType) {
     if (processSeries == null) {
-      processSeries = new ProcessSeries(this);
+      processSeries = new ProcessSeries(this, dialogType);
     }
     if (debug) {
       System.err.println("xfmodel:gapExist=" + state.isGapsExist());
@@ -1239,9 +1245,9 @@ public final class JoinManager extends BaseManager {
         ProcessName.XFMODEL);
   }
 
-  private void xftoxg(ProcessSeries processSeries) {
+  private void xftoxg(ProcessSeries processSeries, final DialogType dialogType) {
     if (processSeries == null) {
-      processSeries = new ProcessSeries(this);
+      processSeries = new ProcessSeries(this, dialogType);
     }
     processSeries.setNextProcess(ProcessName.XFMODEL.toString());
     XftoxgParam param = new XftoxgParam(this);
@@ -1271,9 +1277,9 @@ public final class JoinManager extends BaseManager {
    */
   public void finishjoin(FinishjoinParam.Mode mode, String buttonText,
       ProcessSeries processSeries, Deferred3dmodButton deferred3dmodButton,
-      Run3dmodMenuOptions run3dmodMenuOptions) {
+      Run3dmodMenuOptions run3dmodMenuOptions, final DialogType dialogType) {
     if (processSeries == null) {
-      processSeries = new ProcessSeries(this);
+      processSeries = new ProcessSeries(this, dialogType);
     }
     try {
       if (mode == FinishjoinParam.Mode.SUPPRESS_EXECUTION
@@ -1423,7 +1429,7 @@ public final class JoinManager extends BaseManager {
    */
   void startNextProcess(final AxisID axisID, final String nextProcess,
       final ProcessResultDisplay processResultDisplay,
-      ProcessSeries processSeries) {
+      ProcessSeries processSeries, DialogType dialogType) {
     if (debug) {
       System.err.println("startNextProcess:axisID=" + axisID + ",nextProcess="
           + nextProcess);
@@ -1432,10 +1438,10 @@ public final class JoinManager extends BaseManager {
       startjoin(processSeries);
     }
     else if (nextProcess.equals(ProcessName.XFTOXG.toString())) {
-      xftoxg(processSeries);
+      xftoxg(processSeries, dialogType);
     }
     else if (nextProcess.equals(ProcessName.XFMODEL.toString())) {
-      xfmodel(processSeries);
+      xfmodel(processSeries, dialogType);
     }
     else if (nextProcess.equals(ProcessName.REMAPMODEL.toString())) {
       remapmodel(processSeries);

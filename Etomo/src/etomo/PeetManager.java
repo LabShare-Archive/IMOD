@@ -27,6 +27,7 @@ import etomo.type.BaseProcessTrack;
 import etomo.type.BaseScreenState;
 import etomo.type.BaseState;
 import etomo.type.ConstProcessSeries;
+import etomo.type.DialogType;
 import etomo.type.IntKeyList;
 import etomo.type.InterfaceType;
 import etomo.type.PeetMetaData;
@@ -56,6 +57,12 @@ import etomo.util.DatasetFiles;
  * @version $Revision$
  * 
  * <p> $Log$
+ * <p> Revision 1.42  2008/05/06 23:55:23  sueh
+ * <p> bug#847 Running deferred 3dmods by using the button that usually calls
+ * <p> them.  This avoids having to duplicate the calls and having a
+ * <p> startNextProcess function just for 3dmods.  This requires that the 3dmod
+ * <p> button be passed to the function that starts the process.
+ * <p>
  * <p> Revision 1.41  2008/05/03 00:34:03  sueh
  * <p> bug# 847 Passing ProcessSeries to the process manager,
  * <p> startNextProcess, and to all process functions.  To avoid having to decide
@@ -569,8 +576,9 @@ public final class PeetManager extends BaseManager {
       fileNameList.add(fileName.toString());
     }
     try {
-      imodManager.open(ImodManager.AVG_VOL_KEY, buildFileNameArray(fileNameList), menuOptions);
-  }
+      imodManager.open(ImodManager.AVG_VOL_KEY,
+          buildFileNameArray(fileNameList), menuOptions);
+    }
     catch (IOException e) {
       e.printStackTrace();
     }
@@ -598,8 +606,9 @@ public final class PeetManager extends BaseManager {
       fileNameList.add(fileName.toString());
     }
     try {
-      imodManager.open(ImodManager.REF_KEY, buildFileNameArray(fileNameList), menuOptions);
-  }
+      imodManager.open(ImodManager.REF_KEY, buildFileNameArray(fileNameList),
+          menuOptions);
+    }
     catch (IOException e) {
       e.printStackTrace();
     }
@@ -625,11 +634,11 @@ public final class PeetManager extends BaseManager {
           .size()]);
     }
     return fileNameArray;
-    }
+  }
 
-  public void peetParser(ProcessSeries processSeries) {
-    if(processSeries==null) {
-      processSeries=new ProcessSeries(this);
+  public void peetParser(ProcessSeries processSeries, DialogType dialogType) {
+    if (processSeries == null) {
+      processSeries = new ProcessSeries(this, dialogType);
     }
     savePeetDialog();
     if (matlabParam == null) {
@@ -648,7 +657,7 @@ public final class PeetManager extends BaseManager {
         e.printStackTrace();
       }
       removeComFiles();
-      String threadName = processMgr.peetParser(param,processSeries);
+      String threadName = processMgr.peetParser(param, processSeries);
       processSeries.setNextProcess(ProcessName.PROCESSCHUNKS.toString());
       setThreadName(threadName, AxisID.ONLY);
       mainPanel.startProgressBar("Running " + ProcessName.PEET_PARSER,
@@ -718,7 +727,8 @@ public final class PeetManager extends BaseManager {
    * Start the next process specified by the nextProcess string
    */
   void startNextProcess(final AxisID axisID, final String nextProcess,
-      final ProcessResultDisplay processResultDisplay,ProcessSeries processSeries) {
+      final ProcessResultDisplay processResultDisplay,
+      ProcessSeries processSeries, DialogType dialogType) {
     if (nextProcess.equals(ProcessName.PROCESSCHUNKS.toString())) {
       processchunks(processSeries);
     }
@@ -814,6 +824,6 @@ public final class PeetManager extends BaseManager {
     }
     //param should never be set to resume
     parallelPanel.getParallelProgressDisplay().resetResults();
-    processchunks(AxisID.ONLY, param, null,processSeries);
+    processchunks(AxisID.ONLY, param, null, processSeries);
   }
 }

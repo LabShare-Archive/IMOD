@@ -2,6 +2,7 @@ package etomo;
 
 import etomo.type.AxisID;
 import etomo.type.ConstProcessSeries;
+import etomo.type.DialogType;
 import etomo.type.ProcessResultDisplay;
 import etomo.type.Run3dmodMenuOptions;
 import etomo.ui.Deferred3dmodButton;
@@ -109,6 +110,11 @@ import etomo.ui.Deferred3dmodButton;
  * @version $Revision$
  * 
  * <p> $Log$
+ * <p> Revision 1.4  2008/05/13 22:57:11  sueh
+ * <p> bug# 847 Added documentation.  Fixed a bug where
+ * <p> isProcessQueueEmpty was returning an incorrect result.  Made sure that
+ * <p> run3dmodButton could not be turned off except by its being used.
+ * <p>
  * <p> Revision 1.3  2008/05/07 02:37:59  sueh
  * <p> bug# 847 Making some ProcessSeries functions public so they can be used by expert classes.
  * <p>
@@ -134,6 +140,7 @@ public final class ProcessSeries implements ConstProcessSeries {
   public static final String rcsid = "$Id$";
 
   private final BaseManager manager;
+  private final DialogType dialogType;
 
   private String nextProcess = null;
   private String lastProcess = null;
@@ -142,8 +149,9 @@ public final class ProcessSeries implements ConstProcessSeries {
   private Run3dmodMenuOptions run3dmodMenuOptions = null;
   private boolean debug = false;
 
-  public ProcessSeries(final BaseManager manager) {
+  public ProcessSeries(final BaseManager manager, DialogType dialogType) {
     this.manager = manager;
+    this.dialogType = dialogType;
   }
 
   /**
@@ -175,7 +183,8 @@ public final class ProcessSeries implements ConstProcessSeries {
       return false;
     }
     sendMsgSecondaryProcess(processResultDisplay);
-    manager.startNextProcess(axisID, process, processResultDisplay, this);
+    manager.startNextProcess(axisID, process, processResultDisplay, this,
+        dialogType);
     return true;
   }
 
@@ -184,7 +193,7 @@ public final class ProcessSeries implements ConstProcessSeries {
    * @param axisID
    * @param process
    */
-  void setNextProcess(final String process) {
+  public void setNextProcess(final String process) {
     nextProcess = process;
   }
 
