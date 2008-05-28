@@ -112,7 +112,9 @@ public class EtomoDirector {
       return;
     }
     BaseManager manager = (BaseManager) managerList.get(currentManagerKey);
-    manager.doAutomation();
+    if (manager != null) {
+      manager.doAutomation();
+    }
   }
 
   private void initialize() {
@@ -999,6 +1001,11 @@ public class EtomoDirector {
 }
 /**
  * <p> $Log$
+ * <p> Revision 1.74  2008/05/13 20:57:33  sueh
+ * <p> bug# 847 In closeCurrentManager, call BaseManager.close when closing
+ * <p> a manager but not exiting the program.  This let the manager check for
+ * <p> next processes and close 3dmods.
+ * <p>
  * <p> Revision 1.73  2008/05/03 00:32:47  sueh
  * <p> bug# 847 Found an apparent bug where change managers is causing
  * <p> exitProgram to be called.  Added a boolean exiting parameter to
