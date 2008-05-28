@@ -16,6 +16,9 @@ import java.util.Properties;
  * @version $Revision$
  * 
  * <p> $Log$
+ * <p> Revision 1.11  2007/11/06 19:35:59  sueh
+ * <p> bug# 1047 Added anisotropic diffusion dialog type.
+ * <p>
  * <p> Revision 1.10  2007/02/19 21:54:26  sueh
  * <p> bug# 964 Added PEET dialog type.
  * <p>
@@ -57,8 +60,8 @@ import java.util.Properties;
  */
 public final class DialogType {
   public static final String rcsid = "$Id$";
-  
-  public static final String PROPERTIES_KEY="DialogType";
+
+  public static final String PROPERTIES_KEY = "DialogType";
 
   private static final int setupIndex = 0;
   private static final int preProcessingIndex = 1;
@@ -72,6 +75,10 @@ public final class DialogType {
   private static final int cleanUpIndex = 9;
 
   public static final int TOTAL_RECON = cleanUpIndex + 1;
+
+  private static final int joinIndex = 0;
+
+  public static final int TOTAL_JOIN = joinIndex + 1;
 
   private static final int parallelIndex = 0;
   private static final int anisotropicDiffusionIndex = 1;
@@ -92,6 +99,7 @@ public final class DialogType {
   private static final String TOMOGRAM_COMBINATION_NAME = "Combine";
   private static final String POST_PROCESSING_NAME = "PostProc";
   private static final String CLEAN_UP_NAME = "CleanUp";
+  private static final String JOIN_NAME = "Join";
   private static final String PARALLEL_NAME = "Parallel";
   private static final String ANISOTROPIC_DIFFUSION_NAME = "AnisotropicDiffusion";
   private static final String PEET_NAME = "Peet";
@@ -146,6 +154,8 @@ public final class DialogType {
       TabType.RECON, postProcessingIndex);
   public static final DialogType CLEAN_UP = new DialogType(TabType.RECON,
       cleanUpIndex);
+
+  public static final DialogType JOIN = new DialogType(TabType.JOIN, joinIndex);
 
   public static final DialogType PARALLEL = new DialogType(TabType.PARALLEL,
       parallelIndex);
