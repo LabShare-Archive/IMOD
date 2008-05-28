@@ -426,7 +426,7 @@ static void freeArrays(ImodIProc *ip)
   }
 }
 
-
+// Inform other program components if thread is busy
 bool iprocBusy(void)
 {
 #ifdef QT_THREAD_SUPPORT
@@ -436,6 +436,15 @@ bool iprocBusy(void)
 #else
   return false;
 #endif
+}
+
+// If the thread is busy, save the callback function; otherwise call it now
+void iprocCallWhenFree(void (*func)())
+{
+  if (proc.dia && iprocBusy())
+    proc.dia->mCallback = func;
+  else
+    func();
 }
 
 /*
@@ -1106,6 +1115,7 @@ void IProcWindow::startProcess()
     return;
   ip->fftScale = 0.;
   ip->freqButton->setEnabled(false);
+  mCallback = NULL;
 
 #ifdef QT_THREAD_SUPPORT
 
@@ -1160,7 +1170,7 @@ void IProcWindow::finishProcess()
   }
 }
 
-
+// Check for whether the thread is running, if not, finish up and call callback
 void IProcWindow::timerEvent(QTimerEvent *e)
 {
 #ifdef QT_THREAD_SUPPORT
@@ -1174,6 +1184,8 @@ void IProcWindow::timerEvent(QTimerEvent *e)
   mRunningProc = false;
   finishProcess();
   ImodInfoWin->manageMenus();
+  if (mCallback)
+    mCallback();
 #endif
 }
 
@@ -1245,6 +1257,9 @@ void IProcThread::run()
 /*
 
     $Log$
+    Revision 4.24  2008/05/27 05:28:27  mast
+    Added autoapply and option to not scale the smoothing
+
     Revision 4.23  2007/11/23 01:13:32  mast
     Added pixels label to kernel sigma
 
