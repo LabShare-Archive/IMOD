@@ -18,6 +18,7 @@
 #include "dia_qtutils.h"
 #include "xcramp.h"
 #include "autox.h"
+#include "iproc.h"
 #include "imod_info_cb.h"
 #include "control.h"
 #include "undoredo.h"
@@ -32,6 +33,7 @@ static void autox_shrink(Autox *ax);
 static void autox_expand(Autox *ax);
 static int allocate_arrays(ImodView *vw, Autox *ax);
 static int nay8(Autox *ax, int i, int j);
+static void continueNext(void);
 
 /* The current data that is being contoured. */
 static unsigned char **autoImage = NULL;
@@ -249,6 +251,11 @@ void autoxSmooth()
 void autoxNext()
 {
   ImodView *vw = App->cvi;
+  if (iprocBusy()) {
+    wprint("\a'Next' operation aborted because image processing is busy.\n");
+    return;
+  }
+
   if (!vw->insertmode){
     if (vw->zmouse < (vw->zsize - 1)){
       vw->zmouse++;
@@ -258,34 +265,38 @@ void autoxNext()
       vw->zmouse--;
     }
   }
+  iprocUpdate();
+  iprocCallWhenFree(continueNext);
+}
 
+static void continueNext(void)
+{
+  ImodView *vw = App->cvi;
+  int i, j;
+  int mi = vw->xsize;
+  int mj = vw->ysize;
+  float ci = 0.0f, cj = 0.0f, cp = 0.0f;
+  unsigned char *data = vw->ax->data;
+  
   /* Find the new X and Y coords. */
-  {
-    int i, j;
-    int mi = vw->xsize;
-    int mj = vw->ysize;
-    float ci = 0.0f, cj = 0.0f, cp = 0.0f;
-    unsigned char *data = vw->ax->data;
-
-    for(j = 0; j < mj; j++)
-      for(i = 0; i < mi; i++){
-	if (data[i + (j*mi)] & AUTOX_FILL){
-	  ci += i;
-	  cj += j;
-	  cp += 1.0f;
-	}
+  for(j = 0; j < mj; j++)
+    for(i = 0; i < mi; i++){
+      if (data[i + (j*mi)] & AUTOX_FILL){
+        ci += i;
+        cj += j;
+        cp += 1.0f;
       }
-    if (cp){
-      vw->xmouse = ci/cp;
-      vw->ymouse = cj/cp;
-    }else{
-      Ipoint cm;
-      Icont *cont = imodContourGet(vw->imod);
-      if (cont){
-	imodContourCenterOfMass(cont, &cm);
-	vw->xmouse = cm.x;
-	vw->ymouse = cm.y;
-      }
+    }
+  if (cp){
+    vw->xmouse = ci/cp;
+    vw->ymouse = cj/cp;
+  }else{
+    Ipoint cm;
+    Icont *cont = imodContourGet(vw->imod);
+    if (cont){
+      imodContourCenterOfMass(cont, &cm);
+      vw->xmouse = cm.x;
+      vw->ymouse = cm.y;
     }
   }
 
@@ -826,6 +837,9 @@ static void autox_clear(Autox *ax, unsigned char bit)
 /*
 
 $Log$
+Revision 4.11  2008/05/27 22:48:58  mast
+Added function to synchronize color ramp changes
+
 Revision 4.10  2008/05/27 05:32:28  mast
 Changed to call routine that uses interpolation
 
