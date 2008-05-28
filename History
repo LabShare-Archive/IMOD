@@ -1,8 +1,8 @@
 IMOD History
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 5/27/08: IMOD_3-12-10
-5/27/08: Fixed running of Tilt from Whole Tomogram Positioning (this might
-have been broken in 3.12.9, but probably not).
+5/27/08: Fixed running of Tilt from Whole Tomogram Positioning (broken in 
+3.12.9).
 
 5/27/08: Synchronized contrast radio button in autocontour window with F9/F10.
 Made autocontour Next operation work with autoapply in image processing.
