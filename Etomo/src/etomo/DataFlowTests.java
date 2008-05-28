@@ -204,9 +204,9 @@ public class DataFlowTests {
   private static void preProcessing(AxisID axisID) {
     applicationManager.openPreProcDialog(axisID);
     uiHarness.pack(applicationManager);
-    applicationManager.findXrays(axisID, null, null, null, null);
+    applicationManager.findXrays(axisID, null, null, null, null, null);
     waitForThread(axisID);
-    applicationManager.preEraser(axisID, null, null, null, null);
+    applicationManager.preEraser(axisID, null, null, null, null, null);
     waitForThread(axisID);
     applicationManager.replaceRawStack(axisID, null);
     applicationManager.donePreProcDialog(axisID);
@@ -215,10 +215,10 @@ public class DataFlowTests {
   private static void coarseAlignment(AxisID axisID) {
     applicationManager.openCoarseAlignDialog(axisID);
     uiHarness.pack(applicationManager);
-    applicationManager.preCrossCorrelate(axisID, null, null);
+    applicationManager.preCrossCorrelate(axisID, null, null, null);
     waitForThread(axisID);
     if (!applicationManager.getMetaData().isFiducialessAlignment(axisID)) {
-      applicationManager.coarseAlign(axisID, null, null, null, null);
+      applicationManager.coarseAlign(axisID, null, null, null, null, null);
       waitForThread(axisID);
     }
     applicationManager.doneCoarseAlignDialog(axisID);
@@ -227,7 +227,7 @@ public class DataFlowTests {
   private static void transferfid(AxisID destAxisID) {
     applicationManager.openFiducialModelDialog(destAxisID);
     uiHarness.pack(applicationManager);
-    applicationManager.transferfid(destAxisID, null, null,null,null);
+    applicationManager.transferfid(destAxisID, null, null, null, null, null);
     waitForThread(destAxisID);
 
   }
@@ -297,7 +297,7 @@ public class DataFlowTests {
         .getUIExpert(DialogType.TOMOGRAM_GENERATION, axisID);
     expert.openDialog();
     uiHarness.pack(applicationManager);
-    expert.newst(null, null,null,null);
+    expert.newst(null, null, null, null);
     waitForThread(axisID);
     //applicationManager.mtffilter(axisID);
     //waitForThread(axisID);
@@ -311,7 +311,7 @@ public class DataFlowTests {
     uiHarness.pack(applicationManager);
     applicationManager.createCombineScripts(null);
     waitForThread(AxisID.ONLY);
-    applicationManager.combine(null, null,null,null);
+    applicationManager.combine(null, null, null, null, null);
     waitForThread(AxisID.ONLY);
   }
 
@@ -354,6 +354,10 @@ public class DataFlowTests {
 }
 /**
  * <p> $Log$
+ * <p> Revision 3.25  2008/05/13 20:54:05  sueh
+ * <p> bug# 847 Keep up with changes to ApplicationManager process
+ * <p> functions.
+ * <p>
  * <p> Revision 3.24  2008/05/06 23:54:45  sueh
  * <p> bug#847 Running deferred 3dmods by using the button that usually calls
  * <p> them.  This avoids having to duplicate the calls and having a
