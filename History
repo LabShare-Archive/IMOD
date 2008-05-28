@@ -1,36 +1,40 @@
 IMOD History
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-5/26/08: Synchronized contrast radio button in autocontour window with F9/F10.
+5/27/08: IMOD_3-12-10
+5/27/08: Fixed running of Tilt from Whole Tomogram Positioning (this might
+have been broken in 3.12.9, but probably not).
+
+5/27/08: Synchronized contrast radio button in autocontour window with F9/F10.
 Made autocontour Next operation work with autoapply in image processing.
 
-5/26/08: The isosurface display position can now be set from the rubber band.
+5/27/08: The isosurface display position can now be set from the rubber band.
 The computation is now multithreaded but this is not used by default and 
 requires IMOD_PROCESSORS to be set to activate it.
 
-5/25/08: Added options settable in Preferences for starting at middle section
+5/26/08: Added options settable in Preferences for starting at middle section
 (default on) and for doing autocontrast on the first section seen (default is
 to do this when starting without loading a model). 
 
-5/25/08: Added hot keys t, b, l, r, f, k for looking at all 6 faces of model
+5/26/08: Added hot keys t, b, l, r, f, k for looking at all 6 faces of model
 in model view, fixed orientations for rotations around Z in object
 edit move panel, remapped low-resolution toggle to hot key R.
 
-5/25/08: Bug fixes: Fixed drawing of multiple X or Y image planes in model
+5/26/08: Bug fixes: Fixed drawing of multiple X or Y image planes in model
 view (it was drawing the same plane at different positions).  Fixed changing
 of current point on mouse release when starting movie.  Fixed crash if model
 view or object edit closed while meshing.  Prevented autocontour and line
 tracker windows from opening when color data is loaded.
 
-5/25/08: Added options to make a scale bar be a false color ramp.
+5/26/08: Added options to make a scale bar be a false color ramp.
 
-5/25/08: Added hot key and menu item for opening model view and isosurface
+5/26/08: Added hot key and menu item for opening model view and isosurface
 from 3dmod.
 
-5/25/08: Added Ctrl T hot key for toggling the current object on/off.
+5/26/08: Added Ctrl T hot key for toggling the current object on/off.
 
-5/24/08: Added ability to mesh all objects in model view object edit.  
+5/25/08: Added ability to mesh all objects in model view object edit.  
 
-5/24/08: Added option to rotate slicer around model view center of rotation
+5/25/08: Added option to rotate slicer around model view center of rotation
 when their rotations are linked.
 
 5/25/08: Added option for reading in a tilt angle file; angles are displayed
