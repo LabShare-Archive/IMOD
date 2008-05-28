@@ -100,8 +100,8 @@ for no selection on the basis of edges touched.
 .TP
 .B -r <value>  
 Resolution for point shaving, in which points are removed when they are closer
-than the given distance apart.  The method of point removal will eliminate some
-detail and might be useful for smoothing; otherwise, the 
+than the given distance apart.  This method of point removal will eliminate
+some detail and might be useful for smoothing; otherwise, the 
 .B -R
 option is preferable.
 The default value is 0.0, which turns this feature off.
@@ -154,6 +154,12 @@ Load and model a subset in Z from
 to
 .I max,
 where the coordinates are numbered from 0.
+.TP
+.B -k <sigma>
+Smooth the data with a kernel filter whose Gaussian sigma is given by the
+entered value.  This filter is the same as the smoothing filter in the
+3dmod(1) image processing window or in Clip(1).  Use a value of 0 to select the
+simple default filter instead of the Gaussian kernel.
 .TP
 .B -z <value>
 Set the zscale for the model.  The zscale is a factor that compensates for
