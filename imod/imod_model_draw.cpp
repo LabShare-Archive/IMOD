@@ -1,11 +1,16 @@
-/* Model draw, used only by the slicer window */
-
-/*  $Author$
-
-$Date$
-
-$Revision$
-Log at end */
+/*
+ *  imod_model_draw.cpp -- Model draw, used only by the slicer window
+ *
+ *  Original author: James Kremer
+ *  Revised by: David Mastronarde   email: mast@colorado.edu
+ *
+ *  Copyright (C) 1995-2004 by Boulder Laboratory for 3-Dimensional Electron
+ *  Microscopy of Cells ("BL3DEMC") and the Regents of the University of 
+ *  Colorado.  See dist/COPYRIGHT for full copyright notice.
+ *
+ *  $Id$
+ *  Log at end of file
+ */
 
 #include "imod.h"
 #include "imod_display.h"
@@ -16,12 +21,12 @@ Log at end */
 static void imodDrawContourLines(ImodView * vi, Iobj *obj, int co,
                                  GLenum mode);
 static void imodDrawObjectSymbols(ImodView *vi, Iobj *obj);
-static void imodDrawSpheres(ImodView *vi, Iobj *obj);
+static void imodDrawSpheres(ImodView *vi, Iobj *obj, float zscale);
 static void imodDrawSymbol(Ipoint *point, int sym, int size, int flags, 
                            int linewidth);
 
 
-void imodDrawModel(ImodView *vi, Imod *imod, int drawCurrent)
+void imodDrawModel(ImodView *vi, Imod *imod, int drawCurrent, float zscale)
 {
   Iobj  *obj;
   Icont *cont;
@@ -48,7 +53,7 @@ void imodDrawModel(ImodView *vi, Imod *imod, int drawCurrent)
       hasSpheres = obj->cont[co].sizes != NULL;
 
     if (hasSpheres)
-      imodDrawSpheres(vi, obj);
+      imodDrawSpheres(vi, obj, zscale);
     
     if (!iobjScat(obj->flags)) {
       
@@ -224,7 +229,7 @@ static void imodDrawObjectSymbols(ImodView *vi, Iobj *obj)
   return;
 }
 
-static void imodDrawSpheres(ImodView *vi, Iobj *obj)
+static void imodDrawSpheres(ImodView *vi, Iobj *obj, float zscale)
 {
   Icont *cont;
   Ipoint *point;
@@ -233,6 +238,7 @@ static void imodDrawSpheres(ImodView *vi, Iobj *obj)
   DrawProps contProps, ptProps;
   int nextChange, stateFlags, changeFlags;
   int handleFlags = HANDLE_LINE_COLOR;
+  float zinv = 1.0f / zscale;
   GLdouble drawsize;
   GLuint listIndex;
 #ifdef GLU_QUADRIC_HACK
@@ -260,6 +266,11 @@ static void imodDrawSpheres(ImodView *vi, Iobj *obj)
   if (ifgGetValueSetupState())
     handleFlags |= HANDLE_VALUE1;
 
+  glMatrixMode(GL_MODELVIEW);
+  glPushMatrix();
+
+
+
   for (co = 0; co < obj->contsize; co++) {
     cont = &obj->cont[co];
     if (!cont->psize)
@@ -282,6 +293,10 @@ static void imodDrawSpheres(ImodView *vi, Iobj *obj)
       glPushMatrix();
       glTranslatef(point->x, point->y, point->z);
 
+      // Undo the z-scaling that is applied later to get points in the right
+      // place, to get round spheres
+      glScalef(1.0f, 1.0f, zinv);
+
       /* Use the display list if default; otherwise individual size */
       if (drawsize == obj->pdrawsize)
 	glCallList(listIndex);
@@ -295,6 +310,7 @@ static void imodDrawSpheres(ImodView *vi, Iobj *obj)
   if (obj->pdrawsize)
     glDeleteLists(listIndex, 1);
 
+  glPopMatrix();
 #ifdef GLU_QUADRIC_HACK
   gluDeleteQuadric(qobj);
 #endif
@@ -382,6 +398,9 @@ void imodDrawSymbol(Ipoint *point, int sym, int size, int flags, int linewidth)
 
 /*
 $Log$
+Revision 4.16  2007/12/04 18:43:24  mast
+Changes for stippling and using new util functions
+
 Revision 4.15  2007/06/04 15:00:47  mast
 Added argument to skip drawing of current point/contour symbols
 
