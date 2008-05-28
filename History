@@ -1,5 +1,8 @@
 IMOD History
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+5/28/08: Fixed sphere drawing in slicer when there is a Z scale or differential 
+binning.
+
 5/27/08: IMOD_3-12-10
 5/27/08: Fixed running of Tilt from Whole Tomogram Positioning (broken in 
 3.12.9).
