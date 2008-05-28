@@ -53,6 +53,7 @@ class IProcWindow : public DialogFrame
   IProcWindow(QWidget *parent, const char *name = NULL);
   ~IProcWindow() {};
   bool mRunningProc;
+  void (*mCallback)();
   void limitFFTbinning();
   void apply();
 
@@ -163,10 +164,14 @@ int inputIProcOpen(ImodView *vw);
 int iprocRethink(ImodView *vw);
 bool iprocBusy(void);
 void iprocUpdate(void);
+void iprocCallWhenFree(void (*func)());
 
 #endif /* BD_IPROC_H_ */
 /*
     $Log$
+    Revision 3.16  2008/05/27 05:28:52  mast
+    Added autoapply, option for no scaling of smoothing
+
     Revision 3.15  2007/11/22 20:49:17  mast
     Added gaussian kernel smoothing
 
