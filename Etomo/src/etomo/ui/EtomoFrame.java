@@ -769,7 +769,12 @@ abstract class EtomoFrame extends JFrame {
       bounds.height++;
       bounds.width++;
       setBounds(bounds);
-      super.pack();
+      try {
+        super.pack();
+      }
+      catch (NullPointerException e) {
+        e.printStackTrace();
+      }
     }
   }
 
@@ -850,6 +855,9 @@ abstract class EtomoFrame extends JFrame {
 }
 /**
  * <p> $Log$
+ * <p> Revision 1.36  2008/05/03 00:49:39  sueh
+ * <p> bug# 847 Passing null for ProcessSeries to process funtions.
+ * <p>
  * <p> Revision 1.35  2007/12/26 22:23:28  sueh
  * <p> bug# 1052 Moved argument handling from EtomoDirector to a separate class.
  * <p>
