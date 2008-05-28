@@ -2,6 +2,7 @@ package etomo.ui;
 
 import etomo.type.ConstProcessSeries;
 import etomo.type.DialogExitState;
+import etomo.type.DialogType;
 import etomo.type.ProcessResultDisplay;
 
 /**
@@ -22,8 +23,9 @@ public interface UIExpert {
 
   public void openDialog();
 
-  public void startNextProcess(ProcessResultDisplay processResultDisplay,
-      ConstProcessSeries processSeries);
+  public void startNextProcess(String nextProcess,
+      ProcessResultDisplay processResultDisplay,
+      ConstProcessSeries processSeries, DialogType dialogType);
 
   public void saveAction();
 
@@ -31,6 +33,9 @@ public interface UIExpert {
 }
 /**
  * <p> $Log$
+ * <p> Revision 1.5  2008/05/03 00:58:38  sueh
+ * <p> bug# 847 Passing ProcessSeries to startNextProcess.
+ * <p>
  * <p> Revision 1.4  2006/07/26 16:44:28  sueh
  * <p> bug# 868 formatted
  * <p>
