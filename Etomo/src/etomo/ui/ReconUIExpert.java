@@ -39,7 +39,6 @@ public abstract class ReconUIExpert implements UIExpert {
   private final MainTomogramPanel mainPanel;
   private final ProcessTrack processTrack;
 
-  private ProcessName nextProcess = null;
   private boolean dialogOutOfDate = false;
 
   abstract boolean doneDialog();
@@ -98,20 +97,6 @@ public abstract class ReconUIExpert implements UIExpert {
     mainPanel.setParallelDialog(axisID, dialog.usingParallelProcessing());
   }
 
-  final void setNextProcess(ProcessName nextProcess) {
-    this.nextProcess = nextProcess;
-    manager.setProcessDialogType(axisID, dialogType);
-  }
-
-  final void resetNextProcess() {
-    nextProcess = null;
-    manager.resetProcessDialogType(axisID);
-  }
-
-  final ProcessName getNextProcess() {
-    return nextProcess;
-  }
-
   final void sendMsgProcessStarting(ProcessResultDisplay processResultDisplay) {
     if (processResultDisplay == null) {
       return;
@@ -149,7 +134,7 @@ public abstract class ReconUIExpert implements UIExpert {
     mainPanel.setState(processState, axisID, dialogType);
   }
 
-   public final void doneDialog(DialogExitState exitState) {
+  public final void doneDialog(DialogExitState exitState) {
     ProcessDialog dialog = getDialog();
     if (dialog == null) {
       return;
@@ -158,7 +143,7 @@ public abstract class ReconUIExpert implements UIExpert {
     doneDialog();
   }
 
-   public final void saveAction() {
+  public final void saveAction() {
     ProcessDialog dialog = getDialog();
     if (dialog == null) {
       return;
@@ -166,7 +151,7 @@ public abstract class ReconUIExpert implements UIExpert {
     dialog.saveAction();
   }
 
-   public final  void saveDialog(DialogExitState exitState) {
+  public final void saveDialog(DialogExitState exitState) {
     ProcessDialog dialog = getDialog();
     if (dialog == null) {
       return;
@@ -223,6 +208,10 @@ public abstract class ReconUIExpert implements UIExpert {
 }
 /**
  * <p> $Log$
+ * <p> Revision 1.8  2008/05/13 23:04:14  sueh
+ * <p> bug# 847 Factored canShowDialog out of showDialog so that the boolean
+ * <p> returned from each function would mean only one thing.
+ * <p>
  * <p> Revision 1.7  2008/05/03 00:53:51  sueh
  * <p> bug# 847 Passing ProcessSeries to all process functions so they can be
  * <p> checked in the done process functions.
