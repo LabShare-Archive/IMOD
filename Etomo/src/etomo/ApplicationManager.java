@@ -669,9 +669,9 @@ public final class ApplicationManager extends BaseManager {
       final ProcessResultDisplay processResultDisplay,
       ProcessSeries processSeries,
       final Deferred3dmodButton deferred3dmodButton,
-      final Run3dmodMenuOptions run3dmodMenuOptions) {
+      final Run3dmodMenuOptions run3dmodMenuOptions, DialogType dialogType) {
     if (processSeries == null) {
-      processSeries = new ProcessSeries(this);
+      processSeries = new ProcessSeries(this, dialogType);
     }
     sendMsgProcessStarting(processResultDisplay);
     updateEraserCom(axisID, true);
@@ -757,11 +757,12 @@ public final class ApplicationManager extends BaseManager {
     }
   }
 
-  public void archiveOriginalStack(ProcessSeries processSeries) {
+  public void archiveOriginalStack(ProcessSeries processSeries,
+      final DialogType dialogType) {
     if (processMgr.inUse(AxisID.ONLY, null)) {
       return;
     }
-    archiveOriginalStack(null, processSeries);
+    archiveOriginalStack(null, processSeries, dialogType);
   }
 
   /**
@@ -769,9 +770,9 @@ public final class ApplicationManager extends BaseManager {
    * @param axisID
    */
   private void archiveOriginalStack(AxisID currentAxisID,
-      ProcessSeries processSeries) {
+      ProcessSeries processSeries, final DialogType dialogType) {
     if (processSeries == null) {
-      processSeries = new ProcessSeries(this);
+      processSeries = new ProcessSeries(this, dialogType);
     }
     // figure out which original stack to archive
     AxisID stackAxisID = currentAxisID;
@@ -1205,9 +1206,10 @@ public final class ApplicationManager extends BaseManager {
    * @param axisID
    */
   public void preCrossCorrelate(AxisID axisID,
-      ProcessResultDisplay processResultDisplay, ProcessSeries processSeries) {
+      ProcessResultDisplay processResultDisplay, ProcessSeries processSeries,
+      final DialogType dialogType) {
     if (processSeries == null) {
-      processSeries = new ProcessSeries(this);
+      processSeries = new ProcessSeries(this, dialogType);
     }
     sendMsgProcessStarting(processResultDisplay);
     sendMsgProcessStarting(processResultDisplay);
@@ -1228,10 +1230,10 @@ public final class ApplicationManager extends BaseManager {
       final ProcessResultDisplay processResultDisplay,
       ProcessSeries processSeries,
       final Deferred3dmodButton deferred3dmodButton,
-      final Run3dmodMenuOptions run3dmodMenuOptions) {
+      final Run3dmodMenuOptions run3dmodMenuOptions, final DialogType dialogType) {
     sendMsgProcessStarting(processResultDisplay);
     if (processSeries == null) {
-      processSeries = new ProcessSeries(this);
+      processSeries = new ProcessSeries(this, dialogType);
     }
     processSeries.setRun3dmodDeferred(deferred3dmodButton, run3dmodMenuOptions);
     if (axisID == AxisID.SECOND && processBStack()) {
@@ -1304,9 +1306,10 @@ public final class ApplicationManager extends BaseManager {
   }
 
   private final void extractpieces(AxisID axisID,
-      ProcessResultDisplay processResultDisplay, ProcessSeries processSeries) {
+      ProcessResultDisplay processResultDisplay, ProcessSeries processSeries,
+      final DialogType dialogType) {
     if (processSeries == null) {
-      processSeries = new ProcessSeries(this);
+      processSeries = new ProcessSeries(this, dialogType);
     }
     processSeries.setNextProcess(ExtractmagradParam.COMMAND_NAME);
     if (metaData.getViewType() != ViewType.MONTAGE && processSeries != null) {
@@ -1411,9 +1414,9 @@ public final class ApplicationManager extends BaseManager {
       final ProcessResultDisplay processResultDisplay,
       ProcessSeries processSeries,
       final Deferred3dmodButton deferred3dmodButton,
-      final Run3dmodMenuOptions run3dmodMenuOptions) {
+      final Run3dmodMenuOptions run3dmodMenuOptions, DialogType dialogType) {
     if (processSeries == null) {
-      processSeries = new ProcessSeries(this);
+      processSeries = new ProcessSeries(this, dialogType);
     }
     sendMsgProcessStarting(processResultDisplay);
     ProcessName processName;
@@ -2619,9 +2622,9 @@ public final class ApplicationManager extends BaseManager {
       final ProcessResultDisplay processResultDisplay,
       ProcessSeries processSeries,
       final Deferred3dmodButton deferred3dmodButton,
-      final Run3dmodMenuOptions run3dmodMenuOptions) {
+      final Run3dmodMenuOptions run3dmodMenuOptions, final DialogType dialogType) {
     if (processSeries == null) {
-      processSeries = new ProcessSeries(this);
+      processSeries = new ProcessSeries(this, dialogType);
     }
     sendMsgProcessStarting(processResultDisplay);
     // Set a reference to the correct object
@@ -4329,10 +4332,10 @@ public final class ApplicationManager extends BaseManager {
    */
   public void combine(ProcessResultDisplay processResultDisplay,
       ProcessSeries processSeries, Deferred3dmodButton deferred3dmodButton,
-      Run3dmodMenuOptions run3dmodMenuOptions) {
+      Run3dmodMenuOptions run3dmodMenuOptions, final DialogType dialogType) {
     sendMsgProcessStarting(processResultDisplay);
     if (processSeries == null) {
-      processSeries = new ProcessSeries(this);
+      processSeries = new ProcessSeries(this, dialogType);
     }
     // FIXME: what are the necessary updates
     // Update the scripts from the dialog panel
@@ -4401,9 +4404,9 @@ public final class ApplicationManager extends BaseManager {
    */
   public void matchvol1Combine(ProcessResultDisplay processResultDisplay,
       ProcessSeries processSeries, Deferred3dmodButton deferred3dmodButton,
-      Run3dmodMenuOptions run3dmodMenuOptions) {
+      Run3dmodMenuOptions run3dmodMenuOptions, final DialogType dialogType) {
     if (processSeries == null) {
-      processSeries = new ProcessSeries(this);
+      processSeries = new ProcessSeries(this, dialogType);
     }
     sendMsgProcessStarting(processResultDisplay);
     // FIXME: what are the necessary updates
@@ -4475,9 +4478,9 @@ public final class ApplicationManager extends BaseManager {
    */
   public void patchcorrCombine(ProcessResultDisplay processResultDisplay,
       ProcessSeries processSeries, Deferred3dmodButton deferred3dmodButton,
-      Run3dmodMenuOptions run3dmodMenuOptions) {
+      Run3dmodMenuOptions run3dmodMenuOptions, final DialogType dialogType) {
     if (processSeries == null) {
-      processSeries = new ProcessSeries(this);
+      processSeries = new ProcessSeries(this, dialogType);
     }
     sendMsgProcessStarting(processResultDisplay);
     updateCombineParams();
@@ -4574,9 +4577,9 @@ public final class ApplicationManager extends BaseManager {
    */
   public void matchorwarpCombine(ProcessResultDisplay processResultDisplay,
       ProcessSeries processSeries, Deferred3dmodButton deferred3dmodButton,
-      Run3dmodMenuOptions run3dmodMenuOptions) {
+      Run3dmodMenuOptions run3dmodMenuOptions, final DialogType dialogType) {
     if (processSeries == null) {
-      processSeries = new ProcessSeries(this);
+      processSeries = new ProcessSeries(this, dialogType);
     }
     sendMsgProcessStarting(processResultDisplay);
     CombineComscriptState combineComscriptState = updateCombineComscriptState(CombineProcessType.MATCHORWARP);
@@ -4654,9 +4657,9 @@ public final class ApplicationManager extends BaseManager {
    */
   public void volcombine(ProcessResultDisplay processResultDisplay,
       ProcessSeries processSeries, Deferred3dmodButton deferred3dmodButton,
-      Run3dmodMenuOptions run3dmodMenuOptions) {
+      Run3dmodMenuOptions run3dmodMenuOptions, final DialogType dialogType) {
     if (processSeries == null) {
-      processSeries = new ProcessSeries(this);
+      processSeries = new ProcessSeries(this, dialogType);
     }
     sendMsgProcessStarting(processResultDisplay);
     CombineComscriptState combineComscriptState = updateCombineComscriptState(CombineProcessType.VOLCOMBINE);
@@ -4982,9 +4985,9 @@ public final class ApplicationManager extends BaseManager {
    */
   public void trimVolume(ProcessResultDisplay processResultDisplay,
       ProcessSeries processSeries, Deferred3dmodButton deferred3dmodButton,
-      Run3dmodMenuOptions run3dmodMenuOptions) {
+      Run3dmodMenuOptions run3dmodMenuOptions, final DialogType dialogType) {
     if (processSeries == null) {
-      processSeries = new ProcessSeries(this);
+      processSeries = new ProcessSeries(this, dialogType);
     }
     sendMsgProcessStarting(processResultDisplay);
     // Make sure that the post processing panel is open
@@ -5026,9 +5029,9 @@ public final class ApplicationManager extends BaseManager {
    */
   public void squeezevol(ProcessResultDisplay processResultDisplay,
       ProcessSeries processSeries, Deferred3dmodButton deferred3dmodButton,
-      Run3dmodMenuOptions run3dmodMenuOptions) {
+      Run3dmodMenuOptions run3dmodMenuOptions, final DialogType dialogType) {
     if (processSeries == null) {
-      processSeries = new ProcessSeries(this);
+      processSeries = new ProcessSeries(this, dialogType);
     }
     sendMsgProcessStarting(processResultDisplay);
     // Make sure that the post processing panel is open
@@ -5157,27 +5160,28 @@ public final class ApplicationManager extends BaseManager {
    * Start the next process specified by the nextProcess string
    */
   void startNextProcess(AxisID axisID, String nextProcess,
-      ProcessResultDisplay processResultDisplay, ProcessSeries processSeries) {
-    DialogType processDialogType = getProcessDialogType(axisID);
-    if (processDialogType != null) {
-      getUIExpert(processDialogType, axisID).startNextProcess(
-          processResultDisplay, processSeries);
+      ProcessResultDisplay processResultDisplay, ProcessSeries processSeries,
+      DialogType dialogType) {
+    UIExpert uiExpert = getUIExpert(dialogType, axisID);
+    if (uiExpert != null) {
+      uiExpert.startNextProcess(nextProcess, processResultDisplay,
+          processSeries, dialogType);
     }
     else if (nextProcess.equals("checkUpdateFiducialModel")) {
       checkUpdateFiducialModel(axisID, processResultDisplay, processSeries);
     }
     else if (nextProcess.equals(ArchiveorigParam.COMMAND_NAME)) {
-      archiveOriginalStack(AxisID.SECOND, processSeries);
+      archiveOriginalStack(AxisID.SECOND, processSeries, dialogType);
     }
     else if (nextProcess
         .equals(getNextProcessProcesschunksString(ProcessName.VOLCOMBINE))) {
       processchunksVolcombine(processResultDisplay, processSeries);
     }
     else if (nextProcess.equals(SplitcombineParam.COMMAND_NAME)) {
-      splitcombine(processSeries, null, null);
+      splitcombine(processSeries, null, null, dialogType);
     }
     else if (nextProcess.equals(ExtractpiecesParam.COMMAND_NAME)) {
-      extractpieces(axisID, processResultDisplay, processSeries);
+      extractpieces(axisID, processResultDisplay, processSeries, dialogType);
     }
     else if (nextProcess.equals(ExtractmagradParam.COMMAND_NAME)) {
       extractmagrad(axisID, processResultDisplay, processSeries);
@@ -5396,9 +5400,9 @@ public final class ApplicationManager extends BaseManager {
 
   public ProcessResult splittilt(AxisID axisID, boolean trialMode,
       ProcessResultDisplay processResultDisplay, ProcessSeries processSeries,
-      SplittiltParam param) {
+      SplittiltParam param, final DialogType dialogType) {
     if (processSeries == null) {
-      processSeries = new ProcessSeries(this);
+      processSeries = new ProcessSeries(this, dialogType);
     }
     String threadName;
     try {
@@ -5423,9 +5427,9 @@ public final class ApplicationManager extends BaseManager {
 
   public void splitcombine(ProcessSeries processSeries,
       Deferred3dmodButton deferred3dmodButton,
-      Run3dmodMenuOptions run3dmodMenuOptions) {
+      Run3dmodMenuOptions run3dmodMenuOptions, final DialogType dialogType) {
     if (processSeries == null) {
-      processSeries = new ProcessSeries(this);
+      processSeries = new ProcessSeries(this, dialogType);
     }
     ProcessResultDisplay processResultDisplay = getProcessResultDisplayFactory(
         AxisID.ONLY).getRestartVolcombine();
@@ -5559,6 +5563,9 @@ public final class ApplicationManager extends BaseManager {
 }
 /**
  * <p> $Log$
+ * <p> Revision 3.301  2008/05/14 19:38:35  sueh
+ * <p> bug# 1094 Fixed strings in savePostProcessing.
+ * <p>
  * <p> Revision 3.300  2008/05/13 20:40:55  sueh
  * <p> bug# 847 Added Deferred3dmodButton and Run3dmodMenuOptions to
  * <p> functions where 3dmod may run after the process.
