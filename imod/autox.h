@@ -35,6 +35,8 @@
 #define AUTOX_ALTMOUSE_PAINT   1   /* use mouse to paint data.    */
 #define AUTOX_ALTMOUSE_DRAW    2   /* use mouse to draw edges.    */
 
+typedef struct ViewInfo ImodView;
+
 typedef struct imod_autox_struct
 {
   ImodView  *vw;            /* image data to model                       */
@@ -86,6 +88,9 @@ void autoxCrampSelected(ImodView *vw);
 /*
 
   $Log$
+  Revision 3.5  2008/05/27 22:48:59  mast
+  Added function to synchronize color ramp changes
+
   Revision 3.4  2008/05/27 05:31:33  mast
   Added member for threshold to sent to contour routine
 
