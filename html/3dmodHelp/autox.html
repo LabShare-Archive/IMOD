@@ -5,13 +5,32 @@
 Auto contour creates closed contours that belong to the current object.  The
 contours surround areas that  are either above or below a selected threshold.
 <P>
-To start using it, switch to High Contrast to see what areas fall above or below
-threshold.  Adjust the threshold to the proper level to segment your features of
-interest, switching back and forth between Regular and High contrast as needed.
+To start using it, switch to High Contrast to see what areas fall above or
+below threshold.  Adjust the threshold to the proper level to segment your
+features of interest, switching back and forth between Regular and High
+contrast as needed.  High Contrast uses the second color ramp, so you can
+toggle between these views easily by using hot key F9 to switch back to the
+first ramp, and hot key F10 to switch from the first to the second ramp.
 Select the Alternate mouse to use the mouse buttons to control the filling
 operation.  Then click on the interior of a desired area to flood that area in
 red.  Adjust the area if necessary then press the Build button or the b hot key
 to build a contour around the area.
+<P>
+If you find that you can obtain usable contours with this approach, you can
+run the same operation on a defined region of the image stack using
+<A HREF = "../man/imodauto.html">Imodauto</A>.  A given threshold should have
+the same effect with that program as in this window, provided that data are
+loaded with the same intensity scaling.  The scaling will be the same by
+default, but if you set the scaling when loading data into 3dmod, you will
+need to use the same scaling when running Imodauto.
+<P>
+Smoother contours may be obtained by applying smoothing in the image processing
+window.  To use this approach, select the smoothing panel and try 
+different sigma values.  Be sure to uncheck <B>Rescale to match min/max</B> so
+that the smoothed data will have consistent intensities from section to
+section, and will correspond to the intensity values if you use smoothing
+in Imodauto.  You can check <B>Autoapply</B> to have the smoothing happen
+automatically when you go from one section from the next.
 <P>
 <BR><A HREF = "#Controls"></A>
 <P>
@@ -20,14 +39,16 @@ to build a contour around the area.
 <LI><B>Contrast</B>:  <B>Regular</B> contrast shows the image data, <B>High</B>
 contrast shows the threshold level.
 <LI>The <B>Threshold</B> slider controls the grey level that segments the data.
-<LI>The <B>Resolution</B> slider controls point reduction in the generated contour.
-Points are originally created at intervals of about 1 pixel.  Points are removed
-if they are within this distance of a line segment between the remaining points.
-<LI>The <B>Alternate mouse</B> checkbox allows the use of alternate mouse functions:"
-	<UL><LI>First  - Select area by flooding around point.
-	<LI>Second - Add pixel to flood area (it will appear as yellow).
-	<LI>Third  - Delete pixel from flood area (it will appear as dark).
-	</UL>
+<LI>The <B>Resolution</B> slider controls point reduction in the generated
+contour. Points are originally created at intervals of about 1 pixel.  Points
+are removed if they are within this distance of a line segment between the
+remaining points.
+<LI>The <B>Alternate mouse</B> checkbox allows the use of alternate mouse
+functions:
+<UL><LI>First  - Select area by flooding around point.
+<LI>Second - Add pixel to flood area (it will appear as yellow).
+<LI>Third  - Delete pixel from flood area (it will appear as dark).
+</UL>
 Second and third buttons may be held down while moving the mouse to add or
 delete a series of pixels.
 <LI>The <B>Follow diagonals</B> checkbox:  when flooding an area, add pixels
@@ -35,14 +56,18 @@ that are touching pixels already in the area only on their corners.
 </UL>
 <H4>Control Buttons</H4>
 <UL>
-<LI>Smooth &ndash; Smooth a flooded area (Expand followed by Shrink).
-<LI>Next &ndash; Flood fill next section.
-<LI>Build &ndash; Build contour around flooded area.
-<LI>Fill &ndash; Flood fill area at current point.
+ <LI>Fill &ndash; Flood fill area at current point.
 <LI>Clear &ndash; Clear a flooded area.
-<LI>Done &ndash; Exit auto contour.
+<LI>Build &ndash; Build contour(s) around flooded area.  (Hot key b in Zap
+window.)
+<LI>Next &ndash; Flood fill next section, starting at the center of gravity of
+the last filled area.  If the insertion direction for contouring is reversed, 
+it will go to the previous section.  (Hot key a in Zap window.)
+<LI>Smooth &ndash; Smooth a flooded area (Expand followed by Shrink). (Hot key
+u in Zap window.)
 <LI>Shrink &ndash; Shrink a flooded area by one pixel.
 <LI>Expand &ndash; Expand a flooded area by one pixel.
+<LI>Done &ndash; Exit auto contour.
 <LI>Help &ndash; Gives you this help window.
 </UL>
 <P>

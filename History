@@ -1,6 +1,7 @@
 IMOD History
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 5/26/08: Synchronized contrast radio button in autocontour window with F9/F10.
+Made autocontour Next operation work with autoapply in image processing.
 
 5/26/08: The isosurface display position can now be set from the rubber band.
 The computation is now multithreaded but this is not used by default and 
@@ -87,9 +88,9 @@ just on an FFT with mtffilter.
 5/16/08: In Etomo making kill and pause work for a reconnected processchunks
 process.
 
-5/13/08: In Etomo added a right click menu to most of the process buttons.  This
-menu allows the associated 3dmod process to be run after the process started by
-the button is done.
+5/13/08: In Etomo added a right click menu to most of the process buttons.
+This menu allows the associated 3dmod process to be run after the process
+started by the button is done.
 
 5/7/08: IMOD_3-12-9
 5/7/08: Fixed xfalign when run with filtering, broken 1/4/08.
@@ -98,8 +99,8 @@ the button is done.
 combining lots of files into sample average.
 
 5/6/08: IMOD_3-12-8
-5/6/08: Made object bounding box routine get bounding box from meshes if there are
-no contours, so that centering on a saved isosurface object works.
+5/6/08: Made object bounding box routine get bounding box from meshes if there
+are no contours, so that centering on a saved isosurface object works.
 
 5/2/08: Fixed imodmop painting of tubular lines when points are spaced farther
 apart in Z than the diameter.

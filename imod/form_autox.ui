@@ -1,4 +1,4 @@
-<!DOCTYPE UI><UI version="3.0" stdsetdef="1">
+<!DOCTYPE UI><UI version="3.3" stdsetdef="1">
 <class>AutoxWindow</class>
 <widget class="QWidget">
     <property name="name">
@@ -9,7 +9,7 @@
             <x>0</x>
             <y>0</y>
             <width>176</width>
-            <height>230</height>
+            <height>255</height>
         </rect>
     </property>
     <property name="caption">
@@ -215,7 +215,7 @@
                         <string>Build</string>
                     </property>
                     <property name="toolTip" stdset="0">
-                        <string>Build contour around filled area</string>
+                        <string>Build contour around filled area (hot key b)</string>
                     </property>
                 </widget>
                 <widget class="QPushButton">
@@ -243,7 +243,7 @@
                         <string>Next</string>
                     </property>
                     <property name="toolTip" stdset="0">
-                        <string>Fill area on next section</string>
+                        <string>Fill area on next section (hot key a)</string>
                     </property>
                 </widget>
             </hbox>
@@ -279,7 +279,7 @@
                         <string>Smooth</string>
                     </property>
                     <property name="toolTip" stdset="0">
-                        <string>Smooth by expanding then shrinking</string>
+                        <string>Smooth by expanding then shrinking (hot key u)</string>
                     </property>
                 </widget>
                 <widget class="QPushButton">
