@@ -1074,7 +1074,8 @@ static void processHits (ImodvApp *a, GLint hits, GLuint buffer[], bool moving)
 
   }
 
-  if (pt == -1)
+  // Reject extra objects for now
+  if (pt == -1 || ob < 0)
     return;
   a->cm = mo;
   a->imod = a->mod[mo];
@@ -1217,6 +1218,9 @@ void imodvMovieTimeout()
 /*
 
 $Log$
+Revision 4.38  2008/05/27 05:49:34  mast
+Added hot keys for axis views, rearranged some keys
+
 Revision 4.37  2008/05/22 15:42:57  mast
 Changed for extra object editability
 
