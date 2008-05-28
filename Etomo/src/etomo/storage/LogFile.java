@@ -420,13 +420,12 @@ public final class LogFile {
       throw new FileException(targetFileId, e);
     }
     target.createFile();
-    file.renameTo(target.file);
+    boolean success = file.renameTo(target.file);
     try {
       Thread.sleep(500);
     }
     catch (InterruptedException e) {
     }
-    boolean success = !file.exists();
     try {
       lock.unlock(LockType.FILE, fileId);
     }
@@ -446,7 +445,8 @@ public final class LogFile {
     }
     String path = file.getAbsolutePath();
     file = null;
-    throw new FileException(this, fileId, "Unable to delete " + path);
+    throw new FileException(this, fileId, "Unable to rename " + path + " to "
+        + target.fileAbsolutePath);
   }
 
   public synchronized long openWriter() throws WriteException {
@@ -1091,7 +1091,7 @@ public final class LogFile {
     }
 
     FileException(Exception e, File file) {
-      super(file != null ? file.getAbsolutePath() +":  ": "" + e.toString()
+      super(file != null ? file.getAbsolutePath() + ":  " : "" + e.toString()
           + PUBLIC_EXCEPTION_MESSAGE);
       e.printStackTrace();
     }
@@ -1437,6 +1437,9 @@ public final class LogFile {
 }
 /**
  * <p> $Log$
+ * <p> Revision 1.20  2008/02/26 01:38:46  sueh
+ * <p> bug# 1087 Added more information to FileException.
+ * <p>
  * <p> Revision 1.19  2008/01/31 20:22:14  sueh
  * <p> bug# 1055 throwing a FileException when LogFile.getInstance fails.
  * <p>
