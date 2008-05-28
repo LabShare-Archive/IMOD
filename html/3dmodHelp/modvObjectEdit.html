@@ -271,11 +271,19 @@ more than this amount in Z, then each surface will be analyzed for the
 orientation of its contours and the tilted contours will be meshed (-F
 option).  A value of 0 disables the analysis.
 </UL>
-Pressing <B>Make Mesh</b> will start the meshing on a separate thread, so you
+Pressing <B>Mesh One</b> will start the meshing on the current object on a
+separate thread, so you
 can continue using the program before the mesh is done.  When the mesh is
 done, the drawing of the object will be switched to Mesh and Fill if
 appropriate.  The resolution mode will be switched to match the resolution of
-the mesh just computed.  Note that the hot key "r" is used to switch between
+the mesh just computed.  Note that the hot key "R" is used to switch between
 resolutions.
+<P>
+Pressing <B>Mesh All</B> will mesh all closed and open contour objects in the
+model.  The meshing parameters used for each object will be the ones defined
+for that object, of it has been meshed before, or it will be the default
+parameters that you would see in this panel if you switched to that object.
+The parameters visible for the current object are not necessarily the deafults
+for the other objects.
 <P>
 <A HREF="index.html">Help Index<A>

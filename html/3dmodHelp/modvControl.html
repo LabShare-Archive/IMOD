@@ -47,6 +47,21 @@ given axis until you press the <B>Start/Stop Rotation</B> button
 again.  Otherwise, each arrow will cause a single step 
 around the given axis.
 <P>
+The <B>Link to top Slicer angles</B> checkbox can be used to synchronize the
+rotation angles of the Model View window and the top (most recently active)
+Slicer window.  When you change angles in a Slicer, the model will rotate in
+Model View.  When you rotate the model, the top Slicer angles will be changed
+to match.  
+<P>
+With <B>Link centers of rotation</B> checked also, the Slicer will
+effectively rotate around the same point as the model does (at the middle
+of the Model View window).  This will change the point displayed in the center
+of the Slicer and generally change the current Z value displayed in other
+windows.  This option is the default because it allows the Slicer view to
+roll around on the surface of a cylindrical or spherical object.  Without the
+option checked, Slicer angles will change but the same point will stay in the
+center of the Slicer window.
+<P>
 The speed controls allow you adjust the rate of rotation in 
 degrees per second (<B>deg/sec</B>).  Press the arrow buttons to 
 increase or decrease the speed, or enter a specific value in 

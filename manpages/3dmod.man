@@ -285,6 +285,11 @@ in the X direction and
 in the Y direction.  Enter negative numbers to get space (gutters) between
 the pieces.
 .TP
+.B -a <filename>
+Specify a file with angles to be shown in the Zap window toolbar.  The angles
+should be one per line, in degrees, as in the .rawtlt and .tlt files in
+tomogram processing.
+.TP
 .B -r <nx,ny,nz>
 Set the size for raw image files to
 .I nx
@@ -387,7 +392,7 @@ put 3dmod in the background automatically.
 Run in debug mode with diagnostic output and without becoming a background
 process.  Key letters can be added after the D (but with no intervening
 spaces) to turn on specific debugging output; e.g., u for undo, z for zap,
-c for control, k for keystrikes.
+c for control, k for keystrokes, v for model view, U for isosurface.
 
 .SH User Interface Features
 A large number of dialog boxes can be opened from the menus of the Information
@@ -437,7 +442,8 @@ JPEG, PNG, and SGI RGB can be
 taken with Shift-S or Ctrl-Shift-S.  The format of these non-TIFF snapshots
 can be selected in the Preferences dialog.  There is an entry in the file menu
 that allows you to select (and create) a directory in which snapshots will be
-saved.
+saved.  There is also an entry there to let you save TIFF snapshots from the
+image windows in 8-bit gray scale instead of 24-bit color.
 
 The Escape key can be used to close all windows except the Information
 Window, or the 3dmodv window when running 3dmodv.
@@ -538,7 +544,11 @@ displayed image has a defined mean and standard deviation.  The settings
 for the target mean and standard deviation can be changed in the
 3dmod Preferences dialog box, available from the Edit-Options menu entry.
 Increase the target mean to make images brighter when you press the button,
-or reduce the standard deviation to make images have less contrast.
+or reduce the standard deviation to make images have less contrast.  The
+default behavior is for the program to do auto contrast on the first section
+that is displayed, as long
+as you are not loading a model file.  In the Preferences dialog, you can
+make this not happen or happen always, even when loading a model.
 .TP
 .I The Subarea Checkbox
 When this box is checked, both the float operation when
@@ -575,10 +585,12 @@ Open Model...     Load a model from disk.
 Reload Model      Reload the current model from file.
 Save Model        Save model.  (s)
 Save Model as...  Save model with new name.
+Write Model as    Write model as Imod, wimp, NFF or Synu files.
 Set Snap Dir...   Set a directory to put snapshots into.  The same 
                     directory will be used for snapshots from the 
                     model view window.
-Write Model as    Write model as Imod, wimp, NFF or Synu files.
+Gray Tif Snaps    A checkable entry; when checked, TIFF snapshots
+                    of image windows are saved as 8-bit gray scale.
 Memory to TIFF... Write the whole section of a raw color image
                     stored inside 3dmod to a TIFF file, in order
                     to turn a montaged image bigger than the
@@ -619,6 +631,8 @@ Object
                  Z values with the mean Z of the contour, rounded
                  to the nearest integer.  The program will
                  ask you to confirm the operation.
+   Renumber.. Move the current object to a new object number,
+                 thus changing the order of the objects.
 
 Surface
    New       Create a new contour with a new surface number.  (N)
@@ -691,7 +705,7 @@ Scale bar...  Open window to draw scale bars in windows.
 Options...    Open 3dmod preferences dialog to personalize settings
 
 .I Image Menu
-   ZaP         Open a ZaP window.  (Z)
+   ZaP         Open a ZaP window.  (z)
    Multi-Z     Open a window to show array of successive slices
    XYZ         Open the XYZ window.
    Slicer      Open an image Slicer window.  (\\)
@@ -699,6 +713,8 @@ Options...    Open 3dmod preferences dialog to personalize settings
    Pixel View  Open window displaying pixel values.
    Graph       Open an image Graph window.  (G)
    Locator     Open a window to show the ZaP window subarea.
+   Isosurface  Open model view with an isosurface display display
+                  of the image data.  (U)
    Tumbler     Open a 3-D Tumbler window.
 
 .I Special menu
@@ -708,7 +724,9 @@ as internal modules that provide special features.  The latter
 include the Bead Fixer
 to assist with correcting models of fiducial markers for aligning tilt series,
 and the Line Tracker, which performs semi-automated modeling of linear
-features such as membranes.
+features such as membranes.  Two plugins written by Andrew Noske are now
+included in the IMOD distribution: Bead Helper to help fixing large fiducial
+models; and Drawing Tools with additional model tools.
 
 .I Help Menu 
 .br
@@ -806,13 +824,16 @@ N  -  Create a new contour with a new surface number
 0  -  Create a new object
 Delete - Delete current model point
 D  -  Delete current contour
+Ctrl-D - Truncate current contour at current point
+Ctrl-Shift-D - Delete current surface
 M  -  Move contour to selected object
 J  -  Join two selected contours
 Ctrl-Z - Undo a change in the model
 Ctrl-Y - Redo a change that was undone
 m  -  Toggle model edit mode and movie mode
 t  -  Toggle model drawing on/off
-T  -  Toggle current point marker on/off
+T  -  Toggle current point/contour markers on/off
+Ctrl-T - Toggle current object on/off
 g  -  Toggle previous contour ghost draw mode
 s  -  Save Model File
 f  -  Print current pixel value in information window
@@ -823,6 +844,8 @@ F  -  Find the maximum pixel within 10 pixels and report its value
 =  -  Increase Zoom
 3  -  Start or stop a movie through time in the forward direction
 4  -  Start or stop a movie through time in the backward direction
+#  -  Start or stop a movie though Z in the forward direction
+$  -  Start or stop a movie though Z in the reverse direction
 S  -  Snapshot image in window to file with primary non-TIFF 
          format
 Ctrl-S - Snapshot image in window to TIFF file
@@ -864,12 +887,30 @@ Keypad Arrows -  Move current model point in model mode,
               -  Pan in ZaP window in movie mode. 
 Arrows        -  Pan in ZaP window in model mode
 
+        Contrast control keys
+        -----------------------------------------
+A  -  Autocontrast
+F1 -  Decrease Black level
+F2 -  Increase Black level
+F3 -  Decrease White level
+F4 -  Increase White level
+F5 -  Decrease contrast
+F6 -  Increase contrast
+F7 -  Decrease brightness
+F8 -  Increase brightness
+F9 -  Select color ramp #1
+F10 - Cycle through color ramps 1 - 2 - 3 - 4 - 1
+F11 - Invert contrast
+F12 - Toggle false color on/off
+
         Window control keys
         -----------------------------------------
 \\  -  Open Slicer Window
 v  -  Open Model View Window
 G  -  Open Graph window
 z  -  Open ZaP window
+U  -  Open Model View with Isosurface display
+Ctrl-R - Raise all 3dmod windows above other windows.
 .fi
 
 .SH Slicer Window

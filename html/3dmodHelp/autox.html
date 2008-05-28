@@ -16,6 +16,10 @@ operation.  Then click on the interior of a desired area to flood that area in
 red.  Adjust the area if necessary then press the Build button or the b hot key
 to build a contour around the area.
 <P>
+If you are in High Contrast mode, you should turn off the <B>Float</B> button
+in the 3dmod Information window unless you want the threshold from change when
+you go from section to section.
+<P>
 If you find that you can obtain usable contours with this approach, you can
 run the same operation on a defined region of the image stack using
 <A HREF = "../man/imodauto.html">Imodauto</A>.  A given threshold should have
@@ -24,8 +28,9 @@ loaded with the same intensity scaling.  The scaling will be the same by
 default, but if you set the scaling when loading data into 3dmod, you will
 need to use the same scaling when running Imodauto.
 <P>
-Smoother contours may be obtained by applying smoothing in the image processing
-window.  To use this approach, select the smoothing panel and try 
+Smoother contours may be obtained by applying smoothing in the 
+<A HREF = "imageProc.html">image processing
+window</A>.  To use this approach, select the smoothing panel and try 
 different sigma values.  Be sure to uncheck <B>Rescale to match min/max</B> so
 that the smoothed data will have consistent intensities from section to
 section, and will correspond to the intensity values if you use smoothing

@@ -36,6 +36,10 @@ volume will all restore the original image data for a section,
 unless you press the <B>Save</B> button.  <B>Save</B> will permanently 
 replace the image data in memory with the processed data.
 <P>
+If <B>Autoapply</B> is checked, the program will automatically apply the
+current filter to a new section when the section is changed.  This will happen
+only if the section being left has been filtered.
+<P>
 <A NAME = "FourierFilter"><H4>Fourier Filtering</H4></A>
 The Fourier filter is done by taking Fourier transforms and its 
 parameters are the <B>radius</B> and <B>sigma</B> parameters used in 
@@ -101,6 +105,15 @@ pixels in real space, unlike the sigmas in Fourier filtering.
 The program uses a 3x3 kernel for sigma up to 1.0, a 5x5
 kernel for sigma up to 2.0, and a 7x7 kernel for higher sigma values.  The
 computation will take longer with the larger kernels.
+<P>
+The <B>Rescale to match min/max</B> makes the rescaling that happens after
+many kinds of filtering optional for smoothing.  This rescaling may make the
+intensities vary from section to section, since it is based on the minimum and
+maximum rather than a more robust measure like standard deviation.  Such
+variation can be a problem when using the <A HREF = "autox.html">
+Edit - Contour - Auto window</A> because it would make the threshold vary
+unpredictably, so it is recommended that this option be turned off if
+smoothing is used with autocontouring.
 <P>
 <A NAME = "Median"><H4>Median Filtering</H4></A>
 Median filtering replaces each pixel by the median value of neighboring
