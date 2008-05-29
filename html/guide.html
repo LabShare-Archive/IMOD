@@ -71,18 +71,21 @@ e.g.,<br>
 &nbsp;&nbsp; <code>csh -f imod_3.11.2_FC2.csh -dir /opt</code><br>
   <br>
 Older versions will be renamed, and at the end the installation script
-will offer to remove them for you.&nbsp;If you need to work with
-the tar file instead, you can
-just extract it with:<br>
+will offer to remove them for you.&nbsp; People with special
+requirements not anticipated by the install script may need to work
+with
+the tar file instead.&nbsp; It can be extracted with:<br>
 &nbsp; <code>csh -f imod_3.11.2_FC2.csh -extract<br>
   </code><br>
-There are two other useful options: <code>-script </code>to install
+The gzipped tar file and the install script will be left in a
+subdirectory named <code>IMODtempDir.</code>&nbsp; There are two other
+useful options: <code>-script </code>to install
 startup scripts to a different location, and <code>-skip</code> to
 skip installing startup scripts.&nbsp; Use:<br>
 </dl>
 <code>csh -f imod_3.11.2_FC2.csh -help</code>
 <dl>
-to see all available option.&nbsp; The sections below on individual
+to see all available options.&nbsp; The sections below on individual
 machine types describe what will be
 done by the default installation procedure and list the steps for
 doing a manual installation instead of using the self-installing
@@ -117,7 +120,8 @@ file from Fedora Core 4, set up to use an old 24-inch Sony monitor.</p>
 </dl>
 <dl>
   <dd>
-    <p><b>Compatibility packages for Fedora Core 4 or higher.</b> One or two
+    <p><b>Compatibility packages for Fedora Core 4 or higher.</b> One
+or two
 packages not in the default installation are needed to run IMOD under
 a fresh installation of FC4 on up.&nbsp; If you are running a version
 of IMOD built under FC4, you
@@ -130,16 +134,13 @@ rely on yet.&nbsp; To install this, use:</p>
   </dd>
   <dd>If this does not work, here is a <a
  href="http://bio3d.colorado.edu/imod/FC78/compat-libf2c-34-3.4.6-7.i386.rpm">
-32-bit rpm</a> and 
-<a
+32-bit rpm</a> and <a
  href="http://bio3d.colorado.edu/imod/FC78/compat-libf2c-34-3.4.6-7.x86_64.rpm">
 64-bit rpm</a> for FC7, and a <a
  href="http://bio3d.colorado.edu/imod/FC78/compat-libf2c-34-3.4.6-8.i386.rpm">
-32-bit rpm</a> and 
-<a
+32-bit rpm</a> and <a
  href="http://bio3d.colorado.edu/imod/FC78/compat-libf2c-34-3.4.6-8.x86_64.rpm">
-64-bit rpm</a> for FC8.
-  </dd> 
+64-bit rpm</a> for FC8. </dd>
   <dd>If a package like this with <code>libg2c.so</code> is not
 available (such as on Suse 10.3), then add the <code>-libg2c</code>
 option to the command line when you install IMOD, and a copy of this
@@ -221,14 +222,16 @@ with an IMOD distribution, not make a copy of the startup script and
 incorporate it into other scripts.<br>
   </dd>
   <dd>
-    <p>To install manually from the tar file, do the following steps:<br>
+    <p>To install manually from the tar file, do the following steps
+after running the self-installing file with the <code>-extract</code>
+option:<br>
     </p>
     <ol>
       <li> Log in as root or do all of these commands with sudo </li>
       <li> cd to the directory where you downloaded IMOD, and <br>
         <code> mv imod_3.11.2_FC2.tar.gz /usr/local</code> </li>
       <li><code> cd /usr/local</code> </li>
-      <li><code> tar -xzvf imod_3.11.2_FC2.tar</code> </li>
+      <li><code> tar -xzf imod_3.11.2_FC2.tar.gz</code> </li>
       <li>To see if you already have a /usr/local/IMOD, <br>
         <code> ls -l</code> </li>
       <li>If you do have a /usr/local/IMOD and it is a link (e.g., it
@@ -380,14 +383,16 @@ supply their own Qt libraries, you can remove the links with:<br>
 should run <code>$IMOD_DIR/linklibs-mac -u </code>before installing
 the new version.<br>
   <br>
-To install manually from the tar file, you have two
+To install manually from the tar file that you can get by running the
+self-installing file with the <code>-extract</code> option, you have
+two
 alternatives.&nbsp;To do it from the command line, open a Terminal
 window and:<br>
   <ol>
     <li> cd to the directory where you downloaded IMOD, and <br>
       <code>sudo mv imod_3.11.2_osx_ppc.tar.gz /Applications</code></li>
     <li><code>cd /Applications</code></li>
-    <li><code>sudo tar xvzf imod_3.11.2_osx_ppc.0.tar</code></li>
+    <li><code>sudo tar xzf imod_3.11.2_osx_ppc.tar.gz</code></li>
     <li>To see if you already have a /Applications/IMOD, <br>
       <code> ls -l</code> </li>
     <li>If you do have a /Applications/IMOD and it is a link (e.g., it
@@ -691,8 +696,7 @@ unpack it somewhere, (e.g., <code>C:\Program Files</code>), rename the
 top directory to IMOD, and add the <code>IMOD\bin</code> directory
 (e.g., <code>C:\Program Files\IMOD\bin</code>) to your path in
 Windows, as described
-above.
-  <a name="ImodCalib"></a>
+above. <a name="ImodCalib"></a>
   <h4>Using the ImodCalib directory</h4>
 Several parts of IMOD look for data and configuration files in a
 separate
@@ -715,10 +719,9 @@ there defining the number of processors on one or more
 machines. In addition, the IMOD startup scripts will try to source
 local
 startup scripts in this directory: <code>IMOD-...csh</code> will
-source
-  <code>$IMOD_CALIB_DIR/IMOD.csh</code> and <code>IMOD-...sh</code>
-will source
-  <code>$IMOD_CALIB_DIR/IMOD.sh</code>. You can use these startup
+source <code>$IMOD_CALIB_DIR/IMOD.csh</code> and <code>IMOD-...sh</code>
+will source <code>$IMOD_CALIB_DIR/IMOD.sh</code>. You can use these
+startup
 scripts for
 customizations, such as redefining <code>IMOD_JAVADIR</code>, instead
 of
