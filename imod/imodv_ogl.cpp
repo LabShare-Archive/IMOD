@@ -71,7 +71,7 @@ static void imodvDraw_filled_mesh(Imesh *mesh, double zscale, Iobj *obj,
 static void imodvDrawScalarMesh(Imesh *mesh, double zscale, Iobj *obj, 
                                 int drawTrans);
 static void imodvDraw_contours(Iobj *obj, int mode, int drawTrans);
-static void imodvPick_Contours(Iobj *obj, int drawTrans);
+static void imodvPick_Contours(Iobj *obj, double zscale, int drawTrans);
 static void imodvSetDepthCue(Imod *imod);
 static void imodvSetViewbyModel(ImodvApp *a, Imod *imod);
 static void setStereoProjection(ImodvApp *a);
@@ -82,7 +82,6 @@ static int checkContourDraw(Icont *cont, int co, int checkTime);
 static void imodvSetObject(Iobj *obj, int style, int drawTrans);
 static void set_curcontsurf(int ob, Imod* imod);
 static void imodvUnsetObject(Iobj *obj);
-static int load_cmap(unsigned char table[3][256], int *rampData);
 static int clip_obj(Imod *imod, Iobj *obj, int flag);
 static int skipNonCurrentSurface(Imesh *mesh, int *ip, Iobj *obj);
 static bool checkThickerContour(int co);
@@ -596,7 +595,6 @@ static void imodvUnsetObject(Iobj *obj)
 static void imodvSetObject(Iobj *obj, int style, int drawTrans)
 {
   float red, green, blue, trans;
-  unsigned char *ub;
      
   trans = 1.0f - (obj->trans * 0.01f);
   switch(style){
@@ -780,7 +778,7 @@ static void imodvDraw_object(Iobj *obj, Imod *imod, int drawTrans)
   }
 
   if (Imodv->doPick){
-    imodvPick_Contours(obj, drawTrans);
+    imodvPick_Contours(obj, zscale, drawTrans);
     imodvSetObject(obj, 0, 0);
     return;
   }
@@ -907,10 +905,15 @@ static void imodvDraw_object(Iobj *obj, Imod *imod, int drawTrans)
 /* DRAW CONTOURS 
  */
 #define PICKPOINTS
-static void imodvPick_Contours(Iobj *obj, int drawTrans)
+static void imodvPick_Contours(Iobj *obj, double zscale, int drawTrans)
 {
   int co, pt, npt;
   Icont *cont;
+  Imesh *mesh;
+  int i, li;
+  float z = zscale;
+  Ipoint *vert;
+  int    *list;
   int pmode = GL_POINTS;
   int doLines = 0;
   DrawProps contProps, ptProps;
@@ -1006,6 +1009,63 @@ static void imodvPick_Contours(Iobj *obj, int drawTrans)
       glEnd();
     }
     glPopName();
+  }
+
+  // If there are no contours but there are meshes, draw the triangles
+  if (!obj->contsize && obj->meshsize) {
+    for (co = 0; co < obj->meshsize; co++) {
+      mesh = &(obj->mesh[co]);
+      list = mesh->list;
+      vert = mesh->vert;
+      if (!mesh->lsize || !mesh->vsize)
+        continue;
+
+      // For sanity sake, make sure there is a polynorm2 mesh in there when 
+      // using vertices only
+      for(i = 0; i < mesh->lsize; i++)
+        if (list[i] == IMOD_MESH_BGNPOLYNORM2)
+          break;
+      if (i == mesh->lsize)
+        continue;
+
+      glLoadName(co);
+      glPushName(NO_NAME);
+      /*  THIS WORKED ...
+      glPolygonMode(GL_FRONT_AND_BACK, GL_LINE);   // LINE/FILL give same time
+      for(i = 0; i < mesh->lsize; i++){
+        switch(list[i]){
+        case IMOD_MESH_BGNPOLYNORM2:
+          i++;
+          while (list[i] != IMOD_MESH_ENDPOLY) {
+            li = list[i++];
+
+            // The load name must occur outside begin-end sequence
+            glLoadName(li);
+            glBegin(GL_TRIANGLES);
+            glVertex3f(vert[li].x, vert[li].y, vert[li].z * z);
+            li = list[i++];
+            glVertex3f(vert[li].x, vert[li].y, vert[li].z * z);
+            li = list[i++];
+            glVertex3f(vert[li].x, vert[li].y, vert[li].z * z);
+            glEnd();
+          }
+          glFlush();
+          break;
+        default:
+          break;
+        }
+        } */
+
+      // This is 5 times faster!  And fine for isosurfaces
+      for (li = 0; li < mesh->vsize; li += 2) {
+        glLoadName(li);
+        glBegin(GL_POINTS);
+        glVertex3fv((GLfloat *)&(vert[li]));
+        glEnd();
+        
+      }
+      glPopName();
+    }
   }
   glPopName();
 }
@@ -1256,7 +1316,7 @@ static void imodvDraw_filled_contours(Iobj *obj, int drawTrans)
   int psize;
   int ptstr, ptend;
   DrawProps contProps, ptProps;
-  int stateFlags, changeFlags;
+  int stateFlags;
   int handleFlags = ((obj->flags & IMOD_OBJFLAG_FCOLOR) 
                      ? HANDLE_MESH_FCOLOR : HANDLE_MESH_COLOR) | HANDLE_TRANS;
   int checkTime = (int)iobjTime(obj->flags);
@@ -2391,11 +2451,10 @@ void imodvSelectVisibleConts(ImodvApp *a, int &pickedOb, int &pickedCo)
 static void drawCurrentClipPlane(ImodvApp *a)
 {
   IclipPlanes *clips;
-  float smallVal = 1.e-4;
-  double beta, alpha, zrot, normz;
+  double beta, alpha;
   Imat *mat = imodMatNew(3);
   Iview *vw = a->imod->view;
-  float xcen, ycen, zcen, tt, radfrac = 0.95f;
+  float radfrac = 0.95f;
   Ipoint corner, xcorn, cen;
   int ind, ip;
   float vx[4], vy[4], vz[4];
@@ -2447,6 +2506,9 @@ static void drawCurrentClipPlane(ImodvApp *a)
 
 /*
 $Log$
+Revision 4.38  2008/05/22 15:40:21  mast
+Get object for clip plane, skip spheres if no contours
+
 Revision 4.37  2008/04/01 23:43:16  mast
 Fixed transparency when run from 3dmod, made it draw mesh if no contours,
 and added flag for drawing extra objects only.
