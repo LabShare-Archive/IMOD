@@ -26,6 +26,7 @@
 #include "imodv.h"
 #include "imod.h"
 #include "imod_edit.h"
+#include "imod_display.h"
 #include "b3dgfx.h"
 #include "imod_input.h"
 #include "preferences.h"
@@ -991,8 +992,7 @@ void clipCenterAndAngles(ImodvApp *a, Ipoint *clipPoint, Ipoint *clipNormal,
 /* DNM 12/16/02: removed unused callback code */
 
 /*****************************************************************************/
-#define SELECT_BUFSIZE 4096
-#define OBJCONTNAME(a,b) = ((a<<16)|(b))
+#define SELECT_BUFSIZE 40960
 
 static void processHits (ImodvApp *a, GLint hits, GLuint buffer[], bool moving)
 {
@@ -1002,6 +1002,7 @@ static void processHits (ImodvApp *a, GLint hits, GLuint buffer[], bool moving)
   int tmo, tob, tco, tpt;
   int mo, ob, co, pt;
   Iindex indSave;
+  Iobj *obj;
 
   if (!hits) 
     return;
@@ -1012,15 +1013,12 @@ static void processHits (ImodvApp *a, GLint hits, GLuint buffer[], bool moving)
 
   imodGetIndex(a->imod, &ob, &co, &pt);
 
-  if (imodDebug('p'))
-      imodPrintStderr ("hits = %d\n", hits);
-
   ptr = (GLuint *) buffer;
   ptrstr = ptr;
   pt = -1;
 
   for (i = 0; i < hits; i++) {    /* for each hit */
-    if (ptr - ptrstr >= SELECT_BUFSIZE) 
+    if (ptr - ptrstr >= SELECT_BUFSIZE - 7) 
       break;
     names = *ptr; ptr++;
     if ((ptr - ptrstr) + names + 2 > SELECT_BUFSIZE) 
@@ -1074,30 +1072,75 @@ static void processHits (ImodvApp *a, GLint hits, GLuint buffer[], bool moving)
 
   }
 
-  // Reject extra objects for now
-  if (pt == -1 || ob < 0)
+  if (imodDebug('p'))
+      imodPrintStderr ("hits = %d\n", hits);
+
+  if (co < 0 || pt == -1 || ob >= a->mod[mo]->objsize)
     return;
+
   a->cm = mo;
   a->imod = a->mod[mo];
-  indSave = a->imod->cindex;
-  imodSetIndex(a->imod, ob, co, pt);     
-  if (!a->standalone){
-    if (!moving || imodSelectionListQuery(a->vi, ob, co) < -1)
-      imodSelectionNewCurPoint(a->vi, a->imod, indSave, ctrlDown);
-    imod_setxyzmouse();
-    pickedContour = a->imod->cindex.contour;
-    pickedObject = a->imod->cindex.object;
-    /*imodPrintStderr("hit %d %d  current picked %d %d\n", ob, co, 
-      pickedObject, pickedContour); */
+  if (ob >= 0)
+    obj = &a->imod->obj[ob];
+  else {
+    obj = ivwGetAnExtraObject(a->vi, -1 - ob);
+    if (!obj || a->standalone)
+      return;
+    
+    // For an extra object with contours, just set mouse from point position
+    if (obj->contsize) {
+      a->vi->xmouse = obj->cont[co].pts[pt].x;
+      a->vi->ymouse = obj->cont[co].pts[pt].y;
+      a->vi->zmouse = obj->cont[co].pts[pt].z;
+      ivwBindMouse(a->vi);
+      if (imodDebug('p'))
+        imodPrintStderr ("Extra object, point at %.1f %.1f %.1f\n", 
+                         a->vi->xmouse, a->vi->ymouse, a->vi->zmouse);
+      imodDraw(a->vi, IMOD_DRAW_XYZ);
+      return;
+    }
+  }
+
+  // Now if there are contours, process as an indexable point
+  if (obj->contsize) {
+    indSave = a->imod->cindex;
+    imodSetIndex(a->imod, ob, co, pt);     
+    if (!a->standalone){
+      if (!moving || imodSelectionListQuery(a->vi, ob, co) < -1)
+        imodSelectionNewCurPoint(a->vi, a->imod, indSave, ctrlDown);
+      imod_setxyzmouse();
+      pickedContour = a->imod->cindex.contour;
+      pickedObject = a->imod->cindex.object;
+      if (imodDebug('p'))
+        imodPrintStderr("hit %d %d  current picked %d %d\n", ob, co, 
+                        pickedObject, pickedContour);
+    }
+  } else {
+
+    // Otherwise look up position in mesh
+    if (co >= obj->meshsize || pt >= obj->mesh[co].vsize || a->standalone)
+      return;
+    a->vi->xmouse = obj->mesh[co].vert[pt].x;
+    a->vi->ymouse = obj->mesh[co].vert[pt].y;
+    a->vi->zmouse = obj->mesh[co].vert[pt].z;
+    ivwBindMouse(a->vi);
+    imodDraw(a->vi, IMOD_DRAW_XYZ);
+    if (imodDebug('p'))
+      imodPrintStderr ("Contourless mesh, point at %.1f %.1f %.1f\n", 
+                       a->vi->xmouse, a->vi->ymouse, a->vi->zmouse);
   }
 }
 
 // For select mode, set up for picking then call draw routine
 static void imodvSelect(ImodvApp *a, bool moving)
 {
-  static GLuint buf[SELECT_BUFSIZE];
+
+  // 5/29/08: This was static, but why?  It stays in scope while needed.
+  GLuint buf[SELECT_BUFSIZE];
   GLint hits;
   int x, y;
+  //QTime picktime;
+  //picktime.start();
 
   imodv_winset(a);
   imodv_query_pointer(a, &x, &y);
@@ -1116,6 +1159,7 @@ static void imodvSelect(ImodvApp *a, bool moving)
   a->doPick = 0;
   hits = glRenderMode( GL_RENDER );
   processHits(a, hits, buf, moving);
+  //imodPrintStderr("Pick time %d\n", picktime.elapsed());
 }
 
 static int imodvStepTime(ImodvApp *a, int tstep)
@@ -1218,6 +1262,9 @@ void imodvMovieTimeout()
 /*
 
 $Log$
+Revision 4.39  2008/05/28 05:57:58  mast
+Prevent pick on extra object from doing bad things
+
 Revision 4.38  2008/05/27 05:49:34  mast
 Added hot keys for axis views, rearranged some keys
 
