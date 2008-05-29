@@ -11,6 +11,26 @@ series after subtracting the noise floor.  The method is based on periodogram
 averaging.  The user can interactively choose which projection views are
 included in the averaging.
 
+The noise floor is based on actual measurements of noise in an image taken
+with no specimen in the beam.  Thus, in order to use this program, you need to
+collect a set of such blank images, at a series of beam intensities, and place
+each image in a separate file.  These noise files are specific not only to the
+microscope but also to the CCD camera used, the operating voltage, and the
+binning.  The mean counts in these files should span the range of the mean
+counts in the data being analyzed.  The interval between intensities can be a
+factor of 1.5; interpolation is used to estimate the noise for an image whose
+mean counts do not match one of the noise files.  For example, for a camera
+that has a gain of 10 counts per electron, one might collect images at mean
+counts near 100, 150, 225, etc., up to 2210.  With a 1 nm pixel size, these
+noise files could be used with images where the dose recorded at the camera
+ranged from 0.1 to 2.2 electrons per square Angstrom.  If you need files for
+analyzing both unbinned and binned data, you can take one set of unbinned
+noise images and then bin them with Newstack(1).
+
+If there are significant numbers of X-rays in the noise images, you should
+clean them with Ccderaser(1), such as with:
+   ccderaser -find -peak 8 -diff 8  input_fle output_file
+
 To read a general description of the plots and tool buttons, click the handbook
 icon to access the HTML help page.
 
