@@ -1,7 +1,12 @@
 IMOD History
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-5/28/08: Fixed sphere drawing in slicer when there is a Z scale or differential 
-binning.
+5/29/08: Right mouse button can now be used to select points in the isosurface
+display; the current image point is set to the picked point.
+
+5/29/08: Fixed crash when starting a new model with model view open.
+
+5/28/08: Fixed sphere drawing in slicer when there is a Z scale or
+differential binning.
 
 5/27/08: IMOD_3-12-10
 5/27/08: Fixed running of Tilt from Whole Tomogram Positioning (broken in 
