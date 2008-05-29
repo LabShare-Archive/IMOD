@@ -1,5 +1,8 @@
 IMOD History
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+5/29/08: Changed Tomostitch to run Blendmont with ExcludeFillFromEdges only
+if that option is specified to Tomostitch.
+
 5/29/08: Right mouse button can now be used to select points in the isosurface
 display; the current image point is set to the picked point.
 

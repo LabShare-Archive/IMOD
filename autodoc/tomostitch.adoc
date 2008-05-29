@@ -223,6 +223,20 @@ limits.  Note that the frame numbers are the fixed numbers in the supermontage
 lower if a subset of frames is being blended.  Also note that unlike in
 Blendmont(1), the Z values are numbered from 1.
 
+[Field = ExcludeFillFromEdges]
+short = exclude
+type = B
+usage = Exclude areas filled with constant values from edge functions
+tooltip = 
+manpage = With option, Blendmont(1) will detect image areas near an
+overlap zone that consist of uniform values and exclude these areas when
+computing the edge function.  In addition, in areas along an edge where one
+piece consists of uniform values and the other has actual image data, it will
+use the actual data across the whole edge instead of transitioning to the
+uniform data.  This option is helpful when stitching a pair of volumes that do
+not line up well vertically or horizontally, but it can produce artifacts with
+supermontages that are laid out more regularly.
+
 [Field = BlendingWidthXandY]
 short = width
 type = IP
@@ -233,6 +247,10 @@ The default is:
 ^  80% of the overlap zone width for overlap width less than 63,
 ^  50 pixels for overlap width between 63 and 100, or
 ^  50% of the overlap width for overlap width greater than 100.
+^You will probably need to set a width smaller than the default if you made 
+extra-large tomograms to avoid losing good regions from the
+rotation of the tilt axis to vertical, and you did not trim the size back in
+the warped volumes that are being blended.
 
 [Field = BoxSizeShortAndLong]
 short = boxsize
