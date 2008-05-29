@@ -640,7 +640,7 @@ int createNewModel(char *modelFilename)
   imod_cmap(App->cvi->imod);
 
   imod_info_setobjcolor();
-  imodDraw(App->cvi, IMOD_DRAW_MOD);
+  imodDraw(App->cvi, IMOD_DRAW_MOD | IMOD_DRAW_SKIPMODV);
 
   imod_info_setocp();
   ivwSetModelTrans(App->cvi);
@@ -810,6 +810,9 @@ static int mapErrno(int errorCode)
 
 /*
 $Log$
+Revision 4.25  2007/11/10 17:24:46  mast
+Syncronize slicer angle to created model
+
 Revision 4.24  2007/06/13 23:51:49  mast
 Inform slicer of new model
 
