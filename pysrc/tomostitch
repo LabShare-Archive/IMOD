@@ -94,7 +94,7 @@ options = ["info:InfoFile:FN:", "xrun:XRunStartEnd:IP:",
            "yrun:YRunStartEnd:IP:", "zrun:ZRun:IP:",
            "thickness:ThicknessToOutput:I:", "find:FindWarping:B:",
            "warp:WarpVolumes:B:", "stack:StackVolumes:B:",
-           "blend:BlendVolumes:B:", "verbose:VerboseOutput:B:",
+           "blend:BlendVolumes:B:", "verbose:VerboseOutput:I:",
            "target:TargetMeanResidual:FA:",
            "measured:MeasuredRatioMinAndMax:FP:",
            "discount:DiscountIfZeroVectors:F:",
@@ -104,7 +104,8 @@ options = ["info:InfoFile:FN:", "xrun:XRunStartEnd:IP:",
            "xminmax:StartingAndEndingX:IP:",
            "yminmax:StartingAndEndingY:IP:", "bin:BinByFactor:I:",
            "oldedge:OldEdgeFunctions:B:", "goodedge:GoodEdgeLowAndHighZ:IP:",
-           "onegood:OneGoodEdgeLimits:IAM:", "width:BlendingWidthXandY:IP:",
+           "onegood:OneGoodEdgeLimits:IAM:",
+           "exclude:ExcludeFillFromEdges:B:", "width:BlendingWidthXandY:IP:",
            "boxsize:BoxSizeShortAndLong:IP:"]
 
 (numOpts, numNonOpts) = PipReadOrParseOptions(sys.argv, options, progname, 1, \
@@ -189,6 +190,7 @@ blendWidthX, blendWidthY = PipGetTwoIntegers('BlendingWidthXandY', -1, -1)
 boxShort, boxLong = PipGetTwoIntegers('BoxSizeShortAndLong', -1, -1)
 binFactor = PipGetInteger('BinByFactor', 1)
 oldedges = PipGetBoolean('OldEdgeFunctions', 0)
+excludeFill = PipGetBoolean('ExcludeFillFromEdges', 0)
 matchWidthX, matchWidthY = PipGetTwoIntegers('MatchingWidthXandY', -1, -1)
 matchLengthX, matchLengthY = PipGetTwoIntegers('MatchingLengthXandY', -1, -1)
 verbose = PipGetInteger('VerboseOutput', 0)
@@ -638,7 +640,7 @@ if doblend:
              'OldEdgeFunctions\t%d' % oldedges,
              'StartingAndEndingX\t' + xstnd,
              'StartingAndEndingY\t' + ystnd,
-             'ExcludeFillFromEdges\t1']
+             'ExcludeFillFromEdges\t%d' % excludeFill]
     if binFactor > 1:
         input.append('BinByFactor\t %d' % binFactor)
     if goodLowZ >= 0 and goodHiZ >=0:
@@ -712,6 +714,10 @@ sys.exit(0)
 
 #
 # $Log$
+# Revision 1.6  2008/04/27 21:26:58  mast
+# Modified to match densities across overlap zones and resolve into single
+# density scaling, added options to control that and for verbose output
+#
 # Revision 1.5  2008/04/26 19:43:11  mast
 # Added new density matching scheme based on overlap zones
 #
