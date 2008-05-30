@@ -43,24 +43,24 @@ public final class UIHarness {
   private UIHarness() {
   }
 
-  void setVerbose(boolean verbose) {
+  public void setVerbose(boolean verbose) {
     this.verbose = verbose;
     if (isHead()) {
       mainFrame.setVerbose(verbose);
     }
   }
 
-  void setLog(boolean log) {
+  public void setLog(boolean log) {
     this.log = log;
   }
 
-  void moveSubFrame() {
+  public void moveSubFrame() {
     if (isHead()) {
       mainFrame.moveSubFrame();
     }
   }
 
-  void toFront(AxisID axisID) {
+  public void toFront(AxisID axisID) {
     if (isHead()) {
       mainFrame.toFront(axisID);
     }
@@ -538,6 +538,9 @@ public final class UIHarness {
 }
 /**
  * <p> $Log$
+ * <p> Revision 1.29  2007/12/26 22:39:02  sueh
+ * <p> bug# 1052 Added exit - general way to exit from Etomo.
+ * <p>
  * <p> Revision 1.28  2007/09/07 00:29:43  sueh
  * <p> bug# 989 Using a public INSTANCE to refer to the EtomoDirector singleton
  * <p> instead of getInstance and createInstance.
