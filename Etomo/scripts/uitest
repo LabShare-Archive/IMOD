@@ -187,7 +187,7 @@ export IMOD_TEST_SECTION=$1
 echo "starting eTomo UI test:  Test section $IMOD_TEST_SECTION"
 echo "class_path:  $class_path"
 java -Xmx${ETOMO_MEM_LIM} -cp "$class_path" \
-junit.textui.TestRunner etomo.JfcUnitTests 2>${errlog} >${outlog}
+junit.textui.TestRunner etomo.uitest.JfcUnitTests 2>${errlog} >${outlog}
 #
 # $Log$
 #
