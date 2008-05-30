@@ -23,6 +23,9 @@ import etomo.type.AxisID;
  * @version $Revision$
  * 
  * <p> $Log$
+ * <p> Revision 1.8  2008/01/31 20:24:49  sueh
+ * <p> bug# 1055 throwing a FileException when LogFile.getInstance fails.
+ * <p>
  * <p> Revision 1.7  2007/08/16 16:31:55  sueh
  * <p> bug# 1035 Added NEWSTACK.
  * <p>
@@ -149,7 +152,7 @@ public final class AutodocFactory {
     Autodoc autodoc = new Autodoc(true);
     autodoc.setDebug(true);
     try {
-      autodoc.initialize(file, true, false);
+      autodoc.initialize(file, true, false, true);
       return autodoc;
     }
     catch (FileNotFoundException e) {
@@ -164,7 +167,7 @@ public final class AutodocFactory {
     }
     Autodoc autodoc = new Autodoc(true);
     try {
-      autodoc.initialize(file, true, false);
+      autodoc.initialize(file, true, false, true);
       return autodoc;
     }
     catch (FileNotFoundException e) {
@@ -179,7 +182,7 @@ public final class AutodocFactory {
     }
     Autodoc autodoc = new Autodoc(true);
     try {
-      autodoc.initialize(file, false, false);
+      autodoc.initialize(file, false, false, true);
       return autodoc;
     }
     catch (FileNotFoundException e) {
@@ -194,7 +197,7 @@ public final class AutodocFactory {
     }
     Autodoc autodoc = new Autodoc();
     try {
-      autodoc.initialize(file, true, true);
+      autodoc.initialize(file, true, true, false);
       return autodoc;
     }
     catch (FileNotFoundException e) {
@@ -218,7 +221,7 @@ public final class AutodocFactory {
     }
     Autodoc autodoc = new Autodoc();
     try {
-      autodoc.initialize(file, false, true);
+      autodoc.initialize(file, false, true, false);
       return autodoc;
     }
     catch (FileNotFoundException e) {
