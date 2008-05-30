@@ -58,6 +58,11 @@ import etomo.util.DatasetFiles;
  * @version $Revision$
  *
  * <p> $Log$
+ * <p> Revision 1.57  2008/05/28 02:50:10  sueh
+ * <p> bug# 1111 Add a dialogType parameter to the ProcessSeries
+ * <p> constructor.  DialogType must be passed to any function that constructs
+ * <p> a ProcessSeries instance.
+ * <p>
  * <p> Revision 1.56  2008/05/13 23:02:23  sueh
  * <p> bug# 847 Adding a right click menu for deferred 3dmods to some
  * <p> process buttons.
@@ -666,7 +671,7 @@ public final class JoinDialog implements ContextMenu, Run3dmodButtonContainer {
    * @param workingDirName
    */
   private void createTabPane(String workingDirName) {
-    tabPane = new JTabbedPane();
+    tabPane = new TabbedPane();
     //tabPane.addMouseListener(new GenericMouseAdapter(this));
     //TabChangeListener tabChangeListener = new TabChangeListener(this);
     //tabPane.addChangeListener(tabChangeListener);
