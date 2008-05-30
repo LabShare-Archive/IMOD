@@ -14,6 +14,9 @@
  * @version $Revision$
  *
  * <p> $Log$
+ * <p> Revision 3.32  2008/05/30 21:33:41  sueh
+ * <p> bug# 1102 Moved uitest classes to etomo.uitest.
+ * <p>
  * <p> Revision 3.31  2007/12/26 22:26:06  sueh
  * <p> bug# 1052 Return true when done() completes successfully.
  * <p>
@@ -176,7 +179,7 @@ import etomo.storage.autodoc.AutodocTokenizer;
 import etomo.type.AxisID;
 import etomo.type.DialogExitState;
 import etomo.type.DialogType;
-import etomo.uitest.DialogSectionCommand;
+import etomo.type.UITestAction;
 import etomo.util.Utilities;
 
 public abstract class ProcessDialog implements AbstractParallelDialog {
@@ -221,7 +224,7 @@ public abstract class ProcessDialog implements AbstractParallelDialog {
     rootPanel.setName(name);
     if (EtomoDirector.INSTANCE.getArguments().isPrintNames()) {
       System.out.println(AutodocTokenizer.OPEN_CHAR
-          + DialogSectionCommand.SECTION_TYPE + ' '
+          + UITestAction.DIALOG.toString() + ' '
           + AutodocTokenizer.DEFAULT_DELIMITER + ' ' + name
           + AutodocTokenizer.CLOSE_CHAR);
     }

@@ -18,7 +18,7 @@ import etomo.storage.autodoc.AutodocTokenizer;
 import etomo.storage.autodoc.ReadOnlySection;
 import etomo.type.EnumeratedType;
 import etomo.type.EtomoAutodoc;
-import etomo.uitest.UITestField;
+import etomo.type.UITestField;
 import etomo.util.Utilities;
 
 /**
@@ -225,6 +225,9 @@ final class RadioButton implements RadioButtonInterface {
 }
 /**
  * <p> $Log$
+ * <p> Revision 1.19  2008/05/30 21:33:56  sueh
+ * <p> bug# 1102 Moved uitest classes to etomo.uitest.
+ * <p>
  * <p> Revision 1.18  2008/02/29 20:51:20  sueh
  * <p> bug# 1092 Added toString().
  * <p>

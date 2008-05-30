@@ -1,6 +1,5 @@
-package etomo.type;
+package etomo.uitest;
 
-import etomo.util.CallbackClass;
 
 /**
 * <p>Description: </p>
@@ -27,5 +26,9 @@ public final class CallbackClassEnum {
   }
 }
 /**
-* <p> $Log$ </p>
+* <p> $Log$
+* <p> Revision 1.1  2006/06/27 22:34:21  sueh
+* <p> bug# 852 An enumerator of classes that implement CallbackClass.  Can get
+* <p> instances of callback classes.
+* <p> </p>
 */

@@ -29,8 +29,8 @@ import etomo.storage.autodoc.AutodocTokenizer;
 import etomo.type.AxisID;
 import etomo.type.AxisType;
 import etomo.type.BaseMetaData;
-import etomo.uitest.UITestAction;
-import etomo.uitest.UITestField;
+import etomo.type.UITestAction;
+import etomo.type.UITestField;
 import etomo.util.Utilities;
 
 /**
@@ -856,6 +856,9 @@ abstract class EtomoFrame extends JFrame {
 }
 /**
  * <p> $Log$
+ * <p> Revision 1.38  2008/05/30 21:28:16  sueh
+ * <p> bug# 1102 Moved uitest classes to etomo.uitest.
+ * <p>
  * <p> Revision 1.37  2008/05/28 17:30:01  sueh
  * <p> bug# 1110 Handle a null pointer when calling super.pack().  Not much
  * <p> can be done about it and the pack isn't critical.  But it may show that the

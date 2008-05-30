@@ -12,6 +12,9 @@
  * @version $Revision$
  * 
  * <p> $Log$
+ * <p> Revision 1.21  2008/05/30 21:31:24  sueh
+ * <p> bug# 1102 Moved uitest classes to etomo.uitest.
+ * <p>
  * <p> Revision 1.20  2007/12/26 22:24:29  sueh
  * <p> bug# 1052 Moved argument handling from EtomoDirector to a separate class.
  * <p>
@@ -107,7 +110,7 @@ import javax.swing.SpinnerNumberModel;
 import etomo.EtomoDirector;
 import etomo.storage.autodoc.AutodocTokenizer;
 import etomo.type.ConstEtomoNumber;
-import etomo.uitest.UITestField;
+import etomo.type.UITestField;
 import etomo.util.Utilities;
 
 public class LabeledSpinner {

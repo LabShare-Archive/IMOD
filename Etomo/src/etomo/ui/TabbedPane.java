@@ -6,7 +6,7 @@ import javax.swing.JTabbedPane;
 
 import etomo.EtomoDirector;
 import etomo.storage.autodoc.AutodocTokenizer;
-import etomo.uitest.UITestField;
+import etomo.type.UITestField;
 import etomo.util.Utilities;
 
 /**
@@ -49,6 +49,9 @@ final class TabbedPane extends JTabbedPane {
 }
 /**
  * <p> $Log$
+ * <p> Revision 1.4  2008/05/30 21:34:46  sueh
+ * <p> bug# 1102 Moved uitest classes to etomo.uitest.
+ * <p>
  * <p> Revision 1.3  2007/12/26 22:34:57  sueh
  * <p> bug# 1052 Moved argument handling from EtomoDirector to a separate class.
  * <p>

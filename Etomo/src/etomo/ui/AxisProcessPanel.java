@@ -18,8 +18,8 @@ import etomo.type.AxisID;
 import etomo.type.EtomoNumber;
 import etomo.type.ProcessEndState;
 import etomo.type.ProcessName;
-import etomo.uitest.UITestAction;
-import etomo.uitest.UITestField;
+import etomo.type.UITestAction;
+import etomo.type.UITestField;
 import etomo.util.Utilities;
 
 /**
@@ -35,6 +35,9 @@ import etomo.util.Utilities;
  * @version $Revision$
  *
  * <p> $Log$
+ * <p> Revision 3.35  2008/05/30 21:27:44  sueh
+ * <p> bug# 1102 Moved uitest classes to etomo.uitest.
+ * <p>
  * <p> Revision 3.34  2007/12/26 22:22:22  sueh
  * <p> bug# 1052 Moved argument handling from EtomoDirector to a separate class.
  * <p>

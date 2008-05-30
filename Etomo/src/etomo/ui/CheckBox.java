@@ -4,7 +4,7 @@ import javax.swing.JCheckBox;
 
 import etomo.EtomoDirector;
 import etomo.storage.autodoc.AutodocTokenizer;
-import etomo.uitest.UITestField;
+import etomo.type.UITestField;
 import etomo.util.Utilities;
 /**
 * <p>Description: </p>
@@ -20,6 +20,9 @@ import etomo.util.Utilities;
 * @version $Revision$
 * 
 * <p> $Log$
+* <p> Revision 1.12  2008/05/30 21:28:02  sueh
+* <p> bug# 1102 Moved uitest classes to etomo.uitest.
+* <p>
 * <p> Revision 1.11  2007/12/26 22:22:42  sueh
 * <p> bug# 1052 Moved argument handling from EtomoDirector to a separate class.
 * <p>
@@ -89,6 +92,9 @@ final class CheckBox extends JCheckBox {
 }
 /**
 * <p> $Log$
+* <p> Revision 1.12  2008/05/30 21:28:02  sueh
+* <p> bug# 1102 Moved uitest classes to etomo.uitest.
+* <p>
 * <p> Revision 1.11  2007/12/26 22:22:42  sueh
 * <p> bug# 1052 Moved argument handling from EtomoDirector to a separate class.
 * <p>

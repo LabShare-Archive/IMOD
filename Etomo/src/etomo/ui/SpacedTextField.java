@@ -12,7 +12,7 @@ import javax.swing.JTextField;
 import etomo.EtomoDirector;
 import etomo.storage.autodoc.AutodocTokenizer;
 import etomo.type.ConstEtomoNumber;
-import etomo.uitest.UITestField;
+import etomo.type.UITestField;
 import etomo.util.Utilities;
 
 /**
@@ -134,6 +134,9 @@ final class SpacedTextField {
 }
 /**
 * <p> $Log$
+* <p> Revision 1.7  2008/05/30 21:34:07  sueh
+* <p> bug# 1102 Moved uitest classes to etomo.uitest.
+* <p>
 * <p> Revision 1.6  2007/12/26 22:31:54  sueh
 * <p> bug# 1052 Moved argument handling from EtomoDirector to a separate class.
 * <p>

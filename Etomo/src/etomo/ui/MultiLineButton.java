@@ -13,7 +13,7 @@ import etomo.type.DialogType;
 import etomo.type.ProcessResult;
 import etomo.type.ProcessResultDisplay;
 import etomo.type.ProcessResultDisplayState;
-import etomo.uitest.UITestField;
+import etomo.type.UITestField;
 import etomo.util.Utilities;
 
 import java.awt.Color;
@@ -43,6 +43,9 @@ import java.lang.String;
  * @version $Revision$
  *
  * <p> $Log$
+ * <p> Revision 3.33  2008/05/30 21:32:45  sueh
+ * <p> bug# 1102 Moved uitest classes to etomo.uitest.
+ * <p>
  * <p> Revision 3.32  2008/05/03 00:51:16  sueh
  * <p> bug# 847 Reformatted.
  * <p>
