@@ -99,6 +99,8 @@ final class Autodoc extends WriteOnlyStatementList implements WritableAutodoc {
   private final AttributeList attributeList;
   private String currentDelimiter = AutodocTokenizer.DEFAULT_DELIMITER;
   private boolean debug = false;
+  private boolean commandLanguage = false;
+  private boolean writable = false;
 
   Autodoc() {
     this(false);
@@ -142,6 +144,10 @@ final class Autodoc extends WriteOnlyStatementList implements WritableAutodoc {
     return existingSection;
   }
 
+  void setCommandLanguage() {
+    commandLanguage = true;
+  }
+
   boolean isGlobal() {
     return true;
   }
@@ -163,6 +169,10 @@ final class Autodoc extends WriteOnlyStatementList implements WritableAutodoc {
   }
 
   public void write() throws LogFile.FileException, LogFile.WriteException {
+    if (!writable) {
+      new IllegalStateException("Not a writable autodoc.").printStackTrace();
+      return;
+    }
     long writeId = autodocFile.openWriter();
     for (int i = 0; i < statementList.size(); i++) {
       ((Statement) statementList.get(i)).write(autodocFile, writeId);
@@ -185,11 +195,13 @@ final class Autodoc extends WriteOnlyStatementList implements WritableAutodoc {
     Attribute attribute = attributeList.getAttribute(name);
     Token valueToken = new Token();
     valueToken.set(Token.Type.ANYTHING, value);
-    //add name/value pair
+    //add name/value pair - command language only
+    //if (commandLanguage) {
     NameValuePair pair = addNameValuePair();
     //add attribute and value to pair
     pair.addAttribute(attribute);
     pair.addValue(valueToken);
+    //}
   }
 
   /**
@@ -589,9 +601,10 @@ final class Autodoc extends WriteOnlyStatementList implements WritableAutodoc {
    * @throws IOException
    * @throws LogFile.ReadException
    */
-  void initialize(File file, boolean storeData, boolean versionRequired)
-      throws FileNotFoundException, IOException, LogFile.ReadException,
-      LogFile.FileException {
+  void initialize(File file, boolean storeData, boolean versionRequired,
+      boolean writable) throws FileNotFoundException, IOException,
+      LogFile.ReadException, LogFile.FileException {
+    this.writable = writable;
     autodocFile = LogFile.getInstance(file);
     parser = new AutodocParser(this, allowAltComment, versionRequired, debug);
     if (storeData) {
@@ -613,6 +626,9 @@ final class Autodoc extends WriteOnlyStatementList implements WritableAutodoc {
 }
 /**
  *<p> $$Log$
+ *<p> $Revision 1.24  2008/01/31 20:24:40  sueh
+ *<p> $bug# 1055 throwing a FileException when LogFile.getInstance fails.
+ *<p> $
  *<p> $Revision 1.23  2007/08/01 22:43:05  sueh
  *<p> $bug# 985 Added runInternalTest to ReadOnlyAutodoc.
  *<p> $
