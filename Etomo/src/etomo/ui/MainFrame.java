@@ -31,6 +31,11 @@ import etomo.util.UniqueKey;
  * @version $Revision$
  *
  * <p> $Log$
+ * <p> Revision 3.46  2008/01/14 22:06:15  sueh
+ * <p> bug# 1050 Moved axis B reconnect from ApplicationManager to showAxisB and
+ * <p> showBothAxis because reconnect to processchunks cannot be done unless the
+ * <p> axis is visible.
+ * <p>
  * <p> Revision 3.45  2007/12/26 22:24:56  sueh
  * <p> bug# 1052 Moved argument handling from EtomoDirector to a separate class.
  * <p>
@@ -414,7 +419,7 @@ import etomo.util.UniqueKey;
  * <p> Initial CVS entry, basic functionality not including combining
  * <p> </p>
  */
-final class MainFrame extends EtomoFrame implements ContextMenu {
+public final class MainFrame extends EtomoFrame implements ContextMenu {
   public static final String rcsid = "$Id$";
   
   public static final String NAME = "main-frame";
