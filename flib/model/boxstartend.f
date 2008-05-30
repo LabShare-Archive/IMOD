@@ -55,7 +55,7 @@ c
       integer*4 npredict, iobj, ngutter, nzout, nclip, loopst, loopnd, loop
       integer*4 indleft, indright, indbot, indtop, indzlo, indzhi,indz, indg
       integer*4 indar, ipc, ixpc, iypc, ipxstr, ipystr, ipxend, ipyend, kti,jnd
-      integer*4 newypiece, newxpiece, indx, indy,iz
+      integer*4 newypiece, newxpiece, indx, indy,iz, npixby, npixbz,npbot,nptop
       real*4 tmean,dmean2
       logical*4 backxform
       integer*4 getImodObjSize, getimodflags
@@ -64,7 +64,7 @@ c
       logical pipinput
       integer*4 numOptArg, numNonOptArg
       integer*4 PipGetString,PipGetInteger,PipGetLogical
-      integer*4 PipGetInOutFile,PipGetTwoIntegers
+      integer*4 PipGetInOutFile,PipGetTwoIntegers, PipGetThreeIntegers
 c       
 c       fallbacks from ../../manpages/autodoc2man -2 2  boxstartend
 c
@@ -233,8 +233,14 @@ c
 c       
       if (pipinput) then
         ierr = PipGetInteger('WhichPointsToExtract', ifstrtend)
-        if (PipGetInteger('BoxSizeXY', npixbox) .ne. 0) call exitError
-     &      ('BOX SIZE MUST BE ENTERED')
+        if (PipGetInteger('BoxSizeXY', npixbox) .ne. 0) then
+          if (PipGetThreeIntegers('VolumeSizeXYZ', npixbox, npixby, npixbz)
+     &        .ne. 0) call exitError(
+     &        'BOX SIZE MUST BE ENTERED WITH -box OR -volume')
+        else
+          npixby = npixbox
+          npixbz = npixbox
+        endif
       else
         write(*,'(1x,a,$)')
      &      'Clip out starts (0) or ends (1) or all points (-1): '
@@ -242,18 +248,22 @@ c
 c       
         write(*,'(1x,a,$)')'Box size in pixels: '
         read(*,*)npixbox
+        npixby = npixbox
+        npixbz = npixbox
       endif
-      npixsq = npixbox**2
+      npixsq = npixbox*npixby
       npleft=(npixbox-1)/2
       npright=npixbox-npleft-1
+      npbot = (npixby-1) / 2
+      nptop = npixby - npbot - 1
       offset(1) = -0.5 * (1 + npright - npleft)
-      offset(2) = offset(1)
+      offset(2) = -0.5 * (1 + nptop - npbot)
       ibbase = idim - npixsq
       iabase = ibbase - npixsq
       if (iabase .lt. 0) call exitError('BOX SIZE TOO LARGE FOR ARRAYS')
 c       
-      nzbefore = npixbox / 2
-      nzafter = npixbox - 1 - nzbefore
+      nzbefore = npixbz / 2
+      nzafter = npixbz - 1 - nzbefore
       if (pipinput) then
         ierr = PipGetTwoIntegers('SlicesBelowAndAbove', nzbefore, nzafter)
       else
@@ -261,10 +271,12 @@ c
      &      ' after endpoint to clip out: '
         read(*,*)nzbefore,nzafter
       endif
+      print *,nzbefore, nzafter
       nzclip=nzbefore+nzafter+1
-      if (nzclip .lt. 1 .or. npixbox .lt. 1)
+      if (nzclip .lt. 1 .or. npixbox .lt. 1 .or. npixby .lt. 1)
      &    call exitError('BOX SIZE AND NUMBER OF SLICES MUST BE POSITIVE')
-      offset(3) = -0.495 * (1 + nzafter - nzbefore)
+      offset(3) = 0.
+      if (mod(nzbefore,2) .eq. mod(nzafter,2)) offset(3) = -0.495
 c       
 c       Manage the Z limits if none entered
       if (indzmin .eq. -99999) indzmin = listz(1) - nzbefore
@@ -315,7 +327,7 @@ c
 c         
         call imopen(2,filin,'new')
         nxyz2(1)=npixbox
-        nxyz2(2)=npixbox
+        nxyz2(2)=npixby
         nxyz2(3)=1
         call itrhdr(2,1)
         call ialsiz(2,nxyz2,nxyzst)
@@ -373,10 +385,11 @@ c             is it inside limits?
 c             
             indleft=ind(1)-npleft
             indright=ind(1)+npright
-            indbot=ind(2)-npleft
-            indtop=ind(2)+npright
+            indbot=ind(2)-npbot
+            indtop=ind(2)+nptop
             indzlo=ind(3)-nzbefore
             indzhi=ind(3)+nzafter
+            print *,ind(3),indzlo, indzhi
             if(ind(1).ge.indxmin .and. ind(1).le.indxmax .and.
      &          ind(2).ge.indymin .and. ind(2).le.indymax .and.
      &          indzlo.ge.indzmin .and. indzhi.le.indzmax)then
@@ -397,7 +410,7 @@ c
                 filin=concat(concat(rootname,'.'),convnum)
                 call imopen(2,filin,'new')
                 nxyz2(1)=npixbox
-                nxyz2(2)=npixbox
+                nxyz2(2)=npixby
                 nxyz2(3)=nzclip
                 call itrhdr(2,1)
                 call ialsiz(2,nxyz2,nxyzst)
@@ -421,8 +434,8 @@ c
                     ind(2)=nint(ynew)
                     indleft=ind(1)-npleft
                     indright=ind(1)+npright
-                    indbot=ind(2)-npleft
-                    indtop=ind(2)+npright
+                    indbot=ind(2)-npbot
+                    indtop=ind(2)+nptop
                   endif
                 endif
                 indar=indz+1-indzlo
@@ -449,7 +462,7 @@ c                       if it intersects, read in intersecting part, move it
 c                       into appropriate part of array
 c                       
                       call imposn(1,ipc-1,0)
-                      call irdpas(1,array(iabase+1),npixbox,npixbox,
+                      call irdpas(1,array(iabase+1),npixbox,npixby,
      &                    ipxstr-ixpc, ipxend-ixpc,ipystr-iypc,ipyend-iypc,*99)
                       do iy=1,ipyend+1-ipystr
                         do ix=1,ipxend+1-ipxstr
@@ -464,8 +477,8 @@ c
 c                 write piece list and slice
 c
                 if(filpcl2.ne.' ')write(4,'(3i6)')indleft,indbot,indz
-                call iclden(brray(ibbase+1),npixbox,npixbox,1,npixbox,1,
-     &              npixbox,tmin,tmax,tmean)
+                call iclden(brray(ibbase+1),npixbox,npixby,1,npixbox,1,
+     &              npixby,tmin,tmax,tmean)
                 dmin2=min(dmin2,tmin)
                 dmax2=max(dmax2,tmax)
                 dsum=dsum+tmean
@@ -517,8 +530,8 @@ c
               avgray(jnd)=avgray(jnd)/nclip
             enddo
             jnd = 1 + (indar - 1) * npixsq
-            call iclden(avgray(jnd),npixbox,npixbox,1,
-     &          npixbox,1, npixbox,tmin,tmax,tmean)
+            call iclden(avgray(jnd),npixbox,npixby,1,
+     &          npixbox,1, npixby,tmin,tmax,tmean)
             dmin2=min(dmin2,tmin)
             dmax2=max(dmax2,tmax)
             dsum=dsum+tmean
@@ -559,7 +572,7 @@ c
         indy=0
         do i=1,nclip
           ixpc=indx*(npixbox+ngutter)
-          iypc=indy*(npixbox+ngutter)
+          iypc=indy*(npixby+ngutter)
           do iz=0,nzclip-1
             write(3,'(3i6)')ixpc,iypc,iz
           enddo
@@ -578,6 +591,9 @@ c
 
 c       
 c       $Log$
+c       Revision 3.8  2008/03/06 23:56:23  mast
+c       Switched to scale to current volume
+c
 c       Revision 3.7  2007/12/05 20:40:40  mast
 c       Rewrote to avoid memory constraints and converted to PIP
 c
