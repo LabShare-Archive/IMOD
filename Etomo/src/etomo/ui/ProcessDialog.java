@@ -14,6 +14,9 @@
  * @version $Revision$
  *
  * <p> $Log$
+ * <p> Revision 3.31  2007/12/26 22:26:06  sueh
+ * <p> bug# 1052 Return true when done() completes successfully.
+ * <p>
  * <p> Revision 3.30  2007/09/07 00:28:01  sueh
  * <p> bug# 989 Using a public INSTANCE to refer to the EtomoDirector singleton
  * <p> instead of getInstance and createInstance.
@@ -165,14 +168,15 @@ import javax.swing.Box;
 import javax.swing.BoxLayout;
 import javax.swing.JPanel;
 
+
 import etomo.ApplicationManager;
 import etomo.EtomoDirector;
 import etomo.comscript.ParallelParam;
-import etomo.storage.UITestAxisDialogCommand;
 import etomo.storage.autodoc.AutodocTokenizer;
 import etomo.type.AxisID;
 import etomo.type.DialogExitState;
 import etomo.type.DialogType;
+import etomo.uitest.DialogSectionCommand;
 import etomo.util.Utilities;
 
 public abstract class ProcessDialog implements AbstractParallelDialog {
@@ -217,7 +221,7 @@ public abstract class ProcessDialog implements AbstractParallelDialog {
     rootPanel.setName(name);
     if (EtomoDirector.INSTANCE.getArguments().isPrintNames()) {
       System.out.println(AutodocTokenizer.OPEN_CHAR
-          + UITestAxisDialogCommand.SECTION_TYPE + ' '
+          + DialogSectionCommand.SECTION_TYPE + ' '
           + AutodocTokenizer.DEFAULT_DELIMITER + ' ' + name
           + AutodocTokenizer.CLOSE_CHAR);
     }

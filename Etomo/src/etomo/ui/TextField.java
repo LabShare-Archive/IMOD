@@ -8,7 +8,7 @@ import javax.swing.JTextField;
 
 import etomo.EtomoDirector;
 import etomo.storage.autodoc.AutodocTokenizer;
-import etomo.type.UITestField;
+import etomo.uitest.UITestField;
 import etomo.util.Utilities;
 
 /**
@@ -107,6 +107,9 @@ final class TextField {
 }
 /**
  * <p> $Log$
+ * <p> Revision 1.6  2008/02/19 00:47:46  sueh
+ * <p> bug# 1078 Added setTextPreferredWidth.
+ * <p>
  * <p> Revision 1.5  2007/12/26 22:35:07  sueh
  * <p> bug# 1052 Moved argument handling from EtomoDirector to a separate class.
  * <p>

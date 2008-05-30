@@ -9,7 +9,7 @@ import javax.swing.*;
 import etomo.EtomoDirector;
 import etomo.storage.autodoc.AutodocTokenizer;
 import etomo.type.ConstEtomoNumber;
-import etomo.type.UITestField;
+import etomo.uitest.UITestField;
 import etomo.util.Utilities;
 
 /**
@@ -25,6 +25,9 @@ import etomo.util.Utilities;
  * @version $Revision$
  *
  * <p> $Log$
+ * <p> Revision 3.28  2008/04/02 19:06:24  sueh
+ * <p> bug# 1104 Allow field specific debugging in ToolTipFormatter.
+ * <p>
  * <p> Revision 3.27  2007/12/26 22:24:38  sueh
  * <p> bug# 1052 Moved argument handling from EtomoDirector to a separate class.
  * <p>

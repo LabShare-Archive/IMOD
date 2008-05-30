@@ -12,7 +12,7 @@ import javax.swing.JTextField;
 import etomo.EtomoDirector;
 import etomo.storage.autodoc.AutodocTokenizer;
 import etomo.type.ConstEtomoNumber;
-import etomo.type.UITestField;
+import etomo.uitest.UITestField;
 import etomo.util.Utilities;
 
 /**
@@ -134,6 +134,9 @@ final class SpacedTextField {
 }
 /**
 * <p> $Log$
+* <p> Revision 1.6  2007/12/26 22:31:54  sueh
+* <p> bug# 1052 Moved argument handling from EtomoDirector to a separate class.
+* <p>
 * <p> Revision 1.5  2007/09/07 00:28:51  sueh
 * <p> bug# 989 Using a public INSTANCE to refer to the EtomoDirector singleton
 * <p> instead of getInstance and createInstance.

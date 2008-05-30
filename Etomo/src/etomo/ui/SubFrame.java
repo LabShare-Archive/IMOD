@@ -24,7 +24,7 @@ import etomo.BaseManager;
  * 
  * @version $Revision$
  */
-final class SubFrame extends EtomoFrame {
+public final class SubFrame extends EtomoFrame {
   public static final String rcsid = "$Id$";
 
   public static final String NAME = "sub-frame";
@@ -159,6 +159,9 @@ final class SubFrame extends EtomoFrame {
 }
 /**
  * <p> $Log$
+ * <p> Revision 1.8  2006/04/25 19:21:52  sueh
+ * <p> bug# 787 Named the sub frame.
+ * <p>
  * <p> Revision 1.7  2005/12/09 20:35:54  sueh
  * <p> bug# 776 In EtomoMenu removed the getActionCommand... functions and
  * <p> replaced them with equals().

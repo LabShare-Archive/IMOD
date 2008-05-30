@@ -7,6 +7,8 @@ import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.awt.event.MouseEvent;
 import javax.swing.*;
+
+
 import java.awt.Rectangle;
 
 import etomo.BaseManager;
@@ -16,8 +18,8 @@ import etomo.type.AxisID;
 import etomo.type.EtomoNumber;
 import etomo.type.ProcessEndState;
 import etomo.type.ProcessName;
-import etomo.type.UITestAction;
-import etomo.type.UITestField;
+import etomo.uitest.UITestAction;
+import etomo.uitest.UITestField;
 import etomo.util.Utilities;
 
 /**
@@ -33,6 +35,9 @@ import etomo.util.Utilities;
  * @version $Revision$
  *
  * <p> $Log$
+ * <p> Revision 3.34  2007/12/26 22:22:22  sueh
+ * <p> bug# 1052 Moved argument handling from EtomoDirector to a separate class.
+ * <p>
  * <p> Revision 3.33  2007/09/27 20:31:22  sueh
  * <p> bug# 1044 Made ProcessorTable the ParallelProgress display instead of
  * <p> ParallelPanel.
@@ -241,7 +246,7 @@ import etomo.util.Utilities;
  * <p> </p>
  */
 
-abstract class AxisProcessPanel implements ContextMenu {
+public abstract class AxisProcessPanel implements ContextMenu {
   public static final String rcsid = "$Id$";
 
   public static final String KILL_BUTTON_LABEL = "Kill Process";

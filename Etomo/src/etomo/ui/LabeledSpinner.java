@@ -12,6 +12,9 @@
  * @version $Revision$
  * 
  * <p> $Log$
+ * <p> Revision 1.20  2007/12/26 22:24:29  sueh
+ * <p> bug# 1052 Moved argument handling from EtomoDirector to a separate class.
+ * <p>
  * <p> Revision 1.19  2007/09/07 00:27:11  sueh
  * <p> bug# 989 Using a public INSTANCE to refer to the EtomoDirector singleton
  * <p> instead of getInstance and createInstance.
@@ -104,7 +107,7 @@ import javax.swing.SpinnerNumberModel;
 import etomo.EtomoDirector;
 import etomo.storage.autodoc.AutodocTokenizer;
 import etomo.type.ConstEtomoNumber;
-import etomo.type.UITestField;
+import etomo.uitest.UITestField;
 import etomo.util.Utilities;
 
 public class LabeledSpinner {

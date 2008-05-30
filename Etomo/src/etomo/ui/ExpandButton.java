@@ -14,7 +14,7 @@ import javax.swing.border.BevelBorder;
 import etomo.EtomoDirector;
 import etomo.storage.autodoc.AutodocTokenizer;
 import etomo.type.DialogType;
-import etomo.type.UITestField;
+import etomo.uitest.UITestField;
 import etomo.util.Utilities;
 
 /**
@@ -36,6 +36,9 @@ import etomo.util.Utilities;
  * @version $Revision$
  * 
  * <p> $Log$
+ * <p> Revision 1.17  2007/12/26 22:23:44  sueh
+ * <p> bug# 1052 Moved argument handling from EtomoDirector to a separate class.
+ * <p>
  * <p> Revision 1.16  2007/09/07 00:26:56  sueh
  * <p> bug# 989 Using a public INSTANCE to refer to the EtomoDirector singleton
  * <p> instead of getInstance and createInstance.
@@ -115,7 +118,7 @@ import etomo.util.Utilities;
  * <p> tells the component it is displayed on when it has been pressed.
  * <p> </p>
  */
-final class ExpandButton extends MultiLineButton {
+public final class ExpandButton extends MultiLineButton {
   public static final String rcsid = "$Id$";
 
   private static final Type DEFAULT_TYPE = Type.MORE;
@@ -197,7 +200,7 @@ final class ExpandButton extends MultiLineButton {
     return expanded;
   }
 
-  static boolean isExpanded(JButton button) {
+  public static boolean isExpanded(JButton button) {
     return Type.isExpandedSymbol(button.getText());
   }
 

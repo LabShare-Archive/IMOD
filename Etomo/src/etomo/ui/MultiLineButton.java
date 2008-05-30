@@ -13,7 +13,7 @@ import etomo.type.DialogType;
 import etomo.type.ProcessResult;
 import etomo.type.ProcessResultDisplay;
 import etomo.type.ProcessResultDisplayState;
-import etomo.type.UITestField;
+import etomo.uitest.UITestField;
 import etomo.util.Utilities;
 
 import java.awt.Color;
@@ -43,6 +43,9 @@ import java.lang.String;
  * @version $Revision$
  *
  * <p> $Log$
+ * <p> Revision 3.32  2008/05/03 00:51:16  sueh
+ * <p> bug# 847 Reformatted.
+ * <p>
  * <p> Revision 3.31  2007/12/26 22:25:32  sueh
  * <p> bug# 1052 Moved argument handling from EtomoDirector to a separate class.
  * <p>

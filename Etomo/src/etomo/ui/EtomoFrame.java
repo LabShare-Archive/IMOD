@@ -18,6 +18,7 @@ import javax.swing.JFrame;
 import javax.swing.JMenuBar;
 import javax.swing.JOptionPane;
 
+
 import etomo.BaseManager;
 import etomo.EtomoDirector;
 import etomo.process.ImodqtassistProcess;
@@ -28,8 +29,8 @@ import etomo.storage.autodoc.AutodocTokenizer;
 import etomo.type.AxisID;
 import etomo.type.AxisType;
 import etomo.type.BaseMetaData;
-import etomo.type.UITestAction;
-import etomo.type.UITestField;
+import etomo.uitest.UITestAction;
+import etomo.uitest.UITestField;
 import etomo.util.Utilities;
 
 /**
@@ -770,11 +771,11 @@ abstract class EtomoFrame extends JFrame {
       bounds.width++;
       setBounds(bounds);
       try {
-        super.pack();
-      }
+      super.pack();
+    }
       catch (NullPointerException e) {
         e.printStackTrace();
-      }
+  }
     }
   }
 
@@ -855,6 +856,12 @@ abstract class EtomoFrame extends JFrame {
 }
 /**
  * <p> $Log$
+ * <p> Revision 1.37  2008/05/28 17:30:01  sueh
+ * <p> bug# 1110 Handle a null pointer when calling super.pack().  Not much
+ * <p> can be done about it and the pack isn't critical.  But it may show that the
+ * <p> display is corrupt.  I don't have enough information to try to pop up a
+ * <p> helpful message at this point.
+ * <p>
  * <p> Revision 1.36  2008/05/03 00:49:39  sueh
  * <p> bug# 847 Passing null for ProcessSeries to process funtions.
  * <p>
