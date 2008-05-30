@@ -59,7 +59,8 @@ import etomo.ui.Token;
  * WHITESPACE => The largest possible string of whitespace.
  * WORD => The largest possible string of everything not used by other Autodoc
  *         tokens.
- * KEYWORD => A WORD that match an autodoc keyword:  Version, Pip, KeyValueDelimiter
+ * KEYWORD => A WORD that matches an autodoc keyword:  Version, Pip,
+ *            KeyValueDelimiter, CommandLanguage
  *
  *
  * Language definition for the parser:
@@ -100,7 +101,7 @@ import etomo.ui.Token;
  *               
  * subsectionClose -> !emptyLine !DelimiterInLine SUBOPEN -WHITESPACE- SUBCLOSE (EOL | EOF )
  *               
- * pair => !emptyLine !DelimiterInLine name -WHITESPACE- DELIMITER -WHITESPACE- value
+ * pair => !emptyLine DelimiterInLine name -WHITESPACE- DELIMITER -WHITESPACE- value
  *         
  * name => base-attribute { SEPARATOR attribute }
  *         
@@ -149,6 +150,10 @@ import etomo.ui.Token;
  * @version $$Revision$$
  *
  * <p> $$Log$
+ * <p> $Revision 1.18  2007/08/01 22:44:20  sueh
+ * <p> $bug# 985 Moved look-ahead to tokenizer for subsection recognition.  Fixed bugs
+ * <p> $in subsection recognition.
+ * <p> $
  * <p> $Revision 1.17  2007/06/07 21:32:20  sueh
  * <p> $bug# Passing debug in constructor all the time.
  * <p> $
@@ -348,6 +353,15 @@ final class AutodocParser {
     }
     parsed = true;
     nextToken();
+    //If the first thing in the autodoc is "CommmandLanguage =" then turn on the
+    //command language boolean.
+    if (!token.is(Token.Type.EOF) && pair(autodoc)) {
+      ReadOnlyAttribute attribute = autodoc
+          .getAttribute(AutodocTokenizer.COMMAND_LANGUAGE_KEYWORD);
+      if (attribute != null && attribute.getValue() == null) {
+        autodoc.setCommandLanguage();
+      }
+    }
     while (!token.is(Token.Type.EOF)) {
       if (!emptyLine(autodoc) && !comment(autodoc) && !section()
           && !pair(autodoc)) {
@@ -656,7 +670,7 @@ final class AutodocParser {
   }
 
   /**
-   * pair => !emptyLine !DelimiterInLine name -WHITESPACE- DELIMITER -WHITESPACE- value
+   * pair => !emptyLine DelimiterInLine name -WHITESPACE- DELIMITER -WHITESPACE- value
    *         
    * Adds an attribute tree to the attribute map.
    * @throws IOException
