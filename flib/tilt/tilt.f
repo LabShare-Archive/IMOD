@@ -503,9 +503,12 @@ C       Close files
       if (.not.(reproj.or.recReproj)) then
         unscmin=dmin/scale-flevl
         unscmax=dmax/scale-flevl
-        recscale=nviews*nreplic*245./(unscmax-unscmin)
-        recflevl=(10.*(unscmax-unscmin)/245.-unscmin)/(nviews*nreplic)
+        recscale=nviews*nreplic*235./(unscmax-unscmin)
+        recflevl=(10.*(unscmax-unscmin)/235.-unscmin)/(nviews*nreplic)
         write(6,905)recflevl,recscale
+        recscale=nviews*nreplic*30000./(unscmax-unscmin)
+        recflevl=(-15000.*(unscmax-unscmin)/30000.-unscmin)/(nviews*nreplic)
+        write(6,906)recflevl,recscale
         WRITE(6,910)NSLICE
       endif
       call exit(0)
@@ -521,8 +524,8 @@ C
 901   format(' Stretching buffer            ',I9,/)
 902   format(1x,i4,  ' Untilted slices         ',I9,/)
 903   format(1X,I4,' Transposed projections  ',I9,/)
-905   format(//' To scale output to bytes (10-245), use SCALE',f12.3,
-     &    f12.5)
+905   format(//' To scale output to bytes (10-245), use SCALE',f12.3, f12.5)
+906   format(//' To scale output to -15000 to 15000, use SCALE',f12.3, f12.5)
 910   FORMAT(//' Reconstruction of',I5,' slices complete.',
      &    //,1X,78('-'))
 920   FORMAT(//' ERROR: TILT -  reading in view',I3,' for slice'
@@ -3682,6 +3685,9 @@ c       constant mean levels.  Descale non-log data by exposure weights
 
 c       
 c       $Log$
+c       Revision 3.39  2007/12/06 20:43:16  mast
+c       Added option for adjusting origin for all relevant changes
+c
 c       Revision 3.38  2007/09/08 20:57:58  mast
 c       Fixed reading of SHIFT, REPROJECT, and some other entries
 c
