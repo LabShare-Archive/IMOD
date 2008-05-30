@@ -1,5 +1,8 @@
 IMOD History
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+5/29/08: When the input data are bytes, Copytomocoms will set the mode for
+the aligned stack to integers so it can be filtered without saturating.
+
 5/29/08: Changed Tomostitch to run Blendmont with ExcludeFillFromEdges only
 if that option is specified to Tomostitch.
 
