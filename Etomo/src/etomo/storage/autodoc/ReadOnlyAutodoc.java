@@ -20,6 +20,9 @@ import etomo.storage.autodoc.Autodoc.InternalTestType;
  * @version $Revision$
  * 
  * <p> $Log$
+ * <p> Revision 1.4  2007/08/01 22:45:02  sueh
+ * <p> bug# 985 Added runInternalTest to ReadOnlyAutodoc.
+ * <p>
  * <p> Revision 1.3  2007/04/09 20:45:18  sueh
  * <p> bug# 964 Changed NameValuePair to an abstract class called Statement and
  * <p> child classes representing name/value pair, comment, empty line, and
@@ -40,14 +43,24 @@ public interface ReadOnlyAutodoc extends ReadOnlyStatementList {
   public static final String rcsid = "$Id$";
 
   public HashMap getAttributeValues(String sectionType, String attributeName);
-  public HashMap getAttributeMultiLineValues(String sectionType, String attributeName);
+
+  public HashMap getAttributeMultiLineValues(String sectionType,
+      String attributeName);
+
   public boolean isError();
+
   public void printStoredData();
+
   public ReadOnlySection getSection(String type, String name);
+
   public boolean sectionExists(String type);
+
   public ReadOnlyAttribute getAttribute(String name);
+
   public SectionLocation getSectionLocation(String type);
+
   public ReadOnlySection nextSection(SectionLocation location);
+
   void runInternalTest(InternalTestType type, boolean showTokens,
       boolean showDetails) throws IOException, LogFile.ReadException;
 }
