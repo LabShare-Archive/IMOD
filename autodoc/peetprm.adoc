@@ -1,55 +1,23 @@
 Version = 1.2
 
-[Field = reference] 
-comment = If it is a string it should specify the name of an MRC file containing
-^the reference volume.  If it is [i  j]. It specifies the reference to be the
-^jth particle of the ith tomogram.
-
-[Field = yaxisType]
-comment = 0: use original Y axis as the twisting yaxis
-^1: use particle model points to determine the twisting yaxis; It is computed
-^   point to point.
-^2: end points of the contour specified by the "yaxisContour" parameter.
-enum.0.tooltip = use original Y axis as the twisting yaxis
-enum.1.tooltip = use particle model points to determine the twisting yaxis; It
-is computed point to point.
-enum.2.tooltip = end points of the contour specified by the "yaxisContour" parameter.
-
-[Field = yaxisContour]
-comment = specify the contour of a model  whose points are used to determine the
-^Y axis.
-^format: [modelNumber objectNumber contourNumber]
-
-[Field = relativeOrient]
-comment = Specify the slicer angles in degrees needed to rotate particles in
-^each tomogram to the reference orientation.  For the first iteration, those
-^angles are combined with a particle's angles in the motive list to determine
-^the rotation needed to align the particle with the reference.  It is only
-^applied before the first iteration.
-
-[Field = particlePerCPU]
-comment = Specify how to distribute workload among all CPUs.  # of particles per
-^CPU for each run.
-
 [Field = fnVolume]
 comment = The file names of tomograms
 
 [Field = fnModParticle]
-comment = 
-^The file names of IMOD models corresponding to each tomogram.
+comment = The file names of IMOD models corresponding to each tomogram.
 
 [Field = initMOTL]
 comment = A code specifying how to construct the initial motive list:
-^  0: Set all rotational values to zero
+^0: Set all rotational values to zero
 ^
-^  1: Use the particle model and reference index to
-^     initialize theta (rotation around the z axis), be sure
-^     the points are sorted along a direction of interest
+^1: Use the particle model and reference index to
+^   initialize theta (rotation around the z axis), be sure
+^   the points are sorted along a direction of interest
 ^
-^  2: Use the particle model and reference index to initialize
-^     theta and psi (rotation around the z axis and x axis)
+^2: Use the particle model and reference index to initialize
+^   theta and psi (rotation around the z axis and x axis)
 ^
-^     or a string array to specify the filenames to load, must end in 1.em
+^or a string array to specify the filenames to load, must end in 1.em
 tooltip = A code specifying how to construct the initial motive list
 or a string array to specify the filenames to load, must end in 1.em
 enum.0.tooltip = Set all rotational values to zero
@@ -59,24 +27,87 @@ interest
 enum.2.tooltip = Use the particle model and reference index to initialize theta
 and psi (rotation around the z axis and x axis)
 
+[Field = reference]
+comment = * If it is a string it should specify the name of an MRC file containing the reference
+^  volume.
+^* If it is [i  j]. It specifies the reference to be the jth particle of the ith tomogram.
+
+comment = If it is a string it should specify the name of an MRC file containing
+^the reference volume.  If it is [i  j]. It specifies the reference to be the
+^jth particle of the ith tomogram.
+
+[Field = maskType]
+comment = If it is set to 'sphere' or 'cylinder', it will use 'insideMaskRadius' and
+^'outsideMaskRadius' to create a mask.
+^If it is set to a string other than 'sphere', 'cylinder', or 'none', the
+^string is assumed to be a filename of a stack whose voxels of zero value
+^specify voxels that will be masked out, whose voxels of nonzero value
+^specify voxels that will be included.
+^If it does not exist or is set to 'none', there will be no masking.
+
+[Field = maskModelPts]
+KeyValueDelimiter = ==
+comment == It specifies which model and which point of that model will be used to create a
+^'cylinder' mask. The format is [i j].
+^It specifies the jth point of the ith model will be used.
+^It is used only when reference is specified as a filename and
+^maskType='cylinder'.
+^When reference is specified as [ii jj], the [ii jj] will be used.
+KeyValueDelimiter == =
+
+[Field = insideMaskRadius]
+KeyValueDelimiter = ==
+comment == radius in pixels. Voxels residing inside this radius is masked out;
+^for .77 virus tomo;
+^insideMaskRadius=28
+KeyValueDelimiter == =
+
+[Field = outsideMaskRadius]
+KeyValueDelimiter = ==
+comment == radius in pixels. Voxels residing outside this radius is masked out;
+^for .77 virus tomo;
+^outsideMaskRadius=36
+KeyValueDelimiter == =
+
+[Field = yaxisType]
+comment = 0: use original Y axis as the twisting yaxis;
+^1: use particle model points to determine the twisting yaxis; It is computed point to point.
+^2: end points of the contour specified by the "yaxisContour" parameter.
+enum.0.tooltip = use original Y axis as the twisting yaxis;
+enum.1.tooltip = use particle model points to determine the twisting yaxis; It is computed point to point.
+enum.2.tooltip = end points of the contour specified by the "yaxisContour" parameter.
+
+[Field = yaxisContour]
+comment = specify the contour of a model  whose points are used to determine the Y axis.
+^format: [modelNumber objectNumber contourNumber]
+
+[Field = relativeOrient]
+comment = Specify the slicer angles in degrees needed to rotate particles in each tomogram to the
+^reference orientation.  For the first iteration, those angles are combined with a particle's
+^angles in the motive list to determine the rotation needed to align the particle with the
+^reference.  It is only applied before the first iteration.
+
+
+[Field = particlePerCPU]
+comment = Specify how to distribute workload among all CPUs.  # of particles per CPU for each
+^run.
+
 [Field = szVol]
 comment = The size of the volume around each particle to average
-^if reference is filename, this parameter is ignored. the reference size
-^dictates "szVol".
+^if reference is filename, this parameter is ignored. the reference size dictates "szVol".
 
 [Field = fnOutput]
 comment = The base name of the output files for the average volumes, the
 ^reference volumes, and the transformation parameters
 
 [Field = sampleSphere]
-comment = If sampleSphere is set to 'full' or 'half' then in the first iteration
-^dTheta and dPsi will be ignored, and dPhi and sampleInterval will be used.  If
-^sampleSphere does not exist or is set to 'none' then the range specified by
-^dPhi, dTheta, and dPsi will be searched.
+comment = If This is set to 'full' or 'half', for the fisrt iteration, dTheta and dPsi will be ignored and
+^'dPhi' and 'sampleInterval' will be used.
+^if it does not exist or is set to 'none', it will search over the range specified by dPhi, dTheta, dPsi.
+
 
 [Field = sampleInterval]
-comment = The interval in degrees at which the spherical surface will be
-^sampled.
+comment = The interval in degrees at which the spherical surface is sampled.
 
 [Field = dPhi]
 comment = Phi is the rotation around the  Y-axis specified above by the parameter "yaxis".
@@ -97,21 +128,23 @@ KeyValueDelimiter == =
 [Field = lowCutoff]
 KeyValueDelimiter = ==
 comment == The frequency domain cutoff parameters for prefiltering the
-^particles and reference.  LowCutoff =< 0 prevents low frequency
-^filtering.  An optional second parameter defines the transition width.
+^particles and reference lowCutoff =< 0 prevents low frequency
+^filtering, hiCutoff >= 0.866 prevents high frequency filtering.
+^An optional second parameter defines the transition width.
 KeyValueDelimiter == =
 
 [Field = hiCutoff]
 KeyValueDelimiter = ==
 comment == The frequency domain cutoff parameters for prefiltering the
-^particles and reference.  HiCutoff >= 0.866 prevents high frequency filtering.
+^particles and reference lowCutoff =< 0 prevents low frequency
+^filtering, hiCutoff >= 0.866 prevents high frequency filtering.
 ^An optional second parameter defines the transition width.
 KeyValueDelimiter == =
 
 [Field = CCMode]
 comment = The cross correlation measure to use.
-^  0: Local energy normalized cross correlation (default)
-^  1: True local correlation coefficient
+^0: Local energy normalized cross correlation (default)
+^1: True local correlation coefficient
 tooltip = The cross correlation measure to use.
 enum.0.tooltip = Local energy normalized cross correlation (default)
 enum.1.tooltip = True local correlation coefficient
@@ -119,17 +152,18 @@ enum.1.tooltip = True local correlation coefficient
 [Field = refThreshold]
 comment = The threshold to generate the reference particle at each stage
 ^If this is less than 1 it specifies a cross correlation
-^coefficient threshold, if it is greater than 1 it specifies the
+^coefficient threshold, if it is greater than 1 it specfies the
 ^number of particles to use
 
+
 [Field = refFlagAllTom]
-tooltip = Take equal number of particles from each tomogram instead of 
-selecting by a single cross-correlation threshold
+comment = 0: use particles with best correlation scores among all particles of all tomos;
+^1: use equal number of particles from each tomo;
 
 [Field = tiltRange]
 comment = The tilt range used to acquire the tilt series [min max].
 ^This will compenstate  for the missing wedge in generating
-^the alignment and the averages.  A empty list, {}, specifies
+^the alignment and the averages.  A empty array, [], specifies
 ^not to account for the missing wedge (and use more efficient
 ^space domain averaging).
 
@@ -147,8 +181,8 @@ comment = The list of thresholds to use for computing the final volumes.
 ^fnOutout_AvgVol_navg_thresh_iteration.mrc
 
 [Field = lstFlagAllTom]
-tooltip = Take equal number of particles from each tomogram instead of 
-selecting by a single cross-correlation threshold
+comment = 0: use particles with best correlation scores among all particles of all tomos;
+^1: use equal number of particles from each tomo;
 
 [Field = flgMeanFill]
 comment = If any particles are partially out of the volume fill with the
@@ -160,7 +194,6 @@ comment = If any particles are partially out of the volume fill with the
 
 [Field = alignedBaseName]
 comment = The basename for the aligned particle MRC files (default: '').
-
 
 [Field = debugLevel]
 comment = How much debugging info to print {0|1|2|3}
