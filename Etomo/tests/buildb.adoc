@@ -1,5 +1,4 @@
 Version = 1.2
-#waitfor = FineAlign
 verbose =
 
 [Dialog = PreProc]
@@ -9,7 +8,7 @@ function = build
 [Dialog = CoarseAlign]
 adoc = coarse-align.adoc
 function = build
-waitfor =  FineAlign
+waitfor.Dialog =  FineAlign
 
 [Dialog = FidModel]
 mb.transfer-fiducials-open = 1

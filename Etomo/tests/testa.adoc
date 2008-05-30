@@ -31,7 +31,7 @@ function = run
 [Dialog = TomoGen]
 adoc = tomo-gen.adoc
 function = run
-waitfor = TomoGen
+waitfor.Dialog = TomoGen
 bn.done =
 
 [Dialog = Combine]

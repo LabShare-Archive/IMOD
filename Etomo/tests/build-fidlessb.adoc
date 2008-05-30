@@ -1,6 +1,6 @@
 Version = 1.2
 verbose =
-waitfor = SetupRecon
+waitfor.Dialog = SetupRecon
 
 [Dialog = PreProc]
 adoc = pre-proc.adoc

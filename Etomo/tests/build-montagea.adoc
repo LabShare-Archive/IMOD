@@ -30,7 +30,7 @@ function = build
 [Dialog = TomoGen]
 adoc = tomo-gen.adoc
 function = montage
-waitfor = TomoGen
+waitfor.Dialog = TomoGen
 bn.done =
 
 [Dialog = Combine]
