@@ -14,6 +14,7 @@ import etomo.storage.autodoc.ReadOnlyAutodoc;
 import etomo.storage.autodoc.ReadOnlyStatement;
 import etomo.storage.autodoc.ReadOnlySection;
 import etomo.type.AxisID;
+import etomo.type.UITestAction;
 import etomo.ui.UIHarness;
 import etomo.util.EnvironmentVariable;
 import etomo.util.Utilities;
@@ -628,6 +629,9 @@ public final class UITest extends JFCTestCase implements UITestCommandFactory {
 }
 /**
  * <p> $Log$
+ * <p> Revision 1.1  2008/05/30 21:43:40  sueh
+ * <p> bug# 1102 Moved uitest classes to etomo.uitest.  Added InterfaceSection.
+ * <p>
  * <p> Revision 1.29  2008/01/31 20:31:32  sueh
  * <p> bug# 1055 throwing a FileException when LogFile.getInstance fails.
  * <p>

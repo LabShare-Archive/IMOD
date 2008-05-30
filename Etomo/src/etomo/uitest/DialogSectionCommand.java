@@ -4,10 +4,11 @@ import java.util.ArrayList;
 
 import etomo.storage.autodoc.ReadOnlyStatement;
 import etomo.type.AxisID;
-import etomo.type.CallbackClassEnum;
 import etomo.type.EtomoAutodoc;
 import etomo.type.ProcessEndState;
 import etomo.type.ProcessName;
+import etomo.type.UITestAction;
+import etomo.type.UITestField;
 
 /**
  * <p>Description: </p>
@@ -25,7 +26,6 @@ import etomo.type.ProcessName;
 public class DialogSectionCommand implements UITestCommand {
   public static final String rcsid = "$Id$";
 
-  public static final String SECTION_TYPE = "Dialog";
   private static final String ENABLED_STRING = "enabled";
 
   private final ArrayList variables;
@@ -288,6 +288,9 @@ public class DialogSectionCommand implements UITestCommand {
 }
 /**
  * <p> $Log$
+ * <p> Revision 1.1  2008/05/30 21:36:05  sueh
+ * <p> bug# 1102 Moved uitest classes to etomo.uitest.
+ * <p>
  * <p> Revision 1.3  2007/12/10 22:31:20  sueh
  * <p> bug# 1041 working with the changes in ProcessName.
  * <p>

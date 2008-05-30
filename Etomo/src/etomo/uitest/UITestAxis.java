@@ -32,6 +32,8 @@ import etomo.storage.autodoc.ReadOnlyAutodoc;
 import etomo.type.AxisID;
 import etomo.type.ProcessEndState;
 import etomo.type.ProcessName;
+import etomo.type.UITestAction;
+import etomo.type.UITestField;
 import etomo.ui.AxisProcessPanel;
 import etomo.ui.ExpandButton;
 import etomo.ui.MainFrame;
@@ -55,6 +57,9 @@ import etomo.util.Utilities;
  * @version $Revision$
  * 
  * <p> $Log$
+ * <p> Revision 1.1  2008/05/30 21:52:59  sueh
+ * <p> bug# 1102 Moved uitest classes to etomo.uitest.
+ * <p>
  * <p> Revision 1.13  2008/01/22 18:04:30  sueh
  * <p> bug# 1068 Increase wait time in finders.
  * <p>
@@ -172,7 +177,7 @@ final class UITestAxis implements UITestCommandFactory {
     testCase.assertTrue(axisID.toString(), "Unable to get timestamp: "
         + startTime, startTime >= 0);
     duration = testCase.getDuration();
-    reader = new CommandReader(autodoc, DialogSectionCommand.SECTION_TYPE);
+    reader = new CommandReader(autodoc, UITestAction.DIALOG.toString());
     reader.setAxisID(axisID);
     reader.setFunctionLocationSourceDir(UITest.SOURCE_DIR);
   }
@@ -1121,6 +1126,9 @@ final class UITestAxis implements UITestCommandFactory {
 }
 /**
  * <p> $Log$
+ * <p> Revision 1.1  2008/05/30 21:52:59  sueh
+ * <p> bug# 1102 Moved uitest classes to etomo.uitest.
+ * <p>
  * <p> Revision 1.13  2008/01/22 18:04:30  sueh
  * <p> bug# 1068 Increase wait time in finders.
  * <p>

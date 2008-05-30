@@ -2,6 +2,8 @@ package etomo.uitest;
 
 import etomo.storage.autodoc.ReadOnlyStatement;
 import etomo.type.AxisID;
+import etomo.type.UITestAction;
+import etomo.type.UITestField;
 
 /**
  * <p>Description: </p>
@@ -164,6 +166,9 @@ public final class TestSectionCommand implements UITestCommand {
 }
 /**
  * <p> $Log$
+ * <p> Revision 1.1  2008/05/30 21:37:17  sueh
+ * <p> bug# 1102 Moved uitest classes to etomo.uitest.
+ * <p>
  * <p> Revision 1.2  2007/04/09 20:03:17  sueh
  * <p> bug# 964 Change NameValuePair to an abstract class called Statement and
  * <p> child classes representing name/value pair, comment, empty line, and

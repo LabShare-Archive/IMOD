@@ -3,6 +3,8 @@ package etomo.uitest;
 import etomo.storage.autodoc.ReadOnlyAttribute;
 import etomo.storage.autodoc.ReadOnlyAutodoc;
 import etomo.storage.autodoc.ReadOnlySection;
+import etomo.type.UITestAction;
+import etomo.type.UITestField;
 
 /**
  * <p>Description: </p>
@@ -17,12 +19,14 @@ import etomo.storage.autodoc.ReadOnlySection;
  * 
  * @version $Revision$
  * 
- * <p> $Log$ </p>
+ * <p> $Log$
+ * <p> Revision 1.1  2008/05/30 21:36:33  sueh
+ * <p> bug# 1102 Class representing the Interface sections in uitest.adoc.
+ * <p> </p>
  */
 final class InterfaceSection {
   public static final String rcsid = "$Id$";
 
-  static final String TYPE = "Interface";
   private static final String DEFAULT_STRING = "default";
 
   private final ReadOnlySection section;
