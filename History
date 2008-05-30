@@ -1,5 +1,11 @@
 IMOD History
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+5/30/08: Added option to Boxstartend to specify a size in X, Y, and Z, so 
+square boxes are no longer required; fixed centering in Z so that the option
+to set slices before and after actually works.
+
+5/29/08: Added instructions to Tilt output for scaling to -15000 to 15000.
+
 5/29/08: When the input data are bytes, Copytomocoms will set the mode for
 the aligned stack to integers so it can be filtered without saturating.
 
@@ -59,7 +65,7 @@ changing sections.  Added option to smoothing filter to not rescale the data,
 so that thresholds are comparable between slices.
 
 5/24/08: Implemented interpolation in the conversion from pixels above
-threshold to boundary contours in auto-contouring and in imodauto.  Add an
+threshold to boundary contours in auto-contouring and in imodauto.  Added an
 option for kernel smoothing to imodauto to match what is done in 3dmod.
 
 5/23/08: Added checkable option in File menu to save TIFF snapshots of image 

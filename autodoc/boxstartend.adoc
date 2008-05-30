@@ -75,15 +75,28 @@ short = box
 type = I
 usage = Size of square box to extract in X/Y plane
 tooltip = 
-manpage = 
+manpage = Size of square box to extract in X/Y plane.  If you want to extract
+a rectangular box, use the -volume option instead.  Either -box or -volume
+must be entered.
+
+[Field = VolumeSizeXYZ]
+short = volume
+type = IT
+usage = Size of subvolume to extract in X, Y, and Z
+tooltip = 
+manpage = Size of subvolume to extract in X, Y, and Z.  The Z entry is
+irrelevant if -slices is entered as well.
 
 [Field = SlicesBelowAndAbove]
 short = slices
 type = IP
 usage = Number of slices to extract below and above points in Z
 tooltip = 
-manpage = Number of slices to extract below and above points in Z.  The
-default is to extract a cube, based on the box size in X and Y.
+manpage = Number of slices to extract below and above points in Z.  If this
+option is not entered, the Z size is taken from the size entered with -box
+(thus giving a cube), or from the Z size entered with -volume.
+In these cases, the program extracts an equal number of slices below and above
+for an odd Z size, and one more slice below than above for an even Z size.
 
 [Field = WhichPointsToExtract]
 short = which
