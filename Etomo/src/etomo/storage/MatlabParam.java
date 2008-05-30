@@ -44,6 +44,9 @@ import etomo.util.DatasetFiles;
  * @version $Revision$
  * 
  * <p> $Log$
+ * <p> Revision 1.17  2008/04/15 21:00:23  sueh
+ * <p> bug# 1105 Simplified setting the default.
+ * <p>
  * <p> Revision 1.16  2008/04/02 01:54:12  sueh
  * <p> bug# 1095 Added mask fields.  Bug# 1097 In ParsedElement classes,
  * <p> matching Matlab's syntax.
@@ -258,7 +261,7 @@ public final class MatlabParam {
 
   private final ParsedNumber particlePerCpu = ParsedNumber.getMatlabInstance();
   private final ParsedArray szVol = ParsedArray.getMatlabInstance();
-  private final ParsedQuotedString fnOutput =  ParsedQuotedString.getInstance();
+  private final ParsedQuotedString fnOutput = ParsedQuotedString.getInstance();
   private final ParsedNumber refFlagAllTom = ParsedNumber.getMatlabInstance();
   private final ParsedNumber edgeShift = ParsedNumber.getMatlabInstance();
   private final ParsedArray lstThresholds = ParsedArray.getMatlabInstance();
@@ -270,17 +273,20 @@ public final class MatlabParam {
    */
   private final ParsedNumber meanFill = ParsedNumber.getMatlabInstance();
   private final ParsedNumber flgMeanFill = ParsedNumber.getMatlabInstance();
-  private final ParsedQuotedString alignedBaseName =  ParsedQuotedString.getInstance();
+  private final ParsedQuotedString alignedBaseName = ParsedQuotedString
+      .getInstance();
   private final ParsedNumber debugLevel = ParsedNumber.getMatlabInstance();
   private final List volumeList = new ArrayList();
   private final List iterationList = new ArrayList();
-  private final ParsedQuotedString referenceFile =  ParsedQuotedString.getInstance();
+  private final ParsedQuotedString referenceFile = ParsedQuotedString
+      .getInstance();
   private final ParsedArray reference = ParsedArray.getMatlabInstance();
   private final ParsedArray yaxisContour = ParsedArray.getMatlabInstance();
   private final ParsedNumber flgWedgeWeight = ParsedNumber.getMatlabInstance();
-  private final ParsedQuotedString sampleSphere =  ParsedQuotedString.getInstance();
+  private final ParsedQuotedString sampleSphere = ParsedQuotedString
+      .getInstance();
   private final ParsedNumber sampleInterval = ParsedNumber.getMatlabInstance();
-  private final ParsedQuotedString maskType =  ParsedQuotedString.getInstance();
+  private final ParsedQuotedString maskType = ParsedQuotedString.getInstance();
   private final ParsedArray maskModelPts = ParsedArray.getMatlabInstance();
   private final ParsedNumber insideMaskRadius = ParsedNumber
       .getMatlabInstance();
@@ -1644,9 +1650,12 @@ public final class MatlabParam {
         .getMatlabInstance(EtomoNumber.Type.FLOAT);
     private final ParsedArray relativeOrient = ParsedArray
         .getMatlabInstance(EtomoNumber.Type.FLOAT);
-    private final ParsedQuotedString fnVolume =  ParsedQuotedString.getInstance();
-    private final ParsedQuotedString fnModParticle =  ParsedQuotedString.getInstance();
-    private final ParsedQuotedString initMotl =  ParsedQuotedString.getInstance();
+    private final ParsedQuotedString fnVolume = ParsedQuotedString
+        .getInstance();
+    private final ParsedQuotedString fnModParticle = ParsedQuotedString
+        .getInstance();
+    private final ParsedQuotedString initMotl = ParsedQuotedString
+        .getInstance();
 
     private Volume() {
       relativeOrient.setDefault(RELATIVE_ORIENT_DEFAULT);
