@@ -73,7 +73,7 @@ various graphics programs; Arial is good for going to Illustrator.
 Directory in which IMOD's copy of Qt lives, if any.  Set by startup IMOD
 scripts.
 .TP
-.B IMOD_RETAIN_CACHE
+.B IMOD_RETAIN_FSCACHE
 Stops 3dmod from telling the system to dismiss the file system cache while
 loading a file on Linux.  Setting this variable (no value needed) will give 
 much faster loads when you open a file that was recently accessed, but risks
