@@ -66,6 +66,13 @@ import etomo.util.PrimativeTokenizer;
  * @version $$Revision$$
  *
  * <p> $$Log$
+ * <p> $Revision 1.10  2007/08/01 22:41:51  sueh
+ * <p> $bug# 985 Made [[ and ]] into tokens.  Added findLookAheadToken and
+ * <p> $matchWithLookAhead to find OPEN, SUBOPEN, CLOSE, and SUBCLOSE.
+ * <p> $removed OPEN and CLOSE from findSimpleToken.  Changed the type of
+ * <p> $OPEN_CHAR and CLOSE_CHAR to Character to make is easier to convert
+ * <p> $them to strings.
+ * <p> $
  * <p> $Revision 1.9  2007/06/07 21:32:40  sueh
  * <p> $bug# 1012 Passing debug in constructor.
  * <p> $
@@ -128,9 +135,10 @@ public final class AutodocTokenizer {
   public static final Character CLOSE_CHAR = new Character(']');
   public static final String DEFAULT_DELIMITER = "=";
   //keywords - keywords may not contain special characters
-  public static final String VERSION_KEYWORD = "Version";
-  public static final String PIP_KEYWORD = "Pip";
-  public static final String DELIMITER_KEYWORD = "KeyValueDelimiter";
+  static final String VERSION_KEYWORD = "Version";
+  static final String PIP_KEYWORD = "Pip";
+  static final String DELIMITER_KEYWORD = "KeyValueDelimiter";
+  static final String COMMAND_LANGUAGE_KEYWORD = "CommandLanguage";
 
   private final boolean allowAltComment;
   private final StringBuffer restrictedSymbols = new StringBuffer(COMMENT_CHAR
@@ -308,8 +316,8 @@ public final class AutodocTokenizer {
     }
     else if (primativeToken.equals(Token.Type.SYMBOL, CLOSE_CHAR)) {
       if (matchWithLookAhead(Token.Type.SYMBOL, CLOSE_CHAR)) {
-        token.set(Token.Type.SUBCLOSE, CLOSE_CHAR.toString() + CLOSE_CHAR
-            .toString());
+        token.set(Token.Type.SUBCLOSE, CLOSE_CHAR.toString()
+            + CLOSE_CHAR.toString());
       }
       else {
         token.set(Token.Type.CLOSE, CLOSE_CHAR);
@@ -434,7 +442,8 @@ public final class AutodocTokenizer {
   private void findKeyword() {
     if (token.is(Token.Type.WORD)) {
       if (token.equals(VERSION_KEYWORD) || token.equals(PIP_KEYWORD)
-          || token.equals(DELIMITER_KEYWORD)) {
+          || token.equals(DELIMITER_KEYWORD)
+          || token.equals(COMMAND_LANGUAGE_KEYWORD)) {
         token.set(Token.Type.KEYWORD);
       }
     }
