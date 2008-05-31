@@ -1,5 +1,8 @@
 IMOD History
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+5/30/08: Rewrote mrcbyte and imodauto to read data slice by slice instead of
+reading the whole file into memory.
+
 5/30/08: Added option to Boxstartend to specify a size in X, Y, and Z, so 
 square boxes are no longer required; fixed centering in Z so that the option
 to set slices before and after actually works.
