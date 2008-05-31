@@ -299,6 +299,8 @@ int mrc_read_slice(void *buf, FILE *fin, MrcHeader *hdata,
                            float *outMax);
   void mrcMirrorSource(int nx, int ny, int imageX, int imageY, int *fileX,
                        int *fileY);
+void mrcContrastScaling(MrcHeader *hdata, float smin, float smax, int black,
+                        int white, int ramptype, float *slope, float *offset);
 
 unsigned char **read_mrc_byte(FILE *fin, MrcHeader *hdata, 
 			      struct LoadInfo *li);
@@ -358,6 +360,9 @@ void mrc_set_cmap_stamp(MrcHeader *hdata);
 /*
 
 $Log$
+Revision 3.19  2008/01/11 17:21:44  mast
+improved declaration for swap funcs
+
 Revision 3.18  2007/06/13 17:08:03  sueh
 bug# 1019 Adding sectionSkip to MrcHeader.
 
