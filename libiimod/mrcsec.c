@@ -343,9 +343,9 @@ static int mrcReadSectionAny(MrcHeader *hdata, IloadInfo *li,
         for (i = 0; i < xsize; i++){
           fpixel =  fdata[i];
           if (li->ramp == MRC_RAMP_LOG)
-            fpixel = (float)log((double)pixel);
+            fpixel = (float)log((double)fpixel);
           if (li->ramp == MRC_RAMP_EXP)
-            fpixel = (float)exp((double)pixel);
+            fpixel = (float)exp((double)fpixel);
           fpixel = fpixel * slope + offset;
           if (fpixel < outmin)
             fpixel = outmin;
@@ -482,6 +482,9 @@ static int mrcReadSectionAny(MrcHeader *hdata, IloadInfo *li,
 
 /*
 $Log$
+Revision 3.15  2008/05/31 03:10:19  mast
+Added nonlinear ramps and rounding to allow mrcbyte to use this
+
 Revision 3.14  2008/05/23 23:04:04  mast
 Switched to NTSC RGB to gray scaling
 
