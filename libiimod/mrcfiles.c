@@ -423,8 +423,8 @@ void mrc_coord_cp(MrcHeader *hout, MrcHeader *hin)
 
 
 /*! 
- * Determines the min, max and mean values the byte data in [idata] and places
- * them into header [hdata].  [idata] must be an array of pointers to 
+ * Determines the min, max and mean values of the byte data in [idata] and 
+ * places them into header [hdata].  [idata] must be an array of pointers to 
  * {hdata->nz} planes of data.  Returns -1 for error.
  */
 int mrc_byte_mmm( MrcHeader *hdata, unsigned char **idata)
@@ -808,8 +808,13 @@ unsigned char **read_mrc_byte(FILE *fin,
  * pointers to the planes of data.  [fin] is the pointer to the
  * file, [hdata] is the MRC header structure, [li] is an @@IloadInfo structure@
  * specifying the limits and scaling of the load, and [func] is a function to
- * receive a status string after each slice.  Data memory is allocated with
- * @mrcGetDataMemory and should be freed with @mrcFreeDataMemory.  Should work
+ * receive a status string after each slice.  If [li] is NULL, sensible 
+ * defaults are used.  Scaling is set from the {smin}, {smax}, {black}, 
+ * {white} and {ramptype} members of [li] using @mrcContrastScaling , where 
+ * {ramptype} can be MRC_RAMP_LIN, MRC_RAMP_LOG, or MRC_RAMP_EXP, but the
+ * latter two should be used only for integer and float input data.
+ * Data memory is allocated with
+ * @mrcGetDataMemory and should be freed with @mrcFreeDataMemory .  Should work
  * with planes > 4 GB on 64-bit systems.  The dimensions and mode in [hdata]
  * (as well as the {mx} and {xlen} members, etc.), are modified so as to be 
  * appropriate if the data volume is written.  Returns NULL for error.
@@ -894,49 +899,8 @@ unsigned char **mrc_read_byte(FILE *fin,
   /*************************************/
   /* Calculate color map ramp scaling. */
      
-  /* DNM 2/16/01: eliminate special treatment of byte mode in which black 
-     and white were set to min and max while min and max were set to 0, 255,
-     in order to allow double scaling in mrcbyte */
-
-  /* set max and min. */
-  max = hdata->amax;
-  min = hdata->amin;
-
-  if (smin != smax){
-    max = smax;
-    min = smin;
-  }
-  /*printf("min %f  max %f black %d white %d\n", min, max, black, white); */
-
-  if (ramptype == MRC_RAMP_LOG){
-    min = (float)log((double)min);
-    max = (float)log((double)max);
-  }
-  if (ramptype == MRC_RAMP_EXP){
-    min = (float)exp((double)min);
-    max = (float)exp((double)max);
-  }
-  if (hdata->mode == MRC_MODE_COMPLEX_FLOAT || 
-      hdata->mode == MRC_MODE_COMPLEX_SHORT)
-    mrcComplexSminSmax(min, max, &min, &max);
-
-  /* range in colormap */
-  range = white - black + 1;
-  if (!range) range = 1;
-
-  /* range scale */
-  rscale = 256.0 / (float)range;
-     
-  /* calculate slope */
-  if ((max - min) != 0)
-    slope = 255.0 / (max - min);
-  else
-    slope = 1.0;
-     
-  slope *= rscale;
-     
-  /* calculate offset */
-  offset = -(( ((float)black / 255.0) * (max - min)) + min) * slope;
+  mrcContrastScaling(hdata, smin, smax, black, white, ramptype, &slope,
+                     &offset);
 
   /* printf("mrc_read_byte: slope = %g offset = %g\n", slope, offset); */
 
@@ -1095,6 +1059,8 @@ unsigned char **mrc_read_byte(FILE *fin,
         break ;
                   
       case MRC_MODE_FLOAT:
+
+        /* 5/30/08: added ramps and 0.5 for consistency with mrcfiles.c */
         if (hdata->swapped)
           mrc_swap_floats(fdata, xsize);
         for(i = 0; i < xsize; i++){
@@ -1103,13 +1069,12 @@ unsigned char **mrc_read_byte(FILE *fin,
             fpixel = (float)exp(fpixel);
           if (ramptype == MRC_RAMP_LOG)
             fpixel = (float)log(fpixel);
-          fpixel *= slope;
-          fpixel += offset;
+          fpixel = fpixel * slope + offset;
           if (fpixel < 0.0)
             fpixel = 0.0;
           if (fpixel > 255.0)
             fpixel = 255.0;
-          idatap[i] = fpixel + 0.5;
+          idatap[i] = fpixel + 0.5f;
         }
         break ;
           
@@ -1202,6 +1167,68 @@ unsigned char **mrc_read_byte(FILE *fin,
   return(idata);
 }  
 
+/*!
+ * Computes scaling of data to bytes with potentially two levels of scaling.
+ * The first level of scaling maps [smin] and [smax] to 0 to 255; if these
+ * two values are equal, then the file min and max in [hdata] are used instead.
+ * The second level of scaling maps [black] and [white] in these scaled values
+ * to 0 to 255 to mimic the effect of black and white sliders in 3dmod.
+ * [ramptype] can be MRC_RAMP_LIN, MRC_RAMP_LOG, or MRC_RAMP_EXP.  The factors
+ * for scaling by pixel * slope + offset are returned in [slope] and [offset].
+ * 
+ */
+void mrcContrastScaling(MrcHeader *hdata, float smin, float smax, int black,
+                        int white, int ramptype, float *slope, float *offset)
+{
+  float min, max, rscale;
+  int range;
+
+  /* DNM 2/16/01: eliminate special treatment of byte mode in which black 
+     and white were set to min and max while min and max were set to 0, 255,
+     in order to allow double scaling in mrcbyte */
+
+  /* set max and min. */
+  max = hdata->amax;
+  min = hdata->amin;
+
+  if (smin != smax){
+    max = smax;
+    min = smin;
+  }
+  /*printf("min %f  max %f black %d white %d\n", min, max, black, white); */
+
+  if (ramptype == MRC_RAMP_LOG){
+    min = (float)log((double)min);
+    max = (float)log((double)max);
+  }
+  if (ramptype == MRC_RAMP_EXP){
+    min = (float)exp((double)min);
+    max = (float)exp((double)max);
+  }
+  if (hdata->mode == MRC_MODE_COMPLEX_FLOAT || 
+      hdata->mode == MRC_MODE_COMPLEX_SHORT)
+    mrcComplexSminSmax(min, max, &min, &max);
+
+  /* range in colormap */
+  range = white - black + 1;
+  if (!range) range = 1;
+
+  /* range scale */
+  rscale = 256.0 / (float)range;
+     
+  /* calculate slope */
+  if ((max - min) != 0)
+    *slope = 255.0 / (max - min);
+  else
+    *slope = 1.0;
+     
+  *slope *= rscale;
+     
+  /* calculate offset */
+  *offset = -(( ((float)black / 255.0) * (max - min)) + min) * *slope;
+}
+
+
 /*
  * Write image data functions
  */
@@ -1274,8 +1301,8 @@ int mrc_write_byte(FILE *fout, MrcHeader *hdata, unsigned char **data)
  * according to the dimensions and mode in header [hdata].  [data] must be an
  * array of pointers to {hdata->nz} planes of data.  Should be able to handle
  * planes > 4 GB.  Returns -1 for attempt to write a byte-swapped file, 0 for 
- * improper mode, -2 for a write error, or 1 for success.  Used
- * only by mrcbyte, 5/7/05.
+ * improper mode, -2 for a write error, or 1 for success.  Was used by mrcbyte
+ * until 5/30/08.
  */
 int mrc_write_idata(FILE *fout, MrcHeader *hdata, void *data[])
 {
@@ -2134,6 +2161,9 @@ void mrc_swap_floats(fb3dFloat *data, int amt)
 
 /*
 $Log$
+Revision 3.38  2008/05/23 23:03:47  mast
+Switched to NTSC RGB to gray scaling
+
 Revision 3.37  2008/04/02 02:56:06  mast
 Made mrc_head_read and mrc_read_byte use b3d routines to avoid seeking and
 rewinding on stdin
