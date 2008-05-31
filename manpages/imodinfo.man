@@ -84,7 +84,9 @@ are mutually exclusive.
 .B -a
 Print ascii readable IMOD output. Not all of the types
 of data stored in a binary model are printed in an ascii
-model file, but all contour and mesh data are printed.
+model file, but all contour and mesh data are printed.  Also, slicer angles,
+clipping planes, and general values assigned to contours and points will be
+printed
 .TP
 .B -c
 Print volume, surface area, and center of gravity for each object in
@@ -98,7 +100,9 @@ Print volumes and surface areas for each separate surface in an object.
 .TP
 .B -p
 Print point size information, including a summary of mean radius, and the
-implied total surface area and volume of scattered points.
+implied total surface area and volume of scattered points.  Note that the
+ascii model output will also show point sizes in pixels for each point that
+has one defined.
 .TP
 .B -r
 Print ratio of length to area for closed contours.

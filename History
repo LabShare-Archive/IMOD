@@ -1,5 +1,7 @@
 IMOD History
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+5/31/08: Added general values and point sizes to ascii model output.
+
 5/30/08: Rewrote mrcbyte and imodauto to read data slice by slice instead of
 reading the whole file into memory.
 
