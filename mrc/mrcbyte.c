@@ -245,8 +245,13 @@ int main( int argc, char *argv[] )
     
     sliceInit(&slice, hout.nx, hout.ny, SLICE_MODE_BYTE, buf);
     sliceMMM(&slice);
-    hout.amin = B3DMIN(hout.amin, slice.min);
-    hout.amax = B3DMAX(hout.amax, slice.max);
+    if (!k) {
+      hout.amin = slice.min;
+      hout.amax = slice.max;
+    } else {
+      hout.amin = B3DMIN(hout.amin, slice.min);
+      hout.amax = B3DMAX(hout.amax, slice.max);
+    }
     meansum += slice.mean;
     if (mrc_write_slice(buf, fout, &hout, k, 'Z')) {
       printf("ERROR: % - Writing section %d to file\n", progname, k);
@@ -270,6 +275,9 @@ int main( int argc, char *argv[] )
 /*
 
 $Log$
+Revision 3.7  2008/05/31 03:11:33  mast
+Rewrote to read and write by sections
+
 Revision 3.6  2007/06/13 19:41:08  sueh
 bug# 1019 In main, setting hdata.sectionSkip to 0.
 
