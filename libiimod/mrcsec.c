@@ -43,7 +43,8 @@ int mrcReadZ(MrcHeader *hdata, IloadInfo *li, unsigned char *buf, int z)
 
 /*!
  * Reads one Z slice of data, like @mrcReadZ, and scales it to bytes.
- * Scaling is controlled by [li] members {slope} and {offset}.
+ * Scaling is controlled by [li] members {slope}, {offset}, and {ramp}, but
+ * {ramp} should be MRC_RAMP_LIN unless reading in integers or floats.
  */
 int mrcReadZByte(MrcHeader *hdata, IloadInfo *li, unsigned char *buf, int z)
 {
@@ -64,7 +65,8 @@ int mrcReadY(MrcHeader *hdata, IloadInfo *li, unsigned char *buf, int z)
 
 /*!
  * Reads one Y slice of data, like @mrcReadY, and scales it to bytes.
- * Scaling is controlled by [li] members {slope} and {offset}.
+ * Scaling is controlled by [li] members {slope}, {offset}, and {ramp}, but
+ * {ramp} should be MRC_RAMP_LIN unless reading in integers or floats.
  */
 int mrcReadYByte(MrcHeader *hdata, IloadInfo *li, unsigned char *buf, int z)
 {
@@ -88,7 +90,8 @@ int mrcReadSection(MrcHeader *hdata, IloadInfo *li, unsigned char *buf, int z)
 
 /*!
  * Reads one slice of data, like @mrcReadSection, and scales it to bytes.
- * Scaling is controlled by [li] members {slope} and {offset}.
+ * Scaling is controlled by [li] members {slope}, {offset}, and {ramp}, but
+ * {ramp} should be MRC_RAMP_LIN unless reading in integers or floats.
  */
 int mrcReadSectionByte(MrcHeader *hdata, IloadInfo *li, unsigned char *buf, 
                        int z)
@@ -210,7 +213,7 @@ static int mrcReadSectionAny(MrcHeader *hdata, IloadInfo *li,
   case MRC_MODE_USHORT:
     pixSize = 2;
     if (byte) {
-      map= get_short_map(slope, offset, outmin, outmax, MRC_RAMP_LIN, 
+      map= get_short_map(slope, offset, outmin, outmax, li->ramp, 
                          hdata->swapped, 
                          (hdata->mode == MRC_MODE_SHORT) ? 1 : 0);
       freeMap = 1;
@@ -338,12 +341,17 @@ static int mrcReadSectionAny(MrcHeader *hdata, IloadInfo *li,
         if (hdata->swapped)
           mrc_swap_floats(fdata, xsize);
         for (i = 0; i < xsize; i++){
-          pixel =  fdata[i] * slope + offset;
-          if (pixel < outmin)
-            pixel = outmin;
-          if (pixel > outmax)
-            pixel = outmax;
-          bufp[i] = pixel;
+          fpixel =  fdata[i];
+          if (li->ramp == MRC_RAMP_LOG)
+            fpixel = (float)log((double)pixel);
+          if (li->ramp == MRC_RAMP_EXP)
+            fpixel = (float)exp((double)pixel);
+          fpixel = fpixel * slope + offset;
+          if (fpixel < outmin)
+            fpixel = outmin;
+          if (fpixel > outmax)
+            fpixel = outmax;
+          bufp[i] = fpixel + 0.5f;
         }
         bufp += xsize;
         break;
@@ -474,6 +482,9 @@ static int mrcReadSectionAny(MrcHeader *hdata, IloadInfo *li,
 
 /*
 $Log$
+Revision 3.14  2008/05/23 23:04:04  mast
+Switched to NTSC RGB to gray scaling
+
 Revision 3.13  2007/06/13 22:52:16  mast
 Modifications for reading with intersection section skip
 
