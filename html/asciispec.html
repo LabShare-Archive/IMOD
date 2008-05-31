@@ -108,6 +108,13 @@ beginning/end symbols</i>)
 <br>
 <b>obquality</b>   (<i>sphere drawing quality</i>)
 <br>
+<b>valblack</b>   (<i>black level for value display</i>)
+<br>
+<b>valwhite</b>   (<i>white level for value display</i>)
+<br>
+<b>matflags2</b>   (<i>flags for value drawing: bit 0 skip low, bit 1 skip
+high, bit 2 constant color</i>)
+<br>
 <b>objclips</b> (<i># of planes</i>) (<i>flags</i>) (<i>trans</i>) (<i>current plane</i>) 
 </code>
 <p>
@@ -146,6 +153,11 @@ The following are object flags.
 <b>antialias</b>:   Antialias line drawing
 <br>
 <b>hastimes</b>:   Contour data has times
+<br>
+<b>usevalue</b>:   Draw values in mesh display
+<br>
+<b>valcolor</b>:   Show values in false color
+
 
 </code>
 <HR>
@@ -153,15 +165,20 @@ The following are object flags.
 The contour directive is used for each contour in current object.
 Three data variables are expected, the index to the contour that
 is being defined, a surface value, and the number of points in the contour.
-Point data follows on the next line, one line for each point.
+An optional fourth value can specify a general floating point value for the
+contour. Point data follows on the next line, one line for each point.
+Any point line can have one or two optional values: if there is one value, it
+is the point size; if there are two values, the first is a point size (which
+should be -1 if there is no size for the point) and the second is a general
+floating point value.
 <code>
 <br><br>
 <b>contour</b> (<i>index</i>) (<i>surface</i>) 
-(<i>number of points in contour</i>)
+(<i>number of points in contour</i>) [<i>value</i>]
 <br>
 (<i>x</i>) (<i>y</i>) (<i>z</i>)
 <br>
-(<i>x</i>) (<i>y</i>) (<i>z</i>) </code> ... for each point.
+(<i>x</i>) (<i>y</i>) (<i>z</i>) [<i>point size</>] [<i>value</i>]</code> ... for each point.
 </code>
 <p>
 Following the contour data may be two optional directives:
