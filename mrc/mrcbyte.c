@@ -7,52 +7,31 @@
  *  Copyright (C) 1995-2005 by Boulder Laboratory for 3-Dimensional Electron
  *  Microscopy of Cells ("BL3DEMC") and the Regents of the University of 
  *  Colorado.  See dist/COPYRIGHT for full copyright notice.
+ *
+ *  $Id$
+ *  Log at end
  */
-
-/*  $Author$
-
-$Date$
-
-$Revision$
-
-$Log$
-Revision 3.5  2005/02/11 01:42:34  mast
-Warning cleanup: implicit declarations, main return type, parentheses, etc.
-
-Revision 3.4  2004/07/07 19:25:30  mast
-Changed exit(-1) to exit(3) for Cygwin
-
-Revision 3.3  2003/11/18 19:29:32  mast
-changes to call b3dF* functions for 2GB problem on Windows
-
-Revision 3.2  2003/10/24 02:28:42  mast
-strip directory from program name and/or use routine to make backup file
-
-Revision 3.1  2002/11/05 23:49:50  mast
-Changed to call imodCopyright
-
-*/
 
 #include <stdio.h>
 #include <stdlib.h>
 #include "mrcfiles.h"
+#include "mrcslice.h"
 #include "b3dutil.h"
 
 void mrcbyte_help(char *name)
 {
-  fprintf(stderr,"Usage: %s -[rRblecsxyz] <infile> <outfile>\n",
-          name);
-  puts("Options:");
-  puts("\t-r\tRequest user input for size and contrast info.");
-  puts("\t-c blk,wht\tContrast scaling with black and white levels");
-  puts("\t-s min,min\tInitial intensity scaling (min to 0, max to 255)");
-  puts("\t-R\tReverse contrast in output.");
-  puts("\t-l\tUse logarithmic ramp.");
-  puts("\t-e\tUse exponential ramp.");
-  puts("\t-x min,max\tWrite subset of image in X");
-  puts("\t-y min,max\tWrite subset of image in Y");
-  puts("\t-z min,max\tWrite subset of image in Z");
-  puts("\t-b\tWrite raw byte data, no header");
+  printf("Usage: %s -[rRblecsxyz] <infile> <outfile>\n", name);
+  printf("Options:\n");
+  printf("\t-r\tRequest user input for size and contrast info.\n");
+  printf("\t-c blk,wht\tContrast scaling with black and white levels\n");
+  printf("\t-s min,min\tInitial intensity scaling (min to 0, max to 255)\n");
+  printf("\t-R\tReverse contrast in output.\n");
+  printf("\t-l\tUse logarithmic ramp.\n");
+  printf("\t-e\tUse exponential ramp.\n");
+  printf("\t-x min,max\tWrite subset of image in X\n");
+  printf("\t-y min,max\tWrite subset of image in Y\n");
+  printf("\t-z min,max\tWrite subset of image in Z\n");
+  printf("\t-b\tWrite raw byte data, no header\n");
 }
 
 int main( int argc, char *argv[] )
@@ -63,30 +42,30 @@ int main( int argc, char *argv[] )
   int resize = FALSE;
   int cmap   = FALSE;
   int ramptype = MRC_RAMP_LIN;
-  struct MRCheader hdata;
-  struct LoadInfo  li;
-  float  vd1, vd2, nd1, nd2;
-  unsigned char **idata;
+  MrcHeader hdata, hout;
+  IloadInfo  li;
+  Islice slice;
   char line[128];
   int mode = 0;
-  int xysize;
   int data_only = FALSE;
   int reverse_video = FALSE;
+  float xscl, yscl, zscl;
   int c;
-  unsigned char bdata;
-  short sdata;
-  float fdata;
-  int cdat;
+  size_t xysize, ii;
+  unsigned char *buf;
+  double meansum = 0.;
   char *progname = imodProgName(argv[0]);
 
 
   if (argc < 2){
-    fprintf(stderr, 
-            "%s version %s\n", progname, VERSION_NAME);
+    printf("%s version %s\n", progname, VERSION_NAME);
     imodCopyright();
     mrcbyte_help(progname);
     exit(3);
   }
+
+  /* Make library error output to stderr go to stdout */
+  b3dSetStoreError(-1);
 
   mrc_init_li(&li, NULL);
 
@@ -152,7 +131,7 @@ int main( int argc, char *argv[] )
         break;
 
       default:
-        fprintf(stderr, "%s: illegal option\n", progname);
+        printf("ERROR: %s - Illegal option %s\n", progname, argv[i]);
         mrcbyte_help(progname);
         exit(1);
         break;
@@ -163,30 +142,31 @@ int main( int argc, char *argv[] )
       
 
     fin = fopen(argv[i], "rb");
-    if (fin == NULL)
-      {
-        fprintf(stderr, "Error opening %s.\n", argv[i]);
-        exit(3);
-      }
-
+    if (fin == NULL) {
+      printf("ERROR: %s - Opening %s.\n", progname, argv[i]);
+      exit(3);
+    }
+ 
     i++;
+    if (imodBackupFile(argv[i])) {
+      printf("WARNING: %s - Error making backup file from existing %s\n",
+             progname, argv[i]);
+    }
     fout = fopen(argv[i], "wb");
-    if (fout == NULL)
-      {
-        fprintf(stderr, "Error opening %s.\n", argv[i]);
-        exit(3);
-      }
+    if (fout == NULL) {
+      printf("ERROR: %s - Opening %s.\n", progname, argv[i]);
+      exit(3);
+    }
   }else{
     mrcbyte_help(progname);
     exit(3);     
   }
      
 
-  if (mrc_head_read(fin, &hdata))
-    {
-      fprintf(stderr, "Can't Read Input File Header.\n");
-      exit(3);
-    }
+  if (mrc_head_read(fin, &hdata)) {
+    printf("ERROR: %s - Reading input file header.\n", progname);
+    exit(3);
+  }
      
   if (resize){
     printf("Defaults for %s size = ( %d x %d x %d):\n", 
@@ -202,80 +182,110 @@ int main( int argc, char *argv[] )
       li.white = 255;     
   }
 
-  mrc_init_li(&li, &hdata);
-
-  /* DNM 2/15/01: pass smin and smax - set to header values if zero */
-  if (li.smin == li.smax){
-    li.smin = hdata.amin;
-    li.smax = hdata.amax;
+  li.ramp = ramptype;
+  if (ramptype != MRC_RAMP_LIN && hdata.mode != MRC_MODE_SHORT &&
+      hdata.mode != MRC_MODE_USHORT && hdata.mode != MRC_MODE_FLOAT) {
+    printf("ERROR: %s - Nonlinear scaling can be used only with integer and "
+           "float data\n", progname);
+    exit(3);
   }
 
+  /* This takes care of fixing the mins and maxes */
+  mrc_init_li(&li, &hdata);
 
-  li.ramp = ramptype;
-      
-
-
-  idata = mrc_read_byte(fin, &hdata, &li, mrc_default_status);
-     
-  if (!idata)
-    {
-      fprintf(stderr, "%s: Error reading image data\n", progname);
-      exit(3);
-    }
-
-     
-  printf("\nWriting %s\n", argv[i]);
-
-  mrc_byte_mmm(&hdata, idata);
-     
-  hdata.mode = mode;
+  /* This sets the scaling */
+  mrcContrastScaling(&hdata, li.smin, li.smax, li.black, li.white, li.ramp, 
+                     &li.slope, &li.offset);
+  
+  hout = hdata;
+  hout.amin = 0.;
+  hout.amax = 255.;
+  hout.mode = mode;
 
   /* DNM: eliminate extra header info in the output, and mark it as not
      swapped now that we're done reading data */
-  hdata.headerSize = 1024;
-  hdata.sectionSkip = 0;
-  hdata.next = 0;
-  hdata.nint = 0;
-  hdata.nreal = 0;
-  hdata.nsymbt = 0;
-  hdata.swapped = 0;
+  hout.headerSize = 1024;
+  hout.sectionSkip = 0;
+  hout.next = 0;
+  hout.nint = 0;
+  hout.nreal = 0;
+  hout.nsymbt = 0;
+  hout.swapped = 0;
+  hout.nx = li.xmax + 1 - li.xmin;
+  hout.ny = li.ymax + 1 - li.ymin;
+  hout.nz = li.zmax + 1 - li.zmin;
+  mrc_get_scale(&hdata, &xscl, &yscl, &zscl);
+  mrc_set_scale(&hout, (double)xscl, (double)yscl, (double)zscl);
 
-  mrc_head_label(&hdata, "mrcbyte: Converted and scaled to byte mode.");
+  mrc_head_label(&hout, "mrcbyte: Converted and scaled to byte mode.");
 
-
-  if (!data_only){
-    mrc_head_write(fout, &hdata);
+  xysize = hout.nx * hout.ny;
+  buf = (unsigned int *)malloc(xysize);
+  if (!buf) {
+    printf("ERROR: % - Allocating memory to read data into\n", progname);
+    exit(1);
   }
 
-  if (mode == MRC_MODE_BYTE){
-    if (reverse_video){
-      xysize = hdata.nx * hdata.ny;
-      for(k = 0; k < hdata.nz; k++)
-        for(i = 0; i < xysize; i++){
-          cdat = ((int)idata[k][i] * -1) + 255;
-          idata[k][i] = cdat;
-        }
+  if (!data_only && mrc_head_write(fout, &hout)) {
+    printf("ERROR: % - Writing header to output file\n", progname);
+    exit(1);
+  }
+
+  for (k = 0; k < hout.nz; k++) {
+    printf("Converting Image # %3d\r", k + li.zmin);
+    fflush(stdout);
+    if (mrcReadZByte(&hdata, &li, buf, k + li.zmin)) {
+      printf("ERROR: % - Reading section %d from file\n", progname, k+li.zmin);
+      exit(1);
     }
-    mrc_write_idata(fout, &hdata, (void **)idata);
+    if (reverse_video){
+      for (ii = 0; ii < xysize; ii++)
+        buf[ii] = (unsigned char)(255 - (int)buf[ii]);
+    }
+    
+    sliceInit(&slice, hout.nx, hout.ny, SLICE_MODE_BYTE, buf);
+    sliceMMM(&slice);
+    hout.amin = B3DMIN(hout.amin, slice.min);
+    hout.amax = B3DMAX(hout.amax, slice.max);
+    meansum += slice.mean;
+    if (mrc_write_slice(buf, fout, &hout, k, 'Z')) {
+      printf("ERROR: % - Writing section %d to file\n", progname, k);
+      exit(1);
+    }
+
+      
   }
-     
-     
-  else if (mode == MRC_MODE_SHORT){
-    xysize = hdata.nx * hdata.ny;
-    for (k = 0; k < hdata.nz; k++)
-      for (i = 0; i < (xysize); i++){
-        sdata = idata[k][i];
-        b3dFwrite(&sdata, 2, 1, fout);
-      }
+  hout.amean = meansum / hout.nz;
+
+  if (!data_only && mrc_head_write(fout, &hout)) {
+    printf("ERROR: % - Writing header to output file\n", progname);
+    exit(1);
   }
-  else if (mode == MRC_MODE_FLOAT){
-    xysize = hdata.nx * hdata.ny;
-    for (k = 0; k < hdata.nz; k++)
-      for (i = 0; i < (xysize); i++){
-        fdata = idata[k][i];
-        b3dFwrite(&fdata, 4, 1, fout);
-      }
-  }
+  fclose(fout);
+  printf("\nDone\n");
 
   exit(0);
 }
+
+/*
+
+$Log$
+Revision 3.6  2007/06/13 19:41:08  sueh
+bug# 1019 In main, setting hdata.sectionSkip to 0.
+
+Revision 3.5  2005/02/11 01:42:34  mast
+Warning cleanup: implicit declarations, main return type, parentheses, etc.
+
+Revision 3.4  2004/07/07 19:25:30  mast
+Changed exit(-1) to exit(3) for Cygwin
+
+Revision 3.3  2003/11/18 19:29:32  mast
+changes to call b3dF* functions for 2GB problem on Windows
+
+Revision 3.2  2003/10/24 02:28:42  mast
+strip directory from program name and/or use routine to make backup file
+
+Revision 3.1  2002/11/05 23:49:50  mast
+Changed to call imodCopyright
+
+*/

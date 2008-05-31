@@ -30,7 +30,7 @@
 
 
 static Iobj *imodaObjectCreateThresholdData
-(unsigned char **idata, int nx, int ny, int nz,  float ksigma,
+(MrcHeader *hdata, IloadInfo *li, float ksigma,   
  double highthresh, double lowthresh, int dim,
  int minsize, int maxsize, int followdiag, int inside,
  double shave, double tol, int delete_edge, int smoothflags);
@@ -50,30 +50,30 @@ static void auto_expand(unsigned char *data, int imax, int jmax);
 
 static void usage(void)
 {
-  fprintf(stderr, "Usage: imodauto [options] <image file> <model file>\n");
-  fprintf(stderr, "Options:\n");
-  fprintf(stderr, "\t-l #\tLow threshold level.\n");
-  fprintf(stderr, "\t-h #\tHigh threshold level.\n");
-  fprintf(stderr, "\t-d #\tThreshold flag 1=absolute 2=section-mean 3=stack-mean.\n");
-  fprintf(stderr, "\t-u\tInterpret threshold levels as unscaled intensities.\n");
-  fprintf(stderr, "\t-n\tFind inside contours at same threshold level.\n");
-  fprintf(stderr, "\t-f #\tFollow diagonals: 0=never, 1=above high, 2=below low, 3=always.\n");
+  printf("Usage: imodauto [options] <image file> <model file>\n");
+  printf("Options:\n");
+  printf("\t-l #\tLow threshold level.\n");
+  printf("\t-h #\tHigh threshold level.\n");
+  printf("\t-d #\tThreshold flag 1=absolute 2=section-mean 3=stack-mean.\n");
+  printf("\t-u\tInterpret threshold levels as unscaled intensities.\n");
+  printf("\t-n\tFind inside contours at same threshold level.\n");
+  printf("\t-f #\tFollow diagonals: 0=never, 1=above high, 2=below low, 3=always.\n");
 
-  fprintf(stderr, "\t-m #\tMinimum contour area mask.\n");
-  fprintf(stderr, "\t-M #\tMaximum contour area mask.\n");
-  fprintf(stderr, "\t-e #\tEdge mask: eliminate contours touching that # of edges.\n");
-  fprintf(stderr, "\t-s min,max\tIntensity scaling: scale min to 0 and max to 255.\n");
-  fprintf(stderr, "\t-X min,max\tLoad subset in X from min to max (numbered from 0).\n");
-  fprintf(stderr, "\t-Y min,max\tLoad subset in Y from min to max (numbered from 0).\n");
-  fprintf(stderr, "\t-Z min,max\tLoad subset in Z from min to max (numbered from 0).\n");
-  fprintf(stderr, "\t-k #\tSmooth with kernel filter of given sigma.\n");
-  fprintf(stderr, "\t-z #\tSet model z scale.\n");
-  fprintf(stderr, "\t-x \tExpand areas before enclosing in contours.\n");
-  fprintf(stderr, "\t-i \tShrink areas before enclosing in contours.\n");
-  fprintf(stderr, "\t-o \tSmooth areas (expand then shrink).\n");
-  fprintf(stderr, "\t-r #\tResolution factor (pixels) for shaving points.\n");
-  fprintf(stderr, "\t-R #\tTolerance (maximum error) for point reduction.\n");
-  fprintf(stderr, "\t-c r,g,b   Color of model object (r,g,b between 0 and 1 or 0 and 255).\n");
+  printf("\t-m #\tMinimum contour area mask.\n");
+  printf("\t-M #\tMaximum contour area mask.\n");
+  printf("\t-e #\tEdge mask: eliminate contours touching that # of edges.\n");
+  printf("\t-s min,max\tIntensity scaling: scale min to 0 and max to 255.\n");
+  printf("\t-X min,max\tLoad subset in X from min to max (numbered from 0).\n");
+  printf("\t-Y min,max\tLoad subset in Y from min to max (numbered from 0).\n");
+  printf("\t-Z min,max\tLoad subset in Z from min to max (numbered from 0).\n");
+  printf("\t-k #\tSmooth with kernel filter of given sigma.\n");
+  printf("\t-z #\tSet model z scale.\n");
+  printf("\t-x \tExpand areas before enclosing in contours.\n");
+  printf("\t-i \tShrink areas before enclosing in contours.\n");
+  printf("\t-o \tSmooth areas (expand then shrink).\n");
+  printf("\t-r #\tResolution factor (pixels) for shaving points.\n");
+  printf("\t-R #\tTolerance (maximum error) for point reduction.\n");
+  printf("\t-c r,g,b   Color of model object (r,g,b between 0 and 1 or 0 and 255).\n");
 }
 
 int main(int argc, char *argv[])
@@ -82,9 +82,8 @@ int main(int argc, char *argv[])
   Iobj *obj, *tobj;
   Imod *imod = NULL;
   MrcHeader hdata;
-  struct LoadInfo li;
+  IloadInfo li;
   IrefImage ref;
-  unsigned char **idata;
   
   FILE *fin, *fout;
   double ht = 255.0, lt = 0.0;
@@ -115,6 +114,9 @@ int main(int argc, char *argv[])
     usage();
     exit(3);
   }
+
+  /* Make library error output to stderr go to stdout */
+  b3dSetStoreError(-1);
 
   mrc_init_li(&li, NULL);
   for (i = 1; i < argc; i++){
@@ -219,15 +221,15 @@ int main(int argc, char *argv[])
     exit(3);
   }
   if (smoothflags < 0) {
-    fprintf(stderr, "Only one of -x, -i and -o may be entered.\n");
+    printf("ERROR: %s - Only one of -x, -i and -o may be entered.\n",progname);
     exit(3);
   }
 
   if (inside) {
     if (hentered && lentered) {
-      fprintf(stderr, "Only a high or a low threshold, not both, "
+      printf("ERROR: %s - Only a high or a low threshold, not both, "
               "may be entered when using\n the -n flag to find "
-              "inside contours.\n");
+             "inside contours.\n", progname);
       exit (3);
     }
     /* Set thresholds equal, and set to follow diagonals only on the
@@ -245,14 +247,14 @@ int main(int argc, char *argv[])
 
   fin = fopen(argv[i++], "rb");
   if (fin == NULL){
-    fprintf(stderr, "Error opening image file %s.\n", argv[i-1]);
+    printf("ERROR: %s - Opening image file %s.\n", progname, argv[i-1]);
     if (errno)
       perror("imodauto open image");
     exit(3);
   }
   /* read in graphic header and image data */
   if (mrc_head_read(fin, &hdata)){
-    fprintf(stderr, "Can't Read Input File Header.\n");
+    printf("ERROR: %s - Reading input file header.\n", progname);
     exit(3);
   }
 
@@ -261,6 +263,10 @@ int main(int argc, char *argv[])
     li.smax = hdata.amax;
   }
   mrc_fix_li(&li, hdata.nx, hdata.ny, hdata.nz);
+
+  /* This sets the scaling */
+  mrcContrastScaling(&hdata, li.smin, li.smax, li.black, li.white, 
+                     MRC_RAMP_LIN, &li.slope, &li.offset);
 
   /* DNM 6/19/02: scale entered values if unscaled option taken */
   if (unscaled) {
@@ -275,7 +281,7 @@ int main(int argc, char *argv[])
 
   fout = fopen(argv[i], "wb");
   if (!fout){
-    fprintf(stderr, "Error opening %s\n", argv[i]);
+    printf("ERROR: %s - Opening %s\n", progname, argv[i]);
     if (errno)
       perror("imodauto open model");
     exit(3);
@@ -283,23 +289,19 @@ int main(int argc, char *argv[])
      
   imod = imodNew();
   if (!imod){
-    fprintf(stderr, "Error creating model %s.\n", argv[i]);
+    printf("ERROR: %s - creating model %s.\n", progname, argv[i]);
     exit(3);
   }
   imod->file = fout;
-     
-  idata = mrc_read_byte(fin, &hdata, &li, mrc_default_status);
-  if (!idata){
-    fprintf(stderr, "%s: Error reading image data\n", progname);
-    exit(3);
-  }
-  fclose(fin);
-     
-  obj = imodaObjectCreateThresholdData
-    (idata, li.xmax + 1 - li.xmin, li.ymax + 1 - li.ymin,
-     li.zmax + 1 - li.zmin, ksigma, ht, lt, dim,
+   
+  obj = imodaObjectCreateThresholdData 
+    (&hdata, &li, ksigma, ht, lt, dim,
      minsize, maxsize, followdiag, inside,
      shave, tol, delete_edge, smoothflags);
+  if (!obj) {
+    printf("ERROR: %s - Allocating memory or reading data", progname);
+    exit(1);
+  }
      
   obj->red = red;
   obj->green = green;
@@ -329,8 +331,7 @@ int main(int argc, char *argv[])
   imod->zmax = hdata.nz;
   imod->cindex.object = imod->objsize - 1;
 
-  /* Set up image reference information.  Safer to do this before 
-     mrc_read_byte modifies header, but this should work here */
+  /* Set up image reference information. */
   imodSetRefImage(imod, &hdata);
 
   imodWrite(imod, fout);
@@ -347,7 +348,7 @@ static int *xlist, *ylist;
 /* creates an object from a 3-D image array */
 
 static Iobj *imodaObjectCreateThresholdData
-(unsigned char **idata, int nx, int ny, int nz, float ksigma,   
+(MrcHeader *hdata, IloadInfo *li, float ksigma,   
  double highthresh, double lowthresh, int dim,
  int minsize, int maxsize, int followdiag, int inside,
  double shave, double tol, int delete_edge, int smoothflags)
@@ -357,6 +358,10 @@ static Iobj *imodaObjectCreateThresholdData
   Ipoint pt, *tmpt;
   int nco, co, cpt, cz, ncont;
   int *tdata;
+  int nx = li->xmax + 1 - li->xmin;
+  int ny = li->ymax + 1 - li->ymin;
+  int nz = li->zmax + 1 - li->zmin;
+  unsigned char *idata;
   unsigned char *fdata;
   unsigned char **linePtrs;
   int i,j,k;
@@ -378,6 +383,7 @@ static Iobj *imodaObjectCreateThresholdData
   Islice *sout;
 
   tdata = (int *)malloc(sizeof(int) * nx * ny);
+  idata = (unsigned char *)malloc(nxy);
   fdata = (unsigned char *)malloc(nxy);
   listsize = 4 * (nx + ny);
   xlist = (int *)malloc(listsize * sizeof(int));
@@ -388,25 +394,21 @@ static Iobj *imodaObjectCreateThresholdData
   nobj->green = 1.;
   nobj->blue = 0.;
 
-  if (!tdata || !fdata || !xlist || !ylist || !linePtrs)
+  if (!tdata || !fdata || !xlist || !ylist || !linePtrs || !idata)
     return NULL;
 
-  /* Get whole-file mean for dim = 2 */
+  /* Get whole-file mean for dim = 2.  5/30/08: Trust file mean! */
   if (dim == 2) {
-    mean = 0.;
-    for (k = 0; k < nz; k++) {
-      for (tsum = 0, i = 0; i < nxy; i++)
-        tsum += idata[k][i];
-      mean += tsum / nxy;
-    }
-    mean /= nz;
+    mean = hdata->amean;
   }     
 
   for(k = 0; k < nz; k++){
+    if (mrcReadZByte(hdata, li, idata, k + li->zmin))
+      return NULL;
 
     /* Filter first if sigma entered */
     if (ksigma >= 0.) {
-      sliceInit(&slice, nx, ny, SLICE_MODE_BYTE, idata[k]);
+      sliceInit(&slice, nx, ny, SLICE_MODE_BYTE, idata);
       slice.min = slice.max = 0.;
       if (ksigma > 0.) {
         scaledGaussianKernel(kernel, &kerdim, KERNEL_MAXSIZE, ksigma);
@@ -420,7 +422,7 @@ static Iobj *imodaObjectCreateThresholdData
     /* Get per-section mean for dim = 3 */
     if (dim == 3) {
       for (tsum = 0, i = 0; i < nxy; i++)
-        tsum += idata[k][i];
+        tsum += idata[i];
       mean = tsum / nxy;
     }
 
@@ -446,7 +448,7 @@ static Iobj *imodaObjectCreateThresholdData
     for (i = 0; i < nxy; i++)
       tdata[i] = 0;
     for (i = 0; i < nxy; i++)
-      if ( (idata[k][i] > t1) && (idata[k][i] < t2) )
+      if ( (idata[i] > t1) && (idata[i] < t2) )
         tdata[i] = -1;
 
     for(j = 0; j < ny; j++)
@@ -458,11 +460,11 @@ static Iobj *imodaObjectCreateThresholdData
         else if (followdiag >= 3)
           diagonal = 1;
         else if (followdiag == 1)
-          diagonal = (idata[k][i + (j * nx)] >= t2);
+          diagonal = (idata[i + (j * nx)] >= t2);
         else
-          diagonal = (idata[k][i + (j * nx)] <= t1);
+          diagonal = (idata[i + (j * nx)] <= t1);
 
-        if (imoda_object_bfill_2d(idata[k], tdata, nx, ny, i, j,
+        if (imoda_object_bfill_2d(idata, tdata, nx, ny, i, j,
                                   t1, t2, diagonal, col) > 1 || 
             minsize < 2){
                         
@@ -504,8 +506,8 @@ static Iobj *imodaObjectCreateThresholdData
       if (inside) {
         i = cont->pts->x;
         j = cont->pts->y;
-        if ((followdiag == 1 && idata[k][i + (j * nx)] <= t1) ||
-            (followdiag == 2 && idata[k][i + (j * nx)] >= t2))
+        if ((followdiag == 1 && idata[i + (j * nx)] <= t1) ||
+            (followdiag == 2 && idata[i + (j * nx)] >= t2))
           critedge = 1;
       }
       if (critedge) {
@@ -560,18 +562,18 @@ static Iobj *imodaObjectCreateThresholdData
       else if (followdiag >= 3)
         diagonal = 1;
       else if (followdiag == 1)
-        diagonal = (idata[k][i + (j * nx)] >= t2);
+        diagonal = (idata[i + (j * nx)] >= t2);
       else
-        diagonal = (idata[k][i + (j * nx)] <= t1);
+        diagonal = (idata[i + (j * nx)] <= t1);
              
       auto_patch(fdata, nx, ny);
 
       /* Set the reverse flag and set threshold based on which one is passed */
-      reverse = idata[k][i + (j * nx)] <= t1 ? 1 : 0;
+      reverse = idata[i + (j * nx)] <= t1 ? 1 : 0;
       threshUsed = -1.;
-      if (idata[k][i + (j * nx)] <= t1)
+      if (idata[i + (j * nx)] <= t1)
         threshUsed = t1 + 0.5;
-      if (idata[k][i + (j * nx)] >= t2)
+      if (idata[i + (j * nx)] >= t2)
         threshUsed = t2 - 0.5;
 
       /* If we do an expand, shrink, or smooth, run the patch again and set 
@@ -587,7 +589,7 @@ static Iobj *imodaObjectCreateThresholdData
 
       /* Make line pointers for image array */
       for (j = 0; j < ny; j++)
-        linePtrs[j] = &idata[k][j * nx];
+        linePtrs[j] = &idata[j * nx];
              
       newconts = imodContoursFromImagePoints(fdata, linePtrs, nx, ny, cz, 
                                              AUTO_FLOOD, diagonal, threshUsed,
@@ -619,6 +621,7 @@ static Iobj *imodaObjectCreateThresholdData
          
   }
      
+  free(idata);
   free(tdata);
   free(fdata);
   free(xlist);
@@ -925,6 +928,9 @@ static void auto_expand(unsigned char *data, int imax, int jmax)
 /*
 
 $Log$
+Revision 3.12  2008/05/27 05:30:12  mast
+Added kernel smoothing and changed to use new interpolation
+
 Revision 3.11  2008/04/04 21:21:28  mast
 Free contour after adding to object
 
