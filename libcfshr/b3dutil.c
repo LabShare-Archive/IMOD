@@ -212,7 +212,7 @@ static char errorMess[MAX_IMOD_ERROR_STRING] = "";
 
 /*! Stores an error message and may print it as well.  The message is 
   internally printed with vsprintf.  It is printed to [fout] unless 
-  b3dSetStoreError has been called with 1. */
+  b3dSetStoreError has been called with a non-zero value. */
 void b3dError(FILE *out, char *format, ...)
 {
   va_list args;
@@ -221,11 +221,14 @@ void b3dError(FILE *out, char *format, ...)
   vsprintf(errorMess, format, args);
   if (out && !storeError)
     fprintf(out, errorMess);
+  if (out == stderr && storeError < 0)
+    fprintf(stdout, errorMess);
   va_end(args);
 }
 
 /*! Sets flag to print messages passed by [b3dError] if [ival] is 0 (the 
-  default) or to store them internally if [ival] is 1. */
+  default), just to store them internally if [ival] is 1, or to print messages
+  destined to stderr to stdout instead if [ival is -1. */
 void b3dSetStoreError(int ival)
 {
   storeError = ival;
@@ -489,6 +492,9 @@ int b3dIMax(int narg, ...)
 
 /*
 $Log$
+Revision 1.4  2008/04/03 15:37:02  mast
+Changed b3dFread to call up to 5 times for stdin
+
 Revision 1.3  2008/04/02 14:47:16  mast
 Rearrange statements for windows
 
