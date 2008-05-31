@@ -1106,8 +1106,10 @@ int imodReadAscii(Imod *imod)
   int mh, vsize, lsize;
   char line[MAXLINE];
   char *strptr;
-  int len, idata, idata2, idata3, idata4;
+  int len, idata, idata2, idata3, idata4, activeVal, nval, gotObjMM;
   SlicerAngles slan;
+  float value, size, valmin, valmax, objvmin, objvmax;
+  Istore store;
 
 #ifdef IMODEL_FILES_DEBUG
   fprintf(stderr, "#imodReadAscii: Entry\n");
@@ -1115,6 +1117,10 @@ int imodReadAscii(Imod *imod)
   imod->cindex.object = -1;
   imod->cindex.contour = -1;
   imod->cindex.point = -1;
+  valmin = 1.e30;
+  valmax = -1.e30;
+  gotObjMM = 0;
+  ob = -1;
 
   len = imodFgetline(imod->file,line, MAXLINE);
   if (len < 1) return(-1);
@@ -1126,12 +1132,14 @@ int imodReadAscii(Imod *imod)
   if (imod->objsize > 0)
     imod->cindex.object = 0;
      
+  store.type = GEN_STORE_VALUE1;
+  store.flags = GEN_STORE_FLOAT << 2;
   obj = imod->obj;
 
   while ( ((len = imodFgetline(imod->file,line, MAXLINE)) > 0)){
 	  
     if (substr(line, "contour")){
-      sscanf(line, "contour %d %d %d", &co, &surf, &pts);
+      nval = sscanf(line, "contour %d %d %d %g", &co, &surf, &pts, &value);
       cont = &(obj->cont[co]);
       cont->surf = surf;
       cont->psize = pts;
@@ -1139,12 +1147,35 @@ int imodReadAscii(Imod *imod)
         cont->pts = (Ipoint *)malloc(pts * sizeof(Ipoint));
       cont->flags = 0;
       cont->time  = 0;
+      if (nval > 3) {
+        valmin = B3DMIN(valmin, value);
+        valmax = B3DMAX(valmax, value);
+        store.index.i = co;
+        store.value.f = value;
+        if (istoreInsert(&obj->store, &store))
+          return(-1);
+      }
+      activeVal = 0;
       for(pt = 0; pt < pts; pt++){
         imodFgetline(imod->file, line, MAXLINE);
-        sscanf(line, "%g %g %g", 
-			   &(cont->pts[pt].x), 
-			   &(cont->pts[pt].y), 
-			   &(cont->pts[pt].z));
+        nval = sscanf(line, "%g %g %g %g %g", 
+                      &(cont->pts[pt].x), 
+                      &(cont->pts[pt].y), 
+                      &(cont->pts[pt].z), &size, &value);
+        if (nval > 3 && size >= 0)
+          imodPointSetSize(cont, pt, size);
+        if (nval > 4) {
+          store.index.i = pt;
+          store.value.f = value;
+          if (istoreInsertChange(&cont->store, &store))
+            return -1;
+          activeVal = 1;
+          valmin = B3DMIN(valmin, value);
+          valmax = B3DMAX(valmax, value);
+        } else if (activeVal) {
+          istoreEndChange(cont->store, GEN_STORE_VALUE1, pt);
+          activeVal = 0;
+        }
       }
       continue;
     }
@@ -1173,6 +1204,11 @@ int imodReadAscii(Imod *imod)
     }
 
     if (substr(line, "object ")){
+
+      /* new object: put out min/max for last one if any */
+      if (ob >= 0 && (gotObjMM || valmin <= valmax))
+        istoreAddMinMax(&obj->store, GEN_STORE_MINMAX1, gotObjMM ? 
+                        objvmin : valmin, gotObjMM ? objvmax : valmax);
       sscanf(line, "object %d %d %d", &ob, &conts, &meshes);
 
 #ifdef IMODEL_FILES_DEBUG
@@ -1194,6 +1230,9 @@ int imodReadAscii(Imod *imod)
         obj->mesh = imodMeshesNew(meshes);
       mh = -1;
       co = -1;
+      valmin = 1.e30;
+      valmax = -1.e30;
+      gotObjMM = 0;
       continue;
     }
 
@@ -1247,6 +1286,12 @@ int imodReadAscii(Imod *imod)
 
     if (substr(line, "hastimes"))
       obj->flags |= IMOD_OBJFLAG_TIME;
+
+    if (substr(line, "usevalue"))
+      obj->flags |= IMOD_OBJFLAG_USE_VALUE;
+
+    if (substr(line, "valcolor"))
+      obj->flags |= IMOD_OBJFLAG_MCOLOR;
 
     if (substr(line, "offsets "))
       sscanf(line, "offsets %g %g %g",
@@ -1357,6 +1402,20 @@ int imodReadAscii(Imod *imod)
     if (substr(line, "obquality"))
       obj->quality = atoi(&(line[9]));
 
+    if (substr(line, "valblack"))
+      obj->valblack = atoi(&(line[8]));
+
+    if (substr(line, "valwhite"))
+      obj->valwhite = atoi(&(line[8]));
+
+    if (substr(line, "matflags2"))
+      obj->matflags2 = atoi(&(line[9]));
+
+    if (substr(line, "valminmax")) {
+      sscanf(line, "valminmax %g %g", &objvmin, &objvmax);
+      gotObjMM = 1;
+    }
+
     if (substr(line, "objclips")) {
       sscanf(line, "objclips %d %d %d %d", &idata, &idata2, &idata3, &idata4);
       obj->clips.count = idata;
@@ -1389,6 +1448,9 @@ int imodReadAscii(Imod *imod)
 
 
   }
+  if (ob >= 0 && (gotObjMM || valmin <= valmax))
+    istoreAddMinMax(&obj->store, GEN_STORE_MINMAX1, gotObjMM ? 
+                    objvmin : valmin, gotObjMM ? objvmax : valmax);
      
   return(0);
 }
@@ -1405,6 +1467,9 @@ int imodWriteAscii(Imod *imod)
   Icont *cont;
   Imesh *mesh;
   SlicerAngles *slanp;
+  DrawProps defProps, contProps, ptProps;
+  int contState, surfState, stateFlags, changeFlags, nextChange;
+  float valmin, valmax, size;
 
   rewind(imod->file);
   fprintf(imod->file, "# imod ascii file version 2.0\n\n");
@@ -1467,6 +1532,10 @@ int imodWriteAscii(Imod *imod)
       fprintf(imod->file, "antialias\n");
     if (obj->flags & IMOD_OBJFLAG_TIME)
       fprintf(imod->file, "hastimes\n");
+    if (obj->flags & IMOD_OBJFLAG_USE_VALUE)
+      fprintf(imod->file, "usevalue\n");
+    if (obj->flags & IMOD_OBJFLAG_MCOLOR)
+      fprintf(imod->file, "valcolor\n");
 
     fprintf(imod->file, "linewidth %d\n", obj->linewidth);
     fprintf(imod->file, "surfsize  %d\n", obj->surfsize);
@@ -1482,6 +1551,9 @@ int imodWriteAscii(Imod *imod)
     fprintf(imod->file, "specular  %d\n", obj->specular);
     fprintf(imod->file, "shininess %d\n", obj->shininess);
     fprintf(imod->file, "obquality %d\n", obj->quality);
+    fprintf(imod->file, "valblack  %d\n", obj->valblack);
+    fprintf(imod->file, "valwhite  %d\n", obj->valwhite);
+    fprintf(imod->file, "matflags2 %d\n", obj->matflags2);
     if (obj->clips.count) {
       fprintf(imod->file, "objclips %d %d %d %d\n", obj->clips.count,
               obj->clips.flags, obj->clips.trans, obj->clips.plane);
@@ -1492,13 +1564,39 @@ int imodWriteAscii(Imod *imod)
                 obj->clips.point[i].y, obj->clips.point[i].z);
     }
 
+    if (istoreGetMinMax(obj->store, obj->contsize, GEN_STORE_MINMAX1, &valmin,
+                        &valmax))
+      fprintf(imod->file, "valminmax %g %g\n", valmin, valmax);
+
+    istoreDefaultDrawProps(obj, &defProps);
     for(co = 0; co < obj->contsize; co++){
       cont = &(obj->cont[co]);
-      fprintf(imod->file, "contour %d %d %d\n",
-              co, cont->surf, cont->psize);
+      istoreContSurfDrawProps(obj->store, &defProps, &contProps, co, 
+                              cont->surf, &contState, &surfState);
+      fprintf(imod->file, "contour %d %d %d", co, cont->surf, cont->psize);
+      if (contState & CHANGED_VALUE1)
+        fprintf(imod->file, " %g", contProps.value1);
+      fprintf(imod->file, "\n");
+      
+      nextChange = istoreFirstChangeIndex(cont->store);
+      stateFlags = 0;
       for(pt = 0; pt < cont->psize; pt++){
-        fprintf(imod->file, "%g %g %g\n",
+        fprintf(imod->file, "%g %g %g",
 			    cont->pts[pt].x, cont->pts[pt].y, cont->pts[pt].z);
+        if (pt == nextChange)
+          nextChange = istoreNextChange(cont->store, &contProps, &ptProps,
+                                        &stateFlags, &changeFlags);
+
+        size = -1.;
+        if (cont->sizes && cont->sizes[pt] >= 0)
+          size = cont->sizes[pt];
+
+        /* Output size if any, or size and value */
+        if (size >= 0 && !(stateFlags & CHANGED_VALUE1))
+          fprintf(imod->file, " %g", size);
+        else if (stateFlags & CHANGED_VALUE1)
+          fprintf(imod->file, " %g %g", size, ptProps.value1);
+        fprintf(imod->file, "\n");
       }
       if (cont->flags)
         fprintf(imod->file, "contflags %d\n", cont->flags);
@@ -1840,6 +1938,9 @@ int imodPutByte(FILE *fp, unsigned char *dat)
 
 /*
   $Log$
+  Revision 3.31  2008/03/03 17:46:15  mast
+  Rename run scripts to program names
+
   Revision 3.30  2008/01/27 06:20:15  mast
   Changes for object groups
 
