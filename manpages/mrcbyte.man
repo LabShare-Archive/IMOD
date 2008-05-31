@@ -62,17 +62,16 @@ Enter (min y, max y). (return for default)  >10 100
 Enter sections (low, high)  >0 1
 Enter (black level, white level) >34 200
 
-Image size 90 x 90, 2 sections.
-Reading Image # 002
-Writing byte.mrc
+Converting Image # 002
 
 Example of a command that does the same thing.
 
 % mrcbyte -x 10,100 -y 10,100 -z 0,1 -c 34,200 image.mrc byte.mrc
 .fi	
 .SH BUGS
-The -l and -e options have not been tested.  The program loads all data into 
-memory at once.
+There is no protection against taking the log of numbers <= 0 or taking
+exponentials of numbers that are too large.
+
 .SH AUTHORS
 Jim Kremer and David Mastronarde  <mast@colorado.edu>
 .SH SEE ALSO
