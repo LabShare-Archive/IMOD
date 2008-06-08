@@ -9,7 +9,7 @@ imodcurvature options in_model out_model
 This program will compute the local radius of curvature of objects in a model
 and encode that value into the model as a color or a 2D or 3D point size.
 It can compute either a 2D or a 3D radius of curvature by fitting circles or
-spheres to contours.
+spheres to contours; it can also fit cylinders.
 For fitting in 2D, it computes the radius of curvature at each point in a
 contour by fitting to a segment of the contour centered on the point; the
 length of this segment is set by a parameter called the window length.  This
@@ -25,7 +25,9 @@ decreases away from the equator.
 The 3D fitting is activated by specifying
 a parameter for the range in Z over which to fit.  The objects to be fit must
 contain a mesh (produced by Imodmesh(1)) so that connections between contours
-can be deduced.  In this case the program
+can be deduced.  This mesh should connect all contours rather than skipping Z
+levels; otherwise the contours that are not on the Z levels included in the
+meshing cannot be analyzed.  For 3D fitting, the program
 computes the radius for each point by sampling points from contours above and
 below the point in Z.  The fit of 4 parameters to these sample points may be
 somewhat less reliable because it is still initialized by the explicit solution
@@ -33,6 +35,19 @@ for a circle fit to the central contour.  No fit is done to a point unless
 there is at least one contour above and one contour below the point in Z.
 Here one may need to explore the
 effects of varying both the window length and the Z range.
+.P
+Fitting to cylinders instead of spheres is activated by specifying an angular
+increment for searching different orientations.  At each possible orientation
+for the cylinder axis, the sampled points are projected into a plane and then
+a circle is fit to those points.  Cylinder fits thus involve finding 5
+parameters, so they may even less reliable than spherical fits. 
+Nevertheless, they will give more meaningful values for tubular regions, which
+have a high curvature around the tube and a low curvature along its length.  A
+limitation here is that the fit will not generally include points from both
+sides of a long contour and will not be possible for some portions of the tops
+and bottoms of structures.  The exhaustive orientation search is
+computationally inefficient and will make the program run much longer than for
+spherical fits (hours instead of minutes).
 .P
 If contours are in arbitrary planes rather than in Z planes, the 
 .B -ro

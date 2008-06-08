@@ -38,6 +38,18 @@ manpage = Range of contours in Z to include for fitting to a sphere.  The
 value should specify the actual distance in Z after Z-scaling, if any.
 The default is 0 to fit just one contour at a time to a circle.
 
+[Field = CylinderSearchAngle]
+short = cy
+type = F
+usage = Angular increment for searching for best-fitting cylinder
+tooltip = 
+manpage = If this option is entered, points will be fit to a cylinder instead
+of a sphere by doing an exhaustive search of all possible orientations.  The
+value entered is the angular increment for this search.  Increments of 5 to 10
+degrees are useful.  Computation time will increase inversely with the square
+of this increment.  A value of 10 is recommended for initial testing, and a
+value of 5 for final computations.
+
 [Field = RadiusCriterion]
 short = rc
 type = FP
@@ -133,13 +145,30 @@ be equally spaced, the location values can simply be sequential values.
 [Field = StoreValues]
 short = st
 type = B
-usage = Store curvature values in the model
+usage = Store radius of curvature values in the model
 tooltip = 
-manpage = Store the curvature values directly in the model.  They can then be
-visualized as intensity variations or in false color by activating the option
-to "Show stored values" in the Values panel of the model view Object Edit
-window of 3dmod.  This option allows dynamic adjustment of the displayed 
-colors.
+manpage = Store the radius of curvature values directly in the model.  They
+can then be visualized as intensity variations or in false color by activating
+the option to "Show stored values" in the Values panel of the model view
+Object Edit window of 3dmod.  This option allows dynamic adjustment of the
+displayed colors.  These radius values will be scaled by the pixel size
+defined in the model, unlike all other radius values, which are in pixels.
+
+[Field = KappaValues]
+short = kappa
+type = B
+usage = Store curvature values (1/radius) in the model
+tooltip = 
+manpage = Store curvature values, which are the inverse of the radius of
+curvature, in the model.  This curvature is commonly referred to as kappa.
+To keep values from becoming too small, they will be multiplied by 1000 if
+the pixel size is greater than 0.05.  Thus, for typical pixel sizes in
+nanometers, the curvatures will be in reciprocal microns.
+This measure could be advantageous if you are interested in seeing the
+values for regions with little or no curvature while still seeing distinctions
+among regions with moderate curvature.  The curvature value
+goes to zero, while radius of curvature becomes very large and compresses the
+dynamic range.
 
 [Field = SampleSpacing]
 short = sa
@@ -171,5 +200,9 @@ type = IP
 usage = Test sphere fits at given contour and point #
 tooltip = 
 manpage = Test sphere fitting by making a new object with the points being
-fit to and the fitted sphere for the given contour and point number.
+fit to and the fitted sphere for the given contour and point number.  If
+cylinder fitting is being done instead, 3 spheres will be shown along the axis
+of the fitted cyclinder, and the results for each search angle will be
+printed.  If the -ve option is given, the program will also output the
+projection points at each search angle.
 
