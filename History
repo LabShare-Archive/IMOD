@@ -1,5 +1,9 @@
 IMOD History
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+6/8/08: Added ability to fit a cylinder instead of a sphere to Imodcurvature,
+using a stupid exhaustive angular search; also fixed bug in 3D fitting when
+the points are spaced apart farther than half the window length.
+
 5/31/08: Added general values and point sizes to ascii model output.
 
 5/30/08: Rewrote mrcbyte and imodauto to read data slice by slice instead of
