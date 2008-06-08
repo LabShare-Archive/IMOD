@@ -30,8 +30,13 @@ static int encodeCurvature(Imod *mod, int obnum, float rCritLo, float rCritHi,
                            int pointSize, float symZoom, int numCol,
                            unsigned char *red, unsigned char *green, 
                            unsigned char *blue, int storeVals, float zrange,
-                           float zscale, int rotateWild, int verbose,
-                           int testCo, int TestPt);
+                           float zscale, int rotateWild, float cylSearch,
+                           int verbose, int testCo, int TestPt);
+static int farthestPoint(float *xx, float *yy, int numPts, int icen);
+static int fitCylinder(float *xx3, float *yy3, float *zz3, float *xxr,
+                       float *yyr, int numPts, float delt, float *rad,
+                       float *alpha, float *gamma, float *rmsErr,
+                       Ipoint *axisPt1, Ipoint *axisPt2, int verbose);
 
 /* Structures for keeping track of connected contours and the near contours
    to be used for a spherical fit */
@@ -68,6 +73,7 @@ int main( int argc, char *argv[])
   int numColors = 0;
   int pointSize = 0;
   int storeVals = 0;
+  int storeKappa = 0;
   int red, green, blue;
   unsigned char cmap[3][256];
   float fitCrit = 0.;
@@ -76,6 +82,7 @@ int main( int argc, char *argv[])
   int palette = 0;
   int rotateWild = 0;
   float zrange = 0;
+  float cylSearch = 0.;
   float rCritLo, rCritHi, window;
   float symZoom = 0.;
   int *objList;
@@ -87,14 +94,15 @@ int main( int argc, char *argv[])
   int numOptArgs, numNonOptArgs;
   
   /* Fallbacks from    ../manpages/autodoc2man 2 1 imodcurvature  */
-  int numOptions = 16;
+  int numOptions = 20;
   char *options[] = {
     "in:InputFile:FN:", ":OutputFile:FN:", "wl:WindowLength:FP:",
-    "zr:ZRangeToFit:F:", "rc:RadiusCriterion:FP:", "fc:FitCriterion:F:",
-    "ob:ObjectsToDo:LI:", "ps:PointSize:B:", "sy:SymbolZoom:F:",
+    "zr:ZRangeToFit:F:", "cy:CylinderSearchAngle:F:",
+    "rc:RadiusCriterion:FP:", "fc:FitCriterion:F:", "ob:ObjectsToDo:LI:",
+    "ro:RotateToXYPlane:B:", "ps:PointSize:B:", "sy:SymbolZoom:F:",
     "co:Color:ITM:", "di:DivideRange:B:", "pa:UsePalette:FN:",
-    "sa:SampleSpacing:F:", "ve:Verbose:B:", "tc:TestCircleFits:B:",
-    "ts:TestSphereFits:IP:", "st:StoreValues:B:"};
+    "st:StoreValues:B:", "kappa:KappaValues:B:", "sa:SampleSpacing:F:",
+    "ve:Verbose:B:", "tc:TestCircleFits:B:", "ts:TestSphereFits:IP:"};
 
   /* Startup with fallback */
   PipReadOrParseOptions(argc, argv, options, numOptions, progname, 
@@ -115,6 +123,7 @@ int main( int argc, char *argv[])
   /* Process options */
   PipGetBoolean("TestCircleFits", &testcurve);
   PipGetBoolean("RotateToXYPlane", &rotateWild);
+  PipGetFloat("CylinderSearchAngle", &cylSearch);
   
   if (!testcurve) {
 
@@ -128,6 +137,8 @@ int main( int argc, char *argv[])
     PipGetFloat("ZRangeToFit", &zrange);
     if (zrange && rotateWild)
       exitError("You cannot do rotation of contours with fitting to spheres");
+    if (cylSearch && !zrange) 
+      exitError("You must enter a Z range to do cylinder fitting");
     
     /* Color options */
     PipGetBoolean("DivideRange", &divColors);
@@ -169,6 +180,9 @@ int main( int argc, char *argv[])
     PipGetBoolean("PointSize", &pointSize);
     PipGetFloat("SymbolZoom", &symZoom);
     PipGetBoolean("StoreValues", &storeVals);
+    PipGetBoolean("KappaValues", &storeKappa);
+    if (storeKappa)
+      storeVals = -1;
     if (!pointSize && !numColors && !symZoom && !storeVals)
       exitError("You must enter either -ps, -sy, -st or color options for "
                 "point or color encoding");
@@ -223,7 +237,8 @@ int main( int argc, char *argv[])
                           fitCrit, pointSize, symZoom, numColUse, 
                           &cmap[0][colorInd], &cmap[1][colorInd], 
                           &cmap[2][colorInd], storeVals, zrange,
-                          model->zscale, rotateWild, verbose, testCo, testPt))
+                          model->zscale, rotateWild, cylSearch, verbose,
+                          testCo, testPt))
         exitError("Error allocating memory in curvature routine");
 
       if (numColors && !divColors && colorInd < numColors - 1)
@@ -287,8 +302,8 @@ int encodeCurvature(Imod *model, int obnum, float rCritLo, float rCritHi,
                     int pointSize, float symZoom, int numCol,
                     unsigned char *red, unsigned char *green, 
                     unsigned char *blue, int storeVals, float zrange,
-                    float zscale, int rotateWild, int verbose, int testCo,
-                    int testPt)
+                    float zscale, int rotateWild, float cylSearch, int verbose,
+                    int testCo, int testPt)
 {
   Iobj *obj = &model->obj[obnum];
   Icont *cont;
@@ -297,15 +312,17 @@ int encodeCurvature(Imod *model, int obnum, float rCritLo, float rCritHi,
   Icont *rcont;
   int co, pt, indCol, maxSamp, activeSym;
   float *xx, *yy, *zz = NULL;
-  float xcen, ycen, zcen, rad, rmsErr, dval;
+  float *xxrot, *yyrot;
+  float xcen, ycen, zcen, rad, rmsErr, dval, frac, radsto;
   float minDist, dist, cumz, subWind, valMin = 1.e30, valMax = -1.e30;
   int cenPt, meetsCrit, activeCol, numPts, minPt, zhalf, pt2, zdir, icheck;
   int numMidSlice, delz, j, newnum, maxZ, iud, minDiff, diffUp, diffDown;
   int diff, activeVal, rotated, needFull, numContDone, numPtDone, ifDidCont;
   Istore store;
   Ilist *list;
-  Ipoint scale, *cenPoint, point, norm;
+  Ipoint scale, *cenPoint, point, norm, axisPt1, axisPt2;
   double alpha, beta;
+  float alphas, gammas;
   double dtor = 0.017453293;
   ConnectedCont conCont;
   ConnectedCont *conItem;
@@ -336,6 +353,13 @@ int encodeCurvature(Imod *model, int obnum, float rCritLo, float rCritHi,
   yy = (float *)malloc(maxSamp * sizeof(float));
   if (!xx || !yy)
     return 1;
+
+  if (cylSearch) {
+    xxrot = (float *)malloc(maxSamp * sizeof(float));
+    yyrot = (float *)malloc(maxSamp * sizeof(float));
+    if (!xxrot || !yyrot)
+      return 1;
+  }
 
   /* Loop on contours */
   for (co = 0; co < obj->contsize; co++) {
@@ -508,8 +532,8 @@ int encodeCurvature(Imod *model, int obnum, float rCritLo, float rCritHi,
               /* Balance contour extent in Z on each side */
               diffUp = nearOnes[1 + 2 *(numUpDown[1] - 1)].z - conCont.z;
               diffDown = conCont.z - nearOnes[2 * (numUpDown[0] - 1)].z;
-              /* printf("numUpDown %d %d  diffDown diffUp %d  %d\n",
-                 numUpDown[0], numUpDown[1], diffDown, diffUp); */
+              /*printf("numUpDown %d %d  diffDown diffUp %d  %d\n",
+                numUpDown[0], numUpDown[1], diffDown, diffUp); */
               if (diffUp > diffDown) {
                 iud = 1;
               } else {
@@ -546,6 +570,8 @@ int encodeCurvature(Imod *model, int obnum, float rCritLo, float rCritHi,
                   loadWindowPoints(obj, nearPt->minCont, nearPt->minPt,
                                    subWind, sample, 0, zscale, xx, yy, zz, 
                                    &numPts);
+                  /* printf("delz %.0f subwind %f  nummid %d numpts %d\n",
+                     nearPt->cumz, subWind, numMidSlice, numPts); */
                 }
               }
             }
@@ -557,15 +583,28 @@ int encodeCurvature(Imod *model, int obnum, float rCritLo, float rCritHi,
           }
           
           if (meetsCrit) {
-            fitSphere(xx, yy, zz, numPts, &rad, &xcen, &ycen, &zcen, &rmsErr);
-            if (verbose || testPt >= 0) {
-              if (zrange)
-                printf("Center pt %d  num= %d  (%.2f,%.2f,%.2f)  radius %.2f  "
-                       "err %f\n", cenPt + 1, numPts, xcen,ycen,zcen,rad,
-                       rmsErr);
-              else
-                printf("Center pt %d  num= %d  (%.2f,%.2f)  radius %.2f  "
-                       "err %f\n", cenPt + 1, numPts, xcen,ycen,rad,rmsErr);
+            if (cylSearch) {
+              j = 0;
+              if (testPt >= 0)
+                j = verbose ? 2 : 1;
+              fitCylinder(xx, yy, zz, xxrot, yyrot, numPts, cylSearch, &rad,
+                          &alphas, &gammas, &rmsErr, &axisPt1, &axisPt2, j);
+              if (verbose)
+                  printf("Center pt %3d  num= %3d  alpha %6.1f  gamma %6.1f  "
+                         "radius %8.1f  err %6.1f\n", cenPt + 1, numPts,
+                         alphas, gammas, rad,rmsErr);
+            } else {
+              fitSphere(xx, yy, zz, numPts, &rad, &xcen, &ycen, &zcen, 
+                        &rmsErr);
+              if (verbose || testPt >= 0) {
+                if (zrange)
+                  printf("Center pt %d  num= %d  (%.2f,%.2f,%.2f)  radius %.2f  "
+                         "err %f\n", cenPt + 1, numPts, xcen,ycen,zcen,rad,
+                         rmsErr);
+                else
+                  printf("Center pt %d  num= %d  (%.2f,%.2f)  radius %.2f  "
+                         "err %f\n", cenPt + 1, numPts, xcen,ycen,rad,rmsErr);
+              }
             }
           
             if (rad < rCritLo || rad > rCritHi || 
@@ -580,13 +619,25 @@ int encodeCurvature(Imod *model, int obnum, float rCritLo, float rCritHi,
                 point.z = zz[j] / zscale;
                 imodNewPoint(model, &point);
               }
-              point.x = xcen;
-              point.y = ycen;
-              point.z = zcen / zscale;
-              newnum = imodNewPoint(model, &point);
               cont2 = imodContourGet(model);
-              if (newnum > 0 && cont2)
-                imodPointSetSize(cont2, newnum - 1, rad);
+              if (cylSearch) {
+                for (j = 0; j < 3; j++) {
+                  frac = j / 2.;
+                  point.x = frac * axisPt2.x + (1-frac) * axisPt1.x;
+                  point.y = frac * axisPt2.y + (1-frac) * axisPt1.y;
+                  point.z = (frac * axisPt2.z + (1-frac) * axisPt1.z) / zscale;
+                  newnum = imodNewPoint(model, &point);
+                  if (newnum > 0 && cont2)
+                    imodPointSetSize(cont2, newnum - 1, rad);
+                }
+              } else {
+                point.x = xcen;
+                point.y = ycen;
+                point.z = zcen / zscale;
+                newnum = imodNewPoint(model, &point);
+                if (newnum > 0 && cont2)
+                  imodPointSetSize(cont2, newnum - 1, rad);
+              }
             }
           }
         }
@@ -634,13 +685,19 @@ int encodeCurvature(Imod *model, int obnum, float rCritLo, float rCritHi,
 
       /* For values, simply store them and keep track of min/max*/
       if (meetsCrit && storeVals) {
-        store.value.f = rad;
+        radsto = rad * model->pixsize;
+        if (storeVals < 0) {
+          radsto = 1. / radsto;
+          if (model->pixsize > 0.05)
+            radsto *= 1000.;
+        }
+        store.value.f = radsto;
         store.flags = GEN_STORE_FLOAT << 2;
         store.type = GEN_STORE_VALUE1;
         store.index.i = cenPt;
         istoreInsertChange(&cont->store, &store);
-        valMin = B3DMIN(valMin, rad);
-        valMax = B3DMAX(valMax, rad);
+        valMin = B3DMIN(valMin, radsto);
+        valMax = B3DMAX(valMax, radsto);
         activeVal = 1;
       }
 
@@ -697,6 +754,10 @@ int encodeCurvature(Imod *model, int obnum, float rCritLo, float rCritHi,
          numPtDone, numContDone);
   free(xx);
   free(yy);
+  if (cylSearch) {
+    free(xxrot);
+    free(yyrot);
+  }
   return 0;
 }
 
@@ -727,7 +788,7 @@ void loadWindowPoints(Iobj *obj, Icont *cont, int cenPt, float window,
   }
 
   /* Find previous point at half-window distance */
-  numContPts = 0;
+  numContPts = 1;
   lenBefore = 0.;
   ptBefore = cenPt;
   lastPt = cenPt;
@@ -951,41 +1012,166 @@ int findConnectedContours(Iobj *obj, Icont *cont, int zdir, Ilist *list)
   return 0;
 }
 
-/*
-  $Log$
-  Revision 3.11  2007/10/01 15:39:10  mast
-  Moved circlefit to library for ease of sharing with SerialEM
-  
-  Revision 3.10  2006/11/05 00:59:45  mast
-  Fixed treatment of ends of open contours
-  
-  Revision 3.9  2006/11/02 22:04:09  mast
-  Fixed a precision problem in the 3 point fits and added summary output
-  
-  Revision 3.8  2006/10/14 20:00:49  mast
-  Added option to rotate to plane, and let open contour fits use half window
-  length to fit all the way to end
-  
-  Revision 3.7  2006/09/20 23:04:28  mast
-  Added callback for copyright to read/parse function call
-  
-  Revision 3.6  2006/08/31 23:13:38  mast
-  Added value storage
-  
-  Revision 3.5  2006/08/27 23:49:26  mast
-  Switched palette argument to allow a file, fixed initialization bug
-  
-  Revision 3.4  2006/06/26 14:48:48  mast
-  Added b3dutil include for parselist
-  
-  Revision 3.3  2006/06/18 19:37:11  mast
-  Changed for new amoeba function type
-  
-  Revision 3.2  2006/06/14 14:21:01  mast
-  Needed to eliminate ;;
-  
-  Revision 3.1  2006/06/14 04:28:43  mast
-  Initial creation
+static int fitCylinder(float *xx3, float *yy3, float *zz3, float *xxr,
+                       float *yyr, int numPts, float delt, float *rad,
+                       float *alpha, float *gamma, float *rmsErr, 
+                       Ipoint *axisPt1, Ipoint *axisPt2, int verbose)
+{
+  double gammat, alphat, delGamma, delAlpha;
+  int numAlpha, numGamma, ig, ia, i, ifar1, ifar2, ifar3;
+  Ipoint pt, rpt, minpt, maxpt;
+  Imat *mat;
+  float xcent, ycent, zcent, rmst, radt, area, areabase, areamax;
+  double dtor = 0.017453293;
+ 
+  /* Set up search angles: round up number to search in alpha to even */
+  numAlpha = 2 * ((B3DNINT(180. / delt) + 1) / 2);
+  delAlpha = 180. / numAlpha;
+  *rmsErr = 1.e35;
+  *rad = -1.;
+  mat = imodMatNew(3);
+  if (!mat)
+    return 1;
+  for (ia = 0; ia < numAlpha; ia++) {
+    alphat = -90. + ia * delAlpha;
+    numGamma = 2 *((B3DNINT(sin(fabs(dtor * alphat)) * 180. / delt) + 1) / 2);
+    numGamma = B3DMAX(1, numGamma);
+    delGamma = 180. / numGamma;
+    for (ig = 0; ig < numGamma; ig++) {
+      gammat = ig * delGamma;
 
+      /* Get transformation and rotate points, effectively project down axis*/
+      imodMatId(mat);
+      imodMatRot(mat, gammat, b3dZ);
+      imodMatRot(mat, alphat, b3dX);
+
+      minpt.z = 1.e30;
+      maxpt.z = -1.e30;
+      for (i = 0; i < numPts; i++) {
+        pt.x = xx3[i];
+        pt.y = yy3[i];
+        pt.z = zz3[i];
+        imodMatTransform3D(mat, &pt, &rpt);
+        xxr[i] = rpt.x;
+        yyr[i] = rpt.y;
+        if (verbose > 1)
+          printf("%d %f %f\n", 100 *ia + ig, rpt.x, rpt.y);
+        minpt.z = B3DMIN(minpt.z, rpt.z);
+        maxpt.z = B3DMAX(maxpt.z, rpt.z);
+      }
+
+      /* To get 3 starting points, find point most distant from the first,
+         then point most distant from that, then point that makes the largest
+         triangle */
+      ifar1 = farthestPoint(xxr, yyr, numPts, 1);
+      ifar2 = farthestPoint(xxr, yyr, numPts, ifar1);
+      areabase = (yyr[ifar2] + yyr[ifar1]) * (xxr[ifar2] - xxr[ifar1]);
+      areamax = -1.;
+      for (i = 0; i < numPts; i++) {
+        if (i == ifar1 || i == ifar2)
+          continue;
+        area = areabase + (yyr[i] + yyr[ifar2]) * (xxr[i] - xxr[ifar2]) +
+          (yyr[ifar1] + yyr[i]) * (xxr[ifar1] - xxr[i]);
+        if (area > areamax) {
+          areamax = area;
+          ifar3 = i;
+        }
+      }
+
+      /* forget this angle if the area is too small or the 3 point fit fails */
+      if (areamax < 1.)
+        continue;
+      if (verbose > 1)
+        printf("Fitting to (%f %f)  (%f %f)  (%f %f)\n", xxr[ifar1], 
+        yyr[ifar1], xxr[ifar2], yyr[ifar2], xxr[ifar3], yyr[ifar3]);
+      if (circleThrough3Pts(xxr[ifar1], yyr[ifar1], xxr[ifar2], yyr[ifar2], 
+                              xxr[ifar3], yyr[ifar3], &radt, &xcent, &ycent))
+        continue;
+      if (verbose > 1)
+        printf("Starting at rad %f  xcen %f  ycen %f\n", radt, xcent, ycent);
+      fitSphere(xxr, yyr, NULL, numPts, &radt, &xcent, &ycent, &zcent, &rmst);
+      if (verbose) 
+        printf("%d  alf %5.1f gam %5.1f  rad %10.1f  err %10.3f %s\n", 
+               100 *ia + ig, alphat,
+               gammat, radt, rmst, rmst < *rmsErr ? "*" : " ");
+      if (rmst < *rmsErr) {
+        *rmsErr = rmst;
+        *alpha = alphat;
+        *gamma = gammat;
+        *rad = radt;
+
+        /* Back-transform axis points at min and max Z */
+        imodMatId(mat);
+        imodMatRot(mat, -alphat, b3dX);
+        imodMatRot(mat, -gammat, b3dZ);
+        minpt.x = maxpt.x = xcent;
+        minpt.y = maxpt.y = ycent;
+        imodMatTransform3D(mat, &minpt, axisPt1);
+        imodMatTransform3D(mat, &maxpt, axisPt2);
+      }
+    }
+  
+  }
+  imodMatDelete(mat);
+  return 0;
+}
+
+static int farthestPoint(float *xx, float *yy, int numPts, int icen)
+{
+  float dx, dy, dist, distmax;
+  int i, ifar;
+  distmax = -1.;
+   for (i = 0; i < numPts; i++) {
+     dx = xx[i] - xx[icen];
+     dy = yy[i] - yy[icen];
+     dist = dx * dx + dy * dy;
+     if (dist > distmax) {
+       distmax = dist;
+       ifar = i;
+     }
+   }
+   return ifar;
+}
+   
+
+/*
+
+$Log$
+Revision 3.12  2007/10/18 20:17:43  mast
+Fixed log indentation
+
+Revision 3.11  2007/10/01 15:39:10  mast
+Moved circlefit to library for ease of sharing with SerialEM
+  
+Revision 3.10  2006/11/05 00:59:45  mast
+Fixed treatment of ends of open contours
+  
+Revision 3.9  2006/11/02 22:04:09  mast
+Fixed a precision problem in the 3 point fits and added summary output
+  
+Revision 3.8  2006/10/14 20:00:49  mast
+Added option to rotate to plane, and let open contour fits use half window
+length to fit all the way to end
+  
+Revision 3.7  2006/09/20 23:04:28  mast
+Added callback for copyright to read/parse function call
+  
+Revision 3.6  2006/08/31 23:13:38  mast
+Added value storage
+  
+Revision 3.5  2006/08/27 23:49:26  mast
+Switched palette argument to allow a file, fixed initialization bug
+  
+Revision 3.4  2006/06/26 14:48:48  mast
+Added b3dutil include for parselist
+  
+Revision 3.3  2006/06/18 19:37:11  mast
+Changed for new amoeba function type
+  
+Revision 3.2  2006/06/14 14:21:01  mast
+Needed to eliminate ;;
+  
+Revision 3.1  2006/06/14 04:28:43  mast
+Initial creation
 
 */
