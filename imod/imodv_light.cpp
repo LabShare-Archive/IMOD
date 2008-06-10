@@ -160,8 +160,8 @@ void light_moveby(Iview *vw, int x, int y)
 
   // 4/3/07: incoming data no longer scaled by 10 so that it can be scaled
   // by 3 instead for greater sensitivity
-  lx += 3 * x;
-  ly += 3 * y;
+  lx += 2 * x;
+  ly += 2 * y;
   light_move(&lx, &ly);
   vw->lightx = (float)lx * 0.1f;
   vw->lighty = (float)ly * 0.1f;
@@ -175,7 +175,7 @@ void light_move(int *x, int *y)
   int n = 0;
   float xn,yn,zn;
   double xa, ya;
-  int lim = 1000;
+  int lim = 800;
   float lightpos[4];
   float ldist = Imodv_light_dist;
 
@@ -206,7 +206,7 @@ void light_move(int *x, int *y)
     xn = -xn;
   if (ya > 0.)
     yn = -yn;
-  //printf("angles %.1f %.1f Normal %.4f %.4f %.4f\n", xa, ya, xn, yn, zn);
+  // printf("angles %.1f %.1f Normal %.4f %.4f %.4f\n", xa, ya, xn, yn, zn);
   Imodv_light_position[0] = xn;
   Imodv_light_position[1] = yn;
   Imodv_light_position[2] = zn;
@@ -255,9 +255,9 @@ void light_adjust(Iobj *obj, float r, float g, float b, int trans)
 /*
  * Set up lighting for an object from color and material properties
  */
-void light_on(struct Mod_Object *obj)
+void light_on(Iobj *obj, int modind)
 {
-  Iview *vw = Imodv->imod->view;
+  Iview *vw = Imodv->mod[modind]->view;
   GLfloat red   = obj->red;
   GLfloat green = obj->green;
   GLfloat blue  = obj->blue;
@@ -318,7 +318,7 @@ void light_on(struct Mod_Object *obj)
     (vw->trans.z * Imodv->imod->zscale));
   */
   glScalef(vw->scale.x, vw->scale.y, 
-           vw->scale.z * Imodv->imod->zscale);
+           vw->scale.z * Imodv->mod[modind]->zscale);
      
 
   light_update();
@@ -403,6 +403,9 @@ int imod_light_normal( struct Mod_Point *n,
 #endif /* IMODV_LIGHT_TEST_NORMAL */
 /*
 $Log$
+Revision 4.9  2008/06/10 02:06:31  mast
+Changed so that model-specific lighting can be set up
+
 Revision 4.8  2007/04/06 22:21:39  mast
 Increased range of light movement and made rate of movement fairly uniform
 
