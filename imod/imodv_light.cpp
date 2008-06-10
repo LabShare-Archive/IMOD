@@ -6,15 +6,10 @@
  *  Copyright (C) 1995-2005 by Boulder Laboratory for 3-Dimensional Electron
  *  Microscopy of Cells ("BL3DEMC") and the Regents of the University of 
  *  Colorado.  See dist/COPYRIGHT for full copyright notice.
+ *
+ *  $Id$
+ *  Log at end of file
  */
-
-/*  $Author$
-
-$Date$
-
-$Revision$
-Log at end
-*/
 
 #include <math.h>
 #include <qgl.h>
@@ -28,18 +23,14 @@ int   Imodv_light_current;
 int   Imodv_light_vec = 0;
 
 static void light_update(void);
-void light_moveby(int x, int y);
 
+// Set up the light in its current position
 void imodvSetLight(Iview *vw)
 {
-  if (vw->world & VIEW_WORLD_LIGHT)
-    Imodv->lighting = 1;
-  else
-    Imodv->lighting = 0;
-  light_moveby(0,0); 
+  light_moveby(vw, 0,0); 
 }
 
-
+// Get light parameters (unused)
 void light_getparam(int param, float *outValue)
 {
 
@@ -60,6 +51,7 @@ void light_getparam(int param, float *outValue)
   }
 }
 
+// Set light parameters (unused)
 void light_setparam(int param, double value)
 {
   switch(param){
@@ -95,6 +87,7 @@ void light_setparam(int param, double value)
   light_update();
 }
 
+// Update the light position and properties
 static void light_update(void)
 {
   float lightpos[4];
@@ -127,7 +120,7 @@ static void light_update(void)
 
 }
 
-
+// Initialize the lighting (when GL widget is initialized)
 void light_init(void)
 {
   static int first = 1;
@@ -147,7 +140,7 @@ void light_init(void)
     first = 0;
   }
 
-  imodvSetLight(Imodv->imod->view);
+  Imodv->lighting = (Imodv->imod->view->world & VIEW_WORLD_LIGHT) ? 1 : 0;
   glLightfv(GL_LIGHT0, GL_AMBIENT, amb);
   /*     glLightModeli(GL_LIGHT_MODEL_LOCAL_VIEWER, 1); */
   /* 2.0b6: changed light to be infinite. */
@@ -157,22 +150,25 @@ void light_init(void)
   return;
 }
 
-void light_moveby(int x, int y)
+/*
+ * Move the light by the given amount
+ */
+void light_moveby(Iview *vw, int x, int y)
 {
-  int lx = (int)(Imodv->imod->view->lightx * 10.0f);
-  int ly = (int)(Imodv->imod->view->lighty * 10.0f);
+  int lx = (int)(vw->lightx * 10.0f);
+  int ly = (int)(vw->lighty * 10.0f);
 
   // 4/3/07: incoming data no longer scaled by 10 so that it can be scaled
   // by 3 instead for greater sensitivity
   lx += 3 * x;
   ly += 3 * y;
   light_move(&lx, &ly);
-  Imodv->imod->view->lightx = (float)lx * 0.1f;
-  Imodv->imod->view->lighty = (float)ly * 0.1f;
+  vw->lightx = (float)lx * 0.1f;
+  vw->lighty = (float)ly * 0.1f;
 }
 
 /* 
- *  Move the light!
+ *  Set the light position
  */
 void light_move(int *x, int *y)
 {
@@ -256,6 +252,9 @@ void light_adjust(Iobj *obj, float r, float g, float b, int trans)
   return;
 }
 
+/*
+ * Set up lighting for an object from color and material properties
+ */
 void light_on(struct Mod_Object *obj)
 {
   Iview *vw = Imodv->imod->view;
@@ -326,8 +325,8 @@ void light_on(struct Mod_Object *obj)
   glPopMatrix();
 
 }
-    
 
+// Turn off lighting
 void light_off(void)
 {
   glDisable(GL_LIGHT0);
@@ -404,6 +403,9 @@ int imod_light_normal( struct Mod_Point *n,
 #endif /* IMODV_LIGHT_TEST_NORMAL */
 /*
 $Log$
+Revision 4.8  2007/04/06 22:21:39  mast
+Increased range of light movement and made rate of movement fairly uniform
+
 Revision 4.7  2006/08/31 23:22:42  mast
 Changed mat1 to real names
 
