@@ -463,6 +463,10 @@ void imodvKeyPress(QKeyEvent *event)
 
   case Qt::Key_Shift:
     shiftDown = Qt::ShiftButton;
+    if (midDown && !a->drawLight) {
+      a->drawLight = 1;
+      imodvDraw(a);
+    };
     //    a->mainWin->grabKeyboard();
     break;
 
@@ -480,6 +484,10 @@ void imodvKeyRelease(QKeyEvent *event)
     shiftDown = 0;
     if (!ctrlDown)
       Imodv->mainWin->releaseKeyboard();
+    if (Imodv->drawLight) {
+      Imodv->drawLight = 0;
+      imodvDraw(Imodv);
+    }
   }
 }
 
@@ -510,8 +518,11 @@ void imodvMousePress(QMouseEvent *event)
               (event->state() & Qt::ShiftButton))) {
     b2x = a->lmx = event->x();
     b2y = a->lmy = event->y();
-    /* DNM: why draw here? */
-    /* imodvDraw(a); */
+    if (event->button() == ImodPrefs->actualModvButton(2) && 
+        (event->state() & Qt::ShiftButton)) {
+      a->drawLight = 1;
+      imodvDraw(a);
+    }
 
   } else if (event->button() == ImodPrefs->actualModvButton(3)) {
     imodvSelect(a, false);
@@ -531,6 +542,10 @@ void imodvMouseRelease(QMouseEvent *event)
       !(event->state() & Qt::ShiftButton)) || 
       (rightWasDown && (event->state() & Qt::ShiftButton)))
     imodv_rotate(a, 1, rightWasDown);
+  if (a->drawLight) {
+    a->drawLight = 0;
+    imodvDraw(a);
+  }
 }
 
 // Mouse movement with button down
@@ -576,7 +591,7 @@ static void imodv_light_move(ImodvApp *a)
     }
     
     // 4/3/07: remove factor of 10 so sensitivity can be less
-    light_moveby(mx - a->lmx, my - a->lmy);
+    light_moveby(a->imod->view, mx - a->lmx, my - a->lmy);
   }
   imodvDraw(a);
 }
@@ -1262,6 +1277,9 @@ void imodvMovieTimeout()
 /*
 
 $Log$
+Revision 4.40  2008/05/29 22:18:47  mast
+Made it process hits from extra objects and contourless mesh properly
+
 Revision 4.39  2008/05/28 05:57:58  mast
 Prevent pick on extra object from doing bad things
 
