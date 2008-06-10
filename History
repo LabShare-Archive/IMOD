@@ -1,5 +1,9 @@
 IMOD History
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+6/10/08: IMOD_3-12-11
+6/10/08: Fixed some problems with lighting direction with multiple models, and
+added a vector display of light direction while moving the light.
+
 6/8/08: Added ability to fit a cylinder instead of a sphere to Imodcurvature,
 using a stupid exhaustive angular search; also fixed bug in 3D fitting when
 the points are spaced apart farther than half the window length.  Made value
