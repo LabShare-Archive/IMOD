@@ -160,6 +160,7 @@ static int imodv_init(ImodvApp *a, struct Mod_Draw *md)
   a->wireframe = 0;
   a->lowres = 0;
   a->drawClip = 0;
+  a->drawLight = 0;
   a->linkToSlicer = 0;
   a->linkSlicerCenter = 1;
 
@@ -710,6 +711,9 @@ void imodvQuit()
 
 /*
 $Log$
+Revision 4.37  2008/05/27 05:48:41  mast
+Changes for linking slicer center of rotation
+
 Revision 4.36  2008/05/22 15:42:57  mast
 Changed for extra object editability
 

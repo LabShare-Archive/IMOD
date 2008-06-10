@@ -90,6 +90,7 @@ typedef struct __imodv_struct
   int movieTimes[MAX_MOVIE_TIMES];  /* Ring buffer of times */
   int snap_fileno;      /* Snapshot file number */
   int drawClip;         /* Draw current clip plane */
+  int drawLight;        /* Draw lighting vector */
   int linkToSlicer;     /* Flag to link to top slicer */
   int linkSlicerCenter; /* Flag to link center of rotation too */
   float scaleBarSize;   /* Size of scale bar that was last drawn */
@@ -140,6 +141,9 @@ void imodvNewModelAngles(Ipoint *rot);
 
 /*
 $Log$
+Revision 3.21  2008/05/27 05:48:41  mast
+Changes for linking slicer center of rotation
+
 Revision 3.20  2008/04/01 23:43:38  mast
 Added flag for drawing only extra objects
 
