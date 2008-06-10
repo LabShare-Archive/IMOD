@@ -30,6 +30,9 @@
 #include "istore.h"
 #include "finegrain.h"
 
+extern float Imodv_light_position[4];
+extern Ipoint ImodvCurModLight;
+
 #define DRAW_POINTS 1
 #define DRAW_LINES  2
 #define DRAW_FILL   3
@@ -90,7 +93,7 @@ static void drawCurrentClipPlane(ImodvApp *a);
 static int CTime = -1;
 static float depthShift;
 static int cursurf, curcont;
-static int thickCont, thickObj, objBeingDrawn;
+static int thickCont, thickObj, objBeingDrawn, modBeingDrawn;
 static int curTessObj;
 
 static void imodvSetViewbyModel(ImodvApp *a, Imod *imod)
@@ -368,13 +371,16 @@ void imodvDraw_models(ImodvApp *a)
 
   switch (a->drawall){
   case 0:
+    modBeingDrawn = a->cm;
     glLoadName(a->cm);
     imodvDraw_model(a, a->imod);
     break;
   case 2:
+    modBeingDrawn = a->cm;
     imodvDraw_model(a, a->imod);
     m = a->cm + 1;
     if (m < a->nm){
+      modBeingDrawn = m;
       glLoadName(m);
       imodvDraw_model(a, a->mod[m]);
     }
@@ -384,6 +390,7 @@ void imodvDraw_models(ImodvApp *a)
     imodvDraw_model(a, a->imod);
     m = a->cm - 1;
     if (m >= 0){
+      modBeingDrawn = m;
       glLoadName(m);
       imodvDraw_model(a, a->mod[m]);
     }
@@ -391,6 +398,7 @@ void imodvDraw_models(ImodvApp *a)
 
   case 3:
     for (m = 0; m < a->nm; m++){
+      modBeingDrawn = m;
       glLoadName(m);
       imodvDraw_model(a, a->mod[m]);
     }
@@ -472,6 +480,8 @@ void imodvDraw_model(ImodvApp *a, Imod *imod)
 
   setStereoProjection(a);
 
+  imodvSetLight(imod->view);
+
   CTime = imod->ctime;
   glPushName(ob);
 
@@ -535,6 +545,11 @@ void imodvDraw_model(ImodvApp *a, Imod *imod)
   glPopName();
   if (a->drawClip && imod == a->imod)
     drawCurrentClipPlane(a);
+  if (imod == a->imod) {
+      ImodvCurModLight.x = Imodv_light_position[0];
+      ImodvCurModLight.y = Imodv_light_position[1];
+      ImodvCurModLight.z = Imodv_light_position[2];
+  }
 }
 
 static int clip_obj(Imod *imod, Iobj *obj, int flag)
@@ -639,7 +654,7 @@ static void imodvSetObject(Iobj *obj, int style, int drawTrans)
     }
 
     if ((Imodv->lighting) && (!Imodv->wireframe)){
-      light_on(obj);
+      light_on(obj, modBeingDrawn);
     }else{
       light_off();
     }
@@ -1533,7 +1548,7 @@ static void imodvDraw_spheres(Iobj *obj, double zscale, int style,
     xybin = Imodv->vi->xybin;
 
   /* Take maximum of quality from world flag setting and from object */
-  quality = ((Imodv->imod->view->world & WORLD_QUALITY_BITS) >> 
+  quality = ((Imodv->mod[modBeingDrawn]->view->world & WORLD_QUALITY_BITS) >> 
     WORLD_QUALITY_SHIFT) + 1;
   if (quality <= obj->quality)
     quality = obj->quality + 1;
@@ -1544,7 +1559,7 @@ static void imodvDraw_spheres(Iobj *obj, double zscale, int style,
     quality = MAX_QUALITY - 1;
 
   scale = 0.5 * (Imodv->winx > Imodv->winy ? Imodv->winy : Imodv->winx) / 
-    Imodv->imod->view->rad;
+    Imodv->mod[modBeingDrawn]->view->rad;
 
   if (!CTime)
     checkTime = 0;
@@ -2505,7 +2520,11 @@ static void drawCurrentClipPlane(ImodvApp *a)
 }
 
 /*
+
 $Log$
+Revision 4.39  2008/05/29 22:20:55  mast
+When doing picking, put out vertices of mesh if no contours in object
+
 Revision 4.38  2008/05/22 15:40:21  mast
 Get object for clip plane, skip spheres if no contours
 
