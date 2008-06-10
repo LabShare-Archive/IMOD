@@ -9,15 +9,10 @@
  *  Copyright (C) 1995-2004 by Boulder Laboratory for 3-Dimensional Electron
  *  Microscopy of Cells ("BL3DEMC") and the Regents of the University of 
  *  Colorado.  See dist/COPYRIGHT for full copyright notice.
+ *
+ *  $Id$
+ *  Log at end of file
  */
-
-/*  $Author$
-    
-$Date$
-
-$Revision$
-Log at end of file
-*/
 
 #include <stdio.h>
 #include <string.h>
@@ -57,9 +52,9 @@ static void imodvUpdateView(ImodvApp *a)
 {
   a->wireframe = (a->imod->view->world & VIEW_WORLD_WIREFRAME) ? 1 : 0;
   a->lowres = (a->imod->view->world & VIEW_WORLD_LOWRES) ? 1 : 0;
+  a->lighting = (a->imod->view->world & VIEW_WORLD_LIGHT) ? 1 : 0;
   imodvControlSetView(a);
   imodvObjedNewView();
-  imodvSetLight(a->imod->view);     // Sets a->lighting
   imodvDepthCueSetWidgets();
   imodvMenuLight(a->imod->view->world & VIEW_WORLD_LIGHT);
   imodvMenuWireframe(a->imod->view->world & VIEW_WORLD_WIREFRAME);
@@ -361,6 +356,9 @@ static void build_list(ImodvApp *a)
 /*
 
     $Log$
+    Revision 4.12  2007/11/30 06:51:50  mast
+    Changes for linking slicer to model view
+
     Revision 4.11  2007/10/03 19:31:10  sueh
     bug# 1038 Replacing help strings with an .html file.
 
