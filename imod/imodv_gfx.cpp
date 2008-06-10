@@ -35,9 +35,12 @@
 #include "imodv_light.h"
 #include "imodv_stereo.h"
 
+Ipoint ImodvCurModLight;
+
 /* local functions */
 static int imodv_snapshot(ImodvApp *a, QString fname);
 static void imodv_clear(ImodvApp *a);
+static void drawLightVector(ImodvApp *a);
 
 
 /* 12/15/02: removed DisplayHasAlpha */
@@ -236,6 +239,8 @@ void imodvPaintGL()
 
   //  imodv_swapbuffers(a);
   b3dResizeViewportXY(a->winx, a->winy);
+  if (a->drawLight)
+    drawLightVector(a);
   color = 0;
   if (!a->rbgcolor->red() && !a->rbgcolor->blue() && !a->rbgcolor->green())
     color = -1;
@@ -249,6 +254,63 @@ void imodvPaintGL()
   imodvControlUpdate(a);
   //  imodvCallDrawCB(IMODV_DRAWCB_UNKNOWN);
   return;
+}
+
+
+/*
+ * Draw lighting vector  (when shift middle mouse down)
+ */
+static void drawLightVector(ImodvApp *a)
+{
+  Ipoint pnt, cen, an, ar;
+  Iview *vw = a->imod->view;
+  float winhalf = 0.5 * B3DMIN(a->winx, a->winy);
+  float radfrac = winhalf * 0.9f;
+  float del = 10.f;
+  float smallVal = 1.e-4;
+  double val, rpd = RADIANS_PER_DEGREE;
+  Imat *mat = imodMatNew(3);
+  if (!mat)
+    return;
+
+  // Get the normal to light, normalize and draw from center
+  pnt = ImodvCurModLight;
+  imodPointNormalize(&pnt);
+  glColor4ub(255, 0, 0, 255);
+  glBegin(GL_LINE_STRIP);
+  glVertex2f((float)(0.5 * a->winx), (float)(0.5 * a->winy));
+  cen.x = pnt.x * radfrac + 0.5 * a->winx;
+  cen.y = pnt.y * radfrac + 0.5 * a->winy;
+  glVertex2f(cen.x, cen.y);
+  glEnd();
+
+  // Compute a rotation to bring normal to vertical, and get inverse matrix
+  an.y = 0.0;
+  if (pnt.x > smallVal || pnt.z > smallVal || pnt.x < -smallVal || 
+      pnt.z < -smallVal)
+    an.y = -atan2((double)pnt.x, (double)pnt.z);
+  val = an.y;
+  val = pnt.z * cos(val) - pnt.x * sin(val);
+  an.x = 90. * rpd - atan2(val, (double)pnt.y);
+  imodMatRot(mat, -an.x / rpd, b3dX);
+  imodMatRot(mat, -an.y / rpd, b3dY);
+
+  // Rotate each diagonal vector for drawing cross at end
+  an.z = 0.;
+  an.x = del;
+  an.y = del;
+  imodMatTransform3D(mat, &an, &ar);
+  glBegin(GL_LINE_STRIP);
+  glVertex2f(cen.x - ar.x, cen.y - ar.y);
+  glVertex2f(cen.x + ar.x, cen.y + ar.y);
+  glEnd();
+  an.y = -del;
+  imodMatTransform3D(mat, &an, &ar);
+  glBegin(GL_LINE_STRIP);
+  glVertex2f(cen.x - ar.x, cen.y - ar.y);
+  glVertex2f(cen.x + ar.x, cen.y + ar.y);
+  glEnd();
+  imodMatDelete(mat);
 }
 
 
@@ -395,6 +457,9 @@ static int imodv_snapshot(ImodvApp *a, QString fname)
 
 /*
 $Log$
+Revision 4.17  2008/05/27 05:45:38  mast
+Adapting to changes in snapshot calls
+
 Revision 4.16  2008/01/25 20:22:58  mast
 Changes for new scale bar
 
