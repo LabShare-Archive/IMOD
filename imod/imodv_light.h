@@ -16,7 +16,7 @@ void light_init(void);
 void light_getparam(int param, float *outValue);
 void light_setparam(int param, double value);
 void light_move(int *x, int *y);
-void light_on(Iobj *obj);
+void light_on(Iobj *obj, int modind);
 void light_off(void);
 void imodvSetLight(Iview *vw);
 void light_moveby(Iview *vw, int x, int y);
@@ -27,6 +27,9 @@ void light_adjust(Iobj *obj, float r, float g, float b, int trans);
 /*
 
 $Log$
+Revision 4.5  2008/06/10 02:02:27  mast
+Pass view to moveby
+
 Revision 4.4  2005/06/20 22:20:29  mast
 Pass transparency to light_adjust
 
