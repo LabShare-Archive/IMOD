@@ -270,8 +270,14 @@ static void drawLightVector(ImodvApp *a)
   float smallVal = 1.e-4;
   double val, rpd = RADIANS_PER_DEGREE;
   Imat *mat = imodMatNew(3);
+  GLboolean depthEnabled;
   if (!mat)
     return;
+
+  // Disable depth test and enable at end
+  depthEnabled = glIsEnabled(GL_DEPTH_TEST);
+  if (depthEnabled)
+    glDisable(GL_DEPTH_TEST);
 
   // Get the normal to light, normalize and draw from center
   pnt = ImodvCurModLight;
@@ -311,6 +317,8 @@ static void drawLightVector(ImodvApp *a)
   glVertex2f(cen.x + ar.x, cen.y + ar.y);
   glEnd();
   imodMatDelete(mat);
+  if (depthEnabled)
+    glEnable(GL_DEPTH_TEST);
 }
 
 
@@ -457,6 +465,9 @@ static int imodv_snapshot(ImodvApp *a, QString fname)
 
 /*
 $Log$
+Revision 4.18  2008/06/10 05:58:03  mast
+Added drawing of lighting vector after all models drawn
+
 Revision 4.17  2008/05/27 05:45:38  mast
 Adapting to changes in snapshot calls
 
