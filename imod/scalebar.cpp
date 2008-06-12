@@ -75,6 +75,7 @@ float scaleBarDraw(int winx, int winy, float zoom, int background)
   double expon, minlen, loglen, normlen, custlen;
   float truelen;
   int xst, yst, color, pixlen, xsize, ysize, i, j, red, green, blue, index;
+  GLboolean depthEnabled;
   if (!params.draw || !sbDia)
     return -1.;
 
@@ -117,6 +118,11 @@ float scaleBarDraw(int winx, int winy, float zoom, int background)
   if (params.position == 2 || params.position == 3)
     yst = winy - params.indentY - ysize;
 
+  // Disable depth test and enable at end
+  depthEnabled = glIsEnabled(GL_DEPTH_TEST);
+  if (depthEnabled)
+    glDisable(GL_DEPTH_TEST);
+
   if (!params.colorRamp) {
 
     // If a background color is set, take the opposite; otherwise follow option
@@ -141,6 +147,8 @@ float scaleBarDraw(int winx, int winy, float zoom, int background)
     }
   }
   resetGhostColor();
+  if (depthEnabled)
+    glEnable(GL_DEPTH_TEST);
 
   // Start timer every time this routine draws a bar so updates occur
   sbDia->startUpdateTimer();
@@ -194,6 +202,9 @@ void scaleBarRedraw()
 /*
 
 $Log$
+Revision 1.4  2008/05/27 01:52:11  mast
+Added color ramp options
+
 Revision 1.3  2008/03/06 00:11:55  mast
 Added option to make scale bars vertical
 
