@@ -1,5 +1,7 @@
 IMOD History
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+6/12/08: Made scale bar and light vector display come out on top of models.
+
 6/10/08: IMOD_3-12-11
 6/10/08: Fixed some problems with lighting direction with multiple models, and
 added a vector display of light direction while moving the light.
