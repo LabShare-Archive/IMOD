@@ -1,26 +1,11 @@
-c       $Author$
-c       
-c       $Date$
-c       
-c       $Revision$
-c       
-c       $Log$
-c       Revision 3.4  2005/12/09 04:43:27  mast
-c       gfortran: .xor., continuation, format tab continuation or byte fixes
+c       SUBROUTINES FOR MTK ONLY
 c
-c       Revision 3.3  2004/04/20 05:41:41  mast
-c       fix some misprinted variables
-c       
-c       Revision 3.2  2003/10/26 05:33:27  mast
-c       change command files to use unit 4 instead reopening 5
-c       
-c       Revision 3.1  2003/08/08 17:53:03  mast
-c       Change terminology from points to objects
-c       
-c       
+c       $Id$
+c       log at end
+c              
 c       GETBINSPEC gets a bin specification appropriate for the type of
 c       graphs being done
-c       
+c
       subroutine getbinspec(delr,nbins,power,limfit,padbound,fracomit,
      &    ifbundend,samplen,ifcloseg,ifscatsurf)
       parameter (limbins=1001)
@@ -227,10 +212,15 @@ c       INTST, INTND are starting and ending bins to integrate
 c       IBAST, IBAND are starting and ending bins to compute the baseline
 c       value from, or 0,0 to use thevalue supplied in BASELINE
 c       SUM is returned with the integral
+c       CENTROID is returned with centroid of distance
 c       
       subroutine integrate(graphs,areas,nbins,delr,power,intst,intnd,
-     &    ibast, iband,baseval,sum)
-      real*4 graphs(*),areas(*)
+     &    ibast, iband,baseval,sum, centroid)
+      implicit none
+      real*4 graphs(*),areas(*),delr,power,baseval,sum, centroid
+      integer*4 nbins,intst,intnd, ibast,iband
+      real*4 baseline,distsum,counts,frac
+      integer*4 ibin
       baseline=baseval
       if(ibast.le.iband.and.(ibast.ne.0.or.iband.ne.0))then
         baseline=0.
@@ -240,6 +230,8 @@ c
         baseline=baseline/(iband+1-ibast)
       endif
       sum=0.
+      distsum = 0.
+      centroid = 0.
       do ibin=intst,intnd
 c         if(power.eq.0.)then
 c         radpow=1.
@@ -248,8 +240,11 @@ c         radpow=(2.*(ibin-0.5)*delr)**power
 c         endif
 c         frac=radpow*delr*3.14159
         frac=areas(ibin)
-        sum=sum+(graphs(ibin)-baseline)*frac
+        counts = (graphs(ibin)-baseline)*frac 
+        sum=sum+counts
+        distsum = distsum + delr * (ibin - 0.5) * counts
       enddo
+      if (sum .gt. 0.) centroid = distsum / sum
       return
       end
 
@@ -1081,3 +1076,21 @@ c
       enddo     
       return
       end
+
+c       
+c       $Log$
+c       Revision 3.5  2006/05/01 21:14:50  mast
+c       Increased number of bins to 1001
+c
+c       Revision 3.4  2005/12/09 04:43:27  mast
+c       gfortran: .xor., continuation, format tab continuation or byte fixes
+c
+c       Revision 3.3  2004/04/20 05:41:41  mast
+c       fix some misprinted variables
+c       
+c       Revision 3.2  2003/10/26 05:33:27  mast
+c       change command files to use unit 4 instead reopening 5
+c       
+c       Revision 3.1  2003/08/08 17:53:03  mast
+c       Change terminology from points to objects
+c       

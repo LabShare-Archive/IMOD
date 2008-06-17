@@ -12,40 +12,8 @@ c       NDMTKRAND, NDMTKSUBS, CONVEXBOUND
 c       
 c       David Mastronarde  7/31/90
 c       
-c       $Author$
-c       
-c       $Date$
-c       
-c       $Revision$
-c       
-c       $Log$
-c       Revision 3.9  2004/04/20 05:42:04  mast
-c       initialize iwin
-c	
-c       Revision 3.8  2004/04/20 04:26:10  mast
-c       Fixed some uninitialized variables
-c	
-c       Revision 3.7  2003/11/26 07:15:06  mast
-c       initialize ntypbound to 0
-c	
-c       Revision 3.6  2003/10/27 06:36:51  mast
-c       Fix number of options needing model
-c	
-c       Revision 3.5  2003/10/26 05:33:27  mast
-c       change command files to use unit 4 instead reopening 5
-c	
-c       Revision 3.4  2003/08/29 17:32:27  mast
-c       Change to use new multithreaded Plax graphics
-c	
-c       Revision 3.3  2003/08/08 16:38:17  mast
-c       Allow startup without model file and add export option
-c	
-c       Revision 3.2  2002/07/07 04:42:24  mast
-c       Remove extra argument from one call to getbinspec
-c	
-c       Revision 3.1  2002/06/05 21:09:56  mast
-c       Pass size of vertex array to get_boundary_obj
-c	
+c       $Id$
+c       log at end
 c       
       call plax_initialize('nda')
       call exit(0)
@@ -426,14 +394,15 @@ c
 	ibinst=max(1,ibinst)
 	call integrate(graphs(1,jgrf),ifadgrf(jgrf),delrgrf(jgrf),
      &	    rmingrf(jgrf),rmaxgrf(jgrf), nbingrf(jgrf),
-     &	    ibinst,ibinnd,0,0, baseval,sum)
+     &	    ibinst,ibinnd,0,0, baseval,sum, centroid)
 	distangtxt='distances'
 	if(ifangdiff.ne.0)distangtxt='angles'
 	write(*,110)ibinnd+1-ibinst,distangtxt,(ibinst-1)*delrgrf(jgrf),
-     &	    ibinnd*delrgrf(jgrf),sum
+     &	    ibinnd*delrgrf(jgrf),sum,distangtxt,centroid
 110	format(' For the',i4,' bins covering ',a,' from',
      &	    f10.3,' to',f10.3,/,5x,
-     &	    'the integrated number of (excess/missing) items is',f10.5)
+     &	    'the integrated number of (excess/missing) items is',f10.5,/,5x,
+     &      'the centroid of their ',a,' is', f11.4)
 	go to 40
 c	  
 c	  Display graph in window
@@ -922,7 +891,7 @@ c
 	  sumsqinteg(jj)=0
 	  call integrate(graphs(1,jj+jgrfadd),ifangdiff,delr,rmin,rmax,
      &	      nbins, integstrt(jj),integend(jj),ibasestrt(jj),
-     &	      ibasend(jj), baseline(jj),realinteg(jj))
+     &	      ibasend(jj), baseline(jj),realinteg(jj), centroid)
 	  write(*,116)jj+jgrfadd,realinteg(jj)
 116	  format(' Graph #',i3,', real integral =',f10.5)
 	enddo
@@ -974,7 +943,7 @@ c
 	do jj=1,ngraph
 	  call integrate(graphs(1,jj+jgrfadd),ifangdiff,delr,rmin,
      &	      rmax, nbins, integstrt(jj),integend(jj),ibasestrt(jj),
-     &	      ibasend(jj), baseline(jj),randinteg)
+     &	      ibasend(jj), baseline(jj),randinteg, centroid)
 	  if(randinteg.gt.realinteg(jj))
      &	      nrandabove(jj)=nrandabove(jj)+1
 	  suminteg(jj)=suminteg(jj)+randinteg
@@ -1121,3 +1090,35 @@ c
 	go to (1001,1002,1003,1004),ireturn
 c
 	end
+c       
+c       $Log$
+c       Revision 3.10  2006/05/01 21:14:50  mast
+c       Increased number of bins to 1001
+c
+c       Revision 3.9  2004/04/20 05:42:04  mast
+c       initialize iwin
+c	
+c       Revision 3.8  2004/04/20 04:26:10  mast
+c       Fixed some uninitialized variables
+c	
+c       Revision 3.7  2003/11/26 07:15:06  mast
+c       initialize ntypbound to 0
+c	
+c       Revision 3.6  2003/10/27 06:36:51  mast
+c       Fix number of options needing model
+c	
+c       Revision 3.5  2003/10/26 05:33:27  mast
+c       change command files to use unit 4 instead reopening 5
+c	
+c       Revision 3.4  2003/08/29 17:32:27  mast
+c       Change to use new multithreaded Plax graphics
+c	
+c       Revision 3.3  2003/08/08 16:38:17  mast
+c       Allow startup without model file and add export option
+c	
+c       Revision 3.2  2002/07/07 04:42:24  mast
+c       Remove extra argument from one call to getbinspec
+c	
+c       Revision 3.1  2002/06/05 21:09:56  mast
+c       Pass size of vertex array to get_boundary_obj
+c	

@@ -390,12 +390,13 @@ c
       ibinnd=min(ibinnd,nbingrf(jgrf))
       ibinst=max(1,ibinst)
       call integrate(graphs(1,jgrf),areas(1,jgrf),nbingrf(jgrf),
-     &    delrgrf(jgrf),powergrf(jgrf),ibinst,ibinnd,0,0, baseval,sum)
+     &    delrgrf(jgrf),powergrf(jgrf),ibinst,ibinnd,0,0, baseval,sum,centroid)
       write(*,110)ibinnd+1-ibinst,(ibinst-1)*delrgrf(jgrf),
-     &    ibinnd*delrgrf(jgrf),sum
+     &    ibinnd*delrgrf(jgrf),sum,centroid
 110   format(' For the',i4,' bins from',
      &    f10.3,' to',f10.3,/,5x,
-     &    'the integrated number of (excess/missing) items is',f10.5)
+     &    'the integrated number of (excess/missing) items is',f10.5/,5x,
+     &    'the centroid of their distances is', f11.4)
       go to 40
 c       
 c       Display graph in window
@@ -977,7 +978,7 @@ c
         sumsqinteg(jj)=0
         call integrate(graphs(1,jj+jgrfadd),areas(1,jj+jgrfadd),nbins,
      &      delr, powergrf(jj+jgrfadd),integstrt(jj),integend(jj),
-     &      ibasestrt(jj),ibasend(jj), baseline(jj),realinteg(jj))
+     &      ibasestrt(jj),ibasend(jj), baseline(jj),realinteg(jj),centroid)
         write(*,116)jj+jgrfadd,realinteg(jj)
 116     format(' Graph #',i3,', real integral =',f10.5)
       enddo
@@ -1032,7 +1033,7 @@ c
       do jj=1,ngraph
         call integrate(graphs(1,jj+jgrfadd),areas(1,jj+jgrfadd),nbins,
      &      delr, powergrf(jj+jgrfadd),integstrt(jj),integend(jj),
-     &      ibasestrt(jj),ibasend(jj), baseline(jj),randinteg)
+     &      ibasestrt(jj),ibasend(jj), baseline(jj),randinteg,centroid)
         if(randinteg.gt.realinteg(jj))
      &      nrandabove(jj)=nrandabove(jj)+1
         suminteg(jj)=suminteg(jj)+randinteg
@@ -1293,6 +1294,9 @@ c
       end
 
 c       $Log$
+c       Revision 3.15  2007/10/19 18:05:58  mast
+c       Added report of distances of close approach
+c
 c       Revision 3.14  2007/10/19 00:32:52  mast
 c       WIMP->IMOD
 c

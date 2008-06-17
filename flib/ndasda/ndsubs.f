@@ -1,10 +1,11 @@
-c	  $Author$
+c       SUBROUTINES FOR NDA ONLY
 c
-c	  $Date$
+c       $Id$
 c
-c	  $Revision$
-c
-c	  $Log$
+c       $Log$
+c       Revision 3.3  2006/05/01 21:14:50  mast
+c       Increased number of bins to 1001
+c	
 c
 c       GETBINSPEC gets a bin specification appropriate for the type of
 c       graphs being done
@@ -117,10 +118,16 @@ c       INTST, INTND are starting and ending bins to integrate
 c       IBAST, IBAND are starting and ending bins to compute the baseline
 c       value from, or 0,0 to use thevalue supplied in BASELINE
 c       SUM is returned with the integral
+c       CENTROID is retuned with the center of gravity of peak above baseline
 c       
       subroutine integrate(graphs,ifangdiff,delr,rmin,rmax,nbins,
-     &    intst,intnd, ibast,iband, baseval,sum)
-      real*4 graphs(*)
+     &    intst,intnd, ibast,iband, baseval,sum, centroid)
+      implicit none
+      real*4 graphs(*),delr,rmin,rmax,baseval,sum,centroid
+      integer*4 ifangdiff,nbins,intst,intnd, ibast,iband
+      real*4 baseline,distsum,anularea,counts
+      integer*4 ibin
+      
       baseline=baseval
       if(ibast.le.iband.and.(ibast.ne.0.or.iband.ne.0))then
         baseline=0.
@@ -130,11 +137,16 @@ c
         baseline=baseline/(iband+1-ibast)
       endif
       sum=0.
+      distsum = 0.
+      centroid = 0.
       anularea=3.14159*(rmax**2-rmin**2)/nbins
       do ibin=intst,intnd
         if(ifangdiff.eq.0)anularea=3.14159*delr**2*(2*ibin-1)
-        sum=sum+anularea*(graphs(ibin)-baseline)
+        counts = anularea*(graphs(ibin)-baseline) 
+        sum=sum+counts
+        distsum = distsum + delr * (ibin - 0.5) * counts
       enddo
+      if (sum .gt. 0.) centroid = distsum / sum
       return
       end
 
