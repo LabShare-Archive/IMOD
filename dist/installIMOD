@@ -14,6 +14,7 @@ set scriptdir = ""
 set custom = 0
 set skipcopy = 0
 set keepg2c = 0
+set yesopt = 0
 
 # First peel off any recognized arguments
 #
@@ -39,6 +40,11 @@ while ($#argv > 0)
 
         case -li*:
             set keepg2c = 1
+            shift
+            breaksw
+
+        case -y*:
+            set yesopt = 1
             shift
             breaksw
 
@@ -420,11 +426,17 @@ ls -l | grep -i imod | grep -vi tempDir
 echo ""
 set oldlist = `\find .  -maxdepth 1 -type d -name 'imod_*.*[0-9]' -print | sed -e '/^\.\//s///g' -e "/imod_$vernum/d"`
 if ("$oldlist" != "") then
-    echo "Do you want to remove these other versions?"
-    echo "    " $oldlist
-    echo -n "Enter Y to remove them: "
-    set yesno = $<
-    if ("$yesno" == "Y" || "$yesno" == "y") \rm -rf $oldlist
+    if ($yesopt) then
+        echo "Removing these other versions:"
+        echo "    " $oldlist
+        \rm -rf $oldlist
+    else
+        echo "Do you want to remove these other versions?"
+        echo "    " $oldlist
+        echo -n "Enter Y to remove them: "
+        set yesno = $<
+        if ("$yesno" == "Y" || "$yesno" == "y") \rm -rf $oldlist
+    endif
 endif
 echo ""    
 echo "If there are version-specific IMOD startup commands in individual user"
@@ -442,12 +454,16 @@ Usage: installIMOD [options] [package file name]
     -script dir  Directory in which to place the IMOD startup scripts
     -skip        Skip copying startup scripts or modifying system startup files
     -libg2c      Use libg2c in this IMOD package if it exists (Linux only)
+    -ues         Remove older versions without asking for confirmation
     -h, --help   Print this help
 EOF
 exit 0
 
 #
 #  $Log$
+#  Revision 3.21  2008/01/26 02:02:49  mast
+#  Made it rename libg2c from imod- so it is inactive if someone just untars
+#
 #  Revision 3.20  2008/01/25 23:27:19  mast
 #  Added option for using libg2c in package
 #

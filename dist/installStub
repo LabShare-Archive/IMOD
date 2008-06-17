@@ -16,6 +16,7 @@ set skipopt = ""
 set scriptopt = ""
 set sysdir = ""
 set g2copt = ""
+set yesopt = ""
 
 # Find the end of this script
 #
@@ -60,6 +61,11 @@ while ($#argv > 0)
 
         case -li*:
             set g2copt = "-libg2c"
+            shift
+            breaksw
+
+        case -y*:
+            set yesopt = "-yes"
             shift
             breaksw
 
@@ -151,12 +157,14 @@ if ($extract == 0) then
         echo " in $installdir/IMOD unless they already appear to do so"
     endif
     
-    echo ""
-    echo "You can add the option -h to see a full list of options"
-    echo ""
-    echo -n "Enter Y if you want to proceed: "
-    set yesno = $<
-    if ("$yesno" != "Y" && "$yesno" != "y") exit 0
+    if ("$yesopt" == "") then
+        echo ""
+        echo "You can add the option -h to see a full list of options"
+        echo ""
+        echo -n "Enter Y if you want to proceed: "
+        set yesno = $<
+        if ("$yesno" != "Y" && "$yesno" != "y") exit 0
+    endif
 endif
 
 mkdir -p $tempdir    
@@ -190,16 +198,21 @@ if ($extract == 1) then
 endif
 
 # It has to be run by tcsh for Irix; there is some bug in csh
-if ($test == 0) tcsh -f $installer -d "$installdir" $scriptopt $skipopt $g2copt $packname
+set retval = 0
+if ($test == 0) then
+    tcsh -f $installer -d "$installdir" $scriptopt $skipopt $g2copt $yesopt $packname
+    set retval = $status
+endif
 
 echo " "
 echo "Cleaning up $packname, $installer, and $tempdir"
 cd ..
+if ("$yesopt" != "") sleep 2
 \rm -f $tempdir/$installer $tempdir/$packname
 \rm -rf $tempdir
 if ($status) echo "Sorry, you will have to do that yourself: rm -rf $tempdir"
 
-exit 0
+exit $retval
 
 usage:
 cat <<EOF
@@ -218,6 +231,8 @@ Options may be abbreviated.  The options are:
   -skip        Skip copying startup scripts (Linux and Windows) or modifying
                   system startup files (Mac and SGI)
   -libg2c      Use libg2c in this IMOD package if it exists (Linux only)
+  -yes         Install this version and remove old versions without asking for
+                  confirmation
   -test        Run this self-installing script but not the real install script
   -h, --help   Print this help
 EOF
@@ -226,6 +241,9 @@ exit 0
 #  $Id$
 #
 #  $Log$
+#  Revision 3.16  2008/01/25 23:27:19  mast
+#  Added option for using libg2c in package
+#
 #  Revision 3.15  2008/01/04 22:01:51  mast
 #  Fixed for spaces in install location
 #
