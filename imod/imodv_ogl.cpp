@@ -717,14 +717,21 @@ static int checkContourDraw(Icont *cont, int co, int checkTime)
     return 1;
 }
 
+/*
+ * Draw an object: determine the types of draws to be done and call routines
+ */
 static void imodvDraw_object(Iobj *obj, Imod *imod, int drawTrans)
 {
   int co, resol, flagSave;
   double zscale;
   Imesh *mesh;
   int checkTime = (int)iobjTime(obj->flags);
-  bool hasSpheres = (iobjScat(obj->flags) || obj->pdrawsize > 0) && 
+  bool skipSpheres = (obj->flags & IMOD_OBJFLAG_PNT_NOMODV) && 
+    iobjMesh(obj->flags);
+  bool hasSpheres = (iobjScat(obj->flags) || 
+                     (obj->pdrawsize > 0 && !skipSpheres)) && 
     obj->contsize > 0;
+
   if (!CTime)
     checkTime = 0;
 
@@ -742,7 +749,7 @@ static void imodvDraw_object(Iobj *obj, Imod *imod, int drawTrans)
     zscale = (imod->zscale * Imodv->vi->zbin) / Imodv->vi->xybin;
 
   // Check for individual point sizes if not scattered and no sphere size
-  if (!hasSpheres) {
+  if (!hasSpheres && !skipSpheres) {
     for (co = 0; co < obj->contsize; co++) {
       if (obj->cont[co].sizes) {
         hasSpheres = true;
@@ -2522,6 +2529,9 @@ static void drawCurrentClipPlane(ImodvApp *a)
 /*
 
 $Log$
+Revision 4.40  2008/06/10 05:56:29  mast
+Changes for light drawing and making sure light is set for current model
+
 Revision 4.39  2008/05/29 22:20:55  mast
 When doing picking, put out vertices of mesh if no contours in object
 
