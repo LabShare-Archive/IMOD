@@ -903,6 +903,7 @@ static void mkMaterial_cb (int index)
 static QSpinBox *wPointSizeBox;
 static QSpinBox *wPointQualityBox;
 static QSpinBox *wGlobalQualityBox;
+static QCheckBox *wPointNoDrawBox;
 
 void ImodvObjed::pointSizeSlot(int i)
 {
@@ -965,6 +966,13 @@ void ImodvObjed::globalQualitySlot(int value)
   finishChangeAndDraw(0, 0);
 }
 
+void ImodvObjed::pointNoDrawSlot(bool state)
+{
+  setObjFlag(IMOD_OBJFLAG_PNT_NOMODV, state ? 1 : 0, 
+             OBJTYPE_OPEN | OBJTYPE_CLOSED);
+  finishChangeAndDraw(0, 0);
+}
+
 static void setPoints_cb(void)
 {
   QString str;
@@ -977,6 +985,8 @@ static void setPoints_cb(void)
   diaSetSpinBox(wGlobalQualityBox, 
                 ((Imodv->imod->view->world & WORLD_QUALITY_BITS) >> 
                 WORLD_QUALITY_SHIFT) + 1);
+  diaSetChecked(wPointNoDrawBox, obj->flags & IMOD_OBJFLAG_PNT_NOMODV);
+  wPointNoDrawBox->setEnabled(!iobjScat(obj->flags));
 }
 
 static void mkPoints_cb(int index)
@@ -1005,14 +1015,20 @@ static void mkPoints_cb(int index)
                 " in pixels");
   QToolTip::add(wPointQualityBox, "Set quality of sphere-drawing for this "
                 "object");
-    QToolTip::add(wGlobalQualityBox, "Set overall quality of sphere-drawing");
-
+  QToolTip::add(wGlobalQualityBox, "Set overall quality of sphere-drawing");
+  
   QObject::connect(wPointSizeBox, SIGNAL(valueChanged(int)), &imodvObjed,
           SLOT(pointSizeSlot(int)));
   QObject::connect(wPointQualityBox, SIGNAL(valueChanged(int)), &imodvObjed,
           SLOT(pointQualitySlot(int)));
   QObject::connect(wGlobalQualityBox, SIGNAL(valueChanged(int)), &imodvObjed,
           SLOT(globalQualitySlot(int)));
+  wPointNoDrawBox = diaCheckBox("Skip if drawing mesh", oef->control,
+                                layout1);
+  QObject::connect(wPointNoDrawBox, SIGNAL(toggled(bool)), &imodvObjed,
+                   SLOT(pointNoDrawSlot(bool)));
+  QToolTip::add(wPointNoDrawBox, "Skip drawing spheres when drawing object "
+                "mesh");
 
   finalSpacer(oef->control, layout1);
 }
@@ -1108,6 +1124,7 @@ static void mkLines_cb(int index)
   QVBoxLayout *layout1 = new QVBoxLayout(oef->control, FIELD_MARGIN, 
                                          2, "lines layout");
   widthSlider = new MultiSlider(oef->control, 2, widthLabel, 1, 10);
+  widthSlider->setRange(1, 1, 100);
   layout1->addLayout(widthSlider->getLayout());
   QObject::connect(widthSlider, SIGNAL(sliderChanged(int, int, bool)), 
                    &imodvObjed, SLOT(lineWidthSlot(int, int, bool)));
@@ -1913,14 +1930,14 @@ static void setMakeMesh_cb(void)
     makeParams = &makeDefParams;
   scat = iobjScat(obj->flags);
   tube = (makeParams->flags & IMESH_MK_TUBE) && iobjOpen(obj->flags);
-  diaSetSpinBox(wMakeTolSpin, (int)(100. * (makeLowRes ? 
+  diaSetSpinBox(wMakeTolSpin, B3DNINT(100. * (makeLowRes ? 
                                             makeParams->tolLowRes :
-                                            makeParams->tolHighRes) + 0.5));
+                                            makeParams->tolHighRes)));
   diaSetSpinBox(wMakeZincSpin, makeLowRes ? 
                 makeParams->inczLowRes : makeParams->inczHighRes);
   diaSetSpinBox(wMakePassSpin, makeParams->passes);
-  diaSetSpinBox(wMakeDiamSpin, (int)(10. * makeParams->tubeDiameter + 0.5));
-  diaSetSpinBox(wMakeFlatSpin, (int)(10. * makeParams->flatCrit + 0.5));
+  diaSetSpinBox(wMakeDiamSpin, B3DNINT(10. * makeParams->tubeDiameter));
+  diaSetSpinBox(wMakeFlatSpin, B3DNINT(10. * makeParams->flatCrit));
   diaSetChecked(wMakeChecks[MAKE_MESH_SKIP], 
                 (makeParams->flags & IMESH_MK_SKIP) != 0);
   diaSetChecked(wMakeChecks[MAKE_MESH_SURF], 
@@ -1971,11 +1988,12 @@ static void mkMakeMesh_cb(int index)
 
   hLayout = new QHBoxLayout(layout1);
   wMakeChecks[MAKE_MESH_TUBE] = diaCheckBox("Tube", oef->control, hLayout);
-  wMakeDiamSpin = (FloatSpinBox *)diaLabeledSpin(1, 0, 500, 5, "Diam", 
+  wMakeDiamSpin = (FloatSpinBox *)diaLabeledSpin(1, -20, 1000, 5, "Diam", 
                                                  oef->control, hLayout);
   QObject::connect(wMakeDiamSpin, SIGNAL(valueChanged(int)), &imodvObjed, 
                    SLOT(makeDiamSlot(int)));
-  QToolTip::add(wMakeDiamSpin, "Set diameter for tube contours");
+  QToolTip::add(wMakeDiamSpin, "Set diameter for tube contours, or 0 to use "
+                "3D line width, -1 to use point size, -2 to use symbol size");
 
   hLayout = new QHBoxLayout(layout1);
   wMakeChecks[MAKE_MESH_LOW] = diaCheckBox("Low res", oef->control, hLayout);
@@ -2242,6 +2260,13 @@ static int finishMesh()
     failSetFlags = IMOD_OBJFLAG_MESH;
     failClearFlags = IMOD_OBJFLAG_OFF;
     optionSetFlags(&obj->flags);
+
+    // Transfer points off flag
+    if (meshDupObj->flags & IMOD_OBJFLAG_PNT_NOMODV)
+      obj->flags |= IMOD_OBJFLAG_PNT_NOMODV;
+    else 
+      obj->flags &= ~IMOD_OBJFLAG_PNT_NOMODV;
+
     if (meshedModNum == Imodv->cm && meshedObjNum == Imodv->ob && objed_dialog)
       objset(Imodv);
 
@@ -2460,6 +2485,10 @@ static void makeRadioButton(char *label, QWidget *parent, QButtonGroup *group,
 /*
 
 $Log$
+Revision 4.38  2008/05/27 05:47:15  mast
+Fixed move by rotate around Z, allowed external call for these rotations,
+and implemented meshing of all objects
+
 Revision 4.37  2008/05/22 15:44:34  mast
 Changes for extra object editability
 
