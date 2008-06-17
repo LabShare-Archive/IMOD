@@ -125,7 +125,7 @@ int main(int argc, char **argv)
   unsigned int clearFlags = 0;
   unsigned int flags;
   float overlap = -1.;
-  float tubeDiameter = -1.;
+  float tubeDiameter = -99.;
   float flatCrit = -1.;
   float tol = -1.;
   int resol = 0;
@@ -467,9 +467,9 @@ int main(int argc, char **argv)
               }
             }
 
-            if ((!useParam || tubeDiameter >= 0.) && 
+            if ((!useParam || tubeDiameter >= -10.) && 
                 (param->flags & IMESH_MK_TUBE))
-              param->tubeDiameter = B3DMAX(0., tubeDiameter);
+              param->tubeDiameter = B3DMAX(-2., tubeDiameter);
 
             if (!useParam || flatCrit >= 0)
               param->flatCrit = flatCrit;
@@ -807,6 +807,9 @@ static int ObjOnList(int ob, int list[], int nlist)
 
 /*
 $Log$
+Revision 3.18  2007/11/10 05:22:43  mast
+Added option to recompute normals from an existing mesh
+
 Revision 3.17  2006/09/13 23:49:28  mast
 A few more bugs
 
