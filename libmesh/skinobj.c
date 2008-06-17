@@ -377,12 +377,22 @@ static int mesh_open_tube_obj(Iobj *obj, Ipoint *scale, unsigned int flags,
 
     /* DNM 8/25/03: Set tube diameter here instead of in makeTubeCont and make 
        number of segments variable within limits */
-    tubeDiameter = ptProps.linewidth;
-    if (meshDiameter > 0.0) 
-      tubeDiameter = meshDiameter;
+    tubeDiameter = meshDiameter;
       
     for (pt = 0; pt < cont->psize; pt++) {
 
+      if (pt == nextChange)
+        nextChange = istoreNextChange(cont->store, &contProps, &ptProps, 
+                                      &stateFlags, &changeFlags);
+      if (meshDiameter <= 0.) {
+        if (!meshDiameter)
+          tubeDiameter = ptProps.linewidth;
+        else if (meshDiameter < -1.5)
+          tubeDiameter = ptProps.symsize;
+        else
+          tubeDiameter = 2. * imodPointGetSize(obj, cont, pt);
+        tubeDiameter = B3DMAX(1., tubeDiameter); 
+      }
       slices = tubeDiameter / 2;
       if (slices < 12) 
         slices = 12;
@@ -407,7 +417,14 @@ static int mesh_open_tube_obj(Iobj *obj, Ipoint *scale, unsigned int flags,
              tubeDiameter, slices);
 
     }
-          
+
+    /* Restart the state for drawing */
+    lastState = istoreContSurfDrawProps(obj->store, &defProps, &contProps, co,
+                                        cont->surf, &stateFlags, &changeFlags);
+    if (!(skinFlags & IMESH_MK_SURF))
+      stateFlags = lastState;
+    ptProps = contProps;
+    nextChange = istoreFirstChangeIndex(cont->store);
     ptProps.gap = 0;
     if (!nextChange)
       nextChange = istoreNextChange(cont->store, &contProps, &ptProps, 
@@ -468,7 +485,6 @@ static int mesh_open_tube_obj(Iobj *obj, Ipoint *scale, unsigned int flags,
   obj->mesh = imeshReMeshNormal(obj->mesh, &(obj->meshsize), scale, 0);
   if (!obj->mesh)
     obj->meshsize = 0;
-     
   return(0);
 }
 
@@ -485,7 +501,8 @@ static int mesh_open_tube_obj(Iobj *obj, Ipoint *scale, unsigned int flags,
  * ^  [incz]          Increment in z values 
  * ^  [int flags]     Flags
  * ^  [skipPasses]    Number of passes for skipped sections 
- * ^  [tubeDiameter]  Diameter for tube meshing 
+ * ^  [tubeDiameter]  Diameter for tube meshing, or 0 to use 3D line width, -1
+ * to use point sizes, or -2 to use symbol sizes 
  * ^  [inCB]          A callback function, or NULL for none
  */
 int imeshSkinObject(Iobj *obj, Ipoint *scale, double overlap, int cap,       
@@ -2818,6 +2835,9 @@ static int break_contour_inout(Icont *cin, int st1, int st2,  int fill,
 /* 
 mkmesh.c got the big log from before the split
 $Log$
+Revision 1.5  2007/10/09 16:45:08  mast
+Moved inside_cont to imod library
+
 Revision 1.4  2007/03/31 03:50:33  mast
 In meshing open contours, made it ignore a single point in favor of other
 contours if there are any.
