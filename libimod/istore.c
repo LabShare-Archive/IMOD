@@ -597,19 +597,19 @@ int istoreInsertChange(Ilist **listp, Istore *store)
   }
 
   /* Look forward and eliminate any fully matching starts */
-  for (i = after; i < list->size; i++) {
+  /* 6/17/08: This is a bad idea, it propagates changes through points that
+     the user set explicitly to the matching value */
+  /* for (i = after; i < list->size; i++) {
     stp = istoreItem(list, i);
     if (stp->flags & (GEN_STORE_NOINDEX | 3))
       break;
     if (stp->type == store->type) {
-      if (stp->flags & GEN_STORE_REVERT)
+      if ((stp->flags & GEN_STORE_REVERT) || stp->value.i != store->value.i)
         break;
-      if (stp->value.i == store->value.i) {
-        ilistRemove(list, i);
-        i--;
-      }
+      ilistRemove(list, i);
+      i--;
     }
-  }
+    } */
   return 0;
 }
 
@@ -1878,6 +1878,9 @@ int istoreTransStateMatches(Ilist *list, int state)
 /* END_SECTION */
 /*
 $Log$
+Revision 3.12  2006/09/13 02:41:37  mast
+Fixed test on uninitialized variable
+
 Revision 3.11  2006/08/31 22:51:40  mast
 Added value and minmax stuff and reorganized for documentation
 
