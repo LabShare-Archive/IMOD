@@ -92,6 +92,7 @@ class ImodvObjed : public QObject
   void materialSlot(int which, int value, bool dragging);
   void pointSizeSlot(int value);
   void pointQualitySlot(int value);
+  void pointNoDrawSlot(bool state);
   void globalQualitySlot(int value);
   void lineWidthSlot(int which, int value, bool dragging);
   void lineAliasSlot(bool state);
@@ -141,6 +142,9 @@ class ImodvObjed : public QObject
 
 /*
 $Log$
+Revision 4.14  2008/05/27 05:46:33  mast
+Meshing and moveto axis changes
+
 Revision 4.13  2008/05/22 15:43:21  mast
 Changes for extra object editability
 
