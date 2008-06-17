@@ -43,6 +43,7 @@
 #define IMOD_OBJFLAG_THICK_CONT (1l << 20) /* Draw current contour thicker   */
 #define IMOD_OBJFLAG_EXTRA_MODV (1l << 21) /* Draw extra object in model view*/
 #define IMOD_OBJFLAG_EXTRA_EDIT (1l << 22) /* Allow editing of extra object  */
+#define IMOD_OBJFLAG_PNT_NOMODV (1l << 23) /* Draw no spheres in model view  */
 #define IMOD_OBJFLAG_TEMPUSE    (1l << 31) /* For temporary use              */
 
 /* macros for testing above flags. */
@@ -154,6 +155,9 @@ extern "C" {
 /*
 
 $Log$
+Revision 3.16  2008/05/22 15:38:44  mast
+Added flag for editable extra object
+
 Revision 3.15  2008/04/24 18:51:12  mast
 Added flag for setting @D line width
 
