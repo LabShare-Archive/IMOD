@@ -91,7 +91,10 @@ int analyzePrepSkinObj(Iobj *obj, int resol, Ipoint *scale, int (*inCB)(int))
   flatCrit = obj->meshParam->flatCrit;
   imeshSetMinMax(triMin, triMax);
   makeTubes = iobjOpen(obj->flags) && (flags & IMESH_MK_TUBE) ? 1 : 0;
-
+  if (makeTubes && B3DNINT(tubeDiameter) == -1)
+    obj->flags |= IMOD_OBJFLAG_PNT_NOMODV;
+  else 
+    obj->flags &= ~IMOD_OBJFLAG_PNT_NOMODV;
   if (flatCrit > 0 && !makeTubes) {
     
     /* Get arrays for bounding box and find biggest Z difference in contours */
@@ -706,6 +709,9 @@ Iobj *imeshDupMarkedConts(Iobj *obj, unsigned int flag)
 /* 
 mkmesh.c got the big log from before the split
 $Log$
+Revision 1.6  2006/11/02 07:15:03  mast
+Rearrange and change documentation
+
 Revision 1.5  2006/10/11 04:06:58  mast
 Changed to plane fitting from mean normal routine
 
