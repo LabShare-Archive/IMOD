@@ -1,5 +1,13 @@
 IMOD History
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+6/17/08: Implemented three ways to change diameter of a tube mesh within a 
+contour, available from both Imodmesh and 3dmod.
+
+6/17/08: Added centroid calculation to integrals in Nda and Mtk.
+
+6/17/08: When inserting fine-grained changes, no longer wipe out later
+matching changes inserted by the users.
+
 6/12/08: Made scale bar and light vector display come out on top of models.
 
 6/10/08: IMOD_3-12-11

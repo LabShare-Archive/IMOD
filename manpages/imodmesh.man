@@ -112,6 +112,8 @@ outside contour.
 .SS Fine-grained display information
 Imodmesh will encoded some fine-grained display information into the mesh,
 specifically, color, transparency, 3D width changes, and stored values.
+In addition, 3D width, point size, or symbol size can be used to set the
+diameter of a tubular mesh around open contours.
 Contour-specific and
 point-specific properties will always be encoded into the mesh.  This means
 that you cannot see changes in these properties without remeshing the model.
@@ -255,7 +257,9 @@ usual.
 Override the default diameter used for making tubes with the
 .B -t
 option.  The diameter is given in pixels, the default value is the
-line width of the current object.
+3D line width of the current object.  In addition, -1 or -2 can be
+entered to set the diameter from the spherical point size or from the symbol
+size, respectively.  Either of these items can vary from point to point.
 .TP
 .B -E
 Cap the ends of tubes made with the 
