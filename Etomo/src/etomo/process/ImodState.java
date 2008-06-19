@@ -174,6 +174,10 @@ import etomo.type.Run3dmodMenuOptions;
  * @version $$Revision$$
  * 
  * <p> $$Log$
+ * <p> $Revision 1.46  2008/05/03 00:41:02  sueh
+ * <p> $bug# 847 In Run3dmodMenuOptions renamed setOptions to
+ * <p> $orGlobalOptions, which is a better description of its functionality.
+ * <p> $
  * <p> $Revision 1.45  2008/05/01 22:56:03  sueh
  * <p> $bug# 1107 Added setOpenZap (-Z) and addWindowOpenOption (-E).
  * <p> $
@@ -764,6 +768,14 @@ public final class ImodState {
    */
   void setOpenZap() {
     process.setOpenZap();
+  }
+  
+  void setTiltFile(String tiltFile) {
+    process.setTiltFile(tiltFile);
+  }
+  
+  void resetTiltFile() {
+    process.resetTiltFile();
   }
   
   void addWindowOpenOption(ImodProcess.WindowOpenOption option) {

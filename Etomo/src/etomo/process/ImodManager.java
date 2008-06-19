@@ -36,6 +36,11 @@ import etomo.util.DatasetFiles;
  * @version $Revision$
  *
  * <p> $Log$
+ * <p> Revision 3.61  2008/05/03 00:39:17  sueh
+ * <p> bug# 847 Modified open(String) to pass a null instead of an empty
+ * <p> Run3dmodMenuOptions; ImodProcess handles null
+ * <p> Run3dmodMenuOptions.
+ * <p>
  * <p> Revision 3.60  2008/05/01 22:53:56  sueh
  * <p> bug# 1107 In newAvgVol() added -V -Z -E U to 3dmod command.
  * <p>
@@ -1150,6 +1155,30 @@ public class ImodManager {
     }
     if (imodState != null) {
       imodState.setBinning(binning);
+    }
+  }
+
+  public void setTiltFile(String key, AxisID axisID, String tiltFile)
+      throws AxisTypeException {
+    key = getPrivateKey(key);
+    ImodState imodState = get(key, axisID);
+    if (imodState == null) {
+      newImod(key, axisID);
+    }
+    if (imodState != null) {
+      imodState.setTiltFile(tiltFile);
+    }
+  }
+
+  public void resetTiltFile(String key, AxisID axisID)
+      throws AxisTypeException {
+    key = getPrivateKey(key);
+    ImodState imodState = get(key, axisID);
+    if (imodState == null) {
+      newImod(key, axisID);
+    }
+    if (imodState != null) {
+      imodState.resetTiltFile();
     }
   }
 
