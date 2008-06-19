@@ -1,0 +1,106 @@
+.na
+.nh
+.TH imodfindbeads 1 2.50 BL3DEMC
+.SH NAME
+imodfindbeads \- Find gold particles in images
+.SH SYNOPSIS
+imodfindbeads options in_image out_model
+.SH DESCRIPTION
+Imodfindbeads finds gold particles or other circular densities (beads) in
+images by a combination of cross-correlation and other methods.  It starts
+by correlating with a model of a spherical bead of a specified size, then
+forms an average out of the most strongly-correlating subset and repeats the
+procedure by correlating with the average.  It analyzes
+the distribution of correlation strengths to find the strength that best
+separates the particles of interest from similar densities.  The positions of
+the beads are stored in an IMOD model along with strengths for each.  The
+points can then be visualized in 3dmod(1), and with the help of the Bead Fixer
+module, the threshold can be adjusted and points below threshold can be
+deleted.
+.P
+Rather than cross-correlating with a model or averaged bead, the program
+applies an edge-detecting filter (Sobel, by default) to both the images and
+the reference, and correlates the filtered images.  This method improves
+the detectability of the beads and may improve the accuracy of the center
+positions.  However, it only works well for beads in a certain size range, so
+the program first scales the images to bring the beads to a specified size (8,
+by default).  The peaks in this correlation are the set of candidate positions
+for the beads.
+.P
+At each position, the program then computes an integral of the bead density
+relative to the background in an annulus around the bead.  
+The program can then work with three measures of peak strength.  One is the
+strength of the Sobel-filter correlation (which includes a component based on 
+the density of the bead, a factor lost when using a normalized correlation
+coefficient).  The second is the integrated density, and the third is the
+geometric mean of the first two.  
+Whichever measure is chosen, it is scaled so that the maximum value is 1.
+.P
+Correlation with a simple item like a bead always produces many more peaks
+than actual beads, but a histogram of peak strength generally shows a dip
+between actual beads and spurious peaks.  The program thus computes a
+histogram and smooths it with kernel smoothing, whereby a narrow distribution
+function instead of a single point is added into the histogram at every peak
+position.  The width of this function is the kernel width, referred to as
+H in program output.  The program tries a series of widths, from 0.2 downward,
+until it finds a dip in the histogram; then it computes it again with a kernel
+width of 0.05 in order to locate the dip more accurately.
+.P
+After the initial correlation with a model bead, the program uses the
+histogram analysis to select beads to average as a template for the second
+round correlation.  If the analysis
+fails, it is possible to bypass it by entering a relative peak strength to use
+as a criterion for selecting beads.  After the second round of correlations,
+the location of the dip is used to determine which points to output in the
+model.  The default is to output a number of points below the dip so that the
+user can check and adjust the threshold if necessary.  However, with the
+.B -store
+option, you can output just the points above the dip or a certain fraction of
+the strongest peaks above the dip.  Or, if the histogram analysis fails,
+this option can be used to bypass it and specify the actual peak strength to
+use as the criterion for output.
+.P
+The most significant options described below are: 
+.B -size
+to specify the bead size, 
+.B -area
+to specify a model with contours around areas to analyze,
+.B -light
+if beads are light on a dark background,
+.B -store
+to control storage of peaks in the model as just described,
+.B -spacing
+to allow points closer together than the bead size,
+.B -sections
+to select the sections to be analyzed, and
+.B -maxsec
+to set how many of them will be analyzed in one group.
+In addition, if images are noisy, it may be helpful to use linear
+interpolation with
+.B -linear
+and add some filtering with either
+.B -kernel
+or
+.B -rad2
+and 
+.B -sig2.
+There are many other options that were added during program development and
+can be ignored.
+.SS Options
+Imodfindbeads uses the PIP package for input (see the manual page
+for pip(1)).  Options can be specified either as command line
+arguments (with the -) or one per line in a command file
+(without the -):
+INSERT OPTION TEXT HERE
+.TP
+.B -StandardInput
+Read parameter entries from standard input
+
+.SH AUTHOR
+.nf
+David Mastronarde
+.fi
+.SH SEE ALSO
+beadtrack(1)
+.SH BUGS
+Email bug reports to mast@colorado.edu.
