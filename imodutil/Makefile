@@ -16,7 +16,7 @@ PROGS = imodauto$(E) imodinfo$(E) imodmesh$(E) imodtrans$(E) imodmop$(E) \
  rec2imod$(E) imod2rib$(E) imod2vrml$(E) imod2meta$(E) \
  wmod2imod$(E) imodjoin$(E) imodextract$(E) imodsortsurf$(E) imodexplode$(E) \
  patch2imod$(E) imod2patch$(E) echo2$(E) imodfillin$(E) imodcurvature$(E) \
- point2model$(E) $(IMODWINCPU)
+ imodfindbeads$(E) point2model$(E) $(IMODWINCPU)
 
 all : $(PROGS)
 
@@ -80,6 +80,10 @@ imodcurvature$(E) : imodcurvature.$(O)
 	$(CC) -o imodcurvature imodcurvature.$(O) $(LDFLAGS) $(MODLIBS) \
 	$(CLIBS)
 
+imodfindbeads$(E) : imodfindbeads.$(O)
+	$(CC) -o imodfindbeads imodfindbeads.$(O) $(LDFLAGS) $(IILIBS) \
+	$(LIFFT) $(CLIBS)
+
 point2model$(E) : point2model.$(O)
 	$(CC) -o point2model point2model.$(O) $(LDFLAGS) $(MODLIBS) \
 	$(CLIBS)
@@ -129,6 +133,9 @@ imodmkhv : imodmkhv.$(O)
 
 
 #  $Log$
+#  Revision 3.19  2007/10/18 22:20:20  mast
+#  Added point2model
+#
 #  Revision 3.18  2007/09/19 23:48:39  mast
 #  Changes for library rearrangements
 #
