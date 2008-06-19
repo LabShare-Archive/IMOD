@@ -392,6 +392,24 @@ public final class ApplicationManager extends BaseManager {
         if (!processMgr.setupComScripts(metaData, AxisID.ONLY)) {
           return false;
         }
+        //Create the .rawtlt file if the angle type is range.  This makes it
+        //easy to display titl angles in 3dmod.
+        if (metaData.getTiltAngleSpecA().getType() == TiltAngleType.RANGE) {
+          try {
+            AxisType axisType = metaData.getAxisType();
+            makeRawtltFile(axisType == AxisType.DUAL_AXIS ? AxisID.FIRST
+                : AxisID.ONLY);
+            if (axisType == AxisType.DUAL_AXIS) {
+              makeRawtltFile(AxisID.SECOND);
+            }
+          }
+          catch (IOException e) {
+            e.printStackTrace();
+          }
+          catch (InvalidParameterException e) {
+            e.printStackTrace();
+          }
+        }
       }
       processTrack.setSetupState(ProcessState.COMPLETE);
       metaData.setComScriptCreated(true);
@@ -737,6 +755,14 @@ public final class ApplicationManager extends BaseManager {
       if (metaData.getViewType() == ViewType.MONTAGE) {
         imodManager.setPieceListFileName(ImodManager.ERASED_STACK_KEY, axisID,
             metaData.getDatasetName() + axisID.getExtension() + ".pl");
+      }
+      File tiltFile = DatasetFiles.getRawTiltFile(this, axisID);
+      if (tiltFile.exists()) {
+        imodManager.setTiltFile(ImodManager.ERASED_STACK_KEY, axisID, tiltFile
+            .getName());
+      }
+      else {
+        imodManager.resetTiltFile(ImodManager.ERASED_STACK_KEY, axisID);
       }
       imodManager.open(ImodManager.ERASED_STACK_KEY, axisID,
           run3dmodMenuOptions);
@@ -1466,6 +1492,14 @@ public final class ApplicationManager extends BaseManager {
   public void imodCoarseAlign(AxisID axisID, Run3dmodMenuOptions menuOptions) {
     try {
       imodManager.setOpenLogOff(ImodManager.COARSE_ALIGNED_KEY, axisID);
+      File tiltFile = DatasetFiles.getRawTiltFile(this, axisID);
+      if (tiltFile.exists()) {
+        imodManager.setTiltFile(ImodManager.COARSE_ALIGNED_KEY, axisID,
+            tiltFile.getName());
+      }
+      else {
+        imodManager.resetTiltFile(ImodManager.COARSE_ALIGNED_KEY, axisID);
+      }
       imodManager.open(ImodManager.COARSE_ALIGNED_KEY, axisID, menuOptions);
     }
     catch (AxisTypeException except) {
@@ -1755,6 +1789,14 @@ public final class ApplicationManager extends BaseManager {
       imodManager.setBeadfixerMode(ImodManager.COARSE_ALIGNED_KEY, axisID,
           ImodProcess.SEED_MODE);
       imodManager.setOpenLogOff(ImodManager.COARSE_ALIGNED_KEY, axisID);
+      File tiltFile = DatasetFiles.getRawTiltFile(this, axisID);
+      if (tiltFile.exists()) {
+        imodManager.setTiltFile(ImodManager.COARSE_ALIGNED_KEY, axisID,
+            tiltFile.getName());
+      }
+      else {
+        imodManager.resetTiltFile(ImodManager.COARSE_ALIGNED_KEY, axisID);
+      }
       imodManager.open(ImodManager.COARSE_ALIGNED_KEY, axisID, seedModel, true,
           menuOptions);
       processTrack.setFiducialModelState(ProcessState.INPROGRESS, axisID);
@@ -1999,6 +2041,25 @@ public final class ApplicationManager extends BaseManager {
       imodManager.setOpenLog(ImodManager.COARSE_ALIGNED_KEY, axisID,
           beadfixerMode == ImodProcess.RESIDUAL_MODE, DatasetFiles.getLogName(
               this, axisID, ProcessName.ALIGN));
+      File tiltFile = DatasetFiles.getTiltFile(this, axisID);
+      if (beadfixerMode.equals(ImodProcess.RESIDUAL_MODE) && tiltFile.exists()) {
+        //Residual mode is used in fine alignment and tiltalign must have been run for
+        //the .tlt file to exist.
+        imodManager.setTiltFile(ImodManager.COARSE_ALIGNED_KEY, axisID,
+            tiltFile.getName());
+      }
+      else {
+        //Either this is not fine alignment or the .tlt file hasn't been created
+        //yet.
+        tiltFile = DatasetFiles.getRawTiltFile(this, axisID);
+        if (tiltFile.exists()) {
+          imodManager.setTiltFile(ImodManager.COARSE_ALIGNED_KEY, axisID,
+              tiltFile.getName());
+        }
+        else {
+          imodManager.resetTiltFile(ImodManager.COARSE_ALIGNED_KEY, axisID);
+        }
+      }
       imodManager.open(ImodManager.COARSE_ALIGNED_KEY, axisID, fiducialModel,
           true, menuOptions);
       sendMsgProcessSucceeded(processResultDisplay);
@@ -2498,6 +2559,21 @@ public final class ApplicationManager extends BaseManager {
       imodManager.setBeadfixerMode(ImodManager.COARSE_ALIGNED_KEY, axisID,
           ImodProcess.RESIDUAL_MODE);
       imodManager.setOpenLogOff(ImodManager.COARSE_ALIGNED_KEY, axisID);
+      File tiltFile = DatasetFiles.getTiltFile(this, axisID);
+      if (tiltFile.exists()) {
+        imodManager.setTiltFile(ImodManager.COARSE_ALIGNED_KEY, axisID,
+            tiltFile.getName());
+      }
+      else {
+        tiltFile = DatasetFiles.getRawTiltFile(this, axisID);
+        if (tiltFile.exists()) {
+          imodManager.setTiltFile(ImodManager.COARSE_ALIGNED_KEY, axisID,
+              tiltFile.getName());
+        }
+        else {
+          imodManager.resetTiltFile(ImodManager.COARSE_ALIGNED_KEY, axisID);
+        }
+      }
       imodManager.open(ImodManager.COARSE_ALIGNED_KEY, axisID, fiducialModel,
           menuOptions);
     }
@@ -5563,6 +5639,12 @@ public final class ApplicationManager extends BaseManager {
 }
 /**
  * <p> $Log$
+ * <p> Revision 3.302  2008/05/28 02:33:04  sueh
+ * <p> bug# 1111 Add a dialogType parameter to the ProcessSeries
+ * <p> constructor.  Pass it to manager.startNextProcess so the UIExpert can be
+ * <p> retrieved.  DialogType must be passed to any function that constructs a
+ * <p> ProcessSeries instance.
+ * <p>
  * <p> Revision 3.301  2008/05/14 19:38:35  sueh
  * <p> bug# 1094 Fixed strings in savePostProcessing.
  * <p>
