@@ -7,14 +7,15 @@ build:	build-dual build-single
 build-fidless:	build-dual-fidless
 
 test-dual:
-	$(IMOD_UITEST_SCRIPT)/uitest dual
+	which uitest
+	uitest dual
 test-single:
-	$(IMOD_UITEST_SCRIPT)/uitest single
+	uitest single
 build-dual:
-	$(IMOD_UITEST_SCRIPT)/uitest build-dual
+	uitest build-dual
 build-single:
-	$(IMOD_UITEST_SCRIPT)/uitest build-single
+	uitest build-single
 build-dual-fidless:
-	$(IMOD_UITEST_SCRIPT)/uitest build-dual-fidless
+	uitest build-dual-fidless
 build-dual-montage:
-	$(IMOD_UITEST_SCRIPT)/uitest build-dual-montage
+	uitest build-dual-montage
