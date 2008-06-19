@@ -36,6 +36,11 @@ import etomo.util.Utilities;
  * 
  * <p>
  * $Log$
+ * Revision 3.47  2008/05/01 22:57:45  sueh
+ * bug# 1107 Added openZap to add -Z to the command line.  Since the
+ * Zap window opens automatically, this is only useful when using model
+ * view.  Added WindowOpenOption.ISOSURFACE (U).
+ *
  * Revision 3.46  2007/12/26 22:13:09  sueh
  * bug# 1052 Moved argument handling from EtomoDirector to a separate class.
  *
@@ -571,6 +576,7 @@ public class ImodProcess {
   private String subdirName = null;
   //Zap opens by default.  OpenZap is only necessary when model view is in use.
   private boolean openZap = false;
+  private String tiltFile = null;
 
   /**
    * Constructor for using imodv
@@ -753,6 +759,11 @@ public class ImodProcess {
     
     if (openZap) {
       commandOptions.add("-Z");
+    }
+    
+    if (tiltFile!=null) {
+      commandOptions.add("-a");
+      commandOptions.add(tiltFile);
     }
 
     if (useModv) {
@@ -1471,6 +1482,14 @@ public class ImodProcess {
   
   public void setOpenZap() {
     openZap = true;
+  }
+  
+  void setTiltFile(String input) {
+    tiltFile = input;
+  }
+  
+  void resetTiltFile() {
+    tiltFile = null;
   }
 
   /**
