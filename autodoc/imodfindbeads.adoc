@@ -1,0 +1,302 @@
+Version = 1.0
+Pip = 1
+
+[Field = InputImageFile]
+short = input
+type = FN
+usage = Input image filename
+tooltip = 
+manpage = Name of input image file.  If it is not entered with this option it 
+must be entered with the first non-option argument.
+
+[Field = OutputModelFile]
+short = output
+type = FN
+usage = Output model filename
+tooltip = 
+manpage = Name of output model file.  If it is not entered with this option it 
+must be entered with the second non-option argument.
+
+[Field = FilteredImageFile]
+short = filtered
+type = FN
+usage = Output file for scaled, Sobel filtered images
+tooltip = 
+manpage = Output file for images after they have been scaled 
+and Sobel filtered.  The coordinate system in the header will be congruent
+with that of the original image file so that the model can be displayed on it.
+
+[Field = AreaModel]
+short = area
+type = FN
+usage = Model with contours enclosing areas to analyze
+tooltip = 
+manpage = Model with contours enclosing areas to analyze.  More than one
+contour can be included on each section.  If there are no contours on a
+section within the range being analyzed, the entire section will be used.
+
+[Field = ReferenceModel]
+short = ref
+type = FN
+usage = Model with all beads marked in defined areas
+tooltip = 
+manpage = Model with all beads marked in defined areas, used for determining
+the accuracy of the bead detection.
+
+[Field = BoundaryObject]
+short = boundary
+type = I
+usage = Object in reference model with boundaries of fully marked areas 
+tooltip = 
+manpage = Object in reference model with contours around the areas where beads
+have been fully marked.
+
+[Field = BeadSize]
+short = size
+type = F
+usage = Size of beads in pixels
+tooltip = 
+manpage = Size of beads in pixels, a required entry.  A model bead of this
+size is constructed for the first round of correlation, and this size together
+with the scaled size determine how much images will be scaled for filtering.
+
+[Field = LightBeads]
+short = light
+type = B
+usage = Beads are light on dark background
+tooltip = 
+manpage = 
+
+[Field = ScaledSize]
+short = scaled
+type = F
+usage = Size of beads in images scaled down for filtering (default 8)
+tooltip = 
+manpage = Size of beads in images scaled down for filtering; this entry
+together with the bead size determine the amount of scaling.  In tests,
+values of 7 to 10 have been found to give the best detection with Sobel
+filter.  The default value is 8.
+
+[Field = MinInterpolationFactor]
+short = interpmin
+type = F
+usage = Minimum reduction factor to be achieved by interpolation, not binning
+tooltip = 
+manpage = When images are being scaled down, this entry determines how much
+of the scaling down must be done with interpolation instead of binning.
+Interpolation will preserve high frequency information better than binning
+does but may amplify noise.  The default value is 1.4, which means that data
+will not be binned unless they are being scaled down by a factor of at least
+2.8.  This entry makes no difference unless images are being scaled down by
+more than a factor of 2.
+
+[Field = LinearInterpolation]
+short = linear
+type = B
+usage = Use linear instead of cubic interpolation
+tooltip = 
+manpage = Use linear instead of cubic interpolation; this option will help to
+reduce noise.
+
+[Field = CenterWeight]
+short = center
+type = F
+usage = Weight of center pixel in filter (1: Prewitt, 2: Sobel, default 2)
+tooltip = 
+manpage = The weighting for the center pixel in the edge detecting filter; 1
+and 2 correspond to Prewitt and Sobel filters, respectively; the default is 2.
+
+[Field = BoxSizeScaled]
+short = box
+type = I
+usage = Box size for correlating and averaging in scaled down images
+tooltip = 
+manpage = Box size for correlating and averaging beads in scaled down images.
+The default is 3 times the scaled size plus 2.
+
+[Field = ThresholdForAveraging]
+short = threshold
+type = F
+usage = Threshold relative peak strength or number of beads for averaging
+tooltip = 
+manpage = Threshold relative peak strength or number of beads for averaging.
+With a non-zero entry, selected beads from the first round of filtering and
+correlation are averaged to produce a reference for a second round.  If a
+negative value is entered, the program will analyze the histogram of peak
+strengths and find the dip indicating the best boundary between actual and
+false beads.  The value has
+4 different meanings depending on the range:
+^  Greater than 1: an absolute number of beads with the strongest peaks
+^  Between 0 and 1: minimum relative peak strength
+^  Between 0 and -1: negative of strongest fraction of peaks above histogram 
+dip
+^  -2: 1/4 of way from histogram dip to histogram peak (the default)
+
+[Field = StorageThreshold]
+short = store
+type = F
+usage = Threshold relative peak strength for storing peaks in model
+tooltip = 
+manpage = Threshold relative peak strength for storing peaks in model.  With a
+value of 0 (the default), the program will find the dip in the histogram of
+peak strengths, find the mean and SD of the strengths above the dip, and store
+all of the beads above the dip plus additional ones below the dip.  The latter
+will be up to the 5 SD's below the mean or up to the number of ones above the
+dip.  Enter a number between 0 an 1 to specify a relative
+strength above which peaks will be stored.  Enter a negative number to specify
+the number to store as a fraction of the number above the histogram dip (e.g.,
+1 for all points above the dip, 0.33 for the strongest 1/3 above the dip,
+1.33 for all above plus 1/3 that many below the dip.)
+
+[Field = BackgroundGroups]
+short = bkgd
+type = F
+usage = Number of groups to analyze based on background (default 4)
+tooltip = 
+manpage = After finding peaks, the program will sort the peaks based on the
+background density into the number of groups given by this entry, as long as
+there are at least 100 peaks in each group.  The histogram will be analyzed
+separately for each group to find the dip, and then the peak strengths will be
+scaled so as to superimpose the dip values.  This scaling should make a single
+threshold value work better across a range of intensities.
+The default value is 4; enter 0 to prevent this analysis.
+
+[Field = AnnulusPercentile]
+short = annulus
+type = F
+usage = Fractional percentile of annular pixels to use as background
+tooltip = 
+manpage = By default, the program will use the mean in an annulus around the
+bead as the background for the analysis by groups.  This entry specifies a
+percentile of the pixel values to use instead (e.g., 0.5 for the median).
+
+[Field = MinRelativeStrength]
+short = peakmin
+type = F
+usage = Minimum relative peak strength for retaining peak in analysis
+tooltip = 
+manpage = Minimum relative peak strength, after any background scaling, for
+keeping a peak in the analysis.  Too many weak peaks can prevent a dip from
+showing up in the smoothed histogram of strengths.  The default is 0.1, or
+0.05 if a threshold for averaging is being found from histograms.
+
+[Field = MinSpacing]
+short = spacing
+type = F
+usage = Minimum spacing between peaks as fraction of bead size (default 1)
+tooltip = 
+manpage = Minimum spacing between peaks as a fraction of the bead size.  When
+two peaks are closer than this distance apart, the weaker one is eliminated.
+The default is 1, but values of 0.8 to 0.9 are helpful for getting more 
+a complete set of beads.
+
+[Field = SectionsToDo]
+short = sections
+type = LI
+usage = List of sections to run (comma-separated ranges numbered from 0)
+tooltip = 
+manpage = List of sections to run.  Comma-separated ranges can be entered;
+sections are numbered from 0.  By default, all sections will be analyzed.
+
+[Field = MaxSectionsPerAnalysis]
+short = maxsec
+type = I
+usage = Maximum number of sections to include in one analysis
+tooltip = 
+manpage = Maximum number of sections to include in one analysis.  With this
+entry, the list of sections will be divided into groups no bigger than this
+size.  Each group will be analyzed separately and results will be stored in a
+separate model object with its own threshold value.  By default, all sections
+are analyzed together.
+
+[Field = RemakeModelBead]
+short = remake
+type = B
+usage = Start with model bead for each separate analysis
+tooltip = 
+manpage = Start with a model bead for each separate analysis when more than
+one group of sections is being analyzed.  The default is to use the average
+from the previous group for the first round of correlation on a group.
+
+[Field = MinGuessNumBeads]
+short = guess
+type = I
+usage = A guess for the minimum number of beads per section
+tooltip = 
+manpage = A guess for the minimum number of beads per section.  This entry may
+sometimes be required to help the program find a dip in the histogram,
+especially if there are very few beads.
+
+[Field = MeasureToUse]
+short = measure
+type = I
+usage = Measure to use for peak strengths (0 correlation, 1 integral, 2 mean)
+tooltip = 
+manpage = Measure to use for peak strengths: 0 for the correlation peak, 1 for 
+the integral of density above the background, 2 for the geometric mean of
+these two.  The default is 1; integrals were slightly better in test data sets.
+
+[Field = KernelSigma]
+short = kernel
+type = F
+usage = Sigma in pixels for real-space smoothing with Gaussian kernel
+tooltip = 
+manpage = Sigma for real-space smoothing with a Gaussian kernel (in pixels).
+The smoothing is with a 3x3, 5x5 or 7x7 kernel whose coefficients are
+proportional to a Gaussian with the given sigma centered on the central
+pixel.  This smoothing is applied before the image is scaled for filtering.
+
+[Field = FilterRadius1]
+short = rad1
+type = F
+usage = Left cutoff radius for filter
+tooltip = 
+manpage = Low spatial frequencies in the cross-correlation will be attenuated
+by a Gaussian curve that is 1 at this cutoff radius and falls off below this
+radius with a standard deviation specified by FilterSigma2.  Spatial
+frequency units range from 0 to 0.5.  Use FilterSigma1 instead of this entry
+for more predictable attenuation of low frequencies.
+
+[Field = FilterRadius2]
+short = rad2
+type = F
+usage = Right cutoff radius for filter
+tooltip = High frequency cutoff radius for Gaussian filter
+manpage = High spatial frequencies in the cross-correlation will be attenuated
+by a Gaussian curve that is 1 at this cutoff radius and falls off above this
+radius with a standard deviation specified by FilterSigma2.
+
+[Field = FilterSigma1]
+short = sig1
+type = F
+usage = Sigma for low-frequency inverted Gaussian filter
+tooltip = 
+manpage = Sigma value to filter low frequencies in the correlations with a
+curve that is an inverted Gaussian.  This filter is 0 at 0 frequency and decays
+up to 1 with the given sigma value.  However, if a negative value of radius1
+is entered, this filter will be zero from 0 to |radius1| then decay up to 1.
+
+[Field = FilterSigma2]
+short = sig2
+type = F
+usage = Sigma for Gaussian rolloff below radius1 and above radius2
+tooltip = Sigma for Gaussian rolloff below low frequency cutoff and above 
+high frequency cutoff
+manpage = Sigma value for the Gaussian rolloff below and above the cutoff
+frequencies specified by FilterRadius1 and FilterRadius2
+
+[Field = VerboseKeys]
+short = verbose
+type = CH
+usage = Key letters for verbose output
+tooltip = 
+manpage = Key letters for verbose output (1 for general, p for peak, f for
+first, l for last, e for every hist)
+
+[Field = ParameterFile]
+short = param
+type = PF
+usage = Read parameter entries from file
+tooltip = 
+manpage = Read parameter entries as keyword-value pairs from a parameter file.
+
