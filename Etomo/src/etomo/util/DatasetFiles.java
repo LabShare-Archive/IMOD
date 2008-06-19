@@ -181,6 +181,22 @@ public final class DatasetFiles {
     axisID = correctAxisID(metaData, axisID);
     return metaData.getName() + axisID.getExtension() + ".rawtlt";
   }
+  
+  public static File getRawTiltFile(BaseManager manager, AxisID axisID) {
+    return new File(manager.getPropertyUserDir(), getRawTiltName(manager,
+        axisID));
+  }
+
+  private static String getTiltName(BaseManager manager, AxisID axisID) {
+    BaseMetaData metaData = manager.getBaseMetaData();
+    axisID = correctAxisID(metaData, axisID);
+    return metaData.getName() + axisID.getExtension() + TILT_FILE_EXT;
+  }
+  
+  public static File getTiltFile(BaseManager manager, AxisID axisID) {
+    return new File(manager.getPropertyUserDir(), getTiltName(manager,
+        axisID));
+  }
 
   public static String getFiducialModelName(BaseManager manager, AxisID axisID) {
     BaseMetaData metaData = manager.getBaseMetaData();
@@ -430,6 +446,9 @@ public final class DatasetFiles {
 }
 /**
  * <p> $Log$
+ * <p> Revision 1.44  2007/12/26 22:40:51  sueh
+ * <p> bug# 1052 Added .edf to DatasetFiles.
+ * <p>
  * <p> Revision 1.43  2007/12/10 22:50:26  sueh
  * <p> bug# 1041 In getCommandsFileName test subdirName more completely before
  * <p> using it.
