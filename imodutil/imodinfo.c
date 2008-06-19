@@ -186,6 +186,8 @@ int main( int argc, char *argv[])
 
       case 'v':
         verbose++;
+        if (argv[i][2] == 'v')
+          verbose++;
         break;
 
       case 'o':
@@ -2211,6 +2213,9 @@ static void trim_scan_contour(Icont *cont, Ipoint min, Ipoint max, int doclip,
 /*
 
 $Log$
+Revision 3.18  2008/04/04 21:21:29  mast
+Free contour after adding to object
+
 Revision 3.17  2006/09/13 02:37:25  mast
 Switch to allocating and freeing model
 
