@@ -1,5 +1,7 @@
 IMOD History
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+6/19/08: Fixed imodinfo to give extra verbose output with -vv as advertised.
+
 6/17/08: Implemented three ways to change diameter of a tube mesh within a 
 contour, available from both Imodmesh and 3dmod.
 
