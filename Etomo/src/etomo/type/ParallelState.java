@@ -16,6 +16,11 @@ import java.util.Properties;
  * @version $Revision$
  * 
  * <p> $Log$
+ * <p> Revision 1.3  2008/04/02 02:01:20  sueh
+ * <p> bug# 1097 Made non-matlab syntax the default in the ParsedElements
+ * <p> classes.  This is because matlab uses "NaN", which is unhealthy for
+ * <p> Etomo and IMOD.
+ * <p>
  * <p> Revision 1.2  2007/11/09 17:46:04  sueh
  * <p> bug# 1047 Changed the names of NAD fields for clarity.
  * <p>
@@ -36,7 +41,7 @@ public final class ParallelState extends BaseState {
    * Example: "2,4 - 9,10".
    */
   private final ParsedArray testIterationList = ParsedArray
-      .getInstance("TestIterationList");
+      .getIteratorInstance("TestIterationList");
   private final EtomoNumber testKValue = new EtomoNumber(
       EtomoNumber.Type.FLOAT, "TestKValue");
 

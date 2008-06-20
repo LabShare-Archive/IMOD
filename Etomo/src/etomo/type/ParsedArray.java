@@ -32,6 +32,10 @@ import etomo.util.PrimativeTokenizer;
  * @version $Revision$
  * 
  * <p> $Log$
+ * <p> Revision 1.17  2008/04/15 21:18:40  sueh
+ * <p> bug# 1105 Simplified setting the default.  Added debug and default to
+ * <p> constructor.  Move setDebug() to child classes.
+ * <p>
  * <p> Revision 1.16  2008/04/08 23:55:37  sueh
  * <p> bug# 1105 Changed the array used in ParsedElement to a
  * <p> ParsedElementList because it always holds ParsedNumbers.  Fixed
@@ -125,8 +129,7 @@ public final class ParsedArray extends ParsedElement {
     this.key = key;
     this.defaultValue = defaultValue;
     this.debug = debug;
-    array = new ParsedElementList(type, etomoNumberType, debug,
-        defaultValue);
+    array = new ParsedElementList(type, etomoNumberType, debug, defaultValue);
     setDebug(debug);
   }
 
@@ -144,9 +147,9 @@ public final class ParsedArray extends ParsedElement {
         null, false, null);
   }
 
-  public static ParsedArray getInstance() {
-    return new ParsedArray(ParsedElementType.NON_MATLAB_ARRAY, null, null,
-        false, null);
+  public static ParsedArray getIteratorInstance() {
+    return new ParsedArray(ParsedElementType.NON_MATLAB_ITERATOR_ARRAY, null,
+        null, false, null);
   }
 
   public static ParsedArray getInstance(EtomoNumber.Type etomoNumberType) {
@@ -154,9 +157,9 @@ public final class ParsedArray extends ParsedElement {
         null, false, null);
   }
 
-  public static ParsedArray getInstance(String key) {
-    return new ParsedArray(ParsedElementType.NON_MATLAB_ARRAY, null, key,
-        false, null);
+  public static ParsedArray getIteratorInstance(String key) {
+    return new ParsedArray(ParsedElementType.NON_MATLAB_ITERATOR_ARRAY, null,
+        key, false, null);
   }
 
   public static ParsedArray getInstance(EtomoNumber.Type etomoNumberType,
@@ -164,7 +167,7 @@ public final class ParsedArray extends ParsedElement {
     return new ParsedArray(ParsedElementType.NON_MATLAB_ARRAY, etomoNumberType,
         key, false, null);
   }
-  
+
   static ParsedArray getInstance(ParsedElementType type,
       EtomoNumber.Type etomoNumberType, boolean debug, EtomoNumber defaultValue) {
     return new ParsedArray(type, etomoNumberType, null, debug, defaultValue);
@@ -198,7 +201,7 @@ public final class ParsedArray extends ParsedElement {
     }
     return returnArray;
   }
-  
+
   public void setDebug(boolean input) {
     debug = input;
     array.setDebug(input);
@@ -264,8 +267,7 @@ public final class ParsedArray extends ParsedElement {
         return element;
       }
     }
-    return ParsedNumber.getInstance(type, etomoNumberType, debug,
-        defaultValue);
+    return ParsedNumber.getInstance(type, etomoNumberType, debug, defaultValue);
   }
 
   public int getDescriptorIndex() {
@@ -284,6 +286,9 @@ public final class ParsedArray extends ParsedElement {
    * raw string (it may have commas)
    */
   public void setRawString(String input) {
+    if (debug) {
+      System.out.println("ParsedArray.setRawString:input=" + input);
+    }
     array.clear();
     resetFailed();
     if (input == null) {
@@ -326,7 +331,7 @@ public final class ParsedArray extends ParsedElement {
   }
 
   public void setMinArraySize(int input) {
-      array.setMinSize(input);
+    array.setMinSize(input);
   }
 
   public void clear() {
@@ -616,6 +621,9 @@ public final class ParsedArray extends ParsedElement {
     while (dividerFound && !isFailed() && token != null
         && !token.is(Token.Type.EOL) && !token.is(Token.Type.EOF)
         && !token.equals(Token.Type.SYMBOL, CLOSE_SYMBOL.charValue())) {
+      if (debug) {
+        System.out.println("ParsedArray.parseArray:while");
+      }
       try {
         //parse an element
         token = parseElement(token, tokenizer, index);
@@ -662,6 +670,9 @@ public final class ParsedArray extends ParsedElement {
     //parse element
     //Array descriptors don't have their own open and close symbols, so they
     //look like numbers until to you get to the first divider (":"or "-").
+    if (debug) {
+      System.out.println("ParsedArray.parseElement");
+    }
     ParsedDescriptor descriptor = ParsedDescriptor.getInstance(type,
         etomoNumberType, debug, defaultValue);
     token = descriptor.parse(token, tokenizer);
