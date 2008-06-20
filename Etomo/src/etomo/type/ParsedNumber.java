@@ -29,6 +29,10 @@ import etomo.util.PrimativeTokenizer;
  * @version $Revision$
  * 
  * <p> $Log$
+ * <p> Revision 1.16  2008/04/15 21:28:58  sueh
+ * <p> bug# 1105 Simplified setting the default.  Added debug and default to
+ * <p> constructor.  Move setDebug() to child classes.
+ * <p>
  * <p> Revision 1.15  2008/04/09 00:01:21  sueh
  * <p> bug# 1105 Changed the array used in getParsedNumberExpandedArray
  * <p> to a ParsedElementList because it always holds ParsedNumbers.  Fixed
@@ -119,18 +123,19 @@ public final class ParsedNumber extends ParsedElement {
   }
 
   public static ParsedNumber getMatlabInstance() {
-    return new ParsedNumber(ParsedElementType.MATLAB, null, false, null);
+    return new ParsedNumber(ParsedElementType.MATLAB_NUMBER, null, false, null);
   }
 
   public static ParsedNumber getMatlabInstance(EtomoNumber.Type etomoNumberType) {
-    return new ParsedNumber(ParsedElementType.MATLAB, etomoNumberType, false,
-        null);
+    return new ParsedNumber(ParsedElementType.MATLAB_NUMBER, etomoNumberType,
+        false, null);
   }
 
   static ParsedNumber getInstance(ParsedElementType type,
       EtomoNumber.Type etomoNumberType, boolean debug, EtomoNumber defaultValue) {
     return new ParsedNumber(type, etomoNumberType, debug, defaultValue);
   }
+
   public void parse(ReadOnlyAttribute attribute) {
     rawNumber.reset();
     resetFailed();
@@ -404,6 +409,9 @@ public final class ParsedNumber extends ParsedElement {
         token = tokenizer.next();
       }
       token = parseElement(token, tokenizer);
+      if (debug) {
+        System.out.println("ParsedNumber.parse:rawNumber=" + rawNumber);
+      }
       if (isFailed()) {
         return token;
       }
@@ -451,6 +459,9 @@ public final class ParsedNumber extends ParsedElement {
             .indexOf(token.getChar()) == -1)) {
       //build the number
       buffer.append(token.getValue());
+      if (debug) {
+        System.out.println("ParsedNumber.parseElement:buffer=" + buffer);
+      }
       try {
         token = tokenizer.next();
       }

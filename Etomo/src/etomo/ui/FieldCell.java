@@ -24,6 +24,9 @@ import etomo.type.ParsedElementType;
  * @version $Revision$
  * 
  * <p> $Log$
+ * <p> Revision 1.23  2008/04/02 02:26:03  sueh
+ * <p> bug# 1097 Added ParsedElementType to work with ParsedArray correctly.
+ * <p>
  * <p> Revision 1.22  2007/09/27 20:50:20  sueh
  * <p> bug# 1044 Added getIneditableInstance(String value) to create an instance with
  * <p> a value set.  Useful for debugging.
@@ -148,28 +151,31 @@ final class FieldCell extends InputCell {
   }
 
   static FieldCell getEditableInstance() {
-    return new FieldCell(true, ParsedElementType.NON_MATLAB);
+    return new FieldCell(true, ParsedElementType.NON_MATLAB_NUMBER);
   }
 
   static FieldCell getEditableMatlabInstance() {
-    return new FieldCell(true, ParsedElementType.MATLAB);
+    return new FieldCell(true, ParsedElementType.MATLAB_NUMBER);
   }
 
   static FieldCell getIneditableInstance() {
-    FieldCell instance = new FieldCell(false, ParsedElementType.NON_MATLAB);
+    FieldCell instance = new FieldCell(false,
+        ParsedElementType.NON_MATLAB_NUMBER);
     instance.setEditable(false);
     return instance;
   }
 
   static FieldCell getIneditableInstance(String value) {
-    FieldCell instance = new FieldCell(false, ParsedElementType.NON_MATLAB);
+    FieldCell instance = new FieldCell(false,
+        ParsedElementType.NON_MATLAB_NUMBER);
     instance.setEditable(false);
     instance.setValue(value);
     return instance;
   }
 
   static FieldCell getExpandableInstance() {
-    FieldCell instance = new FieldCell(false, ParsedElementType.NON_MATLAB);
+    FieldCell instance = new FieldCell(false,
+        ParsedElementType.NON_MATLAB_NUMBER);
     instance.setEditable(false);
     instance.fixedValues = true;
     return instance;
