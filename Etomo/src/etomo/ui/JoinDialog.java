@@ -58,6 +58,10 @@ import etomo.util.DatasetFiles;
  * @version $Revision$
  *
  * <p> $Log$
+ * <p> Revision 1.58  2008/05/30 21:30:55  sueh
+ * <p> bug# 1102 Changed the tabbed pane to TabbedPane so that it can self-
+ * <p> name.
+ * <p>
  * <p> Revision 1.57  2008/05/28 02:50:10  sueh
  * <p> bug# 1111 Add a dialogType parameter to the ProcessSeries
  * <p> constructor.  DialogType must be passed to any function that constructs
@@ -1775,10 +1779,8 @@ public final class JoinDialog implements ContextMenu, Run3dmodButtonContainer {
       }
     }
     else if (command.equals(b3bOpenRejoinWithModel.getActionCommand())) {
-      manager.setDebug(true);
       manager.imodOpen(ImodManager.JOIN_KEY, b3bOpenRejoinWithModel.getInt(),
           ltfTransformedModel.getText(), run3dmodMenuOptions);
-      manager.setDebug(false);
     }
     else {
       throw new IllegalStateException("Unknown command " + command);
