@@ -19,6 +19,11 @@ import etomo.util.PrimativeTokenizer;
  * @version $Revision$
  * 
  * <p> $Log$
+ * <p> Revision 1.4  2008/04/15 21:23:08  sueh
+ * <p> bug# 1105 Simplified setting the default.  Added debug and default to
+ * <p> constructor.  Move setDebug() to child classes.  Moved generic descriptor
+ * <p> code to ParsedDescriptor.
+ * <p>
  * <p> Revision 1.3  2008/04/08 23:57:52  sueh
  * <p> bug# 1105 Changed the array used in getParsedNumberExpandedArray
  * <p> to a ParsedElementList because it always holds ParsedNumbers.
@@ -43,6 +48,7 @@ abstract class ParsedDescriptor extends ParsedElement {
   private EtomoNumber defaultValue = null;
 
   abstract Character getDividerSymbol();
+
   abstract boolean isDebug();
 
   ParsedDescriptor(ParsedElementType type, EtomoNumber.Type etomoNumberType,
@@ -52,22 +58,25 @@ abstract class ParsedDescriptor extends ParsedElement {
     this.defaultValue = defaultValue;
     descriptor = new ParsedElementList(type, etomoNumberType, debug,
         defaultValue);
+    setDebug(debug);
   }
 
   static Character getDividerSymbol(ParsedElementType type) {
-    if (type.isMatlab()) {
-      return ParsedArrayDescriptor.DIVIDER_SYMBOL;
+    if (type.isIterator()) {
+      return ParsedIteratorDescriptor.DIVIDER_SYMBOL;
     }
-    return ParsedIteratorDescriptor.DIVIDER_SYMBOL;
+    return ParsedArrayDescriptor.DIVIDER_SYMBOL;
   }
 
   static ParsedDescriptor getInstance(ParsedElementType type,
       EtomoNumber.Type etomoNumberType, boolean debug, EtomoNumber defaultValue) {
-    if (type.isMatlab()) {
-      return ParsedArrayDescriptor.getInstance(etomoNumberType, debug,
-          defaultValue);
+    if (debug) {
+      System.out.println("ParsedDescriptor.getInstance");
     }
-    return ParsedIteratorDescriptor.getInstance(debug, defaultValue);
+    if (type.isIterator()) {
+      return ParsedIteratorDescriptor.getInstance(debug, defaultValue);
+    }
+    return new ParsedArrayDescriptor(type, etomoNumberType, debug, defaultValue);
   }
 
   public final String toString() {
@@ -108,6 +117,9 @@ abstract class ParsedDescriptor extends ParsedElement {
    * descriptor
    */
   Token parse(Token token, PrimativeTokenizer tokenizer) {
+    if (isDebug()) {
+      System.out.println("ParsedDescriptor.parse");
+    }
     clear();
     if (token == null) {
       return null;
@@ -129,6 +141,9 @@ abstract class ParsedDescriptor extends ParsedElement {
               .charValue())) {
         //parse an element
         token = parseElement(token, tokenizer);
+        if (isDebug()) {
+          System.out.println("ParsedDescriptor.parse:descriptor=" + descriptor);
+        }
         //Find the divider.
         //Whitespace may be used as a divider or the divider may be preceded by
         //whitespace.
@@ -190,6 +205,9 @@ abstract class ParsedDescriptor extends ParsedElement {
     element.setDebug(isDebug());
     element.setDefault(defaultValue);
     token = element.parse(token, tokenizer);
+    if (isDebug()) {
+      System.out.println("ParsedDescriptor.parse:element=" + element);
+    }
     descriptor.add(element);
     return token;
   }

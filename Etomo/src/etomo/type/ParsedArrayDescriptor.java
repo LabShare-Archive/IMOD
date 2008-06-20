@@ -52,6 +52,11 @@ import etomo.util.PrimativeTokenizer;
  * @version $Revision$
  * 
  * <p> $Log$
+ * <p> Revision 1.16  2008/04/15 21:22:15  sueh
+ * <p> bug# 1105 Simplified setting the default.  Added debug and default to
+ * <p> constructor.  Move setDebug() to child classes.  Moved generic descriptor
+ * <p> code to ParsedDescriptor.
+ * <p>
  * <p> Revision 1.15  2008/04/08 23:57:17  sueh
  * <p> bug# 1105 Changed the array used in getParsedNumberExpandedArray
  * <p> to a ParsedElementList because it always holds ParsedNumbers.  Fixed a
@@ -123,25 +128,20 @@ public final class ParsedArrayDescriptor extends ParsedDescriptor {
   private static final int END_INDEX = 2;
   private static final int NO_INCREMENT_SIZE = 2;
   private static final int MAX_SIZE = 3;
-  
+
   private boolean debug = false;
 
-  private ParsedArrayDescriptor(final EtomoNumber.Type etomoNumberType,
-      boolean debug, EtomoNumber defaultValue) {
-    super(ParsedElementType.MATLAB_ARRAY, etomoNumberType, debug, defaultValue);
+  ParsedArrayDescriptor(final ParsedElementType type,
+      final EtomoNumber.Type etomoNumberType, boolean debug,
+      EtomoNumber defaultValue) {
+    super(type, etomoNumberType, debug, defaultValue);
     descriptor.setMinSize(MAX_SIZE);
     setDebug(debug);
   }
 
-  public static ParsedArrayDescriptor getInstance(
+  public static ParsedArrayDescriptor getInstance(final ParsedElementType type,
       final EtomoNumber.Type etomoNumberType) {
-    return new ParsedArrayDescriptor(etomoNumberType, false, null);
-  }
-
-  public static ParsedArrayDescriptor getInstance(
-      final EtomoNumber.Type etomoNumberType, boolean debug,
-      EtomoNumber defaultValue) {
-    return new ParsedArrayDescriptor(etomoNumberType, debug, defaultValue);
+    return new ParsedArrayDescriptor(type, etomoNumberType, false, null);
   }
 
   public void setRawStringEnd(final String input) {
@@ -163,7 +163,7 @@ public final class ParsedArrayDescriptor extends ParsedDescriptor {
   public String getRawStringIncrement() {
     return getRawString(INCREMENT_INDEX);
   }
-  
+
   public void setDebug(boolean input) {
     debug = input;
     descriptor.setDebug(input);
@@ -193,7 +193,7 @@ public final class ParsedArrayDescriptor extends ParsedDescriptor {
     }
     super.setRawString(index, number);
   }
-  
+
   boolean isDebug() {
     return debug;
   }
