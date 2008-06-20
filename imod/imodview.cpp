@@ -2326,10 +2326,11 @@ int ivwReadAngleFile(ImodView *vi, const char *fname)
   return 0;
 }
 
+// Return number and pointer to tilt angles; start angles at zmin
 float *ivwGetTiltAngles(ImodView *vi, int &numAngles)
 {
-  numAngles = vi->numTiltAngles;
-  return (numAngles ? vi->tiltAngles : NULL);
+  numAngles = B3DMAX(0, vi->numTiltAngles - vi->li->zmin);
+  return (numAngles ? vi->tiltAngles + vi->li->zmin: NULL);
 }
 
 /* plugin utility functions.*/
@@ -2750,6 +2751,9 @@ void ivwBinByN(unsigned char *array, int nxin, int nyin, int nbin,
 /*
 
 $Log$
+Revision 4.67  2008/05/27 05:44:22  mast
+Added tilt angle reading and access functions
+
 Revision 4.66  2008/04/29 22:30:37  mast
 Used an array for keeping track of extra objects instead of TEMPUSE flag
 
