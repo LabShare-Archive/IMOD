@@ -2041,24 +2041,13 @@ public final class ApplicationManager extends BaseManager {
       imodManager.setOpenLog(ImodManager.COARSE_ALIGNED_KEY, axisID,
           beadfixerMode == ImodProcess.RESIDUAL_MODE, DatasetFiles.getLogName(
               this, axisID, ProcessName.ALIGN));
-      File tiltFile = DatasetFiles.getTiltFile(this, axisID);
-      if (beadfixerMode.equals(ImodProcess.RESIDUAL_MODE) && tiltFile.exists()) {
-        //Residual mode is used in fine alignment and tiltalign must have been run for
-        //the .tlt file to exist.
+      File tiltFile = DatasetFiles.getRawTiltFile(this, axisID);
+      if (tiltFile.exists()) {
         imodManager.setTiltFile(ImodManager.COARSE_ALIGNED_KEY, axisID,
             tiltFile.getName());
       }
       else {
-        //Either this is not fine alignment or the .tlt file hasn't been created
-        //yet.
-        tiltFile = DatasetFiles.getRawTiltFile(this, axisID);
-        if (tiltFile.exists()) {
-          imodManager.setTiltFile(ImodManager.COARSE_ALIGNED_KEY, axisID,
-              tiltFile.getName());
-        }
-        else {
-          imodManager.resetTiltFile(ImodManager.COARSE_ALIGNED_KEY, axisID);
-        }
+        imodManager.resetTiltFile(ImodManager.COARSE_ALIGNED_KEY, axisID);
       }
       imodManager.open(ImodManager.COARSE_ALIGNED_KEY, axisID, fiducialModel,
           true, menuOptions);
@@ -2559,20 +2548,13 @@ public final class ApplicationManager extends BaseManager {
       imodManager.setBeadfixerMode(ImodManager.COARSE_ALIGNED_KEY, axisID,
           ImodProcess.RESIDUAL_MODE);
       imodManager.setOpenLogOff(ImodManager.COARSE_ALIGNED_KEY, axisID);
-      File tiltFile = DatasetFiles.getTiltFile(this, axisID);
+      File tiltFile = DatasetFiles.getRawTiltFile(this, axisID);
       if (tiltFile.exists()) {
         imodManager.setTiltFile(ImodManager.COARSE_ALIGNED_KEY, axisID,
             tiltFile.getName());
       }
       else {
-        tiltFile = DatasetFiles.getRawTiltFile(this, axisID);
-        if (tiltFile.exists()) {
-          imodManager.setTiltFile(ImodManager.COARSE_ALIGNED_KEY, axisID,
-              tiltFile.getName());
-        }
-        else {
-          imodManager.resetTiltFile(ImodManager.COARSE_ALIGNED_KEY, axisID);
-        }
+        imodManager.resetTiltFile(ImodManager.COARSE_ALIGNED_KEY, axisID);
       }
       imodManager.open(ImodManager.COARSE_ALIGNED_KEY, axisID, fiducialModel,
           menuOptions);
@@ -2626,6 +2608,14 @@ public final class ApplicationManager extends BaseManager {
    */
   public void imodFineAlign(AxisID axisID, Run3dmodMenuOptions menuOptions) {
     try {
+      File tiltFile = DatasetFiles.getTiltFile(this, axisID);
+      if (tiltFile.exists()) {
+        imodManager.setTiltFile(ImodManager.FINE_ALIGNED_KEY, axisID,
+            tiltFile.getName());
+      }
+      else {
+        imodManager.resetTiltFile(ImodManager.FINE_ALIGNED_KEY, axisID);
+      }
       imodManager.open(ImodManager.FINE_ALIGNED_KEY, axisID, menuOptions);
     }
     catch (AxisTypeException except) {
@@ -2651,6 +2641,14 @@ public final class ApplicationManager extends BaseManager {
    */
   public void imodMTFFilter(AxisID axisID, Run3dmodMenuOptions menuOptions) {
     try {
+      File tiltFile = DatasetFiles.getTiltFile(this, axisID);
+      if (tiltFile.exists()) {
+        imodManager.setTiltFile(ImodManager.MTF_FILTER_KEY, axisID,
+            tiltFile.getName());
+      }
+      else {
+        imodManager.resetTiltFile(ImodManager.MTF_FILTER_KEY, axisID);
+      }
       imodManager.open(ImodManager.MTF_FILTER_KEY, axisID, menuOptions);
     }
     catch (AxisTypeException except) {
@@ -5639,6 +5637,9 @@ public final class ApplicationManager extends BaseManager {
 }
 /**
  * <p> $Log$
+ * <p> Revision 3.303  2008/06/19 23:20:01  sueh
+ * <p> bug# 1112 Added tilt angle for the 3dmods that display tilt series
+ * <p>
  * <p> Revision 3.302  2008/05/28 02:33:04  sueh
  * <p> bug# 1111 Add a dialogType parameter to the ProcessSeries
  * <p> constructor.  Pass it to manager.startNextProcess so the UIExpert can be
