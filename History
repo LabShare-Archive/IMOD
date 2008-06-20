@@ -1,5 +1,7 @@
 IMOD History
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+6/20/08: In Etomo added tilt angles to 3dmod calls which display tilt series.
+
 6/20/08: Fixed a bug in Etomo - NAD where the test K value list would only
 accept whole numbers.
 
