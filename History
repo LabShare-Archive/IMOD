@@ -1,5 +1,8 @@
 IMOD History
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+6/20/08: Fixed a bug in Etomo - NAD where the test K value list would only
+accept whole numbers.
+
 6/19/08: Added filterplot for plotting IMOD filter functions.
 
 6/19/08: Added imodfindbeads for detecting gold particles in images.
