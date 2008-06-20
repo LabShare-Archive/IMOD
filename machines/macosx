@@ -298,7 +298,7 @@ EOF
 # Make run scripts for the fortran Qt programs
 # They have to be named run... because the programs install in bin first
 #
-set fortqtprogs = (mtk nda sda genhstplt mtoverlap mtpairing avgstatplot)
+set fortqtprogs = (mtk nda sda genhstplt mtoverlap mtpairing avgstatplot filterplot)
 set gen_scripts = ()
 foreach i ($fortqtprogs)
     set gen_scripts = ($gen_scripts run$i)
