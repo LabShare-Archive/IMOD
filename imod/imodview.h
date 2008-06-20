@@ -132,7 +132,9 @@ int DLL_EX_IM ivwReadAngleFile(ImodView *vi, const char *fname);
 
 /*!
  * Returns a pointer to angles read from a file, or NULL if there are none,
- * and returns the number of angles in [numAngles].
+ * and returns the number of angles in [numAngles].  If a subset in Z was
+ * read in, this function assumes the tilt angle list was for the complete 
+ * stack and returns a pointer that starts at the starting Z.
  */ 
   float DLL_EX_IM *ivwGetTiltAngles(ImodView *vi, int &numAngles);
 
@@ -317,6 +319,9 @@ int DLL_EX_IM prefGetGenericSettings(char *key, double *values, int maxVals);
 /* 
 
 $Log$
+Revision 1.17  2008/05/27 05:44:11  mast
+Added tilt angle reading and access functions
+
 Revision 1.16  2008/04/03 16:14:58  mast
 Documentation change for clearing extra object
 
