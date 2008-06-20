@@ -5,7 +5,8 @@ LDFLG    = $(LDFFLAGS)
 
 # DNM 3/11/01: renamed MODLIBS and MODIMLIBS to GRAPHLIBS
 
-PROGS = genhstplt$(E) avgstatplot$(E) mtpairing$(E) mtoverlap$(E)
+PROGS = genhstplt$(E) avgstatplot$(E) mtpairing$(E) mtoverlap$(E) \
+filterplot$(E)
 
 LIBS = $(GRAPHLIBS) $(FORTCLIBS)
 
@@ -22,6 +23,9 @@ mtpairing$(E): mtpairing.$(O)
 
 mtoverlap$(E): mtoverlap.$(O)
 	$(FC) -o mtoverlap mtoverlap.$(O) $(LDFLG) $(LWMOD)  $(LIMOD) $(LIBS)
+
+filterplot$(E): filterplot.$(O)
+	$(FC) -o filterplot filterplot.$(O) $(LDFLG) $(LWMOD)  $(LIMOD) $(LIBS)
 
 install: $(PROGS)
 	$(STRIP) $(PROGS)

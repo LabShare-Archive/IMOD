@@ -16,11 +16,12 @@ DDEESSCCRRIIPPTTIIOONN
 
   The filter is specified by four input parameters: Sigma1, Sigma2, Radius1,
   and Radius2.  Several other IMOD programs take these same 4 parameters,
-  which produce the same effect as described here.  The filter is the
-  product of two gaussian functions, the first one typically controlled by
-  Sigma1 and the second one by Sigma2, Radius1, and Radius2.  If all values
-  are positive or zero, then the first filter is in the form of a gaussian
-  highpass filter given by:	
+  which produce the same effect as described here.  The filter functions
+  produced by these parameters can be visualized with the program
+  Filterplot(1).  The filter is the product of two gaussian functions, the
+  first one typically controlled by Sigma1 and the second one by Sigma2,
+  Radius1, and Radius2.  If all values are positive or zero, then the first
+  filter is in the form of a gaussian highpass filter given by:	
        (1. - exp(-r**2/(2*Sigma1**2)))
   The second filter is a gaussian-edged band-pass filter. This filter is
   flat between Radius1 --> Radius2 and decays symmetrically as a gaussian

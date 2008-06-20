@@ -1,5 +1,7 @@
 IMOD History
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+6/19/08: Added filterplot for plotting IMOD filter functions.
+
 6/19/08: Added imodfindbeads for detecting gold particles in images.
 
 6/19/08: Fixed imodinfo to give extra verbose output with -vv as advertised.

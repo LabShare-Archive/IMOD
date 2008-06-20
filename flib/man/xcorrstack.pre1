@@ -26,8 +26,13 @@ DDEESSCCRRIIPPTTIIOONN
   shifted) or relative to the middle (NX/2,NY/2) pixel (if the image is
   shifted.)
 
-  Images will be padded if necessary for takingthe FFT, so their size may be
+  Images will be padded if necessary for taking the FFT, so their size may be
   odd or contain large prime factors.
+
+  Filtering is specified with the standard four parameters used in other IMOD
+  programs.  The filter functions produced by these options can be visualized
+  with the program Filterplot(1); see that man page a full description of
+  their effects.
 
   Xcorrstack uses the PIP package for input exclusively (see the manual page
   for pip(1)).  The following options can be specified either as command line

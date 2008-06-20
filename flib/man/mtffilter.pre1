@@ -17,7 +17,9 @@ DDEESSCCRRIIPPTTIIOONN
   filters may be applied.  In fact, the program provides all of the options
   that Enhance(1) does for specifying a general Fourier filter.  It can filter
   either real-space images in 2D planes, real-space images in 3D if they are
-  not too large, or 3D Fourier transforms in 3D.
+  not too large, or 3D Fourier transforms in 3D.  The filter functions
+  produced by these options can be visualized with the program Filterplot(1);
+  see that man page a full description of their effects.
 
   Simply multiplying by the inverse of an MTF would amplify noise too much,
   so the inverse MTF filter is shaped by three parameters.  The first

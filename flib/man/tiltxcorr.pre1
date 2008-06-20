@@ -38,7 +38,9 @@ DDEESSCCRRIIPPTTIIOONN
   noisy, some low pass filtering with Sigma2 and Radius2 is
   appropriate (e.g. 0.05 for Sigma2, 0.25 for Radius2).  If the images
   are binned, these values specify frequencies in the binned image, so
-  a higher cutoff (less filtering) might be appropriate.
+  a higher cutoff (less filtering) might be appropriate.  The filter
+  functions produced by these options can be visualized with the program
+  Filterplot(1); see that man page a full description of their effects.
   
   The exclusion of a central peak may be helpful when there is fixed noise
   in the images due to inadequate gain normalization of CCD camera
