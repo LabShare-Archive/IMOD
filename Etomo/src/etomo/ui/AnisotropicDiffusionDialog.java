@@ -39,6 +39,11 @@ import etomo.util.Utilities;
  * @version $Revision$
  * 
  * <p> $Log$
+ * <p> Revision 1.11  2008/05/28 02:49:18  sueh
+ * <p> bug# 1111 Add a dialogType parameter to the ProcessSeries
+ * <p> constructor.  DialogType must be passed to any function that constructs
+ * <p> a ProcessSeries instance.
+ * <p>
  * <p> Revision 1.10  2008/05/13 22:59:23  sueh
  * <p> bug# 847 Adding a right click menu for deferred 3dmods to some
  * <p> process buttons.
@@ -133,6 +138,7 @@ public final class AnisotropicDiffusionDialog implements ContextMenu,
   private final ParallelManager manager;
 
   private String subdirName = null;
+  private boolean debug = false;
 
   private void setToolTipText() {
     cbLoadWithFlipping
@@ -200,6 +206,10 @@ public final class AnisotropicDiffusionDialog implements ContextMenu,
     new ContextPopup(rootPanel.getComponent(), mouseEvent,
         "ANISOTROPIC DIFFUSION", ContextPopup.TOMO_GUIDE, manPagelabel,
         manPage, logFileLabel, logFile, manager, AxisID.ONLY, subdirName);
+  }
+
+  public void setDebug(boolean input) {
+    debug = input;
   }
 
   private AnisotropicDiffusionDialog(final ParallelManager manager) {
@@ -427,6 +437,11 @@ public final class AnisotropicDiffusionDialog implements ContextMenu,
 
   public boolean getParametersForVaryingK(AnisotropicDiffusionParam param) {
     String errorMessage = null;
+    if (debug) {
+      System.out
+          .println("getParametersForVaryingK:ltfTestKValueList.getText()="
+              + ltfTestKValueList.getText());
+    }
     errorMessage = param.setKValueList(ltfTestKValueList.getText());
     if (errorMessage != null) {
       UIHarness.INSTANCE.openMessageDialog(K_VALUE_LIST_LABEL + errorMessage,
