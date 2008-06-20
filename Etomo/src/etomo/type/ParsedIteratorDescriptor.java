@@ -14,6 +14,11 @@ package etomo.type;
  * @version $Revision$`
  * 
  * <p> $Log$
+ * <p> Revision 1.4  2008/04/15 21:28:05  sueh
+ * <p> bug# 1105 Simplified setting the default.  Added debug and default to
+ * <p> constructor.  Move setDebug() to child classes.  Moved generic descriptor
+ * <p> code to ParsedDescriptor.
+ * <p>
  * <p> Revision 1.3  2008/04/08 23:59:20  sueh
  * <p> bug# 1105 Changed the array used in getParsedNumberExpandedArray
  * <p> to a ParsedElementList because it always holds ParsedNumbers.
@@ -31,21 +36,22 @@ final class ParsedIteratorDescriptor extends ParsedDescriptor {
   public static final String rcsid = "$Id$";
 
   static final Character DIVIDER_SYMBOL = new Character('-');
-  
+
   private boolean debug = false;
 
   private ParsedIteratorDescriptor(EtomoNumber.Type etomoNumberType,
       boolean debug, EtomoNumber defaultValue) {
-    super(ParsedElementType.NON_MATLAB_ARRAY, etomoNumberType, debug,
+    super(ParsedElementType.NON_MATLAB_ITERATOR_ARRAY, etomoNumberType, debug,
         defaultValue);
   }
 
   static ParsedIteratorDescriptor getInstance(boolean debug,
       EtomoNumber defaultValue) {
+    //Iterator descriptors must only contain whole numbers.
     return new ParsedIteratorDescriptor(EtomoNumber.Type.INTEGER, debug,
         defaultValue);
   }
-  
+
   public void setDebug(boolean input) {
     debug = input;
     descriptor.setDebug(input);
@@ -53,7 +59,7 @@ final class ParsedIteratorDescriptor extends ParsedDescriptor {
       getElement(i).setDebug(input);
     }
   }
-  
+
   boolean isDebug() {
     return debug;
   }
