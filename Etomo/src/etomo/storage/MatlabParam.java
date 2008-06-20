@@ -24,6 +24,7 @@ import etomo.type.EtomoNumber;
 import etomo.type.ParsedArray;
 import etomo.type.ParsedArrayDescriptor;
 import etomo.type.ParsedElement;
+import etomo.type.ParsedElementType;
 import etomo.type.ParsedList;
 import etomo.type.ParsedNumber;
 import etomo.type.ParsedQuotedString;
@@ -44,6 +45,9 @@ import etomo.util.DatasetFiles;
  * @version $Revision$
  * 
  * <p> $Log$
+ * <p> Revision 1.18  2008/05/30 21:20:30  sueh
+ * <p> bug# 1102 Formatted.
+ * <p>
  * <p> Revision 1.17  2008/04/15 21:00:23  sueh
  * <p> bug# 1105 Simplified setting the default.
  * <p>
@@ -1781,11 +1785,11 @@ public final class MatlabParam {
 
     //search spaces
     private final ParsedArrayDescriptor dPhi = ParsedArrayDescriptor
-        .getInstance(EtomoNumber.Type.FLOAT);
+        .getInstance(ParsedElementType.MATLAB_ARRAY, EtomoNumber.Type.FLOAT);
     private final ParsedArrayDescriptor dTheta = ParsedArrayDescriptor
-        .getInstance(EtomoNumber.Type.FLOAT);
+        .getInstance(ParsedElementType.MATLAB_ARRAY, EtomoNumber.Type.FLOAT);
     private final ParsedArrayDescriptor dPsi = ParsedArrayDescriptor
-        .getInstance(EtomoNumber.Type.FLOAT);
+        .getInstance(ParsedElementType.MATLAB_ARRAY, EtomoNumber.Type.FLOAT);
 
     private Iteration() {
     }
