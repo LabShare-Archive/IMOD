@@ -11,6 +11,7 @@ import etomo.storage.TestNADFileFilter;
 import etomo.type.AxisID;
 import etomo.type.ConstEtomoNumber;
 import etomo.type.ConstIntKeyList;
+import etomo.type.DebugLevel;
 import etomo.type.EtomoNumber;
 import etomo.type.ParsedArray;
 import etomo.type.ParsedElementList;
@@ -32,6 +33,10 @@ import etomo.util.DatasetFiles;
  * @version $Revision$
  * 
  * <p> $Log$
+ * <p> Revision 1.6  2008/04/08 23:52:48  sueh
+ * <p> bug# 1105 Changed the array used in ParsedElement to a
+ * <p> ParsedElementList because it always holds ParsedNumbers.
+ * <p>
  * <p> Revision 1.5  2008/04/02 01:49:59  sueh
  * <p> bug# 1097 Made non-matlab syntax the default in the ParsedElements
  * <p> classes.  This is because matlab uses "NaN", which is unhealthy for
@@ -66,22 +71,30 @@ public final class AnisotropicDiffusionParam implements CommandDetails {
    * IterationList may contain array descriptors in the form start-end.
    * Example: "2,4 - 9,10".
    */
-  private final ParsedArray iterationList = ParsedArray.getInstance();
+  private final ParsedArray iterationList = ParsedArray.getIteratorInstance();
   private final List command = new ArrayList();
 
   private final BaseManager manager;
 
   private String subdirName = "";
   private String inputFileName = "";
-  private boolean debug = true;
+  private DebugLevel debugLevel = DebugLevel.LOW;
   private CommandMode commandMode = null;
 
   public AnisotropicDiffusionParam(final BaseManager manager) {
     this.manager = manager;
   }
 
+  /**
+   * @param input
+   * @return error message if invalid
+   */
   public String setKValueList(final String input) {
     kValueList.setRawString(input);
+    if (debugLevel == DebugLevel.HIGH) {
+      System.out.println("AnisotropicDiffusionParam.setKValueList:kValueList="
+          + kValueList);
+    }
     return kValueList.validate();
   }
 
@@ -96,6 +109,10 @@ public final class AnisotropicDiffusionParam implements CommandDetails {
   public String setIterationList(final String input) {
     iterationList.setRawString(input);
     return iterationList.validate();
+  }
+
+  public void setDebugLevel(DebugLevel input) {
+    debugLevel = input;
   }
 
   public void setSubdirName(final String input) {
@@ -172,7 +189,7 @@ public final class AnisotropicDiffusionParam implements CommandDetails {
     command.add("-P");
     command.add(new File(subdir, inputFileName).getPath());
     command.add(new File(subdir, getTestFileRoot(kValue)).getPath());
-    if (debug) {
+    if (debugLevel.ge(DebugLevel.LOW)) {
       for (int i = 0; i < command.size(); i++) {
         System.err.print(command.get(i) + " ");
       }
@@ -206,7 +223,8 @@ public final class AnisotropicDiffusionParam implements CommandDetails {
     EtomoNumber iteration = new EtomoNumber();
     List list = new ArrayList();
     list.add(testVolumeName);
-    ParsedElementList expandedArray = iterationList.getParsedNumberExpandedArray(null);
+    ParsedElementList expandedArray = iterationList
+        .getParsedNumberExpandedArray(null);
     for (int i = 0; i < expandedArray.size(); i++) {
       iteration.set(((ParsedNumber) expandedArray.get(i)).getRawString());
       list.add(getTestFileName(kValue, iteration));
