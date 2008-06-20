@@ -71,6 +71,10 @@ import etomo.util.PrimativeTokenizer;
  * @version $Revision$
  * 
  * <p> $Log$
+ * <p> Revision 1.12  2008/04/15 21:28:33  sueh
+ * <p> bug# 1105 Simplified setting the default.  Added debug and default to
+ * <p> constructor.  Added setMinArraySize.
+ * <p>
  * <p> Revision 1.11  2008/04/09 00:00:53  sueh
  * <p> bug# 1105 Changed the array used in getParsedNumberExpandedArray
  * <p> to a ParsedElementList because it always holds ParsedNumbers.  Fixed
@@ -142,11 +146,11 @@ public final class ParsedList {
   }
 
   public static ParsedList getMatlabInstance() {
-    return new ParsedList(ParsedElementType.MATLAB, null);
+    return new ParsedList(ParsedElementType.MATLAB_NUMBER, null);
   }
 
   public static ParsedList getMatlabInstance(EtomoNumber.Type etomoNumberType) {
-    return new ParsedList(ParsedElementType.MATLAB, etomoNumberType);
+    return new ParsedList(ParsedElementType.MATLAB_NUMBER, etomoNumberType);
   }
 
   public static ParsedList getStringInstance() {
