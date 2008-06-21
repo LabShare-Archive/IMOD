@@ -4,7 +4,7 @@ include ../configure
 
 O        = $(OBJEXT)
 BDOBJS = beadtrack.$(O) proc_model.$(O) proc_vars.$(O) solve_xyzd.$(O)\
- funct.$(O) map_vars.$(O) tracksubs.$(O) tiltali.$(O)
+ funct.$(O) map_vars.$(O) tracksubs.$(O) tiltali.$(O) find_surfaces.$(O)
 
 PROG = beadtrack$(BINEXT)
 
@@ -33,6 +33,9 @@ funct.$(O):       ../tiltalign/funct.f
 
 map_vars.$(O):    ../tiltalign/map_vars.f
 	$(FC) $(FFLAGS) -c -o map_vars.$(O) ../tiltalign/map_vars.f
+
+find_surfaces.$(O):       ../tiltalign/find_surfaces.f
+	$(FC) $(FFLAGS) -c -o find_surfaces.$(O) ../tiltalign/find_surfaces.f
 
 
 install: $(PROG)
