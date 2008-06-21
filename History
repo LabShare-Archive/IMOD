@@ -1,5 +1,8 @@
 IMOD History
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+6/21/08: Added option to Beadtrack to get information about which surface
+each bead is on.
+
 6/20/08: IMOD_3-12-12
 6/20/08: In Etomo added tilt angles to 3dmod calls which display tilt series.
 

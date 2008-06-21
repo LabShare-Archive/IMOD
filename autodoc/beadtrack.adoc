@@ -3,7 +3,6 @@ Pip = 1
 
 [Field = InputSeedModel]
 short = 
-long = InputSeedModel
 type = FN
 usage =   Name of model file with starting bead coordinates
 tooltip = Input model file of starting points to track.
@@ -11,7 +10,6 @@ manpage =
 
 [Field = OutputModel]
 short = 
-long = OutputModel
 type = FN
 usage = Name of output model file
 tooltip = Output file for tracked model.
@@ -19,7 +17,6 @@ manpage =
 
 [Field = ImageFile]
 short = 
-long = ImageFile
 type = FN
 usage = Image file name
 tooltip = Input file with images to track.
@@ -27,7 +24,6 @@ manpage =
 
 [Field = PieceListFile]
 short = 
-long = PieceListFile
 type = FN
 usage = Name of piece list file if image is montaged or out of sequence
 tooltip =
@@ -35,9 +31,18 @@ manpage = Name of piece list file if image is montaged or out of sequence.
 A montaged file should not be be used unless the overlaps between pieces
 are nearly exact.
 
+[Field = SurfaceOutputFile]
+short = 
+type = FN
+usage = File name for information about which surface each bead is on
+tooltip = 
+manpage = File name for output of surface information.  The program will try
+to sort the beads onto two surfaces separately for each local area.  The file
+will have four columns: object and contour number, and number of times the
+bead came out on the bottom and top surfaces.
+
 [Field = SkipViews]
 short = 
-long = SkipViews
 type = LI
 usage = List of views to skip over (numbered from 1)
 tooltip = List of views to skip over (comma-separated ranges without spaces).
@@ -47,7 +52,6 @@ Ranges may be entered, e.g. 1,4-6.  Views are numbered from 1.
 
 [Field = RotationAngle]
 short = 
-long = RotationAngle
 type = F
 usage = Angle of rotation of the tilt axis in the images
 tooltip =
@@ -56,7 +60,6 @@ angle from the vertical to the tilt axis (counterclockwise positive).
 
 [Field = SeparateGroup]
 short = 
-long = SeparateGroup
 type = LIM
 usage = List of views that should be grouped separately in automapping
 tooltip = Lists of views to group separately from other views.  Multiple lists
@@ -67,7 +70,6 @@ Multiple entries can be used to specify more than one set of separate views.
 
 [Field = FirstTiltAngle]
 short = first
-long = FirstTiltAngle
 type = F
 usage = Tilt angle of first view in degrees
 tooltip = 
@@ -76,7 +78,6 @@ TiltIncrement.
 
 [Field = TiltIncrement]
 short = increment
-long = TiltIncrement
 type = F
 usage = Increment between tilt angles
 tooltip = 
@@ -85,7 +86,6 @@ with FirstTiltAngle.
 
 [Field = TiltFile]
 short = tiltfile
-long = TiltFile
 type = FN
 usage = File with tilt angles
 tooltip = 
@@ -93,7 +93,6 @@ manpage = Use this option if tilt angles are in a file, one per line.
 
 [Field = TiltAngles]
 short = angles
-long = TiltAngles
 type = FAM
 usage = Individual tilt angles for each view
 tooltip = 
@@ -102,7 +101,6 @@ in degrees.
 
 [Field = TiltDefaultGrouping]
 short = 
-long = TiltDefaultGrouping
 type = I
 usage = Average default group size when automapping tilt variables
 tooltip = Basic grouping size for tilt angles (grouping will be less at high 
@@ -111,7 +109,6 @@ manpage = Average default group size when automapping tilt variables
 
 [Field = TiltNondefaultGroup]
 short = 
-long = TiltNondefaultGroup
 type = ITM
 usage = Starting and ending views and group size for nondefault grouping of
 tilt variables.
@@ -123,7 +120,6 @@ whose tilt variables should be grouped differently from the default.
 
 [Field = MagDefaultGrouping]
 short = 
-long = MagDefaultGrouping
 type = I
 usage = Default group size when automapping magnification variables
 tooltip = Grouping size for magnifications.
@@ -131,7 +127,6 @@ manpage = Default group size when automapping magnification variables
 
 [Field = MagNondefaultGroup]
 short = 
-long = MagNondefaultGroup
 type = ITM
 usage = Starting and ending views and group size for nondefault grouping of
 magnification variables.
@@ -143,7 +138,6 @@ whose magnification variables should be grouped differently from the default.
 
 [Field = RotDefaultGrouping]
 short = 
-long = RotDefaultGrouping
 type = I
 usage = Default group size when automapping rotation variables
 tooltip =
@@ -151,7 +145,6 @@ manpage =
 
 [Field = RotNondefaultGroup]
 short = 
-long = RotNondefaultGroup
 type = ITM
 usage = Starting and ending views and group size for nondefault grouping of
 rotation variables.
@@ -163,7 +156,6 @@ nondefault grouping.
 
 [Field = MinViewsForTiltalign]
 short = 
-long = MinViewsForTiltalign
 type = I
 usage =   Minimum number of views with data required to do a tilt alignment
 tooltip = Minimum number of views with bead positions required to do a tilt
@@ -174,7 +166,6 @@ set this to a number higher than the number of views.  (Default 4)
 
 [Field = CentroidRadius]
 short = 
-long = CentroidRadius
 type = F
 usage = Radius for centroid calculation
 tooltip = Radius for calculation of centroid.
@@ -183,7 +174,6 @@ number and should be somewhat larger than the bead radius.
 
 [Field = LightBeads]
 short = 
-long = LightBeads
 type = B
 usage = Beads are lighter than background rather than darker
 tooltip = Not checked if beads are darker or checked if they are lighter than
@@ -192,7 +182,6 @@ manpage =
 
 [Field = FillGaps]
 short = 
-long = FillGaps
 type = B
 usage = Fill in gaps in the seed model
 tooltip = Fill in gaps in the seed model or leave them empty.
@@ -200,7 +189,6 @@ manpage =
 
 [Field = MaxGapSize]
 short = 
-long = MaxGapSize
 type = I
 usage =   Maximum size of gap to create in the model (default 5)
 tooltip = Maximum size of gap to create in the model before giving up on a
@@ -212,7 +200,6 @@ the gap thus created is no larger than this amount.  (Default 5)
 
 [Field = MinTiltRangeToFindAxis]
 short = 
-long = MinTiltRangeToFindAxis
 type = F
 usage = Minimum range of angles with data required for finding tilt axis
 tooltip = Minimum range of tilt angles for which data must be available before
@@ -222,7 +209,6 @@ trying to find the angle of the tilt axis (default 10).
 
 [Field = MinTiltRangeToFindAngles]
 short = 
-long = MinTiltRangeToFindAngles
 type = F
 usage = Minimum range of angles with data required for finding tilt angles
 tooltip = Minimum range of angles for which data must be available before
@@ -232,7 +218,6 @@ trying to solve for tilt angles (default 20).
 
 [Field = BoxSizeXandY]
 short = 
-long = BoxSizeXandY
 type = IP
 usage =   X and Y dimensions of the box used to search for a bead 
 tooltip = X and Y dimensions of the box used to search for a bead.
@@ -240,7 +225,6 @@ manpage =
 
 [Field = RoundsOfTracking]
 short = 
-long = RoundsOfTracking
 type = I
 usage = Number of rounds of tracking through the views.
 tooltip =
@@ -250,7 +234,6 @@ tilt on even rounds.
 
 [Field = MaxViewsInAlign]
 short = 
-long = MaxViewsInAlign
 type = I
 usage = Maximum number of views to include in the tilt alignment
 tooltip =
@@ -260,7 +243,6 @@ A value at least big enough to include half the views is recommended.
 
 [Field = RestrictViewsOnRound]
 short = 
-long = RestrictViewsOnRound
 type = I
 usage = Restrict the views in the tilt alignment on the given round of tracking
 tooltip =
@@ -270,7 +252,6 @@ round of tracking.
 
 [Field = LocalAreaTracking]
 short = 
-long = LocalAreaTracking
 type = B
 usage = Track subsets of beads in local areas
 tooltip =
@@ -283,7 +264,6 @@ more central area (given by MinOverlapBeads)
 
 [Field = LocalAreaTargetSize]
 short = 
-long = LocalAreaTargetSize
 type = I
 usage = Target size for the local areas
 tooltip =
@@ -292,7 +272,6 @@ typical areas have this size, but some will be bigger to contain enough beads.
 
 [Field = MinBeadsInArea]
 short = 
-long = MinBeadsInArea
 type = I
 usage = Minimum number of beads in a local area (default 8)
 tooltip =
@@ -301,7 +280,6 @@ the target size to contain this minimum (default 8)
 
 [Field = MaxBeadsInArea]
 short = 
-long = MaxBeadsInArea
 type = I
 usage = Maximum number of beads in a local area (default 500)
 tooltip =
@@ -310,7 +288,6 @@ shrunk if possible until no local areas exceed this limit (default 500)
 
 [Field = MinOverlapBeads]
 short = 
-long = MinOverlapBeads
 type = I
 usage = Minimum number of beads to overlap between areas (default 3)
 tooltip =
@@ -319,7 +296,6 @@ least this many beads shared with areas tracked earlier.
 
 [Field = TrackObjectsTogether]
 short = 
-long = TrackObjectsTogether
 type = B
 usage = Track multiple objects together instead of separately
 tooltip =
@@ -329,7 +305,6 @@ this option is entered.
 
 [Field = MaxBeadsToAverage]
 short = 
-long = MaxBeadsToAverage
 type = I
 usage = Maximum number of views over which to average a bead (default 4)
 tooltip = Maximum number of views over which to average a bead.
@@ -340,7 +315,6 @@ maximum number of views averaged.
 
 [Field = PointsToFitMaxAndMin]
 short = 
-long = PointsToFitMaxAndMin
 type = IP
 usage = Maximum and minimum number of positions to fit for extrapolation
 tooltip = Number of positions to use for extrapolating a bead position to the
@@ -353,7 +327,6 @@ views.  (Defaults 7 and 3).
 
 [Field = DensityRescueFractionAndSD]
 short = 
-long = DensityRescueFractionAndSD
 type = FP
 usage = Criterion fraction of mean density and SDs below mean for rescue based
 on densiy.
@@ -366,7 +339,6 @@ based on bead density.
 
 [Field = DistanceRescueCriterion]
 short = 
-long = DistanceRescueCriterion
 type = F
 usage = Criterion distance for doing rescue based on excessive distance
 tooltip = Distance away from expected position at which to attempt a rescue
@@ -376,7 +348,6 @@ attempting a rescue based on excessive distance
 
 [Field = RescueRelaxationDensityAndDistance]
 short = 
-long = RescueRelaxationDensityAndDistance
 type = FP
 usage = Factors to relax density for rescues based on density and distance.
 tooltip = Factors by which to relax the density criterion when trying to rescue
@@ -388,7 +359,6 @@ distance rescue.  A value of 1 does not relax the criterion.
 
 [Field = PostFitRescueResidual]
 short = 
-long = PostFitRescueResidual
 type = F
 usage = Criterion distance for deletion of point after first-pass tilt
 alignment.
@@ -401,7 +371,6 @@ the first pass, and a rescue search performed on the second pass.
 
 [Field = DensityRelaxationPostFit]
 short = 
-long = DensityRelaxationPostFit        
 type = F
 usage = Factor by which to relax the density criterion on the second pass.
 tooltip = Factor by which to relax the density criterion on the second pass.
@@ -410,7 +379,6 @@ manpage =
 
 [Field = MaxRescueDistance]
 short = 
-long = MaxRescueDistance
 type = F
 usage = Max distance to search from expected position on second pass
 tooltip = Maximum distance to search from the expected position.
@@ -419,7 +387,6 @@ pass
 
 [Field = ResidualsToAnalyzeMaxAndMin]
 short = 
-long = ResidualsToAnalyzeMaxAndMin
 type = IP
 usage = Max and min # of changes to use in analyzing changes in mean residual
 tooltip = Maximum and minimum number of changes in mean residual to use in
@@ -430,7 +397,6 @@ bead as more points have been added.  Default values 9 and 5.
 
 [Field = DeletionCriterionMinAndSD]
 short = 
-long = DeletionCriterionMinAndSD
 type = FP
 usage = Min absolute and relative change in mean residual for deletion
 tooltip = Minimum change in residual, and criterion number of SDs from the mean
@@ -440,7 +406,6 @@ mean residual change, to require for deletion of a point on pass 1 or 2.
 
 [Field = ParameterFile]
 short = param
-long = ParameterFile
 type = PF
 usage = Read parameter entries from file
 tooltip = 
@@ -448,7 +413,6 @@ manpage = Read parameter entries as keyword-value pairs from a parameter file.
 
 [Field = usage]
 short = help
-long = usage
 type = B
 usage = Print help output
 tooltip = 
