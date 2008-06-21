@@ -35,12 +35,13 @@ C
       real*4 cursum(maxbox*maxbox),boxes(maxbox*maxbox*maxnbox)
       real*4 boxtmp(maxarr),xxtmp(maxAllReal),yytmp(maxAllReal)
       complex ARRAY(maxarr/2),BRRAY(maxarr/2)
-      equivalence (boxes, seqdist),(boxes(maxAllreal+1), xxtmp)
-      equivalence (boxes(2*maxAllreal+1), yytmp)
+      integer*4 numBotTop(2,maxAllReal)
+      equivalence (boxes, seqdist), (boxes(maxAllreal+1), xxtmp)
+      equivalence (boxes(2*maxAllreal+1), yytmp), (boxes, numBotTop)
       common /bigarr/ boxes
 C       
       integer*4 ixpclist(limpcl),iypclist(limpcl),izpclist(limpcl)
-      CHARACTER*160 FILIN,FILOUT,plfile,modelfile
+      CHARACTER*160 FILIN,FILOUT,plfile,modelfile,surfaceFile
       integer*4 idxin(liminside),idyin(liminside)
       integer*4 idxedge(limedge),idyedge(limedge)
       integer*4 listz(maxview),izexclude(maxview)
@@ -58,7 +59,7 @@ c
       integer*4 nws(maxreal),iffound(maxreal)
       integer*4 ipnearest(maxreal),ipclose(maxview),izclose(maxview)
       integer*4 incore(maxstor,maxreal),ipnearsav(maxreal)
-      integer*4 iobjdel(maxreal),idrop(maxreal)
+      integer*4 iobjdel(maxreal),idrop(maxreal),igrpBotTop(maxreal)
       real*4 wsave(maxprojpt),xr(msiz,maxreal)
       real*4 resmean(limresid),prevres(maxview)
       logical missing(0:maxview)
@@ -67,6 +68,7 @@ c
       integer*4 iobjlists(maxolist),ivlist(maxview),ivSnapList(maxview)
       integer*4 ivseqst(4*maxarea),ivseqnd(4*maxarea),listseq(4*maxarea)
       integer*2 indgap(max_obj_num+1),ivgap(limgaps)
+      integer*1 listsBotTop(maxolist)
       logical*1 inAnArea(max_obj_num)
       real*4 ctf(8193)
       character*1024 listString
@@ -278,9 +280,11 @@ c
      &    .ne. 0) call errorexit('NO OUTPUT MODEL FILE SPECIFIED', 0)
 c       
       filout=' '
+      surfaceFile = ' '
       nexclude = 0
       if (pipinput) then
         ierr = PipGetString('BoxOutputFile', filout)
+        ierr = PipGetString('SurfaceOutputFile', surfaceFile)
         if (PipGetString('SkipViews', listString) .eq. 0) call parselist
      &      (listString, izexclude, nexclude)
         ierr = PipGetFloat('RotationAngle', rotstart)
@@ -631,7 +635,7 @@ c
           area = area + 0.5 * (yresid(j)+yresid(i)) * (xresid(j)-xresid(i))
         enddo
         density = nobjdo / abs(area)
-c        print *,area,density,nobjdo
+        print *,area,density,nobjdo
       endif        
 c       
 c       set up for one area in X and Y, then compute number of areas and
@@ -650,9 +654,11 @@ c
 c           
 c           set target overlap so that 1.5 overlap areas at this density
 c           will give minimum number of overlap beads
+c           6/21/08: but constrain it to be smaller than the target itself
           if (minBeadOverlap .gt. 0) then
-            noverlap = minBeadOverlap / (density * localTarget)
-c             print *,area,density,noverlap
+            noverlap = min(minBeadOverlap / (density * localTarget),
+     &          0.8 * localTarget)
+             print *,area,density,noverlap
           endif
 c           
 c           get number of areas, round up so areas will start below target
@@ -949,6 +955,10 @@ c       Set up formats
         objfmt = '(i4,15i5)'
       endif
 c       
+      do i = 1, indfree
+        listsBotTop(i) = 0
+      enddo
+c       
 c       Start looping on the sequences of views
 c       
       lastlist=-1
@@ -956,6 +966,7 @@ c
       do iseq=1,nseqs
         nadded=1
         nvLocal = 0
+        ifdidalign = 0
         iseqPass = ((iseq + 1) / 2 - 1) / nobjlists + 1
         if (iseqPass .ge. localViewPass)
      &      nvLocal = nvLocalIn
@@ -1654,6 +1665,23 @@ c
 121       format('For ',a,i3,', round',i3,':',i3,
      &        ' contours, points missing =',i5)
         endif
+c         
+c         Do surface fitting on every round if tiltalign run
+        if (surfaceFile .ne. ' ' .and. ifdidalign .ne. 0) then
+          call find_surfaces(xyz,nrealpt,2, 30.,1,xpos,igrpBotTop,0,ypos)
+c           
+c           Find each object in the real object list and move group number
+c           into list
+          do i = 1, nobjdo
+            j = 1
+            ix = 0
+            do while (j .le. nrealpt .and. ix .eq. 0)
+              if (iobjali(j) .eq. iobjseq(i)) ix = igrpBotTop(j)
+              j = j + 1
+            enddo
+            listsBotTop(i+indobjlist(lastseq)-1) = ix
+          enddo
+        endif
       enddo
 c       
 c       output lists of missing points, except for excluded sections
@@ -1674,6 +1702,24 @@ c
         misstot=misstot+nlistz
       enddo
       print *,'Total points missing =',misstot
+c       
+c       Write out surface file
+      if (surfaceFile .ne. ' ') then
+        call dopen(4, surfaceFile, 'new', 'f')
+        do iobj=1,maxObjOrig
+          numBotTop(1,iobj) = 0
+          numBotTop(2,iobj) = 0
+        enddo
+        do i = 1, indfree
+          iobj = iobjLists(i)
+          j = listsBotTop(i)
+          if (j .gt. 0) numBotTop(j,iobj) = numBotTop(j,iobj) + 1
+        enddo
+        do iobj=1,maxObjOrig
+          call objtocont(iobj,obj_color,imodobj,imodcont)
+          write(4, '(i3,3i6)')imodobj,imodcont,(numBotTop(j,iobj),j=1,2)
+        enddo
+      endif
 c       
 c       convert index coordinates back to model coordinates
 c       
@@ -1707,6 +1753,10 @@ c
 c       
 c       
 c       $Log$
+c       Revision 3.26  2008/03/04 21:23:50  mast
+c       Changed to allow huge numbers of points as long as local areas are
+c       used, improved handling of boxes to relieve memory restrictions there
+c
 c       Revision 3.25  2007/11/18 04:57:17  mast
 c       Redeclared concat at 320
 c
