@@ -76,7 +76,7 @@ void XCorrSetCTFnoScl(float sigma1, float sigma2, float radius1, float radius2,
                       float *ctf, int nx,int ny, float *delta, int *nsizeOut) 
 {
   double beta1, beta2, alpha;
-  float asize, s, ssqrd, radius1p, radius1n;
+  float asize, s, ssqrd, radius1p, radius1n, deltmp,delmax;
   int nsize, j;
   
   *delta=0.;
@@ -86,6 +86,7 @@ void XCorrSetCTFnoScl(float sigma1, float sigma2, float radius1, float radius2,
   alpha = 0.0;
   beta1 = 0.0;
   beta2 = 0.0;
+  delmax = 0.;
   nsize = 1024;
   if (2 * nx > nsize)
     nsize = 2 * nx;
@@ -113,6 +114,19 @@ void XCorrSetCTFnoScl(float sigma1, float sigma2, float radius1, float radius2,
     radius1n = -radius1;
     radius1p = 0.;
   }
+  
+  /* For negative sigma1, find the maximum to allow scaling to maximum of 1 */
+  if (sigma1 < -1.e-6) {
+    s=0.;   
+    for (j = 0; j < nsize; j++) {
+      ssqrd=s*s;
+      deltmp=(float)(ssqrd*exp(alpha*ssqrd));
+      if (delmax < deltmp)
+        delmax = deltmp;
+      s = s + *delta;
+    }
+  }
+
   s = 0.0;
   for (j = 0; j < nsize; j++) {
     if (s < radius1p) 
@@ -131,14 +145,14 @@ void XCorrSetCTFnoScl(float sigma1, float sigma2, float radius1, float radius2,
       if (s < radius1n)
         ctf[j] = 0.;
       else
-        ctf[j] = ctf[j]*(1.0f - (float)exp(alpha*(s - radius1n)*(s - radius1n)));
+        ctf[j] = ctf[j]*(1.0f - (float)exp(alpha*(s-radius1n) * (s-radius1n)));
       s = s + *delta;
     }
   } else if (sigma1 < -1.e-6) {
     s=0.;
     for (j = 0; j < nsize; j++) {
       ssqrd=s*s;
-      ctf[j]=(float)(ctf[j]*ssqrd*exp(alpha*ssqrd));
+      ctf[j]=(float)(ctf[j]*ssqrd*exp(alpha*ssqrd) / delmax);
       s = s + *delta;
     }
   }
@@ -440,6 +454,9 @@ void conjugateProduct(float *array, float *brray, int nx, int ny)
 }
 
 /*  $Log$
+/*  Revision 1.4  2007/11/02 00:10:04  mast
+/*  Set filter to zero below 1.e-6 to avoid numberical problems and delays
+/*
 /*  Revision 1.3  2007/10/10 18:55:05  mast
 /*  Functions callable by fortran must return double not float!
 /*
