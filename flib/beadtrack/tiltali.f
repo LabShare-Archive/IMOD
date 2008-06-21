@@ -205,7 +205,8 @@ c
         do i=1,nrealpt
           ior=iobjali(i)
           do j=1,3
-            xyzsav(j,ior)=xyz(j,i)*scalexy
+            xyz(j,i)=xyz(j,i)*scalexy
+            xyzsav(j,ior)=xyz(j,i)
           enddo
           rsum=0.
           do ipt=irealstr(i),irealstr(i+1)-1
@@ -263,6 +264,9 @@ c$$$	  enddo
 
 c       
 c       $Log$
+c       Revision 3.9  2008/03/05 00:32:18  mast
+c       Increased maxmetro and put h in common
+c
 c       Revision 3.8  2007/02/19 20:50:23  mast
 c       Changes for beam tilt and grouping improvements in tiltalign
 c
