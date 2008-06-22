@@ -1,7 +1,8 @@
 c       $Id$
 c       Log at end
 c       
-      subroutine tiltali(ifdidalign,resmean,iview)
+      subroutine tiltali(ifdidalign,ifAlignDone,resmean,ibaseRes,ibaseOnAlign,
+     &    iview)
       implicit none
       include 'alivar.inc'
       include 'tltcntrl.inc'
@@ -13,7 +14,7 @@ c
       integer maxvar,maxmetro,maxMetroTrials
       parameter (maxvar=5*maxview,maxmetro=3600,maxMetroTrials=5)
 
-      integer*4 ifdidalign, iview
+      integer*4 ifdidalign, iview,ifAlignDone,ibaseRes,ibaseOnAlign
       real*4 resmean(*)
 c       
       real*4 var(maxvar),grad(maxmetro),h(maxmetro*(maxmetro+3))
@@ -214,10 +215,10 @@ c
             restmp(ipt+1-irealstr(i)) = scalexy*
      &          sqrt(xresid(ipt)**2+yresid(ipt)**2)
           enddo
-          resmean(ior)=rsum*scalexy/
+          resmean(ior+ibaseRes)=rsum*scalexy/
      &        (irealstr(i+1)-irealstr(i))
-c	    write(*,'(i4,(10f7.3))')ior,resmean(ior),(restmp(ipt),ipt = 1,
-c           &		min(9,irealstr(i+1)-irealstr(i)))
+c	    write(*,'(i4,(10f7.3))')ior,resmean(ior+ibaseRes),(restmp(ipt),
+c     &        ipt = 1, min(9,irealstr(i+1)-irealstr(i)))
           tltran = tltran + rsum * scalexy
           ifmaptilt = ifmaptilt + irealstr(i+1)-irealstr(i)
         enddo
@@ -258,12 +259,17 @@ c$$$      &		write(*,'(i4,3f10.2)')ior,(xyzsav(j,ior),j=1,3)
 c$$$	  enddo
 
         ifdidalign=1
+        ifAlignDone = 1
+        ibaseOnAlign = ibaseRes
       endif
-95    return
+      return
       end
 
 c       
 c       $Log$
+c       Revision 3.10  2008/06/21 19:26:04  mast
+c       Unscaled xyz so it can be used for find_surfaces without worry
+c
 c       Revision 3.9  2008/03/05 00:32:18  mast
 c       Increased maxmetro and put h in common
 c
