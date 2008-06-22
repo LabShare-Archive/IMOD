@@ -635,7 +635,7 @@ c
           area = area + 0.5 * (yresid(j)+yresid(i)) * (xresid(j)-xresid(i))
         enddo
         density = nobjdo / abs(area)
-        print *,area,density,nobjdo
+c        print *,area,density,nobjdo
       endif        
 c       
 c       set up for one area in X and Y, then compute number of areas and
@@ -658,7 +658,7 @@ c           6/21/08: but constrain it to be smaller than the target itself
           if (minBeadOverlap .gt. 0) then
             noverlap = min(minBeadOverlap / (density * localTarget),
      &          0.8 * localTarget)
-             print *,area,density,noverlap
+c             print *,area,density,noverlap
           endif
 c           
 c           get number of areas, round up so areas will start below target
@@ -1753,6 +1753,9 @@ c
 c       
 c       
 c       $Log$
+c       Revision 3.27  2008/06/21 19:25:35  mast
+c       Added option to list surfaces beads are on
+c
 c       Revision 3.26  2008/03/04 21:23:50  mast
 c       Changed to allow huge numbers of points as long as local areas are
 c       used, improved handling of boxes to relieve memory restrictions there
