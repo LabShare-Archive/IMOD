@@ -928,7 +928,7 @@ int main( int argc, char *argv[])
       exitError("Could not add general storage item");
     obj->valwhite = 255;
     obj->valblack = 0;
-    if (threshUse > -9999.)
+    if (threshUse > -9999. && histDip > cccMin)
       obj->valblack = (unsigned char)B3DNINT(255. * (histDip - cccMin) / 
                                              (cccMax - cccMin));
 
@@ -1707,5 +1707,8 @@ static int pointInsideArea(Iobj *obj, int *list, int nlist, float xcen,
 /*
 
 $Log$
+Revision 3.1  2008/06/19 23:26:50  mast
+Added to package
+
 
 */
