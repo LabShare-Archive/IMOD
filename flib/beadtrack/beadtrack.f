@@ -64,7 +64,7 @@ c
       real*4 resmean(limresid),prevres(maxview)
       logical missing(0:maxview)
       integer*4 iareaseq(maxarea),ninobjlist(maxarea),indobjlist(maxarea)
-      real*4 areadist(maxarea)
+      real*4 areadist(maxarea), residLists(maxolist)
       integer*4 iobjlists(maxolist),ivlist(maxview),ivSnapList(maxview)
       integer*4 ivseqst(4*maxarea),ivseqnd(4*maxarea),listseq(4*maxarea)
       integer*2 indgap(max_obj_num+1),ivgap(limgaps)
@@ -109,6 +109,7 @@ c
       real*4 sigma1,sigma2,radius2,radius1,deltactf, ranFrac
       integer*4 maxDrop, nDrop, ndatFit, nareaTot, maxInArea, limInArea
       integer*4 minViewDo, maxViewDo, numViewDo, numBound, iseed, limcxBound
+      integer*4 ibaseOnAlign, ifAlignDone
       real*4 cosd,sind
       character*320 concat
       integer*4 getImodObjsize, niceframe
@@ -966,7 +967,7 @@ c
       do iseq=1,nseqs
         nadded=1
         nvLocal = 0
-        ifdidalign = 0
+        ifAlignDone = 0
         iseqPass = ((iseq + 1) / 2 - 1) / nobjlists + 1
         if (iseqPass .ge. localViewPass)
      &      nvLocal = nvLocalIn
@@ -1176,8 +1177,8 @@ c
 c             
 c             now try to do tiltalign if possible
 c             
-            if(nadded.ne.0)call tiltali(ifdidalign,
-     &          resmean(1+ibaseRes),iview)
+            if(nadded.ne.0) call tiltali(ifdidalign, ifAlignDone, resmean,
+     &          ibaseRes, ibaseOnAlign, iview)
 c             
 c             get tentative tilt, rotation, mag for current view
 c             
@@ -1531,8 +1532,8 @@ c
 c             
 c             do tiltali if anything changed, so can get current residuals
 c             
-            if(nadded.gt.0)call tiltali(ifdidalign,
-     &          resmean(1+ibaseRes),iview)
+            if(nadded.gt.0)call tiltali(ifdidalign, ifAlignDone,
+     &          resmean, ibaseRes, ibaseOnAlign, iview)
 
             if (itemOnList(iview, ivSnapList, nSnapList)) then
               call int_iwrite(listString, iview, ndel)
@@ -1640,7 +1641,8 @@ c                     &                   resmean(iobj+ibaseRes), curdif,resavg,
                 else
                   write(*,delfmt2)ndel,(iobjdel(i),i=1,ndel)
                   nadded=0
-                  call tiltali(ifdidalign, resmean(1+ibaseRes),iview)
+                  call tiltali(ifdidalign, ifAlignDone, resmean, ibaseRes,
+     &                ibaseOnAlign, iview)
                 endif
               endif
             endif
@@ -1667,7 +1669,7 @@ c
         endif
 c         
 c         Do surface fitting on every round if tiltalign run
-        if (surfaceFile .ne. ' ' .and. ifdidalign .ne. 0) then
+        if (surfaceFile .ne. ' ' .and. ifAlignDone .ne. 0) then
           call find_surfaces(xyz,nrealpt,2, 30.,1,xpos,igrpBotTop,0,ypos)
 c           
 c           Find each object in the real object list and move group number
@@ -1675,11 +1677,16 @@ c           into list
           do i = 1, nobjdo
             j = 1
             ix = 0
+            xpos = 0.
             do while (j .le. nrealpt .and. ix .eq. 0)
-              if (iobjali(j) .eq. iobjseq(i)) ix = igrpBotTop(j)
+              if (iobjali(j) .eq. iobjseq(i)) then
+                ix = igrpBotTop(j)
+                xpos = resmean(iobjali(j) + ibaseOnAlign)
+              endif
               j = j + 1
             enddo
             listsBotTop(i+indobjlist(lastseq)-1) = ix
+            residLists(i+indobjlist(lastseq)-1) = xpos
           enddo
         endif
       enddo
@@ -1709,15 +1716,23 @@ c       Write out surface file
         do iobj=1,maxObjOrig
           numBotTop(1,iobj) = 0
           numBotTop(2,iobj) = 0
+          resmean(iobj) = 0.
         enddo
         do i = 1, indfree
           iobj = iobjLists(i)
           j = listsBotTop(i)
-          if (j .gt. 0) numBotTop(j,iobj) = numBotTop(j,iobj) + 1
+          if (j .gt. 0) then
+            numBotTop(j,iobj) = numBotTop(j,iobj) + 1
+            resmean(iobj) = resmean(iobj) + residLists(i)
+          endif
         enddo
         do iobj=1,maxObjOrig
           call objtocont(iobj,obj_color,imodobj,imodcont)
-          write(4, '(i3,3i6)')imodobj,imodcont,(numBotTop(j,iobj),j=1,2)
+          xpos = 0.
+          ix = numBotTop(1,iobj) + numBotTop(2,iobj)
+          if (ix .gt. 0) xpos = resmean(iobj) / ix
+          write(4, '(i3,3i6,f8.3)')imodobj,imodcont,(numBotTop(j,iobj),j=1,2),
+     &        xpos
         enddo
       endif
 c       
@@ -1753,6 +1768,9 @@ c
 c       
 c       
 c       $Log$
+c       Revision 3.28  2008/06/22 04:53:18  mast
+c       Comment out debugging output
+c
 c       Revision 3.27  2008/06/21 19:25:35  mast
 c       Added option to list surfaces beads are on
 c
