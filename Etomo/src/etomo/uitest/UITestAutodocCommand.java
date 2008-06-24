@@ -24,6 +24,7 @@ public final class UITestAutodocCommand implements UITestCommand {
   private String string = "";
   private boolean empty = true;
   private boolean known = false;
+  private boolean debug = false;
 
   public void set(ReadOnlyStatement statement) {
     reset();
@@ -46,6 +47,10 @@ public final class UITestAutodocCommand implements UITestCommand {
     else {
       action = null;
     }
+  }
+  
+  public void setDebug(boolean input) {
+    debug = input;
   }
 
   public void reset() {
@@ -86,6 +91,10 @@ public final class UITestAutodocCommand implements UITestCommand {
 }
 /**
  * <p> $Log$
+ * <p> Revision 1.2  2008/05/30 22:41:56  sueh
+ * <p> bug# 1102 Isolating the etomo.uitest package so it is not needed for
+ * <p> running EtomoDirector.
+ * <p>
  * <p> Revision 1.1  2008/05/30 21:44:13  sueh
  * <p> bug# 1102 Moved uitest classes to etomo.uitest.
  * <p>

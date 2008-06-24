@@ -110,6 +110,11 @@ import etomo.ui.Deferred3dmodButton;
  * @version $Revision$
  * 
  * <p> $Log$
+ * <p> Revision 1.5  2008/05/28 02:48:12  sueh
+ * <p> bug# 1111 Removed processDialogTypeA and B from BaseManager.
+ * <p> The dialogType for processes should be handled by ProcessSeries.
+ * <p> Passing a DialogType parameter to startNextProcess.
+ * <p>
  * <p> Revision 1.4  2008/05/13 22:57:11  sueh
  * <p> bug# 847 Added documentation.  Fixed a bug where
  * <p> isProcessQueueEmpty was returning an incorrect result.  Made sure that
@@ -183,9 +188,16 @@ public final class ProcessSeries implements ConstProcessSeries {
       return false;
     }
     sendMsgSecondaryProcess(processResultDisplay);
+    if (debug) {
+      System.out.println("ProcessSeries.startNextProcess:process="+process);
+    }
     manager.startNextProcess(axisID, process, processResultDisplay, this,
         dialogType);
     return true;
+  }
+  
+  public void setDebug(boolean input) {
+    debug = input;
   }
 
   /**

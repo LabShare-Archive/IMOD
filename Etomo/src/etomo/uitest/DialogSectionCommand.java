@@ -46,9 +46,14 @@ public class DialogSectionCommand implements UITestCommand {
   private boolean function = false;
   private CallbackClassEnum callbackClassEnum = null;
   private ProcessName processName = null;
+  private boolean debug = false;
 
   public DialogSectionCommand(ArrayList variables) {
     this.variables = variables;
+  }
+  
+  public void setDebug(boolean input) {
+    debug = input;
   }
 
   public final void set(ReadOnlyStatement statement) {
@@ -186,22 +191,35 @@ public class DialogSectionCommand implements UITestCommand {
    * @return formattedString.
    */
   private String replaceVariables(String string, String formattedString) {
+    if (debug) {
+      System.out.println("variables="+variables);
+      System.out.println("string="+string);
+    }
     formattedString = string;
     if (variables == null || formattedString == null
         || formattedString.indexOf(EtomoAutodoc.VAR_TAG) == -1) {
       //no replacement needed
+      if (debug) {
+        System.out.println("no replacement needed:formattedString="+formattedString);
+      }
       return formattedString;
     }
     for (int i = 0; i < variables.size(); i++) {
       //If there are no more variable tags in the string ("%"), the replace is done
       if (formattedString != null
           && formattedString.indexOf(EtomoAutodoc.VAR_TAG) == -1) {
+        if (debug) {
+          System.out.println("no more tags:formattedString="+formattedString);
+        }
         return formattedString;
       }
       TestSectionCommand.Variable variable = (TestSectionCommand.Variable) variables
           .get(i);
       formattedString = replaceVariable(formattedString, variable.getName(),
           variable.getValue());
+    }
+    if (debug) {
+      System.out.println("no more variables:formattedString="+formattedString);
     }
     return formattedString;
   }
@@ -288,6 +306,10 @@ public class DialogSectionCommand implements UITestCommand {
 }
 /**
  * <p> $Log$
+ * <p> Revision 1.2  2008/05/30 22:37:10  sueh
+ * <p> bug# 1102 Isolating the etomo.uitest package so it is not needed for
+ * <p> running EtomoDirector.
+ * <p>
  * <p> Revision 1.1  2008/05/30 21:36:05  sueh
  * <p> bug# 1102 Moved uitest classes to etomo.uitest.
  * <p>

@@ -30,9 +30,15 @@ public interface UITestCommand {
   public boolean isFunction();
 
   public String getValue();
+  
+  public void setDebug(boolean input);
 }
 /**
  * <p> $Log$
+ * <p> Revision 1.2  2008/05/30 22:42:25  sueh
+ * <p> bug# 1102 Isolating the etomo.uitest package so it is not needed for
+ * <p> running EtomoDirector.
+ * <p>
  * <p> Revision 1.1  2008/05/30 21:53:08  sueh
  * <p> bug# 1102 Moved uitest classes to etomo.uitest.
  * <p>
