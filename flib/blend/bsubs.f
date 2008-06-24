@@ -881,7 +881,7 @@ c
               call getExtraIndents(ipiecelower(jedge,ixy),
      &            ipieceupper(jedge,ixy), ixy, delIndent)
               indentXcorr = 0
-              if (delIndent(ixy) .gt. 0.)
+              if (delIndent(ixy) .gt. 0. .and. ifillTreatment .eq. 1)
      &            indentXcorr = int(delIndent(ixy)) + 1
               call xcorredge(array(indlow),array(indup),
      &            ixy,xdisp,ydisp,xclegacy,indentXcorr)
@@ -1508,8 +1508,8 @@ c
       real*4 ctf(8193),rdispl(2)
       real*4 overfrac,delta,xpeak,ypeak,peak,sdmin,ddenmin
       integer*4 indentSD,niter,limstep,iyx,nxpad,nypad,nxtap, indentUse
-      integer*4 nytap,jx,ixdispl,iydispl,i,nExtra(2),nbin, maxBinSize
-      integer*4 niceframe
+      integer*4 nytap,jx,ixdispl,iydispl,i,nExtra(2),nbin, maxBinSize, ierr
+      integer*4 niceframe, taperAtFill
 
       indentSD=5                                !indent for sdsearch
       overfrac=0.9                              !fraction of overlap to use
@@ -1565,6 +1565,8 @@ c       get the first image, lower piece
 c       
       call ibinpak(brray, crray,nxin,nyin,ind0(1),ind1(1),ind0(2),
      &    ind1(2), nbin)
+      if (ifillTreatment .eq. 2)
+     &    ierr = taperAtFill(brray, nxybox(1),nxybox(2), 8, 0)
       call taperinpad(brray,nxybox(1),nxybox(2),xcray,nxpad+2,nxpad,
      &    nypad,nxtap,nytap)
       call meanzero(xcray,nxpad+2,nxpad,nypad)
@@ -1578,6 +1580,8 @@ c
 c       
       call ibinpak(brray, drray,nxin,nyin,ind0(1),ind1(1),ind0(2),
      &    ind1(2), nbin)
+      if (ifillTreatment .eq. 2)
+     &    ierr = taperAtFill(brray, nxybox(1),nxybox(2), 8, 0)
       call taperinpad(brray,nxybox(1),nxybox(2),xdray,nxpad+2,nxpad,
      &    nypad,nxtap,nytap)
       call meanzero(xdray,nxpad+2,nxpad,nypad)
@@ -2380,6 +2384,9 @@ c
 
 c       
 c       $Log$
+c       Revision 3.25  2008/04/14 16:56:01  mast
+c       Fixed excluding of fill from edges with multiple edges
+c
 c       Revision 3.24  2007/10/04 16:22:43  mast
 c       Switched to new peak find function
 c
