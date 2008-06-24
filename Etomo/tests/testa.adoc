@@ -26,7 +26,7 @@ function = test
 
 [Dialog = TomoPos]
 adoc = tomo-pos.adoc
-function = run
+function = test
 
 [Dialog = TomoGen]
 adoc = tomo-gen.adoc

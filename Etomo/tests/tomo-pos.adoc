@@ -21,7 +21,7 @@ waitfor.process.tomopitch = done
 bn.create-final-alignment =
 waitfor.process.align = done
 
-[function = run]
+[function = run1]
 copy.file = %{dataset}%{axis}.fid
 tf.sample-tomogram-thickness = %{sample-tomogram-thickness}
 bn.create-sample-tomograms =
@@ -34,7 +34,8 @@ assert.file.exists = sample%{axis}.log~
 cb.use-whole-tomogram =
 bn.create-whole-tomogram =
 waitfor.process.tilt = done
-assert.file.exists = %{dataset}%{axis}.rec
+
+[function = run2]
 cb.use-whole-tomogram =
 #
 copy.file = tomopitch%{axis}.mod
@@ -51,6 +52,22 @@ bn.create-final-alignment =
 waitfor.process.align = done
 assert.file.exists = align%{axis}.log~
 bn.done =
+
+[function = assert-whole-tomo]
+assert.file.exists = %{dataset}%{axis}.rec
+
+[function = assert-whole-tomo-single]
+assert.file.exists = %{dataset}_full.rec
+
+[function = test]
+function = run1
+function = assert-whole-tomo
+function = run2
+
+[function = test-single]
+function = run1
+function = assert-whole-tomo-single
+function = run2
 
 [function = run-fidless]
 copy.file = %{dataset}%{axis}.fid
