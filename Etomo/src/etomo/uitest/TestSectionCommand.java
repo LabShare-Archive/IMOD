@@ -33,6 +33,7 @@ public final class TestSectionCommand implements UITestCommand {
   private AxisID axisID = null;
   private boolean keep = false;
   private Variable variable = null;
+  private boolean debug = false;
 
   public void set(ReadOnlyStatement statement) {
     reset();
@@ -90,6 +91,10 @@ public final class TestSectionCommand implements UITestCommand {
       action = null;
       System.err.println("Unknown command:  " + string);
     }
+  }
+  
+  public void setDebug(boolean input) {
+    debug = input;
   }
 
   public void reset() {
@@ -154,6 +159,10 @@ public final class TestSectionCommand implements UITestCommand {
       }
       this.value = value;
     }
+    
+    public String toString() {
+      return "["+name+","+value+"]";
+    }
 
     String getName() {
       return name;
@@ -166,6 +175,10 @@ public final class TestSectionCommand implements UITestCommand {
 }
 /**
  * <p> $Log$
+ * <p> Revision 1.2  2008/05/30 22:39:12  sueh
+ * <p> bug# 1102 Isolating the etomo.uitest package so it is not needed for
+ * <p> running EtomoDirector.
+ * <p>
  * <p> Revision 1.1  2008/05/30 21:37:17  sueh
  * <p> bug# 1102 Moved uitest classes to etomo.uitest.
  * <p>
