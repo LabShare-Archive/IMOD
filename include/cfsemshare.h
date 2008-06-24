@@ -12,6 +12,7 @@
 #ifndef CFSEMSHARE_H
 #define CFSEMSHARE_H
 
+#include "mrcslice.h"
 
 #ifdef __cplusplus
 extern "C" {
@@ -72,6 +73,9 @@ extern "C" {
   double sliceEdgeMean(float *array, int nxdim, int ixlo, int ixhi, int iylo,
                        int iyhi);
 
+  /* taperatfill.c */
+  int sliceTaperAtFill(Islice *sl, int ntaper, int inside);
+
   /* circlefit.c */
   int circleThrough3Pts(float x1, float y1, float x2, float y2, float x3, 
                              float y3, float *rad, float *xc, float *yc);
@@ -97,6 +101,9 @@ extern "C" {
 
 /*
 $Log$
+Revision 3.4  2007/10/11 16:47:23  mast
+Added edge mean function
+
 Revision 3.3  2007/10/10 18:54:52  mast
 Functions callable by fortran must return double not float!
 
