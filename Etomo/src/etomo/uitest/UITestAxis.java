@@ -57,6 +57,10 @@ import etomo.util.Utilities;
  * @version $Revision$
  * 
  * <p> $Log$
+ * <p> Revision 1.2  2008/05/30 22:42:13  sueh
+ * <p> bug# 1102 Isolating the etomo.uitest package so it is not needed for
+ * <p> running EtomoDirector.
+ * <p>
  * <p> Revision 1.1  2008/05/30 21:52:59  sueh
  * <p> bug# 1102 Moved uitest classes to etomo.uitest.
  * <p>
@@ -250,6 +254,7 @@ final class UITestAxis implements UITestCommandFactory {
       //tested (testfrom and datafile attributes).
       while (!isUncaughtException()
           && test
+          && command != null
           && !command.isEmpty()
           && (testFromDialog == null || testFromDialog.equals(reader.getName()))
           && (!loadedDataFile || !interfaceSection.isDefaultDialog(reader
@@ -1098,7 +1103,7 @@ final class UITestAxis implements UITestCommandFactory {
         : NamedComponentFinder.OP_EQUALS;
     finder = getNamedComponentFinder(componentClass, name, operation);
     if (frame == null) {
-      component = finder.find();
+      component = finder.find(index);
     }
     else {
       component = finder.find(frame, index);
@@ -1126,6 +1131,10 @@ final class UITestAxis implements UITestCommandFactory {
 }
 /**
  * <p> $Log$
+ * <p> Revision 1.2  2008/05/30 22:42:13  sueh
+ * <p> bug# 1102 Isolating the etomo.uitest package so it is not needed for
+ * <p> running EtomoDirector.
+ * <p>
  * <p> Revision 1.1  2008/05/30 21:52:59  sueh
  * <p> bug# 1102 Moved uitest classes to etomo.uitest.
  * <p>
