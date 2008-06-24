@@ -140,7 +140,7 @@ c
 c       cut and pasted from ../../manpages/autodoc2man -2 2 blendmont
 c       
       integer numOptions
-      parameter (numOptions = 56)
+      parameter (numOptions = 57)
       character*(40 * numOptions) options(1)
       options(1) =
      &    'imin:ImageInputFile:FN:@plin:PieceListInput:FN:@'//
@@ -170,8 +170,8 @@ c
      &    'pad:PadFraction:F:@taper:TaperFraction:F:@'//
      &    'extra:ExtraXcorrWidth:F:@radius1:FilterRadius1:F:@'//
      &    'radius2:FilterRadius2:F:@sigma1:FilterSigma1:F:@'//
-     &    'sigma2:FilterSigma2:F:@xcdbg:XcorrDebug:B:@'//
-     &    'param:ParameterFile:PF:@help:usage:B:'
+     &    'sigma2:FilterSigma2:F:@treat:TreatFillForXcorr:I:@'//
+     &    'xcdbg:XcorrDebug:B:@param:ParameterFile:PF:@help:usage:B:'
 c       
 c       initialization of elements in common
 c       
@@ -217,6 +217,7 @@ c
       xcorrDebug = .false.
       ifDumpXY(1) = -1
       ifDumpXY(2) = -1
+      ifillTreatment = 1
       aspectmax=2.0				!maximum aspect ratio of block
       taperFrac = 0.1
       padFrac = 0.45
@@ -1062,6 +1063,11 @@ c
             ifDumpXY(2) = 0
           endif
         endif
+c
+c         Get fill treatment; if not entered and very sloppy and distortion,
+c         set for taper
+        if (PipGetInteger('TreatFillForXcorr', ifillTreatment) .ne. 0 .and.
+     &      verySloppy .and. (undistort .or. doMagGrad)) ifillTreatment = 2
       endif
       doFields = undistort .or. doMagGrad
       if (undistortOnly .and. .not. doFields) call exitError('YOU MUST'//
@@ -1576,7 +1582,7 @@ c
                   call getExtraIndents(ipiecelower(iedge,ixy), 
      &                ipieceupper(iedge,ixy), ixy, delIndent)
                   indentXC = 0
-                  if (delIndent(ixy) .gt. 0.)
+                  if (delIndent(ixy) .gt. 0. .and. ifillTreatment .eq. 1)
      &                indentXC = int(delIndent(ixy)) + 1
                   call xcorredge(array(indlo),array(indup),
      &                nxyzin, noverlap,ixy,xdisp,ydisp,xclegacy,indentXC)
@@ -2777,6 +2783,11 @@ c
 
 c       
 c       $Log$
+c       Revision 3.36  2008/03/03 07:06:03  mast
+c       Fixed bad scaling for mode 1 with no float, fixed double-scaling of first
+c       buffered line with binned output, and restored old behavior of floating
+c       to positive range for mode 1
+c
 c       Revision 3.35  2007/12/06 21:31:25  mast
 c       Added option to adjust origin for starting coords in X, Y, Z
 c
