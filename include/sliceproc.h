@@ -37,7 +37,6 @@ extern "C" {
   void sliceByteAnisoDiff(Islice *sl, float **image, float **image2, int CC,
                           double k, double lambda, int iterations, 
                           int *iterDone);
-  int sliceTaperAtFill(Islice *sl, int ntaper, int inside);
   int niceFrame(int num, int idnum, int limit);
   void sliceScaleAndFree(Islice *sout, Islice *sin);
 
@@ -49,6 +48,9 @@ extern "C" {
 #endif
 /*
   $Log$
+  Revision 3.11  2007/11/22 20:46:30  mast
+  Add gaussian kernel functions
+
   Revision 3.10  2007/10/01 15:27:23  mast
   Rearranging
 
