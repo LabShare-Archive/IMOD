@@ -16,7 +16,6 @@ import javax.swing.ButtonGroup;
 import javax.swing.JFileChooser;
 import javax.swing.JLabel;
 import javax.swing.JPanel;
-import javax.swing.JTabbedPane;
 import javax.swing.SpinnerModel;
 import javax.swing.SpinnerNumberModel;
 import javax.swing.event.ChangeEvent;
@@ -58,6 +57,9 @@ import etomo.util.DatasetFiles;
  * @version $Revision$
  *
  * <p> $Log$
+ * <p> Revision 1.59  2008/06/20 20:06:19  sueh
+ * <p> Removed an old setDebug(true) call.
+ * <p>
  * <p> Revision 1.58  2008/05/30 21:30:55  sueh
  * <p> bug# 1102 Changed the tabbed pane to TabbedPane so that it can self-
  * <p> name.
@@ -460,7 +462,7 @@ public final class JoinDialog implements ContextMenu, Run3dmodButtonContainer {
       .getSpinnerDimension();
 
   private JPanel rootPanel;
-  private JTabbedPane tabPane;
+  private TabbedPane tabPane;
   private SpacedPanel pnlSetup;
   private SectionTablePanel pnlSectionTable;
   private SpacedPanel pnlAlign;
