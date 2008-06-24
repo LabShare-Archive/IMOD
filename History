@@ -1,5 +1,8 @@
 IMOD History
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+6/23/08: Added option to Blendmont to prevent trimming of fill areas produced
+by distortion correction from overlap areas used for correlations.
+
 6/21/08: In Imodfindbeads, fixed black level in file when dip is below minimum.
 
 6/21/08: Added option to Beadtrack to get information about which surface

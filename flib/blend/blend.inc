@@ -107,8 +107,8 @@ c
      &    nxField, nyField, numMagGrad,numAngles,xFieldIntrv, yFieldIntrv,
      &    distDx,distDy,fieldDx,fieldDy,tiltAngles,dmagPerUm,rotPerUm
 
-      integer*4 ifDumpXY(2),nzOutXY(2),ipcBelowEdge
+      integer*4 ifDumpXY(2),nzOutXY(2),ipcBelowEdge, ifillTreatment
       real*4 taperFrac, padFrac, aspectMax, extraWidth
       real*4 radius1, radius2, sigma1, sigma2
       common /xcparm/ ifDumpXY,nzOutXY, taperFrac, padFrac, aspectMax,
-     &    radius1,radius2,sigma1,sigma2,ipcBelowEdge, extraWidth
+     &    radius1,radius2,sigma1,sigma2,ipcBelowEdge, extraWidth,ifillTreatment

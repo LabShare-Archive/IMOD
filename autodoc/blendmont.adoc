@@ -206,7 +206,8 @@ parameter radius1 is set to -0.01 to eliminate more low frequencies from the
 correlation.  The fraction of the area over which images are tapered is 
 increased from 0.1 to 0.2 to further reduce the frequencies of edge effects,
 and the area being correlated is made wider by setting the extra width
-fraction to 0.25.  
+fraction to 0.25.  If distortion corrections are being done, the default
+is changed to taper instead of trimming out fill areas for correlation.
 
 [Field = ShiftPieces]
 short = shift
@@ -523,6 +524,21 @@ usage = Sigma for Gaussian rolloff below radius1 and above radius2
 tooltip =
 manpage = Sigma value for the Gaussian rolloff below and above the cutoff
 frequencies specified by FilterRadius1 and FilterRadius2
+
+[Field = TreatFillForXcorr]
+short = treat
+type = I
+usage = Set treatment of fill areas created by distortion corrections
+tooltip = 
+manpage = Sets the treatment of fill areas created by distortion corrections
+for the cross-correlations.  Enter 0 to do nothing, 1 to trim the correlation
+width to exclude possible fill areas, or 2 to taper image into fill areas.  
+The default is 1, appropriate for image-shift based montages with reliable
+overlap widths.  If trimming overlap areas produces too little overlap, the
+trimming can be avoided either with entry 0 or 2: 0 will leave
+edges that may produce spurious correlation, while 2 will taper the image down
+at the edges.  When VerySloppyMontage is used, there are distortion
+corrections, and this option is not entered, the value is set to 2.
 
 [Field = XcorrDebug]
 short = xcdbg

@@ -1,13 +1,16 @@
 <html><head><title>Mrcslice module</title>
 <body>
-<H2  align="center">Mrcslice module</H2>
-This module contains functions for working with images contained in the
+<H2  align="center">Islice and Mrcslice modules</H2>
+These module contain functions for working with images contained in the
 Islice structure.  In general, these functions allow generic handling of 
 different types of image data.  However, because many of them operate by
 using a function call to get and put each individual pixel, they are not very
-efficient.
+efficient.  The first set of basic functions are in module islice.c, part of 
+libcfshr, while the rest are in mrcslice.c, part of libiimod.
 <P>
-<H3 style="color: rgb(0,128,0);">Basic and Miscellaneous Functions</H3>
+<H3 style="color: rgb(0,128,0);">Basic Functions in islice.c (libcfshr)</H3>
+LIST FUNCTIONS FROM ../libcfshr/islice.c
+<H3 style="color: rgb(0,128,0);">Basic and Miscellaneous Functions in mrcslice.c</H3>
 LIST FUNCTIONS FROM mrcslice.c BASIC
 <H3 style="color: rgb(0,128,0);">Scaling, Boxing, Mirroring and Wrapping Functions</H3>
 LIST FUNCTIONS FROM mrcslice.c SCALING_BOXING
@@ -17,8 +20,10 @@ LIST FUNCTIONS FROM mrcslice.c MRC_IO
 LIST FUNCTIONS FROM mrcslice.c TRANSFORMS
 <H3 style="color: rgb(0,128,0);">Structures and Definitions for Islice Structures</H3>
 LIST CODE FROM ../include/mrcslice.h
-
-<H3 style="color: rgb(0,128,0);">Basic and Miscellaneous Functions</H3>
+<P>
+<H3 style="color: rgb(0,128,0);">Basic Functions in islice.c (libcfshr)</H3>
+DESCRIBE FUNCTIONS FROM ../libcfshr/islice.c
+<H3 style="color: rgb(0,128,0);">Basic and Miscellaneous Functions in mrcslice.c</H3>
 DESCRIBE FUNCTIONS FROM mrcslice.c BASIC
 <H3 style="color: rgb(0,128,0);">Scaling, Boxing, Mirroring and Wrapping Functions</H3>
 DESCRIBE FUNCTIONS FROM mrcslice.c SCALING_BOXING

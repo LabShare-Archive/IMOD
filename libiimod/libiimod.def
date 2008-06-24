@@ -25,7 +25,6 @@ EXPORTS
 	mrc_test_size
 	sliceScaleAndFree
 	sliceByteAdd
-	sliceTaperAtFill
 	mrc_slice_lie
 	sliceByteAnisoDiff
 	iiSetMM
@@ -34,15 +33,11 @@ EXPORTS
 	mrc_init_li
 	sliceReadMRC
 	sliceQuadInterpolate
-	sliceGetVal
 	sliceMMM
-	sliceModeIfReal
 	iiPlistLoadF
-	sliceInit
 	read_mrc_byte
 	iiInsertCheckFunction
 	sliceAnisoDiff
-	sliceGetValMagnitude
 	sliceByteEdgeSobel
 	mrcReadSectionByte
 	tiffClose
@@ -66,7 +61,6 @@ EXPORTS
 	get_byte_map
 	sliceComplexFloat
 	mrc_head_label_cp
-	sliceFree
 	sliceByteShrink
 	mrc_swap_floats
 	mrcReadSection
@@ -76,18 +70,15 @@ EXPORTS
 	iiNew
 	mrc_plist_proc
 	iiLoadPCoord
-	sliceCreate
 	mrc_default_status
 	mrc_vol_wrap
 	mrc_read_point
-	sliceMode
 	iiAddRawCheckFunction
 	iiLikeMRCDelete
 	tiffDelete
 	mrc_slice_zooms
 	sliceReduceMirroredFFT
 	mrc_slice_translate
-	sliceGetYSize
 	sliceByteEdgePrewitt
 	mrc_slice_mat_getimat
 	mrcGetDataMemory
@@ -105,13 +96,11 @@ EXPORTS
 	tiffReopen
 	sliceFloat
 	mrcContrastScaling
-	slicePutVal
 	sliceMultConst
 	mrc_plist_load
 	mrc_slice_rotate
 	sliceGaussianKernel
 	mrc_slice_getvol
-	sliceGetXSize
 	sliceBox
 	mrc_mread_slice
 	sliceNewMode
@@ -149,8 +138,6 @@ EXPORTS
 	sliceMirror
 	sliceWriteMRCfile
 	scaledGaussianKernel
-	sliceGetPixelMagnitude
 	mrcReadYByte
 	analyzeDM3
-	sliceClear
 	mrc_head_read
