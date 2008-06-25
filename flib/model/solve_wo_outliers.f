@@ -1,9 +1,4 @@
-c       $Author$
-c       
-c       $Date$
-c       
-c       $Revision$
-c       
+c       $Id$
 c       Log at end
 c       
 c       SOLVE_WO_OUTLIERS solves for a fit between sets of positions in 3D
@@ -59,7 +54,14 @@ c
       call do3multr(xr,ndat,ncol,ndat,icolfix,a,dxyz,cenloc,devavg,
      &    devsd, devmax, ipntmax, devxyzmax)
       ndrop = 0
-      if(maxdrop.eq.0.or.devmax.lt.elimmin) return
+c       
+c       If returning right away, load cross-indexes into col 5
+      if(maxdrop.eq.0.or.devmax.lt.elimmin) then 
+        do i=1,ndat
+          xr(5,i)=i
+        enddo
+        return
+      endif
 c       
 c       order the residuals
 c       
@@ -492,6 +494,10 @@ c
       end
 
 c       $Log$
+c       Revision 3.8  2006/08/21 16:43:01  mast
+c       Placed index to ordered data in column after the residual, increased
+c       dimension to 100000
+c
 c       Revision 3.7  2006/06/18 19:37:48  mast
 c       Changed to use new C function for amoeba
 c	
