@@ -1,5 +1,7 @@
 IMOD History
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+6/25/08: Fixed Refinematch crash on residual output when data fit right away.
+
 6/23/08: Added option to Blendmont to prevent trimming of fill areas produced
 by distortion correction from overlap areas used for correlations.
 
