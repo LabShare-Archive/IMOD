@@ -17,6 +17,7 @@
 #include <qlayout.h>
 #include <qlabel.h>
 #include "multislider.h"
+#include "dia_qtutils.h"
 
 #define NON_VALUE -99999999
 #define MAX_DECIMALS 6
@@ -193,6 +194,18 @@ void MultiSlider::setEnabled(int slider, bool enabled)
   }
 }
 
+/*!
+ * Shows or hides a given slider and its associated text fields depending on
+ * the value of [show].
+ */
+void MultiSlider::showWidgets(int slider, bool show)
+{
+  if (slider >=0 && slider < mNumSliders) {
+    diaShowWidget(mSliders[slider], show);
+    diaShowWidget(mLabels[slider], show);
+    diaShowWidget(mTitleLabels[slider], show);
+  }
+}
 
 // Process a changed value if both signals are in
 void MultiSlider::processChange()
@@ -248,6 +261,9 @@ void MultiSlider::sliderReleased(int which)
 }
 /*
 $Log$
+Revision 1.7  2008/01/17 22:31:25  mast
+Added call to enable all components
+
 Revision 1.6  2007/08/26 06:55:59  mast
 Documentation changes
 
