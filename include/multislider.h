@@ -32,6 +32,7 @@ class DLL_IM_EX MultiSlider : public QObject
   void setEnabled(int slider, bool enabled);
   QBoxLayout *getLayout() {return mBigLayout;};
   void setDecimals(int slider, int decimals);
+  void showWidgets(int slider, bool show);
 
  signals:
   void sliderChanged(int slider, int value, bool dragging);
@@ -62,6 +63,9 @@ class DLL_IM_EX MultiSlider : public QObject
 /*  
 
 $Log$
+Revision 3.6  2008/01/19 23:09:41  mast
+Cleanup comment problem in log
+
 
 Revision 3.4  2008/01/17 22:31:12  mast
 Added call to enable all components
