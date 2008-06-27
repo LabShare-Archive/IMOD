@@ -53,7 +53,36 @@ INSERT OPTION TEXT HERE
      (produced by Findwarp)
 
 
-  David Mastronarde, 11/15/96
+  Format of Warping File
+  The warping file can have three forms, determined by the number of entries
+  on the first line of the file.  If there are two entries on this line, they
+  specify the number of positions in X and in Z.  If there are three entries,
+  they specify the number of positions in X, Y, and Z.  In either of these two
+  cases, there must be a transform in the file for every such location in the
+  2D or 3D array of positions.  In the third form, not all transforms need to
+  be present, and the header line contains 9 entries indicating the number
+  of positions, the starting position, and the interval between positions in
+  each dimension:
+  #_in_X  #_in_Y  #_in_Z  start_X  start_Y  start_Z  delta_X  delta_Y  delta_Z 
+  
+  For each position, there are four lines:
+      centered_X  centered_Y  centered_Z
+      a11  a12  a13  dx
+      a21  a22  a23  dy
+      a31  a32  a33  dz
+  where the coordinates are relative to the center of the volume, and the
+  next three lines specify an inverse transformation for getting from a
+  location in the output volume to a location in the input volume:
+      xi = a11 * xo + a12 * yo + a13 * zo + dx
+      yi = a21 * xo + a22 * yo + a23 * zo + dy
+      zi = a31 * xo + a32 * yo + a33 * zo + dz
+  where (xo, yo, zo) are coordinates relative to the center of the output
+  volume, and (xi, yi, xi) are coordinates relative to the center of the input
+  volume.  The center coordinates of the transforms are used to assign them to
+  the regular array of positions, so transforms that are not located at these
+  regular positions will be relocated and will not perform as expected.  If
+  there are missing transforms, the array will be filled in by copying from
+  the nearest defined transform.
 
 HHIISSTTOORRYY
   Written by David Mastronarde  11/15/96; modified for 3-D matrix of
