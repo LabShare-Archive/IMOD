@@ -1,5 +1,8 @@
 IMOD History
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+6/30/08: Changed combine.com to not save volcombine script to file instead of 
+piping to csh, to fix problem with big scripts on Windows.
+
 6/25/08: Fixed Refinematch crash on residual output when data fit right away.
 
 6/23/08: Added option to Blendmont to prevent trimming of fill areas produced
