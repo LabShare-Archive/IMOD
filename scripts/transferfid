@@ -13,6 +13,11 @@ set sigma1 = 0.03
 set sigma2 = 0.05
 set radius2 = 0.25
 
+# Search limit parameters
+@ xylimitfrac = 5
+set rotlimit = 15
+set otherlimits = .1,.05,2
+
 # Number of wins more in one rotation direction than the other that will
 # make it abandon the other direction
 @ DIRECTION_WIN_THRESH = 4
@@ -338,11 +343,18 @@ if ($pixela[1] != $pixelb[1]) then
 endif
 
 #
-# Set the binning needed to get image size to 512 or less
-#
+# Set the binning needed to get image size to 512 or less unless the size is
+# bigger than 4K, in which case bin to 1024.  Limit binning to 4 between 2048
+# and 4096.  Set limits on X/Y in search
 @ size = `echo $nxa  $nxb | awk '{print int(sqrt($1 * $2))}'`
 @ limit = 512
+if ($size >= 4096) @ limit = 1024
 @ reduce = ($size + $limit - 1) / $limit
+if ($size < 4096 && $reduce > 4) @ reduce = 4
+@ xlimit = $nxb / 5
+@ ylimit = $nyb / 5
+
+echo $xlimit, $ylimit, $reduce
 
 #
 # Get starting and ending section numbers
@@ -402,7 +414,6 @@ else
     echo "Finding the best matched pair of views in the two series:"
     echo "              (Type Ctrl-C to end search)"
 endif
-
 
 #
 # Loop on section from b, section from a, and -/+90 rotations
@@ -487,18 +498,14 @@ tiltxcorr -angles 0,0 -radius2 $radius2 -sigma1 $sigma1 -sigma2 $sigma2 "$tmpsta
 		#
 		#	    echo "first simplex"
 		tail -n 1 "$tmpxcxf" >! "$tmpxfin"
-xfsimplex <<EOF  >! "$tmperrlog"
-$tmpstack
-$tmpimga
-$tmpxf1
-$tmpxfin
-,,,,,0
-3
-/
-/
-$reduce
-0
-0
+xfsimplex -StandardInput <<EOF  >! "$tmperrlog"
+AImageFile $tmpstack
+BImageFile $tmpimga
+OutputFile $tmpxf1
+InitialTransformFile $tmpxfin
+VariablesToSearch 3
+BinningToApply $reduce
+LimitsOnSearch $xlimit,$ylimit,$rotlimit
 EOF
 		if ($status) then
 		    grep ERROR "$tmperrlog"
@@ -510,18 +517,14 @@ EOF
 	    # Run xfsimplex again from there, looking for full transform
 	    #
 #echo "second simplex"
-xfsimplex  >! "$tmpxflog" <<EOF
-$tmpstack
-$tmpimga
-$tmpxf2
-$tmpxf1
-/
-0
-/
-/
-$reduce
-0
-0
+xfsimplex -StandardInput  >! "$tmpxflog" <<EOF
+AImageFile $tmpstack
+BImageFile $tmpimga
+OutputFile $tmpxf2
+InitialTransformFile $tmpxf1
+VariablesToSearch 6
+BinningToApply $reduce
+LimitsOnSearch $xlimit,$ylimit,$rotlimit,$otherlimits
 EOF
 	    if ($status) then
 		grep ERROR "$tmpxflog"
@@ -531,8 +534,8 @@ EOF
 
 	    # 
 	    # extract the difference from the log file
-	    # 
-	    set simplexout = `tail -n 1 "$tmpxflog"`
+	    # Need two lines when using natural transforms
+	    set simplexout = `tail -n 2 "$tmpxflog"`
 	    @ diff = `echo $simplexout[2] $diffscale | awk '{print int($1 * $2)}'`
 	    @ aview = $asec + 1
 	    @ bview = $bsec + 1
@@ -827,6 +830,9 @@ exit 1
 
 #
 #  $Log$
+#  Revision 3.31  2008/01/04 07:03:38  mast
+#  Fixed for space in IMOD_DIR, possibly for space in tmpdir
+#
 #  Revision 3.30  2006/08/17 18:36:55  mast
 #  Added locale statement to keep output of awk from having instead of .
 #
