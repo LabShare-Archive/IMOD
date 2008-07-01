@@ -1,0 +1,279 @@
+[Field = AImageFile]
+short = aimage
+type = FN
+usage = Input image file with reference image to be aligned to
+tooltip = 
+manpage = Input image file with reference image to be aligned to.  If this
+option is not entered, the first non-option argument will be used for this
+input file.
+
+[Field = BImageFile]
+short = bimage
+type = FN
+usage =	 Name of image file with image to align to reference
+tooltip = 
+manpage = Name of image file with image to align to reference.  If this option
+is not entered, the second non-option argument will be used for this input
+file.
+
+[Field = OutputFile]
+short = output
+type = FN
+usage = Output file for transformation
+tooltip = 
+manpage = Output file for transformation.  If this
+option is not entered, the third non-option argument will be used for this
+output file.
+
+[Field = InitialTransformFile]
+short = initial
+type = FN
+usage = Input file with transformation to start search with
+tooltip = 
+manpage = Input file with transformation to start search with.  The final
+reported transformation will include the initial one rather than being
+incremental to it.
+
+[Field = UseTransformLine]
+short = useline
+type = I
+usage = Line number of initial transform in file, numbered from 0 (default 0)
+tooltip = 
+manpage = 
+
+[Field = SectionsToUse]
+short = sections
+type = IP
+usage = Sections to use from the first and second file (default 0,0)
+tooltip = 
+manpage = 
+
+[Field = VariablesToSearch]
+short = variables
+type = I
+usage = Number of variables to search, or 0 to search for formal parameters
+tooltip = 
+manpage = Number of semi-natural variables to search, or 0 to search for formal
+parameters.  See above for the meaning and order of the variables
+selected by this option.
+
+[Field = LimitsOnSearch]
+short = limits
+type = FA
+usage = Limits for each of the variables being searched
+tooltip = 
+manpage = Limits for each of the variables being searched.  Each number
+entered specifies the maximum amount that the respective variable can change
+from its initial value.  Enter a 0 to avoid limiting a parameter.  If the
+search is being done on formal parameters, then only the first two (shift in X
+and Y) can be limited, so only 1 or 2 values can be entered.  If the search is
+on semi-natural parameters, then you can enter more or fewer values than the
+number of variables being searched.  Extra values are ignored, missing values
+are assumed to be zero.
+
+[Field = EdgeToIgnore]
+short = edge
+type = F
+usage = Fraction or number of pixels to ignore on edges of image
+tooltip = 
+manpage = Fraction or number of pixels to ignore on edges of image.  Enter a
+value less than 0.5 for a fraction, or a value greater than 1 for a number of
+pixels.  The default is 0.05.
+
+[Field = XMinAndMax]
+short = xminmax
+type = IP
+usage = Starting and ending coordinates to analyze in X (overrides -edge)
+tooltip = 
+manpage = Starting and ending coordinates to analyze in X (numbered from 1).
+This entry overrides the X coordinates implied by the -edge entry or default.
+
+[Field = YMinAndMax]
+short = yminmax
+type = IP
+usage = Starting and ending coordinates to analyze in Y (overrides -edge)
+tooltip = 
+manpage = Starting and ending coordinates to analyze in Y (numbered from 1).
+This entry overrides the Y coordinates implied by the -edge entry or default.
+
+[Field = BinningToApply]
+short = binning
+type = I
+usage = Binning to apply to images (default 2)
+tooltip = 
+manpage = Binning to apply to the images.  The default is 2.
+
+[Field = FilterSigma1]
+short = sig1
+type = F
+usage = Sigma for low-frequency inverted Gaussian filter
+tooltip = 
+manpage = Sigma value to filter low frequencies in both images with a
+curve that is an inverted Gaussian.  This filter is 0 at 0 frequency and decays
+up to 1 with the given sigma value.  However, if a negative value of radius1
+is entered, this filter will be zero from 0 to |radius1| then decay up to 1.
+
+[Field = FilterRadius1]
+short = rad1
+type = F
+usage = Left cutoff radius for filter
+tooltip = 
+manpage = Low spatial frequencies in both images will be attenuated
+by a Gaussian curve that is 1 at this cutoff radius and falls off below this
+radius with a standard deviation specified by FilterSigma2.  Spatial
+frequency units range from 0 to 0.5.  Use FilterSigma1 instead of this entry
+for more predictable attenuation of low frequencies.
+
+[Field = FilterRadius2]
+short = rad2
+type = F
+usage = Right cutoff radius for filter
+tooltip = High frequency cutoff radius for Gaussian filter
+manpage = High spatial frequencies in both images will be attenuated
+by a Gaussian curve that is 1 at this cutoff radius and falls off above this
+radius with a standard deviation specified by FilterSigma2.
+
+[Field = FilterSigma2]
+short = sig2
+type = F
+usage = Sigma for Gaussian rolloff below radius1 and above radius2
+tooltip = Sigma for Gaussian rolloff below low frequency cutoff and above 
+high frequency cutoff
+manpage = Sigma value for the Gaussian rolloff below and above the cutoff
+frequencies specified by FilterRadius1 and FilterRadius2
+
+[Field = FilterAfterBinning]
+short = after
+type = B
+usage = Apply the Fourier filter after binning data
+tooltip = 
+manpage = Apply the Fourier filter after binning data.  This will be much
+faster, but it may introduce aliased noise from the higher frequencies in the
+original data.  The radius and sigma values represent frequencies in the
+binned image, not the original image.  The default is to filter before
+binning, in which case the high frequencies can be removed before binning.
+
+[Field = SobelFilter]
+short = sobel
+type = B
+usage = Apply edge-detecting Sobel filter to images
+tooltip = 
+manpage = Apply edge-detecting Sobel filter to both images.  This filter will
+be applied after binning and filtering if any.
+
+[Field = FloatOption]
+short = float
+type = I
+usage = 0 to float to range, 1 to mean and SD, -1 not to float intensities
+tooltip = 
+manpage = 0 to float images to have the same range, 1 to float them to have
+the same mean and standard deviation, or -1 to leave intensities alone.  Only
+pixels within the range being analyzed will be considered when determining the
+scaling.  The default is 1.
+
+[Field = CorrelationCoefficient]
+short = ccc
+type = B
+usage = Compute correlation coefficient instead of image difference
+tooltip = 
+manpage = Compute the standard cross-correlation coefficient instead of
+difference between images.  The difference measure will be 1 minus the CCC.
+Low frequency filtering will probably be needed with this option.
+
+[Field = LinearInterpolation]
+short = linear
+type = B
+usage = Use linear interpolation instead of nearest pixel 
+tooltip = 
+manpage = Use linear interpolation instead of nearest pixel interpolation when
+computing image differences or correlation coefficients.
+
+[Field = DistanceMeasure]
+short = distance
+type = B
+usage = Use distance instead of difference or correlation measure
+tooltip = 
+manpage = 
+
+[Field = NearestDistance]
+short = near
+type = I
+usage = Distance to search to eliminate redundant points, 0 not to
+tooltip = 
+manpage = Distance to search to eliminate redundant points, or 0 not to
+search, when using the distance measure.  The default is 0 for # of pixels <
+240*180, 1 if # of pixels is between 240*180 and 480*360, 2 if # of pixels >
+480*360.
+
+[Field = RadiusToSearch]
+short = radius
+type = F
+usage = Radius to search for matching pixels
+tooltip = 
+manpage = Radius to search for matching pixels when using the distance
+measure.  The default is 4 if binning by 2, or 5 if not.
+
+[Field = DensityDifference]
+short = density
+type = F
+usage = Maximum density difference for match as a fraction of the range
+tooltip = 
+manpage = Maximum density difference that constitutes a match when using the
+distance measure, as a fraction of the density range.  The default is 0.05.
+
+[Field = PercentileRanges]
+short = percent
+type = FA
+usage = Lower and upper limits of percentile ranges to match
+tooltip = 
+manpage = Lower and upper limits of percentile ranges to match.  The default
+is to have two ranges, i.e., 0,8,92,100, for images less than 320*240, scaling
+down to 5% ranges as image size increases from 320*240 to 640*480.
+
+[Field = CoarseTolerances]
+short = coarse
+type = FP
+usage = Fractional tolerances in difference and parameters for initial search
+tooltip = 
+manpage = Fractional tolerances in difference and parameters for the initial
+search.  Enter 0,0 to skip the initial search.  The default values are 0.005
+and 0.2 of the basic step size.
+
+[Field = FinalTolerances]
+short = final
+type = FP
+usage = Fractional tolerances in difference and parameters for final search
+tooltip = 
+manpage = Fractional tolerances in difference and parameters for the final or
+only search.  The default values are 0.0005 and 0.02 of the basic step size,
+or 0.001 and 0.04 for images no bigger than 128 by 128.
+
+[Field = StepSizeFactor]
+short = step
+type = F
+usage = Factor for initial step size (default 2)
+tooltip = 
+manpage = Factor to multiply basic step size by to get initial step size.  The
+default is 2.
+
+[Field = TraceOutput]
+short = trace
+type = I
+usage = 1 for output at each step, 2 for output at new minima
+tooltip = 
+manpage = 
+
+[Field = ParameterFile]
+short = param
+type = PF
+usage = Read parameter entries from file
+tooltip = 
+manpage = Read parameter entries as keyword-value pairs from a parameter file.
+
+[Field = usage]
+short = help
+type = B
+usage = Print help output
+tooltip = 
+manpage = 
+
