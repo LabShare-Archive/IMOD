@@ -10,58 +10,25 @@ c
 *       David Mastronarde 4/5/91 (adapted from XFSEARCH)
 *       
 ************************************************************************
-c       $Author$
-c       
-c       $Date$
-c       
-c       $Revision$
-c       
-c       $Log$
-c       Revision 3.9  2006/06/18 19:37:59  mast
-c       Changed to use new C function for amoeba
 c
-c       Revision 3.8  2006/06/08 18:31:15  mast
-c       Changed to read in data binned and to handle 4x2K after binning
-c
-c       Revision 3.7  2006/05/14 03:13:15  mast
-c       Output normalized difference and distance measures, standardize
-c       error outputs
-c
-c       Revision 3.6  2005/05/26 04:34:52  mast
-c       Made sums args for iclavgsd real*8
-c	
-c       Revision 3.5  2003/12/24 19:07:27  mast
-c       Moved amoeba subroutine to a library
-c	
-c       Revision 3.4  2002/08/20 19:23:48  mast
-c       Didn't change both calls to iclavgsd
-c	
-c       Revision 3.3  2002/08/18 23:13:05  mast
-c       Changed to call iclavgsd in library
-c	
-c       Revision 3.2  2002/05/20 15:47:33  mast
-c       Made the DIFF function put out a very high value when the number of
-c       pixels evaluated falls below 1% of total pixels, to keep it from
-c       running away into impossible shifts.  Also increased dimensions of
-c       input array to allow 4Kx4K images.
-c	
-c       Revision 3.1  2002/04/29 16:18:37  mast
-c       Added test to keep it from failing when images match perfectly
-c	
+c       $Id$
+c       Log at end of file
 *       
-      parameter (idima=4100*2100, lenTemp = 32000*64)
-      parameter (isub=idima/3,limspir=1000)
+      implicit none
+      integer idima, idimb, lenTemp, isub,limspir,isubp1,isubt2,isubt25
+      parameter (idima=8200*8200, idimb = 4100*4100, lenTemp = 32000*64)
+      parameter (isub=idimb/3,limspir=1000)
       parameter (isubp1=isub+1, isubt2=2*isub+1, isubt25=2.5*isub+2)
+      integer*4 NX,NY,NZ, NXYZ(3),MXYZ(3),NXYZST(3), nxyz2(3)
       COMMON //NX,NY,NZ
-      integer*4 NXYZ(3),MXYZ(3),NXYZST(3)
       EQUIVALENCE (NX,NXYZ)
 C       
       CHARACTER*160 FILIN1,FILIN2,DATOUT,xfinfile
 C       
       real*4 temp(lenTemp)
-      DATA NXYZST/0,0,0/
-      real*4 a(6),da(6),amat(2,2),anat(6),danat(6),acall(6)
-      real*4 pp(7,7),yy(7),ptmp(6),ptol(6)
+      data NXYZST/0,0,0/
+      real*4 a(6),da(6),amat(2,2),anat(6),danat(6),acall(6),alimits(2,6)
+      real*4 pp(7,7),yy(7),ptmp(6),ptol(6), ctf(8193)
 c       if doing formal params, the a(i) are DX, DY, a11,a12,a21, and a22
 c       for natural paramas, the a(i) are DX and DY, Global rotation, global
 c       stretch, difference between Y&X-axis stretch, and difference
@@ -84,19 +51,61 @@ c
       equivalence (pclo(1),percen(1,1)),(pchi(1),percen(1,2))
 c       array for second image if doing diffs, using same storage as
 c       all the arrays for doing distances
-      real*4 brray(idima),ARRAY(idima)
+      real*4 brray(idimb),ARRAY(idima)
       external func
       equivalence (brray(1),denlo(1)),(brray(isubp1),denhi(1))
      &    ,(brray(isubt2),ixcomp(1)),(brray(isubt25),iycomp(1))
-      common /funcom/ array,brray,idxspir,idyspir,distspir,mattx,
-     &    matty, interp,natural,ncompare,nspiral,ifdist,iftrace,rds,
-     &    ntrial, deltmin,sd1,ivend,acall
+      integer*4 nx1,nx2,ny1,ny2, interp,natural,ncompare,nspiral,ifdist,iftrace
+      real*4 rds, deltmin,sd1,pmlim(6)
+      integer*4 ntrial, ivend,ifccc
+      common /funcom/ array,brray,idxspir,idyspir,distspir,nx1,nx2,ny1,ny2,
+     &    interp,natural,ncompare,nspiral,ifdist,iftrace,rds,
+     &    ntrial, deltmin,sd1,ivend,acall,alimits, ifccc
 C       
 c       default values for potentially input parameters
-      data ftol1/5.e-4/,ptol1/.02/,ftol2/5.e-3/,ptol2/.2/
-      data delfac/2/
-      data iflmean/1/,ibinning/2/
-      data idredun/0/,radius/4/,difflim/0.05/,nrange/2/
+      real*4 ftol1/5.e-4/,ptol1/.02/,ftol2/5.e-3/,ptol2/.2/
+      real*4 delfac/2/
+      integer*4 iflmean/1/,ibinning/2/,nrange/2/,idredun/0/
+      real*4 radius/4/,difflim/0.05/
+c       
+      integer*4 mode,ierr,ivst,ii,jj,i,numLimit
+      integer*4 npixel,ibase,mattx, matty,ixy,ind,iran,lohi
+      real*4 fracmatt,DMIN,DMAX,DMEAN,pcrange,DMIN2,DMAX2,DMEAN2,sd2
+      real*4 histscal,val,ix,iy,ixm,iym,ixp,ic,ixcm,iycm,DMIN1,DMAX1,DMEAN1
+      integer*4 ncrit,limdxy,idx,idy,j,itmp,iter,jmin,izref,izali, npad, nxpad
+      integer*4 nypad, nxorig, nyorig, ifSobel, ifFiltAfter, lineuse
+      integer*4 ifXminmax, ifYminmax
+      real*4 scale,dadd,window,valscl,dstnc,DELMIN,ptfac,tmp
+      real*4 sigma1,sigma2,radius1,radius2, deltac
+      integer*4 niceframe
+c
+      logical pipinput
+      integer*4 numOptArg, numNonOptArg
+      integer*4 PipGetString,PipGetInteger,PipGetFloat,PipGetTwoFloats
+      integer*4 PipGetInOutFile,PipGetBoolean,PipGetFloatArray
+      integer*4 PipGetTwoIntegers
+c       
+c       fallbacks from ../../manpages/autodoc2man -2 2  xfsimplex
+c       
+      integer numOptions
+      parameter (numOptions = 32)
+      character*(40 * numOptions) options(1)
+      options(1) =
+     &    'aimage:AImageFile:FN:@bimage:BImageFile:FN:@'//
+     &    'output:OutputFile:FN:@initial:InitialTransformFile:FN:@'//
+     &    'useline:UseTransformLine:I:@sections:SectionsToUse:IP:@'//
+     &    'coarse:CoarseTolerances:FP:@final:FinalTolerances:FP:@'//
+     &    'step:StepSizeFactor:F:@trace:TraceOutput:I:@'//
+     &    'variables:VariablesToSearch:I:@limits:LimitsOnSearch:FA:@'//
+     &    'edge:EdgeToIgnore:F:@xminmax:XMinAndMax:IP:@'//
+     &    'yminmax:YMinAndMax:IP:@float:FloatOption:I:@'//
+     &    'binning:BinningToApply:I:@distance:DistanceMeasure:B:@'//
+     &    'linear:LinearInterpolation:B:@near:NearestDistance:I:@'//
+     &    'radius:RadiusToSearch:F:@density:DensityDifference:F:@'//
+     &    'percent:PercentileRanges:FA:@rad1:FilterRadius1:F:@'//
+     &    'rad2:FilterRadius2:F:@sig1:FilterSigma1:F:@sig2:FilterSigma2:F:@'//
+     &    'after:FilterAfterBinning:B:@sobel:SobelFilter:B:@'//
+     &    'ccc:CorrelationCoefficient:B:@param:ParameterFile:PF:@help:usage:B:'
 c       
 c       default values for parameters in common and equivalenced arrays
 c       
@@ -109,18 +118,46 @@ c
       ifdist=0
       natural=0
       interp=0
-      call setExitPrefix('ERROR: XFSIMPLEX - ')
+      izref = 0
+      izali = 0
+      do i = 1,6
+        alimits(1,i) = 0
+        alimits(2,i) = 0
+      enddo
+      ifFiltAfter = 0
+      sigma1 = 0.
+      sigma2 = 0.
+      radius1 = 0.
+      radius2 = 0.
+      npad = 16
+      ifSobel = 0
+      ifccc = 0
+      lineuse = 0
+      ifXminmax = 0
+      ifYminmax = 0
 c       
-      write(*,'(1x,a,$)')'First image file: '
-      READ (5,40)FILIN1
-      write(*,'(1x,a,$)')'Second image file: '
-      READ (5,40)FILIN2
-      write(*,'(1x,a,$)')'Transform output file: '
-      READ (5,40)DATOUT
-      write(*,'(1x,a,$)')
-     &    'File with starting transform, or Return if none: '
-      READ (5,40)xfinfile
-40    FORMAT (A)
+c       Pip startup: set error, parse options, check help, set flag if used
+c       
+      call PipReadOrParseOptions(options, numOptions, 'xfsimplex',
+     &    'ERROR: XFSIMPLEX - ', .true., 3, 2, 1, numOptArg,
+     &    numNonOptArg)
+      pipinput = numOptArg + numNonOptArg .gt. 0
+c       
+      if (PipGetInOutFile('AImageFile', 1, 'Enter first image file name',
+     &    filin1) .ne. 0)call exitError('NO FIRST IMAGE FILE SPECIFIED')
+      if (PipGetInOutFile('BImageFile', 2, 'Enter second image file name',
+     &    filin2) .ne. 0)call exitError('NO SECOND IMAGE FILE SPECIFIED')
+      if (PipGetInOutFile('OutputFile', 3, 'Transform output file name',
+     &    datout) .ne. 0)call exitError('NO TRANSFORM OUTPUT FILE SPECIFIED')
+      if (pipinput) then
+        xfinfile = ' '
+        ierr = PipGetString('InitialTransformFile', xfinfile)
+      else
+        write(*,'(1x,a,$)')
+     &      'File with starting transform, or Return if none: '
+        READ (5,40)xfinfile
+40      FORMAT (A)
+      endif
 c       
 c       open file now to get sizes and try to adjust defaults
 c       
@@ -133,20 +170,35 @@ c
         ptol1=2.*ptol1
       endif
 c       
-      write(*,'(1x,a,/,a,/,a,/,a,f6.4,f5.2,f7.4,f5.2,f4.1,i2,a,$)')
-     &    'Enter fractional tolerances in difference measure and'//
-     &    ' in parameter values','   for terminating final search,'//
-     &    ' corresponding tolerances for initial search',
-     &    '   (or 0,0 for only one search), factor for initial'//
-     &    ' step size, and 1 or 2 for','    trace output ['
-     &    ,ftol1,ptol1,ftol2,ptol2,delfac,iftrace,']: '
-      read(5,*)ftol1,ptol1,ftol2,ptol2,delfac,iftrace
+      if (pipinput) then
+        ierr = PipGetTwoFloats('CoarseTolerances', ftol2, ptol2)
+        ierr = PipGetTwoFloats('FinalTolerances', ftol1, ptol1)
+        ierr = PipGetFloat('StepSizeFactor', delfac)
+        ierr = PipGetInteger('TraceOutput', iftrace)
+        ierr = PipGetInteger('UseTransformLine', lineuse)
+        if (lineuse .lt. 0) goto 95
+      else
+        write(*,'(1x,a,/,a,/,a,/,a,f6.4,f5.2,f7.4,f5.2,f4.1,i2,a,$)')
+     &      'Enter fractional tolerances in difference measure and'//
+     &      ' in parameter values','   for terminating final search,'//
+     &      ' corresponding tolerances for initial search',
+     &      '   (or 0,0 for only one search), factor for initial'//
+     &      ' step size, and 1 or 2 for','    trace output ['
+     &      ,ftol1,ptol1,ftol2,ptol2,delfac,iftrace,']: '
+        read(5,*)ftol1,ptol1,ftol2,ptol2,delfac,iftrace
+      endif
       trace=iftrace.gt.0
 C       
-13    write(*,'(1x,a,i1,a,$)')'0 to search 6 formal variables,'//
-     &    ' or # of natural variables to search [',natural,']: '
-      read(*,*)natural
-      if(natural.lt.0.or.natural.gt.6)go to 13
+      if (pipinput) then
+        ierr = PipGetInteger('VariablesToSearch', natural)
+        if(natural.lt.0.or.natural.gt.6)call exitError(
+     &      'NUMBER OF VARIABLES TO SEARCH IS OUT OF RANGE')
+      else
+13      write(*,'(1x,a,i1,a,$)')'0 to search 6 formal variables,'//
+     &      ' or # of natural variables to search [',natural,']: '
+        read(*,*)natural
+        if(natural.lt.0.or.natural.gt.6)go to 13
+      endif
       ivst=1
       if(natural.eq.0)then			!all six formal params
         ivend=6
@@ -162,7 +214,9 @@ c       if reading in a transform, get it and convert to natural if necessary
 c       
       if(xfinfile.ne.' ')then
         call dopen(1,xfinfile,'old','f')
-        read(1,*)((amat(ii,jj),jj=1,2),ii=1,2),a(1),a(2)
+        do i = 0, lineuse
+          read(1,*,err=94,end=95)((amat(ii,jj),jj=1,2),ii=1,2),a(1),a(2)
+        enddo
         if(natural.eq.0)then
           a(3)=amat(1,1)
           a(4)=amat(1,2)
@@ -177,27 +231,57 @@ c
         acall(i)=a(i)
       enddo
 c       
-      write(*,'(1x,a,f4.2,a,$)')'edge fraction to ignore ['
-     &    ,fracmatt,']: '
-      read(*,*)fracmatt
+      numLimit = 0
+      if (pipinput) then
+        ierr = PipGetFloat('EdgeToIgnore', fracmatt)
+        ierr = PipGetInteger('FloatOption', iflmean)
+        ierr = PipGetInteger('BinningToApply', ibinning)
+        ierr = PipGetBoolean('DistanceMeasure', ifdist)
+        ierr = PipGetTwoIntegers('SectionsToUse', izref, izali)
+        ierr = PipGetFloat('FilterSigma1', sigma1)
+        ierr = PipGetFloat('FilterSigma2', sigma2)
+        ierr = PipGetFloat('FilterRadius1', radius1)
+        ierr = PipGetFloat('FilterRadius2', radius2)
+        ierr = PipGetBoolean('FilterAfterBinning', ifFiltAfter)
+        ierr = PipGetBoolean('SobelFilter', ifSobel)
+        ierr = PipGetBoolean('CorrelationCoefficient', ifCCC)
+        ibinning = max(1, ibinning)
+        ifXminmax = 1 - PipGetTwoIntegers('XMinAndMax', nx1, nx2)
+        ifYminmax = 1 - PipGetTwoIntegers('YMinAndMax', ny1, ny2)
+c         
+c         Get search limits
+        if (PipGetFloatArray('LimitsOnSearch', pmlim, numLimit, 6) .eq. 0) then
+          if (natural .eq. 0 .and. numLimit .gt. 2) call exitError(
+     &        'YOU CAN LIMIT ONLY X AND Y SHIFTS WHEN SEARCHING FOR FORMAL '//
+     &        'PARAMETERS; TRY -variables O6')
+          if (natural .gt. 0) numLimit = min(numLimit, natural)
+          pmlim(1) = pmlim(1) / ibinning
+          pmlim(2) = pmlim(2) / ibinning
+        endif
+      else
+        write(*,'(1x,a,f4.2,a,$)')'edge fraction to ignore [' ,fracmatt,']: '
+        read(*,*)fracmatt
 c       
-      write(*,'(1x,a,i1,a,$)')'0 to float to range,'//
-     &    ' 1 to float to mean&sd, -1 no float [',iflmean,']: '
-      read(*,*)iflmean
+        write(*,'(1x,a,i1,a,$)')'0 to float to range,'//
+     &      ' 1 to float to mean&sd, -1 no float [',iflmean,']: '
+        read(*,*)iflmean
 c       
-      write(*,'(1x,a,i1,a,$)')'Binning to apply to image ['
-     &    ,ibinning,']: '
-      read(*,*)ibinning
-      ibinning = max(1, ibinning)
+        write(*,'(1x,a,i1,a,$)')'Binning to apply to image [' ,ibinning,']: '
+        read(*,*)ibinning
+        ibinning = max(1, ibinning)
 c       
-      write(*,'(1x,a,i1,a,$)')'0 for difference,'//
-     &    ' 1 for distance measure [',ifdist,']: '
-      read(*,*)ifdist
+        write(*,'(1x,a,i1,a,$)')'0 for difference,'//
+     &      ' 1 for distance measure [',ifdist,']: '
+        read(*,*)ifdist
+      endif
 c       
       if(ifdist.eq.0)then
-        write(*,'(1x,a,i1,a,$)')'1 to use interpolation ['
-     &      ,interp,']: '
-        read(*,*)interp
+        if (pipinput) then
+          ierr = PipGetBoolean('LinearInterpolation', interp)
+        else
+          write(*,'(1x,a,i1,a,$)')'1 to use interpolation [' ,interp,']: '
+          read(*,*)interp
+        endif
       else
 c         
 c         change defaults based on image size and reduction by 2
@@ -225,28 +309,44 @@ c
         pchi(1)=pcrange
         pclo(2)=100.-pcrange
 c         
-        write(*,'(1x,a,i1,a,$)')'distance to search for and'//
-     &      ' eliminate redundancy, 0 not to [',idredun,']: '
-        read(*,*)idredun
+        if (pipinput) then
+          ierr = PipGetInteger('NearestDistance', idredun)
+          ierr = PipGetFloat('RadiusToSearch', radius)
+          ierr = PipGetFloat('DensityDifference', difflim)
+          ibase = 0
+          if (PipGetFloatArray('PercentileRanges', array, ibase, 20) .eq. 0)
+     &        then
+            if (mod(ibase,2) .ne. 0) call exitError(
+     &          'YOU MUST ENTER AN EVEN NUMBER OF VALUES FOR PercentileRanges')
+            nrange = ibase / 2
+            do i = 1, nrange
+              pclo(i) = array(2 * i - 1)
+              pchi(i) = array(2 * i)
+            enddo
+          endif
+        else
+          write(*,'(1x,a,i1,a,$)')'distance to search for and'//
+     &        ' eliminate redundancy, 0 not to [',idredun,']: '
+          read(*,*)idredun
 c         
-c         get density window and search radius
-        write(*,'(1x,a,f3.1,a,$)')'radius to search for match ['
-     &      ,radius,']: '
-        read(*,*)radius
+c           get density window and search radius
+          write(*,'(1x,a,f3.1,a,$)')'radius to search for match [',radius,']: '
+          read(*,*)radius
 c         
-        write(*,'(1x,a,f4.2,a,$)')'max density difference for match'
-     &      //' as fraction of range [',difflim,']: '
-        read(*,*)difflim
+          write(*,'(1x,a,f4.2,a,$)')'max density difference for match'
+     &        //' as fraction of range [',difflim,']: '
+          read(*,*)difflim
 c         
-        write(*,'(1x,a,i1,a,$)')'number of percentile ranges ['
-     &      ,nrange,']: '
-        read(*,*)nrange
+          write(*,'(1x,a,i1,a,$)')'number of percentile ranges [' ,nrange,']: '
+          read(*,*)nrange
 c         
-c         get percentile ranges
-        write(*,'(1x,a,6f6.1)')'lower and upper percentiles'//
-     &      ' in ranges - defaults:',(pclo(i),pchi(i),i=1,nrange)
-        read(*,*)(pclo(i),pchi(i),i=1,nrange)
+c           get percentile ranges
+          write(*,'(1x,a,6f6.1)')'lower and upper percentiles'//
+     &        ' in ranges - defaults:',(pclo(i),pchi(i),i=1,nrange)
+          read(*,*)(pclo(i),pchi(i),i=1,nrange)
+        endif
       endif
+      call PipDone()
 C       
       call ialprt(.true.)
       call imclose(1)
@@ -255,28 +355,53 @@ C       NOTE: ABSOLUTELY NEED TO READ HEADER AGAIN
       CALL IRDHDR(1,NXYZ,MXYZ,MODE,DMIN,DMAX,DMEAN)
 C       
       CALL IMOPEN(2,FILIN2,'RO')
-      CALL IRDHDR(2,NXYZ,MXYZ,MODE,DMIN,DMAX,DMEAN)
+      CALL IRDHDR(2,NXYZ2,MXYZ,MODE,DMIN,DMAX,DMEAN)
+      if (nxyz2(1) .ne. nx .or. nxyz(2) .ne. ny) call exitError(
+     &    'THE TWO IMAGES MUST BE THE SAME SIZE IN X AND Y')
+      if (izref .lt. 0 .or. izref .ge. nz .or. izali .lt. 0 .or.
+     &    izali .ge. nxyz2(3)) call exitError(
+     &    'ONE OF THE SECTION NUMBERS IS OUT OF RANGE')
 C       
 C       Open data file for transform
 C       
       CALL DOPEN(4,DATOUT,'NEW','F')
 C       
+c       Get possibly filtered sizes, and check dimensions
+      nxorig = nx
+      nyorig = ny
       nx = nx / ibinning
       ny = ny / ibinning
-      if (nx*ny.gt.idima) goto 94
-C       just get second section to work with 
-      call irdbinned(2,0, array,nx, ny, 0, 0, ibinning, nx, ny, temp, lentemp,
-     &    ierr)
-      if (ierr .ne. 0) goto 99
+      if (ifFiltAfter .eq. 0) then
+        nxpad = niceframe(nxorig + npad, 2, 19)
+        nypad = niceframe(nyorig + npad, 2, 19)
+      else
+        nxpad = niceframe(nx + npad, 2, 19)
+        nypad = niceframe(ny + npad, 2, 19)
+      endif
+      call setctfwsr(sigma1,sigma2,radius1,radius2,ctf,nxpad,nypad,deltac)
+
+      if (nx*ny.gt.idimb .or. (deltac.ne.0. .and. (nxpad+2)*nypad.gt.idima))
+     &    call exiterror('IMAGE TOO BIG FOR ARRAYS - USE HIGHER BINNING OR '//
+     &    'FILTER AFTER BINNING')
 c       
+c       Reduce the shift parameters, and set the limits now that shift is set
       rds=ibinning
       da(1)=da(1)/rds
       da(2)=da(2)/rds
       a(1)=a(1)/rds
       a(2)=a(2)/rds
-
-c       check reduced size against size of B
-
+      do i = 1, numLimit
+        if (pmlim(i) .ge. 0.) then
+          alimits(1,i) = a(i) - pmlim(i)
+          alimits(2,i) = a(i) + pmlim(i)
+        endif
+      enddo
+c
+C       just get second section to work with 
+      call readFilterSection(2, array, izali, nxorig, nyorig, nx, ny,
+     &    nxpad, nypad, ibinning, ctf, deltac, ifFiltAfter, ifSobel, temp,
+     &    lenTemp)
+c
 c       Just deal with points in central portion
       if(fracmatt.ge.1.)then
         mattx=nint(fracmatt/rds)
@@ -284,14 +409,31 @@ c       Just deal with points in central portion
       else
         mattx=max(0,NINT(FLOAT(NX)*fracmatt))
         matty=max(0,NINT(FLOAT(NY)*fracmatt))
-      endif	  
-      NX1 = 1+mattx 
-      NX2 = NX-mattx
-      NY1 = 1+matty 
-      NY2 = NY-matty
+      endif
+      if (mattx .ge. 0.49 * nx .or. matty .ge. 0.49 * ny) call exitError(
+     &    'FRACTION OR NUMBER OF PIXELS TO IGNORE IS TOO LARGE')
+      if (ifXminmax .ne. 0) then
+        nx1 = (nx1 + ibinning - 1) / ibinning
+        nx2 = nx2 / ibinning
+        if (nx1 .le. 0 .or. nx2 .gt. nx .or. nx1 .ge. nx2) call exitError
+     &      ('STARTING AND ENDING X VALUES OUT OF RANGE OR REVERSED')
+      else
+        NX1 = 1+mattx 
+        NX2 = NX-mattx
+      endif
+      if (ifYminmax .ne. 0) then
+        ny1 = (ny1 + ibinning - 1) / ibinning
+        ny2 = ny2 / ibinning
+        if (ny1 .le. 0 .or. ny2 .gt. ny .or. ny1 .ge. ny2) call exitError
+     &      ('STARTING AND ENDING Y VALUES OUT OF RANGE OR REVERSED')
+      else
+        NY1 = 1+matty 
+        NY2 = NY-matty
+      endif
 C       
-      CALL ICLavgsd(ARRAY,nx,ny,NX1,NX2,NY1,NY2
-     &    ,DMIN2,DMAX2,tsum,tsumsq,DMEAN2,sd2)
+      print *,nx1,nx2,ny1,ny2
+      CALL ICLavgsd(ARRAY,nx,ny,NX1,NX2,NY1,NY2 ,DMIN2,DMAX2,tsum,tsumsq,
+     &    DMEAN2,sd2)
 C       
       if(ifdist.eq.0)then
 c         if doing simple difference measure, move array into brray
@@ -368,13 +510,14 @@ c                 just store density temporarily here
         enddo
         print *,ncompare,' points for comparison'
       endif
+c
 C       Now get first section
-      call irdbinned(1,0, array,nx, ny, 0, 0, ibinning, nx, ny, temp, lentemp,
-     &    ierr)
-      if (ierr .ne. 0) goto 99
+      call readFilterSection(1, array, izref, nxorig, nyorig, nx, ny,
+     &    nxpad, nypad, ibinning, ctf, deltac, ifFiltAfter, ifSobel, temp,
+     &    lenTemp)
 C       
-      CALL ICLavgsd(ARRAY,nx,ny,NX1,NX2,NY1,NY2
-     &    ,DMIN1,DMAX1,tsum,tsumsq,DMEAN1,sd1)
+      CALL ICLavgsd(ARRAY,nx,ny,NX1,NX2,NY1,NY2 ,DMIN1,DMAX1,tsum,tsumsq,
+     &    DMEAN1,sd1)
 C       
 c       get scale factor for floating second array densities to match that
 c       of first
@@ -392,8 +535,8 @@ c         for simple difference, rescale whole array
         do ixy=1,nx*ny
           brray(ixy)=SCALE*brray(ixy)+dadd
         enddo
-        CALL DIFF(DELMIN,ARRAY,BRRAY,sd1,A,NX,NY,MATTX,MATTY
-     &      ,interp,natural)
+        CALL DIFF(DELMIN,ARRAY,BRRAY,sd1,A,alimits,NX,NY,nx1,nx2,ny1,ny2,
+     &      interp,natural, ifCCC)
       else
 c         otherwise, for distance,
 c         rescale list of densities and add lower and upper window
@@ -434,7 +577,7 @@ c         order them by distance
           enddo
         enddo
 C         
-        CALL DIST(DELMIN,ARRAY,A,NX,NY,ixcomp,iycomp,
+        CALL DIST(DELMIN,ARRAY,A,alimits,NX,NY,ixcomp,iycomp,
      &      denlo, denhi,ncompare,idxspir,idyspir,distspir,nspiral
      &      ,natural)
 c         
@@ -464,6 +607,7 @@ C
         enddo
       endif
 c       
+c       DEPENDENCY: transferfid expects two lines with natural params
       PRINT *,' FINAL VALUES'
       write(*,72)ntrial,yy(jmin),(a(ii),ii=3,6),rds*a(1),rds*a(2)
 72    format(i5,f14.7,4f10.5,2f10.3)
@@ -482,8 +626,8 @@ C
 C       
       call exit(0)
 C       
-94    call exiterror('IMAGE TOO BIG FOR ARRAYS - USE HIGHER BINNING')
-99    call exiterror('READING FILE')
+94    call exitError('READING INITIAL TRANSFORM FILE')
+95    call exitError('INITIAL TRANSFORM NUMBER OUT OF RANGE')
       END
 C       
 *********************************************************************
@@ -492,13 +636,19 @@ C
 *       
 *******************************************************************
 C       
-      subroutine DIST(DELTA,ARRAY,A,NX,NY,
-     &    ixcomp,iycomp,denlo,denhi,ncompare,
-     &    idxspir,idyspir,distspir,nspiral,natural)
+      subroutine DIST(DELTA,ARRAY,A,alimits,NX,NY, ixcomp,iycomp,denlo,denhi,
+     &    ncompare, idxspir,idyspir,distspir,nspiral,natural)
+      implicit none
 C       
-      DIMENSION ARRAY(nx,ny),A(6),amat(2,2)
+      integer*4 NX,NY,ncompare,nspiral,natural
+      real*4 DELTA
+      real*4 ARRAY(nx,ny),A(6),amat(2,2),alimits(2,6)
       integer*2 ixcomp(*),iycomp(*)
-      dimension denlo(*),denhi(*),idxspir(*),idyspir(*),distspir(*)
+      real*4 denlo(*),denhi(*),distspir(*)
+      integer*4 idxspir(*),idyspir(*)
+      real*4 xcen, ycen, xadd, yadd,FJ,FI,dstnc,critlo,crithi,den1,distmax
+      integer*4 ispir,ixa,iya,icomp,ix,iy
+      real*4 delfac,outsideMultiplier
 C       
       XCEN=FLOAT(NX)*0.5+1
       YCEN=FLOAT(NY)*0.5+1
@@ -543,28 +693,35 @@ C
 c       5/13/06: Normalize to per comparison point to match normalization
 c       of difference measure
 c       
-      delta=delta/ncompare
+      delfac = outsideMultiplier(a, alimits)
+      delta=delfac * delta/ncompare
       RETURN
 C       
       END
 C       
-      SUBROUTINE DIFF(DELTA,ARRAY,BRRAY,sd,A,NX,NY,MATTX,MATTY
-     &    ,interp,natural)
+      SUBROUTINE DIFF(DELTA,ARRAY,BRRAY,sd,A,alimits,NX,NY,nx1,nx2,ny1,ny2
+     &    ,interp,natural, ifCCC)
 C       
-      DIMENSION ARRAY(nx,ny),BRRAY(nx,ny),A(6),amat(2,2)
+      implicit none
+      integer*4 NX,NY,nx1,nx2,ny1,ny2,interp,natural, ifCCC
+      real*4 ARRAY(nx,ny),BRRAY(nx,ny),A(6),amat(2,2),alimits(2,6)
+      real*4 DELTA,sd
 C       
       real*4 deltalast/0./
       save deltalast
+      real*4 xcen, ycen, xadd,yadd,fj,fi,x,y,fx,fx1,fy,fy1,den, delfac, ccc
+      integer*4 npix,j, i, ix, iy, ix1, iy1
+      real*8 sx, sy, sxy, sxsq, sysq
+      real*4 outsideMultiplier
 
       DELTA=0.
+      sx = 0.
+      sy = 0.
+      sxy = 0.
+      sxsq = 0.
+      sysq = 0.
       XCEN=FLOAT(NX)*0.5+1			!use +1 to be consistent
       YCEN=FLOAT(NY)*0.5+1			!with qdinterp usage
-C       
-C       
-      NX1 = 1+mattx 
-      NX2 = NX-mattx
-      NY1 = 1+matty 
-      NY2 = NY-matty
 C       
       if(natural.eq.0)then
         amat(1,1)=a(3)
@@ -590,7 +747,15 @@ C
 C             
             if(ix.ge.1.and.ix.le.nx.and.iy.ge.1.and.iy.le.ny)then
 C               
-              delta = delta + abs(array(ix,iy)- brray(I,J))
+              if (ifCCC .eq. 0) then
+                sx = sx + abs(array(ix,iy)- brray(I,J))
+              else
+                sx = sx + array(ix,iy)
+                sy = sy + brray(i,j)
+                sxy = sxy + array(ix,iy) * brray(i,j)
+                sxsq = sxsq + array(ix,iy)**2
+                sysq = sysq + brray(i,j)**2
+              endif
               npix=npix+1
             endif
 C             
@@ -624,7 +789,15 @@ c               IY = MIN(NY-1,MAX(IY,1))
               den=array(ix,iy)*fx*fy+array(ix1,iy)*fx1*fy+
      &            array(ix,iy1)*fx*fy1+array(ix1,iy1)*fx1*fy1
 C               
-              delta = delta + abs(den- brray(I,J))
+              if (ifCCC .eq. 0) then
+                sx = sx + abs(den- brray(I,J))
+              else
+                sx = sx + den
+                sy = sy + brray(i,j)
+                sxy = sxy + den * brray(i,j)
+                sxsq = sxsq + den**2
+                sysq = sysq + brray(i,j)**2
+              endif
               npix=npix+1
             endif
 c	      
@@ -633,13 +806,26 @@ C
 C	    
         ENDDO
       endif
+      if (ifCCC .eq. 0) then
+        delta = sx / (npix * sd)
+      else
+        den = (npix * sxsq - sx**2) * (npix * sysq - sy**2)
+        if (den .le. 0) then
+          ccc = 0.
+        else
+          ccc = (npix * sxy - sx * sy) / sqrt(den)
+        endif
+        delta = 1. - ccc
+      endif
+c       
+      delfac = outsideMultiplier(a, alimits)
+      delta = delta * delfac
 C       
 c       DNM 5/17/02: if the number of pixels falls below a small threshold
 c       return a big delta; otherwise adjust for # of pixels and save value
 c       5/13/06: Normalize to # of Sds difference per pixel
 c       
-      if (npix.gt.0.02*(nx2+1-nx1)*(ny2+1-ny1))then
-        delta=delta/(npix * sd)
+      if (delfac .gt. 1. .or. npix.gt.0.02*(nx2+1-nx1)*(ny2+1-ny1))then
         deltalast=delta
       else
         delta = 10.*deltalast
@@ -648,36 +834,61 @@ c
 C       
       END
       
+c       
+c       find a multiplier for the delta factor if outside limits
+c
+      real*4 function outsideMultiplier(a, alimits)
+      implicit none
+      real*4 a(6), alimits(2,6),delfac,outside
+      integer*4 i
+      delfac = 1.
+      do i = 1, 6
+        if (alimits(1,i) .lt. alimits(2,i)) then
+          outside = max(a(i) - alimits(2,i), alimits(1,i) - a(i)) /
+     &        (alimits(2,i) - alimits(1,i))
+          if (outside .gt. 0.) delfac = max(delfac, 100.**min(5., outside))
+        endif
+      enddo
+      outsideMultiplier = delfac
+      return 
+      end
 
 
 c       Function to be called by minimization routine
 c       
       subroutine func(x, error)
-      real*4 x(*),a(6), error
-      parameter (limspir=1000,idima=4100*2100)
-      parameter (isub=idima/3)
+      implicit none
+      integer idima, idimb, lenTemp, isub,limspir,isubp1,isubt2,isubt25
+      real*4 x(*),a(6), error, alimits(2,6)
+      parameter (limspir=1000,idima=8200*8200,idimb=4100*4100)
+      parameter (isub=idimb/3)
       parameter (isubp1=isub+1, isubt2=2*isub+1, isubt25=2.5*isub+2)
+      integer*4 nx,ny,nz
       COMMON //NX,NY,NZ
-      real*4 array(idima),brray(idima)
+      real*4 array(idima),brray(idimb)
       integer*4 idxspir(limspir),idyspir(limspir)
       integer*2 ixcomp(isub),iycomp(isub)
-      real*4 distspir(limspir),denlo(isub),denhi(isub)
+      real*4 distspir(limspir),denlo(isub),denhi(isub),delta
       equivalence (brray(1),denlo(1)),(brray(isubp1),denhi(1))
      &    ,(brray(isubt2),ixcomp(1)),(brray(isubt25),iycomp(1))
-      common /funcom/ array,brray,idxspir,idyspir,distspir,mattx,matty
-     &    ,interp,natural,ncompare,nspiral,ifdist,iftrace,rds,ntrial,
-     &    deltmin,sd1,ivend,a
+      integer*4 nx1,nx2,ny1,ny2, interp,natural,ncompare,nspiral,ifdist,iftrace
+      real*4 rds, deltmin,sd1
+      integer*4 ntrial, ivend, ifCCC
+      common /funcom/ array,brray,idxspir,idyspir,distspir,nx1,nx2,ny1,ny2,
+     &    interp,natural,ncompare,nspiral,ifdist,iftrace,rds,ntrial,
+     &    deltmin,sd1,ivend,a,alimits,ifCCC
       character*1 starout
+      integer*4 i,ii
 c       
       do i=1,ivend
         a(i)=x(i)
       enddo
 c       
       if(ifdist.eq.0)then
-        CALL DIFF(DELTA,ARRAY,BRRAY,sd1,A,NX,NY,MATTX,MATTY,interp,
-     &      natural)
+        CALL DIFF(DELTA,ARRAY,BRRAY,sd1,A,alimits,NX,NY,nx1,nx2,ny1,ny2,interp,
+     &      natural, ifCCC)
       else
-        CALL DIST(DELTA,ARRAY,A,NX,NY,ixcomp,iycomp,denlo,denhi,
+        CALL DIST(DELTA,ARRAY,A,alimits,NX,NY,ixcomp,iycomp,denlo,denhi,
      &      ncompare,idxspir,idyspir,distspir,nspiral,natural)
       endif
       error=delta
@@ -688,9 +899,102 @@ c
           starout='*'
           deltmin=delta
         endif
-        if(iftrace.eq.1.or.delta.lt.deltmin) write(*,72)
+        if(iftrace.eq.1.or.starout.eq.'*') write(*,72)
      &      starout,ntrial,delta,(a(ii),ii=3,6),rds*a(1),rds*a(2)
 72      format(1x,a1,i3,f14.7,4f10.5,2f10.3)
       endif
       return
       end
+
+c       
+c       Read a section with optional fourier filtering before or after
+c       binning, and with optional sobel filtering
+c
+      subroutine readFilterSection(iunit, array, iz, nxorig, nyorig, nx, ny,
+     &    nxpad, nypad, ibinning, ctf, deltac, ifFiltAfter, ifSobel, temp,
+     &    lenTemp)
+      implicit none
+      real*4 array(*), ctf(*), deltac, temp(*)
+      integer*4 iunit, iz, nxorig, nyorig, nx, ny, nxpad, nypad
+      integer*4 ibinning, ifFiltAfter, ifSobel, lenTemp
+      integer*4 ierr, nxfilt, nyfilt, ixlo, iylo 
+      real*4 xOffset, yOffset
+      integer*4 scaledSobel
+c       
+c       Read in the section without or with binning, set size being filtered
+      if (deltac .ne. 0 .and. ifFiltAfter .eq. 0) then
+        call imposn(iunit, iz, 0)
+        call irdsec(iunit, array, 99)
+        nxfilt = nxorig
+        nyfilt = nyorig
+      else
+        call irdbinned(iunit,iz, array,nx, ny, 0, 0, ibinning, nx, ny, temp,
+     &      lentemp, ierr)
+        if (ierr .ne. 0) goto 99
+        nxfilt = nx
+        nyfilt = ny
+      endif
+c       
+c       Apply fourier filter
+      if (deltac .ne. 0.) then
+        call taperOutPad(array, nxfilt, nyfilt, array, nxpad + 2, nxpad, nypad,
+     &      0, 0)
+        call todfft(array, nxpad, nypad, 0)
+        call filterpart(array, array, nxpad, nypad, ctf, deltac)
+        call todfft(array, nxpad, nypad, 1)
+        ixlo = (nxpad - nxfilt) / 2
+        iylo = (nypad - nyfilt) / 2
+        call irepak(array,array,nxpad+2,nypad,ixlo,ixlo+nxfilt-1,iylo,
+     &      iylo+nyfilt-1)
+c         
+c         Now bin if necessary
+        if (ifFiltAfter .eq. 0 .and. ibinning .gt. 1) call reduce_by_binning
+     &      (array, nxorig, nyorig, ibinning, array, nxfilt, nyfilt)
+      endif
+c       
+c       Do sobel if requested: NOTE THAT IT CAN BE DONE IN PLACE AS LONG AS
+c       SCALING = 1 BUT THIS SHOULD BE DOCUMENTED
+      if (ifSobel .ne. 0) then
+        if (scaledSobel(array, nx, ny, 1., 1., 1, 2, array, nxfilt, nyfilt,
+     &      xOffset, yOffset) .ne. 0)
+     &      call exitError('GETTING MEMORY FOR SOBEL FILTERING')
+      endif
+      return
+99    call exiterror('READING FILE')
+      end
+c       
+c       $Log$
+c       Revision 3.10  2006/06/22 01:06:59  mast
+c       Changed initialization to avoid big executable on Intel Mac
+c
+c       Revision 3.9  2006/06/18 19:37:59  mast
+c       Changed to use new C function for amoeba
+c
+c       Revision 3.8  2006/06/08 18:31:15  mast
+c       Changed to read in data binned and to handle 4x2K after binning
+c
+c       Revision 3.7  2006/05/14 03:13:15  mast
+c       Output normalized difference and distance measures, standardize
+c       error outputs
+c
+c       Revision 3.6  2005/05/26 04:34:52  mast
+c       Made sums args for iclavgsd real*8
+c	
+c       Revision 3.5  2003/12/24 19:07:27  mast
+c       Moved amoeba subroutine to a library
+c	
+c       Revision 3.4  2002/08/20 19:23:48  mast
+c       Didn't change both calls to iclavgsd
+c	
+c       Revision 3.3  2002/08/18 23:13:05  mast
+c       Changed to call iclavgsd in library
+c	
+c       Revision 3.2  2002/05/20 15:47:33  mast
+c       Made the DIFF function put out a very high value when the number of
+c       pixels evaluated falls below 1% of total pixels, to keep it from
+c       running away into impossible shifts.  Also increased dimensions of
+c       input array to allow 4Kx4K images.
+c	
+c       Revision 3.1  2002/04/29 16:18:37  mast
+c       Added test to keep it from failing when images match perfectly
+c	
