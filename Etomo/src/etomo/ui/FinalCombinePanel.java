@@ -59,6 +59,11 @@ import etomo.util.DatasetFiles;
  * 
  * <p>
  * $Log$
+ * Revision 3.67  2008/05/28 02:49:55  sueh
+ * bug# 1111 Add a dialogType parameter to the ProcessSeries
+ * constructor.  DialogType must be passed to any function that constructs
+ * a ProcessSeries instance.
+ *
  * Revision 3.66  2008/05/13 23:02:02  sueh
  * bug# 847 Adding a right click menu for deferred 3dmods to some
  * process buttons.
@@ -1417,7 +1422,9 @@ public class FinalCombinePanel implements ContextMenu, FinalCombineFields,
     btnMatchorwarpTrial
         .setToolTipText("Run Matchorwarp in trial mode; find transformations then stop.");
     btnPatchVectorModel
-        .setToolTipText("View the patch displacement vectors in and possibly delete bad vectors.");
+        .setToolTipText("View the patch displacement vectors in and possibly " +
+            "delete bad vectors.  To see the residual values, click on Values in " +
+            "3dmodv Objects, and select on Show stored values.");
     btnReplacePatchOut
         .setToolTipText("Replace the patch displacements with the vectors from the edited model.");
     btnImodMatchedTo

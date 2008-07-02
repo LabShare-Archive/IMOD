@@ -36,6 +36,9 @@ import etomo.util.DatasetFiles;
  * @version $Revision$
  *
  * <p> $Log$
+ * <p> Revision 3.62  2008/06/19 23:31:52  sueh
+ * <p> bug# 1112 Added setTiltFile and resetTiltFile.
+ * <p>
  * <p> Revision 3.61  2008/05/03 00:39:17  sueh
  * <p> bug# 847 Modified open(String) to pass a null instead of an empty
  * <p> Run3dmodMenuOptions; ImodProcess handles null
@@ -1595,7 +1598,8 @@ public class ImodManager {
 
   protected ImodState newPatchVectorModel() {
     ImodState imodState = new ImodState(manager,
-        DatasetFiles.PATCH_VECTOR_MODEL, ImodState.MODEL_VIEW, AxisID.ONLY);
+        DatasetFiles.PATCH_VECTOR_MODEL, ImodState.MODEL_VIEW, AxisID.ONLY,
+        ImodProcess.WindowOpenOption.IMODV_OBJECTS);
     imodState.setInitialMode(ImodState.MODEL_MODE);
     imodState.setNoMenuOptions(true);
     return imodState;
