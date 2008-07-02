@@ -1,5 +1,11 @@
 IMOD History
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+7/2/08:  Made "Examine patch vector model" open model view object edit window
+so residual values can be displayed more easily.
+
+7/2/08: Fixed bug that crashed 3dmod when opening a model without an image
+and going to section 1 (broken in 3.12.12).
+
 7/1/08: Changed Transferfid to limit the search range for all variables, to
 avoid collapsing transformations.
 
