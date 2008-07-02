@@ -2329,8 +2329,9 @@ int ivwReadAngleFile(ImodView *vi, const char *fname)
 // Return number and pointer to tilt angles; start angles at zmin
 float *ivwGetTiltAngles(ImodView *vi, int &numAngles)
 {
-  numAngles = B3DMAX(0, vi->numTiltAngles - vi->li->zmin);
-  return (numAngles ? vi->tiltAngles + vi->li->zmin: NULL);
+  int zmin = B3DMAX(0, vi->li->zmin);
+  numAngles = B3DMAX(0, vi->numTiltAngles - zmin);
+  return (numAngles ? vi->tiltAngles + zmin : NULL);
 }
 
 /* plugin utility functions.*/
@@ -2751,6 +2752,9 @@ void ivwBinByN(unsigned char *array, int nxin, int nyin, int nbin,
 /*
 
 $Log$
+Revision 4.68  2008/06/20 16:12:50  mast
+Return pointer to appropriate subset of tilt angles if read in subset in Z
+
 Revision 4.67  2008/05/27 05:44:22  mast
 Added tilt angle reading and access functions
 
