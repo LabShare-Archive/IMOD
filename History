@@ -13,7 +13,7 @@ avoid collapsing transformations.
 range of the search and for filtering and selecting an arbitrary area to align
 within the program.
 
-6/30/08: Changed combine.com to not save volcombine script to file instead of 
+6/30/08: Changed combine.com to save volcombine script to file instead of 
 piping to csh, to fix problem with big scripts on Windows.
 
 6/25/08: Fixed Refinematch crash on residual output when data fit right away.
