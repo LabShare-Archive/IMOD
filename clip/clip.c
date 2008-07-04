@@ -223,7 +223,6 @@ int main( int argc, char *argv[] )
 
   if (!strncmp( argv[1], "splitrgb", 3)){
     process = IP_SPLITRGB;
-    procout = FALSE;
   }
   if (!strncmp( argv[1], "joinrgb", 3)){
     process = IP_JOINRGB;
@@ -546,7 +545,7 @@ int main( int argc, char *argv[] )
   if (retval)
     exit(retval);
   fclose (hin.fp);
-  if (procout)
+  if (procout && process != IP_SPLITRGB)
     fclose (hout.fp);
 
   if (view){
@@ -609,6 +608,9 @@ int *clipMakeSecList(char *clst, int *nofsecs)
 
 /*
 $Log$
+Revision 3.20  2008/01/10 05:19:38  mast
+Fixed double close of file with splitrgb
+
 Revision 3.19  2007/11/23 01:05:39  mast
 Added usage line for smoothing options
 
