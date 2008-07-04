@@ -1,5 +1,7 @@
 IMOD History
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+7/4/08: Fixed clip splitrgb, broken 1/11/08.
+
 7/3/08: IMOD_3-12-13
 7/2/08:  Made "Examine patch vector model" open model view object edit window
 so residual values can be displayed more easily.
