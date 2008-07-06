@@ -528,12 +528,11 @@ c
       unkrat2=(2.*nprojpt)/max(nunknowtot2, 1)
       do iunit=6,iunit2
         write (iunit,113)nview,nvargeom,nrealpt,nprojpt,
-     &      2*nprojpt,nunknowtot2,unkrat2,2*nprojpt,nunknowtot,unkrat
+     &      2*nprojpt,nunknowtot2,unkrat2
 113     format(i4,' views,',i5,' geometric variables,',i5,
      &      ' 3-D points,',i6,' projection points',/,
      &      '  Ratio of total measured values to all unknowns =',
-     &      i6,'/',i4,' =',f7.2,/,'  Ratio to variables in search ',
-     &      '(formerly ''total unknowns'') =',i6,'/',i4,' =',f7.2)
+     &      i6,'/',i4,' =',f7.2)
         if(ifvarout.ne.0)then
           if(iunit.ne.6)write(iunit,'(/,21x,a)')
      &        'Geometric variable values and errors'
@@ -1528,6 +1527,9 @@ c
 
 c       
 c       $Log$
+c       Revision 3.38  2008/03/05 00:34:05  mast
+c       Increased maxmetro to go along with increase in maxreal
+c
 c       Revision 3.37  2007/12/12 17:20:08  mast
 c       Had to add mapalfend to two calls to input_vars
 c
