@@ -1,5 +1,8 @@
 IMOD History
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+7/6/08: Eliminated ratio of measurements to variables in search (old incorrect
+ratio) from Tiltalign output.
+
 7/6/08: Made Processchunks killing more robust on our system by listing the
 .pid files if they do not seem to exist.
 
