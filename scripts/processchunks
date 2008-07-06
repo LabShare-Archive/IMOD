@@ -752,6 +752,14 @@ while ($proc < $#machines)
         set flags[$ind] = 0
         set pidname = $comlist[$ind]:r.$pidext
         set cshname = $comlist[$ind]:r.csh
+
+        # If the PID file does not exist, do a ls
+        # This did the trick on our RHEL5 network - local and remote syncs
+        # did not
+        if ((! $queue) && (! -e $pidname)) then
+            ls *.pid >& /dev/null
+        endif
+
         if ($queue && "$ans" != "D") then
             set action = $ans
             if ("$ans" != "P") set action = "K"
@@ -845,6 +853,9 @@ exit 3
 
 #
 #  $Log$
+#  Revision 3.40  2008/02/22 04:58:39  mast
+#  Made it convert backslash in cmds file, quoted current dir also
+#
 #  Revision 3.39  2008/02/20 01:29:04  mast
 #  Fixed bug in last change and made it keep track of first undone chunk to
 #  minimize the looping it has to do to find a chunk to assign
