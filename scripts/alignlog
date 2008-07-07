@@ -48,8 +48,10 @@ grep "SURFACE ANALYSIS" $file > /dev/null
 set newsurface = $status
 grep "to do series" $file > /dev/null
 set pipinput = $status
-grep "Ratio to variables" $file > /dev/null
-set oldratios = $status
+grep "Ratio .*to total unknown" $file > /dev/null
+set newratios = $status
+grep "Ratio .*formerly" $file > /dev/null
+set oneratio = $status
 grep "olved beam tilt" $file > /dev/null
 set nobeamtilt = $status
 
@@ -72,8 +74,10 @@ while ($#argv > $numarg)
 		echo "* * * * * * * * * * * * * * * * * * * * * * * * * * * *"
 		echo " "
 	    endif
-            if ($oldratios) then
+            if (! $newratios) then
                 awk '/^ *Final   F/, /^  Ratio/' $file
+            else if ($oneratio) then
+                awk '/^.*Final   F/, /^  Ratio of/' $file
             else
                 awk '/^.*Final   F/, /^  Ratio to/' $file
             endif
@@ -168,6 +172,9 @@ end
 
 #
 #  $Log$
+#  Revision 3.7  2007/03/08 23:49:55  mast
+#  Changes for beam tilt solutions
+#
 #  Revision 3.6  2006/10/03 23:34:48  mast
 #  Fixed selection of solution when x axis tilt is used
 #
