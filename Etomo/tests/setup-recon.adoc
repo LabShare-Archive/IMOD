@@ -100,9 +100,9 @@ assert.tf.pixel-size =
 assert.tf.fiducial-diameter = 
 assert.tf.image-rotation = 
 assert.cb.parallel-processing = 1
-assert.tf.image-distortion-field-file = 
-assert.sp.binning = 1
-assert.tf.mag-gradients-correction = 
+#assert.tf.image-distortion-field-file = 
+#assert.sp.binning = 1
+#assert.tf.mag-gradients-correction = 
 # angles - first axis
 assert.rb.extract-tilt-angles-from-data = 1
 assert.rb.specify-the-starting-angle-and-step =
@@ -141,9 +141,9 @@ assert.tf.pixel-size.enabled = 1
 assert.tf.fiducial-diameter.enabled = 1
 assert.tf.image-rotation.enabled = 1
 assert.cb.parallel-processing.enabled = 1
-assert.tf.image-distortion-field-file.enabled = 1
-assert.sp.binning.enabled = 1
-assert.tf.mag-gradients-correction.enabled = 1
+#assert.tf.image-distortion-field-file.enabled = 1
+#assert.sp.binning.enabled = 1
+#assert.tf.mag-gradients-correction.enabled = 1
 # angles - first axis
 assert.rb.extract-tilt-angles-from-data.enabled = 1
 assert.rb.specify-the-starting-angle-and-step.enabled = 1
@@ -175,9 +175,9 @@ assert.rb.montage =
 # data
 assert.bn.scan-header =
 assert.cb.parallel-processing = 1
-assert.tf.image-distortion-field-file = 
-assert.sp.binning = 1
-assert.tf.mag-gradients-correction = 
+#assert.tf.image-distortion-field-file = 
+#assert.sp.binning = 1
+#assert.tf.mag-gradients-correction = 
 # angles - first axis
 assert.rb.extract-tilt-angles-from-data = 1
 assert.rb.specify-the-starting-angle-and-step =
@@ -216,9 +216,9 @@ assert.tf.pixel-size.enabled = 1
 assert.tf.fiducial-diameter.enabled = 1
 assert.tf.image-rotation.enabled = 1
 assert.cb.parallel-processing.enabled = 1
-assert.tf.image-distortion-field-file.enabled = 1
-assert.sp.binning.enabled = 1
-assert.tf.mag-gradients-correction.enabled = 1
+#assert.tf.image-distortion-field-file.enabled = 1
+#assert.sp.binning.enabled = 1
+#assert.tf.mag-gradients-correction.enabled = 1
 # angles - first axis
 assert.rb.extract-tilt-angles-from-data.enabled = 1
 assert.rb.specify-the-starting-angle-and-step.enabled = 1
