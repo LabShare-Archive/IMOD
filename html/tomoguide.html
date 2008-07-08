@@ -1614,27 +1614,31 @@ classic resolution formula of Crowther,
 DeRosier, and Klug (1970) can provide a rough guide for how to adjust
 the radial filter, even though it is strictly applicable only to the case of a
 full 180&ordm; range of angles.  The formula is:
-<pre>
-    d = D * &#916;&#946;
-where d is the resolution in real-space units (nm or pixels), 
-      D is the diameter of volume reconstructed, 
-  and &#916;&#946; is the angular increment in radians.  
-</pre>
+<p>
+&nbsp;&nbsp;&nbsp; d = D * &#916;&#946;
+<p>
+where: 
+<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; d is the resolution in real-space units (nm or pixels), 
+<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; D is the diameter of volume reconstructed, 
+<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; &#916;&#946; is the angular increment in radians.  
+<br>
 Alternatively, if &#916;&#946; is in degrees, the resolution f in 
 reciprocal-space (frequency) units is
-<pre>
-    f = 57.3 / (D * &#916;&#946;)
-</pre>
-
+<p>
+&nbsp;&nbsp;&nbsp; f = 57.3 / (D * &#916;&#946;)
+<p>
 Or, the equation can be expressed in terms of n, the number of views, and
 the maximum tilt angle &#946;<sub>max</sub>:
-<pre>
-    f = (28.5 * n) / (D * &#946;<sub>max</sub>)
-</pre>
+<p>
+&nbsp;&nbsp;&nbsp; f = (28.5 * n) / (D * &#946;<sub>max</sub>)
+<p>
 which for the case of a tilt range of &plusmn;60&ordm;, reduces to:
-<pre>
-    f = 0.48 * n / D
-</pre>
+<p>
+&nbsp;&nbsp;&nbsp; f = 0.48 * n / D
+<p>
 One of the uncertainties in these formulas is the meaning of the diameter D.
 In rough terms it corresponds to the thickness of the section; but if
 electron-dense material in the section is relatively sparse, it may
