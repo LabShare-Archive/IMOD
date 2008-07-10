@@ -15,6 +15,9 @@
     $Revision$
 
     $Log$
+    Revision 1.12  2008/04/07 03:12:12  tempuser
+    added free()
+
     Revision 1.11  2008/04/04 01:15:36  tempuser
     moved gui functions elsewhere
 
@@ -150,6 +153,12 @@ int imodPlugKeys(ImodView *vw, QKeyEvent *event)
       plug.window->smoothCurrentContour();
       break;
       
+    case Qt::Key_D:
+      if (shift || plug.dKeyBehav == DK_NONE)
+        return 0;
+      plug.window->executeDAction();
+      break;
+      
     case Qt::Key_A:
       if(shift)
         return 0;
@@ -158,6 +167,13 @@ int imodPlugKeys(ImodView *vw, QKeyEvent *event)
     case Qt::Key_I:
       edit_inversePointsInContour(shift);
       break;
+    case Qt::Key_Y:
+      edit_goToContNextBiggestFindVal(shift,false,true);
+      break;
+    case Qt::Key_B:
+      edit_goToContNextBiggestFindVal(shift,true,false,(shift)?FLOAT_MAX:FLOAT_MIN );
+      break;
+      
     //case Qt::Key_T:                  // temporary testing purposes - comment out
     //  plug.window->test();
     //  break;
@@ -226,17 +242,22 @@ void imodPlugExecute(ImodView *inImodView)
   {
     plug.drawMode                 = DM_DEFORM;
     plug.draw_reducePts           = 1;
-    plug.draw_reducePtsMaxArea    = 3;
+    plug.draw_reducePtsMaxArea    = 0.5;
     plug.draw_smoothMinDist       = 5;
     plug.draw_smoothTensileFract  = 0.5;
     plug.draw_deformRadius        = 30.0;
     
     plug.wheelBehav               = WH_DEFORMCIRCLE;
+    plug.dKeyBehav                = DK_TOEND;
     plug.useNumKeys               = true;
     plug.wheelResistance          = 100;
     plug.showMouseInModelView     = false;
     plug.selectedAction           = 0;
+    plug.sortCriteria             = SORT_NUMPTS;
+    plug.findCriteria             = SORT_NUMPTS;
+    plug.findReverse              = false;
     
+    plug.sortCriteriaOfVals       = -1;
     Ipoint origin;
     setPt( &origin, 0,0,0);
     plug.copiedCont = imodContourNew();
@@ -290,7 +311,7 @@ int imodPlugEvent(ImodView *vw, QEvent *event, float imx, float imy)
             || plug.drawMode == DM_JOIN
             || plug.drawMode == DM_ERASER )
         {
-          plug.window->changeDeformCircleRadius( scrollAmount );
+          plug.window->changeDeformCircleRadius( scrollAmount, plug.shiftDown );
           plug.window->drawExtraObject(true);
         }
         break;
@@ -644,59 +665,55 @@ DialogFrame(parent, 2, buttonLabels, buttonTips, true, "Drawing Tools", "", name
   
   lblMaxArea = new QLabel("reduction max area:", grpOptions);
   lblMaxArea->setFocusPolicy(QWidget::NoFocus);
-  QToolTip::add(lblMaxArea, "RECOMMENDED VALUE: 3");
+  QToolTip::add(lblMaxArea, "RECOMMENDED VALUE: 0.5");
   gridLayout1->addWidget(lblMaxArea, 2, 0);
   
-  maxAreaSpinner = new QSpinBox(grpOptions);
-  maxAreaSpinner->setFocusPolicy(QWidget::NoFocus);
-  maxAreaSpinner->setMinValue(1);
-  maxAreaSpinner->setMaxValue(20);
-  maxAreaSpinner->setValue( (int)plug.draw_reducePtsMaxArea );
-  QObject::connect(maxAreaSpinner,SIGNAL(valueChanged(int)),this,
-                   SLOT(changeMaxArea(int)));
-  QToolTip::add(maxAreaSpinner, "If three consequtive points within a contour "
-                "form a triangular area greater than this the middle point "
-                "is removed (recommended value: 3)");
-  gridLayout1->addWidget(maxAreaSpinner, 2, 1);
+  QBoxLayout *box1 = new QBoxLayout(QBoxLayout::LeftToRight);
+  fMaxAreaSpinner = (FloatSpinBox*)diaLabeledSpin(1,1,200,1,"",grpOptions,box1);
+  diaSetSpinBox( (QSpinBox*)fMaxAreaSpinner, int(plug.draw_reducePtsMaxArea*10) );
+  ((QSpinBox *)fMaxAreaSpinner)->setFocusPolicy(QWidget::ClickFocus);
+  QObject::connect( (QSpinBox*)fMaxAreaSpinner,SIGNAL(valueChanged(int)),this,
+                    SLOT(changeMaxArea(int)));
+  QToolTip::add( (QSpinBox*)fMaxAreaSpinner, "If three consequtive points within a contour "
+                 "form a triangular area greater than this the middle point "
+                 "is removed (recommended value: 0.5)");
+  gridLayout1->addLayout(box1, 2, 1);
   
   lblSmoothPtsDist = new QLabel("smooth point dist:", grpOptions);
   lblSmoothPtsDist->setFocusPolicy(QWidget::NoFocus);
   QToolTip::add(lblSmoothPtsDist, "RECOMMENDED VALUE: 5");
   gridLayout1->addWidget(lblSmoothPtsDist, 3, 0);
   
-  smoothPtsDist = new QSpinBox(grpOptions);
-  smoothPtsDist->setFocusPolicy(QWidget::NoFocus);
-  smoothPtsDist->setMinValue(1);
-  smoothPtsDist->setMaxValue(50);
-  smoothPtsDist->setValue( (int)plug.draw_smoothMinDist );
-  QObject::connect(smoothPtsDist,SIGNAL(valueChanged(int)),this,
+  QBoxLayout *box2 = new QBoxLayout(QBoxLayout::LeftToRight);
+  fSmoothPtsDist = (FloatSpinBox*)diaLabeledSpin(0,1,50,1,"",grpOptions,box2);
+  diaSetSpinBox( (QSpinBox*)fSmoothPtsDist, plug.draw_smoothMinDist*1 );
+  ((QSpinBox *)fSmoothPtsDist)->setFocusPolicy(QWidget::ClickFocus);
+  QObject::connect( (QSpinBox*)fSmoothPtsDist,SIGNAL(valueChanged(int)),this,
                    SLOT(changeSmoothPtsDist(int)));
-  QToolTip::add(smoothPtsDist,
+  QToolTip::add( (QSpinBox*)fSmoothPtsDist,
                 "The minimum distance between points or when a contour is "
                 "smoothed - if two consequtive are greater than this "
                 "distance a point will be added between them "
                 "(recommended value: 5)");
-  gridLayout1->addWidget(smoothPtsDist, 3, 1);
+  gridLayout1->addLayout(box2, 3, 1);
   
   lblSmoothTensileFract = new QLabel("smooth tensile value:", grpOptions);
   lblSmoothTensileFract->setFocusPolicy(QWidget::NoFocus);
-  QToolTip::add(lblSmoothTensileFract, "RECOMMENDED VALUE: 5");
+  QToolTip::add(lblSmoothTensileFract, "RECOMMENDED VALUE: 0.5");
   gridLayout1->addWidget(lblSmoothTensileFract, 4, 0);
   
-  smoothTensileFract = new QSpinBox(grpOptions);
-  smoothTensileFract->setFocusPolicy(QWidget::NoFocus);
-  smoothTensileFract->setMinValue(0);
-  smoothTensileFract->setMaxValue(20);
-  smoothTensileFract->setValue( (int)(plug.draw_smoothTensileFract * 10.0f) );
-  QObject::connect(smoothTensileFract,SIGNAL(valueChanged(int)),this,
-                   SLOT(changeSmoothTensileFract(int)));
-  QToolTip::add(smoothTensileFract,
-                "This value dictates how curvy the contour will be when "
-                "points are added during smoothing (recommended value: 5). "
-                "Smoothing is done using a cardinal spline algorithm "
-                "using a tensile fraction of this value divide 10.");
-  gridLayout1->addWidget(smoothTensileFract, 4, 1);
-  
+  QBoxLayout *box3 = new QBoxLayout(QBoxLayout::LeftToRight);
+  fSmoothTensileFract = (FloatSpinBox*)diaLabeledSpin(1,0,20,1,"",grpOptions,box3);
+  diaSetSpinBox( (QSpinBox*)fSmoothTensileFract, plug.draw_smoothTensileFract*10 );
+  ((QSpinBox *)fSmoothTensileFract)->setFocusPolicy(QWidget::ClickFocus);
+  QObject::connect( (QSpinBox*)fSmoothTensileFract,SIGNAL(valueChanged(int)),this,
+                    SLOT(changeSmoothTensileFract(int)));
+  QToolTip::add( (QSpinBox*)fSmoothTensileFract,
+                 "This value dictates how curvy the contour will be when "
+                 "points are added during smoothing (recommended value: 0.5). "
+                 "Smoothing is done using a cardinal spline algorithm "
+                 "using a tensile fraction of this value.");
+  gridLayout1->addLayout(box3, 4, 1);
   mLayout->addWidget(grpOptions);
   
   
@@ -1178,7 +1195,11 @@ void DrawingTools::smoothConts()
   
   static bool interpolated = false;
   
+  
+  string msg = "Smooth tensile fract = " + toString(plug.draw_smoothTensileFract);
+  
 	CustomDialog ds;
+  int ID_DUMMY3        = ds.addLabel   ( msg.c_str() );
   int ID_DUMMY         = ds.addLabel   ( "contour range:" );
   int ID_CONTMIN       = ds.addSpinBox ( "min:", 1, nConts, 1, 1,
                                          "Only contours AFTER this contour "
@@ -1188,6 +1209,8 @@ void DrawingTools::smoothConts()
                                          "(inclusive) will be changed" );
 	int ID_INTERPOLATED  = ds.addCheckBox( "only smooth stippled contours", interpolated );
   int ID_DUMMY2        = ds.addLabel   ( "... are you sure?" );
+  
+  
 	GuiDialogCustomizable dlg(&ds, "Smooth Contours",false);
 	dlg.exec();
 	if( ds.cancelled )
@@ -1195,7 +1218,6 @@ void DrawingTools::smoothConts()
   int contMin         = ds.getResultSpinBox   ( ID_CONTMIN ) - 1;
   int contMax         = ds.getResultSpinBox   ( ID_CONTMAX ) - 1;
   interpolated        = ds.getResultCheckBox  ( ID_INTERPOLATED );
-  
   
   //## SMOOTH ALL CONTOURS WITHING RANGE:
   
@@ -1241,6 +1263,98 @@ void DrawingTools::smoothConts()
 }
 
 
+
+//------------------------
+//-- Executes selected [D] action
+
+bool DrawingTools::executeDAction()
+{
+  if( !isCurrPtValid() || plug.dKeyBehav == DK_NONE )
+    return false;
+  
+  //## GET INFORMATION:
+  
+  Imod *imod = ivwGetModel(plug.view);
+  Iobj *obj  = getCurrObj();
+  int objIdx, contIdx, ptIdx;
+  imodGetIndex(imod, &objIdx, &contIdx, &ptIdx);
+  
+  Icont *cont = getCurrCont();
+  int numPts = psize( cont );
+  undoContourDataChgCC( plug.view );            // REGISTER UNDO
+  
+  int ptsChanged = 0;
+  
+  //## PERFORM SELECTED ACTION ON POINT/CONTOUR:
+  
+  switch( plug.dKeyBehav )
+  {
+    case( DK_TOEND ):
+    {
+      for( int p = ptIdx+1; p<psize(cont); )
+        imodPointDelete(cont, p);
+      ptsChanged = numPts - (ptIdx+1);
+      break;
+    }
+    
+    case( DK_NEARESTEND ):
+    {
+      int middlePt = psize(cont) / 2.0f;
+      bool deleteFromStart = ptIdx <= middlePt;    // point is closest to start pt
+      if( deleteFromStart )
+      {
+        for( int i = 0; i<ptIdx; i++ )
+          imodPointDelete(cont, 0);
+        imodSetIndex( imod, objIdx, contIdx, 0 );
+      }
+      else
+      {
+        for( int p = ptIdx+1; p<psize(cont); )
+          imodPointDelete(cont, p);
+      }
+      ptsChanged = (deleteFromStart) ? (ptIdx) : (numPts - (ptIdx+1));
+      break;
+    }
+    
+    case( DK_DELETEPT ):
+    {
+      imodPointDelete(cont, ptIdx);
+      ptsChanged = 1;
+      break;
+    }
+    
+    case( DK_REMOVEPTSIZE ):
+    {
+      ptsChanged = ( !isDefaultSize(obj,cont,ptIdx) ) ? 1 : 0;
+      removePtSize( cont, ptIdx );
+      break;
+    }
+    
+    case( DK_REMOVEALLPTSIZES ):
+    {
+      for(int p=0; p<psize(cont); p++)
+        if( !isDefaultSize(obj,cont,p) )
+          ptsChanged++;
+      removePtsSize( cont );
+      break;
+    }
+  }
+  
+  
+  //## FINISH:
+  
+  if(ptsChanged)
+  {
+    undoFinishUnit( plug.view );        // FINISH UNDO
+  }
+  
+  wprint("Changed %d points\n", ptsChanged);
+  ivwRedraw( plug.view );
+  return true;
+}
+
+
+
 //------------------------
 //-- Selects the next contour after the currently selected one which overlaps
 //-- another contour.
@@ -1253,8 +1367,128 @@ void DrawingTools::selectNextOverlappingContour()
 
 
 //------------------------
-//-- Selects the next contour after the currently selected one which overlaps
-//-- another contour.
+//-- Prints more detailed contour information about the current object including the
+//-- average length, area and point size.
+
+void DrawingTools::printObjectDetailedInfo()
+{
+  Imod *imod  = ivwGetModel(plug.view);
+  Iobj *obj  = getCurrObj();
+  int objIdx, contIdx, ptIdx;
+  imodGetIndex(imod, &objIdx, &contIdx, &ptIdx);
+  int nConts = csize(obj);
+  
+  //## PRINT HEADER:
+  
+  bool objClosed = isObjClosed( obj );
+  
+  wprint("\nOBJECT %d SUMMARY:\n\n", objIdx+1);
+  
+  wprint("TYPE:   "); (objClosed) ? wprint("closed\n") : wprint("open\n");
+  if( csize(obj)==0 )
+  {
+    wprint(" ... empty\n");
+    return;
+  }
+  
+  //## TALLY STATS:
+  
+  int    totPts  = 0;
+  float  totLen  = 0;
+  double totArea    = 0;
+  double totPtSize  = 0;
+  
+  int    emptyConts     = 0;
+  int    singlePtConts  = 0;
+  int    openConts      = 0;
+  int    cclockwiseConts = 0;
+  int    stippledConts  = 0;
+  
+  float minX = FLOAT_MAX, maxX = 0;
+  float minY = FLOAT_MAX, maxY = 0;
+  float minZ = FLOAT_MAX, maxZ = 0;
+  
+  for( int c=0; c<csize(obj); c++ )
+  {
+    Icont *cont   = getCont(obj,c);
+    int    closed = isContClosed( obj, cont ) ? 1 : 0;
+    
+    if( psize(cont)==0 )
+      emptyConts++;
+    else if( psize(cont)==1 ) 
+      singlePtConts++;
+    else if( !closed )
+      openConts++;
+    
+    totPts += psize(cont);
+    totLen += imodContourLength( cont, closed );
+    
+    if( isInterpolated(cont) )
+      stippledConts++;
+    
+    if( objClosed && psize(cont)>2 )
+      totArea += ABS( imodContourArea(cont) );
+    
+    if( imodContZDirection(cont) == IMOD_CONTOUR_COUNTER_CLOCKWISE && psize(cont)>2 )
+      cclockwiseConts++;
+    
+    for(int p=0; p<psize(cont); p++ )
+    {
+      totPtSize += imodPointGetSize(obj,cont,p);
+      Ipoint *pt = getPt(cont,p);
+      updateMin( minX, pt->x );    updateMax( maxX, pt->x );
+      updateMin( minY, pt->y );    updateMax( maxY, pt->y );
+      updateMin( minZ, pt->z );    updateMax( maxZ, pt->z );
+    }
+  }
+  
+  
+  //## CALCULATE AVERAGES:
+  
+  int nonEmptyConts = csize(obj) - emptyConts;
+  
+  int percentSinglePt  = int( fDivide( singlePtConts, nonEmptyConts ) * 100 );
+  int percentOpen      = int( fDivide( openConts, nonEmptyConts ) * 100 );
+  int percentClockwise = int( fDivide( cclockwiseConts, nonEmptyConts ) * 100 );
+  int percentStippled  = int( fDivide( stippledConts, nonEmptyConts ) * 100 );
+  
+  float ptsPerCont = fDivide( totPts, nonEmptyConts );
+  float avgDistPts = fDivide( totLen, totPts - (openConts+singlePtConts)  );
+  float avgLen     = fDivide( totLen, nonEmptyConts );
+  float avgArea    = fDivide( totArea, nonEmptyConts );
+  float avgPtSize  = fDivide( totPtSize, nonEmptyConts );
+  
+  //## PRINT RESULTS:
+  
+  wprint("SPAN: \tx: %d\t{%d,%d}\n", int(maxX-minX), int(minX), int(maxX) );
+  wprint("    \ty: %d\t{%d,%d}\n", int(maxY-minY), int(minY), int(maxY) );
+  wprint("    \tz: %d\t{%d,%d}",   int(maxZ-minZ), int(minZ)+1, int(maxZ)+1 );
+  wprint("\n");
+  if(emptyConts)
+    wprint("EMPTY CONTOURS: %d\n", emptyConts );
+  wprint("CONTOURS: %d\n", nonEmptyConts );
+  wprint("   single pt conts\t= %d (%d%%)\n", singlePtConts,   percentSinglePt );
+  wprint("   open conts     \t= %d (%d%%)\n", openConts,       percentOpen );
+  wprint("   anti-clockwise\t= %d (%d%%)\n", cclockwiseConts,  percentClockwise );
+  if( stippledConts )
+    wprint("   stippled    \t= %d (%d%%)\n", stippledConts,   percentStippled );
+  wprint("\n");
+  wprint("   total pts   \t= %d\n", totPts );
+  wprint("   avg pts/cont\t= %f\n", ptsPerCont );
+  wprint("   avg line seg\t= %f\n", avgDistPts );
+  wprint("   avg pt size\t= %f\n", avgPtSize );
+  wprint("\n");
+  wprint("   total length\t= %s\n", toStringWithCommas(int(totLen)).c_str() );
+  wprint("   avg length \t= %d\n", int(avgLen) );
+  wprint("   total area \t= %s\n", toStringWithCommas(int(totArea)).c_str() );
+  wprint("   avg area  \t= %s\n",  toStringWithCommas(int(avgArea)).c_str() );
+}
+
+
+//------------------------
+//-- Prints some basic object information for all objects including the number of
+//-- empty contours, the average number of points per contour, and the average distance
+//-- between contour points.
 
 void DrawingTools::printModelPointInfo()
 {
@@ -1302,10 +1536,11 @@ void DrawingTools::printModelPointInfo()
     totEmpty += emptyConts;
     
     float ptsPerCont = fDivide( totObjPts, csize(obj) );
-    float avgDistPts = fDivide( totObjLen, totObjPts  );
+    float avgDistPts = fDivide( totObjLen, totObjPts  );    
+          // NOTE: not accurate for open contours and single points (no length)
     
     if(emptyConts)
-      wprint(" # EMPTY CONTS = %d\n", emptyConts );
+      wprint(" # EMPTY CONTOURS = %d\n", emptyConts );
     wprint(" # conts  = %d\n", totConts );
     wprint(" # pts    = %d\n", totObjPts );
     wprint(" avg pts/cont = %f\n", ptsPerCont );
@@ -1336,8 +1571,29 @@ void DrawingTools::moreActions()
 	CustomDialog ds;
   int ID_ACTION = ds.addRadioGrp( "action:",
                                   "find next overlapping contour [a],"
-                                  "print model point info",
-                                  plug.selectedAction );
+                                  "sort contours,"
+                                  "find contours/points [y],"
+                                  "print basic model info,"
+                                  "print detailed object info",
+                                  plug.selectedAction,
+                                  "",
+                                  "Finds the next contour which crosses another "
+                                    "contour's path. In most situations (eg: closed "
+                                    "membranes) no two lines should never intersect - "
+                                    "especially a line crossing itself - so it's a good "
+                                    "idea to use this tool before converting your "
+                                    "contours into the final mesh model.,"
+                                  "Physically sorts contours using the criteria you "
+                                    "select,"
+                                  "Use [y] to find the contour or point with the "
+                                    "next biggest value based on the criteria you "
+                                    "select,"
+                                  "Prints some basic information about the current "
+                                    "object including the average distance between "
+                                    "points; average points contour; and number of "
+                                    "empty contours.,"
+                                  "Prints more detailed information about the "
+                                    "current object");
 	GuiDialogCustomizable dlg(&ds, "Perform Action", this);
 	dlg.exec();
 	if( ds.cancelled )
@@ -1347,14 +1603,20 @@ void DrawingTools::moreActions()
   switch(plug.selectedAction)
   {
     case(0):      // find next overlapping contour [a]
-    {
       selectNextOverlappingContour();
-    } break;
-    
-    case(1):      // print point info for current object
-    {
+      break;
+    case(1):      // sort contours
+      sortContours();
+      break;
+    case(2):      // find contours
+      findContours();
+      break;
+    case(3):      // print basic model info
       printModelPointInfo();
-    } break;
+      break;
+    case(4):      // print detailed object info
+      printObjectDetailedInfo();
+      break;
   }
   
   ivwRedraw( plug.view );
@@ -1385,6 +1647,28 @@ void DrawingTools::moreSettings()
                                           "scroll contours,"
                                           "resize curr point", plug.wheelBehav,
                                           "The action performed by the mouse wheel" );
+  int ID_DKEYACTION     = ds.addComboBox( "on [d] remove:",
+                                          "do nothing,"
+                                          "pts to end,"
+                                          "to nearest end,"
+                                          "current pt,"
+                                          "pt size current pt,"
+                                          "pt sizes current cont", plug.dKeyBehav,
+                                          "Action performed when [d] is pressed."
+                                          "\n"
+                                          "\n > do nothing - as it sounds"
+                                          "\n > pts to end - deletes all points beyond "
+                                          "the current point (to the last point)"
+                                          "\n > to nearest end - deletes all points in "
+                                          "the current contour from the selected "
+                                          "point to the closest end (not inclusive)"
+                                          "\n > current pt - deletes current point "
+                                          "(same as [delete]) "
+                                          "\n > pt size current pt - resets the sphere "
+                                          "size of the current point to the default "
+                                          "\n > pt sizes current cont - resets the "
+                                          "sphere size (and any fine grain info) of all "
+                                          "points in the current contour");
   int ID_SHOWMOUSEINMV   = ds.addCheckBox( "show mouse in model view", 
                                           plug.showMouseInModelView,
                                           "Will show the mouse in any Model View"
@@ -1398,11 +1682,169 @@ void DrawingTools::moreSettings()
   plug.wheelResistance       = ds.getResultSpinBox  ( ID_WHEELRESIST );
   plug.useNumKeys            = ds.getResultCheckBox ( ID_USENUMKEYS );
   plug.wheelBehav            = ds.getResultComboBox ( ID_WHEELBEHAV );
+  plug.dKeyBehav             = ds.getResultComboBox ( ID_DKEYACTION );
   plug.showMouseInModelView  = ds.getResultCheckBox ( ID_SHOWMOUSEINMV );
   
   ivwRedraw( plug.view );
 }
 
+
+
+//------------------------
+//-- Prompts for a criteria for reordering, and reorderes specified range of contours
+//-- using this criteria.
+
+void DrawingTools::sortContours()
+{
+  if( !isCurrObjValidAndShown() )  {
+    wprint("Must select valid object\n");
+    return;
+  }
+  
+  int nConts = csize(getCurrObj());
+  
+  //## GET USER INPUT FROM CUSTOM DIALOG:
+  
+  static bool reverseOrder = false;
+  static bool printVals    = true;
+  static bool calcValsOnly = false;
+  
+	CustomDialog ds;
+  int ID_DUMMY         = ds.addLabel   ( "contours to sort (inclusive):" );
+  int ID_CONTMIN       = ds.addSpinBox ( "min:", 1, nConts, 1, 1,
+                                         "Only contours after this contour "
+                                         "(inclusive) will be reordered" );
+  int ID_CONTMAX       = ds.addSpinBox ( "max:", 1, nConts, nConts, 1,
+                                         "Only contours BEFORE this contour "
+                                         "(inclusive) will be reordered" );
+	int ID_SORTCRITERIA  = ds.addRadioGrp( "sort contours by:      (sort criteria)",
+                                         "number points,"
+                                         "contour length,"
+                                         "area,"
+                                         "clockwise area,"
+                                         "avg point size,"
+                                         "avg gray value,"
+                                         "stippled,"
+                                         "random,"
+                                         "mean x,"
+                                         "mean y,"
+                                         "mean z,"
+                                         "min x,"
+                                         "min y,"
+                                         "min z",
+                                         plug.sortCriteria,
+                                         "",
+                                         "Sorts by the number of points (empty first),"
+                                         "Length of the contours (open or closed - "
+                                            "depending on object/contour),"
+                                         "Area of the contour (smallest first),"
+                                         "From largest anti-clockwise to no area to "
+                                           "largest clockwise area,"
+                                         "Average point size over all points in the "
+                                           "contour (using object default if not set),"
+                                         "Uses the average gray value of the pixel "
+                                           "closest to each point,"
+                                         "Stippled contours first,"
+                                         "Uses a random number for each contour,"
+                                         "Contour's center of mass in X,"
+                                         "Contour's center of mass in Y,"
+                                         "Contour's center of mass in Z"
+                                          );
+  int ID_CALVALS       = ds.addCheckBox( "calc values only (don't reorder)",
+                                         calcValsOnly,
+                                         "No contours will be reordered, but "
+                                         "values will be calculated and you "
+                                         "can iterate from largest to smallest "
+                                         "by pressing [y]" );
+	int ID_REVERSE       = ds.addCheckBox( "reverse order", reverseOrder );
+  int ID_PRINTVALS     = ds.addCheckBox( "print values", printVals );
+	GuiDialogCustomizable dlg(&ds, "Sorting Options", this);
+	dlg.exec();
+	if( ds.cancelled )
+		return;
+  calcValsOnly        = ds.getResultCheckBox  ( ID_CALVALS );
+  int contMin         = ds.getResultSpinBox   ( ID_CONTMIN ) - 1;
+  int contMax         = ds.getResultSpinBox   ( ID_CONTMAX ) - 1;
+  reverseOrder        = ds.getResultCheckBox  ( ID_REVERSE );
+  printVals           = ds.getResultCheckBox  ( ID_PRINTVALS );
+	plug.sortCriteria		= ds.getResultRadioGrp	( ID_SORTCRITERIA );
+  
+  edit_reorderConts( plug.sortCriteria, contMin, contMax, calcValsOnly,
+                     reverseOrder, printVals );
+  
+  ivwRedraw( plug.view );
+}
+
+
+
+//------------------------
+//-- Prompts for a criteria for reordering, and reorderes specified range of contours
+//-- using this criteria.
+
+void DrawingTools::findContours()
+{
+  if( !isCurrObjValidAndShown() )  {
+    wprint("Must select valid object\n");
+    return;
+  }
+  
+  //int nConts = csize(getCurrObj());
+  static bool  useStartVal = true;
+  static float startVal = 0;
+  
+  //## GET USER INPUT FROM CUSTOM DIALOG:
+  
+	CustomDialog ds;
+	int ID_FINDCRITERIA  = ds.addComboBox( "Find property:",
+                                         "contour number of points,"
+                                         "contour length,"
+                                         "contour area,"
+                                         "contour clockwise area,"
+                                         "contour avg point size,"
+                                         "contour avg gray value,"
+                                         "contour stippled,"
+                                         "contour random,"
+                                         "contour mean x value,"
+                                         "contour mean y value,"
+                                         "contour mean z value,"
+                                         "contour min x value,"
+                                         "contour min y value,"
+                                         "contour min z value,"
+                                         "point x value,"
+                                         "point y value,"
+                                         "point z value,"
+                                         "point size,"
+                                         "point gray value",
+                                         plug.findCriteria,
+                                         "The criteria used to advance through contours"
+                                         "and/or points using [y]\n" );
+  int ID_USESTARTVAL   = ds.addCheckBox( "start search using value below",
+                                         useStartVal,
+                                         "If not ticked will use the (find value) "
+                                         "of the selected contour/point instead." );
+  int ID_STARTVAL      = ds.addLineEdit( "Value to find:               ",
+                                          toString(startVal).c_str(),
+                                          "The value to start searching for" );
+  int ID_DUMMY         = ds.addLabel   ( "-----\n"
+                                         "NOTE: Use [y] and [Y] to advance through\n"
+                                         "   points/contours with increasing\n"
+                                         "   value - according to the specified\n"
+                                         "   'find property' - compared to the\n"
+                                         "   currently selected point/contour." );
+  
+  GuiDialogCustomizable dlg(&ds, "Find Options", this);
+	dlg.exec();
+	if( ds.cancelled )
+		return;
+  
+	plug.findCriteria		= ds.getResultComboBox	( ID_FINDCRITERIA );
+  useStartVal         = ds.getResultCheckBox  ( ID_USESTARTVAL );
+  string startValStr  = ds.getResultLineEdit  ( ID_STARTVAL );
+  startVal            = string_getFloatFromString( startValStr );
+  
+  edit_goToContNextBiggestFindVal( false, true,
+                                   !useStartVal, startVal );
+}
 
 //------------------------
 //-- Method used for testing new routines.
@@ -1546,21 +1988,21 @@ void DrawingTools::changeTypeSelected( int newType) {
 //-- Change draw_reducePtsMaxArea
 
 void DrawingTools::changeMaxArea( int value ) { 
-  plug.draw_reducePtsMaxArea = value;
+  plug.draw_reducePtsMaxArea = (float)value / 10.0f;
 }
 
 //------------------------
 //-- Change draw_smoothMinDist
 
 void DrawingTools::changeSmoothPtsDist( int value ) {
-  plug.draw_smoothMinDist = value;
+  plug.draw_smoothMinDist = (float)value / 1.0f;
 }
 
 //------------------------
 //-- Change draw_smoothTensileFract
 
 void DrawingTools::changeSmoothTensileFract( int value ) {
-  plug.draw_smoothTensileFract = (float)value/10.0f;  
+  plug.draw_smoothTensileFract = (float)value / 10.0f;
 }
 
 //------------------------
@@ -1573,8 +2015,14 @@ void DrawingTools::changeReducePts() {
 //------------------------
 //-- Change changeDeformCircleRadius
 
-void DrawingTools::changeDeformCircleRadius( float value ) {
-  changeNumWithinRange( plug.draw_deformRadius, 2.0f, 200.0f, value );
+void DrawingTools::changeDeformCircleRadius( float value, bool accel )
+{  
+  if(!accel)
+    plug.draw_deformRadius += value;
+  else
+    plug.draw_deformRadius *= (1 + (value*0.01) );
+  
+  keepWithinRange( plug.draw_deformRadius, 2.0f, 500.0f );
 }
 
 
@@ -1674,6 +2122,16 @@ Icont *getCurrCont()
 
 
 //---------------------------------
+//-- Returns a pointer to the currently selected point.
+
+Ipoint *getCurrPt()
+{
+  Imod *imod = ivwGetModel(plug.view);
+  return ( imodPointGet(imod) );
+}
+
+
+//---------------------------------
 //-- Returns true if the object is valid and has it's draw flag on.
 
 bool isCurrObjValidAndShown()
@@ -1691,7 +2149,14 @@ bool isCurrContValid()
   return ( isContValid( getCurrCont() ) );
 }
 
+//---------------------------------
+//-- Returns true is a valid point is selected.
 
+bool isCurrPtValid()
+{
+  Ipoint *pt = getCurrPt();
+  return (pt!=NULL);
+}
 
 
 
@@ -2653,4 +3118,562 @@ bool edit_selectNextOverlappingCont()
 }
 
 
+
+
+
+
+
+//------------------------
+//-- Returns a string corresponding to the sort criteria (see: enum sortcriteria)
+
+string edit_getSortValString(int sortCriteria)
+{
+  string returnStr;
+  
+  switch(sortCriteria)
+  {
+    case(SORT_NUMPTS):          returnStr = "CONTOUR'S NUMBER OF POINTS";  break;
+    case(SORT_LENGTH):          returnStr = "CONTOUR'S LENGTH";  break;
+    case(SORT_AREA):            returnStr = "CONTOUR'S AREA";  break;
+    case(SORT_CLOCKWISEAREA):   returnStr = "CONTOUR'S CLOCKWISE AREA";  break;
+    case(SORT_AVGPTSIZE):       returnStr = "CONTOUR'S MEAN PT RADIUS";  break;
+    case(SORT_AVGGRAY):         returnStr = "CONTOUR'S MEAN PT GRAY VALUE";  break;
+    case(SORT_STIPPLED):        returnStr = "CONTOUR'S STIPPLED VALUE";  break;
+    case(SORT_RANDOM):          returnStr = "CONTOUR RANDOM VALUE";  break;
+    case(SORT_AVGX):            returnStr = "CONTOUR'S MEAN X VALUE";  break;
+    case(SORT_AVGY):            returnStr = "CONTOUR'S MEAN Y VALUE";  break;
+    case(SORT_AVGZ):            returnStr = "CONTOUR'S MEAN Z VALUE";  break;
+    case(SORT_MINX):            returnStr = "CONTOUR'S MIN X VALUE";  break;
+    case(SORT_MINY):            returnStr = "CONTOUR'S MIN Y VALUE";  break;
+    case(SORT_MINZ):            returnStr = "CONTOUR'S MIN Z VALUE";  break;
+    case(SORT_PTX):             returnStr = "POINT'S X VALUE";  break;
+    case(SORT_PTY):             returnStr = "POINT'S Y VALUE";  break;
+    case(SORT_PTZ):             returnStr = "POINT'S Z VALUE";  break;
+    case(SORT_PTSIZE):          returnStr = "POINT'S RADIUS";  break;
+    case(SORT_PTGREY):          returnStr = "POINT'S GRAY VALUE";  break;
+  }
+  
+  return returnStr;
+}
+
+
+
+
+//------------------------
+//-- Returns the grey scale value in memory of the pixel nearest to the given point
+
+float edit_getGreyValue( Ipoint *pt )
+{
+  int x = int(pt->x + 0.5);
+  int y = int(pt->y + 0.5);
+  int z = int(pt->z + 0.5);
+  
+  float greyVal = ivwGetFileValue( plug.view, x,y,z );
+  return greyVal;
+}
+
+//------------------------
+//-- Returns the average grey value of the points in the contour.
+
+float edit_avgGreyValueOfPts( Icont *cont )
+{
+  if( isEmpty(cont) )
+    return 0;
+  
+  float totalGreyVal = 0;
+  
+  for(int p=0; p<psize(cont); p++)
+    totalGreyVal += edit_getGreyValue( getPt(cont,p) );
+  
+  float avgGreyVal = totalGreyVal / (float)psize(cont);
+  
+  return (avgGreyVal);
+}
+
+
+//------------------------
+//-- Returns the average point size for the contour.
+
+float edit_getAvgPtSize( Iobj *obj, Icont *cont )
+{
+  if( isEmpty(cont) )
+    return 0;
+  
+  float totPtSize = 0;
+  
+  for(int p=0; p<psize(cont); p++)
+    totPtSize += imodPointGetSize(obj,cont,p);
+  
+  float avgGreyVal = totPtSize / (float)psize(cont);
+  
+  return (avgGreyVal);
+}
+
+
+
+//------------------------
+//-- Go to the contour with the "next biggest" sort value
+//-- within "plugs.sortVals", and will recalculate these values
+//-- if "findNextSmallest" is false, or the number of contours
+//-- doesn't match the number of sort values.
+//-- Returns true if a contour is found and selected.
+
+float previousValue = 0;
+int   previousPtIdx    = 0;
+
+bool edit_goToContNextBiggestFindVal( bool findNextSmallest, bool recalc,
+                                      bool useCurrentValue, float chosenTarget )
+{
+  if( !isCurrObjValidAndShown() )
+    return false;
+  
+  if( csize( getCurrObj() ) == 0 ) {
+    wprint("\aThere are no contours\n");
+    return false;
+  }
+  
+  
+  //## SETUP VARIABLES:
+  
+  Imod *imod = ivwGetModel(plug.view);
+  Iobj *obj  = imodObjectGet(imod);
+  int objIdx, contIdx, ptIdx;
+  imodGetIndex(imod, &objIdx, &contIdx, &ptIdx);
+  
+  bool pointwiseOperation = (plug.findCriteria >= SORT_PTX);
+  
+  
+  //## IF NEEDED, RECALCULATE SORT VALUES:
+  
+  if ( recalc || plug.sortVals.size() != csize(obj) 
+       || plug.sortCriteriaOfVals != plug.findCriteria )
+  {
+    wprint("\nFinding %s value\n", (findNextSmallest) ? "smallest" : "biggest" );
+    wprint(" --> RECALCULATING VALUES ...\n");
+    edit_reorderConts( plug.findCriteria, 0, csize(obj)-1, true, false, false );
+  }
+  else
+  {
+    wprint("\nFinding next %s value\n", (findNextSmallest) ? "smallest" : "biggest" );
+  }
+  
+  
+  //## DETERMINE TARGET VALUE:
+  
+  float targetVal;      // the value we want to find (not necessarily the current value)
+  float closestVal;     // the closest value (to the target value) found thus far
+  
+  if( useCurrentValue )
+  {
+    targetVal = edit_getSortValue( plug.findCriteria, obj, getCurrCont(), ptIdx );
+    if( pointwiseOperation )
+      wprint(" --> prev: %f \t(pt %d,%d)\n",   targetVal, contIdx+1, ptIdx+1 );
+    else
+      wprint(" --> prev: %f \t(cont %d)\n",   targetVal, contIdx+1 );  
+  }
+  else
+  {
+    targetVal = chosenTarget;
+    wprint(" --> target value: %f\n", targetVal );
+    contIdx = -1;
+    ptIdx = -1;
+  }
+  
+  closestVal = (findNextSmallest) ? FLOAT_MIN : FLOAT_MAX;
+  
+  
+  //## FIND THE POINT WITH THE NEXT BIGGEST Y JUMP:
+  
+  int   closestContIdx = -1;              // the contour with the smallest value >minVal
+  int   closestPtIdx   = 0;               // the point in "minContIdx" to select
+  
+  
+  if( !pointwiseOperation )   // if we want the next CONTOUR:
+  {
+    
+    if(findNextSmallest)        // if we want the next smallest:
+    {
+      for (int c = plug.sortVals.size()-1; c>=0; c--)
+      {
+        int cIdx = plug.sortVals[c].idx;
+        if( cIdx == contIdx )                      // don't select same contour
+          continue;
+        float val = plug.sortVals[c].float1; 
+        if( val == targetVal && cIdx < contIdx )   // if exact match found
+        {                                          // in earlier contour: select it
+          closestVal = val;
+          closestContIdx = cIdx;
+          break;
+        }
+        else if( val < targetVal && val > closestVal )  // if closer match found: update
+        {
+          closestVal = val;
+          closestContIdx = cIdx;
+        }
+      }
+    }
+    else                       // else (if we want the next biggest):
+    {
+      for (int c = 0; c<plug.sortVals.size(); c++)
+      {
+        int cIdx = plug.sortVals[c].idx;
+        if( cIdx == contIdx )                        // don't select same contour
+          continue;
+        float val = plug.sortVals[c].float1; 
+        if( val == targetVal && cIdx > contIdx )     // if exact match found
+        {                                            // in later contour: select it
+          closestVal = val;
+          closestContIdx = cIdx;
+          break;
+        }
+        else if( val > targetVal && val < closestVal )  // if closer match found: update
+        {
+          closestVal = val;
+          closestContIdx = cIdx;
+        }
+      }
+    }
+    
+  }
+  
+  
+  else                        // if we want the next POINT:
+  {
+    
+    if(findNextSmallest)        // if we want the next smallest:
+    {
+      for (int i = plug.sortPtVals.size()-1; i>=0; i--)
+      {
+        int cIdx  = plug.sortPtVals[i].idx;
+        int pIdx  = (int)plug.sortPtVals[i].float2;
+        float val = plug.sortPtVals[i].float1;
+        if( cIdx == contIdx && pIdx == ptIdx)      // don't select same point
+          continue;
+        if( val == targetVal && ( cIdx < contIdx       // if exact match found
+            || (cIdx == contIdx && pIdx < ptIdx) ) )   // in earlier point: select it
+        {
+          closestVal = val;
+          closestContIdx = cIdx;
+          closestPtIdx   = pIdx;
+          break;
+        }
+        else if( val < targetVal && val > closestVal ) // if better match found: update
+        {
+          closestVal = val;
+          closestContIdx = cIdx;
+          closestPtIdx   = pIdx;
+        }
+      }
+    }
+    
+    else                       // else (if we want the next biggest):
+    {
+      for (int i = 0; i<plug.sortPtVals.size(); i++)
+      {
+        int cIdx  = plug.sortPtVals[i].idx;
+        int pIdx  = (int)plug.sortPtVals[i].float2;
+        float val = plug.sortPtVals[i].float1;
+        if( cIdx == contIdx && pIdx == ptIdx)      // don't select same point
+          continue;
+        if( val == targetVal && ( cIdx > contIdx       // if exact match found
+            || (cIdx == contIdx && pIdx > ptIdx) ) )   // in later point: select it
+        {
+          closestVal = val;
+          closestContIdx = cIdx;
+          closestPtIdx   = pIdx;
+          break;
+        }
+        else if( val > targetVal && val < closestVal ) // if better match found: update
+        {
+          closestVal = val;
+          closestContIdx = cIdx;
+          closestPtIdx   = pIdx;
+        }
+      }
+    }
+    
+  }
+  
+  
+  //## PRINT RESULT:
+  
+  if( closestContIdx == -1 )
+  {
+    wprint("\aNo more 'next %s' value found - press 'B' to reset.\n",
+           (findNextSmallest) ? "smallest" : "biggest" );
+    return false;
+  }
+  
+  if( pointwiseOperation )
+    wprint(" --> new:  %f \t(pt %d,%d)\n",
+           closestVal, closestContIdx+1, closestPtIdx+1 );
+  else
+    wprint(" --> new:  %f \t(cont %d)\n", closestVal, closestContIdx+1 );
+  
+  previousValue = closestVal;
+  
+  //## SELECT CONTOUR:
+  
+  imodSetIndex(imod, objIdx, closestContIdx, closestPtIdx);
+  ivwRedraw( plug.view );
+  return true;
+}
+
+
+//------------------------
+//-- Gets a float value of the specified contour using the specified "sortCriteria"
+//-- (see: enum contsortcriteria). In cases were sortCriteria involves searching
+//-- each point (not just the whole contour), it returns the value of the
+//-- point at index "ptIdx".
+
+float edit_getSortValue( int sortCriteria, Iobj *obj, Icont *cont, int ptIdx )
+{
+  if ( psize(cont)==0 )
+    return 0;
+  
+  
+  float returnValue = INT_MAX;
+  
+  switch(sortCriteria)
+  {
+    case(SORT_NUMPTS):
+      returnValue = psize(cont);
+      break;
+    
+    case(SORT_LENGTH):
+    {
+      int    closed = isContClosed( obj, cont ) ? 1 : 0;
+      returnValue = imodContourLength(cont, closed);
+    }
+      break;
+      
+    case(SORT_AREA):
+      returnValue = imodContourArea(cont);
+      break;
+      
+    case(SORT_CLOCKWISEAREA):
+    {
+      returnValue = imodContourArea(cont);
+      if( returnValue > 0 && imodContZDirection(cont) == IMOD_CONTOUR_COUNTER_CLOCKWISE )
+        returnValue *= -1;
+    }
+      break;
+        
+    case(SORT_AVGPTSIZE):
+      returnValue = edit_getAvgPtSize(obj,cont);
+      break;
+      
+    case(SORT_STIPPLED):
+      returnValue = isInterpolated(cont) ? 0 : 1;
+      break;
+      
+    case(SORT_RANDOM):
+      returnValue = rand();
+      break; 
+      
+    case(SORT_AVGGRAY):
+      returnValue = edit_avgGreyValueOfPts(cont);
+      break;
+      
+      
+    case(SORT_AVGX):
+    {
+      Ipoint pt;
+      cont_getCenterOfMBR(cont,&pt);
+      returnValue = pt.x;
+    }
+      break;
+      
+    case(SORT_AVGY):
+    {
+      Ipoint pt;
+      cont_getCenterOfMBR(cont,&pt);
+      returnValue = pt.y;
+    }
+      break;
+      
+    case(SORT_AVGZ):
+    {
+      Ipoint pt;
+      cont_getCenterOfMBR(cont,&pt);
+      returnValue = pt.z;
+    }
+      break;
+      
+      
+    case(SORT_MINX):
+    {
+      for( int p=0; p<psize(cont); p++)
+        if( getPt(cont,p)->x < returnValue )
+          returnValue = getPt(cont,p)->x;
+    }
+      break;
+      
+    case(SORT_MINY):
+    {
+      for( int p=0; p<psize(cont); p++)
+        if( getPt(cont,p)->y < returnValue )
+          returnValue = getPt(cont,p)->y;
+    }
+      break;
+      
+    case(SORT_MINZ):
+    {
+      for( int p=0; p<psize(cont); p++)
+        if( getPt(cont,p)->z < returnValue )
+          returnValue = getPt(cont,p)->z;
+    }
+      break;
+      
+      
+      
+      
+      
+    case(SORT_PTX):
+      returnValue = getPt(cont,ptIdx)->x;
+      break;
+      
+    case(SORT_PTY):
+      returnValue = getPt(cont,ptIdx)->y;
+      break;
+      
+    case(SORT_PTZ):
+      returnValue = getPt(cont,ptIdx)->z;
+      break;
+      
+      
+    case(SORT_PTSIZE):
+      returnValue = imodPointGetSize(obj,cont,ptIdx);;
+      break;
+      
+    case(SORT_PTGREY):
+      returnValue = edit_getGreyValue( getPt(cont,ptIdx) );
+      break;
+  }
+  
+  return returnValue;
+}
+
+
+//------------------------
+//-- Sorts and reorderes all contours past "minCont" according to the specified
+//-- "sortCriteria" (see: enum contsortcriteria).
+//-- Setting "reverse" will sort the value in descending instead of descending.
+//-- Setting "printVals" will output the sort values for each contour.
+
+void edit_reorderConts( int sortCriteria, int minCont, int maxCont,        
+                        bool calcValsOnly, bool reverse, bool printVals )
+{
+  Imod *imod = ivwGetModel(plug.view);
+  Iobj *obj = imodObjectGet(imod);
+  int objIdx, contIdx, ptIdx;
+  imodGetIndex(imod, &objIdx, &contIdx, &ptIdx);
+  
+  int nConts = csize(obj);
+  int minC = MAX( minCont,0 );
+  int maxC = MIN( maxCont, csize(obj)-1 );
+  
+  
+  //## CREATE VECTOR OF FLOATS TO SORT CONTOURS BY AND CALCULATE SORT VALUES
+  //## USING CHOSEN SORT CRITERIA:
+  
+  plug.sortVals.resize( nConts );
+  
+  for( int c=0; c<nConts; c++)
+  {
+    plug.sortVals[c].idx = c;
+    plug.sortVals[c].float2 = c;
+    Icont *cont = getCont(obj,c);
+    int    closed = isContClosed( obj, cont ) ? 1 : 0;
+    
+    plug.sortVals[c].float1 = edit_getSortValue( sortCriteria, obj, cont );
+  }
+  
+  
+  //## SORT CONTOURS BY SORT VALUES:
+  
+  int numContsChanged = 0;
+  
+  if( !calcValsOnly )
+  {
+    //## SORT THE CHOSEN RANGE OF VALUES WITHIN THE SORT VECTOR:
+    
+    plug.sortVals = vector_sort( plug.sortVals, minC, maxC );
+    
+    if( reverse )
+      plug.sortVals = vector_reverse( plug.sortVals, minC, maxC );
+    
+    
+    //## REORDER THE CONTOURS WITHIN THE OBJECT USING THE NOW SORTED SORT VECTOR:
+    
+    Iobj *objCopy = imodObjectDup( obj );
+    
+    for( int c=minC; c<=maxC; c++)
+    {
+      if( plug.sortVals[c].idx != c )
+      {
+        Icont *cont = getCont(obj,c);
+        imodSetIndex(imod, objIdx, c, 0);
+        undoContourDataChg( plug.view, objIdx, c );      // REGISTER UNDO
+        Icont *newCont = getCont( objCopy, plug.sortVals[c].idx );
+        imodContourSwap(cont,newCont);
+        numContsChanged++;
+      }
+    }
+    
+    if(numContsChanged>0)
+      undoFinishUnit( plug.view );              // FINISH UNDO
+    
+    imodObjectDelete( objCopy );
+    imodSetIndex(imod, objIdx, nConts-1, 0);
+  }
+  
+  
+  //## CALCULATE POINT VALUES IN VECTOR:
+  
+  plug.sortPtVals.clear();
+  bool pointwiseOperation = (sortCriteria >= SORT_PTX);
+  
+  if( pointwiseOperation )
+  {
+    for( int c=0; c<nConts; c++)
+    {
+      Icont *cont = getCont(obj,c);
+      for(int p=0; p<psize(cont); p++)
+      {
+        IdxToSort newPtVal;
+        newPtVal.idx = c;
+        newPtVal.float2 = p;
+        newPtVal.float1 = edit_getSortValue( sortCriteria, obj, cont, p );
+        plug.sortPtVals.push_back( newPtVal );
+      }
+    }
+  }
+  
+  plug.sortCriteriaOfVals = sortCriteria;
+  
+  //## OUTPUT RESULTS:
+  
+  if( printVals )
+  {
+    wprint("\n%s:\n", edit_getSortValString(sortCriteria).c_str() );
+        
+    for( int c=0; c<nConts; c++)
+    {
+      wprint( "cont %d \t= %f", c+1, plug.sortVals[c].float1 );
+      if( plug.sortVals[c].idx != c )
+        wprint( "\t(*%d)", plug.sortVals[c].idx+1 );
+      wprint("\n");
+    }
+  }
+  
+  if( calcValsOnly )
+  {
+    wprint("  calculating values: %s\n", edit_getSortValString(sortCriteria).c_str() );
+  }
+  else
+  {
+    wprint("\n%d contours have been reordered\n", numContsChanged);
+  }
+}
 

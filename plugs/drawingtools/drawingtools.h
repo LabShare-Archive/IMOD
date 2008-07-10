@@ -15,6 +15,7 @@ class QGroupBox;
 class QVBoxLayout;
 class QSpacerItem;
 class QEvent;
+class FloatSpinBox;   // Class written by David
 
 #include "imodplugin.h"
 #include "dia_qtutils.h"
@@ -48,10 +49,14 @@ public slots:
   void smoothCurrentContour();
   void reduceConts();
   void smoothConts();
+  bool executeDAction();
   void selectNextOverlappingContour();
   void printModelPointInfo();
+  void printObjectDetailedInfo();
   void moreActions();
   void moreSettings();
+  void sortContours();
+  void findContours();
   void test();
   void cut();
   void copy();
@@ -64,7 +69,7 @@ public slots:
   void changeSmoothTensileFract( int value );
   void changeReducePts();
   
-  void changeDeformCircleRadius( float value );
+  void changeDeformCircleRadius( float value, bool accel=false );
   void clearExtraObj();
   
  protected:
@@ -84,12 +89,12 @@ public slots:
   QGroupBox   *grpOptions;
   QGridLayout *gridLayout1;
   QLabel      *lblMaxArea;
-  QSpinBox    *maxAreaSpinner;
+  FloatSpinBox *fMaxAreaSpinner;
   QCheckBox   *reducePtsCheckbox;
   QLabel      *lblSmoothPtsDist;
-  QSpinBox    *smoothPtsDist;
+  FloatSpinBox *fSmoothPtsDist;
   QLabel      *lblSmoothTensileFract;
-  QSpinBox    *smoothTensileFract;
+  FloatSpinBox *fSmoothTensileFract;
   
   QGroupBox   *grpActions;
   QVBoxLayout *vboxLayout1;
@@ -109,6 +114,15 @@ public slots:
 enum drawmodes      { DM_NORMAL, DM_DEFORM, DM_JOIN, DM_TRANSFORM, DM_ERASER,
                       DM_RESIZEPT };
 enum wheelbehaviour { WH_NONE, WH_DEFORMCIRCLE, WH_SLICES, WH_CONTS, WH_PTSIZE };
+enum dkeybehavior   { DK_NONE, DK_TOEND, DK_NEARESTEND, DK_DELETEPT, DK_REMOVEPTSIZE,
+                      DK_REMOVEALLPTSIZES };
+
+enum sortcriteria   { SORT_NUMPTS, SORT_LENGTH, SORT_AREA, SORT_CLOCKWISEAREA,
+                      SORT_AVGPTSIZE, SORT_AVGGRAY, SORT_STIPPLED, SORT_RANDOM, 
+                      SORT_AVGX, SORT_AVGY, SORT_AVGZ,
+                      SORT_MINX, SORT_MINY, SORT_MINZ,
+                      SORT_PTX, SORT_PTY, SORT_PTZ,
+                      SORT_PTSIZE, SORT_PTGREY, SORT_NUMOPTIONS };
 
 const int NUM_SAVED_VALS = 9;
 
@@ -140,11 +154,19 @@ struct DrawingToolsData   // contains all local plugin data
   
   int  wheelBehav;              // changes the behaviour of the mouse wheel
                                 //   (see: wheelbehaviour)
+  int  dKeyBehav;               // the action when [d] is pressed 
+                                //   (see: dkeybehavior)
   
   bool   useNumKeys;            // intercepts number keys [1]-[5] to change draw mode
   int    wheelResistance;       // the higher the value, the slower mouse scrolling works
   bool   showMouseInModelView;  // shows the extra object in the model view
+  
   int    selectedAction;        // the last selected action under "More Actions"
+  int    sortCriteria;          // the lat sort criteria selected via:
+                                // "More Actions >> sort ... " (see: sortcriteria)
+  int    findCriteria;          // the lat find criteria selected via:
+                                // "More Actions >> sort ... " (see: sortcriteria)
+  bool   findReverse;           // searches in the reverse direction
   
   //## MOUSE:
   
@@ -171,6 +193,13 @@ struct DrawingToolsData   // contains all local plugin data
   bool shiftDown;       // set to true when the SHIFT button is down
   Ipoint centerPt;      // the center of the currently selected contour
   
+  vector<IdxToSort> sortVals; // stores a idx and float for each contour after
+                              // "sort contours" is run
+  vector<IdxToSort> sortPtVals; // stores a idx and float for each contour after
+                                // "sort contours" is run
+  int sortCriteriaOfVals;     // last sort criteria (see: sortcriteria) used to populate
+                              // values in "sortVals" and "sortPtVals"
+  
   Icont *copiedCont;      // used to cut/copy and paste contours
   Ipoint copiedCenterPt;  // the center of area of the last contour cut/copied
   
@@ -191,8 +220,10 @@ struct DrawingToolsData   // contains all local plugin data
 
 Iobj *getCurrObj();
 Icont *getCurrCont();
+Ipoint *getCurrPt();
 bool isCurrObjValidAndShown();
 bool isCurrContValid();
+bool isCurrPtValid();
 
 
 //-------------------------------
@@ -232,6 +263,15 @@ void edit_joinCurrContWithAnyTouching();
 bool edit_selectNextOverlappingCont();
 
 
+string edit_getSortValString(int sortCriteria);
 
+float edit_getGreyValue( Ipoint *pt );
+float edit_avgGreyValueOfPts( Icont *cont );
+float edit_getAvgPtSize( Iobj *obj, Icont *cont );
+bool edit_goToContNextBiggestFindVal( bool findNextSmallest, bool recalc,
+                                      bool useCurrentValue, float chosenTarget=FLOAT_MIN );
+float edit_getSortValue( int sortCriteria, Iobj *obj, Icont *cont, int ptIdx=0 );
+void edit_reorderConts( int sortCriteria, int minCont, int maxCont,        
+                     bool calcValsOnly, bool reverse, bool printVals );
 
 //############################################################
