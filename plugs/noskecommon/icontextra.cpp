@@ -15,6 +15,9 @@
     $Revision$
 
     $Log$
+    Revision 1.5  2008/04/04 01:13:53  tempuser
+    moved small qt gui functions here
+
     Revision 1.4  2008/03/17 07:23:27  tempuser
     Fixed memory leak in 'cont_doContoursTouch'
 
@@ -649,6 +652,84 @@ int cont_doesPtExistInCont( Icont *cont, Ipoint *pt )
       return 1;
   return 0;
 }
+
+
+
+
+//------------------------
+//-- Returns the center of the minmum bounding rectangle around a contour.
+//-- NOTE: Is a bit less expensive than "cont_getCentroid"
+
+bool cont_getCenterOfMBR( Icont *cont, Ipoint *rpt )
+{
+  if( isEmpty(cont) || psize(cont) == 0 )
+  {
+    setPt( rpt, 0, 0, 0 );
+    return false;
+  }
+  else if( psize(cont) == 1 )
+  {
+    setPt( rpt, getPt(cont,0)->x, getPt(cont,0)->y, getPt(cont,0)->z );
+    return true;
+  }
+  
+	Ipoint minPt;
+  Ipoint maxPt;
+  setPt( &minPt, FLOAT_MAX, FLOAT_MAX, FLOAT_MAX );
+  setPt( &maxPt, FLOAT_MIN, FLOAT_MIN, FLOAT_MIN );
+  
+  for( int p=0; p<psize(cont); p++ )
+  {
+    Ipoint *pt = getPt(cont, p);
+    if( minPt.x > pt->x )  minPt.x = pt->x;
+    if( minPt.y > pt->y )  minPt.y = pt->y;
+    if( minPt.z > pt->z )  minPt.z = pt->z;
+    if( maxPt.x < pt->x )  maxPt.x = pt->x;
+    if( maxPt.y < pt->y )  maxPt.y = pt->y;
+    if( maxPt.z < pt->z )  maxPt.z = pt->z;
+  }
+  
+  setPt( rpt, avg(minPt.x, maxPt.x), avg(minPt.y, maxPt.y), avg(minPt.z, maxPt.z) );
+  return true;
+}
+
+//------------------------
+//-- Returns the centroid/center of mass of a contour AND the area.
+//-- WARNING: Contour must be enclosed (must not cross it's own path).
+//-- WARNING: If contour is drawn clockwise, area will be a negative value.
+
+bool cont_getCentroid( Icont *cont, Ipoint *rpt )
+{  
+	if( isEmpty(cont) || psize(cont) == 0 )
+  {
+    setPt( rpt, 0, 0, 0 );
+		return false;
+	}
+  else if( psize(cont) == 1 )
+  {
+		setPt( rpt, getPt(cont,0)->x, getPt(cont,0)->y, getPt(cont,0)->z );
+    return true;
+	}
+  
+	float totArea = 0;
+	float xCentroid = 0;
+	float yCentroid = 0;
+	
+	for(int i=0; i<psize(cont); i++) {
+		float boundingRecOverLine = (getPt(cont,i)->x * getPt(cont,i+1)->y)
+                                - (getPt(cont,i+1)->x * getPt(cont,i)->y);
+		totArea += boundingRecOverLine;
+		xCentroid += (( getPt(cont,i)->x + getPt(cont,i+1)->x ) * boundingRecOverLine);
+		yCentroid += (( getPt(cont,i)->y + getPt(cont,i+1)->y ) * boundingRecOverLine);
+	}
+	totArea = 0.5*totArea;
+	xCentroid = 1.0/(6.0*totArea) * xCentroid;
+	yCentroid = 1.0/(6.0*totArea) * yCentroid;
+  
+  setPt( rpt, xCentroid, yCentroid, getPt(cont,0)->z );
+	return true;
+}
+
 
 
 //------------------------

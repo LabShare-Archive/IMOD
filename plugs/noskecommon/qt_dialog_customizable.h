@@ -211,7 +211,7 @@ struct CustomDialog								// used to set up a new GuiDialogCustomizable
 		newElement.tooltip = tooltip;
 		
 		if( value < min || value > max ) {
-			cerr << "ERROR: Bad value entered" << endl;
+			cerr << "ERROR: Bad value entered into spin box" << endl;
 			newElement.value = min;
 		}
 		

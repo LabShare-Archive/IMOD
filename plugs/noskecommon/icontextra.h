@@ -88,6 +88,9 @@ inline Ipoint *getLastPt(Icont *cont );
 inline Ipoint *getFirstPt(Icont *cont );
 inline void setPt(Ipoint *pt, float x, float y, float z);
 inline int ptsEqual( Ipoint *pt1, Ipoint *pt2 );
+inline void removePtsSize( Icont *cont );
+inline void removePtSize( Icont *cont, int idx );
+inline bool isDefaultSize( Iobj *obj, Icont *cont, int idx );
 
 inline void printPt( Ipoint *pt );
 inline void printCont( Icont *cont );
@@ -151,6 +154,9 @@ bool line_twoKiss( Ipoint *a1, Ipoint *a2, Ipoint *a3,    Ipoint *b1, Ipoint *b2
 
 int cont_isEqual( Icont *cont1, Icont *cont2 );
 int cont_doesPtExistInCont( Icont *cont, Ipoint *pt );
+
+bool cont_getCenterOfMBR( Icont *cont, Ipoint *rpt );
+bool cont_getCentroid( Icont *cont, Ipoint *rpt );
 
 float cont_getRadius( Icont *c );
 void cont_findClosestPtInContToGivenPt( Ipoint *pt, Icont *cont, float *closestDist, Ipoint *closestPt, int *closestPtIdx );
@@ -361,8 +367,40 @@ inline int ptsEqual( Ipoint *pt1, Ipoint *pt2 )
   return (pt1->x == pt2->x) && (pt1->y == pt2->y); 
 }
 
+//------------------------
+//-- Resets the point size and fine grain of all points in the current contour
+//-- to the default.
+
+inline void removePtsSize( Icont *cont )
+{
+  for (int p=0; p<psize(cont); p++)
+    removePtSize( cont, p );
+}
+
+//------------------------
+//-- Resets the point size and fine grain info of the given point in the current
+//-- contour to the default.
+
+inline void removePtSize( Icont *cont, int idx )
+{
+  Ipoint *pt = getPt(cont, idx);
+  Ipoint newPt;
+  setPt( &newPt, pt->x, pt->y, pt->z );
+  imodPointAdd( cont, &newPt, idx );
+  imodPointDelete( cont, idx+1 );
+}
 
 
+//------------------------
+//-- Returns true if the size of the point equals the default sphere size for the object
+//-- or returns false if different.
+
+inline bool isDefaultSize( Iobj *obj, Icont *cont, int idx )
+{
+  float ptSize        = imodPointGetSize(obj, cont, idx);
+  float objSphereSize = imodObjectGetValue(obj,IobjPointSize);
+  return (ptSize == objSphereSize);
+}
 
 
 //------------------------
