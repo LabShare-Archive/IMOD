@@ -113,7 +113,7 @@ int imodPlugKeys(ImodView *vw, QKeyEvent *event)
       break;
       
     case Qt::Key_D:                  // delete points current contour to nearest end
-      if (shift)
+      if (shift || plug.dKeyBehav == DK_NONE)
         return 0;
       plug.window->deletePtsUsingDAction();
       break;
@@ -158,9 +158,21 @@ int imodPlugKeys(ImodView *vw, QKeyEvent *event)
       bead_goToContNextBiggestSortVal( !shift );
       break;
       
-    case Qt::Key_U:                  // toggle contour as checked/unchecked
+    case Qt::Key_I:                  // print info or inverse direction
       if(shift)
         plug.window->printContourCheckedInfo();
+      else
+        return 0;
+      break;
+      
+    case Qt::Key_U:                  // toggle contour as checked/unchecked
+      if(shift)
+      {
+        if(plug.uKeyBehav == UK_PRINTINFO)
+          plug.window->printContourCheckedInfo();
+        else
+          plug.window->togglePtsChecked();
+      }
       else
         plug.window->toggleStippled();
       break;
@@ -256,6 +268,7 @@ void imodPlugExecute(ImodView *inImodView)
     plug.sizeLineSpheres       = 0;
     plug.lineDisplayWidth      = 1;
     plug.sizePurpleSpheres     = 10;
+    plug.sizeCheckedPts        = 1.1;
     
     plug.selectedAction        = 0;
     plug.sortCriteria          = 0;
@@ -273,6 +286,7 @@ void imodPlugExecute(ImodView *inImodView)
     plug.mKeyBehav             = MK_GOTOMIDDLE;
     plug.wCurrContOnly         = true;
     plug.wWeightedDiv          = 15;
+    plug.uKeyBehav             = UK_TOGGLEPTCHECKED;
     plug.enterAction           = EN_PREVUNCHECKED;
     plug.minPtsEnter           = 5;
     plug.maxPtsEnter           = plug.zsize;
@@ -1210,9 +1224,9 @@ void BeadHelper::loadSettings()
   if(nvals!=NUM_SAVED_VALS)
   {
     wprint("\aBeadHelper: Could not load saved values\n\n");
-    wprint("\a  If this is your first time using BeadHelper");
-    wprint("\a  it is HIGHLY recommended you click 'Help'");
-    wprint("\a  to learn about how it works!");
+    wprint("\aIf this is your first time using BeadHelper ");
+    wprint("it is HIGHLY recommended you click 'Help' ");
+    wprint("to learn about how it works!\n");
     return;
   }
   
@@ -1232,34 +1246,36 @@ void BeadHelper::loadSettings()
   plug.sizeLineSpheres      = savedValues[12];
   plug.lineDisplayWidth     = savedValues[13];
   plug.sizePurpleSpheres    = savedValues[14];
-  plug.selectedAction       = savedValues[15];
-  plug.sortCriteria         = savedValues[16];
-  plug.autoSaveSettings     = savedValues[17];
+  plug.sizeCheckedPts       = savedValues[15];
+  plug.selectedAction       = savedValues[16];
+  plug.sortCriteria         = savedValues[17];
+  plug.autoSaveSettings     = savedValues[18];
   
-  plug.wheelBehav           = savedValues[18];
-  plug.wheelResistance      = savedValues[19];
-  plug.includeEndsResid     = savedValues[20];
-  plug.contsToSearch        = savedValues[21];
-  plug.dKeyBehav            = savedValues[22];
-  plug.mKeyBehav            = savedValues[23];
-  plug.wCurrContOnly        = savedValues[24];
-  plug.wWeightedDiv         = savedValues[25];
-  plug.enterAction          = savedValues[26];
-  plug.minPtsEnter          = savedValues[27];
-  plug.enterPrint           = savedValues[28];
+  plug.wheelBehav           = savedValues[19];
+  plug.wheelResistance      = savedValues[20];
+  plug.includeEndsResid     = savedValues[21];
+  plug.contsToSearch        = savedValues[22];
+  plug.dKeyBehav            = savedValues[23];
+  plug.mKeyBehav            = savedValues[24];
+  plug.wCurrContOnly        = savedValues[25];
+  plug.wWeightedDiv         = savedValues[26];
+  plug.uKeyBehav            = savedValues[27];
+  plug.enterAction          = savedValues[28];
+  plug.minPtsEnter          = savedValues[29];
+  plug.enterPrint           = savedValues[30];
   
-  plug.smoothCurrContOnly   = savedValues[29];
-  plug.smoothFillGaps       = savedValues[30];
-  plug.smoothBigResidFirst  = savedValues[31];
-  plug.smoothMoveYOnly      = savedValues[32];
-  plug.smoothLeaveSeed      = savedValues[33];
-  plug.smoothLeaveEnds      = savedValues[34];
-  plug.smoothLeaveCurrV     = savedValues[35];
-  plug.smoothMoveFract      = savedValues[36];
-  plug.smoothMinResid       = savedValues[37];
-  plug.smoothIterations     = savedValues[38];
-  plug.smoothAdjacentV      = savedValues[39];
-  plug.smoothNumViews       = savedValues[40];
+  plug.smoothCurrContOnly   = savedValues[31];
+  plug.smoothFillGaps       = savedValues[32];
+  plug.smoothBigResidFirst  = savedValues[33];
+  plug.smoothMoveYOnly      = savedValues[34];
+  plug.smoothLeaveSeed      = savedValues[35];
+  plug.smoothLeaveEnds      = savedValues[36];
+  plug.smoothLeaveCurrV     = savedValues[37];
+  plug.smoothMoveFract      = savedValues[38];
+  plug.smoothMinResid       = savedValues[39];
+  plug.smoothIterations     = savedValues[40];
+  plug.smoothAdjacentV      = savedValues[41];
+  plug.smoothNumViews       = savedValues[42];
 }
 
 
@@ -1287,34 +1303,36 @@ void BeadHelper::saveSettings()
   saveValues[12] = plug.sizeLineSpheres;
   saveValues[13] = plug.lineDisplayWidth;
   saveValues[14] = plug.sizePurpleSpheres;
-  saveValues[15] = plug.selectedAction;
-  saveValues[16] = plug.sortCriteria;
-  saveValues[17] = plug.autoSaveSettings;
+  saveValues[15] = plug.sizeCheckedPts;
+  saveValues[16] = plug.selectedAction;
+  saveValues[17] = plug.sortCriteria;
+  saveValues[18] = plug.autoSaveSettings;
   
-  saveValues[18] = plug.wheelBehav;
-  saveValues[19] = plug.wheelResistance;
-  saveValues[20] = plug.includeEndsResid;
-  saveValues[21] = plug.contsToSearch;
-  saveValues[22] = plug.dKeyBehav;
-  saveValues[23] = plug.mKeyBehav;
-  saveValues[24] = plug.wCurrContOnly;
-  saveValues[25] = plug.wWeightedDiv;
-  saveValues[26] = plug.enterAction;
-  saveValues[27] = plug.minPtsEnter;
-  saveValues[28] = plug.enterPrint;
+  saveValues[19] = plug.wheelBehav;
+  saveValues[20] = plug.wheelResistance;
+  saveValues[21] = plug.includeEndsResid;
+  saveValues[22] = plug.contsToSearch;
+  saveValues[23] = plug.dKeyBehav;
+  saveValues[24] = plug.mKeyBehav;
+  saveValues[25] = plug.wCurrContOnly;
+  saveValues[26] = plug.wWeightedDiv;
+  saveValues[27] = plug.uKeyBehav;
+  saveValues[28] = plug.enterAction;
+  saveValues[29] = plug.minPtsEnter;
+  saveValues[30] = plug.enterPrint;
   
-  saveValues[29] = plug.smoothCurrContOnly;
-  saveValues[30] = plug.smoothFillGaps;
-  saveValues[31] = plug.smoothBigResidFirst;
-  saveValues[32] = plug.smoothMoveYOnly;
-  saveValues[33] = plug.smoothLeaveSeed;
-  saveValues[34] = plug.smoothLeaveEnds;
-  saveValues[35] = plug.smoothLeaveCurrV;
-  saveValues[36] = plug.smoothMoveFract;
-  saveValues[37] = plug.smoothMinResid;
-  saveValues[38] = plug.smoothIterations;
-  saveValues[39] = plug.smoothAdjacentV;
-  saveValues[40] = plug.smoothNumViews;
+  saveValues[31] = plug.smoothCurrContOnly;
+  saveValues[32] = plug.smoothFillGaps;
+  saveValues[33] = plug.smoothBigResidFirst;
+  saveValues[34] = plug.smoothMoveYOnly;
+  saveValues[35] = plug.smoothLeaveSeed;
+  saveValues[36] = plug.smoothLeaveEnds;
+  saveValues[37] = plug.smoothLeaveCurrV;
+  saveValues[38] = plug.smoothMoveFract;
+  saveValues[39] = plug.smoothMinResid;
+  saveValues[40] = plug.smoothIterations;
+  saveValues[41] = plug.smoothAdjacentV;
+  saveValues[42] = plug.smoothNumViews;
   
   prefSaveGenericSettings("BeadHelper",NUM_SAVED_VALS,saveValues);
 }
@@ -1347,6 +1365,7 @@ void BeadHelper::deletePtsInRange()
     + incSeedView;
   
   static bool skipCheckedConts = true;
+  static bool skipCheckedPts   = true;
   static bool skipSeedView     = true;
   
   CustomDialog ds;
@@ -1354,7 +1373,11 @@ void BeadHelper::deletePtsInRange()
   int ID_SKIPCHECKEDC  = ds.addCheckBox( "skip checked contours",
                                          skipCheckedConts,
                                          "Will not delete any points from checked "
-                                         "(stippled) contours " );
+                                         "(stippled) contours (marked with [u])" );
+  int ID_SKIPCHECKEDP  = ds.addCheckBox( "skip checked points",
+                                         skipCheckedConts,
+                                         "Will not delete checked points "
+                                         "(marked with [U]) " );
   int ID_SKIPSEEDVIEW  = ds.addCheckBox( "skip middle (seed) view",
                                          skipSeedView,
                                          "Will not delete any seed points (points on "
@@ -1364,6 +1387,7 @@ void BeadHelper::deletePtsInRange()
   if( ds.cancelled )
     return;
   skipCheckedConts     = ds.getResultCheckBox  ( ID_SKIPCHECKEDC );
+  skipCheckedPts       = ds.getResultCheckBox  ( ID_SKIPCHECKEDP );
   skipSeedView         = ds.getResultCheckBox  ( ID_SKIPSEEDVIEW );
   
   
@@ -1390,7 +1414,8 @@ void BeadHelper::deletePtsInRange()
     {
       int z = getPtZInt(cont,p);
       if( isBetweenAsc( plug.viewMin, z, plug.viewMax ) 
-          && ( !skipSeedView || z != plug.seedView ) )
+          && !( skipSeedView   && z == plug.seedView ) 
+          && !( skipCheckedPts && bead_isPtChecked(obj,cont,p) )  )
       {
         imodPointDelete( cont, p );
         p--;
@@ -1937,6 +1962,7 @@ void BeadHelper::moreActions()
                                   "verify contours"
                                      "\n(reorders pts and removes duplicates),"
                                   "mark contours as checked/unchecked,"
+                                  "mark points as checked/unchecked,"
                                   "print contour info,"
                                   "load tilt angles",
                                   plug.selectedAction,
@@ -2005,8 +2031,8 @@ void BeadHelper::moreActions()
       int ID_DUMMY = dsB.addLabel   ( "... select range of views where top \n"
                                      "and bottom fiducials appear to move in \n"
                                      "opposite directions (suggest a range of ~5):" );
-      int ID_MIN   = dsB.addSpinBox ( "min view:", 1, plug.xsize, minViewR, 1 );
-      int ID_MAX   = dsB.addSpinBox ( "max view:", 1, plug.xsize, maxViewR, 1 );
+      int ID_MIN   = dsB.addSpinBox ( "min view:", 1, plug.zsize, minViewR, 1 );
+      int ID_MAX   = dsB.addSpinBox ( "max view:", 1, plug.zsize, maxViewR, 1 );
       
       GuiDialogCustomizable dlgB(&dsB, "Show Bottom Contours", this);
       dlgB.exec();
@@ -2049,17 +2075,22 @@ void BeadHelper::moreActions()
       correctCurrentObject();
     } break;
     
-    case(7):      // mark all contours as stippled/unchecked
+    case(7):      // mark all contours as stippled/unstippled
     {
       markRangeAsStippled();
     } break;
     
-    case(8):      // print contour info
+    case(8):      // mark all points as checked/unchecked
+    {
+      markRangePtsAsChecked();
+    } break;
+      
+    case(9):      // print contour info
     {
       printContourCheckedInfo();
     } break;
     
-    case(9):      // load tilt angles
+    case(10):      // load tilt angles
     {
       openTiltAngleFile();
     } break;
@@ -2148,6 +2179,10 @@ void BeadHelper::moreSettings()
                                           1, 200, plug.sizePurpleSpheres, 1,
                                           "The size of points in the extra purple object "
                                           "(used to show bottom fiducials etc)" );
+  int ID_SIZECHECKEDPTS = ds.addSpinBox ( "size checked pts:",
+                                          1, 20, plug.sizeCheckedPts, 1,
+                                          "The size of points which have been checked "
+                                          "by pressing [U]" );
   
   ds.addLabel   ("----- OTHER: -----");
   
@@ -2176,6 +2211,7 @@ void BeadHelper::moreSettings()
   plug.sizeLineSpheres       = ds.getResultSpinBox  ( ID_LINESPHERE );
   plug.lineDisplayWidth      = ds.getResultSpinBox  ( ID_LINEWIDTH );
   plug.sizePurpleSpheres     = ds.getResultSpinBox  ( ID_PURPLESPHERE );
+  plug.sizeCheckedPts        = ds.getResultSpinBox  ( ID_SIZECHECKEDPTS ) + 0.1;
   
   plug.autoSaveSettings      = ds.getResultCheckBox ( ID_AUTOSAVE );
   
@@ -2317,6 +2353,24 @@ void BeadHelper::keyboardSettings()
                                           "\n > smooth y local    - as above but "
                                           "moves points in Y only" );
   
+  int ID_UKEYACTION     = ds.addComboBox( "on [U]:",
+                                          "print object info,"
+                                          "check current pt,"
+                                          "check contour pts",
+                                          plug.uKeyBehav,
+                                          "Action performed when [U] is pressed."
+                                          "\n"
+                                          "\n > print object info - prints info about "
+                                          "how many contours are checked etc "
+                                          "(same as [I])"
+                                          "\n > check current pt  - toggles currently "
+                                          "selected point between checked and unchecked"
+                                          "\n > check contour pts - toggles all points "
+                                          "in current contour between checked and "
+                                          "unchecked"
+                                          "\n NOTE: a checked point is shown by a "
+                                          "small sphere" );
+  
   ds.addLabel   ("");
   
   int ID_ENTERACTION    = ds.addComboBox( "on [Enter] go to:",
@@ -2364,6 +2418,7 @@ void BeadHelper::keyboardSettings()
   plug.mKeyBehav             = ds.getResultComboBox ( ID_MKEYACTION );
   plug.wCurrContOnly         = ds.getResultCheckBox ( ID_WCURRCONT );
   plug.wWeightedDiv          = ds.getResultSpinBox  ( ID_WDIVISOR );
+  plug.uKeyBehav             = ds.getResultComboBox ( ID_UKEYACTION );
   plug.enterAction           = ds.getResultComboBox ( ID_ENTERACTION );
   plug.minPtsEnter           = ds.getResultSpinBox  ( ID_MINPTSENTER );
   plug.maxPtsEnter           = ds.getResultSpinBox  ( ID_MAXPTSENTER );
@@ -2761,6 +2816,59 @@ void BeadHelper::toggleStippled()
 }
 
 //------------------------
+//-- Toggles the current contour's points as checked
+//-- (by changing the size of spheres)
+
+void BeadHelper::togglePtsChecked()
+{
+  if( !isCurrPtValid() )
+    return;
+  
+  wprint("POINT\n");
+  
+  Imod *imod  = ivwGetModel(plug.view);
+  Iobj *obj   = imodObjectGet(imod);
+  Icont *cont = imodContourGet(imod);
+  int objIdx, contIdx, ptIdx;
+  imodGetIndex(imod, &objIdx, &contIdx, &ptIdx);
+  
+  undoContourDataChgCC( plug.view );        // REGISTER UNDO
+  
+  if( plug.uKeyBehav == UK_TOGGLEPTCHECKED )
+  {
+    if( bead_isPtChecked(obj,cont,ptIdx) )                    // if pt checked:
+      removePtSize( cont, ptIdx );
+    else                                                      // else:
+      imodPointSetSize( cont, ptIdx, plug.sizeCheckedPts );     // check point
+  }
+  else if( plug.uKeyBehav == UK_TOGGLEALLPTSCHECKED )
+  {
+    bool allPtsChecked = true;
+    for( int p=0; p<psize(cont); p++ )
+      if( !bead_isPtChecked(obj,cont,p) )
+      {
+        allPtsChecked = false;
+        break;
+      }
+    
+    if( allPtsChecked )
+    {
+      for( int p=0; p<psize(cont); p++ )
+        removePtsSize( cont );
+    }
+    else
+    {
+      for( int p=0; p<psize(cont); p++ )
+        imodPointSetSize( cont, p, plug.sizeCheckedPts );
+    }
+  }
+  
+  undoFinishUnit( plug.view );              // FINISH UNDO
+	plug.window->drawExtraObject(true);
+}
+
+
+//------------------------
 //-- Selects the next/previous stippled/unstippled contour in the current object
 //-- depending on the settings of: "plug.enterAction" and "plug.minPtsEnter".
 //-- Returns false if no valid object is selected or no action is selected.
@@ -2844,6 +2952,7 @@ void BeadHelper::markRangeAsStippled()
     return;
   }
   
+  updateAndVerifyRanges();
   int nConts = csize(getCurrObj());
   
   //## GET USER INPUT FROM CUSTOM DIALOG:
@@ -2854,10 +2963,10 @@ void BeadHelper::markRangeAsStippled()
   int ID_DUMMY         = ds.addLabel   ( "contours to change:" );
   int ID_CONTMIN       = ds.addSpinBox ( "min:", 1, nConts, plug.contMin, 1,
                                          "Only contours after this contour "
-                                         "(inclusive) will be reordered" );
+                                         "(inclusive) will be changed" );
   int ID_CONTMAX       = ds.addSpinBox ( "max:", 1, nConts, nConts, 1,
                                          "Only contours BEFORE this contour "
-                                         "(inclusive) will be reordered" );
+                                         "(inclusive) will be changed" );
   int ID_STIPPLED      = ds.addRadioGrp( "mark as:",
                                          "unchecked (unstippled),"
                                          "checked (stippled)", checked );
@@ -2888,7 +2997,7 @@ void BeadHelper::markRangeAsStippled()
     Icont *cont = getCont(obj,c);
     if( isInterpolated(cont) != checked )
     {
-      undoContourPropChgCC( plug.view );        // REGISTER UNDO
+      undoContourPropChg( plug.view, objIdx, c );        // REGISTER UNDO
       setInterpolated( cont, checked );
       numChanged++;
     }
@@ -2897,6 +3006,89 @@ void BeadHelper::markRangeAsStippled()
     undoFinishUnit( plug.view );              // FINISH UNDO
   
   wprint("%d contours changed\n", numChanged);
+	plug.window->drawExtraObject(true);
+}
+
+
+//------------------------
+//-- Toggles the current contour's stippled flag
+
+void BeadHelper::markRangePtsAsChecked()
+{
+  if( !isCurrObjValid() )
+  {
+    MsgBox( "Select a valid object first" );
+    return;
+  }
+  
+  updateAndVerifyRanges();
+  int nConts = csize(getCurrObj());
+  
+  //## GET USER INPUT FROM CUSTOM DIALOG:
+  
+  static int checked = 1;
+  
+	CustomDialog ds;
+  int ID_DUMMY         = ds.addLabel   ( "contours to change:" );
+  int ID_CONTMIN       = ds.addSpinBox ( "min:", 1, nConts, 1, 1,
+                                         "Only contours after this contour "
+                                         "(inclusive) will be reordered" );
+  int ID_CONTMAX       = ds.addSpinBox ( "max:", 1, nConts, nConts, 1,
+                                         "Only contours BEFORE this contour "
+                                         "(inclusive) will be reordered" );
+  int ID_DUMMY2        = ds.addLabel   ( "views to change:" );
+  int ID_VIEWMIN       = ds.addSpinBox ( "min:", 1, plug.zsize, 0, 1,
+                                         "Only pts on view after this "
+                                         "(inclusive) will be changed" );
+  int ID_VIEWMAX       = ds.addSpinBox ( "max:", 1, plug.zsize, plug.zsize, 1,
+                                         "Only pts on view BEFORE this "
+                                         "(inclusive) will be changed" );
+  int ID_STIPPLED      = ds.addRadioGrp( "mark as:",
+                                         "unchecked (no sphere),"
+                                         "checked   (little sphere)", checked );
+	GuiDialogCustomizable dlg(&ds, "Mark Points as Checked", this);
+	dlg.exec();
+	if( ds.cancelled )
+		return;
+  int contMin         = ds.getResultSpinBox   ( ID_CONTMIN ) - 1;
+  int contMax         = ds.getResultSpinBox   ( ID_CONTMAX ) - 1;
+  int viewMin         = ds.getResultSpinBox   ( ID_VIEWMIN ) - 1;
+  int viewMax         = ds.getResultSpinBox   ( ID_VIEWMAX ) - 1;
+  checked             = ds.getResultRadioGrp  ( ID_STIPPLED );
+  
+  //## CHANGE POINTS IN RANGE TO CHECKED / UNCHECKED
+  
+  Imod *imod  = ivwGetModel(plug.view);
+  Iobj *obj   = imodObjectGet(imod);
+  int objIdx, contIdx, ptIdx;
+  imodGetIndex(imod, &objIdx, &contIdx, &ptIdx);
+  int numChanged = 0;
+  
+  for( int c=contMin; c<=contMax && c<csize(obj); c++ )
+  {
+    Icont *cont = getCont(obj,c);
+    for(int p=0; p<psize(cont); p++)
+    {
+      int z = getPtZInt(cont,p);
+      if( z > viewMax || z < viewMin )
+        continue;
+      
+      int ptChecked = ( bead_isPtChecked(obj,cont,p) ) ? 1 : 0;
+      if( ptChecked != checked )   // if point needs to change:
+      {
+        undoContourDataChg( plug.view, objIdx, c );   // REGISTER UNDO
+        if(checked)
+          imodPointSetSize( cont, p, plug.sizeCheckedPts );
+        else
+          removePtSize( cont, p );
+        numChanged++;
+      }
+    }
+  }
+  if( numChanged )
+    undoFinishUnit( plug.view );              // FINISH UNDO
+  
+  wprint("%d points changed\n", numChanged);
 	plug.window->drawExtraObject(true);
 }
 
@@ -3631,6 +3823,16 @@ bool bead_areDuplicatePtsSameView( Icont *cont )
     if( getPtZInt(cont,p) == getPtZInt(cont,p-1)  )
       return true;
   return false;
+}
+
+
+//------------------------
+//-- Returns true if the given point appears checked.
+
+bool bead_isPtChecked( Iobj *obj, Icont *cont, int ptIdx )
+{
+  float ptSize = imodPointGetSize(obj,cont,ptIdx);
+  return (ptSize == plug.sizeCheckedPts);
 }
 
 

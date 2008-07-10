@@ -64,8 +64,10 @@ class BeadHelper : public DialogFrame
   void moveMultipleContours();
   void correctCurrentObject();
   void toggleStippled();
+  void togglePtsChecked();
   bool enterActionIterateConts( bool reverse );
   void markRangeAsStippled();
+  void markRangePtsAsChecked();
   
   bool updateAndVerifyRanges();
   bool advanceSelectedPointInCurrCont( int change );
@@ -76,7 +78,7 @@ class BeadHelper : public DialogFrame
   bool verifyTiltIncrement( bool printResult, bool showErrorMsgBoxIfBad );
   bool openTiltAngleFile();
   void test();
-    
+  
   void changeShowExpectedPos();
   void changeShowSpheres();
   void changeSphereSize( int value );
@@ -154,13 +156,14 @@ enum expptdisplay     { ED_CROSS, ED_DIAMOND, ED_ARROW };
 enum searchcont       { SC_ALL, SC_UNCHECKED, SC_CHECKED };
 enum dkeybehavior     { DK_NONE, DK_OPPOSITEMIDDLE, DK_NEARESTEND, DK_SELECTEDRANGE };
 enum mkeybehavior     { MK_NORMAL, MK_GOTOMIDDLE, MK_SMOOTHLOCAL, MK_SMOOTHLOCALY };
+enum ukeybehavior     { UK_PRINTINFO, UK_TOGGLEPTCHECKED, UK_TOGGLEALLPTSCHECKED };
 
 enum wheelbehavior    { WH_NONE, WH_POINTS, WH_SLICES, WH_SMART };
 enum enterbehavior    { EN_NONE, EN_NEXTUNCHECKED, EN_PREVUNCHECKED, EN_NEXTCHECKED,
                         EN_NEXTCONT };
 
 const char DEGREE_SIGN = 0x00B0;      // degree sign
-const int NUM_SAVED_VALS = 41;
+const int NUM_SAVED_VALS = 43;
 
 
 //-------------------------------
@@ -207,6 +210,7 @@ struct BeadHelperData   // contains all local plugin data
   int sizeLineSpheres;        // the size (in screen pixels) of contour line display
   int lineDisplayWidth;       // the thickness of the line used to show contours
   int sizePurpleSpheres;      // the size (in screen pixels) of purple spheres
+  float sizeCheckedPts;       // the sphere size of points which have been checked
   
   int selectedAction;         // the last selected action under "More Actions"
   int sortCriteria;           // the last selected sort critria "Reorder Contours"
@@ -230,6 +234,7 @@ struct BeadHelperData   // contains all local plugin data
   bool wCurrContOnly;         // if true: pressiong "w" searches current contour only
   int  wWeightedDiv;          // weighted_dev = distance_to_expected_pt / 
                               //                (distance_nearest_pts + wWeightedDiv)
+  int uKeyBehav;             // the action when "U" is pressed (see: ukeybehavior)
   
   int enterAction;            // the action performed when enter is pressed
   int minPtsEnter;            // the minimum number of points a contour must have to be
@@ -301,6 +306,7 @@ int edit_changeSelectedView( int changeZ, bool redraw );
 bool bead_focusOnPointCrude( float x, float y, float z );
 float bead_getTiltAngleAtZ( int z );
 
+bool bead_isPtChecked( Iobj *obj, Icont *cont, int ptIdx );
 bool bead_areDuplicatePtsSameView( Icont *cont );
 int bead_removeDuplicatePtsSameView( Icont *cont, bool remove, bool print );
 
