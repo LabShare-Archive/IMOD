@@ -246,7 +246,7 @@ void LocatorGL::resizeGL( int wdth, int hght )
 void LocatorGL::changeSize(float factor)
 {
   int newx = B3DMAX(16, (int)(factor * mWinx));
-  int newy = B3DMAX(16, (int)(factor * mWinx)) + LocWin->height() - height();
+  int newy = B3DMAX(16, (int)(factor * mWiny)) + LocWin->height() - height();
   LocWin->resize(newx, newy);
 }
 
@@ -408,6 +408,9 @@ void LocatorGL::mouseMoveEvent ( QMouseEvent * e )
 
 /*
 $Log$
+Revision 1.3  2008/01/25 20:21:40  mast
+Added return value
+
 Revision 1.2  2007/08/13 20:29:51  mast
 Added a few tools at the top
 
