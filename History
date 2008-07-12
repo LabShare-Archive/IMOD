@@ -1,5 +1,7 @@
 IMOD History
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+7/11/08: Fixed bug when resizing locator window that made it become square.
+
 7/6/08: IMOD_3-12-14
 7/6/08: Eliminated ratio of measurements to variables in search (old incorrect
 ratio) from Tiltalign output; modified Alignlog to work with this.
