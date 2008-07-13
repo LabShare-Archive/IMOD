@@ -1,5 +1,8 @@
 IMOD History
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+7/13/08: Prevented saving model and opening image windows during initial
+data load.
+
 7/11/08: Fixed bug when resizing locator window that made it become square.
 
 7/6/08: IMOD_3-12-14
