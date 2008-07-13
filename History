@@ -1,5 +1,8 @@
 IMOD History
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+7/13/08: Fixed problem of model view object edit not dropping extra objects 
+when they stop being used.
+
 7/13/08: Prevented saving model and opening image windows during initial
 data load.
 
