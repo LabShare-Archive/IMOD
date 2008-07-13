@@ -1062,7 +1062,7 @@ void inputQDefaultKeys(QKeyEvent *event, ImodView *vw)
     break;
 
   case Qt::Key_Backslash:
-    if (!vw->rawImageStore)
+    if (!vw->rawImageStore && !vw->doingInitialLoad)
       sslice_open(vw);
     break; 
           
@@ -1231,7 +1231,8 @@ void inputQDefaultKeys(QKeyEvent *event, ImodView *vw)
     break;
           
   case Qt::Key_U:
-    if (shifted && !vw->fakeImage && !vw->rawImageStore) {
+    if (shifted && !vw->fakeImage && !vw->rawImageStore && 
+        !vw->doingInitialLoad) {
       imodv_open();
       imodvIsosurfaceEditDialog(Imodv, 1);
     } else
@@ -1239,7 +1240,8 @@ void inputQDefaultKeys(QKeyEvent *event, ImodView *vw)
     break;
 
   case Qt::Key_V:
-    imodv_open();
+    if (!vw->doingInitialLoad)
+      imodv_open();
     break;
 
   case Qt::Key_Y:
@@ -1252,7 +1254,7 @@ void inputQDefaultKeys(QKeyEvent *event, ImodView *vw)
   case Qt::Key_Z:
     if (ctrl)
       inputUndoRedo(vw, false);
-    else
+    else if (!vw->doingInitialLoad)
       imod_zap_open(vw, 0);
     break;
           
@@ -1412,6 +1414,9 @@ bool inputTestMetaKey(QKeyEvent *event)
 
 /*
 $Log$
+Revision 4.41  2008/07/13 15:03:38  mast
+Prevent saving of model during initial load
+
 Revision 4.40  2008/05/27 22:47:42  mast
 Synchronized F9/F10 to autox window
 

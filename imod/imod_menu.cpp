@@ -1171,7 +1171,7 @@ void InfoWindow::imageSlot(int item)
 {
   //fprintf(stderr,"Edit image item %d\n", item);
 
-  if (ImodForbidLevel)
+  if (ImodForbidLevel || App->cvi->doingInitialLoad)
     return;
 
   /* DNM: only model and zap and pixelview will work with raw (color) data */
@@ -1326,6 +1326,9 @@ static int imodContourBreakByZ(ImodView *vi, Iobj *obj, int ob, int co)
 /*
 
 $Log$
+Revision 4.48  2008/07/13 15:03:23  mast
+Prevent saving of model during initial load
+
 Revision 4.47  2008/05/27 20:02:45  mast
 Update model view object edit after cleaning model
 
