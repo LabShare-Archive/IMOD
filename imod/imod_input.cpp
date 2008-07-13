@@ -915,7 +915,7 @@ void inputNewObject(ImodView *vw)
 
 void inputSaveModel(ImodView *vw)
 {
-  if (ImodForbidLevel)
+  if (ImodForbidLevel || App->cvi->doingInitialLoad)
     return;
 
   imod_info_forbid();
@@ -1412,6 +1412,9 @@ bool inputTestMetaKey(QKeyEvent *event)
 
 /*
 $Log$
+Revision 4.40  2008/05/27 22:47:42  mast
+Synchronized F9/F10 to autox window
+
 Revision 4.39  2008/05/27 05:55:18  mast
 Added isosurface and object toggling items
 

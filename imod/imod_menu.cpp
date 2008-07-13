@@ -75,14 +75,17 @@ void InfoWindow::fileSlot(int item)
   QString qname;
 
   if (ImodForbidLevel){
-    if (item == 6)
+    if (item == FILE_MENU_QUIT)
       imod_quit();
     return;
   }
 
   switch(item){
 
+    // Prevent saving of model during initial load since its trans is invalid
   case FILE_MENU_NEW: /* New */
+    if (App->cvi->doingInitialLoad && imod_model_changed(Model))
+      break;
     App->cvi->undo->clearUnits();
     createNewModel(NULL);
     break;
@@ -93,6 +96,8 @@ void InfoWindow::fileSlot(int item)
 
   case FILE_MENU_OPEN: /* open */
     //  forbid input during file dialog; swallow any pending events
+    if (App->cvi->doingInitialLoad && imod_model_changed(Model))
+      break;
     imod_info_forbid();
     imod_info_input();
 
@@ -121,6 +126,8 @@ void InfoWindow::fileSlot(int item)
     break;
       
   case FILE_MENU_SAVE: /* save */
+    if (App->cvi->doingInitialLoad)
+      break;
     imod_info_forbid();
     imod_info_input();
     releaseKeyboard();
@@ -130,6 +137,8 @@ void InfoWindow::fileSlot(int item)
     break;
 
   case FILE_MENU_SAVEAS: /* save as */
+    if (App->cvi->doingInitialLoad)
+      break;
     imod_info_forbid();
     imod_info_input();
     releaseKeyboard();
@@ -1317,6 +1326,9 @@ static int imodContourBreakByZ(ImodView *vi, Iobj *obj, int ob, int co)
 /*
 
 $Log$
+Revision 4.47  2008/05/27 20:02:45  mast
+Update model view object edit after cleaning model
+
 Revision 4.46  2008/05/27 05:53:41  mast
 Added checkbox for snapping as gray, isosurface entry, allow pixelview
 to open on any data
