@@ -2423,7 +2423,7 @@ int ivwFreeExtraObject(ImodView *vi, int objNum)
 Iobj *ivwGetAnExtraObject(ImodView *inImodView, int objNum)
 {
   if (inImodView == NULL || objNum < 0 || 
-      objNum >= inImodView->numExtraObj)
+      objNum >= inImodView->numExtraObj || !inImodView->extraObjInUse[objNum])
     return(NULL);
   return &inImodView->extraObj[objNum];
 }
@@ -2752,6 +2752,9 @@ void ivwBinByN(unsigned char *array, int nxin, int nyin, int nbin,
 /*
 
 $Log$
+Revision 4.69  2008/07/02 15:07:46  mast
+Fixed bad bug in tilt angles when no image loaded
+
 Revision 4.68  2008/06/20 16:12:50  mast
 Return pointer to appropriate subset of tilt angles if read in subset in Z
 
