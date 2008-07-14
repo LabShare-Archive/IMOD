@@ -12,6 +12,9 @@ c
 c       $Id$
 c       
 c       $Log$
+c       Revision 3.3  2006/12/20 16:09:00  mast
+c       Removed a ;
+c
 c       Revision 3.2  2006/12/19 22:19:37  mast
 c       Reorganized output to be parseable
 c
@@ -37,13 +40,14 @@ c
       character*1024 listString
       integer*4 imodobj,imodcont,ipntmax,izsec,npnts,ngaps,igap,indf,icol,idir
       real*4 xcen,ycen,devavg,gapinc,devmax,devsd
-      logical exist,sliceOut,editOld
+      logical exist,sliceOut,editOld, coplanar
       integer*4 limpnts,ifTrans,ifRoTrans,ifMagRot,joinBin,joinOffsetX,nfit
       integer*4 minfit,joinOffsetY,nobjUse,ierr2,ierr,numBoundaries,nzSecSum
       real*4 gapstr,gapend,delgap,gapz,extraz,slopex,bintx,ro,slopey,binty
       integer*4 nfWrite,nfRead,numSecDo,i,isec,iobject,ninobj,ifonlist
       integer*4 ibase,ipol,iAboveGap,lastInSec,iFirstInPrev,numAbove,numBelow
       integer*4 mfit,ipt,numSizes,ipnt,ifFullRpt,j,irefSec
+      real*4 zmin, zmax
       integer*4 getImodMaxes
       logical readSmallMod
 c       
@@ -297,8 +301,11 @@ c
                 xr(7,npnts)=iAboveGap
                 ipt=iAboveGap-ipol
                 icol=4
+                coplanar = .false.
                 do idir=-1,1,2
                   mfit=0
+                  zmin = 1.e30
+                  zmax = -zmin
                   do while(mfit.lt.nfit.and. ipol * (ipt - iFirstInPrev) .ge. 0
      &                .and. ipol * (lastInSec - ipt) .ge. 0)
                     ipnt=abs(object(ipt+ibase))
@@ -307,17 +314,28 @@ c
                     xx(mfit)=p_coord(1,ipnt)
                     yy(mfit)=p_coord(2,ipnt)
                     zz(mfit)=p_coord(3,ipnt)
+                    zmin = min(zmin, zz(mfit))
+                    zmax = max(zmax, zz(mfit))
                   enddo
-                  call lsfit(zz,xx,mfit,slopex,bintx,ro)
-                  call lsfit(zz,yy,mfit,slopey,binty,ro)
-                  extraz=gapz-idir*gapinc/2.
-                  xr(icol,npnts)=slopex*extraz+bintx-xcen
-                  xr(icol+1,npnts)=slopey*extraz+binty-ycen
+c                   
+c                   Do fits only if there is enough range in Z
+                  if (zmax - zmin .gt. 0.1) then
+                    call lsfit(zz,xx,mfit,slopex,bintx,ro)
+                    call lsfit(zz,yy,mfit,slopey,binty,ro)
+                    extraz=gapz-idir*gapinc/2.
+                    xr(icol,npnts)=slopex*extraz+bintx-xcen
+                    xr(icol+1,npnts)=slopey*extraz+binty-ycen
+                  else
+                    coplanar = .true.
+                  endif
                   ipt=iAboveGap
                   icol=1
                 enddo
-c                 write(*,'(7f8.2)')xr(1,npnts),xr(2,npnts),xr(4,npnts),
-c                 &		  xr(5,npnts)
+c                 
+c                 If either side was coplanar, drop the point-pair
+                if (coplanar) npnts=npnts-1
+c                write(*,'(7f8.2)')xr(1,npnts),xr(2,npnts),xr(4,npnts),
+c     &              xr(5,npnts)
               else if (numAbove .eq. 1 .and. numBelow .eq. 1) then
 c                 
 c                 If one point on either side, use them alone
