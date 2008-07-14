@@ -1,5 +1,7 @@
 IMOD History
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+7/14/08: Prevented Xfjointomo from fitting to coplanar contour segments.
+
 7/13/08: Fixed problem of model view object edit not dropping extra objects 
 when they stop being used.
 
