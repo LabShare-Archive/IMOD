@@ -344,7 +344,9 @@ bool bead_movePtsTowardsEstimatedPos ( Icont *cont, int minZ, int maxZ,
 bool bead_smoothPtsUsingPlugSettings ( Icont *cont, int &ptsMoved, int &ptsAdded );
 
 int bead_fillMissingPtsOnCont( Icont *cont, int minZ, int maxZ, bool fillPastEnds );
-int bead_deletePtsInZRange( Icont *cont, int minZ, int maxZ, bool inclusive );
+int bead_deletePtsInZRange( Iobj *obj, Icont *cont, int minZ, int maxZ,
+                            bool skipCheckedConts, bool skipCheckedPts, bool skipSeedView,
+                            bool inclusive );
 
 float bead_calcYJump( Icont *cont, int idx );
 float bead_calcAvgYJump( Icont *cont );

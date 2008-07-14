@@ -15,11 +15,14 @@
     $Revision$
 
     $Log$
+    Revision 1.13  2008/07/10 07:43:56  tempuser
+    Added functionality to sort and advance through [y] contours and points
+
     Revision 1.12  2008/04/07 03:12:12  tempuser
-    added free()
+    Added free()
 
     Revision 1.11  2008/04/04 01:15:36  tempuser
-    moved gui functions elsewhere
+    Moved gui functions elsewhere
 
     Revision 1.10  2008/03/17 07:22:37  tempuser
     Improved reduce and smooth contour options
@@ -255,7 +258,6 @@ void imodPlugExecute(ImodView *inImodView)
     plug.selectedAction           = 0;
     plug.sortCriteria             = SORT_NUMPTS;
     plug.findCriteria             = SORT_NUMPTS;
-    plug.findReverse              = false;
     
     plug.sortCriteriaOfVals       = -1;
     Ipoint origin;
@@ -1018,16 +1020,19 @@ void DrawingTools::loadSettings()
     return;
   }
   
-  //plug.drawMode                   = savedValues[0];
-  plug.draw_reducePts             = savedValues[0];
-  plug.draw_reducePtsMaxArea      = savedValues[1];
-  plug.draw_smoothMinDist         = savedValues[2];
-  plug.draw_smoothTensileFract    = savedValues[3];
-  plug.draw_deformRadius          = savedValues[4];
-  plug.wheelBehav                 = savedValues[5];
-  plug.useNumKeys                 = savedValues[6];
-  plug.wheelResistance            = savedValues[7];
-  plug.selectedAction             = savedValues[8];
+  plug.drawMode                   = savedValues[0];
+  plug.draw_reducePts             = savedValues[1];
+  plug.draw_reducePtsMaxArea      = savedValues[2];
+  plug.draw_smoothMinDist         = savedValues[3];
+  plug.draw_smoothTensileFract    = savedValues[4];
+  plug.draw_deformRadius          = savedValues[5];
+  plug.wheelBehav                 = savedValues[6];
+  plug.dKeyBehav                  = savedValues[7];
+  plug.useNumKeys                 = savedValues[8];
+  plug.wheelResistance            = savedValues[9];
+  plug.selectedAction             = savedValues[10];
+  plug.sortCriteria               = savedValues[11];
+  plug.findCriteria               = savedValues[12];
 }
 
 
@@ -1039,16 +1044,19 @@ void DrawingTools::saveSettings()
 {
   double saveValues[NUM_SAVED_VALS];
   
-  //saveValues[0]  = plug.drawMode;
-  saveValues[0]  = plug.draw_reducePts;
-  saveValues[1]  = plug.draw_reducePtsMaxArea;
-  saveValues[2]  = plug.draw_smoothMinDist;
-  saveValues[3]  = plug.draw_smoothTensileFract;
-  saveValues[4]  = plug.draw_deformRadius;
-  saveValues[5]  = plug.wheelBehav;
-  saveValues[6]  = plug.useNumKeys;
-  saveValues[7]  = plug.wheelResistance;
-  saveValues[8]  = plug.selectedAction;
+  saveValues[0]   = plug.drawMode;
+  saveValues[1]   = plug.draw_reducePts;
+  saveValues[2]   = plug.draw_reducePtsMaxArea;
+  saveValues[3]   = plug.draw_smoothMinDist;
+  saveValues[4]   = plug.draw_smoothTensileFract;
+  saveValues[5]   = plug.draw_deformRadius;
+  saveValues[6]   = plug.wheelBehav;
+  saveValues[7]   = plug.dKeyBehav;
+  saveValues[8]   = plug.useNumKeys;
+  saveValues[9]   = plug.wheelResistance;
+  saveValues[10]   = plug.selectedAction;
+  saveValues[11]  = plug.wheelResistance;
+  saveValues[12]  = plug.selectedAction;
   
   prefSaveGenericSettings("DrawingTools",NUM_SAVED_VALS,saveValues);
 }
@@ -1647,6 +1655,12 @@ void DrawingTools::moreSettings()
                                           "scroll contours,"
                                           "resize curr point", plug.wheelBehav,
                                           "The action performed by the mouse wheel" );
+  int ID_DEFORMCIRCLE    = ds.addLineEdit( "deform circle radius:", 
+                                           toString(plug.draw_deformRadius).c_str(),
+                                           "The radius (in pixels) of the circle used "
+                                           "in deform and join drawing mode."
+                                           "\nNOTE: You can also change this using "
+                                           "[q], [w] and the mouse wheel.");
   int ID_DKEYACTION     = ds.addComboBox( "on [d] remove:",
                                           "do nothing,"
                                           "pts to end,"
@@ -1671,9 +1685,9 @@ void DrawingTools::moreSettings()
                                           "points in the current contour");
   int ID_SHOWMOUSEINMV   = ds.addCheckBox( "show mouse in model view", 
                                           plug.showMouseInModelView,
-                                          "Will show the mouse in any Model View"
+                                          "Will show the mouse in any Model View "
                                           "windows as you move it in the ZAP window. "
-                                          "WARNING: This will reduce performance!");
+                                          "\nWARNING: This will reduce performance!");
   
 	GuiDialogCustomizable dlg(&ds, "More Settings", this);
 	dlg.exec();
@@ -1684,6 +1698,11 @@ void DrawingTools::moreSettings()
   plug.wheelBehav            = ds.getResultComboBox ( ID_WHEELBEHAV );
   plug.dKeyBehav             = ds.getResultComboBox ( ID_DKEYACTION );
   plug.showMouseInModelView  = ds.getResultCheckBox ( ID_SHOWMOUSEINMV );
+  string deformRadiusStr     = ds.getResultLineEdit ( ID_DEFORMCIRCLE );
+  
+  float newDeformRadius      = string_getFloatFromString( deformRadiusStr );
+  if( newDeformRadius != 0 && newDeformRadius > 0.2 && newDeformRadius < 5000 )
+    plug.draw_deformRadius = newDeformRadius;
   
   ivwRedraw( plug.view );
 }

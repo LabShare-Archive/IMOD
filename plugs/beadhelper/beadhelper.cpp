@@ -196,12 +196,12 @@ int imodPlugKeys(ImodView *vw, QKeyEvent *event)
       break;
       
     
-    case Qt::Key_T:                  // temporary testing purposes - comment out %%%%
-      if (shift)
-        plug.window->test();
-      else
-        return 0;
-      break;
+//    case Qt::Key_T:                  // temporary testing purposes - comment out %%%%
+//      if (shift)
+//        plug.window->test();
+//      else
+//        return 0;
+//      break;
     
       
     default:
@@ -1375,7 +1375,7 @@ void BeadHelper::deletePtsInRange()
                                          "Will not delete any points from checked "
                                          "(stippled) contours (marked with [u])" );
   int ID_SKIPCHECKEDP  = ds.addCheckBox( "skip checked points",
-                                         skipCheckedConts,
+                                         skipCheckedPts,
                                          "Will not delete checked points "
                                          "(marked with [U]) " );
   int ID_SKIPSEEDVIEW  = ds.addCheckBox( "skip middle (seed) view",
@@ -1407,21 +1407,8 @@ void BeadHelper::deletePtsInRange()
     
     Icont *cont = getCont( obj, c );
     
-    if( skipCheckedConts && isInterpolated(cont) )
-      continue;
-    
-    for( int p=0; p<psize(cont); p++ )
-    {
-      int z = getPtZInt(cont,p);
-      if( isBetweenAsc( plug.viewMin, z, plug.viewMax ) 
-          && !( skipSeedView   && z == plug.seedView ) 
-          && !( skipCheckedPts && bead_isPtChecked(obj,cont,p) )  )
-      {
-        imodPointDelete( cont, p );
-        p--;
-        numPtsDeleted++;
-      }
-    }
+    numPtsDeleted += bead_deletePtsInZRange( obj, cont, plug.viewMin, plug.viewMax, 
+                            skipCheckedConts, skipCheckedPts, skipSeedView, true );
   }
   
   if(numPtsDeleted)
@@ -1476,6 +1463,7 @@ bool BeadHelper::deletePtsUsingDAction()
   //## GET INFORMATION:
   
   Imod *imod = ivwGetModel(plug.view);
+  Iobj *obj = imodObjectGet(imod);
   int objIdx, contIdx, ptIdx;
   imodGetIndex(imod, &objIdx, &contIdx, &ptIdx);
   
@@ -1511,7 +1499,9 @@ bool BeadHelper::deletePtsUsingDAction()
   
   //## DELETE POINTS FROM GIVEN RANGE:
   
-  int numPtsDeleted = bead_deletePtsInZRange( cont, minZ, maxZ, true );
+  int numPtsDeleted = bead_deletePtsInZRange( obj, cont, minZ, maxZ, 
+                                              false, false, false, true );
+  
   
   if(numPtsDeleted)
   {
@@ -1536,7 +1526,7 @@ void BeadHelper::reduceContsToSeed()
   if( !updateAndVerifyRanges() )
     return;
   
-
+  
   //## GET USER INPUT FROM CUSTOM DIALOG:
   
   int numConts  = (plug.contMax - plug.contMin) + 1;
@@ -1546,18 +1536,24 @@ void BeadHelper::reduceContsToSeed()
     + ")";
   
   static bool skipCheckedConts = true;
+  static bool skipCheckedPts   = true;
+  
   CustomDialog ds;
   int ID_DUMMY         = ds.addLabel   ( msg.c_str() );
   int ID_SKIPCHECKEDC  = ds.addCheckBox( "skip checked contours",
                                          skipCheckedConts,
                                          "Will not delete any points from checked "
                                          "(stippled) contours " );
+  int ID_SKIPCHECKEDP  = ds.addCheckBox( "skip checked points",
+                                         skipCheckedPts,
+                                         "Will not delete checked points "
+                                         "(marked with [U]) " );
   GuiDialogCustomizable dlg(&ds, "Reduce Contours to Seed Point", this);
   dlg.exec();
   if( ds.cancelled )
     return;
   skipCheckedConts     = ds.getResultCheckBox  ( ID_SKIPCHECKEDC );
-  
+  skipCheckedPts       = ds.getResultCheckBox  ( ID_SKIPCHECKEDP );
   
   //## REDUCE RANGE OF CONTOURS TO SEED:
   
@@ -1571,22 +1567,16 @@ void BeadHelper::reduceContsToSeed()
   
   for( int c=MAX(plug.contMin,0); c<=plug.contMax && c<csize(obj); c++)
   {
-    imodSetIndex(imod, objIdx, c, 0);
     Icont *cont = getCont( obj, c );
-    
-    if( skipCheckedConts && isInterpolated(cont) )
+    if( psize(cont) <= 1 || !bead_isPtOnView(cont,plug.seedView)  )
       continue;
     
-    if( psize(cont) > 1 && bead_isPtOnView(cont,plug.seedView) )
-    {
-      Ipoint *pt = bead_getPtOnView(cont,plug.seedView);
-      Ipoint seedPt = *pt;
-      numPtsDeleted += psize(cont) - 1;
-      undoContourDataChgCC( plug.view );      // REGISTER UNDO
-      deleteAllPts(cont);
-      imodPointAppend( cont, &seedPt );
+    undoContourDataChg( plug.view, objIdx, c );      // REGISTER UNDO
+    int deleted = bead_deletePtsInZRange( obj, cont, 0, plug.zsize, 
+                           skipCheckedConts, skipCheckedPts, true, true );
+    if(deleted>0)
       numContsReduced++;
-    }
+    numPtsDeleted += deleted;
   }
   if(numContsReduced)
     undoFinishUnit( plug.view );                // FINISH UNDO
@@ -1620,18 +1610,14 @@ void BeadHelper::reduceCurrContToSeed()
     int objIdx, contIdx, ptIdx;
     imodGetIndex( ivwGetModel(plug.view) , &objIdx, &contIdx, &ptIdx);
     
-    Ipoint *pt = bead_getPtOnView(cont,plug.seedView);
-    Ipoint seedPt = *pt;
-    int numPtsToDel = psize(cont) - 1;
-    
     undoContourDataChgCC( plug.view );      // REGISTER UNDO
-    deleteAllPts(cont);
-    imodPointAppend( cont, &seedPt );
+    int numPtsDeleted = bead_deletePtsInZRange( getCurrObj(), cont, 0, plug.zsize, 
+                                                false, false, true, true );
     undoFinishUnit( plug.view );            // FINISH UNDO
     
     //## OUTPUT RESULT:
     wprint( "Reduced contour %d to seed - %d points deleted\n",
-            contIdx+1, numPtsToDel );
+            contIdx+1, numPtsDeleted );
     imodSetIndex( ivwGetModel(plug.view) , objIdx, contIdx, 0);
     ivwRedraw( plug.view );
   }
@@ -1899,14 +1885,11 @@ void BeadHelper::fillMissingPts()
   
   for( int c=MAX(plug.contMin,0); c<=plug.contMax && c<csize(obj); c++)
   {
-    imodSetIndex(imod, objIdx, c, 0);
     Icont *cont = getCont( obj, c );
     
-    undoContourDataChgCC( plug.view );      // REGISTER UNDO
-    int numPtsAdded = bead_fillMissingPtsOnCont( getCurrCont(),
-                                                 plug.viewMin, plug.viewMax,
+    undoContourDataChg( plug.view, objIdx, c );      // REGISTER UNDO
+    int numPtsAdded = bead_fillMissingPtsOnCont( cont, plug.viewMin, plug.viewMax, 
                                                  fillPastEnds );
-    
     numPtsAddedTotal += numPtsAdded;
     if( numPtsAdded )
       numContsChanged++;
@@ -4249,6 +4232,7 @@ Ipoint bead_getPtOnLineWithZ( Ipoint *pt1, Ipoint *pt2, int z )
   estPt.z = z;
   float fractToExpectedPos = fDivide( (z - pt1->z) , ( pt2->z - pt1->z) ); 
   estPt = line_findPtFractBetweenPts( pt1, pt2, fractToExpectedPos );
+  estPt.z = z;
   return (estPt);
 }
 
@@ -4283,6 +4267,7 @@ Ipoint bead_getPtOnLineWithZUsingTiltAngles( Ipoint *pt1, Ipoint *pt2, int z )
     fractToExpectedPos = fDivide( (z - pt1->z) , ( pt2->z - pt1->z) );
   
   estPt = line_findPtFractBetweenPts( pt1, pt2, fractToExpectedPos );
+  estPt.z = z;
   
   return (estPt);
 }
@@ -4430,6 +4415,7 @@ bool bead_getExpectedPosOfPoint( Icont *cont, int view, Ipoint *pt )
     }
   }
   
+  estPt.z = (float)view;
   *pt = estPt;
   return true;
 }
@@ -4541,6 +4527,12 @@ bool bead_getExpectedPosOfPointUsingPtsBefore( Icont *cont, int view, Ipoint *pt
 
 int bead_insertOrOverwritePoint( Icont *cont, Ipoint *pt )
 {
+  if( psize(cont)>0 && (int)pt->z < getPtZInt(cont,0) )
+  {
+    imodPointAdd(cont,pt,0);
+    return 0;
+  }
+  
   for( int p=0; p<psize(cont); p++ )
   {
     if ( getPtZInt(cont,p) == (int)pt->z ) {
@@ -4548,7 +4540,6 @@ int bead_insertOrOverwritePoint( Icont *cont, Ipoint *pt )
       return p;
     }
     else if( getPtZInt(cont,p) > (int)pt->z ) {
-      //Ipoint *newPt = *pt;
       imodPointAdd(cont,pt,p);
       return p;
     }
@@ -4724,9 +4715,9 @@ int bead_fillMissingPtsOnCont( Icont *cont, int minZ, int maxZ, bool fillPastEnd
     if( bead_insertPtAtEstimatedPos(cont,z,false) )
       pointsAdded++;
   }
-  for( int z=middleZ-1; z>=minZ; z-- )
+  for( int zz=middleZ-1; zz>=minZ; zz-- )
   {
-    if( bead_insertPtAtEstimatedPos(cont,z,false) )
+    if( bead_insertPtAtEstimatedPos(cont,zz,false) )
       pointsAdded++;
   }
   
@@ -4739,7 +4730,7 @@ int bead_fillMissingPtsOnCont( Icont *cont, int minZ, int maxZ, bool fillPastEnd
 //-- Deletes all points within the specified range of z values and returns
 //-- the number of points deleted.
 
-int bead_deletePtsInZRange( Icont *cont, int minZ, int maxZ, bool inclusive )
+/*int bead_deletePtsInZRange( Icont *cont, int minZ, int maxZ, bool inclusive )
 {
   //## CHECK RANGE IS GOOD:
   
@@ -4765,7 +4756,50 @@ int bead_deletePtsInZRange( Icont *cont, int minZ, int maxZ, bool inclusive )
   }
   
   return numPtsDeleted;
+}*/
+
+
+//------------------------
+//-- Deletes all points within the specified range of z values and returns
+//-- the number of points deleted.
+
+int bead_deletePtsInZRange( Iobj *obj, Icont *cont, int minZ, int maxZ,
+                            bool skipCheckedConts, bool skipCheckedPts, bool skipSeedView,
+                            bool inclusive )
+{
+  
+  if( skipCheckedConts && isInterpolated(cont) )
+    return 0;
+  
+  //## CHECK RANGE IS GOOD:
+  
+  if( inclusive==false )
+  {
+    minZ++;
+    maxZ--;
+  }
+  
+  if( isEmpty(cont) || minZ >= maxZ )
+    return 0;
+  
+  //## DELETE POINTS IN RANGE:
+  
+  int numPtsDeleted = 0;
+  for( int p=psize(cont)-1; p>=0; p-- )
+  {
+    int z = getPtZInt(cont,p);
+    if( ( z >= minZ && z <= maxZ )
+        && !( skipSeedView && z == plug.seedView )
+        && !( skipCheckedPts && bead_isPtChecked(obj,cont,p) ) )
+    {
+      imodPointDelete( cont, p );
+      numPtsDeleted++;
+    }
+  }
+  
+  return numPtsDeleted;
 }
+
 
 
 //------------------------

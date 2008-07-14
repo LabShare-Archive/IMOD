@@ -124,7 +124,7 @@ enum sortcriteria   { SORT_NUMPTS, SORT_LENGTH, SORT_AREA, SORT_CLOCKWISEAREA,
                       SORT_PTX, SORT_PTY, SORT_PTZ,
                       SORT_PTSIZE, SORT_PTGREY, SORT_NUMOPTIONS };
 
-const int NUM_SAVED_VALS = 9;
+const int NUM_SAVED_VALS = 13;
 
 //-------------------------------
 //## DRAWINGTOOLS DATA STRUCTURE:
@@ -166,7 +166,6 @@ struct DrawingToolsData   // contains all local plugin data
                                 // "More Actions >> sort ... " (see: sortcriteria)
   int    findCriteria;          // the lat find criteria selected via:
                                 // "More Actions >> sort ... " (see: sortcriteria)
-  bool   findReverse;           // searches in the reverse direction
   
   //## MOUSE:
   
