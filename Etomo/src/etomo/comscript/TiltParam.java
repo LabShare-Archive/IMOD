@@ -11,6 +11,9 @@
  * @version $Revision$
  *
  * <p> $Log$
+ * <p> Revision 3.28  2008/02/01 01:36:36  sueh
+ * <p> bug# 1075 Handling header failure in setSubsetStart.
+ * <p>
  * <p> Revision 3.27  2008/01/28 22:55:34  sueh
  * <p> bug# 1071 In getCommandMode returning commandMode instead of null.  Added toString to Mode.
  * <p>
@@ -173,7 +176,6 @@ import java.io.File;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Hashtable;
-
 
 import etomo.ApplicationManager;
 import etomo.type.AxisID;
@@ -966,17 +968,20 @@ public final class TiltParam implements ConstTiltParam, CommandParam {
       newArg.setArgument(X_AXIS_TILT_KEY + " " + String.valueOf(xAxisTilt));
       cmdLineArgs.add(newArg);
     }
-    //backwards compatibility: if xTiltFile is empty, set the default xtilt file name
-    if (xTiltFile == null || xTiltFile.matches("\\s*")) {
-      xTiltFile = DatasetFiles.getXTiltFileName(manager, axisID);
-    }
-    //use xtilt file if the file exists
-    //This is backwards compatibility issue since the only good reason for the
-    //file not to exist is that the state comes from an earlier version.
-    if (new File(manager.getPropertyUserDir(), xTiltFile).exists()) {
-      newArg = new ComScriptInputArg();
-      newArg.setArgument("XTILTFILE " + xTiltFile);
-      cmdLineArgs.add(newArg);
+    //A fiducialess align means that tilt should not use the xtilt file.
+    if (!fiducialess.is()) {
+      //backwards compatibility: if xTiltFile is empty, set the default xtilt file name
+      if (xTiltFile == null || xTiltFile.matches("\\s*")) {
+        xTiltFile = DatasetFiles.getXTiltFileName(manager, axisID);
+      }
+      //use xtilt file if the file exists
+      //This is backwards compatibility issue since the only good reason for the
+      //file not to exist is that the state comes from an earlier version.
+      if (new File(manager.getPropertyUserDir(), xTiltFile).exists()) {
+        newArg = new ComScriptInputArg();
+        newArg.setArgument("XTILTFILE " + xTiltFile);
+        cmdLineArgs.add(newArg);
+      }
     }
 
     if (xTiltInterp > Integer.MIN_VALUE) {
