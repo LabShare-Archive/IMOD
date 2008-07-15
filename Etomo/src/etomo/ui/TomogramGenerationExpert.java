@@ -1046,7 +1046,19 @@ public final class TomogramGenerationExpert extends ReconUIExpert {
         tiltParam.setLocalAlignFile("");
       }
       metaData.setUseLocalAlignments(axisID, dialog.isUseLocalAlignment());
-      tiltParam.setFiducialess(dialog.isFiducialess());
+      //TiltParam.fiducialess is based on whether final alignment was run
+      //fiducialess.
+      // newstFiducialessAlignment
+      boolean newstFiducialessAlignment = false;
+      if (!state.getNewstFiducialessAlignment(axisID).isNull()) {
+        newstFiducialessAlignment = state.getNewstFiducialessAlignment(axisID)
+            .is();
+      }
+      else {
+        newstFiducialessAlignment = dialog.isFiducialess();
+      }
+      tiltParam.setFiducialess(newstFiducialessAlignment);
+      
       tiltParam.setUseZFactors(dialog.isUseZFactors()
           && dialog.isUseZFactorsEnabled());
       metaData.setUseZFactors(axisID, dialog.isUseZFactors());
@@ -1142,6 +1154,11 @@ public final class TomogramGenerationExpert extends ReconUIExpert {
 }
 /**
  * <p> $Log$
+ * <p> Revision 1.21  2008/05/28 02:51:46  sueh
+ * <p> bug# 1111 Add a dialogType parameter to the ProcessSeries
+ * <p> constructor.  DialogType must be passed to any function that constructs
+ * <p> a ProcessSeries instance.
+ * <p>
  * <p> Revision 1.20  2008/05/13 23:07:58  sueh
  * <p> bug# 847 Adding a right click menu for deferred 3dmods to some
  * <p> process buttons.
