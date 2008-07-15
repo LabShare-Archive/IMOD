@@ -70,7 +70,6 @@ function = assert-whole-tomo-single
 function = run2
 
 [function = run-fidless]
-copy.file = %{dataset}%{axis}.fid
 tf.sample-tomogram-thickness = %{sample-tomogram-thickness}
 cb.use-whole-tomogram =
 bn.create-whole-tomogram =
