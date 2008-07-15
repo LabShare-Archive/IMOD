@@ -278,7 +278,7 @@ c
 c       check input values, set reasonable limits
 c       
       nborder = min(5, max(1, nborder))
-      iorder = min(3, max(1, iorder))
+      iorder = min(3, max(0, iorder))
       iScanSize = min(limdiff - 10, max(20, iScanSize))
       radiusMax = min(10., max(0.5, radiusMax))
       outerRadius = min(radiusMax + 10., max(radiusMax + 0.75, outerRadius))
@@ -1318,6 +1318,7 @@ c       points outside the list.  the ixbordlo etc. should be correct
 c       
       npnts=0
       nindep=iorder*(iorder+3)/2
+      xsum = 0.
       do iy=iybordlo,iybordhi
         do ix=ixbordlo,ixbordhi
           ixofs=ix-ixcen
@@ -1329,18 +1330,25 @@ c
           if(.not.inlist(ixofs,iyofs) .and. (ifincadj.eq.1 .or.
      &        (nearedge.or. .not.adjacent(ixofs,iyofs)))) then
             npnts=npnts+1
-            call polyterm(ixofs,iyofs,iorder,xr(1,npnts))
-            xr(nindep+1,npnts)=array(ix,iy)
+            if (nindep .gt. 0) then
+              call polyterm(ixofs,iyofs,iorder,xr(1,npnts))
+              xr(nindep+1,npnts)=array(ix,iy)
+            else
+              xsum = xsum + array(ix,iy)
+            endif
           endif
         enddo
       enddo
 c       
-c       do regression
+c       do regression or just get mean for order 0
 c       
       if (ifVerbose.gt.0)write (*,104)ninobj,ixcen,iycen,npnts
 104   format(/,i4,' points to fix at',2i6,',',i4,' points being fit')
-      call multr(xr,nindep+1,npnts,sx,ss,ssd,d,r,xm,sd,b,b1,c1,rsq
-     &    ,fra)
+      if (nindep .gt. 0) then
+        call multr(xr,nindep+1,npnts,sx,ss,ssd,d,r,xm,sd,b,b1,c1,rsq ,fra)
+      else
+        xsum = xsum / npnts
+      endif
 c       
 c       replace points on list with values calculated from fit
 c       cannot truncate range by nbordm1 because could be on edge of image
@@ -1350,11 +1358,13 @@ c
           ixofs=ix-ixcen
           iyofs=iy-iycen
           if(inlist(ixofs,iyofs))then
-            call polyterm(ixofs,iyofs,iorder,vect)
-            xsum=c1
-            do i=1,nindep
-              xsum=xsum+b1(i)*vect(i)
-            enddo
+            if (nindep .gt. 0) then
+              call polyterm(ixofs,iyofs,iorder,vect)
+              xsum=c1
+              do i=1,nindep
+                xsum=xsum+b1(i)*vect(i)
+              enddo
+            endif
             array(ix,iy)=xsum
           endif
         enddo
@@ -1464,6 +1474,10 @@ c       Look at all pixels in range, add to object at new base
       
 c       
 c       $Log$
+c       Revision 3.24  2008/03/04 21:27:34  mast
+c       Fixed dimension for fitting array to match max # of patches, fixed merging
+c       of circles, increased maximum linear extent of patch
+c
 c       Revision 3.23  2008/01/10 15:32:47  mast
 c       Scale incoming model to current image file, not file it was built on
 c
