@@ -123,8 +123,7 @@ c
             read(5,'(a)')FILIN
           endif
           if(.not.readSmallMod(filin))then
-            print *,' '
-            print *, 'ERROR: TOMOPITCH - READING MODEL FILE ',filin
+            write(*,'(/,a,a)') 'ERROR: TOMOPITCH - READING MODEL FILE ',filin
             call exit(1)
           endif
           ierr=getimodhead(xyscal,zscal,xofs,yofs,zofs,ifflip)
@@ -162,12 +161,10 @@ c               DNM 11/11/03: adjust ysample here, not below
 c               
               ysample = -deltay * (nfiles-1.)/2.
               if (mintime .eq. 0) then
-                print *,' '
-                print *,'ERROR: TOMOPITCH - THE MODEL FILE HAS ',
-     &              'MULTIPLE TIMES BUT HAS SOME CONTOURS'
-                print *,' WITH NO TIME INDEX.  ',
-     &              'THESE CONTOURS CANNOT BE INTERPRETED AND',
-     &              '  SHOULD BE ELIMINATED'
+                write(*,'(/,a,/,a)')'ERROR: TOMOPITCH - THE MODEL FILE HAS '//
+     &              'MULTIPLE TIMES BUT HAS SOME CONTOURS WITH',
+     &              'ERROR: (line 2):    '//
+     &              'NO TIME INDEX. THESE CONTOURS SHOULD BE ELIMINATED'
                 call exit(1)
               endif
             else
@@ -179,10 +176,8 @@ c
               do iobj = 1, max_mod_obj
                 call objtocont(iobj, obj_color, imodobj, imodcont)
                 if (npt_in_obj(iobj) .gt. 2) then
-                  print *,' '
-                  print *,'ERROR: TOMOPITCH - contour',imodcont,
-     &                ' in object', imodobj,
-     &                ' has more than 2 points'
+                  write(*,'(/,a,i5,a,i3,a)') 'ERROR: TOMOPITCH - contour',
+     &                imodcont, ' in object', imodobj,' has more than 2 points'
                   call exit(1)
                 endif
                 if (npt_in_obj(iobj) .gt. 1) then
@@ -210,9 +205,8 @@ c
                     ymean(nHoriz) = yval
                     indHoriz(nHoriz) = nHoriz
                   else
-                    print *,' '
-                    print *,'ERROR: TOMOPITCH - contour',imodcont,
-     &                  ' in object', imodobj,
+                    write(*, '(a,i5,a,i3,a)') 'ERROR: TOMOPITCH - contour',
+     &                  imodcont, ' in object', imodobj,
      &                  ' is too diagonal to analyze'
                     call exit(1)
                   endif
@@ -369,16 +363,13 @@ c
 
         if (numobj.gt.0.or..not.usetimes) then
           if (numobj.lt.2) then
-            print *,' '
-            print *,'ERROR: TOMOPITCH - MODEL OR TIME',ifile,
+            write(*, '(/,a,i3,a)')'ERROR: TOMOPITCH - MODEL OR TIME',ifile,
      &          ' DOES NOT HAVE ENOUGH CONTOURS'
             call exit(1)
           endif
           if(npt_in_obj(iobj1).lt.2.or.npt_in_obj(iobj2).lt.2)then
-            print *,' '
-            print *,'ERROR: TOMOPITCH - THERE ARE NOT TWO POINTS ',
-     &          'IN FIRST TWO',
-     &          ' CONTOURS OF MODEL OR TIME',ifile
+            write(*, '(/,a,i3)')'ERROR: TOMOPITCH - THERE ARE NOT TWO POINTS ',
+     &          'IN FIRST TWO CONTOURS OF MODEL OR TIME',ifile
             call exit(1)
           endif
 
@@ -584,6 +575,9 @@ c
       end
 
 c       $Log$
+c       Revision 3.14  2006/06/29 05:09:43  mast
+c       Switched to use small model
+c
 c       Revision 3.13  2006/05/02 19:41:21  mast
 c       Added options to enter old values and get sums for output
 c
