@@ -36,6 +36,11 @@ import etomo.type.Run3dmodMenuOptions;
  * @version $Revision$
  * 
  * <p> $Log$
+ * <p> Revision 3.29  2008/05/28 02:52:12  sueh
+ * <p> bug# 1111 Add a dialogType parameter to the ProcessSeries
+ * <p> constructor.  DialogType must be passed to any function that constructs
+ * <p> a ProcessSeries instance.
+ * <p>
  * <p> Revision 3.28  2008/05/13 23:09:14  sueh
  * <p> bug# 847 Adding a right click menu for deferred 3dmods to some
  * <p> process buttons.
@@ -244,7 +249,7 @@ public final class TrimvolPanel implements Run3dmodButtonContainer,
   private Run3dmodButton btnImodTrim = Run3dmodButton.get3dmodInstance(
       "3dmod Trimmed Volume", this);
   private MultiLineButton btnGetCoordinates = new MultiLineButton(
-      "Get XY Volume Range From 3dmod");
+      "Get XYZ Volume Range From 3dmod");
   private JPanel pnlImodFull = new JPanel();
   private final ButtonListener buttonActonListener;
   private final RubberbandPanel pnlScaleRubberband;
@@ -260,12 +265,12 @@ public final class TrimvolPanel implements Run3dmodButtonContainer,
     this.axisID = axisID;
     applicationManager = appMgr;
     pnlScaleRubberband = RubberbandPanel
-        .getInstance(
+        .getNoButtonInstance(
             appMgr,
             this,
             ImodManager.COMBINED_TOMOGRAM_KEY,
             "Scaling from sub-area:",
-            "Get XY Sub-Area From 3dmod",
+            "Get XYZ Sub-Area From 3dmod",
             "Minimum X coordinate on the left side to analyze for contrast range.",
             "Maximum X coordinate on the right side to analyze for contrast range.",
             "The lower Y coordinate to analyze for contrast range.",
@@ -320,6 +325,7 @@ public final class TrimvolPanel implements Run3dmodButtonContainer,
     pnlScale.add(pnlScaleFixed);
     pnlScale.add(pnlScaleSection);
     pnlScale.add(pnlScaleRubberband.getComponent());
+    pnlScale.add(pnlScaleRubberband.getRubberbandButtonComponent());
 
     pnlButton.setLayout(new BoxLayout(pnlButton, BoxLayout.X_AXIS));
     pnlButton.add(Box.createHorizontalGlue());
