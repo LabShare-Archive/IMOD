@@ -1,5 +1,7 @@
 IMOD History
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+7/15/08: In Etomo - Postprocessing, changed the dialog to show that it can
+retrieve Z settings from 3dmod as well as X and Y.
 7/15/08: In Etomo, preventing tilt from using XTILTFILE when align was run
 fiducialess.
 7/15/08: In Ccderaser, order 0 can now be specified in order to replace points
