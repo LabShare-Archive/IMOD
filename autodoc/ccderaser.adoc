@@ -214,9 +214,11 @@ type = I
 usage = Order of polynomial to fit to border points
 tooltip = Order of polynomial to fit to border points (the default is 2, which
 includes terms in x, y, x**2, y**2 and x*y).
-manpage = Order of polynomial to fit to border points (the default is 2,
-which includes terms in x, y, x**2, y**2 and x*y).
-
+manpage = Order of polynomial to fit to border points.  The default is 2,
+which includes terms in x, y, x**2, y**2 and x*y.  The order can be between 0
+and 3, where 0 will simply replace the pixels with the mean of the border
+points instead of fitting to them.
+ 
 [Field = ExcludeAdjacent]
 short = exclude
 type = B

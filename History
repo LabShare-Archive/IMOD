@@ -1,5 +1,8 @@
 IMOD History
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+7/15/08: In Ccderaser, order 0 can now be specified in order to replace points
+with the mean of the border points instead of fitting to them.
+
 7/14/08: Prevented Xfjointomo from fitting to coplanar contour segments.
 
 7/13/08: Fixed problem of model view object edit not dropping extra objects 
