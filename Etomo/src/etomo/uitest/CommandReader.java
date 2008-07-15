@@ -49,6 +49,7 @@ public final class CommandReader {
   private AxisID axisID = null;
   private String info = null;
   private boolean function = false;
+  private boolean debug = false;
 
   public CommandReader(ReadOnlyAutodoc autodoc, String sectionType) {
     this.autodoc = autodoc;
@@ -84,6 +85,10 @@ public final class CommandReader {
 
   public boolean isDone() {
     return done;
+  }
+
+  public void setDebug(boolean input) {
+    debug = input;
   }
 
   public void setDone() {
@@ -132,7 +137,8 @@ public final class CommandReader {
    * @param command
    * @return
    */
-  public UITestCommand nextCommand(UITestCommand command, UITestCommandFactory factory) {
+  public UITestCommand nextCommand(UITestCommand command,
+      UITestCommandFactory factory) {
     readingStatements = true;
     //create command if it is null
     if (command == null) {
@@ -218,6 +224,8 @@ public final class CommandReader {
       return;
     }
     name = list.getName();
+    if (debug) {
+    System.out.println("name=" + name);}
     getInfo();
     if (verbose) {
       System.err.println(axisID.toString() + ":" + list.getString());
@@ -343,6 +351,9 @@ public final class CommandReader {
 }
 /**
  * <p> $Log$
+ * <p> Revision 1.1  2008/05/30 21:35:55  sueh
+ * <p> bug# 1102 Moved uitest classes to etomo.uitest.
+ * <p>
  * <p> Revision 1.3  2008/01/31 20:21:24  sueh
  * <p> bug# 1055 throwing a FileException when LogFile.getInstance fails.
  * <p>
