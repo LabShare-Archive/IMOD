@@ -407,6 +407,7 @@ while ($numdone < $#comlist)
     #
     @ proc = 0
     set nochunks = 0
+    set didlslogs = 0
     while ($proc < $#machines)
         @ proc++
         @ ind =$assigned[$proc]
@@ -509,13 +510,24 @@ EOF
                     endif
                 endif
                 if (! -e $logname) then
-            
-                    # if log file doesn't exist, check the pid
-                    # and give up after timeout
-                    #
-                    if (-e $pidname) set checkpid = `grep -v PID: $pidname`
-                    @ tmpcount = $startcount[$proc]
-                    if ($count > $tmpcount + $timeout) set dropout = 1
+
+                    # If log file seems not to exist, do a ls on all logs once
+                    if (! $didlslogs) then
+                        ls *.log >& /dev/null
+                        set didlslogs = 1
+                    endif
+                    if (! -e $logname) then
+
+                        # if log file doesn't exist, check the pid
+                        # and give up after timeout
+                        #
+                        if (-e $pidname) set checkpid = `grep -v PID: $pidname`
+                        @ tmpcount = $startcount[$proc]
+                        if ($count > $tmpcount + $timeout) then
+                            echo "Timeout occurred on lack of log file:"
+                            set dropout = 1
+                        endif
+                    endif
                 endif
             endif
 
@@ -853,6 +865,9 @@ exit 3
 
 #
 #  $Log$
+#  Revision 3.41  2008/07/06 21:36:31  mast
+#  Use ls *.pid to bring them into existence if they are missing
+#
 #  Revision 3.40  2008/02/22 04:58:39  mast
 #  Made it convert backslash in cmds file, quoted current dir also
 #
