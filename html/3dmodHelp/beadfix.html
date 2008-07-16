@@ -11,7 +11,9 @@ will automatically start a new contour for each point when appropriate.
 It has a function for finding the next 
 gap or untracked place in the model and making that be the 
 current point.  It also will read the log file from running 
-Tiltalign and move to points with high residuals.
+Tiltalign and move to points with high residuals.  In addition, this module
+can be used to examine contours with values, adjust a threshold, and delete
+contours below the threshold.
 <P>
 <H3>Hot Key Summary</H3>
 <UL>
@@ -53,7 +55,7 @@ lighter rather than darker than the background.
 </UL>
 <P>
 <H4>Seed Model Mode</H4>
-This mode makes has the following features:
+This mode has the following features:
 <UL>
 <LI> Autocentering is available and should be tried.
 <LI> If you turn on <B>Automatic new contour</B>, the module will
@@ -175,6 +177,41 @@ points for the second time, turn off <B>Examine Points Once</B>; to
 see all points again, push <B>Clear Examined List</B>.  When you <B>Back Up
 to Last Point</B>, the current point is removed from the list so that 
 you will come back to it when you go forward again.
+</UL>
+<P>
+<H4>Seed Model Mode with Contour Values</H4>
+If any objects in the model contain stored values (e.g., correlation peak
+strengths for beads selected by
+<A HREF = "../man/imodfindbeads.html">Imodfindbeads</A>), then in seed mode
+the dialog will have additional controls for setting a threshold and deleting
+points below threshold.
+<UL>
+<LI>The <B>Threshold peak value</B> slider can be used to adjust the threshold
+value.
+<LI>When <B>Turn off below threshold</B> is selected, only the contours above
+the threshold will be drawn.  This option should be on when adjusting the
+threshold, but can then be toggled to see points below threshold.
+<LI>Press <B>Delete Below</B> to delete contours below the threshold value.
+You will see a message telling how many contours will be deleted and asking
+you to confirm the deletion.  If you answer <I>Yes Always</I> then you will
+not see such a message again.  These deletions can be undone with the standard
+Undo button in the Info Window or the Ctrl-Z hot key.
+<LI>When <B>Delete on all sections</B> is turned off, contours below
+threshold will be deleted
+only if they have a point on the current section.  When this option is on,
+contours will be deleted regardless of the Z values of their points.  Thus,
+you can delete points found by 
+<A HREF = "../man/imodfindbeads.html">Imodfindbeads</A>
+from all planes at once.
+<LI>When <B>Delete in all objects</B> is turned off, only contours below
+threshold in the current object are deleted.  When this option is on, the
+program looks at each object with stored values, and compares the values of
+its contours with the threshold specific to that object.  Thus, if
+<A HREF = "../man/imodfindbeads.html">Imodfindbeads</A>
+produced points in multiple objects, you can use this option
+together with <B>Delete on all sections</B> to delete all contours below
+threshold at once, after examining the appropriateness of the threshold for
+each object.
 </UL>
 <P>
 <A HREF="index.html">Help Index<A>
