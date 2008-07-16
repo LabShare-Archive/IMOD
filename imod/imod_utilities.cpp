@@ -166,6 +166,26 @@ float utilMouseZaxisRotation(int winx, int mx, int lastmx, int winy, int my,
   return drot;
 }
 
+/*
+ * Sets an object flag or symflag to the given state
+ */
+void utilSetObjFlag(Iobj *obj, int flagType, bool state, b3dUInt32 flag)
+{
+  if (!obj || flagType < 0 || flagType > 1)
+    return;
+  if (flagType == 1) {
+    if (!state)
+      obj->symflags &= ~flag;
+    else
+      obj->symflags |= flag;
+  } else {
+    if (!state)
+      obj->flags &= ~flag;
+    else
+      obj->flags |= flag;
+  }
+}
+
 /* Appends either the model or file name to the window name, giving
    first priority to the model name if "modelFirst" is set */
 char *imodwEithername(char *intro, char *filein, int modelFirst)
@@ -366,6 +386,9 @@ int imodColorValue(int inColor)
 /*
 
 $Log$
+Revision 1.4  2008/02/06 21:28:00  mast
+Prevented writing to stdout/stderr if -L input (from etomo) has disconnected
+
 Revision 1.3  2008/02/03 18:36:14  mast
 Added function for converting mouse movement to in-plane rotation
 
