@@ -24,6 +24,8 @@
 #define MESSAGE_NEWOBJ_PROPERTIES 12
 #define MESSAGE_SLICER_ANGLES 13
 #define MESSAGE_PLUGIN_EXECUTE 14
+#define MESSAGE_OBJ_PROPS_2    15
+#define MESSAGE_NEWOBJ_PROPS_2 16
 
 /* Definitions for plugins/special modules */
 #define MESSAGE_BEADFIX_OPENFILE   1
@@ -88,6 +90,9 @@ class StdinThread : public QThread
 #endif /* IMOD_CLIENT_MESSAGE_H */
 /*
 $Log$
+Revision 3.17  2008/02/06 20:28:37  mast
+Added flag to keep track of whether stderr was disconnected
+
 Revision 3.16  2006/07/03 19:52:21  mast
 Add disconnect methods
 
