@@ -46,18 +46,7 @@ static void setObjectFlag(bool state, int symflag, b3dUInt32 flag)
   if (!obj)
     return;
   App->cvi->undo->objectPropChg();
-  
-  if (symflag) {
-    if (!state)
-      obj->symflags &= ~flag;
-    else
-      obj->symflags |= flag;
-  } else {
-    if (!state)
-      obj->flags &= ~flag;
-    else
-      obj->flags |= flag;
-  }
+  utilSetObjFlag(obj, symflag, state, flag);
   App->cvi->undo->finishUnit();
   imodDraw(App->cvi, IMOD_DRAW_MOD);
 }
@@ -192,6 +181,14 @@ void ioew_planar(int state)
   imodvObjedNewView();
 }
 
+void ioew_pointLimit(int value)
+{
+  Iobj *obj = getObjectOrClose();
+  if (!obj)
+    return;
+  obj->extra[IOBJ_EX_PNT_LIMIT] = value;
+}
+
 /* 
  * Open the object edit dialog
  */
@@ -271,6 +268,7 @@ int imod_object_edit_draw(void)
   Ioew_dialog->setFrontSurface(obj->flags & IMOD_OBJFLAG_OUT ? 1 : 0);
   Ioew_dialog->setPointRadius(obj->pdrawsize);
   Ioew_dialog->setPlanarBox(iobjPlanar(obj->flags), iobjOpen(obj->flags));
+  Ioew_dialog->setPointLimit(obj->extra[IOBJ_EX_PNT_LIMIT]);
 
   return(0);
 }
@@ -435,6 +433,9 @@ void ImodObjColor::keyReleaseSlot ( QKeyEvent * e )
 
 /*
 $Log$
+Revision 4.19  2007/07/08 16:48:29  mast
+Fixed some sync problems and added sync calls for new properties in model view
+
 Revision 4.18  2007/06/08 04:50:00  mast
 Added planar flag support
 
