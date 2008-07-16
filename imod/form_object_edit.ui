@@ -8,8 +8,8 @@
         <rect>
             <x>0</x>
             <y>0</y>
-            <width>241</width>
-            <height>533</height>
+            <width>242</width>
+            <height>548</height>
         </rect>
     </property>
     <property name="caption">
@@ -239,6 +239,41 @@
             <property name="toolTip" stdset="0">
                 <string>Automatically start new contour in Zap window when on a new section</string>
             </property>
+        </widget>
+        <widget class="QLayoutWidget">
+            <property name="name">
+                <cstring>layout10</cstring>
+            </property>
+            <hbox>
+                <property name="name">
+                    <cstring>unnamed</cstring>
+                </property>
+                <widget class="QLabel">
+                    <property name="name">
+                        <cstring>textLabel1</cstring>
+                    </property>
+                    <property name="text">
+                        <string>Points per contour</string>
+                    </property>
+                </widget>
+                <widget class="QSpinBox">
+                    <property name="name">
+                        <cstring>ptsPerContSpinBox</cstring>
+                    </property>
+                    <property name="focusPolicy">
+                        <enum>ClickFocus</enum>
+                    </property>
+                    <property name="specialValueText">
+                        <string>No limit</string>
+                    </property>
+                    <property name="maxValue">
+                        <number>100</number>
+                    </property>
+                    <property name="toolTip" stdset="0">
+                        <string>Automatically start new contour after this number of points</string>
+                    </property>
+                </widget>
+            </hbox>
         </widget>
         <widget class="QGroupBox">
             <property name="name">
@@ -757,6 +792,12 @@
         <receiver>objectEditForm</receiver>
         <slot>toggledPlanar(bool)</slot>
     </connection>
+    <connection>
+        <sender>ptsPerContSpinBox</sender>
+        <signal>valueChanged(int)</signal>
+        <receiver>objectEditForm</receiver>
+        <slot>ptLimitChanged(int)</slot>
+    </connection>
 </connections>
 <includes>
     <include location="local" impldecl="in implementation">control.h</include>
@@ -771,6 +812,7 @@
     <slot>symbolChanged( int value )</slot>
     <slot>OKPressed()</slot>
     <slot>radiusChanged( int value )</slot>
+    <slot>ptLimitChanged( int value )</slot>
     <slot>selectedSurface( int value )</slot>
     <slot>selectedType( int value )</slot>
     <slot>sizeChanged( int value )</slot>
@@ -791,6 +833,7 @@
     <slot>setObjectType( int value )</slot>
     <slot>setLineWidth( int value )</slot>
     <slot>setPlanarBox( bool state, bool enabled )</slot>
+    <slot>setPointLimit( int value )</slot>
     <slot>keyPressEvent( QKeyEvent * e )</slot>
     <slot>keyReleaseEvent( QKeyEvent * e )</slot>
 </slots>

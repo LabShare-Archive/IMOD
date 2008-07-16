@@ -32,6 +32,11 @@ void objectEditForm::radiusChanged(int value)
     ioew_pointsize(value);
 }
 
+void objectEditForm::ptLimitChanged( int value )
+{
+  ioew_pointLimit(value);
+}
+
 void objectEditForm::selectedSurface( int value )
 {
     ioew_surface(value);
@@ -143,6 +148,11 @@ void objectEditForm::setPlanarBox( bool state, bool enabled )
 {
   diaSetChecked(planarCheckBox, state);
   planarCheckBox->setEnabled(enabled);
+}
+
+void objectEditForm::setPointLimit( int value )
+{
+  diaSetSpinBox(ptsPerContSpinBox, value);
 }
 
 // Handle close event; pass on keypress
