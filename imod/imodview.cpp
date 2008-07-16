@@ -2560,7 +2560,8 @@ Icont *ivwGetOrMakeContour(ImodView *vw, Iobj *obj, int timeLock)
 {
   Icont *cont = imodContourGet(vw->imod);
   int curTime = timeLock ? timeLock : vw->ct;
-  if (!cont) {
+  if (!cont || (obj->extra[IOBJ_EX_PNT_LIMIT] && 
+                cont->psize >= obj->extra[IOBJ_EX_PNT_LIMIT])) {
   
     // Set index to last contour, both to use that contour if it is empty and
     // so that its properties (surface and open/closed) are inherited if a new
@@ -2752,6 +2753,9 @@ void ivwBinByN(unsigned char *array, int nxin, int nyin, int nbin,
 /*
 
 $Log$
+Revision 4.70  2008/07/13 16:59:36  mast
+Do not return extra object by number if it is not in use
+
 Revision 4.69  2008/07/02 15:07:46  mast
 Fixed bad bug in tilt angles when no image loaded
 
