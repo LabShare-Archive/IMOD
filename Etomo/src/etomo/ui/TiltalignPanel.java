@@ -244,6 +244,8 @@ final class TiltalignPanel implements Expandable {
   private final RadioButton rbRotationOne = new RadioButton("One rotation");
   private final ButtonGroup bgRotationSolution = new ButtonGroup();
   private final JPanel pnlRotationSolution = new JPanel();
+  private final LabeledTextField ltfRotationAngle = new LabeledTextField(
+  "Rotation angle: ");
   private final LabeledTextField ltfRotationGroupSize = new LabeledTextField(
       "Group size: ");
   private final LabeledTextField ltfRotationNonDefaultGroups = new LabeledTextField(
@@ -545,6 +547,7 @@ final class TiltalignPanel implements Expandable {
     if (solutionType == TiltalignParam.SINGLE_OPTION) {
       rbRotationOne.setSelected(true);
     }
+    ltfRotationAngle.setText(params.getRotationAngle().toString());
     ltfRotationGroupSize.setText(params.getRotDefaultGrouping().toString());
     ltfRotationNonDefaultGroups.setText(params.getRotNondefaultGroup());
 
@@ -799,6 +802,8 @@ final class TiltalignPanel implements Expandable {
         type = TiltalignParam.SINGLE_OPTION;
       }
       params.setRotOption(type);
+      badParameter = ltfRotationAngle.getLabel();
+      params.setRotationAngle(ltfRotationAngle.getText());
       badParameter = ltfRotationGroupSize.getLabel();
       params.setRotDefaultGrouping(ltfRotationGroupSize.getText());
       badParameter = ltfRotationNonDefaultGroups.getLabel();
@@ -1019,6 +1024,7 @@ final class TiltalignPanel implements Expandable {
     boolean state = rbRotationAutomap.isSelected();
     ltfRotationGroupSize.setEnabled(state);
     ltfRotationNonDefaultGroups.setEnabled(state);
+    ltfRotationAngle.setEnabled(rbRotationNone.isSelected());
   }
 
   private void setDistortionSolutionState() {
@@ -1244,9 +1250,9 @@ final class TiltalignPanel implements Expandable {
     items[2] = rbRotationAutomap;
     items[3] = rbRotationAll;
     createRadioBox(pnlRBRotation, bgRotationSolution, items);
-    createVariablePanel(pnlRotationSolution, pnlRBRotation,
-        ltfRotationGroupSize, ltfRotationNonDefaultGroups,
-        "Rotation Solution Type");
+    createVariablePanel(pnlRotationSolution, pnlRBRotation,ltfRotationAngle,
+        ltfRotationGroupSize, ltfRotationNonDefaultGroups,null,null,
+        "Rotation Solution Type",null);
 
     //  Layout the global tilt angle estimate pane
     JPanel pnlRBTiltAngle = new JPanel();
@@ -1709,6 +1715,8 @@ final class TiltalignPanel implements Expandable {
       rbRotationOne.setToolTipText(EtomoAutodoc.getTooltip(section,
           TiltalignParam.SINGLE_OPTION));
     }
+    ltfRotationAngle.setToolTipText(EtomoAutodoc.getTooltip(autodoc,
+        TiltalignParam.ROT_ANGLE_KEY));
     ltfRotationGroupSize.setToolTipText(EtomoAutodoc.getTooltip(autodoc,
         TiltalignParam.ROT_DEFAULT_GROUPING_KEY));
     ltfRotationNonDefaultGroups.setToolTipText(EtomoAutodoc.getTooltip(autodoc,
@@ -1838,6 +1846,9 @@ final class TiltalignPanel implements Expandable {
 
 /**
  * <p> $Log$
+ * <p> Revision 3.45  2007/07/30 16:30:15  sueh
+ * <p> bug# 1001 Rearranged fields.
+ * <p>
  * <p> Revision 3.44  2007/04/13 20:39:32  sueh
  * <p> bug# 964 Removed radioValue from radio buttons, and added EnumeratedType,
  * <p> which is the interface for enumeration types.
