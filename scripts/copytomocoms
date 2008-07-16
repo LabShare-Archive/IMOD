@@ -614,6 +614,9 @@ while ($iaxis < $numax)
                     echo2 "  When it does, you will have to run:"
                     echo2 "  extracttilts $stackname $tiltspec"
                 endif
+            else
+                echo2 " "
+                echo2 "WARNING: $tiltspec does not exist yet.  You need to create this file before running commands."
 	    endif
 	endif
 
@@ -1381,6 +1384,9 @@ exit 0
 
 #
 #  $Log$
+#  Revision 3.59  2008/05/30 03:33:21  mast
+#  Made it set mode 1 for newst.com if input is bytes
+#
 #  Revision 3.58  2008/01/04 21:58:01  mast
 #  Needed more quotes for spaces
 #
