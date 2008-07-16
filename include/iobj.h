@@ -102,6 +102,9 @@
 #define IobjFlagTime      12
 #define IobjFlagExtraInModv 21
 
+/* Indices to extra array */
+#define IOBJ_EX_PNT_LIMIT  0
+
 /*****************************************************************************/
 /* iobj.c functions                                                          */
 /*****************************************************************************/
@@ -155,6 +158,9 @@ extern "C" {
 /*
 
 $Log$
+Revision 3.17  2008/06/17 20:09:51  mast
+Yet another flag defined
+
 Revision 3.16  2008/05/22 15:38:44  mast
 Added flag for editable extra object
 
