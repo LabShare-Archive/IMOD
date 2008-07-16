@@ -131,6 +131,7 @@ assert.rb.no-rotation=0
 assert.rb.solve-for-all-rotations=1
 assert.rb.group-rotations=0
 assert.rb.one-rotation=0
+assert.tf.rotation-angle=%{image-rotation}
 assert.tf.group-size = 5
 assert.rb.fixed-magnification-at-10=0
 assert.rb.solve-for-all-magnifications = 1
@@ -150,6 +151,7 @@ assert.rb.no-rotation.enabled=1
 assert.rb.solve-for-all-rotations.enabled=1
 assert.rb.group-rotations.enabled=1
 assert.rb.one-rotation.enabled=1
+assert.tf.rotation-angle.enabled=0
 assert.tf.group-size.enabled = 0
 assert.rb.fixed-magnification-at-10.enabled=1
 assert.rb.solve-for-all-magnifications.enabled = 1
@@ -164,6 +166,10 @@ assert.rb.full-solution.enabled = 1
 assert.rb.skew-only.enabled = 1
 assert.tf.x-stretch-group-size.enabled = 0
 assert.tf.skew-group-size.enabled = 0
+# Test enabling
+rb.no-rotation=
+assert.tf.rotation-angle.enabled=1
+rb.solve-for-all-rotations=
 tp.general.0 =
 
 [function = assert-global-fields-advanced]
