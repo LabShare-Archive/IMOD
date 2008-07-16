@@ -1,5 +1,7 @@
 IMOD History
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+7/16/08: In Etomo - Fine Alignment exposed Rotation Angle.
+
 7/15/08: Copytomocoms issues a warning if tilt angles are supposed to be in
 existing .rawtlt and it doesn't exist yet.
 
