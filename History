@@ -1,5 +1,8 @@
 IMOD History
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+7/15/08: Processchunks needs to list all log files if one does not seem to
+exist to avoid spurious timeouts (Redhat 5 update 2 NFS problem?).
+
 7/15/08: Added ability to start new contour automatically when contour reaches
 a set number of points.
 
