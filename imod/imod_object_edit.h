@@ -42,6 +42,7 @@ void ioew_linewidth(int value);
 void ioew_open(int value);
 void ioew_surface(int value);
 void ioew_pointsize(int value);
+void ioew_pointLimit(int value);
 void ioew_nametext(const char *name);
 void ioew_symbol(int value);
 void ioew_symsize(int value);
@@ -56,6 +57,9 @@ void imod_object_color(int objNum);
 
 /*
 $Log$
+Revision 4.3  2007/06/08 04:49:15  mast
+Added call for planar flag
+
 Revision 4.2  2006/06/09 20:25:39  mast
 Added ability to display spheres on center section only
 
