@@ -1971,6 +1971,7 @@ int zapButton2(ZapStruct *zap, int x, int y, int controlDown)
     cont = ivwGetOrMakeContour(vi, obj, zap->timeLock);
     if (!cont)
       return 0;
+
     point.x = ix;
     point.y = iy;
     point.z = zap->section;
@@ -2408,9 +2409,12 @@ int zapB2Drag(ZapStruct *zap, int x, int y, int controlDown)
   /* DNM 6/18/03: If Z or time has changed, treat it like a button click so
      new contour can be started */
   // DNM 6/30/04: change to start new for any kind of contour with time change
+  // DNM 7/15/08: Start new contour if up to the point limit too
   if ((iobjPlanar(obj->flags) && !(cont->flags & ICONT_WILD) && 
       (int)floor(lpt->z + 0.5) != (int)cpt.z) ||
-      ivwTimeMismatch(vi, zap->timeLock, obj, cont)) {
+      ivwTimeMismatch(vi, zap->timeLock, obj, cont) || 
+      (obj->extra[IOBJ_EX_PNT_LIMIT] &&
+       cont->psize >= obj->extra[IOBJ_EX_PNT_LIMIT])) {
     registerDragAdditions(zap);
     return zapButton2(zap, x, y, 0);
   }
@@ -4506,6 +4510,9 @@ static int zapPointVisable(ZapStruct *zap, Ipoint *pnt)
 /*
 
 $Log$
+Revision 4.122  2008/05/27 05:41:12  mast
+Adapted to gray-scale snapshot, fixed current point change on mouse up
+
 Revision 4.121  2008/05/23 04:31:44  mast
 Changed to do nontiff montage snapshots
 

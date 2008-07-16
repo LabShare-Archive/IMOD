@@ -1002,6 +1002,12 @@ void XyzWindow::B2Drag(int x, int y)
       && cont->pts[0].z != mz)
     return;
 
+  if (obj->extra[IOBJ_EX_PNT_LIMIT] &&
+      cont->psize >= obj->extra[IOBJ_EX_PNT_LIMIT]) {
+    B2Press(x, y);
+    return;
+  }
+    
   point.x = mx;
   point.y = my;
   point.z = mz;
@@ -2358,6 +2364,9 @@ void XyzGL::mouseMoveEvent( QMouseEvent * event )
 
 /*
 $Log$
+Revision 4.49  2008/01/25 20:22:58  mast
+Changes for new scale bar
+
 Revision 4.48  2008/01/19 22:24:28  mast
 Fixed problems when no objects
 
