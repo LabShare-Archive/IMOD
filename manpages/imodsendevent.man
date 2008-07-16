@@ -58,6 +58,14 @@ Currently, 3dmod will accept the following commands:
         Follow with the name of the plugin as it appears in the 
         Special menu, including spaces if any, then with the message 
         for the plugin.
+  15  Set more object properties unconditionally  OR
+  16  Set object properties only if specified object has no contours
+        For 15 or 16, follow the action with 4 numbers;
+             use -1 to leave a property unchanged:
+          Object number (numbered from 1), or <= 0 for current object
+          Limit on number of points per contour, or 0 for no limit
+          1 to start new contours automatically at new Z, 0 not to
+          1 to draw spheres on central section only, 0 not to
 
 Bead Fixer accepts the following commands:
    1  Open a Tiltalign log file if one is not open yet.  Follow with log 
