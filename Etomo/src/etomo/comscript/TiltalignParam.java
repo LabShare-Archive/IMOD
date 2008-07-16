@@ -796,7 +796,7 @@ public final class TiltalignParam extends ConstTiltalignParam implements
   /**
    * @param rotationAngle The rotationAngle to set.
    */
-  public void setRotationAngle(double rotationAngle) {
+  public void setRotationAngle(String rotationAngle) {
     this.rotationAngle.set(rotationAngle);
   }
 
@@ -949,6 +949,9 @@ public final class TiltalignParam extends ConstTiltalignParam implements
 
 /**
  * <p> $Log$
+ * <p> Revision 3.22  2007/03/07 21:02:20  sueh
+ * <p> bug# 981 Added beamTiltOption and fixedOrInitialBeamTilt.
+ * <p>
  * <p> Revision 3.21  2007/03/03 00:37:45  sueh
  * <p> bug# 973 Added targetPatchSizeXandY.  Added set/isActive functions for
  * <p> targetPatchSizeXandY and numberOfLocalPatchesXandY.
