@@ -59,6 +59,7 @@ public class ConstTiltalignParam implements CommandDetails {
   public static final String MAG_DEFAULT_GROUPING_KEY = "MagDefaultGrouping";
   public static final String MAG_NONDEFAULT_GROUP_KEY = "MagNondefaultGroup";
   public static final String ROT_OPTION_KEY = "RotOption";
+  public static final String ROT_ANGLE_KEY = "RotationAngle";
   public static final String ROT_DEFAULT_GROUPING_KEY = "RotDefaultGrouping";
   public static final String ROT_NONDEFAULT_GROUP_KEY = "RotNondefaultGroup";
   public static final String SKEW_OPTION_KEY = "SkewOption";
@@ -205,7 +206,7 @@ public class ConstTiltalignParam implements CommandDetails {
     this.datasetName = datasetName;
     this.manager = manager;
     rotationAngle = new ScriptParameter(EtomoNumber.Type.DOUBLE,
-        "RotationAngle");
+        ROT_ANGLE_KEY);
     tiltAngleSpec = new TiltAngleSpec();
     tiltAngleSpec.setRangeMinKey("FirstTiltAngle", "first");
     tiltAngleSpec.setRangeStepKey("TiltIncrement", "increment");
@@ -1006,6 +1007,9 @@ public class ConstTiltalignParam implements CommandDetails {
 
 /**
  * <p> $Log$
+ * <p> Revision 3.33  2007/12/13 01:03:50  sueh
+ * <p> bug# 1056 Changed etomo.comscript.Fields to etomo.comscript.Field.
+ * <p>
  * <p> Revision 3.32  2007/11/06 19:07:52  sueh
  * <p> bug# 1047 Added getSubcommandDetails.
  * <p>
@@ -1136,7 +1140,7 @@ public class ConstTiltalignParam implements CommandDetails {
  * <p>
  * <p> Revision 2.1  2003/10/14 20:30:43  rickg
  * <p> Bug#279  Label layout and name changes
- * <p>
+ * <p>DefaultGrouping
  * <p> Revision 2.0  2003/01/24 20:30:31  rickg
  * <p> Single window merge to main branch
  * <p>
