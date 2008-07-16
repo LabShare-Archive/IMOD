@@ -303,7 +303,7 @@ bool ImodClipboard::executeMessage()
 
   // Number of arguments required - for backward compatibility, going to
   // model mode does not require one but should have one
-  int requiredArgs[] = {0, 1, 0, 0, 0, 0, 0, 1, 0, 0, 0, 5, 5, 0, 2};
+  int requiredArgs[] = {0, 1, 0, 0, 0, 0, 0, 1, 0, 0, 0, 5, 5, 0, 2, 4, 4};
   int numArgs = messageStrings.count();
 
   // Loop on the actions in the list; set arg to numArgs to break loop
@@ -443,6 +443,8 @@ bool ImodClipboard::executeMessage()
 
       case MESSAGE_OBJ_PROPERTIES:
       case MESSAGE_NEWOBJ_PROPERTIES:
+      case MESSAGE_OBJ_PROPS_2:
+      case MESSAGE_NEWOBJ_PROPS_2:
         objNum = messageStrings[++arg].toInt();
         type = messageStrings[++arg].toInt();
         symbol = messageStrings[++arg].toInt();
@@ -463,41 +465,56 @@ bool ImodClipboard::executeMessage()
         obj = &imod->obj[objNum];
 
         // If object has contours, skip for NEWOBJ message
-        if (obj->contsize && message_action == MESSAGE_NEWOBJ_PROPERTIES)
+        if (obj->contsize && (message_action == MESSAGE_NEWOBJ_PROPERTIES ||
+                              message_action == MESSAGE_NEWOBJ_PROPS_2))
           break;
 
-        // Process the changes if not -1: object type
-        if (type >= 0 && type < 3) {
-          switch (type) {
-          case 0:
-            obj->flags &= ~(IMOD_OBJFLAG_OPEN | IMOD_OBJFLAG_SCAT);
-            break;
-          case 1:
-            obj->flags |= IMOD_OBJFLAG_OPEN;
-            obj->flags &= ~IMOD_OBJFLAG_SCAT;
-            break;
-          case 2:
-            obj->flags |= IMOD_OBJFLAG_SCAT | IMOD_OBJFLAG_OPEN;
-            break;
+        if (message_action == MESSAGE_OBJ_PROPERTIES || 
+            message_action == MESSAGE_NEWOBJ_PROPERTIES) {
+
+          // Process the changes if not -1: object type
+          if (type >= 0 && type < 3) {
+            switch (type) {
+            case 0:
+              obj->flags &= ~(IMOD_OBJFLAG_OPEN | IMOD_OBJFLAG_SCAT);
+              break;
+            case 1:
+              obj->flags |= IMOD_OBJFLAG_OPEN;
+              obj->flags &= ~IMOD_OBJFLAG_SCAT;
+              break;
+            case 2:
+              obj->flags |= IMOD_OBJFLAG_SCAT | IMOD_OBJFLAG_OPEN;
+              break;
+            }
           }
-        }
         
-        // Symbol type and filled
-        if (symbol >= 0) {
-          if ((symbol & 7) < (sizeof(symTable) / sizeof(int)))
-            obj->symbol = symTable[symbol & 7];
-          if (symbol & 8)
-            obj->symflags |= IOBJ_SYMF_FILL;
-          else
-            obj->symflags &= ~IOBJ_SYMF_FILL;
-        }
-        
-        // Symbol size, 3d point size
-        if (symSize > 0)
-          obj->symsize = symSize;
-        if (ptSize >= 0)
-          obj->pdrawsize = ptSize;
-        
+          // Symbol type and filled
+          if (symbol >= 0) {
+            if ((symbol & 7) < (sizeof(symTable) / sizeof(int)))
+              obj->symbol = symTable[symbol & 7];
+            utilSetObjFlag(obj, 0, (symbol & 8) != 0, IOBJ_SYMF_FILL);
+          }
+          
+          // Symbol size, 3d point size
+          if (symSize > 0)
+            obj->symsize = symSize;
+          if (ptSize >= 0)
+            obj->pdrawsize = ptSize;
+        } else {
+
+          // Points per contour
+          if (type >= 0)
+            obj->extra[IOBJ_EX_PNT_LIMIT] = type;
+
+          // Planar contours
+          if (symbol >= 0)
+            utilSetObjFlag(obj, 0, symbol != 0, IMOD_OBJFLAG_PLANAR);
+
+          // Sphere on sec only
+          if (symSize >= 0)
+            utilSetObjFlag(obj, 0, symSize != 0, IMOD_OBJFLAG_PNT_ON_SEC);
+        }        
+
         // The general draw updates object edit window, but need to call 
         // imodv object edit for it to update
         imodDraw(App->cvi, IMOD_DRAW_MOD);
@@ -622,6 +639,9 @@ static int readLine(char *line)
 
 /*
 $Log$
+Revision 4.27  2008/02/06 20:28:37  mast
+Added flag to keep track of whether stderr was disconnected
+
 Revision 4.26  2008/01/13 22:58:35  mast
 Changes for multi-Z window
 
