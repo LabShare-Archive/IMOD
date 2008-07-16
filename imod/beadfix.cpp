@@ -81,7 +81,7 @@ BeadFixerModule::BeadFixerModule()
 #define MAXLINE 100
 #define MAX_DIAMETER 50
 #define MAX_OVERLAY 20
-#define NUM_SAVED_VALS 11
+#define NUM_SAVED_VALS 12
 
 /*
  *  Define a structure to contain all local plugin data.
@@ -100,11 +100,12 @@ typedef struct
   int    reverseOverlay;
   int    autoNewCont;
   int    delOnAllSec;
+  int    delInAllObj;
   char   *filename;
 }PlugData;
 
 
-static PlugData thisPlug = { NULL, NULL, 0, 0, 0, 0, 10, 0, 4, 0, 0, 0, 0,
+static PlugData thisPlug = { NULL, NULL, 0, 0, 0, 0, 10, 0, 4, 0, 0, 0, 0, 0,
                              NULL };
 static PlugData *plug = &thisPlug;
 
@@ -263,6 +264,7 @@ void imodPlugExecute(ImodView *inImodView)
     loadSaved(plug->reverseOverlay, 8);
     loadSaved(plug->autoNewCont, 9);
     loadSaved(plug->delOnAllSec, 10);
+    loadSaved(plug->delInAllObj, 11);
   }
 
   /*
@@ -293,6 +295,8 @@ void imodPlugExecuteType(ImodView *inImodView, int type, int reason)
 {
   if (reason == IMOD_REASON_MODUPDATE && plug->window)
     plug->window->modelUpdate();
+  if (reason == IMOD_REASON_NEWMODEL && plug->window)
+    plug->window->mLastob = -1;
 }
 
 /* Execute the message in the strings.
@@ -1532,18 +1536,21 @@ void BeadFixer::deleteBelow()
 {
   Imod *imod = ivwGetModel(plug->view);
   Iobj *obj;
-  int ob, i, del, ix, iy, iz, pt;
+  int ob, i, del, ix, iy, iz, pt, curobj;
   Istore *store;
   Iindex index;
   Icont *cont;
-  float thresh = threshSlider->getSlider(0)->value() / 1000.;
+  float thresh, min, max;
   index.point = -1;
   ivwGetLocation(plug->view, &ix, &iy, &iz);
+  imodGetIndex(imod, &curobj, &ix, &iy);
   for (ob = 0; ob < imod->objsize; ob++) {
     obj = &imod->obj[ob];
     index.object = ob;
-    if ((obj->flags & IMOD_OBJFLAG_USE_VALUE) && 
-        (obj->matflags2 & MATFLAGS2_SKIP_LOW)) {
+    if ((ob == curobj || plug->delInAllObj) && 
+        (obj->flags & IMOD_OBJFLAG_USE_VALUE)) {
+      istoreGetMinMax(obj->store, obj->contsize, GEN_STORE_MINMAX1, &min,&max);
+      thresh = obj->valblack * (max - min) / 255. + min;
       for (i = 0; i < ilistSize(obj->store); i++) {
         store = (Istore *)ilistItem(obj->store, i);
         if (store->type == GEN_STORE_VALUE1 && 
@@ -1551,6 +1558,8 @@ void BeadFixer::deleteBelow()
           index.contour = store->index.i;
           if (index.contour > 0 && index.contour < obj->contsize) {
             del = 1;
+
+            // If not deleting on all sections, look for a point on section
             if (!plug->delOnAllSec) {
               del = 0;
               cont = &obj->cont[index.contour];
@@ -1577,6 +1586,11 @@ void BeadFixer::delAllSecToggled(bool state)
   plug->delOnAllSec = state ? 1 : 0;
 }
 
+void BeadFixer::delAllObjToggled(bool state)
+{
+  plug->delInAllObj = state ? 1 : 0;
+}
+
 void BeadFixer::turnOffToggled(bool state)
 {
   Imod *imod = ivwGetModel(plug->view);
@@ -1600,9 +1614,10 @@ void BeadFixer::modeSelected(int value)
   showWidget(overlayHbox, value == SEED_MODE);
   showWidget(reverseBox, value == SEED_MODE);
   if (threshSlider) {
-    showWidget((QWidget *)(threshSlider->getSlider(0)), value == SEED_MODE);
+    threshSlider->showWidgets(0, value == SEED_MODE);
     showWidget(deleteBelowBut, value == SEED_MODE);
     showWidget(delAllSecBut, value == SEED_MODE);
+    showWidget(delAllObjBut, value == SEED_MODE);
     showWidget(turnOffBut, value == SEED_MODE);
   }
 
@@ -1661,6 +1676,7 @@ void BeadFixer::modelUpdate()
   enabled = obj->flags & IMOD_OBJFLAG_USE_VALUE;
   threshSlider->setEnabled(0, enabled);
   delAllSecBut->setEnabled(enabled);
+  delAllObjBut->setEnabled(enabled);
   turnOffBut->setEnabled(enabled);
   deleteBelowBut->setEnabled(enabled);
   if (!enabled)
@@ -1835,7 +1851,7 @@ BeadFixer::BeadFixer(QWidget *parent, const char *name)
       QToolTip::add(turnOffBut, "Do not show contours below the threshold");
       diaSetChecked(turnOffBut, (obj->matflags2 & MATFLAGS2_SKIP_LOW) != 0);
 
-      deleteBelowBut = diaPushButton("Delete below", this, mLayout);
+      deleteBelowBut = diaPushButton("Delete Below", this, mLayout);
       connect(deleteBelowBut, SIGNAL(clicked()), this, SLOT(deleteBelow()));
       QToolTip::add(deleteBelowBut, "Delete all contours below threshold");
 
@@ -1845,6 +1861,13 @@ BeadFixer::BeadFixer(QWidget *parent, const char *name)
       QToolTip::add(delAllSecBut, "Delete contours below threshold regardless"
                     " of Z value of points");
       diaSetChecked(delAllSecBut, plug->delOnAllSec != 0);
+
+      delAllObjBut = diaCheckBox("Delete in all objects", this, mLayout);
+      connect(delAllObjBut, SIGNAL(toggled(bool)), this, 
+              SLOT(delAllObjToggled(bool)));
+      QToolTip::add(delAllObjBut, "Delete contours from all objects that are"
+                    " below the respective object threshold");
+      diaSetChecked(delAllObjBut, plug->delInAllObj != 0);
 
       break;
     }
@@ -2074,6 +2097,7 @@ void BeadFixer::closeEvent ( QCloseEvent * e )
   posValues[8] = plug->reverseOverlay;
   posValues[9] = plug->autoNewCont;
   posValues[10] = plug->delOnAllSec;
+  posValues[11] = plug->delInAllObj;
   
   ImodPrefs->saveGenericSettings("BeadFixer", NUM_SAVED_VALS, posValues);
 
@@ -2157,6 +2181,9 @@ void BeadFixer::keyReleaseEvent ( QKeyEvent * e )
 /*
 
 $Log$
+Revision 1.44  2008/04/04 21:22:03  mast
+Free contour after adding to object
+
 Revision 1.43  2008/01/19 23:19:42  mast
 Warning cleanup
 
