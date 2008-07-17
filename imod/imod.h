@@ -117,6 +117,7 @@ void DLL_EX_IM imodDrawModel(ImodView *inImodView, Imod *inModel,
 #define IMOD_REASON_EXECUTE 1 /* Execute plugin after selection from menu  */
 #define IMOD_REASON_STARTUP 3 /* 3dmod has started. Initialize plugin. */
 #define IMOD_REASON_MODUPDATE 4 /* Update the plugin for model changes */
+#define IMOD_REASON_NEWMODEL  5 /* Update the plugin for new model loaded */
 /* END_CODE */
 
 
@@ -189,6 +190,9 @@ int DLL_EX_IM imodShowHelpPage(const char *page);
 
 /*
     $Log$
+    Revision 3.19  2008/05/28 14:57:28  mast
+    Added z scale to draw model function
+
     Revision 3.18  2008/05/22 20:58:33  mast
     Documentation of IMOD_DRAW flags
 
