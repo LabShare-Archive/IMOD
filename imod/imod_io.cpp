@@ -35,6 +35,7 @@
 #include "dia_qtutils.h"
 #include "imod_info_cb.h"
 #include "imodview.h"
+#include "imodplug.h"
 #include "imodv.h"
 #include "sslice.h"
 #include "imod_io.h"
@@ -569,6 +570,7 @@ static void initModelData(Imod *newModel, bool keepBW)
   imod_info_setobjcolor();
   imod_info_setocp();
   slicerNewTime(true);
+  imodPlugCall(App->cvi, 0, IMOD_REASON_NEWMODEL);
 
   /* DNM: try eliminating this, since the setting of mode did it */
   /* imodDraw(App->cvi, IMOD_DRAW_MOD); */
@@ -651,6 +653,7 @@ int createNewModel(char *modelFilename)
   /* DNM: notify imodv of new model after scaling*/
   imodv_new_model(Model);
   slicerNewTime(true);
+  imodPlugCall(App->cvi, 0, IMOD_REASON_NEWMODEL);
 
   /* Set the checksum to avoid save requests */
   App->cvi->imod->csum = imodChecksum(App->cvi->imod);
@@ -810,6 +813,9 @@ static int mapErrno(int errorCode)
 
 /*
 $Log$
+Revision 4.26  2008/05/29 22:16:45  mast
+Prevented model view from being drawn in intermediate stage of creating model
+
 Revision 4.25  2007/11/10 17:24:46  mast
 Syncronize slicer angle to created model
 
