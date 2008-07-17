@@ -76,6 +76,7 @@ class BeadFixer : public DialogFrame
   void findGap(int idir);
   void modelUpdate();
   QCheckBox *overlayBox;
+  int    mLastob;
 
   public slots:
   void buttonPressed(int which);
@@ -107,6 +108,7 @@ class BeadFixer : public DialogFrame
   void threshChanged(int slider, int value, bool dragging); 
   void deleteBelow();
   void delAllSecToggled(bool state);
+  void delAllObjToggled(bool state);
   void turnOffToggled(bool state);
   void runAlign();
   void alignExited();
@@ -126,7 +128,7 @@ class BeadFixer : public DialogFrame
   void showWidget(QWidget *widget, bool state);
 
   int    mIfdidgap;
-  int    mLastob, mLastco, mLastpt, mLastbefore;
+  int    mLastco, mLastpt, mLastbefore;
   int    mObjcont;                      /* Flag for new object/contour data */
   int    mObjlook, mContlook, mPtlook;  /* obj, cont, pt of current residual */
   int    mIndlook;                      /* Index in list of current residual */
@@ -178,6 +180,7 @@ class BeadFixer : public DialogFrame
   MultiSlider *threshSlider;
   QPushButton *deleteBelowBut;
   QCheckBox *delAllSecBut;
+  QCheckBox *delAllObjBut;
   QCheckBox *turnOffBut;
   bool mStayOnTop;
   bool mRunningAlign;
@@ -189,6 +192,9 @@ class BeadFixer : public DialogFrame
 #endif
 /*
 $Log$
+Revision 1.21  2008/01/17 22:36:32  mast
+Update function, turn off checkbock
+
 Revision 1.20  2007/11/03 05:04:41  mast
 Added threshold slider
 
