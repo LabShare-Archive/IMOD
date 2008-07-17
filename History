@@ -1,10 +1,12 @@
 IMOD History
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+7/16/08: IMOD_3-12-15
 7/16/08: Changed Beadfixer to start at beginning when model is reloaded in 
 gap finding mode; finished features needed for examining seed contours with
 values from Imodfindbeads and deleting contours below threshold.
 
-7/16/08: In Etomo - Fine Alignment exposed Rotation Angle.
+7/16/08: In Etomo - Fine Alignment exposed Rotation Angle so that it can be
+adjusted when it is a fixed value.
 
 7/15/08: Copytomocoms issues a warning if tilt angles are supposed to be in
 existing .rawtlt and it doesn't exist yet.

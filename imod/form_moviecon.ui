@@ -419,7 +419,7 @@
                         <enum>ClickFocus</enum>
                     </property>
                     <property name="maxValue">
-                        <number>10</number>
+                        <number>30</number>
                     </property>
                     <property name="minValue">
                         <number>2</number>
