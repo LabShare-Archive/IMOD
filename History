@@ -1,5 +1,8 @@
 IMOD History
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+7/18/08: In Etomo Settings dialog added the ability to turn on parallel
+processing.
+
 7/16/08: IMOD_3-12-15
 7/16/08: Changed Beadfixer to start at beginning when model is reloaded in 
 gap finding mode; finished features needed for examining seed contours with
