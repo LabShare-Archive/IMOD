@@ -105,7 +105,8 @@ public final class ParallelPanel implements Expandable {
     southPanel.add(ltfCPUsSelected);
     southPanel.add(btnRestartLoad);
     //sNice
-    niceFloor = CpuAdoc.getInstance(axisID, manager).getMinNice();
+    niceFloor = CpuAdoc.getInstance(axisID, manager.getPropertyUserDir())
+        .getMinNice();
     sNice = Spinner.getLabeledInstance("Nice: ", manager
         .getParallelProcessingDefaultNice(), niceFloor,
         ProcesschunksParam.NICE_CEILING);
@@ -119,15 +120,18 @@ public final class ParallelPanel implements Expandable {
     bodyPanel.addRigidArea();
     bodyPanel.add(tablePanel);
     bodyPanel.add(southPanel);
-    if (CpuAdoc.getInstance(axisID, manager).hasComputers()
-        && CpuAdoc.getInstance(axisID, manager).hasQueues()) {
+    if (CpuAdoc.getInstance(axisID, manager.getPropertyUserDir())
+        .hasComputers()
+        && CpuAdoc.getInstance(axisID, manager.getPropertyUserDir())
+            .hasQueues()) {
       JPanel clusterPanel = new JPanel();
       clusterPanel.setLayout(new BoxLayout(clusterPanel, BoxLayout.LINE_AXIS));
       clusterPanel.setAlignmentX(Component.RIGHT_ALIGNMENT);
       clusterPanel.add(cbCluster);
       bodyPanel.add(clusterPanel);
     }
-    else if (CpuAdoc.getInstance(axisID, manager).hasQueues()) {
+    else if (CpuAdoc.getInstance(axisID, manager.getPropertyUserDir())
+        .hasQueues()) {
       cbCluster.setSelected(true);
     }
     //header
@@ -393,6 +397,9 @@ public final class ParallelPanel implements Expandable {
 }
 /**
  * <p> $Log$
+ * <p> Revision 1.60  2008/05/03 00:51:39  sueh
+ * <p> bug# 847 Passing null for ProcessSeries to process funtions.
+ * <p>
  * <p> Revision 1.59  2007/12/10 22:44:26  sueh
  * <p> bug# 1041 Put the label for the Resume button into a constant and made is
  * <p> public because it is being used in another package.
