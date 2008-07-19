@@ -35,6 +35,9 @@ import etomo.type.ProcessName;
  * @version $Revision$
  *
  * <p> $Log$
+ * <p> Revision 1.36  2007/02/19 22:02:20  sueh
+ * <p> bug# 964 Fixed function names:  was AxisPanelIsNull, now its isAxisPanelNull.
+ * <p>
  * <p> Revision 1.35  2006/11/29 00:19:49  sueh
  * <p> bug# 934 Added endThreads() to notify the load average threads when the
  * <p> manager exits.
@@ -234,64 +237,64 @@ import etomo.type.ProcessName;
 public abstract class MainPanel extends JPanel {
   public static final String rcsid = "$Id$";
 
-  protected static final String STATUS_BAR_EMPTY_TITLE = "No data set loaded";
-  protected static final String STATUS_BAR_BASE_TITLE = "Data file: ";
+  static final String STATUS_BAR_EMPTY_TITLE = "No data set loaded";
+  static final String STATUS_BAR_BASE_TITLE = "Data file: ";
 
-  protected JLabel statusBar = new JLabel(STATUS_BAR_EMPTY_TITLE);
+  JLabel statusBar = new JLabel(STATUS_BAR_EMPTY_TITLE);
 
-  protected JPanel panelCenter = new JPanel();
+  JPanel panelCenter = new JPanel();
   //private Point previousSubFrameLocation = null;
   //protected ScrollPanel scroll;
   //protected JScrollPane scrollPane;
   //protected JPanel axisPanel = new JPanel();
 
   //  These panels get instantiated as needed
-  protected ScrollPanel scrollA;
-  protected JScrollPane scrollPaneA;
-  protected ScrollPanel scrollB;
-  protected JScrollPane scrollPaneB;
-  protected JSplitPane splitPane;
-  protected BaseManager manager = null;
+  ScrollPanel scrollA;
+  JScrollPane scrollPaneA;
+  ScrollPanel scrollB;
+  JScrollPane scrollPaneB;
+  JSplitPane splitPane;
+  BaseManager manager = null;
   private boolean showingBothAxis = false;
   private boolean showingAxisA = true;
-  protected boolean showingSetup = false;
-  protected AxisType axisType = AxisType.NOT_SET;
+  boolean showingSetup = false;
+  AxisType axisType = AxisType.NOT_SET;
 
   private static final int estimatedMenuHeight = 60;
   private static final int extraScreenWidthMultiplier = 2;
   private static final Dimension frameBorder = new Dimension(10, 48);
 
-  protected abstract void createAxisPanelA(AxisID axisID);
+  abstract void createAxisPanelA(AxisID axisID);
 
-  protected abstract void createAxisPanelB();
+  abstract void createAxisPanelB();
 
-  protected abstract void resetAxisPanels();
+  abstract void resetAxisPanels();
 
-  protected abstract void addAxisPanelA();
+  abstract void addAxisPanelA();
 
-  protected abstract void addAxisPanelB();
+  abstract void addAxisPanelB();
 
-  protected abstract boolean isAxisPanelANull();
+  abstract boolean isAxisPanelANull();
 
-  protected abstract boolean isAxisPanelBNull();
+  abstract boolean isAxisPanelBNull();
 
-  protected abstract boolean hideAxisPanelA();
+  abstract boolean hideAxisPanelA();
 
-  protected abstract boolean hideAxisPanelB();
+  abstract boolean hideAxisPanelB();
 
-  protected abstract void showAxisPanelA();
+  abstract void showAxisPanelA();
 
-  protected abstract void showAxisPanelB();
+  abstract void showAxisPanelB();
 
-  protected abstract AxisProcessPanel mapBaseAxis(AxisID axisID);
+  abstract AxisProcessPanel mapBaseAxis(AxisID axisID);
 
-  protected abstract DataFileFilter getDataFileFilter();
+  abstract DataFileFilter getDataFileFilter();
 
   public abstract void saveDisplayState();
 
-  protected abstract AxisProcessPanel getAxisPanelA();
+  abstract AxisProcessPanel getAxisPanelA();
 
-  protected abstract AxisProcessPanel getAxisPanelB();
+  abstract AxisProcessPanel getAxisPanelB();
 
   public abstract void setState(ProcessState processState, AxisID axisID,
       AbstractParallelDialog parallelDialog);
@@ -325,7 +328,7 @@ public abstract class MainPanel extends JPanel {
     return statusBar.getText();
   }
 
-  protected void setStatusBarText(File paramFile, BaseMetaData metaData) {
+  void setStatusBarText(File paramFile, BaseMetaData metaData) {
     int maxTitleLength = 79;
     if (metaData == null) {
       statusBar.setText(STATUS_BAR_EMPTY_TITLE);
@@ -405,7 +408,7 @@ public abstract class MainPanel extends JPanel {
     axisPanel.setProgressBar(label, nSteps, pauseEnabled, processName);
     axisPanel.setProgressBarValue(0);
   }
-  
+
   public void endThreads() {
     AxisProcessPanel axisPanel = mapBaseAxis(AxisID.FIRST);
     if (axisPanel != null) {
@@ -685,7 +688,7 @@ public abstract class MainPanel extends JPanel {
    * set vertical scrollbar policy
    * @param always
    */
-  protected void setVerticalScrollBarPolicy(boolean always) {
+  void setVerticalScrollBarPolicy(boolean always) {
     int policy = always ? JScrollPane.VERTICAL_SCROLLBAR_ALWAYS
         : JScrollPane.VERTICAL_SCROLLBAR_AS_NEEDED;
     if (scrollPaneA != null) {

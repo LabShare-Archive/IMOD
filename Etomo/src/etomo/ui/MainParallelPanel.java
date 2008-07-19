@@ -22,6 +22,9 @@ import etomo.type.BaseMetaData;
 * @version $Revision$
 * 
 * <p> $Log$
+* <p> Revision 1.2  2007/02/19 22:02:30  sueh
+* <p> bug# 964 Fixed function names:  was AxisPanelIsNull, now its isAxisPanelNull.
+* <p>
 * <p> Revision 1.1  2006/03/20 18:04:25  sueh
 * <p> bug# 835 Added a main panel for ParallelManager.
 * <p> </p>
@@ -38,56 +41,56 @@ public final class MainParallelPanel extends MainPanel {
     this.manager = manager;
   }
   
-  protected void addAxisPanelA() { 
+   void addAxisPanelA() { 
     scrollA.add(axisPanelA.getContainer());
   }
   
-  protected void addAxisPanelB() {
+   void addAxisPanelB() {
   }
   
-  protected boolean isAxisPanelANull() {
+   boolean isAxisPanelANull() {
     return axisPanelA == null;
   }
   
-  protected boolean isAxisPanelBNull() {
+   boolean isAxisPanelBNull() {
     return true;
   }
   
-  protected void createAxisPanelA(AxisID axisID) {
+   void createAxisPanelA(AxisID axisID) {
     axisPanelA = new ParallelProcessPanel(manager);
   }
 
-  protected void createAxisPanelB() {
+   void createAxisPanelB() {
   }
   
-  protected AxisProcessPanel getAxisPanelA() {
+   AxisProcessPanel getAxisPanelA() {
     return axisPanelA;
   }
   
-  protected AxisProcessPanel getAxisPanelB() {
+   AxisProcessPanel getAxisPanelB() {
     return null;
   }
   
-  protected DataFileFilter getDataFileFilter() {
+   DataFileFilter getDataFileFilter() {
     return null;
   }
   
-  protected boolean hideAxisPanelA() {
+   boolean hideAxisPanelA() {
     return axisPanelA.hide();
   }
   
-  protected boolean hideAxisPanelB() {
+   boolean hideAxisPanelB() {
     return true;
   }
   
-  protected AxisProcessPanel mapBaseAxis(AxisID axisID) {
+   AxisProcessPanel mapBaseAxis(AxisID axisID) {
     if (axisID == AxisID.SECOND) {
       return null;
     }
     return axisPanelA;
   }
   
-  protected void resetAxisPanels() {
+   void resetAxisPanels() {
     axisPanelA = null;
   }
   
@@ -98,11 +101,11 @@ public final class MainParallelPanel extends MainPanel {
       AbstractParallelDialog parallelDialog) {
   }
   
-  protected void showAxisPanelA() {
+   void showAxisPanelA() {
     axisPanelA.show();
   }
   
-  protected void showAxisPanelB() {
+   void showAxisPanelB() {
   }
   
   public final void setStatusBarText(File paramFile, BaseMetaData metaData) {
@@ -111,6 +114,9 @@ public final class MainParallelPanel extends MainPanel {
 }
 /**
 * <p> $Log$
+* <p> Revision 1.2  2007/02/19 22:02:30  sueh
+* <p> bug# 964 Fixed function names:  was AxisPanelIsNull, now its isAxisPanelNull.
+* <p>
 * <p> Revision 1.1  2006/03/20 18:04:25  sueh
 * <p> bug# 835 Added a main panel for ParallelManager.
 * <p> </p>
