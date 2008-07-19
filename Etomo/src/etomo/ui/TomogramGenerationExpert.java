@@ -633,7 +633,7 @@ public final class TomogramGenerationExpert extends ReconUIExpert {
     if (!getParallelPanel().getParameters(param)) {
       return null;
     }
-    param.setSeparateChunks(CpuAdoc.getInstance(axisID, manager)
+    param.setSeparateChunks(CpuAdoc.getInstance(axisID, manager.getPropertyUserDir())
         .isSeparateChunks());
     return param;
   }
@@ -750,10 +750,10 @@ public final class TomogramGenerationExpert extends ReconUIExpert {
       getBinningFromNewst = false;
       dialog.setBinning(binning);
     }
-    CpuAdoc cpuAdoc = CpuAdoc.getInstance(AxisID.ONLY, manager);
+    CpuAdoc cpuAdoc = CpuAdoc.getInstance(AxisID.ONLY, manager.getPropertyUserDir());
     //Parallel processing is optional in tomogram reconstruction, so only use it
     //if the user set it up.
-    boolean validAutodoc = cpuAdoc.isValid() && cpuAdoc.isSetByUser();
+    boolean validAutodoc = cpuAdoc.isAvailable();
     ConstEtomoNumber tomoGenTiltParallel = metaData
         .getTomoGenTiltParallel(axisID);
     dialog.setParallelProcessEnabled(validAutodoc);
@@ -1154,6 +1154,10 @@ public final class TomogramGenerationExpert extends ReconUIExpert {
 }
 /**
  * <p> $Log$
+ * <p> Revision 1.22  2008/07/15 17:48:06  sueh
+ * <p> bug# 1124 In getTiltParams(TiltParam) corrected the setting of
+ * <p> TiltParam.fiducialess.  Basing it on the last time final alignment was run.
+ * <p>
  * <p> Revision 1.21  2008/05/28 02:51:46  sueh
  * <p> bug# 1111 Add a dialogType parameter to the ProcessSeries
  * <p> constructor.  DialogType must be passed to any function that constructs

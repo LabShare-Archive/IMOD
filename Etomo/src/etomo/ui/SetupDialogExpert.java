@@ -41,6 +41,9 @@ import etomo.util.Utilities;
  * @version $Revision$
  * 
  * <p> $Log$
+ * <p> Revision 1.3  2008/01/31 20:31:12  sueh
+ * <p> bug# 1055 throwing a FileException when LogFile.getInstance fails.
+ * <p>
  * <p> Revision 1.2  2008/01/25 22:29:24  sueh
  * <p> bug# 1070 Don't use parallel processing unless the cpu.adoc or
  * <p> IMOD_PROCESSORS has been set by the user.
@@ -423,10 +426,10 @@ public final class SetupDialogExpert {
           + metaData.getDatasetName();
       dialog.setDataset(canonicalPath);
     }
-    CpuAdoc cpuAdoc = CpuAdoc.getInstance(AxisID.ONLY, manager);
+    CpuAdoc cpuAdoc = CpuAdoc.getInstance(AxisID.ONLY, manager.getPropertyUserDir());
     //Parallel processing is optional in tomogram reconstruction, so only use it
     //if the user set it up.
-    boolean validAutodoc = cpuAdoc.isValid() && cpuAdoc.isSetByUser();
+    boolean validAutodoc = cpuAdoc.isAvailable();
     if (validAutodoc && !userConfig.getNoParallelProcessing()) {
       dialog.setParallelProcess(true);
     }

@@ -60,6 +60,10 @@ import etomo.type.ViewType;
  * 
  * <p>
  * $Log$
+ * Revision 3.114  2008/05/13 23:07:49  sueh
+ * bug# 847 Adding a right click menu for deferred 3dmods to some
+ * process buttons.
+ *
  * Revision 3.113  2008/05/03 00:57:22  sueh
  * bug# 847 Passing null for ProcessSeries to process funtions.
  *
@@ -1487,7 +1491,7 @@ public class TomogramGenerationDialog extends ProcessDialog implements
    */
   private Container layoutTiltPanel() {
     //fields
-    ConstEtomoNumber maxCPUs = CpuAdoc.getInstance(axisID, applicationManager)
+    ConstEtomoNumber maxCPUs = CpuAdoc.getInstance(axisID, applicationManager.getPropertyUserDir())
         .getMaxTilt();
     if (maxCPUs != null && !maxCPUs.isNull()) {
       cbParallelProcess = new CheckBox(ParallelPanel.FIELD_LABEL

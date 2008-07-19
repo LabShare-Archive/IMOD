@@ -55,6 +55,11 @@ import etomo.util.MRCHeader;
  * 
  * <p>
  * $Log$
+ * Revision 3.56  2008/05/28 02:51:22  sueh
+ * bug# 1111 Add a dialogType parameter to the ProcessSeries
+ * constructor.  DialogType must be passed to any function that constructs
+ * a ProcessSeries instance.
+ *
  * Revision 3.55  2008/05/13 23:07:20  sueh
  * bug# 847 Adding a right click menu for deferred 3dmods to some
  * process buttons.
@@ -750,10 +755,11 @@ public final class SetupCombinePanel implements ContextMenu,
   }
 
   void setParameters(ConstMetaData metaData) {
-    CpuAdoc cpuAdoc = CpuAdoc.getInstance(AxisID.ONLY, applicationManager);
+    CpuAdoc cpuAdoc = CpuAdoc.getInstance(AxisID.ONLY, applicationManager
+        .getPropertyUserDir());
     //Parallel processing is optional in tomogram reconstruction, so only use it
     //if the user set it up.
-    boolean validAutodoc = cpuAdoc.isValid() && cpuAdoc.isSetByUser();
+    boolean validAutodoc = cpuAdoc.isAvailable();
     ConstEtomoNumber combineVolcombineParallel = metaData
         .getCombineVolcombineParallel();
     cbParallelProcess.setEnabled(validAutodoc);

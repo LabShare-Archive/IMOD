@@ -48,6 +48,10 @@ import etomo.type.TomogramState;
  * @version $Revision$
  *
  * <p> $Log$
+ * <p> Revision 3.58  2008/05/13 23:07:39  sueh
+ * <p> bug# 847 Adding a right click menu for deferred 3dmods to some
+ * <p> process buttons.
+ * <p>
  * <p> Revision 3.57  2007/12/26 22:36:50  sueh
  * <p> bug# 1052 Return true when done() completes successfully.
  * <p>
@@ -398,7 +402,7 @@ public final class TomogramCombinationDialog extends ProcessDialog implements
 
   public TomogramCombinationDialog(ApplicationManager appMgr) {
     super(appMgr, AxisID.FIRST, DialogType.TOMOGRAM_COMBINATION);
-    ConstEtomoNumber maxCPUs = CpuAdoc.getInstance(AxisID.ONLY, appMgr)
+    ConstEtomoNumber maxCPUs = CpuAdoc.getInstance(AxisID.ONLY, appMgr.getPropertyUserDir())
         .getMaxVolcombine();
     if (maxCPUs != null && !maxCPUs.isNull()) {
       parallelProcessCheckBoxText = ParallelPanel.FIELD_LABEL
