@@ -47,6 +47,7 @@ public final class ProcessorTable implements Storable, ParallelProgressDisplay,
     LoadDisplay {
   public static final String rcsid = "$Id$";
 
+  static final String NUMBER_CPUS_HEADER = "# CPUs";
   private static final String STORE_PREPEND = "ProcessorTable";
 
   private static final int MAXIMUM_ROWS = 15;
@@ -56,7 +57,7 @@ public final class ProcessorTable implements Storable, ParallelProgressDisplay,
   private GridBagLayout layout = null;
   private GridBagConstraints constraints = null;
   private final HeaderCell header1Computer = new HeaderCell();
-  private final HeaderCell header1NumberCPUs = new HeaderCell("# CPUs");
+  private final HeaderCell header1NumberCPUs = new HeaderCell(NUMBER_CPUS_HEADER);
   private final HeaderCell header1Load = new HeaderCell("Load Average");
   private final HeaderCell header1Users = new HeaderCell("Users");
   private final HeaderCell header1CPUUsage = new HeaderCell("CPU Usage");
@@ -145,7 +146,7 @@ public final class ProcessorTable implements Storable, ParallelProgressDisplay,
   }
 
   private void initTable() {
-    CpuAdoc cpuAdoc = CpuAdoc.getInstance(axisID, manager);
+    CpuAdoc cpuAdoc = CpuAdoc.getInstance(axisID, manager.getPropertyUserDir());
     usersColumn = cpuAdoc.isUsersColumn() && !displayQueues;
     speedUnits = cpuAdoc.getSpeedUnits();
     memoryUnits = cpuAdoc.getMemoryUnits();
@@ -629,7 +630,7 @@ public final class ProcessorTable implements Storable, ParallelProgressDisplay,
     if (displayQueues) {
       String queue = ((ProcessorTableRow) rows.get(getFirstSelectedIndex()))
           .getComputer();
-      param.setQueueCommand(CpuAdoc.getInstance(axisID, manager)
+      param.setQueueCommand(CpuAdoc.getInstance(axisID, manager.getPropertyUserDir())
           .getQueue(queue).getCommand());
       param.setQueue(queue);
     }
@@ -901,6 +902,9 @@ public final class ProcessorTable implements Storable, ParallelProgressDisplay,
 }
 /**
  * <p> $Log$
+ * <p> Revision 1.49  2008/01/31 20:30:37  sueh
+ * <p> bug# 1055 throwing a FileException when LogFile.getInstance fails.
+ * <p>
  * <p> Revision 1.48  2007/09/27 21:02:47  sueh
  * <p> bug# 1044 Added a displayQueues mode.  Implementing
  * <p> ParallelProgressDisplay and LoadDisplay.
