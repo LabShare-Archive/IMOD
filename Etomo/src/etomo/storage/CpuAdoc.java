@@ -7,7 +7,7 @@ import java.util.Hashtable;
 import java.util.List;
 import java.util.Map;
 
-import etomo.BaseManager;
+import etomo.EtomoDirector;
 import etomo.storage.autodoc.AutodocFactory;
 import etomo.storage.autodoc.ReadOnlyAttribute;
 import etomo.storage.autodoc.ReadOnlyAutodoc;
@@ -17,6 +17,7 @@ import etomo.type.AxisID;
 import etomo.type.ConstEtomoNumber;
 import etomo.type.EtomoNumber;
 import etomo.type.InterfaceType;
+import etomo.type.UserConfiguration;
 import etomo.util.EnvironmentVariable;
 
 /**
@@ -66,27 +67,30 @@ public class CpuAdoc {
   private String speedUnits = "";
   private String memoryUnits = "";
   private String[] loadUnits = new String[0];
-  private boolean setByUser = false;
+  private boolean file = false;
+  private boolean envVar = false;
+  private boolean userConfig = false;
 
   private CpuAdoc() {
     minNice.setDisplayValue(MIN_NICE_DEFAULT);
     minNice.setDefault(MIN_NICE_DEFAULT);
   }
 
-  public static CpuAdoc getInstance(AxisID axisID, BaseManager manager) {
+  public static synchronized CpuAdoc getInstance(AxisID axisID,
+      String propertyUserDir) {
     if (INSTANCE != null) {
       return INSTANCE;
     }
-    return createInstance(axisID, manager);
+    return createInstance(axisID, propertyUserDir);
   }
 
   private static synchronized CpuAdoc createInstance(AxisID axisID,
-      BaseManager manager) {
+      String propertyUserDir) {
     if (INSTANCE != null) {
       return INSTANCE;
     }
     INSTANCE = new CpuAdoc();
-    INSTANCE.load(axisID, manager);
+    INSTANCE.load(axisID, propertyUserDir);
     return INSTANCE;
   }
 
@@ -147,11 +151,11 @@ public class CpuAdoc {
   }
 
   public boolean hasQueues() {
-    return queueMap.size() >= 1;
+    return file && queueMap.size() >= 1;
   }
 
   public boolean hasComputers() {
-    return computerMap.size() >= 1;
+    return (file && computerMap.size() >= 1) || envVar || userConfig;
   }
 
   public Section getQueue(int index) {
@@ -178,10 +182,10 @@ public class CpuAdoc {
     return queueList.size();
   }
 
-  private void load(AxisID axisID, BaseManager manager) {
+  private void load(AxisID axisID, String propertyUserDir) {
     ReadOnlyAutodoc autodoc = getAutodoc(axisID);
     if (autodoc == null) {
-      loadImodProcessors(axisID, manager);
+      setImodProcessors(axisID, propertyUserDir);
     }
     else {
       separateChunks = loadBooleanAttribute(autodoc, "separate-chunks");
@@ -194,40 +198,95 @@ public class CpuAdoc {
       loadUnits = loadStringListAttribute(autodoc, UNITS_KEY, "load");
       loadComputers(autodoc);
       loadQueues(autodoc);
-      if (computerList.size() == 0) {
-        loadImodProcessors(axisID, manager);
+      if (computerList.size() > 0 || queueList.size() > 0) {
+        file = true;
       }
       else {
-        setByUser = true;
+        setImodProcessors(axisID, propertyUserDir);
       }
     }
   }
 
-  private void loadImodProcessors(AxisID axisID, BaseManager manager) {
+  private void setImodProcessors(AxisID axisID, String propertyUserDir) {
     EtomoNumber imodProcessors = new EtomoNumber();
-    imodProcessors.set(EnvironmentVariable.INSTANCE.getValue(manager
-        .getPropertyUserDir(), "IMOD_PROCESSORS", axisID));
-    if (imodProcessors.isNull()) {
-      //IMOD_PROCESSORS isn't set and cpu.adoc is empty or doesn't exist
-      imodProcessors.set(1);
+    imodProcessors.set(EnvironmentVariable.INSTANCE.getValue(propertyUserDir,
+        "IMOD_PROCESSORS", axisID));
+    if (!imodProcessors.isNull() && imodProcessors.isValid()) {
+      envVar = true;
+      createComputerInstance(imodProcessors.getInt());
     }
     else {
-      setByUser = true;
+      UserConfiguration userConfiguration = EtomoDirector.INSTANCE
+          .getUserConfiguration();
+      if (!setUserConfig(userConfiguration.getParallelProcessing(),
+          userConfiguration.getCpus())) {
+        //File, envVar, and userConfig are all false but we still need to create
+        //a parallel processing configuration to be used by processes which
+        //require parallel processing.
+        createComputerInstance(1);
+      }
     }
-    loadComputers(imodProcessors);
   }
 
-  public boolean isValid() {
-    return computerList.size() > 0 || queueList.size() > 0;
+  private void createComputerInstance(int cpus) {
+    Section computer = Section.getComputerInstance(cpus);
+    if (computer != null) {
+      computerList.add(LOCAL_HOST);
+      computerMap.put(LOCAL_HOST, computer);
+    }
   }
-  
+
   /**
-   * True if the user specified computer information with either cpu.adoc or
-   * IMOD_PROCESSORS.
+   * cpu.adoc and IMOD_PROCESSORS take precedence over userConfig, so do nothing
+   * if they are set.  File and envVar are never reset while Etomo is running.
+   * Set the first computer on the list to cpus if userConfig is true, set it to
+   * 1 if userConfig is false (if it exists).  Set this.userConfig to
+   * userConfig.  Create a computer if the list is empty and userConfig is true.
+   * @param input
+   * @param cpus
+   */
+  public boolean setUserConfig(boolean userConfig, ConstEtomoNumber cpus) {
+    if (file || envVar) {
+      return false;
+    }
+    if (!userConfig) {
+      this.userConfig = false;
+      if (getNumComputers() > 0) {
+        getComputer(0).setNumber(1);
+      }
+      return false;
+    }
+    else {
+      this.userConfig = true;
+      int number = 1;
+      if (!cpus.isNull() && cpus.isValid()) {
+        number = cpus.getInt();
+      }
+      if (getNumComputers() > 0) {
+        getComputer(0).setNumber(number);
+      }
+      else {
+        createComputerInstance(number);
+      }
+      return true;
+    }
+  }
+
+  /**
+   * True if the computer information has been specified with either cpu.adoc,
+   * IMOD_PROCESSORS, or .etomo.
    * @return
    */
-  public boolean isSetByUser() {
-    return setByUser;
+  public boolean isAvailable() {
+    return file || envVar || userConfig;
+  }
+
+  public boolean isFile() {
+    return file;
+  }
+
+  public boolean isEnvVar() {
+    return envVar;
   }
 
   private ReadOnlyAutodoc getAutodoc(AxisID axisID) {
@@ -282,18 +341,6 @@ public class CpuAdoc {
         queueList.add(name);
         queueMap.put(name, queue);
       }
-    }
-  }
-
-  private void loadComputers(EtomoNumber imodProcessors) {
-    if (imodProcessors == null || imodProcessors.isNull()
-        || !imodProcessors.isValid()) {
-      return;
-    }
-    Section computer = Section.getComputerInstance(imodProcessors.getInt());
-    if (computer != null) {
-      computerList.add(LOCAL_HOST);
-      computerMap.put(LOCAL_HOST, computer);
     }
   }
 
@@ -461,6 +508,10 @@ public class CpuAdoc {
       return memory;
     }
 
+    private void setNumber(int input) {
+      number.set(input);
+    }
+
     public int getNumber() {
       return number.getInt();
     }
@@ -514,6 +565,10 @@ public class CpuAdoc {
 }
 /**
  * <p> $Log$
+ * <p> Revision 1.13  2008/01/25 22:23:44  sueh
+ * <p> bug# 1070 Added setByUser which is true when the user sets the cpu data with
+ * <p> cpu.adoc or IMOD_PROCESSORS.
+ * <p>
  * <p> Revision 1.12  2007/11/06 19:28:32  sueh
  * <p> bug# 1047 Allow parallel processing even when that is no cpu.adoc and
  * <p> IMOD_PROCESSORS is not set.
