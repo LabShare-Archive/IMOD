@@ -13,6 +13,7 @@ import javax.swing.plaf.FontUIResource;
 
 import etomo.process.IntermittentBackgroundProcess;
 import etomo.process.ProcessRestarter;
+import etomo.storage.CpuAdoc;
 import etomo.storage.EtomoFileFilter;
 import etomo.storage.JoinFileFilter;
 import etomo.storage.LogFile;
@@ -732,6 +733,9 @@ public class EtomoDirector {
     setLookAndFeel(userConfig.getNativeLookAndFeel());
     isAdvanced = userConfig.getAdvancedDialogs();
     UIParameters.INSTANCE.setFontSize(userConfig.getFontSize());
+    CpuAdoc cpuAdoc = CpuAdoc.getInstance(AxisID.FIRST, getPropertyUserDir());
+    cpuAdoc.setUserConfig(userConfig.getParallelProcessing(), userConfig
+        .getCpus());
   }
 
   /**
@@ -856,6 +860,11 @@ public class EtomoDirector {
     }
   }
 
+  private String getPropertyUserDir() {
+    return currentManagerKey == null ? originalUserDir : getCurrentManager()
+        .getPropertyUserDir();
+  }
+
   /**
    * Open up the settings dialog box
    */
@@ -863,7 +872,7 @@ public class EtomoDirector {
     //  Open the dialog in the appropriate mode for the current state of
     //  processing
     if (settingsDialog == null) {
-      settingsDialog = new SettingsDialog();
+      settingsDialog = SettingsDialog.getInstance(getPropertyUserDir());
       settingsDialog.setParameters(userConfig);
       Dimension frmSize = UIHarness.INSTANCE.getSize();
       Point loc = UIHarness.INSTANCE.getLocation();
@@ -1001,6 +1010,9 @@ public class EtomoDirector {
 }
 /**
  * <p> $Log$
+ * <p> Revision 1.75  2008/05/28 17:24:11  sueh
+ * <p> bug# 1110 In doAutomation check for null manager.
+ * <p>
  * <p> Revision 1.74  2008/05/13 20:57:33  sueh
  * <p> bug# 847 In closeCurrentManager, call BaseManager.close when closing
  * <p> a manager but not exiting the program.  This let the manager check for
