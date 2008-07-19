@@ -17,7 +17,15 @@ import etomo.type.AxisID;
 * 
 * @version $Revision$
 * 
-* <p> $Log$ </p>
+* <p> $Log$
+* <p> Revision 1.1  2007/09/27 19:27:00  sueh
+* <p> bug# 1044 Class to run queuechunk.  Queuechunk is a site-level script with
+* <p> some standard features.  The basic command for running queuechunk can be
+* <p> added to cpu.adoc.  Only the parameter to retrieve the queue "load' needs to be
+* <p> implemented at this time.  The load option is used as an intermittent process, so
+* <p> QueuechunkParam implements IntermittentCommand, but queuechunk could be
+* <p> use to other things as regular process.
+* <p> </p>
 */
 public final class QueuechunkParam implements IntermittentCommand {
   public static  final String  rcsid =  "$Id$";
@@ -27,7 +35,7 @@ public final class QueuechunkParam implements IntermittentCommand {
   
   private QueuechunkParam(String queue,AxisID axisID, BaseManager manager) {
     this.queue=queue;
-    intermittentCommand="bash "+CpuAdoc.getInstance(axisID,manager).getQueue(queue).getCommand()+ " -a L";
+    intermittentCommand="bash "+CpuAdoc.getInstance(axisID,manager.getPropertyUserDir()).getQueue(queue).getCommand()+ " -a L";
   }
   
   public static QueuechunkParam getLoadInstance(String queue,AxisID axisID, BaseManager manager) {

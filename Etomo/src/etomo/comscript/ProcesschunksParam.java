@@ -80,7 +80,7 @@ public final class ProcesschunksParam implements DetachedCommand, ParallelParam 
 
   private void init() {
     nice.set(manager.getParallelProcessingDefaultNice());
-    nice.setFloor(CpuAdoc.getInstance(axisID, manager).getMinNice());
+    nice.setFloor(CpuAdoc.getInstance(axisID, manager.getPropertyUserDir()).getMinNice());
     nice.setCeiling(NICE_CEILING);
   }
 
@@ -433,6 +433,9 @@ public final class ProcesschunksParam implements DetachedCommand, ParallelParam 
 }
 /**
  * <p> $Log$
+ * <p> Revision 1.34  2008/02/23 00:57:05  sueh
+ * <p> bug# 1086 Quoting the -c parameter when the subdir is not empty.
+ * <p>
  * <p> Revision 1.33  2008/01/14 20:25:22  sueh
  * <p> bug# 1067 Don't backslash the command because its already being quoted
  * <p> (required in Windows).

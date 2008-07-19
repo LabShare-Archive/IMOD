@@ -25,7 +25,10 @@ import etomo.util.HashedArray;
  * 
  * @version $Revision$
  * 
- * <p> $Log$ </p>
+ * <p> $Log$
+ * <p> Revision 1.1  2007/09/27 20:25:10  sueh
+ * <p> bug# 1044 Added QueuechunkLoadMonitor, which has mostly the same functionality as LoadAverageMonitor, except for the output and how it is used.  Factoring out common functionality into a new parent class, LoadMonitor.
+ * <p> </p>
  */
 public abstract class LoadMonitor implements IntermittentProcessMonitor, Runnable {
   public static final String rcsid = "$Id$";
@@ -43,7 +46,7 @@ public abstract class LoadMonitor implements IntermittentProcessMonitor, Runnabl
   public LoadMonitor(LoadDisplay display, AxisID axisID,
       BaseManager manager) {
     this.display = display;
-    usersColumn = CpuAdoc.getInstance(axisID, manager).isUsersColumn();
+    usersColumn = CpuAdoc.getInstance(axisID, manager.getPropertyUserDir()).isUsersColumn();
   }
 
   public void run() {
