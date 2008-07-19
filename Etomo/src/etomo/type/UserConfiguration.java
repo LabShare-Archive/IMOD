@@ -17,6 +17,10 @@ import java.util.*;
  * @version $Revision$
  *
  * <p> $Log$
+ * <p> Revision 3.5  2007/08/08 14:53:00  sueh
+ * <p> bug# 834 Added singleAxis, noParallelProcessing, tiltAnglesRawltlFile, and
+ * <p> swapYAndZ.
+ * <p>
  * <p> Revision 3.4  2006/07/31 21:42:35  sueh
  * <p> bug# 438 Added compactDisplay
  * <p>
@@ -55,10 +59,9 @@ import java.util.*;
  * <p> </p>
  */
 
-public class UserConfiguration implements Storable {
-  public static final String rcsid =
-    "$Id$";
-  
+public final class UserConfiguration implements Storable {
+  public static final String rcsid = "$Id$";
+
   private static final String COMPACT_DISPLAY_KEY = "CompactDisplay";
   private static final String DEFAULTS_KEY = "Defaults";
 
@@ -74,12 +77,18 @@ public class UserConfiguration implements Storable {
   private int fontSize = 12;
   private int mainWindowWidth = 800;
   private int mainWindowHeight = 600;
-  private boolean autoFit =false;
-  private EtomoBoolean2 singleAxis = new EtomoBoolean2(DEFAULTS_KEY+".SingleAxis");
-  private EtomoBoolean2 noParallelProcessing = new EtomoBoolean2(DEFAULTS_KEY+".NoParallelProcessing");
-  private EtomoBoolean2 tiltAnglesRawtltFile = new EtomoBoolean2(DEFAULTS_KEY+".TiltAnglesRawtltFile");
-  private EtomoBoolean2 swapYAndZ = new EtomoBoolean2(DEFAULTS_KEY+".SwapYAndZ");
-  
+  private boolean autoFit = false;
+  private final EtomoBoolean2 singleAxis = new EtomoBoolean2(DEFAULTS_KEY
+      + ".SingleAxis");
+  private final EtomoBoolean2 noParallelProcessing = new EtomoBoolean2(
+      DEFAULTS_KEY + ".NoParallelProcessing");
+  private final EtomoBoolean2 tiltAnglesRawtltFile = new EtomoBoolean2(
+      DEFAULTS_KEY + ".TiltAnglesRawtltFile");
+  private final EtomoBoolean2 swapYAndZ = new EtomoBoolean2(DEFAULTS_KEY
+      + ".SwapYAndZ");
+  private final EtomoBoolean2 parallelProcessing = new EtomoBoolean2(
+      "ParallelProcessing");
+  private final EtomoNumber cpus = new EtomoNumber("Cpus");
 
   public UserConfiguration() {
     MRUFileList = new CircularBuffer(4);
@@ -87,7 +96,7 @@ public class UserConfiguration implements Storable {
       MRUFileList.put("");
     }
   }
-  
+
   public String toString() {
     return getClass().getName() + "[" + paramString() + "]";
   }
@@ -101,8 +110,7 @@ public class UserConfiguration implements Storable {
         + ",\nfontFamily=" + fontFamily + ",\nfontSize=" + fontSize
         + ",\nmainWindowWidth=" + mainWindowWidth + ",\nmainWindowHeight="
         + mainWindowHeight + ",\nautoFit=" + autoFit;
-  } 
-
+  }
 
   /**
    *  Insert the objects attributes into the properties object.
@@ -121,42 +129,36 @@ public class UserConfiguration implements Storable {
       group = prepend + ".";
     }
     props.setProperty(group + "RevisionNumber", revisionNumber);
-    props.setProperty(
-      group + "NativeLookAndFeel",
-      String.valueOf(nativeLookAndFeel));
-    props.setProperty(
-      group + "AdvancedDialogs",
-      String.valueOf(advancedDialogs));
-    props.setProperty(
-        group + COMPACT_DISPLAY_KEY,
-        String.valueOf(compactDisplay));
-    props.setProperty(
-      group + "ToolTipsInitialDelay",
-      String.valueOf(toolTipsInitialDelay));
-    props.setProperty(
-      group + "ToolTipsDismissDelay",
-      String.valueOf(toolTipsDismissDelay));
+    props.setProperty(group + "NativeLookAndFeel", String
+        .valueOf(nativeLookAndFeel));
+    props.setProperty(group + "AdvancedDialogs", String
+        .valueOf(advancedDialogs));
+    props.setProperty(group + COMPACT_DISPLAY_KEY, String
+        .valueOf(compactDisplay));
+    props.setProperty(group + "ToolTipsInitialDelay", String
+        .valueOf(toolTipsInitialDelay));
+    props.setProperty(group + "ToolTipsDismissDelay", String
+        .valueOf(toolTipsDismissDelay));
     props.setProperty(group + "FontFamily", String.valueOf(fontFamily));
     props.setProperty(group + "FontSize", String.valueOf(fontSize));
-    singleAxis.store(props,prepend);
-    noParallelProcessing.store(props,prepend);
-    tiltAnglesRawtltFile.store(props,prepend);
+    singleAxis.store(props, prepend);
+    noParallelProcessing.store(props, prepend);
+    tiltAnglesRawtltFile.store(props, prepend);
     swapYAndZ.store(props, prepend);
-    
-    props.setProperty(
-      group + "MainWindowWidth",
-      String.valueOf(mainWindowWidth));
-    props.setProperty(
-      group + "MainWindowHeight",
-      String.valueOf(mainWindowHeight));
+    parallelProcessing.store(props, prepend);
+    cpus.store(props, prepend);
+
+    props.setProperty(group + "MainWindowWidth", String
+        .valueOf(mainWindowWidth));
+    props.setProperty(group + "MainWindowHeight", String
+        .valueOf(mainWindowHeight));
 
     props.setProperty(group + "NMRUFiles", String.valueOf(nMRUFiles));
     for (int i = 0; i < nMRUFiles; i++) {
-      props.setProperty(
-        group + "EtomoDataFile" + String.valueOf(i),
-        (String) MRUFileList.get());
+      props.setProperty(group + "EtomoDataFile" + String.valueOf(i),
+          (String) MRUFileList.get());
     }
-    
+
     props.setProperty(group + "AutoFit", String.valueOf(autoFit));
   }
 
@@ -181,49 +183,41 @@ public class UserConfiguration implements Storable {
     //  Get the user configuration data from the Properties object
     //
     revisionNumber = props.getProperty(group + "RevisionNumber", "1.0");
-    nativeLookAndFeel =
-      Boolean
-        .valueOf(props.getProperty(group + "NativeLookAndFeel", "false"))
-        .booleanValue();
-    advancedDialogs =
-      Boolean
-        .valueOf(props.getProperty(group + "AdvancedDialogs", "false"))
-        .booleanValue();
-    compactDisplay =
-      Boolean
-        .valueOf(props.getProperty(group + COMPACT_DISPLAY_KEY, "false"))
-        .booleanValue();
-    toolTipsInitialDelay =
-      Integer.parseInt(
-        props.getProperty(group + "ToolTipsInitialDelay", "1000"));
-    toolTipsDismissDelay =
-      Integer.parseInt(
-        props.getProperty(group + "ToolTipsDismissDelay", "30000"));
+    nativeLookAndFeel = Boolean.valueOf(
+        props.getProperty(group + "NativeLookAndFeel", "false")).booleanValue();
+    advancedDialogs = Boolean.valueOf(
+        props.getProperty(group + "AdvancedDialogs", "false")).booleanValue();
+    compactDisplay = Boolean.valueOf(
+        props.getProperty(group + COMPACT_DISPLAY_KEY, "false")).booleanValue();
+    toolTipsInitialDelay = Integer.parseInt(props.getProperty(group
+        + "ToolTipsInitialDelay", "1000"));
+    toolTipsDismissDelay = Integer.parseInt(props.getProperty(group
+        + "ToolTipsDismissDelay", "30000"));
     fontFamily = props.getProperty(group + "FontFamily", "Dialog");
     fontSize = Integer.parseInt(props.getProperty(group + "FontSize", "12"));
 
-    mainWindowWidth =
-      Integer.parseInt(props.getProperty(group + "MainWindowWidth", "800"));
-    mainWindowHeight =
-      Integer.parseInt(props.getProperty(group + "MainWindowHeight", "600"));
+    mainWindowWidth = Integer.parseInt(props.getProperty(group
+        + "MainWindowWidth", "800"));
+    mainWindowHeight = Integer.parseInt(props.getProperty(group
+        + "MainWindowHeight", "600"));
 
     nMRUFiles = Integer.parseInt(props.getProperty(group + "NMRUFiles", "4"));
     MRUFileList = new CircularBuffer(nMRUFiles);
     for (int i = nMRUFiles - 1; i >= 0; i--) {
-      MRUFileList.put(
-        props.getProperty("EtomoDataFile" + String.valueOf(i), ""));
+      MRUFileList.put(props
+          .getProperty("EtomoDataFile" + String.valueOf(i), ""));
     }
-    autoFit =
-      Boolean
-        .valueOf(props.getProperty(group + "AutoFit", "false"))
+    autoFit = Boolean.valueOf(props.getProperty(group + "AutoFit", "false"))
         .booleanValue();
     //TEMP bug# 614
     autoFit = true;
     //TEMP
-    singleAxis.load(props,prepend);
-    noParallelProcessing.load(props,prepend);
-    tiltAnglesRawtltFile.load(props,prepend);
+    singleAxis.load(props, prepend);
+    noParallelProcessing.load(props, prepend);
+    tiltAnglesRawtltFile.load(props, prepend);
     swapYAndZ.load(props, prepend);
+    parallelProcessing.load(props, prepend);
+    cpus.load(props, prepend);
   }
 
   /**
@@ -248,7 +242,7 @@ public class UserConfiguration implements Storable {
   public boolean getAdvancedDialogs() {
     return advancedDialogs;
   }
-  
+
   public boolean getCompactDisplay() {
     return compactDisplay;
   }
@@ -259,7 +253,7 @@ public class UserConfiguration implements Storable {
   public void setAdvancedDialogs(boolean state) {
     advancedDialogs = state;
   }
-  
+
   public void setCompactDisplay(boolean state) {
     compactDisplay = state;
   }
@@ -332,6 +326,7 @@ public class UserConfiguration implements Storable {
     }
     return list;
   }
+
   /**
    * Returns the fontFamily.
    * @return String
@@ -395,7 +390,7 @@ public class UserConfiguration implements Storable {
   public void setMainWindowWidth(int mainWindowWidth) {
     this.mainWindowWidth = mainWindowWidth;
   }
-  
+
   /**
    * 
    * @return
@@ -403,12 +398,21 @@ public class UserConfiguration implements Storable {
   public boolean isAutoFit() {
     return autoFit;
   }
+
   /**
    * 
    * @param autoFit
    */
   public void setAutoFit(boolean autoFit) {
     this.autoFit = autoFit;
+  }
+
+  public ConstEtomoNumber getCpus() {
+    return cpus;
+  }
+
+  public boolean getParallelProcessing() {
+    return parallelProcessing.is();
   }
 
   public boolean getNoParallelProcessing() {
@@ -425,6 +429,14 @@ public class UserConfiguration implements Storable {
 
   public boolean getTiltAnglesRawtltFile() {
     return tiltAnglesRawtltFile.is();
+  }
+
+  public void setParallelProcessing(boolean input) {
+    parallelProcessing.set(input);
+  }
+
+  public void setCpus(String input) {
+    cpus.set(input);
   }
 
   public void setNoParallelProcessing(boolean input) {
