@@ -15,7 +15,7 @@ file has only one section, then the output file will simply be the
 .P
 If the option 
 .B -s
-is given, then a single output file will be created, a TIFF stack will all of
+is given, then a single output file will be created, a TIFF stack with all of
 the sections in the input file.
 .P
 When the mode is integer or float, the TIFF file will contain the minimum and
