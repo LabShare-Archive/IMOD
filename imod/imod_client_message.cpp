@@ -296,6 +296,7 @@ bool ImodClipboard::executeMessage()
   QDir *curdir;
   int movieVal, xaxis, yaxis, zaxis, taxis;
   int objNum, type, symbol, symSize, ptSize;
+  bool props1;
   Imod *imod;
   Iobj *obj;
   int symTable[] = 
@@ -445,11 +446,14 @@ bool ImodClipboard::executeMessage()
       case MESSAGE_NEWOBJ_PROPERTIES:
       case MESSAGE_OBJ_PROPS_2:
       case MESSAGE_NEWOBJ_PROPS_2:
+        props1 = message_action == MESSAGE_OBJ_PROPERTIES ||
+          message_action == MESSAGE_NEWOBJ_PROPERTIES;
         objNum = messageStrings[++arg].toInt();
         type = messageStrings[++arg].toInt();
         symbol = messageStrings[++arg].toInt();
         symSize = messageStrings[++arg].toInt();
-        ptSize = messageStrings[++arg].toInt();
+        if (props1)
+          ptSize = messageStrings[++arg].toInt();
 
         // Object is numbered from 1, so decrement and test for substituting
         // current object
@@ -469,8 +473,7 @@ bool ImodClipboard::executeMessage()
                               message_action == MESSAGE_NEWOBJ_PROPS_2))
           break;
 
-        if (message_action == MESSAGE_OBJ_PROPERTIES || 
-            message_action == MESSAGE_NEWOBJ_PROPERTIES) {
+        if (props1) {
 
           // Process the changes if not -1: object type
           if (type >= 0 && type < 3) {
@@ -639,6 +642,9 @@ static int readLine(char *line)
 
 /*
 $Log$
+Revision 4.28  2008/07/16 04:29:08  mast
+Added new messages for some more object properties
+
 Revision 4.27  2008/02/06 20:28:37  mast
 Added flag to keep track of whether stderr was disconnected
 
