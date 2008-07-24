@@ -93,6 +93,9 @@ int imodPlugKeys(ImodView *vw, QKeyEvent *event)
   int ctrl    = event->state() & Qt::ControlButton;   // ctrl modifier
   int shift   = event->state() & Qt::ShiftButton;     // shift modifier
   
+  if(ctrl)          // if the control key is down we don't want to do anything!
+    return 0;
+  
   switch(keysym)
   {
     case Qt::Key_E:
@@ -137,20 +140,14 @@ int imodPlugKeys(ImodView *vw, QKeyEvent *event)
       break;
       
     case Qt::Key_Y:                 // go to next largest y jump
-      if(ctrl)
-        return 0;
       bead_goToNextBiggestYJump( !shift );
       break;
       
     case Qt::Key_W:                  // go to next biggest weighted deviation
-      if(ctrl)
-        return 0;
       bead_goToNextBiggestWeightedDev( !shift );
       break;
       
     case Qt::Key_B:                  // go to next biggest deviation from estimated
-      if(ctrl)
-        return 0;
       bead_goToNextBiggestDev( !shift );
       break;
       
