@@ -15,8 +15,11 @@
     $Revision$
 
     $Log$
+    Revision 1.6  2008/07/10 07:42:24  tempuser
+    Faster method to find mbr center
+
     Revision 1.5  2008/04/04 01:13:53  tempuser
-    moved small qt gui functions here
+    Moved small qt gui functions here
 
     Revision 1.4  2008/03/17 07:23:27  tempuser
     Fixed memory leak in 'cont_doContoursTouch'
@@ -138,8 +141,23 @@ using namespace std;
   bool operator<(const IdxAndFloat &a, const IdxAndFloat &b) {                                
     return (a.dist < b.dist);
   }
-
-
+  
+  
+//## IntAndInt      // used to connect point indexes between two contours
+  
+  IntAndInt::IntAndInt(int _idx1, int _idx2) {
+    idx1  = _idx1;
+    idx2  = _idx2;
+  }
+  //-- Test if indexes are "less than"
+  bool operator<(const IntAndInt &a, const IntAndInt &b) {           
+    return (a.idx1 < b.idx1) || (a.idx1 == b.idx1 && a.idx2 < b.idx2);
+  }
+  //-- Test if both indexes are "equal"
+  bool operator==(const IntAndInt lhs, const IntAndInt rhs) {                                
+    return (lhs.idx1 == rhs.idx1 && lhs.idx2 == rhs.idx2);
+  }
+  
 //## IdxToSort     // used especially for getIntersectingPolygon function
   
   IdxToSort::IdxToSort() {
@@ -232,59 +250,6 @@ void point_scalePtAboutPt2D( Ipoint *pt, Ipoint *center, float scaleX, float sca
 
 
 //------------------------
-//-- Used to calculate MINDIST between a point and 2 edges.
-//-- (but does NOT check wrap around)
-
-float point_distToNearestEdge(float val, float min, float max)
-{
-  if    ( val < min )  return (min - val); 
-  else if ( val > max )  return (max - val);
-  else          return (0.0);
-}
-
-//------------------------
-//-- Used to calculate MINDIST between a point and 2 edges.
-//--(but does NOT check wrap around)
-
-bool point_distToBBox2D(Ipoint *pt, Ipoint *ll, Ipoint *ur)
-{
-  float distX = point_distToNearestEdge( pt->x, ll->x, ur->x );
-  float distY = point_distToNearestEdge( pt->y, ll->y, ur->y );
-  return sqrt( distX*distX + distY*distY );
-}
-
-//------------------------
-//-- Checks if point is inside the given bounding box
-
-bool point_isInsideBBox(Ipoint *pt, Ipoint *ll, Ipoint *ur, bool ignoreZ)
-{
-  return ( ( ignoreZ || isBetween(ll->z,pt->z,ur->z) )
-           && isBetween(ll->x,pt->x,ur->x)
-           && isBetween(ll->y,pt->y,ur->y));
-}
-
-//------------------------
-//-- Used to calculate MINDIST between two edges.
-
-bool mbr_doEdgesOverlap(double min1, double max1, double min2, double max2)
-{
-	return !( (max1 < min2) || (min1 > max2) );		// says: if edge1 to the LEFT or RIGHT of edge2: it does not overlap  (otherwise it does)
-}
-
-
-//------------------------
-//-- Returns true if two bounding boxes overlap in 2D
-
-bool mbr_doBBoxesOverlap2D(Ipoint *p1ll, Ipoint *p1ur, Ipoint *p2ll, Ipoint *p2ur)
-{
-	return (  mbr_doEdgesOverlap( p1ll->x, p1ur->x,  p2ll->x, p2ur->x )
-         && mbr_doEdgesOverlap( p1ll->y, p1ur->y,  p2ll->y, p2ur->y )  );
-}
-
-
-
-
-//------------------------
 //-- Calculates a value "fracIntoKf" of the distance between "p1" and "p2" key values
 //-- according to the catmull-rom spline algorithm.
 //-- It does this by first calculating the gradients at these two key values.
@@ -315,24 +280,24 @@ float getValCatmullRom( float fracIntoKf, float p0, float p1, float p2, float p3
   //## CALCULATE VALUES:
   //calculate gradient at previous keyframe.
   float gPrev =    tensileFract*(p1 - p0)/1.0
-        + tensileFract*(p2 - p1)/1.0;
+    + tensileFract*(p2 - p1)/1.0;
   
   //calculate gradient at current keyframe.
   float gCurr =    tensileFract*(p2 - p1)/1.0
-        + tensileFract*(p3 - p2)/1.0;
+    + tensileFract*(p3 - p2)/1.0;
   
   //calculate value for current frame.
   float curr =    p1*(2*fracIntoKf_3 - 3*fracIntoKf_2 + 1)
-          + p2*(3*fracIntoKf_2 - 2*fracIntoKf_3)
-          + gPrev*(fracIntoKf_3 - 2*fracIntoKf_2 + fracIntoKf)
-          + gCurr*(fracIntoKf_3 - fracIntoKf_2);
+    + p2*(3*fracIntoKf_2 - 2*fracIntoKf_3)
+    + gPrev*(fracIntoKf_3 - 2*fracIntoKf_2 + fracIntoKf)
+    + gCurr*(fracIntoKf_3 - fracIntoKf_2);
   return curr;
   
   //
   return   0.5 *  ( ( 2 * p1 )
-          + (-p0  + p2)          * fracIntoKf
-          + (2*p0  - 5*p1 + 4*p2 - p3)    * fracIntoKf*fracIntoKf
-          + (-p0  + 3*p1 - 3*p2 + p3)    * fracIntoKf*fracIntoKf*fracIntoKf );
+                    + (-p0  + p2)          * fracIntoKf
+                    + (2*p0  - 5*p1 + 4*p2 - p3)    * fracIntoKf*fracIntoKf
+                    + (-p0  + 3*p1 - 3*p2 + p3)    * fracIntoKf*fracIntoKf*fracIntoKf );
   //
 }
 
@@ -351,6 +316,93 @@ Ipoint getPtCatmullRom( float fracIntoKf, Ipoint p0, Ipoint p1, Ipoint p2,
   returnPt.z = getValCatmullRom( fracIntoKf,  p0.z, p1.z, p2.z,  p3.z, tensileFract );
   return (returnPt);
 }
+
+
+
+//############################################################
+
+
+
+
+//----------------------------------------------------------------------------
+//## MINIMUM BOUNDING RECTANGLE (MBR) RELATED FUNCTIONS:
+//----------------------------------------------------------------------------
+
+
+
+//------------------------
+//-- Used to calculate distance between a point and 2 edges.
+//-- (but does NOT check wrap around)
+
+float mbr_distToNearestEdge(float val, float min, float max)
+{
+  if      ( val < min )  return (min - val); 
+  else if ( val > max )  return (max - val);
+  else                   return (0.0);
+}
+
+//------------------------
+//-- Used to calculate minimum distance between two edges (which may overlap).
+
+float mbr_distToNearestEdge(float min1, float max1, float min2, float max2)
+{
+  if      ( max1 < min2 )  return (min2 - max1); 
+  else if ( min1 > max2 )  return (max2 - min1);
+  else                     return (0.0);
+}
+
+//------------------------
+//-- Used to calculate minimum distance between two edges (which may overlap).
+
+float mbr_distBetweenBBoxes2D(Ipoint *ll1, Ipoint *ur1, Ipoint *ll2, Ipoint *ur2)
+{
+  float distX = mbr_distToNearestEdge(ll1->x,ur1->x,ll2->x,ur2->x);
+  float distY = mbr_distToNearestEdge(ll1->x,ur1->x,ll2->x,ur2->x);
+  return sqrt( distX*distX + distY*distY );
+}
+
+
+//------------------------
+//-- Used to calculate minimum distance between a point and 2 edges.
+//--(but does NOT check wrap around)
+
+bool mbr_distToBBox2D(Ipoint *pt, Ipoint *ll, Ipoint *ur)
+{
+  float distX = mbr_distToNearestEdge( pt->x, ll->x, ur->x );
+  float distY = mbr_distToNearestEdge( pt->y, ll->y, ur->y );
+  return sqrt( distX*distX + distY*distY );
+}
+
+//------------------------
+//-- Checks if point is inside the given bounding box
+
+bool mbr_isInsideBBox(Ipoint *pt, Ipoint *ll, Ipoint *ur, bool ignoreZ)
+{
+  return ( ( ignoreZ || isBetween(ll->z,pt->z,ur->z) )
+           && isBetween(ll->x,pt->x,ur->x)
+           && isBetween(ll->y,pt->y,ur->y));
+}
+
+
+//------------------------
+//-- Used to calculate MINDIST between two edges.
+
+bool mbr_doEdgesOverlap(double min1, double max1, double min2, double max2)
+{
+	return !( (max1 < min2) || (min1 > max2) );		// says: if edge1 to the LEFT or RIGHT of edge2: it does not overlap  (otherwise it does)
+}
+
+
+//------------------------
+//-- Returns true if two bounding boxes overlap in 2D
+
+bool mbr_doBBoxesOverlap2D(Ipoint *p1ll, Ipoint *p1ur, Ipoint *p2ll, Ipoint *p2ur)
+{
+	return (  mbr_doEdgesOverlap( p1ll->x, p1ur->x,  p2ll->x, p2ur->x )
+         && mbr_doEdgesOverlap( p1ll->y, p1ur->y,  p2ll->y, p2ur->y )  );
+}
+
+
 
 
 
@@ -655,9 +707,44 @@ int cont_doesPtExistInCont( Icont *cont, Ipoint *pt )
 
 
 
+//------------------------
+//-- Returns the lower left and upper right corners of the minimum bounding rectangle
+//-- around a contour.
+
+bool cont_getMBR( Icont *cont, Ipoint *ll, Ipoint *ur )
+{
+  if( isEmpty(cont) || psize(cont) == 0 )
+  {
+    setPt( ll, 0, 0, 0 );
+    setPt( ur, 0, 0, 0 );
+    return false;
+  }
+  else if( psize(cont) == 1 )
+  {
+    setPt( ll, getFirstPt(cont)->x, getFirstPt(cont)->y, getFirstPt(cont)->z );
+    setPt( ur, getFirstPt(cont)->x, getFirstPt(cont)->y, getFirstPt(cont)->z );
+  }
+  
+  setPt( ll, FLOAT_MAX, FLOAT_MAX, FLOAT_MAX );
+  setPt( ur, FLOAT_MIN, FLOAT_MIN, FLOAT_MIN );
+  
+  for( int p=0; p<psize(cont); p++ )
+  {
+    Ipoint *pt = getPt(cont, p);
+    if( ll->x > pt->x )  ll->x = pt->x;
+    if( ll->y > pt->y )  ll->y = pt->y;
+    if( ll->z > pt->z )  ll->z = pt->z;
+    if( ur->x < pt->x )  ur->x = pt->x;
+    if( ur->y < pt->y )  ur->y = pt->y;
+    if( ur->z < pt->z )  ur->z = pt->z;
+  }
+  
+  return true;
+}
+
 
 //------------------------
-//-- Returns the center of the minmum bounding rectangle around a contour.
+//-- Returns the center of the minimum bounding rectangle around a contour.
 //-- NOTE: Is a bit less expensive than "cont_getCentroid"
 
 bool cont_getCenterOfMBR( Icont *cont, Ipoint *rpt )
@@ -1146,10 +1233,12 @@ void cont_concat( Icont *contNew, Icont *cont1, Icont *cont2Orig, bool matchClos
 
 //------------------------
 //-- Adds points to the using a very simple technique - to ensure
-//-- no two consecutive points are > maxDist apart.
+//-- no two consecutive points are > maxDist apart - and return the number of
+//-- points added (if any).
 
-void cont_addPtsCrude( Icont *cont, float maxDist, bool closed )
+int cont_addPtsCrude( Icont *cont, float maxDist, bool closed )
 {
+  int pointsBefore = psize(cont);
   float sqMaxDist = SQ( maxDist );
   
   int extra = (closed) ? 0 : -1;
@@ -1167,22 +1256,26 @@ void cont_addPtsCrude( Icont *cont, float maxDist, bool closed )
       i--;
     }
   }
+  
+  return ( psize(cont) - pointsBefore );
 }
 
 //------------------------
 //-- Smooths the contour by finding any occurance where two consecutive
 //-- points are > maxDist away from each other and adding a SINGLE extra
-//-- point in the middle using catumull-rom spline.
+//-- point in the middle using catumull-rom spline and return the number of
+//-- points added (if any).
 //-- NOTE: At the end there may still be consecutive points > maxDist
 //-- apart (but will be closer than originally)
 
-void cont_addPtsSmoothIteration(Icont *cont, float maxDist,
+int cont_addPtsSmoothIteration(Icont *cont, float maxDist,
                                 float tensileFract, bool closed)
 {
+  int pointsBefore = psize(cont);
   float sqMaxDist = SQ( maxDist );
   
   if( psize(cont) < 5 )
-    return;
+    return 0;
   
   if(closed)
   {
@@ -1218,32 +1311,39 @@ void cont_addPtsSmoothIteration(Icont *cont, float maxDist,
     }
     imodContourUnique( cont );
   }
+  
+  return ( psize(cont) - pointsBefore );
 }
 
 //------------------------
 //-- Smooths the contour by finding any occurance where two consecutive
 //-- points are > maxDist away from each other and adding MULTIPLE
-//-- extra points in the middle using catumull-rom spline.
+//-- extra points in the middle using catumull-rom spline and returns the
+//-- number of points added.
 //-- NOTE: Result will be that NO two points are > maxDist from each other.
 
-void cont_addPtsSmooth( Icont *cont, float maxDist, float tensileFract, bool closed )
+int cont_addPtsSmooth( Icont *cont, float maxDist, float tensileFract, bool closed )
 {
+  int pointsBefore = psize(cont);
+  
   while (true)
   {
-    int numPtsBeforeSmoothIteration = psize(cont);
-    cont_addPtsSmoothIteration( cont, maxDist, tensileFract, closed );
-    int numPtsAdded = psize(cont) - numPtsBeforeSmoothIteration;
+    int numPtsAdded = cont_addPtsSmoothIteration( cont, maxDist, tensileFract, closed );
     if (numPtsAdded == 0)
       break;
   }
+  
+  return ( psize(cont) - pointsBefore );
 }
 
 //------------------------
 //-- Reduces the number of points in a contour using a VERY simple technique -
-//-- by removing any point which is < minDist from the previous point.
+//-- by removing any point which is < minDist from the previous point -
+//-- and returns the number of points deleted.
 
-void cont_reducePtsCrude( Icont *cont, float minDist, bool closed )
+int cont_reducePtsCrude( Icont *cont, float minDist, bool closed )
 {
+  int pointsBefore = psize(cont);
   float sqMinDist = SQ( minDist );
   
   int extra = (closed) ? 1 : 0;
@@ -1254,6 +1354,8 @@ void cont_reducePtsCrude( Icont *cont, float minDist, bool closed )
       i--;
     }
   }
+  
+  return ( pointsBefore - psize(cont) );
 }
 
 //------------------------
@@ -1264,7 +1366,7 @@ void cont_reducePtsCrude( Icont *cont, float minDist, bool closed )
 
 int cont_reducePtsMinArea( Icont *cont, float minArea, bool closed )
 {
-  int numPointsDeleted = 0;
+  int pointsBefore = psize(cont);
   
   int extra = (closed) ? 0 : -1;
   for(int i=1; i<psize(cont)+extra && psize(cont)>3; i++ )
@@ -1275,12 +1377,11 @@ int cont_reducePtsMinArea( Icont *cont, float minArea, bool closed )
     
     if ( imodPointArea( p1, p2, p3 ) < minArea ) {  
       imodPointDelete( cont, i );
-      numPointsDeleted++;
       i--;
     }
   }
   
-  return (numPointsDeleted);
+  return ( pointsBefore - psize(cont) );
 }
 
 
@@ -2483,7 +2584,7 @@ int cont_getUnionPolygons( vector<IcontPtr> &finConts, Icont *cont1, Icont *cont
   vector<IcontPtr> cont2Seg;     // list of segments in cont2
   int numIntersectPts = cont_getIntersectingSegments(cont1, cont2, cont1Seg, cont2Seg);
   
-  wprint( "cont1Seg=%d cont1Seg=%d\n", cont1Seg.size(), cont2Seg.size());    //%%%%%%
+  //wprint( "cont1Seg=%d cont1Seg=%d\n", cont1Seg.size(), cont2Seg.size());    //%%%%%%
 
     
 //## IF CONTOURS NEVER CROSS: TEST IF ONE IS INSIDE THE OTHER,
@@ -2621,7 +2722,7 @@ void cont_getOuterUnionPolygon( Icont *newCont, Icont *cont1O, Icont *cont2O )
     imodContourDefault(newCont);
   }
   else if ( (int)joinedConts.size() == 1 ) {  // if is only one union polygon: return it
-    wprint("copying\n");
+    //wprint("copying\n");
     cont_copyPoints( joinedConts[0].cont, newCont, true );
   }
   else     // if there are > 1 union polygons: return the biggest one

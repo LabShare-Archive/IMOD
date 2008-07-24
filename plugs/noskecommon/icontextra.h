@@ -38,19 +38,29 @@ struct PtConnection // used especially for getIntersectingPolygon function
   PtConnection( Ipoint _intercept );
   PtConnection( Ipoint _intercept, int _cont1Idx );
 };
-bool operator< (const PtConnection &a, const PtConnection &b);
+bool operator<  (const PtConnection &a, const PtConnection &b);
 bool operator== (const PtConnection lhs, const PtConnection rhs);
 
 
 struct IdxAndFloat  // used especially for getIntersectingPolygon function
 {
-  int idx;            // stores and idx reference to the intercept point (in conn)
+  int idx;            // stores an idx reference to the intercept point (in conn)
   float dist;         // stores distance from a pt on a contour to its interecpt pt
   
   IdxAndFloat(int _idx, float _dist);  
 };
 bool operator<(const IdxAndFloat &a, const IdxAndFloat &b);
 
+
+struct IntAndInt    // used to connect point indexes between two contours
+{
+  int idx1;           // idx reference to a point in contour 1
+  int idx2;           // idx reference to a point in contour 2
+  
+  IntAndInt(int _idx1, int _idx2);
+};
+bool operator<  (const IntAndInt &a, const IntAndInt &b);
+bool operator== (const IntAndInt lhs, const IntAndInt rhs);
 
 struct IdxToSort     // used especially for getIntersectingPolygon function
 {  
@@ -119,14 +129,21 @@ void point_rotatePointAroundPoint2D( Ipoint *pt, Ipoint *center, float theta );
 void point_scalePtAboutPt( Ipoint *pt, Ipoint *center, float scaleX, float scaleY, float scaleZ );
 void point_scalePtAboutPt2D( Ipoint *pt, Ipoint *center, float scaleX, float scaleY );
 
-float point_distToNearestEdge(float val, float min, float max);
-bool point_distToBBox2D(Ipoint *pt, Ipoint *ll, Ipoint *ur);                  // NEW
-bool point_isInsideBBox(Ipoint *pt, Ipoint *ll, Ipoint *ur, bool ignoreZ);    // NEW
+float getValCatmullRom( float fracIntoKf, float p0, float p1, float p2,  float p3, float tensileFract );
+Ipoint getPtCatmullRom( float fracIntoKf, Ipoint p0, Ipoint p1, Ipoint p2,  Ipoint p3, float tensileFract ); 
+
+
+//-------------------------------
+//## MINIMUM BOUNDING RECTANGLE (MBR) RELATED FUNCTIONS:
+
+float mbr_distToNearestEdge(float val, float min, float max);
+float mbr_distToNearestEdge(float min1, float max1, float min2, float max2);
+float mbr_distBetweenBBoxes2D(Ipoint *ll1, Ipoint *ur1, Ipoint *ll2, Ipoint *ur2);
+bool mbr_distToBBox2D(Ipoint *pt, Ipoint *ll, Ipoint *ur);                  // NEW
+bool mbr_isInsideBBox(Ipoint *pt, Ipoint *ll, Ipoint *ur, bool ignoreZ);    // NEW
 bool mbr_doEdgesOverlap(double min1, double max1, double min2, double max2);
 bool mbr_doBBoxesOverlap2D(Ipoint *p1ll, Ipoint *p1ur, Ipoint *p2ll, Ipoint *p2ur);
 
-float getValCatmullRom( float fracIntoKf, float p0, float p1, float p2,  float p3, float tensileFract );
-Ipoint getPtCatmullRom( float fracIntoKf, Ipoint p0, Ipoint p1, Ipoint p2,  Ipoint p3, float tensileFract ); 
 
 //-------------------------------
 //## LINE RELATED FUNCTIONS:  
@@ -149,12 +166,14 @@ bool line_doLinesCrossAndWhere( Ipoint *line1pt1, Ipoint *line1pt2, Ipoint *line
 bool line_isKiss( Ipoint *pMid, Ipoint *p1,Ipoint *p2,    Ipoint *p3, Ipoint *p4 );
 bool line_twoKiss( Ipoint *a1, Ipoint *a2, Ipoint *a3,    Ipoint *b1, Ipoint *b2, Ipoint *b3 );
 
+
 //-------------------------------
 //## EXTRA CONTOUR FUNCTIONS:
 
 int cont_isEqual( Icont *cont1, Icont *cont2 );
 int cont_doesPtExistInCont( Icont *cont, Ipoint *pt );
 
+bool cont_getMBR( Icont *cont, Ipoint *ll, Ipoint *ur );
 bool cont_getCenterOfMBR( Icont *cont, Ipoint *rpt );
 bool cont_getCentroid( Icont *cont, Ipoint *rpt );
 
@@ -184,10 +203,10 @@ bool cont_doesPtTouchContLine( Ipoint *pt, Icont *cont );
 float cont_findClosestPts2D( Icont *cont1, Icont *cont2, int *closestPtIdxInCont1, int *closestPtIdxInCont2 );
 void cont_reversePts( Icont *c );                              
 void cont_concat( Icont *contNew, Icont *cont1, Icont *cont2, bool matchClosestEnds );    
-void cont_addPtsCrude( Icont *cont, float maxDist, bool closed );           // MODIFIED
-void cont_addPtsSmoothIteration( Icont *cont, float maxDist, float tensileFract, bool closed );
-void cont_addPtsSmooth( Icont *cont, float maxDist, float tensileFract, bool closed );          
-void cont_reducePtsCrude( Icont *cont, float minDist, bool closed );                    
+int cont_addPtsCrude( Icont *cont, float maxDist, bool closed );           // MODIFIED
+int cont_addPtsSmoothIteration( Icont *cont, float maxDist, float tensileFract, bool closed );
+int cont_addPtsSmooth( Icont *cont, float maxDist, float tensileFract, bool closed );          
+int cont_reducePtsCrude( Icont *cont, float minDist, bool closed );                    
 int cont_reducePtsMinArea( Icont *cont, float minArea, bool closed );       // MODIFIED
 
 bool cont_isSimple( Icont *cont, bool closed=true );                              
