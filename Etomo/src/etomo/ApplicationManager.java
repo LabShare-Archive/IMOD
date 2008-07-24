@@ -2983,6 +2983,7 @@ public final class ApplicationManager extends BaseManager {
     try {
       // It is safe to use open contours in all cases.
       imodManager.setOpenContours(ImodManager.SAMPLE_KEY, axisID, true);
+      imodManager.setPointLimit(ImodManager.SAMPLE_KEY, axisID, 2);
       imodManager.open(ImodManager.SAMPLE_KEY, axisID, menuOptions);
       processTrack.setTomogramPositioningState(ProcessState.INPROGRESS, axisID);
       mainPanel.setTomogramPositioningState(ProcessState.INPROGRESS, axisID);
@@ -5638,6 +5639,9 @@ public final class ApplicationManager extends BaseManager {
 }
 /**
  * <p> $Log$
+ * <p> Revision 3.305  2008/07/24 17:57:13  sueh
+ * <p> bug# 1128 In imodFullSample called ImodManager.setPointLimit.
+ * <p>
  * <p> Revision 3.304  2008/06/20 20:53:17  sueh
  * <p> bug# 1112 Use .tlt when opening FINE_ALIGNED and MTF_FILTER 3dmods.
  * <p>
