@@ -174,6 +174,9 @@ import etomo.type.Run3dmodMenuOptions;
  * @version $$Revision$$
  * 
  * <p> $$Log$
+ * <p> $Revision 1.47  2008/06/19 23:35:05  sueh
+ * <p> $bug# 1112 Added setTiltFile and resetTiltFile.
+ * <p> $
  * <p> $Revision 1.46  2008/05/03 00:41:02  sueh
  * <p> $bug# 847 In Run3dmodMenuOptions renamed setOptions to
  * <p> $orGlobalOptions, which is a better description of its functionality.
@@ -384,6 +387,7 @@ public final class ImodState {
   private boolean preserveContrast;
   private boolean openBeadFixer;
   private boolean openContours;
+  private int pointLimit = -1;
 
   //sent with open bead fixer
   private boolean setAutoCenter = false;
@@ -614,8 +618,8 @@ public final class ImodState {
    */
   void open(Run3dmodMenuOptions menuOptions) throws SystemProcessException,
       IOException {
-    if (menuOptions==null) {
-      menuOptions=new Run3dmodMenuOptions();
+    if (menuOptions == null) {
+      menuOptions = new Run3dmodMenuOptions();
     }
     menuOptions.setNoOptions(noMenuOptions);
     menuOptions.orGlobalOptions();
@@ -648,6 +652,9 @@ public final class ImodState {
       //This message can only be sent after opening the model
       if (openContours) {
         process.setNewContoursMessage(true);
+      }
+      if (pointLimit != -1) {
+        process.setPointLimitMessage(pointLimit);
       }
     }
     else {
@@ -769,15 +776,15 @@ public final class ImodState {
   void setOpenZap() {
     process.setOpenZap();
   }
-  
+
   void setTiltFile(String tiltFile) {
     process.setTiltFile(tiltFile);
   }
-  
+
   void resetTiltFile() {
     process.resetTiltFile();
   }
-  
+
   void addWindowOpenOption(ImodProcess.WindowOpenOption option) {
     process.addWindowOpenOption(option);
   }
@@ -796,6 +803,7 @@ public final class ImodState {
     process.setFrames(defaultFrames);
     process.setPieceListFileName(null);
     manageNewContours = false;
+    pointLimit = -1;
   }
 
   String getModeString(int mode) {
@@ -809,12 +817,12 @@ public final class ImodState {
       return "ERROR:" + Integer.toString(mode);
     }
   }
-  
+
   void setDebug(boolean input) {
     debug = input;
     process.setDebug(debug);
   }
-  
+
   boolean equalsSubdirName(String input) {
     return process.getSubdirName().equals(input);
   }
@@ -903,6 +911,10 @@ public final class ImodState {
    */
   public void setOpenContours(boolean openContours) {
     this.openContours = openContours;
+  }
+
+  void setPointLimit(int input) {
+    pointLimit = input;
   }
 
   final AxisID getAxisID() {
@@ -1143,9 +1155,9 @@ public final class ImodState {
   /**
    * @return string
    
-  public String toString() {
-    return getClass().getName() + "[" + paramString() + "]";
-  }*/
+   public String toString() {
+   return getClass().getName() + "[" + paramString() + "]";
+   }*/
 
   /**
    * @return string
