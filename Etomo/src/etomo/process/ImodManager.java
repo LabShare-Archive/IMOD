@@ -36,6 +36,9 @@ import etomo.util.DatasetFiles;
  * @version $Revision$
  *
  * <p> $Log$
+ * <p> Revision 3.63  2008/07/02 18:45:22  sueh
+ * <p> bug# 1121 opening objects windows in patch vector model
+ * <p>
  * <p> Revision 3.62  2008/06/19 23:31:52  sueh
  * <p> bug# 1112 Added setTiltFile and resetTiltFile.
  * <p>
@@ -1173,8 +1176,7 @@ public class ImodManager {
     }
   }
 
-  public void resetTiltFile(String key, AxisID axisID)
-      throws AxisTypeException {
+  public void resetTiltFile(String key, AxisID axisID) throws AxisTypeException {
     key = getPrivateKey(key);
     ImodState imodState = get(key, axisID);
     if (imodState == null) {
@@ -1238,6 +1240,18 @@ public class ImodManager {
     }
     if (imodState != null) {
       imodState.setOpenContours(openContours);
+    }
+  }
+
+  public void setPointLimit(String key, AxisID axisID, int pointLimit)
+      throws AxisTypeException {
+    key = getPrivateKey(key);
+    ImodState imodState = get(key, axisID);
+    if (imodState == null) {
+      newImod(key, axisID);
+    }
+    if (imodState != null) {
+      imodState.setPointLimit(pointLimit);
     }
   }
 
