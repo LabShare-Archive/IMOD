@@ -3012,6 +3012,7 @@ public final class ApplicationManager extends BaseManager {
     String tomopitchModelName = "tomopitch" + axisID.getExtension() + ".mod";
     try {
       imodManager.setOpenContours(ImodManager.FULL_VOLUME_KEY, axisID, true);
+      imodManager.setPointLimit(ImodManager.FULL_VOLUME_KEY, axisID, 2);
       imodManager.open(ImodManager.FULL_VOLUME_KEY, axisID, tomopitchModelName,
           true, menuOptions);
       processTrack.setTomogramPositioningState(ProcessState.INPROGRESS, axisID);
@@ -5637,6 +5638,9 @@ public final class ApplicationManager extends BaseManager {
 }
 /**
  * <p> $Log$
+ * <p> Revision 3.304  2008/06/20 20:53:17  sueh
+ * <p> bug# 1112 Use .tlt when opening FINE_ALIGNED and MTF_FILTER 3dmods.
+ * <p>
  * <p> Revision 3.303  2008/06/19 23:20:01  sueh
  * <p> bug# 1112 Added tilt angle for the 3dmods that display tilt series
  * <p>
