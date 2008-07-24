@@ -15,6 +15,9 @@
     $Revision$
 
     $Log$
+    Revision 1.16  2008/07/24 23:56:51  tempuser
+    Better labels
+
     Revision 1.15  2008/07/24 07:20:18  tempuser
     Better labels
 
@@ -1140,11 +1143,11 @@ void DrawingTools::reduceCurrentContour()
     return;
   
   undoContourDataChgCC( plug.view );      // REGISTER UNDO
-  //int pointsRemoved = edit_reduceCurrContour();
+  int pointsRemoved = edit_reduceCurrContour();
   
-  int pointsBefore = psize();
-  imodContourReduce(cont, plug.draw_reducePtsMinArea);
-  int pointsRemoved = pointsBefore - psize();
+  //int pointsBefore = psize();
+  //imodContourReduce(cont, plug.draw_reducePtsMinArea);
+  //int pointsRemoved = pointsBefore - psize();
     
   if(pointsRemoved)
   {
