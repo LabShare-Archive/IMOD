@@ -64,7 +64,7 @@ public slots:
   
   void changeType( int value );
   void changeTypeSelected( int newType );
-  void changeMaxArea( int value );
+  void changeMinArea( int value );
   void changeSmoothPtsDist( int value );
   void changeSmoothTensileFract( int value );
   void changeReducePts();
@@ -88,8 +88,8 @@ public slots:
   
   QGroupBox   *grpOptions;
   QGridLayout *gridLayout1;
-  QLabel      *lblMaxArea;
-  FloatSpinBox *fMaxAreaSpinner;
+  QLabel      *lblMinArea;
+  FloatSpinBox *fMinAreaSpinner;
   QCheckBox   *reducePtsCheckbox;
   QLabel      *lblSmoothPtsDist;
   FloatSpinBox *fSmoothPtsDist;
@@ -124,7 +124,7 @@ enum sortcriteria   { SORT_NUMPTS, SORT_LENGTH, SORT_AREA, SORT_CLOCKWISEAREA,
                       SORT_PTX, SORT_PTY, SORT_PTZ,
                       SORT_PTSIZE, SORT_PTGREY, SORT_NUMOPTIONS };
 
-const int NUM_SAVED_VALS = 13;
+const int NUM_SAVED_VALS = 15;
 
 //-------------------------------
 //## DRAWINGTOOLS DATA STRUCTURE:
@@ -136,12 +136,13 @@ struct DrawingToolsData   // contains all local plugin data
   
   //## DRAWING OPTIONS:
   
-  int drawMode;        // the type of drawing tool currently selected (see enum "drawmodes")
+  int drawMode;        // the drawing tool type currently selected (see enum "drawmodes")
   
   int    draw_reducePts;            // if 1: drawn conts will automatically be reduced
-  float  draw_reducePtsMaxArea;     // max area which must be formed by three consecutive
-                                    //  pts in a contour else the middle one be removed
-                                    //  in the "cont_reducePtsMinArea" function
+  float  draw_reducePtsMinArea;     // the minimum area which must be formed by three
+                                    //  consecutive pts in a contour else the middle
+                                    //  one be removed - see the 
+                                    //  "cont_reducePtsMinArea" function
   
   float  draw_smoothMinDist;        // min distance between consecutive points
   float  draw_smoothTensileFract;   // tensile fraction used by the catumull-rom spline
@@ -156,8 +157,12 @@ struct DrawingToolsData   // contains all local plugin data
                                 //   (see: wheelbehaviour)
   int  dKeyBehav;               // the action when [d] is pressed 
                                 //   (see: dkeybehavior)
+  int  pgUpDownInc;             // the number of slices to iterate when
+                                //   PageUp or PageDown is pressed
   
   bool   useNumKeys;            // intercepts number keys [1]-[5] to change draw mode
+  bool   markTouchedContsAsKey; // if true: any contour modified with deform changes
+                                //  to unstippled
   int    wheelResistance;       // the higher the value, the slower mouse scrolling works
   bool   showMouseInModelView;  // shows the extra object in the model view
   
@@ -230,7 +235,7 @@ bool isCurrPtValid();
 
 int edit_getZOfTopZap();
 int edit_setZapLocation( float x, int y, int z, bool redraw );
-int edit_changeSelectedSlice( int changeZ, bool redraw );
+int edit_changeSelectedSlice( int changeZ, bool redraw, bool snapToEnds=true );
 
 int edit_addContourToObj( Iobj *obj, Icont *cont, bool enableUndo );
 int edit_removeAllFlaggedContoursFromObj( Iobj *obj );
@@ -246,8 +251,8 @@ void edit_executeDeformEnd();
 void edit_executeJoinEnd();
 
 void edit_inversePointsInContour(bool reorder);
-bool edit_reduceCurrContour();
-bool edit_smoothCurrContour();
+int  edit_reduceCurrContour();
+int  edit_smoothCurrContour();
 
 bool edit_doesBBoxTouchCircle( Ipoint *ll, Ipoint *ur, Ipoint *center, float radius );
 int edit_eraseContsInCircle( Ipoint center, float radius);
