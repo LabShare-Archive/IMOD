@@ -36,6 +36,9 @@ import etomo.util.Utilities;
  * 
  * <p>
  * $Log$
+ * Revision 3.48  2008/06/19 23:34:54  sueh
+ * bug# 1112 Added tiltFile.
+ *
  * Revision 3.47  2008/05/01 22:57:45  sueh
  * bug# 1107 Added openZap to add -Z to the command line.  Since the
  * Zap window opens automatically, this is only useful when using model
@@ -521,6 +524,7 @@ public class ImodProcess {
   public static final String MESSAGE_NEWOBJ_PROPERTIES = "12";
   public static final String MESSAGE_SLICER_ANGLES = "13";
   public static final String MESSAGE_PLUGIN_MESSAGE = "14";
+  public static final String MESSAGE_MORE_OBJ_PROPERTIES = "16";
   public static final String BEAD_FIXER_PLUGIN = "Bead Fixer";
   public static final String BF_MESSAGE_OPEN_LOG = "1";
   public static final String BF_MESSAGE_REREAD_LOG = "2";
@@ -656,11 +660,11 @@ public class ImodProcess {
   public void setDatasetName(String datasetName) {
     this.datasetName = datasetName;
   }
-  
+
   public void setSubdirName(String input) {
-    subdirName=input;
+    subdirName = input;
   }
-  
+
   public String getSubdirName() {
     return subdirName;
   }
@@ -756,12 +760,12 @@ public class ImodProcess {
     if (modelView) {
       commandOptions.add("-V");
     }
-    
+
     if (openZap) {
       commandOptions.add("-Z");
     }
-    
-    if (tiltFile!=null) {
+
+    if (tiltFile != null) {
       commandOptions.add("-a");
       commandOptions.add(tiltFile);
     }
@@ -805,11 +809,12 @@ public class ImodProcess {
 
     if (datasetNameArray != null) {
       for (int i = 0; i < datasetNameArray.length; i++) {
-        if (subdirName==null) {
-        commandOptions.add(datasetNameArray[i]);
+        if (subdirName == null) {
+          commandOptions.add(datasetNameArray[i]);
         }
         else {
-          commandOptions.add(new File(subdirName,datasetNameArray[i]).getPath());
+          commandOptions.add(new File(subdirName, datasetNameArray[i])
+              .getPath());
         }
       }
     }
@@ -989,6 +994,10 @@ public class ImodProcess {
     setNewObjectMessage(0, open, CIRCLE, 7, 0);
   }
 
+  public void setPointLimitMessage(int pointLimit) {
+    setMoreObjectPropertiesMessage(1, pointLimit, -1, -1);
+  }
+
   /**
    * 
    * @param object
@@ -1005,6 +1014,15 @@ public class ImodProcess {
     sendArguments.add(String.valueOf(symbol));
     sendArguments.add(String.valueOf(size));
     sendArguments.add(String.valueOf(size3D));
+  }
+
+  public void setMoreObjectPropertiesMessage(int object, int pointLimit,
+      int newContourInNewZ, int sphereInCentralOnly) {
+    sendArguments.add(MESSAGE_MORE_OBJ_PROPERTIES);
+    sendArguments.add(String.valueOf(object));
+    sendArguments.add(String.valueOf(pointLimit));
+    sendArguments.add(String.valueOf(newContourInNewZ));
+    sendArguments.add(String.valueOf(sphereInCentralOnly));
   }
 
   /**
@@ -1479,15 +1497,15 @@ public class ImodProcess {
   public void setModelView(boolean modelView) {
     this.modelView = modelView;
   }
-  
+
   public void setOpenZap() {
     openZap = true;
   }
-  
+
   void setTiltFile(String input) {
     tiltFile = input;
   }
-  
+
   void resetTiltFile() {
     tiltFile = null;
   }
@@ -1519,9 +1537,9 @@ public class ImodProcess {
   public void setOutputWindowID(boolean b) {
     outputWindowID = b;
   }
-  
+
   public void setDebug(boolean input) {
-    debug=input;
+    debug = input;
   }
 
   public void setBinning(int binning) {
@@ -1751,8 +1769,7 @@ public class ImodProcess {
     static final String OPTION = "-E";
     static final WindowOpenOption IMODV_OBJECTS = new WindowOpenOption("O",
         true);
-    static final WindowOpenOption ISOSURFACE = new WindowOpenOption("U",
-        true);
+    static final WindowOpenOption ISOSURFACE = new WindowOpenOption("U", true);
 
     private final String windowKey;
     private final boolean imodv;
