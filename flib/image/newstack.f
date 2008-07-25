@@ -16,7 +16,7 @@ c
       implicit none
       integer maxdim,maxtemp,lmfil,lmsec,maxchunks,maxextra,lmGrid
       integer lmFields, lmAllGrid
-      parameter (maxdim=128000000,lmfil=1000,lmsec=50000,maxchunks=250)
+      parameter (maxdim=180000000,lmfil=1000,lmsec=50000,maxchunks=250)
       parameter (maxextra=4000000, maxtemp=1000000)
       parameter (lmGrid = 200, lmFields = 1000, lmAllGrid = 1000000)
       integer*4 nx,ny,nz
@@ -1897,6 +1897,9 @@ c
 ************************************************************************
 *       
 c       $Log$
+c       Revision 3.50  2008/07/25 14:00:25  mast
+c       Increased array size to 128M
+c
 c       Revision 3.49  2008/04/27 19:51:05  mast
 c       Increased allowed digits in truncation message
 c
