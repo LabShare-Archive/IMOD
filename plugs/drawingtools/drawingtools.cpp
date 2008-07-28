@@ -15,6 +15,9 @@
     $Revision$
 
     $Log$
+    Revision 1.18  2008/07/28 01:58:15  tempuser
+    Made imodContourReduce the default smoothing algorithm
+
     Revision 1.17  2008/07/24 23:57:30  tempuser
     Better labels
 
@@ -146,7 +149,7 @@ int imodPlugKeys(ImodView *vw, QKeyEvent *event)
   
   
   if(ctrl &&             // if the control key is down I typically want IMOD to handle it
-     keysym != Qt::Key_X && keysym != Qt::Key_V && keysym != Qt::Key_V )
+     keysym != Qt::Key_X && keysym != Qt::Key_C && keysym != Qt::Key_V )
     return 0;
   
   if( !plug.useNumKeys && keysym >= Qt::Key_1 && keysym <= Qt::Key_5  )
