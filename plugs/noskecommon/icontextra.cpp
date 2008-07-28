@@ -15,6 +15,9 @@
     $Revision$
 
     $Log$
+    Revision 1.7  2008/07/24 07:18:42  tempuser
+    Smoothing and reduction retunr number of points added or deleted
+
     Revision 1.6  2008/07/10 07:42:24  tempuser
     Faster method to find mbr center
 
@@ -1355,6 +1358,19 @@ int cont_reducePtsCrude( Icont *cont, float minDist, bool closed )
     }
   }
   
+  return ( pointsBefore - psize(cont) );
+}
+
+
+//------------------------
+//-- Reduces the number of points in a contour using the imodContourReduction() 
+//-- function using the given tolerance value and then returns the number
+//-- of points deleted.
+
+int cont_reducePtsTol( Icont *cont, float tol )
+{
+  int pointsBefore = psize(cont);
+  imodContourReduce(cont, tol);  
   return ( pointsBefore - psize(cont) );
 }
 

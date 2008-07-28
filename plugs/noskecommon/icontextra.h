@@ -207,6 +207,7 @@ int cont_addPtsCrude( Icont *cont, float maxDist, bool closed );           // MO
 int cont_addPtsSmoothIteration( Icont *cont, float maxDist, float tensileFract, bool closed );
 int cont_addPtsSmooth( Icont *cont, float maxDist, float tensileFract, bool closed );          
 int cont_reducePtsCrude( Icont *cont, float minDist, bool closed );                    
+int cont_reducePtsTol(Icont *cont, float tol);                              // NEW
 int cont_reducePtsMinArea( Icont *cont, float minArea, bool closed );       // MODIFIED
 
 bool cont_isSimple( Icont *cont, bool closed=true );                              
