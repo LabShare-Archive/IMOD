@@ -15,6 +15,9 @@
     $Revision$
 
     $Log$
+    Revision 1.17  2008/07/24 23:57:30  tempuser
+    Better labels
+
     Revision 1.16  2008/07/24 23:56:51  tempuser
     Better labels
 
@@ -272,7 +275,9 @@ void imodPlugExecute(ImodView *inImodView)
   {
     plug.drawMode                 = DM_DEFORM;
     plug.draw_reducePts           = 0;
+    plug.draw_reducePtsTol        = 0.05;
     plug.draw_reducePtsMinArea    = 0.5;
+    plug.draw_reducePtsOpt        = RD_TOL;
     plug.draw_smoothMinDist       = 5;
     plug.draw_smoothTensileFract  = 0.5;
     plug.draw_deformRadius        = 30.0;
@@ -731,15 +736,31 @@ DialogFrame(parent, 2, buttonLabels, buttonTips, true, "Drawing Tools", "", name
   QToolTip::add(lblMinArea, minAreaStr);
   gridLayout1->addWidget(lblMinArea, 2, 0);
   
+  QString tolStr = 
+    "When a contour is reduced: the higher this tolerance value "
+    "\nthe more points are removed. "
+    "\n"
+    "\nRECOMMENDED VALUE: 0.05";
+  
+  lblTol = new QLabel("reduction tolerance:", grpOptions);
+  lblTol->setFocusPolicy(QWidget::NoFocus);
+  QToolTip::add(lblTol, tolStr);
+  gridLayout1->addWidget(lblTol, 2, 0);
+  
   QBoxLayout *box1 = new QBoxLayout(QBoxLayout::LeftToRight);
-  fMinAreaSpinner = (FloatSpinBox*)diaLabeledSpin(1,1,200,1,"",grpOptions,box1);
-  diaSetSpinBox( (QSpinBox*)fMinAreaSpinner, int(plug.draw_reducePtsMinArea*10) );
-  ((QSpinBox *)fMinAreaSpinner)->setFocusPolicy(QWidget::ClickFocus);
-  QObject::connect( (QSpinBox*)fMinAreaSpinner,SIGNAL(valueChanged(int)),this,
-                    SLOT(changeMinArea(int)));
-  QToolTip::add( (QSpinBox*)fMinAreaSpinner, minAreaStr);
+  fSmoothSpinner = (FloatSpinBox*)diaLabeledSpin(2,1,2000,1,"",grpOptions,box1);
+  diaSetSpinBox( (QSpinBox*)fSmoothSpinner, int(plug.draw_reducePtsTol*100) );
+  ((QSpinBox *)fSmoothSpinner)->setFocusPolicy(QWidget::ClickFocus);
+  QObject::connect( (QSpinBox*)fSmoothSpinner,SIGNAL(valueChanged(int)),this,
+                    SLOT(changeSmoothTol(int)));
+  QToolTip::add( (QSpinBox*)fSmoothSpinner,
+                 "The higher this value, the more point are removed "
+                 "when you press [r] or 'Reduce Contours'"
+                 "\n... a value of >1 is not recommended.");
   gridLayout1->addLayout(box1, 2, 1);
   
+  setReducePtsOptionAndChangeDisplay( plug.draw_reducePtsOpt ); 
+      // shows appropriate label and fSmoothSpinner value  
   
   QString smoothPtsDistStr = 
     "When a contour is smoothed: wherever two consecutive points are"
@@ -1089,19 +1110,21 @@ void DrawingTools::loadSettings()
   
   plug.drawMode                   = savedValues[0];
   plug.draw_reducePts             = savedValues[1];
-  plug.draw_reducePtsMinArea      = savedValues[2];
-  plug.draw_smoothMinDist         = savedValues[3];
-  plug.draw_smoothTensileFract    = savedValues[4];
-  plug.draw_deformRadius          = savedValues[5];
-  plug.wheelBehav                 = savedValues[6];
-  plug.dKeyBehav                  = savedValues[7];
-  plug.pgUpDownInc                = savedValues[8];
-  plug.useNumKeys                 = savedValues[9];
-  plug.markTouchedContsAsKey      = savedValues[10];
-  plug.wheelResistance            = savedValues[11];
-  plug.selectedAction             = savedValues[12];
-  plug.sortCriteria               = savedValues[13];
-  plug.findCriteria               = savedValues[14];
+  plug.draw_reducePtsTol          = savedValues[2];
+  plug.draw_reducePtsMinArea      = savedValues[3];
+  plug.draw_reducePtsOpt          = savedValues[4];
+  plug.draw_smoothMinDist         = savedValues[5];
+  plug.draw_smoothTensileFract    = savedValues[6];
+  plug.draw_deformRadius          = savedValues[7];
+  plug.wheelBehav                 = savedValues[8];
+  plug.dKeyBehav                  = savedValues[9];
+  plug.pgUpDownInc                = savedValues[10];
+  plug.useNumKeys                 = savedValues[11];
+  plug.markTouchedContsAsKey      = savedValues[12];
+  plug.wheelResistance            = savedValues[13];
+  plug.selectedAction             = savedValues[14];
+  plug.sortCriteria               = savedValues[15];
+  plug.findCriteria               = savedValues[16];
 }
 
 
@@ -1115,19 +1138,21 @@ void DrawingTools::saveSettings()
   
   saveValues[0]   = plug.drawMode;
   saveValues[1]   = plug.draw_reducePts;
-  saveValues[2]   = plug.draw_reducePtsMinArea;
-  saveValues[3]   = plug.draw_smoothMinDist;
-  saveValues[4]   = plug.draw_smoothTensileFract;
-  saveValues[5]   = plug.draw_deformRadius;
-  saveValues[6]   = plug.wheelBehav;
-  saveValues[7]   = plug.dKeyBehav;
-  saveValues[8]   = plug.pgUpDownInc;
-  saveValues[9]   = plug.useNumKeys;
-  saveValues[10]  = plug.markTouchedContsAsKey;
-  saveValues[11]  = plug.wheelResistance;
-  saveValues[12]  = plug.selectedAction;
+  saveValues[2]   = plug.draw_reducePtsTol;
+  saveValues[3]   = plug.draw_reducePtsMinArea;
+  saveValues[4]   = plug.draw_reducePtsOpt;
+  saveValues[5]   = plug.draw_smoothMinDist;
+  saveValues[6]   = plug.draw_smoothTensileFract;
+  saveValues[7]   = plug.draw_deformRadius;
+  saveValues[8]   = plug.wheelBehav;
+  saveValues[9]   = plug.dKeyBehav;
+  saveValues[10]  = plug.pgUpDownInc;
+  saveValues[11]  = plug.useNumKeys;
+  saveValues[12]  = plug.markTouchedContsAsKey;
   saveValues[13]  = plug.wheelResistance;
   saveValues[14]  = plug.selectedAction;
+  saveValues[15]  = plug.wheelResistance;
+  saveValues[16]  = plug.selectedAction;
   
   prefSaveGenericSettings("DrawingTools",NUM_SAVED_VALS,saveValues);
 }
@@ -1143,12 +1168,9 @@ void DrawingTools::reduceCurrentContour()
     return;
   
   undoContourDataChgCC( plug.view );      // REGISTER UNDO
+  
   int pointsRemoved = edit_reduceCurrContour();
   
-  //int pointsBefore = psize();
-  //imodContourReduce(cont, plug.draw_reducePtsMinArea);
-  //int pointsRemoved = pointsBefore - psize();
-    
   if(pointsRemoved)
   {
     undoFinishUnit( plug.view );            // FINISH UNDO
@@ -1197,7 +1219,15 @@ void DrawingTools::reduceConts()
   
   static bool interpolatedOnly = false;
   
-  string msg =
+  string msg = ( plug.draw_reducePtsOpt == RD_TOL ) ?
+    "-----"
+    "\ntolerance  = " + toString(plug.draw_reducePtsTol) +
+    "\n-----"
+    "\nWARNING: reducing contours with "
+    "\n a large 'tolerance' can result "
+    "\n in an undesirable loss of "
+    "\n information/contour detail."
+    :
     "-----"
     "\nmin area  = " + toString(plug.draw_reducePtsMinArea) + " pix sq."
     "\n-----"
@@ -1206,7 +1236,11 @@ void DrawingTools::reduceConts()
     "\n in an undesirable loss of "
     "\n information/contour detail.";
   
-  QString toolStr =
+  QString toolStr = ( plug.draw_reducePtsOpt == RD_TOL ) ?
+    "The 'tolerance' value represents how thorough the smoothing "
+    "\nalgorithm will be while still trying to preserve the overall shape. "
+    "\nA value of >1.0 is not recommended for reducing large numbers of contours"
+    :
     "The 'min area' value represents the minimum area which must be between  "
     "\nany 3 consequtive points, else the middle point be deleted. "
     "\nA value of >5.0 is not recommended for reducing large numbers of contours";
@@ -1248,8 +1282,17 @@ void DrawingTools::reduceConts()
       continue;
     
     undoContourDataChg( plug.view, objIdx, c );           // REGISTER UNDO
-    int pointsDeleted = 
-      cont_reducePtsMinArea( cont, plug.draw_reducePtsMinArea, isContClosed(obj,cont) );
+    int pointsDeleted;
+    
+    if( plug.draw_reducePtsOpt == RD_TOL )
+    {
+      pointsDeleted = cont_reducePtsTol( cont, plug.draw_reducePtsTol );
+    }
+    else
+    {
+      pointsDeleted = cont_reducePtsMinArea( cont, plug.draw_reducePtsMinArea,
+                                    isContClosed(obj,cont) );
+    }
     
     totalPointsRemoved += pointsDeleted;
     totalPointsAfter   += psize(cont);
@@ -1749,21 +1792,7 @@ void DrawingTools::moreSettings()
   //## GET USER INPUT FROM CUSTOM DIALOG:
   
 	CustomDialog ds;
-  int ID_WHEELRESIST    = ds.addSpinBox ( "wheel resistance:",
-                                          10, 1000, plug.wheelResistance, 10,
-                                          "The higher the value, the slower "
-                                          "mouse scrolling works" );
-  int ID_USENUMKEYS     = ds.addCheckBox( "use number keys to change mode", 
-                                          plug.useNumKeys,
-                                          "If on: will intercept the number keys "
-                                          "[1]-[5] to change the drawing mode, "
-                                          "\nif off: can use number keys to move points "
-                                          "as per normal");
-  int ID_MARKTOUCHEDS   = ds.addCheckBox( "mark contours unstippled after deform", 
-                                          plug.markTouchedContsAsKey,
-                                          "If on: any stippled contour selected and/or "
-                                          "\ndeformed using the 'deform' or 'join' "
-                                          "\ntool will become unstippled." );
+  int ID_DUMMY1         = ds.addLabel   ( "--- MOUSE ---" );
   int ID_WHEELBEHAV     = ds.addComboBox( "wheel behavior:",
                                           "none,"
                                           "resize deform circle,"
@@ -1771,12 +1800,17 @@ void DrawingTools::moreSettings()
                                           "scroll contours,"
                                           "resize curr point", plug.wheelBehav,
                                           "The action performed by the mouse wheel" );
-  int ID_DEFORMCIRCLE    = ds.addLineEdit( "deform circle radius:", 
-                                           toString(plug.draw_deformRadius).c_str(),
-                                           "The radius (in pixels) of the circle used "
-                                           "in deform and join drawing mode."
-                                           "\nNOTE: You can also change this using "
-                                           "[q], [w] and the mouse wheel.");
+  int ID_WHEELRESIST    = ds.addSpinBox ( "wheel resistance:",
+                                          10, 1000, plug.wheelResistance, 10,
+                                          "The higher the value, the slower "
+                                          "mouse scrolling works" );
+  int ID_DUMMY2         = ds.addLabel   ( "\n--- KEYBOARD ---" );
+  int ID_USENUMKEYS     = ds.addCheckBox( "use number keys to change mode", 
+                                          plug.useNumKeys,
+                                          "If on: will intercept the number keys "
+                                          "[1]-[5] to change the drawing mode, "
+                                          "\nif off: can use number keys to move points "
+                                          "as per normal");
   int ID_DKEYACTION     = ds.addComboBox( "on [d] remove:",
                                           "do nothing,"
                                           "pts to end,"
@@ -1804,6 +1838,30 @@ void DrawingTools::moreSettings()
                                           "NOTE: Holding [Shift] when you press "
                                           "[Page Up] or [Page Down] will cause it to "
                                           "increment one slice (as normal)" );
+  int ID_DUMMY3         = ds.addLabel   ( "\n--- DEFORM CIRCLE ---" );
+  int ID_MARKTOUCHEDS   = ds.addCheckBox( "mark contours unstippled after deform", 
+                                          plug.markTouchedContsAsKey,
+                                          "If on: any stippled contour selected and/or "
+                                          "\ndeformed using the 'deform' or 'join' "
+                                          "\ntool will become unstippled." );
+  int ID_DEFORMCIRCLE    = ds.addLineEdit( "deform circle radius:", 
+                                           toString(plug.draw_deformRadius).c_str(),
+                                           "The radius (in pixels) of the circle used "
+                                           "in deform and join drawing mode."
+                                           "\nNOTE: You can also change this using "
+                                           "[q], [w] and the mouse wheel.");
+  int ID_DUMMY4         = ds.addLabel   ( "\n--- OTHER ---" );
+  int ID_SMOOTHINGMETH  = ds.addComboBox( "smoothing meth:",
+                                          "segment threshold,"
+                                          "min area",
+                                          plug.draw_reducePtsOpt,
+                                          "The method used when [r] or 'Reduce Contours' "
+                                          "is used."
+                                          "\n"
+                                          "\n > segment threshold - better adjusted "
+                                          "to preserve the curvature of contour segments"
+                                          "\n > min area - better adjusted "
+                                          "to remove sharp contours of nearby points" );
   int ID_SHOWMOUSEINMV  = ds.addCheckBox( "show mouse in model view", 
                                           plug.showMouseInModelView,
                                           "Will show the mouse in any Model View "
@@ -1820,12 +1878,16 @@ void DrawingTools::moreSettings()
   plug.wheelBehav            = ds.getResultComboBox ( ID_WHEELBEHAV );
   plug.dKeyBehav             = ds.getResultComboBox ( ID_DKEYACTION );
   plug.pgUpDownInc           = ds.getResultSpinBox  ( ID_PGINCREMENT );
+  int smoothOpt              = ds.getResultComboBox ( ID_SMOOTHINGMETH );
   plug.showMouseInModelView  = ds.getResultCheckBox ( ID_SHOWMOUSEINMV );
   string deformRadiusStr     = ds.getResultLineEdit ( ID_DEFORMCIRCLE );
   
   float newDeformRadius      = string_getFloatFromString( deformRadiusStr );
   if( newDeformRadius != 0 && newDeformRadius > 0.2 && newDeformRadius < 5000 )
     plug.draw_deformRadius = newDeformRadius;
+  
+  if( smoothOpt != plug.draw_reducePtsOpt )
+    setReducePtsOptionAndChangeDisplay( smoothOpt );
   
   ivwRedraw( plug.view );
 }
@@ -2126,11 +2188,40 @@ void DrawingTools::changeTypeSelected( int newType) {
   plug.window->drawExtraObject(true);
 }
 
-//------------------------
-//-- Change draw_reducePtsMinArea
 
-void DrawingTools::changeMinArea( int value ) { 
-  plug.draw_reducePtsMinArea = (float)value / 10.0f;
+//------------------------
+//-- Change draw_reducePtsTol or draw_reducePtsMinArea
+//-- (depending on the value of draw_reducePtsOpt)
+
+void DrawingTools::changeSmoothTol( int value ) { 
+  if( plug.draw_reducePtsOpt == RD_TOL )
+  {
+    plug.draw_reducePtsTol = (float)value / 100.0f;
+  }
+  else
+  {
+    plug.draw_reducePtsMinArea = (float)value / 100.0f;
+  }
+}
+
+
+//------------------------
+//-- Change draw_reducePtsOpt
+
+void DrawingTools::setReducePtsOptionAndChangeDisplay( int value )
+{
+  plug.draw_reducePtsOpt = value;
+  
+  if( plug.draw_reducePtsOpt == RD_TOL )
+  {
+    lblTol->show();
+    ((QSpinBox *)fSmoothSpinner)->setValue( plug.draw_reducePtsTol * 100.0f );
+  }
+  else
+  {
+    lblTol->hide();
+    ((QSpinBox *)fSmoothSpinner)->setValue( plug.draw_reducePtsMinArea * 100.0f );
+  }
 }
 
 //------------------------
@@ -2812,14 +2903,21 @@ void edit_inversePointsInContour( bool reorder )
 
 int edit_reduceCurrContour()
 {
-  Imod *imod = ivwGetModel(plug.view);
-  Iobj *obj  = imodObjectGet(imod);
+  Imod  *imod = ivwGetModel(plug.view);
+  Iobj  *obj  = imodObjectGet(imod);
   Icont *cont = imodContourGet(imod);
   
   if( isContValid(cont) )
   {
-    return cont_reducePtsMinArea( cont, plug.draw_reducePtsMinArea,
-                                  isContClosed(obj,cont) );
+    if( plug.draw_reducePtsOpt == RD_TOL )
+    {
+      return cont_reducePtsTol( cont, plug.draw_reducePtsTol );
+    }
+    else
+    {
+      return cont_reducePtsMinArea( cont, plug.draw_reducePtsMinArea,
+                                    isContClosed(obj,cont) );
+    }
   }
   return 0;
 }
@@ -2830,8 +2928,8 @@ int edit_reduceCurrContour()
 
 int edit_smoothCurrContour()
 {
-  Imod *imod = ivwGetModel(plug.view);
-  Iobj *obj  = imodObjectGet(imod);
+  Imod  *imod = ivwGetModel(plug.view);
+  Iobj  *obj  = imodObjectGet(imod);
   Icont *cont = imodContourGet(imod);
   
   if( isContValid(cont) )
@@ -3081,12 +3179,22 @@ void edit_breakCurrContIntoSimpleContsAndDeleteSmallest ()
     vector<IcontPtr> conts;
     cont_breakIntoSimple( conts, cont );    // breaks contour into simple contours.
     
-    //## GENERALIZE THESE CONTOURS AND DELETE ANY REALLY SMALL ONES:
+    //## GENERALIZE THESE CONTOURS:
     
     for( int i=0; i<(int)conts.size(); i++ )    // for each contour: reduce points
-      cont_reducePtsMinArea( conts[i].cont, plug.draw_reducePtsMinArea,
-                             isContClosed(obj,cont) ); 
+    {
+      if( plug.draw_reducePtsOpt == RD_TOL )
+      {
+        cont_reducePtsTol( conts[i].cont, plug.draw_reducePtsTol );
+      }
+      else
+      {
+        cont_reducePtsMinArea( conts[i].cont, plug.draw_reducePtsMinArea,
+                                      isContClosed(obj,cont) );
+      }
+    }
     
+    //## DELETE ANY REALLY SMALL CONTOURS:
     
     for( int i=0; i<(int)conts.size(); i++ )    // for each contour: 
       if( psize( conts[i].cont ) < 5 )  // if too few points: delete it

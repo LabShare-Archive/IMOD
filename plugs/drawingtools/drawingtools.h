@@ -64,7 +64,8 @@ public slots:
   
   void changeType( int value );
   void changeTypeSelected( int newType );
-  void changeMinArea( int value );
+  void changeSmoothTol( int value );
+  void setReducePtsOptionAndChangeDisplay(int value);
   void changeSmoothPtsDist( int value );
   void changeSmoothTensileFract( int value );
   void changeReducePts();
@@ -86,33 +87,34 @@ public slots:
   QRadioButton *typeRadio_Transform;
   QRadioButton *typeRadio_Eraser;
   
-  QGroupBox   *grpOptions;
-  QGridLayout *gridLayout1;
-  QLabel      *lblMinArea;
-  FloatSpinBox *fMinAreaSpinner;
-  QCheckBox   *reducePtsCheckbox;
-  QLabel      *lblSmoothPtsDist;
+  QGroupBox    *grpOptions;
+  QGridLayout  *gridLayout1;
+  QLabel       *lblMinArea;
+  QLabel       *lblTol;
+  FloatSpinBox *fSmoothSpinner;
+  QCheckBox    *reducePtsCheckbox;
+  QLabel       *lblSmoothPtsDist;
   FloatSpinBox *fSmoothPtsDist;
-  QLabel      *lblSmoothTensileFract;
+  QLabel       *lblSmoothTensileFract;
   FloatSpinBox *fSmoothTensileFract;
   
-  QGroupBox   *grpActions;
-  QVBoxLayout *vboxLayout1;
-  QPushButton *reduceContsButton;
-  QPushButton *smoothContsButton;
+  QGroupBox    *grpActions;
+  QVBoxLayout  *vboxLayout1;
+  QPushButton  *reduceContsButton;
+  QPushButton  *smoothContsButton;
   
-  QWidget     *widget1;
-  QGridLayout *gridLayout2;
-  QPushButton *moreActionsButton;
-  QPushButton *moreSettingsButton;
+  QWidget      *widget1;
+  QGridLayout  *gridLayout2;
+  QPushButton  *moreActionsButton;
+  QPushButton  *moreSettingsButton;
 };
-
 
 //-------------------------------
 //## CONSTANTS:
 
 enum drawmodes      { DM_NORMAL, DM_DEFORM, DM_JOIN, DM_TRANSFORM, DM_ERASER,
                       DM_RESIZEPT };
+enum smoothmodes    { RD_TOL, RD_MINAREA };
 enum wheelbehaviour { WH_NONE, WH_DEFORMCIRCLE, WH_SLICES, WH_CONTS, WH_PTSIZE };
 enum dkeybehavior   { DK_NONE, DK_TOEND, DK_NEARESTEND, DK_DELETEPT, DK_REMOVEPTSIZE,
                       DK_REMOVEALLPTSIZES };
@@ -124,7 +126,7 @@ enum sortcriteria   { SORT_NUMPTS, SORT_LENGTH, SORT_AREA, SORT_CLOCKWISEAREA,
                       SORT_PTX, SORT_PTY, SORT_PTZ,
                       SORT_PTSIZE, SORT_PTGREY, SORT_NUMOPTIONS };
 
-const int NUM_SAVED_VALS = 15;
+const int NUM_SAVED_VALS = 17;
 
 //-------------------------------
 //## DRAWINGTOOLS DATA STRUCTURE:
@@ -139,10 +141,12 @@ struct DrawingToolsData   // contains all local plugin data
   int drawMode;        // the drawing tool type currently selected (see enum "drawmodes")
   
   int    draw_reducePts;            // if 1: drawn conts will automatically be reduced
+  float  draw_reducePtsTol;         // the tolerance setting used in "imodContourReduce"
   float  draw_reducePtsMinArea;     // the minimum area which must be formed by three
                                     //  consecutive pts in a contour else the middle
                                     //  one be removed - see the 
                                     //  "cont_reducePtsMinArea" function
+  int    draw_reducePtsOpt;         // if 0: use tolerance, if 1: use min area
   
   float  draw_smoothMinDist;        // min distance between consecutive points
   float  draw_smoothTensileFract;   // tensile fraction used by the catumull-rom spline
