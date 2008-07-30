@@ -512,7 +512,7 @@ void InfoWindow::timerEvent(QTimerEvent *e)
     killTimer(mAutoTimerID);
     ImodPrefs->getAutoContrastTargets(mean, sd);
     imodInfoAutoContrast(mean, sd);
-
+    mAutoTimerID = 0;
   } else
     raise();
 }
@@ -679,6 +679,10 @@ static char *truncate_name(char *name, int limit)
 /*
 
 $Log$
+Revision 4.49  2008/05/27 05:52:11  mast
+New menu items: checkable RGB to gray snaps, isosurface.  Also start
+a timer to do autocontrast after all windows opened
+
 Revision 4.48  2008/05/25 21:23:36  mast
 fix trying to wprint with a Qstring
 
