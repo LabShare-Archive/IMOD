@@ -1,8 +1,10 @@
 IMOD History
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-7/24/08: In Etomo - Tomogram Positioning limiting the boundary model contours to
-two points.  The next contour will automatically be created when the third point
-is added.
+7/30/08: Fixed the stay-on-top function in Info window, broken 5/26/08.
+
+7/24/08: In Etomo - Tomogram Positioning boundary model contours are now
+limited to two points.  The next contour will automatically be created when
+the third point is added.
 
 7/18/08: In Etomo Settings dialog added the ability to turn on parallel
 processing.
