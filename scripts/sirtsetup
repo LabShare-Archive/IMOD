@@ -185,19 +185,19 @@ if ("$alifile" == "") set alinonopt = 1
 # Get the input image file name from the command file if necessary
 #
 if ($recnonopt || ! $alinonopt) then
-    set topline  = `vmstocsh < $comname | awk '/tilt/{print NR}' | \
-                sed '/[[:cntrl:]]/s///g'`
+    set topline  = \
+      `vmstocsh < $comname | awk '/tilt/{print NR}' | sed '/[[:cntrl:]]/s///g'`
     if ($#topline > 1) then
         @ topnum = $topline[1]
     else
         @ topnum = $topline
     endif
     @ nextline = $topnum + 1
-    if ($alinonopt) set alifile = `vmstocsh < $comname | awk '{if (NR==LINE) print}' \
-                LINE=$nextline | sed '/[[:cntrl:]]/s///g'`
+    if ($alinonopt) set alifile = \
+       `vmstocsh < $comname | awk '{if (NR==LINE) print}' LINE=$nextline | sed '/[[:cntrl:]]/s///g'`
     @ nextline = $topnum + 2
-    if ($recnonopt) set recfile = `vmstocsh < $comname | awk '{if (NR==LINE) print}' \
-                LINE=$nextline | sed '/[[:cntrl:]]/s///g'`
+    if ($recnonopt) set recfile = \
+        `vmstocsh < $comname | awk '{if (NR==LINE) print}' LINE=$nextline | sed '/[[:cntrl:]]/s///g'`
 endif
 
 if (! -e $alifile) then
@@ -459,6 +459,9 @@ echo "  processchunks machine_list $sirtname"
 exit 0
 
 #  $Log$
+#  Revision 3.6  2008/04/14 17:56:24  mast
+#  Used escaped echo to output escaped rm due to bad cygwin tcsh echo
+#
 #  Revision 3.5  2007/09/11 21:37:32  mast
 #  Added scaling options, always option, enhanced test option, changed com
 #  files to call managesirt

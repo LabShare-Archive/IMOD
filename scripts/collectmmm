@@ -5,6 +5,9 @@
 #  $Id$
 #
 #  $Log$
+#  Revision 3.3  2007/07/15 20:58:46  mast
+#  Added option for starting number
+#
 #  Revision 3.2  2006/08/17 18:36:54  mast
 #  Added locale statement to keep output of awk from having instead of .
 #
@@ -62,12 +65,9 @@ while ($num < $numlogs)
 
         # Then compute new min etc with clumsy awks
         #
-        set allmin = `echo $allmin $logmmm[1] | awk '{if ( $1 < $2 ) print $1}\
-                                                   {if ( $1 >= $2 ) print $2}'`
-        set allmax = `echo $allmax $logmmm[2] | awk '{if ( $1 > $2 ) print $1}\
-                                                   {if ( $1 <= $2 ) print $2}'`
-        set allsum = `echo $allsum $logmmm[3] $logmmm[4] | \
-         awk '{print $1 + $2 * $3}'`
+        set allmin = `echo $allmin $logmmm[1] | awk '{if ( $1 < $2 ) print $1} {if ( $1 >= $2 ) print $2}'`
+        set allmax = `echo $allmax $logmmm[2] | awk '{if ( $1 > $2 ) print $1} {if ( $1 <= $2 ) print $2}'`
+        set allsum = `echo $allsum $logmmm[3] $logmmm[4] | awk '{print $1 + $2 * $3}'`
         set pixsum = `echo $pixsum $logmmm[4] | awk '{print $1 + $2}'`
     endif
 end

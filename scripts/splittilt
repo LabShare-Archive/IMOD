@@ -138,19 +138,19 @@ set sliceproj = `grep -i "^ *reproject" $comname`
 # Get the input image file name from the command file if necessary
 #
 if ("$recfile" == "" || "$alifile" == "") then
-    set topline  = `vmstocsh < $comname | awk '/tilt/{print NR}' | \
-                sed '/[[:cntrl:]]/s///g'`
+    set topline  = \
+      `vmstocsh < $comname | awk '/tilt/{print NR}' | sed '/[[:cntrl:]]/s///g'`
     if ($#topline > 1) then
         @ topnum = $topline[1]
     else
         @ topnum = $topline
     endif
     @ nextline = $topnum + 1
-    if ("$alifile" == "") set alifile = `vmstocsh < $comname | awk '{if (NR==LINE) print}' \
-                LINE=$nextline | sed '/[[:cntrl:]]/s///g'`
+    if ("$alifile" == "") set alifile = \
+       `vmstocsh < $comname | awk '{if (NR==LINE) print}' LINE=$nextline | sed '/[[:cntrl:]]/s///g'`
     @ nextline = $topnum + 2
-    if ("$recfile" == "") set recfile = `vmstocsh < $comname | awk '{if (NR==LINE) print}' \
-                LINE=$nextline | sed '/[[:cntrl:]]/s///g'`
+    if ("$recfile" == "") set recfile = \
+        `vmstocsh < $comname | awk '{if (NR==LINE) print}' LINE=$nextline | sed '/[[:cntrl:]]/s///g'`
 endif
 
 if (! -e $alifile && $#fullimage == 0 && "$slices" == "") then
@@ -250,17 +250,15 @@ if ("$local" == "" && $xaxistilt != "") then
         #
         # Get percent of extra slices required
         #
-        set extra = `echo $slabsize $thickness $xaxistilt | \
-          awk '{print int(100. * ($1 + $2 * sin(0.01745329 * $3)) / $1)}' | \
-          sed '/[[:cntrl:]]/s///g'`
+        set extra = `echo $slabsize $thickness $xaxistilt | awk '{print int(100. * ($1 + $2 * sin(0.01745329 * $3)) / $1)}' | sed '/[[:cntrl:]]/s///g'`
         # echo $extra
         @ extranum = $extra
         if ($extranum <= $maxextrapct) break
     end
 
     # echo $slabsize $thickness $xaxistilt
-    set penpct = `echo $penalty | awk '{print int(100. * $1)}' | \
-        sed '/[[:cntrl:]]/s///g'`
+    set penpct = \
+      `echo $penalty | awk '{print int(100. * $1)}' | sed '/[[:cntrl:]]/s///g'`
     @ pennum = $penpct
 
     # If extra is less than penalty, proceed
@@ -273,9 +271,7 @@ if ("$local" == "" && $xaxistilt != "") then
             # If vertical specified, compute optimum size that just breaks
             # even with penalty for old-style tilting, but limit it
             #
-            set optsize = `echo $penalty $thickness $xaxistilt | \
-                awk '{print int($2 * sin(0.01745329 * $3) / ($1 - 1.))}' | \
-                sed '/[[:cntrl:]]/s///g'`
+            set optsize = `echo $penalty $thickness $xaxistilt | awk '{print int($2 * sin(0.01745329 * $3) / ($1 - 1.))}' | sed '/[[:cntrl:]]/s///g'`
             @ slabsize = $optsize
             @ maxsize = $numproc / $minslabs
             if ($slabsize > $maxsize) @ slabsize = $maxsize
@@ -414,6 +410,9 @@ echo "Command files for $numslabs chunks created and ready to run with:"
 echo "  processchunks machine_list $rootname"
 
 #  $Log$
+#  Revision 3.12  2008/04/14 17:56:24  mast
+#  Used escaped echo to output escaped rm due to bad cygwin tcsh echo
+#
 #  Revision 3.11  2007/07/16 23:44:49  mast
 #  Made it work for reprojecting from tomogram, added options to start at
 #  a command file number and end with a -sync instead of -finish
