@@ -1,4 +1,4 @@
-# IMOD 3.12.1
+# IMOD 3.12.16
 #
 # Startup file for bash users of IMOD under Linux - place it in /etc/profile.d
 #
@@ -44,10 +44,6 @@ if [ -r $IMOD_CALIB_DIR/IMOD.sh ] ; then
     . $IMOD_CALIB_DIR/IMOD.sh
 fi
 
-# A subm function to run command files in the background with submfg
-#
-function subm () { submfg $* & }
-
 # This command allows fast backprojection if the USFFT license file exists
 # in either /usr/local/USFFT by hostname, or in IMOD_DIR
 #
@@ -76,3 +72,8 @@ alias mtoverlap='runimodqtapp mtoverlap'
 alias nda='runimodqtapp nda'
 alias sda='runimodqtapp sda'
 alias mtk='runimodqtapp mtk'
+
+# A subm function to run command files in the background with submfg
+#
+if [ -z "$BASH" ] ; then return 0 ; fi
+function subm () { submfg $* & }

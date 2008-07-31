@@ -1,4 +1,4 @@
-# IMOD 3.12.1
+# IMOD 3.12.16
 #
 # Startup file for bash users of IMOD under Linux - place it in /etc/profile.d
 #
@@ -32,10 +32,6 @@ export IMOD_PLUGIN_DIR=$IMOD_DIR/lib/imodplug
 #
 export LD_LIBRARY_PATH=$IMOD_DIR/lib:$LD_LIBRARY_PATH
 
-# A subm function to run command files in the background with submfg
-#
-function subm () { submfg $* & }
-
 # Set a variable with the location of configuration/calibration/data files
 #
 export IMOD_CALIB_DIR=${IMOD_CALIB_DIR:=/usr/local/ImodCalib}
@@ -54,3 +50,8 @@ fi
 if [ -r $IMOD_CALIB_DIR/IMOD.sh ] ; then
     . $IMOD_CALIB_DIR/IMOD.sh
 fi
+
+# A subm function to run command files in the background with submfg
+#
+if [ -z "$BASH" ] ; then return 0 ; fi
+function subm () { submfg $* & }
