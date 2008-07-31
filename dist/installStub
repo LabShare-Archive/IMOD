@@ -1,8 +1,7 @@
 #!/bin/tcsh -f
 #
 # Stub for self-extracting IMOD installer
-# Options are -extract to extract archive and installer without installing
-#             -test to go through whole script without installing
+# Use -help to see the options
 #
 
 set installer = installIMOD
@@ -17,6 +16,9 @@ set scriptopt = ""
 set sysdir = ""
 set g2copt = ""
 set yesopt = ""
+set debopt = ""
+set ubuntu = 0
+set ubscripts = (/etc/csh.cshrc /etc/bash.bashrc)
 
 # Find the end of this script
 #
@@ -43,8 +45,7 @@ while ($#argv > 0)
             shift
             breaksw
 
-        case -d*:
-
+        case -di*:
             set installdir = "$argv[2]"
             shift ; shift
             breaksw
@@ -66,6 +67,12 @@ while ($#argv > 0)
 
         case -y*:
             set yesopt = "-yes"
+            shift
+            breaksw
+         
+        case -de*
+            set debopt = "-debian"
+            set ubuntu = 1
             shift
             breaksw
 
@@ -99,6 +106,14 @@ switch ($system)
     case *Linux*:
         set os = linux
         set scripts = (IMOD-linux.csh IMOD-linux.sh)
+        if (! $ubuntu) then
+            set relfiles = `\find /etc -maxdepth 1 -type f -name '*release' -print`
+            if ("$relfiles" != "") then
+                set ubtest = `grep -i ubuntu $relfiles`
+                if ("$ubtest" != "") set ubuntu = 1
+            endif
+        endif
+        if ($ubuntu) set sysfiles = ($ubscripts)
         breaksw
     case *CYGWIN*:
         set os = windows
@@ -200,7 +215,7 @@ endif
 # It has to be run by tcsh for Irix; there is some bug in csh
 set retval = 0
 if ($test == 0) then
-    tcsh -f $installer -d "$installdir" $scriptopt $skipopt $g2copt $yesopt $packname
+    tcsh -f $installer -dir "$installdir" $scriptopt $skipopt $g2copt $debopt $yesopt $packname
     set retval = $status
 endif
 
@@ -231,6 +246,10 @@ Options may be abbreviated.  The options are:
   -skip        Skip copying startup scripts (Linux and Windows) or modifying
                   system startup files (Mac and SGI)
   -libg2c      Use libg2c in this IMOD package if it exists (Linux only)
+  -debian      Modify $ubscripts[1] and $ubscripts[2] instead of 
+                  copying startup scripts to /etc/profile.d and use libg2c if 
+                  not present on the system - this option is set automatically
+                  for Ubuntu
   -yes         Install this version and remove old versions without asking for
                   confirmation
   -test        Run this self-installing script but not the real install script
@@ -241,6 +260,9 @@ exit 0
 #  $Id$
 #
 #  $Log$
+#  Revision 3.17  2008/06/17 17:09:30  mast
+#  Added -yes flag for automatic installs
+#
 #  Revision 3.16  2008/01/25 23:27:19  mast
 #  Added option for using libg2c in package
 #

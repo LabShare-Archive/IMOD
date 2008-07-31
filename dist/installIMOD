@@ -1,9 +1,7 @@
 #!/bin/tcsh -f
 #
 # Multi-platform install script for IMOD. 
-# Usage : installIMOD [-d install_dir] [package name]
-# If run with no package name, it will look for a package in the current 
-# directory and try to install it if there is only one.
+# Run with -help option to see options
 #
 #  $Id$
 #
@@ -15,12 +13,14 @@ set custom = 0
 set skipcopy = 0
 set keepg2c = 0
 set yesopt = 0
+set ubuntu = 0
+set ubscripts = (/etc/csh.cshrc /etc/bash.bashrc)
 
 # First peel off any recognized arguments
 #
 while ($#argv > 0) 
     switch ($argv[1])
-        case -d*:
+        case -di*:
             set installdir = "$argv[2]"
             shift; shift
             breaksw
@@ -45,6 +45,11 @@ while ($#argv > 0)
 
         case -y*:
             set yesopt = 1
+            shift
+            breaksw
+
+        case -de*
+            set ubuntu = 1
             shift
             breaksw
 
@@ -105,6 +110,18 @@ switch ($system)
     case *Linux*:
         set os = linux
         set scripts = (IMOD-linux.csh IMOD-linux.sh)
+        set relfiles = `\find /etc -maxdepth 1 -type f -name '*release' -print`
+        if (! $ubuntu) then
+            set relfiles = `\find /etc -maxdepth 1 -type f -name '*release' -print`
+            if ("$relfiles" != "") then
+                set ubtest = `grep -i ubuntu $relfiles`
+                if ("$ubtest" != "") set ubuntu = 1
+            endif
+        endif
+        if ($ubuntu) then
+            set sysfiles = ($ubscripts)
+            set scripts = (ubuntu.cshrc ubuntu.bashrc IMOD-linux.csh IMOD-linux.sh)
+        endif
         breaksw
     case *CYGWIN*:
         set os = windows
@@ -150,7 +167,7 @@ if ($os != $packos) then
 endif
 
 set sysdir = /etc
-if ($os == linux || $os == windows) set sysdir = /etc/profile.d
+if (($os == linux && ! $ubuntu) || $os == windows) set sysdir = /etc/profile.d
 if ("$scriptdir" != "") set sysdir = "$scriptdir"
 
 if (! -d "$installdir") then
@@ -281,7 +298,19 @@ set installstr = `echo $installdir/IMOD | sed '/\//s//\\\//g'`
 
 cd IMOD
 
-# Edit scripts in place before copying; needed on mac/sgi
+# Make the ubuntu scripts
+#
+if ($ubuntu) then
+    echo "if (-e $defaultdir/IMOD/$scripts[3]) source $defaultdir/IMOD/$scripts[3]" >! $scripts[1]
+    echo "[ -r $defaultdir/IMOD/$scripts[4] ] && source $defaultdir/IMOD/$scripts[4]" >! $scripts[2]
+    if (! $skipcopy && \
+      (-e /etc/profile.d/$scripts[3] || -e /etc/profile.d/$scripts[4])) then
+        echo "Removing $scripts[3] and $scripts[4] from /etc/profile.d"
+        \rm -f /etc/profile.d/$scripts[3] /etc/profile.d/$scripts[4]
+    endif
+endif
+
+# Edit scripts in place before copying
 #
 if ($custom == 1) then
     echo "Editing startup scripts for custom install location"
@@ -291,7 +320,7 @@ if ($custom == 1) then
     end
 endif    
 
-if (($os == windows || $os == linux || "$scriptdir" != "") && ! $skipcopy) then
+if (($os == windows || ($os == linux && ! $ubuntu) || "$scriptdir" != "") && ! $skipcopy) then
 
     # The easy ones: copy to /etc/profile.d or designated place
     #
@@ -329,8 +358,8 @@ else if (! $skipcopy) then
                     grep -i "^[^#].*source.*imod" $sysfil
                     echo ""
                 endif
-                echo "Adding source of startup script to $sysfil"
-                echo "# Set environment for IMOD" >> $sysfil
+                echo "Adding source of startup script $scripts[$ind] to $sysfil"
+                echo "\n# Set environment for IMOD" >> $sysfil
                 tail -n 2 $scripts[$ind] >> $sysfil
             else
                 echo "Source command already exists in $sysfil"
@@ -377,6 +406,13 @@ if ($os == linux) then
     set syshas = `\find $g2cdir -maxdepth 1 -name 'libg2c.so*' -print`
     set packhas = `\find lib -maxdepth 1 -name '*libg2c.so*' -print`
 
+    # For ubuntu, set keepg2c if library not on the system
+    #
+    if ($ubuntu && "$syshas" == "" && ! $keepg2c) then
+        echo "\nUsing the libg2c in this package because there is none on the system."
+        set keepg2c = 1
+    endif
+
     # Delete the package even if it is on the system if no keep option given
     # Otherwise rename to get rid of concealing name
     #
@@ -411,6 +447,10 @@ if ($os == linux) then
         echo "         You should install a system package for this if at all possible."
         echo "         Otherwise, reinstall IMOD from a package that has libg2c."
     endif
+
+    # Manage link to libtiff.so.4 if it exists and so.3 does not
+    set libtiff = "$g2cdir/libtiff.so"
+    if (! -e "$libtiff.3" && -e "$libtiff.4") ln -s "$libtiff.4" lib/libtiff.so.3
 endif
 
 # List files and offer to clean up
@@ -454,6 +494,10 @@ Usage: installIMOD [options] [package file name]
     -script dir  Directory in which to place the IMOD startup scripts
     -skip        Skip copying startup scripts or modifying system startup files
     -libg2c      Use libg2c in this IMOD package if it exists (Linux only)
+    -debian      Modify $ubscripts[1] and $ubscripts[2] instead of 
+                   copying startup scripts to /etc/profile.d and use libg2c if 
+                   not present on the system - this option is set automatically
+                   for Ubuntu
     -ues         Remove older versions without asking for confirmation
     -h, --help   Print this help
 EOF
@@ -461,6 +505,9 @@ exit 0
 
 #
 #  $Log$
+#  Revision 3.22  2008/06/17 17:09:30  mast
+#  Added -yes flag for automatic installs
+#
 #  Revision 3.21  2008/01/26 02:02:49  mast
 #  Made it rename libg2c from imod- so it is inactive if someone just untars
 #
