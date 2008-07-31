@@ -4,7 +4,7 @@
   <title>IMOD User's Guide</title>
 </head>
 <body>
-<h1 align="center">IMOD User's Guide for Version 3.11 </h1>
+<h1 align="center">IMOD User's Guide for Version 3.12.16 </h1>
 <h3 align="center">Boulder Laboratory for 3-D Electron Microscopy of
 Cells</h3>
 <hr>
@@ -109,13 +109,16 @@ higher due to security concerns<br>
     <br>
     </p>
     <p><b>Nvidia installation.</b> Installing Nvidia
-drivers is now fairly straightforward except under Fedora Core 6, but
+drivers is now fairly straightforward, but
 here are some <a href="nvidia_install.txt">instructions</a> that may
 be helpful. The latest versions of the drivers change the Driver line
 in /etc/X11/xorg.conf from "nv" to "nvidia" if you accept their offer
 to modify the file.&nbsp; In
 addition, here is a sample of a <a href="xorg.conf-FC.txt">/etc/X11/xorg.conf</a>
-file from Fedora Core 4, set up to use an old 24-inch Sony monitor.</p>
+file from Fedora Core 4, set up to use an old 24-inch Sony
+monitor.&nbsp; On Ubuntu, the installation through Synaptic Package
+Manager should be adequate.<br>
+    </p>
   </dd>
 </dl>
 <dl>
@@ -145,7 +148,10 @@ rely on yet.&nbsp; To install this, use:</p>
 available (such as on Suse 10.3), then add the <code>-libg2c</code>
 option to the command line when you install IMOD, and a copy of this
 library inside IMOD will be used if it is available in the package that
-you are installing from.<br>
+you are installing from.&nbsp; On Ubuntu, the library is available if
+you install g77 itself, but do not bother with this; the IMOD install
+script will automatically apply the <code>-libg2c </code>option on
+Ubuntu if the library is not on the system.<br>
   </dd>
   <dd>
     <p>If you are running an IMOD built under FC2, you also
@@ -160,7 +166,22 @@ can be set to display only the outline and not the contents of
 windows when they are moved or resized.&nbsp; This cannot be done under
 Gnome but it can under KDE, by opening up the
 Control Center and selecting "Look and Feel" or "Desktop" (depending on
-KDE version), then "Window Behavior" then the "Moving" panel. </p>
+KDE version), then "Window Behavior" then the "Moving" panel.&nbsp;
+Both <code>3dmod</code> and <code>eTomo</code> have problems under
+Compiz, so you should disable this.&nbsp; On Ubuntu, open the menu
+entry System - Preferences - Visual Effects and select "No effects".<br>
+    </p>
+  </dd>
+  <dd>
+    <p><span style="font-weight: bold;">tcsh for Ubuntu.</span> You
+must install <code>tcsh </code>even if you also have <code>csh </code>installed.&nbsp;
+Things should work with both installed, but it would be safer to have
+only <code>tcsh</code>.&nbsp; You can install <code>tcsh </code>through
+the Synaptic Package Manager or with:</p>
+  </dd>
+  <dd>
+    <p>&nbsp;&nbsp; <code>sudo apt-get install tcsh</code><br>
+    </p>
     <a name="InstallingLinuxSGI">
     <h4>Installing IMOD on a Linux PC<br>
     </h4>
@@ -169,10 +190,15 @@ KDE version), then "Window Behavior" then the "Moving" panel. </p>
 under <code>/usr/local</code>
 unless given an alternate location to <code>/usr/local</code> with the
     <code>-dir</code>
-option.&nbsp; It will copy <code>IMOD-linux.sh </code>and <code>IMOD-linux.csh
-    </code>to <code>/etc/profile.d</code>. unless given an alternate
+option.&nbsp; It will copy the startup scripts <code>IMOD-linux.sh </code>and
+    <code>IMOD-linux.csh </code>to <code>/etc/profile.d</code>.
+unless given an alternate
 location with the <code>-script</code> option or told to skip this
-step with the <code>-skip</code> option.&nbsp; To accomplish all
+step with the <code>-skip</code> option, or unless you are running
+Ubuntu or give the <code>-debian</code> option.&nbsp; It the latter
+cases, it will modify <code>/etc/bash.bashrc</code> and <code>/etc/csh.cshrc</code>
+to source the startup scripts from the IMOD directory, unless you give
+the <code>-skip</code> option.&nbsp; To accomplish all
 of this, change directory to the place where the package is located and
 enter, for example:<br>
 &nbsp;&nbsp;&nbsp;&nbsp; <code>sudo csh </code><code>-f
@@ -240,11 +266,31 @@ shows up as <code> IMOD -&gt; imod_2.7.6</code>), then enter <br>
 Otherwise, rename the existing directory, e.g.: <br>
         <code> mv IMOD oldIMOD</code> </li>
       <li><code> ln -s imod_3.11.2 IMOD</code> </li>
-      <li> <code>cp IMOD/IMOD-linux.* /etc/profile.d</code> <code></code></li>
+      <li>Except on Ubuntu and other Debian systems,<br>
+        <code>cp IMOD/IMOD-linux.* /etc/profile.d</code> <code></code></li>
     </ol>
   </dd>
 </dl>
 <dl>
+</dl>
+<dl>
+</dl>
+<dl>
+  <dd>On Ubuntu when installing manually, instead of step 8, you would
+insert commands into <code>/etc/csh.cshrc</code> and <code>/etc/bash.bashrc</code>
+just like those given above for inserting in users' <code>.cshrc</code>
+and <code>.bash_profile</code> files, respectively.&nbsp; If your
+system does not have <code>/usr/lib/libtiff.so.3</code>, then<br>
+    <code>&nbsp;&nbsp; cd $IMOD_DIR/lib<br>
+&nbsp;&nbsp; sudo ln -s /usr/lib/libtiff.so.4 libtiff.so.3<br>
+    </code>If your Ubuntu system does not have <code>/usr/lib/libg2c.so</code>,
+then rename each of the <code>libg2c</code> files in the IMOD <code>lib</code>
+directory, for example:<br>
+    <code>cd $IMOD_DIR/lib<br>
+sudo mv imod-libg2c.so libg2c.so<br>
+    </code><code>sudo mv imod-libg2c.so.0 libg2c.so.0</code><br>
+    <code>sudo mv imod-libg2c.so.0.0.0 libg2c.so.0.0.0</code><br>
+  </dd>
 </dl>
 <dl>
   <dd>Finally, if you just want to try running the programs in a
@@ -299,7 +345,13 @@ by the next release of IMOD.&nbsp; Sun's JRE version 1.5.0_6
 is
 available <a
  href="http://bio3d.colorado.edu/imod/java/jre-1_5_0_06-linux-i586.bin">here</a>&nbsp;for
-Linux. <br>
+Linux.&nbsp;&nbsp; On Ubuntu, the <code>sun-java6-jre</code> package
+available in the Synaptic Package Manager seems to work well; however,
+if you do want to install a Sun package in <code>/usr/local</code>
+instead, then be aware that you need a 64-bit version for a 64-bit
+system.&nbsp; Sun's 64-bit JRE version 1.6.0_7 is available <a
+ href="http://bio3d.colorado.edu/imod/java/jre-6u7-linux-x64.bin">here</a>;&nbsp;
+if you use this, modify all the commands given next appropriately.<br>
   <br>
   <span style="font-family: monospace;"><code></code></span>To
 install the JRE for Linux first move the <code><span
