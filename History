@@ -1,5 +1,7 @@
 IMOD History
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+8/1/08: Fixed bug in drawing large non-integer zooms in nonHQ display.
+
 7/31/08: IMOD_3-12-16
 7/31/08: Modified install script for Ubuntu to avoid using /etc/profile.d and 
 to take care of libtiff and libg2c problems.
