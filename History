@@ -1,5 +1,9 @@
 IMOD History
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+7/31/08: IMOD_3-12-16
+7/31/08: Modified install script for Ubuntu to avoid using /etc/profile.d and 
+to take care of libtiff and libg2c problems.
+
 7/30/08: Fixed the stay-on-top function in Info window, broken 5/26/08.
 
 7/24/08: In Etomo - Tomogram Positioning boundary model contours are now
