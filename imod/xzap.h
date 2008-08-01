@@ -122,6 +122,7 @@ typedef struct zapwin
 
 void zapClosing(ZapStruct *zap);
 void zapPaint(ZapStruct *zap);
+void zapDraw(ZapStruct *zap);
 void zapResize(ZapStruct *zap, int winx, int winy);
 void zapKeyInput(ZapStruct *zap, QKeyEvent *e);
 void zapKeyRelease(ZapStruct *zap, QKeyEvent *e);
@@ -152,6 +153,9 @@ void zapSetMouseTracking();
 
 /*
 $Log$
+Revision 3.30  2008/02/06 16:33:48  sueh
+bug# 1065 In zapPrintInfo made printing the info optional.
+
 Revision 3.29  2008/01/25 20:22:58  mast
 Changes for new scale bar
 

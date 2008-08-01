@@ -53,7 +53,6 @@ static void zapDraw_cb(ImodView *vi, void *client, int drawflag);
 
 static void zapClose_cb(ImodView *vi, void *client, int drawflag);
 static void zapKey_cb(ImodView *vi, void *client, int released, QKeyEvent *e);
-static void zapDraw(ZapStruct *zap);
 static void zapAnalyzeBandEdge(ZapStruct *zap, int ix, int iy);
 static int checkPlugUseMouse(ZapStruct *zap, QMouseEvent *event, int but1, 
                              int but2, int but3);
@@ -510,9 +509,9 @@ static void zapFlushImage(ZapStruct *zap)
 /* 1/29/03: removed the resize and expose hack code and the report time code */
 
 /*
- * This is the central drawing routine called from in the module
+ * This is the central drawing routine called from in the module or imodview
  */
-static void zapDraw(ZapStruct *zap)
+void zapDraw(ZapStruct *zap)
 {
   zap->gfx->updateGL();
 }
@@ -1539,9 +1538,19 @@ void zapMouseRelease(ZapStruct *zap, QMouseEvent *event)
   int imz, button1, button2, button3, ifdraw = 0, drew = 0;
   bool needDraw;
   float imx, imy;
+  static QTime relTime;
   button1 = event->button() == ImodPrefs->actualButton(1) ? 1 : 0;
   button2 = event->button() == ImodPrefs->actualButton(2) ? 1 : 0;
   button3 = event->button() == ImodPrefs->actualButton(3) ? 1 : 0;
+
+  if (imodDebug('z')) {
+    if (relTime.isNull())
+      relTime.start();
+    else {
+      imodPrintStderr("Inter-release time %d msec\n", relTime.elapsed());
+      relTime.restart();
+    }
+  }
 
   if (zap->shiftRegistered) {
     zap->shiftRegistered = 0;
@@ -3816,7 +3825,7 @@ static void zapDrawGraphics(ZapStruct *zap)
                              zap->xdrawsize, zap->ydrawsize,
                              zap->image,
                              vi->rampbase, 
-                             zap->zoom, zap->zoom,
+                             (double)zap->zoom, (double)zap->zoom,
                              zap->hqgfx, zap->section, rgba);
   } else {
 
@@ -4510,6 +4519,9 @@ static int zapPointVisable(ZapStruct *zap, Ipoint *pnt)
 /*
 
 $Log$
+Revision 4.123  2008/07/16 04:29:46  mast
+Made drag drawing respect contour limit
+
 Revision 4.122  2008/05/27 05:41:12  mast
 Adapted to gray-scale snapshot, fixed current point change on mouse up
 
