@@ -250,6 +250,13 @@ int DLL_EX_IM ivwSetTopZapZslice(ImodView *inImodView, int inZ);
 int DLL_EX_IM ivwGetTopZapZoom(ImodView *inImodView, float *outZoom);
 
 /*!
+ * Sets the zoom of the top Zap window to [inZoom] and redraws that Zap window
+ * if [draw] is {true}.  Returns 1 if there is no Zap window or the zoom value
+ * is out of the range 0.005 to 200.
+ */
+int DLL_EX_IM ivwSetTopZapZoom(ImodView *inImodView, float inZoom, bool draw);
+
+/*!
  * Returns the image coordinates of the mouse in the top Zap window in 
  * [imagePt].  The X and Y coordinates may be out of range if the mouse is 
  * outside the graphics area.  The return value is 1 if there is no Zap window.
@@ -319,6 +326,9 @@ int DLL_EX_IM prefGetGenericSettings(char *key, double *values, int maxVals);
 /* 
 
 $Log$
+Revision 1.18  2008/06/20 16:12:22  mast
+Documentation fix
+
 Revision 1.17  2008/05/27 05:44:11  mast
 Added tilt angle reading and access functions
 

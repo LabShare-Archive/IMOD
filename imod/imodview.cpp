@@ -2482,6 +2482,17 @@ int ivwGetTopZapZoom(ImodView *inImodView, float *outZoom)
   return 0;
 }
 
+int ivwSetTopZapZoom(ImodView *inImodView, float inZoom, bool draw)
+{
+  ZapStruct *zap = getTopZapWindow(false);
+  if (!zap || inZoom < 0.005 || inZoom > 200.)
+    return 1;
+  zap->zoom = inZoom;
+  if (draw)
+    zapDraw(zap);
+  return 0;
+}
+
 int ivwSetTopZapZslice(ImodView *inImodView, int inZ)
 {
   if (inZ < 0 || inZ >= App->cvi->zsize)
@@ -2753,6 +2764,9 @@ void ivwBinByN(unsigned char *array, int nxin, int nyin, int nbin,
 /*
 
 $Log$
+Revision 4.71  2008/07/16 04:28:17  mast
+Changed get or make contour function to get new one if point limit reached
+
 Revision 4.70  2008/07/13 16:59:36  mast
 Do not return extra object by number if it is not in use
 
