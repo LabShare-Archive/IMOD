@@ -1462,6 +1462,9 @@ void zapMousePress(ZapStruct *zap, QMouseEvent *event)
   button3 = event->stateAfter() & ImodPrefs->actualButton(3) ? 1 : 0;
   x = event->x();
   y = event->y();
+  but1downt.start();
+  firstmx = x;
+  firstmy = y;
 
   /* imodPrintStderr("click at %d %d\n", event->x(), event->y()); */
 
@@ -1500,9 +1503,6 @@ void zapMousePress(ZapStruct *zap, QMouseEvent *event)
 
   // Check for regular actions
   if (event->button() == ImodPrefs->actualButton(1)) {
-    but1downt.start();
-    firstmx = x;
-    firstmy = y;
     if (zap->shiftingCont)
       drew = startShiftingContour(zap, firstmx, firstmy, 1, ctrlDown);
     else if (zap->startingBand)
@@ -1538,19 +1538,9 @@ void zapMouseRelease(ZapStruct *zap, QMouseEvent *event)
   int imz, button1, button2, button3, ifdraw = 0, drew = 0;
   bool needDraw;
   float imx, imy;
-  static QTime relTime;
   button1 = event->button() == ImodPrefs->actualButton(1) ? 1 : 0;
   button2 = event->button() == ImodPrefs->actualButton(2) ? 1 : 0;
   button3 = event->button() == ImodPrefs->actualButton(3) ? 1 : 0;
-
-  if (imodDebug('z')) {
-    if (relTime.isNull())
-      relTime.start();
-    else {
-      imodPrintStderr("Inter-release time %d msec\n", relTime.elapsed());
-      relTime.restart();
-    }
-  }
 
   if (zap->shiftRegistered) {
     zap->shiftRegistered = 0;
@@ -1597,6 +1587,9 @@ void zapMouseRelease(ZapStruct *zap, QMouseEvent *event)
     // Button 2 and doing a drag draw - draw for real.
   } else if (button2 && !zap->numXpanels && !(ifdraw & 1) &&
              zap->vi->imod->mousemode == IMOD_MMODEL) {
+    if (imodDebug('z'))
+      imodPrintStderr("Down time %d msec\n", but1downt.elapsed());
+
     registerDragAdditions(zap);
 
     // Fix the mouse position and update the other windows finally
@@ -1635,6 +1628,7 @@ void zapMouseMove(ZapStruct *zap, QMouseEvent *event, bool mousePressed)
   int cumdx, cumdy;
   int ifdraw = 0, drew = 0;
   int cumthresh = 6 * 6;
+  int dragthresh = 10 * 10;
   int ctrlDown = event->state() & Qt::ControlButton;
   int shiftDown = event->state() & Qt::ShiftButton;
   float imx, imy;
@@ -1665,6 +1659,8 @@ void zapMouseMove(ZapStruct *zap, QMouseEvent *event, bool mousePressed)
     return;
   }
 
+  cumdx = event->x() - firstmx;
+  cumdy = event->y() - firstmy;
   button2 = button2 || insertDown ? 1 : 0;
   /*  imodPrintStderr("mb  %d|%d|%d\n", button1, button2, button3); */
 
@@ -1674,16 +1670,18 @@ void zapMouseMove(ZapStruct *zap, QMouseEvent *event, bool mousePressed)
     } else {
       /* DNM: wait for a bit of time or until enough distance moved, but if we
          do not replace original lmx, lmy, there is a disconcerting lurch */
-      cumdx = event->x() - firstmx;
-      cumdy = event->y() - firstmy;
       if ((but1downt.elapsed()) > 250 || cumdx * cumdx + cumdy * cumdy >
           cumthresh)
         drew = zapB1Drag(zap, event->x(), event->y());
     }
   }
 
-  if ( (!button1) && (button2) && (!button3))
-    drew = zapB2Drag(zap, event->x(), event->y(), ctrlDown);
+  // DNM 8/1/08: Reject small movements soon after the button press
+  if ( (!button1) && (button2) && (!button3)) {
+    if ((but1downt.elapsed()) > 150 || cumdx * cumdx + cumdy * cumdy > 
+        dragthresh)
+      drew = zapB2Drag(zap, event->x(), event->y(), ctrlDown);
+  }
   
   if ( (!button1) && (!button2) && (button3))
     drew = zapB3Drag(zap, event->x(), event->y(), ctrlDown, shiftDown);
@@ -4519,6 +4517,9 @@ static int zapPointVisable(ZapStruct *zap, Ipoint *pnt)
 /*
 
 $Log$
+Revision 4.124  2008/08/01 15:37:55  mast
+Moved draw routine to global so imodview can draw top zap
+
 Revision 4.123  2008/07/16 04:29:46  mast
 Made drag drawing respect contour limit
 
