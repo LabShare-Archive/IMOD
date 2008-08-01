@@ -33,7 +33,7 @@ static void b3dDrawGreyScalePixels15
  B3dCIImage *image,        /* tmp image data. */
  int base, int slice, int rgba
  );
-static void getCubicFactors(float cx, int xsize, int &pxi, int &xi, int &nxi,
+static void getCubicFactors(double cx, int xsize, int &pxi, int &xi, int &nxi,
                             int &nxi2, float &fx1, float &fx2, float &fx3,
                             float &fx4);
 
@@ -446,7 +446,6 @@ void b3dBufferImage(B3dCIImage *image)
   /* DNM 1/20/02: removed factor of 2 from malloc */
   image->id2 = (unsigned short *)malloc
     ((image->width + 3) * (image->height + 3) * pixsize);
-
   /* DNM 3/12/03: only commit to having two buffers if it succeeded */
   if (image->id2)
     image->bufSize = 2;
@@ -1070,11 +1069,12 @@ void b3dDrawGreyScalePixelsHQ(unsigned char **dataPtrs,  /* input data lines */
   int dwidth = (int)(width * zoom);
   int dheight= (int)(height * zoom);
   int xi, yi, pyi, nyi;
-  int i, j, izs, xistop;
+  int i, j, izs, xistop, istop;
+  int *xindex;
      
-  float cx, cy;                            /* current x,y values          */
-  float zs    = 1.0f/(float)zoom;          /* zoom step for x,y           */
-  float trans = -(0.5 - (0.5 * zs));       /* translate offset. */
+  double cx, cy;                            /* current x,y values          */
+  double zs    = 1.0/zoom;                 /* zoom step for x,y           */
+  float trans = -(float)(0.5 - (0.5 * zs));       /* translate offset. */
   float xstop = xoffset + width + trans; /* stop at this x coord.   */
   float ystop = yoffset + height + trans; /* stop at this y coord. */
   unsigned short rbase = base;
@@ -1256,23 +1256,30 @@ void b3dDrawGreyScalePixelsHQ(unsigned char **dataPtrs,  /* input data lines */
       if (xistop > xsize)
         xistop = xsize;
 
-      for(j = 0, cy = yoffset + trans; cy < ystop; cy += zs, j++) {
+      /* DNM 8/1/08: precompute the X indexes */
+      if (!izs) {
+        xindex = (int *)malloc((drawwidth + 4) * sizeof(int));
+        if (!xindex)
+          return;
+        for (i = 0, cx = xoffset + trans; cx < xstop && i < drawwidth;
+             cx += zs, i++)
+          xindex[i] = (int)(cx + 0.5);
+        istop = i;
+      }
+
+      for (j = 0, cy = yoffset + trans; cy < ystop && j < dheight;
+          cy += zs, j++) {
 	yi = (int)(cy + 0.5);
 	ibase = j * drawwidth;
         xi = (int)(xoffset + trans + 0.5);
-
-	switch(unpack){
+	switch(unpack) {
 	case 1:
           if (izs) {
             for (i = 0; xi < xistop; xi += izs, i++)
               bdata[i + ibase] = dataPtrs[yi][xi];
-          } 
-          else {
-            for(i = 0, cx = xoffset + trans; 
-                cx < xstop; cx += zs, i++){
-              xi = (int)(cx + 0.5);
-              bdata[i + ibase] = dataPtrs[yi][xi];
-            }
+          } else {
+            for (i = 0; i < istop; i++) 
+              bdata[i + ibase] = dataPtrs[yi][xindex[i]];
           }
 	  for (; i && i < drawwidth; i++)
 	    bdata[i + ibase] = 	bdata[i + ibase - 1];
@@ -1282,13 +1289,9 @@ void b3dDrawGreyScalePixelsHQ(unsigned char **dataPtrs,  /* input data lines */
           if (izs) {
             for (i = 0; xi < xistop; xi += izs, i++)
               sdata[i + ibase] = dataPtrs[yi][xi] + rbase;
-          } 
-          else {
-            for(i = 0, cx = xoffset + trans; 
-                cx < xstop; cx += zs, i++){
-              xi = (int)(cx + 0.5);
-              sdata[i + ibase] = dataPtrs[yi][xi] + rbase;
-            }
+          } else {
+            for (i = 0; i < istop; i++) 
+              sdata[i + ibase] = dataPtrs[yi][xindex[i]] + rbase;
           }
 	  for (; i && i < drawwidth; i++)
 	    sdata[i + ibase] = 	sdata[i + ibase - 1];
@@ -1300,13 +1303,9 @@ void b3dDrawGreyScalePixelsHQ(unsigned char **dataPtrs,  /* input data lines */
             if (izs) {
               for (i = 0; xi < xistop; xi += izs, i++)
                 idata[i + ibase] = cindex[dataPtrs[yi][xi]];
-            } 
-            else {
-              for(i = 0, cx = xoffset + trans; 
-                  cx < xstop; cx += zs, i++){
-                xi = (int)(cx + 0.5);
-                idata[i + ibase] = cindex[dataPtrs[yi][xi]];
-              }
+            }  else {
+              for (i = 0; i < istop; i++) 
+                idata[i + ibase] = cindex[dataPtrs[yi][xindex[i]]];
             }
 	    break;
 
@@ -1321,12 +1320,9 @@ void b3dDrawGreyScalePixelsHQ(unsigned char **dataPtrs,  /* input data lines */
                 *bidata++ = *bptr++;
                 *bidata++ = 0;
               }
-            } 
-            else {
-              for(i = 0, cx = xoffset + trans; 
-                  cx < xstop; cx += zs, i++){
-                xi = (int)(cx + 0.5);
-                bptr = bdata + 3 * xi;
+            } else {
+              for (i = 0; i < istop; i++) {
+                bptr = bdata + 3 * xindex[i];
                 *bidata++ = *bptr++;
                 *bidata++ = *bptr++;
                 *bidata++ = *bptr++;
@@ -1340,13 +1336,9 @@ void b3dDrawGreyScalePixelsHQ(unsigned char **dataPtrs,  /* input data lines */
             if (izs) {
               for (i = 0; xi < xistop; xi += izs, i++)
                 idata[i + ibase] = rgbadata[xi];
-            } 
-            else {
-              for(i = 0, cx = xoffset + trans; 
-                  cx < xstop; cx += zs, i++){
-                xi = (int)(cx + 0.5);
-                idata[i + ibase] = rgbadata[xi];
-              }
+            } else {
+              for (i = 0; i < istop; i++)
+                idata[i + ibase] = rgbadata[xindex[i]];
             }
 	    break;
 	  }
@@ -1356,17 +1348,18 @@ void b3dDrawGreyScalePixelsHQ(unsigned char **dataPtrs,  /* input data lines */
 	  break;
 	}
       }
-
       
       /* Fill the top if necessary */
       for (; j && j < dheight; j++) {
 	bdata = (unsigned char *)sdata + unpack * j * drawwidth;
 	memcpy(bdata, bdata - unpack * drawwidth, unpack * drawwidth);
       }
+      if (!izs)
+        free(xindex);
     }
   }
-  /* imodPrintStderr("HQ wx %d wy %d dwidth %d dheight %d window %d %d\n",
-     wxdraw, wy, drawwidth, dheight, CurWidth, CurHeight); */
+  /*imodPrintStderr("HQ wx %d wy %d dwidth %d dheight %d window %d %d\n",
+    wxdraw, wy, drawwidth, dheight, CurWidth, CurHeight);*/
 
   glPixelZoom((GLfloat)1.0f, (GLfloat)1.0f); 
 #ifndef CHUNKDRAW_HACK
@@ -1380,7 +1373,7 @@ void b3dDrawGreyScalePixelsHQ(unsigned char **dataPtrs,  /* input data lines */
   return;
 }
 
-static void getCubicFactors(float cx, int xsize, int &pxi, int &xi, int &nxi,
+static void getCubicFactors(double cx, int xsize, int &pxi, int &xi, int &nxi,
                             int &nxi2, float &fx1, float &fx2, float &fx3,
                             float &fx4)
 {
@@ -1390,7 +1383,7 @@ static void getCubicFactors(float cx, int xsize, int &pxi, int &xi, int &nxi,
   pxi = B3DMAX(0, xi - 1);
   nxi = B3DMIN(xsize - 1, xi + 1);
   nxi2 = B3DMIN(xsize - 1, xi + 2);
-  dx = cx - (float)xi;
+  dx = (float)(cx - xi);
   dxm1 = dx - 1.f;
   dxdxm1 = dx * dxm1;
   fx1 = -dxm1 * dxdxm1;
@@ -2065,6 +2058,9 @@ int b3dSnapshot(QString fname)
 
 /*
 $Log$
+Revision 4.39  2008/05/27 05:37:56  mast
+Added ability to snapshot RGB as gray-scale
+
 Revision 4.38  2008/05/23 04:31:21  mast
 Changed to allow nontiff montage snapshots
 
