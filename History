@@ -1,5 +1,8 @@
 IMOD History
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+8/18/08: In Etomo - Join added the Finishjoin option -local, which causes Xftorg
+to do local fits to 7 adjacent sections.
+
 8/18/08: Fixed ability to delete surface and point labels.
 
 8/18/08: Fixed chunk size value written to model file for labels.
