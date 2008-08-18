@@ -12,6 +12,7 @@ import etomo.type.ConstIntKeyList;
 import etomo.type.ConstJoinMetaData;
 import etomo.type.ConstJoinState;
 import etomo.type.ConstSectionTableRowData;
+import etomo.type.EtomoBoolean2;
 import etomo.type.EtomoNumber;
 import etomo.type.IntKeyList;
 import etomo.type.ScriptParameter;
@@ -33,6 +34,10 @@ import etomo.util.DatasetFiles;
  * @version $Revision$
  * 
  * <p> $Log$
+ * <p> Revision 1.32  2008/05/22 00:13:33  sueh
+ * <p> bug# 1110 In genRejoinOptions handling this bug by telling the user how
+ * <p> fix the damage done by this bug (rerunning Finish Join).
+ * <p>
  * <p> Revision 1.31  2008/03/21 17:08:34  sueh
  * <p> bug# 1101 Put "tcsh -f" back.
  * <p>
@@ -210,6 +215,7 @@ public final class FinishjoinParam implements CommandDetails {
   //set in getRejoinOptions
   private IntKeyList refineStartList = null;
   private IntKeyList refineEndList = null;
+  private EtomoBoolean2 localFits = null;
 
   public FinishjoinParam(JoinManager manager, Mode mode) {
     this(manager, mode, 1);
@@ -283,6 +289,9 @@ public final class FinishjoinParam implements CommandDetails {
     }
     if (field == Fields.USE_EVERY_N_SLICES) {
       return useEveryNSlices;
+    }
+    if (field == Fields.LOCAL_FITS) {
+      return localFits;
     }
     throw new IllegalArgumentException("field=" + field);
   }
@@ -377,8 +386,9 @@ public final class FinishjoinParam implements CommandDetails {
   }
 
   /**
-   * Generates options and sets the member variables (except refine start and
-   * end lists).
+   * For calls from the Join tab.  Generates options and sets the member
+   * variables (except refine start and end lists).  For rejoin see
+   * genRejoinOptions.
    * @return
    */
   private ArrayList genOptions() {
@@ -407,6 +417,11 @@ public final class FinishjoinParam implements CommandDetails {
       //offset is a negative shift
       options.add(Integer.toString(shiftInX.getInt() * -1) + ","
           + Integer.toString(shiftInY.getInt() * -1));
+    }
+    localFits = new EtomoBoolean2();
+    if (metaData.isLocalFits()) {
+      localFits.set(true);
+      options.add("-l");
     }
     if (mode == Mode.MAX_SIZE) {
       options.add("-m");
@@ -437,7 +452,8 @@ public final class FinishjoinParam implements CommandDetails {
   }
 
   /**
-   * Generates the options using the state.  Saves refine start and end lists.
+   * For calls from the Model and Rejoin tabs.  Generates the options using the
+   * state.  Saves refine start and end lists.
    * @return
    */
   private ArrayList genRejoinOptions() {
@@ -465,6 +481,9 @@ public final class FinishjoinParam implements CommandDetails {
       //offset is a negative shift
       options.add(Integer.toString(state.getJoinShiftInX(trial).getInt() * -1)
           + "," + Integer.toString(state.getJoinShiftInY(trial).getInt() * -1));
+    }
+    if (state.isJoinLocalFits(trial)) {
+      options.add("-l");
     }
     if (mode == Mode.TRIAL_REJOIN) {
       ConstJoinMetaData metaData = manager.getConstMetaData();
@@ -551,6 +570,7 @@ public final class FinishjoinParam implements CommandDetails {
     public static final Fields REFINE_START_LIST = new Fields();
     public static final Fields REFINE_END_LIST = new Fields();
     public static final Fields USE_EVERY_N_SLICES = new Fields();
+    public static final Fields LOCAL_FITS = new Fields();
 
     private Fields() {
     }
