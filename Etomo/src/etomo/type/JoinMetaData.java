@@ -25,6 +25,10 @@ import etomo.util.Utilities;
  * @version $Revision$
  * 
  * <p> $Log$
+ * <p> Revision 1.11  2007/12/10 22:36:34  sueh
+ * <p> bug# 1041 Made Const class an interface so inheritance can come from
+ * <p> BaseMetaData.
+ * <p>
  * <p> Revision 1.10  2007/07/30 22:39:52  sueh
  * <p> bug# 963 Added DatasetFiles.JOIN_DATA_FILE_EXT.
  * <p>
@@ -157,6 +161,8 @@ public final class JoinMetaData extends BaseMetaData implements
       EtomoNumber.Type.INTEGER, "ShiftInX");
   private ScriptParameter shiftInY = new ScriptParameter(
       EtomoNumber.Type.INTEGER, "ShiftInY");
+  //FinishJoin -local.  Checkbox in Join tab.
+  private final EtomoBoolean2 localFits = new EtomoBoolean2("LocalFits");
   private EtomoNumber useEveryNSlices = new EtomoNumber(
       EtomoNumber.Type.INTEGER, "UseEveryNSlices");
   private final ScriptParameter trialBinning = new ScriptParameter(
@@ -234,6 +240,8 @@ public final class JoinMetaData extends BaseMetaData implements
     sizeInY.reset();
     shiftInX.reset();
     shiftInY.reset();
+    localFits.reset();
+    localFits.reset();
     trialBinning.reset();
     rejoinTrialBinning.reset();
     gap.reset();
@@ -275,6 +283,7 @@ public final class JoinMetaData extends BaseMetaData implements
     sizeInY.load(props, prepend);
     shiftInX.load(props, prepend);
     shiftInY.load(props, prepend);
+    localFits.load(props,prepend);
     useEveryNSlices.load(props, prepend);
     trialBinning.load(props, prepend);
     rejoinTrialBinning.load(props, prepend);
@@ -370,6 +379,10 @@ public final class JoinMetaData extends BaseMetaData implements
 
   public void setPointsToFitMin(String pointsToFitMin) {
     this.pointsToFitMin.set(pointsToFitMin);
+  }
+  
+  public void setLocalFits(boolean input) {
+    localFits.set(input);
   }
 
   public void setGapEnd(String gapEnd) {
@@ -505,6 +518,7 @@ public final class JoinMetaData extends BaseMetaData implements
     sizeInY.store(props, prepend);
     shiftInX.store(props, prepend);
     shiftInY.store(props, prepend);
+    localFits.store(props,prepend);
     useEveryNSlices.store(props, prepend);
     trialBinning.store(props, prepend);
     rejoinTrialBinning.store(props, prepend);
@@ -790,6 +804,10 @@ public final class JoinMetaData extends BaseMetaData implements
 
   public ConstEtomoNumber getShiftInY() {
     return shiftInY;
+  }
+  
+  public boolean isLocalFits() {
+    return localFits.is();
   }
 
   public ScriptParameter getShiftInYParameter() {
