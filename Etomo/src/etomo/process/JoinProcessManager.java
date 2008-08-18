@@ -38,6 +38,10 @@ import etomo.util.DatasetFiles;
  * @version $Revision$
  *
  * <p> $Log$
+ * <p> Revision 1.25  2008/05/03 00:41:41  sueh
+ * <p> bug# 847 Passing a ProcessSeries instance to all processes that use
+ * <p> process objects.  The goal is to pass then back to process done functions.
+ * <p>
  * <p> Revision 1.24  2008/01/31 20:18:33  sueh
  * <p> bug# 1055 throwing a FileException when LogFile.getInstance fails.
  * <p>
@@ -383,6 +387,8 @@ public final class JoinProcessManager extends BaseProcessManager {
               .getEtomoNumber(FinishjoinParam.Fields.SHIFT_IN_X));
           state.setJoinShiftInY(trial, processDetails
               .getEtomoNumber(FinishjoinParam.Fields.SHIFT_IN_Y));
+          state.setJoinLocalFits(trial, processDetails
+              .getEtomoNumber(FinishjoinParam.Fields.LOCAL_FITS));
           state.setJoinStartList(trial, processDetails
               .getIntKeyList(FinishjoinParam.Fields.JOIN_START_LIST));
           state.setJoinEndList(trial, processDetails
