@@ -12,7 +12,10 @@ package etomo.type;
 * 
 * @version $Revision$
 * 
-* <p> $Log$ </p>
+* <p> $Log$
+* <p> Revision 1.1  2007/02/05 23:24:38  sueh
+* <p> bug# 962 Const interface for JoinState.
+* <p> </p>
 */
 public interface ConstJoinState {
   public static  final String  rcsid =  "$Id$";
@@ -21,6 +24,7 @@ public interface ConstJoinState {
   public IntKeyList.Walker getJoinEndListWalker(boolean trial);
   public ConstEtomoNumber getJoinShiftInX(boolean trial);
   public ConstEtomoNumber getJoinShiftInY(boolean trial);
+  public boolean isJoinLocalFits(boolean trial);
   public ScriptParameter getJoinShiftInXParameter(boolean trial);
   public ScriptParameter getJoinShiftInYParameter(boolean trial);
   public ConstEtomoNumber getJoinTrialBinning();
