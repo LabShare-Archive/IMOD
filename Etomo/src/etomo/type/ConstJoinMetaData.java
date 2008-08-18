@@ -16,6 +16,9 @@ import java.util.ArrayList;
  * @version $Revision$
  * 
  * <p> $Log$
+ * <p> Revision 1.15  2007/12/10 22:34:49  sueh
+ * <p> bug# 1041 Made class an interface so inheritance can come from BaseMetaData.
+ * <p>
  * <p> Revision 1.14  2007/07/30 22:39:30  sueh
  * <p> bug# 963 Added DatasetFiles.JOIN_DATA_FILE_EXT.
  * <p>
@@ -164,6 +167,7 @@ public interface  ConstJoinMetaData  {
   public ConstEtomoNumber getSizeInX();
   public ConstEtomoNumber getShiftInY();
   public ConstEtomoNumber getSizeInY();
+  public boolean isLocalFits();
   public ConstEtomoNumber getUseEveryNSlices();
   public ConstEtomoNumber getRejoinUseEveryNSlices();
   public ConstEtomoNumber getTrialBinning();
