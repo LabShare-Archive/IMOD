@@ -57,6 +57,10 @@ import etomo.util.DatasetFiles;
  * @version $Revision$
  *
  * <p> $Log$
+ * <p> Revision 1.60  2008/06/24 20:09:42  sueh
+ * <p> bug# 1102 Changed tabPane from JTabbedPane to TabbedPane, so it can
+ * <p> name itself.
+ * <p>
  * <p> Revision 1.59  2008/06/20 20:06:19  sueh
  * <p> Removed an old setDebug(true) call.
  * <p>
@@ -494,6 +498,7 @@ public final class JoinDialog implements ContextMenu, Run3dmodButtonContainer {
   private LabeledTextField ltfSizeInY;
   private LabeledTextField ltfShiftInX;
   private LabeledTextField ltfShiftInY;
+  private final CheckBox cbLocalFits = new CheckBox("Do local linear fits");
   private LabeledTextField ltfMidasLimit = new LabeledTextField(
       "Squeeze samples to ");
   private JLabel lblMidasLimit = new JLabel("pixels if bigger.");
@@ -1210,6 +1215,7 @@ public final class JoinDialog implements ContextMenu, Run3dmodButtonContainer {
     ltfShiftInY = new LabeledTextField("Y: ");
     finishJoinPanel3.add(ltfShiftInY);
     pnlFinishJoin.add(finishJoinPanel3);
+    pnlFinishJoin.add(cbLocalFits);
     //fifth component
     createTrialJoinPanel();
     //sixth component
@@ -1405,6 +1411,7 @@ public final class JoinDialog implements ContextMenu, Run3dmodButtonContainer {
     metaData.setSizeInY(ltfSizeInY.getText());
     metaData.setShiftInX(ltfShiftInX.getText());
     metaData.setShiftInY(ltfShiftInY.getText());
+    metaData.setLocalFits(cbLocalFits.isSelected());
     metaData.setUseEveryNSlices(spinUseEveryNSlices.getValue());
     metaData.setRejoinUseEveryNSlices(spinRejoinUseEveryNSlices.getValue());
     metaData.setTrialBinning(spinTrialBinning.getValue());
@@ -1453,6 +1460,7 @@ public final class JoinDialog implements ContextMenu, Run3dmodButtonContainer {
     pnlSectionTable.setMetaData(metaData);
     ltfSizeInX.setText(metaData.getSizeInX().toString());
     ltfSizeInY.setText(metaData.getSizeInY().toString());
+    cbLocalFits.setSelected(metaData.isLocalFits());
     tcModel.set(metaData.getModelTransform());
     ltfBoundariesToAnalyze.setText(metaData.getBoundariesToAnalyze());
     ltfObjectsToInclude.setText(metaData.getObjectsToInclude());
@@ -2002,6 +2010,13 @@ public final class JoinDialog implements ContextMenu, Run3dmodButtonContainer {
         .setToolTipText("The X offset parameter for the trial and final joined tomograms.");
     ltfShiftInY
         .setToolTipText("The Y offset parameter for the trial and final joined tomograms.");
+    cbLocalFits
+        .setToolTipText("When running Xftoxg(1) on the primary alignment "
+            + "transforms, run the program in its default mode, which does local "
+            + "fits to 7 adjacent sections.  This option may eliminate unwanted "
+            + "trends in data sets with many sections.  When it is not entered, "
+            + "Xftoxg(1) is run with \"-nfit 0\", which computes a global "
+            + "alignment.");
     text = "Slices to use when creating the trial joined tomogram.";
     spinUseEveryNSlices.setToolTipText(text);
     spinRejoinUseEveryNSlices.setToolTipText(text);
