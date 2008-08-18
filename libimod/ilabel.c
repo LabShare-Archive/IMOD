@@ -109,7 +109,8 @@ void imodLabelName(Ilabel *label, char *val)
 
 /*!
  * Adds a label item to [label] with the {name} given by [val] and the value 
- * given by [index]. 
+ * given by [index].  Replaces an existing label item with the same value of
+ * [index].
  */
 void imodLabelItemAdd(Ilabel *label, char *val, int index)
 {
@@ -117,23 +118,31 @@ void imodLabelItemAdd(Ilabel *label, char *val, int index)
   int i=0, len;
   char *name;
 
-  if ((!label) || (!val)) return;
+  if ((!label) || (!val)) 
+    return;
 
   len = strlen(val);
-  if (len <= 0) return;
 
-  for (i = 0; i < label->nl; i++)
-    if (index == label->label[i].index){
-      if (label->label[i].len < (len + 1)){
+  /* Look for an existing label with this index and replace it if found */
+  for (i = 0; i < label->nl; i++) {
+    if (index == label->label[i].index) {
+      if (label->label[i].len < (len + 1)) {
         name = malloc(len + 1);
-        if (label->label[i].name) free (label->label[i].name);
+        if (label->label[i].name) 
+          free(label->label[i].name);
         label->label[i].name = name;
         label->label[i].len  = len+1;
       }
       memcpy(label->label[i].name, val, len+1);
       return;
     }
-     
+  }
+
+  /* Now forget it if it is a zero-length label */
+  if (!len)
+    return;
+
+  /* Otherwise make a new label item and copy the label into it */
   li = (IlabelItem *)malloc(sizeof(IlabelItem) * (label->nl + 1));
   if (label->nl > 0){
     for (i = 0; i < label->nl; i++)
@@ -433,6 +442,9 @@ Ilabel *imodLabelRead(FILE *fin, int *err)
 }
 
 /* $Log$
+/* Revision 3.7  2008/08/18 19:39:33  mast
+/* Fixed computation of chunk size written to file
+/*
 /* Revision 3.6  2007/08/26 06:56:15  mast
 /* Documentation changes
 /*
