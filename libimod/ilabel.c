@@ -343,11 +343,11 @@ int imodLabelWrite(Ilabel *lab, b3dUInt32 tag, FILE *fout)
   imodPutInt(fout, &tag);
 
   /* Calculate lenth of data to be written. */
-  id  = 16;
+  id  = 8;
   len = getpadlen(lab->name);
   id += len;
   for(l = 0; l < lab->nl; l++){
-    id += 4;
+    id += 8;
     id += getpadlen(lab->label[l].name);
   }
   imodPutInt(fout, &id);
@@ -433,6 +433,9 @@ Ilabel *imodLabelRead(FILE *fin, int *err)
 }
 
 /* $Log$
+/* Revision 3.6  2007/08/26 06:56:15  mast
+/* Documentation changes
+/*
 Revision 3.5  2004/11/20 04:16:32  mast
 Added duplicate function
 
