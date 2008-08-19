@@ -1172,6 +1172,7 @@ void zapKeyInput(ZapStruct *zap, QKeyEvent *event)
     handled = 1;
     break;
 
+  case Qt::Key_Plus:
   case Qt::Key_Equal:
     zap->zoom = b3dStepPixelZoom(zap->zoom, 1);
     zapDraw(zap);
@@ -4517,6 +4518,9 @@ static int zapPointVisable(ZapStruct *zap, Ipoint *pnt)
 /*
 
 $Log$
+Revision 4.125  2008/08/01 19:24:01  mast
+Added protection against small movements soon after button 2 press
+
 Revision 4.124  2008/08/01 15:37:55  mast
 Moved draw routine to global so imodview can draw top zap
 

@@ -2061,6 +2061,7 @@ void XyzWindow::keyPressEvent ( QKeyEvent * event )
     Draw();
     break;
              
+  case Qt::Key_Plus:
   case Qt::Key_Equal:
     xx->zoom = b3dStepPixelZoom(xx->zoom, 1);
     Draw();
@@ -2364,6 +2365,9 @@ void XyzGL::mouseMoveEvent( QMouseEvent * event )
 
 /*
 $Log$
+Revision 4.50  2008/07/16 04:29:33  mast
+Made drag drawing respect contour limit
+
 Revision 4.49  2008/01/25 20:22:58  mast
 Changes for new scale bar
 

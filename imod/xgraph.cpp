@@ -401,7 +401,7 @@ void GraphWindow::keyPressEvent ( QKeyEvent * e )
   if (key == Qt::Key_Escape)
     close();
 
-  else if (key == Qt::Key_Equal)
+  else if (key == Qt::Key_Equal || key == Qt::Key_Plus)
     zoomUp();
 
   else if (key == Qt::Key_Minus)
@@ -1005,6 +1005,9 @@ static void makeBoundaryPoint(Ipoint pt1, Ipoint pt2, int ix1, int ix2,
 
 /*
     $Log$
+    Revision 4.12  2008/04/02 04:12:21  mast
+    Disable high res button i fno readable image
+
     Revision 4.11  2007/06/26 21:54:40  sueh
     bug# 1021 Removed win_support.
 

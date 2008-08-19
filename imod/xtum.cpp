@@ -454,6 +454,7 @@ void TumblerWindow::keyPressEvent ( QKeyEvent * event)
       xtum->tstep = 16.;
     break;
 
+  case Qt::Key_Plus:
   case Qt::Key_Equal:
     if (xtum->zoom < XTUM_MAX_ZOOM) {
       xtum->zoom++;
@@ -1256,6 +1257,9 @@ void TumblerGL::paintGL()
 
 /*
 $Log$
+Revision 4.29  2007/12/04 18:49:36  mast
+Moved control include down
+
 Revision 4.28  2007/07/08 16:04:50  mast
 Used new hot slider function
 

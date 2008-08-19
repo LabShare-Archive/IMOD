@@ -196,6 +196,7 @@ void LocatorWindow::keyPressEvent ( QKeyEvent * event )
     GLw->changeSize(0.6667);
     break;
 
+  case Qt::Key_Plus:
   case Qt::Key_Equal:
     GLw->changeSize(1.5);
     break;
@@ -408,6 +409,9 @@ void LocatorGL::mouseMoveEvent ( QMouseEvent * e )
 
 /*
 $Log$
+Revision 1.4  2008/07/12 03:02:02  mast
+Fixed zoom resize bug
+
 Revision 1.3  2008/01/25 20:21:40  mast
 Added return value
 
