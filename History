@@ -1,7 +1,10 @@
 IMOD History
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-8/18/08: In Etomo - Join added the Finishjoin option -local, which causes Xftorg
-to do local fits to 7 adjacent sections.
+8/19/08: Made + zoom up as well as = in all image windows except slicer;
+made keypad + zoom like = in slicer and model view.
+
+8/18/08: In Etomo - Join added the Finishjoin option -local, which causes 
+Xftoxg to do local fits to 7 adjacent sections.
 
 8/18/08: Fixed ability to delete surface and point labels.
 
