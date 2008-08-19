@@ -797,14 +797,15 @@ void slicerKeyInput(SlicerStruct *ss, QKeyEvent *event)
 
   switch(keysym){
           
-  case Qt::Key_Plus:
-    ss->nslice++;
-    drawThickControls(ss);
-    break;
-    
   case Qt::Key_Equal:
-    ss->zoom = b3dStepPixelZoom(ss->zoom, 1);
-    ss->qtWindow->setZoomText(ss->zoom);
+  case Qt::Key_Plus:
+    if (keypad || keysym == Qt::Key_Equal) {
+      ss->zoom = b3dStepPixelZoom(ss->zoom, 1);
+      ss->qtWindow->setZoomText(ss->zoom);
+    } else {
+      ss->nslice++;
+      drawThickControls(ss);
+    }
     break;
 
   case Qt::Key_Underscore:
@@ -2618,6 +2619,9 @@ void slicerCubePaint(SlicerStruct *ss)
 
 /*
 $Log$
+Revision 4.58  2008/05/28 14:59:07  mast
+Pass zscale to draw routine so spheres come out round
+
 Revision 4.57  2008/05/27 05:43:29  mast
 Added rotation around model view center of rotation
 

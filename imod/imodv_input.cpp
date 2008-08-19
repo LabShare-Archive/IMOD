@@ -182,12 +182,11 @@ void imodvKeyPress(QKeyEvent *event)
     break;
 
   case Qt::Key_Equal:
-    imodv_zoomd(Imodv, 1.05);
-    imodvDraw(Imodv);
-    break;
-
   case Qt::Key_Plus:
-    imodv_zoomd(Imodv, 2.0);
+    if (keypad || keysym == Qt::Key_Equal)
+      imodv_zoomd(Imodv, 1.05);
+    else
+      imodv_zoomd(Imodv, 2.0);
     imodvDraw(Imodv);
     break;
 
@@ -1277,6 +1276,9 @@ void imodvMovieTimeout()
 /*
 
 $Log$
+Revision 4.41  2008/06/10 05:54:57  mast
+Changes for setting flag to draw light vector
+
 Revision 4.40  2008/05/29 22:18:47  mast
 Made it process hits from extra objects and contourless mesh properly
 
