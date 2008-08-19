@@ -412,7 +412,7 @@ float ImodvIsosurface::fillVolumeArray()
   int min=255;
   int max=0;
   float *hist=mHistPanel->getHist();
-  for(int i=0;i<256;i++) hist[i]=0.0;
+  for(i=0;i<256;i++) hist[i]=0.0;    // DNM removed int declaration
 
   for( int zi =mBoxOrigin[2];zi<mBoxEnds[2];zi++)
     for( int yi=mBoxOrigin[1];yi<mBoxEnds[1];yi++)
@@ -1124,6 +1124,9 @@ void ImodvIsosurface::keyReleaseEvent ( QKeyEvent * e )
 /*
 
    $Log$
+   Revision 4.7  2008/05/27 16:41:01  xiongq
+   add Use Rubber Band button
+
    Revision 4.6  2008/05/23 19:23:32  xiongq
    Use multithreads to compute isosurface. Move the calling of imodvIsosurfaceUpdate() from imod_info_cb.cpp to imod_display.cpp.
 

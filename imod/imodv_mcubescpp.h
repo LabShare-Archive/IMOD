@@ -190,17 +190,18 @@ class Grid_Cell_List
 public:
   Grid_Cell_List(Index size0, Index size1) : cells(CONTOUR_ARRAY_BLOCK_SIZE)
   {
+    Index i;                // DNM 8/19/08: declare here for old Intel compiler
     this->rsize = size0+2;	// Pad by one grid cell.
     Index csize = size1+2;
     Index size = rsize * csize;
     this->cell_count = 0;
     this->cmin = 2;
     this->cell_table = new Index[size];
-    for (Index i = 0 ; i < size ; ++i)
+    for (i = 0 ; i < size ; ++i)
       cell_table[i] = no_cell;
-    for (Index i = 0 ; i < rsize ; ++i)
+    for (i = 0 ; i < rsize ; ++i)
       cell_table[i] = cell_table[size-i-1] = out_of_bounds;
-    for (Index i = 0 ; i < size ; i += rsize)
+    for (i = 0 ; i < size ; i += rsize)
       cell_table[i] = cell_table[i+rsize-1] = out_of_bounds;
   }
   ~Grid_Cell_List()
@@ -482,12 +483,13 @@ void CSurface<Data_Type>::normals(float *normals)
 {
   Index n3 = 3*vertex_count();
   Index outIndex=3; //added by Quanren Xiong for imodv;
+  int a;            // DNM moved declaration here for old intel compiler
 
   for (Index v = 0 ; v < n3 ; v += 3)
     {  
       float x[3] = {vxyz.element(v), vxyz.element(v+1), vxyz.element(v+2)};
       float g[3];
-      for (int a = 0 ; a < 3 ; ++a)
+      for (a = 0 ; a < 3 ; ++a)
 	g[a] = (x[a] == 0 ? 1 : (x[a] == size[a]-1 ? -1 : 0));
       if (g[0] == 0 && g[1] == 0 && g[2] == 0)
 	{
@@ -496,10 +498,10 @@ void CSurface<Data_Type>::normals(float *normals)
 	  const Data_Type *gb = ga;
 	  Index off[3] = {0,0,0};
 	  float fb = 0;
-	  for (int a = 0 ; a < 3 ; ++a)
+	  for (a = 0 ; a < 3 ; ++a)
 	    if ((fb = x[a]-i[a]) > 0) { off[a] = 1; gb = ga + stride[a]; break; }
 	  float fa = 1-fb;
-	  for (int a = 0 ; a < 3 ; ++a)
+	  for (a = 0 ; a < 3 ; ++a)
 	    {
 	      Index s = stride[a], ia = i[a], ib = ia + off[a];
 	      g[a] = (fa*(ia == 0 ? 2*(ga[s]-ga[0]) : ga[s]-*(ga-s))
@@ -541,14 +543,15 @@ void smooth_vertex_positions(float *varray, Index nv,
 			     float smoothing_factor, int smoothing_iterations)
 {
   float normal[3];
+  Index v, t;    // Move declarations here for old Intel compiler
   Index *c = new Index[nv];
   if (!c)    // Added
     return;
-  for (Index v = 0 ; v < nv ; ++v)
+  for (v = 0 ; v < nv ; ++v)
     c[v] = 0;
 
   Index nt3 = 3*nt;
-  for (Index t = 0 ; t < nt3 ; ++t)
+  for (t = 0 ; t < nt3 ; ++t)
     c[tarray[t]/2] += 2;
     //c[tarray[t]] += 2;
 
@@ -563,13 +566,13 @@ void smooth_vertex_positions(float *varray, Index nv,
     /*for (Index v = 0 ; v < nv3 ; ++v)
       an[v] = 0; */
     // Added: Initialize normal space to 0
-    for (Index v = 0 ; v < nv ; ++v) {
+    for (v = 0 ; v < nv ; ++v) {
       varray[6 * v + 3] = 0;
       varray[6 * v + 4] = 0;
       varray[6 * v + 5] = 0;
     }
 
-    for (Index t = 0 ; t < nt3 ; t += 3)
+    for (t = 0 ; t < nt3 ; t += 3)
     {
       Index i0 = tarray[t], i1 = tarray[t+1], i2 = tarray[t+2];
       Index v0 = 3*i0, v1 = 3*i1, v2 = 3*i2;
@@ -588,7 +591,7 @@ void smooth_vertex_positions(float *varray, Index nv,
       }
     }
 
-    for (Index v = 0 ; v < nv ; ++v)
+    for (v = 0 ; v < nv ; ++v)
     {
       Index count = c[v];
       if (count)
@@ -608,12 +611,12 @@ void smooth_vertex_positions(float *varray, Index nv,
   }
 
   // Added: Recompute normal after last iteration
-  for (Index v = 0 ; v < nv ; ++v) {
+  for (v = 0 ; v < nv ; ++v) {
     varray[6*v + 3] = 0.;
     varray[6*v + 4] = 0.;
     varray[6*v + 5] = 0.;
   }
-  for (Index t = 0 ; t < nt3 ; t += 3) {
+  for (t = 0 ; t < nt3 ; t += 3) {
     Index i0 = tarray[t], i1 = tarray[t+1], i2 = tarray[t+2];
     Index v0 = 3*i0, v1 = 3*i1, v2 = 3*i2;
     imeshNormal((Ipoint *)&normal, (Ipoint *)&varray[v0], 
@@ -632,6 +635,9 @@ void smooth_vertex_positions(float *varray, Index nv,
 /*
 
 $Log$
+Revision 4.1  2008/05/23 19:30:02  xiongq
+rename imodv_mcubes.cpp to imodv_mcubescpp.h
+
 Revision 4.3  2008/05/03 00:54:07  mast
 Modified smoothing routine to use normal space for computing smoothed vertices
 
