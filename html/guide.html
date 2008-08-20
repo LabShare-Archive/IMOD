@@ -25,17 +25,17 @@ OS X</a> </li>
     <li><a href="#InstallingWindows">Installing IMOD on a Windows PC</a></li>
     <li><a href="#ImodCalib">Using the ImodCalib directory</a></li>
   </ul>
-  <li><a href="#Getting%20Started">Getting Started</a> </li>
-  <li><a href="#Aligning%20Images">Aligning Images</a> </li>
+  <li><a href="#GettingStarted">Getting Started</a> </li>
+  <li><a href="#AligningImages">Aligning Images</a> </li>
   <ul>
     <li><a href="#ManualAlignment">Manual Image Alignment</a> </li>
     <li><a href="#AutomaticAlignment">Automatic Image Alignment</a> </li>
     <li><a href="#FiducialAlignment">Image Alignment using Fiducial
 Markers.</a> </li>
   </ul>
-  <li><a href="#Quantitative%20Information">Getting Quantitative
+  <li><a href="#QuantitativeInformation">Getting Quantitative
 Information</a> </li>
-  <li><a href="#Other%20Output">Output to Other Model Formats</a> </li>
+  <li><a href="#OtherOutput">Output to Other Model Formats</a> </li>
   <li><a href="#Special">Special Help Topics</a> </li>
 </ul>
 <p> An <a href="3dmodguide.html">introduction to 3dmod</a>, the image
@@ -788,7 +788,7 @@ sourcing the
 IMOD startup scripts.
 </dl>
 <dt>
-  <hr><a name="Getting Started">
+  <hr><a name="GettingStarted">
   <h3>Getting Started</h3>
   </a></dt>
 <dt>You will want to go through the <a href="3dmodguide.html">Introduction
@@ -908,7 +908,7 @@ coordinates.<br>
   </dd>
 </dl>
 <dt>
-  <hr> <a name="Aligning Images">
+  <hr> <a name="AligningImages">
   <h3>Aligning Serial Images</h3>
   </a> </dt>
 Sometimes images in a data set are not in register with one another.
@@ -1044,7 +1044,7 @@ alignment. </p>
   </dd>
   <dt> <br>
   </dt>
-  <hr><a name="Quantitative Information">
+  <hr><a name="QuantitativeInformation">
   <h3>Getting Quantitative Information</h3>
   </a>In order to get accurate information the fields in the model
 header have to be set properly. See the <a
@@ -1060,7 +1060,7 @@ For example:</p>
   <p> <code> imodinfo cell.imod </code> </p>
   <pre># MODEL cell.imod<br># NAME  A little cell<br># PIX SCALE:  x = 1<br>#             y = 1<br>#             z = 9.17<br># PIX SIZE      = 0.00654<br># UNITS: um<br><br>OBJECT 1<br>NAME:  spindle pole<br>       5 contours<br>       object uses closed contours.<br>       color (red, green, blue) = (0, 1, 1)<br><br>       	CONTOUR #1,2,0  16 points, length = 0.464513,  area = 0.0134249<br>        CONTOUR #2,2,0  14 points, length = 0.458311,  area = 0.0125642<br>        CONTOUR #3,2,0  8 points,  length = 0.200755,  area = 0.00277481<br>        CONTOUR #4,2,0  13 points, length = 0.313501,  area = 0.00664029<br>        CONTOUR #5,2,0  9 points,  length = 0.232374,  area = 0.00272134<br><br>        Total volume = 0.00228646<br>        Total contour cylinder surface area = 0.10012.<br>        Total mesh surface area = 0.0349499.<br></pre>
   <p> </p>
-  <hr><a name="Other Output">
+  <hr><a name="OtherOutput">
   <h3>Output to Other Model Formats</h3>
   </a>IMOD models can be converted to a few other 3rd party formats.
 The formats and the programs used to convert to them are listed
