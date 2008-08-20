@@ -465,7 +465,7 @@ int istoreConnectNumber(Ilist *list, int index)
     if (stp->type == GEN_STORE_CONNECT)
       return stp->value.i;
   }
-  return 0;
+  return -1;
 }
 
 /*!
@@ -1878,6 +1878,9 @@ int istoreTransStateMatches(Ilist *list, int state)
 /* END_SECTION */
 /*
 $Log$
+Revision 3.13  2008/06/17 20:10:45  mast
+Stopped eliminating later matching starts when inserting a change
+
 Revision 3.12  2006/09/13 02:41:37  mast
 Fixed test on uninitialized variable
 
