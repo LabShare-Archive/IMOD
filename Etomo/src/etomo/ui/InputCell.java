@@ -23,7 +23,7 @@ import javax.swing.plaf.ColorUIResource;
  * 
  * @version $Revision$
  */
-abstract class InputCell implements Cell{
+abstract class InputCell implements Cell {
   public static final String rcsid = "$Id$";
 
   private boolean editable = true;
@@ -38,7 +38,7 @@ abstract class InputCell implements Cell{
   abstract Component getComponent();
 
   abstract int getWidth();
-  
+
   public abstract void setEnabled(boolean enabled);
 
   abstract void setToolTipText(String toolTipText);
@@ -61,6 +61,10 @@ abstract class InputCell implements Cell{
     this.editable = editable;
     getComponent().setEnabled(editable);
     setBackground();
+  }
+
+  boolean isEditable() {
+    return getComponent().isEnabled();
   }
 
   final void setHighlight(boolean highlight) {
@@ -143,6 +147,9 @@ abstract class InputCell implements Cell{
 }
 /**
  * <p> $Log$
+ * <p> Revision 1.10  2007/09/27 20:51:02  sueh
+ * <p> bug# 1044 Made setWarning public.
+ * <p>
  * <p> Revision 1.9  2007/04/02 21:49:50  sueh
  * <p> bug# 964 Implementing Cell interface.
  * <p>
