@@ -45,6 +45,9 @@ import etomo.util.DatasetFiles;
  * @version $Revision$
  * 
  * <p> $Log$
+ * <p> Revision 1.19  2008/06/20 18:54:23  sueh
+ * <p> bug# 1119 ParsedArrayDescriptor can be either Matlab or non-Matlab now, so I need to tell the constructor the ParsedElementType.
+ * <p>
  * <p> Revision 1.18  2008/05/30 21:20:30  sueh
  * <p> bug# 1102 Formatted.
  * <p>
@@ -1771,6 +1774,32 @@ public final class MatlabParam {
     }
   }
 
+  private static final class SearchAngleArea {
+    private final ParsedArrayDescriptor descriptor= ParsedArrayDescriptor
+    .getInstance(ParsedElementType.MATLAB_ARRAY, EtomoNumber.Type.FLOAT);
+    
+    /**
+     * Sets both the End and Start values.  The Start is always the negation of
+     * the End value.
+     * @param input
+     */
+    private void setRawStringEnd(final String input){
+      descriptor.setRawStringEnd(input);
+      EtomoNumber start = new EtomoNumber(EtomoNumber.Type.FLOAT);
+      if (start.isNull()||start.equals(0)) {
+        descriptor.setRawStringEnd(input);
+      }
+      else {
+        start.multiply(-1);
+        descriptor.setRawStringStart(start.toString());
+      }
+    }
+    
+    private void setRawStringIncrement(final String input) {
+      descriptor.setRawStringIncrement(input);
+    }
+  }
+  
   public static final class Iteration {
     private static final int HI_CUTOFF_CUTOFF_INDEX = 0;
     private static final int HI_CUTOFF_SIGMA_INDEX = 1;
@@ -1785,11 +1814,11 @@ public final class MatlabParam {
 
     //search spaces
     private final ParsedArrayDescriptor dPhi = ParsedArrayDescriptor
-        .getInstance(ParsedElementType.MATLAB_ARRAY, EtomoNumber.Type.FLOAT);
+    .getInstance(ParsedElementType.MATLAB_ARRAY, EtomoNumber.Type.FLOAT);
     private final ParsedArrayDescriptor dTheta = ParsedArrayDescriptor
-        .getInstance(ParsedElementType.MATLAB_ARRAY, EtomoNumber.Type.FLOAT);
+    .getInstance(ParsedElementType.MATLAB_ARRAY, EtomoNumber.Type.FLOAT);
     private final ParsedArrayDescriptor dPsi = ParsedArrayDescriptor
-        .getInstance(ParsedElementType.MATLAB_ARRAY, EtomoNumber.Type.FLOAT);
+    .getInstance(ParsedElementType.MATLAB_ARRAY, EtomoNumber.Type.FLOAT);
 
     private Iteration() {
     }
