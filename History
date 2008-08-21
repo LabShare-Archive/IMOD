@@ -1,5 +1,8 @@
 IMOD History
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+8/20/08: Fixed a bug in Etomo - PEET which prevented the use of zero Phi, Theta,
+and Psi values.
+
 8/20/08: Fixed bug in accessing connections numbers during meshing that made
 wrong connections if contours had other fine-grained properties set.
 
