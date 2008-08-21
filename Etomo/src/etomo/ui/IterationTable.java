@@ -36,6 +36,9 @@ import etomo.type.EtomoAutodoc;
  * @version $Revision$
  * 
  * <p> $Log$
+ * <p> Revision 1.15  2008/04/02 17:35:13  sueh
+ * <p> bug# 1098 Improved user error messages.
+ * <p>
  * <p> Revision 1.14  2008/04/02 02:27:23  sueh
  * <p> bug# 1097 Fixed a null pointer error in action and deleteRow.
  * <p>
@@ -95,6 +98,7 @@ final class IterationTable implements Highlightable {
   static final String SEARCH_RADIUS_HEADER1 = "Search";
   static final String SEARCH_RADIUS_HEADER2 = "Radius";
   static final String TABLE_HEADER = "Iteration Table";
+  static final String MAX_HEADER = "Max";
 
   private final JPanel rootPanel = new JPanel();
   private final JPanel pnlTable = new JPanel();
@@ -109,15 +113,15 @@ final class IterationTable implements Highlightable {
   private final HeaderCell header2DPhi = new HeaderCell(D_PHI_HEADER2);
   private final HeaderCell header2DTheta = new HeaderCell(D_THETA_HEADER2);
   private final HeaderCell header2DPsi = new HeaderCell(D_PSI_HEADER2);
-  private final HeaderCell header3DPhiMax = new HeaderCell("Max",
+  private final HeaderCell header3DPhiMax = new HeaderCell(MAX_HEADER,
       UIParameters.INSTANCE.getNumericWidth());
   private final HeaderCell header3DPhiIncrement = new HeaderCell(D_PHI_HEADER3,
       UIParameters.INSTANCE.getNumericWidth());
-  private final HeaderCell header3DThetaMax = new HeaderCell("Max",
+  private final HeaderCell header3DThetaMax = new HeaderCell(MAX_HEADER,
       UIParameters.INSTANCE.getNumericWidth());
   private final HeaderCell header3DThetaIncrement = new HeaderCell(
       D_THETA_HEADER3, UIParameters.INSTANCE.getNumericWidth());
-  private final HeaderCell header3DPsiMax = new HeaderCell("Max",
+  private final HeaderCell header3DPsiMax = new HeaderCell(MAX_HEADER,
       UIParameters.INSTANCE.getNumericWidth());
   private final HeaderCell header3DPsiIncrement = new HeaderCell(D_PSI_HEADER3,
       UIParameters.INSTANCE.getNumericWidth());
