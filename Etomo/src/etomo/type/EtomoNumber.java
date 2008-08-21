@@ -18,6 +18,9 @@ import etomo.comscript.FortranInputString;
  * @version $Revision$
  * 
  * <p> $Log$
+ * <p> Revision 1.19  2008/04/02 02:00:29  sueh
+ * <p> bug# 1097 Changed plus to add.
+ * <p>
  * <p> Revision 1.18  2007/12/13 01:12:42  sueh
  * <p> bug# 1056 Added startArray, to convert integers to/from strings.  Added loadWithAlternateKey.
  * <p>
@@ -316,6 +319,10 @@ public class EtomoNumber extends ConstEtomoNumber {
   public void add(int i) {
       set(add(getValue(), newNumber(i)));
   }
+  
+  public void multiply(int i) {
+    set(multiply(getValue(), newNumber(i)));
+}
 
   public EtomoNumber set(int value) {
     return set(newNumber(value));
