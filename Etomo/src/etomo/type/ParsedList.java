@@ -50,6 +50,7 @@ import etomo.util.PrimativeTokenizer;
  *   <LI>2 elements (j:k): [j,j+1,...,k]
  *   <LI>3 elements (j:i:k): [j,j+i,j+2i,...,k]</UL>
  * <LI>Empty element: With 2 elements, i is assumed to be 1.</UL>
+ * <p>We are turning a i that is 0 to a 1 on output.</p>
  * 
  * <H5>Number</H5><UL>
  * <LI>Delimiters: [] or '' (optional - cannot be used inside a regular array)
@@ -71,6 +72,9 @@ import etomo.util.PrimativeTokenizer;
  * @version $Revision$
  * 
  * <p> $Log$
+ * <p> Revision 1.13  2008/06/20 20:02:09  sueh
+ * <p> bug# 1119 For clarity _NUMBER to MATLAB and NON_MATLAB.
+ * <p>
  * <p> Revision 1.12  2008/04/15 21:28:33  sueh
  * <p> bug# 1105 Simplified setting the default.  Added debug and default to
  * <p> constructor.  Added setMinArraySize.
