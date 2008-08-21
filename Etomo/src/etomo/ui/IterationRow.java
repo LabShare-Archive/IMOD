@@ -6,7 +6,6 @@ import java.awt.GridBagLayout;
 import javax.swing.JPanel;
 
 import etomo.storage.MatlabParam;
-import etomo.type.EtomoNumber;
 
 /**
  * <p>Description: </p>
@@ -22,6 +21,9 @@ import etomo.type.EtomoNumber;
  * @version $Revision$
  * 
  * <p> $Log$
+ * <p> Revision 1.12  2008/04/02 17:34:54  sueh
+ * <p> bug# 1098 Improved user error messages.
+ * <p>
  * <p> Revision 1.11  2008/04/02 02:26:46  sueh
  * <p> bug# 1097 FieldCell can now return a matlab syntax instance.
  * <p>
@@ -216,59 +218,32 @@ final class IterationRow implements Highlightable {
   }
 
   boolean validateRun() {
-    if (dPhiIncrement.getEtomoNumber(EtomoNumber.Type.FLOAT).equals(0)) {
-      //When increment and max are both zero, treat this as an empty descriptor.
-      if (dPhiMax.getEtomoNumber(EtomoNumber.Type.FLOAT).equals(0)
-          || dPhiMax.isEmpty()) {
-        dPhiIncrement.setValue();
-        dPhiMax.setValue();
-      }
-      else {
-        //In a non-empty descriptor, the increment may not be zero.
-        UIHarness.INSTANCE.openMessageDialog(IterationTable.TABLE_HEADER
-            + ":  In row " + number.getText() + ", "
-            + IterationTable.D_PHI_D_THETA_D_PSI_HEADER1 + " "
-            + IterationTable.D_PHI_HEADER2 + " " + IterationTable.D_PHI_HEADER3
-            + " must not be 0.", "Entry Error");
-        return false;
-      }
+    if (dPhiMax.isEmpty()) {
+      UIHarness.INSTANCE.openMessageDialog(IterationTable.TABLE_HEADER
+          + ":  In row " + number.getText() + ", "
+          + IterationTable.D_PHI_D_THETA_D_PSI_HEADER1 + " "
+          + IterationTable.D_PHI_HEADER2 + " " + IterationTable.MAX_HEADER
+          + " must not be empty.  Use 0 to not search on the angle.",
+          "Entry Error");
+      return false;
     }
-    if (dThetaIncrement.getEtomoNumber(EtomoNumber.Type.FLOAT).equals(0)) {
-      //When increment and max are both zero, treat this as an empty descriptor.
-      if (dThetaMax.getEtomoNumber(EtomoNumber.Type.FLOAT).equals(0)
-          || dThetaMax.isEmpty()) {
-        dThetaIncrement.setValue();
-        dThetaMax.setValue();
-      }
-      else {
-        //In a non-empty descriptor, the increment may not be zero.
-        UIHarness.INSTANCE
-            .openMessageDialog(IterationTable.TABLE_HEADER + ":  In row "
-                + number.getText() + ", "
-                + IterationTable.D_PHI_D_THETA_D_PSI_HEADER1 + " "
-                + IterationTable.D_THETA_HEADER2 + " "
-                + IterationTable.D_THETA_HEADER3 + " must not be 0.",
-                "Entry Error");
-        return false;
-      }
+    if (dThetaMax.isEnabled() && dThetaMax.isEmpty()) {
+      UIHarness.INSTANCE.openMessageDialog(IterationTable.TABLE_HEADER
+          + ":  In row " + number.getText() + ", "
+          + IterationTable.D_PHI_D_THETA_D_PSI_HEADER1 + " "
+          + IterationTable.D_THETA_HEADER2 + " " + IterationTable.MAX_HEADER
+          + " must not be empty.  Use 0 to not search on the angle.",
+          "Entry Error");
+      return false;
     }
-    if (dPsiIncrement.getEtomoNumber(EtomoNumber.Type.FLOAT).equals(0)
-        || dPsiMax.isEmpty()) {
-      //When increment and max are both zero, treat this as an empty descriptor.
-      if (dPsiMax.getEtomoNumber(EtomoNumber.Type.FLOAT).equals(0)
-          || dPsiMax.isEmpty()) {
-        dPsiIncrement.setValue();
-        dPsiMax.setValue();
-      }
-      else {
-        //In a non-empty descriptor, the increment may not be zero.
-        UIHarness.INSTANCE.openMessageDialog(IterationTable.TABLE_HEADER
-            + ":  In row " + number.getText() + ", "
-            + IterationTable.D_PHI_D_THETA_D_PSI_HEADER1 + " "
-            + IterationTable.D_PSI_HEADER2 + " " + IterationTable.D_PSI_HEADER3
-            + " must not be 0.", "Entry Error");
-        return false;
-      }
+    if (dPsiMax.isEnabled() && dPsiMax.isEmpty()) {
+      UIHarness.INSTANCE.openMessageDialog(IterationTable.TABLE_HEADER
+          + ":  In row " + number.getText() + ", "
+          + IterationTable.D_PHI_D_THETA_D_PSI_HEADER1 + " "
+          + IterationTable.D_PSI_HEADER2 + " " + IterationTable.MAX_HEADER
+          + " must not be empty.  Use 0 to not search on the angle.",
+          "Entry Error");
+      return false;
     }
     if (!searchRadius.getParsedArray().ge(1)) {
       UIHarness.INSTANCE.openMessageDialog(IterationTable.TABLE_HEADER
