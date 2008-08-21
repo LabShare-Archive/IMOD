@@ -24,6 +24,9 @@ import etomo.type.ParsedElementType;
  * @version $Revision$
  * 
  * <p> $Log$
+ * <p> Revision 1.24  2008/06/20 20:05:50  sueh
+ * <p> bug# 1119 For clarity added _NUMBER to MATLAB and NON_MATLAB.
+ * <p>
  * <p> Revision 1.23  2008/04/02 02:26:03  sueh
  * <p> bug# 1097 Added ParsedElementType to work with ParsedArray correctly.
  * <p>
@@ -190,6 +193,10 @@ final class FieldCell extends InputCell {
       textField.setForeground(Colors.CELL_DISABLED_FOREGROUND);
       textField.setDisabledTextColor(Colors.CELL_DISABLED_FOREGROUND);
     }
+  }
+
+  public boolean isEnabled() {
+    return isEditable();
   }
 
   void setEditable(boolean editable) {
