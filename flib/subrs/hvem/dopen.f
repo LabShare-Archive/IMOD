@@ -22,7 +22,7 @@ c       !
       CHARACTER*(*) FNAME,ITYPE
       CHARACTER*1 IFORM
       CHARACTER*11 FORMAT
-      CHARACTER*120 FULLNAM
+      CHARACTER*320 FULLNAM
       integer*4 ierr,iunit
       integer*4 imodBackupFile,lnblnk
       logical*4 hush
@@ -101,6 +101,9 @@ C       23/6/00 remove READONLY... not supproted by g77 CER
 c       
 c       
 c       $Log$
+c       Revision 3.8  2007/03/01 14:51:48  mast
+c       Had to declare lnblnk
+c
 c       Revision 3.7  2007/02/28 23:25:10  mast
 c       Fixed documentation on new dopenHush
 c
