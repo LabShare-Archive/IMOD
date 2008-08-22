@@ -2369,7 +2369,8 @@ static void startExtraObjectIfNone(ImodView *vi)
         free(vi->extraObjInUse);
       vi->extraObj = NULL;
       vi->extraObjInUse = NULL;
-    }
+    } else
+      vi->extraObjInUse[0] = 1;
   }
 }
 
@@ -2764,6 +2765,9 @@ void ivwBinByN(unsigned char *array, int nxin, int nyin, int nbin,
 /*
 
 $Log$
+Revision 4.72  2008/08/01 15:37:20  mast
+Added function to set top zap zoom
+
 Revision 4.71  2008/07/16 04:28:17  mast
 Changed get or make contour function to get new one if point limit reached
 
