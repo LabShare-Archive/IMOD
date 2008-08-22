@@ -29,6 +29,9 @@ import etomo.util.PrimativeTokenizer;
  * @version $Revision$
  * 
  * <p> $Log$
+ * <p> Revision 1.17  2008/06/20 20:02:26  sueh
+ * <p> bug# 1119 For clarity added _NUMBER to MATLAB and NON_MATLAB.
+ * <p>
  * <p> Revision 1.16  2008/04/15 21:28:58  sueh
  * <p> bug# 1105 Simplified setting the default.  Added debug and default to
  * <p> constructor.  Move setDebug() to child classes.
@@ -331,7 +334,7 @@ public final class ParsedNumber extends ParsedElement {
     return rawNumber.gt(element.rawNumber);
   }
 
-  void setRawString(Number number) {
+  public void setRawString(Number number) {
     rawNumber.set(number);
   }
 
