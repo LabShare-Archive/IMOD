@@ -21,6 +21,9 @@ import etomo.util.DatasetFiles;
  * @notthreadsafe
  * 
  * <p> $Log$
+ * <p> Revision 1.20  2008/04/02 02:24:52  sueh
+ * <p> bug# 1095 Added mask fields.
+ * <p>
  * <p> Revision 1.19  2007/12/10 22:38:01  sueh
  * <p> bug# 1041 Moved resets to load since they are only done once.
  * <p>
@@ -134,6 +137,7 @@ public class PeetMetaData extends BaseMetaData implements ConstPeetMetaData {
       MASK_MODEL_PTS_KEY + "." + PARTICLE_KEY);
   private final StringProperty maskTypeVolume = new StringProperty("MastType."
       + VOLUME_KEY);
+  private final EtomoNumber nWeightGroup = new EtomoNumber("NWeightGroup");
 
   public PeetMetaData() {
     fileExtension = DatasetFiles.PEET_DATA_FILE_EXT;
@@ -160,6 +164,7 @@ public class PeetMetaData extends BaseMetaData implements ConstPeetMetaData {
     maskModelPtsModelNumber.set(input.maskModelPtsModelNumber);
     maskModelPtsParticle.set(input.maskModelPtsParticle);
     maskTypeVolume.set(input.maskTypeVolume);
+    nWeightGroup.set(input.nWeightGroup);
     revisionNumber.set(input.revisionNumber);
   }
 
@@ -220,8 +225,9 @@ public class PeetMetaData extends BaseMetaData implements ConstPeetMetaData {
     yaxisContourModelNumber.reset();
     yaxisContourObjectNumber.reset();
     yaxisContourContourNumber.reset();
-    revisionNumber.reset();
     maskUseReferenceParticle.reset();
+    nWeightGroup.reset();
+    revisionNumber.reset();
     //load
     prepend = createPrepend(prepend);
     String group = prepend + ".";
@@ -241,6 +247,7 @@ public class PeetMetaData extends BaseMetaData implements ConstPeetMetaData {
     maskModelPtsModelNumber.load(props, prepend);
     maskModelPtsParticle.load(props, prepend);
     maskTypeVolume.load(props, prepend);
+    nWeightGroup.load(props,prepend);
 
     revisionNumber.load(props, prepend);
     if (revisionNumber.isNull() || revisionNumber.lt(LATEST_VERSION)) {
@@ -285,6 +292,7 @@ public class PeetMetaData extends BaseMetaData implements ConstPeetMetaData {
     maskModelPtsModelNumber.store(props, prepend);
     maskModelPtsParticle.store(props, prepend);
     maskTypeVolume.store(props, prepend);
+    nWeightGroup.store(props,prepend);
     revisionNumber.store(props, prepend);
   }
 
@@ -375,6 +383,10 @@ public class PeetMetaData extends BaseMetaData implements ConstPeetMetaData {
   public ConstEtomoNumber getReferenceVolume() {
     return referenceVolume;
   }
+  
+  public ConstEtomoNumber getNWeightGroup() {
+    return nWeightGroup;
+  }
 
   public ConstEtomoNumber getYaxisContourModelNumber() {
     return yaxisContourModelNumber;
@@ -407,7 +419,11 @@ public class PeetMetaData extends BaseMetaData implements ConstPeetMetaData {
   public void setReferenceVolume(Number referenceVolume) {
     this.referenceVolume.set(referenceVolume);
   }
-
+  
+  public void setNWeightGroup(Number input) {
+    nWeightGroup.set(input);
+  }
+  
   public void setYaxisContourModelNumber(Number input) {
     yaxisContourModelNumber.set(input);
   }

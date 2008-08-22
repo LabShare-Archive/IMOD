@@ -45,6 +45,9 @@ import etomo.util.DatasetFiles;
  * @version $Revision$
  * 
  * <p> $Log$
+ * <p> Revision 1.20  2008/08/21 00:01:58  sueh
+ * <p> bug# 1135 Started to add SearchAngleArea - not in use yet.
+ * <p>
  * <p> Revision 1.19  2008/06/20 18:54:23  sueh
  * <p> bug# 1119 ParsedArrayDescriptor can be either Matlab or non-Matlab now, so I need to tell the constructor the ParsedElementType.
  * <p>
@@ -252,6 +255,8 @@ public final class MatlabParam {
   public static final String MASK_MODEL_PTS_KEY = "maskModelPts";
   public static final String INSIDE_MASK_RADIUS_KEY = "insideMaskRadius";
   public static final String OUTSIDE_MASK_RADIUS_KEY = "outsideMaskRadius";
+  public static final String N_WEIGHT_GROUP_KEY = "nWeightGroup";
+  public static final int N_WEIGHT_GROUP_DEFAULT = 0;
 
   private static final int VOLUME_INDEX = 0;
   private static final int PARTICLE_INDEX = 1;
@@ -299,6 +304,7 @@ public final class MatlabParam {
       .getMatlabInstance();
   private final ParsedNumber outsideMaskRadius = ParsedNumber
       .getMatlabInstance();
+  private final ParsedNumber nWeightGroup = ParsedNumber.getMatlabInstance();
 
   private String lowCutoff = LOW_CUTOFF_DEFAULT;
   private InitMotlCode initMotlCode = InitMotlCode.DEFAULT;
@@ -314,6 +320,7 @@ public final class MatlabParam {
   public MatlabParam(File file, boolean newFile) {
     this.file = file;
     this.newFile = newFile;
+    nWeightGroup.setDefault(N_WEIGHT_GROUP_DEFAULT);
   }
 
   /**
@@ -590,7 +597,11 @@ public final class MatlabParam {
     useReferenceFile = false;
     reference.setRawString(VOLUME_INDEX, referenceVolume.toString());
   }
-
+  
+  public void setNWeightGroup(final Number input) {
+    nWeightGroup.setRawString(input);
+  }
+  
   public void setMaskModelPtsVolume(final Number input) {
     maskModelPts.setRawString(VOLUME_INDEX, input.toString());
   }
@@ -687,6 +698,10 @@ public final class MatlabParam {
 
   public String getInsideMaskRadius() {
     return insideMaskRadius.getRawString();
+  }
+  
+  public ParsedElement getNWeightGroup() {
+    return nWeightGroup;
   }
 
   public String getOutsideMaskRadius() {
@@ -963,6 +978,8 @@ public final class MatlabParam {
     insideMaskRadius.parse(autodoc.getAttribute(INSIDE_MASK_RADIUS_KEY));
     //outsideMaskRadius
     outsideMaskRadius.parse(autodoc.getAttribute(OUTSIDE_MASK_RADIUS_KEY));
+    //nWeightGroup
+    nWeightGroup.parse(autodoc.getAttribute(N_WEIGHT_GROUP_KEY));
   }
 
   /**
@@ -1124,6 +1141,7 @@ public final class MatlabParam {
     valueMap.put(INSIDE_MASK_RADIUS_KEY, insideMaskRadius.getParsableString());
     valueMap
         .put(OUTSIDE_MASK_RADIUS_KEY, outsideMaskRadius.getParsableString());
+    valueMap.put(N_WEIGHT_GROUP_KEY, nWeightGroup.getParsableString());
   }
 
   /**
