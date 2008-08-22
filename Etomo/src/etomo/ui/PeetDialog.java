@@ -53,6 +53,11 @@ import etomo.type.Run3dmodMenuOptions;
  * @version $Revision$
  * 
  * <p> $Log$
+ * <p> Revision 1.61  2008/05/28 02:50:18  sueh
+ * <p> bug# 1111 Add a dialogType parameter to the ProcessSeries
+ * <p> constructor.  DialogType must be passed to any function that constructs
+ * <p> a ProcessSeries instance.
+ * <p>
  * <p> Revision 1.60  2008/05/03 00:52:01  sueh
  * <p> bug# 847 Passing null for ProcessSeries to process funtions.
  * <p>
@@ -399,6 +404,10 @@ public final class PeetDialog implements ContextMenu, AbstractParallelDialog,
       "Copy Parameters");
   private final CheckBox cbFlgWedgeWeight = new CheckBox(
       "Use tilt range in alignment");
+  private final Spinner sNWeightGroup = Spinner.getLabeledInstance(
+      "# of weight groups for equalizing CCCs: ",
+      MatlabParam.N_WEIGHT_GROUP_DEFAULT, MatlabParam.N_WEIGHT_GROUP_DEFAULT,
+      20);
 
   private final PanelHeader phRun;
   private final PanelHeader phSetup;
@@ -501,6 +510,7 @@ public final class PeetDialog implements ContextMenu, AbstractParallelDialog,
         .getValue());
     metaData.setMaskModelPtsParticle(ltfMaskModelPtsVolumeParticle.getText());
     metaData.setMaskTypeVolume(ftfMaskTypeVolume.getText());
+    metaData.setNWeightGroup(sNWeightGroup.getValue());
   }
 
   /**
@@ -533,15 +543,21 @@ public final class PeetDialog implements ContextMenu, AbstractParallelDialog,
         .getMaskModelPtsModelNumber());
     ltfMaskModelPtsVolumeParticle.setText(metaData.getMaskModelPtsParticle());
     ftfMaskTypeVolume.setText(metaData.getMaskTypeVolume());
+    sNWeightGroup.setValue(metaData.getNWeightGroup());
   }
 
   /**
    * Load data from MatlabParamFile.  Load only active data after the meta data
    * has been loaded.  Do not load fnOutput.  This value cannot be modified after
    * the dataset has been created.
+   * Do not rely on whether fields are enabled to make decisions in this
+   * function; updateDisplay may not have been run with data in the screen.
+   * When looking at the settings of dialog fields, make sure that they have
+   * already been loaded in THIS function.  This is sometimes the first data-
+   * loading function to be run.
    * @param matlabParamFile
-   * @importDir directory of original .prm file.  May need to set the absolute path of files from .prm file
-   * @paramatersOnly 
+   * @param importDir directory of original .prm file.  May need to set the absolute path of files from .prm file
+   * @param paramatersOnly 
    */
   public void setParameters(final MatlabParam matlabParam, File importDir,
       boolean parametersOnly) {
@@ -655,6 +671,9 @@ public final class PeetDialog implements ContextMenu, AbstractParallelDialog,
     }
     ltfInsideMaskRadius.setText(matlabParam.getInsideMaskRadius());
     ltfOutsideMaskRadius.setText(matlabParam.getOutsideMaskRadius());
+    if (isEnableNWeightGroup()) {
+      sNWeightGroup.setValue(matlabParam.getNWeightGroup());
+    }
     updateDisplay();
   }
 
@@ -730,6 +749,9 @@ public final class PeetDialog implements ContextMenu, AbstractParallelDialog,
     }
     matlabParam.setInsideMaskRadius(ltfInsideMaskRadius.getText());
     matlabParam.setOutsideMaskRadius(ltfOutsideMaskRadius.getText());
+    if (sNWeightGroup.isEnabled()) {
+      matlabParam.setNWeightGroup(sNWeightGroup.getValue());
+    }
   }
 
   public String getFnOutput() {
@@ -805,6 +827,7 @@ public final class PeetDialog implements ContextMenu, AbstractParallelDialog,
     iterationTable.reset();
     ltfSampleInterval.clear();
     cbMaskUseReferenceParticle.setSelected(false);
+    sNWeightGroup.reset();
     setDefaults();
     updateDisplay();
   }
@@ -925,6 +948,8 @@ public final class PeetDialog implements ContextMenu, AbstractParallelDialog,
           MatlabParam.INSIDE_MASK_RADIUS_KEY));
       ltfOutsideMaskRadius.setToolTipText(EtomoAutodoc.getTooltip(autodoc,
           MatlabParam.OUTSIDE_MASK_RADIUS_KEY));
+      sNWeightGroup.setToolTipText(EtomoAutodoc.getTooltip(autodoc,
+          MatlabParam.N_WEIGHT_GROUP_KEY));
     }
     catch (FileNotFoundException e) {
       e.printStackTrace();
@@ -955,6 +980,7 @@ public final class PeetDialog implements ContextMenu, AbstractParallelDialog,
     rbSampleSphereNone.setSelected(true);
     lsParticlePerCPU.setValue(MatlabParam.PARTICLE_PER_CPU_DEFAULT);
     rbMaskTypeNone.setSelected(true);
+    sNWeightGroup.setValue(MatlabParam.N_WEIGHT_GROUP_DEFAULT);
   }
 
   private void createSetupPanel() {
@@ -994,12 +1020,19 @@ public final class PeetDialog implements ContextMenu, AbstractParallelDialog,
     pnlReference.add(pnlVolumeReference);
     pnlReference.add(pnlVolumeFile);
     //tiltRange and edgeShift
-    JPanel pnlTiltRange = new JPanel();
-    pnlTiltRange.setLayout(new BoxLayout(pnlTiltRange, BoxLayout.X_AXIS));
+    SpacedPanel pnlTiltRange = new SpacedPanel();
+    pnlTiltRange.setBoxLayout(BoxLayout.X_AXIS);
+    pnlTiltRange.setComponentAlignmentX(Component.LEFT_ALIGNMENT);
     pnlTiltRange.add(cbTiltRange);
-    pnlTiltRange.add(Box.createRigidArea(FixedDim.x20_y0));
+    pnlTiltRange.addRigidArea(FixedDim.x20_y0);
     ltfEdgeShift.setTextPreferredWidth(UIParameters.INSTANCE.getIntegerWidth());
     pnlTiltRange.add(ltfEdgeShift.getContainer());
+    //flgWedgeWeight
+    SpacedPanel pnlFlgWedgeWeight = new SpacedPanel();
+    pnlFlgWedgeWeight.setBoxLayout(BoxLayout.X_AXIS);
+    pnlFlgWedgeWeight.setComponentAlignmentX(Component.LEFT_ALIGNMENT);
+    pnlFlgWedgeWeight.add(cbFlgWedgeWeight);
+    pnlFlgWedgeWeight.addHorizontalGlue();
     //missing wedge compensation
     SpacedPanel pnlMissingWedgeCompensation = new SpacedPanel();
     pnlMissingWedgeCompensation.setBoxLayout(BoxLayout.Y_AXIS);
@@ -1008,7 +1041,8 @@ public final class PeetDialog implements ContextMenu, AbstractParallelDialog,
     pnlMissingWedgeCompensation
         .setComponentAlignmentX(Component.LEFT_ALIGNMENT);
     pnlMissingWedgeCompensation.add(pnlTiltRange);
-    pnlMissingWedgeCompensation.add(cbFlgWedgeWeight);
+    pnlMissingWedgeCompensation.add(pnlFlgWedgeWeight);
+    pnlMissingWedgeCompensation.add(sNWeightGroup.getContainer());
     //reference and missing wedge compensation
     JPanel pnlReferenceAndMissingWedgeCompensation = new JPanel();
     pnlReferenceAndMissingWedgeCompensation.setLayout(new BoxLayout(
@@ -1412,6 +1446,12 @@ public final class PeetDialog implements ContextMenu, AbstractParallelDialog,
         .setEnabled(cylinder && !useReferenceParticle);
     sMaskModelPtsVolumeModelNumber.setMax(size);
     ltfMaskModelPtsVolumeParticle.setEnabled(cylinder && !useReferenceParticle);
+    sNWeightGroup.setEnabled(isEnableNWeightGroup());
+  }
+
+  private boolean isEnableNWeightGroup() {
+    return volumeTable.size() > 0 && cbTiltRange.isSelected()
+        && cbFlgWedgeWeight.isSelected() && rbReferenceParticle.isSelected();
   }
 
   private void chooseDirectory() {
