@@ -1,5 +1,7 @@
 IMOD History
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+8/21/08: Added nWeightGroup to the PEET interface in Etomo.
+
 8/20/08: Fixed a bug in Etomo - PEET which prevented the use of zero Phi, Theta,
 and Psi values.
 
