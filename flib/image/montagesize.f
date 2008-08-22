@@ -16,7 +16,7 @@ c
 	integer*4 nxyz(3),mxyz(3)
 	integer*4 ixpclist(maxpiece),iypclist(maxpiece)
 	integer*4 izpclist(maxpiece)
-	character*120 imfile,plfile
+	character*320 imfile,plfile
 	if(iargc().lt.1.or.iargc().gt.2)then
 	  print *,'Usage: montagesize image_file piece_list_file'
 	  print *,'   (piece_list_file is optional if image_file'//
