@@ -11,7 +11,7 @@ c
       implicit none
       CHARACTER*(*) NAME,ATBUTE
       character*7 at2
-      CHARACTER*160 FULLNAME
+      CHARACTER*320 FULLNAME
       integer*4 istream
       include 'imsubs.inc'
       DATA NBHDR/1024/, NBW/4/, NBW3/12/, NB/1,2,4,4,8,2,2/, NBL/800/
@@ -153,6 +153,9 @@ C
       END
 
 c       $Log$
+c       Revision 3.10  2007/10/14 17:09:40  mast
+c       Output K for file size
+c
 c       Revision 3.9  2006/10/06 19:23:19  mast
 c       Renamed variable to IMOD_BRIEF_HEADER
 c
