@@ -13,6 +13,7 @@ import javax.swing.SpinnerNumberModel;
 import etomo.EtomoDirector;
 import etomo.storage.autodoc.AutodocTokenizer;
 import etomo.type.ConstEtomoNumber;
+import etomo.type.EtomoNumber;
 import etomo.type.ParsedElement;
 import etomo.type.UITestField;
 import etomo.util.Utilities;
@@ -31,6 +32,10 @@ import etomo.util.Utilities;
  * @version $Revision$
  * 
  * <p> $Log$
+ * <p> Revision 1.11  2008/05/30 22:36:18  sueh
+ * <p> bug# 1102 Isolating the etomo.uitest package so it is not need for
+ * <p> running EtomoDirector.
+ * <p>
  * <p> Revision 1.10  2008/05/30 21:34:15  sueh
  * <p> bug# 1102 Moved uitest classes to etomo.uitest.
  * <p>
@@ -145,6 +150,10 @@ final class Spinner {
     return panel;
   }
 
+  boolean isEnabled() {
+    return spinner.isEnabled();
+  }
+
   void setEnabled(final boolean enabled) {
     spinner.setEnabled(enabled);
     if (label != null) {
@@ -166,6 +175,15 @@ final class Spinner {
     }
     else {
       spinner.setValue(value.getRawNumber());
+    }
+  }
+
+  void setValue(final int value) {
+    if (value == EtomoNumber.INTEGER_NULL_VALUE) {
+      spinner.setValue((Integer) model.getMinimum());
+    }
+    else {
+      spinner.setValue(new Integer(value));
     }
   }
 
