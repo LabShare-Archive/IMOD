@@ -13,6 +13,9 @@ package etomo.type;
 * @version $Revision$
 * 
 * <p> $Log$
+* <p> Revision 1.9  2008/04/02 02:00:10  sueh
+* <p> bug# 1095 Added mask fields.
+* <p>
 * <p> Revision 1.8  2007/07/25 22:58:30  sueh
 * <p> bug# 1027 Change start and end angles to min and max angles.
 * <p>
@@ -58,4 +61,5 @@ public interface ConstPeetMetaData {
   public ConstEtomoNumber getMaskModelPtsModelNumber();
   public String getMaskModelPtsParticle();
   public String getMaskTypeVolume();
+  public ConstEtomoNumber getNWeightGroup();
 }
