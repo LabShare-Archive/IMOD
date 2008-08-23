@@ -6,34 +6,10 @@
  *  Copyright (C) 1995-2005 by Boulder Laboratory for 3-Dimensional Electron
  *  Microscopy of Cells ("BL3DEMC") and the Regents of the University of 
  *  Colorado.  See dist/COPYRIGHT for full copyright notice.
- */
-
-/*  $Author$
-
-$Date$
-
-$Revision$
-
-$Log$
-Revision 1.6  2005/05/27 23:20:39  mast
-Fixed if there is white space between function name and (
-
-Revision 1.5  2005/03/21 19:21:39  mast
-Removed calls to libimod functions - it needs to run from build environment
-
-Revision 1.4  2005/03/20 19:57:33  mast
-Added ability to have multiple sections of one name; added END_SECTION
-
-Revision 1.3  2005/03/08 16:09:54  mast
-Replaced & with html code
-
-Revision 1.2  2005/02/25 03:18:27  mast
-Added standard includes, changed fortran to fort77 to make intel happy
-
-Revision 1.1  2005/02/25 02:46:52  mast
-Addition to package
-
-*/
+ *
+ * $Id$
+ * Log at end of file
+ */                                                                           
 
 #include <stdlib.h>
 #include <stdio.h>
@@ -346,10 +322,10 @@ int main(int argc, char *argv[])
             for (ui = 0; ui < funcList.count(); ui++) {
               str2 = "";
               if (!ui)
-                str2 = "<A NAME=\"" + funcName + "\"><H3>";
+                str2 = "<H3><A NAME=\"" + funcName + "\"></A>";
               str2 += funcList[ui];
               if (ui == funcList.count() - 1)
-                str2 += "</H3></A>";
+                str2 += "</H3>";
               descList << str2;
             }
           } else {
@@ -385,7 +361,7 @@ int main(int argc, char *argv[])
           // Output the list entry and add to description list
           str2 = "<BR><A HREF=\"#" + funcName + "\">" + funcName + "</A>\n";
           outStream << str2;
-          str2 = "<A NAME=\"" + funcName + "\"><H3>" + funcName + "</H3></A>";
+          str2 = "<H3><A NAME=\"" + funcName + "\"></A>" + funcName + "</H3>";
           descList << str2;
 
           // Loop on the lines until the end code
@@ -575,3 +551,28 @@ static void convertSpecialCodes(QString &str, char *progname, int debug)
   if (debug)
     puts(str);
 }
+
+/* $Log$
+
+Revision 1.7  2006/07/07 19:09:11  mast
+Added ability to import code blocks
+
+Revision 1.6  2005/05/27 23:20:39  mast
+Fixed if there is white space between function name and (
+
+Revision 1.5  2005/03/21 19:21:39  mast
+Removed calls to libimod functions - it needs to run from build environment
+
+Revision 1.4  2005/03/20 19:57:33  mast
+Added ability to have multiple sections of one name; added END_SECTION
+
+Revision 1.3  2005/03/08 16:09:54  mast
+Replaced & with html code
+
+Revision 1.2  2005/02/25 03:18:27  mast
+Added standard includes, changed fortran to fort77 to make intel happy
+
+Revision 1.1  2005/02/25 02:46:52  mast
+Addition to package
+
+*/
