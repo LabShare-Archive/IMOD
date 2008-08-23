@@ -15,9 +15,9 @@
 <BR><A HREF = "#Fiducialless Combine">6.0. Combining Tomograms with Few or No Fiducials</A>
 <HR>
 
-<A NAME = "Command Files"><H4>
+<H4><A NAME = "Command Files"></A>
 1.0. Command Files
-</H4></A>
+</H4>
 Nearly all of the processing for tomography is done by running command
 files.  The format of these files was originally based on the batch files used
 in VMS.  In our command files, every line that runs a command or program must
@@ -55,9 +55,9 @@ more than one process in the background, give the command "jobs" first to
 determine which one is the process in question, then use, for example, "fg %2"
 to bring job 2 to the foreground.
 
-<A NAME = "Entries to Programs"><H4>
+<H4><A NAME = "Entries to Programs"></A>
 2.0. Entries to Programs
-</H4></A>
+</H4>
 The programs that you will run have many parameters or options to control
 their behavior.  There are three basic ways that options and
 parameters
@@ -168,9 +168,9 @@ the list; text after that character will be ignored, thus allowing comments
 after lists.
 </OL>
 
-<A NAME = "Running Copytomocoms"><H4>
+<H4><A NAME = "Running Copytomocoms"></A>
 3.0. Running Copytomocoms Manually
-</H4></A>
+</H4>
      If you need to get command files for a situation that Etomo cannot handle,
 go to the directory where you will be working and enter
 <CODE><BR>     copytomocoms</CODE><BR>
@@ -182,9 +182,9 @@ data files are already present in the current directory.
      Copytomocoms fetches the command files from $IMOD_DIR/com.  If 
 something goes wrong, you can copy files from there manually.
 
-<A NAME = "Bidirectional X Tilt"><H4>
+<H4><A NAME = "Bidirectional X Tilt"></A>
 4.0. Correcting for X-axis Tilt in Bidirectional Tilt Series
-</H4></A>
+</H4>
 Some tilt series taken by tilting in two directions from zero tilt appear to
 have a change in X-axis tilt between the two halves of the series.  Although
 Tiltalign cannot reliably solve for a progressive change in X-axis tilt during
@@ -217,9 +217,9 @@ and you should probably choose between solving for distortion and X tilt,
 depending on which gives the smaller residual.
 </OL>
 
-<A NAME = "Fiducialless Tomogram"><H4>
+<H4><A NAME = "Fiducialless Tomogram"></A>
 5.0. Making a Tomogram with Correlation Alignment.
-</H4></A>
+</H4>
 This section describes in detail the steps involved if you need to make as
 good a tomogram as possible with the cross-correlation alignment.  
 <UL>
@@ -290,9 +290,9 @@ the aligned stack.  Apply 2D filtering if needed.  Reset the slice limits and
 width, and make the final tomogram.
 </OL>
 </UL>
-<A NAME = "Fiducialless Combine"><H4>
+<H4><A NAME = "Fiducialless Combine"></A>
 6.0. Combining Tomograms with Few or No Fiducials
-</H4></A>
+</H4>
 This section describes how to use models of corresponding points to get
 the initial match between two tomograms when there are too few, or no,
 fiducials.

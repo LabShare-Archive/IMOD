@@ -29,9 +29,9 @@
 </UL>
 <HR>
 <P>
-<A NAME = "Background"><H3>
+<H3><A NAME = "Background"></A>
 1. Background
-</H3></A>
+</H3>
 This document describes how to join tomograms from serial sections into one
 volume, using the interface in eTomo.
 The interface is organized into 
@@ -69,9 +69,9 @@ Step 6 is done with the <B>Model</B> panel, which runs the program
 again.
 
 <P>
-<A NAME = "TopBottom"><H4>
+<H4><A NAME = "TopBottom"></A>
 1.1. Top and Bottom
-</H4></A>
+</H4>
      If you have N tomograms, then there are N-1 boundaries between sections.
 The words "top" and "bottom" are used here with a particular meaning: 
 the "bottom" of a section is the part of the tomogram that will end up at
@@ -111,9 +111,9 @@ Entries in the table for the sections described above.
 <div align="center"><img src="joinImages/topBotStacked1.jpg"><br>
 The result of completing the join with the table entries shown above.
 </div>
-<A NAME = "Handedness"><H4>
+<H4><A NAME = "Handedness"></A>
 1.2. Preserving or Restoring Handedness
-</H4></A>
+</H4>
 The order in which you stack the sections will determine whether the
 handedness of structures is preserved or inverted from the individual
 tomograms to the joined volume.  When the final joined volume is made, slices
@@ -130,9 +130,9 @@ in the Tomography Guide for a complete discussion of this issue.
 it.
 <LI> If a reconstruction is inverted, stack so as to invert it.
 </UL>
-<A NAME = "Flipping"><H4>
+<H4><A NAME = "Flipping"></A>
 1.3. Flipping Tomograms
-</H4></A>
+</H4>
 The interface in eTomo was designed to work only with tomograms that
 have been flipped or rotated after generation so that the Z sections in the
 image file correspond to actual slices in Z, parallel to the plane of
@@ -142,16 +142,16 @@ in the post-processing step, eTomo will offer to flip it for you and
 produce a file with extension ".flip"  in the working directory.  However,
 this will invert the handedness of structures in the volume.
 <P>
-<A NAME = "Setup"><H3>
+<H3><A NAME = "Setup"></A>
 2. The Setup Panel
-</H3></A>
+</H3>
 To begin joining tomograms, start eTomo and select <B>New Join</B> from the
 <B>File</B> menu.  This will bring up the <B>Setup</B> panel.
 
 <P>
-<A NAME = "InitialEntries"><H4>
+<H4><A NAME = "InitialEntries"></A>
 2.1. Initial Entries
-</H4></A>
+</H4>
 After opening the <B>Setup</B> panel, you must first
 make an entry for <B>Working directory</B>.
 You should create a new directory for your joining operation so that it is
@@ -168,9 +168,9 @@ and other extensions.  Files will be referred to below as, for example,
 joining operation.  You can exit eTomo and restart where you left off by
 loading this file.
 <P>
-<A NAME = "AddingSections"><H4>
+<H4><A NAME = "AddingSections"></A>
 2.2. Adding and Manipulating Sections
-</H4></A>
+</H4>
 Press <B>Add Section</B> to add a section to the table, then use the
 file chooser to find the tomogram.  The program
 will record the full path to the file but show only the file name.
@@ -194,9 +194,9 @@ regardless of how big they are.  Binning is only in X and Y, not in Z, so
 that slice numbers will not vary with binning.
 
 <P>
-<A NAME = "Rotating"><H4>
+<H4><A NAME = "Rotating"></A>
 2.3. Rotating a Section
-</H4></A>
+</H4>
 It is possible to rotate a tomogram
 before joining, using <A href="man/rotatevol.html">Rotatevol</A>.  
 There are three reasons to use rotations.  
@@ -239,9 +239,9 @@ section in question is selected in the section table, and press
 the table.
 
 <P>
-<A NAME = "DecidingSlices"><H4>
+<H4><A NAME = "DecidingSlices"></A>
 2.4. Deciding on Slices to Extract
-</H4></A>
+</H4>
 You need to decide which slices to extract from the top and
 bottom of each section in order to construct a file that contains a sample of
 each boundary.  You should include the last slice that contains usable image
@@ -268,9 +268,9 @@ volume will be converted to the appropriate slices in the rotated volume, and
 the converted slice numbers will appear when you get to the <B>Join</B> panel.
 
 <P>
-<A NAME = "MakingSamples"><H4>
+<H4><A NAME = "MakingSamples"></A>
 2.5. Adjusting Squeezing and Density Matching and Making Samples
-</H4></A>
+</H4>
 When the sample slices are extracted, they will be transformed if necessary so
 that they are no bigger than a certain size.  This size is 1024 pixels by
 default, but if your volumes are very large in X or Y this default 
@@ -298,9 +298,9 @@ into "rootname.sampavg".  At this point, you can go on
 to the <B>Align</B> panel.
 
 <P>
-<A NAME = "ModifyingSetup"><H4>
+<H4><A NAME = "ModifyingSetup"></A>
 2.6. Modifying the Setup to Make New Samples
-</H4></A>
+</H4>
 After you have made samples, most fields on the <B>Setup</B> panel
 will be disabled, to prevent disagreements between the information on
 this panel and the information used in later phases of the process.
@@ -313,9 +313,9 @@ restore the entries that were used to make the existing samples.  This
 will unlock the other tabs.
 
 <P>
-<A NAME = "InvertingTable"><H4>
+<H4><A NAME = "InvertingTable"></A>
 2.7. Inverting the Table
-</H4></A>
+</H4>
 After you run <B>Make Samples</B>, eTomo is able to calculate whether some or
 all of the sections will be inverted in the final join.  It will highlight
 inverted sections with yellow in the table and warn you if morethan half are
@@ -337,18 +337,18 @@ Entries in the table for the sections described above.
 
 
 <P>
-<A NAME = "Align"><H3>
+<H3><A NAME = "Align"></A>
 3. Aligning the Sample Slices
-</H3></A>
+</H3>
 The <B>Align</B> panel has three components.  There is a modified
 version of the section table with information relevant to aligning the
 sections; an area for setting parameters for automatic alignment, and
 buttons to perform the different kinds of alignment.
 
 <P>
-<A NAME = "ManualAlignment"><H4>
+<H4><A NAME = "ManualAlignment"></A>
 3.1. Manual Alignment with Midas 
-</H4></A>
+</H4>
 <A href="man/midas.html">Midas</A> can be used exclusively to align the
 sections manually, or it can be used to check and refine the results
 from automatic alignment.
@@ -372,9 +372,9 @@ of slices that can validly be used as reference and current sections
 for a given current chunk.
 
 <P>
-<A NAME = "AutoAlignment"><H4>
+<H4><A NAME = "AutoAlignment"></A>
 3.2. Automatic Alignment with Xfalign
-</H4></A>
+</H4>
 In some cases, automatic alignment of the sample averages with 
 <A href="man/xfalign.html">Xfalign</A> may produce
 an adequate alignment.  The interface provides for using 
@@ -417,9 +417,9 @@ read "rootname.xf" into a text editor and substitute lines from
 </OL>
 
 <P>
-<A NAME = "AutoParameters"><H4>
+<H4><A NAME = "AutoParameters"></A>
 3.3. Parameters for Automatic Alignment
-</H4></A>
+</H4>
 By default, the automatic alignment will search for a full linear
 transformation, including translation, rotation, size change, and
 stretching.  If the images do not contain enough information to indicate
@@ -440,9 +440,9 @@ to reduce the <B>Cutoff for high-frequency filter</B> below 0.25 for
 particularly noisy images.
 
 <P>
-<A NAME = "Joining"><H3>
+<H3><A NAME = "Joining"></A>
 4. Making the Final Joined Volume
-</H3></A>
+</H3>
 The <B>Join</B> panel shows another variant on the data table in which you
 can adjust the starting and ending slices for the final volume.  The panel
 also provides the ability to set
@@ -508,9 +508,9 @@ rootname.sample, rootname.sampavg).  The other
 files should be kept for future reference.
 
 <P>
-<A NAME = "Refining"><H3>
+<H3><A NAME = "Refining"></A>
 5. Refining the Alignment with a Fiducial Model
-</H3></A>
+</H3>
 Once you have a joined volume, it is possible to model some of the features in
 the volume and use those features as fiducials for refining the alignment with 
 <A href="man/xfjointomo.html">Xfjointomo</A>.  The model can contain pairs of
@@ -522,9 +522,9 @@ possible to determine the proper spacing between sections.  See the
 <A href="man/xfjointomo.html">Xfjointomo man page</A> for complete details on
 how the program works.  
 <P>
-<A NAME = "RefineModel"><H3>
+<H3><A NAME = "RefineModel"></A>
 5.1. Making a Fiducial Model
-</H3></A>
+</H3>
 The fiducial model can be built on the final joined file, or a binned trial
 join file that includes all of the slices.  The interface will not allow you
 to use a trial join that skips slices.
@@ -569,9 +569,9 @@ vesicle.  Pairs of points in such contours are included together with the
 pairs of positions extrapolated from trajectories in a single least-squares
 fit to find the transformation at a boundary.  
 <P>
-<A NAME = "FindRefine"><H3>
+<H3><A NAME = "FindRefine"></A>
 5.2. Finding Refining Transforms
-</H3></A>
+</H3>
 After making and saving the model, you are ready to set the parameters for
 finding transformations.  By default, the same parameters will be used for all
 section boundaries.  However, if necessary, you can run 
@@ -630,9 +630,9 @@ trajectories have been removed adequately, or whether some trajectories are
 problematic.
 
 <P>
-<A NAME = "Rejoin"><H3>
+<H3><A NAME = "Rejoin"></A>
 5.3. Rejoining with Refining Transforms 
-</H3></A>
+</H3>
 To join the tomograms with the refined alignment, go to the <B>Rejoin</B>
 panel.  This panel allows you to adjust which slices will go into the new
 volume, make a trial or final rejoin, and transform any model file from the
