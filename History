@@ -1,5 +1,8 @@
 IMOD History
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+8/22/08: Fixed bug in extra object code from 7/13/08 that crashed 3dmod when
+using bead fixer on Mac (and should have crashed elsewhere...).
+
 8/21/08: Fixed problem running Refinematch with > 10000 patches.
 
 8/21/08: Increased filename length limit for montagesize to 320.
