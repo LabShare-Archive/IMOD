@@ -104,15 +104,18 @@ inline bool isDefaultSize( Iobj *obj, Icont *cont, int idx );
 
 inline void printPt( Ipoint *pt );
 inline void printCont( Icont *cont );
+inline void printContPts( Icont *cont );
 inline void deleteAllPts( Icont *cont );
 inline float getZ( Icont *cont );
 inline int getZInt( Icont *cont );
+inline float getZRange( Icont *cont );
 inline void changeZValue( Icont *cont, int newZValue );
 inline void cont_copyPoints( Icont *from, Icont *to, bool clearToCont );
 inline void deleteContours( vector<IcontPtr> &conts );
 inline void eraseContour( vector<IcontPtr> &conts, int idx );
 
 inline Icont* getCont( Iobj *obj, int idx );
+inline Icont* getLastCont( Iobj *obj );
 inline int csize( Iobj *obj );
 inline int osize( Imod *imod );
 
@@ -140,8 +143,9 @@ float mbr_distToNearestEdge(float val, float min, float max);
 float mbr_distToNearestEdge(float min1, float max1, float min2, float max2);
 float mbr_distBetweenBBoxes2D(Ipoint *ll1, Ipoint *ur1, Ipoint *ll2, Ipoint *ur2);
 bool mbr_distToBBox2D(Ipoint *pt, Ipoint *ll, Ipoint *ur);                  // NEW
-bool mbr_isInsideBBox(Ipoint *pt, Ipoint *ll, Ipoint *ur, bool ignoreZ);    // NEW
-bool mbr_doEdgesOverlap(double min1, double max1, double min2, double max2);
+bool mbr_isPtInsideBBox(Ipoint *pt, Ipoint *ll, Ipoint *ur);                  // NEW
+bool mbr_isPtInsideBBox2D(Ipoint *pt, Ipoint *ll, Ipoint *ur);                // NEW
+bool mbr_doEdgesOverlap(float min1, float max1, float min2, float max2);
 bool mbr_doBBoxesOverlap2D(Ipoint *p1ll, Ipoint *p1ur, Ipoint *p2ll, Ipoint *p2ur);
 
 
@@ -162,6 +166,7 @@ bool line_isPointOnLine( Ipoint *pt, Ipoint *lineStart, Ipoint *lineEnd );
 bool line_getLineEquation( Ipoint *pt1, Ipoint *pt2, float *gradient, float *offset );
 float line_crossProduct3Points( Ipoint *pt1, Ipoint *pt2, Ipoint *pt3);
 float line_angleFormed3Pts( Ipoint *pt1, Ipoint *pt2, Ipoint *pt3  );
+Ipoint line_getPtRelativeToEnd( Ipoint *start, Ipoint *end, float distFromEnd, float angleFromStraight );                         //NEW
 bool line_doLinesCrossAndWhere( Ipoint *line1pt1, Ipoint *line1pt2, Ipoint *line2pt1, Ipoint *line2pt2, Ipoint *intercept );
 bool line_isKiss( Ipoint *pMid, Ipoint *p1,Ipoint *p2,    Ipoint *p3, Ipoint *p4 );
 bool line_twoKiss( Ipoint *a1, Ipoint *a2, Ipoint *a3,    Ipoint *b1, Ipoint *b2, Ipoint *b3 );
@@ -201,20 +206,28 @@ bool cont_doCountoursCrossAndWhere( Icont *cont1, Icont *cont2, bool cont1Closed
 bool cont_doesPtTouchContLine( Ipoint *pt, Icont *cont );
 
 float cont_findClosestPts2D( Icont *cont1, Icont *cont2, int *closestPtIdxInCont1, int *closestPtIdxInCont2 );
-void cont_reversePts( Icont *c );                              
+void cont_reversePts( Icont *c );
+
+void cont_addChamferPts( Icont *cont, Ipoint *ptPrev, Ipoint *ptCurr, Ipoint *ptNext, float distOffset, float minAngle );         //NEW
+void cont_expandOpenCont( Icont *contOrig, Icont *contReturn, float thickness, float minAngleForChamfers, bool roundEnds );       //NEW
+void cont_expandClosedCont( Icont *contOrig, Icont *innerCont, Icont *outerCont, float thickness, float minAngleForChamfers );    //NEW
+
 void cont_concat( Icont *contNew, Icont *cont1, Icont *cont2, bool matchClosestEnds );    
 int cont_addPtsCrude( Icont *cont, float maxDist, bool closed );           // MODIFIED
 int cont_addPtsSmoothIteration( Icont *cont, float maxDist, float tensileFract, bool closed );
-int cont_addPtsSmooth( Icont *cont, float maxDist, float tensileFract, bool closed );          
+int cont_addPtsSmooth( Icont *cont, float maxDist, float tensileFract, bool closed, 
+                       bool roundZOpenPts=true, bool addPtEveryZ=true );          
 int cont_reducePtsCrude( Icont *cont, float minDist, bool closed );                    
 int cont_reducePtsTol(Icont *cont, float tol);                              // NEW
 int cont_reducePtsMinArea( Icont *cont, float minArea, bool closed );       // MODIFIED
+int cont_removeRedundantPts( Icont *cont, bool removeStraightLinePts, bool closed, bool removePts );    // NEW
 
-bool cont_isSimple( Icont *cont, bool closed=true );                              
+bool cont_isSimple( Icont *cont, bool closed=true );
+bool cont_isSimpleSeg( Icont *cont, bool closed, int *ptCross );
 void cont_makeSimple( Icont *cont );                            
 int cont_breakIntoSimple( vector<IcontPtr> &conts, Icont *cont );                    
 bool cont_isConvex( Icont *cont );                              
-void cont_makeConvex( Icont *contO );                            
+int  cont_makeConvex( Icont *contO );                            
 bool cont_breakContourEitherSide( Icont *cont, Icont *contBreak1, Icont *contBreak2, int idxPt1, int idxPt2, bool shareEdge );      
 bool cont_breakContourByLine( Icont *cont, Icont *contBreak1, Icont *contBreak2, Ipoint *linePt1, Ipoint *linePt2, Ipoint expectedPt, bool useExpectedPtInsteadOfMaxAreaSmallerSide );
 void cont_joinContsAtClosestApproach( Icont *newCont, Icont *cont1, Icont *cont2, bool addPtInMiddle );          
@@ -440,6 +453,20 @@ inline void printCont( Icont *cont )
   wprint("cont pts=%d z=%d \n", psize(cont), imodContourZValue(cont) ); 
 }
 
+
+//------------------------
+//-- Prints all points in the contour.
+
+inline void printContPts( Icont *cont )
+{
+  wprint("cont: " );
+  for(int p=0; p<psize(cont); p++)
+    wprint(" { %d,%d,%d }",
+           (int)getPt(cont,p)->x, (int)getPt(cont,p)->y, (int)getPt(cont,p)->z );
+  wprint("\n");
+}
+
+
 //------------------------
 //-- Useful for deleting all points without calling "imodContourDefault",
 //-- which will reset other contour properties.
@@ -465,6 +492,26 @@ inline float getZ( Icont *cont )
 inline int getZInt( Icont *cont )
 {
   return floor(imodContourZValue( cont ) + 0.5);
+}
+
+//------------------------
+//-- Returns the span of the contour in Z (will be 0 if contour on one slice)
+
+inline float getZRange( Icont *cont )
+{
+  if( isEmpty(cont) )
+    return 0;
+  
+  float maxZ = INT_MIN;
+  float minZ = INT_MAX;
+  
+  for(int p=0; p<psize(cont); p++)
+  {
+    float z = getPt(cont,p)->z;
+    updateMin( minZ, z );
+    updateMax( maxZ, z );
+  }
+  return (maxZ - minZ);
 }
 
 
@@ -517,6 +564,17 @@ inline Icont* getCont( Iobj *obj, int idx )
 {
   return imodObjectGetContour(obj, idx);
 }
+
+//------------------------
+//-- Returns the last contour in the object
+
+inline Icont* getLastCont( Iobj *obj )
+{
+  if(!obj)
+    return (NULL);
+  return imodObjectGetContour(obj, csize(obj)-1 );
+}
+
 
 //------------------------
 //-- Shorter function name for "imodObjectGetMaxContour()"

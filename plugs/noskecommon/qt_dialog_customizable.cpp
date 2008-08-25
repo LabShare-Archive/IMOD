@@ -5,6 +5,7 @@
 #include <string>
 #include <qstring.h>
 #include <qstringlist.h>
+#include <qvalidator.h>
 
 using namespace std;
 
@@ -89,6 +90,29 @@ void GuiDialogCustomizable::setDialogElements( CustomDialog *ds_ )
         vboxLayout->addLayout( hboxLayout );
 			}
         break;
+        
+      case( DLG_FLOATEDIT ):
+			{
+				elements[i].label = new QLabel( ds->elVal[i].caption, this );
+				elements[i].lineEdit = new QLineEdit(this);
+				elements[i].lineEdit->setText( QString::number( ds->elVal[i].value ) );
+				if( ds->elVal[i].tooltip != 0 )
+        {
+          QToolTip::add( elements[i].label,    ds->elVal[i].tooltip );
+          QToolTip::add( elements[i].lineEdit, ds->elVal[i].tooltip );
+        }
+        
+        elements[i].lineEdit->setValidator(                               
+          new QDoubleValidator( ds->elVal[i].min, ds->elVal[i].max,
+                                ds->elVal[i].decimals, elements[i].lineEdit ) );
+        
+				QHBoxLayout *hboxLayout = new QHBoxLayout();
+				hboxLayout->addWidget( elements[i].label );
+				hboxLayout->addWidget( elements[i].lineEdit );
+        vboxLayout->addLayout( hboxLayout );
+			}
+        break;
+        
         
       case( DLG_SPINBOX ):
 			{
@@ -195,6 +219,7 @@ void GuiDialogCustomizable::setDialogElements( CustomDialog *ds_ )
   okButton = new QPushButton("Okay", this);
   connect(okButton, SIGNAL(clicked()), this, SLOT(accept()));
   hboxLayout->addWidget(okButton);
+  okButton->setDefault(true);             // if user hits [return] accept() is called
   
   vboxLayout->addLayout( hboxLayout );
   
@@ -217,27 +242,36 @@ void GuiDialogCustomizable::accept()
         break;
         
       case( DLG_CHECKBOX ):
-        ds->elVal[i].boolValue = elements[i].chkBox->isChecked();
+        *ds->elVal[i].returnBool = elements[i].chkBox->isChecked();
         break;
         
       case( DLG_LINEEDIT ):
-        ds->elVal[i].stringValue = elements[i].lineEdit->text();
+      {
+        string valueStr = elements[i].lineEdit->text();
+        *ds->elVal[i].returnString = valueStr;
+      }
+        break;
+        
+      case( DLG_FLOATEDIT ):
+      {
+        *ds->elVal[i].returnFloat = elements[i].lineEdit->text().toFloat();
+      }
         break;
         
       case( DLG_SPINBOX ):
-        ds->elVal[i].value = (double)elements[i].spnBox->value();
+        *ds->elVal[i].returnInt = (double)elements[i].spnBox->value();
         break;
         
       case( DLG_COMBOBOX ):
-        ds->elVal[i].value = (double)elements[i].cmbBox->currentItem();
+        *ds->elVal[i].returnInt = (double)elements[i].cmbBox->currentItem();
         break;
         
       case( DLG_RADIOGRP ):
 			{
-				ds->elVal[i].value = 0;
+				*ds->elVal[i].returnInt = 0;
 				for( int j=0; j<(int)elements[i].radBtn.size(); j++ )
 					if( elements[i].radBtn[j]->isChecked() )
-						ds->elVal[i].value = j;
+						*ds->elVal[i].returnInt = j;
 			}
         break;
 		}

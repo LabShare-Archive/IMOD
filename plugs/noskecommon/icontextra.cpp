@@ -15,6 +15,9 @@
     $Revision$
 
     $Log$
+    Revision 1.8  2008/07/28 01:46:33  tempuser
+    *** empty log message ***
+
     Revision 1.7  2008/07/24 07:18:42  tempuser
     Smoothing and reduction retunr number of points added or deleted
 
@@ -379,18 +382,26 @@ bool mbr_distToBBox2D(Ipoint *pt, Ipoint *ll, Ipoint *ur)
 //------------------------
 //-- Checks if point is inside the given bounding box
 
-bool mbr_isInsideBBox(Ipoint *pt, Ipoint *ll, Ipoint *ur, bool ignoreZ)
+bool mbr_isPtInsideBBox(Ipoint *pt, Ipoint *ll, Ipoint *ur)
 {
-  return ( ( ignoreZ || isBetween(ll->z,pt->z,ur->z) )
+  return (    isBetween(ll->z,pt->z,ur->z)
            && isBetween(ll->x,pt->x,ur->x)
-           && isBetween(ll->y,pt->y,ur->y));
+           && isBetween(ll->y,pt->y,ur->y) );
 }
 
+//------------------------
+//-- Checks if point is inside the given bounding box
+//-- without considering Z
+
+bool mbr_isPtInsideBBox2D(Ipoint *pt, Ipoint *ll, Ipoint *ur)
+{
+  return ( isBetween(ll->x,pt->x,ur->x) && isBetween(ll->y,pt->y,ur->y));
+}
 
 //------------------------
 //-- Used to calculate MINDIST between two edges.
 
-bool mbr_doEdgesOverlap(double min1, double max1, double min2, double max2)
+bool mbr_doEdgesOverlap(float min1, float max1, float min2, float max2)
 {
 	return !( (max1 < min2) || (min1 > max2) );		// says: if edge1 to the LEFT or RIGHT of edge2: it does not overlap  (otherwise it does)
 }
@@ -443,7 +454,7 @@ float line_getAngle2D ( Ipoint *linept1, Ipoint *linept2 )
 
 float line_getAngle2DPos ( Ipoint *linept1, Ipoint *linept2 )
 {
-  return (float)fMod( (line_getAngle2D(linept1,linept2)+360), 360 );
+  return (float)fMod( (line_getAngle2D(linept1,linept2)+360.0f), 360.0f );
 }
 
 
@@ -591,33 +602,76 @@ float line_angleFormed3Pts( Ipoint *pt1, Ipoint *pt2, Ipoint *pt3  )
 
 
 //------------------------
+//-- Returns the position of a point placed "distFromEnd" away from the "end" point 
+//-- of a line in the direction "angleFromStraight" degrees away from the direction
+//-- the line is pointing.
+//--
+//--  eg: if distFromEnd=2 and angleFromStraight=90:
+//--
+//--                        o  <-- the point returned would be here
+//--
+//--  start --> o-----------o <-- end
+
+
+Ipoint line_getPtRelativeToEnd( Ipoint *start, Ipoint *end,
+                                float distFromEnd, float angleFromStraight )
+{
+	float angleFromHorz = line_getAngle2D( start, end );
+	float theta = (angleFromHorz + angleFromStraight) * DEGS_TO_RADS;
+	
+	float offsetX = distFromEnd*cos(theta);
+	float offsetY = distFromEnd*sin(theta);
+	
+  Ipoint returnPt;
+  returnPt.x = offsetX + end->x;
+  returnPt.y = offsetY + end->y;
+  returnPt.z = end->z;
+  
+	return returnPt;
+}
+
+
+
+//------------------------
 //-- Takes two lines (four coordinates) and returns true, plus point of
 //-- intersection if the lines cross each other - otherwise returns false.
+//-- NOTE: doubles are used here to increase precision of final value.
 
 bool line_doLinesCrossAndWhere( Ipoint *line1pt1, Ipoint *line1pt2,
                                 Ipoint *line2pt1, Ipoint *line2pt2, Ipoint *intercept )
 {
-  float a1 = line1pt2->y-line1pt1->y;
-  float b1 = line1pt1->x-line1pt2->x;
-  float c1 = line1pt2->x*line1pt1->y - line1pt1->x*line1pt2->y;
+  double a1 = line1pt2->y-line1pt1->y;
+  double b1 = line1pt1->x-line1pt2->x;
+  double c1 = line1pt2->x*line1pt1->y - line1pt1->x*line1pt2->y;
                                                 //{ a1*x + b1*y + c1 = 0 is line 1 }
-  float a2 = line2pt2->y-line2pt1->y;
-  float b2 = line2pt1->x-line2pt2->x;
-  float c2 = line2pt2->x*line2pt1->y - line2pt1->x*line2pt2->y;
+  double a2 = line2pt2->y-line2pt1->y;
+  double b2 = line2pt1->x-line2pt2->x;
+  double c2 = line2pt2->x*line2pt1->y - line2pt1->x*line2pt2->y;
                                                 //{ a2*x + b2*y + c2 = 0 is line 2 }
-  float denom = a1*b2 - a2*b1;
+  double denom = (a1*b2) - (a2*b1);
   
-  if (denom == 0)
+  if (denom == 0)     // lines are parallel
     return false;
-    
+  
   intercept->x = (b1*c2 - b2*c1) / denom;
   intercept->y = (a2*c1 - a1*c2) / denom;
   intercept->z = line1pt1->z;
   
+  return ( ( isBetween(line1pt1->x, intercept->x, line1pt2->x)
+             && isBetween(line2pt1->y, intercept->y, line2pt2->y) )
+           ||
+           ( isBetween(line2pt1->x, intercept->x, line2pt2->x)
+             && isBetween(line1pt1->y, intercept->y, line1pt2->y) ) );
+  
+  // NOTE: recently changed this to account for horizontal and veritcal lines
+  //       where precision of caculations put intercept point slightly off
+  
+  /*
   return ( isBetween(line1pt1->x, intercept->x, line1pt2->x)
            && isBetween(line2pt1->x, intercept->x, line2pt2->x)
            && isBetween(line1pt1->y, intercept->y, line1pt2->y)
            && isBetween(line2pt1->y, intercept->y, line2pt2->y) );
+   */
 }
 
 
@@ -1064,7 +1118,7 @@ void cont_stretchAlongAngle( Icont *cont, Ipoint *center,
 
 
 //---------------------------------
-//-- Generates a contour representing a circle with given center,
+//-- Generates a clockwise contour representing a circle with given center,
 //-- radius and number of points.
 
 void cont_generateCircle( Icont *cont, float radius, int numPoints,
@@ -1074,7 +1128,7 @@ void cont_generateCircle( Icont *cont, float radius, int numPoints,
   pt.z = center.z;
   
   for (int i = 0; i < numPoints; i++) {
-    float angle = 2 * PI * ( (float)i / (float)numPoints );
+    float angle = -2.0 * PI * ( (float)i / (float)numPoints );
     pt.x = center.x + radius * cos(angle);
     pt.y = center.y + radius * sin(angle);
     imodPointAppend(cont, &pt);
@@ -1205,6 +1259,179 @@ void cont_reversePts( Icont *c )
 
 
 
+
+
+
+
+//------------------------
+//-- Takes three points and and a contour adds these points to the end of the contour,
+//-- but will add extra points between them to create a nice curve if the angle formed
+//-- by the three points is large.
+//-- This function is used by the "cont_expandOpenCont" function to
+//-- avoid square ends and sharp turns.
+
+void cont_addChamferPts( Icont *cont, Ipoint *ptPrev, Ipoint *ptCurr, Ipoint *ptNext, 
+                         float distOffset, float minAngle )
+{
+	if(minAngle <= 0)
+		return;
+  
+	float angleMadeByPoint = 360 - line_angleFormed3Pts( ptPrev, ptCurr, ptNext );			
+                  // the angle made by the corner on the "outside"
+	
+	if( angleMadeByPoint > 180 )			// if angle is reflex: add multiple points
+	{
+		float angleCurveSpan = angleMadeByPoint-180;
+		int numMidPtsToAdd = (int)floor( angleCurveSpan / minAngle );
+		
+		if( numMidPtsToAdd == 0 )   // if no extra points are needed to smooth the corner:
+    {                           //   add two points
+      Ipoint pt1 = line_getPtRelativeToEnd(ptPrev,ptCurr,distOffset, 90);
+      
+			imodPointAppend( cont, &line_getPtRelativeToEnd(ptPrev,ptCurr,distOffset, 90) );
+			imodPointAppend( cont, &line_getPtRelativeToEnd(ptNext,ptCurr,distOffset,-90) );
+		}
+		else            // if extra points are needed to smooth the corner:
+    {               //   add multiple points in an arc around the current (central) pt
+			float angleBetweenPts = angleCurveSpan / (numMidPtsToAdd+1);
+			for(int i=0; i<numMidPtsToAdd+1; i++)
+				imodPointAppend( cont, &line_getPtRelativeToEnd( ptPrev, ptCurr, distOffset, 
+                                                         90-(i*angleBetweenPts) ) );
+		}
+	}
+	else					// else if angle on outside is <= 180 degrees (obtuse or acute) then:
+	{             //   add a SINGLE point in the middle
+		float angleInset = angleMadeByPoint/2.0f;
+		float distFromCorner = fDivide( distOffset, sin(angleInset*DEGS_TO_RADS) );
+		
+		Ipoint midSegmentPt = line_getPtRelativeToEnd( ptPrev, ptCurr, distFromCorner,
+                                                          180.0-angleInset );
+		
+		imodPointAppend( cont, &midSegmentPt );
+	}
+}
+
+
+
+//------------------------
+//-- Takes an open contour and expands it by a certain thickness and returns a
+//-- closed contour around the perimeter.
+//-- For all reflex angles, extra points will be added to make a smoother curve
+//-- according to the value of minAngleForChamfers.
+//-- NOTE: There is NO checking for overlap in this function - that may be called
+//-- seperately by calling: cont_makeSimple() or cont_breakIntoSimple()
+
+void cont_expandOpenCont( Icont *contOrig, Icont *contR,
+                          float thickness, float minAngleForChamfers, bool roundEnds )
+{
+  deleteAllPts(contR);
+  
+  Icont *cont = imodContourDup(contOrig);
+	
+	//## DEAL WITH POSSIBLILTY THAT CONTOUR HAS ONE OR NO POINTS:
+	if ( thickness == 0 )
+		return;
+	if( psize(cont) == 0 )
+		return;
+  if ( psize(cont) == 1 ) {
+		cont_generateCircle( contR, thickness, 12, *getFirstPt(cont), false );
+    return;
+	}
+	
+	//## PREPARE CONTOUR:
+	imodContourUnique( cont );
+  imodContourMakeDirection( cont, IMOD_CONTOUR_CLOCKWISE );
+  int N = psize(cont);
+  
+	//## ADD START:
+	if( roundEnds )	{
+		cont_addChamferPts( contR, getPt(cont,1), getPt(cont,0), getPt(cont,1),
+                        thickness, minAngleForChamfers);
+	}
+	else	{
+		imodPointAppend(contR,
+        &line_getPtRelativeToEnd( getPt(cont,0),getPt(cont,1),thickness,-90 ) );
+		imodPointAppend(contR,
+        &line_getPtRelativeToEnd( getPt(cont,0),getPt(cont,1),thickness, 90 ) );
+	}
+	
+	//## ADD POINTS AROUND OUTSIDE:
+	for(int i=1; i<N-1; i++)
+		cont_addChamferPts( contR, getPt(cont,i-1), getPt(cont,i), getPt(cont,i+1),
+                        thickness, minAngleForChamfers);
+		
+	//## ADD END POINT:
+	if( roundEnds )	{
+    cont_addChamferPts( contR, getPt(cont,N-2),getPt(cont,N-1),getPt(cont,N-2),
+                        thickness,minAngleForChamfers);
+	}
+	else	{
+		imodPointAppend(contR,
+          &line_getPtRelativeToEnd( getPt(cont,N-1), getPt(cont,N-2), thickness, -90 ) );
+		imodPointAppend(contR,
+          &line_getPtRelativeToEnd( getPt(cont,N-1), getPt(cont,N-2), thickness,  90 ) );
+	}
+	
+	//## ADD POINTS AROUND INSIDE:
+	for(int i=N-2; i>0; i--)
+		cont_addChamferPts( contR, getPt(cont,i+1), getPt(cont,i), getPt(cont,i-1),
+                        thickness, minAngleForChamfers);
+  
+	return;
+}
+
+//------------------------
+//-- Takes an closed contour and expands it by a certain thickness and returns
+//-- several closed contours around the perimeter. For all reflex angles, extra
+//-- points will be added to make a smoother curve according to the value of 
+//-- minAngleForChamfers.
+//-- NOTE: If the inner contour overlapps itself it is broken into several simple
+//-- contours, but NONE of these are deleted - that must be done manually.
+
+void cont_expandClosedCont( Icont *contOrig, Icont *innerCont, Icont *outerCont,
+                            float thickness, float minAngleForChamfers )
+{
+  deleteAllPts(innerCont);
+  deleteAllPts(outerCont);
+  
+  Icont *cont = imodContourDup(contOrig);
+	
+	//## DEAL WITH POSSIBLILTY THAT CONTOUR HAS ONE OR NO POINTS:
+	if ( thickness == 0 ) {
+		return;
+	}
+	if( psize(cont) == 0 ) {
+		return;
+  }
+	if ( psize(cont) == 1 ) {
+		cont_generateCircle( outerCont, thickness, 12, *getFirstPt(cont), false );
+		return;
+	}
+	
+	//## PREPARE CONTOUR:
+	imodContourUnique( cont );
+  imodContourMakeDirection( cont, IMOD_CONTOUR_CLOCKWISE );
+  
+	//## GET INNER CONTOURS:
+	for(int i=psize(cont); i>0; i--)
+		cont_addChamferPts( innerCont, getPt(cont,i+1), getPt(cont,i), getPt(cont,i-1),
+                        thickness, minAngleForChamfers);
+	
+	//## ADD OUTER CONTOUR:
+	for(int i=0; i<psize(cont); i++)
+		cont_addChamferPts( outerCont, getPt(cont,i-1), getPt(cont,i), getPt(cont,i+1),
+                        thickness, minAngleForChamfers);
+  
+	return;
+}
+
+
+
+
+
+
+
+
 //------------------------
 //-- Joins two contours together to form a longer contour.
 //-- If matchClosestEnds is true it will join the two ends of cont1 and cont2
@@ -1318,26 +1545,106 @@ int cont_addPtsSmoothIteration(Icont *cont, float maxDist,
   return ( psize(cont) - pointsBefore );
 }
 
+
 //------------------------
 //-- Smooths the contour by finding any occurance where two consecutive
 //-- points are > maxDist away from each other and adding MULTIPLE
-//-- extra points in the middle using catumull-rom spline and returns the
+//-- extra points using catumull-rom spline and returns the
 //-- number of points added.
-//-- NOTE: Result will be that NO two points are > maxDist from each other.
+//-- NOTE: Running this a second time on the same contour will usually
+//--       add extra points due to the curvature of points added.
 
-int cont_addPtsSmooth( Icont *cont, float maxDist, float tensileFract, bool closed )
+int cont_addPtsSmooth( Icont *cont, float maxDist, float tensileFract, bool closed,
+                       bool roundZOpenPts, bool addPtEveryZ )
 {
-  int pointsBefore = psize(cont);
+  if(maxDist<=0.0f)
+    maxDist = 1.0f;
   
-  while (true)
+  int pointsBefore = psize(cont);
+  int pointsAdded  = 0;
+  
+  if(closed)
   {
-    int numPtsAdded = cont_addPtsSmoothIteration( cont, maxDist, tensileFract, closed );
-    if (numPtsAdded == 0)
-      break;
+    Icont *contO = imodContourDup(cont);
+    
+    for(int i=1; i<(psize(contO))+1; i++ )
+    {
+      float distToNextPt = line_distBetweenPts2D( getPt(contO,i), getPt(contO,i+1) );
+      int numPtsToAdd = ceil(distToNextPt / maxDist) - 1;
+      if( distToNextPt==0 || numPtsToAdd<=0 )
+        continue;
+      float fractBetweenPts = fDivide( 1.0f, numPtsToAdd+1.0f );
+      
+      for(int j=1; j<=numPtsToAdd; j++)
+      {
+        float fracAlongSegment = j * fractBetweenPts;
+        Ipoint newPt = getPtCatmullRom(fracAlongSegment,
+                                       *getPt(contO,i-1),
+                                       *getPt(contO,i),
+                                       *getPt(contO,i+1),
+                                       *getPt(contO,i+2),
+                                       tensileFract);
+        int insertIdx = (i+pointsAdded) % psize(cont);
+        imodPointAdd( cont, &newPt, (insertIdx)+1 );
+        pointsAdded++;
+      }
+    }
+    
+    imodContourDelete(contO);
+  }
+  else
+  {
+    imodPointAdd( cont, getFirstPt(cont), 0 );
+    imodPointAppend( cont, getLastPt(cont) );
+    
+    Icont *contO = imodContourDup(cont);
+    
+    for(int i=1; i<(psize(contO))-1; i++ )
+    {
+      float distToNextPt = line_distBetweenPts2D( getPtNoWrap(contO,i),
+                                                  getPtNoWrap(contO,i+1) );
+      int numPtsToAdd = ceil(distToNextPt / maxDist) - 1;
+      
+      if( addPtEveryZ )
+      {
+        int zDiffPts = ABS( roundToInt( getPt(contO,i)->z ) -
+                            roundToInt( getPt(contO,i+1)->z ) );
+        numPtsToAdd = MAX( numPtsToAdd, zDiffPts-1 );
+      }
+      
+      if( numPtsToAdd<=0 )
+        continue;
+      float fractBetweenPts = fDivide( 1.0f, numPtsToAdd+1.0f );
+      
+      for(int j=1; j<=numPtsToAdd; j++)
+      {
+        float fracAlongSegment = j * fractBetweenPts;
+        Ipoint newPt = getPtCatmullRom(fracAlongSegment,
+                                       *getPtNoWrap(contO,i-1),
+                                       *getPtNoWrap(contO,i),
+                                       *getPtNoWrap(contO,i+1),
+                                       *getPtNoWrap(contO,i+2),
+                                       tensileFract);
+        int insertIdx = (i+pointsAdded) % psize(cont);
+        imodPointAdd( cont, &newPt, (insertIdx)+1 );
+        pointsAdded++;
+      }
+    }
+    if( roundZOpenPts )
+    {
+      for( int p=0; p<psize(cont); p++ )
+        getPt(cont,p)->z = roundToInt(getPt(cont,p)->z);
+    }
+    
+    
+    imodContourDelete(contO);
+    imodContourUnique( cont );
   }
   
   return ( psize(cont) - pointsBefore );
 }
+
+
 
 //------------------------
 //-- Reduces the number of points in a contour using a VERY simple technique -
@@ -1400,9 +1707,43 @@ int cont_reducePtsMinArea( Icont *cont, float minArea, bool closed )
   return ( pointsBefore - psize(cont) );
 }
 
+//------------------------
+//-- Removes duplicate points and any point which form a straight line with the
+//-- point before and after it. Returns the number of points removed
+//-- If removePts is false, then the function only counts points without removing them.
 
-
-
+int cont_removeRedundantPts( Icont *cont, bool removeStraightLinePts, bool closed,
+                             bool removePts )
+{
+  int redundantPts = 0;
+  
+  for(int p=psize(cont)-2; p>=0; p-- )
+  {
+    if ( imodPointIsEqual( getPt(cont,p), getPt(cont,p+1) ) )
+    {
+      if( removePts )
+        imodPointDelete(cont,p);
+      redundantPts++;
+    }
+  }
+  
+  if( !removeStraightLinePts )
+    return (redundantPts);
+  
+  int startIdx = psize(cont) - (closed) ? 0 : 1;
+  for(int p=startIdx; p>=1 && psize(cont)>3; p-- )
+  {
+    //cout  << imodPointCross( getPt(cont,p-1), getPt(cont,p), getPt(cont,p+1) ) << endl;
+    if ( line_crossProduct3Points( getPt(cont,p-1), getPt(cont,p), getPt(cont,p+1) ) == 0 )
+    {
+      if( removePts )
+        imodPointDelete(cont, p);
+      redundantPts++;
+    }
+  }
+  
+  return ( redundantPts );
+}
 
 
 
@@ -1449,7 +1790,28 @@ bool cont_isSimple( Icont *cont, bool closed )
       if(imodPointIntersect(getPt(cont,i),getPt(cont,i+1),getPt(cont,j),getPt(cont,j+1))
          && !( i == 0 && j == psize(cont)-1 ) )
         return false;
-        
+  
+  return true;
+}
+
+
+//------------------------
+//-- If the contour is not-simple, will return false
+//-- and the points postion of the first intersecting segment.
+
+bool cont_isSimpleSeg( Icont *cont, bool closed, int *ptCross )
+{
+  int ptsToCheck = (closed) ? psize(cont) : psize(cont)-1;
+  
+  for(int i=0; i<ptsToCheck; i++ )
+    for(int j=i+2; j<ptsToCheck; j++ )
+      if(imodPointIntersect(getPt(cont,i),getPt(cont,i+1),getPt(cont,j),getPt(cont,j+1))
+         && !( i == 0 && j == psize(cont)-1 ) )
+      {
+        *ptCross = i;
+        return false;
+      }
+  
   return true;
 }
 
@@ -1604,8 +1966,7 @@ bool cont_isConvex( Icont *cont )
 {
   if( psize(cont) < 3 )
     return false;
-    
-    
+  
   int numRightTurns = 0;
   int numLeftTurns = 0;
   
@@ -1616,7 +1977,7 @@ bool cont_isConvex( Icont *cont )
       // calculates cross product using the line {i-1,i}
       // and line {i,i+1} to determine if a "left turn" is made
     
-    if (crossProduct < 0)        // if turn is left: tally it
+    if (crossProduct > 0)        // if turn is left: tally it
       numLeftTurns++;
     else if (crossProduct == 0)      // else if turn is straight: skip to next
       continue;
@@ -1632,78 +1993,40 @@ bool cont_isConvex( Icont *cont )
 
 
 
-
-
-
-
-
-
-
-
-
 //------------------------
-//-- Computes a convex hull around a given set of points using
-//-- "Graham Scan" (3-coins algorithm).
-//-- This involves finding the lowest point (in y), sorting all points radially
-//-- relative this point, then removing points which form a "left turn".
+//-- Makes a contour is convex by eliminating all points which form a
+//-- left turn (with the lines either side of it) for an clockwise contour
+//-- or a right turn for a anti-clockwise contour and returns the nubmer of
+//-- points removed.
 
-void cont_makeConvex( Icont *cont )
+int cont_makeConvex( Icont *cont )
 {
-  if( psize(cont)<=3 || cont_isConvex(cont) )
-    return;
-    
-//## FIND THE LOWEST POINT IN THE CONTOUR:
+  if( psize(cont) < 3 )
+    return 0;
   
-  int idxStartPt = 0;
-  float lowestYVal   = FLOAT_MAX;
-  for (int i=0; i< psize(cont); i++)  {
-    if(getPt(cont,i)->y <= lowestYVal) // if this pt is below previously found lowest pt:
-    {
-             // if this point has same y value: use x as a tie-breaker
-      if(getPt(cont,i)->y==lowestYVal && getPt(cont,i)->y > getPt(cont,idxStartPt)->y)   
-        continue;
-      lowestYVal = getPt(cont,i)->y;          // update as new lowest point.
-      idxStartPt = i;
-    }
-  }
+  int pointsBefore = psize(cont);
+  bool isClockwise = (imodContZDirection(cont) == IMOD_CONTOUR_CLOCKWISE);
   
-//## SORT POINTS RADIALLY FROM THE LOWEST POINT:
   
-  vector<IdxToSort> idxAngles;
-  for (int i=0; i< psize(cont); i++)
-    if(i!=idxStartPt)
-    {
-                 // calculate the angle and distance from the lowest pt to this pt
-      idxAngles.push_back(IdxToSort(i,
-            line_getAngle2DPos(getPt(cont,idxStartPt),getPt(cont,i)), 
-            FLOAT_MAX-imodPointDistance(getPt(cont,idxStartPt),getPt(cont,i)))); 
-    }
-  //std::sort( idxAngles.begin(), idxAngles.end() );                // sort angles
-  idxAngles = vector_sort( idxAngles );
-  
-  Icont *contSorted;     // will store a list of pts sorted radially from the start pt
-  imodPointAppend( contSorted, getPt(cont,idxStartPt) );
-  for (int i=0; i<(int)idxAngles.size(); i++)
-    imodPointAppend( contSorted, getPt(cont,idxAngles[i].idx ) );
-  
-//## ITERATE THROUGH LIST AND REMOVE ANY POINTS WHICH MAKE A LEFT TURN:
-  
-  for (int i=1; i<( psize(contSorted)); i++ )
+  for (int p=0; p<(psize(cont)+3) && psize(cont)>3; p++ )
   {
-    int idx = (i+psize(contSorted))%psize(contSorted);  // make sure idx stays positive
-       // use cross product form between the line P(i-1)-P(i) and line P(i)-P(i+1)
-       // to determine if a "left turn" is made
-    bool makesLeftTurn =
-      (line_crossProduct3Points(getPt(contSorted,idx-1),getPt(contSorted,idx),
-                                getPt(contSorted,idx+1)) < 0);
-    if( makesLeftTurn ) {                         // if this point makes a left turn
-      imodPointDelete( contSorted, idx );           // remove this point
-      i=i-2;                                        // go back to the previous point
+    float crossProduct = line_crossProduct3Points(getPt(cont,p-1),
+                                                  getPt(cont,p),getPt(cont,p+1)); 
+        // calculates cross product using the line {i-1,i}
+        // and line {i,i+1} to determine if a "left turn" is made
+    
+    if ( (crossProduct > 0 &&  isClockwise) ||  // if turn is left and clockwise:
+         (crossProduct < 0 && !isClockwise) )    //  or turn is right and anticlockwise:
+    {
+      int ptIdx = intMod( p,psize(cont) );
+      imodPointDelete(cont, ptIdx );
+      p-=2;
+      p = MAX(0,p); 
     }
   }
+  
+  return ( pointsBefore - psize(cont) );
 }
-
-
 
 
 
