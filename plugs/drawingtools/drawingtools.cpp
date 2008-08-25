@@ -15,6 +15,9 @@
     $Revision$
 
     $Log$
+    Revision 1.20  2008/08/25 09:34:35  tempuser
+    touched up code
+
     Revision 1.19  2008/07/28 05:27:59  tempuser
     *** empty log message ***
 
@@ -371,7 +374,13 @@ int imodPlugEvent(ImodView *vw, QEvent *event, float imx, float imy)
       {
         //float zoomChange = (scrollAmount < 0) ? 0.9f : 1.1f;
         float zoomChange = 1 + MAX(-0.5f,scrollAmount*0.05f);
-        float newZoom = ABS(zoom * zoomChange); 
+        float newZoom = ABS(zoom * zoomChange);
+        
+        if( newZoom > 100 )
+          newZoom = 100;
+        if( newZoom < 0.0001 )
+          newZoom = 0.0001;
+        
         ivwSetTopZapZoom(plug.view, newZoom);    //%%%% WILL ASK DAVID TO CREATE
         ivwRedraw(plug.view);
         
