@@ -53,10 +53,17 @@ public slots:
   void selectNextOverlappingContour();
   void printModelPointInfo();
   void printObjectDetailedInfo();
+  void printContourDetailedInfo();
   void moreActions();
   void moreSettings();
   void sortContours();
   void findContours();
+  void deleteContours();
+  void copyOrMoveContourRange();
+  void tranformContourRange();
+  void movePoint();
+  void expandContourRange();
+  void cleanModelAndFixContours();
   void test();
   void cut();
   void copy();
@@ -115,9 +122,9 @@ public slots:
 enum drawmodes      { DM_NORMAL, DM_DEFORM, DM_JOIN, DM_TRANSFORM, DM_ERASER,
                       DM_RESIZEPT };
 enum smoothmodes    { RD_TOL, RD_MINAREA };
-enum wheelbehaviour { WH_NONE, WH_DEFORMCIRCLE, WH_SLICES, WH_CONTS, WH_PTSIZE };
-enum dkeybehavior   { DK_NONE, DK_TOEND, DK_NEARESTEND, DK_DELETEPT, DK_REMOVEPTSIZE,
-                      DK_REMOVEALLPTSIZES };
+enum wheelbehaviour { WH_NONE, WH_DEFORMCIRCLE, WH_SLICES, WH_CONTS, WH_PTS, WH_PTSIZE };
+enum dkeybehavior   { DK_NONE, DK_TOEND, DK_NEARESTEND, DK_DELETEPT, DK_DELETECONT,
+                      DK_REMOVEPTSIZE, DK_REMOVEALLPTSIZES };
 
 enum sortcriteria   { SORT_NUMPTS, SORT_LENGTH, SORT_AREA, SORT_CLOCKWISEAREA,
                       SORT_AVGPTSIZE, SORT_AVGGRAY, SORT_STIPPLED, SORT_RANDOM, 
@@ -126,7 +133,7 @@ enum sortcriteria   { SORT_NUMPTS, SORT_LENGTH, SORT_AREA, SORT_CLOCKWISEAREA,
                       SORT_PTX, SORT_PTY, SORT_PTZ,
                       SORT_PTSIZE, SORT_PTGREY, SORT_NUMOPTIONS };
 
-const int NUM_SAVED_VALS = 17;
+const int NUM_SAVED_VALS = 19;
 
 //-------------------------------
 //## DRAWINGTOOLS DATA STRUCTURE:
@@ -167,8 +174,12 @@ struct DrawingToolsData   // contains all local plugin data
   bool   useNumKeys;            // intercepts number keys [1]-[5] to change draw mode
   bool   markTouchedContsAsKey; // if true: any contour modified with deform changes
                                 //  to unstippled
+  bool   selectVisibleOnly;     // if true: only visible points are selected on button 1
   int    wheelResistance;       // the higher the value, the slower mouse scrolling works
   bool   showMouseInModelView;  // shows the extra object in the model view
+  
+  bool   testIntersetAllObjs;   // if true: [a] will test all contours for interesetion
+                                // with all other contours (not just in the same object)
   
   int    selectedAction;        // the last selected action under "More Actions"
   int    sortCriteria;          // the lat sort criteria selected via:
@@ -233,6 +244,8 @@ bool isCurrObjValidAndShown();
 bool isCurrContValid();
 bool isCurrPtValid();
 
+int removeAllDeleteFlaggedContoursFromObj( Iobj *obj, int objIdx );
+
 
 //-------------------------------
 //## EDITING FUNCTIONS:
@@ -243,7 +256,8 @@ int edit_changeSelectedSlice( int changeZ, bool redraw, bool snapToEnds=true );
 
 int edit_addContourToObj( Iobj *obj, Icont *cont, bool enableUndo );
 int edit_removeAllFlaggedContoursFromObj( Iobj *obj );
-bool edit_selectContourPtNearCoords(float x, float y, int z, float distTolerance);
+bool edit_selectContourPtNearCoordsCurrObj( float x, float y, int z, float distTolerance);
+bool edit_selectVisiblePtNearCoords( Ipoint *mouse, float distScreenPix);
 
 bool edit_copiedContIfDiffSlice( bool selectNewCont );
 
@@ -269,7 +283,9 @@ void edit_deleteCurrContIfTooSmall();
 void edit_joinCurrContWithAnyTouching();            
 
 bool edit_selectNextOverlappingCont();
-
+bool edit_findOverlappingCont( int objIdx, int contIdx,
+                               int *pCross, int *objCross, int *contCross, bool *samePts,
+                               int minObj, int maxObj, bool skipPrevContsInObj );
 
 string edit_getSortValString(int sortCriteria);
 

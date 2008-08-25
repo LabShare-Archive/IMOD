@@ -340,7 +340,7 @@ void imodPlugExecute(ImodView *inImodView)
   imodObjectSetValue(xobjX, IobjFlagClosed, 0);
   
   
-  //## CREATE THE PLUGING WINDOW:
+  //## CREATE THE PLUGIN WINDOW:
   
   plug.window  = new BeadHelper(imodDialogManager.parent(IMOD_DIALOG),"Bead Helper");
   
@@ -1366,26 +1366,18 @@ void BeadHelper::deletePtsInRange()
   static bool skipSeedView     = true;
   
   CustomDialog ds;
-  int ID_DUMMY         = ds.addLabel   ( msg.c_str() );
-  int ID_SKIPCHECKEDC  = ds.addCheckBox( "skip checked contours",
-                                         skipCheckedConts,
-                                         "Will not delete any points from checked "
-                                         "(stippled) contours (marked with [u])" );
-  int ID_SKIPCHECKEDP  = ds.addCheckBox( "skip checked points",
-                                         skipCheckedPts,
-                                         "Will not delete checked points "
-                                         "(marked with [U]) " );
-  int ID_SKIPSEEDVIEW  = ds.addCheckBox( "skip middle (seed) view",
-                                         skipSeedView,
-                                         "Will not delete any seed points (points on "
-                                         "the seed view)" );
+  ds.addLabel   ( msg.c_str() );
+  ds.addCheckBox( "skip checked contours", &skipCheckedConts,
+                  "Will not delete any points from checked /n"
+                  "(stippled) contours (marked with [u])" );
+  ds.addCheckBox( "skip checked points", &skipCheckedPts,
+                  "Will not delete checked points (marked with [U]) " );
+  ds.addCheckBox( "skip middle (seed) view",  &skipSeedView,
+                  "Will not delete any seed points (points on the seed view)" );
   GuiDialogCustomizable dlg(&ds, "Delete Points", this);
   dlg.exec();
   if( ds.cancelled )
     return;
-  skipCheckedConts     = ds.getResultCheckBox  ( ID_SKIPCHECKEDC );
-  skipCheckedPts       = ds.getResultCheckBox  ( ID_SKIPCHECKEDP );
-  skipSeedView         = ds.getResultCheckBox  ( ID_SKIPSEEDVIEW );
   
   
   //## DELETE ALL POINTS IN RANGE:
@@ -1536,21 +1528,18 @@ void BeadHelper::reduceContsToSeed()
   static bool skipCheckedPts   = true;
   
   CustomDialog ds;
-  int ID_DUMMY         = ds.addLabel   ( msg.c_str() );
-  int ID_SKIPCHECKEDC  = ds.addCheckBox( "skip checked contours",
-                                         skipCheckedConts,
-                                         "Will not delete any points from checked "
-                                         "(stippled) contours " );
-  int ID_SKIPCHECKEDP  = ds.addCheckBox( "skip checked points",
-                                         skipCheckedPts,
-                                         "Will not delete checked points "
-                                         "(marked with [U]) " );
+  ds.addLabel   ( msg.c_str() );
+  ds.addCheckBox( "skip checked contours", &skipCheckedConts,
+                  "Will not delete any points from checked "
+                  "(stippled) contours " );
+  ds.addCheckBox( "skip checked points", &skipCheckedPts,
+                  "Will not delete checked points "
+                  "(marked with [U]) " );
   GuiDialogCustomizable dlg(&ds, "Reduce Contours to Seed Point", this);
   dlg.exec();
   if( ds.cancelled )
     return;
-  skipCheckedConts     = ds.getResultCheckBox  ( ID_SKIPCHECKEDC );
-  skipCheckedPts       = ds.getResultCheckBox  ( ID_SKIPCHECKEDP );
+
   
   //## REDUCE RANGE OF CONTOURS TO SEED:
   
@@ -1636,74 +1625,61 @@ void BeadHelper::movePtsToEstimatedPosOptions()
   
   //## DISPLAY OPTIONS FOR SMOOTHING / MOVING POINTS:
   
-  CustomDialog ds;
-  int ID_CURRCONTONLY  = ds.addRadioGrp( "apply smoothing to:",
-                                         "specified range of contours,"
-                                         "current contour only [E],"
-                                         "update values only (no action)",
-                                         plug.smoothCurrContOnly );
-  int ID_FILLGAPS      = ds.addCheckBox( "fill gaps", plug.smoothFillGaps,
-                                         "Any missing points between existing points "
-                                         "will be added" );
-  int ID_BIGRESFIRST   = ds.addCheckBox( "move big residuals first",
-                                         plug.smoothBigResidFirst,
-                                         "If ticked: reorders points in order of "
-                                         "descending distance from expected - which "
-                                         "works well at correcting isolated bad points. "
-                                         "If unticked: reorders point from the middle "
-                                         "point upwards and then downwards.");
-  int ID_YAXISONLY     = ds.addCheckBox( "change y value only", plug.smoothMoveYOnly,
-                                         "All points will only be moved up/down along "
-                                         "the Y (not left/right along the X)" );
-  int ID_LEAVESEED     = ds.addCheckBox( "leave seed", plug.smoothLeaveSeed,
-                                         "No points on the seed view will "
-                                         "be moved" );
-  int ID_LEAVEENDS     = ds.addCheckBox( "leave end points", plug.smoothLeaveEnds,
-                                         "The first and last point in each contour will "
-                                         "not be moved" );
-  int ID_MOVEFRACT     = ds.addSpinBox ( "move fraction (X/10):", 1, 10,
-                                         plug.smoothMoveFract*10.0f, 1,
-                                         "If 10: points will be moved entire way to "
-                                         "estimated positions" );
-  int ID_MINRESID      = ds.addSpinBox ( "min residual to move (X/10):", 0, 1000, 
-                                         plug.smoothMinResid*10.0f, 1,
-                                         "Only points further than this from their "
-                                         "estimated point will be moved (measured in "
-                                         "tenths of a pixel)" );
-  int ID_ITERATIONS    = ds.addSpinBox ( "iterations:", 1, 10, plug.smoothIterations, 1,
-                                         "The more iterations, the further points "
-                                         "will be moved" );
+  int smoothMoveFract  = plug.smoothMoveFract * 10;
+  int smoothMinResid   = plug.smoothMinResid  * 10;
   
-                         ds.addLabel("--------");
-  int ID_ADJACENTV     = ds.addCheckBox( "only smooth adjacent views",
-                                         plug.smoothAdjacentV,
-                                         "Only the specified number of view above and "
-                                         "below the current view will be smoothed" );
-  int ID_NUMVEITHERS   = ds.addSpinBox ( "num views either side:", 1, 20,
-                                         plug.smoothNumViews, 1,
-                                         "How many views above and below the current "
-                                         "view will be moved" );
-  int ID_LEAVECURRZ    = ds.addCheckBox( "leave point on current view",
-                                         plug.smoothLeaveCurrV, 
-                                         "will not shift any points in the current view "
-                                         "in the top most ZAP window" );
+  CustomDialog ds;
+  ds.addRadioGrp( "apply smoothing to:",
+                  "specified range of contours,"
+                  "current contour only [E],"
+                  "update values only (no action)",
+                  &plug.smoothCurrContOnly );
+  ds.addCheckBox( "fill gaps", &plug.smoothFillGaps,
+                  "Any missing points between existing points "
+                  "will be added" );
+  ds.addCheckBox( "move big residuals first", &plug.smoothBigResidFirst,
+                  "If ticked: reorders points in order of "
+                  "descending distance from expected - which "
+                  "works well at correcting isolated bad points. "
+                  "If unticked: reorders point from the middle "
+                  "point upwards and then downwards.");
+  ds.addCheckBox( "change y value only", &plug.smoothMoveYOnly,
+                  "All points will only be moved up/down along "
+                  "the Y (not left/right along the X)" );
+  ds.addCheckBox( "leave seed", &plug.smoothLeaveSeed,
+                  "No points on the seed view will "
+                  "be moved" );
+  ds.addCheckBox( "leave end points", &plug.smoothLeaveEnds,
+                  "The first and last point in each contour will "
+                  "not be moved" );
+  ds.addSpinBox ( "move fraction (X/10):", 1, 10, &smoothMoveFract, 1,
+                  "If 10: points will be moved entire way to "
+                  "estimated positions" );
+  ds.addSpinBox ( "min residual to move (X/10):", 0, 1000, &smoothMinResid, 1,
+                  "Only points further than this from their "
+                  "estimated point will be moved (measured in "
+                  "tenths of a pixel)" );
+  ds.addSpinBox ( "iterations:", 1, 10, &plug.smoothIterations, 1,
+                  "The more iterations, the further points "
+                  "will be moved" );
+  ds.addLabel   ("--------");
+  ds.addCheckBox( "only smooth adjacent views", &plug.smoothAdjacentV,
+                  "Only the specified number of view above and "
+                  "below the current view will be smoothed" );
+  ds.addSpinBox ( "num views either side:", 1, 20, &plug.smoothNumViews, 1,
+                  "How many views above and below the current "
+                  "view will be moved" );
+  ds.addCheckBox( "leave point on current view", &plug.smoothLeaveCurrV, 
+                  "will not shift any points in the current view "
+                  "in the top most ZAP window" );
   
 	GuiDialogCustomizable dlg(&ds, "Smoothing Options", this);
 	dlg.exec();
 	if( ds.cancelled )
 		return;
-	plug.smoothCurrContOnly       = ds.getResultRadioGrp ( ID_CURRCONTONLY );
-  plug.smoothFillGaps           = ds.getResultCheckBox  ( ID_FILLGAPS );
-  plug.smoothBigResidFirst      = ds.getResultCheckBox  ( ID_BIGRESFIRST );
-  plug.smoothMoveYOnly          = ds.getResultCheckBox  ( ID_YAXISONLY );
-  plug.smoothLeaveSeed          = ds.getResultCheckBox  ( ID_LEAVESEED );
-  plug.smoothLeaveEnds          = ds.getResultCheckBox  ( ID_LEAVEENDS );
-  plug.smoothMoveFract          = float( ds.getResultSpinBox( ID_MOVEFRACT ) ) * 0.1;
-  plug.smoothMinResid           = float( ds.getResultSpinBox( ID_MINRESID  ) ) * 0.1;
-  plug.smoothIterations         = ds.getResultSpinBox   ( ID_ITERATIONS );
-  plug.smoothAdjacentV          = ds.getResultCheckBox ( ID_ADJACENTV );
-  plug.smoothNumViews           = ds.getResultSpinBox   ( ID_NUMVEITHERS );
-  plug.smoothLeaveCurrV         = ds.getResultCheckBox  ( ID_LEAVECURRZ );
+  
+  plug.smoothMoveFract          = float( smoothMoveFract ) * 0.1f;
+  plug.smoothMinResid           = float( smoothMinResid  ) * 0.1f;
   
   //## APPLY SMOOTHING:
   
@@ -1862,17 +1838,15 @@ void BeadHelper::fillMissingPts()
   static bool fillPastEnds = false;
   
 	CustomDialog ds;
-  int ID_DUMMY         = ds.addLabel   ( msg.c_str() );
-  int ID_FILLPASTENDS  = ds.addCheckBox( "fill past ends",
-                                         fillPastEnds,
-                                         "Will add points past the start and end "
-                                         "point of each contour based on their "
-                                         "estimated postions" );
+  ds.addLabel   ( msg.c_str() );
+  ds.addCheckBox( "fill past ends",
+                  &fillPastEnds,
+                  "Will add points past the start and end point of \n"
+                  "each contour based on their estimated postions" );
 	GuiDialogCustomizable dlg(&ds, "Fill Missing Points", this);
 	dlg.exec();
 	if( ds.cancelled )
 		return;
-  fillPastEnds        = ds.getResultCheckBox  ( ID_FILLPASTENDS );
   
   
   //## FILL MISSING POINTS:
@@ -1932,55 +1906,55 @@ void BeadHelper::moreActions()
   //## GET USER INPUT FROM CUSTOM DIALOG:
   
 	CustomDialog ds;
-  int ID_ACTION = ds.addRadioGrp( "action (for current object):",
-                                  "calculate tilt axis angle,"
-                                  "show fiducials on bottom as purple,"
-                                  "show contour turning points,"
-                                  "show grid,"
-                                  "clear purple object,"
-                                  "move contours between objects,"
-                                  "verify contours"
-                                     "\n(reorders pts and removes duplicates),"
-                                  "mark contours as checked/unchecked,"
-                                  "mark points as checked/unchecked,"
-                                  "print contour info,"
-                                  "load tilt angles",
-                                  plug.selectedAction,
-                                  "",
-                                  "Estimates the angle of the tilt axis by averaging the "
-                                    "\nangles for the 'line of best' for each contour,"
-                                  "Uses the direction of movement of fiducials to "
-                                    "\nguess which fidicials are on the bottom and "
-                                    "\nshows these in purple using the 'purple object',"
-                                  "Uses the 'purple object' to show the point in each "
-                                    "\ncontour where the line changes direction.... "
-                                    "\nwhich turns out to a fairly useless feature,"
-                                  "Uses the 'purple object' to display a grid "
-                                    "\nwith your desired number of rows and columns,"
-                                  "Clears the infamous 'purple object' after you've "
-                                    "\napplied one of three actions above,"
-                                  "Use this to move/copy a range of contours/seeds in "
-                                    "\nthe current object to another object. "
-                                    "\nThis is useful because each object is tracked "
-                                    "\nseperately and you'll often yeild better results "
-                                    "\nfor a set of points if you first track a subset "
-                                    "\nand then later move the other points back,"
-                                  "Can be used to quickly fix the common problems "
-                                    "whereby you've accidently added two points "
-                                    "in the same view or they are not in order,"
-                                  "Use this to change the checked/unchecked value of "
-                                    "your contours,"
-                                  "Prints some basic numbers including the number of "
-                                    "\ncomplete contours; incomplete contours; "
-                                    "\nchecked contours and also number of "
-                                    "\nmissing points,"
-                                  "Loads the calculated tilt angle of all views from "
-                                    "\nthe appropriate a .tlt file");
+  ds.addRadioGrp( "action (for current object):",
+                  "calculate tilt axis angle,"
+                  "show fiducials on bottom as purple,"
+                  "show contour turning points,"
+                  "show grid,"
+                  "clear purple object,"
+                  "move contours between objects,"
+                  "verify contours"
+                     "\n(reorders pts and removes duplicates),"
+                  "mark contours as checked/unchecked,"
+                  "mark points as checked/unchecked,"
+                  "print contour info,"
+                  "load tilt angles",
+                  &plug.selectedAction,
+                  "",
+                  "Estimates the angle of the tilt axis by averaging the \n"
+                    "angles for the 'line of best' for each contour,"
+                  "Uses the direction of movement of fiducials to \n"
+                    "guess which fidicials are on the bottom and \n"
+                    "shows these in purple using the 'purple object',"
+                  "Uses the 'purple object' to show the point in each \n"
+                    "contour where the line changes direction.... \n"
+                    "which turns out to a fairly useless feature,"
+                  "Uses the 'purple object' to display a grid \n"
+                    "with your desired number of rows and columns,"
+                  "Clears the infamous 'purple object' after you've \n"
+                    "applied one of three actions above,"
+                  "Use this to move/copy a range of contours/seeds in \n"
+                    "the current object to another object. "
+                    "This is useful because each object is tracked \n"
+                    "seperately and you'll often yeild better results \n"
+                    "for a set of points if you first track a subset \n"
+                    "and then later move the other points back,"
+                  "Can be used to quickly fix the common problems \n"
+                    "whereby you've accidently added two points \n"
+                    "in the same view or they are not in order,"
+                  "Use this to change the checked/unchecked value of your contours,"
+                  "Prints some basic numbers including the number of \n"
+                    "complete contours; incomplete contours; \n"
+                    "checked contours and also number of missing points,"
+                  "Loads the calculated tilt angle of all views from \n"
+                    "the appropriate a .tlt file");
 	GuiDialogCustomizable dlg(&ds, "Perform Action", this);
 	dlg.exec();
 	if( ds.cancelled )
 		return;
-	plug.selectedAction = ds.getResultRadioGrp	( ID_ACTION );
+  
+  
+  //## EXECUTE ACTION:
   
   switch(plug.selectedAction)
   {
@@ -2008,18 +1982,15 @@ void BeadHelper::moreActions()
       int static minViewR = plug.seedView;
       int static maxViewR = plug.seedView + 5;
       
-      int ID_DUMMY = dsB.addLabel   ( "... select range of views where top \n"
-                                     "and bottom fiducials appear to move in \n"
-                                     "opposite directions (suggest a range of ~5):" );
-      int ID_MIN   = dsB.addSpinBox ( "min view:", 1, plug.zsize, minViewR, 1 );
-      int ID_MAX   = dsB.addSpinBox ( "max view:", 1, plug.zsize, maxViewR, 1 );
-      
+      dsB.addLabel   ( "... select range of views where top \n"
+                       "and bottom fiducials appear to move in \n"
+                       "opposite directions (suggest a range of ~5):" );
+      dsB.addSpinBox ( "min view:", 1, plug.zsize, &minViewR, 1 );
+      dsB.addSpinBox ( "max view:", 1, plug.zsize, &maxViewR, 1 );
       GuiDialogCustomizable dlgB(&dsB, "Show Bottom Contours", this);
       dlgB.exec();
       if( dsB.cancelled )
         return;
-      minViewR      = dsB.getResultSpinBox	( ID_MIN );
-      maxViewR      = dsB.getResultSpinBox	( ID_MAX );
       
       if( minViewR >= maxViewR )
       {
@@ -2089,127 +2060,111 @@ void BeadHelper::moreSettings()
 	CustomDialog ds;
   
   
+  float newTiltIncrement = plug.tiltIncrement;
+  float newTiltAxisAngle = plug.tiltAxisAngle;
+  int tiltOffsetX = plug.tiltOffsetX;
+  int sizeCheckedPts = plug.sizeCheckedPts;
+  int seedView = plug.seedView+1;
+  int biggestHoleInset = plug.biggestHoleInset;
+  int biggestHoleGrid = plug.biggestHoleGrid;
+  
   ds.addLabel   ("----- TILT STACK: -----");
   
-  int ID_MIDDLESLICE    = ds.addSpinBox ( "seed view:",
-                                          1, plug.zsize+1, plug.seedView+1, 1,
-                                          "The view used to seed points - this is "
-                                          "usually the middle-most view, but not "
-                                          "in all cases (NOTE: This settings is not "
-                                          "saved on exit)"
-                                          "\n\nNOTE: You'll often have to reduce "
-                                          "this value by 1 on b axis stacks" );
-  int ID_TILTINCREMENT  = ds.addLineEdit( "tilt increment:           ",
-                                          toString(plug.tiltIncrement).c_str(),
-                                          "The angle (in degrees) the specimen "
-                                          "was tilted between subsequent views"
-                                          "\nNOTE: This value becomes irrelevant after "
-                                          "loading the calculated tilt angles via "
-                                          "'More Actions' > 'load tilt angles'" );
-  int ID_TILTANGLE      = ds.addLineEdit( "tilt axis angle:             ",
-                                          toString(plug.tiltAxisAngle).c_str(),
-                                          "The angle (in degrees) clockwise from "
-                                          "vertical about which the views rotate"
-                                          "\nNOTE: This can be calculated in "
-                                          "'More Actions' > 'calculate tilt axis angle'");
-  int ID_TILTOFFSET     = ds.addSpinBox ( "tilt x offset:", -200, 200,
-                                          plug.tiltOffsetX, 1,
-                                          "How far the tilt axis is shifted along X "
-                                          "from passing through the center" );
-  int ID_BIGHOLEGRID   = ds.addSpinBox (  "biggest hole grid size:",
-                                          1, 1000, plug.biggestHoleGrid, 5,
-                                          "The distance between grid points used to "
-                                          "search for the point furthest from any "
-                                          "seed points and the edge of the biggest "
-                                          "hold grid"
-                                          "\n\nSet 'tilt display' to '[h] grid' to "
-                                          "see the effect");
-  int ID_BIGHOLEOFFSET  = ds.addSpinBox ( "biggest hole grid inset:",
-                                          -10000, (plug.xsize/2)+24,
-                                          plug.biggestHoleInset, 10,
-                                          "The distance (in pixels) to inset the "
-                                          "biggest hole grid [h] such that: "
-                                          "\n  a large value will concentrate "
-                                          "points in the middle and "
-                                          "\n  a negative value encourages points "
-                                          "towards the edge as you press 'h'."
-                                          "\n\nSet 'tilt display' to '[h] grid' to "
-                                          "see the effect");
+  ds.addSpinBox ( "seed view:",
+                  1, plug.zsize+1, &seedView, 1,
+                  "The view used to seed points - this is usually "
+                  "the middle-most view, but not in all cases \n"
+                  "NOTE: This settings is not saved on exit \n\n"
+                  "NOTE: You'll often have to reduce this value by 1 on b axis stacks" );
+  ds.addLineEditF( "tilt increment:           ", &newTiltIncrement, INT_MIN, INT_MAX, 5,
+                  "The angle (in degrees) the specimen was tilted "
+                  "between subsequent views \n"
+                  "NOTE: This value becomes irrelevant after loading the calculated "
+                  "tilt angles via 'More Actions' > 'load tilt angles'" );
+  ds.addLineEditF( "tilt axis angle:           ", &newTiltAxisAngle, INT_MIN, INT_MAX, 5,
+                  "The angle (in degrees) clockwise from "
+                  "vertical about which the views rotate \n"
+                  "NOTE: This can be calculated in "
+                  "'More Actions' > 'calculate tilt axis angle'");
+  ds.addSpinBox ( "tilt x offset:", -200, 200, &tiltOffsetX, 1,
+                  "How far the tilt axis is shifted along X "
+                  "from passing through the center" );
+  ds.addSpinBox (  "biggest hole grid size:", 1, 1000, &biggestHoleGrid, 5,
+                   "The distance between grid points used to search \n"
+                   "for the point furthest from any seed points and \n"
+                   "the edge of the biggest hold grid\n\n"
+                   "Set 'tilt display' to '[h] grid' to see the effect");
+  ds.addSpinBox ( "biggest hole grid inset:",
+                  -10000, (plug.xsize/2)+24, &biggestHoleInset, 10,
+                  "The distance (in pixels) to inset the "
+                    "biggest hole grid [h] such that: \n"
+                  "  > a large value will concentrate points in the middle and \n"
+                  "  > a negative value encourages points towards the edge "
+                  "as you press 'h'.\n\n"
+                  "Set 'tilt display' to '[h] grid' to see the effect");
   
-  ds.addLabel   ("----- DISPLAY: -----");
+  ds.addLabel   ("\n----- DISPLAY: -----");
   
-  int ID_EXPPTDISPLAY   = ds.addComboBox( "estimated pt display:",
-                                          "cross,"
-                                          "diamond,"
-                                          "arrow", plug.expPtDisplayType,
-                                          "Symbol used to display the estimated point" );
-  int ID_EXPPTSIZE      = ds.addSpinBox ( "estimated pt size:",
-                                           1, 200, plug.expPtSize, 1,
-                                          "The size of the estimated point symbol in "
-                                          "screen pixels" );
-  int ID_LINESPHERE     = ds.addSpinBox ( "line display spheres:",
-                                          0, 50, plug.sizeLineSpheres, 1,
-                                          "The size of points used to display contours "
-                                          "as lines" );
-  int ID_LINEWIDTH      = ds.addSpinBox ( "line display width:",
-                                          1, 50, plug.lineDisplayWidth, 1,
-                                          "The thickness of lines used to display "
-                                          "contours as lines" );
-  int ID_PURPLESPHERE   = ds.addSpinBox ( "size purple spheres:",
-                                          1, 200, plug.sizePurpleSpheres, 1,
-                                          "The size of points in the extra purple object "
-                                          "(used to show bottom fiducials etc)" );
-  int ID_SIZECHECKEDPTS = ds.addSpinBox ( "size checked pts:",
-                                          1, 20, plug.sizeCheckedPts, 1,
-                                          "The size of points which have been checked "
-                                          "by pressing [U]" );
+  ds.addComboBox( "estimated pt display:",
+                  "cross,"
+                  "diamond,"
+                  "arrow", &plug.expPtDisplayType,
+                  "Symbol used to display the estimated point" );
+  ds.addSpinBox ( "estimated pt size:",
+                  1, 200, &plug.expPtSize, 1,
+                  "The size of the estimated point symbol in screen pixels" );
+  ds.addSpinBox ( "line display spheres:",
+                  0, 50, &plug.sizeLineSpheres, 1,
+                  "The size of points used to display contours as lines" );
+  ds.addSpinBox ( "line display width:",
+                  1, 50, &plug.lineDisplayWidth, 1,
+                  "The thickness of lines used to display "
+                  "contours as lines" );
+  ds.addSpinBox ( "size purple spheres:",
+                  1, 200, &plug.sizePurpleSpheres, 1,
+                  "The size of points in the extra purple object "
+                  "(used to show bottom fiducials etc)" );
+  ds.addSpinBox ( "size checked pts:",
+                  1, 20, &sizeCheckedPts, 1,
+                  "The size of points which have been checked by pressing [U]" );
   
-  ds.addLabel   ("----- OTHER: -----");
+  ds.addLabel   ("\n----- OTHER: -----");
   
-  int ID_AUTOSAVE       = ds.addCheckBox( "save settings on close", 
-                                          plug.autoSaveSettings,
-                                          "Automatically saves all your Bead Helper "
-                                          "settings to 'beadhelpersettings.txt' "
-                                          "when you close 3dmod, so they will load "
-                                          "next time you open 3dmod");
+  ds.addCheckBox( "save settings on close", 
+                  &plug.autoSaveSettings,
+                  "Automatically saves all your Bead Helper "
+                  "settings to 'beadhelpersettings.txt' "
+                  "when you close 3dmod, so they will load "
+                  "next time you open 3dmod");
   
 	GuiDialogCustomizable dlg(&ds, "More Settings", this);
 	dlg.exec();
 	if( ds.cancelled )
 		return;
   
-  
-  plug.seedView              = ds.getResultSpinBox  ( ID_MIDDLESLICE ) - 1;
-  string tiltIncrAngleStr    = ds.getResultLineEdit	( ID_TILTINCREMENT );
-	string tiltAxisAngleStr    = ds.getResultLineEdit	( ID_TILTANGLE );
-  plug.tiltOffsetX           = ds.getResultSpinBox  ( ID_TILTOFFSET );
-  plug.biggestHoleGrid       = ds.getResultSpinBox  ( ID_BIGHOLEGRID );
-  plug.biggestHoleInset      = ds.getResultSpinBox  ( ID_BIGHOLEOFFSET );
-  
-  plug.expPtDisplayType      = ds.getResultComboBox ( ID_EXPPTDISPLAY );
-  plug.expPtSize             = ds.getResultSpinBox  ( ID_EXPPTSIZE );
-  plug.sizeLineSpheres       = ds.getResultSpinBox  ( ID_LINESPHERE );
-  plug.lineDisplayWidth      = ds.getResultSpinBox  ( ID_LINEWIDTH );
-  plug.sizePurpleSpheres     = ds.getResultSpinBox  ( ID_PURPLESPHERE );
-  plug.sizeCheckedPts        = ds.getResultSpinBox  ( ID_SIZECHECKEDPTS ) + 0.1;
-  
-  plug.autoSaveSettings      = ds.getResultCheckBox ( ID_AUTOSAVE );
+  plug.tiltOffsetX       = tiltOffsetX;
+  plug.seedView          = seedView - 1;
+  plug.sizeCheckedPts   += 0.1f;
+  plug.biggestHoleInset  = biggestHoleInset;
+  plug.biggestHoleGrid   = biggestHoleGrid;
+  plug.sizeCheckedPts    = sizeCheckedPts;
   
   
-  float newTiltAxisAngle = string_getFloatFromString( tiltAxisAngleStr );
+  //float newTiltAxisAngle = string_getFloatFromString( tiltAxisAngleStr );
   if( newTiltAxisAngle < -200 || newTiltAxisAngle >200 )
     wprint("\aERROR: Invalid tilt axis angle entered"); 
   else
     plug.tiltAxisAngle = newTiltAxisAngle;
   
-  float newTiltIncrAngle = string_getFloatFromString( tiltIncrAngleStr );
-  if( newTiltIncrAngle <= 0 || newTiltIncrAngle >20 )
+  
+  //float newTiltIncrement = string_getFloatFromString( tiltIncrementStr );
+  if( newTiltIncrement <= 0 || newTiltIncrement >20 )
     wprint("\aERROR: Invalid tilt increment entered"); 
   else
   {
-    if(  plug.tiltIncrement != newTiltIncrAngle);
+    if(  plug.tiltIncrement != newTiltIncrement);
     {
-      plug.tiltIncrement = newTiltIncrAngle;
+      plug.tiltIncrement = newTiltIncrement;
       verifyTiltIncrement(true, true);
     }
   }
@@ -2235,174 +2190,159 @@ void BeadHelper::keyboardSettings()
   
 	CustomDialog ds;
   
+  int wheelResistance = plug.wheelResistance;
+  
   ds.addLabel   ("----- MOUSE: -----");
   
-  int ID_MOUSEBEHAV     = ds.addComboBox( "wheel behavior:",
-                                          "none,"
-                                          "scroll points,"
-                                          "scroll views,"
-                                          "smart scroll", plug.wheelBehav,
-                                          "Allows you to use the mouse wheel to "
-                                          "scroll through points and/or views" ); 
-  int ID_WHEELRESIST    = ds.addSpinBox ( "wheel resistance:",
-                                          10, 1000, plug.wheelResistance, 10,
-                                          "The higher the value, the slower "
-                                          "mouse scrolling works (useful if you have "
-                                          "a touchy mouse wheel)" );
+  ds.addComboBox( "wheel behavior:",
+                  "none,"
+                  "scroll points,"
+                  "scroll views,"
+                  "smart scroll", &plug.wheelBehav,
+                  "Allows you to use the mouse wheel to "
+                  "scroll through points and/or views" ); 
+  ds.addSpinBox ( "wheel resistance:",
+                  10, 1000, &wheelResistance, 10,
+                  "The higher the value, the slower mouse scrolling works"
+                  "(useful if you have a touchy mouse wheel)" );
   
   ds.addLabel   ("----- KEYBOARD: -----");
   
+  ds.addCheckBox( "disable all hot keys", 
+                  &plug.disableHotKeys,
+                  "Disables all BeadHelper hot keys in case "
+                  "they conflict with another key you "
+                  "need to press \n\nNOTE: this setting "
+                  "defaults to off and is not saved on exit");
+  ds.addCheckBox( "include seed && end pts on [y],[b]&&[w]", 
+                  &plug.includeEndsResid,
+                  "Includes end points when searching for the "
+                  "point with the next biggest y jump "
+                  "or deviation from expected when "
+                  "[y], [b] or [w] is pressed"
+                  "\n\nRECOMMENDED VALUE: off");
+  ds.addCheckBox( "on [y]&&[b] search view range only", 
+                  &plug.searchRangeOnly,
+                  "Only searches points within the specified "
+                  "range of views (in the 'Range' box above) "
+                  "when searching for the "
+                  "point with the next biggest y jump [y] "
+                  "or deviation from expected [b] "
+                  "\n\nNOTE: this value is not saved on exit "
+                  "and defaults to off");
+  ds.addComboBox( "[y],[b]&[o] searches: ",
+                  "all contours,"
+                  "unchecked only,"
+                  "checked only", &plug.contsToSearch,
+                  "Which contours are searched when [y] "
+                  "(biggest y jump), [b] (biggest deviation "
+                  "from expected) or [o] (worst contour) "
+                  "keys are pressed");
   
-  int ID_DISABLEHOTKEYS = ds.addCheckBox( "disable all hot keys", 
-                                          plug.disableHotKeys,
-                                          "Disables all BeadHelper hot keys in case "
-                                          "they conflict with another key you "
-                                          "need to press \n\nNOTE: this setting "
-                                          "defaults to off and is not saved on exit");
-  int ID_CHECKENDS      = ds.addCheckBox( "include seed && end pts on [y],[b]&&[w]", 
-                                          plug.includeEndsResid,
-                                          "Includes end points when searching for the "
-                                          "point with the next biggest y jump "
-                                          "or deviation from expected when "
-                                          "[y], [b] or [w] is pressed"
-                                          "\n\nRECOMMENDED VALUE: off");
-  int ID_SEARCHRANGE    = ds.addCheckBox( "on [y]&&[b] search view range only", 
-                                          plug.searchRangeOnly,
-                                          "Only searches points within the specified "
-                                          "range of views (in the 'Range' box above) "
-                                          "when searching for the "
-                                          "point with the next biggest y jump [y] "
-                                          "or deviation from expected [b] "
-                                          "\n\nNOTE: this value is not saved on exit "
-                                          "and defaults to off");
-  int ID_CONTSTOSEARCH  = ds.addComboBox( "[y],[b]&[o] searches: ",
-                                          "all contours,"
-                                          "unchecked only,"
-                                          "checked only", plug.contsToSearch,
-                                          "Which contours are searched when [y] "
-                                          "(biggest y jump), [b] (biggest deviation "
-                                          "from expected) or [o] (worst contour) "
-                                          "keys are pressed");
+  ds.addCheckBox( "[w] checks current contour only",
+                  &plug.wCurrContOnly,
+                  "If true: finds biggest weighted value "
+                  "in current contour. If false: searches "
+                  "all contours in current object.");
+  ds.addSpinBox ( "[w] divisor number:",
+                  1, 500, &plug.wWeightedDiv, 5,
+                  "The lower this number, the more likely "
+                  "to select small shifts \namoungs closely "
+                  "placed points.... \nuses the formula: "
+                  "weighted_dev = distance_to_expected_pt / "
+                  "(distance_nearest_pts + wWeightedDiv)"
+                  "\n\nRECOMMEDED VALUE: 15" );
   
-  int ID_WCURRCONT      = ds.addCheckBox( "[w] checks current contour only",
-                                          plug.wCurrContOnly,
-                                          "If true: finds biggest weighted value "
-                                          "in current contour. If false: searches "
-                                          "all contours in current object.");
-  int ID_WDIVISOR       = ds.addSpinBox ( "[w] divisor number:",
-                                          1, 500, plug.wWeightedDiv, 5,
-                                          "The lower this number, the more likely "
-                                          "to select small shifts \namoungs closely "
-                                          "placed points.... \nuses the formula: "
-                                          "weighted_dev = distance_to_expected_pt / "
-                                          "(distance_nearest_pts + wWeightedDiv)"
-                                          "\n\nRECOMMEDED VALUE: 15" );
+  ds.addComboBox( "on [d] delete pts:",
+                  "do nothing,"
+                  "opposite seed,"
+                  "to nearest end,"
+                  "specified range", &plug.dKeyBehav,
+                  "Action performed when [d] is pressed."
+                  "\n"
+                  "\n > do nothing - as it sounds"
+                  "\n > opposite seed - if selected point is "
+                  "above the seed point will delete all "
+                  "above it; else deletes all points below"
+                  "\n > to nearest end - deletes all points in "
+                  "the current contour from the selected "
+                  "point to the closest end"
+                  "\n > specified range - deletes the range of "
+                  "views speified in the 'Range' group box "
+                  "above from the current contour");
   
-  int ID_DKEYACTION     = ds.addComboBox( "on [d] delete pts:",
-                                          "do nothing,"
-                                          "opposite seed,"
-                                          "to nearest end,"
-                                          "specified range", plug.dKeyBehav,
-                                          "Action performed when [d] is pressed."
-                                          "\n"
-                                          "\n > do nothing - as it sounds"
-                                          "\n > opposite seed - if selected point is "
-                                            "above the seed point will delete all "
-                                            "above it; else deletes all points below"
-                                          "\n > to nearest end - deletes all points in "
-                                            "the current contour from the selected "
-                                            "point to the closest end"
-                                          "\n > specified range - deletes the range of "
-                                            "views speified in the 'Range' group box "
-                                            "above from the current contour");
+  ds.addComboBox( "on [m]:",
+                  "normal,"
+                  "go to middle pt,"
+                  "smooth local,"
+                  "smooth y local",
+                  &plug.mKeyBehav,
+                  "Action performed when [m] is pressed."
+                  "\n"
+                  "\n > normal    - toggles movie/model mode"
+                  "\n > go to middle pt - goes to seed point "
+                  "and/or middle (seed) view"
+                  "\n > smooth local  - applies smoothing "
+                  "to the pts in the current contour within "
+                  "8 views of the current view"
+                  "\n > smooth y local    - as above but "
+                  "moves points in Y only" );
   
-  int ID_MKEYACTION     = ds.addComboBox( "on [m]:",
-                                          "normal,"
-                                          "go to middle pt,"
-                                          "smooth local,"
-                                          "smooth y local",
-                                          plug.mKeyBehav,
-                                          "Action performed when [m] is pressed."
-                                          "\n"
-                                          "\n > normal    - toggles movie/model mode"
-                                          "\n > go to middle pt - goes to seed point "
-                                          "and/or middle (seed) view"
-                                          "\n > smooth local  - applies smoothing "
-                                          "to the pts in the current contour within "
-                                          "8 views of the current view"
-                                          "\n > smooth y local    - as above but "
-                                          "moves points in Y only" );
-  
-  int ID_UKEYACTION     = ds.addComboBox( "on [U]:",
-                                          "print object info,"
-                                          "check current pt,"
-                                          "check contour pts",
-                                          plug.uKeyBehav,
-                                          "Action performed when [U] is pressed."
-                                          "\n"
-                                          "\n > print object info - prints info about "
-                                          "how many contours are checked etc "
-                                          "(same as [I])"
-                                          "\n > check current pt  - toggles currently "
-                                          "selected point between checked and unchecked"
-                                          "\n > check contour pts - toggles all points "
-                                          "in current contour between checked and "
-                                          "unchecked"
-                                          "\n NOTE: a checked point is shown by a "
-                                          "small sphere" );
+  ds.addComboBox( "on [U]:",
+                  "print object info,"
+                  "check current pt,"
+                  "check contour pts",
+                  &plug.uKeyBehav,
+                  "Action performed when [U] is pressed."
+                  "\n"
+                  "\n > print object info - prints info about "
+                  "how many contours are checked etc "
+                  "(same as [I])"
+                  "\n > check current pt  - toggles currently "
+                  "selected point between checked and unchecked"
+                  "\n > check contour pts - toggles all points "
+                  "in current contour between checked and "
+                  "unchecked"
+                  "\n NOTE: a checked point is shown by a "
+                  "small sphere" );
   
   ds.addLabel   ("");
   
-  int ID_ENTERACTION    = ds.addComboBox( "on [Enter] go to:",
-                                          "do nothing,"
-                                          "next unchecked,"
-                                          "prev uncheced,"
-                                          "next checked,"
-                                          "next contour", plug.enterAction,
-                                          "Action performed when [Enter] is pressed "
-                                          "\n\nNOTE: If you don't use enter you may, "
-                                          "wish to leave this on 'do nothing' because "
-                                          "it can interfer when you press enter in "
-                                          "other windows/plugins");
-  int ID_MINPTSENTER   = ds.addSpinBox  ( "min points for [Enter]:", 
-                                          0, plug.zsize+10, plug.minPtsEnter, 1,
-                                          "The minimum number of points a contour "
-                                          "must have to be jumped to when [Enter] "
-                                          "is pressed" );
-  int ID_MAXPTSENTER   = ds.addSpinBox  ( "max points for [Enter]:", 
-                                          1, plug.zsize+10, plug.maxPtsEnter, 1,
-                                          "The maximum number of points a contour "
-                                          "must have to be jumped to when [Enter] "
-                                          "is pressed"
-                                          "\n\nNOTE: Unlike 'min points' this value is "
-                                          "not saved on exit and instead defaults to "
-                                          "the number of views" );
-  int ID_ENTERPRINT    = ds.addCheckBox ( "print results on [Enter]", plug.enterPrint,
-                                          "Prints the number of contours matching the "
-                                          "above criteria each time enter is pressed" );
-  
+  ds.addComboBox( "on [Enter] go to:",
+                  "do nothing,"
+                  "next unchecked,"
+                  "prev uncheced,"
+                  "next checked,"
+                  "next contour", &plug.enterAction,
+                  "Action performed when [Enter] is pressed "
+                  "\n\nNOTE: If you don't use enter you may, "
+                  "wish to leave this on 'do nothing' because "
+                  "it can interfer when you press enter in "
+                  "other windows/plugins");
+  ds.addSpinBox  ( "min points for [Enter]:", 
+                   0, plug.zsize+10, &plug.minPtsEnter, 1,
+                   "The minimum number of points a contour "
+                   "must have to be jumped to when [Enter] "
+                   "is pressed" );
+  ds.addSpinBox  ( "max points for [Enter]:", 
+                   1, plug.zsize+10, &plug.maxPtsEnter, 1,
+                   "The maximum number of points a contour "
+                   "must have to be jumped to when [Enter] "
+                   "is pressed"
+                   "\n\nNOTE: Unlike 'min points' this value is "
+                   "not saved on exit and instead defaults to "
+                   "the number of views" );
+  ds.addCheckBox ( "print results on [Enter]", &plug.enterPrint,
+                   "Prints the number of contours matching the "
+                   "above criteria each time enter is pressed" );
   
 	GuiDialogCustomizable dlg(&ds, "Mouse and Keyboard Settings", this);
 	dlg.exec();
 	if( ds.cancelled )
 		return;
   
-  plug.wheelBehav            = ds.getResultComboBox ( ID_MOUSEBEHAV );
-  plug.wheelResistance       = ds.getResultSpinBox  ( ID_WHEELRESIST );
+  plug.wheelResistance = wheelResistance;
   
-  plug.disableHotKeys        = ds.getResultCheckBox ( ID_DISABLEHOTKEYS );
-  plug.includeEndsResid      = ds.getResultCheckBox ( ID_CHECKENDS );
-  plug.searchRangeOnly       = ds.getResultCheckBox ( ID_SEARCHRANGE );
-  plug.contsToSearch         = ds.getResultComboBox ( ID_CONTSTOSEARCH );
-  plug.dKeyBehav             = ds.getResultComboBox ( ID_DKEYACTION );
-  plug.mKeyBehav             = ds.getResultComboBox ( ID_MKEYACTION );
-  plug.wCurrContOnly         = ds.getResultCheckBox ( ID_WCURRCONT );
-  plug.wWeightedDiv          = ds.getResultSpinBox  ( ID_WDIVISOR );
-  plug.uKeyBehav             = ds.getResultComboBox ( ID_UKEYACTION );
-  plug.enterAction           = ds.getResultComboBox ( ID_ENTERACTION );
-  plug.minPtsEnter           = ds.getResultSpinBox  ( ID_MINPTSENTER );
-  plug.maxPtsEnter           = ds.getResultSpinBox  ( ID_MAXPTSENTER );
-  plug.enterPrint            = ds.getResultCheckBox ( ID_ENTERPRINT );
   
   if( plug.minPtsEnter > plug.maxPtsEnter )
   {
@@ -2428,57 +2368,56 @@ void BeadHelper::reorderContours()
   
   //## GET USER INPUT FROM CUSTOM DIALOG:
   
+  int         contMin      = plug.contMin+1;
+  int         contMax      = nConts;
   static bool reverseOrder = false;
   static bool printVals    = true;
   static bool calcValsOnly = false;
   
 	CustomDialog ds;
-  int ID_DUMMY         = ds.addLabel   ( "contours to sort (inclusive):" );
-  int ID_CONTMIN       = ds.addSpinBox ( "min:", 1, nConts, plug.contMin+1, 1,
-                                         "Only contours after this contour "
-                                         "(inclusive) will be reordered" );
-  int ID_CONTMAX       = ds.addSpinBox ( "max:", 1, nConts, nConts, 1,
-                                         "Only contours BEFORE this contour "
-                                         "(inclusive) will be reordered" );
-	int ID_SORTCRITERIA  = ds.addRadioGrp( "sort by:         (sort criteria)",
-                                         "y jumps (asc),"
-                                         "deviation (asc),"
-                                         "avg grey value (desc),"
-                                         "dist from middle (asc),"
-                                         "num missing pts (asc),"
-                                         "checked first,"
-                                         "random,",
-                                         plug.sortCriteria,
-                                         "",
-                                         "Sorts based on how far points jump in Y,"
-                                         "Uses a weighted score of how far points are "
-                                           "from their estimated positions,"
-                                         "Average the grey value closest to each point,"
-                                         "The distance of the seed point from the "
-                                            "dead center of the tomogram in X an Y,"
-                                         "Contours with the least points will be moved "
-                                            "to the end,"
-                                         "Moves checked (stippled) contours to the start "
-                                            "and unchecked to the end,"
-                                         "Uses a random number for each contour" );
-  int ID_CALVALS       = ds.addCheckBox( "calc values only (don't reorder)",
-                                         calcValsOnly,
-                                         "No contours will be reordered, but "
-                                         "values will be calculated and you "
-                                         "can iterate from largest to smallest "
-                                         "by pressing 'o'" );
-	int ID_REVERSE       = ds.addCheckBox( "reverse order", reverseOrder );
-  int ID_PRINTVALS     = ds.addCheckBox( "print values", printVals );
-	GuiDialogCustomizable dlg(&ds, "Sorting Options", this);
-	dlg.exec();
+  ds.addLabel   ( "contours to sort (inclusive):" );
+  ds.addSpinBox ( "min:", 1, nConts, &contMin, 1,
+                  "Only contours after this contour "
+                  "(inclusive) will be reordered" );
+  ds.addSpinBox ( "max:", 1, nConts, &contMax, 1,
+                  "Only contours BEFORE this contour "
+                  "(inclusive) will be reordered" );
+	 ds.addRadioGrp( "sort by:         (sort criteria)",
+                   "y jumps (asc),"
+                   "deviation (asc),"
+                   "avg grey value (desc),"
+                   "dist from middle (asc),"
+                   "num missing pts (asc),"
+                   "checked first,"
+                   "random,",
+                   &plug.sortCriteria,
+                   "",
+                   "Sorts based on how far points jump in Y,"
+                   "Uses a weighted score of how far points are "
+                   "from their estimated positions,"
+                   "Average the grey value closest to each point,"
+                   "The distance of the seed point from the "
+                   "dead center of the tomogram in X an Y,"
+                   "Contours with the least points will be moved "
+                   "to the end,"
+                   "Moves checked (stippled) contours to the start "
+                   "and unchecked to the end,"
+                   "Uses a random number for each contour" );
+   ds.addCheckBox( "calc values only (don't reorder)",
+                   &calcValsOnly,
+                   "No contours will be reordered, but "
+                   "values will be calculated and you "
+                   "can iterate from largest to smallest "
+                   "by pressing 'o'" );
+	 ds.addCheckBox( "reverse order", &reverseOrder );
+   ds.addCheckBox( "print values",  &printVals );
+   GuiDialogCustomizable dlg(&ds, "Sorting Options", this);
+   dlg.exec();
 	if( ds.cancelled )
 		return;
-  calcValsOnly        = ds.getResultCheckBox  ( ID_CALVALS );
-  int contMin         = ds.getResultSpinBox   ( ID_CONTMIN ) - 1;
-  int contMax         = ds.getResultSpinBox   ( ID_CONTMAX ) - 1;
-  reverseOrder        = ds.getResultCheckBox  ( ID_REVERSE );
-  printVals           = ds.getResultCheckBox  ( ID_PRINTVALS );
-	plug.sortCriteria		= ds.getResultRadioGrp	( ID_SORTCRITERIA );
+  
+  contMin   -= 1;
+  contMax   -= 1;
   
   bead_reorderConts( plug.sortCriteria, contMin, contMax, calcValsOnly,
                      reverseOrder, printVals );
@@ -2553,23 +2492,28 @@ void BeadHelper::moveMultipleContours()
   
   //## GET USER INPUT FROM CUSTOM DIALOG:
   
+  int         contMin      = plug.contMin+1;
+  int         contMax      = plug.contMax+1;
+  int         objToIdx     = numObjs;
+  static bool seedOnly     = true;
+  static bool deleteMatch  = true;
+  static bool copy         = false;
+    
 	CustomDialog ds;
-  int ID_CONTMIN       = ds.addSpinBox ( "min cont:", 1, maxContIdx+1, plug.contMin+1, 1 );
-  int ID_CONTMAX       = ds.addSpinBox ( "max cont:", 1, maxContIdx+1, plug.contMax+1, 1 );  
-	int ID_OBJ           = ds.addSpinBox ( "move to object:", 1, numObjs, numObjs, 1 );
-	int ID_SEEDONLY      = ds.addCheckBox( "seed pt only", true );
-  int ID_DELETEMATCH   = ds.addCheckBox( "delete matching seeds", true );
-  int ID_COPY          = ds.addCheckBox( "copy", false );
+  ds.addSpinBox ( "min cont:", 1, maxContIdx+1, &contMin, 1 );
+  ds.addSpinBox ( "max cont:", 1, maxContIdx+1, &contMax, 1 );  
+	ds.addSpinBox ( "move to object:", 1, numObjs, &objToIdx, 1 );
+	ds.addCheckBox( "seed pt only", &seedOnly );
+  ds.addCheckBox( "delete matching seeds", &deleteMatch );
+  ds.addCheckBox( "copy", &copy );
 	GuiDialogCustomizable dlg(&ds, "Move Options", this);
 	dlg.exec();
 	if( ds.cancelled )
 		return;
-  int contMin         = MAX( ds.getResultSpinBox( ID_CONTMIN ) - 1, 0);
-  int contMax         = MIN( ds.getResultSpinBox( ID_CONTMAX ) - 1, maxContIdx);
-  int objToIdx        = ds.getResultSpinBox   ( ID_OBJ ) - 1;
-  bool seedOnly       = ds.getResultCheckBox  ( ID_SEEDONLY );
-  bool deleteMatch    = ds.getResultCheckBox  ( ID_DELETEMATCH );
-	bool copy       		= ds.getResultCheckBox	( ID_COPY );
+  
+  contMin   = MAX( contMin - 1, 0);
+  contMax   = MIN( contMax - 1, maxContIdx);
+  objToIdx -= 1;
   
   
   if ( objToIdx == objIdx &&
@@ -2658,25 +2602,25 @@ void BeadHelper::correctCurrentObject()
     return;
   }
   
+  static bool deleteExtraPts   = true;
+  static bool deleteMatchSeeds = true;
+  static bool correctPtOrder   = true;
+  
 	CustomDialog ds;
-	int ID_EXTRAPTS    = ds.addCheckBox( "delete duplicate pts on same view", true,
-                                        "If two (or more) points lie on the same view "
-                                        "of the same contour delete the second" );
-  int ID_MATCHSEED   = ds.addCheckBox( "delete duplicate seeds", true,
-                                        "If two (or more) contours are on the same "
-                                        "fiducial on the seed view delete the "
-                                        "second one" );
-  int ID_POINTORDER  = ds.addCheckBox( "correct bad point order", true,
-                                       "If you somehow managed to put contour "
-                                       "point in the wrong order this will reorder "
-                                       "the points in ascending Z value" );
+	ds.addCheckBox( "delete duplicate pts on same view", &deleteExtraPts,
+                  "If two (or more) points lie on the same view \n"
+                  "of the same contour delete the second" );
+  ds.addCheckBox( "delete duplicate seeds", &deleteMatchSeeds,
+                  "If two (or more) contours are on the same fiducial \n"
+                  "on the seed view delete the second one" );
+  ds.addCheckBox( "correct bad point order", &correctPtOrder,
+                  "If you somehow managed to put contour point in \n"
+                  "the wrong order this will reorder the points in \n"
+                  "ascending Z value" );
 	GuiDialogCustomizable dlg(&ds, "Correction Options", this);
 	dlg.exec();
 	if( ds.cancelled )
 		return;
-  bool deleteExtraPts   = ds.getResultCheckBox  ( ID_EXTRAPTS );
-  bool deleteMatchSeeds = ds.getResultCheckBox  ( ID_MATCHSEED );
-  bool correctPtOrder   = ds.getResultCheckBox  ( ID_POINTORDER );
   
   Imod *imod = ivwGetModel(plug.view);
   Iobj *obj = imodObjectGet(imod);
@@ -2937,30 +2881,29 @@ void BeadHelper::markRangeAsStippled()
   
   //## GET USER INPUT FROM CUSTOM DIALOG:
   
+  int        contMin = plug.contMin+1;
+  int        contMax = nConts;
   static int checked = 1;
   
 	CustomDialog ds;
-  int ID_DUMMY         = ds.addLabel   ( "contours to change:" );
-  int ID_CONTMIN       = ds.addSpinBox ( "min:", 1, nConts, plug.contMin, 1,
-                                         "Only contours after this contour "
-                                         "(inclusive) will be changed" );
-  int ID_CONTMAX       = ds.addSpinBox ( "max:", 1, nConts, nConts, 1,
-                                         "Only contours BEFORE this contour "
-                                         "(inclusive) will be changed" );
-  int ID_STIPPLED      = ds.addRadioGrp( "mark as:",
-                                         "unchecked (unstippled),"
-                                         "checked (stippled)", checked );
-  int ID_DUMMY2        = ds.addLabel   ( "NOTE: Use [Enter] to iterate through\n"
-                                         "unchecked (unstippled) contours and\n"
-                                         "[u] to toggle current contour between\n"
-                                         "checked and unchecked" );
+  ds.addLabel   ( "contours to change:" );
+  ds.addSpinBox ( "min:", 1, nConts, &contMin, 1,
+                  "Only contours after this contour (inclusive) will be changed" );
+  ds.addSpinBox ( "max:", 1, nConts, &contMax, 1,
+                  "Only contours BEFORE this contour (inclusive) will be changed" );
+  ds.addRadioGrp( "mark as:",
+                  "unchecked (unstippled),"
+                  "checked (stippled)", &checked );
+  ds.addLabel   ( "NOTE: Use [Enter] to iterate through \n"
+                  "unchecked (unstippled) contours and \n"
+                  "[u] to toggle current contour between \n"
+                  "checked and unchecked" );
 	GuiDialogCustomizable dlg(&ds, "Mark Contours as Checked", this);
 	dlg.exec();
 	if( ds.cancelled )
 		return;
-  int contMin         = ds.getResultSpinBox   ( ID_CONTMIN ) - 1;
-  int contMax         = ds.getResultSpinBox   ( ID_CONTMAX ) - 1;
-  checked            = ds.getResultRadioGrp  ( ID_STIPPLED );
+  contMin    -= 1;
+  contMax    -= 1;
   
   
   //## CHANGE CONTOURS IN RANGE TO STIPPLED / UNSTIPPLED
@@ -3006,35 +2949,35 @@ void BeadHelper::markRangePtsAsChecked()
   
   //## GET USER INPUT FROM CUSTOM DIALOG:
   
-  static int checked = 1;
+  int contMin         = 1;
+  int contMax         = nConts;
+  int viewMin         = 1;
+  int viewMax         = plug.zsize;
+  static int checked  = 1;
   
 	CustomDialog ds;
-  int ID_DUMMY         = ds.addLabel   ( "contours to change:" );
-  int ID_CONTMIN       = ds.addSpinBox ( "min:", 1, nConts, 1, 1,
-                                         "Only contours after this contour "
-                                         "(inclusive) will be reordered" );
-  int ID_CONTMAX       = ds.addSpinBox ( "max:", 1, nConts, nConts, 1,
-                                         "Only contours BEFORE this contour "
-                                         "(inclusive) will be reordered" );
-  int ID_DUMMY2        = ds.addLabel   ( "views to change:" );
-  int ID_VIEWMIN       = ds.addSpinBox ( "min:", 1, plug.zsize, 0, 1,
-                                         "Only pts on view after this "
-                                         "(inclusive) will be changed" );
-  int ID_VIEWMAX       = ds.addSpinBox ( "max:", 1, plug.zsize, plug.zsize, 1,
-                                         "Only pts on view BEFORE this "
-                                         "(inclusive) will be changed" );
-  int ID_STIPPLED      = ds.addRadioGrp( "mark as:",
-                                         "unchecked (no sphere),"
-                                         "checked   (little sphere)", checked );
+  ds.addLabel   ( "contours to change:" );
+  ds.addSpinBox ( "min:", 1, nConts, &contMin, 1,
+                  "Only contours after this contour (inclusive) will be reordered" );
+  ds.addSpinBox ( "max:", 1, nConts, &contMax, 1,
+                  "Only contours BEFORE this contour (inclusive) will be reordered" );
+  ds.addLabel   ( "views to change:" );
+  ds.addSpinBox ( "min:", 1, plug.zsize, &viewMin, 1,
+                  "Only pts on view after this (inclusive) will be changed" );
+  ds.addSpinBox ( "max:", 1, plug.zsize, &viewMax, 1,
+                  "Only pts on view BEFORE this (inclusive) will be changed" );
+  ds.addRadioGrp( "mark as:",
+                  "unchecked (no sphere),"
+                  "checked   (little sphere)", &checked );
 	GuiDialogCustomizable dlg(&ds, "Mark Points as Checked", this);
 	dlg.exec();
 	if( ds.cancelled )
 		return;
-  int contMin         = ds.getResultSpinBox   ( ID_CONTMIN ) - 1;
-  int contMax         = ds.getResultSpinBox   ( ID_CONTMAX ) - 1;
-  int viewMin         = ds.getResultSpinBox   ( ID_VIEWMIN ) - 1;
-  int viewMax         = ds.getResultSpinBox   ( ID_VIEWMAX ) - 1;
-  checked             = ds.getResultRadioGrp  ( ID_STIPPLED );
+  
+  contMin   -= 1;
+  contMax   -= 1;
+  viewMin   -= 1;
+  viewMax   -= 1;
   
   //## CHANGE POINTS IN RANGE TO CHECKED / UNCHECKED
   
@@ -3273,7 +3216,7 @@ void BeadHelper::printContourCheckedInfo()
   wprint("  # full           \t= %d \t(%d%%)\n", totFullC,     percentFull  );
   wprint("  # checked   \t= %d \t(%d%%)\n", totCheckedC,  percentChecked );
   wprint(" total missing pts = %d\n", totMissingPts );
-  wprint(" avg missing pts/cont = %f\n", avgMissingPtsPerCont );
+  wprint(" avg missing pts/cont = %g\n", avgMissingPtsPerCont );
 }
 
 
@@ -3448,7 +3391,7 @@ bool BeadHelper::openTiltAngleFile()
   wprint(" view \t angle\n");
   for (int i=0; i<(int)plug.tiltAngles.size(); i++ )
   {
-    wprint( " %d \t %f", i+1, plug.tiltAngles[i] );
+    wprint( " %d \t %g", i+1, plug.tiltAngles[i] );
     if( i>0 )
     {
       float tiltIncrease = plug.tiltAngles[i] - plug.tiltAngles[i-1];
@@ -5884,27 +5827,20 @@ void bead_showGrid()
   static bool dottedLines   = false;
   
 	CustomDialog ds;
-  int ID_COLS         = ds.addSpinBox ( "columns (x):", 1, 500, colsX, 1,
-                                        "Number of columns to display" );
-  int ID_ROWS         = ds.addSpinBox ( "rows    (y):", 1, 500, rowsY, 1,
-                                        "Number of rows to display" );
-	int ID_SHOWSTYLE    = ds.addRadioGrp( "show grid as:",
-                                         "lines,"
-                                         "spheres only",
-                                         showStyle );
-  int ID_ROTATE       = ds.addCheckBox( "rotate by tilt axis angle",
-                                         rotateByAngle,
-                                         "Tilt the grid by the tilt axis angle" );
-  int ID_DOTTEDLINES  = ds.addCheckBox( "use dotted lines", dottedLines );
+  ds.addSpinBox ( "columns (x):", 1, 500, &colsX, 1, "Number of columns to display" );
+  ds.addSpinBox ( "rows    (y):", 1, 500, &rowsY, 1, "Number of rows to display" );
+	ds.addRadioGrp( "show grid as:",
+                  "lines,"
+                  "spheres only",
+                  &showStyle );
+  ds.addCheckBox( "rotate by tilt axis angle",
+                  &rotateByAngle,
+                  "Tilt the grid by the tilt axis angle" );
+  ds.addCheckBox( "use dotted lines", &dottedLines );
 	GuiDialogCustomizable dlg(&ds, "Grid Options");
 	dlg.exec();
 	if( ds.cancelled )
 		return;
-  colsX           = ds.getResultSpinBox   ( ID_COLS );
-  rowsY           = ds.getResultSpinBox   ( ID_ROWS );
-	showStyle       = ds.getResultRadioGrp	( ID_SHOWSTYLE );
-  rotateByAngle   = ds.getResultCheckBox  ( ID_ROTATE );
-  dottedLines     = ds.getResultCheckBox  ( ID_DOTTEDLINES );
   
   
   //## SETUP GRID:
