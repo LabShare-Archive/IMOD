@@ -39,6 +39,9 @@ import etomo.util.Utilities;
  * @version $Revision$
  * 
  * <p> $Log$
+ * <p> Revision 1.12  2008/06/20 20:05:29  sueh
+ * <p> bug# 1119 Added debug.
+ * <p>
  * <p> Revision 1.11  2008/05/28 02:49:18  sueh
  * <p> bug# 1111 Add a dialogType parameter to the ProcessSeries
  * <p> constructor.  DialogType must be passed to any function that constructs
@@ -86,6 +89,7 @@ public final class AnisotropicDiffusionDialog implements ContextMenu,
   public static final String rcsid = "$Id$";
 
   public static final int MEMORY_PER_CHUNK_DEFAULT = 14 * ChunksetupParam.MEMORY_TO_VOXEL;
+  public static final String CLEANUP_LABEL = "Clean Up Subdirectory";
 
   private static final String K_VALUE_LIST_LABEL = "List of K values: ";
   private static final String ITERATION_LIST_LABEL = "List of iterations: ";
@@ -131,8 +135,7 @@ public final class AnisotropicDiffusionDialog implements ContextMenu,
       "Memory per chunk (MB): ", MEMORY_PER_CHUNK_DEFAULT,
       ChunksetupParam.MEMORY_TO_VOXEL, 30 * ChunksetupParam.MEMORY_TO_VOXEL,
       ChunksetupParam.MEMORY_TO_VOXEL);
-  private final MultiLineButton btnCleanup = new MultiLineButton(
-      "Clean Up Subdirectory");
+  private final MultiLineButton btnCleanup = new MultiLineButton(CLEANUP_LABEL);
 
   private final RubberbandPanel pnlTestVolumeRubberband;
   private final ParallelManager manager;
@@ -514,16 +517,6 @@ public final class AnisotropicDiffusionDialog implements ContextMenu,
     return true;
   }
 
-  private void deleteSubdir() {
-    File subdir = new File(manager.getPropertyUserDir(), subdirName);
-    File[] fileList = subdir.listFiles();
-    for (int i = 0; i < fileList.length; i++) {
-      fileList[i].delete();
-    }
-    subdir.delete();
-    subdirName = null;
-  }
-
   private void action(final String command,
       Deferred3dmodButton deferred3dmodButton,
       final Run3dmodMenuOptions run3dmodMenuOptions) {
@@ -558,8 +551,8 @@ public final class AnisotropicDiffusionDialog implements ContextMenu,
           DIALOG_TYPE);
     }
     else if (command.equals(btnCleanup.getActionCommand())) {
-      if (subdirName != null) {
-        deleteSubdir();
+      if (subdirName != null && manager.deleteSubdir(subdirName)) {
+        subdirName = null;
       }
     }
     else if (command.equals(btnViewFullVolume.getActionCommand())) {
