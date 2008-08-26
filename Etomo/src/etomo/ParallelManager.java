@@ -9,6 +9,7 @@ import etomo.comscript.ChunksetupParam;
 import etomo.comscript.ProcesschunksParam;
 import etomo.comscript.TrimvolParam;
 import etomo.process.BaseProcessManager;
+import etomo.process.ImodManager;
 import etomo.process.ParallelProcessManager;
 import etomo.process.ProcessResultDisplayFactoryBlank;
 import etomo.process.ProcessResultDisplayFactoryInterface;
@@ -339,6 +340,31 @@ public final class ParallelManager extends BaseManager {
     setParamFile(new File(propertyUserDir, metaData.getMetaDataFileName()));
     EtomoDirector.INSTANCE.renameCurrentManager(metaData.getRootName());
     mainPanel.setStatusBarText(paramFile, metaData);
+    return true;
+  }
+
+  public boolean deleteSubdir(String subdirName) {
+    try {
+      if (imodManager.isOpen(ImodManager.TEST_VOLUME_KEY)
+          || imodManager.isOpen(ImodManager.VARYING_K_TEST_KEY)
+          || imodManager.isOpen(ImodManager.VARYING_ITERATION_TEST_KEY)) {
+        uiHarness.openMessageDialog(
+            "Clean up failed.  Please close the test volume and/or test "
+                + "result(s) before pressing "
+                + AnisotropicDiffusionDialog.CLEANUP_LABEL + ".",
+            "Clean Up Failed");
+        return false;
+      }
+    }
+    catch (AxisTypeException e) {
+      e.printStackTrace();
+    }
+    File subdir = new File(getPropertyUserDir(), subdirName);
+    File[] fileList = subdir.listFiles();
+    for (int i = 0; i < fileList.length; i++) {
+      fileList[i].delete();
+    }
+    subdir.delete();
     return true;
   }
 
@@ -673,6 +699,11 @@ public final class ParallelManager extends BaseManager {
 }
 /**
  * <p> $Log$
+ * <p> Revision 1.28  2008/05/28 02:47:55  sueh
+ * <p> bug# 1111 Removed processDialogTypeA and B from BaseManager.
+ * <p> The dialogType for processes should be handled by ProcessSeries.
+ * <p> Passing a DialogType parameter to startNextProcess.
+ * <p>
  * <p> Revision 1.27  2008/05/13 20:59:03  sueh
  * <p> bug# 847 Adding a right click menu for deferred 3dmods to some
  * <p> process buttons.
