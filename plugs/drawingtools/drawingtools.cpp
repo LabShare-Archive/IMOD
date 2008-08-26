@@ -15,6 +15,9 @@
     $Revision$
 
     $Log$
+    Revision 1.21  2008/08/25 09:45:40  tempuser
+    *** empty log message ***
+
     Revision 1.20  2008/08/25 09:34:35  tempuser
     touched up code
 
@@ -381,11 +384,11 @@ int imodPlugEvent(ImodView *vw, QEvent *event, float imx, float imy)
         if( newZoom < 0.0001 )
           newZoom = 0.0001;
         
-        ivwSetTopZapZoom(plug.view, newZoom);    //%%%% WILL ASK DAVID TO CREATE
-        ivwRedraw(plug.view);
-        
-        //QKeyEvent *newEvent = new QKeyEvent(QEvent::KeyRelease,Qt::Key_Plus,61,61,"+");
-        //ivwControlKey(0, newEvent);
+        if( newZoom != zoom )
+        {
+          ivwSetTopZapZoom( plug.view, newZoom, true );
+          //ivwRedraw(plug.view);
+        }
       }
       return 0;
     }
