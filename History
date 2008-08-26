@@ -1,5 +1,8 @@
 IMOD History
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+8/26/08: In Etomo - NAD making sure that the clean up button works probably by
+asking the user to exit from files that will be deleted.
+
 8/22/08: IMOD_3-12-17
 8/22/08: Fixed bug in extra object code from 7/13/08 that crashed 3dmod when
 using bead fixer on Mac (and should have crashed elsewhere...).
