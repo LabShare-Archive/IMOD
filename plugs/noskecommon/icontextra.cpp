@@ -15,6 +15,9 @@
     $Revision$
 
     $Log$
+    Revision 1.9  2008/08/25 09:34:08  tempuser
+    changed CustomDialog to use pointers to return values
+
     Revision 1.8  2008/07/28 01:46:33  tempuser
     *** empty log message ***
 
@@ -271,9 +274,9 @@ void point_scalePtAboutPt2D( Ipoint *pt, Ipoint *center, float scaleX, float sca
 //-- ACTUAL EQUATION:
 //--
 //--  q(t) = 0.5 * [   ( -p0  + 3*p1 - 3*p2 + p3 ) * t^3
-//--             + ( 2*p0 - 5*p1 + 4*p2 - p3 ) * t^2
-//--             + ( -p0  + p2               ) * t
-//--         + ( 2*p1                    )       ]
+//--                 + ( 2*p0 - 5*p1 + 4*p2 - p3 ) * t^2
+//--                 + ( -p0  + p2               ) * t
+//--                 + ( 2*p1                    )       ]
 
 
 float getValCatmullRom( float fracIntoKf, float p0, float p1, float p2, float p3,
@@ -1544,6 +1547,7 @@ int cont_addPtsSmoothIteration(Icont *cont, float maxDist,
   
   return ( psize(cont) - pointsBefore );
 }
+
 
 
 //------------------------

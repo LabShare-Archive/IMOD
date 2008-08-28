@@ -204,7 +204,8 @@ struct CustomDialog                // used to set up a new GuiDialogCustomizable
     
     newElement.type = DLG_LINEEDIT;
     newElement.caption = caption;
-    newElement.stringValue = *stringValue;
+    string strVal = *stringValue;
+    newElement.stringValue = strVal.c_str();
     newElement.tooltip = tooltip;
     
     elVal.push_back( newElement );
