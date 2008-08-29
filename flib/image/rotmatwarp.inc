@@ -8,6 +8,9 @@ c
 c       $Revision$
 c       
 c       $Log$
+c       Revision 3.5  2007/08/30 20:13:38  mast
+c       Change izinfile from i*2 3d to i*4 1D array
+c
 c       Revision 3.4  2006/06/03 00:03:00  mast
 c       How about nominal 500 MB instead
 c
@@ -29,7 +32,7 @@ c
       parameter (limout=(inpdim*3)/2, limizfile=4*limout*lmcube)
 c       
       real*4 array(inpdim,inpdim,inpdim),brray(limout,limout)
-      common /bigarr/array,brray
+      common /bigarr/brray,array
 c       
       integer*4 nxyzin(3),nxyzout(3)
       integer*4 nxin,nyin,nzin,nxout,nyout,nzout
