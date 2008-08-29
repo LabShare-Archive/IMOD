@@ -5,6 +5,9 @@ c
 c	  $Revision$
 c
 c	  $Log$
+c	  Revision 3.4  2006/06/29 04:52:45  mast
+c	  Added call to set model size limits
+c	
 c	  Revision 3.3  2005/12/09 04:39:44  mast
 c	  gfortran: .xor., continuation, byte, or open fixes
 c	
@@ -41,7 +44,7 @@ c
 	  readw_or_imod=.false.
 	  open(20,file=filename,status='old',err=20)
 	  call qopen(istrm,filename,'OLD')
-	  call qseek(istrm,1,1,1)
+	  call qseek(istrm,1,1,1,1,1)
 c
 	  call qread(istrm,int2,52,ier)
 	  if(lowbyte.eq.2)call convert_shorts(int2,1)
