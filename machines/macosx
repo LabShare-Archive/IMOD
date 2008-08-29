@@ -45,6 +45,7 @@ else
     gcc -v >&! gfortran.tmp
     set fortvers = `sed -n '/gcc version/s/.*sion \([0-9\.]*\).*/\1/p' gfortran.tmp |sed '/\./s// /g'`
     \rm -f gfortran.tmp
+    echo $fortvers
     if ($#fortvers < 2) set fortvers = 3
     echo "DLLSOURCEDIR1 = /usr/local/lib" >> $configure
     if ($fortvers[1] == 3) then
@@ -58,7 +59,12 @@ else
     else
         #
         # gfortran needs unlimited fixed format, and date and time subroutines
-        #
+        # also needs -fbackslash starting at 4.3 
+        gfortran -v >&! gfortran.tmp
+        set gfortvers = `sed -n '/gcc version/s/.*sion \([0-9\.]*\).*/\1/p' gfortran.tmp |sed '/\./s// /g'`
+        \rm -f gfortran.tmp
+        @ minorvers = $gfortvers[2]
+        if ($gfortvers[1] != 4 || $minorvers > 2) set fcompFlags = "-fbackslash $fcompFlags"
         set fcomp = "gfortran"
         echo "DATESRC   = compat/datetime.f" >> $configure
         echo "DIRDATEOBJ  = compat/datetime.o" >> $configure
@@ -124,6 +130,14 @@ echo 'FORTCLIBS = '  >> $configure
 # tell the C routines which way to swap floats
 #
 echo '#define SWAP_IEEE_FLOATS' >> $hconfigure
+
+# 
+# tell the C and fortran routines to swap the bytes for INTEL
+#
+if ($intel == true) then
+    echo '#define B3D_LITTLE_ENDIAN' >> $hconfigure
+    \cp $endian_dir/little_endian.inc $endian_dir/endian.inc
+endif
 
 # 
 # tell the C and fortran routines to swap the bytes for INTEL

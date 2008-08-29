@@ -49,8 +49,10 @@ else
     else
         #
         # gfortran needs unlimited fixed format, and date and time subroutines
-        #
+        # also needs -fbackslash starting at 4.3
         set fcomp = "gfortran"
+        @ minorvers = $fortvers[2]
+        if ($fortvers[1] != 4 || $minorvers > 2) set fcompFlags = "-fbackslash $fcompFlags"
         echo "DATESRC   = compat/datetime.f" >> $configure
         echo "DIRDATEOBJ  = compat/datetime.o" >> $configure
         echo "DATEOBJ  = datetime.o" >> $configure

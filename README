@@ -7,7 +7,7 @@ Upon unpacking the source, you will find the following directories:
 autodoc         Autodoc files for programs using PIP package for input
 clip		Source for Command Line Image Processing
 com		Command files, mostly used by copytomocoms for tomography
-devkit		Plugin developers kit available on web page
+ctfplotter      Source for ctfplotter program
 dist		Files for installation and distribution
 Etomo           eTomo package tree
 Etomo/doc       Program documentation files
@@ -31,16 +31,20 @@ flib/man	Master directory for man pages of Fortran programs
 flib/model	Source for many programs that use IMOD models
 flib/ndasda	Source for nda, sda, and mtk spatial analysis programs
 flib/subrs	Top of source tree for Fortran libraries
+  .../blas      Source for blas routines needed by lapack
+  .../compat    Source for compatibility routines where needed
   .../dtrigs	Source for cosd, sind, etc. functions for Linux (libdtrigs)
   .../graphics	Source for graphics subroutines (libdnmncar)
   .../hvem	Source for miscellaneous subroutines developed here
   .../ifftsub	Source for FFT subroutines  (libifft - no longer used)
   .../imsubs	Source for basic image I/O routines  (libim)
   .../imsubs2	Source for other image manipulation routines  (libim)
+  .../lapack    Source for subset of lapack needed by ctfplotter
   .../linetrack	Source for line tracker subroutines
-  .../model	Source for model-related subroutines  (libhvem)	
+  .../model	Source for model-related subroutines  (libwmod)	
   .../piecesubs	Source for routines that work with piece coordinates  (libhvem)
   .../randm	Source for Linux replacement for RAN function  (librandm)
+  .../smallmodel  Versions for library that has a small model (libsmlmod)
   .../statsubs	Source for statistical subroutines
   .../xfsubs	Source for routines that work with transformations
 flib/tilt	Source for back-projection program
@@ -49,23 +53,30 @@ flib/tiltalign	Source for tilt alignmnet program
 html		All html documents and files that they link to
 html/3dmodHelp  Help files for 3dmod
 html/3dmodimages Images for introduction to 3dmod
+html/ctfHelp    Help files for ctfplotter
 html/etomoImages Images for etomo tutorial
 html/joinImages  Images for join tutorial
 html/libdoc     Framework files for library documentation
+html/midasHelp  Help files for midas
 imod		Source for 3dmod program
 imodutil	Source for utility programs for working with IMOD models
 include		Include files for IMOD programs
 libcfft         Source for C version of FFT library
+libcfshr        Source for library of utilities shared with Fortran
 libdiaqt        Source for Qt dialog and utility library
 libiimod        Source for IMOD image library
 libimod         Source for IMOD model library
+libmesh         Source for meshing library
 machines	Machine-specific files included by setup script
 manpages	Master source for man pages of C programs, in nroff format
 midas		Source for midas program
 mrc		Source for various programs manipulating MRC image files
 plugs		Source tree for imod plugins
 plugs/beadfix	Source for old version of bead fixer plugin used to test build
-plugs/linetrack	Obsolete source for line tracker plugin (mixed fortran and C)
+plugs/beadhelper   Source for Andrew Noske's bead helper plugin
+plugs/drawingtools Source for Noske's drawing tools plugin
+plugs/noskecommon  Source for common files for Noske's plugins
+pysrc           Python scripts
 qtassist        Source for imodqtassist program
 scripts		Shell scripts
 sendevent       Source for imodsendevent program
@@ -81,10 +92,12 @@ After doing a "make" and default "make install", you will have:
 buildlib	Newly built but uninstalled libraries, needed to make programs
 man		Top directory for man pages (contains a cat1 and cat5)
 html/man	Html versions of man pages
+html/libhelp    Processed library documentation files
 bin		Installation directory for executable programs and scripts
 lib		Installation directory for libraries (old 32-bit on SGI)
 lib/imodplug	Installation directory for imod plugins
 lib32		Installation directory for n32 libraries on an SGI
+pylib           Installation directory for Python modules
 
 Other files in top directory:
 History         Has the complete history of changes
