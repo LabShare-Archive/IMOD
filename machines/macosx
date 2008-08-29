@@ -45,7 +45,6 @@ else
     gcc -v >&! gfortran.tmp
     set fortvers = `sed -n '/gcc version/s/.*sion \([0-9\.]*\).*/\1/p' gfortran.tmp |sed '/\./s// /g'`
     \rm -f gfortran.tmp
-    echo $fortvers
     if ($#fortvers < 2) set fortvers = 3
     echo "DLLSOURCEDIR1 = /usr/local/lib" >> $configure
     if ($fortvers[1] == 3) then

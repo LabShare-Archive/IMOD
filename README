@@ -44,7 +44,7 @@ flib/subrs	Top of source tree for Fortran libraries
   .../model	Source for model-related subroutines  (libwmod)	
   .../piecesubs	Source for routines that work with piece coordinates  (libhvem)
   .../randm	Source for Linux replacement for RAN function  (librandm)
-  .../smallmodel  Versions for library that has a small model (libsmlmod)
+  .../smallmodel  Derived source for library that has a small model (libsmlmod)
   .../statsubs	Source for statistical subroutines
   .../xfsubs	Source for routines that work with transformations
 flib/tilt	Source for back-projection program
