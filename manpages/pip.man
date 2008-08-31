@@ -797,7 +797,7 @@ character*N \fIprefix\fB
 .ft R
 .fi
 
-\fBexitError\fR prints an error string after the prefix, which 
+\fBexitError\fR exits after printing an error string after a prefix, which 
 is set by calling \fBsetExitPrefix\fR.  The Fortran version takes the 
 error string while the C version takes variable arguments like \fBprintf\fR.
 A space will be printed between the prefix and error string, and a newline
@@ -806,7 +806,9 @@ string.  The prefix is also set automatically
 by calling \fBPipReadOrParseOptions\fR or \fBPipExitOnError\fR; in the latter
 case the destination for error output can be specified, whereas using 
 \fBsetExitPrefix\fR will cause output to go to standard out.  These two
-functions can be used by programs that do not call anything else in PIP.
+functions can be used by programs that do not call anything else in PIP;
+however, \fBexitError\fR will work only if the exit prefix has been set to a
+non-empty string with either \fBsetExitPrefix\fR or \fBPipExitOnError\fR.
 
 .SS Calling from Python
 The Python versions of the functions handle returned values differently:
