@@ -1,3 +1,16 @@
+/*
+ *  ctfphaseflip.cpp  -  CTF correction of tilted images
+ *
+ *  Author: Quanren Xiong     email: xiongq@colorado.edu
+ *
+ *  Copyright (C) 2007-2008 by Boulder Laboratory for 3-Dimensional Electron
+ *  Microscopy of Cells ("BL3DEMC") and the Regents of the University of 
+ *  Colorado.  See dist/COPYRIGHT for full copyright notice.
+ *
+ *  $Id$
+ *  Log at end
+ */
+
 #include <limits>
 #include <math.h>
 #include <stdio.h>
@@ -19,21 +32,26 @@ using namespace std;
 int main(int argc, char *argv[])
 {
   int numOptArgs, numNonOptArgs;
-  int numOptions=15;
-  char *options[]={"param:Parameter:PF:", "stack:InputStack:CH:",
-    "defFn:DefocusFile:FN:",
-    "views:StartingEndingViews:IP:","totalviews:TotalViews:IP:", 
-    "angle:AngleFile:CH:", "aAngle:AxisAngle:F:",  "defTol:DefocusTol:I:", 
-    "iWidth:InterpolationWidth:I:", "pixelSize:PixelSize:F:",  
-    "volt:Voltage:I:", "cs:SphericalAberration:F:","outFn:OutputFileName:CH:", 
-    "ampConstrast:AmplitudeContrast:F:", "compDefocus:ComputedDefocus:F:"};
+
+  // Fallbacks from   ../manpages/autodoc2man 2 1 ctfphaseflip
+  int numOptions = 14;
+  char *options[] = {
+    "input:InputStack:FN:", "output:OutputFileName:FN:", 
+    "angleFn:AngleFile:FN:", "defFn:DefocusFile:FN:", "defTol:DefocusTol:I:", 
+    "iWidth:InterpolationWidth:I:", "pixelSize:PixelSize:F:", 
+    "volt:Voltage:I:", "cs:SphericalAberration:F:", 
+    "ampContrast:AmplitudeContrast:F:", "views:StartingEndingViews:IP:", 
+    "totalViews:TotalViews:IP:", "aAngle:AxisAngle:F:", 
+    "param:Parameter:PF:"};
+
   char *stackFn, *angleFn, *outFn, *defFn;
   int volt, iWidth, defocusTol;
   float tiltAxisAngle, pixelSize, cs, ampContrast, stripDefocus;
   int startingView, endingView, startingTotal, endingTotal;
   bool isSingleRun=false;
+  char *progname = imodProgName(argv[0]);
 
-  PipReadOrParseOptions(argc, argv, options, numOptions, argv[0], 
+  PipReadOrParseOptions(argc, argv, options, numOptions, progname, 
       1, 0, 0, &numOptArgs, &numNonOptArgs, NULL);
 
   if (PipGetString("InputStack", &stackFn))
@@ -416,3 +434,9 @@ int main(int argc, char *argv[])
   free(defocus);
   if(fpAngle) fclose(fpAngle);
 }
+
+/*
+
+$Log$
+
+*/
