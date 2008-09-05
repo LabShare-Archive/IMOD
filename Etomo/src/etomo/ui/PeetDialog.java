@@ -53,6 +53,9 @@ import etomo.type.Run3dmodMenuOptions;
  * @version $Revision$
  * 
  * <p> $Log$
+ * <p> Revision 1.62  2008/08/22 17:52:00  sueh
+ * <p> bug# 1136 Added sNWeightGroup.
+ * <p>
  * <p> Revision 1.61  2008/05/28 02:50:18  sueh
  * <p> bug# 1111 Add a dialogType parameter to the ProcessSeries
  * <p> constructor.  DialogType must be passed to any function that constructs
@@ -750,7 +753,11 @@ public final class PeetDialog implements ContextMenu, AbstractParallelDialog,
     matlabParam.setInsideMaskRadius(ltfInsideMaskRadius.getText());
     matlabParam.setOutsideMaskRadius(ltfOutsideMaskRadius.getText());
     if (sNWeightGroup.isEnabled()) {
+      matlabParam.setUseNWeightGroup(true);
       matlabParam.setNWeightGroup(sNWeightGroup.getValue());
+    }
+    else {
+      matlabParam.setUseNWeightGroup(false);
     }
   }
 
