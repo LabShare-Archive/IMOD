@@ -10,7 +10,6 @@ import java.util.Map;
 import etomo.storage.autodoc.AutodocFactory;
 import etomo.storage.autodoc.ReadOnlyAttribute;
 import etomo.storage.autodoc.ReadOnlyAutodoc;
-import etomo.storage.autodoc.ReadOnlySection;
 import etomo.storage.autodoc.SectionLocation;
 import etomo.storage.autodoc.Statement;
 import etomo.storage.autodoc.WritableAttribute;
@@ -45,6 +44,9 @@ import etomo.util.DatasetFiles;
  * @version $Revision$
  * 
  * <p> $Log$
+ * <p> Revision 1.21  2008/08/22 17:50:35  sueh
+ * <p> bug# 1136 Added nWeightGroup.
+ * <p>
  * <p> Revision 1.20  2008/08/21 00:01:58  sueh
  * <p> bug# 1135 Started to add SearchAngleArea - not in use yet.
  * <p>
@@ -313,6 +315,7 @@ public final class MatlabParam {
   private boolean useReferenceFile = REFERENCE_FILE_DEFAULT;
   private YaxisType yaxisType = YaxisType.DEFAULT;
   private boolean useYaxisContour = false;
+  private boolean useNWeightGroup = false;
 
   private boolean newFile;
   private File file;
@@ -429,12 +432,14 @@ public final class MatlabParam {
           //Also use the comments from the peetprm.adoc Field sections.
           //This makes MatlabParam dependent on peetprm.adoc so peetprm.adoc
           //must be the responsibility of the Etomo developer.
-          ReadOnlySection section = null;
+          updateOrBuildAutodoc(valueMap, autodoc, commentAutodoc);
+          /*ReadOnlySection section = null;
+          System.out.println("setNameValuePair");
           while ((section = commentAutodoc.nextSection(secLoc)) != null) {
             setNameValuePair(autodoc, section.getName(), (String) valueMap
                 .get(section.getName()), section
                 .getAttribute(EtomoAutodoc.COMMENT_KEY));
-          }
+          }*/
         }
       }
       //write the autodoc file (the backup is done by autodoc)
@@ -597,11 +602,15 @@ public final class MatlabParam {
     useReferenceFile = false;
     reference.setRawString(VOLUME_INDEX, referenceVolume.toString());
   }
-  
+
   public void setNWeightGroup(final Number input) {
     nWeightGroup.setRawString(input);
   }
-  
+
+  public void setUseNWeightGroup(final boolean input) {
+    useNWeightGroup = input;
+  }
+
   public void setMaskModelPtsVolume(final Number input) {
     maskModelPts.setRawString(VOLUME_INDEX, input.toString());
   }
@@ -682,6 +691,8 @@ public final class MatlabParam {
     maskModelPts.clear();
     insideMaskRadius.clear();
     outsideMaskRadius.clear();
+    nWeightGroup.clear();
+    useNWeightGroup = false;
   }
 
   public void clearEdgeShift() {
@@ -699,7 +710,7 @@ public final class MatlabParam {
   public String getInsideMaskRadius() {
     return insideMaskRadius.getRawString();
   }
-  
+
   public ParsedElement getNWeightGroup() {
     return nWeightGroup;
   }
@@ -1141,7 +1152,9 @@ public final class MatlabParam {
     valueMap.put(INSIDE_MASK_RADIUS_KEY, insideMaskRadius.getParsableString());
     valueMap
         .put(OUTSIDE_MASK_RADIUS_KEY, outsideMaskRadius.getParsableString());
-    valueMap.put(N_WEIGHT_GROUP_KEY, nWeightGroup.getParsableString());
+    if (useNWeightGroup) {
+      valueMap.put(N_WEIGHT_GROUP_KEY, nWeightGroup.getParsableString());
+    }
   }
 
   /**
@@ -1284,6 +1297,27 @@ public final class MatlabParam {
         .get(YAXIS_TYPE_KEY), commentMap);
     setNameValuePairValue(autodoc, YAXIS_CONTOUR_KEY, (String) valueMap
         .get(YAXIS_CONTOUR_KEY), commentMap);
+    setNameValuePairValue(autodoc, FLG_WEDGE_WEIGHT_KEY, (String) valueMap
+        .get(FLG_WEDGE_WEIGHT_KEY), commentMap);
+    setNameValuePairValue(autodoc, SAMPLE_SPHERE_KEY, (String) valueMap
+        .get(SAMPLE_SPHERE_KEY), commentMap);
+    setNameValuePairValue(autodoc, SAMPLE_INTERVAL_KEY, (String) valueMap
+        .get(SAMPLE_INTERVAL_KEY), commentMap);
+    setNameValuePairValue(autodoc, MASK_TYPE_KEY, (String) valueMap
+        .get(MASK_TYPE_KEY), commentMap);
+    setNameValuePairValue(autodoc, MASK_MODEL_PTS_KEY, (String) valueMap
+        .get(MASK_MODEL_PTS_KEY), commentMap);
+    setNameValuePairValue(autodoc, INSIDE_MASK_RADIUS_KEY, (String) valueMap
+        .get(INSIDE_MASK_RADIUS_KEY), commentMap);
+    setNameValuePairValue(autodoc, OUTSIDE_MASK_RADIUS_KEY, (String) valueMap
+        .get(OUTSIDE_MASK_RADIUS_KEY), commentMap);
+    if (useNWeightGroup) {
+      setNameValuePairValue(autodoc, N_WEIGHT_GROUP_KEY, (String) valueMap
+          .get(N_WEIGHT_GROUP_KEY), commentMap);
+    }
+    else {
+      removeNameValuePair(autodoc, N_WEIGHT_GROUP_KEY);
+    }
   }
 
   /**
@@ -1793,18 +1827,18 @@ public final class MatlabParam {
   }
 
   private static final class SearchAngleArea {
-    private final ParsedArrayDescriptor descriptor= ParsedArrayDescriptor
-    .getInstance(ParsedElementType.MATLAB_ARRAY, EtomoNumber.Type.FLOAT);
-    
+    private final ParsedArrayDescriptor descriptor = ParsedArrayDescriptor
+        .getInstance(ParsedElementType.MATLAB_ARRAY, EtomoNumber.Type.FLOAT);
+
     /**
      * Sets both the End and Start values.  The Start is always the negation of
      * the End value.
      * @param input
      */
-    private void setRawStringEnd(final String input){
+    private void setRawStringEnd(final String input) {
       descriptor.setRawStringEnd(input);
       EtomoNumber start = new EtomoNumber(EtomoNumber.Type.FLOAT);
-      if (start.isNull()||start.equals(0)) {
+      if (start.isNull() || start.equals(0)) {
         descriptor.setRawStringEnd(input);
       }
       else {
@@ -1812,12 +1846,12 @@ public final class MatlabParam {
         descriptor.setRawStringStart(start.toString());
       }
     }
-    
+
     private void setRawStringIncrement(final String input) {
       descriptor.setRawStringIncrement(input);
     }
   }
-  
+
   public static final class Iteration {
     private static final int HI_CUTOFF_CUTOFF_INDEX = 0;
     private static final int HI_CUTOFF_SIGMA_INDEX = 1;
@@ -1832,11 +1866,11 @@ public final class MatlabParam {
 
     //search spaces
     private final ParsedArrayDescriptor dPhi = ParsedArrayDescriptor
-    .getInstance(ParsedElementType.MATLAB_ARRAY, EtomoNumber.Type.FLOAT);
+        .getInstance(ParsedElementType.MATLAB_ARRAY, EtomoNumber.Type.FLOAT);
     private final ParsedArrayDescriptor dTheta = ParsedArrayDescriptor
-    .getInstance(ParsedElementType.MATLAB_ARRAY, EtomoNumber.Type.FLOAT);
+        .getInstance(ParsedElementType.MATLAB_ARRAY, EtomoNumber.Type.FLOAT);
     private final ParsedArrayDescriptor dPsi = ParsedArrayDescriptor
-    .getInstance(ParsedElementType.MATLAB_ARRAY, EtomoNumber.Type.FLOAT);
+        .getInstance(ParsedElementType.MATLAB_ARRAY, EtomoNumber.Type.FLOAT);
 
     private Iteration() {
     }
