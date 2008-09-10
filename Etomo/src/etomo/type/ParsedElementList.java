@@ -17,6 +17,10 @@ import java.util.Map;
  * @version $Revision$
  * 
  * <p> $Log$
+ * <p> Revision 1.13  2008/04/15 21:26:07  sueh
+ * <p> bug# 1105 Added default got rid of ParsedEmptyElement so that empty
+ * <p> elements will show the correct parsed strings.  Added debug.
+ * <p>
  * <p> Revision 1.12  2008/04/08 23:58:34  sueh
  * <p> bug# 1105 Changed the array used in getParsedNumberExpandedArray
  * <p> to a ParsedElementList because it always holds ParsedNumbers.  Made
@@ -66,10 +70,8 @@ public final class ParsedElementList {
   public static final String rcsid = "$Id$";
 
   private final ParsedElementType type;
-
   private final Map map = new HashMap();
-
-  private EtomoNumber.Type etomoNumberType;
+  private final EtomoNumber.Type etomoNumberType;
 
   private int size = 0;
   private boolean debug = false;
@@ -94,36 +96,30 @@ public final class ParsedElementList {
    * in an empty list.
    */
   public int size() {
-    if (size < minSize) {
-      return minSize;
-    }
+    //if (size < minSize) {
+    //  return minSize;
+    //}
     return size;
   }
-  
-  void setMinSize(int input) {
-    minSize = input;
-  }
+
+  /*
+   void setMinSize(int input) {
+   minSize = input;
+   }*/
 
   /**
    * Add an element.  The key is the current size.  Size is incremented by one.
    * @param element
    */
   synchronized void add(ParsedElement element) {
+    if (element == null) {
+      return;
+    }
     map.put(getKey(size++), element);
   }
 
-  /**
-   * Get element at index.  If index does not refer to an element, create an
-   * empty element, add it at index, and return empty element. 
-   * @param index
-   * @return
-   */
   public synchronized ParsedElement get(int index) {
-    ParsedElement element = (ParsedElement) map.get(getKey(index));
-    if (element == null) {
-      element = setEmptyElement(index);
-    }
-    return element;
+    return (ParsedElement) map.get(getKey(index));
   }
 
   void setDebug(boolean input) {
@@ -159,8 +155,8 @@ public final class ParsedElementList {
     size = 0;
   }
 
-  synchronized void addEmptyElement() {
-    setEmptyElement(size);
+  synchronized ParsedElement addEmptyElement() {
+    return setEmptyElement(size);
   }
 
   private ParsedElement setEmptyElement(int index) {
