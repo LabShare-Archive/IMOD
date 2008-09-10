@@ -32,6 +32,9 @@ import etomo.util.PrimativeTokenizer;
  * @version $Revision$
  * 
  * <p> $Log$
+ * <p> Revision 1.18  2008/06/20 18:58:15  sueh
+ * <p> bug# 1119 ParsedArrayDescriptor can be either Matlab or non-Matlab now, so I need to explicitly choose an iterator array when I need one.
+ * <p>
  * <p> Revision 1.17  2008/04/15 21:18:40  sueh
  * <p> bug# 1105 Simplified setting the default.  Added debug and default to
  * <p> constructor.  Move setDebug() to child classes.
@@ -187,9 +190,11 @@ public final class ParsedArray extends ParsedElement {
     StringBuffer[] bufferArray = new StringBuffer[expandedArray.size()];
     for (int i = 0; i < expandedArray.size(); i++) {
       bufferArray[i] = new StringBuffer();
-      bufferArray[i].append(((ParsedNumber) expandedArray.get(i))
-          .getParsableString());
-      maxDigits = Math.max(maxDigits, bufferArray[i].length());
+      ParsedNumber number = (ParsedNumber) expandedArray.get(i);
+      if (number != null) {
+        bufferArray[i].append(number.getParsableString());
+        maxDigits = Math.max(maxDigits, bufferArray[i].length());
+      }
     }
     String[] returnArray = new String[expandedArray.size()];
     for (int i = 0; i < expandedArray.size(); i++) {
@@ -206,7 +211,10 @@ public final class ParsedArray extends ParsedElement {
     debug = input;
     array.setDebug(input);
     for (int i = 0; i < size(); i++) {
-      getElement(i).setDebug(input);
+      ParsedElement element = array.get(i);
+      if (element != null) {
+        element.setDebug(input);
+      }
     }
   }
 
@@ -232,7 +240,10 @@ public final class ParsedArray extends ParsedElement {
   public String validate() {
     String errorMessage = null;
     for (int i = 0; i < array.size(); i++) {
-      errorMessage = array.get(i).validate();
+      ParsedElement element = array.get(i);
+      if (element != null) {
+        errorMessage = element.validate();
+      }
       if (errorMessage != null) {
         return errorMessage;
       }
@@ -241,43 +252,92 @@ public final class ParsedArray extends ParsedElement {
   }
 
   public String getRawString(int index) {
-    return array.get(index).getRawString();
+    ParsedElement element = array.get(index);
+    if (element != null) {
+      return element.getRawString();
+    }
+    return "";
   }
 
   public boolean isEmpty(int index) {
-    return array.get(index).isEmpty();
+    ParsedElement element = array.get(index);
+    if (element != null) {
+      return element.isEmpty();
+    }
+    return true;
+  }
+
+  public void setRawStringStart(String string) {
+    ParsedArrayDescriptor descriptor = getAddFirstArrayDescriptor(string);
+    if (descriptor != null) {
+      descriptor.setRawStringStart(string);
+    }
+    return;
+  }
+
+  public void setRawStringEnd(String string) {
+    ParsedArrayDescriptor descriptor = getAddFirstArrayDescriptor(string);
+    if (descriptor != null) {
+      descriptor.setRawStringEnd(string);
+    }
+    return;
+  }
+
+  public void setRawStringIncrement(String string) {
+    ParsedArrayDescriptor descriptor = getAddFirstArrayDescriptor(string);
+    if (descriptor != null) {
+      descriptor.setRawStringIncrement(string);
+    }
+    return;
   }
 
   /**
-   * Sets an element of an array descriptor at arrayindex.
-   * @param arrayIndex
-   * @param descriptorIndex
-   * @param string
+   * Gets the first array descriptor in the array.  If there is no array
+   * descriptor, it adds one, but only if addIfNumber is a number.
+   * @param createIfNumber
+   * @return
    */
-  public void setRawString(int indexOfDescriptor, int indexOfElement,
-      String string) {
-    insureDescriptorExists(indexOfDescriptor);
-    array.get(indexOfDescriptor).setRawString(indexOfElement, string);
+  private ParsedArrayDescriptor getAddFirstArrayDescriptor(String addIfNumber) {
+    ParsedArrayDescriptor descriptor = getFirstArrayDescriptor();
+    if (descriptor == null) {
+      ParsedNumber number = ParsedNumber.getInstance(type, etomoNumberType,
+          debug, defaultValue);
+      //If the string doesn't have a number in it, don't bother to create the
+      //descriptor.  Descriptors can't use "NaN", so there is no point to
+      //creating an empty one.
+      number.setRawString(addIfNumber);
+      if (number.isEmpty()) {
+        return null;
+      }
+      descriptor = new ParsedArrayDescriptor(etomoNumberType, debug,
+          defaultValue);
+      array.add(descriptor);
+    }
+    return descriptor;
   }
 
-  public ParsedElement getFirstDescriptor(int startIndex) {
-    for (int i = startIndex; i < array.size(); i++) {
-      ParsedElement element = array.get(i);
-      if (element.isCollection()) {
-        return element;
-      }
+  public String getRawStringStart() {
+    ParsedArrayDescriptor descriptor = getFirstArrayDescriptor();
+    if (descriptor != null) {
+      return descriptor.getRawStringStart();
     }
-    return ParsedNumber.getInstance(type, etomoNumberType, debug, defaultValue);
+    return "";
   }
 
-  public int getDescriptorIndex() {
-    for (int i = 0; i < array.size(); i++) {
-      ParsedElement element = array.get(i);
-      if (element.isCollection()) {
-        return i;
-      }
+  public String getRawStringIncrement() {
+    ParsedArrayDescriptor descriptor = getFirstArrayDescriptor();
+    if (descriptor != null) {
+      return descriptor.getRawStringIncrement();
     }
-    return -1;
+    return "";
+  }
+
+  public String getRawStringEnd() {
+    ParsedArrayDescriptor descriptor = getFirstArrayDescriptor();
+    if (descriptor != null) {
+      return descriptor.getRawStringEnd();
+    }
+    return "";
   }
 
   /**
@@ -301,7 +361,7 @@ public final class ParsedArray extends ParsedElement {
       token = tokenizer.next();
       //raw strings shouldn't have brackets
       //place input into array starting from the beginning of the list
-      parseArray(token, tokenizer, -1);
+      parseArray(token, tokenizer);
     }
     catch (IOException e) {
       e.printStackTrace();
@@ -310,19 +370,18 @@ public final class ParsedArray extends ParsedElement {
   }
 
   /**
-   * Parse one or more elements in an array.  Place them in ParsedArray.array
-   * starting at index.
+   * Parse one or more elements in an array.
    * @param index
    * @param input
    */
-  public void setRawStrings(int index, String input) {
+  public void setRawStrings(String input) {
     PrimativeTokenizer tokenizer = createTokenizer(input);
     StringBuffer buffer = new StringBuffer();
     Token token = null;
     try {
       token = tokenizer.next();
-      //raw strings shouldn't have brackets
-      parseArray(token, tokenizer, index);
+      //raw strings shouldn't have brackets so start with parseArray, not parse.
+      parseArray(token, tokenizer);
     }
     catch (IOException e) {
       e.printStackTrace();
@@ -330,37 +389,67 @@ public final class ParsedArray extends ParsedElement {
     }
   }
 
-  public void setMinArraySize(int input) {
-    array.setMinSize(input);
-  }
+  /*
+   public void setMinArraySize(int input) {
+   array.setMinSize(input);
+   }*/
 
   public void clear() {
     array.clear();
   }
 
-  public ParsedElement getElement(int arrayIndex, int descriptorIndex) {
-    return array.get(arrayIndex).getElement(descriptorIndex);
+  private ParsedElement getElement(int arrayIndex, int descriptorIndex) {
+    ParsedElement element = array.get(arrayIndex);
+    if (element != null) {
+      return element.getElement(descriptorIndex);
+    }
+    return null;
   }
 
   /**
    * Raw strings go to the screen
    */
   public String getRawString() {
-    return getRawString(null, -1);
+    return getString(false, -1, -1);
   }
 
-  public String getRawStrings(int startIndex) {
-    return getRawString(null, startIndex);
+  public String getRawStringsExceptFirstArrayDescriptor() {
+    int firstArrayDescriptorIndex = getFirstArrayDescriptorIndex();
+    return getString(false, 0, firstArrayDescriptorIndex);
+  }
+
+  private ParsedArrayDescriptor getFirstArrayDescriptor() {
+    for (int i = 0; i < array.size(); i++) {
+      ParsedElement element = array.get(i);
+      if (element != null && element.isDescriptor()) {
+        return (ParsedArrayDescriptor) element;
+      }
+    }
+    return null;
+  }
+
+  private int getFirstArrayDescriptorIndex() {
+    for (int i = 0; i < array.size(); i++) {
+      ParsedElement element = array.get(i);
+      if (element != null && element.isDescriptor()) {
+        return i;
+      }
+    }
+    return -1;
   }
 
   public String getRawString(int arrayIndex, int descriptorIndex) {
-    return array.get(arrayIndex).getRawString(descriptorIndex);
+    ParsedElement element = array.get(arrayIndex);
+    if (element != null) {
+      return element.getRawString(descriptorIndex);
+    }
+    return "";
   }
 
   public void setRawString(int index, String string) {
     PrimativeTokenizer tokenizer = createTokenizer(string);
     try {
-      parseElement(tokenizer.next(), tokenizer, index);
+      parseElement(tokenizer.next(), tokenizer);
     }
     catch (IOException e) {
       e.printStackTrace();
@@ -375,12 +464,29 @@ public final class ParsedArray extends ParsedElement {
   public boolean ge(int number) {
     boolean greaterOrEqual = true;
     for (int i = 0; i < array.size(); i++) {
-      if (!array.get(i).ge(number)) {
+      ParsedElement element = array.get(i);
+      if (element != null && !element.ge(number)) {
         greaterOrEqual = false;
         break;
       }
     }
     return greaterOrEqual;
+  }
+
+  /**
+   * Returns true only when all numbers in the array are equal
+   * to the number parameter.
+   */
+  public boolean equals(int number) {
+    boolean equal = true;
+    for (int i = 0; i < array.size(); i++) {
+      ParsedElement element = array.get(i);
+      if (element != null && !element.equals(number)) {
+        equal = false;
+        break;
+      }
+    }
+    return equal;
   }
 
   /**
@@ -390,7 +496,7 @@ public final class ParsedArray extends ParsedElement {
   public String getParsableString() {
     StringBuffer buffer = new StringBuffer();
     buffer = new StringBuffer(OPEN_SYMBOL.toString());
-    buffer.append(getString(true, -1));
+    buffer.append(getString(true, -1, -1));
     buffer.append(CLOSE_SYMBOL.toString());
     return buffer.toString();
   }
@@ -405,9 +511,12 @@ public final class ParsedArray extends ParsedElement {
    * @param parsedArray
    */
   public void set(ParsedElement input) {
+    array.clear();
+    if (input == null) {
+      return;
+    }
     input.setDebug(debug);
     input.setDefault(defaultValue);
-    array.clear();
     for (int i = 0; i < input.size(); i++) {
       array.add(input.getElement(i));
     }
@@ -470,10 +579,21 @@ public final class ParsedArray extends ParsedElement {
   public ParsedElementList getParsedNumberExpandedArray(
       ParsedElementList parsedNumberExpandedArray) {
     for (int i = 0; i < array.size(); i++) {
-      parsedNumberExpandedArray = array.get(i).getParsedNumberExpandedArray(
-          parsedNumberExpandedArray);
+      ParsedElement element = array.get(i);
+      if (element != null) {
+        parsedNumberExpandedArray = element
+            .getParsedNumberExpandedArray(parsedNumberExpandedArray);
+      }
+    }
+    if (parsedNumberExpandedArray == null) {
+      parsedNumberExpandedArray = new ParsedElementList(type, etomoNumberType,
+          debug, defaultValue);
     }
     return parsedNumberExpandedArray;
+  }
+  
+  boolean isDescriptor() {
+    return false;
   }
 
   boolean isCollection() {
@@ -492,7 +612,10 @@ public final class ParsedArray extends ParsedElement {
     defaultValue = input;
     array.setDefault(input);
     for (int i = 0; i < array.size(); i++) {
-      array.get(i).setDefault(defaultValue);
+      ParsedElement element = array.get(i);
+      if (element != null) {
+        element.setDefault(defaultValue);
+      }
     }
   }
 
@@ -503,7 +626,10 @@ public final class ParsedArray extends ParsedElement {
     defaultValue.set(input);
     array.setDefault(defaultValue);
     for (int i = 0; i < array.size(); i++) {
-      array.get(i).setDefault(defaultValue);
+      ParsedElement element = array.get(i);
+      if (element != null) {
+        element.setDefault(defaultValue);
+      }
     }
   }
 
@@ -533,7 +659,7 @@ public final class ParsedArray extends ParsedElement {
       if (token != null && token.is(Token.Type.WHITESPACE)) {
         token = tokenizer.next();
       }
-      token = parseArray(token, tokenizer, -1);
+      token = parseArray(token, tokenizer);
       if (isFailed()) {
         return token;
       }
@@ -555,31 +681,6 @@ public final class ParsedArray extends ParsedElement {
   }
 
   /**
-   * Create a ParsedArrayDescriptor in the position specified by index, if the
-   * position is not a collection.  This creates the correct format and corrects
-   * it if it changes.
-   * @param arrayIndex
-   */
-  private void insureDescriptorExists(int index) {
-    ParsedElement element = array.get(index);
-    if (!element.isCollection()) {
-      //this position must contain a descriptor
-      ParsedDescriptor descriptor = ParsedDescriptor.getInstance(type,
-          etomoNumberType, debug, defaultValue);
-      array.set(index, descriptor);
-    }
-  }
-
-  /**
-   * Raw strings may go to the screen
-   * @param parsedNumberSyntax
-   * @return
-   */
-  private String getRawString(EtomoBoolean2 parsedNumberSyntax, int startIndex) {
-    return getString(false, startIndex);
-  }
-
-  /**
    * Returns a raw string or a parsable string.  A raw string and a parsable
    * string from a collection returns basically the same thing but the elements'
    * parsable strings may be different.  Will return the whole string when
@@ -588,29 +689,34 @@ public final class ParsedArray extends ParsedElement {
    * @param parsable - true when getting parsable string, false when getting a raw string
    * @param startIndex - start index
    */
-  private String getString(final boolean parsable, int startIndex) {
+  private String getString(final boolean parsable, int startIndex,
+      int exclusionIndex) {
     if (startIndex == -1) {
       startIndex = 0;
     }
     StringBuffer buffer = new StringBuffer();
     boolean emptyString = true;//for adding the divider symbols
     for (int i = startIndex; i < array.size(); i++) {
-      ParsedElement element = array.get(i);
-      if (!emptyString) {
-        buffer.append(DIVIDER_SYMBOL + " ");
-      }
-      emptyString = false;
-      if (parsable) {
-        buffer.append(element.getParsableString());
-      }
-      else {
-        buffer.append(element.getRawString());
+      if (exclusionIndex != i) {
+        ParsedElement element = array.get(i);
+        if (element != null) {
+          if (!emptyString) {
+            buffer.append(DIVIDER_SYMBOL + " ");
+          }
+          emptyString = false;
+          if (parsable) {
+            buffer.append(element.getParsableString());
+          }
+          else {
+            buffer.append(element.getRawString());
+          }
+        }
       }
     }
     return buffer.toString();
   }
 
-  private Token parseArray(Token token, PrimativeTokenizer tokenizer, int index) {
+  private Token parseArray(Token token, PrimativeTokenizer tokenizer) {
     if (token == null) {
       return null;
     }
@@ -626,10 +732,7 @@ public final class ParsedArray extends ParsedElement {
       }
       try {
         //parse an element
-        token = parseElement(token, tokenizer, index);
-        if (index != -1) {
-          index++;
-        }
+        token = parseElement(token, tokenizer);
         //Find the divider.
         //Whitespace may be used as a divider or the divider may be preceded by
         //whitespace.
@@ -665,37 +768,41 @@ public final class ParsedArray extends ParsedElement {
    * @param index adds element when index is -1
    * @return current token when done parsing the element
    */
-  private Token parseElement(Token token, PrimativeTokenizer tokenizer,
-      int index) {
+  private Token parseElement(Token token, PrimativeTokenizer tokenizer) {
     //parse element
     //Array descriptors don't have their own open and close symbols, so they
     //look like numbers until to you get to the first divider (":"or "-").
     if (debug) {
       System.out.println("ParsedArray.parseElement");
     }
+    ParsedElement element;
+    //First assume that there might be an array descriptor.
     ParsedDescriptor descriptor = ParsedDescriptor.getInstance(type,
         etomoNumberType, debug, defaultValue);
-    token = descriptor.parse(token, tokenizer);
-    //create the correct type of element
-    ParsedElement element;
-    if (descriptor.isEmpty()) {
-      //There's nothing there, so its an empty element
-      array.addEmptyElement();
-      return token;
-    }
-    else if (descriptor.wasDividerParsed()) {
-      element = descriptor;
-    }
-    else {
-      //If the divider was not found then it is not a descriptor.
-      element = descriptor.getElement(0);
-    }
-    if (index == -1) {
-      array.add(element);
+    if (descriptor != null) {
+      token = descriptor.parse(token, tokenizer);
+      //create the correct type of element
+      if (descriptor.isEmpty()) {
+        //There's nothing there, so its an empty element
+        array.addEmptyElement();
+        return token;
+      }
+      else if (descriptor.wasDividerParsed()) {
+        element = descriptor;
+      }
+      else {
+        //If the divider was not found then it is not a descriptor.
+        element = descriptor.getElement(0);
+      }
     }
     else {
-      array.set(index, element);
+      //ParsedDescriptor would not return an instance so the type is not a type
+      //that can have an array descriptor or iterator.
+      element = ParsedNumber.getInstance(type, etomoNumberType, debug,
+          defaultValue);
+      token = element.parse(token, tokenizer);
     }
+    array.add(element);
     return token;
   }
 }
