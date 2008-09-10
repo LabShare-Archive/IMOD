@@ -19,6 +19,9 @@ import etomo.util.PrimativeTokenizer;
  * @version $Revision$
  * 
  * <p> $Log$
+ * <p> Revision 1.5  2008/06/20 19:59:19  sueh
+ * <p> bug# 1119 ParsedArrayDescriptor can be either Matlab or non-Matlab now, so I need to explicitly choose an iterator array when I need one.
+ * <p>
  * <p> Revision 1.4  2008/04/15 21:23:08  sueh
  * <p> bug# 1105 Simplified setting the default.  Added debug and default to
  * <p> constructor.  Move setDebug() to child classes.  Moved generic descriptor
@@ -68,6 +71,19 @@ abstract class ParsedDescriptor extends ParsedElement {
     return ParsedArrayDescriptor.DIVIDER_SYMBOL;
   }
 
+  /**
+   * If the type is ParsedElementType.NON_MATLAB_ITERATOR_ARRAY, return an
+   * instance of ParsedIteratorDescriptor.  If the type is any kind of matlab
+   * number, return an instance of ParsedArrayDescriptor.  These are the only
+   * types where an array descriptor of some kind is valid.  If the type is
+   * anything else, return null.  This is because many arrays outside of
+   * MatlabParam do not use iterators or any other kind of array descriptor.
+   * @param type
+   * @param etomoNumberType
+   * @param debug
+   * @param defaultValue
+   * @return
+   */
   static ParsedDescriptor getInstance(ParsedElementType type,
       EtomoNumber.Type etomoNumberType, boolean debug, EtomoNumber defaultValue) {
     if (debug) {
@@ -76,7 +92,10 @@ abstract class ParsedDescriptor extends ParsedElement {
     if (type.isIterator()) {
       return ParsedIteratorDescriptor.getInstance(debug, defaultValue);
     }
-    return new ParsedArrayDescriptor(type, etomoNumberType, debug, defaultValue);
+    if (type.isMatlab()) {
+      return new ParsedArrayDescriptor(etomoNumberType, debug, defaultValue);
+    }
+    return null;
   }
 
   public final String toString() {
@@ -85,10 +104,6 @@ abstract class ParsedDescriptor extends ParsedElement {
 
   final void removeElement(int index) {
     descriptor.remove(index);
-  }
-
-  final ParsedElement getElement(final int index) {
-    return descriptor.get(index);
   }
 
   final void clear() {
@@ -183,7 +198,10 @@ abstract class ParsedDescriptor extends ParsedElement {
     defaultValue = input;
     descriptor.setDefault(input);
     for (int i = 0; i < descriptor.size(); i++) {
-      descriptor.get(i).setDefault(defaultValue);
+      ParsedElement element = descriptor.get(i);
+      if (element != null) {
+        element.setDefault(defaultValue);
+      }
     }
   }
 
@@ -194,7 +212,10 @@ abstract class ParsedDescriptor extends ParsedElement {
     defaultValue.set(input);
     descriptor.setDefault(defaultValue);
     for (int i = 0; i < descriptor.size(); i++) {
-      descriptor.get(i).setDefault(defaultValue);
+      ParsedElement element = descriptor.get(i);
+      if (element != null) {
+        element.setDefault(defaultValue);
+      }
     }
   }
 
@@ -221,9 +242,12 @@ abstract class ParsedDescriptor extends ParsedElement {
    * @param input
    */
   public final void set(final ParsedElement input) {
+    clear();
+    if (input == null) {
+      return;
+    }
     input.setDebug(isDebug());
     input.setDefault(defaultValue);
-    clear();
     append(input);
   }
 
@@ -235,6 +259,9 @@ abstract class ParsedDescriptor extends ParsedElement {
    * @param input
    */
   private void append(final ParsedElement input) {
+    if (input == null) {
+      return;
+    }
     int inputIndex = 0;
     while (inputIndex < input.size()) {
       ParsedElement element = input.getElement(inputIndex++);
@@ -270,7 +297,11 @@ abstract class ParsedDescriptor extends ParsedElement {
 
   String validate() {
     for (int i = 0; i < descriptor.size(); i++) {
-      String errorMessage = descriptor.get(i).validate();
+      ParsedElement element = descriptor.get(i);
+      String errorMessage = null;
+      if (element != null) {
+        errorMessage = element.validate();
+      }
       if (errorMessage != null) {
         return errorMessage;
       }
@@ -332,8 +363,9 @@ abstract class ParsedDescriptor extends ParsedElement {
     ParsedElementList list = new ParsedElementList(type, etomoNumberType,
         isDebug(), defaultValue);
     for (int i = 0; i < descriptor.size(); i++) {
-      if (!descriptor.get(i).isEmpty()) {
-        list.add(descriptor.get(i));
+      ParsedElement element = descriptor.get(i);
+      if (element != null && !element.isEmpty()) {
+        list.add(element);
       }
     }
     if (list.size() == 0) {
@@ -408,22 +440,20 @@ abstract class ParsedDescriptor extends ParsedElement {
     boolean emptyString = true;
     for (int i = 0; i < descriptor.size(); i++) {
       ParsedElement element = descriptor.get(i);
-      if (!emptyString) {
-        buffer.append(getDividerSymbol().charValue());
-      }
-      emptyString = false;
-      if (parsable) {
-        buffer.append(descriptor.get(i).getParsableString());
-      }
-      else {
-        buffer.append(descriptor.get(i).getRawString());
+      if (element != null) {
+        if (!emptyString) {
+          buffer.append(getDividerSymbol().charValue());
+        }
+        emptyString = false;
+        if (parsable) {
+          buffer.append(element.getParsableString());
+        }
+        else {
+          buffer.append(element.getRawString());
+        }
       }
     }
     return buffer.toString();
-  }
-
-  public void setMinArraySize(int input) {
-    descriptor.setMinSize(input);
   }
 
   final int getIncrement(final ParsedNumber first, final ParsedNumber last) {
@@ -438,11 +468,23 @@ abstract class ParsedDescriptor extends ParsedElement {
   }
 
   public final String getRawString(int index) {
-    return getElement(index).getRawString();
+    ParsedElement element = getElement(index);
+    if (element != null) {
+      return element.getRawString();
+    }
+    return "";
+  }
+  
+  final boolean isDescriptor() {
+    return true;
   }
 
   final boolean isCollection() {
     return true;
+  }
+  
+  public ParsedElement getElement(int index) {
+    return descriptor.get(index);
   }
 
   final String getParsableString() {
@@ -458,11 +500,30 @@ abstract class ParsedDescriptor extends ParsedElement {
     ParsedElementList expandedArray = getParsedNumberExpandedArray(null);
     boolean greaterOrEqual = true;
     for (int i = 0; i < expandedArray.size(); i++) {
-      if (!expandedArray.get(i).ge(number)) {
+      ParsedElement element = expandedArray.get(i);
+      if (element != null && !element.ge(number)) {
         greaterOrEqual = false;
         break;
       }
     }
     return greaterOrEqual;
+  }
+
+  /**
+   * Returns true only when all numbers in the array are equal
+   * to the number parameter.  Expands any array descriptors into the arrays
+   * they represent.
+   */
+  public final boolean equals(final int number) {
+    ParsedElementList expandedArray = getParsedNumberExpandedArray(null);
+    boolean equal = true;
+    for (int i = 0; i < expandedArray.size(); i++) {
+      ParsedElement element = expandedArray.get(i);
+      if (element != null && !element.equals(number)) {
+        equal = false;
+        break;
+      }
+    }
+    return equal;
   }
 }
