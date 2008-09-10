@@ -28,6 +28,10 @@ import etomo.util.PrimativeTokenizer;
  * @version $Revision$
  * 
  * <p> $Log$
+ * <p> Revision 1.13  2008/04/15 21:29:23  sueh
+ * <p> bug# 1105 Added debug and to constructor.  Move setDebug() to child
+ * <p> classes.
+ * <p>
  * <p> Revision 1.12  2008/04/09 00:01:33  sueh
  * <p> bug# 1105 Changed the array used in getParsedNumberExpandedArray
  * <p> to a ParsedElementList because it always holds ParsedNumbers.
@@ -170,7 +174,13 @@ public final class ParsedQuotedString extends ParsedElement {
   }
 
   public void setElement(ParsedElement element) {
-    rawString = element.getRawString();
+
+    if (element != null) {
+      rawString = element.getRawString();
+    }
+    else {
+      rawString = "";
+    }
   }
 
   public void setRawString(String string) {
@@ -185,6 +195,10 @@ public final class ParsedQuotedString extends ParsedElement {
     return false;
   }
 
+  public boolean equals(int number) {
+    return false;
+  }
+
   void moveElement(int fromIndex, int toIndex) {
   }
 
@@ -196,7 +210,7 @@ public final class ParsedQuotedString extends ParsedElement {
     if (index == 0) {
       return this;
     }
-    return new ParsedQuotedString(debug);
+    return null;
   }
 
   void setRawString(int index, float number) {
@@ -255,6 +269,10 @@ public final class ParsedQuotedString extends ParsedElement {
       parsedNumberExpandedArray = new ParsedElementList(type, null, debug, null);
     }
     return parsedNumberExpandedArray;
+  }
+
+  boolean isDescriptor() {
+    return false;
   }
 
   boolean isCollection() {
