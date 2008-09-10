@@ -496,8 +496,11 @@ final class SetupDialog extends ProcessDialog implements ContextMenu,
 
   void datasetAction() {
     try {
-      ltfDataset.setText(getFile(expert.getDatasetDir(), new StackFileFilter(),
-          JFileChooser.FILES_ONLY).getAbsolutePath());
+      File file = getFile(expert.getDatasetDir(), new StackFileFilter(),
+          JFileChooser.FILES_ONLY);
+      if (file != null) {
+        ltfDataset.setText(file.getAbsolutePath());
+      }
     }
     catch (Exception excep) {
       excep.printStackTrace();
@@ -852,6 +855,9 @@ final class SetupDialog extends ProcessDialog implements ContextMenu,
 }
 /**
  * <p> $Log$
+ * <p> Revision 3.61  2008/05/03 00:57:05  sueh
+ * <p> bug# 847 Passing null for ProcessSeries to process funtions.
+ * <p>
  * <p> Revision 3.60  2007/12/26 22:28:06  sueh
  * <p> bug# 1052 Turned SetupDialog into an extremely thin GUI.  Moved decisions and
  * <p> knowledge to SetupDialogExpert.
