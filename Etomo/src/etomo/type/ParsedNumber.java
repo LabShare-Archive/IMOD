@@ -29,6 +29,9 @@ import etomo.util.PrimativeTokenizer;
  * @version $Revision$
  * 
  * <p> $Log$
+ * <p> Revision 1.18  2008/08/22 17:51:22  sueh
+ * <p> bug# 1136 Made setRawString(Number) public.
+ * <p>
  * <p> Revision 1.17  2008/06/20 20:02:26  sueh
  * <p> bug# 1119 For clarity added _NUMBER to MATLAB and NON_MATLAB.
  * <p>
@@ -177,7 +180,7 @@ public final class ParsedNumber extends ParsedElement {
     if (index == 0) {
       return this;
     }
-    return new ParsedNumber(type, etomoNumberType, debug, defaultValue);
+    return null;
   }
 
   /**
@@ -187,8 +190,7 @@ public final class ParsedNumber extends ParsedElement {
     if (index == 0) {
       return getRawString();
     }
-    return new ParsedNumber(type, etomoNumberType, debug, defaultValue)
-        .getRawString();
+    return "";
   }
 
   public Number getRawNumber() {
@@ -220,7 +222,11 @@ public final class ParsedNumber extends ParsedElement {
     if (rawNumber.isDefaultedNull()) {
       if (type.isMatlab()) {
         //Empty strings cannot be parsed by MatLab.  If this instance is a
-        //Matlab syntax instance, return NaN.
+        //Matlab syntax instance, return NaN (unless it is an array descriptor
+        //because they can't contain NaN).
+        if (type == ParsedElementType.MATLAB_ARRAY_DESCRIPTOR) {
+          return "";
+        }
         return "NaN";
       }
       else {
@@ -249,7 +255,12 @@ public final class ParsedNumber extends ParsedElement {
   }
 
   public void setElement(ParsedElement element) {
-    rawNumber.set(element.getRawString());
+    if (element != null) {
+      rawNumber.set(element.getRawString());
+    }
+    else {
+      rawNumber.reset();
+    }
   }
 
   public boolean isEmpty() {
@@ -300,10 +311,6 @@ public final class ParsedNumber extends ParsedElement {
     setRawString(string);
   }
 
-  boolean equals(int number) {
-    return rawNumber.equals(number);
-  }
-
   boolean isPositive() {
     return rawNumber.isPositive();
   }
@@ -323,6 +330,10 @@ public final class ParsedNumber extends ParsedElement {
 
   boolean ge(int number) {
     return rawNumber.gt(number) || rawNumber.equals(number);
+  }
+
+  public boolean equals(int number) {
+    return rawNumber.equals(number);
   }
 
   boolean ge(ParsedNumber element) {
@@ -475,6 +486,10 @@ public final class ParsedNumber extends ParsedElement {
     }
     rawNumber.set(buffer.toString());
     return token;
+  }
+  
+  boolean isDescriptor() {
+    return false;
   }
 
   boolean isCollection() {
