@@ -13,6 +13,9 @@ package etomo.type;
 * @version $Revision$
 * 
 * <p> $Log$
+* <p> Revision 1.10  2008/08/22 17:50:54  sueh
+* <p> bug# 1136 Added getNWeightGroup.
+* <p>
 * <p> Revision 1.9  2008/04/02 02:00:10  sueh
 * <p> bug# 1095 Added mask fields.
 * <p>
@@ -62,4 +65,5 @@ public interface ConstPeetMetaData {
   public String getMaskModelPtsParticle();
   public String getMaskTypeVolume();
   public ConstEtomoNumber getNWeightGroup();
+  public boolean isTiltRange();
 }
