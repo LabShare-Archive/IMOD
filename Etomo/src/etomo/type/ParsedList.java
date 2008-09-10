@@ -50,7 +50,6 @@ import etomo.util.PrimativeTokenizer;
  *   <LI>2 elements (j:k): [j,j+1,...,k]
  *   <LI>3 elements (j:i:k): [j,j+i,j+2i,...,k]</UL>
  * <LI>Empty element: With 2 elements, i is assumed to be 1.</UL>
- * <p>We are turning a i that is 0 to a 1 on output.</p>
  * 
  * <H5>Number</H5><UL>
  * <LI>Delimiters: [] or '' (optional - cannot be used inside a regular array)
@@ -72,6 +71,11 @@ import etomo.util.PrimativeTokenizer;
  * @version $Revision$
  * 
  * <p> $Log$
+ * <p> Revision 1.14  2008/08/21 00:07:02  sueh
+ * <p> bug# 1132 Updated matlab definition comment with info about
+ * <p> ParsedArrayDescriptor.getIncrement.  Will hopefully be able to take it out
+ * <p> when bug# 1135 is done.
+ * <p>
  * <p> Revision 1.13  2008/06/20 20:02:09  sueh
  * <p> bug# 1119 For clarity _NUMBER to MATLAB and NON_MATLAB.
  * <p>
@@ -187,7 +191,10 @@ public final class ParsedList {
     defaultValue.set(input);
     list.setDefault(defaultValue);
     for (int i = 0; i < list.size(); i++) {
-      list.get(i).setDefault(defaultValue);
+      ParsedElement element = list.get(i);
+      if (element != null) {
+        element.setDefault(defaultValue);
+      }
     }
   }
 
@@ -204,7 +211,11 @@ public final class ParsedList {
   }
 
   public String getRawString(int index) {
-    return list.get(index).getRawString();
+    ParsedElement element = list.get(index);
+    if (element != null) {
+      return element.getRawString();
+    }
+    return "";
   }
 
   public void addElement(ParsedElement element) {
@@ -217,27 +228,37 @@ public final class ParsedList {
     debug = input;
     list.setDebug(input);
     for (int i = 0; i < list.size(); i++) {
-      list.get(i).setDebug(debug);
+      ParsedElement element = list.get(i);
+      if (element != null) {
+        element.setDebug(debug);
+      }
     }
   }
 
   /**
    * Only effects elements of the list, not list size.
    * @param input
+   
+   public void setMinArraySize(int input) {
+   for (int i = 0; i < list.size(); i++) {
+   list.get(i).setMinArraySize(input);
+   }
+   }
    */
-  public void setMinArraySize(int input) {
-    for (int i = 0; i < list.size(); i++) {
-      list.get(i).setMinArraySize(input);
-    }
-  }
-
   public String getParsableString() {
     StringBuffer buffer = new StringBuffer(OPEN_SYMBOL.toString());
+    boolean firstElement = true;
     for (int i = 0; i < list.size(); i++) {
-      if (i > 0) {
-        buffer.append(DIVIDER_SYMBOL.toString() + " ");
+      ParsedElement element = list.get(i);
+      if (element != null) {
+        if (!firstElement) {
+          buffer.append(DIVIDER_SYMBOL.toString() + " ");
+        }
+        else {
+          firstElement = false;
+        }
+        buffer.append(element.getParsableString());
       }
-      buffer.append(list.get(i).getParsableString());
     }
     buffer.append(CLOSE_SYMBOL);
     return buffer.toString();

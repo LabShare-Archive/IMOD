@@ -14,6 +14,10 @@ package etomo.type;
  * @version $Revision$`
  * 
  * <p> $Log$
+ * <p> Revision 1.5  2008/06/20 20:01:52  sueh
+ * <p> bug# 1119 NON_MATLAB_ITERATOR_ARRAY is the only type to use with
+ * <p> ParsedIteratorDescriptor.
+ * <p>
  * <p> Revision 1.4  2008/04/15 21:28:05  sueh
  * <p> bug# 1105 Simplified setting the default.  Added debug and default to
  * <p> constructor.  Move setDebug() to child classes.  Moved generic descriptor
@@ -56,7 +60,10 @@ final class ParsedIteratorDescriptor extends ParsedDescriptor {
     debug = input;
     descriptor.setDebug(input);
     for (int i = 0; i < size(); i++) {
-      getElement(i).setDebug(input);
+      ParsedElement element = getElement(i);
+      if (element != null) {
+        element.setDebug(input);
+      }
     }
   }
 
