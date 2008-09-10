@@ -17,6 +17,9 @@ import java.util.*;
  * @version $Revision$
  *
  * <p> $Log$
+ * <p> Revision 3.6  2008/07/19 00:51:01  sueh
+ * <p> bug# 1125 Added parallelProcessing and cpus.
+ * <p>
  * <p> Revision 3.5  2007/08/08 14:53:00  sueh
  * <p> bug# 834 Added singleAxis, noParallelProcessing, tiltAnglesRawltlFile, and
  * <p> swapYAndZ.
@@ -71,7 +74,7 @@ public final class UserConfiguration implements Storable {
   private boolean compactDisplay = false;
   private int toolTipsInitialDelay = 2000;
   private int toolTipsDismissDelay = 20000;
-  private int nMRUFiles = 4;
+  private int nMRUFiles = 10;
   private CircularBuffer MRUFileList;
   private String fontFamily = "Dialog";
   private int fontSize = 12;
@@ -91,7 +94,7 @@ public final class UserConfiguration implements Storable {
   private final EtomoNumber cpus = new EtomoNumber("Cpus");
 
   public UserConfiguration() {
-    MRUFileList = new CircularBuffer(4);
+    MRUFileList = new CircularBuffer(nMRUFiles);
     for (int i = 0; i < nMRUFiles; i++) {
       MRUFileList.put("");
     }
@@ -201,7 +204,7 @@ public final class UserConfiguration implements Storable {
     mainWindowHeight = Integer.parseInt(props.getProperty(group
         + "MainWindowHeight", "600"));
 
-    nMRUFiles = Integer.parseInt(props.getProperty(group + "NMRUFiles", "4"));
+    nMRUFiles = Integer.parseInt(props.getProperty(group + "NMRUFiles", "10"));
     MRUFileList = new CircularBuffer(nMRUFiles);
     for (int i = nMRUFiles - 1; i >= 0; i--) {
       MRUFileList.put(props
