@@ -1,5 +1,8 @@
 IMOD History
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+9/10/08: In Etomo - PEET fixed some reliability problems with Etomo writing to
+.prm file.  The .prm file array descriptors should no longer contain "NaN".
+
 9/5/08: In Etomo - PEET fixed a problem where nWeightGroup appeared in the .prm
 file when it was disabled in the dialog.
 
