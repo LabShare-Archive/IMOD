@@ -33,6 +33,9 @@ import etomo.util.DatasetFiles;
  * @version $Revision$
  * 
  * <p> $Log$
+ * <p> Revision 1.7  2008/06/20 18:39:27  sueh
+ * <p> bug# 1119 Changing debug to debugLevel.
+ * <p>
  * <p> Revision 1.6  2008/04/08 23:52:48  sueh
  * <p> bug# 1105 Changed the array used in ParsedElement to a
  * <p> ParsedElementList because it always holds ParsedNumbers.
@@ -226,7 +229,10 @@ public final class AnisotropicDiffusionParam implements CommandDetails {
     ParsedElementList expandedArray = iterationList
         .getParsedNumberExpandedArray(null);
     for (int i = 0; i < expandedArray.size(); i++) {
-      iteration.set(((ParsedNumber) expandedArray.get(i)).getRawString());
+      ParsedNumber number = (ParsedNumber) expandedArray.get(i);
+      if (number != null) {
+        iteration.set(number.getRawString());
+      }
       list.add(getTestFileName(kValue, iteration));
     }
     return list;
