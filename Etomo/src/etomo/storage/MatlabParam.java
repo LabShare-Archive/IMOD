@@ -23,7 +23,6 @@ import etomo.type.EtomoNumber;
 import etomo.type.ParsedArray;
 import etomo.type.ParsedArrayDescriptor;
 import etomo.type.ParsedElement;
-import etomo.type.ParsedElementType;
 import etomo.type.ParsedList;
 import etomo.type.ParsedNumber;
 import etomo.type.ParsedQuotedString;
@@ -44,6 +43,9 @@ import etomo.util.DatasetFiles;
  * @version $Revision$
  * 
  * <p> $Log$
+ * <p> Revision 1.22  2008/09/05 20:52:37  sueh
+ * <p> bug# 1136 Added useNWeightGroup to distinguish between an nWeightGroup with the spinner set to 0 and an nWeightGroup which is disabled.  Calling updateOrBuildAutodoc from write in third place because it has to be able to remove entries.  Updating setNameValuePairValues - it was missing some recent additions.
+ * <p>
  * <p> Revision 1.21  2008/08/22 17:50:35  sueh
  * <p> bug# 1136 Added nWeightGroup.
  * <p>
@@ -212,9 +214,9 @@ public final class MatlabParam {
   public static final String TILT_RANGE_KEY = "tiltRange";
   public static final String RELATIVE_ORIENT_KEY = "relativeOrient";
   public static final String SZ_VOL_KEY = "szVol";
-  public static final int SZ_VOL_X_INDEX = 0;
-  public static final int SZ_VOL_Y_INDEX = 1;
-  public static final int SZ_VOL_Z_INDEX = 2;
+  public static final int X_INDEX = 0;
+  public static final int Y_INDEX = 1;
+  public static final int Z_INDEX = 2;
   public static final String FN_OUTPUT_KEY = "fnOutput";
   public static final String D_PHI_KEY = "dPhi";
   public static final String D_THETA_KEY = "dTheta";
@@ -262,16 +264,10 @@ public final class MatlabParam {
 
   private static final int VOLUME_INDEX = 0;
   private static final int PARTICLE_INDEX = 1;
-  private static final int LST_THRESHOLDS_DESCRIPTOR_INDEX = 0;
-  private static final int LST_THRESHOLDS_ADDITIONAL_INDEX = 1;
-  private static final int LST_THRESHOLDS_START_INDEX = 0;
-  private static final int LST_THRESHOLDS_INCREMENT_INDEX = 1;
-  private static final int LST_THRESHOLDS_END_INDEX = 2;
-  private static final int YAXIS_CONTOUR_MODEL_NUMBER_INDEX = 0;
-  private static final int YAXIS_CONTOUR_OBJECT_NUMBER_INDEX = 1;
-  private static final int YAXIS_CONTOUR_CONTOUR_NUMBER_INDEX = 2;
+  private static final int MODEL_INDEX = 0;
+  private static final int OBJECT_INDEX = 1;
+  private static final int CONTOUR_INDEX = 2;
   private static final int RELATIVE_ORIENT_DEFAULT = 0;
-  private static final int RELATIVE_ORIENT_MIN_ARRAY_SIZE = 3;
 
   private final ParsedNumber particlePerCpu = ParsedNumber.getMatlabInstance();
   private final ParsedArray szVol = ParsedArray.getMatlabInstance();
@@ -311,7 +307,6 @@ public final class MatlabParam {
   private String lowCutoff = LOW_CUTOFF_DEFAULT;
   private InitMotlCode initMotlCode = InitMotlCode.DEFAULT;
   private CCMode ccMode = CCMode.DEFAULT;
-  private boolean tiltRangeEmpty = false;
   private boolean useReferenceFile = REFERENCE_FILE_DEFAULT;
   private YaxisType yaxisType = YaxisType.DEFAULT;
   private boolean useYaxisContour = false;
@@ -434,12 +429,12 @@ public final class MatlabParam {
           //must be the responsibility of the Etomo developer.
           updateOrBuildAutodoc(valueMap, autodoc, commentAutodoc);
           /*ReadOnlySection section = null;
-          System.out.println("setNameValuePair");
-          while ((section = commentAutodoc.nextSection(secLoc)) != null) {
-            setNameValuePair(autodoc, section.getName(), (String) valueMap
-                .get(section.getName()), section
-                .getAttribute(EtomoAutodoc.COMMENT_KEY));
-          }*/
+           System.out.println("setNameValuePair");
+           while ((section = commentAutodoc.nextSection(secLoc)) != null) {
+           setNameValuePair(autodoc, section.getName(), (String) valueMap
+           .get(section.getName()), section
+           .getAttribute(EtomoAutodoc.COMMENT_KEY));
+           }*/
         }
       }
       //write the autodoc file (the backup is done by autodoc)
@@ -537,16 +532,8 @@ public final class MatlabParam {
     this.fnOutput.setRawString(fnOutput);
   }
 
-  public boolean useTiltRange() {
-    return !tiltRangeEmpty;
-  }
-
   public boolean useReferenceFile() {
     return useReferenceFile;
-  }
-
-  public void setTiltRangeEmpty(final boolean tiltRangeEmpty) {
-    this.tiltRangeEmpty = tiltRangeEmpty;
   }
 
   /**
@@ -576,6 +563,27 @@ public final class MatlabParam {
 
   public boolean isMaskModelPtsEmpty() {
     return maskModelPts.isEmpty();
+  }
+
+  public void setTiltRangeEmptyArrays() {
+    if (volumeList.isEmpty()) {
+      return;
+    }
+    for (int i = 0; i < volumeList.size(); i++) {
+      ((Volume) volumeList.get(i)).setTiltRange(null);
+    }
+  }
+
+  public boolean isTiltRangeEmpty() {
+    if (volumeList.isEmpty()) {
+      return true;
+    }
+    for (int i = 0; i < volumeList.size(); i++) {
+      if (!((Volume) volumeList.get(i)).isTiltRangeEmpty()) {
+        return false;
+      }
+    }
+    return true;
   }
 
   public boolean isRefFlagAllTom() {
@@ -616,8 +624,7 @@ public final class MatlabParam {
   }
 
   public void setYaxisContourModelNumber(final Number input) {
-    yaxisContour.setRawString(YAXIS_CONTOUR_MODEL_NUMBER_INDEX, input
-        .toString());
+    yaxisContour.setRawString(MODEL_INDEX, input.toString());
   }
 
   public String getMaskModelPtsParticle() {
@@ -637,15 +644,15 @@ public final class MatlabParam {
   }
 
   public ParsedElement getYaxisContourModelNumber() {
-    return yaxisContour.getElement(YAXIS_CONTOUR_MODEL_NUMBER_INDEX);
+    return yaxisContour.getElement(MODEL_INDEX);
   }
 
   public String getYaxisContourObjectNumber() {
-    return yaxisContour.getRawString(YAXIS_CONTOUR_OBJECT_NUMBER_INDEX);
+    return yaxisContour.getRawString(OBJECT_INDEX);
   }
 
   public String getYaxisContourContourNumber() {
-    return yaxisContour.getRawString(YAXIS_CONTOUR_CONTOUR_NUMBER_INDEX);
+    return yaxisContour.getRawString(CONTOUR_INDEX);
   }
 
   public SampleSphere getSampleSphere() {
@@ -679,7 +686,6 @@ public final class MatlabParam {
     lowCutoff = LOW_CUTOFF_DEFAULT;
     initMotlCode = InitMotlCode.DEFAULT;
     ccMode = CCMode.DEFAULT;
-    tiltRangeEmpty = false;
     useReferenceFile = false;
     yaxisType = YaxisType.DEFAULT;
     useYaxisContour = false;
@@ -736,15 +742,15 @@ public final class MatlabParam {
   }
 
   public void setSzVolX(final String szVolX) {
-    szVol.setRawString(SZ_VOL_X_INDEX, szVolX);
+    szVol.setRawString(X_INDEX, szVolX);
   }
 
   public void setSzVolY(final String szVolY) {
-    szVol.setRawString(SZ_VOL_Y_INDEX, szVolY);
+    szVol.setRawString(Y_INDEX, szVolY);
   }
 
   public void setSzVolZ(final String szVolZ) {
-    szVol.setRawString(SZ_VOL_Z_INDEX, szVolZ);
+    szVol.setRawString(Z_INDEX, szVolZ);
   }
 
   /**
@@ -789,15 +795,15 @@ public final class MatlabParam {
   }
 
   public String getSzVolX() {
-    return szVol.getRawString(SZ_VOL_X_INDEX);
+    return szVol.getRawString(X_INDEX);
   }
 
   public String getSzVolY() {
-    return szVol.getRawString(SZ_VOL_Y_INDEX);
+    return szVol.getRawString(Y_INDEX);
   }
 
   public String getSzVolZ() {
-    return szVol.getRawString(SZ_VOL_Z_INDEX);
+    return szVol.getRawString(Z_INDEX);
   }
 
   public String getReferenceFile() {
@@ -818,11 +824,11 @@ public final class MatlabParam {
   }
 
   public void setYaxisContourObjectNumber(final String input) {
-    yaxisContour.setRawString(YAXIS_CONTOUR_OBJECT_NUMBER_INDEX, input);
+    yaxisContour.setRawString(OBJECT_INDEX, input);
   }
 
   public void setYaxisContourContourNumber(final String input) {
-    yaxisContour.setRawString(YAXIS_CONTOUR_CONTOUR_NUMBER_INDEX, input);
+    yaxisContour.setRawString(CONTOUR_INDEX, input);
   }
 
   public void setReferenceFile(final String referenceFile) {
@@ -867,52 +873,31 @@ public final class MatlabParam {
   }
 
   public void setLstThresholdsStart(String input) {
-    lstThresholds.setRawString(LST_THRESHOLDS_DESCRIPTOR_INDEX,
-        LST_THRESHOLDS_START_INDEX, input);
+    lstThresholds.setRawStringStart(input);
   }
 
   public void setLstThresholdsIncrement(String input) {
-    lstThresholds.setRawString(LST_THRESHOLDS_DESCRIPTOR_INDEX,
-        LST_THRESHOLDS_INCREMENT_INDEX, input);
+    lstThresholds.setRawStringIncrement(input);
   }
 
   public void setLstThresholdsEnd(String input) {
-    lstThresholds.setRawString(LST_THRESHOLDS_DESCRIPTOR_INDEX,
-        LST_THRESHOLDS_END_INDEX, input);
+    lstThresholds.setRawStringEnd(input);
   }
 
   public void setLstThresholdsAdditional(String input) {
-    lstThresholds.setRawStrings(LST_THRESHOLDS_ADDITIONAL_INDEX, input);
+    lstThresholds.setRawStrings(input);
   }
 
-  /**
-   * Find the descriptor and return the first value from it.  The descriptor is
-   * optional, so we can't blindly take the value from the first element.
-   * @return
-   */
   public String getLstThresholdsStart() {
-    ParsedElement descriptor = lstThresholds.getFirstDescriptor(0);
-    return descriptor.getRawString(LST_THRESHOLDS_START_INDEX);
+    return lstThresholds.getRawStringStart();
   }
 
-  /**
-   * Find the descriptor and return the second value from it.  The descriptor is
-   * optional, so we can't blindly take the value from the first element.
-   * @return
-   */
-  public String getLstThresholdsIncrement() {
-    ParsedElement descriptor = lstThresholds.getFirstDescriptor(0);
-    return descriptor.getRawString(LST_THRESHOLDS_INCREMENT_INDEX);
-  }
-
-  /**
-   * Find the descriptor and return the third value from it.  The descriptor is
-   * optional, so we can't blindly take the value from the first element.
-   * @return
-   */
   public String getLstThresholdsEnd() {
-    ParsedElement descriptor = lstThresholds.getFirstDescriptor(0);
-    return descriptor.getRawString(LST_THRESHOLDS_END_INDEX);
+    return lstThresholds.getRawStringEnd();
+  }
+
+  public String getLstThresholdsIncrement() {
+    return lstThresholds.getRawStringIncrement();
   }
 
   public String[] getLstThresholdsExpandedArray() {
@@ -924,7 +909,7 @@ public final class MatlabParam {
    * @return
    */
   public String getLstThresholdsAdditional() {
-    return lstThresholds.getRawStrings(lstThresholds.getDescriptorIndex() + 1);
+    return lstThresholds.getRawStringsExceptFirstArrayDescriptor();
   }
 
   /**
@@ -1004,7 +989,6 @@ public final class MatlabParam {
     ParsedList relativeOrient = ParsedList
         .getMatlabInstance(EtomoNumber.Type.FLOAT);
     relativeOrient.setDefault(RELATIVE_ORIENT_DEFAULT);
-    relativeOrient.setMinArraySize(RELATIVE_ORIENT_MIN_ARRAY_SIZE);
     relativeOrient.parse(autodoc.getAttribute(RELATIVE_ORIENT_KEY));
     size = Math.max(size, relativeOrient.size());
     //fnVolume
@@ -1031,9 +1015,6 @@ public final class MatlabParam {
     ParsedList tiltRange = ParsedList.getMatlabInstance(EtomoNumber.Type.FLOAT);
     tiltRange.parse(autodoc.getAttribute(TILT_RANGE_KEY));
     size = Math.max(size, tiltRange.size());
-    if (tiltRange.size() == 0) {
-      tiltRangeEmpty = true;
-    }
     //Add elements to volumeList
     for (int i = 0; i < size; i++) {
       Volume volume = new Volume();
@@ -1043,9 +1024,7 @@ public final class MatlabParam {
       if (initMotlCode == null) {
         volume.setInitMotl(initMotlFile.getElement(i));
       }
-      if (!tiltRangeEmpty) {
-        volume.setTiltRange(tiltRange.getElement(i));
-      }
+      volume.setTiltRange(tiltRange.getElement(i));
       volumeList.add(volume);
     }
   }
@@ -1115,17 +1094,17 @@ public final class MatlabParam {
     }
     valueMap.put(FN_OUTPUT_KEY, fnOutput.getParsableString());
     //copy szVol X value to Y and Z when Y and/or Z is empty
-    ParsedElement szVolX = szVol.getElement(SZ_VOL_X_INDEX);
-    if (!szVolX.isEmpty()) {
-      if (szVol.isEmpty(SZ_VOL_Y_INDEX)) {
-        szVol.setRawString(SZ_VOL_Y_INDEX, szVolX.getRawString());
+    ParsedElement szVolX = szVol.getElement(X_INDEX);
+    if (szVolX != null && !szVolX.isEmpty()) {
+      if (szVol.isEmpty(Y_INDEX)) {
+        szVol.setRawString(Y_INDEX, szVolX.getRawString());
       }
-      if (szVol.isEmpty(SZ_VOL_Z_INDEX)) {
-        szVol.setRawString(SZ_VOL_Z_INDEX, szVolX.getRawString());
+      if (szVol.isEmpty(Z_INDEX)) {
+        szVol.setRawString(Z_INDEX, szVolX.getRawString());
       }
     }
     valueMap.put(SZ_VOL_KEY, szVol.getParsableString());
-    if (!tiltRangeEmpty) {
+    if (!isTiltRangeEmpty()) {
       valueMap.put(EDGE_SHIFT_KEY, edgeShift.getParsableString());
     }
     valueMap.put(CC_MODE_KEY, ccMode.toString());
@@ -1173,7 +1152,6 @@ public final class MatlabParam {
     ParsedList relativeOrient = ParsedList
         .getMatlabInstance(EtomoNumber.Type.FLOAT);
     relativeOrient.setDefault(RELATIVE_ORIENT_DEFAULT);
-    relativeOrient.setMinArraySize(RELATIVE_ORIENT_MIN_ARRAY_SIZE);
     //build the lists
     for (int i = 0; i < volumeList.size(); i++) {
       Volume volume = (Volume) volumeList.get(i);
@@ -1182,9 +1160,7 @@ public final class MatlabParam {
       if (initMotlCode == null) {
         initMotlFile.addElement(volume.getInitMotl());
       }
-      if (!tiltRangeEmpty) {
-        tiltRange.addElement(volume.getTiltRange());
-      }
+      tiltRange.addElement(volume.getTiltRange());
       relativeOrient.addElement(volume.getRelativeOrient());
     }
     valueMap.put(FN_VOLUME_KEY, fnVolume.getParsableString());
@@ -1268,7 +1244,7 @@ public final class MatlabParam {
         .get(FN_OUTPUT_KEY), commentMap);
     setNameValuePairValue(autodoc, SZ_VOL_KEY, (String) valueMap
         .get(SZ_VOL_KEY), commentMap);
-    if (tiltRangeEmpty) {
+    if (isTiltRangeEmpty()) {
       removeNameValuePair(autodoc, EDGE_SHIFT_KEY);
     }
     else {
@@ -1700,11 +1676,8 @@ public final class MatlabParam {
   }
 
   public static final class Volume {
-    private static final int TILT_RANGE_START_INDEX = 0;
-    private static final int TILT_RANGE_END_INDEX = 1;
-    private static final int RELATIVE_ORIENT_X_INDEX = 0;
-    private static final int RELATIVE_ORIENT_Y_INDEX = 1;
-    private static final int RELATIVE_ORIENT_Z_INDEX = 2;
+    private static final int START_INDEX = 0;
+    private static final int END_INDEX = 1;
     private final ParsedArray tiltRange = ParsedArray
         .getMatlabInstance(EtomoNumber.Type.FLOAT);
     private final ParsedArray relativeOrient = ParsedArray
@@ -1718,7 +1691,6 @@ public final class MatlabParam {
 
     private Volume() {
       relativeOrient.setDefault(RELATIVE_ORIENT_DEFAULT);
-      relativeOrient.setMinArraySize(RELATIVE_ORIENT_MIN_ARRAY_SIZE);
     }
 
     public void setFnVolume(final ParsedElement fnVolume) {
@@ -1758,43 +1730,43 @@ public final class MatlabParam {
     }
 
     public String getTiltRangeStart() {
-      return tiltRange.getRawString(TILT_RANGE_START_INDEX);
+      return tiltRange.getRawString(START_INDEX);
     }
 
     public void setTiltRangeStart(final String tiltRangeStart) {
-      tiltRange.setRawString(TILT_RANGE_START_INDEX, tiltRangeStart);
+      tiltRange.setRawString(START_INDEX, tiltRangeStart);
     }
 
     public String getTiltRangeEnd() {
-      return tiltRange.getRawString(TILT_RANGE_END_INDEX);
+      return tiltRange.getRawString(END_INDEX);
     }
 
     public void setTiltRangeEnd(String tiltRangeEnd) {
-      tiltRange.setRawString(TILT_RANGE_END_INDEX, tiltRangeEnd);
+      tiltRange.setRawString(END_INDEX, tiltRangeEnd);
     }
 
     public String getRelativeOrientX() {
-      return relativeOrient.getRawString(RELATIVE_ORIENT_X_INDEX);
+      return relativeOrient.getRawString(X_INDEX);
     }
 
     public void setRelativeOrientX(final String relativeOrientX) {
-      relativeOrient.setRawString(RELATIVE_ORIENT_X_INDEX, relativeOrientX);
+      relativeOrient.setRawString(X_INDEX, relativeOrientX);
     }
 
     public String getRelativeOrientY() {
-      return relativeOrient.getRawString(RELATIVE_ORIENT_Y_INDEX);
+      return relativeOrient.getRawString(Y_INDEX);
     }
 
     public void setRelativeOrientY(final String relativeOrientY) {
-      relativeOrient.setRawString(RELATIVE_ORIENT_Y_INDEX, relativeOrientY);
+      relativeOrient.setRawString(Y_INDEX, relativeOrientY);
     }
 
     public String getRelativeOrientZ() {
-      return relativeOrient.getRawString(RELATIVE_ORIENT_Z_INDEX);
+      return relativeOrient.getRawString(Z_INDEX);
     }
 
     public void setRelativeOrientZ(final String relativeOrientZ) {
-      relativeOrient.setRawString(RELATIVE_ORIENT_Z_INDEX, relativeOrientZ);
+      relativeOrient.setRawString(Z_INDEX, relativeOrientZ);
     }
 
     private ParsedQuotedString getFnVolume() {
@@ -1807,6 +1779,10 @@ public final class MatlabParam {
 
     private ParsedQuotedString getInitMotl() {
       return initMotl;
+    }
+
+    private boolean isTiltRangeEmpty() {
+      return tiltRange.isEmpty();
     }
 
     private ParsedArray getTiltRange() {
@@ -1826,35 +1802,65 @@ public final class MatlabParam {
     }
   }
 
+  /**
+   * Class to handle Phi, Theta, Psi.  Sets End to 0 if it is null.  Sets Start
+   * to the negation of End.  Sets Increment to 1 if it is 0.
+   */
   private static final class SearchAngleArea {
     private final ParsedArrayDescriptor descriptor = ParsedArrayDescriptor
-        .getInstance(ParsedElementType.MATLAB_ARRAY, EtomoNumber.Type.FLOAT);
+        .getInstance(EtomoNumber.Type.FLOAT);
 
     /**
-     * Sets both the End and Start values.  The Start is always the negation of
-     * the End value.
+     * Sets both the End and Start values.  The Start is set to the negation of
+     * the End value.  If End is empty, set it and Start to 0.
      * @param input
      */
-    private void setRawStringEnd(final String input) {
-      descriptor.setRawStringEnd(input);
-      EtomoNumber start = new EtomoNumber(EtomoNumber.Type.FLOAT);
-      if (start.isNull() || start.equals(0)) {
-        descriptor.setRawStringEnd(input);
+    private void setEnd(final String input) {
+      EtomoNumber end = new EtomoNumber(EtomoNumber.Type.FLOAT);
+      end.set(input);
+      if (end.isNull()) {
+        end.set(0);
       }
-      else {
-        start.multiply(-1);
-        descriptor.setRawStringStart(start.toString());
+      descriptor.setRawStringEnd(end.toString());
+      if (!end.equals(0)) {
+        end.multiply(-1);
       }
+      descriptor.setRawStringStart(end.toString());
     }
 
-    private void setRawStringIncrement(final String input) {
+    /**
+     * Sets the increment value.  If increment is 0, set it to 1.
+     * @param input
+     */
+    private void setIncrement(final String input) {
+      EtomoNumber increment = new EtomoNumber(EtomoNumber.Type.FLOAT);
+      increment.set(input);
+      if (increment.equals(0)) {
+        increment.set(1);
+      }
       descriptor.setRawStringIncrement(input);
+    }
+
+    private String getEnd() {
+      return descriptor.getRawStringEnd();
+    }
+
+    private void set(final ParsedElement input) {
+      descriptor.set(input);
+    }
+
+    private ParsedElement getParsedElement() {
+      return descriptor;
+    }
+
+    private String getIncrement() {
+      return descriptor.getRawStringIncrement();
     }
   }
 
   public static final class Iteration {
-    private static final int HI_CUTOFF_CUTOFF_INDEX = 0;
-    private static final int HI_CUTOFF_SIGMA_INDEX = 1;
+    private static final int CUTOFF_INDEX = 0;
+    private static final int SIGMA_INDEX = 1;
 
     private final ParsedArray searchRadius = ParsedArray.getMatlabInstance();
     private final ParsedArray lowCutoff = ParsedArray
@@ -1865,38 +1871,35 @@ public final class MatlabParam {
         .getMatlabInstance(EtomoNumber.Type.FLOAT);
 
     //search spaces
-    private final ParsedArrayDescriptor dPhi = ParsedArrayDescriptor
-        .getInstance(ParsedElementType.MATLAB_ARRAY, EtomoNumber.Type.FLOAT);
-    private final ParsedArrayDescriptor dTheta = ParsedArrayDescriptor
-        .getInstance(ParsedElementType.MATLAB_ARRAY, EtomoNumber.Type.FLOAT);
-    private final ParsedArrayDescriptor dPsi = ParsedArrayDescriptor
-        .getInstance(ParsedElementType.MATLAB_ARRAY, EtomoNumber.Type.FLOAT);
+    private final SearchAngleArea dPhi = new SearchAngleArea();
+    private final SearchAngleArea dTheta = new SearchAngleArea();
+    private final SearchAngleArea dPsi = new SearchAngleArea();
 
     private Iteration() {
     }
 
     public void setDPhiEnd(final String input) {
-      dPhi.setRawStringEnd(input);
+      dPhi.setEnd(input);
     }
 
     public void setDThetaEnd(final String input) {
-      dTheta.setRawStringEnd(input);
+      dTheta.setEnd(input);
     }
 
     public void setDPsiEnd(final String input) {
-      dPsi.setRawStringEnd(input);
+      dPsi.setEnd(input);
     }
 
     public void setDPhiIncrement(final String input) {
-      dPhi.setRawStringIncrement(input);
+      dPhi.setIncrement(input);
     }
 
     public void setDThetaIncrement(final String input) {
-      dTheta.setRawStringIncrement(input);
+      dTheta.setIncrement(input);
     }
 
     public void setDPsiIncrement(final String input) {
-      dPsi.setRawStringIncrement(input);
+      dPsi.setIncrement(input);
     }
 
     public void setSearchRadius(final String input) {
@@ -1904,23 +1907,23 @@ public final class MatlabParam {
     }
 
     public String getDPhiEnd() {
-      return dPhi.getRawStringEnd();
+      return dPhi.getEnd();
     }
 
     public String getDThetaEnd() {
-      return dTheta.getRawStringEnd();
+      return dTheta.getEnd();
     }
 
     public String getDPsiEnd() {
-      return dPsi.getRawStringEnd();
+      return dPsi.getEnd();
     }
 
     public void setHiCutoffCutoff(String input) {
-      hiCutoff.setRawString(HI_CUTOFF_CUTOFF_INDEX, input);
+      hiCutoff.setRawString(CUTOFF_INDEX, input);
     }
 
     public void setHiCutoffSigma(String input) {
-      hiCutoff.setRawString(HI_CUTOFF_SIGMA_INDEX, input);
+      hiCutoff.setRawString(SIGMA_INDEX, input);
     }
 
     public void setRefThreshold(String input) {
@@ -1932,7 +1935,7 @@ public final class MatlabParam {
      * @return inc
      */
     public String getDPhiIncrement() {
-      return dPhi.getRawStringIncrement();
+      return dPhi.getIncrement();
     }
 
     /**
@@ -1940,7 +1943,7 @@ public final class MatlabParam {
      * @return inc
      */
     public String getDThetaIncrement() {
-      return dTheta.getRawStringIncrement();
+      return dTheta.getIncrement();
     }
 
     /**
@@ -1948,7 +1951,7 @@ public final class MatlabParam {
      * @return inc
      */
     public String getDPsiIncrement() {
-      return dPsi.getRawStringIncrement();
+      return dPsi.getIncrement();
     }
 
     public String getSearchRadiusString() {
@@ -1956,11 +1959,11 @@ public final class MatlabParam {
     }
 
     public String getHiCutoffCutoff() {
-      return hiCutoff.getRawString(HI_CUTOFF_CUTOFF_INDEX);
+      return hiCutoff.getRawString(CUTOFF_INDEX);
     }
 
     public String getHiCutoffSigma() {
-      return hiCutoff.getRawString(HI_CUTOFF_SIGMA_INDEX);
+      return hiCutoff.getRawString(SIGMA_INDEX);
     }
 
     public String getRefThresholdString() {
@@ -1980,15 +1983,15 @@ public final class MatlabParam {
     }
 
     private ParsedElement getDPhi() {
-      return dPhi;
+      return dPhi.getParsedElement();
     }
 
     private ParsedElement getDTheta() {
-      return dTheta;
+      return dTheta.getParsedElement();
     }
 
     private ParsedElement getDPsi() {
-      return dPsi;
+      return dPsi.getParsedElement();
     }
 
     private void setSearchRadius(final ParsedElement searchRadius) {
