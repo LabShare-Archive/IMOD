@@ -53,6 +53,9 @@ import etomo.type.Run3dmodMenuOptions;
  * @version $Revision$
  * 
  * <p> $Log$
+ * <p> Revision 1.63  2008/09/05 20:53:16  sueh
+ * <p> bug# 1136 In getParameters(MatlabParam) setting useNWeightGroup.
+ * <p>
  * <p> Revision 1.62  2008/08/22 17:52:00  sueh
  * <p> bug# 1136 Added sNWeightGroup.
  * <p>
@@ -514,6 +517,7 @@ public final class PeetDialog implements ContextMenu, AbstractParallelDialog,
     metaData.setMaskModelPtsParticle(ltfMaskModelPtsVolumeParticle.getText());
     metaData.setMaskTypeVolume(ftfMaskTypeVolume.getText());
     metaData.setNWeightGroup(sNWeightGroup.getValue());
+    metaData.setTiltRange(cbTiltRange.isSelected());
   }
 
   /**
@@ -547,6 +551,10 @@ public final class PeetDialog implements ContextMenu, AbstractParallelDialog,
     ltfMaskModelPtsVolumeParticle.setText(metaData.getMaskModelPtsParticle());
     ftfMaskTypeVolume.setText(metaData.getMaskTypeVolume());
     sNWeightGroup.setValue(metaData.getNWeightGroup());
+    //Distinguish between what is set in the tilt range numbers and the check
+    //box by saving them separately.  This works better then trying to tell the
+    //difference between [] and {} in the .prm file.
+    cbTiltRange.setSelected(metaData.isTiltRange());
   }
 
   /**
@@ -576,6 +584,11 @@ public final class PeetDialog implements ContextMenu, AbstractParallelDialog,
         ltfReferenceParticle.setText(matlabParam.getReferenceParticle());
       }
     }
+    //Backwards compatibility:  if the tilt range has numbers in it, then check
+    //cbTiltRange.  If not, rely on the new variable in MetaData.
+    if (!matlabParam.isTiltRangeEmpty()) {
+      cbTiltRange.setSelected(true);
+    }
     MatlabParam.InitMotlCode initMotlCode = matlabParam.getInitMotlCode();
     if (initMotlCode == null) {
       rbInitMotlFiles.setSelected(true);
@@ -589,7 +602,6 @@ public final class PeetDialog implements ContextMenu, AbstractParallelDialog,
     else if (initMotlCode == MatlabParam.InitMotlCode.X_AND_Z_AXIS) {
       rbInitMotlXAndZAxis.setSelected(true);
     }
-    cbTiltRange.setSelected(matlabParam.useTiltRange());
     if (cbTiltRange.isSelected()) {
       ltfEdgeShift.setText(matlabParam.getEdgeShift());
       cbFlgWedgeWeight.setSelected(matlabParam.isFlgWedgeWeight());
@@ -694,7 +706,10 @@ public final class PeetDialog implements ContextMenu, AbstractParallelDialog,
     }
     matlabParam.setInitMotlCode(((RadioButton.RadioButtonModel) bgInitMotl
         .getSelection()).getEnumeratedType());
-    matlabParam.setTiltRangeEmpty(!cbTiltRange.isSelected());
+    //If cbTiltRange is off, this overrides what was set in the volumeTable.
+    if (!cbTiltRange.isSelected()) {
+      matlabParam.setTiltRangeEmptyArrays();
+    }
     if (ltfEdgeShift.isEnabled()) {
       matlabParam.setEdgeShift(ltfEdgeShift.getText());
     }
