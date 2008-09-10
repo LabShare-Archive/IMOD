@@ -7,8 +7,10 @@ import etomo.util.PrimativeTokenizer;
 
 /**
  * <p>Description: A description of an array.  A correct array descriptor
- * consists of the start, increment, and end values or the start and end values
- * (increment is assumed to be 1).  The increment may be negative which means
+ * consists of the start, increment, and end values or the start and end values.
+ * The increment is optional and is assumed to be 1.  If the increment isn't
+ * found while parsing, a 1 increment is added, because j:k is identical to
+ * j:1:k.  The increment may be negative which means
  * that the start value should be >= to the end value.  If the increment is
  * positive, the start value should be <= to the end value.  If the increment is
  * zero, the array described is [start, end].  If the descriptor contains only
@@ -52,6 +54,12 @@ import etomo.util.PrimativeTokenizer;
  * @version $Revision$
  * 
  * <p> $Log$
+ * <p> Revision 1.18  2008/08/21 00:05:13  sueh
+ * <p> bug# 1132 Fixed deriveLimit, which wasn't returning anything when it
+ * <p> didn't have to negate the referenceLimit.  Added getIncrement to return 1
+ * <p> when increment is empty or 0.  Added getStart, and getEnd to return 0
+ * <p> when start or end is empty.  Using these functions where applicable.
+ * <p>
  * <p> Revision 1.17  2008/06/20 19:58:54  sueh
  * <p> bug# 1119 ParsedArrayDescriptor can be either Matlab or non-Matlab now, so I need to explicitly choose an iterator array when I need one.
  * <p>
@@ -134,17 +142,16 @@ public final class ParsedArrayDescriptor extends ParsedDescriptor {
 
   private boolean debug = false;
 
-  ParsedArrayDescriptor(final ParsedElementType type,
-      final EtomoNumber.Type etomoNumberType, boolean debug,
+  ParsedArrayDescriptor(final EtomoNumber.Type etomoNumberType, boolean debug,
       EtomoNumber defaultValue) {
-    super(type, etomoNumberType, debug, defaultValue);
-    descriptor.setMinSize(MAX_SIZE);
+    super(ParsedElementType.MATLAB_ARRAY_DESCRIPTOR, etomoNumberType, debug,
+        defaultValue);
     setDebug(debug);
   }
 
-  public static ParsedArrayDescriptor getInstance(final ParsedElementType type,
+  public static ParsedArrayDescriptor getInstance(
       final EtomoNumber.Type etomoNumberType) {
-    return new ParsedArrayDescriptor(type, etomoNumberType, false, null);
+    return new ParsedArrayDescriptor(etomoNumberType, false, null);
   }
 
   public void setRawStringEnd(final String input) {
@@ -164,68 +171,37 @@ public final class ParsedArrayDescriptor extends ParsedDescriptor {
   }
 
   public String getRawStringEnd() {
-    return getEnd().getRawString();
+    ParsedElement element = descriptor.get(END_INDEX);
+    if (element != null) {
+      return element.getRawString();
+    }
+    return "";
+  }
+
+  String getRawStringStart() {
+    ParsedElement element = descriptor.get(START_INDEX);
+    if (element != null) {
+      return element.getRawString();
+    }
+    return "";
   }
 
   public String getRawStringIncrement() {
-    return getIncrement().getRawString();
-  }
-
-  /**
-   * If Start is empty, return 0.
-   * @return
-   */
-  private ParsedElement getStart() {
-    ParsedNumber start = (ParsedNumber) descriptor.get(START_INDEX);
-    if (start.isEmpty()) {
-      //Don't change the real end because it could be moved into another
-      //slot.
-      start = ParsedNumber.getInstance(getType(), getEtomoNumberType(), debug,
-          getDefault());
-      start.setRawString("0");
+    ParsedElement element = descriptor.get(INCREMENT_INDEX);
+    if (element != null) {
+      return element.getRawString();
     }
-    return start;
-  }
-
-  /**
-   * If End is empty, return 0.
-   * @return
-   */
-  private ParsedElement getEnd() {
-    ParsedNumber end = (ParsedNumber) descriptor.get(END_INDEX);
-    if (end.isEmpty()) {
-      //Don't change the real end because it could be moved into another
-      //slot.
-      end = ParsedNumber.getInstance(getType(), getEtomoNumberType(), debug,
-          getDefault());
-      end.setRawString("0");
-    }
-    return end;
-  }
-
-  /**
-   * If increment is empty or 0 return it as 1.
-   * GetIncrement may return a new ParsedNumber instead of what is stored in the
-   * descriptor (if it has to change the increment).
-   * @return
-   */
-  private ParsedNumber getIncrement() {
-    ParsedNumber increment = (ParsedNumber) descriptor.get(INCREMENT_INDEX);
-    if (increment.isEmpty() || increment.equals(0)) {
-      //Don't change the real increment because it could be moved into another
-      //slot.
-      increment = ParsedNumber.getInstance(getType(), getEtomoNumberType(),
-          debug, getDefault());
-      increment.setRawString("1");
-    }
-    return increment;
+    return "";
   }
 
   public void setDebug(boolean input) {
     debug = input;
     descriptor.setDebug(input);
     for (int i = 0; i < size(); i++) {
-      getElement(i).setDebug(input);
+      ParsedElement element = getElement(i);
+      if (element != null) {
+        element.setDebug(input);
+      }
     }
   }
 
@@ -272,7 +248,11 @@ public final class ParsedArrayDescriptor extends ParsedDescriptor {
 
   String validate() {
     for (int i = 0; i < descriptor.size(); i++) {
-      String errorMessage = descriptor.get(i).validate();
+      ParsedElement element = descriptor.get(i);
+      String errorMessage = null;
+      if (element != null) {
+        errorMessage = element.validate();
+      }
       if (errorMessage != null) {
         return errorMessage;
       }
@@ -281,13 +261,10 @@ public final class ParsedArrayDescriptor extends ParsedDescriptor {
       return "Array descriptors can contain either " + NO_INCREMENT_SIZE
           + " or " + MAX_SIZE + " elements.";
     }
-    ParsedElement start = deriveLimit((ParsedNumber) descriptor.get(END_INDEX),
-        true, descriptor.get(START_INDEX));
-    ParsedElement end = deriveLimit((ParsedNumber) descriptor.get(START_INDEX),
-        false, descriptor.get(END_INDEX));
-    if (start.isEmpty() || end.isEmpty()) {
-      return "Array descriptors must contain at least a start or an end.  "
-          + "The missing value must be deriveable.";
+    ParsedElement start = descriptor.get(START_INDEX);
+    ParsedElement end = descriptor.get(END_INDEX);
+    if (start == null || start.isEmpty() || end == null || end.isEmpty()) {
+      return "Array descriptors must contain at least a start and an end.";
     }
     return super.validate();
   }
@@ -302,8 +279,6 @@ public final class ParsedArrayDescriptor extends ParsedDescriptor {
     if (token == null) {
       return null;
     }
-    EtomoNumber index = new EtomoNumber();
-    index.set(0);
     try {
       if (token.is(Token.Type.WHITESPACE)) {
         token = tokenizer.next();
@@ -322,7 +297,7 @@ public final class ParsedArrayDescriptor extends ParsedDescriptor {
           && !token.equals(Token.Type.SYMBOL, ParsedArray.CLOSE_SYMBOL
               .charValue())) {
         //parse an element
-        token = parseElement(token, tokenizer, index);
+        token = parseElement(token, tokenizer);
         //Find the divider.
         dividerFound = false;
         if (token != null
@@ -340,10 +315,12 @@ public final class ParsedArrayDescriptor extends ParsedDescriptor {
     }
     //If there are 2 elements, then assume that the increment is one and put the
     //second element in the end slot.
-    if (index.equals(END_INDEX)) {
+    if (descriptor.size() == END_INDEX) {
       ParsedElement increment = getElement(INCREMENT_INDEX);
-      setRawString(END_INDEX, increment.getRawString());
-      increment.clear();
+      if (increment != null) {
+        setRawString(END_INDEX, increment.getRawString());
+        increment.setRawString("1");
+      }
     }
     return token;
   }
@@ -360,16 +337,21 @@ public final class ParsedArrayDescriptor extends ParsedDescriptor {
       parsedNumberExpandedArray = new ParsedElementList(getType(),
           getEtomoNumberType(), debug, getDefault());
     }
-    ParsedNumber start = (ParsedNumber) deriveLimit((ParsedNumber) descriptor
-        .get(END_INDEX), true, descriptor.get(START_INDEX));
-    ParsedNumber end = (ParsedNumber) deriveLimit((ParsedNumber) descriptor
-        .get(START_INDEX), false, descriptor.get(END_INDEX));
-    if (start.isEmpty() || end.isEmpty()) {
+    ParsedNumber start = (ParsedNumber) descriptor.get(START_INDEX);
+    ParsedNumber end = (ParsedNumber) descriptor.get(END_INDEX);
+    if (start == null || start.isEmpty() || end == null || end.isEmpty()) {
       //Invalid descriptor.
       return parsedNumberExpandedArray;
     }
     EtomoNumber increment = new EtomoNumber(getEtomoNumberType());
-    increment.set(getIncrement().getRawNumber());
+    ParsedElement element = descriptor.get(INCREMENT_INDEX);
+    if (element != null) {
+      increment.set(element.getRawNumber());
+    }
+    //A missing increment is the same as an increment equals to 1.
+    if (increment.isNull()) {
+      increment.set(1);
+    }
     if (increment.isNegative() && start.lt(end)) {
       //Empty descriptor
       return parsedNumberExpandedArray;
@@ -405,138 +387,51 @@ public final class ParsedArrayDescriptor extends ParsedDescriptor {
     return parsedNumberExpandedArray;
   }
 
-  /**
-   * Always returns three.
-   */
   int size() {
-    return MAX_SIZE;
+    return descriptor.size();
   }
 
   /**
    * Return a two or three element array descriptor.  Returns two elements if
-   * increment is not set.  If start or end is not set, it may be derived from
-   * the other limit.
+   * increment is not set.
    * @param parsable - true when creating a parsable string
    */
   String getString(final boolean parsable) {
-    ParsedElement start = deriveLimit((ParsedNumber) descriptor.get(END_INDEX),
-        true, descriptor.get(START_INDEX));
-    ParsedElement increment = getIncrement();
-    if (isDebug()) {
-      System.out.println("descriptor.get(START_INDEX)="
-          + descriptor.get(START_INDEX) + ",descriptor.get(END_INDEX)="
-          + descriptor.get(END_INDEX));
-    }
-    ParsedElement end = deriveLimit((ParsedNumber) descriptor.get(START_INDEX),
-        false, descriptor.get(END_INDEX));
-    if (isDebug()) {
-      System.out.println("end=" + end);
-    }
-    String startString;
-    String incrementString;
-    String endString;
+    ParsedElement start = descriptor.get(START_INDEX);
+    ParsedElement increment = descriptor.get(INCREMENT_INDEX);
+    ParsedElement end = descriptor.get(END_INDEX);
+    String startString = "";
+    String incrementString = "";
+    String endString = "";
     if (parsable) {
-      startString = start.getParsableString();
-      incrementString = increment.getParsableString();
-      endString = end.getParsableString();
+      if (start != null) {
+        startString = start.getParsableString();
+      }
+      if (increment != null) {
+        incrementString = increment.getParsableString();
+      }
+      if (end != null) {
+        endString = end.getParsableString();
+      }
     }
     else {
-      startString = start.getRawString();
-      incrementString = increment.getRawString();
-      endString = end.getRawString();
+      if (start != null) {
+        startString = start.getRawString();
+      }
+      if (increment != null) {
+        incrementString = increment.getRawString();
+      }
+      if (end != null) {
+        endString = end.getRawString();
+      }
     }
     StringBuffer buffer = new StringBuffer();
     buffer.append(startString + DIVIDER_SYMBOL.toString());
     //Never use an empty or zero increment element.
-    if (!increment.isEmpty()) {
+    if (increment != null && !increment.isEmpty()) {
       buffer.append(incrementString + DIVIDER_SYMBOL.toString());
     }
     buffer.append(endString);
     return buffer.toString();
-  }
-
-  /**
-   * Set element in descriptor to parsed element.  Only the first three elements
-   * can be set.  Index is incremented each time function is run.
-   * @param token
-   * @param tokenizer
-   * @param index
-   * @return
-   */
-  private Token parseElement(Token token, final PrimativeTokenizer tokenizer,
-      final EtomoNumber index) {
-    //parse a number
-    ParsedElement element = null;
-    if (index.le(END_INDEX)) {
-      element = descriptor.get(index.getInt());
-    }
-    if (element == null) {
-      new IllegalStateException("Unable to add element " + index + 1
-          + ".  No more then " + END_INDEX + 1
-          + " elements are allowed in an array descriptor.").printStackTrace();
-    }
-    token = element.parse(token, tokenizer);
-    index.add(1);
-    return token;
-  }
-
-  /**
-   * Return limit if it exists.  If not then return a limit derived from
-   * referenceLimit.  In that case limit == referenceLimit * -1 (handles an
-   * array that goes from -j to j or from j to -j).  This function should not
-   * change anything in descriptor.
-   * @param referenceLimit - get directly from descriptor or use getStart or getEnd
-   * @param limit - get directly from descriptor
-   * @param endReference - the referenceLimit is from END_INDEX
-   * @return limit or negated referenceLimit
-   */
-  private ParsedElement deriveLimit(final ParsedNumber referenceLimit,
-      boolean endReference, final ParsedElement limit) {
-    //Limit already exists - return it.
-    if (!limit.isEmpty()) {
-      return limit;
-    }
-    if (isDebug()) {
-      System.out.println("limit=" + limit);
-    }
-    ParsedNumber newLimit = ParsedNumber.getInstance(getType(),
-        getEtomoNumberType(), debug, getDefault());
-    //Try to derive limit from referenceLimit (limit = referenceLimit * -1).
-    //If referenceLimit equals 0 or is empty, then limit should be 0.
-    if (referenceLimit.isEmpty() || referenceLimit.equals(0)) {
-      newLimit.setRawString("0");
-      if (isDebug()) {
-        System.out.println("newLimit=" + newLimit);
-      }
-      return newLimit;
-    }
-    //A missing or zero increment is 1, but this is handled in getIncrement.
-    //With an end reference, reference and increment must have the same signs in
-    //order to derive the limit.
-    //With a start reference, reference and increment must have the oposite
-    //signs in order to derive the limit.
-    ParsedNumber increment = getIncrement();
-    newLimit.setRawString(referenceLimit.getRawString());
-    if (endReference) {
-      //Must have the same sign to derive the limit.
-      if (referenceLimit.isNegative() != increment.isNegative()) {
-        if (isDebug()) {
-          System.out.println("newLimit=" + newLimit);
-        }
-        return newLimit;
-      }
-    }
-    //Must have the opposite sign to derive the limit.
-    else if (referenceLimit.isNegative() == increment.isNegative()) {
-      if (isDebug()) {
-        System.out.println("newLimit=" + newLimit);
-      }
-      return newLimit;
-    }
-    newLimit.setRawString(referenceLimit.getNegatedRawNumber());
-    if (isDebug()) {
-      System.out.println("newLimit=" + newLimit);
-    }
-    return newLimit;
   }
 }
