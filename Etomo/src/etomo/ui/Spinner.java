@@ -32,6 +32,9 @@ import etomo.util.Utilities;
  * @version $Revision$
  * 
  * <p> $Log$
+ * <p> Revision 1.12  2008/08/22 17:52:30  sueh
+ * <p> bug# 1136 Added isEnabled and setValue(int).
+ * <p>
  * <p> Revision 1.11  2008/05/30 22:36:18  sueh
  * <p> bug# 1102 Isolating the etomo.uitest package so it is not need for
  * <p> running EtomoDirector.
@@ -170,11 +173,17 @@ final class Spinner {
   }
 
   void setValue(final ParsedElement value) {
-    if (value.isEmpty()) {
+    if (value == null || value.isEmpty()) {
       spinner.setValue((Integer) model.getMinimum());
     }
     else {
-      spinner.setValue(value.getRawNumber());
+      Number rawNumber = value.getRawNumber();
+      if (rawNumber != null) {
+        spinner.setValue(rawNumber);
+      }
+      else {
+        spinner.setValue((Integer) model.getMinimum());
+      }
     }
   }
 
