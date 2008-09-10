@@ -20,6 +20,10 @@ import etomo.util.PrimativeTokenizer;
  * @version $Revision$
  * 
  * <p> $Log$
+ * <p> Revision 1.13  2008/04/15 21:23:32  sueh
+ * <p> bug# 1105 Simplified setting the default.  Move setDebug() to child
+ * <p> classes.
+ * <p>
  * <p> Revision 1.12  2008/04/08 23:58:03  sueh
  * <p> bug# 1105 Changed the array used in getParsedNumberExpandedArray
  * <p> to a ParsedElementList because it always holds ParsedNumbers.
@@ -77,11 +81,11 @@ public abstract class ParsedElement {
 
   public abstract String getRawString(int index);
 
-  public abstract void setMinArraySize(int input);
-
   public abstract void setDefault(int input);
-  
+
   public abstract void setDebug(boolean input);
+
+  public abstract boolean equals(int number);
 
   abstract void setRawString(String number);
 
@@ -100,6 +104,8 @@ public abstract class ParsedElement {
   abstract String getParsableString();
 
   abstract boolean isCollection();
+  
+  abstract boolean isDescriptor();
 
   abstract void setDefault(EtomoNumber input);
 
@@ -123,15 +129,20 @@ public abstract class ParsedElement {
       return true;
     }
     for (int i = 0; i < size(); i++) {
-      if (!getElement(i).isEmpty()) {
+      ParsedElement element = getElement(i);
+      if (element != null && !element.isEmpty()) {
         return false;
       }
     }
     return true;
   }
-  
+
   public Number getRawNumber() {
-    return getElement(0).getRawNumber();
+    ParsedElement element = getElement(0);
+    if (element != null) {
+      return element.getRawNumber();
+    }
+    return null;
   }
 
   boolean isDefaultedEmpty() {
@@ -139,7 +150,8 @@ public abstract class ParsedElement {
       return true;
     }
     for (int i = 0; i < size(); i++) {
-      if (!getElement(i).isDefaultedEmpty()) {
+      ParsedElement element = getElement(i);
+      if (element != null && !element.isDefaultedEmpty()) {
         return false;
       }
     }
