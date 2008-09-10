@@ -49,6 +49,9 @@ import etomo.type.Run3dmodMenuOptions;
  * @version $Revision$
  * 
  * <p> $Log$
+ * <p> Revision 1.29  2008/05/03 00:58:47  sueh
+ * <p> bug# 847 Passing null for ProcessSeries to process funtions.
+ * <p>
  * <p> Revision 1.28  2008/04/02 17:35:59  sueh
  * <p> bug# 1098 Improved user error messages.  Handled empty fnModParticle.
  * <p>
@@ -657,10 +660,12 @@ final class VolumeTable implements Expandable, Highlightable,
     private synchronized void delete(VolumeRow row, final Highlightable parent,
         final JPanel panel, final GridBagLayout layout,
         final GridBagConstraints constraints) {
-      int index = row.getIndex();
-      list.remove(index);
-      for (int i = index; i < list.size(); i++) {
-        ((VolumeRow) list.get(i)).setIndex(i);
+      if (row == null) {
+        int index = row.getIndex();
+        list.remove(index);
+        for (int i = index; i < list.size(); i++) {
+          ((VolumeRow) list.get(i)).setIndex(i);
+        }
       }
     }
 
