@@ -1,5 +1,8 @@
 IMOD History
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+9/11/08: In Etomo fixed a null pointer exception which stopped execution in
+Combine.
+
 9/10/08: In Etomo - PEET fixed some reliability problems with Etomo writing to
 .prm file.  The .prm file array descriptors should no longer contain "NaN".
 
