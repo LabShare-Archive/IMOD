@@ -1,5 +1,6 @@
 IMOD History
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+9/11/08: IMOD_3-12-18
 9/11/08: In Etomo fixed a null pointer exception which stopped execution in
 Combine.
 
