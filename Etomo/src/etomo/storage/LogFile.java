@@ -56,7 +56,7 @@ public final class LogFile {
 
   public static final long NO_ID = -1;
   public static final long NO_WAIT_LIMIT = -1;
-  private static final String PUBLIC_EXCEPTION_MESSAGE = "\nPlease make all copy "
+  private static final String PUBLIC_EXCEPTION_MESSAGE = "\nPlease make a copy "
       + "of the current etomo_err.log file and inform the software developer.";
 
   private static final Hashtable logFileHashTable = new Hashtable();
@@ -753,7 +753,13 @@ public final class LogFile {
       createFile();
       ReadingToken readingToken = readerList.getReadingToken(ReadingTokenList
           .makeKey(readId));
-      readingToken.close();
+      if (readingToken != null) {
+        readingToken.close();
+      }
+      else {
+        new ReadException(this, readId, "readingToken is null.")
+            .printStackTrace();
+      }
       lock.unlock(LockType.READ, readId);
     }
     catch (IOException e) {
@@ -1049,6 +1055,11 @@ public final class LogFile {
     ReadException(long id, Exception e) {
       super(e.toString() + "\nid=" + id + PUBLIC_EXCEPTION_MESSAGE);
       e.printStackTrace();
+    }
+
+    ReadException(LogFile logFile, long id, String message) {
+      super(message + ",id=" + id + ",logFile=" + logFile
+          + PUBLIC_EXCEPTION_MESSAGE);
     }
   }
 
@@ -1437,6 +1448,12 @@ public final class LogFile {
 }
 /**
  * <p> $Log$
+ * <p> Revision 1.21  2008/05/28 17:27:27  sueh
+ * <p> bug# 1110 In move() base success on the return value of File.renameTo
+ * <p> instead of the original file's disappearance.  It may take too long for the
+ * <p> original file's disappearance to appear in the directory, especially for a
+ * <p> big file.
+ * <p>
  * <p> Revision 1.20  2008/02/26 01:38:46  sueh
  * <p> bug# 1087 Added more information to FileException.
  * <p>
