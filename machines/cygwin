@@ -208,6 +208,8 @@ echo '#define SWAP_IEEE_FLOATS' >> $hconfigure
 echo '#define NO_IMOD_FORK' >> $hconfigure
 echo '#define CLIPBOARD_TIMER_HACK 100' >> $hconfigure
 
+echo '#define GLU_CALLBACK void (__stdcall *)(void)' >> $hconfigure
+
 #
 # Tell fortran routines how to swap bytes too
 #
