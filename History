@@ -1,5 +1,8 @@
 IMOD History
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+9/19/08: Fixed/finished ability to make tube meshes with different size
+segments.
+
 9/11/08: IMOD_3-12-18
 9/11/08: In Etomo fixed a null pointer exception which stopped execution in
 Combine.
