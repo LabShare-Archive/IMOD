@@ -1318,14 +1318,8 @@ static void myCombine( GLdouble coords[3], Ipoint *d[4],
 }
 #endif
 
-#ifdef _WIN32
-#define GLU_CALLBACK void (__stdcall *)(void)
-#else
-#ifdef Q_OS_MACX
-#define GLU_CALLBACK GLvoid (*)(...)
-#else
+#ifndef GLU_CALLBACK
 #define GLU_CALLBACK GLvoid (*)()
-#endif
 #endif
 
 static void imodvDraw_filled_contours(Iobj *obj, int drawTrans)
@@ -2529,6 +2523,9 @@ static void drawCurrentClipPlane(ImodvApp *a)
 /*
 
 $Log$
+Revision 4.41  2008/06/17 20:18:21  mast
+Added ability to skip sphere drawing when drawing mesh of non-scattered obj
+
 Revision 4.40  2008/06/10 05:56:29  mast
 Changes for light drawing and making sure light is set for current model
 
