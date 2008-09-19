@@ -1154,19 +1154,24 @@ static int circle_top_and_direction(Icont *cont, Imat *mat, int *ptop)
   return reverse;
 }
                
-/* join two tube contours together. */
+/* join two tube contours together. Return NUll for error. */
 Imesh *joinTubeCont(Icont *c1, Icont *c2, Ipoint *norm, 
                     DrawProps *props1, int state1, DrawProps *props2,
                     int state2)
 {
-  int pt, mpt, npt, pt2, pt1, idir2, k;
+  int pt, mpt, npt, pt2, mpt2, pt1, idir2, k, last1, next1, maxpt, last2,next2;
   Imat *mat = imodMatNew(3);
   Imesh *mesh = imodMeshNew();
   double a, b;
   int reverse1 = 0, reverse2 = 0;
   int stateTest = CHANGED_COLOR | CHANGED_FCOLOR | CHANGED_TRANS;
+  int genItems = ((state1 | state2) & stateTest) ? 1 : 0;
+  if (!mesh || !mat)
+    return(NULL);
 
   mpt = c1->psize;
+  mpt2 = c2->psize;
+  maxpt = B3DMAX(mpt, mpt2);
 
   /* Get matrix that rotates this central normal to Z axis */
   b = acos((double)norm->z);
@@ -1175,7 +1180,6 @@ Imesh *joinTubeCont(Icont *c1, Icont *c2, Ipoint *norm,
   a *= 57.29578;
   imodMatRot(mat, -a, b3dZ);
   imodMatRot(mat, -b, b3dY);
-
 
   /* Start at top point of each back-transformed circle */
 
@@ -1197,50 +1201,77 @@ Imesh *joinTubeCont(Icont *c1, Icont *c2, Ipoint *norm,
     state2 |= CHANGED_TRANS;
   }
 
+  mesh->vsize = mpt + mpt2;
+  mesh->lsize = 3 * (mpt + mpt2 + 1);
+  mesh->vert = (Ipoint *)malloc(mesh->vsize * sizeof(Ipoint));
+  mesh->list = (int *)malloc(mesh->lsize * sizeof(int));
+  if (!mesh->vert || !mesh->list) {
+    if (mesh->vert)
+      free(mesh->vert);
+    if (mesh->list)
+      free(mesh->list);
+    free(mesh);
+    imodMatDelete(mat);
+    return(NULL);
+  }
+
+  /* Load the vertices first, in the right order for each circle */
   for (pt = 0 ; pt < mpt; pt++) {
-
-    imodMeshAddVert(mesh, &c1->pts[pt1]);
-    imodMeshAddVert(mesh, &c2->pts[pt2]);
-
+    mesh->vert[pt] = c1->pts[pt1];
     pt1++;
     if (pt1 == mpt)
       pt1 = 0;
+  }  
 
+  for (; pt < mpt + mpt2; pt++) {
+    mesh->vert[pt] = c2->pts[pt2];
     pt2 += idir2;
-    if (pt2 == mpt)
+    if (pt2 == mpt2)
       pt2 = 0;
     if (pt2 < 0)
-      pt2 = mpt - 1;
-          
-    npt = pt+1;
-    if (npt == mpt)
-      npt = 0;
+      pt2 = mpt2 - 1;
+  }
 
-    imodMeshAddIndex(mesh, IMOD_MESH_BGNPOLY);
-    k = mesh->lsize;
+  last1 = 0;
+  last2 = 0;
+  k = 0;
+  mesh->list[k++] = IMOD_MESH_BGNPOLY;
+  for (pt = 0 ; pt < maxpt; pt++) {
 
-    imodMeshAddIndex(mesh, (pt*2) + 1);
-    imodMeshAddIndex(mesh, pt*2);
-    imodMeshAddIndex(mesh, npt*2);
-    imodMeshAddIndex(mesh, IMOD_MESH_ENDPOLY);
+    /* Get next point in c1, and the point it matches in c2 */
+    npt = (pt+1) % maxpt;
+    next1 = ((int)floor(((double)mpt * npt )/ maxpt + 0.5)) % mpt;
+    next2 = ((int)floor(((double)mpt2 * npt )/ maxpt + 0.5)) % mpt2;
 
-    imodMeshAddIndex(mesh, IMOD_MESH_BGNPOLY);
-    imodMeshAddIndex(mesh, (pt*2) + 1);
-    imodMeshAddIndex(mesh, npt*2);
-    imodMeshAddIndex(mesh, (npt*2)+1);
-    imodMeshAddIndex(mesh, IMOD_MESH_ENDPOLY);
-
-    if ((state1 | state2) & stateTest) {
-      istoreGenerateItems(&mesh->store, props2, state2, k, stateTest);
-      istoreGenerateItems(&mesh->store, props1, state1, k + 1, stateTest);
-      istoreGenerateItems(&mesh->store, props1, state1, k + 2, stateTest);
-      istoreGenerateItems(&mesh->store, props2, state2, k + 5, stateTest);
-      istoreGenerateItems(&mesh->store, props1, state1, k + 6, stateTest);
-      istoreGenerateItems(&mesh->store, props2, state2, k + 7, stateTest);
+    /* add triangle with base in c1, and triangle with base in c2 only if the
+       matches are different */
+    if (last1 != next1) {
+      mesh->list[k++] = mpt + last2;
+      mesh->list[k++] = last1;
+      mesh->list[k++] = next1;
+      if (genItems) {
+        istoreGenerateItems(&mesh->store, props2, state2, k - 3, stateTest);
+        istoreGenerateItems(&mesh->store, props1, state1, k - 2, stateTest);
+        istoreGenerateItems(&mesh->store, props1, state1, k - 1, stateTest);
+      }
     }
 
+    if (next2 != last2) {
+      mesh->list[k++] = mpt + last2;
+      mesh->list[k++] = next1;
+      mesh->list[k++] = mpt + next2;
+      if (genItems) {
+        istoreGenerateItems(&mesh->store, props2, state2, k - 3, stateTest);
+        istoreGenerateItems(&mesh->store, props1, state1, k - 2, stateTest);
+        istoreGenerateItems(&mesh->store, props2, state2, k - 1, stateTest);
+      }
+    }
+
+    last1 = next1;
+    last2 = next2;
   }
-  imodMeshAddIndex(mesh, IMOD_MESH_END);
+  mesh->list[k++] = IMOD_MESH_ENDPOLY;
+  mesh->list[k++] = IMOD_MESH_END;
 
   imodMatDelete(mat);
   /* istoreDump(mesh->store); */
@@ -1251,6 +1282,9 @@ Imesh *joinTubeCont(Icont *c1, Icont *c2, Ipoint *norm,
 
 /*
 $Log$
+Revision 1.2  2006/11/02 07:16:21  mast
+Documentation
+
 Revision 1.1  2006/09/12 14:58:19  mast
 Split up and made into new library
 
