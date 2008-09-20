@@ -65,6 +65,7 @@ else
         @ minorvers = $gfortvers[2]
         if ($gfortvers[1] != 4 || $minorvers > 2) set fcompFlags = "-fbackslash $fcompFlags"
         set fcomp = "gfortran"
+        set ctfplot_flibs = "-lgfortran"
         echo "DATESRC   = compat/datetime.f" >> $configure
         echo "DIRDATEOBJ  = compat/datetime.o" >> $configure
         echo "DATEOBJ  = datetime.o" >> $configure
