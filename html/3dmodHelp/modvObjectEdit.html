@@ -260,7 +260,9 @@ are capped (-E option).
 <LI><B>Passes:</B> Number of passes for connecting contours farther apart in Z
 (-P option).
 <LI><B>Diam:</B> Diameter for tube meshing (-D option).  If the value is 0,
-the 3D line width will be used.
+the 3D line width will be used; for -1 or negative numbers between 0 and -1,
+the sphere size will be used; -2 or negative numbers less than -1, the symbol
+size will be used.
 <LI><B>Tol:</B> Tolerance for point reduction; points will be removed if they
 are within this distance of the remaining lines (-R option).  A separate value
 is maintained for regular and low resolution meshing.
