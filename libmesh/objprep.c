@@ -91,7 +91,7 @@ int analyzePrepSkinObj(Iobj *obj, int resol, Ipoint *scale, int (*inCB)(int))
   flatCrit = obj->meshParam->flatCrit;
   imeshSetMinMax(triMin, triMax);
   makeTubes = iobjOpen(obj->flags) && (flags & IMESH_MK_TUBE) ? 1 : 0;
-  if (makeTubes && B3DNINT(tubeDiameter) == -1)
+  if (makeTubes && tubeDiameter < 0 && tubeDiameter >= -1.0001)
     obj->flags |= IMOD_OBJFLAG_PNT_NOMODV;
   else 
     obj->flags &= ~IMOD_OBJFLAG_PNT_NOMODV;
@@ -709,6 +709,9 @@ Iobj *imeshDupMarkedConts(Iobj *obj, unsigned int flag)
 /* 
 mkmesh.c got the big log from before the split
 $Log$
+Revision 1.7  2008/06/17 20:13:31  mast
+Set or clear new flag based on whether making tubes with point sizes
+
 Revision 1.6  2006/11/02 07:15:03  mast
 Rearrange and change documentation
 

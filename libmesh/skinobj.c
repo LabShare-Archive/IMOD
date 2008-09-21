@@ -387,7 +387,7 @@ static int mesh_open_tube_obj(Iobj *obj, Ipoint *scale, unsigned int flags,
       if (meshDiameter <= 0.) {
         if (!meshDiameter)
           tubeDiameter = ptProps.linewidth;
-        else if (meshDiameter < -1.5)
+        else if (meshDiameter < -1.0001)
           tubeDiameter = ptProps.symsize;
         else
           tubeDiameter = 2. * imodPointGetSize(obj, cont, pt);
@@ -2835,6 +2835,9 @@ static int break_contour_inout(Icont *cin, int st1, int st2,  int fill,
 /* 
 mkmesh.c got the big log from before the split
 $Log$
+Revision 1.6  2008/06/17 20:15:54  mast
+Added multiple ways to change tube diameter in a contour
+
 Revision 1.5  2007/10/09 16:45:08  mast
 Moved inside_cont to imod library
 
