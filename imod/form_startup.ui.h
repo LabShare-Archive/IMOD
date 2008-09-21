@@ -186,7 +186,7 @@ void StartupForm::imageSelectClicked()
   // 5/30/04: need to check if this is still compatible to 3.0.5
   mImageFileList = QFileDialog::getOpenFileNames
                    (mModvMode ? "Model files (*.*mod)" : 
-                    "MRC files (*.*st *.*ali *.*rec *.*mrc);;Tiff files (*.tif);;All files (*)",
+                    "MRC files (*.*st *.*ali *.*rec *.*mrc *.*join);;TIFF files (*.tif);;JPEG files (*.jpg);;PNG files (*.png);;All files (*)",
                     QString::null, 0, 0, 
                     mModvMode ? "Select model file(s) to load" :
                     "Select image file(s) to load");
