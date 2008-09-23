@@ -24,6 +24,15 @@ if ($compiler == default && $intel == true) set compiler = ifort
 
 if ($compiler == ifort) then
     set fcomp = "ifort"
+
+    # Get the fortran version, they changed libraries
+    #
+    ifort -v >&! ifort.tmp
+    set ifortnum = `sed -n -e '/\./s// /g' -e '/Version/s/.*Version \([0-9 ]*\).*/\1/p' ifort.tmp`
+    \rm -f ifort.tmp
+    @ ifortversion = 9
+    if ("$ifortnum" != "") @ ifortversion = $ifortnum[1]
+    
     set fcompFlags = "-132 -assume bscc"
 
     echo "      parameter (nbytes_recl_item=4)" >! $endian_dir/recl_bytes.inc
@@ -34,8 +43,11 @@ if ($compiler == ifort) then
     set fortdir = `which ifort`
     set fortlibdir = $fortdir:h:h/lib
     echo "DLLSOURCEDIR1 = $fortlibdir" >> $configure
-    echo "DLLSTOCOPY1 = libifcore libifport libirc libimf libsvml" >> $configure
-    
+    if ($ifortversion <= 9) then
+        echo "DLLSTOCOPY1 = libifcore libifport libirc libimf libsvml" >> $configure
+    else
+        echo "DLLSTOCOPY1 = libifcore libifport libintlc libimf libsvml" >> $configure
+    endif    
 else
 
     set fcompFlags = "-ffixed-line-length-0"
