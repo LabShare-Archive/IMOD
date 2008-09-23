@@ -8,7 +8,7 @@
         <rect>
             <x>0</x>
             <y>0</y>
-            <width>194</width>
+            <width>202</width>
             <height>526</height>
         </rect>
     </property>
@@ -562,7 +562,7 @@
                                         </sizepolicy>
                                     </property>
                                     <property name="text">
-                                        <string>Size</string>
+                                        <string>Radius</string>
                                     </property>
                                     <property name="alignment">
                                         <set>AlignVCenter|AlignLeft</set>
@@ -599,6 +599,14 @@
                             </hbox>
                         </widget>
                     </vbox>
+                </widget>
+                <widget class="QCheckBox">
+                    <property name="name">
+                        <cstring>mouseSizeBox</cstring>
+                    </property>
+                    <property name="text">
+                        <string>Set with mouse wheel</string>
+                    </property>
                 </widget>
                 <widget class="QLayoutWidget">
                     <property name="name">
@@ -1019,6 +1027,12 @@
         <receiver>ContSurfPoint</receiver>
         <slot>surfLabelChanged(const QString&amp;)</slot>
     </connection>
+    <connection>
+        <sender>mouseSizeBox</sender>
+        <signal>toggled(bool)</signal>
+        <receiver>ContSurfPoint</receiver>
+        <slot>mouseSizeToggled(bool)</slot>
+    </connection>
 </connections>
 <includes>
     <include location="global" impldecl="in implementation">math.h</include>
@@ -1052,6 +1066,7 @@
     <slot>pointSliderPressed()</slot>
     <slot>pointSliderReleased()</slot>
     <slot>pointSizeEntered()</slot>
+    <slot>mouseSizeToggled( bool state )</slot>
     <slot>pointLabelChanged( const QString &amp; str )</slot>
     <slot>ghostChanged( int value )</slot>
     <slot>upGhostToggled( bool state )</slot>

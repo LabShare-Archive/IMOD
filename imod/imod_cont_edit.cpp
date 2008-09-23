@@ -51,6 +51,7 @@ void joinError(Iindex *indArray, char *message);
 struct contour_edit_struct{
   ImodView  *vw;
   ContSurfPoint *dia;
+  int wheelForSize;
 };
 
 struct contour_move_struct{
@@ -1573,7 +1574,7 @@ void ContourMove::closeEvent ( QCloseEvent * e )
 /*   Contour-Surface-Point Edit                                              */
 /*    This one has a companion form class managed by designer                */
 
-static struct contour_edit_struct surf = {NULL, NULL};
+static struct contour_edit_struct surf = {NULL, NULL, 0};
 
 /* Open the dialog box */
 void imodContEditSurf(ImodView *vw)
@@ -1784,6 +1785,17 @@ void icePointSize(float size)
   imodDraw(surf.vw, IMOD_DRAW_MOD);
 }
 
+
+void iceSetWheelForSize(int state)
+{
+  surf.wheelForSize = state;
+}
+
+int iceGetWheelForSize()
+{
+  return surf.wheelForSize;
+}
+
 // A change in the ghost distance
 void iceGhostInterval(int value)
 {
@@ -1849,6 +1861,9 @@ void ContourFrame::keyReleaseEvent ( QKeyEvent * e )
 /*
 
 $Log$
+Revision 4.32  2008/04/04 21:22:03  mast
+Free contour after adding to object
+
 Revision 4.31  2008/01/19 22:19:11  mast
 Fixed problems when no objects
 

@@ -13,6 +13,8 @@ void ContSurfPoint::init()
     mCtrlPressed = false;
     mSliderPressed = false;
     setFontDependentWidths();
+    diaSetChecked(mouseSizeBox, iceGetWheelForSize() != 0);
+    adjustSize();
 }
 
 void ContSurfPoint::setFontDependentWidths()
@@ -114,6 +116,11 @@ void ContSurfPoint::pointSizeEntered()
 	value = MAX_POINT_SIZE;
     setPointSize(value, 0);
     icePointSize(value);
+}
+
+void ContSurfPoint::mouseSizeToggled( bool state )
+{
+  iceSetWheelForSize(state ? 1 : 0);
 }
 
 void ContSurfPoint::pointLabelChanged( const QString &str )

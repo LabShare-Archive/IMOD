@@ -40,6 +40,7 @@
 #include "imod.h"
 #include "imodv.h"
 #include "imod_info.h"
+#include "imod_cont_edit.h"
 #include "imod_info_cb.h"
 #include "imod_display.h"
 #include "imod_moviecon.h"
@@ -281,6 +282,8 @@ ImodPreferences::ImodPreferences(char *cmdLineStyle)
   floatOn = settings->readNumEntry(IMOD_NAME"floatButton");
   subarea = settings->readNumEntry(IMOD_NAME"subareaButton");
   imodInfoSetFloatFlags(floatOn, subarea);
+  i = settings->readNumEntry(IMOD_NAME"useWheelForSize");
+  iceSetWheelForSize(i);
 
   READNUM(autosaveInterval);
   prefs->autosaveDir = settings->readEntry(IMOD_NAME"autosaveDir",
@@ -495,6 +498,7 @@ void ImodPreferences::saveSettings(int modvAlone)
   imodInfoGetFloatFlags(floatOn, subarea);
   settings->writeEntry(IMOD_NAME"floatButton", floatOn);
   settings->writeEntry(IMOD_NAME"subareaButton", subarea);
+  settings->writeEntry(IMOD_NAME"useWheelForSize", iceGetWheelForSize());
 
   WRITE_IF_CHANGED(autosaveInterval);
   WRITE_IF_CHANGED(autosaveDir);
@@ -1117,6 +1121,9 @@ bool ImodPreferences::classicWarned()
 
 /*
 $Log$
+Revision 1.32  2008/05/27 05:42:35  mast
+Various new preferences, added macros
+
 Revision 1.31  2008/03/06 00:13:10  mast
 Changes for vertical scale bar, saving of float flags
 

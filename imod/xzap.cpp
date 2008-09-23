@@ -41,6 +41,7 @@
 #include "imod_moviecon.h"
 #include "autox.h"
 #include "imod_edit.h"
+#include "imod_cont_edit.h"
 #include "imod_model_edit.h"
 #include "imod_workprocs.h"
 #include "dia_qtutils.h"
@@ -1436,8 +1437,11 @@ void zapKeyRelease(ZapStruct *zap, QKeyEvent *event)
 // Pass on various events to plugins
 void zapGeneralEvent(ZapStruct *zap, QEvent *e)
 {
-  int ix, iy, ifdraw, iz;
+  int ix, iy, ifdraw, iz, pt;
   float imx, imy;
+  Iobj *obj;
+  Icont *cont;
+  float wheelScale = 1./1200.f;
   if (zap->numXpanels)
     return;
   ix = (zap->gfx->mapFromGlobal(QCursor::pos())).x();
@@ -1446,6 +1450,30 @@ void zapGeneralEvent(ZapStruct *zap, QEvent *e)
   ifdraw = imodPlugHandleEvent(zap->vi, e, imx, imy);
   if (ifdraw & 2 || (zap->drewExtraCursor && e->type() == QEvent::Leave))
     zapDraw(zap);
+  if (ifdraw)
+    return;
+  if (e->type() == QEvent::Wheel && iceGetWheelForSize()) {
+    imodGetIndex(zap->vi->imod, &ix, &iy, &pt);
+    obj = imodObjectGet(zap->vi->imod);
+    cont = imodContourGet(zap->vi->imod);
+    if (!cont || pt < 0)
+      return;
+    imx = imodPointGetSize(obj, cont, pt);
+    if (!imx && (!cont->sizes || (cont->sizes && cont->sizes[pt] < 0)))
+      return;
+    if (zap->zoom < 4. && zap->zoom >= 2.)
+      wheelScale *= 2.;
+    else if (zap->zoom < 2. && zap->zoom > 1.)
+      wheelScale *= 3.;
+    else if (zap->zoom == 1.)
+      wheelScale *= 4.;
+    else if (zap->zoom < 1.)
+      wheelScale *= 5.;
+    imx += ((QWheelEvent *)e)->delta() * wheelScale;
+    imx = B3DMAX(0., imx);
+    imodPointSetSize(cont, pt, imx);
+    imodDraw(zap->vi, IMOD_DRAW_MOD);
+  }
 }
 
 /*
@@ -4518,6 +4546,9 @@ static int zapPointVisable(ZapStruct *zap, Ipoint *pnt)
 /*
 
 $Log$
+Revision 4.126  2008/08/19 20:01:40  mast
+Made it zoom with + as well as =
+
 Revision 4.125  2008/08/01 19:24:01  mast
 Added protection against small movements soon after button 2 press
 
