@@ -106,7 +106,8 @@ command files.
 type = LIM
 usage = List of views to exclude (comma-separated ranges allowed)
 tooltip = 
-manpage = List of views to be excluded from the reconstruction.  The list
+manpage = List of views to be excluded from the reconstruction, numbered from 
+1.  The list
 can consist of individual view numbers, or of ranges (e.g., 1-4), separated
 by commas or spaces.  The EXCLUDE and EXCLUDELIST entries available in
 old versions of the program are treated as this option.
@@ -165,9 +166,9 @@ type = LIM
 usage = List of views to include in the reconstruction
 tooltip = 
 manpage = A subset of views to be used for the
-reconstruction.  The values can be individual view numbers or ranges,
-separated by spaces or commas.  Use more than one INCLUDE entry if the numbers
-do not all fit on one line.
+reconstruction, numbered from 1.  The values can be individual view numbers or
+ranges, separated by spaces or commas.  Use more than one INCLUDE entry if the
+numbers do not all fit on one line.
 
 [Field = LOCALFILE]
 type = FN
@@ -356,7 +357,8 @@ done.
 type = LI
 usage = List of views to reproject (0 for all, not just included ones)
 tooltip = 
-manpage = List of views to reproject from a reconstruction file.  The default
+manpage = List of views to reproject from a reconstruction file, numbered from
+0.  The default
 is to project just the views that were included in the reconstruction.  To
 project all views in the input projection file, enter 0.
 

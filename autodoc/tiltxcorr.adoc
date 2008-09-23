@@ -178,8 +178,10 @@ is 10% of the image dimensions up to 100 pixels.
 short = views
 type = IP
 usage = Starting and ending view numbers for doing a subset of views
-tooltip = Starting and ending view numbers to correlate; the default is all views.
-manpage = 
+tooltip = Starting and ending view numbers to correlate (numbered from 1); 
+the default is all views.
+manpage = Starting and ending view numbers, numbered from 1, for doing 
+a subset of views.
 
 [Field = CumulativeCorrelation]
 short = cumulative
