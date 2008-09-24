@@ -1212,9 +1212,8 @@ static void slicer_attach_point(SlicerStruct *ss, int x, int y)
 {
   Ipoint pnt, norm;
   Ipoint *spnt;
-  int i;
-  float temp_distance, delta;
-  float distance = -1.;
+  float delta;
+  float distance;
   ImodView *vi = ss->vi;
   Imod *imod = vi->imod;
   Iindex index;
@@ -1226,54 +1225,34 @@ static void slicer_attach_point(SlicerStruct *ss, int x, int y)
     pnt.x = vi->xmouse;
     pnt.y = vi->ymouse;
     pnt.z = vi->zmouse;
-    imod->cindex.contour = -1;
-    imod->cindex.point = -1;
     slicerSetForwardMatrix(ss);
 
-    for (i = 0; i < imod->objsize; i++){
-      index.object = i;
-      temp_distance = imod_obj_nearest
-        (vi, &(imod->obj[i]), &index , &pnt, selsize, ss->mat);
-      if (temp_distance < 0.)
-        continue;
-      if (distance < 0. || distance > temp_distance) {
-        distance      = temp_distance;
-        imod->cindex.object  = index.object;
-        imod->cindex.contour = index.contour;
-        imod->cindex.point   = index.point;
-        spnt = imodPointGet(imod);
-        if (spnt){
-          vi->xmouse = spnt->x;
-          vi->ymouse = spnt->y;
-	  vi->zmouse = spnt->z;
-        }
-      }
+    distance = imodAllObjNearest(vi, &index , &pnt, selsize, ss->mat);
 
-      if (imod->cindex.point >= 0 && !ss->classic) {
-
-        // Move along direction of normal to plane until reaching a plane that
-        // contains the current point; snap to curpt if this is out of bounds
-        getNormalToPlane(ss, &norm);
-        delta = norm.x * (vi->xmouse - ss->cx) + 
-          norm.y * (vi->ymouse - ss->cy) + norm.z * (vi->zmouse - ss->cz);
-        if (imodDebug('s'))
-          imodPrintStderr("norm %.4f %.4f %.4f  zm %f cz %f delta %.3f\n",
-                          norm.x, norm.y, norm.z, vi->zmouse, ss->cz, delta);
-        
-        // Move to a new plane unconditionally so that modeling can be in
-        // same plane
-        ss->cx += delta * norm.x;
-        ss->cy += delta * norm.y;
-        ss->cz += delta * norm.z;
-          
-        // If this goes out of bounds, just snap to current point
-        if (ss->cx < 0 || ss->cx >= ss->vi->xsize || ss->cy < 0 || 
-            ss->cy >= ss->vi->ysize || ss->cz < 0 || 
-            ss->cz >= ss->vi->zsize - 0.5) {
-          ss->cx = ss->vi->xmouse;
-          ss->cy = ss->vi->ymouse;
-          ss->cz = ss->vi->zmouse;
-        }
+    if (imod->cindex.point >= 0 && !ss->classic) {
+      
+      // Move along direction of normal to plane until reaching a plane that
+      // contains the current point; snap to curpt if this is out of bounds
+      getNormalToPlane(ss, &norm);
+      delta = norm.x * (vi->xmouse - ss->cx) + 
+        norm.y * (vi->ymouse - ss->cy) + norm.z * (vi->zmouse - ss->cz);
+      if (imodDebug('s'))
+        imodPrintStderr("norm %.4f %.4f %.4f  zm %f cz %f delta %.3f\n",
+                        norm.x, norm.y, norm.z, vi->zmouse, ss->cz, delta);
+      
+      // Move to a new plane unconditionally so that modeling can be in
+      // same plane
+      ss->cx += delta * norm.x;
+      ss->cy += delta * norm.y;
+      ss->cz += delta * norm.z;
+      
+      // If this goes out of bounds, just snap to current point
+      if (ss->cx < 0 || ss->cx >= ss->vi->xsize || ss->cy < 0 || 
+          ss->cy >= ss->vi->ysize || ss->cz < 0 || 
+          ss->cz >= ss->vi->zsize - 0.5) {
+        ss->cx = ss->vi->xmouse;
+        ss->cy = ss->vi->ymouse;
+        ss->cz = ss->vi->zmouse;
       }
     }
     /* DNM 5/5/03: take out IMAGE flag, use RETHINK only if in model mode */
@@ -2619,6 +2598,9 @@ void slicerCubePaint(SlicerStruct *ss)
 
 /*
 $Log$
+Revision 4.59  2008/08/19 20:01:03  mast
+Made it treat keypad + like =
+
 Revision 4.58  2008/05/28 14:59:07  mast
 Pass zscale to draw routine so spheres come out round
 
