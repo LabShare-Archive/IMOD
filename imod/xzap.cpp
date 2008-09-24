@@ -1847,12 +1847,11 @@ int zapButton1(ZapStruct *zap, int x, int y, int controlDown)
 {
   ImodView *vi   = zap->vi;
   Imod     *imod = vi->imod;
-  Ipoint pnt, *spnt;
+  Ipoint pnt;
   Iindex index, indSave;
   int bandmin = zapBandMinimum(zap);
-  int i, iz;
-  float temp_distance;
-  float distance = -1.;
+  int iz;
+  float distance;
   float ix, iy, dx, dy;
   float selsize = IMOD_SELSIZE / zap->zoom;
 
@@ -1930,27 +1929,8 @@ int zapButton1(ZapStruct *zap, int x, int y, int controlDown)
     pnt.y = iy;
     pnt.z = iz;
     indSave = vi->imod->cindex;
-    imod->cindex.contour = -1;
-    imod->cindex.point = -1;
 
-    for (i = 0; i < imod->objsize; i++){
-      index.object = i;
-      temp_distance = imod_obj_nearest
-        (vi, &(imod->obj[i]), &index , &pnt, selsize);
-      if (temp_distance < 0.)
-        continue;
-      if (distance < 0. || distance > temp_distance) {
-        distance      = temp_distance;
-        imod->cindex.object  = index.object;
-        imod->cindex.contour = index.contour;
-        imod->cindex.point   = index.point;
-        spnt = imodPointGet(vi->imod);
-        if (spnt){
-          vi->xmouse = spnt->x;
-          vi->ymouse = spnt->y;
-        }
-      }
-    }
+    distance = imodAllObjNearest(vi, &index , &pnt, selsize);
 
     // If point found, manage selection list and even toggle this contour off 
     // if appropriate
@@ -4546,6 +4526,9 @@ static int zapPointVisable(ZapStruct *zap, Ipoint *pnt)
 /*
 
 $Log$
+Revision 4.127  2008/09/23 15:13:44  mast
+Added mouse wheel scrolling of point size
+
 Revision 4.126  2008/08/19 20:01:40  mast
 Made it zoom with + as well as =
 
