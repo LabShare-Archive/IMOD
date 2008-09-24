@@ -57,6 +57,7 @@ typedef struct imod_pref_struct
   TRIPLET(bool, classicSlicer);       // Use classic slicer
   TRIPLET(bool, startAtMidZ);         // Go to middle Z at start
   TRIPLET(int, autoConAtStart);      // Do autocontrast at start
+  TRIPLET(bool, attachToOnObj);      // Attach to ON objects only
   QFont font;              // Font
   bool fontChgd;
   QString styleKey;        // Style
@@ -112,6 +113,7 @@ class ImodPreferences : public QObject
   bool silentBeep() {return mCurrentPrefs.silentBeep;};
   bool classicSlicer() {return mCurrentPrefs.classicSlicer;};
   bool classicWarned();
+  bool attachToOnObj() {return mCurrentPrefs.attachToOnObj;};
   int actualButton(int logicalButton);
   int actualModvButton(int logicalButton);
   QString autosaveDir();
@@ -187,6 +189,9 @@ extern ImodPreferences *ImodPrefs;
 
 /*
 $Log$
+Revision 1.18  2008/05/27 05:42:19  mast
+Various new preferences, added macro
+
 Revision 1.17  2008/02/03 18:38:25  mast
 Added option to swap left/middle in model view
 

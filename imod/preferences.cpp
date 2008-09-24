@@ -124,6 +124,7 @@ ImodPreferences::ImodPreferences(char *cmdLineStyle)
   prefs->tooltipsOnDflt = true;
   prefs->startAtMidZDflt = true;
   prefs->autoConAtStartDflt = 1;
+  prefs->attachToOnObjDflt = true;
   prefs->bwStepDflt = 3;
   prefs->iconifyImodvDlgDflt = 1;
   prefs->iconifyImodDlgDflt = 1;
@@ -174,6 +175,7 @@ ImodPreferences::ImodPreferences(char *cmdLineStyle)
   QToolTip::setGloballyEnabled(prefs->tooltipsOn);
   READNUM(autoConAtStart);
   READBOOL(startAtMidZ);
+  READBOOL(attachToOnObj);
 
   READNUM(bwStep);
   READBOOL(iconifyImodvDlg);
@@ -458,6 +460,7 @@ void ImodPreferences::saveSettings(int modvAlone)
   WRITE_IF_CHANGED(tooltipsOn);
   WRITE_IF_CHANGED(autoConAtStart);
   WRITE_IF_CHANGED(startAtMidZ);
+  WRITE_IF_CHANGED(attachToOnObj);
   WRITE_IF_CHANGED(bwStep);
   WRITE_IF_CHANGED(iconifyImodvDlg);
   WRITE_IF_CHANGED(iconifyImodDlg);
@@ -603,6 +606,7 @@ void ImodPreferences::donePressed()
   curp->silentBeepChgd |= !equiv(newp->silentBeep, oldp->silentBeep);
   curp->autoConAtStartChgd |= newp->autoConAtStart != oldp->autoConAtStart;
   curp->startAtMidZChgd |= !equiv(newp->startAtMidZ, oldp->startAtMidZ);
+  curp->attachToOnObjChgd |= !equiv(newp->attachToOnObj, oldp->attachToOnObj);
   curp->classicSlicerChgd |= !equiv(newp->classicSlicer, oldp->classicSlicer);
   if (!equiv(newp->tooltipsOn, oldp->tooltipsOn)) {
     curp->tooltipsOnChgd = true;
@@ -717,6 +721,7 @@ void ImodPreferences::defaultPressed()
     prefs->tooltipsOn = prefs->tooltipsOnDflt;
     prefs->autoConAtStart = prefs->autoConAtStartDflt;
     prefs->startAtMidZ = prefs->startAtMidZDflt;
+    prefs->attachToOnObj = prefs->attachToOnObjDflt;
     prefs->bwStep = prefs->bwStepDflt;
     prefs->iconifyImodvDlg = prefs->iconifyImodvDlgDflt;
     prefs->iconifyImodDlg = prefs->iconifyImodDlgDflt;
@@ -1121,6 +1126,9 @@ bool ImodPreferences::classicWarned()
 
 /*
 $Log$
+Revision 1.33  2008/09/23 15:13:44  mast
+Added mouse wheel scrolling of point size
+
 Revision 1.32  2008/05/27 05:42:35  mast
 Various new preferences, added macros
 
