@@ -21,10 +21,15 @@ void imod_contour_move(int ob);
 void imodMoveAllContours(ImodView *vi, int obNew);
 float imod_obj_nearest(ImodView *vi, Iobj *obj, Iindex *index, Ipoint *pnt,
                        float selsize, Imat *mat = NULL);
+float imodAllObjNearest(ImodView *vi, Iindex *index, Ipoint *pnt,
+                          float selsize, Imat *mat = NULL);
 int imod_redraw(ImodView *vw);
 #endif
 /*
 $Log$
+Revision 4.8  2007/12/04 18:44:12  mast
+Moved selection list declarations to imodview.h
+
 Revision 4.7  2007/07/08 16:45:55  mast
 Added selected object count and contour move functions
 

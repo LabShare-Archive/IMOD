@@ -17,6 +17,7 @@
 #include "imod_display.h"
 #include "imod_edit.h"
 #include "undoredo.h"
+#include "preferences.h"
 
 static float imod_distance( float *x, float *y, Ipoint *pnt);
 
@@ -194,6 +195,40 @@ float imod_obj_nearest(ImodView *vi, Iobj *obj, Iindex *index, Ipoint *pnt,
   return(distance);
 }
 
+float imodAllObjNearest(ImodView *vi, Iindex *index, Ipoint *pnt,
+                          float selsize, Imat *mat)
+{
+  Imod *imod = vi->imod;
+  float temp_distance, distance = -1.;
+  int i;
+  Ipoint *spnt;
+  
+  imod->cindex.contour = -1;
+  imod->cindex.point = -1;
+  for (i = 0; i < imod->objsize; i++) {
+    if (ImodPrefs->attachToOnObj() && iobjOff(imod->obj[i].flags))
+      continue;
+    index->object = i;
+    temp_distance = imod_obj_nearest
+      (vi, &(imod->obj[i]), index , pnt, selsize, mat);
+    if (temp_distance < 0.)
+      continue;
+    if (distance < 0. || distance > temp_distance) {
+      distance      = temp_distance;
+      imod->cindex.object  = index->object;
+      imod->cindex.contour = index->contour;
+      imod->cindex.point   = index->point;
+      spnt = imodPointGet(imod);
+      if (spnt) {
+        vi->xmouse = spnt->x;
+        vi->ymouse = spnt->y;
+        if (mat)
+          vi->zmouse = spnt->z;
+      }
+    }
+  }
+  return distance;
+}
 
 static float imod_distance( float *x, float *y, Ipoint *pnt)
 {
@@ -424,6 +459,10 @@ void imodSelectionNewCurPoint(ImodView *vi, Imod *imod, Iindex indSave,
 
 /*
 $Log$
+Revision 4.11  2007/07/08 16:45:23  mast
+Added functions to count number of selected objects and move all contours in
+object to new object
+
 Revision 4.10  2007/06/04 15:03:45  mast
 Made nearest point function operate on rotated points if matrix supplied
 
