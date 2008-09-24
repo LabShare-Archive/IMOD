@@ -9,7 +9,7 @@
             <x>0</x>
             <y>0</y>
             <width>388</width>
-            <height>528</height>
+            <height>566</height>
         </rect>
     </property>
     <property name="caption">
@@ -61,6 +61,17 @@
             </property>
             <property name="text">
                 <string>Save &amp;&amp; restore position of Zap &amp;&amp; Info windows</string>
+            </property>
+        </widget>
+        <widget class="QCheckBox">
+            <property name="name">
+                <cstring>selectONcheckBox</cstring>
+            </property>
+            <property name="text">
+                <string>First mouse button selects points only in visible objects</string>
+            </property>
+            <property name="toolTip" stdset="0">
+                <string>Ignore objects that are OFF when attaching with mouse</string>
             </property>
         </widget>
         <widget class="QCheckBox">

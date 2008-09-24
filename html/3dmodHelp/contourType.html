@@ -1,7 +1,12 @@
 <head>
-<title>Contour Type</title>
+<title>Surface/Contour/Point Dialog</title>
 </head>
-<H2>Contour Type</H2>
+<H2>Surface/Contour/Point Dialog</H2>
+This dialog has a collection of controls for more advanced modeling features:
+defining and manipulating surface numbers for contours; adjusting some
+properties of contours; giving sizes to individual points; and assigning names
+to surfaces, contours or points.  There are also controls for the display of
+ghost contours from adjacent sections.
 <P>
 <H3>Surface controls</H3>
 <P>
@@ -52,13 +57,26 @@ shows the label of the current contour; simply enter or change text in this box.
 <H3>Point controls</H3>
 <P>
 It is possible to assign a size for each point.  Any point with an individual
-size will be displayed as a 3D sphere of this radius, even if the object type is
-not scattered points.  The units are pixels in the image file, i.e., unbinned
+size will be displayed as a 3D sphere of this radius, even if the object type
+is not scattered points.  The units are pixels in the image file, i.e.,
+unbinned
 pixels if images are loaded in binned.  Points without a size will still be
 displayed at the size specified for the object as a whole.  You can change a
 size either by typing a number into the text box (followed by <B>Enter</B>) or
-by using the slider.  If a point has no size, the text box displays global point
-size for the object and "-Default".
+by using the slider.  If a point has no size, the text box displays the global
+point size for the object and "-Default".
+<P>
+If <B>Set with mouse wheel</B> is checked, then you can adjust the size of the
+current point with the scroll wheel when the mouse is in a Zap window. 
+This feature will work for
+points that already have some size.  If a point does not have an individual
+size and the default size for the object is 0, then the wheel control is
+disabled. (This is to prevent inadvertent size changes while drawing ordinary
+planar contours.)  To use the wheel control in this case, click the slider
+in this dialog to get some size, then go back to the Zap window and adjust
+with the wheel.
+The change in size for one click of the wheel varies with zoom for zooms
+between 1 and 4; to get the smallest increment, zoom up to 4 or higher.
 <P>
 Each individual point can also have its own label.  The <B>Label</B> text box
 shows the label of the current point; simply enter or change text in this box.

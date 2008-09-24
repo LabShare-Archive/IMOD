@@ -28,6 +28,7 @@ void BehaviorForm::update()
     diaSetChecked(classicBox, mPrefs->classicSlicer);
     diaSetChecked(tooltipBox, mPrefs->tooltipsOn);
     diaSetChecked(startAtMidZBox, mPrefs->startAtMidZ);
+    diaSetChecked(selectONcheckBox, mPrefs->attachToOnObj);
     autoConAtStartBox->setCurrentItem(mPrefs->autoConAtStart);
     diaSetChecked(geomCheckBox, mPrefs->rememberGeom);
     diaSetSpinBox(f1f8StepSpinBox, mPrefs->bwStep);
@@ -55,6 +56,7 @@ void BehaviorForm::unload()
     mPrefs->classicSlicer = classicBox->isChecked();
     mPrefs->tooltipsOn = tooltipBox->isChecked();
     mPrefs->startAtMidZ = startAtMidZBox->isChecked();
+    mPrefs->attachToOnObj = selectONcheckBox->isChecked();
     mPrefs->autoConAtStart = autoConAtStartBox->currentItem();
     mPrefs->rememberGeom = geomCheckBox->isChecked();
     mPrefs->bwStep = f1f8StepSpinBox->value();

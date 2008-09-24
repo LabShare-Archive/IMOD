@@ -7,9 +7,13 @@ Descriptions below refer to the first, second, and third mouse
 buttons.  By default, these correspond to left, middle, and right 
 buttons of a 3-button mouse, but you can change these assignments in 
 the 3dmod Preferences dialog, accessed via the <B>Edit-Options</B> menu entry.
+<P>
+<A HREF = "#Toolbars">The Tool Bars</A>
+<BR><A HREF = "#HotKeys">Hot Keys Special to the Zap Window</A>
+<BR><A HREF = "#MovieMouse">Mouse Button Function in Movie Mode</A>
+<BR><A HREF = "#ModelMouse">Mouse Button Function in Model Mode</A>
 
-
-<H3>The Tool Bars</H3>
+<A NAME = "Toolbars"><H3>The Tool Bars</H3></A>
 <UL>
 <LI>The <B>up</B> and <B>down arrows</B> step the zoom factor up or down.
 <LI>The <B>zoom</B> edit box shows the current zoom factor and allows 
@@ -81,7 +85,9 @@ rather than the window.  The image
 coordinates of the lower left and upper right corners, and of 
 the center, are printed in the 3dmod info window.  There is also 
 a fragment of a command line for extracting the image from the 
-stack with "newstack".  This key also brings the Information 
+stack with <A HREF = "../man/trimvol.html">trimvol</A>; this is the same
+command used by the Extract File entry in the File menu. 
+This key also brings the Information 
 Window to the front of the display.
 <LI><B>R</B> resizes the window.  With the rubber band off, the window 
 changes, 
@@ -140,8 +146,7 @@ holding the key down allows points to be added continuously.
 </UL>
 For other keys, see <A HREF = "keyboard.html">3dmod Hot Keys</A>.
 
-
-<H3>Mouse button function in movie mode</H3>
+<A NAME = "MovieMouse"><H3>Mouse button function in movie mode</H3></A>
 <UL>
 <LI><B>First Button Click</B>: Select the current viewing point, marked by 
 a small cross.
@@ -154,12 +159,14 @@ window, or adjust the size of the rubber band.
 <LI><B>Third Button Click</B>: Start movie in backward direction, or stop movie.
 </UL>
 
-<H3>Mouse button function in model mode</H3>
+<A NAME = "ModelMouse"><H3>Mouse Button Function in Model Mode</H3></A>
 <UL>
 <LI><B>First Button Click</B>: Make the nearest visible model point be the 
 current model point.  If there is no point nearby, this detaches from 
 the current point and contour and selects a current viewing point 
-instead.
+instead.  To attach to points in any object, including ones that are turned
+off, there is an option in the <B>Behavior</B> panel of the 3dmod Preferences 
+dialog.
 <LI><B>First Button Drag</B>: Pan the image if it is larger than the 
 window, or adjust the size of the rubber band.
 <LI><B>Ctrl - First Button Click</B>: Selects the nearest visible point 
