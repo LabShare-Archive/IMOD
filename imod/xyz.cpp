@@ -585,11 +585,9 @@ void XyzWindow::B1Press(int x, int y)
   int mz;
   ImodView *vi   = xx->vi;
   Imod     *imod = vi->imod;
-  Ipoint pnt, *spnt;
+  Ipoint pnt;
   Iindex index;
-  int i;
-  float temp_distance;
-  float distance = -1.;
+  float distance;
   float selsize = IMOD_SELSIZE / xx->zoom;
   int box = Getxyz(x, y, &mx, &my, &mz);
 
@@ -615,27 +613,8 @@ void XyzWindow::B1Press(int x, int y)
     vi->xmouse = mx;
     vi->ymouse = my;
     vi->zmouse = mz;
-    vi->imod->cindex.contour = -1;
-    vi->imod->cindex.point = -1;
 
-    for (i = 0; i < imod->objsize; i++) {
-      index.object = i;
-      temp_distance = imod_obj_nearest
-        (vi, &(vi->imod->obj[i]), &index , &pnt, selsize);
-      if (temp_distance < 0.)
-        continue;
-      if (distance < 0. || distance > temp_distance) {
-        distance      = temp_distance;
-        vi->imod->cindex.object  = index.object;
-        vi->imod->cindex.contour = index.contour;
-        vi->imod->cindex.point   = index.point;
-        spnt = imodPointGet(vi->imod);
-        if (spnt) {
-          vi->xmouse = spnt->x;
-          vi->ymouse = spnt->y;
-        }
-      }
-    }
+    distance = imodAllObjNearest(vi, &index , &pnt, selsize);
     ivwBindMouse(xx->vi);
     imodDraw(vi, IMOD_DRAW_RETHINK | IMOD_DRAW_XYZ);
     return;
@@ -1782,8 +1761,10 @@ void XyzWindow::DrawModel()
     DrawGhost();
      
   for (ob = 0; ob < imod->objsize; ob++) {
-    imodSetObjectColor(ob);
     obj = &(imod->obj[ob]);
+    if (iobjOff(obj->flags))
+      continue;
+    imodSetObjectColor(ob);
     b3dLineWidth(obj->linewidth2);
     ifgSetupValueDrawing(obj, GEN_STORE_MINMAX1);
     for (co = 0; co < imod->obj[ob].contsize; co++)
@@ -2365,6 +2346,9 @@ void XyzGL::mouseMoveEvent( QMouseEvent * event )
 
 /*
 $Log$
+Revision 4.51  2008/08/19 20:01:40  mast
+Made it zoom with + as well as =
+
 Revision 4.50  2008/07/16 04:29:33  mast
 Made drag drawing respect contour limit
 
