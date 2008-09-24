@@ -1,7 +1,15 @@
 IMOD History
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+9/23/08: Made attach to nearest point consider only objects that are on, added
+a preference to select the old behavior.
+
+9/23/08: Added ability to adjust point size with scroll wheel.
+
+9/21/08: Added *join to file filter in startup list, added filters for PNG
+and JPEG.
+
 9/19/08: Fixed/finished ability to make tube meshes with different size
-segments.
+segments.  Fixed display of mesh and spheres with diameter -0.5.
 
 9/11/08: IMOD_3-12-18
 9/11/08: In Etomo fixed a null pointer exception which stopped execution in
@@ -13,7 +21,7 @@ Combine.
 9/5/08: In Etomo - PEET fixed a problem where nWeightGroup appeared in the .prm
 file when it was disabled in the dialog.
 
-8/26/08: In Etomo - NAD making sure that the clean up button works probably by
+8/26/08: In Etomo - NAD making sure that the clean up button works properly by
 asking the user to exit from files that will be deleted.
 
 8/22/08: IMOD_3-12-17
