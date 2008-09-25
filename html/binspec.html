@@ -18,7 +18,7 @@ bits are numbered from 0.
 
 <H3>The File Header</H3>
 
-All binary model files begin with a 8 byte ID followed by a 184 byte header.
+All binary model files begin with a 8 byte ID followed by a 232 byte header.
 The ID format begins with the IMOD file id, (IMOD = 0x494d4f44)
 followed by the 4 byte version id, (V1.2 =  0x56312e32).
 The end of the file is marked by an end of data marker, (IEOF = 0x49454f46).
@@ -26,7 +26,7 @@ The end of the file is marked by an end of data marker, (IEOF = 0x49454f46).
 <HR>
 <H3>The Model Data Structure</H3>
 <p>
-The Model structure data is 184 bytes long and contains the following data.
+The Model structure data is 232 bytes long and contains the following data.
 A lot of this data is used by the 3dmod program to retain user settings.
 <pre>
 Length Type Name          Description
@@ -87,7 +87,8 @@ with the following format.
 Length Type  Name       Description
 ------------------------------------------------------------------------------
 64     char  name       Name of Object. Null terminated string.
-64     uint             Extra data reserved for future use.
+64     uint             Extra data for future use, indexed by IOBJ_EX_ defines
+                          PNT_LIMIT: Limit on number of points per contour 
 
 4      int   contsize   Number of Contours in object.
 4      uint  flags      bit flags for object (IMOD_OBJFLAG...).
