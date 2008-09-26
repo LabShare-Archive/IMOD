@@ -1,5 +1,8 @@
 IMOD History
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+9/26/08: Added a -name option to the installer to change the name of the
+actual directory from IMOD.
+
 9/23/08: Made attach to nearest point consider only objects that are on, added
 a preference to select the old behavior.
 
