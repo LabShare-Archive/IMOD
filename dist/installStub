@@ -10,6 +10,8 @@ set rootname = "$this:t"
 set packname = $rootname:r.tar.gz
 set tempdir = IMODtempDir
 set installdir = ""
+set namedir = ""
+set nameopt = ""
 set custom = 0
 set skipopt = ""
 set scriptopt = ""
@@ -50,6 +52,18 @@ while ($#argv > 0)
             shift ; shift
             breaksw
 
+        case -na*:
+            set namedir = "$argv[2]"
+            set nameopt = "-name $namedir"
+            set spacetst = `echo $namedir | grep '[ /\\]'`
+            if ("$spacetst" != "") then
+                echo "The entry for -name must be a single directory name"
+                echo "with no spaces or directory separators"
+                exit 1
+            endif
+            shift ; shift
+            breaksw
+
         case -sc*:
             set sysdir = "$argv[2]"
             shift; shift
@@ -86,7 +100,6 @@ while ($#argv > 0)
             exit 1
     endsw
 end
-
 
 set sysfiles = ()
 
@@ -158,8 +171,14 @@ if ("$installdir" != "$defaultdir") set custom = 1
 
 if ($extract == 0) then
     echo ""
-    echo "This script will install IMOD in $installdir and rename"
-    echo "any previous version, or remove another copy of this version."
+    if ("$namedir" == "") then
+        echo "This script will install IMOD in $installdir and rename"
+        echo "any previous version, or remove another copy of this version."
+    else
+        echo "This script will install IMOD in $installdir and name it $namedir."
+        echo "It will first remove $namedir if it exists, and remove anything that"
+        echo "matches the imod_n.n.n name that this IMOD will unpack as"
+    endif
     echo ""
     if ($#sysfiles == 0 && "$skipopt" == "") then
         echo "It will copy $scripts[1] and $scripts[2] to $copyto"
@@ -215,7 +234,7 @@ endif
 # It has to be run by tcsh for Irix; there is some bug in csh
 set retval = 0
 if ($test == 0) then
-    tcsh -f $installer -dir "$installdir" $scriptopt $skipopt $g2copt $debopt $yesopt $packname
+    tcsh -f $installer -dir "$installdir" $nameopt $scriptopt $skipopt $g2copt $debopt $yesopt $packname
     set retval = $status
 endif
 
@@ -236,7 +255,11 @@ or specified location and set up startup files.
 Options can be added after the name of the package on the command line.  
 Options may be abbreviated.  The options are:
   -dir dir     Install IMOD within the given directory.  The directory must
-                 exist and you must have permission to write to it.  
+                 exist (unless -name is entered also) and you must have
+                 permission to write to it.  
+  -name dir    Rename the IMOD directory to the given name.  The script will
+                 automatically remove an existing version by this name and not
+                 offer to clean up of other versions
   -extract     Just extract the package and the real IMOD install script into
                  a directory named $tempdir, without installing
   -script dir  Place the IMOD startup scripts in the given directory.  On Linux
@@ -260,6 +283,9 @@ exit 0
 #  $Id$
 #
 #  $Log$
+#  Revision 3.18  2008/07/31 17:32:43  mast
+#  Modifications for Ubuntu/Debian installs
+#
 #  Revision 3.17  2008/06/17 17:09:30  mast
 #  Added -yes flag for automatic installs
 #
