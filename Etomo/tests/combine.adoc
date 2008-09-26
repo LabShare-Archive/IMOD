@@ -46,4 +46,5 @@ assert.file.exists = matchvol1.log~
 assert.file.exists = patchcorr.log~
 assert.file.exists = solvematch.log~
 sleep = 
+bn.replace-patch-vectors =
 bn.done =
