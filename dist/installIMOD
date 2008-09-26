@@ -10,6 +10,8 @@
 set installdir = ""
 set scriptdir = ""
 set custom = 0
+set namedir = "IMOD"
+set custname = 0
 set skipcopy = 0
 set keepg2c = 0
 set yesopt = 0
@@ -25,6 +27,17 @@ while ($#argv > 0)
             shift; shift
             breaksw
         
+        case -na*:
+            set namedir = "$argv[2]"
+            set spacetst = `echo $namedir | grep '[ /\\]'`
+            if ("$spacetst" != "") then
+                echo "The entry for -name must be a single directory name"
+                echo "with no spaces or directory separators"
+                exit 1
+            endif
+            shift ; shift
+            breaksw
+
         case -sc*:
             # Construct absolute path
             set scriptdir = "$argv[2]"
@@ -62,6 +75,8 @@ while ($#argv > 0)
             break
     endsw
 end
+
+if ("$namedir" != IMOD) set custname = 1
 
 # Set the package name from the argument and check it if there is one
 #
@@ -143,7 +158,7 @@ endsw
 if ("$installdir" == "") set installdir = $defaultdir
 if ("$installdir" != "$defaultdir") set custom = 1
 if ($os == windows && $custom == 1) then
-    \echo "In Window environment variables, set IMOD_DIR to "`cygpath -w "$installdir/IMOD"`
+    \echo "In Window environment variables, set IMOD_DIR to "`cygpath -w "$installdir/$namedir"`
 endif
 
 switch ($package)
@@ -170,6 +185,17 @@ set sysdir = /etc
 if (($os == linux && ! $ubuntu) || $os == windows) set sysdir = /etc/profile.d
 if ("$scriptdir" != "") set sysdir = "$scriptdir"
 
+# If there is a custom name, make the install directory
+#
+if ($custname) then
+    mkdir -p "$installdir"
+    if ($status) then
+        echo "An error occurred creating the install directory $installdir"
+        echo "Is the name correct?  Do you need to run as sudo or root?"
+        exit 1
+    endif
+endif
+
 if (! -d "$installdir") then
     echo "The install directory $installdir does not exist or is not a directory"
     exit 1
@@ -184,7 +210,7 @@ if (! -w "$installdir") then
     if ($os == windows) then
         echo gibberish > "$installdir/testfile"
         if ($status) then
-            echo "There is a error writing files to $installdir"
+            echo "There is an error writing files to $installdir"
             echo "Make sure the /etc/passwd and /etc/group files are up to date"
             exit 1
         endif
@@ -222,9 +248,16 @@ cd "$installdir"
 
 # If file exists as a link, just remove it
 #
-if (-l IMOD) then
+if (-l "$namedir") then
     echo "Removing link to previous version but leaving previous version"
-    \rm IMOD
+    \rm "$namedir"
+endif
+
+# If custom name, and that exists, remove it
+#
+if ($custname && -e "$namedir") then
+    echo "Removing an existing directory $namedir..."
+    \rm -r $namedir
 endif
 
 # Remove existing files by this name
@@ -241,7 +274,7 @@ else
     tar xzf "$packpath$package"
 endif
 
-if (-e IMOD) then
+if (! $custname && -e IMOD) then
 
     # If there is an existing file, first see if there is a version inside
     #
@@ -285,24 +318,24 @@ endif
 
 # Make link or rename
 #
-if ($os == windows || $os == osx) then
-    echo "Renaming $version to IMOD"
-    mv $version IMOD
+if ($os == windows || $os == osx || $custname) then
+    echo "Renaming $version to $namedir"
+    mv $version $namedir
 else
     echo "Linking $version to IMOD"
     ln -s $version IMOD
 endif
 
 set defaultstr = `echo $defaultdir/IMOD | sed '/\//s//\\\//g'`
-set installstr = `echo $installdir/IMOD | sed '/\//s//\\\//g'`
+set installstr = `echo $installdir/$namedir | sed '/\//s//\\\//g'`
 
-cd IMOD
+cd $namedir
 
 # Make the ubuntu scripts
 #
 if ($ubuntu) then
-    echo "if (-e $defaultdir/IMOD/$scripts[3]) source $defaultdir/IMOD/$scripts[3]" >! $scripts[1]
-    echo "[ -r $defaultdir/IMOD/$scripts[4] ] && source $defaultdir/IMOD/$scripts[4]" >! $scripts[2]
+    echo "if (-e $defaultdir/$namedir/$scripts[3]) source $defaultdir/$namedir/$scripts[3]" >! $scripts[1]
+    echo "[ -r $defaultdir/$namedir/$scripts[4] ] && source $defaultdir/$namedir/$scripts[4]" >! $scripts[2]
     if (! $skipcopy && \
       (-e /etc/profile.d/$scripts[3] || -e /etc/profile.d/$scripts[4])) then
         echo "Removing $scripts[3] and $scripts[4] from /etc/profile.d"
@@ -312,7 +345,7 @@ endif
 
 # Edit scripts in place before copying
 #
-if ($custom == 1) then
+if ($custom == 1 || $custname) then
     echo "Editing startup scripts for custom install location"
     foreach i ($scripts)
         sed "/$defaultstr/s//$installstr/g" $i >! custom.tmp
@@ -348,8 +381,11 @@ else if (! $skipcopy) then
                 endif
             endif
 
-            set already = `grep "^[^#].*source.*$installdir.*IMOD" $sysfil`
+            set already = `grep "^[^#].*source.*$installdir.*$namedir" $sysfil`
             if ($status) then
+
+                # We can really only detect wrong entries named IMOD
+                #
                 set wrong = `grep -i "^[^#].*source.*imod" $sysfil`
                 if ($status == 0 && $warned == 0) then
                     echo ""
@@ -359,7 +395,8 @@ else if (! $skipcopy) then
                     echo ""
                 endif
                 echo "Adding source of startup script $scripts[$ind] to $sysfil"
-                echo "\n# Set environment for IMOD" >> $sysfil
+                echo "" >> $sysfil
+                echo "# Set environment for IMOD" >> $sysfil
                 tail -n 2 $scripts[$ind] >> $sysfil
             else
                 echo "Source command already exists in $sysfil"
@@ -409,7 +446,8 @@ if ($os == linux) then
     # For ubuntu, set keepg2c if library not on the system
     #
     if ($ubuntu && "$syshas" == "" && ! $keepg2c) then
-        echo "\nUsing the libg2c in this package because there is none on the system."
+        echo ""
+        echo "Using the libg2c in this package because there is none on the system."
         set keepg2c = 1
     endif
 
@@ -427,22 +465,27 @@ if ($os == linux) then
     # Issue lots of different warnings
     #
     if ("$packhas" != "" && "$syshas" != "" && $keepg2c) then
-        echo "\nWARNING: libg2c is already on the system; if library conflicts occur,"
+        echo ""
+        echo "WARNING: libg2c is already on the system; if library conflicts occur,"
         echo "         reinstall IMOD without the -libg2c option or"
         echo "         remove libg2c from $installdir/IMOD/lib"
     else if ("$packhas" == "" && "$syshas" != "" && $keepg2c) then
-        echo "\nWARNING: libg2c is already on the system and not in this package"
+        echo ""
+        echo "WARNING: libg2c is already on the system and not in this package"
         echo "         your -libg2c option was ignored"
     else if ("$packhas" != "" && "$syshas" == "" && ! $keepg2c) then
-        echo "\nWARNING: there is no libg2c on this system."
+        echo ""
+        echo "WARNING: there is no libg2c on this system."
         echo "         You should install a system package for this if at all possible."
         echo "     Otherwise, reinstall IMOD with the -libg2c option."
     else if ("$packhas" == "" && "$syshas" == "" && ! $keepg2c) then
-        echo "\nWARNING: there is no libg2c on this system and none in this package."
+        echo ""
+        echo "WARNING: there is no libg2c on this system and none in this package."
         echo "    You should install a system package for this if at all possible."
         echo "    Otherwise, reinstall IMOD from a package that has it, with -libg2c option."
     else if ("$packhas" == "" && "$syshas" == "" && $keepg2c) then
-        echo "\nWARNING: there is no libg2c on this system and none in this package."
+        echo ""
+        echo "WARNING: there is no libg2c on this system and none in this package."
         echo "         Your -libg2c option was ignored"
         echo "         You should install a system package for this if at all possible."
         echo "         Otherwise, reinstall IMOD from a package that has libg2c."
@@ -460,25 +503,27 @@ echo ""
 echo "The installation of IMOD $vernum is complete."
 echo "You may need to start a new terminal window for changes to take effect"
 echo ""
-echo "IMOD-related files in $installdir :"
-cd ..
-ls -l | grep -i imod | grep -vi tempDir
-echo ""
-set oldlist = `\find .  -maxdepth 1 -type d -name 'imod_*.*[0-9]' -print | sed -e '/^\.\//s///g' -e "/imod_$vernum/d"`
-if ("$oldlist" != "") then
-    if ($yesopt) then
-        echo "Removing these other versions:"
-        echo "    " $oldlist
-        \rm -rf $oldlist
-    else
-        echo "Do you want to remove these other versions?"
-        echo "    " $oldlist
-        echo -n "Enter Y to remove them: "
-        set yesno = $<
-        if ("$yesno" == "Y" || "$yesno" == "y") \rm -rf $oldlist
+if (! $custname) then
+    echo "IMOD-related files in $installdir :"
+    cd ..
+    ls -l | grep -i imod | grep -vi tempDir
+    echo ""
+    set oldlist = `\find .  -maxdepth 1 -type d -name 'imod_*.*[0-9]' -print | sed -e '/^\.\//s///g' -e "/imod_$vernum/d"`
+    if ("$oldlist" != "") then
+        if ($yesopt) then
+            echo "Removing these other versions:"
+            echo "    " $oldlist
+            \rm -rf $oldlist
+        else
+            echo "Do you want to remove these other versions?"
+            echo "    " $oldlist
+            echo -n "Enter Y to remove them: "
+            set yesno = $<
+            if ("$yesno" == "Y" || "$yesno" == "y") \rm -rf $oldlist
+        endif
     endif
+    echo ""    
 endif
-echo ""    
 echo "If there are version-specific IMOD startup commands in individual user"
 echo " startup files (.cshrc, .bashrc, .bash_profile) they should be changed"
 echo " or removed."
@@ -491,6 +536,7 @@ Usage: installIMOD [options] [package file name]
     or using the specified package file.
   Options (may be abbreviated):
     -dir dir     Directory in which to install IMOD
+    -name dir    Name to give the IMOD directory itself
     -script dir  Directory in which to place the IMOD startup scripts
     -skip        Skip copying startup scripts or modifying system startup files
     -libg2c      Use libg2c in this IMOD package if it exists (Linux only)
@@ -498,13 +544,16 @@ Usage: installIMOD [options] [package file name]
                    copying startup scripts to /etc/profile.d and use libg2c if 
                    not present on the system - this option is set automatically
                    for Ubuntu
-    -ues         Remove older versions without asking for confirmation
+    -yes         Remove older versions without asking for confirmation
     -h, --help   Print this help
 EOF
 exit 0
 
 #
 #  $Log$
+#  Revision 3.23  2008/07/31 17:32:43  mast
+#  Modifications for Ubuntu/Debian installs
+#
 #  Revision 3.22  2008/06/17 17:09:30  mast
 #  Added -yes flag for automatic installs
 #
