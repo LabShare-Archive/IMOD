@@ -20,6 +20,10 @@
  * 
  * <p>
  * $Log$
+ * Revision 3.121  2008/05/03 00:42:33  sueh
+ * bug# 847 Passing a ProcessSeries instance to all processes that use
+ * process objects.  The goal is to pass then back to process done functions.
+ *
  * Revision 3.120  2008/01/31 20:19:24  sueh
  * bug# 1055 throwing a FileException when LogFile.getInstance fails.
  *
@@ -1604,7 +1608,14 @@ public class ProcessManager extends BaseProcessManager {
      runCommand(mv, axisID);
      }*/
     // Convert the new patchvector.mod
-    String[] imod2patch = { "imod2patch", DatasetFiles.PATCH_VECTOR_MODEL,
+    String command;
+    if (Utilities.isWindowsOS()) {
+      command = "imod2vatch";
+    }
+    else {
+      command = "imod2patch";
+    }
+    String[] imod2patch = { command, DatasetFiles.PATCH_VECTOR_MODEL,
         DatasetFiles.PATCH_OUT };
     runCommand(imod2patch, axisID, patchOut);
   }
