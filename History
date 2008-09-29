@@ -1,5 +1,7 @@
 IMOD History
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+9/29/08: Fixed Replace Patch Vectors on Windows.
+
 9/26/08: Added a -name option to the installer to change the name of the
 actual directory from IMOD.
 
