@@ -30,6 +30,9 @@ import etomo.type.JoinScreenState;
  * @version $Revision$
  * 
  * <p> $Log$
+ * <p> Revision 1.3  2008/01/31 20:25:48  sueh
+ * <p> bug# 1055 throwing a FileException when LogFile.getInstance fails.
+ * <p>
  * <p> Revision 1.2  2007/02/09 00:47:21  sueh
  * <p> bug# 962 Added tooltips.
  * <p>
@@ -37,14 +40,8 @@ import etomo.type.JoinScreenState;
  * <p> bug# 962 Class representing the boundary table.
  * <p> </p>
  */
-final class BoundaryTable {
+final class BoundaryTable implements Viewable {
   public static final String rcsid = "$Id$";
-
-  private final JPanel rootPanel = new JPanel();
-  private final JPanel pnlTable = new JPanel();
-  private final GridBagLayout layout = new GridBagLayout();
-  private final GridBagConstraints constraints = new GridBagConstraints();
-  private final RowList rowList = new RowList();
 
   //header
   //first row
@@ -72,6 +69,13 @@ final class BoundaryTable {
   private final HeaderCell header3AdjustedEnd = new HeaderCell("End");
   private final HeaderCell header3AdjustedStart = new HeaderCell("Start");
 
+  private final RowList rowList = new RowList();
+  private final JPanel rootPanel = new JPanel();
+  private final GridBagConstraints constraints = new GridBagConstraints();
+  private final JPanel pnlTable = new JPanel();
+  private final GridBagLayout layout = new GridBagLayout();
+
+  private final Viewport viewport;
   private final JoinManager manager;
   private final JoinDialog parent;
   private final JoinScreenState screenState;
@@ -80,20 +84,24 @@ final class BoundaryTable {
   private boolean rowChange = true;
   private JoinDialog.Tab tab = null;
 
-  BoundaryTable(JoinManager manager, JoinDialog joinDialog) {
+  BoundaryTable(final JoinManager manager, final JoinDialog joinDialog) {
     this.manager = manager;
     screenState = manager.getScreenState();
     metaData = manager.getJoinMetaData();
     parent = joinDialog;
+    viewport = new Viewport(this, joinDialog.getModelTabJComponent(),
+        joinDialog.getRejoinTabJComponent(), null, "Boundary");
     //construct panels
-    SpacedPanel pnlBorder = new SpacedPanel();
+    JPanel pnlBorder = new JPanel();
     //root panel
+    rootPanel.setFocusable(true);
     rootPanel.setLayout(new BoxLayout(rootPanel, BoxLayout.Y_AXIS));
-    rootPanel.add(pnlBorder.getContainer());
+    rootPanel.add(pnlBorder);
     //border pane
-    pnlBorder.setBoxLayout(BoxLayout.Y_AXIS);
+    pnlBorder.setLayout(new BoxLayout(pnlBorder, BoxLayout.X_AXIS));
     pnlBorder.setBorder(new EtchedBorder("Boundary Table").getBorder());
     pnlBorder.add(pnlTable);
+    pnlBorder.add(viewport.getPagingPanel());
     //table panel
     pnlTable.setLayout(layout);
     pnlTable.setBorder(LineBorder.createBlackLineBorder());
@@ -114,14 +122,30 @@ final class BoundaryTable {
    * not changed and rowChange is false.
    */
   void display() {
+    display(false);
+  }
+
+  public void repositionViewer() {
+    display(true);
+  }
+
+  public int size() {
+    return rowList.size();
+  }
+
+  /** 
+   * Updates and displays the table as necessary.  Does nothing if the tab has
+   * not changed and rowChange is false.  Always updates if force is true.
+   */
+  void display(final boolean force) {
     JoinDialog.Tab oldTab = tab;
     tab = parent.getTab();
-    if (oldTab == tab && !rowChange) {
+    if (!force && oldTab == tab && !rowChange) {
       return;
     }
     rowList.removeDisplay();
     pnlTable.removeAll();
-    addHeader();
+    addHeader(tab);
     addRows();
     manager.getMainPanel().repaint();
   }
@@ -152,48 +176,37 @@ final class BoundaryTable {
     return rootPanel;
   }
 
-  private void setToolTipText() {
-    String text = "Boundaries between sections.";
-    header1Boundaries.setToolTipText(text);
-    header2Boundaries.setToolTipText(text);
-    text = "The pairs of sections which define each boundary.";
-    header1Sections.setToolTipText(text);
-    header2Sections.setToolTipText(text);
-    header3Sections.setToolTipText(text);
-    text = "Describes how the final start and end values will change when the join is recreated, "
-        + "with a positive gap adding slices and a negative gap removing slices at the corresponding boundary.";
-    header1BestGap.setToolTipText(text);
-    header2BestGap.setToolTipText(text);
-    header3BestGap.setToolTipText(text);
-    header1Error
-        .setToolTipText("Deviations between transformed points extrapolated from above and below the corresponding boundary.");
-    header2MeanError.setToolTipText("Mean deviations.");
-    header2MaxError.setToolTipText("Maximum deviations.");
-    text = "End and start values used to create the original join.";
-    header1Original.setToolTipText(text);
-    header2OriginalEnd.setToolTipText(text);
-    header2OriginalStart.setToolTipText(text);
-    header3OriginalEnd
-        .setToolTipText("End values used to create the original join.");
-    header3OriginalStart
-        .setToolTipText("Start values used to create the original join.");
-    text = "End and start values which will be used to create the new join.";
-    header1Adjusted.setToolTipText(text);
-    header2AdjustedEnd.setToolTipText(text);
-    header2AdjustedStart.setToolTipText(text);
-    header3AdjustedEnd
-        .setToolTipText("End values which will be used to create the new join.");
-    header3AdjustedStart
-        .setToolTipText("Start values which will be used to create the new join.");
-  }
-
-  private void addHeader() {
+  private void addHeader(final JoinDialog.Tab tab) {
     if (tab == JoinDialog.Tab.MODEL) {
       addModelHeader();
     }
     else if (tab == JoinDialog.Tab.REJOIN) {
       addRejoinHeader();
     }
+  }
+
+  private void addModelHeader() {
+    //Header
+    //First row
+    constraints.anchor = GridBagConstraints.CENTER;
+    constraints.weightx = 0.0;
+    constraints.weighty = 0.0;
+    constraints.gridheight = 1;
+    constraints.gridwidth = 1;
+    header1Boundaries.add(pnlTable, layout, constraints);
+    constraints.weightx = 0.1;
+    header1BestGap.add(pnlTable, layout, constraints);
+    constraints.gridwidth = GridBagConstraints.REMAINDER;
+    header1Error.add(pnlTable, layout, constraints);
+    //second row
+    constraints.weightx = 0.0;
+    constraints.gridwidth = 1;
+    header2Boundaries.add(pnlTable, layout, constraints);
+    constraints.weightx = 0.1;
+    header2BestGap.add(pnlTable, layout, constraints);
+    header2MeanError.add(pnlTable, layout, constraints);
+    constraints.gridwidth = GridBagConstraints.REMAINDER;
+    header2MaxError.add(pnlTable, layout, constraints);
   }
 
   private void addRejoinHeader() {
@@ -236,42 +249,54 @@ final class BoundaryTable {
     header3AdjustedStart.add(pnlTable, layout, constraints);
   }
 
-  private void addModelHeader() {
-    //Header
-    //First row
-    constraints.anchor = GridBagConstraints.CENTER;
-    constraints.weightx = 0.0;
-    constraints.weighty = 0.0;
-    constraints.gridheight = 1;
-    constraints.gridwidth = 1;
-    header1Boundaries.add(pnlTable, layout, constraints);
-    constraints.weightx = 0.1;
-    header1BestGap.add(pnlTable, layout, constraints);
-    constraints.gridwidth = GridBagConstraints.REMAINDER;
-    header1Error.add(pnlTable, layout, constraints);
-    //second row
-    constraints.weightx = 0.0;
-    constraints.gridwidth = 1;
-    header2Boundaries.add(pnlTable, layout, constraints);
-    constraints.weightx = 0.1;
-    header2BestGap.add(pnlTable, layout, constraints);
-    header2MeanError.add(pnlTable, layout, constraints);
-    constraints.gridwidth = GridBagConstraints.REMAINDER;
-    header2MaxError.add(pnlTable, layout, constraints);
+  private void setToolTipText() {
+    String text = "Boundaries between sections.";
+    header1Boundaries.setToolTipText(text);
+    header2Boundaries.setToolTipText(text);
+    text = "The pairs of sections which define each boundary.";
+    header1Sections.setToolTipText(text);
+    header2Sections.setToolTipText(text);
+    header3Sections.setToolTipText(text);
+    text = "Describes how the final start and end values will change when the join is recreated, "
+        + "with a positive gap adding slices and a negative gap removing slices at the corresponding boundary.";
+    header1BestGap.setToolTipText(text);
+    header2BestGap.setToolTipText(text);
+    header3BestGap.setToolTipText(text);
+    header1Error
+        .setToolTipText("Deviations between transformed points extrapolated from above and below the corresponding boundary.");
+    header2MeanError.setToolTipText("Mean deviations.");
+    header2MaxError.setToolTipText("Maximum deviations.");
+    text = "End and start values used to create the original join.";
+    header1Original.setToolTipText(text);
+    header2OriginalEnd.setToolTipText(text);
+    header2OriginalStart.setToolTipText(text);
+    header3OriginalEnd
+        .setToolTipText("End values used to create the original join.");
+    header3OriginalStart
+        .setToolTipText("Start values used to create the original join.");
+    text = "End and start values which will be used to create the new join.";
+    header1Adjusted.setToolTipText(text);
+    header2AdjustedEnd.setToolTipText(text);
+    header2AdjustedStart.setToolTipText(text);
+    header3AdjustedEnd
+        .setToolTipText("End values which will be used to create the new join.");
+    header3AdjustedStart
+        .setToolTipText("Start values which will be used to create the new join.");
   }
 
   /**
-   * Displays the rows.  Updates the rows when rowChange is true.
+   * Displays the rows.  Updates the rows when rowChange is true.  The number of
+   * rows to add is the section table size minus 1.
    */
   private void addRows() {
     if (rowChange) {
       rowChange = false;
-      rowList.clear();
+      rowList.clear(viewport);
       parent.getSectionTable().getMetaData(metaData);
-      rowList.add(parent.getSectionTableSize(), metaData, screenState,
-          pnlTable, layout, constraints);
+      rowList.add(parent.getSectionTableSize() - 1, metaData, screenState,
+          pnlTable, layout, constraints, viewport);
     }
-    rowList.display(tab);
+    rowList.display(tab, viewport);
   }
 
   /**
@@ -284,49 +309,50 @@ final class BoundaryTable {
     /**
      * Clears the list.
      */
-    void clear() {
+    private void clear(final Viewport viewport) {
       list.clear();
+
     }
 
     /**
      * @return the list size
      */
-    int size() {
+    private int size() {
       return list.size();
     }
 
     /**
      * Runs BoundaryRow.removeDisplay().
      */
-    void removeDisplay() {
+    private void removeDisplay() {
       for (int i = 0; i < list.size(); i++) {
         get(i).removeDisplay();
       }
     }
 
     /**
-     * Runs BoundaryRow.display().
+     * BoundaryRow.display() on rows that are in the viewer.
      */
-    void display(JoinDialog.Tab tab) {
+    private void display(final JoinDialog.Tab tab, final Viewport viewport) {
       for (int i = 0; i < list.size(); i++) {
-        get(i).display(tab);
+        get(i).display(i, viewport, tab);
       }
     }
 
-    void setXfjointomoResult(BaseManager manager) throws LogFile.ReadException,
-        LogFile.FileException {
+    private void setXfjointomoResult(final BaseManager manager)
+        throws LogFile.ReadException, LogFile.FileException {
       for (int i = 0; i < list.size(); i++) {
         get(i).setXfjointomoResult(manager);
       }
     }
 
-    void getScreenState(JoinScreenState screenState) {
+    private void getScreenState(final JoinScreenState screenState) {
       for (int i = 0; i < list.size(); i++) {
         get(i).getScreenState(screenState);
       }
     }
 
-    void getMetaData(JoinMetaData metaData) {
+    private void getMetaData(final JoinMetaData metaData) {
       for (int i = 0; i < list.size(); i++) {
         get(i).getMetaData(metaData);
       }
@@ -334,17 +360,19 @@ final class BoundaryTable {
 
     /**
      * Adds new BoundaryRow instances to the list.  The number of instances
-     * added equals size - 1.  The number parameter in the BoundaryRow
+     * added equals size.  The number parameter in the BoundaryRow
      * constructor starts at 1.
      * @param size
      * @param panel
      * @param layout
      * @param constraints
      */
-    void add(int size, ConstJoinMetaData metaData, JoinScreenState screenState,
-        JPanel panel, GridBagLayout layout, GridBagConstraints constraints) {
-      for (int i = 1; i < size; i++) {
-        list.add(new BoundaryRow(i, metaData, screenState, panel, layout,
+    private void add(final int size, final ConstJoinMetaData metaData,
+        final JoinScreenState screenState, final JPanel panel,
+        final GridBagLayout layout, final GridBagConstraints constraints,
+        final Viewport viewport) {
+      for (int i = 0; i < size; i++) {
+        list.add(new BoundaryRow(i + 1, metaData, screenState, panel, layout,
             constraints));
       }
     }
@@ -353,7 +381,7 @@ final class BoundaryTable {
      * @param index
      * @return an element of the list
      */
-    private BoundaryRow get(int index) {
+    private BoundaryRow get(final int index) {
       return (BoundaryRow) list.get(index);
     }
   }
