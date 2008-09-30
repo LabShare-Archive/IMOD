@@ -77,7 +77,7 @@ public slots:
   void changeSmoothTensileFract( int value );
   void changeReducePts();
   
-  void changeDeformCircleRadius( float value, bool accel=false );
+  void changeSculptCircleRadius( float value, bool accel=false );
   void clearExtraObj();
   
  protected:
@@ -89,7 +89,7 @@ public slots:
   
   QVButtonGroup *typeButtonGroup;
   QRadioButton *typeRadio_Normal;
-  QRadioButton *typeRadio_Deform;
+  QRadioButton *typeRadio_Sculpt;
   QRadioButton *typeRadio_Join;
   QRadioButton *typeRadio_Transform;
   QRadioButton *typeRadio_Eraser;
@@ -119,10 +119,10 @@ public slots:
 //-------------------------------
 //## CONSTANTS:
 
-enum drawmodes      { DM_NORMAL, DM_DEFORM, DM_JOIN, DM_TRANSFORM, DM_ERASER,
-                      DM_RESIZEPT };
+enum drawmodes      { DM_NORMAL, DM_SCULPT, DM_JOIN, DM_TRANSFORM, DM_ERASER,
+                      DM_WARP };
 enum smoothmodes    { RD_TOL, RD_MINAREA };
-enum wheelbehaviour { WH_NONE, WH_DEFORMCIRCLE, WH_SLICES, WH_CONTS, WH_PTS, WH_PTSIZE };
+enum wheelbehaviour { WH_NONE, WH_SCULPTCIRCLE, WH_SLICES, WH_CONTS, WH_PTS, WH_PTSIZE };
 enum dkeybehavior   { DK_NONE, DK_TOEND, DK_NEARESTEND, DK_DELETEPT, DK_DELETECONT,
                       DK_REMOVEPTSIZE, DK_REMOVEALLPTSIZES };
 
@@ -133,7 +133,7 @@ enum sortcriteria   { SORT_NUMPTS, SORT_LENGTH, SORT_AREA, SORT_CLOCKWISEAREA,
                       SORT_PTX, SORT_PTY, SORT_PTZ,
                       SORT_PTSIZE, SORT_PTGREY, SORT_NUMOPTIONS };
 
-const int NUM_SAVED_VALS = 19;
+const int NUM_SAVED_VALS = 18;
 
 //-------------------------------
 //## DRAWINGTOOLS DATA STRUCTURE:
@@ -159,7 +159,7 @@ struct DrawingToolsData   // contains all local plugin data
   float  draw_smoothTensileFract;   // tensile fraction used by the catumull-rom spline
                                     //  algorithm in the "cont_addPtsSmooth" function
                                     //  NOTE: 0=straight, 1.5=smooth, 2.0>=very bendy
-  float  draw_deformRadius;         //  the radius, in pixels, of the deformation circle
+  float  draw_sculptRadius;         //  the radius, in pixels, of the sculpting circle
   
   
   //## SETTINGS:
@@ -172,9 +172,8 @@ struct DrawingToolsData   // contains all local plugin data
                                 //   PageUp or PageDown is pressed
   
   bool   useNumKeys;            // intercepts number keys [1]-[5] to change draw mode
-  bool   markTouchedContsAsKey; // if true: any contour modified with deform changes
+  bool   markTouchedContsAsKey; // if true: any contour modified with sculpt changes
                                 //  to unstippled
-  bool   selectVisibleOnly;     // if true: only visible points are selected on button 1
   int    wheelResistance;       // the higher the value, the slower mouse scrolling works
   bool   showMouseInModelView;  // shows the extra object in the model view
   
@@ -256,17 +255,22 @@ int edit_changeSelectedSlice( int changeZ, bool redraw, bool snapToEnds=true );
 
 int edit_addContourToObj( Iobj *obj, Icont *cont, bool enableUndo );
 int edit_removeAllFlaggedContoursFromObj( Iobj *obj );
-bool edit_selectContourPtNearCoordsCurrObj( float x, float y, int z, float distTolerance);
+//bool edit_selectContourPtNearCoordsCurrObj( float x, float y, int z, float distTolerance);
+bool edit_selectNearPtInCurrObj(Ipoint *centerPt, float distTol, float distTolCurrCont, bool countInsideCurrCont);
 bool edit_selectVisiblePtNearCoords( Ipoint *mouse, float distScreenPix);
 
 bool edit_copiedContIfDiffSlice( bool selectNewCont );
 
-void edit_executeDeformStart();
-void edit_executeDeform();
-void edit_executeDeformPush( Ipoint center, float radius );
-void edit_executeDeformPinch( Ipoint center, float radius );
-void edit_executeDeformEnd();
+void edit_executeSculptStart();
+void edit_executeSculpt();
+void edit_executeSculptPush( Ipoint center, float radius );
+void edit_executeSculptPinch( Ipoint center, float radius );
+void edit_executeSculptEnd();
 void edit_executeJoinEnd();
+
+void edit_executeWarpStart();
+void edit_executeWarp();
+void edit_executeWarpEnd();
 
 void edit_inversePointsInContour(bool reorder);
 int  edit_reduceCurrContour();
@@ -277,10 +281,14 @@ int edit_eraseContsInCircle( Ipoint center, float radius);
 int edit_erasePointsInCircle( Ipoint center, float radius );
 bool edit_breakPointsInCircle( Ipoint center, float radius );
 
-void edit_breakCurrContIntoSimpleContsAndDeleteSmallest ();    
-void edit_makeCurrContSimple ();                
-void edit_deleteCurrContIfTooSmall();              
-void edit_joinCurrContWithAnyTouching();            
+void edit_breakCurrContIntoSimpleContsAndDeleteSmallest();
+void edit_makeCurrContSimple();       
+void edit_deleteCurrContIfTooSmall();
+void edit_joinCurrContWithAnyTouching();
+
+float edit_selectClosestPtInCurrCont( Ipoint *givenPt );
+int   edit_addPtsCurrCont( float maxDistBetweenPts );
+int   edit_addPtsCurrContInRadius( Ipoint *centerPt, float radius, float maxDistPts );
 
 bool edit_selectNextOverlappingCont();
 bool edit_findOverlappingCont( int objIdx, int contIdx,

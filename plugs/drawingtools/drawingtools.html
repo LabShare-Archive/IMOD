@@ -10,25 +10,29 @@ rapidly draw, modidy and erase contours. To use these tools make sure
 plugin window is open and you've selected the <i>"Draw Mode"</i> 
 you wish to use.
 Notice in the Zap window that many of the tools use a red
-<b>"deform circle"</b>, the size of which can be changed using mouse
+<b>"sculpt circle"</b>, the size of which can be changed using mouse
 wheel or the keys [q] and [w].<br>
 <br>
 <b>List of Drawing Modes</b><br>
 --------------------------<br><br>
 <ol>
 <li><b>Normal</b> - lets you use normal contour drawing behavior.</li>
-<li><b>Deform</b> - lets you quickly draw contours by holding the point 
+<li><b>Sculpt</b> - lets you quickly draw contours by holding the point 
 addition mouse button <i>[second_button]</i> and pushing the contour 
-outwards or inwards with the deform circle. Holding down <i>[shift]</i> 
+outwards or inwards with the sculpt circle. Holding down <i>[shift]</i> 
 as well lets you will pinch contours toward the center instead.</li>
-<li><b>Join</b> - is similar to Deform, but also allows you to merge 
+<li><b>Join</b> - is similar to Sculpt, but also allows you to merge 
 two contours by pushing one contour over another or split a contour 
 by pushing a gap through the middle. </li>
 <li><b>Transform</b> - allows you to move <i>[second_button]</i>, 
 <i>scale [third_button]</i>, rotate <i>[shift+second_button]</i> or 
 stretch <i>[shift+third_button]</i> the currently selected contour.</li>
 <li><b>Eraser</b> - allows you to delete contours <i>[second_button]</i> 
-or points <i>[third_button]</i> touching the deform circle. 
+or points <i>[third_button]</i> touching the sculpt circle. 
+Holding <i>[shift+third_button]</i> lets you break apart contours.</li>
+<li><b>Warp</b> - allows you to quickly correct bad regions of contour
+with the <i>[second_button]</i> or <i>[third_button]</i> by warping
+the points closest to the sculpt circle. 
 Holding <i>[shift+third_button]</i> lets you break apart contours.</li>
 </ol>
 <br><br>
@@ -38,9 +42,9 @@ Holding <i>[shift+third_button]</i> lets you break apart contours.</li>
 Select cooresponding draw mode (see above)<br>
 <br>
 <b>[w]</b>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
-Decrease size deform circle (hold shift to go faster)<br>
+Decrease size sculpt circle (hold shift to go faster)<br>
 <b>[q]</b>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
-Increase size deform circle (hold shift to go faster)<br>
+Increase size sculpt circle (hold shift to go faster)<br>
 <br>
 <b>[r]</b>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
 Reduce current contour<br>
@@ -85,7 +89,7 @@ Hold Shift down to alter the behavior of certain draw modes<br>
 Holding and dragging [shift+first_button] allows you to quickly
 scroll up and down the slices.<br>
 <br>
-Be warned that the deform and join tool were designed for 2D 
+Be warned that the sculpt and join tool were designed for 2D 
 closed contours and so I would not recommend using these tools 
 with open or scattered contours which span multiple slices.<br>
 <br>
@@ -94,7 +98,7 @@ copy it to nearby slices by simply scrolling to a different
 and mouse clicking [second_button]. In this way transform can
 be useful to quickly mark-up simple shapes.
 <br>
-The deform tool can become sluggish for objects with numerous contours. 
+The sculpt tool can become sluggish for objects with numerous contours. 
 To improve performance you should consider adding an extra object and 
 then use <i>'edit > object > move'</i> to merge the contours into the 
 desired object periodically.<br> 

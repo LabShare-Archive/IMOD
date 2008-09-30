@@ -15,6 +15,9 @@
     $Revision$
 
     $Log$
+    Revision 1.22  2008/08/26 03:20:10  tempuser
+    fixed ivwSetTopZapZoom call
+
     Revision 1.21  2008/08/25 09:45:40  tempuser
     *** empty log message ***
 
@@ -161,17 +164,17 @@ int imodPlugKeys(ImodView *vw, QKeyEvent *event)
      keysym != Qt::Key_X && keysym != Qt::Key_C && keysym != Qt::Key_V )
     return 0;
   
-  if( !plug.useNumKeys && keysym >= Qt::Key_1 && keysym <= Qt::Key_5  )
+  if( !plug.useNumKeys && keysym >= Qt::Key_1 && keysym <= Qt::Key_6  )
     return 0;
   
   switch(keysym)
   {
     case Qt::Key_Q:
-      plug.window->changeDeformCircleRadius( (shift) ? -5 : -1 );
+      plug.window->changeSculptCircleRadius( (shift) ? -5 : -1 );
       plug.window->drawExtraObject(true);
       break;
     case Qt::Key_W: 
-      plug.window->changeDeformCircleRadius( (shift) ? 5 : 1 );
+      plug.window->changeSculptCircleRadius( (shift) ? 5 : 1 );
       plug.window->drawExtraObject(true);
       break;
     case Qt::Key_R:
@@ -248,7 +251,7 @@ int imodPlugKeys(ImodView *vw, QKeyEvent *event)
       plug.window->changeTypeSelected( DM_NORMAL ); 
       break;
     case Qt::Key_2:
-      plug.window->changeTypeSelected( DM_DEFORM ); 
+      plug.window->changeTypeSelected( DM_SCULPT ); 
       break;
     case Qt::Key_3:
       plug.window->changeTypeSelected( DM_JOIN ); 
@@ -259,7 +262,10 @@ int imodPlugKeys(ImodView *vw, QKeyEvent *event)
     case Qt::Key_5:
       plug.window->changeTypeSelected( DM_ERASER ); 
       break;
-    
+    case Qt::Key_6:
+      plug.window->changeTypeSelected( DM_WARP ); 
+      break;
+      
     default:
       keyhandled = 0;
       break;
@@ -287,21 +293,20 @@ void imodPlugExecute(ImodView *inImodView)
   
   if( !plug.initialized )
   {
-    plug.drawMode                 = DM_DEFORM;
+    plug.drawMode                 = DM_SCULPT;
     plug.draw_reducePts           = 0;
     plug.draw_reducePtsTol        = 0.05;
     plug.draw_reducePtsMinArea    = 0.5;
     plug.draw_reducePtsOpt        = RD_TOL;
     plug.draw_smoothMinDist       = 5;
     plug.draw_smoothTensileFract  = 0.5;
-    plug.draw_deformRadius        = 30.0;
+    plug.draw_sculptRadius        = 30.0;
     
-    plug.wheelBehav               = WH_DEFORMCIRCLE;
+    plug.wheelBehav               = WH_SCULPTCIRCLE;
     plug.dKeyBehav                = DK_TOEND;
     plug.pgUpDownInc              = 1;
     plug.useNumKeys               = true;
     plug.markTouchedContsAsKey    = false;
-    plug.selectVisibleOnly        = false;
     plug.wheelResistance          = 100;
     plug.showMouseInModelView     = false;
     plug.testIntersetAllObjs      = true;
@@ -385,24 +390,23 @@ int imodPlugEvent(ImodView *vw, QEvent *event, float imx, float imy)
           newZoom = 0.0001;
         
         if( newZoom != zoom )
-        {
           ivwSetTopZapZoom( plug.view, newZoom, true );
-          //ivwRedraw(plug.view);
-        }
       }
-      return 0;
+      return 1;
     }
     
     switch( plug.wheelBehav )
     {
-      case(WH_DEFORMCIRCLE):
+      case(WH_SCULPTCIRCLE):
       {
-        if( plug.drawMode == DM_DEFORM
+        if( plug.drawMode == DM_SCULPT
             || plug.drawMode == DM_JOIN
-            || plug.drawMode == DM_ERASER )
+            || plug.drawMode == DM_ERASER
+            || plug.drawMode == DM_WARP )
         {
-          plug.window->changeDeformCircleRadius( scrollAmount, plug.shiftDown );
+          plug.window->changeSculptCircleRadius( scrollAmount, plug.shiftDown );
           plug.window->drawExtraObject(true);
+          return 1;
         }
         break;
       }
@@ -410,6 +414,7 @@ int imodPlugEvent(ImodView *vw, QEvent *event, float imx, float imy)
       case(WH_SLICES):
       {
         edit_changeSelectedSlice( scrollAmountInt, true );
+        return 1;
         break;
       }
       
@@ -425,6 +430,7 @@ int imodPlugEvent(ImodView *vw, QEvent *event, float imx, float imy)
         imodSetIndex(imod, objIdx, contIdx, 0);
         plug.window->drawExtraObject(false);
         ivwRedraw(plug.view);
+        return 1;
         break;
       }
       
@@ -440,6 +446,7 @@ int imodPlugEvent(ImodView *vw, QEvent *event, float imx, float imy)
         imodSetIndex(imod, objIdx, contIdx, ptIdx);
         plug.window->drawExtraObject(false);
         ivwRedraw(plug.view);
+        return 1;
         break;
       }
 
@@ -457,6 +464,7 @@ int imodPlugEvent(ImodView *vw, QEvent *event, float imx, float imy)
         imodPointSetSize(cont,ptIdx,ptSize);
         plug.window->drawExtraObject(false);
         ivwRedraw(plug.view);
+        return 1;
         break;
       }
     }
@@ -509,7 +517,7 @@ int imodPlugMouse(ImodView *vw, QMouseEvent *event, float imx, float imy,
   plug.changeX = plug.mouse.x - plug.mousePrev.x;
   plug.changeY = plug.mouse.y - plug.mousePrev.y;
   
-//## REGENERATE DEFORM CIRCLE:
+//## REGENERATE SCULPT CIRCLE:
   
   plug.window->drawExtraObject(false);
   if( plug.showMouseInModelView )
@@ -555,27 +563,7 @@ int imodPlugMouse(ImodView *vw, QMouseEvent *event, float imx, float imy,
     edit_changeSelectedSlice( plug.changeY * zapZoom, true );
     return (1);
   }
-  
-  //## IF BUTTON 1 PRESSED, SELECT VISIBLE CONTOUR:   //%%%%% NOT WORKING PROPERLY YET
-  
-  if ( plug.selectVisibleOnly && plug.but1Pressed && !plug.but2Down && !plug.but3Down )
-  {
-    edit_setZapLocation( imx, imy, plug.mouse.z, false );//return 0;
-    
-    bool ptSelected = edit_selectVisiblePtNearCoords( &plug.mouse, 6.0f);
-    //ivwDraw( plug.view, IMOD_DRAW_XYZ | IMOD_DRAW_NOSYNC );    
-    //ivwRedraw( plug.view );
-    //if(!ptSelected)
-    //  edit_setZapLocation( imx, imy, plug.mouse.z, false );//return 0;
-    //float zoom = 1.0f;
-    //ivwGetTopZapZoom(plug.view, &zoom);
-    //ivwSetTopZapZoom(plug.view, zoom);    //%%%% WILL ASK DAVID TO CREATE
-    
-    //ivwSetLocationPoint(plug.view, &plug.mouse);
-    ivwDraw( plug.view, IMOD_DRAW_XYZ );
-    return (1);
-  }
-  
+   
   
   //## EXIT EARLY IF NO ACTION IS NEEDED:
     
@@ -583,30 +571,28 @@ int imodPlugMouse(ImodView *vw, QMouseEvent *event, float imx, float imy,
     ( plug.but2Pressed
       || plug.but2Down
       || plug.but2Released
-      || ((plug.drawMode==DM_TRANSFORM || plug.drawMode==DM_ERASER) && plug.but3Down) );
+      || ( plug.but3Down && (  plug.drawMode==DM_TRANSFORM
+                              || plug.drawMode==DM_ERASER  
+                              || plug.drawMode==DM_WARP ) ) );
   
   if ( !(actionNeeded) )            // if no action is needed: do nothing
     return (2);
   
-  //if ( !isCurrObjValidAndShown() ) {    // if object is not valid: exit
-  //  wprint("ERROR: invalidObject");
-  //  return (2);
-  //}
   
 //## PERFORM ACTION:
   
   switch( plug.drawMode )
   {
-    case (DM_DEFORM):
+    case (DM_SCULPT):
     {
       if( plug.but2Pressed ) {
-        edit_executeDeformStart();
+        edit_executeSculptStart();
       }
       else if ( plug.but2Down ) {
-        edit_executeDeform();
+        edit_executeSculpt();
       }
       else if( plug.but2Released ) {
-        edit_executeDeformEnd();
+        edit_executeSculptEnd();
       }
       break;
     }
@@ -614,10 +600,10 @@ int imodPlugMouse(ImodView *vw, QMouseEvent *event, float imx, float imy,
     case (DM_JOIN):
     {
       if( plug.but2Pressed ) {
-        edit_executeDeformStart();
+        edit_executeSculptStart();
       }
       else if ( plug.but2Down ) {
-        edit_executeDeform();
+        edit_executeSculpt();
       }
       else if( plug.but2Released ) {
         edit_executeJoinEnd();
@@ -640,7 +626,7 @@ int imodPlugMouse(ImodView *vw, QMouseEvent *event, float imx, float imy,
               cont_translate( cont, plug.changeX, plug.changeY );
             }
           }
-          else if (plug.but3Down )        // rotate currently selected contour
+          else if ( plug.but3Down )        // rotate currently selected contour
           {
             undoContourDataChgCC( plug.view );
             float scaleX = 1.0f + (plug.changeX / 100.0f);
@@ -682,25 +668,39 @@ int imodPlugMouse(ImodView *vw, QMouseEvent *event, float imx, float imy,
     {
       if( !plug.shiftDown )
       {
-        if ( plug.but2Down )              // delete contours touching deform circle
+        if ( plug.but2Down )              // delete contours touching sculpt circle
         {
-          edit_eraseContsInCircle(plug.mouse, plug.draw_deformRadius);
+          edit_eraseContsInCircle(plug.mouse, plug.draw_sculptRadius);
         }
-        else if (plug.but3Down )          // delete points within deform circle
+        else if (plug.but3Down )          // delete points within sculpt circle
         {  
-          edit_erasePointsInCircle(plug.mouse, plug.draw_deformRadius);
+          edit_erasePointsInCircle(plug.mouse, plug.draw_sculptRadius);
         }
       }
       else
       {
-        if ( plug.but2Down )              // delete contours touching deform circle  
+        if ( plug.but2Down )              // delete contours touching sculpt circle  
         {
-          edit_breakPointsInCircle(plug.mouse, plug.draw_deformRadius);
+          edit_breakPointsInCircle(plug.mouse, plug.draw_sculptRadius);
         }
       }
       break;
     }
     
+    case (DM_WARP):
+    {
+      if( plug.but2Pressed || plug.but3Pressed ) {
+        edit_executeWarpStart();
+      }
+      else if ( plug.but2Down || plug.but3Down ) {
+        edit_executeWarp();
+      }
+      else if( plug.but2Released || plug.but3Released ) {
+        edit_executeWarpEnd();
+      }
+      break;
+    }      
+      
     default:    // DM_NORMAL
     {
       return (2);
@@ -749,10 +749,10 @@ DialogFrame(parent, 2, buttonLabels, buttonTips, true, "Drawing Tools", "", name
   typeRadio_Normal->setFocusPolicy(QWidget::NoFocus);
   QToolTip::add(typeRadio_Normal, "Contours are drawn normally");
   
-  typeRadio_Deform = new QRadioButton("Deform        [2]", typeButtonGroup);
-  typeRadio_Deform->setFocusPolicy(QWidget::NoFocus);
-  QToolTip::add(typeRadio_Deform, "Draw and modify closed contours "
-                "quickly using the deform circle to push or pinch lines");
+  typeRadio_Sculpt = new QRadioButton("Sculpt        [2]", typeButtonGroup);
+  typeRadio_Sculpt->setFocusPolicy(QWidget::NoFocus);
+  QToolTip::add(typeRadio_Sculpt, "Draw and modify closed contours "
+                "quickly using the sculpt circle to push or pinch lines");
   
   typeRadio_Join = new QRadioButton("Join              [3]", typeButtonGroup);
   typeRadio_Join->setFocusPolicy(QWidget::NoFocus);
@@ -766,6 +766,11 @@ DialogFrame(parent, 2, buttonLabels, buttonTips, true, "Drawing Tools", "", name
   typeRadio_Eraser = new QRadioButton("Eraser          [5]", typeButtonGroup);
   typeRadio_Eraser->setFocusPolicy(QWidget::NoFocus);
   QToolTip::add(typeRadio_Eraser, "Erase contours instantly by clicking them");
+  
+  typeRadio_Sculpt = new QRadioButton("Warp           [6]", typeButtonGroup);
+  typeRadio_Sculpt->setFocusPolicy(QWidget::NoFocus);
+  QToolTip::add(typeRadio_Sculpt, "Quicly correct bad regions of contour by "
+                "dragging/warping the edges");
   
   changeTypeSelected( plug.drawMode );
   
@@ -790,7 +795,7 @@ DialogFrame(parent, 2, buttonLabels, buttonTips, true, "Drawing Tools", "", name
                    SLOT(changeReducePts()));
   QToolTip::add(reducePtsCheckbox, 
                 "Automatically applies smoothing to any contour drawn with the "
-                "\n'deform' and 'join' tools upon release of the mouse button");
+                "\n'sculpt' and 'join' tools upon release of the mouse button");
   gridLayout1->addMultiCellWidget(reducePtsCheckbox, 1, 1, 0, 1);
   
   
@@ -944,7 +949,7 @@ DialogFrame(parent, 2, buttonLabels, buttonTips, true, "Drawing Tools", "", name
 
 
 //------------------------
-//-- Accesses the extra object and draw a red deform circle and/or other
+//-- Accesses the extra object and draw a red sculpt circle and/or other
 //-- reference contour at the last recorded position of the mouse. What is
 //-- drawn depends on what drawing mode is selected.
 
@@ -965,6 +970,7 @@ bool DrawingTools::drawExtraObject( bool redraw )
   
   //## GET Z VALUE:
   
+  Imod *imod  = ivwGetModel(plug.view);
   int ix, iy,iz;
   ivwGetLocation(plug.view, &ix, &iy, &iz);
   plug.mouse.z = iz;
@@ -973,20 +979,20 @@ bool DrawingTools::drawExtraObject( bool redraw )
   float y = plug.mouse.y;
   float z = plug.mouse.z;
   
-  float radius = plug.draw_deformRadius;
+  float radius = plug.draw_sculptRadius;
   float hRadius = radius*0.5f;
   float qRadius = radius*0.25f;
   
+  float zapZoom = 1.0f;                 // gets the zoom of the top-most zap window
+  int noZap = ivwGetTopZapZoom(plug.view, &zapZoom); 
+  float sc = fDivide( 1.0f, zapZoom);   // tomogram distance for one screen pixel 
   
   //## IF CHANING Z HEIGHT: DRAW RECTANGLE REPRESENTING SLICES
   
   if( plug.but1Down && plug.shiftDown )   // draw rectangle and bar representing z slices
   {
-    float zapZoom = 1.0f;
-    ivwGetTopZapZoom(plug.view, &zapZoom);
     int currSlice;
     ivwGetTopZapZslice(plug.view, &currSlice);
-    float sc = fDivide( 1.0f, zapZoom);
     float xmin = x - 20*sc;
     float xmax = xmin + 10*sc;
     float ymin = y - (currSlice-2)*sc;
@@ -1020,7 +1026,7 @@ bool DrawingTools::drawExtraObject( bool redraw )
       imodPointAppendXYZ( xcont, x, y+1, z );
       break;
     }
-  case(DM_DEFORM):            // draw deform circle
+  case(DM_SCULPT):            // draw sculpt circle
     {
       cont_generateCircle( xcont, radius, 100, plug.mouse, true );
       if( plug.shiftDown )
@@ -1041,7 +1047,7 @@ bool DrawingTools::drawExtraObject( bool redraw )
       }
       break;
     }
-  case(DM_JOIN):              // draw deform circle with plus sign in middle
+  case(DM_JOIN):              // draw sculpt circle with plus sign in middle
     {
       cont_generateCircle( xcont, radius, 100, plug.mouse, true );
       
@@ -1060,7 +1066,7 @@ bool DrawingTools::drawExtraObject( bool redraw )
   case(DM_TRANSFORM):         // draw rectangle around current contour or next to mouse 
     {
 
-      Icont *cont = imodContourGet( ivwGetModel(plug.view) );
+      Icont *cont = imodContourGet(imod);
       if( isContValid(cont) )
       {
         Ipoint ll, ur;
@@ -1090,11 +1096,7 @@ bool DrawingTools::drawExtraObject( bool redraw )
       }
       else
       {
-        float rectLen = 10.0f;
-        float zapZoom = 1.0f;
-        int noZap = ivwGetTopZapZoom(plug.view, &zapZoom);
-        if( noZap != 1 )   // if there is a top window: determine pixel length
-          rectLen = fDivide( 10.0f, zapZoom);
+        float rectLen = 10.0 * sc;
         imodPointAppendXYZ( xcont, x+1.0f*rectLen, y+1.0f*rectLen, z );
         imodPointAppendXYZ( xcont, x+2.0f*rectLen, y+1.0f*rectLen, z );
         imodPointAppendXYZ( xcont, x+2.0f*rectLen, y+1.5f*rectLen, z );
@@ -1105,7 +1107,7 @@ bool DrawingTools::drawExtraObject( bool redraw )
       
       break;
     }
-  case(DM_ERASER):            // draw deform circle with a diagonal line through it
+  case(DM_ERASER):            // draw sculpt circle with a diagonal line through it
     {
       if( plug.but2Down || plug.but3Down )  {
         cont_generateCircle( xcont, radius*0.99f, 100, plug.mouse, true );
@@ -1130,6 +1132,37 @@ bool DrawingTools::drawExtraObject( bool redraw )
         imodPointAppendXYZ( xcont, x-hRadius, y-qRadius, z-1 );
         imodPointAppendXYZ( xcont, x+hRadius, y, z-1);
       }
+      break;
+    }
+    
+  case(DM_WARP):            // draw warp circle
+    {
+      cont_generateCircle( xcont, radius, 100, plug.mouse, true );
+      setInterpolated( xcont, true );
+      
+      if( !plug.but2Down || !plug.but3Down )
+      {
+        float distTolCurrCont = MAX( plug.draw_sculptRadius, 10.0f );
+        float distTol         = 10.0f;
+        int objIdx, contIdx, ptIdx;
+        imodGetIndex(imod, &objIdx, &contIdx, &ptIdx);
+        
+        bool suitableContourSelected =
+          edit_selectNearPtInCurrObj( &plug.mouse, distTol, distTolCurrCont, false );
+        
+        if( suitableContourSelected && isCurrPtValid() )
+        {
+          Ipoint *currPt = getCurrPt();
+          Icont *xcont2 = imodContourNew();
+          Icont *xcont3 = imodContourNew();
+          cont_generateCircle( xcont2, 4.0f*sc, 100, *currPt, true );
+          cont_generateCircle( xcont3, 4.5f*sc, 100, *currPt, true );
+          imodObjectAddContour(xobj, xcont2);
+          imodObjectAddContour(xobj, xcont3);
+          imodSetIndex(imod, objIdx, contIdx, ptIdx);
+        }
+      }
+      
       break;
     }
   }
@@ -1185,18 +1218,17 @@ void DrawingTools::loadSettings()
   plug.draw_reducePtsOpt          = savedValues[4];
   plug.draw_smoothMinDist         = savedValues[5];
   plug.draw_smoothTensileFract    = savedValues[6];
-  plug.draw_deformRadius          = savedValues[7];
+  plug.draw_sculptRadius          = savedValues[7];
   plug.wheelBehav                 = savedValues[8];
   plug.dKeyBehav                  = savedValues[9];
   plug.pgUpDownInc                = savedValues[10];
   plug.useNumKeys                 = savedValues[11];
   plug.markTouchedContsAsKey      = savedValues[12];
-  plug.selectVisibleOnly          = savedValues[13];
-  plug.wheelResistance            = savedValues[14];
+  plug.wheelResistance            = savedValues[13];
+  plug.selectedAction             = savedValues[14];
   plug.selectedAction             = savedValues[15];
-  plug.selectedAction             = savedValues[16];
-  plug.testIntersetAllObjs        = savedValues[17];
-  plug.findCriteria               = savedValues[18];
+  plug.testIntersetAllObjs        = savedValues[16];
+  plug.findCriteria               = savedValues[17];
 }
 
 
@@ -1215,18 +1247,17 @@ void DrawingTools::saveSettings()
   saveValues[4]   = plug.draw_reducePtsOpt;
   saveValues[5]   = plug.draw_smoothMinDist;
   saveValues[6]   = plug.draw_smoothTensileFract;
-  saveValues[7]   = plug.draw_deformRadius;
+  saveValues[7]   = plug.draw_sculptRadius;
   saveValues[8]   = plug.wheelBehav;
   saveValues[9]   = plug.dKeyBehav;
   saveValues[10]  = plug.pgUpDownInc;
   saveValues[11]  = plug.useNumKeys;
   saveValues[12]  = plug.markTouchedContsAsKey;
-  saveValues[13]  = plug.selectVisibleOnly;
-  saveValues[14]  = plug.wheelResistance;
+  saveValues[13]  = plug.wheelResistance;
+  saveValues[14]  = plug.selectedAction;
   saveValues[15]  = plug.selectedAction;
-  saveValues[16]  = plug.selectedAction;
-  saveValues[17]  = plug.testIntersetAllObjs;
-  saveValues[18]  = plug.selectedAction;
+  saveValues[16]  = plug.testIntersetAllObjs;
+  saveValues[17]  = plug.selectedAction;
   
   prefSaveGenericSettings("DrawingTools",NUM_SAVED_VALS,saveValues);
 }
@@ -2213,7 +2244,7 @@ void DrawingTools::moreSettings()
   ds.addLabel   ( "--- MOUSE ---" );
   ds.addComboBox( "wheel behavior:",
                   "none,"
-                  "resize deform circle,"
+                  "resize sculpt circle,"
                   "scroll slices,"
                   "scroll contours,"
                   "scroll pts,"
@@ -2223,10 +2254,7 @@ void DrawingTools::moreSettings()
                   10, 1000, &plug.wheelResistance, 10,
                   "The higher the value, the slower "
                   "mouse scrolling works" );
-  ds.addCheckBox( "select visible contours only", 
-                  &plug.selectVisibleOnly,
-                  "If on: only visible contours will be selected \n"
-                  "when [button 1] is pressed in all drawing modes." );
+  
   ds.addLabel   ( "\n--- KEYBOARD ---" );
   ds.addCheckBox( "use number keys to change mode", 
                   &plug.useNumKeys,
@@ -2264,16 +2292,16 @@ void DrawingTools::moreSettings()
                   "NOTE: Holding [Shift] when you press \n"
                   "[Page Up] or [Page Down] will cause it \n"
                   "to increment one slice (as normal)" );
-  ds.addLabel   ( "\n--- DEFORM CIRCLE ---" );
-  ds.addCheckBox( "mark contours as key after deform", 
+  ds.addLabel   ( "\n--- SCULPT CIRCLE ---" );
+  ds.addCheckBox( "mark contours as key after sculpt", 
                   &plug.markTouchedContsAsKey,
                   "If on: any stippled contour selected and/or "
-                  "\ndeformed using the 'deform' or 'join' "
+                  "\nsculpted using the 'sculpt' or 'join' "
                   "\ntool will become unstippled." );
-  ds.addLineEditF( "deform circle radius:",
-                  &plug.draw_deformRadius, 0, 200, 3,
+  ds.addLineEditF( "sculpt circle radius:",
+                  &plug.draw_sculptRadius, 0, 200, 3,
                   "The radius (in pixels) of the circle used "
-                  "in deform and join drawing mode. \n"
+                  "in sculpt and join drawing mode. \n"
                   "NOTE: You can also change this using "
                   "[q], [w] and the mouse wheel.");
   ds.addLabel   ( "\n--- OTHER ---" );
@@ -2300,9 +2328,9 @@ void DrawingTools::moreSettings()
 		return;
   
   /*
-  float newDeformRadius      = string_getFloatFromString( deformRadiusStr );
-  if( newDeformRadius != 0 && newDeformRadius > 0.2 && newDeformRadius < 5000 )
-    plug.draw_deformRadius = newDeformRadius;
+  float newSculptRadius      = string_getFloatFromString( sculptRadiusStr );
+  if( newSculptRadius != 0 && newSculptRadius > 0.2 && newSculptRadius < 5000 )
+    plug.draw_sculptRadius = newSculptRadius;
   */
   
   if( newReducePtsOpt != plug.draw_reducePtsOpt )
@@ -3569,16 +3597,16 @@ void DrawingTools::changeReducePts() {
 }
 
 //------------------------
-//-- Change changeDeformCircleRadius
+//-- Change changeSculptCircleRadius
 
-void DrawingTools::changeDeformCircleRadius( float value, bool accel )
+void DrawingTools::changeSculptCircleRadius( float value, bool accel )
 {  
   if(!accel)
-    plug.draw_deformRadius += value;
+    plug.draw_sculptRadius += value;
   else
-    plug.draw_deformRadius *= (1 + (value*0.01) );
+    plug.draw_sculptRadius *= (1 + (value*0.01) );
   
-  keepWithinRange( plug.draw_deformRadius, 2.0f, 500.0f );
+  keepWithinRange( plug.draw_sculptRadius, 2.0f, 500.0f );
 }
 
 
@@ -3829,12 +3857,91 @@ int edit_removeAllFlaggedContoursFromObj( Iobj *obj )
 
 
 //------------------------
+//-- Searches all contours in the current object and tries to find and select the
+//-- closest point on the given slice and within the "distTol" of "centerPt".
+//-- Note that the current contour is search first, and the closest points here
+//-- will be selected if "centerPt" is within "distTolCurrCont", or if
+//-- "countInsideCurrCont" is set and "centerPt" is inside the contour.
+//-- Returns true if a point is selected.
+//-- NOTE: This function is called by edit_executeSculptStart.
+
+bool edit_selectNearPtInCurrObj( Ipoint *centerPt, float distTol,
+                                 float distTolCurrCont, bool countInsideCurrCont )
+{
+  int   z = (int)centerPt->z;
+  
+  Imod *imod = ivwGetModel(plug.view);
+  Iobj *obj  = imodObjectGet(imod);
+  Icont *currCont = imodContourGet(imod);
+  int objIdx, contIdx, ptIdx;
+  imodGetIndex(imod, &objIdx, &contIdx, &ptIdx);
+  
+  
+  //## IF THERE IS A POINT SUFFICIENTLY CLOSE IN THE CURRENT CONTOUR: SELECT IT
+  
+  if( isContValid(currCont) && imodContourZValue(currCont)==z && !isEmpty(currCont) )
+  {
+    float minDist = cont_minDistPtAndContourPts2D(centerPt,currCont,countInsideCurrCont);
+    if( minDist <= distTolCurrCont )
+    {
+      edit_selectClosestPtInCurrCont( centerPt );
+      return true;
+    }
+  }
+  
+  //## FOR EACH CONTOUR ON THE SAME Z SLICE: FIND THE CLOSEST POINT IN RANGE
+  
+  bool  ptInRange = false;
+  float sqMinDistFound = distTol*distTol;
+  
+  int closestContIdx = -1;
+  int closestPtIdx = -1;
+  
+  for(int c=csize(obj)-1; c>=0; c--)    // for each contour:
+  {
+    Icont *cont = getCont(obj, c);
+    
+    if( imodContourZValue(cont)==z && !isEmpty(cont) )  // if on desired slice:
+    {
+      for( int p=0; p<psize(cont); p++ )
+      {
+        float sqDistToPt = line_sqDistBetweenPts2D( getPt(cont,p), centerPt );
+        
+        if( sqDistToPt <= sqMinDistFound )
+        {
+          ptInRange = true;
+          closestContIdx = c;
+          closestPtIdx   = p;
+          sqMinDistFound = sqDistToPt;
+          
+          //if (earlyExit)
+          //{
+          //  imodSetIndex(imod, objIdx, c, p);
+          //  return true;
+          //}
+        }
+      }
+    }
+  }
+  
+  if( ptInRange )
+  {
+    imodSetIndex(imod, objIdx, closestContIdx, closestPtIdx);
+    return true;
+  }
+  
+  return false;          // (if no points found close enough were found) return false
+}
+
+
+
+//------------------------
 //-- Searches all contours in the current object and tries to find and select a
 //-- point and contour with the given z value and within the specified distance of 
 //-- the x, y coordinates and returns true if a point is actually found.
 //-- NOTE: "distTolerance" represents the maximum distance (in tomogram pixels)
 //--       the x, y coordinates must be from our point
-//-- NOTE: This function is called by edit_executeDeformStart.
+//-- NOTE: This function is called by edit_executeSculptStart.
 
 bool edit_selectContourPtNearCoordsCurrObj(float x, float y, int z, float distTolerance)
 {
@@ -3978,62 +4085,46 @@ bool edit_copiedContIfDiffSlice( bool selectNewCont )
 
 
 //------------------------
-//-- Commences a deform operation.
+//-- Commences a sculpt operation.
 //-- If the currently selected contour is too far from the mouse click,
-//-- the algorithm will determine if the user is trying to edit/deform
+//-- the algorithm will determine if the user is trying to edit/sculpt
 //-- a different contour - in which case it will set this as the
 //-- current contour - if not then it will create a NEW contour
-//-- around the deform circle.
+//-- around the sculpt circle.
 
-void edit_executeDeformStart()
+void edit_executeSculptStart()
 {
+    
+//## DETERMINE IF USER IS TRYING TO EDIT THE CURRENT CONTOUR,
+//## A DIFFERENT CONTOUR, OR START A NEW CONTOUR:
+  
+  float radius = plug.draw_sculptRadius;
+  float distTolCurrCont = MAX( radius*3.0f, 10.0f );
+  float distTol         = MIN( radius*2.0f, radius+10.0f );
+  
+  bool suitableContourSelected =
+    edit_selectNearPtInCurrObj( &plug.mouse, distTol, distTolCurrCont, true );
   
   Imod *imod = ivwGetModel(plug.view);
   Iobj *obj  = imodObjectGet(imod);
   Icont *cont = imodContourGet(imod);
   
   
-//## DETERMINE IF USER IS TRYING TO EDIT THE CURRENT CONTOUR,
-//## A DIFFERENT CONTOUR, OR START A NEW CONTOUR:
-  
-  bool suitableContourSelected = false;
-  
-  if( isContValid(cont) && imodContourZValue(cont) == plug.mouse.z )
-  {
-    float distFromCircleToCont = cont_minDistPtAndContourPts2D(&plug.mouse,cont,true) 
-                                 - plug.draw_deformRadius;
-    float maxDistFromCurrCont = MAX( plug.draw_deformRadius*3.0, 10.0 );
-    
-        // if user clicked within reasonable distance from current contour: use it
-    if ( distFromCircleToCont <= maxDistFromCurrCont ) 
-      suitableContourSelected = true;
-  }
-  if( suitableContourSelected == false )  // if no contour selected, or was too far away:
-  {
-    float minDist = MIN( plug.draw_deformRadius*2.0, plug.draw_deformRadius + 10.0 );
-    if(edit_selectContourPtNearCoordsCurrObj( plug.mouse.x, plug.mouse.y,
-                                              (int)plug.mouse.z, minDist))
-    {    // try to find & select another contour on the same slice close to the mouse
-      suitableContourSelected = true;
-      cont = imodContourGet(imod);
-    }
-  }
-  
-//## (IF SUITABLE CONTOUR IS SELECTED) DEFORM CONTOUR BY PUSHING POINTS TO
-//## EDGE OF DEFORM CIRCLE:
+//## (IF SUITABLE CONTOUR WAS FOUND) SCULPT CONTOUR BY PUSHING POINTS TO
+//## EDGE OF SCULPT CIRCLE:
   
   if( suitableContourSelected && isContValid(cont) )
   {
     undoContourDataChgCC( plug.view );      // REGISTER UNDO
-    edit_executeDeform();
+    edit_executeSculpt();
   }
 
-//## (IF NO SUITABLE CONTOUR WAS FOUND) ADD THE DEFORM CIRCLE AS A NEW CONTOUR
+//## (IF NO SUITABLE CONTOUR WAS FOUND) ADD THE SCULPT CIRCLE AS A NEW CONTOUR
   
   else
   {
     Icont *newCont = imodContourNew();
-    cont_generateCircle(newCont, plug.draw_deformRadius, 16, plug.mouse, false);
+    cont_generateCircle(newCont, plug.draw_sculptRadius, 16, plug.mouse, false);
     int newContPos = edit_addContourToObj(obj, newCont, true);
     int objIdx, contIdx, ptIdx;
     imodGetIndex(imod, &objIdx, &contIdx, &ptIdx);
@@ -4044,14 +4135,14 @@ void edit_executeDeformStart()
 
 
 //------------------------
-//-- Executes a deform operation by calling the appropriate funtion depending
+//-- Executes a sculpt operation by calling the appropriate funtion depending
 //-- on what mouse buttons are down.
 
-void edit_executeDeform()
+void edit_executeSculpt()
 {
   if(plug.shiftDown)      // pinch
   {
-    edit_executeDeformPinch( plug.mouse, plug.draw_deformRadius );
+    edit_executeSculptPinch( plug.mouse, plug.draw_sculptRadius );
     return;
   }
   else                  // push
@@ -4059,9 +4150,9 @@ void edit_executeDeform()
     float mouseMoveDist = imodPointDistance( &plug.mousePrev, &plug.mouse );       
             // the distance the mouse moved from its previously recorded position 
     
-    int numIntermediates = fDivide(mouseMoveDist+2.0f,plug.draw_deformRadius);
+    int numIntermediates = fDivide(mouseMoveDist+2.0f,plug.draw_sculptRadius);
             // the number of extra circles we will have to add between the last
-            // and current mouse position to deform smoothly.
+            // and current mouse position to sculpt smoothly.
     
     if( numIntermediates > 10 ) {
       wprint("\aYou are moving the mouse to fast!\n");
@@ -4072,26 +4163,26 @@ void edit_executeDeform()
       float fractAlong = float(i) / float(numIntermediates+1);
       Ipoint intermediateMousePos =
         line_findPtFractBetweenPts2D( &plug.mousePrev, &plug.mouse, fractAlong );
-      edit_executeDeformPush( intermediateMousePos, plug.draw_deformRadius );
+      edit_executeSculptPush( intermediateMousePos, plug.draw_sculptRadius );
     }
-    edit_executeDeformPush( plug.mouse, plug.draw_deformRadius );
+    edit_executeSculptPush( plug.mouse, plug.draw_sculptRadius );
     return;
   }
 }
 
 
 //------------------------
-//-- Executes an "push deform operation" for a "deform circle" (with
-//-- radius "pda.draw_deformRadius") at the position of the mouse. 
+//-- Executes an "push sculpt operation" for a "sculpt circle" (with
+//-- radius "pda.draw_sculptRadius") at the position of the mouse. 
 //-- This tool is used to draw and modify contours more quickly
 //-- than is possible with the a normal draw operation.
 //-- 
 //-- In this function, all points within the currently selected contour 
-//-- which are ALSO inside the deform circle are pushed away to the edge
-//-- of the deform circle. Points are also removed/added if too
+//-- which are ALSO inside the sculpt circle are pushed away to the edge
+//-- of the sculpt circle. Points are also removed/added if too
 //-- close together/far apart.
 
-void  edit_executeDeformPush( Ipoint center, float radius )
+void  edit_executeSculptPush( Ipoint center, float radius )
 {
   Imod *imod = ivwGetModel(plug.view);
   Iobj *obj  = imodObjectGet(imod);
@@ -4104,13 +4195,13 @@ void  edit_executeDeformPush( Ipoint center, float radius )
                   // add extra points to ensure circle does not lie "between points"
     float radiusSq = radius*radius;
     
-    //## FOR EACH POINT: IF IT'S IN THE DEFORM CIRCLE SHIFT IT TO 
+    //## FOR EACH POINT: IF IT'S IN THE SCULPT CIRCLE SHIFT IT TO 
     //## EDGE OF CIRCLE AND MARK IT AS "POINT_SHIFTED"
     
     for (int i=0; i<psize(cont); i++)
     {
       float distFromCenterSq = line_sqDistBetweenPts2D( &center, getPt(cont,i) );
-      if ( distFromCenterSq < radiusSq )    // if current pt is within deform circle:
+      if ( distFromCenterSq < radiusSq )    // if current pt is within sculpt circle:
       {
         float distFromCenter = sqrt(distFromCenterSq);
         if( distFromCenter==0 )
@@ -4190,13 +4281,13 @@ void  edit_executeDeformPush( Ipoint center, float radius )
 
 
 //------------------------
-//-- Executes an "pinch deform operation" for a "deform circle" (with
-//-- radius "pda.draw_deformRadius") at the position of the mouse. 
-//-- This function is almost identical in structure to edit_executeDeform(), 
-//-- execept that points within the deform circle are pulled TOWARDS
+//-- Executes an "pinch sculpt operation" for a "sculpt circle" (with
+//-- radius "pda.draw_sculptRadius") at the position of the mouse. 
+//-- This function is almost identical in structure to edit_executeSculpt(), 
+//-- execept that points within the sculpt circle are pulled TOWARDS
 //-- the center of the circle, rather than being pushed to the edge.
 
-void edit_executeDeformPinch( Ipoint center, float radius )
+void edit_executeSculptPinch( Ipoint center, float radius )
 {
   Imod *imod  = ivwGetModel(plug.view);
   Iobj *obj   = imodObjectGet(imod);
@@ -4211,13 +4302,13 @@ void edit_executeDeformPinch( Ipoint center, float radius )
     cont_addPtsCrude( cont, radius/3.0f, isContClosed(obj,cont) );
     float radiusSq = radius*radius;
     
-    //## FOR EACH POINT: IF IT'S IN THE DEFORM CIRCLE SHIFT IT TOWARDS THE MIDDLE
+    //## FOR EACH POINT: IF IT'S IN THE SCULPT CIRCLE SHIFT IT TOWARDS THE MIDDLE
     //## OF CIRCLE AND MARK IT AS "POINT_SHIFTED"
     
     for (int i=0; i<psize(cont); i++)
     {
       float distFromCenterSq = line_sqDistBetweenPts2D( &center, getPt(cont,i) );
-      if ( distFromCenterSq < radiusSq )    // if current pt is within deform circle:
+      if ( distFromCenterSq < radiusSq )    // if current pt is within sculpt circle:
       {
         if( distFromCenterSq==0 )
           continue;
@@ -4237,10 +4328,10 @@ void edit_executeDeformPinch( Ipoint center, float radius )
 
 
 //------------------------
-//-- Compleles a deform action by making the contour simple
+//-- Compleles a sculpt action by making the contour simple
 //-- (so it doesn't cross itself) and reducing points if specified
 
-void edit_executeDeformEnd()
+void edit_executeSculptEnd()
 {
   edit_makeCurrContSimple();
   edit_deleteCurrContIfTooSmall();
@@ -4283,6 +4374,183 @@ void edit_executeJoinEnd()
   
   undoFinishUnit( plug.view );        // FINISH UNDO
 }
+
+
+
+//------------------------
+//-- Commences a warp operation.
+//-- This routine selects the closest point to the mouse.
+//-- If the currently selected contour is too far from the mouse click,
+//-- the algorithm will determine if the user is trying to edit/sculpt
+//-- a different contour/point - in which case it will set this as the
+//-- current contour - if not, it will apply normal drawing mode.
+
+void edit_executeWarpStart()
+{
+  //## DETERMINE IF USER IS TRYING TO EDIT THE CURRENT CONTOUR,
+  //## A DIFFERENT CONTOUR, OR START A NEW CONTOUR:
+  
+  float radius = plug.draw_sculptRadius;
+  float distTolCurrCont = MAX( radius, 10.0f );
+  float distTol         = 10.0f;
+  
+  bool suitableContourSelected =
+    edit_selectNearPtInCurrObj( &plug.mouse, distTol, distTolCurrCont, false );
+  
+  Imod *imod = ivwGetModel(plug.view);
+  Iobj *obj  = imodObjectGet(imod);
+  Icont *cont = imodContourGet(imod);
+  
+  //## (IF SUITABLE CONTOUR IS SELECTED) WARP CONTOUR EDGE:
+  
+  if( suitableContourSelected && isContValid(cont) && psize(cont) > 3 )
+  {
+    undoContourDataChgCC( plug.view );      // REGISTER UNDO
+    edit_addPtsCurrContInRadius( &plug.mouse, plug.draw_sculptRadius,
+                                 plug.draw_sculptRadius*0.2f );
+    edit_selectClosestPtInCurrCont( &plug.mouse );
+    edit_executeWarp();
+    return;
+  }
+  
+  //## (IF NO SUITABLE CONTOUR WAS FOUND) DO NOTHING
+  
+  int objIdx, contIdx, ptIdx;
+  imodGetIndex(imod, &objIdx, &contIdx, &ptIdx);
+  imodSetIndex(imod, objIdx, -1, -1);
+}
+
+
+//------------------------
+//-- Executes a warp operation by determining the movement of the mouse and
+//-- moving points near the point clicked by and appropriate distance.
+
+void edit_executeWarp()
+{
+  Imod   *imod  = ivwGetModel(plug.view);
+  Iobj   *obj   = imodObjectGet(imod);
+  Icont  *cont  = imodContourGet(imod);
+  Ipoint *selPt = imodPointGet(imod);
+  int objIdx, contIdx, ptIdx;
+  imodGetIndex(imod, &objIdx, &contIdx, &ptIdx);
+  
+  if( !isContValid(cont) || !isCurrPtValid() || psize(cont) <= 1 )
+    return;
+  
+  bool  closed     = isContClosed( obj, cont );
+  float contLength = imodContourLength(cont, closed);
+  
+  float distToWarp = MIN( plug.draw_sculptRadius, contLength * 0.25f );
+  
+  if(distToWarp == 0)
+    return;
+  
+  float changeX =  plug.mouse.x - plug.mousePrev.x;
+  float changeY =  plug.mouse.y - plug.mousePrev.y;
+  
+  int maxPtsToCheckEitherSide = floor( psize(cont) * 0.4);
+  int minPtToCheck = ptIdx - maxPtsToCheckEitherSide;
+  int maxPtToCheck = ptIdx + maxPtsToCheckEitherSide;
+  
+  if( !closed )
+  {
+    minPtToCheck = MAX( minPtToCheck, 0 );
+    maxPtToCheck = MIN( maxPtToCheck, psize(cont)-1 );
+  }
+  
+  
+  //## PROGRESS FORWARDS FROM SELECTED POINT AND SHIFT POINTS BY DECREASING AMOUNTS:
+  
+  float distFromSelPt = 0.0;
+  Ipoint prevPt = *selPt;
+  
+  for( int p=ptIdx+1; p<=maxPtToCheck; p++ )
+  {
+    Ipoint *currPt = getPt(cont,p);
+    distFromSelPt += line_distBetweenPts2D( &prevPt, currPt );
+    if( distFromSelPt >= distToWarp )
+      break;
+    
+    float fractAlong = distFromSelPt / distToWarp;
+    float distToShift = sin( (fractAlong*PI) +0.5*PI) * 0.5 + 0.5;
+    prevPt = *currPt;
+    
+    currPt->x += changeX * distToShift;
+    currPt->y += changeY * distToShift;
+  }
+  
+  
+  //## PROGRESS BACKWARDS FROM SELECTED POINT AND SHIFT POINTS BY DECREASING AMOUNTS:
+  
+  distFromSelPt = 0.0;
+  prevPt = *selPt;
+  
+  for( int p=ptIdx-1; p>=minPtToCheck; p-- )
+  {
+    Ipoint *currPt = getPt(cont,p);
+    distFromSelPt += line_distBetweenPts2D( &prevPt, currPt );
+    if( distFromSelPt >= distToWarp )
+      break;
+    
+    float fractAlong = distFromSelPt / distToWarp;
+    float distToShift = sin( (fractAlong*PI) +0.5*PI) * 0.5 + 0.5;
+    prevPt = *currPt;
+    
+    currPt->x += changeX * distToShift;
+    currPt->y += changeY * distToShift;
+  }
+  
+  //## MOVE CURRENT POINT:
+  
+  selPt->x += changeX;
+  selPt->y += changeY;
+  
+  
+  //## IF THIRD MOUSE BUTTON IS DOWN: MOVE POINTS SO THEY LINE UP MORE STRAIGHT:
+  
+  if(plug.but3Down)
+  {
+    float distFromSelPt = 0.0;
+    Ipoint prevPt = *selPt;
+    
+    for( int p=ptIdx+1; p<=maxPtToCheck-1; p++ )
+    {
+      Ipoint *currPt =  getPt(cont,p);
+      float distFromMouse = line_distBetweenPts2D( currPt, &plug.mouse );
+      if( distFromMouse > plug.draw_sculptRadius )
+        break;
+      
+      Ipoint estPos = line_getPtHalfwayBetween( getPt(cont,p-1), getPt(cont,p+1) );
+      *currPt = line_findPtFractBetweenPts2D( currPt, &estPos, 0.4 );
+    }
+    for( int p=ptIdx-1; p>=minPtToCheck; p-- )
+    {
+      Ipoint *currPt =  getPt(cont,p);
+      float distFromMouse = line_distBetweenPts2D( currPt, &plug.mouse );
+      if( distFromMouse > plug.draw_sculptRadius )
+        break;
+      
+      Ipoint estPos = line_getPtHalfwayBetween( getPt(cont,p-1), getPt(cont,p+1) );
+      *currPt = line_findPtFractBetweenPts2D( currPt, &estPos, 0.4 );
+    }
+  }
+}
+
+//------------------------
+//-- Compleles a warp action by reducing points.
+
+void edit_executeWarpEnd()
+{
+  if( !isCurrContValid() )
+    return;
+  
+  if (plug.draw_reducePts)
+    edit_reduceCurrContour();
+  
+  undoFinishUnit( plug.view );        // FINISH UNDO
+}
+
+
 
 //------------------------
 //-- Inverses the order of points or reorders the point in the current contour.
@@ -4538,7 +4806,7 @@ bool edit_breakPointsInCircle( Ipoint center, float radius )
           
           vector<IcontPtr> contSegments;
           numPtsRemoved += cont_breakContByCircle(cont,contSegments,&plug.mouse,
-                                                  plug.draw_deformRadius);
+                                                  plug.draw_sculptRadius);
           
           for (int i=0; i<contSegments.size(); i++)   // make any new contours open
             setOpenFlag( contSegments[i].cont, 1 );
@@ -4704,6 +4972,126 @@ void edit_joinCurrContWithAnyTouching()
     }
   }
 }
+
+
+//------------------------
+//-- Takes current contour and adds extra points so that no two consequtive
+//-- points are greater than "maxDistPts" apart.
+//-- It also makes sure that the currently selected point is not changed by
+//-- the addition of points, and returns the number of points added.
+
+int edit_addPtsCurrCont( float maxDistBetweenPts )
+{
+  Imod  *imod = ivwGetModel(plug.view);
+  Iobj  *obj  = imodObjectGet(imod);
+  Icont *cont = imodContourGet(imod);
+  int objIdx, contIdx, ptIdx;
+  imodGetIndex(imod, &objIdx, &contIdx, &ptIdx);
+  
+  if( !isContValid(cont) || psize(cont) <= 1 )
+    return 0;
+  
+  int pointsBefore = psize(cont);
+  int pointsAddedBeforeCurrPt = 0;
+  
+  bool closed = isContClosed( obj, cont );
+  int extra = (closed) ? 0 : -1;
+  
+  for(int i=0; i<psize(cont)+extra; i++ )
+  {
+    Ipoint *currPt = getPt( cont, i );
+    Ipoint *nextPt = getPt( cont, i+1 );
+    
+    float distToNextPt = line_distBetweenPts2D( currPt, nextPt );
+    if( distToNextPt > maxDistBetweenPts )
+    {
+      Ipoint newPt = line_getPtHalfwayBetween( currPt, nextPt );
+      imodPointAdd( cont, &newPt, i+1 );
+      if( i < ptIdx )
+        ptIdx++;
+      i--;
+    }
+  }
+  
+  imodSetIndex(imod, objIdx, contIdx, ptIdx);
+  return ( psize(cont) - pointsBefore );
+}
+
+
+//------------------------
+//-- Selects the closest point in the current contour to the given point
+//-- and returns the distance between the two points.
+
+float edit_selectClosestPtInCurrCont( Ipoint *givenPt )
+{ 
+  Imod  *imod = ivwGetModel(plug.view);
+  Icont *cont = imodContourGet(imod);
+  if( !isContValid(cont) || psize(cont) < 0 )
+    return 0;
+  
+  float closestDist;
+  Ipoint closestPt;
+  int closestPtIdx;
+  cont_findClosestPtInContToGivenPt( &plug.mouse, cont, &closestDist, &closestPt,
+                                     &closestPtIdx  );
+  
+  int objIdx, contIdx, ptIdx;
+  imodGetIndex(imod, &objIdx, &contIdx, &ptIdx);
+  imodSetIndex(imod, objIdx, contIdx, closestPtIdx );
+  
+  return (closestDist);
+}
+
+//------------------------
+//-- Takes current contour and adds extra points so that no two consequtive
+//-- points within the sculpt circle (near the mouse) are within
+//-- "maxDistPtsInScultCircle" of each other.
+//-- It also makes sure that the currently selected point is not changed by
+//-- the addition of points, and returns the number of points added.
+
+int edit_addPtsCurrContInRadius( Ipoint *centerPt, float radius, float maxDistPts )
+{
+  Imod  *imod = ivwGetModel(plug.view);
+  Iobj  *obj  = imodObjectGet(imod);
+  Icont *cont = imodContourGet(imod);
+  int objIdx, contIdx, ptIdx;
+  imodGetIndex(imod, &objIdx, &contIdx, &ptIdx);
+  
+  if( !isContValid(cont) || psize(cont) <= 1 )
+    return 0;
+  
+  int pointsBefore = psize(cont);
+  float sqRadius = SQ( radius );
+  
+  bool closed = isContClosed( obj, cont );
+  int extra = (closed) ? 0 : -1;
+  
+  for(int i=0; i<psize(cont)+extra; i++ )
+  {
+    Ipoint *currPt = getPt( cont, i );
+    Ipoint *nextPt = getPt( cont, i+1 );
+    
+    bool currPtInCircle = line_sqDistBetweenPts2D(currPt, centerPt) < sqRadius;
+    bool nextPtInCircle = line_sqDistBetweenPts2D(nextPt, centerPt) < sqRadius;
+    
+    if( currPtInCircle || nextPtInCircle ) 
+    {
+      float distToNextPt = line_distBetweenPts2D( currPt, nextPt );
+      if( distToNextPt > maxDistPts )
+      {
+        Ipoint newPt = line_getPtHalfwayBetween( currPt, nextPt );
+        imodPointAdd( cont, &newPt, i+1 );
+        if( i < ptIdx )
+          ptIdx++;
+        i--;
+      }
+    }
+  }
+  
+  imodSetIndex(imod, objIdx, contIdx, ptIdx);
+  return ( psize(cont) - pointsBefore );
+}
+
 
 
 //------------------------
