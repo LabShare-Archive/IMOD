@@ -21,19 +21,25 @@ import etomo.ParallelManager;
  * 
  * @version $Revision$
  * 
- * <p> $Log$ </p>
+ * <p> $Log$
+ * <p> Revision 1.1  2007/11/06 19:53:53  sueh
+ * <p> bug# 1047 Main dialog of ParallelManager.  Allows user to choose either a
+ * <p> generic parallel process or anisotropic diffusion.
+ * <p> </p>
  */
 public final class ParallelChooser {
   public static final String rcsid = "$Id$";
 
-  private final SpacedPanel rootPanel = new SpacedPanel();
-  private final MultiLineButton btnGeneric = new MultiLineButton("Generic Parallel Process");
-  private final MultiLineButton btnAnisotropicDiffusion = new MultiLineButton("Nonlinear Anisotropic Diffusion");
+  private final SpacedPanel rootPanel = SpacedPanel.getInstance();
+  private final MultiLineButton btnGeneric = new MultiLineButton(
+      "Generic Parallel Process");
+  private final MultiLineButton btnAnisotropicDiffusion = new MultiLineButton(
+      "Nonlinear Anisotropic Diffusion");
 
   private final ParallelManager manager;
 
   private ParallelChooser(ParallelManager manager) {
-    this.manager=manager;
+    this.manager = manager;
     rootPanel.setBoxLayout(BoxLayout.X_AXIS);
     rootPanel.setBorder(new BeveledBorder("Choose a process").getBorder());
     btnGeneric.setSize();
@@ -47,7 +53,7 @@ public final class ParallelChooser {
     instance.addListeners();
     return instance;
   }
-  
+
   public Container getContainer() {
     return rootPanel.getContainer();
   }

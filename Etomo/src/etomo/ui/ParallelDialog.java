@@ -38,8 +38,8 @@ public final class ParallelDialog implements AbstractParallelDialog {
 
   private final ImageIcon iconFolder = new ImageIcon(ClassLoader
       .getSystemResource("images/openFile.gif"));
-  private final SpacedPanel pnlRoot = new SpacedPanel();
-  private final SpacedPanel pnlProcessName = new SpacedPanel();
+  private final SpacedPanel pnlRoot = SpacedPanel.getInstance();
+  private final SpacedPanel pnlProcessName = SpacedPanel.getInstance();
   private final JButton btnChunkComscript = new JButton(iconFolder);
   private final LabeledTextField ltfProcessName = new LabeledTextField(
       "Process name: ");
@@ -187,6 +187,9 @@ public final class ParallelDialog implements AbstractParallelDialog {
 }
 /**
  * <p> $Log$
+ * <p> Revision 1.19  2008/05/03 00:51:26  sueh
+ * <p> bug# 847 Passing null for ProcessSeries to process funtions.
+ * <p>
  * <p> Revision 1.18  2007/12/10 22:43:19  sueh
  * <p> bug# 1041 Passing the ProcessName to processchunks instead of setting it in
  * <p> getParameters because it is required and has been added to the

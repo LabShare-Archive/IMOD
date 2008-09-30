@@ -53,6 +53,12 @@ import etomo.type.Run3dmodMenuOptions;
  * @version $Revision$
  * 
  * <p> $Log$
+ * <p> Revision 1.64  2008/09/10 21:35:31  sueh
+ * <p> bug# 1135 Check for null when calling ParsedElementList.get(int).  Check
+ * <p> for null when calling ParsedElement.getElement or getRawNumber.  Set
+ * <p> cbTiltRange from meta data.  Then, for backwards compatibility, turn it
+ * <p> on if the .prm file tiltRange is not empty.
+ * <p>
  * <p> Revision 1.63  2008/09/05 20:53:16  sueh
  * <p> bug# 1136 In getParameters(MatlabParam) setting useNWeightGroup.
  * <p>
@@ -280,7 +286,7 @@ public final class PeetDialog implements ContextMenu, AbstractParallelDialog,
       + ": ");
   private final LabeledTextField ltfFnOutput = new LabeledTextField(
       FN_OUTPUT_LABEL + ": ");
-  private final SpacedPanel pnlSetupBody = new SpacedPanel();
+  private final SpacedPanel pnlSetupBody = SpacedPanel.getInstance();
   private final CheckBox cbTiltRange = new CheckBox(
       "Use tilt range in averaging");
   private final LabeledTextField ltfReferenceParticle = new LabeledTextField(
@@ -314,7 +320,7 @@ public final class PeetDialog implements ContextMenu, AbstractParallelDialog,
       " Contour #: ");
   private final CheckBox cbLstFlagAllTom = new CheckBox(
       "Use equal numbers of particles from all tomograms for averages");
-  private final SpacedPanel pnlRunBody = new SpacedPanel(true);
+  private final SpacedPanel pnlRunBody = SpacedPanel.getInstance(true);
   private final MultiLineButton btnRun = new MultiLineButton("Run");
   private final JPanel pnlAdvanced = new JPanel();
   private final ButtonGroup bgReference = new ButtonGroup();
@@ -398,9 +404,9 @@ public final class PeetDialog implements ContextMenu, AbstractParallelDialog,
       "Open Averaged Volumes in 3dmod", this);
   private final JPanel pnlInitMotl = new JPanel();
   private final TabbedPane tabPane = new TabbedPane();
-  private final SpacedPanel pnlSetup = new SpacedPanel();
+  private final SpacedPanel pnlSetup = SpacedPanel.getInstance();
   private final JPanel pnlRun = new JPanel();
-  private final SpacedPanel pnlYaxisType = new SpacedPanel();
+  private final SpacedPanel pnlYaxisType = SpacedPanel.getInstance();
   private final JPanel pnlCcMode = new JPanel();
   private final Run3dmodButton btnRef = Run3dmodButton.get3dmodInstance(
       "Open Reference Files in 3dmod", this);
@@ -1042,7 +1048,7 @@ public final class PeetDialog implements ContextMenu, AbstractParallelDialog,
     pnlReference.add(pnlVolumeReference);
     pnlReference.add(pnlVolumeFile);
     //tiltRange and edgeShift
-    SpacedPanel pnlTiltRange = new SpacedPanel();
+    SpacedPanel pnlTiltRange = SpacedPanel.getInstance();
     pnlTiltRange.setBoxLayout(BoxLayout.X_AXIS);
     pnlTiltRange.setComponentAlignmentX(Component.LEFT_ALIGNMENT);
     pnlTiltRange.add(cbTiltRange);
@@ -1050,13 +1056,13 @@ public final class PeetDialog implements ContextMenu, AbstractParallelDialog,
     ltfEdgeShift.setTextPreferredWidth(UIParameters.INSTANCE.getIntegerWidth());
     pnlTiltRange.add(ltfEdgeShift.getContainer());
     //flgWedgeWeight
-    SpacedPanel pnlFlgWedgeWeight = new SpacedPanel();
+    SpacedPanel pnlFlgWedgeWeight = SpacedPanel.getInstance();
     pnlFlgWedgeWeight.setBoxLayout(BoxLayout.X_AXIS);
     pnlFlgWedgeWeight.setComponentAlignmentX(Component.LEFT_ALIGNMENT);
     pnlFlgWedgeWeight.add(cbFlgWedgeWeight);
     pnlFlgWedgeWeight.addHorizontalGlue();
     //missing wedge compensation
-    SpacedPanel pnlMissingWedgeCompensation = new SpacedPanel();
+    SpacedPanel pnlMissingWedgeCompensation = SpacedPanel.getInstance();
     pnlMissingWedgeCompensation.setBoxLayout(BoxLayout.Y_AXIS);
     pnlMissingWedgeCompensation.setBorder(new EtchedBorder(
         "Missing Wedge Compensation").getBorder());
@@ -1182,13 +1188,13 @@ public final class PeetDialog implements ContextMenu, AbstractParallelDialog,
     pnlSphericalSampling.add(ltfSampleInterval.getContainer());
     pnlSphericalSampling.add(Box.createHorizontalGlue());
     //szVol
-    SpacedPanel pnlSzVol = new SpacedPanel();
+    SpacedPanel pnlSzVol = SpacedPanel.getInstance();
     pnlSzVol.setBoxLayout(BoxLayout.X_AXIS);
     pnlSzVol.add(ltfSzVolX.getContainer());
     pnlSzVol.add(ltfSzVolY.getContainer());
     pnlSzVol.add(ltfSzVolZ.getContainer());
     //lstThresholds
-    SpacedPanel pnlLstThresholds = new SpacedPanel();
+    SpacedPanel pnlLstThresholds = SpacedPanel.getInstance();
     pnlLstThresholds.setBoxLayout(BoxLayout.X_AXIS);
     pnlLstThresholds.setBorder(new EtchedBorder(
         "Number of Particles in Averages").getBorder());

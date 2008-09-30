@@ -56,7 +56,7 @@ public final class ParallelPanel implements Expandable {
   private final MultiLineButton btnPause = new MultiLineButton("Pause");
   private final MultiLineButton btnSaveDefaults = new MultiLineButton(
       "Save As Defaults");
-  private final SpacedPanel bodyPanel = new SpacedPanel();
+  private final SpacedPanel bodyPanel = SpacedPanel.getInstance();
   private final JPanel rootPanel = new JPanel();
   private final MultiLineButton btnRestartLoad = new MultiLineButton(
       "Restart Load");
@@ -99,7 +99,7 @@ public final class ParallelPanel implements Expandable {
     rootPanel.setBorder(BorderFactory.createEtchedBorder());
     tablePanel.setLayout(new BoxLayout(tablePanel, BoxLayout.X_AXIS));
     bodyPanel.setBoxLayout(BoxLayout.Y_AXIS);
-    SpacedPanel southPanel = new SpacedPanel();
+    SpacedPanel southPanel = SpacedPanel.getInstance();
     southPanel.setBoxLayout(BoxLayout.X_AXIS);
     //southPanel;
     southPanel.add(ltfCPUsSelected);
@@ -397,6 +397,10 @@ public final class ParallelPanel implements Expandable {
 }
 /**
  * <p> $Log$
+ * <p> Revision 1.61  2008/07/19 01:06:07  sueh
+ * <p> bug# 1125 Making it easier to access CpuAdoc by not passing the
+ * <p> manager to it; all it needs is the current directory.
+ * <p>
  * <p> Revision 1.60  2008/05/03 00:51:39  sueh
  * <p> bug# 847 Passing null for ProcessSeries to process funtions.
  * <p>
