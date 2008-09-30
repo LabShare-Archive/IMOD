@@ -24,6 +24,9 @@ import etomo.type.ParsedElementType;
  * @version $Revision$
  * 
  * <p> $Log$
+ * <p> Revision 1.25  2008/08/21 00:07:22  sueh
+ * <p> bug# 1132 Added isEnabled.
+ * <p>
  * <p> Revision 1.24  2008/06/20 20:05:50  sueh
  * <p> bug# 1119 For clarity added _NUMBER to MATLAB and NON_MATLAB.
  * <p>
@@ -151,6 +154,10 @@ final class FieldCell extends InputCell {
     setBackground();
     setForeground();
     setFont();
+  }
+  
+  public String toString() {
+    return textField.getText();
   }
 
   static FieldCell getEditableInstance() {
