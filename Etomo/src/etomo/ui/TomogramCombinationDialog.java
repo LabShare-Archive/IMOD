@@ -48,6 +48,10 @@ import etomo.type.TomogramState;
  * @version $Revision$
  *
  * <p> $Log$
+ * <p> Revision 3.59  2008/07/19 01:12:27  sueh
+ * <p> bug# 1125 Making it easier to access CpuAdoc by not passing the
+ * <p> manager to it; all it needs is the current directory.
+ * <p>
  * <p> Revision 3.58  2008/05/13 23:07:39  sueh
  * <p> bug# 847 Adding a right click menu for deferred 3dmods to some
  * <p> process buttons.
@@ -402,8 +406,8 @@ public final class TomogramCombinationDialog extends ProcessDialog implements
 
   public TomogramCombinationDialog(ApplicationManager appMgr) {
     super(appMgr, AxisID.FIRST, DialogType.TOMOGRAM_COMBINATION);
-    ConstEtomoNumber maxCPUs = CpuAdoc.getInstance(AxisID.ONLY, appMgr.getPropertyUserDir())
-        .getMaxVolcombine();
+    ConstEtomoNumber maxCPUs = CpuAdoc.getInstance(AxisID.ONLY,
+        appMgr.getPropertyUserDir()).getMaxVolcombine();
     if (maxCPUs != null && !maxCPUs.isNull()) {
       parallelProcessCheckBoxText = ParallelPanel.FIELD_LABEL
           + ParallelPanel.MAX_CPUS_STRING + maxCPUs.toString();
@@ -510,7 +514,7 @@ public final class TomogramCombinationDialog extends ProcessDialog implements
       throws NumberFormatException {
     pnlSetup.getParameters(combineParams);
   }
-  
+
   Run3dmodButton getImodCombinedButton() {
     return pnlFinal.getImodCombinedButton();
   }
