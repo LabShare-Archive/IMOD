@@ -13,6 +13,7 @@ import javax.swing.BorderFactory;
 import javax.swing.Box;
 import javax.swing.BoxLayout;
 import javax.swing.ButtonGroup;
+import javax.swing.JComponent;
 import javax.swing.JFileChooser;
 import javax.swing.JLabel;
 import javax.swing.JPanel;
@@ -57,6 +58,10 @@ import etomo.util.DatasetFiles;
  * @version $Revision$
  *
  * <p> $Log$
+ * <p> Revision 1.61  2008/08/18 22:39:44  sueh
+ * <p> bug# 1130 Added cbLocalFits to the Join tab.  Written to / retrieved from
+ * <p> JoinMetaData.
+ * <p>
  * <p> Revision 1.60  2008/06/24 20:09:42  sueh
  * <p> bug# 1102 Changed tabPane from JTabbedPane to TabbedPane, so it can
  * <p> name itself.
@@ -467,16 +472,16 @@ public final class JoinDialog implements ContextMenu, Run3dmodButtonContainer {
 
   private JPanel rootPanel;
   private TabbedPane tabPane;
-  private SpacedPanel pnlSetup;
+  private final SpacedPanel pnlSetupTab = SpacedPanel.getFocusableInstance();
   private SectionTablePanel pnlSectionTable;
-  private SpacedPanel pnlAlign;
-  private SpacedPanel pnlJoin;
+  private final SpacedPanel pnlAlignTab = SpacedPanel.getFocusableInstance();
+  private final SpacedPanel pnlJoinTab = SpacedPanel.getFocusableInstance();
   private SpacedPanel setupPanel2;
   private SpacedPanel alignPanel1;
   private SpacedPanel alignPanel2;
   private SpacedPanel pnlXfalign;
   private SpacedPanel pnlFinishJoin;
-  private SpacedPanel pnlMidasLimit = new SpacedPanel();
+  private SpacedPanel pnlMidasLimit = SpacedPanel.getInstance();
 
   private FileTextField ftfWorkingDir;
   private Run3dmodButton btnOpenSample;
@@ -562,7 +567,8 @@ public final class JoinDialog implements ContextMenu, Run3dmodButtonContainer {
       .get3dmodInstance("Open Sample Averages in 3dmod", this);
   private final Run3dmodButton btnMakeSamples = Run3dmodButton
       .getDeferred3dmodInstance("Make Samples", this, "averages in 3dmod");
-  private final SpacedPanel pnlModel = new SpacedPanel(true);
+  private final SpacedPanel pnlModelTab = SpacedPanel
+      .getFocusableInstance(true);
   private final JPanel pnlRejoinTab = new JPanel();
   private final BinnedXY3dmodButton b3bOpenTrialIn3dmod = new BinnedXY3dmodButton(
       "Open Trial in 3dmod", this);
@@ -584,12 +590,54 @@ public final class JoinDialog implements ContextMenu, Run3dmodButtonContainer {
       .getDeferred3dmodInstance(TRIAL_REJOIN_TEXT, this);
 
   /**
+   * Create JoinDialog with workingDirName equal to the location of the .ejf
+   * file.
+   * @param joinManager
+   * @param workingDirName
+   */
+  private JoinDialog(JoinManager manager, String workingDirName,
+      ConstJoinMetaData metaData, JoinState state) {
+    this.state = state;
+    axisID = AxisID.ONLY;
+    this.manager = manager;
+    boundaryTable = new BoundaryTable(manager, this);
+    setRefiningJoin();
+    createRootPanel(workingDirName);
+    UIHarness.INSTANCE.pack(manager);
+    setMetaData(metaData);
+    setScreenState(manager.getScreenState());
+    init();
+    setToolTipText();
+  }
+
+  public Component getFocusComponent() {
+    if (isSetupTab()) {
+      return pnlSetupTab.getContainer();
+    }
+    if (isAlignTab()) {
+      return pnlAlignTab.getContainer();
+    }
+    if (isJoinTab()) {
+      return pnlJoinTab.getContainer();
+    }
+    if (isModelTab()) {
+      return pnlModelTab.getContainer();
+    }
+    if (isRejoinTab()) {
+      return pnlRejoinTab;
+    }
+    return null;
+  }
+
+  /**
    * Create JoinDialog without an .ejf file
    * @param joinManager
    */
-  public JoinDialog(JoinManager manager, ConstJoinMetaData metaData,
-      JoinState state) {
-    this(manager, null, metaData, state);
+  public static JoinDialog getInstance(JoinManager manager,
+      ConstJoinMetaData metaData, JoinState state) {
+    JoinDialog instance = new JoinDialog(manager, null, metaData, state);
+    instance.addListeners();
+    return instance;
   }
 
   /**
@@ -598,20 +646,12 @@ public final class JoinDialog implements ContextMenu, Run3dmodButtonContainer {
    * @param joinManager
    * @param workingDirName
    */
-  public JoinDialog(JoinManager manager, String workingDirName,
-      ConstJoinMetaData metaData, JoinState state) {
-    this.state = state;
-    axisID = AxisID.ONLY;
-    this.manager = manager;
-    boundaryTable = new BoundaryTable(manager, this);
-    setRefiningJoin();
-    createRootPanel(workingDirName);
-    UIHarness.INSTANCE.pack(axisID, manager);
-    addListeners();
-    setMetaData(metaData);
-    setScreenState(manager.getScreenState());
-    init();
-    setToolTipText();
+  public static JoinDialog getInstance(JoinManager manager,
+      String workingDirName, ConstJoinMetaData metaData, JoinState state) {
+    JoinDialog instance = new JoinDialog(manager, workingDirName, metaData,
+        state);
+    instance.addListeners();
+    return instance;
   }
 
   public String toString() {
@@ -630,6 +670,26 @@ public final class JoinDialog implements ContextMenu, Run3dmodButtonContainer {
         + spinUseEveryNSlices + ",\nnumSections" + numSections + ",curTab="
         + curTab + ",invalidReason" + invalidReason + ",\naxisID=" + axisID
         + "," + super.toString();
+  }
+
+  JComponent getModelTabJComponent() {
+    return pnlModelTab.getJPanel();
+  }
+
+  JComponent getRejoinTabJComponent() {
+    return pnlRejoinTab;
+  }
+
+  JComponent getSetupTabJComponent() {
+    return pnlSetupTab.getJPanel();
+  }
+
+  JComponent getAlignTabJComponent() {
+    return pnlAlignTab.getJPanel();
+  }
+
+  JComponent getJoinTabJComponent() {
+    return pnlJoinTab.getJPanel();
   }
 
   /**
@@ -688,13 +748,13 @@ public final class JoinDialog implements ContextMenu, Run3dmodButtonContainer {
     //tabPane.addChangeListener(tabChangeListener);
     tabPane.setBorder(new BeveledBorder("Join").getBorder());
     createSetupPanel(workingDirName);
-    tabPane.addTab("Setup", pnlSetup.getContainer());
+    tabPane.addTab("Setup", pnlSetupTab.getContainer());
     createAlignPanel();
-    tabPane.addTab("Align", pnlAlign.getContainer());
+    tabPane.addTab("Align", pnlAlignTab.getContainer());
     createJoinPanel();
-    tabPane.addTab("Join", pnlJoin.getContainer());
+    tabPane.addTab("Join", pnlJoinTab.getContainer());
     createModelPanel();
-    tabPane.addTab("Model", pnlModel.getContainer());
+    tabPane.addTab("Model", pnlModelTab.getContainer());
     createRejoinPanel();
     tabPane.addTab("Rejoin", pnlRejoinTab);
     addPanelComponents(Tab.SETUP);
@@ -734,22 +794,28 @@ public final class JoinDialog implements ContextMenu, Run3dmodButtonContainer {
    * Add components to the current tab
    * @param tab
    */
-  private void addPanelComponents(Tab tab) {
+  private Component addPanelComponents(Tab tab) {
     if (tab == Tab.SETUP) {
       addSetupPanelComponents();
+      return pnlSetupTab.getContainer();
     }
-    else if (tab == Tab.ALIGN) {
+    if (tab == Tab.ALIGN) {
       addAlignPanelComponents();
+      return pnlAlignTab.getContainer();
     }
-    else if (tab == Tab.JOIN) {
+    if (tab == Tab.JOIN) {
       addJoinPanelComponents();
+      return pnlJoinTab.getContainer();
     }
-    else if (tab == Tab.MODEL) {
+    if (tab == Tab.MODEL) {
       addModelPanelComponents();
+      return pnlModelTab.getContainer();
     }
-    else if (tab == Tab.REJOIN) {
+    if (tab == Tab.REJOIN) {
       addRejoinPanelComponents();
+      return pnlRejoinTab;
     }
+    return null;
   }
 
   /**
@@ -807,16 +873,16 @@ public final class JoinDialog implements ContextMenu, Run3dmodButtonContainer {
 
   private void removePanelComponents(Tab tab) {
     if (tab == Tab.SETUP) {
-      pnlSetup.removeAll();
+      pnlSetupTab.removeAll();
     }
     else if (tab == Tab.ALIGN) {
-      pnlAlign.removeAll();
+      pnlAlignTab.removeAll();
     }
     else if (tab == Tab.JOIN) {
-      pnlJoin.removeAll();
+      pnlJoinTab.removeAll();
     }
     else if (tab == Tab.MODEL) {
-      pnlModel.removeAll();
+      pnlModelTab.removeAll();
     }
     else if (tab == Tab.REJOIN) {
       pnlRejoinTab.removeAll();
@@ -835,6 +901,10 @@ public final class JoinDialog implements ContextMenu, Run3dmodButtonContainer {
     return curTab == Tab.JOIN;
   }
 
+  final boolean isModelTab() {
+    return curTab == Tab.MODEL;
+  }
+
   final boolean isRejoinTab() {
     return curTab == Tab.REJOIN;
   }
@@ -844,7 +914,7 @@ public final class JoinDialog implements ContextMenu, Run3dmodButtonContainer {
   }
 
   int getSectionTableSize() {
-    return pnlSectionTable.getRowsSize();
+    return pnlSectionTable.size();
   }
 
   private final void changeTab(ChangeEvent event) {
@@ -852,7 +922,7 @@ public final class JoinDialog implements ContextMenu, Run3dmodButtonContainer {
     removePanelComponents(prevTab);
     curTab = Tab.getInstance(tabPane.getSelectedIndex());
     synchronize(prevTab);
-    addPanelComponents(curTab);
+    Component displayedComponent = addPanelComponents(curTab);
     UIHarness.INSTANCE.pack(manager);
   }
 
@@ -913,8 +983,7 @@ public final class JoinDialog implements ContextMenu, Run3dmodButtonContainer {
   }
 
   private void createSetupPanel(String workingDirName) {
-    pnlSetup = new SpacedPanel();
-    pnlSetup.setBoxLayout(BoxLayout.Y_AXIS);
+    pnlSetupTab.setBoxLayout(BoxLayout.Y_AXIS);
     //first component
     ftfWorkingDir = new FileTextField(WORKING_DIRECTORY_TEXT + ": ");
     ftfWorkingDir.setText(workingDirName);
@@ -933,7 +1002,7 @@ public final class JoinDialog implements ContextMenu, Run3dmodButtonContainer {
         "Reference section for density matching: ", spinnerModel);
     spinDensityRefSection.setTextMaxmimumSize(dimSpinner);
     //sixth component
-    setupPanel2 = new SpacedPanel();
+    setupPanel2 = SpacedPanel.getInstance();
     setupPanel2.setBoxLayout(BoxLayout.X_AXIS);
     setupPanel2.setBorder(BorderFactory.createEtchedBorder());
     btnChangeSetup = new MultiLineButton("Change Setup");
@@ -952,22 +1021,21 @@ public final class JoinDialog implements ContextMenu, Run3dmodButtonContainer {
   }
 
   private void addSetupPanelComponents() {
-    pnlSetup.add(ftfWorkingDir.getContainer());
-    pnlSetup.add(ltfRootName);
-    pnlSetup.add(pnlSectionTable.getRootPanel());
+    pnlSetupTab.add(ftfWorkingDir.getContainer());
+    pnlSetupTab.add(ltfRootName);
+    pnlSetupTab.add(pnlSectionTable.getRootPanel());
     pnlSectionTable.displayCurTab();
-    pnlSetup.add(pnlMidasLimit);
-    pnlSetup.add(spinDensityRefSection);
-    pnlSetup.add(setupPanel2);
+    pnlSetupTab.add(pnlMidasLimit);
+    pnlSetupTab.add(spinDensityRefSection);
+    pnlSetupTab.add(setupPanel2);
     btnMakeSamples.setSize();
-    pnlSetup.add(btnMakeSamples);
+    pnlSetupTab.add(btnMakeSamples);
   }
 
   private void createAlignPanel() {
-    pnlAlign = new SpacedPanel();
-    pnlAlign.setBoxLayout(BoxLayout.Y_AXIS);
+    pnlAlignTab.setBoxLayout(BoxLayout.Y_AXIS);
     //second component
-    alignPanel1 = new SpacedPanel();
+    alignPanel1 = SpacedPanel.getInstance();
     alignPanel1.setBoxLayout(BoxLayout.X_AXIS);
     btnOpenSample = Run3dmodButton.get3dmodInstance("Open Sample in 3dmod",
         this);
@@ -976,7 +1044,7 @@ public final class JoinDialog implements ContextMenu, Run3dmodButtonContainer {
     btnOpenSampleAverages.setSize();
     alignPanel1.add(btnOpenSampleAverages);
     //third componentadd
-    pnlXfalign = new SpacedPanel();
+    pnlXfalign = SpacedPanel.getInstance();
     pnlXfalign.setBoxLayout(BoxLayout.Y_AXIS);
     pnlXfalign.setBorder(new EtchedBorder("Auto Alignment Parameters")
         .getBorder());
@@ -991,9 +1059,9 @@ public final class JoinDialog implements ContextMenu, Run3dmodButtonContainer {
     pnlXfalign.add(ltfSigmaHighFrequency);
     pnlXfalign.add(tcAlign.getContainer());
     //fourth component
-    alignPanel2 = new SpacedPanel();
+    alignPanel2 = SpacedPanel.getInstance();
     alignPanel2.setBoxLayout(BoxLayout.X_AXIS);
-    SpacedPanel alignPanel2A = new SpacedPanel();
+    SpacedPanel alignPanel2A = SpacedPanel.getInstance();
     alignPanel2A.setBoxLayout(BoxLayout.Y_AXIS);
     btnInitialAutoAlignment = new MultiLineButton("Initial Auto Alignment");
     btnInitialAutoAlignment.setSize();
@@ -1005,7 +1073,7 @@ public final class JoinDialog implements ContextMenu, Run3dmodButtonContainer {
     btnRefineAutoAlignment.setSize();
     alignPanel2A.add(btnRefineAutoAlignment);
     alignPanel2.add(alignPanel2A);
-    SpacedPanel alignPanel2B = new SpacedPanel();
+    SpacedPanel alignPanel2B = SpacedPanel.getInstance();
     alignPanel2B.setBoxLayout(BoxLayout.Y_AXIS);
     alignPanel2B.setBorder(BorderFactory.createEtchedBorder());
     btnRevertToMidas = new MultiLineButton("Revert Auto Alignment to Midas");
@@ -1021,14 +1089,14 @@ public final class JoinDialog implements ContextMenu, Run3dmodButtonContainer {
 
   private void addAlignPanelComponents() {
     //first component
-    pnlAlign.add(pnlSectionTable.getRootPanel());
+    pnlAlignTab.add(pnlSectionTable.getRootPanel());
     pnlSectionTable.displayCurTab();
     //second component
-    pnlAlign.add(alignPanel1);
+    pnlAlignTab.add(alignPanel1);
     //third component
-    pnlAlign.add(pnlXfalign);
+    pnlAlignTab.add(pnlXfalign);
     //fourth component
-    pnlAlign.add(alignPanel2);
+    pnlAlignTab.add(alignPanel2);
   }
 
   private void createModelPanel() {
@@ -1037,14 +1105,14 @@ public final class JoinDialog implements ContextMenu, Run3dmodButtonContainer {
       return;
     }
     //construct panels
-    pnlTransformations = new SpacedPanel();
-    SpacedPanel pnlGapStartEndInc = new SpacedPanel();
-    SpacedPanel pnlPointsToFit = new SpacedPanel();
+    pnlTransformations = SpacedPanel.getInstance();
+    SpacedPanel pnlGapStartEndInc = SpacedPanel.getInstance();
+    SpacedPanel pnlPointsToFit = SpacedPanel.getInstance();
     //initialize
     btnRefineJoin.setSize();
     //build panels
-    pnlModel.setBoxLayout(BoxLayout.Y_AXIS);
-    pnlModel.alignComponentsX(Component.CENTER_ALIGNMENT);
+    pnlModelTab.setBoxLayout(BoxLayout.Y_AXIS);
+    pnlModelTab.alignComponentsX(Component.CENTER_ALIGNMENT);
     //transformations panel
     pnlTransformations.setBoxLayout(BoxLayout.Y_AXIS);
     pnlTransformations.setBorder(new EtchedBorder("Transformations")
@@ -1075,10 +1143,10 @@ public final class JoinDialog implements ContextMenu, Run3dmodButtonContainer {
   private void addModelPanelComponents() {
     createModelPanel();
     btnMakeRefiningModel.setSize();
-    pnlModel.add(btnMakeRefiningModel);
-    pnlModel.add(boundaryTable.getContainer());
+    pnlModelTab.add(btnMakeRefiningModel);
+    pnlModelTab.add(boundaryTable.getContainer());
     boundaryTable.display();
-    pnlModel.add(pnlTransformations);
+    pnlModelTab.add(pnlTransformations);
   }
 
   private void addRejoinPanelComponents() {
@@ -1101,7 +1169,7 @@ public final class JoinDialog implements ContextMenu, Run3dmodButtonContainer {
     pnlRejoin = new JPanel();
     pnlRejoin.setLayout(new BoxLayout(pnlRejoin, BoxLayout.Y_AXIS));
     //use every spinner
-    SpacedPanel pnlUseEvery = new SpacedPanel();
+    SpacedPanel pnlUseEvery = SpacedPanel.getInstance();
     pnlUseEvery.setBoxLayout(BoxLayout.X_AXIS);
     int zMax = pnlSectionTable.getZMax();
     SpinnerNumberModel spinnerModel = new SpinnerNumberModel(zMax < 1 ? 1
@@ -1111,7 +1179,7 @@ public final class JoinDialog implements ContextMenu, Run3dmodButtonContainer {
     pnlUseEvery.add(spinRejoinUseEveryNSlices);
     pnlUseEvery.add(new JLabel("slices"));
     //trial rejoin button
-    SpacedPanel pnlTrialRejoinButton = new SpacedPanel();
+    SpacedPanel pnlTrialRejoinButton = SpacedPanel.getInstance();
     pnlTrialRejoinButton.setBoxLayout(BoxLayout.Y_AXIS);
     pnlTrialRejoinButton.setBorder(BorderFactory.createEtchedBorder());
     pnlTrialRejoinButton.add(pnlUseEvery.getContainer());
@@ -1146,7 +1214,7 @@ public final class JoinDialog implements ContextMenu, Run3dmodButtonContainer {
     pnlRejoinButtons.add(b3bOpenRejoin.getContainer());
     pnlRejoin.add(pnlRejoinButtons);
     //transform model
-    SpacedPanel pnlTransformModel = new SpacedPanel();
+    SpacedPanel pnlTransformModel = SpacedPanel.getInstance();
     pnlTransformModel.setBoxLayout(BoxLayout.Y_AXIS);
     pnlTransformModel
         .setBorder(new EtchedBorder("Transform Model").getBorder());
@@ -1168,22 +1236,21 @@ public final class JoinDialog implements ContextMenu, Run3dmodButtonContainer {
   }
 
   private void createJoinPanel() {
-    pnlJoin = new SpacedPanel();
-    pnlJoin.setBoxLayout(BoxLayout.X_AXIS);
+    pnlJoinTab.setBoxLayout(BoxLayout.X_AXIS);
     //second component
     createFinishJoinPanel();
   }
 
   private void addJoinPanelComponents() {
     //first component
-    pnlJoin.add(pnlSectionTable.getRootPanel());
+    pnlJoinTab.add(pnlSectionTable.getRootPanel());
     pnlSectionTable.displayCurTab();
     //second component
-    pnlJoin.add(pnlFinishJoin);
+    pnlJoinTab.add(pnlFinishJoin);
   }
 
   private void createFinishJoinPanel() {
-    pnlFinishJoin = new SpacedPanel();
+    pnlFinishJoin = SpacedPanel.getInstance();
     pnlFinishJoin.setBoxLayout(BoxLayout.Y_AXIS);
     pnlFinishJoin.setBorder(BorderFactory.createEtchedBorder());
     pnlFinishJoin.setComponentAlignmentX(Component.CENTER_ALIGNMENT);
@@ -1200,7 +1267,7 @@ public final class JoinDialog implements ContextMenu, Run3dmodButtonContainer {
     btnGetMaxSize.setSize();
     pnlFinishJoin.add(btnGetMaxSize);
     //third component
-    SpacedPanel finishJoinPanel2 = new SpacedPanel();
+    SpacedPanel finishJoinPanel2 = SpacedPanel.getInstance();
     finishJoinPanel2.setBoxLayout(BoxLayout.X_AXIS);
     ltfSizeInX = new LabeledTextField("Size in X: ");
     finishJoinPanel2.add(ltfSizeInX);
@@ -1208,7 +1275,7 @@ public final class JoinDialog implements ContextMenu, Run3dmodButtonContainer {
     finishJoinPanel2.add(ltfSizeInY);
     pnlFinishJoin.add(finishJoinPanel2);
     //fourth component
-    SpacedPanel finishJoinPanel3 = new SpacedPanel();
+    SpacedPanel finishJoinPanel3 = SpacedPanel.getInstance();
     finishJoinPanel3.setBoxLayout(BoxLayout.X_AXIS);
     ltfShiftInX = new LabeledTextField("Shift in X: ");
     finishJoinPanel3.add(ltfShiftInX);
@@ -1233,12 +1300,12 @@ public final class JoinDialog implements ContextMenu, Run3dmodButtonContainer {
   }
 
   private void createTrialJoinPanel() {
-    SpacedPanel pnlTrialJoin = new SpacedPanel();
+    SpacedPanel pnlTrialJoin = SpacedPanel.getInstance();
     pnlTrialJoin.setBoxLayout(BoxLayout.Y_AXIS);
     pnlTrialJoin.setBorder(new EtchedBorder(TRIAL_JOIN_TEXT).getBorder());
     pnlTrialJoin.setComponentAlignmentX(Component.CENTER_ALIGNMENT);
     //first component
-    SpacedPanel trialJoinPanel1 = new SpacedPanel();
+    SpacedPanel trialJoinPanel1 = SpacedPanel.getInstance();
     trialJoinPanel1.setBoxLayout(BoxLayout.X_AXIS);
     int zMax = pnlSectionTable.getZMax();
     SpinnerNumberModel spinnerModel = new SpinnerNumberModel(zMax < 1 ? 1
@@ -1305,8 +1372,8 @@ public final class JoinDialog implements ContextMenu, Run3dmodButtonContainer {
         zMax < 1 ? 1 : zMax, 1);
     spinUseEveryNSlices.setModel(spinnerModel);
     spinnerValue.set((Integer) spinRejoinUseEveryNSlices.getValue());
-    spinnerModel = new SpinnerNumberModel(spinnerValue.getInt(), 1,
-        zMax < 1 ? 1 : zMax, 1);
+    int min = spinnerValue.getInt();
+    spinnerModel = new SpinnerNumberModel(min, 1, zMax < min ? min : zMax, 1);
     spinRejoinUseEveryNSlices.setModel(spinnerModel);
     defaultSizeInXY();
   }
@@ -1321,7 +1388,7 @@ public final class JoinDialog implements ContextMenu, Run3dmodButtonContainer {
    * has changed.
    * Will override the values on the screen if xMax and yMax have changed
    */
-  final void defaultSizeInXY() {
+  void defaultSizeInXY() {
     //update size in X and Y defaults
     ConstJoinMetaData metaData = manager.getConstMetaData();
     int xMax = pnlSectionTable.getXMax();
@@ -1376,7 +1443,7 @@ public final class JoinDialog implements ContextMenu, Run3dmodButtonContainer {
     return pnlSectionTable.getInvalidReason();
   }
 
-  public final int getMode() {
+  public int getMode() {
     return pnlSectionTable.getMode();
   }
 
