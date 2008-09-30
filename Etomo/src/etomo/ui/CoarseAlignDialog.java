@@ -11,6 +11,10 @@
  * @version $Revision$
  *
  * <p> $Log$
+ * <p> Revision 3.48  2008/05/13 23:00:15  sueh
+ * <p> bug# 847 Adding a right click menu for deferred 3dmods to some
+ * <p> process buttons.
+ * <p>
  * <p> Revision 3.47  2008/05/06 23:56:42  sueh
  * <p> bug#847 Running deferred 3dmods by using the button that usually calls
  * <p> them.  This avoids having to duplicate the calls and having a
@@ -274,7 +278,7 @@ public final class CoarseAlignDialog extends ProcessDialog implements
 
   private final PrenewstPanel pnlPrenewst;
 
-   final Run3dmodButton btnImod = Run3dmodButton.get3dmodInstance(
+  final Run3dmodButton btnImod = Run3dmodButton.get3dmodInstance(
       "View Aligned Stack In 3dmod", this);
 
   private final JPanel pnlFiducialess = new JPanel();
@@ -302,7 +306,8 @@ public final class CoarseAlignDialog extends ProcessDialog implements
     fixRootPanel(rootSize);
     pnlCrossCorrelation = new CrossCorrelationPanel(applicationManager, axisID,
         dialogType);
-    pnlPrenewst = new PrenewstPanel(applicationManager, axisID, dialogType,this);
+    pnlPrenewst = new PrenewstPanel(applicationManager, axisID, dialogType,
+        this);
     btnExecute.setText("Done");
 
     pnlFiducialess.setLayout(new BoxLayout(pnlFiducialess, BoxLayout.Y_AXIS));
@@ -315,7 +320,7 @@ public final class CoarseAlignDialog extends ProcessDialog implements
     UIUtilities.addWithSpace(pnlCoarseAlign, pnlCrossCorrelation.getPanel(),
         FixedDim.x0_y10);
     if (metaData.getViewType() == ViewType.MONTAGE) {
-      SpacedPanel pnlFixEdges = new SpacedPanel();
+      SpacedPanel pnlFixEdges = SpacedPanel.getInstance();
       pnlFixEdges.setBoxLayout(BoxLayout.Y_AXIS);
       pnlFixEdges.setBorder(new EtchedBorder("Fix Edges").getBorder());
       btnDistortionCorrectedStack.setSize();
@@ -350,13 +355,14 @@ public final class CoarseAlignDialog extends ProcessDialog implements
     pnlPrenewst.setDeferred3dmodButtons();
     updateAdvanced();
   }
-  
-  public static CoarseAlignDialog getInstance(ApplicationManager appMgr, AxisID axisID) {
-    CoarseAlignDialog instance = new CoarseAlignDialog(appMgr,  axisID);
+
+  public static CoarseAlignDialog getInstance(ApplicationManager appMgr,
+      AxisID axisID) {
+    CoarseAlignDialog instance = new CoarseAlignDialog(appMgr, axisID);
     instance.addListeners();
     return instance;
   }
-  
+
   private void addListeners() {
     //  Action listener assignment for the buttons
     btnImod.addActionListener(actionListener);

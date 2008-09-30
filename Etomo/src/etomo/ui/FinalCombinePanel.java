@@ -59,6 +59,9 @@ import etomo.util.DatasetFiles;
  * 
  * <p>
  * $Log$
+ * Revision 3.68  2008/07/02 18:45:31  sueh
+ * bug# 1121 opening objects windows in patch vector model
+ *
  * Revision 3.67  2008/05/28 02:49:55  sueh
  * bug# 1111 Add a dialogType parameter to the ProcessSeries
  * constructor.  DialogType must be passed to any function that constructs
@@ -394,7 +397,7 @@ public class FinalCombinePanel implements ContextMenu, FinalCombineFields,
   private JPanel pnlRoot = new JPanel();
 
   private JPanel pnlPatchcorr = new JPanel();
-  private SpacedPanel pnlPatchcorrBody = new SpacedPanel(true);
+  private SpacedPanel pnlPatchcorrBody = SpacedPanel.getInstance(true);
 
   private JPanel pnlPatchsize = new JPanel();
   private JPanel pnlPatchsizeEdit = new JPanel();
@@ -432,7 +435,7 @@ public class FinalCombinePanel implements ContextMenu, FinalCombineFields,
   private JPanel pnlMatchorwarp = new JPanel();
   private JPanel pnlMatchorwarpBody = new JPanel();
   private JPanel pnlPatchRegionModel = new JPanel();
-  private SpacedPanel pnlPatchRegionModelBody = new SpacedPanel(true);
+  private SpacedPanel pnlPatchRegionModelBody = SpacedPanel.getInstance(true);
   private CheckBox cbUsePatchRegionModel = new CheckBox(
       "Use patch region model");
   private Run3dmodButton btnPatchRegionModel = Run3dmodButton.get3dmodInstance(
@@ -478,12 +481,12 @@ public class FinalCombinePanel implements ContextMenu, FinalCombineFields,
   private final PanelHeader patchcorrHeader;
   private final PanelHeader matchorwarpHeader;
   private final PanelHeader volcombineHeader;
-  private final SpacedPanel pnlKernelSigma = new SpacedPanel();
+  private final SpacedPanel pnlKernelSigma = SpacedPanel.getInstance();
   private final LabeledTextField ltfInitialShiftX = new LabeledTextField(
       "Initial shift in X:");
   private final LabeledTextField ltfInitialShiftY = new LabeledTextField("Z:");
   private final LabeledTextField ltfInitialShiftZ = new LabeledTextField("Y:");
-  private final SpacedPanel pnlInitialShiftXYZ = new SpacedPanel();
+  private final SpacedPanel pnlInitialShiftXYZ = SpacedPanel.getInstance();
   private MultiLineButton btnPatchVectorCCCModel = new MultiLineButton(
       "Open Vector Model with Correlations");
   private final DialogType dialogType;
@@ -1422,9 +1425,9 @@ public class FinalCombinePanel implements ContextMenu, FinalCombineFields,
     btnMatchorwarpTrial
         .setToolTipText("Run Matchorwarp in trial mode; find transformations then stop.");
     btnPatchVectorModel
-        .setToolTipText("View the patch displacement vectors in and possibly " +
-            "delete bad vectors.  To see the residual values, click on Values in " +
-            "3dmodv Objects, and select on Show stored values.");
+        .setToolTipText("View the patch displacement vectors in and possibly "
+            + "delete bad vectors.  To see the residual values, click on Values in "
+            + "3dmodv Objects, and select on Show stored values.");
     btnReplacePatchOut
         .setToolTipText("Replace the patch displacements with the vectors from the edited model.");
     btnImodMatchedTo

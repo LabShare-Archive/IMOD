@@ -37,6 +37,9 @@ import etomo.type.Run3dmodMenuOptions;
  * @version $Revision$
  *
  * <p> $Log$
+ * <p> Revision 3.31  2008/05/03 00:46:32  sueh
+ * <p> bug# 847 Passing null to process funtions for ProcessSeries.
+ * <p>
  * <p> Revision 3.30  2007/12/26 22:22:00  sueh
  * <p> bug# 1052 Return true when done() completes successfully.
  * <p>
@@ -317,7 +320,7 @@ public final class AlignmentEstimationDialog extends ProcessDialog implements
     btnViewResiduals.setSize();
     btnView3DModel.setSize();
 
-    SpacedPanel topButtonPanel = new SpacedPanel();
+    SpacedPanel topButtonPanel = SpacedPanel.getInstance();
     topButtonPanel.setBoxLayout(BoxLayout.X_AXIS);
     btnComputeAlignment.setSize();
     topButtonPanel.add(btnComputeAlignment);
@@ -325,7 +328,7 @@ public final class AlignmentEstimationDialog extends ProcessDialog implements
     topButtonPanel.add(btnImod);
     panelButton.add(topButtonPanel.getContainer());
     panelButton.add(Box.createRigidArea(FixedDim.x0_y10));
-    SpacedPanel bottomButtonPanel = new SpacedPanel();
+    SpacedPanel bottomButtonPanel = SpacedPanel.getInstance();
     bottomButtonPanel.setBoxLayout(BoxLayout.X_AXIS);
     btnView3DModel.setSize();
     bottomButtonPanel.add(btnView3DModel);

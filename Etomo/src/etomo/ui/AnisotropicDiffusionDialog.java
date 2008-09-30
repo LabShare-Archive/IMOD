@@ -39,6 +39,11 @@ import etomo.util.Utilities;
  * @version $Revision$
  * 
  * <p> $Log$
+ * <p> Revision 1.13  2008/08/26 20:36:39  sueh
+ * <p> bug# 1122 Moved deleteSubdir from dialog to manager so that
+ * <p> ImodManager can be queried about open 3dmods.  Check deleteSubdir
+ * <p> return value before setting subdirName to null.
+ * <p>
  * <p> Revision 1.12  2008/06/20 20:05:29  sueh
  * <p> bug# 1119 Added debug.
  * <p>
@@ -99,7 +104,7 @@ public final class AnisotropicDiffusionDialog implements ContextMenu,
 
   static final String TEST_VOLUME_NAME = "test.input";
 
-  private final SpacedPanel rootPanel = new SpacedPanel();
+  private final SpacedPanel rootPanel = SpacedPanel.getInstance();
   private final Run3dmodButton btnViewFullVolume = Run3dmodButton
       .get3dmodInstance("View Full Volume", this);
   private final FileTextField ftfVolume = new FileTextField("Pick a volume");
@@ -206,7 +211,7 @@ public final class AnisotropicDiffusionDialog implements ContextMenu,
     String[] logFile = new String[1];
     logFile[0] = ProcessName.ANISOTROPIC_DIFFUSION + ".log";
     //    ContextPopup contextPopup =
-    new ContextPopup(rootPanel.getComponent(), mouseEvent,
+    new ContextPopup(rootPanel.getContainer(), mouseEvent,
         "ANISOTROPIC DIFFUSION", ContextPopup.TOMO_GUIDE, manPagelabel,
         manPage, logFileLabel, logFile, manager, AxisID.ONLY, subdirName);
   }
@@ -229,19 +234,19 @@ public final class AnisotropicDiffusionDialog implements ContextMenu,
     }
     rootPanel.setComponentAlignmentX(Component.CENTER_ALIGNMENT);
     //first column
-    SpacedPanel pnlFirst = new SpacedPanel();
+    SpacedPanel pnlFirst = SpacedPanel.getInstance();
     pnlFirst.setBoxLayout(BoxLayout.Y_AXIS);
     //volume
     ftfVolume.setShowPartialPath();
     ftfVolume.setFieldEditable(false);
     pnlFirst.add(ftfVolume.getContainer());
-    SpacedPanel pnlLoadWithFlipping = new SpacedPanel();
+    SpacedPanel pnlLoadWithFlipping = SpacedPanel.getInstance();
     pnlLoadWithFlipping.setBoxLayout(BoxLayout.X_AXIS);
     pnlLoadWithFlipping.add(cbLoadWithFlipping);
     pnlLoadWithFlipping.addHorizontalGlue();
     pnlFirst.add(pnlLoadWithFlipping);
     //extract
-    SpacedPanel pnlExtract = new SpacedPanel();
+    SpacedPanel pnlExtract = SpacedPanel.getInstance();
     pnlExtract.setBoxLayout(BoxLayout.Y_AXIS);
     pnlExtract.setBorder(new EtchedBorder("Extract Test Volume").getBorder());
     pnlExtract.setComponentAlignmentX(Component.CENTER_ALIGNMENT);
@@ -255,7 +260,7 @@ public final class AnisotropicDiffusionDialog implements ContextMenu,
         "The starting slice for the test volume range.",
         "The ending slice for the test volume range.", btnViewFullVolume);
     pnlExtract.add(pnlTestVolumeRubberband.getContainer());
-    SpacedPanel pnlExtractButtons = new SpacedPanel();
+    SpacedPanel pnlExtractButtons = SpacedPanel.getInstance();
     pnlExtractButtons.setBoxLayout(BoxLayout.X_AXIS);
     pnlExtractButtons.addHorizontalGlue();
     btnExtractTestVolume.setSize();
@@ -268,22 +273,22 @@ public final class AnisotropicDiffusionDialog implements ContextMenu,
     pnlFirst.add(pnlExtract);
     rootPanel.add(pnlFirst);
     //second column
-    SpacedPanel pnlSecond = new SpacedPanel();
+    SpacedPanel pnlSecond = SpacedPanel.getInstance();
     pnlSecond.setBoxLayout(BoxLayout.Y_AXIS);
     //varying K
-    SpacedPanel pnlVaryingK = new SpacedPanel();
+    SpacedPanel pnlVaryingK = SpacedPanel.getInstance();
     pnlVaryingK.setBoxLayout(BoxLayout.Y_AXIS);
     pnlVaryingK.setBorder(new EtchedBorder("Find a K Value for Test Volume")
         .getBorder());
     pnlVaryingK.setComponentAlignmentX(Component.CENTER_ALIGNMENT);
-    SpacedPanel pnlVaryingKFields = new SpacedPanel();
+    SpacedPanel pnlVaryingKFields = SpacedPanel.getInstance();
     pnlVaryingKFields.setBoxLayout(BoxLayout.X_AXIS);
     ltfTestKValueList.setTextPreferredWidth(UIParameters.INSTANCE
         .getListWidth());
     pnlVaryingKFields.add(ltfTestKValueList);
     pnlVaryingKFields.add(spTestIteration);
     pnlVaryingK.add(pnlVaryingKFields);
-    SpacedPanel pnlVaryingKButtons = new SpacedPanel();
+    SpacedPanel pnlVaryingKButtons = SpacedPanel.getInstance();
     pnlVaryingKButtons.setBoxLayout(BoxLayout.X_AXIS);
     pnlVaryingKButtons.addHorizontalGlue();
     btnRunVaryingK.setDeferred3dmodButton(btnViewVaryingK);
@@ -296,18 +301,18 @@ public final class AnisotropicDiffusionDialog implements ContextMenu,
     pnlVaryingK.add(pnlVaryingKButtons);
     pnlSecond.add(pnlVaryingK);
     //varying iterations
-    SpacedPanel pnlVaryingIteration = new SpacedPanel();
+    SpacedPanel pnlVaryingIteration = SpacedPanel.getInstance();
     pnlVaryingIteration.setBoxLayout(BoxLayout.Y_AXIS);
     pnlVaryingIteration.setBorder(new EtchedBorder(
         "Find an Iteration Number for Test Volume").getBorder());
-    SpacedPanel pnlVaryingIterationFields = new SpacedPanel();
+    SpacedPanel pnlVaryingIterationFields = SpacedPanel.getInstance();
     pnlVaryingIterationFields.setBoxLayout(BoxLayout.X_AXIS);
     pnlVaryingIterationFields.add(ltfTestKValue);
     ltfTestIterationList.setTextPreferredWidth(UIParameters.INSTANCE
         .getListWidth());
     pnlVaryingIterationFields.add(ltfTestIterationList);
     pnlVaryingIteration.add(pnlVaryingIterationFields);
-    SpacedPanel pnlVaryingIterationButtons = new SpacedPanel();
+    SpacedPanel pnlVaryingIterationButtons = SpacedPanel.getInstance();
     pnlVaryingIterationButtons.setBoxLayout(BoxLayout.X_AXIS);
     pnlVaryingIterationButtons.addHorizontalGlue();
     btnRunVaryingIteration.setDeferred3dmodButton(btnViewVaryingIteration);
@@ -320,17 +325,17 @@ public final class AnisotropicDiffusionDialog implements ContextMenu,
     pnlVaryingIteration.add(pnlVaryingIterationButtons);
     pnlSecond.add(pnlVaryingIteration);
     //filter
-    SpacedPanel pnlFilter = new SpacedPanel();
+    SpacedPanel pnlFilter = SpacedPanel.getInstance();
     pnlFilter.setBoxLayout(BoxLayout.Y_AXIS);
     pnlFilter.setBorder(new EtchedBorder("Filter Full Volume").getBorder());
-    SpacedPanel pnlFilterFields = new SpacedPanel();
+    SpacedPanel pnlFilterFields = SpacedPanel.getInstance();
     pnlFilterFields.setBoxLayout(BoxLayout.X_AXIS);
     ltfKValue.setTextPreferredWidth(UIParameters.INSTANCE.getFourDigitWidth());
     pnlFilterFields.add(ltfKValue);
     pnlFilterFields.add(spIteration);
     pnlFilterFields.add(spMemoryPerChunk);
     pnlFilter.add(pnlFilterFields);
-    SpacedPanel pnlFilterButtons = new SpacedPanel();
+    SpacedPanel pnlFilterButtons = SpacedPanel.getInstance();
     pnlFilterButtons.setBoxLayout(BoxLayout.X_AXIS);
     btnRunFilterFullVolume.setDeferred3dmodButton(btnViewFilteredVolume);
     btnRunFilterFullVolume.setSize();

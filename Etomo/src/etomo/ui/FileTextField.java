@@ -23,6 +23,9 @@ import javax.swing.JLabel;
  * @version $Revision$
  * 
  * <p> $Log$
+ * <p> Revision 1.9  2008/02/26 01:39:35  sueh
+ * <p> bug# 1087 Added isEmpty.
+ * <p>
  * <p> Revision 1.8  2008/02/19 00:46:59  sueh
  * <p> bug# 1078 Added setFieldWidth.
  * <p>
@@ -55,7 +58,7 @@ final class FileTextField {
 
   private final JButton button = new JButton(new ImageIcon(ClassLoader
       .getSystemResource("images/openFile.gif")));
-  private final SpacedPanel panel = new SpacedPanel();
+  private final SpacedPanel panel = SpacedPanel.getInstance();
   private final TextField field;
 
   private JLabel label = null;

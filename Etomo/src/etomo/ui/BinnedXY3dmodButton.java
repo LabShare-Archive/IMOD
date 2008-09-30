@@ -25,6 +25,9 @@ import javax.swing.SpinnerNumberModel;
  * @version $Revision$
  * 
  * <p> $Log$
+ * <p> Revision 1.4  2008/05/13 22:59:55  sueh
+ * <p> bug# 847 Added getButton.
+ * <p>
  * <p> Revision 1.3  2008/05/03 00:47:54  sueh
  * <p> bug# 847 Made Run3dmodButton constructor private.
  * <p>
@@ -57,7 +60,7 @@ final class BinnedXY3dmodButton {
       panel.add(Box.createHorizontalGlue());
       panel.add(Box.createHorizontalGlue());
       panel.add(Box.createHorizontalGlue());
-      SpacedPanel borderPanel = new SpacedPanel();
+      SpacedPanel borderPanel = SpacedPanel.getInstance();
       borderPanel.setBoxLayout(BoxLayout.Y_AXIS);
       borderPanel.setBorder(BorderFactory.createEtchedBorder());
       borderPanel.setComponentAlignmentX(Component.CENTER_ALIGNMENT);
@@ -75,10 +78,10 @@ final class BinnedXY3dmodButton {
     }
     return panel;
   }
-  
-   Deferred3dmodButton getButton() {
-     return button;
-   }
+
+  Deferred3dmodButton getButton() {
+    return button;
+  }
 
   void setSpinnerToolTipText(String text) {
     spinner.setToolTipText(text);
