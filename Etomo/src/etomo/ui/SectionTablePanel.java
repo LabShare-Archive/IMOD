@@ -12,6 +12,7 @@ import java.awt.event.MouseEvent;
 import java.io.File;
 import java.io.IOException;
 import java.util.ArrayList;
+import java.util.List;
 
 import javax.swing.BorderFactory;
 import javax.swing.BoxLayout;
@@ -19,6 +20,7 @@ import javax.swing.JFileChooser;
 import javax.swing.JPanel;
 import javax.swing.border.LineBorder;
 
+import etomo.BaseManager;
 import etomo.JoinManager;
 import etomo.storage.JoinInfoFile;
 import etomo.storage.LogFile;
@@ -50,6 +52,9 @@ import etomo.util.Utilities;
  * @version $Revision$
  * 
  * <p> $Log$
+ * <p> Revision 1.42  2008/05/03 00:56:49  sueh
+ * <p> bug# 847 Passing null for ProcessSeries to process funtions.
+ * <p>
  * <p> Revision 1.41  2008/04/21 22:54:43  sueh
  * <p> bug# 983 In addSection remember last location.
  * <p>
@@ -353,24 +358,24 @@ import etomo.util.Utilities;
  * <p> bug# 520 creates the Sections table for JoinDialog.
  * <p> </p>
  */
-public class SectionTablePanel implements ContextMenu, Expandable,
-    Run3dmodButtonContainer, Highlightable {
+final class SectionTablePanel implements ContextMenu, Expandable,
+    Run3dmodButtonContainer, Highlightable, Viewable {
   public static final String rcsid = "$Id$";
 
   private static final Dimension buttonDimension = UIParameters.INSTANCE
       .getButtonDimension();
   private static final String flipWarning[] = {
-      "Tomograms have to be flipped after generation",
+      "TomogrgetAlignTabJComponentams have to be flipped after generation",
       "in order to be in the right orientation for joining serial sections." };
   private static final String HEADER1_SECTIONS_LABEL = "Sections";
 
   private final JPanel rootPanel = new JPanel();
-  private final SpacedPanel pnlBorder = new SpacedPanel();
+  private final SpacedPanel pnlBorder = SpacedPanel.getInstance();
   private final JPanel pnlTable = new JPanel();
-  private final SpacedPanel pnlButtons = new SpacedPanel();
-  private final SpacedPanel pnlButtonsComponent1 = new SpacedPanel();
-  private final SpacedPanel pnlButtonsComponent2 = new SpacedPanel();
-  private final SpacedPanel pnlButtonsComponent4 = new SpacedPanel();
+  private final SpacedPanel pnlButtons = SpacedPanel.getInstance();
+  private final SpacedPanel pnlButtonsComponent1 = SpacedPanel.getInstance();
+  private final SpacedPanel pnlButtonsComponent2 = SpacedPanel.getInstance();
+  private final SpacedPanel pnlButtonsComponent4 = SpacedPanel.getInstance();
   private final UIHarness uiHarness = UIHarness.INSTANCE;
   private final MultiLineButton btnMoveSectionUp = new MultiLineButton(
       "Move Section Up");
@@ -438,11 +443,13 @@ public class SectionTablePanel implements ContextMenu, Expandable,
       UIParameters.INSTANCE.getNumericWidth());
   private final HeaderCell header3RotationZ = new HeaderCell("Z",
       UIParameters.INSTANCE.getNumericWidth());
-  private ArrayList rows = new ArrayList();
+  private final RowList rowList = new RowList();
   private final GridBagLayout layout = new GridBagLayout();
   private final GridBagConstraints constraints = new GridBagConstraints();
   private final SectionTableActionListener sectionTableActionListener = new SectionTableActionListener(
       this);
+  private final JPanel pnlViewport = new JPanel();
+  private final Viewport viewport;
 
   private final JoinManager manager;
   private final JoinDialog joinDialog;
@@ -458,13 +465,20 @@ public class SectionTablePanel implements ContextMenu, Expandable,
    * Creates the panel and table.
    *
    */
-  SectionTablePanel(JoinDialog joinDialog, JoinManager manager, JoinState state) {
+  SectionTablePanel(final JoinDialog joinDialog, final JoinManager manager,
+      final JoinState state) {
     this.joinDialog = joinDialog;
     this.manager = manager;
     this.state = state;
+    viewport = new Viewport(this, joinDialog.getSetupTabJComponent(),
+        joinDialog.getAlignTabJComponent(), joinDialog.getJoinTabJComponent(),
+        "Section");
     //create root panel
     pnlBorder.setBoxLayout(BoxLayout.Y_AXIS);
     pnlBorder.setBorder(BorderFactory.createEtchedBorder());
+    rootPanel.add(pnlBorder.getContainer());
+    pnlBorder.add(pnlTable);
+    pnlViewport.setLayout(new BoxLayout(pnlViewport, BoxLayout.X_AXIS));
     //table
     pnlTable.setBorder(LineBorder.createBlackLineBorder());
     pnlTable.setLayout(layout);
@@ -480,19 +494,19 @@ public class SectionTablePanel implements ContextMenu, Expandable,
     setToolTipText();
   }
 
-  final boolean isSetupTab() {
+  boolean isSetupTab() {
     return joinDialog.isSetupTab();
   }
 
-  final boolean isAlignTab() {
+  boolean isAlignTab() {
     return joinDialog.isAlignTab();
   }
 
-  final boolean isJoinTab() {
+  boolean isJoinTab() {
     return joinDialog.isJoinTab();
   }
 
-  final boolean isRejoinTab() {
+  boolean isRejoinTab() {
     return joinDialog.isRejoinTab();
   }
 
@@ -504,7 +518,9 @@ public class SectionTablePanel implements ContextMenu, Expandable,
       rootPanel.setLayout(new BoxLayout(rootPanel, BoxLayout.Y_AXIS));
     }
     rootPanel.add(pnlBorder.getContainer());
-    pnlBorder.add(pnlTable);
+    pnlBorder.add(pnlViewport);
+    pnlViewport.add(pnlTable);
+    pnlViewport.add(viewport.getPagingPanel());
     if (!isAlignTab()) {
       addButtonsPanelComponents();
       pnlBorder.add(pnlButtons);
@@ -582,7 +598,7 @@ public class SectionTablePanel implements ContextMenu, Expandable,
     header3RotationZ.add(pnlTable, layout, constraints);
   }
 
-  final int getMode() {
+  int getMode() {
     return mode;
   }
 
@@ -668,13 +684,8 @@ public class SectionTablePanel implements ContextMenu, Expandable,
   /**
    * @return true if at least one row is rotated
    */
-  private final boolean hasRotatedSection() {
-    for (int i = 0; i < rows.size(); i++) {
-      if (((SectionTableRow) rows.get(i)).isRotated()) {
-        return true;
-      }
-    }
-    return false;
+  private boolean hasRotatedSection() {
+    return rowList.hasRotatedSection();
   }
 
   private void createButtonsPanel() {
@@ -725,52 +736,32 @@ public class SectionTablePanel implements ContextMenu, Expandable,
     }
   }
 
+  public void repositionViewer() {
+    displayCurTab();
+    manager.getMainPanel().repaint();
+  }
+
   void displayCurTab() {
     rootPanel.removeAll();
     pnlButtons.removeAll();
     pnlBorder.removeAll();
+    pnlViewport.removeAll();
     addRootPanelComponents();
     addButtonsPanelComponents();
     pnlTable.removeAll();
     addTablePanelComponents();
     SectionTableRow prevRow = null;
     //redisplay rows and calculate chunks
-    for (int i = 0; i < rows.size(); i++) {
-      SectionTableRow row = (SectionTableRow) rows.get(i);
-      row.displayCurTab(pnlTable, prevRow, rows.size());
-      prevRow = row;
-    }
+    rowList.displayCurTab(pnlTable, viewport);
   }
 
-  final int getTableSize() {
-    return rows.size();
-  }
-
-  private int getHighlightedRowIndex() {
-    for (int i = 0; i < rows.size(); i++) {
-      if (((SectionTableRow) rows.get(i)).isHighlighted()) {
-        return i;
-      }
-    }
-    return -1;
+  public int size() {
+    return rowList.size();
   }
 
   void setInverted() throws LogFile.FileException {
-    JoinInfoFile joinInfoFile = JoinInfoFile.getInstance(manager);
-    int invertedCount = 0;
-    int size = rows.size();
-    for (int i = 0; i < size; i++) {
-      SectionTableRow row = (SectionTableRow) rows.get(i);
-      ConstEtomoNumber inverted = joinInfoFile.getInverted(i);
-      if (inverted == null) {
-        continue;
-      }
-      if (inverted.is()) {
-        invertedCount++;
-      }
-      row.setInverted(inverted);
-    }
-    if (invertedCount > size / 2) {
+    int invertedCount = rowList.setInverted(JoinInfoFile.getInstance(manager));
+    if (invertedCount > rowList.size() / 2) {
       uiHarness
           .openMessageDialog(
               "Most of the sections in this join will be inverted.  "
@@ -784,7 +775,7 @@ public class SectionTablePanel implements ContextMenu, Expandable,
   /**
    * Respond to highlight request
    */
-  public void highlight(boolean highlight) {
+  public void highlight(final boolean highlight) {
     setMode();
   }
 
@@ -800,7 +791,7 @@ public class SectionTablePanel implements ContextMenu, Expandable,
    * Enable buttons based on the mode parameter
    * @param mode
    */
-  void setMode(int mode) {
+  void setMode(final int mode) {
     this.mode = mode;
     //enable buttons that are not effected by highlighting
     switch (mode) {
@@ -823,31 +814,25 @@ public class SectionTablePanel implements ContextMenu, Expandable,
     default:
       throw new IllegalStateException("mode=" + mode);
     }
-    enableRowButtons(getHighlightedRowIndex());
-    for (int i = 0; i < rows.size(); i++) {
-      ((SectionTableRow) rows.get(i)).setMode(mode);
-    }
+    enableRowButtons(rowList.getHighlightedRowIndex());
+    rowList.setMode(mode);
   }
 
   void setJoinFinalStartHighlight(boolean highlight) {
-    for (int i = 0; i < rows.size(); i++) {
-      ((SectionTableRow) rows.get(i)).setJoinFinalStartHighlight(highlight);
-    }
+    rowList.setJoinFinalStartHighlight(highlight);
   }
 
   void setJoinFinalEndHighlight(boolean highlight) {
-    for (int i = 0; i < rows.size(); i++) {
-      ((SectionTableRow) rows.get(i)).setJoinFinalEndHighlight(highlight);
-    }
+    rowList.setJoinFinalEndHighlight(highlight);
   }
 
   /**
    * Enable row level buttons based on the current highlight
    * @param highlightedRowIndex
    */
-  private void enableRowButtons(int highlightedRowIndex) {
+  private void enableRowButtons(final int highlightedRowIndex) {
     int rowsSize = 0;
-    rowsSize = rows.size();
+    rowsSize = rowList.size();
     if (rowsSize == 0) {
       b3bOpen3dmod.setEnabled(false);
       button1ExpandSections.setEnabled(false);
@@ -876,12 +861,9 @@ public class SectionTablePanel implements ContextMenu, Expandable,
    * row.
    * @param expandButton
    */
-  public void expand(ExpandButton expandButton) {
+  public void expand(final ExpandButton expandButton) {
     if (expandButton.equals(button1ExpandSections)) {
-      boolean expand = button1ExpandSections.isExpanded();
-      for (int i = 0; i < rows.size(); i++) {
-        ((SectionTableRow) rows.get(i)).expandSection(expand);
-      }
+      rowList.expand(button1ExpandSections.isExpanded());
     }
     else {
       throw new IllegalStateException("Unknown expand button," + expandButton);
@@ -892,46 +874,28 @@ public class SectionTablePanel implements ContextMenu, Expandable,
     return layout;
   }
 
-  public void enableAddSection() {
+  void enableAddSection() {
     flipping = false;
     setMode();
   }
 
-  public boolean equals(ConstJoinMetaData metaData) {
+  boolean equals(final ConstJoinMetaData metaData) {
     ArrayList array = metaData.getSectionTableData();
     if (array == null) {
       return false;
     }
-    if (rows.size() != array.size()) {
-      return false;
-    }
-    for (int i = 0; i < rows.size(); i++) {
-      if (!((SectionTableRow) rows.get(i))
-          .equals((ConstSectionTableRowData) array.get(i))) {
-        return false;
-      }
-    }
-    return true;
+    return rowList.equals(array);
   }
 
-  public boolean equalsSample(ConstJoinMetaData metaData) {
+  boolean equalsSample(final ConstJoinMetaData metaData) {
     ArrayList array = metaData.getSectionTableData();
     if (array == null) {
       return false;
     }
-    if (rows.size() != array.size()) {
-      return false;
-    }
-    for (int i = 0; i < rows.size(); i++) {
-      if (!((SectionTableRow) rows.get(i))
-          .equalsSample((ConstSectionTableRowData) array.get(i))) {
-        return false;
-      }
-    }
-    return true;
+    return rowList.equalsSample(array);
   }
 
-  public GridBagConstraints getTableConstraints() {
+  GridBagConstraints getTableConstraints() {
     return constraints;
   }
 
@@ -941,27 +905,26 @@ public class SectionTablePanel implements ContextMenu, Expandable,
    * rows and everything below them.  Renumber the row numbers in the table.
    */
   private void moveSectionUp() {
-    int rowIndex = getHighlightedRowIndex();
-    if (rowIndex == -1) {
+    int index = rowList.getHighlightedRowIndex();
+    if (index == -1) {
       return;
     }
-    if (rowIndex == 0) {
+    if (index == 0) {
       uiHarness.openMessageDialog("Can't move the row up.  Its at the top.",
           "Wrong Row", AxisID.ONLY);
       return;
     }
-    removeRowsFromTable(rowIndex - 1);
-    Object rowMoveUp = rows.remove(rowIndex);
-    Object rowMoveDown = rows.remove(rowIndex - 1);
-    rows.add(rowIndex - 1, rowMoveUp);
-    rows.add(rowIndex, rowMoveDown);
-    addRowsToTable(rowIndex - 1);
-    renumberTable(rowIndex - 1);
-    state.moveRowUp(rowIndex);
-    configureRows();
-    enableRowButtons(rowIndex - 1);
+    // rowList.removeRows(index - 1);
+    rowList.moveSectionUp(index);
+    viewport.includeRowInViewport(index - 1);
+    rowList.removeRows();
+    rowList.displayRows(pnlTable, viewport);
+    rowList.renumberTable(index - 1);
+    state.moveRowUp(index);
+    rowList.configureRows();
+    enableRowButtons(index - 1);
     joinDialog.msgRowChange();
-    repaint();
+    manager.getMainPanel().repaint();
   }
 
   /**
@@ -970,28 +933,27 @@ public class SectionTablePanel implements ContextMenu, Expandable,
    * rows and everything below them.  Renumber the row numbers in the table.
    */
   private void moveSectionDown() {
-    int rowIndex = getHighlightedRowIndex();
-    if (rowIndex == -1) {
+    int index = rowList.getHighlightedRowIndex();
+    if (index == -1) {
       return;
     }
-    if (rowIndex == rows.size() - 1) {
+    if (index == rowList.size() - 1) {
       uiHarness.openMessageDialog(
           "Can't move the row down.  Its at the bottom.", "Wrong Row",
           AxisID.ONLY);
       return;
     }
-    removeRowsFromTable(rowIndex);
-    Object rowMoveUp = rows.remove(rowIndex + 1);
-    Object rowMoveDown = rows.remove(rowIndex);
-    rows.add(rowIndex, rowMoveUp);
-    rows.add(rowIndex + 1, rowMoveDown);
-    addRowsToTable(rowIndex);
-    renumberTable(rowIndex);
-    state.moveRowDown(rowIndex);
-    configureRows();
-    enableRowButtons(rowIndex + 1);
+    // rowList.removeRows(index);
+    rowList.moveSectionDown(index);
+    viewport.includeRowInViewport(index + 1);
+    rowList.removeRows();
+    rowList.displayRows(pnlTable, viewport);
+    rowList.renumberTable(index);
+    state.moveRowDown(index);
+    rowList.configureRows();
+    enableRowButtons(index + 1);
     joinDialog.msgRowChange();
-    repaint();
+    manager.getMainPanel().repaint();
   }
 
   private void addSection() {
@@ -1043,7 +1005,7 @@ public class SectionTablePanel implements ContextMenu, Expandable,
     }
   }
 
-  private boolean readHeader(MRCHeader header) {
+  private boolean readHeader(final MRCHeader header) {
     try {
       header.read();
     }
@@ -1083,20 +1045,18 @@ public class SectionTablePanel implements ContextMenu, Expandable,
     return true;
   }
 
-  private boolean isDuplicate(File section) {
-    for (int i = 0; i < rows.size(); i++) {
-      if (((SectionTableRow) rows.get(i)).equalsSetupSection(section)) {
-        String msgDuplicate = "The file, " + section.getAbsolutePath()
-            + ", is already in the table.";
-        uiHarness.openMessageDialog(msgDuplicate, "Add Section Failed",
-            AxisID.ONLY);
-        return true;
-      }
+  private boolean isDuplicate(final File section) {
+    if (rowList.isDuplicate(section)) {
+      String msgDuplicate = "The file, " + section.getAbsolutePath()
+          + ", is already in the table.";
+      uiHarness.openMessageDialog(msgDuplicate, "Add Section Failed",
+          AxisID.ONLY);
+      return true;
     }
     return false;
   }
 
-  void addSection(File tomogram) {
+  void addSection(final File tomogram) {
     flipping = false;
     setMode();
     if (!tomogram.exists()) {
@@ -1111,16 +1071,15 @@ public class SectionTablePanel implements ContextMenu, Expandable,
     }
     //Sections are only added in the Setup tab, so assume that the join
     //expand button is contracted.
-    SectionTableRow row = new SectionTableRow(manager, this, rows.size() + 1,
-        tomogram, button1ExpandSections.isExpanded());
-    row.setMode(mode);
-    row.add(pnlTable);
-    rows.add(row);
-    int tableSize = rows.size();
-    configureRows();
-    joinDialog.setNumSections(tableSize);
+    int index = rowList.add(manager, this, tomogram, button1ExpandSections
+        .isExpanded(), mode);
+    viewport.includeRowInViewport(index);
+    rowList.removeRows();
+    rowList.displayRows(pnlTable, viewport);
+    rowList.configureRows();
+    joinDialog.setNumSections(rowList.size());
     joinDialog.msgRowChange();
-    repaint();
+    manager.getMainPanel().repaint();
   }
 
   /**
@@ -1128,33 +1087,31 @@ public class SectionTablePanel implements ContextMenu, Expandable,
    * Remove it from the table.  Renumber the row numbers in the table.
    */
   private void deleteSection() {
-    int rowIndex = getHighlightedRowIndex();
-    if (rowIndex == -1) {
+    int index = rowList.getHighlightedRowIndex();
+    if (index == -1) {
       return;
     }
-    SectionTableRow row = (SectionTableRow) rows.get(rowIndex);
-    if (!uiHarness.openYesNoDialog("Really remove " + row.getSetupSectionText()
-        + "?", AxisID.ONLY)) {
+    if (!uiHarness.openYesNoDialog("Really remove "
+        + rowList.getSetupSectionText(index) + "?", AxisID.ONLY)) {
       return;
     }
-    rows.remove(rowIndex);
-    row.remove();
-    row.removeImod();
-    renumberTable(rowIndex);
-    state.deleteRow(rowIndex);
-    configureRows();
-    joinDialog.setNumSections(rows.size());
+    //  rowList.removeRows(index);
+    rowList.deleteSection(index);
+    rowList.removeRows();
+    viewport.includeRowInViewport(index);
+    rowList.displayRows(pnlTable, viewport);
+    rowList.renumberTable(index);
+    state.deleteRow(index);
+    rowList.configureRows();
+    joinDialog.setNumSections(rowList.size());
     enableRowButtons(-1);
     joinDialog.msgRowChange();
-    repaint();
+    manager.getMainPanel().repaint();
   }
 
   void deleteSections() {
-    while (rows.size() > 0) {
-      SectionTableRow row = (SectionTableRow) rows.remove(0);
-      row.remove();
-    }
-    repaint();
+    rowList.deleteSections();
+    manager.getMainPanel().repaint();
   }
 
   /**
@@ -1164,13 +1121,13 @@ public class SectionTablePanel implements ContextMenu, Expandable,
    * rotation angles.
    * 
    */
-  private void imodSection(Run3dmodMenuOptions menuOptions) {
-    int rowIndex = getHighlightedRowIndex();
+  private void imodSection(final Run3dmodMenuOptions menuOptions) {
+    int rowIndex = rowList.getHighlightedRowIndex();
     if (rowIndex == -1) {
       return;
     }
     int binning = b3bOpen3dmod.getInt();
-    SectionTableRow row = (SectionTableRow) rows.get(rowIndex);
+    SectionTableRow row = rowList.get(rowIndex);
     if (isSetupTab()) {
       row.imodOpenSetupSectionFile(binning, menuOptions);
     }
@@ -1180,205 +1137,84 @@ public class SectionTablePanel implements ContextMenu, Expandable,
   }
 
   private void imodGetAngles() {
-    int rowIndex = getHighlightedRowIndex();
+    int rowIndex = rowList.getHighlightedRowIndex();
     if (rowIndex == -1) {
       return;
     }
-    if (((SectionTableRow) rows.get(rowIndex)).imodGetAngles()) {
-      repaint();
-    }
-  }
-
-  /**
-   * Renumber the table starting from the row in the ArrayList at startIndex.
-   * @param startIndex
-   */
-  private void renumberTable(int startIndex) {
-    int rowsSize = rows.size();
-    SectionTableRow row;
-    for (int i = startIndex; i < rowsSize; i++) {
-      ((SectionTableRow) rows.get(i)).setRowNumber(i + 1);
+    if (rowList.get(rowIndex).imodGetAngles()) {
+      manager.getMainPanel().repaint();
     }
   }
 
   private void invertTable() {
-    int size = rows.size();
-    ArrayList newRows = new ArrayList();
-    int rowNumber = 0;
-    for (int i = size - 1; i >= 0; i--) {
-      SectionTableRow row = (SectionTableRow) rows.get(i);
-      //remove the row from the display
-      row.remove();
-      //place the row in its new position in the array and configure it
-      row.setRowNumber(++rowNumber);
-      row.swapBottomTop();
-      newRows.add(row);
-    }
-    //add the rows to the display
-    rows = newRows;
-    addRowsToTable(0);
-    configureRows();
-    enableRowButtons(getHighlightedRowIndex());
+    rowList.invertTable();
+    rowList.removeRows();
+    rowList.displayRows(pnlTable, viewport);
+    rowList.configureRows();
+    enableRowButtons(rowList.getHighlightedRowIndex());
     joinDialog.msgRowChange();
-    repaint();
+    manager.getMainPanel().repaint();
   }
 
-  /**
-   * Remove the rows from the table starting from the row in the ArrayList at
-   * startIndex.
-   * @param startIndex
-   */
-  private void removeRowsFromTable(int startIndex) {
-    for (int i = startIndex; i < rows.size(); i++) {
-      ((SectionTableRow) rows.get(i)).remove();
-    }
-  }
-
-  /**
-   * Add rows in the ArrayList to the table starting from the row in the 
-   * ArrayList at startIndex.
-   * @param startIndex
-   */
-  private void addRowsToTable(int startIndex) {
-    for (int i = startIndex; i < rows.size(); i++) {
-      ((SectionTableRow) rows.get(i)).add(pnlTable);
-    }
-  }
-
-  public boolean getMetaData(JoinMetaData metaData) {
-    boolean success = true;
+  boolean getMetaData(JoinMetaData metaData) {
     metaData.resetSectionTableData();
-    for (int i = 0; i < rows.size(); i++) {
-      SectionTableRow row = (SectionTableRow) rows.get(i);
-      ConstSectionTableRowData rowData = row.getData();
-      if (!row.isValid()) {
-        success = false; //getData() failed
-      }
-      metaData.setSectionTableData(new SectionTableRowData(manager, rowData));
-    }
-    return success;
+    return rowList.getMetaData(metaData, manager);
   }
 
   boolean validateMakejoincom() {
-    if (rows == null) {
-      return true;
-    }
-    for (int i = 0; i < rows.size(); i++) {
-      if (!((SectionTableRow) rows.get(i)).validateMakejoincom()) {
-        return false;
-      }
-    }
-    return true;
+    return rowList.validateMakejoincom();
   }
 
   boolean validateFinishjoin() {
-    if (rows == null) {
-      return true;
-    }
-    for (int i = 0; i < rows.size(); i++) {
-      if (!((SectionTableRow) rows.get(i)).validateFinishjoin()) {
-        return false;
-      }
-    }
-    return true;
+    return rowList.validateFinishjoin();
   }
 
-  public void setMetaData(ConstJoinMetaData metaData) {
+  void setMetaData(final ConstJoinMetaData metaData) {
     ArrayList rowData = metaData.getSectionTableData();
     if (rowData == null) {
       return;
     }
-    for (int i = 0; i < rowData.size(); i++) {
-      SectionTableRowData data = (SectionTableRowData) rowData.get(i);
-      SectionTableRow row = new SectionTableRow(manager, this, data, false);
-      int rowIndex = data.getRowIndex();
-      rows.add(rowIndex, row);
-    }
-    for (int i = 0; i < rows.size(); i++) {
-      SectionTableRow row = (SectionTableRow) rows.get(i);
-      row.setMode(mode);
-      row.add(pnlTable);
-    }
-    configureRows();
-    joinDialog.setNumSections(rows.size());
-    repaint();
-  }
-
-  private final void configureRows() {
-    for (int i = 0; i < rows.size(); i++) {
-      ((SectionTableRow) rows.get(i)).setInUse();
-    }
-  }
-
-  final public String getInvalidReason() {
-    for (int i = 0; i < rows.size(); i++) {
-      SectionTableRow row = (SectionTableRow) rows.get(i);
-      String invalidReason = row.getInvalidReason();
-      if (invalidReason != null) {
-        return invalidReason;
-      }
-    }
-    return null;
-  }
-
-  final int getXMax() {
-    int xMax = 0;
-    for (int i = 0; i < rows.size(); i++) {
-      SectionTableRow row = (SectionTableRow) rows.get(i);
-      xMax = Math.max(xMax, row.getXMax());
-    }
-    return xMax;
-  }
-
-  final int getYMax() {
-    int yMax = 0;
-    for (int i = 0; i < rows.size(); i++) {
-      SectionTableRow row = (SectionTableRow) rows.get(i);
-      yMax = Math.max(yMax, row.getYMax());
-    }
-    return yMax;
-  }
-
-  final int getZMax() {
-    int zMax = 0;
-    for (int i = 0; i < rows.size(); i++) {
-      SectionTableRow row = (SectionTableRow) rows.get(i);
-      zMax = Math.max(zMax, row.getZMax());
-    }
-    return zMax;
-  }
-
-  int getRowsSize() {
-    return rows.size();
-  }
-
-  public final void removeCell(Component cell) {
-    pnlTable.remove(cell);
-  }
-
-  /**
-   * Call mainPanel repaint.
-   *
-   */
-  private final void repaint() {
+    rowList.setMetaData(rowData, manager, this, mode, pnlTable, viewport);
+    rowList.configureRows();
+    joinDialog.setNumSections(rowList.size());
     manager.getMainPanel().repaint();
+  }
+
+  String getInvalidReason() {
+    return rowList.getInvalidReason();
+  }
+
+  int getXMax() {
+    return rowList.getXMax();
+  }
+
+  int getYMax() {
+    return rowList.getYMax();
+  }
+
+  int getZMax() {
+    return rowList.getZMax();
+  }
+
+  void removeCell(final Component cell) {
+    pnlTable.remove(cell);
   }
 
   /**
    * Right mouse button context menu
    */
-  public final void popUpContextMenu(MouseEvent mouseEvent) {
+  public void popUpContextMenu(final MouseEvent mouseEvent) {
   }
 
-  final Container getContainer() {
+  Container getContainer() {
     return rootPanel;
   }
 
-  final JPanel getRootPanel() {
+  JPanel getRootPanel() {
     return rootPanel;
   }
 
-  public final void action(final Run3dmodButton button,
+  public void action(final Run3dmodButton button,
       final Run3dmodMenuOptions run3dmodMenuOptions) {
     action(button.getActionCommand(), run3dmodMenuOptions);
   }
@@ -1387,7 +1223,7 @@ public class SectionTablePanel implements ContextMenu, Expandable,
    * Handle actions
    * @param event
    */
-  private final void action(final String command,
+  private void action(final String command,
       final Run3dmodMenuOptions run3dmodMenuOptions) {
     if (command.equals(btnMoveSectionUp.getActionCommand())) {
       moveSectionUp();
@@ -1420,25 +1256,21 @@ public class SectionTablePanel implements ContextMenu, Expandable,
    * @param prevTab
    * @param curTab
    */
-  final void synchronize(JoinDialog.Tab prevTab, JoinDialog.Tab curTab) {
-    if (rows.size() == 0) {
+  void synchronize(final JoinDialog.Tab prevTab, final JoinDialog.Tab curTab) {
+    if (rowList.size() == 0) {
       return;
     }
     //synchronize setup columns to join columns when the user gets to the join
     //tab or the model tab
     if (curTab == JoinDialog.Tab.JOIN || curTab == JoinDialog.Tab.REJOIN
         || curTab == JoinDialog.Tab.MODEL) {
-      for (int i = 0; i < rows.size(); i++) {
-        ((SectionTableRow) rows.get(i)).synchronizeSetupToJoin();
-      }
+      rowList.synchronizeSetupToJoin();
       //joinDialog.defaultSizeInXY();
     }
     //synchronize join columns to setup columns when the users leaves the join
     //tab
     else if (prevTab == JoinDialog.Tab.JOIN || prevTab == JoinDialog.Tab.REJOIN) {
-      for (int i = 0; i < rows.size(); i++) {
-        ((SectionTableRow) rows.get(i)).synchronizeJoinToSetup();
-      }
+      rowList.synchronizeJoinToSetup();
     }
   }
 
@@ -1526,7 +1358,352 @@ public class SectionTablePanel implements ContextMenu, Expandable,
         .setToolTipText("Reverse the order of the sections in the table.");
   } //  //  Action listener adapters  //
 
-  private final class SectionTableActionListener implements ActionListener {
+  /**
+   * A list of SectionTableRow classes.  Has the functionality of an array and can
+   * also run SectionTableRow functions on the whole list.
+   */
+  private static final class RowList {
+    private List list = new ArrayList();
+
+    /**
+     * @return true if at least one row is rotated
+     */
+    private boolean hasRotatedSection() {
+      for (int i = 0; i < list.size(); i++) {
+        if (get(i).isRotated()) {
+          return true;
+        }
+      }
+      return false;
+    }
+
+    /*   private void display(int index, JPanel pnlTable, Viewport viewport) {
+     if (index >= 0 && index < list.size()) {
+     get(index).display(index, pnlTable, viewport);
+     }
+     }*/
+
+    private void displayCurTab(final JPanel pnlTable, final Viewport viewport) {
+      SectionTableRow prevRow = null;
+      //redisplay rows and calculate chunks
+      for (int i = 0; i < list.size(); i++) {
+        SectionTableRow row = get(i);
+        row.setupCurTab(prevRow, list.size());
+        prevRow = row;
+        row.display(i, pnlTable, viewport);
+      }
+    }
+
+    private int size() {
+      return list.size();
+    }
+
+    private int getHighlightedRowIndex() {
+      for (int i = 0; i < list.size(); i++) {
+        if (get(i).isHighlighted()) {
+          return i;
+        }
+      }
+      return -1;
+    }
+
+    private int setInverted(final JoinInfoFile joinInfoFile)
+        throws LogFile.FileException {
+      int invertedCount = 0;
+      for (int i = 0; i < list.size(); i++) {
+        ConstEtomoNumber inverted = joinInfoFile.getInverted(i);
+        if (inverted == null) {
+          continue;
+        }
+        if (inverted.is()) {
+          invertedCount++;
+        }
+        get(i).setInverted(inverted);
+      }
+      return invertedCount;
+    }
+
+    private void setMode(final int mode) {
+      for (int i = 0; i < list.size(); i++) {
+        get(i).setMode(mode);
+      }
+    }
+
+    private void setJoinFinalStartHighlight(final boolean highlight) {
+      for (int i = 0; i < list.size(); i++) {
+        get(i).setJoinFinalStartHighlight(highlight);
+      }
+    }
+
+    private void setJoinFinalEndHighlight(final boolean highlight) {
+      for (int i = 0; i < list.size(); i++) {
+        get(i).setJoinFinalEndHighlight(highlight);
+      }
+    }
+
+    /**
+     * Matches the expand button parameter
+     * and performs the expand/contract operation.  Expands the section in each
+     * row.
+     * @param expandButton
+     */
+    private void expand(final boolean expand) {
+      for (int i = 0; i < list.size(); i++) {
+        get(i).expandSection(expand);
+      }
+    }
+
+    private boolean equals(final ArrayList array) {
+      if (list.size() != array.size()) {
+        return false;
+      }
+      for (int i = 0; i < list.size(); i++) {
+        if (!get(i).equals((ConstSectionTableRowData) array.get(i))) {
+          return false;
+        }
+      }
+      return true;
+    }
+
+    private boolean equalsSample(final ArrayList array) {
+      if (list.size() != array.size()) {
+        return false;
+      }
+      for (int i = 0; i < list.size(); i++) {
+        if (!get(i).equalsSample((ConstSectionTableRowData) array.get(i))) {
+          return false;
+        }
+      }
+      return true;
+    }
+
+    /**
+     * Swap the highlighted row with the one above it.  Move it in the rows 
+     * ArrayList.  Move it in the table by removing and adding the two involved
+     * rows and everything below them.
+     */
+    private void moveSectionUp(final int rowIndex) {
+      Object rowMoveUp = list.remove(rowIndex);
+      Object rowMoveDown = list.remove(rowIndex - 1);
+      list.add(rowIndex - 1, rowMoveUp);
+      list.add(rowIndex, rowMoveDown);
+    }
+
+    private void moveSectionDown(final int rowIndex) {
+      Object rowMoveUp = list.remove(rowIndex + 1);
+      Object rowMoveDown = list.remove(rowIndex);
+      list.add(rowIndex, rowMoveUp);
+      list.add(rowIndex + 1, rowMoveDown);
+    }
+
+    private boolean isDuplicate(final File section) {
+      for (int i = 0; i < list.size(); i++) {
+        if (get(i).equalsSetupSection(section)) {
+          return true;
+        }
+      }
+      return false;
+    }
+
+    /**
+     * Creates and adds a row.
+     * @param manager
+     * @param table
+     * @param tomogram
+     * @param expanded
+     * @param mode
+     * @return The index of the new row
+     */
+    private int add(final JoinManager manager, final SectionTablePanel table,
+        final File tomogram, final boolean expanded, final int mode) {
+      SectionTableRow row = new SectionTableRow(manager, table,
+          list.size() + 1, tomogram, expanded);
+      row.setMode(mode);
+      list.add(row);
+      return list.size() - 1;
+    }
+
+    private SectionTableRow get(final int index) {
+      if (index < 0 || index >= list.size()) {
+        return null;
+      }
+      return (SectionTableRow) list.get(index);
+    }
+
+    private SectionTableRow remove(final int index) {
+      if (index < 0 || index >= list.size()) {
+        return null;
+      }
+      return (SectionTableRow) list.remove(index);
+    }
+
+    private void deleteSection(final int index) {
+      SectionTableRow row = remove(index);
+      if (row != null) {
+        row.remove();
+        row.removeImod();
+      }
+    }
+
+    private void deleteSections() {
+      while (list.size() > 0) {
+        SectionTableRow row = remove(0);
+        row.remove();
+      }
+    }
+
+    /**
+     * Renumber the table starting from the row in the ArrayList at startIndex.
+     * @param startIndex
+     */
+    private void renumberTable(final int startIndex) {
+      for (int i = startIndex; i < list.size(); i++) {
+        get(i).setRowNumber(i + 1);
+      }
+    }
+
+    /**
+     * Remove the rows from the table.
+     */
+    private void removeRows() {
+      for (int i = 0; i < list.size(); i++) {
+        get(i).remove();
+      }
+    }
+
+    /**
+     * Display rows in the table.
+     */
+    private void displayRows(final JPanel pnlTable, final Viewport viewport) {
+      for (int i = 0; i < list.size(); i++) {
+        get(i).display(i, pnlTable, viewport);
+      }
+    }
+
+    private void invertTable() {
+      int size = size();
+      ArrayList newRows = new ArrayList();
+      int rowNumber = 0;
+      for (int i = size - 1; i >= 0; i--) {
+        SectionTableRow row = get(i);
+        //place the row in its new position in the array and configure it
+        row.setRowNumber(++rowNumber);
+        row.swapBottomTop();
+        newRows.add(row);
+      }
+      list = newRows;
+    }
+
+    private boolean getMetaData(final JoinMetaData metaData,
+        final BaseManager manager) {
+      boolean success = true;
+      for (int i = 0; i < list.size(); i++) {
+        SectionTableRow row = get(i);
+        ConstSectionTableRowData rowData = row.getData();
+        if (!row.isValid()) {
+          success = false; //getData() failed
+        }
+        metaData.setSectionTableData(new SectionTableRowData(manager, rowData));
+      }
+      return success;
+    }
+
+    private void setMetaData(final ArrayList rowData,
+        final JoinManager manager, final SectionTablePanel table,
+        final int mode, JPanel pnlTable, Viewport viewport) {
+      for (int i = 0; i < rowData.size(); i++) {
+        SectionTableRowData data = (SectionTableRowData) rowData.get(i);
+        SectionTableRow row = new SectionTableRow(manager, table, data, false);
+        int rowIndex = data.getRowIndex();
+        list.add(rowIndex, row);
+      }
+      for (int i = 0; i < list.size(); i++) {
+        SectionTableRow row = get(i);
+        row.setMode(mode);
+        row.display(i, pnlTable, viewport);
+      }
+    }
+
+    private boolean validateMakejoincom() {
+      for (int i = 0; i < list.size(); i++) {
+        if (!get(i).validateMakejoincom()) {
+          return false;
+        }
+      }
+      return true;
+    }
+
+    private boolean validateFinishjoin() {
+      for (int i = 0; i < list.size(); i++) {
+        if (!get(i).validateFinishjoin()) {
+          return false;
+        }
+      }
+      return true;
+    }
+
+    private void configureRows() {
+      for (int i = 0; i < list.size(); i++) {
+        get(i).setInUse();
+      }
+    }
+
+    private String getInvalidReason() {
+      for (int i = 0; i < list.size(); i++) {
+        String invalidReason = get(i).getInvalidReason();
+        if (invalidReason != null) {
+          return invalidReason;
+        }
+      }
+      return null;
+    }
+
+    private int getXMax() {
+      int xMax = 0;
+      for (int i = 0; i < list.size(); i++) {
+        xMax = Math.max(xMax, get(i).getXMax());
+      }
+      return xMax;
+    }
+
+    private int getYMax() {
+      int yMax = 0;
+      for (int i = 0; i < list.size(); i++) {
+        yMax = Math.max(yMax, get(i).getYMax());
+      }
+      return yMax;
+    }
+
+    private int getZMax() {
+      int zMax = 0;
+      for (int i = 0; i < list.size(); i++) {
+        zMax = Math.max(zMax, get(i).getZMax());
+      }
+      return zMax;
+    }
+
+    private String getSetupSectionText(int index) {
+      if (index >= 0 && index < list.size()) {
+        return get(index).getSetupSectionText();
+      }
+      return "";
+    }
+
+    private void synchronizeSetupToJoin() {
+      for (int i = 0; i < list.size(); i++) {
+        get(i).synchronizeSetupToJoin();
+      }
+    }
+
+    private void synchronizeJoinToSetup() {
+      for (int i = 0; i < list.size(); i++) {
+        get(i).synchronizeJoinToSetup();
+      }
+    }
+  }
+
+  private static final class SectionTableActionListener implements
+      ActionListener {
 
     private final SectionTablePanel adaptee;
 
