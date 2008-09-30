@@ -49,6 +49,9 @@ import etomo.type.Run3dmodMenuOptions;
  * @version $Revision$
  * 
  * <p> $Log$
+ * <p> Revision 1.30  2008/09/10 21:37:29  sueh
+ * <p> bug# 1135 Handled a null pointer exception in RowList.delete.
+ * <p>
  * <p> Revision 1.29  2008/05/03 00:58:47  sueh
  * <p> bug# 847 Passing null for ProcessSeries to process funtions.
  * <p>
@@ -324,7 +327,7 @@ final class VolumeTable implements Expandable, Highlightable,
     constraints.gridheight = 1;
     display();
     //border
-    SpacedPanel pnlBorder = new SpacedPanel();
+    SpacedPanel pnlBorder = SpacedPanel.getInstance();
     pnlBorder.setBoxLayout(BoxLayout.Y_AXIS);
     pnlBorder.setBorder(new EtchedBorder(TABLE_HEADER).getBorder());
     pnlBorder.add(pnlTable);

@@ -36,6 +36,11 @@ import etomo.type.Run3dmodMenuOptions;
  * @version $Revision$
  * 
  * <p> $Log$
+ * <p> Revision 3.30  2008/07/15 21:23:58  sueh
+ * <p> bug# 1127 Placing the rubberband button for scaling in the trimvol panel
+ * <p> instead of the rubberband panel because it includes Z, which is in a radio
+ * <p> button in the trimvol panel.
+ * <p>
  * <p> Revision 3.29  2008/05/28 02:52:12  sueh
  * <p> bug# 1111 Add a dialogType parameter to the ProcessSeries
  * <p> constructor.  DialogType must be passed to any function that constructs
@@ -348,7 +353,7 @@ public final class TrimvolPanel implements Run3dmodButtonContainer,
     pnlTrimvol.add(Box.createRigidArea(FixedDim.x0_y10));
     pnlTrimvol.add(pnlScale);
     pnlTrimvol.add(Box.createRigidArea(FixedDim.x0_y10));
-    SpacedPanel pnlReorientation = new SpacedPanel();
+    SpacedPanel pnlReorientation = SpacedPanel.getInstance();
     pnlReorientation.setBoxLayout(BoxLayout.X_AXIS);
     pnlReorientationChoices.setLayout(new BoxLayout(pnlReorientationChoices,
         BoxLayout.Y_AXIS));
