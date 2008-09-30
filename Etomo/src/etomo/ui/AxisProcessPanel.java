@@ -8,7 +8,6 @@ import java.awt.event.ActionListener;
 import java.awt.event.MouseEvent;
 import javax.swing.*;
 
-
 import java.awt.Rectangle;
 
 import etomo.BaseManager;
@@ -35,6 +34,10 @@ import etomo.util.Utilities;
  * @version $Revision$
  *
  * <p> $Log$
+ * <p> Revision 3.36  2008/05/30 22:31:27  sueh
+ * <p> bug# 1102 Isolating the etomo.uitest package so it is not need for
+ * <p> running EtomoDirector.
+ * <p>
  * <p> Revision 3.35  2008/05/30 21:27:44  sueh
  * <p> bug# 1102 Moved uitest classes to etomo.uitest.
  * <p>
@@ -287,7 +290,7 @@ public abstract class AxisProcessPanel implements ContextMenu {
    * @param axis
    */
   AxisProcessPanel(AxisID axis, BaseManager manager) {
-    progressPanel = new ProgressPanel("No process", manager, axis);
+    progressPanel = ProgressPanel.getInstance("No process", manager, axis);
     axisID = axis;
     this.manager = manager;
     buttonKillProcess.setName(Utilities.convertLabelToName(KILL_BUTTON_LABEL));
@@ -390,7 +393,7 @@ public abstract class AxisProcessPanel implements ContextMenu {
 
   private final void createParallelPanel() {
     if (parallelPanel == null) {
-      parallelPanel =  ParallelPanel.getInstance(manager, axisID, manager
+      parallelPanel = ParallelPanel.getInstance(manager, axisID, manager
           .getBaseScreenState(axisID).getParallelHeaderState(), this);
       parallelStatusPanel.add(Box.createRigidArea(FixedDim.x5_y0));
       parallelStatusPanel.add(parallelPanel.getContainer());
@@ -403,9 +406,9 @@ public abstract class AxisProcessPanel implements ContextMenu {
     parallelStatusPanel.setVisible(true);
     UIHarness.INSTANCE.pack(axisID, manager);
   }
-  
+
   void endThreads() {
-    if (parallelPanel !=null) {
+    if (parallelPanel != null) {
       parallelPanel.getLoadDisplay().endLoad();
     }
   }
