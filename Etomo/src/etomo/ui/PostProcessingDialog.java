@@ -74,11 +74,11 @@ public final class PostProcessingDialog extends ProcessDialog implements
   }
 
   private Container createSqueezeVolPanel() {
-    SpacedPanel squeezeVolPanel = new SpacedPanel();
+    SpacedPanel squeezeVolPanel = SpacedPanel.getInstance();
     squeezeVolPanel.setBoxLayout(BoxLayout.Y_AXIS);
     squeezeVolPanel.setBorder(new BeveledBorder("Squeeze Volume").getBorder());
     //first component
-    SpacedPanel squeezeVolPanel1 = new SpacedPanel();
+    SpacedPanel squeezeVolPanel1 = SpacedPanel.getInstance();
     squeezeVolPanel1.setBoxLayout(BoxLayout.X_AXIS);
     ltfReductionFactorXY = new LabeledTextField("Reduction factor in X and Y ");
     squeezeVolPanel1.add(ltfReductionFactorXY);
@@ -90,7 +90,7 @@ public final class PostProcessingDialog extends ProcessDialog implements
     cbLinearInterpolation.setAlignmentX(Component.RIGHT_ALIGNMENT);
     squeezeVolPanel.add(cbLinearInterpolation);
     //third component
-    SpacedPanel squeezeVolPanel2 = new SpacedPanel();
+    SpacedPanel squeezeVolPanel2 = SpacedPanel.getInstance();
     squeezeVolPanel2.setBoxLayout(BoxLayout.X_AXIS);
     btnSqueezeVolume.addActionListener(actionListener);
     btnSqueezeVolume.setSize();
@@ -279,6 +279,11 @@ public final class PostProcessingDialog extends ProcessDialog implements
 }
 /**
  * <p> $Log$
+ * <p> Revision 3.37  2008/05/28 02:50:30  sueh
+ * <p> bug# 1111 Add a dialogType parameter to the ProcessSeries
+ * <p> constructor.  DialogType must be passed to any function that constructs
+ * <p> a ProcessSeries instance.
+ * <p>
  * <p> Revision 3.36  2008/05/13 23:02:33  sueh
  * <p> bug# 847 Adding a right click menu for deferred 3dmods to some
  * <p> process buttons.
