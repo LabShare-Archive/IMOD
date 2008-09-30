@@ -35,6 +35,9 @@ import etomo.type.ProcessName;
  * @version $Revision$
  *
  * <p> $Log$
+ * <p> Revision 1.37  2008/07/19 00:56:23  sueh
+ * <p> Reduced exposure by removing "protected" directive.
+ * <p>
  * <p> Revision 1.36  2007/02/19 22:02:20  sueh
  * <p> bug# 964 Fixed function names:  was AxisPanelIsNull, now its isAxisPanelNull.
  * <p>
@@ -326,6 +329,20 @@ public abstract class MainPanel extends JPanel {
 
   String getStatusBarText() {
     return statusBar.getText();
+  }
+
+  public void repaint() {
+    super.repaint();
+    if (manager != null) {
+      Component focusComponent = manager.getFocusComponent();
+      //System.out.println("focusComponent=" + focusComponent);
+      if (focusComponent != null) {
+        focusComponent.requestFocus();
+      }
+      //else {
+      //  new Exception().printStackTrace();
+      //}
+    }
   }
 
   void setStatusBarText(File paramFile, BaseMetaData metaData) {
