@@ -31,6 +31,9 @@ import etomo.util.UniqueKey;
  * @version $Revision$
  *
  * <p> $Log$
+ * <p> Revision 3.47  2008/05/30 21:32:15  sueh
+ * <p> bug# 1102 Made MainFrame public for ui test.
+ * <p>
  * <p> Revision 3.46  2008/01/14 22:06:15  sueh
  * <p> bug# 1050 Moved axis B reconnect from ApplicationManager to showAxisB and
  * <p> showBothAxis because reconnect to processchunks cannot be done unless the
@@ -421,9 +424,9 @@ import etomo.util.UniqueKey;
  */
 public final class MainFrame extends EtomoFrame implements ContextMenu {
   public static final String rcsid = "$Id$";
-  
+
   public static final String NAME = "main-frame";
-  
+
   private static final int extraScreenWidthMultiplier = 2;
   private static final Dimension frameBorder = new Dimension(10, 48);
   private static final String aAxisTitle = "A Axis - ";
@@ -462,10 +465,11 @@ public final class MainFrame extends EtomoFrame implements ContextMenu {
     setDefaultCloseOperation(DO_NOTHING_ON_CLOSE);
     super.initialize();
   }
-  
+
   protected final synchronized void register() {
     if (registered) {
-      throw new IllegalStateException("Only one instance of MainFrame is allowed.");
+      throw new IllegalStateException(
+          "Only one instance of MainFrame is allowed.");
     }
     registered = true;
     mainFrame = this;
@@ -517,7 +521,7 @@ public final class MainFrame extends EtomoFrame implements ContextMenu {
       }
     }
   }
-  
+
   MainPanel getMainPanel() {
     return mainPanel;
   }
@@ -525,7 +529,7 @@ public final class MainFrame extends EtomoFrame implements ContextMenu {
   void setCurrentManager(BaseManager currentManager, UniqueKey managerKey) {
     setCurrentManager(currentManager, managerKey, false);
   }
-  
+
   protected void setMRUFileLabels(String[] mRUList) {
     this.mRUList = mRUList;
     super.setMRUFileLabels(mRUList);
@@ -533,17 +537,18 @@ public final class MainFrame extends EtomoFrame implements ContextMenu {
 
   //  Right mouse button context menu
   public void popUpContextMenu(MouseEvent mouseEvent) {
-    ContextPopup contextPopup = new ContextPopup(mainPanel, mouseEvent, "", currentManager, getAxisID());
+    ContextPopup contextPopup = new ContextPopup(mainPanel, mouseEvent, "",
+        currentManager, getAxisID());
   }
 
   void addWindow(BaseManager manager, UniqueKey managerKey) {
     windowSwitch.add(manager, managerKey);
   }
-  
+
   void removeWindow(UniqueKey managerKey) {
     windowSwitch.remove(managerKey);
   }
-  
+
   void renameWindow(UniqueKey oldKey, UniqueKey newKey) {
     windowSwitch.rename(oldKey, newKey);
   }
@@ -551,11 +556,11 @@ public final class MainFrame extends EtomoFrame implements ContextMenu {
   void selectWindowMenuItem(UniqueKey currentManagerKey) {
     selectWindowMenuItem(currentManagerKey, false);
   }
-  
+
   void selectWindowMenuItem(UniqueKey currentManagerKey, boolean newWindow) {
     windowSwitch.selectWindow(currentManagerKey, newWindow);
   }
-    
+
   /**
    * Handle the options menu events
    * @param event
@@ -574,7 +579,7 @@ public final class MainFrame extends EtomoFrame implements ContextMenu {
       super.menuOptionsAction(event);
     }
   }
-  
+
   private void setTitle(AxisID axisID) {
     if (mainPanel != null && mainPanel.getAxisType() == AxisType.DUAL_AXIS) {
       if (axisID == AxisID.FIRST) {
@@ -591,7 +596,7 @@ public final class MainFrame extends EtomoFrame implements ContextMenu {
       setTitle(title);
     }
   }
-  
+
   void hideAxisB() {
     setTitle(title);
     if (subFrame != null) {
@@ -599,7 +604,7 @@ public final class MainFrame extends EtomoFrame implements ContextMenu {
     }
     pack();
   }
-  
+
   void showAxisA() {
     setTitle(AxisID.FIRST);
     if (subFrame != null) {
@@ -608,7 +613,7 @@ public final class MainFrame extends EtomoFrame implements ContextMenu {
     mainPanel.showAxisA();
     UIHarness.INSTANCE.pack(AxisID.FIRST, currentManager);
   }
-  
+
   void showAxisB() {
     setTitle(AxisID.SECOND);
     if (subFrame != null) {
@@ -618,13 +623,14 @@ public final class MainFrame extends EtomoFrame implements ContextMenu {
     currentManager.reconnect(AxisID.SECOND);
     UIHarness.INSTANCE.pack(AxisID.SECOND, currentManager);
   }
-  
+
   void showBothAxis() {
     setTitle(aAxisTitle + title);
     mainPanel.showAxisA();
     if (subFrame == null || !subFrame.isDisplayable()) {
       subFrame = new SubFrame(this);
-      ((SubFrame) subFrame).initialize(bAxisTitle + title + " ", currentManager, mRUList);
+      ((SubFrame) subFrame).initialize(bAxisTitle + title + " ",
+          currentManager, mRUList);
     }
     else {
       subFrame.setVisible(true);
@@ -637,7 +643,8 @@ public final class MainFrame extends EtomoFrame implements ContextMenu {
   /**Overridden so we can exit when window is closed*/
   protected void processWindowEvent(WindowEvent event) {
     super.processWindowEvent(event);
-    if (event.getID() == WindowEvent.WINDOW_CLOSING && !EtomoDirector.INSTANCE.getArguments().isTest()) {
+    if (event.getID() == WindowEvent.WINDOW_CLOSING
+        && !EtomoDirector.INSTANCE.getArguments().isTest()) {
       menu.doClickFileExit();
     }
   }
