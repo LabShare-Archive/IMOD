@@ -33,6 +33,9 @@ import javax.swing.border.Border;
  * @version $Revision$
  * 
  * <p> $Log$
+ * <p> Revision 1.21  2007/11/09 17:47:28  sueh
+ * <p> bug# 1047 Added getComponent.
+ * <p>
  * <p> Revision 1.20  2007/11/06 20:32:03  sueh
  * <p> bug# 1047 Added addRigidArea(Dimension).
  * <p>
@@ -128,7 +131,7 @@ final class SpacedPanel {
 
   private final JPanel panel = new JPanel();
   private final JPanel innerPanel = new JPanel();
-  private final JPanel outerPanel= new JPanel();
+  private final JPanel outerPanel;
   private final StringBuffer xDescription = new StringBuffer();
   private final StringBuffer yDescription = new StringBuffer();
 
@@ -139,16 +142,40 @@ final class SpacedPanel {
 
   private int axis;
 
-  SpacedPanel() {
-    this(false);
+  private static final class FocusablePanel extends JPanel {
+    public FocusablePanel() {
+      this.setFocusable(true);
+    }
+  }
+
+  static SpacedPanel getInstance() {
+    return new SpacedPanel(false, false);
+  }
+
+  static SpacedPanel getInstance(final boolean yAxisPadding) {
+    return new SpacedPanel(yAxisPadding, false);
+  }
+
+  static SpacedPanel getFocusableInstance() {
+    return new SpacedPanel(false, true);
+  }
+
+  static SpacedPanel getFocusableInstance(final boolean yAxisPadding) {
+    return new SpacedPanel(yAxisPadding, true);
   }
 
   /**
    * 
    * @param yAxisPadding - add a rigid area at the top of the panel
    */
-  SpacedPanel(final boolean yAxisPadding) {
+  private SpacedPanel(final boolean yAxisPadding, final boolean focusable) {
     //panels
+    if (focusable) {
+      outerPanel = new FocusablePanel();
+    }
+    else {
+      outerPanel = new JPanel();
+    }
     outerPanel.setLayout(new BoxLayout(outerPanel, BoxLayout.Y_AXIS));
     innerPanel.setLayout(new BoxLayout(innerPanel, BoxLayout.X_AXIS));
     //innerPanel
@@ -169,6 +196,10 @@ final class SpacedPanel {
   public String toString() {
     return ",axis=" + axis + "\n,xDescription=" + xDescription
         + "\n,yDescription=" + yDescription;
+  }
+
+  void requestFocus() {
+    panel.requestFocus();
   }
 
   final void setBoxLayout(final int axis) {
@@ -379,7 +410,7 @@ final class SpacedPanel {
       yDescription.append("FixedDim.x0_y5,");
     }
   }
-  
+
   void addRigidArea(Dimension dim) {
     if (axis == BoxLayout.X_AXIS) {
       panel.add(Box.createRigidArea(dim));
@@ -422,23 +453,7 @@ final class SpacedPanel {
   }
 
   Container getContainer() {
-    if (outerPanel != null) {
-      return outerPanel;
-    }
-    if (innerPanel != null) {
-      return innerPanel;
-    }
-    return panel;
-  }
-  
-  Component getComponent() {
-    if (outerPanel != null) {
-      return outerPanel;
-    }
-    if (innerPanel != null) {
-      return innerPanel;
-    }
-    return panel;
+    return outerPanel;
   }
 
   JPanel getJPanel() {
@@ -446,13 +461,7 @@ final class SpacedPanel {
   }
 
   void setAlignmentX(final float alignmentX) {
-    if (outerPanel != null) {
-      outerPanel.setAlignmentX(alignmentX);
-    }
-    if (innerPanel != null) {
-      innerPanel.setAlignmentX(alignmentX);
-    }
-    panel.setAlignmentX(alignmentX);
+    outerPanel.setAlignmentX(alignmentX);
   }
 
   void setBorder(final Border border) {
