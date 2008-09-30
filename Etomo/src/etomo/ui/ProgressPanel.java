@@ -12,6 +12,9 @@
  * @version $Revision$
  *
  * <p> $Log$
+ * <p> Revision 3.11  2006/08/10 17:51:32  sueh
+ * <p> bug# 686 Passing manager and axis to ProgressPanel.  Added pack().
+ * <p>
  * <p> Revision 3.10  2006/04/25 19:19:34  sueh
  * <p> bug# 787 Named the progress bar.
  * <p>
@@ -93,19 +96,18 @@ import etomo.type.AxisID;
 import etomo.type.ProcessEndState;
 import etomo.util.Utilities;
 
-public class ProgressPanel {
+public final class ProgressPanel {
   public static final String rcsid = "$Id$";
 
   public static final String NAME = "progress-bar";
-  public static final int MAX_PACK = 5;
+  private static final int MAX_PACK = 5;
 
-  private JPanel panel = new JPanel();
-  private JPanel progressPanel = new JPanel();
-  private JLabel taskLabel = new JLabel();
-  private JProgressBar progressBar = new JProgressBar();
-  private Timer timer;
-  final BaseManager manager;
-  final AxisID axisID;
+  private final JPanel panel = new JPanel();
+  private final JPanel progressPanel = new JPanel();
+  private final JLabel taskLabel = new JLabel();
+  private final JProgressBar progressBar = new JProgressBar();
+  private final BaseManager manager;
+  private final AxisID axisID;
 
   // Keep these around so that SwingUtilities.invokeLater can update the
   // the UI status 
@@ -121,7 +123,11 @@ public class ProgressPanel {
   private boolean stopped = true;
   private int nPacked = 0;
 
-  public ProgressPanel(String newLabel, BaseManager manager, AxisID axisID) {
+  //required - instantiate once
+  private ProgressTimerActionListener progressTimerActionListener;
+  private Timer timer;
+
+  private ProgressPanel(String newLabel, BaseManager manager, AxisID axisID) {
     this.manager = manager;
     this.axisID = axisID;
     taskLabel.setText(newLabel);
@@ -131,14 +137,25 @@ public class ProgressPanel {
     progressBar.setName(NAME);
     panel.add(progressBar);
     panel.setAlignmentY(Component.BOTTOM_ALIGNMENT);
-    timer = new Timer(1000, new ProgressTimerActionListener(this));
+  }
+
+  static ProgressPanel getInstance(String newLabel, BaseManager manager,
+      AxisID axisID) {
+    ProgressPanel instance = new ProgressPanel(newLabel, manager, axisID);
+    instance.addListeners();
+    return instance;
+  }
+
+  private void addListeners() {
+    progressTimerActionListener = new ProgressTimerActionListener(this);
+    timer = new Timer(1000, progressTimerActionListener);
   }
 
   /**
    * Pack the dialog the first few times it is changed, so that that scroll
    * aren't displayed the first time a process runs.
    */
-  void pack() {
+  private void pack() {
     if (nPacked >= MAX_PACK) {
       return;
     }
@@ -146,17 +163,17 @@ public class ProgressPanel {
     UIHarness.INSTANCE.pack(axisID, manager);
   }
 
-  public void setBackground(Color bg) {
+  void setBackground(final Color bg) {
     panel.setBackground(bg);
   }
 
-  public void setLabel(String newLabel) {
+  void setLabel(final String newLabel) {
     stopped = false;
     label = newLabel;
     SwingUtilities.invokeLater(new SetLabelLater());
   }
 
-  private class SetLabelLater implements Runnable {
+  private final class SetLabelLater implements Runnable {
     public void run() {
       setTaskLabel();
       revalidate();
@@ -165,7 +182,7 @@ public class ProgressPanel {
     }
   }
 
-  public void start() {
+  void start() {
     stopped = false;
     //  Setting the progress bar indeterminate causes it to move on its own
     counter = 0;
@@ -173,7 +190,7 @@ public class ProgressPanel {
     SwingUtilities.invokeLater(new StartLater());
   }
 
-  private class StartLater implements Runnable {
+  private final class StartLater implements Runnable {
     public void run() {
       JProgressBar progressBar = getProgressBar();
       progressBar.setIndeterminate(true);
@@ -184,7 +201,7 @@ public class ProgressPanel {
     }
   }
 
-  public void stop(ProcessEndState state, String statusString) {
+  void stop(ProcessEndState state, final String statusString) {
     stopped = true;
     counter = 0;
     if (state == null) {
@@ -193,11 +210,11 @@ public class ProgressPanel {
     SwingUtilities.invokeLater(new StopLater(state, statusString));
   }
 
-  private class StopLater implements Runnable {
+  private final class StopLater implements Runnable {
     private final ProcessEndState state;
     private final String statusString;
 
-    public StopLater(ProcessEndState state, String statusString) {
+    private StopLater(final ProcessEndState state, final String statusString) {
       this.state = state;
       this.statusString = statusString;
     }
@@ -217,14 +234,14 @@ public class ProgressPanel {
     }
   }
 
-  void increment() {
+  private void increment() {
     SwingUtilities.invokeLater(new IncrementLater(stopped));
   }
 
-  private class IncrementLater implements Runnable {
+  private final class IncrementLater implements Runnable {
     private boolean stopped = false;
 
-    public IncrementLater(boolean stopped) {
+    private IncrementLater(final boolean stopped) {
       this.stopped = stopped;
     }
 
@@ -257,13 +274,13 @@ public class ProgressPanel {
   /**
    * @param n
    */
-  public void setMaximum(int n) {
+  void setMaximum(final int n) {
     stopped = false;
     maximum = n;
     SwingUtilities.invokeLater(new SetMaximumLater());
   }
 
-  private class SetMaximumLater implements Runnable {
+  private final class SetMaximumLater implements Runnable {
     public void run() {
       setProgressBarMaximum();
       getProgressBar().setIndeterminate(false);
@@ -272,25 +289,25 @@ public class ProgressPanel {
     }
   }
 
-  public void setMinimum(int n) {
+  void setMinimum(final int n) {
     stopped = false;
     minimum = n;
     SwingUtilities.invokeLater(new SetMinimumLater());
   }
 
-  private class SetMinimumLater implements Runnable {
+  private final class SetMinimumLater implements Runnable {
     public void run() {
       setProgressBarMinimum();
     }
   }
 
-  public void setValue(int n) {
+  void setValue(final int n) {
     stopped = false;
     value = n;
     SwingUtilities.invokeLater(new SetValueLater());
   }
 
-  private class SetValueLater implements Runnable {
+  private final class SetValueLater implements Runnable {
     public void run() {
       setProgressBarValue();
     }
@@ -301,115 +318,115 @@ public class ProgressPanel {
    * @param n
    * @param string
    */
-  public void setValue(int n, String string) {
+  void setValue(final int n, final String string) {
     stopped = false;
     value = n;
     barString = string;
     SwingUtilities.invokeLater(new SetValueAndStringLater());
   }
 
-  private class SetValueAndStringLater implements Runnable {
+  private final class SetValueAndStringLater implements Runnable {
     public void run() {
       setProgressBarValue();
       setProgressBarString();
     }
   }
 
-  public Container getContainer() {
+  Container getContainer() {
     return panel;
   }
 
   /**
    * @return
    */
-  public int getMaximum() {
+  int getMaximum() {
     return progressBar.getMaximum();
   }
 
   /**
    * @return
    */
-  public int getMinimum() {
+  int getMinimum() {
     return progressBar.getMinimum();
   }
 
   /**
    * @return
    */
-  public int getValue() {
+  int getValue() {
     return progressBar.getValue();
   }
 
-  protected final void setTaskLabel() {
+  private void setTaskLabel() {
     taskLabel.setText(label);
   }
 
-  protected final void revalidate() {
+  private void revalidate() {
     panel.revalidate();
   }
 
-  protected final void repaint() {
+  private void repaint() {
     panel.repaint();
   }
 
-  protected final void validate() {
+  private void validate() {
     panel.validate();
   }
 
-  protected final JProgressBar getProgressBar() {
+  private JProgressBar getProgressBar() {
     return progressBar;
   }
 
-  protected final void restartTimer() {
+  private void restartTimer() {
     timer.restart();
   }
 
-  protected final void startTimer() {
+  private void startTimer() {
     timer.start();
   }
 
-  protected final void stopTimer() {
+  private void stopTimer() {
     timer.stop();
   }
 
-  protected final void setProgressBarCounter() {
+  private void setProgressBarCounter() {
     progressBar.setValue(counter);
   }
 
-  protected final void setProgressBarValue() {
+  private void setProgressBarValue() {
     progressBar.setValue(value);
   }
 
-  protected final void incrementCounter() {
+  private void incrementCounter() {
     counter++;
   }
 
-  protected final void setProgressBarMaximum() {
+  private void setProgressBarMaximum() {
     progressBar.setMaximum(maximum);
   }
 
-  protected final void setProgressBarMinimum() {
+  private void setProgressBarMinimum() {
     progressBar.setMinimum(minimum);
   }
 
-  protected final void setProgressBarString() {
+  private void setProgressBarString() {
     progressBar.setString(barString);
   }
 
-  protected final long getStartTime() {
+  private long getStartTime() {
     return startTime;
   }
 
-  class ProgressTimerActionListener implements ActionListener {
-    ProgressPanel panel;
+  private static final class ProgressTimerActionListener implements
+      ActionListener {
+    private final ProgressPanel panel;
 
-    public ProgressTimerActionListener(ProgressPanel panel) {
+    private ProgressTimerActionListener(final ProgressPanel panel) {
       this.panel = panel;
     }
 
-    public void actionPerformed(ActionEvent event) {
+    public void actionPerformed(final ActionEvent event) {
       panel.increment();
     }
   }
-
 }
