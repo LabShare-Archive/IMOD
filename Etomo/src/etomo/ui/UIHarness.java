@@ -1,5 +1,6 @@
 package etomo.ui;
 
+import java.awt.Component;
 import java.awt.Dimension;
 import java.awt.Point;
 
@@ -247,6 +248,14 @@ public final class UIHarness {
       manager.packPanel();
       mainFrame.repaint();
       mainFrame.pack();
+      Component focusComponent = manager.getFocusComponent();
+      //System.out.println("focusComponent=" + focusComponent);
+      if (focusComponent != null) {
+        focusComponent.requestFocus();
+      }
+      //else {
+      //  new Exception().printStackTrace();
+      //}
     }
   }
 
@@ -255,6 +264,14 @@ public final class UIHarness {
       manager.packPanel();
       mainFrame.repaint();
       mainFrame.pack(force);
+      Component focusComponent = manager.getFocusComponent();
+      //System.out.println("focusComponent=" + focusComponent);
+      if (focusComponent != null) {
+        focusComponent.requestFocus();
+      }
+      //else {
+      //  new Exception().printStackTrace();
+      //}
     }
   }
 
@@ -263,7 +280,14 @@ public final class UIHarness {
       manager.packPanel(axisID);
       mainFrame.repaint(axisID);
       mainFrame.pack(axisID);
-
+      Component focusComponent = manager.getFocusComponent();
+      //System.out.println("focusComponent=" + focusComponent);
+      if (focusComponent != null) {
+        focusComponent.requestFocus();
+      }
+      //else {
+      //  new Exception().printStackTrace();
+      //}
     }
   }
 
@@ -272,7 +296,14 @@ public final class UIHarness {
       manager.packPanel(axisID);
       mainFrame.repaint(axisID);
       mainFrame.pack(axisID, force);
-
+      Component focusComponent = manager.getFocusComponent();
+      //System.out.println("focusComponent=" + focusComponent);
+      if (focusComponent != null) {
+        focusComponent.requestFocus();
+      }
+      //else {
+      //  new Exception().printStackTrace();
+      //}
     }
   }
 
@@ -538,6 +569,9 @@ public final class UIHarness {
 }
 /**
  * <p> $Log$
+ * <p> Revision 1.30  2008/05/30 21:35:13  sueh
+ * <p> bug# 1102 Made some functions public for ui test.
+ * <p>
  * <p> Revision 1.29  2007/12/26 22:39:02  sueh
  * <p> bug# 1052 Added exit - general way to exit from Etomo.
  * <p>
