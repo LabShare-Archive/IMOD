@@ -1,6 +1,7 @@
 package etomo.ui;
 
 import javax.swing.AbstractButton;
+import javax.swing.Icon;
 import javax.swing.JButton;
 import javax.swing.JToggleButton;
 import javax.swing.border.Border;
@@ -43,6 +44,10 @@ import java.lang.String;
  * @version $Revision$
  *
  * <p> $Log$
+ * <p> Revision 3.34  2008/05/30 22:32:19  sueh
+ * <p> bug# 1102 Isolating the etomo.uitest package so it is not need for
+ * <p> running EtomoDirector.
+ * <p>
  * <p> Revision 3.33  2008/05/30 21:32:45  sueh
  * <p> bug# 1102 Moved uitest classes to etomo.uitest.
  * <p>
@@ -312,6 +317,10 @@ class MultiLineButton implements ProcessResultDisplay {
    */
   final void setManualName() {
     manualName = true;
+  }
+  
+  void setIcon(Icon icon) {
+    button.setIcon(icon);
   }
 
   /**
