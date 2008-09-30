@@ -35,7 +35,7 @@ public final class RubberbandPanel {
 
   private final BaseManager manager;
 
-  private final SpacedPanel pnlRubberband = new SpacedPanel();
+  private final SpacedPanel pnlRubberband = SpacedPanel.getInstance();
   private final JPanel pnlRange = new JPanel();
   private final LabeledTextField ltfXMin = new LabeledTextField("X min: ");
   private final LabeledTextField ltfXMax = new LabeledTextField("X max: ");
@@ -79,7 +79,7 @@ public final class RubberbandPanel {
     if (btnImod != null) {
       btnImod.setSize();
       if (placeButtons) {
-        pnlButtons = new SpacedPanel();
+        pnlButtons = SpacedPanel.getInstance();
         pnlButtons.setBoxLayout(BoxLayout.X_AXIS);
         pnlButtons.addHorizontalGlue();
         pnlButtons.add(btnImod);
@@ -171,7 +171,7 @@ public final class RubberbandPanel {
   }
 
   Component getComponent() {
-    return pnlRubberband.getComponent();
+    return pnlRubberband.getContainer();
   }
 
   Container getContainer() {
@@ -320,6 +320,10 @@ public final class RubberbandPanel {
 }
 /**
  * <p> $Log$
+ * <p> Revision 1.8  2008/07/15 21:22:33  sueh
+ * <p> bug# 1127 Added placeButtons.  Don't place the buttons if placeButtons
+ * <p> is false.
+ * <p>
  * <p> Revision 1.7  2008/02/28 21:18:53  sueh
  * <p> bug# 1085 Changed setXYMinAndMax to setMinAndMax.  Added setting Z
  * <p> in both the current panel (if Z is displayed) and the containing panel (if the
