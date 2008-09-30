@@ -36,6 +36,9 @@ import etomo.type.EtomoAutodoc;
  * @version $Revision$
  * 
  * <p> $Log$
+ * <p> Revision 1.16  2008/08/21 00:09:15  sueh
+ * <p> bug# 1132 Sharing the Max header.
+ * <p>
  * <p> Revision 1.15  2008/04/02 17:35:13  sueh
  * <p> bug# 1098 Improved user error messages.
  * <p>
@@ -182,7 +185,7 @@ final class IterationTable implements Highlightable {
   void getParameters(final MatlabParam matlabParamFile) {
     rowList.getParameters(matlabParamFile);
   }
-  
+
   /**
    * SampleSphere effects the first row only.
    * @param sampleSphere
@@ -338,7 +341,7 @@ final class IterationTable implements Highlightable {
     btnDeleteRow.setSize();
     pnlButtons.add(btnDeleteRow.getComponent());
     //border
-    SpacedPanel pnlBorder = new SpacedPanel();
+    SpacedPanel pnlBorder = SpacedPanel.getInstance();
     pnlBorder.setBoxLayout(BoxLayout.Y_AXIS);
     pnlBorder.setBorder(new EtchedBorder(TABLE_HEADER).getBorder());
     pnlBorder.add(pnlTable);
@@ -486,7 +489,8 @@ final class IterationTable implements Highlightable {
           return row;
         }
       }
-      UIHarness.INSTANCE.openMessageDialog("Please highlight a row.","Entry Error");
+      UIHarness.INSTANCE.openMessageDialog("Please highlight a row.",
+          "Entry Error");
       return null;
     }
 

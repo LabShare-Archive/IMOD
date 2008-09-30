@@ -40,6 +40,11 @@ import etomo.util.MRCHeader;
  * @version $Revision$
  *
  * <p> $Log$
+ * <p> Revision 3.37  2008/05/28 02:50:03  sueh
+ * <p> bug# 1111 Add a dialogType parameter to the ProcessSeries
+ * <p> constructor.  DialogType must be passed to any function that constructs
+ * <p> a ProcessSeries instance.
+ * <p>
  * <p> Revision 3.36  2008/05/13 23:02:12  sueh
  * <p> bug# 847 Adding a right click menu for deferred 3dmods to some
  * <p> process buttons.
@@ -240,7 +245,7 @@ public class InitialCombinePanel implements ContextMenu, InitialCombineFields,
   //   "<html><b>View Match Check Volume</b>", this);
   private final Run3dmodButton btnMatchvolRestart;
   private final JPanel pnlMatchvol1 = new JPanel();
-  private final SpacedPanel pnlMatchvol1Body = new SpacedPanel(true);
+  private final SpacedPanel pnlMatchvol1Body = SpacedPanel.getInstance(true);
   private final PanelHeader matchvol1Header;
   private final LabeledTextField ltfOutputSizeY = new LabeledTextField(
       "Initial match size: ");
