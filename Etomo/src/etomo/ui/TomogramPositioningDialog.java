@@ -35,6 +35,10 @@ import etomo.type.Run3dmodMenuOptions;
  * @version $Revision$
  *
  * <p> $Log$
+ * <p> Revision 3.62  2008/05/13 23:08:07  sueh
+ * <p> bug# 847 Adding a right click menu for deferred 3dmods to some
+ * <p> process buttons.
+ * <p>
  * <p> Revision 3.61  2008/05/07 02:45:38  sueh
  * <p> bug# 847 Getting the the postioning buttons from the expert.
  * <p>
@@ -333,7 +337,7 @@ import etomo.type.Run3dmodMenuOptions;
  * <p> Initial CVS entry, basic functionality not including combining
  * <p> </p>
  */
- final class TomogramPositioningDialog extends ProcessDialog implements
+final class TomogramPositioningDialog extends ProcessDialog implements
     ContextMenu, FiducialessParams, Run3dmodButtonContainer {
   public static final String rcsid = "$Id$";
 
@@ -348,15 +352,17 @@ import etomo.type.Run3dmodMenuOptions;
   private final CheckBox cbFiducialess = new CheckBox("Fiducialless alignment");
   private final LabeledTextField ltfRotation = new LabeledTextField(
       "Tilt axis rotation:");
-  private final LabeledSpinner spinBinning= new LabeledSpinner("   Binning ", new SpinnerNumberModel(1, 1, 8, 1));
+  private final LabeledSpinner spinBinning = new LabeledSpinner("   Binning ",
+      new SpinnerNumberModel(1, 1, 8, 1));
   private final CheckBox cbWholeTomogram = new CheckBox("Use whole tomogram");
-  private final Run3dmodButton btnCreateBoundary = Run3dmodButton.get3dmodInstance(
-      "Create Boundary Model", this);
+  private final Run3dmodButton btnCreateBoundary = Run3dmodButton
+      .get3dmodInstance("Create Boundary Model", this);
   private final JPanel pnlFinalAlign = new JPanel();
   private final CalcPanel cpAngleOffset = new CalcPanel("Angle offset");
   private CalcPanel cpTiltAxisZShift = new CalcPanel("Z shift");
   private final CalcPanel cpXAxisTilt = new CalcPanel("X axis tilt");
-  private final LocalActionListener localActionListener= new LocalActionListener(this);
+  private final LocalActionListener localActionListener = new LocalActionListener(
+      this);
   private final CalcPanel cpTiltAngleOffset = new CalcPanel("Tilt angle offset");
   private final CalcPanel cpZShift = new CalcPanel("Z shift");
 
@@ -426,7 +432,7 @@ import etomo.type.Run3dmodMenuOptions;
         FixedDim.x0_y10);
     UIUtilities.addWithYSpace(pnlPosition, pnlFinalAlign);
 
-    SpacedPanel pnlTiltParameters = new SpacedPanel();
+    SpacedPanel pnlTiltParameters = SpacedPanel.getInstance();
     pnlTiltParameters.setBoxLayout(BoxLayout.Y_AXIS);
     pnlTiltParameters
         .setBorder(new EtchedBorder("Tilt Parameters").getBorder());
@@ -448,14 +454,15 @@ import etomo.type.Run3dmodMenuOptions;
     setToolTipText();
     UIHarness.INSTANCE.pack(axisID, applicationManager);
   }
-  
+
   static TomogramPositioningDialog getInstance(ApplicationManager manager,
       TomogramPositioningExpert expert, AxisID axisID) {
-    TomogramPositioningDialog instance = new TomogramPositioningDialog(manager,expert,axisID);
+    TomogramPositioningDialog instance = new TomogramPositioningDialog(manager,
+        expert, axisID);
     instance.addListeners();
     return instance;
   }
-  
+
   private void addListeners() {
     cbFiducialess.addActionListener(localActionListener);
     cbWholeTomogram.addActionListener(localActionListener);
@@ -467,17 +474,18 @@ import etomo.type.Run3dmodMenuOptions;
     rootPanel.addMouseListener(new GenericMouseAdapter(this));
   }
 
-   static ProcessResultDisplay getSampleTomogramDisplay() {
-    return Run3dmodButton.getDeferredToggle3dmodInstance(TomogramPositioningExpert.SAMPLE_TOMOGRAMS_LABEL,
+  static ProcessResultDisplay getSampleTomogramDisplay() {
+    return Run3dmodButton.getDeferredToggle3dmodInstance(
+        TomogramPositioningExpert.SAMPLE_TOMOGRAMS_LABEL,
         DialogType.TOMOGRAM_POSITIONING);
   }
 
-   static ProcessResultDisplay getComputePitchDisplay() {
+  static ProcessResultDisplay getComputePitchDisplay() {
     return MultiLineButton.getToggleButtonInstance(
         "Compute Z Shift & Pitch Angles", DialogType.TOMOGRAM_POSITIONING);
   }
 
-   static ProcessResultDisplay getFinalAlignmentDisplay() {
+  static ProcessResultDisplay getFinalAlignmentDisplay() {
     return MultiLineButton.getToggleButtonInstance("Create Final Alignment",
         DialogType.TOMOGRAM_POSITIONING);
   }
@@ -487,7 +495,7 @@ import etomo.type.Run3dmodMenuOptions;
     expert.updateFiducialessDisplay(fiducialess);
   }
 
-   void setFinalAlignmentPanelVisible(boolean visible) {
+  void setFinalAlignmentPanelVisible(boolean visible) {
     pnlFinalAlign.setVisible(visible);
   }
 
@@ -692,7 +700,8 @@ import etomo.type.Run3dmodMenuOptions;
 
   public void action(final Run3dmodButton button,
       final Run3dmodMenuOptions run3dmodMenuOptions) {
-    buttonAction(button.getActionCommand(),button.getDeferred3dmodButton() ,run3dmodMenuOptions);
+    buttonAction(button.getActionCommand(), button.getDeferred3dmodButton(),
+        run3dmodMenuOptions);
   }
 
   /**
@@ -704,10 +713,12 @@ import etomo.type.Run3dmodMenuOptions;
    * @param deferred3dmodButton
    * @param run3dmodMenuOptions
    */
-  private void buttonAction(final String command,final Deferred3dmodButton deferred3dmodButton,
+  private void buttonAction(final String command,
+      final Deferred3dmodButton deferred3dmodButton,
       final Run3dmodMenuOptions run3dmodMenuOptions) {
     if (command.equals(btnSample.getActionCommand())) {
-      expert.sampleAction(btnSample, null,deferred3dmodButton,run3dmodMenuOptions);
+      expert.sampleAction(btnSample, null, deferred3dmodButton,
+          run3dmodMenuOptions);
     }
     else if (command.equals(btnTomopitch.getActionCommand())) {
       expert.tomopitch(btnTomopitch, null);
@@ -802,7 +813,7 @@ import etomo.type.Run3dmodMenuOptions;
     }
 
     public void actionPerformed(final ActionEvent event) {
-      adaptee.buttonAction(event.getActionCommand(),null, null);
+      adaptee.buttonAction(event.getActionCommand(), null, null);
     }
   }
 
@@ -855,7 +866,7 @@ import etomo.type.Run3dmodMenuOptions;
   public static final class CalcPanel {
     public static final String ADDED_KEY = "Added";
     public static final int MAX_DIGITS = 6;
-    private final SpacedPanel panel = new SpacedPanel();
+    private final SpacedPanel panel = SpacedPanel.getInstance();
     private final JLabel label;
     private final LabeledTextField ltfOriginal = new LabeledTextField(
         "Original:");

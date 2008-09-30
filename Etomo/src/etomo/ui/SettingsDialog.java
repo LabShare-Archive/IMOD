@@ -64,12 +64,12 @@ public final class SettingsDialog extends JDialog {
 
   private void buildDialog() {
     setTitle("eTomo Settings");
-    SpacedPanel pnlMain = new SpacedPanel();
+    SpacedPanel pnlMain = SpacedPanel.getInstance();
     pnlMain.setBoxLayout(BoxLayout.Y_AXIS);
     pnlMain.setComponentAlignmentX(Box.LEFT_ALIGNMENT);
-    ((JPanel) getContentPane()).add(pnlMain.getComponent());
+    ((JPanel) getContentPane()).add(pnlMain.getContainer());
     //  Layout the font panel
-    SpacedPanel panelFontSelect = new SpacedPanel();
+    SpacedPanel panelFontSelect = SpacedPanel.getInstance();
     panelFontSelect.setBoxLayout(BoxLayout.X_AXIS);
     panelFontSelect.add(new JLabel("Font family:"));
     listFontFamily.setSelectionMode(ListSelectionModel.SINGLE_SELECTION);
@@ -82,7 +82,7 @@ public final class SettingsDialog extends JDialog {
     pnlMain.add(ltfTooltipsInitialDelay.getContainer());
     pnlMain.add(ltfTooltipsDismissDelay.getContainer());
     //Settings
-    SpacedPanel pnlSettings = new SpacedPanel();
+    SpacedPanel pnlSettings = SpacedPanel.getInstance();
     pnlSettings.setBoxLayout(BoxLayout.X_AXIS);
     pnlSettings.setComponentAlignmentX(Box.LEFT_ALIGNMENT);
     pnlMain.add(pnlSettings);
@@ -112,7 +112,7 @@ public final class SettingsDialog extends JDialog {
     pnlParallelProcessing.add(pnlCheckBoxParallelProcessing);
     pnlParallelProcessing.add(ltfCpus.getContainer());
     //defaults settings
-    SpacedPanel panelDefaults = new SpacedPanel();
+    SpacedPanel panelDefaults = SpacedPanel.getInstance();
     panelDefaults.setBoxLayout(BoxLayout.Y_AXIS);
     panelDefaults.setComponentAlignmentX(Box.LEFT_ALIGNMENT);
     panelDefaults.setBorder(new EtchedBorder("Defaults").getBorder());
@@ -122,7 +122,7 @@ public final class SettingsDialog extends JDialog {
     panelDefaults.add(cbSwapYAndZ);
     pnlMain.add(panelDefaults);
     //buttons
-    SpacedPanel panelButtons = new SpacedPanel();
+    SpacedPanel panelButtons = SpacedPanel.getInstance();
     panelButtons.setBoxLayout(BoxLayout.X_AXIS);
     panelButtons.setAlignmentX(Box.CENTER_ALIGNMENT);
     panelButtons.add(buttonCancel);

@@ -116,7 +116,7 @@ final class TiltalignPanel implements Expandable {
 
   private final JPanel pnlLocalParameters = new JPanel();
   private final JPanel pnlLocalParametersBody = new JPanel();
-  private final SpacedPanel pnlLocalPatches = new SpacedPanel(true);
+  private final SpacedPanel pnlLocalPatches = SpacedPanel.getInstance(true);
   private final CheckBox cbLocalAlignments = new CheckBox(
       "Enable local alignments");
   private final ButtonGroup bgLocalPatches = new ButtonGroup();
@@ -245,7 +245,7 @@ final class TiltalignPanel implements Expandable {
   private final ButtonGroup bgRotationSolution = new ButtonGroup();
   private final JPanel pnlRotationSolution = new JPanel();
   private final LabeledTextField ltfRotationAngle = new LabeledTextField(
-  "Rotation angle: ");
+      "Rotation angle: ");
   private final LabeledTextField ltfRotationGroupSize = new LabeledTextField(
       "Group size: ");
   private final LabeledTextField ltfRotationNonDefaultGroups = new LabeledTextField(
@@ -1142,14 +1142,14 @@ final class TiltalignPanel implements Expandable {
     pnlResidualThreshold.setBorder(new EtchedBorder("Residual Reporting")
         .getBorder());
     //top panel
-    SpacedPanel topResidualPanel = new SpacedPanel();
+    SpacedPanel topResidualPanel = SpacedPanel.getInstance();
     topResidualPanel.setBoxLayout(BoxLayout.X_AXIS);
     ltfResidualThreshold.setColumns(10);
     topResidualPanel.add(ltfResidualThreshold);
     topResidualPanel.add(new JLabel("s.d."));
     pnlResidualThreshold.add(topResidualPanel.getContainer());
     //bottom panel
-    SpacedPanel bottomResidualPanel = new SpacedPanel();
+    SpacedPanel bottomResidualPanel = SpacedPanel.getInstance();
     bottomResidualPanel.setBoxLayout(BoxLayout.X_AXIS);
     bottomResidualPanel.setComponentAlignmentX(Container.RIGHT_ALIGNMENT);
     bottomResidualPanel.add(new JLabel("Relative to"));
@@ -1250,9 +1250,9 @@ final class TiltalignPanel implements Expandable {
     items[2] = rbRotationAutomap;
     items[3] = rbRotationAll;
     createRadioBox(pnlRBRotation, bgRotationSolution, items);
-    createVariablePanel(pnlRotationSolution, pnlRBRotation,ltfRotationAngle,
-        ltfRotationGroupSize, ltfRotationNonDefaultGroups,null,null,
-        "Rotation Solution Type",null);
+    createVariablePanel(pnlRotationSolution, pnlRBRotation, ltfRotationAngle,
+        ltfRotationGroupSize, ltfRotationNonDefaultGroups, null, null,
+        "Rotation Solution Type", null);
 
     //  Layout the global tilt angle estimate pane
     JPanel pnlRBTiltAngle = new JPanel();
@@ -1388,7 +1388,7 @@ final class TiltalignPanel implements Expandable {
     pnlLocalSolutionBody.add(Box.createVerticalGlue());
     pnlLocalSolutionBody.add(Box.createRigidArea(FixedDim.x0_y10));
     pnlLocalSolutionBody.add(pnlLocalMagnificationSolution);
-    
+
     pnlLocalSolutionBody.add(Box.createVerticalGlue());
     pnlLocalSolutionBody.add(Box.createRigidArea(FixedDim.x0_y10));
     pnlLocalSolutionBody.add(pnlLocalTiltAngleSolution);
@@ -1452,7 +1452,7 @@ final class TiltalignPanel implements Expandable {
     //panel.add(Box.createRigidArea(FixedDim.x5_y0));
     panel.add(buttonPanel);
     panel.add(Box.createRigidArea(spacing));
-    SpacedPanel fieldPanel = new SpacedPanel();
+    SpacedPanel fieldPanel = SpacedPanel.getInstance();
     fieldPanel.setBoxLayout(BoxLayout.Y_AXIS);
     fieldPanel.add(field1);
     if (field2 != null) {
@@ -1846,6 +1846,9 @@ final class TiltalignPanel implements Expandable {
 
 /**
  * <p> $Log$
+ * <p> Revision 3.46  2008/07/16 20:15:01  sueh
+ * <p> bug# 1126 Added ltfRotationAngle.
+ * <p>
  * <p> Revision 3.45  2007/07/30 16:30:15  sueh
  * <p> bug# 1001 Rearranged fields.
  * <p>

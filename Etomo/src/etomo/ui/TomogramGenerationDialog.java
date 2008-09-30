@@ -60,6 +60,10 @@ import etomo.type.ViewType;
  * 
  * <p>
  * $Log$
+ * Revision 3.115  2008/07/19 01:12:37  sueh
+ * bug# 1125 Making it easier to access CpuAdoc by not passing the
+ * manager to it; all it needs is the current directory.
+ *
  * Revision 3.114  2008/05/13 23:07:49  sueh
  * bug# 847 Adding a right click menu for deferred 3dmods to some
  * process buttons.
@@ -1388,7 +1392,7 @@ public class TomogramGenerationDialog extends ProcessDialog implements
     JPanel newstPanel = new JPanel();
     newstPanel.setLayout(new BoxLayout(newstPanel, BoxLayout.Y_AXIS));
     newstPanel.setBorder(BorderFactory.createEtchedBorder());
-    newstBodyPanel = new SpacedPanel();
+    newstBodyPanel = SpacedPanel.getInstance();
     newstBodyPanel.setBoxLayout(BoxLayout.Y_AXIS);
     JPanel buttonPanel = new JPanel();
     buttonPanel.setLayout(new BoxLayout(buttonPanel, BoxLayout.X_AXIS));
@@ -1441,15 +1445,15 @@ public class TomogramGenerationDialog extends ProcessDialog implements
     filterPanel.setBorder(BorderFactory.createEtchedBorder());
     filterBodyPanel = new JPanel();
     filterBodyPanel.setLayout(new BoxLayout(filterBodyPanel, BoxLayout.Y_AXIS));
-    inverseParamsPanel = new SpacedPanel(true);
+    inverseParamsPanel = SpacedPanel.getInstance(true);
     inverseParamsPanel.setBoxLayout(BoxLayout.Y_AXIS);
     inverseParamsPanel.setBorder(new EtchedBorder(
         "Inverse Filtering Parameters: ").getBorder());
-    SpacedPanel mtfFilePanel = new SpacedPanel();
+    SpacedPanel mtfFilePanel = SpacedPanel.getInstance();
     mtfFilePanel.setBoxLayout(BoxLayout.X_AXIS);
-    SpacedPanel inversePanel = new SpacedPanel();
+    SpacedPanel inversePanel = SpacedPanel.getInstance();
     inversePanel.setBoxLayout(BoxLayout.X_AXIS);
-    SpacedPanel buttonPanel = new SpacedPanel(true);
+    SpacedPanel buttonPanel = SpacedPanel.getInstance(true);
     buttonPanel.setBoxLayout(BoxLayout.X_AXIS);
     //header
     filterHeader = PanelHeader.getAdvancedBasicInstance(
@@ -1491,8 +1495,8 @@ public class TomogramGenerationDialog extends ProcessDialog implements
    */
   private Container layoutTiltPanel() {
     //fields
-    ConstEtomoNumber maxCPUs = CpuAdoc.getInstance(axisID, applicationManager.getPropertyUserDir())
-        .getMaxTilt();
+    ConstEtomoNumber maxCPUs = CpuAdoc.getInstance(axisID,
+        applicationManager.getPropertyUserDir()).getMaxTilt();
     if (maxCPUs != null && !maxCPUs.isNull()) {
       cbParallelProcess = new CheckBox(ParallelPanel.FIELD_LABEL
           + ParallelPanel.MAX_CPUS_STRING + maxCPUs.toString());
@@ -1516,9 +1520,9 @@ public class TomogramGenerationDialog extends ProcessDialog implements
     radialPanel.setLayout(new BoxLayout(radialPanel, BoxLayout.X_AXIS));
     JPanel checkBoxPanel = new JPanel();
     checkBoxPanel.setLayout(new BoxLayout(checkBoxPanel, BoxLayout.Y_AXIS));
-    SpacedPanel trialPanel = new SpacedPanel();
+    SpacedPanel trialPanel = SpacedPanel.getInstance();
     trialPanel.setBoxLayout(BoxLayout.X_AXIS);
-    SpacedPanel buttonPanel = new SpacedPanel(true);
+    SpacedPanel buttonPanel = SpacedPanel.getInstance(true);
     buttonPanel.setBoxLayout(BoxLayout.X_AXIS);
     //header
     tiltHeader = PanelHeader.getAdvancedBasicInstance("Tilt", this, dialogType);
@@ -1591,11 +1595,11 @@ public class TomogramGenerationDialog extends ProcessDialog implements
     trialPanel = new JPanel();
     trialPanel.setLayout(new BoxLayout(trialPanel, BoxLayout.Y_AXIS));
     trialPanel.setBorder(BorderFactory.createEtchedBorder());
-    trialBodyPanel = new SpacedPanel();
+    trialBodyPanel = SpacedPanel.getInstance();
     trialBodyPanel.setBoxLayout(BoxLayout.Y_AXIS);
-    SpacedPanel northPanel = new SpacedPanel();
+    SpacedPanel northPanel = SpacedPanel.getInstance();
     northPanel.setBoxLayout(BoxLayout.X_AXIS);
-    SpacedPanel buttonPanel = new SpacedPanel();
+    SpacedPanel buttonPanel = SpacedPanel.getInstance();
     buttonPanel.setBoxLayout(BoxLayout.X_AXIS);
     //header
     trialHeader = PanelHeader.getInstance("Trial Tilt", this, dialogType);
@@ -1796,7 +1800,7 @@ public class TomogramGenerationDialog extends ProcessDialog implements
     }
 
     public void actionPerformed(final ActionEvent event) {
-      adaptee.buttonAction(event.getActionCommand(),null, null);
+      adaptee.buttonAction(event.getActionCommand(), null, null);
     }
   }
 
