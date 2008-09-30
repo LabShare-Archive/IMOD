@@ -132,8 +132,8 @@ void point_rotatePointAroundPoint2D( Ipoint *pt, Ipoint *center, float theta );
 void point_scalePtAboutPt( Ipoint *pt, Ipoint *center, float scaleX, float scaleY, float scaleZ );
 void point_scalePtAboutPt2D( Ipoint *pt, Ipoint *center, float scaleX, float scaleY );
 
-float getValCatmullRom( float fracIntoKf, float p0, float p1, float p2,  float p3, float tensileFract );
-Ipoint getPtCatmullRom( float fracIntoKf, Ipoint p0, Ipoint p1, Ipoint p2,  Ipoint p3, float tensileFract ); 
+float getValCardinalSpline( float fract, float p0, float p1, float p2,  float p3, float tensileFract );
+Ipoint getPtCardinalSpline( float fract, Ipoint p0, Ipoint p1, Ipoint p2,  Ipoint p3, float tensileFract ); 
 
 
 //-------------------------------
@@ -227,7 +227,8 @@ bool cont_isSimpleSeg( Icont *cont, bool closed, int *ptCross );
 void cont_makeSimple( Icont *cont );                            
 int cont_breakIntoSimple( vector<IcontPtr> &conts, Icont *cont );                    
 bool cont_isConvex( Icont *cont );                              
-int  cont_makeConvex( Icont *contO );                            
+int  cont_makeConvex( Icont *cont );
+float cont_calcConvexLength( Icont *cont, int *numConvexPts, bool closed );
 bool cont_breakContourEitherSide( Icont *cont, Icont *contBreak1, Icont *contBreak2, int idxPt1, int idxPt2, bool shareEdge );      
 bool cont_breakContourByLine( Icont *cont, Icont *contBreak1, Icont *contBreak2, Ipoint *linePt1, Ipoint *linePt2, Ipoint expectedPt, bool useExpectedPtInsteadOfMaxAreaSmallerSide );
 void cont_joinContsAtClosestApproach( Icont *newCont, Icont *cont1, Icont *cont2, bool addPtInMiddle );          
@@ -242,6 +243,10 @@ int cont_getIntersectingPolygons( vector<IcontPtr> &finalConts, Icont *cont1, Ic
 int cont_getUnionPolygons( vector<IcontPtr> &finalConts, Icont *cont1, Icont *cont2 );                        
 void cont_getOuterUnionPolygon( Icont *newCont, Icont *cont1O, Icont *cont2O );                    
 
+Ipoint cont_getPtDistAlongLength( Icont *cont, float dist, bool closed, int startPt );
+Ipoint cont_getPtFractAlongLength( Icont *cont, float fract, bool closed, int startPt );
+vector<float> cont_getFractPtsAlongLength( Icont *cont, bool closed, int startPt );                                                    // NEW
+int cont_addPtsFractsAlongLength( Icont *cont, Icont *contNew, vector<float> fractsAlongLen, bool closed, bool keepExistingPts, int startPt );      // NEW
 
 
 //############################################################

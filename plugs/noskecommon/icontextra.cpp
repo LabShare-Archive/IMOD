@@ -15,6 +15,9 @@
     $Revision$
 
     $Log$
+    Revision 1.10  2008/08/28 01:21:18  tempuser
+    attempt to fix qstring conversion error
+
     Revision 1.9  2008/08/25 09:34:08  tempuser
     changed CustomDialog to use pointers to return values
 
@@ -259,8 +262,8 @@ void point_scalePtAboutPt2D( Ipoint *pt, Ipoint *center, float scaleX, float sca
 
 
 //------------------------
-//-- Calculates a value "fracIntoKf" of the distance between "p1" and "p2" key values
-//-- according to the catmull-rom spline algorithm.
+//-- Calculates a value "fract" of the distance between "p1" and "p2" key values
+//-- according to the cardinal spline algorithm.
 //-- It does this by first calculating the gradients at these two key values.
 //-- See: http://www.mvps.org/directx/articles/catmull/
 //--
@@ -279,50 +282,52 @@ void point_scalePtAboutPt2D( Ipoint *pt, Ipoint *center, float scaleX, float sca
 //--                 + ( 2*p1                    )       ]
 
 
-float getValCatmullRom( float fracIntoKf, float p0, float p1, float p2, float p3,
+float getValCardinalSpline( float fract, float p0, float p1, float p2, float p3,
                         float tensileFract )
 {
   //## CALCULATE "FRACTION INTO KEYFRAME" SQUARED AND CUBED:
-  float fracIntoKf_2 = fracIntoKf * fracIntoKf;
-  float fracIntoKf_3 = fracIntoKf * fracIntoKf * fracIntoKf;
+  
+  float fract_2 = fract * fract;
+  float fract_3 = fract * fract * fract;
   
   //## CALCULATE VALUES:
-  //calculate gradient at previous keyframe.
+  
+  //calculate gradient at previous keyframe:
   float gPrev =    tensileFract*(p1 - p0)/1.0
-    + tensileFract*(p2 - p1)/1.0;
+                 + tensileFract*(p2 - p1)/1.0;
   
-  //calculate gradient at current keyframe.
+  //calculate gradient at current keyframe:
   float gCurr =    tensileFract*(p2 - p1)/1.0
-    + tensileFract*(p3 - p2)/1.0;
+                 + tensileFract*(p3 - p2)/1.0;
   
-  //calculate value for current frame.
-  float curr =    p1*(2*fracIntoKf_3 - 3*fracIntoKf_2 + 1)
-    + p2*(3*fracIntoKf_2 - 2*fracIntoKf_3)
-    + gPrev*(fracIntoKf_3 - 2*fracIntoKf_2 + fracIntoKf)
-    + gCurr*(fracIntoKf_3 - fracIntoKf_2);
+  //calculate value for current frame:
+  float curr =    p1*(2*fract_3 - 3*fract_2 + 1)
+                + p2*(3*fract_2 - 2*fract_3)
+                + gPrev*(fract_3 - 2*fract_2 + fract)
+                + gCurr*(fract_3 - fract_2);
   return curr;
   
-  //
+  // return value on spline:
   return   0.5 *  ( ( 2 * p1 )
-                    + (-p0  + p2)          * fracIntoKf
-                    + (2*p0  - 5*p1 + 4*p2 - p3)    * fracIntoKf*fracIntoKf
-                    + (-p0  + 3*p1 - 3*p2 + p3)    * fracIntoKf*fracIntoKf*fracIntoKf );
-  //
+                    + (-p0  + p2)                * fract
+                    + (2*p0  - 5*p1 + 4*p2 - p3) * fract_2
+                    + (-p0  + 3*p1 - 3*p2 + p3)  * fract_3 );
+  
 }
 
 
 //------------------------
-//-- Calculates point "fracIntoKf" of the distance between points "p1" and "p2"
+//-- Calculates point "fract" of the distance between points "p1" and "p2"
 //-- according to the catmull-rom spline algorithm.
-//-- See: getValCatmullRom()
+//-- See: getValCardinalSpline()
 
-Ipoint getPtCatmullRom( float fracIntoKf, Ipoint p0, Ipoint p1, Ipoint p2,
-                        Ipoint p3, float tensileFract )
+Ipoint getPtCardinalSpline( float fract, Ipoint p0, Ipoint p1, Ipoint p2,
+                            Ipoint p3, float tensileFract )
 {
   Ipoint returnPt;
-  returnPt.x = getValCatmullRom( fracIntoKf,  p0.x, p1.x, p2.x,  p3.x, tensileFract );
-  returnPt.y = getValCatmullRom( fracIntoKf,  p0.y, p1.y, p2.y,  p3.y, tensileFract );
-  returnPt.z = getValCatmullRom( fracIntoKf,  p0.z, p1.z, p2.z,  p3.z, tensileFract );
+  returnPt.x = getValCardinalSpline( fract,  p0.x,p1.x,p2.x,p3.x, tensileFract );
+  returnPt.y = getValCardinalSpline( fract,  p0.y,p1.y,p2.y,p3.y, tensileFract );
+  returnPt.z = getValCardinalSpline( fract,  p0.z,p1.z,p2.z,p3.z, tensileFract );
   return (returnPt);
 }
 
@@ -463,8 +468,7 @@ float line_getAngle2DPos ( Ipoint *linept1, Ipoint *linept2 )
 
 
 //------------------------
-//-- Returns the center of the minmum bounding rectangle around a contour.
-//-- NOTE: Is a bit less expensive than "cont_getCentroid"
+//-- Returns the point halfway between the two given points.
 
 Ipoint line_getPtHalfwayBetween(Ipoint *pt1, Ipoint *pt2)
 {
@@ -1472,19 +1476,18 @@ void cont_concat( Icont *contNew, Icont *cont1, Icont *cont2Orig, bool matchClos
 int cont_addPtsCrude( Icont *cont, float maxDist, bool closed )
 {
   int pointsBefore = psize(cont);
-  float sqMaxDist = SQ( maxDist );
   
   int extra = (closed) ? 0 : -1;
   
   for(int i=0; i<psize(cont)+extra; i++ )
   {
-    Ipoint *currPoint = getPt( cont, i );
-    Ipoint *nextPoint = getPt( cont, i+1 );
+    Ipoint *currPt = getPt( cont, i );
+    Ipoint *nextPt = getPt( cont, i+1 );
     
-    float distToNextPt = line_distBetweenPts2D( currPoint, nextPoint );
+    float distToNextPt = line_distBetweenPts2D( currPt, nextPt );
     if( distToNextPt > maxDist )
     {
-      Ipoint newPt = line_getPtHalfwayBetween( currPoint, nextPoint );
+      Ipoint newPt = line_getPtHalfwayBetween( currPt, nextPt );
       imodPointAdd( cont, &newPt, i+1 );
       i--;
     }
@@ -1516,7 +1519,7 @@ int cont_addPtsSmoothIteration(Icont *cont, float maxDist,
       float sqDistToNextPt = line_sqDistBetweenPts2D( getPt(cont,i), getPt(cont,i+1) );
       if ( sqDistToNextPt > sqMaxDist )
       {
-        Ipoint newPt = getPtCatmullRom(0.5, *getPt(cont,i-1), *getPt(cont,i),
+        Ipoint newPt = getPtCardinalSpline(0.5, *getPt(cont,i-1), *getPt(cont,i),
                                        *getPt(cont,i+1), *getPt(cont,i+2), tensileFract);
         int insertIdx = i % psize(cont);
         imodPointAdd( cont, &newPt, (insertIdx)+1 );
@@ -1534,7 +1537,7 @@ int cont_addPtsSmoothIteration(Icont *cont, float maxDist,
                                                       getPtNoWrap(cont,i+1) );
       if ( sqDistToNextPt > sqMaxDist )
       {
-        Ipoint newPt = getPtCatmullRom(0.5, *getPtNoWrap(cont,i-1), *getPtNoWrap(cont,i),
+        Ipoint newPt = getPtCardinalSpline(0.5, *getPtNoWrap(cont,i-1), *getPtNoWrap(cont,i),
                                        *getPtNoWrap(cont,i+1), *getPtNoWrap(cont,i+2),
                                        tensileFract);
         int insertIdx = i % psize(cont);
@@ -1582,7 +1585,7 @@ int cont_addPtsSmooth( Icont *cont, float maxDist, float tensileFract, bool clos
       for(int j=1; j<=numPtsToAdd; j++)
       {
         float fracAlongSegment = j * fractBetweenPts;
-        Ipoint newPt = getPtCatmullRom(fracAlongSegment,
+        Ipoint newPt = getPtCardinalSpline(fracAlongSegment,
                                        *getPt(contO,i-1),
                                        *getPt(contO,i),
                                        *getPt(contO,i+1),
@@ -1623,7 +1626,7 @@ int cont_addPtsSmooth( Icont *cont, float maxDist, float tensileFract, bool clos
       for(int j=1; j<=numPtsToAdd; j++)
       {
         float fracAlongSegment = j * fractBetweenPts;
-        Ipoint newPt = getPtCatmullRom(fracAlongSegment,
+        Ipoint newPt = getPtCardinalSpline(fracAlongSegment,
                                        *getPtNoWrap(contO,i-1),
                                        *getPtNoWrap(contO,i),
                                        *getPtNoWrap(contO,i+1),
@@ -1969,7 +1972,7 @@ int cont_breakIntoSimple( vector<IcontPtr> &conts, Icont *cont )
 bool cont_isConvex( Icont *cont )
 {
   if( psize(cont) < 3 )
-    return false;
+    return true;
   
   int numRightTurns = 0;
   int numLeftTurns = 0;
@@ -2032,6 +2035,46 @@ int cont_makeConvex( Icont *cont )
   return ( pointsBefore - psize(cont) );
 }
 
+
+//------------------------
+//-- Calculates the number of convex points in the given closed contour and returns
+//-- the total length of convex line segments.
+
+float cont_calcConvexLength( Icont *cont, int *numConvexPts, bool closed )
+{
+  if( psize(cont) <= 3 || cont_isConvex(cont) )
+  {
+    *numConvexPts = psize( cont );
+    return imodContourLength( cont, closed );
+  }
+  
+  //## CREATE A CONVEX VERSION OF THE CONTOUR AND COUNT IT'S POINTS:
+  
+  Icont *convexCont = imodContourDup(cont);
+  cont_makeConvex( convexCont );
+  *numConvexPts = psize( convexCont );
+  
+  //## FOR EACH LINE SEGMENT: IF IT'S IN THE CONVEX VERSION, ADD IT TO THE CONVEX LENGTH
+  
+  float totConvexLength = 0;
+  bool currPtInside = cont_doesPtExistInCont(convexCont, getFirstPt(cont) );
+  
+  int numPts = (closed) ? psize(cont) : psize(cont)-1;
+  for( int p=0; p<numPts; p++ )
+  {
+    Ipoint *currPt = getPt(cont,p);
+    Ipoint *nextPt = getPt(cont,p+1);
+    bool nextPtInside = cont_doesPtExistInCont(convexCont, nextPt );
+    
+    if( currPtInside && nextPtInside )
+      totConvexLength += line_distBetweenPts2D( currPt, nextPt );
+    
+    currPtInside = nextPtInside;
+  }
+  
+  imodContourDelete( convexCont );
+  return ( totConvexLength );
+}
 
 
 
@@ -3086,5 +3129,176 @@ void cont_getOuterUnionPolygon( Icont *newCont, Icont *cont1O, Icont *cont2O )
   deleteContours( joinedConts );
   return;
 }
+
+
+
+
+
+
+
+
+
+
+//------------------------
+//-- Returns the point a given distance along the path of the contour
+//-- from the specified start point
+
+Ipoint cont_getPtDistAlongLength( Icont *cont, float dist, bool closed, int startPt )
+{
+  Ipoint returnPt;
+  
+  if( isEmpty(cont) )
+    return (returnPt);
+  
+  float contLength = imodContourLength( cont, closed );   // length of the contour
+  
+  if( contLength == 0 )
+    return (*getFirstPt(cont));
+  if( dist == 0 )
+    return(*getFirstPt(cont));
+  if( dist == contLength )
+    return(*getLastPt(cont));
+  
+  dist = fMod( dist, contLength );
+  
+  float distCurrPt = 0;            // distance along contour to the current point
+  float distNextPt = 0;            // distance along contour to the next point
+  
+  for(int p=0; p<psize(cont); p++)
+  {
+    Ipoint *ptCurr = getPt( cont, startPt+ p    );
+    Ipoint *ptNext = getPt( cont, startPt+(p+1) );
+    
+		distNextPt += imodPointDistance( ptCurr, ptNext );
+    
+		if( dist <= distNextPt )
+    {
+      float fractAlongSeg = fDivide((dist-distCurrPt),(distNextPt-distCurrPt));
+      returnPt = line_findPtFractBetweenPts2D( ptCurr, ptNext, fractAlongSeg );
+      return (returnPt);
+    }
+    
+    distCurrPt = distNextPt;
+	}
+  
+  wprint("\aERROR: cont_getPtDistAlongLength()\n");
+  return (*getLastPt(cont));
+}
+
+//------------------------
+//-- Returns the point a given percentage distance along the path of the contour
+//-- from the specified start point
+
+Ipoint cont_getPtFractAlongLength( Icont *cont, float fract, bool closed, int startPt )
+{
+  float contLength = imodContourLength( cont, closed );   // length of the contour
+  float distAlong  = fract * contLength;      // corresponding distance along contour
+  return( cont_getPtDistAlongLength(cont,distAlong,closed,startPt) );
+}
+
+
+
+//------------------------
+//-- Returns the length up until each point in the contour as a fraction of the
+//-- contour's total length.
+//-- Note that the first value in the vector will always be 0,
+//-- and if the contour is OPEN, the last value will be 1.
+
+vector<float> cont_getFractPtsAlongLength( Icont *cont, bool closed, int startPt )
+{
+  float contLength = imodContourLength( cont, closed );
+  
+  vector<float> fractAlongLengthV;
+  fractAlongLengthV.push_back(0);
+  
+  float cumLengthToPt = 0;
+  for(int p=1; p<psize(cont); p++)
+  {
+    Ipoint *ptCurr = getPt( cont, startPt+ p    );
+    Ipoint *ptPrev = getPt( cont, startPt+(p-1) );
+    
+		cumLengthToPt += imodPointDistance( ptCurr, ptPrev );
+		fractAlongLengthV.push_back( fDivide(cumLengthToPt,contLength) );
+	}
+  
+  return fractAlongLengthV;
+}
+
+
+//------------------------
+//-- Creates a new contour by adding points along 'cont' where each added point is
+//-- "fractAlongLength" percent along the total length of 'cont' from the given
+//-- "startPt and returns the final number of points in the new contour. 
+//-- If "keepExistingPts" is true, all existing points in the contour are preserved. 
+//-- Note that "fractAlongLength" must be in ascending order and all values between 0 and 1
+
+int cont_addPtsFractsAlongLength( Icont *cont, Icont *contNew,
+                                   vector<float> fractsAlongLen,
+                                   bool closed, bool keepExistingPts, int startPt )
+{
+  imodContourDefault(contNew);
+  
+  if( (int)fractsAlongLen.size() == 0 )
+  {
+    if( keepExistingPts )
+      contNew = imodContourDup(contNew);
+    return psize(contNew);
+  }
+  
+  float contLength = imodContourLength( cont, closed );   // length of the contour
+  float cumLengthToNextPt = 0;      // total length up to the next point
+  float fractCurrPt = 0;            // fraction of contour length up to the current point
+  float fractNextPt = 0;            // fraction of contour length up to the next point
+  bool allFractsFound = false;      // becomes true when all "fractsAlongLen" are added
+  float i = 0;                      // current index within "fractsAlongLen"
+  
+  for(int p=0; p<psize(cont); p++)    // for each point:
+  {
+    Ipoint *ptCurr = getPt( cont, startPt+ p    );
+    Ipoint *ptNext = getPt( cont, startPt+(p+1) );
+    
+    if( keepExistingPts )
+      imodPointAppend( contNew, ptCurr );
+    
+		cumLengthToNextPt += imodPointDistance( ptCurr, ptNext );
+    fractNextPt       = fDivide( cumLengthToNextPt, contLength );
+    
+    while( !allFractsFound )
+    {
+      if( fractsAlongLen[i] <= fractNextPt )
+      {
+        float fractAlongSeg = fDivide( (fractsAlongLen[i] - fractCurrPt),
+                                       (fractNextPt - fractCurrPt) );
+        Ipoint newPt = line_findPtFractBetweenPts2D( ptCurr, ptNext, fractAlongSeg );
+        imodPointAppend( contNew, &newPt );
+        i++;
+        
+        if( i >= (int)fractsAlongLen.size() )
+        {
+          allFractsFound = true;
+          if( !keepExistingPts )
+            return psize(contNew);
+        }
+      }
+      else
+      {
+        break;
+      }
+    }
+    
+    fractCurrPt = fractNextPt;
+	}
+  
+  if( !allFractsFound )       // should not happen... but sometimes does
+  {
+    for( ; i<(int)fractsAlongLen.size() && fractsAlongLen[i] >= 1.0; i++ )
+      imodPointAppend( contNew, getLastPt(cont) );
+    
+    //wprint("\aERROR: cont_addPtsFractsAlongLength()\n");
+  }
+  
+  return psize(contNew);
+}
+
 
 
