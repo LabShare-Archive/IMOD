@@ -1,5 +1,6 @@
 package etomo;
 
+import java.awt.Component;
 import java.io.BufferedWriter;
 import java.io.File;
 import java.io.FileWriter;
@@ -69,6 +70,11 @@ import etomo.util.Utilities;
  * @version $Revision$
  * 
  * <p> $Log$
+ * <p> Revision 1.70  2008/05/28 02:47:44  sueh
+ * <p> bug# 1111 Removed processDialogTypeA and B from BaseManager.
+ * <p> The dialogType for processes should be handled by ProcessSeries.
+ * <p> Passing a DialogType parameter to startNextProcess.
+ * <p>
  * <p> Revision 1.69  2008/05/13 20:58:53  sueh
  * <p> bug# 847 Adding a right click menu for deferred 3dmods to some
  * <p> process buttons.
@@ -544,6 +550,13 @@ public final class JoinManager extends BaseManager {
     return loadedParamFile;
   }
 
+  public Component getFocusComponent() {
+    if (joinDialog == null) {
+      return null;
+    }
+    return joinDialog.getFocusComponent();
+  }
+
   public String toString() {
     return getClass().getName() + "[" + paramString() + "]";
   }
@@ -570,10 +583,11 @@ public final class JoinManager extends BaseManager {
     openProcessingPanel();
     if (joinDialog == null) {
       if (loadedParamFile) {
-        joinDialog = new JoinDialog(this, propertyUserDir, metaData, state);
+        joinDialog = JoinDialog.getInstance(this, propertyUserDir, metaData,
+            state);
       }
       else {
-        joinDialog = new JoinDialog(this, metaData, state);
+        joinDialog = JoinDialog.getInstance(this, metaData, state);
       }
     }
     if (loadedParamFile) {
