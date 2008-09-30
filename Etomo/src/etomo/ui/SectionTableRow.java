@@ -31,6 +31,11 @@ import etomo.util.DatasetFiles;
  * @version $Revision$
  * 
  * <p> $Log$
+ * <p> Revision 1.30  2007/04/02 21:52:59  sueh
+ * <p> bug# 964 Added FieldCell.editable to make instances of FieldCell that can't be
+ * <p> edited.  This allows FieldCell.setEditable and setEnabled to be called without
+ * <p> checking whether a field should be editable.
+ * <p>
  * <p> Revision 1.29  2007/03/27 19:32:07  sueh
  * <p> bug# 964 Changed InputCell.setEnabled() to setEditable.
  * <p>
@@ -290,31 +295,14 @@ public final class SectionTableRow implements Highlightable {
   }
 
   public String toString() {
-    return getClass().getName() + "[" + paramString() + "]";
-  }
-
-  protected String paramString() {
-    return "setupSection=" + setupSection + ",joinSection=" + joinSection
-        + ",\nsampleBottomStart=" + sampleBottomStart + ",sampleBottomEnd="
-        + sampleBottomEnd + ",\nsampleTopStart=" + sampleTopStart
-        + ",\nsampleTopEnd=" + sampleTopEnd + ",slicesInSample="
-        + slicesInSample + ",\ncurrentChunk=" + currentChunk
-        + ",\nreferenceSection=" + referenceSection + ",currentSection="
-        + currentSection + ",\nsetupFinalStart=" + setupFinalStart
-        + ",\nsetupFinalEnd=" + setupFinalEnd + ",joinFinalStart="
-        + joinFinalStart + ",\njoinFinalEnd=" + joinFinalEnd
-        + ",\nrotationAngleX=" + rotationAngleX + ",rotationAngleY="
-        + rotationAngleY + ",\nrotationAngleZ=" + rotationAngleZ
-        + ",\nhighlighterButton=" + highlighterButton + ",\nimodIndex="
-        + imodIndex + ",imodRotIndex=" + imodRotIndex + ",\nsectionExpanded="
-        + sectionExpanded + ",valid=" + valid + "," + super.toString();
+    return "[" + setupSection + "]";
   }
 
   void setInUse() {
     if (table.isSetupTab()) {
       int rowNumber = data.getRowNumber().getInt();
       boolean bottomInUse = rowNumber > 1;
-      boolean topInUse = rowNumber < table.getTableSize();
+      boolean topInUse = rowNumber < table.size();
       boolean finalInuse = table.isJoinTab();
       sampleBottomStart.setInUse(bottomInUse);
       sampleBottomEnd.setInUse(bottomInUse);
@@ -473,9 +461,7 @@ public final class SectionTableRow implements Highlightable {
         .getSampleTopEnd());
   }
 
-  void displayCurTab(JPanel panel, SectionTableRow prevRow, int totalRows) {
-    remove();
-    add(panel);
+  void setupCurTab(SectionTableRow prevRow, int totalRows) {
     //Set align display only fields
     if (table.isAlignTab()) {
       ConstEtomoNumber rowNum = data.getRowNumber();
@@ -501,7 +487,16 @@ public final class SectionTableRow implements Highlightable {
     }
   }
 
-  void add(JPanel panel) {
+  /**
+   * Remove row from display.  Display the row if it is inside the viewer.
+   * @param index
+   * @param viewer
+   * @param panel
+   */
+  void display(int index, JPanel panel, Viewport viewport) {
+    if (!viewport.inViewport(index)) {
+      return;
+    }
     if (table.isSetupTab()) {
       addSetup(panel);
     }
