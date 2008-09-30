@@ -10,6 +10,7 @@ import javax.swing.event.ChangeListener;
 import etomo.BaseManager;
 import etomo.storage.LogFile;
 import etomo.storage.XfjointomoLog;
+import etomo.type.ConstEtomoNumber;
 import etomo.type.ConstJoinMetaData;
 import etomo.type.JoinMetaData;
 import etomo.type.JoinScreenState;
@@ -37,6 +38,9 @@ import etomo.type.SectionTableRowData;
  * @version $Revision$
  * 
  * <p> $Log$
+ * <p> Revision 1.4  2008/01/31 20:25:24  sueh
+ * <p> bug# 1055 throwing a FileException when LogFile.getInstance fails.
+ * <p>
  * <p> Revision 1.3  2007/04/02 21:43:43  sueh
  * <p> bug# 964 Added FieldCell.editable to make instances of FieldCell that can't be
  * <p> edited.  This allows FieldCell.setEditable and setEnabled to be called without
@@ -130,18 +134,20 @@ final class BoundaryRow {
    * Sets adjustedEnd and adjustedStart.  Should be called whenever best gap is
    * Changed.
    */
-  synchronized private void setAdjustedValues(ConstJoinMetaData metaData) {
+  synchronized private void setAdjustedValues(final ConstJoinMetaData metaData) {
     adjustedEnd.removeChangeListener(adjustedEndChangeListener);
     adjustedStart.removeChangeListener(adjustedStartChangeListener);
     gap = new Gap(Math.round(bestGap.getFloatValue()), origEnd.getLongValue(),
         origStart.getLongValue(), endInverted, startInverted, zMaxEnd,
         zMaxStart);
-    if (metaData == null || metaData.isBoundaryRowEndListEmpty()) {
+    ConstEtomoNumber endNumber;
+    if (metaData == null || metaData.isBoundaryRowEndListEmpty()
+        || (endNumber = metaData.getBoundaryRowEnd(boundary.getInt())) == null) {
       adjustedEnd.setValue(gap.getAdjustedLeft());
       adjustedStart.setValue(gap.getAdjustedRight());
     }
     else {
-      long end = metaData.getBoundaryRowEnd(boundary.getInt()).getLong();
+      long end = endNumber.getLong();
       adjustedEnd.setValue(end);
       gap.msgLeftGapBoundaryChanged(end);
       adjustedStart.setValue(gap.getAdjustedRight());
@@ -172,7 +178,7 @@ final class BoundaryRow {
    * @param orig (either origEnd or origStart)
    * @return
    */
-  private long calculateNegativeAdjustment(int roundedBestGap, long orig) {
+  private long calculateNegativeAdjustment(final int roundedBestGap, final long orig) {
     if (roundedBestGap < 0 || orig <= 0) {
       throw new IllegalStateException(
           "Only pass the absolute value of roundedBestGap.  Orig is either origEnd or origStart and must be at least 1.\nroundedBestGap="
@@ -188,7 +194,10 @@ final class BoundaryRow {
     return adjustment * -1;
   }
 
-  void display(JoinDialog.Tab tab) {
+  void display(final int index, final Viewport viewport, final JoinDialog.Tab tab) {
+    if (!viewport.inViewport(index)) {
+      return;
+    }
     if (tab == JoinDialog.Tab.MODEL) {
       displayModel();
     }
