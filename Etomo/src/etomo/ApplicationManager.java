@@ -2610,8 +2610,8 @@ public final class ApplicationManager extends BaseManager {
     try {
       File tiltFile = DatasetFiles.getTiltFile(this, axisID);
       if (tiltFile.exists()) {
-        imodManager.setTiltFile(ImodManager.FINE_ALIGNED_KEY, axisID,
-            tiltFile.getName());
+        imodManager.setTiltFile(ImodManager.FINE_ALIGNED_KEY, axisID, tiltFile
+            .getName());
       }
       else {
         imodManager.resetTiltFile(ImodManager.FINE_ALIGNED_KEY, axisID);
@@ -2643,8 +2643,8 @@ public final class ApplicationManager extends BaseManager {
     try {
       File tiltFile = DatasetFiles.getTiltFile(this, axisID);
       if (tiltFile.exists()) {
-        imodManager.setTiltFile(ImodManager.MTF_FILTER_KEY, axisID,
-            tiltFile.getName());
+        imodManager.setTiltFile(ImodManager.MTF_FILTER_KEY, axisID, tiltFile
+            .getName());
       }
       else {
         imodManager.resetTiltFile(ImodManager.MTF_FILTER_KEY, axisID);
@@ -5639,6 +5639,9 @@ public final class ApplicationManager extends BaseManager {
 }
 /**
  * <p> $Log$
+ * <p> Revision 3.306  2008/07/24 18:04:17  sueh
+ * <p> bug# 1128 In imodSample calling ImodManager.setPointLimit.
+ * <p>
  * <p> Revision 3.305  2008/07/24 17:57:13  sueh
  * <p> bug# 1128 In imodFullSample called ImodManager.setPointLimit.
  * <p>
