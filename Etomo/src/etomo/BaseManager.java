@@ -1,5 +1,6 @@
 package etomo;
 
+import java.awt.Component;
 import java.awt.Container;
 import java.awt.Dimension;
 import java.io.File;
@@ -193,6 +194,10 @@ public abstract class BaseManager {
 
   public String getPropertyUserDir() {
     return propertyUserDir;
+  }
+
+  public Component getFocusComponent() {
+    return null;
   }
 
   public String setPropertyUserDir(String propertyUserDir) {
@@ -1216,6 +1221,11 @@ public abstract class BaseManager {
 }
 /**
  * <p> $Log$
+ * <p> Revision 1.101  2008/05/28 02:46:37  sueh
+ * <p> bug# 1111 Removed processDialogTypeA and B.  The dialogType for
+ * <p> processes should be handled by ProcessSeries.  Passing a DialogType
+ * <p> parameter to startNextProcess.
+ * <p>
  * <p> Revision 1.100  2008/05/13 20:53:36  sueh
  * <p> bug# 847 In exitProgram, factored out functionality which also needs to
  * <p> be done when just closing a manager.
