@@ -13,12 +13,15 @@ package etomo.ui;
  * 
  * @version $Revision$
  * 
- * <p> $Log$ </p>
+ * <p> $Log$
+ * <p> Revision 1.1  2008/09/30 22:53:28  sueh
+ * <p> bug# 1113 An interface for tables that can be used with a Viewport.
+ * <p> </p>
  */
 interface Viewable {
   public static final String rcsid = "$Id$";
 
-  public void repositionViewer();
+  public void msgViewportMoved();
 
   public int size();
 }

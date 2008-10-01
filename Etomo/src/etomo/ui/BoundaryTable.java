@@ -30,6 +30,9 @@ import etomo.type.JoinScreenState;
  * @version $Revision$
  * 
  * <p> $Log$
+ * <p> Revision 1.4  2008/09/30 20:58:26  sueh
+ * <p> bug# 1113 Implemented Viewable.  Added a Viewport member.
+ * <p>
  * <p> Revision 1.3  2008/01/31 20:25:48  sueh
  * <p> bug# 1055 throwing a FileException when LogFile.getInstance fails.
  * <p>
@@ -125,7 +128,7 @@ final class BoundaryTable implements Viewable {
     display(false);
   }
 
-  public void repositionViewer() {
+  public void msgViewportMoved() {
     display(true);
   }
 
