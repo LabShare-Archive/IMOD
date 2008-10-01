@@ -1,5 +1,6 @@
 package etomo;
 
+import java.awt.Component;
 import java.io.File;
 import java.io.IOException;
 import java.util.ArrayList;
@@ -57,6 +58,11 @@ import etomo.util.DatasetFiles;
  * @version $Revision$
  * 
  * <p> $Log$
+ * <p> Revision 1.43  2008/05/28 02:48:03  sueh
+ * <p> bug# 1111 Removed processDialogTypeA and B from BaseManager.
+ * <p> The dialogType for processes should be handled by ProcessSeries.
+ * <p> Passing a DialogType parameter to startNextProcess.
+ * <p>
  * <p> Revision 1.42  2008/05/06 23:55:23  sueh
  * <p> bug#847 Running deferred 3dmods by using the button that usually calls
  * <p> them.  This avoids having to duplicate the calls and having a
@@ -294,6 +300,13 @@ public final class PeetManager extends BaseManager {
 
   public MainPanel getMainPanel() {
     return mainPanel;
+  }
+  
+  public Component getFocusComponent() {
+    if (peetDialog == null) {
+      return null;
+    }
+    return peetDialog.getFocusComponent();
   }
 
   public String getName() {
