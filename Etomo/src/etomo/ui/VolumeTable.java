@@ -49,6 +49,9 @@ import etomo.type.Run3dmodMenuOptions;
  * @version $Revision$
  * 
  * <p> $Log$
+ * <p> Revision 1.31  2008/09/30 22:55:29  sueh
+ * <p> bug# 1113 Using a private constructor in SpacedPanel.
+ * <p>
  * <p> Revision 1.30  2008/09/10 21:37:29  sueh
  * <p> bug# 1135 Handled a null pointer exception in RowList.delete.
  * <p>
@@ -153,7 +156,7 @@ import etomo.type.Run3dmodMenuOptions;
  * <p> </p>
  */
 final class VolumeTable implements Expandable, Highlightable,
-    Run3dmodButtonContainer {
+    Run3dmodButtonContainer, Viewable {
   public static final String rcsid = "$Id$";
 
   static final String FN_MOD_PARTICLE_HEADER1 = "Model";
@@ -198,6 +201,7 @@ final class VolumeTable implements Expandable, Highlightable,
   private final Column initMotlFileColumn = new Column();
   private final Column tiltRangeColumn = new Column();
   private final MultiLineButton btnDeleteRow = new MultiLineButton("Delete Row");
+  private Viewport viewport ;
   private final ExpandButton btnExpandFnVolume;
   private final ExpandButton btnExpandFnModParticle;
   private final ExpandButton btnExpandInitMotlFile;
@@ -212,6 +216,7 @@ final class VolumeTable implements Expandable, Highlightable,
     this.manager = manager;
     this.parent = parent;
     //construction
+    viewport = new Viewport(this, parent.getSetupJComponent(), null, null, "Volume");
     btnExpandFnVolume = ExpandButton.getInstance(this, ExpandButton.Type.MORE);
     btnExpandFnModParticle = ExpandButton.getInstance(this,
         ExpandButton.Type.MORE);
@@ -292,6 +297,9 @@ final class VolumeTable implements Expandable, Highlightable,
       System.setProperty("user.dir", userDir);
     }
     rowList.doneSettingParameters();
+    viewport.includeRowInViewport(0);
+    rowList.remove();
+    rowList.display(viewport);
     updateDisplay();
     UIHarness.INSTANCE.pack(manager);
   }
@@ -300,7 +308,7 @@ final class VolumeTable implements Expandable, Highlightable,
     rowList.getParameters(matlabParamFile);
   }
 
-  int size() {
+  public int size() {
     return rowList.size();
   }
 
@@ -327,10 +335,11 @@ final class VolumeTable implements Expandable, Highlightable,
     constraints.gridheight = 1;
     display();
     //border
-    SpacedPanel pnlBorder = SpacedPanel.getInstance();
-    pnlBorder.setBoxLayout(BoxLayout.Y_AXIS);
+    JPanel pnlBorder = new JPanel();
+    pnlBorder.setLayout(new BoxLayout(pnlBorder, BoxLayout.X_AXIS));
     pnlBorder.setBorder(new EtchedBorder(TABLE_HEADER).getBorder());
     pnlBorder.add(pnlTable);
+    pnlBorder.add(viewport.getPagingPanel());
     //buttons 1
     JPanel pnlButtons1 = new JPanel();
     pnlButtons1.setLayout(new BoxLayout(pnlButtons1, BoxLayout.X_AXIS));
@@ -352,7 +361,7 @@ final class VolumeTable implements Expandable, Highlightable,
     //root
     rootPanel.setLayout(new BoxLayout(rootPanel, BoxLayout.Y_AXIS));
     rootPanel.setBorder(BorderFactory.createEtchedBorder());
-    rootPanel.add(pnlBorder.getContainer());
+    rootPanel.add(pnlBorder);
     rootPanel.add(pnlButtons1);
     rootPanel.add(pnlButtons2);
   }
@@ -406,7 +415,12 @@ final class VolumeTable implements Expandable, Highlightable,
     header2RelativeOrientY.add(pnlTable, layout, constraints);
     constraints.gridwidth = GridBagConstraints.REMAINDER;
     header2RelativeOrientZ.add(pnlTable, layout, constraints);
-    rowList.display();
+  }
+
+  public void msgViewportMoved() {
+    rowList.remove();
+    rowList.display(viewport);
+    UIHarness.INSTANCE.pack(manager);
   }
 
   private void action(final String command,
@@ -437,8 +451,9 @@ final class VolumeTable implements Expandable, Highlightable,
 
   private void deleteRow(VolumeRow row) {
     rowList.remove();
-    rowList.delete(row, this, pnlTable, layout, constraints);
-    rowList.display();
+    int index = rowList.delete(row, this, pnlTable, layout, constraints);
+    viewport.includeRowInViewport(index);
+    rowList.display(viewport);
     UIHarness.INSTANCE.pack(manager);
   }
 
@@ -525,6 +540,9 @@ final class VolumeTable implements Expandable, Highlightable,
     }
     else {
       addRow(fnVolume, fnModParticle);
+      viewport.includeRowInViewport(rowList.size() - 1);
+      rowList.remove();
+      rowList.display(viewport);
       updateDisplay();
       parent.msgVolumeTableSizeChanged();
       UIHarness.INSTANCE.pack(manager);
@@ -616,7 +634,6 @@ final class VolumeTable implements Expandable, Highlightable,
   private VolumeRow addRow(final File fnVolume, final File fnModParticle) {
     VolumeRow row = rowList.add(manager, fnVolume, fnModParticle, this,
         pnlTable, layout, constraints, initMotlFileColumn, tiltRangeColumn);
-    row.display();
     row.expandFnVolume(btnExpandFnVolume.isExpanded());
     row.expandFnModParticle(btnExpandFnModParticle.isExpanded());
     return row;
@@ -660,16 +677,18 @@ final class VolumeTable implements Expandable, Highlightable,
       }
     }
 
-    private synchronized void delete(VolumeRow row, final Highlightable parent,
+    private synchronized int delete(VolumeRow row, final Highlightable parent,
         final JPanel panel, final GridBagLayout layout,
         final GridBagConstraints constraints) {
-      if (row == null) {
-        int index = row.getIndex();
+      int index = -1;
+      if (row != null) {
+        index = row.getIndex();
         list.remove(index);
         for (int i = index; i < list.size(); i++) {
           ((VolumeRow) list.get(i)).setIndex(i);
         }
       }
+      return index;
     }
 
     private synchronized VolumeRow add(final BaseManager manager,
@@ -728,9 +747,9 @@ final class VolumeTable implements Expandable, Highlightable,
       metaData = null;
     }
 
-    private void display() {
+    private void display(Viewport viewport) {
       for (int i = 0; i < list.size(); i++) {
-        ((VolumeRow) list.get(i)).display();
+        ((VolumeRow) list.get(i)).display(i, viewport);
       }
     }
 
