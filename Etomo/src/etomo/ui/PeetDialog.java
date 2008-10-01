@@ -13,6 +13,7 @@ import javax.swing.BorderFactory;
 import javax.swing.Box;
 import javax.swing.BoxLayout;
 import javax.swing.ButtonGroup;
+import javax.swing.JComponent;
 import javax.swing.JFileChooser;
 import javax.swing.JPanel;
 import javax.swing.SpinnerNumberModel;
@@ -53,6 +54,9 @@ import etomo.type.Run3dmodMenuOptions;
  * @version $Revision$
  * 
  * <p> $Log$
+ * <p> Revision 1.65  2008/09/30 22:02:15  sueh
+ * <p> bug# 1113 Using a private constructor in SpacedPanel.
+ * <p>
  * <p> Revision 1.64  2008/09/10 21:35:31  sueh
  * <p> bug# 1135 Check for null when calling ParsedElementList.get(int).  Check
  * <p> for null when calling ParsedElement.getElement or getRawNumber.  Set
@@ -450,6 +454,14 @@ public final class PeetDialog implements ContextMenu, AbstractParallelDialog,
     updateDisplay();
     updateAdvanceRunParameters(phRun.isAdvanced());
     setTooltipText();
+  }
+  
+  public Component getFocusComponent() {
+    return pnlSetup.getContainer();
+  }
+  
+  public JComponent getSetupJComponent() {
+    return pnlSetup.getJPanel();
   }
 
   public static PeetDialog getInstance(final PeetManager manager,
