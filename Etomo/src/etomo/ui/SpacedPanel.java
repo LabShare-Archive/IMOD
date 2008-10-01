@@ -33,6 +33,11 @@ import javax.swing.border.Border;
  * @version $Revision$
  * 
  * <p> $Log$
+ * <p> Revision 1.22  2008/09/30 22:43:38  sueh
+ * <p> bug# 1113 Using a private constructor in SpacedPanel.  Added
+ * <p> FocusablePanel class.  Make outer panel a focusable panel when
+ * <p> getFocusableInstance is called.
+ * <p>
  * <p> Revision 1.21  2007/11/09 17:47:28  sueh
  * <p> bug# 1047 Added getComponent.
  * <p>
@@ -238,6 +243,13 @@ final class SpacedPanel {
     panel.add(container);
     xDescription.append("Container,");
     yDescription.append("Container,");
+  }
+  
+  final void add(final Component component) {
+    addSpacing();
+    panel.add(component);
+    xDescription.append("Component,");
+    yDescription.append("Component,");
   }
 
   final void add(final SpacedPanel spacedPanel) {
