@@ -27,6 +27,9 @@ import etomo.type.Run3dmodMenuOptions;
  * @version $Revision$
  * 
  * <p> $Log$
+ * <p> Revision 1.21  2008/04/02 17:35:29  sueh
+ * <p> bug# 1098 Improved user error messages.
+ * <p>
  * <p> Revision 1.20  2008/04/02 02:28:20  sueh
  * <p> bug# 1097 FieldCell can now return a matlab syntax instance.
  * <p>
@@ -171,7 +174,10 @@ final class VolumeRow implements Highlightable {
     relativeOrientZ.remove();
   }
 
-  void display() {
+  void display(int index, Viewport viewport) {
+    if (!viewport.inViewport(index)) {
+      return;
+    }
     constraints.weightx = 0.0;
     constraints.weighty = 0.1;
     constraints.gridwidth = 1;
