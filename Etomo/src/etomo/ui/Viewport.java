@@ -19,7 +19,12 @@ import javax.swing.JComponent;
  * 
  * @version $Revision$
  * 
- * <p> $Log$ </p>
+ * <p> $Log$
+ * <p> Revision 1.1  2008/09/30 22:55:16  sueh
+ * <p> bug# 1113.  Class that keeps track of which rows should be displayed in
+ * <p> a table.  Does not contain a container, but does have a paging panel that
+ * <p> it can pass to the table that is being viewed.
+ * <p> </p>
  */
 final class Viewport {
   public static final String rcsid = "$Id$";
@@ -78,7 +83,7 @@ final class Viewport {
     }
     //decide whether viewable must update its display.
     if (start != origStart || end != origEnd) {
-      viewable.repositionViewer();
+      viewable.msgViewportMoved();
     }
   }
 

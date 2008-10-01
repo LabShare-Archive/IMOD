@@ -52,6 +52,11 @@ import etomo.util.Utilities;
  * @version $Revision$
  * 
  * <p> $Log$
+ * <p> Revision 1.43  2008/09/30 22:40:04  sueh
+ * <p> bug# 1113 Implemented Viewable.  Added a Viewport member.
+ * <p> Refactored row and list oriented code into RowList.  Adjusting the
+ * <p> Viewport when adding, deleting, or moving row up or down.
+ * <p>
  * <p> Revision 1.42  2008/05/03 00:56:49  sueh
  * <p> bug# 847 Passing null for ProcessSeries to process funtions.
  * <p>
@@ -736,7 +741,7 @@ final class SectionTablePanel implements ContextMenu, Expandable,
     }
   }
 
-  public void repositionViewer() {
+  public void msgViewportMoved() {
     displayCurTab();
     manager.getMainPanel().repaint();
   }
