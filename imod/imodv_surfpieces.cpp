@@ -104,7 +104,6 @@ Surface_Pieces::Surface_Pieces(const Ipoint *vertex_xyz, const b3dInt32 *tarray,
   for (int t = 0 ; t < tc ; ++t)
     pieces[vmap[tv[s0*t]]].tList->push_back(t);
 
-  printf("here cc=%d tc=%d\n", cc, tc);
 
   float temp;
    Ipoint v0, v1, v2;
@@ -138,7 +137,7 @@ Surface_Pieces::Surface_Pieces(const Ipoint *vertex_xyz, const b3dInt32 *tarray,
      pieces[ci].area=temp;*/
      pieces[ci].area=nT;
    }
-  printf("before sort: total # of triangle is: %d\n", tCounter);
+  //printf("before sort: total # of triangle is: %d\n", tCounter);
    
   std::sort( pieces.begin(), pieces.end(), sortbyArea );
 
@@ -152,7 +151,7 @@ Surface_Pieces::Surface_Pieces(const Ipoint *vertex_xyz, const b3dInt32 *tarray,
       sortedTriangle[tCounter++]=tarray[ 3*currTList[t]+2 ];
     }
   }
-  printf("after sort: total # of triangle is: %d\n", tCounter/3);
+  //printf("after sort: total # of triangle is: %d\n", tCounter/3);
 
   //for(int ci=0;ci<cc;++ci)
   //  printf("piece[%d] area is: %f\n", ci, pieces[ci].area);
