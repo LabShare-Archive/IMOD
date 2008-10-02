@@ -36,6 +36,7 @@ class ImodvWindow : public QMainWindow
 
  public:
   ImodvWindow(bool standAlone, int enableDepthDB, int enableDepthSB, 
+              int stereoDB, int stereoSB,
               bool lighting, bool lowRes, QWidget * parent = 0,
               const char * name = 0, 
               WFlags f = WType_TopLevel | WDestructiveClose) ;
@@ -96,6 +97,9 @@ protected:
 /*
 
 $Log$
+Revision 4.7  2008/04/29 18:13:44  xiongq
+add isosurface dialog
+
 Revision 4.6  2008/02/03 18:38:00  mast
 Added scroll wheel zoom
 

@@ -27,7 +27,8 @@
 extern int Imod_debug;
 
 ImodvWindow::ImodvWindow(bool standAlone, int enableDepthDB, 
-                         int enableDepthSB, bool lighting, bool lowRes,
+                         int enableDepthSB, int stereoDB, int stereoSB, 
+                         bool lighting, bool lowRes,
                          QWidget * parent, const char * name, WFlags f)
   : QMainWindow(parent, name, f)
 {
@@ -133,6 +134,7 @@ ImodvWindow::ImodvWindow(bool standAlone, int enableDepthDB,
   if (enableDepthDB >= 0) { 
     glFormat.setDoubleBuffer(true);
     glFormat.setDepth(enableDepthDB > 0);
+    glFormat.setStereo(stereoDB > 0);
     mDBw = new ImodvGL(glFormat, mStack);
     mStack->addWidget(mDBw);
     mCurGLw = mDBw;
@@ -141,6 +143,7 @@ ImodvWindow::ImodvWindow(bool standAlone, int enableDepthDB,
   if (enableDepthSB >= 0) { 
     glFormat.setDoubleBuffer(false);
     glFormat.setDepth(enableDepthSB > 0);
+    glFormat.setStereo(stereoSB > 0);
     mSBw = new ImodvGL(glFormat, mStack);
     mStack->addWidget(mSBw);
     if (enableDepthDB < 0)
@@ -308,6 +311,9 @@ void ImodvGL::wheelEvent ( QWheelEvent * e)
 /*
 
 $Log$
+Revision 4.17  2008/05/27 05:47:45  mast
+Capitalize Isosurface
+
 Revision 4.16  2008/04/29 18:13:31  xiongq
 add isosurface dialog
 
