@@ -77,6 +77,15 @@ static void imodv_clear(ImodvApp *a)
   imodv_winset(a);
   glClearColor(a->rbgcolor->red() / 256., a->rbgcolor->green() / 256.,
 	       a->rbgcolor->blue() / 256., 1.0);
+  if (a->clearAfterStereo) {
+#ifndef __sgi
+    glDrawBuffer(a->db ? GL_BACK_RIGHT : GL_RIGHT);
+    glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
+    glDrawBuffer(a->db ? GL_BACK : GL_FRONT);
+#endif
+    a->clearAfterStereo = 0;
+  }
+     
   glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
   glFlush();
 }
@@ -221,12 +230,12 @@ void imodvPaintGL()
 
     // 6/8/04: The second clear may be superfluous, let stereo routine decide
     a->stereo *= -1;
-    stereoDrawBuffer(GL_BACK_RIGHT);
+    stereoDrawBuffer(a->db ? GL_BACK_RIGHT : GL_RIGHT);
     imodvStereoClear();
     imodvDraw_models(a);
 
     a->stereo *= -1;
-    stereoDrawBuffer(GL_BACK_LEFT);
+    stereoDrawBuffer(a->db ? GL_BACK_LEFT : GL_LEFT);
     imodvStereoClear();
     imodvDraw_models(a);
     break;
@@ -465,6 +474,9 @@ static int imodv_snapshot(ImodvApp *a, QString fname)
 
 /*
 $Log$
+Revision 4.19  2008/06/12 22:49:18  mast
+Made lighting vector come out on top
+
 Revision 4.18  2008/06/10 05:58:03  mast
 Added drawing of lighting vector after all models drawn
 
