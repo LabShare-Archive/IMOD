@@ -179,6 +179,7 @@ static void stereoSetUp(void)
       // they are actually client window positions...  Will need to 
       // parameterize if it ever works elsewhere
       imodvStereoData.hw = 1;
+#ifdef __sgi      
       if (nheight > 450) 
         nheight = 450;
       if (y + nheight > 484){  
@@ -190,9 +191,10 @@ static void stereoSetUp(void)
       }
       if (x + nwidth > 1270)
         nx = 1270 - nwidth;
-      stereoEnable();
       Imodv->imod->view->rad = 0.5 * 
         (nwidth > nheight ? nheight : nwidth) / scalefac;
+#endif
+      stereoEnable();
 
     } else {
 
@@ -207,7 +209,8 @@ static void stereoSetUp(void)
          (width != nwidth)){
       Imodv->mainWin->resize(nwidth, nheight);
       Imodv->mainWin->move(nx, ny);
-      configured = 1;
+      if (height != nheight || width != nwidth)
+        configured = 1;
     }
 
     // Turning stereo off or switching to side-to-side: reset window
@@ -215,10 +218,12 @@ static void stereoSetUp(void)
     if (imodvStereoData.hw) {
       stereoDisable();
       Imodv->imod->view->rad = imodvStereoData.rad;
+      Imodv->clearAfterStereo = 1;
     }
     Imodv->mainWin->resize(imodvStereoData.width, imodvStereoData.height);
     Imodv->mainWin->move(imodvStereoData.x, imodvStereoData.y);
-    configured = 1;
+    if (width != imodvStereoData.width && height != imodvStereoData.height)
+      configured = 1;
   }
 
   // Now set old mode value
@@ -442,6 +447,9 @@ void ImodvStereo::keyReleaseEvent ( QKeyEvent * e )
 
 /*
 $Log$
+Revision 4.13  2007/10/03 19:30:44  sueh
+bug# 1038 Replacing help strings with an .html file.
+
 Revision 4.12  2007/07/08 16:04:49  mast
 Used new hot slider function
 
