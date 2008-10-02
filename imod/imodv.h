@@ -75,6 +75,7 @@ typedef struct __imodv_struct
   int stereo;      /* 0 = no stereo view.                     */
                    /* 1 = cross, 2 = wall, 3 = red/green      */
                    /* 4 = display hardware stereo.            */
+  int clearAfterStereo;   /* Flag to clear right buffer after leaving stereo */
   float plax;      /* parallax for stereo separation.         */
   int movie;       /* allow movies.                           */
   int drawall;     /* draw all models at once.                */
@@ -141,6 +142,9 @@ void imodvNewModelAngles(Ipoint *rot);
 
 /*
 $Log$
+Revision 3.22  2008/06/10 05:49:19  mast
+Add flag for drawing the light vector
+
 Revision 3.21  2008/05/27 05:48:41  mast
 Changes for linking slicer center of rotation
 
