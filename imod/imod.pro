@@ -80,6 +80,7 @@ HEADERS	+= autox.h \
 	isothread.h \
 	imodv_mcubes.h \
 	imodv_mcubescpp.h \
+   imodv_surfpieces.h \
 	imodv_mappingtable.h
 
 SOURCES	+= autox.cpp \
@@ -109,6 +110,7 @@ SOURCES	+= autox.cpp \
 	histwidget.cpp \
 	isothread.cpp \
 	imodv_isosurface.cpp \
+   imodv_surfpieces.cpp \
 	imodv_input.cpp \
 	imodv_light.cpp \
 	imodv_menu.cpp \
