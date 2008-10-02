@@ -11,6 +11,8 @@
 *  Log at end of file
 */
 
+#include <algorithm> //std::sort
+#include <vector>
 #include <qcheckbox.h>
 #include <qlabel.h>
 #include <qlineedit.h>
@@ -28,6 +30,7 @@
 #include "imod.h"
 #include "imodv_gfx.h"
 #include "imodv_isosurface.h"
+#include "imodv_surfpieces.h"
 #include "histwidget.h"
 #include "isothread.h"
 #include "xzap.h"
@@ -53,6 +56,7 @@ static QTime isoTime;
 #define DEFAULT_VOXELS 96*96*96 //the number of voxles the initial bounding box;
 #define PERCENTILE 0.07
 #define MAXIMAL_ITERATION 20
+#define MAXIMAL_BINNING 4
 #define TOL 0.0001
 #define NUM_THREADS 1
 
@@ -64,6 +68,8 @@ struct{
   ImodvIsosurface *dia;
   ImodvApp  *a;
   int itNum;
+  int binningNum;
+  int minTNum;
 
   int    flags;
 
@@ -71,7 +77,7 @@ struct{
   /* int    xsize, ysize, zsize;
      int    *xd, *yd, *zd; */
 
-}imodvIsosurfaceData = {0, 0, 0, ~0};
+}imodvIsosurfaceData = {0, 0, 0, 1, 100,  ~(0|IMODV_DELETE_PIECES) };
 
 static bool isBoxChanged(const int *start, const int *end);
 
@@ -97,7 +103,7 @@ void imodvIsosurfaceEditDialog(ImodvApp *a, int state)
 
 bool imodvIsosurfaceUpdate(void)
 {
-  if(imodvIsosurfaceData.dia)
+  if(imodvIsosurfaceData.dia && imodvIsosurfaceData.dia->mLinkXYZ->isChecked() )
   {
     imodvIsosurfaceData.dia->updateCoords();
     if( isBoxChanged(imodvIsosurfaceData.dia->mBoxOrigin, imodvIsosurfaceData.dia->mBoxEnds) )
@@ -107,6 +113,7 @@ bool imodvIsosurfaceUpdate(void)
         imodvIsosurfaceData.dia->setViewCenter();
       imodvIsosurfaceData.dia->setBoundingObj();
       imodvIsosurfaceData.dia->fillVolumeArray();
+      imodvIsosurfaceData.dia->fillBinVolume();
       imodvIsosurfaceData.dia->setIsoObj();
       //imodvDraw(Imodv);
       return true;
@@ -144,11 +151,11 @@ static bool isBoxChanged(const int *start, const int *end)
     imodvIsosurfaceData.dia->mCurrTime=currTime;
     return true;
   }
-  setCoordLimits(Imodv->vi->xmouse, Imodv->vi->xsize, xDrawSize, &newStart, &newEnd);
+  setCoordLimits(imodvIsosurfaceData.dia->mLocalX, Imodv->vi->xsize, xDrawSize, &newStart, &newEnd);
   if( *start!=newStart || *end!=newEnd) return true;
-  setCoordLimits(Imodv->vi->ymouse, Imodv->vi->ysize, yDrawSize, &newStart, &newEnd);
+  setCoordLimits(imodvIsosurfaceData.dia->mLocalY, Imodv->vi->ysize, yDrawSize, &newStart, &newEnd);
   if( *(start+1)!=newStart || *(end+1)!=newEnd) return true;
-  setCoordLimits(Imodv->vi->zmouse, Imodv->vi->zsize, zDrawSize, &newStart, &newEnd);
+  setCoordLimits(imodvIsosurfaceData.dia->mLocalZ, Imodv->vi->zsize, zDrawSize, &newStart, &newEnd);
   if( *(start+2)!=newStart || *(end+2)!=newEnd) return true;
   return false;
 }
@@ -221,7 +228,9 @@ ImodvIsosurface::ImodvIsosurface(struct ViewInfo *vi, QWidget *parent, const cha
   mBoxObjNum=ivwGetFreeExtraObjectNumber(vi);
   ivwGetTime(vi, &mCurrTime);
   mVolume=NULL;
+  mSurfPieces=NULL;
   mOrigMesh=NULL;
+  mFilteredMesh=NULL;
 
   // Make view checkboxes
   mViewIso = diaCheckBox("View isosurfaces", this, mLayout);
@@ -242,6 +251,15 @@ ImodvIsosurface::ImodvIsosurface(struct ViewInfo *vi, QWidget *parent, const cha
   QToolTip::add(mViewBoxing, "Display the bounding box");
   QToolTip::add(mCenterVolume, "Keep isosurfaces centered in the model view window");
 
+  QHBoxLayout *binningLayout=new QHBoxLayout;
+  mBinningBox = diaLabeledSpin(0, 1, MAXIMAL_BINNING, 1, "Binning:",
+      this, binningLayout);
+  mBinningBox->setValue(imodvIsosurfaceData.binningNum);
+  mLayout->addLayout(binningLayout);
+  connect(mBinningBox, SIGNAL(valueChanged(int)), this,
+      SLOT(binningNumChanged(int)));
+  QToolTip::add(mBinningBox, "Set the binning level");
+
   QHBoxLayout *smoothLayout=new QHBoxLayout;
   mSmoothBox=diaLabeledSpin(0, 0, MAXIMAL_ITERATION, 1, "Smoothing:",
       this, smoothLayout);
@@ -249,6 +267,21 @@ ImodvIsosurface::ImodvIsosurface(struct ViewInfo *vi, QWidget *parent, const cha
   mLayout->addLayout(smoothLayout);
   connect(mSmoothBox, SIGNAL(valueChanged(int)), this, SLOT(iterNumChanged(int)));
   QToolTip::add(mSmoothBox, "Set the iteration number for smoothing");
+
+  mDeletePieces=diaCheckBox("Delete small pieces", this, mLayout);
+  mDeletePieces->setChecked(imodvIsosurfaceData.flags & IMODV_DELETE_PIECES);
+  connect(mDeletePieces, SIGNAL(toggled(bool)), this, SLOT(
+        deletePiecesToggled(bool)));
+  QToolTip::add(mDeletePieces, "Remove small isosurface pieces");
+  QHBoxLayout *piecesLayout=new QHBoxLayout;
+  mPiecesBox=diaLabeledSpin(0, 10, 9999, 10, "min size:",
+      this, piecesLayout);
+  mPiecesBox->setValue(imodvIsosurfaceData.minTNum);
+  mLayout->addLayout(piecesLayout);
+  connect(mPiecesBox, SIGNAL(valueChanged(int)), this,
+      SLOT(numOfTrianglesChanged(int)) );
+  QToolTip::add(mPiecesBox, 
+      "Set the # of triangles the smallest piece must have");
 
   mHistPanel=new HistWidget(this);
   mHistPanel->setMinimumSize(size().width(), 80);
@@ -259,6 +292,12 @@ ImodvIsosurface::ImodvIsosurface(struct ViewInfo *vi, QWidget *parent, const cha
   mLayout->addWidget(mHistPanel);
   mLayout->setStretchFactor(mHistPanel, 100);
   mLayout->addLayout(mHistSlider->getLayout());
+
+  mLinkXYZ=diaCheckBox("Link to global X, Y, Z", this, mLayout);
+  mLinkXYZ->setChecked(imodvIsosurfaceData.flags & IMODV_LINK_XYZ);
+  connect(mLinkXYZ, SIGNAL(toggled(bool)), this, SLOT(
+        linkXYZToggled(bool)));
+  QToolTip::add(mLinkXYZ, "Link global XYZ and  the XYZ of isosurface center");
 
   // Make multisliders
   mSliders = new MultiSlider(this, 6, sliderLabels);
@@ -329,8 +368,10 @@ ImodvIsosurface::ImodvIsosurface(struct ViewInfo *vi, QWidget *parent, const cha
 
   mCurrMax=mBoxSize[0]*mBoxSize[1]*mBoxSize[2];
   mVolume=(unsigned char*) (malloc( mCurrMax*sizeof(unsigned char) ));
+  mBinVolume=(unsigned char*) (malloc( mCurrMax*sizeof(unsigned char) ));
 
   mThreshold=fillVolumeArray();
+  fillBinVolume();
 
   //mThreshold=198.0;
 
@@ -379,6 +420,32 @@ ImodvIsosurface::~ImodvIsosurface()
 {
   free(mVolume);
   if(mOrigMesh) imodMeshDelete(mOrigMesh);
+}
+
+void ImodvIsosurface::fillBinVolume()
+{
+  int binNum=mBinningBox->text().toInt();
+  float denom=binNum*binNum*binNum;
+  float value;
+
+  for( int zi =mBoxOrigin[2];zi<mBinBoxEnds[2];zi++)
+    for( int yi=mBoxOrigin[1];yi<mBinBoxEnds[1];yi++)
+      for( int xi=mBoxOrigin[0];xi<mBinBoxEnds[0];xi++){
+
+         value=0.0;
+         for(int zii=0;zii<binNum;zii++)
+           for(int yii=0;yii<binNum;yii++)
+             for(int xii=0;xii<binNum;xii++){
+               value+=*(mVolume
+                       + ( (zi-mBoxOrigin[2])*binNum+zii)*mBoxSize[0]*mBoxSize[1]
+                       + ( (yi-mBoxOrigin[1])*binNum+yii)*mBoxSize[0]
+                       +   (xi-mBoxOrigin[0])*binNum+xii );
+              }
+         *(mBinVolume 
+             + (zi-mBoxOrigin[2])*mBinBoxSize[0]*mBinBoxSize[1]
+             + (yi-mBoxOrigin[1])*mBinBoxSize[0]
+             + xi-mBoxOrigin[0] ) = value/denom;
+      }
 }
 
 float ImodvIsosurface::fillVolumeArray()
@@ -442,6 +509,7 @@ float ImodvIsosurface::fillVolumeArray()
   return mHistPanel->computePercentile(PERCENTILE);
 }
 
+
 void ImodvIsosurface::setIsoObj()
 {
   int i, ii, j, jj, k;
@@ -459,6 +527,14 @@ void ImodvIsosurface::setIsoObj()
   int offset[MAX_THREADS];
   int validVertexSum=0;
   bool flagFind;
+
+  // Added for multi-processing with binning;
+  int cOrigZ[MAX_THREADS];
+  float newThreshold;
+  int binNum=mBinningBox->text().toInt();
+  cOrigZ[0]=mSubZEnds[0];
+  for(int i=1;i<mNThreads;i++)
+    cOrigZ[i]=mSubZEnds[0]+binNum*(mSubZEnds[i]-mSubZEnds[0])-binNum;
 
 
   offset[0]=0; //will always be 0; so are skipNVertex[0] and skipNTriangle[0];
@@ -499,7 +575,8 @@ void ImodvIsosurface::setIsoObj()
       flagFind=false;
 
       for(ii=0;ii<2*nVertex[i];ii+=2){
-        if( vertex_xyz[i][ii].z>mSubZEnds[i]+1.0-TOL ) 
+        if( vertex_xyz[i][ii].z>cOrigZ[i]+binNum+binNum-TOL ) 
+        //if( vertex_xyz[i][ii].z>mSubZEnds[i]+1.0-TOL ) //old code for without binning; 
           break;
       }
       skipNVertex[i]=ii/2;
@@ -512,8 +589,8 @@ void ImodvIsosurface::setIsoObj()
       if(skipNVertex[i]){
         for(j=2*validNVertex[i-1]-2;j>=0;j-=2)
           if ( fabs(vertex_xyz[i-1][j].x - vertex_xyz[i][ii-2].x)>TOL ||
-              fabs(vertex_xyz[i-1][j].y - vertex_xyz[i][ii-2].y)>TOL ||
-              fabs(vertex_xyz[i-1][j].z - vertex_xyz[i][ii-2].z)>TOL )
+               fabs(vertex_xyz[i-1][j].y - vertex_xyz[i][ii-2].y)>TOL ||
+               fabs(vertex_xyz[i-1][j].z - vertex_xyz[i][ii-2].z)>TOL )
             jj++;
           else break;
       }
@@ -528,12 +605,20 @@ void ImodvIsosurface::setIsoObj()
 
       k=-1;
       for(ii=0;ii<nTriangle[i];ii++)
-        if( vertex_xyz[i][ 2*triangle[i][3*ii]].z<mSubZEnds[i]-TOL ||
-            vertex_xyz[i][ 2*triangle[i][3*ii+1]].z<mSubZEnds[i]-TOL ||
-            vertex_xyz[i][ 2*triangle[i][3*ii+2]].z<mSubZEnds[i]-TOL )
+      {  
+        newThreshold=cOrigZ[i]+binNum -TOL;
+        if( vertex_xyz[i][ 2*triangle[i][3*ii]].z< newThreshold ||
+            vertex_xyz[i][ 2*triangle[i][3*ii+1]].z<newThreshold ||
+            vertex_xyz[i][ 2*triangle[i][3*ii+2]].z<newThreshold )
+          // old code for without binning;
+         //if( vertex_xyz[i][ 2*triangle[i][3*ii]].z<mSubZEnds[i]-TOL ||
+         //   vertex_xyz[i][ 2*triangle[i][3*ii+1]].z<mSubZEnds[i]-TOL ||
+         //   vertex_xyz[i][ 2*triangle[i][3*ii+2]].z<mSubZEnds[i]-TOL )
+
         {
           k=ii; //skipNTriangle[i]++;
-        };
+        }
+      }
       if(k>-1) skipNTriangle[i]=k+1;
 
       /* Remove redundant triangles in the triangle list of previous subslices.
@@ -641,8 +726,10 @@ void ImodvIsosurface::setIsoObj()
     ptrOut=0;
     for(i=0;i<mNThreads;i++){
       for(ii=0;ii<3*validNTriangle[i];ii++){
-        if(i==0)finalTriangle[1+ptrOut]=2*(triangle[i][ii+1+3*skipNTriangle[i]]+offset[i]);
-        else finalTriangle[1+ptrOut]=2*(triangle[i][ii+3*skipNTriangle[i]]+offset[i]);
+        //if(i==0)finalTriangle[1+ptrOut]=2*(triangle[i][ii+1+3*skipNTriangle[i]]+offset[i]);
+        //else finalTriangle[1+ptrOut]=2*(triangle[i][ii+3*skipNTriangle[i]]+offset[i]);
+        if(i==0)finalTriangle[1+ptrOut]=triangle[i][ii+1+3*skipNTriangle[i]]+offset[i];
+        else finalTriangle[1+ptrOut]=triangle[i][ii+3*skipNTriangle[i]]+offset[i];
         ptrOut++;
       }
     } 
@@ -652,32 +739,38 @@ void ImodvIsosurface::setIsoObj()
       free(triangle[i]);
     }
   }else{
-    for(ii=0;ii<3*validNTriangle[0];ii++) triangle[0][1+ii]*=2;
+    //for(ii=0;ii<3*validNTriangle[0];ii++) triangle[0][1+ii]*=2;
     finalVertex_xyz=vertex_xyz[0];
     finalTriangle=triangle[0];
   }
 
+  for(i=0;i<3*totalTriangle;i++) finalTriangle[1+i]*=2;
   finalTriangle[0]=-25;
   finalTriangle[3*totalTriangle+1]=-22;
   finalTriangle[3*totalTriangle+2]=-1;
+  
+  //create a Imesh structure; 
+  mcubeMesh=imodMeshNew();
+  mcubeMesh->vert=finalVertex_xyz;
+  mcubeMesh->lsize= 3*totalTriangle+3;
+  mcubeMesh->vsize= 2*totalVertex;
+  mcubeMesh->list=finalTriangle;
 
   if(imodDebug('U') ){
     imodPrintStderr("merge time=%d \n", isoTime.elapsed());
     isoTime.start();
   }
 
-  //create a Imesh structure; 
-  mcubeMesh=imodMeshNew();
-  mcubeMesh->vert=finalVertex_xyz;
-  mcubeMesh->list=finalTriangle;
-  mcubeMesh->vsize= 2*totalVertex;
-  mcubeMesh->lsize= 3*totalTriangle+3;
-
   if(mOrigMesh) imodMeshDelete(mOrigMesh);
   mOrigMesh=mcubeMesh;
 
+  //filter out small pieces;
+  filterMesh( mDeletePieces->isChecked() );
+  
   //need to create a dup and put in the extraObject;
-  struct Mod_Mesh *dup=imodMeshDup(mOrigMesh);
+  struct Mod_Mesh *dup=imodMeshDup(mFilteredMesh);
+
+  //apply smoothing;
   int itrNum=mSmoothBox->text().toInt();
   if(itrNum) smoothMesh(dup, itrNum);
   //attch the new mesh to the extra obj;
@@ -717,25 +810,33 @@ void ImodvIsosurface::setIsoObj()
 //of the bounding box.
 void ImodvIsosurface::setBoundingBox()
 {
-  setCoordLimits(Imodv->vi->xmouse, Imodv->vi->xsize, xDrawSize, mBoxOrigin, mBoxEnds);
-  setCoordLimits(Imodv->vi->ymouse, Imodv->vi->ysize, yDrawSize, mBoxOrigin+1, mBoxEnds+1);
-  setCoordLimits(Imodv->vi->zmouse, Imodv->vi->zsize, zDrawSize, mBoxOrigin+2, mBoxEnds+2);
+  setCoordLimits(mLocalX, Imodv->vi->xsize, xDrawSize, mBoxOrigin, mBoxEnds);
+  setCoordLimits(mLocalY, Imodv->vi->ysize, yDrawSize, mBoxOrigin+1, mBoxEnds+1);
+  setCoordLimits(mLocalZ, Imodv->vi->zsize, zDrawSize, mBoxOrigin+2, mBoxEnds+2);
   mBoxSize[0]=xDrawSize;
   mBoxSize[1]=yDrawSize;
   mBoxSize[2]=zDrawSize;
+  
+  //set binning parameters
+  int binNum=mBinningBox->text().toInt();
   int i;
-  int fairShare=mBoxSize[2]/mInitNThreads;
+  for(i=0;i<3;i++) {
+    mBinBoxSize[i]=mBoxSize[i]/binNum;
+    mBinBoxEnds[i]=mBoxOrigin[i]+mBinBoxSize[i];
+  }
+  
+  int fairShare=mBinBoxSize[2]/mInitNThreads;
 
   if(fairShare<8)
   { 
     mNThreads=1;
-    fairShare=mBoxSize[2];
+    fairShare=mBinBoxSize[2];
   }else mNThreads=mInitNThreads;
 
   mSubZEnds[0]=mBoxOrigin[2];
   for(i=1;i<mNThreads;i++)
     mSubZEnds[i]=mSubZEnds[i-1]+fairShare;
-  mSubZEnds[mNThreads]=mBoxEnds[2]-1;
+  mSubZEnds[mNThreads]=mBinBoxEnds[2]-1;
 
   if( imodDebug('U') ) 
     for(i=0;i<mNThreads+1;i++)
@@ -797,6 +898,10 @@ void ImodvIsosurface::updateCoords()
   mSliders->setValue(IIS_Y_COORD, (int)(Imodv->vi->ymouse + 1.5f));
   mSliders->setRange(IIS_Z_COORD, 1, Imodv->vi->zsize);
   mSliders->setValue(IIS_Z_COORD, (int)(Imodv->vi->zmouse + 1.5f));
+
+  mLocalX=(int)Imodv->vi->xmouse;
+  mLocalY=(int)Imodv->vi->ymouse;
+  mLocalZ=(int)Imodv->vi->zmouse;
 
   if (lastYsize != Imodv->vi->ysize) {
     int tmpSize = yDrawSize;
@@ -866,6 +971,61 @@ void ImodvIsosurface::viewBoxingToggled(bool state)
   imodDraw(Imodv->vi, IMOD_DRAW_MOD);
 }
 
+void ImodvIsosurface::deletePiecesToggled(bool state)
+{
+  filterMesh(state);
+  int iterNum=mSmoothBox->text().toInt();
+  iterNumChanged(iterNum);
+}
+
+//Setting up mFilteredMesh using mOrigMesh;
+void ImodvIsosurface::filterMesh(bool state)
+{
+  if(mFilteredMesh) imodMeshDelete(mFilteredMesh);
+  mFilteredMesh=imodMeshDup(mOrigMesh);
+
+  int totalTriangle=(mOrigMesh->lsize -3)/3;
+  Ipoint *finalVertex_xyz=mOrigMesh->vert;
+  b3dInt32 *finalTriangle=mOrigMesh->list;
+
+  if(state){
+    mPiecesBox->setEnabled(true);
+    if(mSurfPieces) delete mSurfPieces;
+    mSurfPieces=new Surface_Pieces(finalVertex_xyz, finalTriangle+1,
+        totalTriangle, mFilteredMesh->list+1);
+
+    int trNum=mPiecesBox->text().toInt();
+    int includedTriangle=0;
+    b3dInt32 *newTList;
+    b3dInt32 *start;
+    int totalCC= mSurfPieces->pieces.size();
+    for(int ci=0;ci<totalCC;++ci){
+      if( mSurfPieces->pieces[totalCC-ci-1].area > trNum )
+        includedTriangle+=mSurfPieces->pieces[totalCC-ci-1].tList->size();
+      else break;
+    }
+
+    start=mFilteredMesh->list+3*(totalTriangle-includedTriangle);
+    *(start)=-25;
+    newTList=(b3dInt32*)malloc( (3*includedTriangle+3)*sizeof(b3dInt32) );
+    for(int i=0;i<3*includedTriangle+3;i++) *(newTList+i)=*(start+i);
+    free(mFilteredMesh->list);
+    mFilteredMesh->list=newTList;
+    mFilteredMesh->lsize=3*includedTriangle+3;
+
+  }else{
+    mPiecesBox->setEnabled(false);
+  }
+}
+
+void ImodvIsosurface::linkXYZToggled(bool state)
+{
+  if(state) {
+    imodvIsosurfaceUpdate();
+    imodDraw(Imodv->vi, IMOD_DRAW_MOD);
+  }
+}
+
 void ImodvIsosurface::smoothMesh(struct Mod_Mesh *mcubeMesh, int iterNum)
 {
   Ipoint *vertex_xyz=mcubeMesh->vert;
@@ -879,12 +1039,25 @@ void ImodvIsosurface::iterNumChanged(int iterNum)
 {
   ivwClearAnExtraObject(mIsoView, mExtraObjNum);
   Iobj *extraObj=ivwGetAnExtraObject(mIsoView, mExtraObjNum);
-  struct Mod_Mesh *dup=imodMeshDup(mOrigMesh);
+  struct Mod_Mesh *dup=imodMeshDup(mFilteredMesh);
   if(iterNum) smoothMesh(dup, iterNum);
   imodObjectAddMesh(extraObj, dup);
   free(dup);
   setFocus();
   imodvDraw(Imodv);
+}
+
+void ImodvIsosurface::binningNumChanged(int binningNum)
+{
+    setBoundingBox();
+    fillBinVolume();
+    setIsoObj();
+    imodvDraw(Imodv);
+}
+
+void ImodvIsosurface::numOfTrianglesChanged(int trNum)
+{
+    deletePiecesToggled(true);
 }
 
 void  ImodvIsosurface::histChanged(int which, int value, bool dragging)
@@ -902,23 +1075,19 @@ void  ImodvIsosurface::histChanged(int which, int value, bool dragging)
   }
 }
 
-
 // respond to a change of transparency or contrast
 void ImodvIsosurface::sliderMoved(int which, int value, bool dragging)
 {
 
   switch (which) {
     case IIS_X_COORD:
-      Imodv->vi->xmouse = value - 1;
-      ivwBindMouse(Imodv->vi);
+      mLocalX = value - 1;
       break;
     case IIS_Y_COORD:
-      Imodv->vi->ymouse = value - 1;
-      ivwBindMouse(Imodv->vi);
+      mLocalY = value - 1;
       break;
     case IIS_Z_COORD:
-      Imodv->vi->zmouse = value - 1;
-      ivwBindMouse(Imodv->vi);
+      mLocalZ = value - 1;
       break;
     case IIS_X_SIZE:
       xDrawSize = value;
@@ -929,6 +1098,13 @@ void ImodvIsosurface::sliderMoved(int which, int value, bool dragging)
     case IIS_Z_SIZE:
       zDrawSize = value;
       break;
+  }
+
+  if(mLinkXYZ->isChecked() && which<=IIS_Z_COORD ){
+    Imodv->vi->xmouse=mLocalX;
+    Imodv->vi->ymouse=mLocalY;
+    Imodv->vi->zmouse=mLocalZ;
+    ivwBindMouse(Imodv->vi);
   }
 
   // draw if slider clicked or is in hot state
@@ -945,15 +1121,18 @@ void ImodvIsosurface::sliderMoved(int which, int value, bool dragging)
       if( newSize>mCurrMax)
       {
         free(mVolume);
+        free(mBinVolume);
         mCurrMax=(double)newSize;
         mVolume=(unsigned char*)(malloc( newSize*sizeof(unsigned char) ));
-        if(!mVolume){
+        mBinVolume=(unsigned char*)(malloc( newSize*sizeof(unsigned char) ));
+        if(!mVolume || !mBinVolume){
           imodPrintStderr("fail to allocate mem for %d voxles\n", newSize);
           return;
         }//else imodPrintStderr("allocate mem for %d voxels\n", newSize);
       }
 
       fillVolumeArray();
+      fillBinVolume();
       setIsoObj();
 
       imodvDraw(Imodv); 
@@ -1003,9 +1182,11 @@ void ImodvIsosurface::showRubberBandArea()
     if( newSize>mCurrMax)
     {
       free(mVolume);
+      free(mBinVolume);
       mCurrMax=(double)newSize;
       mVolume=(unsigned char*)(malloc( newSize*sizeof(unsigned char) ));
-      if(!mVolume){
+      mBinVolume=(unsigned char*)(malloc( newSize*sizeof(unsigned char) ));
+      if(!mVolume || !mBinVolume){
         imodPrintStderr("fail to allocate mem for %d voxles\n", newSize);
         return;
       }//else imodPrintStderr("allocate mem for %d voxels\n", newSize);
@@ -1014,13 +1195,20 @@ void ImodvIsosurface::showRubberBandArea()
     Imodv->vi->xmouse = xCenter;
     Imodv->vi->ymouse = yCenter;
 
+    if(mLinkXYZ->isChecked()){
+      mLocalX=Imodv->vi->xmouse;
+      mLocalY=Imodv->vi->ymouse;
+    }
+
     mSliders->setValue(IIS_X_COORD, xCenter + 1);
     mSliders->setValue(IIS_Y_COORD, yCenter + 1);
     mSliders->setValue(IIS_X_SIZE, xDrawSize);
     mSliders->setValue(IIS_Y_SIZE, yDrawSize);
 
+    setBoundingBox();
     setBoundingObj();
     fillVolumeArray();
+    fillBinVolume();
     setIsoObj();
 
     imodvDraw(Imodv);
@@ -1094,7 +1282,16 @@ void ImodvIsosurface::closeEvent ( QCloseEvent * e )
   if(!mCenterVolume->isChecked())imodvIsosurfaceData.flags &=~IMODV_CENTER_VOLUME;
   else  imodvIsosurfaceData.flags |=IMODV_CENTER_VOLUME;
 
+  if(!mLinkXYZ->isChecked() ) imodvIsosurfaceData.flags &=~IMODV_LINK_XYZ;
+  else  imodvIsosurfaceData.flags |=IMODV_LINK_XYZ;
+
+  if(!mDeletePieces->isChecked() ) 
+    imodvIsosurfaceData.flags &=~IMODV_DELETE_PIECES;
+  else  imodvIsosurfaceData.flags |=IMODV_DELETE_PIECES;
+
   imodvIsosurfaceData.itNum=mSmoothBox->text().toInt();
+  imodvIsosurfaceData.binningNum=mBinningBox->text().toInt();
+  imodvIsosurfaceData.minTNum=mPiecesBox->text().toInt();
 }
 
 // Close on escape; watch for the hot slider key; pass on keypress
@@ -1124,6 +1321,9 @@ void ImodvIsosurface::keyReleaseEvent ( QKeyEvent * e )
 /*
 
    $Log$
+   Revision 4.8  2008/08/19 15:17:16  mast
+   Changed for loop declarations for old intel compiler
+
    Revision 4.7  2008/05/27 16:41:01  xiongq
    add Use Rubber Band button
 

@@ -24,7 +24,8 @@ class Contour_Surface
   virtual ~Contour_Surface() {};
   virtual Index vertex_count() = 0;
   virtual Index triangle_count() = 0;
-  virtual void geometry(float *vertex_xyz, Index *triangle_vertex_indices, int *origin) = 0;
+  virtual void geometry(float *vertex_xyz, Index *triangle_vertex_indices, int
+      *origin, int binNum) = 0;
   virtual void normals(float *normals) = 0;
 };
 

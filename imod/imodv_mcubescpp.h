@@ -136,14 +136,15 @@ public:
 
   virtual Index vertex_count() { return vxyz.size()/3; }
   virtual Index triangle_count() { return tvi.size()/3; }
-  virtual void geometry(float *vertex_xyz, Index *triangle_vertex_indices, int *origin)
+  virtual void geometry(float *vertex_xyz, Index *triangle_vertex_indices, int
+      *origin, int binNum)
     { 
       //added by Quanren Xiong for imodv
       int n=vertex_count();
       for (int i=0;i<n;i++){
-          vertex_xyz[6*i]=vxyz.element(3*i) + origin[0];
-          vertex_xyz[6*i+1]=vxyz.element(3*i+1) + origin[1];
-          vertex_xyz[6*i+2]=vxyz.element(3*i+2) + origin[2];
+          vertex_xyz[6*i]=vxyz.element(3*i) *binNum + origin[0];
+          vertex_xyz[6*i+1]=vxyz.element(3*i+1)*binNum + origin[1];
+          vertex_xyz[6*i+2]=vxyz.element(3*i+2)*binNum+ origin[2];
       }
 
       //vxyz.array(vertex_xyz); 
@@ -635,6 +636,9 @@ void smooth_vertex_positions(float *varray, Index nv,
 /*
 
 $Log$
+Revision 4.2  2008/08/19 15:17:16  mast
+Changed for loop declarations for old intel compiler
+
 Revision 4.1  2008/05/23 19:30:02  xiongq
 rename imodv_mcubes.cpp to imodv_mcubescpp.h
 
