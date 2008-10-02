@@ -1,23 +1,8 @@
 /* samplemeansd.c : estimate mean and Sd of image from sample of pixels */
-/* $Id$
-
-$Log$
-Revision 3.2  2006/10/02 15:32:32  mast
-Fixed for > 2 Gpixel image
-
-Revision 3.1  2006/06/26 15:44:06  mast
-*** empty log message ***
-
-Revision 3.3  2003/09/18 00:48:55  mast
-Changed to take starting coordinates and image subset size
-
-Revision 3.2  2003/09/16 02:59:10  mast
-Changed to access image data via line pointers
-
-Revision 3.1  2002/12/01 15:34:41  mast
-Changes to get clean compilation with g++
-
-*/
+/*
+ * $Id$
+ * Log at end
+ */
 
 #include <stdlib.h>
 #include <stdio.h>
@@ -42,7 +27,7 @@ int sampleMeanSD(unsigned char **image, int type, int nx, int ny,
                  float sample, int nxMatt, int nyMatt, int nxUse, int nyUse,
                  float *mean, float *sd)
 {
-  int nLo, nHi, nSample;
+  int nSample;
 
   /* pointers for data of different types */
   char **bytep;
@@ -73,16 +58,16 @@ int sampleMeanSD(unsigned char **image, int type, int nx, int ny,
   /* get the number of points to sample, and sampling interval */
   nSample = (int)(sample * nPixUse);
   if (nSample >= nPixUse) 
-    nSample = nPixUse;
+    nSample = (int)nPixUse;
   if (nxUse < 2 || nyUse < 2 || nSample < 5) 
     return(1);
 
-  dxSample = nPixUse / nSample;
+  dxSample = (int)(nPixUse / nSample);
   if (dxSample == 0)
     dxSample = 1;
   if (dxSample > 5 && nPixUse < 2.e9 && (dxSample % 2 == ((int)nPixUse % 2)))
     dxSample--;
-  nSample = nPixUse / dxSample;
+  nSample = (int)(nPixUse / dxSample);
 
 
   /* get pointer based on type of data */
@@ -157,7 +142,7 @@ int sampleMeanSD(unsigned char **image, int type, int nx, int ny,
 
       }
     }
-    nsum = nPixUse;
+    nsum = (int)nPixUse;
     
   } else {
     ixUse = 0;
@@ -214,9 +199,32 @@ int sampleMeanSD(unsigned char **image, int type, int nx, int ny,
   } else
     sumsq = 0.;
 
-  *mean = sum;
-  *sd = sumsq;
+  *mean = (float)sum;
+  *sd = (float)sumsq;
 
   return(0);
 }
+
+/*
+
+$Log$
+Revision 1.1  2007/09/20 02:43:08  mast
+Moved to new library
+
+Revision 3.2  2006/10/02 15:32:32  mast
+Fixed for > 2 Gpixel image
+
+Revision 3.1  2006/06/26 15:44:06  mast
+*** empty log message ***
+
+Revision 3.3  2003/09/18 00:48:55  mast
+Changed to take starting coordinates and image subset size
+
+Revision 3.2  2003/09/16 02:59:10  mast
+Changed to access image data via line pointers
+
+Revision 3.1  2002/12/01 15:34:41  mast
+Changes to get clean compilation with g++
+
+*/
 
