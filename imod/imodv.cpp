@@ -123,6 +123,7 @@ static int imodv_init(ImodvApp *a, struct Mod_Draw *md)
   a->snap_fileno = 0;
   a->wpid = 0;
   a->stereo = IMODV_STEREO_OFF;
+  a->clearAfterStereo = 0;
   a->plax = 5.0f;
   a->lightx = a->lighty = 0;
   a->winx = DEFAULT_XSIZE;
@@ -291,7 +292,8 @@ static int openWindow(ImodvApp *a)
   a->lighting = Imodv->imod->view->world & VIEW_WORLD_LIGHT;
   a->lowres = (Imodv->imod->view->world & VIEW_WORLD_LOWRES) ? 1 : 0;
   a->mainWin = new ImodvWindow(a->standalone, a->enableDepthDB, 
-                               a->enableDepthSB, a->lighting, a->lowres);
+                               a->enableDepthSB, a->stereoDB, a->stereoSB,
+                               a->lighting, a->lowres);
 
   if (!a->mainWin)
     return 1;
@@ -711,6 +713,9 @@ void imodvQuit()
 
 /*
 $Log$
+Revision 4.38  2008/06/10 05:49:19  mast
+Add flag for drawing the light vector
+
 Revision 4.37  2008/05/27 05:48:41  mast
 Changes for linking slicer center of rotation
 
