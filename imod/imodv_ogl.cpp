@@ -338,14 +338,18 @@ static void setStereoProjection(ImodvApp *a)
 
   case -IMODV_STEREO_HW:
     glRotatef(-a->plax * 0.5f, 0.0f, 1.0f, 0.0f);
+#ifdef __sgi
     /* DNM: cut these values in half to get model at same zoom relative
        to the size of the window */
     glScalef(1.0f, 0.5f, 0.5f);
+#endif
     break;
 
   case IMODV_STEREO_HW:
     glRotatef(a->plax * 0.5f, 0.0f, 1.0f, 0.0f);
+#ifdef __sgi
     glScalef(1.0f, 0.5f, 0.5f);
+#endif
     break;
 
   }
@@ -2523,6 +2527,9 @@ static void drawCurrentClipPlane(ImodvApp *a)
 /*
 
 $Log$
+Revision 4.42  2008/09/19 20:18:52  mast
+Define GLU_CALLBACK to Linux/OSX 10.5 version if not defined in config file
+
 Revision 4.41  2008/06/17 20:18:21  mast
 Added ability to skip sphere drawing when drawing mesh of non-scattered obj
 
