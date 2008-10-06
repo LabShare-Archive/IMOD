@@ -232,9 +232,21 @@ final class ProcessorTableRow implements Storable {
   void deleteRow() {
     displayed = false;
   }
+  
+  void setColumns() {
+    setNumberColumn(table.useNumberColumn());
+    setTypeColumn(table.useTypeColumn());
+    setSpeedColumn(table.useSpeedColumn());
+    setMemoryColumn(table.useMemoryColumn());
+    setOSColumn(table.useOSColumn());
+    setUsersColumn(table.useUsersColumn());
+  }
 
-  void addRow() {
+  void display(int index, Viewport viewport) {
     displayed = true;
+    if (!viewport.inViewport(index)) {
+      return;
+    }
     //create row
     JPanel panel = table.getTablePanel();
     GridBagLayout layout = table.getTableLayout();
@@ -572,6 +584,9 @@ final class ProcessorTableRow implements Storable {
 }
 /**
  * <p> $Log$
+ * <p> Revision 1.32  2007/09/27 21:03:23  sueh
+ * <p> bug# 1044 Added a displayQueues mode.
+ * <p>
  * <p> Revision 1.31  2007/07/30 19:21:13  sueh
  * <p> bug# 1029 Resetting restarts in resetResults().
  * <p>
