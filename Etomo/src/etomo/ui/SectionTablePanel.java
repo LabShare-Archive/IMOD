@@ -21,6 +21,7 @@ import javax.swing.JPanel;
 import javax.swing.border.LineBorder;
 
 import etomo.BaseManager;
+import etomo.EtomoDirector;
 import etomo.JoinManager;
 import etomo.storage.JoinInfoFile;
 import etomo.storage.LogFile;
@@ -52,6 +53,9 @@ import etomo.util.Utilities;
  * @version $Revision$
  * 
  * <p> $Log$
+ * <p> Revision 1.44  2008/10/01 22:52:29  sueh
+ * <p> bug# 1113 Renamed Viewer.repositionViewer to msgViewportMoved.
+ * <p>
  * <p> Revision 1.43  2008/09/30 22:40:04  sueh
  * <p> bug# 1113 Implemented Viewable.  Added a Viewport member.
  * <p> Refactored row and list oriented code into RowList.  Adjusting the
@@ -475,7 +479,8 @@ final class SectionTablePanel implements ContextMenu, Expandable,
     this.joinDialog = joinDialog;
     this.manager = manager;
     this.state = state;
-    viewport = new Viewport(this, joinDialog.getSetupTabJComponent(),
+    viewport = new Viewport(this, EtomoDirector.INSTANCE.getUserConfiguration()
+        .getJoinTableSize().getInt(), joinDialog.getSetupTabJComponent(),
         joinDialog.getAlignTabJComponent(), joinDialog.getJoinTabJComponent(),
         "Section");
     //create root panel
@@ -921,7 +926,7 @@ final class SectionTablePanel implements ContextMenu, Expandable,
     }
     // rowList.removeRows(index - 1);
     rowList.moveSectionUp(index);
-    viewport.includeRowInViewport(index - 1);
+    viewport.adjustViewport(index - 1);
     rowList.removeRows();
     rowList.displayRows(pnlTable, viewport);
     rowList.renumberTable(index - 1);
@@ -950,7 +955,7 @@ final class SectionTablePanel implements ContextMenu, Expandable,
     }
     // rowList.removeRows(index);
     rowList.moveSectionDown(index);
-    viewport.includeRowInViewport(index + 1);
+    viewport.adjustViewport(index + 1);
     rowList.removeRows();
     rowList.displayRows(pnlTable, viewport);
     rowList.renumberTable(index);
@@ -1078,7 +1083,7 @@ final class SectionTablePanel implements ContextMenu, Expandable,
     //expand button is contracted.
     int index = rowList.add(manager, this, tomogram, button1ExpandSections
         .isExpanded(), mode);
-    viewport.includeRowInViewport(index);
+    viewport.adjustViewport(index);
     rowList.removeRows();
     rowList.displayRows(pnlTable, viewport);
     rowList.configureRows();
@@ -1103,7 +1108,7 @@ final class SectionTablePanel implements ContextMenu, Expandable,
     //  rowList.removeRows(index);
     rowList.deleteSection(index);
     rowList.removeRows();
-    viewport.includeRowInViewport(index);
+    viewport.adjustViewport(index);
     rowList.displayRows(pnlTable, viewport);
     rowList.renumberTable(index);
     state.deleteRow(index);

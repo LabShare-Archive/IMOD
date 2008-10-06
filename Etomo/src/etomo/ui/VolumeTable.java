@@ -18,6 +18,7 @@ import javax.swing.JPanel;
 import javax.swing.border.LineBorder;
 
 import etomo.BaseManager;
+import etomo.EtomoDirector;
 import etomo.PeetManager;
 import etomo.storage.LogFile;
 import etomo.storage.MatlabParam;
@@ -49,6 +50,9 @@ import etomo.type.Run3dmodMenuOptions;
  * @version $Revision$
  * 
  * <p> $Log$
+ * <p> Revision 1.32  2008/10/01 22:56:53  sueh
+ * <p> bug# 1113 Implemented Viewable.  Moved display call outside of addRow.  Removing and adding everything after add.
+ * <p>
  * <p> Revision 1.31  2008/09/30 22:55:29  sueh
  * <p> bug# 1113 Using a private constructor in SpacedPanel.
  * <p>
@@ -201,7 +205,7 @@ final class VolumeTable implements Expandable, Highlightable,
   private final Column initMotlFileColumn = new Column();
   private final Column tiltRangeColumn = new Column();
   private final MultiLineButton btnDeleteRow = new MultiLineButton("Delete Row");
-  private Viewport viewport ;
+  private Viewport viewport;
   private final ExpandButton btnExpandFnVolume;
   private final ExpandButton btnExpandFnModParticle;
   private final ExpandButton btnExpandInitMotlFile;
@@ -216,7 +220,9 @@ final class VolumeTable implements Expandable, Highlightable,
     this.manager = manager;
     this.parent = parent;
     //construction
-    viewport = new Viewport(this, parent.getSetupJComponent(), null, null, "Volume");
+    viewport = new Viewport(this, EtomoDirector.INSTANCE.getUserConfiguration()
+        .getPeetTableSize().getInt(), parent.getSetupJComponent(), null, null,
+        "Volume");
     btnExpandFnVolume = ExpandButton.getInstance(this, ExpandButton.Type.MORE);
     btnExpandFnModParticle = ExpandButton.getInstance(this,
         ExpandButton.Type.MORE);
@@ -297,7 +303,7 @@ final class VolumeTable implements Expandable, Highlightable,
       System.setProperty("user.dir", userDir);
     }
     rowList.doneSettingParameters();
-    viewport.includeRowInViewport(0);
+    viewport.adjustViewport(0);
     rowList.remove();
     rowList.display(viewport);
     updateDisplay();
@@ -452,7 +458,7 @@ final class VolumeTable implements Expandable, Highlightable,
   private void deleteRow(VolumeRow row) {
     rowList.remove();
     int index = rowList.delete(row, this, pnlTable, layout, constraints);
-    viewport.includeRowInViewport(index);
+    viewport.adjustViewport(index);
     rowList.display(viewport);
     UIHarness.INSTANCE.pack(manager);
   }
@@ -540,7 +546,7 @@ final class VolumeTable implements Expandable, Highlightable,
     }
     else {
       addRow(fnVolume, fnModParticle);
-      viewport.includeRowInViewport(rowList.size() - 1);
+      viewport.adjustViewport(rowList.size() - 1);
       rowList.remove();
       rowList.display(viewport);
       updateDisplay();
