@@ -33,7 +33,11 @@ import javax.swing.border.BevelBorder;
  * 
  * @version $Revision$
  * 
- * <p> $Log$ </p>
+ * <p> $Log$
+ * <p> Revision 1.1  2008/09/30 22:00:03  sueh
+ * <p> bug# 1113 Added a panel to hold paging buttons and set hotkeys for
+ * <p> paging.
+ * <p> </p>
  */
 
 final class PagingPanel {
@@ -71,7 +75,7 @@ final class PagingPanel {
   }
 
   /**
-   * Get PagingPanel instance with hotkey connections to 0 to two
+   * Get PagingPanel instance with hotkey connections to 0 to three
    * JComponents.  The JComponents can be the panel that the table has been
    * placed on.  The uniqueKey uniquely identifies the table.  This is necessary
    * when two tables appear on the same JPanel, so that separate actions are
@@ -87,17 +91,21 @@ final class PagingPanel {
       final JComponent parent3, final String uniqueKey) {
     PagingPanel instance = new PagingPanel(viewport, parent1, parent2, parent3,
         uniqueKey);
-    instance.init();
+    instance.init(parent1 != null || parent2 != null || parent3 != null);
     instance.addListeners();
     return instance;
   }
 
-  private void init() {
+  private void init(boolean hotkeys) {
     setupButton(btnHome, "home.png", "Top of table");
-    setupButton(btnPageUp, "pageUp.png", "Page up - PAGE UP");
-    setupButton(btnUp, "up.png", "Up one line - UP ARROW");
-    setupButton(btnDown, "down.png", "Down one line - DOWN ARROW");
-    setupButton(btnPageDown, "pageDown.png", "Page down - PAGE DOWN");
+    setupButton(btnPageUp, "pageUp.png", "Page up"
+        + (hotkeys ? " - Page Up button" : ""));
+    setupButton(btnUp, "up.png", "Up one line"
+        + (hotkeys ? " - Up Arrow button" : ""));
+    setupButton(btnDown, "down.png", "Down one line"
+        + (hotkeys ? " - Down Arrow button" : ""));
+    setupButton(btnPageDown, "pageDown.png", "Page down"
+        + (hotkeys ? " - Page Down button" : ""));
     setupButton(btnEnd, "end.png", "Bottom of table");
   }
 
@@ -123,8 +131,8 @@ final class PagingPanel {
    * @param actionMap2
    * @param key
    */
-  private void addAction(final InputMap inputMap, final ActionMap actionMap, final int keyStroke,
-      final String key, final AbstractAction action) {
+  private void addAction(final InputMap inputMap, final ActionMap actionMap,
+      final int keyStroke, final String key, final AbstractAction action) {
     if (inputMap != null) {
       inputMap.put(KeyStroke.getKeyStroke(keyStroke, 0), key);
       actionMap.put(key, action);
@@ -194,6 +202,18 @@ final class PagingPanel {
 
   Container getContainer() {
     return rootPanel;
+  }
+
+  void setUpEnabled(final boolean enabled) {
+    btnHome.setEnabled(enabled);
+    btnPageUp.setEnabled(enabled);
+    btnUp.setEnabled(enabled);
+  }
+
+  void setDownEnabled(final boolean enabled) {
+    btnEnd.setEnabled(enabled);
+    btnPageDown.setEnabled(enabled);
+    btnDown.setEnabled(enabled);
   }
 
   void setVisible(final boolean visible) {
