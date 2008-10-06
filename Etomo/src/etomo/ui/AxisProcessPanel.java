@@ -34,6 +34,9 @@ import etomo.util.Utilities;
  * @version $Revision$
  *
  * <p> $Log$
+ * <p> Revision 3.37  2008/09/30 20:55:45  sueh
+ * <p> bug# 1113 Using a private constructor in ProgressPanel.
+ * <p>
  * <p> Revision 3.36  2008/05/30 22:31:27  sueh
  * <p> bug# 1102 Isolating the etomo.uitest package so it is not need for
  * <p> running EtomoDirector.
@@ -418,12 +421,6 @@ public abstract class AxisProcessPanel implements ContextMenu {
     parallelPanel.getLoadDisplay().stopLoad();
     parallelStatusPanel.setVisible(false);
     UIHarness.INSTANCE.pack(axisID, manager);
-  }
-
-  final void pack() {
-    if (parallelPanel != null && parallelStatusPanel.isVisible()) {
-      parallelPanel.pack();
-    }
   }
 
   final ParallelPanel getParallelPanel() {
