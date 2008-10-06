@@ -17,6 +17,9 @@ import java.util.*;
  * @version $Revision$
  *
  * <p> $Log$
+ * <p> Revision 3.7  2008/09/10 21:33:48  sueh
+ * <p> Attempting to increase the size of the remembered file list.
+ * <p>
  * <p> Revision 3.6  2008/07/19 00:51:01  sueh
  * <p> bug# 1125 Added parallelProcessing and cpus.
  * <p>
@@ -92,12 +95,19 @@ public final class UserConfiguration implements Storable {
   private final EtomoBoolean2 parallelProcessing = new EtomoBoolean2(
       "ParallelProcessing");
   private final EtomoNumber cpus = new EtomoNumber("Cpus");
+  private final EtomoNumber parallelTableSize = new EtomoNumber(
+      "ParallelTableSize");
+  private final EtomoNumber joinTableSize = new EtomoNumber("JoinTableSize");
+  private final EtomoNumber peetTableSize = new EtomoNumber("PeetTableSize");
 
   public UserConfiguration() {
     MRUFileList = new CircularBuffer(nMRUFiles);
     for (int i = 0; i < nMRUFiles; i++) {
       MRUFileList.put("");
     }
+    parallelTableSize.setDisplayValue(15);
+    joinTableSize.setDisplayValue(10);
+    peetTableSize.setDisplayValue(5);
   }
 
   public String toString() {
@@ -150,6 +160,9 @@ public final class UserConfiguration implements Storable {
     swapYAndZ.store(props, prepend);
     parallelProcessing.store(props, prepend);
     cpus.store(props, prepend);
+    parallelTableSize.store(props, prepend);
+    joinTableSize.store(props, prepend);
+    peetTableSize.store(props, prepend);
 
     props.setProperty(group + "MainWindowWidth", String
         .valueOf(mainWindowWidth));
@@ -221,6 +234,9 @@ public final class UserConfiguration implements Storable {
     swapYAndZ.load(props, prepend);
     parallelProcessing.load(props, prepend);
     cpus.load(props, prepend);
+    parallelTableSize.load(props, prepend);
+    joinTableSize.load(props, prepend);
+    peetTableSize.load(props, prepend);
   }
 
   /**
@@ -413,6 +429,18 @@ public final class UserConfiguration implements Storable {
   public ConstEtomoNumber getCpus() {
     return cpus;
   }
+  
+  public ConstEtomoNumber getParallelTableSize() {
+    return parallelTableSize;
+  }
+  
+  public ConstEtomoNumber getJoinTableSize() {
+    return joinTableSize;
+  }
+  
+  public ConstEtomoNumber getPeetTableSize() {
+    return peetTableSize;
+  }
 
   public boolean getParallelProcessing() {
     return parallelProcessing.is();
@@ -440,6 +468,18 @@ public final class UserConfiguration implements Storable {
 
   public void setCpus(String input) {
     cpus.set(input);
+  }
+  
+  public void setParallelTableSize(String input) {
+    parallelTableSize.set(input);
+  }
+  
+  public void setJoinTableSize(String input) {
+    joinTableSize.set(input);
+  }
+  
+  public void setPeetTableSize(String input) {
+    peetTableSize.set(input);
   }
 
   public void setNoParallelProcessing(boolean input) {
