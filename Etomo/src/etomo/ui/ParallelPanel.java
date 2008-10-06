@@ -331,14 +331,6 @@ public final class ParallelPanel implements Expandable {
     return false;
   }
 
-  void pack() {
-    if (!visible || !open) {
-      return;
-    }
-    computerTable.pack();
-    queueTable.pack();
-  }
-
   /**
    * set the visible boolean based on whether the panel is visible
    * the body panel setVisible function was called by the header panel
@@ -397,6 +389,9 @@ public final class ParallelPanel implements Expandable {
 }
 /**
  * <p> $Log$
+ * <p> Revision 1.62  2008/09/30 22:01:39  sueh
+ * <p> bug# 1113 Using a private constructor in SpacedPanel.
+ * <p>
  * <p> Revision 1.61  2008/07/19 01:06:07  sueh
  * <p> bug# 1125 Making it easier to access CpuAdoc by not passing the
  * <p> manager to it; all it needs is the current directory.

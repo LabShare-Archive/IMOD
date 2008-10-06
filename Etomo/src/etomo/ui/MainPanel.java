@@ -35,6 +35,9 @@ import etomo.type.ProcessName;
  * @version $Revision$
  *
  * <p> $Log$
+ * <p> Revision 1.38  2008/09/30 21:58:37  sueh
+ * <p> bug# 1113 Added repaint, so that focus can be requested after repaint.
+ * <p>
  * <p> Revision 1.37  2008/07/19 00:56:23  sueh
  * <p> Reduced exposure by removing "protected" directive.
  * <p>
@@ -456,13 +459,6 @@ public abstract class MainPanel extends JPanel {
       return null;
     }
     return axisPanel.getParallelPanel();
-  }
-
-  public void pack(AxisID axisID) {
-    AxisProcessPanel axisPanel = mapBaseAxis(axisID);
-    if (axisPanel != null) {
-      axisPanel.pack();
-    }
   }
 
   public void done() {
