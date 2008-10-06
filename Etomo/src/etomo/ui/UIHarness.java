@@ -245,7 +245,6 @@ public final class UIHarness {
 
   public void pack(BaseManager manager) {
     if (isHead() && manager != null) {
-      manager.packPanel();
       mainFrame.repaint();
       mainFrame.pack();
       Component focusComponent = manager.getFocusComponent();
@@ -261,7 +260,6 @@ public final class UIHarness {
 
   public void pack(boolean force, BaseManager manager) {
     if (isHead()) {
-      manager.packPanel();
       mainFrame.repaint();
       mainFrame.pack(force);
       Component focusComponent = manager.getFocusComponent();
@@ -277,7 +275,6 @@ public final class UIHarness {
 
   public void pack(AxisID axisID, BaseManager manager) {
     if (isHead()) {
-      manager.packPanel(axisID);
       mainFrame.repaint(axisID);
       mainFrame.pack(axisID);
       Component focusComponent = manager.getFocusComponent();
@@ -293,7 +290,6 @@ public final class UIHarness {
 
   public void pack(AxisID axisID, boolean force, BaseManager manager) {
     if (isHead()) {
-      manager.packPanel(axisID);
       mainFrame.repaint(axisID);
       mainFrame.pack(axisID, force);
       Component focusComponent = manager.getFocusComponent();
@@ -569,6 +565,11 @@ public final class UIHarness {
 }
 /**
  * <p> $Log$
+ * <p> Revision 1.31  2008/09/30 22:52:57  sueh
+ * <p> bug# 1113 Modify pack functions so that they can request focus after
+ * <p> repaint and pack are done.  The focus Component comes from the
+ * <p> manager.
+ * <p>
  * <p> Revision 1.30  2008/05/30 21:35:13  sueh
  * <p> bug# 1102 Made some functions public for ui test.
  * <p>
