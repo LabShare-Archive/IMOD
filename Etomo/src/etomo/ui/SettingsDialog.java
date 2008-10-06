@@ -50,6 +50,12 @@ public final class SettingsDialog extends JDialog {
   private final CheckBox cbSwapYAndZ = new CheckBox(
       TrimvolPanel.REORIENTATION_GROUP_LABEL + "  "
           + TrimvolPanel.SWAP_YZ_LABEL);
+  private final LabeledTextField ltfParallelTableSize = new LabeledTextField(
+      "Parallel table size: ");
+  private final LabeledTextField ltfJoinTableSize = new LabeledTextField(
+      "Join tables size: ");
+  private final LabeledTextField ltfPeetTableSize = new LabeledTextField(
+      "PEET table size: ");
 
   private SettingsDialog() {
   }
@@ -66,7 +72,7 @@ public final class SettingsDialog extends JDialog {
     setTitle("eTomo Settings");
     SpacedPanel pnlMain = SpacedPanel.getInstance();
     pnlMain.setBoxLayout(BoxLayout.Y_AXIS);
-    pnlMain.setComponentAlignmentX(Box.LEFT_ALIGNMENT);
+    //pnlMain.setComponentAlignmentX(Box.LEFT_ALIGNMENT);
     ((JPanel) getContentPane()).add(pnlMain.getContainer());
     //  Layout the font panel
     SpacedPanel panelFontSelect = SpacedPanel.getInstance();
@@ -111,7 +117,7 @@ public final class SettingsDialog extends JDialog {
     pnlCheckBoxParallelProcessing.add(cbParallelProcessing);
     pnlParallelProcessing.add(pnlCheckBoxParallelProcessing);
     pnlParallelProcessing.add(ltfCpus.getContainer());
-    //defaults settings
+    //default settings
     SpacedPanel panelDefaults = SpacedPanel.getInstance();
     panelDefaults.setBoxLayout(BoxLayout.Y_AXIS);
     panelDefaults.setComponentAlignmentX(Box.LEFT_ALIGNMENT);
@@ -120,7 +126,15 @@ public final class SettingsDialog extends JDialog {
     panelDefaults.add(cbNoParallelProcessing);
     panelDefaults.add(cbTiltAnglesRawtltFile);
     panelDefaults.add(cbSwapYAndZ);
-    pnlMain.add(panelDefaults);
+    pnlMain.add(panelDefaults.getContainer());
+    //table settings
+    JPanel pnlTableSize = new JPanel();
+    pnlTableSize.setLayout(new BoxLayout(pnlTableSize, BoxLayout.Y_AXIS));
+    pnlTableSize.setBorder(new EtchedBorder("Table Sizes").getBorder());
+    pnlTableSize.add(ltfParallelTableSize.getContainer());
+    pnlTableSize.add(ltfJoinTableSize.getContainer());
+    pnlTableSize.add(ltfPeetTableSize.getContainer());
+    pnlMain.add(pnlTableSize);
     //buttons
     SpacedPanel panelButtons = SpacedPanel.getInstance();
     panelButtons.setBoxLayout(BoxLayout.X_AXIS);
@@ -172,6 +186,9 @@ public final class SettingsDialog extends JDialog {
     cbSwapYAndZ.setSelected(userConfig.getSwapYAndZ());
     cbParallelProcessing.setSelected(userConfig.getParallelProcessing());
     ltfCpus.setText(userConfig.getCpus());
+    ltfParallelTableSize.setText(userConfig.getParallelTableSize());
+    ltfJoinTableSize.setText(userConfig.getJoinTableSize());
+    ltfPeetTableSize.setText(userConfig.getPeetTableSize());
 
     // Get the current font parameters to set the UI
     // Since they may not be all the same make the assumption that the first
@@ -218,6 +235,9 @@ public final class SettingsDialog extends JDialog {
     userConfig.setSwapYAndZ(cbSwapYAndZ.isSelected());
     userConfig.setParallelProcessing(cbParallelProcessing.isSelected());
     userConfig.setCpus(ltfCpus.getText());
+    userConfig.setParallelTableSize(ltfParallelTableSize.getText());
+    userConfig.setJoinTableSize(ltfJoinTableSize.getText());
+    userConfig.setPeetTableSize(ltfPeetTableSize.getText());
   }
 
   public boolean isAppearanceSettingChanged(UserConfiguration userConfig) {
@@ -234,7 +254,13 @@ public final class SettingsDialog extends JDialog {
             fontFamilies[listFontFamily.getSelectedIndex()])
         || userConfig.getParallelProcessing() != cbParallelProcessing
             .isSelected()
-        || !userConfig.getCpus().toString().equals(ltfCpus.getText())) {
+        || !userConfig.getCpus().toString().equals(ltfCpus.getText())
+        || !userConfig.getParallelTableSize().toString().equals(
+            ltfParallelTableSize.getText())
+        || !userConfig.getJoinTableSize().toString().equals(
+            ltfJoinTableSize.getText())
+        || !userConfig.getPeetTableSize().toString().equals(
+            ltfPeetTableSize.getText())) {
       return true;
     }
     return false;
