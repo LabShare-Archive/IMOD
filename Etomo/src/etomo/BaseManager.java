@@ -1191,15 +1191,6 @@ public abstract class BaseManager {
     getMainPanel().setParallelDialog(axisID, dialog.usingParallelProcessing());
   }
 
-  public final void packPanel(AxisID axisID) {
-    getMainPanel().pack(axisID);
-  }
-
-  public final void packPanel() {
-    packPanel(AxisID.FIRST);
-    packPanel(AxisID.SECOND);
-  }
-
   public final void tomosnapshot(AxisID axisID, ConstProcessSeries processSeries) {
     String threadName;
     try {
@@ -1221,6 +1212,9 @@ public abstract class BaseManager {
 }
 /**
  * <p> $Log$
+ * <p> Revision 1.102  2008/09/30 19:46:31  sueh
+ * <p> bug# 1113 Added getFocusComponent.
+ * <p>
  * <p> Revision 1.101  2008/05/28 02:46:37  sueh
  * <p> bug# 1111 Removed processDialogTypeA and B.  The dialogType for
  * <p> processes should be handled by ProcessSeries.  Passing a DialogType
