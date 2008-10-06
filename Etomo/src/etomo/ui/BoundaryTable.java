@@ -10,6 +10,7 @@ import javax.swing.JPanel;
 import javax.swing.border.LineBorder;
 
 import etomo.BaseManager;
+import etomo.EtomoDirector;
 import etomo.JoinManager;
 import etomo.storage.LogFile;
 import etomo.type.ConstJoinMetaData;
@@ -30,6 +31,9 @@ import etomo.type.JoinScreenState;
  * @version $Revision$
  * 
  * <p> $Log$
+ * <p> Revision 1.5  2008/10/01 22:51:15  sueh
+ * <p> bug# 1113 Renamed repositionViewer to msgViewportMoved.
+ * <p>
  * <p> Revision 1.4  2008/09/30 20:58:26  sueh
  * <p> bug# 1113 Implemented Viewable.  Added a Viewport member.
  * <p>
@@ -92,7 +96,8 @@ final class BoundaryTable implements Viewable {
     screenState = manager.getScreenState();
     metaData = manager.getJoinMetaData();
     parent = joinDialog;
-    viewport = new Viewport(this, joinDialog.getModelTabJComponent(),
+    viewport = new Viewport(this, EtomoDirector.INSTANCE.getUserConfiguration()
+        .getJoinTableSize().getInt(), joinDialog.getModelTabJComponent(),
         joinDialog.getRejoinTabJComponent(), null, "Boundary");
     //construct panels
     JPanel pnlBorder = new JPanel();
