@@ -31,6 +31,9 @@ import etomo.type.JoinScreenState;
  * @version $Revision$
  * 
  * <p> $Log$
+ * <p> Revision 1.6  2008/10/06 22:38:32  sueh
+ * <p> bug# 1113 Setting table size from UserConfiguration.
+ * <p>
  * <p> Revision 1.5  2008/10/01 22:51:15  sueh
  * <p> bug# 1113 Renamed repositionViewer to msgViewportMoved.
  * <p>
@@ -133,7 +136,7 @@ final class BoundaryTable implements Viewable {
     display(false);
   }
 
-  public void msgViewportMoved() {
+  public void msgViewportPaged() {
     display(true);
   }
 
