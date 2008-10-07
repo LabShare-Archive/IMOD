@@ -10,6 +10,9 @@ c       See man page for details
 c
 c       $Id$
 c       $Log$
+c       Revision 3.3  2007/10/18 22:21:41  mast
+c       Added option to number from zero
+c
 c       Revision 3.2  2007/10/14 18:03:42  mast
 c       Made it output index coordinates unless option given
 c
@@ -18,10 +21,11 @@ c       PIP conversion and output options
 c
 c       
       implicit none
-      character*160 modelfile,pointfile
+      character*320 modelfile,pointfile
       logical*4 printObj, printCont, floating, scaled
       integer*4 ierr,iobject,ninobj,ipt,ipnt,modObj, modCont, npnts, numOffset
-      logical exist,readw_or_imod
+      logical exist,readw_or_imod,getModelObjectRange
+      integer*4 nobjTot, imodObj,getImodObjSize
 c       
       include 'model.inc'
 
@@ -57,9 +61,10 @@ c
 c       
 c       read model in
 c       
+      call imodPartialMode(1)
       exist=readw_or_imod(modelfile)
       if(.not.exist)call exitError('READING MODEL FILE')
-      if (.not.scaled) call scale_model(0)
+      nobjTot = getImodObjSize()
 c       
       call dopen(1,pointfile,'new','f')
       ierr = PipGetLogical('ObjectAndContour', printObj)
@@ -70,25 +75,34 @@ c
 c       scan through all objects to get points
 c       
       npnts=0
-      do iobject=1,max_mod_obj
-        ninobj=npt_in_obj(iobject)
-        if(ninobj.gt.0)then
-          call objtocont(iobject, obj_color, modObj, modCont)
-          do ipt=1,ninobj
-            ipnt=object(ipt+ibase_obj(iobject))
-            if(ipnt.gt.0)then
-              if (printObj) write(1,103)modObj - numOffset
-              if (printCont .or. printObj) write(1,103)modCont - numOffset
-              if (floating) then
-                write(1,104) p_coord(1,ipnt), p_coord(2,ipnt), p_coord(3,ipnt)
-              else
-                write(1,102) nint(p_coord(1,ipnt)),
-     &              nint(p_coord(2,ipnt)), nint(p_coord(3,ipnt))
-              endif
-              npnts=npnts+1
-            endif
-          enddo
+      do imodObj = 1, nobjTot
+        if (.not.getModelObjectRange(imodObj, imodObj)) then
+          write(*,'(/,a,i6)') 'ERROR: MODEL2POINT - LOADING DATA FOR OBJECT #',
+     &        imodobj
+          call exit(1)
         endif
+      
+        if (.not.scaled) call scale_model(0)
+        do iobject=1,max_mod_obj
+          ninobj=npt_in_obj(iobject)
+          if(ninobj.gt.0)then
+            call objtocont(iobject, obj_color, modObj, modCont)
+            do ipt=1,ninobj
+              ipnt=object(ipt+ibase_obj(iobject))
+              if(ipnt.gt.0)then
+                if (printObj) write(1,103)modObj - numOffset
+                if (printCont .or. printObj) write(1,103)modCont - numOffset
+                if (floating) then
+                  write(1,104) p_coord(1,ipnt), p_coord(2,ipnt),p_coord(3,ipnt)
+                else
+                  write(1,102) nint(p_coord(1,ipnt)),
+     &                nint(p_coord(2,ipnt)), nint(p_coord(3,ipnt))
+                endif
+                npnts=npnts+1
+              endif
+            enddo
+          endif
+        enddo
       enddo
 102   format(3i7)
 103   format(i6,$)
