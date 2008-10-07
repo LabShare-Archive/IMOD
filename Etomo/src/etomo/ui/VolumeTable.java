@@ -50,6 +50,9 @@ import etomo.type.Run3dmodMenuOptions;
  * @version $Revision$
  * 
  * <p> $Log$
+ * <p> Revision 1.33  2008/10/06 22:49:36  sueh
+ * <p> bug# 1113 Got the table size from UserConfiguration.
+ * <p>
  * <p> Revision 1.32  2008/10/01 22:56:53  sueh
  * <p> bug# 1113 Implemented Viewable.  Moved display call outside of addRow.  Removing and adding everything after add.
  * <p>
@@ -423,7 +426,7 @@ final class VolumeTable implements Expandable, Highlightable,
     header2RelativeOrientZ.add(pnlTable, layout, constraints);
   }
 
-  public void msgViewportMoved() {
+  public void msgViewportPaged() {
     rowList.remove();
     rowList.display(viewport);
     UIHarness.INSTANCE.pack(manager);

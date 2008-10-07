@@ -276,7 +276,7 @@ final class ProcessorTable implements Storable, ParallelProgressDisplay,
     }
   }
 
-  public void msgViewportMoved() {
+  public void msgViewportPaged() {
     build();
     UIHarness.INSTANCE.pack(axisID, manager);
   }
@@ -831,6 +831,11 @@ final class ProcessorTable implements Storable, ParallelProgressDisplay,
 }
 /**
  * <p> $Log$
+ * <p> Revision 1.51  2008/10/06 22:43:25  sueh
+ * <p> bug# 1113 Removed pack, which is unecessary since table scrolling was
+ * <p> removed.  Moved rows into RowList.  Used a regular array instead of HashedArray, since the hash was never used and the table is not very big.  Implemented Viewable.  Added a Viewport.  Got rid of scrolling and
+ * <p> all functions associated with scrolling.
+ * <p>
  * <p> Revision 1.50  2008/07/19 01:07:35  sueh
  * <p> bug# 1125 sharing # CPUs header.
  * <p>

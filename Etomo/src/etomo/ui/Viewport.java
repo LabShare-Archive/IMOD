@@ -7,11 +7,17 @@ import javax.swing.JComponent;
 /**
  * <p>Description: Calculates a viewport that displays a portion of a table.
  * Receives paging commands, can tell a table when to redisplay the viewport.
- * Can tell a row whether it is in the viewport.
+ * Can tell a row whether it is in the viewport.</p>
  * 
- * This class calls resetViewport constantly.  This is the simplest way to
+ * <p>This class calls resetViewport constantly.  This is the simplest way to
  * handle the great variety of potential situations that can come up when trying
  * the handle all the different requirements of the four (so far) tables.</p>
+ * 
+ * <p>See Viewable for a complete description of how to use Viewport with a
+ * table.</p>
+ * 
+ * <p>Future changes.  It would be easy to add more focusableParents if
+ * necessary.
  * 
  * <p>Copyright: Copyright 2008</p>
  *
@@ -24,6 +30,10 @@ import javax.swing.JComponent;
  * @version $Revision$
  * 
  * <p> $Log$
+ * <p> Revision 1.3  2008/10/06 22:48:50  sueh
+ * <p> bug# 1113 Made the viewport size changeable.  Added a minimum size.
+ * <p> Simplified the decisions to call resetViewport:  always call it.  This cleaned up bugs.
+ * <p>
  * <p> Revision 1.2  2008/10/01 22:54:28  sueh
  * <p> bug# 1113 Renamed Viewer.repositionViewer to msgViewportMoved.
  * <p>
@@ -45,8 +55,8 @@ final class Viewport {
   private int start = 0;
   private int end = -1;
 
-  Viewport(final Viewable viewable, final int size, final JComponent parent1,
-      final JComponent parent2, final JComponent parent3, final String uniqueKey) {
+  Viewport(final Viewable viewable, final int size, final JComponent focusableParent1,
+      final JComponent focusableParent2, final JComponent focusableParent3, final String uniqueKey) {
     this.viewable = viewable;
     if (size < MINUMUM_SIZE) {
       this.size = MINUMUM_SIZE;
@@ -54,33 +64,33 @@ final class Viewport {
     else {
       this.size = size;
     }
-    pagingPanel = PagingPanel.getInstance(this, parent1, parent2, parent3,
+    pagingPanel = PagingPanel.getInstance(this, focusableParent1, focusableParent2, focusableParent3,
         uniqueKey);
     pagingPanel.setVisible(false);
   }
 
   void homeButtonAction() {
-    moveViewport(0);
+    pageViewport(0);
   }
 
   void pageUpButtonAction() {
-    moveViewport(start - size);
+    pageViewport(start - size);
   }
 
   void upButtonAction() {
-    moveViewport(start - 1);
+    pageViewport(start - 1);
   }
 
   void downButtonAction() {
-    moveViewport(start + 1);
+    pageViewport(start + 1);
   }
 
   void pageDownButtonAction() {
-    moveViewport(start + size);
+    pageViewport(start + size);
   }
 
   void endButtonAction() {
-    moveViewport(viewable.size() - size);
+    pageViewport(viewable.size() - size);
   }
 
   /**
@@ -89,13 +99,13 @@ final class Viewport {
    * newStart.
    * @param newStart - new start value
    */
-  private void moveViewport(final int newStart) {
+  private void pageViewport(final int newStart) {
     //save old start and end values
     int origStart = start;
     int origEnd = end;
     //Reset viewport and decide whether viewable must update its display.
     if (resetViewport(newStart) && start != origStart || end != origEnd) {
-      viewable.msgViewportMoved();
+      viewable.msgViewportPaged();
     }
   }
 

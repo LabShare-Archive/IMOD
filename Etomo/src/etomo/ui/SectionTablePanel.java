@@ -53,6 +53,9 @@ import etomo.util.Utilities;
  * @version $Revision$
  * 
  * <p> $Log$
+ * <p> Revision 1.45  2008/10/06 22:45:24  sueh
+ * <p> bug# 1113 Got the table size from UserConfiguration.
+ * <p>
  * <p> Revision 1.44  2008/10/01 22:52:29  sueh
  * <p> bug# 1113 Renamed Viewer.repositionViewer to msgViewportMoved.
  * <p>
@@ -746,7 +749,7 @@ final class SectionTablePanel implements ContextMenu, Expandable,
     }
   }
 
-  public void msgViewportMoved() {
+  public void msgViewportPaged() {
     displayCurTab();
     manager.getMainPanel().repaint();
   }
