@@ -34,6 +34,9 @@ import javax.swing.border.BevelBorder;
  * @version $Revision$
  * 
  * <p> $Log$
+ * <p> Revision 1.2  2008/10/06 22:40:03  sueh
+ * <p> bug# 1113 Changed tooltips to reflect whether hotkeys are used.
+ * <p>
  * <p> Revision 1.1  2008/09/30 22:00:03  sueh
  * <p> bug# 1113 Added a panel to hold paging buttons and set hotkeys for
  * <p> paging.
@@ -52,17 +55,18 @@ final class PagingPanel {
   private final MultiLineButton btnEnd = new MultiLineButton();
 
   private final Viewport viewport;
-  private final JComponent parent1;
-  private final JComponent parent2;
-  private final JComponent parent3;
+  private final JComponent focusableParent1;
+  private final JComponent focusableParent2;
+  private final JComponent focusableParent3;
   private final String uniqueKey;
 
-  private PagingPanel(final Viewport viewport, final JComponent parent1,
-      final JComponent parent2, final JComponent parent3, final String uniqueKey) {
+  private PagingPanel(final Viewport viewport,
+      final JComponent focusableParent1, final JComponent focusableParent2,
+      final JComponent focusableParent3, final String uniqueKey) {
     this.viewport = viewport;
-    this.parent1 = parent1;
-    this.parent2 = parent2;
-    this.parent3 = parent3;
+    this.focusableParent1 = focusableParent1;
+    this.focusableParent2 = focusableParent2;
+    this.focusableParent3 = focusableParent3;
     this.uniqueKey = uniqueKey;
     rootPanel.setLayout(new BoxLayout(rootPanel, BoxLayout.Y_AXIS));
     rootPanel.add(btnHome.getComponent());
@@ -87,11 +91,12 @@ final class PagingPanel {
    * @return
    */
   static PagingPanel getInstance(final Viewport viewport,
-      final JComponent parent1, final JComponent parent2,
-      final JComponent parent3, final String uniqueKey) {
-    PagingPanel instance = new PagingPanel(viewport, parent1, parent2, parent3,
-        uniqueKey);
-    instance.init(parent1 != null || parent2 != null || parent3 != null);
+      final JComponent focusableParent1, final JComponent focusableParent2,
+      final JComponent focusableParent3, final String uniqueKey) {
+    PagingPanel instance = new PagingPanel(viewport, focusableParent1,
+        focusableParent2, focusableParent3, uniqueKey);
+    instance.init(focusableParent1 != null || focusableParent2 != null
+        || focusableParent3 != null);
     instance.addListeners();
     return instance;
   }
@@ -146,20 +151,20 @@ final class PagingPanel {
     ActionMap actionMap2 = null;
     InputMap inputMap3 = null;
     ActionMap actionMap3 = null;
-    if (parent1 != null) {
-      inputMap1 = parent1
+    if (focusableParent1 != null) {
+      inputMap1 = focusableParent1
           .getInputMap(JComponent.WHEN_ANCESTOR_OF_FOCUSED_COMPONENT);
-      actionMap1 = parent1.getActionMap();
+      actionMap1 = focusableParent1.getActionMap();
     }
-    if (parent2 != null) {
-      inputMap2 = parent2
+    if (focusableParent2 != null) {
+      inputMap2 = focusableParent2
           .getInputMap(JComponent.WHEN_ANCESTOR_OF_FOCUSED_COMPONENT);
-      actionMap2 = parent2.getActionMap();
+      actionMap2 = focusableParent2.getActionMap();
     }
-    if (parent3 != null) {
-      inputMap3 = parent3
+    if (focusableParent3 != null) {
+      inputMap3 = focusableParent3
           .getInputMap(JComponent.WHEN_ANCESTOR_OF_FOCUSED_COMPONENT);
-      actionMap3 = parent3.getActionMap();
+      actionMap3 = focusableParent3.getActionMap();
     }
     //home
     btnHome.addActionListener(new PagingPanelHomeListener(viewport));
