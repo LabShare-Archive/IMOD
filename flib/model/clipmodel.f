@@ -19,12 +19,13 @@ c
       integer limz, limobj
       parameter (limz = 100000, limobj = 100000)
       integer*4 listz(limz),icolelim(limobj),iflags(limobj)
-      logical exist,readw_or_imod,inside,lastinside
-      integer*4 getimodflags,getimodhead,getimodscales
+      logical exist,readw_or_imod,inside,lastinside,getModelObjectRange
+      integer*4 getimodflags,getimodhead,getimodscales,getImodObjSize
       character*320 modelfile
       character*2 inex
       character*7 pixmic
 
+      call imodPartialMode(1)
 10    write(*,'(1x,a,$)')'Name of input model file to clip: '
       read(*,'(a)')modelfile
 15    exist=readw_or_imod(modelfile)
@@ -41,25 +42,20 @@ c
      &    ' segment,','  or 1 to retain all points within limits: '
       read(5,*)ifkeepall
 c       
-      n_ptot=0
-      do iobj=1,max_mod_obj
-        n_ptot=n_ptot+npt_in_obj(iobj)
-      enddo
-c       
-      do i=1,512
+      do i=1,limobj
         iflags(i)=0
       enddo
       ierr=getimodflags(iflags,limobj)
       if(ierr.ne.0)print *,'Error getting object types, assuming',
      &    ' all are closed contours'
+      nobjTot = getImodObjSize()
       pixmic='microns'
       defscal=1.e6
 c       
 c       DNM 7/7/02: get image scales, and switch to exiting on error
 c       
       ierr=getimodhead(xyscal,zscale,xofs,yofs,zofs,ifflip)
-      ierr2 = getimodscales(ximscale, yimscale, zimscale)
-      if (ierr .ne. 0 .or. ierr2 .ne. 0) then
+      if (ierr .ne. 0) then
         print *,'CLIPMODEL: Error getting model header'
         call exit(1)
       endif
@@ -75,14 +71,6 @@ c
         indz=2
         indy=3
       endif
-c       
-c       shift the data to display coordinates before using
-c       
-      do i=1,n_point
-        p_coord(1,i)=(p_coord(1,i)-xofs) / ximscale
-        p_coord(2,i)=(p_coord(2,i)-yofs) / yimscale
-        p_coord(3,i)=(p_coord(3,i)-zofs) / zimscale
-      enddo
 c       
 16    write(*,'(1x,a,/,a,$)') 'Enter 0 to include or 1 to exclude'//
      &    ' points in a specified coordinate block,','   or -1 or -2'
@@ -131,146 +119,162 @@ c
 c       
 c       look at each object, find longest contiguous segment within area
 c       
-      n_objold=n_object
-      n_ptotold=n_ptot
       n_ptot=0
+      n_ptotold=0
       cutsum=0.
       nonemptyold=0
       nonemptynew=0
-      do iobj=1,max_mod_obj
-        ninobj=npt_in_obj(iobj)
-        if(ninobj.gt.0)then
-          nonemptyold=nonemptyold+1
-          if(ifexcl.ge.0)then
-            imodobj=256-obj_color(2,iobj)
-            ibase=ibase_obj(iobj)
-            if(ifkeepall.eq.0.and.mod(iflags(imodobj),4).ne.2)then
+      do imodObj = 1, nobjTot
+
+        if (.not.getModelObjectRange(imodObj, imodObj)) then
+          write(*,'(/,a,i6)') 'ERROR: CLIPMODEL - LOADING DATA FOR OBJECT #',
+     &        imodobj
+          call exit(1)
+        endif
+        call scale_model(0)
+        n_objold = n_objold + n_object
+c         
+        do iobj=1,max_mod_obj
+          n_ptotold=n_ptotold+npt_in_obj(iobj)
+        enddo
+c         
+        do iobj=1,max_mod_obj
+          ninobj=npt_in_obj(iobj)
+          if(ninobj.gt.0)then
+            nonemptyold=nonemptyold+1
+            if(ifexcl.ge.0)then
+c              imodobj=256-obj_color(2,iobj)
+              ibase=ibase_obj(iobj)
+              if(ifkeepall.eq.0.and.mod(iflags(imodobj),4).ne.2)then
 c               
-c               keeping only longest segment inside limits: can be used for
-c               open or closed contours but not scattered points
+c                 keeping only longest segment inside limits: can be used for
+c                 open or closed contours but not scattered points
 c               
-              lastinside=.false.
-              iptstbest=1
-              iptndbest=0
-              do ipt=1,ninobj
-                jpnt=abs(object(ipt+ibase))
-                xx=p_coord(1,jpnt)
-                yy=p_coord(indy,jpnt)
-                zz=p_coord(indz,jpnt)
-c                 this could be done with .xor. but it would take you longer
-c                 to figure out what was going on
-                inside=(xx.ge.xmin.and.xx.le.xmax).and.
-     &              (yy.ge.ymin.and.yy.le.ymax).and.
-     &              (zz.ge.zmin.and.zz.le.zmax)
-                if(ifexcl.ne.0)inside=.not.inside
-                if(inside)iptinside=ipt
-                if(inside.and..not.lastinside)then
-                  iptst=ipt
-                endif
-                if(lastinside.and..not.inside .or.
-     &              ipt.eq.ninobj.and.inside)then
-                  if(iptndbest-iptstbest .lt. iptinside-iptst)then
-                    iptndbest=iptinside
-                    iptstbest=iptst
+                lastinside=.false.
+                iptstbest=1
+                iptndbest=0
+                do ipt=1,ninobj
+                  jpnt=abs(object(ipt+ibase))
+                  xx=p_coord(1,jpnt)
+                  yy=p_coord(indy,jpnt)
+                  zz=p_coord(indz,jpnt)
+c                   this could be done with .xor. but it would take you longer
+c                   to figure out what was going on
+                  inside=(xx.ge.xmin.and.xx.le.xmax).and.
+     &                (yy.ge.ymin.and.yy.le.ymax).and.
+     &                (zz.ge.zmin.and.zz.le.zmax)
+                  if(ifexcl.ne.0)inside=.not.inside
+                  if(inside)iptinside=ipt
+                  if(inside.and..not.lastinside)then
+                    iptst=ipt
                   endif
-                endif
-                lastinside=inside
-              enddo
-c               
-c               truncate object and point base to new start
-c               
-              npt_in_obj(iobj)=iptndbest+1-iptstbest
-              ibase_obj(iobj)=ibase_obj(iobj)+iptstbest-1
-            else
-c               
-c               keeping all points inside limits
-c               
-              ipt=1
-              ifcut=0
-              ifstartcut = 0
-              modflag=mod(iflags(imodobj),4)
-              do while (ipt.le.ninobj)
-                jpnt=abs(object(ipt+ibase))
-                xx=p_coord(1,jpnt)
-                yy=p_coord(indy,jpnt)
-                zz=p_coord(indz,jpnt)
-c                 this could be done with .xor. but it would take you longer
-c                 to figure out what was going on
-                inside=(xx.ge.xmin.and.xx.le.xmax).and.
-     &              (yy.ge.ymin.and.yy.le.ymax).and.
-     &              (zz.ge.zmin.and.zz.le.zmax)
-                if(ifexcl.ne.0)inside=.not.inside
-                if(inside)then
-                  if(ifcut.ne.0.and.modflag.ne.2)then
-                    if(ipt.eq.1)then
-c                       
-c                       if last point was cut out and we are still at the
-c                       start, then mark the start as cut
-c                       
-                      ifstartcut=1
-                    else
-c			
-c                       otherwise, compute distance between this & last point
-c                       
-                      cutsum=cutsum+sqrt(
-     &                    (xyscal*(p_coord(1,jpnt)-p_coord(1,lpnt)))**2 +
-     &                    (xyscal*(p_coord(indy,jpnt)-
-     &                    p_coord(indy,lpnt)))**2+
-     &                    (zscal*(p_coord(indz,jpnt)-p_coord(indz,lpnt)))**2)
+                  if(lastinside.and..not.inside .or.
+     &                ipt.eq.ninobj.and.inside)then
+                    if(iptndbest-iptstbest .lt. iptinside-iptst)then
+                      iptndbest=iptinside
+                      iptstbest=iptst
                     endif
                   endif
-                  ifcut=0
-                  ipt=ipt+1
-                  lpnt=jpnt
-                else
-                  do i=ipt+ibase+1,1+ibase+ninobj
-                    object(i-1)=object(i)
-                  enddo
-                  ninobj=ninobj-1
-                  ifcut=1
-                endif
-              enddo
-              npt_in_obj(iobj)=ninobj
+                  lastinside=inside
+                enddo
 c               
-c               If there are any points left, and either the start was cut
-c               or the last point was cut, and this is a closed contour,
-c               then add distance between endpoints as a cut edge
-c               
-              if(ninobj.gt.0.and.(ifstartcut.gt.0.or.ifcut.ne.0).and.
-     &            modflag.eq.0)then
-                jpnt=abs(object(1+ibase))
-                cutsum=cutsum+sqrt(
-     &              (xyscal*(p_coord(1,jpnt)-p_coord(1,lpnt)))**2 +
-     &              (xyscal*(p_coord(indy,jpnt)- p_coord(indy,lpnt)))**2+
-     &              (zscal*(p_coord(indz,jpnt)-p_coord(indz,lpnt)))**2)
-              endif
-            endif
-c             
-c             if getting rid of certain color, check for color
-c             
-          else
-            icoltst=256-obj_color(2,iobj)
-            if(obj_color(1,iobj).eq.0)icoltst=-icoltst
-            iftreat=0
-            do icl=1,ncolelim
-              if(icoltst.eq.icolelim(icl))iftreat=1
-            enddo
-            if(iftreat.eq.1)then
-              if(ifexcl.eq.-1)then
-                npt_in_obj(iobj)=0
+c                 truncate object and point base to new start
+c                 
+                npt_in_obj(iobj)=iptndbest+1-iptstbest
+                ibase_obj(iobj)=ibase_obj(iobj)+iptstbest-1
               else
-                npt_in_obj(iobj)=max(0,ninobj-nremstr-nremend)
-                ibase_obj(iobj)=ibase_obj(iobj)+nremstr
+c               
+c                 keeping all points inside limits
+c               
+                ipt=1
+                ifcut=0
+                ifstartcut = 0
+                modflag=mod(iflags(imodobj),4)
+                do while (ipt.le.ninobj)
+                  jpnt=abs(object(ipt+ibase))
+                  xx=p_coord(1,jpnt)
+                  yy=p_coord(indy,jpnt)
+                  zz=p_coord(indz,jpnt)
+c                   this could be done with .xor. but it would take you longer
+c                   to figure out what was going on
+                  inside=(xx.ge.xmin.and.xx.le.xmax).and.
+     &                (yy.ge.ymin.and.yy.le.ymax).and.
+     &                (zz.ge.zmin.and.zz.le.zmax)
+                  if(ifexcl.ne.0)inside=.not.inside
+                  if(inside)then
+                    if(ifcut.ne.0.and.modflag.ne.2)then
+                      if(ipt.eq.1)then
+c                         
+c                         if last point was cut out and we are still at the
+c                         start, then mark the start as cut
+c                         
+                        ifstartcut=1
+                      else
+c                         
+c                         otherwise, compute distance between this & last point
+c                         
+                        cutsum=cutsum+sqrt(
+     &                      (xyscal*(p_coord(1,jpnt)-p_coord(1,lpnt)))**2 +
+     &                      (xyscal*(p_coord(indy,jpnt)-
+     &                      p_coord(indy,lpnt)))**2+
+     &                      (zscal*(p_coord(indz,jpnt)-p_coord(indz,lpnt)))**2)
+                      endif
+                    endif
+                    ifcut=0
+                    ipt=ipt+1
+                    lpnt=jpnt
+                  else
+                    do i=ipt+ibase+1,1+ibase+ninobj
+                      object(i-1)=object(i)
+                    enddo
+                    ninobj=ninobj-1
+                    ifcut=1
+                  endif
+                enddo
+                npt_in_obj(iobj)=ninobj
+c                 
+c                 If there are any points left, and either the start was cut
+c                 or the last point was cut, and this is a closed contour,
+c                 then add distance between endpoints as a cut edge
+c               
+                if(ninobj.gt.0.and.(ifstartcut.gt.0.or.ifcut.ne.0).and.
+     &              modflag.eq.0)then
+                  jpnt=abs(object(1+ibase))
+                  cutsum=cutsum+sqrt(
+     &                (xyscal*(p_coord(1,jpnt)-p_coord(1,lpnt)))**2 +
+     &                (xyscal*(p_coord(indy,jpnt)- p_coord(indy,lpnt)))**2+
+     &                (zscal*(p_coord(indz,jpnt)-p_coord(indz,lpnt)))**2)
+                endif
+              endif
+c             
+c               if getting rid of certain color, check for color
+c               
+            else
+              icoltst=256-obj_color(2,iobj)
+              if(obj_color(1,iobj).eq.0)icoltst=-icoltst
+              iftreat=0
+              do icl=1,ncolelim
+                if(icoltst.eq.icolelim(icl))iftreat=1
+              enddo
+              if(iftreat.eq.1)then
+                if(ifexcl.eq.-1)then
+                  npt_in_obj(iobj)=0
+                else
+                  npt_in_obj(iobj)=max(0,ninobj-nremstr-nremend)
+                  ibase_obj(iobj)=ibase_obj(iobj)+nremstr
+                endif
               endif
             endif
+            n_ptot=n_ptot+npt_in_obj(iobj)
+            if(npt_in_obj(iobj).eq.0)then
+              n_object=n_object-1
+            else
+              nonemptynew=nonemptynew+1
+            endif
           endif
-          n_ptot=n_ptot+npt_in_obj(iobj)
-          if(npt_in_obj(iobj).eq.0)then
-            n_object=n_object-1
-          else
-            nonemptynew=nonemptynew+1
-          endif
-        endif
+        enddo
+        call scale_model(1)
+        call putModelObjects()
       enddo
 c       
 c       write out result, offer to go back for more
@@ -291,22 +295,22 @@ c
       read(*,*)ifloop
       if(ifloop.ne.0)go to 16
 c       
-c       shift the data back for saving
-c       
-      do i=1,n_point
-        p_coord(1,i)=ximscale*p_coord(1,i)+xofs
-        p_coord(2,i)=yimscale*p_coord(2,i)+yofs
-        p_coord(3,i)=zimscale*p_coord(3,i)+zofs
-      enddo
-c       
 c       now either just write model, or write point file
 c       
       if(ifpoint.eq.0)then
-        call repack_mod
+        n_point = -1
 77      call write_wmod(modelfile)
         print *,'CLIPPED MODEL WRITTEN'
       else
         call dopen(1,modelfile,'new','f')
+        if (.not.getModelObjectRange(1, imodObj)) then
+          print *
+          print *, 'ERROR: CLIPMODEL - RELOADING DATA TO MAKE POINT OUTPUT'
+          call exit(1)
+        endif
+c         
+c         This should be done before point output
+        call scale_model(0)
         ixmin=nint(xmin)
         iymin=nint(ymin)
         izmin=nint(zmin)
@@ -354,6 +358,9 @@ c
 
 c       
 c       $Log$
+c       Revision 3.3  2008/09/26 02:00:35  mast
+c       Increased dimensions
+c
 c       Revision 3.2  2002/09/09 21:36:00  mast
 c       Eliminate stat_source: and nimp_source: from all includes
 c	
