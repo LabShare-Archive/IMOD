@@ -617,7 +617,7 @@ c
             yshift = cumYshift
           endif
 
-          write(*,'(a,i4,a,2f8.2)')'View',iview,', shifts', xshift, yshift
+          write(*,'(a,i4,a,2f10.2)')'View',iview,', shifts', xshift, yshift
 c           
 c           DNM 10/22/03: Only do flush for large stacks because of problem
 c           inside shell scripts in Windows/Intel
@@ -826,6 +826,10 @@ c	print *,xpeak,ypeak
 
 c       
 c       $Log$
+c       Revision 3.26  2008/01/18 19:48:54  mast
+c       Changed to reading in data directly binned; made all arrays bigger;
+c       added binning option and limited default binning to 4
+c
 c       Revision 3.25  2008/01/17 23:48:56  mast
 c       Allowed 8K image
 c
