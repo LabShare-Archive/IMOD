@@ -43,6 +43,13 @@ import etomo.util.DatasetFiles;
  * @version $Revision$
  * 
  * <p> $Log$
+ * <p> Revision 1.23  2008/09/10 20:55:24  sueh
+ * <p> bug# 1135 Check for null when calling ParsedElementList.get(int).  Check
+ * <p> for null when calling ParsedElement.getElement or getRawNumber.  Make
+ * <p> the indexes more standard.  Handle the non-standard qualities of Phi, etc
+ * <p> in MatlabParam so that ParsedArrayDescriptor can be simpler.  Handle
+ * <p> tiltRange with a tiltRangeEmpty boolean.
+ * <p>
  * <p> Revision 1.22  2008/09/05 20:52:37  sueh
  * <p> bug# 1136 Added useNWeightGroup to distinguish between an nWeightGroup with the spinner set to 0 and an nWeightGroup which is disabled.  Calling updateOrBuildAutodoc from write in third place because it has to be able to remove entries.  Updating setNameValuePairValues - it was missing some recent additions.
  * <p>
@@ -311,6 +318,7 @@ public final class MatlabParam {
   private YaxisType yaxisType = YaxisType.DEFAULT;
   private boolean useYaxisContour = false;
   private boolean useNWeightGroup = false;
+  private boolean tiltRangeEmpty = false;
 
   private boolean newFile;
   private File file;
@@ -565,15 +573,18 @@ public final class MatlabParam {
     return maskModelPts.isEmpty();
   }
 
-  public void setTiltRangeEmptyArrays() {
-    if (volumeList.isEmpty()) {
-      return;
-    }
-    for (int i = 0; i < volumeList.size(); i++) {
-      ((Volume) volumeList.get(i)).setTiltRange(null);
-    }
+  /**
+   * If the tilt range check box is uncheck, then tilt range should be {}.
+   */
+  public void setTiltRangeEmpty() {
+    tiltRangeEmpty = true;
   }
 
+  /**
+   * This is just for backwards compatibility in setting the tilt range check
+   * box.
+   * @return
+   */
   public boolean isTiltRangeEmpty() {
     if (volumeList.isEmpty()) {
       return true;
@@ -699,6 +710,7 @@ public final class MatlabParam {
     outsideMaskRadius.clear();
     nWeightGroup.clear();
     useNWeightGroup = false;
+    tiltRangeEmpty = false;
   }
 
   public void clearEdgeShift() {
@@ -1167,6 +1179,9 @@ public final class MatlabParam {
     valueMap.put(FN_MOD_PARTICLE_KEY, fnModParticle.getParsableString());
     if (initMotlCode == null) {
       valueMap.put(INIT_MOTL_KEY, initMotlFile.getParsableString());
+    }
+    if (tiltRangeEmpty) {
+      tiltRange.clear();
     }
     valueMap.put(TILT_RANGE_KEY, tiltRange.getParsableString());
     valueMap.put(RELATIVE_ORIENT_KEY, relativeOrient.getParsableString());

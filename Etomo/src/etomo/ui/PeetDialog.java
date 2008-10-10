@@ -54,6 +54,9 @@ import etomo.type.Run3dmodMenuOptions;
  * @version $Revision$
  * 
  * <p> $Log$
+ * <p> Revision 1.66  2008/10/01 22:51:52  sueh
+ * <p> bug# 1113 Added getFocusComponent and GetSetupJComponent.
+ * <p>
  * <p> Revision 1.65  2008/09/30 22:02:15  sueh
  * <p> bug# 1113 Using a private constructor in SpacedPanel.
  * <p>
@@ -726,7 +729,7 @@ public final class PeetDialog implements ContextMenu, AbstractParallelDialog,
         .getSelection()).getEnumeratedType());
     //If cbTiltRange is off, this overrides what was set in the volumeTable.
     if (!cbTiltRange.isSelected()) {
-      matlabParam.setTiltRangeEmptyArrays();
+      matlabParam.setTiltRangeEmpty();
     }
     if (ltfEdgeShift.isEnabled()) {
       matlabParam.setEdgeShift(ltfEdgeShift.getText());
