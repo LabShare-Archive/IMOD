@@ -71,6 +71,12 @@ import etomo.util.PrimativeTokenizer;
  * @version $Revision$
  * 
  * <p> $Log$
+ * <p> Revision 1.15  2008/09/10 21:08:00  sueh
+ * <p> bug# 1135 Check for null when calling ParsedElementList.get(int).  Check
+ * <p> for null when calling ParsedElement.getElement or getRawNumber.
+ * <p> arsedElementList will no longer create an empty element, so null returns
+ * <p> will happen.
+ * <p>
  * <p> Revision 1.14  2008/08/21 00:07:02  sueh
  * <p> bug# 1132 Updated matlab definition comment with info about
  * <p> ParsedArrayDescriptor.getIncrement.  Will hopefully be able to take it out
@@ -196,6 +202,10 @@ public final class ParsedList {
         element.setDefault(defaultValue);
       }
     }
+  }
+  
+  public void clear() {
+    list.clear();
   }
 
   public int size() {
