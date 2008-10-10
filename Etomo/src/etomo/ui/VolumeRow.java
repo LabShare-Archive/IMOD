@@ -27,6 +27,9 @@ import etomo.type.Run3dmodMenuOptions;
  * @version $Revision$
  * 
  * <p> $Log$
+ * <p> Revision 1.22  2008/10/01 22:55:07  sueh
+ * <p> bug# 1113 Adding index and vewport parameters to display().
+ * <p>
  * <p> Revision 1.21  2008/04/02 17:35:29  sueh
  * <p> bug# 1098 Improved user error messages.
  * <p>
@@ -224,6 +227,11 @@ final class VolumeRow implements Highlightable {
     metaData.setTiltRangeMax(tiltRangeMax.getValue(), index);
   }
 
+  /**
+   * Always set metaData before the functional data from the prm file, since
+   * that may override the metaData.
+   * @param metaData
+   */
   void setParameters(final ConstPeetMetaData metaData) {
     if (metaData == null) {
       return;
