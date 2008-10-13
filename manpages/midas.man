@@ -139,6 +139,7 @@ when looking just at features on one Z plane, then an offset can be applied to
 the tilt angles.  As with global rotation, this stretching does
 not affect the alignment transforms output by the program, but the X
 translation that is displayed in the program does depend on the stretching.
+Cosine stretching cannot be used in global or reference alignment mode.
 
 .SS Aligning Chunks of Sections
 Midas has another mode of operation that can be used to align tomograms of
