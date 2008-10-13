@@ -23,6 +23,7 @@
 #include <qtextedit.h>
 #include <qmessagebox.h>
 #include <qfiledialog.h>
+#include "floatspinbox.h"
 #include "dia_qtutils.h"
 #include "b3dutil.h"
 #include "imod_assistant.h"
@@ -907,7 +908,7 @@ void MidasSlots::slotXory(int which)
   try_montage_edge(newcur, 0);
 }
 
-void MidasSlots::manage_xory(struct Midas_view *vw)
+void MidasSlots::manage_xory(MidasView *vw)
 {
   int onlyone = -1;
   int ind;
@@ -1306,7 +1307,11 @@ void MidasSlots::slotOverlay(bool state)
 void MidasSlots::slotGlobRot(int value)
 {
   double newVal = value / 10.;
+  if (VW->cosStretch)
+    stretch_all_transforms(VW, 1);
   rotate_all_transforms(VW, newVal - VW->globalRot);
+  if (VW->cosStretch)
+    stretch_all_transforms(VW, 0);
   VW->globalRot = newVal;
   flush_xformed(VW);
   update_parameters();
@@ -1320,28 +1325,52 @@ void MidasSlots::slotConstrainMouse(bool state)
   VW->mouseXonly = state ? 1 : 0;
 }
 
+void MidasSlots::slotCosStretch(bool state)
+{
+  VW->cosStretch = state ? 1 : 0;
+  VW->tiltOffSpin->setEnabled(state);
+  stretch_all_transforms(VW, 1 - VW->cosStretch);
+  flush_xformed(VW);
+  update_parameters();
+  VW->midasGL->fill_viewdata(VW);
+  VW->midasGL->draw();
+  VW->midasWindow->setFocus();
+}
+
+void MidasSlots::slotTiltOff(int value)
+{
+  stretch_all_transforms(VW, 1);
+  VW->tiltOffset = value / 10.;
+  stretch_all_transforms(VW, 0);
+  flush_xformed(VW);
+  update_parameters();
+  VW->midasGL->fill_viewdata(VW);
+  VW->midasGL->draw();
+  VW->midasWindow->setFocus();
+}
+
 void MidasSlots::midas_keyinput(QKeyEvent *event)
 {
   int transtep = 10;
   int bwinc = 3;
   int coninc = (bwinc + 1) / 2;
   int keysym = event->key();
-  int keypad = event->state() & Keypad;
+  int keypad = event->state() & Qt::Keypad;
 
   convertNumLock(keysym, keypad);
 
   switch(keysym) {
 
-  case Key_Minus:
+  case Qt::Key_Minus:
     slotZoom(-1);
     break;
 
-  case Key_Equal:
+  case Qt::Key_Equal:
     slotZoom(1);
     break;
 
     // No separate keypad keys in QT; they are a state flag
-  case Key_Left:
+  case Qt::Key_Left:
     if (keypad) {
       VW->xtrans -= transtep;
       VW->midasGL->draw();
@@ -1349,7 +1378,7 @@ void MidasSlots::midas_keyinput(QKeyEvent *event)
       slotParameter(-4);
     break;
 
-  case Key_Right:
+  case Qt::Key_Right:
     if (keypad) {
       VW->xtrans += transtep;
       VW->midasGL->draw();
@@ -1357,7 +1386,7 @@ void MidasSlots::midas_keyinput(QKeyEvent *event)
       slotParameter(4);
     break;
 
-  case Key_Down:
+  case Qt::Key_Down:
     if (keypad) {
       VW->ytrans -= transtep;
       VW->midasGL->draw();
@@ -1365,7 +1394,7 @@ void MidasSlots::midas_keyinput(QKeyEvent *event)
       slotParameter(-5);
     break;
 
-  case Key_Up:
+  case Qt::Key_Up:
     if (keypad) {
       VW->ytrans += transtep;
       VW->midasGL->draw();
@@ -1373,41 +1402,41 @@ void MidasSlots::midas_keyinput(QKeyEvent *event)
       slotParameter(5);
     break;
 
-  case Key_O:
+  case Qt::Key_O:
     if (VW->xtype != XTYPE_MONT)
       slotParameter(-1);
     break;
 	  
-  case Key_L:
+  case Qt::Key_L:
     if (VW->xtype != XTYPE_MONT)
       slotParameter(1);
     break;
 	  
-  case Key_P:
+  case Qt::Key_P:
     if (VW->xtype != XTYPE_MONT)
       slotParameter(2);
     break;
 	  
-  case Key_Semicolon:
+  case Qt::Key_Semicolon:
     if (VW->xtype != XTYPE_MONT)
       slotParameter(-2);
     break;
 	  
-  case Key_BracketLeft:
+  case Qt::Key_BracketLeft:
     if (VW->xtype != XTYPE_MONT)
       slotParameter(3);
     break;
 	  
-  case Key_Apostrophe:
+  case Qt::Key_Apostrophe:
     if (VW->xtype != XTYPE_MONT)
       slotParameter(-3);
     break;
 	  
-  case Key_BracketRight:
-  case Key_Backslash:
+  case Qt::Key_BracketRight:
+  case Qt::Key_Backslash:
     if (VW->xtype == XTYPE_MONT)
       break;
-    if (keysym ==  Key_BracketRight)
+    if (keysym ==  Qt::Key_BracketRight)
       VW->sangle += 50;
     else
       VW->sangle -= 50;
@@ -1419,65 +1448,65 @@ void MidasSlots::midas_keyinput(QKeyEvent *event)
     slotAngle(VW->sangle);
     break;
 
-  case Key_Home:
-  case Key_Next:
+  case Qt::Key_Home:
+  case Qt::Key_Next:
     show_ref();
     break;
 
-  case Key_Prior:
+  case Qt::Key_Prior:
     show_cur();
     break;
 
 #ifdef Q_OS_MACX
-  case Qt::Key_Help:
+  case Qt::Qt::Key_Help:
 #endif
-  case Key_Insert:
+  case Qt::Key_Insert:
     show_overlay();
     break;
 
-  case Key_F1:
+  case Qt::Key_F1:
     if (VW->blackstate >= bwinc)
       setbwlevels(VW->blackstate - bwinc, VW->whitestate, 1);
     break;
 
-  case Key_F2:
+  case Qt::Key_F2:
     if (VW->blackstate < VW->whitestate - bwinc)
       setbwlevels(VW->blackstate + bwinc, VW->whitestate, 1);
     break;
 
-  case Key_F3:
+  case Qt::Key_F3:
     if (VW->whitestate > VW->blackstate + bwinc)
       setbwlevels(VW->blackstate, VW->whitestate - bwinc, 1);
     break;
 
-  case Key_F4:
+  case Qt::Key_F4:
     if (VW->whitestate < 256 - bwinc)
       setbwlevels(VW->blackstate, VW->whitestate + bwinc, 1);
     break;
 
-  case Key_F5:
+  case Qt::Key_F5:
     if (VW->whitestate < 256 - bwinc)
       setbwlevels(VW->blackstate + bwinc, VW->whitestate + bwinc, 1);
     break;
 
-  case Key_F6:
+  case Qt::Key_F6:
     if (VW->blackstate >= bwinc)
       setbwlevels(VW->blackstate - bwinc, VW->whitestate - bwinc, 1);
     break;
 
-  case Key_F7:
+  case Qt::Key_F7:
     if (VW->blackstate < VW->whitestate - 2 * coninc)
       setbwlevels(VW->blackstate - coninc, 
 		  VW->whitestate + coninc, 1);
     break;
 
-  case Key_F8:
+  case Qt::Key_F8:
     if (VW->whitestate < 256 - coninc && VW->blackstate >= coninc)
       setbwlevels(VW->blackstate + coninc,
 		  VW->whitestate - coninc, 1);
     break;
 
-  case Key_F11:
+  case Qt::Key_F11:
     if (VW->reversemap) {
       VW->reversemap = 0;
       VW->reversetoggle->setChecked(false);
@@ -1488,7 +1517,7 @@ void MidasSlots::midas_keyinput(QKeyEvent *event)
     // The button change will cause a redraw
     break;
 	  
-  case Key_A:
+  case Qt::Key_A:
     if ((event->state() & ShiftButton) && (VW->xtype == XTYPE_MONT))
       slotEdge(1);
     else if ((event->state() & ShiftButton) && VW->numChunks)
@@ -1499,7 +1528,7 @@ void MidasSlots::midas_keyinput(QKeyEvent *event)
       sectionInc(1);
     break;
 
-  case Key_B:
+  case Qt::Key_B:
     if ((event->state() & ShiftButton) && (VW->xtype == XTYPE_MONT))
       slotEdge(-1);
     else if ((event->state() & ShiftButton) && VW->numChunks)
@@ -1508,22 +1537,22 @@ void MidasSlots::midas_keyinput(QKeyEvent *event)
       sectionInc(-1);
     break;
 
-  case Key_C:
+  case Qt::Key_C:
     if (VW->numChunks)
       try_section_change(0, 1);
     break;
 
-  case Key_D:
+  case Qt::Key_D:
     if (VW->numChunks)
       try_section_change(0, -1);
     break;
 
-  case Key_Control:
+  case Qt::Key_Control:
     VW->ctrlPressed = 1;
     VW->midasGL->manageMouseLabel(" ");
     break;
 
-  case Key_Shift:
+  case Qt::Key_Shift:
     VW->shiftPressed = 1;
     VW->midasGL->manageMouseLabel(" ");
     break;
@@ -1810,6 +1839,9 @@ int MidasSlots::showHelpPage(const char *page)
 
 /*
 $Log$
+Revision 3.17  2007/11/27 23:31:38  sueh
+bug# 1038 Switching to html files for help.
+
 Revision 3.16  2007/10/03 21:36:10  mast
 Added ImodAssistant help object
 

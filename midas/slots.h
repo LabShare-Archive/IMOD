@@ -67,7 +67,9 @@ class MidasSlots : public QObject
   void slotReverse(bool state);
   void slotOverlay(bool state);
   void slotGlobRot(int value);
+  void slotTiltOff(int value);
   void slotConstrainMouse(bool state);
+  void slotCosStretch(bool state);
   void slotAutoContrast();
   void slotMidas_quit();
  
@@ -104,5 +106,8 @@ class MidasSlots : public QObject
 
 #endif
 /*  $Log$
+/*  Revision 3.6  2007/10/03 21:36:10  mast
+/*  Added ImodAssistant help object
+/*
 
 */

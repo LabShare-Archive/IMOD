@@ -21,11 +21,11 @@
 
 static void checklist(int *xpclist, int npclist, int nxframe, int *minxpiece,
                       int *nxpieces, int *nxoverlap);
-static void solve_for_shifts(struct Midas_view *vw, float *a, float *b,
+static void solve_for_shifts(MidasView *vw, float *a, float *b,
                              int *ivarpc, int *indvar, int nvar, int limvar,
                              int leavind);
 
-int new_view(struct Midas_view *vw)
+int new_view(MidasView *vw)
 {
   int i;
   vw->xsize = 0;
@@ -72,6 +72,9 @@ int new_view(struct Midas_view *vw)
   vw->boxsize = INITIAL_BOX_SIZE;
   vw->rotMode = 0;
   vw->globalRot = 0.;
+  vw->cosStretch = 0;
+  vw->tiltname = NULL;
+  vw->tiltOffset = 0.;
   vw->numChunks = 0;
   vw->cachesize = 0;
   vw->cache = NULL;
@@ -103,7 +106,7 @@ int new_view(struct Midas_view *vw)
 
 /* Sets the current image to the given filename.
  */
-int load_view(struct Midas_view *vw, char *fname)
+int load_view(MidasView *vw, char *fname)
 {
   int k, ix, ixy, iy, ind, ipclo, ipchi, ned;
   QString str;
@@ -358,6 +361,10 @@ int load_view(struct Midas_view *vw, char *fname)
     vw->didsave = 0;
   }
 
+  // Load tilt angles
+  if (vw->cosStretch)
+    load_angles(vw);
+
   vw->midasGL->fill_viewdata(vw);
 
   if (vw->didsave)
@@ -375,7 +382,7 @@ int load_view(struct Midas_view *vw, char *fname)
 }
 
 
-Islice *getRawSlice(struct Midas_view *vw, int zval)
+Islice *getRawSlice(MidasView *vw, int zval)
 {
   int k;
   int minuse = vw->usecount + 1;
@@ -403,7 +410,7 @@ Islice *getRawSlice(struct Midas_view *vw, int zval)
   return (vw->cache[oldest].sec);
 }
 
-static Islice *getXformSlice(struct Midas_view *vw, int zval, int shiftOK,
+static Islice *getXformSlice(MidasView *vw, int zval, int shiftOK,
                              int *xformed)
 {
   int k;
@@ -415,16 +422,23 @@ static Islice *getXformSlice(struct Midas_view *vw, int zval, int shiftOK,
   int found = -1;
   int matchshift = 0;
   int match2x2 = 0;
-  *xformed = 1;
+  double angle, lastAng, stretch;
+   *xformed = 1;
 
   /* Get the transformation that needs to be applied */
   tramat_copy(vw->tr[zval].mat, mat);
   if (vw->rotMode) {
     tramat_idmat(rmat);
     tramat_rot(rmat, vw->globalRot);
-    if (zval == vw->cz || vw->xtype == XTYPE_XG)
+    if (zval == vw->cz || vw->xtype == XTYPE_XG) {
+      if (vw->cosStretch && zval) {
+        lastAng = (vw->tiltAngles[vw->refz]-vw->tiltOffset)*RADIANS_PER_DEGREE;
+        angle = (vw->tiltAngles[zval] - vw->tiltOffset) * RADIANS_PER_DEGREE;
+        stretch = cos(lastAng) / cos(angle);
+        tramat_scale(rmat, stretch, 1.);
+      }
       tramat_multiply(rmat, vw->tr[zval].mat, mat);
-    else
+    } else
       tramat_copy(rmat, mat);
   }
 
@@ -501,7 +515,7 @@ static Islice *getXformSlice(struct Midas_view *vw, int zval, int shiftOK,
 /* 
  * Get a slice from the image data.
  */
-Islice *midasGetSlice(struct Midas_view *vw, int sliceType)
+Islice *midasGetSlice(MidasView *vw, int sliceType)
 {
   int xformed;
   switch(sliceType){
@@ -520,7 +534,7 @@ Islice *midasGetSlice(struct Midas_view *vw, int sliceType)
 }
 
 /* flush the cache of any transformed images */
-void flush_xformed(struct Midas_view *vw)
+void flush_xformed(MidasView *vw)
 {
   int k;
   for (k = 0; k < vw->cachesize; k++)
@@ -530,7 +544,7 @@ void flush_xformed(struct Midas_view *vw)
     }
 }
 
-void midasGetSize(struct Midas_view *vw, int *xs, int *ys)
+void midasGetSize(MidasView *vw, int *xs, int *ys)
 {
   if (!vw){
     *xs = *ys = 0;
@@ -544,7 +558,7 @@ void midasGetSize(struct Midas_view *vw, int *xs, int *ys)
 /* Faster then generic transformation.
  * Translate the image by xt and yt.
  */
-int translate_slice(struct Midas_view *vw, int xt, int yt)
+int translate_slice(MidasView *vw, int xt, int yt)
 {
   unsigned char *tptr, *cptr;
   int i, j, yofs;
@@ -1028,15 +1042,39 @@ void rotate_transform(float *mat, double angle)
   tramat_copy(pmat, mat);
 }
 
-void rotate_all_transforms(struct Midas_view *vw, double angle)
+void rotate_all_transforms(MidasView *vw, double angle)
 {
   int i;
   for (i = 0; i < vw->zsize; i++)
     rotate_transform(vw->tr[i].mat, angle);
 }
 
+/*
+ * Apply stretch to X shift of transform, or take it away 
+ */
+void stretch_transform(MidasView *vw, float *mat, int index, 
+                       int destretch)
+{
+  double angle, lastAngle, stretch;
+  if (!index)
+    return;
+  lastAngle = (vw->tiltAngles[index-1] - vw->tiltOffset) * RADIANS_PER_DEGREE;
+  angle = (vw->tiltAngles[index] - vw->tiltOffset) * RADIANS_PER_DEGREE;
+  stretch = cos(lastAngle) / cos(angle);
+  if (destretch)
+    mat[6] /= stretch;
+  else
+    mat[6] *= stretch;
+}
 
-void transform_model(char *infname, char *outfname, struct Midas_view *vw)
+void stretch_all_transforms(MidasView *vw, int destretch)
+{
+  int i;
+  for (i = 0; i < vw->zsize; i++)
+    stretch_transform(vw, vw->tr[i].mat, i, destretch);
+}
+
+void transform_model(char *infname, char *outfname, MidasView *vw)
 {
   struct Mod_Model *model;
   int k;
@@ -1115,7 +1153,7 @@ static void checklist(int *xpclist, int npclist, int nxframe, int *minxpiece,
   }
 }
 
-int nearest_edge(struct Midas_view *vw, int z, int xory, int edgeno, 
+int nearest_edge(MidasView *vw, int z, int xory, int edgeno, 
                  int direction, int *edgeind)
 {
   int base = (z - vw->minzpiece) * vw->nxpieces * vw->nypieces;
@@ -1187,7 +1225,7 @@ int nearest_edge(struct Midas_view *vw, int z, int xory, int edgeno,
   return edge;
 }
      
-int nearest_section(struct Midas_view *vw, int sect, int direction)
+int nearest_section(MidasView *vw, int sect, int direction)
 {
   int edge, ind;
   int maxbelow = vw->minzpiece - 1;
@@ -1236,7 +1274,7 @@ int nearest_section(struct Midas_view *vw, int sect, int direction)
                
 /* Sets up current and reference piece # and maintains the transforms
    properly for the displacements of the current edge */
-void set_mont_pieces(struct Midas_view *vw)
+void set_mont_pieces(MidasView *vw)
 {
   int ind = vw->edgeind * 2 + vw->xory;
   vw->cz = vw->pieceupper[ind];
@@ -1249,7 +1287,7 @@ void set_mont_pieces(struct Midas_view *vw)
 
 #define MAX_GAUSSJ_VARS 9
 #define LOCAL_BORDER 2
-void find_best_shifts(struct Midas_view *vw, int leaveout, int ntoperr,
+void find_best_shifts(MidasView *vw, int leaveout, int ntoperr,
                       float *meanerr, float *amax, int *indmax,
                       float *curerrx, float *curerry, int localonly)
 {
@@ -1353,7 +1391,7 @@ void find_best_shifts(struct Midas_view *vw, int leaveout, int ntoperr,
 
 /* When there are too many variables to solve all at once in a reasonable
    time, this routine computes errors only in smaller patches */
-void find_local_errors(struct Midas_view *vw, int leaveout, int ntoperr,
+void find_local_errors(MidasView *vw, int leaveout, int ntoperr,
                        float *meanerr, float *amax, int *indmax,
                        float *curerrx, float *curerry, int localonly)
 {
@@ -1565,7 +1603,7 @@ void find_local_errors(struct Midas_view *vw, int leaveout, int ntoperr,
 }
 
 /* Set up equations to determine shifts for the given set of variables */
-static void solve_for_shifts(struct Midas_view *vw, float *a, float *b, 
+static void solve_for_shifts(MidasView *vw, float *a, float *b, 
                              int *ivarpc, int *indvar, int nvar, int limvar,
                              int leavind)
 {
@@ -1667,6 +1705,9 @@ static void solve_for_shifts(struct Midas_view *vw, float *a, float *b,
 
 /*
 $Log$
+Revision 3.17  2007/02/04 21:11:33  mast
+Function name changes from mrcslice cleanup
+
 Revision 3.16  2006/07/08 15:32:13  mast
 Changes to implement second fixed point for stretching
 

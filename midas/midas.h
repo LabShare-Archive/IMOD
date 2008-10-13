@@ -146,7 +146,7 @@ struct Midas_chunk
   int refSec;  /* Section to view when chunk is previous */
 };
 
-struct Midas_view
+typedef struct Midas_view
 {
   /* Size of input data */
   int zsize; 
@@ -168,10 +168,13 @@ struct Midas_view
   int cachein;   /* cache size */
   int rotMode;   /* Flag for rotation mode */
   double globalRot; /* Global rotation value */
+  int cosStretch;   /* Flag for cosine stretch */
+  float tiltOffset; /* Offset to apply to tilt angles */
   int numChunks;    /* Number of chunks for chunk mode */
   int quiet;     /* Flag to avoid nag message when fixing edges */
   int imageForChannel[3];  /* Which image to send to each channel */
   struct Midas_chunk *chunk;
+  float *tiltAngles;   /* Array for tilt angles */
 
   struct LoadInfo *li;
   struct MRCheader *hin;
@@ -226,6 +229,7 @@ struct Midas_view
   char *oname;  /* Name of output file after reading in from xname */
   char *refname; /* name of file containing a reference image. */
   int refzsize; /* z size of reference file */
+  char *tiltname; /* Name of tilt angle file */
   int changed;  /* flag that transforms have changed */
   int didsave;  /* flag that file has been saved at least once */
   char *plname; /* name of piece list file */
@@ -298,18 +302,19 @@ struct Midas_view
   float    backup_edgedx, backup_edgedy;
   QSlider  *anglescale;
   QLabel   *anglelabel;
-  QLabel   *mouseLabel;
+  QLabel   *mouseLabel[3];
   FloatSpinBox *globRotSpin;
+  FloatSpinBox *tiltOffSpin;
   int      mouseXonly;    /* Flag to constrain mouse to X moves only */
   int      ctrlPressed;
   int      shiftPressed;
   MidasWindow *midasWindow;
   MidasSlots *midasSlots;
   MidasGL    *midasGL;
-};
+} MidasView;
 
 /* global variables, just the two */
-extern struct Midas_view *VW;
+extern MidasView *VW;
 extern int Midas_debug;
 
 /****************************************************************************/
@@ -321,25 +326,26 @@ void midas_error(char *tmsg, char *bmsg, int retval);
 /****************************************************************************/
 /* file_io.cpp function prototypes                                          */
 
-int load_image(struct Midas_view *vw, char *filename);
-int load_refimage(struct Midas_view *vw, char *filename);
-int save_view(struct Midas_view *vw, char *filename);
-int write_transforms(struct Midas_view *vw, char *filename);
-int load_transforms(struct Midas_view *vw, char *filename);
+int load_image(MidasView *vw, char *filename);
+int load_refimage(MidasView *vw, char *filename);
+int save_view(MidasView *vw, char *filename);
+int write_transforms(MidasView *vw, char *filename);
+int load_transforms(MidasView *vw, char *filename);
+void load_angles(MidasView *vw);
 
 
 /****************************************************************************/
 /* transforms.cpp function prototypes                                       */
 
-Islice *getRawSlice(struct Midas_view *vw, int zval);
-Islice *midasGetSlice(struct Midas_view *vw, int sliceType);
-void flush_xformed(struct Midas_view *vw);
-void midasGetSize(struct Midas_view *vw, int *xs, int *ys);
+Islice *getRawSlice(MidasView *vw, int zval);
+Islice *midasGetSlice(MidasView *vw, int sliceType);
+void flush_xformed(MidasView *vw);
+void midasGetSize(MidasView *vw, int *xs, int *ys);
      
-int new_view(struct Midas_view *vw);
-int load_view(struct Midas_view *vw, char *fname);
-int translate_slice(struct Midas_view *vw, int xt, int yt);
-int global_rot_transform(struct Midas_view *vw, Islice *slin, Islice *slout, 
+int new_view(MidasView *vw);
+int load_view(MidasView *vw, char *fname);
+int translate_slice(MidasView *vw, int xt, int yt);
+int global_rot_transform(MidasView *vw, Islice *slin, Islice *slout, 
                           int zval);
 int midas_transform(Islice *slin, Islice *sout, float *trmat);
 float *tramat_create(void);
@@ -352,16 +358,19 @@ int tramat_scale(float *mat, double x, double y);
 int tramat_rot(float *mat, double angle);
 float *tramat_inverse(float *mat);
 void rotate_transform(float *mat, double angle);
-void rotate_all_transforms(struct Midas_view *vw, double angle);
-void transform_model(char *infname, char *outfname, struct Midas_view *vw);
-int nearest_edge(struct Midas_view *vw, int z, int xory, int edgeno, 
+void rotate_all_transforms(MidasView *vw, double angle);
+void stretch_transform(MidasView *vw, float *mat, int index, 
+                       int destretch);
+void stretch_all_transforms(MidasView *vw, int destretch);
+void transform_model(char *infname, char *outfname, MidasView *vw);
+int nearest_edge(MidasView *vw, int z, int xory, int edgeno, 
 		 int direction, int *edgeind);
-int nearest_section(struct Midas_view *vw, int sect, int direction);
-void set_mont_pieces(struct Midas_view *vw);
-void find_best_shifts(struct Midas_view *vw, int leaveout, int ntoperr,
+int nearest_section(MidasView *vw, int sect, int direction);
+void set_mont_pieces(MidasView *vw);
+void find_best_shifts(MidasView *vw, int leaveout, int ntoperr,
 		      float *meanerr, float *amax, int *indmax,
 		      float *curerrx, float *curerry, int localonly);
-void find_local_errors(struct Midas_view *vw, int leaveout, int ntoperr,
+void find_local_errors(MidasView *vw, int leaveout, int ntoperr,
 		       float *meanerr, float *amax, int *indmax,
 		       float *curerrx, float *curerry, int localonly);
 void amat_to_rotmagstr(float *amat, float *theta, float *smag, float *str,
@@ -371,6 +380,9 @@ int gaussj(float *a, int n, int np, float *b, int m, int mp);
 #endif  // MIDAS_H
 
 /*  $Log$
+/*  Revision 3.14  2007/10/03 21:36:10  mast
+/*  Added ImodAssistant help object
+/*
 
 Revision 3.13  2006/07/08 15:32:13  mast
 Changes to implement second fixed point for stretching

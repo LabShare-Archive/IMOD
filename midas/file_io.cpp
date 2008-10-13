@@ -24,7 +24,7 @@ static struct LoadInfo loadinfo;
 
 /* Load the image to be aligned.
  */
-int load_image(struct Midas_view *vw, char *filename)
+int load_image(MidasView *vw, char *filename)
 {
   struct MRCheader *hin = &ImageHeader;
   float smin, smax;
@@ -65,7 +65,7 @@ int load_image(struct Midas_view *vw, char *filename)
 }
 
 /* Load image to have other images compared to.*/
-int load_refimage(struct Midas_view *vw, char *filename)
+int load_refimage(MidasView *vw, char *filename)
 {
   struct MRCheader hin;
   struct LoadInfo li;
@@ -117,7 +117,7 @@ int load_refimage(struct Midas_view *vw, char *filename)
   return 0;
 }
 
-int save_view(struct Midas_view *vw, char *filename)
+int save_view(MidasView *vw, char *filename)
 {
 
   struct MRCheader header = *VW->hin;
@@ -166,7 +166,7 @@ int save_view(struct Midas_view *vw, char *filename)
 /* 
  * Load a transformation file, either xf or xg format.
  */
-int load_transforms(struct Midas_view *vw, char *filename)
+int load_transforms(MidasView *vw, char *filename)
 {
   int i, k, ixy, nedgex, nedgey, numRead;
   QString str = filename;
@@ -234,8 +234,11 @@ int load_transforms(struct Midas_view *vw, char *filename)
          transforms */
     }
     
+    // Rotate then stretch transforms when coming in
     if (vw->rotMode)
       rotate_all_transforms(vw, vw->globalRot);
+    if (vw->cosStretch)
+      stretch_all_transforms(vw, 0);
   }
 	
   // Copy transforms up for chunk mode
@@ -257,7 +260,7 @@ int load_transforms(struct Midas_view *vw, char *filename)
 
 /* Write a xf or xg transformation file.
  */
-int write_transforms(struct Midas_view *vw, char *filename)
+int write_transforms(MidasView *vw, char *filename)
 {
   int k, ixy, numWrite, i;
   float mat[9];
@@ -286,8 +289,13 @@ int write_transforms(struct Midas_view *vw, char *filename)
     for (i = 0; i < numWrite; i++) {
       k = vw->numChunks ? vw->chunk[i].start : i;
       tramat_copy(vw->tr[k].mat, mat);
+
+      // Destretch and back-rotate transform on output
+      if (vw->cosStretch)
+        stretch_transform(vw, mat, i, 1);
       if (vw->rotMode)
         rotate_transform(mat, -vw->globalRot);
+
       str.sprintf("%12.7f%12.7f%12.7f%12.7f%12.3f%12.3f\n",
                   mat[0], mat[3], mat[1], mat[4], mat[6], mat[7]);
 	stream << str;
@@ -300,7 +308,46 @@ int write_transforms(struct Midas_view *vw, char *filename)
 }
 
 /*
+ * Load tilt angles
+ */
+void load_angles(MidasView *vw)
+{
+  QString str = vw->tiltname;
+  int num;
+  float lastAngle;
+
+  QFile file(str);
+  if (!file.open(IO_ReadOnly | IO_Translate))
+    midas_error("Error opening or reading tilt angle file", vw->tiltname, 1);
+
+  QTextStream stream(&file);
+  stream.setf(QTextStream::dec);
+  vw->tiltAngles = (float *)malloc(vw->zsize * sizeof(float));
+  if (!vw->tiltAngles)
+    midas_error("Error getting memory for tilt angles", "", 1);
+
+  for (num = 0; num < vw->zsize; num++) {
+    str = stream.readLine();
+    if (str.isNull())
+      break;
+    if (str.isEmpty()) {
+      num--;
+      continue;
+    }
+    vw->tiltAngles[num] = atof(str.latin1());
+  }
+  if (!num)
+    midas_error("No tilt angles found in the file",  vw->tiltname, 1);
+  lastAngle =  vw->tiltAngles[num-1];
+  for (; num < vw->zsize; num++)
+    vw->tiltAngles[num] = lastAngle;
+}
+
+/*
 $Log$
+Revision 3.9  2007/02/04 21:11:33  mast
+Function name changes from mrcslice cleanup
+
 Revision 3.8  2005/11/08 02:37:25  mast
 Added a space to ecd output
 
