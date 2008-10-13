@@ -71,10 +71,12 @@ green and the previous in magenta.
 current and reference sections with a mouse button.
 </DL>
 <A NAME = "Transformation"><H3>Transformation Controls</H3>
-At the top of this section is a line listing the actions of the left, middle,
-and right mouse buttons.  The line will change when the Ctrl or Shift keys are
-pressed, and will also indicate the current action when a mouse button is
-pressed.
+At the top of this section are three lines listing the actions of the left, 
+middle, and right mouse buttons.  The second line shows the actions when the
+Ctrl key is pressed, the third shows actions when the Shift key is pressed,
+and the first shows actions when neither is pressed.  The currently active
+line will appear in red, and it will change to indicate the current action
+when a mouse button is pressed.
 <P>
 The Arrow buttons allow each transformation parameter to be changed by a
 selected increment.  There is an additive increment for translation, an
@@ -93,6 +95,14 @@ this angle is displayed and can be adjusted with the spin box below the
 constrain translation changes with the mouse to the X direction in the rotated
 images.  With this constraint, it is still possible to change the shift in Y
 with the arrow hot keys or the Y translation arrow buttons.
+<P>
+If the program was started with "-t" and a file of tilt angles, then two more
+controls appear.  Select <B>Apply cosine stretch</B> to stretch the current
+image along the X axis by the ratio of the cosines of the current and
+reference image tilt angles.  They should be easier to line up with this
+stretching.  Below this checkbox is <B>Tilt angle offset</B> spin box to allow
+you to adjust the tilt angles by a constant amount.  For very high tilt
+angles, this offset may be needed to get the right amount of cosine stretching.
 <P>
 Rotation, magnification, and stretch will occur around the center of rotation,
 which is marked by the yellow star.  You can use [Ctrl]+Middle-Mouse-Button to

@@ -111,7 +111,7 @@ backup of an existing file by that name by adding ~ at the end.
 If the name of a transform file that does not yet exist is entered on the
 command line, midas will create and save into that file.
 
-.SS Using Global Rotations
+.SS Using Global Rotations and Cosine Stretching
 Midas can rotate all images by a common amount and allow you to adjust
 transformations in the rotated images.  This ability, invoked with the
 .B -a
@@ -126,6 +126,19 @@ independent of the global rotation angle.  However, the X and Y translations
 that are displayed and adjusted in midas are relative to the rotated images
 and will change with the angle.  Global rotations can be used in local or
 global alignment mode.
+
+Midas can also apply cosine stretching of images if a file of tilt angles is
+provided with the
+.B -t
+option.  It will stretch the current image by the ratio of the cosines of the
+current and reference image tilt angles.  The stretch is always along the X
+axis after applying a global rotation, so invoking this option turns on the
+global rotation mode.  With such a stretch, it should be easier to find the
+shift that aligns the images.  If stretched images do not line up well, even
+when looking just at features on one Z plane, then an offset can be applied to
+the tilt angles.  As with global rotation, this stretching does
+not affect the alignment transforms output by the program, but the X
+translation that is displayed in the program does depend on the stretching.
 
 .SS Aligning Chunks of Sections
 Midas has another mode of operation that can be used to align tomograms of
