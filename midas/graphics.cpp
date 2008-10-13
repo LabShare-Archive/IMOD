@@ -3,30 +3,10 @@
  *
  *  Original author: James Kremer
  *  Revised by: David Mastronarde   email: mast@colorado.edu
+ *
+ *  $Id$
+ *  Log at end of file
  */
-/*  $Author$
-
-$Date$
-
-$Revision$
-
-$Log$
-Revision 3.8  2006/07/08 15:32:13  mast
-Changes to implement second fixed point for stretching
-
-Revision 3.7  2006/05/13 22:52:52  mast
-Changes to allow overlay colors to be specified
-
-Revision 3.6  2004/08/04 22:35:13  mast
-Changed unsigned long to b3dUInt32 for 64-bit use
-
-Revision 3.5  2003/12/17 21:43:04  mast
-Provide control-key dependent mouse action hints
-
-Revision 3.4  2003/11/01 16:43:10  mast
-changed to put out virtually all error messages to a window
-
-*/
 
 #include <stdlib.h>
 #include <stdio.h>
@@ -245,7 +225,7 @@ void MidasGL::fill_rgb(unsigned char *fbuf, b3dUInt32 *tobuf,
 }
 
 /* llx, lly, urx, ury are coordinates of area within window to draw to */
-void MidasGL::draw_image(struct Midas_view *vw, b3dUInt32 *image,
+void MidasGL::draw_image(MidasView *vw, b3dUInt32 *image,
 			 int llx, int lly, int urx, int ury, int *xdrawn, int *ydrawn)
 {
   int swinx, swiny;
@@ -404,7 +384,7 @@ void MidasGL::draw_image(struct Midas_view *vw, b3dUInt32 *image,
 }
 
 /* Refill all image data buffers with refreshed data. */
-int MidasGL::fill_viewdata( struct Midas_view *vw)
+int MidasGL::fill_viewdata( MidasView *vw)
 {
   int i;
   int refz = vw->refz;
@@ -624,20 +604,26 @@ void MidasGL::mouseMoveEvent ( QMouseEvent * e )
 
 void MidasGL::manageMouseLabel(const char *string)
 {
-  if (mMousePressed) {
-    VW->mouseLabel->setPaletteForegroundColor(QColor("red"));
-    VW->mouseLabel->setText(QString(string));
-  } else {
-    VW->mouseLabel->setPaletteForegroundColor(QColor("blue"));
-    if (VW->ctrlPressed)
-      VW->mouseLabel->setText(VW->useFixed ? "pan - new center - no 2nd pt" :
-                              "pan - new center - fixed pt");
-    else if (VW->shiftPressed)
-      VW->mouseLabel->setText("        --        -- magnify");
-    else
-      VW->mouseLabel->setText(VW->useFixed ? "shift -- rotate -- 2 pt stretch"
+  int i, active = 0;
+  QString ctap = QString(CTRL_STRING).left(2);
+  if (VW->ctrlPressed)
+    active = 1;
+  else if (VW->shiftPressed)
+    active = 2;
+  for (i = 0; i < 3; i++)
+    VW->mouseLabel[i]->setPaletteForegroundColor
+      (QColor(i == active ? "red" : "blue"));
+  if (mMousePressed)
+    VW->mouseLabel[active]->setText(QString(string));
+  if (!mMousePressed || active != 0)
+    VW->mouseLabel[0]->setText(VW->useFixed ? "shift -- rotate -- 2 pt stretch"
                               : "shift -- rotate -- stretch");
-  }
+  if (!mMousePressed || active != 1)
+    VW->mouseLabel[1]->setText(VW->useFixed ? 
+                               ctap + ": pan - new center - no 2 pt" :
+                               ctap + ": pan - new center - fixed pt");
+  if (!mMousePressed || active != 2)
+    VW->mouseLabel[2]->setText("Sh:        --        -- magnify   ");
 }
 
 void MidasGL::drawStar(float xcen, float ycen, float censize)
@@ -656,3 +642,26 @@ void MidasGL::drawStar(float xcen, float ycen, float censize)
   glVertex2f(xcen - 0.866 * censize, ycen + 0.5 * censize);
   glEnd();
 }
+
+/*
+
+$Log$
+Revision 3.9  2006/07/08 15:41:38  mast
+Added const to char* in mouse label method
+
+Revision 3.8  2006/07/08 15:32:13  mast
+Changes to implement second fixed point for stretching
+
+Revision 3.7  2006/05/13 22:52:52  mast
+Changes to allow overlay colors to be specified
+
+Revision 3.6  2004/08/04 22:35:13  mast
+Changed unsigned long to b3dUInt32 for 64-bit use
+
+Revision 3.5  2003/12/17 21:43:04  mast
+Provide control-key dependent mouse action hints
+
+Revision 3.4  2003/11/01 16:43:10  mast
+changed to put out virtually all error messages to a window
+
+*/
