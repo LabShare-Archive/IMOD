@@ -1,5 +1,8 @@
 IMOD History
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+10/12/08: Added ability to display images with cosine stretch in Midas if tilt
+angles are  supplied.
+
 10/6/08: IMOD_3-12-19
 10/6/08: In Etomo, tables have been changed to have paging buttons and hot keys
 instead of sliders when they get too long; the user can set the maximum length
