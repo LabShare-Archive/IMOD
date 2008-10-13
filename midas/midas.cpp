@@ -33,7 +33,7 @@
 #include <unistd.h>
 #endif
 
-struct Midas_view *VW;
+MidasView *VW;
 int Midas_debug = 0;
 
 #define ARROW_SIZE 19
@@ -48,26 +48,28 @@ static void usage(void)
      qstr.sprintf("Usage: %s [options] <mrc filename> "
 	     "[transform filename]\n", pname);
      qstr += "options:\n";
-     qstr += "\t-g              output global transforms (default"
+     qstr += "   -g\t\t output global transforms (default"
        " is local)\n";
-     qstr += "\t-r <filename>   load reference image file\n";
-     qstr += "\t-rz <section>   section # for reference (default 0)\n";
-     qstr += "\t-p <filename>   load piece list file for fixing montages\n";
-     qstr += "\t-c <size list>  align chunks of sections; list # of sections "
+     qstr += "   -r <filename>\t load reference image file\n";
+     qstr += "   -rz <section>\t section # for reference (default 0)\n";
+     qstr += "   -p <filename>\t load piece list file for fixing montages\n";
+     qstr += "   -c <size list>\t align chunks of sections; list # of sections "
        "in chunks\n",
-     qstr += "\t-C <size>       set cache size to given number of "
+     qstr += "   -C <size>\t set cache size to given number of "
        "sections\n"; 
-     qstr += "\t-s <min,max>    set intensity scaling; min to 0 and"
+     qstr += "   -s <min,max>\t set intensity scaling; min to 0 and"
        " max to 255\n";
-     qstr += "\t-b <size>       set initial size for block copies\n";
-     qstr += "\t-a <angle>      rotate all images by angle.\n";
-     qstr += "\t-o <filename>   output transforms to given file instead of "
+     qstr += "   -b <size>\t set initial size for block copies\n";
+     qstr += "   -a <angle>\t rotate all images by angle.\n";
+     qstr += "   -t <filename>\t load tilt angles from file and use cosine "
+       "stretching.\n";
+     qstr += "   -o <filename>\t output transforms to given file instead of "
        "input file\n";
-     qstr += "\t-O <letters>    two letters for colors of previous/current in"
+     qstr += "   -O <letters>\t two letters for colors of previous/current in"
        " overlay\n";
-     qstr += "\t-S              use single-buffered visual\n";
-     qstr += "\t-D              debug mode - do not run in background\n";
-     qstr += "\t-q              suppress reminder message when fixing edges\n";
+     qstr += "   -S\t\t use single-buffered visual\n";
+     qstr += "   -D\t\t debug mode - do not run in background\n";
+     qstr += "   -q\t\t suppress reminder message when fixing edges\n";
 #ifdef _WIN32
      dia_puts((char *)qstr.latin1());
 #else
@@ -78,7 +80,7 @@ static void usage(void)
 
 int main (int argc, char **argv)
 {
-  struct Midas_view MidasView, *vw;
+  MidasView midasView, *vw;
   FILE *file;
   int i, k;
   bool doubleBuffer = true;
@@ -94,7 +96,7 @@ int main (int argc, char **argv)
   int dofork = 1;
 #endif
 
-  vw = VW = &MidasView;
+  vw = VW = &midasView;
 
   // Prescan for style and debug flags
   for (i = 1; i < argc; i++) {
@@ -156,6 +158,12 @@ int main (int argc, char **argv)
 
       case 'a':
 	vw->globalRot = atof(argv[++i]);
+        vw->rotMode = 1;
+	break;
+
+      case 't': /* tilt angles */
+	vw->tiltname = argv[++i];
+        vw->cosStretch = 1;
         vw->rotMode = 1;
 	break;
 
@@ -266,7 +274,7 @@ int main (int argc, char **argv)
   if (vw->plname) {
     if (vw->refname || vw->rotMode || vw->numChunks)
       midas_error("You cannot use the -p option with the ", 
-                  (char *)(vw->rotMode ? "-a option." : 
+                  (char *)(vw->rotMode ? "-a or -t option." : 
                            (vw->refname ? "-r option." : "-c option.")), 1);
 
     if (vw->didsave != -1)
@@ -281,15 +289,20 @@ int main (int argc, char **argv)
   // Check features if doing reference mode or chunk mode
   if (vw->refname || vw->numChunks) {
     if (vw->rotMode)
-      dia_puts("The -a option has no effect with alignment to a "
+      dia_puts("The -a or -t options have no effect with alignment to a "
 	      "reference section or in chunk mode.");
     vw->rotMode = 0;
+    vw->cosStretch = 0;
     if (vw->xtype == XTYPE_XG)
       dia_puts("The -g option has no effect with alignment to a "
 	      "reference section or in chunk.");
     if (vw->refname)
       vw->xtype = XTYPE_XREF;
   }
+
+  if (vw->cosStretch && vw->xtype == XTYPE_XG)
+    midas_error("Global alignment mode cannot be used with cosine stretching",
+                "", 1);
 
   // If doing chunk mode, get sizes, make sure no zeros, defer further checking
   if (vw->numChunks) {
@@ -318,8 +331,8 @@ int main (int argc, char **argv)
     midas_error("Error opening ", argv[i], 3);
 
   // Increase the default point size if font is specified in points,
-  // or if not, increase the pixel size
-  QFont newFont = QApplication::font();
+  // or if not, increase the pixel size.  GAVE IT UP 10/12/08
+  /*  QFont newFont = QApplication::font();
   float pointSize = newFont.pointSizeFloat();
   if (pointSize > 0) {
     if (Midas_debug)
@@ -331,7 +344,7 @@ int main (int argc, char **argv)
       fprintf(stderr, "Default font pixel size %d\n", pixelSize);
     newFont.setPixelSize((int)floor(pixelSize * 1.2 + 0.5));
   }
-  QApplication::setFont(newFont);
+  QApplication::setFont(newFont); */
 
   // Create the components (window creates the GL widget)
   vw->midasSlots = new MidasSlots();
@@ -566,8 +579,10 @@ void MidasWindow::createParameterDisplay(QVBox *col)
   int i;
   QLabel *label;
   
-  VW->mouseLabel = new QLabel(" ", col);
-  VW->mouseLabel->setAlignment(Qt::AlignCenter);
+  for (i = 0; i < 3; i++) {
+    VW->mouseLabel[i] = new QLabel(" ", col);
+    VW->mouseLabel[i]->setAlignment(Qt::AlignCenter);
+  }
   VW->midasGL->manageMouseLabel(" ");
 
   QSignalMapper *paramMapper = new QSignalMapper(col);
@@ -648,6 +663,25 @@ void MidasWindow::createParameterDisplay(QVBox *col)
       check->setFocusPolicy(NoFocus);
       QObject::connect(check, SIGNAL(toggled(bool)), VW->midasSlots,
                        SLOT(slotConstrainMouse(bool)));
+      if (VW->cosStretch) {
+        check = new QCheckBox("Apply cosine stretch", col);
+        check->setChecked(true);
+        check->setFocusPolicy(NoFocus);
+        QObject::connect(check, SIGNAL(toggled(bool)), VW->midasSlots,
+                         SLOT(slotCosStretch(bool)));
+
+        QHBox *tiltOffBox = new QHBox(col);
+        QLabel *tiltOffLabel = new QLabel("Tilt angle offset", tiltOffBox);
+        tiltOffLabel->setAlignment(Qt::AlignLeft);
+
+        VW->tiltOffSpin = new FloatSpinBox(1, -200, 200, 10, tiltOffBox);
+        VW->tiltOffSpin->setFixedWidth
+          (globLabel->fontMetrics().width("-180.0000"));
+        VW->tiltOffSpin->setValue(0);
+        VW->tiltOffSpin->setFocusPolicy(ClickFocus);
+        QObject::connect(VW->tiltOffSpin, SIGNAL(valueChanged(int)), 
+                         VW->midasSlots, SLOT(slotTiltOff(int)));
+      }
     }
 
   } else {
@@ -861,6 +895,9 @@ void midas_error(char *tmsg, char *bmsg, int retval)
 
 /*
     $Log$
+    Revision 3.20  2007/10/03 21:36:10  mast
+    Added ImodAssistant help object
+
     Revision 3.19  2006/06/26 15:48:19  mast
     Added autocontrast function
 
