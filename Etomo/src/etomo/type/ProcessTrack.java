@@ -18,6 +18,9 @@ import java.util.Properties;
  * @version $Revision$
  *
  * <p> $Log$
+ * <p> Revision 3.8  2006/07/26 16:39:28  sueh
+ * <p> bug# 868 Made setState() public
+ * <p>
  * <p> Revision 3.7  2006/06/27 17:48:44  sueh
  * <p> bug# 879 Fixed problem:  wrong post processing string being written.
  * <p>
@@ -83,6 +86,7 @@ public class ProcessTrack implements BaseProcessTrack {
   private ProcessState fiducialModelA = ProcessState.NOTSTARTED;
   private ProcessState fineAlignmentA = ProcessState.NOTSTARTED;
   private ProcessState tomogramPositioningA = ProcessState.NOTSTARTED;
+  private ProcessState finalAlignedStackA = ProcessState.NOTSTARTED;
   private ProcessState tomogramGenerationA = ProcessState.NOTSTARTED;
 
   private ProcessState tomogramCombination = ProcessState.NOTSTARTED;
@@ -94,6 +98,7 @@ public class ProcessTrack implements BaseProcessTrack {
   private ProcessState fiducialModelB = ProcessState.NOTSTARTED;
   private ProcessState fineAlignmentB = ProcessState.NOTSTARTED;
   private ProcessState tomogramPositioningB = ProcessState.NOTSTARTED;
+  private ProcessState finalAlignedStackB = ProcessState.NOTSTARTED;
   private ProcessState tomogramGenerationB = ProcessState.NOTSTARTED;
 
   protected String revisionNumber;
@@ -155,6 +160,13 @@ public class ProcessTrack implements BaseProcessTrack {
     props.setProperty(
       group + "TomogramPositioning-B",
       tomogramPositioningB.toString());
+    
+    props.setProperty(
+        group + "FinalAlignedStack-A",
+        finalAlignedStackA.toString());
+      props.setProperty(
+        group + "FinalAlignedStack-B",
+        finalAlignedStackB.toString());
 
     props.setProperty(
       group + "TomogramGeneration-A",
@@ -225,6 +237,11 @@ public class ProcessTrack implements BaseProcessTrack {
         ProcessState.fromString(
           props.getProperty(group + "TomogramPositioning", "Not started"));
       tomogramPositioningB = tomogramPositioningA;
+      
+      finalAlignedStackA =
+        ProcessState.fromString(
+          props.getProperty(group + "FinalAlignedStack", "Not started"));
+      finalAlignedStackB = finalAlignedStackA;
 
       tomogramGenerationA =
         ProcessState.fromString(
@@ -266,6 +283,13 @@ public class ProcessTrack implements BaseProcessTrack {
       tomogramPositioningB =
         ProcessState.fromString(
           props.getProperty(group + "TomogramPositioning-B", "Not started"));
+      
+      finalAlignedStackA =
+        ProcessState.fromString(
+          props.getProperty(group + "FinalAlignedStack-A", "Not started"));
+      finalAlignedStackB =
+        ProcessState.fromString(
+          props.getProperty(group + "FinalAlignedStack-B", "Not started"));
 
       tomogramGenerationA =
         ProcessState.fromString(
@@ -292,6 +316,7 @@ public class ProcessTrack implements BaseProcessTrack {
     fiducialModelA = state;
     fineAlignmentA = state;
     tomogramPositioningA = state;
+    finalAlignedStackA = state;
     tomogramGenerationA = state;
 
     preProcessingB = state;
@@ -299,6 +324,7 @@ public class ProcessTrack implements BaseProcessTrack {
     fiducialModelB = state;
     fineAlignmentB = state;
     tomogramPositioningB = state;
+    finalAlignedStackB = state;
     tomogramGenerationB = state;
     isModified = true;
   }
@@ -345,6 +371,9 @@ public class ProcessTrack implements BaseProcessTrack {
     }
     else if (dialogType == DialogType.TOMOGRAM_COMBINATION) {
       setTomogramCombinationState(processState);
+    }
+    else if (dialogType == DialogType.FINAL_ALIGNED_STACK) {
+      setFinalAlignedStackState(processState, axisID);
     }
     else if (dialogType == DialogType.TOMOGRAM_GENERATION) {
       setTomogramGenerationState(processState, axisID);
@@ -438,6 +467,23 @@ public class ProcessTrack implements BaseProcessTrack {
     }
     return tomogramPositioningA;
   }
+  
+  public void setFinalAlignedStackState(ProcessState state, AxisID axisID) {
+    if (axisID == AxisID.SECOND) {
+      finalAlignedStackB = state;
+    }
+    else {
+      finalAlignedStackA = state;
+    }
+    isModified = true;
+  }
+
+  public ProcessState getFinalAlignedStackState(AxisID axisID) {
+    if (axisID == AxisID.SECOND) {
+      return finalAlignedStackB;
+    }
+    return finalAlignedStackA;
+  }
 
   public void setTomogramGenerationState(ProcessState state, AxisID axisID) {
     if (axisID == AxisID.SECOND) {
@@ -500,6 +546,7 @@ public class ProcessTrack implements BaseProcessTrack {
       System.out.println("coarseAlignmentA: " + coarseAlignmentA);
       System.out.println("fineAlignmentA: " + fineAlignmentA);
       System.out.println("tomogramPositioningA: " + tomogramPositioningA);
+      System.out.println("finalAlignedStackA: " + finalAlignedStackA);
       System.out.println("tomogramGenerationA: " + tomogramGenerationA);
       System.out.println("tomogramCombination: " + tomogramCombination);
       System.out.println("postProcessing: " + postProcessing);
@@ -511,6 +558,7 @@ public class ProcessTrack implements BaseProcessTrack {
       System.out.println("coarseAlignmentA: " + coarseAlignmentA);
       System.out.println("fineAlignmentA: " + fineAlignmentA);
       System.out.println("tomogramPositioningA: " + tomogramPositioningA);
+      System.out.println("finalAlignedStackA: " + finalAlignedStackA);
       System.out.println("tomogramGenerationA: " + tomogramGenerationA);
 
       System.out.println("preProcessingB: " + preProcessingB);
@@ -518,6 +566,7 @@ public class ProcessTrack implements BaseProcessTrack {
       System.out.println("fiducialModelB: " + fiducialModelB);
       System.out.println("fineAlignmentB: " + fineAlignmentB);
       System.out.println("tomogramPositioningB: " + tomogramPositioningB);
+      System.out.println("finalAlignesStackB: " + finalAlignedStackB);
       System.out.println("tomogramGenerationB: " + tomogramGenerationB);
 
       System.out.println("tomogramCombination: " + tomogramCombination);

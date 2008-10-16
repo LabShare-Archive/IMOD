@@ -6,6 +6,7 @@ import etomo.process.ProcessResultDisplayFactoryInterface;
 import etomo.ui.AlignmentEstimationDialog;
 import etomo.ui.CoarseAlignDialog;
 import etomo.ui.FiducialModelDialog;
+import etomo.ui.FinalAlignedStackDialog;
 import etomo.ui.PostProcessingDialog;
 import etomo.ui.PreProcessingDialog;
 import etomo.ui.TomogramCombinationDialog;
@@ -82,11 +83,11 @@ public final class ProcessResultDisplayFactory implements
 
   //generation
 
-  private final ProcessResultDisplay fullAlignedStack = TomogramGenerationDialog
+  private final ProcessResultDisplay fullAlignedStack = FinalAlignedStackDialog
       .getFullAlignedStackDisplay();
-  private final ProcessResultDisplay filter = TomogramGenerationDialog
+  private final ProcessResultDisplay filter = FinalAlignedStackDialog
       .getFilterDisplay();
-  private final ProcessResultDisplay useFilteredStack = TomogramGenerationDialog
+  private final ProcessResultDisplay useFilteredStack = FinalAlignedStackDialog
       .getUseFilteredStackDisplay();
   private final ProcessResultDisplay useTrialTomogram = TomogramGenerationDialog
       .getUseTrialTomogramDisplay();
@@ -425,6 +426,9 @@ public final class ProcessResultDisplayFactory implements
 }
 /**
  * <p> $Log$
+ * <p> Revision 1.7  2008/05/07 02:45:21  sueh
+ * <p> bug# 847 Getting the the postioning buttons from the expert.
+ * <p>
  * <p> Revision 1.6  2008/05/03 00:45:32  sueh
  * <p> bug# 847 Reformatted.
  * <p>
