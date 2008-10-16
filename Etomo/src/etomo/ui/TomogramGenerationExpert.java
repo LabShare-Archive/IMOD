@@ -1,19 +1,13 @@
 package etomo.ui;
 
-import java.io.File;
 import java.io.IOException;
 import java.util.Vector;
 
 import etomo.ApplicationManager;
 import etomo.ProcessSeries;
-import etomo.comscript.BlendmontParam;
 import etomo.comscript.ComScriptManager;
-import etomo.comscript.ConstMTFFilterParam;
-import etomo.comscript.ConstNewstParam;
 import etomo.comscript.ConstTiltParam;
 import etomo.comscript.FortranInputSyntaxException;
-import etomo.comscript.MTFFilterParam;
-import etomo.comscript.NewstParam;
 import etomo.comscript.SplittiltParam;
 import etomo.comscript.TiltParam;
 import etomo.process.ImodManager;
@@ -60,7 +54,6 @@ public final class TomogramGenerationExpert extends ReconUIExpert {
 
   private TomogramGenerationDialog dialog = null;
   private boolean advanced = false;
-  private boolean enableFiltering = false;
   private boolean getBinningFromNewst = true;
   private Vector trialTomogramList = null;
 
@@ -91,23 +84,10 @@ public final class TomogramGenerationExpert extends ReconUIExpert {
     Utilities.timestamp("new", "TomogramGenerationDialog",
         Utilities.FINISHED_STATUS);
     // no longer managing image size
-
-    // Read in the newst{|a|b}.com parameters. WARNING this needs to be done
-    // before reading the tilt paramers below so that the GUI knows how to
-    // correctly scale the dimensions
-    if (metaData.getViewType() == ViewType.MONTAGE) {
-      comScriptMgr.loadBlend(axisID);
-      setBlendParams(comScriptMgr.getBlendParam(axisID));
-    }
-    else {
-      comScriptMgr.loadNewst(axisID);
-      setNewstParams(comScriptMgr.getNewstComNewstParam(axisID));
-    }
     setParameters(metaData);
     setParameters(screenState);
     // Read in the tilt{|a|b}.com parameters and display the dialog panel
     comScriptMgr.loadTilt(axisID);
-    comScriptMgr.loadMTFFilter(axisID);
     TiltParam tiltParam = comScriptMgr.getTiltParam(axisID);
     tiltParam.setFiducialess(metaData.isFiducialess(axisID));
     // If this is a montage, then binning can only be 1, so no need to upgrade
@@ -116,19 +96,9 @@ public final class TomogramGenerationExpert extends ReconUIExpert {
       UIExpertUtilities.INSTANCE.upgradeOldTiltCom(manager, axisID, tiltParam);
     }
     setTiltParams(tiltParam);
-    setMTFFilterParam(comScriptMgr.getMTFFilterParam(axisID));
-    //updateDialog()
-    updateFilter(Utilities.fileExists(manager, ".ali", axisID));
-
     // Set the fidcialess state and tilt axis angle
-    dialog.setFiducialessAlignment(metaData.isFiducialessAlignment(axisID));
-    dialog.setImageRotation(metaData.getImageRotation(axisID));
     setEnabledTiltParameters();
     openDialog(dialog);
-  }
-
-  public void updateDialog() {
-    updateFilter(Utilities.fileExists(manager, ".ali", axisID));
   }
 
   /**
@@ -170,7 +140,7 @@ public final class TomogramGenerationExpert extends ReconUIExpert {
           .is();
     }
     else {
-      newstFiducialessAlignment = dialog.isFiducialess();
+      newstFiducialessAlignment = metaData.isFiducialessAlignment(axisID);
     }
     // usedLocalAlignments
     if (!state.getUsedLocalAlignments(axisID).isNull()) {
@@ -192,7 +162,6 @@ public final class TomogramGenerationExpert extends ReconUIExpert {
     }
     DialogExitState exitState = dialog.getExitState();
     if (exitState == DialogExitState.EXECUTE) {
-      manager.closeImod(ImodManager.MTF_FILTER_KEY, axisID, "filtered stack");
       manager.closeImods(ImodManager.TRIAL_TOMOGRAM_KEY, axisID,
           "Trial tomogram");
     }
@@ -222,99 +191,11 @@ public final class TomogramGenerationExpert extends ReconUIExpert {
       UIHarness.INSTANCE.openMessageDialog(e.getMessage(), "Data File Error");
     }
     getParameters(screenState);
-    if (!UIExpertUtilities.INSTANCE.updateFiducialessParams(manager, dialog,
-        axisID)) {
-      return false;
-    }
-    if (metaData.getViewType() == ViewType.MONTAGE) {
-      try {
-        updateBlendCom();
-      }
-      catch (FortranInputSyntaxException e) {
-        UIHarness.INSTANCE
-            .openMessageDialog(e.getMessage(), "Update Com Error");
-      }
-      catch (InvalidParameterException e) {
-        UIHarness.INSTANCE
-            .openMessageDialog(e.getMessage(), "Update Com Error");
-      }
-      catch (IOException e) {
-        UIHarness.INSTANCE
-            .openMessageDialog(e.getMessage(), "Update Com Error");
-      }
-    }
-    else {
-      if (updateNewstCom() == null) {
-        return false;
-      }
-    }
     if (updateTiltCom(true) == null) {
-      return false;
-    }
-    if (!updateMTFFilterCom()) {
       return false;
     }
     manager.saveStorables(axisID);
     return true;
-  }
-
-  /**
-   * Get the set the blendmont parameters and update the blend com script.
-   * @param axisID
-   * @return
-   */
-  private BlendmontParam updateBlendCom() throws FortranInputSyntaxException,
-      InvalidParameterException, IOException {
-    if (dialog == null) {
-      return null;
-    }
-    BlendmontParam blendParam = comScriptMgr.getBlendParam(axisID);
-    getBlendParams(blendParam);
-    blendParam.setMode(BlendmontParam.Mode.BLEND);
-    blendParam.setBlendmontState();
-    comScriptMgr.saveBlend(blendParam, axisID);
-    return blendParam;
-  }
-
-  /**
-   * Update the newst.com from the TomogramGenerationDialog.  Reads metaData.
-   * 
-   * @param axisID
-   * @return true if successful
-   */
-  private ConstNewstParam updateNewstCom() {
-    // Set a reference to the correct object
-    if (dialog == null) {
-      UIHarness.INSTANCE
-          .openMessageDialog(
-              "Can not update newst?.com without an active tomogram generation dialog",
-              "Program logic error", axisID);
-      return null;
-    }
-    NewstParam newstParam = null;
-    try {
-      newstParam = comScriptMgr.getNewstComNewstParam(axisID);
-      // Make sure the size output is removed, it was only there for a
-      // copytomocoms template
-      newstParam.setCommandMode(NewstParam.Mode.FULL_ALIGNED_STACK);
-      newstParam.setFiducialessAlignment(metaData
-          .isFiducialessAlignment(axisID));
-      getNewstParams(newstParam);
-      comScriptMgr.saveNewst(newstParam, axisID);
-    }
-    catch (NumberFormatException except) {
-      String[] errorMessage = new String[3];
-      errorMessage[0] = "newst Parameter Syntax Error";
-      errorMessage[1] = "Axis: " + axisID.getExtension();
-      errorMessage[2] = except.getMessage();
-      UIHarness.INSTANCE.openMessageDialog(errorMessage,
-          "Newst Parameter Syntax Error", axisID);
-      return null;
-    }
-    catch (FortranInputSyntaxException except) {
-      except.printStackTrace();
-    }
-    return newstParam;
   }
 
   /**
@@ -397,138 +278,8 @@ public final class TomogramGenerationExpert extends ReconUIExpert {
     return tiltParam;
   }
 
-  /**
-   * Update the mtffilter.com from the TomogramGenerationDialog
-   * 
-   * @param axisID
-   * @return true if successful
-   */
-  private boolean updateMTFFilterCom() {
-    // Set a reference to the correct object
-    if (dialog == null) {
-      UIHarness.INSTANCE
-          .openMessageDialog(
-              "Can not update mtffilter?.com without an active tomogram generation dialog",
-              "Program logic error", axisID);
-      return false;
-    }
-    try {
-      MTFFilterParam mtfFilterParam = comScriptMgr.getMTFFilterParam(axisID);
-      getMTFFilterParam(mtfFilterParam);
-      String inputFileName;
-      String outputFileName;
-      if (metaData.getAxisType() == AxisType.SINGLE_AXIS) {
-        inputFileName = metaData.getDatasetName() + AxisID.ONLY.getExtension()
-            + ".ali";
-        outputFileName = metaData.getDatasetName() + AxisID.ONLY.getExtension()
-            + "_filt.ali";
-      }
-      else {
-        inputFileName = metaData.getDatasetName() + axisID.getExtension()
-            + ".ali";
-        outputFileName = metaData.getDatasetName() + axisID.getExtension()
-            + "_filt.ali";
-      }
-      mtfFilterParam.setInputFile(inputFileName);
-      mtfFilterParam.setOutputFile(outputFileName);
-      comScriptMgr.saveMTFFilter(mtfFilterParam, axisID);
-    }
-    catch (NumberFormatException except) {
-      String[] errorMessage = new String[3];
-      errorMessage[0] = "MTF Filter Parameter Syntax Error";
-      errorMessage[1] = "Axis: " + axisID.getExtension();
-      errorMessage[2] = except.getMessage();
-      UIHarness.INSTANCE.openMessageDialog(errorMessage,
-          "MTF Filter Parameter Syntax Error", axisID);
-      return false;
-    }
-    catch (FortranInputSyntaxException except) {
-      String[] errorMessage = new String[3];
-      errorMessage[0] = "MTF Filter Parameter Syntax Error";
-      errorMessage[1] = "Axis: " + axisID.getExtension();
-      errorMessage[2] = except.getMessage();
-      UIHarness.INSTANCE.openMessageDialog(errorMessage,
-          "MTF Filter Parameter Syntax Error", axisID);
-      return false;
-    }
-    return true;
-  }
-
   protected ProcessDialog getDialog() {
     return dialog;
-  }
-
-  /**
-   * 
-   */
-  public void newst(ProcessResultDisplay processResultDisplay,
-      ProcessSeries processSeries, Deferred3dmodButton deferred3dmodButton,
-      Run3dmodMenuOptions run3dmodMenuOptions) {
-    if (dialog == null) {
-      return;
-    }
-    if (processSeries == null) {
-      processSeries = new ProcessSeries(manager, dialogType);
-    }
-    sendMsgProcessStarting(processResultDisplay);
-    // Get the user input from the dialog
-    if (!UIExpertUtilities.INSTANCE.updateFiducialessParams(manager, dialog,
-        axisID)) {
-      sendMsg(ProcessResult.FAILED_TO_START, processResultDisplay);
-      return;
-    }
-    ConstNewstParam newstParam = null;
-    BlendmontParam blendmontParam = null;
-    if (metaData.getViewType() == ViewType.MONTAGE) {
-      try {
-        blendmontParam = updateBlendCom();
-      }
-      catch (FortranInputSyntaxException e) {
-        UIHarness.INSTANCE
-            .openMessageDialog(e.getMessage(), "Update Com Error");
-      }
-      catch (InvalidParameterException e) {
-        UIHarness.INSTANCE
-            .openMessageDialog(e.getMessage(), "Update Com Error");
-      }
-      catch (IOException e) {
-        UIHarness.INSTANCE
-            .openMessageDialog(e.getMessage(), "Update Com Error");
-      }
-    }
-    else {
-      newstParam = updateNewstCom();
-      if (newstParam == null) {
-        sendMsg(ProcessResult.FAILED_TO_START, processResultDisplay);
-        return;
-      }
-    }
-    processSeries.setRun3dmodDeferred(deferred3dmodButton, run3dmodMenuOptions);
-    setDialogState(ProcessState.INPROGRESS);
-    sendMsg(manager.newst(axisID, processResultDisplay, processSeries,
-        newstParam, blendmontParam), processResultDisplay);
-  }
-
-  /**
-   */
-  void mtffilter(ProcessResultDisplay processResultDisplay,
-      ProcessSeries processSeries, Deferred3dmodButton deferred3dmodButton,
-      Run3dmodMenuOptions run3dmodMenuOptions) {
-    if (processSeries == null) {
-      processSeries = new ProcessSeries(manager, dialogType);
-    }
-    if (dialog == null) {
-      return;
-    }
-    sendMsgProcessStarting(processResultDisplay);
-    if (!updateMTFFilterCom()) {
-      sendMsg(ProcessResult.FAILED_TO_START, processResultDisplay);
-      return;
-    }
-    processSeries.setRun3dmodDeferred(deferred3dmodButton, run3dmodMenuOptions);
-    setDialogState(ProcessState.INPROGRESS);
-    sendMsg(manager.mtffilter(axisID, processResultDisplay, processSeries),
-        processResultDisplay);
   }
 
   /**
@@ -633,124 +384,38 @@ public final class TomogramGenerationExpert extends ReconUIExpert {
     if (!getParallelPanel().getParameters(param)) {
       return null;
     }
-    param.setSeparateChunks(CpuAdoc.getInstance(axisID, manager.getPropertyUserDir())
-        .isSeparateChunks());
+    param.setSeparateChunks(CpuAdoc.getInstance(axisID,
+        manager.getPropertyUserDir()).isSeparateChunks());
     return param;
   }
 
   /**
-   * Replace the full aligned stack with the filtered full aligned stack created
-   * from mtffilter
-   * 
-   * @param axisID
+   * If it exists, meta data tomo gen binning overrides newst bin by factor.
+   * Blendmont binning is always 1.
+   * @return
    */
-  void useMtfFilter(ProcessResultDisplay processResultDisplay) {
-    if (dialog == null) {
-      return;
+  private int getBinning() {
+    // Read in the newst{|a|b}.com parameters. WARNING this needs to be done
+    // before reading the tilt paramers below so that the GUI knows how to
+    // correctly scale the dimensions
+    ConstEtomoNumber binning = metaData.getTomoGenBinning(axisID);
+    if (!binning.isNull()) {
+      getBinningFromNewst = false;
+      return binning.getInt();
     }
-    sendMsgProcessStarting(processResultDisplay);
-    if (manager.isAxisBusy(axisID, processResultDisplay)) {
-      return;
+    if (metaData.getViewType() != ViewType.MONTAGE && getBinningFromNewst) {
+      comScriptMgr.loadNewst(axisID);
+      return comScriptMgr.getNewstComNewstParam(axisID).getBinByFactor();
     }
-    setProgressBar("Using filtered full aligned stack", 1, axisID);
-    // Instantiate file objects for the original raw stack and the fixed
-    // stack
-    String fullAlignedStackFilename = manager.getPropertyUserDir()
-        + File.separator + metaData.getDatasetName() + axisID.getExtension()
-        + ".ali";
-    File fullAlignedStack = new File(fullAlignedStackFilename);
-    String filteredFullAlignedStackFilename = manager.getPropertyUserDir()
-        + File.separator + metaData.getDatasetName() + axisID.getExtension()
-        + "_filt.ali";
-    File filteredFullAlignedStack = new File(filteredFullAlignedStackFilename);
-    if (!filteredFullAlignedStack.exists()) {
-      UIHarness.INSTANCE
-          .openMessageDialog(
-              "The filtered full aligned stack doesn't exist.  Create the filtered full aligned stack first",
-              "Filtered full aligned stack missing", axisID);
-      sendMsg(ProcessResult.FAILED_TO_START, processResultDisplay);
-      return;
-    }
-    setDialogState(ProcessState.INPROGRESS);
-    if (fullAlignedStack.exists() && filteredFullAlignedStack.exists()) {
-      try {
-        Utilities.renameFile(fullAlignedStack, new File(fullAlignedStack
-            .getAbsolutePath()
-            + "~"));
-      }
-      catch (IOException except) {
-        UIHarness.INSTANCE.openMessageDialog("Unable to backup "
-            + fullAlignedStack.getAbsolutePath() + "\n" + except.getMessage(),
-            "File Rename Error", axisID);
-        sendMsg(ProcessResult.FAILED, processResultDisplay);
-        return;
-      }
-    }
-    // don't have to rename full aligned stack because it is a generated
-    // file
-    try {
-      Utilities.renameFile(filteredFullAlignedStack, fullAlignedStack);
-    }
-    catch (IOException except) {
-      UIHarness.INSTANCE.openMessageDialog(except.getMessage(),
-          "File Rename Error", axisID);
-      sendMsg(ProcessResult.FAILED, processResultDisplay);
-      return;
-    }
-    manager.closeImod(ImodManager.FINE_ALIGNED_KEY, axisID,
-        "original full aligned stack");
-    stopProgressBar(axisID);
-    sendMsg(ProcessResult.SUCCEEDED, processResultDisplay);
-  }
-
-  private void updateFilter(boolean enable) {
-    if (dialog == null) {
-      return;
-    }
-    enableFiltering = enable;
-    dialog.setFilterButtonEnabled(enableFiltering);
-    dialog.setViewFilterButtonEnabled(enableFiltering);
-    enableUseFilter();
-  }
-
-  protected void enableUseFilter() {
-    if (dialog == null) {
-      return;
-    }
-    if (!enableFiltering) {
-      dialog.setUseFilterEnabled(false);
-      return;
-    }
-    String startingAndEndingZ = dialog.getStartingAndEndingZ();
-    if (startingAndEndingZ.length() == 0 || startingAndEndingZ.matches("\\s+")) {
-      //btnFilter.setSelected(false);
-      dialog.setUseFilterEnabled(true);
-    }
-    else {
-      dialog.setUseFilterEnabled(false);
-    }
-  }
-
-  private void setNewstParams(ConstNewstParam newstParam) {
-    if (dialog == null) {
-      return;
-    }
-    dialog.setUseLinearInterpolation(newstParam.isLinearInterpolation());
-    if (getBinningFromNewst) {
-      dialog.setBinning(newstParam.getBinByFactor());
-    }
+    return 1;//no binning available in blendmont
   }
 
   private void setParameters(ConstMetaData metaData) {
     if (dialog == null) {
       return;
     }
-    ConstEtomoNumber binning = metaData.getTomoGenBinning(axisID);
-    if (!binning.isNull()) {
-      getBinningFromNewst = false;
-      dialog.setBinning(binning);
-    }
-    CpuAdoc cpuAdoc = CpuAdoc.getInstance(AxisID.ONLY, manager.getPropertyUserDir());
+    CpuAdoc cpuAdoc = CpuAdoc.getInstance(AxisID.ONLY, manager
+        .getPropertyUserDir());
     //Parallel processing is optional in tomogram reconstruction, so only use it
     //if the user set it up.
     boolean validAutodoc = cpuAdoc.isAvailable();
@@ -764,8 +429,6 @@ public final class TomogramGenerationExpert extends ReconUIExpert {
     else {
       dialog.setParallelProcess(validAutodoc && tomoGenTiltParallel.is());
     }
-    dialog.setSizeToOutputInXandY(metaData.getSizeToOutputInXandY(axisID)
-        .toString(true));
     updateParallelProcess();
   }
 
@@ -777,25 +440,18 @@ public final class TomogramGenerationExpert extends ReconUIExpert {
     if (dialog == null) {
       return;
     }
-    dialog.setNewstHeaderState(screenState.getTomoGenNewstHeaderState());
-    dialog.setFilterHeaderState(screenState.getTomoGenMtffilterHeaderState());
     dialog.setTiltHeaderState(screenState.getTomoGenTiltHeaderState());
     dialog.setTrialHeaderState(screenState.getTomoGenTrialTiltHeaderState());
     dialog.setAdvanced();
-    dialog.setNewstButtonState(screenState);
     dialog.setTiltButtonState(screenState);
     dialog.setDeleteStackButtonState(screenState);
-    dialog.setUseFilterButtonState(screenState);
     dialog.setUseTrialButtonState(screenState);
-    dialog.setFilterButtonState(screenState);
   }
 
   private void getParameters(ReconScreenState screenState) {
     if (dialog == null) {
       return;
     }
-    dialog.getNewstHeaderState(screenState.getTomoGenNewstHeaderState());
-    dialog.getFilterHeaderState(screenState.getTomoGenMtffilterHeaderState());
     dialog.getTiltHeaderState(screenState.getTomoGenTiltHeaderState());
     dialog.getTrialHeaderState(screenState.getTomoGenTrialTiltHeaderState());
   }
@@ -805,21 +461,8 @@ public final class TomogramGenerationExpert extends ReconUIExpert {
     if (dialog == null) {
       return;
     }
-    metaData.setTomoGenBinning(axisID, dialog.getBinning());
+    metaData.setTomoGenBinning(axisID, getBinning());
     metaData.setTomoGenTiltParallel(axisID, dialog.isParallelProcess());
-    try {
-      metaData.setSizeToOutputInXandY(axisID, dialog.getSizeToOutputInXandY());
-    }
-    catch (FortranInputSyntaxException e) {
-      e.printStackTrace();
-      throw new FortranInputSyntaxException(
-          TomogramGenerationDialog.SIZE_TO_OUTPUT_IN_X_AND_Y_LABEL + ":  "
-              + e.getMessage());
-    }
-  }
-
-  private void setBlendParams(BlendmontParam blendmontParam) {
-    dialog.setUseLinearInterpolation(blendmontParam.isLinearInterpolation());
   }
 
   /**
@@ -873,46 +516,6 @@ public final class TomogramGenerationExpert extends ReconUIExpert {
     dialog.setUseLocalAlignment(metaData.getUseLocalAlignments(axisID));
     dialog.setUseZFactors(metaData.getUseZFactors(axisID).is());
     dialog.setExtraExcludeList(tiltParam.getExcludeList2());
-  }
-
-  //  Copy the newstack parameters from the GUI to the NewstParam object
-  private void getNewstParams(NewstParam newstParam)
-      throws FortranInputSyntaxException {
-    if (dialog == null) {
-      return;
-    }
-    newstParam.setLinearInterpolation(dialog.isUseLinearInterpolation());
-    int binning = dialog.getBinning();
-    // Only explcitly write out the binning if its value is something other than
-    // the default of 1 to keep from cluttering up the com script  
-    if (binning > 1) {
-      newstParam.setBinByFactor(binning);
-    }
-    else {
-      newstParam.setBinByFactor(Integer.MIN_VALUE);
-    }
-    newstParam.setSizeToOutputInXandY(dialog.getSizeToOutputInXandY(), dialog
-        .getBinning());
-  }
-
-  private void getBlendParams(BlendmontParam blendmontParam)
-      throws FortranInputSyntaxException, InvalidParameterException,
-      IOException {
-    if (dialog == null) {
-      return;
-    }
-    blendmontParam.setLinearInterpolation(dialog.isUseLinearInterpolation());
-    blendmontParam.setBinByFactor(dialog.getBinning());
-    try {
-      blendmontParam.convertToStartingAndEndingXandY(dialog
-          .getSizeToOutputInXandY());
-    }
-    catch (FortranInputSyntaxException e) {
-      e.printStackTrace();
-      throw new FortranInputSyntaxException(
-          TomogramGenerationDialog.SIZE_TO_OUTPUT_IN_X_AND_Y_LABEL + ":  "
-              + e.getMessage());
-    }
   }
 
   /**
@@ -1055,10 +658,10 @@ public final class TomogramGenerationExpert extends ReconUIExpert {
             .is();
       }
       else {
-        newstFiducialessAlignment = dialog.isFiducialess();
+        newstFiducialessAlignment = metaData.isFiducialessAlignment(axisID);
       }
       tiltParam.setFiducialess(newstFiducialessAlignment);
-      
+
       tiltParam.setUseZFactors(dialog.isUseZFactors()
           && dialog.isUseZFactorsEnabled());
       metaData.setUseZFactors(axisID, dialog.isUseZFactors());
@@ -1080,32 +683,6 @@ public final class TomogramGenerationExpert extends ReconUIExpert {
       throw new IOException(badParameter + ":  " + e.getMessage());
     }
     return true;
-  }
-
-  private void getMTFFilterParam(MTFFilterParam mtfFilterParam)
-      throws FortranInputSyntaxException {
-    if (dialog == null) {
-      return;
-    }
-    mtfFilterParam.setLowPassRadiusSigma(dialog.getLowPassRadiusSigma());
-    mtfFilterParam.setStartingAndEndingZ(dialog.getStartingAndEndingZ());
-    mtfFilterParam.setMtfFile(dialog.getMtfFile());
-    mtfFilterParam.setMaximumInverse(dialog.getMaximumInverse());
-    mtfFilterParam.setInverseRolloffRadiusSigma(dialog
-        .getInverseRolloffRadiusSigma());
-  }
-
-  private void setMTFFilterParam(ConstMTFFilterParam mtfFilterParam) {
-    if (dialog == null) {
-      return;
-    }
-    dialog.setMtfFile(mtfFilterParam.getMtfFile());
-    dialog.setMaximumInverse(mtfFilterParam.getMaximumInverseString());
-    dialog.setLowPassRadiusSigma(mtfFilterParam.getLowPassRadiusSigmaString());
-    dialog.setStartingAndEndingZ(mtfFilterParam.getStartingAndEndingZString());
-    dialog.setInverseRolloffRadiusSigma(mtfFilterParam
-        .getInverseRolloffRadiusSigmaString());
-    enableUseFilter();
   }
 
   void trialAction(ProcessResultDisplay trial, ProcessSeries processSeries) {
@@ -1154,6 +731,10 @@ public final class TomogramGenerationExpert extends ReconUIExpert {
 }
 /**
  * <p> $Log$
+ * <p> Revision 1.23  2008/07/19 01:12:45  sueh
+ * <p> bug# 1125 Making it easier to access CpuAdoc by not passing the
+ * <p> manager to it; all it needs is the current directory.
+ * <p>
  * <p> Revision 1.22  2008/07/15 17:48:06  sueh
  * <p> bug# 1124 In getTiltParams(TiltParam) corrected the setting of
  * <p> TiltParam.fiducialess.  Basing it on the last time final alignment was run.

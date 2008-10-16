@@ -14,6 +14,11 @@ function = build-fidless
 adoc = tomo-pos.adoc
 function = run-fidless
 
+[Dialog = FinalStack]
+adoc = stack.adoc
+function = run
+bn.done =
+
 [Dialog = TomoGen]
 adoc = tomo-gen.adoc
 function = run

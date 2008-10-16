@@ -25,7 +25,12 @@ function = build
 adoc = tomo-pos.adoc
 function = build
 
+[Dialog = FinalStack]
+adoc = stack.adoc
+function = montage
+bn.done =
+
 [Dialog = TomoGen]
 adoc = tomo-gen.adoc
-function = montage
+function = run
 bn.done =

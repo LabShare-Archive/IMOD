@@ -31,6 +31,9 @@ import etomo.util.Utilities;
  * @version $Revision$
  * 
  * <p> $Log$
+ * <p> Revision 1.28  2008/01/14 22:06:48  sueh
+ * <p> bug# 1050 Moved string "Axis B" to TomogramProcessPanel.
+ * <p>
  * <p> Revision 1.27  2007/09/07 00:29:35  sueh
  * <p> bug# 989 Using a public INSTANCE to refer to the EtomoDirector singleton
  * <p> instead of getInstance and createInstance.
@@ -160,6 +163,8 @@ public class TomogramProcessPanel extends AxisProcessPanel {
       DialogType.FINE_ALIGNMENT);
   private ProcessControlPanel procCtlTomogramPositioning = new ProcessControlPanel(
       DialogType.TOMOGRAM_POSITIONING);
+  private ProcessControlPanel procCtlFinalAlignedStack = new ProcessControlPanel(
+      DialogType.FINAL_ALIGNED_STACK);
   private ProcessControlPanel procCtlTomogramGeneration = new ProcessControlPanel(
       DialogType.TOMOGRAM_GENERATION);
   private ProcessControlPanel procCtlTomogramCombination = new ProcessControlPanel(
@@ -243,6 +248,12 @@ public class TomogramProcessPanel extends AxisProcessPanel {
           DialogType.TOMOGRAM_POSITIONING, axisID)).openDialog();
       return;
     }
+    if (command.equals(procCtlFinalAlignedStack.getCommand())) {
+      ((FinalAlignedStackExpert) applicationManager.getUIExpert(
+          DialogType.FINAL_ALIGNED_STACK, axisID)).openDialog();
+      return;
+
+    }
     if (command.equals(procCtlTomogramGeneration.getCommand())) {
       ((TomogramGenerationExpert) applicationManager.getUIExpert(
           DialogType.TOMOGRAM_GENERATION, axisID)).openDialog();
@@ -298,6 +309,14 @@ public class TomogramProcessPanel extends AxisProcessPanel {
    */
   public void setTomogramPositioningState(ProcessState state) {
     procCtlTomogramPositioning.setState(state);
+  }
+
+  /**
+   * 
+   * @param state
+   */
+  public void setFinalAlignedStackState(ProcessState state) {
+    procCtlFinalAlignedStack.setState(state);
   }
 
   /**
@@ -489,6 +508,13 @@ public class TomogramProcessPanel extends AxisProcessPanel {
     panelProcessSelect.add(procCtlTomogramPositioning.getContainer());
 
     panelProcessSelect.add(Box.createRigidArea(FixedDim.x0_y10));
+    procCtlFinalAlignedStack.addMouseListener(mouseAdapter);
+    procCtlFinalAlignedStack.setButtonActionListener(buttonListener);
+    procCtlFinalAlignedStack.getContainer().setAlignmentX(
+        Container.CENTER_ALIGNMENT);
+    panelProcessSelect.add(procCtlFinalAlignedStack.getContainer());
+
+    panelProcessSelect.add(Box.createRigidArea(FixedDim.x0_y10));
     procCtlTomogramGeneration.addMouseListener(mouseAdapter);
     procCtlTomogramGeneration.setButtonActionListener(buttonListener);
     procCtlTomogramGeneration.getContainer().setAlignmentX(
@@ -546,6 +572,10 @@ public class TomogramProcessPanel extends AxisProcessPanel {
       procCtlTomogramPositioning.setSelected(true);
       return;
     }
+    if (name.equals(procCtlFinalAlignedStack.getCommand())) {
+      procCtlFinalAlignedStack.setSelected(true);
+      return;
+    }
     if (name.equals(procCtlTomogramGeneration.getCommand())) {
       procCtlTomogramGeneration.setSelected(true);
       return;
@@ -570,6 +600,7 @@ public class TomogramProcessPanel extends AxisProcessPanel {
     procCtlFiducialModel.setSelected(false);
     procCtlFineAlignment.setSelected(false);
     procCtlTomogramPositioning.setSelected(false);
+    procCtlFinalAlignedStack.setSelected(false);
     procCtlTomogramGeneration.setSelected(false);
     procCtlTomogramCombination.setSelected(false);
     procCtlPostProcessing.setSelected(false);
@@ -600,9 +631,10 @@ public class TomogramProcessPanel extends AxisProcessPanel {
     procCtlTomogramPositioning
         .setToolTipText("Open the Tomogram Position panel to optimally adjust the 3D location "
             + "and size of the reconstruction volume.");
+    procCtlFinalAlignedStack
+        .setToolTipText("Open the Final Aligned Stack panel to generate the final aligned stack.");
     procCtlTomogramGeneration
-        .setToolTipText("Open the Tomogram Generation panel to generate the final aligned "
-            + "stack and calcuate the tomographic reconstruction.");
+        .setToolTipText("Open the Tomogram Generation panel to calcuate the tomographic reconstruction.");
     procCtlTomogramCombination
         .setToolTipText("Open the Tomogram Combination panel to combine the tomograms generated "
             + "from the A and B axes into a single dual axis reconstruction.");

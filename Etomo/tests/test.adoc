@@ -27,6 +27,11 @@ function = test
 adoc = tomo-pos.adoc
 function = test-single
 
+[Dialog = FinalStack]
+adoc = stack.adoc
+function = run
+bn.done =
+
 [Dialog = TomoGen]
 adoc = tomo-gen.adoc
 function = run
