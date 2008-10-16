@@ -35,6 +35,12 @@ public class PanelHeaderState implements Storable,ConstPanelHeaderState {
     this.group = group;
   }
   
+  void set(PanelHeaderState input) {
+    openCloseState=input.openCloseState;
+    advancedBasicState=input.advancedBasicState;
+    moreLessState=input.moreLessState;
+  }
+  
   public String toString() {
     return "[group=" + group + ",openCloseState=" + openCloseState
         + ",advancedBasicState=" + advancedBasicState + ",moreLessState="
@@ -98,6 +104,9 @@ public class PanelHeaderState implements Storable,ConstPanelHeaderState {
 }
 /**
 * <p> $Log$
+* <p> Revision 1.2  2007/02/21 04:20:08  sueh
+* <p> bug# 964 Added KEY for storing/loading.
+* <p>
 * <p> Revision 1.1  2005/09/27 23:21:50  sueh
 * <p> bug# 532 A class used by PanelHeader to save its state.
 * <p> </p>
