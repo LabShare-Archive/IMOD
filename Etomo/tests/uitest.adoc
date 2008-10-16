@@ -8,6 +8,7 @@ Dialog.CoarseAlign =
 Dialog.FidModel =
 Dialog.FineAlign =
 Dialog.TomoPos =
+Dialog.Stack =
 Dialog.TomoGen =
 Dialog.Combine =
 Dialog.PostProc =
