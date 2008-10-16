@@ -16,6 +16,9 @@ import java.util.Properties;
  * @version $Revision$
  * 
  * <p> $Log$
+ * <p> Revision 1.12  2008/05/28 02:48:27  sueh
+ * <p> bug# 1111 Added JOIN.
+ * <p>
  * <p> Revision 1.11  2007/11/06 19:35:59  sueh
  * <p> bug# 1047 Added anisotropic diffusion dialog type.
  * <p>
@@ -69,10 +72,11 @@ public final class DialogType {
   private static final int fiducialModelIndex = 3;
   private static final int fineAlignmentIndex = 4;
   private static final int tomogramPositioningIndex = 5;
-  private static final int tomogramGenerationIndex = 6;
-  private static final int tomogramCombinationIndex = 7;
-  private static final int postProcessingIndex = 8;
-  private static final int cleanUpIndex = 9;
+  private static final int finalAlignedStackIndex =6;
+  private static final int tomogramGenerationIndex = 7;
+  private static final int tomogramCombinationIndex = 8;
+  private static final int postProcessingIndex = 9;
+  private static final int cleanUpIndex = 10;
 
   public static final int TOTAL_RECON = cleanUpIndex + 1;
 
@@ -95,6 +99,7 @@ public final class DialogType {
   private static final String FIDUCIAL_MODEL_NAME = "FidModel";
   private static final String FINE_ALIGNMENT_NAME = "FineAlign";
   private static final String TOMOGRAM_POSITIONING_NAME = "TomoPos";
+  private static final String FINAL_ALIGNED_STACK_NAME = "FinalStack";
   private static final String TOMOGRAM_GENERATION_NAME = "TomoGen";
   private static final String TOMOGRAM_COMBINATION_NAME = "Combine";
   private static final String POST_PROCESSING_NAME = "PostProc";
@@ -146,6 +151,8 @@ public final class DialogType {
 
   public static final DialogType TOMOGRAM_POSITIONING = new DialogType(
       TabType.RECON, tomogramPositioningIndex);
+  public static final DialogType FINAL_ALIGNED_STACK = new DialogType(
+      TabType.RECON, finalAlignedStackIndex);
   public static final DialogType TOMOGRAM_GENERATION = new DialogType(
       TabType.RECON, tomogramGenerationIndex);
   public static final DialogType TOMOGRAM_COMBINATION = new DialogType(
@@ -179,6 +186,8 @@ public final class DialogType {
         return "Fine Alignment";
       case tomogramPositioningIndex:
         return "Tomogram Positioning";
+      case finalAlignedStackIndex:
+        return "Final Aligned Stack";
       case tomogramGenerationIndex:
         return "Tomogram Generation";
       case tomogramCombinationIndex:
@@ -228,6 +237,8 @@ public final class DialogType {
         return "Fine";
       case tomogramPositioningIndex:
         return "Pos";
+      case finalAlignedStackIndex:
+        return "Stack";
       case tomogramGenerationIndex:
         return "Gen";
       case tomogramCombinationIndex:
@@ -277,6 +288,8 @@ public final class DialogType {
         return FINE_ALIGNMENT_NAME;
       case tomogramPositioningIndex:
         return TOMOGRAM_POSITIONING_NAME;
+      case finalAlignedStackIndex:
+        return FINAL_ALIGNED_STACK_NAME;
       case tomogramGenerationIndex:
         return TOMOGRAM_GENERATION_NAME;
       case tomogramCombinationIndex:
@@ -341,6 +354,9 @@ public final class DialogType {
     }
     if (storableName.equals(TOMOGRAM_POSITIONING_NAME)) {
       return TOMOGRAM_POSITIONING;
+    }
+    if (storableName.equals(FINAL_ALIGNED_STACK_NAME)) {
+      return FINAL_ALIGNED_STACK;
     }
     if (storableName.equals(TOMOGRAM_GENERATION_NAME)) {
       return TOMOGRAM_GENERATION;
