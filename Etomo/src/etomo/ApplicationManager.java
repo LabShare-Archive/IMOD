@@ -99,6 +99,7 @@ import etomo.ui.BeadtrackPanel;
 import etomo.ui.CleanUpDialog;
 import etomo.ui.CoarseAlignDialog;
 import etomo.ui.FiducialModelDialog;
+import etomo.ui.FinalAlignedStackExpert;
 import etomo.ui.MainPanel;
 import etomo.ui.MainTomogramPanel;
 import etomo.ui.ParallelPanel;
@@ -152,6 +153,8 @@ public final class ApplicationManager extends BaseManager {
   private AlignmentEstimationDialog fineAlignmentDialogB = null;
   private TomogramPositioningExpert tomogramPositioningExpertA = null;
   private TomogramPositioningExpert tomogramPositioningExpertB = null;
+  private FinalAlignedStackExpert finalAlignedStackExpertA = null;
+  private FinalAlignedStackExpert finalAlignedStackExpertB = null;
   private TomogramGenerationExpert tomogramGenerationExpertA = null;
   private TomogramGenerationExpert tomogramGenerationExpertB = null;
   protected TomogramCombinationDialog tomogramCombinationDialog = null;
@@ -2823,6 +2826,20 @@ public final class ApplicationManager extends BaseManager {
       }
       return tomogramPositioningExpertA;
     }
+    else if (dialogType == DialogType.FINAL_ALIGNED_STACK) {
+      if (axisID == AxisID.SECOND) {
+        if (finalAlignedStackExpertB == null) {
+          finalAlignedStackExpertB = new FinalAlignedStackExpert(this,
+              mainPanel, processTrack, axisID);
+        }
+        return finalAlignedStackExpertB;
+      }
+      if (finalAlignedStackExpertA == null) {
+        finalAlignedStackExpertA = new FinalAlignedStackExpert(this,
+            mainPanel, processTrack, axisID);
+      }
+      return finalAlignedStackExpertA;
+    }
     else if (dialogType == DialogType.TOMOGRAM_GENERATION) {
       if (axisID == AxisID.SECOND) {
         if (tomogramGenerationExpertB == null) {
@@ -5277,7 +5294,7 @@ public final class ApplicationManager extends BaseManager {
       updateDialog(fiducialModelDialogA, AxisID.FIRST);
     }
     if (processName == ProcessName.NEWST) {
-      ((TomogramGenerationExpert) getUIExpert(DialogType.TOMOGRAM_GENERATION,
+      ((FinalAlignedStackExpert) getUIExpert(DialogType.FINAL_ALIGNED_STACK,
           axisID)).updateDialog();
     }
   }
@@ -5429,6 +5446,9 @@ public final class ApplicationManager extends BaseManager {
 
   public void openNextDialog(AxisID axisID, DialogType dialogType) {
     if (dialogType == DialogType.TOMOGRAM_POSITIONING) {
+      getUIExpert(DialogType.FINAL_ALIGNED_STACK, axisID).openDialog();
+    }
+    else if (dialogType == DialogType.FINAL_ALIGNED_STACK) {
       getUIExpert(DialogType.TOMOGRAM_GENERATION, axisID).openDialog();
     }
     else if (dialogType == DialogType.TOMOGRAM_GENERATION) {
@@ -5639,6 +5659,9 @@ public final class ApplicationManager extends BaseManager {
 }
 /**
  * <p> $Log$
+ * <p> Revision 3.307  2008/09/30 19:45:49  sueh
+ * <p> bug# 1113 Reformatting
+ * <p>
  * <p> Revision 3.306  2008/07/24 18:04:17  sueh
  * <p> bug# 1128 In imodSample calling ImodManager.setPointLimit.
  * <p>
