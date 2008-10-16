@@ -30,6 +30,10 @@ import etomo.comscript.FortranInputSyntaxException;
  * @version $Revision$
  *
  * <p> $Log$
+ * <p> Revision 3.41  2008/05/13 23:01:50  sueh
+ * <p> bug# 847 Adding a right click menu for deferred 3dmods to some
+ * <p> process buttons.
+ * <p>
  * <p> Revision 3.40  2008/05/07 00:01:32  sueh
  * <p> bug#847 Running deferred 3dmods by using the button that usually calls
  * <p> them.  This avoids having to duplicate the calls and having a
@@ -292,7 +296,6 @@ public final class FiducialModelDialog extends ProcessDialog implements
     btnSeed = (Run3dmodButton) displayFactory.getSeedFiducialModel();
     btnSeed.setContainer(this);
     setToolTipText();
-    fixRootPanel(rootSize);
     pnlBeadtrack = BeadtrackPanel.getInstance(appMgr, axisID, dialogType);
 
     btnExecute.setText("Done");
