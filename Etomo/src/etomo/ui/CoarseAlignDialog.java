@@ -11,6 +11,9 @@
  * @version $Revision$
  *
  * <p> $Log$
+ * <p> Revision 3.49  2008/09/30 20:58:58  sueh
+ * <p> bug# 1113 Using a private constructor in SpacedPanel.
+ * <p>
  * <p> Revision 3.48  2008/05/13 23:00:15  sueh
  * <p> bug# 847 Adding a right click menu for deferred 3dmods to some
  * <p> process buttons.
@@ -303,7 +306,6 @@ public final class CoarseAlignDialog extends ProcessDialog implements
     btnFixEdgesMidas = (MultiLineButton) displayFactory.getFixEdgesMidas();
     btnMidas = (MultiLineButton) displayFactory.getMidas();
     setToolTipText();
-    fixRootPanel(rootSize);
     pnlCrossCorrelation = new CrossCorrelationPanel(applicationManager, axisID,
         dialogType);
     pnlPrenewst = new PrenewstPanel(applicationManager, axisID, dialogType,

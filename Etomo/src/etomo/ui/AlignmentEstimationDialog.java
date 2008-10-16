@@ -37,6 +37,9 @@ import etomo.type.Run3dmodMenuOptions;
  * @version $Revision$
  *
  * <p> $Log$
+ * <p> Revision 3.32  2008/09/30 20:54:20  sueh
+ * <p> bug# 1113 Using a private constructor in SpacedPanel.
+ * <p>
  * <p> Revision 3.31  2008/05/03 00:46:32  sueh
  * <p> bug# 847 Passing null to process funtions for ProcessSeries.
  * <p>
@@ -306,7 +309,6 @@ public final class AlignmentEstimationDialog extends ProcessDialog implements
 
   public AlignmentEstimationDialog(ApplicationManager appMgr, AxisID axisID) {
     super(appMgr, axisID, DialogType.FINE_ALIGNMENT);
-    fixRootPanel(rootSize);
     btnComputeAlignment = (MultiLineButton) appMgr
         .getProcessResultDisplayFactory(axisID).getComputeAlignment();
     pnlTiltalign = TiltalignPanel.getInstance(axisID, appMgr);
