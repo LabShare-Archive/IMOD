@@ -12,6 +12,9 @@
  * @version $Revision$
  * 
  * <p> $Log$
+ * <p> Revision 1.3  2006/07/28 19:45:44  sueh
+ * <p> bug# 868 Changed isFiduciallessAlignment to isFiducialess
+ * <p>
  * <p> Revision 1.2  2006/05/19 19:46:55  sueh
  * <p> bug# 866 Changed set/getTiltAxisAngle to set/getImageRotation.
  * <p>
@@ -24,8 +27,6 @@ package etomo.ui;
 
 public interface FiducialessParams {
   public static final String rcsid = "$Id$";
-  public void setFiducialessAlignment(boolean state);
   public boolean isFiducialess();
-  public void setImageRotation(float imageRotation);
   public float getImageRotation() throws NumberFormatException;
 }
