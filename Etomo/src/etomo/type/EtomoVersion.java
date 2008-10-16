@@ -7,9 +7,10 @@ import java.util.Properties;
 import etomo.storage.Storable;
 
 /**
- * <p>Description: </p>
+ * <p>Description:  Version of an object or file.  Used when necessary.  Treats
+ * null as the earliest version.</p>
  * 
- * <p>Copyright: Copyright (c) 2002, 2003, 2004</p>
+ * <p>Copyright: Copyright (c) 2002 - 2008</p>
  *
  *<p>Organization:
  * Boulder Laboratory for 3-Dimensional Electron Microscopy of Cells (BL3DEM),
@@ -20,6 +21,10 @@ import etomo.storage.Storable;
  * @version $Revision$
  * 
  * <p> $Log$
+ * <p> Revision 1.5  2007/12/10 22:36:12  sueh
+ * <p> bug# 1041 Changed getInstance(String key) to getEmptyInstance(String key) for
+ * <p> clarity.
+ * <p>
  * <p> Revision 1.4  2007/06/11 17:20:54  sueh
  * <p> bug# 1014 Must pass a String to String.compareTo().
  * <p>
