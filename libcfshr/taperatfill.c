@@ -20,7 +20,6 @@
 #define taperatfill taperatfill_
 #endif
 
-#define PLIST_CHUNK 1000
 /*!
  * Analyzes for fill areas at the edge of the slice [sl], finds the borders 
  * between actual image and fill areas, and tapers the image intensities down 
@@ -32,21 +31,27 @@
 int sliceTaperAtFill(Islice *sl, int ntaper, int inside)
 {
   struct pixdist {
-    unsigned short int x, y;
-    unsigned short dist;
-    signed char dx, dy;
+    short int dx, dy;
+    int edgeind;
   };
-
-  Ival val;
-  float fracs[128], fillpart[128];
+  struct edgelist {
+    int x, y;
+  };
+  #define MAX_TAPER 256
+  Ival val, val2, val3, val4;
+  float fracs[MAX_TAPER], fillpart[MAX_TAPER];
   float fillval, lastval;
   int len, longest;
-  int i, ix, iy, xnext, ynext, xp, yp, lastint, interval, found;
+  int i, j, k, ix, iy, xnext, ynext, xp, yp, lastint, interval, found;
   int dir, tapdir, col, row, ncol, ind, xstart, ystart, ndiv;
-  int dist;
+  int dist, distmin, distmax, minedge;
   struct pixdist *plist;
-  int pllimit = PLIST_CHUNK;
+  struct edgelist *elist;
+  int pllimit;
   int plsize = 0;
+  int elsize = 0;
+  int ellimit;
+  int tapersq;
   unsigned char *bitmap;
   int xsize = sl->xsize;
   int ysize = sl->ysize;
@@ -55,8 +60,15 @@ int sliceTaperAtFill(Islice *sl, int ntaper, int inside)
   int dyout[4] = {-1, 0, 1, 0};
   int dxnext[4] = {1, 0, -1, 0};
   int dynext[4] = {0, 1, 0, -1};
+  int plist_chunk, elist_chunk;
 
+  ntaper = B3DMIN(MAX_TAPER, ntaper);
+  tapersq = (ntaper + 1) * (ntaper + 1);
   inside = inside != 0 ? 1 : 0;
+  elist_chunk =  (sl->xsize + sl->ysize) / 5 + 1;
+  plist_chunk = ntaper * elist_chunk;
+  pllimit = plist_chunk;
+  ellimit = elist_chunk;
 
   /* find longest string of repeated values along the edge */
   longest = 0;
@@ -139,12 +151,15 @@ int sliceTaperAtFill(Islice *sl, int ntaper, int inside)
     return 0;
 
   /* Get initial chunk of pixel list and bitmap */
-  plist = (struct pixdist *)malloc(PLIST_CHUNK * sizeof(struct pixdist));
-  if (plist)
+  plist = (struct pixdist *)malloc(plist_chunk * sizeof(struct pixdist));
+  elist = (struct edgelist *)malloc(elist_chunk * sizeof(struct pixdist));
+  if (plist && elist)
     bitmap = (unsigned char *)malloc(bmsize);
-  if (!plist || !bitmap) {
+  if (!plist || !bitmap || !elist) {
     if (plist)
       free(plist);
+    if (elist)
+      free(elist);
     return (-1);
   }
 
@@ -156,12 +171,16 @@ int sliceTaperAtFill(Islice *sl, int ntaper, int inside)
   xstart = ix;
   ystart = iy;
   tapdir = 1 - 2 * inside;
+  elist[0].x = ix;
+  elist[0].y = iy;
+  elsize = 1;
 
   do {
     ncol = 1;
     xnext = ix + dxout[dir] + dxnext[dir];
     ynext = iy + dyout[dir] + dynext[dir];
     sliceGetVal(sl, xnext, ynext, val);
+    ind = 1;
     if (val[0] != fillval) {
       /* case 1: inside corner */
       ix = xnext;
@@ -182,15 +201,32 @@ int sliceTaperAtFill(Islice *sl, int ntaper, int inside)
         dir = (dir + 1) % 4;
         if (!inside)
           ncol = ntaper + 1;
+        ind = 0;
       }
     }
-      
+
     /* If outside pixel is outside the data, nothing to add to lists */
     xp = ix + dxout[dir];
     yp = iy + dyout[dir];
     if (xp < 0 || xp >= xsize || yp < 0 || yp >= ysize)
       continue;
 
+    /* Add a new point to edge list */
+    if (ind) {
+      if (elsize >= ellimit) {
+        ellimit += elist_chunk;
+        elist = (struct edgelist *) realloc
+          (elist, ellimit * sizeof(struct edgelist));
+        if (!elist) {
+          free(plist);
+          free(bitmap);
+          return (-1);
+        }
+      }
+      elist[elsize].x = ix;
+      elist[elsize++].y = iy;
+    }
+      
     /* Loop on all the pixels to mark */
     for (col = 0; col < ncol; col++) {
       for (row = 1 - inside; row <= ntaper - inside; row++) {
@@ -202,47 +238,43 @@ int sliceTaperAtFill(Islice *sl, int ntaper, int inside)
           continue;
 
         /* skip marking outside pixels for inside taper or
-           inside pixels for outside taper */
+           inside pixels for outside taper.  Notice not good assumption that
+           anything with fill value is "outside" */
         sliceGetVal(sl, xp, yp, val);
         if ((inside && val[0] == fillval) || 
             (!inside && val[0] != fillval))
           continue;
 
-        dist = col * col + row * row;
+        /* If pixel is new, mark in bitmap and make a new entry on the list */
+        /* Eliminate keeping track of distance and looking pixel up 10/14/08 */
         ind = xsize * yp + xp;
-        if (bitmap[ind / 8] & (1 << (ind % 8))) {
+        if (!(bitmap[ind / 8] & (1 << (ind % 8)))) {
 
-          /* If the pixel is already marked, find it on the
-             list and see if it's closer this time */
-          for (i = plsize - 1; i >= 0; i--) {
-            if (plist[i].x == xp && plist[i].y == yp) {
-              if (plist[i].dist > dist) {
-                plist[i].dist = dist;
-                plist[i].dx = (signed char)(ix - xp);
-                plist[i].dy = (signed char)(iy - yp);
-              }
-              break;
-            }
+          /* But first insist that the pixel have an outside neighbor if out */
+          if (!inside) {
+            sliceGetVal(sl, xp + 1, yp, val);
+            sliceGetVal(sl, xp, yp + 1, val2);
+            sliceGetVal(sl, xp - 1, yp, val3);
+            sliceGetVal(sl, xp, yp - 1, val4);
+            if (val[0] != fillval && val2[0] != fillval && val3[0] != fillval
+                && val4[0] != fillval)
+              continue;
           }
-        } else {
 
-          /* Otherwise, mark pixel in bitmap and make a new 
-             entry on the list */
           bitmap[ind / 8] |= (1 << (ind % 8));
           if (plsize >= pllimit) {
-            pllimit += PLIST_CHUNK;
-            plist = (struct pixdist *) realloc(plist,
-                                               pllimit * sizeof(struct pixdist));
+            pllimit += plist_chunk;
+            plist = (struct pixdist *) realloc
+              (plist, pllimit * sizeof(struct pixdist));
             if (!plist) {
               free (bitmap);
+              free(elist);
               return (-1);
             }
           }
-          plist[plsize].x = xp;
-          plist[plsize].y = yp;
-          plist[plsize].dist = dist;
-          plist[plsize].dx = (signed char)(ix - xp);
-          plist[plsize++].dy = (signed char)(iy - yp);
+          plist[plsize].edgeind = elsize - 1;
+          plist[plsize].dx = xp - ix;
+          plist[plsize++].dy = yp - iy;
         }
       }
     }
@@ -258,17 +290,43 @@ int sliceTaperAtFill(Islice *sl, int ntaper, int inside)
 
   /* Process the pixels on the list */
   for (i = 0; i < plsize; i++) {
-    ind = sqrt((double)plist[i].dist) + inside;
+
+    /* Go in both directions from starting index looking for closest distance*/
+    distmin = plist[i].dx * plist[i].dx + plist[i].dy * plist[i].dy;
+    minedge = plist[i].edgeind;
+    distmax = 1.5 * B3DMAX(distmin, tapersq);
+    ix = elist[minedge].x + plist[i].dx;
+    iy = elist[minedge].y + plist[i].dy;
+    /* printf("%d,%d  start dist %d to %d,%d", ix,iy,distmin,elist[minedge].x,
+       elist[minedge].y); */
+    for (dir = -1; dir <= 1; dir += 2) {
+      k = plist[i].edgeind;
+      for (j = 0; j < elsize; j++) {
+        k = (k + dir + elsize) % elsize;
+        xp = ix - elist[k].x;
+        yp = iy - elist[k].y;
+        dist = xp * xp + yp * yp;
+        if (dist < distmin) {
+          distmin = dist;
+          minedge = k;
+        }
+        if (dist > distmax)
+          break;
+      }
+    }
+
+    ind = sqrt((double)distmin) + inside;
+    /* printf("   end dist %d to %d,%d\n", distmin,elist[minedge].x,
+       elist[minedge].y); */
+    
     if (ind > ntaper)
       continue;
-    ix = plist[i].x;
-    iy = plist[i].y;
     if (inside) {
       xp = ix;
       yp = iy;
     } else {
-      xp = ix + plist[i].dx;
-      yp = iy + plist[i].dy;
+      xp = elist[minedge].x;
+      yp = elist[minedge].y;
     }
     sliceGetVal(sl, xp, yp, val);
     /*  val[0] = fracs[plist[i].dist] * val[0] + fillpart[plist[i].dist]; */
@@ -295,5 +353,8 @@ int taperatfill(float *array, int *nx, int *ny, int *ntaper, int *inside)
 /*
 
 $Log$
+Revision 1.1  2008/06/24 04:43:51  mast
+Moved to libcfshr
+
 
 */
