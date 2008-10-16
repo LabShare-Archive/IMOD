@@ -28,6 +28,9 @@ import etomo.type.ProcessTrack;
  * @version $Revision$
  * 
  * <p> $Log$
+ * <p> Revision 1.21  2007/12/26 22:25:17  sueh
+ * <p> bug# 1052 Moved argument handling from EtomoDirector to a separate class.
+ * <p>
  * <p> Revision 1.20  2007/02/19 22:03:02  sueh
  * <p> bug# 964 Fixed function names:  was AxisPanelIsNull, now its isAxisPanelNull.
  * <p>
@@ -198,6 +201,8 @@ public class MainTomogramPanel extends MainPanel {
         .getFineAlignmentState(AxisID.ONLY));
     axisPanelA.setTomogramPositioningState(processTrack
         .getTomogramPositioningState(AxisID.ONLY));
+    axisPanelA.setFinalAlignedStackState(processTrack
+        .getFinalAlignedStackState(AxisID.ONLY));
     axisPanelA.setTomogramGenerationState(processTrack
         .getTomogramGenerationState(AxisID.ONLY));
     axisPanelA.setTomogramCombinationState(processTrack
@@ -213,6 +218,8 @@ public class MainTomogramPanel extends MainPanel {
           .getFineAlignmentState(AxisID.SECOND));
       axisPanelB.setTomogramPositioningState(processTrack
           .getTomogramPositioningState(AxisID.SECOND));
+      axisPanelB.setFinalAlignedStackState(processTrack
+          .getFinalAlignedStackState(AxisID.SECOND));
       axisPanelB.setTomogramGenerationState(processTrack
           .getTomogramGenerationState(AxisID.SECOND));
     }
@@ -273,6 +280,9 @@ public class MainTomogramPanel extends MainPanel {
     else if (dialogType == DialogType.TOMOGRAM_COMBINATION) {
       setTomogramCombinationState(processState);
     }
+    else if (dialogType == DialogType.FINAL_ALIGNED_STACK) {
+      setFinalAlignedStackState(processState, axisID);
+    }
     else if (dialogType == DialogType.TOMOGRAM_GENERATION) {
       setTomogramGenerationState(processState, axisID);
     }
@@ -329,6 +339,16 @@ public class MainTomogramPanel extends MainPanel {
   public void setTomogramPositioningState(ProcessState state, AxisID axisID) {
     TomogramProcessPanel axisPanel = mapAxis(axisID);
     axisPanel.setTomogramPositioningState(state);
+  }
+  
+  /**
+   * 
+   * @param state
+   * @param axisID
+   */
+  public void setFinalAlignedStackState(ProcessState state, AxisID axisID) {
+    TomogramProcessPanel axisPanel = mapAxis(axisID);
+    axisPanel.setFinalAlignedStackState(state);
   }
 
   /**
