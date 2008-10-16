@@ -297,7 +297,6 @@ public class DataFlowTests {
         .getUIExpert(DialogType.TOMOGRAM_GENERATION, axisID);
     expert.openDialog();
     uiHarness.pack(applicationManager);
-    expert.newst(null, null, null, null);
     waitForThread(axisID);
     //applicationManager.mtffilter(axisID);
     //waitForThread(axisID);
@@ -354,6 +353,9 @@ public class DataFlowTests {
 }
 /**
  * <p> $Log$
+ * <p> Revision 3.26  2008/05/28 02:46:57  sueh
+ * <p> bug# 1111 Adding null for dialogType parameters.
+ * <p>
  * <p> Revision 3.25  2008/05/13 20:54:05  sueh
  * <p> bug# 847 Keep up with changes to ApplicationManager process
  * <p> functions.
