@@ -48,6 +48,9 @@ import etomo.type.TomogramState;
  * @version $Revision$
  *
  * <p> $Log$
+ * <p> Revision 3.60  2008/09/30 22:45:32  sueh
+ * <p> bug# 1113 Reformatted
+ * <p>
  * <p> Revision 3.59  2008/07/19 01:12:27  sueh
  * <p> bug# 1125 Making it easier to access CpuAdoc by not passing the
  * <p> manager to it; all it needs is the current directory.
@@ -419,8 +422,6 @@ public final class TomogramCombinationDialog extends ProcessDialog implements
     pnlSetup = new SetupCombinePanel(this, applicationManager, dialogType);
     pnlInitial = new InitialCombinePanel(this, applicationManager, dialogType);
     pnlFinal = new FinalCombinePanel(this, applicationManager, dialogType);
-
-    fixRootPanel(rootSize);
 
     rootPanel.setLayout(new BoxLayout(rootPanel, BoxLayout.Y_AXIS));
     rootPanel.add(parallelPanelContainer);

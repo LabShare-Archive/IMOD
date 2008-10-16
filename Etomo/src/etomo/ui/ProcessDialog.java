@@ -14,6 +14,10 @@
  * @version $Revision$
  *
  * <p> $Log$
+ * <p> Revision 3.33  2008/05/30 22:32:28  sueh
+ * <p> bug# 1102 Isolating the etomo.uitest package so it is not need for
+ * <p> running EtomoDirector.
+ * <p>
  * <p> Revision 3.32  2008/05/30 21:33:41  sueh
  * <p> bug# 1102 Moved uitest classes to etomo.uitest.
  * <p>
@@ -164,7 +168,6 @@
 package etomo.ui;
 
 import java.awt.Container;
-import java.awt.Dimension;
 import java.awt.event.ActionEvent;
 
 import javax.swing.Box;
@@ -188,7 +191,6 @@ public abstract class ProcessDialog implements AbstractParallelDialog {
   final ApplicationManager applicationManager;
   final AxisID axisID;
   final DialogType dialogType;
-  final Dimension rootSize = new Dimension(620, 680);
   final JPanel rootPanel = new JPanel();
   //  Exit buttons
   final JPanel pnlExitButtons = new JPanel();
@@ -282,12 +284,6 @@ public abstract class ProcessDialog implements AbstractParallelDialog {
 
   public boolean isAdvanced() {
     return isAdvanced;
-  }
-
-  public void fixRootPanel(final Dimension size) {
-    //    rootPanel.setMinimumSize(rootSize);
-    //    rootPanel.setPreferredSize(rootSize);
-    //    rootPanel.setMaximumSize(rootSize);
   }
 
   void setDisplayed(final boolean displayed) {

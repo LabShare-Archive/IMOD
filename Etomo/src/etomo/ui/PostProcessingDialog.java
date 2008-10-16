@@ -49,7 +49,6 @@ public final class PostProcessingDialog extends ProcessDialog implements
 
   public PostProcessingDialog(ApplicationManager appMgr) {
     super(appMgr, AxisID.ONLY, DialogType.POST_PROCESSING);
-    fixRootPanel(rootSize);
     btnSqueezeVolume = (Run3dmodButton) appMgr.getProcessResultDisplayFactory(
         axisID).getSqueezeVolume();
     btnSqueezeVolume.setContainer(this);
@@ -279,6 +278,9 @@ public final class PostProcessingDialog extends ProcessDialog implements
 }
 /**
  * <p> $Log$
+ * <p> Revision 3.38  2008/09/30 22:10:55  sueh
+ * <p> bug# 1113 Using a private constructor in SpacedPanel.
+ * <p>
  * <p> Revision 3.37  2008/05/28 02:50:30  sueh
  * <p> bug# 1111 Add a dialogType parameter to the ProcessSeries
  * <p> constructor.  DialogType must be passed to any function that constructs

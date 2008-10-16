@@ -35,6 +35,9 @@ import etomo.type.Run3dmodMenuOptions;
  * @version $Revision$
  *
  * <p> $Log$
+ * <p> Revision 3.63  2008/09/30 22:46:19  sueh
+ * <p> bug# 1113 Using a private constructor in SpacedPanel.
+ * <p>
  * <p> Revision 3.62  2008/05/13 23:08:07  sueh
  * <p> bug# 847 Adding a right click menu for deferred 3dmods to some
  * <p> process buttons.
@@ -375,7 +378,6 @@ final class TomogramPositioningDialog extends ProcessDialog implements
       TomogramPositioningExpert expert, AxisID axisID) {
     super(appMgr, axisID, DialogType.TOMOGRAM_POSITIONING);
     this.expert = expert;
-    fixRootPanel(rootSize);
     ProcessResultDisplayFactory displayFactory = appMgr
         .getProcessResultDisplayFactory(axisID);
     btnSample = (Run3dmodButton) displayFactory.getSampleTomogram();

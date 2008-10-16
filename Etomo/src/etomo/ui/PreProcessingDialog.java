@@ -27,6 +27,9 @@ import etomo.comscript.CCDEraserParam;
  * @version $Revision$
  *
  * <p> $Log$
+ * <p> Revision 3.13  2008/05/03 00:52:25  sueh
+ * <p> bug# 847 Passing null for ProcessSeries to process funtions.
+ * <p>
  * <p> Revision 3.12  2007/12/26 22:25:55  sueh
  * <p> bug# 1052 Return true when done() completes successfully.
  * <p>
@@ -136,8 +139,6 @@ public class PreProcessingDialog extends ProcessDialog {
   public PreProcessingDialog(ApplicationManager appManager, AxisID axisID) {
     super(appManager, axisID, DialogType.PRE_PROCESSING);
     panelCCDEraser = CCDEraserPanel.getInstance(appManager, axisID, dialogType);
-
-    fixRootPanel(rootSize);
 
     rootPanel.setLayout(new BoxLayout(rootPanel, BoxLayout.Y_AXIS));
 
