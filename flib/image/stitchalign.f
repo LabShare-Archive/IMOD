@@ -483,7 +483,7 @@ c             it - these will work the same as shift displacements
             edgeGeomVars(6,j) = beta(1) - beta(2)
             edgeGeomVars(7,j) = gamma(1) - gamma(2)
           endif
-          call scaleAndReport()
+          call scaleAndReport(ixPiece, iyPiece)
         enddo
         if (pairwise) then
 c           
@@ -505,7 +505,7 @@ c           dxyz from the existing variable values
           enddo
           ifUnload = 0
           call stitchfunc(nvarsrch,var,finalErr,Grad)
-          call scaleAndReport()
+          call scaleAndReport(ixPiece, iyPiece)
         endif
 c         
 c         compute full transform and output to file
@@ -1368,9 +1368,10 @@ c     &              (rmat(i,m,iv),m=1,3)
 
 c       Scales the results from a minimization and reports the results
 c
-      subroutine scaleAndReport()
+      subroutine scaleAndReport(ixPiece, iyPiece)
       implicit none
       include 'stitchvars.inc'
+      integer*4 ixPiece(*), iyPiece(*)
       integer*4 iexy, j, m, iv, jv, ivf, jvf, nsum,kstr, kend, k, i
       real*8 dsum, dsumsq
       real*4 distMax,avg,sd,dist
@@ -1387,11 +1388,12 @@ c       Scale radians to degrees and unscale the dxyz
         enddo
       enddo
       write(6,102)
-102   format(/,'  Alpha    Beta   Gamma    Mag    Comp    Dmag     Skew',
-     &    '     Dx      Dy      Dz')
-      write(6,103)(alpha(iv), beta(iv), gamma(iv), gmag(iv), comp(iv),
+102   format(/,' ix iy Alpha   Beta  Gamma    Mag    Comp    Dmag     Skew',
+     &    '    Dx     Dy     Dz')
+      write(6,103)(ixPiece(iVolFull(iv)), iyPiece(iVolFull(iv)),
+     &    alpha(iv), beta(iv), gamma(iv), gmag(iv), comp(iv),
      &    dmag(iv), skew(iv), (dxyz(iv,i), i=1,3),iv = 1, numSolve)
-103   format(f7.2,2f8.2,3f8.4,f8.2,3f8.1)
+103   format(2i3,f6.2,2f7.2,3f8.4,f8.2,3f7.1)
 c       
 c       Get mean residuals
       dsum = 0.
@@ -2775,6 +2777,9 @@ c
 
 
 c       $Log$
+c       Revision 3.4  2007/06/17 04:56:55  mast
+c       Dimensioned outvec in findWarpVector to * for old Imtel compiler
+c
 c       Revision 3.3  2007/04/10 19:45:03  mast
 c       Made it do pairwise only if more than 2 volumes
 c
