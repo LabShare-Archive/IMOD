@@ -1,14 +1,14 @@
 # Command file to run ctfphaseflip
 #
-####CreatedVersion#### 3.10.21
+####CreatedVersion#### 3.12.20
 # 
 $ctfphaseflip -StandardInput
-InputStack  series4-8um.ali
-AngleFile   series4-8um.tlt
-OutputFileName series4-8umCorrected.ali
+InputStack  g5a.ali
+AngleFile   g5a.tlt
+OutputFileName g5a_ctfcorr.ali
 #
 # Defocus file from ctfplotter (see man page for format)
-DefocusFile series4-8um.defocus
+DefocusFile g5a.defocus
 #
 # Microscope voltage in kV
 Voltage      200

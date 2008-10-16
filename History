@@ -1,5 +1,8 @@
 IMOD History
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+10/16/08: Changed Copytomocoms to produce com files for CTF correction, with
+options to set common parameters.
+
 10/16/08: Sped up mrctaper by 7x for 4K, 32x for 7K images.
 
 10/12/08: Added ability to display images with cosine stretch in Midas if tilt
