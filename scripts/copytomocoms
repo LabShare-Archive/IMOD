@@ -83,6 +83,16 @@ if ($#argv > 0) then
     set bangles = 0
     set firstinc = 0
     set bfirstinc = 0
+    set voltage = ""
+    set voltsub = "gibberish"
+    set spherab = ""
+    set sphersub = "gibberish"
+    set defocus = ""
+    set defocsub = "gibberish"
+    set ctfconf = ""
+    set ctfconfsub = "gibberish"
+    set CTFonly = 0;
+    set onefile = 0;
 
     # process arguments
     while ($#argv > 0)
@@ -216,6 +226,36 @@ if ($#argv > 0) then
         case -bfo*:
           set bFocusAdj = 1
           shift
+          breaksw
+        case -gr*:
+          set gradient = "$argv[2]"
+          shift; shift
+          breaksw
+        case -vo*:
+          set voltage = "$argv[2]"
+          set voltsub = "Voltage"
+          shift; shift
+          breaksw
+        case -Cs:
+          set spherab = "$argv[2]"
+          set sphersub = "SphericalAberration"
+          shift; shift
+          breaksw
+        case -de*:
+          set defocus = "$argv[2]"
+          set defocsub = "ExpectedDefocus"
+          shift; shift
+          breaksw
+        case -ct*:
+          # convert \ to / and escape /
+          set ctfconf = `\echo "$argv[2]" | sed -e '/\\/s//\//g' -e '/\//s//\\\//g'`
+          set ctfconfsub = "ConfigFile"
+          shift; shift
+          breaksw
+        case -CT*:
+          set CTFonly = 1
+          set onefile = 1;
+          shift;
           breaksw
         default:
           echo "ERROR: $pn - unrecognized option"
@@ -757,7 +797,7 @@ while ($iaxis < $numax)
     # FOR CCD CAMERA ONLY
 
     set wipepl = "gibberish9876543"
-    if ($filmccd != "F") then
+    if ($filmccd != "F" && ! $onefile) then
 
 	set wipepl = $setname.pl
 	set tiltxf = $setname.tltxf
@@ -897,7 +937,7 @@ EOF
 	    set backuplist = ($backuplist $setname.ecd)
 	endif
 
-    else
+    else if (! $onefile) then
 
 	# FOR FILM, GET BLEND OR NEWST
 
@@ -991,6 +1031,8 @@ EOF
 
     # GET TRACK: WIPE OUT PL ENTRY WHEN NO MONTAGE FOR FILM
     # SET INPUT TO .PREALI FOR CCD
+
+    if ($CTFonly) goto doCTF
 
     set srcfile = "$srcdir/track"$srcext
     set dstfile = "track"$dstext
@@ -1086,6 +1128,33 @@ EOF
         <"$srcfile" >$dstfile
     echo '$'"if (-e $backupname) $backupname" >> $dstfile
 
+doCTF:
+    # GET CTFPLOTTER AND CTFCORRECTION
+    set srcfile = "$srcdir/ctfplotter"$srcext
+    set dstfile = "ctfplotter"$dstext
+    set backuplist = ($backuplist $dstfile)
+    if (-e $dstfile) \mv -f $dstfile $dstfile~
+    sed -e s/$srcname/$dstname/g\
+        -e "/^$ctfconfsub/s/[ 	].*/	$ctfconf/"\
+        -e "/^$voltsub/s/[ 	].*/	$voltage/"\
+        -e "/^$sphersub/s/[ 	].*/	$spherab/"\
+        -e "/^$defocsub/s/[ 	].*/	$defocus/"\
+        -e "/^PixelSize/s/[ 	].*/	$pixsize/"\
+        -e "/^AxisAngle/s/[ 	].*/	$axisangle/"\
+        <"$srcfile" >$dstfile
+    echo '$'"if (-e $backupname) $backupname" >> $dstfile
+
+    set srcfile = "$srcdir/ctfcorrection"$srcext
+    set dstfile = "ctfcorrection"$dstext
+    set backuplist = ($backuplist $dstfile)
+    if (-e $dstfile) \mv -f $dstfile $dstfile~
+    sed -e s/$srcname/$dstname/g\
+        -e "/^$voltsub/s/[ 	].*/	$voltage/"\
+        -e "/^$sphersub/s/[ 	].*/	$spherab/"\
+        -e "/^PixelSize/s/[ 	].*/	$pixsize/"\
+        <"$srcfile" >$dstfile
+    echo '$'"if (-e $backupname) $backupname" >> $dstfile
+    if ($CTFonly) goto loopend
 
     # GET TILT
 
@@ -1235,12 +1304,14 @@ EOF
     
 
     # PREPARE FOR NEXT ROUND
-
+loopend:
     @ temp = $xsize
     @ xsize = $ysize
     @ ysize  = $temp
     @ iaxis++
 end
+
+if ($onefile) exit 0
 
 # OUTPUT THE BACKUP FILE
 
@@ -1367,6 +1438,11 @@ Current options:
   -gr[adient]  name  Correct for mag gradients using the given .mgt file
   -fo[cus]           Focus was adjusted between frames when acquiring montage
   -bfo[cus]          Focus was adjusted between montage frames for b axis
+  -vo[ltage]         Microscope voltage in kV
+  -Cs                Spherical aberration
+  -ct[fnoise]        Configuration file list noise files for ctfplotter
+  -de[focus]         Defocus is nanometers, underfocus positive
+  -CT[Ffiles]        Just copy files for CTF plotting and correction
  
 Options for special cases or film data:
   -xs[ize]  #        X size of image data (needed if data file not present)
@@ -1384,6 +1460,9 @@ exit 0
 
 #
 #  $Log$
+#  Revision 3.60  2008/07/16 15:22:14  mast
+#  Added warning if .rawtlt does not exist yet
+#
 #  Revision 3.59  2008/05/30 03:33:21  mast
 #  Made it set mode 1 for newst.com if input is bytes
 #
