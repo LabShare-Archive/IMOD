@@ -10,7 +10,7 @@
  */
 
 #include <stdlib.h>
-#include "cfsemshare.h"
+#include "b3dutil.h"
 #include "mrcslice.h"
 #include "imodconfig.h"
 
@@ -353,6 +353,10 @@ int taperatfill(float *array, int *nx, int *ny, int *ntaper, int *inside)
 /*
 
 $Log$
+Revision 1.2  2008/10/16 22:49:13  mast
+Kept separate list of edge points to eliminate full search in point list for
+a point each time it's found; speeded up a lot for big images.
+
 Revision 1.1  2008/06/24 04:43:51  mast
 Moved to libcfshr
 
