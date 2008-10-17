@@ -1,5 +1,6 @@
 IMOD History
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+10/17/08: IMOD_3-12-20
 10/16/08: Changed Copytomocoms to produce com files for CTF correction, with
 options to set common parameters.
 
