@@ -255,9 +255,9 @@ if ($#argv > 0) then
           shift; shift
           breaksw
         case -CT*:
-          set CTFonly = 1
-          set onefile = 1;
-          shift;
+          set CTFonly = "$argv[2]"
+          set onefile = 1
+          shift; shift;
           breaksw
         default:
           echo "ERROR: $pn - unrecognized option"
@@ -277,6 +277,11 @@ if ($#argv > 0) then
     endif
     if (! $?axisangle) then
         echo "ERROR: $pn - You must enter the rotation angle of the tilt axis"
+        exit 1
+    endif
+    if ("$CTFonly" != "0" && "$CTFonly" != "1" && "$CTFonly" != "2" && \
+        "$CTFonly" != "3") then
+        echo "ERROR: $pn - The entry for -CTFonly must be 1, 2, or 3, not $CTFonly"
         exit 1
     endif
     @ numin = 0
@@ -1131,6 +1136,8 @@ EOF
     echo '$'"if (-e $backupname) $backupname" >> $dstfile
 
 doCTF:
+    if ($CTFonly == "2") goto doCTFcorr
+
     # GET CTFPLOTTER AND CTFCORRECTION
     set srcfile = "$srcdir/ctfplotter"$srcext
     set dstfile = "ctfplotter"$dstext
@@ -1145,7 +1152,9 @@ doCTF:
         -e "/^AxisAngle/s/[ 	].*/	$axisangle/"\
         <"$srcfile" >$dstfile
     echo '$'"if (-e $backupname) $backupname" >> $dstfile
+    if ($CTFonly == "1") goto loopend
 
+doCTFcorr:
     set srcfile = "$srcdir/ctfcorrection"$srcext
     set dstfile = "ctfcorrection"$dstext
     set backuplist = ($backuplist $dstfile)
@@ -1444,7 +1453,8 @@ Current options:
   -Cs                Spherical aberration
   -ct[fnoise]        Configuration file list noise files for ctfplotter
   -de[focus]         Defocus is nanometers, underfocus positive
-  -CT[Ffiles]        Just copy files for CTF plotting and correction
+  -CT[Ffiles]  #     Just copy files for CTF plotting and correction (1 for
+                       plotting, 2 for correction, 3 for both)
  
 Options for special cases or film data:
   -xs[ize]  #        X size of image data (needed if data file not present)
@@ -1462,6 +1472,9 @@ exit 0
 
 #
 #  $Log$
+#  Revision 3.62  2008/10/17 14:37:43  mast
+#  Fixed initialization
+#
 #  Revision 3.61  2008/10/16 23:08:52  mast
 #  Added ctf correction files, parameters, and option to get just those files
 #
