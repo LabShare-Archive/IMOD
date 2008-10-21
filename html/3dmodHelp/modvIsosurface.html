@@ -23,6 +23,10 @@ Their display properties can be edited in the Model View Object Edit dialog.
 The extra objects that can be edited are listed after the last regular object
 in the model; just use the slider or spin box there to get to them.
 <P>
+If you click on a position in the isosurface with the right mouse button,
+that position becomes the current point within 3dmod, thus allowing
+you to find corresponding features in the image data.
+<P>
 The computations can be done with multiple threads running in parallel.  Doing
 so incurs some extra overhead and the computation time also does not reduce
 proportional to the number of processors used and may even increase with more
@@ -56,6 +60,11 @@ position changes.  The subvolume is also centered when this box is turned
 on, so you can use it to center the volume even if you do not want to
 leave it on.
 <P>
+<B>Binning</B> selects the amount of binning of the data in 3D; e.g., with a
+binning of 2, each voxel used for computing the isosurface will be the average
+of 8 adjacent voxels.  Binning will both increase the speed of the display and
+smooth the surface considerably.
+<P>
 <B>Smoothing</B> selects the number of iterations of a smoothing
 routine that moves each vertex of the isosurface toward the average of
 neighboring vertices.  Some of the change in appearance when you turn
@@ -66,12 +75,29 @@ by the Chimera code, but with smoothing, they are recomputed from the triangles
 in the usual way for IMOD meshes.  Note that another way to get a
 smoother display is to restart 3dmod with the image loaded binned.
 <P>
+<B>Delete small pieces</B> can be turned on to eliminate small
+pieces not connected to the rest of the surface.  The threshold size for
+eliminating pieces can be adjusted with the <B>Min size</B> spin box, which
+sets the minimum number of triangles required in order to retain a piece.
+There is significant computation involved in identifying the small pieces, so
+you may need to turn this option off while adjusting other features, then turn
+it back on.
+<P>
 Below these controls is the <B>histogram</B> of voxel values inside the
 bounding box.  The histogram is based on the byte values stored in
 program memory, not the values in the image file.
 <P>
 <B>Threshold</B> sets the constant intensity
 value at which the isosurfaces will be rendered.</P>
+<P>
+<B>Link to global X, Y, Z</B> controls whether the coordinates selected in the
+sliders below will be linked to the current point coordinate in 3dmod image
+display windows.  If it is on, then changing these sliders will change the
+current point in 3dmod and affect other displays; also, any change in current
+point within 3dmod will change the center position of the bounding box.  If it
+is off, then the coordinates selected here become independent of the current
+point.  Turning the option off allows you to right-click on the isosurface
+without having the isosurface display move to a new position.
 <P>
 The <B>X</B>, <B>Y</B>, and <B>Z</B> sliders will track the
 current point coordinate in 3dmod image display windows and can be
