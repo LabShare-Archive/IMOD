@@ -6,7 +6,6 @@ short = scale
 long = ScaleShifts
 type = FP
 usage = Factors to scale X/Y translations of the first and second transforms
-factors
 tooltip = 
 manpage = Factors by which to scale X/Y translations of the first and second
 transforms before multiplying them.  Use this option if a set of transforms
