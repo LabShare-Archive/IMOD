@@ -9,6 +9,8 @@ import javax.swing.ImageIcon;
 import javax.swing.JButton;
 import javax.swing.JLabel;
 
+import etomo.type.ConstStringParameter;
+
 /**
  * <p>Description: </p>
  * 
@@ -23,6 +25,9 @@ import javax.swing.JLabel;
  * @version $Revision$
  * 
  * <p> $Log$
+ * <p> Revision 1.10  2008/09/30 21:01:21  sueh
+ * <p> bug# 1113 Using a private constructor in SpacedPanel.
+ * <p>
  * <p> Revision 1.9  2008/02/26 01:39:35  sueh
  * <p> bug# 1087 Added isEmpty.
  * <p>
@@ -62,8 +67,8 @@ final class FileTextField {
   private final TextField field;
 
   private JLabel label = null;
-  private File file = null;
   private boolean showPartialPath = false;
+  private boolean debug = false;
 
   FileTextField(final String label) {
     this(label, true);
@@ -91,6 +96,10 @@ final class FileTextField {
     field.setTextPreferredWidth(width);
   }
 
+  void setAlignmentX(final float alignment) {
+    panel.setAlignmentX(alignment);
+  }
+
   /**
    * The action command is the label passed into the constructor, whether or not a
    * label is displayed.  If the label is shared with another field that uses the
@@ -112,7 +121,6 @@ final class FileTextField {
 
   void clear() {
     field.setText("");
-    file = null;
   }
 
   void setShowPartialPath() {
@@ -121,6 +129,10 @@ final class FileTextField {
 
   void setFieldEditable(final boolean editable) {
     field.setEditable(editable);
+  }
+
+  void setDebug(final boolean input) {
+    debug = input;
   }
 
   void setEditable(final boolean editable) {
@@ -142,36 +154,44 @@ final class FileTextField {
   }
 
   void setFile(final File file) {
-    this.file = file;
-    setFieldFromFile();
+    setFieldFromFile(file);
   }
 
   File getFile() {
-    return file;
+    String text = field.getText();
+    if (text != null && !text.matches("\\s*")) {
+      return new File(text);
+    }
+    return null;
   }
 
   String getFileName() {
-    if (file == null) {
-      return field.getText();
+    File file = getFile();
+    if (file != null) {
+      return file.getName();
     }
-    return file.getName();
+    return field.getText();
   }
 
   String getFileAbsolutePath() {
-    return file.getAbsolutePath();
+    File file = getFile();
+    if (file != null) {
+      return file.getAbsolutePath();
+    }
+    return field.getText();
   }
 
   void setText(final String text) {
-    if (text == null || text.matches("\\s*")) {
-      file = null;
+    if (text != null && !text.matches("\\s*")) {
+      setFieldFromFile(new File(text));
     }
-    else {
-      file = new File(text);
-    }
-    setFieldFromFile();
   }
 
-  private void setFieldFromFile() {
+  void setText(final ConstStringParameter input) {
+    setText(input.toString());
+  }
+
+  private void setFieldFromFile(File file) {
     if (file == null) {
       field.setText("");
       return;
@@ -201,8 +221,13 @@ final class FileTextField {
     return field.getText();
   }
 
-  void setToolTipText(final String text) {
+  void setToolTipText(String text) {
     field.setToolTipText(text);
-    button.setToolTipText(TooltipFormatter.INSTANCE.format(text));
+    panel.setToolTipText(text);
+    text = TooltipFormatter.INSTANCE.format(text);
+    button.setToolTipText(text);
+    if (label != null) {
+      label.setToolTipText(text);
+    }
   }
 }
