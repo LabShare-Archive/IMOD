@@ -14,27 +14,31 @@ import etomo.util.InvalidParameterException;
 import etomo.util.MRCHeader;
 
 /**
-* <p>Description: </p>
-* 
-* <p>Copyright: Copyright 2008</p>
-*
-* <p>Organization:
-* Boulder Laboratory for 3-Dimensional Electron Microscopy of Cells (BL3DEMC),
-* University of Colorado</p>
-* 
-* @author $Author$
-* 
-* @version $Revision$
-* 
-* <p> $Log$ </p>
-*/
+ * <p>Description: </p>
+ * 
+ * <p>Copyright: Copyright 2008</p>
+ *
+ * <p>Organization:
+ * Boulder Laboratory for 3-Dimensional Electron Microscopy of Cells (BL3DEMC),
+ * University of Colorado</p>
+ * 
+ * @author $Author$
+ * 
+ * @version $Revision$
+ * 
+ * <p> $Log$
+ * <p> Revision 1.1  2008/10/27 17:53:11  sueh
+ * <p> bug# 1141 Monitor for ctfcorrection.com.
+ * <p> </p>
+ */
 public final class CtfCorrectionMonitor extends FileSizeProcessMonitor {
-  public static  final String  rcsid =  "$Id$";
+  public static final String rcsid = "$Id$";
 
   private ComScriptManager comScriptManager = null;
-  
+
   public CtfCorrectionMonitor(ApplicationManager appMgr, AxisID id) {
     super(appMgr, id, ProcessName.CTF_CORRECTION);
+    setFindWatchedFileName(false);
   }
 
   /* (non-Javadoc)
@@ -73,39 +77,39 @@ public final class CtfCorrectionMonitor extends FileSizeProcessMonitor {
     nY = (double) outputHeader.getNColumns();
     nZ = (double) outputHeader.getNSections();
     switch (outputHeader.getMode()) {
-      case 0 :
-        modeBytes = 1.0d;
-        break;
-      case 1 :
-        modeBytes = 2.0d;
-        break;
-      case 2 :
-        modeBytes = 4.0d;
-        break;
-      case 3 :
-        modeBytes = 4.0d;
-        break;
-      case 4 :
-        modeBytes = 8.0d;
-        break;
-      case 16 :
-        modeBytes = 3.0d;
-        break;
-      default :
-        throw new InvalidParameterException("Unknown mode parameter");
+    case 0:
+      modeBytes = 1.0d;
+      break;
+    case 1:
+      modeBytes = 2.0d;
+      break;
+    case 2:
+      modeBytes = 4.0d;
+      break;
+    case 3:
+      modeBytes = 4.0d;
+      break;
+    case 4:
+      modeBytes = 8.0d;
+      break;
+    case 16:
+      modeBytes = 3.0d;
+      break;
+    default:
+      throw new InvalidParameterException("Unknown mode parameter");
     }
     // Assumption: newst will write the output file with the same mode as the
     // the input file 
     double fileSize = 1024.0d + nX * nY * nZ * modeBytes;
     nKBytes = (int) (fileSize / 1024);
     applicationManager.getMainPanel().setProgressBar("Running CTF Correction",
-        nKBytes, axisID,ProcessName.CTF_CORRECTION);
+        nKBytes, axisID, ProcessName.CTF_CORRECTION);
   }
-  
-  protected void reloadWatchedFile() {
-    watchedFile = DatasetFiles.getCtfCorrectionFile(applicationManager,axisID);
+
+  void reloadWatchedFile() {
+    watchedFile = DatasetFiles.getCtfCorrectionFile(applicationManager, axisID);
   }
-  
+
   private void loadComScriptManager() {
     if (comScriptManager != null) {
       return;
