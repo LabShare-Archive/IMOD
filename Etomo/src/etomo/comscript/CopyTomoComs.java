@@ -18,6 +18,9 @@
  * 
  * <p>
  * $Log$
+ * Revision 3.21  2007/12/26 22:11:48  sueh
+ * bug# 1052 Moved argument handling from EtomoDirector to a separate class.
+ *
  * Revision 3.20  2007/12/10 21:55:17  sueh
  * bug# 1041 Formatted.
  *
@@ -204,8 +207,10 @@ import etomo.process.ProcessMessages;
 import etomo.process.SystemProgram;
 import etomo.type.AxisID;
 import etomo.type.AxisType;
+import etomo.type.ConstEtomoNumber;
 import etomo.type.ConstMetaData;
 import etomo.type.DataSource;
+import etomo.type.EtomoNumber;
 import etomo.type.TiltAngleType;
 import etomo.type.ViewType;
 
@@ -213,20 +218,25 @@ public final class CopyTomoComs {
   public static final String rcsid = "$Id$";
 
   private final ArrayList command = new ArrayList();
+  private final EtomoNumber voltage = new EtomoNumber();
+  private final EtomoNumber sphericalAberration = new EtomoNumber();
+  private final EtomoNumber ctfFiles = new EtomoNumber();
 
   private final BaseManager manager;
-  private final SystemProgram copytomocoms;
 
   private StringBuffer commandLine = null;
   private int exitValue;
   private ConstMetaData metaData;
   private boolean debug;
+  private SystemProgram copytomocoms = null;
 
   public CopyTomoComs(ApplicationManager manager) {
     this.manager = manager;
     metaData = manager.getConstMetaData();
     debug = EtomoDirector.INSTANCE.getArguments().isDebug();
+  }
 
+  public void setup() {
     // Create a new SystemProgram object for copytomocom, set the
     // working directory and stdin array.
     // Do not use the -e flag for tcsh since David's scripts handle the failure 
@@ -241,12 +251,27 @@ public final class CopyTomoComs {
     //genStdInputSequence();
   }
 
+  public void setVoltage(ConstEtomoNumber input) {
+    voltage.set(input);
+  }
+
+  public void setSphericalAberration(ConstEtomoNumber input) {
+    sphericalAberration.set(input);
+  }
+  
+  public void setCTFFiles(CtfFilesValue ctfFilesValue) {
+    ctfFiles.set(ctfFilesValue.get());
+  }
+
   /**
    * Return the current command line string
    * 
    * @return
    */
   public String getCommandLine() {
+    if (copytomocoms == null) {
+      return "";
+    }
     return copytomocoms.getCommandLine();
   }
 
@@ -300,6 +325,14 @@ public final class CopyTomoComs {
     if (!excludeProjections.equals("")) {
       command.add("-skip");
       command.add(excludeProjections);
+    }
+    if (!voltage.isNull()) {
+      command.add("-voltage");
+      command.add(voltage.toString());
+    }
+    if (!sphericalAberration.isNull()) {
+      command.add("-Cs");
+      command.add(sphericalAberration.toString());
     }
 
     //Undistort images with the given .idf file
@@ -495,7 +528,6 @@ public final class CopyTomoComs {
       stdInput[i] = tempStdInput[i];
     }
     copytomocoms.setStdInput(stdInput);
-
   }
 
   /**
@@ -505,6 +537,9 @@ public final class CopyTomoComs {
    *         IOException
    */
   public int run() {
+    if (copytomocoms == null) {
+      return -1;
+    }
     int exitValue;
 
     //  Delete the rawtilt files if extract raw tilts is selected
@@ -518,10 +553,16 @@ public final class CopyTomoComs {
   }
 
   public String getStdErrorString() {
+    if (copytomocoms == null) {
+      return "ERROR: Copytomocoms is null.";
+    }
     return copytomocoms.getStdErrorString();
   }
 
   public String[] getStdError() {
+    if (copytomocoms == null) {
+      return new String[] { "ERROR: Copytomocoms is null." };
+    }
     return copytomocoms.getStdError();
   }
 
@@ -531,6 +572,9 @@ public final class CopyTomoComs {
    * @return
    */
   public ProcessMessages getProcessMessages() {
+    if (copytomocoms == null) {
+      return null;
+    }
     return copytomocoms.getProcessMessages();
   }
 
@@ -565,6 +609,21 @@ public final class CopyTomoComs {
           rawTiltFile.delete();
         }
       }
+    }
+  }
+
+  public static final class CtfFilesValue {
+    public static final CtfFilesValue CTF_PLOTTER = new CtfFilesValue(1);
+    public static final CtfFilesValue CTF_CORRECTION = new CtfFilesValue(2);
+
+    private final int value;
+
+    private CtfFilesValue(int value) {
+      this.value = value;
+    }
+    
+    private int get() {
+      return value;
     }
   }
 }
