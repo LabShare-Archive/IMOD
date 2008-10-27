@@ -28,6 +28,9 @@ import etomo.util.Utilities;
  * @version $Revision$
  * 
  * <p> $Log$
+ * <p> Revision 3.30  2008/01/31 20:18:19  sueh
+ * <p> bug# 1055 throwing a FileException when LogFile.getInstance fails.
+ * <p>
  * <p> Revision 3.29  2008/01/23 21:10:25  sueh
  * <p> bug# 1064 In openLogFileReader do not wait for the log file to be renamed if this
  * <p> is a reconnect.
@@ -189,6 +192,7 @@ abstract class FileSizeProcessMonitor implements ProcessMonitor {
   private boolean logFileRenamed = false;
   private LogFile logFile;
   private long logReadId = LogFile.NO_ID;
+  private boolean findWatchedFileName = true;
 
   public FileSizeProcessMonitor(ApplicationManager appMgr, AxisID id,
       ProcessName processName) {
@@ -215,7 +219,7 @@ abstract class FileSizeProcessMonitor implements ProcessMonitor {
   // - set the watchedFile reference to the output file being monitored.
   abstract void calcFileSize() throws InvalidParameterException, IOException;
 
-  protected abstract void reloadWatchedFile();
+  abstract void reloadWatchedFile();
 
   public void run() {
     running = true;
@@ -269,7 +273,7 @@ abstract class FileSizeProcessMonitor implements ProcessMonitor {
   public boolean isRunning() {
     return running;
   }
-  
+
   LogFile getLogFile() {
     return logFile;
   }
@@ -316,8 +320,9 @@ abstract class FileSizeProcessMonitor implements ProcessMonitor {
       }
       else {
         reloadWatchedFile();
-        if (line.indexOf(watchedFile.getName()) != -1
-            && line.trim().toLowerCase().startsWith("new image file on unit")) {
+        if (!findWatchedFileName
+            || (line.indexOf(watchedFile.getName()) != -1 && line.trim()
+                .toLowerCase().startsWith("new image file on unit"))) {
           watchedFileBackedUp = true;
         }
       }
@@ -394,16 +399,20 @@ abstract class FileSizeProcessMonitor implements ProcessMonitor {
     closeOpenFiles();
   }
 
-  protected boolean gotStatusFromLog() {
+  boolean gotStatusFromLog() {
     return false;
   }
 
   /**
    * Attempt to close the watched channel file.
    */
-  protected void closeOpenFiles() {
+  void closeOpenFiles() {
     closeChannel();
     closeLogFileReader();
+  }
+
+  void setFindWatchedFileName(boolean input) {
+    findWatchedFileName = input;
   }
 
   private void openLogFileReader() throws InterruptedException {
