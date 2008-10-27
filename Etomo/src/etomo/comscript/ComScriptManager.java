@@ -33,6 +33,9 @@ import etomo.util.Utilities;
  * @version $Revision$
  *
  * <p> $Log$
+ * <p> Revision 3.52  2007/12/10 21:54:28  sueh
+ * <p> bug# 1041 Formatted.
+ * <p>
  * <p> Revision 3.51  2007/09/07 00:17:34  sueh
  * <p> bug# 989 Using a public INSTANCE to refer to the EtomoDirector singleton
  * <p> instead of getInstance and createInstance.
@@ -365,6 +368,10 @@ public class ComScriptManager {
   private ComScript scriptTomopitchB;
   private ComScript scriptCombine;
   private ComScript scriptVolcombine;
+  private ComScript scriptCtfCorrectionA;
+  private ComScript scriptCtfCorrectionB;
+  private ComScript scriptCtfPlotterA;
+  private ComScript scriptCtfPlotterB;
 
   public ComScriptManager(ApplicationManager appManager) {
     this.appManager = appManager;
@@ -592,13 +599,41 @@ public class ComScriptManager {
   }
 
   /**
+   * @param axisID
+   * @param required
+   * @return true if script has loaded
+   */
+  public boolean loadCtfPlotter(AxisID axisID, boolean required) {
+    //  Assign the new ComScriptObject object to the appropriate reference
+    if (axisID == AxisID.SECOND) {
+      scriptCtfPlotterB = loadComScript(ProcessName.CTF_PLOTTER, axisID, true,
+          required);
+      return scriptCtfPlotterB != null;
+    }
+    scriptCtfPlotterA = loadComScript(ProcessName.CTF_PLOTTER, axisID, true,
+        required);
+    return scriptCtfPlotterA != null;
+  }
+
+  public boolean loadCtfCorrection(AxisID axisID, boolean required) {
+    //  Assign the new ComScriptObject object to the appropriate reference
+    if (axisID == AxisID.SECOND) {
+      scriptCtfCorrectionB = loadComScript(ProcessName.CTF_CORRECTION, axisID,
+          true, required);
+      return scriptCtfCorrectionB != null;
+    }
+    scriptCtfCorrectionA = loadComScript(ProcessName.CTF_CORRECTION, axisID,
+        true, required);
+    return scriptCtfCorrectionA != null;
+  }
+
+  /**
    * Get the newstack parameters from the specified prenewst script object
    * @param axisID the AxisID to read.
    * @return a NewstParam object that will be created and initialized
    * with the input arguments from prenewst in the com script.
    */
   public NewstParam getPrenewstParam(AxisID axisID) {
-
     //  Get a reference to the appropriate script object
     ComScript scriptPrenewst;
     if (axisID == AxisID.SECOND) {
@@ -705,6 +740,28 @@ public class ComScriptManager {
     }
     modifyCommand(scriptBlend, blendmontParam, BlendmontParam.COMMAND_NAME,
         axisID);
+  }
+
+  public void saveCtfPlotter(CtfPlotterParam param, AxisID axisID) {
+    ComScript script;
+    if (axisID == AxisID.SECOND) {
+      script = scriptCtfPlotterB;
+    }
+    else {
+      script = scriptCtfPlotterA;
+    }
+    modifyCommand(script, param, ProcessName.CTF_PLOTTER.toString(), axisID);
+  }
+
+  public void saveCtfPhaseFlip(CtfPhaseFlipParam param, AxisID axisID) {
+    ComScript script;
+    if (axisID == AxisID.SECOND) {
+      script = scriptCtfCorrectionB;
+    }
+    else {
+      script = scriptCtfCorrectionA;
+    }
+    modifyCommand(script, param, CtfPhaseFlipParam.COMMAND, axisID);
   }
 
   /**
@@ -1050,6 +1107,39 @@ public class ComScriptManager {
     else {
       scriptMTFFilterA = loadComScript(MTFFILTER_COMMAND, axisID, false);
     }
+  }
+
+  public CtfPhaseFlipParam getCtfPhaseFlipParam(AxisID axisID) {
+    //  Get a reference to the appropriate script object
+    ComScript ctfPhaseflip;
+    if (axisID == AxisID.SECOND) {
+      ctfPhaseflip = scriptCtfCorrectionB;
+    }
+    else {
+      ctfPhaseflip = scriptCtfCorrectionA;
+    }
+
+    // Initialize from the com script command object
+    CtfPhaseFlipParam ctfPhaseFlipParam = new CtfPhaseFlipParam();
+    initialize(ctfPhaseFlipParam, ctfPhaseflip, CtfPhaseFlipParam.COMMAND,
+        axisID);
+    return ctfPhaseFlipParam;
+  }
+
+  public CtfPlotterParam getCtfPlotterParam(AxisID axisID) {
+    //  Get a reference to the appropriate script object
+    ComScript ctfPlotter;
+    if (axisID == AxisID.SECOND) {
+      ctfPlotter = scriptCtfPlotterB;
+    }
+    else {
+      ctfPlotter = scriptCtfPlotterA;
+    }
+
+    // Initialize from the com script command object
+    CtfPlotterParam ctfPlotterParam = new CtfPlotterParam();
+    initialize(ctfPlotterParam, ctfPlotter, CtfPlotterParam.COMMAND, axisID);
+    return ctfPlotterParam;
   }
 
   public MTFFilterParam getMTFFilterParam(AxisID axisID) {
@@ -1598,7 +1688,12 @@ public class ComScriptManager {
   private ComScript loadComScript(String scriptName, AxisID axisID,
       boolean parseComments) {
     return loadComScript(ProcessName.getInstance(scriptName, axisID), axisID,
-        parseComments);
+        parseComments, true);
+  }
+
+  private ComScript loadComScript(ProcessName processName, AxisID axisID,
+      boolean parseComments) {
+    return loadComScript(processName, axisID, parseComments, true);
   }
 
   /**
@@ -1608,11 +1703,15 @@ public class ComScriptManager {
    * @return ComScript
    */
   private ComScript loadComScript(ProcessName processName, AxisID axisID,
-      boolean parseComments) {
+      boolean parseComments, boolean required) {
     Utilities.timestamp("load", processName, Utilities.STARTED_STATUS);
     String command = processName.getComscript(axisID);
     File comFile = new File(appManager.getPropertyUserDir(), command);
-
+    //If the file isn't there and its not required then just return null without
+    //any error messages.
+    if (!required && !comFile.exists()) {
+      return null;
+    }
     ComScript comScript = new ComScript(comFile);
     try {
       comScript.setParseComments(parseComments);
