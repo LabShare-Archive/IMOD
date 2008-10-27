@@ -25,6 +25,10 @@ import etomo.util.Utilities;
  * @version $Revision$
  *
  * <p> $Log$
+ * <p> Revision 3.30  2008/05/30 22:32:10  sueh
+ * <p> bug# 1102 Isolating the etomo.uitest package so it is not need for
+ * <p> running EtomoDirector.
+ * <p>
  * <p> Revision 3.29  2008/05/30 21:31:39  sueh
  * <p> bug# 1102 Moved uitest classes to etomo.uitest.
  * <p>
@@ -359,6 +363,7 @@ final class LabeledTextField {
     }
     panel.setToolTipText(tooltip);
     textField.setToolTipText(tooltip);
+    label.setToolTipText(tooltip);
   }
 
   void addMouseListener(final MouseListener listener) {
