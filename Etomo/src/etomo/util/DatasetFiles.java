@@ -56,6 +56,10 @@ public final class DatasetFiles {
   public static final String REFINE_NAME = "_refine";
   public static final String XFJOINTOMO_LOG = "xfjointomo" + LOG_EXT;
   private static final String XG_EXT = ".xg";
+  public static final String FULL_ALIGNED_EXT = ".ali";
+  public static final String CTF_PLOTTER_EXT = ".defocus";
+  public static final String SIMPLE_DEFOCUS_EXT = "_simple" + CTF_PLOTTER_EXT;
+  public static final String CTF_CORRECTION_EXT = "_ctfcorr" + FULL_ALIGNED_EXT;
 
   private static File calibrationDir = null;
   private static File distortionDir = null;
@@ -181,7 +185,7 @@ public final class DatasetFiles {
     axisID = correctAxisID(metaData, axisID);
     return metaData.getName() + axisID.getExtension() + ".rawtlt";
   }
-  
+
   public static File getRawTiltFile(BaseManager manager, AxisID axisID) {
     return new File(manager.getPropertyUserDir(), getRawTiltName(manager,
         axisID));
@@ -192,10 +196,9 @@ public final class DatasetFiles {
     axisID = correctAxisID(metaData, axisID);
     return metaData.getName() + axisID.getExtension() + TILT_FILE_EXT;
   }
-  
+
   public static File getTiltFile(BaseManager manager, AxisID axisID) {
-    return new File(manager.getPropertyUserDir(), getTiltName(manager,
-        axisID));
+    return new File(manager.getPropertyUserDir(), getTiltName(manager, axisID));
   }
 
   public static String getFiducialModelName(BaseManager manager, AxisID axisID) {
@@ -293,9 +296,51 @@ public final class DatasetFiles {
         getRefineAlignedModelFileName(manager));
   }
 
+  public static String getFullAlignedStackFileName(BaseManager manager,
+      AxisID axisID) {
+    BaseMetaData metaData = manager.getBaseMetaData();
+    axisID = correctAxisID(metaData, axisID);
+    return metaData.getName() + axisID.getExtension() + FULL_ALIGNED_EXT;
+  }
+
+  public static File getFullAlignedStackFile(BaseManager manager, AxisID axisID) {
+    return new File(manager.getPropertyUserDir(), getFullAlignedStackFileName(
+        manager, axisID));
+  }
+
+  private static String getCtfCorrectionFileName(BaseManager manager,
+      AxisID axisID) {
+    BaseMetaData metaData = manager.getBaseMetaData();
+    axisID = correctAxisID(metaData, axisID);
+    return metaData.getName() + axisID.getExtension() + CTF_CORRECTION_EXT;
+  }
+
+  public static File getCtfCorrectionFile(BaseManager manager, AxisID axisID) {
+    return new File(manager.getPropertyUserDir(), getCtfCorrectionFileName(
+        manager, axisID));
+  }
+
   public static File getRefineModelFile(JoinManager manager) {
     return new File(manager.getPropertyUserDir(),
         getRefineModelFileName(manager));
+  }
+
+  public static File getSimpleDefocusFile(BaseManager manager, AxisID axisID) {
+    return new File(manager.getPropertyUserDir(), getSimpleDefocusFileName(
+        manager, axisID));
+  }
+
+  public static String getCtfPlotterFileName(BaseManager manager, AxisID axisID) {
+    BaseMetaData metaData = manager.getBaseMetaData();
+    axisID = correctAxisID(metaData, axisID);
+    return metaData.getName() + axisID.getExtension() + CTF_PLOTTER_EXT;
+  }
+
+  public static String getSimpleDefocusFileName(BaseManager manager,
+      AxisID axisID) {
+    BaseMetaData metaData = manager.getBaseMetaData();
+    axisID = correctAxisID(metaData, axisID);
+    return metaData.getName() + axisID.getExtension() + SIMPLE_DEFOCUS_EXT;
   }
 
   public static String getMagGradientName(BaseManager manager, AxisID axisID) {
@@ -446,6 +491,9 @@ public final class DatasetFiles {
 }
 /**
  * <p> $Log$
+ * <p> Revision 1.45  2008/06/19 23:54:00  sueh
+ * <p> bug# 1112 Added getRawTiltFile, getTiltFile, and getTiltName.
+ * <p>
  * <p> Revision 1.44  2007/12/26 22:40:51  sueh
  * <p> bug# 1052 Added .edf to DatasetFiles.
  * <p>
