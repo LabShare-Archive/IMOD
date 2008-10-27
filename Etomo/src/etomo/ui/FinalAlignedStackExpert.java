@@ -4,24 +4,34 @@ import java.io.File;
 import java.io.IOException;
 
 import etomo.ApplicationManager;
+import etomo.EtomoDirector;
 import etomo.ProcessSeries;
 import etomo.comscript.BlendmontParam;
 import etomo.comscript.ComScriptManager;
+import etomo.comscript.ConstCtfPhaseFlipParam;
+import etomo.comscript.ConstCtfPlotterParam;
 import etomo.comscript.ConstMTFFilterParam;
 import etomo.comscript.ConstNewstParam;
+import etomo.comscript.ConstSplitCorrectionParam;
+import etomo.comscript.CtfPhaseFlipParam;
+import etomo.comscript.CtfPlotterParam;
 import etomo.comscript.FortranInputSyntaxException;
 import etomo.comscript.MTFFilterParam;
 import etomo.comscript.NewstParam;
+import etomo.comscript.SplitCorrectionParam;
 import etomo.process.ImodManager;
 import etomo.process.ProcessState;
 import etomo.storage.CpuAdoc;
+import etomo.storage.LogFile;
 import etomo.type.AxisID;
 import etomo.type.AxisType;
+import etomo.type.ConstEtomoNumber;
 import etomo.type.ConstMetaData;
 import etomo.type.ConstProcessSeries;
 import etomo.type.DialogExitState;
 import etomo.type.DialogType;
 import etomo.type.MetaData;
+import etomo.type.ProcessName;
 import etomo.type.ProcessResult;
 import etomo.type.ProcessResultDisplay;
 import etomo.type.ProcessTrack;
@@ -29,27 +39,32 @@ import etomo.type.ReconScreenState;
 import etomo.type.Run3dmodMenuOptions;
 import etomo.type.TomogramState;
 import etomo.type.ViewType;
+import etomo.util.DatasetFiles;
 import etomo.util.InvalidParameterException;
+import etomo.util.MRCHeader;
 import etomo.util.Utilities;
 
 /**
-* <p>Description: </p>
-* 
-* <p>Copyright: Copyright 2008</p>
-*
-* <p>Organization:
-* Boulder Laboratory for 3-Dimensional Electron Microscopy of Cells (BL3DEMC),
-* University of Colorado</p>
-* 
-* @author $Author$
-* 
-* @version $Revision$
-* 
-* <p> $Log$ </p>
-*/
-public final class FinalAlignedStackExpert extends ReconUIExpert{
-  public static  final String  rcsid =  "$Id$";
-  
+ * <p>Description: </p>
+ * 
+ * <p>Copyright: Copyright 2008</p>
+ *
+ * <p>Organization:
+ * Boulder Laboratory for 3-Dimensional Electron Microscopy of Cells (BL3DEMC),
+ * University of Colorado</p>
+ * 
+ * @author $Author$
+ * 
+ * @version $Revision$
+ * 
+ * <p> $Log$
+ * <p> Revision 1.1  2008/10/16 21:24:35  sueh
+ * <p> bug# 1141 Dialog for running newst (full align) and filtering
+ * <p> </p>
+ */
+public final class FinalAlignedStackExpert extends ReconUIExpert {
+  public static final String rcsid = "$Id$";
+
   private final ComScriptManager comScriptMgr;
   private final TomogramState state;
   private final ReconScreenState screenState;
@@ -81,7 +96,7 @@ public final class FinalAlignedStackExpert extends ReconUIExpert{
     //Create the dialog and show it.
     Utilities.timestamp("new", "FinalAlignedStackDialog",
         Utilities.STARTED_STATUS);
-    dialog =  FinalAlignedStackDialog.getInstance(manager, this, axisID);
+    dialog = FinalAlignedStackDialog.getInstance(manager, this, axisID);
     Utilities.timestamp("new", "FinalAlignedStackDialog",
         Utilities.FINISHED_STATUS);
     // no longer managing image size
@@ -92,16 +107,36 @@ public final class FinalAlignedStackExpert extends ReconUIExpert{
     // on the same dialog
     if (metaData.getViewType() == ViewType.MONTAGE) {
       comScriptMgr.loadBlend(axisID);
-      setBlendParams(comScriptMgr.getBlendParam(axisID));
+      setParameters(comScriptMgr.getBlendParam(axisID));
     }
     else {
       comScriptMgr.loadNewst(axisID);
-      setNewstParams(comScriptMgr.getNewstComNewstParam(axisID));
+      setParameters(comScriptMgr.getNewstComNewstParam(axisID));
     }
     setParameters(metaData);
+    //backward compatibility
+    //Try loading ctfcorrection.com first.  If it isn't there, copy it with
+    //copytomocoms and load it.
+    //Then try loading ctfplotter.com.  If it isn't there, copy it with
+    //copytomocoms, using the voltage, etc from ctfcorrection.com.
+    //Ignore ctfplotter.param.
+    if (!comScriptMgr.loadCtfCorrection(axisID, false)) {
+      manager.setupCtfCorrectionComScript(axisID);
+      comScriptMgr.loadCtfCorrection(axisID, true);
+    }
+    CtfPhaseFlipParam ctfPhaseFlipParam = comScriptMgr
+        .getCtfPhaseFlipParam(axisID);
+    setParameters(ctfPhaseFlipParam);
+    if (!comScriptMgr.loadCtfPlotter(axisID, false)) {
+      //Get the voltage, etc from ctfcorrection.com, since it has been loaded, and it
+      //is somewhat more likely that it was updated
+      manager.setupCtfPlotterComScript(axisID, ctfPhaseFlipParam);
+      comScriptMgr.loadCtfPlotter(axisID, true);
+    }
+    setParameters(comScriptMgr.getCtfPlotterParam(axisID));
     setParameters(screenState);
     comScriptMgr.loadMTFFilter(axisID);
-    setMTFFilterParam(comScriptMgr.getMTFFilterParam(axisID));
+    setParameters(comScriptMgr.getMTFFilterParam(axisID));
     //updateDialog()
     updateFilter(Utilities.fileExists(manager, ".ali", axisID));
 
@@ -121,6 +156,10 @@ public final class FinalAlignedStackExpert extends ReconUIExpert{
   public void startNextProcess(String nextProcess,
       ProcessResultDisplay processResultDisplay,
       ConstProcessSeries processSeries, DialogType dialogType) {
+    if (nextProcess.equals(ProcessName.PROCESSCHUNKS.toString())) {
+      processchunks(manager, dialog, processResultDisplay, processSeries,
+          ProcessName.CTF_CORRECTION);
+    }
   }
 
   boolean doneDialog() {
@@ -185,6 +224,8 @@ public final class FinalAlignedStackExpert extends ReconUIExpert{
     if (!updateMTFFilterCom()) {
       return false;
     }
+    updateCtfPlotterCom();
+    updateCtfCorrectionCom();
     manager.saveStorables(axisID);
     return true;
   }
@@ -200,11 +241,25 @@ public final class FinalAlignedStackExpert extends ReconUIExpert{
       return null;
     }
     BlendmontParam blendParam = comScriptMgr.getBlendParam(axisID);
-    getBlendParams(blendParam);
+    getParameters(blendParam);
     blendParam.setMode(BlendmontParam.Mode.BLEND);
     blendParam.setBlendmontState();
     comScriptMgr.saveBlend(blendParam, axisID);
     return blendParam;
+  }
+
+  private ConstCtfPlotterParam updateCtfPlotterCom() {
+    CtfPlotterParam param = comScriptMgr.getCtfPlotterParam(axisID);
+    getParameters(param);
+    comScriptMgr.saveCtfPlotter(param, axisID);
+    return param;
+  }
+
+  private ConstCtfPhaseFlipParam updateCtfCorrectionCom() {
+    CtfPhaseFlipParam param = comScriptMgr.getCtfPhaseFlipParam(axisID);
+    getParameters(param);
+    comScriptMgr.saveCtfPhaseFlip(param, axisID);
+    return param;
   }
 
   /**
@@ -230,7 +285,7 @@ public final class FinalAlignedStackExpert extends ReconUIExpert{
       newstParam.setCommandMode(NewstParam.Mode.FULL_ALIGNED_STACK);
       newstParam.setFiducialessAlignment(metaData
           .isFiducialessAlignment(axisID));
-      getNewstParams(newstParam);
+      getParameters(newstParam);
       comScriptMgr.saveNewst(newstParam, axisID);
     }
     catch (NumberFormatException except) {
@@ -265,7 +320,7 @@ public final class FinalAlignedStackExpert extends ReconUIExpert{
     }
     try {
       MTFFilterParam mtfFilterParam = comScriptMgr.getMTFFilterParam(axisID);
-      getMTFFilterParam(mtfFilterParam);
+      getParameters(mtfFilterParam);
       String inputFileName;
       String outputFileName;
       if (metaData.getAxisType() == AxisType.SINGLE_AXIS) {
@@ -382,6 +437,227 @@ public final class FinalAlignedStackExpert extends ReconUIExpert{
         processResultDisplay);
   }
 
+  void ctfPlotter(ProcessResultDisplay processResultDisplay) {
+    if (dialog == null) {
+      return;
+    }
+    sendMsgProcessStarting(processResultDisplay);
+    ConstCtfPlotterParam param = updateCtfPlotterCom();
+    if (param == null) {
+      sendMsg(ProcessResult.FAILED_TO_START, processResultDisplay);
+      return;
+    }
+    setDialogState(ProcessState.INPROGRESS);
+    sendMsg(manager.ctfPlotter(axisID, processResultDisplay),
+        processResultDisplay);
+  }
+
+  /**
+   * Create or reuse a _simple.defocus file.
+   * Expected format: 1 1 0 0 expectedDefocus.  The first four numbers don't
+   * matter.
+   * @return
+   */
+  boolean createSimpleDefocusFile() {
+    boolean updateToDate = false;
+    LogFile file = null;
+    long readId = LogFile.NO_ID;
+    long writeId = LogFile.NO_ID;
+    try {
+      file = LogFile.getInstance(DatasetFiles.getSimpleDefocusFile(manager,
+          axisID));
+      if (file.exists()) {
+        readId = file.openReader();
+        String line = file.readLine(readId);
+        if (file.closeReader(readId)) {
+          readId = LogFile.NO_ID;
+        }
+        String[] array = line.split("\\s+");
+        if (array[4].equals(dialog.getExpectedDefocus())) {
+          updateToDate = true;
+        }
+        else {
+          file.backup();
+        }
+      }
+      if (!updateToDate) {
+        writeId = file.openWriter();
+        file.write("1 1 0 0 " + dialog.getExpectedDefocus(), writeId);
+        updateToDate = true;
+        if (file.closeWriter(writeId)) {
+          writeId = LogFile.NO_ID;
+        }
+      }
+    }
+    catch (LogFile.FileException e) {
+      e.printStackTrace();
+    }
+    catch (LogFile.ReadException e) {
+      e.printStackTrace();
+    }
+    catch (LogFile.WriteException e) {
+      e.printStackTrace();
+    }
+    if (readId != LogFile.NO_ID) {
+      file.closeForReading(readId);
+    }
+    if (writeId != LogFile.NO_ID) {
+      file.closeForWriting(writeId);
+    }
+    if (!updateToDate) {
+      if (!UIHarness.INSTANCE.openYesNoDialog(DatasetFiles
+          .getSimpleDefocusFileName(manager, axisID)
+          + " may not be up to date.  Continue?", axisID)) {
+        return false;
+      }
+    }
+    return true;
+  }
+
+  void ctfCorrection(ProcessResultDisplay processResultDisplay,
+      ProcessSeries processSeries, Deferred3dmodButton deferred3dmodButton,
+      Run3dmodMenuOptions run3dmodMenuOptions) {
+    if (dialog == null) {
+      return;
+    }
+    if (processSeries == null) {
+      processSeries = new ProcessSeries(manager, dialogType);
+    }
+    processSeries.setRun3dmodDeferred(deferred3dmodButton, run3dmodMenuOptions);
+    if (dialog.isUseExpectedDefocus() && !createSimpleDefocusFile()) {
+      return;
+    }
+    if (dialog.isParallelProcess()) {
+      splitcorrection(processResultDisplay, processSeries);
+    }
+    else {
+      ctfCorrection(processResultDisplay, processSeries);
+    }
+  }
+
+  void ctfCorrection(ProcessResultDisplay processResultDisplay,
+      ProcessSeries processSeries) {
+    if (dialog == null) {
+      return;
+    }
+    sendMsgProcessStarting(processResultDisplay);
+    ConstCtfPhaseFlipParam param = updateCtfCorrectionCom();
+    if (param == null) {
+      sendMsg(ProcessResult.FAILED_TO_START, processResultDisplay);
+      return;
+    }
+    setDialogState(ProcessState.INPROGRESS);
+    sendMsg(manager.ctfCorrection(axisID, processResultDisplay, processSeries),
+        processResultDisplay);
+  }
+
+  private ConstSplitCorrectionParam updateSplitCorrectionParam() {
+    if (dialog == null) {
+      return null;
+    }
+    SplitCorrectionParam param = new SplitCorrectionParam(axisID);
+    getParameters(param);
+    return param;
+  }
+
+  void getParameters(final SplitCorrectionParam param) {
+    param.setCpus(getParallelPanel().getCPUsSelected());
+    MRCHeader header = MRCHeader.getInstance(manager.getPropertyUserDir(),
+        DatasetFiles.getFullAlignedStackFileName(manager, axisID), axisID);
+    try {
+      header.read();
+      param.setMaxZ(header.getNSections());
+    }
+    catch (IOException e) {
+      e.printStackTrace();
+    }
+    catch (InvalidParameterException e) {
+      e.printStackTrace();
+    }
+  }
+
+  void splitcorrection(ProcessResultDisplay processResultDisplay,
+      ProcessSeries processSeries) {
+    if (dialog == null) {
+      return;
+    }
+    sendMsgProcessStarting(processResultDisplay);
+    updateCtfCorrectionCom();
+    ConstSplitCorrectionParam param = updateSplitCorrectionParam();
+    if (param == null) {
+      sendMsg(ProcessResult.FAILED_TO_START, processResultDisplay);
+      return;
+    }
+    setDialogState(ProcessState.INPROGRESS);
+    ProcessResult processResult = manager.splitCorrection(axisID,
+        processResultDisplay, processSeries, param, dialogType);
+    if (processResult == null) {
+      processSeries.setNextProcess(ProcessName.PROCESSCHUNKS.toString());
+    }
+    sendMsg(processResult, processResultDisplay);
+  }
+
+  /**
+   * Replace the full aligned stack with the ctf corrected full aligned stack
+   * created by ctfcorrection.com
+   */
+  void useCtfCorrection(ProcessResultDisplay processResultDisplay) {
+    if (dialog == null) {
+      return;
+    }
+    sendMsgProcessStarting(processResultDisplay);
+    if (manager.isAxisBusy(axisID, processResultDisplay)) {
+      return;
+    }
+    setProgressBar("Using output of ctfcorrection as full aligned stack", 1,
+        axisID);
+    // Instantiate file objects for the original raw stack and the fixed
+    // stack
+    File fullAlignedStack = DatasetFiles.getFullAlignedStackFile(manager,
+        axisID);
+    File ctfCorrectionFile = DatasetFiles.getCtfCorrectionFile(manager, axisID);
+    if (!ctfCorrectionFile.exists()) {
+      UIHarness.INSTANCE.openMessageDialog(
+          "The ctf corrected full aligned stack doesn't exist ("
+              + DatasetFiles.CTF_CORRECTION_EXT + ").  Press "
+              + FinalAlignedStackDialog.CTF_CORRECTION_LABEL
+              + " to create this file.", "Ctf Correction Output Missing",
+          axisID);
+      sendMsg(ProcessResult.FAILED_TO_START, processResultDisplay);
+      return;
+    }
+    setDialogState(ProcessState.INPROGRESS);
+    if (fullAlignedStack.exists() && ctfCorrectionFile.exists()) {
+      try {
+        Utilities.renameFile(fullAlignedStack, new File(fullAlignedStack
+            .getAbsolutePath()
+            + "~"));
+      }
+      catch (IOException except) {
+        UIHarness.INSTANCE.openMessageDialog("Unable to backup "
+            + fullAlignedStack.getAbsolutePath() + "\n" + except.getMessage(),
+            "File Rename Error", axisID);
+        sendMsg(ProcessResult.FAILED, processResultDisplay);
+        return;
+      }
+    }
+    // don't have to rename full aligned stack because it is a generated
+    // file
+    try {
+      Utilities.renameFile(ctfCorrectionFile, fullAlignedStack);
+    }
+    catch (IOException except) {
+      UIHarness.INSTANCE.openMessageDialog(except.getMessage(),
+          "File Rename Error", axisID);
+      sendMsg(ProcessResult.FAILED, processResultDisplay);
+      return;
+    }
+    manager.closeImod(ImodManager.FINE_ALIGNED_KEY, axisID,
+        "original full aligned stack");
+    stopProgressBar(axisID);
+    sendMsg(ProcessResult.SUCCEEDED, processResultDisplay);
+  }
+
   /**
    * Replace the full aligned stack with the filtered full aligned stack created
    * from mtffilter
@@ -475,7 +751,7 @@ public final class FinalAlignedStackExpert extends ReconUIExpert{
     }
   }
 
-  private void setNewstParams(ConstNewstParam newstParam) {
+  private void setParameters(ConstNewstParam newstParam) {
     if (dialog == null) {
       return;
     }
@@ -489,12 +765,28 @@ public final class FinalAlignedStackExpert extends ReconUIExpert{
     if (dialog == null) {
       return;
     }
-    CpuAdoc cpuAdoc = CpuAdoc.getInstance(AxisID.ONLY, manager.getPropertyUserDir());
+    ConstEtomoNumber binning = metaData.getTomoGenBinning(axisID);
+    if (!binning.isNull()) {
+      getBinningFromNewst = false;
+      dialog.setBinning(binning);
+    }
+    CpuAdoc cpuAdoc = CpuAdoc.getInstance(AxisID.ONLY, manager
+        .getPropertyUserDir());
     //Parallel processing is optional in tomogram reconstruction, so only use it
     //if the user set it up.
     boolean validAutodoc = cpuAdoc.isAvailable();
     dialog.setParallelProcessEnabled(validAutodoc);
-      dialog.setParallelProcess(validAutodoc);
+    ConstEtomoNumber parallel = metaData
+        .getStackCtfCorrectionParallel(axisID);
+    if (parallel == null) {
+      dialog.setParallelProcess(validAutodoc
+          && metaData.getDefaultParallel().is());
+    }
+    else {
+      dialog.setParallelProcess(validAutodoc && parallel.is());
+    }
+    updateParallelProcess();
+    
     dialog.setSizeToOutputInXandY(metaData.getSizeToOutputInXandY(axisID)
         .toString(true));
     updateParallelProcess();
@@ -508,8 +800,10 @@ public final class FinalAlignedStackExpert extends ReconUIExpert{
     if (dialog == null) {
       return;
     }
-    dialog.setNewstHeaderState(screenState.getFinalNewstHeaderState());
-    dialog.setFilterHeaderState(screenState.getFinalMtffilterHeaderState());
+    dialog.setNewstHeaderState(screenState.getStackNewstHeaderState());
+    dialog.setFilterHeaderState(screenState.getStackMtffilterHeaderState());
+    dialog.setCtfCorrectionHeaderState(screenState
+        .getStackCtfCorrectionHeaderState());
     dialog.setAdvanced();
     dialog.setNewstButtonState(screenState);
     dialog.setUseFilterButtonState(screenState);
@@ -520,10 +814,18 @@ public final class FinalAlignedStackExpert extends ReconUIExpert{
     if (dialog == null) {
       return;
     }
-    dialog.getNewstHeaderState(screenState.getFinalNewstHeaderState());
-    dialog.getFilterHeaderState(screenState.getFinalMtffilterHeaderState());
+    dialog.getNewstHeaderState(screenState.getStackNewstHeaderState());
+    dialog.getFilterHeaderState(screenState.getStackMtffilterHeaderState());
+    dialog.getCtfCorrectionHeaderState(screenState
+        .getStackCtfCorrectionHeaderState());
   }
 
+  /**
+   * The Metadata values that are from the setup dialog should not be overrided
+   * by this dialog unless the Metadata values are empty.
+   * @param metaData
+   * @throws FortranInputSyntaxException
+   */
   private void getParameters(MetaData metaData)
       throws FortranInputSyntaxException {
     if (dialog == null) {
@@ -538,14 +840,15 @@ public final class FinalAlignedStackExpert extends ReconUIExpert{
           FinalAlignedStackDialog.SIZE_TO_OUTPUT_IN_X_AND_Y_LABEL + ":  "
               + e.getMessage());
     }
+    metaData.setStackCtfCorrectionParallel(axisID, dialog.isParallelProcess());
   }
 
-  private void setBlendParams(BlendmontParam blendmontParam) {
+  private void setParameters(BlendmontParam blendmontParam) {
     dialog.setUseLinearInterpolation(blendmontParam.isLinearInterpolation());
   }
 
   //  Copy the newstack parameters from the GUI to the NewstParam object
-  private void getNewstParams(NewstParam newstParam)
+  private void getParameters(NewstParam newstParam)
       throws FortranInputSyntaxException {
     if (dialog == null) {
       return;
@@ -564,7 +867,19 @@ public final class FinalAlignedStackExpert extends ReconUIExpert{
         .getBinning());
   }
 
-  private void getBlendParams(BlendmontParam blendmontParam)
+  File getConfigDir() {
+    File calibDir = EtomoDirector.INSTANCE.getIMODCalibDirectory();
+    if (calibDir.exists()) {
+      File dir = new File(calibDir, "CTFnoise");
+      if (dir.exists()) {
+        return dir;
+      }
+      return calibDir;
+    }
+    return new File(manager.getPropertyUserDir());
+  }
+
+  private void getParameters(BlendmontParam blendmontParam)
       throws FortranInputSyntaxException, InvalidParameterException,
       IOException {
     if (dialog == null) {
@@ -584,7 +899,7 @@ public final class FinalAlignedStackExpert extends ReconUIExpert{
     }
   }
 
-  private void getMTFFilterParam(MTFFilterParam mtfFilterParam)
+  private void getParameters(MTFFilterParam mtfFilterParam)
       throws FortranInputSyntaxException {
     if (dialog == null) {
       return;
@@ -597,7 +912,58 @@ public final class FinalAlignedStackExpert extends ReconUIExpert{
         .getInverseRolloffRadiusSigma());
   }
 
-  private void setMTFFilterParam(ConstMTFFilterParam mtfFilterParam) {
+  private void setParameters(ConstCtfPlotterParam param) {
+    if (dialog == null) {
+      return;
+    }
+    dialog.setConfigFile(param.getConfigFile());
+    dialog.setExpectedDefocus(param.getExpectedDefocus());
+  }
+
+  private void getParameters(CtfPlotterParam param) {
+    if (dialog == null) {
+      return;
+    }
+    param.setVoltage(dialog.getVoltage());
+    param.setSphericalAberration(dialog.getSphericalAberration());
+    param.setAmplitudeContrast(dialog.getAmplitudeContrast());
+    param.setExpectedDefocus(dialog.getExpectedDefocus());
+    param.setConfigFile(dialog.getConfigFile());
+  }
+
+  private void setParameters(ConstCtfPhaseFlipParam param) {
+    if (dialog == null) {
+      return;
+    }
+    dialog.setVoltage(param.getVoltage());
+    dialog.setSphericalAberration(param.getSphericalAberration());
+    dialog.setAmplitudeContrast(param.getAmplitudeContrast());
+    dialog.setUseExpectedDefocus(param.getDefocusFile().endsWith(
+        DatasetFiles.SIMPLE_DEFOCUS_EXT));
+    dialog.setInterpolationWidth(param.getInterpolationWidth());
+    dialog.setDefocusTol(param.getDefocusTol());
+    dialog.updateCtfPlotter();
+  }
+
+  private void getParameters(CtfPhaseFlipParam param) {
+    if (dialog == null) {
+      return;
+    }
+    param.setVoltage(dialog.getVoltage());
+    param.setSphericalAberration(dialog.getSphericalAberration());
+    param.setAmplitudeContrast(dialog.getAmplitudeContrast());
+    if (dialog.isUseExpectedDefocus()) {
+      param.setDefocusFile(DatasetFiles.getSimpleDefocusFileName(manager,
+          axisID));
+    }
+    else {
+      param.setDefocusFile(DatasetFiles.getCtfPlotterFileName(manager, axisID));
+    }
+    param.setInterpolationWidth(dialog.getInterpolationWidth());
+    param.setDefocusTol(dialog.getDefocusTol());
+  }
+
+  private void setParameters(ConstMTFFilterParam mtfFilterParam) {
     if (dialog == null) {
       return;
     }
