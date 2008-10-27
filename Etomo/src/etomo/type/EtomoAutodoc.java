@@ -34,14 +34,17 @@ public class EtomoAutodoc {
   public static final char VAR_TAG = '%';
   public static final char NEW_LINE_CHAR = '^';
   private static final String TOOLTIP_ATTRIBUTE_NAME = "tooltip";
-  
+
   private static boolean debug = false;
-  
+
   private EtomoAutodoc() {
   }
 
   public static String getTooltip(ReadOnlySection section) {
     if (section == null) {
+      if (debug) {
+        System.out.println("EtomoAutodoc.getTooltip:section is null");
+      }
       return null;
     }
     String text = null;
@@ -77,8 +80,17 @@ public class EtomoAutodoc {
     if (autodoc == null) {
       return null;
     }
+    boolean autodocDebug = autodoc.isDebug();
+    if (debug && !autodocDebug) {
+      autodoc.setDebug(true);
+    }
     String tooltip = getTooltip(autodoc.getSection(FIELD_SECTION_NAME,
         fieldName));
+    if (debug) {
+      if (!autodocDebug) {
+        autodoc.setDebug(false);
+      }
+    }
     if (tooltip == null) {
       return null;
     }
@@ -202,7 +214,7 @@ public class EtomoAutodoc {
             token = tokenizer.next();
             continue;
           }
-          else if (!firstToken){
+          else if (!firstToken) {
             //wasn't really the end of the line so convert EOL to a space.
             buffer.append(' ');
           }
@@ -241,7 +253,7 @@ public class EtomoAutodoc {
   public static String getTooltip(ReadOnlySection section, int enumValueName) {
     return getTooltip(section, Integer.toString(enumValueName));
   }
-  
+
   public static void setDebug(boolean debug) {
     EtomoAutodoc.debug = debug;
   }
@@ -249,6 +261,9 @@ public class EtomoAutodoc {
 
 /**
  * <p> $Log$
+ * <p> Revision 1.16  2007/04/13 20:12:56  sueh
+ * <p> bug# 964 Added debug member variable.
+ * <p>
  * <p> Revision 1.15  2007/03/26 23:35:21  sueh
  * <p> bug# 964 Using getMultiLineValue so formatting can be removed.
  * <p>

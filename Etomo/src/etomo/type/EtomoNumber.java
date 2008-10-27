@@ -18,6 +18,9 @@ import etomo.comscript.FortranInputString;
  * @version $Revision$
  * 
  * <p> $Log$
+ * <p> Revision 1.20  2008/08/21 00:02:42  sueh
+ * <p> bug# 1132 Added multiply.
+ * <p>
  * <p> Revision 1.19  2008/04/02 02:00:29  sueh
  * <p> bug# 1097 Changed plus to add.
  * <p>
@@ -255,6 +258,9 @@ public class EtomoNumber extends ConstEtomoNumber {
    * @return
    */
   public EtomoNumber set(String value) {
+    if (isDebug()) {
+      System.out.println("value="+value);
+    }
     resetInvalidReason();
     if (value == null || value.matches("\\s*")) {
       currentValue = newNumber();
@@ -262,6 +268,9 @@ public class EtomoNumber extends ConstEtomoNumber {
     else {
       StringBuffer invalidBuffer = new StringBuffer();
       currentValue = newNumber(value, invalidBuffer);
+      if (isDebug()) {
+        System.out.println("currentValue="+currentValue+",invalidBuffer="+invalidBuffer);
+      }
       if (invalidBuffer.length() > 0) {
         if (type == Type.INTEGER && stringArray != null) {
           for (int i = 0; i < stringArray.length; i++) {
