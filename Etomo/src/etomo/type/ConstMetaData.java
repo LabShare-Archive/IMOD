@@ -69,11 +69,15 @@ public interface ConstMetaData {
   public FortranInputString getSizeToOutputInXandY(AxisID axisID);
   public ConstEtomoNumber getTomoGenBinning(AxisID axisID);
   public ConstEtomoNumber getTomoGenTiltParallel(AxisID axisID);
+  public ConstEtomoNumber getStackCtfCorrectionParallel(AxisID axisID);
   public boolean isDistortionCorrection();
 }
 
 /**
  * <p> $Log$
+ * <p> Revision 3.44  2007/12/10 22:35:02  sueh
+ * <p> bug# 1041 Made class an interface so inheritance can come from BaseMetaData.
+ * <p>
  * <p> Revision 3.43  2007/08/16 16:55:50  sueh
  * <p> bug# 1035 Setting sizeToOutputInXandYA and B to NaN so it won't output
  * <p> bad values when empty.
