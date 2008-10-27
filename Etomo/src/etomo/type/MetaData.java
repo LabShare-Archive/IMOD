@@ -27,6 +27,10 @@ import etomo.util.DatasetFiles;
  * @version $Revision$
  *
  * <p> $Log$
+ * <p> Revision 3.39  2007/12/26 22:18:13  sueh
+ * <p> bug# 1052 Changed the parameter type of set functions called by SetupDialog
+ * <p> so that conversions will be done in MetaData instead of the ui.
+ * <p>
  * <p> Revision 3.38  2007/12/13 01:13:01  sueh
  * <p> bug# 1056 Removed the Storables inner class from TiltParam.
  * <p>
@@ -234,6 +238,12 @@ public final class MetaData extends BaseMetaData implements ConstMetaData {
   private static final String TOMO_GEN_B_TILT_PARALLEL_GROUP = DialogType.TOMOGRAM_GENERATION
       .getStorableName()
       + AxisID.SECOND.getExtension().toUpperCase() + ".Tilt.Parallel";
+  private static final String STACK_A_CTF_CORRECTION_PARALLEL_GROUP = DialogType.FINAL_ALIGNED_STACK
+      .getStorableName()
+      + AxisID.FIRST.getExtension().toUpperCase() + ".CtfCorrection.Parallel";
+  private static final String STACK_B_CTF_CORRECTION_PARALLEL_GROUP = DialogType.FINAL_ALIGNED_STACK
+      .getStorableName()
+      + AxisID.SECOND.getExtension().toUpperCase() + ".CtfCorrection.Parallel";
   private static final String COMBINE_VOLCOMBINE_PARALLEL_GROUP = DialogType.TOMOGRAM_COMBINATION
       .getStorableName()
       + ".Volcombine.Parallel";
@@ -295,6 +305,8 @@ public final class MetaData extends BaseMetaData implements ConstMetaData {
       "DefaultParallel");
   private EtomoBoolean2 tomoGenTiltParallelA = null;
   private EtomoBoolean2 tomoGenTiltParallelB = null;
+  private EtomoBoolean2 stackCtfCorrectionParallelA = null;
+  private EtomoBoolean2 stackCtfCorrectionParallelB = null;
   private EtomoBoolean2 combineVolcombineParallel = null;
   private EtomoBoolean2 bStackProcessed = null;
   private StringBuffer message = new StringBuffer();
@@ -458,7 +470,7 @@ public final class MetaData extends BaseMetaData implements ConstMetaData {
   public void setViewType(ViewType vt) {
     viewType = vt;
   }
-  
+
   public void setPixelSize(double pixelSize) {
     this.pixelSize = pixelSize;
   }
@@ -549,6 +561,23 @@ public final class MetaData extends BaseMetaData implements ConstMetaData {
     }
   }
 
+  public void setStackCtfCorrectionParallel(AxisID axisID, boolean input) {
+    if (axisID == AxisID.SECOND) {
+      if (stackCtfCorrectionParallelB == null) {
+        stackCtfCorrectionParallelB = new EtomoBoolean2(
+            STACK_B_CTF_CORRECTION_PARALLEL_GROUP);
+      }
+      stackCtfCorrectionParallelB.set(input);
+    }
+    else {
+      if (stackCtfCorrectionParallelA == null) {
+        stackCtfCorrectionParallelA = new EtomoBoolean2(
+            STACK_A_CTF_CORRECTION_PARALLEL_GROUP);
+      }
+      stackCtfCorrectionParallelA.set(input);
+    }
+  }
+
   public void setDefaultParallel(boolean defaultParallel) {
     this.defaultParallel.set(defaultParallel);
   }
@@ -568,6 +597,23 @@ public final class MetaData extends BaseMetaData implements ConstMetaData {
     }
   }
 
+  public void setStackCtfCorrectionParallel(AxisID axisID, String input) {
+    if (axisID == AxisID.SECOND) {
+      if (stackCtfCorrectionParallelB == null) {
+        stackCtfCorrectionParallelB = new EtomoBoolean2(
+            STACK_B_CTF_CORRECTION_PARALLEL_GROUP);
+      }
+      stackCtfCorrectionParallelB.set(input);
+    }
+    else {
+      if (stackCtfCorrectionParallelA == null) {
+        stackCtfCorrectionParallelA = new EtomoBoolean2(
+            STACK_A_CTF_CORRECTION_PARALLEL_GROUP);
+      }
+      stackCtfCorrectionParallelA.set(input);
+    }
+  }
+
   public void setUseZFactors(AxisID axisID, boolean useZFactors) {
     if (axisID == AxisID.SECOND) {
       this.useZFactorsB.set(useZFactors);
@@ -576,7 +622,7 @@ public final class MetaData extends BaseMetaData implements ConstMetaData {
       this.useZFactorsA.set(useZFactors);
     }
   }
-  
+
   public void setFiducialDiameter(double fiducialDiameter) {
     this.fiducialDiameter = fiducialDiameter;
   }
@@ -584,7 +630,7 @@ public final class MetaData extends BaseMetaData implements ConstMetaData {
   public void setFiducialDiameter(String fiducialDiameter) {
     this.fiducialDiameter = Double.parseDouble(fiducialDiameter);
   }
-  
+
   public void setImageRotation(float rotation, AxisID axisID) {
     if (axisID == AxisID.SECOND) {
       imageRotationB = rotation;
@@ -700,6 +746,12 @@ public final class MetaData extends BaseMetaData implements ConstMetaData {
     if (tomoGenTiltParallelB != null) {
       tomoGenTiltParallelB.reset();
     }
+    if (stackCtfCorrectionParallelA != null) {
+      stackCtfCorrectionParallelA.reset();
+    }
+    if (stackCtfCorrectionParallelB != null) {
+      stackCtfCorrectionParallelB.reset();
+    }
     if (combineVolcombineParallel != null) {
       combineVolcombineParallel.reset();
     }
@@ -810,6 +862,16 @@ public final class MetaData extends BaseMetaData implements ConstMetaData {
     propertyValue = props.getProperty(group + TOMO_GEN_B_TILT_PARALLEL_GROUP);
     if (propertyValue != null) {
       setTomoGenTiltParallel(AxisID.SECOND, propertyValue);
+    }
+    propertyValue = props.getProperty(group
+        + STACK_A_CTF_CORRECTION_PARALLEL_GROUP);
+    if (propertyValue != null) {
+      setStackCtfCorrectionParallel(AxisID.FIRST, propertyValue);
+    }
+    propertyValue = props.getProperty(group
+        + STACK_B_CTF_CORRECTION_PARALLEL_GROUP);
+    if (propertyValue != null) {
+      setStackCtfCorrectionParallel(AxisID.SECOND, propertyValue);
     }
     propertyValue = props
         .getProperty(group + COMBINE_VOLCOMBINE_PARALLEL_GROUP);
@@ -956,6 +1018,12 @@ public final class MetaData extends BaseMetaData implements ConstMetaData {
     }
     if (tomoGenTiltParallelB != null) {
       tomoGenTiltParallelB.store(props, prepend);
+    }
+    if (stackCtfCorrectionParallelA != null) {
+      stackCtfCorrectionParallelA.store(props, prepend);
+    }
+    if (stackCtfCorrectionParallelB != null) {
+      stackCtfCorrectionParallelB.store(props, prepend);
     }
     if (combineVolcombineParallel != null) {
       combineVolcombineParallel.store(props, prepend);
@@ -1126,6 +1194,13 @@ public final class MetaData extends BaseMetaData implements ConstMetaData {
       return tomoGenTiltParallelB;
     }
     return tomoGenTiltParallelA;
+  }
+
+  public ConstEtomoNumber getStackCtfCorrectionParallel(AxisID axisID) {
+    if (axisID == AxisID.SECOND) {
+      return stackCtfCorrectionParallelB;
+    }
+    return stackCtfCorrectionParallelA;
   }
 
   public ConstEtomoNumber getDefaultParallel() {
