@@ -34,12 +34,15 @@ public final class ReconScreenState extends BaseScreenState {
   public static final String TOMO_GEN_MTFFILTER_HEADER_GROUP = DialogType.TOMOGRAM_GENERATION
       .getStorableName()
       + ".Mtffilter" + HEADER_GROUP;
-  public static final String FINAL_NEWST_HEADER_GROUP = DialogType.FINAL_ALIGNED_STACK
+  public static final String STACK_NEWST_HEADER_GROUP = DialogType.FINAL_ALIGNED_STACK
       .getStorableName()
       + ".Newst" + HEADER_GROUP;
-  public static final String FINAL_MTFFILTER_HEADER_GROUP = DialogType.FINAL_ALIGNED_STACK
+  public static final String STACK_MTFFILTER_HEADER_GROUP = DialogType.FINAL_ALIGNED_STACK
       .getStorableName()
       + ".Mtffilter" + HEADER_GROUP;
+  public static final String STACK_CTF_CORRECTION_HEADER_GROUP = DialogType.FINAL_ALIGNED_STACK
+      .getStorableName()
+      + ".CtfCorrection" + HEADER_GROUP;
   public static final String TOMO_GEN_TILT_HEADER_GROUP = DialogType.TOMOGRAM_GENERATION
       .getStorableName()
       + ".Tilt" + HEADER_GROUP;
@@ -95,10 +98,12 @@ public final class ReconScreenState extends BaseScreenState {
    */
   private final PanelHeaderState tomoGenMtffilterHeaderState = new PanelHeaderState(
       TOMO_GEN_MTFFILTER_HEADER_GROUP);
-  private final PanelHeaderState finalStackNewstHeaderState = new PanelHeaderState(
-      FINAL_NEWST_HEADER_GROUP);
-  private final PanelHeaderState finalStackMtffilterHeaderState = new PanelHeaderState(
-      FINAL_MTFFILTER_HEADER_GROUP);
+  private final PanelHeaderState stackNewstHeaderState = new PanelHeaderState(
+      STACK_NEWST_HEADER_GROUP);
+  private final PanelHeaderState stackMtffilterHeaderState = new PanelHeaderState(
+      STACK_MTFFILTER_HEADER_GROUP);
+  private final PanelHeaderState stackCtfCorrectionHeaderState = new PanelHeaderState(
+      STACK_CTF_CORRECTION_HEADER_GROUP);
   private final PanelHeaderState tomoGenTiltHeaderState = new PanelHeaderState(
       TOMO_GEN_TILT_HEADER_GROUP);
   private final PanelHeaderState tomoGenTrialTiltHeaderState = new PanelHeaderState(
@@ -140,8 +145,9 @@ public final class ReconScreenState extends BaseScreenState {
   public void store(Properties props, String prepend) {
     super.store(props, prepend);
     prepend = getPrepend(prepend);
-    finalStackNewstHeaderState.store(props, prepend);
-    finalStackMtffilterHeaderState.store(props, prepend);
+    stackNewstHeaderState.store(props, prepend);
+    stackMtffilterHeaderState.store(props, prepend);
+    stackCtfCorrectionHeaderState.store(props,prepend);
     tomoGenTiltHeaderState.store(props, prepend);
     tomoGenTrialTiltHeaderState.store(props, prepend);
     if (axisID == AxisID.FIRST) {
@@ -174,14 +180,15 @@ public final class ReconScreenState extends BaseScreenState {
     //Moved newst and mtffilter to final aligned stack dialog at version 1.1.
     if (version.lt(EtomoVersion.getDefaultInstance("1.1"))) {
       tomoGenNewstHeaderState.load(props, prepend);
-      finalStackNewstHeaderState.set(tomoGenMtffilterHeaderState);
+      stackNewstHeaderState.set(tomoGenMtffilterHeaderState);
       tomoGenMtffilterHeaderState.load(props, prepend);
-      finalStackMtffilterHeaderState.set(tomoGenMtffilterHeaderState);
+      stackMtffilterHeaderState.set(tomoGenMtffilterHeaderState);
     }
     else {
-      finalStackNewstHeaderState.load(props, prepend);
-      finalStackMtffilterHeaderState.load(props, prepend);
+      stackNewstHeaderState.load(props, prepend);
+      stackMtffilterHeaderState.load(props, prepend);
     }
+    stackCtfCorrectionHeaderState.load(props,prepend);
     tomoGenTiltHeaderState.load(props, prepend);
     tomoGenTrialTiltHeaderState.load(props, prepend);
     if (axisID == AxisID.FIRST) {
@@ -209,12 +216,16 @@ public final class ReconScreenState extends BaseScreenState {
     return axisID.getExtension().toUpperCase();
   }
 
-  public PanelHeaderState getFinalNewstHeaderState() {
-    return finalStackNewstHeaderState;
+  public PanelHeaderState getStackNewstHeaderState() {
+    return stackNewstHeaderState;
   }
 
-  public PanelHeaderState getFinalMtffilterHeaderState() {
-    return finalStackMtffilterHeaderState;
+  public PanelHeaderState getStackMtffilterHeaderState() {
+    return stackMtffilterHeaderState;
+  }
+  
+  public PanelHeaderState getStackCtfCorrectionHeaderState() {
+    return stackCtfCorrectionHeaderState;
   }
 
   public PanelHeaderState getTomoGenTiltHeaderState() {
@@ -279,6 +290,10 @@ public final class ReconScreenState extends BaseScreenState {
 }
 /**
  * <p> $Log$
+ * <p> Revision 1.8  2008/10/16 21:01:57  sueh
+ * <p> bug# 1141 Added finalMtffilterHeaderState and newstHeaderState.\Deprecated tomoGenMtffilterHeaderState and
+ * <p> tomoGenNewstHeaderState.
+ * <p>
  * <p> Revision 1.7  2007/02/05 23:30:56  sueh
  * <p> bug# 962 Moved EtomoNumber type info to inner class.
  * <p>
