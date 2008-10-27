@@ -24,6 +24,11 @@ import etomo.ui.Token;
  * @notthreadsafe
  *
  * <p> $$Log$
+ * <p> $Revision 1.16  2007/04/11 22:06:10  sueh
+ * <p> $bug# 964 Added a link list to Statement so that groups of statements could be
+ * <p> $removed.  Added the parameter Statement previousStatement to the Statement
+ * <p> $constructor.
+ * <p> $
  * <p> $Revision 1.15  2007/04/09 20:50:23  sueh
  * <p> $bug# 964 Changed NameValuePair to an abstract class called Statement and
  * <p> $child classes representing name/value pair, comment, empty line, and
@@ -121,6 +126,7 @@ final class Section extends WriteOnlyStatementList implements ReadOnlySection {
 
   private boolean subsection = false;
   private final WriteOnlyStatementList parent;
+  private boolean debug = false;
 
   Section(Token type, Token name, WriteOnlyStatementList parent) {
     key = Section.getKey(type, name);

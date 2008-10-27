@@ -274,11 +274,21 @@ final class Autodoc extends WriteOnlyStatementList implements WritableAutodoc {
   }
 
   public ReadOnlySection getSection(String type, String name) {
+    if (debug) {
+      System.out.println("Autodoc.getSection:type="+type+",name="+name);
+    }
     if (sectionMap == null) {
       return null;
     }
     String key = Section.getKey(type, name);
+    if (debug) {
+      System.out.println("Autodoc.getSection:key="+key);
+      System.out.println("sectionMap="+sectionMap);
+    }
     Section section = (Section) sectionMap.get(key);
+    if (debug) {
+      System.out.println("Autodoc.getSection:section="+section);
+    }
     return section;
   }
 
@@ -513,6 +523,10 @@ final class Autodoc extends WriteOnlyStatementList implements WritableAutodoc {
     this.autodocFile = autodocFile;
     initialize(null, axisID, null, true);
   }
+  
+  public boolean isDebug() {
+    return debug;
+  }
 
   void initialize(String name, AxisID axisID) throws FileNotFoundException,
       IOException, LogFile.ReadException {
@@ -626,6 +640,10 @@ final class Autodoc extends WriteOnlyStatementList implements WritableAutodoc {
 }
 /**
  *<p> $$Log$
+ *<p> $Revision 1.25  2008/05/30 21:22:21  sueh
+ *<p> $bug# 1102 Added commandLanguage and writable.  Will be used to limit
+ *<p> $functionality of regular autodocs to original autodoc definition.
+ *<p> $
  *<p> $Revision 1.24  2008/01/31 20:24:40  sueh
  *<p> $bug# 1055 throwing a FileException when LogFile.getInstance fails.
  *<p> $
