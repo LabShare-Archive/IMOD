@@ -20,6 +20,9 @@ import etomo.storage.autodoc.Autodoc.InternalTestType;
  * @version $Revision$
  * 
  * <p> $Log$
+ * <p> Revision 1.5  2008/05/30 21:25:43  sueh
+ * <p> bug# 1102 Formatted.
+ * <p>
  * <p> Revision 1.4  2007/08/01 22:45:02  sueh
  * <p> bug# 985 Added runInternalTest to ReadOnlyAutodoc.
  * <p>
@@ -63,4 +66,8 @@ public interface ReadOnlyAutodoc extends ReadOnlyStatementList {
 
   void runInternalTest(InternalTestType type, boolean showTokens,
       boolean showDetails) throws IOException, LogFile.ReadException;
+  
+  public boolean isDebug();
+  
+  public void setDebug(boolean input);
 }
