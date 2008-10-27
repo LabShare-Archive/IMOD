@@ -33,6 +33,9 @@ import javax.swing.border.Border;
  * @version $Revision$
  * 
  * <p> $Log$
+ * <p> Revision 1.23  2008/10/01 22:53:14  sueh
+ * <p> bug# 1113 Added add(Component).
+ * <p>
  * <p> Revision 1.22  2008/09/30 22:43:38  sueh
  * <p> bug# 1113 Using a private constructor in SpacedPanel.  Added
  * <p> FocusablePanel class.  Make outer panel a focusable panel when
@@ -292,6 +295,16 @@ final class SpacedPanel {
     }
     xDescription.append("JComboBox,");
     yDescription.append("JComboBox,");
+  }
+  
+  void add(final FileTextField fileTextField) {
+    addSpacing();
+    panel.add(fileTextField.getContainer());
+    if (componentAlignmentX != null) {
+      fileTextField.setAlignmentX(componentAlignmentX.floatValue());
+    }
+    xDescription.append("FileTextField,");
+    yDescription.append("FileTextField,");
   }
 
   void add(final LabeledTextField labeledTextField) {
