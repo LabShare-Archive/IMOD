@@ -48,6 +48,9 @@ import etomo.type.ViewType;
  * 
  * <p>
  * $Log$
+ * Revision 3.117  2008/10/16 22:32:18  sueh
+ * bug# 1141 Created FinalAlignedStack dialog to run full aligned stack and mtf filter.
+ *
  * Revision 3.116  2008/09/30 22:45:50  sueh
  * bug# 1113 Using a private constructor in SpacedPanel.
  *
@@ -632,8 +635,7 @@ import etomo.type.ViewType;
  */
 
 public class TomogramGenerationDialog extends ProcessDialog implements
-    ContextMenu, Expandable, AbstractParallelDialog,
-    Run3dmodButtonContainer {
+    ContextMenu, Expandable, Run3dmodButtonContainer {
   public static final String rcsid = "$Id$";
 
   public static final String X_AXIS_TILT_TOOLTIP = "This line allows one to rotate the reconstruction around the X axis, so "
@@ -1350,7 +1352,7 @@ public class TomogramGenerationDialog extends ProcessDialog implements
   void buttonAction(final String command,
       final Deferred3dmodButton deferred3dmodButton,
       final Run3dmodMenuOptions run3dmodMenuOptions) {
-     if (command.equals(btnTrial.getActionCommand())) {
+    if (command.equals(btnTrial.getActionCommand())) {
       expert.trialAction(btnTrial, null);
     }
     else if (command.equals(btnUseTrial.getActionCommand())) {
@@ -1385,7 +1387,6 @@ public class TomogramGenerationDialog extends ProcessDialog implements
       adaptee.buttonAction(event.getActionCommand(), null, null);
     }
   }
-
 
   /**
    * Initialize the tooltip text for the axis panel objects
