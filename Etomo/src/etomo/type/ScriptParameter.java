@@ -19,6 +19,11 @@ import etomo.comscript.InvalidParameterException;
  * @version $Revision$
  * 
  * <p> $Log$
+ * <p> Revision 1.12  2007/03/07 21:10:19  sueh
+ * <p> bug# 981 Changed ScriptParameter.isUseInScript to isNotNullAndNotDefault for
+ * <p> clarity.  Added a second updateComScript function to choose whether to include
+ * <p> when the instance is defaulted (always in comscript).
+ * <p>
  * <p> Revision 1.11  2007/02/05 23:31:06  sueh
  * <p> bug# 962 Moved EtomoNumber type info to inner class.
  * <p>
@@ -190,6 +195,9 @@ public class ScriptParameter extends EtomoNumber {
   public ConstEtomoNumber parse(ComScriptCommand scriptCommand,
       boolean setActive) throws InvalidParameterException {
     boolean found = false;
+    if (isDebug()) {
+      System.out.println("name="+name+",scriptCommand.hasKeyword(name)="+scriptCommand.hasKeyword(name));
+    }
     if (!scriptCommand.hasKeyword(name)) {
       if (shortName == null || !scriptCommand.hasKeyword(shortName)) {
         reset();
@@ -201,7 +209,13 @@ public class ScriptParameter extends EtomoNumber {
     }
     else {
       found = true;
+      if (isDebug()) {
+        System.out.println("scriptCommand.getValue(name)="+scriptCommand.getValue(name));
+      }
       set(scriptCommand.getValue(name));
+      if (isDebug()) {
+        System.out.println("toString()="+toString());
+      }
     }
     if (setActive) {
       setActive(found);
