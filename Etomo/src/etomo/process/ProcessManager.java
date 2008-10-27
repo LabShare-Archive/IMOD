@@ -20,6 +20,9 @@
  * 
  * <p>
  * $Log$
+ * Revision 3.122  2008/09/26 18:55:21  sueh
+ * bug# 1140 In modelToPatch, using imod2vatch for Windows.
+ *
  * Revision 3.121  2008/05/03 00:42:33  sueh
  * bug# 847 Passing a ProcessSeries instance to all processes that use
  * process objects.  The goal is to pass then back to process done functions.
@@ -874,7 +877,9 @@ import etomo.comscript.BlendmontParam;
 import etomo.comscript.CombineComscriptState;
 import etomo.comscript.Command;
 import etomo.comscript.CommandDetails;
+import etomo.comscript.ConstSplitCorrectionParam;
 import etomo.comscript.ConstTiltParam;
+import etomo.comscript.CtfPhaseFlipParam;
 import etomo.comscript.ProcessDetails;
 import etomo.comscript.ConstNewstParam;
 import etomo.comscript.ConstSqueezevolParam;
@@ -913,6 +918,33 @@ public class ProcessManager extends BaseProcessManager {
     appManager = appMgr;
   }
 
+  public void setupCtfPlotterComScript(CtfPhaseFlipParam ctfPhaseFlipParam,
+      AxisID axisID) {
+    CopyTomoComs copyTomoComs = new CopyTomoComs(appManager);
+    copyTomoComs.setCTFFiles(CopyTomoComs.CtfFilesValue.CTF_PLOTTER);
+    copyTomoComs.setVoltage(ctfPhaseFlipParam.getVoltage());
+    copyTomoComs.setSphericalAberration(ctfPhaseFlipParam
+        .getSphericalAberration());
+    setupComScripts(copyTomoComs, axisID);
+  }
+
+  public void setupCtfCorrectionComScript(AxisID axisID) {
+    CopyTomoComs copyTomoComs = new CopyTomoComs(appManager);
+    copyTomoComs.setCTFFiles(CopyTomoComs.CtfFilesValue.CTF_CORRECTION);
+    setupComScripts(copyTomoComs, axisID);
+  }
+
+  public boolean setupComScripts(AxisID axisID) {
+    CopyTomoComs copyTomoComs = new CopyTomoComs(appManager);
+
+    if (EtomoDirector.INSTANCE.getArguments().isDebug()) {
+      System.err.println("copytomocoms command line: "
+          + copyTomoComs.getCommandLine());
+    }
+    appManager.saveStorables(axisID);
+    return setupComScripts(copyTomoComs, axisID);
+  }
+
   /**
    * Run the copytomocoms script.  Don't need to save meta data because
    * this function is run on exiting Setup dialog
@@ -921,14 +953,8 @@ public class ProcessManager extends BaseProcessManager {
    *          a read-only MetaData object containing the information to run the
    *          copytomocoms script
    */
-  public boolean setupComScripts(ConstMetaData metaData, AxisID axisID) {
-    CopyTomoComs copyTomoComs = new CopyTomoComs(appManager);
-
-    if (EtomoDirector.INSTANCE.getArguments().isDebug()) {
-      System.err.println("copytomocoms command line: "
-          + copyTomoComs.getCommandLine());
-    }
-    appManager.saveStorables(axisID);
+  private boolean setupComScripts(CopyTomoComs copyTomoComs, AxisID axisID) {
+    copyTomoComs.setup();
     int exitValue = copyTomoComs.run();
     //process messages
     ProcessMessages messages = copyTomoComs.getProcessMessages();
@@ -1439,6 +1465,25 @@ public class ProcessManager extends BaseProcessManager {
         mtffilterProcessMonitor, axisID, processResultDisplay, processSeries);
     return comScriptProcess.getName();
   }
+  
+  public void ctfPlotter(AxisID axisID,
+      ProcessResultDisplay processResultDisplay) throws SystemProcessException {
+    String command = ProcessName.CTF_PLOTTER.getComscript(axisID);
+    //  Start the com script in the background
+    startNonBlockingComScript(command,
+        axisID, processResultDisplay);
+  }
+
+  public String ctfCorrection(AxisID axisID,
+      ProcessResultDisplay processResultDisplay,
+      ConstProcessSeries processSeries) throws SystemProcessException {
+    String command = ProcessName.CTF_CORRECTION.getComscript(axisID);
+    CtfCorrectionMonitor monitor = new CtfCorrectionMonitor(appManager, axisID);
+    //  Start the com script in the background
+    ComScriptProcess comScriptProcess = startComScript(command, monitor,
+        axisID, processResultDisplay, processSeries);
+    return comScriptProcess.getName();
+  }
 
   public void reconnectTilt(AxisID axisID,
       ProcessResultDisplay processResultDisplay) {
@@ -1493,6 +1538,15 @@ public class ProcessManager extends BaseProcessManager {
     BackgroundProcess backgroundProcess = startBackgroundProcess(param
         .getCommand(), axisID, processResultDisplay, ProcessName.SPLITTILT,
         processSeries);
+    return backgroundProcess.getName();
+  }
+
+  public String splitCorrection(ConstSplitCorrectionParam param, AxisID axisID,
+      ProcessResultDisplay processResultDisplay,
+      ConstProcessSeries processSeries) throws SystemProcessException {
+    BackgroundProcess backgroundProcess = startBackgroundProcess(param
+        .getCommand(), axisID, processResultDisplay,
+        ProcessName.SPLIT_CORRECTION, processSeries);
     return backgroundProcess.getName();
   }
 
