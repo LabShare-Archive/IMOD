@@ -162,6 +162,13 @@ final class PanelHeader implements Expandable {
     }
     btnAdvancedBasic.setExpanded(advanced);
   }
+  
+  void setOpen(boolean open) {
+    if (btnOpenClose == null) {
+      return;
+    }
+    btnOpenClose.setExpanded(open);
+  }
 
   boolean isAdvanced() {
     if (btnAdvancedBasic == null) {
@@ -243,6 +250,9 @@ final class PanelHeader implements Expandable {
 }
 /**
  * <p> $Log$
+ * <p> Revision 1.25  2007/03/31 03:01:22  sueh
+ * <p> bug# 964 Changed PanelHeader.isAdvanceBasicExpanded to isAdvanced.
+ * <p>
  * <p> Revision 1.24  2007/03/09 22:06:28  sueh
  * <p> bug# 964 Added getAdvancedBasicOnlyInstance().
  * <p>
