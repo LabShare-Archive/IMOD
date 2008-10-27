@@ -381,12 +381,25 @@ public final class TomogramGenerationExpert extends ReconUIExpert {
       return null;
     }
     SplittiltParam param = new SplittiltParam(axisID);
-    if (!getParallelPanel().getParameters(param)) {
+    if (!getParameters(param)) {
       return null;
     }
     param.setSeparateChunks(CpuAdoc.getInstance(axisID,
         manager.getPropertyUserDir()).isSeparateChunks());
     return param;
+  }
+
+  boolean getParameters(final SplittiltParam param) {
+    ConstEtomoNumber numMachines = param.setNumMachines(getParallelPanel()
+        .getCPUsSelected());
+    if (!numMachines.isValid()) {
+      UIHarness.INSTANCE.openMessageDialog(getParallelPanel()
+          .getCPUsSelectedLabel()
+          + " " + numMachines.getInvalidReason(), "Unable to run splittilt",
+          axisID);
+      return false;
+    }
+    return true;
   }
 
   /**
@@ -419,9 +432,9 @@ public final class TomogramGenerationExpert extends ReconUIExpert {
     //Parallel processing is optional in tomogram reconstruction, so only use it
     //if the user set it up.
     boolean validAutodoc = cpuAdoc.isAvailable();
+    dialog.setParallelProcessEnabled(validAutodoc);
     ConstEtomoNumber tomoGenTiltParallel = metaData
         .getTomoGenTiltParallel(axisID);
-    dialog.setParallelProcessEnabled(validAutodoc);
     if (tomoGenTiltParallel == null) {
       dialog.setParallelProcess(validAutodoc
           && metaData.getDefaultParallel().is());
@@ -731,6 +744,9 @@ public final class TomogramGenerationExpert extends ReconUIExpert {
 }
 /**
  * <p> $Log$
+ * <p> Revision 1.24  2008/10/16 22:32:35  sueh
+ * <p> bug# 1141 Created FinalAlignedStack dialog to run full aligned stack and mtf filter.
+ * <p>
  * <p> Revision 1.23  2008/07/19 01:12:45  sueh
  * <p> bug# 1125 Making it easier to access CpuAdoc by not passing the
  * <p> manager to it; all it needs is the current directory.
