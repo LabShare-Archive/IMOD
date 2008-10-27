@@ -81,14 +81,21 @@ public final class ProcessResultDisplayFactory implements
   private final ProcessResultDisplay finalAlignment = TomogramPositioningExpert
       .getFinalAlignmentDisplay();
 
-  //generation
+  //final aligned stack
 
   private final ProcessResultDisplay fullAlignedStack = FinalAlignedStackDialog
       .getFullAlignedStackDisplay();
+  private final ProcessResultDisplay ctfCorrection = FinalAlignedStackDialog
+      .getCtfCorrectionDisplay();
+  private final ProcessResultDisplay useCtfCorrection = FinalAlignedStackDialog
+      .getUseCtfCorrectionDisplay();
   private final ProcessResultDisplay filter = FinalAlignedStackDialog
       .getFilterDisplay();
   private final ProcessResultDisplay useFilteredStack = FinalAlignedStackDialog
       .getUseFilteredStackDisplay();
+
+  //generation
+
   private final ProcessResultDisplay useTrialTomogram = TomogramGenerationDialog
       .getUseTrialTomogramDisplay();
   private final ProcessResultDisplay generateTomogram = TomogramGenerationDialog
@@ -155,10 +162,13 @@ public final class ProcessResultDisplayFactory implements
     addDependency(sampleTomogram);
     addDependency(computePitch);
     addDependency(finalAlignment);
-    //generation
+    //stack
     addDependency(fullAlignedStack);
+    addDependency(ctfCorrection);
+    addDependency(useCtfCorrection);
     addDependency(filter);
     addDependency(useFilteredStack);
+    //generation
     addDependency(useTrialTomogram);
     addDependency(generateTomogram);
     addDependency(deleteAlignedStack);
@@ -183,6 +193,7 @@ public final class ProcessResultDisplayFactory implements
     addDependents(createFixedStack);
     useFixedStack.setScreenState(screenState);
     addDependents(useFixedStack);
+    
     //coarse alignment
     crossCorrelate.setScreenState(screenState);
     addDependents(crossCorrelate);
@@ -194,6 +205,7 @@ public final class ProcessResultDisplayFactory implements
     addDependents(coarseAlign);
     midas.setScreenState(screenState);
     addDependents(midas);
+    
     //fiducial model
     transferFiducials.setScreenState(screenState);
     addDependents(transferFiducials);
@@ -203,9 +215,11 @@ public final class ProcessResultDisplayFactory implements
     addDependents(trackFiducials);
     fixFiducialModel.setScreenState(screenState);
     addDependents(fixFiducialModel);
+    
     //fine alignment
     computeAlignment.setScreenState(screenState);
     addDependents(computeAlignment);
+    
     //positioning
     sampleTomogram.setScreenState(screenState);
     addDependents(sampleTomogram);
@@ -213,14 +227,22 @@ public final class ProcessResultDisplayFactory implements
     addDependents(computePitch);
     finalAlignment.setScreenState(screenState);
     addDependents(finalAlignment);
-    //generation
+    
+    //stack
     fullAlignedStack.setScreenState(screenState);
     addDependents(fullAlignedStack);
-    filter.setScreenState(screenState);
+    //ctfCorrection is optional
+    ctfCorrection.setScreenState(screenState);
+    ctfCorrection.addDependentDisplay(useCtfCorrection);
+    useCtfCorrection.setScreenState(screenState);
+    addDependents(useCtfCorrection);
     //filter is optional
+    filter.setScreenState(screenState);
     filter.addDependentDisplay(useFilteredStack);
     useFilteredStack.setScreenState(screenState);
     addDependents(useFilteredStack);
+    
+    //generation
     useTrialTomogram.setScreenState(screenState);
     //use trial tomogram and generate tomogram are equals in the dependency order
     addDependents(generateTomogram);
@@ -228,6 +250,7 @@ public final class ProcessResultDisplayFactory implements
     addDependents(generateTomogram);
     deleteAlignedStack.setScreenState(screenState);
     addDependents(deleteAlignedStack);
+    
     //combination
     createCombine.setScreenState(screenState);
     addDependents(createCombine);
@@ -250,6 +273,7 @@ public final class ProcessResultDisplayFactory implements
     addDependents(restartMatchorwarp);
     restartVolcombine.setScreenState(screenState);
     addDependents(restartVolcombine);
+    
     //post processing
     trimVolume.setScreenState(screenState);
     addDependents(trimVolume);
@@ -270,6 +294,10 @@ public final class ProcessResultDisplayFactory implements
     return (ProcessResultDisplay) dependentDisplayList.get(dependencyIndex);
   }
 
+  /**
+   * Add everything after this display to its dependency list.
+   * @param display
+   */
   private void addDependents(ProcessResultDisplay display) {
     if (display == null) {
       return;
@@ -358,10 +386,18 @@ public final class ProcessResultDisplayFactory implements
     return finalAlignment;
   }
 
-  //generation
+  //stack
 
   public ProcessResultDisplay getFullAlignedStack() {
     return fullAlignedStack;
+  }
+
+  public ProcessResultDisplay getCtfCorrection() {
+    return ctfCorrection;
+  }
+
+  public ProcessResultDisplay getUseCtfCorrection() {
+    return useCtfCorrection;
   }
 
   public ProcessResultDisplay getFilter() {
@@ -371,6 +407,8 @@ public final class ProcessResultDisplayFactory implements
   public ProcessResultDisplay getUseFilteredStack() {
     return useFilteredStack;
   }
+
+  //generation
 
   public ProcessResultDisplay getUseTrialTomogram() {
     return useTrialTomogram;
@@ -426,6 +464,9 @@ public final class ProcessResultDisplayFactory implements
 }
 /**
  * <p> $Log$
+ * <p> Revision 1.8  2008/10/16 20:59:47  sueh
+ * <p> bug# 1141 Created FinalAlignedStack dialog to run full aligned stack and mtf filter.
+ * <p>
  * <p> Revision 1.7  2008/05/07 02:45:21  sueh
  * <p> bug# 847 Getting the the postioning buttons from the expert.
  * <p>
