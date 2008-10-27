@@ -17,6 +17,11 @@ import etomo.util.DatasetFiles;
  * @version $$Revision$$
  *
  * <p> $$Log$
+ * <p> $Revision 1.17  2007/12/10 22:03:58  sueh
+ * <p> $bug# 1041 Standardized the getInstance functions and made sure that they will
+ * <p> $work whether they get a process name, a process name plus an axis extension,
+ * <p> $or a file name.  Removed fromFileName and stripExtension.
+ * <p> $
  * <p> $Revision 1.16  2007/11/06 19:51:22  sueh
  * <p> $bug# 1047 Added nad_eed_3d and chunksetup.
  * <p> $
@@ -121,6 +126,9 @@ public class ProcessName {
   private static final String peetParser = "prmParser";
   private static final String anisotropicDiffusion = "nad_eed_3d";
   private static final String chunksetup = "chunksetup";
+  private static final String ctfPlotter = "ctfplotter";
+  private static final String ctfCorrection = "ctfcorrection";
+  private static final String splitCorrection = "splitcorrection";
 
   private final String name;
 
@@ -174,6 +182,9 @@ public class ProcessName {
   public static final ProcessName ANISOTROPIC_DIFFUSION = new ProcessName(
       anisotropicDiffusion);
   public static final ProcessName CHUNKSETUP = new ProcessName(chunksetup);
+  public static final ProcessName CTF_PLOTTER = new ProcessName(ctfPlotter);
+  public static final ProcessName CTF_CORRECTION = new ProcessName(ctfCorrection);
+  public static final ProcessName SPLIT_CORRECTION = new ProcessName(splitCorrection);
 
   /**
    * Returns a string representation of the object.
@@ -404,6 +415,15 @@ public class ProcessName {
     }
     if (name.compareToIgnoreCase(chunksetup) == 0) {
       return CHUNKSETUP;
+    }
+    if (name.compareToIgnoreCase(ctfPlotter) == 0) {
+      return CTF_PLOTTER;
+    }
+    if (name.compareToIgnoreCase(ctfCorrection) == 0) {
+      return CTF_CORRECTION;
+    }
+    if (name.compareToIgnoreCase(splitCorrection) == 0) {
+      return SPLIT_CORRECTION;
     }
     return null;
   }
