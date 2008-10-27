@@ -22,6 +22,8 @@ import javax.swing.SpinnerNumberModel;
 
 import etomo.ApplicationManager;
 import etomo.EtomoDirector;
+import etomo.comscript.CtfPhaseFlipParam;
+import etomo.comscript.CtfPlotterParam;
 import etomo.comscript.NewstParam;
 import etomo.storage.LogFile;
 import etomo.storage.MtfFileFilter;
@@ -29,14 +31,17 @@ import etomo.storage.autodoc.AutodocFactory;
 import etomo.storage.autodoc.ReadOnlyAutodoc;
 import etomo.type.AxisID;
 import etomo.type.ConstEtomoNumber;
+import etomo.type.ConstStringParameter;
 import etomo.type.DialogType;
 import etomo.type.EtomoAutodoc;
 import etomo.type.PanelHeaderState;
+import etomo.type.ProcessName;
 import etomo.type.ProcessResultDisplay;
 import etomo.type.ProcessResultDisplayFactory;
 import etomo.type.ReconScreenState;
 import etomo.type.Run3dmodMenuOptions;
 import etomo.type.ViewType;
+import etomo.util.DatasetFiles;
 
 /**
  * <p>Description: </p>
@@ -51,15 +56,18 @@ import etomo.type.ViewType;
  * 
  * @version $Revision$
  * 
- * <p> $Log$ </p>
+ * <p> $Log$
+ * <p> Revision 1.1  2008/10/16 21:24:25  sueh
+ * <p> bug# 1141 Dialog for running newst (full align) and filtering
+ * <p> </p>
  */
 public final class FinalAlignedStackDialog extends ProcessDialog implements
-    ContextMenu, FiducialessParams, Expandable, AbstractParallelDialog,
-    Run3dmodButtonContainer {
+    ContextMenu, FiducialessParams, Expandable, Run3dmodButtonContainer {
   public static final String rcsid = "$Id$";
 
   static final String SIZE_TO_OUTPUT_IN_X_AND_Y_LABEL = "Size to output";
   private static final DialogType DIALOG_TYPE = DialogType.FINAL_ALIGNED_STACK;
+  public static final String CTF_CORRECTION_LABEL = "CTF Correction";
 
   private final JPanel pnlFinalAlignedStack = new JPanel();
 
@@ -96,25 +104,16 @@ public final class FinalAlignedStackDialog extends ProcessDialog implements
   private final SpacedTextField ltfStartingAndEndingZ = new SpacedTextField(
       "Starting and ending views: ");
 
-  private final CheckBox cbParallelProcess = new CheckBox(
-      ParallelPanel.FIELD_LABEL);
   //headers should not go into garbage collection
   private final PanelHeader newstHeader;
   private final PanelHeader filterHeader = PanelHeader
-      .getAdvancedBasicInstance("2D Filtering (optional)", this,
-          DIALOG_TYPE);
+      .getAdvancedBasicInstance("2D Filtering (optional)", this, DIALOG_TYPE);
   //panels that are changed in setAdvanced()
   private final SpacedPanel inverseParamsPanel;
   private final JPanel filterBodyPanel;
   private final SpacedPanel newstBodyPanel;
   private final LabeledTextField ltfSizeToOutputInXandY = new LabeledTextField(
       SIZE_TO_OUTPUT_IN_X_AND_Y_LABEL + " (X,Y - unbinned): ");
-
-  //ctf correction
-  private final PanelHeader ctfCorrectionHeader = PanelHeader
-      .getAdvancedBasicInstance("CTF Correction", this,
-          DIALOG_TYPE);
-  private final JPanel ctfCorrectionBodyPanel = new JPanel();
 
   //backward compatibility functionality - if the metadata binning is missing
   //get binning from newst
@@ -123,6 +122,34 @@ public final class FinalAlignedStackDialog extends ProcessDialog implements
   private final ButtonListener finalAlignedStackListener = new ButtonListener(
       this);
   private final FinalAlignedStackExpert expert;
+
+  //ctf correction
+  private final PanelHeader ctfCorrectionHeader = PanelHeader
+      .getAdvancedBasicInstance("CTF Correction", this, DIALOG_TYPE);
+  private final SpacedPanel ctfCorrectionBodyPanel = SpacedPanel
+      .getInstance(true);
+  private final FileTextField ftfConfigFile = new FileTextField("Config file: ");
+  private final LabeledTextField ltfVoltage = new LabeledTextField("Voltage: ");
+  private final LabeledTextField ltfSphericalAberration = new LabeledTextField(
+      "Spherical Aberration: ");
+  private final LabeledTextField ltfAmplitudeContrast = new LabeledTextField(
+      "Amplitude contrast: ");
+  private final LabeledTextField ltfExpectedDefocus = new LabeledTextField(
+      "Expected defocus: ");
+  private final LabeledTextField ltfInterpolationWidth = new LabeledTextField(
+      "Interpolation width: ");
+  private final CheckBox cbParallelProcess = new CheckBox(
+      ParallelPanel.FIELD_LABEL);
+  private final LabeledTextField ltfDefocusTol = new LabeledTextField(
+      "Defocus tolerance: ");
+  private final MultiLineButton btnCtfPlotter = new MultiLineButton(
+      "Ctf Plotter");
+  private final Run3dmodButton btnCtfCorrection;
+  private final Run3dmodButton btnImodCtfCorrection = Run3dmodButton
+      .get3dmodInstance("View CTF Correction", this);
+  private final MultiLineButton btnUseCtfCorrection;
+  private final CheckBox cbUseExpectedDefocus = new CheckBox(
+      "Use expected defocus instead of ctfplotter output");
 
   private boolean trialTilt = false;
 
@@ -159,12 +186,17 @@ public final class FinalAlignedStackDialog extends ProcessDialog implements
       newstHeader = PanelHeader.getAdvancedBasicInstance("Newstack", this,
           dialogType);
     }
+    btnCtfCorrection = (Run3dmodButton) displayFactory.getCtfCorrection();
+    btnCtfCorrection.setContainer(this);
+    btnCtfCorrection.setDeferred3dmodButton(btnImodCtfCorrection);
+    btnUseCtfCorrection = (MultiLineButton) displayFactory
+        .getUseCtfCorrection();
     //field instantiation
     SpinnerNumberModel integerModel = new SpinnerNumberModel(1, 1, 8, 1);
     spinBinning = new LabeledSpinner("Aligned image stack binning ",
         integerModel);
     UIUtilities.addWithYSpace(pnlFinalAlignedStack, layoutNewstPanel());
-    //UIUtilities.addWithYSpace(pnlFinalAlignedStack, layoutCtfCorrectionPanel());
+    UIUtilities.addWithYSpace(pnlFinalAlignedStack, layoutCtfCorrectionPanel());
     UIUtilities.addWithYSpace(pnlFinalAlignedStack, layoutFilterPanel());
     UIUtilities.alignComponentsX(pnlFinalAlignedStack,
         Component.CENTER_ALIGNMENT);
@@ -198,6 +230,12 @@ public final class FinalAlignedStackDialog extends ProcessDialog implements
         .addKeyListener(new StartingAndEndingZKeyListener(this));
     cbFiducialess.addActionListener(finalAlignedStackListener);
     cbParallelProcess.addActionListener(finalAlignedStackListener);
+    cbUseExpectedDefocus.addActionListener(finalAlignedStackListener);
+    ftfConfigFile.addActionListener(finalAlignedStackListener);
+    btnCtfPlotter.addActionListener(finalAlignedStackListener);
+    btnCtfCorrection.addActionListener(finalAlignedStackListener);
+    btnImodCtfCorrection.addActionListener(finalAlignedStackListener);
+    btnUseCtfCorrection.addActionListener(finalAlignedStackListener);
 
     //  Mouse adapter for context menu
     GenericMouseAdapter mouseAdapter = new GenericMouseAdapter(this);
@@ -210,12 +248,21 @@ public final class FinalAlignedStackDialog extends ProcessDialog implements
   }
 
   public static ProcessResultDisplay getFilterDisplay() {
-    return Run3dmodButton.getDeferredToggle3dmodInstance("Filter",
-        DIALOG_TYPE);
+    return Run3dmodButton.getDeferredToggle3dmodInstance("Filter", DIALOG_TYPE);
   }
 
   public static ProcessResultDisplay getUseFilteredStackDisplay() {
     return MultiLineButton.getToggleButtonInstance("Use Filtered Stack",
+        DIALOG_TYPE);
+  }
+
+  public static ProcessResultDisplay getCtfCorrectionDisplay() {
+    return Run3dmodButton.getDeferredToggle3dmodInstance(CTF_CORRECTION_LABEL,
+        DIALOG_TYPE);
+  }
+
+  public static ProcessResultDisplay getUseCtfCorrectionDisplay() {
+    return MultiLineButton.getToggleButtonInstance("Use CTF Correction",
         DIALOG_TYPE);
   }
 
@@ -228,8 +275,49 @@ public final class FinalAlignedStackDialog extends ProcessDialog implements
         .getButtonStateKey()));
   }
 
+  void setCtfCorrectionButtonState(ReconScreenState screenState) {
+    btnCtfCorrection.setButtonState(screenState.getButtonState(btnCtfCorrection
+        .getButtonStateKey()));
+  }
+
   void setViewFilterButtonEnabled(boolean enable) {
     btnViewFilter.setEnabled(enable);
+  }
+
+  void setVoltage(ConstEtomoNumber input) {
+    ltfVoltage.setText(input);
+  }
+
+  File getConfigFile() {
+    return ftfConfigFile.getFile();
+  }
+
+  void setConfigFile(ConstStringParameter input) {
+    ftfConfigFile.setText(input);
+  }
+
+  void setSphericalAberration(ConstEtomoNumber input) {
+    ltfSphericalAberration.setText(input);
+  }
+
+  void setAmplitudeContrast(ConstEtomoNumber input) {
+    ltfAmplitudeContrast.setText(input);
+  }
+
+  void setDefocusTol(ConstEtomoNumber input) {
+    ltfDefocusTol.setText(input);
+  }
+
+  void setExpectedDefocus(ConstEtomoNumber input) {
+    ltfExpectedDefocus.setText(input);
+  }
+
+  String getDefocusTol() {
+    return ltfDefocusTol.getText();
+  }
+
+  String getExpectedDefocus() {
+    return ltfExpectedDefocus.getText();
   }
 
   void setUseFilterEnabled(boolean enable) {
@@ -249,6 +337,10 @@ public final class FinalAlignedStackDialog extends ProcessDialog implements
     ltfRotation.setText(tiltAxisAngle);
   }
 
+  void setInterpolationWidth(ConstEtomoNumber input) {
+    ltfInterpolationWidth.setText(input);
+  }
+
   void setInverseRolloffRadiusSigma(String inverseRolloffRadiusSigma) {
     ltfInverseRolloffRadiusSigma.setText(inverseRolloffRadiusSigma);
   }
@@ -265,8 +357,16 @@ public final class FinalAlignedStackDialog extends ProcessDialog implements
     filterHeader.setState(state);
   }
 
+  void setCtfCorrectionHeaderState(PanelHeaderState state) {
+    ctfCorrectionHeader.setState(state);
+  }
+
   public float getImageRotation() throws NumberFormatException {
     return Float.parseFloat(ltfRotation.getText());
+  }
+
+  String getInterpolationWidth() {
+    return ltfInterpolationWidth.getText();
   }
 
   String getInverseRolloffRadiusSigma() {
@@ -289,9 +389,30 @@ public final class FinalAlignedStackDialog extends ProcessDialog implements
     return ltfStartingAndEndingZ.getText();
   }
 
+  void setUseExpectedDefocus(boolean input) {
+    cbUseExpectedDefocus.setSelected(input);
+  }
+
   void setUseFilterButtonState(ReconScreenState screenState) {
     btnUseFilter.setButtonState(screenState.getButtonState(btnUseFilter
         .getButtonStateKey()));
+  }
+
+  void setUseCtfCorrectionButtonState(ReconScreenState screenState) {
+    btnUseCtfCorrection.setButtonState(screenState
+        .getButtonState(btnUseCtfCorrection.getButtonStateKey()));
+  }
+
+  String getVoltage() {
+    return ltfVoltage.getText();
+  }
+
+  String getSphericalAberration() {
+    return ltfSphericalAberration.getText();
+  }
+
+  String getAmplitudeContrast() {
+    return ltfAmplitudeContrast.getText();
   }
 
   int getBinning() {
@@ -300,6 +421,10 @@ public final class FinalAlignedStackDialog extends ProcessDialog implements
 
   void getFilterHeaderState(PanelHeaderState state) {
     filterHeader.getState(state);
+  }
+
+  void getCtfCorrectionHeaderState(PanelHeaderState state) {
+    ctfCorrectionHeader.getState(state);
   }
 
   void getNewstHeaderState(PanelHeaderState state) {
@@ -348,16 +473,25 @@ public final class FinalAlignedStackDialog extends ProcessDialog implements
         updateAdvancedNewst(button.isExpanded());
       }
     }
+    if (ctfCorrectionHeader != null) {
+      if (ctfCorrectionHeader.equalsOpenClose(button)) {
+        ctfCorrectionBodyPanel.setVisible(button.isExpanded());
+      }
+      else if (ctfCorrectionHeader.equalsAdvancedBasic(button)) {
+        updateAdvancedCtfCorrection(button.isExpanded());
+      }
+    }
     UIHarness.INSTANCE.pack(axisID, applicationManager);
   }
 
   private void updateAdvancedFilter(boolean advanced) {
     ltfStartingAndEndingZ.setVisible(advanced);
-    //ltfLowPassRadiusSigma
     inverseParamsPanel.setVisible(advanced);
-    //btnFilter
-    //btnViewFilter
-    //btnUseFilter
+  }
+
+  private void updateAdvancedCtfCorrection(boolean advanced) {
+    ltfAmplitudeContrast.setVisible(advanced);
+    ltfDefocusTol.setVisible(advanced);
   }
 
   private void updateAdvancedNewst(boolean advanced) {
@@ -392,6 +526,7 @@ public final class FinalAlignedStackDialog extends ProcessDialog implements
   private void updateAdvanced() {
     filterHeader.setAdvanced(isAdvanced);
     newstHeader.setAdvanced(isAdvanced);
+    ctfCorrectionHeader.setAdvanced(isAdvanced);
 
     UIHarness.INSTANCE.pack(axisID, applicationManager);
   }
@@ -402,6 +537,10 @@ public final class FinalAlignedStackDialog extends ProcessDialog implements
 
   boolean isParallelProcess() {
     return cbParallelProcess.isSelected();
+  }
+
+  boolean isUseExpectedDefocus() {
+    return cbUseExpectedDefocus.isSelected();
   }
 
   String getSizeToOutputInXandY() {
@@ -415,16 +554,64 @@ public final class FinalAlignedStackDialog extends ProcessDialog implements
   boolean isUseLinearInterpolation() {
     return cbUseLinearInterpolation.isSelected();
   }
-/*
+
   private JPanel layoutCtfCorrectionPanel() {
-    JPanel ctfCorrectionPanel = new JPanel();
-    ctfCorrectionPanel.setLayout(new BoxLayout(ctfCorrectionPanel,
+    //panel
+    JPanel ctfCorrectionMainPanel = new JPanel();
+    ctfCorrectionMainPanel.setLayout(new BoxLayout(ctfCorrectionMainPanel,
         BoxLayout.Y_AXIS));
-    ctfCorrectionPanel.setBorder(BorderFactory.createEtchedBorder());
-    ctfCorrectionPanel.add(ctfCorrectionHeader.getContainer());
-    ctfCorrectionPanel.add(ctfCorrectionBodyPanel);
-    return ctfCorrectionPanel;
-  }*/
+    ctfCorrectionMainPanel.setBorder(BorderFactory.createEtchedBorder());
+    ctfCorrectionMainPanel.add(ctfCorrectionHeader.getContainer());
+    ctfCorrectionMainPanel.add(ctfCorrectionBodyPanel.getContainer());
+    //body
+    ctfCorrectionBodyPanel.setBoxLayout(BoxLayout.Y_AXIS);
+    ctfCorrectionBodyPanel.add(ltfVoltage);
+    ctfCorrectionBodyPanel.add(ltfSphericalAberration);
+    ctfCorrectionBodyPanel.add(ltfAmplitudeContrast);
+    //ctf plotter
+    SpacedPanel ctfPlotterPanel = SpacedPanel.getInstance();
+    ctfPlotterPanel.setBoxLayout(BoxLayout.Y_AXIS);
+    ctfPlotterPanel.setBorder(new EtchedBorder("CTF Plotter").getBorder());
+    ctfPlotterPanel.setComponentAlignmentX(Component.CENTER_ALIGNMENT);
+    ctfCorrectionBodyPanel.add(ctfPlotterPanel);
+    ctfPlotterPanel.add(ftfConfigFile);
+    ctfPlotterPanel.add(ltfExpectedDefocus);
+    ctfPlotterPanel.add(btnCtfPlotter);
+    //ctf phase flip
+    SpacedPanel ctfCorrectionPanel = SpacedPanel.getInstance();
+    ctfCorrectionPanel.setBoxLayout(BoxLayout.Y_AXIS);
+    ctfCorrectionPanel
+        .setBorder(new EtchedBorder("CTF Phase Flip").getBorder());
+    ctfCorrectionBodyPanel.add(ctfCorrectionPanel);
+    //use expected defocus
+    JPanel useExpectedDefocusPanel = new JPanel();
+    useExpectedDefocusPanel.setLayout(new BoxLayout(useExpectedDefocusPanel,
+        BoxLayout.X_AXIS));
+    ctfCorrectionPanel.add(useExpectedDefocusPanel);
+    useExpectedDefocusPanel.add(Box.createHorizontalGlue());
+    useExpectedDefocusPanel.add(cbUseExpectedDefocus);
+
+    ctfCorrectionPanel.add(cbParallelProcess);
+    ctfCorrectionPanel.add(ltfInterpolationWidth);
+    ctfCorrectionPanel.add(ltfDefocusTol);
+    //buttons
+    SpacedPanel buttonPanel = SpacedPanel.getInstance();
+    buttonPanel.setBoxLayout(BoxLayout.X_AXIS);
+    ctfCorrectionPanel.add(buttonPanel);
+    buttonPanel.addHorizontalGlue();
+    buttonPanel.add(btnCtfCorrection);
+    buttonPanel.add(btnImodCtfCorrection);
+    buttonPanel.add(btnUseCtfCorrection);
+    buttonPanel.addHorizontalGlue();
+    //size buttons
+    btnCtfPlotter.setSize();
+    btnCtfCorrection.setSize();
+    btnImodCtfCorrection.setSize();
+    btnUseCtfCorrection.setSize();
+    //init
+    ctfCorrectionHeader.setOpen(false);
+    return ctfCorrectionMainPanel;
+  }
 
   /**
    * Layout the newstack panel
@@ -438,11 +625,11 @@ public final class FinalAlignedStackDialog extends ProcessDialog implements
     JPanel buttonPanel = new JPanel();
     buttonPanel.setLayout(new BoxLayout(buttonPanel, BoxLayout.X_AXIS));
     //buttonPanel
-    buttonPanel.add(Box.createHorizontalStrut(50));
+    buttonPanel.add(Box.createHorizontalGlue());
     buttonPanel.add(btnNewst.getComponent());
     buttonPanel.add(Box.createHorizontalGlue());
     buttonPanel.add(btn3dmodFull.getComponent());
-    buttonPanel.add(Box.createHorizontalStrut(50));
+    buttonPanel.add(Box.createHorizontalGlue());
     //newstBodyPanel
     newstBodyPanel.add(cbUseLinearInterpolation);
     newstBodyPanel.add(spinBinning);
@@ -456,7 +643,6 @@ public final class FinalAlignedStackDialog extends ProcessDialog implements
     newstPanel.add(newstBodyPanel.getContainer());
     UIUtilities.alignComponentsX(newstPanel, Component.LEFT_ALIGNMENT);
     //configure
-    //newstHeader.setOpen(true);
     btnNewst.setSize();
     btn3dmodFull.setSize();
     return newstPanel;
@@ -564,11 +750,14 @@ public final class FinalAlignedStackDialog extends ProcessDialog implements
       alignLogfileLabel = "Newst";
       alignLogfile = "newst";
     }
-    String[] manPagelabel = { alignManpageLabel, "3dmod" };
-    String[] manPage = { alignManpage + ".html", "3dmod.html" };
-    String[] logFileLabel = { alignLogfileLabel, };
-    String[] logFile = new String[1];
+    String[] manPagelabel = { alignManpageLabel, "Ctfplotter", "Ctfphaseflip",
+        "3dmod" };
+    String[] manPage = { alignManpage + ".html", "ctfplotter.html",
+        "ctfphaseflip.html", "3dmod.html" };
+    String[] logFileLabel = { alignLogfileLabel, "Ctfplotter" };
+    String[] logFile = new String[2];
     logFile[0] = alignLogfile + axisID.getExtension() + ".log";
+    logFile[1] = "ctfplotter" + axisID.getExtension() + ".log";
     ContextPopup contextPopup = new ContextPopup(rootPanel, mouseEvent,
         "FINAL ALIGNED STACK", ContextPopup.TOMO_GUIDE, manPagelabel, manPage,
         logFileLabel, logFile, applicationManager, axisID);
@@ -591,6 +780,22 @@ public final class FinalAlignedStackDialog extends ProcessDialog implements
       return true;
     }
     return false;
+  }
+
+  private void chooseConfigFile(FileTextField fileTextField) {
+    JFileChooser chooser = new JFileChooser(expert.getConfigDir());
+    chooser.setPreferredSize(UIParameters.INSTANCE.getFileChooserDimension());
+    chooser.setFileSelectionMode(JFileChooser.FILES_ONLY);
+    int returnVal = chooser.showOpenDialog(rootPanel);
+    if (returnVal == JFileChooser.APPROVE_OPTION) {
+      fileTextField.setText(chooser.getSelectedFile().getAbsolutePath());
+    }
+  }
+
+  void updateCtfPlotter() {
+    boolean enable = !cbUseExpectedDefocus.isSelected();
+    ftfConfigFile.setEnabled(enable);
+    btnCtfPlotter.setEnabled(enable);
   }
 
   public void buttonAdvancedAction(ActionEvent event) {
@@ -637,6 +842,25 @@ public final class FinalAlignedStackDialog extends ProcessDialog implements
     }
     else if (command.equals(btnViewFilter.getActionCommand())) {
       applicationManager.imodMTFFilter(axisID, run3dmodMenuOptions);
+    }
+    else if (command.equals(ftfConfigFile.getActionCommand())) {
+      chooseConfigFile(ftfConfigFile);
+    }
+    else if (command.equals(cbUseExpectedDefocus.getActionCommand())) {
+      updateCtfPlotter();
+    }
+    else if (command.equals(btnCtfPlotter.getActionCommand())) {
+      expert.ctfPlotter(btnCtfPlotter);
+    }
+    else if (command.equals(btnCtfCorrection.getActionCommand())) {
+      expert.ctfCorrection(btnCtfCorrection, null, deferred3dmodButton,
+          run3dmodMenuOptions);
+    }
+    else if (command.equals(btnImodCtfCorrection.getActionCommand())) {
+      applicationManager.imodCtfCorrection(axisID, run3dmodMenuOptions);
+    }
+    else if (command.equals(btnUseCtfCorrection.getActionCommand())) {
+      expert.useCtfCorrection(btnUseCtfCorrection);
     }
   }
 
@@ -688,7 +912,6 @@ public final class FinalAlignedStackDialog extends ProcessDialog implements
    */
   private void setToolTipText() {
     ReadOnlyAutodoc autodoc = null;
-
     try {
       autodoc = AutodocFactory.getInstance(AutodocFactory.MTF_FILTER, axisID);
     }
@@ -701,8 +924,6 @@ public final class FinalAlignedStackDialog extends ProcessDialog implements
     catch (LogFile.ReadException e) {
       e.printStackTrace();
     }
-    cbParallelProcess
-        .setToolTipText("Check to distribute the tilt process across multiple computers.");
     cbUseLinearInterpolation
         .setToolTipText("Make aligned stack with linear instead of cubic interpolation to "
             + "reduce noise.");
@@ -754,5 +975,67 @@ public final class FinalAlignedStackDialog extends ProcessDialog implements
       ltfSizeToOutputInXandY.setToolTipText(EtomoAutodoc.getTooltip(autodoc,
           NewstParam.SIZE_TO_OUTPUT_IN_X_AND_Y));
     }
+    try {
+      autodoc = AutodocFactory.getInstance(AutodocFactory.CTF_PLOTTER, axisID);
+    }
+    catch (FileNotFoundException except) {
+      except.printStackTrace();
+    }
+    catch (IOException except) {
+      except.printStackTrace();
+    }
+    catch (LogFile.ReadException e) {
+      e.printStackTrace();
+    }
+    if (autodoc != null) {
+      ftfConfigFile.setToolTipText(EtomoAutodoc.getTooltip(autodoc,
+          "ConfigFile"));
+      ltfVoltage.setToolTipText(EtomoAutodoc.getTooltip(autodoc,
+          CtfPhaseFlipParam.VOLTAGE_OPTION));
+      ltfSphericalAberration.setToolTipText(EtomoAutodoc.getTooltip(autodoc,
+          CtfPhaseFlipParam.SPHERICAL_ABERRATION_OPTION));
+      ltfAmplitudeContrast.setToolTipText(EtomoAutodoc.getTooltip(autodoc,
+          CtfPhaseFlipParam.AMPLITUDE_CONTRAST_OPTION));
+      ltfExpectedDefocus.setToolTipText(EtomoAutodoc.getTooltip(autodoc,
+          CtfPlotterParam.EXPECTED_DEFOCUS_OPTION));
+    }
+    btnCtfPlotter.setToolTipText("Run ctfplotter");
+    try {
+      autodoc = AutodocFactory.getInstance(AutodocFactory.CTF_PHASE_FLIP,
+          axisID);
+    }
+    catch (FileNotFoundException except) {
+      except.printStackTrace();
+    }
+    catch (IOException except) {
+      except.printStackTrace();
+    }
+    catch (LogFile.ReadException e) {
+      e.printStackTrace();
+    }
+    if (autodoc != null) {
+      ltfInterpolationWidth.setToolTipText(EtomoAutodoc.getTooltip(autodoc,
+          CtfPhaseFlipParam.INTERPOLATION_WIDTH_OPTION));
+      ltfDefocusTol.setToolTipText(EtomoAutodoc.getTooltip(autodoc,
+          CtfPhaseFlipParam.DEFOCUS_TOL_OPTION));
+    }
+    cbUseExpectedDefocus
+        .setToolTipText("Instead of using the CTF plotter output ("
+            + DatasetFiles.CTF_PLOTTER_EXT
+            + ") use a one line file containing the expected defocus ("
+            + DatasetFiles.SIMPLE_DEFOCUS_EXT + ").  Etomo will create the "
+            + DatasetFiles.SIMPLE_DEFOCUS_EXT
+            + " file when this checkbox is checked.");
+    cbParallelProcess.setToolTipText("Run " + ProcessName.SPLIT_CORRECTION
+        + " and use parallel procossing when running "
+        + ProcessName.CTF_CORRECTION + "." + DatasetFiles.COMSCRIPT_EXT + ".");
+    btnCtfCorrection.setToolTipText("Run " + ProcessName.CTF_CORRECTION + "."
+        + DatasetFiles.COMSCRIPT_EXT + ", which calls "
+        + CtfPhaseFlipParam.COMMAND + ".");
+    btnImodCtfCorrection.setToolTipText("Open CTF corrected stack ("
+        + DatasetFiles.CTF_CORRECTION_EXT + ").");
+    btnUseCtfCorrection.setToolTipText("Replace full aligned stack ("
+        + DatasetFiles.FULL_ALIGNED_EXT + ") with CTF corrected stack ("
+        + DatasetFiles.CTF_CORRECTION_EXT + ").");
   }
 }
