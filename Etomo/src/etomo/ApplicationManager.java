@@ -21,10 +21,12 @@ import etomo.comscript.Command;
 import etomo.comscript.ConstCombineParams;
 import etomo.comscript.ConstNewstParam;
 import etomo.comscript.ConstSetParam;
+import etomo.comscript.ConstSplitCorrectionParam;
 import etomo.comscript.ConstSqueezevolParam;
 import etomo.comscript.ConstTiltParam;
 import etomo.comscript.ConstTiltalignParam;
 import etomo.comscript.ConstTiltxcorrParam;
+import etomo.comscript.CtfPhaseFlipParam;
 import etomo.comscript.ExtractmagradParam;
 import etomo.comscript.ExtractpiecesParam;
 import etomo.comscript.ExtracttiltsParam;
@@ -392,7 +394,7 @@ public final class ApplicationManager extends BaseManager {
       }
       // This is really the method to use the existing com scripts
       if (exitState == DialogExitState.EXECUTE) {
-        if (!processMgr.setupComScripts(metaData, AxisID.ONLY)) {
+        if (!processMgr.setupComScripts(AxisID.ONLY)) {
           return false;
         }
         //Create the .rawtlt file if the angle type is range.  This makes it
@@ -426,6 +428,15 @@ public final class ApplicationManager extends BaseManager {
     setupDialogExpert = null;
     saveStorables(AxisID.ONLY);
     return true;
+  }
+
+  public void setupCtfCorrectionComScript(AxisID axisID) {
+    processMgr.setupCtfCorrectionComScript(axisID);
+  }
+
+  public void setupCtfPlotterComScript(AxisID axisID,
+      CtfPhaseFlipParam ctfPhaseFlipParam) {
+    processMgr.setupCtfPlotterComScript(ctfPhaseFlipParam, axisID);
   }
 
   public InterfaceType getInterfaceType() {
@@ -2284,6 +2295,10 @@ public final class ApplicationManager extends BaseManager {
         DialogExitState.SAVE);
     getUIExpert(DialogType.TOMOGRAM_POSITIONING, AxisID.SECOND).saveDialog(
         DialogExitState.SAVE);
+    getUIExpert(DialogType.FINAL_ALIGNED_STACK, AxisID.FIRST).saveDialog(
+        DialogExitState.SAVE);
+    getUIExpert(DialogType.FINAL_ALIGNED_STACK, AxisID.SECOND).saveDialog(
+        DialogExitState.SAVE);
     getUIExpert(DialogType.TOMOGRAM_GENERATION, AxisID.FIRST).saveDialog(
         DialogExitState.SAVE);
     getUIExpert(DialogType.TOMOGRAM_GENERATION, AxisID.SECOND).saveDialog(
@@ -2670,6 +2685,34 @@ public final class ApplicationManager extends BaseManager {
     }
   }
 
+  public void imodCtfCorrection(AxisID axisID, Run3dmodMenuOptions menuOptions) {
+    try {
+      File tiltFile = DatasetFiles.getTiltFile(this, axisID);
+      if (tiltFile.exists()) {
+        imodManager.setTiltFile(ImodManager.CTF_CORRECTION_KEY, axisID,
+            tiltFile.getName());
+      }
+      else {
+        imodManager.resetTiltFile(ImodManager.CTF_CORRECTION_KEY, axisID);
+      }
+      imodManager.open(ImodManager.CTF_CORRECTION_KEY, axisID, menuOptions);
+    }
+    catch (AxisTypeException except) {
+      except.printStackTrace();
+      uiHarness.openMessageDialog(except.getMessage(), "AxisType problem",
+          axisID);
+    }
+    catch (SystemProcessException except) {
+      except.printStackTrace();
+      uiHarness.openMessageDialog(except.getMessage(), "Can't open 3dmod on "
+          + ProcessName.CTF_CORRECTION.toString() + " results", axisID);
+    }
+    catch (IOException e) {
+      e.printStackTrace();
+      uiHarness.openMessageDialog(e.getMessage(), "IO Exception", axisID);
+    }
+  }
+
   public boolean coordFileExists() {
     return DatasetFiles.getTransferFidCoordFile(this).exists();
   }
@@ -2835,8 +2878,8 @@ public final class ApplicationManager extends BaseManager {
         return finalAlignedStackExpertB;
       }
       if (finalAlignedStackExpertA == null) {
-        finalAlignedStackExpertA = new FinalAlignedStackExpert(this,
-            mainPanel, processTrack, axisID);
+        finalAlignedStackExpertA = new FinalAlignedStackExpert(this, mainPanel,
+            processTrack, axisID);
       }
       return finalAlignedStackExpertA;
     }
@@ -3364,6 +3407,50 @@ public final class ApplicationManager extends BaseManager {
       return ProcessResult.FAILED_TO_START;
     }
     setThreadName(threadName, axisID);
+    return null;
+  }
+
+  public ProcessResult ctfPlotter(AxisID axisID,ProcessResultDisplay processResultDisplay) {
+    try {
+      processMgr.ctfPlotter(axisID, processResultDisplay);
+    }
+    catch (SystemProcessException e) {
+      e.printStackTrace();
+      String[] message = new String[2];
+      message[0] = "Can not execute "
+          + ProcessName.CTF_PLOTTER.getComscript(axisID);
+      message[1] = e.getMessage();
+      uiHarness.openMessageDialog(message, "Unable to execute com script",
+          axisID);
+      return ProcessResult.FAILED_TO_START;
+    }
+    processTrack.setFinalAlignedStackState(ProcessState.INPROGRESS, axisID);
+    mainPanel.setFinalAlignedStackState(ProcessState.INPROGRESS, axisID);
+    //No way to know when this is done, so I'm assuming that it succeeded.
+    return null;
+  }
+
+  public ProcessResult ctfCorrection(AxisID axisID,
+      ProcessResultDisplay processResultDisplay,
+      ConstProcessSeries processSeries) {
+    String threadName;
+    try {
+      threadName = processMgr.ctfCorrection(axisID, processResultDisplay,
+          processSeries);
+    }
+    catch (SystemProcessException e) {
+      e.printStackTrace();
+      String[] message = new String[2];
+      message[0] = "Can not execute "
+          + ProcessName.CTF_CORRECTION.getComscript(axisID);
+      message[1] = e.getMessage();
+      uiHarness.openMessageDialog(message, "Unable to execute com script",
+          axisID);
+      return ProcessResult.FAILED_TO_START;
+    }
+    setThreadName(threadName, axisID);
+    processTrack.setFinalAlignedStackState(ProcessState.INPROGRESS, axisID);
+    mainPanel.setFinalAlignedStackState(ProcessState.INPROGRESS, axisID);
     return null;
   }
 
@@ -5521,6 +5608,33 @@ public final class ApplicationManager extends BaseManager {
     return null;
   }
 
+  public ProcessResult splitCorrection(AxisID axisID,
+      ProcessResultDisplay processResultDisplay, ProcessSeries processSeries,
+      ConstSplitCorrectionParam param, final DialogType dialogType) {
+    if (processSeries == null) {
+      processSeries = new ProcessSeries(this, dialogType);
+    }
+    String threadName;
+    try {
+      threadName = processMgr.splitCorrection(param, axisID,
+          processResultDisplay, processSeries);
+    }
+    catch (SystemProcessException e) {
+      e.printStackTrace();
+      String[] message = new String[2];
+      message[0] = "Can not execute " + ProcessName.SPLIT_CORRECTION;
+      message[1] = e.getMessage();
+      uiHarness.openMessageDialog(message, "Unable to execute command", axisID);
+      return ProcessResult.FAILED_TO_START;
+    }
+    processSeries
+        .setNextProcess(getNextProcessProcesschunksString(ProcessName.CTF_CORRECTION));
+    setThreadName(threadName, axisID);
+    mainPanel.startProgressBar("Running " + ProcessName.SPLIT_CORRECTION,
+        axisID, ProcessName.SPLIT_CORRECTION);
+    return null;
+  }
+
   public void splitcombine(ProcessSeries processSeries,
       Deferred3dmodButton deferred3dmodButton,
       Run3dmodMenuOptions run3dmodMenuOptions, final DialogType dialogType) {
@@ -5659,6 +5773,9 @@ public final class ApplicationManager extends BaseManager {
 }
 /**
  * <p> $Log$
+ * <p> Revision 3.308  2008/10/16 20:53:50  sueh
+ * <p> bug# 1141 Created FinalAlignedStack dialog to run full aligned stack and mtf filter.
+ * <p>
  * <p> Revision 3.307  2008/09/30 19:45:49  sueh
  * <p> bug# 1113 Reformatting
  * <p>
