@@ -74,6 +74,7 @@ public final class LogFile {
   private FileInputStream inputStream = null;
   private FileOutputStream outputStream = null;
   private boolean backedUp = false;
+  private boolean debug = false;
 
   private LogFile(File file) {
     lock = new Lock(this);
@@ -819,6 +820,10 @@ public final class LogFile {
       throw new WriteException(writeId, e);
     }
   }
+  
+  public void setDebug(boolean input) {
+    debug = input;
+  }
 
   public synchronized void store(Properties properties, long writeId)
       throws WriteException {
@@ -838,8 +843,11 @@ public final class LogFile {
     if (string == null) {
       return;
     }
-    if (fileWriter == null || !lock.isLocked(LockType.WRITE, writeId)) {
-      throw new WriteException(this, writeId);
+    if (fileWriter == null) {
+      throw new WriteException(this, writeId, "fileWriter is null");
+    }
+    if (!lock.isLocked(LockType.WRITE, writeId)) {
+      throw new WriteException(this, writeId, "not locked");
     }
     try {
       bufferedWriter.write(string);
@@ -1448,6 +1456,10 @@ public final class LogFile {
 }
 /**
  * <p> $Log$
+ * <p> Revision 1.22  2008/09/11 20:33:04  sueh
+ * <p> bug# 1139 Corrected a null pointer exception in closeReader.  Printing an
+ * <p> exception if it happens again.
+ * <p>
  * <p> Revision 1.21  2008/05/28 17:27:27  sueh
  * <p> bug# 1110 In move() base success on the return value of File.renameTo
  * <p> instead of the original file's disappearance.  It may take too long for the
