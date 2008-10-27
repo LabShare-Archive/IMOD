@@ -57,6 +57,9 @@ import etomo.util.DatasetFiles;
  * @version $Revision$
  * 
  * <p> $Log$
+ * <p> Revision 1.2  2008/10/27 20:38:44  sueh
+ * <p> bug# 1141 Added CTF Correction.
+ * <p>
  * <p> Revision 1.1  2008/10/16 21:24:25  sueh
  * <p> bug# 1141 Dialog for running newst (full align) and filtering
  * <p> </p>
@@ -67,7 +70,7 @@ public final class FinalAlignedStackDialog extends ProcessDialog implements
 
   static final String SIZE_TO_OUTPUT_IN_X_AND_Y_LABEL = "Size to output";
   private static final DialogType DIALOG_TYPE = DialogType.FINAL_ALIGNED_STACK;
-  public static final String CTF_CORRECTION_LABEL = "CTF Correction";
+  public static final String CTF_CORRECTION_LABEL = "Correct CTF";
 
   private final JPanel pnlFinalAlignedStack = new JPanel();
 
@@ -143,7 +146,7 @@ public final class FinalAlignedStackDialog extends ProcessDialog implements
   private final LabeledTextField ltfDefocusTol = new LabeledTextField(
       "Defocus tolerance: ");
   private final MultiLineButton btnCtfPlotter = new MultiLineButton(
-      "Ctf Plotter");
+      "Run Ctf Plotter");
   private final Run3dmodButton btnCtfCorrection;
   private final Run3dmodButton btnImodCtfCorrection = Run3dmodButton
       .get3dmodInstance("View CTF Correction", this);
