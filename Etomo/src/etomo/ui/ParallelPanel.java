@@ -12,10 +12,8 @@ import javax.swing.JPanel;
 
 import etomo.BaseManager;
 import etomo.comscript.ProcesschunksParam;
-import etomo.comscript.SplittiltParam;
 import etomo.storage.CpuAdoc;
 import etomo.type.AxisID;
-import etomo.type.ConstEtomoNumber;
 import etomo.type.EtomoBoolean2;
 import etomo.type.PanelHeaderState;
 import etomo.type.ProcessResultDisplay;
@@ -195,6 +193,14 @@ public final class ParallelPanel implements Expandable {
   void setCPUsSelected(final int cpusSelected) {
     ltfCPUsSelected.setText(cpusSelected);
   }
+  
+  String getCPUsSelected() {
+    return ltfCPUsSelected.getText();
+  }
+  
+  String getCPUsSelectedLabel() {
+    return ltfCPUsSelected.getLabel();
+  }
 
   Container getContainer() {
     return rootPanel;
@@ -270,21 +276,6 @@ public final class ParallelPanel implements Expandable {
 
   void msgPausingProcess() {
     btnResume.setEnabled(true);
-  }
-
-  boolean getParameters(final SplittiltParam param) {
-    ConstEtomoNumber numMachines = param.setNumMachines(ltfCPUsSelected
-        .getText());
-    if (!numMachines.isValid()) {
-      UIHarness.INSTANCE.openMessageDialog(ltfCPUsSelected.getLabel()
-          + " "
-          + numMachines.getInvalidReason()
-          + "  "
-          + (cbCluster.isSelected() ? queueTable : computerTable)
-              .getHelpMessage(), TITLE + " Table Error", axisID);
-      return false;
-    }
-    return true;
   }
 
   /**
@@ -389,6 +380,10 @@ public final class ParallelPanel implements Expandable {
 }
 /**
  * <p> $Log$
+ * <p> Revision 1.63  2008/10/06 22:40:17  sueh
+ * <p> bug# 1113 Removed pack, which is unecessary since table scrolling was
+ * <p> removed.
+ * <p>
  * <p> Revision 1.62  2008/09/30 22:01:39  sueh
  * <p> bug# 1113 Using a private constructor in SpacedPanel.
  * <p>
