@@ -23,6 +23,10 @@ import etomo.type.AxisID;
  * @version $Revision$
  * 
  * <p> $Log$
+ * <p> Revision 1.9  2008/05/30 21:23:42  sueh
+ * <p> bug# 1102 Added writable.  Will be used to limit functionality of non-
+ * <p> matlab autodocs to original autodoc definition.
+ * <p>
  * <p> Revision 1.8  2008/01/31 20:24:49  sueh
  * <p> bug# 1055 throwing a FileException when LogFile.getInstance fails.
  * <p>
@@ -69,6 +73,8 @@ public final class AutodocFactory {
   public static final String UITEST = "uitest";
   public static final String PEET_PRM = "peetprm";
   public static final String NEWSTACK = "newstack";
+  public static final String CTF_PLOTTER = "ctfplotter";
+  public static final String CTF_PHASE_FLIP = "ctfphaseflip";
 
   private static final String TEST = "test";
   private static final String UITEST_AXIS = "uitest_axis";
@@ -88,6 +94,8 @@ public final class AutodocFactory {
   private static Autodoc XFJOINTOMO_INSTANCE = null;
   private static Autodoc PEET_PRM_INSTANCE = null;
   private static Autodoc NEWSTACK_INSTANCE = null;
+  private static Autodoc CTF_PLOTTER_INSTANCE = null;
+  private static Autodoc CTF_PHASE_FLIP_INSTANCE = null;
 
   private static final HashMap UITEST_AXIS_MAP = new HashMap();
 
@@ -314,6 +322,12 @@ public final class AutodocFactory {
     if (name.equals(NEWSTACK)) {
       return NEWSTACK_INSTANCE;
     }
+    if (name.equals(CTF_PLOTTER)) {
+      return CTF_PLOTTER_INSTANCE;
+    }
+    if (name.equals(CTF_PHASE_FLIP)) {
+      return CTF_PHASE_FLIP_INSTANCE;
+    }
     if (name.equals(COMBINE_FFT)) {
       return COMBINE_FFT_INSTANCE;
     }
@@ -366,6 +380,12 @@ public final class AutodocFactory {
     }
     else if (name.equals(NEWSTACK)) {
       NEWSTACK_INSTANCE = null;
+    }
+    else if (name.equals(CTF_PLOTTER)) {
+      CTF_PLOTTER_INSTANCE = null;
+    }
+    else if (name.equals(CTF_PHASE_FLIP)) {
+      CTF_PHASE_FLIP_INSTANCE = null;
     }
     else if (name.equals(COMBINE_FFT)) {
       COMBINE_FFT_INSTANCE = null;
