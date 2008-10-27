@@ -43,6 +43,9 @@ import etomo.util.Utilities;
  * @version $Revision$
  * 
  * <p> $Log$
+ * <p> Revision 1.69  2008/05/16 22:26:05  sueh
+ * <p> bug# 1109 Added class description.
+ * <p>
  * <p> Revision 1.68  2008/05/03 00:37:31  sueh
  * <p> bug# 847 Passing a ProcessSeries instance to all processes that use
  * <p> process objects.  The goal is to pass then back to process done functions.
@@ -620,6 +623,21 @@ public abstract class BaseProcessManager {
   }
 
   /**
+   * 
+   * @param command
+   * @param axisID
+   * @param processResultDisplay
+   * @return
+   * @throws SystemProcessException
+   */
+  final void startNonBlockingComScript(final String command,
+      final AxisID axisID, final ProcessResultDisplay processResultDisplay)
+      throws SystemProcessException {
+    startNonBlockingComScript(new ComScriptProcess(manager, command, this,
+        axisID, processResultDisplay), command, axisID);
+  }
+
+  /**
    * Start a managed command script for the specified axis
    * @param command
    * @param processMonitor
@@ -771,6 +789,30 @@ public abstract class BaseProcessManager {
     }
 
     return comScriptProcess;
+  }
+
+  /**
+   * Start an unmanaged comscript.
+   * @param comScriptProcess
+   * @param command
+   * @param axisID
+   * @throws SystemProcessException
+   */
+  final void startNonBlockingComScript(final ComScriptProcess comScriptProcess,
+      final String command, final AxisID axisID) throws SystemProcessException {
+    // Run the script as a thread in the background
+    comScriptProcess
+        .setWorkingDirectory(new File(manager.getPropertyUserDir()));
+    comScriptProcess.setDebug(etomoDirector.getArguments().isDebug());
+    comScriptProcess.setDemoMode(etomoDirector.getArguments().isDemo());
+    comScriptProcess.setNonBlocking();
+    manager.saveStorables(axisID);
+    comScriptProcess.start();
+
+    if (etomoDirector.getArguments().isDebug()) {
+      System.err.println("Started " + command);
+      System.err.println("  Name: " + comScriptProcess.getName());
+    }
   }
 
   public final boolean inUse(final AxisID axisID,
