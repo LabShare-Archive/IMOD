@@ -29,8 +29,7 @@ function = test-single
 
 [Dialog = FinalStack]
 adoc = stack.adoc
-function = run
-bn.done =
+function = test
 
 [Dialog = TomoGen]
 adoc = tomo-gen.adoc
