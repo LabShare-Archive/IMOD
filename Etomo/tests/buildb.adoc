@@ -28,7 +28,6 @@ function = build
 [Dialog = FinalStack]
 adoc = stack.adoc
 function = run
-bn.done =
 
 [Dialog = TomoGen]
 adoc = tomo-gen.adoc
