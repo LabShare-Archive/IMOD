@@ -20,6 +20,10 @@
  * 
  * <p>
  * $Log$
+ * Revision 3.123  2008/10/27 18:06:28  sueh
+ * bug# 1141 Added ctfCorrection, ctfPlotter, setupCtfCorrectionComScript,
+ * setupCtfPlotterComScript, and splitCorrection.
+ *
  * Revision 3.122  2008/09/26 18:55:21  sueh
  * bug# 1140 In modelToPatch, using imod2vatch for Windows.
  *
@@ -1231,7 +1235,8 @@ public class ProcessManager extends BaseProcessManager {
 
     String[] command = new String[] {
         ApplicationManager.getIMODBinPath() + "midas", "-a",
-        String.valueOf(-1 * imageRotation), stack, xform };
+        String.valueOf(-1 * imageRotation), "-t",
+        DatasetFiles.getRawTiltName(appManager, axisID), stack, xform };
 
     //  Start the system program thread
     startSystemProgramThread(command, axisID);
@@ -1465,13 +1470,12 @@ public class ProcessManager extends BaseProcessManager {
         mtffilterProcessMonitor, axisID, processResultDisplay, processSeries);
     return comScriptProcess.getName();
   }
-  
+
   public void ctfPlotter(AxisID axisID,
       ProcessResultDisplay processResultDisplay) throws SystemProcessException {
     String command = ProcessName.CTF_PLOTTER.getComscript(axisID);
     //  Start the com script in the background
-    startNonBlockingComScript(command,
-        axisID, processResultDisplay);
+    startNonBlockingComScript(command, axisID, processResultDisplay);
   }
 
   public String ctfCorrection(AxisID axisID,
