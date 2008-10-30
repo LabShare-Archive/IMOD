@@ -1,7 +1,14 @@
 Version = 1.2
 
 [function = run]
-//full align
+#full align
+mb.newstack-open = 1
+bn.create-full-aligned-stack =
+waitfor.process.newst = done
+bn.done =
+
+[function = test]
+#full align
 mb.newstack-open = 1
 bn.create-full-aligned-stack =
 waitfor.process.newst = done
@@ -10,57 +17,12 @@ bn.create-full-aligned-stack =
 waitfor.process.newst = done
 assert.file.exists = newst%{axis}.log~
 mb.newstack-open = 0
-
-//ctf correction
-//check screen
-mb.ctf-correction-open = 1
-function = ctf-correction-base-values
-function = ctf-correction-base-enabled
-cb.use-expected-defocus-instead-of-ctflotter-output =
-function = expected-defocus-enabled
-//run
-//test ctf plotter
-cb.use-expected-defocus-instead-of-ctflotter-output =
-tf.config-file = /usr/local/ImodCalib/CTFnoise/F20.cfg
-bn.ctf-plotter =
-sleep =
-assert.file.exists = ctfplotter%{axis}.log
-//test ctf correction
-cb.use-expected-defocus-instead-of-ctflotter-output =
-bn.ctf-correction =
-waitfor.process.ctf-correction = done
-assert.file.exists = %{dataset}%{axis}_simple.defocus
-assert.file.exists = ctfcorrection%{axis}.log
-assert.file.exists = %{dataset}_ctfcorr.ali
-cb-parallel-processing =
-tf.expected-defocus = 8500.0
-bn.ctf-correction =
-waitfor.process.ctf-correction = done
-assert.file.exists = %{dataset}%{axis}_simple.defocus~
-assert.file.exists = ctfcorrection%{axis}.log~
-assert.file.exists = %{dataset}_ctfcorr.ali~
-bn-view-ctf-correction =
-sleep =
-bn-use-ctf-correction =
-sleep =
-bn.create-full-aligned-stack =
-waitfor.process.newst = done
-
-//filtering
-mb.2d-filtering-open = 1
-bn.filter =
-waitfor.process.mtffilter = done
-assert.file.exists = mtffilter%{axis}.log
-bn.filter =
-waitfor.process.mtffilter = done
-assert.file.exists = mtffilter%{axis}.log~
-bn.use-filtered-stack =
-mb.2d-filtering-open = 0
-mb.parallel-processing-open = 1
-mb.parallel-processing-more = 1
+function = ctf-correction
+function = filtering
+function = done
 
 [function = montage]
-//full align
+#full align
 mb.blendmont-open = 1
 bn.create-full-aligned-stack =
 waitfor.process.blend = done
@@ -69,23 +31,43 @@ bn.create-full-aligned-stack =
 waitfor.process.blend = done
 assert.file.exists = blend%{axis}.log~
 mb.blendmont-open = 0
+function = ctf-correction
+function = filtering
+function = done
 
-//ctf correction
+[function = ctf-correction]
+#check screen
 mb.ctf-correction-open = 1
 function = ctf-correction-base-values
 function = ctf-correction-base-enabled
-cb.use-expected-defocus-instead-of-ctflotter-output =
+cb.use-expected-defocus-instead-of-ctfplotter-output =
 function = expected-defocus-enabled
-cb.use-expected-defocus-instead-of-ctflotter-output =
+#run
+#test ctf plotter
+cb.use-expected-defocus-instead-of-ctfplotter-output =
 tf.config-file = /usr/local/ImodCalib/CTFnoise/F20.cfg
-cb.use-expected-defocus-instead-of-ctflotter-output =
-bn.ctf-correction =
-waitfor = ctf-correction
-bn-view-ctf-correction =
+bn.run-ctf-plotter =
 sleep =
-bn-use-ctf-correction =
+assert.file.exists = ctfplotter%{axis}.log
+#test ctf correction
+cb.use-expected-defocus-instead-of-ctfplotter-output =
+bn.correct-ctf =
+waitfor.process.ctf-correction = done
+assert.file.exists = %{dataset}%{axis}_simple.defocus
+assert.file.exists = ctfcorrection%{axis}.log
+assert.file.exists = %{dataset}%{axis}_ctfcorr.ali
+cb.parallel-processing =
+tf.expected-defocus = 8500.0
+bn.correct-ctf =
+waitfor.process.ctf-correction = done
+assert.file.exists = %{dataset}%{axis}_simple.defocus~
+assert.file.exists = ctfcorrection%{axis}.log~
+assert.file.exists = %{dataset}%{axis}_ctfcorr.ali~
+bn.view-ctf-correction =
+bn.use-ctf-correction =
+cb.parallel-processing =
 
-//filtering
+[function = filtering]
 mb.2d-filtering-open = 1
 bn.filter =
 waitfor.process.mtffilter = done
@@ -93,20 +75,26 @@ assert.file.exists = mtffilter%{axis}.log
 bn.filter =
 waitfor.process.mtffilter = done
 assert.file.exists = mtffilter%{axis}.log~
+bn.view-filtered-stack =
 bn.use-filtered-stack =
 mb.2d-filtering-open = 0
 mb.parallel-processing-open = 1
 mb.parallel-processing-more = 1
 
+[function = done]
+bn.done =
+waitfor.popup.etomo-question = Yes
+waitfor.popup.etomo-question = Yes
+
 [function = ctf-correction-base-values]
 assert.tf.voltage = 200
-assert.tf.sperical-aberration = 2
+assert.tf.spherical-aberration = 2
 assert.tf.config-file =
 assert.tf.expected-defocus = 8000.0
-assert.cb.use-expected-defocus-instead-of-ctflotter-output = 0
+assert.cb.use-expected-defocus-instead-of-ctfplotter-output = 0
 assert.cb.parallel-processing = 1
 assert.tf.interpolation-width = 20
-//advanced
+#advanced
 mb.ctf-correction-advanced = 1
 assert.amplitude-contrast.enabled = 1
 assert.amplitude-contrast = 0.07
@@ -115,14 +103,14 @@ mb.ctf-correction-advanced = 0
 
 [function = ctf-correction-base-enabled]
 assert.tf.voltage.enabled = 1
-assert.tf.sperical-aberration.enabled = 1
+assert.tf.spherical-aberration.enabled = 1
 assert.tf.config-file.enabled = 1
 assert.tf.expected-defocus.enabled = 1
-assert.bn.ctf-plotter.enabled = 1
-assert.cb.use-expected-defocus-instead-of-ctflotter-output.enabled = 1
+assert.bn.run-ctf-plotter.enabled = 1
+assert.cb.use-expected-defocus-instead-of-ctfplotter-output.enabled = 1
 assert.cb.parallel-processing.enabled = 1
 assert.tf.interpolation-width.enabled = 1
-//advanced
+#advanced
 mb.ctf-correction-advanced = 1
 assert.amplitude-contrast.enabled = 1
 assert.tf.defocus-tolerance.enabled = 1
@@ -130,14 +118,14 @@ mb.ctf-correction-advanced = 0
 
 [function = expected-defocus-enabled]
 assert.tf.voltage.enabled = 1
-assert.tf.sperical-aberration.enabled = 1
+assert.tf.spherical-aberration.enabled = 1
 assert.tf.config-file.enabled = 0
 assert.tf.expected-defocus.enabled = 1
-assert.bn.ctf-plotter.enabled = 0
-assert.cb.use-expected-defocus-instead-of-ctflotter-output.enabled = 1
+assert.bn.run-ctf-plotter.enabled = 0
+assert.cb.use-expected-defocus-instead-of-ctfplotter-output.enabled = 1
 assert.cb.parallel-processing.enabled = 1
 assert.tf.interpolation-width.enabled = 1
-//advanced
+#advanced
 mb.ctf-correction-advanced = 1
 assert.amplitude-contrast.enabled = 1
 assert.tf.defocus-tolerance.enabled = 1
