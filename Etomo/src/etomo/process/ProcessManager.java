@@ -20,6 +20,9 @@
  * 
  * <p>
  * $Log$
+ * Revision 3.124  2008/10/30 20:51:25  sueh
+ * bug# 1145 In midasRawStack, added -t option.
+ *
  * Revision 3.123  2008/10/27 18:06:28  sueh
  * bug# 1141 Added ctfCorrection, ctfPlotter, setupCtfCorrectionComScript,
  * setupCtfPlotterComScript, and splitCorrection.
@@ -1253,7 +1256,8 @@ public class ProcessManager extends BaseProcessManager {
 
     String[] command = new String[] {
         ApplicationManager.getIMODBinPath() + "midas", "-a",
-        String.valueOf(-1 * imageRotation), stack, xform };
+        String.valueOf(-1 * imageRotation), "-t",
+        DatasetFiles.getRawTiltName(appManager, axisID), stack, xform };
 
     //  Start the system program thread
     startSystemProgramThread(command, axisID);
