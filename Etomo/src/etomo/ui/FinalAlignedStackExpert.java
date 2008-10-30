@@ -58,6 +58,10 @@ import etomo.util.Utilities;
  * @version $Revision$
  * 
  * <p> $Log$
+ * <p> Revision 1.2  2008/10/27 20:39:57  sueh
+ * <p> bug# 1141 Added CTF Correction.  Corrected problem where Newst was
+ * <p> getting its binning from whole tomogram positioning.
+ * <p>
  * <p> Revision 1.1  2008/10/16 21:24:35  sueh
  * <p> bug# 1141 Dialog for running newst (full align) and filtering
  * <p> </p>
@@ -168,7 +172,10 @@ public final class FinalAlignedStackExpert extends ReconUIExpert {
     }
     DialogExitState exitState = dialog.getExitState();
     if (exitState == DialogExitState.EXECUTE) {
-      manager.closeImod(ImodManager.MTF_FILTER_KEY, axisID, "filtered stack");
+      manager.closeImod(ImodManager.MTF_FILTER_KEY, axisID,
+          "MTF filtered stack");
+      manager.closeImod(ImodManager.CTF_CORRECTION_KEY, axisID,
+          "CTF corrected stack");
     }
     if (exitState != DialogExitState.CANCEL) {
       if (!saveDialog()) {
@@ -776,8 +783,7 @@ public final class FinalAlignedStackExpert extends ReconUIExpert {
     //if the user set it up.
     boolean validAutodoc = cpuAdoc.isAvailable();
     dialog.setParallelProcessEnabled(validAutodoc);
-    ConstEtomoNumber parallel = metaData
-        .getStackCtfCorrectionParallel(axisID);
+    ConstEtomoNumber parallel = metaData.getStackCtfCorrectionParallel(axisID);
     if (parallel == null) {
       dialog.setParallelProcess(validAutodoc
           && metaData.getDefaultParallel().is());
@@ -786,7 +792,7 @@ public final class FinalAlignedStackExpert extends ReconUIExpert {
       dialog.setParallelProcess(validAutodoc && parallel.is());
     }
     updateParallelProcess();
-    
+
     dialog.setSizeToOutputInXandY(metaData.getSizeToOutputInXandY(axisID)
         .toString(true));
     updateParallelProcess();
