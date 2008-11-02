@@ -3,6 +3,7 @@
 LIBRARY      "libiimod"
 
 EXPORTS
+	mrcReadZFloat
 	sliceBoxIn
 	getfilename
 	mrc_get_scale
@@ -20,6 +21,7 @@ EXPORTS
 	mrc_slice_putvol
 	iiSetupRawHeaders
 	mrc_read_slice
+	sliceReadFloat
 	iiTIFFCheck
 	iiAddCheckFunction
 	mrc_test_size
@@ -87,6 +89,7 @@ EXPORTS
 	mrc_data_new
 	updateMatrix
 	iiMRCLoadPCoord
+	mrcReadYFloat
 	get_loadinfo
 	sliceByteThreshold
 	slice_mat_filter
@@ -105,6 +108,7 @@ EXPORTS
 	mrc_mread_slice
 	sliceNewMode
 	iiPlistLoad
+	mrcReadFloatSlice
 	mrcGetComplexScale
 	mrc_read_byte
 	iiWriteSection
@@ -123,6 +127,7 @@ EXPORTS
 	mrc_slice_zoom
 	iiOpen
 	mrc_swap_longs
+	mrcReadSectionFloat
 	corr_conj
 	mrc_slice_mat_mult
 	sliceByteSmooth
