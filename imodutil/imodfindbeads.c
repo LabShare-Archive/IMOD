@@ -1204,19 +1204,10 @@ Islice *readSliceAsFloat(FILE *infp, MrcHeader *inhead, int sliceMode, int iz)
 {
   Islice *sl;
 
-  // Create a slice and read into it
-  sl = sliceCreate(inhead->nx, inhead->ny, sliceMode);
+  sl = sliceReadFloat(inhead, iz);
   if (!sl)
-    exitError("creating slice for input of section %d", iz);
+    exitError("Creating slice for or reading section %d", iz);
   
-  if (mrc_read_slice(sl->data.b, infp, inhead, iz, 'Z'))
-    exitError("Reading section %d", iz);
-    
-  // Convert slice to floats
-  if (sliceMode != SLICE_MODE_FLOAT)
-    if (sliceFloat(sl) < 0)
-      exitError("Converting section %d to float", iz);
-
   // Taper fill areas very slowly to avoid big gradients there
   if (sliceTaperAtFill(sl, 64, 0))
     exitError("Getting memory for tapering edges");
@@ -1707,6 +1698,9 @@ static int pointInsideArea(Iobj *obj, int *list, int nlist, float xcen,
 /*
 
 $Log$
+Revision 3.2  2008/06/22 05:04:26  mast
+Make sure valblack is not based on dip below the minimum value output
+
 Revision 3.1  2008/06/19 23:26:50  mast
 Added to package
 
