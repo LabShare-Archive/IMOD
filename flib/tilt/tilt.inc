@@ -46,7 +46,7 @@ c
      &    ,ANGLES,TITLE,npad,ithickout
       equivalence (nprj,npxyz(1)),(mprj,npxyz(2)),(nviews,npxyz(3))
 c       
-      LOGICAL MASK,PERP,fastbp,reproj,recReproj,debug
+      LOGICAL MASK,PERP,fastbp,reproj,recReproj,debug,readBase
 c       
       real*4 DELXX,xcenin,slicen,XCEN,YCEN,baselog,compress(limview),yoffset
       real*4 xzfac(limview), yzfac(limview), edgeFill, zeroWeight, flatFrac
@@ -54,13 +54,15 @@ c
       integer*4 IMAP,nbase,ITHWID ,idelslice,newmode,mapuse(limview),
      &    iflog,nreplic ,iplane,ipextra,interpfac,interpord ,ifbpwrk,
      &    ifbpzwrk,ifbpiw,ifbprw,ifbpzw,nprjfbp ,nvertneed,intordxtilt,
-     &    minTotSlice, maxTotSlice
+     &    minTotSlice, maxTotSlice, numViewBase, nViewSubtract,
+     &    ivSubtract(limview)
       COMMON /MISCEL/PERP,DELXX,IMAP,nbase,ITHWID,xcenin,slicen,XCEN,YCEN
      &    ,idelslice,newmode,mapuse,iflog,baselog,nreplic
      &    ,compress,iplane,ipextra,interpfac,interpord,fastbp
      &    ,ifbpwrk,ifbpzwrk,ifbpiw,ifbprw,ifbpzw,nprjfbp,yoffset
      &    ,nvertneed,intordxtilt,reproj,recReproj,debug,xzfac,yzfac,expWeight,
-     &    minTotSlice, maxTotSlice, edgeFill, zeroWeight, flatFrac
+     &    minTotSlice, maxTotSlice, edgeFill, zeroWeight, flatFrac,readBase,
+     &    numViewBase, nViewSubtract, ivSubtract
 c       
       integer*4 nstretch(limview),indstretch(limview)
       real*4 ofstretch(limview)
@@ -70,8 +72,8 @@ c
       real*4 RMASK,TMASK
       COMMON /MASK/MASK,RMASK,TMASK,masklft,maskrt
 c       
-      real*4 FLEVL,SCALE
-      COMMON /BPSCAL/FLEVL,SCALE
+      real*4 FLEVL,SCALE,baseFlevl, baseScale
+      COMMON /BPSCAL/FLEVL,SCALE,baseFlevl, baseScale
 c       
       real*4 sbet(limview),cbet(limview),SAL(limview),CAL(limview)
       COMMON /SINCOS/sbet,cbet,SAL,CAL
