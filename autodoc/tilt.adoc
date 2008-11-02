@@ -26,6 +26,20 @@ manpage = Reconstruction file to reproject.  When using this option, all of the
 entries to the program used when building this reconstruction should be
 included as well.
 
+[Field = BaseRecFile]
+type = FN
+usage = Previous reconstruction file to add to or subtract from
+tooltip = 
+manpage = Previous reconstruction file to add views to or subtract views from.
+One use for this option is to compute a series reconstructions quickly with
+different views left out.  The BaseNumViews option must also be entered in
+order for the right scaling to be set up when reading in the existing
+reconstruction and writing out the new one.  If the WeightAngleFile option is
+also used, then incremental reconstructions computed in this way should match
+reconstructions computed de novo very closely.  If the input projection file
+contains only the views being added or subtracted, then you should also use
+the MinMaxMean option to keep fill values constant.
+
 [Field = AdjustOrigin]
 type = B
 usage = Adjust origin for shifts and size changes
@@ -51,6 +65,12 @@ angle for each view.  Use more than one ANGLES entry if necessary.
 This information will override tilt angles specified in the file
 header.  If you enter angles in this way, the file header need not
 contain tilt information.
+
+[Field = BaseNumViews]
+type = I
+usage = Number of views in previous reconstruction
+tooltip = 
+manpage = 
 
 [Field = COMPFRACTION]
 type = F
@@ -170,6 +190,14 @@ reconstruction, numbered from 1.  The values can be individual view numbers or
 ranges, separated by spaces or commas.  Use more than one INCLUDE entry if the
 numbers do not all fit on one line.
 
+[Field = SubtractFromBase]
+type = LI
+usage = Views to subtract from previous reconstruction (0 for all)
+tooltip = 
+manpage = Views to subtract from the previous reconstruction specified by
+BaseRecFile.  Without this entry, all views are added.  Enter 0 to have all
+included views subtracted, or the list of specific views to subtract.
+
 [Field = LOCALFILE]
 type = FN
 usage = File with local tilt alignment information
@@ -207,6 +235,16 @@ lies along the tilt axis.  Grid points outside this volume will be set to the
 given value.  For thick sections, this
 option saves a little execution time but produces sharp edges in the
 reconstruction. 
+
+[Field = MinMaxMean]
+type = IT
+usage = Min, max, and mean densities to use instead of input file values
+tooltip = 
+manpage = Min, max, and mean densities to use instead of values in the
+input projection file.  Use this entry to keep the fill value used for
+back projecting from outside the data constant when doing incremental
+reconstruction with a projection file that contains only the views being added
+or subtracted.
 
 [Field = MODE]
 type = I
@@ -361,6 +399,18 @@ manpage = List of views to reproject from a reconstruction file, numbered from
 0.  The default
 is to project just the views that were included in the reconstruction.  To
 project all views in the input projection file, enter 0.
+
+[Field = WeightAngleFile]
+type = FN
+usage = File with full list of angles to use for weighting
+tooltip = 
+manpage = File with a list of tilt angles to be used for computing the
+relative weighting of the views.  Use this entry to keep the weightings
+applied to each view constant across reconstructions from subsets of views,
+regardless of which views are actually included in a particular
+reconstruction.  For example, when leaving one view out, the two adjacent
+views would receive higher weights without this entry, but with this entry 
+they would have the same weights as with the view included.
 
 [Field = WeightFile]
 type = FN
