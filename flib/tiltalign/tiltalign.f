@@ -628,51 +628,12 @@ c
       ifanyalf = 0
       if (mapalfend .gt. mapalfstart)ifanyalf = 1
 c       
-c       Modify angles to account for beam tilt: Get a matrix that includes
-c       X tilt, beam tilt, tilt, and rotation, then derive 3 rotation angles
-c       from that
+c       Modify angles to account for beam tilt
 c
       if (beamTilt .ne. 0.) then
         do iv=1,nview
-          call fill_beam_matrices(beamTilt, beamInv, beamMat, cosBeam,
-     &        sinBeam)
-          beamMat(7) = 0.
-          beamMat(8) = sinBeam
-          beamMat(9) = cosBeam
-          call fill_xtilt_matrix(alf(iv)*dtor, ifanyalf, xtmat, cosalf,
-     &        sinalf)
-          call fill_ytilt_matrix(tilt(iv)*dtor, ytmat, cosbet, sinbet)
-          call zero_matrix(rmat, 9)
-          call fill_rot_matrix(rot(iv)*dtor, rmat, costmp, sintmp)
-          rmat(3) = 0.
-          rmat(4) = sintmp
-          rmat(5) = costmp
-          rmat(9) = 1.
-          do i = 1, 9
-            pmat(i) = xtmat(i)
-          enddo
-          call mat_product(pmat, 3, 3, beamInv, 3, 3)
-          call mat_product(pmat, 3, 3, ytmat, 3, 3)
-          call mat_product(pmat, 3, 3, beamMat, 3, 3)
-          call mat_product(pmat, 3, 3, rmat, 3, 3)
-c           
-c           transpose the matrix to go into the stock routines
-c           
-          do i = 1, 3
-            do j = 1, 3
-              xtmat(i + 3 * (j - 1)) = pmat(j + 3 * (i - 1))
-            enddo
-          enddo
-          call inv_matrix(xtmat, ytmat)
-          call icalc_angles(angles, ytmat)
-c           write(*,'(i4,3(2f9.2,3x))')iv, rot(iv), -angles(3), tilt(iv),
-c           &          -angles(2), alf(iv), -angles(1)
-c           
-c           replace the angles - then assume beam tilt 0 below
-c           
-          rot(iv) = -angles(3)
-          tilt(iv) = -angles(2)
-          alf(iv) = -angles(1)
+          call convert_for_beamtilt(alf(iv), tilt(iv), rot(iv), beamTilt,
+     &        ifanyalf)
         enddo
       endif            
 c       
@@ -1527,6 +1488,9 @@ c
 
 c       
 c       $Log$
+c       Revision 3.39  2008/07/06 23:39:03  mast
+c       Eliminated former total unknown ratio
+c
 c       Revision 3.38  2008/03/05 00:34:05  mast
 c       Increased maxmetro to go along with increase in maxreal
 c
