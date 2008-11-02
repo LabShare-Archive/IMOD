@@ -76,6 +76,18 @@ manpage = Number of sections to write to each output file, when there are
 multiple output files.  These numbers may be listed in sequence in one entry,
 or in several entries.
 
+[Field = ReplaceSections]
+short = replace
+type = LI
+usage = List of sections to replace in existing output file, numbered from 0
+tooltip = 
+manpage = List of section numbers at which to write images into an existing 
+output file.  There must be only a single output file, its size in X and Y
+must be appropriate, and the given sections must already exist in the file.
+The minimum and maximum density in the file header will be modified by the min
+and max of the sections being written, so they can become more extreme but not
+less extreme.  The mean density will not be changed.
+
 [Field = BlankOutput]
 short = blank
 type = B

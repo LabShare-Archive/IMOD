@@ -1,20 +1,8 @@
 Version = 1.0
 Pip = 1
 
-[Field = ScaleShifts]
-short = scale
-long = ScaleShifts
-type = FP
-usage = Factors to scale X/Y translations of the first and second transforms
-tooltip = 
-manpage = Factors by which to scale X/Y translations of the first and second
-transforms before multiplying them.  Use this option if a set of transforms
-is derived from data that were scaled down (e.g., from a model on binned
-images), so that the product transforms will apply to unscaled data.
-
 [Field = InputFile1]
 short = in1
-long = InputFile1
 type = FN
 usage = File with transforms applied first
 tooltip = 
@@ -23,7 +11,6 @@ the first non-option argument will be used for this input file.
 
 [Field = InputFile2]
 short = in2
-long = InputFile2
 type = FN
 usage = File with transforms applied second
 tooltip = 
@@ -32,16 +19,34 @@ the second non-option argument will be used for this input file.
 
 [Field = OutputFile]
 short = output
-long = OutputFile
 type = FN
 usage = Output file for product transforms
 tooltip = 
 manpage = Output file C for product transforms.  If this option is not
 entered, the third non-option argument will be used for the output file.
 
+[Field = ScaleShifts]
+short = scale
+type = FP
+usage = Factors to scale X/Y translations of the first and second transforms
+tooltip = 
+manpage = Factors by which to scale X/Y translations of the first and second
+transforms before multiplying them.  Use this option if a set of transforms
+is derived from data that were scaled down (e.g., from a model on binned
+images), so that the product transforms will apply to unscaled data.
+
+[Field = OneXformToMultiply]
+short = one
+type = I
+usage = # of one transform to multiply by a single transform (numbered from 0)
+tooltip = 
+manpage = When one file has multiple transforms and the other has a single
+transform, use this entry to have only one transform in the file of multiple
+transforms be multiplied by the single transform.  Transforms are numbered
+from zero.  This entry has no effect if both files have multiple transforms.
+
 [Field = usage]
 short = help
-long = usage
 type = B
 usage = Print help output
 tooltip = 
