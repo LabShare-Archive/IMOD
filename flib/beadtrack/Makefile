@@ -1,10 +1,9 @@
 include ../configure
 
-# 7/17/00 CER add -ldtrigs to library seach
-
 O        = $(OBJEXT)
 BDOBJS = beadtrack.$(O) proc_model.$(O) proc_vars.$(O) solve_xyzd.$(O)\
- funct.$(O) map_vars.$(O) tracksubs.$(O) tiltali.$(O) find_surfaces.$(O)
+ funct.$(O) map_vars.$(O) tracksubs.$(O) tiltali.$(O) find_surfaces.$(O) \
+ fill_matrices.$(O)
 
 PROG = beadtrack$(BINEXT)
 
@@ -33,6 +32,9 @@ funct.$(O):       ../tiltalign/funct.f
 
 map_vars.$(O):    ../tiltalign/map_vars.f
 	$(FC) $(FFLAGS) -c -o map_vars.$(O) ../tiltalign/map_vars.f
+
+fill_matrices.$(O):    ../tiltalign/fill_matrices.f
+	$(FC) $(FFLAGS) -c -o fill_matrices.$(O) ../tiltalign/fill_matrices.f
 
 find_surfaces.$(O):       ../tiltalign/find_surfaces.f
 	$(FC) $(FFLAGS) -c -o find_surfaces.$(O) ../tiltalign/find_surfaces.f
