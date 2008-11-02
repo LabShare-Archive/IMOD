@@ -665,16 +665,17 @@ void MidasWindow::createParameterDisplay(QVBox *col)
                        SLOT(slotConstrainMouse(bool)));
       if (VW->cosStretch) {
         check = new QCheckBox("Apply cosine stretch", col);
-        check->setChecked(true);
+        check->setChecked(false);
         check->setFocusPolicy(NoFocus);
         QObject::connect(check, SIGNAL(toggled(bool)), VW->midasSlots,
                          SLOT(slotCosStretch(bool)));
+        VW->cosStretch = false;
 
         QHBox *tiltOffBox = new QHBox(col);
         QLabel *tiltOffLabel = new QLabel("Tilt angle offset", tiltOffBox);
         tiltOffLabel->setAlignment(Qt::AlignLeft);
 
-        VW->tiltOffSpin = new FloatSpinBox(1, -200, 200, 10, tiltOffBox);
+        VW->tiltOffSpin = new FloatSpinBox(1, -900, 900, 10, tiltOffBox);
         VW->tiltOffSpin->setFixedWidth
           (globLabel->fontMetrics().width("-180.0000"));
         VW->tiltOffSpin->setValue(0);
@@ -895,6 +896,10 @@ void midas_error(char *tmsg, char *bmsg, int retval)
 
 /*
     $Log$
+    Revision 3.21  2008/10/13 04:36:00  mast
+    Added cosine stretch, switched to 3 lines of mouse reminders, got rid of
+    larger font
+
     Revision 3.20  2007/10/03 21:36:10  mast
     Added ImodAssistant help object
 
