@@ -1,33 +1,36 @@
 include ../configure
 O        = $(OBJEXT)
-
-# 7/16/00 CER add dtrigs to library search
+E        = $(BINEXT)
 
 TAOBJS = tiltalign.$(O) input_model.$(O) input_vars.$(O) find_surfaces.$(O) \
- solve_xyzd.$(O) funct.$(O) map_vars.$(O) beamtilt.$(O)
+ solve_xyzd.$(O) funct.$(O) map_vars.$(O) beamtilt.$(O) fill_matrices.$(O)
 
-PROG = tiltalign$(BINEXT)
+#PROGS = tiltalign$(E) xfforfidless$(E)
+PROGS = tiltalign$(E)
 
-all: $(PROG)
+all: $(PROGS)
 
 
 tiltalign.$(O): tiltalign.f
 	$(FC) -c $(NOOPFFLAGS) tiltalign.f
 
-$(PROG): $(TAOBJS)
+tiltalign$(E): $(TAOBJS)
 	$(FC) -o tiltalign $(TAOBJS) $(LDFFLAGS) $(LSMLMOD) $(LIMOD) \
 	 $(IMLIBS) $(FORTCLIBS) $(TILTALILIB)
 
+xfforfidless$(E): xfforfidless.$(O) fill_matrices.$(O)
+	$(FC) -o xfforfidless xfforfidless.$(O) fill_matrices.$(O) \
+	 $(LDFFLAGS) $(IMLIBS) $(FORTCLIBS)
 
 input_model.$(O): $(INCDIR)/smallmodel.inc
 funct.$(O):       $(INCDIR)/alivar.inc
 input_vars.$(O):  $(INCDIR)/alivar.inc
 tiltalign.$(O):   $(INCDIR)/alivar.inc
 
-install: $(PROG)
-	$(STRIP) $(PROG) 
-	$(CP) $(PROG) $(INSTBINDIR)
+install: $(PROGS)
+	$(STRIP) $(PROGS) 
+	$(CP) $(PROGS) $(INSTBINDIR)
 
 clean:
-	-\rm -f *.o* *.exe *~ tiltalign
+	-\rm -f *.o* *.exe *~ tiltalign xfforfidless
 
