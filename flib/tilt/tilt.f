@@ -543,11 +543,13 @@ C       Set Radial Transform weighting
 C       Linear ramp plus Gaussian fall off
       implicit none
       include 'tilt.inc'
-      integer*4 nweight,IRMAXin,IFALLin
-      real*4 wincr(20)
-      COMMON/DENSWT/nweight,wincr
+      integer*4 IRMAXin,IFALLin
+      integer*4 nweight, numWgtAngles
+      real*4 wincr(20), wgtAngles(limview)
+      COMMON /DENSWT/nweight,wincr,numWgtAngles,wgtAngles
       integer*4 nprj2,IEND,irmax,ifall,iv,iw,ibase,i,impbase
-      real*4 stretch,avgint,atten,sumint,wsum,z,arg,attensum
+      real*4 stretch,avgint,atten,sumint,wsum,z,arg
+      real*4 diffmin, diff, attensum,wgtAtten(limview)
       
 c       
       nprj2=nprj+2+npad
@@ -558,34 +560,61 @@ c
       avgint = 1.
       attensum = 0.
       zeroWeight = 0.
-      if(nweight.gt.0 .and. nviews.gt.1)then
-        avgint=(angles(nviews)-angles(1))/(nviews-1)
+      if(nweight.gt.0 .and. numWgtAngles.gt.1)then
+        avgint=(wgtAngles(numWgtAngles)-wgtAngles(1))/(numWgtAngles-1)
         if (debug) write(6,401)
 401      format(/' View  Angle Weighting')
       endif
-C       
-C       Set up linear ramp
-      do iv=1,nviews
+c       
+c       Set up the attenuations for the weighting angles
+      do iv=1,numWgtAngles
         atten=1.
-        if(nweight.gt.0.)then
+        if(nweight.gt.0. .and. numWgtAngles.gt.1)then
           sumint=0
           wsum=0.
           do iw=1,nweight
             if(iv-iw.gt.0)then
               wsum=wsum+wincr(iw)
-              sumint=sumint+wincr(iw)*(angles(iv+1-iw)-
-     &            angles(iv-iw))
+              sumint=sumint+wincr(iw)*(wgtAngles(iv+1-iw)-
+     &            wgtAngles(iv-iw))
             endif
             if(iv+iw.le.nviews)then
               wsum=wsum+wincr(iw)
-              sumint=sumint+wincr(iw)*(angles(iv+iw)-
-     &            angles(iv+iw-1))
+              sumint=sumint+wincr(iw)*(wgtAngles(iv+iw)-
+     &            wgtAngles(iv+iw-1))
             endif
           enddo
           atten=atten*(sumint/wsum)/avgint
+        endif
+        wgtAtten(iv) = atten
+      enddo
+C       
+C       Set up linear ramp
+      do iv = 1, nviews
+c         
+c         Get weighting from nearest weighting angle
+        atten = 1.
+        if(nweight.gt.0 .and. numWgtAngles.gt.1)then
+          diffmin = 1.e10
+          do iw = 1, numWgtAngles
+            diff = abs(angles(iv) - wgtAngles(iw))
+            if (diff .lt. diffmin) then
+              diffmin = diff
+              atten = wgtAtten(iw)
+            endif
+          enddo
           if (debug) write(6,402)iv,angles(iv),atten
 402       format(i4,f8.2,f10.5)
         endif
+c         
+c         Take negative if subtracting
+        if (nViewSubtract .gt. 0) then
+          do i = 1, nViewSubtract
+            if (ivSubtract(i) .eq. 0 .or. mapuse(iv) .eq. ivSubtract(i))
+     &          atten = -atten
+          enddo
+        endif
+c
         attensum = attensum + atten
         ibase=(iv-1)*nprj2
         DO  I=1,min(IRMAX,iend)
@@ -670,9 +699,16 @@ C       This subroutine zeros the slice and applies the mask if requested
       implicit none
       include 'tilt.inc'
       integer*4 index, i, j,iend
+c       
+c       Read in base slice and descale
+      if (readBase) then
+        call irdsec(3, array(imap))
+        do i = imap, imap + ithick * iwide - 1
+          array(i) = array(i) / baseScale - baseFlevl
+        enddo
 C       
 C       Zero and apply mask
-      IF(MASK)THEN
+      ELSE IF(MASK)THEN
         INDEX=IMAP
         DO I=1,ITHICK
           DO J=1,masklft(i)-1
@@ -1448,9 +1484,9 @@ C       ----------------
       include 'tilt.inc'
       integer limnum
       parameter (limnum = 100)
-      integer*4 nweight
-      real*4 wincr(20)
-      COMMON /DENSWT/nweight,wincr
+      integer*4 nweight, numWgtAngles
+      real*4 wincr(20), wgtAngles(limview)
+      COMMON /DENSWT/nweight,wincr,numWgtAngles,wgtAngles
 C       
       integer*4 MPXYZ(3),NOXYZ(3),nrxyz(3)
       real*4 outilt(3),cell(6),dtor
@@ -1459,13 +1495,10 @@ C
       DATA DTOR/0.0174532/
       CHARACTER DAT*9,TIM*8
       real*4 delta(3)
-c       
-c       7/7/00 CER: remove the encode's; titlech is the temp space
-c       
       character*80 titlech
 C       
       Character*1024 card
-      CHARACTER*160 FILIN,FILOUT,recfile
+      CHARACTER*160 FILIN,FILOUT,recfile,basefile
       integer*4 nfields,inum(limnum)
       real*4 XNUM(limnum)
 c       
@@ -1491,6 +1524,7 @@ c
       integer*4 PipGetInteger,PipGetBoolean,PipGetLogical,PipGetTwoFloats
       integer*4 PipGetString,PipGetFloat, PipGetTwoIntegers,PipGetFloatArray
       integer*4 PipGetInOutFile,PipGetIntegerArray,PipNumberOfEntries
+      integer*4 PipGetThreeFloats
 c       
 c       fallbacks from ../../manpages/autodoc2man -2 2  tilt
 c       
@@ -1571,7 +1605,18 @@ c       Get entries for reprojection from rec file
         minZreproj = minZreproj + 1
         maxZreproj = maxZreproj + 1
       endif
-        
+
+      if (PipGetString('BaseRecFile', basefile) .eq. 0) then
+c        if (recReproj) call exitError(
+c     &      'YOU CANNOT ENTER BOTH A BASE FILE AND FILE TO REPROJECT')
+        readBase = .true.
+        if (PipGetInteger('BaseNumViews', numViewBase) .ne. 0) call exitError(
+     &      'YOU MUST ENTER -BaseNumViews with -BaseRecFile')
+        if (.not. recReproj) then
+          call imopen(3, basefile, 'RO')
+          call irdhdr(3,NRXYZ,MPXYZ,MODE,dmint,dmaxt,dmeant)
+        endif
+      endif
 c       
 C-------------------------------------------------------------
 C       Set up defaults:
@@ -1622,6 +1667,7 @@ c...... Default weighting by density of adjacent views
       do i=1,nweight
         wincr(i)=1./(i-0.5)
       enddo
+      numWgtAngles = 0
 c       
       xoffset=0
       yoffset=0
@@ -1653,6 +1699,7 @@ c...... Default double-width linear interpolation in cosine stretching
       nreproj = 0
       flatFrac = 0.
       adjustorigin = .false.
+      nViewSubtract = 0
 c       
 c...... Default title
       CALL DATE(DAT)
@@ -1985,6 +2032,34 @@ c
       flatFrac = max(0.,  flatFrac)
 c       
       ierr = PipGetLogical('AdjustOrigin', adjustOrigin)
+c       
+      if (readBase .and. PipGetString('SubtractFromBase', card) .eq. 0) then
+        call parselist(card, ivSubtract, nViewSubtract)
+        if (nViewSubtract .gt. limview) call exitError(
+     &      'TOO MANY VIEWS IN LIST TO SUBTRACT FOR ARRAYS')
+      endif
+c
+      if (.not. recReproj) 
+     &    ierr = PipGetThreeFloats('MinMaxMean', pmin, pmax, pmean)
+c
+      if (PipGetString('WeightAngleFile', card) .eq. 0) then
+        call dopen(3,card,'ro','f')
+313     read(3,*,err=2415,end=314) wgtAngles(numWgtAngles + 1)
+        numWgtAngles = numWgtAngles + 1
+        go to 313
+c
+c         Sort the angles
+314     do i = 1, numWgtAngles - 1
+          do j = i + 1, numWgtAngles
+            if (wgtAngles(i) .gt. wgtAngles(j)) then
+              dmint = wgtAngles(i)
+              wgtAngles(i) = wgtAngles(j)
+              wgtAngles(j) = dmint
+            endif
+          enddo
+        enddo
+      endif
+c
       call PipDone()
 c       
 c       END OF OPTION READING
@@ -2241,6 +2316,11 @@ c
         cell(3) = delta(1)*nreproj
       endif
 c       
+c       Check compatibility of base rec file
+      if ((readBase .and. .not. recReproj) .and. (nrxyz(1) .ne. iwide .or.
+     &    nrxyz(2) .ne. ithick .or. nrxyz(3) .ne. nslice)) call exitError(
+     &    'BASE REC FILE IS NOT THE SAME SIZE AS OUTPUT FILE')
+c       
 c       open old file if in chunk mode and there is real starting slice
 c       otherwise open new file
 c
@@ -2293,8 +2373,11 @@ c
         print *,'Exiting after setting up output file for chunk writing'
         call exit(0)
       endif
-      if (minTotSlice .gt. 0 .and. .not.recReproj)
-     &    call imposn(2, islice - minTotSlice, 0)
+      if (minTotSlice .gt. 0 .and. .not.recReproj) then
+        call imposn(2, islice - minTotSlice, 0)
+        if (readBase .and. .not. recReproj)
+     &      call imposn(3, islice - minTotSlice, 0)
+      endif
 c
 c       If reprojecting, need to look up each angle in full list of angles and
 c       find ones to interpolate from, then pack data into arrays that are
@@ -2403,6 +2486,19 @@ c           axis, unless slices are being output in inverse order
       do iv=1,nviews
         angles(iv)=dtor*sign(1,-idelslice)*(angles(iv)+delang)
       enddo
+c       
+c       If there are weighting angles, convert those the same way, otherwise
+c       copy the main angles to weighting angles
+      if (numWgtAngles .gt. 0) then
+        do iv=1,numWgtAngles
+          wgtAngles(iv)=dtor*sign(1,-idelslice)*(wgtAngles(iv)+delang)
+        enddo
+      else
+        numWgtAngles = nviews
+        do iv=1,nviews
+          wgtAngles(iv)=angles(iv)
+        enddo
+      endif
 c       
 c       if fixed x axis tilt, set up to try to compute vertical planes
 c       and interpolate output planes: adjust thickness that needs to 
@@ -2515,9 +2611,27 @@ c         Get projection offsets and replace the slice limits
         npad = 0
         return
       endif
-c
-      scale=scale/(nviews*nreplic)
-      flevl=flevl*nviews*nreplic
+c       
+c       If reading base, figure out total views being added and adjust scales
+      if (readBase) then
+        iv = nviews
+        do j = 1, nviews
+          k = 0
+          do i = 1, nViewSubtract
+            if (ivSubtract(i) .eq. 0 .or. mapuse(j) .eq. ivSubtract(i)) k = 1
+          enddo
+          iv = iv - 2 * k
+        enddo
+        baseScale = scale / (numViewBase * nreplic)
+        baseFlevl = flevl * (numViewBase * nreplic)
+        scale = scale / ((iv + numViewBase) * nreplic)
+        flevl = flevl * ((iv + numViewBase) * nreplic)
+c        print *,'base: ', baseScale,baseFlevl
+      else
+        scale=scale/(nviews*nreplic)
+        flevl=flevl*nviews*nreplic
+      endif
+c      print *,'scale: ', scale,flevl
 c       
 c       determine if fast bp can be used
 c       
@@ -2536,9 +2650,10 @@ c
           else
             fastbp=.not.mask.and.delxx.eq.0..and.nreplic.eq.1.and.
      &          ncompress.eq.0.and.iwide.le.npxyz(1).and.xoffAdj.eq.0.
+     &           .and..not.readBase
             if(.not.fastbp)write(*,'(/,a,/,a,/)')' No fast back '//
      &          'projection is available with shift, offset, mask,'
-     &          //' replication',' or compression options, or if'//
+     &          //' replication',' base rec or compression options, or if'//
      &          ' output width > input width'
           endif
         endif
@@ -2741,6 +2856,7 @@ C
 2412  call exitError('READING X-AXIS TILT ANGLES FROM FILE')
 2413  call exitError('READING Z FACTORS FROM FILE')
 2414  call exitError('READING WEIGHTING FACTORS FROM FILE')
+2415  call exitError('READING ANGLES FOR WEIGHTING FROM FILE')
 C       
 C       
 48    FORMAT(//,1X,78('-'))
@@ -3685,6 +3801,9 @@ c       constant mean levels.  Descale non-log data by exposure weights
 
 c       
 c       $Log$
+c       Revision 3.40  2008/05/30 04:05:57  mast
+c       Fixed scaling recommendation for 10 to 245, added one for -15000 to 15000
+c
 c       Revision 3.39  2007/12/06 20:43:16  mast
 c       Added option for adjusting origin for all relevant changes
 c
