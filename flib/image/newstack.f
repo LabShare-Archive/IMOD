@@ -43,7 +43,7 @@ C
      &    ,nsecout(lmfil),lineuse(lmsec),linetmp(lmfil)
       real*4 xcen(lmsec),ycen(lmsec),optmax(16),secmean(lmsec)
       integer*4 lineOutSt(maxchunks+1),nLinesOut(maxchunks)
-      integer*4 lineInSt(maxchunks+1),nLinesIn(maxchunks)
+      integer*4 lineInSt(maxchunks+1),nLinesIn(maxchunks),listReplace(lmsec)
       real*4 scaleFacs(lmfil), scaleConsts(lmfil)
       integer*1 extrain(maxextra),extraout(maxextra)
       data optmax/255.,32767.,255.,32767.,255.,255.,65535.,255.,255.,
@@ -89,7 +89,7 @@ c
       integer*4 maxFieldY, inputBinning, nxFirst, nyFirst, nxBin, nyBin
       integer*4 ixOffset, iyOffset, lenTemp, limdim, ierr3, applyFirst
       integer*4 nLineTemp,ifOnePerFile,ifUseFill,listIncrement,indout
-      integer*4 ixOriginOff,iyOriginOff
+      integer*4 ixOriginOff,iyOriginOff, numReplace, isecReplace, modeOld
       real*4 fieldMaxY, binRatio, rotateAngle, expandFactor, fillVal
       real*8 dsum,dsumsq,tsum,tsumsq
       real*4 cosd, sind
@@ -104,25 +104,25 @@ c
 c       fallbacks from ../../manpages/autodoc2man -2 2  newstack
 c       
       integer numOptions
-      parameter (numOptions = 32)
+      parameter (numOptions = 33)
       character*(40 * numOptions) options(1)
       options(1) =
      &    'input:InputFile:FNM:@output:OutputFile:FNM:@'//
      &    'fileinlist:FileOfInputs:FN:@fileoutlist:FileOfOutputs:FN:@'//
      &    'secs:SectionsToRead:LIM:@skip:SkipSectionIncrement:I:@'//
-     &    'numout:NumberToOutput:IAM:@blank:BlankOutput:B:@'//
-     &    'size:SizeToOutputInXandY:IP:@mode:ModeToOutput:I:@'//
-     &    'offset:OffsetsInXandY:FAM:@applyfirst:ApplyOffsetsFirst:B:@'//
-     &    'xform:TransformFile:FN:@uselines:UseTransformLines:LIM:@'//
-     &    'onexform:OneTransformPerFile:B:@rotate:RotateByAngle:F:@'//
-     &    'expand:ExpandByFactor:F:@bin:BinByFactor:I:@'//
-     &    'origin:AdjustOrigin:B:@linear:LinearInterpolation:B:@'//
-     &    'float:FloatDensities:I:@contrast:ContrastBlackWhite:IP:@'//
-     &    'scale:ScaleMinAndMax:FP:@fill:FillValue:F:@'//
-     &    'multadd:MultiplyAndAdd:FPM:@distort:DistortionField:FN:@'//
-     &    'imagebinned:ImagesAreBinned:I:@fields:UseFields:LIM:@'//
-     &    'gradient:GradientFile:FN:@test:TestLimits:IP:@'//
-     &    'param:ParameterFile:PF:@help:usage:B:'
+     &    'numout:NumberToOutput:IAM:@replace:ReplaceSections:LI:@'//
+     &    'blank:BlankOutput:B:@size:SizeToOutputInXandY:IP:@'//
+     &    'mode:ModeToOutput:I:@offset:OffsetsInXandY:FAM:@'//
+     &    'applyfirst:ApplyOffsetsFirst:B:@xform:TransformFile:FN:@'//
+     &    'uselines:UseTransformLines:LIM:@onexform:OneTransformPerFile:B:@'//
+     &    'rotate:RotateByAngle:F:@expand:ExpandByFactor:F:@'//
+     &    'bin:BinByFactor:I:@origin:AdjustOrigin:B:@'//
+     &    'linear:LinearInterpolation:B:@float:FloatDensities:I:@'//
+     &    'contrast:ContrastBlackWhite:IP:@scale:ScaleMinAndMax:FP:@'//
+     &    'fill:FillValue:F:@multadd:MultiplyAndAdd:FPM:@'//
+     &    'distort:DistortionField:FN:@imagebinned:ImagesAreBinned:I:@'//
+     &    'fields:UseFields:LIM:@gradient:GradientFile:FN:@'//
+     &    'test:TestLimits:IP:@param:ParameterFile:PF:@help:usage:B:'
 c       
 c       Pip startup: set error, parse options, check help, set flag if used
 c       
@@ -157,6 +157,7 @@ c
       blankOutput = .false.
       adjustOrigin = .false.
       listIncrement = 1
+      numReplace = 0
 C       
 C       Read in list of input files
 C       
@@ -576,6 +577,26 @@ c
         lenTemp = min(lenTemp, maxTemp)
         if (iBinning .le. 0) call exitError
      &      ('BINNING FACTOR MUST BE A POSITIVE NUMBER')
+c         
+c         Section replacement
+        if (PipGetString('ReplaceSections', listString) .eq. 0) then
+          call parselist(listString, listReplace, numReplace)
+          if (numReplace .gt. 0) then
+            print *,'replacing',(listReplace(i),i = 1, numReplace)
+            if (nfileout .gt. 1) call exitError(
+     &          'THERE MUST BE ONLY ONE OUTPUT FILE TO USE -replace')
+            call ialprt(.true.)
+            call imopen(2, filout(1), 'OLD')
+            call irdhdr(2, nxyz2, mxyz2, modeold, dmin, dmax, dmean)
+            call ialprt(.false.)
+            do i = 1, numReplace
+              if (listReplace(i) .lt. 0 .or. listReplace(i) .ge. nxyz2(3))
+     &            call exitError('REPLACEMENT SECTION NUMBER OUT OF RANGE')
+            enddo
+          endif
+        endif
+c         
+c         Distortion field
         if (idfFile .ne. ' ') then
           ifDistort = 1
           xftext=', undistorted'
@@ -768,6 +789,7 @@ c       start looping over input images
 c       
       isec=1
       isecout=1
+      isecReplace = 1
       ifileout=1
       call ialprt(.true.)
       call time(tim)
@@ -827,9 +849,17 @@ c
             if(newmode.lt.0)newmode=mode
           endif
 c           
-c           see if need to open an output file
-
-          if(isecout.eq.1)then
+c           First see if this is the first section to replace
+          if (numReplace .gt. 0 .and. isecReplace .eq. 1) then
+            if (nx3 .ne. nxyz2(1) .or. ny3 .ne. nxyz2(2)) call exitError(
+     &          'EXISTING OUTPUT FILE DOES NOT HAVE RIGHT SIZE IN X OR Y')
+            if (newmode .ne. modeold) call exitError(
+     &          'OUTPUT MODE DOES NOT MATCH EXISTING OUTPUT FILE')
+            isecout = listReplace(isecReplace) + 1
+          endif
+c
+c           then see if need to open an output file
+          if(numReplace .eq. 0 .and. isecout.eq.1)then
 C             
 C             Create output file, transfer header from currently open file,
 c             fix it
@@ -1486,29 +1516,33 @@ C
 80        isecout=isecout+1
           DMIN = MIN(DMIN,DMIN2)
           DMAX = MAX(DMAX,DMAX2)
-          DMEAN = DMEAN + DMEAN2
+          if (numReplace .eq. 0) then
+            DMEAN = DMEAN + DMEAN2
 c           
-c           transfer extra header bytes if present
+c             transfer extra header bytes if present
 c           
-          if(nbsymout.ne.0.and.indxout.lt.nbsymout)then
-            nbcopy=min(nbytexout,nbytexin,nbsymin)
-            nbclear=nbytexout-nbcopy
-            do i=1,nbcopy
-              indxout=indxout+1
-              extraout(indxout)=extrain(nsecred*nbytexin+i)
-            enddo
-            do i=1,nbclear
-              indxout=indxout+1
-              extraout(indxout)=0
-            enddo
+            if(nbsymout.ne.0.and.indxout.lt.nbsymout)then
+              nbcopy=min(nbytexout,nbytexin,nbsymin)
+              nbclear=nbytexout-nbcopy
+              do i=1,nbcopy
+                indxout=indxout+1
+                extraout(indxout)=extrain(nsecred*nbytexin+i)
+              enddo
+              do i=1,nbclear
+                indxout=indxout+1
+                extraout(indxout)=0
+              enddo
+            endif
+          else
+            isecReplace = isecReplace + 1
+            isecout = listReplace(isecReplace) + 1
           endif
 c           
 c           see if need to close stack file
 c           
-          if(isecout.gt.nsecout(ifileout))then
+          if(numReplace .eq. 0 .and. isecout.gt.nsecout(ifileout))then
             if(nbsymout.gt.0)call ialsym(2,nbsymout,extraout)
             DMEAN=DMEAN/nsecout(ifileout)
-C             
             CALL IWRHDR(2,TITLE,1,DMIN,DMAX,DMEAN)
             CALL IMCLOSE(2)
             isecout=1
@@ -1518,6 +1552,10 @@ C
         enddo
         call imclose(1)
       enddo
+      if (numReplace .gt. 0) then
+        CALL IWRHDR(2,TITLE,-1,DMIN,DMAX,DMEAN)
+        CALL IMCLOSE(2)
+      endif
 C       
       if(iftempopen.ne.0)call imclose(3)
       if(ntrunclo+ntrunchi.gt.0)write(*,103)ntrunclo,ntrunchi
@@ -1897,6 +1935,9 @@ c
 ************************************************************************
 *       
 c       $Log$
+c       Revision 3.51  2008/07/25 14:09:03  mast
+c       Increased even more, to 180M
+c
 c       Revision 3.50  2008/07/25 14:00:25  mast
 c       Increased array size to 128M
 c
