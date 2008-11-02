@@ -1,6 +1,18 @@
 IMOD History
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-10/20/08: The CTFfiles opion to copytomocoms was changed to specify whether
+11/2/08: Added options to Tilt to allow incremental reconstructions to be
+computed, adding or subtracting selected views.
+
+11/2/08: Added option to Xfproduct to multiply by just one of the transforms
+in a file of multiple transforms.
+
+11/2/08: Added option to Newstack to overwrite sections in existing output
+file. 
+
+10/29/08: Tomogram generation panel was split into two, one for aligned stack
+and one for tomogram.  CTF correction interface added to aligned stack panel.
+
+10/20/08: The CTFfiles option to copytomocoms was changed to specify whether
 to copy one file or both.
 
 10/17/08: IMOD_3-12-20
