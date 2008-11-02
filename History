@@ -1,5 +1,8 @@
 IMOD History
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+11/2/08: Etomo now supplies to tilt angles to Midas for fixing coarse alignment
+to allow cosine stretching, but the cosine stretch is initially turned off.
+
 11/2/08: Added options to Tilt to allow incremental reconstructions to be
 computed, adding or subtracting selected views.
 
