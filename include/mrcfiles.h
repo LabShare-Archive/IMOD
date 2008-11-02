@@ -290,6 +290,7 @@ void *mrc_mread_slice(FILE *fin, MrcHeader *hdata,
 		      int slice, char axis);
 int mrc_read_slice(void *buf, FILE *fin, MrcHeader *hdata, 
 		   int slice, char axis);
+int mrcReadFloatSlice(b3dFloat *buf, MrcHeader *hdata, int slice);
 
   unsigned char **mrcGetDataMemory(struct LoadInfo *li, size_t xysize,
                                    int zsize, int pixsize);
@@ -320,8 +321,9 @@ int mrcReadY(MrcHeader *hdata, struct LoadInfo *li,
 			unsigned char *buf, int cy);
 int mrcReadSection(MrcHeader *hdata, struct LoadInfo *li,
 		    unsigned char *buf, int z);
-
-
+int mrcReadSectionFloat(MrcHeader *hdata, IloadInfo *li, b3dFloat *buf, int z);
+int mrcReadYFloat(MrcHeader *hdata, IloadInfo *li, b3dFloat *buf, int z);
+int mrcReadZFloat(MrcHeader *hdata, IloadInfo *li, b3dFloat *buf, int z);
 
 /* misc stdio functions */
 int  loadtilts(struct TiltInfo *ti, MrcHeader *hdata);
@@ -360,6 +362,9 @@ void mrc_set_cmap_stamp(MrcHeader *hdata);
 /*
 
 $Log$
+Revision 3.20  2008/05/31 03:08:38  mast
+Added scaling routine
+
 Revision 3.19  2008/01/11 17:21:44  mast
 improved declaration for swap funcs
 

@@ -42,9 +42,9 @@
  * Reads an MRC header into [hdata] from the file with pointer [fin].  
  * Determines whether byte-swapping is necessary by requiring that {nx}, {ny},
  * and {nz} are positive, that one of them is < 65536, and that {mapc}, {mapr},
- * and {maps} be between 0 and 4.  Returns -1 for I/O error, or 1 if these 
- * requirements are not met or if the mode or number of labels are 
- * inappropriate.
+ * and {maps} be between 0 and 4.  Leaves the file pointer [fin] in the {fp} 
+ * member of [hdata].  Returns -1 for I/O error, or 1 if these requirements are
+ * not met or if the mode or number of labels are inappropriate.
  */
 int mrc_head_read(FILE *fin, MrcHeader *hdata)
 {
@@ -782,6 +782,21 @@ int mrc_read_slice(void *buf, FILE *fin, MrcHeader *hdata, int slice,
   return(0);
 }
 
+/*!
+ * Reads a whole Z slice at Z value [slice] from the MRC file whose header is
+ * is in [hdata], and returns it into [buf].  Works only for real data (byte,
+ * integer, float).  Simply calls @mrcReadZFloat .  Returns 1 for an illegal 
+ * request, 2 for a memory error, or 3 for an error reading the file.
+ */
+int mrcReadFloatSlice(b3dFloat *buf, MrcHeader *hdata, int slice)
+{
+  IloadInfo li;
+  li.xmin = 0;
+  li.xmax = hdata->nx - 1;
+  li.ymin = 0;
+  li.ymax = hdata->ny - 1;
+  return (mrcReadZFloat(hdata, &li, buf, slice));
+}
 
 
 /* DNM 5/7/05: eliminated unused 
@@ -2161,6 +2176,9 @@ void mrc_swap_floats(fb3dFloat *data, int amt)
 
 /*
 $Log$
+Revision 3.39  2008/05/31 03:09:32  mast
+Added scaling routine so callers can use mrcsec with same scaling
+
 Revision 3.38  2008/05/23 23:03:47  mast
 Switched to NTSC RGB to gray scaling
 

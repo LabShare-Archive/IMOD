@@ -19,8 +19,11 @@
 #include "b3dutil.h"
 #include "mrcfiles.h"
 
+#define MRSA_BYTE 1
+#define MRSA_FLOAT 2
+
 static int mrcReadSectionAny(MrcHeader *hdata, IloadInfo *li,
-                             unsigned char *buf, int cz, int readY, int byte);
+                             unsigned char *buf, int cz, int readY, int type);
 
 /*
  * Routines for accessing particular kinds of data as bytes or raw, Y or Z
@@ -48,7 +51,16 @@ int mrcReadZ(MrcHeader *hdata, IloadInfo *li, unsigned char *buf, int z)
  */
 int mrcReadZByte(MrcHeader *hdata, IloadInfo *li, unsigned char *buf, int z)
 {
-  return (mrcReadSectionAny(hdata, li, buf, z, 0, 1));
+  return (mrcReadSectionAny(hdata, li, buf, z, 0, MRSA_BYTE));
+}
+
+/*!
+ * Reads one Z slice of data, like @mrcReadZ, and returns it as floats.
+ * Only works for real modes: byte, signed and unsigned short, float.
+ */
+int mrcReadZFloat(MrcHeader *hdata, IloadInfo *li, b3dFloat *buf, int z)
+{
+  return (mrcReadSectionAny(hdata, li, (unsigned char *)buf, z, 0,MRSA_FLOAT));
 }
 
 /*!
@@ -70,7 +82,16 @@ int mrcReadY(MrcHeader *hdata, IloadInfo *li, unsigned char *buf, int z)
  */
 int mrcReadYByte(MrcHeader *hdata, IloadInfo *li, unsigned char *buf, int z)
 {
-  return (mrcReadSectionAny(hdata, li, buf, z, 1, 1));
+  return (mrcReadSectionAny(hdata, li, buf, z, 1, MRSA_BYTE));
+}
+
+/*!
+ * Reads one Y slice of data, like @mrcReadY, and returns it as floats.
+ * Only works for real modes: byte, signed and unsigned short, and float.
+ */
+int mrcReadYFloat(MrcHeader *hdata, IloadInfo *li, b3dFloat *buf, int z)
+{
+  return (mrcReadSectionAny(hdata, li, (unsigned char *)buf, z, 1,MRSA_FLOAT));
 }
 
 /*!
@@ -97,14 +118,25 @@ int mrcReadSectionByte(MrcHeader *hdata, IloadInfo *li, unsigned char *buf,
                        int z)
 {
   int readY = (li->axis == 2) ? 1 : 0;
-  return (mrcReadSectionAny(hdata, li, buf, z, readY, 1));
+  return (mrcReadSectionAny(hdata, li, buf, z, readY, MRSA_BYTE));
+}
+
+/*!
+ * Reads one slice of data, like @mrcReadSection, and returns it as floats.
+ * Only works for real modes: byte, signed and unsigned short, and float.
+ */
+int mrcReadSectionFloat(MrcHeader *hdata, IloadInfo *li, b3dFloat *buf, int z)
+{
+  int readY = (li->axis == 2) ? 1 : 0;
+  return (mrcReadSectionAny(hdata, li, (unsigned char *)buf, z, readY, 
+                            MRSA_FLOAT));
 }
 
 /*
  * Generic routine for reading the data line-by-line and scaling it properly
  */
 static int mrcReadSectionAny(MrcHeader *hdata, IloadInfo *li,
-                              unsigned char *buf, int cz, int readY, int byte)
+                              unsigned char *buf, int cz, int readY, int type)
 {
   FILE *fin = hdata->fp;
   int  nx = hdata->nx;
@@ -115,6 +147,7 @@ static int mrcReadSectionAny(MrcHeader *hdata, IloadInfo *li,
   int  lly = readY ? li->zmin : li->ymin;
   int  ury = readY ? li->zmax : li->ymax;
   int xsize = urx - llx + 1;
+  int byte = type == MRSA_BYTE ? 1 : 0;
      
   float slope  = li->slope;
   float offset = li->offset;
@@ -138,8 +171,9 @@ static int mrcReadSectionAny(MrcHeader *hdata, IloadInfo *li,
   unsigned char *fft = buf;
   unsigned char *map = NULL;
 
-  /* Copy of buffer pointer that can be advanced after each line */
+  /* Copies of buffer pointer that can be advanced after each line */
   unsigned char *bufp = buf;
+  b3dFloat *fbufp = (b3dFloat *)buf;
   int freeMap = 0;
   unsigned char *inptr;
   b3dInt16 *sdata;
@@ -151,6 +185,11 @@ static int mrcReadSectionAny(MrcHeader *hdata, IloadInfo *li,
   int doscale = (offset <= -1.0 || offset >= 1.0 || 
                  slope < 0.995 || slope > 1.005);
   /* printf ("read slope %f  offset %f\n", slope, offset); */
+  if (type == MRSA_FLOAT && sliceModeIfReal(hdata->mode) < 0) {
+    b3dError(stderr, "ERROR: mrcReadSectionAny - Only real modes can be read"
+             " as floats");
+    return 1;
+  }
 
   /* Adjust loading parameters if mirroring an FFT 
      This is hopelessly complex because it replicates the mirrored FFT produced
@@ -207,6 +246,7 @@ static int mrcReadSectionAny(MrcHeader *hdata, IloadInfo *li,
       if (!map)
         return 2;
     }
+    needData = type == MRSA_FLOAT ? 1 : 0;
     break;
 
   case MRC_MODE_SHORT:
@@ -219,8 +259,8 @@ static int mrcReadSectionAny(MrcHeader *hdata, IloadInfo *li,
       freeMap = 1;
       if (!map)
         return 2;
-      needData = 1;
     }
+    needData = type;
     break;
 
   case MRC_MODE_RGB:
@@ -446,6 +486,30 @@ static int mrcReadSectionAny(MrcHeader *hdata, IloadInfo *li,
         break;
       }
 
+    } else if (type == MRSA_FLOAT && hdata->mode != MRC_MODE_FLOAT) {
+
+      /* Float conversions */
+      switch(hdata->mode){
+      case MRC_MODE_BYTE:
+        for (i = 0; i < xsize; i++)
+          fbufp[i] = bdata[i];
+        break;
+        
+      case MRC_MODE_SHORT:
+        if (hdata->swapped)
+          mrc_swap_shorts(sdata, xsize * pixSize / 2);
+        for (i = 0; i < xsize; i++)
+          fbufp[i] = sdata[i];
+        break;
+      case MRC_MODE_USHORT:
+        if (hdata->swapped)
+          mrc_swap_shorts(usdata, xsize * pixSize / 2);
+        for (i = 0; i < xsize; i++)
+          fbufp[i] = usdata[i];
+        break;
+      }
+      fbufp += xsize;
+
     } else {
 
       /* RAW DATA - do some swaps, advance buffer pointer */
@@ -482,6 +546,9 @@ static int mrcReadSectionAny(MrcHeader *hdata, IloadInfo *li,
 
 /*
 $Log$
+Revision 3.16  2008/05/31 03:48:52  mast
+Fixed the log and exp scaling
+
 Revision 3.15  2008/05/31 03:10:19  mast
 Added nonlinear ramps and rounding to allow mrcbyte to use this
 

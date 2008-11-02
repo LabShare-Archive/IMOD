@@ -954,6 +954,29 @@ Islice *sliceReadSubm(MrcHeader *hin,
   return(slice);
 }
 
+/*!
+ * Returns a slice with one Z plane of data at Z value [secno] from the file 
+ * described by the @@mrcfiles.html#MrcHeader structure@ [hin].  
+ * The file pointer in [hin] is used.  Bytes are swapped if necessary.
+ * Returns NULL for errors.
+ */
+Islice *sliceReadFloat(MrcHeader *hin, int secno)
+{
+  Islice *slice;
+  if (sliceModeIfReal(hin->mode) < 0) {
+    b3dError(stderr, "ERROR: sliceReadFloat - file mode must be real");
+    return NULL;
+  }
+  slice = sliceCreate(hin->nx, hin->ny, MRC_MODE_FLOAT);
+  if (!slice)
+    return NULL;
+  if (mrcReadFloatSlice(slice->data.f, hin, secno)) {
+    sliceFree(slice);
+    return NULL;
+  }
+  return slice;
+}
+
 /*
  * Filtering and transformation : DOC_SECTION TRANSFORMS
  */
@@ -1447,6 +1470,9 @@ int mrc_vol_wrap(struct MRCvolume *v)
 
 /*
 $Log$
+Revision 3.22  2008/06/24 04:43:34  mast
+Split off really basic function to libcfshr
+
 Revision 3.21  2008/01/11 17:19:44  mast
 Mac warning cleanup
 

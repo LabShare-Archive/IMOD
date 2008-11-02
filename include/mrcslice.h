@@ -119,6 +119,7 @@ extern "C" {
   Islice *sliceReadMRC(struct MRCheader *hin, int sno, char axis);
   Islice *sliceReadSubm(struct MRCheader *hin, int sno, char axis,
                         int s1, int s2, int c1, int c2);
+  Islice *sliceReadFloat(MrcHeader *hin, int slice);
 
   Islice *sliceGradient(Islice *sin);
   int     mrc_bandpass_filter(Islice *sin, double low, double high);
@@ -168,6 +169,9 @@ extern "C" {
 
 /*
   $Log$
+  Revision 3.8  2007/11/22 20:47:42  mast
+  Added gaussian kernel functions
+
   Revision 3.7  2007/10/03 22:55:35  mast
   Added function to get from MRC to SLICE mode
 
