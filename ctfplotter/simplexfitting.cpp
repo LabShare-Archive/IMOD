@@ -6,6 +6,8 @@
 #define MAX_ITER 100
 #define MIN_ERROR 0.1
 
+extern int debugLevel;
+
 int SimplexFitting::nDim=0;
 int SimplexFitting::index1=0;
 int SimplexFitting::index2=0;
@@ -128,9 +130,11 @@ int SimplexFitting::computeFitting(double* fitting, double *err, int
         ((float)(i-index1)/(nDim-1)-min_a[1])/(min_a[2]*min_a[2])) +min_a[3];
   } 
 
-  printf("Iteration Num=%d threshold=%f Simplex fitting parameters for \
+  if( debugLevel>=3){
+   printf("Iteration Num=%d threshold=%f Simplex fitting parameters for \
       range %d to %d are:\n", iter_counter, MIN_ERROR*range, index1, index2);
-  printf("Fitting error=%f\t a[0]=%f\t a[1]=%f\t a[2]=%f\t a[3]=%f\n",*err,
+   printf("Fitting error=%f\t a[0]=%f\t a[1]=%f\t a[2]=%f\t a[3]=%f\n",*err,
       min_a[0], min_a[1], min_a[2], min_a[3]); 
+  }
   return 0; 
 }

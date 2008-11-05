@@ -32,6 +32,8 @@ public:
     QToolButton *tileButton;
     RangeDialog *rDialog;
     AngleDialog *aDialog;
+    std::vector<PlotSettings> zoomStack;
+    int curZoom;
 
 public slots:
     void zoomIn();
@@ -68,8 +70,6 @@ private:
     QToolButton *saveButton;
     QToolButton *helpButton;
     std::map<int, CurveData> curveMap;
-    std::vector<PlotSettings> zoomStack;
-    int curZoom;
     bool rubberBandIsShown;
     QRect rubberBandRect;
     QPixmap pixmap;

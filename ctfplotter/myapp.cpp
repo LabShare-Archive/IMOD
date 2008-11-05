@@ -22,6 +22,7 @@
 
 #define MY_PI 3.1415926
 #define MIN_ANGLE 1.0e-6  //tilt Angle less than this is treated as 0.0;
+extern int debugLevel;
 
 int MyApp::nDim=0;
 int MyApp::tileSize=0;
@@ -29,8 +30,10 @@ int MyApp::tileSize=0;
   MyApp::MyApp(int &argc, char *argv[], int volt, double pSize, 
       double ampRatio, float cs, char *defFn,
       int dim, double focusTol, int tSize, double tAxisAngle, double lAngle,
-      double hAngle, double expDefocus, double leftTol, double rightTol)
-:QApplication(argc, argv), defocusFinder(volt, pSize, ampRatio, cs, dim, expDefocus)
+      double hAngle, double expDefocus, double leftTol, double rightTol, int
+      maxCacheSize)
+:QApplication(argc, argv), defocusFinder(volt, pSize, ampRatio, cs, dim,
+    expDefocus), cache(maxCacheSize)
 {
   nDim=dim;
   defocusTol=focusTol;
@@ -40,8 +43,6 @@ int MyApp::tileSize=0;
   voltage=volt;
   lowAngle=lAngle;
   highAngle=hAngle;
-  sliceNum=MAXSLICENUM;
-  for(int i=0;i<MAXSLICENUM;i++) slice[i]=NULL;
   x1MethodIndex=1; //0:Linear, 1:Simplex;
   x2MethodIndex=1; //0:Linear, 1:Simplex;
   defocusOption=0; //use expected defocus;
@@ -50,6 +51,54 @@ int MyApp::tileSize=0;
   rightDefTol=rightTol;
   saveFp=NULL;
   fnDefocus=defFn;
+  tileIncluded=NULL;
+  stackMean=-1000.0;
+}
+
+//save all PS in text file for plotting in Matlab
+//when being called in Plotter::saveIt(). 
+//The calling of it is commented out in release version.
+void MyApp::saveAllPs()
+{
+  char fnInitPs[40];
+  char fnBackPs[40];
+  char fnSubtracted[40];
+  char fnDim[40];
+
+  sprintf(fnInitPs, "%s.init", fnDefocus);
+  sprintf(fnBackPs, "%s.floor", fnDefocus);
+  sprintf(fnSubtracted, "%s.final", fnDefocus);
+  sprintf(fnDim, "%s.dim", fnDefocus);
+
+  FILE *fpInit=fopen(fnInitPs,"w");
+  FILE *fpFloor=fopen(fnBackPs, "w");
+  FILE *fpFinal=fopen(fnSubtracted, "w");
+  FILE *fpDim=fopen(fnDim, "w");
+
+  int ii;
+  double *ps=(double*)malloc(nDim*sizeof(double) );
+  double *nps=(double*)malloc(nDim*sizeof(double) );
+
+  Plotter *plotter=(Plotter *)mainWidget();
+  PlotSettings settings=plotter->zoomStack[plotter->curZoom];
+
+  for(ii=0;ii<nDim;ii++){
+      if( settings.minX>ii/100.0 || settings.maxX< ii/100.0) continue;
+      fprintf(fpDim, "%7.4f\n", ii/100.0);
+      fprintf(fpInit, "%7.4f\n", log(rAverage[ii]) ) ;
+      nps[ii]=lowPs[ii]+(highPs[ii]-lowPs[ii])*
+             (stackMean-lowMean)/(highMean-lowMean);
+      fprintf(fpFloor, "%7.4f\n", log(nps[ii]) );
+      ps[ii]=rAverage[ii]/nps[ii];
+      fprintf(fpFinal, "%7.4f\n", log(ps[ii]) );
+    }
+
+  fclose(fpInit);
+  fclose(fpFloor);
+  fclose(fpFinal);
+  fclose(fpDim);
+  free(ps);
+  free(nps);
 }
 
 //plot and fit the PS stored in 'rAverage', find the defocus and update display;
@@ -69,13 +118,20 @@ void MyApp::plotFitPS()
              (stackMean-lowMean)/(highMean-lowMean);
       ps[ii]=rAverage[ii]/nps[ii];
     }
-
+    
+    PlotSettings plotSetting=PlotSettings();
+    double initialMaxY=-100;
     Plotter *plotter=(Plotter *)mainWidget();
     for(ii=0;ii<nDim;ii++){ 
       ps[ii]=log(ps[ii]);
       data[0].push_back(ii/(float)(nDim-1) );
       data[0].push_back(ps[ii]);
+      if(ps[ii]>initialMaxY) initialMaxY=ps[ii];
     }
+    initialMaxY=ceil(initialMaxY);
+    plotSetting.maxY=initialMaxY;
+    //adust initial plot setting to data;
+    plotter->setPlotSettings(plotSetting);
     plotter->setCurveData(0, data[0]);
 
     simplexEngine->setRaw(&ps[0]);
@@ -140,97 +196,12 @@ void MyApp::plotFitPS()
 
 void MyApp::setSlice(char *stackFile, char *angleFile)
 {
-  if( stackFile || angleFile){  
-    // if both are NULL, do not change file names; used in angleChanged();
-    fnStack=stackFile;
-    fnAngle=angleFile;
-  }
-  //free old slices before setting new slices;
-  for(int i=0;i<sliceNum;i++) if(slice[i]) sliceFree(slice[i]);
+  //init and clear old contents;
+  cache.initCache(stackFile, angleFile, nxx, nyy, nzz);
+  cache.whatIsNeeded(lowAngle, highAngle, startingSlice, endingSlice); 
 
-  FILE *fpStack, *fpAngle=NULL;
-  MrcHeader header;
-  int sliceMode;
-  char angleStr[30];
-
-  if( (fpStack=fopen(fnStack, "rb"))==0 )
-    exitError("could not open input file %s\n", fnStack);
-  
-  if(fnAngle){
-    if( (fpAngle=fopen(fnAngle, "r"))==0 ){
-      printf("could not open angle file %s, tiltAngle is set to 0.0\n",fnAngle);
-    }
-  }
-
-  /* read header */	
-  if (mrc_head_read(fpStack, &header)) 
-    exitError("could not read header of input file %s\n",  fnStack);
-
-  sliceMode = sliceModeIfReal(header.mode);
-   if (sliceMode < 0) 
-     printf("ERROR: %s - File mode is %d; only byte, short, integer allowed\n",
-            "ctfplotter", header.mode);
-
-  int nx = header.nx;
-  int ny = header.ny;
-  int nz = header.nz;
-  int sIndex;
-  float currAngle;
-  int startingSlice=-1;
-  sliceNum=nz;
-  nxx=nx;
-  nyy=ny; 
-  int k;
-  float stripPixelNum=0.0;
-  for(k=0;k<MAXSLICENUM;k++) slice[k]=NULL;
-
-  sIndex=0;
-  for(k=0;k<sliceNum;k++){
-    if( fpAngle && fgets(angleStr, 30, fpAngle) ){
-      sscanf(angleStr, "%f", &currAngle);
-      printf("Slice %d, tilt angle is %f degrees. \n", k, currAngle);
-    }else{
-      currAngle=0.0;
-      printf("No angle is specified, set to 0.0\n");
-    }
-
-    if(sIndex>=MAXSLICENUM){
-      printf("Stack has more than the maximal number of slices in \
-the specified angle range. Only %d slices are included \n", MAXSLICENUM);
-      fclose(fpStack);
-      fclose(fpAngle);
-      sliceNum=sIndex-1;
-      return ;
-    }
-
-    if( currAngle<lowAngle || currAngle>highAngle) continue;
-    if( startingSlice==-1) startingSlice=k+1;
-    slice[sIndex]=sliceCreate(nx, ny, sliceMode);
-    if(!slice[sIndex])
-      exitError("could not create slice for input\n");
-
-    if( mrc_read_slice(slice[sIndex]->data.b, fpStack, &header, k, 'Z') )
-      exitError("could not read slice\n");
-    printf("Slice %d of stack %s is included\n", k, fnStack);
-
-    //convert slice to floats
-    if(sliceMode !=SLICE_MODE_FLOAT)
-      if( sliceNewMode(slice[sIndex], SLICE_MODE_FLOAT)<0 )
-        exitError("could not convert slice to float\n");
-
-    tiltAngle[sIndex]=currAngle*MY_PI/180.0;
-    if( fabs(tiltAngle[sIndex]) > MIN_ANGLE ) 
-      stripPixelNum=fabs( defocusTol/tan(tiltAngle[sIndex]) )/pixelSize;
-    else stripPixelNum=nx;
-    if( stripPixelNum>nx) stripPixelNum=nx;
-
-    // tiles are overlapping by half of their size
-    sIndex++;
-  }//k slice
-  sliceNum=sIndex;
-  initialSlice=startingSlice;
-  fclose(fpStack);
-  if(fpAngle) fclose(fpAngle);
+  if(tileIncluded) free(tileIncluded);
+  tileIncluded=(int *)malloc(nzz*sizeof(int));
 }
 
 int  MyApp::computeInitPS()
@@ -257,12 +228,20 @@ int  MyApp::computeInitPS()
   localMean=0.0;
   for(i=0;i<tileSize;i++)
     for(j=0;j<(tileSize+2)/2;j++) *(fftSum+ i*(tileSize+2)/2+j)=0;
-  for(i=0;i<sliceNum;i++) tileIncluded[i]=0;
+  for(i=0;i<nzz;i++) tileIncluded[i]=0;
 
-  for(k=0;k<sliceNum;k++){
+  std::vector<int> accessOrder=cache.optimalAccessOrder();
+  Islice *currSlice;
+  float currAngle;
+  int whichSlice;
+
+  for(k=0;k<accessOrder.size();k++){
+    whichSlice=accessOrder[k];
+    currSlice=cache.getSlice( whichSlice );
+    currAngle=cache.getAngle( whichSlice );
     //'stripPixelNum' is the strip width in pixels
-    if(fabs(tiltAngle[k])>MIN_ANGLE) 
-      stripPixelNum=fabs( defocusTol/tan(tiltAngle[k]) )/pixelSize;
+    if(fabs(currAngle)>MIN_ANGLE) 
+      stripPixelNum=fabs( defocusTol/tan(currAngle) )/pixelSize;
     else stripPixelNum=diagonal;
     if(stripPixelNum>diagonal) stripPixelNum=diagonal;
 
@@ -280,8 +259,8 @@ int  MyApp::computeInitPS()
         if(d>stripPixelNum/2.0) continue;
 
         counter++;
-        tileIncluded[k]++;
-        sliceTaperInPad(slice[k]->data.f, SLICE_MODE_FLOAT, nxx, 
+        tileIncluded[whichSlice]++;
+        sliceTaperInPad(currSlice->data.f, SLICE_MODE_FLOAT, nxx, 
             i*halfSize+xOffset, i*halfSize+xOffset+tileSize-1, j*halfSize,
             j*halfSize+tileSize-1,tile,tileSize+2,tileSize,tileSize,9,9);
 
@@ -299,9 +278,13 @@ int  MyApp::computeInitPS()
               *(tile+ii*(tileSize+2)+2*jj) * ( *(tile+ii*(tileSize+2)+2*jj)) + 
               *(tile+ii*(tileSize+2)+2*jj+1)* (*(tile+ii*(tileSize+2)+2*jj+1));
       }
+  if( debugLevel>=1)
+    printf("Slice %d has %d central tiles included initially\n", whichSlice,
+        tileIncluded[whichSlice]);
   }//k loop;
 
-  printf("computeInitPS() includes %d tiles\n", counter);
+  if( debugLevel>=1)
+    printf("computeInitPS() includes %d tiles\n", counter);
   totalTileIncluded=counter;
 
   if(counter){
@@ -336,7 +319,8 @@ int  MyApp::computeInitPS()
     free(fftSum);
     return -1;
   }else{//need to compute mean;
-    for(i=0;i<nDim;i++) rAverage[i]=0.1; //set it to 0.1 to make log valid
+    exitError("Error: no tile is included, counter=0");
+    /*for(i=0;i<nDim;i++) rAverage[i]=0.1; //set it to 0.1 to make log valid
     tileNum=floor((float)nxx/(float)halfSize);
     xOffset=0;
     for(k=0;k<sliceNum;k++){
@@ -362,15 +346,20 @@ int  MyApp::computeInitPS()
     printf("No tile is included. Please change defocus tolerance \
         or angle range. \n");
     free( tile);
-    free(fftSum);
-    return 0;
+    free(fftSum); 
+    return 0; */
   }// else
   free( tile);
   free(fftSum);
 }
+void MyApp::moreTileCenterIncluded(){
+  moreTile(true);
+  plotFitPS();
+}
 
-void MyApp::moreTile()
+void MyApp::moreTile(bool hasIncludedCentralTiles)
 {
+
   int halfSize=tileSize/2;
   float *tile=(float *)malloc(tileSize*(tileSize+2)*sizeof(float) );
   int leftCounter, rightCounter;
@@ -435,25 +424,38 @@ void MyApp::moreTile()
   } else {
     effectiveDefocus=defocusFinder.getExpDefocus();
     effectiveZero=defocusFinder.getExpZero();
-  }  
+  }
+
+  std::vector<int> accessOrder=cache.optimalAccessOrder();
+
+  Islice *currSlice;
+  float currAngle;
+  int whichSlice;
+
 
   int itrNum;
-  for(k=0;k<sliceNum;k++){
-    itrNum=1;
+  for(k=0;k<accessOrder.size();k++){
+    whichSlice=accessOrder[k];
+    currSlice=cache.getSlice(whichSlice);
+    currAngle=cache.getAngle(whichSlice);
+    itrNum=0;
     //'stripPixelNum' is the strip width in pixels
-    if(fabs(tiltAngle[k])>MIN_ANGLE) 
-      stripPixelNum=fabs( defocusTol/tan(tiltAngle[k]) )/pixelSize;
+    if(fabs(currAngle)>MIN_ANGLE) 
+      stripPixelNum=fabs( defocusTol/tan(currAngle) )/pixelSize;
     else stripPixelNum=diagonal;
     if(stripPixelNum>diagonal) stripPixelNum=diagonal;
     
-    scanCounter=tileIncluded[k];
+    scanCounter=0;
     while( scanCounter<tileMax ){
       deltaZ=(itrNum+0.5)*(stripPixelNum/2.0)*pixelSize*
-             fabs(tan(tiltAngle[k]))/1000.0; // in microns;
+             fabs(tan(currAngle))/1000.0; // in microns;
       tmpMean=effectiveDefocus+deltaZ;
       tmpMean=tmpMean/defocusFinder.csOne; //convert to Z*;
       tmpMean=sqrt(1.0/tmpMean); // convert to  theta*;
       tmpMean=tmpMean/coef; // highDef is the new zero;
+
+      //printf("*********the new zero is %f nm \n", (1/tmpMean)*pixelSize*2);
+      
       plusShift=B3DNINT( (effectiveZero-tmpMean)/freqInc );
       tmpMean=effectiveDefocus-deltaZ;
       tmpMean=tmpMean/defocusFinder.csOne; //convert to Z*;
@@ -482,10 +484,22 @@ void MyApp::moreTile()
           if(alpha<0) alpha=2.0*MY_PI+alpha;//convert to [0,2*pi];
           d=r*fabs(sin(alpha-axisXAngle));//distance to the tilt axis in pixels;
 
+          /*if(x==0 && y==0 && itrNum==1){
+            printf("d=%f leftLimit=%f rightLimit=%f \n",
+                d, itrNum*stripPixelNum/2.0, (itrNum+1)*stripPixelNum/2.0);
+          }*/
+
           //outside of the strip, continue;
-          if(d<itrNum*stripPixelNum/2.0 || d>(itrNum+1)*stripPixelNum/2.0) 
+          if(d<itrNum*stripPixelNum/2.0 || d>(itrNum+1)*stripPixelNum/2.0){ 
             continue;
+          }
+          //printf("itrNum=%d tile x=%d y=%d is included  \n", itrNum, x, y);
           scanCounter++;
+
+          //skip central tiles since they already included
+          if(hasIncludedCentralTiles && d<=stripPixelNum/2.0 ){
+            continue;
+          }
 
           if(axisXAngle<=MY_PI){
             if( alpha>axisXAngle && alpha<axisXAngle+MY_PI) isOnLeft=true;
@@ -495,11 +509,12 @@ void MyApp::moreTile()
             else isOnLeft=false;
           }
 
-          d=d*pixelSize*fabs(tan(tiltAngle[k])); //defocus difference in nm;
+          d=d*pixelSize*fabs(tan(currAngle)); //defocus difference in nm;
+
           if( isOnLeft && d>leftDefTol ) continue;
           if( !isOnLeft && d>rightDefTol) continue;
 
-          sliceTaperInPad(slice[k]->data.f, SLICE_MODE_FLOAT, nxx, x*halfSize, 
+          sliceTaperInPad(currSlice->data.f, SLICE_MODE_FLOAT, nxx, x*halfSize, 
               x*halfSize+tileSize-1, y*halfSize, y*halfSize+tileSize-1,
               tile, tileSize+2, tileSize, tileSize, 9, 9);
           tmpMean=0.0;
@@ -551,17 +566,26 @@ void MyApp::moreTile()
           nps[ii]=lowPs[ii]+(highPs[ii]-lowPs[ii])*(leftMean-lowMean)/(highMean-lowMean);
           stripAvg[ii]=stripAvg[ii]/nps[ii];
         }
-        if(tiltAngle[k]>=0) xShift=minusShift;
-        else xShift=plusShift; 
+        if(currAngle>=0) xShift=minusShift;
+        else xShift=plusShift;
+
+        /*printf("xShift=%d totalTileIncluded=%d leftCounter=%d\n", xShift,
+            totalTileIncluded, leftCounter);
+
+        printf("iterNum=%d, before change: rAverage[0]=%f stripAvg[0]=%f\n",itrNum,  rAverage[0], stripAvg[0]);
+        */
         for(ii=0;ii<nDim;ii++){
           jj=ii+xShift;
           if(jj<0 || jj>=nDim) continue;
+
           rAverage[jj]=(totalTileIncluded*rAverage[jj]+leftCounter*
               stripAvg[ii])/(totalTileIncluded+leftCounter);
         }
+        //printf("iterNum=%d, rAverage[0]=%f\n",itrNum,  rAverage[0]);
         totalTileIncluded+=leftCounter;
-        tileIncluded[k]+=leftCounter;
-      }
+        tileIncluded[whichSlice]+=leftCounter;
+      }//end of left side
+
       //right side
       if(rightCounter){
         rightMean=rightMean/rightCounter;
@@ -588,7 +612,7 @@ void MyApp::moreTile()
             (highMean-lowMean);
           stripAvg[ii]=stripAvg[ii]/nps[ii];
         }
-        if(tiltAngle[k]>=0) xShift=plusShift;
+        if(currAngle>=0) xShift=plusShift;
         else xShift=minusShift;
         for(ii=0;ii<nDim;ii++){
           jj=ii+xShift;
@@ -597,21 +621,28 @@ void MyApp::moreTile()
               stripAvg[ii])/(totalTileIncluded+rightCounter);
         }
         totalTileIncluded+=rightCounter;
-        tileIncluded[k]+=rightCounter;
+        tileIncluded[whichSlice]+=rightCounter;
       }
-      //printf("scanCounter=%d leftCounter=%d rightCounter=%d tileIncluded[%d]=%d\n",
-     // scanCounter, leftCounter, rightCounter, k, tileIncluded[k]);
+      if( debugLevel>=2 )
+         printf("scanCounter=%d leftCounter=%d rightCounter=%d tileIncluded[%d]=%d\n",
+         scanCounter, leftCounter, rightCounter, whichSlice, tileIncluded[whichSlice]);
       itrNum++;
     }//while loop;
-    printf("***itrNum=%d deltaZ=%f(microns) scanCounter=%d xShift=%d \
-        tileIncluded[%d]=%d \n",
-        itrNum, deltaZ, scanCounter, xShift, k, tileIncluded[k] );
+    
+    if(debugLevel>=1)
+      printf("%d tiles of slice %d have been included\n",
+          tileIncluded[whichSlice], whichSlice);
+
+    if( debugLevel>=2)
+       printf("***itrNum=%d deltaZ=%f(microns) scanCounter=%d xShift=%d \
+         tileIncluded[%d]=%d\n",
+         itrNum, deltaZ, scanCounter, xShift, whichSlice,
+         tileIncluded[whichSlice]);
   }// the k-th slice
 
   //Restore rAverage[i] so it stores the PS;
   for(ii=0;ii<nDim;ii++) rAverage[ii]=rAverage[ii]*psRatio[ii];  
-  //plot and fit the modified PS; 
-  plotFitPS();
+  //plot and fit the modified PS;
 
   free(tile);
   free(leftFftSum);
@@ -620,7 +651,6 @@ void MyApp::moreTile()
   free(stripAvg);
   free(nps);
   free(psRatio);
-
 }  
 
 MyApp::~MyApp()
@@ -628,7 +658,7 @@ MyApp::~MyApp()
   delete simplexEngine;
   delete linearEngine;
   //if(saveFp) fclose(saveFp);
-  for(int k=0;k<MAXSLICENUM;k++) if(slice[k]) sliceFree(slice[k]);
+  //for(int k=0;k<MAXSLICENUM;k++) if(slice[k]) sliceFree(slice[k]);
 }
 
 void MyApp::rangeChanged(double x1_1, double x1_2, double x2_1, double x2_2)
@@ -669,7 +699,6 @@ void MyApp::rangeChanged(double x1_1, double x1_2, double x2_1, double x2_2)
     default:
       printf("unknown fitting method chosen\n"); 
   }
-
 
   //nDim=linearEngine->getDim();
   //inc=1.0/(nDim-1);
@@ -737,19 +766,35 @@ void MyApp::angleChanged(double lAngle, double hAngle, double expDefocus,
    tileSize=tSize;
    tiltAxisAngle=axisAngle;
    defocusFinder.setExpDefocus(expDefocus);
+
    //If tilt angle range does not change, do not need to reload slices;
    if(lAngle!=lowAngle || hAngle!=highAngle){
      setLowAngle(lAngle);
      setHighAngle(hAngle);
-     setSlice();
+     //setSlice();
+     cache.whatIsNeeded(lAngle, hAngle, startingSlice, endingSlice);
    }
-   computeInitPS();
+
+   //computeInitPS();
+
    //plot and fit the new initial PS;
-   if(initialTileOption) moreTile(); //include other tiles and plot;
+   if(initialTileOption){
+     int i;
+     //following variables need to be re-set or re-initialized;
+     //stackMean;
+     totalTileIncluded=0;
+     for(i=0;i<nzz;i++) tileIncluded[i]=0;
+     for(i=0;i<nDim;i++) rAverage[i]=0.0;
+
+     moreTile(false); //include all the tiles and plot;
+     plotFitPS();
+   }
    else {
+     computeInitPS();
      ((Plotter *)mainWidget())->tileButton->setEnabled(true);
      plotFitPS(); // only plot;
    }
+
    cursor.setShape(Qt::ArrowCursor);
    ((Plotter *)mainWidget())->setCursor(cursor);
    if(((Plotter *)mainWidget())->aDialog)

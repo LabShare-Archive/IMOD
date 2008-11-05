@@ -15,24 +15,30 @@
 #include "cfft.h"
 #include "parse_params.h"
 
+#define CACHESIZE 1000   // max cache size in Megs;
 #define MIN_ANGLE 1.0e-6  //tilt Angle less than this is treated as 0.0;
 ImodAssistant *ctfHelp=NULL;
+int debugLevel;
 
 int main(int argc, char *argv[])
 {
+  // Fallbacks from   ../manpages/autodoc2man 2 1 ctfplotter
   int numOptArgs, numNonOptArgs;
-  int numOptions=17;
-  char *options[]={"param:Parameter:PF:", "config:ConfigFile:CH:", 
-    "stack:InputStack:CH:", "angle:AngleFile:CH:", "defFn:DefocusFile:CH:",
-    "cs:SphericalAberration:F:", "aAngle:AxisAngle:F:",
-    "psRes:PSResolution:I:", "tileSize:TileSize:I:", "defTol:DefocusTol:I:",
-    "pixelSize:PixelSize:F:", "ampConstrast:AmplitudeContrast:F:",
-    "expDef:ExpectedDefocus:F:", "range:AngleRange:FP:", "volt:Voltage:I:",
-    "leftTol:LeftDefTol:F:", "rightTol:RightDefTol:F:"};
+  int numOptions=19;
+
+  char *options[] = {
+    "input:InputStack:FN:", "angleFn:AngleFile:FN:", "config:ConfigFile:FN:", 
+    "defFn:DefocusFile:FN:", "aAngle:AxisAngle:F:", "psRes:PSResolution:I:", 
+    "tileSize:TileSize:I:", "volt:Voltage:I:", "cache:MaxCacheSize :I:", 
+    "debug:DebugLevel :I:", "cs:SphericalAberration:F:", 
+    "defTol:DefocusTol:I:", "pixelSize:PixelSize:F:", 
+    "ampContrast:AmplitudeContrast:F:", "expDef:ExpectedDefocus:F:", 
+    "leftTol:LeftDefTol:F:", "rightTol:RightDefTol:F:", 
+    "range:AngleRange:FP:", "param:Parameter:PF:"};
 
   char *cfgFn, *stackFn, *angleFn, *defFn;
   float tiltAxisAngle;
-  int volt, nDim, tileSize;
+  int volt, nDim, tileSize, cacheSize;
   float defocusTol, pixelSize, lowAngle, highAngle;
   float expectedDef, leftDefTol, rightDefTol;
   float ampContrast, cs;
@@ -41,6 +47,9 @@ int main(int argc, char *argv[])
   PipReadOrParseOptions(argc, argv, options, numOptions, "ctfplotter", 
       1, 0, 0, &numOptArgs, &numNonOptArgs, NULL);
 
+  if (PipGetInteger("DebugLevel", &debugLevel) )
+    debugLevel=1;
+
   if (PipGetString("ConfigFile", &cfgFn))
     exitError("No Config file specified\n");
   if (PipGetString("InputStack", &stackFn))
@@ -48,12 +57,23 @@ int main(int argc, char *argv[])
   if (PipGetString("AngleFile", &angleFn))
   {
     angleFn=NULL;
-    printf("No angle file is specified, tilt angle is assumed to be 0.0\n");
+    if( debugLevel>=1)
+     printf("No angle file is specified, tilt angle is assumed to be 0.0\n");
   }
   if ( PipGetString("DefocusFile", &defFn) )
     exitError("output defocus file is not specified \n");
   if (PipGetInteger("Voltage", &volt))
     exitError("Voltage is not specified\n");
+  if (PipGetInteger("MaxCacheSize", &cacheSize) ){
+     if( debugLevel>=1)
+      printf("No MaxCacheSize is specified, set to default %d Megs\n",
+          CACHESIZE);
+     cacheSize=CACHESIZE; 
+  }else{
+    if( debugLevel>=1)
+     printf(" MaxCacheSize is set to %d \n", cacheSize);
+  }
+  
   if (PipGetFloat("SphericalAberration", &cs) )
       exitError("Spherical Aberration is not specified\n");
   if (PipGetInteger("PSResolution", &nDim))
@@ -83,7 +103,7 @@ int main(int argc, char *argv[])
   MyApp app(argc, argv, volt, pixelSize, (double)ampContrast, cs, defFn,
       (int)nDim, (double)defocusTol, tileSize, 
       (double)tiltAxisAngle, -90.0, 90.0, (double)expectedDef, 
-      (double)leftDefTol, (double)rightDefTol);
+      (double)leftDefTol, (double)rightDefTol, cacheSize);
   //set the angle range for noise PS computing;
   app.setPS(rAvg);
   
@@ -102,7 +122,8 @@ int main(int argc, char *argv[])
   // only to find how many noise files are provided;
   while( (read=fgetline(fpCfg, p, 1024)) >0 ) noiseFileCounter++;
   rewind(fpCfg);
-  printf("There are %d noise files specified\n", noiseFileCounter);
+  if(debugLevel>=1)
+   printf("There are %d noise files specified\n", noiseFileCounter);
   
   double *noisePs=(double *)malloc( noiseFileCounter*nDim*sizeof(double));
   double *noiseMean=(double *)malloc( noiseFileCounter*sizeof(double) );
@@ -122,7 +143,8 @@ int main(int argc, char *argv[])
     noiseFileCounter++;
   }
   for(i=0;i<noiseFileCounter;i++){
-    printf("noiseMean[%d]=%f\n", i, noiseMean[i]);
+    if( debugLevel>=1)
+     printf("noiseMean[%d]=%f\n", i, noiseMean[i]);
     index[i]=i;
   }
   //sorting;
@@ -155,8 +177,9 @@ int main(int argc, char *argv[])
    if( stackMean > noiseMean[ (i+j)/2 ] ) i=(i+j)/2;
    else j=(i+j)/2;
   }
-  printf("Stack mean=%f, Interplating between noise file %d and file %d for \
-      noise level of this mean\n", stackMean, i, j);
+  if( debugLevel>=1)
+    printf("Stack mean=%f, Interplating between noise file %d and file %d for \
+noise level of this mean\n", stackMean, i, j);
   app.setNoisePS(noisePs+ index[i]*nDim, noisePs+index[j]*nDim);
   app.setNoiseMean(noiseMean[i], noiseMean[j]);
 

@@ -187,8 +187,9 @@ void AngleDialog::angleSetted()
 
 void AngleDialog::saveCurrentDefocus(){
    char *defFn=((MyApp *)qApp)->getDefFn();
-   FILE *fp, *saveFp;
-
+   FILE *fp;
+   
+   FILE *saveFp;
    saveFp=((MyApp *)qApp)->getSaveFp();
     if(!saveFp){
       imodBackupFile(defFn);
@@ -201,12 +202,13 @@ void AngleDialog::saveCurrentDefocus(){
       errorMessage->message( "Can not open output file" );
       return;
    }
-   int startingSlice=((MyApp *)qApp)->getInitSlice();
-   int sliceNum=((MyApp *)qApp)->getSliceNum();
+
+   int startingSlice=((MyApp *)qApp)->getStartingSliceNum();
+   int endingSlice=((MyApp *)qApp)->getEndingSliceNum();
    double lAngle=((MyApp *)qApp)->getLowAngle();
    double hAngle=((MyApp *)qApp)->getHighAngle();
    double defocus=((MyApp *)qApp)->defocusFinder.getDefocus();
-   fprintf(fp, "%d\t%d\t%5.2f\t%5.2f\t%6.0f\n", startingSlice, startingSlice+sliceNum-1,
+   fprintf(fp, "%d\t%d\t%5.2f\t%5.2f\t%6.0f\n", startingSlice, endingSlice,
        lAngle, hAngle, defocus*1000);
    fclose(fp); //flush output;
 }

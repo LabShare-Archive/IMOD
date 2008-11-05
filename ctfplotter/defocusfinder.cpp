@@ -9,6 +9,8 @@
 #define ZERO_END 0.8
 #define MY_PI 3.1415926
 
+extern int debugLevel;
+
 DefocusFinder::DefocusFinder(int volt, double pSize,
     double ampContrast, double inputCs, 
     int dim, double expDef): voltage(volt), pixelSize(pSize), 
@@ -96,10 +98,10 @@ int DefocusFinder::findZero(const double* simplexRes, const double* linearRes,
   free(diff);
   return -1;
 }
-
-void DefocusFinder::setExpDefocus(double expDef)
+//older version, the same expected defocus may give slightly different defocus
+//estimate depending on the current defocus found.
+/*void DefocusFinder::setExpDefocus(double expDef)
 {
-  //expDefocus=expDef/1000.0; //convert to microns;
   // convert relative frequency to absolute;
   double q=(0.5/pixelSize)*zeroCrossing; 
   // theta=theta'(cs/lambda)^0.25, theta'=q*lambda;
@@ -117,13 +119,13 @@ void DefocusFinder::setExpDefocus(double expDef)
     //wtheta=2*pi*(theta**4/4.0 - theta**2 * deltaZ); deltaZ=-deltaZ'/cs1;
   }
 
-  printf("Searching first zero from %4.2f to %4.2f micron with %d knots\n",
+  if( debugLevel>=3){
+   printf("Searching first zero from %4.2f to %4.2f micron with %d knots\n",
       ZERO_START, ZERO_END,dim);
-
-  printf("Zero: Original wtheta=");
-  for(i=0;i<6;i++) printf("%f \t", wtheta[i]);
-  printf("\n");
-
+   printf("Zero: Original wtheta=");
+   for(i=0;i<6;i++) printf("%f \t", wtheta[i]);
+   printf("\n");
+  }
   
   for(i=0;i<dim;i++)
    wtheta[i]= fabs( sqrt(1-ampRatio*ampRatio)*-sin(wtheta[i]) + 
@@ -147,6 +149,7 @@ void DefocusFinder::setExpDefocus(double expDef)
       }
    } 
 
+  if( debugLevel>=3){
   printf("Zero: Sorted wtheta=");
   for(i=0;i<6;i++) printf("%f \t", wtheta[i]);
   printf("\n");
@@ -154,7 +157,7 @@ void DefocusFinder::setExpDefocus(double expDef)
   printf("Zero: index=");
   for(i=0;i<6;i++) printf("%d \t", index[i]);
   printf("\n");
-
+  }
   //select the smallest value of index[0...5];
   tempIndex=index[0];
   for(i=1;i<6;i++) if(tempIndex>index[i]) tempIndex=index[i];
@@ -164,12 +167,12 @@ void DefocusFinder::setExpDefocus(double expDef)
   delete[] index;
   return ;
 }
+*/
 
-
-/*void DefocusFinder::setExpDefocus(double expDef){
+void DefocusFinder::setExpDefocus(double expDef){
     expDefocus=expDef;
     expZero=sqrt(csOne/expDefocus)*pixelSize*2.0/(wavelength*csTwo);
-}*/
+}
 
 /*int DefocusFinder::findDefocus(double *focus)
 {
@@ -194,17 +197,20 @@ int DefocusFinder::findDefocus(double *focus)
                          *-(DEF_START-i*defInc)/csOne );
     //wtheta=2*pi*(theta**4/4.0 - theta**2 * deltaZ); deltaZ=-deltaZ'/cs1;
 
-  printf("Defocus without considering amp contrast=%f cs1=%f  cs2=%f \n",
+  if (debugLevel>=1){
+  printf("Defocus without considering amp contrast=%f,  cs1=%f,  cs2=%f \n",
       0.5*(theta*theta*theta*theta+2)*csOne/(theta*theta), csOne, csTwo );
   printf("First zero=%f (1/nm) theta=%f voltage=%d Kv  wavelength=%f nm \n", 
       q, theta, voltage, wavelength);
   printf("Searching defocus from %4.2f to %4.2f micron with %d knots\n", 
       DEF_START, DEF_END,dim);
+  }
 
-  printf("Original wtheta=");
-  for(i=0;i<6;i++) printf("%f \t", wtheta[i]);
-  printf("\n");
-
+  if(debugLevel>=3){
+    printf("Original wtheta=");
+    for(i=0;i<6;i++) printf("%f \t", wtheta[i]);
+    printf("\n");
+  }
   
   for(i=0;i<dim;i++)
    wtheta[i]= fabs( sqrt(1-ampRatio*ampRatio)*-sin(wtheta[i]) + 
@@ -228,6 +234,7 @@ int DefocusFinder::findDefocus(double *focus)
       }
    } 
 
+  if( debugLevel>=3){
   printf("Sorted wtheta=");
   for(i=0;i<6;i++) printf("%f \t", wtheta[i]);
   printf("\n");
@@ -235,7 +242,7 @@ int DefocusFinder::findDefocus(double *focus)
   printf("index=");
   for(i=0;i<6;i++) printf("%d \t", index[i]);
   printf("\n");
-
+  }
   //select the smallest value of index[0...5];
   tempIndex=index[0];
   for(i=1;i<6;i++) if(tempIndex>index[i]) tempIndex=index[i];

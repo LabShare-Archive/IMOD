@@ -76,7 +76,7 @@ Plotter::Plotter(QWidget *parent, const char *name, WFlags flags)
     tileButton->setIconSet(QPixmap::fromMimeSource("moreTile.png") );
     tileButton->adjustSize();
     QToolTip::add(tileButton, "Include all of the rest tiles" );
-    connect(tileButton, SIGNAL(clicked()), qApp, SLOT(moreTile()) );
+    connect(tileButton, SIGNAL(clicked()), qApp, SLOT(moreTileCenterIncluded()) );
 
     zeroLabel=new QLabel( tr("Z: NA     "), this);
     zeroLabel->adjustSize();
@@ -202,6 +202,7 @@ void Plotter::ctfHelp()
 
 void Plotter::saveIt()
 {
+    
     char *defFn=((MyApp *)qApp)->getDefFn();
     FILE *fp, *saveFp;
 
@@ -217,15 +218,18 @@ void Plotter::saveIt()
       errorMessage->message( "Can not open output file" );
       return;
     }
-    int startingSlice=((MyApp *)qApp)->getInitSlice();
-    int sliceNum=((MyApp *)qApp)->getSliceNum();
+    int startingSlice=((MyApp *)qApp)->getStartingSliceNum();
+    int endingSlice=((MyApp *)qApp)->getEndingSliceNum();
     double lAngle=((MyApp *)qApp)->getLowAngle();
     double hAngle=((MyApp *)qApp)->getHighAngle();
     double defocus=((MyApp *)qApp)->defocusFinder.getDefocus();
-    fprintf(fp, "%d\t%d\t%5.2f\t%5.2f\t%6.0f\n", startingSlice, startingSlice+sliceNum-1,
+    fprintf(fp, "%d\t%d\t%5.2f\t%5.2f\t%6.0f\n", startingSlice, endingSlice,
        lAngle, hAngle, defocus*1000);
 
+    //((MyApp *)qApp)->saveAllPs();
+
     fclose(fp);
+    
 }
 
 void Plotter::setCurveData(int id, const CurveData &data)

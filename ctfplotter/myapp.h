@@ -4,6 +4,7 @@
 #include <qapplication.h>
 #include "defocusfinder.h"
 #include "mrcslice.h"
+#include "slicecache.h"
 
 class SimplexFitting;
 class LinearFitting;
@@ -12,14 +13,13 @@ class MyApp : public QApplication
 {
   Q_OBJECT
   public:
-    static const int MAXSLICENUM=36;
     SimplexFitting* simplexEngine;
     LinearFitting*  linearEngine;
     DefocusFinder   defocusFinder;
+    int getEndingSliceNum() { return endingSlice;}
+    int getStartingSliceNum() {return startingSlice;}
     void plotFitPS( );
-    void setSlice(char *stackFile=NULL, char *angleFile=NULL);
-    int getSliceNum() { return sliceNum;}
-    int getInitSlice() {return initialSlice;}
+    void setSlice(char *stackFile, char *angleFile);
     double getLowAngle() {return lowAngle;}
     char *getStackName() {return fnStack;}
     void setStackMean(double mean){ stackMean=mean;}
@@ -47,18 +47,20 @@ class MyApp : public QApplication
     int getDim(){return nDim;}
     char *getDefFn(){return fnDefocus;}
     void setSaveFp(FILE *fp){saveFp=fp;}
+    void saveAllPs();
     FILE *getSaveFp(){return saveFp;}
     MyApp(int &argc, char *argv[], int volt, double pixelSize, 
         double ampContrast, float cs, char *fnDefocus, 
         int dim, double focusTol, int tSize, 
         double tiltAxisAngle, double lAngle, double hAngle, double expDefocus,
-        double leftDefTol, double rightDefTol);
+        double leftDefTol, double rightDefTol, int maxCacheSize);
     ~MyApp();
  public slots:
     void rangeChanged(double x1, double x2, double, double);
     void angleChanged(double lowAngle, double highAngle, double defocus, 
       double defTol,int tSize,double axisAngle,double leftTol,double rightTol);
-    void moreTile();
+    void moreTile(bool hasIncludedCentralTiles);
+    void moreTileCenterIncluded();
     void setX1Method(int index){x1MethodIndex=index;}
     int getX1Method(){return x1MethodIndex;}
     void setX2Method(int index){x2MethodIndex=index;}
@@ -79,18 +81,14 @@ class MyApp : public QApplication
     double rightDefTol; //in nm;
     int nxx;  //x dimension;
     int nyy; //y dimension;
+    int nzz;
     double defocusTol; // in nm;
     double pixelSize;  //in nm;
     int voltage; // in Kv;
-    Islice *slice[MAXSLICENUM];
-    float tiltAngle[MAXSLICENUM];  // in radian;
+    SliceCache cache;
     // x-direction tile numumber already included in PS computation;
-    int tileIncluded[MAXSLICENUM]; 
+    int *tileIncluded; 
     int totalTileIncluded;
-    //the num of slices within the angle range that are stored 
-    //in pointer array 'slice';
-    int sliceNum;
-    int initialSlice; 
     double *rAverage; // is the signal PS;
     double *highPs;  
     double highMean;
@@ -108,6 +106,8 @@ class MyApp : public QApplication
     int x2Idx1;
     int x2Idx2;
     FILE *saveFp;
+    int endingSlice;
+    int startingSlice;
 };
 
 #endif
