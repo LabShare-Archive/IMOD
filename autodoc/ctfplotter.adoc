@@ -69,6 +69,23 @@ usage = Microscope voltage in kV
 tooltip =
 manpage = Microscope voltage in kV.
 
+[Field = MaxCacheSize ]
+short = cache
+type = I
+usage = cache size in Megs
+tooltip =
+manpage = To speed up computation, ctfplotter uses a cache to hold slices it recently accessed. 
+This option controls the cache size. If the user does not specify the option, it is
+defaulted to 1000Megs.
+
+[Field = DebugLevel ]
+short = debug
+type = I
+usage = 0-3, debug level, 3 means printing all messages
+tooltip =
+manpage = Debug level, 0-3. 0: quiet.  1: user messages.  2: cache, tile iteration messages.
+3: additional fitting messages. the default is 1.
+
 [Field = SphericalAberration]
 short = cs
 type = F
