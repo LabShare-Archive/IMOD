@@ -57,6 +57,10 @@ import etomo.util.DatasetFiles;
  * @version $Revision$
  * 
  * <p> $Log$
+ * <p> Revision 1.3  2008/10/27 23:20:27  sueh
+ * <p> bug# 1141 Changed the names of the ctfplotter button and the
+ * <p> ctfcorrection button.
+ * <p>
  * <p> Revision 1.2  2008/10/27 20:38:44  sueh
  * <p> bug# 1141 Added CTF Correction.
  * <p>
@@ -754,13 +758,16 @@ public final class FinalAlignedStackDialog extends ProcessDialog implements
       alignLogfile = "newst";
     }
     String[] manPagelabel = { alignManpageLabel, "Ctfplotter", "Ctfphaseflip",
-        "3dmod" };
+        "Mtffilter", "3dmod" };
     String[] manPage = { alignManpage + ".html", "ctfplotter.html",
-        "ctfphaseflip.html", "3dmod.html" };
-    String[] logFileLabel = { alignLogfileLabel, "Ctfplotter" };
-    String[] logFile = new String[2];
+        "ctfphaseflip.html", "mtffilter.html", "3dmod.html" };
+    String[] logFileLabel = { alignLogfileLabel, "Ctfplotter", "Ctfcorrection",
+        "Mtffilter" };
+    String[] logFile = new String[4];
     logFile[0] = alignLogfile + axisID.getExtension() + ".log";
     logFile[1] = "ctfplotter" + axisID.getExtension() + ".log";
+    logFile[2] = "ctfcorrection" + axisID.getExtension() + ".log";
+    logFile[3] = "mtffilter" + axisID.getExtension() + ".log";
     ContextPopup contextPopup = new ContextPopup(rootPanel, mouseEvent,
         "FINAL ALIGNED STACK", ContextPopup.TOMO_GUIDE, manPagelabel, manPage,
         logFileLabel, logFile, applicationManager, axisID);
