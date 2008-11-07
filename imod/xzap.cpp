@@ -1646,6 +1646,8 @@ void zapMouseRelease(ZapStruct *zap, QMouseEvent *event)
   }
   if ((ifdraw || needDraw) && !drew)
     zapDraw(zap);
+  else
+    setAreaLimits(zap);
 }
 
 /*
@@ -4526,6 +4528,9 @@ static int zapPointVisable(ZapStruct *zap, Ipoint *pnt)
 /*
 
 $Log$
+Revision 4.128  2008/09/24 02:40:03  mast
+Call new attach function
+
 Revision 4.127  2008/09/23 15:13:44  mast
 Added mouse wheel scrolling of point size
 
