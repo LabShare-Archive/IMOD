@@ -151,6 +151,8 @@ int main(int argc, char *argv[])
   double *currPS;
   int *index=(int *)malloc(noiseFileCounter*sizeof(double) );
   int i, j;
+
+  fflush(stdout);
   
   noiseFileCounter=0;
   while( (read=fgetline(fpCfg, p, 1024))>0){
@@ -168,6 +170,8 @@ int main(int argc, char *argv[])
      printf("noiseMean[%d]=%f\n", i, noiseMean[i]);
     index[i]=i;
   }
+  fflush(stdout);
+
   //sorting;
   double tempMean;
   double tempIndex;
@@ -219,6 +223,8 @@ noise level of this mean\n", stackMean, i, j);
     exitError("Invalid expected defocus, it must be >0");
   }
 
+  fflush(stdout);
+
   delete splash;
   plotter.resize(768, 624);
   plotter.show();
@@ -240,6 +246,9 @@ int ctfShowHelpPage(const char *page)
 /*
 
    $Log$
+   Revision 1.8  2008/11/07 20:20:41  xiongq
+   add splash screen
+
    Revision 1.7  2008/11/07 17:26:24  xiongq
    add the copyright heading
 

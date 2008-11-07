@@ -43,7 +43,7 @@ void SliceCache::initCache(char *fnStack, char *fnAngle, int &nx, int &ny, int
 {
   if(fpStack) fclose(fpStack); 
   if( (fpStack=fopen(fnStack, "rb"))==0 )
-    exitError("could not open input file %s\n", fnStack);
+    exitError("could not open input file %s", fnStack);
 
   if(fpAngle) fclose(fpAngle);
   if(fnAngle){
@@ -54,7 +54,7 @@ void SliceCache::initCache(char *fnStack, char *fnAngle, int &nx, int &ny, int
 
   /* read header */	
   if (mrc_head_read(fpStack, &header)) 
-    exitError("could not read header of input file %s\n",  fnStack);
+    exitError("could not read header of input file %s",  fnStack);
   /* sliceMode = sliceModeIfReal(header.mode);
     if (sliceMode < 0) 
    printf("ERROR: %s - File mode is %d; only byte, short, integer allowed\n",
@@ -168,13 +168,14 @@ Islice * SliceCache::getSlice(int whichSlice)
   if( sliceIdx>-1){ // already in cache
     if( debugLevel>=2)
        printf("Slice %d is in cache and is included\n", whichSlice);
+    fflush(stdout);
     return cachedSlices[sliceIdx];
   }else if( currCacheSize<maxSliceNum ){ //not in cache and cache is not full
     Islice *newSlice=sliceCreate(header.nx, header.ny, sliceMode);
-    if(!newSlice) exitError("could not create slice for input\n");
+    if(!newSlice) exitError("could not create slice for input");
     //if( mrc_read_slice(newSlice->data.b, fpStack, &header, whichSlice, 'Z') )
     if( mrcReadFloatSlice(newSlice->data.f, &header, whichSlice) )
-      exitError("could not read slice\n");
+      exitError("could not read slice");
     if( debugLevel>=2)
        printf("Slice %d is NOT in cache and is included \n", whichSlice);
 
@@ -191,11 +192,12 @@ Islice * SliceCache::getSlice(int whichSlice)
     if(oldestIdx==-1)
       oldestIdx=currCacheSize;
 
+    fflush(stdout);
    return newSlice;
   }else{ // not in cache and cache is full
       //if( mrc_read_slice(cachedSlices[oldestIdx]->data.b, fpStack, &header, whichSlice, 'Z') )
       if( mrcReadFloatSlice(cachedSlices[oldestIdx]->data.f, &header, whichSlice) )
-         exitError("could not read slice\n");
+         exitError("could not read slice");
       if( debugLevel>=2)
        printf("Slice %d is NOT in cache and replaces slice %d \n", whichSlice, cachedSliceMap[oldestIdx]);
 
@@ -205,6 +207,7 @@ Islice * SliceCache::getSlice(int whichSlice)
       Islice *retVal=cachedSlices[oldestIdx];
       oldestIdx=(oldestIdx+1)%maxSliceNum; 
 
+      fflush(stdout);
       return retVal;
 
   }//else
@@ -221,4 +224,7 @@ float SliceCache::getAngle(int whichSlice)
 /*
 
    $Log$
+   Revision 1.2  2008/11/07 17:26:24  xiongq
+   add the copyright heading
+
 */
