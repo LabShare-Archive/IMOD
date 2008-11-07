@@ -250,3 +250,7 @@ void AngleDialog::allAtOnceChecked()
   emit initialTileChoice(1);
 }
 
+/*
+
+   $Log$
+*/
