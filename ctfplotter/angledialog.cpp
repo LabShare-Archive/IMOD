@@ -6,7 +6,8 @@
 *  Copyright (C) 2008 by Boulder Laboratory for 3-Dimensional Electron
 *  Microscopy of Cells ("BL3DEMC") and the Regents of the University of 
 *  Colorado.  See dist/COPYRIGHT for full copyright notice.
-*
+* 
+*  $Id$
 *  Log at end of file
 */
 #include <qlabel.h>
