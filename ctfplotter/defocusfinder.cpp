@@ -1,3 +1,16 @@
+/*
+* defocusfinder.cpp - routines for finding defocus given a 1D power spectrum.
+*
+*  Author: Quanren Xiong
+*
+*  Copyright (C) 2008 by Boulder Laboratory for 3-Dimensional Electron
+*  Microscopy of Cells ("BL3DEMC") and the Regents of the University of 
+*  Colorado.  See dist/COPYRIGHT for full copyright notice.
+* 
+*  $Id$
+*  Log at end of file
+*/
+
 #include <math.h>
 #include <stdio.h>
 #include <stdlib.h>
@@ -253,3 +266,7 @@ int DefocusFinder::findDefocus(double *focus)
   delete[] index;
   return 0;
 }
+/*
+
+   $Log$
+*/

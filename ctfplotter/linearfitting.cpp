@@ -1,3 +1,16 @@
+/*
+* linearfitting.cpp - linearly fits a segment of a 1D power spectrum.
+*
+*  Author: Quanren Xiong
+*
+*  Copyright (C) 2008 by Boulder Laboratory for 3-Dimensional Electron
+*  Microscopy of Cells ("BL3DEMC") and the Regents of the University of 
+*  Colorado.  See dist/COPYRIGHT for full copyright notice.
+* 
+*  $Id$
+*  Log at end of file
+*/
+
 #include <math.h>
 #include <stdio.h>
 #include <stdlib.h>
@@ -86,3 +99,7 @@ int LinearFitting::computeFitting(double *fitting, double *model, int nModel,
   free(sv);
   return INFO; 
 }
+/*
+
+   $Log$
+*/

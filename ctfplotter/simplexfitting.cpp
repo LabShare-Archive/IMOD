@@ -1,3 +1,16 @@
+/*
+* simplexfitting.cpp - Gaussianly fits a segment of a 1D power spectrum by the simplex
+* method.
+*
+*  Author: Quanren Xiong
+*
+*  Copyright (C) 2008 by Boulder Laboratory for 3-Dimensional Electron
+*  Microscopy of Cells ("BL3DEMC") and the Regents of the University of 
+*  Colorado.  See dist/COPYRIGHT for full copyright notice.
+* 
+*  $Id$
+*  Log at end of file
+*/
 #include <math.h>
 #include <stdio.h>
 #include "simplexfitting.h"
@@ -138,3 +151,8 @@ int SimplexFitting::computeFitting(double* fitting, double *err, int
   }
   return 0; 
 }
+
+/*
+
+   $Log$
+*/

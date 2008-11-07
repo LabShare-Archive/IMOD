@@ -1,3 +1,16 @@
+/*
+* slicecache.cpp - build a slice cache to speed up slice loading.
+*
+*  Author: Quanren Xiong
+*
+*  Copyright (C) 2008 by Boulder Laboratory for 3-Dimensional Electron
+*  Microscopy of Cells ("BL3DEMC") and the Regents of the University of 
+*  Colorado.  See dist/COPYRIGHT for full copyright notice.
+* 
+*  $Id$
+*  Log at end of file
+*/
+
 /**************how to use this class  **********************
   1) initCache() to init the class;
   2) whatIsNeeded() to tell the class what slices will be needed;
@@ -204,3 +217,8 @@ float SliceCache::getAngle(int whichSlice)
   if( sliceIdx<0) exitError("the cache is a mess, exit");
   else return sliceAngles[sliceIdx];
 }
+
+/*
+
+   $Log$
+*/
