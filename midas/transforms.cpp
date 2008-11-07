@@ -388,6 +388,10 @@ Islice *getRawSlice(MidasView *vw, int zval)
   int minuse = vw->usecount + 1;
   int oldest = 0;
 
+  // Return the reference slice for zval out of range
+  if (zval >= vw->zsize)
+    return vw->ref;
+
   for (k = 0; k < vw->cachesize; k++) {
     /* If it's a match, mark as used and return */
     if (vw->cache[k].zval == zval && !vw->cache[k].xformed) {
@@ -1705,6 +1709,9 @@ static void solve_for_shifts(MidasView *vw, float *a, float *b,
 
 /*
 $Log$
+Revision 3.18  2008/10/13 04:36:23  mast
+Added cosine stretching
+
 Revision 3.17  2007/02/04 21:11:33  mast
 Function name changes from mrcslice cleanup
 
