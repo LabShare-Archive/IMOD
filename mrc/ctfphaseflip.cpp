@@ -55,32 +55,32 @@ int main(int argc, char *argv[])
       1, 0, 0, &numOptArgs, &numNonOptArgs, NULL);
 
   if (PipGetString("InputStack", &stackFn))
-    exitError("No stack specified\n");
+    exitError("No stack specified");
   if (PipGetString("AngleFile", &angleFn))
   {
     angleFn=NULL;
-    printf("No angle file is specified, tilt angle is assumed to be 0.0\n");
+    printf("No angle file is specified, tilt angle is assumed to be 0.0");
   }
   if( PipGetString("DefocusFile", &defFn) )
-    exitError("No defocus file is specified\n");
+    exitError("No defocus file is specified");
   //if( PipGetFloat("AxisAngle", &tiltAxisAngle) )
-  //  exitError("No AxisAngle specified\n"); 
+  //  exitError("No AxisAngle specified"); 
   if (PipGetInteger("DefocusTol", &defocusTol))
-    exitError("No DefousTol specified\n");
+    exitError("No DefousTol specified");
   if (PipGetInteger("InterpolationWidth", &iWidth) )
-    exitError("No interpolationWidth specified\n");
+    exitError("No interpolationWidth specified");
   if (PipGetFloat("PixelSize", &pixelSize))
-    exitError("No PixelSize specified\n");
+    exitError("No PixelSize specified");
   if (PipGetInteger("Voltage", &volt))
-    exitError("Voltage is not specified\n");
+    exitError("Voltage is not specified");
   if( PipGetFloat("SphericalAberration",&cs) )
-    exitError("SphericalAberration is not specified\n");
+    exitError("SphericalAberration is not specified");
   if (PipGetFloat("AmplitudeContrast", &ampContrast))
-    exitError("No AmplitudeContrast is specified\n");
+    exitError("No AmplitudeContrast is specified");
   if( PipGetTwoIntegers("TotalViews", &startingTotal, &endingTotal) )
     isSingleRun=true; // TotalViews is not specified;
   if( PipGetString("OutputFileName", &outFn) )
-    exitError("OutputFileName is not specified\n");
+    exitError("OutputFileName is not specified");
 
   
   printf("stackFn=%s, angleFn=%s\n", stackFn, angleFn);
@@ -91,9 +91,9 @@ int main(int argc, char *argv[])
 
   FILE *fpStack, *fpDef, *fpAngle=NULL;
   if( (fpStack=fopen(stackFn, "rb"))==0 )
-    exitError("could not open input file %s\n", stackFn);
+    exitError("could not open input file %s", stackFn);
   if( (fpDef=fopen(defFn, "r"))==0 )
-    exitError("could not open defocus file %s\n", defFn);
+    exitError("could not open defocus file %s", defFn);
 
  
   FILE *foutput;
@@ -103,10 +103,10 @@ int main(int argc, char *argv[])
   int sliceMode;
   /* read header */	
   if (mrc_head_read(fpStack, &header)) 
-    exitError("reading header of input file %s\n",  stackFn);
+    exitError("reading header of input file %s",  stackFn);
   
   if (mrc_head_read(fpStack, &outHeader)) 
-    exitError("reading header of input file %s\n",  stackFn);
+    exitError("reading header of input file %s",  stackFn);
 
    if( PipGetTwoIntegers("StartingEndingViews", &startingView, &endingView) )
    {//not specified, set to defaults
@@ -128,7 +128,7 @@ int main(int argc, char *argv[])
   */
   sliceMode=sliceModeIfReal(header.mode);
   if (sliceMode < 0)
-     exitError("%s - File mode is %d; only byte, short, integer allowed\n",
+     exitError("%s - File mode is %d; only byte, short, integer allowed",
             "ctfphaseflip", header.mode);
 
   //The number of slices this run deals with;
@@ -151,7 +151,7 @@ int main(int argc, char *argv[])
       imodBackupFile(outFn);
       foutput=fopen(outFn,"wb");
   }else foutput=fopen(outFn,"r+b");
-  if(!foutput) exitError("fopen() failed to open %s\n", outFn);
+  if(!foutput) exitError("fopen() failed to open %s", outFn);
 
   if( startingView==-1 && endingView==-1 && !isSingleRun){
       if( mrc_head_write(foutput, &outHeader) )
@@ -163,7 +163,7 @@ int main(int argc, char *argv[])
 
   if(angleFn){
     if( (fpAngle=fopen(angleFn, "r"))==0 ){
-      printf("could not open angle file %s, tiltAngle is set to 0.0\n",angleFn);
+      printf("could not open angle file %s, tiltAngle is set to 0.0",angleFn);
     }
   }
     
@@ -193,7 +193,7 @@ int main(int argc, char *argv[])
       sscanf(defStr, "%d%d%f%f%f", &beginNum, &endNum, &beginAngle, 
           &endAngle, &rangeDefocus);
       k=(beginNum+endNum)/2-1;
-      if( k<0 || k>=nz) exitError("slice numbers are out of range\n");
+      if( k<0 || k>=nz) exitError("slice numbers are out of range");
       //convert to microns;
       defocus[k]=rangeDefocus/1000.0;
       //printf("beginNum=%d endNum=%d k=%d defocus=%f\n", beginNum, endNum, k,\
@@ -243,6 +243,7 @@ int main(int argc, char *argv[])
 
   int currK=0;
   if(!isSingleRun) currK=startingView-startingTotal;
+  fflush(stdout);
 
   for(k=startingView;k<=endingView;k++){
     if( fpAngle && fgets(angleStr, 30, fpAngle) ){
@@ -254,23 +255,23 @@ int main(int argc, char *argv[])
     }
 
     if( defocus[k-1]==UNUSED_DEFOCUS )
-      exitError("specified defocus is wrong for slice %d\n", k);
+      exitError("specified defocus is wrong for slice %d", k);
 
     currSlice=sliceCreate(nx, ny, sliceMode);
     outSlice=sliceCreate(nx, ny, SLICE_MODE_FLOAT);
     if(!currSlice || !outSlice)
-      exitError("creating outslice or currSlice\n");
+      exitError("creating outslice or currSlice");
     restoredArray=outSlice->data.f;
 
     //startingView starts at 1, the API starts 0;
     if( mrc_read_slice(currSlice->data.b, fpStack, &header, k-1, 'Z') )
-      exitError("reading slice\n");
+      exitError("reading slice");
     printf("Slice %d of stack %s is included\n", k, stackFn);
 
     //convert slice to floats
     if(sliceMode !=SLICE_MODE_FLOAT)
       if( sliceNewMode(currSlice, SLICE_MODE_FLOAT)<0 )
-       exitError("converting slice to float\n");
+       exitError("converting slice to float");
 
     currAngle=currAngle*MY_PI/180.0; 
     if( fabs(currAngle)>MIN_ANGLE ) {
@@ -293,7 +294,7 @@ int main(int argc, char *argv[])
     
     //interPixelNum must be less than stripPixelNum/2;
     if( interPixelNum>=stripPixelNum/2) 
-      exitError("interPixelNum is bigger than stripPixleNum/2 \n");
+      exitError("interPixelNum is bigger than stripPixleNum/2 ");
 
     printf("stripPixelNum=%d interPixelNum=%d \n", stripPixelNum,
         interPixelNum);
@@ -410,13 +411,14 @@ int main(int argc, char *argv[])
     meanSum+=outSlice->mean;
      if(sliceMode !=SLICE_MODE_FLOAT)
       if( sliceNewMode(outSlice, sliceMode)<0 )
-        exitError("converting slice to original mode\n");
+        exitError("converting slice to original mode");
 
     if( mrc_write_slice(outSlice->data.b, foutput, &outHeader, currK, 'Z') )
-      exitError("Writing slice %d error\n", currK);
+      exitError("Writing slice %d error", currK);
     currK++;
     sliceFree(currSlice);
     sliceFree(outSlice);
+    fflush(stdout);
   }//k slice
   
   if(isSingleRun){
@@ -424,9 +426,9 @@ int main(int argc, char *argv[])
     outHeader.amax=amax;
     outHeader.amean=meanSum/(double)currNz;
     if ( mrc_head_write(foutput, &outHeader) )
-      exitError("Writing slice header error\n");
+      exitError("Writing slice header error");
   }else{//for collectmmm
-    printf("min, max, mean, # pixels= %f  %f  %f %d \n", 
+    printf("min, max, mean, # pixels= %f  %f  %f %d ", 
         amin, amax, meanSum/(double)currNz, nx*ny*currNz);
   }
   fclose(foutput);
@@ -438,5 +440,8 @@ int main(int argc, char *argv[])
 /*
 
 $Log$
+Revision 3.9  2008/09/04 15:21:59  mast
+Fixed program name in call to PIP and fallback options
+
 
 */
