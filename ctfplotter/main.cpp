@@ -65,9 +65,9 @@ int main(int argc, char *argv[])
     debugLevel=1;
 
   if (PipGetString("ConfigFile", &cfgFn))
-    exitError("No Config file specified\n");
+    exitError("No Config file specified");
   if (PipGetString("InputStack", &stackFn))
-    exitError("No stack specified\n");
+    exitError("No stack specified");
   if (PipGetString("AngleFile", &angleFn))
   {
     angleFn=NULL;
@@ -75,9 +75,9 @@ int main(int argc, char *argv[])
      printf("No angle file is specified, tilt angle is assumed to be 0.0\n");
   }
   if ( PipGetString("DefocusFile", &defFn) )
-    exitError("output defocus file is not specified \n");
+    exitError("output defocus file is not specified ");
   if (PipGetInteger("Voltage", &volt))
-    exitError("Voltage is not specified\n");
+    exitError("Voltage is not specified");
   if (PipGetInteger("MaxCacheSize", &cacheSize) ){
      if( debugLevel>=1)
       printf("No MaxCacheSize is specified, set to default %d Megs\n",
@@ -87,29 +87,28 @@ int main(int argc, char *argv[])
     if( debugLevel>=1)
      printf(" MaxCacheSize is set to %d \n", cacheSize);
   }
-  
   if (PipGetFloat("SphericalAberration", &cs) )
-      exitError("Spherical Aberration is not specified\n");
+      exitError("Spherical Aberration is not specified");
   if (PipGetInteger("PSResolution", &nDim))
-    exitError("PS Resolution is not specified\n");
+    exitError("PS Resolution is not specified");
   if (PipGetInteger("TileSize", &tileSize))
-    exitError("No TileSize specified\n");
+    exitError("No TileSize specified");
   if (PipGetFloat("DefocusTol", &defocusTol))
-    exitError("No DefousTol specified\n");
+    exitError("No DefousTol specified");
   if (PipGetFloat("PixelSize", &pixelSize))
-    exitError("No PixelSize specified\n");
+    exitError("No PixelSize specified");
   if (PipGetFloat("AmplitudeContrast", &ampContrast))
-    exitError("No AmplitudeContrast is specified\n");
+    exitError("No AmplitudeContrast is specified");
   if( PipGetFloat("AxisAngle", &tiltAxisAngle) )
-     exitError("No AxisAngle specified\n"); 
+     exitError("No AxisAngle specified"); 
   if(PipGetFloat("ExpectedDefocus", &expectedDef))
-    exitError("No expected defocus is specified\n");
+    exitError("No expected defocus is specified");
   if(PipGetFloat("LeftDefTol", &leftDefTol))
-    exitError("No left defocus  tolerance is specified\n");
+    exitError("No left defocus  tolerance is specified");
   if(PipGetFloat("RightDefTol", &rightDefTol))
-    exitError("No right defocus  tolerance is specified\n");
+    exitError("No right defocus  tolerance is specified");
   if(PipGetTwoFloats("AngleRange", &lowAngle, &highAngle))
-    exitError("No AngleRange specified\n");
+    exitError("No AngleRange specified");
  
   double *rAvg=(double *)malloc(nDim*sizeof(double));
 
@@ -128,10 +127,18 @@ int main(int argc, char *argv[])
   /*****begin of computing noise PS;**********/
   FILE *fpCfg;
   if( (fpCfg=fopen(cfgFn, "r"))==0 )
-    exitError(" could not open config file %s\n", cfgFn);
+    exitError(" could not open config file %s", cfgFn);
   char p[1024];
   int read;
   int noiseFileCounter=0;
+
+  QLabel *splash=NULL;
+  splash = new QLabel("Loading slices", NULL);
+  QSize hint = splash->sizeHint();
+       splash->move(QApplication::desktop()->width() / 2 - hint.width() / 2,
+                    QApplication::desktop()->height() / 2 - hint.height() / 2);
+  splash->show();
+  qApp->processEvents();
   
   // only to find how many noise files are provided;
   while( (read=fgetline(fpCfg, p, 1024)) >0 ) noiseFileCounter++;
@@ -209,9 +216,10 @@ noise level of this mean\n", stackMean, i, j);
     app.linearEngine=new LinearFitting(nDim);
     app.plotFitPS(); //fit and plot the stack PS;
   }else{
-    exitError("Invalid expected defocus, it must be >0\n");
+    exitError("Invalid expected defocus, it must be >0");
   }
-  
+
+  delete splash;
   plotter.resize(768, 624);
   plotter.show();
   app.exec();
@@ -232,4 +240,7 @@ int ctfShowHelpPage(const char *page)
 /*
 
    $Log$
+   Revision 1.7  2008/11/07 17:26:24  xiongq
+   add the copyright heading
+
 */
