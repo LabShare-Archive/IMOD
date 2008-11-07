@@ -3,6 +3,9 @@
  *  $Id$
  *
  * $Log$
+ * Revision 4.7  2008/10/02 16:27:00  xiongq
+ * add small piece filter, binning, and local XYZ functions
+ *
  * Revision 4.6  2008/05/27 18:20:15  mast
  * Limited to 4 threads
  *
@@ -58,6 +61,7 @@ class ImodvIsosurface : public DialogFrame
   void setBoundingBox();
   void setBoundingObj();
   void setViewCenter();
+  int getCurrStackIdx();
   float fillVolumeArray();
   void  fillBinVolume();
   void setIsoObj();
@@ -87,7 +91,9 @@ class ImodvIsosurface : public DialogFrame
   int mSubZEnds[MAX_THREADS+1];
   unsigned char *mVolume;
   unsigned char *mBinVolume;
-  float mThreshold;
+  int mCurrStackIdx; // wihich stack is current;
+  std::vector<float> mStackThresholds;
+  float mThreshold; //threshold for the current stack;
   int mNThreads;
   int mInitNThreads;
   Surface_Pieces *mSurfPieces;

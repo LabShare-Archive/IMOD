@@ -103,16 +103,27 @@ void imodvIsosurfaceEditDialog(ImodvApp *a, int state)
 
 bool imodvIsosurfaceUpdate(void)
 {
-  if(imodvIsosurfaceData.dia && imodvIsosurfaceData.dia->mLinkXYZ->isChecked() )
-  {
-    imodvIsosurfaceData.dia->updateCoords();
-    if( isBoxChanged(imodvIsosurfaceData.dia->mBoxOrigin, imodvIsosurfaceData.dia->mBoxEnds) )
+  if(imodvIsosurfaceData.dia )
+  { 
+    ImodvIsosurface *dia=imodvIsosurfaceData.dia;
+    if( dia->mLinkXYZ->isChecked() ) 
+      dia->updateCoords();
+    if( isBoxChanged(dia->mBoxOrigin, dia->mBoxEnds) )
     {
-      imodvIsosurfaceData.dia->setBoundingBox();
-      if(imodvIsosurfaceData.dia->mCenterVolume->isChecked() )
-        imodvIsosurfaceData.dia->setViewCenter();
-      imodvIsosurfaceData.dia->setBoundingObj();
-      imodvIsosurfaceData.dia->fillVolumeArray();
+      dia->setBoundingBox();
+      if(dia->mCenterVolume->isChecked() )
+        dia->setViewCenter();
+      dia->setBoundingObj( );
+      int stackIdx=dia->getCurrStackIdx();
+      dia->mCurrStackIdx=stackIdx;
+      if(dia->mStackThresholds[stackIdx]<0){ //first time, set it;
+        dia->mStackThresholds[stackIdx]=dia->fillVolumeArray();
+        dia->mThreshold=dia->mStackThresholds[stackIdx];
+      }else {//use threshold for the current stack;
+        dia->fillVolumeArray();
+        dia->mThreshold=dia->mStackThresholds[stackIdx];
+      }
+      dia-> mHistSlider->setValue(0,(int)dia->mThreshold);
       imodvIsosurfaceData.dia->fillBinVolume();
       imodvIsosurfaceData.dia->setIsoObj();
       //imodvDraw(Imodv);
@@ -371,6 +382,12 @@ ImodvIsosurface::ImodvIsosurface(struct ViewInfo *vi, QWidget *parent, const cha
   mBinVolume=(unsigned char*) (malloc( mCurrMax*sizeof(unsigned char) ));
 
   mThreshold=fillVolumeArray();
+  //init mStackThreads
+  for(int i=0;i<mIsoView->nt+1;i++){
+    mStackThresholds.push_back(-1.0);
+  }
+  mCurrStackIdx=getCurrStackIdx();
+  mStackThresholds[mCurrStackIdx]=mThreshold;
   fillBinVolume();
 
   //mThreshold=198.0;
@@ -404,7 +421,7 @@ ImodvIsosurface::ImodvIsosurface(struct ViewInfo *vi, QWidget *parent, const cha
   }
 
   setIsoObj();
-  mHistSlider->setValue(0,mThreshold);
+  //mHistSlider->setValue(0,mThreshold);
 
   if(flagDrawXYZ || mViewBoxing->isChecked() )
     imodDraw(Imodv->vi, IMOD_DRAW_XYZ|IMOD_DRAW_MOD);
@@ -420,6 +437,20 @@ ImodvIsosurface::~ImodvIsosurface()
 {
   free(mVolume);
   if(mOrigMesh) imodMeshDelete(mOrigMesh);
+}
+
+
+/*!
+ * Returns the maximum time index, the current time is returned in [outTime].
+ * When there is only a single image file, the maximum index and time index 
+ * are both 0; when there are multiple times the index is numbered from 1.
+ */
+int ImodvIsosurface::getCurrStackIdx()
+{
+  if(mIsoView->nt == 0)
+    return 0;
+  else
+    return mIsoView->ct - 1;
 }
 
 void ImodvIsosurface::fillBinVolume()
@@ -1066,6 +1097,8 @@ void  ImodvIsosurface::histChanged(int which, int value, bool dragging)
     mThreshold=value+0.5;
     setIsoObj();
     mHistSlider->setValue(0,mThreshold);
+    mCurrStackIdx=getCurrStackIdx();
+    mStackThresholds[mCurrStackIdx]=mThreshold;
     imodvDraw(Imodv);
 
     if(imodDebug('U') ){
@@ -1321,6 +1354,9 @@ void ImodvIsosurface::keyReleaseEvent ( QKeyEvent * e )
 /*
 
    $Log$
+   Revision 4.9  2008/10/02 16:27:00  xiongq
+   add small piece filter, binning, and local XYZ functions
+
    Revision 4.8  2008/08/19 15:17:16  mast
    Changed for loop declarations for old intel compiler
 
@@ -1332,6 +1368,4 @@ void ImodvIsosurface::keyReleaseEvent ( QKeyEvent * e )
 
    Revision 4.5  2008/05/03 00:47:31  mast
    Fixed mOrigMesh memory leak
-
-
 */
