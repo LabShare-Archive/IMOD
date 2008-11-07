@@ -539,7 +539,7 @@ int imod_info_bwfloat(ImodView *vw, int section, int time)
          that will be used to keep track of consistent contrast setting */
       newblack = (int)floor(tmp_black + 0.5);
       newwhite = (int)floor(tmp_white + 0.5);
-      newblack = B3DMAX(0, newblack);
+      newblack = B3DMAX(0, B3DMIN(newblack, 255));
       newwhite = B3DMAX(newblack, B3DMIN(newwhite, 255));
       if (imodDebug('i')) {
         int meanmap = 255 * (secData[isec].mean - newblack) / 
@@ -803,6 +803,9 @@ void imod_imgcnt(char *string)
 
 /*
 $Log$
+Revision 4.30  2008/05/27 05:54:21  mast
+Update image process window on xyz change
+
 Revision 4.29  2008/05/23 19:23:32  xiongq
 Use multithreads to compute isosurface. Move the calling of imodvIsosurfaceUpdate() from imod_info_cb.cpp to imod_display.cpp.
 
