@@ -1,5 +1,9 @@
 IMOD History
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+11/6/08: Fixed autocontrast of reference slice in Midas in reference mode.
+
+11/6/08: Fixed bug in 3dmod float that froze program.
+
 11/2/08: Etomo now supplies to tilt angles to Midas for fixing coarse alignment
 to allow cosine stretching, but the cosine stretch is initially turned off.
 
