@@ -218,7 +218,7 @@ noise level of this mean\n", stackMean, i, j);
     app.setX2Range(firstZeroIndex+1, secZeroIndex);
     app.simplexEngine=new SimplexFitting(nDim);
     app.linearEngine=new LinearFitting(nDim);
-    app.plotFitPS(); //fit and plot the stack PS;
+    app.plotFitPS(true); //fit and plot the stack PS;
   }else{
     exitError("Invalid expected defocus, it must be >0");
   }
@@ -246,6 +246,9 @@ int ctfShowHelpPage(const char *page)
 /*
 
    $Log$
+   Revision 1.9  2008/11/07 20:34:34  xiongq
+   call fflush to sync log  for each slice
+
    Revision 1.8  2008/11/07 20:20:41  xiongq
    add splash screen
 

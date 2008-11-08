@@ -115,7 +115,7 @@ void MyApp::saveAllPs()
 }
 
 //plot and fit the PS stored in 'rAverage', find the defocus and update display;
-void MyApp::plotFitPS()
+void MyApp::plotFitPS(bool flagSetInitSetting)
 {
     double *ps=(double*)malloc(nDim*sizeof(double) );
     CurveData data[3];
@@ -143,8 +143,8 @@ void MyApp::plotFitPS()
     }
     initialMaxY=ceil(initialMaxY);
     plotSetting.maxY=initialMaxY;
-    //adust initial plot setting to data;
-    plotter->setPlotSettings(plotSetting);
+    //adjust initial plot setting to data if needed;
+    if(flagSetInitSetting) plotter->setPlotSettings(plotSetting);
     plotter->setCurveData(0, data[0]);
 
     simplexEngine->setRaw(&ps[0]);
@@ -367,7 +367,7 @@ int  MyApp::computeInitPS()
 }
 void MyApp::moreTileCenterIncluded(){
   moreTile(true);
-  plotFitPS();
+  plotFitPS(false);
 }
 
 void MyApp::moreTile(bool hasIncludedCentralTiles)
@@ -800,12 +800,12 @@ void MyApp::angleChanged(double lAngle, double hAngle, double expDefocus,
      for(i=0;i<nDim;i++) rAverage[i]=0.0;
 
      moreTile(false); //include all the tiles and plot;
-     plotFitPS();
+     plotFitPS(false);
    }
    else {
      computeInitPS();
      ((Plotter *)mainWidget())->tileButton->setEnabled(true);
-     plotFitPS(); // only plot;
+     plotFitPS(false); // only plot;
    }
 
    cursor.setShape(Qt::ArrowCursor);
@@ -824,4 +824,7 @@ void MyApp::setInitTileOption(int index){
 /*
 
    $Log$
+   Revision 1.10  2008/11/07 17:26:24  xiongq
+   add the copyright heading
+
 */

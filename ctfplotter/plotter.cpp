@@ -567,7 +567,7 @@ PlotSettings::PlotSettings()
     numXTicks = 5;
 
     minY = -0.3;
-    maxY = 20.0;
+    maxY = 20;
     numYTicks = 5;
 }
 
@@ -608,4 +608,7 @@ void PlotSettings::adjustAxis(double &min, double &max,
 /*
 
    $Log$
+   Revision 1.8  2008/11/07 17:26:24  xiongq
+   add the copyright heading
+
 */

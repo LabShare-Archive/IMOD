@@ -18,7 +18,7 @@ class MyApp : public QApplication
     DefocusFinder   defocusFinder;
     int getEndingSliceNum() { return endingSlice;}
     int getStartingSliceNum() {return startingSlice;}
-    void plotFitPS( );
+    void plotFitPS(bool flagSetInitSetting );
     void setSlice(char *stackFile, char *angleFile);
     double getLowAngle() {return lowAngle;}
     char *getStackName() {return fnStack;}
