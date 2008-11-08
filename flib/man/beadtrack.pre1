@@ -87,16 +87,16 @@ DDEESSCCRRIIPPTTIIOONN
   crosses, or where the bead goes too close to the edge).
   
   The program performs poorly when the tilt alignment solution gives a poor
-  fit, which happens easily with large areas.  The solution to this, still
-  being tested (as of 3/6/05), is to track on subsets of beads in local areas
-  and/or to restrict the number of views in the tilt alignment.  There are
-  options to enable these features when the program is run with PIP input.  An
-  alternative, available when running with sequential input, is to place seed
-  points into separate objects in different areas; e.g., 4-9 areas for 2K x 2K
-  images, depending on how many fiducials are available.  There should be at
-  least 6-8 points per area.  When there are multiple objects in the seed
-  model, the program will automatically track them separately unless local
-  area tracking or the TrackObjectsTogether option is selected.
+  fit, which happens easily with large areas.  The solution to this
+  is to track on subsets of beads in local areas and/or to restrict the number
+  of views in the tilt alignment.  There are options to enable these features
+  when the program is run with PIP input.  An alternative, available when
+  running with sequential input, is to place seed points into separate objects
+  in different areas; e.g., 4-9 areas for 2K x 2K images, depending on how
+  many fiducials are available.  There should be at least 6-8 points per area.
+  When there are multiple objects in the seed model, the program will
+  automatically track them separately unless local area tracking or the
+  TrackObjectsTogether option is selected.
 
   For each view and pass, the program outputs the results from the
   linear fit between actual and projected positions, the tilt
