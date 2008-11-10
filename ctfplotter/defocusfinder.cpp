@@ -194,10 +194,27 @@ void DefocusFinder::setExpDefocus(double expDef){
   defocus=*focus;
 }*/
 
+//use non-exact formula, good when defocus>2um
 int DefocusFinder::findDefocus(double *focus)
 {
+  double tmp;
+  tmp=( zeroCrossing * wavelength *csTwo )*0.5/pixelSize;
+
+  defocus=csOne/(tmp*tmp);
+
+  if(debugLevel>=1){
+     printf("find defocus using an approximating formula that is good when defocus>2um\n");
+     printf("defocus=%f   \n", defocus);
+  }
+  *focus=defocus;
+  return 0;
+}
+// older routine trying to solve the exact formula by searching, not reliable;
+/*int DefocusFinder::findDefocus(double *focus)
+{
   // convert relative frequency to absolute;
-  double q=(0.5/pixelSize)*zeroCrossing; 
+  double q=(0.5/pixelSize)*zeroCrossing;
+
   // theta=theta'(cs/lambda)^0.25, theta'=q*lambda;
   double theta=q*wavelength*csTwo; 
 
@@ -266,7 +283,12 @@ int DefocusFinder::findDefocus(double *focus)
   delete[] index;
   return 0;
 }
+*/
+
 /*
 
    $Log$
+   Revision 1.5  2008/11/07 17:26:24  xiongq
+   add the copyright heading
+
 */
