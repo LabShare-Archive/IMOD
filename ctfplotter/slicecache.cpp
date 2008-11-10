@@ -48,7 +48,7 @@ void SliceCache::initCache(char *fnStack, char *fnAngle, int &nx, int &ny, int
   if(fpAngle) fclose(fpAngle);
   if(fnAngle){
     if( (fpAngle=fopen(fnAngle, "r"))==0 ){
-      printf("could not open angle file %s, tiltAngle is set to 0.0\n",fnAngle);
+      exitError("could not open angle file %s",fnAngle);
     }
   }else fpAngle=NULL;
 
@@ -224,6 +224,9 @@ float SliceCache::getAngle(int whichSlice)
 /*
 
    $Log$
+   Revision 1.3  2008/11/07 20:34:34  xiongq
+   call fflush to sync log  for each slice
+
    Revision 1.2  2008/11/07 17:26:24  xiongq
    add the copyright heading
 
