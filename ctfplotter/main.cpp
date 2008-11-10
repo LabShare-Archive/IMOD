@@ -16,6 +16,7 @@
 #include <stdio.h>
 #include <qfile.h>
 #include <qlabel.h>
+#include <qsplashscreen.h>
 
 #include "simplexfitting.h"
 #include "linearfitting.h"
@@ -133,13 +134,16 @@ int main(int argc, char *argv[])
   int noiseFileCounter=0;
 
   QLabel *splash=NULL;
-  splash = new QLabel("Loading slices", NULL);
+  splash = new QLabel("Loading slices ...", NULL);
   QSize hint = splash->sizeHint();
        splash->move(QApplication::desktop()->width() / 2 - hint.width() / 2,
                     QApplication::desktop()->height() / 2 - hint.height() / 2);
   splash->show();
+  qApp->flush();
+  qApp->flushX();
+  qApp->syncX();
   qApp->processEvents();
-  
+ 
   // only to find how many noise files are provided;
   while( (read=fgetline(fpCfg, p, 1024)) >0 ) noiseFileCounter++;
   rewind(fpCfg);
@@ -246,6 +250,9 @@ int ctfShowHelpPage(const char *page)
 /*
 
    $Log$
+   Revision 1.10  2008/11/08 21:54:04  xiongq
+   adjust plotter setting for initializaion
+
    Revision 1.9  2008/11/07 20:34:34  xiongq
    call fflush to sync log  for each slice
 
