@@ -402,27 +402,6 @@ public final class TomogramGenerationExpert extends ReconUIExpert {
     return true;
   }
 
-  /**
-   * If it exists, meta data tomo gen binning overrides newst bin by factor.
-   * Blendmont binning is always 1.
-   * @return
-   */
-  private int getBinning() {
-    // Read in the newst{|a|b}.com parameters. WARNING this needs to be done
-    // before reading the tilt paramers below so that the GUI knows how to
-    // correctly scale the dimensions
-    ConstEtomoNumber binning = metaData.getTomoGenBinning(axisID);
-    if (!binning.isNull()) {
-      getBinningFromNewst = false;
-      return binning.getInt();
-    }
-    if (metaData.getViewType() != ViewType.MONTAGE && getBinningFromNewst) {
-      comScriptMgr.loadNewst(axisID);
-      return comScriptMgr.getNewstComNewstParam(axisID).getBinByFactor();
-    }
-    return 1;//no binning available in blendmont
-  }
-
   private void setParameters(ConstMetaData metaData) {
     if (dialog == null) {
       return;
@@ -474,7 +453,6 @@ public final class TomogramGenerationExpert extends ReconUIExpert {
     if (dialog == null) {
       return;
     }
-    metaData.setTomoGenBinning(axisID, getBinning());
     metaData.setTomoGenTiltParallel(axisID, dialog.isParallelProcess());
   }
 
@@ -702,6 +680,9 @@ public final class TomogramGenerationExpert extends ReconUIExpert {
     if (dialog == null) {
       return;
     }
+    if (processSeries == null) {
+      processSeries = new ProcessSeries(manager, dialogType);
+    }
     String trialTomogramName = dialog.getTrialTomogramName();
     if (trialTomogramName == "") {
       String[] errorMessage = new String[2];
@@ -744,6 +725,9 @@ public final class TomogramGenerationExpert extends ReconUIExpert {
 }
 /**
  * <p> $Log$
+ * <p> Revision 1.25  2008/10/27 20:45:10  sueh
+ * <p> bug# 1141 Added getParameters(SplittiltParam).
+ * <p>
  * <p> Revision 1.24  2008/10/16 22:32:35  sueh
  * <p> bug# 1141 Created FinalAlignedStack dialog to run full aligned stack and mtf filter.
  * <p>
