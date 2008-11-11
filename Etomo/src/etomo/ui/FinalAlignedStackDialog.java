@@ -60,6 +60,10 @@ import etomo.util.DatasetFiles;
  * @version $Revision$
  * 
  * <p> $Log$
+ * <p> Revision 1.5  2008/11/11 00:18:12  sueh
+ * <p> bug# 1147 Coverted newst, ctfcorrection, and mtffilter panels to tabs.
+ * <p> Removed the open/close part of the panel headers.
+ * <p>
  * <p> Revision 1.4  2008/11/07 21:26:14  sueh
  * <p> bug# 1146 Added ctfcorrection log to right-click menu.  Also add mtffilter
  * <p> options.
@@ -168,6 +172,7 @@ public final class FinalAlignedStackDialog extends ProcessDialog implements
   private final JPanel ctfCorrectionMainPanel = new JPanel();
   private final JPanel filterPanel = new JPanel();
   private final JPanel newstPanel = new JPanel();
+  private final JPanel ccdEraserMainPanel = new JPanel();
 
   private boolean trialTilt = false;
   private Tab curTab = Tab.DEFAULT;
@@ -211,13 +216,9 @@ public final class FinalAlignedStackDialog extends ProcessDialog implements
     SpinnerNumberModel integerModel = new SpinnerNumberModel(1, 1, 8, 1);
     spinBinning = new LabeledSpinner("Aligned image stack binning ",
         integerModel);
-    //UIUtilities.addWithYSpace(pnlFinalAlignedStack, layoutNewstPanel());
-    //UIUtilities.addWithYSpace(pnlFinalAlignedStack, layoutCtfCorrectionPanel());
-    //UIUtilities.addWithYSpace(pnlFinalAlignedStack, layoutFilterPanel());
-    //UIUtilities.alignComponentsX(pnlFinalAlignedStack,
-    //    Component.CENTER_ALIGNMENT);
     layoutNewstPanel();
     layoutCtfCorrectionPanel();
+    layoutCcdEraser();
     layoutFilterPanel();
     rootPanel.add(tabbedPane);
     addExitButtons();
@@ -564,11 +565,19 @@ public final class FinalAlignedStackDialog extends ProcessDialog implements
   boolean isUseLinearInterpolation() {
     return cbUseLinearInterpolation.isSelected();
   }
+  
+  private void layoutCcdEraser() {
+    //panel
+ //   JPanel ccdEraserRoot=new JPanel();
+ //   tabbedPane.addTab("Erase Gold",ccdEraserRoot);
+  //  ccdEraserMainPanel.setLayout(new BoxLayout(ccdEraserMainPanel,BoxLayout.Y_AXIS));
+  //  ccdEraserMainPanel.setBorder(new EtchedBorder("Bead Eraser").getBorder());
+  }
 
   private void layoutCtfCorrectionPanel() {
     //panel
     JPanel ctfCorrectionRoot = new JPanel();
-    tabbedPane.addTab("CTF Correction", ctfCorrectionRoot);
+    tabbedPane.addTab("Correct CTF", ctfCorrectionRoot);
     ctfCorrectionMainPanel.setLayout(new BoxLayout(ctfCorrectionMainPanel,
         BoxLayout.Y_AXIS));
     ctfCorrectionMainPanel.setBorder(BorderFactory.createEtchedBorder());
@@ -629,7 +638,7 @@ public final class FinalAlignedStackDialog extends ProcessDialog implements
   private void layoutNewstPanel() {
     //panels
     JPanel newstRoot = new JPanel();
-    tabbedPane.addTab("Align", newstRoot);
+    tabbedPane.addTab("Create", newstRoot);
     newstRoot.add(newstPanel);
     newstPanel.setLayout(new BoxLayout(newstPanel, BoxLayout.Y_AXIS));
     newstPanel.setBorder(BorderFactory.createEtchedBorder());
@@ -666,7 +675,7 @@ public final class FinalAlignedStackDialog extends ProcessDialog implements
   private void layoutFilterPanel() {
     //panels
     JPanel filterRoot = new JPanel();
-    tabbedPane.addTab("MTF Filter", filterRoot);
+    tabbedPane.addTab("2D Filter", filterRoot);
     filterPanel.setLayout(new BoxLayout(filterPanel, BoxLayout.Y_AXIS));
     filterPanel.setBorder(BorderFactory.createEtchedBorder());
     filterPanel.add(filterHeader.getContainer());
