@@ -58,6 +58,9 @@ import etomo.util.Utilities;
  * @version $Revision$
  * 
  * <p> $Log$
+ * <p> Revision 1.3  2008/10/30 20:22:50  sueh
+ * <p> bug# 1141 Offer to close ctf correction on done.
+ * <p>
  * <p> Revision 1.2  2008/10/27 20:39:57  sueh
  * <p> bug# 1141 Added CTF Correction.  Corrected problem where Newst was
  * <p> getting its binning from whole tomogram positioning.
@@ -76,7 +79,6 @@ public final class FinalAlignedStackExpert extends ReconUIExpert {
   private FinalAlignedStackDialog dialog = null;
   private boolean advanced = false;
   private boolean enableFiltering = false;
-  private boolean getBinningFromNewst = true;
 
   public FinalAlignedStackExpert(ApplicationManager manager,
       MainTomogramPanel mainPanel, ProcessTrack processTrack, AxisID axisID) {
@@ -115,9 +117,9 @@ public final class FinalAlignedStackExpert extends ReconUIExpert {
     }
     else {
       comScriptMgr.loadNewst(axisID);
-      setParameters(comScriptMgr.getNewstComNewstParam(axisID));
+      setParameters(comScriptMgr.getNewstComNewstParam(axisID));//TEMP newstparam
     }
-    setParameters(metaData);
+    setParameters(metaData);//TEMP metadata
     //backward compatibility
     //Try loading ctfcorrection.com first.  If it isn't there, copy it with
     //copytomocoms and load it.
@@ -758,32 +760,27 @@ public final class FinalAlignedStackExpert extends ReconUIExpert {
     }
   }
 
+  //TEMP
   private void setParameters(ConstNewstParam newstParam) {
     if (dialog == null) {
       return;
     }
     dialog.setUseLinearInterpolation(newstParam.isLinearInterpolation());
-    if (getBinningFromNewst) {
-      dialog.setBinning(newstParam.getBinByFactor());
-    }
   }
 
   private void setParameters(ConstMetaData metaData) {
     if (dialog == null) {
       return;
     }
-    ConstEtomoNumber binning = metaData.getTomoGenBinning(axisID);
-    if (!binning.isNull()) {
-      getBinningFromNewst = false;
-      dialog.setBinning(binning);
-    }
+    dialog.setBinning(metaData.getFinalStackBinning(axisID));
     CpuAdoc cpuAdoc = CpuAdoc.getInstance(AxisID.ONLY, manager
         .getPropertyUserDir());
     //Parallel processing is optional in tomogram reconstruction, so only use it
     //if the user set it up.
     boolean validAutodoc = cpuAdoc.isAvailable();
     dialog.setParallelProcessEnabled(validAutodoc);
-    ConstEtomoNumber parallel = metaData.getStackCtfCorrectionParallel(axisID);
+    ConstEtomoNumber parallel = metaData
+        .getFinalStackCtfCorrectionParallel(axisID);
     if (parallel == null) {
       dialog.setParallelProcess(validAutodoc
           && metaData.getDefaultParallel().is());
@@ -837,16 +834,10 @@ public final class FinalAlignedStackExpert extends ReconUIExpert {
     if (dialog == null) {
       return;
     }
-    try {
-      metaData.setSizeToOutputInXandY(axisID, dialog.getSizeToOutputInXandY());
-    }
-    catch (FortranInputSyntaxException e) {
-      e.printStackTrace();
-      throw new FortranInputSyntaxException(
-          FinalAlignedStackDialog.SIZE_TO_OUTPUT_IN_X_AND_Y_LABEL + ":  "
-              + e.getMessage());
-    }
-    metaData.setStackCtfCorrectionParallel(axisID, dialog.isParallelProcess());
+    metaData.setSizeToOutputInXandY(axisID, dialog.getSizeToOutputInXandY());
+    metaData.setFinalStackBinning(axisID, dialog.getBinning());
+    metaData.setFinalStackCtfCorrectionParallel(axisID, dialog
+        .isParallelProcess());
   }
 
   private void setParameters(BlendmontParam blendmontParam) {
