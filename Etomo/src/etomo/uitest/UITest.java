@@ -42,7 +42,7 @@ public final class UITest extends JFCTestCase implements UITestCommandFactory {
   private static final File DATA_DIR = Utilities.getExistingDir(
       "IMOD_UITEST_DATA", AxisID.ONLY);
   private static final String[] ARGS = new String[] { Arguments.SELFTEST_TAG,
-      Arguments.TEST_TAG };
+      Arguments.TEST_TAG/*, Arguments.NAMES_TAG*/ };
   static final long DEFAULT_SLEEP = 1000;
 
   private static Throwable uncaughtException = null;
@@ -629,6 +629,10 @@ public final class UITest extends JFCTestCase implements UITestCommandFactory {
 }
 /**
  * <p> $Log$
+ * <p> Revision 1.2  2008/05/30 22:39:56  sueh
+ * <p> bug# 1102 Isolating the etomo.uitest package so it is not needed for
+ * <p> running EtomoDirector.
+ * <p>
  * <p> Revision 1.1  2008/05/30 21:43:40  sueh
  * <p> bug# 1102 Moved uitest classes to etomo.uitest.  Added InterfaceSection.
  * <p>
