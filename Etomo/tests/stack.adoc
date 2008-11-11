@@ -2,42 +2,37 @@ Version = 1.2
 
 [function = run]
 #full align
-mb.newstack-open = 1
 bn.create-full-aligned-stack =
 waitfor.process.newst = done
 bn.done =
 
 [function = test]
 #full align
-mb.newstack-open = 1
 bn.create-full-aligned-stack =
 waitfor.process.newst = done
 assert.file.exists = newst%{axis}.log
 bn.create-full-aligned-stack =
 waitfor.process.newst = done
 assert.file.exists = newst%{axis}.log~
-mb.newstack-open = 0
 function = ctf-correction
 function = filtering
 function = done
 
 [function = montage]
 #full align
-mb.blendmont-open = 1
 bn.create-full-aligned-stack =
 waitfor.process.blend = done
 assert.file.exists = blend%{axis}.log
 bn.create-full-aligned-stack =
 waitfor.process.blend = done
 assert.file.exists = blend%{axis}.log~
-mb.blendmont-open = 0
 function = ctf-correction
 function = filtering
 function = done
 
 [function = ctf-correction]
 #check screen
-mb.ctf-correction-open = 1
+tp.create.1 =
 function = ctf-correction-base-values
 function = ctf-correction-base-enabled
 cb.use-expected-defocus-instead-of-ctfplotter-output =
@@ -68,7 +63,7 @@ bn.use-ctf-correction =
 cb.parallel-processing =
 
 [function = filtering]
-mb.2d-filtering-open = 1
+tp.create.2 = 
 bn.filter =
 waitfor.process.mtffilter = done
 assert.file.exists = mtffilter%{axis}.log
@@ -77,7 +72,6 @@ waitfor.process.mtffilter = done
 assert.file.exists = mtffilter%{axis}.log~
 bn.view-filtered-stack =
 bn.use-filtered-stack =
-mb.2d-filtering-open = 0
 mb.parallel-processing-open = 1
 mb.parallel-processing-more = 1
 
