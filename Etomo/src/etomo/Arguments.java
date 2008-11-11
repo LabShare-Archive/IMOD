@@ -22,21 +22,22 @@ import etomo.util.Utilities;
  * 
  * @version $Revision$
  * 
- * <p> $Log$ </p>
+ * <p> $Log$
+ * <p> Revision 1.1  2007/12/26 21:54:20  sueh
+ * <p> bug# 1052 Moved argument handling from EtomoDirector to a separate class.
+ * <p> </p>
  */
 public final class Arguments {
   public static final String rcsid = "$Id$";
 
+  public static final String NAMES_TAG = "--names";
   public static final String SELFTEST_TAG = "--selftest";
   public static final String TEST_TAG = "--test";
-
   static final String HEADLESS_TAG = "--headless";
-
   private static final String HELP1_TAG = "-h";
   private static final String HELP2_TAG = "--help";
   private static final String DEBUG_TAG = "--debug";
   private static final String MEMORY_TAG = "--memory";
-  private static final String NAMES_TAG = "--names";
   private static final String NEWSTUFF_TAG = "--newstuff";
   private static final String TIMESTAMP_TAG = "--timestamp";
   private static final String DEMO_TAG = "--demo";
