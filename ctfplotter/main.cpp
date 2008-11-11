@@ -16,7 +16,6 @@
 #include <stdio.h>
 #include <qfile.h>
 #include <qlabel.h>
-#include <qsplashscreen.h>
 
 #include "simplexfitting.h"
 #include "linearfitting.h"
@@ -250,6 +249,9 @@ int ctfShowHelpPage(const char *page)
 /*
 
    $Log$
+   Revision 1.11  2008/11/10 22:43:44  xiongq
+   improved splash display
+
    Revision 1.10  2008/11/08 21:54:04  xiongq
    adjust plotter setting for initializaion
 
