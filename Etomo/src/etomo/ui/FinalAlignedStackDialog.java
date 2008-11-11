@@ -1,6 +1,7 @@
 package etomo.ui;
 
 import java.awt.Component;
+import java.awt.Container;
 import java.awt.Dimension;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
@@ -19,6 +20,8 @@ import javax.swing.JButton;
 import javax.swing.JFileChooser;
 import javax.swing.JPanel;
 import javax.swing.SpinnerNumberModel;
+import javax.swing.event.ChangeEvent;
+import javax.swing.event.ChangeListener;
 
 import etomo.ApplicationManager;
 import etomo.EtomoDirector;
@@ -57,6 +60,10 @@ import etomo.util.DatasetFiles;
  * @version $Revision$
  * 
  * <p> $Log$
+ * <p> Revision 1.4  2008/11/07 21:26:14  sueh
+ * <p> bug# 1146 Added ctfcorrection log to right-click menu.  Also add mtffilter
+ * <p> options.
+ * <p>
  * <p> Revision 1.3  2008/10/27 23:20:27  sueh
  * <p> bug# 1141 Changed the names of the ctfplotter button and the
  * <p> ctfcorrection button.
@@ -75,8 +82,6 @@ public final class FinalAlignedStackDialog extends ProcessDialog implements
   static final String SIZE_TO_OUTPUT_IN_X_AND_Y_LABEL = "Size to output";
   private static final DialogType DIALOG_TYPE = DialogType.FINAL_ALIGNED_STACK;
   public static final String CTF_CORRECTION_LABEL = "Correct CTF";
-
-  private final JPanel pnlFinalAlignedStack = new JPanel();
 
   // Fiducialess parameters
   private final CheckBox cbFiducialess = new CheckBox("Fiducialless alignment");
@@ -114,7 +119,8 @@ public final class FinalAlignedStackDialog extends ProcessDialog implements
   //headers should not go into garbage collection
   private final PanelHeader newstHeader;
   private final PanelHeader filterHeader = PanelHeader
-      .getAdvancedBasicInstance("2D Filtering (optional)", this, DIALOG_TYPE);
+      .getAdvancedBasicOnlyInstance("2D Filtering (optional)", this,
+          DIALOG_TYPE);
   //panels that are changed in setAdvanced()
   private final SpacedPanel inverseParamsPanel;
   private final JPanel filterBodyPanel;
@@ -132,7 +138,7 @@ public final class FinalAlignedStackDialog extends ProcessDialog implements
 
   //ctf correction
   private final PanelHeader ctfCorrectionHeader = PanelHeader
-      .getAdvancedBasicInstance("CTF Correction", this, DIALOG_TYPE);
+      .getAdvancedBasicOnlyInstance("CTF Correction", this, DIALOG_TYPE);
   private final SpacedPanel ctfCorrectionBodyPanel = SpacedPanel
       .getInstance(true);
   private final FileTextField ftfConfigFile = new FileTextField("Config file: ");
@@ -158,7 +164,13 @@ public final class FinalAlignedStackDialog extends ProcessDialog implements
   private final CheckBox cbUseExpectedDefocus = new CheckBox(
       "Use expected defocus instead of ctfplotter output");
 
+  private final TabbedPane tabbedPane = new TabbedPane();
+  private final JPanel ctfCorrectionMainPanel = new JPanel();
+  private final JPanel filterPanel = new JPanel();
+  private final JPanel newstPanel = new JPanel();
+
   private boolean trialTilt = false;
+  private Tab curTab = Tab.DEFAULT;
 
   private FinalAlignedStackDialog(ApplicationManager appMgr,
       FinalAlignedStackExpert expert, AxisID axisID) {
@@ -177,20 +189,17 @@ public final class FinalAlignedStackDialog extends ProcessDialog implements
     rootPanel.setLayout(new BoxLayout(rootPanel, BoxLayout.Y_AXIS));
     btnExecute.setText("Done");
     // Layout the main panel (and sub panels) and add it to the root panel
-    pnlFinalAlignedStack.setBorder(new BeveledBorder("Final Aligned Stack")
-        .getBorder());
-    pnlFinalAlignedStack.setLayout(new BoxLayout(pnlFinalAlignedStack,
-        BoxLayout.Y_AXIS));
+    rootPanel.setBorder(new BeveledBorder("Final Aligned Stack").getBorder());
     filterBodyPanel = new JPanel();
     inverseParamsPanel = SpacedPanel.getInstance(true);
     newstBodyPanel = SpacedPanel.getInstance();
     //headers
     if (applicationManager.getMetaData().getViewType() == ViewType.MONTAGE) {
-      newstHeader = PanelHeader.getAdvancedBasicInstance("Blendmont", this,
+      newstHeader = PanelHeader.getAdvancedBasicOnlyInstance("Blendmont", this,
           dialogType);
     }
     else {
-      newstHeader = PanelHeader.getAdvancedBasicInstance("Newstack", this,
+      newstHeader = PanelHeader.getAdvancedBasicOnlyInstance("Newstack", this,
           dialogType);
     }
     btnCtfCorrection = (Run3dmodButton) displayFactory.getCtfCorrection();
@@ -202,13 +211,15 @@ public final class FinalAlignedStackDialog extends ProcessDialog implements
     SpinnerNumberModel integerModel = new SpinnerNumberModel(1, 1, 8, 1);
     spinBinning = new LabeledSpinner("Aligned image stack binning ",
         integerModel);
-    UIUtilities.addWithYSpace(pnlFinalAlignedStack, layoutNewstPanel());
-    UIUtilities.addWithYSpace(pnlFinalAlignedStack, layoutCtfCorrectionPanel());
-    UIUtilities.addWithYSpace(pnlFinalAlignedStack, layoutFilterPanel());
-    UIUtilities.alignComponentsX(pnlFinalAlignedStack,
-        Component.CENTER_ALIGNMENT);
-
-    rootPanel.add(pnlFinalAlignedStack);
+    //UIUtilities.addWithYSpace(pnlFinalAlignedStack, layoutNewstPanel());
+    //UIUtilities.addWithYSpace(pnlFinalAlignedStack, layoutCtfCorrectionPanel());
+    //UIUtilities.addWithYSpace(pnlFinalAlignedStack, layoutFilterPanel());
+    //UIUtilities.alignComponentsX(pnlFinalAlignedStack,
+    //    Component.CENTER_ALIGNMENT);
+    layoutNewstPanel();
+    layoutCtfCorrectionPanel();
+    layoutFilterPanel();
+    rootPanel.add(tabbedPane);
     addExitButtons();
 
     updateFiducialess();
@@ -243,6 +254,7 @@ public final class FinalAlignedStackDialog extends ProcessDialog implements
     btnCtfCorrection.addActionListener(finalAlignedStackListener);
     btnImodCtfCorrection.addActionListener(finalAlignedStackListener);
     btnUseCtfCorrection.addActionListener(finalAlignedStackListener);
+    tabbedPane.addChangeListener(new TabChangeListener(this));
 
     //  Mouse adapter for context menu
     GenericMouseAdapter mouseAdapter = new GenericMouseAdapter(this);
@@ -465,26 +477,17 @@ public final class FinalAlignedStackDialog extends ProcessDialog implements
 
   public void expand(ExpandButton button) {
     if (filterHeader != null) {
-      if (filterHeader.equalsOpenClose(button)) {
-        filterBodyPanel.setVisible(button.isExpanded());
-      }
-      else if (filterHeader.equalsAdvancedBasic(button)) {
+      if (filterHeader.equalsAdvancedBasic(button)) {
         updateAdvancedFilter(button.isExpanded());
       }
     }
     if (newstHeader != null) {
-      if (newstHeader.equalsOpenClose(button)) {
-        newstBodyPanel.setVisible(button.isExpanded());
-      }
-      else if (newstHeader.equalsAdvancedBasic(button)) {
+      if (newstHeader.equalsAdvancedBasic(button)) {
         updateAdvancedNewst(button.isExpanded());
       }
     }
     if (ctfCorrectionHeader != null) {
-      if (ctfCorrectionHeader.equalsOpenClose(button)) {
-        ctfCorrectionBodyPanel.setVisible(button.isExpanded());
-      }
-      else if (ctfCorrectionHeader.equalsAdvancedBasic(button)) {
+      if (ctfCorrectionHeader.equalsAdvancedBasic(button)) {
         updateAdvancedCtfCorrection(button.isExpanded());
       }
     }
@@ -562,9 +565,10 @@ public final class FinalAlignedStackDialog extends ProcessDialog implements
     return cbUseLinearInterpolation.isSelected();
   }
 
-  private JPanel layoutCtfCorrectionPanel() {
+  private void layoutCtfCorrectionPanel() {
     //panel
-    JPanel ctfCorrectionMainPanel = new JPanel();
+    JPanel ctfCorrectionRoot = new JPanel();
+    tabbedPane.addTab("CTF Correction", ctfCorrectionRoot);
     ctfCorrectionMainPanel.setLayout(new BoxLayout(ctfCorrectionMainPanel,
         BoxLayout.Y_AXIS));
     ctfCorrectionMainPanel.setBorder(BorderFactory.createEtchedBorder());
@@ -617,15 +621,16 @@ public final class FinalAlignedStackDialog extends ProcessDialog implements
     btnUseCtfCorrection.setSize();
     //init
     ctfCorrectionHeader.setOpen(false);
-    return ctfCorrectionMainPanel;
   }
 
   /**
    * Layout the newstack panel
    */
-  private JPanel layoutNewstPanel() {
+  private void layoutNewstPanel() {
     //panels
-    JPanel newstPanel = new JPanel();
+    JPanel newstRoot = new JPanel();
+    tabbedPane.addTab("Align", newstRoot);
+    newstRoot.add(newstPanel);
     newstPanel.setLayout(new BoxLayout(newstPanel, BoxLayout.Y_AXIS));
     newstPanel.setBorder(BorderFactory.createEtchedBorder());
     newstBodyPanel.setBoxLayout(BoxLayout.Y_AXIS);
@@ -652,18 +657,20 @@ public final class FinalAlignedStackDialog extends ProcessDialog implements
     //configure
     btnNewst.setSize();
     btn3dmodFull.setSize();
-    return newstPanel;
   }
 
   /**
    * Layout the MTF filter panel
    *
    */
-  private JPanel layoutFilterPanel() {
+  private void layoutFilterPanel() {
     //panels
-    JPanel filterPanel = new JPanel();
+    JPanel filterRoot = new JPanel();
+    tabbedPane.addTab("MTF Filter", filterRoot);
     filterPanel.setLayout(new BoxLayout(filterPanel, BoxLayout.Y_AXIS));
     filterPanel.setBorder(BorderFactory.createEtchedBorder());
+    filterPanel.add(filterHeader.getContainer());
+    filterPanel.add(filterBodyPanel);
     filterBodyPanel.setLayout(new BoxLayout(filterBodyPanel, BoxLayout.Y_AXIS));
     inverseParamsPanel.setBoxLayout(BoxLayout.Y_AXIS);
     inverseParamsPanel.setBorder(new EtchedBorder(
@@ -696,14 +703,10 @@ public final class FinalAlignedStackDialog extends ProcessDialog implements
     filterBodyPanel.add(ltfLowPassRadiusSigma.getContainer());
     filterBodyPanel.add(inverseParamsPanel.getContainer());
     filterBodyPanel.add(buttonPanel.getContainer());
-    //filterPanel
-    filterPanel.add(filterHeader.getContainer());
-    filterPanel.add(filterBodyPanel);
     //configure
     btnFilter.setSize();
     btnViewFilter.setSize();
     btnUseFilter.setSize();
-    return filterPanel;
   }
 
   void btnMtfFileAction(ActionEvent event) {
@@ -874,47 +877,20 @@ public final class FinalAlignedStackDialog extends ProcessDialog implements
     }
   }
 
-  private static final class ButtonListener implements ActionListener {
-    private final FinalAlignedStackDialog adaptee;
-
-    private ButtonListener(final FinalAlignedStackDialog adaptee) {
-      this.adaptee = adaptee;
+  private final void changeTab() {
+    ((Container) tabbedPane.getComponentAt(curTab.toInt())).removeAll();
+    curTab = Tab.getInstance(tabbedPane.getSelectedIndex());
+    Container panel = (Container) tabbedPane.getSelectedComponent();
+    if (curTab == Tab.NEWST) {
+      panel.add(newstPanel);
     }
-
-    public void actionPerformed(final ActionEvent event) {
-      adaptee.buttonAction(event.getActionCommand(), null, null);
+    else if (curTab == Tab.CTF_CORRECTION) {
+      panel.add(ctfCorrectionMainPanel);
     }
-  }
-
-  private static final class MtfFileActionListener implements ActionListener {
-    private final FinalAlignedStackDialog adaptee;
-
-    private MtfFileActionListener(final FinalAlignedStackDialog adaptee) {
-      this.adaptee = adaptee;
+    else if (curTab == Tab.MTF_FILTER) {
+      panel.add(filterPanel);
     }
-
-    public void actionPerformed(ActionEvent event) {
-      adaptee.btnMtfFileAction(event);
-    }
-  }
-
-  private static final class StartingAndEndingZKeyListener implements
-      KeyListener {
-    private final FinalAlignedStackDialog adaptee;
-
-    private StartingAndEndingZKeyListener(final FinalAlignedStackDialog adaptee) {
-      this.adaptee = adaptee;
-    }
-
-    public void keyReleased(final KeyEvent event) {
-      adaptee.startingAndEndingZKeyReleased(event);
-    }
-
-    public void keyPressed(final KeyEvent event) {
-    }
-
-    public void keyTyped(final KeyEvent event) {
-    }
+    UIHarness.INSTANCE.pack(axisID, applicationManager);
   }
 
   /**
@@ -1047,5 +1023,91 @@ public final class FinalAlignedStackDialog extends ProcessDialog implements
     btnUseCtfCorrection.setToolTipText("Replace full aligned stack ("
         + DatasetFiles.FULL_ALIGNED_EXT + ") with CTF corrected stack ("
         + DatasetFiles.CTF_CORRECTION_EXT + ").");
+  }
+
+  private static final class ButtonListener implements ActionListener {
+    private final FinalAlignedStackDialog adaptee;
+
+    private ButtonListener(final FinalAlignedStackDialog adaptee) {
+      this.adaptee = adaptee;
+    }
+
+    public void actionPerformed(final ActionEvent event) {
+      adaptee.buttonAction(event.getActionCommand(), null, null);
+    }
+  }
+
+  private static final class MtfFileActionListener implements ActionListener {
+    private final FinalAlignedStackDialog adaptee;
+
+    private MtfFileActionListener(final FinalAlignedStackDialog adaptee) {
+      this.adaptee = adaptee;
+    }
+
+    public void actionPerformed(ActionEvent event) {
+      adaptee.btnMtfFileAction(event);
+    }
+  }
+
+  private static final class StartingAndEndingZKeyListener implements
+      KeyListener {
+    private final FinalAlignedStackDialog adaptee;
+
+    private StartingAndEndingZKeyListener(final FinalAlignedStackDialog adaptee) {
+      this.adaptee = adaptee;
+    }
+
+    public void keyReleased(final KeyEvent event) {
+      adaptee.startingAndEndingZKeyReleased(event);
+    }
+
+    public void keyPressed(final KeyEvent event) {
+    }
+
+    public void keyTyped(final KeyEvent event) {
+    }
+  }
+
+  private static final class TabChangeListener implements ChangeListener {
+    private final FinalAlignedStackDialog adaptee;
+
+    private TabChangeListener(FinalAlignedStackDialog dialog) {
+      adaptee = dialog;
+    }
+
+    public void stateChanged(final ChangeEvent event) {
+      adaptee.changeTab();
+    }
+  }
+
+  private static final class Tab {
+    private static final Tab NEWST = new Tab(0);
+    private static final Tab CTF_CORRECTION = new Tab(1);
+    private static final Tab MTF_FILTER = new Tab(2);
+
+    private static final Tab DEFAULT = NEWST;
+
+    private final int index;
+
+    private Tab(int index) {
+      this.index = index;
+    }
+
+    private static Tab getInstance(int index) {
+      if (index == NEWST.index) {
+        return NEWST;
+      }
+      if (index == CTF_CORRECTION.index) {
+        return CTF_CORRECTION;
+      }
+      if (index == MTF_FILTER.index) {
+        return MTF_FILTER;
+      }
+      return DEFAULT;
+    }
+
+    private int toInt() {
+      return index;
+    }
   }
 }
