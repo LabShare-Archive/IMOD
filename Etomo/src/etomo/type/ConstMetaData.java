@@ -67,14 +67,17 @@ public interface ConstMetaData {
   public EtomoNumber getSampleThickness(AxisID axisID);
   public ConstEtomoNumber getTomoPosBinning(AxisID axisID);
   public FortranInputString getSizeToOutputInXandY(AxisID axisID);
-  public ConstEtomoNumber getTomoGenBinning(AxisID axisID);
+  public ConstEtomoNumber getFinalStackBinning(AxisID axisID);
   public ConstEtomoNumber getTomoGenTiltParallel(AxisID axisID);
-  public ConstEtomoNumber getStackCtfCorrectionParallel(AxisID axisID);
+  public ConstEtomoNumber getFinalStackCtfCorrectionParallel(AxisID axisID);
   public boolean isDistortionCorrection();
 }
 
 /**
  * <p> $Log$
+ * <p> Revision 3.45  2008/10/27 18:36:40  sueh
+ * <p> bug# 1141 Added getStackCtfCorrectionParallel.
+ * <p>
  * <p> Revision 3.44  2007/12/10 22:35:02  sueh
  * <p> bug# 1041 Made class an interface so inheritance can come from BaseMetaData.
  * <p>
