@@ -187,8 +187,8 @@ usage = Minimum spacing between peaks as fraction of bead size (default 1)
 tooltip = 
 manpage = Minimum spacing between peaks as a fraction of the bead size.  When
 two peaks are closer than this distance apart, the weaker one is eliminated.
-The default is 1, but values of 0.8 to 0.9 are helpful for getting more 
-a complete set of beads.
+The default is 1, but values of 0.8 to 0.9 are helpful for getting a more 
+complete set of beads.
 
 [Field = SectionsToDo]
 short = sections
