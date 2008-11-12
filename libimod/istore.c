@@ -6,14 +6,10 @@
  *  Copyright (C) 1995-2005 by Boulder Laboratory for 3-Dimensional Electron
  *  Microscopy of Cells ("BL3DEMC") and the Regents of the University of 
  *  Colorado.  See dist/COPYRIGHT for full copyright notice.
+ *
+ * $Id$
+ * Log at end of file
  */
-/*  $Author$
-
-$Date$
-
-$Revision$
-Log at end
-*/
 
 #include "imodel.h"
 #include "istore.h"
@@ -202,7 +198,8 @@ int istoreInsert(Ilist **list, Istore *store)
  * Looks for elements with [index] in the given [list] of sorted {Istore} 
  * elements, returns [after] with the list index of the first element with an
  * index after the given value or the list size if there is none, and returns 
- * the list index of the first matching element or -1 if there is no match.
+ * the list index of the first matching element, or -1 if there is no match or
+ * if [list] is empty or NULL.
  */
 int istoreLookup(Ilist *list, int index, int *after)
 {
@@ -484,6 +481,36 @@ int istoreAddMinMax(Ilist **list, int type, float min, float max)
 }
 
 /*!
+ * Computes the min and max values for all GEN_STORE_VALUE1 items in object
+ * [obj] and its contours, and adds a GEN_STORE_MINMAX1 item with these values
+ * for the object.
+ */
+int istoreFindAddMinMax1(Iobj *obj)
+{
+  Istore *store;
+  Ilist *list;
+  int i, co;
+  float min = 1.e37;
+  float max = -1.e37;
+  for (co = -1; co < obj->contsize; co++) {
+    if (co >= 0)
+      list = obj->cont[co].store;
+    else
+      list = obj->store;
+    for (i = 0; i < ilistSize(list); i++) {
+      store = istoreItem(list, i);
+      if (store->type == GEN_STORE_VALUE1) {
+        min = B3DMIN(min, store->value.f);
+        max = B3DMAX(max, store->value.f);
+      }
+    }
+  }
+  if (min > max)
+    return -1;
+  return istoreAddMinMax(&obj->store, GEN_STORE_MINMAX1, min, max);
+}
+
+/*!
  * Looks for a min/max value in the given [list] for values of a given [type]
  * (e.g., GEN_STORE_MINMAX1).  The size of the entity containing this storage 
  * list is provided in [size].  Values are returned in [min] and [max] values 
@@ -573,11 +600,13 @@ int istoreInsertChange(Ilist **listp, Istore *store)
     }
   }
 
-  /* Look backwards and see if there is fully matching start; if not insert
-     the new item */
+  /* Look backwards for multiple-point items and see if there is fully matching
+     start; if not insert the new item */
   if (lookup < 0)
     lookup = after;
   needItem = 1;
+  if (store->flags & GEN_STORE_ONEPOINT)
+    lookup = 0;
   for (i = lookup - 1; i >= 0; i--) {
     stp = istoreItem(list, i);
     if (stp->type == store->type) {
@@ -1877,7 +1906,11 @@ int istoreTransStateMatches(Ilist *list, int state)
 
 /* END_SECTION */
 /*
+
 $Log$
+Revision 3.14  2008/08/20 19:48:47  mast
+Fixed bug in returned connection value if there is another item at index
+
 Revision 3.13  2008/06/17 20:10:45  mast
 Stopped eliminating later matching starts when inserting a change
 
