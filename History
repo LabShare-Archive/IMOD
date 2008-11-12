@@ -8,6 +8,8 @@ value, and a problem with Trial tomogram.
 
 11/10/08: The new aligned stack panel was split into tabs for each operation.
 
+11/7/08: Isosurface now keeps a separate threshold for each time (volume).
+
 11/7/08: Fixed the zap subarea coordinates after dragging a rubber band.
 
 11/7/08: Added ctfcorrection log and mtffilter options to the Etomo Final
