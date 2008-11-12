@@ -5,28 +5,10 @@
  *  Copyright (C) 1995-2004 by Boulder Laboratory for 3-Dimensional Electron
  *  Microscopy of Cells ("BL3DEMC") and the Regents of the University of 
  *  Colorado.  See dist/COPYRIGHT for full copyright notice.
+ *
+ * $Id$
+ * Log at end of file
  */
-
-/*  $Author$
-
-    $Date$
-
-    $Revision$
-
-    $Log$
-    Revision 4.4  2006/09/03 21:31:15  mast
-    Fixed logic with not scanning bytes, changed call to iiSetupRawHeaders
-
-    Revision 4.3  2006/09/02 23:53:26  mast
-    Reorganized, moved header creation to MRC-like routine in library
-
-    Revision 4.2  2005/11/11 23:04:29  mast
-    Changes for unsigned integers
-
-    Revision 4.1  2004/12/02 21:40:08  mast
-    Addition to program
-
-*/
 
 #include <qlabel.h>
 #include <qapplication.h>
@@ -174,10 +156,14 @@ int iiRawScan(ImodImageFile *inFile)
     mrc_getdcsize(hdr->mode, &dsize, &csize);
     if ((double)hdr->nx * hdr->ny * hdr->nz * dsize * csize > 1.e6) {
       splash = new QLabel("Scanning " + str + " for min/max", NULL);
+      qApp->flush();
       QSize hint = splash->sizeHint();
       splash->move(QApplication::desktop()->width() / 2 - hint.width() / 2, 
                    QApplication::desktop()->height() / 2 - hint.height() / 2);
       splash->show();
+      qApp->flush();
+      qApp->flushX();
+      qApp->syncX();
       qApp->processEvents();
     }
 
@@ -242,3 +228,23 @@ int iiRawScan(ImodImageFile *inFile)
 
   return 0;
 }
+
+/*
+
+$Log$
+Revision 4.5  2006/09/03 21:35:57  mast
+Switched to proper error codes
+
+Revision 4.4  2006/09/03 21:31:15  mast
+Fixed logic with not scanning bytes, changed call to iiSetupRawHeaders
+
+Revision 4.3  2006/09/02 23:53:26  mast
+Reorganized, moved header creation to MRC-like routine in library
+
+Revision 4.2  2005/11/11 23:04:29  mast
+Changes for unsigned integers
+
+Revision 4.1  2004/12/02 21:40:08  mast
+Addition to program
+
+*/
