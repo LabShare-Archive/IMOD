@@ -8,6 +8,7 @@ EXPORTS
 	PIPDONE
 	b3dRewind
 	c2fString
+	scanHistogram
 	SETCTFWSR
 	PIPGETTHREEINTEGERS
 	InsideContour
@@ -61,6 +62,7 @@ EXPORTS
 	ADOCSETFLOAT
 	REDUCE_BY_BINNING
 	PipAddOption
+	FINDHISTOGRAMDIP
 	PIPADDOPTION
 	ilistSize
 	PARABOLICFITPOSITION
@@ -86,7 +88,9 @@ EXPORTS
 	AdocGetInteger
 	imodBackupFile
 	cmapReadConvert
+	SCANHISTOGRAM
 	PIPNUMBEROFENTRIES
+	kernelHistogram
 	SLICEEDGEMEAN
 	sliceMode
 	ADOCREAD
@@ -132,6 +136,7 @@ EXPORTS
 	PIPGETNONOPTIONARG
 	AdocGetThreeFloats
 	INSIDECONTOUR
+	KERNELHISTOGRAM
 	scaledSobel
 	PIPGETSTRING
 	PipReadOptionFile
@@ -168,6 +173,7 @@ EXPORTS
 	b3dGetError
 	XCorrSetCTFnoScl
 	reduceByBinning
+	findHistogramDip
 	PipSetError
 	sliceCreate
 	XCorrSetCTF
