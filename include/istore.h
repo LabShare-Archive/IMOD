@@ -6,14 +6,10 @@
  *  Copyright (C) 1995-2004 by Boulder Laboratory for 3-Dimensional Electron
  *  Microscopy of Cells ("BL3DEMC") and the Regents of the University of 
  *  Colorado.  See dist/COPYRIGHT for full copyright notice.
+ *
+ * $Id$
+ * Log at end of file
  */
-/*  $Author$
-
-$Date$
-
-$Revision$
-Log at end
-*/
 
 #ifndef ISTORE_H
 #define ISTORE_H
@@ -166,6 +162,7 @@ extern "C" {
   int istoreSkipToIndex(Ilist *list, int index);
   int istoreAddMinMax(Ilist **list, int type, float min, float max);
   int istoreGetMinMax(Ilist *list, int size, int type, float *min, float *max);
+  int istoreFindAddMinMax1(Iobj *obj);
 
 #ifdef __cplusplus
 }
@@ -175,6 +172,9 @@ extern "C" {
 
 /*    
 $Log$
+Revision 3.11  2006/09/12 15:11:06  mast
+Added some missing declarations
+
 Revision 3.10  2006/08/31 22:50:56  mast
 value and minmax stuff, and documentation
 
