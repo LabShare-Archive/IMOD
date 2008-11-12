@@ -1,5 +1,11 @@
 IMOD History
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+11/11/08: In Etomo fixed a problem with Final Aligned Stack dialog's binning
+value, and a problem with Trial tomogram.
+
+11/7/08: Added ctfcorrection log and mtffilter options to the Etomo Final
+Aligned Stack dialog's right-click menu.
+
 11/6/08: Fixed autocontrast of reference slice in Midas in reference mode.
 
 11/6/08: Fixed bug in 3dmod float that froze program.
