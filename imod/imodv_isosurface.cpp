@@ -1073,6 +1073,7 @@ void ImodvIsosurface::iterNumChanged(int iterNum)
   struct Mod_Mesh *dup=imodMeshDup(mFilteredMesh);
   if(iterNum) smoothMesh(dup, iterNum);
   imodObjectAddMesh(extraObj, dup);
+  setFocus();
   free(dup);
   setFocus();
   imodvDraw(Imodv);
@@ -1083,6 +1084,7 @@ void ImodvIsosurface::binningNumChanged(int binningNum)
     setBoundingBox();
     fillBinVolume();
     setIsoObj();
+    setFocus();
     imodvDraw(Imodv);
 }
 
@@ -1354,6 +1356,9 @@ void ImodvIsosurface::keyReleaseEvent ( QKeyEvent * e )
 /*
 
    $Log$
+   Revision 4.10  2008/11/07 23:48:53  xiongq
+   seperate threshold for each stack
+
    Revision 4.9  2008/10/02 16:27:00  xiongq
    add small piece filter, binning, and local XYZ functions
 
