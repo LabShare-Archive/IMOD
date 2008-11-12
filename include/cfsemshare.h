@@ -91,6 +91,16 @@ extern "C" {
                   float minInterp, int linear, float center, float *outImage,
                   int *nxout, int *nyout, float *xOffset, float *yOffset);
 
+  /* histogram.c */
+  void kernelHistogram(float *values, int numVals, float *bins, int numBins,
+                       float firstVal, float lastVal, float h, int verbose);
+  int scanHistogram(float *bins, int numBins, float firstVal, float lastVal,
+                    float scanBot, float scanTop, int findPeaks, float *dip,
+                    float *peakBelow, float *peakAbove);
+  int findHistogramDip(float *values, int numVals, int minGuess, float *bins,
+                       int numBins, float firstVal, float lastVal, 
+                       float *histDip, float *peakBelow, float *peakAbove,
+                       int verbose);
 
 #ifdef __cplusplus
 }
@@ -101,6 +111,9 @@ extern "C" {
 
 /*
 $Log$
+Revision 3.5  2008/06/24 04:44:11  mast
+Added taper function
+
 Revision 3.4  2007/10/11 16:47:23  mast
 Added edge mean function
 
