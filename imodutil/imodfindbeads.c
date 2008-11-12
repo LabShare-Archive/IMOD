@@ -57,16 +57,12 @@ static float templateCCCoefficient(float *array, int nxdim, int nx, int ny,
                                    float *template, int nxtdim, int nxt, 
                                    int nyt, int xoffset, int yoffset);
 static int pointInsideBoundary(Iobj *obj, Ipoint *pnt);
-static void kernelHistogram(PeakEntry *peakList, float *element, int numPeaks,
+static void kernelHistoPL(PeakEntry *peakList, float *element, int numPeaks,
                             int skipZeroCCC, float *select, float selMin, 
                             float selMax, float *bins, int numBins,
                             float firstVal, float lastVal, float h,
                             int verbose);
-static int scanHistogram(float *bins, int numBins, float firstVal,
-                         float lastVal, float scanTop, float scanBot,
-                         int findPeaks, float *dip, float *peak1, 
-                         float *peak2);
-static int findHistogramDip(PeakEntry *peakList, int numPeaks, int minGuess,
+static int findHistoDipPL(PeakEntry *peakList, int numPeaks, int minGuess,
                             float *kernHist, float *regHist, float *histDip,
                             float *peakBelow, float *peakAbove, char *vkeys);
 static void printArray(float *filtBead, int nxdim, int nx, int ny);
@@ -205,7 +201,7 @@ int main( int argc, char *argv[])
     if (!PipGetInteger("BoundaryObject", &boundObj)) {
       if (boundObj < 1 || boundObj > refmod->objsize)
         exitError("Boundary object number %d is out of bounds (model has %d "
-                  "objects)\n", boundObj, refmod->objsize);
+                  "objects)", boundObj, refmod->objsize);
     }
   }
 
@@ -579,7 +575,7 @@ int main( int argc, char *argv[])
         meanMedPtr = &peakList[0].median;
       selectedMinMax(peakList, meanMedPtr, numPeaks, NULL, 0., 0., 
                      &annMin, &annMax, &ninHist);
-      kernelHistogram(peakList, meanMedPtr, numPeaks, 1, NULL, 0., 0., 
+      kernelHistoPL(peakList, meanMedPtr, numPeaks, 1, NULL, 0., 0., 
                       regHist, MAX_BINS, annMin, annMax, 0., 0);
       if (vkeys)
         printf("min %f max %f ninhist %d\n", annMin, annMax, ninHist);
@@ -615,7 +611,7 @@ int main( int argc, char *argv[])
             printf("Peak:  selected data set %d\n", igr + 1);
           } else if (vkeys && strchr(vkeys, 'H'))
             verbose = 2;
-          kernelHistogram(peakList, &peakList[0].peak, numPeaks, 1, 
+          kernelHistoPL(peakList, &peakList[0].peak, numPeaks, 1, 
                           meanMedPtr, lowerLim, upperLim,
                           kernHist, MAX_BINS, selPeakMin, selPeakMax, 
                           0.1 * selPeakMax, verbose);
@@ -762,7 +758,7 @@ int main( int argc, char *argv[])
         } else if (threshold < 0.) {
 
           // Negative threshold: find dip
-          if (findHistogramDip(peakList, numPeaks, numGuess * nzout, kernHist,
+          if (findHistoDipPL(peakList, numPeaks, numGuess * nzout, kernHist,
                                regHist, &histDip, &peakBelow, &peakAbove,NULL))
             exitError("Failed to find dip in smoothed histogram of peaks");
 
@@ -826,7 +822,7 @@ int main( int argc, char *argv[])
     if (peakThresh <= 0.) {
       threshUse = -10000.;
       histDip = -1.;
-      if (!findHistogramDip(peakList, numPeaks, numGuess * nzout, kernHist,
+      if (!findHistoDipPL(peakList, numPeaks, numGuess * nzout, kernHist,
                             regHist, &histDip, &peakBelow, &peakAbove,
                             vkeys)) {
         dxbin = 1. / MAX_BINS;
@@ -1325,7 +1321,7 @@ static float templateCCCoefficient(float *array, int nxdim, int nx, int ny,
  * ccc are skipped if skipZeroCCC is set.  h is the kernel width, or 0 for a 
  * standard binned histogram.
  */
-static void kernelHistogram(PeakEntry *peakList, float *element, int numPeaks,
+static void kernelHistoPL(PeakEntry *peakList, float *element, int numPeaks,
                             int skipZeroCCC, float *select, float selMin, 
                             float selMax, float *bins, int numBins,
                             float firstVal, float lastVal, float h,
@@ -1370,122 +1366,13 @@ static void kernelHistogram(PeakEntry *peakList, float *element, int numPeaks,
       printf("bin: %.4f %f\n", firstVal + i * dxbin, bins[i]);
 }
 
-/* 
- * Scans a histogram for peaks and and dip.  the histogram is in numBins 
- * elements of bins, extending from firstVal to lastVal.  It Will be scanned 
- * between values scanBot and scanTop.  If findPeaks is nonzero, it will find 
- * the two highest peaks, in peakBelow and peakAbove, then find the dip between
- * them; otherwise it just scans the range for the lowest point.
- */
-static int scanHistogram(float *bins, int numBins, float firstVal,
-                         float lastVal, float scanBot, float scanTop,
-                         int findPeaks, float *dip, float *peakBelow, 
-                         float *peakAbove)
-{
-  float dxbin, valmin, first, second, lastPeak;
-  int indmin, ind, indstr, indend, rising, indFirst, indSecond, lastRank;
-  int lastInd;
-  float distCrit = 0.005f * (lastVal - firstVal);
-  float diffCrit = 0.001f;
-  dxbin = (lastVal - firstVal) / numBins;
-  indstr = (int)floor((double)(scanTop - firstVal) / dxbin);
-  indstr = B3DMIN(numBins - 1, indstr);
-  indend = (int)ceil((double)(scanBot - firstVal) / dxbin);
-  indend = B3DMAX(0, indend);
-
-  // Seek a peak value first if flag set - this assumes smoothness
-  if (findPeaks) {
-
-    first = -1.;
-    second = -1.;
-    rising = 1;
-    lastRank = 0;
-    lastInd = numBins;
-    lastPeak = 0.;
-      
-    for (ind = indstr - 1; ind >= indend; ind--) {
-      if (rising) {
-
-        // If rising, check for decreasing value; then previous is a peak
-        if (bins[ind] < bins[ind+1] || ind == indend) {
-
-          if (lastRank && dxbin * (lastInd - ind - 1) < distCrit &&
-              fabs((double)(lastPeak - bins[ind+1])) < diffCrit * lastPeak) {
-
-            // If close to last peak in height and distance, either ignore it
-            // or replace with it
-            if (lastPeak < bins[ind+1]) {
-              lastPeak = bins[ind+1];
-              lastInd = ind + 1;
-              if (lastRank == 1) {
-                first = lastPeak;
-                indFirst = ind + 1;
-                //printf("Top peak replaced %d  %f\n", indFirst, first);
-              } else {
-                second = lastPeak;
-                indSecond = ind + 1;
-                //printf("Lower peak replaced %d  %f\n", indSecond, second);
-              }
-            }
-          } else if (bins[ind+1] > first) {
-
-            // If higher than first peak, roll it down to second one
-            second = first;
-            indSecond = indFirst;
-            first = bins[ind+1];
-            indFirst = ind + 1;
-            //printf("Top peak at %d  %f\n", indFirst, first);
-            lastPeak = first;
-            lastInd = indFirst;
-            lastRank = 1;
-
-          } else if (bins[ind+1] > second) {
-
-            // Or if higher than second, replace it
-            indSecond = ind + 1;
-            second = bins[ind+1];
-            //printf("Lower peak at %d  %f\n", indSecond, second);
-            lastPeak = second;
-            lastInd = indSecond;
-            lastRank = 2;
-          }
-          rising = 0.;
-        }
-
-        // Otherwise check whether rising yet
-      } else if (bins[ind] > bins[ind+1])
-        rising = 1;
-    }
-    
-    if (second < 0.)
-      return 1;
-    indstr = B3DMAX(indFirst, indSecond);
-    indend = B3DMIN(indFirst, indSecond);
-    *peakAbove = firstVal + indstr * dxbin;
-    *peakBelow = firstVal + indend * dxbin;
-  }
-
-  // Otherwise, find global minimum in the range
-  indmin = indstr;
-  valmin = bins[indstr];
-  for (ind = indstr; ind >= indend; ind--) {
-     if (bins[ind] < valmin) {
-       valmin = bins[ind];
-       indmin = ind;
-     }
-  }
-  *dip = firstVal + indmin * dxbin;
-
-  return 0;
-}
-
 /*
  * Finds a histogram dip by starting with a high smoothing and dropping to
  * lower one.
  */
-static int findHistogramDip(PeakEntry *peakList, int numPeaks, int minGuess,
-                            float *kernHist, float *regHist, float *histDip,
-                            float *peakBelow, float *peakAbove, char *vkeys)
+static int findHistoDipPL(PeakEntry *peakList, int numPeaks, int minGuess,
+                          float *kernHist, float *regHist, float *histDip,
+                          float *peakBelow, float *peakAbove, char *vkeys)
 {
   float coarseH = 0.2f;
   float fineH = 0.05f;
@@ -1496,7 +1383,7 @@ static int findHistogramDip(PeakEntry *peakList, int numPeaks, int minGuess,
 
   // Build a regular histogram first and use minGuess to find safe upper limit
   verbose = (vkeys != NULL && strchr(vkeys, 'p')) ? 1 : 0;
-  kernelHistogram(peakList, &peakList[0].peak, numPeaks, 1, NULL, 0., 0.,
+  kernelHistoPL(peakList, &peakList[0].peak, numPeaks, 1, NULL, 0., 0.,
                   regHist, MAX_BINS, 0., 1., 0., verbose);
   if (minGuess) {
     numCrit = B3DMAX(1, B3DNINT(minGuess * fracGuess));
@@ -1514,7 +1401,7 @@ static int findHistogramDip(PeakEntry *peakList, int numPeaks, int minGuess,
     verbose = 0;
     if (vkeys && (strchr(vkeys, 'e') || (strchr(vkeys, 'i') && !i)))
       verbose = 2;
-    kernelHistogram(peakList, &peakList[0].peak, numPeaks, 1, NULL, 0., 0.,
+    kernelHistoPL(peakList, &peakList[0].peak, numPeaks, 1, NULL, 0., 0.,
                     kernHist, MAX_BINS, 0., 1., coarseH, verbose);
 
     // Cut H if it fails or if the top peak is at 1.0
@@ -1530,7 +1417,7 @@ static int findHistogramDip(PeakEntry *peakList, int numPeaks, int minGuess,
          " and %.3f\n", coarseH, *histDip, *peakBelow, *peakAbove);
   
   verbose = (vkeys != NULL && strchr(vkeys, 'f')) ? 2 : 0;
-  kernelHistogram(peakList, &peakList[0].peak, numPeaks, 1, NULL, 0., 0.,
+  kernelHistoPL(peakList, &peakList[0].peak, numPeaks, 1, NULL, 0., 0.,
                   kernHist, MAX_BINS, 0., 1., fineH, verbose);
   scanHistogram(kernHist, MAX_BINS, 0., 1., 0.5 * (*histDip + *peakBelow),
                 0.5 * (*histDip + *peakAbove), 0, histDip,
@@ -1698,6 +1585,9 @@ static int pointInsideArea(Iobj *obj, int *list, int nlist, float xcen,
 /*
 
 $Log$
+Revision 3.3  2008/11/02 13:43:48  mast
+Switched to float-slice reading function
+
 Revision 3.2  2008/06/22 05:04:26  mast
 Make sure valblack is not based on dip below the minimum value output
 
