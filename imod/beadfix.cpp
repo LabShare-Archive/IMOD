@@ -399,6 +399,7 @@ int BeadFixer::reread()
   int gotHeader = 0;
   int inpt, i;
   int numToSee = 0;
+  int binning = plug->view->xybin;
   FILE   *fp;
   Iobj *xobj = ivwGetExtraObject(plug->view);
   ResidPt *rpt;
@@ -495,6 +496,12 @@ int BeadFixer::reread()
           rpt->obj = 1;
           rpt->cont = inpt;
         }
+
+        // Adjust for binning
+        rpt->xcen /= binning;
+        rpt->ycen /= binning;
+        rpt->xres /= binning;
+        rpt->yres /= binning;
         rpt->lookedAt = 0;
         mAreaList[mNumAreas - 1].numPts++;
         rpt->area = mNumAreas - 1;
@@ -2184,6 +2191,9 @@ void BeadFixer::keyReleaseEvent ( QKeyEvent * e )
 /*
 
 $Log$
+Revision 1.46  2008/11/12 00:38:09  mast
+Fixed ability of threshold slider to move by single-click
+
 Revision 1.45  2008/07/16 20:13:00  mast
 Added delete in all objects, fixed some problems with deletion, made it
 restart gap index when new model is loaded
