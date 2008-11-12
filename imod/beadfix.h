@@ -187,11 +187,15 @@ class BeadFixer : public DialogFrame
   int mTopTimerID;
   QProcess *mAlignProcess;
   int mPeakMin, mPeakMax;
+  int mLastThresh;
 };
 
 #endif
 /*
 $Log$
+Revision 1.22  2008/07/17 05:01:59  mast
+delete in all objects added
+
 Revision 1.21  2008/01/17 22:36:32  mast
 Update function, turn off checkbock
 
