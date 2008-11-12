@@ -1525,6 +1525,8 @@ void BeadFixer::threshChanged(int slider, int value, bool dragging)
   int valblack = B3DNINT((255. * (value - mPeakMin)) / (mPeakMax - mPeakMin));
   if (!obj)
     return;
+  if (valblack == obj->valblack && value != mLastThresh)
+    valblack += value < mLastThresh ? -1 : 1;
   plug->view->undo->objectPropChg();
   obj->valblack = (unsigned char)valblack;
   plug->view->undo->finishUnit();
@@ -1685,8 +1687,9 @@ void BeadFixer::modelUpdate()
   mPeakMin = B3DNINT(min * 1000.);
   mPeakMax = B3DNINT(max * 1000.);
   threshSlider->setRange(0, mPeakMin, mPeakMax);
-  threshSlider->setValue(0, B3DNINT(obj->valblack * (mPeakMax - mPeakMin) /
-                              255. + mPeakMin));
+  mLastThresh = B3DNINT(obj->valblack * (mPeakMax - mPeakMin) / 255. + 
+                        mPeakMin);
+  threshSlider->setValue(0, mLastThresh);
   diaSetChecked(turnOffBut, (obj->matflags2 & MATFLAGS2_SKIP_LOW) != 0);
 }
  
@@ -2181,6 +2184,10 @@ void BeadFixer::keyReleaseEvent ( QKeyEvent * e )
 /*
 
 $Log$
+Revision 1.45  2008/07/16 20:13:00  mast
+Added delete in all objects, fixed some problems with deletion, made it
+restart gap index when new model is loaded
+
 Revision 1.44  2008/04/04 21:22:03  mast
 Free contour after adding to object
 
