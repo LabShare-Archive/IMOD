@@ -33,6 +33,7 @@
 #define FWRAP_ERROR_NO_MODEL      -5
 #define FWRAP_ERROR_BAD_OBJNUM    -6
 #define FWRAP_ERROR_MEMORY        -7
+#define FWRAP_ERROR_NO_VALUE      -8
 
 #define NO_VALUE_PUT           -9999.
 
@@ -47,6 +48,7 @@
 #define openimoddata OPENIMODDATA
 #define getimodhead  GETIMODHEAD
 #define getimodscales GETIMODSCALES
+#define putimageref  PUTIMAGEREF
 #define getimodmaxes GETIMODMAXES
 #define putimodmaxes PUTIMODMAXES
 #define getimodscat  GETIMODSCAT
@@ -64,6 +66,9 @@
 #define putsymsize   PUTSYMSIZE
 #define putsymtype   PUTSYMTYPE
 #define putobjcolor PUTOBJCOLOR
+#define putpointvalue PUTPOINTVALUE
+#define putcontvalue PUTCONTVALUE
+#define putvalblackwhite PUTVALBLACKWHITE
 #define putimodzscale PUTIMODZSCALE
 #define putimodrotation PUTIMODROTATION
 #define getimodtimes  GETIMODTIMES
@@ -86,6 +91,7 @@
 #define openimoddata openimoddata_
 #define getimodhead  getimodhead_
 #define getimodscales getimodscales_
+#define putimageref  putimageref_
 #define getimodmaxes getimodmaxes_
 #define putimodmaxes putimodmaxes_
 #define getimodclip  getimodclip_
@@ -103,6 +109,9 @@
 #define putsymsize   putsymsize_
 #define putsymtype   putsymtype_
 #define putobjcolor putobjcolor_
+#define putpointvalue putpointvalue_
+#define putcontvalue putcontvalue_
+#define putvalblackwhite putvalblackwhite_
 #define putimodzscale putimodzscale_
 #define putimodrotation putimodrotation_
 #define getimodtimes  getimodtimes_
@@ -137,6 +146,13 @@ typedef struct {
   float *sizes;
 } SizeStruct;
 
+typedef struct {
+  int ob;
+  int co;
+  int pt;
+  float value;
+} ValueStruct;
+
 static Imod *Fimod = NULL;
 
 static int partialMode = 0;
@@ -150,12 +166,18 @@ static float zscale_put = NO_VALUE_PUT;
 static Ipoint rotation_put = {NO_VALUE_PUT, NO_VALUE_PUT, NO_VALUE_PUT};
 static int nsizes_put = 0;
 static SizeStruct *sizes_put = NULL;
+static int nvalues_put = 0;
+static int max_values = 0;
+static ValueStruct *values_put = NULL;
 
-#define SCAT_SIZE_FLAG  (1 << 2)
-#define SYMBOL_SIZE_FLAG (1 << 3)
-#define SYMBOL_TYPE_FLAG (1 << 4)
-/* Color won't work unless the value shift is <=8 */
-#define OBJECT_COLOR_FLAG (1 << 5)
+/* These are not bit flags so they can range up to 255 */
+#define SCAT_SIZE_FLAG 3
+#define SYMBOL_SIZE_FLAG 4
+#define SYMBOL_TYPE_FLAG 5
+#define OBJECT_COLOR_FLAG 6
+#define USE_VALUE_FLAGS  7
+#define VAL_BLACKWHITE_FLAG  8
+
 #define FLAG_VALUE_SHIFT 8
 
 /* DNM: a common function to delete model and object flags */
@@ -179,6 +201,11 @@ static void deleteFimod()
     free(sizes_put);
   nsizes_put = 0;
   sizes_put = NULL;
+  if (values_put)
+    free(values_put);
+  values_put = NULL;
+  nvalues_put = 0;
+  max_values = 0;
 }
 
 static int getMeshTrans(Ipoint *trans)
@@ -797,6 +824,89 @@ int getimodsurfaces(int *surfs)
   return FWRAP_NOERROR;
 }
 
+/*!
+ * Returns the general value for contour [co] of object [ob] into [value].
+ */
+int getcontvalue(int *ob, int *co, float *value)
+{
+  int pt = 0;
+  return getpointvalue(ob, co, &pt, value);
+}
+
+/*!
+ * Returns the general value for point [pt] in contour [co] of object [ob]
+ * into [value].  If [pt] <= 0, has the same effect as @getcontvalue.
+ */
+int getpointvalue(int *ob, int *co, int *pt, float *value)
+{
+  Iobj *obj;
+  Icont *cont;
+  int index, after, i;
+  Istore *item;
+  Ilist *store;
+  if (!Fimod)
+    return(FWRAP_ERROR_NO_MODEL);
+  if (*ob < 1 || *ob > Fimod->objsize)
+    return(FWRAP_ERROR_BAD_OBJNUM);
+  obj = &Fimod->obj[*ob - 1];
+  if (*co < 1 || *co > obj->contsize)
+    return(FWRAP_ERROR_BAD_OBJNUM);
+  if (*pt < 1) {
+    store = obj->store;
+    index = istoreLookup(store, *co - 1, &after);
+  } else {
+    cont = &obj->cont[*co - 1];
+    if (*pt > cont->psize)
+      return(FWRAP_ERROR_BAD_OBJNUM);
+    store = cont->store;
+    index = istoreLookup(store, *pt - 1, &after);
+  }
+  if (index < 0)
+    return(FWRAP_ERROR_NO_VALUE);
+  for (i = index; i < after; i++) {
+    item = istoreItem(store, i);
+    if (item->type == GEN_STORE_VALUE1) {
+      *value = item->value.f;
+      return FWRAP_NOERROR;
+    }
+  }
+  return FWRAP_ERROR_NO_VALUE;
+}
+
+/*!
+ * Stores a general value [value] for contour [co] of object [ob].
+ */
+int putcontvalue(int *ob, int *co, float *value)
+{
+  int pt = 0;
+  return putpointvalue(ob, co, &pt, value);
+}
+
+/*!
+ * Stores a general value [value] for point [pt] in contour [co] of object 
+ * [ob].  If [pt] is <= 0 then the effect is the same as calling @putcontvalue.
+ */
+int putpointvalue(int *ob, int *co, int *pt, float *value)
+{
+  if (nvalues_put >= max_values) {
+    if (max_values) {
+      max_values += 100;
+      values_put = (ValueStruct *)realloc
+        (values_put, max_values * sizeof(ValueStruct));
+    } else {
+      max_values += 100;
+      values_put = (ValueStruct *)malloc(max_values * sizeof(ValueStruct));
+    }
+  }
+  if (!values_put)
+    return FWRAP_ERROR_MEMORY;
+  values_put[nvalues_put].ob = *ob - 1;
+  values_put[nvalues_put].co = *co - 1;
+  values_put[nvalues_put].pt = *pt - 1;
+  values_put[nvalues_put++].value = *value;
+  return FWRAP_NOERROR;
+}
+
 
 #define OBJ_EMPTY    -2
 #define OBJ_HAS_DATA -1
@@ -1023,11 +1133,12 @@ int putimod(int ibase[], int npt[], float coord[][3], int cindex[],
  */
 int writeimod(char *fname, int fsize)
 {
-  int i, j, ob, flag, value;
+  int i, j, ob, flag, value, flagmask;
   int retcode = 0;
   Iobjview *objview;
   Iobj *obj;
   Icont *cont;
+  Istore store;
   char *filename = f2cString(fname, fsize);
   if (!filename)
     return(FWRAP_ERROR_BAD_FILENAME);
@@ -1073,57 +1184,78 @@ int writeimod(char *fname, int fsize)
     imodFlipYZ(Fimod);
 
   /* Put out the flag data */
+  flagmask = (1 << FLAG_VALUE_SHIFT) - 1;
   for (i = 0; i < nflags_put; i++) {
     ob = flags_put[2 * i];
     flag = flags_put[2 * i + 1];
     value = flag >> FLAG_VALUE_SHIFT;
-    /* printf("object %d  flag %d  value %d\n", ob, flag & 0xff, value); */
+    flag &= flagmask;
+    /* printf("object %d  flag %d  value %d\n", ob, flag, value); */
     if (ob >= 0 && ob < Fimod->objsize) {
 
       /* Save some data in the current view if it has an object view for
          this object */
       objview = NULL;
+      obj = &Fimod->obj[ob];
       if (Fimod->cview > 0 && Fimod->view[Fimod->cview].objvsize > ob)
         objview = &(Fimod->view[Fimod->cview].objview[ob]);
 
       switch (flag) {
       case 0:
-        Fimod->obj[ob].flags &= ~IMOD_OBJFLAG_OPEN;
-        Fimod->obj[ob].flags &= ~IMOD_OBJFLAG_SCAT;
+        obj->flags &= ~IMOD_OBJFLAG_OPEN;
+        obj->flags &= ~IMOD_OBJFLAG_SCAT;
         if (objview)
-          objview->flags = Fimod->obj[ob].flags;
+          objview->flags = obj->flags;
         break;
       case 1:
-        Fimod->obj[ob].flags |= IMOD_OBJFLAG_OPEN;
-        Fimod->obj[ob].flags &= ~IMOD_OBJFLAG_SCAT;
+        obj->flags |= IMOD_OBJFLAG_OPEN;
+        obj->flags &= ~IMOD_OBJFLAG_SCAT;
         if (objview)
-          objview->flags = Fimod->obj[ob].flags;
+          objview->flags = obj->flags;
         break;
       case 2:
-        Fimod->obj[ob].flags &= ~IMOD_OBJFLAG_OPEN;
-        Fimod->obj[ob].flags |= IMOD_OBJFLAG_SCAT;
+        obj->flags &= ~IMOD_OBJFLAG_OPEN;
+        obj->flags |= IMOD_OBJFLAG_SCAT;
         if (objview)
-          objview->flags = Fimod->obj[ob].flags;
+          objview->flags = obj->flags;
         break;
-      default:
-        if (flag & SCAT_SIZE_FLAG) {
-          Fimod->obj[ob].pdrawsize = value;
-          if (objview)
-            objview->pdrawsize = Fimod->obj[ob].pdrawsize;
+      
+      case SCAT_SIZE_FLAG:
+        obj->pdrawsize = value;
+        if (objview)
+          objview->pdrawsize = obj->pdrawsize;
+        break;
+        
+      case SYMBOL_SIZE_FLAG:
+        obj->symsize = value;
+        break;
+      case SYMBOL_TYPE_FLAG:
+        obj->symbol = value;
+        break;
+      case OBJECT_COLOR_FLAG:
+        obj->red = (value & 255) / 255.;
+        obj->green = ((value >> 8) & 255) / 255.;
+        obj->blue = ((value >> 16) & 255) / 255.;
+        if (objview) {
+          objview->red = obj->red;
+          objview->green = obj->green;
+          objview->blue = obj->blue;
         }
-        if (flag & SYMBOL_SIZE_FLAG)
-          Fimod->obj[ob].symsize = value;
-        if (flag & SYMBOL_TYPE_FLAG)
-          Fimod->obj[ob].symbol = value;
-        if (flag & OBJECT_COLOR_FLAG) {
-          Fimod->obj[ob].red = (value & 255) / 255.;
-          Fimod->obj[ob].green = ((value >> 8) & 255) / 255.;
-          Fimod->obj[ob].blue = ((value >> 16) & 255) / 255.;
-          if (objview) {
-            objview->red = Fimod->obj[ob].red;
-            objview->green = Fimod->obj[ob].green;
-            objview->blue = Fimod->obj[ob].blue;
-          }
+        break;
+      case USE_VALUE_FLAGS:
+        obj->flags |= IMOD_OBJFLAG_USE_VALUE;
+        obj->matflags2 |= MATFLAGS2_CONSTANT | MATFLAGS2_SKIP_LOW;
+        if (objview) {
+          objview->flags = obj->flags;
+          objview->matflags2 = obj->matflags2;
+        }
+        break;
+      case VAL_BLACKWHITE_FLAG:
+        obj->valblack = value & 255;
+        obj->valwhite = (value >> 8) & 255;
+        if (objview) {
+          objview->valblack = obj->valblack;
+          objview->valwhite = obj->valwhite;
         }
         break;
       }
@@ -1158,6 +1290,38 @@ int writeimod(char *fname, int fsize)
     for (j = 0; j < value; j++)
       if (sizes_put[i].sizes[j] >= 0.)
         imodPointSetSize(cont, j, sizes_put[i].sizes[j]);
+  }
+
+  /* Put out general values */
+  if (nvalues_put) {
+    store.type = GEN_STORE_VALUE1;
+    store.flags = (GEN_STORE_FLOAT << 2) | GEN_STORE_ONEPOINT;
+    for (i = 0; i < nvalues_put; i++) {
+
+      /* Ignore illegal object or contour numbers */
+      if (values_put[i].ob < 0 || values_put[i].ob >= Fimod->objsize)
+        continue;
+      obj = &Fimod->obj[values_put[i].ob];
+      if (values_put[i].co < 0 || values_put[i].co >= obj->contsize)
+        continue;
+
+      /* Insert value into contour or object stores */
+      store.value.f = values_put[i].value;
+      if (values_put[i].pt < 0) {
+        store.index.i = values_put[i].co;
+        istoreInsertChange(&obj->store, &store);
+      } else {
+        cont = &obj->cont[values_put[i].co];
+        if (values_put[i].pt > cont->psize)
+          continue;
+        store.index.i = values_put[i].pt;
+        istoreInsertChange(&cont->store, &store);
+      }
+    }
+    
+    /* Now need to set min/maxes for all stores */
+    for (ob = 0; ob < Fimod->objsize; ob++)
+      istoreFindAddMinMax1(&Fimod->obj[ob]);
   }
      
   /* Complete the set of object views just before writing */
@@ -1381,6 +1545,31 @@ int getimodscales(float *ximscale, float *yimscale, float *zimscale)
 }
 
 /*!
+ * Sets the image reference information of the model with the delta and origin
+ * values from an MRC file header.
+ */
+int putimageref(float *delta, float *origin)
+{
+  IrefImage *iref;
+
+  if (!Fimod)
+    return(FWRAP_ERROR_NO_MODEL);
+  if (!Fimod->refImage) {
+    Fimod->refImage = (IrefImage *) malloc (sizeof(IrefImage));
+    if (!Fimod->refImage)
+      return FWRAP_ERROR_MEMORY;
+  }
+  iref = Fimod->refImage;
+  iref->cscale.x = delta[0];
+  iref->cscale.y = delta[1];
+  iref->cscale.z = delta[2];
+  iref->ctrans.x = origin[0];
+  iref->ctrans.y = origin[1];
+  iref->ctrans.z = origin[2];
+  return FWRAP_NOERROR;
+}
+
+/*!
  * Return a flag for each object in array [flags]; [limflags] specifies the 
  * maximum size of the array.  The flag is the sum of 0, 1 or 2 for closed,
  * open or scattered point object, plus 4 if the object has a mesh.
@@ -1486,7 +1675,9 @@ int putimodmaxes(int *xmax, int *ymax, int *zmax)
 
 /*!
  * Specifies a flag or value for object [objnum]; in external calls [flag]
- * should be 0 for closed contour, 1 for open contour, 2 for scattered points
+ * should be 0 for closed contour, 1 for open contour, 2 for scattered points,
+ * 7 to set IMOD_OBJFLAG_USE_VALUE in {flags} and MATFLAGS2_CONSTANT and 
+ * MATFLAGS2_SKIP_LOW in {matflags2}.
  */
 void putimodflag(int *objnum, int *flag)
 {
@@ -1536,7 +1727,7 @@ void fromvmsfloats(unsigned char *data, int *amt)
 /* DNM 5/15/02: put scattered point sizes out in flags with an offset */
 void putscatsize(int *objnum, int *size)
 {
-  int flag = (*size << FLAG_VALUE_SHIFT) | SCAT_SIZE_FLAG;
+  int flag = (*size << FLAG_VALUE_SHIFT) + SCAT_SIZE_FLAG;
   putimodflag(objnum, &flag);
 }
 
@@ -1545,7 +1736,7 @@ void putscatsize(int *objnum, int *size)
  */
 void putsymtype(int *objnum, int *type)
 {
-  int flag = (*type << FLAG_VALUE_SHIFT) | SYMBOL_TYPE_FLAG;
+  int flag = (*type << FLAG_VALUE_SHIFT) + SYMBOL_TYPE_FLAG;
   putimodflag(objnum, &flag);
 }
 
@@ -1553,15 +1744,15 @@ void putsymtype(int *objnum, int *type)
  * Sets the color for object [objnum] to [red], [green], [blue], where values
  * range from 0 to 255.
  */
-/* DNM 4/1/2/05: Add object color.  THIS WILL BREAK WITH TOO MANY FLAGS.
+/* DNM 4/1/2/05: Add object color.  
    This whole approach should be replaced with creating empty objects */
 void putobjcolor(int *objnum, int *red, int *green, int *blue)
 {
   int r = B3DMIN(255, B3DMAX(0, *red));
   int g = B3DMIN(255, B3DMAX(0, *green));
   int b = B3DMIN(255, B3DMAX(0, *blue));
-  int flag = (r << FLAG_VALUE_SHIFT) | (g << FLAG_VALUE_SHIFT + 8) |
-    (b << FLAG_VALUE_SHIFT + 16) | OBJECT_COLOR_FLAG;
+  int flag = ((r << FLAG_VALUE_SHIFT) | (g << FLAG_VALUE_SHIFT + 8) |
+              (b << FLAG_VALUE_SHIFT + 16)) + OBJECT_COLOR_FLAG;
   putimodflag(objnum, &flag);
 }
 
@@ -1570,7 +1761,18 @@ void putobjcolor(int *objnum, int *red, int *green, int *blue)
  */
 void putsymsize(int *objnum, int *size)
 {
-  int flag = (*size << FLAG_VALUE_SHIFT) | SYMBOL_SIZE_FLAG;
+  int flag = (*size << FLAG_VALUE_SHIFT) + SYMBOL_SIZE_FLAG;
+  putimodflag(objnum, &flag);
+}
+
+/*!
+ * Sets the {valblack} and {valwhite} members of object [objnum] to [black] and
+ * [white].
+ */
+void putvalblackwhite(int *objnum, int *black, int *white)
+{
+  int flag = (*black << FLAG_VALUE_SHIFT) + (*white << FLAG_VALUE_SHIFT + 8) +
+    VAL_BLACKWHITE_FLAG;
   putimodflag(objnum, &flag);
 }
 
@@ -1698,6 +1900,9 @@ int getimodnesting(int *ob, int *inOnly, int *level, int *inIndex,
 
 /*
 $Log$
+Revision 3.33  2008/04/04 21:20:51  mast
+Free contour after adding to object
+
 Revision 3.32  2007/09/20 02:44:11  mast
 Needed string include for memcpy
 
