@@ -10,6 +10,7 @@
  * Log at end of file
  */
 
+#include <math.h>
 #include "imodconfig.h"
 #include "b3dutil.h"
 
@@ -283,5 +284,8 @@ int findhistogramdip(float *values, int *numVals, int *minGuess, float *bins,
 /*
 
 $Log$
+Revision 1.1  2008/11/12 03:47:22  mast
+Added to library, simplified functions from imodfindbeads for fortran use
+
 
 */
