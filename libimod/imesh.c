@@ -18,9 +18,6 @@
 #include "imodel.h"
 #include "mkmesh.h"
 
-
-/*#define SKIN_DEBUG     */
-
 /*!
  * Creates a new mesh structure and sets its properties to the default, or
  * returns NULL for an allocation error.
@@ -381,7 +378,7 @@ float imeshVolume(Imesh *mesh, Ipoint *scale)
 float imeshSurfaceArea(Imesh *mesh, Ipoint *scale)
 {
   int i;
-  float tsa = 0.0f, sa = 0.0f;
+  double tsa = 0.0f;
   int listInc, vertBase, normAdd;
 
   Ipoint *p1, *p2, *p3, *p;
@@ -418,7 +415,7 @@ float imeshSurfaceArea(Imesh *mesh, Ipoint *scale)
         - (p1->x * p2->z * zs);
       n.z += (p1->x * p2->y)
         - (p1->y * p2->x);
-      tsa += (float)(sqrt(n.x*n.x + n.y*n.y + n.z*n.z) * 0.5f); 
+      tsa += (sqrt(n.x*n.x + n.y*n.y + n.z*n.z) * 0.5f); 
       break;
 
     case IMOD_MESH_BGNPOLYNORM2:
@@ -441,18 +438,18 @@ float imeshSurfaceArea(Imesh *mesh, Ipoint *scale)
         n2.z = (p3->z - p2->z) * zs;
         imodPointCross(&n1, &n2, &n);
 
-        tsa += (float)(sqrt(n.x*n.x + n.y*n.y + n.z*n.z) * 0.5);
+        tsa += (sqrt(n.x*n.x + n.y*n.y + n.z*n.z) * 0.5);
       }
            
       break;
            
     case IMOD_MESH_END:
-      return(tsa);
+      return((float)tsa);
            
     }
       
   }
-  return(tsa);
+  return((float)tsa);
 }
 
 /*!
@@ -620,6 +617,9 @@ int imeshCopySkipList(int *lfrom, int nfrom, int **lto, int *nto)
 /*
 
 $Log$
+Revision 3.7  2008/05/07 04:43:50  mast
+Added mesh bounding box function
+
 Revision 3.6  2006/09/13 23:53:17  mast
 Fixed skip list copy
 
