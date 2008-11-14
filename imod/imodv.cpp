@@ -262,7 +262,7 @@ static int getVisuals(ImodvApp *a)
   if (depthDB < 0 && depthSB < 0)
     return 1;
 
-  if (!depthDB || !depthSB)
+  if (!depthDB || (!depthSB && depthDB < 0))
     imodError(NULL, "3dmodv warning: using a visual with"
             " no depth buffer\n");
 
@@ -713,6 +713,9 @@ void imodvQuit()
 
 /*
 $Log$
+Revision 4.39  2008/10/02 22:43:51  mast
+Call window constructor with stereo capabilities
+
 Revision 4.38  2008/06/10 05:49:19  mast
 Add flag for drawing the light vector
 
