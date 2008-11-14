@@ -12,7 +12,7 @@
 
 #include <math.h>
 #include "imodconfig.h"
-#include "b3dutil.h"
+#include "cfsemshare.h"
 
 #ifdef F77FUNCAP
 #define avgsd AVGSD
@@ -372,5 +372,8 @@ void lsfit2pred(float *x1, float *x2, float *y, int *n, float *a, float *b,
 /*
 
 $Log$
+Revision 1.1  2008/11/14 19:58:56  mast
+Switched to C versions
+
 
 */
