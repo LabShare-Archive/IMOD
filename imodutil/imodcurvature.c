@@ -31,7 +31,7 @@ static int encodeCurvature(Imod *mod, int obnum, float rCritLo, float rCritHi,
                            unsigned char *red, unsigned char *green, 
                            unsigned char *blue, int storeVals, float zrange,
                            float zscale, int rotateWild, float cylSearch,
-                           int verbose, int testCo, int TestPt);
+                           int verbose, int testCo, int TestPt, int printMean);
 static int farthestPoint(float *xx, float *yy, int numPts, int icen);
 static int fitCylinder(float *xx3, float *yy3, float *zz3, float *xxr,
                        float *yyr, int numPts, float delt, float *rad,
@@ -74,6 +74,7 @@ int main( int argc, char *argv[])
   int pointSize = 0;
   int storeVals = 0;
   int storeKappa = 0;
+  int printMean = 0;
   int red, green, blue;
   unsigned char cmap[3][256];
   float fitCrit = 0.;
@@ -94,15 +95,16 @@ int main( int argc, char *argv[])
   int numOptArgs, numNonOptArgs;
   
   /* Fallbacks from    ../manpages/autodoc2man 2 1 imodcurvature  */
-  int numOptions = 20;
+  int numOptions = 21;
   char *options[] = {
-    "in:InputFile:FN:", ":OutputFile:FN:", "wl:WindowLength:FP:",
+    "in:InputFile:FN:", ":OutputFile:FN:", "wl:WindowLength:F:",
     "zr:ZRangeToFit:F:", "cy:CylinderSearchAngle:F:",
     "rc:RadiusCriterion:FP:", "fc:FitCriterion:F:", "ob:ObjectsToDo:LI:",
-    "ro:RotateToXYPlane:B:", "ps:PointSize:B:", "sy:SymbolZoom:F:",
-    "co:Color:ITM:", "di:DivideRange:B:", "pa:UsePalette:FN:",
-    "st:StoreValues:B:", "kappa:KappaValues:B:", "sa:SampleSpacing:F:",
-    "ve:Verbose:B:", "tc:TestCircleFits:B:", "ts:TestSphereFits:IP:"};
+    "ro:RotateToXYPlane:B:", "st:StoreValues:B:", "kappa:KappaValues:B:",
+    "ps:PointSize:B:", "sy:SymbolZoom:F:", "co:Color:ITM:",
+    "di:DivideRange:B:", "pa:UsePalette:FN:", "sa:SampleSpacing:F:",
+    "me:MeanStored:I:", "ve:Verbose:B:", "tc:TestCircleFits:B:",
+    "ts:TestSphereFits:IP:"};
 
   /* Startup with fallback */
   PipReadOrParseOptions(argc, argv, options, numOptions, progname, 
@@ -124,6 +126,7 @@ int main( int argc, char *argv[])
   PipGetBoolean("TestCircleFits", &testcurve);
   PipGetBoolean("RotateToXYPlane", &rotateWild);
   PipGetFloat("CylinderSearchAngle", &cylSearch);
+  PipGetInteger("MeanStored", &printMean);
   
   if (!testcurve) {
 
@@ -238,7 +241,7 @@ int main( int argc, char *argv[])
                           &cmap[0][colorInd], &cmap[1][colorInd], 
                           &cmap[2][colorInd], storeVals, zrange,
                           model->zscale, rotateWild, cylSearch, verbose,
-                          testCo, testPt))
+                          testCo, testPt, printMean))
         exitError("Error allocating memory in curvature routine");
 
       if (numColors && !divColors && colorInd < numColors - 1)
@@ -303,14 +306,14 @@ int encodeCurvature(Imod *model, int obnum, float rCritLo, float rCritHi,
                     unsigned char *red, unsigned char *green, 
                     unsigned char *blue, int storeVals, float zrange,
                     float zscale, int rotateWild, float cylSearch, int verbose,
-                    int testCo, int testPt)
+                    int testCo, int testPt, int printMean)
 {
   Iobj *obj = &model->obj[obnum];
   Icont *cont;
   Icont *cont2;
   Icont *minCont;
   Icont *rcont;
-  int co, pt, indCol, maxSamp, activeSym;
+  int co, pt, indCol, maxSamp, activeSym, numStore, obNumStore;
   float *xx, *yy, *zz = NULL;
   float *xxrot, *yyrot;
   float xcen, ycen, zcen, rad, rmsErr, dval, frac, radsto;
@@ -321,8 +324,8 @@ int encodeCurvature(Imod *model, int obnum, float rCritLo, float rCritHi,
   Istore store;
   Ilist *list;
   Ipoint scale, *cenPoint, point, norm, axisPt1, axisPt2;
-  double alpha, beta;
-  float alphas, gammas;
+  double alpha, beta, radsum, obRadsum, radsq, obRadsq;
+  float alphas, gammas, avgsto, sdsto;
   double dtor = 0.017453293;
   ConnectedCont conCont;
   ConnectedCont *conItem;
@@ -338,6 +341,9 @@ int encodeCurvature(Imod *model, int obnum, float rCritLo, float rCritHi,
   needFull = iobjOpen(obj->flags) ? -1 : 1;
   numContDone = 0;
   numPtDone = 0;
+  obRadsum = 0.;
+  obRadsq = 0.;
+  obNumStore = 0;
 
   /* Make the arrays generously large */
   maxSamp = (int)(window / sample + 10.);
@@ -365,6 +371,9 @@ int encodeCurvature(Imod *model, int obnum, float rCritLo, float rCritHi,
   for (co = 0; co < obj->contsize; co++) {
     cont = &obj->cont[co];
     ifDidCont = 0;
+    numStore = 0;
+    radsum = 0.;
+    radsq = 0.;
 
     if (cont->psize < 3 || (testCo >= 0 && testCo != co))
       continue;
@@ -699,6 +708,9 @@ int encodeCurvature(Imod *model, int obnum, float rCritLo, float rCritHi,
         valMin = B3DMIN(valMin, radsto);
         valMax = B3DMAX(valMax, radsto);
         activeVal = 1;
+        numStore = numStore + 1;
+        radsum = radsum + radsto;
+        radsq = radsq + radsto * radsto;
       }
 
       /* Otherwise end the change */
@@ -727,6 +739,21 @@ int encodeCurvature(Imod *model, int obnum, float rCritLo, float rCritHi,
       imodMatDelete(mat);
       imodContourDelete(rcont);
     }
+
+    obRadsum += radsum;
+    obRadsq += radsq;
+    obNumStore += numStore;
+    if (numStore && printMean > 1) {
+      sumsToAvgSDdbl(radsum, radsq, numStore, 1, &avgsto, &sdsto);
+      printf("Contour %d, stored value mean and SD: %f  %f\n", co + 1, avgsto, 
+             sdsto);
+    }
+  }
+
+  if (obNumStore && printMean > 0) {
+    sumsToAvgSDdbl(obRadsum, obRadsq, obNumStore, 1, &avgsto, &sdsto);
+    printf("Object %d, stored value mean and SD: %f  %f\n", obnum + 1, avgsto, 
+           sdsto);
   }
 
   if (zrange) {
@@ -1137,6 +1164,10 @@ static int farthestPoint(float *xx, float *yy, int numPts, int icen)
 /*
 
 $Log$
+Revision 3.13  2008/06/08 21:34:35  mast
+Implemented cylinder fitting with inefficient search, fixed bug in deciding
+if there are enough points in window.
+
 Revision 3.12  2007/10/18 20:17:43  mast
 Fixed log indentation
 
