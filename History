@@ -1,5 +1,8 @@
 IMOD History
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+11/13/08: Made Tilt able to project a model built on a tomogram onto all the
+images used to build the tomogram.
+
 11/13/08: In Imodinfo, added a computation of volume inside a mesh, renamed
 "mesh volume" to "contour volume", and made it omit the "cylinder" values
 if the mesh-based values exist.

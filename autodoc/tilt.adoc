@@ -26,6 +26,18 @@ manpage = Reconstruction file to reproject.  When using this option, all of the
 entries to the program used when building this reconstruction should be
 included as well.
 
+[Field = ProjectModel]
+type = FN
+usage = Model file with point positions to reproject (output is a model)
+tooltip = 
+manpage = Model file with point positions to reproject onto the projection
+images.  The output file will be a model.  All of the other parameter entries
+should be the same as were used for generating the tomogram upon which the 
+model was built.  Points will be output only for the views included in that
+tomogram.  The model header will be set so that the model will display
+properly on both the aligned stack used to generate the tomogram and on
+aligned stacks at other binnings.
+
 [Field = BaseRecFile]
 type = FN
 usage = Previous reconstruction file to add to or subtract from
