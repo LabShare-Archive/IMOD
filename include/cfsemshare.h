@@ -101,6 +101,21 @@ extern "C" {
                        int numBins, float firstVal, float lastVal, 
                        float *histDip, float *peakBelow, float *peakAbove,
                        int verbose);
+  /* simplestat.c */
+  void avgSD(float *x, int n, float *avg, float *sd, float *sem);
+  void sumsToAvgSD(float sx, float sxsq, int n, float *avg, float *sd);
+  void sumsToAvgSDdbl(double sx8, double sxsq8, int n1, int n2, float *avg,
+                      float *sd);
+  void lsFit(float *x, float *y, int num, float *slope, float *intcp,
+             float *ro);
+  void lsFitPred(float *x, float *y, int n, float *slope, float *bint,
+                 float *ro, float *sa, float *sb, float *se,
+                 float xpred, float *ypred, float *prederr);
+  void lsFit2(float *x1, float *x2, float *y, int n, float *a, float *b,
+              float *c);
+  void lsFit2Pred(float *x1, float *x2, float *y, int n, float *a, float *b, 
+                  float *c, float x1pred, float x2pred, float *ypred,
+                  float *prederr);
 
 #ifdef __cplusplus
 }
@@ -110,7 +125,11 @@ extern "C" {
 #endif
 
 /*
+
 $Log$
+Revision 3.6  2008/11/12 03:41:42  mast
+Added histogram functions
+
 Revision 3.5  2008/06/24 04:44:11  mast
 Added taper function
 
