@@ -62,10 +62,13 @@
 #define getimodverts GETIMODVERTS
 #define putimodflag  PUTIMODFLAG
 #define fromvmsfloats FROMVMSFLOATS
+#define getscatsize  GETSCATSIZE
 #define putscatsize  PUTSCATSIZE
 #define putsymsize   PUTSYMSIZE
 #define putsymtype   PUTSYMTYPE
 #define putobjcolor PUTOBJCOLOR
+#define getpointvalue GETPOINTVALUE
+#define getcontvalue GETCONTVALUE
 #define putpointvalue PUTPOINTVALUE
 #define putcontvalue PUTCONTVALUE
 #define putvalblackwhite PUTVALBLACKWHITE
@@ -105,10 +108,13 @@
 #define getimodverts getimodverts_
 #define putimodflag  putimodflag_
 #define fromvmsfloats fromvmsfloats_
+#define getscatsize  getscatsize_
 #define putscatsize  putscatsize_
 #define putsymsize   putsymsize_
 #define putsymtype   putsymtype_
 #define putobjcolor putobjcolor_
+#define getpointvalue getpointvalue_
+#define getcontvalue getcontvalue_
 #define putpointvalue putpointvalue_
 #define putcontvalue putcontvalue_
 #define putvalblackwhite putvalblackwhite_
@@ -177,6 +183,7 @@ static ValueStruct *values_put = NULL;
 #define OBJECT_COLOR_FLAG 6
 #define USE_VALUE_FLAGS  7
 #define VAL_BLACKWHITE_FLAG  8
+#define PNT_ON_SEC_FLAG 9
 
 #define FLAG_VALUE_SHIFT 8
 
@@ -725,7 +732,7 @@ int getimodsizes(int *ob, float *sizes, int *limsizes, int *nsizes)
  * Returns the values in the point size array for contour [co] of object [ob]
  * into array [sizes]; [limsizes] specifies the size of the array and the 
  * number of points is returned in [nsizes].  The array contains a -1 for 
- * points with the deafult size.  Returns no points if there is no
+ * points with the default size.  Returns no points if there is no
  * point size array.
  */
 int getcontpointsizes(int *ob, int *co, float *sizes, int *limsizes, 
@@ -1258,6 +1265,12 @@ int writeimod(char *fname, int fsize)
           objview->valwhite = obj->valwhite;
         }
         break;
+      case PNT_ON_SEC_FLAG:
+        obj->flags |= IMOD_OBJFLAG_PNT_ON_SEC;
+        if (objview)
+          objview->pdrawsize = obj->pdrawsize;
+        break;
+
       }
     }
   }
@@ -1677,7 +1690,7 @@ int putimodmaxes(int *xmax, int *ymax, int *zmax)
  * Specifies a flag or value for object [objnum]; in external calls [flag]
  * should be 0 for closed contour, 1 for open contour, 2 for scattered points,
  * 7 to set IMOD_OBJFLAG_USE_VALUE in {flags} and MATFLAGS2_CONSTANT and 
- * MATFLAGS2_SKIP_LOW in {matflags2}.
+ * MATFLAGS2_SKIP_LOW in {matflags2}, and 9 to set IMOD_OBJFLAG_PNT_ON_SEC.
  */
 void putimodflag(int *objnum, int *flag)
 {
@@ -1719,6 +1732,20 @@ void putimodrotation(float *xrot, float *yrot, float *zrot)
 void fromvmsfloats(unsigned char *data, int *amt)
 {
   imodFromVmsFloats(data, *amt);
+}
+
+/*!
+ * Returns the 3D point size for [objnum] into [size]
+ */
+int getscatsize(int *objnum, int *size)
+{
+  int ob = *objnum -1;
+  if (!Fimod)
+    return FWRAP_ERROR_NO_MODEL;
+  if (ob < 0 || ob >= Fimod->objsize)
+    return FWRAP_ERROR_BAD_OBJNUM;
+  *size = Fimod->obj[ob].pdrawsize;
+  return FWRAP_NOERROR;
 }
 
 /*!
@@ -1900,6 +1927,10 @@ int getimodnesting(int *ob, int *inOnly, int *level, int *inIndex,
 
 /*
 $Log$
+Revision 3.34  2008/11/12 03:41:25  mast
+Added functions for getting/setting values and related flags and setting
+image reference values from origin values
+
 Revision 3.33  2008/04/04 21:20:51  mast
 Free contour after adding to object
 
