@@ -1,5 +1,7 @@
 IMOD History
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+11/14/08: Added ption to imodcurvature for getting mean of stored values.
+
 11/13/08: Made Tilt able to project a model built on a tomogram onto all the
 images used to build the tomogram.
 

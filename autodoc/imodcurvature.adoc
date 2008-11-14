@@ -19,7 +19,7 @@ must be entered with the second non-option argument.
 
 [Field = WindowLength]
 short = wl
-type = FP
+type = F
 usage = Window length over which to fit circle
 tooltip = 
 manpage = Length in pixels over which to fit a circle to the contour data
@@ -84,6 +84,34 @@ manpage = Rotate contours that are not all in one X/Y plane into the
 best-fitting X/Y plane.  Circles will be fit to the rotated contour.  This
 option cannot be used with the -zr option for spherical fitting.
 
+[Field = StoreValues]
+short = st
+type = B
+usage = Store radius of curvature values in the model
+tooltip = 
+manpage = Store the radius of curvature values directly in the model.  They
+can then be visualized as intensity variations or in false color by activating
+the option to "Show stored values" in the Values panel of the model view
+Object Edit window of 3dmod.  This option allows dynamic adjustment of the
+displayed colors.  These radius values will be scaled by the pixel size
+defined in the model, unlike all other radius values, which are in pixels.
+
+[Field = KappaValues]
+short = kappa
+type = B
+usage = Store curvature values (1/radius) in the model
+tooltip = 
+manpage = Store curvature values, which are the inverse of the radius of
+curvature, in the model.  This curvature is commonly referred to as kappa.
+To keep values from becoming too small, they will be multiplied by 1000 if
+the pixel size is greater than 0.05.  Thus, for typical pixel sizes in
+nanometers, the curvatures will be in reciprocal microns.
+This measure could be advantageous if you are interested in seeing the
+values for regions with little or no curvature while still seeing distinctions
+among regions with moderate curvature.  The curvature value
+goes to zero, while radius of curvature becomes very large and compresses the
+dynamic range.
+
 [Field = PointSize]
 short = ps
 type = B
@@ -142,40 +170,20 @@ indicating the relative location of that value along the 256-color range.
 These location values must be in order.  If the colors being specified are to
 be equally spaced, the location values can simply be sequential values.
 
-[Field = StoreValues]
-short = st
-type = B
-usage = Store radius of curvature values in the model
-tooltip = 
-manpage = Store the radius of curvature values directly in the model.  They
-can then be visualized as intensity variations or in false color by activating
-the option to "Show stored values" in the Values panel of the model view
-Object Edit window of 3dmod.  This option allows dynamic adjustment of the
-displayed colors.  These radius values will be scaled by the pixel size
-defined in the model, unlike all other radius values, which are in pixels.
-
-[Field = KappaValues]
-short = kappa
-type = B
-usage = Store curvature values (1/radius) in the model
-tooltip = 
-manpage = Store curvature values, which are the inverse of the radius of
-curvature, in the model.  This curvature is commonly referred to as kappa.
-To keep values from becoming too small, they will be multiplied by 1000 if
-the pixel size is greater than 0.05.  Thus, for typical pixel sizes in
-nanometers, the curvatures will be in reciprocal microns.
-This measure could be advantageous if you are interested in seeing the
-values for regions with little or no curvature while still seeing distinctions
-among regions with moderate curvature.  The curvature value
-goes to zero, while radius of curvature becomes very large and compresses the
-dynamic range.
-
 [Field = SampleSpacing]
 short = sa
 type = F
 usage = Spacing of sample points along contour for fitting (default 2)
 tooltip = 
 manpage = 
+
+[Field = MeanStored]
+short = me
+type = I
+usage = 1 or 2 for mean of values stored for each object or contour
+tooltip = 
+manpage = Use this option to get an output of the mean value stored in the
+model for each object (1) or for each contour (2).
 
 [Field = Verbose]
 short = ve
