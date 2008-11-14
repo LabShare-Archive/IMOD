@@ -17,34 +17,45 @@ measurements are generally expressed in terms of the units of the pixel size
 defined in the model header (e.g., nm or microns), if one is defined.  A
 Z-scale in the model header is also applied as appropriate.
 
-The program computes surface area and volume in two different ways, depending
-upon whether an object is meshed or not:
+The program computes surface area and volume in several different ways,
+depending upon whether an object is meshed or not:
 .br
-     1) Volume is computed without
-mesh information by taking the area of each contour times the thickness of
+     1) If there is no mesh information, volume is computed 
+by taking the area of each contour times the thickness of
 the sections (defined by pixel size and Z-scale), summed over all of the
 contours.  This is referred to as cylinder volume.  It will be inaccurate
 if you skipped sections in modeling, especially if you skipped sections
 routinely.  Other than this, it will be very close to correct.
 .br
-     2) With mesh information, the program determines which contours are
+     2) If there is no mesh information, surface area is computed by taking
+the length of each contour times the section thickness, summed over all
+contours.  This is referred to as cylinder surface area and it is grossly
+inaccurate.
+.br
+     3) With mesh information, the program determines which contours are
 connected to other contours or to cap points by a mesh, and sums the area of
 contours times the distance to the connected contours in Z.  This measure is
-referred to as the mesh volume because it uses mesh information, even though
-it is not the volume inside the mesh.  It handles the problem of skipped
-sections and also gives a slightly more accurate volume measurement for the
-capped regions because it integrates with a trapezoidal approximation.
+now referred to as the contour volume.  (It used to be referred to as mesh
+volume because it uses mesh information, even though it is not the volume
+inside the mesh.)  It handles the problem of skipped sections and also gives a
+slightly more accurate volume measurement for the capped regions because it
+integrates with a trapezoidal approximation.  This computation is valid only
+for closed contour, planar objects.
 .br
-     3) Surface area is computed without mesh information by taking the length
-of each contour times the section thickness, summed over all contours.  This
-is referred to as cylinder surface area and it is grossly inaccurate.
+     4) With a mesh, the program also computes a volume from the mesh by
+summing the volumes of tetraheda formed between each mesh triangle and a
+single point at the center of the mesh.  This is referred to as the volume
+inside the mesh.  It will be slightly more accurate than the contour volume if
+the mesh completely encloses the volume, but it can be quite inaccurate if the
+mesh is not capped.  This computation is valid for any fully meshed volume,
+including tubular meshes around an open contour.
 .br
-     4) With a mesh, surface area is computed by adding the areas of all the
+     5) With a mesh, surface area is computed by adding the areas of all the
 triangles in the mesh.  This is referred to as mesh surface area and it is
 an exact measure of the area of the mesh.  However, to the extent that the
 mesh is not smooth, it can overestimate the true surface
 area of the object.
-
+.br 
 If any of your model objects has complex topology, with contours inside of
 other contours, the computed volumes will not be correct unless the program
 analyzes for inside contours, which it does not do by default.  Use

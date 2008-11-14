@@ -1,5 +1,9 @@
 IMOD History
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+11/13/08: In Imodinfo, added a computation of volume inside a mesh, renamed
+"mesh volume" to "contour volume", and made it omit the "cylinder" values
+if the mesh-based values exist.
+
 11/11/08: IMOD_3-12-21
 11/11/08: Fixed problem with bead fixer when prealigned stack loaded binned.
 
