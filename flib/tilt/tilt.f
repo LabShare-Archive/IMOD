@@ -50,7 +50,7 @@ C       Open files and read control data
       if (iflog .ne. 0) edgeFill = alog10(max(valmin, pmean + baselog))
       edgeFill = edgeFill * zeroWeight
       
-c      print *,'scale=',scale,'  edgefill=',edgefill
+      if (debug)  print *,'iflog=',iflog,' scale=',scale,'  edgefill=',edgefill
 c       
 c       recompute items not in common
 c       
@@ -1498,7 +1498,7 @@ C
       character*80 titlech
 C       
       Character*1024 card
-      CHARACTER*160 FILIN,FILOUT,recfile,basefile
+      CHARACTER*320 FILIN,FILOUT,recfile,basefile
       integer*4 nfields,inum(limnum)
       real*4 XNUM(limnum)
 c       
@@ -1517,7 +1517,7 @@ c
       integer*4 ifThickIn,ifSliceIn,ifWidthIn,imageBinned,ifSubsetIn,ierr
       real*4 pixelLocal, dmint,dmaxt,dmeant, frac, origx, origy, origz
       integer*4 nViewsReproj, iwideReproj, k, ind1, ind2, ifExpWeight
-      logical*4 adjustOrigin
+      logical*4 adjustOrigin, projModel, readSmallMod
       integer*4 licenseusfft,niceframe
 c
       integer*4 numOptArg, numNonOptArg
@@ -1529,21 +1529,23 @@ c
 c       fallbacks from ../../manpages/autodoc2man -2 2  tilt
 c       
       integer numOptions
-      parameter (numOptions = 47)
+      parameter (numOptions = 53)
       character*(40 * numOptions) options(1)
       options(1) =
      &    'input:InputProjections:FN:@output:OutputFile:FN:@'//
-     &    'recfile:RecFileToReproject:FN:@:AdjustOrigin:B:@:ANGLES:FAM:@'//
+     &    'recfile:RecFileToReproject:FN:@:ProjectModel:FN:@'//
+     &    ':BaseRecFile:FN:@:AdjustOrigin:B:@:ANGLES:FAM:@:BaseNumViews:I:@'//
      &    ':COMPFRACTION:F:@:COMPRESS:FAM:@:COSINTERP:IA:@:DENSWEIGHT:FA:@'//
      &    ':DONE:B:@:EXCLUDELIST2:LIM:@:FlatFilterFraction:F:@:FBPINTERP:I:@'//
-     &    ':FULLIMAGE:IP:@:IMAGEBINNED:I:@:INCLUDE:LIM:@:LOCALFILE:FN:@'//
-     &    ':LOCALSCALE:F:@:LOG:F:@:MASK:F:@:MODE:I:@:OFFSET:FA:@'//
-     &    ':PARALLEL:B:@:PERPENDICULAR:B:@:RADIAL:FP:@:REPLICATE:FPM:@'//
-     &    ':REPROJECT:FAM:@:SCALE:FP:@:SHIFT:FA:@:SLICE:FA:@'//
-     &    ':SUBSETSTART:IP:@:THICKNESS:I:@:TILTFILE:FN:@:TITLE:CH:@'//
-     &    ':TOTALSLICES:IP:@:ViewsToReproject:LI:@:WeightFile:FN:@:WIDTH:I:@'//
-     &    ':XAXISTILT:F:@xminmax:XMinAndMaxReproj:IP:@:XTILTFILE:FN:@'//
-     &    ':XTILTINTERP:I:@yminmax:YMinAndMaxReproj:IP:@:ZFACTORFILE:FN:@'//
+     &    ':FULLIMAGE:IP:@:IMAGEBINNED:I:@:INCLUDE:LIM:@'//
+     &    ':SubtractFromBase:LI:@:LOCALFILE:FN:@:LOCALSCALE:F:@:LOG:F:@'//
+     &    ':MASK:F:@:MinMaxMean:IT:@:MODE:I:@:OFFSET:FA:@:PARALLEL:B:@'//
+     &    ':PERPENDICULAR:B:@:RADIAL:FP:@:REPLICATE:FPM:@:REPROJECT:FAM:@'//
+     &    ':SCALE:FP:@:SHIFT:FA:@:SLICE:FA:@:SUBSETSTART:IP:@:THICKNESS:I:@'//
+     &    ':TILTFILE:FN:@:TITLE:CH:@:TOTALSLICES:IP:@:ViewsToReproject:LI:@'//
+     &    ':WeightAngleFile:FN:@:WeightFile:FN:@:WIDTH:I:@:XAXISTILT:F:@'//
+     &    'xminmax:XMinAndMaxReproj:IP:@:XTILTFILE:FN:@:XTILTINTERP:I:@'//
+     &    'yminmax:YMinAndMaxReproj:IP:@:ZFACTORFILE:FN:@'//
      &    'zminmax:ZMinAndMaxReproj:IP:@param:ParameterFile:PF:@help:usage:B:'
 c       
       recReproj = .false.
@@ -1574,8 +1576,15 @@ c
       newangles=0
       iftiltfile=0
 c       
+c       Get model file to project
+      projModel = PipGetString('ProjectModel', recfile) .eq. 0
+      if (projModel .and. .not.readSmallMod(recfile)) call exitError(
+     &    'READING MODEL FILE TO REPROJECT')
+c       
 c       Get entries for reprojection from rec file
       if (PipGetString('RecFileToReproject', recfile) .eq. 0) then
+        if (projModel) call exitError(
+     &      'YOU CANNOT USE -RecFileToReproject with -ProjectModel')
         recReproj = .true.
         projMean = pmean
         call imclose(1)
@@ -1607,12 +1616,10 @@ c       Get entries for reprojection from rec file
       endif
 
       if (PipGetString('BaseRecFile', basefile) .eq. 0) then
-c        if (recReproj) call exitError(
-c     &      'YOU CANNOT ENTER BOTH A BASE FILE AND FILE TO REPROJECT')
         readBase = .true.
         if (PipGetInteger('BaseNumViews', numViewBase) .ne. 0) call exitError(
      &      'YOU MUST ENTER -BaseNumViews with -BaseRecFile')
-        if (.not. recReproj) then
+        if (.not. recReproj .and. .not.projModel) then
           call imopen(3, basefile, 'RO')
           call irdhdr(3,NRXYZ,MPXYZ,MODE,dmint,dmaxt,dmeant)
         endif
@@ -2078,6 +2085,9 @@ C
      &    'Cannot do chunk writing with parallel slices')
       if (nreproj .gt. 0 .and. nViewsReproj .gt. 0) call exitError(
      &    'You cannot enter both views and angles to reproject')
+      if (projModel .and. (nreplic .gt. 1 .or. nreproj .gt. 0 .or.
+     &    nViewsReproj .gt. 0)) call exitError('You cannot do projection '//
+     &    'from a model with image reprojection or replication')
 c       
 c       scale dimensions down by binning then report them
 c       
@@ -2105,7 +2115,8 @@ c
         endif
       endif
       if (recReproj) then
-        print *,minTotSlice,maxTotSlice,minZreproj,maxZreproj,nrxyz(3)
+        if (debug)
+     &      print *,minTotSlice,maxTotSlice,minZreproj,maxZreproj,nrxyz(3)
         if ((minTotSlice .le. 0 .and. (minZreproj .le. 0 .or. maxZreproj .gt.
      &      nrxyz(3))) .or. (minTotSlice .ge. 0 .and.
      &      maxTotSlice .gt. nrxyz(3))) call exitError(
@@ -2323,18 +2334,20 @@ c       Check compatibility of base rec file
 c       
 c       open old file if in chunk mode and there is real starting slice
 c       otherwise open new file
-c
-      if (minTotSlice .gt. 0 .and. ((.not.recReproj .and. islice .gt. 0) .or.
-     &    (recReproj .and. minZreproj .gt. 0))) then
-        CALL IMOPEN(2,FILOUT,'OLD')
-        CALL IRDHDR(2,NOXYZ,MPXYZ,newmode,dmint,dmaxt,dmeant)
-      else
-        CALL IMOPEN(2,FILOUT,'NEW')
-        CALL ICRHDR(2,NOXYZ,NOXYZ,newmode,title,0)
-c        print *,'created',NOXYZ
+c       
+      if (.not.projModel) then
+        if (minTotSlice .gt. 0 .and. ((.not.recReproj .and. islice .gt. 0) .or.
+     &      (recReproj .and. minZreproj .gt. 0))) then
+          CALL IMOPEN(2,FILOUT,'OLD')
+          CALL IRDHDR(2,NOXYZ,MPXYZ,newmode,dmint,dmaxt,dmeant)
+        else
+          CALL IMOPEN(2,FILOUT,'NEW')
+          CALL ICRHDR(2,NOXYZ,NOXYZ,newmode,title,0)
+c           print *,'created',NOXYZ
+        endif
+        CALL ITRLAB(2,1)
+        call ialcel(2,cell)
       endif
-      CALL ITRLAB(2,1)
-      call ialcel(2,cell)
 c       
 c       if doing perpendicular slices, set up header info to make coordinates
 c       congruent with those of tilt series
@@ -2360,23 +2373,28 @@ c           Legacy origin.  All kinds of wrong.
           origy = cell(2)/2.
           origz = float(sign(max(0,islice-1),-idelslice))
         endif
-        call ialorg(2,origx, origy, origz)
-        call ialtlt(2,outilt)
+
+        if (.not.projModel) then
+          call ialorg(2,origx, origy, origz)
+          call ialtlt(2,outilt)
+        endif
       endif
 c       
 c       chunk mode starter run: write header and exit
 c
-      if (minTotSlice .gt. 0 .and. ((.not.recReproj .and. islice .le. 0) .or.
-     &    (recReproj .and. minZreproj .le. 0))) then
-        CALL IWRHDR(2,TITLE,1,PMIN,PMAX,PMEAN)
-        CALL IMCLOSE(2)
-        print *,'Exiting after setting up output file for chunk writing'
-        call exit(0)
-      endif
-      if (minTotSlice .gt. 0 .and. .not.recReproj) then
-        call imposn(2, islice - minTotSlice, 0)
-        if (readBase .and. .not. recReproj)
-     &      call imposn(3, islice - minTotSlice, 0)
+      if (.not.projModel) then
+        if (minTotSlice .gt. 0 .and. ((.not.recReproj .and. islice .le. 0) .or.
+     &      (recReproj .and. minZreproj .le. 0))) then
+          CALL IWRHDR(2,TITLE,1,PMIN,PMAX,PMEAN)
+          CALL IMCLOSE(2)
+          print *,'Exiting after setting up output file for chunk writing'
+          call exit(0)
+        endif
+        if (minTotSlice .gt. 0 .and. .not.recReproj) then
+          call imposn(2, islice - minTotSlice, 0)
+          if (readBase .and. .not. recReproj)
+     &        call imposn(3, islice - minTotSlice, 0)
+        endif
       endif
 c
 c       If reprojecting, need to look up each angle in full list of angles and
@@ -2583,6 +2601,10 @@ c
         iyswarp=iyswarp-iysubset
       endif
 c       
+c       Here is the place to project model points and exit
+      if (projModel) call projectModel(filout, delta, nvorig, array,
+     &    array(limstack/2))
+c       
 c       If reprojecting, set the pointers and return
       if (recReproj) then
         fastbp = .false.
@@ -2609,6 +2631,7 @@ c         Get projection offsets and replace the slice limits
         nbase = iwide + 1
         ipextra = 0
         npad = 0
+        if (debug) print *,'scale: ', scale,flevl
         return
       endif
 c       
@@ -2626,12 +2649,12 @@ c       If reading base, figure out total views being added and adjust scales
         baseFlevl = flevl * (numViewBase * nreplic)
         scale = scale / ((iv + numViewBase) * nreplic)
         flevl = flevl * ((iv + numViewBase) * nreplic)
-c        print *,'base: ', baseScale,baseFlevl
+        if (debug)  print *,'base: ', baseScale,baseFlevl
       else
         scale=scale/(nviews*nreplic)
         flevl=flevl*nviews*nreplic
       endif
-c      print *,'scale: ', scale,flevl
+      if (debug) print *,'scale: ', scale,flevl
 c       
 c       determine if fast bp can be used
 c       
@@ -3390,12 +3413,12 @@ c               Get y slice for this z value
               yy = (yproj + zz * (salf - yzfac(iv)) - slicen) / calf
               yslice = yy + slicen - yprjOffset
               if (ifalpha .eq. 0) yslice = line
-c              print *,kz,zz,iz,fz,omfz,yproj,yy,yslice
+c              if (line.eq.591)print *,kz,zz,iz,fz,omfz,yproj,yy,yslice
               if (yslice .lt. inloadstr - ytol .or.
      &            yslice .gt. inloadend + ytol) then
 c                 
 c                 Really out of bounds, do fill
-c                print *,'Out of bounds, view, line, zz',iv, line, zz
+c                if (line.eq.591)print *,'Out of bounds, view, line, zz',iv, line, zz
                 do i = 0, iwide - 1
                   array(imap + i) = array(imap + i) + pmean
                 enddo
@@ -3438,6 +3461,7 @@ c                 get ending X coordinate, fill to right
 c                 
 c                 Add the line in: do simple 2x2 interpolation if no alpha
                 indbase = nbase + iplane * (iys - inloadstr) + (iz - 1) *nxload
+c                if (line.eq.591) print *,ixst,ixnd
                 if (ifalpha .eq. 0) then
                   do i = ixst - 1, ixnd - 1
                     ix = xx
@@ -3448,6 +3472,8 @@ c                 Add the line in: do simple 2x2 interpolation if no alpha
      &                  omfz * fx * array(ind + 1) +
      &                  fz * omfx * array(ind + nxload) +
      &                  fz * fx * array(ind + nxload + 1)
+c                    if (line.eq.591.and.i.eq.164) print *,array(imap+i),array(ind),
+c     &                  array(ind + 1),array(ind + nxload),array(ind + nxload + 1)
                     xx = xx + delx
                   enddo
                 else
@@ -3778,6 +3804,7 @@ c       Write the line after scaling.  Scale log data to give approximately
 c       constant mean levels.  Descale non-log data by exposure weights
       if (iflog .ne. 0) then
         val = alog10(projMean + baselog) - ithickReproj * pmean / cbet(iv)
+        if (debug) print *,iv,line,val
         do i = 0, iwide - 1
           array(imap + i) = 10**(array(imap + i) + val) - baselog
         enddo
@@ -3788,6 +3815,8 @@ c       constant mean levels.  Descale non-log data by exposure weights
       endif
       do i = 0, iwide - 1
         val = array(imap + i)
+        if (debug .and. val .lt. dmin) print *,'min:',i,val
+        if (debug .and. val .gt. dmax) print *,'max:',i,val
         dmin = min(dmin, val)
         dmax = max(dmax, val)
         dtot8 = dtot8 + val
@@ -3799,8 +3828,145 @@ c       constant mean levels.  Descale non-log data by exposure weights
       return
       end
 
+
+c       Projects model points onto the included views
+c
+      subroutine projectModel(filout, delta, nvorig, coords, values)
+      implicit none
+      include 'tilt.inc'
+      include 'smallmodel.inc'
+      character*(*) filout
+      real*4 delta(3), orig(3), coords(3,*), values(*)
+      integer*4 mapnv(limview), nvorig, ibase, numPt, iobj, ipt, ip1, iv, nv
+      real*4 value, rj, ri, rlslice, zz, yy, zpart, xproj, yproj
+      integer*4 j, lslice, imodobj, imodcont, ierr, size
+      real*4 fj, fls, f11, f12, f21, f22, xf11, xz11, yf11, yz11
+      real*4 xf21, xz21, yf21, yz21,xf12, xz12, yf12, yz12,xf22, xz22, yf22
+      real*4 yz22, xprojf, xprojz, yprojf, yprojz
+      integer*4 getContValue, putImageRef, putContValue, putImodFlag
+      integer*4 getScatSize, putScatSize
+c
+      call irtorg(1, orig(1), orig(2), orig(3))
+      call scale_model(0)
+      if (getScatSize(1, size) .ne. 0) size = 5
+c       
+c       get each point and its contour value into the arrays
+      numPt = 0
+      do iobj = 1, max_mod_obj
+        call objtocont(iobj, obj_color, imodobj, imodcont)
+        if (getContValue(imodobj, imodcont, value) .ne. 0) value = -1.
+        ibase = ibase_obj(iobj)
+        do ipt = 1, npt_in_obj(iobj)
+          numPt = numPt + 1
+          values(numPt) = value
+          ip1=abs(object(ipt+ibase))
+          coords(1, numPt) = p_coord(1, ip1)
+          coords(2, numPt) = p_coord(2, ip1)
+          coords(3, numPt) = p_coord(3, ip1)
+        enddo
+      enddo
+c       
+c       Start a new model
+      call newimod()
+      n_point = 0
+      iobj = 0
+      if (putImageRef(delta, orig) .ne. 0) call exitError(
+     &    'Putting image reference information in output model')
+c       
+c       Build a map from views in file to ordered views in program
+      do nv = 1, nvorig
+        mapnv(nv) = 0
+      enddo
+      do nv = 1, nviews
+        mapnv(mapuse(nv)) = nv
+      enddo
+c       
+c       Loop on the points, start new contour for each
+      do ipt = 1, numPt
+        iobj = iobj + 1
+        obj_color(1, iobj) = 1
+        obj_color(2, iobj) = 255
+        ierr = putContValue(1, iobj, values(ipt))
+        ibase_obj(iobj) = n_point
+        npt_in_obj(iobj) = 0
+c         
+c         Get real pixel coordinates in tomogram file
+        rj = coords(1, ipt) + 0.5
+        ri = coords(2, ipt) + 0.5
+        rlslice = coords(3, ipt) + 0.5
+c         
+c         This may never be tesed but seems simple enough
+        if (.not.perp) then
+          ri = coords(3, ipt) + 0.5
+          rlslice = coords(2, ipt) + 0.5
+        endif
+c         
+c         Loop on the views in the file
+        do nv = 1, nvorig
+          iv = mapnv(nv)
+          if (iv .gt. 0) then
+            zz = (ri-ycen) * compress(iv)
+            yy = rlslice-slicen
+            if (nxwarp.eq.0) then
+              zpart = yy*sal(iv)*sbet(iv) + zz*(cal(iv)*sbet(iv) +xzfac(iv)) +
+     &            xcenin+delxx
+              yproj = yy*cal(iv) - zz*(sal(iv)-yzfac(iv)) + slicen
+              xproj = zpart+(rj-xcen)*cbet(iv)
+            else
+c               
+c               local alignments
+              j = rj
+              fj = rj - j
+              lslice = rlslice
+              fls = rlslice - lslice
+              f11 = (1.-fj) * (1.-fls)
+              f12 = (1.-fj) * fls
+              f21 = fj * (1.-fls)
+              f22 = fj * fls
+              call localProjFactors(j, lslice, iv, xf11, xz11, yf11, yz11)
+              call localProjFactors(j+1, lslice, iv, xf21, xz21, yf21, yz21)
+              call localProjFactors(j, lslice+1, iv, xf12, xz12, yf12, yz12)
+              call localProjFactors(j+1, lslice+1, iv, xf22, xz22, yf22, yz22)
+              xprojf = f11*xf11 + f12*xf12 + f21*xf21 + f22*xf22
+              xprojz = f11*xz11 + f12*xz12 + f21*xz21 + f22*xz22
+              yprojf = f11*yf11 + f12*yf12 + f21*yf21 + f22*yf22
+              yprojz = f11*yz11 + f12*yz12 + f21*yz21 + f22*yz22
+              xproj = xprojf + zz * xprojz
+              yproj = yprojf + zz * yprojz
+            endif
+c             
+c             Store model coordinates
+            n_point = n_point + 1
+            if (n_point .gt. max_pt) call exitError(
+     &          'Too many projection points for small model arrays')
+            npt_in_obj(iobj) = npt_in_obj(iobj) + 1
+            object(n_point) = n_point
+            p_coord(1, n_point) = xproj - 0.5
+            p_coord(2, n_point) = yproj - 0.5
+            p_coord(3, n_point) = nv - 1.
+          endif
+        enddo
+      enddo
+c       
+c       Save model
+      max_mod_obj = iobj
+c
+c       Set to open contour, show values etc., and show sphere on section only
+      ierr = putImodFlag(1, 1)
+      ierr = putImodFlag(1, 7)
+      ierr = putImodFlag(1, 9)
+      ierr = putScatSize(1, size)
+      call scale_model(1)
+      call write_wmod(filout)
+      print *,n_point,' points written to output model'
+      call exit(0)
+      end
+
 c       
 c       $Log$
+c       Revision 3.41  2008/11/02 14:45:38  mast
+c       Added options for incremental reconstructions
+c
 c       Revision 3.40  2008/05/30 04:05:57  mast
 c       Fixed scaling recommendation for 10 to 245, added one for -15000 to 15000
 c
