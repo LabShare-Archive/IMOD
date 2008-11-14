@@ -61,7 +61,7 @@ void avgSD(float *x, int n, float *avg, float *sd, float *sem)
     sx += d;
     sxsq += d * d;
   }
-  sums_to_avgsd(sx, sxsq, n, &avnew, sd);
+  sumsToAvgsd(sx, sxsq, n, &avnew, sd);
   *avg += avnew;
   *sem = 0.;
   if (n > 0)
@@ -372,6 +372,9 @@ void lsfit2pred(float *x1, float *x2, float *y, int *n, float *a, float *b,
 /*
 
 $Log$
+Revision 1.2  2008/11/14 20:38:03  mast
+Change to remove b3dutil include
+
 Revision 1.1  2008/11/14 19:58:56  mast
 Switched to C versions
 
