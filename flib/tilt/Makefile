@@ -15,6 +15,9 @@
 #  $Revision$
 #
 #  $Log$
+#  Revision 3.6  2006/06/22 01:09:45  mast
+#  Replaced LDFLAGS with LDFFLAGS for Intel Mac
+#
 #  Revision 3.5  2005/05/12 05:07:41  mast
 #  Use strip variable
 #
@@ -40,7 +43,8 @@ all: $(PROG)
 
 $(PROG): tilt.$(O) licenseusfft.$(O) $(TILTOBJS) $(FBPLIB) 
 	$(FC) $(FFLAGS) -o tilt tilt.$(O) licenseusfft.$(O) $(TILTOBJS) \
-	 $(FBPLIB) $(LDFFLAGS) $(IMLIBS) $(USFFTLIBS) $(FORTCLIBS)
+	 $(FBPLIB) $(LDFFLAGS) $(LSMLMOD) $(LIMOD) $(IMLIBS) $(USFFTLIBS) \
+	 $(FORTCLIBS)
 
 libfbp.a: fbplib/*.f
 	(cd fbplib ; $(MAKE) )
