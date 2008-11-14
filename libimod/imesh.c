@@ -367,10 +367,106 @@ Imesh *imodel_mesh_add(Imesh *nmesh,
 /****************************************************************************/
 /* Get mesh info.                                                           */
 /****************************************************************************/
+/* Determinant of 3x3 matrix */
+#define determ3(a1,a2,a3,b1,b2,b3,c1,c2,c3) ((a1)*(b2)*(c3) - (a1)*(b3)*(c2) +\
+  (a2)*(b3)*(c1) - (a2)*(b1)*(c3) + (a3)*(b1)*(c2) - (a3)*(b2)*(c1))
 
-float imeshVolume(Imesh *mesh, Ipoint *scale)
+/*! 
+ * Returns the volume enclosed by [mesh] in cubic pixels.  If [scale] is 
+ * non-NULL, its {z} value specifies the Z scaling to apply.  If [center] is 
+ * non-NULL, it will be taken as the center from which to calculate volumes of
+ * tetraheda, in which case the routine will skip calculating the centroid of 
+ * the mesh.  The volume will not be accurate unless the mesh is fully closed.
+ */
+float imeshVolume(Imesh *mesh, Ipoint *scale, Ipoint *center)
 {
-  return(0.0f);
+  int i, nsum;
+  double tvol = 0.0;
+  int listInc, vertBase, normAdd;
+  double xsum, ysum, zsum, abx,aby,abz,bcx,bcy,bcz,cdx,cdy,cdz, dx, dy, dz;
+
+  Ipoint *p1, *p2, *p3, *p;
+  float zs = 1.0f;
+
+  if ((!mesh) || (!mesh->lsize))
+    return(0.0f);
+  if (scale)
+    zs = scale->z;
+  
+  /* First get centroid of mesh */
+  if (center) {
+    dx = center->x;
+    dy = center->y;
+    dz = center->z;
+  } else {
+    nsum = 0;
+    for(i = 0; i < mesh->lsize; i++){
+      switch(mesh->list[i]){
+      case IMOD_MESH_BGNBIGPOLY:
+      case IMOD_MESH_BGNPOLY:
+        while(mesh->list[i] != IMOD_MESH_ENDPOLY)
+          i++;
+        break;
+      case IMOD_MESH_BGNPOLYNORM2:
+      case IMOD_MESH_BGNPOLYNORM:
+        imodMeshPolyNormFactors(mesh->list[i++], &listInc, &vertBase,&normAdd);
+        while(mesh->list[i] != IMOD_MESH_ENDPOLY){
+          p1 = &(mesh->vert[mesh->list[i + vertBase]]);
+          i+=listInc;
+          p2 = &(mesh->vert[mesh->list[i + vertBase]]);
+          i+=listInc;
+          p3 = &(mesh->vert[mesh->list[i + vertBase]]);
+          i+=listInc;
+          xsum += p1->x + p2->x + p3->x;
+          ysum += p1->y + p2->y + p3->y;
+          zsum += p1->z + p2->z + p3->z;
+          nsum += 3;
+        }
+        break;
+      }
+    }
+    if (!nsum)
+      return 0.0f;
+    dx = xsum / nsum;
+    dy = ysum / nsum;
+    dz = zsum / nsum;
+  }
+  
+  /* Add tetrahedon volumes to the centroid from each triangle */
+  for(i = 0; i < mesh->lsize; i++){
+    switch(mesh->list[i]){
+    case IMOD_MESH_BGNBIGPOLY:
+    case IMOD_MESH_BGNPOLY:
+      while(mesh->list[i] != IMOD_MESH_ENDPOLY)
+        i++;
+      break;
+    case IMOD_MESH_BGNPOLYNORM2:
+    case IMOD_MESH_BGNPOLYNORM:
+      imodMeshPolyNormFactors(mesh->list[i++], &listInc, &vertBase, &normAdd);
+      while(mesh->list[i] != IMOD_MESH_ENDPOLY){
+        p1 = &(mesh->vert[mesh->list[i + vertBase]]);
+        i+=listInc;
+        p2 = &(mesh->vert[mesh->list[i + vertBase]]);
+        i+=listInc;
+        p3 = &(mesh->vert[mesh->list[i + vertBase]]);
+        i+=listInc;
+        abx = p1->x - p2->x;
+        aby = p1->y - p2->y;
+        abz = zs * (p1->z - p2->z);
+        bcx = p2->x - p3->x;
+        bcy = p2->y - p3->y;
+        bcz = zs * (p2->z - p3->z);
+        cdx = p3->x - dx;
+        cdy = p3->y - dy;
+        cdz = zs * (p3->z - dz);
+        cdz = determ3(abx, aby, abz, bcx, bcy, bcz, cdx, cdy, cdz);
+        tvol += cdz;
+      }
+      break;
+    }
+  }
+
+  return((float)(tvol / 6.));
 }
 
 /*! Returns the surface area of [mesh] in square pixels.  If [scale] is 
@@ -378,7 +474,7 @@ float imeshVolume(Imesh *mesh, Ipoint *scale)
 float imeshSurfaceArea(Imesh *mesh, Ipoint *scale)
 {
   int i;
-  double tsa = 0.0f;
+  double tsa = 0.0;
   int listInc, vertBase, normAdd;
 
   Ipoint *p1, *p2, *p3, *p;
@@ -617,6 +713,9 @@ int imeshCopySkipList(int *lfrom, int nfrom, int **lto, int *nto)
 /*
 
 $Log$
+Revision 3.8  2008/11/13 21:16:26  mast
+Compute surface area sum with doubles
+
 Revision 3.7  2008/05/07 04:43:50  mast
 Added mesh bounding box function
 
