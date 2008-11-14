@@ -69,7 +69,8 @@ static void imodinfo_object(struct Mod_Model *imod, int scaninside,
 static void computeObjectAreaVol(Imod *model, Iobj *obj, int scaninside, 
                                  int subarea, Ipoint min, Ipoint max,
                                  int useclip, double *surf, double *vol,
-                                 double *msurf, double *mvol, Ipoint *cent);
+                                 double *msurf, double *mvol, double *inmvol,
+                                 Ipoint *cent);
 static float contourVolumeFactor(Iobj *obj, Icont *cont, Ipoint min, 
                                  Ipoint max);
 static float scanned_volume(Iobj *obj, int subarea, Ipoint ptmin, Ipoint ptmax,
@@ -391,7 +392,7 @@ static void imodinfo_print_model(Imod *model, int verbose, int scaninside,
 {
   double tsa, tvol;
   double dist;
-  double sa;
+  double sa, msa, inmvol;
   double mvol;
   int ob, co, pt, i, npt, coz;
   Iobj  *obj;
@@ -409,7 +410,7 @@ static void imodinfo_print_model(Imod *model, int verbose, int scaninside,
 
   for (ob = 0; ob < model->objsize; ob++){
     obj = &(model->obj[ob]);
-    tsa = 0; tvol = 0.; mvol = 0.;
+    tsa = 0; tvol = 0.; mvol = 0.; inmvol = 0.; msa = 0.;
     nPlanes = 0;
     /* Get clipping planes in 4 parameter form; c is already
        multiplied by zscale so no need to 
@@ -532,22 +533,10 @@ static void imodinfo_print_model(Imod *model, int verbose, int scaninside,
                         (double)model->zscale);
       }
     }
-    if (tvol > 0.0){
-      tvol *= model->zscale * model->pixsize;
-      fprintf(fout, "\n\tTotal cylinder volume = %g\n", (float)tvol);
-    }
-    if (mvol > 0.0){
-      mvol *= model->zscale * model->pixsize;
-      fprintf(fout, "\tTotal mesh volume = %g\n", (float)mvol);
-    }
-    if (tsa > 0.0){
-      tsa *= (model->zscale * model->pixsize);
-      fprintf(fout, "\tTotal cylinder surface area = %g\n", (float)tsa);
-    }
+
     if (obj->meshsize){
 
       int mesh, resol;
-      tsa = 0.0;
       mscale.x = model->xscale;
       mscale.y = model->yscale;
       mscale.z = model->zscale;
@@ -555,15 +544,32 @@ static void imodinfo_print_model(Imod *model, int verbose, int scaninside,
       for(mesh = 0; mesh < obj->meshsize; mesh++)
         if (imeshResol(obj->mesh[mesh].flag) == resol) {
           if (subarea || doclip)
-            tsa += imeshSurfaceSubarea 
+            msa += imeshSurfaceSubarea 
               (&obj->mesh[mesh], &mscale, min, max,
                doclip, plane, nPlanes);
           else
-            tsa += imeshSurfaceArea (&obj->mesh[mesh],
+            msa += imeshSurfaceArea (&obj->mesh[mesh],
                                      &mscale);
+          inmvol += imeshVolume(&obj->mesh[mesh], &mscale, NULL);
         }
-      tsa *= model->pixsize * model->pixsize; 
-      fprintf(fout, "\tTotal mesh surface area = %g\n", (float)tsa);
+      msa *= model->pixsize * model->pixsize; 
+      inmvol *= model->pixsize * model->pixsize * model->pixsize;
+    }
+    if (mvol > 0.0){
+      mvol *= model->zscale * model->pixsize;
+      fprintf(fout, "\tTotal contour volume = %g\n", (float)mvol);
+    } else if (tvol > 0.0){
+      tvol *= model->zscale * model->pixsize;
+      fprintf(fout, "\n\tTotal cylinder volume = %g\n", (float)tvol);
+    }
+    if (inmvol > 0.)
+      fprintf(fout, "\tTotal volume inside mesh = %g\n", (float)inmvol);
+
+    if (msa > 0.)
+      fprintf(fout, "\tTotal mesh surface area = %g\n", (float)msa);
+    else if (tsa > 0.0){
+      tsa *= (model->zscale * model->pixsize);
+      fprintf(fout, "\tTotal cylinder surface area = %g\n", (float)tsa);
     }
           
     fprintf(fout, "\n");
@@ -908,9 +914,10 @@ static void imodinfo_full_object_report(Imod *imod, int ob, int scaninside,
   int i, co;
   Iobj *obj;
   int contours_with_data = 0;
-  double surf, vol, msurf, mvol;
+  double surf, vol, msurf, mvol, inmvol;
   int numClips = 0;
   Iview *view = &imod->view[imod->cview];
+  char *units = imodUnits(imod);
 
   if (ob < 1)
     return;
@@ -944,14 +951,19 @@ static void imodinfo_full_object_report(Imod *imod, int ob, int scaninside,
   max.x = max.y = max.z = 1.e30;
 
   computeObjectAreaVol(imod, obj, 0, 0, min, max, 0,
-                         &surf, &vol, &msurf, &mvol, &cent);
+                       &surf, &vol, &msurf, &mvol, &inmvol, &cent);
   fprintf(fout, "\tCenter         = (%g, %g, %g)\n",cent.x, cent.y, cent.z);
-  fprintf(fout, "\tCylinder Volume         = %g ^3\n", vol);
   if (mvol > 0.)
-    fprintf(fout, "\tMesh Volume             = %g ^3\n", mvol);
-  fprintf(fout, "\tCylinder Surface Area   = %g ^2\n", surf);
+    fprintf(fout, "\tContour Volume          = %g %s^3\n", mvol, units);
+  else
+    fprintf(fout, "\tCylinder Volume         = %g %s^3\n", vol, units);
+  if (inmvol > 0.)
+    fprintf(fout, "\tVolume Inside Mesh      = %g %s^3\n", inmvol, units);
   if (msurf > 0.)
-    fprintf(fout, "\tMesh Surface Area       = %g ^2\n", msurf);
+    fprintf(fout, "\tMesh Surface Area       = %g %s^2\n", msurf, units);
+  else
+    fprintf(fout, "\tCylinder Surface Area   = %g %s^2\n", surf, units);
+  
 
   for (i = 0; i < obj->clips.count; i++) {
     if (obj->clips.flags & (1 << i)) {
@@ -979,14 +991,15 @@ static void imodinfo_full_object_report(Imod *imod, int ob, int scaninside,
   if (subarea || (useclip && numClips)) {
     fprintf(fout, "    Clipped and/or subsetted values:\n");
     computeObjectAreaVol(imod, obj, scaninside, subarea, ptmin, ptmax, useclip,
-                         &surf, &vol, &msurf, &mvol, &cent);
-    fprintf(fout, "\tCylinder Volume         = %g ^3\n", vol);
+                         &surf, &vol, &msurf, &mvol, &inmvol, &cent);
     if (mvol > 0.)
-      fprintf(fout, "\tMesh Volume             = %g ^3\n", mvol);
-    if (surf > 0.)
-      fprintf(fout, "\tCylinder Surface Area   = %g ^2\n", surf);
+      fprintf(fout, "\tContour Volume          = %g %s^3\n", mvol, units);
+    else
+      fprintf(fout, "\tCylinder Volume         = %g %s^3\n", vol, units);
     if (msurf > 0.)
-      fprintf(fout, "\tMesh Surface Area       = %g ^2\n", msurf);
+      fprintf(fout, "\tMesh Surface Area       = %g %s^2\n", msurf, units);
+    else if (surf > 0.)
+      fprintf(fout, "\tCylinder Surface Area   = %g %s^2\n", surf, units);
   }
   return;
 }
@@ -1001,29 +1014,29 @@ static void imodinfo_object(Imod *imod, int scaninside,
   int ob;
   Iobj *obj;
   Ipoint  cent;
-  double surf, vol, msurf, mvol;
+  double surf, vol, msurf, mvol, inmvol;
   int i;
 
 
-  fprintf(fout, "#Obj     Cyl. Vol      Mesh Vol       Mesh Surf   "
-          "             Center\n");
+  fprintf(fout, "#Obj     Cyl. Vol      Cont Vol   Vol Inside Mesh   Mesh Surf"
+          "                Center\n");
   fprintf(fout, "#-----------------------------------------------------------"
-          "-------------------\n");
+          "---------------------------------\n");
 
   for (ob = 0; ob < imod->objsize; ob++){
     obj = &(imod->obj[ob]);
     computeObjectAreaVol(imod, obj, scaninside, subarea, min, max, useclip,
-                         &surf, &vol, &msurf, &mvol, &cent);
+                         &surf, &vol, &msurf, &mvol, &inmvol, &cent);
 
     if (!(iobjClose(obj->flags))){
       surf = vol = msurf = mvol = 0.0;
     }
 
     if (obj->contsize)
-      fprintf(fout, "%4d   %12.6g  %12.6g  %12.6g  %9.2f %9.2f %9.2f\n", 
-              ob + 1, vol, mvol, msurf, cent.x, cent.y, cent.z);
+      fprintf(fout, "%4d   %12.6g  %12.6g  %12.6g  %12.6g  %9.2f %9.2f %9.2f\n"
+              , ob + 1, vol, mvol, inmvol, msurf, cent.x, cent.y, cent.z);
     else
-      fprintf(fout, "%4d           0           0           0"
+      fprintf(fout, "%4d           0           0           0           0"
               "        x        x        x\n", ob + 1);
   }
   return;
@@ -1037,12 +1050,14 @@ static void imodinfo_object(Imod *imod, int scaninside,
  *          vol   - pointer to cylinder volume
  *          msurf - pointer to mesh surface area
  *          mvol  - pointer to mesh volume
+ *          inmvol - pointer to volume inside mesh
  *          cent  - pointer to point to receive centroid
  */
 static void computeObjectAreaVol(Imod *model, Iobj *obj, int scaninside, 
                                  int subarea, Ipoint min, Ipoint max,
                                  int useclip, double *surf, double *vol,
-                                 double *msurf, double *mvol, Ipoint *cent)
+                                 double *msurf, double *mvol, double *inmvol,
+                                 Ipoint *cent)
 {
   Ipoint ccent, mscale;
   Icont *cont;
@@ -1056,7 +1071,7 @@ static void computeObjectAreaVol(Imod *model, Iobj *obj, int scaninside,
   double pixsize = model->pixsize;
   float tvol;
 
-  *vol = *mvol = *surf = *msurf = 0.;
+  *vol = *mvol = *surf = *msurf = *inmvol = 0.;
   cent->x = 0.0f;
   cent->y = 0.0f;
   cent->z = 0.0f;
@@ -1109,8 +1124,10 @@ static void computeObjectAreaVol(Imod *model, Iobj *obj, int scaninside,
                                         doclip, plane, nPlanes);
         else
           *msurf+= imeshSurfaceArea (&obj->mesh[mesh], &mscale);
+        *inmvol += imeshVolume(&obj->mesh[mesh], &mscale, NULL);
       }
     *msurf *= model->pixsize * model->pixsize; 
+    *inmvol *= model->pixsize * model->pixsize * model->pixsize;
   }
 }
 
@@ -2213,6 +2230,9 @@ static void trim_scan_contour(Icont *cont, Ipoint min, Ipoint max, int doclip,
 /*
 
 $Log$
+Revision 3.19  2008/06/19 19:18:37  mast
+Fixed -vv option
+
 Revision 3.18  2008/04/04 21:21:29  mast
 Free contour after adding to object
 
