@@ -13,7 +13,8 @@ CFLAGS = $(LIBCFLAGS)
 UTILOBJS = b3dutil.$(O) ilist.$(O) parselist.$(O) amoeba.$(O) \
 	samplemeansd.$(O) colormap.$(O) cubinterp.$(O) reduce_by_binning.$(O) \
 	scaledsobel.$(O) filtxcorr.$(O) taperpad.$(O) circlefit.$(O) \
-	insidecontour.$(O) islice.$(O) taperatfill.$(O) histogram.$(O)
+	insidecontour.$(O) islice.$(O) taperatfill.$(O) histogram.$(O) \
+	simplestat.$(O)
 
 PIPOBJS = parse_params.$(O) pip_fwrap.$(O) autodoc.$(O) adoc_fwrap.$(O)
 
@@ -47,6 +48,9 @@ autodoc.$(O) : $(INCDIR)/autodoc.h
 adoc_fwrap.$(O) : $(INCDIR)/autodoc.h
 
 #  $Log$
+#  Revision 1.6  2008/11/12 05:07:27  mast
+#  Add histogram
+#
 #  Revision 1.5  2008/06/24 04:44:28  mast
 #  Added islice and taper
 #
