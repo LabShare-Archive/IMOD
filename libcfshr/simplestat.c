@@ -122,7 +122,7 @@ void sumsToAvgSDdbl(double sx8, double sxsq8, int n1, int n2, float *avg,
   if (dn <= 0)
     return;
   avg8 = sx8 / dn;
-  *avg = avg8;
+  *avg = (float)avg8;
   if (dn > 1.) {
     den = (sxsq8 - dn * avg8 * avg8) / (dn - 1.);
     if (den > 0.)
@@ -155,7 +155,7 @@ void lsFit(float *x, float *y, int num, float *slope, float *intcp, float *ro)
  */
 void lsfit(float *x, float *y, int *num, float *slope, float *intcp, float *ro)
 {
-  lsfit(x, y, *num, slope, intcp, ro);
+  lsFit(x, y, *num, slope, intcp, ro);
 }
 
 /*!
@@ -351,11 +351,11 @@ void lsFit2Pred(float *x1, float *x2, float *y, int n, float *a, float *b,
   c22=x1sqs/denom;
   c12=-x1x2s/denom;
   devss=ysqs-*a*x1ys-*b*x2ys;
-  predsq=1.+1./n+c11*(x1pred-x1m)*(x1pred-x1m)+
-    c22*(x2pred-x2m)*(x2pred-x2m)+2.*c12*(x1pred-x1m)*(x2pred-x2m);
+  predsq=(float)(1.+1./n+c11*(x1pred-x1m)*(x1pred-x1m)+
+    c22*(x2pred-x2m)*(x2pred-x2m)+2.*c12*(x1pred-x1m)*(x2pred-x2m));
   if(n < 3 || predsq < 0. || devss < 0.)
     return;
-  *prederr=sqrt((double)((devss/(n-3))*predsq));
+  *prederr=(float)sqrt((double)((devss/(n-3))*predsq));
   
 }
 
@@ -372,6 +372,9 @@ void lsfit2pred(float *x1, float *x2, float *y, int *n, float *a, float *b,
 /*
 
 $Log$
+Revision 1.4  2008/11/14 20:41:06  mast
+Fix it right!
+
 Revision 1.3  2008/11/14 20:40:15  mast
 Switched name of call from avgsd
 
