@@ -99,7 +99,7 @@ extern "C" {
 
   /* get info from meshes. */
   float imeshSurfaceArea(Imesh *mesh, Ipoint *mscale);
-  float imeshVolume(Imesh *mesh, Ipoint *mscale);
+  float imeshVolume(Imesh *mesh, Ipoint *scale, Ipoint *center);
   int imodMeshGetBBox(Imesh *mesh, Ipoint *ll, Ipoint *ur);
 
 #ifdef __cplusplus
@@ -111,6 +111,9 @@ extern "C" {
 /*
 
 $Log$
+Revision 3.8  2008/05/07 04:43:43  mast
+Added mesh bounding box function
+
 Revision 3.7  2006/09/13 23:52:08  mast
 Make DEFAULT_FLOAT really be a float
 
