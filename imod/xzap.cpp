@@ -3983,7 +3983,7 @@ static void zapDrawContour(ZapStruct *zap, int co, int ob)
   int nextChange, stateFlags, changeFlags;
   int checkSymbol = 0;
   int handleFlags = HANDLE_LINE_COLOR | HANDLE_2DWIDTH;
-  bool lastVisible, thisVisible, selected, drawAllZ;
+  bool lastVisible, thisVisible, selected, drawAllZ, drawPntOffSec;
   bool currentCont = (co == vi->imod->cindex.contour) &&
     (ob == vi->imod->cindex.object );
 
@@ -3999,6 +3999,7 @@ static void zapDrawContour(ZapStruct *zap, int co, int ob)
     return;
 
   drawAllZ = (cont->flags & (ICONT_CURSOR_LIKE | ICONT_DRAW_ALLZ)) != 0;
+  drawPntOffSec = !(obj->flags & IMOD_OBJFLAG_PNT_ON_SEC);
   if ((cont->flags & ICONT_MMODEL_ONLY) && vi->imod->mousemode != IMOD_MMODEL)
     return;
 
@@ -4128,10 +4129,10 @@ static void zapDrawContour(ZapStruct *zap, int co, int ob)
           b3dDrawCircle(zapXpos(zap, cont->pts[pt].x),
                         zapYpos(zap, cont->pts[pt].y),
                         (int)(drawsize * zap->zoom));
-          if (drawsize > 3)
+          if (drawsize > 3 && drawPntOffSec)
             b3dDrawPlus(zapXpos(zap, cont->pts[pt].x), 
                         zapYpos(zap, cont->pts[pt].y), 3);
-        } else if (drawsize > 1 && !(obj->flags & IMOD_OBJFLAG_PNT_ON_SEC)) {
+        } else if (drawsize > 1 && drawPntOffSec) {
           /* DNM: fixed this at last, but let size round
              down so circles get smaller*/
           /* draw a smaller circ if further away. */
@@ -4528,6 +4529,9 @@ static int zapPointVisable(ZapStruct *zap, Ipoint *pnt)
 /*
 
 $Log$
+Revision 4.129  2008/11/07 19:27:53  mast
+Fixed setting of subarea at end of dragging rubberband
+
 Revision 4.128  2008/09/24 02:40:03  mast
 Call new attach function
 
