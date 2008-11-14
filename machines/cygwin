@@ -138,7 +138,7 @@ if ($compiler == intel) then
             echo 'LIBMRCIMDEF = /def:libmrcim.def ../../buildlib/libifft.lib ../../buildlib/libcfshr.lib'  >> $configure
             echo 'LIBHVEMDEF = /def:libhvem.def ../../buildlib/libmrcim.lib ../../buildlib/libcfshr.lib'  >> $configure
             echo 'LIBIFFTDEF = /def:libifft.def'     >> $configure
-            echo 'LIBTRACKDEF = /def:libtrack.def'   >> $configure
+            echo 'LIBTRACKDEF = /def:libtrack.def ../buildlib/libcfshr.lib'   >> $configure
             set inst_lib_dir = $inst_dir/bin
             #
             # Define a command for making non-dll libs still, needed for 
@@ -282,7 +282,7 @@ echo CONFIG += CONSOLE >! $sourcedoc_qconf
 cat << EOF >! $imod_qconf
 SOURCES += linegui.cpp
 HEADERS += linegui.h
-LIBS += libdiaqt.lib libiimod.lib libimesh.lib libimod.lib libcfshr.lib libtiff.lib libtrack.lib libifft.lib qassistantclient.lib
+LIBS += libdiaqt.lib libiimod.lib libimesh.lib libimod.lib libtrack.lib libcfshr.lib libtiff.lib libifft.lib qassistantclient.lib
 QMAKE_LFLAGS_RELEASE += /LIBPATH:"..\buildlib" /NODEFAULTLIB:libc.lib /NODEFAULTLIB:libcd.lib /NODEFAULTLIB:msvcrtd.lib /LARGEADDRESSAWARE
 QMAKE_LFLAGS_DEBUG += /LIBPATH:"..\buildlib" /NODEFAULTLIB:libc.lib /NODEFAULTLIB:libcd.lib /NODEFAULTLIB:msvcrt.lib /LARGEADDRESSAWARE
 RC_FILE = 3dmod.rc
