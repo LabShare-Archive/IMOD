@@ -1,6 +1,9 @@
 IMOD History
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-11/14/08: Added ption to imodcurvature for getting mean of stored values.
+11/14/08: Fixed clip flipz for odd-sized files and made clip flipyz/rotx be a
+little faster for large files by using up to twice the memory.
+
+11/14/08: Added option to imodcurvature for getting mean of stored values.
 
 11/13/08: Made Tilt able to project a model built on a tomogram onto all the
 images used to build the tomogram.
