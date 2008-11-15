@@ -447,6 +447,16 @@ void b3dheaderitembytes(int *nflags, int *nbytes)
   b3dHeaderItemBytes(nflags, nbytes);
 }
 
+/*! Set or clear bits in [flags] with the given [mask], depending on whether
+ * [state] is nonzero or zero. */
+void setOrClearFlags(b3dUInt32 *flags, b3dUInt32 mask, int state)
+{
+  if (state)
+    *flags |= mask;
+  else
+    *flags &= ~mask;
+}
+
 /*! A variable argument min function for multiple integer arguments.
  * Call as:  b3dIMin(4, ival1, ival2, ival3, ival4); 
  * For only two arguments with acceptable cost of multiple evaluations,
@@ -492,6 +502,9 @@ int b3dIMax(int narg, ...)
 
 /*
 $Log$
+Revision 1.5  2008/05/31 03:11:04  mast
+Added option to redirect errors from stderr to stdout
+
 Revision 1.4  2008/04/03 15:37:02  mast
 Changed b3dFread to call up to 5 times for stdin
 
