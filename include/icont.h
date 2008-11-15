@@ -29,6 +29,7 @@
 #define ICONT_SCANLINE     (1l << 17) /* Points are in pairs for scanline    */
 #define ICONT_CONNECT_TOP  (1l << 18) /* Contour connected above in mkmesh.*/
 #define ICONT_CONNECT_BOTTOM (1l << 19) /* Contour connected below in mkmesh.*/
+#define ICONT_CONNECT_INVERT (1l << 20) /* Contour inverted to connect in mkmesh.*/
 #define ICONT_TEMPUSE      (1l << 31)   /* Temporary marker flag */
 
 
@@ -207,6 +208,9 @@ void imodContourNestLevels(Nesting *nests, int *nestind, int numnests);
 
 /*
 $Log$
+Revision 3.17  2008/05/27 05:30:34  mast
+Changed call for contour from points
+
 Revision 3.16  2008/01/14 19:44:15  mast
 Added a function for Andrew
 
