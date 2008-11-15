@@ -402,6 +402,7 @@ ImodvIsosurface::ImodvIsosurface(struct ViewInfo *vi, QWidget *parent, const cha
   } else {
     xobj->flags = xobj->flags & ~IMOD_OBJFLAG_EXTRA_MODV;
   }
+  strcpy(xobj->name, "Isosurface extra object");
 
   Iobj *boxObj=ivwGetAnExtraObject(mIsoView, mBoxObjNum);
   boxObj->flags |= IMOD_OBJFLAG_EXTRA_MODV | IMOD_OBJFLAG_EXTRA_EDIT; 
@@ -411,6 +412,7 @@ ImodvIsosurface::ImodvIsosurface(struct ViewInfo *vi, QWidget *parent, const cha
   }else{
     boxObj->flags |= IMOD_OBJFLAG_OFF;
   }
+  strcpy(boxObj->name, "Bounding box of isosurface");
 
   imodvObjedNewView();
 
@@ -1356,6 +1358,9 @@ void ImodvIsosurface::keyReleaseEvent ( QKeyEvent * e )
 /*
 
    $Log$
+   Revision 4.11  2008/11/12 18:56:07  xiongq
+   call setFocus() for slots of spinners
+
    Revision 4.10  2008/11/07 23:48:53  xiongq
    seperate threshold for each stack
 
