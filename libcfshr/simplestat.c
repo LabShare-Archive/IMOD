@@ -16,8 +16,8 @@
 
 #ifdef F77FUNCAP
 #define avgsd AVGSD
-#define sums_to_avgsdfw SUMS_TO_AVGSD
-#define sums_to_avgsd8fw SUMS_TO_AVGSD8
+#define sums_to_avgsd SUMS_TO_AVGSD
+#define sums_to_avgsd8 SUMS_TO_AVGSD8
 #define lsfit LSFIT
 #define lsfits LSFITS
 #define lsfitpred LSFITPRED
@@ -372,6 +372,9 @@ void lsfit2pred(float *x1, float *x2, float *y, int *n, float *a, float *b,
 /*
 
 $Log$
+Revision 1.5  2008/11/14 20:44:53  mast
+Fix another call in wrapper, eliminate warnings
+
 Revision 1.4  2008/11/14 20:41:06  mast
 Fix it right!
 
