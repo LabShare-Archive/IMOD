@@ -223,8 +223,20 @@ Imesh *imeshContoursCost(Iobj *obj, Icont *bc, Icont *tc, Ipoint *scale,
           imodPointDistance(&bc->pts[bsize - 1], &tc->pts[0]);
         if (distb < dista)
           direction[1] = -1;
-
       }
+
+      /* If either one is marked as inverted before and is NOT inverted this time,
+         invert them both */
+      if (((bc->flags & ICONT_CONNECT_INVERT) && (bc->flags & ICONT_CONNECT_BOTTOM)) || 
+          ((tc->flags & ICONT_CONNECT_TOP) && 
+           direction[1] != ((tc->flags & ICONT_CONNECT_INVERT) ? -1 : 1))) {
+        direction[0] *= -1;
+        direction[1] *= -1;
+      }
+
+      /* Then set the invert flag for whichever is now inverted */
+      setOrClearFlags(&bc->flags, ICONT_CONNECT_INVERT, 1 - direction[0]);
+      setOrClearFlags(&tc->flags, ICONT_CONNECT_INVERT, 1 - direction[1]);
     }
 
     /* Invert the direction of connections if bottom is reversed */
@@ -1282,6 +1294,9 @@ Imesh *joinTubeCont(Icont *c1, Icont *c2, Ipoint *norm,
 
 /*
 $Log$
+Revision 1.3  2008/09/19 15:28:47  mast
+Fixed tube contour joining to work for different size contours
+
 Revision 1.2  2006/11/02 07:16:21  mast
 Documentation
 
