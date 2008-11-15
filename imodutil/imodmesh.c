@@ -58,6 +58,7 @@ static int imodmesh_usage(char *prog, int retcode)
   fprintf(stderr, "\t-d #\tSet diameter for tubes (default is 3D line width)."
           "\n");
   fprintf(stderr, "\t-E  \tCap ends of tubes.\n");
+  fprintf(stderr, "\t-H  \tCap ends of tubes with hemispheres.\n");
   fprintf(stderr, "\t-T  \tDo time consuming calculations, "
           "may help reduce artifacts.\n");
     
@@ -76,7 +77,7 @@ static int imodmesh_usage(char *prog, int retcode)
   fprintf(stderr, "\t-y #,#\tClip mesh outside given lower and upper limits "
           "in Y.\n");
   fprintf(stderr, "\t-no* \tOverride a stored parameter; * is one of "
-          "cCDsSIftETxyz.\n");
+          "cCDsSIftEHTxyz.\n");
 
   fprintf(stderr, "\t-a \tAppend mesh data to object, replacing mesh"
           " in same z range.\n");
@@ -206,6 +207,9 @@ int main(int argc, char **argv)
         case 'E':
           setFlags |= IMESH_MK_CAP_TUBE;
           break;
+        case 'H':
+          setFlags |= IMESH_MK_CAP_DOME;
+          break;
         case 'T':
           setFlags |= IMESH_MK_FAST;
           break;
@@ -297,6 +301,9 @@ int main(int argc, char **argv)
           break;
         case 'E':
           clearFlags |= IMESH_MK_CAP_TUBE;
+          break;
+        case 'H':
+          clearFlags |= IMESH_MK_CAP_DOME;
           break;
         case 'T':
           clearFlags |= IMESH_MK_FAST;
@@ -807,6 +814,9 @@ static int ObjOnList(int ob, int list[], int nlist)
 
 /*
 $Log$
+Revision 3.19  2008/06/17 20:21:24  mast
+Allowed special codes for meshing diameter
+
 Revision 3.18  2007/11/10 05:22:43  mast
 Added option to recompute normals from an existing mesh
 
