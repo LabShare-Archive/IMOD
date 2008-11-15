@@ -7,16 +7,10 @@
  *  Copyright (C) 1995-2006 by Boulder Laboratory for 3-Dimensional Electron
  *  Microscopy of Cells ("BL3DEMC") and the Regents of the University of 
  *  Colorado.  See dist/COPYRIGHT for full copyright notice.
+ *
+ * $Id$
+ * Log at end
  */
-
-/*  $Author$
-
-$Date$
-
-$Revision$
-
-Log at end of file
-*/
 
 #include <string.h>
 #include <stdlib.h>
@@ -45,6 +39,8 @@ static Imesh *imeshContourCap(Iobj *obj, Icont *cont, int co, int side,
 static float segment_separation(float l1, float u1, float l2, float u2);
 static int mesh_open_tube_obj(Iobj *obj, Ipoint *scale, unsigned int flags,
                               double meshDiameter);
+static Icont *makeDomeConts(Icont *lastCont, Ipoint *lastPt, Ipoint *nrot, Ipoint *scale, 
+                            float diameter, float direction, int *numCont, Ipoint *capPt);
 static int mesh_open_obj(Iobj *obj, Ipoint *scale, int incz, 
                          unsigned int flags, int skipPasses,
                          int zmin, int zmax, int *contz, int *zlist, 
@@ -97,6 +93,7 @@ static void interpolate_point(Ipoint pt1, Ipoint pt2, float frac, Ipoint *pt3);
 static int robustCenterOfMass(Icont *cont, Ipoint *pt);
 static void dump_lists(char *message, int *blist, int nb, int *tlist, int nt,
                        int *blook, int *tlook);
+static void addMeshToObject(Iobj *obj, Icont *cont, Imesh *nmesh, unsigned int flags);
 
 static int fastmesh = 0;
 static unsigned int skinFlags;
@@ -131,7 +128,9 @@ static int getnextz(int *zlist, int zlsize, int cz)
   /* DNM: this will work the same as when not connecting skips */
   if (cz == zlist[zlsize - 1])
     return (zlist[zlsize - 1] + 1);
-  return(-2);
+
+  /* 11/15/08: nobody is testing for negative return, just return past the max */
+  return(zlist[zlsize - 1] + 1);
 }
 
 
@@ -282,16 +281,7 @@ static int mesh_open_obj(Iobj *obj, Ipoint *scale, int incz,
         cont->flags |= (ICONT_OPEN | CONNECT_TOP);
         econt->flags |= (ICONT_OPEN |  CONNECT_BOTTOM);
         nmesh = imeshContoursCost(obj, cont, econt, scale, inside, co, eco);
-        if (nmesh) {
-          nmesh->surf = cont->surf;
-          if (!(flags & IMESH_MK_SURF))
-            nmesh->surf = 0;
-          nmesh->time = cont->time;
-          if (!(flags & IMESH_MK_TIME))
-            nmesh->time = 0;
-          obj->mesh = imodel_mesh_add(nmesh, obj->mesh, &(obj->meshsize));
-          free(nmesh);
-        }
+        addMeshToObject(obj, cont, nmesh, flags);
         
         /* mark all pairs involving these two conts as unavailable */
         for (k = 0; k < numatz[nextiz]; k++)
@@ -348,13 +338,13 @@ static int mesh_open_tube_obj(Iobj *obj, Ipoint *scale, unsigned int flags,
                               double meshDiameter)
 {
   Imesh *nmesh;
-  Icont *cont;
+  Icont *cont, *nextcont, *domeCont1, *domeCont2;
   Icont *clst;
-  Ipoint nrot;
+  Ipoint nrot, capPt1, capPt2, domeRot1, domeRot2, domeCap1, domeCap2;
   DrawProps defProps, contProps, ptProps, lastProps;
   int nextChange, stateFlags, changeFlags, lastState;
   int stateTest = CHANGED_COLOR | CHANGED_FCOLOR | CHANGED_TRANS;
-  int co, pt, npt, ppt, slices;
+  int co, pt, npt, ppt, slices, numDome1, numDome2;
   float tubeDiameter;
 
   istoreDefaultDrawProps(obj, &defProps);
@@ -416,6 +406,17 @@ static int mesh_open_tube_obj(Iobj *obj, Ipoint *scale, unsigned int flags,
       makeTubeCont(&clst[pt], &cont->pts[pt], &nrot, scale,
              tubeDiameter, slices);
 
+      /* Get the contours for dome caps if at start or end */
+      if (!pt && (flags & IMESH_MK_CAP_DOME)) {
+        domeCont1 = makeDomeConts(&clst[pt], &cont->pts[pt], &nrot, scale, tubeDiameter,
+                                  -1., &numDome1, &domeCap1);
+        domeRot1 = nrot;
+      }
+      if (pt == cont->psize - 1 && (flags & IMESH_MK_CAP_DOME)) {
+        domeCont2 = makeDomeConts(&clst[pt], &cont->pts[pt], &nrot, scale, tubeDiameter,
+                                  1., &numDome2, &domeCap2);
+        domeRot2 = nrot;
+      }
     }
 
     /* Restart the state for drawing */
@@ -431,15 +432,23 @@ static int mesh_open_tube_obj(Iobj *obj, Ipoint *scale, unsigned int flags,
                                       &stateFlags, &changeFlags);
 
     /* DNM 8/25/02: cap if flag is set*/
-    if (flags & IMESH_MK_CAP_TUBE) {
-      nmesh = makeCapMesh(&clst[0], &cont->pts[0], 1, &ptProps, stateFlags, 
+    if ((flags & IMESH_MK_CAP_DOME) && numDome1) {
+
+      /* At start, cap from point up to first regular contour for dome */
+      nmesh = makeCapMesh(&domeCont1[numDome1 - 1], &domeCap1, 1, &ptProps, stateFlags,
                           stateTest);
-      if (nmesh) {
-        nmesh->surf = (flags & IMESH_MK_SURF) ? cont->surf : 0;
-        nmesh->time = (flags & IMESH_MK_TIME) ? cont->time : 0;
-        obj->mesh = imodel_mesh_add(nmesh, obj->mesh, &(obj->meshsize));
-        free(nmesh);
+      addMeshToObject(obj, cont, nmesh, flags);
+      for (pt = numDome1 - 1; pt >= 0; pt--) {
+        nextcont = pt ? &domeCont1[pt - 1] : &clst[0];
+        nmesh = joinTubeCont(&domeCont1[pt], nextcont, &domeRot1, &ptProps, stateFlags, 
+                     &ptProps, stateFlags);
+        addMeshToObject(obj, cont, nmesh, flags);
       }
+      free(domeCont1);
+
+    } else if (flags & IMESH_MK_CAP_TUBE) {
+      nmesh = makeCapMesh(&clst[0], &cont->pts[0], 1, &ptProps, stateFlags, stateTest);
+      addMeshToObject(obj, cont, nmesh, flags);
     }
 
     for (pt = 0; pt < cont->psize - 1; pt++) {
@@ -459,23 +468,27 @@ static int mesh_open_tube_obj(Iobj *obj, Ipoint *scale, unsigned int flags,
       imodPointNormalize(&nrot);
       nmesh = joinTubeCont(&clst[pt], &clst[pt+1], &nrot, &lastProps, 
                            lastState, &ptProps, stateFlags);
-      if (nmesh) {
-        nmesh->surf = (flags & IMESH_MK_SURF) ? cont->surf : 0;
-        nmesh->time = (flags & IMESH_MK_TIME) ? cont->time : 0;
-        obj->mesh = imodel_mesh_add(nmesh, obj->mesh, &(obj->meshsize));
-        free(nmesh);
-      }
+      addMeshToObject(obj, cont, nmesh, flags);
     }
 
-    if (flags & IMESH_MK_CAP_TUBE) {
+    if ((flags & IMESH_MK_CAP_DOME) && numDome2) {
+
+      /* At end, cap from last regular contour out to point for dome */
+      for (pt = 0; pt < numDome2; pt++) {
+        nextcont = pt ? &domeCont2[pt - 1] : &clst[cont->psize - 1];
+        nmesh = joinTubeCont(nextcont, &domeCont2[pt], &domeRot2, &ptProps, stateFlags, 
+                             &ptProps, stateFlags);
+        addMeshToObject(obj, cont, nmesh, flags);
+      }
+      nmesh = makeCapMesh(&domeCont2[numDome2 - 1], &domeCap2, 0, &ptProps, stateFlags,
+                          stateTest);
+      addMeshToObject(obj, cont, nmesh, flags);
+      free(domeCont2);
+
+    } else if (flags & IMESH_MK_CAP_TUBE) {
       nmesh = makeCapMesh(&clst[cont->psize - 1], &cont->pts[cont->psize - 1], 
                           0, &ptProps, stateFlags, stateTest);
-      if (nmesh) {
-        nmesh->surf = (flags & IMESH_MK_SURF) ? cont->surf : 0;
-        nmesh->time = (flags & IMESH_MK_TIME) ? cont->time : 0;
-        obj->mesh = imodel_mesh_add(nmesh, obj->mesh, &(obj->meshsize));
-        free(nmesh);
-      }
+      addMeshToObject(obj, cont, nmesh, flags);
     }
           
     imodContoursDelete(clst, cont->psize);
@@ -488,6 +501,51 @@ static int mesh_open_tube_obj(Iobj *obj, Ipoint *scale, unsigned int flags,
   return(0);
 }
 
+/* 
+ * Make contours for a hemispherical cap and return the terminal point also
+ */
+static Icont *makeDomeConts(Icont *lastCont, Ipoint *lastPt, Ipoint *nrot, Ipoint *scale, 
+                            float diameter, float direction, int *numCont, Ipoint *capPt)
+{
+  int i, slices;
+  Ipoint sclPt;
+  int numPos = B3DNINT(lastCont->psize / 4.);
+  Icont *conts = imodContoursNew(numPos - 1);
+  double dist, angle, dtor = 0.017453293;
+  float radius;
+  *numCont = 0;
+  if (!conts)
+    return NULL;
+  sclPt.x = lastPt->x * scale->x;
+  sclPt.y = lastPt->y * scale->y;
+  sclPt.z = lastPt->z * scale->z;
+
+  for (i = 1; i <= numPos; i++) {
+    angle = (dtor * i * 90.) / numPos;
+    dist = 0.5 * diameter * direction * sin(angle);
+    capPt->x = (sclPt.x + nrot->x * dist) / scale->x;
+    capPt->y = (sclPt.y + nrot->y * dist) / scale->y;
+    capPt->z = (sclPt.z + nrot->z * dist) / scale->z;
+    if (i < numPos) {
+      radius = (float)(0.5 * diameter * cos(angle));
+      slices = B3DMAX(12, B3DMIN(50, (int)radius));
+      makeTubeCont(&conts[i - 1], capPt, nrot, scale, 2.f * radius, slices);
+    }
+  }
+  *numCont = numPos - 1;
+  return conts;
+}
+
+/* Common operations when adding a new mesh to an object's mesh */
+static void addMeshToObject(Iobj *obj, Icont *cont, Imesh *nmesh, unsigned int flags)
+{
+  if (nmesh) {
+    nmesh->surf = (flags & IMESH_MK_SURF) ? cont->surf : 0;
+    nmesh->time = (flags & IMESH_MK_TIME) ? cont->time : 0;
+    obj->mesh = imodel_mesh_add(nmesh, obj->mesh, &(obj->meshsize));
+    free(nmesh);
+  }
+}
 
 /*!
  * The main meshing routine for closed or open contours; calls appropriate
@@ -570,8 +628,8 @@ int imeshSkinObject(Iobj *obj, Ipoint *scale, double overlap, int cap,
   obj->mesh = NULL;
   obj->meshsize = 0;
      
-  if (imodContourMakeZTables(obj, incz, CONNECT_BOTH, &contz, &zlist, &numatz,
-                             &contatz, &zmin, &zmax, &zlsize, &nummax))
+  if (imodContourMakeZTables(obj, incz, CONNECT_BOTH | ICONT_CONNECT_INVERT, &contz,
+                             &zlist, &numatz, &contatz, &zmin, &zmax, &zlsize, &nummax))
     return -1;
 
 
@@ -1399,29 +1457,17 @@ int imeshSkinObject(Iobj *obj, Ipoint *scale, double overlap, int cap,
           if (connectTop(cont->flags))
             direction = -1;
           nmesh = imeshContourCap(obj, cont, co, direction, inside, scale);
-          if (nmesh) {
-            nmesh->surf = (flags & IMESH_MK_SURF) ? cont->surf : 0;
-            obj->mesh = imodel_mesh_add (nmesh, obj->mesh, &(obj->meshsize));
-            free(nmesh);
-          }
+          addMeshToObject(obj, cont, nmesh, flags);
           continue;
         }
 
         if (cont->pts->z == zmin) {
           nmesh = imeshContourCap(obj, cont, co, -1, inside, scale); 
-          if (nmesh) {
-            nmesh->surf = (flags & IMESH_MK_SURF) ? cont->surf : 0;
-            obj->mesh = imodel_mesh_add (nmesh, obj->mesh, &(obj->meshsize));
-            free(nmesh);
-          }
+          addMeshToObject(obj, cont, nmesh, flags);
         }
         if (cont->pts->z == zmax) {
           nmesh = imeshContourCap(obj, cont, co, 1, inside, scale); 
-          if (nmesh) {
-            nmesh->surf = (flags & IMESH_MK_SURF) ? cont->surf : 0;
-            obj->mesh = imodel_mesh_add (nmesh, obj->mesh, &(obj->meshsize));
-            free(nmesh);
-          }
+          addMeshToObject(obj, cont, nmesh, flags);
         }
       }
     }
@@ -2722,8 +2768,7 @@ static int mesh_contours(Iobj *obj, Icont *bcont, Icont *tcont, int surf,
   if (nmesh) {
     nmesh->surf = surf;
     nmesh->time = time;
-    obj->mesh = imodel_mesh_add
-      (nmesh, obj->mesh, &(obj->meshsize));
+    obj->mesh = imodel_mesh_add(nmesh, obj->mesh, &(obj->meshsize));
     free(nmesh);
   }
   imodContourDelete(tcont);
@@ -2835,6 +2880,9 @@ static int break_contour_inout(Icont *cin, int st1, int st2,  int fill,
 /* 
 mkmesh.c got the big log from before the split
 $Log$
+Revision 1.7  2008/09/21 17:59:01  mast
+Rationalized value range for using sphere or symbold size for tube diameter
+
 Revision 1.6  2008/06/17 20:15:54  mast
 Added multiple ways to change tube diameter in a contour
 
