@@ -1,5 +1,16 @@
 IMOD History
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+11/15/08: Model view object edit will make the isosurface be the current
+object when either window is opened, so the user will realize it is editable.
+
+11/15/08: In meshing panel of model view object edit, added checkbox for dome
+caps, added a progress report, and allowed meshing parameters of multiple
+objects to be changed together.
+
+11/15/08: Implemented option for capping tubes with hemispheres (domes), made
+open contour meshing maintain consistent lighting direction in most cases, and
+fixed a bug in the getting next Z value that could crash meshing.
+
 11/14/08: Fixed clip flipz for odd-sized files and made clip flipyz/rotx be a
 little faster for large files by using up to twice the memory.
 
