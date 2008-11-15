@@ -48,6 +48,7 @@ extern "C" {
   int fgetline(FILE *fp, char s[],int limit);
 
   void b3dHeaderItemBytes(int *nflags, int *nbytes);
+  void setOrClearFlags(b3dUInt32 *flags, b3dUInt32 mask, int state);
 
   int b3dIMin(int narg, ...);
   int b3dIMax(int narg, ...);
@@ -61,6 +62,9 @@ extern "C" {
 
 /*
 $Log$
+Revision 1.15  2007/10/01 15:27:41  mast
+Split out everything not in b3dutil.c
+
 Revision 1.14  2007/09/20 15:42:12  mast
 Added declarations for new routines
 
