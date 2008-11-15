@@ -451,7 +451,8 @@ int grap_flip(MrcHeader *hin, MrcHeader *hout, ClipOptions *opt)
 {
   int i,j,k, rotx, numDone, numTodo, maxSlices, yst, ynd, ydir, csize, dsize;
   int err;
-  int memlim = 512000000;
+  float memlim, memmin = 512000000., memmax = 2048000000.;
+  float sizefac = 8.;
   size_t lineOfs;
   float ycen, zcen;
   Islice *sl, *tsl;
@@ -560,7 +561,9 @@ int grap_flip(MrcHeader *hin, MrcHeader *hout, ClipOptions *opt)
     /* Get the maximum number of output slices to load, and get input slices
        with that size in Y */
     mrc_getdcsize(hout->mode, &dsize, &csize);
-    maxSlices = (memlim / (dsize * hout->nx)) / hout->ny;
+    memlim = (((dsize * hout->nx / sizefac) * hout->ny) * hout->nz);
+    memlim = B3DMAX(memmin, B3DMIN(memmax, memlim));
+    maxSlices = (int)((memlim / (dsize * hout->nx)) / hout->ny);
     maxSlices = B3DMAX(1, B3DMIN(hout->nz / (2 * dsize), maxSlices));
     yslice = (Islice **)malloc(hin->nz * sizeof(Islice));
     if (!yslice) {
@@ -574,6 +577,7 @@ int grap_flip(MrcHeader *hin, MrcHeader *hout, ClipOptions *opt)
         return (-1);
       }
     }
+    printf("memlim %.0f  maxslices %d memory %d\n", memlim, maxSlices, hout->nx * maxSlices * hin->nz * dsize);
     mrc_init_li(&li, NULL);
     mrc_init_li(&li, hin);
     numDone = 0;
@@ -659,16 +663,15 @@ int grap_flip(MrcHeader *hin, MrcHeader *hout, ClipOptions *opt)
     hout->nz = hin->nz;
     if (mrc_head_write(hout->fp, hout))
       return -1;
-    sl = sliceCreate(hout->nx, hout->ny, hout->mode);
     tsl = sliceCreate(hout->nx, hout->ny, hout->mode);
-    for (k = 0; k < hin->nz/2; k++){
-      if (mrc_read_slice(sl->data.b, hin->fp, hin, k, 'z') ||
-          mrc_read_slice(tsl->data.b, hin->fp, hin, hout->nz-k-1, 'z') ||
-          mrc_write_slice(tsl->data.b, hout->fp, hout, k, 'z') ||
-          mrc_write_slice(sl->data.b, hout->fp, hout, hout->nz-k-1, 'z'))
+
+    /* DNM 11/14/08: switch to doing file in order, don't pretend it could be
+       done on a file in place */
+    for (k = 0; k < hin->nz; k++){
+      if (mrc_read_slice(tsl->data.b, hin->fp, hin, hout->nz-k-1, 'z') ||
+          mrc_write_slice(tsl->data.b, hout->fp, hout, k, 'z'))
         return -1;
     }
-    sliceFree(sl);
     sliceFree(tsl);
     puts(" Done!");
     return(0);
@@ -1579,6 +1582,9 @@ int free_vol(Islice **vol, int z)
 */
 /*
 $Log$
+Revision 3.24  2007/11/23 01:05:58  mast
+Added iterations for smoothing
+
 Revision 3.23  2007/11/22 20:48:30  mast
 Added gaussian kernel smoothing
 
