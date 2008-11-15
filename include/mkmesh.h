@@ -24,6 +24,7 @@
 #define IMESH_MK_IS_COPY  (1l << 10) /* Object is already a copy */
 #define IMESH_MK_USE_MEAN (1l << 11) /* Use mean Z not starting Z to flatten */
 #define IMESH_MK_NO_WARN  (1l << 12) /* Turn off overlap warnings */
+#define IMESH_MK_CAP_DOME (1l << 13) /* cap ends of tubes with domes */
 
 #define IMESH_CAP_OFF      0    /* Don't cap ends of surfaces. */
 #define IMESH_CAP_END      1    /* Just cap min and max ends.  */
@@ -86,6 +87,9 @@ extern "C" {
 /*
 
 $Log$
+Revision 1.2  2008/05/02 21:52:36  mast
+Made imeshNormal a global
+
 Revision 1.1  2006/09/12 15:12:13  mast
 Converted to library, split up functions
 
