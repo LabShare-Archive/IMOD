@@ -67,13 +67,16 @@ EXPORTS
 	ilistSize
 	PARABOLICFITPOSITION
 	exitError
+	SUMS_TO_AVGSD
 	PipGetInteger
 	PipNumberOfEntries
 	AdocGetIntegerArray
 	ilistAppend
 	AdocAddSection
 	ADOCSETCURRENT
+	LSFIT2NOC
 	AdocWrite
+	SUMS_TO_AVGSD8
 	ADOCGETSECTIONNAME
 	imodVersion
 	b3dError
@@ -81,6 +84,7 @@ EXPORTS
 	PIPGETINTEGERARRAY
 	AdocSetThreeFloats
 	ilistDup
+	LSFIT2PRED
 	parabolicFitPosition
 	ADOCSETKEYVALUE
 	ilistItem
@@ -99,6 +103,7 @@ EXPORTS
 	b3dFwrite
 	ilistFloat
 	FILTERPART
+	LSFIT
 	AdocSetCurrent
 	PIPGETBOOLEAN
 	PipSetSpecialFlags
@@ -107,6 +112,7 @@ EXPORTS
 	PipGetLineOfValues
 	mrcHugeSeek
 	PipGetFloat
+	LSFITS
 	PipReadOrParseOptions
 	AdocSetFloat
 	AdocSetInteger
@@ -120,6 +126,7 @@ EXPORTS
 	PipGetNonOptionArg
 	PipGetTwoIntegers
 	sliceTaperAtFill
+	lsFitPred
 	PIPREADSTDINIFSET
 	AdocGetTwoIntegers
 	cmapConvertRamp
@@ -128,12 +135,15 @@ EXPORTS
 	PIPGETTWOFLOATS
 	PipAllowCommaDefaults
 	AdocGetTwoFloats
+	sumsToAvgSDdbl
 	cmapStandardRamp
+	LSFIT2
 	ilistRemove
 	sliceTaperInPad
 	PipSetManpageOutput
 	PipGetThreeFloats
 	PIPGETNONOPTIONARG
+	AVGSD
 	AdocGetThreeFloats
 	INSIDECONTOUR
 	KERNELHISTOGRAM
@@ -152,6 +162,7 @@ EXPORTS
 	circleThrough3Pts
 	PipGetInOutFile
 	ADOCSETTWOFLOATS
+	lsFit2
 	cmapInvertedRamp
 	AdocDone
 	PipDone
@@ -161,6 +172,7 @@ EXPORTS
 	sliceGetYSize
 	PipStartsWith
 	ilistNext
+	sumsToAvgSD
 	IMODGETENV
 	ADOCGETFLOAT
 	PIPPRINTHELP
@@ -169,12 +181,14 @@ EXPORTS
 	XCorrPeakFind
 	b3dIMin
 	imodCopyright
+	avgSD
 	AdocGetNumberOfSections
 	b3dGetError
 	XCorrSetCTFnoScl
 	reduceByBinning
 	findHistogramDip
 	PipSetError
+	lsFit2Pred
 	sliceCreate
 	XCorrSetCTF
 	XCorrFilterPart
@@ -191,6 +205,7 @@ EXPORTS
 	PipGetTwoFloats
 	PIPEXITONERROR
 	PipNextArg
+	LSFITPRED
 	amoebaInit
 	PipReadNextLine
 	PIPGETFLOAT
@@ -207,6 +222,7 @@ EXPORTS
 	imodUsageHeader
 	ADOCDELETEKEYVALUE
 	ilistLast
+	lsFit
 	TAPERINPAD
 	ilistNew
 	f2cString
