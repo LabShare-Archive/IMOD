@@ -81,6 +81,7 @@ class ImodvObjed : public QObject
   ~ImodvObjed() {};
   int meshOneObject(Iobj *obj);
   int startMeshingNext();
+  void makeSpinChanged(int which, int value);
 
   public slots:
     void lineColorSlot(int color, int value, bool dragging);
@@ -142,6 +143,9 @@ class ImodvObjed : public QObject
 
 /*
 $Log$
+Revision 4.15  2008/06/17 20:16:58  mast
+Added slot for not drawing spheres when drawing mesh
+
 Revision 4.14  2008/05/27 05:46:33  mast
 Meshing and moveto axis changes
 
