@@ -105,8 +105,21 @@ inline float fDivideCustom( float numerator, float denominator, float infinityVa
 inline bool isFactor( float value, float divisor );
 inline int roundToInt(float x);
 inline float roundPrec( float value, float precision );
+inline float roundDecimal( float value, int decimal );
 inline float avg( float val1, float val2 );
 inline float getFractBetween( float val1, float val2, float fractTowards2 );
+inline float calcPercent( float numerator, float denominator );
+inline int calcPercentInt( float numerator, float denominator );
+inline int calcPercentFloor( float numerator, float denominator );
+
+//## GEOMETRY FUNCTIONS:
+
+inline void keepAngleInRange( float &angle );
+inline float geom_volumeSphere(const float radius);
+inline float geom_surfaceAreaSphere(const float radius);
+inline float geom_volumeConicalFrustrum(const float rBase, const float rTop, const float height);
+inline float geom_surfaceAreaConicalFrustrum(const float rBase, const float rTop, const float height);
+inline float geom_areaCircle(const float radius);		
 
 
 //## STRING FUNCTIONS:
@@ -392,11 +405,20 @@ inline int roundToInt(float x)
 {
 	return int( (x > 0.0) ? (x + 0.5) : (x - 0.5) );
 }
+
 //----------------
 //-- Founds float to nearest multiple of "precision"
 inline float roundPrec( float value, float precision ) 				
 {
-	return ( roundToInt(value / precision) * precision );
+	return (float)( roundToInt(value / precision) * precision );
+}
+
+//----------------
+//-- Founds float to nearest multiple of "precision"
+inline float roundDecimals( float value, int decimals ) 				
+{
+  float precision = pow(0.1, (float)decimals);
+	return (float)( roundToInt(value / precision) * precision );
 }
 
 //----------------
@@ -414,6 +436,87 @@ inline float getFractBetween( float val1, float val2,
 {
 	return (((val2 - val1) * fractTowards2) + val1);
 }
+
+
+//----------------
+//-- Returns "numerator"/"denominator" as a percentage.
+
+inline float calcPercent ( float numerator, float denominator )
+{
+  if( denominator==0 )
+    return 100.0f;
+  float percent = (numerator / denominator) * 100.0f;
+  return percent;
+}
+
+//----------------
+//-- Returns "numerator"/"denominator" as a percentage rounded to the nearest integer.
+
+inline int calcPercentInt( float numerator, float denominator )
+{
+  if( denominator==0 )
+    return 100;
+  float percent = (numerator / denominator) * 100.0f;
+  return roundToInt(percent);
+}
+
+//----------------
+//-- Returns "numerator"/"denominator" as a percentage rounded down to an integer. 
+
+inline int calcPercentFloor( float numerator, float denominator )
+{
+  if( denominator==0 )
+    return 100;
+  float percent = (numerator / denominator) * 100.0f;
+  return floor(percent);
+}
+
+
+
+
+
+//----------------------------------------------------------------------------
+//## GEOMETRY FUNCTIONS:
+//----------------------------------------------------------------------------
+
+//----------------
+//-- Keeps angle value between 0 and 360 (useful for functions like atan
+//-- which may return a negative angle)
+inline void keepAngleInRange( float &angle )		
+{ angle = (float)fMod( angle, 360 ); }
+
+//----------------
+//-- Calculates the volume of a sphere with given radius     {4/3 PI r^3}
+inline float geom_volumeSphere(const float radius)
+{ return ( 4.0/3.0 * PI * (radius*radius*radius) ); }
+
+//----------------
+//-- Calculates the surface area of a sphere with given radius   {4 PI r^2}
+inline float geom_surfaceAreaSphere(const float radius)
+{ return (4.0 * PI * (radius*radius) ); }
+
+
+//----------------
+//-- Calculates the volume of conical frustrum (a cylinder with different
+//--  radius at either end)  { 1/3*PI*h*(R^2*Rr*r^2) }
+inline float geom_volumeConicalFrustrum(const float rBase, const float
+                                         rTop, const float height)
+{ return ( 1.0/3.0 * PI * height * ( SQ(rBase) + (rBase*rTop) + SQ(rTop) ) ); }
+
+
+//----------------
+//-- Calculates the surface area of conical frustrum (a cylinder with
+//-- different radius at either end)
+//-- NOT including the areas of the circle at the base and at the top
+inline float geom_surfaceAreaConicalFrustrum( const float rBase, const
+                                              float rTop, const float height)
+{ return (   PI * (rBase+rTop) * sqrt( SQ((rBase-rTop)) + SQ(height) )   ); }
+
+//----------------
+//-- Calculates the area of a circle given it's radius     {PI r^2}
+inline float geom_areaCircle(const float radius)
+{ return (PI * (radius*radius) ); }
+
 
 
 

@@ -15,6 +15,9 @@
     $Revision$
 
     $Log$
+    Revision 1.23  2008/09/30 07:05:58  tempuser
+    fixed imodplug event returns, renamed 'deform' tool to 'sculpt' tool and added 'warp' tool
+
     Revision 1.22  2008/08/26 03:20:10  tempuser
     fixed ivwSetTopZapZoom call
 
@@ -1418,8 +1421,8 @@ void DrawingTools::reduceConts()
   
   imodSetIndex(imod, objIdx, contIdx, 0);
   int totalPointsBefore = totalPointsAfter + totalPointsRemoved;
-  int percentChanged   = (fDivide( totalContsChanged, totalContsInspected ) * 100);
-  int percentReduction = 100 - (fDivide( totalPointsAfter, totalPointsBefore ) * 100);
+  int percentChanged   = calcPercentInt( totalContsChanged, totalContsInspected );
+  int percentReduction = 100 - calcPercentInt( totalPointsAfter, totalPointsBefore );
   wprint("REDUCTION OF CONTOURS:\n");
   wprint(" # contours changed = %d of %d  (%d%%)\n", totalContsChanged,
          totalContsInspected, percentChanged );
@@ -1528,8 +1531,8 @@ void DrawingTools::smoothConts()
   //## PRINT RESULT:
   
   int totalPointsBefore = totalPointsAfter - totalPointsAdded;
-  int percentChanged   = (fDivide( totalContsChanged, totalContsInspected ) * 100);
-  int percentIncrease  = (fDivide( totalPointsAfter, totalPointsBefore ) * 100) - 100;
+  int percentChanged   = calcPercentInt( totalContsChanged, totalContsInspected );
+  int percentIncrease  = calcPercentInt( totalPointsAfter, totalPointsBefore );
   wprint("SMOOTHING OF CONTOURS:\n");
   wprint(" # contours changed = %d of %d  (%d%%)\n", totalContsChanged,
          totalContsInspected, percentChanged );
@@ -1865,10 +1868,10 @@ void DrawingTools::printObjectDetailedInfo()
   
   int nonEmptyConts = csize(obj) - emptyConts;
   
-  int percentSinglePt  = int( fDivide( singlePtConts, nonEmptyConts ) * 100 );
-  int percentOpen      = int( fDivide( openConts, nonEmptyConts ) * 100 );
-  int percentClockwise = int( fDivide( cclockwiseConts, nonEmptyConts ) * 100 );
-  int percentStippled  = int( fDivide( stippledConts, nonEmptyConts ) * 100 );
+  int percentSinglePt  = calcPercentInt( singlePtConts, nonEmptyConts );
+  int percentOpen      = calcPercentInt( openConts, nonEmptyConts );
+  int percentClockwise = calcPercentInt( cclockwiseConts, nonEmptyConts );
+  int percentStippled  = calcPercentInt( stippledConts, nonEmptyConts );
   
   float ptsPerCont = fDivide( totPts, nonEmptyConts );
   float avgDistPts = fDivide( totLen, totPts - (openConts+singlePtConts)  );
@@ -2020,7 +2023,7 @@ void DrawingTools::printContourDetailedInfo()
       for( int p=0; p<psize(cont); p++ ) {
         float segLen  = imodPointDistance( getPt(cont,p), getPt(cont,p+1) ) * unitMult;
         cumulativeLen += segLen;
-        int   segPercent = fDivide( cumulativeLen, length) * 100;
+        int   segPercent = calcPercentInt( cumulativeLen, length);
         wprint("  %i \t%g \t%g \t(%d%%)\n", p+1, segLen, cumulativeLen, segPercent );
       }
     }
@@ -2371,6 +2374,7 @@ void DrawingTools::sortContours()
                   "Only contours BEFORE this contour "
                   "(inclusive) will be reordered" );
   ds.addRadioGrp( "sort contours by:      (sort criteria)",
+                  "surface number,"
                   "number points,"
                   "contour length,"
                   "area,"
@@ -2387,6 +2391,8 @@ void DrawingTools::sortContours()
                   "min z",
                   &plug.sortCriteria,
                   "",
+                  "Sorts contours by their surface number... "
+                    "(helps to run imodmesh first!),"
                   "Sorts by the number of points (empty first),"
                   "Length of the contours (open or closed - depending on object/contour),"
                   "Area of the contour (smallest first),"
@@ -2692,7 +2698,7 @@ void DrawingTools::deleteContours()
   
   undoFinishUnit( plug.view );                      // FINISH UNDO
   
-  int percentDeleted = numContsDeleted / numCandidateConts * 100.0f;
+  int percentDeleted = calcPercentInt(numContsDeleted, numCandidateConts);
   wprint("%d contours deleted (%d%%)\n", numContsDeleted, percentDeleted );
 }
 
@@ -5548,6 +5554,10 @@ float edit_getSortValue( int sortCriteria, Iobj *obj, Icont *cont, int ptIdx )
   
   switch(sortCriteria)
   {
+    case(SORT_SURFACENUM):
+      returnValue = imodContourGetSurface(cont);
+      break;
+      
     case(SORT_NUMPTS):
       returnValue = psize(cont);
       break;

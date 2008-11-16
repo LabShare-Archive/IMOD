@@ -97,7 +97,8 @@ inline Ipoint *getPtNoWrap(Icont *cont, int idx);
 inline Ipoint *getLastPt(Icont *cont );
 inline Ipoint *getFirstPt(Icont *cont );
 inline void setPt(Ipoint *pt, float x, float y, float z);
-inline int ptsEqual( Ipoint *pt1, Ipoint *pt2 );
+inline bool ptsEqual( Ipoint *pt1, Ipoint *pt2 );
+inline bool ptsApproxEqual( Ipoint *pt1, Ipoint *pt2, float prec );
 inline void removePtsSize( Icont *cont );
 inline void removePtSize( Icont *cont, int idx );
 inline bool isDefaultSize( Iobj *obj, Icont *cont, int idx );
@@ -225,19 +226,20 @@ int cont_removeRedundantPts( Icont *cont, bool removeStraightLinePts, bool close
 bool cont_isSimple( Icont *cont, bool closed=true );
 bool cont_isSimpleSeg( Icont *cont, bool closed, int *ptCross );
 void cont_makeSimple( Icont *cont );                            
-int cont_breakIntoSimple( vector<IcontPtr> &conts, Icont *cont );                    
+int  cont_breakIntoSimple( vector<IcontPtr> &conts, Icont *cont );                    
 bool cont_isConvex( Icont *cont );                              
 int  cont_makeConvex( Icont *cont );
-float cont_calcConvexLength( Icont *cont, int *numConvexPts, bool closed );
+int  cont_markConvexPtsNegOne( Icont *cont );
+void cont_calcConvexProperties( Icont *cont, bool closed, int *numConvexPts, float *convexLen, float *hullLen, float *hullArea );
 bool cont_breakContourEitherSide( Icont *cont, Icont *contBreak1, Icont *contBreak2, int idxPt1, int idxPt2, bool shareEdge );      
 bool cont_breakContourByLine( Icont *cont, Icont *contBreak1, Icont *contBreak2, Ipoint *linePt1, Ipoint *linePt2, Ipoint expectedPt, bool useExpectedPtInsteadOfMaxAreaSmallerSide );
 void cont_joinContsAtClosestApproach( Icont *newCont, Icont *cont1, Icont *cont2, bool addPtInMiddle );          
 void cont_joinContsAtClosestApproachVector( Icont *newCont, vector<IcontPtr> conts, bool addPtInMiddle );          
 void cont_getIntersectingConvexPolygon( Icont *newCont, Icont *cont1, Icont *cont2 );                    
 
-int cont_breakContByZValue( Icont *contOrig, vector<IcontPtr> &contSegs, int zValue );                      // NEW
-int cont_breakOpenContAtZValue( Icont *contOrig, vector<IcontPtr> &contSegs, int zValueToBreak );           // NEW
-int cont_breakContByCircle( Icont *contOrig, vector<IcontPtr> &contSegs, Ipoint *center, float radius );    // NEW
+int cont_breakContByZValue( Icont *contOrig, vector<IcontPtr> &contSegs, int zValue, bool removeOffSegments );  // NEW
+int cont_breakOpenContAtZValue( Icont *contOrig, vector<IcontPtr> &contSegs, int zValueToBreak );               // NEW
+int cont_breakContByCircle( Icont *contOrig, vector<IcontPtr> &contSegs, Ipoint *center, float radius );        // NEW
 int cont_getIntersectingSegments( Icont *cont1, Icont *cont2, vector<IcontPtr> &cont1Segs, vector<IcontPtr> &cont2Segs  );   // MODIFY
 int cont_getIntersectingPolygons( vector<IcontPtr> &finalConts, Icont *cont1, Icont *cont2 );                      
 int cont_getUnionPolygons( vector<IcontPtr> &finalConts, Icont *cont1, Icont *cont2 );                        
@@ -247,7 +249,7 @@ Ipoint cont_getPtDistAlongLength( Icont *cont, float dist, bool closed, int star
 Ipoint cont_getPtFractAlongLength( Icont *cont, float fract, bool closed, int startPt );
 vector<float> cont_getFractPtsAlongLength( Icont *cont, bool closed, int startPt );                                                    // NEW
 int cont_addPtsFractsAlongLength( Icont *cont, Icont *contNew, vector<float> fractsAlongLen, bool closed, bool keepExistingPts, int startPt );      // NEW
-
+void cont_calcPtsizeInfo( Iobj *obj, Icont *cont, const float zScale, float &openLength, float &fullLength, float &openVol, float &fullVol, float &avgRadius, float &minRadius, float &maxRadius, float &minMidRadius, float &surfaceArea );
 
 //############################################################
 
@@ -400,10 +402,21 @@ inline void setPt(Ipoint *pt, float x, float y, float z)
 //-- Returns true if two points are equal... but unlike imodPointIsEqual
 //-- only checks x and y values
 
-inline int ptsEqual( Ipoint *pt1, Ipoint *pt2 )
+inline bool ptsEqual( Ipoint *pt1, Ipoint *pt2 )
 {
   return (pt1->x == pt2->x) && (pt1->y == pt2->y); 
 }
+
+//------------------------
+//-- Returns true if two points are with plus or minus "prec"
+//-- of each other in X and Y
+
+inline bool ptsApproxEqual( Ipoint *pt1, Ipoint *pt2, float prec )
+{
+  return   (pt1->x >= pt2->x-prec && pt1->x <= pt2->x+prec )
+        && (pt1->y >= pt2->y-prec && pt1->y <= pt2->y+prec ); 
+}
+
 
 //------------------------
 //-- Resets the point size and fine grain of all points in the current contour

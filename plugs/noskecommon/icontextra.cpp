@@ -15,6 +15,9 @@
     $Revision$
 
     $Log$
+    Revision 1.11  2008/09/30 06:49:54  tempuser
+    *** empty log message ***
+
     Revision 1.10  2008/08/28 01:21:18  tempuser
     attempt to fix qstring conversion error
 
@@ -1968,10 +1971,12 @@ int cont_breakIntoSimple( vector<IcontPtr> &conts, Icont *cont )
 //-- Determines if a contour is convex by checking that all the "turns"
 //-- (the angle formed by the lines either side of each point)
 //-- are in the same direction.
+//-- Note that this algorithm may fail in rare cases where the contour
+//-- is non-simple and forms a "loop".
 
 bool cont_isConvex( Icont *cont )
 {
-  if( psize(cont) < 3 )
+  if( psize(cont) <= 3 )
     return true;
   
   int numRightTurns = 0;
@@ -2001,12 +2006,13 @@ bool cont_isConvex( Icont *cont )
 
 
 //------------------------
-//-- Makes a contour is convex by eliminating all points which form a
+//-- Attempts to makes a contour convex by eliminating all points which form a
 //-- left turn (with the lines either side of it) for an clockwise contour
-//-- or a right turn for a anti-clockwise contour and returns the nubmer of
-//-- points removed.
+//-- or a right turn for a anti-clockwise contour. Note that this crude method
+//-- can often fail on more convoluted contours with a concavity tree greater
+//-- than one deep (i.e. the concave regions have concave regions).
 
-int cont_makeConvex( Icont *cont )
+int cont_makeConvexCrude( Icont *cont )
 {
   if( psize(cont) < 3 )
     return 0;
@@ -2036,23 +2042,148 @@ int cont_makeConvex( Icont *cont )
 }
 
 
-//------------------------
-//-- Calculates the number of convex points in the given closed contour and returns
-//-- the total length of convex line segments.
 
-float cont_calcConvexLength( Icont *cont, int *numConvexPts, bool closed )
+//------------------------
+//-- Computes and returns a clockwise convex hull around a given set of points
+//-- using the "Graham Scan" (3-coins algorithm) algorithm.
+//-- This involves finding the lowest point (in y), sorting all points radially
+//-- relative this point, then removing points which form a "left turn".
+//-- Returns the number of points removed.
+//-- see: http://en.wikipedia.org/wiki/Graham_scan
+
+int cont_makeConvex( Icont *cont )
 {
-  if( psize(cont) <= 3 || cont_isConvex(cont) )
+  if( cont_isConvex(cont) )
+    return 0;
+  
+  //## MAKE CONTOUR CLOCKWISE:
+  
+  imodContourMakeDirection( cont, IMOD_CONTOUR_CLOCKWISE );
+  
+  //## FIND THE LOWEST POINT IN THE CONTOUR:
+  
+  int pointsBefore = psize(cont);
+  int idxStartPt = 0;
+  float lowestYVal = getFirstPt(cont)->y;
+  for (int p=1; p<pointsBefore; p++)
   {
-    *numConvexPts = psize( cont );
-    return imodContourLength( cont, closed );
+    Ipoint *currPt = getPt(cont,p);
+    if(currPt->y <= lowestYVal) // if this point is lowest so far:
+    {
+      if( currPt->y == lowestYVal                       // if point has same y value:
+          && currPt->x >  getPt(cont,idxStartPt)->x )   // use x as a tie-breaker.
+        continue;
+      lowestYVal = currPt->y; // update as new lowest point.
+      idxStartPt = p;
+    }
   }
   
-  //## CREATE A CONVEX VERSION OF THE CONTOUR AND COUNT IT'S POINTS:
+  
+  //## MAKE CONTOUR CLOCKWISE AND START AT LOWEST POINT:
+  
+  cont_reorderPtsToStartAtIdx( cont, idxStartPt );
+  
+  
+  //## SORT POINTS RADIALLY FROM THE LOWEST POINT:
+  
+  Ipoint *lowestPt = getFirstPt(cont);
+  vector<IdxToSort> idxAngles;
+  for (int p=1; p<pointsBefore; p++)
+  {
+    float angle   = line_getAngle2DPos( lowestPt, getPt(cont,p) );
+    float sqDist  = line_sqDistBetweenPts2D( lowestPt, getPt(cont,p) );
+    idxAngles.push_back( IdxToSort( p, angle, FLOAT_MAX-sqDist ) );
+  }
+  
+  idxAngles = vector_sort( idxAngles );
+  
+  Icont *contCopy = imodContourDup( cont );
+  deleteAllPts(cont);
+  imodPointAppend( cont, getFirstPt(contCopy) );    // add lowest point
+  
+  for (int i=0; i<(int)idxAngles.size(); i++)             // use idx values to populate cont
+    imodPointAppend( cont, getPt(contCopy,idxAngles[i].idx ) );
+  
+  imodContourDelete(contCopy);
+  
+  
+  //## ITERATE THROUGH LIST AND REMOVE ANY POINTS WHICH MAKE A LEFT TURN:
+  
+  for (int p=1; p<psize(cont); p++ )
+  {
+    float crossProduct = line_crossProduct3Points(getPt(cont,p-1),
+                                                  getPt(cont,p),getPt(cont,p+1)); 
+    
+    if( crossProduct < 0 ) // if this point makes a left turn:
+    {
+      imodPointDelete( cont, p );   // delete this point... and
+      p = MAX(0,p-2);               // go back two points
+    }
+  }
+  
+  return ( pointsBefore - psize(cont) );
+}
+
+
+//------------------------
+//-- Sets the z value of any concave points to -1 and
+//-- returns the number of concave points found.
+
+int cont_markConvexPtsNegOne( Icont *cont )
+{
+  if( cont_isConvex(cont) )
+    return 0;
+  
+  //## CREATE A CONVEX VERSION OF THE CONTOUR:
+  
+  Icont *convexCont = imodContourDup(cont);
+  cont_makeConvex( convexCont );
+  
+  //## FOR EACH POINT: IF IT'S NOT IN THE CONVEX VERSION, MARK IT AS A CONCAVE POINT
+  
+  int numPts        = psize(cont);
+  int numConvexPts  = psize(convexCont);
+  int numConcavePts = numPts - numConvexPts;
+  int concaveIdx    = 0;
+  
+  for( int p=0; p<numPts && concaveIdx<numConcavePts; p++ )
+  {
+    Ipoint *currPt = getPt( cont,p );
+    int ptIsInside = cont_doesPtExistInCont(convexCont, currPt );
+    if( ptIsInside  )
+      currPt->z = -1;
+     
+  }
+  
+  return numConvexPts;
+}
+
+
+//------------------------
+//-- Takes a contour and returns the number of convex points "numConvexPts",
+//-- the total length of convex line segments "convexLen", and both the length "hullLen"
+//-- and area "hullArea" of the convex hull around the contour.
+
+void cont_calcConvexProperties( Icont *cont, bool closed, int *numConvexPts,
+                                float *convexLen, float *hullLen, float *hullArea )
+{
+  if( cont_isConvex(cont) )
+  {
+    float totalLen = imodContourLength( cont, closed );
+    *numConvexPts = psize( cont );
+    *convexLen = totalLen;
+    *hullLen   = totalLen;
+    *hullArea  = imodContourArea( cont );
+    return;
+  }
+  
+  //## CREATE A CONVEX HULL OVER THE CONTOUR AND COUNT IT'S POINTS:
   
   Icont *convexCont = imodContourDup(cont);
   cont_makeConvex( convexCont );
   *numConvexPts = psize( convexCont );
+  *hullLen      = imodContourLength( convexCont, closed );
+  *hullArea     = imodContourArea( convexCont );
   
   //## FOR EACH LINE SEGMENT: IF IT'S IN THE CONVEX VERSION, ADD IT TO THE CONVEX LENGTH
   
@@ -2072,10 +2203,10 @@ float cont_calcConvexLength( Icont *cont, int *numConvexPts, bool closed )
     currPtInside = nextPtInside;
   }
   
+  *convexLen = totConvexLength;
+  
   imodContourDelete( convexCont );
-  return ( totConvexLength );
 }
-
 
 
 //------------------------
@@ -2564,7 +2695,9 @@ void cont_getIntersectingConvexPolygon( Icont *newCont,
 //-- setting all their points to zValue and deleting any fragments
 //-- with only one point.
 
-int cont_breakContByZValue( Icont *contOrig, vector<IcontPtr> &contSegs, int zValue )
+/*
+int cont_breakContByZValue( Icont *contOrig, vector<IcontPtr> &contSegs, int zValue,
+                            bool removeOffSegments )
 {
   contSegs.clear();
   
@@ -2572,39 +2705,150 @@ int cont_breakContByZValue( Icont *contOrig, vector<IcontPtr> &contSegs, int zVa
     return 0;
   
   Icont *cont = imodContourDup(contOrig);
+  float z = (float)zValue;
   
   imodContourUnique( cont );
   
+  //## REORDER CONTOUR TO START FORM A POINT WHICH IS OFF:
+  
   for(int i=0; i<psize(cont); i++)
-    if( getPt(cont,i)->z != (float)zValue  )
+    if( getPt(cont,i)->z != z  )            // if pt not on zValue:
     {
-      cont_reorderPtsToStartAtIdx( cont, i );
+      cont_reorderPtsToStartAtIdx( cont, i );   // make it the first point
       break;
     }
   
+  //## GO THROUGH CONT AND CREATE SEGMENTS FROM SEQENTIAL SERIES OF ON POINTS:
+  
   contSegs.push_back( IcontPtr() );
   
-  for (int i=0; i<psize(cont)+1;i++)
+  if( removeOffSegments )
   {
-           // if this is an intersection point: add it, then start a new contour
-    if( getPt(cont,i)->z != (float)zValue ) {    
-      imodPointAppend( contSegs.back().cont, getPt(cont,i));
-      contSegs.push_back( IcontPtr() );
+    float z = (float)zValue;
+    
+    for (int i=0; i<psize(cont)+1;i++)
+    {
+      bool prevPointOn = getPt(cont,i-1)->z == z;
+      bool currPointOn = getPt(cont,i)->z   == z;
+      bool nextPointOn = getPt(cont,i+1)->z == z;
+      
+      if( currPointOn )                         // if point is on: add it
+      {
+        imodPointAppend( contSegs.back().cont, getPt(cont,i));
+      }
+      else if( prevPointOn || nextPointOn )     // if intersection point:
+      {
+        if( prevPointOn )
+          imodPointAppend( contSegs.back().cont, getPt(cont,i));
+        
+        contSegs.push_back( IcontPtr() );
+        
+        if( nextPointOn )
+          imodPointAppend( contSegs.back().cont, getPt(cont,i));
+      }
     }
-    imodPointAppend( contSegs.back().cont, getPt(cont,i));
+  }
+  else
+  {
+    for (int i=0; i<psize(cont)+1;i++)
+    {
+      // if this is an intersection point: add it, then start a new contour
+      if( getPt(cont,i)->z != (float)zValue )
+      {
+        if( removeOffSegments )
+        {
+          
+          imodPointAppend( contSegs.back().cont, getPt(cont,i));
+          contSegs.push_back( IcontPtr() );
+        }
+        imodPointAppend( contSegs.back().cont, getPt(cont,i));
+      }
+    }
   }
   
-  for (int i=0; i<(int)contSegs.size(); i++)
+  //## CLEAN ALL SEGMENTS AND REMOVE ANY WITH ONLY ONE POINT OR LESS:
+  
+  for(int i=(int)contSegs.size()-1; i>=0; i--)
   {
     imodContourUnique( contSegs[i].cont );
     changeZValue( contSegs[i].cont,zValue );
-    if(psize(contSegs[i].cont) <= 1 ) {
+    if(psize(contSegs[i].cont) <= 1 )
       eraseContour( contSegs, i );
-      i--;
-    }
   }
   
   imodContourDelete(cont);
+  return (contSegs.size());
+}
+*/
+
+int cont_breakContByZValue( Icont *cont, vector<IcontPtr> &contSegs, int zValue,
+                            bool removeOffSegments )
+{
+  contSegs.clear();
+  
+  if( isEmpty(cont) )
+    return 0;
+  
+  int numPts = psize(cont);
+  float z = (float)zValue;
+  
+  //## DETERMINE THE FIRST POINT WHICH IS OFF:
+  
+  int pOffset = 0;      // the index of the first point NOT on z
+  for( ; pOffset<numPts; pOffset++)
+    if( getPt(cont,pOffset)->z != z  )
+      break;
+  
+  //## GO THROUGH CONT FROM FIRST OFF POINT AND CREATE SEGMENTS FROM
+  //## SEQENTIAL SERIES OF ON POINTS:
+  
+  contSegs.push_back( IcontPtr() );
+  
+  for (int p=0; p<numPts+1;p++)
+  {
+    int i = (p+pOffset) % numPts;
+    bool currPointOn = getPt(cont,i)->z   == z;
+    
+    
+    if( currPointOn )                         // if point is on: add it
+    {
+      imodPointAppend( contSegs.back().cont, getPt(cont,i) );
+    }
+    else
+    {
+      if( removeOffSegments )
+      {
+        bool prevPointOn = getPt(cont,i-1)->z == z;
+        bool nextPointOn = getPt(cont,i+1)->z == z;
+        
+        if( prevPointOn || nextPointOn )     // if intersection point:
+        {
+          if( prevPointOn )
+            imodPointAppend( contSegs.back().cont, getPt(cont,i) );
+          contSegs.push_back( IcontPtr() );
+          if( nextPointOn )
+            imodPointAppend( contSegs.back().cont, getPt(cont,i) );
+        }
+      }
+      else
+      {
+        imodPointAppend( contSegs.back().cont, getPt(cont,i) );
+        contSegs.push_back( IcontPtr() );
+        imodPointAppend( contSegs.back().cont, getPt(cont,i) );
+      }
+    }
+  }
+  
+  //## CLEAN ALL SEGMENTS AND REMOVE ANY WITH ONLY ONE POINT OR LESS:
+  
+  for(int i=(int)contSegs.size()-1; i>=0; i--)
+  {
+    imodContourUnique( contSegs[i].cont );
+    changeZValue( contSegs[i].cont,zValue );
+    if(psize(contSegs[i].cont) <= 1 )
+      eraseContour( contSegs, i );
+  }
+  
   return (contSegs.size());
 }
 
@@ -2763,7 +3007,6 @@ int cont_getIntersectingSegments( Icont *cont1Orig, Icont *cont2Orig,
   }
   
   
-  
 //## FOR BOTH CONTOURS: IF MORE THAN ONE INTERCEPT POINT AFTER A SINGLE POINT:
 //## SORT THESE IN ORDER OF THEIR DISTANCE FROM THE POINT
   
@@ -2776,7 +3019,7 @@ int cont_getIntersectingSegments( Icont *cont1Orig, Icont *cont2Orig,
       cont2Intercepts[i] = vector_sort( cont2Intercepts[i] );
       
 //## FOR BOTH CONTOURS: CREATE A NEW VERSION WHEREBY THE INTERCEPTS POINT ARE ADDED,
-//## AND AND MAP THE CONNECTION OF THESE POINTS BETWEEN CONTOURS
+//## AND MAP THE CONNECTION OF THESE POINTS BETWEEN CONTOURS
   
   Icont *cont1P = imodContourNew();  //|- stores a version of the contours where the 
   Icont *cont2P = imodContourNew();  //|  intercept points have been ADDED as extra pts
@@ -2807,10 +3050,8 @@ int cont_getIntersectingSegments( Icont *cont1Orig, Icont *cont2Orig,
   
 //## CLEAN LINE SEGMENTS AND DELETE ANY EMPTY ONES:
   
-  
-  
-  cont_breakContByZValue( cont1P, cont1Seg, cont1ZVal );
-  cont_breakContByZValue( cont2P, cont2Seg, cont2ZVal );
+  cont_breakContByZValue( cont1P, cont1Seg, cont1ZVal, false );
+  cont_breakContByZValue( cont2P, cont2Seg, cont2ZVal, false );
   
   imodContourDelete(cont1);
   imodContourDelete(cont2);
@@ -3301,4 +3542,74 @@ int cont_addPtsFractsAlongLength( Icont *cont, Icont *contNew,
 }
 
 
+
+
+
+
+//------------------------
+//-- Calculates a mass of information about the contour - especially with respect to point size
+
+void cont_calcPtsizeInfo( Iobj *obj, Icont *cont, const float zScale,
+                          float &openLength, float &fullLength,
+                          float &openVol, float &fullVol,
+                          float &avgRadius, float &minRadius, float &maxRadius,
+                          float &minMidRadius, float &surfaceArea )
+{
+  int numPts = psize(cont);
+  if( psize( cont ) == 0 )
+    return;
+  
+  openLength = 0;
+  openVol = 0;
+  float weightedRadius = 0;
+  
+  surfaceArea = 0;
+  Ipoint scale;
+  scale.x = 1.0;
+  scale.y = 1.0;
+  scale.z = zScale;
+  
+  for(int i=0; i<psize(cont)-1; i++)
+  {
+    float lengthBetweenTwoPts = imodPoint3DScaleDistance( getPt(cont,i), getPt(cont,i+1),
+                                                          &scale );
+    float avgRadiusForTwoPts = ( imodPointGetSize(obj,cont,i) +
+                                 imodPointGetSize(obj,cont,i+1)) / 2.0;
+    float volBetweenTwoPs = geom_volumeConicalFrustrum( imodPointGetSize(obj,cont,i),
+                                                        imodPointGetSize(obj,cont,i+1),
+                                                        lengthBetweenTwoPts );
+    openLength += lengthBetweenTwoPts;
+    openVol += volBetweenTwoPs;
+    weightedRadius += lengthBetweenTwoPts * avgRadiusForTwoPts;
+    surfaceArea += geom_surfaceAreaConicalFrustrum( imodPointGetSize(obj,cont,i),
+                                                    imodPointGetSize(obj,cont,i+1),
+                                                    lengthBetweenTwoPts);
+  }
+  
+  avgRadius = weightedRadius / openLength; // NOTE: aveage radius along the open portion of the contour.
+  
+  double radiusStart = imodPointGetSize(obj,cont,0);
+  double radiusEnd   = imodPointGetSize(obj,cont,numPts-1);
+  
+  fullLength = openLength + ( radiusStart + radiusEnd );
+  
+  fullVol = openVol + 0.5*geom_volumeSphere( radiusStart )
+                    + 0.5*geom_volumeSphere( radiusEnd );
+  surfaceArea = surfaceArea + 0.5*geom_surfaceAreaSphere( radiusStart )
+                            + 0.5*geom_surfaceAreaSphere( radiusEnd );
+  minRadius = FLOAT_MAX;
+  maxRadius = 0;
+  
+  for(int i=0; i<psize(cont); i++)
+  {
+    updateMin( minRadius, imodPointGetSize(obj,cont,i) );
+    updateMax( maxRadius, imodPointGetSize(obj,cont,i) );
+  }
+  
+  minMidRadius = FLOAT_MAX;
+  
+  for(int i=1; i<(psize(cont)-1); i++) // for the second point to the second last:
+    updateMin( minMidRadius, imodPointGetSize(obj,cont,i) );
+  
+}
 
