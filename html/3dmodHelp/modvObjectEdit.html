@@ -28,8 +28,9 @@ object, all objects at once, just the objects that are
 currently turned On, or objects belonging to a group selected in the Object
 List window.  Features that can be edited in tandem for
 many objects include: point size, line width, material
-properties, and drawing data type and style.  Line color can also be
-changed in tandem if a separate check box is selected.  When <B>On's</B> is
+properties, drawing data type and style, and meshing parameters.  Line color
+can also be changed in tandem if a separate check box is selected.
+When <B>On's</B> is
 selected, and the current object is not On, then it will not be changed, but
 a nearby object that was changed will be made the current one so that the
 dialog can reflect your change.  Similar behavior occurs when <B>Group</B> is
@@ -246,7 +247,13 @@ for more details.  If the object has been meshed before, the
 parameters for that meshing will be used to set these controls.  In addition,
 any parameters set through Imodmesh but not appearing here, such as X or Y
 limits or lists of Z values to not cap to, will still be
-applied when remeshing through this interface.  The controls are:
+applied when remeshing through this interface.  If you changing the meshing
+parameters for more than one object (i.e., with an <B>Edit</B> option of with
+editing of multiple models enabled), then an object will be changed only if
+the particular parameter change is relevant for that kind of object or
+appropriate given the other parameters set for that object.
+<P>
+The controls are:
 <UL>
 <LI><B>Skip:</B> Connect contours across sections with no contours (-s
 option).
@@ -257,6 +264,9 @@ in the same surface (-S option).
 <LI><B>Cap:</B> Normally, cap all unconnected ends of the object (-C option).
 When <B>Tube</B> is selected, this checkbox controls whether the ends of tubes
 are capped (-E option).
+<LI><B>Dome cap:</B> When <B>Tube</B> is selected, you can use this option to
+get hemispherical caps on the ends of tubes (-H option).  It is not necessary
+to turn on <B>Cap</B> also.
 <LI><B>Passes:</B> Number of passes for connecting contours farther apart in Z
 (-P option).
 <LI><B>Diam:</B> Diameter for tube meshing (-D option).  If the value is 0,
@@ -285,7 +295,7 @@ Pressing <B>Mesh All</B> will mesh all closed and open contour objects in the
 model.  The meshing parameters used for each object will be the ones defined
 for that object, of it has been meshed before, or it will be the default
 parameters that you would see in this panel if you switched to that object.
-The parameters visible for the current object are not necessarily the deafults
+The parameters visible for the current object are not necessarily the defaults
 for the other objects.
 <P>
 <A HREF="index.html">Help Index<A>
