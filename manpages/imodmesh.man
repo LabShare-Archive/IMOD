@@ -17,17 +17,29 @@ are considered to represent inside surfaces and will be connected to the outer
 surface where appropriate.
 
 .SS Open and Closed Contours
-Open contours can be used instead of closed ones to represent extended sheets,
-or objects that are cut open on one side.  If you do so, you must
-model all of the contours in the same direction so that the skin will face
-outward in the proper direction along the whole surface.  If you are facing
-the surface from the side that you want to be brightly lit, contours should
-progress (point number should increase) from left to right.  If a few 
-contours are going the wrong way, you can correct them individually
+Most modeling of structures in a plane is done with closed-contour objects,
+where the brightly lit surface is on the outside of the contours.  An 
+open-contour object can be used instead to represent an extended sheet
+or a structure that is cut open on one side.  In this case, there is no
+obvious way to define the inside and outside of the contours, and the program
+will assign the outside surface based on the direction that contours are
+drawn.  Specifically, the outside of a surface formed by a connected set of
+contours is determined by 
+direction of the contour at the lowest Z in that set; higher contours are
+automatically inverted if necessary to maintain a consistent outside face.
+If you are facing the surface from the side that you want to be brightly lit,
+the lowest contour should
+progress (point number should increase) from left to right.  This rule will
+cover most situations, but if you are skipping sections in a way that requires
+multiple passes to form all connections, then you need to use a consistent
+direction for the lowest contour in each set of contours that are connected on
+the first pass.  If a 
+contour is going the wrong way, you can correct it
 in 3dmod with Edit-Contour-Invert.  If the entire surface is facing the wrong
 way, you can invert the polarity of the surface at the level of the whole
 object; use Edit-Object-Type to define the "Front Surface" as being
-"Inside" rather than "Outside".
+"Inside" rather than "Outside".  You can also turn on "Light both sides" in
+the Model View Object Edit dialog to avoid lighting direction issues.
 
 When meshing open contour objects, imodmesh will attempt to connect all 
 contours between sections, regardless of proximity,
@@ -264,7 +276,14 @@ size, respectively.  Either of these items can vary from point to point.
 .B -E
 Cap the ends of tubes made with the 
 .B -t
-option.  This is only way to get tubes capped and is independent of the
+option.
+.TP
+.B -H
+Cap the ends of tubes with hemispheres (domes) instead of flat disks.  If you
+use this option, you do not need the 
+.B -E
+option.  
+These two options are only way to get tubes capped and are independent of the
 .B -c
 and
 .B -C
