@@ -23,6 +23,7 @@ EXPORTS
 	sliceInit
 	sampleMeanSD
 	PipGetString
+	setOrClearFlags
 	ilistDelete
 	AdocDeleteKeyValue
 	CUBINTERP
