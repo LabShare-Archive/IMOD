@@ -417,7 +417,7 @@ inline float roundPrec( float value, float precision )
 //-- Founds float to nearest multiple of "precision"
 inline float roundDecimals( float value, int decimals ) 				
 {
-  float precision = pow(0.1, (float)decimals);
+  float precision = pow(0.1f, (float)decimals);
 	return (float)( roundToInt(value / precision) * precision );
 }
 
