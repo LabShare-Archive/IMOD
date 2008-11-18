@@ -11,7 +11,8 @@ Log at end
 #ifndef IIMAGE_H
 #define IIMAGE_H
 
-#include "mrcc.h"
+#include "mrcfiles.h"
+#include "mrcslice.h"
 #include <math.h>
 
 #ifdef __cplusplus
@@ -183,6 +184,9 @@ extern "C" {
 
 /*
 $Log$
+Revision 3.12  2007/06/13 17:07:45  sueh
+bug# 1019 Adding sectionSkip to ImodImageFile and RawImageInfo.
+
 Revision 3.11  2006/09/21 22:26:35  mast
 Adedd function to insert check function earlier in list
 
