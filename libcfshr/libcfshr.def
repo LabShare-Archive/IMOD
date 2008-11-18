@@ -5,6 +5,8 @@ LIBRARY      "libcfshr"
 EXPORTS
 	ilistInsert
 	ADOCGETINTEGER
+        amatToRotmagstr
+        AMAT_TO_ROTMAGSTR
 	PIPDONE
 	b3dRewind
 	c2fString

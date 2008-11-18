@@ -117,6 +117,10 @@ extern "C" {
                   float *c, float x1pred, float x2pred, float *ypred,
                   float *prederr);
 
+  /* amat_to_rotamgstr.c */
+  void amatToRotmagstr(float a11, float a12, float a21, float a22, 
+                         float *theta, float *smag, float *str, float *phi);
+
 #ifdef __cplusplus
 }
 #endif
@@ -127,6 +131,9 @@ extern "C" {
 /*
 
 $Log$
+Revision 3.7  2008/11/14 19:59:23  mast
+Added simplestat functions
+
 Revision 3.6  2008/11/12 03:41:42  mast
 Added histogram functions
 
