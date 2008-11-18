@@ -81,7 +81,8 @@ void MidasSlots::update_parameters()
   float meanerr, toperr[8], meanleave, topleave, curerrx, curerry;
   int topleavind, topxy, edge;
   float *mat = VW->tr[VW->cz].mat;
-  amat_to_rotmagstr(mat, &param[0], &param[1], &param[2], &VW->phi);
+  amatToRotmagstr(mat[0], mat[3], mat[1], mat[4], &param[0], &param[1],
+                    &param[2], &VW->phi);
 
   if (VW->xtype != XTYPE_MONT) {
     xc = (float)VW->xsize * 0.5f;
@@ -1460,6 +1461,7 @@ void MidasSlots::midas_keyinput(QKeyEvent *event)
 #ifdef Q_OS_MACX
   case Qt::Qt::Key_Help:
 #endif
+  case Qt::Key_Delete:
   case Qt::Key_Insert:
     show_overlay();
     break;
@@ -1839,6 +1841,9 @@ int MidasSlots::showHelpPage(const char *page)
 
 /*
 $Log$
+Revision 3.18  2008/10/13 04:36:23  mast
+Added cosine stretching
+
 Revision 3.17  2007/11/27 23:31:38  sueh
 bug# 1038 Switching to html files for help.
 
