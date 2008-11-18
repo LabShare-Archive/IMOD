@@ -228,7 +228,7 @@ void b3dError(FILE *out, char *format, ...)
 
 /*! Sets flag to print messages passed by [b3dError] if [ival] is 0 (the 
   default), just to store them internally if [ival] is 1, or to print messages
-  destined to stderr to stdout instead if [ival is -1. */
+  destined to stderr to stdout instead if [ival] is -1. */
 void b3dSetStoreError(int ival)
 {
   storeError = ival;
@@ -502,6 +502,9 @@ int b3dIMax(int narg, ...)
 
 /*
 $Log$
+Revision 1.6  2008/11/15 21:51:20  mast
+Add function for setting flags
+
 Revision 1.5  2008/05/31 03:11:04  mast
 Added option to redirect errors from stderr to stdout
 
