@@ -1,5 +1,5 @@
 SOURCES += midas.cpp slots.cpp file_io.cpp graphics.cpp transforms.cpp \
-        amat_to_rotmagstr.cpp gaussj.cpp imod_assistant.cpp
+        gaussj.cpp imod_assistant.cpp
 
 HEADERS += midas.h graphics.h slots.h imod_assistant.h
 
