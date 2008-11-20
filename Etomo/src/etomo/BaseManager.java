@@ -703,6 +703,27 @@ public abstract class BaseManager {
     }
   }
 
+  public void imodOpen(AxisID axisID, String imodKey, String model,
+      Run3dmodMenuOptions menuOptions) {
+    try {
+      imodManager.open(imodKey, axisID, model, true, menuOptions);
+    }
+    catch (AxisTypeException except) {
+      except.printStackTrace();
+      uiHarness.openMessageDialog(except.getMessage(), "AxisType problem",
+          axisID);
+    }
+    catch (SystemProcessException except) {
+      except.printStackTrace();
+      uiHarness.openMessageDialog(except.getMessage(), "Can't open " + imodKey
+          + " in 3dmod ", axisID);
+    }
+    catch (IOException e) {
+      e.printStackTrace();
+      uiHarness.openMessageDialog(e.getMessage(), "IO Exception", axisID);
+    }
+  }
+
   /**
    * Return the parameter file as a File object
    * @return a File object specifying the data set parameter file.
@@ -1212,6 +1233,10 @@ public abstract class BaseManager {
 }
 /**
  * <p> $Log$
+ * <p> Revision 1.103  2008/10/06 22:36:42  sueh
+ * <p> bug# 1113 Removed packPanel, which is unecessary since scrolling was
+ * <p> removed.
+ * <p>
  * <p> Revision 1.102  2008/09/30 19:46:31  sueh
  * <p> bug# 1113 Added getFocusComponent.
  * <p>
