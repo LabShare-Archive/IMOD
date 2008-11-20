@@ -65,10 +65,6 @@ public final class TomogramPositioningExpert extends ReconUIExpert {
 
   private boolean advanced = false;
 
-  //backward compatibility functionality - if the metadata binning is missing
-  //get binning from newst
-  private boolean getBinningFromNewst = true;
-
   public TomogramPositioningExpert(ApplicationManager manager,
       MainTomogramPanel mainPanel, ProcessTrack processTrack, AxisID axisID) {
     super(manager, mainPanel, processTrack, axisID,
@@ -139,11 +135,9 @@ public final class TomogramPositioningExpert extends ReconUIExpert {
     setParameters(metaData);
     if (metaData.getViewType() != ViewType.MONTAGE) {
       comScriptMgr.loadNewst(axisID);
-      setParameters(comScriptMgr.getNewstComNewstParam(axisID));
     }
     else {
       comScriptMgr.loadBlend(axisID);
-      setParameters(comScriptMgr.getBlendParam(axisID));
     }
 
     // Get the align{|a|b}.com parameters
@@ -820,38 +814,9 @@ public final class TomogramPositioningExpert extends ReconUIExpert {
     if (dialog == null) {
       return;
     }
-    ConstEtomoNumber binning = metaData.getTomoPosBinning(axisID);
-    if (!binning.isNull()) {
-      getBinningFromNewst = false;
-      dialog.setBinning(binning);
-    }
+    System.out.println("metaData.getTomoPosBinning(axisID)="+metaData.getTomoPosBinning(axisID));
+    dialog.setBinning(metaData.getTomoPosBinning(axisID));
     dialog.setSampleThickness(metaData.getSampleThickness(axisID));
-  }
-
-  /**
-   * Set the newst.com parameters in the dialog
-   * @param param
-   */
-  private void setParameters(ConstNewstParam param) {
-    if (dialog == null) {
-      return;
-    }
-    if (getBinningFromNewst) {
-      dialog.setBinning(param.getBinByFactor());
-    }
-  }
-
-  /**
-   * Set the blend.com parameters in the dialog
-   * @param param
-   */
-  private void setParameters(BlendmontParam param) {
-    if (dialog == null) {
-      return;
-    }
-    if (getBinningFromNewst) {
-      dialog.setBinning(param.getBinByFactor());
-    }
   }
 
   /**
@@ -964,6 +929,11 @@ public final class TomogramPositioningExpert extends ReconUIExpert {
 }
 /**
  * <p> $Log$
+ * <p> Revision 1.28  2008/05/28 02:51:55  sueh
+ * <p> bug# 1111 Add a dialogType parameter to the ProcessSeries
+ * <p> constructor.  DialogType must be passed to any function that constructs
+ * <p> a ProcessSeries instance.
+ * <p>
  * <p> Revision 1.27  2008/05/13 23:08:54  sueh
  * <p> bug# 847 Adding a right click menu for deferred 3dmods to some
  * <p> process buttons.  Handling doneDialog without setting dialog = null, since
