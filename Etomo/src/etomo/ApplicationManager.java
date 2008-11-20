@@ -51,6 +51,7 @@ import etomo.comscript.TiltalignParam;
 import etomo.comscript.TiltxcorrParam;
 import etomo.comscript.TransferfidParam;
 import etomo.comscript.TrimvolParam;
+import etomo.comscript.XfmodelParam;
 import etomo.comscript.XfproductParam;
 import etomo.process.BaseProcessManager;
 import etomo.process.ImodManager;
@@ -360,7 +361,6 @@ public final class ApplicationManager extends BaseManager {
       if (metaData == null) {
         return false;
       }
-      metaData.initialize();
       if (metaData.isValid()) {
         if (setupDialogExpert.checkForSharedDirectory()) {
           uiHarness.openMessageDialog("This directory (" + propertyUserDir
@@ -1787,32 +1787,25 @@ public final class ApplicationManager extends BaseManager {
   }
 
   /**
-   * Open 3dmod with the seed model
+   * Open 3dmod in seed mode with model and tilt file
    */
-  public void imodSeedFiducials(AxisID axisID, Run3dmodMenuOptions menuOptions,
-      ProcessResultDisplay processResultDisplay) {
+  public void imodSeedModel(AxisID axisID, Run3dmodMenuOptions menuOptions,
+      ProcessResultDisplay processResultDisplay, String key, String model,
+      File tiltFile) {
     sendMsgProcessStarting(processResultDisplay);
-    String seedModel = metaData.getDatasetName() + axisID.getExtension()
-        + ".seed";
     try {
-      imodManager.setPreserveContrast(ImodManager.COARSE_ALIGNED_KEY, axisID,
-          true);
-      imodManager
-          .setOpenBeadFixer(ImodManager.COARSE_ALIGNED_KEY, axisID, true);
-      imodManager.setAutoCenter(ImodManager.COARSE_ALIGNED_KEY, axisID, true);
-      imodManager.setBeadfixerMode(ImodManager.COARSE_ALIGNED_KEY, axisID,
-          ImodProcess.SEED_MODE);
-      imodManager.setOpenLogOff(ImodManager.COARSE_ALIGNED_KEY, axisID);
-      File tiltFile = DatasetFiles.getRawTiltFile(this, axisID);
-      if (tiltFile.exists()) {
-        imodManager.setTiltFile(ImodManager.COARSE_ALIGNED_KEY, axisID,
-            tiltFile.getName());
+      imodManager.setPreserveContrast(key, axisID, true);
+      imodManager.setOpenBeadFixer(key, axisID, true);
+      imodManager.setAutoCenter(key, axisID, true);
+      imodManager.setBeadfixerMode(key, axisID, ImodProcess.SEED_MODE);
+      imodManager.setOpenLogOff(key, axisID);
+      if (tiltFile != null && tiltFile.exists()) {
+        imodManager.setTiltFile(key, axisID, tiltFile.getName());
       }
       else {
-        imodManager.resetTiltFile(ImodManager.COARSE_ALIGNED_KEY, axisID);
+        imodManager.resetTiltFile(key, axisID);
       }
-      imodManager.open(ImodManager.COARSE_ALIGNED_KEY, axisID, seedModel, true,
-          menuOptions);
+      imodManager.open(key, axisID, model, true, menuOptions);
       processTrack.setFiducialModelState(ProcessState.INPROGRESS, axisID);
       mainPanel.setFiducialModelState(ProcessState.INPROGRESS, axisID);
       sendMsgProcessSucceeded(processResultDisplay);
@@ -1825,14 +1818,14 @@ public final class ApplicationManager extends BaseManager {
     }
     catch (SystemProcessException except) {
       except.printStackTrace();
-      uiHarness.openMessageDialog(except.getMessage(),
-          "Can't open 3dmod on coarse aligned stack with model: " + seedModel,
-          axisID);
+      uiHarness.openMessageDialog(except.getMessage(), "Can't open 3dmod on "
+          + key + " with model: " + model, axisID);
       sendMsgProcessFailedToStart(processResultDisplay);
     }
     catch (IOException e) {
       e.printStackTrace();
       uiHarness.openMessageDialog(e.getMessage(), "IO Exception", axisID);
+      sendMsgProcessFailedToStart(processResultDisplay);
     }
   }
 
@@ -3410,7 +3403,8 @@ public final class ApplicationManager extends BaseManager {
     return null;
   }
 
-  public ProcessResult ctfPlotter(AxisID axisID,ProcessResultDisplay processResultDisplay) {
+  public ProcessResult ctfPlotter(AxisID axisID,
+      ProcessResultDisplay processResultDisplay) {
     try {
       processMgr.ctfPlotter(axisID, processResultDisplay);
     }
@@ -5523,6 +5517,56 @@ public final class ApplicationManager extends BaseManager {
     return (ConstMetaData) metaData;
   }
 
+  public ProcessResult xfmodel(AxisID axisID,
+      ProcessResultDisplay processResultDisplay, ProcessSeries processSeries,
+      final XfmodelParam param, final DialogType dialogType) {
+    if (processSeries == null) {
+      processSeries = new ProcessSeries(this, dialogType);
+    }
+    String threadName;
+    try {
+      threadName = processMgr.xfmodel(param, axisID, processResultDisplay,
+          processSeries);
+    }
+    catch (SystemProcessException e) {
+      e.printStackTrace();
+      String[] message = new String[2];
+      message[0] = "Can not execute " + ProcessName.XFMODEL;
+      message[1] = e.getMessage();
+      uiHarness.openMessageDialog(message, "Unable to execute command", axisID);
+      return ProcessResult.FAILED_TO_START;
+    }
+    setThreadName(threadName, axisID);
+    mainPanel.startProgressBar("Running " + ProcessName.XFMODEL, axisID,
+        ProcessName.XFMODEL);
+    return null;
+  }
+
+  public ProcessResult ccdEraser(AxisID axisID,
+      ProcessResultDisplay processResultDisplay, ProcessSeries processSeries,
+      final CCDEraserParam param, final DialogType dialogType) {
+    if (processSeries == null) {
+      processSeries = new ProcessSeries(this, dialogType);
+    }
+    String threadName;
+    try {
+      threadName = processMgr.ccdEraser(param, axisID, processResultDisplay,
+          processSeries);
+    }
+    catch (SystemProcessException e) {
+      e.printStackTrace();
+      String[] message = new String[2];
+      message[0] = "Can not execute " + ProcessName.CCD_ERASER;
+      message[1] = e.getMessage();
+      uiHarness.openMessageDialog(message, "Unable to execute command", axisID);
+      return ProcessResult.FAILED_TO_START;
+    }
+    setThreadName(threadName, axisID);
+    mainPanel.startProgressBar("Running " + ProcessName.CCD_ERASER, axisID,
+        ProcessName.CCD_ERASER);
+    return null;
+  }
+
   public BaseMetaData getBaseMetaData() {
     return (BaseMetaData) metaData;
   }
@@ -5773,6 +5817,10 @@ public final class ApplicationManager extends BaseManager {
 }
 /**
  * <p> $Log$
+ * <p> Revision 3.309  2008/10/27 17:43:20  sueh
+ * <p> bug# 1141 Added ctfCorrection, ctfPlotter, imodCtfCorrection,
+ * <p> splitCorrection, and FinalAlignedStack dialogs.
+ * <p>
  * <p> Revision 3.308  2008/10/16 20:53:50  sueh
  * <p> bug# 1141 Created FinalAlignedStack dialog to run full aligned stack and mtf filter.
  * <p>
