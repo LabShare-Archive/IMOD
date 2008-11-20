@@ -5,6 +5,7 @@ import java.awt.event.*;
 import javax.swing.*;
 
 import etomo.ApplicationManager;
+import etomo.process.ImodManager;
 import etomo.type.AxisID;
 import etomo.type.BaseScreenState;
 import etomo.type.DialogType;
@@ -13,6 +14,7 @@ import etomo.type.ProcessResultDisplay;
 import etomo.type.ProcessResultDisplayFactory;
 import etomo.type.ReconScreenState;
 import etomo.type.Run3dmodMenuOptions;
+import etomo.util.DatasetFiles;
 import etomo.comscript.BeadtrackParam;
 import etomo.comscript.TransferfidParam;
 import etomo.comscript.FortranInputSyntaxException;
@@ -30,6 +32,9 @@ import etomo.comscript.FortranInputSyntaxException;
  * @version $Revision$
  *
  * <p> $Log$
+ * <p> Revision 3.42  2008/10/16 21:20:51  sueh
+ * <p> bug# 1141 Removed fixRootPanel because it doesn't do anything.
+ * <p>
  * <p> Revision 3.41  2008/05/13 23:01:50  sueh
  * <p> bug# 847 Adding a right click menu for deferred 3dmods to some
  * <p> process buttons.
@@ -479,8 +484,10 @@ public final class FiducialModelDialog extends ProcessDialog implements
   private void buttonAction(final String command,
       final Run3dmodMenuOptions run3dmodMenuOptions) {
     if (command.equals(btnSeed.getActionCommand())) {
-      applicationManager
-          .imodSeedFiducials(axisID, run3dmodMenuOptions, btnSeed);
+      applicationManager.imodSeedModel(axisID, run3dmodMenuOptions,
+          btnSeed, ImodManager.COARSE_ALIGNED_KEY, DatasetFiles
+              .getSeedFileName(applicationManager, axisID), DatasetFiles
+              .getRawTiltFile(applicationManager, axisID));
     }
   }
 
