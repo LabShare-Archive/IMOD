@@ -18,6 +18,9 @@ import java.util.Properties;
  * @notthreadsafe
  * 
  * <p> $Log$
+ * <p> Revision 1.4  2008/01/14 22:03:11  sueh
+ * <p> bug# 1050 Made the class public.
+ * <p>
  * <p> Revision 1.3  2007/12/10 22:39:19  sueh
  * <p> bug# 1041 Added loadFromOtherKey to load value with a key that is different
  * <p> from the one saved in the instance.  Useful for backwards compatibility.
@@ -35,23 +38,26 @@ public final class StringProperty implements ConstStringProperty {
 
   private final String key;
 
-  private String string = "";
+  private String string = null;
 
   public StringProperty(final String key) {
     this.key = key;
   }
 
   public String toString() {
+    if (string == null) {
+      return "";
+    }
     return string;
   }
 
   /**
-   * sets this.string to string.  If string is null, empty, or contains only whitespace,
-   * sets this.string to "".
-   * @param string
+   * Sets string to input.  If string is null, empty, or contains only
+   * whitespace, sets string to null.
+   * @param input
    */
   public void set(final String input) {
-    if (input == null || input.matches("\\s*")) {
+    if (isEmpty(input)) {
       reset();
     }
     else {
@@ -63,15 +69,25 @@ public final class StringProperty implements ConstStringProperty {
     string = input.string;
   }
 
-public  boolean isEmpty() {
+  public boolean isEmpty() {
+    return string == null;
+  }
+
+  private boolean isEmpty(String string) {
     return string == null || string.matches("\\s*");
   }
 
-  boolean equals(final String string) {
-    return this.string.equals(string);
+  boolean equals(final String comparee) {
+    if (string == null) {
+      return isEmpty(comparee);
+    }
+    return this.string.equals(comparee);
   }
 
   boolean equals(final StringProperty stringProperty) {
+    if (string == null) {
+      return isEmpty(stringProperty.string);
+    }
     return string.equals(stringProperty.string);
   }
 
@@ -80,7 +96,7 @@ public  boolean isEmpty() {
       reset();
     }
     else {
-      string = props.getProperty(createKey(prepend), "");
+      string = props.getProperty(createKey(prepend));
     }
   }
 
@@ -89,7 +105,7 @@ public  boolean isEmpty() {
       reset();
     }
     else {
-      string = props.getProperty(createKey(prepend, key), "");
+      string = props.getProperty(createKey(prepend, key));
     }
   }
 
@@ -115,7 +131,7 @@ public  boolean isEmpty() {
   }
 
   void reset() {
-    string = "";
+    string = null;
   }
 
   private String createKey(String prepend) {
@@ -123,7 +139,7 @@ public  boolean isEmpty() {
   }
 
   private String createKey(String prepend, String key) {
-    if (prepend == null || prepend.matches("\\s*")) {
+    if (isEmpty(prepend)) {
       return key;
     }
     return prepend + "." + key;
