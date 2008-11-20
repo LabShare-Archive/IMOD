@@ -7,6 +7,7 @@ import etomo.ApplicationManager;
 import etomo.EtomoDirector;
 import etomo.ProcessSeries;
 import etomo.comscript.BlendmontParam;
+import etomo.comscript.CCDEraserParam;
 import etomo.comscript.ComScriptManager;
 import etomo.comscript.ConstCtfPhaseFlipParam;
 import etomo.comscript.ConstCtfPlotterParam;
@@ -19,6 +20,7 @@ import etomo.comscript.FortranInputSyntaxException;
 import etomo.comscript.MTFFilterParam;
 import etomo.comscript.NewstParam;
 import etomo.comscript.SplitCorrectionParam;
+import etomo.comscript.XfmodelParam;
 import etomo.process.ImodManager;
 import etomo.process.ProcessState;
 import etomo.storage.CpuAdoc;
@@ -30,6 +32,8 @@ import etomo.type.ConstMetaData;
 import etomo.type.ConstProcessSeries;
 import etomo.type.DialogExitState;
 import etomo.type.DialogType;
+import etomo.type.EnumeratedType;
+import etomo.type.EtomoNumber;
 import etomo.type.MetaData;
 import etomo.type.ProcessName;
 import etomo.type.ProcessResult;
@@ -58,6 +62,9 @@ import etomo.util.Utilities;
  * @version $Revision$
  * 
  * <p> $Log$
+ * <p> Revision 1.4  2008/11/11 23:52:56  sueh
+ * <p> bug# 1149 Always getting binning from metadata.finalStackBinning (was tomoGenBinning).  Saving binning to metadata.finalStackBinning.
+ * <p>
  * <p> Revision 1.3  2008/10/30 20:22:50  sueh
  * <p> bug# 1141 Offer to close ctf correction on done.
  * <p>
@@ -369,8 +376,75 @@ public final class FinalAlignedStackExpert extends ReconUIExpert {
     return true;
   }
 
-  protected ProcessDialog getDialog() {
+  ProcessDialog getDialog() {
     return dialog;
+  }
+
+  void xfmodel(ProcessResultDisplay processResultDisplay,
+      ProcessSeries processSeries, Deferred3dmodButton deferred3dmodButton,
+      Run3dmodMenuOptions run3dmodMenuOptions) {
+    if (dialog == null) {
+      return;
+    }
+    if (processSeries == null) {
+      processSeries = new ProcessSeries(manager, dialogType);
+    }
+    processSeries.setRun3dmodDeferred(deferred3dmodButton, run3dmodMenuOptions);
+    sendMsgProcessStarting(processResultDisplay);
+    XfmodelParam param = new XfmodelParam(manager, axisID);
+    setDialogState(ProcessState.INPROGRESS);
+    ProcessResult processResult = manager.xfmodel(axisID, processResultDisplay,
+        processSeries, param, dialogType);
+    sendMsg(processResult, processResultDisplay);
+  }
+
+  public void ccdEraser(ProcessResultDisplay processResultDisplay,
+      ProcessSeries processSeries, Deferred3dmodButton deferred3dmodButton,
+      Run3dmodMenuOptions run3dmodMenuOptions) {
+    if (dialog == null) {
+      return;
+    }
+    if (processSeries == null) {
+      processSeries = new ProcessSeries(manager, dialogType);
+    }
+    processSeries.setRun3dmodDeferred(deferred3dmodButton, run3dmodMenuOptions);
+    sendMsgProcessStarting(processResultDisplay);
+    CCDEraserParam param = updateCcdEraserParam();
+    if (param == null) {
+      return;
+    }
+    setDialogState(ProcessState.INPROGRESS);
+    ProcessResult processResult = manager.ccdEraser(axisID,
+        processResultDisplay, processSeries, param, dialogType);
+    sendMsg(processResult, processResultDisplay);
+  }
+
+  void seedEraseFiducialModel(Run3dmodMenuOptions run3dmodMenuOptions,
+      Run3dmodButton run3dmodButton) {
+    manager.imodSeedModel(axisID, run3dmodMenuOptions, run3dmodButton,
+        ImodManager.FINE_ALIGNED_KEY, DatasetFiles.getEraseFiducialsModelName(
+            manager, axisID), null);
+  }
+
+  void imodErasedFiducials(Run3dmodMenuOptions run3dmodMenuOptions) {
+    manager.imodOpen(axisID, ImodManager.ERASED_FIDUCIALS_KEY, DatasetFiles
+        .getEraseFiducialsModelName(manager, axisID), run3dmodMenuOptions);
+  }
+
+  private CCDEraserParam updateCcdEraserParam() {
+    CCDEraserParam param = new CCDEraserParam();
+    param.setInputFile(DatasetFiles
+        .getFullAlignedStackFileName(manager, axisID));
+    param
+        .setModelFile(DatasetFiles.getEraseFiducialsModelName(manager, axisID));
+    param.setOutputFile(DatasetFiles
+        .getErasedFiducialsFileName(manager, axisID));
+    param.setBetterRadius(dialog.getBetterRadius());
+    param.setPolynomialOrder(dialog.getPolynomialOrder());
+    if (param.validate()) {
+      return param;
+    }
+    return null;
   }
 
   /**
@@ -611,6 +685,23 @@ public final class FinalAlignedStackExpert extends ReconUIExpert {
    * created by ctfcorrection.com
    */
   void useCtfCorrection(ProcessResultDisplay processResultDisplay) {
+    useFileAsFullAlignedStack(processResultDisplay, DatasetFiles
+        .getCtfCorrectionFile(manager, axisID),
+        FinalAlignedStackDialog.CTF_CORRECTION_LABEL);
+  }
+
+  void useCcdEraser(ProcessResultDisplay processResultDisplay) {
+    useFileAsFullAlignedStack(processResultDisplay, DatasetFiles
+        .getErasedFiducialsFile(manager, axisID),
+        FinalAlignedStackDialog.CCD_ERASER_LABEL);
+  }
+
+  /**
+   * Replace the full aligned stack with the ctf corrected full aligned stack
+   * created by ctfcorrection.com
+   */
+  void useFileAsFullAlignedStack(ProcessResultDisplay processResultDisplay,
+      File output, String buttonLabel) {
     if (dialog == null) {
       return;
     }
@@ -618,25 +709,21 @@ public final class FinalAlignedStackExpert extends ReconUIExpert {
     if (manager.isAxisBusy(axisID, processResultDisplay)) {
       return;
     }
-    setProgressBar("Using output of ctfcorrection as full aligned stack", 1,
+    setProgressBar("Using " + output.getName() + " as full aligned stack", 1,
         axisID);
     // Instantiate file objects for the original raw stack and the fixed
     // stack
     File fullAlignedStack = DatasetFiles.getFullAlignedStackFile(manager,
         axisID);
-    File ctfCorrectionFile = DatasetFiles.getCtfCorrectionFile(manager, axisID);
-    if (!ctfCorrectionFile.exists()) {
-      UIHarness.INSTANCE.openMessageDialog(
-          "The ctf corrected full aligned stack doesn't exist ("
-              + DatasetFiles.CTF_CORRECTION_EXT + ").  Press "
-              + FinalAlignedStackDialog.CTF_CORRECTION_LABEL
-              + " to create this file.", "Ctf Correction Output Missing",
-          axisID);
+    if (!output.exists()) {
+      UIHarness.INSTANCE.openMessageDialog(output.getAbsolutePath()
+          + " doesn't exist.  Press " + buttonLabel + " to create this file.",
+          buttonLabel + " Output Missing", axisID);
       sendMsg(ProcessResult.FAILED_TO_START, processResultDisplay);
       return;
     }
     setDialogState(ProcessState.INPROGRESS);
-    if (fullAlignedStack.exists() && ctfCorrectionFile.exists()) {
+    if (fullAlignedStack.exists() && output.exists()) {
       try {
         Utilities.renameFile(fullAlignedStack, new File(fullAlignedStack
             .getAbsolutePath()
@@ -653,7 +740,7 @@ public final class FinalAlignedStackExpert extends ReconUIExpert {
     // don't have to rename full aligned stack because it is a generated
     // file
     try {
-      Utilities.renameFile(ctfCorrectionFile, fullAlignedStack);
+      Utilities.renameFile(output, fullAlignedStack);
     }
     catch (IOException except) {
       UIHarness.INSTANCE.openMessageDialog(except.getMessage(),
@@ -775,6 +862,18 @@ public final class FinalAlignedStackExpert extends ReconUIExpert {
     dialog.setBinning(metaData.getFinalStackBinning(axisID));
     CpuAdoc cpuAdoc = CpuAdoc.getInstance(AxisID.ONLY, manager
         .getPropertyUserDir());
+    if (!metaData.isFinalStackBetterRadiusEmpty(axisID)) {
+      dialog.setBetterRadius(metaData.getFinalStackBetterRadius(axisID));
+    }
+    else {
+      //Currently not allowing an empty value to be saved.
+      //Default betterRadius to fiducialDiameter / pixel size / 2.  Round to
+      //3 decimal places.
+      dialog.setBetterRadius(Math.round((metaData.getFiducialDiameter()
+          / metaData.getPixelSize() / 2 * 1000)) / 1000.0);
+    }
+    dialog.setPolynomialOrder(PolynomialOrder.getInstance(metaData
+        .getFinalStackPolynomialOrder(axisID)));
     //Parallel processing is optional in tomogram reconstruction, so only use it
     //if the user set it up.
     boolean validAutodoc = cpuAdoc.isAvailable();
@@ -838,6 +937,8 @@ public final class FinalAlignedStackExpert extends ReconUIExpert {
     metaData.setFinalStackBinning(axisID, dialog.getBinning());
     metaData.setFinalStackCtfCorrectionParallel(axisID, dialog
         .isParallelProcess());
+    metaData.setFinalStackBetterRadius(axisID, dialog.getBetterRadius());
+    metaData.setFinalStackPolynomialOrder(axisID, dialog.getPolynomialOrder());
   }
 
   private void setParameters(BlendmontParam blendmontParam) {
@@ -971,5 +1072,37 @@ public final class FinalAlignedStackExpert extends ReconUIExpert {
     dialog.setInverseRolloffRadiusSigma(mtfFilterParam
         .getInverseRolloffRadiusSigmaString());
     enableUseFilter();
+  }
+
+  static final class PolynomialOrder implements EnumeratedType {
+    static final PolynomialOrder USE_MEAN = new PolynomialOrder(
+        new EtomoNumber().set(0));
+    static final PolynomialOrder FIT_A_PLANE = new PolynomialOrder(
+        new EtomoNumber().set(1));
+    private static final PolynomialOrder DEFAULT = USE_MEAN;
+
+    private final ConstEtomoNumber value;
+
+    private PolynomialOrder(final ConstEtomoNumber value) {
+      this.value = value;
+    }
+
+    private static PolynomialOrder getInstance(int value) {
+      if (USE_MEAN.value.equals(value)) {
+        return USE_MEAN;
+      }
+      if (FIT_A_PLANE.value.equals(value)) {
+        return FIT_A_PLANE;
+      }
+      return DEFAULT;
+    }
+
+    public boolean isDefault() {
+      return this == DEFAULT;
+    }
+
+    public String toString() {
+      return value.toString();
+    }
   }
 }
