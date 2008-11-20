@@ -59,7 +59,7 @@ int main(int argc, char *argv[])
   if (PipGetString("AngleFile", &angleFn))
   {
     angleFn=NULL;
-    printf("No angle file is specified, tilt angle is assumed to be 0.0");
+    printf("No angle file is specified, tilt angle is assumed to be 0.0\n");
   }
   if( PipGetString("DefocusFile", &defFn) )
     exitError("No defocus file is specified");
@@ -163,7 +163,8 @@ int main(int argc, char *argv[])
 
   if(angleFn){
     if( (fpAngle=fopen(angleFn, "r"))==0 ){
-      printf("could not open angle file %s, tiltAngle is set to 0.0",angleFn);
+      printf("could not open angle file %s, tiltAngle is set to 0.0\n",
+             angleFn);
     }
   }
     
@@ -428,7 +429,7 @@ int main(int argc, char *argv[])
     if ( mrc_head_write(foutput, &outHeader) )
       exitError("Writing slice header error");
   }else{//for collectmmm
-    printf("min, max, mean, # pixels= %f  %f  %f %d ", 
+    printf("min, max, mean, # pixels= %f  %f  %f %d \n", 
         amin, amax, meanSum/(double)currNz, nx*ny*currNz);
   }
   fclose(foutput);
@@ -440,6 +441,9 @@ int main(int argc, char *argv[])
 /*
 
 $Log$
+Revision 3.10  2008/11/07 22:25:08  xiongq
+add fflush calls
+
 Revision 3.9  2008/09/04 15:21:59  mast
 Fixed program name in call to PIP and fallback options
 
