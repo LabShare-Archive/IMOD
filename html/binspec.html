@@ -288,6 +288,10 @@ first Y and Z are exchanged if the FLIPYZ flag is set, then coordinates
 are multiplied by the scale values, translation values are subtracted, then
 points are rotated by the negative of the rotation angles around X, 
 then Y then Z.
+In the simple case of no rotation, 
+to get from an X coordinate
+in the model to the X pixel coordinate in the full image file, one would add
+(otrans.x - ctrans.x) / cscale.x .
 
 <HR>
 LABL  Label contour and point data. (Variable data)

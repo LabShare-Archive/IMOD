@@ -1,5 +1,7 @@
 IMOD History
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+11/20/08: Added image reference information to ascii model.
+
 11/19/08: Fixed Ctfphaseflip to work with parallel processing again.
 
 11/15/08: Model view object edit will make the isosurface be the current

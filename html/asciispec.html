@@ -40,7 +40,8 @@ image coordinates for the last image file that the model was loaded with.  The
 refcurscale and refcurrot values are based on the pixel spacing and rotation
 angles of the image file; refoldtrans values are based on the origin values in
 the image file; and refcurtrans values are based on the starting coordinate
-that was loaded in the image file.  For example, to get from an X coordinate
+that was loaded in the image file.  For example, if there is no rotation, then
+to get from an X coordinate
 in the model to the X pixel coordinate in the full image file, one would add
 ((refoldtrans x) - (refcurtrans x)) / (refcurscale x).
 
@@ -275,6 +276,17 @@ normals; these polygons start with -21 and each triangles is described by
 3 indices as above for the polygons starting with -25.
 <p>
 Following all of the mesh data may be three optional directives:
+<code>
+<br>
+<b>Meshflags</b>   (<i>mesh flags; bit 16 normals have magnitudes; bits 20-23
+resolution</i>)
+<br>
+<b>Meshsurf</b>   (<i>mesh surface number</i>)
+<br>
+<b>Meshtime</b>   (<i>mesh time</i>)
+</code>
+</body></html>
+l of the mesh data may be three optional directives:
 <code>
 <br>
 <b>Meshflags</b>   (<i>mesh flags; bit 16 normals have magnitudes; bits 20-23
