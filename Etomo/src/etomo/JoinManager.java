@@ -70,6 +70,9 @@ import etomo.util.Utilities;
  * @version $Revision$
  * 
  * <p> $Log$
+ * <p> Revision 1.71  2008/09/30 20:42:50  sueh
+ * <p> bug# 1113 Added getFocusComponent.
+ * <p>
  * <p> Revision 1.70  2008/05/28 02:47:44  sueh
  * <p> bug# 1111 Removed processDialogTypeA and B from BaseManager.
  * <p> The dialogType for processes should be handled by ProcessSeries.
@@ -697,27 +700,6 @@ public final class JoinManager extends BaseManager {
     }
   }
 
-  public void imodOpen(String imodKey, String model,
-      Run3dmodMenuOptions menuOptions) {
-    try {
-      imodManager.open(imodKey, AxisID.ONLY, model, true, menuOptions);
-    }
-    catch (AxisTypeException except) {
-      except.printStackTrace();
-      uiHarness.openMessageDialog(except.getMessage(), "AxisType problem",
-          AxisID.ONLY);
-    }
-    catch (SystemProcessException except) {
-      except.printStackTrace();
-      uiHarness.openMessageDialog(except.getMessage(), "Can't open " + imodKey
-          + " in 3dmod ", AxisID.ONLY);
-    }
-    catch (IOException e) {
-      e.printStackTrace();
-      uiHarness.openMessageDialog(e.getMessage(), "IO Exception", AxisID.ONLY);
-    }
-  }
-
   public void imodOpen(String imodKey) {
     try {
       imodManager.open(imodKey, AxisID.ONLY);
@@ -1247,7 +1229,7 @@ public final class JoinManager extends BaseManager {
       processSeries.setNextProcess(ProcessName.REMAPMODEL.toString());
     }
     try {
-      threadNameA = processMgr.xfmodel(param, processSeries);
+      threadNameA = processMgr.xfmodel(param, AxisID.ONLY,null,processSeries);
     }
     catch (SystemProcessException except) {
       except.printStackTrace();
