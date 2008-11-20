@@ -18,13 +18,17 @@ import etomo.comscript.InvalidParameterException;
  * 
  * @version $Revision$
  * 
- * <p> $Log$ </p>
+ * <p> $Log$
+ * <p> Revision 1.1  2008/10/27 20:28:51  sueh
+ * <p> bug# 1141 Class to update and read strings in a comscript.
+ * <p> </p>
  */
 public final class StringParameter implements ConstStringParameter {
   public static final String rcsid = "$Id$";
 
   private final String name;
   private String value = null;
+  private boolean debug = false;
 
   public StringParameter(String name) {
     this.name = name;
@@ -34,18 +38,18 @@ public final class StringParameter implements ConstStringParameter {
     value = null;
   }
 
-  public boolean equals(String input) {
+  public boolean equals(String comparee) {
     if (value == null) {
-      return input == null;
+      return isEmpty(comparee);
     }
-    return value.equals(input);
+    return value.equals(comparee);
   }
 
-  public boolean endsWith(String input) {
+  public boolean endsWith(String comparee) {
     if (value == null) {
-      return input == null;
+      return isEmpty(comparee);
     }
-    return value.endsWith(input);
+    return value.endsWith(comparee);
   }
 
   public void parse(ComScriptCommand scriptCommand)
@@ -58,26 +62,43 @@ public final class StringParameter implements ConstStringParameter {
     }
   }
 
+  public boolean isEmpty() {
+    return value == null;
+  }
+
+  private boolean isEmpty(String string) {
+    return string == null || string.matches("\\s*");
+  }
+
   public void updateComScript(ComScriptCommand scriptCommand) {
-    if (value != null && !value.matches("\\s*")) {
-      scriptCommand.setValue(name, value);
+    if (isEmpty()) {
+      scriptCommand.deleteKey(name);
     }
     else {
-      scriptCommand.deleteKey(name);
+      scriptCommand.setValue(name, value);
     }
   }
 
   public void set(String input) {
-    value = input;
+    if (isEmpty(input)) {
+      reset();
+    }
+    else {
+      value = input;
+    }
   }
 
   public void set(File input) {
     if (input == null) {
-      value = null;
+      reset();
     }
     else {
       value = input.getAbsolutePath();
     }
+  }
+
+  public String getName() {
+    return name;
   }
 
   public String toString() {
@@ -85,5 +106,9 @@ public final class StringParameter implements ConstStringParameter {
       return "";
     }
     return value;
+  }
+  
+  public void setDebug() {
+    debug = true;
   }
 }
