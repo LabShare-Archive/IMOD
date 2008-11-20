@@ -7,31 +7,10 @@
  *  Copyright (C) 1995-2005 by Boulder Laboratory for 3-Dimensional Electron
  *  Microscopy of Cells ("BL3DEMC") and the Regents of the University of 
  *  Colorado.  See dist/COPYRIGHT for full copyright notice.
+ *
+ *  $Id$
+ *  Log at end of file
  */
-
-/*  $Author$
-
-    $Date$
-
-    $Revision$
-
-    $Log$
-    Revision 3.5  2004/11/05 18:52:53  mast
-    Include local files with quotes, not brackets
-
-    Revision 3.4  2004/09/28 15:12:03  mast
-    Move clipping plane functions to iplane
-
-    Revision 3.3  2004/09/21 20:08:59  mast
-    Added clipping plane declarations
-
-    Revision 3.2  2003/07/31 21:32:24  mast
-    New functions to operate on objviews
-
-    Revision 3.1  2003/06/27 20:11:38  mast
-    Add function to set a view to default scaling, redefine imodViewModelDefault
-
-*/
 
 #ifndef IVIEW_H
 #define IVIEW_H
@@ -65,8 +44,33 @@ extern "C" {
 /* Image File view functions. */
   int imodIMNXRead(Imod *imod);
   int imodIMNXWrite(Imod *imod);
+  IrefImage *imodIMNXNew();
 
 #ifdef __cplusplus
 }
 #endif
 #endif
+
+
+/*
+
+$Log$
+Revision 3.6  2005/10/13 20:02:01  mast
+Added an arg to a declaration
+
+Revision 3.5  2004/11/05 18:52:53  mast
+Include local files with quotes, not brackets
+
+Revision 3.4  2004/09/28 15:12:03  mast
+Move clipping plane functions to iplane
+
+Revision 3.3  2004/09/21 20:08:59  mast
+Added clipping plane declarations
+
+Revision 3.2  2003/07/31 21:32:24  mast
+New functions to operate on objviews
+
+Revision 3.1  2003/06/27 20:11:38  mast
+Add function to set a view to default scaling, redefine imodViewModelDefault
+
+*/
