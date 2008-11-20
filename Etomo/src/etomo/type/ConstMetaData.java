@@ -65,16 +65,24 @@ public interface ConstMetaData {
   public ConstEtomoNumber getFixedBeamTilt(AxisID axisID);
   public ConstEtomoNumber getNoBeamTiltSelected(AxisID axisID);
   public EtomoNumber getSampleThickness(AxisID axisID);
-  public ConstEtomoNumber getTomoPosBinning(AxisID axisID);
+  public int getTomoPosBinning(AxisID axisID);
   public FortranInputString getSizeToOutputInXandY(AxisID axisID);
-  public ConstEtomoNumber getFinalStackBinning(AxisID axisID);
+  public int getFinalStackBinning(AxisID axisID);
   public ConstEtomoNumber getTomoGenTiltParallel(AxisID axisID);
   public ConstEtomoNumber getFinalStackCtfCorrectionParallel(AxisID axisID);
   public boolean isDistortionCorrection();
+  public boolean isFinalStackBetterRadiusEmpty(AxisID axisID);
+  public String getFinalStackBetterRadius(AxisID axisID);
+  public int getFinalStackPolynomialOrder(AxisID axisID);
 }
 
 /**
  * <p> $Log$
+ * <p> Revision 3.46  2008/11/11 23:48:15  sueh
+ * <p> bug# 1149 Changed tomoGenBinning to finalStackBinning.  Fixed the
+ * <p> names of the CtfCorrectionParallel variables (should start with
+ * <p> "finalStack", not "stack").
+ * <p>
  * <p> Revision 3.45  2008/10/27 18:36:40  sueh
  * <p> bug# 1141 Added getStackCtfCorrectionParallel.
  * <p>
