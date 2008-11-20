@@ -1301,6 +1301,33 @@ int imodReadAscii(Imod *imod)
       sscanf(line, "angles %g %g %g",
              &(imod->alpha), &(imod->beta), &(imod->gamma));
 
+    if (substr(line, "refcurscale ")) {
+      if (!imod->refImage)
+        imod->refImage = imodIMNXNew();
+      sscanf(line, "refcurscale %g %g %g", &imod->refImage->cscale.x,
+             &imod->refImage->cscale.y, &imod->refImage->cscale.z);
+    }
+    if (substr(line, "refcurtrans ")) {
+      if (!imod->refImage)
+        imod->refImage = imodIMNXNew();
+      sscanf(line, "refcurtrans %g %g %g", &imod->refImage->ctrans.x,
+             &imod->refImage->ctrans.y, &imod->refImage->ctrans.z);
+    }
+    if (substr(line, "refcurrot ")) {
+      if (!imod->refImage)
+        imod->refImage = imodIMNXNew();
+      imod->flags |= IMODF_TILTOK;
+      sscanf(line, "refcurrot %g %g %g", &imod->refImage->crot.x,
+             &imod->refImage->crot.y, &imod->refImage->crot.z);
+    }
+    if (substr(line, "refoldtrans ")) {
+      if (!imod->refImage)
+        imod->refImage = imodIMNXNew();
+      imod->flags |= IMODF_OTRANS_ORIGIN;
+      sscanf(line, "refoldtrans %g %g %g", &imod->refImage->otrans.x,
+             &imod->refImage->otrans.y, &imod->refImage->otrans.z);
+    }
+
     if (substr(line, "nodraw"))
       obj->flags |= IMOD_OBJFLAG_OFF;
 
@@ -1466,6 +1493,7 @@ int imodWriteAscii(Imod *imod)
   Iobj *obj;
   Icont *cont;
   Imesh *mesh;
+  IrefImage *ref = imod->refImage;
   SlicerAngles *slanp;
   DrawProps defProps, contProps, ptProps;
   int contState, surfState, stateFlags, changeFlags, nextChange;
@@ -1489,6 +1517,18 @@ int imodWriteAscii(Imod *imod)
   fprintf(imod->file, "threshold  %d\n", imod->thresh);
   fprintf(imod->file, "pixsize    %g\n", imod->pixsize);
   fprintf(imod->file, "units      %s\n", imodUnits(imod));
+  if (ref) {
+    fprintf(imod->file, "refcurscale %g %g %g\n",
+            ref->cscale.x, ref->cscale.y, ref->cscale.z);
+    fprintf(imod->file, "refcurtrans %g %g %g\n",
+            ref->ctrans.x, ref->ctrans.y, ref->ctrans.z);
+    if (imod->flags & IMODF_TILTOK)
+      fprintf(imod->file, "refcurrot %g %g %g\n",
+              ref->crot.x, ref->crot.y, ref->crot.z);
+    if (imod->flags & IMODF_OTRANS_ORIGIN)
+      fprintf(imod->file, "refoldtrans %g %g %g\n",
+              ref->otrans.x, ref->otrans.y, ref->otrans.z);
+  }
   for (i = 0; i < ilistSize(imod->slicerAng); i++) {
     slanp = (SlicerAngles *)ilistItem(imod->slicerAng, i);
     fprintf(imod->file, "slicerAngle %d %g %g %g %g %g %g %s\n", slanp->time,
@@ -1938,6 +1978,9 @@ int imodPutByte(FILE *fp, unsigned char *dat)
 
 /*
   $Log$
+  Revision 3.32  2008/05/31 23:02:48  mast
+  Put contour and point general values into ascii model
+
   Revision 3.31  2008/03/03 17:46:15  mast
   Rename run scripts to program names
 
