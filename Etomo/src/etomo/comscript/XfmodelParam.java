@@ -30,6 +30,9 @@ import etomo.util.DatasetFiles;
  * @version $Revision$
  * 
  * <p> $Log$
+ * <p> Revision 1.6  2007/12/13 01:07:20  sueh
+ * <p> bug# 1056 Changed etomo.comscript.Fields to etomo.comscript.Field.
+ * <p>
  * <p> Revision 1.5  2007/11/06 19:18:13  sueh
  * <p> bug# 1047 Added getSubcommandDetails.
  * <p>
@@ -54,25 +57,53 @@ public final class XfmodelParam implements CommandDetails {
 
   private static final boolean debug = true;
   private static final int COMMAND_SIZE = 1;
-  private final JoinManager manager;
+
+  private final BaseManager manager;
+  private final AxisID axisID;
+
   private String[] commandArray = null;
   private String inputFile = null;
   private String outputFile = null;
+  private boolean join = true;
 
   /**
    * Does not create the command.  getCommandArray creates the command.  Need
-   * lazy command creation because setting are coming from the screen.
+   * lazy command creation because settings are coming from the screen.
    * @param manager
    */
   public XfmodelParam(JoinManager manager) {
     this.manager = manager;
+    this.axisID = AxisID.ONLY;
   }
 
-  private ArrayList genOptions() {
+  public XfmodelParam(BaseManager manager, AxisID axisID) {
+    this.manager = manager;
+    this.axisID = axisID;
+    join = false;
+  }
+
+  private ArrayList genReconOptions() {
+    if (join) {
+      System.out.println("ERROR:  calling genReconOptions when join is true.");
+      return null;
+    }
+    ArrayList options = new ArrayList();
+    options.add("-XformsToApply");
+    options.add(DatasetFiles.getTransformFileName(manager, axisID));
+    options.add(DatasetFiles.getFiducialModelName(manager, axisID));
+    options.add(DatasetFiles.getEraseFiducialsModelName(manager,axisID));
+    return options;
+  }
+
+  private ArrayList genJoinOptions() {
+    if (!join) {
+      System.out.println("ERROR:  calling genJoinOptions when join is false.");
+      return null;
+    }
     ArrayList options = new ArrayList();
     options.add("-XformsToApply");
     options.add(DatasetFiles.getRefineXgFileName(manager));
-    ConstJoinState state = manager.getState();
+    ConstJoinState state = ((JoinManager) manager).getState();
     boolean trial = state.getRefineTrial().is();
     ConstEtomoNumber binning = state.getJoinTrialBinning();
     if (trial && !binning.isNull() && binning.gt(1)) {
@@ -122,31 +153,33 @@ public final class XfmodelParam implements CommandDetails {
   }
 
   public boolean isValid() {
-    File inFile = null;
-    if (inputFile == null) {
-      inFile = DatasetFiles.getRefineModelFile(manager);
-    }
-    else {
-      inFile = new File(inputFile);
-      if (!inFile.isAbsolute()) {
-        inFile = new File(manager.getPropertyUserDir(), inputFile);
+    if (join) {
+      File inFile = null;
+      if (inputFile == null) {
+        inFile = DatasetFiles.getRefineModelFile((JoinManager) manager);
       }
-    }
-    File outFile = null;
-    if (outputFile == null) {
-      outFile = DatasetFiles.getRefineAlignedModelFile(manager);
-    }
-    else {
-      outFile = new File(outputFile);
-      if (!outFile.isAbsolute()) {
-        outFile = new File(manager.getPropertyUserDir(), outputFile);
+      else {
+        inFile = new File(inputFile);
+        if (!inFile.isAbsolute()) {
+          inFile = new File(manager.getPropertyUserDir(), inputFile);
+        }
       }
-    }
-    if (inFile.equals(outFile)) {
-      UIHarness.INSTANCE.openMessageDialog(
-          "Cannot overwrite xfmodel input file, " + inFile
-              + " with output file, " + outFile + ".", "XfmodelParam Error");
-      return false;
+      File outFile = null;
+      if (outputFile == null) {
+        outFile = DatasetFiles.getRefineAlignedModelFile(manager);
+      }
+      else {
+        outFile = new File(outputFile);
+        if (!outFile.isAbsolute()) {
+          outFile = new File(manager.getPropertyUserDir(), outputFile);
+        }
+      }
+      if (inFile.equals(outFile)) {
+        UIHarness.INSTANCE.openMessageDialog(
+            "Cannot overwrite xfmodel input file, " + inFile
+                + " with output file, " + outFile + ".", "XfmodelParam Error");
+        return false;
+      }
     }
     return true;
   }
@@ -172,7 +205,16 @@ public final class XfmodelParam implements CommandDetails {
    */
   public String[] getCommandArray() {
     if (commandArray == null) {
-      ArrayList options = genOptions();
+      ArrayList options;
+      if (join) {
+        options = genJoinOptions();
+      }
+      else {
+        options = genReconOptions();
+      }
+      if (options == null) {
+        return new String[] {};
+      }
       commandArray = new String[options.size() + COMMAND_SIZE];
       commandArray[0] = BaseManager.getIMODBinPath() + COMMAND_NAME;
       for (int i = 0; i < options.size(); i++) {
