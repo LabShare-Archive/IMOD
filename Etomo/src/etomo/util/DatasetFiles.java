@@ -60,6 +60,8 @@ public final class DatasetFiles {
   public static final String CTF_PLOTTER_EXT = ".defocus";
   public static final String SIMPLE_DEFOCUS_EXT = "_simple" + CTF_PLOTTER_EXT;
   public static final String CTF_CORRECTION_EXT = "_ctfcorr" + FULL_ALIGNED_EXT;
+  private static final String FIDUCIAL_MODEL_EXT = ".fid";
+  private static final String ERASE_EXT = "_erase";
 
   private static File calibrationDir = null;
   private static File distortionDir = null;
@@ -98,11 +100,17 @@ public final class DatasetFiles {
     return dataset + axisID.getExtension() + STACK_EXT;
   }
 
+  public static String getSeedFileName(BaseManager manager, AxisID axisID) {
+    BaseMetaData metaData = manager.getBaseMetaData();
+    axisID = correctAxisID(metaData, axisID);
+    return metaData.getName() + axisID.getExtension() + ".seed";
+  }
+
   public static File getSeedFile(BaseManager manager, AxisID axisID) {
     BaseMetaData metaData = manager.getBaseMetaData();
     axisID = correctAxisID(metaData, axisID);
-    return new File(manager.getPropertyUserDir(), metaData.getName()
-        + axisID.getExtension() + ".seed");
+    return new File(manager.getPropertyUserDir(), getSeedFileName(manager,
+        axisID));
   }
 
   //Tomograms
@@ -191,6 +199,20 @@ public final class DatasetFiles {
         axisID));
   }
 
+  public static String getEraseFiducialsModelName(BaseManager manager,
+      AxisID axisID) {
+    BaseMetaData metaData = manager.getBaseMetaData();
+    axisID = correctAxisID(metaData, axisID);
+    return metaData.getName() + axisID.getExtension() + ERASE_EXT
+        + FIDUCIAL_MODEL_EXT;
+  }
+
+  public static String getTransformFileName(BaseManager manager, AxisID axisID) {
+    BaseMetaData metaData = manager.getBaseMetaData();
+    axisID = correctAxisID(metaData, axisID);
+    return metaData.getName() + axisID.getExtension() + ".tltxf";
+  }
+
   private static String getTiltName(BaseManager manager, AxisID axisID) {
     BaseMetaData metaData = manager.getBaseMetaData();
     axisID = correctAxisID(metaData, axisID);
@@ -204,7 +226,7 @@ public final class DatasetFiles {
   public static String getFiducialModelName(BaseManager manager, AxisID axisID) {
     BaseMetaData metaData = manager.getBaseMetaData();
     axisID = correctAxisID(metaData, axisID);
-    return metaData.getName() + axisID.getExtension() + ".fid";
+    return metaData.getName() + axisID.getExtension() + FIDUCIAL_MODEL_EXT;
   }
 
   public static String getXTiltFileName(BaseManager manager, AxisID axisID) {
@@ -306,6 +328,22 @@ public final class DatasetFiles {
   public static File getFullAlignedStackFile(BaseManager manager, AxisID axisID) {
     return new File(manager.getPropertyUserDir(), getFullAlignedStackFileName(
         manager, axisID));
+  }
+
+  public static File getErasedFiducialsFile(BaseManager manager, AxisID axisID) {
+    return new File(manager.getPropertyUserDir(), getErasedFiducialsFileName(
+        manager, axisID));
+  }
+
+  public static String getErasedFiducialsFileName(BaseManager manager,
+      AxisID axisID) {
+    BaseMetaData metaData = manager.getBaseMetaData();
+    axisID = correctAxisID(metaData, axisID);
+    return metaData.getName() + axisID.getExtension() + getErasedFiducialsFileExtension();
+  }
+
+  public static String getErasedFiducialsFileExtension() {
+    return ERASE_EXT + FULL_ALIGNED_EXT;
   }
 
   private static String getCtfCorrectionFileName(BaseManager manager,
@@ -491,6 +529,10 @@ public final class DatasetFiles {
 }
 /**
  * <p> $Log$
+ * <p> Revision 1.46  2008/10/27 20:46:24  sueh
+ * <p> bug# 1141 Add extensions and functions for _ctfcorr.ali, .defocus,
+ * <p> _simple.defocus, and .ali files.
+ * <p>
  * <p> Revision 1.45  2008/06/19 23:54:00  sueh
  * <p> bug# 1112 Added getRawTiltFile, getTiltFile, and getTiltName.
  * <p>
