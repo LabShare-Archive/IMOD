@@ -44,6 +44,9 @@ import java.lang.String;
  * @version $Revision$
  *
  * <p> $Log$
+ * <p> Revision 3.35  2008/09/30 21:59:13  sueh
+ * <p> bug# 1113 Added setIncon.
+ * <p>
  * <p> Revision 3.34  2008/05/30 22:32:19  sueh
  * <p> bug# 1102 Isolating the etomo.uitest package so it is not need for
  * <p> running EtomoDirector.
@@ -501,6 +504,10 @@ class MultiLineButton implements ProcessResultDisplay {
 
   final boolean isSelected() {
     return button.isSelected();
+  }
+  
+  final boolean isVisible() {
+    return button.isVisible();
   }
 
   final boolean isEnabled() {
