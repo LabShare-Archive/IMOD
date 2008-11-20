@@ -58,6 +58,10 @@ import etomo.util.DatasetFiles;
  * @version $Revision$
  *
  * <p> $Log$
+ * <p> Revision 1.62  2008/09/30 21:57:11  sueh
+ * <p> bug# 1113 Added getFocusComponent.  Made components to be
+ * <p> focused on final.
+ * <p>
  * <p> Revision 1.61  2008/08/18 22:39:44  sueh
  * <p> bug# 1130 Added cbLocalFits to the Join tab.  Written to / retrieved from
  * <p> JoinMetaData.
@@ -1834,7 +1838,7 @@ public final class JoinDialog implements ContextMenu, Run3dmodButtonContainer {
           b3bOpenTrialIn3dmod.getInt(), run3dmodMenuOptions);
     }
     else if (command.equals(btnMakeRefiningModel.getActionCommand())) {
-      manager.imodOpen(ImodManager.MODELED_JOIN_KEY, DatasetFiles
+      manager.imodOpen(AxisID.ONLY, ImodManager.MODELED_JOIN_KEY, DatasetFiles
           .getRefineModelFileName(manager), run3dmodMenuOptions);
     }
     else if (command.equals(b3bOpenRejoin.getActionCommand())) {
