@@ -89,6 +89,12 @@ public final class ProcessResultDisplayFactory implements
       .getCtfCorrectionDisplay();
   private final ProcessResultDisplay useCtfCorrection = FinalAlignedStackDialog
       .getUseCtfCorrectionDisplay();
+  private final ProcessResultDisplay xfModel = FinalAlignedStackDialog
+      .getXfModelDisplay();
+  private final ProcessResultDisplay ccdEraserBeads = FinalAlignedStackDialog
+      .getCcdEraser();
+  private final ProcessResultDisplay useCcdEraserBeads = FinalAlignedStackDialog
+  .getUseCcdEraser();
   private final ProcessResultDisplay filter = FinalAlignedStackDialog
       .getFilterDisplay();
   private final ProcessResultDisplay useFilteredStack = FinalAlignedStackDialog
@@ -166,6 +172,9 @@ public final class ProcessResultDisplayFactory implements
     addDependency(fullAlignedStack);
     addDependency(ctfCorrection);
     addDependency(useCtfCorrection);
+    addDependency(xfModel);
+    addDependency(ccdEraserBeads);
+    addDependency(useCcdEraserBeads);
     addDependency(filter);
     addDependency(useFilteredStack);
     //generation
@@ -193,7 +202,7 @@ public final class ProcessResultDisplayFactory implements
     addDependents(createFixedStack);
     useFixedStack.setScreenState(screenState);
     addDependents(useFixedStack);
-    
+
     //coarse alignment
     crossCorrelate.setScreenState(screenState);
     addDependents(crossCorrelate);
@@ -205,7 +214,7 @@ public final class ProcessResultDisplayFactory implements
     addDependents(coarseAlign);
     midas.setScreenState(screenState);
     addDependents(midas);
-    
+
     //fiducial model
     transferFiducials.setScreenState(screenState);
     addDependents(transferFiducials);
@@ -215,11 +224,11 @@ public final class ProcessResultDisplayFactory implements
     addDependents(trackFiducials);
     fixFiducialModel.setScreenState(screenState);
     addDependents(fixFiducialModel);
-    
+
     //fine alignment
     computeAlignment.setScreenState(screenState);
     addDependents(computeAlignment);
-    
+
     //positioning
     sampleTomogram.setScreenState(screenState);
     addDependents(sampleTomogram);
@@ -227,7 +236,7 @@ public final class ProcessResultDisplayFactory implements
     addDependents(computePitch);
     finalAlignment.setScreenState(screenState);
     addDependents(finalAlignment);
-    
+
     //stack
     fullAlignedStack.setScreenState(screenState);
     addDependents(fullAlignedStack);
@@ -236,12 +245,17 @@ public final class ProcessResultDisplayFactory implements
     ctfCorrection.addDependentDisplay(useCtfCorrection);
     useCtfCorrection.setScreenState(screenState);
     addDependents(useCtfCorrection);
+    //erase gold is optional
+    xfModel.setScreenState(screenState);
+    ccdEraserBeads.setScreenState(screenState);
+    ccdEraserBeads.addDependentDisplay(useCcdEraserBeads);
+    useCcdEraserBeads.setScreenState(screenState);
     //filter is optional
     filter.setScreenState(screenState);
     filter.addDependentDisplay(useFilteredStack);
     useFilteredStack.setScreenState(screenState);
     addDependents(useFilteredStack);
-    
+
     //generation
     useTrialTomogram.setScreenState(screenState);
     //use trial tomogram and generate tomogram are equals in the dependency order
@@ -250,7 +264,7 @@ public final class ProcessResultDisplayFactory implements
     addDependents(generateTomogram);
     deleteAlignedStack.setScreenState(screenState);
     addDependents(deleteAlignedStack);
-    
+
     //combination
     createCombine.setScreenState(screenState);
     addDependents(createCombine);
@@ -273,7 +287,7 @@ public final class ProcessResultDisplayFactory implements
     addDependents(restartMatchorwarp);
     restartVolcombine.setScreenState(screenState);
     addDependents(restartVolcombine);
-    
+
     //post processing
     trimVolume.setScreenState(screenState);
     addDependents(trimVolume);
@@ -400,6 +414,18 @@ public final class ProcessResultDisplayFactory implements
     return useCtfCorrection;
   }
 
+  public ProcessResultDisplay getXfModel() {
+    return xfModel;
+  }
+  
+  public ProcessResultDisplay getCcdEraserBeads() {
+    return ccdEraserBeads;
+  }
+  
+  public ProcessResultDisplay getUseCcdEraserBeads() {
+    return useCcdEraserBeads;
+  }
+
   public ProcessResultDisplay getFilter() {
     return filter;
   }
@@ -464,6 +490,9 @@ public final class ProcessResultDisplayFactory implements
 }
 /**
  * <p> $Log$
+ * <p> Revision 1.9  2008/10/27 20:15:32  sueh
+ * <p> bug# 1141 Added ctfCorrection and useCtfCorrection.
+ * <p>
  * <p> Revision 1.8  2008/10/16 20:59:47  sueh
  * <p> bug# 1141 Created FinalAlignedStack dialog to run full aligned stack and mtf filter.
  * <p>
