@@ -1,5 +1,8 @@
 IMOD History
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+11/20/08: Interface for transforming fiducial model and erasing gold was
+added to Aligned Stack panel.
+
 11/20/08: Added image reference information to ascii model.
 
 11/19/08: Fixed Ctfphaseflip to work with parallel processing again.
