@@ -26,6 +26,9 @@ import etomo.type.EnumeratedType;
  * @version $Revision$
  * 
  * <p> $Log$
+ * <p> Revision 1.4  2007/04/13 20:38:46  sueh
+ * <p> bug# 964Added EnumeratedType, which is the interface for enumeration types.
+ * <p>
  * <p> Revision 1.3  2007/03/30 23:52:28  sueh
  * <p> bug# 964 Switched from JTextField to etomo.ui.TextField, which names itself.
  * <p>
@@ -65,13 +68,13 @@ final class RadioTextField implements RadioButtonInterface {
    * @param radioValue
    * @return
    */
-  static RadioTextField getInstance(final String label,
+  /*static RadioTextField getInstance(final String label,
       final ButtonGroup group, EnumeratedType enumeratedType) {
     RadioTextField radioTextField = new RadioTextField(label, group,
         enumeratedType);
     radioTextField.addListeners();
     return radioTextField;
-  }
+  }*/
 
   private RadioTextField(final String label, final ButtonGroup group) {
     radioButton = new RadioButton(label);
@@ -84,12 +87,12 @@ final class RadioTextField implements RadioButtonInterface {
    * @param label
    * @param group
    */
-  private RadioTextField(final String label, final ButtonGroup group,
+ /* private RadioTextField(final String label, final ButtonGroup group,
       EnumeratedType enumeratedType) {
     radioButton = new RadioButton(label, enumeratedType);
     textField = new TextField(label);
     init(group);
-  }
+  }*/
 
   private void init(final ButtonGroup group) {
     radioButton.setModel(new RadioButton.RadioButtonModel(this));
