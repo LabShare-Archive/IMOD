@@ -36,6 +36,9 @@ import etomo.util.DatasetFiles;
  * @version $Revision$
  *
  * <p> $Log$
+ * <p> Revision 3.65  2008/10/27 17:53:44  sueh
+ * <p> bug# 1141 Added ctfCorrection.
+ * <p>
  * <p> Revision 3.64  2008/07/24 17:57:47  sueh
  * <p> bug# 1128 Added setPointLimit.
  * <p>
@@ -532,6 +535,8 @@ public class ImodManager {
   public static final String ANISOTROPIC_DIFFUSION_VOLUME_KEY = new String(
       "AnisotropicDiffusionVolume");
   public static final String CTF_CORRECTION_KEY = new String("CtfCorrection");
+  public static final String ERASED_FIDUCIALS_KEY = new String(
+      "erased fiducials");
 
   //private keys - used with imodMap
   private static final String rawStackKey = RAW_STACK_KEY;
@@ -566,6 +571,7 @@ public class ImodManager {
   private static final String varyingIterationTestKey = VARYING_ITERATION_TEST_KEY;
   private static final String anisotropicDiffusionVolumeKey = ANISOTROPIC_DIFFUSION_VOLUME_KEY;
   private static final String ctfCorrectionKey = CTF_CORRECTION_KEY;
+  private static final String erasedFiducialsKey = ERASED_FIDUCIALS_KEY;
 
   private boolean useMap = true;
   private final BaseManager manager;
@@ -1480,6 +1486,9 @@ public class ImodManager {
     if (key.equals(CTF_CORRECTION_KEY) && axisID != null) {
       return newCtfCorrection(axisID);
     }
+    if (key.equals(ERASED_FIDUCIALS_KEY) && axisID != null) {
+      return newErasedFiducials(axisID);
+    }
     throw new IllegalArgumentException(key + " cannot be created in "
         + axisType.toString() + " with axisID=" + axisID.getExtension());
   }
@@ -1675,24 +1684,30 @@ public class ImodManager {
         "_filt.ali");
     return imodState;
   }
-  
-   ImodState newCtfCorrection(AxisID axisID) {
+
+  ImodState newCtfCorrection(AxisID axisID) {
     ImodState imodState = new ImodState(manager, axisID, datasetName,
         DatasetFiles.CTF_CORRECTION_EXT);
     return imodState;
   }
 
-  protected ImodState newPreview(AxisID axisID) {
+  ImodState newErasedFiducials(AxisID axisID) {
+    ImodState imodState = new ImodState(manager, axisID, datasetName,
+        DatasetFiles.getErasedFiducialsFileExtension());
+    return imodState;
+  }
+
+  ImodState newPreview(AxisID axisID) {
     ImodState imodState = new ImodState(manager, axisID, datasetName, ".st");
     return imodState;
   }
 
-  protected ImodState newTomogram(File file, AxisID axisID) {
+  ImodState newTomogram(File file, AxisID axisID) {
     ImodState imodState = new ImodState(manager, file, axisID);
     return imodState;
   }
 
-  protected ImodState newJoinSamples() {
+  ImodState newJoinSamples() {
     if (datasetName.equals("")) {
       new IllegalStateException("DatasetName is empty.").printStackTrace();
       System.err.println("manager=" + manager);
