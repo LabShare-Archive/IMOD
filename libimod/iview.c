@@ -642,8 +642,29 @@ int imodIMNXWrite(Imod *imod)
   return(0);
 }
 
+/*!
+ * Allocates and returns a new @@IrefImage structure@ with default values
+ * of 1 for {cscale} and {oscale} and 0 for {crot}, {ctrans}, {orot}, and 
+ * {otrans}.
+ */
+IrefImage *imodIMNXNew()
+{
+  IrefImage *ref = (IrefImage *)malloc(sizeof(IrefImage));
+  if (!ref)
+    return NULL;
+  ref->cscale.x = ref->cscale.y = ref->cscale.z = 1.;
+  ref->ctrans.x = ref->ctrans.y = ref->ctrans.z = 0.;
+  ref->crot = ref->ctrans;
+  ref->oscale = ref->cscale;
+  ref->otrans = ref->ctrans;
+  ref->orot = ref->crot;
+}
+
 /*
 $Log$
+Revision 3.15  2007/08/26 06:56:15  mast
+Documentation changes
+
 Revision 3.14  2006/09/13 02:44:08  mast
 Fixed memory leaks
 
