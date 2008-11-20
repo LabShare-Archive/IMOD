@@ -1,5 +1,12 @@
 package etomo.comscript;
 
+import java.util.ArrayList;
+
+import etomo.BaseManager;
+import etomo.type.ProcessName;
+import etomo.type.StringParameter;
+import etomo.ui.UIHarness;
+
 /**
  * <p>Description: </p>
  *
@@ -13,6 +20,9 @@ package etomo.comscript;
  * @version $Revision$
  *
  * <p> $Log$
+ * <p> Revision 3.5  2007/12/13 21:54:03  sueh
+ * <p> bug# 1057 Added boundaryReplacementList.
+ * <p>
  * <p> Revision 3.4  2005/02/22 20:54:33  sueh
  * <p> bug# 600 Making parameter name constants into public static final strings.
  * <p>
@@ -61,11 +71,70 @@ package etomo.comscript;
  * <p> </p>
  */
 
-public class CCDEraserParam
-  extends ConstCCDEraserParam
-  implements CommandParam {
-  public static final String rcsid =
-    "$Id$";
+public class CCDEraserParam extends ConstCCDEraserParam implements CommandParam {
+  public static final String rcsid = "$Id$";
+
+  private static final int COMMAND_SIZE = 1;
+
+  private final StringParameter betterRadius = new StringParameter(
+      "BetterRadius");
+
+  private String[] commandArray = null;
+  private boolean debug = true;
+
+  /**
+   * creates the command, if it doesn't exist, and returns command array
+   */
+  public String[] getCommandArray() {
+    if (commandArray == null) {
+      ArrayList options = genOptions();
+      commandArray = new String[options.size() + COMMAND_SIZE];
+      commandArray[0] = BaseManager.getIMODBinPath()
+          + ProcessName.CCD_ERASER.toString();
+      for (int i = 0; i < options.size(); i++) {
+        commandArray[i + COMMAND_SIZE] = (String) options.get(i);
+      }
+      if (debug) {
+        StringBuffer buffer = new StringBuffer();
+        for (int i = 0; i < commandArray.length; i++) {
+          buffer.append(commandArray[i]);
+          if (i < commandArray.length - 1) {
+            buffer.append(' ');
+          }
+        }
+        System.err.println(buffer.toString());
+      }
+    }
+    return commandArray;
+  }
+
+  private ArrayList genOptions() {
+    ArrayList options = new ArrayList();
+    options.add("-" + INPUT_FILE_KEY);
+    options.add(inputFile);
+    options.add("-" + OUTPUT_FILE_KEY);
+    options.add(outputFile);
+    options.add("-" + "ModelFile");
+    options.add(modelFile);
+    options.add("-" + betterRadius.getName());
+    options.add(betterRadius.toString());
+    options.add("-" + POLYNOMIAL_ORDER_KEY);
+    options.add(polynomialOrder);
+    options.add("-MergePatches");
+    options.add("-ExcludeAdjacent");
+    options.add("-CircleObjects");
+    options.add("/");
+    return options;
+  }
+
+  public boolean validate() {
+    if (betterRadius.isEmpty()) {
+      UIHarness.INSTANCE.openMessageDialog(
+          "Empty Better Radius value.  Please enter a value.", "Entry Error");
+      return false;
+    }
+    return true;
+  }
 
   /**
    * Get the parameters from the ComScriptCommand
@@ -73,7 +142,7 @@ public class CCDEraserParam
    * and parameters.
    */
   public void parseComScriptCommand(ComScriptCommand scriptCommand)
-    throws BadComScriptException, InvalidParameterException {
+      throws BadComScriptException, InvalidParameterException {
 
     //  Check to be sure that it is a ccderaser command
     if (!scriptCommand.getCommand().equals("ccderaser")) {
@@ -104,7 +173,7 @@ public class CCDEraserParam
       borderPixels = scriptCommand.getValue(BORDER_SIZE_KEY);
       polynomialOrder = scriptCommand.getValue(POLYNOMIAL_ORDER_KEY);
       includeAdjacentPoints = !scriptCommand.hasKeyword("ExcludeAdjacent");
-      
+
       //handle out-of-date parameters
       outerRadius = scriptCommand.getValue("OuterRadius");
       if (!outerRadius.equals("")) {
@@ -142,7 +211,7 @@ public class CCDEraserParam
    * Update the script command with the
    */
   public void updateComScriptCommand(ComScriptCommand scriptCommand)
-    throws BadComScriptException {
+      throws BadComScriptException {
 
     //  Check to be sure that it is a ccderaser xommand
     if (!scriptCommand.getCommand().equals("ccderaser")) {
@@ -250,7 +319,7 @@ public class CCDEraserParam
     else {
       scriptCommand.deleteKey(LINE_OBJECTS_KEY);
     }
-    
+
     if (!boundaryReplacementList.equals("")) {
       scriptCommand.setValue(BOUNDARY_OBJECTS_KEY, boundaryReplacementList);
     }
@@ -285,13 +354,13 @@ public class CCDEraserParam
     else {
       scriptCommand.deleteKey(TRIAL_MODE_KEY);
     }
-    
+
     //remove out-of-date parameters
     if (!outerRadius.equals("")) {
       scriptCommand.deleteKey("OuterRadius");
     }
   }
-  
+
   public void initializeDefaults() {
   }
 
@@ -304,12 +373,14 @@ public class CCDEraserParam
    */
   protected void convertOuterRadius() {
     //if annulusWidth already set then return
-    if (!annulusWidth.equals("") || outerRadius.equals("") || maximumRadius.equals("")) {
+    if (!annulusWidth.equals("") || outerRadius.equals("")
+        || maximumRadius.equals("")) {
       return;
     }
-    annulusWidth = String.valueOf(Float.parseFloat(outerRadius) -  Float.parseFloat(maximumRadius));
+    annulusWidth = String.valueOf(Float.parseFloat(outerRadius)
+        - Float.parseFloat(maximumRadius));
   }
-  
+
   public void setInputFile(String inputFile) {
     this.inputFile = inputFile;
   }
@@ -329,7 +400,7 @@ public class CCDEraserParam
   public void setLocalReplacementList(String localReplacementList) {
     this.localReplacementList = localReplacementList;
   }
-  
+
   public void setBoundaryReplacementList(String boundaryReplacementList) {
     this.boundaryReplacementList = boundaryReplacementList;
   }
@@ -345,6 +416,7 @@ public class CCDEraserParam
   public void setIncludeAdjacentPoints(boolean includeAdjacentPoints) {
     this.includeAdjacentPoints = includeAdjacentPoints;
   }
+
   /**
    * @param string
    */
@@ -422,4 +494,7 @@ public class CCDEraserParam
     scanCriterion = string;
   }
 
+  public void setBetterRadius(String input) {
+    betterRadius.set(input);
+  }
 }
