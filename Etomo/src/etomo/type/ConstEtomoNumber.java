@@ -36,6 +36,9 @@ import etomo.util.Utilities;
  * @version $Revision$
  * 
  * <p> $Log$
+ * <p> Revision 1.59  2008/08/21 00:02:30  sueh
+ * <p> bug# 1132 Added multiply().
+ * <p>
  * <p> Revision 1.58  2008/04/15 21:01:20  sueh
  * <p> bug# 1105 Changed setDefault(Integer) to setDefault(ConstEtomoNumber).
  * <p>
@@ -1122,6 +1125,10 @@ public abstract class ConstEtomoNumber implements Storable {
   public double getDefaultedDouble() {
     validateReturnTypeDouble();
     return getDefaultedValue().doubleValue();
+  }
+  
+  public int getDefaultedInt() {
+    return getDefaultedValue().intValue();
   }
 
   public ConstEtomoNumber setDefault(int input) {
