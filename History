@@ -1,5 +1,7 @@
 IMOD History
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+11/19/08: Fixed Ctfphaseflip to work with parallel processing again.
+
 11/15/08: Model view object edit will make the isosurface be the current
 object when either window is opened, so the user will realize it is editable.
 
