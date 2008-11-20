@@ -15,6 +15,7 @@ import etomo.comscript.ProcessDetails;
 import etomo.comscript.ComscriptState;
 import etomo.comscript.ProcesschunksParam;
 import etomo.comscript.TomosnapshotParam;
+import etomo.comscript.XfmodelParam;
 import etomo.storage.LogFile;
 import etomo.storage.ParameterStore;
 import etomo.type.AxisID;
@@ -43,6 +44,10 @@ import etomo.util.Utilities;
  * @version $Revision$
  * 
  * <p> $Log$
+ * <p> Revision 1.70  2008/10/27 17:51:01  sueh
+ * <p> bug# 1141 Added startNonBlockingComScript functions to run ctfplotter
+ * <p> without checking or blocking the axis.
+ * <p>
  * <p> Revision 1.69  2008/05/16 22:26:05  sueh
  * <p> bug# 1109 Added class description.
  * <p>
@@ -456,6 +461,14 @@ public abstract class BaseProcessManager {
   public final void stopLoad(final IntermittentCommand param,
       final LoadMonitor monitor) {
     IntermittentBackgroundProcess.stopInstance(manager, param, monitor);
+  }
+
+  public String xfmodel(XfmodelParam param, AxisID axisID,
+      ProcessResultDisplay processResultDisplay,
+      ConstProcessSeries processSeries) throws SystemProcessException {
+    BackgroundProcess backgroundProcess = startBackgroundProcess(param, axisID,
+        processResultDisplay, ProcessName.XFMODEL, processSeries);
+    return backgroundProcess.getName();
   }
 
   public final void reconnectProcesschunks(final AxisID axisID,

@@ -38,6 +38,9 @@ import etomo.util.DatasetFiles;
  * @version $Revision$
  *
  * <p> $Log$
+ * <p> Revision 1.26  2008/08/18 22:36:52  sueh
+ * <p> bug# 1130 In postProcess(BackgroundProcess) setting joinLocalFits and joinTrialLocalFits when the mode is TRIAL or FINISH_JOIN.
+ * <p>
  * <p> Revision 1.25  2008/05/03 00:41:41  sueh
  * <p> bug# 847 Passing a ProcessSeries instance to all processes that use
  * <p> process objects.  The goal is to pass then back to process done functions.
@@ -217,13 +220,6 @@ public final class JoinProcessManager extends BaseProcessManager {
       ConstProcessSeries processSeries) throws SystemProcessException {
     BackgroundProcess backgroundProcess = startBackgroundProcess(param,
         AxisID.ONLY, ProcessName.REMAPMODEL, processSeries);
-    return backgroundProcess.getName();
-  }
-
-  public String xfmodel(XfmodelParam param, ConstProcessSeries processSeries)
-      throws SystemProcessException {
-    BackgroundProcess backgroundProcess = startBackgroundProcess(param,
-        AxisID.ONLY, ProcessName.XFMODEL, processSeries);
     return backgroundProcess.getName();
   }
 
