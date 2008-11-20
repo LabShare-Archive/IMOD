@@ -15,6 +15,7 @@ bn.create-full-aligned-stack =
 waitfor.process.newst = done
 assert.file.exists = newst%{axis}.log~
 function = ctf-correction
+function=erase-gold
 function = filtering
 function = done
 
@@ -27,6 +28,7 @@ bn.create-full-aligned-stack =
 waitfor.process.blend = done
 assert.file.exists = blend%{axis}.log~
 function = ctf-correction
+function=erase-gold
 function = filtering
 function = done
 
@@ -62,8 +64,33 @@ bn.view-ctf-correction =
 bn.use-ctf-correction =
 cb.parallel-processing =
 
+[function = erase-gold]
+#check screen
+tp.create.2=
+function = erase-gold-base-values
+function = erase-gold-base-enabled
+#run
+#test xfmodel
+bn.transform-fiducial-model=
+waitfor.process.xfmodel=done
+assert.file.exists=%{dataset}%{axis}_erase.fid
+bn.transform-fiducial-model=
+waitfor.process.xfmodel=done
+assert.file.exists=%{dataset}%{axis}_erase.fid~
+bn.view-transformed-model=
+#test ccderaser
+bn.erase-beads=
+waitfor.process.ccderaser=done
+assert.file.exists=%{dataset}%{axis}_erase.ali
+bn.erase-beads=
+waitfor.process.ccderaser=done
+assert.file.exists=%{dataset}%{axis}_erase.ali~
+bn.view-erased-stack=
+bn.use-erased-stack=
+waitfor.popup.etomo-question = Yes
+
 [function = filtering]
-tp.create.2 = 
+tp.create.3 = 
 bn.filter =
 waitfor.process.mtffilter = done
 assert.file.exists = mtffilter%{axis}.log
@@ -90,8 +117,7 @@ assert.cb.parallel-processing = 1
 assert.tf.interpolation-width = 20
 #advanced
 mb.ctf-correction-advanced = 1
-assert.amplitude-contrast.enabled = 1
-assert.amplitude-contrast = 0.07
+assert.tf.amplitude-contrast = 0.07
 assert.tf.defocus-tolerance = 200
 mb.ctf-correction-advanced = 0
 
@@ -106,7 +132,7 @@ assert.cb.parallel-processing.enabled = 1
 assert.tf.interpolation-width.enabled = 1
 #advanced
 mb.ctf-correction-advanced = 1
-assert.amplitude-contrast.enabled = 1
+assert.tf.amplitude-contrast.enabled = 1
 assert.tf.defocus-tolerance.enabled = 1
 mb.ctf-correction-advanced = 0
 
@@ -124,3 +150,20 @@ mb.ctf-correction-advanced = 1
 assert.amplitude-contrast.enabled = 1
 assert.tf.defocus-tolerance.enabled = 1
 mb.ctf-correction-advanced = 0
+
+[function = erase-gold-base-values]
+assert.bn.transform-fiducial-model = 0
+assert.rb.use-mean-of-surrounding-points = 1
+assert.rb.fit-a-plane-to-surrounding-points = 0
+assert.bn.erase-beads = 0
+assert.bn.use-erased-stack =0
+
+[function = erase-gold-base-enabled]
+assert.bn.transform-fiducial-model.enabled = 1
+assert.bn.view-transformed-model.enabled = 1
+assert.tf.better-radius.enabled =1
+assert.rb.use-mean-of-surrounding-points.enabled =1
+assert.rb.fit-a-plane-to-surrounding-points.enabled =1
+assert.bn.erase-beads.enabled = 1
+assert.bn.view-erased-stack.enabled=1
+assert.bn.use-erased-stack.enabled = 1
