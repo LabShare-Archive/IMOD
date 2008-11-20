@@ -20,6 +20,9 @@
  * 
  * <p>
  * $Log$
+ * Revision 3.125  2008/10/30 21:02:19  sueh
+ * bug# 1145 In midasBlendStack, added -t option.
+ *
  * Revision 3.124  2008/10/30 20:51:25  sueh
  * bug# 1145 In midasRawStack, added -t option.
  *
@@ -881,6 +884,7 @@ import etomo.util.InvalidParameterException;
 import etomo.util.Utilities;
 import etomo.comscript.ArchiveorigParam;
 import etomo.comscript.BlendmontParam;
+import etomo.comscript.CCDEraserParam;
 import etomo.comscript.CombineComscriptState;
 import etomo.comscript.Command;
 import etomo.comscript.CommandDetails;
@@ -1006,6 +1010,27 @@ public class ProcessManager extends BaseProcessManager {
         ccdEraserProcessMonitor, axisID, processResultDisplay, processSeries);
 
     return comScriptProcess.getName();
+  }
+
+  /**
+   * This function is using CCDEraserParam to run ccderaser without a comscript.
+   * It uses the same monitor as eraser.com.  The ProcessName is CCD_ERASER, not
+   * ERASER, because ccderaser is running by itself, not wrapped in the
+   * eraser.com file.
+   * @param param
+   * @param axisID
+   * @param processResultDisplay
+   * @param processSeries
+   * @return
+   * @throws SystemProcessException
+   */
+  public String ccdEraser(CCDEraserParam param, AxisID axisID,
+      ProcessResultDisplay processResultDisplay,
+      ConstProcessSeries processSeries) throws SystemProcessException {
+    BackgroundProcess backgroundProcess = startBackgroundProcess(param
+        .getCommandArray(), axisID, processResultDisplay,
+        ProcessName.CCD_ERASER, processSeries);
+    return backgroundProcess.getName();
   }
 
   private String getDatasetName() {
