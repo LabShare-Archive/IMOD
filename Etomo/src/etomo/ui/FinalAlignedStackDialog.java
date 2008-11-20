@@ -15,6 +15,7 @@ import java.io.IOException;
 import javax.swing.BorderFactory;
 import javax.swing.Box;
 import javax.swing.BoxLayout;
+import javax.swing.ButtonGroup;
 import javax.swing.ImageIcon;
 import javax.swing.JButton;
 import javax.swing.JFileChooser;
@@ -36,6 +37,7 @@ import etomo.type.AxisID;
 import etomo.type.ConstEtomoNumber;
 import etomo.type.ConstStringParameter;
 import etomo.type.DialogType;
+import etomo.type.EnumeratedType;
 import etomo.type.EtomoAutodoc;
 import etomo.type.PanelHeaderState;
 import etomo.type.ProcessName;
@@ -60,6 +62,9 @@ import etomo.util.DatasetFiles;
  * @version $Revision$
  * 
  * <p> $Log$
+ * <p> Revision 1.6  2008/11/11 23:51:07  sueh
+ * <p> bug# 1149 Changed the tab names.
+ * <p>
  * <p> Revision 1.5  2008/11/11 00:18:12  sueh
  * <p> bug# 1147 Coverted newst, ctfcorrection, and mtffilter panels to tabs.
  * <p> Removed the open/close part of the panel headers.
@@ -86,6 +91,7 @@ public final class FinalAlignedStackDialog extends ProcessDialog implements
   static final String SIZE_TO_OUTPUT_IN_X_AND_Y_LABEL = "Size to output";
   private static final DialogType DIALOG_TYPE = DialogType.FINAL_ALIGNED_STACK;
   public static final String CTF_CORRECTION_LABEL = "Correct CTF";
+  public static final String CCD_ERASER_LABEL = "Erase Beads";
 
   // Fiducialess parameters
   private final CheckBox cbFiducialess = new CheckBox("Fiducialless alignment");
@@ -174,6 +180,23 @@ public final class FinalAlignedStackDialog extends ProcessDialog implements
   private final JPanel newstPanel = new JPanel();
   private final JPanel ccdEraserMainPanel = new JPanel();
 
+  private final Run3dmodButton btnXfModel;
+  private final Run3dmodButton btn3dmodXfModel = Run3dmodButton
+      .get3dmodInstance("View Transformed Model", this);
+  private final Run3dmodButton btnCcdEraser;
+  private final Run3dmodButton btn3dmodCcdEraser = Run3dmodButton
+      .get3dmodInstance("View Erased Stack", this);
+  private final MultiLineButton btnUseCcdEraser;
+  private final LabeledTextField ltfBetterRadius = new LabeledTextField(
+      "Better radius: ");
+  private final ButtonGroup bgPolynomialOrder = new ButtonGroup();
+  private final RadioButton rbPolynomialOrderUseMean = new RadioButton(
+      "Use mean of surrounding points",
+      FinalAlignedStackExpert.PolynomialOrder.USE_MEAN, bgPolynomialOrder);
+  private final RadioButton rbPolynomialOrderFitAPlane = new RadioButton(
+      "Fit a plane to surrounding points",
+      FinalAlignedStackExpert.PolynomialOrder.FIT_A_PLANE, bgPolynomialOrder);
+
   private boolean trialTilt = false;
   private Tab curTab = Tab.DEFAULT;
 
@@ -190,6 +213,13 @@ public final class FinalAlignedStackDialog extends ProcessDialog implements
     btnFilter = (Run3dmodButton) displayFactory.getFilter();
     btnFilter.setContainer(this);
     btnFilter.setDeferred3dmodButton(btnViewFilter);
+    btnXfModel = (Run3dmodButton) displayFactory.getXfModel();
+    btnXfModel.setContainer(this);
+    btnXfModel.setDeferred3dmodButton(btn3dmodXfModel);
+    btnCcdEraser = (Run3dmodButton) displayFactory.getCcdEraserBeads();
+    btnCcdEraser.setContainer(this);
+    btnCcdEraser.setDeferred3dmodButton(btn3dmodCcdEraser);
+    btnUseCcdEraser = (MultiLineButton) displayFactory.getUseCcdEraserBeads();
     btnUseFilter = (MultiLineButton) displayFactory.getUseFilteredStack();
     rootPanel.setLayout(new BoxLayout(rootPanel, BoxLayout.Y_AXIS));
     btnExecute.setText("Done");
@@ -255,6 +285,11 @@ public final class FinalAlignedStackDialog extends ProcessDialog implements
     btnCtfCorrection.addActionListener(finalAlignedStackListener);
     btnImodCtfCorrection.addActionListener(finalAlignedStackListener);
     btnUseCtfCorrection.addActionListener(finalAlignedStackListener);
+    btnXfModel.addActionListener(finalAlignedStackListener);
+    btn3dmodXfModel.addActionListener(finalAlignedStackListener);
+    btnCcdEraser.addActionListener(finalAlignedStackListener);
+    btn3dmodCcdEraser.addActionListener(finalAlignedStackListener);
+    btnUseCcdEraser.addActionListener(finalAlignedStackListener);
     tabbedPane.addChangeListener(new TabChangeListener(this));
 
     //  Mouse adapter for context menu
@@ -265,6 +300,21 @@ public final class FinalAlignedStackDialog extends ProcessDialog implements
   public static ProcessResultDisplay getFullAlignedStackDisplay() {
     return Run3dmodButton.getDeferredToggle3dmodInstance(
         "Create Full Aligned Stack", DIALOG_TYPE);
+  }
+
+  public static ProcessResultDisplay getXfModelDisplay() {
+    return Run3dmodButton.getDeferredToggle3dmodInstance(
+        "Transform Fiducial Model", DIALOG_TYPE);
+  }
+
+  public static ProcessResultDisplay getCcdEraser() {
+    return Run3dmodButton.getDeferredToggle3dmodInstance(CCD_ERASER_LABEL,
+        DIALOG_TYPE);
+  }
+
+  public static ProcessResultDisplay getUseCcdEraser() {
+    return Run3dmodButton.getDeferredToggle3dmodInstance("Use Erased Stack",
+        DIALOG_TYPE);
   }
 
   public static ProcessResultDisplay getFilterDisplay() {
@@ -562,16 +612,77 @@ public final class FinalAlignedStackDialog extends ProcessDialog implements
     ltfSizeToOutputInXandY.setText(input);
   }
 
+  void setBetterRadius(String input) {
+    ltfBetterRadius.setText(input);
+  }
+
+  void setBetterRadius(double input) {
+    ltfBetterRadius.setText(input);
+  }
+
+  String getBetterRadius() {
+    return ltfBetterRadius.getText();
+  }
+
+  String getPolynomialOrder() {
+    return ((RadioButton.RadioButtonModel) bgPolynomialOrder.getSelection())
+        .getEnumeratedType().toString();
+  }
+
+  void setPolynomialOrder(EnumeratedType enumeratedType) {
+    if (rbPolynomialOrderUseMean.getEnumeratedType() == enumeratedType) {
+      rbPolynomialOrderUseMean.setSelected(true);
+    }
+    else if (rbPolynomialOrderFitAPlane.getEnumeratedType() == enumeratedType) {
+      rbPolynomialOrderFitAPlane.setSelected(true);
+    }
+  }
+
   boolean isUseLinearInterpolation() {
     return cbUseLinearInterpolation.isSelected();
   }
-  
+
   private void layoutCcdEraser() {
     //panel
- //   JPanel ccdEraserRoot=new JPanel();
- //   tabbedPane.addTab("Erase Gold",ccdEraserRoot);
-  //  ccdEraserMainPanel.setLayout(new BoxLayout(ccdEraserMainPanel,BoxLayout.Y_AXIS));
-  //  ccdEraserMainPanel.setBorder(new EtchedBorder("Bead Eraser").getBorder());
+    JPanel ccdEraserRoot = new JPanel();
+    tabbedPane.addTab("Erase Gold", ccdEraserRoot);
+    ccdEraserMainPanel.setLayout(new BoxLayout(ccdEraserMainPanel,
+        BoxLayout.Y_AXIS));
+    ccdEraserMainPanel.setBorder(new EtchedBorder("Bead Eraser").getBorder());
+    JPanel xfModelPanel = new JPanel();
+    ccdEraserMainPanel.add(xfModelPanel);
+    xfModelPanel.setLayout(new BoxLayout(xfModelPanel, BoxLayout.X_AXIS));
+    xfModelPanel.add(btnXfModel.getComponent());
+    btnXfModel.setSize();
+    xfModelPanel.add(btn3dmodXfModel.getComponent());
+    btn3dmodXfModel.setSize();
+    JPanel ccdEraserPanel = new JPanel();
+    ccdEraserMainPanel.add(ccdEraserPanel);
+    ccdEraserPanel.setLayout(new BoxLayout(ccdEraserPanel, BoxLayout.Y_AXIS));
+    ccdEraserPanel.setBorder(new EtchedBorder("Erase Beads").getBorder());
+    JPanel ccdEraserParameterPanel = new JPanel();
+    ccdEraserPanel.add(ccdEraserParameterPanel);
+    ccdEraserParameterPanel.setLayout(new BoxLayout(ccdEraserParameterPanel,
+        BoxLayout.X_AXIS));
+    ccdEraserParameterPanel.add(ltfBetterRadius.getContainer());
+    JPanel polynomialOrderPanel = new JPanel();
+    ccdEraserParameterPanel.add(polynomialOrderPanel);
+    polynomialOrderPanel.setLayout(new BoxLayout(polynomialOrderPanel,
+        BoxLayout.Y_AXIS));
+    polynomialOrderPanel.setBorder(new EtchedBorder("Polynomial Order")
+        .getBorder());
+    polynomialOrderPanel.add(rbPolynomialOrderUseMean.getComponent());
+    polynomialOrderPanel.add(rbPolynomialOrderFitAPlane.getComponent());
+    JPanel ccdEraserButtonPanel = new JPanel();
+    ccdEraserPanel.add(ccdEraserButtonPanel);
+    ccdEraserButtonPanel.setLayout(new BoxLayout(ccdEraserButtonPanel,
+        BoxLayout.X_AXIS));
+    ccdEraserButtonPanel.add(btnCcdEraser.getComponent());
+    btnCcdEraser.setSize();
+    ccdEraserButtonPanel.add(btn3dmodCcdEraser.getComponent());
+    btn3dmodCcdEraser.setSize();
+    ccdEraserButtonPanel.add(btnUseCcdEraser.getComponent());
+    btnUseCcdEraser.setSize();
   }
 
   private void layoutCtfCorrectionPanel() {
@@ -798,6 +909,11 @@ public final class FinalAlignedStackDialog extends ProcessDialog implements
       btnNewst.removeActionListener(finalAlignedStackListener);
       btnUseFilter.removeActionListener(finalAlignedStackListener);
       btnFilter.removeActionListener(finalAlignedStackListener);
+      btnXfModel.removeActionListener(finalAlignedStackListener);
+      btnCcdEraser.removeActionListener(finalAlignedStackListener);
+      btnUseCcdEraser.removeActionListener(finalAlignedStackListener);
+      btnCtfCorrection.removeActionListener(finalAlignedStackListener);
+      btnUseCtfCorrection.removeActionListener(finalAlignedStackListener);
       setDisplayed(false);
       return true;
     }
@@ -884,6 +1000,23 @@ public final class FinalAlignedStackDialog extends ProcessDialog implements
     else if (command.equals(btnUseCtfCorrection.getActionCommand())) {
       expert.useCtfCorrection(btnUseCtfCorrection);
     }
+    else if (command.equals(btnXfModel.getActionCommand())) {
+      expert
+          .xfmodel(btnXfModel, null, deferred3dmodButton, run3dmodMenuOptions);
+    }
+    else if (command.equals(btn3dmodXfModel.getActionCommand())) {
+      expert.seedEraseFiducialModel(run3dmodMenuOptions, btn3dmodXfModel);
+    }
+    else if (command.equals(btnCcdEraser.getActionCommand())) {
+      expert.ccdEraser(btnCcdEraser, null, deferred3dmodButton,
+          run3dmodMenuOptions);
+    }
+    else if (command.equals(btn3dmodCcdEraser.getActionCommand())) {
+      expert.imodErasedFiducials(run3dmodMenuOptions);
+    }
+    else if (command.equals(btnUseCcdEraser.getActionCommand())) {
+      expert.useCcdEraser(btnUseCcdEraser);
+    }
   }
 
   private final void changeTab() {
@@ -895,6 +1028,9 @@ public final class FinalAlignedStackDialog extends ProcessDialog implements
     }
     else if (curTab == Tab.CTF_CORRECTION) {
       panel.add(ctfCorrectionMainPanel);
+    }
+    else if (curTab == Tab.CCD_ERASER) {
+      panel.add(ccdEraserMainPanel);
     }
     else if (curTab == Tab.MTF_FILTER) {
       panel.add(filterPanel);
@@ -1092,7 +1228,8 @@ public final class FinalAlignedStackDialog extends ProcessDialog implements
   private static final class Tab {
     private static final Tab NEWST = new Tab(0);
     private static final Tab CTF_CORRECTION = new Tab(1);
-    private static final Tab MTF_FILTER = new Tab(2);
+    private static final Tab CCD_ERASER = new Tab(2);
+    private static final Tab MTF_FILTER = new Tab(3);
 
     private static final Tab DEFAULT = NEWST;
 
@@ -1108,6 +1245,9 @@ public final class FinalAlignedStackDialog extends ProcessDialog implements
       }
       if (index == CTF_CORRECTION.index) {
         return CTF_CORRECTION;
+      }
+      if (index == CCD_ERASER.index) {
+        return CCD_ERASER;
       }
       if (index == MTF_FILTER.index) {
         return MTF_FILTER;
