@@ -27,6 +27,11 @@ import etomo.util.DatasetFiles;
  * @version $Revision$
  *
  * <p> $Log$
+ * <p> Revision 3.41  2008/11/11 23:49:00  sueh
+ * <p> bug# 1149 Changed tomoGenBinning to finalStackBinning.  Fixed the
+ * <p> names of the CtfCorrectionParallel variables (should start with
+ * <p> "finalStack", not "stack").  Changed latestRevionNumber to 1.9.  Added backward compatibility for 1.8.
+ * <p>
  * <p> Revision 3.40  2008/10/27 19:24:58  sueh
  * <p> bug# 1141 Add stackCtfCorrectionParallelA and B.
  * <p>
@@ -278,7 +283,6 @@ public final class MetaData extends BaseMetaData implements ConstMetaData {
   private boolean fiducialessAlignmentB = false;
   private boolean wholeTomogramSampleA = false;
   private boolean wholeTomogramSampleB = false;
-  //binning values - null if missing
   private EtomoNumber tomoPosBinningA = new EtomoNumber(
       EtomoNumber.Type.INTEGER, "TomoPosBinningA");
   private EtomoNumber tomoPosBinningB = new EtomoNumber(
@@ -359,6 +363,18 @@ public final class MetaData extends BaseMetaData implements ConstMetaData {
       2);
   private final FortranInputString sizeToOutputInXandYB = new FortranInputString(
       2);
+  private StringProperty finalStackBetterRadiusA = new StringProperty(
+      DialogType.FINAL_ALIGNED_STACK.getStorableName() + "."
+          + AxisID.FIRST.getExtension() + "." + "BetterRadius");
+  private StringProperty finalStackBetterRadiusB = new StringProperty(
+      DialogType.FINAL_ALIGNED_STACK.getStorableName() + "."
+          + AxisID.SECOND.getExtension() + "." + "BetterRadius");
+  private EtomoNumber finalStackPolynomialOrderA = new EtomoNumber(
+      DialogType.FINAL_ALIGNED_STACK.getStorableName() + "."
+          + AxisID.FIRST.getExtension() + "." + "PolynomialOrder");
+  private EtomoNumber finalStackPolynomialOrderB = new EtomoNumber(
+      DialogType.FINAL_ALIGNED_STACK.getStorableName() + "."
+          + AxisID.SECOND.getExtension() + "." + "PolynomialOrder");
 
   public MetaData(ApplicationManager manager) {
     this.manager = manager;
@@ -380,13 +396,10 @@ public final class MetaData extends BaseMetaData implements ConstMetaData {
     sizeToOutputInXandYB.setIntegerType(new boolean[] { true, true });
     sizeToOutputInXandYB.setPropertiesKey("B.SizeToOutputInXandY");
     sizeToOutputInXandYB.setDefault();
-  }
-
-  public void initialize() {
-    tomoPosBinningA.set(3);
-    tomoPosBinningB.set(3);
-    finalStackBinningA.set(1);
-    finalStackBinningB.set(1);
+    tomoPosBinningA.setDisplayValue(3);
+    tomoPosBinningB.setDisplayValue(3);
+    finalStackBinningA.setDisplayValue(1);
+    finalStackBinningB.setDisplayValue(1);
   }
 
   /**
@@ -770,6 +783,10 @@ public final class MetaData extends BaseMetaData implements ConstMetaData {
     noBeamTiltSelectedB.reset();
     fixedBeamTiltSelectedB.reset();
     fixedBeamTiltB.reset();
+    finalStackBetterRadiusA.reset();
+    finalStackBetterRadiusB.reset();
+    finalStackPolynomialOrderA.reset();
+    finalStackPolynomialOrderB.reset();
     //load
     prepend = createPrepend(prepend);
     String group = prepend + ".";
@@ -914,27 +931,55 @@ public final class MetaData extends BaseMetaData implements ConstMetaData {
     noBeamTiltSelectedB.load(props, prepend);
     fixedBeamTiltSelectedB.load(props, prepend);
     fixedBeamTiltB.load(props, prepend);
+    finalStackBetterRadiusA.load(props, prepend);
+    finalStackBetterRadiusB.load(props, prepend);
+    finalStackPolynomialOrderA.load(props, prepend);
+    finalStackPolynomialOrderB.load(props, prepend);
   }
 
-  public void setNoBeamTiltSelected(boolean selected, AxisID axisID) {
+  public void setNoBeamTiltSelected(AxisID axisID, boolean selected) {
     if (axisID == AxisID.SECOND) {
       noBeamTiltSelectedB.set(selected);
     }
-    noBeamTiltSelectedA.set(selected);
+    else {
+      noBeamTiltSelectedA.set(selected);
+    }
   }
 
-  public void setFixedBeamTiltSelected(boolean selected, AxisID axisID) {
+  public void setFixedBeamTiltSelected(AxisID axisID, boolean selected) {
     if (axisID == AxisID.SECOND) {
       fixedBeamTiltSelectedB.set(selected);
     }
-    fixedBeamTiltSelectedA.set(selected);
+    else {
+      fixedBeamTiltSelectedA.set(selected);
+    }
   }
 
-  public void setFixedBeamTilt(String fixedBeamTilt, AxisID axisID) {
+  public void setFixedBeamTilt(AxisID axisID, String fixedBeamTilt) {
     if (axisID == AxisID.SECOND) {
       this.fixedBeamTiltB.set(fixedBeamTilt);
     }
-    this.fixedBeamTiltA.set(fixedBeamTilt);
+    else {
+      this.fixedBeamTiltA.set(fixedBeamTilt);
+    }
+  }
+
+  public void setFinalStackBetterRadius(AxisID axisID, String input) {
+    if (axisID == AxisID.SECOND) {
+      finalStackBetterRadiusB.set(input);
+    }
+    else {
+      finalStackBetterRadiusA.set(input);
+    }
+  }
+
+  public void setFinalStackPolynomialOrder(AxisID axisID, String input) {
+    if (axisID == AxisID.SECOND) {
+      finalStackPolynomialOrderB.set(input);
+    }
+    else {
+      finalStackPolynomialOrderA.set(input);
+    }
   }
 
   public void setTargetPatchSizeXandY(String targetPatchSizeXandY) {
@@ -966,9 +1011,7 @@ public final class MetaData extends BaseMetaData implements ConstMetaData {
     if (prepend.equals("")) {
       return "Setup";
     }
-    else {
-      return prepend + ".Setup";
-    }
+    return prepend + ".Setup";
   }
 
   /**
@@ -1063,6 +1106,10 @@ public final class MetaData extends BaseMetaData implements ConstMetaData {
     fixedBeamTiltB.store(props, prepend);
     sizeToOutputInXandYA.store(props, prepend);
     sizeToOutputInXandYB.store(props, prepend);
+    finalStackBetterRadiusA.store(props, prepend);
+    finalStackBetterRadiusB.store(props, prepend);
+    finalStackPolynomialOrderA.store(props, prepend);
+    finalStackPolynomialOrderB.store(props, prepend);
   }
 
   public ConstEtomoNumber getNoBeamTiltSelected(AxisID axisID) {
@@ -1084,6 +1131,27 @@ public final class MetaData extends BaseMetaData implements ConstMetaData {
       return fixedBeamTiltB;
     }
     return fixedBeamTiltA;
+  }
+
+  public String getFinalStackBetterRadius(AxisID axisID) {
+    if (axisID == AxisID.SECOND) {
+      return finalStackBetterRadiusB.toString();
+    }
+    return finalStackBetterRadiusA.toString();
+  }
+
+  public int getFinalStackPolynomialOrder(AxisID axisID) {
+    if (axisID == AxisID.SECOND) {
+      return finalStackPolynomialOrderB.getInt();
+    }
+    return finalStackPolynomialOrderA.getInt();
+  }
+
+  public boolean isFinalStackBetterRadiusEmpty(AxisID axisID) {
+    if (axisID == AxisID.SECOND) {
+      return finalStackBetterRadiusB.isEmpty();
+    }
+    return finalStackBetterRadiusA.isEmpty();
   }
 
   public String getTargetPatchSizeXandY() {
@@ -1185,18 +1253,18 @@ public final class MetaData extends BaseMetaData implements ConstMetaData {
     return useLocalAlignmentsA;
   }
 
-  public ConstEtomoNumber getTomoPosBinning(AxisID axisID) {
+  public int getTomoPosBinning(AxisID axisID) {
     if (axisID == AxisID.SECOND) {
-      return tomoPosBinningB;
+      return tomoPosBinningB.getDefaultedInt();
     }
-    return tomoPosBinningA;
+    return tomoPosBinningA.getDefaultedInt();
   }
 
-  public ConstEtomoNumber getFinalStackBinning(AxisID axisID) {
+  public int getFinalStackBinning(AxisID axisID) {
     if (axisID == AxisID.SECOND) {
-      return finalStackBinningB;
+      return finalStackBinningB.getDefaultedInt();
     }
-    return finalStackBinningA;
+    return finalStackBinningA.getDefaultedInt();
   }
 
   public ConstEtomoNumber getCombineVolcombineParallel() {
