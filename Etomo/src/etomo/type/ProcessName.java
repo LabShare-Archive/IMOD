@@ -17,6 +17,9 @@ import etomo.util.DatasetFiles;
  * @version $$Revision$$
  *
  * <p> $$Log$
+ * <p> $Revision 1.18  2008/10/27 19:25:23  sueh
+ * <p> $bug# 1141 Added ctfPlotter, ctfCorrection, and splitCorrection
+ * <p> $
  * <p> $Revision 1.17  2007/12/10 22:03:58  sueh
  * <p> $bug# 1041 Standardized the getInstance functions and made sure that they will
  * <p> $work whether they get a process name, a process name plus an axis extension,
@@ -82,7 +85,7 @@ public class ProcessName {
   public static final String rcsid = "$$Id$$";
 
   //known process names  
-  private static final String eraser = "eraser";
+  private static final String eraser = "eraser";//comscript which runs ccderaser
   private static final String xcorr = "xcorr";
   private static final String prenewst = "prenewst";
   private static final String track = "track";
@@ -129,6 +132,7 @@ public class ProcessName {
   private static final String ctfPlotter = "ctfplotter";
   private static final String ctfCorrection = "ctfcorrection";
   private static final String splitCorrection = "splitcorrection";
+  private static final String ccderaser = "ccderaser";
 
   private final String name;
 
@@ -185,6 +189,7 @@ public class ProcessName {
   public static final ProcessName CTF_PLOTTER = new ProcessName(ctfPlotter);
   public static final ProcessName CTF_CORRECTION = new ProcessName(ctfCorrection);
   public static final ProcessName SPLIT_CORRECTION = new ProcessName(splitCorrection);
+  public static final ProcessName CCD_ERASER = new ProcessName(ccderaser);
 
   /**
    * Returns a string representation of the object.
@@ -424,6 +429,9 @@ public class ProcessName {
     }
     if (name.compareToIgnoreCase(splitCorrection) == 0) {
       return SPLIT_CORRECTION;
+    }
+    if (name.compareToIgnoreCase(ccderaser) == 0) {
+      return CCD_ERASER;
     }
     return null;
   }
