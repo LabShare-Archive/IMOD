@@ -26,12 +26,23 @@ number of objects in the model on the same line.
 The following directives are optional. They can be in any order 
 anywhere in the file, except in the middle of contour or mesh data
 Each of these directives have three data values for x, y and z.
-The offsets and angles directive should be set to zero.
+The offsets and angles directives should be set to zero; they correspond to
+unused variables in the model that have been superceded by the image reference
+variables specified in the ref... directives below.
 The x and y scale values should be set to 1.0 and the z value
 should be set to compensate for the thickness of the image slices
 used to create the model.
 The max directive is set to the values of the image size used to
-make the model.
+make the model.  
+<p>
+The ref... directives specify the relation between model and
+image coordinates for the last image file that the model was loaded with.  The
+refcurscale and refcurrot values are based on the pixel spacing and rotation
+angles of the image file; refoldtrans values are based on the origin values in
+the image file; and refcurtrans values are based on the starting coordinate
+that was loaded in the image file.  For example, to get from an X coordinate
+in the model to the X pixel coordinate in the full image file, one would add
+((refoldtrans x) - (refcurtrans x)) / (refcurscale x).
 
 <p>
 <code>
@@ -41,7 +52,15 @@ make the model.
 <br>
 <b>scale</b> (<i>x</i>) (<i>y</i>) (<i>z</i>)
 <br>
-<b>angle</b> (<i>x</i>) (<i>y</i>) (<i>z</i>)
+<b>angles</b> (<i>x</i>) (<i>y</i>) (<i>z</i>)
+<br>
+<b>refcurscale</b> (<i>x</i>) (<i>y</i>) (<i>z</i>)
+<br>
+<b>refcurtrans</b> (<i>x</i>) (<i>y</i>) (<i>z</i>)
+<br>
+<b>refcurrot</b> (<i>x</i>) (<i>y</i>) (<i>z</i>)
+<br>
+<b>refoldtrans</b> (<i>x</i>) (<i>y</i>) (<i>z</i>)
 </code>
 <P>
 Additional model directives are as follows.  The units should be nm, um, or mm.
