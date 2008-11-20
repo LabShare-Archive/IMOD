@@ -671,9 +671,9 @@ final class TiltalignPanel implements Expandable {
   void getParameters(final MetaData metaData) {
     metaData.setTargetPatchSizeXandY(rtfTargetPatchSizeXandY.getText());
     metaData.setNumberOfLocalPatchesXandY(rtfNLocalPatches.getText());
-    metaData.setNoBeamTiltSelected(rbNoBeamTilt.isSelected(), axisID);
-    metaData.setFixedBeamTiltSelected(rtfFixedBeamTilt.isSelected(), axisID);
-    metaData.setFixedBeamTilt(rtfFixedBeamTilt.getText(), axisID);
+    metaData.setNoBeamTiltSelected(axisID, rbNoBeamTilt.isSelected());
+    metaData.setFixedBeamTiltSelected(axisID, rtfFixedBeamTilt.isSelected());
+    metaData.setFixedBeamTilt(axisID, rtfFixedBeamTilt.getText());
   }
 
   /**
@@ -1846,6 +1846,9 @@ final class TiltalignPanel implements Expandable {
 
 /**
  * <p> $Log$
+ * <p> Revision 3.47  2008/09/30 22:45:08  sueh
+ * <p> bug# 1113 Using a private constructor in SpacedPanel.
+ * <p>
  * <p> Revision 3.46  2008/07/16 20:15:01  sueh
  * <p> bug# 1126 Added ltfRotationAngle.
  * <p>
