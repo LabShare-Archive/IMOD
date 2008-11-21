@@ -30,6 +30,7 @@ import etomo.type.ConstMetaData;
 import etomo.type.DialogType;
 import etomo.type.EtomoAutodoc;
 import etomo.type.MetaData;
+import etomo.type.ReconScreenState;
 
 /**
  * <p>Description: </p>
@@ -688,6 +689,14 @@ final class TiltalignPanel implements Expandable {
         .setSelected(metaData.getFixedBeamTiltSelected(axisID).is());
     rtfFixedBeamTilt.setText(metaData.getFixedBeamTilt(axisID));
     updateDisplay();
+  }
+  
+  public final void setParameters(ReconScreenState screenState) {
+    phBeamTilt.setState(screenState.getFineAlignBeamTiltHeaderState());
+  }
+
+  public void getParameters(ReconScreenState screenState) {
+    phBeamTilt.getState(screenState.getFineAlignBeamTiltHeaderState());
   }
 
   /**
@@ -1846,6 +1855,10 @@ final class TiltalignPanel implements Expandable {
 
 /**
  * <p> $Log$
+ * <p> Revision 3.48  2008/11/20 01:47:56  sueh
+ * <p> bug# 1147 Fixed metaData.setNoBeamTiltSelected,
+ * <p> setFixedBeamTiltSelected, and setFixedBeamTilt.
+ * <p>
  * <p> Revision 3.47  2008/09/30 22:45:08  sueh
  * <p> bug# 1113 Using a private constructor in SpacedPanel.
  * <p>

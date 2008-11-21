@@ -37,6 +37,9 @@ import etomo.type.Run3dmodMenuOptions;
  * @version $Revision$
  *
  * <p> $Log$
+ * <p> Revision 3.33  2008/10/16 21:09:12  sueh
+ * <p> bug# 1141 Removed fixRootPanel because it doesn't do anything.
+ * <p>
  * <p> Revision 3.32  2008/09/30 20:54:20  sueh
  * <p> bug# 1113 Using a private constructor in SpacedPanel.
  * <p>
@@ -376,9 +379,13 @@ public final class AlignmentEstimationDialog extends ProcessDialog implements
         DialogType.FINE_ALIGNMENT);
   }
 
+ 
   public final void setParameters(ReconScreenState screenState) {
-    //btnComputeAlignment.setButtonState(screenState
-    //    .getButtonState(btnComputeAlignment.getButtonStateKey()));
+    pnlTiltalign.setParameters(screenState);
+  }
+
+  public void getParameters(ReconScreenState screenState) {
+    pnlTiltalign.getParameters(screenState);
   }
 
   public void setParameters(ConstMetaData metaData) {
