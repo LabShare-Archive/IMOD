@@ -6,27 +6,8 @@ c       See man page for details.
 c       
 c       David Mastronarde 1988; hybrid method 7/26/01
 c       
-c       $Author$
-c       
-c       $Date$
-c       
-c       $Revision$
-c       
-c       $Log$
-c       Revision 3.4  2005/10/11 18:55:05  mast
-c       Commented out debugging output
-c	
-c       Revision 3.3  2005/10/11 15:45:50  mast
-c       Added option to based average center position on restricted range of
-c       rotation angles
-c	
-c       Revision 3.2  2004/01/27 05:37:33  mast
-c       Needed to split print line for SGI
-c	
-c       Revision 3.1  2004/01/27 03:33:12  mast
-c       Converted to PIP input, and fixed hybrid option for eliminating
-c       trends in rotation and magnification.
-c	
+c       $Id$
+c       Log at end of file
 c       
       implicit none
       integer lmsc
@@ -39,7 +20,7 @@ C	end structure
      &    slope(2,3,10),intcp(2,3),natpr(2,3)
       real*4 x(lmsc),y(lmsc),slop(10)
       integer*4 igroup(lmsc)
-      character*120 infil,outfil
+      character*320 infil,outfil
 c       
       integer*4 nhybrid, ifshift, iorder, nlist, kl, i, ilist, kllo, klhi
       integer*4 j, ipow, nfit, ierr, lnblnk,numGroups, numInFirst,iordUse
@@ -394,3 +375,23 @@ c
       enddo
       return
       end
+
+c       
+c       $Log$
+c       Revision 3.5  2006/10/24 19:45:49  mast
+c       Added ability to set reference section
+c
+c       Revision 3.4  2005/10/11 18:55:05  mast
+c       Commented out debugging output
+c	
+c       Revision 3.3  2005/10/11 15:45:50  mast
+c       Added option to based average center position on restricted range of
+c       rotation angles
+c	
+c       Revision 3.2  2004/01/27 05:37:33  mast
+c       Needed to split print line for SGI
+c	
+c       Revision 3.1  2004/01/27 03:33:12  mast
+c       Converted to PIP input, and fixed hybrid option for eliminating
+c       trends in rotation and magnification.
+c	
