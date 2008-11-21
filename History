@@ -1,5 +1,8 @@
 IMOD History
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+11/21/08: In Etomo - Fine Alignment saving the state of the Beam Tilt panel
+header.
+
 11/20/08: IMOD_3-12-22
 11/20/08: Interface for transforming fiducial model and erasing gold was
 added to Aligned Stack panel.
