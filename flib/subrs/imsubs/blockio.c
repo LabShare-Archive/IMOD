@@ -112,7 +112,7 @@ typedef struct
 typedef struct
 {
   int  being_used;
-  char fname[256];
+  char fname[326];
   FILE *fp;
   int  read_only;
   int  write_only;
@@ -169,7 +169,7 @@ void qopen(int *iunit, char *name, char *attribute, int name_l, int attr_l)
   int unit = find_unit();
   Unit *u = units + unit;  /* JRK: Style, declarations should be up here. */
   int  noChars;
-  char oldfilename[257];
+  char oldfilename[327];
   char matstr[16];
   int mode, errSave;
   char *modes[4] = {"rb", "rb+", "wb", "wb+"};
@@ -584,6 +584,9 @@ Private undefines
  
 /*
 $Log$
+Revision 3.19  2007/10/14 17:10:06  mast
+Return file size in kilobytes, not 512-byte blocks
+
 Revision 3.18  2007/06/08 23:24:54  mast
 Add tail of filename to various error messages, direct system errors to
 standard out with correct prefix, and only if set
