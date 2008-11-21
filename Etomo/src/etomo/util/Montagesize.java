@@ -161,7 +161,7 @@ public class Montagesize {
     commandArray[0] = ApplicationManager.getIMODBinPath() + "montagesize";
     commandArray[1] = file.getAbsolutePath();
     if (pieceListFile.exists()) {
-      commandArray[2] = pieceListFile.getAbsolutePath();
+      commandArray[2] = pieceListFile.getName();
     }
   }
 
@@ -339,6 +339,9 @@ public class Montagesize {
 }
 /**
  * <p> $Log$
+ * <p> Revision 1.16  2007/12/26 22:41:29  sueh
+ * <p> bug# 1052 Moved argument handling from EtomoDirector to a separate class.
+ * <p>
  * <p> Revision 1.15  2007/09/07 00:30:43  sueh
  * <p> bug# 989 Using a public INSTANCE to refer to the EtomoDirector singleton
  * <p> instead of getInstance and createInstance.
