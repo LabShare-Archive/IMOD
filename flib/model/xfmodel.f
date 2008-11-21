@@ -6,11 +6,7 @@
 c       
 c       For more details, see man page
 *       
-c       $Author$
-c       
-c       $Date$
-c       
-c       $Revision$
+c       $Id$
 c       Log at end of file
 c       
       implicit none
@@ -28,8 +24,8 @@ c       real*4 delt(3)
       parameter (lmGrid = 200)
       include 'statsize.inc'
       real*4 xr(msiz,idim)
-      character*120 modelfile,newmodel,oldxfgfile,oldxffile,newxffile,idfFile
-      character*120 magGradFile
+      character*320 modelfile,newmodel,oldxfgfile,oldxffile,newxffile,idfFile
+      character*320 magGradFile
       logical gotthis,gotlast,exist,readw_or_imod
       integer*4 getimodmaxes
       integer*4 limpnts/4/                      !min # of points for regression
@@ -896,6 +892,9 @@ c
 c       
 c       
 c       $Log$
+c       Revision 3.14  2007/02/01 05:12:53  mast
+c       Added option to specify scaling of shifts in transforms
+c
 c       Revision 3.13  2006/02/27 16:54:30  mast
 c       Removed debug output of chunks
 c
