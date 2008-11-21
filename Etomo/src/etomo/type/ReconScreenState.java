@@ -133,6 +133,8 @@ public final class ReconScreenState extends BaseScreenState {
       COMBINE_FINAL_VOLCOMBINE_HEADER_GROUP);
   private EtomoNumber patchcorrKernelSigma = null;
   private final EtomoVersion version = EtomoVersion.getDefaultInstance("1.1");
+  private final PanelHeaderState fineAlignBeamTiltHeaderState = new PanelHeaderState(
+      DialogType.FINE_ALIGNMENT.getStorableName() + ".BeamTilt" + HEADER_GROUP);
 
   public ReconScreenState(AxisID axisID, AxisType axisType) {
     super(axisID, axisType);
@@ -147,9 +149,10 @@ public final class ReconScreenState extends BaseScreenState {
     prepend = getPrepend(prepend);
     stackNewstHeaderState.store(props, prepend);
     stackMtffilterHeaderState.store(props, prepend);
-    stackCtfCorrectionHeaderState.store(props,prepend);
+    stackCtfCorrectionHeaderState.store(props, prepend);
     tomoGenTiltHeaderState.store(props, prepend);
     tomoGenTrialTiltHeaderState.store(props, prepend);
+    fineAlignBeamTiltHeaderState.store(props,prepend);
     if (axisID == AxisID.FIRST) {
       combineSetupToSelectorHeaderState.store(props, prepend);
       combineSetupSolvematchHeaderState.store(props, prepend);
@@ -188,9 +191,10 @@ public final class ReconScreenState extends BaseScreenState {
       stackNewstHeaderState.load(props, prepend);
       stackMtffilterHeaderState.load(props, prepend);
     }
-    stackCtfCorrectionHeaderState.load(props,prepend);
+    stackCtfCorrectionHeaderState.load(props, prepend);
     tomoGenTiltHeaderState.load(props, prepend);
     tomoGenTrialTiltHeaderState.load(props, prepend);
+    fineAlignBeamTiltHeaderState.load(props,prepend);
     if (axisID == AxisID.FIRST) {
       combineSetupToSelectorHeaderState.load(props, prepend);
       combineSetupSolvematchHeaderState.load(props, prepend);
@@ -223,7 +227,7 @@ public final class ReconScreenState extends BaseScreenState {
   public PanelHeaderState getStackMtffilterHeaderState() {
     return stackMtffilterHeaderState;
   }
-  
+
   public PanelHeaderState getStackCtfCorrectionHeaderState() {
     return stackCtfCorrectionHeaderState;
   }
@@ -234,6 +238,10 @@ public final class ReconScreenState extends BaseScreenState {
 
   public PanelHeaderState getTomoGenTrialTiltHeaderState() {
     return tomoGenTrialTiltHeaderState;
+  }
+  
+  public PanelHeaderState getFineAlignBeamTiltHeaderState() {
+    return fineAlignBeamTiltHeaderState;
   }
 
   public PanelHeaderState getCombineSetupToSelectorHeaderState() {
@@ -290,6 +298,10 @@ public final class ReconScreenState extends BaseScreenState {
 }
 /**
  * <p> $Log$
+ * <p> Revision 1.9  2008/10/27 20:17:48  sueh
+ * <p> bug# 1141 Changed finalStackMtffilterHeaderState to
+ * <p> stackMtffilterHeaderState.  Added stackCtfCorrectionHeaderState.
+ * <p>
  * <p> Revision 1.8  2008/10/16 21:01:57  sueh
  * <p> bug# 1141 Added finalMtffilterHeaderState and newstHeaderState.\Deprecated tomoGenMtffilterHeaderState and
  * <p> tomoGenNewstHeaderState.
