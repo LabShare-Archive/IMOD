@@ -2394,6 +2394,7 @@ public final class ApplicationManager extends BaseManager {
       mainPanel.showBlankProcess(axisID);
     }
     else {
+      fineAlignmentDialog.getParameters(getScreenState(axisID));
       // Get the user input data from the dialog box
       if (updateAlignCom(axisID) == null) {
         return false;
@@ -5817,6 +5818,10 @@ public final class ApplicationManager extends BaseManager {
 }
 /**
  * <p> $Log$
+ * <p> Revision 3.310  2008/11/20 01:23:55  sueh
+ * <p> bug# 1147 Added ccdEraser(), xfmodel().  Changed imodSeedFiducials
+ * <p> to imodSeedModel and made it more generic.
+ * <p>
  * <p> Revision 3.309  2008/10/27 17:43:20  sueh
  * <p> bug# 1141 Added ctfCorrection, ctfPlotter, imodCtfCorrection,
  * <p> splitCorrection, and FinalAlignedStack dialogs.
