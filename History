@@ -1,6 +1,10 @@
 IMOD History
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-11/21/08: Fixed Etomo - NAD.  Opening the volume in 3dmod was failing.
+11/21/08: Fixed Etomo - NAD.  Opening the volume in 3dmod was failing because of
+a corrupt path name.  If "View Full Volume" button is failing, right-click on
+the button, select "Open with startup window", and correct the file name.  Do
+the same with the "View Filtered Volume" buttom.  Also edit the .epp file and
+correct the file path there.
 
 11/21/08: Increased filename length limits in Maxjoinsize, Xftoxg, and Xfmodel.
 
