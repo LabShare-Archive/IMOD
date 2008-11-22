@@ -1,5 +1,7 @@
 IMOD History
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+11/21/08: Fixed Etomo - NAD.  Opening the volume in 3dmod was failing.
+
 11/21/08: Increased filename length limits in Maxjoinsize, Xftoxg, and Xfmodel.
 
 11/21/08: Increased array sizes in Blendmont to allow 8Kx8K frames and output
