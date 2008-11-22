@@ -1,7 +1,8 @@
 IMOD History
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-11/21/08: Fixed Etomo - NAD.  Opening the volume in 3dmod was failing because of
-a corrupt path name.
+11/21/08: IMOD_3-12-23
+11/21/08: Fixed Etomo - NAD.  Opening the volume in 3dmod was failing because
+of a corrupt path name.
 
 11/21/08: Increased filename length limits in Maxjoinsize, Xftoxg, and Xfmodel.
 
