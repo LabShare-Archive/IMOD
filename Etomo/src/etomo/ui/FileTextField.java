@@ -25,6 +25,10 @@ import etomo.type.ConstStringParameter;
  * @version $Revision$
  * 
  * <p> $Log$
+ * <p> Revision 1.11  2008/10/27 20:38:01  sueh
+ * <p> bug# 1441 Fixed a bug where the member variable file was not kept up
+ * <p> to date.
+ * <p>
  * <p> Revision 1.10  2008/09/30 21:01:21  sueh
  * <p> bug# 1113 Using a private constructor in SpacedPanel.
  * <p>
@@ -69,6 +73,9 @@ final class FileTextField {
   private JLabel label = null;
   private boolean showPartialPath = false;
   private boolean debug = false;
+  //Must have file because the field may display a shortened name.  Keep file
+  //up to date.
+  private File file = null;
 
   FileTextField(final String label) {
     this(label, true);
@@ -120,6 +127,7 @@ final class FileTextField {
   }
 
   void clear() {
+    file = null;
     field.setText("");
   }
 
@@ -150,7 +158,7 @@ final class FileTextField {
   }
 
   boolean isEmpty() {
-    return field.getText() == null || field.getText().matches("\\s*");
+    return file==null;
   }
 
   void setFile(final File file) {
@@ -158,32 +166,23 @@ final class FileTextField {
   }
 
   File getFile() {
-    String text = field.getText();
-    if (text != null && !text.matches("\\s*")) {
-      return new File(text);
-    }
-    return null;
+    return file;
   }
 
   String getFileName() {
-    File file = getFile();
-    if (file != null) {
-      return file.getName();
-    }
-    return field.getText();
+    return file.getName();
   }
 
   String getFileAbsolutePath() {
-    File file = getFile();
-    if (file != null) {
-      return file.getAbsolutePath();
-    }
-    return field.getText();
+    return file.getAbsolutePath();
   }
 
   void setText(final String text) {
     if (text != null && !text.matches("\\s*")) {
       setFieldFromFile(new File(text));
+    }
+    else {
+      setFieldFromFile(null);
     }
   }
 
@@ -191,16 +190,21 @@ final class FileTextField {
     setText(input.toString());
   }
 
-  private void setFieldFromFile(File file) {
-    if (file == null) {
+  /**
+   * All set commands should call this function.
+   * @param inputFile
+   */
+  private void setFieldFromFile(File inputFile) {
+    file = inputFile;
+    if (inputFile == null) {
       field.setText("");
       return;
     }
     if (!showPartialPath) {
-      field.setText(file.getAbsolutePath());
+      field.setText(inputFile.getAbsolutePath());
       return;
     }
-    String parent = file.getParent();
+    String parent = inputFile.getParent();
     int separatorIndex = parent.toString().lastIndexOf(File.separatorChar);
     if (separatorIndex != -1) {
       parent = parent.substring(separatorIndex);
@@ -213,7 +217,7 @@ final class FileTextField {
     if (!parent.endsWith(File.separator)) {
       text.append(File.separator);
     }
-    text.append(file.getName());
+    text.append(inputFile.getName());
     field.setText(text.toString());
   }
 
