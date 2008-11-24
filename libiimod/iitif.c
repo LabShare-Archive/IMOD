@@ -6,6 +6,9 @@
  *   Copyright (C) 1995-2006 by Boulder Laboratory for 3-Dimensional Electron
  *   Microscopy of Cells ("BL3DEMC") and the Regents of the University of 
  *   Colorado.
+ *
+ *  $Id$
+ *  Log at end of file
  */
 
 /************************************************************************** 
@@ -34,15 +37,6 @@ OF THIS SOFTWARE.
 
 Additional documentation is at <ftp://ftp.sgi.com/graphics/tiff/doc>
 ****************************************************************************/
-/*
-  $Author$
-
-  $Date$
-  
-  $Revision$
-  Log at end
-*/
-
 
 #include <stdlib.h>
 #include <string.h>
@@ -50,17 +44,17 @@ Additional documentation is at <ftp://ftp.sgi.com/graphics/tiff/doc>
 #ifdef NOTIFFLIBS
 #include "notiffio.h"
 #else
-#include <tiffio.h>
+#include "tiffio.h"
 #endif
 
 #include "iimage.h"
 #include "b3dutil.h"
 
 int tiffReopen(ImodImageFile *inFile);
-void tiffClose(ImodImageFile *inFile);
 void tiffDelete(ImodImageFile *inFile);
 static int ReadSection(ImodImageFile *inFile, char *buf, int inSection,
                        int byte);
+static TIFF *openWithoutBMode(ImodImageFile *inFile);
 
 int iiTIFFCheck(ImodImageFile *inFile)
 {
@@ -98,7 +92,7 @@ int iiTIFFCheck(ImodImageFile *inFile)
 
   /* Close file now, but reopen it if there is a TIFF failure */
   fclose(fp);
-  tif = TIFFOpen(inFile->filename, inFile->fmode);
+  tif = openWithoutBMode(inFile);
   if (!tif){
     inFile->fp = fopen(inFile->filename, inFile->fmode);
     b3dError(stderr, "ERROR: iiTIFFCheck - Calling TIFFOpen on file %s\n",
@@ -135,6 +129,9 @@ int iiTIFFCheck(ImodImageFile *inFile)
   inFile->nz     = dirnum;
   inFile->file   = IIFILE_TIFF;
   inFile->format = IIFORMAT_LUMINANCE;
+
+  /* 11/22/08: define this for all types, not just for 3-sample data */
+  inFile->readSection = tiffReadSection;
   inFile->readSectionByte = tiffReadSectionByte;
 
   if (bits == 8) {
@@ -146,7 +143,6 @@ int iiTIFFCheck(ImodImageFile *inFile)
     if (samples == 3) {
       inFile->format = IIFORMAT_RGB;
       inFile->mode   = MRC_MODE_RGB;
-      inFile->readSection = tiffReadSection;
       inFile->readSectionByte = NULL;
     } else if (photometric == 3) {
 
@@ -219,7 +215,7 @@ int iiTIFFCheck(ImodImageFile *inFile)
 int tiffReopen(ImodImageFile *inFile)
 {
   TIFF* tif;
-  tif = TIFFOpen(inFile->filename, inFile->fmode);
+  tif = openWithoutBMode(inFile);
   if (!tif)
     return 1;
   inFile->headerSize = 8;
@@ -243,6 +239,59 @@ void tiffDelete(ImodImageFile *inFile)
   tiffClose(inFile);
 }
 
+/* Get the value for a field that returns a single value */
+int tiffGetField(ImodImageFile *inFile, int tag, void *value)
+{
+  TIFF *tif;
+  if (!inFile)
+    return -1;
+  if (!inFile->header)
+    iiReopen(inFile);
+  tif = (TIFF *)inFile->header;
+  if (!tif)
+    return -1;
+  return TIFFGetField(tif, (ttag_t)tag, value);
+}
+/* Get the value for a field that returns the address of an array.  The count
+   argument seems to be required but does not seem to return the count */
+int tiffGetArray(ImodImageFile *inFile, int tag, int *count, void *value)
+{
+  TIFF *tif;
+  if (!inFile)
+    return -1;
+  if (!inFile->header)
+    iiReopen(inFile);
+  tif = (TIFF *)inFile->header;
+  if (!tif)
+    return -1;
+  return TIFFGetField(tif, (ttag_t)tag, count, value);
+}
+
+void tiffSuppressErrors(void)
+{
+  TIFFSetErrorHandler(NULL);
+}
+
+void tiffSuppressWarnings(void)
+{
+  TIFFSetWarningHandler(NULL);
+}
+
+/* Mode 'b' means something completely different for TIFF, so strip it */
+static TIFF *openWithoutBMode(ImodImageFile *inFile)
+{
+  TIFF *tif;
+  int stripped = 0;
+  int len = strlen(inFile->fmode);
+  if (inFile->fmode[len - 1] == 'b') {
+    stripped = 1;
+    inFile->fmode[len - 1] = 0x00;
+  }
+  tif = TIFFOpen(inFile->filename, inFile->fmode);
+  if (stripped)
+    inFile->fmode[len - 1] = 'b';
+  return tif;
+}
 
 /* DNM 12/24/00: Got this working for bytes, shorts, and RGBs, for whole
    images or subsets, and using maps for scaling */
@@ -507,6 +556,9 @@ int tiffReadSection(ImodImageFile *inFile, char *buf, int inSection)
 
 /*
   $Log$
+  Revision 3.11  2008/05/23 22:15:22  mast
+  Added float support and fixed assignment of min and max when it exists
+
   Revision 3.10  2007/06/13 17:12:07  sueh
   bug# 1019 In iiTIFFCheck and tiffReopen, setting inFile->sectionSkip to 0.
 
