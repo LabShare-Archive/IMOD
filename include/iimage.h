@@ -143,7 +143,9 @@ extern "C" {
 
   void iiAddCheckFunction(IIFileCheckFunction func);
   void iiInsertCheckFunction(IIFileCheckFunction func, int index);
+  void iiDeleteCheckList();
   void iiAddRawCheckFunction(IIRawCheckFunction func, char *name);
+  void iiDeleteRawCheckList();
   ImodImageFile *iiNew(void);
   ImodImageFile *iiOpen(char *filename, char *mode);
   int  iiReopen(ImodImageFile *inFile);
@@ -171,6 +173,10 @@ extern "C" {
   int tiffReadSectionByte(ImodImageFile *inFile, char *buf, int inSection);
   int tiffReadSection(ImodImageFile *inFile, char *buf, int inSection);
   void tiffClose(ImodImageFile *inFile);
+  int tiffGetField(ImodImageFile *inFile, int tag, void *value);
+  int tiffGetArray(ImodImageFile *inFile, int tag, int *count, void *value);
+  void tiffSuppressWarnings(void);
+  void tiffSuppressErrors(void);
   int iiLikeMRCCheck(ImodImageFile *inFile);
   void iiLikeMRCDelete(ImodImageFile *inFile);
   int iiSetupRawHeaders(ImodImageFile *inFile, RawImageInfo *info);
@@ -184,6 +190,9 @@ extern "C" {
 
 /*
 $Log$
+Revision 3.13  2008/11/18 22:43:54  mast
+Changed include to eliminate mrcc.h
+
 Revision 3.12  2007/06/13 17:07:45  sueh
 bug# 1019 Adding sectionSkip to ImodImageFile and RawImageInfo.
 
