@@ -71,6 +71,23 @@ void iiAddRawCheckFunction(IIRawCheckFunction func, char *name)
   ilistInsert(checkList, &item, 0);
 }
 
+/*!
+ * Frees the checking list and all its data to avoid memory leaks
+ */
+void iiDeleteRawCheckList()
+{
+  int i;
+  CheckEntry *item;
+  if (!checkList)
+    return;
+  for (i = 0; i < ilistSize(checkList); i++) {
+    item = (CheckEntry *)ilistItem(checkList, i);
+    if (item->name)
+      free(item->name);
+  }
+  ilistDelete(checkList);
+  checkList = NULL;
+}
 
 /*!
  * Checks the image file in [inFile] for one known MRC-like (raw-type) format
@@ -610,6 +627,9 @@ static int checkEM(FILE *fp, char *filename, RawImageInfo *info)
 /*  
 
 $Log$
+Revision 3.7  2008/01/11 17:19:22  mast
+Mac warning cleanup
+
 Revision 3.6  2007/06/13 19:40:42  sueh
 bug# 1019 Fixed header reading problems in checkPif.  Checking htype.
 
