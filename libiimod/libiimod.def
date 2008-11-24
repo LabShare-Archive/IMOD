@@ -24,6 +24,11 @@ EXPORTS
 	sliceReadFloat
 	iiTIFFCheck
 	iiAddCheckFunction
+	iiDeleteCheckList
+	tiffSuppressErrors
+	tiffSuppressWarnings
+	tiffGetField
+	tiffGetArray
 	mrc_test_size
 	sliceScaleAndFree
 	sliceByteAdd
@@ -76,6 +81,7 @@ EXPORTS
 	mrc_vol_wrap
 	mrc_read_point
 	iiAddRawCheckFunction
+	iiDeleteRawCheckList
 	iiLikeMRCDelete
 	tiffDelete
 	mrc_slice_zooms
