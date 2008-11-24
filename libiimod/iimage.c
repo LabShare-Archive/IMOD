@@ -70,6 +70,17 @@ void iiInsertCheckFunction(IIFileCheckFunction func, int index)
 }
 
 /*!
+ * Frees the checking list to avoid memory leaks
+ */
+void iiDeleteCheckList()
+{
+  if (!checkList)
+    return;
+  ilistDelete(checkList);
+  checkList = NULL;
+}
+
+/*!
  * Creates a new image file structure and initialize it to default or
  * null values.  Returns 1 for error.
 */ 
@@ -94,6 +105,7 @@ ImodImageFile *iiNew()
   ofile->close           = NULL;
   ofile->writeSection    = NULL;
   ofile->colormap        = NULL;
+  ofile->fmode           = NULL;
 
   /* DNM 2/26/03: set upper right to -1 for later replacement */
   ofile->llx =  0;
@@ -148,7 +160,7 @@ ImodImageFile *iiOpen(char *filename, char *mode)
     return(NULL);
   }
   ofile->filename = strdup(filename);
-  ofile->fmode = mode;
+  ofile->fmode = strdup(mode);
     
   /* Try to open the file with each of the check functions in turn 
    * until one succeeds
@@ -191,7 +203,7 @@ int  iiReopen(ImodImageFile *inFile)
   if (inFile->fp)
     return 1;
   if (!inFile->fmode)
-    inFile->fmode = "rb";
+    inFile->fmode = strdup("rb");
   if (inFile->reopen) {
     if ((*inFile->reopen)(inFile))
       return 2;
@@ -287,6 +299,8 @@ void iiDelete(ImodImageFile *inFile)
   iiClose(inFile);
   if (inFile->filename)
     free(inFile->filename);
+  if (inFile->fmode)
+    free(inFile->fmode);
   if (inFile->cleanUp)
     (*inFile->cleanUp)(inFile);
   if (inFile->description)
@@ -356,6 +370,9 @@ int iiLoadPCoord(ImodImageFile *inFile, struct LoadInfo *li, int nx, int ny,
 
 /*
 $Log$
+Revision 3.14  2008/04/02 02:57:45  mast
+Added ability to open a file from stdin
+
 Revision 3.13  2007/06/22 04:59:24  mast
 Fixed a comment
 
