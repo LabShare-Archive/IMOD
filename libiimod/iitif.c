@@ -281,13 +281,13 @@ void tiffSuppressWarnings(void)
 static TIFF *openWithoutBMode(ImodImageFile *inFile)
 {
   TIFF *tif;
-  int stripped = 0;
-  if (!inFile->fmode)
+  int len, stripped = 0;
+  char *tmpmode = inFile->fmode;
+  if (!tmpmode)
     return NULL;
-  int len = strlen(inFile->fmode);
+  len = strlen(tmpmode);
   if (!len)
     return NULL;
-  char *tmpmode = inFile->fmode;
 
   if (inFile->fmode[len - 1] == 'b') {
     stripped = 1;
@@ -565,6 +565,9 @@ int tiffReadSection(ImodImageFile *inFile, char *buf, int inSection)
 
 /*
   $Log$
+  Revision 3.13  2008/11/25 16:24:31  mast
+  Made stripping of b mode fancier, switched back to non-allocated fmode
+
   Revision 3.12  2008/11/24 23:59:25  mast
   Changes for using from SerialEM: field-getting
 
