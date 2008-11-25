@@ -282,14 +282,23 @@ static TIFF *openWithoutBMode(ImodImageFile *inFile)
 {
   TIFF *tif;
   int stripped = 0;
+  if (!inFile->fmode)
+    return NULL;
   int len = strlen(inFile->fmode);
+  if (!len)
+    return NULL;
+  char *tmpmode = inFile->fmode;
+
   if (inFile->fmode[len - 1] == 'b') {
     stripped = 1;
-    inFile->fmode[len - 1] = 0x00;
+    tmpmode = strdup(inFile->fmode);
+    if (!tmpmode)
+      return NULL;
+    tmpmode[len - 1] = 0x00;
   }
-  tif = TIFFOpen(inFile->filename, inFile->fmode);
+  tif = TIFFOpen(inFile->filename, tmpmode);
   if (stripped)
-    inFile->fmode[len - 1] = 'b';
+    free(tmpmode);
   return tif;
 }
 
@@ -556,6 +565,9 @@ int tiffReadSection(ImodImageFile *inFile, char *buf, int inSection)
 
 /*
   $Log$
+  Revision 3.12  2008/11/24 23:59:25  mast
+  Changes for using from SerialEM: field-getting
+
   Revision 3.11  2008/05/23 22:15:22  mast
   Added float support and fixed assignment of min and max when it exists
 
