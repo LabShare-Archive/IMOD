@@ -1002,7 +1002,10 @@ void inputQDefaultKeys(QKeyEvent *event, ImodView *vw)
     break;
   case Qt::Key_Home:
     if (!keypad) {
-      vw->zmouse = vw->zsize - 1;
+      if (shifted)
+        vw->zmouse = vw->zsize/2;
+      else
+        vw->zmouse = vw->zsize - 1;
       imodDraw(vw, IMOD_DRAW_XYZ | IMOD_DRAW_NOSYNC);
     } else
       handled = 0;
@@ -1414,6 +1417,9 @@ bool inputTestMetaKey(QKeyEvent *event)
 
 /*
 $Log$
+Revision 4.42  2008/07/13 16:44:52  mast
+Keep image windows from opening on initial load
+
 Revision 4.41  2008/07/13 15:03:38  mast
 Prevent saving of model during initial load
 
