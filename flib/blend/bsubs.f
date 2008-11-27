@@ -984,17 +984,20 @@ c
 c         
 c$$$        xrel = 0.
 c$$$        yrel = 0.
+c$$$        xdispl = 0.
 c$$$        do ix = 1,nxgr
 c$$$          do iy = 1,nygr
 c$$$            costh = sqrt(dxgrid(ix,iy)**2 + dygrid(ix,iy)**2)
 c$$$            xrel = xrel + costh
 c$$$            yrel = max(yrel, costh)
+c$$$            xdispl = xdispl + ddengrid(ix,iy)
 c$$$          enddo
 c$$$        enddo
-c$$$        write(*,'(1x,a,2i4,a,2f6.2)')
+c$$$        xdispl = xdispl /(nxgr * nygr)
+c$$$        write(*,'(1x,a,2i4,a,2f6.2,a,f8.1)')
 c$$$     &      char(ixy+ichar('W'))//' edge, pieces'
 c$$$     &      ,ipiecelower(jedge,ixy),ipieceupper(jedge,ixy),
-c$$$     &      '  mean, max vector:',xrel/(nxgr*nygr), yrel
+c$$$     &      '  mean, max vector:',xrel/(nxgr*nygr), yrel,' den diff:',xdispl
         
         if (needByteSwap .eq. 0) then
           write(iunedge(ixy),rec=jedge+1)nxgr,nygr,(igrstr(i),igrofs(i)
@@ -2384,6 +2387,9 @@ c
 
 c       
 c       $Log$
+c       Revision 3.26  2008/06/24 04:42:09  mast
+c       Implemented different treatment of fill from distortion corrections
+c
 c       Revision 3.25  2008/04/14 16:56:01  mast
 c       Fixed excluding of fill from edges with multiple edges
 c
