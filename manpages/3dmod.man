@@ -879,6 +879,7 @@ Left Arrow    -  Decrease X
 End           -  Go to Z = 1
 Home          -  Go to Z = max
 Insert        -  Go to middle Z of stack
+Shift-Home    -  Go to middle Z of stack
 1,2           -  Previous,Next Time Index
 !,@           -  Go to first or last time index, or to Start or
                    End value for Time shown in Edit-Movies dialog
