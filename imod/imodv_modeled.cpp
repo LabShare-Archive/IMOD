@@ -7,6 +7,9 @@
  *  Copyright (C) 1995-2004 by Boulder Laboratory for 3-Dimensional Electron
  *  Microscopy of Cells ("BL3DEMC") and the Regents of the University of 
  *  Colorado.  See dist/COPYRIGHT for full copyright notice.
+ *
+ *  $Id$
+ *  Log at end of file
  */
 
 #include <math.h>
@@ -16,6 +19,7 @@
 #include "imodv.h"
 #include "imod.h"
 #include "imodv_gfx.h"
+#include "imodv_menu.h"
 #include "imodv_input.h"
 #include "imodv_views.h"
 #include "imodv_modeled.h"
@@ -120,6 +124,7 @@ int imodvSelectModel(ImodvApp *a, int ncm)
   }
   imodvSetCaption();
   imodvUpdateModel(a, true);
+  imodvAddBoundingBox(a);
   imodvDraw(a);
 
   selecting = 0;
@@ -219,3 +224,9 @@ void imodvPixelChanged()
   if (med->dia)
     updateWorkArea();
 }
+
+/*  
+
+$Log$
+
+*/
