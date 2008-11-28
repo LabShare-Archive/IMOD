@@ -63,7 +63,7 @@ void scaleBarClosing()
     &imodDialogManager;  
   manager->remove((QWidget *)sbDia);
   sbDia = NULL;
-  return;
+  scaleBarRedraw();
 }
 
 /*
@@ -202,6 +202,9 @@ void scaleBarRedraw()
 /*
 
 $Log$
+Revision 1.5  2008/06/12 22:49:49  mast
+Disable depth test to make scalebar come out on top
+
 Revision 1.4  2008/05/27 01:52:11  mast
 Added color ramp options
 
