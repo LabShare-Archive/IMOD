@@ -359,6 +359,9 @@ void imodvFileMenu(int item)
 void imodvViewMenu(int item)
 {
   ImodvApp *a = Imodv;
+  Iobj *xobj;
+  Icont *cont;
+  bool freeXobj;
   switch (item) {
   case VVIEW_MENU_DB:
     imodv_setbuffer(a);
@@ -411,6 +414,78 @@ void imodvViewMenu(int item)
   case VVIEW_MENU_SCALEBAR:
     scaleBarOpen();
     break;
+
+  case VVIEW_MENU_BOUNDBOX:
+    freeXobj = true;
+    if (a->boundBoxExtraObj <= 0) {
+      a->boundBoxExtraObj = ivwGetFreeExtraObjectNumber(a->vi);
+      if (a->boundBoxExtraObj <= 0)
+        return;
+      xobj = ivwGetAnExtraObject(a->vi, a->boundBoxExtraObj);
+      if (xobj) {
+        imodObjectDefault(xobj);
+        strcpy(xobj->name, "Volume bounding box extra object");
+        xobj->cont = imodContoursNew(6);
+        if (xobj->cont) {
+          xobj->contsize = 6;
+          xobj->flags |= IMOD_OBJFLAG_OPEN | IMOD_OBJFLAG_WILD | 
+            IMOD_OBJFLAG_EXTRA_MODV | IMOD_OBJFLAG_EXTRA_EDIT | 
+            IMOD_OBJFLAG_ANTI_ALIAS | IMOD_OBJFLAG_MODV_ONLY;
+          xobj->red = 1.;
+          xobj->green = 1.;
+          xobj->blue = 0.;
+          xobj->linewidth = 2;
+          if (!imodvAddBoundingBox(a))
+            freeXobj = false;
+        }
+      }
+    }
+    if (freeXobj) {
+      ivwFreeExtraObject(a->vi, a->boundBoxExtraObj);
+      a->boundBoxExtraObj = 0;
+    }
+    a->mainWin->setCheckableItem(VVIEW_MENU_BOUNDBOX, !freeXobj);
+    imodvObjedNewView();
+    imodvDraw(a);
+    break;
+
+  case VVIEW_MENU_CURPNT:
+    freeXobj = true;
+    if (a->curPointExtraObj <= 0) {
+      a->curPointExtraObj = ivwGetFreeExtraObjectNumber(a->vi);
+      if (a->curPointExtraObj <= 0)
+        return;
+      xobj = ivwGetAnExtraObject(a->vi, a->curPointExtraObj);
+      if (xobj) {
+        imodObjectDefault(xobj);
+        strcpy(xobj->name, "Current point extra object");
+        xobj->flags |= IMOD_OBJFLAG_SCAT | IMOD_OBJFLAG_MESH |
+          IMOD_OBJFLAG_LINE | IMOD_OBJFLAG_FILL | IMOD_OBJFLAG_EXTRA_MODV |
+          IMOD_OBJFLAG_EXTRA_EDIT | IMOD_OBJFLAG_MODV_ONLY;
+        xobj->pdrawsize = 7.;
+        xobj->red = 1.;
+        xobj->green = 0.;
+        xobj->blue = 0.;
+        xobj->quality = 4;
+        cont = imodContourNew();
+        if (cont) {
+          imodPointAppendXYZ(cont, 0., 0., 0.);
+          imodPointSetSize(cont, 0, 5.);
+          if (cont->psize && cont->sizes && imodObjectAddContour(xobj, cont)
+              >= 0)
+            freeXobj = false;
+          free(cont);
+        }
+      }
+    }
+    if (freeXobj) {
+      ivwFreeExtraObject(a->vi, a->curPointExtraObj);
+      a->curPointExtraObj = 0;
+    }
+    a->mainWin->setCheckableItem(VVIEW_MENU_CURPNT, !freeXobj);
+    imodvObjedNewView();
+    imodvDraw(a);
+    break;
   }
 }
 
@@ -433,6 +508,39 @@ void imodvMenuWireframe(int value)
 void imodvMenuLowres(int value)
 {
   Imodv->mainWin->setCheckableItem(VVIEW_MENU_LOWRES, value);
+}
+
+// Add the contours of the bounding box for the current model
+int imodvAddBoundingBox(ImodvApp *a)
+{
+  float xx, yy, zz;
+  int i, j, ind;
+  if (a->boundBoxExtraObj <= 0)
+    return 1;
+  Iobj *xobj = ivwGetAnExtraObject(a->vi, a->boundBoxExtraObj);
+  if (!xobj)
+    return 1;
+  for (i =0; i < 6; i++)
+    imodContourClearPoints(&xobj->cont[i]);
+  for (i = 0; i < 2; i++) {
+    zz = i * a->imod->zmax;
+    imodPointAppendXYZ(&xobj->cont[i], -1., -1., zz);
+    imodPointAppendXYZ(&xobj->cont[i], (float)a->imod->xmax, -1., zz);
+    imodPointAppendXYZ(&xobj->cont[i], (float)a->imod->xmax, 
+                       (float)a->imod->ymax, zz);
+    imodPointAppendXYZ(&xobj->cont[i], -1., (float)a->imod->ymax, zz);
+    imodPointAppendXYZ(&xobj->cont[i], -1., -1., zz);
+  }
+  for (i = 0; i < 2; i++) {
+    for (j = 0; j < 2; j++) {
+      xx = i * a->imod->xmax;
+      yy = j * a->imod->ymax;
+      ind = 2 + i + 2 * j;
+      imodPointAppendXYZ(&xobj->cont[ind], xx, yy, -1.);
+      imodPointAppendXYZ(&xobj->cont[ind], xx, yy, (float)a->imod->zmax);
+    }
+  }
+  return 0;
 }
 
 // Initially open selected windows
@@ -539,6 +647,9 @@ void ImodvBkgColor::keyReleaseSlot ( QKeyEvent * e )
 /*
 
 $Log$
+Revision 4.27  2008/04/29 18:13:20  xiongq
+add isosurface dialog
+
 Revision 4.26  2008/01/25 20:22:58  mast
 Changes for new scale bar
 

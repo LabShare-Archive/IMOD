@@ -85,8 +85,23 @@ ImodvWindow::ImodvWindow(bool standAlone, int enableDepthDB,
   // View menu
   mViewMenu  = new QPopupMenu;
   mViewMenu->setCheckable(true);
-  mViewMenu->insertItem("&Double Buffer", VVIEW_MENU_DB);
-  mFileMenu->setAccel(Key_B, VVIEW_MENU_DB);
+  mViewMenu->insertItem("Low &Res", VVIEW_MENU_LOWRES);
+  mViewMenu->setAccel(SHIFT + Key_R, VVIEW_MENU_LOWRES);
+  mViewMenu->setItemChecked(VVIEW_MENU_LOWRES, lowRes);
+  if (!standAlone) {
+    mViewMenu->insertItem("&Current Point", VVIEW_MENU_CURPNT);
+    mViewMenu->setAccel(Key_P, VVIEW_MENU_CURPNT);
+    mViewMenu->setItemChecked(VVIEW_MENU_CURPNT, false);
+  }
+  mViewMenu->insertItem("Bounding Bo&x", VVIEW_MENU_BOUNDBOX);
+  mViewMenu->setItemChecked(VVIEW_MENU_BOUNDBOX, false);
+
+  mViewMenu->insertItem("&Stereo...", VVIEW_MENU_STEREO);
+  mViewMenu->insertItem("&Depth Cue...", VVIEW_MENU_DEPTH);
+  mViewMenu->insertItem("Scale &Bar...", VVIEW_MENU_SCALEBAR);
+
+  mViewMenu->insertItem("Do&uble Buffer", VVIEW_MENU_DB);
+  mViewMenu->setAccel(Key_D, VVIEW_MENU_DB);
   mViewMenu->setItemChecked(VVIEW_MENU_DB, enableDepthDB >= 0);
   mViewMenu->setItemEnabled(VVIEW_MENU_DB, 
                             enableDepthDB >= 0 && enableDepthSB >= 0);
@@ -96,16 +111,8 @@ ImodvWindow::ImodvWindow(bool standAlone, int enableDepthDB,
 
   mViewMenu->insertItem("&Wireframe", VVIEW_MENU_WIREFRAME);
   mViewMenu->setItemChecked(VVIEW_MENU_WIREFRAME, false);
-
-  mViewMenu->insertItem("Low &Res", VVIEW_MENU_LOWRES);
-  mFileMenu->setAccel(Key_R, VVIEW_MENU_LOWRES);
-  mViewMenu->setItemChecked(VVIEW_MENU_LOWRES, lowRes);
-
-  mViewMenu->insertItem("&Stereo...", VVIEW_MENU_STEREO);
-  mViewMenu->insertItem("&Depth Cue...", VVIEW_MENU_DEPTH);
-  if (standAlone)
-    mViewMenu->insertItem("Scale &Bar...", VVIEW_MENU_SCALEBAR);
   connect(mViewMenu, SIGNAL(activated(int)), this, SLOT(viewMenuSlot(int)));
+
 
 
   // Help menu
@@ -311,6 +318,9 @@ void ImodvGL::wheelEvent ( QWheelEvent * e)
 /*
 
 $Log$
+Revision 4.18  2008/10/02 22:43:03  mast
+Add stereo arguments to constructor for requesting stereo visual
+
 Revision 4.17  2008/05/27 05:47:45  mast
 Capitalize Isosurface
 
