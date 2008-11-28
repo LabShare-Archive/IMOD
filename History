@@ -1,5 +1,17 @@
 IMOD History
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+11/27/08: Fixed slicer angle table display of coordinates to start from 1.
+
+11/27/08: Made scale bars go away when dialog is closed.  Made scale bar menu
+item be permanently present in model view View menu.
+
+11/27/08: Added sphere at the current point and a bounding box display to
+model view, with menu entries in the View menu, ability to edit their
+properties, and a hot key to toggle the current point.
+
+11/27/08: Made Delete do same as Insert in Midas and Shift-Home do same as
+Insert in 3dmod because new Mac keyboards have neither Delete nor Help there.
+
 11/21/08: IMOD_3-12-23
 11/21/08: Fixed Etomo - NAD.  Opening the volume in 3dmod was failing because
 of a corrupt path name.
