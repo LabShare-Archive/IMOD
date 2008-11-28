@@ -58,12 +58,16 @@ void memreccpy
 
 bool ivwTimeMismatch(ImodView *vi, int timelock, Iobj *obj, Icont *cont);
 int ivwRegisterInsertPoint(ImodView *vi, Icont *cont, Ipoint *pt, int index);
+void startExtraObjectIfNone(ImodView *vi);
 
 #endif
 
 /*
 
 $Log$
+Revision 1.10  2007/11/27 17:56:38  mast
+Rearranged log
+
 Revision 1.9  2007/05/29 14:43:48  mast
 Added optional time argument to fast setup routine
 
