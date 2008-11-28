@@ -852,7 +852,7 @@ void inputPointMove(ImodView *vw, int x, int y, int z)
     }
   }
   vw->undo->finishUnit();
-  imodDraw(vw, IMOD_DRAW_IMAGE | IMOD_DRAW_XYZ);
+  imodDraw(vw, IMOD_DRAW_RETHINK | IMOD_DRAW_IMAGE | IMOD_DRAW_XYZ);
   return;
 }
 
@@ -1417,6 +1417,9 @@ bool inputTestMetaKey(QKeyEvent *event)
 
 /*
 $Log$
+Revision 4.43  2008/11/27 22:32:36  mast
+Added Shift-Home to supplement Insert
+
 Revision 4.42  2008/07/13 16:44:52  mast
 Keep image windows from opening on initial load
 
