@@ -43,7 +43,6 @@ static int ivwManageInitialFlips(ImodView *vi);
 static int ivwCheckLinePtrAllocation(ImodView *vi, int ysize);
 static int ivwCheckBinning(ImodView *vi, int nx, int ny, int nz);
 static void deletePlistBuf(void);
-static void startExtraObjectIfNone(ImodView *vi);
 
 /* default settings for the view info structure. */
 void ivwInit(ImodView *vi)
@@ -2356,7 +2355,7 @@ Imod *ivwGetModel(ImodView *inImodView)
   return(inImodView->imod);
 }
 
-static void startExtraObjectIfNone(ImodView *vi)
+void startExtraObjectIfNone(ImodView *vi)
 {
   if (!vi->extraObj) {
     vi->extraObj = imodObjectNew();
@@ -2765,6 +2764,9 @@ void ivwBinByN(unsigned char *array, int nxin, int nyin, int nbin,
 /*
 
 $Log$
+Revision 4.73  2008/08/22 23:59:17  mast
+Mark default extra object as in use so it will be returned
+
 Revision 4.72  2008/08/01 15:37:20  mast
 Added function to set top zap zoom
 
