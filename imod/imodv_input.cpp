@@ -400,6 +400,11 @@ void imodvKeyPress(QKeyEvent *event)
       imodvObjedMoveToAxis(11);
     break;
 
+  case Qt::Key_P:
+    if (!a->standalone)
+      imodvViewMenu(VVIEW_MENU_CURPNT);
+    break;
+
   case Qt::Key_T:
     imodvObjedMoveToAxis(0);
     break;
@@ -1276,6 +1281,9 @@ void imodvMovieTimeout()
 /*
 
 $Log$
+Revision 4.42  2008/08/19 20:01:20  mast
+Made it treat keypad + like =
+
 Revision 4.41  2008/06/10 05:54:57  mast
 Changes for setting flag to draw light vector
 
