@@ -141,6 +141,10 @@ Toggle single/double buffering.
 .B R
 Toggle low resolution drawing of mesh and spheres.
 .TP
+.B p
+Toggle drawing of a sphere at the current point position (only available when
+program is run as 3dmod).
+.TP
 .B g G
 Increase or decrease the quality (and time) of sphere drawing.
 .TP

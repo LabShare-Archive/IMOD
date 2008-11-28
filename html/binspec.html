@@ -112,6 +112,10 @@ Length Type  Name       Description
                         Bit 18 on : Time - contours have time indexes
                         Bit 19 on : Light both sides of surface
                         Bit 20 on : Draw current contour thicker in model view
+                        Bit 21 on : Draw extra object in model view
+                        Bit 22 on : Allow extra object editing in model view
+                        Bit 23 on : Do not draw spheres in model view
+                        Bit 24 on : Draw extra object only in model view
                         Bit 31 reserved for temporary use
   
                         In 3dmodv, Draw Data Type - Contour = Mesh flag off,
@@ -158,8 +162,12 @@ Length    Type         Name      Description.
 4         int          psize   Number of points in contour.
 4         uint         flags   Bit 3 on : open, do not connect endpoints
                                Bit 4 on : wild, not in one Z plane
+                               Bit 5 on : draw stippled lines
+                               Bit 6 on : draw if  mouse in window, ignore Z
+                               Bit 7 on : draw on all planes, regardless of Z
+                               Bit 8 on : draw only in model mode
                                Bit 17 on : contour has pairs of scan lines
-                               Bits 18, 19, 31 : reserved for temporary use 
+                               Bits 18, 19, 20, 31: reserved for temporary use 
 4         int          time    The time index used by this contour.
 4         int          surf    The surface index used by this contour.
 12*psize  float * 3    pt      Array of point triplets.
