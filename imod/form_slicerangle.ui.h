@@ -372,11 +372,11 @@ void SlicerAngleForm::cellChanged( int row, int col )
   else if (col < 3)
     slanp->angles[col] = B3DMIN(180., B3DMAX(-180., val));
   else if (col == 3)
-    slanp->center.x = str.toFloat();
+    slanp->center.x = str.toFloat() - 1.f;
   else if (col == 4)
-    slanp->center.y = str.toFloat();
+    slanp->center.y = str.toFloat() - 1.f;
   else if (col == 5)
-    slanp->center.z = str.toFloat();
+    slanp->center.z = str.toFloat() - 1.f;
   else {
     str.truncate(ANGLE_STRSIZE - 1);
     strcpy(slanp->label, str.latin1());
@@ -447,11 +447,11 @@ void SlicerAngleForm::loadRow( SlicerAngles *slanp, int row )
   table->setText(row, 1, str);
   str.sprintf("%.2f", slanp->angles[2]);
   table->setText(row, 2, str);
-  str.sprintf("%.2f", slanp->center.x);
+  str.sprintf("%.2f", slanp->center.x + 1.f);
   table->setText(row, 3, str);
-  str.sprintf("%.2f", slanp->center.y);
+  str.sprintf("%.2f", slanp->center.y + 1.f);
   table->setText(row, 4, str);
-  str.sprintf("%.2f", slanp->center.z);
+  str.sprintf("%.2f", slanp->center.z + 1.f);
   table->setText(row, 5, str);
   table->setText(row, 6, QString(slanp->label));
 }
