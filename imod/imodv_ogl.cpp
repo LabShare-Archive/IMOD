@@ -109,6 +109,7 @@ static void imodvSetViewbyModel(ImodvApp *a, Imod *imod)
   float scale = 1.0f;
   double kickFac = 3.;    /* Default amount to kick extreme planes out */
   double extraKick = 10.; /* Extra amount when kick checked */
+  Iobj *xobj;
 
   if (!a->imod) return;
 
@@ -137,6 +138,20 @@ static void imodvSetViewbyModel(ImodvApp *a, Imod *imod)
   if ((!Imodv->winx) || (!Imodv->winy)) return;
   xs = (double)a->winx;
   ys = (double)a->winy;
+
+  // Set up current point now
+  if (a->curPointExtraObj > 0) {
+    xobj = ivwGetAnExtraObject(a->vi, a->curPointExtraObj);
+    if (xobj) {
+      xobj->cont[0].pts[0].x = a->vi->xmouse;
+      xobj->cont[0].pts[0].y = a->vi->ymouse;
+      xobj->cont[0].pts[0].z = a->vi->zmouse;
+      scale = 0.5 * B3DMIN(xs, ys) / rad;
+      imodPointSetSize(&xobj->cont[0], 0, xobj->pdrawsize / scale);
+    }
+  } 
+
+  // Resume setting up scale
   if (xs < ys){
     scale = ys/xs;
     xs = rad;
@@ -489,7 +504,7 @@ void imodvDraw_model(ImodvApp *a, Imod *imod)
   CTime = imod->ctime;
   glPushName(ob);
 
-  nloop = (!a->standalone && a->vi->numExtraObj > 0) ? 2 : 1;
+  nloop = a->vi->numExtraObj > 0 ? 2 : 1;
 
   /* DNM: draw objects without transparency first; then make the depth
      buffer read-only and draw objects with transparency. Anti-aliased
@@ -2527,6 +2542,9 @@ static void drawCurrentClipPlane(ImodvApp *a)
 /*
 
 $Log$
+Revision 4.43  2008/10/02 22:46:41  mast
+Change scaling for HW stereo only for SGI
+
 Revision 4.42  2008/09/19 20:18:52  mast
 Define GLU_CALLBACK to Linux/OSX 10.5 version if not defined in config file
 
