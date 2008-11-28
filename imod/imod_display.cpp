@@ -330,7 +330,8 @@ int imodDraw(ImodView *vw, int flag)
 
   ivwControlListDraw(vw, flag);
 
-  if (((flag & IMOD_DRAW_MOD) || ((flag & IMOD_DRAW_XYZ) && Imodv->texMap) ||
+  if (((flag & IMOD_DRAW_MOD) || 
+       ((flag & IMOD_DRAW_XYZ) && (Imodv->texMap || Imodv->curPointExtraObj))||
        needModv) && ! (flag & IMOD_DRAW_SKIPMODV))
     imodv_draw();
 
@@ -552,6 +553,9 @@ int imodFindQGLFormat(ImodApp *ap, char **argv)
 /*
 
 $Log$
+Revision 4.24  2008/05/23 19:23:32  xiongq
+Use multithreads to compute isosurface. Move the calling of imodvIsosurfaceUpdate() from imod_info_cb.cpp to imod_display.cpp.
+
 Revision 4.23  2008/05/22 20:59:35  mast
 Updated documentation of flags, referred to imod.h
 
