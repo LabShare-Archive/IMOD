@@ -3940,8 +3940,8 @@ static void zapDrawModel(ZapStruct *zap)
   }
 }
 
-// A separate routine to draw the extra object so that model - current point -
-// extra object drawing could happen in the right order
+// A separate routine to draw the extra object(s) so that model - current 
+// point - extra object drawing could happen in the right order
 static void zapDrawExtraObject(ZapStruct *zap)
 {
   ImodView *vi = zap->vi;
@@ -3954,7 +3954,7 @@ static void zapDrawExtraObject(ZapStruct *zap)
     xobj = ivwGetAnExtraObject(vi, ob);
     if (!xobj || !xobj->contsize)
       continue;
-    if (iobjOff(xobj->flags))
+    if (iobjOff(xobj->flags) || (xobj->flags & IMOD_OBJFLAG_MODV_ONLY))
       continue;
 
     ifgResetValueSetup();
@@ -4529,6 +4529,9 @@ static int zapPointVisable(ZapStruct *zap, Ipoint *pnt)
 /*
 
 $Log$
+Revision 4.130  2008/11/14 20:05:52  mast
+Stopped drawing cross in center of sphere if on section only
+
 Revision 4.129  2008/11/07 19:27:53  mast
 Fixed setting of subarea at end of dragging rubberband
 
