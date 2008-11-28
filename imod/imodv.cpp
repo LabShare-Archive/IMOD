@@ -27,6 +27,7 @@
 #include "imodv_views.h"
 #include "imodv_menu.h"
 #include "imod.h"
+#include "imodview.h"
 #include "imod_info_cb.h"
 #include "imod_object_edit.h"
 #include "imod_display.h"
@@ -164,6 +165,8 @@ static int imodv_init(ImodvApp *a, struct Mod_Draw *md)
   a->drawLight = 0;
   a->linkToSlicer = 0;
   a->linkSlicerCenter = 1;
+  a->boundBoxExtraObj = 0;
+  a->curPointExtraObj = 0;
 
   // DNM 6/6/04: Get rid of stereo command initialization
 
@@ -469,6 +472,12 @@ int imodv_main(int argc, char **argv)
 
   a->db        = 1;
 
+  // Make a vi structure and initialize extra objects
+  a->vi = (ImodView *)malloc(sizeof(ImodView));
+  a->vi->extraObj = NULL;
+  a->vi->extraObjInUse = NULL;
+  startExtraObjectIfNone(a->vi);
+
   // Make a color from the named color; fallback to black
   QString qstr = a->rbgname;
   a->rbgcolor->setNamedColor(a->rbgname);
@@ -690,6 +699,11 @@ void imodvQuit()
   onceOpened = 1;
   lastGeom = ivwRestorableGeometry(a->mainWin);
 
+  if (a->boundBoxExtraObj > 0)
+    ivwFreeExtraObject(a->vi, a->boundBoxExtraObj);
+  if (a->curPointExtraObj > 0)
+    ivwFreeExtraObject(a->vi, a->curPointExtraObj);
+
   if (a->standalone && ClipHandler)
     ClipHandler->startDisconnect();
   stereoHWOff();
@@ -713,6 +727,9 @@ void imodvQuit()
 
 /*
 $Log$
+Revision 4.40  2008/11/14 19:28:00  mast
+Only warn on no depth buffer if actually using visual with none.
+
 Revision 4.39  2008/10/02 22:43:51  mast
 Call window constructor with stereo capabilities
 
