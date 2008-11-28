@@ -12,6 +12,9 @@ $Date$
 $Revision$
 
 $Log$
+Revision 4.2  2004/11/21 06:05:43  mast
+Added routine for opening selected windows
+
 Revision 4.1  2003/02/10 20:41:55  mast
 Merge Qt source
 
@@ -28,6 +31,7 @@ initial creation
 #include <qobject.h>
 
 class ColorSelector;
+typedef struct __imodv_struct ImodvApp;
 
 class ImodvBkgColor : public QObject
 {
@@ -62,6 +66,7 @@ void imodvViewMenu(int item);
 void imodvMenuBgcolor(int state);
 int imodvLoadModel();
 void imodvSaveModelAs();
+int imodvAddBoundingBox(ImodvApp *a);
 void imodvOpenSelectedWindows(char *keys);
 
 #endif
