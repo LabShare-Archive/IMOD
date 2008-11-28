@@ -95,6 +95,8 @@ typedef struct __imodv_struct
   int linkToSlicer;     /* Flag to link to top slicer */
   int linkSlicerCenter; /* Flag to link center of rotation too */
   float scaleBarSize;   /* Size of scale bar that was last drawn */
+  int boundBoxExtraObj; /* Number of extra object for bounding box */
+  int curPointExtraObj; /* Number of extra object for current point */
 
   /* start-up flags */
   int  moveall;    /* move all models if true.                 */
@@ -142,6 +144,9 @@ void imodvNewModelAngles(Ipoint *rot);
 
 /*
 $Log$
+Revision 3.23  2008/10/02 22:43:28  mast
+Add flag for clearing after leaving stereo
+
 Revision 3.22  2008/06/10 05:49:19  mast
 Add flag for drawing the light vector
 
