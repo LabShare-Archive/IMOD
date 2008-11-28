@@ -44,6 +44,7 @@
 #define IMOD_OBJFLAG_EXTRA_MODV (1l << 21) /* Draw extra object in model view*/
 #define IMOD_OBJFLAG_EXTRA_EDIT (1l << 22) /* Allow editing of extra object  */
 #define IMOD_OBJFLAG_PNT_NOMODV (1l << 23) /* Draw no spheres in model view  */
+#define IMOD_OBJFLAG_MODV_ONLY  (1l << 24) /* Draw extra only in model view */
 #define IMOD_OBJFLAG_TEMPUSE    (1l << 31) /* For temporary use              */
 
 /* macros for testing above flags. */
@@ -158,6 +159,9 @@ extern "C" {
 /*
 
 $Log$
+Revision 3.18  2008/07/16 04:31:41  mast
+Added new define for extra array index
+
 Revision 3.17  2008/06/17 20:09:51  mast
 Yet another flag defined
 
