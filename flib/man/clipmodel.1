@@ -24,7 +24,9 @@ DDEESSCCRRIIPPTTIIOONN
   limitation on either the X, the Y, or both coordinates.  A point on
   the edge of the block (i.e. with one coordinate exactly equal to one
   of the lower or upper limits) is treated as if it is inside the
-  block.
+  block.  The Z limits are extended by 0.005 to help this work as 
+  expected even if Z values differ slightly from integers; for example,
+  limits of 117,117 will retain the point at Z = 117.
   
   The coordinates that you enter should correspond to the index 
   coordinates in the image display from which the model was last saved.
