@@ -31,6 +31,7 @@ class QHBox;
 class QVButtonGroup;
 class QProcess;
 class MultiSlider;
+class ToolEdit;
 
 // A structure to hold all of the residual data that is read in, plus what
 // local area it is in and whether it has been looked at in this run-through
@@ -69,7 +70,7 @@ class BeadFixer : public DialogFrame
   ~BeadFixer() {};
   int openFileByName(const char *filename);
   int reread();
-  int insertPoint(float imx, float imy);
+  int insertPoint(float imx, float imy, bool keypad);
   int modifyPoint(float imx, float imy);
   int findCenter(float &imx, float &imy, int curz);
   int executeMessage(QStringList *strings, int *arg);
@@ -77,6 +78,7 @@ class BeadFixer : public DialogFrame
   void modelUpdate();
   QCheckBox *overlayBox;
   int    mLastob;
+  ToolEdit *skipEdit;
 
   public slots:
   void buttonPressed(int which);
@@ -110,6 +112,8 @@ class BeadFixer : public DialogFrame
   void delAllSecToggled(bool state);
   void delAllObjToggled(bool state);
   void turnOffToggled(bool state);
+  void ignoreToggled(bool state);
+  void skipListEntered();
   void runAlign();
   void alignExited();
   void setFontDependentWidths();
@@ -126,6 +130,8 @@ class BeadFixer : public DialogFrame
   void setCurArea(int area);
   void makeUpDownArrow(int before);
   void showWidget(QWidget *widget, bool state);
+  void newSkipList(QString list);
+  bool inSkipList(int zval);
 
   int    mIfdidgap;
   int    mLastco, mLastpt, mLastbefore;
@@ -182,6 +188,10 @@ class BeadFixer : public DialogFrame
   QCheckBox *delAllSecBut;
   QCheckBox *delAllObjBut;
   QCheckBox *turnOffBut;
+  QCheckBox *ignoreSkipBut;
+  int mNumSkip;
+  int *mSkipSecs;
+  int mExtraObj;
   bool mStayOnTop;
   bool mRunningAlign;
   int mTopTimerID;
@@ -192,7 +202,11 @@ class BeadFixer : public DialogFrame
 
 #endif
 /*
+
 $Log$
+Revision 1.23  2008/11/12 00:38:31  mast
+Added variable to keep track of threshold slider value sent out
+
 Revision 1.22  2008/07/17 05:01:59  mast
 delete in all objects added
 
