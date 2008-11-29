@@ -41,11 +41,13 @@
 // 1) change from imodplugin.h (or whatever that ends up as) 
 // to imod.h and control.h
 //#include "imodplugin.h"
+#include "parse_params.h"
 #include "imod.h"
 #include "imod_client_message.h"
 #include "control.h"
 #include "dia_qtutils.h"
 #include "beadfix.h"
+#include "tooledit.h"
 #include "multislider.h"
 #include "pegged.xpm"
 #include "unpegged.xpm"
@@ -81,7 +83,7 @@ BeadFixerModule::BeadFixerModule()
 #define MAXLINE 100
 #define MAX_DIAMETER 50
 #define MAX_OVERLAY 20
-#define NUM_SAVED_VALS 12
+#define NUM_SAVED_VALS 13
 
 /*
  *  Define a structure to contain all local plugin data.
@@ -101,12 +103,14 @@ typedef struct
   int    autoNewCont;
   int    delOnAllSec;
   int    delInAllObj;
+  int    ignoreSkips;
+  char   *skipList;
   char   *filename;
 }PlugData;
 
 
 static PlugData thisPlug = { NULL, NULL, 0, 0, 0, 0, 10, 0, 4, 0, 0, 0, 0, 0,
-                             NULL };
+                             1, NULL, NULL };
 static PlugData *plug = &thisPlug;
 
 #define ERROR_NO_IMOD_DIR -64352
@@ -133,6 +137,7 @@ int imodPlugKeys(ImodView *vw, QKeyEvent *event)
   int    keyhandled = 0;
   int    ctrl;
   int    shift;
+  Ipoint mpt;
 
   /*
    * Don't grab keys if plug window isn't open.
@@ -198,6 +203,10 @@ int imodPlugKeys(ImodView *vw, QKeyEvent *event)
     diaSetChecked(plug->window->overlayBox, plug->overlayOn != 0);
     plug->window->overlayToggled(plug->overlayOn != 0);
     break;
+  case Qt::Key_Insert:
+    if (ivwGetMovieModelMode(vw) && !ivwGetTopZapMouse(plug->view, &mpt))
+      keyhandled = plug->window->insertPoint(mpt.x, mpt.y, true);
+    break;
   default:
     break;
   }
@@ -216,7 +225,7 @@ static int imodPlugMouse(ImodView *vw, QMouseEvent *event, float imx,
   // insert point (potentially) for middle button,
   // Modify point for shift right if autocenter on
   if (event->type() == QEvent::MouseButtonPress && but2 != 0)
-    handled = plug->window->insertPoint(imx, imy);
+    handled = plug->window->insertPoint(imx, imy, false);
   else if (event->type() == QEvent::MouseButtonPress && but3 != 0 &&
            (event->state() & Qt::ShiftButton) && plug->autoCenter && 
            plug->showMode != RES_MODE)
@@ -265,6 +274,7 @@ void imodPlugExecute(ImodView *inImodView)
     loadSaved(plug->autoNewCont, 9);
     loadSaved(plug->delOnAllSec, 10);
     loadSaved(plug->delInAllObj, 11);
+    loadSaved(plug->ignoreSkips, 12);
   }
 
   /*
@@ -352,6 +362,10 @@ int BeadFixer::executeMessage(QStringList *strings, int *arg)
     diaSetGroup(modeGroup, mode);
     modeSelected(mode);
     return 0;
+  case MESSAGE_BEADFIX_SKIPLIST:
+    plug->window->newSkipList((*strings)[++(*arg)]);
+    plug->window->skipEdit->setText((*strings)[*arg]);
+    return 0;
   }
   return 1;
 }
@@ -401,16 +415,22 @@ int BeadFixer::reread()
   int numToSee = 0;
   int binning = plug->view->xybin;
   FILE   *fp;
-  Iobj *xobj = ivwGetExtraObject(plug->view);
   ResidPt *rpt;
-
-  // Initialize extra object
-  ivwClearExtraObject(plug->view);
-  imodObjectSetColor(xobj, 1., 0., 0.);
-  imodObjectSetValue(xobj, IobjFlagClosed, 0);
+  QString globalResLine, localResLine;
+  QStringList strList;
 
   if (plug->filename == NULL) 
     return -1;
+
+  // Initialize the extra object
+  if (mExtraObj > 0) {
+    Iobj *xobj = ivwGetAnExtraObject(plug->view, mExtraObj);
+    if (xobj) {
+      ivwClearAnExtraObject(plug->view, mExtraObj);
+      imodObjectSetColor(xobj, 1., 0., 0.);
+      imodObjectSetValue(xobj, IobjFlagClosed, 0);
+    }
+  }
 
   fp = fopen(plug->filename, "r");
   if(fp == NULL) {
@@ -427,6 +447,22 @@ int BeadFixer::reread()
 
   // Outer loop searching for lines at top of residuals
   while (fgets(line, MAXLINE, fp) != NULL) {
+    if (PipStartsWith(line, " Residual err") || 
+        PipStartsWith(line, "Residual err")) {
+      if (strstr(line, "Residual error mean and sd:") &&
+          globalResLine.isEmpty()) {
+        strList = QStringList::split(" ", QString(line));
+        if (strList.size() > 5)
+          globalResLine = "Global mean residual: " + strList[5];
+      }
+      if (strstr(line, "Residual error local mean:")) {
+        strList = QStringList::split(" ", QString(line));
+        if (strList.size() > 8)
+          localResLine = "Local mean residual: " + strList[4] + " (" + 
+            strList[6] + " - " + strList[8].stripWhiteSpace() + ")";
+      }
+    }
+        
     newstyle = strstr(line,"   #     #     #      X         Y        X")
       != NULL;
     if (!newstyle)
@@ -550,6 +586,10 @@ int BeadFixer::reread()
   setCurArea(0);
   nextResBut->setEnabled(mNumResid);
   backUpBut->setEnabled(false);    
+  if (!globalResLine.isEmpty())
+    wprint("\n%s\n", globalResLine.latin1());
+  if (!localResLine.isEmpty())
+    wprint("%s\n", localResLine.latin1());
   if (!gotHeader)
     wprint("\aResidual data not found\n");
   else if (!mLookonce)
@@ -577,7 +617,7 @@ void BeadFixer::nextRes()
   int obsav, cosav, ptsav, i;
   int found = 0;
   float  xr, yr, resval, dx, dy;
-  Iobj *ob;
+  Iobj *ob = NULL;
   Icont *con;
   Ipoint *pts;
   Ipoint tpt;
@@ -746,25 +786,28 @@ void BeadFixer::nextRes()
       // Make an arrow in the extra object
       con = imodContourNew();
       if (con) {
-        ivwClearExtraObject(plug->view);
-        ob = ivwGetExtraObject(plug->view);
-        tpt.x = rpt->xcen;
-        tpt.y = rpt->ycen;
-        tpt.z = pts[ipt].z;
-        imodPointAppend(con, &tpt);
-        tpt.x += xr;
-        tpt.y += yr;
-        imodPointAppend(con, &tpt);
-        tpt.x -= 0.707 * (xr - yr) * headLen / resval;
-        tpt.y -= 0.707 * (xr + yr) * headLen / resval;
-        imodPointAppend(con, &tpt);
-        tpt.x = rpt->xcen + xr;
-        tpt.y = rpt->ycen + yr;
-        imodPointAppend(con, &tpt);
-        tpt.x -= 0.707 * (xr + yr) * headLen / resval;
-        tpt.y -= 0.707 * (-xr + yr) * headLen / resval;
-        imodPointAppend(con, &tpt);
-        imodObjectAddContour(ob, con);
+        if (mExtraObj)
+          ob = ivwGetAnExtraObject(plug->view, mExtraObj);
+        if (ob) {
+          ivwClearAnExtraObject(plug->view, mExtraObj);
+          tpt.x = rpt->xcen;
+          tpt.y = rpt->ycen;
+          tpt.z = pts[ipt].z;
+          imodPointAppend(con, &tpt);
+          tpt.x += xr;
+          tpt.y += yr;
+          imodPointAppend(con, &tpt);
+          tpt.x -= 0.707 * (xr - yr) * headLen / resval;
+          tpt.y -= 0.707 * (xr + yr) * headLen / resval;
+          imodPointAppend(con, &tpt);
+          tpt.x = rpt->xcen + xr;
+          tpt.y = rpt->ycen + yr;
+          imodPointAppend(con, &tpt);
+          tpt.x -= 0.707 * (xr + yr) * headLen / resval;
+          tpt.y -= 0.707 * (-xr + yr) * headLen / resval;
+          imodPointAppend(con, &tpt);
+          imodObjectAddContour(ob, con);
+        }
         free(con);
       }
       if (!mMovingAll)
@@ -1005,13 +1048,18 @@ void BeadFixer::makeUpDownArrow(int before)
 {
   int size = 12;
   int idir = before ? -1 : 1;
-  Iobj *xobj = ivwGetExtraObject(plug->view);
+  Iobj *xobj = NULL;
+
   Imod *imod = ivwGetModel(plug->view);
   Ipoint pt;
   Ipoint *curpt;
   Icont * con;
 
-  ivwClearExtraObject(plug->view);
+  if (mExtraObj > 0)
+    xobj = ivwGetAnExtraObject(plug->view, mExtraObj);
+  if (!xobj)
+    return;
+  ivwClearAnExtraObject(plug->view, mExtraObj);
 
   // Initialize extra object
   imodObjectSetColor(xobj, 1., 1., 0.);
@@ -1047,7 +1095,7 @@ void BeadFixer::findGap(int idir)
 {
   int  obj, nobj, cont, ncont, ipt, npnt;
   int obsav, cosav, ptsav, curob, curco, curpt, lookback;
-  int iptmin, iptmax, iztst, ipt2, foundnext;
+  int iptmin, iptmax, iztst, ipt2, foundnext, zlimLo, zlimHi;
   float zcur, zmin, zmax;
   Iobj *ob;
   Icont *con;
@@ -1061,6 +1109,12 @@ void BeadFixer::findGap(int idir)
   /* This is needed to make button press behave just like hotkey in syncing
      the image */
   ivwControlActive(plug->view, 0);
+
+  // Find lowest and highest Z values not in the skip list
+  for (ipt = 0; ipt < zsize && inSkipList(ipt); ipt++) {}
+  zlimLo = ipt;
+  for (ipt = zsize - 1; ipt >= 0 && inSkipList(ipt); ipt--) {}
+  zlimHi = ipt;
 
   con = imodContourGet(imod);
   imodGetIndex(imod, &obsav, &cosav, &ptsav);
@@ -1112,8 +1166,8 @@ void BeadFixer::findGap(int idir)
           }
         }
 
-        /* If looking back, check zmin, set it as gap before if not 0 */
-        if(lookback == 1 && zmin > 0.5) {
+        // If looking back, check zmin, set it as gap before if not at low lim
+        if(lookback == 1 && zmin > zlimLo + 0.5) {
           if(foundgap(obj,cont,iptmin, 1) == 0) {
             if (beforeVerbose)
               wprint("\aContour %d is missing points before current point.  "
@@ -1128,12 +1182,16 @@ void BeadFixer::findGap(int idir)
         }
 
         /* from current point forward, check for existence of a point at 
-           next z value; if none, it's a gap */
+           next non-skipped z value; if none, it's a gap */
         for (ipt = curpt; ipt < npnt && ipt >= 0; ipt += idir) {
           if (ipt != iptmax) {
             zcur = pts[ipt].z;
+
+            // Get next Z value; skip forward to limit
             iztst = (int)(zcur + 1.5);
-            foundnext = 0;
+            while (iztst < zlimHi && inSkipList(iztst))
+              iztst++;
+            foundnext = iztst < zlimHi ? 0 : 1;
             for (ipt2 = 0; ipt2 < npnt; ipt2++) {
               if (iztst == (int)(pts[ipt2].z + 0.5)) {
                 foundnext = 1;
@@ -1148,10 +1206,10 @@ void BeadFixer::findGap(int idir)
 
         /* If get to end of contour, check zmax against z of file */
         if (idir > 0) {
-          if (zmax + 1.1f < zsize)
+          if (zmax + 0.1f < zlimHi)
             if(foundgap(obj, cont, iptmax, 0) == 0) 
               return;
-        } else if (zmin > 0.5) {
+        } else if (zmin > zlimLo + 0.5) {
           if (foundgap(obj,cont,iptmin, 1) == 0) {
             wprint("\aContour %d is missing points before current point.\n",
                      cont+1);
@@ -1217,17 +1275,64 @@ void BeadFixer::reattach()
   ivwRedraw(plug->view);
 }
 
+/*
+ * Process a new skip list by parsing it and storing string copy in plug data
+ */
+void BeadFixer::newSkipList(QString list)
+{
+  if (plug->skipList) {
+    free(plug->skipList);
+    plug->skipList = NULL;
+  }
+  if (mSkipSecs) {
+    free(mSkipSecs);
+    mNumSkip = 0;
+  }
+  if (list.isEmpty())
+    return;
+  mSkipSecs = parselist((char *)list.latin1(), &mNumSkip);
+  if (mSkipSecs) {
+    plug->skipList = strdup(list.latin1());
+    for (int i = 0; i < mNumSkip; i++)
+      mSkipSecs[i]--;
+  }
+}
+
+// Find out if a Z value is in the skip list
+bool BeadFixer::inSkipList(int zval)
+{
+  if (!plug->ignoreSkips || !mNumSkip)
+    return false;
+  for (int i = 0; i < mNumSkip; i++)
+    if (zval == mSkipSecs[i])
+      return true;
+  return false;
+}
+
+// Slots for skip list stuff
+void BeadFixer::ignoreToggled(bool state)
+{
+  plug->ignoreSkips = state ? 1 : 0;
+  skipEdit->setEnabled(state);
+}
+
+void BeadFixer::skipListEntered()
+{
+  setFocus();
+  newSkipList(skipEdit->text());
+}
+
 /* 
  * Insert a point: if autocentering, find nearest bead.  If in seed mode,
  * make a new contour unless this is an apparent continuation point
  */
-int BeadFixer::insertPoint(float imx, float imy)
+int BeadFixer::insertPoint(float imx, float imy, bool keypad)
 {
   Imod *imod = ivwGetModel(plug->view);
   Icont *cont;
   Iobj *obj;
   Ipoint *pts;
-  Ipoint newPt;
+  static Ipoint newPt =  {0., 0., 0.};
   int  curx, cury, curz, index, ob, i,npnt;
   double zdiff, dist;
   int xsize, ysize, zsize;
@@ -1261,6 +1366,11 @@ int BeadFixer::insertPoint(float imx, float imy)
   }
   npnt = imodContourGetMaxPoint(cont);
   pts = imodContourGetPoints(cont);
+  
+  // With insert key, check for duplicate points
+  if (keypad && curz == newPt.z && fabs((double)(newPt.x - imx)) < 2. &&
+      fabs((double)(newPt.y - imy)) < 2.)
+    return 1;
   newPt.x = imx;
   newPt.y = imy;
   newPt.z = curz;
@@ -1631,6 +1741,8 @@ void BeadFixer::modeSelected(int value)
   }
 
   // Manage gap filling items
+  showWidget(ignoreSkipBut, value == GAP_MODE);
+  showWidget(skipEdit, value == GAP_MODE);
   showWidget(nextGapBut, value == GAP_MODE);
   showWidget(prevGapBut, value == GAP_MODE);
   showWidget(reattachBut, value == GAP_MODE);
@@ -1741,7 +1853,10 @@ BeadFixer::BeadFixer(QWidget *parent, const char *name)
   mCurrentRes = -1;
   mBell = 0;
   mMovingAll = false;
+  mNumSkip = 0;
+  mSkipSecs = NULL;
   mRoundedStyle = ImodPrefs->getRoundedStyle();
+  mExtraObj = ivwGetFreeExtraObjectNumber(plug->view);
 
   mLayout->setSpacing(4);
   topBox = new QHBox(this);
@@ -1883,6 +1998,7 @@ BeadFixer::BeadFixer(QWidget *parent, const char *name)
     }
   }
 
+  // GAP CONTROLS
   nextGapBut = diaPushButton("Go to Next Gap", this, mLayout);
   connect(nextGapBut, SIGNAL(clicked()), this, SLOT(nextGap()));
   QToolTip::add(nextGapBut, "Go to gap in model - Hot key: spacebar");
@@ -1904,6 +2020,24 @@ BeadFixer::BeadFixer(QWidget *parent, const char *name)
   connect(resetCurrentBut, SIGNAL(clicked()), this, SLOT(resetCurrent()));
   QToolTip::add(resetCurrentBut, "Look for gaps from current point");
 
+  ignoreSkipBut = diaCheckBox("Ignore gaps at views:", this, mLayout);
+  connect(ignoreSkipBut, SIGNAL(toggled(bool)), this, 
+          SLOT(ignoreToggled(bool)));
+  QToolTip::add(ignoreSkipBut, "Skip over gaps at views in the list below");
+  diaSetChecked(ignoreSkipBut, plug->ignoreSkips != 0);
+
+  skipEdit = new ToolEdit(this);
+  mLayout->addWidget(skipEdit);
+  if (plug->skipList) {
+    skipEdit->setText(QString(plug->skipList));
+    newSkipList(QString(plug->skipList));
+  }
+  connect(skipEdit, SIGNAL(returnPressed()), this, SLOT(skipListEntered()));
+  connect(skipEdit, SIGNAL(focusLost()), this, SLOT(skipListEntered()));
+  QToolTip::add(skipEdit, "Enter list of views to ignore gaps at");
+  skipEdit->setEnabled(plug->ignoreSkips != 0);
+
+  // RESIDUAL CONTROLS
   openFileBut = diaPushButton("Open Tiltalign Log File", this, mLayout);
   connect(openFileBut, SIGNAL(clicked()), this, SLOT(openFile()));
   QToolTip::add(openFileBut, "Select an alignment log file to open");
@@ -2091,6 +2225,8 @@ void BeadFixer::closeEvent ( QCloseEvent * e )
   if (mRunningAlign)
     delete mAlignProcess;
   mRunningAlign = false;
+  if (mSkipSecs)
+    free(mSkipSecs);
 
   // Get geometry and save in settings and in structure for next time
   QRect pos = ivwRestorableGeometry(plug->window);
@@ -2108,11 +2244,13 @@ void BeadFixer::closeEvent ( QCloseEvent * e )
   posValues[9] = plug->autoNewCont;
   posValues[10] = plug->delOnAllSec;
   posValues[11] = plug->delInAllObj;
+  posValues[12] = plug->ignoreSkips;
   
   ImodPrefs->saveGenericSettings("BeadFixer", NUM_SAVED_VALS, posValues);
 
   imodDialogManager.remove((QWidget *)plug->window);
-  ivwClearExtraObject(plug->view);
+  if (mExtraObj > 0)
+    ivwFreeExtraObject(plug->view, mExtraObj);
 
   setOverlay((plug->showMode == SEED_MODE && plug->overlayOn) ? 1 : 0, 0);
   plug->overlayOn = 0;
@@ -2191,6 +2329,9 @@ void BeadFixer::keyReleaseEvent ( QKeyEvent * e )
 /*
 
 $Log$
+Revision 1.47  2008/11/12 03:32:17  mast
+Fixed for stack loaded binned
+
 Revision 1.46  2008/11/12 00:38:09  mast
 Fixed ability of threshold slider to move by single-click
 
