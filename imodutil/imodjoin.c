@@ -6,16 +6,10 @@
  *  Copyright (C) 1995-2004 by Boulder Laboratory for 3-Dimensional Electron
  *  Microscopy of Cells ("BL3DEMC") and the Regents of the University of 
  *  Colorado.  See dist/COPYRIGHT for full copyright notice.
+ *
+ *  $Id$
+ *  Log at end of file
  */
-
-/*  $Author$
-
-$Date$
-
-$Revision$
-
-Log at end
-*/
 
 #include "imodel.h"
 #include "b3dutil.h"
@@ -32,6 +26,8 @@ static void usage()
           "(default is all)\n");
   fprintf(stderr, "\t-r list\tList of objects in model 1 to REPLACE with "
           "objects from model 2\n");
+  fprintf(stderr, "\t-c\tChange colors of objects being copied to first model"
+          "\n");
   fprintf(stderr, "\t-d\tModels are from different volumes\n");
   fprintf(stderr, "\t-i file\tTransform all models to match this image file "
           "(implies -d)\n");
@@ -91,6 +87,8 @@ int main(int argc, char **argv)
   int suppress = 0;
   int keepScale = 0;
   int keepFlip = 0;
+  int changeColors = 0;
+  float rsave, gsave, bsave;
   IrefImage useRef, outRef, *modRefp;
   FILE *fin;
   MrcHeader hdata;
@@ -112,6 +110,10 @@ int main(int argc, char **argv)
           replace = 1;
         else
           firstOlist = 1;
+        break;
+
+      case 'c':
+        changeColors = 1;
         break;
 
       case 'd':
@@ -425,7 +427,17 @@ int main(int argc, char **argv)
         nob = inModel->objsize;
         imodNewObject(inModel);
       }
+      rsave = inModel->obj[nob].red;
+      gsave = inModel->obj[nob].green;
+      bsave = inModel->obj[nob].blue;
       imodObjectCopy(&joinModel->obj[ob], &inModel->obj[nob]);
+
+      /* Restore existing or new object color if selected */
+      if (changeColors) {
+        inModel->obj[nob].red = rsave;
+        inModel->obj[nob].green = gsave ;
+        inModel->obj[nob].blue = bsave;
+      }
       imodObjviewComplete(inModel);
 
       /* For each view, if the view exists in the joining model and the
@@ -436,6 +448,20 @@ int main(int argc, char **argv)
             ob < joinModel->view[iview].objvsize) {
           inModel->view[iview].objview[nob] = 
             joinModel->view[iview].objview[ob];
+
+          /* If changing colors and color was the same as that of the object,
+             then set to restored color */
+          if (changeColors && joinModel->view[iview].objview[ob].red == 
+              joinModel->obj[ob].red && 
+              joinModel->view[iview].objview[ob].green ==
+              joinModel->obj[ob].green &&
+              joinModel->view[iview].objview[ob].blue == 
+              joinModel->obj[ob].blue) {
+            inModel->view[iview].objview[nob].red = rsave;
+            inModel->view[iview].objview[nob].green = gsave;
+            inModel->view[iview].objview[nob].blue = bsave;
+          }
+
         } else
           imodObjviewFromObject(&inModel->obj[nob], 
                                 &inModel->view[iview].objview[nob]);
@@ -478,7 +504,11 @@ int main(int argc, char **argv)
 }
 
 /*
+
 $Log$
+Revision 3.11  2006/06/26 14:48:49  mast
+Added b3dutil include for parselist
+
 Revision 3.10  2005/10/17 15:18:02  mast
 Fixed calls to imodTransFrom
 
