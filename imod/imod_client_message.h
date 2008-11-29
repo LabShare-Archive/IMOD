@@ -33,7 +33,8 @@
 #define MESSAGE_BEADFIX_SEEDMODE   3
 #define MESSAGE_BEADFIX_AUTOCENTER 4
 #define MESSAGE_BEADFIX_DIAMETER   5
-#define MESSAGE_BEADFIX_OPERATION   6
+#define MESSAGE_BEADFIX_OPERATION  6
+#define MESSAGE_BEADFIX_SKIPLIST   7
 
 #include <qobject.h>
 #include <qstring.h>
@@ -90,6 +91,9 @@ class StdinThread : public QThread
 #endif /* IMOD_CLIENT_MESSAGE_H */
 /*
 $Log$
+Revision 3.18  2008/07/16 04:31:19  mast
+Added new messages
+
 Revision 3.17  2008/02/06 20:28:37  mast
 Added flag to keep track of whether stderr was disconnected
 
