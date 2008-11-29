@@ -78,6 +78,15 @@ option is used for the second model, then each of the objects in the
 replacement list for the first model will be replaced by the corresponding
 object in the list for the second model.
 .TP
+.B -c
+Change colors of the objects being added to the first model.  If objects are
+being added without replacement, then they will be changed to the colors
+automatically assigned to new objects.  If objects are replacing ones in the
+first model, then they will be given the same color as the respective objects
+that they are replacing.  Without this option, objects will retain their
+original colors, which is especially annoying when there are just one or two
+objects from each model.
+.TP
 .B -d
 Models are from different volumes rather than from the same volume or volumes
 with congruent coordinate systems (see above).
