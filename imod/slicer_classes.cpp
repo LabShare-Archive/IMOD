@@ -101,6 +101,7 @@ SlicerWindow::SlicerWindow(SlicerStruct *slicer, float maxAngles[],
   ArrowButton *arrow;
   QGLFormat glFormat;
   QLabel *label;
+  QCheckBox *check;
   mTimeBar = NULL;
 
   mSlicer = slicer;
@@ -183,6 +184,13 @@ SlicerWindow::SlicerWindow(SlicerStruct *slicer, float maxAngles[],
             SLOT(toolKeyPress(QKeyEvent *)));
     connect(mTimeBar, SIGNAL(keyRelease(QKeyEvent *)), this,
             SLOT(toolKeyRelease(QKeyEvent *)));
+
+    check = new QCheckBox("Link", mTimeBar);
+    check->setFocusPolicy(QWidget::NoFocus);
+    connect(check, SIGNAL(toggled(bool)), this, SLOT(linkToggled(bool)));
+    QToolTip::add(check, "Keep angles and positions same as for other linked "
+                "slicers");
+
     setupToggleButton(mTimeBar, toggleMapper, MAX_SLICER_TOGGLES - 1);
 
     label = new QLabel("4th D", mTimeBar);
@@ -201,6 +209,7 @@ SlicerWindow::SlicerWindow(SlicerStruct *slicer, float maxAngles[],
     QToolTip::add(arrow, "Move forward in 4th dimension (time)");
 
     mTimeLabel = new QLabel(timeLabel, mTimeBar, "time label");
+
   }
 
   // SET ANGLE TOOLBAR
@@ -455,6 +464,11 @@ void SlicerWindow::newRowClicked()
 void SlicerWindow::continuousToggled(bool state)
 {
   mSlicer->continuous = state;
+}
+
+void SlicerWindow::linkToggled(bool state)
+{
+  mSlicer->linked = state;
 }
 
 // Functions for setting state of the controls
@@ -1475,6 +1489,9 @@ static void fillArraySegment(int jstart, int jlimit)
 /*
 
 $Log$
+Revision 4.27  2008/03/06 06:16:27  mast
+Fixed artifact on right edge in zoomed HQ image
+
 Revision 4.26  2008/01/28 19:11:31  mast
 Fixed hot key in tooltip for show slice
 

@@ -98,6 +98,8 @@ typedef struct Super_slicer{
   int   fftMode;      /* Flag to do FFT of slice */
   int   toolTime;     /* Value of time when label sent to toolbar */
   bool  continuous;   /* Flag for continuous mode in slicer angle update */
+  bool  linked;       /* Flag for linked to other slicers */
+  bool  needDraw;     /* Flag that window needs a draw regardless of flags*/
   int   drawModView;  /* Draw flag to draw model view on next redraw */
   bool  alreadyDrew;  /* Flag that window was already drawn before draw_cb */
   int   closing;      /* Flag for window closing */
@@ -148,6 +150,9 @@ int setTopSlicerFromModelView(Ipoint *rot);
 
 /*
     $Log$
+    Revision 3.20  2008/01/25 20:22:58  mast
+    Changes for new scale bar
+
     Revision 3.19  2007/11/30 06:51:50  mast
     Changes for linking slicer to model view
 

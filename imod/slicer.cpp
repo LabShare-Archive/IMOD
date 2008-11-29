@@ -50,6 +50,7 @@
 /* internal functions. */
 static void sslice_cube_draw(SlicerStruct *ss);
 static void sslice_draw(SlicerStruct *ss);
+static void drawSelfAndLinked(SlicerStruct *ss);
 static int sslice_setxyz(SlicerStruct *ss, int x, int y);
 static int sslice_getxyz(SlicerStruct *ss, int x, int y, float &xm, float &ym,
                          float &zm);
@@ -81,6 +82,7 @@ static void getWindowCoords(SlicerStruct *ss, float xcur, float ycur,
                             float zcur, int &xim, int &yim, int &zim);
 static void setViewAxisRotation(SlicerStruct *ss, float x, float y, float z);
 static void changeCenterIfLinked(SlicerStruct *ss);
+int synchronizeSlicers(SlicerStruct *ss, bool draw = false);
 
 /* DNM: maximum angles for sliders */
 static float maxAngle[3] = {90.0, 180.0, 180.0};
@@ -111,7 +113,7 @@ void slicerStepZoom(SlicerStruct *ss, int dir)
 {
   ivwControlPriority(ss->vi, ss->ctrl);
   ss->zoom = b3dStepPixelZoom(ss->zoom, dir);
-  sslice_draw(ss);
+  drawSelfAndLinked(ss);
   ss->qtWindow->setZoomText(ss->zoom);
 }
 
@@ -126,7 +128,7 @@ void slicerEnteredZoom(SlicerStruct *ss, float newZoom)
     ss->zoom = 0.01;
     ss->qtWindow->setZoomText(ss->zoom);
   }  
-  sslice_draw(ss);
+  drawSelfAndLinked(ss);
 }
 
 /* A time step through toolbar button or hotkey */
@@ -223,6 +225,7 @@ static void setClassicMode(SlicerStruct *ss, int state)
   }
   ss->pending = 0;
   sslice_draw(ss);
+  synchronizeSlicers(ss);
   
   imodDraw(ss->vi, IMOD_DRAW_XYZ);
 }
@@ -252,6 +255,7 @@ void slicerAngleChanged(SlicerStruct *ss, int axis, int value,
   // Do complete redraw if not dragging or hot slider enabled
   if (!dragging || ImodPrefs->hotSliderActive(ctrlPressed)) {
     ss->drawModView = imodvLinkedToSlicer() ? IMOD_DRAW_MOD : 0;
+    synchronizeSlicers(ss);
     slicerShowSlice(ss);
     slicerCheckMovieLimits(ss);
   } else {
@@ -283,7 +287,7 @@ void slicerImageThickness(SlicerStruct *ss, int sno)
   ss->nslice = sno;
 
   drawThickControls(ss);
-  sslice_draw(ss);
+  drawSelfAndLinked(ss);
 }
 
 void slicerModelThickness(SlicerStruct *ss, float depth)
@@ -388,9 +392,11 @@ int sslice_open(struct ViewInfo *vi)
   ss->fftMode = 0;
   ss->toolTime = 0;
   ss->continuous = false;
+  ss->linked = false;
   ss->closing = 0;
   ss->ignoreCurPtChg = 0;
   ss->alreadyDrew = false;
+  ss->needDraw = false;
 
   slice_trans_step(ss);
   utilGetLongestTimeString(vi, &str);
@@ -450,6 +456,10 @@ int sslice_open(struct ViewInfo *vi)
       ss->zoom = (float)newZoom;
     }
     ss->qtWindow->setZoomText(ss->zoom);
+    if (ss->zoom > 1.5) {
+      ss->hq = 1;
+      ss->qtWindow->setToggleState(0, 1);
+    }
   }
   
   if (!sliceAngDia)
@@ -580,6 +590,65 @@ SlicerStruct *getTopSlicer()
   return ((SlicerWindow *)objList.at(topOne))->mSlicer;
 }
 
+// Sychronize angles of linked slicers, and positions for ones not locked,
+// and draw them if the flag is set.  Return number that were linked
+int synchronizeSlicers(SlicerStruct *ss, bool draw)
+{
+  QObjectList objList;
+  SlicerStruct *sso;
+  int i, need, num = 0;
+  if (!ss->linked)
+    return 0;
+  imodDialogManager.windowList(&objList, -1, SLICER_WINDOW_TYPE);
+  if (!objList.count())
+    return 0;
+  for (i = 0; i < objList.count(); i++) {
+    sso = ((SlicerWindow *)objList.at(i))->mSlicer;
+
+    // Modify if it is different and linked
+    if (sso->ctrl == ss->ctrl || !sso->linked)
+      continue;
+
+    // Keep track if anything changes requiring a draw
+    need = 0;
+    if (sso->tang[b3dX] != ss->tang[b3dX] ||
+        sso->tang[b3dY] != ss->tang[b3dY] ||
+        sso->tang[b3dZ] != ss->tang[b3dZ]) {
+      sso->tang[b3dX] = ss->tang[b3dX];
+      sso->tang[b3dY] = ss->tang[b3dY];
+      sso->tang[b3dZ] = ss->tang[b3dZ];
+      sso->qtWindow->setAngles(sso->tang);
+      need = 1;
+    }
+    if (!ss->locked && !sso->locked && 
+        (sso->cx != ss->cx || sso->cy != ss->cy || sso->cz != ss->cz)) {
+      sso->cx = ss->cx;
+      sso->cy = ss->cy;
+      sso->cz = ss->cz;
+      need = 1;
+    }
+    if (sso->nslice != ss->nslice) {
+      sso->nslice = ss->nslice;
+      drawThickControls(sso);
+      need = 1;
+    }
+    if (sso->zoom != ss->zoom) {
+      sso->zoom = ss->zoom;
+      sso->qtWindow->setZoomText(sso->zoom);
+      need = 1;
+    }
+    if (need) {
+      sso->needDraw = true;
+      if (draw) {
+        sslice_draw(sso);
+        sso->alreadyDrew = true;
+      }
+      num++;
+    }
+  }
+  return num;
+}
+
 // Called from slicer angle window to set the angles and position of the
 // top slicer
 int setTopSlicerAngles(float angles[3], Ipoint *center, bool draw)
@@ -599,8 +668,10 @@ int setTopSlicerAngles(float angles[3], Ipoint *center, bool draw)
     ss->vi->xmouse = ss->cx;
     ss->vi->ymouse = ss->cy;
     ss->vi->zmouse = ss->cz;
-    if (draw)
+    if (draw) {
+      synchronizeSlicers(ss);
       imodDraw(ss->vi, IMOD_DRAW_XYZ | IMOD_DRAW_SLICE | drawflag);
+    }
   } else if (draw) {
 
     // This needs a guaranteed draw because the top slicer may not
@@ -608,6 +679,7 @@ int setTopSlicerAngles(float angles[3], Ipoint *center, bool draw)
     ss->drawModView = drawflag;
     sslice_draw(ss);
     ss->alreadyDrew = true;
+    synchronizeSlicers(ss);
     slicerShowSlice(ss);
   }
   return 0;
@@ -626,6 +698,7 @@ int setTopSlicerFromModelView(Ipoint *rot)
   ss->qtWindow->setAngles(ss->tang);
   sslice_draw(ss);
   ss->alreadyDrew = true;
+  synchronizeSlicers(ss);
   imodDraw(ss->vi, IMOD_DRAW_XYZ | IMOD_DRAW_SLICE | IMOD_DRAW_SKIPMODV);
   return 0;
 }
@@ -993,6 +1066,7 @@ void slicerKeyInput(SlicerStruct *ss, QKeyEvent *event)
           ss->lastYmouse = vi->ymouse;
           ss->lastZmouse = vi->zmouse;
           ivwBindMouse(vi);
+          synchronizeSlicers(ss);
           imodDraw(vi, IMOD_DRAW_XYZ);
           dodraw = 0;        
         }
@@ -1042,6 +1116,7 @@ void slicerKeyInput(SlicerStruct *ss, QKeyEvent *event)
     ss->qtWindow->setAngles(ss->tang);
     ss->drawModView = imodvLinkedToSlicer() ? IMOD_DRAW_MOD : 0;
 
+    synchronizeSlicers(ss);
     slicerShowSlice(ss);
     docheck = 1;
     break;
@@ -1064,7 +1139,7 @@ void slicerKeyInput(SlicerStruct *ss, QKeyEvent *event)
 
   // If draw still needed, do it; then check movie limits if needed too
   if (dodraw)
-    sslice_draw(ss);         
+    drawSelfAndLinked(ss);
   if (docheck)
     slicerCheckMovieLimits(ss);
 }
@@ -1110,13 +1185,13 @@ void slicerMouseRelease(SlicerStruct *ss, QMouseEvent *event)
   if (event->button() == ImodPrefs->actualButton(1) && !ss->classic) {
     if (mousePanning) {
       mousePanning = 0;
-      sslice_draw(ss);
+      drawSelfAndLinked(ss);
     } else
       slicer_attach_point(ss, event->x(), event->y());
   }
   if (mouseRotating) {
     mouseRotating = 0;
-    sslice_draw(ss);
+    drawSelfAndLinked(ss);
   }
 }
 
@@ -1154,7 +1229,7 @@ void slicerMouseMove(SlicerStruct *ss, QMouseEvent *event)
       vec.z = 0.;
       mousePanning = 1;
       if (translateByRotatedVec(ss, &vec))
-        sslice_draw(ss);
+        drawSelfAndLinked(ss);
     }
 
   }
@@ -1200,6 +1275,7 @@ void slicerMouseMove(SlicerStruct *ss, QMouseEvent *event)
       if (imodDebug('s'))
         imodPuts("Mouse rotating");
       ss->drawModView = imodvLinkedToSlicer() ? IMOD_DRAW_MOD : 0;
+      synchronizeSlicers(ss);
       slicerShowSlice(ss);
     }
   }
@@ -1778,6 +1854,7 @@ int slicerAnglesFromContour(SlicerStruct *ss)
   ss->vi->ymouse = ss->cy;
   ss->vi->zmouse = ss->cz;
   pt = imodvLinkedToSlicer() ? IMOD_DRAW_MOD : 0;
+  synchronizeSlicers(ss);
   imodDraw(ss->vi, IMOD_DRAW_XYZ | pt);
 
   return 0;
@@ -2142,6 +2219,14 @@ static void slicerDraw_cb(ImodView *vi, void *client, int drawflag)
     }
   }
 
+  // Simply draw if need flag is set 
+  if (ss->needDraw) {
+    if (imodDebug('s'))
+      imodPrintStderr("NEED draw for ID %d\n", ss->ctrl);
+    sslice_draw(ss);
+    return;
+  }
+
   // Process a change in current point when not locked
   if ((drawflag & IMOD_DRAW_XYZ) && !ss->locked) {
 
@@ -2231,8 +2316,21 @@ static void slicerDraw_cb(ImodView *vi, void *client, int drawflag)
  */
 static void sslice_draw(SlicerStruct *ss)
 {
+  if (imodDebug('c'))
+    imodPrintStderr("Slicer ID %d in sslice_draw\n", ss->ctrl);
   ss->glw->updateGL();
   sslice_cube_draw(ss);
+  ss->needDraw = false;
+}
+
+// Simple draw with slicer-only changes: if there are linked slicers do a
+// general draw that will draw only them; otherwise draw self
+static void drawSelfAndLinked(SlicerStruct *ss)
+{
+  if (synchronizeSlicers(ss))
+    imodDraw(ss->vi, 0);
+  else
+    sslice_draw(ss);
 }
 
 /* Redraw image, assuming data array is filled */
@@ -2598,6 +2696,9 @@ void slicerCubePaint(SlicerStruct *ss)
 
 /*
 $Log$
+Revision 4.60  2008/09/24 02:40:26  mast
+Call new attach function; fix logic
+
 Revision 4.59  2008/08/19 20:01:03  mast
 Made it treat keypad + like =
 

@@ -87,6 +87,7 @@ class SlicerWindow : public QMainWindow
   void setAngClicked();
   void newRowClicked();
   void continuousToggled(bool state);
+  void linkToggled(bool state);
 
  protected:
   void keyPressEvent ( QKeyEvent * e );
@@ -178,6 +179,9 @@ void fillImageArray(SlicerStruct *ss, int panning, int meanOnly);
 
 /*
 $Log$
+Revision 4.11  2007/06/15 21:19:54  mast
+Added shift lock toolbar botton
+
 Revision 4.10  2007/05/31 16:32:28  mast
 Changes for slicer angle toolbar, classic setting and warning
 
