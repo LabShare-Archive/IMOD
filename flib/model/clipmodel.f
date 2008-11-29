@@ -118,7 +118,9 @@ c
       endif
 c       
 c       look at each object, find longest contiguous segment within area
-c       
+c       Increase Z limits a bit in case there are slightly off Z values
+      zmin = zmin - 0.005
+      zmax = zmax + 0.005
       n_ptot=0
       n_ptotold=0
       cutsum=0.
@@ -358,6 +360,9 @@ c
 
 c       
 c       $Log$
+c       Revision 3.4  2008/10/07 02:28:35  mast
+c       Changed to read one object at a time
+c
 c       Revision 3.3  2008/09/26 02:00:35  mast
 c       Increased dimensions
 c
