@@ -43,7 +43,8 @@ missing points.
 Turn on <B>Autocenter</B> and set the <B>Diameter</B> spin box to the average
 bead diameter (in pixels) to use autocentering.  In this mode:
 <UL>
-<LI> When you press the second mouse button, the module will search up to 3
+<LI> When you press the second mouse button or the Insert key on the numeric
+keypad, the module will search up to 3
 bead diameters away (but no more than 50 pixels) for a bead and position the
 new point at the center of gravity of the bead.
 <LI> The center of gravity is computed the same as in Beadtrack and will
@@ -58,6 +59,7 @@ lighter rather than darker than the background.
 This mode has the following features:
 <UL>
 <LI> Autocentering is available and should be tried.
+<LI> Points can be inserted with the Insert key on the numeric keypad.
 <LI> If you turn on <B>Automatic new contour</B>, the module will
 start a new contour when you insert a point.  It will always do this if the
 current contour already has a point on the current view.  Otherwise, it will
@@ -93,6 +95,7 @@ This mode provides controls for finding the gaps in the model, so that
 you can fill them if appropriate.
 <UL>
 <LI> Autocentering is available.
+<LI> Points can be inserted with the Insert key on the numeric keypad.
 <LI> Press the <B>Go to Next Gap</B> button or hit the space bar key to 
 move to the next gap or incomplete place in the model.  If there is a gap, the
 point BEFORE the gap will be displayed and a upward pointing arrow will be
@@ -117,6 +120,11 @@ place, make that point be the current point and press
 <LI> When you add a point at the beginning of a contour, the point will
 automatically become the first point of the contour, thus keeping the 
 contour points in order by Z.
+<LI> If you skipped views when tracking and you do not want to go to those
+views when filling gaps, make sure <B>Ignore gaps at views</B> is turned on and
+insert the list of skipped views in the text box.  Turn this option off if you
+want to fill gaps in all the skipped views, or remove specific views from the 
+list if you want to fill gaps just on those views.
 </UL>
 <P>
 <H4>Residual Fixing Mode</H4>
@@ -125,7 +133,8 @@ arrows.
 It has the following features and controls:
 <UL>
 <LI> Press the <B>Open Tiltalign Log File</B> button to open a log 
-file.
+file.  The Info window will show the mean residuals from global and local
+tracking, if any, and the number of points to be examined with big residuals.
 <LI> Press the <B>Go to Next Big Residual</B> button or hit the 
 apostrophe key to move to the next point in the log file 
 with a big residual.
