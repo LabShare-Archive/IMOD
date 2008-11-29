@@ -204,7 +204,8 @@ int imodPlugKeys(ImodView *vw, QKeyEvent *event)
     plug->window->overlayToggled(plug->overlayOn != 0);
     break;
   case Qt::Key_Insert:
-    if (ivwGetMovieModelMode(vw) && !ivwGetTopZapMouse(plug->view, &mpt))
+    if ((event->state() & Qt::Keypad) && ivwGetMovieModelMode(vw)
+        && !ivwGetTopZapMouse(plug->view, &mpt))
       keyhandled = plug->window->insertPoint(mpt.x, mpt.y, true);
     break;
   default:
@@ -2329,6 +2330,9 @@ void BeadFixer::keyReleaseEvent ( QKeyEvent * e )
 /*
 
 $Log$
+Revision 1.48  2008/11/29 22:09:53  mast
+Added skip list, mean residual output, Insert key, used extra object properly
+
 Revision 1.47  2008/11/12 03:32:17  mast
 Fixed for stack loaded binned
 
