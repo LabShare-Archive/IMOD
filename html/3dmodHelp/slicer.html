@@ -160,12 +160,20 @@ the image slice and the thickness of model that is shown on the slice.
 
 <A NAME = "Time Toolbar"><H3>The Time Toolbar</H3></A>
 If multiple image files have been loaded into 3dmod, an 
-additional toolbar appears, identical to the toolbar in the Zap window. 
+additional toolbar appears, with the same controls as the toolbar in the Zap
+window.
 The <B>time lock</B> button will prevent 
 changes in other windows from changing the time (image file) 
 displayed in this slicer; and conversely this slicer's time can be changed
 without affecting other windows.  The <B>left</B> and <B>right arrows</B> will 
 step backward and forward in time.
+<P>
+In addition, the time toolbar has a <B>Link</B> checkbox that will make all
+the Slicers with this option checked have the same angles, zoom, and image
+thickness.  They will also have the same position unless one of their position
+<B>lock</b> buttons is on.  This option can be used together with the 
+<B>time lock</B> button to get synchronized displays of several volumes in
+separate Slicers.
 
 <A NAME = "Angle Saving Toolbar"><H3>The Angle Saving Toolbar</H3></A>
 Slicer angles and center positions can be saved in the IMOD model by opening
