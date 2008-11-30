@@ -156,23 +156,20 @@ Print model transformations to standard output.
 .TP
 .B D
 Delete the currently selected contour(s) if it was (or they were) selected
-with the third mouse button or with Ctrl-A
-(active only when program is started as 3dmod).  Multiple contours can be
+with the third mouse button or with Ctrl-A.  Multiple contours can be
 selected by holding the Ctrl key down while clicking with the third mouse
 button.
 .TP
 .B Ctrl-A
 Select all contours in the current object that are being drawn; this excludes
-ones that are being clipped or turned off
-(active only when program is started as 3dmod).
+ones that are being clipped or turned off.
 .TP
 .B Ctrl-Z
-Undo the last change to the model
-(active only when program is started as 3dmod).
+Undo the last change to the model.  The list of actions that can be undone
+applies only to the current model and is cleared when switching between models.
 .TP
 .B Ctrl-Y
-Redo a change that was undone
-(active only when program is started as 3dmod).
+Redo a change that was undone.
 .P
 Use the online help for more information on using 3dmodv.
 .SH AUTHORS
