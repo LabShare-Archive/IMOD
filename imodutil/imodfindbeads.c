@@ -43,16 +43,8 @@ typedef struct peak_list_entry {
 
 // Local functions
 static int comparePeaks(const void *p1, const void *p2);
-static void makeModelBead(int boxSize, float beadSize, float *array);
-static void splitfill(float *array, int nxbox, int nybox, float *brray,
-                      int nxdim, int nx, int ny, int meanedge);
 static Islice *readSliceAsFloat(FILE *infp, MrcHeader *inhead, int sliceMode,
                                 int iz);
-static float beadIntegral(float *array, int nxdim, int nx, int ny,
-                          float rCenter, float rInner, float rOuter,
-                          float xcen, float ycen, float *cenmean,
-                          float *annmean, float *temp, float annPct, 
-                          float *median);
 static float templateCCCoefficient(float *array, int nxdim, int nx, int ny, 
                                    float *template, int nxtdim, int nxt, 
                                    int nyt, int xoffset, int yoffset);
@@ -66,8 +58,6 @@ static int findHistoDipPL(PeakEntry *peakList, int numPeaks, int minGuess,
                             float *kernHist, float *regHist, float *histDip,
                             float *peakBelow, float *peakAbove, char *vkeys);
 static void printArray(float *filtBead, int nxdim, int nx, int ny);
-static float selectFloat(int s, float *r, int num);
-static void StatLSFit(float *x, float *y, int num, float *slope, float *intcp);
 static void selectedMinMax(PeakEntry *peakList, float *element, int numPeaks,
                            float *select, float selMin, float selMax,
                            float *minVal, float *maxVal, int *ninRange);
@@ -123,7 +113,7 @@ int main( int argc, char *argv[])
   int numMatched = 0, numUnmatched = 0;
   float minInterp = 1.4f;
   int minInGroup = 100;
-  float kernelSigma = 0.;
+  float kernelSigma = 0.85;
   float annUseMin, annUseMax, maxBalRange = 4.;
   float sigma1 = 0., sigma2 = 0., radius1 = 0., radius2 = 0.;
   int izst, iznd, nytmp, nxpad, nypad, nxpdim, listSize, numPeaks, npass;
@@ -416,8 +406,8 @@ int main( int argc, char *argv[])
       //printArray(filtBead, boxScaled, boxScaled, boxScaled);
 
       // Split it into 4 corners of the big array and take the FFT
-      splitfill(filtBead, boxScaled, boxScaled, splitBead, nxpdim, nxpad,
-                nypad, 1);
+      sliceSplitFill(filtBead, boxScaled, boxScaled, splitBead, nxpdim, nxpad,
+                     nypad, 0, 0.);
       todfft(splitBead, &nxpad, &nypad, &forward);
       XCorrSetCTF(sigma1, sigma2, radius1, radius2, ctf, nxpad, nypad, 
                   &ctfDelta);
@@ -515,10 +505,9 @@ int main( int argc, char *argv[])
                 continue;
 
               // First validate the peak by polarity of density in full image
-              integral = beadIntegral(sl->data.f, nxin, nxin, nyin, rCenter,
-                                      rInner, rOuter, xcen ,ycen, &cenmean, 
-                                      &annmean, kernHist, annulusPctile, 
-                                      &median);
+              integral = (float)beadIntegral
+                (sl->data.f, nxin, nxin, nyin, rCenter, rInner, rOuter, xcen,
+                 ycen, &cenmean, &annmean, kernHist, annulusPctile, &median);
               if (! lightBeads)
                 integral = -integral;
               if (integral > 0.) {
@@ -654,8 +643,8 @@ int main( int argc, char *argv[])
 
         if (ndat > 1) {
           // Fit a line to the points and scale the peaks, find new max
-          StatLSFit(annMidval, annPeakAbove, ndat, &modeSlope, &modeIntcp);
-          StatLSFit(annMidval, annDip, ndat, &selSlope, &selIntcp);
+          lsFit(annMidval, annPeakAbove, ndat, &modeSlope, &modeIntcp, &xtmp);
+          lsFit(annMidval, annDip, ndat, &selSlope, &selIntcp, &xtmp);
           printf("Dips found in %d groups based on bkg mean, means %f to %f\n",
                  ndat, annMidval[0], annMidval[ndat - 1]);
           if (vkeys)
@@ -1083,38 +1072,6 @@ static int comparePeaks(const void *p1, const void *p2)
   return 0;
 }
 
-/*
- * Make a model bead of the given size in the given box
- */
-static void makeModelBead(int boxSize, float beadSize, float *array)
-{
-  int icen, ix, iy, ixd, iyd, ndiv = 10;
-  float fcen, radsq, distsq, height, delx, dely; 
-  
-  icen = boxSize / 2;
-  fcen = (boxSize - 1. / ndiv) / 2.;
-  radsq = beadSize * beadSize / 4.;
-  for (iy = 0; iy <= icen; iy++) {
-    for (ix = 0; ix <= icen; ix++) {
-      height = 0.;
-      for (iyd = 0; iyd < ndiv; iyd++) {
-        for (ixd = 0; ixd < ndiv; ixd++) {
-          dely = iy + ((float)iyd) / ndiv - fcen;
-          delx = ix + ((float)ixd) / ndiv - fcen;
-          distsq = delx * delx + dely * dely;
-          if (distsq < radsq)
-            height += (float)sqrt(radsq - distsq);
-        }
-      }
-      height /= -ndiv * ndiv;
-      array[ix + iy * boxSize] = height;
-      array[boxSize - 1 - ix + (boxSize - 1 - iy) * boxSize] = height;
-      array[ix + (boxSize - 1 - iy) * boxSize] = height;
-      array[boxSize - 1 - ix + iy * boxSize] = height;
-    }
-  }
-}
-
 /* NOTES ON COORDINATES:
    original_image_coord = reduced_image_coord * scaleFactor + xOffset
 
@@ -1139,58 +1096,6 @@ static void makeModelBead(int boxSize, float beadSize, float *array)
 
 */   
 
-/*
- * Split array, nxbox by nybox, into 4 corners of brray, x dimension nxdim and
- * sizes nx and ny.  Fill with the overall mean, or the mean at the edge if
- * meanedge is non-zero, 
- */
-static void splitfill(float *array, int nxbox, int nybox, float *brray,
-                      int nxdim, int nx, int ny, int meanedge)
-{
-  int i, ix, iy, ixlo, iylo, ixnew, iynew;
-  float sum, fill, bias, dmean, edge;
-  if (nxbox != nx || nybox != ny) {
-    sum = 0.;
-    for (i = 0; i < nxbox * nybox; i++)
-      sum += array[i];
-    dmean = (float)(sum / (nxbox * nybox));
-    fill=dmean;
-    bias=dmean;
-    if (meanedge) {
-
-      // find mean of edge of box
-      sum=0.;
-      for (ix=0; ix < nxbox; ix++)
-        sum += array[ix]+array[ix + (nybox - 1) * nxbox];
-      for (iy=1; iy < nybox-1; iy++) 
-        sum += array[iy * nxbox] + array[nxbox - 1 + iy * nxbox];
-      edge = sum / (2 * nxbox + 2 * (nybox - 1));
-
-      // fill with edge value and subtract a bias that would produce
-      // a mean of zero
-      fill = edge;
-      bias = edge+(dmean-edge)*((float)(nxbox*nybox))/((float)(nx*ny));
-    }
-  }
-
-  // NOTE: unused padfill.f is WRONG
-  // fill whole brray with fill-bias 
-   
-  for (iy = 0; iy < ny; iy++)
-    for (ix = 0; ix < nx; ix++)
-      brray[ix + iy * nxdim] = fill-bias;
-
-  // move array into brray, splitting it into the 4 corners of brray
-  ixlo = -nxbox/2;
-  iylo = -nybox/2;
-  for (iy = 0; iy < nybox; iy++) {
-    for (ix = 0; ix < nxbox; ix++) {
-      ixnew = (ix + ixlo + nx) % nx;
-      iynew = (iy + iylo + ny) % ny;
-      brray[ixnew + iynew * nxdim] = array[ix + iy * nxbox] - bias;
-    }
-  }  
-}
 
 /*
  * Read a slice at iz in fle and convert it to a floating slice, then taper it
@@ -1208,67 +1113,6 @@ Islice *readSliceAsFloat(FILE *infp, MrcHeader *inhead, int sliceMode, int iz)
   if (sliceTaperAtFill(sl, 64, 0))
     exitError("Getting memory for tapering edges");
   return sl;
-}
-
-/*
- * Finds integral of a bead located at xcen, ycen in array, and image nx by ny
- * with X dimension nxdim.  rCenter, rInner, and rOuter are radii of the center
- * and the inner and outer radii of the background annulus.  Returns the center
- * and annular means in cenmean and annmean, and if annPct is supplied with 
- * a fractional percentile, returns the percentile value in median, using temp
- * as a temporary array.  Return value is center minus annular mean.
- */
-static float beadIntegral(float *array, int nxdim, int nx, int ny,
-                          float rCenter, float rInner, float rOuter,
-                          float xcen, float ycen, float *cenmean,
-                          float *annmean, float *temp, float annPct, 
-                          float *median)
-{
-  float xpcen = xcen - 0.5f;
-  float ypcen = ycen - 0.5f;
-  float rcensq = rCenter * rCenter;
-  float rinsq = rInner * rInner;
-  float routsq = rOuter * rOuter;
-
-  int ncen = 0, nann = 0;
-  double censum = 0., annsum = 0.;
-  int ixcen = B3DNINT(xpcen);
-  int iycen = B3DNINT(ypcen);
-  int iradout = (int)(rOuter + 1.5);
-  int ix, iy, idx;
-  double dxsq;
-  float dx, dy, radsq;
-
-  for (iy = iycen - iradout; iy <= iycen + iradout; iy++) {
-    if (iy < 0 || iy >= ny)
-      continue;
-    dy = iy - ypcen;
-    dxsq = routsq - dy * dy;
-    idx = (int)(sqrt(B3DMAX(0.,dxsq)) + 1.5);
-    for (ix = ixcen - idx; ix <= ixcen + idx; ix++) {
-      if (ix < 0 || ix >= nx)
-        continue;
-      dx = ix - xpcen;
-      radsq = dy * dy + dx * dx;
-      if (radsq <= rcensq) {
-        ncen++;
-        censum += array[ix + iy * nx];
-      } else if (radsq <= routsq && radsq >= rinsq) {
-        temp[nann++] = array[ix + iy * nx];
-        annsum += array[ix + iy * nx];
-      }
-    }
-    
-  }
-  //printf("cen %.2f in %.2f out %.2f ncen %d censum %f nann %d annsum %f\n",
-  //       rCenter, rInner, rOuter, ncen, censum, nann, annsum);
-  if (!nann || !ncen)
-    return 0.;
-  *annmean = annsum / nann;
-  *cenmean = censum / ncen;
-  if (annPct >= 0.)
-    *median = selectFloat((int)(annPct * nann + 1.), temp, nann);
-  return ((float)(censum / ncen - *annmean));
 }
 
 /*
@@ -1439,38 +1283,6 @@ static void printArray(float *filtBead, int nxdim, int nx, int ny)
   }
 }
 
-/* Selects element number s out of num from list r */
-static float selectFloat(int s, float *r, int num)
-{
-  int lo = 0;
-  int up = num - 1;
-  int i, j;
-  float temp;
-  s--;
-  while (up >= s && s >= lo) {
-    i = lo;
-    j = up;
-    temp = r[s];
-    r[s] = r[lo];
-    r[lo] = temp;
-    while (i < j) {
-      while (r[j] > temp)
-        j--;
-      r[i] = r[j];
-      while (i < j && r[i] <= temp)
-        i++;
-      r[j] = r[i];
-    }
-    r[i] = temp;
-    if (s < i)
-      up = i - 1;
-    else
-      lo = i + 1;
-  }
-
-  return r[s];
-}
-
 /*
  * Computes the min and max and number of peaks, possibly selecting on some
  * value being in a given range.  element is the pointer to the peak measure
@@ -1501,31 +1313,6 @@ static void selectedMinMax(PeakEntry *peakList, float *element, int numPeaks,
     *maxVal = B3DMAX(*maxVal, val);
     (*ninRange)++;
   }
-}
-
-
-/* Version of lsfit stolen from SerialEM */
-void StatLSFit(float *x, float *y, int num, float *slope, float *intcp)
-{
-  double den, sx = 0.;
-  double sxsq = 0.;
-  double sy = 0.;
-  double sxy = 0.;
-  int i;
-  *slope = 1.;
-  *intcp = 0;
-  if (num < 2)
-    return;
-  for (i = 0; i < num; i++) {
-    sx += x[i];
-    sy += y[i];
-    sxsq += x[i] * x[i];
-    sxy += x[i] * y[i];
-  }
-  den = num * sxsq - sx * sx;
-  *slope = (float)((num * sxy - sx * sy) / den);
-  *intcp = (float)((sy * sxsq - sx * sxy) / den);
-
 }
 
 /*
@@ -1585,6 +1372,9 @@ static int pointInsideArea(Iobj *obj, int *list, int nlist, float xcen,
 /*
 
 $Log$
+Revision 3.4  2008/11/12 03:48:19  mast
+Pulled out the scan histogram function for library
+
 Revision 3.3  2008/11/02 13:43:48  mast
 Switched to float-slice reading function
 
