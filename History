@@ -1,5 +1,7 @@
 IMOD History
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+12/08: In Etomo added an options to Settings to default to montage.
+
 12/1/08: Made imodfindbeads do kernel filtering with 0.85 ("smooth") as default.
 
 12/1/08: Switched bead fixer autocentering to use correlation with a 
