@@ -26,8 +26,6 @@
 #define GETSVAL(t, i, j) ((t)->data.s[(i) + ((j) * (t)->xsize)])
 #define GETFVAL(s, i, j) ((s)->data.f[(i) + ((j) * (s)->xsize)])
 
-static float selectFloat(int s, float *r, int num);
-static int selectInt(int s, int *r, int num);
 
 static int SmoothKernel[3][3] = 
   { 
@@ -457,9 +455,9 @@ int sliceMedianFilter(Islice *sout, Istack *v, int size)
             for (ix = xs; ix < xe; ix++)
               *fout++ = *fin++;
           }
-        val[0] = selectFloat(select, fVals, nVals);
+        val[0] = percentileFloat(select, fVals, nVals);
         if (!(nVals % 2))
-          val[0] = 0.5 * (val[0] + selectFloat(select + 1, fVals, nVals));
+          val[0] = 0.5 * (val[0] + percentileFloat(select + 1, fVals, nVals));
         break;
         
       case SLICE_MODE_SHORT:
@@ -470,9 +468,9 @@ int sliceMedianFilter(Islice *sout, Istack *v, int size)
             for (ix = xs; ix < xe; ix++)
               *iout++ = *sin++;
           }
-        val[0] =selectInt(select, iVals, nVals);
+        val[0] =percentileInt(select, iVals, nVals);
         if (!(nVals % 2))
-          val[0] = 0.5f * (val[0] + selectInt(select + 1, iVals, nVals));
+          val[0] = 0.5f * (val[0] + percentileInt(select + 1, iVals, nVals));
         break;
         
       case SLICE_MODE_USHORT:
@@ -483,9 +481,9 @@ int sliceMedianFilter(Islice *sout, Istack *v, int size)
             for (ix = xs; ix < xe; ix++)
               *iout++ = *usin++;
           }
-        val[0] =selectInt(select, iVals, nVals);
+        val[0] =percentileInt(select, iVals, nVals);
         if (!(nVals % 2))
-          val[0] = 0.5f * (val[0] + selectInt(select + 1, iVals, nVals));
+          val[0] = 0.5f * (val[0] + percentileInt(select + 1, iVals, nVals));
         break;
         
       case SLICE_MODE_BYTE:
@@ -496,9 +494,9 @@ int sliceMedianFilter(Islice *sout, Istack *v, int size)
             for (ix = xs; ix < xe; ix++)
               *iout++ = *bin++;
           }
-        val[0] =selectInt(select, iVals, nVals);
+        val[0] =percentileInt(select, iVals, nVals);
         if (!(nVals % 2))
-          val[0] = 0.5f * (val[0] + selectInt(select + 1, iVals, nVals));
+          val[0] = 0.5f * (val[0] + percentileInt(select + 1, iVals, nVals));
         break;
       }
       slicePutVal(sout, x, y, val);
@@ -782,74 +780,6 @@ void sliceScaleAndFree(Islice *sout, Islice *sin)
   sliceFree(sout);
 }
 
-/* 
- * Routines for selecting item number s (numbered from 1) out of num items
- * selectFloat takes a float array, selectInt takes an int array
- * Based on a pascal program apparently from Handbook of Data Structures and 
- * Algorithms, by Gonnet and Baeza-Yates 
- */
-static float selectFloat(int s, float *r, int num)
-{
-  int lo = 0;
-  int up = num - 1;
-  int i, j;
-  float temp;
-  s--;
-  while (up >= s && s >= lo) {
-    i = lo;
-    j = up;
-    temp = r[s];
-    r[s] = r[lo];
-    r[lo] = temp;
-    while (i < j) {
-      while (r[j] > temp)
-        j--;
-      r[i] = r[j];
-      while (i < j && r[i] <= temp)
-        i++;
-      r[j] = r[i];
-    }
-    r[i] = temp;
-    if (s < i)
-      up = i - 1;
-    else
-      lo = i + 1;
-  }
-
-  return r[s];
-}
-
-static int selectInt(int s, int *r, int num)
-{
-  int lo = 0;
-  int up = num - 1;
-  int i, j;
-  int temp;
-  s--;
-  while (up >= s && s >= lo) {
-    i = lo;
-    j = up;
-    temp = r[s];
-    r[s] = r[lo];
-    r[lo] = temp;
-    while (i < j) {
-      while (r[j] > temp)
-        j--;
-      r[i] = r[j];
-      while (i < j && r[i] <= temp)
-        i++;
-      r[j] = r[i];
-    }
-    r[i] = temp;
-    if (s < i)
-      up = i - 1;
-    else
-      lo = i + 1;
-  }
-
-  return r[s];
-}
-
 /*!
  * Returns [num] if it is even and has no prime factor greater than [limit],
  * or makes the number even and adds [idnum] until it reaches a value with this
@@ -875,6 +805,9 @@ int niceFrame(int num, int idnum, int limit)
 
 /*
     $Log$
+    Revision 3.13  2008/06/24 04:45:26  mast
+    Moved taper at fill function to libcfshr
+
     Revision 3.12  2008/05/27 05:57:32  mast
     Changed to not scale when converting to bytes if min/max=0
 
