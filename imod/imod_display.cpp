@@ -309,6 +309,10 @@ int imodDraw(ImodView *vw, int flag)
     lastTime = time;
   }
 
+  // Skip out if there are no image windows yet to avoid premature bwfloat call
+  if (!vw->ctrlist || !ilistSize(vw->ctrlist->list))
+    return 0;
+
   /* Check for black/white change on float */
   if (imod_info_bwfloat(vw, cz, time) && App->rgba)
     flag |= IMOD_DRAW_IMAGE;            // DO WE NEED NOSYNC?
@@ -553,6 +557,9 @@ int imodFindQGLFormat(ImodApp *ap, char **argv)
 /*
 
 $Log$
+Revision 4.25  2008/11/28 06:41:40  mast
+Test on current point object in model view for model draw
+
 Revision 4.24  2008/05/23 19:23:32  xiongq
 Use multithreads to compute isosurface. Move the calling of imodvIsosurfaceUpdate() from imod_info_cb.cpp to imod_display.cpp.
 
