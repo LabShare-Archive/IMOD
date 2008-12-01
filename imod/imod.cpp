@@ -295,7 +295,7 @@ int main( int argc, char *argv[])
 
   for (argScan = 0; argScan <= doStartup; argScan++) { 
     mrc_init_li(&li, NULL);
-    ivwInit(&vi);
+    ivwInit(&vi, false);
     vi.li = &li;
     plistfname = NULL;
     xyzwinopen   = FALSE;
@@ -962,6 +962,9 @@ bool imodDebug(char key)
 /*
 
 $Log$
+Revision 4.67  2008/05/27 05:38:30  mast
+Added angle file option, middle section and autocontrasting at startup
+
 Revision 4.66  2008/04/02 04:39:40  mast
 Fixed test for image files entered with -R
 

@@ -108,6 +108,7 @@ typedef struct ViewInfo
   ImodImageFile   *imageList;
   ImodImageFile   *hdr;
 
+  int      modelViewVi;       /* This is a viewinfo from model view */
   int      vmSize;            /* virtual memory z-section size. */
   ivwSlice *vmCache;          /* the cache of z-section data.   */
   int      vmCount;           /* Use counter for cache */
@@ -265,6 +266,9 @@ bool imodDebug(char key);
 
 /*
 $Log$
+Revision 3.43  2008/05/27 05:38:51  mast
+Various new variables
+
 Revision 3.42  2008/04/29 22:30:56  mast
 Added array for keeping track of extra objects
 

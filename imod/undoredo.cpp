@@ -75,6 +75,7 @@
 #include "imod_edit.h"
 #include "imod_model_edit.h"
 #include "imodv_objed.h"
+#include "imodv_gfx.h"
 #include "imodv_modeled.h"
 #include "imod_display.h"
 #include "imod_info_cb.h"
@@ -727,10 +728,14 @@ void UndoRedo::finishUndoRedo()
 
   // Do some things
   imodSelectionListClear(mVi);
-  imod_setxyzmouse();
-  imod_info_setobjcolor();
+  if (mVi->modelViewVi) {
+    imodvDraw(Imodv);
+  } else {
+    imod_setxyzmouse();
+    imod_info_setobjcolor();
+    imodModelEditUpdate();
+  }
   imodvObjedNewView();
-  imodModelEditUpdate();
   imodvPixelChanged();
   mID %= 2000000000;
   if (mNumFreedInPool > ilistSize(mItemPool) / 8)
@@ -1035,9 +1040,10 @@ int UndoRedo::shiftModel(BackupItem *item, int dir)
 // Update the undo and redo button states
 void UndoRedo::updateButtons()
 {
-  ImodInfoWidget->setUndoRedo
-    (mUndoIndex != 0 && ilistSize(mUnitList) > 0,
-     mUndoIndex >=0 && mUndoIndex < ilistSize(mUnitList));
+  if (ImodInfoWidget)
+    ImodInfoWidget->setUndoRedo
+      (mUndoIndex != 0 && ilistSize(mUnitList) > 0,
+       mUndoIndex >=0 && mUndoIndex < ilistSize(mUnitList));
 }
 
 // Compute bytes occupied by a contour in the pool; add points and sizes 
@@ -1383,6 +1389,9 @@ void undoFlushUnit(ImodView *vi) {
  
 /*
   $Log$
+  Revision 4.12  2008/01/27 06:21:32  mast
+  Changes for object group component of model
+
   Revision 4.11  2007/12/04 22:05:48  mast
   Made the essay accessible from sourcedoc
 

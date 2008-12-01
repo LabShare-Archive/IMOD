@@ -49,8 +49,8 @@ static char *truncate_name(char *name, int limit);
 
 /* Global variables: the window, and its controls  */
 
-InfoWindow *ImodInfoWin;
-InfoControls *ImodInfoWidget;
+InfoWindow *ImodInfoWin = NULL;
+InfoControls *ImodInfoWidget = NULL;
 
 
 /*
@@ -679,6 +679,9 @@ static char *truncate_name(char *name, int limit)
 /*
 
 $Log$
+Revision 4.50  2008/07/30 17:07:42  mast
+Fixed keep on top, broken by autocontrast at start
+
 Revision 4.49  2008/05/27 05:52:11  mast
 New menu items: checkable RGB to gray snaps, isosurface.  Also start
 a timer to do autocontrast after all windows opened

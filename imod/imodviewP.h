@@ -28,7 +28,7 @@ void ivwBindMouse(ImodView *vw);
 
 int  ivwScale(ImodView *vw);
 int  ivwFlip(ImodView *vw);
-void ivwInit(ImodView *vi);
+void ivwInit(ImodView *vi, bool modview);
 int  ivwPointVisible(ImodView *vw, Ipoint *pnt);
 
 int  imodImageFileDesc(FILE *fin);
@@ -65,6 +65,9 @@ void startExtraObjectIfNone(ImodView *vi);
 /*
 
 $Log$
+Revision 1.11  2008/11/28 06:39:12  mast
+Made extra object function global
+
 Revision 1.10  2007/11/27 17:56:38  mast
 Rearranged log
 

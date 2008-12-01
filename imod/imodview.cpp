@@ -45,7 +45,7 @@ static int ivwCheckBinning(ImodView *vi, int nx, int ny, int nz);
 static void deletePlistBuf(void);
 
 /* default settings for the view info structure. */
-void ivwInit(ImodView *vi)
+void ivwInit(ImodView *vi, bool modview)
 {
   if (!vi)
     return;
@@ -57,6 +57,17 @@ void ivwInit(ImodView *vi)
   vi->xysize = 0;
 
   vi->nt = 0; vi->ct = 0;
+
+  // Initialize things needed for model view and then stop if model view only
+  vi->imod       = NULL;
+  vi->selectionList = NULL;
+  vi->extraObj = NULL;
+  vi->extraObjInUse = NULL;
+  startExtraObjectIfNone(vi);
+  vi->undo = new UndoRedo(vi);
+  vi->modelViewVi = modview ? 1 : 0;
+  if (modview)
+    return;
      
   imcSetMovierate(vi, 0);
 
@@ -71,12 +82,10 @@ void ivwInit(ImodView *vi)
   vi->ax         = NULL;
   vi->ctrlist    = NULL;
 
-  vi->imod       = NULL;
   vi->idata      = NULL;
   vi->fp         = NULL;
 
   vi->imageList  = NULL;
-  vi->selectionList = NULL;
   vi->numTiltAngles = 0;
   vi->tiltAngles = NULL;
 
@@ -98,9 +107,6 @@ void ivwInit(ImodView *vi)
   vi->rawImageStore = 0;
   vi->multiFileZ = 0;
   vi->noReadableImage = 0;
-  vi->extraObj = NULL;
-  vi->extraObjInUse = NULL;
-  startExtraObjectIfNone(vi);
   vi->linePtrs = NULL;
   vi->linePtrMax = 0;
   vi->blankLine = NULL;
@@ -110,7 +116,6 @@ void ivwInit(ImodView *vi)
   vi->grayRGBs = 0;
   vi->reloadable = 0;
   vi->colormapImage = 0;
-  vi->undo = new UndoRedo(vi);
 }
 
 /*
@@ -2380,7 +2385,7 @@ Iobj *ivwGetExtraObject(ImodView *inImodView)
 
 int ivwGetFreeExtraObjectNumber(ImodView *vi)
 {
-  int i, found = 0;
+  int i;
   for (i = 1; i < vi->numExtraObj; i++) {
     if (!vi->extraObjInUse[i]) {
       vi->extraObjInUse[i] = 1;
@@ -2764,6 +2769,9 @@ void ivwBinByN(unsigned char *array, int nxin, int nyin, int nbin,
 /*
 
 $Log$
+Revision 4.74  2008/11/28 06:38:56  mast
+Made start extra object function global
+
 Revision 4.73  2008/08/22 23:59:17  mast
 Mark default extra object as in use so it will be returned
 

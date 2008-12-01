@@ -474,9 +474,7 @@ int imodv_main(int argc, char **argv)
 
   // Make a vi structure and initialize extra objects
   a->vi = (ImodView *)malloc(sizeof(ImodView));
-  a->vi->extraObj = NULL;
-  a->vi->extraObjInUse = NULL;
-  startExtraObjectIfNone(a->vi);
+  ivwInit(a->vi, true);
 
   // Make a color from the named color; fallback to black
   QString qstr = a->rbgname;
@@ -497,6 +495,7 @@ int imodv_main(int argc, char **argv)
   if (load_models(argc - i, &(argv[i]), Imodv))
     exit(3);
 
+  a->vi->imod = a->imod;
   a->iconPixmap = new QPixmap(QImage(b3dicon));
 
   if (openWindow(Imodv))
@@ -672,22 +671,22 @@ int imodvByteImagesExist()
 // Pass changes to undo if not in standalone mode
 void imodvRegisterModelChg()
 {
-  if (Imodv->standalone)
-    return;
+  //if (Imodv->standalone)
+  //  return;
   Imodv->vi->undo->modelChange();
 }
 
 void imodvRegisterObjectChg(int object)
 {
-  if (Imodv->standalone || object >= Imodv->imod->objsize)
+  if (/*Imodv->standalone ||*/ object >= Imodv->imod->objsize)
     return;
   Imodv->vi->undo->objectPropChg(object);
 }
 
 void imodvFinishChgUnit()
 {
-  if (Imodv->standalone)
-    return;
+  //if (Imodv->standalone)
+  //  return;
   Imodv->vi->undo->finishUnit();
 }
 
@@ -727,6 +726,9 @@ void imodvQuit()
 
 /*
 $Log$
+Revision 4.41  2008/11/28 06:41:13  mast
+Manage extra objects
+
 Revision 4.40  2008/11/14 19:28:00  mast
 Only warn on no depth buffer if actually using visual with none.
 

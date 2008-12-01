@@ -376,11 +376,9 @@ void imodvKeyPress(QKeyEvent *event)
 
     // DNM 12/29/02: actually  implement this as an on-off for image view
   case Qt::Key_Z:
-    if (a->standalone)
-      break;
     if (ctrl) 
       inputUndoRedo(a->vi, 0);
-    else {
+    else if (!a->standalone) {
       a->texMap = 1 - a->texMap;
       imodvImageUpdate(a);
       imodvDraw(a);
@@ -388,7 +386,7 @@ void imodvKeyPress(QKeyEvent *event)
     break;
 
   case Qt::Key_Y:
-    if (!a->standalone && ctrl) 
+    if (ctrl) 
       inputUndoRedo(a->vi, 1);
     break;
 
@@ -420,10 +418,11 @@ void imodvKeyPress(QKeyEvent *event)
   case Qt::Key_A:
 
     // 8/29/06: Take accelerator for save as away so this will work
-    if (ctrl && !a->standalone) {
+    if (ctrl) {
       imodvSelectVisibleConts(a, pickedObject, pickedContour);
       imodvDraw(a);
-      imod_setxyzmouse();
+      if (!a->standalone)
+        imod_setxyzmouse();
       /*imodPrintStderr("current %d %d  picked %d %d\n",
                       a->imod->cindex.object, 
                       a->imod->cindex.contour, pickedObject,
@@ -436,7 +435,7 @@ void imodvKeyPress(QKeyEvent *event)
     break;
 
   case Qt::Key_D:
-    if (shifted && !a->standalone && pickedContour >= 0 &&
+    if (shifted && pickedContour >= 0 &&
         ((a->imod->cindex.object == pickedObject && 
           a->imod->cindex.contour == pickedContour) || 
          imodSelectionListQuery(a->vi, pickedObject, pickedContour) > -2)) {
@@ -1097,8 +1096,10 @@ static void processHits (ImodvApp *a, GLint hits, GLuint buffer[], bool moving)
   if (co < 0 || pt == -1 || ob >= a->mod[mo]->objsize)
     return;
 
-  a->cm = mo;
-  a->imod = a->mod[mo];
+  // 11/29/08: call central select function if changing model
+  if (a->cm != mo)
+    imodvSelectModel(a, mo);
+
   if (ob >= 0)
     obj = &a->imod->obj[ob];
   else {
@@ -1124,16 +1125,17 @@ static void processHits (ImodvApp *a, GLint hits, GLuint buffer[], bool moving)
   if (obj->contsize) {
     indSave = a->imod->cindex;
     imodSetIndex(a->imod, ob, co, pt);     
-    if (!a->standalone){
-      if (!moving || imodSelectionListQuery(a->vi, ob, co) < -1)
-        imodSelectionNewCurPoint(a->vi, a->imod, indSave, ctrlDown);
+    if (!moving || imodSelectionListQuery(a->vi, ob, co) < -1)
+      imodSelectionNewCurPoint(a->vi, a->imod, indSave, ctrlDown);
+    if (!a->standalone)
       imod_setxyzmouse();
-      pickedContour = a->imod->cindex.contour;
-      pickedObject = a->imod->cindex.object;
-      if (imodDebug('p'))
-        imodPrintStderr("hit %d %d  current picked %d %d\n", ob, co, 
-                        pickedObject, pickedContour);
-    }
+    else
+      imodvDraw(a);
+    pickedContour = a->imod->cindex.contour;
+    pickedObject = a->imod->cindex.object;
+    if (imodDebug('p'))
+      imodPrintStderr("hit %d %d  current picked %d %d\n", ob, co, 
+                      pickedObject, pickedContour);
   } else {
 
     // Otherwise look up position in mesh
@@ -1281,6 +1283,9 @@ void imodvMovieTimeout()
 /*
 
 $Log$
+Revision 4.43  2008/11/28 06:44:00  mast
+Added hot key to toggle current point
+
 Revision 4.42  2008/08/19 20:01:20  mast
 Made it treat keypad + like =
 

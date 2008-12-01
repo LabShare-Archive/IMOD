@@ -101,7 +101,9 @@ ImodvWindow::ImodvWindow(bool standAlone, int enableDepthDB,
   mViewMenu->insertItem("Scale &Bar...", VVIEW_MENU_SCALEBAR);
 
   mViewMenu->insertItem("Do&uble Buffer", VVIEW_MENU_DB);
-  mViewMenu->setAccel(Key_D, VVIEW_MENU_DB);
+
+  // This made it act on a shifted D only and steal it from imodv_input
+  //mViewMenu->setAccel(Key_D, VVIEW_MENU_DB);
   mViewMenu->setItemChecked(VVIEW_MENU_DB, enableDepthDB >= 0);
   mViewMenu->setItemEnabled(VVIEW_MENU_DB, 
                             enableDepthDB >= 0 && enableDepthSB >= 0);
@@ -318,6 +320,9 @@ void ImodvGL::wheelEvent ( QWheelEvent * e)
 /*
 
 $Log$
+Revision 4.19  2008/11/28 06:43:32  mast
+Added bounding box and current point
+
 Revision 4.18  2008/10/02 22:43:03  mast
 Add stereo arguments to constructor for requesting stereo visual
 

@@ -436,7 +436,7 @@ void imodvDraw_models(ImodvApp *a)
   return;
 }
 
-// Sets the values for current contour and surface and object being drawing,
+// Sets the values for current contour and surface and object being drawn,
 // and object and contour number if contour is to be drawn thick
 static void set_curcontsurf(int ob, Imod* imod)
 {
@@ -459,8 +459,7 @@ static void set_curcontsurf(int ob, Imod* imod)
   thickCont = -1;
   thickObj = -1;
   if (obj->flags & IMOD_OBJFLAG_THICK_CONT) {
-    if (imod->cindex.object == ob || 
-        (!Imodv->standalone && ilistSize(Imodv->vi->selectionList)))
+    if (imod->cindex.object == ob || ilistSize(Imodv->vi->selectionList))
       thickCont = imod->cindex.contour;
     if (imod->cindex.object == ob) 
       thickObj = ob;
@@ -470,7 +469,7 @@ static void set_curcontsurf(int ob, Imod* imod)
 static bool checkThickerContour(int co)
 {
   return ((co == thickCont && objBeingDrawn == thickObj )|| 
-          (!Imodv->standalone && thickCont >= 0 && imodSelectionListQuery
+          (thickCont >= 0 && imodSelectionListQuery
            (Imodv->vi, objBeingDrawn, co) > -2));
 }
 
@@ -730,8 +729,7 @@ static int checkContourDraw(Icont *cont, int co, int checkTime)
       return 0;
 
     if (Imodv->current_subset / 2 == 2 && curcont >= 0 && co != curcont &&
-        (Imodv->standalone || 
-         imodSelectionListQuery(Imodv->vi, Imodv->imod->cindex.object, co)))
+        imodSelectionListQuery(Imodv->vi, Imodv->imod->cindex.object, co) < 0)
       return 0;
     return 1;
 }
@@ -2542,6 +2540,9 @@ static void drawCurrentClipPlane(ImodvApp *a)
 /*
 
 $Log$
+Revision 4.44  2008/11/28 06:45:05  mast
+Modify current point object at right point for it to be drawn
+
 Revision 4.43  2008/10/02 22:46:41  mast
 Change scaling for HW stereo only for SGI
 

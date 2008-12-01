@@ -24,6 +24,7 @@
 #include "imodv_views.h"
 #include "imodv_modeled.h"
 #include "control.h"
+#include "undoredo.h"
 #include "imod_model_edit.h"
 
 struct imodv_modeled
@@ -117,6 +118,14 @@ int imodvSelectModel(ImodvApp *a, int ncm)
   if (a->ob >= a->imod->objsize)
     a->ob = 0;
   a->obj = &(a->imod->obj[a->ob]);
+
+  // If stansalone, maintain items in the fake vi: clear out undo and selection
+  // list
+  if (a->standalone) {
+    a->vi->imod = a->imod;
+    a->vi->undo->clearUnits();
+    imodSelectionListClear(a->vi);
+  }
      
   if (med->dia){
     
@@ -228,5 +237,8 @@ void imodvPixelChanged()
 /*  
 
 $Log$
+Revision 4.9  2008/11/28 06:47:14  mast
+Update bounding box when model changes
+
 
 */
