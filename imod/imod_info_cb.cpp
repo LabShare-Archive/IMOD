@@ -62,6 +62,7 @@ void imodInfoNewOCP(int which, int value, int edited)
   int ob, co, pt;
   Imod *imod = App->cvi->imod;
   imodGetIndex(imod, &ob, &co, &pt);
+  Iindex indOld = imod->cindex;
 
   ImodInfoWin->setFocus();
 
@@ -92,7 +93,7 @@ void imodInfoNewOCP(int which, int value, int edited)
       imod->cindex.point = -1;
     } else {
       imodSetIndex(imod, ob, value, pt);
-      inputRestorePointIndex(App->cvi);
+      inputRestorePointIndex(App->cvi, &indOld);
     }
     break;
 
@@ -343,7 +344,7 @@ typedef struct {
 /* Static variables for keeping track of floating */
 static float ref_black = 0.;
 static float ref_white = 255.;
-static int last_section = 0;
+static int last_section = -1;
 static int last_time = 0;
 static MeanSDData *secData = NULL;
 static int table_size = 0;
@@ -398,9 +399,9 @@ static void getSampleLimits(ViewInfo *vw, int &ixStart, int &iyStart,
 {
   float matt = 0.05;
   if (!float_subsets || zapSubsetLimits(vw, ixStart, iyStart, nxUse, nyUse)) {
-    ixStart = matt * vw->xsize;
+    ixStart = (int)(matt * vw->xsize);
     nxUse = vw->xsize - 2 * ixStart;
-    iyStart = matt * vw->ysize;
+    iyStart = (int)(matt * vw->ysize);
     nyUse = vw->ysize - 2 * iyStart;
   }
   sample = 10000.0/(((double)nxUse) * nyUse);
@@ -421,7 +422,8 @@ int imod_info_bwfloat(ImodView *vw, int section, int time)
   unsigned char **image;
   int retval = 0;
 
-  if (float_on) {
+  // Skip through if this is the first call; there is no reference
+  if (float_on && last_section >= 0) {
 
     /* Make sure table exists and is the right size */
     tdim = ivwGetMaxTime(vw) + 1;
@@ -542,8 +544,8 @@ int imod_info_bwfloat(ImodView *vw, int section, int time)
       newblack = B3DMAX(0, B3DMIN(newblack, 255));
       newwhite = B3DMAX(newblack, B3DMIN(newwhite, 255));
       if (imodDebug('i')) {
-        int meanmap = 255 * (secData[isec].mean - newblack) / 
-          B3DMAX(1, newwhite - newblack);
+        int meanmap = (int)(255 * (secData[isec].mean - newblack) / 
+                            B3DMAX(1, newwhite - newblack));
         float sdmap = 255 * (secData[isec].sd) / B3DMAX(1,newwhite - newblack);
         imodPrintStderr("mean = %d  sd = %.2f\n", meanmap, sdmap);
       }
@@ -803,6 +805,9 @@ void imod_imgcnt(char *string)
 
 /*
 $Log$
+Revision 4.31  2008/11/07 05:31:22  mast
+Prevented new black level from being > 255
+
 Revision 4.30  2008/05/27 05:54:21  mast
 Update image process window on xyz change
 
