@@ -72,6 +72,8 @@ extern "C" {
                        int ny, int nxtap, int nytap);
   double sliceEdgeMean(float *array, int nxdim, int ixlo, int ixhi, int iylo,
                        int iyhi);
+  void sliceSplitFill(float *array, int nxbox, int nybox, float *brray,
+                      int nxdim, int nx, int ny, int iffill, float fillin);
 
   /* taperatfill.c */
   int sliceTaperAtFill(Islice *sl, int ntaper, int inside);
@@ -121,6 +123,17 @@ extern "C" {
   void amatToRotmagstr(float a11, float a12, float a21, float a22, 
                          float *theta, float *smag, float *str, float *phi);
 
+  /* percentile.c */
+  float percentileFloat(int s, float *r, int num);
+  int percentileInt(int s, int *r, int num);
+
+  /* beadfind.c */
+  void makeModelBead(int boxSize, float beadSize, float *array);
+  double beadIntegral(float *array, int nxdim, int nx, int ny, float rCenter,
+                      float rInner, float rOuter, float xcen, float ycen,
+                      float *cenmean, float *annmean, float *temp, 
+                      float annPct, float *median);
+
 #ifdef __cplusplus
 }
 #endif
@@ -131,6 +144,9 @@ extern "C" {
 /*
 
 $Log$
+Revision 3.8  2008/11/18 22:44:06  mast
+Added amat_to_rotmagstr
+
 Revision 3.7  2008/11/14 19:59:23  mast
 Added simplestat functions
 
