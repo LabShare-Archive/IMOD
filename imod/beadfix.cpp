@@ -42,6 +42,8 @@
 // to imod.h and control.h
 //#include "imodplugin.h"
 #include "parse_params.h"
+#include "sliceproc.h"
+#include "cfft.h"
 #include "imod.h"
 #include "imod_client_message.h"
 #include "control.h"
@@ -1469,111 +1471,207 @@ int BeadFixer::modifyPoint(float imx, float imy)
 }
 
 /*
+static void printArray(float *filtBead, int nxdim, int nx, int ny)
+{
+  int ix, iy;
+  printf("%d x %d array:\n", nx, ny);
+  for (iy = 0; iy < ny; iy++) {
+    for (ix = 0; ix < nx; ix++)
+      printf("%3.0f ", filtBead[ix + iy * nxdim]);
+    printf("\n");
+  }
+} */
+
+/*
  * Find a nearby point with a large bead integral on the current section
  * and return the modified coordinates
  */
+#define KERNEL_MAXSIZE 7
 int BeadFixer::findCenter(float &imx, float &imy, int curz)
 {
   ImodView *vw = plug->view;
-  float edgeWidth = 1.5f;
-  float buffer = 1.5f;
   float fartherCrit = 2.f;
   int ipolar = plug->lightBead ? 1 : -1;
 
   int xcen = (int)floor(imx + 0.5);
   int ycen = (int)floor(imy + 0.5);
-  float radius = plug->diameter / 2.;
-  int search = (int)B3DMAX(6, B3DMIN(MAX_DIAMETER, 3 * radius));
+  float beadSize = plug->diameter;
+  float radius = beadSize / 2.;
+  int search = (int)B3DMAX(6, B3DMIN(MAX_DIAMETER, 4 * radius));
 
-  float sumrad = radius + buffer;
-  int look = (int)(2. * (sumrad + edgeWidth) + 2.);
-  float radCrit = sumrad * sumrad;
-  float edgeCrit = (sumrad + edgeWidth) * (sumrad + edgeWidth);
-  double xsum, ysum, wsum, wsum2, innerCrit, outerCrit, ringx, ringy;
-  double grandx, grandy, grandMax, ringMax, radsq;
-  int numRing, ring, x, y, ix, iy, nedge, xsize, ysize, zsize;
-  float pixval, edge,sum;
-  int xstart, xend, ystart, yend;
+  double grandx, grandy, grandMax, delx, dely, cx, cy;
+  int numRing, ring, x, y, ix, iy, xsize, ysize, zsize, ind, ixst, ixnd;
+  int ixStart, iyStart, nxpad, nypad, nxpdim, nxout, nyout, ixofs, iyofs;
+  float kernel[KERNEL_MAXSIZE * KERNEL_MAXSIZE];
+  int boxSize, boxScaled, margin, ndat;
+  float scaleFactor, beadCenOfs, cenmean, annmean, rCenter, rInner, rOuter;
+  float scaledSize = 8.;
+  int linear = 1;
+  int forward = 0;
+  int inverse = 1;
+  float center = 2.;
+  float minInterp = 1.4f;
+  float kernelSigma = 0.85f;
+  float xBeadOfs, yBeadOfs, xOffset, yOffset, peakXcen, peakYcen, cval;
+  float ringMax[10], ringXcen[10], ringYcen[10];
+  Islice *bytesl, *sl;
+  float *corrSlice, *fullBead, *filtSlice, *splitBead;
+
+  for (ix = 0; ix < 10; ix++)
+    ringMax[ix] = -1.e30;
 
   ivwGetImageSize(plug->view, &xsize, &ysize, &zsize);
+
+  // NOTE: there are several duplicate variables so that code can be kept
+  // identical to imodfindbeads in places
+
+  // Get radii for the integral
+  rCenter = B3DMAX(1., 0.34 * beadSize);
+  rInner = B3DMAX(rCenter + 1., 0.5 * beadSize + 1.);
+  rOuter = rInner + 2.;
+
+  // Get sizes for box and scaled box and correlation
+  scaleFactor = beadSize / scaledSize;
+  boxSize = 2 * (search + 1) + plug->diameter;
+  boxSize = B3DMIN(boxSize, B3DMIN(xsize, ysize));
+  scaledSobel(NULL, boxSize, boxSize, scaleFactor, minInterp, linear, -1., 
+              NULL, &boxScaled, &nyout, &xBeadOfs, &yBeadOfs);
+  beadCenOfs = (boxSize / 2. -  xBeadOfs) / scaleFactor - boxScaled / 2;
+  nxpad = niceFrame(boxScaled, 2, 19);
+  nypad = nxpad;
+  nxpdim = nxpad + 2;
+
+  corrSlice = (float *)malloc(nxpdim * nypad * sizeof(float));
+  fullBead = (float *)malloc(boxSize * boxSize * sizeof(float));
+  filtSlice = (float *)malloc(boxScaled * boxScaled * sizeof(float));
+  splitBead = (float *)malloc(nxpdim * nypad * sizeof(float));
+  bytesl = sliceCreate(boxSize, boxSize, SLICE_MODE_BYTE);
+  if (!corrSlice || !fullBead || !filtSlice || !splitBead || !bytesl) {
+    wprint("\aCannot get memory for autocentering bead\n");
+    if (corrSlice)
+      free(corrSlice);
+    if (fullBead)
+      free(fullBead);
+    if (filtSlice)
+      free(filtSlice);
+    if (splitBead)
+      free(splitBead);
+    if (bytesl)
+      sliceFree(bytesl);
+    return 1;
+  }
+
+  // Get the model
+  makeModelBead(boxSize, beadSize, fullBead);
+  scaledSobel(fullBead, boxSize, boxSize, scaleFactor, minInterp, linear, 
+              center, filtSlice, &nxout, &nyout, &xBeadOfs, &yBeadOfs);
+  sliceSplitFill(filtSlice, boxScaled, boxScaled, splitBead, nxpdim, nxpad,
+                 nypad, 0, 0.);
+  todfft(splitBead, &nxpad, &nypad, &forward);
+
+  // Get the area to correlate
+  ixStart = B3DMAX(0, xcen - boxSize / 2);
+  if (ixStart + boxSize > xsize)
+    ixStart = xsize - boxSize;
+  iyStart = B3DMAX(0, ycen - boxSize / 2);
+  if (iyStart + boxSize > ysize)
+    iyStart = ysize - boxSize;
+  for (y = 0; y < boxSize; y++)
+    for (x = 0; x < boxSize; x++)
+      bytesl->data.b[x + y * boxSize] = ivwGetValue(vw, x + ixStart, 
+                                                    y + iyStart, curz);
+
+  // Filter
+  scaledGaussianKernel(&kernel[0], &ndat, KERNEL_MAXSIZE, kernelSigma);
+  sl = slice_mat_filter(bytesl, kernel, ndat);
+  sliceFree(bytesl);
+  free(fullBead);
+  if (!sl) {
+    wprint("\aFailed to get memory for kernel filtered box\n");
+    free(splitBead);
+    free(filtSlice);
+    free(corrSlice);
+    return 1;
+  }
+  //printArray(sl->data.f, boxSize, boxSize, boxSize);
+  scaledSobel(sl->data.f, boxSize, boxSize, scaleFactor, minInterp, linear,
+              2., filtSlice, &nxout, &nyout,  &xOffset, &yOffset);
+  //printArray(filtSlice, nxout, nxout, nxout);
+
+  // Pad into array and correlate it
+  sliceTaperOutPad(filtSlice, SLICE_MODE_FLOAT, boxScaled, boxScaled, 
+                   corrSlice, nxpdim, nxpad, nypad, 0, 0.);
+  todfft(corrSlice, &nxpad, &nypad, &forward);
+  conjugateProduct(corrSlice, splitBead, nxpad, nypad);
+  todfft(corrSlice, &nxpad, &nypad, &inverse);
+
+  margin = (int)B3DMAX(1., radius / scaleFactor);
+  ixst = (nxpad - nxout) / 2 + margin;
+  ixnd = ixst + nxout - 2 * margin;
+
+  for (iy = ixst; iy < ixnd; iy++) {
+    for (ix = ixst; ix < ixnd; ix++) {
+      ind = ix + iy * (nxpdim);
+      cval = corrSlice[ind];
+      if (corrSlice[ind - 1] < cval && corrSlice[ind + 1] <= cval &&
+          corrSlice[ind - nxpdim] < cval && 
+          corrSlice[ind + nxpdim] <= cval &&
+          corrSlice[ind - 1 - nxpdim] < cval && 
+          corrSlice[ind + 1 + nxpdim] < cval && 
+          corrSlice[ind + 1 - nxpdim] < cval && 
+          corrSlice[ind - 1 + nxpdim] < cval) {
+
+        cx = parabolicFitPosition(corrSlice[ind - 1], cval,
+                                  corrSlice[ind + 1]);
+        cy = parabolicFitPosition(corrSlice[ind - nxpdim], cval, 
+                                  corrSlice[ind + nxpdim]);
+
+        // integer offset in scaled, filtered image
+        ixofs = ix - (nxpad - nxout) / 2;
+        iyofs = iy - (nypad - nyout) / 2;
+        
+        // Center of feature in full original box
+        peakXcen = (ixofs + cx + beadCenOfs) * scaleFactor + xOffset;
+        peakYcen = (iyofs + cy + beadCenOfs) * scaleFactor + yOffset;
+        //imodPrintStderr("Peak %g at %f, %f\n", cval, peakXcen, peakYcen);
+
+        // Distance from the clicked point and ring index
+        delx = peakXcen - (xcen - ixStart);
+        dely = peakYcen - (ycen - iyStart);
+        ring = (int)(sqrt(delx * delx + dely * dely) / radius);
+        if (cval > ringMax[ring]) {
+
+          // It is a higher peak for the ring: now verify the polarity is right
+          delx = beadIntegral(sl->data.f, boxSize, boxSize, boxSize, rCenter,
+                              rInner, rOuter, peakXcen, peakYcen, &cenmean,
+                              &annmean, NULL, 0., NULL);
+          if (delx * ipolar > 0.) {
+            ringMax[ring] = cval;
+            ringXcen[ring] = peakXcen + ixStart;
+            ringYcen[ring] = peakYcen + iyStart;
+          }
+        }
+      }
+    }
+  }
+  free(splitBead);
+  free(filtSlice);
+  free(corrSlice);
+  sliceFree(sl);
 
   // Search in radius-sized rings from the selected point; in each ring
   // find the point with the largest centroid
   grandMax = -1.e30;
   numRing = (int)(search / radius + 1.);
   for (ring = 0; ring < numRing; ring++) {
-    innerCrit = ring * radius * ring * radius;
-    outerCrit = (ring + 1) * radius * (ring + 1) * radius;
-    ringMax = -1.e30;
-    for (x = xcen - search; x <= xcen + search; x++) {
-      if (x < 0 || x >= xsize)
-        continue;
-      for (y = ycen - search; y <= ycen + search; y++){
-        radsq = (x -xcen) * (x -xcen) + (y - ycen) * (y - ycen);
-        if (radsq < innerCrit || radsq >= outerCrit || y < 0 || y >= ysize)
-          continue;
+    //imodPrintStderr("ring %d max %g at %.2f,%.2f\n", ring, ringMax[ring], 
+    //                ringXcen[ring],ringYcen[ring]);
 
-        // Get edge
-        sum = 0.;
-        nedge = 0;
-        ystart = B3DMAX(0, y - look);
-        yend = B3DMIN(ysize - 1, y + look); 
-        xstart = B3DMAX(0, x - look);
-        xend = B3DMIN(xsize - 1, x + look); 
-                        
-        for (iy = ystart; iy <= yend; iy++) {
-          for (ix = xstart; ix <= xend; ix++) {
-            radsq = (ix + 0.5 - x) * (ix + 0.5 - x) + (iy + 0.5 - y) +
-              (iy + 0.5 - y);
-            if (radsq > radCrit && radsq <= edgeCrit) {
-              nedge++;
-              sum += ivwGetValue(vw, ix, iy, curz);
-            }
-          }
-        }
-        edge = sum / nedge;
-        //imodPrintStderr("At %d %d  edge %.1f  %d pix", x, y, edge, nedge);
-        
-        // Get integral above edge mean and CG
-        nedge = 0;
-        wsum = xsum = ysum = wsum2 = 0.;
-        for (iy = ystart; iy <= yend; iy++) {
-          for (ix = xstart; ix <= xend; ix++) {
-            radsq = (ix + 0.5 - x) * (ix + 0.5 - x) + (iy + 0.5 - y) *
-              (iy + 0.5 - y);
-            if (radsq <= radCrit) {
-              pixval = ivwGetValue(vw, ix, iy, curz) - edge;
-              wsum2 += pixval;
-              if (ipolar * pixval > 0.) {
-                xsum += ix * pixval;
-                ysum += iy * pixval;
-                wsum += pixval;
-                nedge++;
-              }
-            }
-          }
-        }
-
-        //imodPrintStderr("wsum2 %.0f  x %.2f  y %.2f  %d pix\n"
-        //                , wsum2, xsum / wsum, ysum/wsum, nedge);
-        // Find max in the ring
-        if (wsum != 0. && wsum2 * ipolar > ringMax) {
-          ringMax = wsum2 * ipolar;
-          ringx = xsum/wsum + 0.5;
-          ringy = ysum/wsum + 0.5;
-        }
-      }
-    }
-    //imodPrintStderr("ring %d max %f at %f,%f\n", ring, ringMax, ringx,ringy);
-
-    // If the max is sufficiently larger than the previous one, or it is
-    // larger and within one radius, take it as a new max
-    if (ringMax > fartherCrit * grandMax || 
-        (ringMax > grandMax && (ringx - grandx) * (ringx - grandx) + 
-         (ringy - grandy) * (ringy - grandy) < radius * radius)) {
-      grandx = ringx;
-      grandy = ringy;
-      grandMax = ringMax;
+    // If the max is sufficiently larger than the previous one
+    if (ringMax[ring] > fartherCrit * grandMax) {
+      grandx = ringXcen[ring];
+      grandy = ringYcen[ring];
+      grandMax = ringMax[ring];
     }
   }
   //imodPrintStderr("grand max %f at %f,%f\n",  grandMax, grandx, grandy);
@@ -1912,7 +2010,7 @@ BeadFixer::BeadFixer(QWidget *parent, const char *name)
 
   diameterHbox = new QHBox(this);
   mLayout->addWidget(diameterHbox);
-  QLabel *label = new QLabel("Diameter", diameterHbox);
+  new QLabel("Diameter", diameterHbox);
   diameterSpin = new QSpinBox(1, MAX_DIAMETER, 1, diameterHbox);
   diameterSpin->setFocusPolicy(QWidget::ClickFocus);
   QObject::connect(diameterSpin, SIGNAL(valueChanged(int)), this,
@@ -2330,6 +2428,9 @@ void BeadFixer::keyReleaseEvent ( QKeyEvent * e )
 /*
 
 $Log$
+Revision 1.49  2008/11/29 23:27:41  mast
+Oops, needed to ceck for keypad on that insert button
+
 Revision 1.48  2008/11/29 22:09:53  mast
 Added skip list, mean residual output, Insert key, used extra object properly
 
