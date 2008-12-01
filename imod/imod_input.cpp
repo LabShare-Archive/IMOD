@@ -32,6 +32,7 @@
 #include "imod_info_cb.h"
 #include "imod_cont_edit.h"
 #include "imodv.h"
+#include "imodv_gfx.h"
 #include "imodv_objed.h"
 #include "imodv_isosurface.h"
 #include "imodv_window.h"
@@ -528,29 +529,52 @@ void inputAdjacentContInSurf(ImodView *vw, int direction)
 
 void inputNextContour(ImodView *vw)
 {
+  Iindex indOld = vw->imod->cindex;
   imodNextContour(vw->imod);
-  inputRestorePointIndex(vw);
+  inputRestorePointIndex(vw, &indOld);
   imod_setxyzmouse();
 }
 
 void inputPrevContour(ImodView *vw)
 {
+  Iindex indOld = vw->imod->cindex;
   imodPrevContour(vw->imod);
-  inputRestorePointIndex(vw);
+  inputRestorePointIndex(vw, &indOld);
   imod_setxyzmouse();
 }
 
 /* If the current point index is -1 and the new contour has points, set
-   to starting point */
-void inputRestorePointIndex(ImodView *vw)
+   to starting point.  Otherwise, try to match Z if contour is not planar,
+   or match the fractional position in the contour */
+void inputRestorePointIndex(ImodView *vw, Iindex *oldInd)
 {
-  Icont *cont;
+  Icont *cont = imodContourGet(vw->imod);
+  Icont *oldCont;
+  int pt, oldz, indz, delz, mindelz = 10000000;
+  float dist, mindist = 1.e30;
 
-  if (vw->imod->cindex.point == -1){
-    cont = imodContourGet(vw->imod);
-    if (cont)
-      if (cont->psize)
-        vw->imod->cindex.point = 0;
+  if (cont && cont->psize) {
+    if (vw->imod->cindex.point == -1)
+      vw->imod->cindex.point = 0;
+    else if (oldInd && oldInd->point >= 0)  {
+      
+      // Find the nearest point in X/Y on the closest Z plane 
+      // in X/Y overall
+      oldCont = &vw->imod->obj[oldInd->object].cont[oldInd->contour];
+      oldz = B3DNINT(oldCont->pts[oldInd->point].z);
+      for (pt = 0; pt < cont->psize; pt++) {
+        dist = imodPointDistance(&oldCont->pts[oldInd->point], &cont->pts[pt]);
+        delz = B3DNINT(cont->pts[pt].z) - oldz;
+        if (delz < 0)
+          delz = -delz;
+        if (delz < mindelz || (delz == mindelz && dist < mindist)) {
+          mindelz = delz;
+          mindist = dist;
+          indz = pt;
+        } 
+      }
+      vw->imod->cindex.point = indz;
+    }
   }
 }
 
@@ -751,7 +775,10 @@ void inputDeleteContour(ImodView *vw)
     conew = 0;
   imodSetIndex(imod, obnew, conew, -1);
   imodSelectionListClear(vw);
-  imod_setxyzmouse();
+  if (vw->modelViewVi)
+    imodvDraw(Imodv);
+  else
+    imod_setxyzmouse();
 }
 
 /* Truncate contour at the current point */
@@ -1417,6 +1444,9 @@ bool inputTestMetaKey(QKeyEvent *event)
 
 /*
 $Log$
+Revision 4.44  2008/11/28 06:42:19  mast
+Make it update current point when model point moves with keys
+
 Revision 4.43  2008/11/27 22:32:36  mast
 Added Shift-Home to supplement Insert
 
