@@ -120,7 +120,6 @@ c
       else
         call splitfill(array,nxs,nys,brray,nxdim,nxpad,nypad, iffill, fill)
       endif
-      call meanZero(brray, nxdim, nxpad, nypad)
 C       
 c       get fft of single image, apply filter if desired
 c       
@@ -202,48 +201,9 @@ C
 99    call exitError('READING IMAGE FILE')
       END
 
-
-
-
-c       SPLITFILL splits a small image, dimensions NXBOX by NYBOX in ARRAY,
-c       into the 4 corners of a larger array.  The padded image in BRRAY will
-c       have size NX by NY while the BRRAY will be dimensioned NXDIM by NY
-c       
-      subroutine splitfill(array,nxbox,nybox,brray,nxdim,nx,ny,iffill,fillin)
-      implicit none
-      integer*4 nxbox,nybox,nxdim,nx,ny,iffill
-      real*4 array(nxbox,nybox),brray(nxdim,ny),fillin
-      real*4 fill
-      integer*4 ix, iy, ixlo, iylo, ixnew, iynew
-      real*8 sliceEdgeMean
-c       
-      fill = fillin
-      if(nxbox.ne.nx.or.nybox.ne.ny)then
-        fill = sliceEdgeMean(array, nxbox, 1, nxbox, 1, nybox)
-      endif
-c         
-c       fill whole brray with fill
-      do iy=1,ny
-        do ix=1,nx
-          brray(ix,iy)=fill
-        enddo
-      enddo
-c       
-c       move array into brray, splitting it into the 4 corners of brray
-c       
-      ixlo=-nxbox/2
-      iylo=-nybox/2
-      do iy=1,nybox
-        do ix=1,nxbox
-          ixnew=ix+ixlo
-          iynew=iy+iylo
-          if(ixnew.le.0)ixnew=ixnew+nx
-          if(iynew.le.0)iynew=iynew+ny
-          brray(ixnew,iynew)=array(ix,iy)
-        enddo
-      enddo
-      return
-      end
 c       
 c       $Log$
+c       Revision 3.1  2007/10/29 22:09:51  mast
+c       Pip conversion, rename, adjust origin, rationalize filter
+c
 c
