@@ -41,6 +41,10 @@ import etomo.util.Utilities;
  * @version $Revision$
  * 
  * <p> $Log$
+ * <p> Revision 1.4  2008/07/19 01:12:15  sueh
+ * <p> bug# 1125 Making it easier to access CpuAdoc by not passing the
+ * <p> manager to it; all it needs is the current directory.
+ * <p>
  * <p> Revision 1.3  2008/01/31 20:31:12  sueh
  * <p> bug# 1055 throwing a FileException when LogFile.getInstance fails.
  * <p>
@@ -448,7 +452,12 @@ public final class SetupDialogExpert {
     else {
       dialog.setDualAxis(true);
     }
-    setViewType(metaData.getViewType());
+    if (userConfig.getMontage()) {
+      setViewType(ViewType.MONTAGE);
+    }
+    else {
+      setViewType(metaData.getViewType());
+    }
     if (!Double.isNaN(metaData.getPixelSize())) {
       dialog.setPixelSize(metaData.getPixelSize());
     }
