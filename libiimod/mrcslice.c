@@ -995,6 +995,7 @@ Islice *sliceGradient(Islice *sin)
   if (!s)
     return(NULL);
 
+  /* Store gradient in X */
   for(j = 0; j < sin->ysize; j++){
     for(i = 0; i < sin->xsize - 1; i++){
       sliceGetVal(sin, i, j, val);
@@ -1005,6 +1006,8 @@ Islice *sliceGradient(Islice *sin)
       slicePutVal(s, i, j, val);
     }
   }
+
+  /* Get gradient in Y and average with the one in X, copy last line */
   for(i = 0; i < sin->xsize; i++){
     for(j = 0; j < sin->ysize - 1; j++){
       sliceGetVal(sin, i, j, val);
@@ -1019,6 +1022,12 @@ Islice *sliceGradient(Islice *sin)
     sliceGetVal(s, i, j - 1, val);
     slicePutVal(s, i, j, val);
   }
+
+  /* Copy last column over too */
+  for(j = 0; j < sin->ysize; j++){
+    sliceGetVal(s, sin->xsize - 2, j, val);
+    slicePutVal(s, sin->xsize - 1, j, val);
+  }    
   sliceMMM(s);
   return(s);
 }
@@ -1076,7 +1085,9 @@ int mrc_bandpass_filter(struct MRCslice *sin, double low, double high)
 
 /*!
  * Filters a slice [sin] by convolving with the square matrix [mat] of 
- * dimension [dim] and returns a float slice, or NULL for error.
+ * dimension [dim] and returns a float slice, or NULL for error.  Pixels outside
+ * the image bounds are obtained by replicated pixels on the edge, so there is 
+ * no need to set the {mean} value of the slice.
  */
 Islice *slice_mat_filter(Islice *sin, float *mat, int dim)
 {
@@ -1146,7 +1157,7 @@ void mrc_slice_mat_getimat(Islice *sin, int x, int y, int dim,
                            float *mat)
 {
   int xs, ys, xe, ye;
-  int i, j;
+  int i, j, ic, jc;
 
 
   xs = x - (dim / 2);
@@ -1154,9 +1165,20 @@ void mrc_slice_mat_getimat(Islice *sin, int x, int y, int dim,
   ys = y - (dim / 2);
   ye = ys + dim;
 
-  for(j = ys; j < ye; j++)
-    for(i = xs; i < xe; i++)
-      mat[(i-xs )+ dim * (j-ys)] = sliceGetPixelMagnitude(sin, i, j);
+  if (xs >= 0 && xe < sin->xsize && ys >= 0 && ye < sin->ysize) {
+    for(j = ys; j < ye; j++)
+      for(i = xs; i < xe; i++)
+        mat[(i-xs )+ dim * (j-ys)] = sliceGetPixelMagnitude(sin, i, j);
+  } else {
+
+    /* If any pixels are out of bounds, replicate from inside pixels */
+    for(j = ys; j < ye; j++)
+      for(i = xs; i < xe; i++) {
+        ic = B3DMAX(0, B3DMIN(sin->xsize - 1, i));
+        jc = B3DMAX(0, B3DMIN(sin->ysize - 1, j));
+        mat[(i-xs )+ dim * (j-ys)] = sliceGetPixelMagnitude(sin, ic, jc);
+      }
+  }
 }
 
 /*!
@@ -1470,6 +1492,9 @@ int mrc_vol_wrap(struct MRCvolume *v)
 
 /*
 $Log$
+Revision 3.23  2008/11/02 13:43:08  mast
+Added functions for reading float slice
+
 Revision 3.22  2008/06/24 04:43:34  mast
 Split off really basic function to libcfshr
 
