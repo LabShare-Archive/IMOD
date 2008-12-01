@@ -44,7 +44,9 @@ final class SetupDialog extends ProcessDialog implements ContextMenu,
   static final String DATASET_NAME_LABEL = "Dataset name: ";
   static final String FIDUCIAL_DIAMETER_LABEL = "Fiducial diameter (nm): ";
   static final String AXIS_TYPE_LABEL = "Axis Type";
+  static final String FRAME_TYPE_LABEL = "Frame Type";
   static final String SINGLE_AXIS_LABEL = "Single axis";
+  static final String MONTAGE_LABEL ="Montage";
 
   private final JPanel pnlDataParameters = new JPanel();
   //  Dataset GUI objects
@@ -70,7 +72,7 @@ final class SetupDialog extends ProcessDialog implements ContextMenu,
 
   private final JPanel pnlViewType = new JPanel();
   private final RadioButton rbSingleView = new RadioButton("Single frame");
-  private final RadioButton rbMontage = new RadioButton("Montage");
+  private final RadioButton rbMontage = new RadioButton(MONTAGE_LABEL);
 
   private final Run3dmodButton btnViewRawStackA = Run3dmodButton
       .get3dmodInstance("View Raw Image Stack", this);
@@ -621,7 +623,7 @@ final class SetupDialog extends ProcessDialog implements ContextMenu,
     bgViewType.add(rbMontage.getAbstractButton());
     pnlViewType.setLayout(new BoxLayout(pnlViewType, BoxLayout.Y_AXIS));
     pnlViewType.setPreferredSize(dimDataTypePref);
-    pnlViewType.setBorder(new EtchedBorder("Frame Type").getBorder());
+    pnlViewType.setBorder(new EtchedBorder(FRAME_TYPE_LABEL).getBorder());
     pnlViewType.add(rbSingleView.getComponent());
     pnlViewType.add(rbMontage.getComponent());
 
@@ -855,6 +857,9 @@ final class SetupDialog extends ProcessDialog implements ContextMenu,
 }
 /**
  * <p> $Log$
+ * <p> Revision 3.62  2008/09/10 21:36:08  sueh
+ * <p> Handled a null pointer exception in DatasetAction.
+ * <p>
  * <p> Revision 3.61  2008/05/03 00:57:05  sueh
  * <p> bug# 847 Passing null for ProcessSeries to process funtions.
  * <p>
