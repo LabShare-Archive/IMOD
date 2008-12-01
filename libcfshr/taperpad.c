@@ -17,10 +17,12 @@
 #define taperoutpad TAPEROUTPAD
 #define taperinpad TAPERINPAD
 #define sliceedgemean SLICEEDGEMEAN
+#define splitfill SPLITFILL
 #else
 #define taperoutpad taperoutpad_
 #define taperinpad taperinpad_
 #define sliceedgemean sliceedgemean_
+#define splitfill splitfill_
 #endif
 
 /*!
@@ -305,8 +307,75 @@ double sliceedgemean(float *array, int *nxdim, int *ixlo, int *ixhi, int *iylo,
   return sliceEdgeMean(array, *nxdim, *ixlo - 1, *ixhi - 1, *iylo - 1, 
                        *iyhi - 1);
 } 
+
+/*!
+ * Splits a small image in [array] with dimensions [nxbox] by [nybox] into the
+ * 4 corners of a potentially larger array.  The padded image is placed in 
+ * [brray] with a size of [nx] by [ny], where [nxdim] is the X dimension of 
+ * [brray].  The image will be padded with the mean at the edge of the image,
+ * or with the value in [fillin] if [iffill] is non-zero.  In either case the
+ * values will be shifted so that the mean of the whole array is zero.
+ */
+void sliceSplitFill(float *array, int nxbox, int nybox, float *brray,
+               int nxdim, int nx, int ny, int iffill, float fillin)
+{
+  int i, ix, iy, ixlo, iylo, ixnew, iynew;
+  float sum, fill, bias, dmean, edge;
+  sum = 0.;
+  for (i = 0; i < nxbox * nybox; i++)
+    sum += array[i];
+  dmean = (float)(sum / (nxbox * nybox));
+  fill=dmean;
+  bias=dmean;
+  if (nxbox != nx || nybox != ny) {
+    fill = fillin;
+    if (!iffill) {
+
+      /* find mean of edge of box */
+      sum=0.;
+      for (ix=0; ix < nxbox; ix++)
+        sum += array[ix]+array[ix + (nybox - 1) * nxbox];
+      for (iy=1; iy < nybox-1; iy++) 
+        sum += array[iy * nxbox] + array[nxbox - 1 + iy * nxbox];
+      fill = sum / (2 * nxbox + 2 * (nybox - 2));
+    }
+
+    /* Whatever the fill, subtract a bias that would produce a mean of zero */
+    bias = fill+(dmean-fill)*((float)(nxbox*nybox))/((float)(nx*ny));
+
+    /* fill whole brray with fill-bias  */
+    for (iy = 0; iy < ny; iy++)
+      for (ix = 0; ix < nx; ix++)
+        brray[ix + iy * nxdim] = fill-bias;
+  }
+
+  /* move array into brray, splitting it into the 4 corners of brray */
+  ixlo = -nxbox/2;
+  iylo = -nybox/2;
+  for (iy = 0; iy < nybox; iy++) {
+    for (ix = 0; ix < nxbox; ix++) {
+      ixnew = (ix + ixlo + nx) % nx;
+      iynew = (iy + iylo + ny) % ny;
+      brray[ixnew + iynew * nxdim] = array[ix + iy * nxbox] - bias;
+    }
+  }  
+}
+
+/*!
+ * Fortran wrapper to @splitFill .
+ */
+void splitfill(float *array, int *nxbox, int *nybox, float *brray,
+               int *nxdim, int *nx, int *ny, int *iffill, float *fillin)
+{
+  sliceSplitFill(array, *nxbox, *nybox, brray, *nxdim, *nx, *ny, *iffill,
+                 *fillin);
+}
+
 /*
   $Log$
+  Revision 1.5  2007/10/20 20:03:08  mast
+  Oops, subtract not add 1 for fortran indices
+
   Revision 1.4  2007/10/20 03:04:07  mast
   Added fortran wrapper for edgemean
 
