@@ -17,6 +17,9 @@ import java.util.*;
  * @version $Revision$
  *
  * <p> $Log$
+ * <p> Revision 3.8  2008/10/06 22:37:17  sueh
+ * <p> bug# 1113 Added parallelTableSize, joinTableSize, and peetTableSize.
+ * <p>
  * <p> Revision 3.7  2008/09/10 21:33:48  sueh
  * <p> Attempting to increase the size of the remembered file list.
  * <p>
@@ -86,6 +89,8 @@ public final class UserConfiguration implements Storable {
   private boolean autoFit = false;
   private final EtomoBoolean2 singleAxis = new EtomoBoolean2(DEFAULTS_KEY
       + ".SingleAxis");
+  private final EtomoBoolean2 montage = new EtomoBoolean2(DEFAULTS_KEY
+      + ".Montage");
   private final EtomoBoolean2 noParallelProcessing = new EtomoBoolean2(
       DEFAULTS_KEY + ".NoParallelProcessing");
   private final EtomoBoolean2 tiltAnglesRawtltFile = new EtomoBoolean2(
@@ -155,6 +160,7 @@ public final class UserConfiguration implements Storable {
     props.setProperty(group + "FontFamily", String.valueOf(fontFamily));
     props.setProperty(group + "FontSize", String.valueOf(fontSize));
     singleAxis.store(props, prepend);
+    montage.store(props, prepend);
     noParallelProcessing.store(props, prepend);
     tiltAnglesRawtltFile.store(props, prepend);
     swapYAndZ.store(props, prepend);
@@ -227,8 +233,8 @@ public final class UserConfiguration implements Storable {
         .booleanValue();
     //TEMP bug# 614
     autoFit = true;
-    //TEMP
     singleAxis.load(props, prepend);
+    montage.load(props, prepend);
     noParallelProcessing.load(props, prepend);
     tiltAnglesRawtltFile.load(props, prepend);
     swapYAndZ.load(props, prepend);
@@ -453,6 +459,10 @@ public final class UserConfiguration implements Storable {
   public boolean getSingleAxis() {
     return singleAxis.is();
   }
+  
+  public boolean getMontage() {
+    return montage.is();
+  }
 
   public boolean getSwapYAndZ() {
     return swapYAndZ.is();
@@ -488,6 +498,10 @@ public final class UserConfiguration implements Storable {
 
   public void setSingleAxis(boolean input) {
     singleAxis.set(input);
+  }
+  
+  public void setMontage(boolean input) {
+    montage.set(input);
   }
 
   public void setSwapYAndZ(boolean input) {
