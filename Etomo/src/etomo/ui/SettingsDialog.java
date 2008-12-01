@@ -43,6 +43,8 @@ public final class SettingsDialog extends JDialog {
       ProcessorTable.NUMBER_CPUS_HEADER + ": ");
   private final CheckBox cbSingleAxis = new CheckBox(
       SetupDialog.AXIS_TYPE_LABEL + ":  " + SetupDialog.SINGLE_AXIS_LABEL);
+  private final CheckBox cbMontage = new CheckBox(SetupDialog.FRAME_TYPE_LABEL
+      + ":  " + SetupDialog.MONTAGE_LABEL);
   private final CheckBox cbNoParallelProcessing = new CheckBox("Start with "
       + ParallelPanel.FIELD_LABEL + " off");
   private final CheckBox cbTiltAnglesRawtltFile = new CheckBox(
@@ -123,6 +125,7 @@ public final class SettingsDialog extends JDialog {
     panelDefaults.setComponentAlignmentX(Box.LEFT_ALIGNMENT);
     panelDefaults.setBorder(new EtchedBorder("Defaults").getBorder());
     panelDefaults.add(cbSingleAxis);
+    panelDefaults.add(cbMontage);
     panelDefaults.add(cbNoParallelProcessing);
     panelDefaults.add(cbTiltAnglesRawtltFile);
     panelDefaults.add(cbSwapYAndZ);
@@ -181,6 +184,7 @@ public final class SettingsDialog extends JDialog {
     cbAdvancedDialogs.setSelected(userConfig.getAdvancedDialogs());
     cbCompactDisplay.setSelected(userConfig.getCompactDisplay());
     cbSingleAxis.setSelected(userConfig.getSingleAxis());
+    cbMontage.setSelected(userConfig.getMontage());
     cbNoParallelProcessing.setSelected(userConfig.getNoParallelProcessing());
     cbTiltAnglesRawtltFile.setSelected(userConfig.getTiltAnglesRawtltFile());
     cbSwapYAndZ.setSelected(userConfig.getSwapYAndZ());
@@ -230,6 +234,7 @@ public final class SettingsDialog extends JDialog {
     userConfig.setFontSize(Integer.parseInt(ltfFontSize.getText()));
     userConfig.setFontFamily(fontFamilies[listFontFamily.getSelectedIndex()]);
     userConfig.setSingleAxis(cbSingleAxis.isSelected());
+    userConfig.setMontage(cbMontage.isSelected());
     userConfig.setNoParallelProcessing(cbNoParallelProcessing.isSelected());
     userConfig.setTiltAnglesRawtltFile(cbTiltAnglesRawtltFile.isSelected());
     userConfig.setSwapYAndZ(cbSwapYAndZ.isSelected());
@@ -244,6 +249,7 @@ public final class SettingsDialog extends JDialog {
     if (userConfig.getNativeLookAndFeel() != cbNativeLAF.isSelected()
         || userConfig.getCompactDisplay() != cbCompactDisplay.isSelected()
         || userConfig.getSingleAxis() != cbSingleAxis.isSelected()
+        || userConfig.getMontage() != cbMontage.isSelected()
         || userConfig.getNoParallelProcessing() != cbNoParallelProcessing
             .isSelected()
         || userConfig.getTiltAnglesRawtltFile() != cbTiltAnglesRawtltFile
