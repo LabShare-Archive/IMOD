@@ -1,5 +1,28 @@
 IMOD History
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+12/1/08: Switched bead fixer autocentering to use correlation with a 
+sobel-filtered model bead.
+
+11/30/08: Reduced edge artifacts in some kernel filtering operations (e.g., 
+clip) by extending image with replicted pixels instead of mean.
+
+11/30/08: Fixed a problem with contrast floating when starting in middle Z
+and contrast set from model.
+
+11/29/08: Enabled selection of contours, deletion of contours, and undo/redo
+when running as 3dmodv (standalone mode).
+
+11/29/08: When stepping through contours (c/C), a new current point is
+picked that is the closest in X/Y on the closest Z plane.
+
+11/29/08: Bead fixer: added ability to ignore gaps on list of skipped views,
+output global and local mean residuals to info window, allowed the keypad 
+Insert key to be used instead of middle mouse button for seeding and gap 
+filling.
+
+11/29/08: Added ability to link slicers together when multiple volumes are
+loaded.
+
 11/28/08: Added option to Imodinfo to change the colors of objects being added
 to a model, to avoid getting a model with all green objects.
 
