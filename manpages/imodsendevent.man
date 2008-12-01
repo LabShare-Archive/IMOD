@@ -74,7 +74,9 @@ Bead Fixer accepts the following commands:
    3  Set mode for automatic new contour when seeding.  Follow with 1
         to turn on, 0 to turn off
    4  Set Autocentering.  Follow with 1 to turn on, 0 to turn off.
-   5  Set diameter.  Follow with integer diameter in pixels.
+   5  Set diameter.  Follow with integer diameter in pixels.  If images
+        were loaded into 3dmod binned, Bead Fixer will divide by the
+        binning.
    6  Set operation mode.  Follow with 0 for seed, 1 for gap, 2 for 
         residuals.
    7  Set skip list.  Follow with the skip list with no embedded spaces.
