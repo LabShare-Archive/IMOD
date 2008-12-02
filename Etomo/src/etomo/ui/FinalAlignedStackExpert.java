@@ -62,8 +62,14 @@ import etomo.util.Utilities;
  * @version $Revision$
  * 
  * <p> $Log$
+ * <p> Revision 1.5  2008/11/20 01:45:29  sueh
+ * <p> bug# 1147 Added functions to run xfmodel and ccderaser.  Bug# 1147
+ * <p> Getting binning only from meta data, not from newst, which is overwritten
+ * <p> by Tomogram Positioning - Whole Tomogram.
+ * <p>
  * <p> Revision 1.4  2008/11/11 23:52:56  sueh
- * <p> bug# 1149 Always getting binning from metadata.finalStackBinning (was tomoGenBinning).  Saving binning to metadata.finalStackBinning.
+ * <p> bug# 1149 Always getting binning from metadata.finalStackBinning (was
+ * <p> tomoGenBinning).  Saving binning to metadata.finalStackBinning.
  * <p>
  * <p> Revision 1.3  2008/10/30 20:22:50  sueh
  * <p> bug# 1141 Offer to close ctf correction on done.
@@ -439,7 +445,9 @@ public final class FinalAlignedStackExpert extends ReconUIExpert {
         .setModelFile(DatasetFiles.getEraseFiducialsModelName(manager, axisID));
     param.setOutputFile(DatasetFiles
         .getErasedFiducialsFileName(manager, axisID));
-    param.setBetterRadius(dialog.getBetterRadius());
+    EtomoNumber fiducialDiameter = new EtomoNumber(EtomoNumber.Type.DOUBLE);
+    fiducialDiameter.set(dialog.getFiducialDiameter());
+    param.setBetterRadius(fiducialDiameter.getDouble() / 2.0);
     param.setPolynomialOrder(dialog.getPolynomialOrder());
     if (param.validate()) {
       return param;
@@ -862,15 +870,24 @@ public final class FinalAlignedStackExpert extends ReconUIExpert {
     dialog.setBinning(metaData.getFinalStackBinning(axisID));
     CpuAdoc cpuAdoc = CpuAdoc.getInstance(AxisID.ONLY, manager
         .getPropertyUserDir());
-    if (!metaData.isFinalStackBetterRadiusEmpty(axisID)) {
-      dialog.setBetterRadius(metaData.getFinalStackBetterRadius(axisID));
+    if (!metaData.isFinalStackFiducialDiameterNull(axisID)) {
+      dialog
+          .setFiducialDiameter(metaData.getFinalStackFiducialDiameter(axisID));
+    }
+    else if (!metaData.isFinalStackBetterRadiusEmpty(axisID)) {
+      //backwards compatibility - used to save better radius, convert it to
+      //fiducial diameter in pixels
+      EtomoNumber betterRadius = new EtomoNumber(EtomoNumber.Type.DOUBLE);
+      betterRadius.set(metaData.getFinalStackBetterRadius(axisID));
+      dialog.setFiducialDiameter(Math
+          .round(betterRadius.getDouble() * 2 * 10.0) / 10.0);
     }
     else {
       //Currently not allowing an empty value to be saved.
-      //Default betterRadius to fiducialDiameter / pixel size / 2.  Round to
-      //3 decimal places.
-      dialog.setBetterRadius(Math.round((metaData.getFiducialDiameter()
-          / metaData.getPixelSize() / 2 * 1000)) / 1000.0);
+      //Default fiducialDiameter to fiducialDiameter from setup / pixel size
+      //(convert to pixels).  Round to 1 decimal place.
+      dialog.setFiducialDiameter(Math.round(metaData.getFiducialDiameter()
+          / metaData.getPixelSize() * 10.0) / 10.0);
     }
     dialog.setPolynomialOrder(PolynomialOrder.getInstance(metaData
         .getFinalStackPolynomialOrder(axisID)));
@@ -937,7 +954,8 @@ public final class FinalAlignedStackExpert extends ReconUIExpert {
     metaData.setFinalStackBinning(axisID, dialog.getBinning());
     metaData.setFinalStackCtfCorrectionParallel(axisID, dialog
         .isParallelProcess());
-    metaData.setFinalStackBetterRadius(axisID, dialog.getBetterRadius());
+    metaData
+        .setFinalStackFiducialDiameter(axisID, dialog.getFiducialDiameter());
     metaData.setFinalStackPolynomialOrder(axisID, dialog.getPolynomialOrder());
   }
 
