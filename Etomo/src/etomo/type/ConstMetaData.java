@@ -73,11 +73,17 @@ public interface ConstMetaData {
   public boolean isDistortionCorrection();
   public boolean isFinalStackBetterRadiusEmpty(AxisID axisID);
   public String getFinalStackBetterRadius(AxisID axisID);
+  public boolean isFinalStackFiducialDiameterNull(AxisID axisID);
+  public String getFinalStackFiducialDiameter(AxisID axisID);
   public int getFinalStackPolynomialOrder(AxisID axisID);
 }
 
 /**
  * <p> $Log$
+ * <p> Revision 3.47  2008/11/20 01:35:04  sueh
+ * <p> bug# 1147, bug# 1149 Added getFinalStackBetterRadius,
+ * <p> getFinalStackPolynomialOrder, and isFinalStackBetterRadiusEmpty.
+ * <p>
  * <p> Revision 3.46  2008/11/11 23:48:15  sueh
  * <p> bug# 1149 Changed tomoGenBinning to finalStackBinning.  Fixed the
  * <p> names of the CtfCorrectionParallel variables (should start with
