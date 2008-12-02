@@ -27,6 +27,10 @@ import etomo.util.DatasetFiles;
  * @version $Revision$
  *
  * <p> $Log$
+ * <p> Revision 3.42  2008/11/20 01:36:22  sueh
+ * <p> bug# 1147, bug# 1149 Added finalStackBetterRadiusA and B, and
+ * <p> finalStackPolynomialOrderA and B.
+ * <p>
  * <p> Revision 3.41  2008/11/11 23:49:00  sueh
  * <p> bug# 1149 Changed tomoGenBinning to finalStackBinning.  Fixed the
  * <p> names of the CtfCorrectionParallel variables (should start with
@@ -237,7 +241,7 @@ import etomo.util.DatasetFiles;
 public final class MetaData extends BaseMetaData implements ConstMetaData {
   public static final String rcsid = "$Id$";
 
-  private static final String latestRevisionNumber = "1.9";
+  private static final String latestRevisionNumber = "1.10";
   private static final String newTomogramTitle = "Setup Tomogram";
 
   private static final String TOMO_GEN_A_TILT_PARALLEL_GROUP = DialogType.TOMOGRAM_GENERATION
@@ -363,12 +367,32 @@ public final class MetaData extends BaseMetaData implements ConstMetaData {
       2);
   private final FortranInputString sizeToOutputInXandYB = new FortranInputString(
       2);
+  /**
+   * @deprecated in MetaData 1.10
+   */
   private StringProperty finalStackBetterRadiusA = new StringProperty(
       DialogType.FINAL_ALIGNED_STACK.getStorableName() + "."
           + AxisID.FIRST.getExtension() + "." + "BetterRadius");
+  /**
+   * @deprecated in MetaData 1.10
+   */
   private StringProperty finalStackBetterRadiusB = new StringProperty(
       DialogType.FINAL_ALIGNED_STACK.getStorableName() + "."
           + AxisID.SECOND.getExtension() + "." + "BetterRadius");
+  /**
+   * Added in MetaData 1.10
+   * fiducial diameter in pixels
+   */
+  private EtomoNumber finalStackFiducialDiameterA = new EtomoNumber(
+      EtomoNumber.Type.DOUBLE, DialogType.FINAL_ALIGNED_STACK.getStorableName()
+          + "." + AxisID.FIRST.getExtension() + "." + "FiducialDiameter");
+  /**
+   * Added in MetaData 1.10
+   * fiducial diameter in pixels
+   */
+  private EtomoNumber finalStackFiducialDiameterB = new EtomoNumber(
+      EtomoNumber.Type.DOUBLE, DialogType.FINAL_ALIGNED_STACK.getStorableName()
+          + "." + AxisID.SECOND.getExtension() + "." + "FiducialDiameter");
   private EtomoNumber finalStackPolynomialOrderA = new EtomoNumber(
       DialogType.FINAL_ALIGNED_STACK.getStorableName() + "."
           + AxisID.FIRST.getExtension() + "." + "PolynomialOrder");
@@ -736,13 +760,6 @@ public final class MetaData extends BaseMetaData implements ConstMetaData {
     }
   }
 
-  private void loadVersion1_7(Properties props, String prepend) {
-    fiducialessA.loadWithAlternateKey(props, prepend,
-        ".A.Param.tilt.Fiducialess");
-    fiducialessB.loadWithAlternateKey(props, prepend,
-        ".B.Param.tilt.Fiducialess");
-  }
-
   public void load(Properties props, String prepend) {
     super.load(props, prepend);
     //reset
@@ -785,6 +802,8 @@ public final class MetaData extends BaseMetaData implements ConstMetaData {
     fixedBeamTiltB.reset();
     finalStackBetterRadiusA.reset();
     finalStackBetterRadiusB.reset();
+    finalStackFiducialDiameterA.reset();
+    finalStackFiducialDiameterB.reset();
     finalStackPolynomialOrderA.reset();
     finalStackPolynomialOrderB.reset();
     //load
@@ -796,7 +815,10 @@ public final class MetaData extends BaseMetaData implements ConstMetaData {
     //backwards compatibility
     revisionNumber.load(props, prepend);
     if (revisionNumber.le(EtomoVersion.getDefaultInstance("1.7"))) {
-      loadVersion1_7(props, prepend);
+      fiducialessA.loadWithAlternateKey(props, prepend,
+          ".A.Param.tilt.Fiducialess");
+      fiducialessB.loadWithAlternateKey(props, prepend,
+          ".B.Param.tilt.Fiducialess");
     }
     else {
       fiducialessA.load(props, prepend);
@@ -812,7 +834,13 @@ public final class MetaData extends BaseMetaData implements ConstMetaData {
       finalStackBinningA.load(props, prepend);
       finalStackBinningB.load(props, prepend);
     }
-    //= props.getProperty(group + "RevisionNumber", "1.0");
+    if (revisionNumber.le(EtomoVersion.getDefaultInstance("1.9"))) {
+      //better radius needs to be converted to final stack fiducial diameter.
+      finalStackBetterRadiusA.load(props, prepend);
+      finalStackBetterRadiusB.load(props, prepend);
+    }
+    finalStackFiducialDiameterA.load(props, prepend);
+    finalStackFiducialDiameterB.load(props, prepend);
 
     // Make this true for now until the variable is present in all of the
     // data files so as to not break existing files
@@ -931,8 +959,6 @@ public final class MetaData extends BaseMetaData implements ConstMetaData {
     noBeamTiltSelectedB.load(props, prepend);
     fixedBeamTiltSelectedB.load(props, prepend);
     fixedBeamTiltB.load(props, prepend);
-    finalStackBetterRadiusA.load(props, prepend);
-    finalStackBetterRadiusB.load(props, prepend);
     finalStackPolynomialOrderA.load(props, prepend);
     finalStackPolynomialOrderB.load(props, prepend);
   }
@@ -964,12 +990,12 @@ public final class MetaData extends BaseMetaData implements ConstMetaData {
     }
   }
 
-  public void setFinalStackBetterRadius(AxisID axisID, String input) {
+  public void setFinalStackFiducialDiameter(AxisID axisID, String input) {
     if (axisID == AxisID.SECOND) {
-      finalStackBetterRadiusB.set(input);
+      finalStackFiducialDiameterB.set(input);
     }
     else {
-      finalStackBetterRadiusA.set(input);
+      finalStackFiducialDiameterA.set(input);
     }
   }
 
@@ -1106,10 +1132,10 @@ public final class MetaData extends BaseMetaData implements ConstMetaData {
     fixedBeamTiltB.store(props, prepend);
     sizeToOutputInXandYA.store(props, prepend);
     sizeToOutputInXandYB.store(props, prepend);
-    finalStackBetterRadiusA.store(props, prepend);
-    finalStackBetterRadiusB.store(props, prepend);
     finalStackPolynomialOrderA.store(props, prepend);
     finalStackPolynomialOrderB.store(props, prepend);
+    finalStackFiducialDiameterA.store(props, prepend);
+    finalStackFiducialDiameterB.store(props, prepend);
   }
 
   public ConstEtomoNumber getNoBeamTiltSelected(AxisID axisID) {
@@ -1133,6 +1159,16 @@ public final class MetaData extends BaseMetaData implements ConstMetaData {
     return fixedBeamTiltA;
   }
 
+  public String getFinalStackFiducialDiameter(AxisID axisID) {
+    if (axisID == AxisID.SECOND) {
+      return finalStackFiducialDiameterB.toString();
+    }
+    return finalStackFiducialDiameterA.toString();
+  }
+  
+  /**
+   * @deprecated in 1.10
+   */
   public String getFinalStackBetterRadius(AxisID axisID) {
     if (axisID == AxisID.SECOND) {
       return finalStackBetterRadiusB.toString();
@@ -1147,6 +1183,16 @@ public final class MetaData extends BaseMetaData implements ConstMetaData {
     return finalStackPolynomialOrderA.getInt();
   }
 
+  public boolean isFinalStackFiducialDiameterNull(AxisID axisID) {
+    if (axisID == AxisID.SECOND) {
+      return finalStackFiducialDiameterB.isNull();
+    }
+    return finalStackFiducialDiameterA.isNull();
+  }
+  
+  /**
+   * @deprecated in 1.10
+   */
   public boolean isFinalStackBetterRadiusEmpty(AxisID axisID) {
     if (axisID == AxisID.SECOND) {
       return finalStackBetterRadiusB.isEmpty();
