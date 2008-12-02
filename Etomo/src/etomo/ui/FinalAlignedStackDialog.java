@@ -62,6 +62,12 @@ import etomo.util.DatasetFiles;
  * @version $Revision$
  * 
  * <p> $Log$
+ * <p> Revision 1.7  2008/11/20 01:44:06  sueh
+ * <p> bug# 1147 Added Erase Gold tab.  Added polynomialOrder and
+ * <p> betterRadius.  Added buttons to run xfmodel and ccderaser.  Bug# 1153
+ * <p> Removed listeners on dialog done from buttons that are created by the
+ * <p> display result factory.
+ * <p>
  * <p> Revision 1.6  2008/11/11 23:51:07  sueh
  * <p> bug# 1149 Changed the tab names.
  * <p>
@@ -187,8 +193,8 @@ public final class FinalAlignedStackDialog extends ProcessDialog implements
   private final Run3dmodButton btn3dmodCcdEraser = Run3dmodButton
       .get3dmodInstance("View Erased Stack", this);
   private final MultiLineButton btnUseCcdEraser;
-  private final LabeledTextField ltfBetterRadius = new LabeledTextField(
-      "Better radius: ");
+  private final LabeledTextField ltfFiducialDiameter = new LabeledTextField(
+      "Fiducial diameter: ");
   private final ButtonGroup bgPolynomialOrder = new ButtonGroup();
   private final RadioButton rbPolynomialOrderUseMean = new RadioButton(
       "Use mean of surrounding points",
@@ -612,16 +618,16 @@ public final class FinalAlignedStackDialog extends ProcessDialog implements
     ltfSizeToOutputInXandY.setText(input);
   }
 
-  void setBetterRadius(String input) {
-    ltfBetterRadius.setText(input);
+  void setFiducialDiameter(String input) {
+    ltfFiducialDiameter.setText(input);
   }
 
-  void setBetterRadius(double input) {
-    ltfBetterRadius.setText(input);
+  void setFiducialDiameter(double input) {
+    ltfFiducialDiameter.setText(input);
   }
 
-  String getBetterRadius() {
-    return ltfBetterRadius.getText();
+  String getFiducialDiameter() {
+    return ltfFiducialDiameter.getText();
   }
 
   String getPolynomialOrder() {
@@ -664,7 +670,7 @@ public final class FinalAlignedStackDialog extends ProcessDialog implements
     ccdEraserPanel.add(ccdEraserParameterPanel);
     ccdEraserParameterPanel.setLayout(new BoxLayout(ccdEraserParameterPanel,
         BoxLayout.X_AXIS));
-    ccdEraserParameterPanel.add(ltfBetterRadius.getContainer());
+    ccdEraserParameterPanel.add(ltfFiducialDiameter.getContainer());
     JPanel polynomialOrderPanel = new JPanel();
     ccdEraserParameterPanel.add(polynomialOrderPanel);
     polynomialOrderPanel.setLayout(new BoxLayout(polynomialOrderPanel,
