@@ -3,8 +3,9 @@ package etomo.comscript;
 import java.util.ArrayList;
 
 import etomo.BaseManager;
+import etomo.type.EtomoNumber;
 import etomo.type.ProcessName;
-import etomo.type.StringParameter;
+import etomo.type.ScriptParameter;
 import etomo.ui.UIHarness;
 
 /**
@@ -20,6 +21,11 @@ import etomo.ui.UIHarness;
  * @version $Revision$
  *
  * <p> $Log$
+ * <p> Revision 3.6  2008/11/20 01:28:01  sueh
+ * <p> bug# 1147 Made CCDEraserParam able to create commands, as well as
+ * <p> update comscripts.  Added genOptions, getCommandArray, validate, and
+ * <p> betterRadius.
+ * <p>
  * <p> Revision 3.5  2007/12/13 21:54:03  sueh
  * <p> bug# 1057 Added boundaryReplacementList.
  * <p>
@@ -76,8 +82,8 @@ public class CCDEraserParam extends ConstCCDEraserParam implements CommandParam 
 
   private static final int COMMAND_SIZE = 1;
 
-  private final StringParameter betterRadius = new StringParameter(
-      "BetterRadius");
+  private final ScriptParameter betterRadius = new ScriptParameter(
+      EtomoNumber.Type.DOUBLE, "BetterRadius");
 
   private String[] commandArray = null;
   private boolean debug = true;
@@ -128,7 +134,7 @@ public class CCDEraserParam extends ConstCCDEraserParam implements CommandParam 
   }
 
   public boolean validate() {
-    if (betterRadius.isEmpty()) {
+    if (betterRadius.isNull()) {
       UIHarness.INSTANCE.openMessageDialog(
           "Empty Better Radius value.  Please enter a value.", "Entry Error");
       return false;
@@ -494,7 +500,7 @@ public class CCDEraserParam extends ConstCCDEraserParam implements CommandParam 
     scanCriterion = string;
   }
 
-  public void setBetterRadius(String input) {
+  public void setBetterRadius(double input) {
     betterRadius.set(input);
   }
 }
