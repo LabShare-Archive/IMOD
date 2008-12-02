@@ -62,6 +62,9 @@ import etomo.util.DatasetFiles;
  * @version $Revision$
  * 
  * <p> $Log$
+ * <p> Revision 1.8  2008/12/02 21:21:51  sueh
+ * <p> bug# 1157 Changed better radius to fiducial diameter.
+ * <p>
  * <p> Revision 1.7  2008/11/20 01:44:06  sueh
  * <p> bug# 1147 Added Erase Gold tab.  Added polynomialOrder and
  * <p> betterRadius.  Added buttons to run xfmodel and ccderaser.  Bug# 1153
@@ -194,7 +197,7 @@ public final class FinalAlignedStackDialog extends ProcessDialog implements
       .get3dmodInstance("View Erased Stack", this);
   private final MultiLineButton btnUseCcdEraser;
   private final LabeledTextField ltfFiducialDiameter = new LabeledTextField(
-      "Fiducial diameter: ");
+      "Fiducial diameter (pixels): ");
   private final ButtonGroup bgPolynomialOrder = new ButtonGroup();
   private final RadioButton rbPolynomialOrderUseMean = new RadioButton(
       "Use mean of surrounding points",
