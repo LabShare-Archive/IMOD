@@ -1176,7 +1176,8 @@ Imesh *joinTubeCont(Icont *c1, Icont *c2, Ipoint *norm,
   Imesh *mesh = imodMeshNew();
   double a, b;
   int reverse1 = 0, reverse2 = 0;
-  int stateTest = CHANGED_COLOR | CHANGED_FCOLOR | CHANGED_TRANS;
+  int stateTest = CHANGED_COLOR | CHANGED_FCOLOR | CHANGED_TRANS | 
+    CHANGED_VALUE1;
   int genItems = ((state1 | state2) & stateTest) ? 1 : 0;
   if (!mesh || !mat)
     return(NULL);
@@ -1294,6 +1295,9 @@ Imesh *joinTubeCont(Icont *c1, Icont *c2, Ipoint *norm,
 
 /*
 $Log$
+Revision 1.4  2008/11/15 21:53:08  mast
+Invert order of open contours to maintain consistency from one to the next
+
 Revision 1.3  2008/09/19 15:28:47  mast
 Fixed tube contour joining to work for different size contours
 
