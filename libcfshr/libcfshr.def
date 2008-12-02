@@ -5,8 +5,6 @@ LIBRARY      "libcfshr"
 EXPORTS
 	ilistInsert
 	ADOCGETINTEGER
-        amatToRotmagstr
-        AMAT_TO_ROTMAGSTR
 	PIPDONE
 	b3dRewind
 	c2fString
@@ -16,6 +14,7 @@ EXPORTS
 	InsideContour
 	ADOCGETNUMBEROFSECTIONS
 	MEANZERO
+	percentileInt
 	b3dFseek
 	PIPREADOPTIONFILE
 	IMODBACKUPFILE
@@ -26,6 +25,7 @@ EXPORTS
 	sampleMeanSD
 	PipGetString
 	setOrClearFlags
+	beadIntegral
 	ilistDelete
 	AdocDeleteKeyValue
 	CUBINTERP
@@ -168,12 +168,14 @@ EXPORTS
 	lsFit2
 	cmapInvertedRamp
 	AdocDone
+	makeModelBead
 	PipDone
 	ADOCWRITE
 	PIPSETERROR
 	ilistFirst
 	sliceGetYSize
 	PipStartsWith
+	AMAT_TO_ROTMAGSTR
 	ilistNext
 	sumsToAvgSD
 	IMODGETENV
@@ -199,10 +201,12 @@ EXPORTS
 	PipParseInput
 	PIPGETERROR
 	AdocSetTwoIntegers
+	percentileFloat
 	ADOCGETTHREEFLOATS
 	ilistQuantum
 	sliceGetXSize
 	PIPGETFLOATARRAY
+	SPLITFILL
 	PipGetBoolean
 	ADOCGETTWOINTEGERS
 	PipGetTwoFloats
@@ -216,6 +220,7 @@ EXPORTS
 	b3dHeaderItemBytes
 	fgetline
 	AdocGetSectionName
+	sliceSplitFill
 	B3DHEADERITEMBYTES
 	XCorrMeanZero
 	sliceGetPixelMagnitude
@@ -227,6 +232,7 @@ EXPORTS
 	ilistLast
 	lsFit
 	TAPERINPAD
+	amatToRotmagstr
 	ilistNew
 	f2cString
 	imodProgName

@@ -24,11 +24,6 @@ EXPORTS
 	sliceReadFloat
 	iiTIFFCheck
 	iiAddCheckFunction
-	iiDeleteCheckList
-	tiffSuppressErrors
-	tiffSuppressWarnings
-	tiffGetField
-	tiffGetArray
 	mrc_test_size
 	sliceScaleAndFree
 	sliceByteAdd
@@ -57,6 +52,7 @@ EXPORTS
 	loadtilts
 	sliceWrapFFTLines
 	mrcComplexSminSmax
+	tiffGetField
 	mrcFreeDataMemory
 	mrc_swap_shorts
 	iiMRCreadSectionByte
@@ -77,11 +73,11 @@ EXPORTS
 	iiNew
 	mrc_plist_proc
 	iiLoadPCoord
+	iiDeleteCheckList
 	mrc_default_status
 	mrc_vol_wrap
 	mrc_read_point
 	iiAddRawCheckFunction
-	iiDeleteRawCheckList
 	iiLikeMRCDelete
 	tiffDelete
 	mrc_slice_zooms
@@ -99,6 +95,7 @@ EXPORTS
 	get_loadinfo
 	sliceByteThreshold
 	slice_mat_filter
+	tiffGetArray
 	sliceMinMax
 	mrc_slice_real
 	mrc_plist_create
@@ -123,6 +120,7 @@ EXPORTS
 	sliceAddConst
 	iiMRCCheck
 	mrc_bandpass_filter
+	iiDeleteRawCheckList
 	mrc_set_cmap_stamp
 	mrcReadZByte
 	iiDelete
@@ -130,6 +128,7 @@ EXPORTS
 	mrc_liso
 	mrc_slice_valscale
 	mrc_slice_lie_img
+	tiffSuppressErrors
 	mrc_slice_zoom
 	iiOpen
 	mrc_swap_longs
@@ -148,6 +147,7 @@ EXPORTS
 	iiReopen
 	sliceMirror
 	sliceWriteMRCfile
+	tiffSuppressWarnings
 	scaledGaussianKernel
 	mrcReadYByte
 	analyzeDM3
