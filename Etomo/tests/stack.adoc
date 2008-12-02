@@ -153,6 +153,7 @@ mb.ctf-correction-advanced = 0
 
 [function = erase-gold-base-values]
 assert.bn.transform-fiducial-model = 0
+assert.tf.fiducial-diameter=%{fiducial-diameter-pixels}
 assert.rb.use-mean-of-surrounding-points = 1
 assert.rb.fit-a-plane-to-surrounding-points = 0
 assert.bn.erase-beads = 0
@@ -161,7 +162,7 @@ assert.bn.use-erased-stack =0
 [function = erase-gold-base-enabled]
 assert.bn.transform-fiducial-model.enabled = 1
 assert.bn.view-transformed-model.enabled = 1
-assert.tf.better-radius.enabled =1
+assert.tf.fiducial-diameter.enabled=1
 assert.rb.use-mean-of-surrounding-points.enabled =1
 assert.rb.fit-a-plane-to-surrounding-points.enabled =1
 assert.bn.erase-beads.enabled = 1
