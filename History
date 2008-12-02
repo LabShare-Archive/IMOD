@@ -1,8 +1,11 @@
 IMOD History
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-12/08: In Etomo added an options to Settings to default to montage.
+12/2/08: Point values will now be stored when meshing a contour as a tube.
 
-12/1/08: Made imodfindbeads do kernel filtering with 0.85 ("smooth") as default.
+12/1/08: In Etomo added an options to Settings to default to montage.
+
+12/1/08: Made imodfindbeads do kernel filtering with 0.85 ("smooth") as 
+default.
 
 12/1/08: Switched bead fixer autocentering to use correlation with a 
 sobel-filtered model bead.
