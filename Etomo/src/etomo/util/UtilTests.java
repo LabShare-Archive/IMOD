@@ -28,7 +28,6 @@ public class UtilTests {
   public static Test suite() {
     TestSuite suite = new TestSuite("Test:  " + TEST_DIR);
     //$JUnit-BEGIN$
-    suite.addTestSuite(UtilitiesTest.class);
     suite.addTestSuite(FileModifiedFlagTest.class);
     suite.addTestSuite(MRCHeaderTest.class);
     suite.addTestSuite(CircularBufferTest.class);
@@ -41,6 +40,9 @@ public class UtilTests {
 }
 /**
  * <p> $Log$
+ * <p> Revision 1.11  2006/11/15 21:39:27  sueh
+ * <p> bug# 872 changed the test order to put tests with fewer dependencies first
+ * <p>
  * <p> Revision 1.10  2006/06/14 00:47:55  sueh
  * <p> bug# 852
  * <p>
