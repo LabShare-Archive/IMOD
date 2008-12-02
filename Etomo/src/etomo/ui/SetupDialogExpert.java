@@ -25,7 +25,6 @@ import etomo.type.ViewType;
 import etomo.util.DatasetFiles;
 import etomo.util.InvalidParameterException;
 import etomo.util.MRCHeader;
-import etomo.util.Utilities;
 
 /**
  * <p>Description: </p>
@@ -41,6 +40,9 @@ import etomo.util.Utilities;
  * @version $Revision$
  * 
  * <p> $Log$
+ * <p> Revision 1.5  2008/12/01 22:35:05  sueh
+ * <p> bug# 1131 Setting montage from userConfiguration.
+ * <p>
  * <p> Revision 1.4  2008/07/19 01:12:15  sueh
  * <p> bug# 1125 Making it easier to access CpuAdoc by not passing the
  * <p> manager to it; all it needs is the current directory.
@@ -430,7 +432,8 @@ public final class SetupDialogExpert {
           + metaData.getDatasetName();
       dialog.setDataset(canonicalPath);
     }
-    CpuAdoc cpuAdoc = CpuAdoc.getInstance(AxisID.ONLY, manager.getPropertyUserDir());
+    CpuAdoc cpuAdoc = CpuAdoc.getInstance(AxisID.ONLY, manager
+        .getPropertyUserDir());
     //Parallel processing is optional in tomogram reconstruction, so only use it
     //if the user set it up.
     boolean validAutodoc = cpuAdoc.isAvailable();
@@ -721,7 +724,7 @@ public final class SetupDialogExpert {
       return;
     }
     xPixelSize = xPixelSize / 10.0;
-    dialog.setPixelSize(Utilities.round(xPixelSize, 6));
+    dialog.setPixelSize(Math.round(xPixelSize * 1000000.0) / 1000000.0);
     int binning = header.getBinning();
     if (binning == Integer.MIN_VALUE) {
       binning = 1;
