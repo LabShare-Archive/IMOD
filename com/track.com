@@ -1,6 +1,6 @@
 # Command file for running BEADTRACK
 #
-####CreatedVersion#### 3.6.4
+####CreatedVersion#### 3.12.24
 #
 # For beads lighter than background, add a line with "LightBeads"
 #
@@ -14,6 +14,7 @@
 #
 $beadtrack -StandardInput
 ImageFile	g5a.preali
+ImagesAreBinned	1
 InputSeedModel	g5a.seed
 OutputModel	g5a.fid
 #SkipViews
@@ -23,7 +24,7 @@ TiltIncrement	1.5
 TiltDefaultGrouping	7
 MagDefaultGrouping	5
 RotDefaultGrouping	1
-CentroidRadius	5
+BeadDiameter	10
 FillGaps
 MaxGapSize	5
 RoundsOfTracking	2

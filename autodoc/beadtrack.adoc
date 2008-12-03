@@ -31,6 +31,15 @@ manpage = Name of piece list file if image is montaged or out of sequence.
 A montaged file should not be be used unless the overlaps between pieces
 are nearly exact.
 
+[Field = ImagesAreBinned]
+short = 
+type = I
+usage = The binning of the images relative to the original data (default 1)
+tooltip = 
+manpage = The current binning of the images relative to the original data.
+This factor is used to scale the bead diameter
+from unbinned to binned coordinates.  The default is 1.
+
 [Field = SurfaceOutputFile]
 short = 
 type = FN
@@ -170,7 +179,19 @@ type = F
 usage = Radius for centroid calculation
 tooltip = Radius for calculation of centroid.
 manpage =   Radius for centroid calculation.  The radius need not be a whole
-number and should be somewhat larger than the bead radius.
+number and should be somewhat larger than the bead radius.  Either this option
+or BeadDiameter must be entered, but not both.  If this option is entered,
+the diameter will be computed as 2 * radius - 3, then adjusted for binning,
+and the radius will be taken as (adjusted diameter + 3) / 2.
+
+[Field = BeadDiameter]
+short = 
+type = F
+usage = Actual diameter of beads in unbinned pixels
+tooltip = Actual diameter of beads in unbinned pixels.
+manpage =   Actual diameter of beads in pixels in the original stack,
+before any binning.  If CentroidRadius is entered instead, the unbinned
+diameter will be taken as 2 * radius - 3.
 
 [Field = LightBeads]
 short = 
@@ -221,7 +242,9 @@ short =
 type = IP
 usage =   X and Y dimensions of the box used to search for a bead 
 tooltip = X and Y dimensions of the box used to search for a bead.
-manpage =
+manpage = X and Y dimensions of the box used to search for a bead, in unbinned
+pixels.  If images are binned, the box size will be taken as the maximum of this
+entry divided by the binning and 2 * max(0, binned diameter - 7) + 32
 
 [Field = RoundsOfTracking]
 short = 
