@@ -1,6 +1,16 @@
 IMOD History
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-12/2/-8: In Etomo - Gold Erase, changed Better Radius to Fiducial Diameter.
+12/3/08: Fixed field width of output in Maxjoinsize so that a shift of -1000
+in Y does not screw everything up.
+
+12/2/08: Made 3dmod detect a 3D FFT and not mirror it.
+
+12/2/08: Changed Beadtrack to take true unbinned bead diameter and a binning
+and compute the radius for centroid as well as modify box size appropriately.
+Also changed Copytomocoms to feed into this properly and to give box sizes
+up to 100 instead of stopping at 48.
+
+12/2/08: In Etomo - Gold Erase, changed Better Radius to Fiducial Diameter.
 
 12/2/08: Point values will now be stored when meshing a contour as a tube.
 
