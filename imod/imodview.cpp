@@ -1314,7 +1314,7 @@ float ivwGetFileValue(ImodView *vi, int cx, int cy, int cz)
   /* px, py, pz are in piece list coords. */
   int fx, fy, fz;
   FILE *fp = NULL;
-  struct MRCheader *mrcheader = NULL;
+  MrcHeader *mrcheader = NULL;
 
   if (!vi->image)
     return 0.0f;
@@ -1326,7 +1326,7 @@ float ivwGetFileValue(ImodView *vi, int cx, int cy, int cz)
   }
 
   fp = vi->image->fp;
-  mrcheader = (struct MRCheader *)vi->image->header;
+  mrcheader = (MrcHeader *)vi->image->header;
 
   if (vi->li){
 
@@ -1352,7 +1352,7 @@ float ivwGetFileValue(ImodView *vi, int cx, int cy, int cz)
         vi->hdr = vi->image = &vi->imageList[fz];
         ivwReopen(vi->image);
         fp = vi->image->fp;
-        mrcheader = (struct MRCheader *)vi->image->header;
+        mrcheader = (MrcHeader *)vi->image->header;
         if (vi->image->file != IIFILE_MRC && vi->image->file != IIFILE_RAW)
           return 0.0f;
       }
@@ -2008,7 +2008,10 @@ static int ivwProcessImageList(ImodView *vi)
 {
   ImodImageFile *image;
   Ilist *ilist = (Ilist *)vi->imageList;
-  int xsize, ysize, zsize, i;
+  MrcHeader *header;
+  FILE *fp;
+  int xsize, ysize, zsize, i, midy, midz;
+  float naysum, zratio, mratio;
   int rgbs = 0, cmaps = 0;
 
   if (!ilist->size)
@@ -2021,12 +2024,40 @@ static int ivwProcessImageList(ImodView *vi)
     // See if mirroring of an FFT is needed:
     // MRC complex float odd size and not forbidden by option
     // Set flags and increase the nx
-    if ((image->file == IIFILE_MRC || image->file == IIFILE_RAW) && 
+    if (!i && (image->file == IIFILE_MRC || image->file == IIFILE_RAW) && 
         image->format == IIFORMAT_COMPLEX && image->type == IITYPE_FLOAT && 
         image->nx % 2 && vi->li->mirrorFFT >= 0) {
       image->mirrorFFT = 1;
-      vi->li->mirrorFFT = 1;
-      image->nx = (image->nx - 1) * 2;
+      if (image->file == IIFILE_MRC) {
+
+        // Analyze real MRC file for whether the hot pixel in the middle of
+        // of the file is much higher than at the bottom, if so don't mirror
+        iiReopen(image);
+        fp = image->fp;
+        header = (MrcHeader *)image->header;
+        midy = image->ny / 2;
+        midz = image->nz / 2;
+        naysum = mrc_read_point(fp, header, 1, midy, 0) + 
+          mrc_read_point(fp, header, 0, midy - 1, 0) + 
+          mrc_read_point(fp, header, 1, midy + 1, 0);
+        zratio = 0.;
+        if (naysum > 0.)
+          zratio = mrc_read_point(fp, header, 0, midy, 0) / naysum;
+        naysum = mrc_read_point(fp, header, 1, midy, midz) + 
+          mrc_read_point(fp, header, 0, midy - 1, midz) + 
+          mrc_read_point(fp, header, 1, midy + 1, midz);
+        mratio = 0.;
+        if (naysum  > 0.)
+          mratio = mrc_read_point(fp, header, 0, midy, midz) / naysum;
+        //imodPrintStderr("mratio %f  zratio %f\n", mratio, zratio);
+        if (zratio && mratio && mratio > 10. * zratio)
+          image->mirrorFFT = 0;
+        iiClose(image);
+      }
+      if (image->mirrorFFT) {
+        vi->li->mirrorFFT = 1;
+        image->nx = (image->nx - 1) * 2;
+      }
     }
 
     if (!i || image->nx < xsize)
@@ -2769,6 +2800,9 @@ void ivwBinByN(unsigned char *array, int nxin, int nyin, int nbin,
 /*
 
 $Log$
+Revision 4.75  2008/12/01 15:42:01  mast
+Changes for undo/redo and selection in 3dmodv standalone
+
 Revision 4.74  2008/11/28 06:38:56  mast
 Made start extra object function global
 
