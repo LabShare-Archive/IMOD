@@ -106,10 +106,10 @@ c
       logical keepGoing,saveAllPoints,ignoreObjs, done
       integer*4 numNew,nOverlap,iseqPass,ipassSave,iAreaSave,maxObjOrig
       real*4 outlieElimMin, outlieCrit, outlieCritAbs, curResMin
-      real*4 sigma1,sigma2,radius2,radius1,deltactf, ranFrac
+      real*4 sigma1,sigma2,radius2,radius1,deltactf, ranFrac, diameter
       integer*4 maxDrop, nDrop, ndatFit, nareaTot, maxInArea, limInArea
       integer*4 minViewDo, maxViewDo, numViewDo, numBound, iseed, limcxBound
-      integer*4 ibaseOnAlign, ifAlignDone
+      integer*4 ibaseOnAlign, ifAlignDone, imageBinned
       real*4 cosd,sind
       character*320 concat
       integer*4 getImodObjsize, niceframe
@@ -125,34 +125,33 @@ c
 c       fallbacks from ../../manpages/autodoc2man -2 2  beadtrack
 c       
       integer numOptions
-      parameter (numOptions = 49)
+      parameter (numOptions = 52)
       character*(40 * numOptions) options(1)
       options(1) =
      &    ':InputSeedModel:FN:@:OutputModel:FN:@:ImageFile:FN:@'//
-     &    ':PieceListFile:FN:@:SkipViews:LI:@:RotationAngle:F:@'//
-     &    ':SeparateGroup:LIM:@first:FirstTiltAngle:F:@'//
-     &    'increment:TiltIncrement:F:@tiltfile:TiltFile:FN:@'//
-     &    'angles:TiltAngles:FAM:@:TiltDefaultGrouping:I:@'//
-     &    ':TiltNondefaultGroup:ITM:@:MagDefaultGrouping:I:@'//
-     &    ':MagNondefaultGroup:ITM:@:RotDefaultGrouping:I:@'//
-     &    ':RotNondefaultGroup:ITM:@:MinViewsForTiltalign:I:@'//
-     &    ':CentroidRadius:F:@:LightBeads:B:@:FillGaps:B:@'//
-     &    ':MaxGapSize:I:@:MinTiltRangeToFindAxis:F:@'//
-     &    ':MinTiltRangeToFindAngles:F:@:BoxSizeXandY:IP:@'//
-     &    ':RoundsOfTracking:I:@:MaxViewsInAlign:I:@'//
+     &    ':PieceListFile:FN:@:ImagesAreBinned:I:@:SurfaceOutputFile:FN:@'//
+     &    ':SkipViews:LI:@:RotationAngle:F:@:SeparateGroup:LIM:@'//
+     &    'first:FirstTiltAngle:F:@increment:TiltIncrement:F:@'//
+     &    'tiltfile:TiltFile:FN:@angles:TiltAngles:FAM:@'//
+     &    ':TiltDefaultGrouping:I:@:TiltNondefaultGroup:ITM:@'//
+     &    ':MagDefaultGrouping:I:@:MagNondefaultGroup:ITM:@'//
+     &    ':RotDefaultGrouping:I:@:RotNondefaultGroup:ITM:@'//
+     &    ':MinViewsForTiltalign:I:@:CentroidRadius:F:@:BeadDiameter:F:@'//
+     &    ':LightBeads:B:@:FillGaps:B:@:MaxGapSize:I:@'//
+     &    ':MinTiltRangeToFindAxis:F:@:MinTiltRangeToFindAngles:F:@'//
+     &    ':BoxSizeXandY:IP:@:RoundsOfTracking:I:@:MaxViewsInAlign:I:@'//
      &    ':RestrictViewsOnRound:I:@:LocalAreaTracking:B:@'//
-     &    ':LocalAreaTargetSize:I:@:MinBeadsInArea:I:@'//
+     &    ':LocalAreaTargetSize:I:@:MinBeadsInArea:I:@:MaxBeadsInArea:I:@'//
      &    ':MinOverlapBeads:I:@:TrackObjectsTogether:B:@'//
      &    ':MaxBeadsToAverage:I:@:PointsToFitMaxAndMin:IP:@'//
-     &    ':DensityRescueFractionAndSD:FP:@'//
-     &    ':DistanceRescueCriterion:F:@'//
+     &    ':DensityRescueFractionAndSD:FP:@:DistanceRescueCriterion:F:@'//
      &    ':RescueRelaxationDensityAndDistance:FP:@'//
      &    ':PostFitRescueResidual:F:@:DensityRelaxationPostFit:F:@'//
      &    ':MaxRescueDistance:F:@:ResidualsToAnalyzeMaxAndMin:IP:@'//
      &    ':DeletionCriterionMinAndSD:FP:@param:ParameterFile:PF:@'//
      &    'help:usage:B:@:BoxOutputFile:FN:@:SnapshotViews:LI:@'//
      &    ':SaveAllPointsAreaRound:IP:'
-c       
+c
       maxwavg=15
       limpstr=16
       limpmag=6
@@ -207,6 +206,7 @@ c
       areaObjStr = 'object'
       limInArea = maxreal
       limcxBound = 2500
+      imageBinned = 1
 c       
 c       
 c       Pip startup: set error, parse options, check help, set flag if used
@@ -359,10 +359,30 @@ c
       nSnapList = 0
 c       
       if (pipinput) then
-        if (PipGetFloat('CentroidRadius', cgrad) .ne. 0) call errorexit
-     &      ('YOU MUST ENTER A RADIUS FOR CENTROID CALCULATION', 0)
+        ierr = PipGetInteger('ImagesAreBinned', imageBinned)
+        ierr = PipGetFloat('CentroidRadius', cgrad)
+        j = PipGetFloat('BeadDiameter', diameter)
+        if (ierr + j .ne. 1) call errorexit(
+     &      'YOU MUST ENTER EITHER BeadDiameter OR CentroidRadius '//
+     &      'BUT NOT BOTH', 0)
+c         
+c         compute diameter from cgrad by the formula used to get cgrad in
+c         copytomocoms, then divide by binning and get cgrad back
+        if (ierr .eq. 0) diameter = max(2., 2. * cgrad - 3.)
+        diameter = diameter / imageBinned
+        cgrad = 0.5 * (diameter + 3)
         if (PipGetTwoIntegers('BoxSizeXandY', nxbox, nybox) .ne. 0)
      &      call errorexit('YOU MUST ENTER A BOX SIZE', 0)
+
+        if (imageBinned .gt. 1) then
+c           
+c           Adjust box size if binned.  The formula here is
+c           size = 2 * max(0, diameter - 3) + 32
+          ierr = max(0, int(diameter) - 3) + 16
+          nxbox = 2 * max(nxbox / (imageBinned * 2), ierr)
+          nybox = 2 * max(nybox / (imageBinned * 2), ierr)
+          print *,'Box size in X and Y adjusted for binning to:',nxbox, nybox
+        endif
         ierr = PipGetInteger('MinViewsForTiltalign', minvtiltali)
         ierr = PipGetBoolean('LightBeads', ifwhite)
         ierr = PipGetBoolean('FillGaps', iffillin)
@@ -1768,6 +1788,9 @@ c
 c       
 c       
 c       $Log$
+c       Revision 3.29  2008/06/22 20:49:43  mast
+c       Added residual output to top/bottom list
+c
 c       Revision 3.28  2008/06/22 04:53:18  mast
 c       Comment out debugging output
 c
