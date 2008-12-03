@@ -4,6 +4,9 @@ c
 c       $Id$
 c       
 c       $Log$
+c       Revision 3.2  2008/11/21 20:42:09  mast
+c       Increased character limits
+c
 c       Revision 3.1  2004/10/28 21:14:20  mast
 c       Addition to package
 c	
@@ -107,8 +110,8 @@ c
       newx = 2 * nint(0.5*(xmax - xmin))
       newy = 2 * nint(0.5*(ymax - ymin))
       write(*,101)newx,newy,ixofs,iyofs
-101   format('Maximum size required:',2i6,/,'Offset needed to center:',
-     &    2i5)
+101   format('Maximum size required:',2i9,/,'Offset needed to center:',
+     &    2i8)
       call exit(0)
 c       
 91    call exitError('READING NUMBER OF FILES OR LINES TO SKIP')
