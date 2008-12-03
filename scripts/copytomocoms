@@ -517,7 +517,7 @@ else
         echo -n "Diameter of gold beads in NANOMETERS: "
         set beadnm = $<
     endif
-    set beadsize = `echo $beadnm $pixsize | awk '{print $1 / $2}'`
+    set beadsize = `echo $beadnm $pixsize | awk '{printf "%.2f", $1 / $2}'`
 endif
 set beadrad = `echo $beadsize | awk '{printf "%.2f", 0.5 * ($1 + 3)}'`
 
@@ -526,6 +526,8 @@ switch ($beadrad)
     case 1.*:
     case 2.*:
         set eraserad = "1.1"
+	set boxsize = "32"
+	breaksw
     case 3.*:
     case 4.*:
 	set boxsize = "32"
@@ -537,7 +539,9 @@ switch ($beadrad)
         set eraserad = "2.6"
 	breaksw
     default:
-	set boxsize = "48"
+	@ boxnum = `echo $beadsize | awk '{print 8 * int((2 * $1 + 26) / 8)}'`
+        set boxsize = $boxnum
+        if ($boxnum > 100) set boxsize = 100
         set eraserad = "3.6"
 	breaksw
 endsw
@@ -1052,7 +1056,7 @@ EOF
 	-e "/^RotationAngle/s/[ 	].*/	$axisangle/"\
 	-e "/^#*SkipViews.*/s//SkipViews	$excludelist/"\
 	-e "/^#*$wipeskip/d"\
-	-e "/^CentroidRadius/s/[ 	].*/	$beadrad/"\
+	-e "/^BeadDiameter/s/[ 	].*/	$beadsize/"\
 	-e "/^BoxSizeXandY/s/[ 	].*/	$boxsize,$boxsize/"\
 	-e "s/$stackname/$tracksrc/"\
 	-e s/$wipepl//\
@@ -1472,6 +1476,9 @@ exit 0
 
 #
 #  $Log$
+#  Revision 3.63  2008/10/20 19:58:33  mast
+#  Changed CTFfiles option to take an argument for one, the other, or both files
+#
 #  Revision 3.62  2008/10/17 14:37:43  mast
 #  Fixed initialization
 #
