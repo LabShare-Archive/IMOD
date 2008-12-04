@@ -676,7 +676,7 @@ int PipPrintHelp(char *progName, int useStdErr, int inputFiles,
       if (outputManpage <= 0)
         indentStr = indent4;
 
-      /* Output Fortran fallback code */
+      /* Output Fortran fallback code (-2) */
       if (outputManpage == -2) {
         lastOpt = (i == numOptions - 1);
         if (!numOut) fprintf(out, 
@@ -699,7 +699,7 @@ int PipPrintHelp(char *progName, int useStdErr, int inputFiles,
         continue;
       }
       
-      /* Fallback output for C code */
+      /* Fallback output for C code (2) or Python code (3) */
       if (outputManpage == 2 || outputManpage == 3) {
         lastOpt = (i == numOptions - 1);
         if (!numOut) {
@@ -748,12 +748,13 @@ int PipPrintHelp(char *progName, int useStdErr, int inputFiles,
       if (strcmp(optTable[i].type, BOOLEAN_STRING))
         fprintf(out, "%s%s", outputManpage > 0 ? " \t " : "   ", 
                 descriptions[j]);
-    /* else
-       fprintf(out, "   (%s entry, no value expected)", descriptions[j]);*/
+      fprintf(out, "\n");
     } else if (outputManpage == -2 || outputManpage >= 2)
       continue;
-
-    fprintf(out, "\n");
+    else if (outputManpage == 1)
+      fprintf(out, ".SS ");
+    else
+      fprintf(out, "\n");
 
     /* Print help string, breaking up line as needed */
     if (optTable[i].helpString && *optTable[i].helpString) {
@@ -1824,6 +1825,9 @@ static int CheckKeyword(char *line, char *keyword, char **copyto, int *gotit,
 
 /*
 $Log$
+Revision 1.2  2007/10/18 22:22:47  mast
+Made exir prefix a static array so exitError works after PipDone
+
 Revision 1.1  2007/09/20 02:43:08  mast
 Moved to new library
 
