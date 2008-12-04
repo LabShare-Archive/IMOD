@@ -426,7 +426,6 @@ static Imod *LoadModelFile(char *filename)
 {
   FILE *fin;
   Imod *imod;
-  int nChars;
   QString qname;
   char *filter[] = {"Model files (*.*mod *.*fid *.*seed)"};
   
@@ -545,8 +544,9 @@ static void initModelData(Imod *newModel, bool keepBW)
   if (!App->rgba)
     imod_cmap(App->cvi->imod);	  
 
-  /* set up model name */
+  /* set up model name and make sure model is on */
   MaintainModelName(App->cvi->imod);
+  newModel->drawmode = 1;
 
   /* DNM: select the first color ramp; call xcramp_setlevels, 
      not xcramp_ramp, and set the sliders too */
@@ -590,9 +590,7 @@ static void initModelData(Imod *newModel, bool keepBW)
 int createNewModel(char *modelFilename)
 {
   int mode;
-  int nChars;
   int err, answer;
-  Iobj *obj;
 
   lastError = IMOD_IO_SUCCESS;
 
@@ -701,7 +699,6 @@ unsigned char **imod_io_image_load(struct ViewInfo *vi)
   struct MRCheader savehdr;
   int i;
   int pixsize;
-  unsigned char *bdata;
   QString message;
 
   if (!im->fp)
@@ -813,6 +810,9 @@ static int mapErrno(int errorCode)
 
 /*
 $Log$
+Revision 4.27  2008/07/17 05:01:19  mast
+Notify plugins when new model loaded
+
 Revision 4.26  2008/05/29 22:16:45  mast
 Prevented model view from being drawn in intermediate stage of creating model
 

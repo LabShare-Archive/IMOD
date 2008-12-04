@@ -571,13 +571,14 @@ int main( int argc, char *argv[])
     } else {
       
     /*
-    * Try loading file as a model.
+    * Try loading file as a model.  Turn it on if successful
       */
       Model = (struct Mod_Model *)LoadModel(mfin);
       if (Model){
         if (Imod_debug)
           imodPrintStderr("Loaded model %s\n", argv[argc -1]);
         lastimage = argc - 2;
+        Model->drawmode = 1;
       } else {
         /* If fail, last file is an image */
         lastimage = argc - 1;
@@ -962,6 +963,9 @@ bool imodDebug(char key)
 /*
 
 $Log$
+Revision 4.68  2008/12/01 15:42:01  mast
+Changes for undo/redo and selection in 3dmodv standalone
+
 Revision 4.67  2008/05/27 05:38:30  mast
 Added angle file option, middle section and autocontrasting at startup
 
