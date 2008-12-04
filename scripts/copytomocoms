@@ -632,7 +632,7 @@ while ($iaxis < $numax)
         echo ""
     endif
 
-    # GET TILT ANGLE AND AXIS INFORMATION
+    # GET TILT ANGLE AND AXIS INFORMATION AND FULL OUTPUT SIZE
 
     if ($interactive) then
         echo  "Enter estimated angle of rotation from the vertical axis to the "
@@ -641,8 +641,31 @@ while ($iaxis < $numax)
     endif
 
     @ axangnum = `echo $axisangle | awk '{ print int($1)}'` 
+
     set newstwidth = ""
-    if ($axangnum > 70 || $axangnum < -70) set newstwidth = $ysize
+    @ fullx = $xsize
+    @ fully = $ysize
+    if ($montage == "1") then
+	@ fullx = `goodframe $xsize | sed '/[[:cntrl:]]/s///g'`
+	@ fully = `goodframe $ysize | sed '/[[:cntrl:]]/s///g'`
+    endif
+
+    # Also get the rotation relative to square to get indent in Y from rotation
+    #
+    @ indentangle = $axangnum
+    if (($axangnum > 45 && $axangnum < 135) || ($axangnum < -45 && $axangnum > -135)) then
+        @ temp = $fullx
+	@ fullx = $fully
+	@ fully = $temp
+        set newstwidth = $fullx
+        if ($axangnum > 0) @ indentangle = 90 - $axangnum
+        if ($axangnum < 0) @ indentangle = -90 - $axangnum
+    else
+        if ($axangnum > 90) @ indentangle = 180 - $axangnum
+        if ($axangnum < -90) @ indentangle = -180 - $axangnum
+    endif
+    @ blxmax = $fullx - 1
+    if ($indentangle < 0) @ indentangle = - $indentangle
 
     if ($filmccd != "F") then
 
@@ -943,6 +966,7 @@ EOF
 	        -e "/^ShiftPieces/s/0/1/"\
 	        -e "/^ReadInXcorrs/s/0/1/"\
 	        -e "/^OldEdgeFunctions/s/0/1/"\
+                -e "/^StartingAndEndingX/s/[ 	].*/	0 $blxmax/"\
 		<"$srcfile" >$dstfile
 	    echo '$'"if (-e $backupname) $backupname" >> $dstfile
 	    set backuplist = ($backuplist $setname.ecd)
@@ -988,6 +1012,7 @@ EOF
 	    sed -e s/$srcname/$dstname/g\
                 -e "/^ShiftPieces/s/0/$shiftopt/"\
 	        -e "/^OldEdgeFunctions/s/0/$buildnew/"\
+                -e "/^StartingAndEndingX/s/[ 	].*/	0 $blxmax/"\
 		<"$srcfile" >$dstfile
 	    echo '$'"if (-e $backupname) $backupname" >> $dstfile
 	    set backuplist = ($backuplist $setname.ecd)
@@ -1173,20 +1198,9 @@ doCTFcorr:
 
     # GET TILT
 
-    set fullx = $xsize
-    set fully = $ysize
-    if ($axangnum > 70 || $axangnum < -70) then
-	set fullx = ysize
-	set fully = xsize
-    endif
-
     set delexclude = "gibberish"
     if ($excludelist == "") set delexclude = "EXCLUDELIST"
 
-    if ($montage == "1") then
-	set alxsize = `goodframe $xsize | sed '/[[:cntrl:]]/s///g'`
-	set alysize = `goodframe $ysize | sed '/[[:cntrl:]]/s///g'`
-    endif
 
     # Get a scaling for tilt appropriate to the X size: look up in table
     #
@@ -1194,7 +1208,7 @@ doCTFcorr:
     while ($i >= 1)
         set tiltscale = $TILTSCALES[$i]
         @ tiltsize = $TILTSIZES[$i]
-        if ($alxsize >= $tiltsize) break
+        if ($fullx >= $tiltsize) break
         @ i--
     end
 
@@ -1206,7 +1220,7 @@ doCTFcorr:
         -e "/^LOG/s/LOG.*/LOG $logbase/"\
         -e "/MODE/s/MODE.*/MODE $tiltmode/"\
         -e "/SCALE/s/SCALE.*/SCALE 0 $tiltscale/"\
-	-e "/FULLIMAGE/s//FULLIMAGE $alxsize $alysize/"\
+	-e "/FULLIMAGE/s//FULLIMAGE $fullx $fully/"\
 	-e "/EXCLUDELIST/s//EXCLUDELIST $excludelist/"\
 	-e "/$delexclude/d"\
         <"$srcfile" >$dstfile
@@ -1214,20 +1228,33 @@ doCTFcorr:
 
     # COMPUTE OFFSET FOR SAMPLING
 
-    @ ofsize = $ysize
-    if ($axangnum > 70 || $axangnum < -70) @ ofsize = $xsize
+    # get indent in Y where 3/4 of the X extent has data after rotation
+    # but limit it to 1/4 of Y extent
+    #
+    @ rotindent = `echo $fullx $indentangle | \
+      awk '{print int(0.25 * $1 * sin($2*3.14159/180) / cos($2*3.14159/180))}'`
+    if ($rotindent > $fully / 4) @ rotindent = $fully / 4
 
+    # Limit offsets to 1/4 of Y extent generally, and sample sizes to half of
+    # Y extent, in case of tiny tomograms
+    #
     @ border = $MINBORDER1
-    if ($ofsize > $BORDERSTEP1) @ border = $MINBORDER2
-    if ($ofsize > $BORDERSTEP2) @ border = $MINBORDER2 + (($ofsize - $BORDERSTEP2) / $BORDERFAC)
+    if ($fully > $BORDERSTEP1) @ border = $MINBORDER2
+    if ($fully > $BORDERSTEP2) @ border = $MINBORDER2 + (($fully - $BORDERSTEP2) / $BORDERFAC)
     if ($filmccd != "F") @ border = `echo $border $CCDBORDERFAC | awk '{print (int ( $1 * $2))}'`
-    @ offset = $ofsize / 2 - $border
-    @ halfsampali = $SAMPALISIZE / 2
+    if ($border < $rotindent) @ border = $rotindent
+    if ($border >= $fully / 4) @ border = $fully / 4 - 1
+    @ sampalisize = $SAMPALISIZE
+    if ($sampalisize >= $fully / 2) @ sampalisize = $fully / 2  - 2
+    @ samplesize = $SAMPLESIZE
+    if ($samplesize > $sampalisize) @ samplesize = $sampalisize - 2
+    @ offset = $fully / 2 - $border
+    @ halfsampali = $sampalisize / 2
     if ($halfsampali > $border - 10) @ halfsampali = $border - 10
     @ sampali = 2 * $halfsampali
-    @ slmin = $halfsampali - $SAMPLESIZE / 2
-    @ slmax = $slmin + $SAMPLESIZE - 1
-    @ sllimit = $SAMPALISIZE - 1
+    @ slmin = $halfsampali - $samplesize / 2
+    @ slmax = $slmin + $samplesize - 1
+    @ sllimit = $sampalisize - 1
 
     set offarr = (0 $offset -$offset)
     set bmtarr = (mid$recext top$recext bot$recext)
@@ -1243,8 +1270,8 @@ doCTFcorr:
 #
 ####CreatedVersion#### 3.8.25
 # 
-# The sample aligned stacks will each be $SAMPALISIZE pixels in Y
-# The sample tomograms will have $SAMPLESIZE slices
+# The sample aligned stacks will each be $sampalisize pixels in Y
+# The sample tomograms will have $samplesize slices
 # To get more slices in the samples, change "sampletilt $slmin $slmax" by
 # decreasing $slmin and increasing $slmax by equal amounts, up to 0 and $sllimit
 #
@@ -1255,8 +1282,8 @@ EOF
         @ ind++
         @ offind = $offarr[$ind]
         # THESE () WERE NEEDED TO KEEP IT FROM BEING EVALED RIGHT TO LEFT
-        @ ymin = ($ofsize / 2 + $offind) - $halfsampali
-        @ ymax = ($ofsize / 2 + $offind) + $halfsampali
+        @ ymin = ($fully / 2 + $offind) - $halfsampali
+        @ ymax = ($fully / 2 + $offind) + $halfsampali
         if ($montage == "0") then
             if ($filmccd == "F") then
                 sed -e "/single offset/s/.*	/0,$offind	/"\
@@ -1476,6 +1503,9 @@ exit 0
 
 #
 #  $Log$
+#  Revision 3.64  2008/12/03 06:19:01  mast
+#  Changes for new beadsize option in beadtrack
+#
 #  Revision 3.63  2008/10/20 19:58:33  mast
 #  Changed CTFfiles option to take an argument for one, the other, or both files
 #
