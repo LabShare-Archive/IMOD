@@ -1,5 +1,8 @@
 IMOD History
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+12/3/08: Turned models on when loading into 3dmod, so if the user turns it off
+by mistake and doesn't know about 't', it will reappear when they reload it.
+
 12/3/08: Fixed Copytomocom's handling of output sizes for sampling and final
 aligned stack when images are being rotated by ~90 degrees, adjusted sample
 positions to account for data loss from rotation, and fixed sample parameters
