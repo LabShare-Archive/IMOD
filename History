@@ -33,6 +33,9 @@ clip) by extending image with replicted pixels instead of mean.
 11/30/08: Fixed a problem with contrast floating when starting in middle Z
 and contrast set from model.
 
+11/29/08: Added option to Imodjoin to generate new colors for objects being
+added to the first model.
+
 11/29/08: Enabled selection of contours, deletion of contours, and undo/redo
 when running as 3dmodv (standalone mode).
 
