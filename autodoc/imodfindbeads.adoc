@@ -35,6 +35,16 @@ manpage = Model with contours enclosing areas to analyze.  More than one
 contour can be included on each section.  If there are no contours on a
 section within the range being analyzed, the entire section will be used.
 
+[Field = AddToModel]
+short = add
+type = FN
+usage = Model to append points to, with duplicates eliminated
+tooltip = 
+manpage = Model to append to.  After the analysis of histograms and thresholds,
+detected points will be eliminated if they are within the criterion spacing of
+a point in an existing object (where closed contour objects are excluded).
+Points will be stored in new objects.  
+
 [Field = ReferenceModel]
 short = ref
 type = FN
