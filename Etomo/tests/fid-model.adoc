@@ -14,6 +14,13 @@ assert.file.exists = track%{axis}.log~
 waitfor.process.track = done
 bn.track-with-fiducial-model-as-seed =
 waitfor.process.track = done
+tf.view-skip-list = 1, 2
+bn.fix-fiducial-model=
+waitfor.popup.entry-error = OK
+tf.view-skip-list =
+bn.fix-fiducial-model=
+tf.view-skip-list = 1,2
+bn.fix-fiducial-model=
 bn.done =
 
 
