@@ -40,6 +40,10 @@ import etomo.type.Run3dmodMenuOptions;
  * @version $Revision$
  *
  * <p> $Log$
+ * <p> Revision 3.22  2008/05/13 22:59:33  sueh
+ * <p> bug# 847 Adding a right click menu for deferred 3dmods to some
+ * <p> process buttons.
+ * <p>
  * <p> Revision 3.21  2008/05/03 00:47:08  sueh
  * <p> bug# 847 Passing null for ProcessSeries to process funtions.
  * <p>
@@ -156,6 +160,7 @@ public final class BeadtrackPanel implements Expandable,
 
   public static final String TRACK_LABEL = "Track Seed Model";
   public static final String USE_MODEL_LABEL = "Track with Fiducial Model as Seed";
+  private static final String VIEW_SKIP_LIST_LABEL = "View skip list";
 
   private final JPanel panelBeadtrack = new JPanel();
   private final JPanel panelBeadtrackBody = new JPanel();
@@ -163,7 +168,7 @@ public final class BeadtrackPanel implements Expandable,
   private final Run3dmodButton btnFixModel;
 
   private final LabeledTextField ltfViewSkipList = new LabeledTextField(
-      "View skip list: ");
+      VIEW_SKIP_LIST_LABEL + ": ");
   private final LabeledTextField ltfAdditionalViewSets = new LabeledTextField(
       "Separate view groups: ");
   private final LabeledTextField ltfTiltAngleGroupSize = new LabeledTextField(
@@ -606,8 +611,20 @@ public final class BeadtrackPanel implements Expandable,
       setEnabled();
     }
     else if (command.equals(btnFixModel.getActionCommand())) {
+      //Validate skipList
+      String skipList = ltfViewSkipList.getText().trim();
+      if (skipList.length() > 0) {
+        if (skipList.matches(".*\\s+.*")) {
+          UIHarness.INSTANCE.openMessageDialog(VIEW_SKIP_LIST_LABEL
+              + " cannot contain embedded spaces.", "Entry Error", axisID);
+          return;
+        }
+      }
+      else {
+        skipList = null;
+      }
       manager.imodFixFiducials(axisID, run3dmodMenuOptions, btnFixModel,
-          ImodProcess.GAP_MODE);
+          ImodProcess.GAP_MODE, skipList);
     }
   }
 
