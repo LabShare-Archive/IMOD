@@ -134,29 +134,30 @@ int main( int argc, char *argv[])
   float annPeakAbove[MAX_GROUPS], dip, kernel[KERNEL_MAXSIZE * KERNEL_MAXSIZE];
   int numGroups = 4;
   int areaConts[MAX_AREAS];
-  int numAreaCont;
+  int numAreaCont, numObjOrig;
   double sum, sumsq;
   char *vkeys = NULL;
   float *meanMedPtr;
   int ob, co, pt;
 
   /* Fallbacks from    ../manpages/autodoc2man 2 1 imodfindbeads  */
-  int numOptions = 29;
+  int numOptions = 32;
   char *options[] = {
     "input:InputImageFile:FN:", "output:OutputModelFile:FN:",
-    "filtered:FilteredImageFile:FN:", "ref:ReferenceModel:FN:",
-    "area:AreaModel:FN:", "boundary:BoundaryObject:I:", "size:BeadSize:F:",
-    "light:LightBeads:B:", "scaled:ScaledSize:F:",
-    "interpmin:MinInterpolationFactor:F:", "linear:LinearInterpolation:B:",
-    "center:CenterWeight:F:", "box:BoxSizeScaled:I:",
-    "threshold:ThresholdForAveraging:F:", "bkgd:BackgroundGroups:F:",
-    "peakmin:MinRelativeStrength:F:", "spacing:MinSpacing:F:",
-    "sections:SectionsToDo:LI:", "maxsec:MaxSectionsPerAnalysis:I:",
+    "filtered:FilteredImageFile:FN:", "area:AreaModel:FN:",
+    "add:AddToModel:FN:", "ref:ReferenceModel:FN:",
+    "boundary:BoundaryObject:I:", "size:BeadSize:F:", "light:LightBeads:B:",
+    "scaled:ScaledSize:F:", "interpmin:MinInterpolationFactor:F:",
+    "linear:LinearInterpolation:B:", "center:CenterWeight:F:",
+    "box:BoxSizeScaled:I:", "threshold:ThresholdForAveraging:F:",
+    "store:StorageThreshold:F:", "bkgd:BackgroundGroups:F:",
+    "annulus:AnnulusPercentile:F:", "peakmin:MinRelativeStrength:F:",
+    "spacing:MinSpacing:F:", "sections:SectionsToDo:LI:",
+    "maxsec:MaxSectionsPerAnalysis:I:", "remake:RemakeModelBead:B:",
     "guess:MinGuessNumBeads:I:", "measure:MeasureToUse:I:",
-    "annulus:AnnulusPercentile:F:", "kernel:KernelSigma:F:",
-    "rad1:FilterRadius1:F:", "rad2:FilterRadius2:F:", "sig1:FilterSigma1:F:",
-    "sig2:FilterSigma2:F:", "verbose:VerboseKeys:CH:",
-    "param:ParameterFile:PF:"};
+    "kernel:KernelSigma:F:", "rad1:FilterRadius1:F:",
+    "rad2:FilterRadius2:F:", "sig1:FilterSigma1:F:", "sig2:FilterSigma2:F:",
+    "verbose:VerboseKeys:CH:", "param:ParameterFile:PF:"};
 
   /* Startup with fallback */
   PipReadOrParseOptions(argc, argv, options, numOptions, progname, 
@@ -204,6 +205,21 @@ int main( int argc, char *argv[])
     if (!areaMod->objsize || !areaMod->obj[0].contsize)
       exitError("No contours in object 1 of area model");
   }
+
+  // Read existing model
+  if (!PipGetString("AddToModel", &filename)) {
+    imod = imodRead(filename);
+    if (!imod)
+      exitError("Reading model to append to: %s", filename);
+    free(filename);
+  } else {
+
+    // Or create a model
+    imod = imodNew();
+    if (!imod)
+      exitError("Creating output model");
+  }
+  numObjOrig  = imod->objsize;
 
   // Get other parameters
   PipGetFloat("ScaledSize", &scaledSize);
@@ -320,12 +336,7 @@ int main( int argc, char *argv[])
     outhead.amean = 0.;
   }
 
-  // Create a model
   imodBackupFile(outModel);
-  imod = imodNew();
-  if (!imod)
-    exitError("Creating output model");
-
   imod->file = fopen(outModel, "wb");
   if (!imod->file)
     exitError("Opening output model %s", outModel);
@@ -802,6 +813,7 @@ int main( int argc, char *argv[])
       }
     }
 
+    ixst = izst;
     izst = iznd;
     if (!numPeaksLeft)
       continue;
@@ -828,7 +840,7 @@ int main( int argc, char *argv[])
           sumsq += regHist[j] * val * val;
         }
 
-        // estimate mean and SD for points above threshlod
+        // estimate mean and SD for points above threshold
         if (!peakThresh) {
           sdAbove = 0.;
           meanAbove = sum / B3DMAX(1, nsum);
@@ -846,8 +858,9 @@ int main( int argc, char *argv[])
     
           threshUse = j * dxbin;
           printf("%d peaks are above threshold of %.3f\n"
-                 "%d more peaks being stored in model down to value of %.3f\n"
-                 , nsum, histDip, jdir, threshUse);
+                 "%d more peaks %s stored in model down to value of %.3f\n"
+                 , nsum, histDip, jdir, numObjOrig ? "would be" : "being",
+                 threshUse);
         } else {
 
           // Or find threshold given a relative number
@@ -860,13 +873,52 @@ int main( int argc, char *argv[])
           }
           threshUse = B3DMAX(0., j * dxbin);
           printf("%d peaks are above histogram dip at %.3f\n"
-                 "%d total peaks being stored in model down to value of %.3f\n"
-                 , nsum, histDip, jdir, threshUse);
+                 "%d total peaks % stored in model down to value of %.3f\n"
+                 , nsum, histDip, jdir, numObjOrig ? "would be" : "being",
+                 threshUse);
         }
 
       } else 
         printf("Failed to find dip in histogram\n");
     }
+
+    // Eliminate duplicates from original objects by brute force
+    numEliminated = 0;
+    for (ob = 0; ob < numObjOrig; ob++) {
+      if (iobjClose(imod->obj[ob].flags))
+        continue;
+      for (indz = ixst; indz < iznd; indz++) {
+        iz = zlist[indz];
+        
+        for (co = 0; co < imod->obj[ob].contsize; co++) {
+          cont = &imod->obj[ob].cont[co];
+          for (pt = 0; pt < cont->psize; pt++) {
+            if (B3DNINT(cont->pts[pt].z) != iz)
+              continue;
+            xcen = cont->pts[pt].x;
+            ycen = cont->pts[pt].y;
+            for (i = listStart[indz]; i < listStart[indz + 1]; i++) {
+              if (!peakList[i].ccc)
+                continue;
+              dy = peakList[i].ycen - ycen;
+              if (dy < -minDist || dy > minDist)
+                continue;
+              dx = peakList[i].xcen - xcen;
+              if (dx < -minDist || dx > minDist)
+                continue;
+              distsq = dx * dx + dy * dy;
+              if (distsq <= critsq) {
+                numEliminated++;
+                peakList[i].ccc = 0.;
+              }
+            }
+          }
+        }
+      }
+    }
+    if (numEliminated)
+      printf("%d peaks were eliminated as too close to existing "
+             "points in model\n", numEliminated);
 
     // Count points to be stored
     numToSave = 0;
@@ -1372,6 +1424,9 @@ static int pointInsideArea(Iobj *obj, int *list, int nlist, float xcen,
 /*
 
 $Log$
+Revision 3.5  2008/12/01 15:44:39  mast
+Pulled out more library functions, made kernel filtering be default
+
 Revision 3.4  2008/11/12 03:48:19  mast
 Pulled out the scan histogram function for library
 
