@@ -143,6 +143,39 @@ if (-w .) then
 endif
 set list = ($edffile)
 
+# Get error logs from elsewhere: first scan etomo_err.log for iles
+#
+set copylogs = ""
+if (-e etomo_err.log) then
+    set errlogs = `sed -n '/^Error log.*is in /s///p' etomo_err.log`
+    if ("$errlogs" != "") then
+        foreach i ($errlogs)
+            if (-r "$i") then
+                cp -p -f $i .
+                set copylogs = ($copylogs $i:t)
+            endif
+        end
+    endif
+endif
+
+# Then get last N from the lg directory
+#
+if (! $?ETOMO_LOG_DIR) setenv ETOMO_LOG_DIR $HOME/.etomologs
+if ("$ETOMO_LOG_DIR" == "") setenv ETOMO_LOG_DIR $HOME/.etomologs
+set grabnum = 10
+if (-r "$ETOMO_LOG_DIR" && -d "$ETOMO_LOG_DIR") then
+    set errlogs = `cd "$ETOMO_LOG_DIR" ; ls -t etomo_err*.log | tail -n $grabnum`
+    # Copy each one over.  Don't need to put it on list, they are in loglist
+    if ("$errlogs" != "") then
+        foreach i ($errlogs)
+            if (-r "$ETOMO_LOG_DIR/$i") then
+                cp -p -f "$ETOMO_LOG_DIR/$i" .
+                set copylogs = ($copylogs $i)
+            endif
+        end
+    endif
+endif
+
 # Get all com and log files and backups except the ta*.log
 #
 set comlist = `\find . -name '*.com' -print`
@@ -174,12 +207,13 @@ foreach i ($singleFiles)
     if (-e $i) set list = ($list $i)
 end
 
-# Tar the file
+# Tar the file and clean up
 #
 tar -cvf "$outfile" $list
 gzip -f "$outfile"
 if (-e uname.out) \rm -f uname.out
 if (-e lslrt.out) \rm -f lslrt.out
+if ("$copylogs" != "") \rm -f $copylogs
 if ($status) then
     echo "ERROR: $pn - making snapshot tar file"
     exit 1
@@ -204,6 +238,9 @@ Options:
 EOF
 
 #  $Log$
+#  Revision 3.17  2008/11/21 18:43:33  mast
+#  Add combine.out
+#
 #  Revision 3.16  2007/03/02 19:36:52  mast
 #  Added _orig.seed and .xtilt
 #
