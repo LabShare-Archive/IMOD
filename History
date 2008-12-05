@@ -1,5 +1,9 @@
 IMOD History
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+12/4/08: In Etomo - Fiducial Model dialog, sending the View Skip List to 3dmod
+when opening it with the Fix Fiducial Model button.  The View Skip List will
+appear under the checkbox called "Ignore gaps at views:" in the Bead Fixer.
+
 12/3/08: Turned models on when loading into 3dmod, so if the user turns it off
 by mistake and doesn't know about 't', it will reappear when they reload it.
 
