@@ -5,6 +5,7 @@ function = set-global
 function = set-general
 function = compute-alignment
 function = done
+waitfor.popup.etomo-question = Yes
 
 [function = test]
 function = assert-general-fields
