@@ -6,6 +6,21 @@
 # Log at end of file
 # 
 
+rollLogs() {
+  lasterr=etomo_err12.log
+  for i in 11 10 9 8 7 6 5 4 3 2 1
+  do
+    thiserr=etomo_err${i}.log
+    if [ -e ${thiserr} ] ; then 
+      mv -f ${thiserr} ${lasterr} 
+    fi
+    lasterr=${thiserr}
+  done
+  if [ -e etomo_err.log ]; then
+    mv -f etomo_err.log ${lasterr}
+  fi
+}
+
 # To increase the memory limit for Java, define this environment variable
 # to a higher number
 #
@@ -85,38 +100,52 @@ if [ $# -gt 0 ] ; then
     fi
 fi
 
-# If ETOMO_LOG_DIR is defined, set up log files there with date/time stamp
-# purge the directory to 60 files (30 sessions)
+# If ETOMO_LOG_DIR is defined and writable, set up log files there with 
+# date/time stamp; if not defined, put them in a hidden directory
 if [ ${help} -eq 0 ] ; then
   outlog=etomo_out.log
   errlog=etomo_err.log
+
+  # Put logs in hidden directory if directory is not defined
+  if [ -z ${ETOMO_LOG_DIR} ] ; then
+      ETOMO_LOG_DIR=$HOME/.etomologs
+      mkdir -p ${ETOMO_LOG_DIR}
+  fi
   if [[ -n ${ETOMO_LOG_DIR} && -w ${ETOMO_LOG_DIR} ]] ; then
+
+    # purge the directory to 60 files (30 sessions) or whatever user chooses
+    purgenum=31
+    if [ ! -z ${ETOMO_LOGS_TO_RETAIN} ] ; then
+      purgenum=${ETOMO_LOGS_TO_RETAIN}
+    fi
     timestamp=`date | sed 's/://g' | awk '{printf "%s-%s-%s",$2,$3,$4}'`
-    outlog=${ETOMO_LOG_DIR}/etomo_out_${timestamp}.log
     errlog=${ETOMO_LOG_DIR}/etomo_err_${timestamp}.log
     anypurge=`cd ${ETOMO_LOG_DIR} ; find . -name 'etomo_*.log' -print`
     if [ ! -z "${anypurge}" ] ; then
-      purgelist=`cd ${ETOMO_LOG_DIR} ; ls -t etomo_*.log | tail -n +61`
+      purgelist=`cd ${ETOMO_LOG_DIR} ; ls -t etomo_*.log | tail -n +$purgenum`
       # echo $purgelist
       if [ ! -z "${purgelist}" ] ; then 
         (cd ${ETOMO_LOG_DIR} ; rm -f ${purgelist})
       fi
     fi
+
+    # If there is an existing real log, roll it
+    if [ -e etomo_err.log ] ; then
+      match=`head -n 1 etomo_err.log | grep "Error log"`
+      if [ -z "$match" ] ; then
+        rollLogs
+      fi
+    fi
+
+    # Write location of log into file here
+    touch etomo_err.log
+    echo "Error log for `date` is in ${errlog}" >> etomo_err.log
+
   else
 
-    # Otherwise roll numbered logs
-    lasterr=etomo_err12.log
-    for i in 11 10 9 8 7 6 5 4 3 2 1
-    do
-      thiserr=etomo_err${i}.log
-      if [ -e ${thiserr} ] ; then 
-        mv -f ${thiserr} ${lasterr} 
-      fi
-      lasterr=${thiserr}
-    done
-    if [ -e ${errlog} ]; then
-      mv -f ${errlog} ${lasterr}
-    fi
+    # Otherwise roll numbered logs here
+    rollLogs
+
   fi
 
   # Copy the previous out log file to backup
@@ -125,7 +154,7 @@ if [ ${help} -eq 0 ] ; then
   fi
 
 
-  echo "starting eTomo"
+  echo "starting eTomo with error logging to ${errlog}"
   java -Xmx${ETOMO_MEM_LIM} -cp "${IMOD_DIR}/bin/etomo" \
    -jar "${IMOD_DIR}/bin/etomo.jar" "$@" 2>${errlog} >${outlog} &
 else
@@ -134,6 +163,9 @@ else
 fi
 
 # $Log$
+# Revision 1.27  2008/07/29 18:35:27  mast
+# Define as a bash script to avoid problems with Ubuntu link to dash
+#
 # Revision 1.26  2008/03/17 23:05:02  mast
 # Allowed user to set environment variable to increase memory limit
 #
