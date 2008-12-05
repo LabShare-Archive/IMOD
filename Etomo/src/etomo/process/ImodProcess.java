@@ -36,6 +36,10 @@ import etomo.util.Utilities;
  * 
  * <p>
  * $Log$
+ * Revision 3.49  2008/07/24 17:58:25  sueh
+ * bug# 1128 Added setMoreObjectPropertiesMessage and
+ * setPointLimitMessage.
+ *
  * Revision 3.48  2008/06/19 23:34:54  sueh
  * bug# 1112 Added tiltFile.
  *
@@ -532,6 +536,7 @@ public class ImodProcess {
   public static final String BF_MESSAGE_AUTO_CENTER = "4";
   public static final String BF_MESSAGE_DIAMETER = "5";
   public static final String BF_MESSAGE_MODE = "6";
+  public static final String BF_MESSAGE_SKIP_LIST = "7";
   public static final String MESSAGE_ON = "1";
   public static final String MESSAGE_OFF = "0";
   public static final String MESSAGE_STOP_LISTENING = "\n";
@@ -1100,6 +1105,10 @@ public class ImodProcess {
    */
   public void setOpenBeadFixerMessage() {
     sendArguments.add(MESSAGE_OPEN_BEADFIXER);
+  }
+
+  public void setSkipList(String skipList) {
+    addPluginMessage(BEAD_FIXER_PLUGIN, BF_MESSAGE_SKIP_LIST, skipList);
   }
 
   public void setAutoCenter(boolean autoCenter) {

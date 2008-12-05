@@ -36,6 +36,9 @@ import etomo.util.DatasetFiles;
  * @version $Revision$
  *
  * <p> $Log$
+ * <p> Revision 3.66  2008/11/20 01:32:37  sueh
+ * <p> bug# 1147 Added ERASED_FIDUCIALS_KEY and newErasedFiducials.
+ * <p>
  * <p> Revision 3.65  2008/10/27 17:53:44  sueh
  * <p> bug# 1141 Added ctfCorrection.
  * <p>
@@ -1117,6 +1120,15 @@ public class ImodManager {
       return;
     }
     imodState.setAutoCenter(autoCenter);
+  }
+
+  public void setSkipList(String key, AxisID axisID, String skipList)
+      throws AxisTypeException {
+    ImodState imodState = get(key, axisID);
+    if (imodState == null) {
+      return;
+    }
+    imodState.setSkipList(skipList);
   }
 
   public void setBeadfixerMode(String key, AxisID axisID, String mode)
