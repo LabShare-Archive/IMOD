@@ -37,6 +37,9 @@ import etomo.type.Run3dmodMenuOptions;
  * @version $Revision$
  *
  * <p> $Log$
+ * <p> Revision 3.34  2008/11/21 17:11:28  sueh
+ * <p> bug# 1123 Added get and setParameters(ReconScreenState).
+ * <p>
  * <p> Revision 3.33  2008/10/16 21:09:12  sueh
  * <p> bug# 1141 Removed fixRootPanel because it doesn't do anything.
  * <p>
@@ -501,7 +504,7 @@ public final class AlignmentEstimationDialog extends ProcessDialog implements
     }
     else if (command.equals(btnImod.getActionCommand())) {
       applicationManager.imodFixFiducials(axisID, run3dmodMenuOptions, null,
-          ImodProcess.RESIDUAL_MODE);
+          ImodProcess.RESIDUAL_MODE,null);
     }
     else if (command.equals(btnViewResiduals.getActionCommand())) {
       applicationManager.imodViewResiduals(axisID, run3dmodMenuOptions);
