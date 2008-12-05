@@ -15,8 +15,14 @@ Alternative directory to search for an autodoc file when a program uses PIP
 for input.
 .TP
 .B ETOMO_LOG_DIR
-Directory into which eTomo will place log files, instead of into the directory
-from which eTomo was started.
+Directory into which eTomo will place error log files named by date and time,
+instead of into $HOME/.etomologs.  Set this to a non-existent name (e.g.,
+stuffAndNonsense) to have sequentially numbered error logs kept in the
+directory from which eTomo was started.
+.TP
+.B ETOMO_LOGS_TO_RETAIN
+Set this to the number of log files named by date and time to retain in the 
+directory where they are kept.  The default is 31 if this variable is not set.
 .TP
 .B ETOMO_MEM_LIM
 Memory limit for running etomo.  Define this as a number of megabytes followed
