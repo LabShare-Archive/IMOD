@@ -1,5 +1,8 @@
 IMOD History
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+12/5/08: Etomo error logs are now saved to $HOME/.etomologs unless the user
+has ETOMO_LOG_DIR set.
+
 12/4/08: In Etomo - Fiducial Model dialog, sending the View Skip List to 3dmod
 when opening it with the Fix Fiducial Model button.  The View Skip List will
 appear under the checkbox called "Ignore gaps at views:" in the Bead Fixer.
