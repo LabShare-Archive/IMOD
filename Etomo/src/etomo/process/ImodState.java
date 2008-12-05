@@ -174,6 +174,9 @@ import etomo.type.Run3dmodMenuOptions;
  * @version $$Revision$$
  * 
  * <p> $$Log$
+ * <p> $Revision 1.48  2008/07/24 17:58:59  sueh
+ * <p> $bug# 1128 Added pointLimit and setPointLimit.
+ * <p> $
  * <p> $Revision 1.47  2008/06/19 23:35:05  sueh
  * <p> $bug# 1112 Added setTiltFile and resetTiltFile.
  * <p> $
@@ -395,6 +398,7 @@ public final class ImodState {
   private boolean newContours = false;
   private boolean manageNewContours = false;
   private String beadfixerMode = null;
+  private String skipList = null;
 
   //signals that a state variable has been changed at least once, so the
   //corrosponding message must always be sent
@@ -643,6 +647,9 @@ public final class ImodState {
         }
         if (logName != null) {
           process.setOpenLog(logName);
+        }
+        if (skipList != null) {
+          process.setSkipList(skipList);
         }
       }
       //model will be opened
@@ -1016,6 +1023,10 @@ public final class ImodState {
   void setAutoCenter(boolean autoCenter) {
     setAutoCenter = true;
     this.autoCenter = autoCenter;
+  }
+
+  void setSkipList(String input) {
+    skipList = input;
   }
 
   void setBeadfixerMode(String mode) {
