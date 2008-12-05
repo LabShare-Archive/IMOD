@@ -2029,7 +2029,8 @@ public final class ApplicationManager extends BaseManager {
    * Open 3dmod with the new fidcuial model
    */
   public void imodFixFiducials(AxisID axisID, Run3dmodMenuOptions menuOptions,
-      ProcessResultDisplay processResultDisplay, String beadfixerMode) {
+      ProcessResultDisplay processResultDisplay, String beadfixerMode,
+      String skipList) {
     sendMsgProcessStarting(processResultDisplay);
     // if fix fiducials has already run, don't change auto center
     boolean setAutoCenter = !state.isFixedFiducials(axisID);
@@ -2042,6 +2043,7 @@ public final class ApplicationManager extends BaseManager {
         imodManager
             .setAutoCenter(ImodManager.COARSE_ALIGNED_KEY, axisID, false);
       }
+      imodManager.setSkipList(ImodManager.COARSE_ALIGNED_KEY, axisID, skipList);
       imodManager.setBeadfixerMode(ImodManager.COARSE_ALIGNED_KEY, axisID,
           beadfixerMode);
       imodManager.setNewContours(ImodManager.COARSE_ALIGNED_KEY, axisID, false);
@@ -5818,6 +5820,10 @@ public final class ApplicationManager extends BaseManager {
 }
 /**
  * <p> $Log$
+ * <p> Revision 3.311  2008/11/21 17:10:22  sueh
+ * <p> bug# 1123 In saveAlignmentEstimationDialog calling
+ * <p> FinalAlignmentDialog.getParameters(ReconScreenState).
+ * <p>
  * <p> Revision 3.310  2008/11/20 01:23:55  sueh
  * <p> bug# 1147 Added ccdEraser(), xfmodel().  Changed imodSeedFiducials
  * <p> to imodSeedModel and made it more generic.
