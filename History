@@ -1,5 +1,11 @@
 IMOD History
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+12/6/08: Eliminated 1 pixel shift and ability to shift image with mouse when
+zoomed image fits exactly in window.
+
+12/6/08: Slicer in centering mode will now stay exactly centered on model 
+points when stepping through a contour.
+
 12/5/08: Etomo error logs are now saved to $HOME/.etomologs unless the user
 has ETOMO_LOG_DIR set.
 
