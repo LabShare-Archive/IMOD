@@ -1228,7 +1228,7 @@ void ivwSetNewContourTime(ImodView *vw, Iobj *obj, Icont *cont)
   }
 }
 
-/* Set the global location in 3D space for all windows.
+/* Set the global location in 3D space for all windows to integer values
  */
 void ivwSetLocation(ImodView *vi, int x, int y, int z)
 {
@@ -1237,21 +1237,16 @@ void ivwSetLocation(ImodView *vi, int x, int y, int z)
   vi->zmouse = z;
   ivwBindMouse(vi);
   imodDraw(vi, IMOD_DRAW_ALL);
-  return;
 }
 
+/* Set the global point to floating point X/Y values */
 void ivwSetLocationPoint(ImodView *vi, Ipoint *pnt)
 {
-  int x,y,z;
-
-  // everything within a pixel should come out to the same pixel number,
-  // but Z needs nearest int
-  x = (int)floor((double)pnt->x);
-  y = (int)floor((double)pnt->y);
-  z = B3DNINT(pnt->z);
-
-  ivwSetLocation(vi, x, y, z);
-  return;
+  vi->xmouse = pnt->x;
+  vi->ymouse = pnt->y;
+  vi->zmouse = B3DNINT(pnt->z);
+  ivwBindMouse(vi);
+  imodDraw(vi, IMOD_DRAW_ALL);
 }
 
 void ivwSetMovieModelMode(ImodView *vi, int mode)
@@ -2800,6 +2795,9 @@ void ivwBinByN(unsigned char *array, int nxin, int nyin, int nbin,
 /*
 
 $Log$
+Revision 4.76  2008/12/03 04:32:57  mast
+Made it detect 3D FFT and not mirror it
+
 Revision 4.75  2008/12/01 15:42:01  mast
 Changes for undo/redo and selection in 3dmodv standalone
 
