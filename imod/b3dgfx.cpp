@@ -349,12 +349,12 @@ void b3dSetImageOffset(int winsize,     /* window size in wpixels.          */
                        int fillEdge)    /* Fill window to edge, maybe beyond*/
 {
   int newoffs;
-  /*imodPrintStderr("winsize %d  imsize %d  zoom %f  offset %d\n", winsize, imsize,
-    zoom, offset); */
+  //imodPrintStderr("winsize %d  imsize %d  zoom %f  offset %d\n", winsize, imsize,
+  //zoom, offset);
   /* Fits completely inside of window. (Why test against imsize - 1 ?*/
-  if ( ((imsize - 1) * zoom) < winsize ) {
+  if ( (int)((imsize) * zoom) <= winsize ) {
     drawsize = imsize;
-    woff     = (int)(( winsize - ((imsize - 1) * zoom)) / 2);
+    woff     = (int)(( winsize - (int)((imsize) * zoom)) / 2);
     doff     = 0;
     //imodPrintStderr("1 ds do offset wo %d %d %d %d\n", drawsize, doff, offset, woff);
 
@@ -2058,6 +2058,9 @@ int b3dSnapshot(QString fname)
 
 /*
 $Log$
+Revision 4.40  2008/08/01 15:38:47  mast
+Fixed rounding bug with large non-integer zooms and nonHQ display
+
 Revision 4.39  2008/05/27 05:37:56  mast
 Added ability to snapshot RGB as gray-scale
 
