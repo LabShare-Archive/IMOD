@@ -567,11 +567,12 @@ EOF
         endif
 
         # Drop a machine if it has failed more than given number of times
-        # Institute hold if none done and failure count is above criterion
+        # Institute hold on any failed machine if no chunks are done and 
+        # machine failure count is above criterion
         #
         @ failcount = $failed[$name]
-        if ($failcount >= $dropcrit || $pausing != 0 || \
-            ($anydone == 0 && $failtot >= $holdcrit)) set dropout = 1
+        if ($failcount >= $dropcrit || $pausing != 0 || ($failcount && \
+            $anydone == 0 && $failtot >= $holdcrit)) set dropout = 1
 
         # If the current machine is unassigned, find next com to do and run it
         # Move current log out of way so non-existence of log can be sign of
@@ -865,6 +866,9 @@ exit 3
 
 #
 #  $Log$
+#  Revision 3.42  2008/07/16 04:37:05  mast
+#  Added silly ls *.log if log file not present
+#
 #  Revision 3.41  2008/07/06 21:36:31  mast
 #  Use ls *.pid to bring them into existence if they are missing
 #
