@@ -108,7 +108,7 @@ static void zapBandImageToMouse(ZapStruct *zap, int ifclip);
 static void zapBandMouseToImage(ZapStruct *zap, int ifclip);
 static void montageSnapshot(ZapStruct *zap, int snaptype);
 static void shiftRubberband(ZapStruct *zap, float idx, float idy);
-static void getMontageShifts(ZapStruct *zap, int factor, int imStart, 
+static int getMontageShifts(ZapStruct *zap, int factor, int imStart, 
                              int border, int imSize, int winSize,
                              int &transStart, int &transDelta, int &copyDelta,
                              int &fullSize);
@@ -139,6 +139,7 @@ static int dragband;
 static int dragging[4];
 static int firstmx, firstmy;
 static int maxMultiZarea = 0;
+static int scaleSizes = 1;
 
 void zapHelp(ZapStruct *zap)
 {
@@ -287,7 +288,7 @@ void zapDraw_cb(ImodView *vi, void *client, int drawflag)
     // 3/8/07: make it take montages too
     if (snaptype && zap->vi->zmovie && 
         zap->movieSnapCount && imcGetStarterID() == zap->ctrl) {
-      if (imcGetMontageFactor() > 1) {
+      if (imcGetSnapMontage(true)) {
         montageSnapshot(zap, snaptype);
       } else {
         limits = NULL;
@@ -1305,14 +1306,14 @@ void zapKeyInput(ZapStruct *zap, QKeyEvent *event)
 
   case Qt::Key_S:
     if (shifted || ctrl){
+      zap->showslice = zap->showedSlice;
 
       // Take a montage snapshot if selected and no rubberband is on
-      if (!zap->rubberband && imcGetMontageFactor() > 1 && !zap->numXpanels) {
+      if (!zap->rubberband && imcGetSnapMontage(true) && !zap->numXpanels) {
         montageSnapshot(zap, (ctrl ? 1 : 0) + (shifted ? 2 : 0));
         handled = 1;
         break;
       }
-      zap->showslice = zap->showedSlice;
       zapDraw(zap);
       limits = NULL;
       if (zap->rubberband) {
@@ -3592,7 +3593,7 @@ static void montageSnapshot(ZapStruct *zap, int snaptype)
 {
   int ix, iy, xFullSize, yFullSize, xTransStart, yTransStart, xTransDelta;
   int yTransDelta, xCopyDelta, yCopyDelta, xTransSave, yTransSave, barpos;
-  int limits[4];
+  int showSlice, limits[4];
   unsigned char *framePix, *fullPix, **linePtrs;
   double zoomSave;
   QString fname, sname;
@@ -3601,14 +3602,41 @@ static void montageSnapshot(ZapStruct *zap, int snaptype)
   ScaleBar *barReal = scaleBarGetParams();
   ScaleBar barSaved;
 
+  // Save translations and zoom 
+  xTransSave = zap->xtrans;
+  yTransSave = zap->ytrans;
+  zoomSave = zap->zoom;
+
+  if (imcGetSnapWholeMont()) {
+    for (factor = 1; factor < 31; factor++) {
+      if (factor * zap->winx >= zap->vi->xsize && factor * zap->winy >=
+          zap->vi->ysize)
+        break;
+    }
+    if (factor == 1) {
+      wprint("\aImage already fits in window at zoom 1, no montage needed.\n");
+      return;
+    }
+    if (factor == 31) {
+      wprint("\aImage is too large for full montage snapshot in this "
+             "window.\n");
+      return;
+    }
+    zap->zoom = 1. / factor;
+    zapDraw(zap);
+  }
+
   // Get coordinates and offsets and buffers
   setAreaLimits(zap);
-  getMontageShifts(zap, factor, zap->xstart, zap->xborder,
-                   zap->vi->xsize, zap->winx,
-                   xTransStart, xTransDelta, xCopyDelta, xFullSize);
-  getMontageShifts(zap, factor, zap->ystart, zap->yborder, 
-                   zap->vi->ysize, zap->winy,
-                   yTransStart, yTransDelta, yCopyDelta, yFullSize);
+  if (getMontageShifts(zap, factor, zap->xstart, zap->xborder,
+                       zap->vi->xsize, zap->winx,
+                       xTransStart, xTransDelta, xCopyDelta, xFullSize) ||
+      getMontageShifts(zap, factor, zap->ystart, zap->yborder, 
+                       zap->vi->ysize, zap->winy,
+                       yTransStart, yTransDelta, yCopyDelta, yFullSize)) {
+    wprint("\aThere is too much border around image for montage snapshot.\n");
+    return;
+  }
   framePix = (unsigned char *)malloc(4 * zap->winx * zap->winy);
   fullPix = (unsigned char *)malloc(4 * xFullSize * yFullSize);
   linePtrs = (unsigned char **)malloc(yFullSize * sizeof(unsigned char *));
@@ -3638,11 +3666,16 @@ static void montageSnapshot(ZapStruct *zap, int snaptype)
   barReal->indentY = B3DNINT(factor * barReal->indentY);
   barpos = barReal->position;
 
-  // Save translations and loop on frames, getting pixels and copying them
-  xTransSave = zap->xtrans;
-  yTransSave = zap->ytrans;
-  zoomSave = zap->zoom;
+  // Set up scaling
+  if (imcGetScaleSizes()) {
+    scaleSizes = imcGetSizeScaling();
+    if (scaleSizes == 1)
+      scaleSizes = B3DNINT(factor * B3DMIN(1., zap->zoom));
+  }
+
+  // Loop on frames, getting pixels and copying them
   zap->zoom *= factor;
+  showSlice = zap->showslice;
   for (iy = 0; iy < factor; iy++) {
     for (ix = 0; ix < factor; ix++) {
 
@@ -3657,6 +3690,7 @@ static void montageSnapshot(ZapStruct *zap, int snaptype)
       zap->xtrans = -(xTransStart + ix * xTransDelta);
       zap->ytrans = -(yTransStart + iy * yTransDelta);
       zapDraw(zap);
+      zap->showslice = showSlice;
 
       // Print scale bar length if it was drawn
       if (zap->scaleBarSize > 0)
@@ -3705,6 +3739,7 @@ static void montageSnapshot(ZapStruct *zap, int snaptype)
   zap->xtrans = xTransSave;
   zap->ytrans = yTransSave;
   zap->zoom = zoomSave;
+  scaleSizes = 1;
   zapDraw(zap);
     
   free(framePix);
@@ -3715,24 +3750,42 @@ static void montageSnapshot(ZapStruct *zap, int snaptype)
 /*
  * Compute shifts and increments for the montage snapshot
  */
-static void getMontageShifts(ZapStruct *zap, int factor, int imStart, 
+static int getMontageShifts(ZapStruct *zap, int factor, int imStart, 
                              int border, int imSize, int winSize,
                              int &transStart, int &transDelta, int &copyDelta,
                              int &fullSize)
 {
-  int inWin, overlap, imEnd;
+  int inWin, overlap, imEnd, wofftmp, dstmp, dofftmp, trans;
   imEnd = B3DMIN(imStart + (int)((winSize - border)/ zap->zoom), imSize);
   inWin = (int)(winSize / (zap->zoom * factor));
+  if (inWin >= imSize - factor)
+    return 1;
+
+  // Get trans and back it off to avoid window offset on left
+  trans = -(imStart + (inWin - imSize) / 2);
+  b3dSetImageOffset(winSize, imSize, zap->zoom * factor, dstmp, trans,
+                    wofftmp, dofftmp, 0);
+  if (wofftmp > 0)
+    trans--;
+  transStart = -trans;
+
+  // Get overlap and delta, back off delta to avoid extra pixels on right
   overlap = B3DMAX(0, (factor * inWin + imStart - imEnd) / (factor - 1));
   transDelta = inWin - overlap;
-  transStart = imStart + (inWin - imSize) / 2;
   copyDelta = zap->zoom * factor * transDelta;
   fullSize = (factor - 1) * copyDelta + winSize;
+  if (fullSize > (int)(zap->zoom * factor * (imSize - imStart))) {
+    transDelta--;
+    copyDelta = zap->zoom * factor * transDelta;
+    fullSize = (factor - 1) * copyDelta + winSize;
+  }
+
   if (imodDebug('z'))
     imodPrintStderr("im %d - %d  bord %d win %d  inwin %d overlap %d start %d"
                     " delta %d  copy %d  full %d\n", imStart, imEnd, border,
                     winSize, inWin, overlap, transStart, 
                     transDelta, copyDelta, fullSize);
+  return 0;
 }
 
 /****************************************************************************/
@@ -3916,7 +3969,7 @@ static void zapDrawModel(ZapStruct *zap)
     if (iobjOff(vi->imod->obj[ob].flags))
       continue;
     imodSetObjectColor(ob); 
-    b3dLineWidth(vi->imod->obj[ob].linewidth2); 
+    b3dLineWidth(scaleSizes * vi->imod->obj[ob].linewidth2); 
     ifgSetupValueDrawing(&vi->imod->obj[ob], GEN_STORE_MINMAX1);
 
     for (co = 0; co < vi->imod->obj[ob].contsize; co++){
@@ -4023,7 +4076,7 @@ static void zapDrawContour(ZapStruct *zap, int co, int ob)
   // get draw properties
   selected = imodSelectionListQuery(vi, ob, co) > -2;
   nextChange = ifgHandleContChange(obj, co, &contProps, &ptProps, &stateFlags,
-                                   handleFlags, selected);
+                                   handleFlags, selected, scaleSizes);
   if (contProps.gap)
     return;
 
@@ -4037,7 +4090,7 @@ static void zapDrawContour(ZapStruct *zap, int co, int ob)
       if (!nextChange)
         nextChange = ifgHandleNextChange(obj, cont->store, &contProps, 
                                          &ptProps, &stateFlags, &changeFlags, 
-                                         handleFlags, selected);
+                                         handleFlags, selected, scaleSizes);
 
       // For wild contour, test every point and connect only pairs on section
       lastX = zapXpos(zap, cont->pts[0].x);
@@ -4058,7 +4111,7 @@ static void zapDrawContour(ZapStruct *zap, int co, int ob)
           nextChange = ifgHandleNextChange(obj, cont->store, &contProps, 
                                            &ptProps, &stateFlags,
                                            &changeFlags, handleFlags, 
-                                           selected);
+                                           selected, scaleSizes);
 
       }
 
@@ -4091,21 +4144,22 @@ static void zapDrawContour(ZapStruct *zap, int co, int ob)
   /* symbols */
   if (ilistSize(cont->store))
     nextChange = ifgHandleContChange(obj, co, &contProps, &ptProps, 
-                                     &stateFlags, handleFlags, selected);
+                                     &stateFlags, handleFlags, selected, 
+                                     scaleSizes);
   if ((iobjScat(obj->flags) || checkSymbol) && 
       (contProps.symtype != IOBJ_SYM_NONE || nextChange >= 0)) {
     for (pt = 0; pt < cont->psize; pt++) {
       if (pt == nextChange)
         nextChange = ifgHandleNextChange(obj, cont->store, &contProps, 
                                          &ptProps, &stateFlags, &changeFlags, 
-                                         handleFlags, selected);
+                                         handleFlags, selected, scaleSizes);
 
       if (ptProps.symtype != IOBJ_SYM_NONE && 
           zapPointVisable(zap, &(cont->pts[pt]))){
         utilDrawSymbol(zapXpos(zap, cont->pts[pt].x),
                        zapYpos(zap, cont->pts[pt].y),
                        ptProps.symtype,
-                       ptProps.symsize,
+                       ptProps.symsize * scaleSizes,
                        ptProps.symflags);
       }
     }
@@ -4115,12 +4169,13 @@ static void zapDrawContour(ZapStruct *zap, int co, int ob)
   if (iobjScat(obj->flags) || cont->sizes || obj->pdrawsize) {
     if (ilistSize(cont->store))
       nextChange = ifgHandleContChange(obj, co, &contProps, &ptProps, 
-                                       &stateFlags, handleFlags, selected);
+                                       &stateFlags, handleFlags, selected, 
+                                       scaleSizes);
     for (pt = 0; pt < cont->psize; pt++){
       if (pt == nextChange)
         nextChange = ifgHandleNextChange(obj, cont->store, &contProps, 
                                          &ptProps, &stateFlags, &changeFlags, 
-                                         handleFlags, selected);
+                                         handleFlags, selected, scaleSizes);
 
       drawsize = imodPointGetSize(obj, cont, pt) / vi->xybin;
       if (drawsize > 0)
@@ -4131,7 +4186,7 @@ static void zapDrawContour(ZapStruct *zap, int co, int ob)
                         (int)(drawsize * zap->zoom));
           if (drawsize > 3 && drawPntOffSec)
             b3dDrawPlus(zapXpos(zap, cont->pts[pt].x), 
-                        zapYpos(zap, cont->pts[pt].y), 3);
+                        zapYpos(zap, cont->pts[pt].y), 3 * scaleSizes);
         } else if (drawsize > 1 && drawPntOffSec) {
           /* DNM: fixed this at last, but let size round
              down so circles get smaller*/
@@ -4159,13 +4214,13 @@ static void zapDrawContour(ZapStruct *zap, int co, int ob)
       b3dColorIndex(App->endpoint);
       b3dDrawCross(zapXpos(zap, cont->pts[cont->psize-1].x),
                    zapYpos(zap, cont->pts[cont->psize-1].y), 
-                   obj->symsize/2);
+                   scaleSizes * obj->symsize/2);
     }
     if (zapPointVisable(zap, cont->pts)){
       b3dColorIndex(App->bgnpoint);
       b3dDrawCross(zapXpos(zap, cont->pts->x),
                    zapYpos(zap, cont->pts->y),
-                   obj->symsize/2);
+                   scaleSizes * obj->symsize/2);
     }
     imodSetObjectColor(ob);
   }
@@ -4174,7 +4229,7 @@ static void zapDrawContour(ZapStruct *zap, int co, int ob)
      first two points visible or last point visible and next to last is not */
 
   if (selected)
-    b3dLineWidth(obj->linewidth2); 
+    b3dLineWidth(scaleSizes * obj->linewidth2); 
 }
 
 /*
@@ -4195,18 +4250,18 @@ static void zapDrawCurrentPoint(ZapStruct *zap)
 
   // 11/11/04: Reset line width for slice lines or current image point,
   // set it below with object-specific thickness
-  b3dLineWidth(1);
+  b3dLineWidth(scaleSizes);
 
   if ((vi->imod->mousemode == IMOD_MMOVIE)||(!pnt)){
     x = zapXpos(zap, (float)((int)vi->xmouse + 0.5));
     y = zapYpos(zap, (float)((int)vi->ymouse + 0.5));
     b3dColorIndex(App->curpoint);
-    b3dDrawPlus(x, y, imPtSize);
+    b3dDrawPlus(x, y, imPtSize * scaleSizes);
           
   }else{
     if ((cont) && (cont->psize) && (pnt)){
 
-      b3dLineWidth(obj->linewidth2);
+      b3dLineWidth(scaleSizes * obj->linewidth2);
       curSize = modPtSize;
       if (cont->psize > 1 && 
           (pnt == cont->pts || pnt == cont->pts + cont->psize - 1))
@@ -4221,7 +4276,7 @@ static void zapDrawCurrentPoint(ZapStruct *zap)
       }else{
         b3dColorIndex(App->shadow);
       }
-      b3dDrawCircle(x, y, curSize);
+      b3dDrawCircle(x, y, scaleSizes * curSize);
     }
   }
      
@@ -4230,23 +4285,23 @@ static void zapDrawCurrentPoint(ZapStruct *zap)
     if (ivwTimeMismatch(vi, zap->timeLock, obj, cont))
       return;
 
-    b3dLineWidth(obj->linewidth2);
+    b3dLineWidth(scaleSizes * obj->linewidth2);
     if (cont->psize > 1){
       if (zapPointVisable(zap, cont->pts)){
         b3dColorIndex(App->bgnpoint);
         b3dDrawCircle(zapXpos(zap, cont->pts->x),
-                      zapYpos(zap, cont->pts->y), modPtSize);
+                      zapYpos(zap, cont->pts->y), scaleSizes * modPtSize);
       }
       if (zapPointVisable(zap, &(cont->pts[cont->psize - 1]))){
         b3dColorIndex(App->endpoint);
         b3dDrawCircle(zapXpos(zap, cont->pts[cont->psize - 1].x),
                       zapYpos(zap, cont->pts[cont->psize - 1].y), 
-                      modPtSize);
+                      scaleSizes * modPtSize);
       }
     }
   }
 
-  b3dLineWidth(1);
+  b3dLineWidth(scaleSizes);
   zap->showedSlice = zap->showslice;
   if (zap->showslice){
     b3dColorIndex(App->foreground);
@@ -4300,8 +4355,9 @@ static void zapDrawGhost(ZapStruct *zap)
      
     for (co = 0; co < obj->contsize; co++) {
       cont = &(obj->cont[co]);
-      nextChange = ifgHandleContChange(obj, co, &contProps, &ptProps, 
-                                       &stateFlags, handleFlags, 0);
+      nextChange = ifgHandleContChange(obj, co, &contProps, &ptProps,
+                                       &stateFlags, handleFlags, 0,
+                                       scaleSizes);
       if (contProps.gap)
         continue;
       zapSetGhostColor(zap, contProps.red, contProps.green, contProps.blue);
@@ -4337,7 +4393,8 @@ static void zapDrawGhost(ZapStruct *zap)
               if (pt == nextChange) {
                 nextChange = ifgHandleNextChange(obj, cont->store, &contProps, 
                                                  &ptProps, &stateFlags,
-                                                 &changeFlags, handleFlags, 0);
+                                                 &changeFlags, handleFlags, 0,
+                                                 scaleSizes);
                 if (changeFlags & CHANGED_COLOR)
                   zapSetGhostColor(zap, ptProps.red, ptProps.green, 
                                    ptProps.blue);
@@ -4529,6 +4586,9 @@ static int zapPointVisable(ZapStruct *zap, Ipoint *pnt)
 /*
 
 $Log$
+Revision 4.131  2008/11/28 06:39:45  mast
+Don't draw extra ojects with odel view only flag set
+
 Revision 4.130  2008/11/14 20:05:52  mast
 Stopped drawing cross in center of sphere if on section only
 
