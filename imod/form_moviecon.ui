@@ -8,8 +8,8 @@
         <rect>
             <x>0</x>
             <y>0</y>
-            <width>201</width>
-            <height>403</height>
+            <width>227</width>
+            <height>495</height>
         </rect>
     </property>
     <property name="caption">
@@ -392,43 +392,108 @@
                 </widget>
             </hbox>
         </widget>
-        <widget class="QLayoutWidget">
+        <widget class="QGroupBox">
             <property name="name">
-                <cstring>layout4</cstring>
+                <cstring>groupBox1</cstring>
             </property>
-            <hbox>
+            <property name="title">
+                <string>Zap montage snapshots</string>
+            </property>
+            <vbox>
                 <property name="name">
                     <cstring>unnamed</cstring>
                 </property>
+                <widget class="QLayoutWidget">
+                    <property name="name">
+                        <cstring>layout4</cstring>
+                    </property>
+                    <hbox>
+                        <property name="name">
+                            <cstring>unnamed</cstring>
+                        </property>
+                        <widget class="QCheckBox">
+                            <property name="name">
+                                <cstring>montageCheckBox</cstring>
+                            </property>
+                            <property name="text">
+                                <string>Montage        by</string>
+                            </property>
+                            <property name="toolTip" stdset="0">
+                                <string>Make snapshot of Zap window that is montage of zoomed image</string>
+                            </property>
+                        </widget>
+                        <widget class="QSpinBox">
+                            <property name="name">
+                                <cstring>montageSpinBox</cstring>
+                            </property>
+                            <property name="focusPolicy">
+                                <enum>ClickFocus</enum>
+                            </property>
+                            <property name="specialValueText">
+                                <string></string>
+                            </property>
+                            <property name="maxValue">
+                                <number>30</number>
+                            </property>
+                            <property name="minValue">
+                                <number>2</number>
+                            </property>
+                            <property name="toolTip" stdset="0">
+                                <string>Factor to zoom by in composing montage snapshot</string>
+                            </property>
+                        </widget>
+                    </hbox>
+                </widget>
                 <widget class="QCheckBox">
                     <property name="name">
-                        <cstring>montageCheckBox</cstring>
+                        <cstring>wholeCheckBox</cstring>
                     </property>
                     <property name="text">
-                        <string>Zap montage by</string>
+                        <string>Whole image at 1:1 zoom</string>
                     </property>
                     <property name="toolTip" stdset="0">
-                        <string>Make TIFF snapshot of Zap window that is montage of zoomed image</string>
+                        <string>Snapshot entire image at zoom of 1</string>
                     </property>
                 </widget>
-                <widget class="QSpinBox">
+                <widget class="QLayoutWidget">
                     <property name="name">
-                        <cstring>montageSpinBox</cstring>
+                        <cstring>layout5</cstring>
                     </property>
-                    <property name="focusPolicy">
-                        <enum>ClickFocus</enum>
-                    </property>
-                    <property name="maxValue">
-                        <number>30</number>
-                    </property>
-                    <property name="minValue">
-                        <number>2</number>
-                    </property>
-                    <property name="toolTip" stdset="0">
-                        <string>Factor to zoom by in composing montage snapshot</string>
-                    </property>
+                    <hbox>
+                        <property name="name">
+                            <cstring>unnamed</cstring>
+                        </property>
+                        <widget class="QCheckBox">
+                            <property name="name">
+                                <cstring>scaleCheckBox</cstring>
+                            </property>
+                            <property name="text">
+                                <string>Scale sizes by</string>
+                            </property>
+                            <property name="toolTip" stdset="0">
+                                <string>Increase line thickness and symbol sizes for montage snapshot</string>
+                            </property>
+                        </widget>
+                        <widget class="QSpinBox">
+                            <property name="name">
+                                <cstring>scaleSpinBox</cstring>
+                            </property>
+                            <property name="specialValueText">
+                                <string>Auto</string>
+                            </property>
+                            <property name="maxValue">
+                                <number>30</number>
+                            </property>
+                            <property name="minValue">
+                                <number>1</number>
+                            </property>
+                            <property name="toolTip" stdset="0">
+                                <string>Amount to scale sizes by (Auto is montage factor, or zoom * factor for zoom &lt; 1)</string>
+                            </property>
+                        </widget>
+                    </hbox>
                 </widget>
-            </hbox>
+            </vbox>
         </widget>
         <widget class="QFrame">
             <property name="name">
@@ -613,6 +678,24 @@
         <receiver>MovieController</receiver>
         <slot>newMontageValue(int)</slot>
     </connection>
+    <connection>
+        <sender>scaleCheckBox</sender>
+        <signal>toggled(bool)</signal>
+        <receiver>MovieController</receiver>
+        <slot>scaleThickToggled(bool)</slot>
+    </connection>
+    <connection>
+        <sender>scaleSpinBox</sender>
+        <signal>valueChanged(int)</signal>
+        <receiver>MovieController</receiver>
+        <slot>scalingChanged(int)</slot>
+    </connection>
+    <connection>
+        <sender>wholeCheckBox</sender>
+        <signal>toggled(bool)</signal>
+        <receiver>MovieController</receiver>
+        <slot>wholeImageToggled(bool)</slot>
+    </connection>
 </connections>
 <includes>
     <include location="global" impldecl="in implementation">qslider.h</include>
@@ -642,6 +725,9 @@
     <slot>startHereSelected( int which )</slot>
     <slot>montageToggled( int state )</slot>
     <slot>newMontageValue( int value )</slot>
+    <slot>wholeImageToggled( bool state )</slot>
+    <slot>scaleThickToggled( bool state )</slot>
+    <slot>scalingChanged( int value )</slot>
     <slot>donePressed()</slot>
     <slot>helpPressed()</slot>
     <slot>resetPressed()</slot>

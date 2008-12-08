@@ -1,5 +1,12 @@
 IMOD History
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+12/8/08: Added ability to scale line thicknesses and symbol sizes when taking
+a montage snapshot, added an option for taking the whole image at 1:1 zoom,
+and saved all the montage snapshot settings between sessions.
+
+12/8/08: Fixed a potential crash and eliminated extra lines of background 
+in montage snapshot.
+
 12/6/08: Eliminated 1 pixel shift and ability to shift image with mouse when
 zoomed image fits exactly in window.
 

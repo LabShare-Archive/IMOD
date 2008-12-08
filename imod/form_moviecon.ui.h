@@ -25,7 +25,16 @@ void MovieController::init()
     QToolTip::add(mSliders->getSlider(2), 
 		  "Set spacing between sections shown during movie");
     setNonTifLabel();
-    montageSpinBox->setEnabled(false);
+    bool mont = imcGetSnapMontage(false);
+    montageSpinBox->setEnabled(mont && !imcGetSnapWholeMont());
+    wholeCheckBox->setEnabled(mont);
+    scaleSpinBox->setEnabled(mont && imcGetScaleSizes());
+    scaleCheckBox->setEnabled(mont);
+    diaSetChecked(montageCheckBox, mont);
+    diaSetSpinBox(montageSpinBox, imcGetMontageFactor());
+    diaSetChecked(wholeCheckBox, imcGetSnapWholeMont());
+    diaSetChecked(scaleCheckBox, imcGetScaleSizes());
+    diaSetSpinBox(scaleSpinBox, imcGetSizeScaling());
 }
 
 void MovieController::setFontDependentWidths()
@@ -96,13 +105,33 @@ void MovieController::startHereSelected( int which )
 
 void MovieController::montageToggled(int state )
 {
-    montageSpinBox->setEnabled(state != 0);
-    imcSetMontageFactor(state ? montageSpinBox->value() : 0);
+    montageSpinBox->setEnabled(state != 0 && !imcGetSnapWholeMont());
+    scaleSpinBox->setEnabled(state != 0 && imcGetScaleSizes());
+    scaleCheckBox->setEnabled(state != 0);
+    wholeCheckBox->setEnabled(state != 0);
+    imcSetSnapMontage(state != 0);
 }
 
 void MovieController::newMontageValue( int value )
 {
     imcSetMontageFactor(value);
+}
+
+void MovieController::wholeImageToggled( bool state )
+{
+  imcSetSnapWholeMont(state);
+  montageSpinBox->setEnabled(!state);
+}
+
+void MovieController::scaleThickToggled( bool state )
+{
+  imcSetScaleSizes(state);
+  scaleSpinBox->setEnabled(state);
+}
+
+void MovieController::scalingChanged( int value )
+{
+  imcSetSizeScaling(value);
 }
 
 void MovieController::donePressed()
