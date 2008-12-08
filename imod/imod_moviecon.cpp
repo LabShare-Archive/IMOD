@@ -5,15 +5,10 @@
  *  Copyright (C) 1995-2004 by Boulder Laboratory for 3-Dimensional Electron
  *  Microscopy of Cells ("BL3DEMC") and the Regents of the University of 
  *  Colorado.  See dist/COPYRIGHT for full copyright notice.
+ * 
+ * $Id$
+ * Log at end
  */
-
-/*  $Author$
-
-$Date$
-
-$Revision$
-Log at end of file
-*/
 
 #include <stdlib.h>
 #include <math.h>
@@ -43,7 +38,11 @@ static int movieCount = 0;
 static int starterCtrlID;    /* Ctrl ID of window that started movie */
 static int specialAxis = -1;      /* Axis on which to use special limits */
 static int movieCurrent, movieStart, movieLast;
-static int montageFac;
+static int montageFac = 2;
+static bool scaleSizes = 0;
+static int sizeScaling = 1;
+static bool wholeMont = false;
+static bool snapMontage = false;
 
 #define BASEINT 50.0
 #define RATEFAC 1.25992
@@ -168,9 +167,53 @@ float imcGetInterval()
   return realint;
 }
 
+bool imcGetSnapMontage(bool forDoing)
+{
+  return snapMontage && (!forDoing || dia != NULL);
+}
+void imcSetSnapMontage(bool state)
+{
+  snapMontage = state;
+}
+
+bool imcGetSnapWholeMont(void)
+{
+  return wholeMont;
+}
+
+void imcSetSnapWholeMont(bool state)
+{
+  wholeMont = state;
+}
+
 int imcGetMontageFactor()
 {
   return montageFac;
+}
+
+void imcSetMontageFactor(int val)
+{
+  montageFac = val;
+}
+
+bool imcGetScaleSizes(void)
+{
+  return scaleSizes;
+}
+
+void imcSetScaleSizes(bool state)
+{
+  scaleSizes = state;
+}
+
+int imcGetSizeScaling(void)
+{
+  return sizeScaling;
+}
+
+void imcSetSizeScaling(int value)
+{
+  sizeScaling = value;
 }
 
 void imcSetSpecialLimits(int axis, int inStart, int inEnd)
@@ -242,7 +285,6 @@ void imodMovieConDialog(ImodView *vw)
 
   view = vw;
   imcResetAll(view);
-  montageFac = 0;
 
   dia = new MovieController(imodDialogManager.parent(IMOD_DIALOG), NULL, 
 			    Qt::WType_TopLevel | Qt::WDestructiveClose);
@@ -355,13 +397,11 @@ void imcIncrementRate(int dir)
   imcSetMovierate(view, view->movierate + dir);
 }
 
-void imcSetMontageFactor(int val)
-{
-  montageFac = val;
-}
-
 /*
 $Log$
+Revision 4.7  2005/09/15 14:25:25  mast
+Added zap montage factor functions
+
 Revision 4.6  2004/11/29 19:25:21  mast
 Changes to do QImage instead of RGB snapshots
 
