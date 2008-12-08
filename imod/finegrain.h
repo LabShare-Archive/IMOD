@@ -1,26 +1,9 @@
 /*   finegrain.h  -  declarations for finegrain.cpp
+ *
+ *  $Id$
+ *  Log at end of file
  */
- 
-/*  $Author$
 
-$Date$
-
-$Revision$
-
-$Log$
-Revision 1.4  2006/02/28 15:20:28  mast
-Back out test changes that went in by mistake
-
-Revision 1.3  2006/02/27 19:45:24  mast
-Added next change button
-
-Revision 1.2  2005/09/11 19:30:05  mast
-Added some functions for trans matching
-
-Revision 1.1  2005/06/26 19:36:13  mast
-Addition to program
-
-*/
 #ifndef FINEGRAIN_H
 #define FINEGRAIN_H
 
@@ -60,10 +43,10 @@ void fineGrainUpdate();
 int ifgSelectedLineWidth(int width, int selected);
 int ifgHandleNextChange(Iobj *obj, Ilist *list, DrawProps *defProps, 
                         DrawProps *ptProps, int *stateFlags, int *changeFlags,
-                        int handleFlags, int selected);
+                        int handleFlags, int selected, int scaleThick = 1);
 int ifgHandleContChange(Iobj *obj, int co, DrawProps *contProps, 
                         DrawProps *ptProps, int *stateFlags, int handleFlags,
-                        int selected);
+                        int selected, int scaleThick = 1);
 void ifgHandleSurfChange(Iobj *obj, int surf, DrawProps *contProps, 
                          DrawProps *ptProps, int *stateFlags, int handleFlags);
 int ifgHandleMeshChange(Iobj *obj, Ilist *list, DrawProps *defProps, 
@@ -79,3 +62,23 @@ int ifgSetupValueDrawing(Iobj *obj, int type);
 int ifgGetValueSetupState();
 void ifgResetValueSetup();
 #endif
+
+/*
+
+$Log$
+Revision 1.5  2006/08/31 23:27:44  mast
+Changes for stored value display
+
+Revision 1.4  2006/02/28 15:20:28  mast
+Back out test changes that went in by mistake
+
+Revision 1.3  2006/02/27 19:45:24  mast
+Added next change button
+
+Revision 1.2  2005/09/11 19:30:05  mast
+Added some functions for trans matching
+
+Revision 1.1  2005/06/26 19:36:13  mast
+Addition to program
+
+*/

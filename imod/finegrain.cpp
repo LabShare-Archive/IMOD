@@ -47,11 +47,11 @@ static int findNextChange(Ilist *list, int index, int surfFlag);
 static void insertAndUpdate(int type);
 static void handleContChange(Iobj *obj, int co, int surf, DrawProps *contProps,
                              DrawProps *ptProps, int *stateFlags, 
-                             int handleFlags, int selected);
+                             int handleFlags, int selected, int scaleThick);
 static void ifgHandleStateChange(Iobj *obj, DrawProps *defProps, 
                                  DrawProps *ptProps, int *stateFlags, 
                                  int *changeFlags, int handleFlags, 
-                                 int selected);
+                                 int selected, int scaleThick);
 static void ifgMapFalseColor(int gray, int *red, int *green, int *blue);
 static void ifgHandleValue1(DrawProps *defProps, DrawProps *contProps, 
                             int *stateFlags, int *changeFlags);
@@ -616,7 +616,7 @@ void ifgHandleSurfChange(Iobj *obj, int surf, DrawProps *contProps,
                          DrawProps *ptProps, int *stateFlags, int handleFlags)
 {
   handleContChange(obj, -1, surf, contProps, ptProps, stateFlags, handleFlags,
-                   0);  
+                   0, 0);
 }
 
 /* 
@@ -624,10 +624,10 @@ void ifgHandleSurfChange(Iobj *obj, int surf, DrawProps *contProps,
  */
 int ifgHandleContChange(Iobj *obj, int co, DrawProps *contProps, 
                         DrawProps *ptProps, int *stateFlags, int handleFlags,
-                        int selected)
+                        int selected, int scaleThick)
 {
   handleContChange(obj, co, obj->cont[co].surf, contProps, ptProps, stateFlags,
-                   handleFlags, selected);
+                   handleFlags, selected, scaleThick);
   return (istoreFirstChangeIndex(obj->cont[co].store));
 }
 
@@ -636,11 +636,12 @@ int ifgHandleContChange(Iobj *obj, int co, DrawProps *contProps,
  * surface (surf set, co < 0).  contProps and ptProps are returned with the
  * properties; stateFlags is returned with flags for which are changes from the
  * object default, handleFlags indicates which to handle, and selected is 1
- * for a selected contour.
+ * for a selected contour.  scaleThick is the amount to scale line thicknesses
+ * by (default 1).
  */
 static void handleContChange(Iobj *obj, int co, int surf, DrawProps *contProps,
                              DrawProps *ptProps, int *stateFlags, 
-                             int handleFlags, int selected)
+                             int handleFlags, int selected, int scaleThick)
 {
   int contState, surfState;
   DrawProps defProps;
@@ -673,7 +674,8 @@ static void handleContChange(Iobj *obj, int co, int surf, DrawProps *contProps,
   }
 
   if (handleFlags & HANDLE_2DWIDTH) {
-    b3dLineWidth(ifgSelectedLineWidth(ptProps->linewidth2, selected));
+    b3dLineWidth(ifgSelectedLineWidth(scaleThick * ptProps->linewidth2, 
+                                      selected));
   }
       
   if (handleFlags & HANDLE_3DWIDTH) {
@@ -691,16 +693,16 @@ static void handleContChange(Iobj *obj, int co, int surf, DrawProps *contProps,
  * properties and flags for which are changed from the default, changeFlags 
  * is returned with flags for which are changed on this call.
  * handleFlags specifies which to handle and selected is 1 for the current 
- * contour.
+ * contour.  scaleThick is the amount to scal line thicknesses by (default 1).
  */
 int ifgHandleNextChange(Iobj *obj, Ilist *list, DrawProps *defProps, 
                         DrawProps *ptProps, int *stateFlags, int *changeFlags,
-                        int handleFlags, int selected)
+                        int handleFlags, int selected, int scaleThick)
 {
   int nextChange = istoreNextChange(list, defProps, ptProps, stateFlags,
                                     changeFlags);
   ifgHandleStateChange(obj, defProps, ptProps, stateFlags, changeFlags, 
-                       handleFlags, selected);
+                       handleFlags, selected, scaleThick);
   return  nextChange;
 }
 
@@ -713,7 +715,7 @@ int ifgHandleNextChange(Iobj *obj, Ilist *list, DrawProps *defProps,
 static void ifgHandleStateChange(Iobj *obj, DrawProps *defProps, 
                                  DrawProps *ptProps, int *stateFlags, 
                                  int *changeFlags, int handleFlags, 
-                                 int selected)
+                                 int selected, int scaleThick)
 {
   if ((handleFlags & HANDLE_VALUE1) && (*changeFlags & CHANGED_VALUE1))
     ifgHandleValue1(defProps, ptProps, stateFlags, changeFlags);
@@ -741,7 +743,8 @@ static void ifgHandleStateChange(Iobj *obj, DrawProps *defProps,
   }
 
   if ((handleFlags & HANDLE_2DWIDTH) && (*changeFlags & CHANGED_2DWIDTH)) {
-    b3dLineWidth(ifgSelectedLineWidth(ptProps->linewidth2, selected));
+    b3dLineWidth(ifgSelectedLineWidth(scaleThick * ptProps->linewidth2, 
+                                      selected));
   }
 }
 
@@ -881,7 +884,7 @@ int ifgContTransMatch(Iobj *obj, Icont *cont, int *matchPt, int drawTrans,
 
       // Now set display properties based on current state
       ifgHandleStateChange(obj, contProps, ptProps, stateFlags, allChanges, 
-                           handleFlags, 0);
+                           handleFlags, 0, 0);
       return nextChange;
     }
   }
@@ -1174,6 +1177,9 @@ static void ifgHandleValue1(DrawProps *defProps, DrawProps *contProps,
 
 /*
   $Log$
+  Revision 1.12  2008/01/19 22:18:35  mast
+  Fixed problems when no objects
+
   Revision 1.11  2007/09/22 00:09:11  mast
   Added fixed color/thresholding only capability to value handling
 
