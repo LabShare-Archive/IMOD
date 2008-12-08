@@ -20,6 +20,9 @@
  * In defaultPressed, restore value in appropriate section
  * Update program state if needed in timerEvent or pointSizeChanged
  * In designer, build interface, load interface and unload it
+ *
+ * Do not despair, just saving/restoring a program state variable just takes
+ * one line in each place, see usewheelforsize, etc.
  */
 
 #include <stdlib.h>
@@ -286,6 +289,15 @@ ImodPreferences::ImodPreferences(char *cmdLineStyle)
   imodInfoSetFloatFlags(floatOn, subarea);
   i = settings->readNumEntry(IMOD_NAME"useWheelForSize");
   iceSetWheelForSize(i);
+  str = settings->readEntry(IMOD_NAME"montageSnapshots");
+  if (!str.isEmpty()) {
+    sscanf(str.latin1(), "%d,%d,%d,%d,%d", &left, &top, &i, &width, &position);
+    imcSetSnapMontage(left != 0);
+    imcSetMontageFactor(top);
+    imcSetSnapWholeMont(i != 0);
+    imcSetScaleSizes(width != 0);
+    imcSetSizeScaling(position);
+  }
 
   READNUM(autosaveInterval);
   prefs->autosaveDir = settings->readEntry(IMOD_NAME"autosaveDir",
@@ -502,6 +514,10 @@ void ImodPreferences::saveSettings(int modvAlone)
   settings->writeEntry(IMOD_NAME"floatButton", floatOn);
   settings->writeEntry(IMOD_NAME"subareaButton", subarea);
   settings->writeEntry(IMOD_NAME"useWheelForSize", iceGetWheelForSize());
+  str.sprintf("%d,%d,%d,%d,%d", imcGetSnapMontage(false) ? 1 : 0, 
+              imcGetMontageFactor(), imcGetSnapWholeMont() ? 1: 0,
+              imcGetScaleSizes() ? 1 : 0, imcGetSizeScaling());
+  settings->writeEntry(IMOD_NAME"montageSnapshots", str);
 
   WRITE_IF_CHANGED(autosaveInterval);
   WRITE_IF_CHANGED(autosaveDir);
@@ -1126,6 +1142,9 @@ bool ImodPreferences::classicWarned()
 
 /*
 $Log$
+Revision 1.34  2008/09/24 02:39:28  mast
+Added option for attach function to look only at On objects
+
 Revision 1.33  2008/09/23 15:13:44  mast
 Added mouse wheel scrolling of point size
 
