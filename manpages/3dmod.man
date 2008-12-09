@@ -591,6 +591,7 @@ Set Snap Dir...   Set a directory to put snapshots into.  The same
                     model view window.
 Gray Tif Snaps    A checkable entry; when checked, TIFF snapshots
                     of image windows are saved as 8-bit gray scale.
+JPEG Quality...   Set the quality factor for JPEG snapshots.
 Memory to TIFF... Write the whole section of a raw color image
                     stored inside 3dmod to a TIFF file, in order
                     to turn a montaged image bigger than the
