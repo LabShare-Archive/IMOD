@@ -73,7 +73,7 @@ set tmperrlog    = "$tmpdir/$com.errlog.$$"
 #
 # set other defaults or values to indicate no argument was entered
 #
-set radius = ""
+set diameter = ""
 @ nviews = 5
 set imagea = ""
 set imageb = ""
@@ -126,8 +126,8 @@ while ($#argv > 1)
       @ zerob = $argv[2]
       shift; shift
       breaksw
-    case -r:
-      set radius = $argv[2]
+    case -d:
+      set diameter = $argv[2]
       shift; shift
       breaksw
     case -o:
@@ -203,9 +203,9 @@ endif
 # check existence of files needed
 #
 
-if (($imagea == "" || $radius == "") && (! -e track$src.com)) then
+if (($imagea == "" || $diameter == "") && (! -e track$src.com)) then
     echo "ERROR: $pn - track$src.com not found - it is needed unless you enter both "
-    echo " the $AA image file with -i$src and the bead radius with -r"
+    echo " the $AA image file with -i$src and the bead diameter with -d"
     exit 1
 endif
 
@@ -354,7 +354,7 @@ if ($size < 4096 && $reduce > 4) @ reduce = 4
 @ xlimit = $nxb / 5
 @ ylimit = $nyb / 5
 
-echo $xlimit, $ylimit, $reduce
+#echo $xlimit, $ylimit, $reduce
 
 #
 # Get starting and ending section numbers
@@ -659,11 +659,12 @@ if ($status) then
 endif
 
 #
-# Get the bead radius and light/dark
+# Get the bead diameter and light/dark
 # WATCH FOR THE TABS IN THE SED CONVERSIONS PRIOR TO THE cntrl REMOVAL
 #
 set boxsize = 48
-if ($radius == "") then
+set binning = 1
+if ($diameter == "") then
     set test = `grep 'beadtrack.*-StandardInput' tracka.com`
     if ($status) then
 
@@ -679,16 +680,24 @@ if ($radius == "") then
         if ($#radiusdark > 1) then
             set lightdark = $radiusdark[2]
         endif
+        set diameter = `echo $radius | awk '{print 2 * $1 - 3}'`
     else
 
         # PIP command file
         #
         set radiusline = `sed -n '/^CentroidRadius/s/CentroidRadius[ 	]*//p' tracka.com | sed '/[[:cntrl:]]/s///g'`
-        if ($#radiusline < 1) then
-            echo "ERROR: Transferfid - Cannot extract radius from tracka.com"
+        set diamline = `sed -n '/^BeadDiameter/s/BeadDiameter[ 	]*//p' tracka.com | sed '/[[:cntrl:]]/s///g'`
+        if ($#radiusline < 1 && $#diamline < 1) then
+            echo "ERROR: Transferfid - Cannot extract radius or diameter from tracka.com"
             goto clean
         endif
-        set radius = $radiusline[1]
+        if ( $#diamline < 1) then
+            set radius = $radiusline[1]
+            set diameter = `echo $radius | awk '{print 2 * $1 - 3}'`
+        else
+            set diameter = $diamline[1]
+        endif
+
 
         set lightline = `sed -n '/^LightBeads/p' tracka.com | sed -e '/	/s// /g' -e '/[[:cntrl:]]/s///g'`
         if ("$lightline" != "") then
@@ -702,6 +711,11 @@ if ($radius == "") then
         set boxline = `sed -n '/^BoxSizeXandY/p' tracka.com | sed -e '/	/s// /g' -e '/[[:cntrl:]]/s///g'`
         if ($#boxline > 1) then
             set boxsize = $boxline[2]
+        endif
+
+        set binline = `sed -n '/^ImagesAreBinned/p' tracka.com | sed -e '/	/s// /g' -e '/[[:cntrl:]]/s///g'`
+        if ($#binline > 1) then
+            set binning = $binline[2]
         endif
     endif
 endif
@@ -722,7 +736,8 @@ FirstTiltAngle	0
 TiltIncrement	0
 TiltDefaultGrouping	7
 MagDefaultGrouping	5
-CentroidRadius	$radius
+BeadDiameter    $diameter
+ImagesAreBinned $binning
 LightBeads      $lightdark
 BoxSizeXandY    $boxsize,$boxsize
 TrackObjectsTogether
@@ -819,8 +834,8 @@ Usage: $pn [options] setname
                       all work, default is to search both directions)
      -x            Mirror one image around X axis
      -m            Run Midas to set initial translational/rotational alignment
-     -r radius     Bead radius for Beadtrack; default is taken from tracka.com
-     -l            Search for light rather than dark beads (only works with -r)
+     -d diameter   Bead diameter in pixels; default is taken from tracka.com
+     -l            Search for light rather than dark beads (only works with -d)
      -c name       File to place corresponding coordinates in
      -t            Leave temporary files in $tmpdir
      -P            Output process ID (PID)
@@ -830,6 +845,9 @@ exit 1
 
 #
 #  $Log$
+#  Revision 3.32  2008/07/01 17:41:28  mast
+#  Changed to use PIP input to xfsimplex and limit search ranges
+#
 #  Revision 3.31  2008/01/04 07:03:38  mast
 #  Fixed for space in IMOD_DIR, possibly for space in tmpdir
 #
