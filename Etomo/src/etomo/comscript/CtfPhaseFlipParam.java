@@ -19,7 +19,11 @@ import etomo.type.StringParameter;
  * 
  * @version $Revision$
  * 
- * <p> $Log$ </p>
+ * <p> $Log$
+ * <p> Revision 1.1  2008/10/27 17:48:20  sueh
+ * <p> bug# 1141 Parameters to update a phaseflip call.  The call is in
+ * <p> ctfcorrection.com.
+ * <p> </p>
  */
 public final class CtfPhaseFlipParam implements ConstCtfPhaseFlipParam,
     CommandParam {
@@ -42,6 +46,8 @@ public final class CtfPhaseFlipParam implements ConstCtfPhaseFlipParam,
       INTERPOLATION_WIDTH_OPTION);
   private final ScriptParameter defocusTol = new ScriptParameter(
       DEFOCUS_TOL_OPTION);
+  private final StringParameter outputFileName = new StringParameter(
+      "OutputFileName");
 
   public void parseComScriptCommand(ComScriptCommand scriptCommand)
       throws BadComScriptException, InvalidParameterException,
@@ -63,6 +69,7 @@ public final class CtfPhaseFlipParam implements ConstCtfPhaseFlipParam,
     defocusFile.updateComScript(scriptCommand);
     interpolationWidth.updateComScript(scriptCommand);
     defocusTol.updateComScript(scriptCommand);
+    outputFileName.updateComScript(scriptCommand);
   }
 
   public void initializeDefaults() {
@@ -83,6 +90,10 @@ public final class CtfPhaseFlipParam implements ConstCtfPhaseFlipParam,
 
   public void setVoltage(String input) {
     voltage.set(input);
+  }
+  
+  public void setOutputFileName(String input) {
+    outputFileName.set(input);
   }
 
   public ConstEtomoNumber getSphericalAberration() {
