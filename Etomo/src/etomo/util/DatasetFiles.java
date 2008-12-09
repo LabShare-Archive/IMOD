@@ -346,7 +346,7 @@ public final class DatasetFiles {
     return ERASE_EXT + FULL_ALIGNED_EXT;
   }
 
-  private static String getCtfCorrectionFileName(BaseManager manager,
+  public static String getCtfCorrectionFileName(BaseManager manager,
       AxisID axisID) {
     BaseMetaData metaData = manager.getBaseMetaData();
     axisID = correctAxisID(metaData, axisID);
@@ -529,6 +529,10 @@ public final class DatasetFiles {
 }
 /**
  * <p> $Log$
+ * <p> Revision 1.47  2008/11/20 01:50:27  sueh
+ * <p> bug# 1149 Added erasedFiducialsFile, eraseFiducialsModel, and
+ * <p> transformFile.
+ * <p>
  * <p> Revision 1.46  2008/10/27 20:46:24  sueh
  * <p> bug# 1141 Add extensions and functions for _ctfcorr.ali, .defocus,
  * <p> _simple.defocus, and .ali files.
