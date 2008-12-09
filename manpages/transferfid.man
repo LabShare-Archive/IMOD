@@ -135,16 +135,19 @@ Mirror one image around the X axis before rotating by 90 degrees.
 Run Midas on the first pair of views, and use the alignment that you set in
 Midas as the initial alignment for all pairs of views that are considered.
 .TP
-.B -r <value>
-Set the value of the radius for computing center of gravity in Beadtrack; the
+.B -d <value>
+Set the value of the bead diameter in pixels in the images being used; the
 default is to take the value from tracka.com (or trackb.com with the
 .B -b
-option.)
+option.)  Specifically, if a radius for centroid is found there it is 
+converted to a diameter by 2 * radius - 3; if a bead diameter is found it
+is treated as a diameter in unbinned pixels and the image binning is also
+extracted from tracka.com.
 .TP
 .B -l
 Use this option to specify that beads are light on a dark background.  It has
 an effect only if the 
-.B -r
+.B -d
 option is used; otherwise this parameter is taken from tracka.com (or 
 trackb.com with the
 .B -b
