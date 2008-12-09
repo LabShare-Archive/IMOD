@@ -1,5 +1,8 @@
 IMOD History
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+2/9/08: In Etomo - Final Aligned Stack dialog, resetting the OutputFileName in
+ctfcorrection.com each time it is saved.
+
 2/9/08: Added entry to File menu for conveniently changing JPEG quality.
 
 2/9/08: Modified transferfid to use bead diameter instead of centroid radius.
