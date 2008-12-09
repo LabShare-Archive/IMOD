@@ -442,6 +442,7 @@ c
       do izsect=0,nz-1
         write(*,101)izsect
 101     format('Section',i5,' -',$)
+        call imposn(1, izsect, 0)
         call irdsec(1,array,*99)
         nfix=0
         linefix =0
@@ -1474,6 +1475,9 @@ c       Look at all pixels in range, add to object at new base
       
 c       
 c       $Log$
+c       Revision 3.25  2008/07/15 17:29:15  mast
+c       Allowed order 0 to take mean of border points instead of fitting
+c
 c       Revision 3.24  2008/03/04 21:27:34  mast
 c       Fixed dimension for fitting array to match max # of patches, fixed merging
 c       of circles, increased maximum linear extent of patch
