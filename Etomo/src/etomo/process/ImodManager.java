@@ -7,7 +7,6 @@ import java.util.Iterator;
 import java.io.File;
 import java.io.IOException;
 
-import etomo.ApplicationManager;
 import etomo.BaseManager;
 import etomo.type.AxisID;
 import etomo.type.AxisType;
@@ -36,6 +35,9 @@ import etomo.util.DatasetFiles;
  * @version $Revision$
  *
  * <p> $Log$
+ * <p> Revision 3.67  2008/12/05 00:50:16  sueh
+ * <p> bug# 1156 Added setSkipList.
+ * <p>
  * <p> Revision 3.66  2008/11/20 01:32:37  sueh
  * <p> bug# 1147 Added ERASED_FIDUCIALS_KEY and newErasedFiducials.
  * <p>
@@ -578,7 +580,6 @@ public class ImodManager {
 
   private boolean useMap = true;
   private final BaseManager manager;
-  private long beadFixerDiameter = DEFAULT_BEADFIXER_DIAMETER;
   private final ImodRequestHandler requestHandler;
 
   //constructors
@@ -614,8 +615,6 @@ public class ImodManager {
     axisType = metaData.getAxisType();
     datasetName = metaData.getDatasetName();
     createPrivateKeys();
-    beadFixerDiameter = ((ApplicationManager) manager)
-        .getFiducialDiameterPerPixel();
     if (axisType == AxisType.SINGLE_AXIS) {
       loadSingleAxisMap();
     }
@@ -1602,8 +1601,7 @@ public class ImodManager {
 
   protected ImodState newCoarseAligned(AxisID axisID) {
     ImodState imodState;
-    imodState = new ImodState(manager, axisID, datasetName, ".preali",
-        beadFixerDiameter);
+    imodState = new ImodState(manager, axisID, datasetName, ".preali");
     return imodState;
   }
 
