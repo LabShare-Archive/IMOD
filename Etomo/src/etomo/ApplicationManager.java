@@ -2021,8 +2021,9 @@ public final class ApplicationManager extends BaseManager {
     return retval;
   }
 
-  public long getFiducialDiameterPerPixel() {
-    return (long) (metaData.getFiducialDiameter() / metaData.getPixelSize());
+  public long getBeadfixerDiameter(AxisID axisID) {
+    return Math.round(metaData.getFiducialDiameter() / metaData.getPixelSize()
+        / UIExpertUtilities.INSTANCE.getStackBinning(this, axisID, ".preali"));
   }
 
   /**
@@ -5820,6 +5821,9 @@ public final class ApplicationManager extends BaseManager {
 }
 /**
  * <p> $Log$
+ * <p> Revision 3.312  2008/12/05 00:49:29  sueh
+ * <p> bug# 1156 Added a skipList parameter to imodFixFiducials.
+ * <p>
  * <p> Revision 3.311  2008/11/21 17:10:22  sueh
  * <p> bug# 1123 In saveAlignmentEstimationDialog calling
  * <p> FinalAlignmentDialog.getParameters(ReconScreenState).
