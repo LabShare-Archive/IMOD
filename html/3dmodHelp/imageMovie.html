@@ -67,23 +67,52 @@ If you stop the movie before it is done,
 then another mouse click in that or a different window will 
 start a completely new movie.
 <P>
-If <B>Zap montage by</B> is selected, then a snapshot of a Zap window (via any
-of the S hot keys) will be taken as a montage of frames at a higher zoom, as
-selected by the spin box.  The montage is assembled in memory and
+<H4>Zap Montage Snapshots</H4>
+This capability can be used to get a snapshot of a display larger
+than what will fit in the Zap window.
+<P>
+If <B>Zap montage</B> is selected and this dialog is open, then a snapshot of 
+a Zap window (via any
+of the S hot keys) will be taken as a montage of frames at a higher zoom. 
+The montage is assembled in memory and
 saved as a single TIFF or non-TIFF image, depending on which hot key was used
-for the snapsoht.  In addition, if you start a movie in the
+for the snapshot.  In addition, if you start a movie in the
 Zap window when one of the  <B>Snapshot</B> buttons is on, a montage
 will be taken at each section in the movie range and saved as a TIFF or
-non-TIFF image,
-depending on which snapshot type is selected.  In this way, you can get a
-snapshot bigger than the size of the screen.  You may need to set the
-thickness of model
-lines so that they will display appropriately at the higher zoom, and
+non-TIFF image, depending on which snapshot type is selected. 
+<P>
+If <B>Whole image at 1:1 zoom</B> is <I>not</I> selected, then the
+<B>by</B> spin box is used to select the amount that
+the image is zoomed up from its current zoom for the snapshot.  If the
+resulting zoom is higher than 1, 
 you need to turn on high-resolution display in the Zap window to get
 an interpolated image.  Just the area of the image showing in the Zap
-window will be captured.  The rubberband must be off, otherwise an
+window will be captured.
+<P>Select <B>Whole image at 1:1 zoom</B> to get a snapshot of the entire image
+at a zoom of 1.  The program selects a montaging factor that will work for
+capturing the whole image at zoom 1.  This feature is useful, for example, for
+getting a full-resolution JPEG snapshot of an image that is too large to fit
+on the screen.
+<P>
+If <B>Scale sizes by</B> is selected during a montage snapshot, 
+then the thicknesses of all model
+lines and the sizes of all symbols will be scaled up by the amount selected in
+the spin box.  
+These thicker, larger lines will then show up well if the image is scaled
+back down to the original size, such as when it is embedded in a figure.
+You can select either a specific scaling or <B>Auto</B> scaling
+by selecting the value below 2 in the spin box.  With auto-scaling, the sizes
+will be scaled by the product of the zoom before montaging and the montaging
+factor for zooms below 1, otherwise by the montaging factor.  This will
+produce no scaling when taking a whole image at 1:1 zoom, and scaling by the
+montaging factor in most other cases.
+<P>
+To get a montage snapshot,
+the rubberband must be off, otherwise an
 ordinary snaphot of the enclosed subarea will be taken.  On some machines you
 may need to make sure that there are no other windows on top of the Zap
-windows.
+window.  The settings in this section are
+saved across sessions of 3dmod, including whether to take montage snapshots
+when the dialog is open.
 <P>
 <A HREF="index.html">Help Index<A>
