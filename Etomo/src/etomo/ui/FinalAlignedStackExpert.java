@@ -62,6 +62,11 @@ import etomo.util.Utilities;
  * @version $Revision$
  * 
  * <p> $Log$
+ * <p> Revision 1.6  2008/12/02 21:22:55  sueh
+ * <p> bug# 1157 Changed better radius to fiducial diameter.  Getting fiducial
+ * <p> diameter from better radius saved in the .edf file for backwards
+ * <p> compatability.
+ * <p>
  * <p> Revision 1.5  2008/11/20 01:45:29  sueh
  * <p> bug# 1147 Added functions to run xfmodel and ccderaser.  Bug# 1147
  * <p> Getting binning only from meta data, not from newst, which is overwritten
@@ -1077,6 +1082,8 @@ public final class FinalAlignedStackExpert extends ReconUIExpert {
     }
     param.setInterpolationWidth(dialog.getInterpolationWidth());
     param.setDefocusTol(dialog.getDefocusTol());
+    param.setOutputFileName(DatasetFiles.getCtfCorrectionFileName(manager,
+        axisID));
   }
 
   private void setParameters(ConstMTFFilterParam mtfFilterParam) {
