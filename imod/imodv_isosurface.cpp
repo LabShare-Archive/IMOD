@@ -398,7 +398,7 @@ ImodvIsosurface::ImodvIsosurface(struct ViewInfo *vi, QWidget *parent, const cha
   xobj->flags |= IMOD_OBJFLAG_EXTRA_EDIT;
   if (mViewIso->isChecked() ) {
     xobj->flags= xobj->flags | IMOD_OBJFLAG_EXTRA_MODV | IMOD_OBJFLAG_FILL |
-      IMOD_OBJFLAG_MESH | IMOD_OBJFLAG_LINE |IMOD_OBJFLAG_TWO_SIDE;
+      IMOD_OBJFLAG_MESH | IMOD_OBJFLAG_NOLINE |IMOD_OBJFLAG_TWO_SIDE;
   } else {
     xobj->flags = xobj->flags & ~IMOD_OBJFLAG_EXTRA_MODV;
   }
@@ -963,7 +963,7 @@ void ImodvIsosurface::viewIsoToggled(bool state)
   Iobj *xobj = ivwGetAnExtraObject(mIsoView, mExtraObjNum);
   if (state) {
     xobj->flags= xobj->flags | IMOD_OBJFLAG_EXTRA_MODV | IMOD_OBJFLAG_FILL |
-      IMOD_OBJFLAG_MESH | IMOD_OBJFLAG_LINE |IMOD_OBJFLAG_TWO_SIDE;
+      IMOD_OBJFLAG_MESH | IMOD_OBJFLAG_NOLINE |IMOD_OBJFLAG_TWO_SIDE;
   } else {
     xobj->flags = xobj->flags & ~IMOD_OBJFLAG_EXTRA_MODV;
   }
@@ -1358,6 +1358,9 @@ void ImodvIsosurface::keyReleaseEvent ( QKeyEvent * e )
 /*
 
    $Log$
+   Revision 4.12  2008/11/15 22:03:25  mast
+   Added object names to show up in object edit window
+
    Revision 4.11  2008/11/12 18:56:07  xiongq
    call setFocus() for slots of spinners
 

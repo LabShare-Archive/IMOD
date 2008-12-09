@@ -193,7 +193,7 @@ void imodvObjedDrawData(int option)
       /* If going to line, see if MESH and LINE and FILL are all on
          and OFF is not; if so then clear all of these flags;
          otherwise just clear the MESH and OFF flags */
-      onTestFlags = IMOD_OBJFLAG_MESH | IMOD_OBJFLAG_LINE | 
+      onTestFlags = IMOD_OBJFLAG_MESH | IMOD_OBJFLAG_NOLINE | 
         IMOD_OBJFLAG_FILL;
       offTestFlags = IMOD_OBJFLAG_OFF;
       passSetFlags = 0;
@@ -205,9 +205,9 @@ void imodvObjedDrawData(int option)
          if so set MESH and LINE and FILL; otherwise just set MESH and
          clear OFF flags */
       onTestFlags = 0;
-      offTestFlags = IMOD_OBJFLAG_MESH | IMOD_OBJFLAG_LINE |
+      offTestFlags = IMOD_OBJFLAG_MESH | IMOD_OBJFLAG_NOLINE |
         IMOD_OBJFLAG_FILL | IMOD_OBJFLAG_OFF;
-      passSetFlags = IMOD_OBJFLAG_MESH | IMOD_OBJFLAG_LINE |
+      passSetFlags = IMOD_OBJFLAG_MESH | IMOD_OBJFLAG_NOLINE |
         IMOD_OBJFLAG_FILL;
       passClearFlags = 0;
       failSetFlags = IMOD_OBJFLAG_MESH;
@@ -244,17 +244,17 @@ void imodvObjedStyleData(int option)
 {
   switch(option){
   case stylePoints:
-    setObjFlag(IMOD_OBJFLAG_LINE , 1);
+    setObjFlag(IMOD_OBJFLAG_NOLINE , 1);
     setObjFlag(IMOD_OBJFLAG_FILL, 0);
     break;
   case styleLines:
-    setObjFlag(IMOD_OBJFLAG_FILL | IMOD_OBJFLAG_LINE, 0);
+    setObjFlag(IMOD_OBJFLAG_FILL | IMOD_OBJFLAG_NOLINE, 0);
     break;
   case styleFill:
-    setObjFlag(IMOD_OBJFLAG_FILL | IMOD_OBJFLAG_LINE, 1);
+    setObjFlag(IMOD_OBJFLAG_FILL | IMOD_OBJFLAG_NOLINE, 1);
     break;
   case styleFillOutline:
-    setObjFlag(IMOD_OBJFLAG_LINE, 0);
+    setObjFlag(IMOD_OBJFLAG_NOLINE, 0);
     setObjFlag(IMOD_OBJFLAG_FILL, 1);
     break;
   default:
@@ -416,10 +416,10 @@ static void objset(ImodvApp *a)
     // Find the object style number
     if ( iobjFill(flag) ){
       style = styleFillOutline;
-      if (flag & IMOD_OBJFLAG_LINE)
+      if (flag & IMOD_OBJFLAG_NOLINE)
         style = styleFill;
     }else{
-      if (IMOD_OBJFLAG_LINE & flag)
+      if (IMOD_OBJFLAG_NOLINE & flag)
         style = stylePoints;
       else
         style = styleLines;
@@ -2318,9 +2318,9 @@ static int finishMesh()
  
     // Turn on mesh view same way as it is done from draw data selection
     onTestFlags = 0;
-    offTestFlags = IMOD_OBJFLAG_MESH | IMOD_OBJFLAG_LINE |
+    offTestFlags = IMOD_OBJFLAG_MESH | IMOD_OBJFLAG_NOLINE |
       IMOD_OBJFLAG_FILL | IMOD_OBJFLAG_OFF;
-    passSetFlags = IMOD_OBJFLAG_MESH | IMOD_OBJFLAG_LINE |
+    passSetFlags = IMOD_OBJFLAG_MESH | IMOD_OBJFLAG_NOLINE |
       IMOD_OBJFLAG_FILL;
     passClearFlags = 0;
     failSetFlags = IMOD_OBJFLAG_MESH;
@@ -2548,6 +2548,9 @@ static void makeRadioButton(char *label, QWidget *parent, QButtonGroup *group,
 /*
 
 $Log$
+Revision 4.40  2008/11/16 04:24:45  mast
+Added dome cap and progress label to meshing and made changes work on multiple objects
+
 Revision 4.39  2008/06/17 20:16:36  mast
 Added checkbox for not drawing spheres when drawing mesh
 

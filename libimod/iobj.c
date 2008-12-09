@@ -795,7 +795,7 @@ void  imodObjectSetValue(Iobj *inObject, int inValueType, int inValue)
     return;
 
   case IobjFlagLine:
-    setObjFlag(inObject, IMOD_OBJFLAG_LINE, !inValue);
+    setObjFlag(inObject, IMOD_OBJFLAG_NOLINE, !inValue);
     return;
 
   case IobjFlagExtraInModv:
@@ -807,6 +807,9 @@ void  imodObjectSetValue(Iobj *inObject, int inValueType, int inValue)
 /*
 
 $Log$
+Revision 3.20  2008/05/07 04:44:20  mast
+Made bounding box function measure meshes if no contours
+
 Revision 3.19  2008/04/24 18:50:22  mast
 Added support for plugin to change 2D line width
 

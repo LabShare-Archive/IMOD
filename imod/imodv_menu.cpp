@@ -460,7 +460,7 @@ void imodvViewMenu(int item)
         imodObjectDefault(xobj);
         strcpy(xobj->name, "Current point extra object");
         xobj->flags |= IMOD_OBJFLAG_SCAT | IMOD_OBJFLAG_MESH |
-          IMOD_OBJFLAG_LINE | IMOD_OBJFLAG_FILL | IMOD_OBJFLAG_EXTRA_MODV |
+          IMOD_OBJFLAG_NOLINE | IMOD_OBJFLAG_FILL | IMOD_OBJFLAG_EXTRA_MODV |
           IMOD_OBJFLAG_EXTRA_EDIT | IMOD_OBJFLAG_MODV_ONLY;
         xobj->pdrawsize = 7.;
         xobj->red = 1.;
@@ -647,6 +647,9 @@ void ImodvBkgColor::keyReleaseSlot ( QKeyEvent * e )
 /*
 
 $Log$
+Revision 4.28  2008/11/28 06:43:13  mast
+Added bounding box and current point
+
 Revision 4.27  2008/04/29 18:13:20  xiongq
 add isosurface dialog
 

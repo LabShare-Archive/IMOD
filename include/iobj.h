@@ -28,7 +28,7 @@
 #define IMOD_OBJFLAG_FILL    (1l << 8)  /* Turns on drawing filled polygons. */
 #define IMOD_OBJFLAG_OFF     (1l << 1)  /* Turns object line drawing off     */
 #define IMOD_OBJFLAG_MESH    (1l << 10) /* Draw mesh in 3D, imod view        */
-#define IMOD_OBJFLAG_LINE    (1l << 11) /* Draw lines in 3D, imod view       */
+#define IMOD_OBJFLAG_NOLINE  (1l << 11) /* Do not draw lines in 3D mod view  */
 #define IMOD_OBJFLAG_DCUE    (1l << 2)  /* Draw using depth cue.             */
 #define IMOD_OBJFLAG_FCOLOR  (1l << 14) /* Use Fill color                    */
 #define IMOD_OBJFLAG_FCOLOR_PNT (1l << 6)  /* Use fill color for spheres     */
@@ -47,6 +47,8 @@
 #define IMOD_OBJFLAG_MODV_ONLY  (1l << 24) /* Draw extra only in model view */
 #define IMOD_OBJFLAG_TEMPUSE    (1l << 31) /* For temporary use              */
 
+#define IMOD_OBJFLAG_LINE IMOD_OBJFLAG_NOLINE
+
 /* macros for testing above flags. */
 #define iobjConnect(flag) ( (~(flag)) & IMOD_OBJFLAG_SCAT)
 
@@ -56,7 +58,7 @@
 #define iobjOff(flag)     ((flag)  & IMOD_OBJFLAG_OFF )
 #define iobjMesh(flag)    ((flag)  & IMOD_OBJFLAG_MESH)
 #define iobjScat(flag)    ((flag)  & IMOD_OBJFLAG_SCAT)
-#define iobjLine(flag)    (((~(flag)) & IMOD_OBJFLAG_LINE))
+#define iobjLine(flag)    (((~(flag)) & IMOD_OBJFLAG_NOLINE))
 #define iobjTime(flag)    ((flag)  & IMOD_OBJFLAG_TIME)
 #define iobjDraw(flag)    ((~(flag))  & IMOD_OBJFLAG_OFF)
 #define iobjFlagTime(o)   (iobjTime((o)->flags))
@@ -159,6 +161,9 @@ extern "C" {
 /*
 
 $Log$
+Revision 3.19  2008/11/28 06:05:33  mast
+New flag for drawing only in model view
+
 Revision 3.18  2008/07/16 04:31:41  mast
 Added new define for extra array index
 

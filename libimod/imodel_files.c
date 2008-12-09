@@ -1267,7 +1267,7 @@ int imodReadAscii(Imod *imod)
       obj->flags |= IMOD_OBJFLAG_MESH;
 
     if (substr(line, "nolines"))
-      obj->flags |= IMOD_OBJFLAG_LINE;
+      obj->flags |= IMOD_OBJFLAG_NOLINE;
 
     if (substr(line, "bothsides"))
       obj->flags |= IMOD_OBJFLAG_TWO_SIDE;
@@ -1558,7 +1558,7 @@ int imodWriteAscii(Imod *imod)
       fprintf(imod->file, "fill\n");
     if (obj->flags & IMOD_OBJFLAG_MESH)
       fprintf(imod->file, "drawmesh\n");
-    if (obj->flags & IMOD_OBJFLAG_LINE)
+    if (obj->flags & IMOD_OBJFLAG_NOLINE)
       fprintf(imod->file, "nolines\n");
     if (obj->flags & IMOD_OBJFLAG_TWO_SIDE)
       fprintf(imod->file, "bothsides\n");
@@ -1978,6 +1978,9 @@ int imodPutByte(FILE *fp, unsigned char *dat)
 
 /*
   $Log$
+  Revision 3.33  2008/11/20 20:13:29  mast
+  Added refimage info to ascii model
+
   Revision 3.32  2008/05/31 23:02:48  mast
   Put contour and point general values into ascii model
 
