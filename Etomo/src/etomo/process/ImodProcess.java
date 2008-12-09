@@ -36,6 +36,9 @@ import etomo.util.Utilities;
  * 
  * <p>
  * $Log$
+ * Revision 3.50  2008/12/05 00:52:03  sueh
+ * bug# 1156 Added setSkipList.
+ *
  * Revision 3.49  2008/07/24 17:58:25  sueh
  * bug# 1128 Added setMoreObjectPropertiesMessage and
  * setPointLimitMessage.
@@ -577,7 +580,7 @@ public class ImodProcess {
   private boolean flip = false;
   private Thread imodThread;
   private final BaseManager manager;
-  private long beadfixerDiameter = ImodManager.DEFAULT_BEADFIXER_DIAMETER;
+  private boolean beadfixerDiameterSet = false;
   private LinkedList requestQueue = new LinkedList();
   private LinkedList stderrQueue = new LinkedList();
   private ArrayList windowOpenOptionList = null;
@@ -614,14 +617,6 @@ public class ImodProcess {
     this.axisID = axisID;
     this.flip = flip;
     datasetName = dataset;
-  }
-
-  public ImodProcess(BaseManager manager, String dataset, AxisID axisID,
-      long beadfixerDiameter) {
-    this.manager = manager;
-    this.axisID = axisID;
-    datasetName = dataset;
-    this.beadfixerDiameter = beadfixerDiameter;
   }
 
   /**
@@ -1110,12 +1105,20 @@ public class ImodProcess {
   public void setSkipList(String skipList) {
     addPluginMessage(BEAD_FIXER_PLUGIN, BF_MESSAGE_SKIP_LIST, skipList);
   }
+  
+  public void setBeadfixerDiameter(long beadfixerDiameter) {
+    beadfixerDiameterSet=true;
+    addPluginMessage(BEAD_FIXER_PLUGIN, BF_MESSAGE_DIAMETER, String
+        .valueOf(beadfixerDiameter));
+  }
 
   public void setAutoCenter(boolean autoCenter) {
     addPluginMessage(BEAD_FIXER_PLUGIN, BF_MESSAGE_AUTO_CENTER,
         autoCenter ? MESSAGE_ON : MESSAGE_OFF);
-    addPluginMessage(BEAD_FIXER_PLUGIN, BF_MESSAGE_DIAMETER, String
-        .valueOf(beadfixerDiameter));
+    if (!beadfixerDiameterSet) {
+      addPluginMessage(BEAD_FIXER_PLUGIN, BF_MESSAGE_DIAMETER, String
+          .valueOf(ImodManager.DEFAULT_BEADFIXER_DIAMETER));
+    }
   }
 
   public void setNewContours(boolean newContours) {
