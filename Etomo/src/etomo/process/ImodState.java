@@ -4,6 +4,7 @@ import java.util.Vector;
 import java.io.File;
 import java.io.IOException;
 
+import etomo.ApplicationManager;
 import etomo.BaseManager;
 import etomo.type.AxisID;
 import etomo.type.Run3dmodMenuOptions;
@@ -174,6 +175,9 @@ import etomo.type.Run3dmodMenuOptions;
  * @version $$Revision$$
  * 
  * <p> $$Log$
+ * <p> $Revision 1.49  2008/12/05 00:52:31  sueh
+ * <p> $bug# 1156 Added skipList.
+ * <p> $
  * <p> $Revision 1.48  2008/07/24 17:58:59  sueh
  * <p> $bug# 1128 Added pointLimit and setPointLimit.
  * <p> $
@@ -566,20 +570,6 @@ public final class ImodState {
     reset();
   }
 
-  public ImodState(BaseManager manager, AxisID axisID, String datasetName,
-      String datasetExt, long beadfixerDiameter) {
-    this.manager = manager;
-    this.axisID = axisID;
-    String axisExtension = axisID.getExtension();
-    if (axisExtension == "ERROR") {
-      throw new IllegalArgumentException(axisID.toString());
-    }
-    this.datasetName = datasetName + axisExtension + datasetExt;
-    process = new ImodProcess(manager, this.datasetName, axisID,
-        beadfixerDiameter);
-    reset();
-  }
-
   /**
    * Use this constructor to insert the axis letter and create an instance of
    * ImodProcess using ImodProcess(String dataset, String model).  This will
@@ -637,6 +627,10 @@ public final class ImodState {
       if (openBeadFixer) {
         process.setOpenBeadFixerMessage();
         if (setAutoCenter) {
+          if (manager instanceof ApplicationManager) {
+            process.setBeadfixerDiameter(((ApplicationManager) manager)
+                .getBeadfixerDiameter(axisID));
+          }
           process.setAutoCenter(autoCenter);
         }
         if (manageNewContours) {
