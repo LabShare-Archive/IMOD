@@ -27,6 +27,10 @@ import etomo.type.ScriptParameter;
  * @version $Revision$
  *
  * <p> $Log$
+ * <p> Revision 3.17  2007/03/21 18:08:39  sueh
+ * <p> bug# 964 Limiting access to autodoc classes by using ReadOnly interfaces.
+ * <p> Creating Autodoc using a factory.
+ * <p>
  * <p> Revision 3.16  2007/03/07 20:58:07  sueh
  * <p> bug# 981
  * <p>
@@ -195,6 +199,8 @@ public class BeadtrackParam extends OldBeadtrackParam implements CommandParam {
   private ScriptParameter minOverlapBeads;
   private ScriptParameter maxViewsInAlign;
   private ScriptParameter roundsOfTracking;
+  private ScriptParameter imagesAreBinned;
+  private ScriptParameter beadDiameter;
 
   private AxisID axisID;
 
@@ -226,7 +232,7 @@ public class BeadtrackParam extends OldBeadtrackParam implements CommandParam {
     minViewsForTiltalign = new ScriptParameter(EtomoNumber.Type.INTEGER,
         N_MIN_VIEWS_KEY, requiredMap);
     centroidRadius = new ScriptParameter(EtomoNumber.Type.DOUBLE,
-        CENTROID_RADIUS_KEY, requiredMap);
+        CENTROID_RADIUS_KEY);
     lightBeads = new EtomoBoolean2(LIGHT_BEADS_KEY, requiredMap);
     maxGapSize = new ScriptParameter(EtomoNumber.Type.INTEGER, MAX_GAP_KEY,
         requiredMap);
@@ -260,6 +266,9 @@ public class BeadtrackParam extends OldBeadtrackParam implements CommandParam {
         MAX_VIEWS_IN_ALIGN_KEY, requiredMap);
     roundsOfTracking = new ScriptParameter(EtomoNumber.Type.INTEGER,
         ROUNDS_OF_TRACKING_KEY, requiredMap);
+    imagesAreBinned = new ScriptParameter(EtomoNumber.Type.LONG,
+        "ImagesAreBinned");
+    beadDiameter = new ScriptParameter(EtomoNumber.Type.DOUBLE, "BeadDiameter");
   }
 
   private void reset() {
@@ -310,6 +319,8 @@ public class BeadtrackParam extends OldBeadtrackParam implements CommandParam {
     minOverlapBeads.reset();
     maxViewsInAlign.reset();
     roundsOfTracking.reset();
+    imagesAreBinned.reset();
+    beadDiameter.reset();
   }
 
   private HashMap getRequiredMap() {
@@ -354,10 +365,6 @@ public class BeadtrackParam extends OldBeadtrackParam implements CommandParam {
 
   public ConstEtomoNumber getMinViewsForTiltalign() {
     return minViewsForTiltalign;
-  }
-
-  public ConstEtomoNumber getCentroidRadius() {
-    return centroidRadius;
   }
 
   public ConstEtomoNumber getLightBeads() {
@@ -482,6 +489,14 @@ public class BeadtrackParam extends OldBeadtrackParam implements CommandParam {
       minOverlapBeads.parse(scriptCommand);
       maxViewsInAlign.parse(scriptCommand);
       roundsOfTracking.parse(scriptCommand);
+      beadDiameter.parse(scriptCommand);
+    }
+    //backward compatibility bug# 1160
+    if (!centroidRadius.isNull()) {
+      if (beadDiameter.isNull()) {
+        beadDiameter.set(2 * centroidRadius.getDouble() - 3);
+      }
+      centroidRadius.reset();
     }
   }
 
@@ -567,6 +582,8 @@ public class BeadtrackParam extends OldBeadtrackParam implements CommandParam {
         MEAN_RESID_CHANGE_LIMITS_KEY, meanResidChangeLimits);
     ParamUtilities.updateScriptParameter(scriptCommand, DELETION_PARAMS_KEY,
         deletionParams);
+    imagesAreBinned.updateComScript(scriptCommand);
+    beadDiameter.updateComScript(scriptCommand);
   }
 
   private void set(OldConstBeadtrackParam param) {
@@ -676,10 +693,6 @@ public class BeadtrackParam extends OldBeadtrackParam implements CommandParam {
     return this.minViewsForTiltalign.set(minViewsForTiltalign);
   }
 
-  public ConstEtomoNumber setCentroidRadius(String centroidRadius) {
-    return this.centroidRadius.set(centroidRadius);
-  }
-
   public ConstEtomoNumber setLightBeads(boolean lightBeads) {
     return this.lightBeads.set(lightBeads);
   }
@@ -734,6 +747,10 @@ public class BeadtrackParam extends OldBeadtrackParam implements CommandParam {
 
   public ConstEtomoNumber setMinOverlapBeads(String minOverlapBeads) {
     return this.minOverlapBeads.set(minOverlapBeads);
+  }
+
+  public void setImagesAreBinned(long input) {
+    imagesAreBinned.set(input);
   }
 
   public ConstEtomoNumber setMaxViewsInAlign(String maxViewsInAlign) {
