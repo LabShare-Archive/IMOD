@@ -1,5 +1,7 @@
 IMOD History
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+2/9/08: Modified transferfid to use bead diameter instead of centroid radius.
+
 2/8/08: Fixed Processchunks "hold" to hold off only a failed machine.
 
 12/8/08: Added ability to scale line thicknesses and symbol sizes when taking
