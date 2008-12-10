@@ -91,6 +91,7 @@ public class EtomoDirector {
   }
 
   public static void main(String[] args) {
+    Utilities.dateTimeStamp();
     try {
       Utilities.setStartTime();
       EtomoDirector.INSTANCE.arguments.parse(args);
@@ -383,6 +384,7 @@ public class EtomoDirector {
 
   public final void makeCurrent() {
     System.setProperty("user.dir", originalUserDir);
+    Utilities.managerStamp(originalUserDir,null);
   }
 
   public final String getOriginalUserDir() {
@@ -1010,6 +1012,9 @@ public class EtomoDirector {
 }
 /**
  * <p> $Log$
+ * <p> Revision 1.76  2008/07/19 00:22:28  sueh
+ * <p> bug# 1125 In setUserPreferences set CpuAdoc from userConfig.
+ * <p>
  * <p> Revision 1.75  2008/05/28 17:24:11  sueh
  * <p> bug# 1110 In doAutomation check for null manager.
  * <p>
