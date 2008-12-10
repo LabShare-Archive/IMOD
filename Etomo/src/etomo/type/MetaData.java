@@ -13,6 +13,7 @@ import etomo.comscript.TiltalignParam;
 import etomo.comscript.TransferfidParam;
 import etomo.comscript.TrimvolParam;
 import etomo.util.DatasetFiles;
+import etomo.util.Utilities;
 
 /**
  * <p>Description: </p>
@@ -27,6 +28,9 @@ import etomo.util.DatasetFiles;
  * @version $Revision$
  *
  * <p> $Log$
+ * <p> Revision 3.43  2008/12/02 21:20:57  sueh
+ * <p> bug# 1157 Added finalStackFiducialDiameterA and B.  Deprecated finalStackBetterRadiusA and B.  Getting better radius for backwards compatibility.  Changed revision number to 1.10.
+ * <p>
  * <p> Revision 3.42  2008/11/20 01:36:22  sueh
  * <p> bug# 1147, bug# 1149 Added finalStackBetterRadiusA and B, and
  * <p> finalStackPolynomialOrderA and B.
@@ -436,6 +440,7 @@ public final class MetaData extends BaseMetaData implements ConstMetaData {
     String path = file.getPath();
     datasetName = file.getName();
     fixDatasetName();
+    Utilities.managerStamp(null,datasetName);
   }
 
   /**
@@ -848,7 +853,7 @@ public final class MetaData extends BaseMetaData implements ConstMetaData {
     comScriptsCreated = Boolean.valueOf(
         props.getProperty(group + "ComScriptsCreated", "true")).booleanValue();
 
-    // Backwards compaitibility with FilesetName string
+    // Backwards compatibility with FilesetName string
     datasetName = props.getProperty(group + "FilesetName", "");
     datasetName = props.getProperty(group + "DatasetName", datasetName);
     backupDirectory = props.getProperty(group + "BackupDirectory", "");
