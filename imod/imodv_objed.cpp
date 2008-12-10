@@ -164,7 +164,7 @@ static unsigned int onTestFlags, offTestFlags, passSetFlags, passClearFlags;
 static unsigned int failSetFlags, failClearFlags;
 static void optionSetFlags (b3dUInt32 *flag)
 {
-  if (( (*flag & onTestFlags) || !onTestFlags) && 
+  if (( (*flag & onTestFlags) == onTestFlags) && 
       ( !(*flag & offTestFlags) || !offTestFlags)) {
     *flag = (*flag | passSetFlags) & ~passClearFlags;
   }else {
@@ -190,7 +190,7 @@ void imodvObjedDrawData(int option)
   case 1:
   case 2:
     if (option == 1) {
-      /* If going to line, see if MESH and LINE and FILL are all on
+      /* If going to line, see if MESH and NOLINE and FILL are all on
          and OFF is not; if so then clear all of these flags;
          otherwise just clear the MESH and OFF flags */
       onTestFlags = IMOD_OBJFLAG_MESH | IMOD_OBJFLAG_NOLINE | 
@@ -201,8 +201,8 @@ void imodvObjedDrawData(int option)
       failSetFlags = 0;
       failClearFlags = IMOD_OBJFLAG_MESH | IMOD_OBJFLAG_OFF;
     } else {
-      /* If going to mesh, see if not OFF or MESH or LINE or FILL:
-         if so set MESH and LINE and FILL; otherwise just set MESH and
+      /* If going to mesh, see if not OFF or MESH or NOLINE or FILL:
+         if so set MESH and NOLINE and FILL; otherwise just set MESH and
          clear OFF flags */
       onTestFlags = 0;
       offTestFlags = IMOD_OBJFLAG_MESH | IMOD_OBJFLAG_NOLINE |
@@ -2548,6 +2548,9 @@ static void makeRadioButton(char *label, QWidget *parent, QButtonGroup *group,
 /*
 
 $Log$
+Revision 4.41  2008/12/09 23:27:36  mast
+Changed flag from line to noline
+
 Revision 4.40  2008/11/16 04:24:45  mast
 Added dome cap and progress label to meshing and made changes work on multiple objects
 
