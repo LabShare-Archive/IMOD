@@ -31,6 +31,7 @@
 #include "imod_io.h"
 #include "imod_info_cb.h"
 #include "imod_cont_edit.h"
+#include "imod_cont_copy.h"
 #include "imodv.h"
 #include "imodv_gfx.h"
 #include "imodv_objed.h"
@@ -1146,6 +1147,10 @@ void inputQDefaultKeys(QKeyEvent *event, ImodView *vw)
       inputGhostmode(vw);
     break;
 
+  case Qt::Key_K:
+    iccCopyContour();
+    break;
+    
   case Qt::Key_M:
     if (shifted)
       inputMoveObject(vw);
@@ -1444,6 +1449,9 @@ bool inputTestMetaKey(QKeyEvent *event)
 
 /*
 $Log$
+Revision 4.45  2008/12/01 15:37:12  mast
+Changed the way current point index is set after changing contours
+
 Revision 4.44  2008/11/28 06:42:19  mast
 Make it update current point when model point moves with keys
 

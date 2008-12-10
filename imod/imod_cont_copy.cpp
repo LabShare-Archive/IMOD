@@ -213,6 +213,16 @@ int openContourCopyDialog(ImodView *vw)
   return(0);
 }
 
+// Entry for hot key copying
+void iccCopyContour(void)
+{
+  if (!ThisDialog.dia)
+    wprint("\aContour Copy dialog must be open to copy with this hot key.\n");
+  else
+    ThisDialog.dia->apply();
+}
+
+
 /****************************************************************************/
 
 
@@ -579,6 +589,9 @@ void ContourCopy::keyReleaseEvent ( QKeyEvent * e )
 /*
 
 $Log$
+Revision 4.16  2008/04/04 21:22:03  mast
+Free contour after adding to object
+
 Revision 4.15  2007/09/14 21:56:38  sueh
 bug# 1038 Switching from calling dia_vasmsg() to opening an .html file for help.
 
