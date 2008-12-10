@@ -1,5 +1,6 @@
 IMOD History
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+12/9/08: IMOD_3-12-24
 12/9/08: Fixed bug in reading ascii models written with reference info.
 
 12/9/08: Made imodmesh turn mesh drawing on when meshing and off when erasing.

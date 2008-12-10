@@ -83,7 +83,7 @@ density matching, 2 for output of all iterations in density matching
 
 [SectionHeader = WarpOptions]
 usage = OPTIONS FOR RUNNING FINDWARP OR WARPVOL
-manpage = OPTIONS FOR RUNNING FINDWARP OR WARPVOL
+manpage = Options for Running Findwarp or Warpvol
 [Field = TargetMeanResidual]
 short = target
 type = FA
@@ -126,7 +126,7 @@ default is that the temporary files will be placed in the current directory.
 
 [SectionHeader = StackOptions]
 usage = OPTIONS FOR DENSITY MATCHING WHEN STACKING
-manpage = OPTIONS FOR DENSITY MATCHING WHEN STACKING
+manpage = Options for Density Matching when Stacking
 [Field = DensityReferenceFrame]
 short = density
 type = IPM
@@ -163,7 +163,7 @@ respectively.  Enter 0 for one of the values to use the default.
 
 [SectionHeader = BLOptions]
 usage = OPTIONS FOR RUNNING BLENDMONT
-manpage = OPTIONS FOR RUNNING BLENDMONT
+manpage = Options for Running Blendmont
 [Field = StartingAndEndingX]
 short = xminmax
 type = IP
