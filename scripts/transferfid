@@ -592,6 +592,10 @@ if ($status) then
     goto clean
 endif
 
+# Find the pixel size of the model a scale factor
+#
+set modpixel = `imodinfo -h $fidfile | sed -n -e '/[[:cntrl:]]/s///g' -e '/.*SCALE.*( \([0-9.]*\).*/s//\1/p'`
+set modscale = `echo $pixela[1] $modpixel | awk '{print $1 / $2}'`
 #
 # clip out the model and remap it to z = 1
 #
@@ -614,12 +618,7 @@ if ($status) then
     goto clean
 endif
 
-remapmodel >! "$tmperrlog" <<EOF
-$tmpclip
-$tmpmap1
-1
-0,0,0
-EOF
+remapmodel -new 1 $tmpclip $tmpmap1 >! "$tmperrlog"
 if ($status) then
     grep ERROR "$tmperrlog"
     echo "ERROR: Transferfid - Remapping $AA fiducials to section 1"
@@ -629,29 +628,16 @@ endif
 #
 # transform model then adjust its coordinates to new center
 #
-@ xadd = ($nxb - $nxa) / 2
-@ yadd = ($nyb - $nya) / 2
-xfmodel >! "$tmperrlog" <<EOF
-$imagea
-
-$tmpmap1
-1
-0
-$tmpxfmod
-$tmptwoxf
-EOF
+set xadd = `echo $modscale $nxb $nxa | awk '{print $1 * ($2 - $3) / 2.}'`
+set yadd = `echo $modscale $nyb $nya | awk '{print $1 * ($2 - $3) / 2.}'`
+xfmodel -xforms $tmptwoxf -scale $modscale $tmpmap1 $tmpxfmod >! "$tmperrlog" 
 if ($status) then
     grep ERROR "$tmperrlog"
     echo "ERROR: Transferfid - Transforming $AA fiducials to match $BB image"
     goto clean
 endif
 
-remapmodel >! "$tmperrlog" <<EOF
-$tmpxfmod
-$tmpmap2
-1
-$xadd,$yadd,0
-EOF
+remapmodel -new 1 -add $xadd,$yadd,0 $tmpxfmod $tmpmap2 >! "$tmperrlog" 
 if ($status) then
     grep ERROR "$tmperrlog"
     echo "ERROR: Transferfid - Recentering transformed $AA fiducials"
@@ -767,12 +753,7 @@ echo "Number of fiducials that failed to transfer: $btresult[$#btresult]"
     
 #
 # Remap seed model to the section in B
-remapmodel <<EOF  >! "$tmperrlog"
-$tmpseed
-$tmpmap3
-$bsecbest,-999
-0,0,0
-EOF
+remapmodel -new $bsecbest,-999 $tmpseed $tmpmap3 >! "$tmperrlog"
 if ($status) then
     grep ERROR "$tmperrlog"
     echo "ERROR: Transferfid - Remapping seed model up to view in $BB"
@@ -845,6 +826,9 @@ exit 1
 
 #
 #  $Log$
+#  Revision 3.33  2008/12/09 15:35:59  mast
+#  Modified to work with diameter instead of centroid radius
+#
 #  Revision 3.32  2008/07/01 17:41:28  mast
 #  Changed to use PIP input to xfsimplex and limit search ranges
 #
