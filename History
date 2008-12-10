@@ -1,5 +1,7 @@
 IMOD History
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+2/9/08: Added hot key k for copying contour when contour copy dialog is open.
+
 2/9/08: In Etomo - Fiducial Model dialog, corrected the bead diameter passed to
 beadtrack and 3dmod.  Taking Coarse Aligned binning into account.  Removed
 centroid radius from the dialog, converting centroid radius into bead diameter
