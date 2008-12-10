@@ -205,6 +205,7 @@ public abstract class BaseManager {
     if (propertyUserDir.matches("\\s*")) {
       propertyUserDir = null;
     }
+    Utilities.managerStamp(propertyUserDir,null);
     String oldPropertyUserDir = this.propertyUserDir;
     this.propertyUserDir = propertyUserDir;
     return oldPropertyUserDir;
@@ -1233,6 +1234,9 @@ public abstract class BaseManager {
 }
 /**
  * <p> $Log$
+ * <p> Revision 1.104  2008/11/20 01:24:32  sueh
+ * <p> bug# 1147 Added imodOpen for opening with a model.
+ * <p>
  * <p> Revision 1.103  2008/10/06 22:36:42  sueh
  * <p> bug# 1113 Removed packPanel, which is unecessary since scrolling was
  * <p> removed.
