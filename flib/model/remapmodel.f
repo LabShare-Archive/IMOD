@@ -113,7 +113,7 @@ c       get options from pip input
 c
       if (pipinput) then
         ierr = PipGetInteger('ReorderPointsInZ', ifreorder)
-        ifadd = 1 - PipGetThreeFloats('AddToAllPoints', zadd, yadd, zadd)
+        ifadd = 1 - PipGetThreeFloats('AddToAllPoints', xadd, yadd, zadd)
         numFrom = 0
         numTo = 0
         ierr = PipGetIntegerArray('FromChunkLimits', izseFrom, numFrom,
@@ -365,6 +365,9 @@ c       DNM 7/20/89  changes for new model format
 c       DNM 2/20/90  changes to negate Z and reorder by Z
 c       
 c       $Log$
+c       Revision 3.5  2007/01/24 23:44:45  mast
+c       Fixed code for making list of Z values
+c
 c       Revision 3.4  2006/10/27 20:49:37  mast
 c       Converted to PIP, added options for serial tomogram chunks
 c
