@@ -4,6 +4,7 @@ import java.io.File;
 import java.util.Properties;
 
 import etomo.util.DatasetFiles;
+import etomo.util.Utilities;
 
 /**
  * <p>Description: </p>
@@ -21,6 +22,10 @@ import etomo.util.DatasetFiles;
  * @notthreadsafe
  * 
  * <p> $Log$
+ * <p> Revision 1.22  2008/09/10 21:33:19  sueh
+ * <p> bug# 1135 Added EtomoBoolean2 tiltRange to MetaData so that the state
+ * <p> of the check box on the screen can be saved.
+ * <p>
  * <p> Revision 1.21  2008/08/22 17:51:44  sueh
  * <p> bug# 1136 Added nWeightGroup.
  * <p>
@@ -193,6 +198,7 @@ public class PeetMetaData extends BaseMetaData implements ConstPeetMetaData {
 
   public void setName(String name) {
     rootName.set(name);
+    Utilities.managerStamp(null,rootName.toString());
   }
 
   public boolean isValid() {
