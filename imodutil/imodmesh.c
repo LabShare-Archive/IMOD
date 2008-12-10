@@ -103,8 +103,9 @@ int main(int argc, char **argv)
   Ipoint spnt;
   Ipoint max, maxsave;
   FILE *fout;
+  Iobjview *obv;
   char *rst;
-  int ob, i, ch;
+  int ob, i, ch, iv;
   int erase_mesh = FALSE;
   int renorm     = FALSE;
   int remeshNorm = FALSE;
@@ -397,6 +398,20 @@ int main(int argc, char **argv)
           if (obj->meshsize) {
             imodMeshesDeleteZRange(&obj->mesh, &obj->meshsize,
                                    minz, maxz, resol);
+
+            /* Turn off standard mesh view flags if they are all on and the
+               regular resolution is being erased.  Have to modify views too */
+            flags = IMOD_OBJFLAG_MESH | IMOD_OBJFLAG_NOLINE |
+              IMOD_OBJFLAG_FILL;
+            if (!resol && (obj->flags & flags) == flags)
+              setOrClearFlags(&obj->flags, flags, 0);
+            for (iv = 1; iv < imod->viewsize; iv++) {
+              if (ob < imod->view[iv].objvsize) {
+                obv = &imod->view[iv].objview[ob];
+                if (!resol && (obv->flags & flags) == flags)
+                  setOrClearFlags(&obv->flags, flags, 0);
+              }
+            }
           }
         } else if (renorm) {
           spnt.x = spnt.y = 1.0f;
@@ -576,6 +591,23 @@ int main(int argc, char **argv)
               //if (m)istoreDump(obj->mesh[m].store);
             }
 
+            /* Turn on standard mesh view flags if none of them are on, 
+               otherwise turn on mesh flag */
+            flags = IMOD_OBJFLAG_MESH | IMOD_OBJFLAG_NOLINE |
+              IMOD_OBJFLAG_FILL;
+            if (obj->flags & flags)
+              setOrClearFlags(&obj->flags, IMOD_OBJFLAG_MESH, 1);
+            else
+              setOrClearFlags(&obj->flags, flags, 1);
+            for (iv = 1; iv < imod->viewsize; iv++) {
+              if (ob < imod->view[iv].objvsize) {
+                obv = &imod->view[iv].objview[ob];
+                if (obv->flags & flags)
+                  setOrClearFlags(&obv->flags, IMOD_OBJFLAG_MESH, 1);
+                else
+                  setOrClearFlags(&obv->flags, flags, 1);
+              }
+            }
           }else
             printf("Skipping object %d\n", ob+1);
         }
@@ -814,6 +846,9 @@ static int ObjOnList(int ob, int list[], int nlist)
 
 /*
 $Log$
+Revision 3.20  2008/11/15 22:01:21  mast
+Added option for dome caps
+
 Revision 3.19  2008/06/17 20:21:24  mast
 Allowed special codes for meshing diameter
 
