@@ -12,6 +12,9 @@
  * @version $$Revision$
  *
  * <p> $$Log$
+ * <p> $Revision 3.60  2008/12/02 21:25:47  sueh
+ * <p> $bug# 1157 Removed unecessary rounding functions breakAndTrim, covertToScienticNotation, and round.
+ * <p> $
  * <p> $Revision 3.59  2008/05/13 23:09:34  sueh
  * <p> $bug# 847 Removed unnecessary print statement.
  * <p> $
@@ -363,7 +366,7 @@ public class Utilities {
         + axisID.getExtension() + extension);
     return file;
   }
-  
+
   public static boolean isAprilFools() {
     return new Date().toString().indexOf("Apr 01 ") != -1;
   }
@@ -770,6 +773,22 @@ public class Utilities {
     startTime = new Date().getTime();
   }
 
+  public static void dateTimeStamp() {
+    System.err.println(new Date().toString());
+  }
+
+  public static void managerStamp(String dir, String name) {
+    System.err.println("\n++++++++++++++++");
+    Utilities.dateTimeStamp();
+    if (dir != null) {
+      System.err.println(dir);
+    }
+    if (name != null) {
+      System.err.println(name);
+    }
+    System.err.println("++++++++++++++++\n");
+  }
+
   public static String getTimestamp() {
     return timestampFormat.format((new Date().getTime() - startTime) / 1000.0);
   }
@@ -848,7 +867,8 @@ public class Utilities {
     return true;
   }
 
-  public static final String convertLabelToName(String label, ProcessName processName) {
+  public static final String convertLabelToName(String label,
+      ProcessName processName) {
     if (processName == null) {
       return convertLabelToName(label);
     }
