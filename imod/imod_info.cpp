@@ -79,6 +79,7 @@ InfoWindow::InfoWindow(QWidget * parent, const char * name, WFlags f)
   mFileMenu->insertItem("S&et Snap Dir...", FILE_MENU_SNAPDIR);
   mFileMenu->insertItem("&Gray TIF snaps", FILE_MENU_SNAPGRAY);
   mFileMenu->setItemChecked(FILE_MENU_SNAPGRAY, false);
+  mFileMenu->insertItem("&JPEG Quality...", FILE_MENU_SNAPQUALITY);
   mFileMenu->insertItem("&Memory to TIF...", FILE_MENU_TIFF);
   mFileMenu->insertItem("E&xtract File...", FILE_MENU_EXTRACT);
   mFileMenu->insertItem("&Quit", FILE_MENU_QUIT);
@@ -679,6 +680,9 @@ static char *truncate_name(char *name, int limit)
 /*
 
 $Log$
+Revision 4.51  2008/12/01 15:42:01  mast
+Changes for undo/redo and selection in 3dmodv standalone
+
 Revision 4.50  2008/07/30 17:07:42  mast
 Fixed keep on top, broken by autocontrast at start
 

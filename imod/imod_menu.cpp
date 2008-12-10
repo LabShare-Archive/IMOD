@@ -69,7 +69,7 @@ static int imodContourBreakByZ(ImodView *vi, Iobj *obj, int ob, int co);
  */
 void InfoWindow::fileSlot(int item)
 {
-  int returnValue;
+  int returnValue, quality;
   int limits[4];
   unsigned char **data;
   QString qname;
@@ -151,6 +151,17 @@ void InfoWindow::fileSlot(int item)
       imod_info_input();
       releaseKeyboard();
       b3dSetSnapDirectory();
+      imod_info_enable();
+      break;
+
+  case FILE_MENU_SNAPQUALITY:
+      imod_info_forbid();
+      imod_info_input();
+      releaseKeyboard();
+      quality = ImodPrefs->snapQuality();
+      if (diaQInput(&quality, 10, 100, 0, 
+                     "Quality factor for JPEG snapshots (%)"))
+        ImodPrefs->setSnapQuality(quality);
       imod_info_enable();
       break;
 
@@ -1326,6 +1337,9 @@ static int imodContourBreakByZ(ImodView *vi, Iobj *obj, int ob, int co)
 /*
 
 $Log$
+Revision 4.49  2008/07/13 16:45:01  mast
+Keep image windows from opening on initial load
+
 Revision 4.48  2008/07/13 15:03:23  mast
 Prevent saving of model during initial load
 

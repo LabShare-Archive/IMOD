@@ -27,8 +27,8 @@ extern InfoWindow *ImodInfoWin;
 extern int ImodForbidLevel;
 
 enum {FILE_MENU_NEW, FILE_MENU_OPEN, FILE_MENU_RELOAD, FILE_MENU_SAVE,
-      FILE_MENU_SAVEAS, FILE_MENU_SNAPDIR, FILE_MENU_SNAPGRAY, FILE_MENU_TIFF,
-      FILE_MENU_EXTRACT, FILE_MENU_QUIT,
+      FILE_MENU_SAVEAS, FILE_MENU_SNAPDIR, FILE_MENU_SNAPGRAY, 
+      FILE_MENU_SNAPQUALITY, FILE_MENU_TIFF, FILE_MENU_EXTRACT, FILE_MENU_QUIT,
       FWRITE_MENU_IMOD, FWRITE_MENU_WIMP, FWRITE_MENU_NFF, FWRITE_MENU_SYNU,
       EDIT_MENU_MOVIES, EDIT_MENU_GRAIN, EDIT_MENU_ANGLES, EDIT_MENU_SCALEBAR,
       EDIT_MENU_PREFS,
@@ -120,6 +120,9 @@ int imod_info_open();
 
 /*
     $Log$
+    Revision 3.25  2008/05/27 05:50:28  mast
+    New menu items and autocontrast after delay
+
     Revision 3.24  2008/02/22 00:33:44  sueh
     bug# 1076 Added extract menu option, and extract(), and trimvolExited().
 
