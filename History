@@ -1,5 +1,8 @@
 IMOD History
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+12/10/08: In Etomo - Join, fixed the format problem affecting spinners in the
+Join tab.
+
 12/10/08: Made Transferfid work if the fiducial model was last loaded on a
 stack with different binning from the current stacks.
 
