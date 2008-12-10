@@ -47,6 +47,7 @@
 #define putimod      PUTIMOD
 #define openimoddata OPENIMODDATA
 #define getimodhead  GETIMODHEAD
+#define getimodheado  GETIMODHEADO
 #define getimodscales GETIMODSCALES
 #define putimageref  PUTIMAGEREF
 #define getimodmaxes GETIMODMAXES
@@ -93,6 +94,7 @@
 #define putimod      putimod_
 #define openimoddata openimoddata_
 #define getimodhead  getimodhead_
+#define getimodheado  getimodheado_
 #define getimodscales getimodscales_
 #define putimageref  putimageref_
 #define getimodmaxes getimodmaxes_
@@ -1927,6 +1929,9 @@ int getimodnesting(int *ob, int *inOnly, int *level, int *inIndex,
 
 /*
 $Log$
+Revision 3.35  2008/11/14 17:18:37  mast
+A few more functions
+
 Revision 3.34  2008/11/12 03:41:25  mast
 Added functions for getting/setting values and related flags and setting
 image reference values from origin values
