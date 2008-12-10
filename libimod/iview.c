@@ -658,10 +658,14 @@ IrefImage *imodIMNXNew()
   ref->oscale = ref->cscale;
   ref->otrans = ref->ctrans;
   ref->orot = ref->crot;
+  return ref;
 }
 
 /*
 $Log$
+Revision 3.16  2008/11/20 20:13:13  mast
+Added function for new refimage
+
 Revision 3.15  2007/08/26 06:56:15  mast
 Documentation changes
 
