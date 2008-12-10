@@ -1,20 +1,22 @@
 IMOD History
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-2/9/08: Added hot key k for copying contour when contour copy dialog is open.
+12/9/08: Made imodmesh turn mesh drawing on when meshing and off when erasing.
 
-2/9/08: In Etomo - Fiducial Model dialog, corrected the bead diameter passed to
-beadtrack and 3dmod.  Taking Coarse Aligned binning into account.  Removed
+12/9/08: Added hot key k for copying contour when contour copy dialog is open.
+
+12/9/08: In Etomo - Fiducial Model dialog, corrected the bead diameter passed
+to beadtrack and 3dmod.  Taking Coarse Aligned binning into account.  Removed
 centroid radius from the dialog, converting centroid radius into bead diameter
 in existing track.com files.
 
-2/9/08: In Etomo - Final Aligned Stack dialog, resetting the OutputFileName in
+12/9/08: In Etomo - Final Aligned Stack dialog, resetting the OutputFileName in
 ctfcorrection.com each time it is saved.
 
-2/9/08: Added entry to File menu for conveniently changing JPEG quality.
+12/9/08: Added entry to File menu for conveniently changing JPEG quality.
 
-2/9/08: Modified transferfid to use bead diameter instead of centroid radius.
+12/9/08: Modified transferfid to use bead diameter instead of centroid radius.
 
-2/8/08: Fixed Processchunks "hold" to hold off only a failed machine.
+12/8/08: Fixed Processchunks "hold" to hold off only a failed machine.
 
 12/8/08: Added ability to scale line thicknesses and symbol sizes when taking
 a montage snapshot, added an option for taking the whole image at 1:1 zoom,
