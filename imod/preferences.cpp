@@ -880,6 +880,11 @@ void ImodPreferences::restoreSnapFormat()
   mCurrentPrefs.snapFormat = mSavedSnapFormat;
 }
 
+void ImodPreferences::setSnapQuality(int value)
+{
+  mCurrentPrefs.snapQuality = value;
+  mCurrentPrefs.snapQualityChgd = true;
+}
 
 // Determine code for actual mouse button given the logical button number
 // (1, 2, or 3)
@@ -1142,6 +1147,9 @@ bool ImodPreferences::classicWarned()
 
 /*
 $Log$
+Revision 1.35  2008/12/08 17:27:56  mast
+Save montage snapshot stuff
+
 Revision 1.34  2008/09/24 02:39:28  mast
 Added option for attach function to look only at On objects
 

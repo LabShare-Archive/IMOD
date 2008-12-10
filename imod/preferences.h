@@ -143,6 +143,7 @@ class ImodPreferences : public QObject
   bool getRoundedStyle();
   QString snapFormat() {return mCurrentPrefs.snapFormat;};
   int snapQuality() {return mCurrentPrefs.snapQuality;};
+  void setSnapQuality(int value);
   int slicerPanKb() {return mCurrentPrefs.slicerPanKb;};
   bool speedupSlider() {return mCurrentPrefs.speedupSlider;};
   QString snapFormat2();
@@ -189,6 +190,9 @@ extern ImodPreferences *ImodPrefs;
 
 /*
 $Log$
+Revision 1.19  2008/09/24 02:39:28  mast
+Added option for attach function to look only at On objects
+
 Revision 1.18  2008/05/27 05:42:19  mast
 Various new preferences, added macro
 
