@@ -102,7 +102,6 @@ EXPORTS
 	imodTransFromRefImage
 	imodGetByte
 	imodIMNXWrite
-        imodIMNXNew
 	imodContourNew
 	imodOpenFile
 	imodLabelName
@@ -127,6 +126,7 @@ EXPORTS
 	istoreGenPointItems
 	imodInsertPoint
 	substr
+	imodIMNXNew
 	istoreNextChange
 	imodMeshAddNormal
 	istoreInsert
@@ -225,6 +225,7 @@ EXPORTS
 	PUTIMODZSCALE
 	imodViewModelRead
 	imodel_contour_overlap
+	GETIMODHEADO
 	imodMeshDeleteIndex
 	imodContourCheckNesting
 	imodObjectsDelete
@@ -312,7 +313,6 @@ EXPORTS
 	imodel_overlap_fractions
 	imodGetBytes
 	GETIMODMESH
-	getimodheado
 	imodMeshGetMaxIndex
 	imodContoursDeleteToEnd
 	imodContourFill
