@@ -1,52 +1,23 @@
 c       REPACKSEED is a companion program for the shell script Transferfid.
 c       It is used to give the user a list of how points correspond between
 c       the original fiducial model and the new seed model, and to repack
-c       the seed model to eliminate empty contours.  If it is given a file
-c       listing object and contour numbers for fiducials whose positions
-c       have been solved for in the first set, the 
+c       the seed model to eliminate empty contours.  See man page for details.
 c       
-c       Its inputs are:
-c       
-c       File name of original fiducial model for the first axis
-c       
-c       Name of file with X/Y/Z coordinates, as produced by Tiltalign, or
-c       Return if none available
-c       
-c       Name of new seed model for the second axis, produced by Beadtrack and
-c       stripped of points from the first axis
-c       
-c       Output file for final repacked seed model
-c       
-c       $Author$
-c       
-c       $Date$
-c       
-c       $Revision$
-c       
-c       $Log$
-c       Revision 3.3  2003/05/20 21:41:27  mast
-c       Fixed output to work with no spaces in output lists
-c	
-c       Revision 3.2  2002/07/28 20:28:30  mast
-c       Added better analysis of mapping based on fiducial coordinate file
-c       from Tiltalign
-c	
-c       Revision 3.1  2002/05/23 04:42:15  mast
-c       Creation of program
-c	
+c       $Id$
+c       Log at end of file
 c       
       implicit none
       integer idim
       parameter (idim=10000)
       include 'model.inc'
-      character*120 fidname,seedname,outfile,xyzname,matchname
+      character*320 fidname,seedname,outfile,xyzname,matchname
       integer*4 ifid_in_a(idim),maplist(idim)
       integer*4 ixyzcont(idim),ixyzpnt(idim),ixyzobj(idim)
-      integer*4 iobj,nmap,noriginal,i,imodobj,imodcont,nxyz,nmaplen
+      integer*4 iobj,nmap,noriginal,i,imodobj,imodcont,nxyz,nmaplen, ierr
       integer*4 izOrig, izTrans, ifBtoA, indab, max_obj_orig, ibase, ipt, ip
-      real*4 dum, xOrig(idim), yOrig(idim)
+      real*4 dum, xOrig(idim), yOrig(idim), ximscale, yimscale, zimscale
       character*1 abtext(2)/'A','B'/
-      integer*4 lnblnk
+      integer*4 lnblnk, getImodScales
       logical*4 readw_or_imod
 c       
       write(*,'(1x,a,$)')'Name of fiducial file from first axis: '
@@ -142,7 +113,12 @@ c
       call scale_model(0)
       if (matchname .ne. ' ') then
         call dopen(1, matchname, 'new', 'f')
-        write(1, '(3i6)') izOrig, izTrans, ifBtoA
+        ierr = getImodScales(ximscale, yimscale, zimscale)
+        if (ierr .eq. 0) then
+          write(1, '(3i6,f12.3)') izOrig, izTrans, ifBtoA, ximscale
+        else
+          write(1, '(3i6)') izOrig, izTrans, ifBtoA
+        endif
       endif
 c       
 c       pack objects down and accumulate map list
@@ -217,3 +193,18 @@ c
       endif
       call exit(0)
       end
+c       
+c       $Log$
+c       Revision 3.4  2006/05/04 23:11:23  mast
+c       Added option to create file of matching coordinates
+c
+c       Revision 3.3  2003/05/20 21:41:27  mast
+c       Fixed output to work with no spaces in output lists
+c	
+c       Revision 3.2  2002/07/28 20:28:30  mast
+c       Added better analysis of mapping based on fiducial coordinate file
+c       from Tiltalign
+c	
+c       Revision 3.1  2002/05/23 04:42:15  mast
+c       Creation of program
+c	
