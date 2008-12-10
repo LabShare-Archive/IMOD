@@ -1,6 +1,16 @@
 IMOD History
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-12/9/08: Improved the Etomo log file.
+12/10/08: Made Transferfid work if the fiducial model was last loaded on a
+stack with different binning from the current stacks.
+
+12/10/08: Changed Repackseed and Solvematch so that matching coordinates from
+Transferfid would still work if either fiducial model was last loaded at a
+different binning from when Transferfid was run.
+
+12/10/08: Fixed bug in Remapmodel when entering shifts with -add option.
+
+12/10/08: Improved the Etomo log file to include time stamp and data set
+information.
 
 12/9/08: IMOD_3-12-24
 12/9/08: Fixed bug in reading ascii models written with reference info.
