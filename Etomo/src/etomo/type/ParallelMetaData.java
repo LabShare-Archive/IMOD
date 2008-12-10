@@ -4,6 +4,7 @@ import java.util.Properties;
 
 import etomo.ui.AnisotropicDiffusionDialog;
 import etomo.util.DatasetFiles;
+import etomo.util.Utilities;
 
 /**
  * <p>Description: </p>
@@ -103,6 +104,7 @@ public final class ParallelMetaData extends BaseMetaData {
 
   public void setRootName(String rootName) {
     this.rootName = rootName;
+    Utilities.managerStamp(null,this.rootName);
   }
 
   public void setLoadWithFlipping(boolean input) {
@@ -327,6 +329,9 @@ public final class ParallelMetaData extends BaseMetaData {
 }
 /**
  * <p> $Log$
+ * <p> Revision 1.6  2007/12/10 22:37:48  sueh
+ * <p> bug# 1041 Moved resets to load since they are only done once.
+ * <p>
  * <p> Revision 1.5  2007/11/09 17:45:56  sueh
  * <p> bug# 1047 Changed the names of NAD fields for clarity.
  * <p>

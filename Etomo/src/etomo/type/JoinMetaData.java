@@ -25,6 +25,9 @@ import etomo.util.Utilities;
  * @version $Revision$
  * 
  * <p> $Log$
+ * <p> Revision 1.12  2008/08/18 22:38:00  sueh
+ * <p> bug# 1130 Added localFits.
+ * <p>
  * <p> Revision 1.11  2007/12/10 22:36:34  sueh
  * <p> bug# 1041 Made Const class an interface so inheritance can come from
  * <p> BaseMetaData.
@@ -359,6 +362,7 @@ public final class JoinMetaData extends BaseMetaData implements
 
   public void setRootName(String rootName) {
     this.rootName = rootName;
+    Utilities.managerStamp(null,this.rootName);
   }
 
   public void setBoundariesToAnalyze(String boundariesToAnalyze) {
