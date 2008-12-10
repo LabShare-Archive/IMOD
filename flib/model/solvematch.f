@@ -5,13 +5,8 @@ c       relating the tomogram volumes resulting from tilt series around two
 c       different axes.  It uses information from the 3-D coordinates of
 c       fiducials found by TILTALIGN.  See man page for further information.
 c       
-c       $Author$
-c       
-c       $Date$
-c       
-c       $Revision$
-c       
-c       Log at end
+c       $Id$
+c       Log at end of file
 c       
       implicit none
       include 'statsize.inc'
@@ -57,6 +52,7 @@ c
       real*4 sumMean, sumMax, shiftLimit, csdx, csdy, csdz, devavgLoc
       real*4 devmaxLoc, devallMax,globLocAvgRatio, axisCrit, reportDiff
       real*4 yzScaleDiff,sumsq,xyScaleDiff,xzScaleDiff,axisScale(3)
+      real*4 transPixel,freinp(20)
       logical*4 relativeFids, matchAtoB
 
       logical readw_or_imod, b3dxor
@@ -133,6 +129,7 @@ c
       nTransCoord = 0
       matchAtoB = .false.
       axisCrit = 10.
+      transPixel = 0.
 c       
 c       Pip startup: set error, parse options, check help, set flag if used
 c       
@@ -216,7 +213,16 @@ c
 c         Read transfer file, get best section and coordinates
 c         
         call dopen(1, filename, 'ro', 'f')
-        read(1,*)izbest(1),izbest(2),ifTransBtoA
+        read(1,'(a)')listString
+        call frefor(listString, freinp, j)
+        izbest(1) = nint(freinp(1))
+        izbest(2) = nint(freinp(2))
+        ifTransBtoA = nint(freinp(3))
+c         
+c         If there is a fourth value
+c         then get the scaling to apply to model coords to match transfer coord
+        if (j .gt. 3) transPixel = freinp(4)
+c           
         i = 0
 11      read(1,*,err=12,end=12)(transferX(i+1, j), transferY(i+1, j), j=1,2)
         i = i + 1
@@ -241,10 +247,11 @@ c         their objects and contours
 c         
         call readFidModelFile('AFiducialModel', izbest(izind), abtext(indA),
      &      fidModX(1,indA), fidModY(1,indA), modObjFid(1,indA),
-     &      modContFid(1,indA), numFid(indA), idim)
+     &      modContFid(1,indA), numFid(indA), idim, transPixel)
         call readFidModelFile('BFiducialModel', izbest(3-izind),
      &      abtext(indB), fidModX(1,indB), fidModY(1,indB),
-     &      modObjFid(1,indB), modContFid(1,indB), numFid(indB), idim)
+     &      modObjFid(1,indB), modContFid(1,indB), numFid(indB), idim,
+     &      transPixel)
 c         
 c         Get the list of points to use from the true A series
 c         
@@ -1159,26 +1166,33 @@ c       readFidModel gets the filename with the given OPTION, reads fiducial
 c       model, finds points with Z = IZBEST, and returns their X/Y coords
 c       in FIDMODX, FIDMODY and their object and contour numbers in MODOBJFID
 c       and MODCONTFID.  NUMFID is the number of fiducials returned; iDIM 
-c       specifies the dimensions of the arrays; ABTEXT is A or B.
+c       specifies the dimensions of the arrays; ABTEXT is A or B.  transPixel
+c       is a pixel size for transfer coords if non-zero.
 c
       subroutine readFidModelFile(option, izbest, abtext, fidModX,
-     &    fidModY, modObjFid, modContFid, numFid, idim)
+     &    fidModY, modObjFid, modContFid, numFid, idim, transPixel)
       implicit none
       include 'model.inc'
       character*(*) option
       character*1 abtext
       integer*4 izbest, idim, numFid, modObjFid(*), modContFid(*)
-      real*4 fidModX(*), fidModY(*)
+      real*4 fidModX(*), fidModY(*), fidScale, transPixel
+      real*4 ximscale, yimscale, zimscale
       character*160 filename
       integer*4 iobj, ip, ipt
       logical*4 looking
       logical readw_or_imod
-      integer*4 PipGetString
+      integer*4 PipGetString, getImodScales
 
       if (PipGetString(option, filename) .ne. 0) call exiterror('FIDUCIAL '//
      &    'MODELS FOR BOTH AXES MUST BE ENTERED TO USE TRANSFER COORDS')
       if (.not.readw_or_imod(filename)) call exiterror(
      &    'READING FIDUCIAL MODEL FOR AXIS '//abtext)
+c       
+c       If a pixel size was defined for transfer, scale coords to match that
+      fidScale = 1.
+      ip = getImodScales(ximscale, yimscale, zimscale)
+      if (ip .eq. 0 .and. transPixel .gt. 0.) fidScale = ximscale / transPixel
       call scale_model(0)
       numFid = 0
       do iobj = 1, max_mod_obj
@@ -1193,8 +1207,8 @@ c
             numFid = numFid + 1
             if (numFid .gt. idim) call exiterror('TOO MANY FIDUCIAL '//
      &          'CONTOURS FOR ARRAYS IN MODEL FOR AXIS '//abtext)
-            fidModX(numFid) = p_coord(1, ipt)
-            fidModY(numFid) = p_coord(2, ipt)
+            fidModX(numFid) = p_coord(1, ipt) * fidScale
+            fidModY(numFid) = p_coord(2, ipt) * fidScale
             call objtocont(iobj, obj_color, modObjFid(numFid),
      &          modContFid(numFid))
 c            print *, modObjFid(numFid),modContFid(numFid),fidModX(numFid),
@@ -1280,6 +1294,9 @@ c
 
 c
 c       $Log$
+c       Revision 3.19  2007/12/12 23:41:19  mast
+c       Added detection of different scaling along the three axes and warnings
+c
 c       Revision 3.18  2007/06/27 19:27:55  mast
 c       Increased point limit, added error check for model points
 c
