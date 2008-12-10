@@ -891,7 +891,9 @@ void loadWindowPoints(Iobj *obj, Icont *cont, int cenPt, float window,
       segment = imodPointDistance(&pts[nextPt], &pts[lastPt]);
     }
           
-    /* Get interpolated point at skip distance */
+    /* Get interpolated point at skip distance.  Adjust for zero segment */
+    if (segment < 1.e-5)
+      segment = skip = 1.;
     if (zz)
       zz[*numPts] = pts[cenPt].z * zscale;
     xx[*numPts] = pts[lastPt].x + (pts[nextPt].x - pts[lastPt].x) * 
@@ -1164,6 +1166,9 @@ static int farthestPoint(float *xx, float *yy, int numPts, int icen)
 /*
 
 $Log$
+Revision 3.14  2008/11/14 20:04:37  mast
+Added option for output of mean stored values
+
 Revision 3.13  2008/06/08 21:34:35  mast
 Implemented cylinder fitting with inefficient search, fixed bug in deciding
 if there are enough points in window.
