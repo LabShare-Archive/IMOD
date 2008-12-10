@@ -85,7 +85,7 @@ BeadFixerModule::BeadFixerModule()
 #define MAXLINE 100
 #define MAX_DIAMETER 50
 #define MAX_OVERLAY 20
-#define NUM_SAVED_VALS 13
+#define NUM_SAVED_VALS 14
 
 /*
  *  Define a structure to contain all local plugin data.
@@ -278,6 +278,9 @@ void imodPlugExecute(ImodView *inImodView)
     loadSaved(plug->delOnAllSec, 10);
     loadSaved(plug->delInAllObj, 11);
     loadSaved(plug->ignoreSkips, 12);
+    if (nvals > 13)
+      plug->diameter = B3DNINT(plug->diameter * savedValues[13] / 
+                               plug->view->xybin);
   }
 
   /*
@@ -357,6 +360,10 @@ int BeadFixer::executeMessage(QStringList *strings, int *arg)
     return 0;
   case MESSAGE_BEADFIX_DIAMETER:
     plug->diameter = (*strings)[++(*arg)].toInt();
+
+    // Divide the diameter by the binning
+    if (plug->view->xybin > 1)
+      plug->diameter = B3DNINT((float)plug->diameter / plug->view->xybin);
     diaSetSpinBox(diameterSpin, plug->diameter);
     return 0;
   case MESSAGE_BEADFIX_OPERATION:
@@ -2344,6 +2351,7 @@ void BeadFixer::closeEvent ( QCloseEvent * e )
   posValues[10] = plug->delOnAllSec;
   posValues[11] = plug->delInAllObj;
   posValues[12] = plug->ignoreSkips;
+  posValues[13] = plug->view->xybin;
   
   ImodPrefs->saveGenericSettings("BeadFixer", NUM_SAVED_VALS, posValues);
 
@@ -2428,6 +2436,9 @@ void BeadFixer::keyReleaseEvent ( QKeyEvent * e )
 /*
 
 $Log$
+Revision 1.50  2008/12/01 15:41:31  mast
+Switched to correlating with sobel-filtered model bead for autocenter
+
 Revision 1.49  2008/11/29 23:27:41  mast
 Oops, needed to ceck for keypad on that insert button
 
