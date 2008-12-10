@@ -58,6 +58,9 @@ import etomo.util.DatasetFiles;
  * @version $Revision$
  *
  * <p> $Log$
+ * <p> Revision 1.63  2008/11/20 01:46:09  sueh
+ * <p> bug# 1147 Added AxisID to manager.imodOpen.
+ * <p>
  * <p> Revision 1.62  2008/09/30 21:57:11  sueh
  * <p> bug# 1113 Added getFocusComponent.  Made components to be
  * <p> focused on final.
@@ -1004,7 +1007,6 @@ public final class JoinDialog implements ContextMenu, Run3dmodButtonContainer {
         numSections < 1 ? 1 : numSections, 1);
     spinDensityRefSection = new LabeledSpinner(
         "Reference section for density matching: ", spinnerModel);
-    spinDensityRefSection.setTextMaxmimumSize(dimSpinner);
     //sixth component
     setupPanel2 = SpacedPanel.getInstance();
     setupPanel2.setBoxLayout(BoxLayout.X_AXIS);
@@ -1179,7 +1181,6 @@ public final class JoinDialog implements ContextMenu, Run3dmodButtonContainer {
     SpinnerNumberModel spinnerModel = new SpinnerNumberModel(zMax < 1 ? 1
         : zMax < 10 ? zMax : 10, 1, zMax < 1 ? 1 : zMax, 1);
     spinRejoinUseEveryNSlices = new LabeledSpinner("Use every ", spinnerModel);
-    spinRejoinUseEveryNSlices.setTextMaxmimumSize(dimSpinner);
     pnlUseEvery.add(spinRejoinUseEveryNSlices);
     pnlUseEvery.add(new JLabel("slices"));
     //trial rejoin button
@@ -1190,7 +1191,6 @@ public final class JoinDialog implements ContextMenu, Run3dmodButtonContainer {
     spinnerModel = new SpinnerNumberModel(1, 1, 50, 1);
     spinRejoinTrialBinning = new LabeledSpinner("Binning in X and Y: ",
         spinnerModel);
-    spinRejoinTrialBinning.setTextMaxmimumSize(dimSpinner);
     pnlTrialRejoinButton.add(spinRejoinTrialBinning.getContainer());
     btnTrialRejoin.setDeferred3dmodButton(b3bOpenTrialRejoin);
     btnTrialRejoin.setAlignmentX(Component.CENTER_ALIGNMENT);
@@ -1315,14 +1315,12 @@ public final class JoinDialog implements ContextMenu, Run3dmodButtonContainer {
     SpinnerNumberModel spinnerModel = new SpinnerNumberModel(zMax < 1 ? 1
         : zMax < 10 ? zMax : 10, 1, zMax < 1 ? 1 : zMax, 1);
     spinUseEveryNSlices = new LabeledSpinner("Use every ", spinnerModel);
-    spinUseEveryNSlices.setTextMaxmimumSize(dimSpinner);
     trialJoinPanel1.add(spinUseEveryNSlices);
     trialJoinPanel1.add(new JLabel("slices"));
     pnlTrialJoin.add(trialJoinPanel1);
     //second component
     spinnerModel = new SpinnerNumberModel(1, 1, 50, 1);
     spinTrialBinning = new LabeledSpinner("Binning in X and Y: ", spinnerModel);
-    spinTrialBinning.setTextMaxmimumSize(dimSpinner);
     pnlTrialJoin.add(spinTrialBinning);
     //third component
     btnTrialJoin.setDeferred3dmodButton(b3bOpenTrialIn3dmod);
