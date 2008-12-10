@@ -17,6 +17,7 @@ import etomo.EtomoDirector;
 import etomo.type.AxisID;
 import etomo.type.AxisType;
 import etomo.util.UniqueKey;
+import etomo.util.Utilities;
 
 /**
  * <p>Description: </p>
@@ -31,6 +32,9 @@ import etomo.util.UniqueKey;
  * @version $Revision$
  *
  * <p> $Log$
+ * <p> Revision 3.48  2008/09/30 21:57:47  sueh
+ * <p> bug# 1113 Reformatted
+ * <p>
  * <p> Revision 3.47  2008/05/30 21:32:15  sueh
  * <p> bug# 1102 Made MainFrame public for ui test.
  * <p>
@@ -484,6 +488,7 @@ public final class MainFrame extends EtomoFrame implements ContextMenu {
     }
     else {
       currentManager.makeCurrent();
+      Utilities.managerStamp(currentManager.getPropertyUserDir(),currentManager.getName());
     }
     if (mainPanel != null) {
       rootPanel.removeAll();
