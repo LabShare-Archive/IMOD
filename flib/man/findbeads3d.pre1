@@ -58,6 +58,16 @@ DDEESSCCRRIIPPTTIIOONN
   work better, as long as the bead size in the binned tomogram is at least 5
   pixels.
 
+  The tomogram needs to be thicker than normal because the program cannot find
+  beads too close to the surfaces of the tomogram.  With the typical
+  elongation taken into account, the program will find only the beads that are
+  more than ~1.1 bead diameters from the surface.  If gold is on two surfaces,
+  thickness thus needs to be at least 2.2 bead diameters more than the
+  average distance between the surfaces, which is indicated in the Surface
+  Analysis output of Tiltalign(1) as "Thickness at Z intercepts".  To the
+  extent that beads do not lie exactly in planes, even more thickness will be
+  required; 3 diameters might be a good starting point.
+
   Findbeads3d uses the PIP package for input exclusively (see the manual page 
   for pip(1)).  The following options can be specified either as command line
   arguments (with the -) or one per line in a command file or parameter file
