@@ -1,0 +1,175 @@
+Version=1.0
+Pip=1
+
+[Field = InputFile]
+short = input
+type = FN
+usage = Input file with image volume
+tooltip =
+manpage = 
+
+[Field = OutputFile]
+short = output
+type = FN
+usage = Output file for model of correlation peaks
+tooltip =
+manpage = 
+
+[Field = CandidateModel]
+short = candidate
+type = FN
+usage = 
+tooltip = 
+manpage = 
+
+[Field = BeadSize]
+short = size
+type = F
+usage = Size of beads in pixels
+tooltip = 
+manpage = Diameter of beads in pixels, a required entry.
+
+[Field = LightBeads]
+short = light
+type = B
+usage = Beads are light on dark background
+tooltip = 
+manpage = 
+
+[Field = AngleRange]
+short = angle
+type = FP
+usage = Starting and ending tilt angles, for computing elongation factor
+tooltip = 
+manpage = Starting and ending tilt angles, for computing the elongation factor
+due to the missing wedge in single-axis tomograpy.  The elongation is computed
+using a formula in Radermacher (1988), with the maximum tilt angle for that
+formula taken as the mean of the absolute values of the minimum and maximum
+angles of the series.
+
+[Field = TiltFile]
+short = tilt
+type = FN
+usage = File with tilt angles, for computing elongation factor
+tooltip = 
+manpage = File with tilt angles, for computing elongation factor from the
+minimum and maximum tilt angle, as just described.  Only one of -angle and
+-tilt may be entered.
+
+[Field = YAxisElongated]
+short = ylong
+type = B
+usage = Features are elongated along the Y instead of Z axis
+tooltip = 
+manpage = Features are elongated by the missing wedge along the Y axis instead
+of the Z axis.  This entry is needed when analyzing a tomogram as produced by
+Tilt(1) with Z slices along the tilt axis and Y perpendicular to the plane of
+the specimen.
+
+[Field = MinRelativeStrength]
+short = peakmin
+type = F
+usage = Minimum relative peak strength for retaining peak in analysis
+tooltip = 
+manpage = Minimum relative peak strength for
+keeping a peak in the analysis.  Too many weak peaks can prevent a dip from
+showing up in the smoothed histogram of strengths.  The default is 0.05.  If
+the program fails to find a histogram dip, one strategy is to try raising this
+value.
+
+[Field = ThresholdForAveraging]
+short = threshold
+type = F
+usage = Threshold relative peak strength or number of beads for averaging
+tooltip = 
+manpage = Threshold relative peak strength or number of beads for averaging.
+With a non-zero entry, selected beads from the first round of filtering and
+correlation are averaged to produce a reference for a second round.  If a
+negative value is entered, the program will analyze the histogram of peak
+strengths and find the dip indicating the best boundary between actual and
+false beads.  The value has 4 different meanings depending on the range:
+^  Greater than 1: an absolute number of beads with the strongest peaks
+^  Between 0 and 1: minimum relative peak strength
+^  Between 0 and -1: negative of strongest fraction of peaks above histogram 
+dip (e.g., -0.33 for the strongest 1/3 of the peaks above the dip)
+^  -2: 1/4 of way from histogram dip to histogram peak (the default)
+
+[Field = StorageThreshold]
+short = store
+type = F
+usage = Threshold relative peak strength for storing peaks in model
+tooltip = 
+manpage = Threshold relative peak strength for storing peaks in model.  With a
+value of 0 (the default), the program will find the dip in the histogram of
+peak strengths, find the mean and SD of the strengths above the dip, and store
+all of the beads above the dip plus additional ones below the dip.  The latter
+will be up to the 5 SD's below the mean or up to the number of ones above the
+dip.  Enter a number between 0 and 1 to specify a relative
+strength above which peaks will be stored.  Enter a negative number to specify
+the number to store as a fraction of the number above the histogram dip (e.g.,
+-1 for all points above the dip, -0.33 for the strongest 1/3 above the dip,
+-1.33 for all above plus 1/3 that many below the dip.)  If you use the
+default, or a number below -1, then you must examine the points in 3dmod,
+adjust the threshold if necessary, and delete points below the threshold.
+
+[Field = MinSpacing]
+short = spacing
+type = F
+usage = Minimum spacing between peaks as fraction of bead size (default 0.9)
+tooltip = 
+manpage = Minimum spacing between peaks as a fraction of the bead size.  When
+two peaks are closer than this distance apart, the weaker one is eliminated
+unless the -both option is entered.
+The default is 0.9.  A value less than 1 is helpful for picking both beads in
+a pair.
+
+[Field = EliminateBoth]
+short = both
+type = B
+usage = Eliminate both peaks when their spacing is below the minimum spacing
+tooltip = 
+manpage = 
+
+[Field = GuessNumBeads]
+short = guess
+type = I
+usage = A guess for the number of beads, which can be an underestimate
+tooltip = 
+manpage = A guess for the number of beads.  This entry may
+sometimes be required to help the program find a dip in the histogram,
+especially if there are very few beads.  The number can be an underestimate
+and a very rough estimate.  Use this entry if a histogram dip is found at a
+rather high peak strength with few peaks above it.
+
+[Field = MaxNumBeads]
+short = max
+type = I
+usage = The maximum possible number of beads to look for
+tooltip = 
+manpage = The maximum possible number of beads to look for.  Only this number
+of peaks will be retained and used for finding the histogram dip.  If the
+program fails to find a histogram dip, try entering a value that is at least
+twice the estimated number of beads.  The default is 50000.
+
+[Field = VerboseOutput]
+short=verbose
+type=I
+usage = 1 for diagnostics, 2 for peaks, 3 and 4 for histogram verbosity
+tooltip=
+manpage= Enter 1 for diagnostic output, 2 for listing of peaks, and 3 or 4 for 
+verbose output from the histogram routines
+
+[Field = ParameterFile]
+short=param
+type=PF
+usage=Read parameter entries from file
+tooltip=
+manpage=
+
+[Field = usage]
+short=help
+type=B
+usage=Print help output
+tooltip=
+manpage=
+
