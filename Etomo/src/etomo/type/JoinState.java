@@ -20,6 +20,9 @@ import etomo.BaseManager;
  * @version $Revision$
  * 
  * <p> $Log$
+ * <p> Revision 1.13  2008/08/18 22:38:30  sueh
+ * <p> bug# 1130 Added joinLocalFits and joinTrialLocalFits.
+ * <p>
  * <p> Revision 1.12  2008/05/22 00:17:15  sueh
  * <p> bug# 1110 Adding reset call before setting any of the IntKeyLists to
  * <p> another IntKeyList.  Otherwise deleted members of the original IntKeyList
@@ -85,6 +88,7 @@ public final class JoinState extends BaseState implements ConstJoinState {
   private static final String USE_EVERY_N_SLICES_KEY = "UseEveryNSlices";
   public static final ConstEtomoVersion MIN_REFINE_VERSION = EtomoVersion
       .getDefaultInstance("1.1");
+  private static final String CURRENT_VERSION = "1.0";
 
   protected static final String sampleProducedString = "SampleProduced";
   protected static final boolean defaultSampleProduced = false;
@@ -166,6 +170,7 @@ public final class JoinState extends BaseState implements ConstJoinState {
       + '.' + TRIAL_KEY + '.' + USE_EVERY_N_SLICES_KEY);
   private final EtomoNumber refineTrialUseEveryNSlices = new EtomoNumber(
       REFINE_KEY + '.' + TRIAL_KEY + '.' + USE_EVERY_N_SLICES_KEY);
+  private final EtomoVersion version = EtomoVersion.getDefaultInstance();
 
   public JoinState(BaseManager manager) {
     this.manager = manager;
@@ -207,7 +212,7 @@ public final class JoinState extends BaseState implements ConstJoinState {
     joinShiftInY.store(props, prepend);
     joinSizeInX.store(props, prepend);
     joinSizeInY.store(props, prepend);
-    joinLocalFits.store(props,prepend);
+    joinLocalFits.store(props, prepend);
     joinStartList.store(props, prepend);
     joinEndList.store(props, prepend);
 
@@ -216,7 +221,7 @@ public final class JoinState extends BaseState implements ConstJoinState {
     joinTrialShiftInY.store(props, prepend);
     joinTrialSizeInX.store(props, prepend);
     joinTrialSizeInY.store(props, prepend);
-    joinTrialLocalFits.store(props,prepend);
+    joinTrialLocalFits.store(props, prepend);
     joinTrialBinning.store(props, prepend);
     joinTrialStartList.store(props, prepend);
     joinTrialEndList.store(props, prepend);
@@ -230,6 +235,8 @@ public final class JoinState extends BaseState implements ConstJoinState {
     else {
       props.setProperty(prepend + '.' + XFMODEL_OUTPUT_FILE, xfModelOutputFile);
     }
+    version.set(CURRENT_VERSION);
+    version.store(props, prepend);
   }
 
   public boolean equals(JoinState that) {
@@ -280,6 +287,7 @@ public final class JoinState extends BaseState implements ConstJoinState {
     refineEndList.reset();
     joinTrialUseEveryNSlices.reset();
     refineTrialUseEveryNSlices.reset();
+    version.reset();
     //load
     prepend = createPrepend(prepend);
     String group = prepend + ".";
@@ -308,8 +316,8 @@ public final class JoinState extends BaseState implements ConstJoinState {
     else {
       loadJoinTrialVersion1_0(props, prepend);
     }
-    joinLocalFits.load(props,prepend);
-    joinTrialLocalFits.load(props,prepend);
+    joinLocalFits.load(props, prepend);
+    joinTrialLocalFits.load(props, prepend);
     doneMode.load(props, prepend);
     sampleProduced = Boolean.valueOf(
         props.getProperty(group + sampleProducedString, Boolean
@@ -336,6 +344,18 @@ public final class JoinState extends BaseState implements ConstJoinState {
     refineStartList.load(props, prepend);
     refineEndList.load(props, prepend);
     xfModelOutputFile = props.getProperty(prepend + '.' + XFMODEL_OUTPUT_FILE);
+    version.load(props, prepend);
+    //Bug# 1165 - fixing previous .ejf files when possible.
+    if (version.lt(EtomoVersion.getDefaultInstance("1.0"))) {
+      if (joinTrialBinning.isNull()) {
+        joinTrialAlignmentRefSection.load(props, prepend);
+        if (!joinTrialAlignmentRefSection.isNull()) {
+          joinAlignmentRefSection.set(joinTrialAlignmentRefSection);
+          joinTrialAlignmentRefSection.reset();
+
+        }
+      }
+    }
   }
 
   /**
@@ -507,7 +527,7 @@ public final class JoinState extends BaseState implements ConstJoinState {
       joinShiftInY.set(shiftInY);
     }
   }
-  
+
   public void setJoinLocalFits(boolean trial, ConstEtomoNumber localFits) {
     if (trial) {
       joinTrialLocalFits.set(localFits);
@@ -592,7 +612,7 @@ public final class JoinState extends BaseState implements ConstJoinState {
     }
     return joinSizeInY;
   }
-  
+
   public boolean isJoinLocalFits(boolean trial) {
     if (trial) {
       return joinTrialLocalFits.is();
