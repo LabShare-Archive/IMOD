@@ -1,10 +1,15 @@
 IMOD History
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+12/11/08: Fixed model view update when running from 3dmod and there are no 
+image windows, as when editing patch vectors.
+
 12/11/08: In Etomo - Join, popping up Warnings from xfjointomo.
 
-12/10/08: In Etomo - Join, fixed a bug where the Alignment Reference Section was
-always saved under trial, even when a finish join was done.  Will fix previous
-.ejf files only in the case where the trial join was never run.
+12/10/08: Added findbeads3d for automatically finding gold beads in a tomogram.
+
+12/10/08: In Etomo - Join, fixed a bug where the Alignment Reference Section
+was always saved under trial, even when a finish join was done.  Will fix
+previous .ejf files only in the case where the trial join was never run.
 
 12/10/08: In Etomo - Join, fixed the format problem affecting spinners in the
 Join tab.
