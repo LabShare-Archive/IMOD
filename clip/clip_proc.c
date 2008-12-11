@@ -577,7 +577,7 @@ int grap_flip(MrcHeader *hin, MrcHeader *hout, ClipOptions *opt)
         return (-1);
       }
     }
-    printf("memlim %.0f  maxslices %d memory %d\n", memlim, maxSlices, hout->nx * maxSlices * hin->nz * dsize);
+    /* printf("memlim %.0f  maxslices %d memory %d\n", memlim, maxSlices, hout->nx * maxSlices * hin->nz * dsize); */
     mrc_init_li(&li, NULL);
     mrc_init_li(&li, hin);
     numDone = 0;
@@ -1582,6 +1582,10 @@ int free_vol(Islice **vol, int z)
 */
 /*
 $Log$
+Revision 3.25  2008/11/15 00:49:56  mast
+Fixed bug in flipz of an odd file, made flipyz/rotx use up to 2x memory
+for a big file
+
 Revision 3.24  2007/11/23 01:05:58  mast
 Added iterations for smoothing
 
