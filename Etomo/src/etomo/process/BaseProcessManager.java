@@ -44,6 +44,9 @@ import etomo.util.Utilities;
  * @version $Revision$
  * 
  * <p> $Log$
+ * <p> Revision 1.71  2008/11/20 01:31:49  sueh
+ * <p> bug# 1149 Moved xfmodel from JoinProcessManager to BaseProcessManager.
+ * <p>
  * <p> Revision 1.70  2008/10/27 17:51:01  sueh
  * <p> bug# 1141 Added startNonBlockingComScript functions to run ctfplotter
  * <p> without checking or blocking the axis.
@@ -1619,6 +1622,11 @@ public abstract class BaseProcessManager {
     }
     else {
       postProcess(process);
+      ProcessMessages messages = process.getProcessMessages();
+      if (messages != null && messages.warningListSize() > 0) {
+        uiHarness.openWarningMessageDialog(messages, process.getName()
+            + " warnings", process.getAxisID());
+      }
     }
     manager.saveStorables(process.getAxisID());
 
