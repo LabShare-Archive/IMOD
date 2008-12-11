@@ -309,12 +309,9 @@ int imodDraw(ImodView *vw, int flag)
     lastTime = time;
   }
 
-  // Skip out if there are no image windows yet to avoid premature bwfloat call
-  if (!vw->ctrlist || !ilistSize(vw->ctrlist->list))
-    return 0;
-
-  /* Check for black/white change on float */
-  if (imod_info_bwfloat(vw, cz, time) && App->rgba)
+  /* Check for black/white change on float, but only if image windows exist */
+  if (vw->ctrlist && ilistSize(vw->ctrlist->list) && 
+      imod_info_bwfloat(vw, cz, time) && App->rgba)
     flag |= IMOD_DRAW_IMAGE;            // DO WE NEED NOSYNC?
 
   if (flag & IMOD_DRAW_RETHINK)
@@ -557,6 +554,9 @@ int imodFindQGLFormat(ImodApp *ap, char **argv)
 /*
 
 $Log$
+Revision 4.26  2008/12/01 15:39:31  mast
+Do not call bwfloat if no images to display yet
+
 Revision 4.25  2008/11/28 06:41:40  mast
 Test on current point object in model view for model draw
 
