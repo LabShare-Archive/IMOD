@@ -17,7 +17,7 @@ PROGS = convertmod$(E) model2point$(E) imavgstat$(E) solvematch$(E) \
  smoothsurf$(E) reducecont$(E) fenestra$(E) ccderaser$(E) edgeeraser$(E) \
  refinematch$(E) findwarp$(E) sumdensity$(E) mtrotlong$(E) howflared$(E) \
  tomopitch$(E) fiberpitch$(E) corrsearch3d$(E) repackseed$(E) resamplemod$(E) \
- findhotpixels$(E) xfjointomo$(E) boxavg$(E)
+ findhotpixels$(E) xfjointomo$(E) boxavg$(E) findbeads3d$(E)
 
 WLIBS = $(LWMOD) $(LIMOD) $(IMLIBS) $(FORTCLIBS)
 SMALLLIBS = $(LSMLMOD) $(LIMOD) $(IMLIBS) $(FORTCLIBS)
@@ -142,6 +142,9 @@ xfjointomo$(E): xfjointomo.$(O)
 boxavg$(E): boxavg.$(O)
 	$(FC) -o boxavg boxavg.$(O) $(LDFLG) $(SMALLLIBS)
 
+findbeads3d$(E): findbeads3d.$(O)
+	$(FC) -o findbeads3d findbeads3d.$(O) $(LDFLG) $(SMALLLIBS)
+
 install: $(PROGS)
 	$(STRIP) $(PROGS)
 	$(CP) $(PROGS) $(INSTBINDIR)
@@ -150,6 +153,9 @@ clean:
 	-\rm -f *.o* *~ *.exe $(PROGS)
 
 #  $Log$
+#  Revision 3.16  2007/12/05 21:41:56  mast
+#  *** empty log message ***
+#
 #  Revision 3.15  2007/10/21 17:13:40  mast
 #  Add boxavg
 #
