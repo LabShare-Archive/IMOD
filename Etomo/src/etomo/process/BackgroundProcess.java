@@ -27,6 +27,9 @@ import etomo.ui.UIHarness;
  * @version $Revision$
  * 
  * <p> $Log$
+ * <p> Revision 3.38  2008/05/16 22:24:09  sueh
+ * <p> bug# 1109 Added more explanation to the isNohup function.
+ * <p>
  * <p> Revision 3.37  2008/05/03 00:36:17  sueh
  * <p> bug# 847 Passing ProcessSeries to process object constructors so it can
  * <p> be passed to process done functions.
@@ -709,7 +712,7 @@ class BackgroundProcess extends Thread implements SystemProcessInterface {
     processManager.msgProcessDone(this, exitValue, errorFound);
   }
 
-  private ProcessMessages getProcessMessages() {
+  public ProcessMessages getProcessMessages() {
     if (program == null) {
       return null;
     }
