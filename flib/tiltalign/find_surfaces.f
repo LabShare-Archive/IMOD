@@ -14,26 +14,24 @@ c       IGROUP is an array returned with a value for each point of 1 if
 c       on lower surface, 2 if on upper, but only if 2-surface analysis is
 c       done
 c       
-c       $Author$
-c       
-c       $Date$
-c       
-c       $Revision$
-c       
-c       $Log$
-c       Revision 3.2  2005/12/08 03:46:51  mast
-c       Overdimension maxreal since it gets forgotten about
-c       
-c       Revision 3.1  2002/05/07 02:05:53  mast
-c       Changed output to make it more understandable and readable
-c       
+c       $Id$
+c       Log at end of file
 c       
       subroutine find_surfaces(xyz,nrealpt,nsurface,tiltmax,
-     &    iunit2,tiltnew,igroup,ifcomp,tiltadd)
-      real*4 xyz(3,*)
+     &    iunit2,tiltnew,igroup,ifcomp,tiltadd, znew, imageBinned)
+      implicit none
+      integer maxreal
+      real*4 xyz(3,*), tiltmax, tiltnew, tiltadd, bintmi, bint, znew
+      integer*4 nrealpt, nsurface, iunit2, ifcomp,imageBinned
       parameter (maxreal=2000)
       real*4 xx(maxreal),yy(maxreal),zz(maxreal),zrot(maxreal)
       integer*4 igroup(*),icheck(maxreal/2)
+      integer*4 i, iun, niter, iter,ipt, npntmi,npntpl,iterlim,limcheck,ncheck
+      real*4 aslop,bslop,alpha,slop,resid,truepl,slopav,alphaav,theta,costh
+      real*4 sinth,cosal,sinal,zmin,zmax,zp,zmiddle,aslopmi,bslopmi, alphami
+      real*4 slopmi,residmi,err,resmax,res,errnew,thick,truemi
+      real*4 shiftInc,shiftTot
+      integer*4 iptmax,ifcheck
       logical changed
 
       real*4 cosd,sind,atand
@@ -228,6 +226,19 @@ c
      &        ' Average X axis tilt needed =',f10.2)
         enddo
         call calc_tiltnew(slopav,tiltmax,iunit2,tiltnew,ifcomp,tiltadd)
+c
+c         Get the unbinned thickness and shifts needed to center the gold
+c         The direction is opposite to expected because the positive Z points
+c         come out on the bottom of the tomogram, presumably due to rotation
+        thick = imageBinned * thick
+        shiftTot = imageBinned * (bint + bintmi) / 2.
+        shiftInc = shiftTot - imageBinned * znew
+        do iun=6,iunit2
+          write(iun,103)thick,shiftInc,shiftTot
+103       format(' Unbinned thickness between surfaces =', f12.0,/,
+     &           ' Incremental shift to center planes in Z =',f9.1,/,
+     &           ' Total shift to center planes in Z =',f15.1)
+        enddo
       endif
       return
       end
@@ -236,8 +247,12 @@ c
       subroutine two_surface_fits(xyz,igroup,nrealpt,xx,yy,zz, npntmi,
      &    aslopmi,bslopmi,bintmi, alphami,slopmi,residmi, npntpl,
      &    aslop, bslop,bint, alpha,slop,resid,slopav,alphaav)
-      real*4 xyz(3,*),xx(*),yy(*),zz(*)
-      integer*4 igroup(*)
+      implicit none
+      real*4 xyz(3,*),xx(*),yy(*),zz(*),aslopmi,bslopmi,bintmi, alphami,slopmi
+      real*4 residmi,aslop, bslop,bint, alpha,slop,resid,slopav,alphaav
+      integer*4 igroup(*),npntmi,nrealpt,npntpl
+      integer*4 ipt
+      real*4 xxmi,yymi,zzmi
 c       
 c       first fit a line to points with z below middle
 c       
@@ -337,7 +352,7 @@ c
       else
         b=0.
         call lsfit(x,z,n,a,c,ro)
-      endif
+       endif
       resid=0.
       do i=1,n
         resid=resid+abs(z(i)-(x(i)*a+y(i)*b+c))
@@ -347,3 +362,14 @@ c
       slop=a/(cosd(alpha)-b*sind(alpha))
       return
       end
+c       
+c       $Log$
+c       Revision 3.3  2005/12/09 04:43:27  mast
+c       gfortran: .xor., continuation, format tab continuation or byte fixes
+c
+c       Revision 3.2  2005/12/08 03:46:51  mast
+c       Overdimension maxreal since it gets forgotten about
+c       
+c       Revision 3.1  2002/05/07 02:05:53  mast
+c       Changed output to make it more understandable and readable
+c       
