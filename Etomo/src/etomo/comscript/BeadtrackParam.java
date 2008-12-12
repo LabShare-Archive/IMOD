@@ -27,6 +27,10 @@ import etomo.type.ScriptParameter;
  * @version $Revision$
  *
  * <p> $Log$
+ * <p> Revision 3.18  2008/12/09 21:27:28  sueh
+ * <p> bug# 1160 Added beadDiameter.  Converted centroidRadius to
+ * <p> beadDiameter if beadDiameter was not added by copytomocoms.
+ * <p>
  * <p> Revision 3.17  2007/03/21 18:08:39  sueh
  * <p> bug# 964 Limiting access to autodoc classes by using ReadOnly interfaces.
  * <p> Creating Autodoc using a factory.
@@ -165,8 +169,8 @@ public class BeadtrackParam extends OldBeadtrackParam implements CommandParam {
   public static final String MAX_RESCUE_DISTANCE_KEY = "MaxRescueDistance";
   public static final String MIN_TILT_RANGE_TO_FIND_AXIS_KEY = "MinTiltRangeToFindAxis";
   public static final String MIN_TILT_RANGE_TO_FIND_ANGLES_KEY = "MinTiltRangeToFindAngles";
-  public static final String CENTROID_RADIUS_KEY = "CentroidRadius";
   public static final String LIGHT_BEADS_KEY = "LightBeads";
+  public static final String BEAD_DIAMETER_KEY = "BeadDiameter";
 
   public static final String LOCAL_AREA_TRACKING_KEY = "LocalAreaTracking";
   public static final String LOCAL_AREA_TARGET_SIZE_KEY = "LocalAreaTargetSize";
@@ -232,7 +236,7 @@ public class BeadtrackParam extends OldBeadtrackParam implements CommandParam {
     minViewsForTiltalign = new ScriptParameter(EtomoNumber.Type.INTEGER,
         N_MIN_VIEWS_KEY, requiredMap);
     centroidRadius = new ScriptParameter(EtomoNumber.Type.DOUBLE,
-        CENTROID_RADIUS_KEY);
+        "CentroidRadius");
     lightBeads = new EtomoBoolean2(LIGHT_BEADS_KEY, requiredMap);
     maxGapSize = new ScriptParameter(EtomoNumber.Type.INTEGER, MAX_GAP_KEY,
         requiredMap);
@@ -393,6 +397,10 @@ public class BeadtrackParam extends OldBeadtrackParam implements CommandParam {
 
   public ConstEtomoNumber getPostFitRescueResidual() {
     return postFitRescueResidual;
+  }
+  
+  public String getBeadDiameter() {
+    return beadDiameter.toString();
   }
 
   public ConstEtomoNumber getDensityRelaxationPostFit() {
@@ -722,6 +730,10 @@ public class BeadtrackParam extends OldBeadtrackParam implements CommandParam {
 
   public ConstEtomoNumber setPostFitRescueResidual(String postFitRescueResidual) {
     return this.postFitRescueResidual.set(postFitRescueResidual);
+  }
+  
+  public ConstEtomoNumber setBeadDiameter(String input) {
+    return beadDiameter.set(input);
   }
 
   public ConstEtomoNumber setDensityRelaxationPostFit(
