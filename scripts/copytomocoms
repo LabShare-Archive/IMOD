@@ -664,8 +664,11 @@ while ($iaxis < $numax)
         if ($axangnum > 90) @ indentangle = 180 - $axangnum
         if ($axangnum < -90) @ indentangle = -180 - $axangnum
     endif
-    @ blxmax = $fullx - 1
     if ($indentangle < 0) @ indentangle = - $indentangle
+    @ blxstart = $xsize / 2 - $fullx / 2
+    @ blxend = $blxstart + $fullx - 1
+    @ blystart = $ysize / 2 - $fully / 2
+    @ blyend = $blystart + $fully - 1
 
     if ($filmccd != "F") then
 
@@ -951,8 +954,7 @@ EOF
 		<"$srcfile" >$dstfile
 	    echo '$'"if (-e $backupname) $backupname" >> $dstfile
 
-	    @ ymin = $ysize / 2 - $SAMPLESIZE / 2
-	    @ ymax = $ysize / 2 + $SAMPLESIZE / 2
+
 	    set srcfile = "$srcdir/blend"$srcext
 	    set dstfile = "blend"$dstext
 	    set backuplist = ($backuplist $dstfile)
@@ -966,7 +968,8 @@ EOF
 	        -e "/^ShiftPieces/s/0/1/"\
 	        -e "/^ReadInXcorrs/s/0/1/"\
 	        -e "/^OldEdgeFunctions/s/0/1/"\
-                -e "/^StartingAndEndingX/s/[ 	].*/	0 $blxmax/"\
+                -e "/^StartingAndEndingX/s/[ 	].*/	$blxstart $blxend/"\
+                -e "/^StartingAndEndingY/s/[ 	].*/	$blystart $blyend/"\
 		<"$srcfile" >$dstfile
 	    echo '$'"if (-e $backupname) $backupname" >> $dstfile
 	    set backuplist = ($backuplist $setname.ecd)
@@ -1003,8 +1006,6 @@ EOF
 		echo '$'"if (-e $backupname) $backupname" >> $dstfile
 	    endif		
 
-	    @ ymin = $ysize / 2 - $SAMPLESIZE / 2
-	    @ ymax = $ysize / 2 + $SAMPLESIZE / 2
 	    set srcfile = "$srcdir/blend"$srcext
 	    set dstfile = "blend"$dstext
 	    set backuplist = ($backuplist $dstfile)
@@ -1012,7 +1013,8 @@ EOF
 	    sed -e s/$srcname/$dstname/g\
                 -e "/^ShiftPieces/s/0/$shiftopt/"\
 	        -e "/^OldEdgeFunctions/s/0/$buildnew/"\
-                -e "/^StartingAndEndingX/s/[ 	].*/	0 $blxmax/"\
+                -e "/^StartingAndEndingX/s/[ 	].*/	$blxstart $blxend/"\
+                -e "/^StartingAndEndingY/s/[ 	].*/	$blystart $blyend/"\
 		<"$srcfile" >$dstfile
 	    echo '$'"if (-e $backupname) $backupname" >> $dstfile
 	    set backuplist = ($backuplist $setname.ecd)
@@ -1282,8 +1284,9 @@ EOF
         @ ind++
         @ offind = $offarr[$ind]
         # THESE () WERE NEEDED TO KEEP IT FROM BEING EVALED RIGHT TO LEFT
-        @ ymin = ($fully / 2 + $offind) - $halfsampali
-        @ ymax = ($fully / 2 + $offind) + $halfsampali
+        @ ymin = ($ysize / 2 + $offind) - $halfsampali
+        @ ymax = ($ysize / 2 + $offind) + $halfsampali
+        @ ystart = ($fully / 2 + $offind) - $halfsampali
         if ($montage == "0") then
             if ($filmccd == "F") then
                 sed -e "/single offset/s/.*	/0,$offind	/"\
@@ -1311,7 +1314,7 @@ EOF
         endif
 
         cat << EOF >> $dstfile
-\$sampletilt $slmin $slmax $ymin $setname $bmtarr[$ind] tilt$dstext
+\$sampletilt $slmin $slmax $ystart $setname $bmtarr[$ind] tilt$dstext
 EOF
     end
 
@@ -1503,6 +1506,11 @@ exit 0
 
 #
 #  $Log$
+#  Revision 3.65  2008/12/04 01:39:51  mast
+#  Handled aligned stack and sample sizes for cases of 90 degree rotation,
+#  indented samples more for large rotations from square, and limit sample
+#  offsets, sizes and slices computed for very small input data
+#
 #  Revision 3.64  2008/12/03 06:19:01  mast
 #  Changes for new beadsize option in beadtrack
 #
