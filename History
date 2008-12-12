@@ -1,5 +1,8 @@
 IMOD History
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+12/12/08: In Etomo - Fiducial Model exposed the beadtrack parameter
+BeadDiameter.
+
 12/12/08: Fixed Tilt for reconstructions from data with angles to and above
 90 degrees; made Tiltxcorr give error if cosine stretching is enabled and 
 angles are too high for it to be valid.
