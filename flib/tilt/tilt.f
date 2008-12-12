@@ -935,10 +935,15 @@ c
 c               compute left and right limits that come from legal data
 c               
               xlft=(1.-zpart)/cbeta + xcen
+              xrt=(nprj-zpart)/cbeta + xcen
+              if (xrt .lt. xlft) then
+                x = xlft
+                xlft = xrt
+                xrt = x
+              endif
               jlft=xlft
               if(jlft.lt.xlft)jlft=jlft+1
               jlft=max(jlft,masklft(i))
-              xrt=(nprj-zpart)/cbeta + xcen
               jrt=xrt
               if(jrt.eq.xrt)jrt=jrt-1
               jrt=min(jrt,maskrt(i))
@@ -2220,6 +2225,13 @@ c       EXCLUDE cards
         enddo
       endif
 c       
+c       Replace angles at +/-90 with 89.95 etc
+      do i = 1, nvuse
+        j = mapuse(i)
+        if (abs(abs(angles(j)) - 90.) .lt. 0.05)
+     &      angles(j) = sign(90. - sign(0.05, 90 - abs(angles(j))), angles(j))
+      enddo
+c       
 c       If reprojecting from rec and no angles entered, copy angles in original
 c       order
       if (recReproj .and. nreproj .eq. 0) then
@@ -2483,6 +2495,14 @@ c
 c       
       WRITE(6,51)(ANGLES(NV),NV=1,NVIEWS)
       WRITE(6,52)
+c       
+c       Turn off cosine stretch for high angles
+      if (angles(1) .lt. -80. .or. angles(nviews) .gt. 80.) then
+        if (interpfac .gt. 0) write(*,662)
+662     format(/,'Tilt angles are too high to use cosine stretching')
+        interpfac = 0
+        interpfbp = 0
+      endif
 c       
 C       Set up trig tables - including all of the replications
 c       Then convert angles to radians
@@ -3964,6 +3984,9 @@ c       Set to open contour, show values etc., and show sphere on section only
 
 c       
 c       $Log$
+c       Revision 3.42  2008/11/14 06:32:25  mast
+c       Added projection from model
+c
 c       Revision 3.41  2008/11/02 14:45:38  mast
 c       Added options for incremental reconstructions
 c
