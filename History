@@ -1,5 +1,11 @@
 IMOD History
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+12/11/08: Added output from the Tiltalign surface analysis of the unbinned
+thickness between planes and shift needed to center the planes in Z.
+
+12/11/08: Fixed copytomocoms output for blending coordinates when there is 
+a 90-degree rotation.
+
 12/11/08: Fixed model view update when running from 3dmod and there are no 
 image windows, as when editing patch vectors.
 
