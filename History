@@ -1,7 +1,8 @@
 IMOD History
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 12/11/08: Added output from the Tiltalign surface analysis of the unbinned
-thickness between planes and shift needed to center the planes in Z.
+thickness needed to contain gold centers and shift needed to center the range
+of gold in Z.
 
 12/11/08: Fixed copytomocoms output for blending coordinates when there is 
 a 90-degree rotation.
