@@ -34,7 +34,7 @@ C
       EQUIVALENCE (NX,NXYZ),(nxs,nxyzs)
       common /bigarr/ array,sumray,brray,crray
 c       
-      character*120 filin,plfile,imfilout
+      character*320 filin,plfile,imfilout
       real*4 f(2,3,limview),fs(2,3),fsinv(2,3),funit(2,3)
       character*9 dat
       character*8 tim
@@ -48,7 +48,7 @@ c
       integer*4 ixpclist(limview),iypclist(limview),izpclist(limview)
       integer*4 listz(limview), ixBoxOffset(limview), iyBoxOffset(limview)
       real*4 tilt(limview), axisOffset(limview)
-      real*4 dmin2,dmax2,dmean2,dmean3,rotangle,deltap,radexcl
+      real*4 dmin2,dmax2,dmean2,dmean3,rotangle,deltap,radexcl,cosStrMaxTilt
       integer*4 i,npclist,nview,minxpiece,nxpieces,nxoverlap,minypiece
       integer*4 nypieces,nyoverlap,ifimout,nxpad,nypad,ifexclude,mode
       integer*4 nxtrim,nytrim,nxuse,nyuse,nxbord,nybord,nxtap,nytap
@@ -111,6 +111,7 @@ c
 
       maxbinsize=1180
       maxBinning = 8
+      cosStrMaxTilt = 82.
       nbin = 0
       ifpip = 0
 c       
@@ -336,6 +337,14 @@ c
       endif
       izst = max(1,min(nz,izst))
       iznd = max(izst,min(nz,iznd))
+c       
+c       Get max tilt angle and check for appropriateness of cosine stretch
+      usemax = 0.
+      do iv = izst, iznd
+        usemax = max(usemax, abs(tilt(iv)))
+      enddo
+      if (ifNoStretch .eq. 0 .and. usemax .gt. cosStrMaxTilt) call exitError
+     &    ('MAXIMUM TILT ANGLE IS TOO HIGH TO USE COSINE STRETCHING')
 c       
       do kk=1,nz
         call xfunit(f(1,1,kk),1.0)
@@ -826,6 +835,9 @@ c	print *,xpeak,ypeak
 
 c       
 c       $Log$
+c       Revision 3.27  2008/10/08 22:26:09  mast
+c       Increased field width for output of shifts
+c
 c       Revision 3.26  2008/01/18 19:48:54  mast
 c       Changed to reading in data directly binned; made all arrays bigger;
 c       added binning option and limited default binning to 4
