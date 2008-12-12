@@ -1,5 +1,9 @@
 IMOD History
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+12/12/08: Added a file index.html in the html directory and an alias "imodhelp"
+to the startup scripts to start Qt Assistant with all IMOD documentation
+accessible.
+
 12/12/08: In Etomo - Fiducial Model exposed the beadtrack parameter
 BeadDiameter.
 

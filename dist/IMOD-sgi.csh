@@ -1,4 +1,4 @@
-# IMOD 3.8.26
+# IMOD 3.12.25
 #
 # Startup file for users of IMOD on an SGI (if they are running csh or tcsh)
 #
@@ -65,6 +65,10 @@ if (-r $IMOD_CALIB_DIR/IMOD.csh) source $IMOD_CALIB_DIR/IMOD.csh
 # A subm alias to run command files in the background with submfg
 #
 alias subm 'submfg \!* &'
+
+# An alias to start assistant with IMOD help
+#
+alias imodhelp "assistant -profile $IMOD_DIR/html/IMOD.adp -file $IMOD_DIR/html/index.html&"
 
 # This command allows fast backprojection if the USFFT license file exists
 #

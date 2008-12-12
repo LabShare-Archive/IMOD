@@ -1,4 +1,4 @@
-# IMOD 3.12.0
+# IMOD 3.12.25
 #
 # Startup file for bash users of IMOD under Cygwin
 #
@@ -52,3 +52,7 @@ alias imodv=3dmodv
 alias edgepatches='runpyscript edgepatches'
 alias tomostitch='runpyscript tomostitch'
 alias vmstopy='runpyscript vmstopy'
+
+# An alias to start assistant with IMOD help
+#
+alias imodhelp="assistant -profile $IMOD_DIR/html/IMOD.adp -file $IMOD_DIR/html/index.html&"

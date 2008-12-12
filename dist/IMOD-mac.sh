@@ -1,4 +1,4 @@
-# IMOD 3.11.5/3.12.5
+# IMOD 3.12.25
 #
 # Startup file for users of IMOD on a Macintosh, running bash
 #
@@ -43,3 +43,6 @@ function subm () { submfg $* & }
 #
 export IMOD_QTLIBDIR=$IMOD_DIR/qtlib
 
+# An alias to start assistant with IMOD help
+#
+alias imodhelp="assistant -profile $IMOD_DIR/html/IMOD.adp -file $IMOD_DIR/html/index.html&"

@@ -1,4 +1,4 @@
-# IMOD 3.12.0
+# IMOD 3.12.25
 #
 # Startup file for tcsh users of IMOD under Cygwin
 #
@@ -45,6 +45,10 @@ if (-r "$IMOD_CALIB_CYG/IMOD.csh") source "$IMOD_CALIB_CYG/IMOD.csh"
 # A subm alias to run command files in the background with submfg
 #
 alias subm 'submfg \!* &'
+
+# An alias to start assistant with IMOD help
+#
+alias imodhelp "assistant -profile $IMOD_DIR/html/IMOD.adp -file $IMOD_DIR/html/index.html&"
 
 # Aliases to run imod/3dmod and imodv/3dmodv in background
 #
