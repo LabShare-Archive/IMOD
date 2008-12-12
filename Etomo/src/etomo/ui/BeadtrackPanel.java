@@ -40,6 +40,9 @@ import etomo.type.Run3dmodMenuOptions;
  * @version $Revision$
  *
  * <p> $Log$
+ * <p> Revision 3.24  2008/12/09 21:33:15  sueh
+ * <p> bug# 1160 Removed centroid radius.
+ * <p>
  * <p> Revision 3.23  2008/12/05 00:55:05  sueh
  * <p> bug# 1156 In buttonAction, when ltfViewSkipList is set, validate it and
  * <p> send it to ApplicationManager.imodFixFiducials.
@@ -185,8 +188,8 @@ public final class BeadtrackPanel implements Expandable,
       "Non-default magnification groups: ");
   private final LabeledTextField ltfNMinViews = new LabeledTextField(
       "Minimum # of views for tilt alignment: ");
-  //private final LabeledTextField ltfCentroidRadius = new LabeledTextField(
-  //    "Fiducial marker radius: ");
+  private final LabeledTextField ltfBeadDiameter = new LabeledTextField(
+      "Unbinned bead diameter: ");
   private final CheckBox cbLightBeads = new CheckBox("Light fiducial markers");
   CheckBox cbFillGaps = new CheckBox("Fill seed model gaps");
   private final LabeledTextField ltfMaxGap = new LabeledTextField(
@@ -274,7 +277,7 @@ public final class BeadtrackPanel implements Expandable,
     panelBeadtrackBody.add(ltfMagnificationGroupSize.getContainer());
     panelBeadtrackBody.add(ltfMagnificationGroups.getContainer());
     panelBeadtrackBody.add(ltfNMinViews.getContainer());
-    //panelBeadtrackBody.add(ltfCentroidRadius.getContainer());
+    panelBeadtrackBody.add(ltfBeadDiameter.getContainer());
 
     pnlLightBeads.setLayout(new BoxLayout(pnlLightBeads, BoxLayout.Y_AXIS));
     pnlLightBeads.setAlignmentX(Component.CENTER_ALIGNMENT);
@@ -416,7 +419,7 @@ public final class BeadtrackPanel implements Expandable,
         .getMagnificationGroupSize());
     ltfMagnificationGroups.setText(beadtrackParams.getMagnificationGroups());
     ltfNMinViews.setText(beadtrackParams.getMinViewsForTiltalign().toString());
-    //ltfCentroidRadius.setText(beadtrackParams.getCentroidRadius().toString());
+    ltfBeadDiameter.setText(beadtrackParams.getBeadDiameter().toString());
     cbLightBeads.setSelected(beadtrackParams.getLightBeads().is());
     cbFillGaps.setSelected(beadtrackParams.getFillGaps());
     ltfMaxGap.setText(beadtrackParams.getMaxGapSize().toString());
@@ -556,9 +559,9 @@ public final class BeadtrackPanel implements Expandable,
             ltfMinTiltRangeToFindAngle.getText()).validate(errorTitle,
             badParameter, axisID);
 
-        //badParameter = ltfCentroidRadius.getLabel();
-        //beadtrackParams.setCentroidRadius(ltfCentroidRadius.getText())
-        //    .validate(errorTitle, badParameter, axisID);
+        badParameter = ltfBeadDiameter.getLabel();
+        beadtrackParams.setBeadDiameter(ltfBeadDiameter.getText())
+            .validate(errorTitle, badParameter, axisID);
 
         badParameter = cbLightBeads.getText();
         beadtrackParams.setLightBeads(cbLightBeads.isSelected()).validate(
@@ -654,7 +657,7 @@ public final class BeadtrackPanel implements Expandable,
     ltfMagnificationGroupSize.setVisible(state);
     ltfMagnificationGroups.setVisible(state);
     ltfNMinViews.setVisible(state);
-    //ltfCentroidRadius.setVisible(state);
+    ltfBeadDiameter.setVisible(state);
     cbLightBeads.setVisible(state);
     ltfMaxGap.setVisible(state);
     ltfMinTiltRangeToFindAxis.setVisible(state);
@@ -704,8 +707,8 @@ public final class BeadtrackPanel implements Expandable,
         BeadtrackParam.MAGNIFICATION_GROUPS_KEY));
     ltfNMinViews.setToolTipText(EtomoAutodoc.getTooltip(autodoc,
         BeadtrackParam.N_MIN_VIEWS_KEY));
-    //ltfCentroidRadius.setToolTipText(EtomoAutodoc.getTooltip(autodoc,
-    //    BeadtrackParam.CENTROID_RADIUS_KEY));
+    ltfBeadDiameter.setToolTipText(EtomoAutodoc.getTooltip(autodoc,
+        BeadtrackParam.BEAD_DIAMETER_KEY));
     cbLightBeads.setToolTipText(EtomoAutodoc.getTooltip(autodoc,
         BeadtrackParam.LIGHT_BEADS_KEY));
     cbFillGaps.setToolTipText(EtomoAutodoc.getTooltip(autodoc,
