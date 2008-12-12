@@ -63,6 +63,7 @@ set.fiducial-diameter-pixels = 5.0
 set.sample-tomogram-thickness = 200
 set.z-axis-min = 5
 set.z-axis-max = 70
+set.unbinned-bead-diameter = 4.95
 duration = ::25
 
 [Test = single]
@@ -78,6 +79,7 @@ set.fiducial-diameter = 10
 set.fiducial-diameter-pixels = 5.0
 set.image-rotation = -12.5
 set.sample-tomogram-thickness = 200
+set.unbinned-bead-diameter = 4.95
 
 [Test = build-dual]
 Interface = Recon
@@ -95,6 +97,7 @@ set.image-rotation = -12.5
 set.sample-tomogram-thickness = 200
 set.z-axis-min = 5
 set.z-axis-max = 70
+set.unbinned-bead-diameter = 4.95
 duration = ::25
 
 [Test = build-dual-fidless]
@@ -113,6 +116,7 @@ set.image-rotation = -12.5
 set.sample-tomogram-thickness = 200
 set.z-axis-min = 5
 set.z-axis-max = 70
+set.unbinned-bead-diameter = 4.95
 duration = ::20
 
 [Test = build-single]
@@ -126,6 +130,7 @@ copy.file = BBa.st
 set.pixel-size = 2.02
 set.fiducial-diameter = 10
 set.image-rotation = -12.5
+set.unbinned-bead-diameter = 4.95
 set.sample-tomogram-thickness = 200
 
 [Test = build-dual-montage]
@@ -145,4 +150,5 @@ set.image-rotation = 0
 set.sample-tomogram-thickness = 200
 set.z-axis-min = 5
 set.z-axis-max = 70
+set.unbinned-bead-diameter = 10.56
 duration = :2
