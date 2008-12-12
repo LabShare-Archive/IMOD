@@ -113,6 +113,9 @@ c
 20        enddo
         endif
       enddo
+      if (nzlist .eq. 0) call errorexit('THE FIDUCIAL MODEL IS EMPTY', 0)
+      if (nzlist .eq. 1) call errorexit(
+     &    'THE FIDUCIAL MODEL HAS POINTS ON ONLY ONE VIEW', 0)
 c       
 c       order list of z values
 c       
@@ -437,7 +440,9 @@ c       loop on model objects that are non-zero, stuff point coords into
 c       first point of object (now only point), and set color by group
 c       
 c       get scaling factors, might as well apply each one to each coordinate
-c       invert Z so that model can be visualized on tomogram by shifting
+c       12/11/08: No longer invert Z.  Model now fits exactly on tomogram
+c       opened either with -Y or without, except for X-axis tilt
+c       (invert Z so that model can be visualized on tomogram by shifting)
 c       
       ierr=getimodscales(ximscale,yimscale,zimscale)
       ireal=0
@@ -447,7 +452,7 @@ c
           ireal=ireal+1
           p_coord(1,ipt)=xyz(1,ireal)*ximscale
           p_coord(2,ipt)=xyz(2,ireal)*yimscale
-          p_coord(3,ipt)=-xyz(3,ireal)*zimscale
+          p_coord(3,ipt)=xyz(3,ireal)*zimscale
 c           
 c           DNM 5/15/02: only change color if there is a group
 c           assignment, but then double the object numbers to keep them
@@ -475,6 +480,9 @@ c
 
 c       
 c       $Log$
+c       Revision 3.18  2007/11/18 04:57:10  mast
+c       Redeclared concat at 320
+c
 c       Revision 3.17  2006/06/29 04:53:36  mast
 c       Set up to use small model
 c
