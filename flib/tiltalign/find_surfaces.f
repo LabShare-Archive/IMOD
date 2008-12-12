@@ -30,7 +30,7 @@ c
       real*4 aslop,bslop,alpha,slop,resid,truepl,slopav,alphaav,theta,costh
       real*4 sinth,cosal,sinal,zmin,zmax,zp,zmiddle,aslopmi,bslopmi, alphami
       real*4 slopmi,residmi,err,resmax,res,errnew,thick,truemi
-      real*4 shiftInc,shiftTot
+      real*4 shiftInc,shiftTot, botExtreme, topExtreme
       integer*4 iptmax,ifcheck
       logical changed
 
@@ -45,7 +45,7 @@ c
         igroup(i)=0
       enddo
       call lsfit2_resid(xx,yy,zz,nrealpt,aslop,bslop,bint,alpha,slop,
-     &    resid)
+     &    resid, costh, sinth)
 
       do iun=6,iunit2
         write(iun,'(/,a,//,a,//,a,/,a,f8.4)') ' SURFACE ANALYSIS:',
@@ -107,9 +107,9 @@ c
             endif
           enddo
 
-          call two_surface_fits(xyz,igroup,nrealpt,xx,yy,zz, npntmi,
-     &        aslopmi,bslopmi,bintmi, alphami,slopmi,residmi, npntpl,
-     &        aslop, bslop,bint, alpha,slop,resid,slopav,alphaav)
+          call two_surface_fits(xyz,igroup,nrealpt,xx,yy,zz, npntmi, aslopmi,
+     &        bslopmi,bintmi, alphami,slopmi,residmi, npntpl, aslop, bslop,
+     &        bint, alpha,slop,resid,slopav,alphaav, botExtreme, topExtreme)
 
 c           write(*,101)npntmi,bintmi,slopmi,romi
 c           write(*,101)npntpl,bint,slop,ro
@@ -162,9 +162,9 @@ c
 c             swap that point into the other group
 c             
             igroup(iptmax)=3-igroup(iptmax)
-            call two_surface_fits(xyz,igroup,nrealpt,xx,yy,zz, npntmi,
-     &          aslopmi,bslopmi,bintmi, alphami,slopmi,residmi, npntpl,
-     &          aslop, bslop,bint, alpha,slop,resid,slopav,alphaav)
+            call two_surface_fits(xyz,igroup,nrealpt,xx,yy,zz, npntmi, aslopmi,
+     &          bslopmi,bintmi, alphami,slopmi,residmi, npntpl, aslop, bslop,
+     &          bint, alpha,slop,resid,slopav,alphaav, botExtreme, topExtreme)
             errnew=npntmi*residmi+npntpl*resid
 c             
             if(errnew.lt.err)then
@@ -183,7 +183,7 @@ c
               call two_surface_fits(xyz,igroup,nrealpt,xx,yy,zz,
      &            npntmi, aslopmi,bslopmi,bintmi, alphami,slopmi,
      &            residmi, npntpl, aslop, bslop,bint, alpha,slop,
-     &            resid,slopav,alphaav)
+     &            resid,slopav,alphaav, botExtreme, topExtreme)
               ncheck=ncheck+1
               icheck(ncheck)=iptmax
             endif
@@ -230,14 +230,17 @@ c
 c         Get the unbinned thickness and shifts needed to center the gold
 c         The direction is opposite to expected because the positive Z points
 c         come out on the bottom of the tomogram, presumably due to rotation
-        thick = imageBinned * thick
-        shiftTot = imageBinned * (bint + bintmi) / 2.
+        thick = imageBinned * (topExtreme - botExtreme)
+        shiftTot = imageBinned * (topExtreme + botExtreme) / 2.
         shiftInc = shiftTot - imageBinned * znew
         do iun=6,iunit2
           write(iun,103)thick,shiftInc,shiftTot
-103       format(' Unbinned thickness between surfaces =', f12.0,/,
-     &           ' Incremental shift to center planes in Z =',f9.1,/,
-     &           ' Total shift to center planes in Z =',f15.1)
+103       format(' Unbinned thickness needed to contain centers of all ',
+     &        'fiducials =', f13.0,/,
+     &        ' Incremental unbinned shift needed to center range of fi',
+     &        'ducials in Z =',f8.1,/,
+     &        ' Total unbinned shift needed to center range of fiducial',
+     &        's in Z =',f14.1)
         enddo
       endif
       return
@@ -245,11 +248,12 @@ c         come out on the bottom of the tomogram, presumably due to rotation
 
 
       subroutine two_surface_fits(xyz,igroup,nrealpt,xx,yy,zz, npntmi,
-     &    aslopmi,bslopmi,bintmi, alphami,slopmi,residmi, npntpl,
-     &    aslop, bslop,bint, alpha,slop,resid,slopav,alphaav)
+     &    aslopmi,bslopmi,bintmi, alphami,slopmi,residmi, npntpl, aslop, bslop,
+     &    bint, alpha,slop,resid,slopav,alphaav,botExtreme, topExtreme)
       implicit none
       real*4 xyz(3,*),xx(*),yy(*),zz(*),aslopmi,bslopmi,bintmi, alphami,slopmi
       real*4 residmi,aslop, bslop,bint, alpha,slop,resid,slopav,alphaav
+      real*4 devmin, devmax, botExtreme, topExtreme
       integer*4 igroup(*),npntmi,nrealpt,npntpl
       integer*4 ipt
       real*4 xxmi,yymi,zzmi
@@ -267,7 +271,8 @@ c
       enddo
       if(npntmi.gt.1)then
         call lsfit2_resid(xx,yy,zz,npntmi,aslopmi,bslopmi,bintmi,
-     &      alphami,slopmi,residmi)
+     &      alphami,slopmi,residmi, devmin, devmax)
+        botExtreme = bintmi + devmin
       else
         xxmi=xx(1)
         yymi=yy(1)
@@ -285,8 +290,11 @@ c
           zz(npntpl)=xyz(3,ipt)
         endif
       enddo
-      if(npntpl.gt.1)call lsfit2_resid(xx,yy,zz,npntpl,aslop,
-     &    bslop,bint, alpha,slop,resid)
+      if(npntpl.gt.1)then
+        call lsfit2_resid(xx,yy,zz,npntpl,aslop,
+     &      bslop,bint, alpha,slop,resid, devmin, devmax)
+        topExtreme = bint + devmax
+      endif
 c       
 c       get slop and intercept of each line, even if only 1 point
 c       
@@ -294,11 +302,13 @@ c
         slopmi=slop
         bintmi=zzmi-yymi*bslop-xxmi*aslop
         alphami=alpha
+        botExtreme = bintmi
       endif
       if(npntpl.eq.1)then
         slop=slopmi
         bint=zz(1)-yy(1)*bslopmi-xx(1)*aslopmi
         alpha=alphami
+        topExtreme = bint
       endif
       slopav=(npntpl*slop+npntmi*slopmi)/nrealpt
       alphaav=(npntpl*alpha+npntmi*alphami)/nrealpt
@@ -341,9 +351,9 @@ c
       end
       
 
-      subroutine lsfit2_resid(x,y,z,n,a,b,c,alpha,slop,resid)
+      subroutine lsfit2_resid(x,y,z,n,a,b,c,alpha,slop,resid, devmin, devmax)
       implicit none
-      real*4 x(*),y(*),z(*),a,b,c,alpha,slop,resid,ro
+      real*4 x(*),y(*),z(*),a,b,c,alpha,slop,resid,ro,devmin, devmax, dev
       integer*4 n,i
       real*4 sind,cosd,atand
 
@@ -352,10 +362,15 @@ c
       else
         b=0.
         call lsfit(x,z,n,a,c,ro)
-       endif
+      endif
       resid=0.
+      devmin = 1.e10
+      devmax = -1.e10
       do i=1,n
-        resid=resid+abs(z(i)-(x(i)*a+y(i)*b+c))
+        dev = z(i)-(x(i)*a+y(i)*b+c)
+        resid=resid+abs(dev)
+        devmin = min(devmin, dev)
+        devmax = max(devmax, dev)
       enddo
       resid=resid/n
       alpha=atand(b)
@@ -364,6 +379,9 @@ c
       end
 c       
 c       $Log$
+c       Revision 3.4  2008/12/12 00:47:21  mast
+c       Add output of unbinned thickness and shift needed to center planes
+c
 c       Revision 3.3  2005/12/09 04:43:27  mast
 c       gfortran: .xor., continuation, format tab continuation or byte fixes
 c
