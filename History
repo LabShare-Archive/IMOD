@@ -1,5 +1,9 @@
 IMOD History
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+12/12/08: Fixed Tilt for reconstructions from data with angles to and above
+90 degrees; made Tiltxcorr give error if cosine stretching is enabled and 
+angles are too high for it to be valid.
+
 12/11/08: Added output from the Tiltalign surface analysis of the unbinned
 thickness needed to contain gold centers and shift needed to center the range
 of gold in Z.
