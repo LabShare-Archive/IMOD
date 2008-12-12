@@ -15,7 +15,7 @@ mb.transfer-fiducials-open = 1
 bn.transfer-fiducials-from-other-axis =
 waitfor.process.transferfid = done
 adoc = fid-model.adoc
-function = run
+function = test
 
 [Dialog = FineAlign]
 set.use-global-x-y-z-coordinates=1

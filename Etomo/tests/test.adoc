@@ -16,7 +16,7 @@ function = test
 [Dialog = FidModel]
 copy.file = %{dataset}%{axis}.seed
 adoc = fid-model.adoc
-function = run
+function = test
 
 [Dialog = FineAlign]
 set.use-global-x-y-z-coordinates=0
