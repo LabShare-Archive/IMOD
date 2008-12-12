@@ -23,6 +23,29 @@ tf.view-skip-list = 1,2
 bn.fix-fiducial-model=
 bn.done =
 
+[function = test-dual]
+function = beadtracker-enabled
+function = beadtracker-values
+function = run-dual
+
+[function = test]
+function = beadtracker-enabled
+function = beadtracker-values
+function = run
+
+[function = beadtracker-enabled]
+mb.beadtracker-open = 1
+mb.beadtracker-advanced = 1
+tf.unbinned-bead-diameter.enabled = 1
+mb.beadtracker-advanced = 0
+
+
+[function = beadtracker-values]
+mb.beadtracker-open = 1
+mb.beadtracker-advanced = 1
+tf.unbinned-bead-diameter = %{unbinned-bead-diameter}
+mb.beadtracker-advanced = 0
+
 
 [function = ui]
 function = ui-transfer-fiducials
