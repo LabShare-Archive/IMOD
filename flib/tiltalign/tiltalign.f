@@ -1056,7 +1056,7 @@ c
       enddo
       if(fixedmax.ge.5.)tiltmax=fixedmax
       if(nsurface.gt.0)call find_surfaces(xyz,nrealpt,nsurface,
-     &    tiltmax,iunit2,tiltnew,igroup,ncompsrch,tiltadd)
+     &    tiltmax,iunit2,tiltnew,igroup,ncompsrch,tiltadd, znew, imageBinned)
       call write_xyz_model(modelfile,allxyz,igroup,nrealpt)
 c       
 c       Write separate residual outputs now that surfaces are known
@@ -1488,6 +1488,9 @@ c
 
 c       
 c       $Log$
+c       Revision 3.40  2008/11/02 13:51:25  mast
+c       Call new function for converting angles for beam tilt
+c
 c       Revision 3.39  2008/07/06 23:39:03  mast
 c       Eliminated former total unknown ratio
 c
