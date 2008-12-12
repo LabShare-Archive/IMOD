@@ -154,7 +154,7 @@ if [ ${help} -eq 0 ] ; then
   fi
 
 
-  echo "starting eTomo with error logging to ${errlog}"
+  echo "starting eTomo with log in ${errlog}"
   java -Xmx${ETOMO_MEM_LIM} -cp "${IMOD_DIR}/bin/etomo" \
    -jar "${IMOD_DIR}/bin/etomo.jar" "$@" 2>${errlog} >${outlog} &
 else
@@ -163,6 +163,9 @@ else
 fi
 
 # $Log$
+# Revision 1.28  2008/12/05 22:27:04  mast
+# Save logs to .etomologs if ETOMO_LOG_DIR not defined
+#
 # Revision 1.27  2008/07/29 18:35:27  mast
 # Define as a bash script to avoid problems with Ubuntu link to dash
 #
