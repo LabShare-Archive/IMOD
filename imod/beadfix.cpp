@@ -1494,10 +1494,11 @@ static void printArray(float *filtBead, int nxdim, int nx, int ny)
  * and return the modified coordinates
  */
 #define KERNEL_MAXSIZE 7
+#define MAX_RING 20
 int BeadFixer::findCenter(float &imx, float &imy, int curz)
 {
   ImodView *vw = plug->view;
-  float fartherCrit = 2.f;
+  double fartherCrit = 1.414;
   int ipolar = plug->lightBead ? 1 : -1;
 
   int xcen = (int)floor(imx + 0.5);
@@ -1510,7 +1511,7 @@ int BeadFixer::findCenter(float &imx, float &imy, int curz)
   int numRing, ring, x, y, ix, iy, xsize, ysize, zsize, ind, ixst, ixnd;
   int ixStart, iyStart, nxpad, nypad, nxpdim, nxout, nyout, ixofs, iyofs;
   float kernel[KERNEL_MAXSIZE * KERNEL_MAXSIZE];
-  int boxSize, boxScaled, margin, ndat;
+  int boxSize, boxScaled, margin, ndat, grandRing;
   float scaleFactor, beadCenOfs, cenmean, annmean, rCenter, rInner, rOuter;
   float scaledSize = 8.;
   int linear = 1;
@@ -1520,11 +1521,11 @@ int BeadFixer::findCenter(float &imx, float &imy, int curz)
   float minInterp = 1.4f;
   float kernelSigma = 0.85f;
   float xBeadOfs, yBeadOfs, xOffset, yOffset, peakXcen, peakYcen, cval;
-  float ringMax[10], ringXcen[10], ringYcen[10];
+  float ringMax[MAX_RING], ringXcen[MAX_RING], ringYcen[MAX_RING];
   Islice *bytesl, *sl;
   float *corrSlice, *fullBead, *filtSlice, *splitBead;
 
-  for (ix = 0; ix < 10; ix++)
+  for (ix = 0; ix < MAX_RING; ix++)
     ringMax[ix] = -1.e30;
 
   ivwGetImageSize(plug->view, &xsize, &ysize, &zsize);
@@ -1645,7 +1646,8 @@ int BeadFixer::findCenter(float &imx, float &imy, int curz)
         // Distance from the clicked point and ring index
         delx = peakXcen - (xcen - ixStart);
         dely = peakYcen - (ycen - iyStart);
-        ring = (int)(sqrt(delx * delx + dely * dely) / radius);
+        ring = (int)(2. * sqrt(delx * delx + dely * dely) / radius);
+        ring = B3DMIN(ring, MAX_RING - 1);
         if (cval > ringMax[ring]) {
 
           // It is a higher peak for the ring: now verify the polarity is right
@@ -1667,18 +1669,23 @@ int BeadFixer::findCenter(float &imx, float &imy, int curz)
   sliceFree(sl);
 
   // Search in radius-sized rings from the selected point; in each ring
-  // find the point with the largest centroid
+  // find the point with the largest peak
   grandMax = -1.e30;
-  numRing = (int)(search / radius + 1.);
+  grandRing = 0;
+  numRing = (int)(2. * search / radius + 1.);
+  numRing = B3DMIN(numRing, MAX_RING - 1);
   for (ring = 0; ring < numRing; ring++) {
-    //imodPrintStderr("ring %d max %g at %.2f,%.2f\n", ring, ringMax[ring], 
-    //                ringXcen[ring],ringYcen[ring]);
+    /*if (ringMax[ring] > -1.e20)
+      imodPrintStderr("ring %d max %g at %.2f,%.2f\n", ring, ringMax[ring], 
+      ringXcen[ring],ringYcen[ring]);*/
 
     // If the max is sufficiently larger than the previous one
-    if (ringMax[ring] > fartherCrit * grandMax) {
+    if (ringMax[ring] > 
+        pow(fartherCrit, (double)(ring - grandRing)) * grandMax) {
       grandx = ringXcen[ring];
       grandy = ringYcen[ring];
       grandMax = ringMax[ring];
+      grandRing = ring;
     }
   }
   //imodPrintStderr("grand max %f at %f,%f\n",  grandMax, grandx, grandy);
@@ -2436,6 +2443,9 @@ void BeadFixer::keyReleaseEvent ( QKeyEvent * e )
 /*
 
 $Log$
+Revision 1.51  2008/12/10 00:58:59  mast
+Save the binning that goes along with a diameter
+
 Revision 1.50  2008/12/01 15:41:31  mast
 Switched to correlating with sobel-filtered model bead for autocenter
 
