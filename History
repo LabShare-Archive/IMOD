@@ -1,5 +1,8 @@
 IMOD History
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+12/12/08: Made it harder for autocentering in Bead Fixer to go to an adjacent
+stronger bead when clicking within a bead.
+
 12/12/08: Added a file index.html in the html directory and an alias "imodhelp"
 to the startup scripts to start Qt Assistant with all IMOD documentation
 accessible.
