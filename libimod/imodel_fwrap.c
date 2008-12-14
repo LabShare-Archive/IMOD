@@ -2,7 +2,6 @@
  *   FILE: imodel_fwrap.c
  *
  *   PURPOSE: Load an IMOD model file from Fortran code.
- *            Define F77FUNCAP, F77STRING to make for VMS.
  *
  *  Original author: James Kremer
  *  Revised by: David Mastronarde   email: mast@colorado.edu
@@ -143,6 +142,8 @@ int openimoddata(char *fname, int fsize);
 int getimodobjlist(int objList[], int *ninList, int ibase[], int npt[],
                    float coord[][3], int color[][2], int *npoint, 
                    int *nobject);
+int getpointvalue(int *ob, int *co, int *pt, float *value);
+int putpointvalue(int *ob, int *co, int *pt, float *value);
 static void deleteFimod();
 static int getMeshTrans(Ipoint *trans);
 void putimodflag(int *objnum, int *flag);
@@ -1006,6 +1007,8 @@ int putimod(int ibase[], int npt[], float coord[][3], int cindex[],
      object, set nsaved back to
      0 so that if all contours got deleted they will be deleted from object */
   for (object = 0; object < *nobject; object++) {
+    if (npt[object] == 0 && !partialMode)
+      continue;
     ob = color[object][1] - mincolor;
     if (objlookup[ob] >= 0)
       nsaved[objlookup[ob]] = 0;
@@ -1929,6 +1932,9 @@ int getimodnesting(int *ob, int *inOnly, int *level, int *inIndex,
 
 /*
 $Log$
+Revision 3.36  2008/12/10 16:21:08  mast
+Add defines for getimodheado -it's useful if all you need is pixel size
+
 Revision 3.35  2008/11/14 17:18:37  mast
 A few more functions
 
