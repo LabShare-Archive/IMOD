@@ -1,18 +1,18 @@
+c       MAP_VARS.F  -  Routines for variable mapping
+c       
+c       ANALYZE_MAPS
+c       automap
+c       inputGroupings
+c       makeMapList
+c       grouplist
+c       groupminmax
+c       setgrpsize
+c       mapSeparateGroup
 c
 c       $Id$
+c       Log at end
 c       
-c       $Log$
-c       Revision 3.3  2005/03/28 22:51:17  mast
-c       Split automap into two functions for beadtrack and made function for
-c       remapping separate groups
-c       
-c       Revision 3.2  2004/06/24 15:38:08  mast
-c       Changed to work with pip input
-c       
-c       Revision 3.1  2002/05/07 02:06:54  mast
-c       Changes to make things work well with a subset of views
-c       
-c       
+c
 c       ANALYZE_MAPS takes a map list and other information about how to set
 c       up a mapping and allocates variables, and mappings for getting
 c       values from variables
@@ -638,7 +638,12 @@ c       to cosine of the tilt angle to the given power.
       implicit none
       real*4 grpsize(*),tilt(*),power
       integer*4 nview,i
-      real*4 sum
+      real*4 sum, angmax
+c       
+c       12/13/08: Originally meant the maximum angle to be 65 but it was not
+c       in radians so it never had any effect.  So make it high so grouping
+c       will be same for anything but 180 degree data
+      angmax = 80. * 3.14159 / 180.
       if(power.eq.0.)then
         do i=1,nview
           grpsize(i)=1.
@@ -646,7 +651,7 @@ c       to cosine of the tilt angle to the given power.
       else
         sum=0.
         do i=1,nview
-          grpsize(i)=cos(min(abs(tilt(i)), 65.))**power
+          grpsize(i)=cos(min(abs(tilt(i)), angmax))**power
           sum=sum+grpsize(i)
         enddo
         do i=1,nview
@@ -681,3 +686,18 @@ c
         endif
       enddo
       end
+c
+c       $Log$
+c       Revision 3.4  2007/02/19 21:11:01  mast
+c       Changes to make group size depend on # of points in views
+c
+c       Revision 3.3  2005/03/28 22:51:17  mast
+c       Split automap into two functions for beadtrack and made function for
+c       remapping separate groups
+c       
+c       Revision 3.2  2004/06/24 15:38:08  mast
+c       Changed to work with pip input
+c       
+c       Revision 3.1  2002/05/07 02:06:54  mast
+c       Changes to make things work well with a subset of views
+c       
