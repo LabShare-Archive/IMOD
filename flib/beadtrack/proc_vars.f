@@ -3,20 +3,7 @@ c       rotation, tilt, mag, etc.  It fills the VAR array and
 c       the different variable and mapping arrays.
 c       
 c       $Id$
-c       
-c       $Log$
-c       Revision 3.4  2007/02/19 20:50:23  mast
-c       Changes for beam tilt and grouping improvements in tiltalign
-c
-c       Revision 3.3  2005/04/10 18:15:10  mast
-c       Changes for elimination of global rotation variable
-c       
-c       Revision 3.2  2005/04/07 03:56:31  mast
-c       New version with local tracking, new mapping, outliers, etc.
-c       
-c       Revision 3.1  2004/10/24 22:33:59  mast
-c       Chnages for projection stretch variables and new rotation stuff (?)
-c       
+c       Log at end
 c       
       subroutine proc_vars(ifmaptilt,ireftilt,var, nvarsrch)
 c       
@@ -124,8 +111,8 @@ c       Now reload the previous values and put them into vars
 c       
       do i=1,nview
         if (maptilt(i).gt.0) tilt(i) = dtor * tiltorig(mapViewToFile(i))
-        if (maptilt(i) .gt. 0 .and. lintilt(i) .eq. 0)
-     &      var(maptilt(i)) = tilt(i)
+        if (maptilt(i) .gt. 0 .and. lintilt(i) .eq. 0 .and.
+     &      abs(tiltinc(i)) .lt. 1.e-6) var(maptilt(i)) = tilt(i)
       enddo
       nvarang=nvarsrch
 c       
@@ -160,3 +147,20 @@ c
       beamTilt = 0.
       return
       end
+c       
+c       $Log$
+c       Revision 3.5  2007/05/03 23:53:12  mast
+c       Adjusted to change in projection stretch
+c
+c       Revision 3.4  2007/02/19 20:50:23  mast
+c       Changes for beam tilt and grouping improvements in tiltalign
+c
+c       Revision 3.3  2005/04/10 18:15:10  mast
+c       Changes for elimination of global rotation variable
+c       
+c       Revision 3.2  2005/04/07 03:56:31  mast
+c       New version with local tracking, new mapping, outliers, etc.
+c       
+c       Revision 3.1  2004/10/24 22:33:59  mast
+c       Chnages for projection stretch variables and new rotation stuff (?)
+c       
