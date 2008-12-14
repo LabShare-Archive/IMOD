@@ -41,7 +41,7 @@ C
       common /bigarr/ boxes
 C       
       integer*4 ixpclist(limpcl),iypclist(limpcl),izpclist(limpcl)
-      CHARACTER*160 FILIN,FILOUT,plfile,modelfile,surfaceFile
+      CHARACTER*320 FILIN,FILOUT,plfile,modelfile,surfaceFile
       integer*4 idxin(liminside),idyin(liminside)
       integer*4 idxedge(limedge),idyedge(limedge)
       integer*4 listz(maxview),izexclude(maxview)
@@ -105,7 +105,7 @@ c
       integer*4 nvLocalIn, localViewPass, ibaseRes,nSnapList,iobjSave
       logical keepGoing,saveAllPoints,ignoreObjs, done
       integer*4 numNew,nOverlap,iseqPass,ipassSave,iAreaSave,maxObjOrig
-      real*4 outlieElimMin, outlieCrit, outlieCritAbs, curResMin
+      real*4 outlieElimMin, outlieCrit, outlieCritAbs, curResMin, tiltmax
       real*4 sigma1,sigma2,radius2,radius1,deltactf, ranFrac, diameter
       integer*4 maxDrop, nDrop, ndatFit, nareaTot, maxInArea, limInArea
       integer*4 minViewDo, maxViewDo, numViewDo, numBound, iseed, limcxBound
@@ -492,6 +492,7 @@ c
         distcrit=-distcrit
       endif
 c       
+      tiltmax = 0.
       do iv=1,nvuall
         rotorig(iv)=rotstart
         tiltorig(iv)=tltall(iv)
@@ -506,6 +507,7 @@ c
         mapalf(iv)=0
         dxysav(1,iv)=0.
         dxysav(2,iv)=0.
+        tiltmax = max(tiltmax, abs(tltall(iv)))
       enddo
       mapdumdmag=0
       mapdmagstart=1
@@ -1203,15 +1205,17 @@ c
 c             get tentative tilt, rotation, mag for current view
 c             
             if(ifdidalign.gt.0)then
-              ivdel=200
-              do iv=1,nview
-                if(abs(mapViewToFile(iv)-iview).lt.ivdel)then
-                  ivdel=abs(mapViewToFile(iv)-iview)
-                  ivnear=mapViewToFile(iv)
-                endif
-              enddo
-              ivuse=ivnear
-              if(mapFileToView(iview).gt.0)ivuse=iview
+              ivuse=iview
+              if(mapFileToView(iview).eq.0) then
+                ivdel=200
+                do iv=1,nview
+                  if(abs(mapViewToFile(iv)-iview).lt.ivdel)then
+                    ivdel=abs(mapViewToFile(iv)-iview)
+                    ivuse=mapViewToFile(iv)
+                  endif
+                enddo
+              endif
+c              print *,'ivuse, iview', ivuse, iview
               tiltcur=tiltorig(ivuse)+tltall(iview)-tltall(ivuse)
               gmagcur=gmagorig(ivuse)
               rotcur=rotorig(ivuse)
@@ -1219,15 +1223,19 @@ c
               sinr=sind(rotcur)
               cost=cosd(tiltcur)
               sint=sind(tiltcur)
+              dxcur = dxysav(1,ivuse)
+              dycur = dxysav(2,ivuse)
+              if (ivuse .ne. iview .and. tiltmax .le. 80.) then
 c               
-c               back-rotate the dxy so tilt axis vertical, adjust the 
-c               dx by the difference in tilt angle, and rotate back
-c               
-              a = cosr * dxysav(1,ivuse) + sinr * dxysav(2,ivuse)
-              b = -sinr * dxysav(1,ivuse) + cosr * dxysav(2,ivuse)
-              a = a * cost / cosd(tiltorig(ivuse))
-              dxcur = cosr * a - sinr * b
-              dycur = sinr * a + cosr * b
+c                 if going from another view and cosine stretch is appropriate,
+c                 back-rotate the dxy so tilt axis vertical, adjust the 
+c                 dx by the difference in tilt angle, and rotate back
+                a = cosr * dxcur + sinr * dycur
+                b = -sinr * dxcur + cosr * dycur
+                a = a * cost / cosd(tiltorig(ivuse))
+                dxcur = cosr * a - sinr * b
+                dycur = sinr * a + cosr * b
+              endif
               a = gmagcur * cost * cosr
               b = - gmagcur * sinr
               c = gmagcur * sint * cosr
@@ -1548,13 +1556,22 @@ c
               write(*,113)iview,ipass,ndat,ndrop,devavg,devsd,devmax
 113           format('view',i4,', pass',i2,',',i4,
      &            ' points (-', i3,'), mean, sd, max dev:' ,3f8.2)
+              if (ifdidalign .ne. 0) then
+                dxcur = dxcur + xf(1,3)
+                dycur = dycur + xf(2,3)
+              endif
             endif
 c             
 c             do tiltali if anything changed, so can get current residuals
 c             
-            if(nadded.gt.0)call tiltali(ifdidalign, ifAlignDone,
-     &          resmean, ibaseRes, ibaseOnAlign, iview)
-
+            if(nadded.gt.0)then
+              if (ifdidalign .ne. 0 .and. ivuse .ne. iview) then
+                dxysav(1, iview) = dxcur
+                dxysav(2, iview) = dycur
+              endif
+              call tiltali(ifdidalign, ifAlignDone, resmean, ibaseRes,
+     &            ibaseOnAlign, iview)
+            endif
             if (itemOnList(iview, ivSnapList, nSnapList)) then
               call int_iwrite(listString, iview, ndel)
               write(plfile, '(a,a,a,i1)')'.',listString(1:ndel),'.',ipass
@@ -1788,6 +1805,9 @@ c
 c       
 c       
 c       $Log$
+c       Revision 3.30  2008/12/03 03:31:48  mast
+c       Take in true diameter, and a binning value
+c
 c       Revision 3.29  2008/06/22 20:49:43  mast
 c       Added residual output to top/bottom list
 c
