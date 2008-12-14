@@ -1,5 +1,11 @@
 IMOD History
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+12/14/08: Fixed problems with automapping of variables in Tiltalign and
+Beadtrack when angles go above 80 degrees; make beadtrack not adjust
+displacements by a cosine stretch when angles go above 80; fixed problems with 
+selection of view range for local view tracking and with initialization of
+tilt variables at high angles where two might get mapped to one variable.
+
 12/12/08: Made it harder for autocentering in Bead Fixer to go to an adjacent
 stronger bead when clicking within a bead.
 
