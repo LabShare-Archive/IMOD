@@ -442,7 +442,7 @@ void imodvKeyPress(QKeyEvent *event)
       inputDeleteContour(a->vi);
       pickedContour = -1;
     } else if (!shifted) {
-      imodv_setbuffer(a);
+      imodv_setbuffer(a, 1 - a->db, -1);
       imodvDraw(Imodv);
     }
     break;
@@ -1283,6 +1283,9 @@ void imodvMovieTimeout()
 /*
 
 $Log$
+Revision 4.44  2008/12/01 15:42:01  mast
+Changes for undo/redo and selection in 3dmodv standalone
+
 Revision 4.43  2008/11/28 06:44:00  mast
 Added hot key to toggle current point
 

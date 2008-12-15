@@ -364,7 +364,7 @@ void imodvViewMenu(int item)
   bool freeXobj;
   switch (item) {
   case VVIEW_MENU_DB:
-    imodv_setbuffer(a);
+    imodv_setbuffer(a, 1 - a->db, -1);
     break;
 
   case VVIEW_MENU_LIGHTING:
@@ -647,6 +647,9 @@ void ImodvBkgColor::keyReleaseSlot ( QKeyEvent * e )
 /*
 
 $Log$
+Revision 4.29  2008/12/09 23:27:05  mast
+Changed flag from line to noline
+
 Revision 4.28  2008/11/28 06:43:13  mast
 Added bounding box and current point
 
