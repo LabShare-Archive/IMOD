@@ -175,6 +175,12 @@ import etomo.type.Run3dmodMenuOptions;
  * @version $$Revision$$
  * 
  * <p> $$Log$
+ * <p> $Revision 1.50  2008/12/09 21:30:13  sueh
+ * <p> $bug# 1160 Removing the contractor that has the beadfixerDiameter
+ * <p> $parameter.  In open, setting beadfixerDiameter from ApplicationManager
+ * <p> $if the manager is an instance of ApplicationManager and setAutoCenter is
+ * <p> $true.
+ * <p> $
  * <p> $Revision 1.49  2008/12/05 00:52:31  sueh
  * <p> $bug# 1156 Added skipList.
  * <p> $
@@ -671,6 +677,10 @@ public final class ImodState {
       if (openBeadFixer) {
         process.setOpenBeadFixerMessage();
         if (setAutoCenter) {
+          if (manager instanceof ApplicationManager) {
+            process.setBeadfixerDiameter(((ApplicationManager) manager)
+                .getBeadfixerDiameter(axisID));
+          }
           process.setAutoCenter(autoCenter);
         }
         if (manageNewContours) {
