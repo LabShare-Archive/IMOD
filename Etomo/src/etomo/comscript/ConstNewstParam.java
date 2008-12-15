@@ -23,6 +23,9 @@ import etomo.type.EtomoBoolean2;
  * @version $Revision$
  *
  * <p> $Log$
+ * <p> Revision 3.22  2007/12/13 01:03:27  sueh
+ * <p> bug# 1056 Added adjustOrigin.
+ * <p>
  * <p> Revision 3.21  2007/11/06 19:06:59  sueh
  * <p> bug# 1047 Added getSubcommandDetails.
  * <p>
@@ -184,7 +187,7 @@ public class ConstNewstParam implements CommandDetails {
    */
   final EtomoBoolean2 adjustOrigin = new EtomoBoolean2();
 
-  private AxisID axisID;
+   AxisID axisID;
 
   //defaults
   public static final int BIN_BY_FACTOR_DEFAULT = 1;
