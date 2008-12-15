@@ -1,5 +1,7 @@
 IMOD History
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+12/15/08: Handling a tilt axis angle near 90 degrees.
+
 12/15/08: Use a stereo-capable widget only when stereo is turned on to avoid
 problems on Macs.
 
