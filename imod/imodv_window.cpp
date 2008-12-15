@@ -26,26 +26,25 @@
 
 extern int Imod_debug;
 
-ImodvWindow::ImodvWindow(bool standAlone, int enableDepthDB, 
-                         int enableDepthSB, int stereoDB, int stereoSB, 
-                         bool lighting, bool lowRes,
+ImodvWindow::ImodvWindow(ImodvApp *a,
                          QWidget * parent, const char * name, WFlags f)
   : QMainWindow(parent, name, f)
 {
-  mDBw = mSBw = NULL;
+  int numWidg = 0;
+  mDBw = mSBw = mDBstw = mSBstw = NULL;
   mMinimized = false;
 
   // construct file menu
   mFileMenu = new QPopupMenu;
   mFileMenu->insertItem("&Open Model", VFILE_MENU_LOAD);
   mFileMenu->setAccel(CTRL + Key_O, VFILE_MENU_LOAD);
-  mFileMenu->setItemEnabled(VFILE_MENU_LOAD, standAlone);
+  mFileMenu->setItemEnabled(VFILE_MENU_LOAD, a->standalone);
 
   mFileMenu->insertItem("&Save Model", VFILE_MENU_SAVE);
-  mFileMenu->setItemEnabled(VFILE_MENU_SAVE, standAlone);
+  mFileMenu->setItemEnabled(VFILE_MENU_SAVE, a->standalone);
 
   mFileMenu->insertItem("Save Model &As...", VFILE_MENU_SAVEAS);
-  mFileMenu->setItemEnabled(VFILE_MENU_SAVEAS, standAlone);
+  mFileMenu->setItemEnabled(VFILE_MENU_SAVEAS, a->standalone);
   mFileMenu->insertSeparator();
 
   mFileMenu->insertItem("Snap &Tiff As...", VFILE_MENU_SNAPTIFF);
@@ -55,7 +54,7 @@ ImodvWindow::ImodvWindow(bool standAlone, int enableDepthDB,
   mFileMenu->insertItem("&Movie...", VFILE_MENU_MOVIE);
   mFileMenu->setAccel(Key_M, VFILE_MENU_MOVIE);
 
-  mFileMenu->insertItem(standAlone ? "&Quit" : "&Close", VFILE_MENU_QUIT);
+  mFileMenu->insertItem(a->standalone ? "&Quit" : "&Close", VFILE_MENU_QUIT);
   mFileMenu->setAccel(CTRL + Key_Q, VFILE_MENU_QUIT);
 
   connect(mFileMenu, SIGNAL(activated(int)), this, SLOT(fileMenuSlot(int)));
@@ -79,7 +78,8 @@ ImodvWindow::ImodvWindow(bool standAlone, int enableDepthDB,
   mEditMenu->insertItem("Isos&urface...", VEDIT_MENU_ISOSURFACE);
   mEditMenu->setAccel(SHIFT + Key_U, VEDIT_MENU_ISOSURFACE);
   mEditMenu->setItemEnabled(VEDIT_MENU_IMAGE, imodvByteImagesExist() != 0);
-  mEditMenu->setItemEnabled(VEDIT_MENU_ISOSURFACE, imodvByteImagesExist() != 0);
+  mEditMenu->setItemEnabled(VEDIT_MENU_ISOSURFACE, 
+                            imodvByteImagesExist() != 0);
   connect(mEditMenu, SIGNAL(activated(int)), this, SLOT(editMenuSlot(int)));
 
   // View menu
@@ -87,8 +87,8 @@ ImodvWindow::ImodvWindow(bool standAlone, int enableDepthDB,
   mViewMenu->setCheckable(true);
   mViewMenu->insertItem("Low &Res", VVIEW_MENU_LOWRES);
   mViewMenu->setAccel(SHIFT + Key_R, VVIEW_MENU_LOWRES);
-  mViewMenu->setItemChecked(VVIEW_MENU_LOWRES, lowRes);
-  if (!standAlone) {
+  mViewMenu->setItemChecked(VVIEW_MENU_LOWRES, a->lowres);
+  if (!a->standalone) {
     mViewMenu->insertItem("&Current Point", VVIEW_MENU_CURPNT);
     mViewMenu->setAccel(Key_P, VVIEW_MENU_CURPNT);
     mViewMenu->setItemChecked(VVIEW_MENU_CURPNT, false);
@@ -104,12 +104,11 @@ ImodvWindow::ImodvWindow(bool standAlone, int enableDepthDB,
 
   // This made it act on a shifted D only and steal it from imodv_input
   //mViewMenu->setAccel(Key_D, VVIEW_MENU_DB);
-  mViewMenu->setItemChecked(VVIEW_MENU_DB, enableDepthDB >= 0);
-  mViewMenu->setItemEnabled(VVIEW_MENU_DB, 
-                            enableDepthDB >= 0 && enableDepthSB >= 0);
+  mViewMenu->setItemChecked(VVIEW_MENU_DB, a->db > 0);
+  mViewMenu->setItemEnabled(VVIEW_MENU_DB, a->db > 0 && a->enableDepthSB >= 0);
 
   mViewMenu->insertItem("&Lighting", VVIEW_MENU_LIGHTING);
-  mViewMenu->setItemChecked(VVIEW_MENU_LIGHTING, lighting);
+  mViewMenu->setItemChecked(VVIEW_MENU_LIGHTING, a->lighting);
 
   mViewMenu->insertItem("&Wireframe", VVIEW_MENU_WIREFRAME);
   mViewMenu->setItemChecked(VVIEW_MENU_WIREFRAME, false);
@@ -140,23 +139,47 @@ ImodvWindow::ImodvWindow(bool standAlone, int enableDepthDB,
   QGLFormat glFormat;
   glFormat.setRgba(true);
 
-  if (enableDepthDB >= 0) { 
+  if (a->enableDepthDB >= 0) { 
     glFormat.setDoubleBuffer(true);
-    glFormat.setDepth(enableDepthDB > 0);
-    glFormat.setStereo(stereoDB > 0);
+    glFormat.setDepth(a->enableDepthDB > 0);
+    glFormat.setStereo(false);
     mDBw = new ImodvGL(glFormat, mStack);
     mStack->addWidget(mDBw);
     mCurGLw = mDBw;
+    numWidg++;
   }
 
-  if (enableDepthSB >= 0) { 
+  if (a->enableDepthDBst >= 0) { 
+    glFormat.setDoubleBuffer(true);
+    glFormat.setDepth(a->enableDepthDBst > 0);
+    glFormat.setStereo(true);
+    mDBstw = new ImodvGL(glFormat, mStack);
+    mStack->addWidget(mDBstw);
+    if (!numWidg)
+      mCurGLw = mDBstw;
+    numWidg++;
+  }
+
+  if (a->enableDepthSB >= 0) { 
     glFormat.setDoubleBuffer(false);
-    glFormat.setDepth(enableDepthSB > 0);
-    glFormat.setStereo(stereoSB > 0);
+    glFormat.setDepth(a->enableDepthSB > 0);
+    glFormat.setStereo(false);
     mSBw = new ImodvGL(glFormat, mStack);
     mStack->addWidget(mSBw);
-    if (enableDepthDB < 0)
+    if (!numWidg)
       mCurGLw = mSBw;
+    numWidg++;
+  }
+
+  if (a->enableDepthSBst >= 0) { 
+    glFormat.setDoubleBuffer(true);
+    glFormat.setDepth(a->enableDepthSBst > 0);
+    glFormat.setStereo(true);
+    mSBstw = new ImodvGL(glFormat, mStack);
+    mStack->addWidget(mSBstw);
+    if (!numWidg)
+      mCurGLw = mSBstw;
+    numWidg++;
   }
 
   // Set the topmost widget of the stack
@@ -202,15 +225,19 @@ void ImodvWindow::setCheckableItem(int id, bool state)
   mViewMenu->setItemChecked(id, state);
 }
 
-// Bring the selected widget to the top if both exist
-int ImodvWindow::setGLWidget(int db)
+// Bring the selected widget to the top if it exists
+int ImodvWindow::setGLWidget(int db, int stereo)
 {
-  if (!mDBw || !mSBw)
-    return 1;
-  if (db)
+  if (db && !stereo && mDBw)
     mCurGLw = mDBw;
-  else
+  else if (!db && !stereo && mSBw)
     mCurGLw = mSBw;
+  else if (db && stereo && mDBstw)
+    mCurGLw = mDBstw;
+  else if (!db && stereo && mSBstw)
+    mCurGLw = mSBstw;
+  else
+    return 1;
   mStack->raiseWidget(mCurGLw);
   return 0;
 }
@@ -320,6 +347,9 @@ void ImodvGL::wheelEvent ( QWheelEvent * e)
 /*
 
 $Log$
+Revision 4.20  2008/12/01 15:42:01  mast
+Changes for undo/redo and selection in 3dmodv standalone
+
 Revision 4.19  2008/11/28 06:43:32  mast
 Added bounding box and current point
 
