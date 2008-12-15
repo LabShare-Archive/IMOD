@@ -222,66 +222,113 @@ static void initstruct(ImodView *vw, ImodvApp *a)
 
 static int getVisuals(ImodvApp *a)
 {
-  int i, colorDB, colorSB;
+  int i, colorDB, colorSB, colorDBst, colorSBst;
   int depthSB = -1;
   int depthDB = -1;
+  int depthSBst = -1;
+  int depthDBst = -1;
   ImodGLVisual *visual;
-
+  
   // Keep track of what depth request is used to get the visuals selected
   // and of the actual depth bits that result
   a->enableDepthSB = -1;
   a->enableDepthDB = -1;
-
-  // Loop through all requests, asking first for double buffer then for single
-  // buffer.  When one is found, the depth is set
+  a->enableDepthSBst = -1;
+  a->enableDepthDBst = -1;
+  
+  // Loop through all requests, asking first for double buffer stereo, then
+  // no stereo, then for single buffer stereo, then no stereo.
+  // When one is found, the depth is set for that visual type
   for (i = 0; OpenGLAttribList[i] != NULL; i++) {
+    if (depthDBst < 0) {
+      visual = imodFindGLVisual(*OpenGLAttribList[i]);
+      if (visual && visual->stereo) {
+        a->enableDepthDBst = visual->depthEnabled;
+        depthDBst = visual->depthBits;
+        colorDBst = visual->colorBits;
+      }
+    }
     if (depthDB < 0) {
+      OpenGLAttribList[i]->stereo = 0;
       visual = imodFindGLVisual(*OpenGLAttribList[i]);
       if (visual) {
         a->enableDepthDB = visual->depthEnabled;
-	a->stereoDB = visual->stereo;
         depthDB = visual->depthBits;
         colorDB = visual->colorBits;
       }
+      OpenGLAttribList[i]->stereo = 1;
     }
-      
+
+    // It is almost certainly unnecessary to restore the table entries because
+    // the find visual machinery stores a table of visuals, but do so anyway
+    OpenGLAttribList[i]->doubleBuffer = 0;
+    if (depthSBst < 0) {
+      visual = imodFindGLVisual(*OpenGLAttribList[i]);
+      if (visual) {
+        a->enableDepthSBst = visual->depthEnabled;
+        depthSBst = visual->depthBits;
+        colorSBst = visual->colorBits;
+      }
+    }
     if (depthSB < 0) {
-      OpenGLAttribList[i]->doubleBuffer = 0;
+      OpenGLAttribList[i]->stereo = 0;
       visual = imodFindGLVisual(*OpenGLAttribList[i]);
       if (visual) {
         a->enableDepthSB = visual->depthEnabled;
-	a->stereoSB = visual->stereo;
         depthSB = visual->depthBits;
         colorSB = visual->colorBits;
       }
+      OpenGLAttribList[i]->stereo = 1;
     }
-
-    /* If got both, stop the loop */
+    OpenGLAttribList[i]->doubleBuffer = 1;
+    
+    /* If got both, stop the loop (i.e., ignore lesser capability stereo 
+       visuals */
     if (depthDB >= 0 && depthSB >= 0)
       break;
   }
 
   /* error if no visuals */
-  if (depthDB < 0 && depthSB < 0)
+  if (depthDB < 0 && depthSB < 0 && depthDBst < 0 && depthSBst < 0)
     return 1;
+  
+  // If somehow there is stereo with depth and regular with not, just pretend
+  // the non-stereo does not exist
+  if (!depthDB && depthDBst > 0) {
+    depthDB = -1;
+    a->enableDepthDB = -1;
+  }
+  if (!depthSB && depthSBst > 0) {
+    depthSB = -1;
+    a->enableDepthSB = -1;
+  }
 
-  if (!depthDB || (!depthSB && depthDB < 0))
+  // Priority sequence will be DB, DB stereo, SB, SB stereo
+  if (!depthDB || (!depthDBst && depthDB < 0) || 
+      (!depthSB && depthDB < 0 && depthDBst < 0) ||
+      (!depthSBst && depthDB < 0 && depthDBst < 0 && depthSB < 0))
     imodError(NULL, "3dmodv warning: using a visual with"
             " no depth buffer\n");
 
   if (depthDB < 0)
     imodError(NULL, "3dmodv warning: no double buffer visual available.\n");
   else if (Imod_debug)
-    imodPrintStderr("DB visual: %d color bits, %d depth bits, stereo %d\n",
-	   colorDB, depthDB, a->stereoDB);
+    imodPrintStderr("DB visual: %d color bits, %d depth bits\n",
+	   colorDB, depthDB);
+  if (Imod_debug && depthDBst >= 0)
+    imodPrintStderr("DB stereo visual: %d color bits, %d depth bits\n",
+                    colorDBst, depthDBst);
   if (depthSB < 0)
     imodError(NULL, "3dmodv warning: no single buffer visual available.\n");
   else if (Imod_debug)
-    imodPrintStderr("SB visual: %d color bits, %d depth bits, stereo %d\n",
-	   colorSB, depthSB, a->stereoSB);
+    imodPrintStderr("SB visual: %d color bits, %d depth bits\n",
+	   colorSB, depthSB);
+  if (Imod_debug && depthSBst >= 0)
+    imodPrintStderr("SB stereo visual: %d color bits, %d depth bits\n",
+                    colorSBst, depthSBst);
 
   // set to double buffer if visual exists
-  a->db = depthDB >= 0 ? 1 : 0;
+  a->db = depthDB >= 0 || depthDBst >= 0 ? 1 : 0;
   return 0;
 }
 
@@ -294,9 +341,7 @@ static int openWindow(ImodvApp *a)
 
   a->lighting = Imodv->imod->view->world & VIEW_WORLD_LIGHT;
   a->lowres = (Imodv->imod->view->world & VIEW_WORLD_LOWRES) ? 1 : 0;
-  a->mainWin = new ImodvWindow(a->standalone, a->enableDepthDB, 
-                               a->enableDepthSB, a->stereoDB, a->stereoSB,
-                               a->lighting, a->lowres);
+  a->mainWin = new ImodvWindow(a);
 
   if (!a->mainWin)
     return 1;
@@ -726,6 +771,9 @@ void imodvQuit()
 
 /*
 $Log$
+Revision 4.42  2008/12/01 15:42:01  mast
+Changes for undo/redo and selection in 3dmodv standalone
+
 Revision 4.41  2008/11/28 06:41:13  mast
 Manage extra objects
 
