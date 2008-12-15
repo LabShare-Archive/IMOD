@@ -1,5 +1,8 @@
 IMOD History
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+12/14/08: Set a color and modified material properties for the isosurface so
+that detail will not be washed out when viewing a surface face-on.
+
 12/14/08: Fixed problems with automapping of variables in Tiltalign and
 Beadtrack when angles go above 80 degrees; make beadtrack not adjust
 displacements by a cosine stretch when angles go above 80; fixed problems with 
