@@ -11,6 +11,10 @@
  * @version $Revision$
  *
  * <p> $Log$
+ * <p> Revision 3.29  2008/07/15 17:46:26  sueh
+ * <p> bug# 1124 In updateComScriptCommand never use xTiltFile if
+ * <p> fiducialess is true.
+ * <p>
  * <p> Revision 3.28  2008/02/01 01:36:36  sueh
  * <p> bug# 1075 Handling header failure in setSubsetStart.
  * <p>
@@ -191,7 +195,6 @@ import etomo.util.DatasetFiles;
 import etomo.util.Goodframe;
 import etomo.util.InvalidParameterException;
 import etomo.util.MRCHeader;
-import etomo.util.Montagesize;
 import etomo.util.Utilities;
 
 public final class TiltParam implements ConstTiltParam, CommandParam {
@@ -1055,22 +1058,37 @@ public final class TiltParam implements ConstTiltParam, CommandParam {
     excludeList.setNElements(0);
   }
 
+  /**
+   * If the tilt axis angle is closer to 90 degree, x and y need to be transposed.
+   * The .ali file will already be transposed.  So just transpose the goodframe
+   * outputs.
+   * @throws InvalidParameterException
+   * @throws IOException
+   */
   public void setMontageSubsetStart() throws InvalidParameterException,
       IOException {
     resetSubsetStart();
-    Montagesize montagesize = Montagesize.getInstance(manager, axisID);
-    montagesize.read();
-    if (montagesize.isFileExists()) {
-      Goodframe goodframe = new Goodframe(manager.getPropertyUserDir(), axisID);
-      goodframe.run(montagesize.getX().getInt(), montagesize.getY().getInt());
+    Goodframe goodframe = etomo.comscript.Utilities
+        .getGoodframeFromMontageSize(axisID, manager);
+    if (goodframe != null) {
       MRCHeader header = MRCHeader.getInstance(manager, axisID, ".ali");
       try {
         header.read();
-        idxXSubsetStart = (int) ((goodframe.getFirstOutput().getInt() - header
-            .getNColumns()
+        int goodframeX;
+        int goodframeY;
+        if (etomo.comscript.Utilities.is90DegreeImageRotation(manager
+            .getConstMetaData().getImageRotation(axisID))) {
+          //transpose x and y
+          goodframeX = goodframe.getSecondOutput().getInt();
+          goodframeY = goodframe.getFirstOutput().getInt();
+        }
+        else {
+          goodframeX = goodframe.getFirstOutput().getInt();
+          goodframeY = goodframe.getSecondOutput().getInt();
+        }
+        idxXSubsetStart = (int) ((goodframeX - header.getNColumns()
             * setImageBinned().getLong()) / 2);
-        idxYSubsetStart = (int) ((goodframe.getSecondOutput().getInt() - header
-            .getNRows()
+        idxYSubsetStart = (int) ((goodframeY - header.getNRows()
             * setImageBinned().getLong()) / 2);
       }
       catch (IOException e) {
@@ -1084,6 +1102,12 @@ public final class TiltParam implements ConstTiltParam, CommandParam {
     idxYSubsetStart = 0;
   }
 
+  /**
+   * If the tilt axis angle is closer to 90 degree, x and y need to be transposed.
+   * The .ali file will already be transposed.  So just transpose the stackHeader
+   * columns (x) and rows (y).
+   * @return
+   */
   public boolean setSubsetStart() {
     resetSubsetStart();
     MRCHeader stackHeader = MRCHeader.getInstance(manager, axisID, ".st");
@@ -1091,11 +1115,20 @@ public final class TiltParam implements ConstTiltParam, CommandParam {
       stackHeader.read();
       MRCHeader aliHeader = MRCHeader.getInstance(manager, axisID, ".ali");
       aliHeader.read();
-      idxXSubsetStart = (int) ((stackHeader.getNColumns() - aliHeader
-          .getNColumns()
+      int stackX;
+      int stackY;
+      if (etomo.comscript.Utilities.is90DegreeImageRotation(manager
+          .getConstMetaData().getImageRotation(axisID))) {
+        stackX = stackHeader.getNRows();
+        stackY = stackHeader.getNColumns();
+      }
+      else {
+        stackX = stackHeader.getNColumns();
+        stackY = stackHeader.getNRows();
+      }
+      idxXSubsetStart = (int) ((stackX - aliHeader.getNColumns()
           * setImageBinned().getLong()) / 2);
-      idxYSubsetStart = (int) ((stackHeader.getNColumns() - aliHeader
-          .getNRows()
+      idxYSubsetStart = (int) ((stackY - aliHeader.getNRows()
           * setImageBinned().getLong()) / 2);
     }
     catch (IOException e) {
@@ -1123,33 +1156,42 @@ public final class TiltParam implements ConstTiltParam, CommandParam {
     return true;
   }
 
+  /**
+   * If the tilt angle axis is closer to 90 degree, transpose x and y.
+   */
   public void setMontageFullImage() {
-    Montagesize montagesize = Montagesize.getInstance(manager, axisID);
-    try {
-      montagesize.read();
-      if (montagesize.isFileExists()) {
-        Goodframe goodframe = new Goodframe(manager.getPropertyUserDir(),
-            axisID);
-        goodframe.run(montagesize.getX().getInt(), montagesize.getY().getInt());
+    Goodframe goodframe = etomo.comscript.Utilities
+        .getGoodframeFromMontageSize(axisID, manager);
+    if (goodframe != null) {
+      if (etomo.comscript.Utilities.is90DegreeImageRotation(manager
+          .getConstMetaData().getImageRotation(axisID))) {
+        fullImageX = goodframe.getSecondOutput().getInt();
+        fullImageY = goodframe.getFirstOutput().getInt();
+      }
+      else {
         fullImageX = goodframe.getFirstOutput().getInt();
         fullImageY = goodframe.getSecondOutput().getInt();
       }
     }
-    catch (InvalidParameterException e) {
-      e.printStackTrace();
-    }
-    catch (IOException e) {
-      e.printStackTrace();
-    }
   }
 
+  /**
+   * If the tilt angle axis is closer to 90 degree, transpose x and y.
+   */
   public void setFullImage(final File stack) {
     try {
       MRCHeader header = MRCHeader.getInstance(manager.getPropertyUserDir(),
           stack.getName(), axisID);
       header.read();
-      fullImageX = header.getNColumns();
-      fullImageY = header.getNRows();
+      if (etomo.comscript.Utilities.is90DegreeImageRotation(manager
+          .getConstMetaData().getImageRotation(axisID))) {
+        fullImageX = header.getNRows();
+        fullImageY = header.getNColumns();
+      }
+      else {
+        fullImageX = header.getNColumns();
+        fullImageY = header.getNRows();
+      }
       return;
     }
     catch (InvalidParameterException e) {
