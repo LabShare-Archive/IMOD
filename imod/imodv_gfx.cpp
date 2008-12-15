@@ -90,25 +90,42 @@ static void imodv_clear(ImodvApp *a)
   glFlush();
 }
 
-/* exchange double and single buffers */
-void imodv_setbuffer(ImodvApp *a)
+/*
+ * Exchange double and single buffers (db >= 0)
+ * OR switch between stereo and non stereo (db < 0) 
+*/
+void imodv_setbuffer(ImodvApp *a, int db, int stereo)
 {
-  /* DNM 9/2/02: skip if one of the visuals didn't exist */
-  if (a->enableDepthSB < 0 || a->enableDepthDB < 0)
-    return;
+  int useStereo, useDb = a->db;
+  int inStereo = a->stereo == IMODV_STEREO_HW ? 1 : 0;
 
-  // Also skip if we are in hardware stereo and the other buffer won't support
-  if (a->stereo == IMODV_STEREO_HW && 
-      (a->db && !a->stereoSB || !a->db && !a->stereoDB))
-    return;
-
+  // Skip if the requested change doesn't have a visual
+  if (db >= 0) {
+    if ((db && (!inStereo && a->enableDepthSB < 0 || 
+                inStereo && a->enableDepthSBst < 0 )) ||
+        (!db && (!inStereo && a->enableDepthDB < 0 || 
+                 inStereo && a->enableDepthDBst < 0 )))
+      return;
+    useStereo = inStereo;
+    useDb = db;
+  } else {
+    if ((a->db && (!stereo && a->enableDepthDB < 0 || 
+                   stereo && a->enableDepthDBst < 0 )) ||
+        (!a->db && (!stereo && a->enableDepthSB < 0 || 
+                    stereo && a->enableDepthSBst < 0 )))
+      return;
+    useStereo = stereo;
+  }
+    
   imodv_clear(a);
 
-  a->db = 1 - a->db;
-  a->mainWin->setCheckableItem(VVIEW_MENU_DB, a->db);
-  if (a->mainWin->setGLWidget(a->db))
+  if (a->mainWin->setGLWidget(useDb, useStereo))
     return;
 
+  // Only if it succeeds do we update the state items
+  a->db = useDb;
+  a->mainWin->setCheckableItem(VVIEW_MENU_DB, useDb);
+  imodvStereoUpdate();
   imodv_winset(a);
   glEnable(GL_DEPTH_TEST);
   glDepthMask(GL_TRUE);
@@ -473,7 +490,11 @@ static int imodv_snapshot(ImodvApp *a, QString fname)
 }
 
 /*
+
 $Log$
+Revision 4.20  2008/10/02 22:46:04  mast
+Made single-buffer drawing work for stereo, cleared properly after stereo
+
 Revision 4.19  2008/06/12 22:49:18  mast
 Made lighting vector come out on top
 
