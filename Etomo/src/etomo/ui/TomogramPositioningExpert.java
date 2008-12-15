@@ -1,6 +1,7 @@
 package etomo.ui;
 
 import java.io.File;
+import java.io.IOException;
 
 import etomo.ApplicationManager;
 import etomo.ProcessSeries;
@@ -38,6 +39,7 @@ import etomo.type.Run3dmodMenuOptions;
 import etomo.type.TomogramState;
 import etomo.type.ViewType;
 import etomo.util.DatasetFiles;
+import etomo.util.InvalidParameterException;
 import etomo.util.Utilities;
 
 /**
@@ -373,7 +375,21 @@ public final class TomogramPositioningExpert extends ReconUIExpert {
       }
     }
     else {
-      blendmontParam = updateBlendCom();
+      try {
+        blendmontParam = updateBlendCom();
+      }
+      catch (FortranInputSyntaxException e) {
+        UIHarness.INSTANCE
+            .openMessageDialog(e.getMessage(), "Update Com Error");
+      }
+      catch (InvalidParameterException e) {
+        UIHarness.INSTANCE
+            .openMessageDialog(e.getMessage(), "Update Com Error");
+      }
+      catch (IOException e) {
+        UIHarness.INSTANCE
+            .openMessageDialog(e.getMessage(), "Update Com Error");
+      }
       if (blendmontParam == null) {
         sendMsg(ProcessResult.FAILED_TO_START, processResultDisplay);
         return;
@@ -630,7 +646,8 @@ public final class TomogramPositioningExpert extends ReconUIExpert {
       // Make sure the size output is removed, it was only there as a 
       // copytomocoms template
       newstParam.setCommandMode(NewstParam.Mode.WHOLE_TOMOGRAM_SAMPLE);
-      newstParam.resetSizeToOutputInXandY();
+      newstParam.setSizeToOutputInXandY("", getBinning(), metaData
+          .getImageRotation(axisID), manager);
     }
     catch (FortranInputSyntaxException e) {
       e.printStackTrace();
@@ -648,7 +665,8 @@ public final class TomogramPositioningExpert extends ReconUIExpert {
    * @param axisID
    * @return
    */
-  private BlendmontParam updateBlendCom() {
+  private BlendmontParam updateBlendCom() throws FortranInputSyntaxException,
+      InvalidParameterException, IOException {
     if (dialog == null) {
       return null;
     }
@@ -659,6 +677,8 @@ public final class TomogramPositioningExpert extends ReconUIExpert {
     blendmontParam.setMode(BlendmontParam.Mode.WHOLE_TOMOGRAM_SAMPLE);
     blendmontParam.setBlendmontState();
     blendmontParam.resetStartingAndEndingXandY();
+    blendmontParam.convertToStartingAndEndingXandY("", metaData
+        .getImageRotation(axisID));
     comScriptMgr.saveBlend(blendmontParam, axisID);
     return blendmontParam;
   }
@@ -814,7 +834,8 @@ public final class TomogramPositioningExpert extends ReconUIExpert {
     if (dialog == null) {
       return;
     }
-    System.out.println("metaData.getTomoPosBinning(axisID)="+metaData.getTomoPosBinning(axisID));
+    System.out.println("metaData.getTomoPosBinning(axisID)="
+        + metaData.getTomoPosBinning(axisID));
     dialog.setBinning(metaData.getTomoPosBinning(axisID));
     dialog.setSampleThickness(metaData.getSampleThickness(axisID));
   }
@@ -929,6 +950,10 @@ public final class TomogramPositioningExpert extends ReconUIExpert {
 }
 /**
  * <p> $Log$
+ * <p> Revision 1.29  2008/11/20 01:49:03  sueh
+ * <p> Bug# 1147  Getting binning only from meta data, not from newst, which
+ * <p> is overwritten by Tomogram Positioning and Final Aligned Stack.
+ * <p>
  * <p> Revision 1.28  2008/05/28 02:51:55  sueh
  * <p> bug# 1111 Add a dialogType parameter to the ProcessSeries
  * <p> constructor.  DialogType must be passed to any function that constructs
