@@ -10,6 +10,9 @@
 /*  
 
 $Log$
+Revision 4.3  2007/11/10 04:07:10  mast
+Changes for setting snapshot directory
+
 Revision 4.2  2003/12/30 06:31:46  mast
 Make swapbuffers globally available
 
@@ -38,7 +41,7 @@ void imodvDraw(ImodvApp *a);
 void imodvPaintGL();
 void imodvResizeGL(ImodvGL *GLw, int winx, int winy);
 void imodvInitializeGL();
-void imodv_setbuffer(ImodvApp *a);
+void imodv_setbuffer(ImodvApp *a, int db, int stereo);
 void imodv_swapbuffers(ImodvApp *a);
 
 #endif
