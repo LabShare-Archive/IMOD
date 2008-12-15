@@ -64,12 +64,14 @@ static struct{
 }imodvStereoData = {0, 0, 0, 0, 0};
 
 
-
+// Check whether hardware is available for the current state of buffering
 static bool hardwareOK(void)
 {
-  return (Imodv->db && Imodv->stereoDB || !Imodv->db && Imodv->stereoSB);
+  return (Imodv->db && Imodv->enableDepthDBst >= 0 || 
+          !Imodv->db && Imodv->enableDepthSBst >= 0);
 }
 
+// External call to update the dialog
 void imodvStereoUpdate(void)
 {
   if (imodvStereoData.dia)
@@ -81,6 +83,7 @@ void imodvStereoUpdate(void)
  */
 static void stereoEnable(void)
 {
+  imodv_setbuffer(Imodv, -1, 1);
   if (imodvStereoData.stereoCommand)
     system(imodvStereoData.stereoCommand);
 }
@@ -88,6 +91,7 @@ static void stereoEnable(void)
 /* call to turn off stereo viewing */
 static void stereoDisable(void)
 {
+  imodv_setbuffer(Imodv, -1, 0);
   stereoHWOff();
 }
 
@@ -139,7 +143,10 @@ void imodvStereoClear()
 
 /**************************************************************************/
 
-
+/*
+ * Sets up the screen geometry when entering or leaving stereo 
+ * and makes calls to enable or disable hardware stereo
+ */
 static void stereoSetUp(void)
 {
 
@@ -235,6 +242,9 @@ static void stereoSetUp(void)
 
 }
 
+/*
+ * One-time initialization of the structures and other items
+ */
 static void stereoInit(void)
 {
   char *envtmp;
@@ -273,6 +283,9 @@ static void stereoInit(void)
   }
 }
 
+/*
+ * Turn off hardware stereo - can be called at exit
+ */
 void stereoHWOff(void)
 {
   if (imodvStereoData.hw && imodvStereoData.restoreCommand)
@@ -280,6 +293,7 @@ void stereoHWOff(void)
   imodvStereoData.hw = 0;
 }
 
+// The external call to toggle the stereo from hot key
 void imodvStereoToggle(void)
 {
   stereoInit();
@@ -301,6 +315,9 @@ void imodvStereoToggle(void)
   stereoSetUp();
 }
 
+/*
+ * Open the stereo dialog
+ */
 void imodvStereoEditDialog(ImodvApp *a, int state)
 {
   if (!state){
@@ -384,7 +401,8 @@ void ImodvStereo::buttonPressed(int which)
     close();
 }
 
-// Update the dialog box
+// Update the dialog box including the combo box for whether hardware 
+// is available currently
 void ImodvStereo::update()
 {
   // Verify and send out the plax value
@@ -446,7 +464,12 @@ void ImodvStereo::keyReleaseEvent ( QKeyEvent * e )
 
 
 /*
+
 $Log$
+Revision 4.14  2008/10/02 22:45:19  mast
+Made geometry change conditional on SGI, set up for proper clearing
+after leaving stereo
+
 Revision 4.13  2007/10/03 19:30:44  sueh
 bug# 1038 Replacing help strings with an .html file.
 
