@@ -30,23 +30,23 @@ class ImodvGL;
 class QWidgetStack;
 class QPopupMenu;
 class QTimer;
+typedef struct __imodv_struct ImodvApp;
 
 class ImodvWindow : public QMainWindow
 {
   Q_OBJECT
 
  public:
-  ImodvWindow(bool standAlone, int enableDepthDB, int enableDepthSB, 
-              int stereoDB, int stereoSB,
-              bool lighting, bool lowRes, QWidget * parent = 0,
-              const char * name = 0, 
+  ImodvWindow(ImodvApp *a, QWidget * parent = 0, const char * name = 0, 
               WFlags f = WType_TopLevel | WDestructiveClose) ;
   ~ImodvWindow();
   void setCheckableItem(int id, bool state);
-  int setGLWidget(int db);
+  int setGLWidget(int db, int stereo);
 
   ImodvGL *mDBw;    // Double buffer widget
   ImodvGL *mSBw;    // Single buffer widget
+  ImodvGL *mDBstw;    // Double buffer stereo widget
+  ImodvGL *mSBstw;    // Single buffer stereo widget
   ImodvGL *mCurGLw; // Current widget
   QTimer  *mTimer;  // Timer for movieing
 
@@ -98,6 +98,9 @@ protected:
 /*
 
 $Log$
+Revision 4.9  2008/11/28 06:48:32  mast
+Add more menu items
+
 Revision 4.8  2008/10/02 22:43:04  mast
 Add stereo arguments to constructor for requesting stereo visual
 
