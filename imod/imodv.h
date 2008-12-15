@@ -56,10 +56,10 @@ typedef struct __imodv_struct
 
   char         *rbgname;
   QColor       *rbgcolor; /* background color for rendering.    */
-  int          enableDepthSB;
+  int          enableDepthSB;  /* Flags for if visuals exist and have depth */
   int          enableDepthDB;
-  int          stereoSB;   /* Flags for whether visuals have stereo */
-  int          stereoDB;
+  int          enableDepthSBst;
+  int          enableDepthDBst;
 
   /* global viewing flags */
   int cnear;       /* clipping planes.                        */
@@ -143,7 +143,11 @@ int imodvRotCenterLinked();
 void imodvNewModelAngles(Ipoint *rot);
 
 /*
+
 $Log$
+Revision 3.24  2008/11/28 06:40:24  mast
+Added extra object variables for bounding box and current point
+
 Revision 3.23  2008/10/02 22:43:28  mast
 Add flag for clearing after leaving stereo
 
