@@ -22,6 +22,9 @@ import junit.framework.TestCase;
  * @version $Revision$
  * 
  * <p> $Log$
+ * <p> Revision 1.4  2008/01/31 20:22:05  sueh
+ * <p> bug# 1055 throwing a FileException when LogFile.getInstance fails.
+ * <p>
  * <p> Revision 1.3  2007/09/07 00:19:52  sueh
  * <p> bug# 989 Using a public INSTANCE to refer to the EtomoDirector singleton
  * <p> instead of getInstance and createInstance.
@@ -46,14 +49,14 @@ public class JoinInfoFileTest extends TestCase {
       return;
     }
     testDir.mkdirs();
-    BaseManager manager = EtomoDirector.INSTANCE.getCurrentManager();
+    BaseManager manager = EtomoDirector.INSTANCE.getCurrentManagerForTest();
     LogFile infoFile = LogFile.getInstance(testDir.getAbsolutePath(),
         DatasetFiles.getJoinInfoName(manager));
     infoFile.delete();
     JoinInfoFile test =  JoinInfoFile.getTestInstance(infoFile);
     assertNull("Should return null when there is no file", test
         .getInverted(0));
-    EtomoDirector.INSTANCE.getCurrentManager().touch(
+    EtomoDirector.INSTANCE.getCurrentManagerForTest().touch(
         infoFile.getAbsolutePath());
     try {
       Thread.sleep(500);

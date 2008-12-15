@@ -78,7 +78,7 @@ public class DataFlowTests {
      + ".edf";*/
     EtomoDirector.main(argsIn);
     applicationManager = (ApplicationManager) EtomoDirector.INSTANCE
-        .getCurrentManager();
+        .getCurrentManagerForTest();
     //mainFrame = EtomoDirector.getInstance().getMainFrame();
     // A hack around the const object returned we really know is not const
     MetaData metaData = (MetaData) applicationManager.getMetaData();
@@ -353,6 +353,10 @@ public class DataFlowTests {
 }
 /**
  * <p> $Log$
+ * <p> Revision 3.27  2008/10/16 20:54:36  sueh
+ * <p> bug# 1141 Moved newst to FinalAlignedStackDialog.  Not keeping
+ * <p> DataFlowTests up to date.
+ * <p>
  * <p> Revision 3.26  2008/05/28 02:46:57  sueh
  * <p> bug# 1111 Adding null for dialogType parameters.
  * <p>

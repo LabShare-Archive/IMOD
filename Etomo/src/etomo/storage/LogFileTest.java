@@ -24,6 +24,9 @@ import junit.framework.TestCase;
  * @version $Revision$
  * 
  * <p> $Log$
+ * <p> Revision 1.8  2008/01/31 20:22:25  sueh
+ * <p> bug# 1055 throwing a FileException when LogFile.getInstance fails.
+ * <p>
  * <p> Revision 1.7  2007/09/07 00:23:32  sueh
  * <p> bug# 989 Using a public INSTANCE to refer to the EtomoDirector singleton
  * <p> instead of getInstance and createInstance.
@@ -770,7 +773,7 @@ public class LogFileTest extends TestCase {
 
   private void createLog() {
     if (!log.exists()) {
-      EtomoDirector.INSTANCE.getCurrentManager().touch(log.getAbsolutePath());
+      EtomoDirector.INSTANCE.getCurrentManagerForTest().touch(log.getAbsolutePath());
       try {
         Thread.sleep(500);
       }

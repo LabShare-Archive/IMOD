@@ -34,7 +34,7 @@ public final class RemotePathTest extends TestCase {
   public static final String rcsid = "$Id$";
 
   private static final BaseManager MANAGER = EtomoDirector.INSTANCE
-      .getCurrentManager();
+      .getCurrentManagerForTest();
   private static final File TEST_DIR = new File(UtilTests.TEST_ROOT_DIR,
       "RemotePath");
   private static final String TEST_FILE_NAME = DatasetFiles
@@ -969,6 +969,10 @@ public final class RemotePathTest extends TestCase {
 }
 /**
  * <p> $Log$
+ * <p> Revision 1.40  2007/12/10 22:52:23  sueh
+ * <p> bug# 1041 Always delete and create test files because the tester may change
+ * <p> computers.
+ * <p>
  * <p> Revision 1.39  2007/09/27 21:07:21  sueh
  * <p> bug# 1044 Added Queue sections to CpuAdoc.
  * <p>

@@ -359,7 +359,17 @@ public class EtomoDirector {
    * executed after a process is finished.
    * @return the current manager
    */
-  public BaseManager getCurrentManager() {
+  private BaseManager getCurrentManager() {
+    if (currentManagerKey == null) {
+      throw new IllegalStateException("No current manager");
+    }
+    return (BaseManager) managerList.get(currentManagerKey);
+  }
+  
+  public BaseManager getCurrentManagerForTest() {
+    if (!arguments.isTest()) {
+      throw new IllegalStateException("Illegal use of getCurrentManagerForTest");
+    }
     if (currentManagerKey == null) {
       throw new IllegalStateException("No current manager");
     }
@@ -1012,6 +1022,10 @@ public class EtomoDirector {
 }
 /**
  * <p> $Log$
+ * <p> Revision 1.77  2008/12/10 18:31:49  sueh
+ * <p> bug# 1162 Added a date/time stamp to main.  Added a manager stamp
+ * <p> to makeCurrent().
+ * <p>
  * <p> Revision 1.76  2008/07/19 00:22:28  sueh
  * <p> bug# 1125 In setUserPreferences set CpuAdoc from userConfig.
  * <p>

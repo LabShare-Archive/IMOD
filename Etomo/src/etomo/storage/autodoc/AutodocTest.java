@@ -42,7 +42,7 @@ public final class AutodocTest extends TestCase {
     super.setUp();
     File testDir = new File(AutodocTests.TEST_ROOT_DIR, TEST_DIR_NAME);
     testDir.mkdirs();
-    manager = (BaseManager) EtomoDirector.INSTANCE.getCurrentManager();
+    manager = (BaseManager) EtomoDirector.INSTANCE.getCurrentManagerForTest();
     Autodoc.resetAbsoluteDir();
   }
 
@@ -265,6 +265,9 @@ public final class AutodocTest extends TestCase {
 }
 /**
  * <p> $Log$
+ * <p> Revision 1.19  2008/01/31 20:25:07  sueh
+ * <p> bug# 1055 throwing a FileException when LogFile.getInstance fails.
+ * <p>
  * <p> Revision 1.18  2007/12/14 18:31:06  sueh
  * <p> file problems on windows
  * <p>

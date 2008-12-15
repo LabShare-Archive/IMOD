@@ -22,6 +22,10 @@ import junit.framework.TestCase;
  * @version $Revision$
  * 
  * <p> $Log$
+ * <p> Revision 3.22  2007/09/07 00:31:00  sueh
+ * <p> bug# 989 Using a public INSTANCE to refer to the EtomoDirector singleton
+ * <p> instead of getInstance and createInstance.
+ * <p>
  * <p> Revision 3.21  2006/11/18 01:17:04  sueh
  * <p> bug# 956 Temporarily not running problem tests on Windows.
  * <p>
@@ -186,7 +190,7 @@ public class MRCHeaderTest extends TestCase {
     // Check out the test header stack into the required directories
     try {
       TestUtilites.getVector(EtomoDirector.INSTANCE
-          .getCurrentManager(), testDirPath, testDirectory1,
+          .getCurrentManagerForTest(), testDirPath, testDirectory1,
           headerTestStack);
     }
     catch (SystemProcessException except) {
@@ -237,7 +241,7 @@ public class MRCHeaderTest extends TestCase {
     // Check out the test header stack into the required directories
     try {
       TestUtilites.getVector(EtomoDirector.INSTANCE
-          .getCurrentManager(), testDirPath, testDirectory2,
+          .getCurrentManagerForTest(), testDirPath, testDirectory2,
           "headerTest.st");
     }
     catch (SystemProcessException except) {

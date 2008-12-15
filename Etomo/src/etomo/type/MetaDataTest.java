@@ -26,6 +26,9 @@ import junit.framework.TestCase;
  * @version $Revision$
  * 
  * <p> $Log$
+ * <p> Revision 3.22  2007/12/26 22:18:31  sueh
+ * <p> bug# 1052 Removed print statement.
+ * <p>
  * <p> Revision 3.21  2007/12/14 18:51:33  sueh
  * <p> Running system program is not working on windows.
  * <p>
@@ -144,7 +147,7 @@ public class MetaDataTest extends TestCase {
 
   public MetaDataTest(String test) {
 	super(test);
-    manager = (ApplicationManager) EtomoDirector.INSTANCE.getCurrentManager();
+    manager = (ApplicationManager) EtomoDirector.INSTANCE.getCurrentManagerForTest();
   }
 
   protected void setUp() throws Exception {

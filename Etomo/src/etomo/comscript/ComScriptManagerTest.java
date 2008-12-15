@@ -12,6 +12,10 @@
 * @version $Revision$
 * 
 * <p> $Log$
+* <p> Revision 1.6  2007/09/07 00:17:55  sueh
+* <p> bug# 989 Using a public INSTANCE to refer to the EtomoDirector singleton
+* <p> instead of getInstance and createInstance.
+* <p>
 * <p> Revision 1.5  2005/12/23 02:04:52  sueh
 * <p> bug# 675 Changed EtomoDirector.getCurrentTestManager to
 * <p> getCurrentManager_test.
@@ -56,7 +60,7 @@ public class ComScriptManagerTest extends TestCase {
   public void testUseTemplate() {
     //  Need an application manger to get the IMOD_DIR environment
     // variable
-    BaseManager manager = EtomoDirector.INSTANCE.getCurrentManager();
+    BaseManager manager = EtomoDirector.INSTANCE.getCurrentManagerForTest();
     System.out.println(EtomoDirector.INSTANCE.getIMODDirectory().getAbsolutePath());
     ComScriptManager comScriptManager = manager.getComScriptManager();
     try {
