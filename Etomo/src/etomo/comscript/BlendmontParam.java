@@ -13,6 +13,7 @@ import etomo.type.EtomoNumber;
 import etomo.type.EtomoState;
 import etomo.type.ProcessName;
 import etomo.type.ScriptParameter;
+import etomo.util.Goodframe;
 import etomo.util.Montagesize;
 
 /**
@@ -139,19 +140,41 @@ public class BlendmontParam implements CommandParam, CommandDetails {
    * int(nx/2) - int((mx+1)/2)
    * The ending coordinate is the starting coordinate + mx - 1
    * Blendmont expects unbinned numbers here.
+   * 
+   if the user size is set, then this works even if the tilt axis angle is
+   * closer to 90 degress.  If the user size is not set and the tilt axis angle
+   * is closer to 90 degrees, then use x and y from goodframe (see TiltParam.
+   * setMontageFullImage()).  Mx = y from goodframe.  My = x from goodframe.
+   * Then apply the formula above.
+   * 
+   * Wlll be called with an empty string by Positioning - whole tomogram.
    * @param sizeToOutputInXandY
    * @throws FortranInputSyntaxException
    * @throws etomo.util.InvalidParameterException
    * @throws IOException
    */
-  public void convertToStartingAndEndingXandY(String sizeToOutputInXandY)
-      throws FortranInputSyntaxException, etomo.util.InvalidParameterException,
-      IOException {
+  public void convertToStartingAndEndingXandY(String sizeToOutputInXandY,
+      float imageRotation) throws FortranInputSyntaxException,
+      etomo.util.InvalidParameterException, IOException {
+    //make sure an empty string really causes sizeToOutputInXandY to be empty.
+    if (sizeToOutputInXandY.equals("")) {
+      sizeToOutputInXandY="/";
+    }
     startingAndEndingX.reset();
     startingAndEndingY.reset();
     FortranInputString fisSizeToOutputInXandY = new FortranInputString(2);
     fisSizeToOutputInXandY.setIntegerType(new boolean[] { true, true });
     fisSizeToOutputInXandY.validateAndSet(sizeToOutputInXandY);
+    if ((fisSizeToOutputInXandY.isDefault() || fisSizeToOutputInXandY.isEmpty())
+        && Utilities.is90DegreeImageRotation(imageRotation)) {
+      Goodframe goodframe = etomo.comscript.Utilities
+      .getGoodframeFromMontageSize(axisID, manager);
+      if (goodframe!=null) {
+        //transposing x and y
+        fisSizeToOutputInXandY.set(1,goodframe.getFirstOutput());
+        fisSizeToOutputInXandY.set(0,goodframe.getSecondOutput());
+      }
+    }
     if (fisSizeToOutputInXandY.isDefault() || fisSizeToOutputInXandY.isEmpty()) {
       return;
     }
@@ -390,6 +413,9 @@ public class BlendmontParam implements CommandParam, CommandDetails {
 }
 /**
  * <p> $Log$
+ * <p> Revision 1.27  2007/12/13 01:03:03  sueh
+ * <p> bug# 1056 Added adjustOrigin.
+ * <p>
  * <p> Revision 1.26  2007/11/06 19:05:26  sueh
  * <p> bug# 1047 Added getSubcommandDetails.
  * <p>
