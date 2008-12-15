@@ -62,6 +62,9 @@ import etomo.util.Utilities;
  * @version $Revision$
  * 
  * <p> $Log$
+ * <p> Revision 1.7  2008/12/09 21:08:06  sueh
+ * <p> bug# 1154 In getParameters(CtfPhaseFlipParam) setting OutputFileName.
+ * <p>
  * <p> Revision 1.6  2008/12/02 21:22:55  sueh
  * <p> bug# 1157 Changed better radius to fiducial diameter.  Getting fiducial
  * <p> diameter from better radius saved in the .edf file for backwards
@@ -985,7 +988,7 @@ public final class FinalAlignedStackExpert extends ReconUIExpert {
       newstParam.setBinByFactor(Integer.MIN_VALUE);
     }
     newstParam.setSizeToOutputInXandY(dialog.getSizeToOutputInXandY(), dialog
-        .getBinning());
+        .getBinning(), metaData.getImageRotation(axisID), manager);
   }
 
   File getConfigDir() {
@@ -1010,7 +1013,7 @@ public final class FinalAlignedStackExpert extends ReconUIExpert {
     blendmontParam.setBinByFactor(dialog.getBinning());
     try {
       blendmontParam.convertToStartingAndEndingXandY(dialog
-          .getSizeToOutputInXandY());
+          .getSizeToOutputInXandY(),metaData.getImageRotation(axisID));
     }
     catch (FortranInputSyntaxException e) {
       e.printStackTrace();
