@@ -1,5 +1,8 @@
 IMOD History
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+12/15/08: Use a stereo-capable widget only when stereo is turned on to avoid
+problems on Macs.
+
 12/14/08: Set a color and modified material properties for the isosurface so
 that detail will not be washed out when viewing a surface face-on.
 
