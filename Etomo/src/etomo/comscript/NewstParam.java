@@ -11,6 +11,9 @@
  * @version $Revision$
  *
  * <p> $Log$
+ * <p> Revision 3.17  2007/12/13 01:05:34  sueh
+ * <p> bug# 1056 Added adjustOrigin.
+ * <p>
  * <p> Revision 3.16  2007/08/16 16:30:13  sueh
  * <p> bug# 1035 In setSizeToOutputInXandY divided values by binning.
  * <p>
@@ -126,7 +129,9 @@ import java.util.ArrayList;
 import java.util.Iterator;
 import java.util.Vector;
 
+import etomo.BaseManager;
 import etomo.type.AxisID;
+import etomo.util.MRCHeader;
 
 public class NewstParam extends ConstNewstParam implements CommandParam {
   public static final String rcsid = "$Id$";
@@ -547,10 +552,31 @@ public class NewstParam extends ConstNewstParam implements CommandParam {
 
   /**
    * @param sizeToOutputInXandY The sizeToOutputInXandY to set.
+   * if the user size is set, then this works even if the tilt axis angle is
+   * closer to 90 degress.  If the user size is not set and the tilt axis angle
+   * is closer to 90 degrees, then use x and y from the raw stack and transpose
+   * then.  In either case, when sizeToOutputInXandY is set always apply
+   * binning.
+   * 
+   * Will be called with an empty string by Positioning - whole tomogram.
    */
-  public void setSizeToOutputInXandY(String size, int binning)
+  public void setSizeToOutputInXandY(String userSize, int binning,
+      float imageRotation, BaseManager manager)
       throws FortranInputSyntaxException {
-    sizeToOutputInXandY.validateAndSet(size);
+    //make sure an empty string really causes sizeToOutputInXandY to be empty.
+    if (userSize.equals("")) {
+      userSize="/";
+    }
+    sizeToOutputInXandY.validateAndSet(userSize);
+    //UserSize is empty, check for an angle close to 90 degrees.
+    if ((sizeToOutputInXandY.isDefault() || sizeToOutputInXandY.isEmpty())
+        && Utilities.is90DegreeImageRotation(imageRotation)) {
+      MRCHeader header = MRCHeader.getInstance(manager, axisID, ".st");
+      //Set y from columns (x)
+      sizeToOutputInXandY.set(1, header.getNColumns());
+      //Set x from rows (y)
+      sizeToOutputInXandY.set(0, header.getNRows());
+    }
     if (binning != 1 && !sizeToOutputInXandY.isDefault()
         && !sizeToOutputInXandY.isEmpty()) {
       int iSize = sizeToOutputInXandY.getInt(0);
