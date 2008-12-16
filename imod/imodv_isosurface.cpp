@@ -247,7 +247,7 @@ ImodvIsosurface::ImodvIsosurface(struct ViewInfo *vi, QWidget *parent, const cha
   mViewIso = diaCheckBox("View isosurfaces", this, mLayout);
   mViewIso->setChecked(imodvIsosurfaceData.flags & IMODV_VIEW_ISOSURFACE);
   connect(mViewIso, SIGNAL(toggled(bool)), this, SLOT(viewIsoToggled(bool)));
-  mViewModel = diaCheckBox("View user models", this, mLayout);
+  mViewModel = diaCheckBox("View user model", this, mLayout);
   mViewModel->setChecked(imodvIsosurfaceData.flags & IMODV_VIEW_USER_MODEL);
   connect(mViewModel, SIGNAL(toggled(bool)), this, SLOT(viewModelToggled(bool)));
   mViewBoxing = diaCheckBox("View bounding box", this, mLayout);
@@ -403,6 +403,12 @@ ImodvIsosurface::ImodvIsosurface(struct ViewInfo *vi, QWidget *parent, const cha
     xobj->flags = xobj->flags & ~IMOD_OBJFLAG_EXTRA_MODV;
   }
   strcpy(xobj->name, "Isosurface extra object");
+  xobj->red = 186. / 255.;
+  xobj->green = 45. / 255.;
+  xobj->blue = 132. / 255.;
+  xobj->ambient = 126;
+  xobj->diffuse = 118;
+  xobj->specular = 61;
 
   Iobj *boxObj=ivwGetAnExtraObject(mIsoView, mBoxObjNum);
   boxObj->flags |= IMOD_OBJFLAG_EXTRA_MODV | IMOD_OBJFLAG_EXTRA_EDIT; 
@@ -1358,6 +1364,9 @@ void ImodvIsosurface::keyReleaseEvent ( QKeyEvent * e )
 /*
 
    $Log$
+   Revision 4.13  2008/12/09 23:26:57  mast
+   Changed flag from line to noline
+
    Revision 4.12  2008/11/15 22:03:25  mast
    Added object names to show up in object edit window
 
