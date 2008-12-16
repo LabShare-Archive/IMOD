@@ -1,5 +1,8 @@
 IMOD History
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+12/15/08: Fixed a bug where the bead diameter came up wrong when the 3dmod
+instance was already running.
+
 12/15/08: Handling a tilt axis angle near 90 degrees.
 
 12/15/08: Use a stereo-capable widget only when stereo is turned on to avoid
