@@ -3177,7 +3177,7 @@ QString zapPrintInfo(ZapStruct *zap, bool toInfoWindow)
   
   QString trimvol;
   trimvol.sprintf("  trimvol -x %d,%d %s %d,%d %s %d,%d", ixl + 1, ixr + 1, 
-           flipped ? "-z" : "-y", iyb + 1, iyt + 1, flipped ? "-yz -y" : "-z",
+           flipped ? "-z" : "-y", iyb + 1, iyt + 1, flipped ? "-rx -y" : "-z",
            lowSection, highSection);
 
   if (toInfoWindow) {
@@ -4586,6 +4586,10 @@ static int zapPointVisable(ZapStruct *zap, Ipoint *pnt)
 /*
 
 $Log$
+Revision 4.132  2008/12/08 17:27:42  mast
+Fixed crash potential and background line problems with montage snapshots
+Added scaling of sizes and thicknesses; added whole 1:1 snapshot
+
 Revision 4.131  2008/11/28 06:39:45  mast
 Don't draw extra ojects with odel view only flag set
 
