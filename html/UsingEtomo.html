@@ -11,6 +11,9 @@
 $Revision$
 
 $Log$
+Revision 3.12  2008/08/21 00:08:24  mast
+*** empty log message ***
+
 Revision 3.11  2007/11/20 22:55:57  mast
 Updates for multiple processing functions
 
@@ -231,7 +234,7 @@ will present a much more complete list of parameters for each step,
 which are mostly needed for unique or extreme cases.</p>
 <p class="western">Since the number of parameters that a particular
 step requires can vary significantly, <span
- style="font-family: helvetica,arial,sans-serif;">.epp</span>the amount
+ style="font-family: helvetica,arial,sans-serif;"></span>the amount
 of screen space the
 GUI needs to present that information also changes. The current version
 of the program will adjust the window size automatically to fit tightly
@@ -274,6 +277,16 @@ by 2.</span>&nbsp; The other way is to select the corresponding items
 in the <span style="font-weight: bold;">Options</span> menu, which
 will make 3dmod open that way every time.<br>
 </p>
+<p class="western">For many processing steps, it is also possible to
+run the operation and have the resulting images loaded into 3dmod
+automatically.&nbsp; Right click on the button that starts the action
+(e.g., Generate Tomogram) and menu will pop up with the choices <span
+ style="font-weight: bold;">And open 3dmod</span>, <span
+ style="font-weight: bold;">And open 3dmod with startup window</span>, <span
+ style="font-weight: bold;">And open 3dmod binned by 2.<span
+ style="font-weight: bold;">&nbsp; </span></span>Select the desired
+option to start the operation.<span style="font-weight: bold;"><br>
+</span></p>
 <p class="western">It is possible to load more than one data set into
 eTomo.&nbsp; Under the <span style="font-weight: bold;">File</span>
 menu there are entries to open an existing data set, open a new Setup
@@ -343,14 +356,19 @@ a configuration file called cpu.adoc located in the IMOD calibration
 directory, which is /usr/local/ImodCalib by default.&nbsp; Run "man
 cpuadoc" for a full description of how to set up such a file.&nbsp; A
 two-line file is sufficient to use a single multiprocessor
-system.&nbsp; Alternatively, you can enable parallel processing by
+system.&nbsp; There are two other alternatives when using a single
+system.&nbsp; First , you can open the <span style="font-weight: bold;">Options/Settings</span>
+dialog<span style="font-weight: bold;"></span>, turn on <span
+ style="font-weight: bold;">Enable Parallel processing</span>, and then
+fill in the number of CPUs.&nbsp; Second, you can enable parallel
+processing by
 setting an environment variable IMOD_PROCESSORS to the number of
 processors in the computer.&nbsp; For example, if you have 4 processors
 and use tcsh for your shell, place <br>
 &nbsp; <span style="font-style: italic;">setenv IMOD_PROCESSORS 4</span><br>
 in your .cshrc file, or if you use the bash shell, place<br>
 &nbsp; <span style="font-style: italic;">export IMOD_PROCESSORS=4</span><br>
-in your .bashrc file.&nbsp; You
+in your .bashrc file.&nbsp; If you are using multiple machines, you
 will also need to be able to log in via ssh without entering a password
 (see below) and run IMOD on all of the other computers that you want to
 use.&nbsp;
@@ -484,7 +502,7 @@ bugs</h1>
 <p class="western">We very much appreciate feedback from our
 users; this includes bug reports, suggestions for enhancements and
 general comments on what ideas or use models do or do not work.&nbsp;
-eTomo itself is now mature enough so that it is often not initially
+It is often not initially
 obvious to either you or us whether a problem is occuring because of
 bug in eTomo, a bug in the rest of IMOD, or other difficulties with a
 particular data set.&nbsp; To help diagnose problems, we have developed
