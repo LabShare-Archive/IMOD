@@ -41,7 +41,9 @@ class ImodvWindow : public QMainWindow
               WFlags f = WType_TopLevel | WDestructiveClose) ;
   ~ImodvWindow();
   void setCheckableItem(int id, bool state);
-  int setGLWidget(int db, int stereo);
+  int setGLWidget(ImodvApp *a, int db, int stereo);
+  ImodvGL *addGLWidgetToStack(QGLFormat *glFormat, bool db, int enableDepth,
+                              bool stereo);
 
   ImodvGL *mDBw;    // Double buffer widget
   ImodvGL *mSBw;    // Single buffer widget
@@ -98,6 +100,9 @@ protected:
 /*
 
 $Log$
+Revision 4.10  2008/12/15 21:26:28  mast
+Changes for stereo/non-stereo widgets
+
 Revision 4.9  2008/11/28 06:48:32  mast
 Add more menu items
 
