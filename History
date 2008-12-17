@@ -1,5 +1,7 @@
 IMOD History
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+12/16/08: Updated tutorial.
+
 12/16/08: Changed trimvol command output to info window and used for extract
 from -yz to -rx when data are flipped, figuring it is better to preserve
 handedness in extraction.
