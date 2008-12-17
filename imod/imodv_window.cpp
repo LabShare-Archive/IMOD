@@ -137,46 +137,29 @@ ImodvWindow::ImodvWindow(ImodvApp *a,
   mStack = new QWidgetStack(this);
   setCentralWidget(mStack);
   QGLFormat glFormat;
-  glFormat.setRgba(true);
 
   if (a->enableDepthDB >= 0) { 
-    glFormat.setDoubleBuffer(true);
-    glFormat.setDepth(a->enableDepthDB > 0);
-    glFormat.setStereo(false);
-    mDBw = new ImodvGL(glFormat, mStack);
-    mStack->addWidget(mDBw);
+    mDBw = addGLWidgetToStack(&glFormat, true, a->enableDepthDB, false);
     mCurGLw = mDBw;
     numWidg++;
   }
 
-  if (a->enableDepthDBst >= 0) { 
-    glFormat.setDoubleBuffer(true);
-    glFormat.setDepth(a->enableDepthDBst > 0);
-    glFormat.setStereo(true);
-    mDBstw = new ImodvGL(glFormat, mStack);
-    mStack->addWidget(mDBstw);
+  if (!numWidg && a->enableDepthDBst >= 0) { 
+    mDBstw = addGLWidgetToStack(&glFormat, true, a->enableDepthDBst, true);
     if (!numWidg)
       mCurGLw = mDBstw;
     numWidg++;
   }
 
   if (a->enableDepthSB >= 0) { 
-    glFormat.setDoubleBuffer(false);
-    glFormat.setDepth(a->enableDepthSB > 0);
-    glFormat.setStereo(false);
-    mSBw = new ImodvGL(glFormat, mStack);
-    mStack->addWidget(mSBw);
+    mSBw = addGLWidgetToStack(&glFormat, false, a->enableDepthSB, false);
     if (!numWidg)
       mCurGLw = mSBw;
     numWidg++;
   }
 
-  if (a->enableDepthSBst >= 0) { 
-    glFormat.setDoubleBuffer(true);
-    glFormat.setDepth(a->enableDepthSBst > 0);
-    glFormat.setStereo(true);
-    mSBstw = new ImodvGL(glFormat, mStack);
-    mStack->addWidget(mSBstw);
+  if (!numWidg && a->enableDepthSBst >= 0) { 
+    mSBstw = addGLWidgetToStack(&glFormat, true, a->enableDepthSBst, true);
     if (!numWidg)
       mCurGLw = mSBstw;
     numWidg++;
@@ -192,6 +175,24 @@ ImodvWindow::ImodvWindow(ImodvApp *a,
 
 ImodvWindow::~ImodvWindow()
 {
+}
+
+// Makes a GL widget with the goven properties and adds it to the stack
+ImodvGL *ImodvWindow::addGLWidgetToStack(QGLFormat *glFormat, bool db,
+                                         int enableDepth, bool stereo)
+{
+  ImodvGL *GLw;
+  int id;
+  glFormat->setRgba(true);
+  glFormat->setDoubleBuffer(db);
+  glFormat->setDepth(enableDepth > 0);
+  glFormat->setStereo(stereo);
+  GLw = new ImodvGL(*glFormat, mStack);
+  id = mStack->addWidget(GLw);
+  if (Imod_debug)
+    imodPrintStderr("Added widget %d  db %d depth %d stereo %d\n", id, db?1:0,
+                    enableDepth, stereo ? 1: 0);
+  return GLw;
 }
 
 // The slots for passing on the menu actions
@@ -226,8 +227,19 @@ void ImodvWindow::setCheckableItem(int id, bool state)
 }
 
 // Bring the selected widget to the top if it exists
-int ImodvWindow::setGLWidget(int db, int stereo)
+int ImodvWindow::setGLWidget(ImodvApp *a, int db, int stereo)
 {
+  QGLFormat glFormat;
+
+  // First create stereo widgets if going into stereo
+  if (stereo) {
+    if (Imodv->enableDepthDBst >= 0 && !mDBstw)
+      mDBstw = addGLWidgetToStack(&glFormat, true, a->enableDepthDBst, true);
+    if (Imodv->enableDepthSBst >= 0 && !mSBstw)
+      mSBstw = addGLWidgetToStack(&glFormat, false, a->enableDepthSBst, true);
+  }
+
+  // Get the desired widget to top of stack
   if (db && !stereo && mDBw)
     mCurGLw = mDBw;
   else if (!db && !stereo && mSBw)
@@ -239,6 +251,25 @@ int ImodvWindow::setGLWidget(int db, int stereo)
   else
     return 1;
   mStack->raiseWidget(mCurGLw);
+
+  // Now remove and destroy non-stereo widgets unless needed - won't work
+  // all the time if there is no nonstereo DB widget, but that doesn't matter
+  if (!stereo) {
+    if (mDBw && mDBstw) {
+      mStack->removeWidget(mDBstw);
+      delete mDBstw;
+      mDBstw = NULL;
+      if (Imod_debug)
+        imodPuts("Deleting DB stereo widget");
+    }
+    if (mSBstw && (mDBw || mDBstw || mSBw)) {
+      mStack->removeWidget(mSBstw);
+      delete mSBstw;
+      mSBstw = NULL;
+      if (Imod_debug)
+        imodPuts("Deleting SB stereo widget");
+    }
+  }
   return 0;
 }
 
@@ -347,6 +378,9 @@ void ImodvGL::wheelEvent ( QWheelEvent * e)
 /*
 
 $Log$
+Revision 4.21  2008/12/15 21:27:35  mast
+Make stack with nonstereo and stereo db/sb widgets, take Imodv in constructor
+
 Revision 4.20  2008/12/01 15:42:01  mast
 Changes for undo/redo and selection in 3dmodv standalone
 
