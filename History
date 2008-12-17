@@ -1,5 +1,8 @@
 IMOD History
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+12/17/08: Create a stereo-capable widget only when stereo is turned on to avoid
+problems on Macs.
+
 12/16/08: Updated tutorial.
 
 12/16/08: Changed trimvol command output to info window and used for extract
@@ -10,9 +13,6 @@ handedness in extraction.
 instance was already running.
 
 12/15/08: A tilt axis angle near 90 degrees is now handled properly from eTomo.
-
-12/15/08: Use a stereo-capable widget only when stereo is turned on to avoid
-problems on Macs.
 
 12/14/08: Set a color and modified material properties for the isosurface so
 that detail will not be washed out when viewing a surface face-on.
