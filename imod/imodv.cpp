@@ -311,7 +311,8 @@ static int getVisuals(ImodvApp *a)
             " no depth buffer\n");
 
   if (depthDB < 0)
-    imodError(NULL, "3dmodv warning: no double buffer visual available.\n");
+    imodError(NULL, "3dmodv warning: no %sdouble buffer visual available.\n",
+              depthDBst >= 0 ? "non-stereo " : "");
   else if (Imod_debug)
     imodPrintStderr("DB visual: %d color bits, %d depth bits\n",
 	   colorDB, depthDB);
@@ -771,6 +772,9 @@ void imodvQuit()
 
 /*
 $Log$
+Revision 4.43  2008/12/15 21:22:43  mast
+Make separate widgets for stereo so they are used only when stereo is on
+
 Revision 4.42  2008/12/01 15:42:01  mast
 Changes for undo/redo and selection in 3dmodv standalone
 
