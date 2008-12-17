@@ -145,9 +145,6 @@ clip) by extending image with replicted pixels instead of mean.
 11/30/08: Fixed a problem with contrast floating when starting in middle Z
 and contrast set from model.
 
-11/29/08: Added option to Imodjoin to generate new colors for objects being
-added to the first model.
-
 11/29/08: Enabled selection of contours, deletion of contours, and undo/redo
 when running as 3dmodv (standalone mode).
 
@@ -162,7 +159,7 @@ filling.
 11/29/08: Added ability to link slicers together when multiple volumes are
 loaded.
 
-11/28/08: Added option to Imodinfo to change the colors of objects being added
+11/28/08: Added option to Imodjoin to change the colors of objects being added
 to a model, to avoid getting a model with all green objects.
 
 11/27/08: Fixed slicer angle table display of coordinates to start from 1.
