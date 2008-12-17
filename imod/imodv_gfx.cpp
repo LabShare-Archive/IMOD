@@ -119,7 +119,7 @@ void imodv_setbuffer(ImodvApp *a, int db, int stereo)
     
   imodv_clear(a);
 
-  if (a->mainWin->setGLWidget(useDb, useStereo))
+  if (a->mainWin->setGLWidget(a, useDb, useStereo))
     return;
 
   // Only if it succeeds do we update the state items
@@ -492,6 +492,9 @@ static int imodv_snapshot(ImodvApp *a, QString fname)
 /*
 
 $Log$
+Revision 4.21  2008/12/15 21:25:29  mast
+Chnages for swapping between stereo and non stereo as well as db/sb widgets
+
 Revision 4.20  2008/10/02 22:46:04  mast
 Made single-buffer drawing work for stereo, cleared properly after stereo
 
