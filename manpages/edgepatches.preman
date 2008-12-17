@@ -8,16 +8,31 @@ edgepatches options supermontage_info_file
 .SH DESCRIPTION
 Edgepatches is a Python program that performs the first steps in stitching
 together tomograms that overlap laterally, which are referred to as a
-supermontage.  The program allows you to
+supermontage.  Stitching is done by running three different programs in
+sequence: Edgepatches, Stitchalign(1), and Tomostitch(1).  
+Edgepatches allows you to
 set up a master file with information about the tomograms and their overlap
 regions, referred to as a supermontage info file.  It performs 2D and 3D
 cross-correlations to determine the shifts between the volumes, then
 correlates local patches between overlapping volumes to obtain a set of 
-local displacements in the overlap zones.
+local displacements in the overlap zones.  You next run Stitchalign(1)
+to take this information and determine how the volumes can be transformed into
+alignment.  That program first derives an overall linear transformation
+(including shifts, rotations, size changes, and stretches as appropriate) to
+apply to each volume, and it also produces a set of vectors for each volume
+indicating how that volume needs to be warped to match up with adjacent ones
+where they overlap.  Finally, you run Tomostitch(1) to perform a series
+of tasks for building the stitched volume: 1) Deriving warping transformations
+from the warping vector fields; 2) Applying these warping transformations to
+each volume; 3) Adjusting densities of the volumes so that they match where
+they overlap; 4) Stacking the volumes so that they represent a montage readable
+by Blendmont(1); 5) Running Blendmont(1) to blend the 2D montaged images into
+one.
 .P
+Edgepatches can set up the info file when given the right information.
 For complex situations, you will probably want to name your volumes following
-one of the conventions supported by this program and let the program do the
-initial setup of the info file.  For simple situations, you have the option of
+one of the conventions supported by this program and let the program do this
+initial setup.  For simple situations, you have the option of
 starting the info file yourself with a text editor.  In any case, there are
 some situations that require manually inserting information about individual
 volumes into the info file.
