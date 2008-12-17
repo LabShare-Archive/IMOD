@@ -18,7 +18,7 @@ set axistype = ""
 #
 set oneAxisSetFiles = (.rawtlt _peak.mod .prexf .prexg .seed .fid .3dmod .tlt \
 fid.xyz .resid .resmod .tltxf _fid.xf local.xf .matmod .pl .ecd _orig.seed \
-.xtilt)
+.xtilt .maggrad .zfac)
 set oneAxisHeaders = (_orig.st .st .preali .ali .rec .mat _full.rec)
 set singleFiles = (solvezero.xf solve.xf refine.xf warp.xf inverse.xf \
 patch.out patch_vector.mod patch_vector_ccc.mod patch_region.mod lslrt.out \
@@ -238,6 +238,9 @@ Options:
 EOF
 
 #  $Log$
+#  Revision 3.18  2008/12/05 22:26:05  mast
+#  Collect error logs from ETOMO_LOG_DIR or .etomologs
+#
 #  Revision 3.17  2008/11/21 18:43:33  mast
 #  Add combine.out
 #
