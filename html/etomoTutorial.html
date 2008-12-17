@@ -564,7 +564,7 @@ The <span style="font-weight: bold;">Errors</span> tab contains a mean
 residual error and standard deviation and the ratio of measured values
 to total unknowns. <br>
 In my example, the first <span style="font-weight: bold;">Compute
-Alignment</span> run gave a Residual error mean of 0.365<br>
+Alignment</span> run gave a Residual error mean of 0.375<br>
 <br>
 </p>
 <p class="MsoNormal" style="text-align: center;"><img
@@ -684,9 +684,9 @@ Access the aligna.log file and go to the Surface Angles tab.<br>
 <p class="MsoNormal"></p>
 <p class="MsoNormal"><br>
 </p>
-<p class="MsoNormal">Note the Total tilt angle change at the bottom (in
+<p class="MsoNormal">Note the Total tilt angle change near the bottom (in
 my example,
-this value was 0.00). Put this value in the <span
+this value was -0.04). Put this value in the <span
  style="font-weight: bold;">Fine Alignment Volume Position Parameters</span>
 box under <span style="font-weight: bold;">Total tilt angle offset</span>.
 Press the&nbsp; Compute Alignment button again, then select &#8216;Reread log
@@ -727,7 +727,7 @@ eTomo, as long as you haven't changed any parameters in eTomo. After a
 few runs of running the alignment and
 checking model points in 3dmod, the final mean residual should come
 down to 0.2-0.4.&nbsp;&nbsp; In my example, the final Residual error
-mean was 0.315.</p>
+mean was 0.321.</p>
 <p class="MsoNormal"><br>
 </p>
 <div style="text-align: center;"><img src="etomoImages/finalAerror.png"
@@ -790,13 +790,11 @@ with a mottled appearance. This is the part of the reconstruction with
 biological material.&nbsp; Using the middle mouse button, place one
 model point at the left side of the top surface that defines the region
 containing the biological material, and a second model point at the
-right side of the top surface. A line will connect the two points. Hit
-&#8216;n&#8217; for a new contour and model the bottom surface of the section with
+right side of the top surface. A line will connect the two points. Model the bottom surface of the section with
 2 points on the left and right sides, respectively. Toggle to the
 mid.rec and bot.rec file by hitting the arrow button to the right of &#8216;4<sup>th</sup>
 D&#8217; at the top of the zap window. Repeat modeling the top and bottom
-surfaces of the other two reconstructions, hitting &#8216;n&#8217; for a new
-contour for each surface. The final model should have 1 object and 6
+surfaces of the other two reconstructions. The final model should have 1 object and 6
 contours, and each contour should have 2 model points.&nbsp; Save this
 model file.</p>
 <p>I generally make the thickness of the final tomogram ~20 pixels greater then the tomopitch result.  To do this, add ~7 pixels to <b>Added border thickness</b>.</p>
@@ -857,7 +855,7 @@ the final, aligned stack. The output file is named BBa.ali <br>
 <h1>&nbsp;<o:p></o:p></h1>
 <h1><o:p></o:p></h1>
 <h1></h1>
-<div align="center"><img src="etomoImages/TomogenA1.png" title="" alt="">&nbsp;
+<div align="center"><img src="etomoImages/FullAlignedStackA1.png" title="" alt="">&nbsp;
 <br>
 </div>
 <h1><span style="font-weight: normal;"></span></h1>
@@ -865,9 +863,24 @@ the final, aligned stack. The output file is named BBa.ali <br>
 <span style="font-weight: normal;"></span></h1>
 <h1><span style="font-weight: normal;">The full aligned stack may be
 viewed by pressing <span style="font-weight: bold;">View Full Aligned
-Stack</span>, although this is not necessary.&nbsp; There is an
-optional step for filtering the aligned stack, which is also not needed
-here.&nbsp; The default filtering parameters in the <span
+Stack</span>, although this is not necessary.&nbsp; There are
+optional steps for CTF correction, erasing fiducials, filtering the aligned stack, which are also not needed
+here.&nbsp; press the <span
+ style="font-weight: bold;">Done</span> button to advance to the next
+step.<br>
+</h1>
+<h1><br>
+</h1>
+<h1><br>
+</h1>
+<h1><font size="+1"></font></h1>
+<h1></h1>
+<p class="MsoNormal"> <o:p></o:p></p>
+<h1><span style="font-weight: normal;"><o:p></o:p></span></h1>
+<p class="MsoNormal"><o:p></o:p></p>
+<h1><br>
+</h1>
+ The default filtering parameters in the <span
  style="font-weight: bold;">Tilt Parameters</span> section are
 appropriate for many cases, but can be changed, or the aligned stack
 can be filtered, to reduce noise in the reconstruction (see the <a
@@ -878,7 +891,7 @@ section of the Tomography Guide for details).&nbsp; <br>
 </h1>
 <br>
 <h1 style="text-align: center;"><span style="font-weight: normal;"><img
- src="etomoImages/TomogenA2.png" title="" alt="">&nbsp;<o:p></o:p></span></h1>
+ src="etomoImages/TomogenA1.png" title="" alt="">&nbsp;<o:p></o:p></span></h1>
 <p class="MsoNormal">&nbsp;<o:p></o:p></p>
 <h1>Press 'Generate Tomogram'</h1>
 <p class="MsoNormal">When the tomogram is computed,&nbsp; examine it by
@@ -1120,20 +1133,23 @@ through the reconstruction and determine the &nbsp;X,Y and Z ranges
 for the final volume. A convenient way to set the X and Y range is to
 turn on the rubberband with the dashed rectangle in the toolbar of the
 Zap window, press the left mouse button over the upper left corner of
-the desired area, and drag the mouse to the lower right corner. When
+the desired area, and drag the mouse to the lower right corner. Z can
+also be set, if desired; press <b>Lo</b> to set the minimum Z and <b>Hi</b>
+to set the maximum Z.  When
 you press <span style="font-weight: bold;">Get XY Volume Range from
-3dmod,</span> eTomo will retrieve the X and Y values of the rubberband
+3dmod,</span> eTomo will retrieve the X and Y values of the rubberband (and Z values if they are set)
 from 3dmod. In this example, the default ranges for X and Y
 are used. The Z axis (in the flipped tomogram) range has been set from
 a Z min of 22 to a Z max of 75 to exclude non-cellular material.
 Finally a scaling range is set to find the range of slices that exclude
 the gold beads. In this example, the scaling is section based and has a
-range between slices 32 and 64.</p>
+range between slices 32 and 64 (see below to enter these numbers using 3dmod).</p>
 <p>The sample used in this example contains some featureless, light areas.&nbsp; Limiting the X and Y scaling range can improve the contrast of the final tomogram.  Press the <b>3dmod Full Volume</b> button and bring up the ZaP Window.&nbsp; Go to a slice which shows the featureless area clearly and put a rubberband around the area that is NOT featureless.&nbsp; To do this, press the rubberband toggle to the left of the Z slider.</p><br>
 <p class="MsoNormal" align="center">&nbsp;<img
  src="etomoImages/rubberband1.png" title="" alt="">&nbsp;<span style=""> </span><o:p></o:p></p>
 <p>Press the left mouse button over the upper left corner of
-the desired area, and drag the mouse to the lower right corner.</p>
+the desired area, and drag the mouse to the lower right corner.  Then move the Z slider to lower part of the scaling range (32) and press
+<b>Lo</b>.  Move the Z slider to the upper part of the scaling range (64) and press <b>Hi</b>.</p>
 <p class="MsoNormal" align="center">&nbsp;<img
  src="etomoImages/rubberband2.png" title="" alt="">&nbsp;<span style=""> </span><o:p></o:p></p>
 <p>Go to the <b>Scaling</b> box in eTomo and press the <b>Get XY Sub-Area From 3dmod</b> button.  This will cause the eTomo to retrieve X and Y values you selected.&nbsp; Press the <b>Trim Volume</b> button
