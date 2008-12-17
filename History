@@ -1,5 +1,9 @@
 IMOD History
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+12/16/08: Changed trimvol command output to info window and used for extract
+from -yz to -rx when data are flipped, figuring it is better to preserve
+handedness in extraction.
+
 12/15/08: Fixed a bug where the bead diameter came up wrong when the 3dmod
 instance was already running.
 
