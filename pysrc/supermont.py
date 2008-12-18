@@ -7,6 +7,9 @@
 #  $Id$
 #
 #  $Log$
+#  Revision 1.2  2007/04/11 15:45:25  mast
+#  Added Z limits for edges, wrote out Z limits for pieces properly
+#
 #  Revision 1.1  2007/04/08 16:23:57  mast
 #  Added to package
 #
@@ -50,11 +53,9 @@ def convertValues(line, value, numVal, func, defaultLast):
         print "%s Too few values in entry: %s" % (smpref, line)
         sys.exit(1)
     retval = []
-    for i in range(len(value) - 1):
+    for i in range(min(numVal, len(value))):
         retval.append(func(value[i]))
-    if len(value) >= numVal:
-        retval.append(func(value[numVal - 1]))
-    else:
+    if len(value) < numVal:
         retval.append(0)
     return retval
 
@@ -135,7 +136,7 @@ def readMontInfo(filename, predata, slices, pieces, edges):
                 checkDuplicate(piece, key, 'piece' + piece['file'])
                 if key == kFrame:
                     piece[key] = convertValues(line, value, 3, int, \
-                        nozvals == '0')
+                        nozvals == '1')
                 elif key == kSize:
                     piece[key] = convertValues(line, value, 3, int, 0)
                 elif key == kZlimit:
