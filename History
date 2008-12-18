@@ -1,5 +1,7 @@
 IMOD History
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+12/17/08: Fixed problem in Edgepatches with reading a Frame entry with no Z.
+
 12/17/08: Create a stereo-capable widget only when stereo is turned on to avoid
 problems on Macs.
 
