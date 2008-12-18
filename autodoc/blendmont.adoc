@@ -547,7 +547,8 @@ usage = Output image files with overlap zones and cross-correlations
 tooltip = 
 manpage = Output image files with the padded images being correlated in the
 overlap zones and with the cross-correlations.  Separate files are generated
-for X and Y edges, with extensions .xdbg and .ydbg.
+for X and Y edges, with extensions .xdbg and .ydbg.  If distortion corrections
+are being done, be sure to use -treat to get consistent sizes for all overlaps.
 
 [Field = ParameterFile]
 short = param
