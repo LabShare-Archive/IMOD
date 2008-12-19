@@ -1,5 +1,8 @@
 IMOD History
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+12/1908: Trimvol fixed to avoid 1-pixel errors in X/Y when extracting odd
+sizes from even or vice versa.
+
 12/19/08: Taperoutvol changed to not add padding to a single slice in Z.
 
 12/18/08: Changed isosurface color again, changed object names and scaled down 
