@@ -403,9 +403,11 @@ ImodvIsosurface::ImodvIsosurface(struct ViewInfo *vi, QWidget *parent, const cha
     xobj->flags = xobj->flags & ~IMOD_OBJFLAG_EXTRA_MODV;
   }
   strcpy(xobj->name, "Isosurface extra object");
-  xobj->red = 186. / 255.;
-  xobj->green = 45. / 255.;
-  xobj->blue = 132. / 255.;
+
+  // Original proposal was 115-79-26
+  xobj->red = 115. / 255.;
+  xobj->green = 79. / 255.;
+  xobj->blue = 26. / 255.;
   xobj->ambient = 126;
   xobj->diffuse = 118;
   xobj->specular = 61;
@@ -1275,8 +1277,11 @@ void ImodvIsosurface::buttonPressed(int which)
 
     Iobj *isoObj = ivwGetAnExtraObject(mIsoView, mExtraObjNum);
     Iobj *dup=imodObjectDup(isoObj);
-    imodObjectSetColor(dup, red, green, blue);
+
+    // Tone the colors down here also to prevent washout
+    imodObjectSetColor(dup, 0.6 * red, 0.6 * green, 0.6 * blue);
     imodObjectCopy(dup, userObj);
+    strcpy(userObj->name, "Saved isosurface");
 
     imodNewObject(userModel);
     Iobj *userBoxObj=imodObjectGet(userModel);
@@ -1284,6 +1289,7 @@ void ImodvIsosurface::buttonPressed(int which)
     Iobj *boxObj=ivwGetAnExtraObject(mIsoView, mBoxObjNum);
     Iobj *dupBox=imodObjectDup(boxObj);
     imodObjectCopy(dupBox, userBoxObj);
+    strcpy(userBoxObj->name, "Saved bounding box");
     Icont *firstCont=imodObjectGetContour(userBoxObj, 0);
     firstCont->flags &=~ICONT_DRAW_ALLZ;    
     imodDraw(Imodv->vi, IMOD_DRAW_MOD);
@@ -1364,6 +1370,9 @@ void ImodvIsosurface::keyReleaseEvent ( QKeyEvent * e )
 /*
 
    $Log$
+   Revision 4.14  2008/12/16 00:00:01  mast
+   Set a color and material properties to reduce washout
+
    Revision 4.13  2008/12/09 23:26:57  mast
    Changed flag from line to noline
 
