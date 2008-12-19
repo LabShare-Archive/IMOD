@@ -260,7 +260,7 @@ if ($?ix) then
     endif
 
     @ xsize = $xnd + 1 - $xst
-    @ xoffset = ($xst + $xnd + 1 - $nx) / 2
+    @ xoffset = $xst + $xsize / 2 - $nx / 2
 endif
 
 set inlet = "y"
@@ -292,7 +292,7 @@ if ($?iy) then
     endif
 
     @ ysize = $ynd + 1 - $yst
-    @ yoffset = ($yst + $ynd + 1 - $ny) / 2
+    @ yoffset = $yst + $ysize / 2 - $ny / 2
 endif
 
 set inlet = "y"
@@ -438,6 +438,9 @@ clean:
 exit 1
 
 #  $Log$
+#  Revision 3.19  2008/01/04 07:03:38  mast
+#  Fixed for space in IMOD_DIR, possibly for space in tmpdir
+#
 #  Revision 3.18  2007/12/06 21:35:55  mast
 #  Added uption to suppress origin adjustment
 #
