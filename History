@@ -1,5 +1,8 @@
 IMOD History
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+12/18/08: Changed isosurface color again, changed object names and scaled down 
+new color when saving an isosurface (In 3.13).
+
 12/17/08: IMOD_4-0-0 and branch to IMOD_3-13-0
 12/17/08: Fixed problem in Edgepatches with reading a Frame entry with no Z.
 
