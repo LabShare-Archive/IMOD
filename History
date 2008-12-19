@@ -1,5 +1,7 @@
 IMOD History
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+12/19/08: Taperoutvol changed to not add padding to a single slice in Z.
+
 12/18/08: Changed isosurface color again, changed object names and scaled down 
 new color when saving an isosurface (In 3.13).
 

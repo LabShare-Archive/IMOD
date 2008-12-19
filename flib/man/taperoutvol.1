@@ -3,10 +3,10 @@
 TAPEROUTVOL(1)							 TAPEROUTVOL(1)
 
 NNAAMMEE
-	taperoutvol - to excise a subset of a volume, taper and pad outside
+  taperoutvol - to excise a subset of a volume, taper and pad outside
 
 SSYYNNOOPPSSIISS
-	taperoutvol
+  taperoutvol
 
 DDEESSCCRRIIPPTTIIOONN
   TAPEROUTVOL will cut a subset out of an image volume, pad it into a
@@ -24,15 +24,17 @@ DDEESSCCRRIIPPTTIIOONN
   
   The starting and ending X index coordinates (number from 0), the
   starting and ending Y index coordinates, and the starting and ending
-  Z index coordinates to extract.  The default is the whole volume
+  Z index coordinates to extract.  The default is the whole volume.
   
   The width of the borders, in X, Y, and Z, with which to pad the
   image block.  Borders will be made larger as necessary to make the
-  output image size suitable for taking an FFT.
+  output image size suitable for taking a 3D FFT, with the exception
+  that if a single Z slice is requested with no padding, only a single
+  slice is produced without padding.
   
   The program will stop with an error message if the subset or the
   output image is too large, or if the subset is not entirely within
   the input volume.
   
 HHIISSTTOORRYY
-	  Written by David Mastronarde  3/1/01
+  Written by David Mastronarde  3/1/01
