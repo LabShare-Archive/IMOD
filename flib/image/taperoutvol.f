@@ -72,7 +72,8 @@ c
       nx3=niceframe(2*((nxbox+1)/2+npadx),2,19)
       ny3=niceframe(2*((nybox+1)/2+npady),2,19)
       nz3 = nzbox
-      if (nz3 .gt. 1) nz3=niceframe(2*((nzbox+1)/2+npadz),2,19)
+      if (nz3 .gt. 1 .or. npadz .gt. 0)
+     &    nz3=niceframe(2*((nzbox+1)/2+npadz),2,19)
 c       
       if(nx3*ny3.gt.idim**2) call exitError('PADDED BLOCK TOO LARGE')
 c       
@@ -140,6 +141,9 @@ c
       end
 c
 c       $Log$
+c       Revision 3.3  2008/12/19 15:00:00  mast
+c       If one slice requested without padding, do not pad in Z
+c
 c       Revision 3.2  2007/10/04 00:41:53  mast
 c       Made it set origin to preserve coordinate system
 c
