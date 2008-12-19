@@ -7,33 +7,12 @@ c       the actual excised pixels to the edge of the new volume.  None of
 c       the original excised pixels are attenuated by this method.  The
 c       resulting volume will have dimensions suitable for taking the FFT.
 c       
-c       Inputs to the program:
-c       
-c       Name of input file
-c       
-c       Name of output file
-c       
-c       The starting and ending X index coordinates (number from 0), the
-c       starting and ending Y index coordinates, and the starting and ending
-c       Z index coordinates to extract.  The default is the whole volume.
-c       
-c       The width of the borders, in X, Y, and Z, with which to pad the
-c       image block.  Borders will be made larger as necessary to make the
-c       output image size suitable for taking an FFT.
-c       
-c       The program will stop with an error message if the subset or the
-c       output image is too large, or if the subset is not entirely within
-c       the input volume.
+c       See man page for details.
 c       
 c       David Mastronarde, 3/1/01
 c       
 c       $Id$
-c       
-c       $Log$
-c       Revision 3.1  2002/07/31 20:06:21  mast
-c       Made it preserve pixel size.  Also standardized error output and
-c       made declarations for implicit none.
-c       
+c       Log at end
 c       
       implicit none
       integer idim,NX,NY,NZ
@@ -92,7 +71,8 @@ c
       read(5,*)npadx,npady,npadz
       nx3=niceframe(2*((nxbox+1)/2+npadx),2,19)
       ny3=niceframe(2*((nybox+1)/2+npady),2,19)
-      nz3=niceframe(2*((nzbox+1)/2+npadz),2,19)
+      nz3 = nzbox
+      if (nz3 .gt. 1) nz3=niceframe(2*((nzbox+1)/2+npadz),2,19)
 c       
       if(nx3*ny3.gt.idim**2) call exitError('PADDED BLOCK TOO LARGE')
 c       
@@ -158,3 +138,12 @@ c
       call exit(0)
 99    call exitError('READING FILE')
       end
+c
+c       $Log$
+c       Revision 3.2  2007/10/04 00:41:53  mast
+c       Made it set origin to preserve coordinate system
+c
+c       Revision 3.1  2002/07/31 20:06:21  mast
+c       Made it preserve pixel size.  Also standardized error output and
+c       made declarations for implicit none.
+c       
