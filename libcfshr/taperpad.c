@@ -10,20 +10,26 @@
  */
 
 #include "mrcslice.h"
-#include "cfsemshare.h"
 #include "imodconfig.h"
+#include "b3dutil.h"
 
 #ifdef F77FUNCAP
 #define taperoutpad TAPEROUTPAD
+#define smoothoutpad SMOOTHOUTPAD
 #define taperinpad TAPERINPAD
 #define sliceedgemean SLICEEDGEMEAN
 #define splitfill SPLITFILL
 #else
 #define taperoutpad taperoutpad_
+#define smoothoutpad smoothoutpad_
 #define taperinpad taperinpad_
 #define sliceedgemean sliceedgemean_
 #define splitfill splitfill_
 #endif
+
+static void copyToCenter(void *array, int type, int nxbox, int nybox,
+                         float *brray, int nxdim, int nx, int ny, int *ixlo,
+                         int *ixhi, int *iylo, int *iyhi);
 
 /*!
  * Pads an image in [array] with dimensions [nxbox] by [nybox] into the center
@@ -40,46 +46,11 @@ void sliceTaperOutPad(void *array, int type, int nxbox, int nybox,
                       float *brray, int nxdim, int nx, int ny, int ifmean,
                       float dmeanin)
 {
-  b3dUByte *bytein;
-  b3dInt16 *intin;
-  b3dUInt16 *uintin;
-  float *floatin;
-  float *out;
   int ixlo, ixhi, iylo, iyhi, ix, iy, nxtop, nytop, iytoplin;
   float sum, dmean, edgel, edger, wedge, wmean, prodmean;
 
-  ixlo = (nx - nxbox) / 2;
-  ixhi = ixlo + nxbox;
-  iylo = (ny - nybox) / 2;
-  iyhi = iylo + nybox;
-  for (iy = nybox - 1; iy >= 0; iy--) {
-    out = brray + ixhi + (iylo + iy) * nxdim - 1;
-    switch (type) {
-    case SLICE_MODE_BYTE:
-      bytein = (b3dUByte *)array + (iy + 1) * nxbox - 1;
-      for (ix = nxbox - 1; ix >= 0; ix--)
-        *out-- = *bytein--;
-      break;
-      
-    case SLICE_MODE_SHORT:
-      intin = (b3dInt16 *)array + (iy + 1) * nxbox - 1;
-      for (ix = nxbox - 1; ix >= 0; ix--)
-        *out-- = *intin--;
-      break;
-      
-    case SLICE_MODE_USHORT:
-      uintin = (b3dUInt16 *)array + (iy + 1) * nxbox - 1;
-      for (ix = nxbox - 1; ix >= 0; ix--)
-        *out-- = *uintin--;
-      break;
-      
-    case SLICE_MODE_FLOAT:
-      floatin = (float *)array + (iy + 1) * nxbox - 1;
-      for (ix = nxbox - 1; ix >= 0; ix--)
-        *out-- = *floatin--;
-      break;
-    }
-  }
+  copyToCenter(array, type, nxbox, nybox, brray, nxdim, nx, ny, &ixlo, &ixhi,
+               &iylo, &iyhi);
 
   /* Do the taper if there is any padding */
   if (nxbox != nx || nybox != ny) {
@@ -123,6 +94,53 @@ void sliceTaperOutPad(void *array, int type, int nxbox, int nybox,
         brray[ix + iytoplin * nxdim] = prodmean + 
           wedge * brray[ix + (iyhi - 1) * nxdim];
       }
+    }
+  }
+}
+
+/* Common function for copying the box to the center of the array and returning
+   limiting coordinates */
+static void copyToCenter(void *array, int type, int nxbox, int nybox,
+                         float *brray, int nxdim, int nx, int ny, int *ixlo,
+                         int *ixhi, int *iylo, int *iyhi)
+{
+  b3dUByte *bytein;
+  b3dInt16 *intin;
+  b3dUInt16 *uintin;
+  float *floatin;
+  float *out;
+  int  ix, iy;
+
+  *ixlo = (nx - nxbox) / 2;
+  *ixhi = *ixlo + nxbox;
+  *iylo = (ny - nybox) / 2;
+  *iyhi = *iylo + nybox;
+  for (iy = nybox - 1; iy >= 0; iy--) {
+    out = brray + *ixhi + (*iylo + iy) * nxdim - 1;
+    switch (type) {
+    case SLICE_MODE_BYTE:
+      bytein = (b3dUByte *)array + (iy + 1) * nxbox - 1;
+      for (ix = nxbox - 1; ix >= 0; ix--)
+        *out-- = *bytein--;
+      break;
+      
+    case SLICE_MODE_SHORT:
+      intin = (b3dInt16 *)array + (iy + 1) * nxbox - 1;
+      for (ix = nxbox - 1; ix >= 0; ix--)
+        *out-- = *intin--;
+      break;
+      
+    case SLICE_MODE_USHORT:
+      uintin = (b3dUInt16 *)array + (iy + 1) * nxbox - 1;
+      for (ix = nxbox - 1; ix >= 0; ix--)
+        *out-- = *uintin--;
+      break;
+      
+    case SLICE_MODE_FLOAT:
+      floatin = (float *)array + (iy + 1) * nxbox - 1;
+      for (ix = nxbox - 1; ix >= 0; ix--)
+        *out-- = *floatin--;
+      break;
     }
   }
 }
@@ -275,6 +293,163 @@ void taperinpad(void *array, int *nxbox, int *nybox, float *brray, int *nxdim,
                   *nybox - 1, brray, *nxdim, *nx, *ny, *nxtap, *nytap);
 }
 
+/*!
+ * Pads an image in [array] with dimensions [nxbox] by [nybox] into the center
+ * of a larger array, [brray], which can be the same as [array].  The 
+ * SLICE_MODE is specified by [type], which must be byte, float or short 
+ * integer. The size of the padded image is specified by [nx] and [ny] while 
+ * [nxdim] specifies the X dimension of the output array.  The padding is done
+ * by replicating pixels and smoothing lines progressively more for farther
+ * out from the pixels in the box.  This is done in a series of progressively
+ * larger rectangles; the each pixel in first rectangle contains the average
+ * of the three nearest pixels on the outer edge of the actual data; each pixel
+ * in the second rectangle is the average of the 5 nearest pixels in the first
+ * rectangle, etc.
+ */
+void sliceSmoothOutPad(void *array, int type, int nxbox, int nybox, 
+                         float *brray, int nxdim, int nx, int ny)
+{
+  int ixlo, ixhi, iylo, iyhi, ix, iy, x, y, dirx, diry, nsum, numPad, ipad;
+  int xmin, xlimlo, xmax, xlimhi, xLineLo, xLineHi, xside, xstart, xend;
+  int ymin, ylimlo, ymax, ylimhi, yLineLo, yLineHi, yside, ystart, yend;
+  float sum;
+
+  copyToCenter(array, type, nxbox, nybox, brray, nxdim, nx, ny, &ixlo, &ixhi,
+               &iylo, &iyhi);
+  numPad = b3dIMax(4, ixlo, nx - ixhi, iylo, ny - iyhi);
+  /* printf("%d %d %d %d\n", ixlo, ixhi, iylo, iyhi); */
+  for (ipad = 1; ipad <= numPad; ipad++) {
+    xLineLo = ixlo - ipad;
+    xLineHi = ixhi + ipad - 1;
+    xmin = B3DMAX(0, xLineLo);
+    xlimlo = B3DMAX(0, xLineLo + 1);
+    xmax = B3DMIN(nx - 1, xLineHi);
+    xlimhi = B3DMIN(nx - 1, xLineHi - 1);
+
+    yLineLo = iylo - ipad;
+    yLineHi = iyhi + ipad - 1;
+    ymin = B3DMAX(0, yLineLo);
+    ylimlo = B3DMAX(0, yLineLo + 1);
+    ymax = B3DMIN(ny - 1, yLineHi);
+    ylimhi = B3DMIN(ny - 1, yLineHi - 1);
+    /* printf("ipad %d X: %d %d %d %d %d %d\n", ipad, xLineLo, xLineHi, xmin,
+       xmax, xlimlo, xlimhi);
+       printf("ipad %d Y: %d %d %d %d %d %d\n", ipad, yLineLo, yLineHi, ymin,
+       ymax, ylimlo, ylimhi); */
+
+    diry = 1;
+    for (iy = yLineLo; iy <= yLineHi; iy += yLineHi - yLineLo) {
+      if (iy < 0 || iy >= ny) {
+        diry = -1;
+        continue;
+      }
+      for (ix = xmin; ix <= xmax; ix++) {
+        xside = -1;
+        xstart = ix - ipad;
+        if (xstart < xlimlo) {
+          xstart = xlimlo;
+          if (xstart) {
+            ystart = iy + 2 * diry;
+            yend = ystart + diry * (xstart - (ix - ipad) - 1);
+            yend = B3DMAX(ylimlo + 1, B3DMIN(ylimhi - 1, yend));
+            if (diry * ystart <= diry * yend)
+              xside = xstart;
+          }
+        }
+        xend = ix + ipad;
+        if (xend > xlimhi) {
+          xend = xlimhi;
+          if (xend < nx && xside < 0) {
+            ystart = iy + 2 * diry;
+            yend = ystart + diry * (ix + ipad - xend - 1);
+            yend = B3DMAX(ylimlo + 1, B3DMIN(ylimhi - 1, yend));
+            if (diry * ystart <= diry * yend)
+              xside = xend;
+          }
+        }
+
+        sum = 0.;
+        nsum = xend + 1 - xstart;
+        /* printf("ix %d iy %d xs %d xe %d xside %d diry %d\n", ix, iy, 
+           xstart, xend, xside, diry); */
+        for (x = xstart; x <= xend; x++)
+          sum += brray[x + nxdim * (iy + diry)];
+        if (xside >= 0) {
+          /* printf("ys %d  ye %d  nsumst %d sumst %.1f", ystart, yend, sum, 
+             nsum); */
+          for (y = ystart; diry * y <= diry * yend; y+= diry) {
+            sum += brray[xside + nxdim * y];
+            nsum++;
+          }
+          /* printf(" %.1f / %d = %.1f\n", sum, nsum, sum / nsum); */
+        }
+        brray[ix + nxdim * iy] = sum / nsum;
+      }
+      diry = -1;
+    }
+
+    dirx = 1;
+    for (ix = xLineLo; ix <= xLineHi; ix += xLineHi - xLineLo) {
+      if (ix < 0 || ix >= nx) {
+        dirx = -1;
+        continue;
+      }
+      for (iy = ymin; iy <= ymax; iy++) {
+        yside = -1;
+        ystart = iy - ipad;
+        if (ystart < ylimlo) {
+          ystart = ylimlo;
+          if (ystart) {
+            xstart = ix + 2 * dirx;
+            xend = xstart + dirx * (ystart - (iy - ipad) - 1);
+            xend = B3DMAX(xlimlo + 1, B3DMIN(xlimhi - 1, xend));
+            if (dirx * xstart <= dirx * xend)
+              yside = ystart;
+          }
+        }
+        yend = iy + ipad;
+        if (yend > ylimhi) {
+          yend = ylimhi;
+          if (yend < ny && yside < 0) {
+            xstart = ix + 2 * dirx;
+            xend = xstart + dirx * (iy + ipad - yend - 1);
+            xend = B3DMAX(xlimlo + 1, B3DMIN(xlimhi - 1, xend));
+            if (dirx * xstart <= dirx * xend)
+              yside = yend;
+          }
+        }
+
+        sum = 0.;
+        nsum = yend + 1 - ystart;
+        /* printf("ix %d iy %d ys %d ye %d yside %d dirx %d\n", ix, iy, 
+           ystart, yend, yside, dirx); */
+        for (y = ystart; y <= yend; y++)
+          sum += brray[ix + dirx + nxdim * y];
+        if (yside >= 0) {
+          /* printf("xs %d  xe %d  nsumst %d sumst %.1f", xstart, xend, sum, 
+             nsum); */
+          for (x = xstart; dirx * x <= dirx * xend; x+= dirx) {
+            sum += brray[x + nxdim * yside];
+            nsum++;
+          }
+          /* printf(" %.1f / %d = %.1f\n", sum, nsum, sum / nsum); */
+        }
+        brray[ix + nxdim * iy] = sum / nsum;
+      }
+      dirx = -1;
+    }
+  }
+}
+
+/*!
+ * Fortran wrapper to call @sliceSmoothOutPad with a floating point array.
+ */
+void smoothoutpad(void *array, int *nxbox, int *nybox, float *brray, 
+                  int *nxdim, int *nx, int *ny)
+{
+  sliceSmoothOutPad(array, SLICE_MODE_FLOAT, *nxbox, *nybox,
+                    brray, *nxdim, *nx, *ny);
+}
 
 /*!
  * Computes the mean along the edge for the portion of the image in [array]
@@ -373,6 +548,9 @@ void splitfill(float *array, int *nxbox, int *nybox, float *brray,
 
 /*
   $Log$
+  Revision 1.6  2008/12/01 15:26:53  mast
+  Added splitfill
+
   Revision 1.5  2007/10/20 20:03:08  mast
   Oops, subtract not add 1 for fortran indices
 
