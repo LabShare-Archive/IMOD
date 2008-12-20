@@ -74,6 +74,8 @@ extern "C" {
                        int iyhi);
   void sliceSplitFill(float *array, int nxbox, int nybox, float *brray,
                       int nxdim, int nx, int ny, int iffill, float fillin);
+  void sliceSmoothOutPad(void *array, int type, int nxbox, int nybox, 
+                           float *brray, int nxdim, int nx, int ny);
 
   /* taperatfill.c */
   int sliceTaperAtFill(Islice *sl, int ntaper, int inside);
@@ -144,6 +146,9 @@ extern "C" {
 /*
 
 $Log$
+Revision 3.9  2008/12/01 15:31:01  mast
+More functions
+
 Revision 3.8  2008/11/18 22:44:06  mast
 Added amat_to_rotmagstr
 
