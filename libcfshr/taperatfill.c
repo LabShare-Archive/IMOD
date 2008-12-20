@@ -43,9 +43,9 @@ int sliceTaperAtFill(Islice *sl, int ntaper, int inside)
   float fracs[MAX_TAPER], fillpart[MAX_TAPER];
   float fillval, lastval;
   int len, longest;
-  int i, j, k, ix, iy, xnext, ynext, xp, yp, lastint, interval, found;
-  int dir, tapdir, col, row, ncol, ind, xstart, ystart, ndiv;
-  int dist, distmin, distmax, minedge;
+  int i, j, k, ix, iy, xnext, ynext, xp, yp, longix, longiy, lastix, lastiy;
+  int dir, tapdir, col, row, ncol, ind, xstart, ystart, found, dirstart;
+  int dist, distmin, distmax, minedge, lastout;
   struct pixdist *plist;
   struct edgelist *elist;
   int pllimit;
@@ -77,6 +77,8 @@ int sliceTaperAtFill(Islice *sl, int ntaper, int inside)
     len = 0;
     sliceGetVal(sl, 0, iy, val);
     lastval = val[0];
+    lastix = 0;
+    lastiy = iy;
     for (ix = 1; ix < xsize; ix++) {
       sliceGetVal(sl, ix, iy, val);
       if (val[0] == lastval) {
@@ -86,11 +88,15 @@ int sliceTaperAtFill(Islice *sl, int ntaper, int inside)
         if (len > longest) {
           longest = len;
           fillval = lastval;
+          longix = lastix;
+          longiy = lastiy;
+          dir = iy ? 2 : 0;
         }
       } else {
         /* different, reset count and set new lastval */
         len = 0;
         lastval = val[0];
+        lastix = ix;
       }
     }
   }         
@@ -98,6 +104,8 @@ int sliceTaperAtFill(Islice *sl, int ntaper, int inside)
     len = 0;
     sliceGetVal(sl, ix, 0, val);
     lastval = val[0];
+    lastix = ix;
+    lastiy = 0;
     for (iy = 1; iy < ysize; iy++) {
       sliceGetVal(sl, ix, iy, val);
       if (val[0] == lastval) {
@@ -107,11 +115,15 @@ int sliceTaperAtFill(Islice *sl, int ntaper, int inside)
         if (len > longest) {
           longest = len;
           fillval = lastval;
+          longix = lastix;
+          longiy = lastiy;
+          dir = ix ? 1 : 3;
         }
       } else {
         /* different, reset count and set new lastval */
         len = 0;
         lastval = val[0];
+        lastiy = iy;
       }
     }
   }         
@@ -124,30 +136,23 @@ int sliceTaperAtFill(Islice *sl, int ntaper, int inside)
      edges */
   sl->mean = fillval;
 
-  /* look from left edge along a series of lines to find the first point
-     that is not a fill point */
-  lastint = 0;
+  /* Start at the middle of that long interval and walk in until non-fill
+     pixel is found */
+  ix = longix + dxnext[dir % 2] * longest / 2;
+  iy = longiy + dynext[dir % 2] * longest / 2;
   found = 0;
-  for (ndiv = 2; ndiv <= ysize; ndiv++) {
-    interval = (ysize + 2) / ndiv;
-    if (interval == lastint)
-      continue;
-    lastint = interval;
-    for (iy = interval; iy < ysize; iy += interval) {
-      for (ix = 0; ix < xsize; ix++) {
-        sliceGetVal(sl, ix, iy, val);
-        if (val[0] != fillval) {
-          found = 1;
-          break;
-        }
-      }
-      if (found)
-        break;
-    }
-    if (found)
+  /*printf("\nlongix %d longiy %d dir %d longest %d ix %d iy %d\n", longix,
+    longiy, dir, longest, ix, iy);*/
+  while (!found) {
+    ix -= dxout[dir];
+    iy -= dyout[dir];
+    if (ix < 0 || ix >= xsize || iy < 0 || iy >= ysize)
       break;
+    sliceGetVal(sl, ix, iy, val);
+    if (val[0] != fillval)
+      found = 1;
   }
-
+  
   if (!found)
     return 0;
 
@@ -168,13 +173,15 @@ int sliceTaperAtFill(Islice *sl, int ntaper, int inside)
   for (i = 0; i < bmsize; i++)
     bitmap[i] = 0;
 
-  dir = 3;
+  dirstart = dir;
   xstart = ix;
   ystart = iy;
   tapdir = 1 - 2 * inside;
   elist[0].x = ix;
   elist[0].y = iy;
   elsize = 1;
+  lastout = 1;
+  /* printf("xstart %d ystart  %d\n", xstart, ystart);*/
 
   do {
     ncol = 1;
@@ -202,14 +209,16 @@ int sliceTaperAtFill(Islice *sl, int ntaper, int inside)
         dir = (dir + 1) % 4;
         if (!inside)
           ncol = ntaper + 1;
-        ind = 0;
+        ind = lastout;
       }
     }
+    /* printf ("%d %d %d %d %d\n", xnext, ynext, ix, iy, dir); */
 
     /* If outside pixel is outside the data, nothing to add to lists */
     xp = ix + dxout[dir];
     yp = iy + dyout[dir];
-    if (xp < 0 || xp >= xsize || yp < 0 || yp >= ysize)
+    lastout = (xp < 0 || xp >= xsize || yp < 0 || yp >= ysize) ? 1 : 0;
+    if (lastout)
       continue;
 
     /* Add a new point to edge list */
@@ -280,7 +289,7 @@ int sliceTaperAtFill(Islice *sl, int ntaper, int inside)
       }
     }
 
-  } while (ix != xstart || iy != ystart || dir != 3);
+  } while (ix != xstart || iy != ystart || dir != dirstart);
 
   /* make tables of fractions and amounts to add of fillval */
   for (i = 1; i <= ntaper; i++) {
@@ -317,11 +326,13 @@ int sliceTaperAtFill(Islice *sl, int ntaper, int inside)
     }
 
     ind = sqrt((double)distmin) + inside;
-    /* printf("   end dist %d to %d,%d\n", distmin,elist[minedge].x,
+    /* printf("   end dist %d to %d,%d", distmin,elist[minedge].x,
        elist[minedge].y); */
     
-    if (ind > ntaper)
+    if (ind > ntaper) {
+      /* printf("\n"); */
       continue;
+    }
     if (inside) {
       xp = ix;
       yp = iy;
@@ -333,6 +344,7 @@ int sliceTaperAtFill(Islice *sl, int ntaper, int inside)
     /*  val[0] = fracs[plist[i].dist] * val[0] + fillpart[plist[i].dist]; */
     val[0] = fracs[ind] * val[0] + fillpart[ind];
     slicePutVal(sl, ix, iy, val);
+    /* printf("  put val %f\n", val[0]); */
   }
 
   free(plist);
@@ -354,6 +366,9 @@ int taperatfill(float *array, int *nx, int *ny, int *ntaper, int *inside)
 /*
 
 $Log$
+Revision 1.4  2008/11/12 05:09:36  mast
+Add nath include for sqrt
+
 Revision 1.3  2008/10/17 14:19:32  mast
 change include to use min/max macros
 
