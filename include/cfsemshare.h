@@ -62,6 +62,9 @@ extern "C" {
                      float *ypeak, float *peak, int maxpeaks);
   double parabolicFitPosition(float y1, float y2, float y3);
   void conjugateProduct(float *array, float *brray, int nx, int ny);
+  double XCorrCCCoefficient(float *array, float *brray, int nxdim, int nx,
+                            int ny, float xpeak, float ypeak, int nxpad,
+                            int nypad);
 
   /* taperpad.c */
   void sliceTaperOutPad(void *array, int type, int nxbox, int nybox, 
@@ -146,6 +149,9 @@ extern "C" {
 /*
 
 $Log$
+Revision 3.10  2008/12/20 05:32:46  mast
+Added smooth pad function
+
 Revision 3.9  2008/12/01 15:31:01  mast
 More functions
 
