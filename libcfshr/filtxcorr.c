@@ -11,7 +11,7 @@
 
 #include <math.h>
 #include "imodconfig.h"
-#include "cfsemshare.h"
+#include "b3dutil.h"
 
 #ifdef F77FUNCAP
 #define setctfwsr SETCTFWSR
@@ -20,6 +20,7 @@
 #define xcorrpeakfind XCORRPEAKFIND
 #define meanzero MEANZERO
 #define parabolicfitposition PARABOLICFITPOSITION
+#define cccoefficient CCCOEFFICIENT
 #else
 #define setctfwsr setctfwsr_
 #define setctfnoscl setctfnoscl_
@@ -27,6 +28,7 @@
 #define xcorrpeakfind xcorrpeakfind_
 #define meanzero meanzero_
 #define parabolicfitposition parabolicfitposition_
+#define cccoefficient cccoefficient_
 #endif
 
 /*!
@@ -269,8 +271,8 @@ void meanzero(float *array, int *nxdim, int *nx, int *ny)
  * to be [nxdim] - 2.  The sub-pixel position is determined by fitting a
  * parabola separately in X and Y to the peak and 2 adjacent points.  Positions
  * are numbered from zero and coordinates bigger than half the image size are
- * shifted to be negative.  The positions are this the amount to shift a second
- * image in a correlation to a align it to the first.  If fewer than [maxpeaks]
+ * shifted to be negative.  The positions are thus the amount to shift a second
+ * image in a correlation to align it to the first.  If fewer than [maxpeaks]
  * peaks are found, then the remaining values in [peaks] will be 1.e-30.
  */
 void XCorrPeakFind(float *array, int nxdim, int ny, float  *xpeak,
@@ -453,7 +455,62 @@ void conjugateProduct(float *array, float *brray, int nx, int ny)
   }
 }
 
+/*!
+ * Computes the cross-correlation coefficient between the images in [array] and
+ * [brray] at a shift between the images given by [xpeak], [ypeak].  The images
+ * have sizes [nx] by [ny] and the arrays have X dimension [nxdim].  Areas on
+ * each size of [nxpad] in X and [nypad] in Y are excluded from the 
+ * correlation.  Otherwise, the correlation will include all the pixels in the 
+ * overlap between the images at the given shift.
+ */
+double XCorrCCCoefficient(float *array, float *brray, int nxdim, int nx,
+                          int ny, float xpeak, float ypeak, int nxpad,
+                          int nypad)
+{
+  double asum, bsum, csum, asumsq, bsumsq, ccc, aval, bval;
+  int delx, dely, xstrt, xend, ystrt, yend, nsum, ix, iy;
+  delx = (int)floor(xpeak + 0.5);
+  xstrt = B3DMAX(nxpad, nxpad + delx);
+  xend = B3DMIN(nx - nxpad, nx - nxpad + delx);
+  dely = (int)floor(ypeak + 0.5);
+  ystrt = B3DMAX(nypad, nypad + dely);
+  yend = B3DMIN(ny - nypad, ny - nypad + dely);
+  asum = bsum = csum = asumsq = bsumsq = 0.;
+  nsum = (xend + 1 - xstrt) * (yend + 1 - ystrt);
+  if (xend < xstrt || yend < ystrt || nsum < 25)
+    return 0.;
+  for (iy = ystrt; iy < yend; iy++) {
+    for (ix = xstrt; ix < xend; ix++) {
+      aval = array[ix + iy * nxdim];
+      bval = brray[ix - delx + (iy - dely) * nxdim];
+      asum += aval;
+      asumsq += aval * aval;
+      bsum += bval;
+      bsumsq += bval * bval;
+      csum += aval * bval;
+    }
+  }
+  ccc = (nsum * asumsq - asum * asum) * (nsum * bsumsq - bsum * bsum);
+  if (ccc <= 0.)
+    return 0.;
+  ccc = (nsum * csum - asum * bsum) / sqrt(ccc);
+  return ccc;
+}
+
+/*!
+ * Fortran wrapper to @XCorrCCCoefficient.
+ */
+double cccoefficient(float *array, float *brray, int *nxdim, int *nx, int *ny,
+                     float *xpeak, float *ypeak, int *nxpad, int *nypad)
+{
+return XCorrCCCoefficient(array, brray, *nxdim, *nx, *ny, *xpeak, *ypeak,
+                          *nxpad, *nypad);
+}
+
 /*  $Log$
+/*  Revision 1.5  2008/06/21 05:15:07  mast
+/*  Scaled del squared G filter to max of 1
+/*
 /*  Revision 1.4  2007/11/02 00:10:04  mast
 /*  Set filter to zero below 1.e-6 to avoid numberical problems and delays
 /*
