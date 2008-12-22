@@ -21,6 +21,7 @@
 #define meanzero MEANZERO
 #define parabolicfitposition PARABOLICFITPOSITION
 #define cccoefficient CCCOEFFICIENT
+#define conjugateproduct CONJUGATEPRODUCT
 #else
 #define setctfwsr setctfwsr_
 #define setctfnoscl setctfnoscl_
@@ -29,6 +30,7 @@
 #define meanzero meanzero_
 #define parabolicfitposition parabolicfitposition_
 #define cccoefficient cccoefficient_
+#define conjugateproduct conjugateproduct_
 #endif
 
 /*!
@@ -273,7 +275,7 @@ void meanzero(float *array, int *nxdim, int *nx, int *ny)
  * are numbered from zero and coordinates bigger than half the image size are
  * shifted to be negative.  The positions are thus the amount to shift a second
  * image in a correlation to align it to the first.  If fewer than [maxpeaks]
- * peaks are found, then the remaining values in [peaks] will be 1.e-30.
+ * peaks are found, then the remaining values in [peaks] will be -1.e30.
  */
 void XCorrPeakFind(float *array, int nxdim, int ny, float  *xpeak,
                    float *ypeak, float *peak, int maxpeaks)
@@ -456,19 +458,28 @@ void conjugateProduct(float *array, float *brray, int nx, int ny)
 }
 
 /*!
- * Computes the cross-correlation coefficient between the images in [array] and
+ * Fortran wrapper to @conjugateProduct
+ */
+void conjugateproduct(float *array, float *brray, int *nx, int *ny)
+{
+  conjugateProduct(array, brray, *nx, *ny);
+}
+
+/*!
+ * Returns the cross-correlation coefficient between the images in [array] and
  * [brray] at a shift between the images given by [xpeak], [ypeak].  The images
  * have sizes [nx] by [ny] and the arrays have X dimension [nxdim].  Areas on
  * each size of [nxpad] in X and [nypad] in Y are excluded from the 
  * correlation.  Otherwise, the correlation will include all the pixels in the 
- * overlap between the images at the given shift.
+ * overlap between the images at the given shift.  The number of pixels will
+ * be returned in [nsum].
  */
 double XCorrCCCoefficient(float *array, float *brray, int nxdim, int nx,
                           int ny, float xpeak, float ypeak, int nxpad,
-                          int nypad)
+                          int nypad, int *nsum)
 {
   double asum, bsum, csum, asumsq, bsumsq, ccc, aval, bval;
-  int delx, dely, xstrt, xend, ystrt, yend, nsum, ix, iy;
+  int delx, dely, xstrt, xend, ystrt, yend, ix, iy;
   delx = (int)floor(xpeak + 0.5);
   xstrt = B3DMAX(nxpad, nxpad + delx);
   xend = B3DMIN(nx - nxpad, nx - nxpad + delx);
@@ -476,7 +487,7 @@ double XCorrCCCoefficient(float *array, float *brray, int nxdim, int nx,
   ystrt = B3DMAX(nypad, nypad + dely);
   yend = B3DMIN(ny - nypad, ny - nypad + dely);
   asum = bsum = csum = asumsq = bsumsq = 0.;
-  nsum = (xend + 1 - xstrt) * (yend + 1 - ystrt);
+  *nsum = (xend + 1 - xstrt) * (yend + 1 - ystrt);
   if (xend < xstrt || yend < ystrt || nsum < 25)
     return 0.;
   for (iy = ystrt; iy < yend; iy++) {
@@ -490,10 +501,10 @@ double XCorrCCCoefficient(float *array, float *brray, int nxdim, int nx,
       csum += aval * bval;
     }
   }
-  ccc = (nsum * asumsq - asum * asum) * (nsum * bsumsq - bsum * bsum);
+  ccc = (*nsum * asumsq - asum * asum) * (*nsum * bsumsq - bsum * bsum);
   if (ccc <= 0.)
     return 0.;
-  ccc = (nsum * csum - asum * bsum) / sqrt(ccc);
+  ccc = (*nsum * csum - asum * bsum) / sqrt(ccc);
   return ccc;
 }
 
@@ -501,13 +512,17 @@ double XCorrCCCoefficient(float *array, float *brray, int nxdim, int nx,
  * Fortran wrapper to @XCorrCCCoefficient.
  */
 double cccoefficient(float *array, float *brray, int *nxdim, int *nx, int *ny,
-                     float *xpeak, float *ypeak, int *nxpad, int *nypad)
+                     float *xpeak, float *ypeak, int *nxpad, int *nypad,
+                     int *nsum)
 {
 return XCorrCCCoefficient(array, brray, *nxdim, *nx, *ny, *xpeak, *ypeak,
-                          *nxpad, *nypad);
+                          *nxpad, *nypad, nsum);
 }
 
 /*  $Log$
+/*  Revision 1.6  2008/12/21 18:28:27  mast
+/*  Add routine to get CCC
+/*
 /*  Revision 1.5  2008/06/21 05:15:07  mast
 /*  Scaled del squared G filter to max of 1
 /*

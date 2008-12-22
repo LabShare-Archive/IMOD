@@ -64,7 +64,7 @@ extern "C" {
   void conjugateProduct(float *array, float *brray, int nx, int ny);
   double XCorrCCCoefficient(float *array, float *brray, int nxdim, int nx,
                             int ny, float xpeak, float ypeak, int nxpad,
-                            int nypad);
+                            int nypad, int *nsum);
 
   /* taperpad.c */
   void sliceTaperOutPad(void *array, int type, int nxbox, int nybox, 
@@ -149,6 +149,9 @@ extern "C" {
 /*
 
 $Log$
+Revision 3.11  2008/12/21 18:28:17  mast
+Add ccc routine
+
 Revision 3.10  2008/12/20 05:32:46  mast
 Added smooth pad function
 
