@@ -488,7 +488,7 @@ double XCorrCCCoefficient(float *array, float *brray, int nxdim, int nx,
   yend = B3DMIN(ny - nypad, ny - nypad + dely);
   asum = bsum = csum = asumsq = bsumsq = 0.;
   *nsum = (xend + 1 - xstrt) * (yend + 1 - ystrt);
-  if (xend < xstrt || yend < ystrt || nsum < 25)
+  if (xend < xstrt || yend < ystrt || *nsum < 25)
     return 0.;
   for (iy = ystrt; iy < yend; iy++) {
     for (ix = xstrt; ix < xend; ix++) {
@@ -520,6 +520,9 @@ return XCorrCCCoefficient(array, brray, *nxdim, *nx, *ny, *xpeak, *ypeak,
 }
 
 /*  $Log$
+/*  Revision 1.7  2008/12/22 23:02:17  mast
+/*  Added return of nsum to ccc function
+/*
 /*  Revision 1.6  2008/12/21 18:28:27  mast
 /*  Add routine to get CCC
 /*
