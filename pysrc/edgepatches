@@ -153,8 +153,8 @@ def findEdgeShifts(lower, upper, edge):
             edge[kShift][i] = intshift[i] + float(line[i])
         edge[kShiftDone] = '1'
         print 'Shift from correlation: %f, %f, %f    Total shift %d, %d %d' % \
-              (float(line[0]), float(line[1]), float(line[2]), intshift[0], \
-               intshift[1], intshift[2])
+              (float(line[0]), float(line[1]), float(line[2]), \
+               edge[kShift][0], edge[kShift][1], edge[kShift][2])
 
         # Clean up
         os.remove(tmpcor)
@@ -662,6 +662,10 @@ sys.exit(0)
 
 #
 # $Log$
+# Revision 1.7  2008/04/08 21:37:43  mast
+# Added options for setting range to add in X or Y separately, fixed problem
+# with Section entry, and allowed 0 overlap value in one direction
+#
 # Revision 1.6  2007/10/01 23:00:39  mast
 # Added option for verbose output
 #
