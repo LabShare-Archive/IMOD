@@ -140,7 +140,7 @@ c
 c       cut and pasted from ../../manpages/autodoc2man -2 2 blendmont
 c       
       integer numOptions
-      parameter (numOptions = 57)
+      parameter (numOptions = 58)
       character*(40 * numOptions) options(1)
       options(1) =
      &    'imin:ImageInputFile:FN:@plin:PieceListInput:FN:@'//
@@ -167,11 +167,12 @@ c
      &    'goodedge:GoodEdgeLowAndHighZ:IP:@onegood:OneGoodEdgeLimits:IAM:@'//
      &    'exclude:ExcludeFillFromEdges:B:@parallel:ParallelMode:IP:@'//
      &    'subset:SubsetToDo:LI:@aspect:AspectRatioForXcorr:F:@'//
-     &    'pad:PadFraction:F:@taper:TaperFraction:F:@'//
-     &    'extra:ExtraXcorrWidth:F:@radius1:FilterRadius1:F:@'//
+     &    'pad:PadFraction:F:@extra:ExtraXcorrWidth:F:@'//
+     &    'numpeaks:NumberOfXcorrPeaks:I:@radius1:FilterRadius1:F:@'//
      &    'radius2:FilterRadius2:F:@sigma1:FilterSigma1:F:@'//
      &    'sigma2:FilterSigma2:F:@treat:TreatFillForXcorr:I:@'//
-     &    'xcdbg:XcorrDebug:B:@param:ParameterFile:PF:@help:usage:B:'
+     &    'xcdbg:XcorrDebug:B:@taper:TaperFraction:F:@'//
+     &    'param:ParameterFile:PF:@help:usage:B:'
 c       
 c       initialization of elements in common
 c       
@@ -209,6 +210,7 @@ c
       izUseDefHigh = -1
       modeParallel = 0
       outFile = ' '
+      numXcorrPeaks = 1
 c       
 c       Xcorr parameters
 c       11/5/05: increased taper fraction 0.05->0.1 to protect against
@@ -219,7 +221,6 @@ c
       ifDumpXY(2) = -1
       ifillTreatment = 1
       aspectmax=2.0				!maximum aspect ratio of block
-      taperFrac = 0.1
       padFrac = 0.45
       extraWidth = 0.
       radius1 = 0.
@@ -357,13 +358,14 @@ c
           ifsloppy = 1
           aspectMax = 5.
           radius1 = -0.01
-          taperFrac = 0.2
           extraWidth = 0.25
+          numXcorrPeaks = 16
         else
           ierr = PipGetBoolean('SloppyMontage', ifsloppy)
         endif
         ierr = PipGetFloat('AspectRatio', aspectMax)
-        ierr = PipGetFloat('TaperFraction', taperFrac)
+        ierr = PipGetFloat('NumberOfXcorrPeaks', numXcorrPeaks)
+        numXcorrPeaks = max(1, min(limXcorrPeaks, numXcorrPeaks))
         ierr = PipGetFloat('PadFraction', padFrac)
         ierr = PipGetFloat('ExtraXcorrWidth', extraWidth)
         ierr = PipGetFloat('FilterSigma1', sigma1)
@@ -2783,6 +2785,9 @@ c
 
 c       
 c       $Log$
+c       Revision 3.37  2008/06/24 04:40:31  mast
+c       Added option for treatment of fill areas from distortion corrections
+c
 c       Revision 3.36  2008/03/03 07:06:03  mast
 c       Fixed bad scaling for mode 1 with no float, fixed double-scaling of first
 c       buffered line with binned output, and restored old behavior of floating
