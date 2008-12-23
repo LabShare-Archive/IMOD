@@ -467,13 +467,13 @@ endif
 # Add scripts for running from command line to the install.  They are no
 # longer generated because of permission problems and to handle spaces in args
 #
-echo "GENERATED_SCRIPTS = 3dmodbg 3dmodv vatch2imod imod2vatch" >> $configure
+echo "GENERATED_SCRIPTS = 3dmodbg 3dmodv patch2imod imod2patch" >> $configure
 echo "CMDWRAPPERS = cmdwrappers" >> $configure
 echo "UAC_WRAPPERS = patch2imod vatch2imod imod2patch imod2vatch" >> $configure
 
 # Make sure critical scripts are in unix mode
 # ALL BASH/SH SCRIPTS MUST BE INCLUDED
 #
-(cd scripts ; dos2unix copytomocoms setupcombine makejoincom transferfid xfalign matchorwarp newst dm2mrc matchrotpairs chunksetup finishjoin tomosnapshot processchunks splitcombine splittilt sirtsetup trimvol queuechunk alignlog submfg runpyscript 3dmodbg 3dmodv vatch2imod imod2vatch >& /dev/null)
+(cd scripts ; dos2unix copytomocoms setupcombine makejoincom transferfid xfalign matchorwarp newst dm2mrc matchrotpairs chunksetup finishjoin tomosnapshot processchunks splitcombine splittilt sirtsetup trimvol queuechunk alignlog submfg runpyscript 3dmodbg 3dmodv patch2imod imod2patch >& /dev/null)
 (cd dist ; dos2unix installIMOD installStub IMOD-cygwin.sh >& /dev/null)
 (cd Etomo/scripts ; dos2unix etomo >& /dev/null)
