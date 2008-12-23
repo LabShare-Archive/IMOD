@@ -1,6 +1,7 @@
       integer maxsiz,limvar,ifastsiz,maxlinelength,limxypc,limnpc,maxbin
       integer limedge,limsect,memlim,limedgbf,ixgdim,iygdim,lmField,maxFields
       integer maxbsiz,idimc,maxPcNear, maxDistNear,maxUseEdge,limsecpc
+      integer limXcorrPeaks
       parameter (maxsiz=140*1000000)		!# of pixels
       parameter (limvar=8000)                  !# of variables for shift fits
 c       
@@ -11,7 +12,7 @@ c
       parameter (maxbsiz=(ifastsiz+maxbin)*maxlinelength)
       parameter (maxDistNear = 5)
       parameter (maxPcNear = (2*maxDistNear + 1) * (2*maxDistNear + 1))
-      parameter (maxUseEdge = 100)
+      parameter (maxUseEdge = 100, limXcorrPeaks = 30)
       real*4 array(maxsiz), brray(maxbsiz)
       real*8 array8(maxsiz / 2)
       equivalence (array,array8)
@@ -107,8 +108,10 @@ c
      &    nxField, nyField, numMagGrad,numAngles,xFieldIntrv, yFieldIntrv,
      &    distDx,distDy,fieldDx,fieldDy,tiltAngles,dmagPerUm,rotPerUm
 
-      integer*4 ifDumpXY(2),nzOutXY(2),ipcBelowEdge, ifillTreatment
-      real*4 taperFrac, padFrac, aspectMax, extraWidth
+      integer*4 ifDumpXY(2),nzOutXY(2),nxOutXY(2),nyOutXY(2),ipcBelowEdge
+      integer*4 ifillTreatment, numXcorrPeaks
+      real*4 padFrac, aspectMax, extraWidth
       real*4 radius1, radius2, sigma1, sigma2
-      common /xcparm/ ifDumpXY,nzOutXY, taperFrac, padFrac, aspectMax,
-     &    radius1,radius2,sigma1,sigma2,ipcBelowEdge, extraWidth,ifillTreatment
+      common /xcparm/ ifDumpXY,nzOutXY, nxOutXY, nyOutXY, padFrac,
+     &    aspectMax, radius1,radius2,sigma1,sigma2,ipcBelowEdge, extraWidth,
+     &    ifillTreatment, numXcorrPeaks
