@@ -1,6 +1,14 @@
 IMOD History
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-12/1908: Trimvol fixed to avoid 1-pixel errors in X/Y when extracting odd
+12/22/08: Fixed imod2patch and patch2imod command wrappers so edgepatches will
+run in Windows (In 3.13).
+
+12/22/08: Blendmont uses a new method of padding for cross-correlation to
+reduce artifacts, and has an option (activated with VerySloppyMontage) to 
+evaluate multiple correlation peaks with a real-space correlation coefficient
+computed from filtered images.
+
+12/19/08: Trimvol fixed to avoid 1-pixel errors in X/Y when extracting odd
 sizes from even or vice versa.
 
 12/19/08: Taperoutvol changed to not add padding to a single slice in Z.
