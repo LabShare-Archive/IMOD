@@ -1509,10 +1509,13 @@ c
       logical legacy
       integer*4 nxybox(2),ind0(2),ind1(2),idispl(2), nxybord(2)
       real*4 ctf(8193),rdispl(2)
-      real*4 overfrac,delta,xpeak,ypeak,peak,sdmin,ddenmin
-      integer*4 indentSD,niter,limstep,iyx,nxpad,nypad,nxtap, indentUse
-      integer*4 nytap,jx,ixdispl,iydispl,i,nExtra(2),nbin, maxBinSize, ierr
-      integer*4 niceframe, taperAtFill
+      real*4 overfrac,delta,sdmin,ddenmin
+      real*4 xpeak(limXcorrPeaks),ypeak(limXcorrPeaks),peak(limXcorrPeaks)
+      integer*4 indentSD,niter,limstep,iyx,nxpad,nypad, indentUse
+      integer*4 jx,ixdispl,iydispl,i,nExtra(2),nbin, maxBinSize, ierr
+      integer*4 nsmooth, nxsmooth, nysmooth, npadCCC, indPeak
+      integer*4 niceframe, taperAtFill, nsum
+      real *8 cccMax, ccc, CCCoefficient
 
       indentSD=5                                !indent for sdsearch
       overfrac=0.9                              !fraction of overlap to use
@@ -1520,6 +1523,8 @@ c
       limstep=10                                !limiting distance
       maxBinSize = 1024
       nbin = 1
+      nsmooth = 6
+      npadCCC = 16
 c       
 c       find size and limits of box in overlap zone to cut out
 c       
@@ -1547,7 +1552,7 @@ c      ind1(iyx)=nxyzin(iyx)/2 + nbin * (nxybox(iyx)/2) - 1
       ind0(ixy)=nxyzin(ixy) - noverlap(ixy) + indentUse - nbin * nExtra(ixy)
       ind1(ixy)=ind0(ixy) + nbin * nxybox(ixy) - 1
 c       
-c       get the padded size and the taper extents
+c       get the padded size
 c       Limit the long dimension padding to twice the default short dim
 c       padding
 c       
@@ -1557,8 +1562,14 @@ c
 c       nxybord(iyx)=max(5,nint(padFrac*nxybox(iyx)))
       nxpad=niceframe(nxybox(1)+2*nxybord(1),2,19)
       nypad=niceframe(nxybox(2)+2*nxybord(2),2,19)
-      nxtap=max(5,nint(taperFrac*nxybox(1)))
-      nytap=max(5,nint(taperFrac*nxybox(2)))
+c
+c       Set up smoothing over some pixels, but no more than half of the pad
+      nxSmooth = nxybox(1) + min(2 * nsmooth, (nxpad - nxybox(1)) / 2)
+      nySmooth = nxybox(2) + min(2 * nsmooth, (nypad - nxybox(2)) / 2)
+c      print *,ixy,indentUse, nxybox(ixy),nxybox(iyx),ind0(iyx),ind1(iyx),
+c     &    ind0(ixy),ind1(ixy)
+c      print *,nxybord(ixy),nxybord(iyx),nxpad,nypad,nxtap,nytap, nxSmooth,
+c     &    nySmooth
 
       if(nxybox(1)*nxybox(2).gt.maxbsiz.or.nxpad*nypad.gt.idimc)call
      &    exitError('Overlap too big for correlation arrays, reduce '//
@@ -1569,9 +1580,16 @@ c
       call ibinpak(brray, crray,nxin,nyin,ind0(1),ind1(1),ind0(2),
      &    ind1(2), nbin)
       if (ifillTreatment .eq. 2)
-     &    ierr = taperAtFill(brray, nxybox(1),nxybox(2), 8, 0)
-      call taperinpad(brray,nxybox(1),nxybox(2),xcray,nxpad+2,nxpad,
-     &    nypad,nxtap,nytap)
+     &    ierr = taperAtFill(brray, nxybox(1),nxybox(2), 64, 0)
+      if (nxSmooth .gt. nxybox(1) .and. nySmooth .gt. nxybox(2)) then
+        call smoothoutpad(brray,nxybox(1),nxybox(2),xcray,nxSmooth,nxSmooth,
+     &      nySmooth)
+        call taperoutpad(xcray,nxSmooth,nySmooth,xcray,nxpad+2,nxpad,
+     &      nypad,0,0.)
+      else
+        call taperoutpad(brray,nxybox(1),nxybox(2),xcray,nxpad+2,nxpad,
+     &      nypad,0,0.)
+      endif
       call meanzero(xcray,nxpad+2,nxpad,nypad)
       call dumpedge(xcray,nxpad+2,nxpad,nypad,ixy,0)
       call todfft(xcray,nxpad,nypad,0)
@@ -1584,18 +1602,23 @@ c
       call ibinpak(brray, drray,nxin,nyin,ind0(1),ind1(1),ind0(2),
      &    ind1(2), nbin)
       if (ifillTreatment .eq. 2)
-     &    ierr = taperAtFill(brray, nxybox(1),nxybox(2), 8, 0)
-      call taperinpad(brray,nxybox(1),nxybox(2),xdray,nxpad+2,nxpad,
-     &    nypad,nxtap,nytap)
+     &    ierr = taperAtFill(brray, nxybox(1),nxybox(2), 64, 0)
+      if (nxSmooth .gt. nxybox(1) .and. nySmooth .gt. nxybox(2)) then
+        call smoothoutpad(brray,nxybox(1),nxybox(2),xdray,nxSmooth,nxSmooth,
+     &      nySmooth)
+        call taperoutpad(xdray,nxSmooth,nySmooth,xdray,nxpad+2,nxpad,
+     &      nypad,0,0.)
+      else
+        call taperoutpad(brray,nxybox(1),nxybox(2),xdray,nxpad+2,nxpad,
+     &      nypad,0,0.)
+      endif
       call meanzero(xdray,nxpad+2,nxpad,nypad)
       call dumpedge(xdray,nxpad+2,nxpad,nypad,ixy,0)
       call todfft(xdray,nxpad,nypad,0)
 c       
 c       multiply xcray by complex conjugate of xdray, put back in xcray
 c       
-      do jx=1,nypad*(nxpad+2)/2
-        xcray(jx)=xcray(jx)*conjg(xdray(jx))
-      enddo
+      call conjugateProduct(xcray, xdray, nxpad, nypad)
 c       
 c       Multiply all filter parameters by the binning so they are equivalent
 c       to frequencies in unbinned images
@@ -1605,14 +1628,60 @@ c
 c       
       if(delta.ne.0.)call filterpart(xcray,xcray,nxpad,nypad,ctf,delta)
       call todfft(xcray,nxpad,nypad,1)
-      call xcorrPeakFind(xcray,nxpad+2,nypad,xpeak,ypeak,peak,1)
+      call xcorrPeakFind(xcray,nxpad+2,nypad,xpeak,ypeak,peak,numXcorrPeaks)
       call dumpedge(xcray,nxpad+2,nxpad,nypad,ixy,1)
+      indPeak = 1
+      if (numXcorrPeaks .gt. 1 .and. .not.legacy) then
+c         
+c         If evaluating multiple peaks, get a new padding amount and ctf
+        nxpad = niceframe(nxybox(1) + npadCCC, 2, 19)
+        nypad = niceframe(nxybox(2) + npadCCC, 2, 19)
+        call setctfwsr(nbin*sigma1,nbin*sigma2,nbin*radius1,nbin*radius2,ctf,
+     &      nxpad,nypad,delta)
+c         
+c         Pad second image into xdray then get first image again
+        call taperoutpad(brray,nxybox(1),nxybox(2),xdray,nxpad+2,nxpad,
+     &      nypad,0,0.)
+        ind0(ixy)=nxyzin(ixy) - noverlap(ixy) + indentUse - nbin * nExtra(ixy)
+        ind1(ixy)=ind0(ixy) + nbin * nxybox(ixy) - 1
+        call ibinpak(brray, crray,nxin,nyin,ind0(1),ind1(1),ind0(2),
+     &      ind1(2), nbin)
+        if (ifillTreatment .eq. 2)
+     &      ierr = taperAtFill(brray, nxybox(1),nxybox(2), 64, 0)
+        call taperoutpad(brray,nxybox(1),nxybox(2),xcray,nxpad+2,nxpad,
+     &      nypad,0,0.)
+c         
+c         Filter BOTH images
+        if (delta .ne. 0) then
+          call todfft(xcray,nxpad,nypad,0)
+          call filterpart(xcray,xcray,nxpad,nypad,ctf,delta)
+          call todfft(xcray,nxpad,nypad,1)
+          call todfft(xdray,nxpad,nypad,0)
+          call filterpart(xdray,xdray,nxpad,nypad,ctf,delta)
+          call todfft(xdray,nxpad,nypad,1)
+        endif
+        cccMax = -10.
+        do i = 1, numXcorrPeaks
+          if (peak(i) .gt. -1.e20) then
+            ccc = CCCoefficient(xcray, xdray, nxpad + 2, nxpad, nypad, xpeak(i)
+     &          , ypeak(i), (nxpad - nxybox(1)) / 2, (nypad - nxybox(2)) / 2,
+     &          nsum)
+c            write(*,'(i3,a,2f7.1,a,e14.7,a,i8,a,f8.5)')i,' at ',xpeak(i), 
+c     &          ypeak(i), ' peak =',peak(i), ' nsum = ', nsum, ' cc =',ccc
+            if (ccc .gt. cccMax .and.
+     &          (i .eq. 1 .or. nsum .gt. nxybox(1) * nxybox(2) / 8)) then
+              cccMax = ccc
+              indPeak = i
+            endif
+          endif
+        enddo
+      endif
 c       
 c       return the amount to shift upper to align it to lower (verified)
 c       
-      xdisp = nbin * (xpeak - nExtra(1))
-      ydisp = nbin * (ypeak - nExtra(2))
-c       write(*,'(2f8.2,2f8.2)')xpeak,ypeak,xdisp,ydisp
+      xdisp = nbin * (xpeak(indPeak) - nExtra(1))
+      ydisp = nbin * (ypeak(indPeak) - nExtra(2))
+c       write(*,'(2f8.2,2f8.2)')xpeak(indPeak),ypeak(indPeak),xdisp,ydisp
       if(legacy)return
 c       
 c       the following is adopted largely from setgridchars
@@ -2338,14 +2407,18 @@ c
       subroutine dumpedge(crray,nxdim,nxpad,nypad,ixy,ifcorr)
       implicit none
       include 'blend.inc'
+      integer maxline
+      parameter (maxline=4096)
       integer*4 nxdim,nxpad,nypad,ixy,ifcorr
       real*4 crray(nxdim,nypad)
-      real*4 title(20), scale, dmin, dmax, dmt
+      real*4 title(20), scale, dmin, dmax, dmt, bline(maxline)
       integer*4 kxyz(3), ix, iy
 c       
-      if (ifDumpXY(ixy) .lt. 0) return
+      if (ifDumpXY(ixy) .lt. 0 .or. nxpad .gt. maxline) return
       if (ifDumpXY(ixy) .eq. 0) then
         nzOutXY(ixy) = 0
+        nxOutXY(ixy) = nxpad
+        nyOutXY(ixy) = nypad
         kxyz(1) = nxpad
         kxyz(2) = nypad
         kxyz(3) = 0
@@ -2354,22 +2427,24 @@ c
       endif
       call imposn(2 + ixy, nzOutXY(ixy), 0)
       nzOutXY(ixy) = nzOutXY(ixy) + 1
-      call ialsiz_sam_cel(2 + ixy, nxpad,nypad, nzOutXY(ixy))
+      call ialsiz_sam_cel(2 + ixy, nxOutXY(ixy),nyOutXY(ixy), nzOutXY(ixy))
 
       call iclden(crray,nxdim,nypad,1,nxpad,1,nypad,dmin,dmax,dmt)
       scale = 255. / (dmax - dmin)
-      do iy = 1, nypad
-        if (ifcorr .eq. 0) then
-          do ix = 1, nxpad
-            brray(ix) = scale *(crray(ix,iy) - dmin)
-          enddo
-        else
-          do ix = 1, nxpad
-            brray(ix) = scale *(crray(mod(ix+nxpad/2-1,nxpad)+1,
-     &          mod(iy+nypad/2-1,nypad)+1) - dmin)
-          enddo
+      do iy = 1, nyOutXY(ixy)
+        if (iy .le. nypad) then
+          if (ifcorr .eq. 0) then
+            do ix = 1, nxOutXY(ixy)
+              bline(ix) = scale *(crray(min(ix,nxpad),iy) - dmin)
+            enddo
+          else
+            do ix = 1, nxOutXY(ixy)
+              bline(ix) = scale *(crray(min(mod(ix+nxpad/2-1,nxpad)+1,nxpad),
+     &            min(mod(iy+nypad/2-1,nypad)+1, nypad)) - dmin)
+            enddo
+          endif
         endif
-        call iwrlin(2+ixy, brray)
+        call iwrlin(2+ixy, bline)
       enddo
       if (ifcorr .ne. 0) then
         ix = (ixpclist(ipcBelowEdge)-minxpiece)/(nxin-nxoverlap)
@@ -2387,6 +2462,9 @@ c
 
 c       
 c       $Log$
+c       Revision 3.27  2008/11/27 01:18:42  mast
+c       Modified commented out debugging output
+c
 c       Revision 3.26  2008/06/24 04:42:09  mast
 c       Implemented different treatment of fill from distortion corrections
 c
