@@ -324,3 +324,56 @@ white side bands around the black bead.  Save the models.
 you do have some fiducials.
 <LI>Start the combine operation. 
 
+<H4><A NAME = "ErasingGold"></A>
+7.0. Erasing All Gold from a Tomogram
+</H4>
+If you want to erase gold that was not modeled as fiducials, then you need to
+make a more complete model than the fiducial model.  If this model is made on
+the coarse aligned stack and named "setname.fid", then you will be able to use
+the gold-erasing interface in eTomo to transform the model and apply it to the
+aligned stack.  Thus, before you start, you should copy your existing fiducial
+model to another filename in case you need to reuse it for aligning at some
+point.
+<BR><CODE>    cp setname.fid setname_real.fid
+<BR></CODE>
+<P>
+There are two different methods that you can use to get a more complete model:
+adding seeds to the fiducial model and tracking it, or getting a model of the
+positions of the beads in a tomogram and projecting that to match the final
+aligned stack.
+
+<H4><A NAME = "ErasingTracking"></A>
+7.1. Tracking Additional Gold
+</H4>
+Before starting this operation, save the original seed model if it has not
+been saved previously; i.e., if "setname_orig.seed" does not exist, then
+<BR><CODE>    cp setname.seed setname_orig.seed
+<BR></CODE>
+One option is to add seed points by hand.  The easiest way to do this is to
+rename the fiducial file as a seed file:
+<BR><CODE>    mv setname.fid setname.seed
+<BR></CODE>
+then use <B>View Seed Model</B> to open the model with the Bead Fixer in
+seeding mode.  Add seed points and proceed to track and refine as needed.
+<P>
+A second option, particularly useful if you many unmarked beads, is to use 
+<A HREF = "man/imodfindbeads.html">Imodfindbeads</A> to find the gold.  The
+command for doing that is:
+<BR><CODE>    imodfindbeads -size diameter -sp 0.9 -add setname.fid \
+                -sec section setname.preali setname.seed
+<BR></CODE>
+Here "diameter" is the diameter of the beads in pixels, "section" is the
+section number, numbered from 0, to analyze, and the "-sp 0.9" allows beads
+to be spaced apart by at least 0.9 times their diameter.  A spacing down to
+0.8 may be useful for getting more overlapping beads.
+<P>
+Run this way, the program will analyze the correlation strengths of beads
+(referred to as relative peak strengths) and
+try to determine a threshold between true beads and spurious correlations.
+It will store the positions of what it thinks are the true beads and up to the
+same number of points with peak strengths below the threshold.  It is
+important that you remove the points below threshold before proceeding.
+To do this, use <B>View Seed Model</B> to reopen the model
+examine the points, adjust the threshold to the best value
+  There are more
+options to try if 
