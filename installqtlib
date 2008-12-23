@@ -31,14 +31,13 @@ while ($#instlist > 1)
 end
 
 # Get list that need renaming to be called through wrappers for Vista UAC
+# Scripts must already have the final name in order for .cmd wrapper to work
 #
 set wraplist = `sed -n '/UAC_WRAPPERS/s/^.*= *//p' configure`
 while ($#wraplist > 1)
     set fromname = $instdir/bin/$wraplist[1]
     set toname = $instdir/bin/$wraplist[2]
     \mv $fromname.exe $toname.exe
-    \mv $toname $fromname
-    if (-e $toname.cmd) \mv $toname.cmd $fromname.cmd
     shift wraplist
     shift wraplist
 end
@@ -204,6 +203,9 @@ exit 0
 
 #
 #  $Log$
+#  Revision 3.30  2008/01/26 01:59:41  mast
+#  Added ability to rename some DLLs to protected names
+#
 #  Revision 3.29  2007/12/15 00:00:11  mast
 #  Added wrappers for Vista patch executables
 #
