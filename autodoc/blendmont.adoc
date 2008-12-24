@@ -203,11 +203,11 @@ for dealing with very sloppy montages with displacements potentially bigger
 than half the width of the overlap zones.  The aspect ratio of the area used
 for correlating the overlap zones is increased from 2 to 5 and the filter
 parameter radius1 is set to -0.01 to eliminate more low frequencies from the
-correlation.  The fraction of the area over which images are tapered is 
-increased from 0.1 to 0.2 to further reduce the frequencies of edge effects,
-and the area being correlated is made wider by setting the extra width
-fraction to 0.25.  If distortion corrections are being done, the default
-is changed to taper instead of trimming out fill areas for correlation.
+correlation.  The area being correlated is made wider by setting the extra
+width fraction to 0.25.  Up to 16 peaks in the correlation are evaluated by
+cross-correlation coefficient.  If distortion corrections are being done, the
+default is changed to taper instead of trimming out fill areas for
+correlation.
 
 [Field = ShiftPieces]
 short = shift
@@ -464,15 +464,6 @@ this fraction times the size in that dimension; padding in the long dimension
 will be either this fraction times the long dimension size, or 0.9 times the
 size in the short dimension, whichever is smaller.
 
-[Field = TaperFraction]
-short = taper
-type = F
-usage = Fraction to taper inside of areas correlated in overlap zones
-tooltip = 
-manpage = Areas from the overlap zones will be tapered down to their mean
-intensities over a distance equal to this fraction times the size in the
-respective dimension.  
-
 [Field = ExtraXcorrWidth]
 short = extra
 type = F
@@ -484,6 +475,25 @@ outside the overlap zone.  The width of the extra area is this fraction times
 the width of the area within the overlap zone.  This option is appropriate if
 montages are very sloppy, particularly if they tend to overlap by much more
 than the nominal amount.
+
+[Field = NumberOfXcorrPeaks]
+short = numpeaks
+type = I
+usage = Number of cross-correlation peaks to analyze for correlation 
+coefficient
+tooltip = 
+manpage = If this entry is greater than one, the program will keep track of
+this number of the strongest peaks in the cross-correlation, and for each
+peak, it will compute a correlation coefficient in real space from the pixels
+that overlap in the areas extracted from the overlap zone.  The areas will
+each be filtered with the same filter applied in the cross-correlation.  This
+option is appropriate if montages are very sloppy, because the raw peak
+strength of a correlation is less the lower the overlap between the areas
+correlated, and it is easy for a spurious peak to become stronger than the
+true peak when there is much displacement between the areas.  The true peak
+will generally still give a stronger correlation coefficient in such a case.
+This value is set to 1 by default unless VerySloppyMontage is entered, in
+which case he default is 16.
 
 [Field = FilterRadius1]
 short = radius1
@@ -547,8 +557,14 @@ usage = Output image files with overlap zones and cross-correlations
 tooltip = 
 manpage = Output image files with the padded images being correlated in the
 overlap zones and with the cross-correlations.  Separate files are generated
-for X and Y edges, with extensions .xdbg and .ydbg.  If distortion corrections
-are being done, be sure to use -treat to get consistent sizes for all overlaps.
+for X and Y edges, with extensions .xdbg and .ydbg.
+
+[Field = TaperFraction]
+short = taper
+type = F
+usage = Discontinued option
+tooltip = 
+manpage = 
 
 [Field = ParameterFile]
 short = param
