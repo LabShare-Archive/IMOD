@@ -1,5 +1,11 @@
 IMOD History
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+12/29/08: Fixed Stitchalign to avoid multiple vectors at same Z level and put
+out only one layer of vectors if input edges have only one layer (In 3.13).
+
+12/29/08: Made Findwarp give an appropriate error when discounting zero vectors
+leaves no fits; adjusted ratio of measured/unknown if one layer in Z (In 3.13).
+
 12/22/08: Fixed imod2patch and patch2imod command wrappers so edgepatches will
 run in Windows (In 3.13).
 
