@@ -881,6 +881,9 @@ c             write patch file if desired on last fit before error message
 c
             call outputPatchRes(resFile, nFileDat, npatx * npaty * npatz,
      &          exists, resSum, numRes, cx, dx, limpatch)
+            if (discount .gt. 0. .and. nlocdone .gt. 0 .and. numDevSum .eq. 0)
+     &          call exitError('ALL FITS HAD TOO MANY ZERO VECTORS: RAISE '//
+     &          '-discount FRACTION OR SET IT TO ZERO')
             write(*,108)devavmin
 108         format(/,'ERROR: FINDWARP - FAILED TO FIND A WARPING WITH A ',
      &          'MEAN RESIDUAL BELOW',f9.3)
@@ -931,14 +934,16 @@ c
       implicit none
       integer*4 nxtot, nztot, nytot, ifdoy, nfity, nfxauto(*), nfzauto(*)
       integer*4 nfyauto(*), nauto, niny,ix,iz,iy,limauto
-      real*4 ratmin, ratmax, ratio
+      real*4 ratmin, ratmax, ratio, ratioFac
       nauto = 0
       niny = nytot
       if (ifdoy.ne.0) niny = nfity
+      ratioFac = 4.0
+      if (nytot .eq. 1) ratioFac = 3.0
       do ix = nxtot, 2, -1
         do iz = nztot , 2, -1
           do iy = nytot, niny, -1
-            ratio = ix * iz * iy / 4.0
+            ratio = ix * iz * iy / ratioFac
 c           aspect = float(ix)/iz
 c           if(aspect.lt.1.)aspect=1./aspect
             if((ix.ne.nxtot.or.iz.ne.nztot) .and. ratio.ge.ratmin .and.
@@ -992,6 +997,9 @@ c
 
 c       
 c       $Log$
+c       Revision 3.16  2008/04/14 16:58:20  mast
+c       FIxed bizarre parentheses error that didn't trouble Intel compiler
+c
 c       Revision 3.15  2008/04/14 16:49:37  mast
 c       Used determinant to detect and eliminate degenerate solutions
 c
