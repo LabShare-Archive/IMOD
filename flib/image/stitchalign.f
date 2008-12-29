@@ -38,7 +38,7 @@ c
       real*4 cosrot, sinrot, dist, finalErr, gridPad, sampleFactor
       real*8 dsum, dsumsq
       integer*4 kstr, kend, k, nvarsrch, mapAngles, numEdge, numVecOut, ndim
-      integer*4 ixpos, iypos
+      integer*4 ixpos, iypos, maxNumVecZ
       character*160 infofile
       character*1024 listString,filename
       character*4 xoryStr
@@ -184,6 +184,7 @@ c         Now load the edges at this value and link them back to volumes
         numEdge = 0
         indVec = 1
         indG2Vbase = 0
+        maxNumVecZ = 0
         do i = 1, numAllEdges
           if (AdocGetThreeIntegers('Edge', i, 'lower', ix, iy, iz).ne. 0)
      &        call exitError('GETTING LOWER FRAME NUMBER FOR AN EDGE')
@@ -217,6 +218,7 @@ c             read the patches in
             enddo
             close(1)
             call setVectorGrid(numEdge)
+            maxNumVecZ = max(maxNumVecZ, numVecGrid(3,numEdge))
 c             
 c             Look up lower and upper piece in volume list
             indlo = 0
@@ -686,7 +688,12 @@ c         spaced data
             ioutGridStart(i,iv) = max(ioutGridStart(i,iv), 1)
             ioutGridEnd(i,iv) = min(ioutGridEnd(i,iv), nxyzout(i) - 2)
             ix = ioutGridEnd(i,iv) + 1 - ioutGridStart(i,iv)
-            numOutGrid(i,iv) = nint(ix / (delMean(i) * sampleFactor)) + 1
+            numOutGrid(i,iv) = min(ix, nint(ix / (delMean(i) * sampleFactor))
+     &          + 1)
+            if (i .eq. 3. .and. maxNumVecZ .lt. 2) then
+              numOutGrid(i,iv) = 1
+              ioutGridStart(i,iv) = (ioutGridStart(i,iv) + ioutGridEnd(i,iv))/2
+            endif
             ioutGridDelta(i,iv) = ix / max(1, numOutGrid(i,iv) - 1)
             iy = mod(iz, max(1, numOutGrid(i,iv) - 1))
             ioutGridStart(i,iv) = ioutGridStart(i,iv) + iy / 2
@@ -2777,6 +2784,9 @@ c
 
 
 c       $Log$
+c       Revision 3.5  2008/10/16 23:15:36  mast
+c       Added piece number to lines with overall transformation output
+c
 c       Revision 3.4  2007/06/17 04:56:55  mast
 c       Dimensioned outvec in findWarpVector to * for old Imtel compiler
 c
