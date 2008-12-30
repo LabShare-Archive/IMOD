@@ -6,6 +6,9 @@
 #  $Revision$
 #
 #  $Log$
+#  Revision 1.6  2006/10/05 18:01:43  mast
+#  *** empty log message ***
+#
 #  Revision 1.5  2006/06/22 01:09:45  mast
 #  Replaced LDFLAGS with LDFFLAGS for Intel Mac
 #
@@ -32,8 +35,7 @@ PROGS = finddistort$(E) idfprocess$(E) findgradient$(E) makegradtable$(E) \
         xf2rotmagstr$(E)
 
 DISTOBJS = finddistort.$(O) edgesubs.$(O) smoothgrid.$(O) \
- sdsearch.$(O) sdcalc.$(O) lsqr.$(O) lsqrblas.$(O) multrd.$(O) \
- matinvd.$(O)
+ sdsearch.$(O) sdcalc.$(O) multrd.$(O) matinvd.$(O)
 
 all: $(PROGS)
 
@@ -69,6 +71,7 @@ install: $(PROGS)
 	$(CP) $(PROGS) $(INSTBINDIR)
 
 clean:
-	-\rm -f *.o* *~ *.exe finddistort
+	-\rm -f *.o* *~ *.exe finddistort idfprocess findgradient \
+	makegradtable xf2rotmagstr
 
 findgradient.$(O):	findgradient.inc

@@ -67,8 +67,8 @@ c       components of iwrk, ia and ja arrays
 c       
       real*4 rwrk(lenRwrk)
       integer*4 iwrk(lenIwrk), ja(lenRwrk), ia(maxData + 1)
-      equivalence (iwrk, brray), (ja, brray(maxData + 3)), (ia, brray(2))
-      equivalence (rwrk, brray(lenIwrk + 10))
+      equivalence (iwrk, brray), (ja, brray(maxData + 4)), (ia, brray(3))
+      equivalence (rwrk, brray(lenIwrk + 11))
 c       
       double precision uu(maxData), vv(maxVars), ww(maxVars), xx(maxVars)
       external sparseProd
@@ -483,8 +483,10 @@ c
           print *,'iteration', iter, '   mean change in shift', error
         endif
 c         
+c         F->C add 1 to iwrk(1), add iwrk(2)
         ia(1) = 1
-        iwrk(1) = maxData + 2
+        iwrk(1) = maxData + 3
+        iwrk(2) = lenIwrk + 10
         gridIntrv = intGrid
 c         
 c         load the data array
@@ -625,17 +627,7 @@ c
 c         
 c         Normalize the sparse matrix data
 c         
-        do icol = 1, numVars
-          sum = 0.
-          do j = 1, ia(numRows + 1) - 1
-            if (ja(j) .eq. icol) sum = sum + rwrk(j)**2
-          enddo
-          sum = sqrt(sum)
-          sumEntries(icol) = sum
-          do j = 1, ia(numRows + 1) - 1
-            if (ja(j) .eq. icol) rwrk(j) = rwrk(j) / sum
-          enddo
-        enddo
+        call normalizeColumns(rwrk, ia, ja, numVars, numRows, sumEntries)
 c         
 c         solve equations for X then Y shifts 
 c         
@@ -646,8 +638,8 @@ c
               uu(i) = shiftXY(ixy, i)
             enddo
             itnlim = numVars
-            call lsqr(numRows, numVars, sparseProd, 0., .false., lenIwrk,
-     &          lenRwrk, iwrk, rwrk, uu, vv, ww, xx, se, atol, btol, conlim,
+            call lsqr(numRows, numVars, sparseProd, 0., 0,
+     &          iwrk, uu, vv, ww, xx, se, atol, btol, conlim,
      &          itnlim, -1, istop, itndone, anorm, acond, rnorm,
      &          arnorm, xnorm)
             
@@ -1037,56 +1029,59 @@ c
       end
 
 
-c       ADDVALUETOROW: Adds one value and its column to the current data row
-c
-      subroutine addValueToRow(val, icol, valRow, icolRow, numInRow)
-      implicit none
-      real*4 val, valRow(*)
-      integer*4 numInRow, icolRow(*), icol
-      numInRow = numInRow + 1
-      valRow(numInRow) = val
-      icolRow(numInRow) = icol
-      return
-      end
+c$$$c       ADDVALUETOROW: Adds one value and its column to the current data row
+c$$$c
+c$$$      subroutine addValueToRow(val, icol, valRow, icolRow, numInRow)
+c$$$      implicit none
+c$$$      real*4 val, valRow(*)
+c$$$      integer*4 numInRow, icolRow(*), icol
+c$$$      numInRow = numInRow + 1
+c$$$      valRow(numInRow) = val
+c$$$      icolRow(numInRow) = icol
+c$$$      return
+c$$$      end
 
 
-c       SPARSEPROD: Performs a product of the designated mode in the sparse
-c       matrix
-c
-      subroutine sparseProd(mode, m, n, x, y, leniw, lenrw, iw, rw)
-      implicit none
-      integer*4 mode, m, n, leniw, lenrw, iw(leniw)
-      double precision x(n), y(m)
-      real*4 rw(lenrw)
-      integer*4 icol, irow, jaofs, ind
-c       
-*       If mode = 1, compute  y = y + A*x.
-*       If mode = 2, compute  x = x + A(transpose)*y.
-c       First number in iw is the offset to the JA values, the column
-c       number of each data value
-c       Then IW contains the I values, the starting index for each row
-*       
-      jaofs = iw(1)
-      if (mode .eq. 1) then
-        do irow = 1, m
-          do ind = iw(irow + 1), iw(irow + 2) - 1
-            icol = iw(jaofs + ind)
-            y(irow) = y(irow) + rw(ind) * x(icol)
-          enddo
-        enddo
-      else
-        do irow = 1, m
-          do ind = iw(irow + 1), iw(irow + 2) - 1
-            icol = iw(jaofs + ind)
-            x(icol) = x(icol) + rw(ind) * y(irow)
-          enddo
-        enddo
-      endif
-      return
-      end
+c$$$c       SPARSEPROD: Performs a product of the designated mode in the sparse
+c$$$c       matrix
+c$$$c
+c$$$      subroutine sparseProd(mode, m, n, x, y, leniw, lenrw, iw, rw)
+c$$$      implicit none
+c$$$      integer*4 mode, m, n, leniw, lenrw, iw(leniw)
+c$$$      double precision x(n), y(m)
+c$$$      real*4 rw(lenrw)
+c$$$      integer*4 icol, irow, jaofs, ind
+c$$$c       
+c$$$*       If mode = 1, compute  y = y + A*x.
+c$$$*       If mode = 2, compute  x = x + A(transpose)*y.
+c$$$c       First number in iw is the offset to the JA values, the column
+c$$$c       number of each data value
+c$$$c       Then IW contains the I values, the starting index for each row
+c$$$*       
+c$$$      jaofs = iw(1)
+c$$$      if (mode .eq. 1) then
+c$$$        do irow = 1, m
+c$$$          do ind = iw(irow + 1), iw(irow + 2) - 1
+c$$$            icol = iw(jaofs + ind)
+c$$$            y(irow) = y(irow) + rw(ind) * x(icol)
+c$$$          enddo
+c$$$        enddo
+c$$$      else
+c$$$        do irow = 1, m
+c$$$          do ind = iw(irow + 1), iw(irow + 2) - 1
+c$$$            icol = iw(jaofs + ind)
+c$$$            x(icol) = x(icol) + rw(ind) * y(irow)
+c$$$          enddo
+c$$$        enddo
+c$$$      endif
+c$$$      return
+c$$$      end
 
 c
 c       $Log$
+c       Revision 1.13  2007/11/18 04:58:07  mast
+c       Redeclared concat at 320
+c
 c       Revision 1.12  2007/04/10 15:51:07  mast
 c       Added arguments to setgridchars call
 c
