@@ -14,7 +14,8 @@ UTILOBJS = b3dutil.$(O) ilist.$(O) parselist.$(O) amoeba.$(O) \
 	samplemeansd.$(O) colormap.$(O) cubinterp.$(O) reduce_by_binning.$(O) \
 	scaledsobel.$(O) filtxcorr.$(O) taperpad.$(O) circlefit.$(O) \
 	insidecontour.$(O) islice.$(O) taperatfill.$(O) histogram.$(O) \
-	simplestat.$(O) amat_to_rotmagstr.$(O) percentile.$(O) beadutil.$(O)
+	simplestat.$(O) amat_to_rotmagstr.$(O) percentile.$(O) beadutil.$(O) \
+	lsqr.$(O) lsqrblas.$(O) sparselsqr.$(O)
 
 PIPOBJS = parse_params.$(O) pip_fwrap.$(O) autodoc.$(O) adoc_fwrap.$(O)
 
@@ -46,8 +47,12 @@ $(PIPOBJS) : $(INCDIR)/parse_params.h
 pip_fwrap.$(O) : $(INCDIR)/b3dutil.h
 autodoc.$(O) : $(INCDIR)/autodoc.h
 adoc_fwrap.$(O) : $(INCDIR)/autodoc.h
+lsqr.$(O) : $(INCDIR)/lsqr.h cblas.h stdbool.h
 
 #  $Log$
+#  Revision 1.9  2008/12/01 15:30:39  mast
+#  Added percentile and beadutil
+#
 #  Revision 1.8  2008/11/18 22:42:51  mast
 #  Added amat_to_rotmagstr
 #
