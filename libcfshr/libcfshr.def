@@ -7,6 +7,7 @@ EXPORTS
 	ADOCGETINTEGER
 	PIPDONE
 	b3dRewind
+	SPARSEPROD
 	c2fString
 	XCorrCCCoefficient
 	scanHistogram
@@ -14,6 +15,7 @@ EXPORTS
 	PIPGETTHREEINTEGERS
 	InsideContour
 	ADOCGETNUMBEROFSECTIONS
+	LSQR
 	MEANZERO
 	percentileInt
 	b3dFseek
@@ -39,6 +41,7 @@ EXPORTS
 	ilistShift
 	TAPERATFILL
 	AdocSetThreeIntegers
+	cblas_dscal
 	sliceGetValMagnitude
 	ADOCGETTWOFLOATS
 	ilistPush
@@ -64,6 +67,7 @@ EXPORTS
 	PipNumberOfArgs
 	fitSphere
 	XCORRPEAKFIND
+	cblas_daxpy
 	cubinterp
 	ADOCSETFLOAT
 	REDUCE_BY_BINNING
@@ -71,6 +75,7 @@ EXPORTS
 	FINDHISTOGRAMDIP
 	PIPADDOPTION
 	ilistSize
+	addRowToMatrix
 	PARABOLICFITPOSITION
 	exitError
 	SUMS_TO_AVGSD
@@ -85,6 +90,8 @@ EXPORTS
 	SUMS_TO_AVGSD8
 	ADOCGETSECTIONNAME
 	CONJUGATEPRODUCT
+	lsqr
+	cblas_dcopy
 	imodVersion
 	b3dError
 	PIPNUMBEROFARGS
@@ -122,6 +129,7 @@ EXPORTS
 	LSFITS
 	PipReadOrParseOptions
 	AdocSetFloat
+	ADDVALUETOROW
 	AdocSetInteger
 	b3dIMax
 	PIPALLOWCOMMADEFAULTS
@@ -130,6 +138,7 @@ EXPORTS
 	slicePutVal
 	ilistTruncate
 	PIPGETINTEGER
+	normalizeColumns
 	PipGetNonOptionArg
 	PipGetTwoIntegers
 	sliceTaperAtFill
@@ -162,6 +171,7 @@ EXPORTS
 	b3dSetStoreError
 	PIPSETSPECIALFLAGS
 	ilistPop
+	cblas_dnrm2
 	PIPSETMANPAGEOUTPUT
 	AdocSetTwoFloats
 	parselist
@@ -178,12 +188,14 @@ EXPORTS
 	ADOCWRITE
 	PIPSETERROR
 	ilistFirst
+	NORMALIZECOLUMNS
 	sliceGetYSize
 	PipStartsWith
 	AMAT_TO_ROTMAGSTR
 	ilistNext
 	sumsToAvgSD
 	IMODGETENV
+	cblas_ddot
 	ADOCGETFLOAT
 	PIPPRINTHELP
 	PIPINITIALIZE
@@ -232,6 +244,7 @@ EXPORTS
 	AdocGetFloatArray
 	SCALEDSOBEL
 	b3dFread
+	ADDROWTOMATRIX
 	imodUsageHeader
 	ADOCDELETEKEYVALUE
 	ilistLast
@@ -240,6 +253,7 @@ EXPORTS
 	amatToRotmagstr
 	ilistNew
 	f2cString
+	addValueToRow
 	imodProgName
 	ADOCDONE
 	AdocGetThreeIntegers
