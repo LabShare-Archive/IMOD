@@ -58,18 +58,18 @@ c
       integer*4 numOptArg, numNonOptArg
       integer*4 PipGetInteger, PipGetFloatArray, PipNumberOfEntries
       integer*4 PipGetString,PipGetThreeIntegers,PipGetThreeFloats
-      integer*4 PipGetNonOptionArg, PipGetInOutFile
+      integer*4 PipGetNonOptionArg, PipGetInOutFile, PipGetBoolean
 c       
 c       fallbacks from ../../manpages/autodoc2man -2 2  warpvol
 c       
       integer numOptions
-      parameter (numOptions = 7)
+      parameter (numOptions = 9)
       character*(40 * numOptions) options(1)
       options(1) =
      &    'input:InputFile:FN:@output:OutputFile:FN:@'//
      &    'xforms:TransformFile:FN:@tempdir:TemporaryDirectory:CH:@'//
-     &    'size:OutputSizeXYZ:IT:@order:InterpolationOrder:I:@'//
-     &    'help:usage:B:'
+     &    'size:OutputSizeXYZ:IT:@same:SameSizeAsInput:B:@'//
+     &    'order:InterpolationOrder:I:@param:ParameterFile:PF:@help:usage:B:'
 c       
 c       set defaults here
 c       
@@ -104,6 +104,12 @@ c
       if (pipinput) then
         ierr = PipGetString('TemporaryDirectory', tempdir)
         ierr = PipGetInteger('InterpolationOrder', interpOrder)
+        iz = 0
+        ierr = PipGetBoolean('SameSizeAsInput', iz)
+        if (iz .ne. 0) then
+          nxout = nxin
+          nzout = nzin
+        endif
         ierr = PipGetThreeIntegers('OutputSizeXYZ', nxout, nyout, nzout)
         if (PipGetString('TransformFile', fileinv) .ne. 0) call exiterror(
      &      'NO FILE WITH INVERSE TRANSFORMS SPECIFIED')
@@ -634,6 +640,9 @@ c               Copy transform from closest position
 
 c       
 c       $Log$
+c       Revision 3.13  2007/11/18 04:53:46  mast
+c       Increased filename limits to 320
+c
 c       Revision 3.12  2007/08/30 20:13:38  mast
 c       Change izinfile from i*2 3d to i*4 1D array
 c
