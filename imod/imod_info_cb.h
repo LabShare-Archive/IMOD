@@ -13,6 +13,9 @@
     $Revision$
 
     $Log$
+    Revision 4.6  2008/03/06 00:12:46  mast
+    Changes to allow settings of float and subarea checkboxes to be saved
+
     Revision 4.5  2004/11/07 23:02:29  mast
     Added routine to indicate saving next clear
 
@@ -69,7 +72,7 @@ void imod_info_enable(void);
 int imod_info_input(void);
 void imod_set_mmode(int mode);
 void imod_draw_window(void);
-void imod_imgcnt(char *string);
+void imod_imgcnt(const char *string);
 void imodStartAutoDumpCache();
  
 #endif

@@ -783,7 +783,7 @@ void imodStartAutoDumpCache()
   startDump = 2;
 }
 
-void imod_imgcnt(char *string)
+void imod_imgcnt(const char *string)
 {
   wprint("%s\r", string);
   imod_info_input();
@@ -805,6 +805,9 @@ void imod_imgcnt(char *string)
 
 /*
 $Log$
+Revision 4.32  2008/12/01 15:38:52  mast
+Fix float on startup to middle Z, and set current point index better
+
 Revision 4.31  2008/11/07 05:31:22  mast
 Prevented new black level from being > 255
 
