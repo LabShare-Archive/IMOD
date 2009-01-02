@@ -1,5 +1,7 @@
 IMOD History
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+1/2/09: Made a script for imodhelp to run it properly (In 3.13).
+
 12/31/08: Added option to Warpvol to set default output size the same as input.
 
 12/29/08: Fixed Stitchalign to avoid multiple vectors at same Z level and put
