@@ -1,4 +1,4 @@
-# IMOD 3.12.25
+# IMOD 3.13.1
 #
 # Startup file for bash users of IMOD on an SGI
 #
@@ -80,7 +80,3 @@ alias mtoverlap='runimodqtapp mtoverlap'
 alias nda='runimodqtapp nda'
 alias sda='runimodqtapp sda'
 alias mtk='runimodqtapp mtk'
-
-# An alias to start assistant with IMOD help
-#
-alias imodhelp="assistant -profile $IMOD_DIR/html/IMOD.adp -file $IMOD_DIR/html/index.html&"

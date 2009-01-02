@@ -1,4 +1,4 @@
-# IMOD 3.12.25
+# IMOD 3.13.1
 #
 # Startup file for users of IMOD on a Macintosh (if they are running tcsh)
 #
@@ -45,10 +45,6 @@ if (-r $IMOD_CALIB_DIR/IMOD.csh) source $IMOD_CALIB_DIR/IMOD.csh
 # A subm alias to run command files in the background with submfg
 #
 alias subm 'submfg \!* &'
-
-# An alias to start assistant with IMOD help
-#
-alias imodhelp "assistant -profile $IMOD_DIR/html/IMOD.adp -file $IMOD_DIR/html/index.html&"
 
 # Set a variable to indicate where our copy of Qt library is
 #

@@ -1,4 +1,4 @@
-# IMOD 3.12.25
+# IMOD 3.13.1
 #
 # Startup file for bash users of IMOD under Linux - place it in /etc/profile.d
 #
@@ -55,7 +55,3 @@ fi
 #
 if [ -z "$BASH" ] ; then return 0 ; fi
 function subm () { submfg $* & }
-
-# An alias to start assistant with IMOD help
-#
-alias imodhelp="assistant -profile $IMOD_DIR/html/IMOD.adp -file $IMOD_DIR/html/index.html&"
