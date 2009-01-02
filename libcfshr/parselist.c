@@ -4,6 +4,9 @@
   $Id$
  
   $Log$
+  Revision 1.1  2007/09/20 02:43:08  mast
+  Moved to new library
+
   Revision 3.2  2006/02/25 22:08:31  mast
   Added comment to doc system
   
@@ -28,7 +31,7 @@
  * that the minus sign immediately precedes the number.  E.g.: -3 - -1
  * or -3--1 will give -3,-2,-1; -3, -1,1 or -3,-1,1 will give -3,-1,1.
  */    
-int *parselist (char *line, int *nlist)
+int *parselist (const char *line, int *nlist)
 {
   char intern[10];
   char next;

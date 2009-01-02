@@ -639,7 +639,7 @@ extern "C" {
   /* imodel_to.c functions                                                   */
   /***************************************************************************/
   int imod_to_nff(Imod  *mod, FILE *fout);
-  int imod_to_wmod(Imod *mod, FILE *fout, char *filename);
+  int imod_to_wmod(Imod *mod, FILE *fout, const char *filename);
   int imod_to_synu(Imod *mod);
 
   /***************************************************************************/
@@ -651,7 +651,7 @@ extern "C" {
   int   imodOpenFile  (char *filename, char *mode, Imod *imod);
   int   imodCloseFile (Imod *imod);
   int   imodReadFile  (Imod *imod);
-  Imod *imodRead      (char *filename);
+  Imod *imodRead      (const char *filename);
   int   imodWriteFile (Imod *imod);
   int   imodWrite     (Imod *imod, FILE *fout);
   int   imodWriteAscii(Imod *imod);
@@ -700,6 +700,9 @@ extern "C" {
 
 /*    
     $Log$
+    Revision 3.43  2008/01/27 06:25:36  mast
+    Added object group list
+
     Revision 3.42  2007/12/04 18:27:35  mast
     Exposed Ipoint definition for plugins
 

@@ -163,7 +163,7 @@ int imodReadFile(Imod *imod)
  * Reads a model from file given by [filename] and returns created model 
  * structure or NULL for error.
  */
-Imod *imodRead(char *filename)
+Imod *imodRead(const char *filename)
 {
   FILE *fin;
   Imod *imod;
@@ -1978,6 +1978,9 @@ int imodPutByte(FILE *fp, unsigned char *dat)
 
 /*
   $Log$
+  Revision 3.34  2008/12/09 23:26:42  mast
+  Changed flag from line to noline
+
   Revision 3.33  2008/11/20 20:13:29  mast
   Added refimage info to ascii model
 

@@ -19,7 +19,7 @@ extern "C" {
 #endif
 
   /* parselist.c  - for parsing a list of integers */
-  int *parselist (char *line, int *nlist);
+  int *parselist (const char *line, int *nlist);
 
   /* amoeba.c - simplex minimization routine */
   void amoeba(float *p, float *y, int mp, int ndim, float ftol, 
@@ -149,6 +149,9 @@ extern "C" {
 /*
 
 $Log$
+Revision 3.12  2008/12/22 23:02:30  mast
+Added return of nsum to ccc function
+
 Revision 3.11  2008/12/21 18:28:17  mast
 Add ccc routine
 

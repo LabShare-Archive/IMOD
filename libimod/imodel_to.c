@@ -15,6 +15,9 @@ $Date$
 $Revision$
 
 $Log$
+Revision 3.4  2005/09/11 19:12:17  mast
+Changes for new mesh style
+
 Revision 3.3  2004/10/13 05:45:29  mast
 Fixed bug in writing mesh to nff file
 
@@ -30,7 +33,7 @@ Eliminated long variables
 
 int imod_mesh_to_synu(struct Mod_Object *obj, int no, double zscale);
 
-int imod_to_wmod(struct Mod_Model *mod, FILE *fout, char *filename)
+int imod_to_wmod(struct Mod_Model *mod, FILE *fout, const char *filename)
 {
 
   int object_count = 1;

@@ -140,7 +140,7 @@ int iiInit(ImodImageFile *i, int xsize, int ysize, int zsize,
  * pointer.  Returns NULL for error; it and all checking routines should call 
  * b3dError with their error strings.
  */
-ImodImageFile *iiOpen(char *filename, char *mode)
+ImodImageFile *iiOpen(const char *filename, char *mode)
 {
   ImodImageFile *ofile;
   IIFileCheckFunction *checkFunc;
@@ -367,6 +367,9 @@ int iiLoadPCoord(ImodImageFile *inFile, struct LoadInfo *li, int nx, int ny,
 
 /*
 $Log$
+Revision 3.16  2008/11/25 16:24:03  mast
+Allocating fmode was not a good idea
+
 Revision 3.15  2008/11/24 23:59:05  mast
 Changes to use and stop leaks in SerialEM
 

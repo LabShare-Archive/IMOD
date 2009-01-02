@@ -307,7 +307,7 @@ unsigned char **read_mrc_byte(FILE *fin, MrcHeader *hdata,
 			      struct LoadInfo *li);
 unsigned char **mrc_read_byte(FILE *fin, MrcHeader *hdata, 
 			      struct LoadInfo *li,
-			      void (*func)(char *));
+			      void (*func)(const char *));
 
 int mrcReadSectionByte(MrcHeader *hdata, struct LoadInfo *li,
 			unsigned char *buf, int z);
@@ -346,7 +346,7 @@ unsigned char *get_short_map(float slope, float offset, int outmin, int outmax,
 
 /************************ Internal functions *********************************/
 int getfilename(char *name, char *prompt);
-void mrc_default_status(char *string);
+void mrc_default_status(const char *string);
 int mrc_getdcsize(int mode, int *dsize, int *csize);
 void mrc_swap_shorts(b3dInt16 *data, int amt);
 void mrc_swap_longs(b3dInt32 *data, int amt);
@@ -362,6 +362,9 @@ void mrc_set_cmap_stamp(MrcHeader *hdata);
 /*
 
 $Log$
+Revision 3.21  2008/11/02 13:43:17  mast
+Added functions for reading float slice
+
 Revision 3.20  2008/05/31 03:08:38  mast
 Added scaling routine
 

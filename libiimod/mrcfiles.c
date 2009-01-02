@@ -803,7 +803,7 @@ int mrcReadFloatSlice(b3dFloat *buf, MrcHeader *hdata, int slice)
    void *mrc_read_image(FILE *fin, MrcHeader *hdata, int z)
    which duplicated and was inferior to mrc_mread_slice
 */
-void mrc_default_status(char *string)
+void mrc_default_status(const char *string)
 {
   printf("%s", string);
   fflush(stdout);
@@ -837,7 +837,7 @@ unsigned char **read_mrc_byte(FILE *fin,
 unsigned char **mrc_read_byte(FILE *fin, 
                               MrcHeader *hdata, 
                               IloadInfo *li,
-                              void (*func)(char *))
+                              void (*func)(const char *))
 {
   int  i, j, k;
   unsigned int ui;
@@ -2176,6 +2176,9 @@ void mrc_swap_floats(fb3dFloat *data, int amt)
 
 /*
 $Log$
+Revision 3.40  2008/11/02 13:43:08  mast
+Added functions for reading float slice
+
 Revision 3.39  2008/05/31 03:09:32  mast
 Added scaling routine so callers can use mrcsec with same scaling
 

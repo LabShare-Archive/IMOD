@@ -147,7 +147,7 @@ extern "C" {
   void iiAddRawCheckFunction(IIRawCheckFunction func, char *name);
   void iiDeleteRawCheckList();
   ImodImageFile *iiNew(void);
-  ImodImageFile *iiOpen(char *filename, char *mode);
+  ImodImageFile *iiOpen(const char *filename, char *mode);
   int  iiReopen(ImodImageFile *inFile);
   void iiClose(ImodImageFile *inFile);
   void iiDelete(ImodImageFile *inFile);
@@ -190,6 +190,9 @@ extern "C" {
 
 /*
 $Log$
+Revision 3.14  2008/11/24 23:50:07  mast
+Changes for using in SerialEM
+
 Revision 3.13  2008/11/18 22:43:54  mast
 Changed include to eliminate mrcc.h
 
