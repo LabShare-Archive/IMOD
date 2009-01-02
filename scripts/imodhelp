@@ -5,4 +5,4 @@ fi
 if [ ! -z "$IMOD_QTLIBDIR" ] ; then
     export PATH="${IMOD_QTLIBDIR}:$PATH"
 fi
-assistant -profile $IMOD_DIR/html/IMOD.adp -file $IMOD_DIR/html/html/index.html&
+assistant -profile $IMOD_DIR/html/IMOD.adp -file $IMOD_DIR/html/index.html&
