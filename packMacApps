@@ -37,6 +37,20 @@ foreach prog ($fprogs)
     endif
 end
 
+# Make a wrapper script for the Qt assistant in qtlib
+# 
+if (-e $instdir/qtlib) then
+    set app = `\find $instdir/qtlib -name 'assistant*.app' -print`
+    if ("$app" != "") then
+        set prog = $app:t:r
+        if (! -e $instdir/qtlib/$prog) then
+            sed -e "/imodsendevent/s//$prog/g" -e "/bin/s//qtlib/" \
+                $instdir/bin/imodsendevent > $instdir/qtlib/$prog
+            chmod a+rx $instdir/qtlib/$prog
+        endif
+    endif
+endif
+
 #
 # Convert Ctrl to Apple in selected files if this is not the install directory
 #
@@ -50,6 +64,9 @@ end
 
 #
 #  $Log$
+#  Revision 1.9  2008/03/03 17:46:15  mast
+#  Rename run scripts to program names
+#
 #  Revision 1.8  2007/10/03 22:36:17  mast
 #  Added Ctrl conversion for midas help files
 #
