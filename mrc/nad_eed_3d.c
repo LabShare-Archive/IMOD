@@ -989,7 +989,7 @@ int main (int argc, char **argv)
   Islice *sl;
   int sliceMode;
   char *progname = imodProgName(argv[0]);
-  char **endptr;
+  char *endptr;
   int nWrite = 0;
   int doWrite, iarg, nzout, kst, knd, writeArg;
   int* writeList;
@@ -1268,6 +1268,10 @@ int main (int argc, char **argv)
 /*  
     
 $Log$
+Revision 3.10  2007/12/11 00:11:51  mast
+Eliminated usage statement if argument processing gets out of sync, and
+added proper error messages when an option is missing a value
+
 Revision 3.9  2007/11/06 23:16:04  mast
 etomo needed Shell PID:
 
