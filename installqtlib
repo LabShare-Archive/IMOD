@@ -63,6 +63,20 @@ else
     exit 1
 endif
 
+# Make a wrapper script for the Qt assistant in qtlib but make it lower case
+# 
+if (-e $instdir/qtlib) then
+    set app = `\find $instdir/qtlib -name '*ssistant*.app' -print`
+    if ("$app" != "") then
+        set prog = $app:t:r
+        if (! -e $instdir/qtlib/$prog) then
+            sed -e "/imodsendevent/s//$prog/g" -e "/IMOD_DIR/s/bin/qtlib/" \
+                $instdir/bin/imodsendevent > $instdir/qtlib/assistant
+            chmod a+rx $instdir/qtlib/assistant
+        endif
+    endif
+endif
+
 # Copy Qt plugins to imodplug since it is present everywhere
 #
 @ plugnum = 1
@@ -203,6 +217,9 @@ exit 0
 
 #
 #  $Log$
+#  Revision 3.31  2008/12/23 03:41:41  mast
+#  UAC wrapper scripts needed to already have the final name
+#
 #  Revision 3.30  2008/01/26 01:59:41  mast
 #  Added ability to rename some DLLs to protected names
 #
