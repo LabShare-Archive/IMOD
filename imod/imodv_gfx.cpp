@@ -263,7 +263,6 @@ void imodvPaintGL()
     break;
   }
 
-  //  imodv_swapbuffers(a);
   b3dResizeViewportXY(a->winx, a->winy);
   if (a->drawLight)
     drawLightVector(a);
@@ -276,10 +275,14 @@ void imodvPaintGL()
   scale = 0.5 * (a->winx > a->winy ? a->winy : a->winx) /
     a->imod->view->rad;
   a->scaleBarSize = scaleBarDraw(a->winx, a->winy, scale, color);
+
+  // Cards with hidden stereo capability need this to avoid losing display
+#ifdef Q_OS_MACX
+  imodv_swapbuffers(a);
+  imodv_swapbuffers(a);
+#endif
   imodvControlSetView(a);
   imodvControlUpdate(a);
-  //  imodvCallDrawCB(IMODV_DRAWCB_UNKNOWN);
-  return;
 }
 
 
@@ -492,6 +495,9 @@ static int imodv_snapshot(ImodvApp *a, QString fname)
 /*
 
 $Log$
+Revision 4.22  2008/12/17 17:51:25  mast
+change in call to set widget
+
 Revision 4.21  2008/12/15 21:25:29  mast
 Chnages for swapping between stereo and non stereo as well as db/sb widgets
 
