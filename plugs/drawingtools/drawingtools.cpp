@@ -15,20 +15,17 @@
     $Revision$
 
     $Log$
+    Revision 1.24  2008/11/16 12:13:05  tempuser
+    *** empty log message ***
+
     Revision 1.23  2008/09/30 07:05:58  tempuser
     fixed imodplug event returns, renamed 'deform' tool to 'sculpt' tool and added 'warp' tool
 
     Revision 1.22  2008/08/26 03:20:10  tempuser
     fixed ivwSetTopZapZoom call
 
-    Revision 1.21  2008/08/25 09:45:40  tempuser
-    *** empty log message ***
-
     Revision 1.20  2008/08/25 09:34:35  tempuser
     touched up code
-
-    Revision 1.19  2008/07/28 05:27:59  tempuser
-    *** empty log message ***
 
     Revision 1.18  2008/07/28 01:58:15  tempuser
     Made imodContourReduce the default smoothing algorithm
@@ -41,9 +38,6 @@
 
     Revision 1.15  2008/07/24 07:20:18  tempuser
     Better labels
-
-    Revision 1.14  2008/07/14 08:55:51  tempuser
-    Minor changes
 
     Revision 1.13  2008/07/10 07:43:56  tempuser
     Added functionality to sort and advance through [y] contours and points
@@ -65,24 +59,6 @@
 
     Revision 1.7  2008/03/05 10:29:00  tempuser
     Cleaned code
-
-    Revision 1.6  2008/03/03 06:48:01  tempuser
-    Modified makefile and slice changing
-
-    Revision 1.5  2008/02/21 07:37:46  tempuser
-    *** empty log message ***
-
-    Revision 1.4  2008/02/21 07:33:42  tempuser
-    Changed DBL_MAX
-
-    Revision 1.3  2008/01/29 02:32:47  tempuser
-    *** empty log message ***
-
-    Revision 1.2  2008/01/29 00:04:01  tempuser
-    *** empty log message ***
-
-    Revision 1.1  2008/01/24 01:25:30  tempuser
-    *** empty log message ***
 
     Revision 0.0  2008/2/25 15:45:41  noske
     Made special module to be used in IMOD
@@ -186,7 +162,7 @@ int imodPlugKeys(ImodView *vw, QKeyEvent *event)
       plug.window->reduceCurrentContour();
       break;
     case Qt::Key_E:
-      plug.window->smoothCurrentContour();
+      plug.window->smoothCurrentContour(shift);
       break;
       
     case Qt::Key_D:
@@ -210,6 +186,11 @@ int imodPlugKeys(ImodView *vw, QKeyEvent *event)
     case Qt::Key_B:
       edit_goToContNextBiggestFindVal(shift,true,false,(shift)?FLOAT_MAX:FLOAT_MIN );
           // recalculates
+      break;
+    
+    case Qt::Key_Question:
+    case Qt::Key_Space:
+      return plug.window->copyCurrContToView(shift);
       break;
       
     //case Qt::Key_T:                  // temporary testing purposes - comment out
@@ -312,6 +293,7 @@ void imodPlugExecute(ImodView *inImodView)
     plug.markTouchedContsAsKey    = false;
     plug.wheelResistance          = 100;
     plug.showMouseInModelView     = false;
+    plug.warpDisplay              = WD_EITHER;
     plug.testIntersetAllObjs      = true;
     plug.selectedAction           = 0;
     plug.sortCriteria             = SORT_NUMPTS;
@@ -1140,8 +1122,11 @@ bool DrawingTools::drawExtraObject( bool redraw )
     
   case(DM_WARP):            // draw warp circle
     {
-      cont_generateCircle( xcont, radius, 100, plug.mouse, true );
-      setInterpolated( xcont, true );
+      if( plug.warpDisplay != WD_LENGTH && plug.warpDisplay != WD_EITHER )
+      {
+        cont_generateCircle( xcont, radius, 100, plug.mouse, true );
+        setInterpolated( xcont, true );
+      }
       
       if( !plug.but2Down || !plug.but3Down )
       {
@@ -1153,7 +1138,9 @@ bool DrawingTools::drawExtraObject( bool redraw )
         bool suitableContourSelected =
           edit_selectNearPtInCurrObj( &plug.mouse, distTol, distTolCurrCont, false );
         
-        if( suitableContourSelected && isCurrPtValid() )
+        imodGetIndex(imod, &objIdx, &contIdx, &ptIdx);
+        
+        if( suitableContourSelected && isCurrPtValid() )    // draw closest point:
         {
           Ipoint *currPt = getCurrPt();
           Icont *xcont2 = imodContourNew();
@@ -1163,6 +1150,59 @@ bool DrawingTools::drawExtraObject( bool redraw )
           imodObjectAddContour(xobj, xcont2);
           imodObjectAddContour(xobj, xcont3);
           imodSetIndex(imod, objIdx, contIdx, ptIdx);
+          
+          if( plug.warpDisplay != WD_CIRCLE )                   // draw warp length:
+          {
+            Iobj  *obj  = getCurrObj();
+            Icont *cont = getCurrCont();
+            bool closed = isContClosed(obj,cont);
+            float  contLength = imodContourLength( cont, closed );
+            if( contLength > plug.draw_sculptRadius )
+            {            
+              float distToWarp = MIN( plug.draw_sculptRadius, contLength * 0.25f );
+              int numPts = psize(cont);
+              
+              int idxStart, idxEnd;
+              float distFromSelPt = 0.0f;
+              for( int p=numPts+(ptIdx-1); p>=ptIdx; p-- )
+              {
+                distFromSelPt += line_distBetweenPts2D( getPt(cont,p), getPt(cont,p-1) );
+                if( distFromSelPt >= distToWarp )
+                {
+                  idxStart = p;
+                  break;
+                }
+              }
+              
+              distFromSelPt = 0.0f;
+              for( int p=numPts+(ptIdx+1); p<=numPts+numPts+ptIdx; p++ )
+              {
+                distFromSelPt += line_distBetweenPts2D( getPt(cont,p-1), getPt(cont,p) );
+                if( distFromSelPt >= distToWarp )
+                {
+                  idxEnd = p;
+                  break;
+                }
+              }
+              Icont *xcontS = imodContourNew();
+              Icont *xcontE = imodContourNew();
+              Icont *xcontL = imodContourNew();
+              for( int p=idxStart; p<=idxEnd; p++ )
+                imodPointAppend( xcontL, getPt(cont,p) );
+              for( int p=idxEnd; p>=idxStart; p-- )
+                imodPointAppend( xcontL, getPt(cont,p) );
+              cont_generateCircle( xcontS, 3.5f*sc, 4, *getPt(cont,idxStart), true );
+              cont_generateCircle( xcontE, 3.5f*sc, 4, *getPt(cont,idxEnd), true );
+              imodObjectAddContour(xobj, xcontL);
+              imodObjectAddContour(xobj, xcontS);
+              imodObjectAddContour(xobj, xcontE);
+            }
+          }
+        }
+        else if( plug.warpDisplay == WD_EITHER )
+        {
+          cont_generateCircle( xcont, radius, 100, plug.mouse, true );
+          setInterpolated( xcont, true );
         }
       }
       
@@ -1210,9 +1250,16 @@ void DrawingTools::loadSettings()
   
   if(nvals!=NUM_SAVED_VALS)
   {
-    wprint("DrawingTools: Error loading saved values");
+    wprint("DrawingTools: Could not load saved values");
+    QMessageBox::about( this, "-- Documentation --",
+                        "If this is your first time using of 'Drawing Tools'. <br>"
+                        "it is HIGHLY recommended you start by clicking 'Help' \n"
+                        "(at bottom of the plugin) and reading the documentation ! \n"
+                        "                                   -- Andrew Noske" );
     return;
   }
+
+
   
   plug.drawMode                   = savedValues[0];
   plug.draw_reducePts             = savedValues[1];
@@ -1228,10 +1275,11 @@ void DrawingTools::loadSettings()
   plug.useNumKeys                 = savedValues[11];
   plug.markTouchedContsAsKey      = savedValues[12];
   plug.wheelResistance            = savedValues[13];
-  plug.selectedAction             = savedValues[14];
+  plug.warpDisplay                = savedValues[14];
   plug.selectedAction             = savedValues[15];
-  plug.testIntersetAllObjs        = savedValues[16];
-  plug.findCriteria               = savedValues[17];
+  plug.selectedAction             = savedValues[16];
+  plug.testIntersetAllObjs        = savedValues[17];
+  plug.findCriteria               = savedValues[18];
 }
 
 
@@ -1257,10 +1305,11 @@ void DrawingTools::saveSettings()
   saveValues[11]  = plug.useNumKeys;
   saveValues[12]  = plug.markTouchedContsAsKey;
   saveValues[13]  = plug.wheelResistance;
-  saveValues[14]  = plug.selectedAction;
+  saveValues[14]  = plug.warpDisplay;
   saveValues[15]  = plug.selectedAction;
-  saveValues[16]  = plug.testIntersetAllObjs;
-  saveValues[17]  = plug.selectedAction;
+  saveValues[16]  = plug.selectedAction;
+  saveValues[17]  = plug.testIntersetAllObjs;
+  saveValues[18]  = plug.selectedAction;
   
   prefSaveGenericSettings("DrawingTools",NUM_SAVED_VALS,saveValues);
 }
@@ -1271,7 +1320,7 @@ void DrawingTools::saveSettings()
 //-- Reduces the number of points in the current contour.
 
 void DrawingTools::reduceCurrentContour()
-{
+{  
   if( !isCurrContValid() )
     return;
   
@@ -1288,13 +1337,14 @@ void DrawingTools::reduceCurrentContour()
 }
 
 //------------------------
-//-- Smooths and increases the number of points in the current contour.
+//-- Smooths the current contour by adding extra points using a spline
+//-- (existing points are not moved).
 
-void DrawingTools::smoothCurrentContour()
+void DrawingTools::smoothCurrentContour( bool moveExistingPts )
 {
   if( !isCurrContValid() )
     return;
-    
+  
   undoContourDataChgCC( plug.view );      // REGISTER UNDO
   int pointsAdded = edit_smoothCurrContour();
   if(pointsAdded)
@@ -1302,6 +1352,26 @@ void DrawingTools::smoothCurrentContour()
     undoFinishUnit( plug.view );            // FINISH UNDO
     ivwRedraw( plug.view );
   }
+  
+  if( moveExistingPts )
+  {
+    Imod  *imod = ivwGetModel(plug.view);
+    Iobj  *obj  = imodObjectGet(imod);
+    Icont *cont = imodContourGet(imod);
+    
+    const float moveFract = 0.25;
+    const float minDistToMove = 0.20f;
+    bool closed = isContClosed(obj,cont);
+    int pointsMoved = cont_avgPtsPos( cont, moveFract, minDistToMove, closed, true );
+    
+    if(pointsMoved) {
+      undoFinishUnit( plug.view );            // FINISH UNDO
+      ivwRedraw( plug.view );
+    }
+    wprint("%d points added %d moved (contour smoothing)\n", pointsAdded, pointsMoved);
+    return;
+  }
+  
   wprint("%d points added (contour smoothing)\n", pointsAdded);
 }
 
@@ -2307,6 +2377,18 @@ void DrawingTools::moreSettings()
                   "in sculpt and join drawing mode. \n"
                   "NOTE: You can also change this using "
                   "[q], [w] and the mouse wheel.");
+  ds.addComboBox( "warp tool display:",
+                  "circle only,"
+                  "warp length only,"
+                  "circle and length,"
+                  "either", &plug.warpDisplay,
+                  "Display setting for the warp tool [6] is used. \n"
+                  "\n"
+                  " > circle - show the deform circle whereby the diameter "
+                  "represents how much length will be warped \n"
+                  " > warp length - shows the length/region of the contour "
+                  "to be warped \n"
+                  " > circle and length - shows the deform circle and warp length");
   ds.addLabel   ( "\n--- OTHER ---" );
   ds.addComboBox( "smoothing meth:",
                   "segment threshold,"
@@ -3424,7 +3506,7 @@ void DrawingTools::test()
 
 
 //------------------------
-//-- Method used for testing new routines.
+//-- Cut currently selected contour (ready to paste elsewhere).
 
 void DrawingTools::cut()
 {  
@@ -3460,7 +3542,7 @@ void DrawingTools::cut()
 }
 
 //------------------------
-//-- Method used for testing new routines.
+//-- Copy currently selected contour into "plug.copiedCont" (ready to paste).
 
 void DrawingTools::copy()
 {  
@@ -3487,7 +3569,7 @@ void DrawingTools::copy()
 }
 
 //------------------------
-//-- Method used for testing new routines.
+//-- Paste contour from "plug.copiedCont" to current slice.
 
 void DrawingTools::paste(bool centerOnMouse)
 {  
@@ -3523,6 +3605,51 @@ void DrawingTools::paste(bool centerOnMouse)
   imodContourDelete(contNew);
   
   ivwRedraw( plug.view );
+}
+
+
+//------------------------
+//-- Copies the currently selected contour to the current slice.
+//-- Return 1 if handled, 0 if NOT handled.
+
+int  DrawingTools::copyCurrContToView(bool smartSize)
+{
+  if( !isCurrContValid() )  {
+    wprint("\aMust select contour first\n");
+    return 0;
+  }
+  
+  Imod *imod  = ivwGetModel(plug.view);
+  Icont *cont = getCurrCont();
+  int objIdx, contIdx, ptIdx;
+  imodGetIndex(imod, &objIdx, &contIdx, &ptIdx);
+  
+  int contZ = getZ(cont);
+  int currZ = edit_getZOfTopZap();
+  
+  if( contZ == currZ )
+  {
+    wprint("Cannot copy contour to same slice\n");
+    return 0;
+  }
+  
+  Icont *contNew = imodContourDup( cont );
+  changeZValue( contNew, currZ );
+  if(smartSize)
+  {
+    Ipoint centerMBR;
+    cont_getCenterOfMBR( cont, &centerMBR );
+    float diffZ = ABS(contZ - currZ);
+    float scaleXY = pow( 0.95, diffZ );
+    cout << scaleXY << endl;
+    cont_scaleAboutPtXY( contNew, &centerMBR, scaleXY, scaleXY );
+  }
+  int newContPos = edit_addContourToObj( getCurrObj(), contNew, true );
+  
+  undoFinishUnit( plug.view );        // FINISH UNDO
+  imodSetIndex(imod, objIdx, newContPos, 0);
+  ivwRedraw( plug.view );
+  return 1;
 }
 
 
@@ -3644,9 +3771,12 @@ void DrawingTools::closeEvent ( QCloseEvent * e )
   clearExtraObj();
   ivwFreeExtraObject(plug.view, plug.extraObjNum);
   ivwTrackMouseForPlugs(plug.view, 0);
+  //ivwEnableStipple( plug.view, 0 );
   
-  imodContourDelete( plug.copiedCont );
+  //imodContourDelete( plug.copiedCont );   // caused a crash on second close of plugin
   plug.window->saveSettings();
+  
+  ivwDraw( plug.view, IMOD_DRAW_XYZ | IMOD_DRAW_NOSYNC );
   
   plug.view = NULL;
   plug.window = NULL;

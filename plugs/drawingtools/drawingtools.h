@@ -15,7 +15,7 @@ class QGroupBox;
 class QVBoxLayout;
 class QSpacerItem;
 class QEvent;
-class FloatSpinBox;   // Class written by David
+class FloatSpinBox;           // class written by David
 
 #include "imodplugin.h"
 #include "dia_qtutils.h"
@@ -46,7 +46,7 @@ public slots:
 
   bool drawExtraObject( bool redraw );
   void reduceCurrentContour();
-  void smoothCurrentContour();
+  void smoothCurrentContour( bool moveExistingPts );
   void reduceConts();
   void smoothConts();
   bool executeDAction();
@@ -68,6 +68,7 @@ public slots:
   void cut();
   void copy();
   void paste(bool centerOnMouse);
+  int  copyCurrContToView(bool smartSize);
   
   void changeType( int value );
   void changeTypeSelected( int newType );
@@ -125,6 +126,7 @@ enum smoothmodes    { RD_TOL, RD_MINAREA };
 enum wheelbehaviour { WH_NONE, WH_SCULPTCIRCLE, WH_SLICES, WH_CONTS, WH_PTS, WH_PTSIZE };
 enum dkeybehavior   { DK_NONE, DK_TOEND, DK_NEARESTEND, DK_DELETEPT, DK_DELETECONT,
                       DK_REMOVEPTSIZE, DK_REMOVEALLPTSIZES };
+enum warpdisplay    { WD_CIRCLE, WD_LENGTH, WD_ALL, WD_EITHER };
 
 enum sortcriteria   { SORT_SURFACENUM,
                       SORT_NUMPTS, SORT_LENGTH, SORT_AREA, SORT_CLOCKWISEAREA,
@@ -134,7 +136,7 @@ enum sortcriteria   { SORT_SURFACENUM,
                       SORT_PTX, SORT_PTY, SORT_PTZ,
                       SORT_PTSIZE, SORT_PTGREY, SORT_NUMOPTIONS };
 
-const int NUM_SAVED_VALS = 18;
+const int NUM_SAVED_VALS = 19;
 
 //-------------------------------
 //## DRAWINGTOOLS DATA STRUCTURE:
@@ -177,6 +179,7 @@ struct DrawingToolsData   // contains all local plugin data
                                 //  to unstippled
   int    wheelResistance;       // the higher the value, the slower mouse scrolling works
   bool   showMouseInModelView;  // shows the extra object in the model view
+  int    warpDisplay;           // warp tool display options (see: warpdisplay)
   
   bool   testIntersetAllObjs;   // if true: [a] will test all contours for interesetion
                                 // with all other contours (not just in the same object)
