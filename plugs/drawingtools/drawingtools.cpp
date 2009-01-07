@@ -15,6 +15,9 @@
     $Revision$
 
     $Log$
+    Revision 1.25  2009/01/07 04:02:03  tempuser
+    Changed closeEvent to avoid crash
+
     Revision 1.24  2008/11/16 12:13:05  tempuser
     *** empty log message ***
 
@@ -3640,7 +3643,7 @@ int  DrawingTools::copyCurrContToView(bool smartSize)
     Ipoint centerMBR;
     cont_getCenterOfMBR( cont, &centerMBR );
     float diffZ = ABS(contZ - currZ);
-    float scaleXY = pow( 0.95, diffZ );
+    float scaleXY = pow( 0.95f, diffZ );
     cout << scaleXY << endl;
     cont_scaleAboutPtXY( contNew, &centerMBR, scaleXY, scaleXY );
   }
