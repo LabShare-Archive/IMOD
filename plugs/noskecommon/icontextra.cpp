@@ -15,6 +15,9 @@
     $Revision$
 
     $Log$
+    Revision 1.12  2008/11/16 12:13:20  tempuser
+    *** empty log message ***
+
     Revision 1.11  2008/09/30 06:49:54  tempuser
     *** empty log message ***
 
@@ -1298,8 +1301,11 @@ void cont_addChamferPts( Icont *cont, Ipoint *ptPrev, Ipoint *ptCurr, Ipoint *pt
     {                           //   add two points
       Ipoint pt1 = line_getPtRelativeToEnd(ptPrev,ptCurr,distOffset, 90);
       
-			imodPointAppend( cont, &line_getPtRelativeToEnd(ptPrev,ptCurr,distOffset, 90) );
-			imodPointAppend( cont, &line_getPtRelativeToEnd(ptNext,ptCurr,distOffset,-90) );
+      Ipoint pt2 = line_getPtRelativeToEnd(ptPrev,ptCurr,distOffset, 90);
+      Ipoint pt3 = line_getPtRelativeToEnd(ptNext,ptCurr,distOffset,-90);
+      
+			imodPointAppend( cont, &pt2 );
+			imodPointAppend( cont, &pt3 );
 		}
 		else            // if extra points are needed to smooth the corner:
     {               //   add multiple points in an arc around the current (central) pt
@@ -1577,7 +1583,7 @@ int cont_addPtsSmooth( Icont *cont, float maxDist, float tensileFract, bool clos
   {
     Icont *contO = imodContourDup(cont);
     
-    for(int i=1; i<(psize(contO))+1; i++ )
+    for(int i=0; i<(psize(contO)); i++ )
     {
       float distToNextPt = line_distBetweenPts2D( getPt(contO,i), getPt(contO,i+1) );
       int numPtsToAdd = ceil(distToNextPt / maxDist) - 1;
@@ -1652,6 +1658,54 @@ int cont_addPtsSmooth( Icont *cont, float maxDist, float tensileFract, bool clos
   }
   
   return ( psize(cont) - pointsBefore );
+}
+
+
+//------------------------
+//-- Smooths the contour by moving each selected point "moveFract" towards
+//-- the position half-way between the point before and after it.
+//-- Only points > "minDistToMove" away from their "expected position" are moved.
+//-- Returns the number of points moved.
+//-- If "rescale" is true the contour is expanded so the area before and after
+//-- points are moved stays constant (even though the shape changes).
+//-- NOTE: To help preserve shape, this should be run on contours with dense points
+//--       ... thus it's a good idea to run "cont_addPtsCrude()" first.
+
+int cont_avgPtsPos( Icont *cont, float moveFract, float minDistToMove,
+                    bool closed, bool rescale )
+{
+  if(psize(cont) <= 5)
+    return 0;
+  
+  int pointsMoved  = 0;
+  int offset = (closed) ? 1 : -1;
+  
+  float areaBefore = imodContourArea( cont );
+  
+  for( int p=1; p<psize(cont)+offset; p++ )
+  {
+    Ipoint *currPt = getPt(cont,p);
+    Ipoint expectedPos   = line_getPtHalfwayBetween( getPt(cont,p-1), getPt(cont,p+1) );
+    float distToExpected = line_distBetweenPts2D( currPt, &expectedPos );
+    
+    if( distToExpected > minDistToMove )
+    {
+      *currPt = line_findPtFractBetweenPts2D( currPt, &expectedPos, moveFract );
+      pointsMoved++;
+    }
+  }
+  
+  float areaAfter = imodContourArea( cont );
+  
+  if(rescale && pointsMoved && areaBefore > areaAfter && areaAfter > 0 )
+  {
+    float scaleXY = sqrt(areaBefore) / sqrt(areaAfter);
+    Ipoint centroid;
+    cont_getCentroid( cont, &centroid  );
+    cont_scaleAboutPt( cont, &centroid, scaleXY, true );
+  }
+  
+  return ( pointsMoved );
 }
 
 
@@ -3393,10 +3447,8 @@ Ipoint cont_getPtDistAlongLength( Icont *cont, float dist, bool closed, int star
   
   float contLength = imodContourLength( cont, closed );   // length of the contour
   
-  if( contLength == 0 )
+  if( contLength == 0 || dist == 0 )
     return (*getFirstPt(cont));
-  if( dist == 0 )
-    return(*getFirstPt(cont));
   if( dist == contLength )
     return(*getLastPt(cont));
   

@@ -217,7 +217,8 @@ void cont_concat( Icont *contNew, Icont *cont1, Icont *cont2, bool matchClosestE
 int cont_addPtsCrude( Icont *cont, float maxDist, bool closed );           // MODIFIED
 int cont_addPtsSmoothIteration( Icont *cont, float maxDist, float tensileFract, bool closed );
 int cont_addPtsSmooth( Icont *cont, float maxDist, float tensileFract, bool closed, 
-                       bool roundZOpenPts=true, bool addPtEveryZ=true );          
+                       bool roundZOpenPts=true, bool addPtEveryZ=true );     
+int cont_avgPtsPos( Icont *cont, float moveFract, float minDistToMove, bool closed, bool rescale ); // NEW
 int cont_reducePtsCrude( Icont *cont, float minDist, bool closed );                    
 int cont_reducePtsTol(Icont *cont, float tol);                              // NEW
 int cont_reducePtsMinArea( Icont *cont, float minArea, bool closed );       // MODIFIED
