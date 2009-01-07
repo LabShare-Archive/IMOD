@@ -1,0 +1,83 @@
+.na
+.nh
+.TH flattenwarp 1 4.0.1 BL3DEMC
+.SH NAME
+flattenwarp -\ compute warping transformations for flattening a volume 
+.SH SYNOPSIS
+flattenwarp [options] <model_file> <warping_output_file>
+.SH DESCRIPTION
+Flattenwarp produces transformations for flattening the material of interest
+in a volume, such as the sectioned material in a tomogram.  It works from an 
+IMOD model with contours drawn in X/Z planes along the surfaces or through the
+middle of the sectioned material.  It uses the positions of these contours to
+determine how to shift each part of the volume in Z to a common plane.  In
+addition, it finds the rotations needed to make the tangents to the surface be
+flat, so as to avoid a shearing distortion of the volume.  Finally, it solves
+for lateral shifts in X and Y that preserve the area locally after the Z shifts
+and rotations.  In the case of a bent sheet such as a cylinder, these
+transformations should simply unbend the sheet.  If the section is
+dome-shaped, then flattening will inevitably distort it, and the solution here
+will expand the material radially by as much as it contracts tangentially.
+.P
+To prepare the model, open the volume in 3dmod(1) and use Edit-Image-Flip
+to view the X/Z planes in the Zap window.  Use Edit-Object-Type to change the
+object to open contours, and select the option to start a new contour
+automatically at each new Z plane.  Start drawing contours to describe the 
+location of the sectioned material.  There are three ways that this can be
+done: 1) with a pair of contours on an X/Z plane, one along the top and one
+along the bottom surface; 2) with a single contour through the middle of the
+section; or 3) with a single contour along one surface of the section.  You
+can use methods 1 and 2 interchangeably in the same model since they both
+describe the location of the middle of the section.  If you use method 3,
+drawing one surface, you must use it for all the X/Z planes in your model.
+Thus, before you begin, you need to decide whether to draw just one surface.
+.P
+The program currently does not smooth the surface that it is flattening.  This
+means that if the points describing the surface are closely spaced, random
+variability in their Z heights could lead to substantial local distortions.
+To reduce this possibility, keep the model points and contours well-spaced
+apart.  The spacing between contours in Y should not be much smaller than is
+needed to describe the changes in the surface.  The program will interpolate
+linearly in Y between the contours that you draw, so if the Z height is
+changing linearly through a set of slices, you do not need to draw contours
+within that set of slices.  You can vary the spacing, making it smaller where
+needed.  The contours themselves should be drawn by clicking individual
+points, rather than with continous drawing.  Do not follow every apparent bump
+in the surface of the section.
+.P
+You do not need to draw all the contours to the same extent in X, nor do you
+need to draw them over the full ranges of positions in Y.  The program will 
+output warping transformations over the range of positions where the contours
+were drawn, and Warpvol(1) will apply the nearest transformation at a position
+outside that range.
+.P
+The program determines the shifts in X and Y by obtaining a least-squares
+solution to a massive set of linear equations.  The number of variables being
+solved for depends on the spacing between grid points at which the warping
+transformation is computed.  If a solution seems problematic, trying
+increasing the spacing with the 
+.B -spacing
+option described below.
+.P
+After you obtain the set of warping transformations, you can apply them
+with 
+    warpvol -xf warp_file -same input_volume output_volume
+.br
+where "warp_file" is the output file from Flattenwarp.  If you know that you
+can reduce the size of Z in the flattened volume, say to "new_z", you can add
+the option "-size ,,new_z".  
+.SS Options
+Flattenwarp uses the PIP package for input (see the manual page for pip(1)).
+Options can be specified either as command line arguments (with the -)
+or one per line in a command file (without the -):
+INSERT OPTION TEXT HERE
+.TP
+.B -StandardInput
+Read parameter entries from standard input
+
+.SH AUTHOR
+David Mastronarde
+.SH SEE ALSO
+3dmod(1), warpvol(1)
+.SH BUGS
+Email bug reports to mast@colorado.edu.

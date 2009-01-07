@@ -1,0 +1,68 @@
+Version = 1.0
+Pip = 1
+
+[Field = InputFile]
+short = input
+type = FN
+usage = Input model file with contours delineating section
+tooltip = 
+manpage = 
+
+[Field = OutputFile]
+short = output
+type = FN
+usage = Output file for warping transformations
+tooltip = 
+manpage = 
+
+[Field = PatchOutputFile]
+short = patch
+type = FN
+usage = Output text file for patch vectors
+tooltip = 
+manpage = Output text file for patch vectors that can be converted to a model
+with patch2imod(1).
+
+[Field = BinningOfTomogram]
+short = binning
+type = I
+usage = Binning of tomogram that model was built on relative to tomogram to be
+warped
+tooltip = 
+manpage = Binning of tomogram that model was built on, relative to the
+tomoagrm to be warped.  Positions and vectors
+will be scaled up by this amount so that the transformations can be validly
+applied to the unbinned tomogram.
+
+[Field = OneSurface]
+short = one
+type = B
+usage = Contours are on one surface of the section, rather than in the middle
+tooltip = 
+manpage = Use this option to indicate that all contours are on one surface of
+the section rather than in the middle.  With this option, there cannot be any
+paired contours.
+
+[Field = FlipYandZ]
+short = flipyz
+type = I
+usage = 1 to flip Y and Z coordinates, 0 not to, or -1 to flip if nz > ny
+tooltip = 
+manpage = This option allows control over whether the Y and Z coordinates of
+the model are flipped.  By default, flipping will be done if the Z dimension
+(nz) of the modeled volume is greater than the Y dimension (ny).  Enter 1
+to force flipping even if this is not the case, or 0 to prevent it if this is
+the case.
+
+[Field = WarpSpacingXandY]
+short = spacing
+type = FP
+usage = Spacing between warp positions in X and Y
+tooltip = 
+manpage = Spacing between warp positions in X and Y, in pixels in the tomogram
+that was modeled.  By default, the program will try to make the spacing in X
+and Y be 3 and 4.5 times smaller, respectively, than the minimum spacing
+between contours in Y, but if that will lead to too many patches, it will make
+the spacing bigger.  This option can be used to specify a spacing instead.
+This may be needed if too fine a spacing leads to problems when solving the
+linear equations for the shifts.

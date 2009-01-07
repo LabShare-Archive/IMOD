@@ -1,5 +1,11 @@
 IMOD History
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+1/6/09: Added Flattenwarp, a program to produce warping transformations for
+flattening a volume.
+
+1/6/09: Fixed model view display problem on some Macs caused by stereo 
+changes by swapping buffers twice more after the draw (In 3.13).
+
 1/2/09: Made a script for imodhelp to run it properly (In 3.13).
 
 12/31/08: Added option to Warpvol to set default output size the same as input.
