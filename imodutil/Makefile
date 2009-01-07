@@ -16,7 +16,7 @@ PROGS = imodauto$(E) imodinfo$(E) imodmesh$(E) imodtrans$(E) imodmop$(E) \
  rec2imod$(E) imod2rib$(E) imod2vrml$(E) imod2meta$(E) \
  wmod2imod$(E) imodjoin$(E) imodextract$(E) imodsortsurf$(E) imodexplode$(E) \
  patch2imod$(E) imod2patch$(E) echo2$(E) imodfillin$(E) imodcurvature$(E) \
- imodfindbeads$(E) point2model$(E) $(IMODWINCPU)
+ imodfindbeads$(E) point2model$(E) flattenwarp$(E) $(IMODWINCPU)
 
 all : $(PROGS)
 
@@ -88,6 +88,9 @@ point2model$(E) : point2model.$(O)
 	$(CC) -o point2model point2model.$(O) $(LDFLAGS) $(MODLIBS) \
 	$(CLIBS)
 
+flattenwarp$(E) : flattenwarp.$(O)
+	$(CC) -o flattenwarp flattenwarp.$(O) $(LDFLAGS) $(MODLIBS) $(CLIBS)
+
 imodwincpu.exe : imodwincpu.obj
 	$(CC) -o imodwincpu imodwincpu.obj $(LDFLAGS)
 
@@ -133,6 +136,9 @@ imodmkhv : imodmkhv.$(O)
 
 
 #  $Log$
+#  Revision 3.20  2008/06/19 23:27:11  mast
+#  Added imodfindbeads
+#
 #  Revision 3.19  2007/10/18 22:20:20  mast
 #  Added point2model
 #
