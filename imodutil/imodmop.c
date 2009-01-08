@@ -38,7 +38,8 @@ static void paintScanContour(Iobj *obj, Icont *cont, Islice *islice,
                              Islice *pslice[3], int numChan, IloadInfo *li,
                              int fill, Ival bkgVal);
 static void paintTubularLines(Iobj *obj, Islice *islice, Islice *pslice[3], 
-                              int numChan, IloadInfo *li, float rad, int iz);
+                              int numChan, IloadInfo *li, float rad, int iz,
+                              int tubes2D);
 static void putSliceValue(Iobj *obj,  Islice *islice, Islice *pslice[3],
                           int numChan, IloadInfo *li, int x, int y, 
                           Ival inval);
@@ -63,6 +64,7 @@ int main( int argc, char *argv[])
   int numDiams, numTubes = 0, border = -1000;
   int black = 0, white = 255;
   float bkgFill = 0., bkgRed = 1., bkgGreen = 1., bkgBlue = 1.;
+  int tubes2D = 0;
   char *listString;
   int *objList;
   int *tubeList;
@@ -91,7 +93,7 @@ int main( int argc, char *argv[])
   Ival val, pval, bkgVal;
 
   /* Fallbacks from    ../manpages/autodoc2man 2 1 imodmop  */
-  int numOptions = 22;
+  int numOptions = 23;
   char *options[] = {
     "xminmax:XMinAndMax:IP:", "yminmax:YMinAndMax:IP:",
     "zminmax:ZMinAndMax:IP:", "border:BorderAroundObjects:I:",
@@ -99,11 +101,11 @@ int main( int argc, char *argv[])
     "thresh:Threshold:F:", "fv:FillValue:F:", "fc:FillColor:FT:",
     "objects:ObjectsToDo:LI:", "2dscat:2DScatteredPoints:B:",
     "3dscat:3DScatteredPoints:B:", "tube:TubeObjects:LI:",
-    "diam:DiameterForTubes:F:", "color:ColorOutput:B:",
-    "scale:ScalingMinMax:FP:", "project:ProjectTiltSeries:FT:",
-    "axis:AxisToTiltAround:CH:", "constant:ConstantScaling:B:",
-    "bw:BlackAndWhite:IP:", "tempdir:TemporaryDirectory:CH:",
-    "keep:KeepTempFiles:B:"};
+    "diam:DiameterForTubes:F:", "planar:PlanarTubes:B:",
+    "color:ColorOutput:B:", "scale:ScalingMinMax:FP:",
+    "project:ProjectTiltSeries:FT:", "axis:AxisToTiltAround:CH:",
+    "constant:ConstantScaling:B:", "bw:BlackAndWhite:IP:",
+    "tempdir:TemporaryDirectory:CH:", "keep:KeepTempFiles:B:"};
 
   char *progname = imodProgName(argv[0]);
 
@@ -163,7 +165,8 @@ int main( int argc, char *argv[])
   ifThresh = 1 - PipGetFloat("Threshold", &thresh);
 
   /* Projection option */
-  ifProj = 1 - PipGetThreeFloats("p", &start_tilt, &end_tilt, &inc_tilt);
+  ifProj = 1 - PipGetThreeFloats("ProjectTiltSeries", &start_tilt, &end_tilt,
+                                 &inc_tilt);
   if (ifProj) {
     PipGetString("TemporaryDirectory", &tempDir);
     PipGetBoolean("ConstantScaling", &constScale);
@@ -187,7 +190,8 @@ int main( int argc, char *argv[])
 
   PipGetBoolean("KeepTempFiles", &retain);
   PipGetBoolean("2DScatteredPoints", &scat2D);
-  PipGetBoolean("3DScatteredPoints", &scat3D);
+  PipGetBoolean("2DScatteredPoints", &scat2D);
+  PipGetBoolean("PlanarTubes", &tubes2D);
   if (scat2D && scat3D)
     exitError("You can not enter both -2 and -3");
   if (!PipGetInteger("BorderAroundObjects", &border)) {
@@ -486,7 +490,7 @@ int main( int argc, char *argv[])
           i = itemOnList(objnum + 1, tubeList, numTubes);
           if (i >= 0 && !inside)
             paintTubularLines(obj, islice, pslice, numChan, &li,
-                              tubeDiams[i] /2., k);
+                              tubeDiams[i] /2., k, tubes2D);
           
         /* Do scattered objects if specified and on first pass only */
         } else if (iobjScat(obj->flags)) {
@@ -864,7 +868,8 @@ void paintScatPoints(Iobj *obj, Islice *islice, Islice *pslice[3], int numChan,
 }
 
 static void paintTubularLines(Iobj *obj, Islice *islice, Islice *pslice[3], 
-                              int numChan, IloadInfo *li, float rad, int iz)
+                              int numChan, IloadInfo *li, float rad, int iz,
+                              int tubes2D)
 {
   Ival inval;
   Icont *cont;
@@ -885,8 +890,10 @@ static void paintTubularLines(Iobj *obj, Islice *islice, Islice *pslice[3],
     for (pt = 1; pt < cont->psize; pt++) {
       ptcur = &cont->pts[pt];
       dz = fabs((double)ptcur->z - iz);
-      if (dz <= rad || dzlas <= rad || (ptcur->z > iz && ptlas->z < iz) ||
-          (ptcur->z < iz && ptlas->z > iz)) {
+      if ((!tubes2D && 
+          (dz <= rad || dzlas <= rad || (ptcur->z > iz && ptlas->z < iz) ||
+           (ptcur->z < iz && ptlas->z > iz)))
+          || (tubes2D && dz < 0.5 && dzlas < 0.5)) {
 
         /* If either endpoint is within radius in Z, make a box around the
            segment */
@@ -967,6 +974,9 @@ static int itemOnList(int item, int *list, int num)
 
 /*
 $Log$
+Revision 3.11  2008/05/02 16:07:47  mast
+Fixed bug in painting tube when points are too far apart in Z
+
 Revision 3.10  2008/01/28 19:42:42  mast
 Added includes for pip and getenv
 
