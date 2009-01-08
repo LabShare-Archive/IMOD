@@ -1,5 +1,7 @@
 IMOD History
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+1/7/09: Added option to imodmop to paint tubes only in planes (in 3.13).
+
 1/6/09: IMOD_4-0-1
 1/6/09: Added Flattenwarp, a program to produce warping transformations for
 flattening a volume.

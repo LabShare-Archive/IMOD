@@ -134,6 +134,15 @@ tooltip =
 manpage = Diameter for open contour objects being painted as tubes.  Enter
 either 1 value, or 1 value per listed object.
 
+[Field = PlanarTubes]
+short = planar
+type = B
+usage = Paint open contours only in the plane where a segment lies
+tooltip = 
+manpage = With this open, open contours identified as being painted as tubes
+will be painted in 2D only.  For each segment of the contour that lies in one
+Z plane, pixels will be extracted in that Z plane only.
+
 [Field = ColorOutput]
 short = color
 type = B
