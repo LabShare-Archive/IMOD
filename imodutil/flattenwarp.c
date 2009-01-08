@@ -356,26 +356,30 @@ int main( int argc, char *argv[])
   }
 
   /* Fill in normals from closest transformation */
-  delind = 2 + B3DMAX(ySpacing / xSpacing, xSpacing / ySpacing);
   for (j = 0; j < numYloc; j++) {
     for (i = 0; i < numXloc; i++) {
       ind = indWarp[i + j * numXloc];
       if (ind < 0 || warps[ind].aa > -998.)
         continue;
       distmin = 1.e30;
-      for (iy = j - delind; iy <= j + delind; iy++) {
-        for (ix = i - delind; ix <= i + delind; ix++) {
-          ind2 = INDWARP(ix, iy);
-          if (ind2 < 0 || warps[ind2].aa < -998.)
-            continue;
-          dx = warps[ind].xpos -  warps[ind2].xpos;
-          dy = warps[ind].ypos -  warps[ind2].ypos;
-          dist = dx * dx + dy * dy;
-          if (dist < distmin) {
-            distmin = dist;
-            indmin = ind2;
+      indmin = -1;
+      delind = 2 + B3DMAX(ySpacing / xSpacing, xSpacing / ySpacing);
+      while (indmin < 0) {
+        for (iy = j - delind; iy <= j + delind; iy++) {
+          for (ix = i - delind; ix <= i + delind; ix++) {
+            ind2 = INDWARP(ix, iy);
+            if (ind2 < 0 || warps[ind2].aa < -998.)
+              continue;
+            dx = warps[ind].xpos -  warps[ind2].xpos;
+            dy = warps[ind].ypos -  warps[ind2].ypos;
+            dist = dx * dx + dy * dy;
+            if (dist < distmin) {
+              distmin = dist;
+              indmin = ind2;
+            }
           }
         }
+        delind *= 2;
       }
       warps[ind].aa = warps[indmin].aa;
       warps[ind].bb = warps[indmin].bb;
