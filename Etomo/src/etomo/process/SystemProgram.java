@@ -17,6 +17,11 @@
  * @version $Revision$
  *
  * <p> $Log$
+ * <p> Revision 3.35  2008/02/16 01:55:09  sueh
+ * <p> bug# 1080 Added collectionOutput, which is used to set
+ * <p> OutputBufferManager.collectionOutput.  This allows intermittent
+ * <p> processes to throw away their output and avoid growing without bounds.
+ * <p>
  * <p> Revision 3.34  2007/05/25 00:24:39  sueh
  * <p> bug# 994 Added function destroy.
  * <p>
@@ -261,6 +266,7 @@ import java.util.ArrayList;
 import java.util.Date;
 
 import etomo.type.AxisID;
+import etomo.ui.UIHarness;
 import etomo.util.Utilities;
 
 public class SystemProgram implements Runnable {
@@ -377,7 +383,7 @@ public class SystemProgram implements Runnable {
     }
 
     //  Setup the Process object and run the command
-    process=null;
+    process = null;
     try {
       if (debug)
         System.err.print("SystemProgram: Exec'ing process...");
@@ -520,6 +526,9 @@ public class SystemProgram implements Runnable {
     catch (IOException except) {
       except.printStackTrace();
       exceptionMessage = except.getMessage();
+      if (exceptionMessage.indexOf("Cannot run program \"tcsh\"") != -1) {
+        UIHarness.INSTANCE.openMessageDialog(exceptionMessage, "System Error");
+      }
     }
     processMessages.addProcessOutput(stdout);
     processMessages.addProcessOutput(stderr);
@@ -562,9 +571,9 @@ public class SystemProgram implements Runnable {
     //  Set the done flag for the thread
     done = true;
   }
-  
+
   void destroy() {
-    if (process==null) {
+    if (process == null) {
       return;
     }
     process.destroy();
@@ -583,7 +592,7 @@ public class SystemProgram implements Runnable {
     bufferManager.setCollectOutput(collectOutput);
     return bufferManager;
   }
-  
+
   void setCollectOutput(boolean input) {
     collectOutput = input;
   }
