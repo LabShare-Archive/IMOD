@@ -29,6 +29,13 @@ import etomo.util.PrimativeTokenizer;
  * @version $Revision$
  * 
  * <p> $Log$
+ * <p> Revision 1.19  2008/09/10 21:09:27  sueh
+ * <p> bug# 1135 Check for null when calling ParsedElementList.get(int).  Check
+ * <p> for null when calling ParsedElement.getElement or getRawNumber.
+ * <p> arsedElementList will no longer create an empty element, so null returns
+ * <p> will happen.  Do not create an empty ParsedNumber just to return the
+ * <p> correct empty value; just return null.
+ * <p>
  * <p> Revision 1.18  2008/08/22 17:51:22  sueh
  * <p> bug# 1136 Made setRawString(Number) public.
  * <p>
@@ -359,6 +366,10 @@ public final class ParsedNumber extends ParsedElement {
 
   void setDefault(EtomoNumber input) {
     rawNumber.setDefault(input);
+  }
+  
+ public void setFloor(int input) {
+    rawNumber.setFloor(input);
   }
 
   void removeElement(int index) {
