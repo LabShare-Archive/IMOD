@@ -32,6 +32,10 @@ import etomo.util.Utilities;
  * @version $Revision$
  * 
  * <p> $Log$
+ * <p> Revision 1.13  2008/09/10 21:36:49  sueh
+ * <p> bug# 1135 In setValue(ParsedElement) handle possibility that the
+ * <p> parameter may be null.
+ * <p>
  * <p> Revision 1.12  2008/08/22 17:52:30  sueh
  * <p> bug# 1136 Added isEnabled and setValue(int).
  * <p>
@@ -118,6 +122,11 @@ final class Spinner {
 
   static Spinner getInstance(final String name) {
     return new Spinner(name, false, 1, 1, 1, 1);
+  }
+  
+  static Spinner getInstance(final String label, final int value,
+      final int minimum, final int maximum) {
+    return new Spinner(label, false, value, minimum, maximum, 1);
   }
 
   static Spinner getLabeledInstance(final String label) {
