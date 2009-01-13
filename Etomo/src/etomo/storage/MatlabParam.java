@@ -43,6 +43,9 @@ import etomo.util.DatasetFiles;
  * @version $Revision$
  * 
  * <p> $Log$
+ * <p> Revision 1.24  2008/10/10 20:42:48  sueh
+ * <p> bug# 1142 Clear tiltRange when tiltRange check box is unchecked.
+ * <p>
  * <p> Revision 1.23  2008/09/10 20:55:24  sueh
  * <p> bug# 1135 Check for null when calling ParsedElementList.get(int).  Check
  * <p> for null when calling ParsedElement.getElement or getRawNumber.  Make
@@ -51,7 +54,11 @@ import etomo.util.DatasetFiles;
  * <p> tiltRange with a tiltRangeEmpty boolean.
  * <p>
  * <p> Revision 1.22  2008/09/05 20:52:37  sueh
- * <p> bug# 1136 Added useNWeightGroup to distinguish between an nWeightGroup with the spinner set to 0 and an nWeightGroup which is disabled.  Calling updateOrBuildAutodoc from write in third place because it has to be able to remove entries.  Updating setNameValuePairValues - it was missing some recent additions.
+ * <p> bug# 1136 Added useNWeightGroup to distinguish between an nWeightGroup
+ * <p> with the spinner set to 0 and an nWeightGroup which is disabled.  Calling
+ * <p> updateOrBuildAutodoc from write in third place because it has to be able
+ * <p> to remove entries.  Updating setNameValuePairValues - it was missing some
+ * <p> recent additions.
  * <p>
  * <p> Revision 1.21  2008/08/22 17:50:35  sueh
  * <p> bug# 1136 Added nWeightGroup.
@@ -267,7 +274,8 @@ public final class MatlabParam {
   public static final String INSIDE_MASK_RADIUS_KEY = "insideMaskRadius";
   public static final String OUTSIDE_MASK_RADIUS_KEY = "outsideMaskRadius";
   public static final String N_WEIGHT_GROUP_KEY = "nWeightGroup";
-  public static final int N_WEIGHT_GROUP_DEFAULT = 0;
+  public static final int N_WEIGHT_GROUP_DEFAULT = 8;
+  public static final int N_WEIGHT_GROUP_MIN = 2;
 
   private static final int VOLUME_INDEX = 0;
   private static final int PARTICLE_INDEX = 1;
@@ -327,6 +335,7 @@ public final class MatlabParam {
     this.file = file;
     this.newFile = newFile;
     nWeightGroup.setDefault(N_WEIGHT_GROUP_DEFAULT);
+    nWeightGroup.setFloor(N_WEIGHT_GROUP_MIN);
   }
 
   /**
@@ -731,6 +740,10 @@ public final class MatlabParam {
 
   public ParsedElement getNWeightGroup() {
     return nWeightGroup;
+  }
+  
+  public boolean isNWeightGroupEmpty() {
+    return nWeightGroup.isEmpty();
   }
 
   public String getOutsideMaskRadius() {
