@@ -13,6 +13,10 @@ package etomo.type;
 * @version $Revision$
 * 
 * <p> $Log$
+* <p> Revision 1.11  2008/09/10 20:56:22  sueh
+* <p> bug# 1135 Added EtomoBoolean2 tiltRange to MetaData so that the state
+* <p> of the check box on the screen can be saved.
+* <p>
 * <p> Revision 1.10  2008/08/22 17:50:54  sueh
 * <p> bug# 1136 Added getNWeightGroup.
 * <p>
@@ -65,5 +69,6 @@ public interface ConstPeetMetaData {
   public String getMaskModelPtsParticle();
   public String getMaskTypeVolume();
   public ConstEtomoNumber getNWeightGroup();
+  public boolean isUseNWeightGroup();
   public boolean isTiltRange();
 }
