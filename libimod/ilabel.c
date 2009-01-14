@@ -86,7 +86,7 @@ Ilabel *imodLabelDup(Ilabel *label)
  * Give [label] the title in [val], i.e., set the {name} element of the 
  * @@Ilabel structure@.
  */
-void imodLabelName(Ilabel *label, char *val)
+void imodLabelName(Ilabel *label, const char *val)
 {
   int len;
 
@@ -112,7 +112,7 @@ void imodLabelName(Ilabel *label, char *val)
  * given by [index].  Replaces an existing label item with the same value of
  * [index].
  */
-void imodLabelItemAdd(Ilabel *label, char *val, int index)
+void imodLabelItemAdd(Ilabel *label, const char *val, int index)
 {
   IlabelItem *li;
   int i=0, len;
@@ -442,6 +442,9 @@ Ilabel *imodLabelRead(FILE *fin, int *err)
 }
 
 /* $Log$
+/* Revision 3.8  2008/08/18 20:17:06  mast
+/* Fixed replacement of label with blank (zero-length) label
+/*
 /* Revision 3.7  2008/08/18 19:39:33  mast
 /* Fixed computation of chunk size written to file
 /*
