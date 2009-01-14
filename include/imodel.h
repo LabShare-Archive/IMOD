@@ -645,10 +645,10 @@ extern "C" {
   /***************************************************************************/
   /* imodel_files.c functions                                                */
   /***************************************************************************/
-  Imod *imodFileRead(char *filename);
-  int   imodFileWrite(Imod *imod, char *filename);
+  Imod *imodFileRead(const char *filename);
+  int   imodFileWrite(Imod *imod, const char *filename);
 
-  int   imodOpenFile  (char *filename, char *mode, Imod *imod);
+  int   imodOpenFile  (const char *filename, const char *mode, Imod *imod);
   int   imodCloseFile (Imod *imod);
   int   imodReadFile  (Imod *imod);
   Imod *imodRead      (const char *filename);
@@ -682,8 +682,8 @@ extern "C" {
   Ilabel *imodLabelNew(void);
   void    imodLabelDelete(Ilabel *label);
   Ilabel *imodLabelDup(Ilabel *label);
-  void    imodLabelName(Ilabel *label, char *val);
-  void    imodLabelItemAdd(Ilabel *label, char *val, int index);
+  void    imodLabelName(Ilabel *label, const char *val);
+  void    imodLabelItemAdd(Ilabel *label, const char *val, int index);
   void    imodLabelItemMove(Ilabel *label, int to_index, int from_index);
   void    imodLabelItemDelete(Ilabel *label, int index);
   char   *imodLabelItemGet(Ilabel *label, int index);
@@ -700,6 +700,9 @@ extern "C" {
 
 /*    
     $Log$
+    Revision 3.44  2009/01/02 05:19:19  mast
+    const char * for Qt 4 port
+
     Revision 3.43  2008/01/27 06:25:36  mast
     Added object group list
 
