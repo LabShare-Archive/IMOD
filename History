@@ -1,5 +1,8 @@
 IMOD History
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+1/15/09: IMOD_4-0-2  (as switchpoint for build scripts)
+1/15/09: Port to Qt 4.4 of all Qt-based programs.
+
 1/12/09: Fixed problem of Midas starting up with cosine stretch on (In 3.13).
 
 1/7/09: Added option to imodmop to paint tubes only in planes (In 3.13).
